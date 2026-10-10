@@ -1,9 +1,9 @@
 <!DOCTYPE html>
-<html lang="es">
+<html lang="en">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>ronbo.nutri · Privado</title>
+<title>ronbo.nutri · Private</title>
 <meta name="robots" content="noindex, nofollow">
 <link rel="stylesheet" href="styles.css">
 <script type="importmap">
@@ -22,89 +22,95 @@
 <!-- ============ AUTH VIEW ============ -->
 <div id="auth-view" class="auth-wrap">
   <div class="auth-card">
+    <div class="lang-toggle" id="lang-toggle-auth"><button type="button" data-lang="en" class="active">EN</button><button type="button" data-lang="es">ES</button></div>
     <div class="auth-logo">🥗</div>
     <h1>ronbo.nutri</h1>
-    <p class="auth-sub">Tu registro privado de nutrición</p>
+    <p class="auth-sub" data-i18n="auth.subtitle">Your private nutrition log</p>
     <div class="auth-tabs">
-      <button type="button" id="tab-login" class="auth-tab active">Entrar</button>
-      <button type="button" id="tab-register" class="auth-tab">Crear cuenta</button>
+      <button type="button" id="tab-login" class="auth-tab active" data-i18n="auth.tabLogin">Sign in</button>
+      <button type="button" id="tab-register" class="auth-tab" data-i18n="auth.tabRegister">Create account</button>
     </div>
     <form id="form-login">
-      <label>Correo
+      <label><span data-i18n="form.email">Email</span>
         <input type="email" id="login-email" autocomplete="username" required>
       </label>
-      <label>Contraseña
+      <label><span data-i18n="form.password">Password</span>
         <input type="password" id="login-password" autocomplete="current-password" required>
       </label>
+      <a href="#" id="link-forgot" class="forgot-link" data-i18n="auth.forgot">Forgot your password?</a>
       <div id="auth-error" class="auth-error"></div>
-      <button type="submit" class="btn-primary">Entrar</button>
+      <button type="submit" class="btn-primary" data-i18n="auth.signin">Sign in</button>
     </form>
     <form id="form-register" style="display:none">
-      <label>Nombre y apellido
-        <input type="text" id="reg-name" autocomplete="name" required placeholder="Ej. Ronald Borges">
+      <label><span data-i18n="form.fullname">Full name</span>
+        <input type="text" id="reg-name" autocomplete="name" required data-i18n-ph="form.fullnamePh" placeholder="E.g. Maria Garcia">
       </label>
-      <label>Correo electrónico
+      <label><span data-i18n="form.emailLong">Email address</span>
         <input type="email" id="reg-email" autocomplete="username" required>
       </label>
-      <label>Número de teléfono
-        <input type="tel" id="reg-phone" autocomplete="tel" required placeholder="Ej. +1 901 555 1234">
+      <label><span data-i18n="form.password">Password</span>
+        <input type="password" id="reg-password" autocomplete="new-password" minlength="6" required>
+        <span class="field-hint" data-i18n="form.passwordHint">This is your ronbo.nutri account password, not your social media one.</span>
       </label>
-      <label>Sexo / Género
+      <label><span data-i18n="form.password2">Confirm password</span>
+        <input type="password" id="reg-password2" autocomplete="new-password" minlength="6" required>
+      </label>
+      <label><span data-i18n="form.phone">Phone number</span>
+        <input type="tel" id="reg-phone" autocomplete="tel" required data-i18n-ph="form.phonePh" placeholder="E.g. +1 901 555 1234">
+      </label>
+      <label><span data-i18n="form.gender">Sex / Gender</span>
         <select id="reg-gender" required>
-          <option value="">Selecciona…</option>
-          <option>Femenino</option>
-          <option>Masculino</option>
-          <option>No binario</option>
-          <option>Género fluido</option>
-          <option>Otro</option>
-          <option>Prefiero no decirlo</option>
+          <option value="" data-i18n="form.select">Select…</option>
+          <option value="Femenino">Female</option>
+          <option value="Masculino">Male</option>
+          <option value="No binario">Non-binary</option>
+          <option value="Género fluido">Gender-fluid</option>
+          <option value="Otro">Other</option>
+          <option value="Prefiero no decirlo">Prefer not to say</option>
         </select>
       </label>
-      <label>Redes sociales <span class="opt">(opcional)</span>
-        <input type="text" id="reg-social" placeholder="Ej. Instagram: @usuario">
-      </label>
-      <label>Contraseña
-        <input type="password" id="reg-password" autocomplete="new-password" minlength="6" required>
+      <label><span data-i18n="form.social">Social media</span> <span class="opt" data-i18n="form.opt">(optional)</span>
+        <input type="text" id="reg-social" data-i18n-ph="form.socialPh" placeholder="E.g. Instagram: @user">
       </label>
       <div class="health-box">
-        <b>🏥 Declaración de salud</b>
-        <p class="health-hint">Marca las condiciones que tengas. Es por tu seguridad: tu entrenador debe conocerlas antes de asignarte un plan de ejercicio o nutrición.</p>
+        <b data-i18n="health.title">🏥 Health declaration</b>
+        <p class="health-hint" data-i18n="health.hint">Check any conditions you have. It's for your safety: your trainer must know them before assigning an exercise or nutrition plan.</p>
         <div class="health-grid">
-          <label><input type="checkbox" class="reg-cond" value="Hipertensión"> Hipertensión</label>
+          <label><input type="checkbox" class="reg-cond" value="Hipertensión"> High blood pressure</label>
           <label><input type="checkbox" class="reg-cond" value="Diabetes"> Diabetes</label>
-          <label><input type="checkbox" class="reg-cond" value="Problemas del corazón"> Problemas del corazón</label>
-          <label><input type="checkbox" class="reg-cond" value="Dolor de pecho al ejercitarse"> Dolor de pecho al ejercitarse</label>
-          <label><input type="checkbox" class="reg-cond" value="Mareos o desmayos"> Mareos o desmayos</label>
-          <label><input type="checkbox" class="reg-cond" value="Asma / problemas respiratorios"> Asma / problemas respiratorios</label>
-          <label><input type="checkbox" class="reg-cond" value="Lesiones articulares o musculares"> Lesiones articulares o musculares</label>
-          <label><input type="checkbox" class="reg-cond" value="Cirugía reciente"> Cirugía reciente</label>
-          <label><input type="checkbox" class="reg-cond" value="Embarazo"> Embarazo</label>
-          <label><input type="checkbox" class="reg-cond" value="Ninguna de las anteriores"> Ninguna de las anteriores</label>
+          <label><input type="checkbox" class="reg-cond" value="Problemas del corazón"> Heart problems</label>
+          <label><input type="checkbox" class="reg-cond" value="Dolor de pecho al ejercitarse"> Chest pain when exercising</label>
+          <label><input type="checkbox" class="reg-cond" value="Mareos o desmayos"> Dizziness or fainting</label>
+          <label><input type="checkbox" class="reg-cond" value="Asma / problemas respiratorios"> Asthma / breathing problems</label>
+          <label><input type="checkbox" class="reg-cond" value="Lesiones articulares o musculares"> Joint or muscle injuries</label>
+          <label><input type="checkbox" class="reg-cond" value="Cirugía reciente"> Recent surgery</label>
+          <label><input type="checkbox" class="reg-cond" value="Embarazo"> Pregnancy</label>
+          <label><input type="checkbox" class="reg-cond" value="Ninguna de las anteriores"> None of the above</label>
         </div>
-        <label>Detalles / medicamentos <span class="opt">(opcional)</span>
-          <textarea id="reg-health-detail" rows="2" placeholder="Ej. Toma metformina; lesión de rodilla izquierda en 2023…"></textarea>
+        <label><span data-i18n="health.details">Details / medications</span> <span class="opt" data-i18n="form.opt">(optional)</span>
+          <textarea id="reg-health-detail" rows="2" data-i18n-ph="health.detailsPh" placeholder="E.g. Takes metformin; left knee injury in 2023…"></textarea>
         </label>
-        <label class="consent-check"><input type="checkbox" id="reg-health-ok" required> Declaro que la información de salud indicada es verdadera.</label>
+        <label class="consent-check"><input type="checkbox" id="reg-health-ok" required> <span data-i18n="health.ok">I declare that the health information provided is true.</span></label>
       </div>
       <div class="consent-box">
-        <div class="consent-text">
-          <b>AVISO DE PRIVACIDAD Y CONSENTIMIENTO PARA EL TRATAMIENTO DE DATOS PERSONALES</b><br><br>
-          Al crear tu cuenta en <b>ronbo.nutri</b>, aceptas lo siguiente:<br><br>
-          <b>1. Responsable.</b> Ronald Borges (@ronaldborges590), entrenador personal certificado ISSA, es responsable de tus datos.<br><br>
-          <b>2. Datos que recogemos.</b> Nombre, correo, teléfono, sexo/género, redes sociales (opcional), declaración de condiciones de salud, registros de alimentación, peso y composición corporal, fotos de perfil, de progreso y de alimentos (para análisis nutricional), y tus metas nutricionales.<br><br>
-          <b>3. Finalidad.</b> Prestar servicios de entrenamiento y asesoría nutricional personalizada, dar seguimiento a tu progreso y comunicarnos contigo.<br><br>
-          <b>4. Almacenamiento.</b> Tus datos se guardan de forma segura en Google Firebase (Estados Unidos), con acceso restringido: solo tú y tu entrenador pueden verlos.<br><br>
-          <b>5. Tus derechos.</b> Puedes pedir en cualquier momento ver, corregir o eliminar tus datos. Eliminar tu cuenta borra tus registros.<br><br>
-          <b>6. Conservación.</b> Guardamos tus datos mientras seas cliente y hasta 2 años después de tu última actividad, salvo que pidas eliminarlos antes.<br><br>
-          <b>7. Menores.</b> Este servicio es solo para mayores de 18 años, o menores con autorización de su padre, madre o tutor.<br><br>
-          <b>8. Revocación.</b> Puedes retirar tu consentimiento en cualquier momento escribiendo a tu entrenador; al hacerlo se eliminarán tus datos y se cerrará tu cuenta.<br><br>
-          <b>9. Salud y ejercicio.</b> El entrenador es un profesional del fitness certificado (ISSA), no un profesional médico. Consulta a tu médico antes de iniciar cualquier programa de ejercicio o nutrición, especialmente si declaraste alguna condición de salud.<br><br>
-          Al marcar la casilla y crear tu cuenta, declaras que leíste este aviso y das tu consentimiento para el tratamiento de tus datos con las finalidades descritas.
+        <div class="consent-text" data-i18n="terms.body">
+          <b>PRIVACY NOTICE AND CONSENT FOR THE PROCESSING OF PERSONAL DATA</b><br><br>
+          When you create your account at <b>ronbo.nutri</b>, you agree to the following:<br><br>
+          <b>1. Controller.</b> ronbo.nutri is responsible for your data.<br><br>
+          <b>2. Data we collect.</b> Name, email, phone, sex/gender, social media (optional), health condition declaration, food logs, weight and body composition, profile, progress and food photos (for nutritional analysis), and your nutrition goals.<br><br>
+          <b>3. Purpose.</b> To provide personalized training and nutrition coaching services, track your progress, and communicate with you.<br><br>
+          <b>4. Storage.</b> Your data is stored securely in Google Firebase (United States), with restricted access: only you and your trainer can see it.<br><br>
+          <b>5. Your rights.</b> You may at any time request to view, correct, or delete your data. Deleting your account erases your records.<br><br>
+          <b>6. Retention.</b> We keep your data while you are a client and up to 2 years after your last activity, unless you request deletion sooner.<br><br>
+          <b>7. Minors.</b> This service is for adults 18 and older, or minors with a parent or guardian&apos;s authorization.<br><br>
+          <b>8. Revocation.</b> You may withdraw your consent at any time by writing to your trainer; doing so will delete your data and close your account.<br><br>
+          <b>9. Health and exercise.</b> The trainer is an ISSA-certified fitness professional, not a medical professional. Consult your doctor before starting any exercise or nutrition program, especially if you declared a health condition.<br><br>
+          By checking the box and creating your account, you declare that you read this notice and consent to the processing of your data for the purposes described.
         </div>
-        <label class="consent-check"><input type="checkbox" id="reg-consent" required> He leído y acepto el aviso de privacidad.</label>
+        <label class="consent-check"><input type="checkbox" id="reg-consent" required> <span data-i18n="terms.accept">I have read and accept the privacy notice.</span></label>
       </div>
       <div id="reg-error" class="auth-error"></div>
-      <button type="submit" class="btn-primary">Crear mi cuenta</button>
+      <button type="submit" class="btn-primary" data-i18n="auth.create">Create my account</button>
     </form>
     <div class="auth-brand">
       <p class="auth-hint">@ronaldborges590<br>ISSA Certified Personal Trainer</p>
@@ -120,27 +126,27 @@
 <div id="app-view" class="wrap" style="display:none">
   <div class="topbar">
     <div class="title-card">
-      <h1 id="dateTitle">Cargando…</h1>
-      <p class="who-row"><span class="live-dot"></span><img id="avatar" class="avatar" alt="Mi foto" title="Toca para cambiar tu foto de perfil"><span id="who">—</span> · <a href="#" id="btn-logout" class="logout-link">salir</a></p>
+      <h1 id="dateTitle">Loading…</h1>
+      <p class="who-row"><span class="live-dot"></span><img id="avatar" class="avatar" data-i18n-alt="app.myPhoto" alt="My photo" data-i18n-title="avatar.change" title="Tap to change your profile photo"><span id="who">—</span> · <a href="#" id="btn-logout" class="logout-link" data-i18n="app.logout">log out</a> · <span class="lang-toggle"><button type="button" data-lang="en" class="active">EN</button><button type="button" data-lang="es">ES</button></span></p>
       <input type="file" id="avatar-file" accept="image/*" style="display:none">
     </div>
     <div class="goals-card">
-      <h2>Tus metas diarias</h2>
+      <h2 data-i18n="app.goals">Your daily goals</h2>
       <div class="goals-row" id="goals-row"></div>
     </div>
   </div>
 
   <nav class="main-tabs" id="main-tabs" style="display:none">
-    <button type="button" class="main-tab active" data-tab="track">📊 Mi registro</button>
-    <button type="button" class="main-tab" data-tab="clients">👥 Mis clientes</button>
-    <button type="button" class="main-tab" data-tab="access">🔐 Accesos</button>
+    <button type="button" class="main-tab active" data-tab="track" data-i18n="tabs.track">📊 My log</button>
+    <button type="button" class="main-tab" data-tab="clients" data-i18n="tabs.clients">👥 My clients</button>
+    <button type="button" class="main-tab" data-tab="access" data-i18n="tabs.access">🔐 Access</button>
   </nav>
   <div class="tab-pane" id="tab-track">
   <div class="date-row">
-    <label for="dateSel">📅 Fecha:</label>
+    <label for="dateSel" data-i18n="track.date">📅 Date:</label>
     <select id="dateSel"></select>
-    <button id="btn-add-meal" class="btn-primary btn-sm">＋ Registrar comida</button>
-    <label class="btn-ghost btn-sm import-label" id="import-wrap" title="Importar registro.csv (solo dueño)">⤓ Importar CSV
+    <button id="btn-add-meal" class="btn-primary btn-sm" data-i18n="track.addMeal">＋ Log meal</button>
+    <label class="btn-ghost btn-sm import-label" id="import-wrap" data-i18n-title="track.importTitle" title="Import registro.csv (owner only)"><span data-i18n="track.import">⤓ Import CSV</span>
       <input type="file" id="import-file" accept=".csv">
     </label>
   </div>
@@ -149,18 +155,18 @@
   <div class="rings" id="rings"></div>
 
   <div class="panel week-panel">
-    <h2>📈 Cumplimiento semanal de metas</h2>
+    <h2 data-i18n="track.weekTitle">📈 Weekly goal compliance</h2>
     <div id="weekChart"></div>
   </div>
 
   <div class="bottom">
     <div class="panel">
-      <h2>Detalle de lo consumido</h2>
+      <h2 data-i18n="track.detail">Food diary</h2>
       <div class="table-scroll">
       <table class="detail">
         <thead><tr>
-          <th>Momento</th><th>Alimento</th><th>Cantidad</th>
-          <th class="num">Cal</th><th class="num">Prot (g)</th><th class="num">Carb (g)</th><th class="num">Azúc (g)</th><th class="num">Gras (g)</th><th></th>
+          <th data-i18n="th.moment">Meal</th><th data-i18n="th.food">Food</th><th data-i18n="th.amount">Amount</th>
+          <th class="num" data-i18n="th.cal">Cal</th><th class="num" data-i18n="th.prot">Prot (g)</th><th class="num" data-i18n="th.carb">Carb (g)</th><th class="num" data-i18n="th.sugar">Sugar (g)</th><th class="num" data-i18n="th.fat">Fat (g)</th><th></th>
         </tr></thead>
         <tbody id="detailBody"></tbody>
       </table>
@@ -168,115 +174,115 @@
     </div>
     <div>
       <div class="panel">
-        <h2>Resumen vs. metas</h2>
+        <h2 data-i18n="track.summary">Summary vs. goals</h2>
         <div id="vsRows"></div>
       </div>
       <div class="notes">
-        <h2>📝 Notas</h2>
+        <h2 data-i18n="track.notes">📝 Notes</h2>
         <ul id="notesList"></ul>
       </div>
     </div>
   </div>
 
   <div class="weight-section">
-    <h2>⚖️ Evolución de peso <span class="h2-sub">· pesaje semanal</span>
-      <button id="btn-add-weight" class="btn-ghost btn-sm" style="margin-left:8px">＋ Registrar pesaje</button>
+    <h2><span data-i18n="weight.title">⚖️ Weight progress</span> <span class="h2-sub" data-i18n="weight.sub">· weekly weigh-in</span>
+      <button id="btn-add-weight" class="btn-ghost btn-sm" style="margin-left:8px" data-i18n="weight.add">＋ Log weigh-in</button>
     </h2>
-    <div id="weightBody"><div class="wempty">Cargando pesajes…</div></div>
+    <div id="weightBody"><div class="wempty" data-i18n="weight.loading">Loading weigh-ins…</div></div>
   </div>
 
   <div class="progress-section">
-    <h2>📸 Mi progreso <span class="h2-sub">· foto semanal: frente y lado</span></h2>
-    <p class="progress-hint">Sube tus fotos cada semana. Son privadas: solo tú las ves. Cuando quieras, pídele a tu asistente que compare dos semanas y te diga qué cambio nota.</p>
+    <h2><span data-i18n="progress.title">📸 My progress</span> <span class="h2-sub" data-i18n="progress.sub">· weekly photo: front and side</span></h2>
+    <p class="progress-hint" data-i18n="progress.hint">Upload your photos every week. They're private: only you see them. Anytime, ask your assistant to compare two weeks and tell you what change it notices.</p>
     <div class="progress-current">
-      <div class="progress-week" id="progress-week-label">Esta semana</div>
+      <div class="progress-week" id="progress-week-label" data-i18n="progress.week">This week</div>
       <div class="progress-uploads">
         <label class="progress-slot" id="slot-front">
-          <span class="slot-title">Frente</span>
-          <img id="preview-front" class="slot-img" style="display:none" alt="Frente">
-          <span class="slot-empty" id="empty-front">＋ Subir foto</span>
+          <span class="slot-title" data-i18n="progress.front">Front</span>
+          <img id="preview-front" class="slot-img" style="display:none" data-i18n-alt="progress.front" alt="Front">
+          <span class="slot-empty" id="empty-front" data-i18n="progress.upload">＋ Upload photo</span>
           <input type="file" id="photo-front" accept="image/*" style="display:none">
         </label>
         <label class="progress-slot" id="slot-side">
-          <span class="slot-title">Lado</span>
-          <img id="preview-side" class="slot-img" style="display:none" alt="Lado">
-          <span class="slot-empty" id="empty-side">＋ Subir foto</span>
+          <span class="slot-title" data-i18n="progress.side">Side</span>
+          <img id="preview-side" class="slot-img" style="display:none" data-i18n-alt="progress.side" alt="Side">
+          <span class="slot-empty" id="empty-side" data-i18n="progress.upload">＋ Upload photo</span>
           <input type="file" id="photo-side" accept="image/*" style="display:none">
         </label>
       </div>
       <div id="progress-status" class="progress-status"></div>
     </div>
-    <h3 class="history-title">Semanas anteriores</h3>
-    <div id="progress-history" class="progress-history"><div class="wempty">Cargando fotos…</div></div>
+    <h3 class="history-title" data-i18n="progress.history">Previous weeks</h3>
+    <div id="progress-history" class="progress-history"><div class="wempty" data-i18n="progress.loading">Loading photos…</div></div>
   </div>
 
   <div class="panel mealhelp-panel">
-    <h2>📷 Ayuda con comidas</h2>
-    <p class="progress-hint">¿No sabes los valores de un alimento? Sube su foto aquí y <b>avísame por el chat</b>: la analizo y te pregunto las medidas necesarias (peso, forma de cocción).</p>
-    <label class="btn-ghost btn-sm mealhelp-upload">📷 Subir foto de comida
+    <h2 data-i18n="mealhelp.title">📷 Meal help</h2>
+    <p class="progress-hint" data-i18n="mealhelp.hint">Don't know a food's nutrition values? Upload its photo here and <b>let me know in the chat</b>: I'll analyze it and ask for the details I need (weight, cooking method).</p>
+    <label class="btn-ghost btn-sm mealhelp-upload"><span data-i18n="mealhelp.upload">📷 Upload food photo</span>
       <input type="file" id="mealhelp-file" accept="image/*" style="display:none">
     </label>
-    <div id="mealhelp-list" class="mealhelp-list"><div class="wempty">Aún no has subido fotos.</div></div>
+    <div id="mealhelp-list" class="mealhelp-list"><div class="wempty" data-i18n="mealhelp.empty">You haven't uploaded photos yet.</div></div>
   </div>
   </div><!-- /tab-track -->
 
   <div class="tab-pane" id="tab-access" style="display:none">
   <div class="admin-section" id="admin-section" style="display:none">
-    <h2>🔐 Administración de accesos <span class="h2-sub">· solo dueño</span></h2>
-    <p class="progress-hint">Las cuentas nuevas quedan pendientes hasta que las apruebes. Solo los usuarios aprobados pueden entrar y cada uno ve únicamente sus datos.</p>
-    <h3 class="history-title">Pendientes de aprobación (<span id="pending-count">0</span>)</h3>
-    <div id="pending-list"><div class="wempty">Sin solicitudes pendientes.</div></div>
-    <h3 class="history-title">Usuarios con acceso</h3>
-    <div id="users-list"><div class="wempty">Cargando…</div></div>
+    <h2><span data-i18n="access.title">🔐 Access management</span> <span class="h2-sub" data-i18n="access.sub">· owner only</span></h2>
+    <p class="progress-hint" data-i18n="access.hint">New accounts stay pending until you approve them. Only approved users can sign in, and each one sees only their own data.</p>
+    <h3 class="history-title"><span data-i18n="access.pending">Pending approval (</span><span id="pending-count">0</span>)</h3>
+    <div id="pending-list"><div class="wempty" data-i18n="admin.noPending">No pending requests.</div></div>
+    <h3 class="history-title" data-i18n="access.users">Users with access</h3>
+    <div id="users-list"><div class="wempty" data-i18n="access.loading">Loading…</div></div>
   </div>
   </div><!-- /tab-access -->
 
   <div class="tab-pane" id="tab-clients" style="display:none">
   <div class="admin-section" id="clients-section" style="display:none">
-    <h2>👥 Mis clientes <span class="h2-sub">· gestión de entrenador</span></h2>
-    <p class="progress-hint">Cada cliente debe subir su peso cada semana. Selecciona uno para ver su historial completo, editar sus pesajes o agregar nuevos. Sus metas las estableces en "Administración de accesos".</p>
-    <div id="clients-list"><div class="wempty">Cargando…</div></div>
+    <h2><span data-i18n="clients.title">👥 My clients</span> <span class="h2-sub" data-i18n="clients.sub">· trainer management</span></h2>
+    <p class="progress-hint" data-i18n="clients.hint">Each client must upload their weight every week. Select one to see their full history, edit their weigh-ins, or add new ones. You set their goals under "Access management".</p>
+    <div id="clients-list"><div class="wempty" data-i18n="access.loading">Loading…</div></div>
     <div id="client-detail" style="display:none"></div>
   </div>
   </div><!-- /tab-clients -->
 
-  <div class="foot">ronbo.nutri · privado · tus datos solo los ves tú</div>
+  <div class="foot" data-i18n="foot">ronbo.nutri · private · only you can see your data</div>
 </div>
 
 <!-- ============ MEAL MODAL ============ -->
 <div id="meal-modal" class="modal-backdrop" style="display:none">
   <div class="modal">
-    <h2 id="meal-modal-title">Registrar comida</h2>
+    <h2 id="meal-modal-title" data-i18n="meal.title">Log meal</h2>
     <form id="form-meal">
       <div class="frow">
-        <label>Fecha <input type="date" id="m-date" required></label>
-        <label>Momento
+        <label><span data-i18n="form.date">Date</span> <input type="date" id="m-date" required></label>
+        <label><span data-i18n="form.moment">Meal</span>
           <select id="m-meal">
-            <option>Desayuno</option><option>Almuerzo</option><option>Cena</option>
-            <option>Merienda</option><option>Snack</option>
+            <option value="Desayuno">Breakfast</option><option value="Almuerzo">Lunch</option><option value="Cena">Dinner</option>
+            <option value="Merienda">Morning snack</option><option value="Snack">Snack</option>
           </select>
         </label>
       </div>
-      <label>Alimento <input type="text" id="m-food" required placeholder="Ej. Pechuga de pollo"></label>
-      <label>Cantidad <input type="text" id="m-qty" placeholder="Ej. 150 g"></label>
-      <label class="photo-label">📷 Foto de la comida (opcional)
+      <label><span data-i18n="form.food">Food</span> <input type="text" id="m-food" required data-i18n-ph="form.foodPh" placeholder="E.g. Chicken breast"></label>
+      <label><span data-i18n="form.amount">Amount</span> <input type="text" id="m-qty" data-i18n-ph="form.amountPh" placeholder="E.g. 150 g"></label>
+      <label class="photo-label"><span data-i18n="form.photo">📷 Meal photo (optional)</span>
         <input type="file" id="m-photo" accept="image/*">
       </label>
-      <p class="photo-hint" style="display:none">📷 ¿No sabes los valores de un alimento? Súbelo en <b>📷 Ayuda con comidas</b> y avísame por el chat para analizarlo.</p>
-      <img id="m-photo-preview" class="photo-preview" style="display:none" alt="Vista previa">
+      <p class="photo-hint" style="display:none" data-i18n="meal.photoHint">📷 Don't know a food's values? Upload it in <b>📷 Meal help</b> and let me know in the chat so I can analyze it.</p>
+      <img id="m-photo-preview" class="photo-preview" style="display:none" data-i18n-alt="mealhelp.zoomed" alt="Enlarged photo">
       <div class="frow3">
-        <label>Kcal <input type="number" id="m-kcal" step="any" min="0" value="0"></label>
-        <label>Proteína (g) <input type="number" id="m-prot" step="any" min="0" value="0"></label>
-        <label>Carbos (g) <input type="number" id="m-carb" step="any" min="0" value="0"></label>
+        <label><span data-i18n="form.kcal">Kcal</span> <input type="number" id="m-kcal" step="any" min="0" value="0"></label>
+        <label><span data-i18n="form.protein">Protein (g)</span> <input type="number" id="m-prot" step="any" min="0" value="0"></label>
+        <label><span data-i18n="form.carbs">Carbs (g)</span> <input type="number" id="m-carb" step="any" min="0" value="0"></label>
       </div>
       <div class="frow3">
-        <label>Azúcares (g) <input type="number" id="m-sugar" step="any" min="0" value="0"></label>
-        <label>Grasas (g) <input type="number" id="m-fat" step="any" min="0" value="0"></label>
-        <label>Notas <input type="text" id="m-notes" placeholder="opcional"></label>
+        <label><span data-i18n="form.sugar">Sugars (g)</span> <input type="number" id="m-sugar" step="any" min="0" value="0"></label>
+        <label><span data-i18n="form.fat">Fats (g)</span> <input type="number" id="m-fat" step="any" min="0" value="0"></label>
+        <label><span data-i18n="form.notes">Notes</span> <input type="text" id="m-notes" data-i18n-ph="form.optional" placeholder="optional"></label>
       </div>
       <div class="modal-foot">
-        <button type="button" class="btn-ghost" id="meal-cancel">Cancelar</button>
-        <button type="submit" class="btn-primary">Guardar</button>
+        <button type="button" class="btn-ghost" id="meal-cancel" data-i18n="form.cancel">Cancel</button>
+        <button type="submit" class="btn-primary" data-i18n="form.save">Save</button>
       </div>
     </form>
   </div>
@@ -285,24 +291,24 @@
 <!-- ============ WEIGHT MODAL ============ -->
 <div id="weight-modal" class="modal-backdrop" style="display:none">
   <div class="modal">
-    <h2>Registrar pesaje</h2>
+    <h2 data-i18n="weight.title2">Log weigh-in</h2>
     <form id="form-weight">
       <div class="frow3">
-        <label>Fecha <input type="date" id="w-date" required></label>
-        <label>Peso (kg) <input type="number" id="w-weight" step="any" min="0" required></label>
-        <label>Grasa corporal (%) <input type="number" id="w-fat" step="any" min="0" placeholder="opcional"></label>
+        <label><span data-i18n="form.date">Date</span> <input type="date" id="w-date" required></label>
+        <label><span data-i18n="form.weight">Weight (kg)</span> <input type="number" id="w-weight" step="any" min="0" required></label>
+        <label><span data-i18n="form.bodyfat">Body fat (%)</span> <input type="number" id="w-fat" step="any" min="0" data-i18n-ph="form.optional" placeholder="optional"></label>
       </div>
       <div class="frow3">
-        <label>Masa muscular (%) <input type="number" id="w-muscle" step="any" min="0" placeholder="opcional"></label>
-        <label>Agua corporal (%) <input type="number" id="w-water" step="any" min="0" placeholder="opcional"></label>
-        <label>Grasa visceral (nivel) <input type="number" id="w-visceral" step="any" min="0" placeholder="opcional"></label>
+        <label><span data-i18n="form.muscle">Muscle mass (%)</span> <input type="number" id="w-muscle" step="any" min="0" data-i18n-ph="form.optional" placeholder="optional"></label>
+        <label><span data-i18n="form.water">Body water (%)</span> <input type="number" id="w-water" step="any" min="0" data-i18n-ph="form.optional" placeholder="optional"></label>
+        <label><span data-i18n="form.visceral">Visceral fat (level)</span> <input type="number" id="w-visceral" step="any" min="0" data-i18n-ph="form.optional" placeholder="optional"></label>
       </div>
       <div class="frow">
-        <label>Notas <input type="text" id="w-notes" placeholder="opcional"></label>
+        <label><span data-i18n="form.notes">Notes</span> <input type="text" id="w-notes" data-i18n-ph="form.optional" placeholder="optional"></label>
       </div>
       <div class="modal-foot">
-        <button type="button" class="btn-ghost" id="weight-cancel">Cancelar</button>
-        <button type="submit" class="btn-primary">Guardar</button>
+        <button type="button" class="btn-ghost" id="weight-cancel" data-i18n="form.cancel">Cancel</button>
+        <button type="submit" class="btn-primary" data-i18n="form.save">Save</button>
       </div>
     </form>
   </div>
@@ -311,20 +317,20 @@
 <!-- ============ GOALS MODAL (entrenador) ============ -->
 <div id="goals-modal" class="modal-backdrop" style="display:none">
   <div class="modal">
-    <h2 id="goals-modal-title">Metas del usuario</h2>
+    <h2 id="goals-modal-title" data-i18n="goals.title">User goals</h2>
     <form id="form-goals">
       <div class="frow3">
-        <label>Calorías (kcal) <input type="number" id="g-kcal" min="0" step="any" required></label>
-        <label>Proteína (g) <input type="number" id="g-prot" min="0" step="any" required></label>
-        <label>Carbos (g) <input type="number" id="g-carb" min="0" step="any" required></label>
+        <label><span data-i18n="form.cal">Calories (kcal)</span> <input type="number" id="g-kcal" min="0" step="any" required></label>
+        <label><span data-i18n="form.protein">Protein (g)</span> <input type="number" id="g-prot" min="0" step="any" required></label>
+        <label><span data-i18n="form.carbs">Carbs (g)</span> <input type="number" id="g-carb" min="0" step="any" required></label>
       </div>
       <div class="frow3">
-        <label>Azúcares máx (g) <input type="number" id="g-azuc" min="0" step="any" required></label>
-        <label>Grasas (g) <input type="number" id="g-gras" min="0" step="any" required></label>
+        <label><span data-i18n="form.sugarMax">Max sugars (g)</span> <input type="number" id="g-azuc" min="0" step="any" required></label>
+        <label><span data-i18n="form.fat">Fats (g)</span> <input type="number" id="g-gras" min="0" step="any" required></label>
       </div>
       <div class="modal-foot">
-        <button type="button" class="btn-ghost" id="goals-cancel">Cancelar</button>
-        <button type="submit" class="btn-primary">Guardar metas</button>
+        <button type="button" class="btn-ghost" id="goals-cancel" data-i18n="form.cancel">Cancel</button>
+        <button type="submit" class="btn-primary" data-i18n="goals.save">Save goals</button>
       </div>
     </form>
   </div>
@@ -333,47 +339,47 @@
 <!-- ============ PROFILE MODAL (entrenador completa datos del cliente) ============ -->
 <div id="profile-modal" class="modal-backdrop" style="display:none">
   <div class="modal">
-    <h2 id="profile-modal-title">Perfil del cliente</h2>
+    <h2 id="profile-modal-title" data-i18n="profile.title">Client profile</h2>
     <form id="form-profile">
-      <label>Nombre y apellido <input type="text" id="p-name" required></label>
+      <label><span data-i18n="form.fullname">Full name</span> <input type="text" id="p-name" required></label>
       <div class="frow">
-        <label>Teléfono <input type="tel" id="p-phone"></label>
-        <label>Sexo / Género
+        <label><span data-i18n="form.phone2">Phone</span> <input type="tel" id="p-phone"></label>
+        <label><span data-i18n="form.gender">Sex / Gender</span>
           <select id="p-gender">
-            <option value="">Selecciona…</option>
-            <option>Femenino</option>
-            <option>Masculino</option>
-            <option>No binario</option>
-            <option>Género fluido</option>
-            <option>Otro</option>
-            <option>Prefiero no decirlo</option>
+            <option value="" data-i18n="form.select">Select…</option>
+            <option value="Femenino">Female</option>
+            <option value="Masculino">Male</option>
+            <option value="No binario">Non-binary</option>
+            <option value="Género fluido">Gender-fluid</option>
+            <option value="Otro">Other</option>
+            <option value="Prefiero no decirlo">Prefer not to say</option>
           </select>
         </label>
       </div>
-      <label>Redes sociales <input type="text" id="p-social" placeholder="Ej. Instagram: @usuario"></label>
-      <label>Notas del entrenador (primera entrevista, objetivos, observaciones)
-        <textarea id="p-notes" rows="3" placeholder="Lo que completes en la primera entrevista…"></textarea>
+      <label><span data-i18n="form.social">Social media</span> <input type="text" id="p-social" data-i18n-ph="form.socialPh" placeholder="E.g. Instagram: @user"></label>
+      <label><span data-i18n="form.trainerNotes">Trainer notes (first interview, goals, observations)</span>
+        <textarea id="p-notes" rows="3" data-i18n-ph="profile.notesPh" placeholder="What you fill in during the first interview…"></textarea>
       </label>
       <div class="health-box">
-        <b>🏥 Declaración de salud del cliente</b>
+        <b data-i18n="health.clientTitle">🏥 Client health declaration</b>
         <div class="health-grid" id="p-conds">
-          <label><input type="checkbox" class="p-cond" value="Hipertensión"> Hipertensión</label>
+          <label><input type="checkbox" class="p-cond" value="Hipertensión"> High blood pressure</label>
           <label><input type="checkbox" class="p-cond" value="Diabetes"> Diabetes</label>
-          <label><input type="checkbox" class="p-cond" value="Problemas del corazón"> Problemas del corazón</label>
-          <label><input type="checkbox" class="p-cond" value="Dolor de pecho al ejercitarse"> Dolor de pecho al ejercitarse</label>
-          <label><input type="checkbox" class="p-cond" value="Mareos o desmayos"> Mareos o desmayos</label>
-          <label><input type="checkbox" class="p-cond" value="Asma / problemas respiratorios"> Asma / problemas respiratorios</label>
-          <label><input type="checkbox" class="p-cond" value="Lesiones articulares o musculares"> Lesiones articulares o musculares</label>
-          <label><input type="checkbox" class="p-cond" value="Cirugía reciente"> Cirugía reciente</label>
-          <label><input type="checkbox" class="p-cond" value="Embarazo"> Embarazo</label>
+          <label><input type="checkbox" class="p-cond" value="Problemas del corazón"> Heart problems</label>
+          <label><input type="checkbox" class="p-cond" value="Dolor de pecho al ejercitarse"> Chest pain when exercising</label>
+          <label><input type="checkbox" class="p-cond" value="Mareos o desmayos"> Dizziness or fainting</label>
+          <label><input type="checkbox" class="p-cond" value="Asma / problemas respiratorios"> Asthma / breathing problems</label>
+          <label><input type="checkbox" class="p-cond" value="Lesiones articulares o musculares"> Joint or muscle injuries</label>
+          <label><input type="checkbox" class="p-cond" value="Cirugía reciente"> Recent surgery</label>
+          <label><input type="checkbox" class="p-cond" value="Embarazo"> Pregnancy</label>
         </div>
-        <label>Detalles / medicamentos
+        <label><span data-i18n="health.details">Details / medications</span>
           <textarea id="p-health-detail" rows="2"></textarea>
         </label>
       </div>
       <div class="modal-foot">
-        <button type="button" class="btn-ghost" id="profile-cancel">Cancelar</button>
-        <button type="submit" class="btn-primary">Guardar perfil</button>
+        <button type="button" class="btn-ghost" id="profile-cancel" data-i18n="form.cancel">Cancel</button>
+        <button type="submit" class="btn-primary" data-i18n="profile.save">Save profile</button>
       </div>
     </form>
   </div>

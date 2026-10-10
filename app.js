@@ -2,7 +2,7 @@
 import { initializeApp } from "firebase/app";
 import {
   getAuth, signInWithEmailAndPassword, createUserWithEmailAndPassword,
-  signOut, onAuthStateChanged,
+  signOut, onAuthStateChanged, sendPasswordResetEmail,
 } from "firebase/auth";
 import {
   getFirestore, doc, getDoc, collection, getDocs, addDoc,
@@ -44,14 +44,572 @@ const METRICS = [
   { key: 'azuc', name: 'AZÚCARES',      icon: '🍬', color: '#A855F7', unit: 'g', max: true },
   { key: 'gras', name: 'GRASAS',        icon: '🫀', color: '#EF4444', unit: 'g' },
 ];
-const MESES = ['enero','febrero','marzo','abril','mayo','junio','julio','agosto','septiembre','octubre','noviembre','diciembre'];
 const MEAL_ORDER = { 'Desayuno': 1, 'Merienda': 2, 'Almuerzo': 3, 'Snack': 4, 'Cena': 5 };
 
 let MEALS = {};   // fecha -> [{id, meal, food, qty, kcal, prot, carb, sugar, fat, notes}]
 let WEIGHTS = []; // [{id, date, weight, fat, muscle, notes}]
+/* ================= I18N (English default, ES/EN toggle) ================= */
+const STR = {
+en: {
+  'app.title': 'ronbo.nutri · Private',
+  'auth.subtitle': 'Your private nutrition log',
+  'auth.tabLogin': 'Sign in',
+  'auth.tabRegister': 'Create account',
+  'form.email': 'Email',
+  'form.password': 'Password',
+  'auth.forgot': 'Forgot your password?',
+  'auth.signin': 'Sign in',
+  'form.fullname': 'Full name',
+  'form.fullnamePh': 'E.g. Maria Garcia',
+  'form.emailLong': 'Email address',
+  'form.phone': 'Phone number',
+  'form.phonePh': 'E.g. +1 901 555 1234',
+  'form.gender': 'Sex / Gender',
+  'form.select': 'Select…',
+  'form.social': 'Social media',
+  'form.socialPh': 'E.g. Instagram: @user',
+  'form.opt': '(optional)',
+  'form.passwordHint': 'This is your ronbo.nutri account password, not your social media one.',
+  'form.password2': 'Confirm password',
+  'form.optional': 'optional',
+  'health.title': '🏥 Health declaration',
+  'health.hint': 'Check any conditions you have. It\'s for your safety: your trainer must know them before assigning an exercise or nutrition plan.',
+  'health.details': 'Details / medications',
+  'health.detailsPh': 'E.g. Takes metformin; left knee injury in 2023…',
+  'health.ok': 'I declare that the health information provided is true.',
+  'health.clientTitle': '🏥 Client health declaration',
+  'terms.accept': 'I have read and accept the privacy notice.',
+  'terms.body': '<b>PRIVACY NOTICE AND CONSENT FOR THE PROCESSING OF PERSONAL DATA</b><br><br>When you create your account at <b>ronbo.nutri</b>, you agree to the following:<br><br><b>1. Controller.</b> ronbo.nutri is responsible for your data.<br><br><b>2. Data we collect.</b> Name, email, phone, sex/gender, social media (optional), health condition declaration, food logs, weight and body composition, profile, progress and food photos (for nutritional analysis), and your nutrition goals.<br><br><b>3. Purpose.</b> To provide personalized training and nutrition coaching services, track your progress, and communicate with you.<br><br><b>4. Storage.</b> Your data is stored securely in Google Firebase (United States), with restricted access: only you and your trainer can see it.<br><br><b>5. Your rights.</b> You may at any time request to view, correct, or delete your data. Deleting your account erases your records.<br><br><b>6. Retention.</b> We keep your data while you are a client and up to 2 years after your last activity, unless you request deletion sooner.<br><br><b>7. Minors.</b> This service is for adults 18 and older, or minors with a parent or guardian\'s authorization.<br><br><b>8. Revocation.</b> You may withdraw your consent at any time by writing to your trainer; doing so will delete your data and close your account.<br><br><b>9. Health and exercise.</b> The trainer is an ISSA-certified fitness professional, not a medical professional. Consult your doctor before starting any exercise or nutrition program, especially if you declared a health condition.<br><br>By checking the box and creating your account, you declare that you read this notice and consent to the processing of your data for the purposes described.',
+  'auth.create': 'Create my account',
+  'app.logout': 'log out',
+  'app.goals': 'Your daily goals',
+  'app.myPhoto': 'My photo',
+  'app.loading': 'Loading…',
+  'avatar.change': 'Tap to change your profile photo',
+  'tabs.track': '📊 My log',
+  'tabs.clients': '👥 My clients',
+  'tabs.access': '🔐 Access',
+  'track.date': '📅 Date:',
+  'track.addMeal': '＋ Log meal',
+  'track.import': '⤓ Import CSV',
+  'track.importTitle': 'Import registro.csv (owner only)',
+  'track.weekTitle': '📈 Weekly goal compliance',
+  'track.detail': 'Food diary',
+  'th.moment': 'Meal', 'th.food': 'Food', 'th.amount': 'Amount',
+  'th.cal': 'Cal', 'th.prot': 'Prot (g)', 'th.carb': 'Carb (g)', 'th.sugar': 'Sugar (g)', 'th.fat': 'Fat (g)',
+  'track.summary': 'Summary vs. goals',
+  'track.notes': '📝 Notes',
+  'track.emptyDay': 'No entries this day. Use "{btn}".',
+  'track.viewPhoto': 'View photo',
+  'track.delete': 'Delete',
+  'vs.indicator': 'Metric', 'vs.intake': 'Intake', 'vs.goal': 'Goal', 'vs.progress': 'Progress',
+  'metric.kcal': 'CALORIES', 'metric.prot': 'PROTEIN', 'metric.carb': 'CARBS', 'metric.azuc': 'SUGAR', 'metric.gras': 'FAT',
+  'weight.title': '⚖️ Weight progress',
+  'weight.sub': '· weekly weigh-in',
+  'weight.add': '＋ Log weigh-in',
+  'weight.loading': 'Loading weigh-ins…',
+  'weight.empty': 'No weigh-ins yet.<br>Use "{btn}" when you weigh yourself — the chart draws itself.',
+  'weight.reminder': '⚠️ It\'s been {d} days since your last weigh-in. Remember to log your weight every week.',
+  'weight.current': 'CURRENT WEIGHT',
+  'weight.vsPrev': 'VS PREVIOUS',
+  'weight.totalChange': 'TOTAL CHANGE',
+  'weight.firstRecord': 'first entry',
+  'weight.since': 'since {d} · {n} weigh-in{s}',
+  'weight.bodyFat': 'BODY FAT',
+  'weight.delLast': 'Delete last weigh-in ({date})',
+  'weight.history': 'Weigh-in history',
+  'weight.chartWeight': 'Weight (kg)',
+  'weight.chartFat': 'Fat (%)',
+  'weight.title2': 'Log weigh-in',
+  'progress.title': '📸 My progress',
+  'progress.sub': '· weekly photo: front and side',
+  'progress.hint': 'Upload your photos every week. They\'re private: only you see them. Anytime, ask your assistant to compare two weeks and tell you what change it notices.',
+  'progress.week': 'This week',
+  'progress.thisWeek': ' (this week)',
+  'progress.front': 'Front',
+  'progress.side': 'Side',
+  'progress.upload': '＋ Upload photo',
+  'progress.loading': 'Loading photos…',
+  'progress.complete': '✅ Week complete.',
+  'progress.missingOne': 'You\'re missing one photo this week.',
+  'progress.none': 'You haven\'t uploaded photos this week.',
+  'progress.noPhoto': 'no photo',
+  'progress.history': 'Previous weeks',
+  'progress.emptyHistory': 'Your previous weeks will appear here.',
+  'mealhelp.title': '📷 Meal help',
+  'mealhelp.hint': 'Don\'t know a food\'s nutrition values? Upload its photo here and <b>let me know in the chat</b>: I\'ll analyze it and ask for the details I need (weight, cooking method).',
+  'mealhelp.upload': '📷 Upload food photo',
+  'mealhelp.empty': 'You haven\'t uploaded photos yet.',
+  'mealhelp.reviewed': '✓ reviewed',
+  'mealhelp.pending': '⏳ pending',
+  'mealhelp.foodAlt': 'Food',
+  'mealhelp.tapZoom': 'Tap to enlarge',
+  'mealhelp.zoomed': 'Enlarged photo',
+  'access.title': '🔐 Access management',
+  'access.sub': '· owner only',
+  'access.hint': 'New accounts stay pending until you approve them. Only approved users can sign in, and each one sees only their own data.',
+  'access.pending': 'Pending approval (',
+  'access.users': 'Users with access',
+  'access.loading': 'Loading…',
+  'clients.title': '👥 My clients',
+  'clients.sub': '· trainer management',
+  'clients.hint': 'Each client must upload their weight every week. Select one to see their full history, edit their weigh-ins, or add new ones. You set their goals under "Access management".',
+  'foot': 'ronbo.nutri · private · only you can see your data',
+  'meal.title': 'Log meal',
+  'form.date': 'Date',
+  'form.moment': 'Meal',
+  'form.food': 'Food',
+  'form.foodPh': 'E.g. Chicken breast',
+  'form.amount': 'Amount',
+  'form.amountPh': 'E.g. 150 g',
+  'form.photo': '📷 Meal photo (optional)',
+  'meal.photoHint': '📷 Don\'t know a food\'s values? Upload it in <b>📷 Meal help</b> and let me know in the chat so I can analyze it.',
+  'form.kcal': 'Kcal',
+  'form.protein': 'Protein (g)',
+  'form.carbs': 'Carbs (g)',
+  'form.sugar': 'Sugars (g)',
+  'form.fat': 'Fats (g)',
+  'form.notes': 'Notes',
+  'form.cancel': 'Cancel',
+  'form.save': 'Save',
+  'form.weight': 'Weight (kg)',
+  'form.bodyfat': 'Body fat (%)',
+  'form.muscle': 'Muscle mass (%)',
+  'form.water': 'Body water (%)',
+  'form.visceral': 'Visceral fat (level)',
+  'goals.title': 'User goals',
+  'goals.for': 'Goals · {name}',
+  'form.cal': 'Calories (kcal)',
+  'form.sugarMax': 'Max sugars (g)',
+  'goals.save': 'Save goals',
+  'profile.title': 'Client profile',
+  'profile.for': 'Profile · {name}',
+  'form.phone2': 'Phone',
+  'form.trainerNotes': 'Trainer notes (first interview, goals, observations)',
+  'profile.notesPh': 'What you fill in during the first interview…',
+  'profile.save': 'Save profile',
+  'chart.note': '% of the daily goal per day. The dotted line is 100%. For sugar, the ideal is to stay below it.',
+  'err.name': 'Enter your full name.',
+  'err.phone': 'Enter your phone number.',
+  'err.gender': 'Select your sex / gender.',
+  'err.consent': 'You must accept the privacy notice.',
+  'err.health': 'You must confirm your health declaration.',
+  'err.pwmatch': 'The passwords don\'t match.',
+  'err.emailInUse': 'That email already has an account. Use "Sign in".',
+  'err.weakPw': 'The password must be at least 6 characters.',
+  'err.badEmail': 'The email isn\'t valid.',
+  'err.createFail': 'Couldn\'t create the account. Try again.',
+  'err.forgotNoEmail': 'Type your email above so we can send you the link.',
+  'err.resetFail': 'Couldn\'t send the email. Try again.',
+  'err.noAccess': 'This account has no access.',
+  'err.pending': 'Your account is pending owner approval.',
+  'err.verifyFail': 'Couldn\'t verify access.',
+  'err.badCreds': 'Incorrect credentials.',
+  'err.tooHeavy': 'The image is too heavy, try another one.',
+  'err.uploadFail': 'Couldn\'t upload the photo.',
+  'err.mealMissing': 'Missing date or food.',
+  'err.mealPhotoFail': 'Couldn\'t upload the photo; saved without photo.',
+  'err.weightMissing': 'Missing date or valid weight.',
+  'msg.accountCreated': 'Account created. The owner must approve it before you can sign in.',
+  'msg.resetSent': 'We sent you an email to reset your password.',
+  'msg.approved': 'User approved.',
+  'msg.revoked': 'Access removed.',
+  'msg.rejected': 'Request deleted.',
+  'msg.foodReviewed': 'Photo marked as reviewed.',
+  'msg.goalsSaved': 'Goals updated.',
+  'msg.profileSaved': 'Profile updated.',
+  'msg.storageSoon': 'Progress photos will be enabled soon.',
+  'msg.uploading': 'Uploading photo…',
+  'msg.photoDeleted': 'Photo deleted.',
+  'msg.foodSent': 'Photo sent. Let me know in the chat so I can analyze it.',
+  'msg.photoSaved': 'Photo saved.',
+  'msg.avatarSaved': 'Profile photo updated.',
+  'msg.mealSaved': 'Meal logged.',
+  'msg.mealDeleted': 'Entry deleted.',
+  'msg.weightSaved': 'Weigh-in logged.',
+  'msg.weightDeleted': 'Weigh-in deleted.',
+  'confirm.revoke': 'Remove this user\'s access? They won\'t be able to sign in again.',
+  'confirm.reject': 'Reject and delete this request?',
+  'confirm.delPhoto': 'Delete this photo?',
+  'confirm.delMeal': 'Delete this entry?',
+  'confirm.delWeight': 'Delete the weigh-in from {date}?',
+  'admin.noPending': 'No pending requests.',
+  'admin.noUsers': 'No approved users yet.',
+  'admin.approve': 'Approve',
+  'admin.reject': 'Reject',
+  'admin.profile': 'Profile',
+  'admin.goals': 'Goals',
+  'admin.revoke': 'Remove access',
+  'admin.owner': 'owner',
+  'clients.empty': 'No clients registered yet.',
+  'clients.noWeighins': 'no weigh-ins',
+  'clients.daysAgo': '{d} days ago',
+  'clients.daysAgoShort': '{d}d ago',
+  'clients.pending': 'pending',
+  'clients.healthTitle': 'Declared health conditions',
+  'clients.healthBadge': 'health',
+  'clients.foodTitle': 'Food photos to review',
+  'clients.view': 'View log',
+  'client.fallbackName': 'Client',
+  'client.weightLog': 'Weight log · {name}',
+  'client.healthDecl': 'Health declaration:',
+  'client.foodReview': '📷 Food photos to review ({n})',
+  'client.addWeight': '＋ Add weigh-in',
+  'client.close': 'Close',
+  'client.noWeight': 'This client hasn\'t logged their weight yet.',
+  'client.edit': 'Edit',
+  'client.reviewed': '✓ Reviewed',
+  'date.today': ' (today)',
+  'date.weekLabel': 'Week {n} · {y}',
+  'note.kcalIn': '🔥 Calories within range; {left} kcal left.',
+  'note.kcalOver': '🔥 Calories above goal (+{over} kcal).',
+  'note.protOver': '💪 Protein above goal (+{over} g).',
+  'note.protNear': '💪 Protein close to goal ({pct}%).',
+  'note.protUnder': '💪 Protein below goal ({pct}%).',
+  'note.carbOver': '🌾 Carbs above goal (+{over} g).',
+  'note.carbNear': '🌾 Carbs close to goal ({pct}%).',
+  'note.carbUnder': '🌾 Carbs below goal ({pct}%).',
+  'note.sugarIn': '🍬 Sugar within the limit ({v} of {g} g).',
+  'note.sugarOver': '🍬 Sugar above the limit (+{over} g).',
+  'note.fatIn': '🫀 Fat within goal ({pct}%).',
+  'note.fatSlight': '🫀 Fat slightly above goal (+{over} g).',
+  'note.fatOver': '🫀 Fat above goal (+{over} g).',
+  'status.left': 'left',
+  'status.available': 'available',
+  'status.overLimit': 'Over the limit',
+  'status.above': 'over',
+  'status.overGoal': 'Over goal',
+  'import.done': 'Imported {n} entries.',
+  'import.fail': 'Import error: {e}',
+  'meal.Desayuno': 'Breakfast',
+  'meal.Almuerzo': 'Lunch',
+  'meal.Cena': 'Dinner',
+  'meal.Merienda': 'Morning snack',
+  'meal.Snack': 'Snack',
+  'gender.Femenino': 'Female',
+  'gender.Masculino': 'Male',
+  'gender.No binario': 'Non-binary',
+  'gender.Género fluido': 'Gender-fluid',
+  'gender.Otro': 'Other',
+  'gender.Prefiero no decirlo': 'Prefer not to say',
+  'cond.Hipertensión': 'High blood pressure',
+  'cond.Diabetes': 'Diabetes',
+  'cond.Problemas del corazón': 'Heart problems',
+  'cond.Dolor de pecho al ejercitarse': 'Chest pain when exercising',
+  'cond.Mareos o desmayos': 'Dizziness or fainting',
+  'cond.Asma / problemas respiratorios': 'Asthma / breathing problems',
+  'cond.Lesiones articulares o musculares': 'Joint or muscle injuries',
+  'cond.Cirugía reciente': 'Recent surgery',
+  'cond.Embarazo': 'Pregnancy',
+  'cond.Ninguna de las anteriores': 'None of the above'
+},
+es: {
+  'app.title': 'ronbo.nutri · Privado',
+  'auth.subtitle': 'Tu registro privado de nutrición',
+  'auth.tabLogin': 'Entrar',
+  'auth.tabRegister': 'Crear cuenta',
+  'form.email': 'Correo',
+  'form.password': 'Contraseña',
+  'auth.forgot': '¿Olvidaste tu contraseña?',
+  'auth.signin': 'Entrar',
+  'form.fullname': 'Nombre y apellido',
+  'form.fullnamePh': 'Ej. María García',
+  'form.emailLong': 'Correo electrónico',
+  'form.phone': 'Número de teléfono',
+  'form.phonePh': 'Ej. +1 901 555 1234',
+  'form.gender': 'Sexo / Género',
+  'form.select': 'Selecciona…',
+  'form.social': 'Redes sociales',
+  'form.socialPh': 'Ej. Instagram: @usuario',
+  'form.opt': '(opcional)',
+  'form.passwordHint': 'Es la contraseña de tu cuenta en ronbo.nutri, no la de tus redes sociales.',
+  'form.password2': 'Confirmar contraseña',
+  'form.optional': 'opcional',
+  'health.title': '🏥 Declaración de salud',
+  'health.hint': 'Marca las condiciones que tengas. Es por tu seguridad: tu entrenador debe conocerlas antes de asignarte un plan de ejercicio o nutrición.',
+  'health.details': 'Detalles / medicamentos',
+  'health.detailsPh': 'Ej. Toma metformina; lesión de rodilla izquierda en 2023…',
+  'health.ok': 'Declaro que la información de salud indicada es verdadera.',
+  'health.clientTitle': '🏥 Declaración de salud del cliente',
+  'terms.accept': 'He leído y acepto el aviso de privacidad.',
+  'terms.body': '<b>AVISO DE PRIVACIDAD Y CONSENTIMIENTO PARA EL TRATAMIENTO DE DATOS PERSONALES</b><br><br>Al crear tu cuenta en <b>ronbo.nutri</b>, aceptas lo siguiente:<br><br><b>1. Responsable.</b> ronbo.nutri es responsable de tus datos.<br><br><b>2. Datos que recogemos.</b> Nombre, correo, teléfono, sexo/género, redes sociales (opcional), declaración de condiciones de salud, registros de alimentación, peso y composición corporal, fotos de perfil, de progreso y de alimentos (para análisis nutricional), y tus metas nutricionales.<br><br><b>3. Finalidad.</b> Prestar servicios de entrenamiento y asesoría nutricional personalizada, dar seguimiento a tu progreso y comunicarnos contigo.<br><br><b>4. Almacenamiento.</b> Tus datos se guardan de forma segura en Google Firebase (Estados Unidos), con acceso restringido: solo tú y tu entrenador pueden verlos.<br><br><b>5. Tus derechos.</b> Puedes pedir en cualquier momento ver, corregir o eliminar tus datos. Eliminar tu cuenta borra tus registros.<br><br><b>6. Conservación.</b> Guardamos tus datos mientras seas cliente y hasta 2 años después de tu última actividad, salvo que pidas eliminarlos antes.<br><br><b>7. Menores.</b> Este servicio es solo para mayores de 18 años, o menores con autorización de su padre, madre o tutor.<br><br><b>8. Revocación.</b> Puedes retirar tu consentimiento en cualquier momento escribiendo a tu entrenador; al hacerlo se eliminarán tus datos y se cerrará tu cuenta.<br><br><b>9. Salud y ejercicio.</b> El entrenador es un profesional del fitness certificado (ISSA), no un profesional médico. Consulta a tu médico antes de iniciar cualquier programa de ejercicio o nutrición, especialmente si declaraste alguna condición de salud.<br><br>Al marcar la casilla y crear tu cuenta, declaras que leíste este aviso y das tu consentimiento para el tratamiento de tus datos con las finalidades descritas.',
+  'auth.create': 'Crear mi cuenta',
+  'app.logout': 'salir',
+  'app.goals': 'Tus metas diarias',
+  'app.myPhoto': 'Mi foto',
+  'app.loading': 'Cargando…',
+  'avatar.change': 'Toca para cambiar tu foto de perfil',
+  'tabs.track': '📊 Mi registro',
+  'tabs.clients': '👥 Mis clientes',
+  'tabs.access': '🔐 Accesos',
+  'track.date': '📅 Fecha:',
+  'track.addMeal': '＋ Registrar comida',
+  'track.import': '⤓ Importar CSV',
+  'track.importTitle': 'Importar registro.csv (solo dueño)',
+  'track.weekTitle': '📈 Cumplimiento semanal de metas',
+  'track.detail': 'Detalle de lo consumido',
+  'th.moment': 'Momento', 'th.food': 'Alimento', 'th.amount': 'Cantidad',
+  'th.cal': 'Cal', 'th.prot': 'Prot (g)', 'th.carb': 'Carb (g)', 'th.sugar': 'Azúc (g)', 'th.fat': 'Gras (g)',
+  'track.summary': 'Resumen vs. metas',
+  'track.notes': '📝 Notas',
+  'track.emptyDay': 'Sin registros este día. Usa "{btn}".',
+  'track.viewPhoto': 'Ver foto',
+  'track.delete': 'Borrar',
+  'vs.indicator': 'Indicador', 'vs.intake': 'Consumo', 'vs.goal': 'Meta', 'vs.progress': 'Progreso',
+  'metric.kcal': 'CALORÍAS', 'metric.prot': 'PROTEÍNA', 'metric.carb': 'CARBOHIDRATOS', 'metric.azuc': 'AZÚCARES', 'metric.gras': 'GRASAS',
+  'weight.title': '⚖️ Evolución de peso',
+  'weight.sub': '· pesaje semanal',
+  'weight.add': '＋ Registrar pesaje',
+  'weight.loading': 'Cargando pesajes…',
+  'weight.empty': 'Aún no hay pesajes registrados.<br>Usa "{btn}" cuando te peses — la gráfica se dibuja sola.',
+  'weight.reminder': '⚠️ Llevas {d} días sin pesarte. Recuerda subir tu peso cada semana.',
+  'weight.current': 'PESO ACTUAL',
+  'weight.vsPrev': 'VS PESAJE ANTERIOR',
+  'weight.totalChange': 'CAMBIO TOTAL',
+  'weight.firstRecord': 'primer registro',
+  'weight.since': 'desde {d} · {n} pesaje{s}',
+  'weight.bodyFat': 'GRASA CORPORAL',
+  'weight.delLast': 'Borrar último pesaje ({date})',
+  'weight.history': 'Historial de pesajes',
+  'weight.chartWeight': 'Peso (kg)',
+  'weight.chartFat': 'Grasa (%)',
+  'weight.title2': 'Registrar pesaje',
+  'progress.title': '📸 Mi progreso',
+  'progress.sub': '· foto semanal: frente y lado',
+  'progress.hint': 'Sube tus fotos cada semana. Son privadas: solo tú las ves. Cuando quieras, pídele a tu asistente que compare dos semanas y te diga qué cambio nota.',
+  'progress.week': 'Esta semana',
+  'progress.thisWeek': ' (esta semana)',
+  'progress.front': 'Frente',
+  'progress.side': 'Lado',
+  'progress.upload': '＋ Subir foto',
+  'progress.loading': 'Cargando fotos…',
+  'progress.complete': '✅ Semana completa.',
+  'progress.missingOne': 'Te falta una foto esta semana.',
+  'progress.none': 'Aún no subes fotos esta semana.',
+  'progress.noPhoto': 'sin foto',
+  'progress.history': 'Semanas anteriores',
+  'progress.emptyHistory': 'Tus semanas anteriores aparecerán aquí.',
+  'mealhelp.title': '📷 Ayuda con comidas',
+  'mealhelp.hint': '¿No sabes los valores de un alimento? Sube su foto aquí y <b>avísame por el chat</b>: la analizo y te pregunto las medidas necesarias (peso, forma de cocción).',
+  'mealhelp.upload': '📷 Subir foto de comida',
+  'mealhelp.empty': 'Aún no has subido fotos.',
+  'mealhelp.reviewed': '✓ revisada',
+  'mealhelp.pending': '⏳ pendiente',
+  'mealhelp.foodAlt': 'Comida',
+  'mealhelp.tapZoom': 'Toca para ampliar',
+  'mealhelp.zoomed': 'Foto ampliada',
+  'access.title': '🔐 Administración de accesos',
+  'access.sub': '· solo dueño',
+  'access.hint': 'Las cuentas nuevas quedan pendientes hasta que las apruebes. Solo los usuarios aprobados pueden entrar y cada uno ve únicamente sus datos.',
+  'access.pending': 'Pendientes de aprobación (',
+  'access.users': 'Usuarios con acceso',
+  'access.loading': 'Cargando…',
+  'clients.title': '👥 Mis clientes',
+  'clients.sub': '· gestión de entrenador',
+  'clients.hint': 'Cada cliente debe subir su peso cada semana. Selecciona uno para ver su historial completo, editar sus pesajes o agregar nuevos. Sus metas las estableces en "Administración de accesos".',
+  'foot': 'ronbo.nutri · privado · tus datos solo los ves tú',
+  'meal.title': 'Registrar comida',
+  'form.date': 'Fecha',
+  'form.moment': 'Momento',
+  'form.food': 'Alimento',
+  'form.foodPh': 'Ej. Pechuga de pollo',
+  'form.amount': 'Cantidad',
+  'form.amountPh': 'Ej. 150 g',
+  'form.photo': '📷 Foto de la comida (opcional)',
+  'meal.photoHint': '📷 ¿No sabes los valores de un alimento? Súbelo en <b>📷 Ayuda con comidas</b> y avísame por el chat para analizarlo.',
+  'form.kcal': 'Kcal',
+  'form.protein': 'Proteína (g)',
+  'form.carbs': 'Carbos (g)',
+  'form.sugar': 'Azúcares (g)',
+  'form.fat': 'Grasas (g)',
+  'form.notes': 'Notas',
+  'form.cancel': 'Cancelar',
+  'form.save': 'Guardar',
+  'form.weight': 'Peso (kg)',
+  'form.bodyfat': 'Grasa corporal (%)',
+  'form.muscle': 'Masa muscular (%)',
+  'form.water': 'Agua corporal (%)',
+  'form.visceral': 'Grasa visceral (nivel)',
+  'goals.title': 'Metas del usuario',
+  'goals.for': 'Metas · {name}',
+  'form.cal': 'Calorías (kcal)',
+  'form.sugarMax': 'Azúcares máx (g)',
+  'goals.save': 'Guardar metas',
+  'profile.title': 'Perfil del cliente',
+  'profile.for': 'Perfil · {name}',
+  'form.phone2': 'Teléfono',
+  'form.trainerNotes': 'Notas del entrenador (primera entrevista, objetivos, observaciones)',
+  'profile.notesPh': 'Lo que completes en la primera entrevista…',
+  'profile.save': 'Guardar perfil',
+  'chart.note': '% de la meta diaria por día. La línea punteada es el 100%. En azúcares, lo ideal es mantenerse por debajo.',
+  'err.name': 'Escribe tu nombre y apellido.',
+  'err.phone': 'Escribe tu número de teléfono.',
+  'err.gender': 'Selecciona tu sexo / género.',
+  'err.consent': 'Debes aceptar el aviso de privacidad.',
+  'err.health': 'Debes confirmar tu declaración de salud.',
+  'err.pwmatch': 'Las contraseñas no coinciden.',
+  'err.emailInUse': 'Ese correo ya tiene cuenta. Entra con "Entrar".',
+  'err.weakPw': 'La contraseña debe tener al menos 6 caracteres.',
+  'err.badEmail': 'El correo no es válido.',
+  'err.createFail': 'No se pudo crear la cuenta. Intenta de nuevo.',
+  'err.forgotNoEmail': 'Escribe tu correo arriba para enviarte el enlace.',
+  'err.resetFail': 'No se pudo enviar el correo. Intenta de nuevo.',
+  'err.noAccess': 'Esta cuenta no tiene acceso.',
+  'err.pending': 'Tu cuenta está pendiente de aprobación por el dueño.',
+  'err.verifyFail': 'No se pudo verificar el acceso.',
+  'err.badCreds': 'Credenciales incorrectas.',
+  'err.tooHeavy': 'La imagen es muy pesada, prueba con otra.',
+  'err.uploadFail': 'No se pudo subir la foto.',
+  'err.mealMissing': 'Faltan fecha o alimento.',
+  'err.mealPhotoFail': 'No se pudo subir la foto; se guarda sin foto.',
+  'err.weightMissing': 'Faltan fecha o peso válido.',
+  'msg.accountCreated': 'Cuenta creada. El dueño debe aprobarla antes de que puedas entrar.',
+  'msg.resetSent': 'Te enviamos un correo para restablecer tu contraseña.',
+  'msg.approved': 'Usuario aprobado.',
+  'msg.revoked': 'Acceso retirado.',
+  'msg.rejected': 'Solicitud eliminada.',
+  'msg.foodReviewed': 'Foto marcada como revisada.',
+  'msg.goalsSaved': 'Metas actualizadas.',
+  'msg.profileSaved': 'Perfil actualizado.',
+  'msg.storageSoon': 'Las fotos de progreso se activarán próximamente.',
+  'msg.uploading': 'Subiendo foto…',
+  'msg.photoDeleted': 'Foto eliminada.',
+  'msg.foodSent': 'Foto enviada. Avísame por el chat para analizarla.',
+  'msg.photoSaved': 'Foto guardada.',
+  'msg.avatarSaved': 'Foto de perfil actualizada.',
+  'msg.mealSaved': 'Comida registrada.',
+  'msg.mealDeleted': 'Registro borrado.',
+  'msg.weightSaved': 'Pesaje registrado.',
+  'msg.weightDeleted': 'Pesaje borrado.',
+  'confirm.revoke': '¿Quitar el acceso a este usuario? No podrá volver a entrar.',
+  'confirm.reject': '¿Rechazar y eliminar esta solicitud?',
+  'confirm.delPhoto': '¿Eliminar esta foto?',
+  'confirm.delMeal': '¿Borrar este registro?',
+  'confirm.delWeight': '¿Borrar el pesaje del {date}?',
+  'admin.noPending': 'Sin solicitudes pendientes.',
+  'admin.noUsers': 'Aún no hay usuarios aprobados.',
+  'admin.approve': 'Aprobar',
+  'admin.reject': 'Rechazar',
+  'admin.profile': 'Perfil',
+  'admin.goals': 'Metas',
+  'admin.revoke': 'Quitar acceso',
+  'admin.owner': 'dueño',
+  'clients.empty': 'Aún no hay clientes registrados.',
+  'clients.noWeighins': 'sin pesajes',
+  'clients.daysAgo': 'hace {d} días',
+  'clients.daysAgoShort': 'hace {d} d',
+  'clients.pending': 'pendiente',
+  'clients.healthTitle': 'Declaró condiciones de salud',
+  'clients.healthBadge': 'salud',
+  'clients.foodTitle': 'Fotos de comida por revisar',
+  'clients.view': 'Ver registro',
+  'client.fallbackName': 'Cliente',
+  'client.weightLog': 'Registro de peso · {name}',
+  'client.healthDecl': 'Declaración de salud:',
+  'client.foodReview': '📷 Fotos de comida por revisar ({n})',
+  'client.addWeight': '＋ Agregar pesaje',
+  'client.close': 'Cerrar',
+  'client.noWeight': 'Este cliente aún no sube su peso.',
+  'client.edit': 'Editar',
+  'client.reviewed': '✓ Revisada',
+  'date.today': ' (hoy)',
+  'date.weekLabel': 'Semana {n} · {y}',
+  'note.kcalIn': '🔥 Calorías dentro del rango; quedan {left} kcal.',
+  'note.kcalOver': '🔥 Calorías por encima de la meta (+{over} kcal).',
+  'note.protOver': '💪 Proteína por encima de la meta (+{over} g).',
+  'note.protNear': '💪 Proteína cerca de la meta ({pct}%).',
+  'note.protUnder': '💪 Proteína por debajo de la meta ({pct}%).',
+  'note.carbOver': '🌾 Carbohidratos por encima de la meta (+{over} g).',
+  'note.carbNear': '🌾 Carbohidratos cerca de la meta ({pct}%).',
+  'note.carbUnder': '🌾 Carbohidratos por debajo de la meta ({pct}%).',
+  'note.sugarIn': '🍬 Azúcares dentro del límite ({v} de {g} g).',
+  'note.sugarOver': '🍬 Azúcares por encima del límite (+{over} g).',
+  'note.fatIn': '🫀 Grasas dentro de la meta ({pct}%).',
+  'note.fatSlight': '🫀 Grasas ligeramente por encima de la meta (+{over} g).',
+  'note.fatOver': '🫀 Grasas por encima de la meta (+{over} g).',
+  'status.left': 'Te quedan',
+  'status.available': 'disponible',
+  'status.overLimit': 'Excediste el límite',
+  'status.above': 'por encima',
+  'status.overGoal': 'Excediste la meta',
+  'import.done': 'Importados {n} registros.',
+  'import.fail': 'Error al importar: {e}',
+  'meal.Desayuno': 'Desayuno',
+  'meal.Almuerzo': 'Almuerzo',
+  'meal.Cena': 'Cena',
+  'meal.Merienda': 'Merienda',
+  'meal.Snack': 'Snack',
+  'gender.Femenino': 'Femenino',
+  'gender.Masculino': 'Masculino',
+  'gender.No binario': 'No binario',
+  'gender.Género fluido': 'Género fluido',
+  'gender.Otro': 'Otro',
+  'gender.Prefiero no decirlo': 'Prefiero no decirlo',
+  'cond.Hipertensión': 'Hipertensión',
+  'cond.Diabetes': 'Diabetes',
+  'cond.Problemas del corazón': 'Problemas del corazón',
+  'cond.Dolor de pecho al ejercitarse': 'Dolor de pecho al ejercitarse',
+  'cond.Mareos o desmayos': 'Mareos o desmayos',
+  'cond.Asma / problemas respiratorios': 'Asma / problemas respiratorios',
+  'cond.Lesiones articulares o musculares': 'Lesiones articulares o musculares',
+  'cond.Cirugía reciente': 'Cirugía reciente',
+  'cond.Embarazo': 'Embarazo',
+  'cond.Ninguna de las anteriores': 'Ninguna de las anteriores'
+}
+};
+let LANG = 'en';
+try { const _l = localStorage.getItem('ronbo-nutri-lang'); if (_l === 'es' || _l === 'en') LANG = _l; } catch (e) {}
+function t(k, vars) {
+  let s = (STR[LANG] && STR[LANG][k] !== undefined) ? STR[LANG][k] : STR.en[k];
+  if (s === undefined) s = k;
+  if (vars) for (const key in vars) s = s.split('{' + key + '}').join(vars[key]);
+  return s;
+}
+/* Values stored in Spanish (keeps existing data compatible); translated only for display. */
+function mealName(v) { const s = t('meal.' + v); return s === 'meal.' + v ? v : s; }
+function genderName(v) { const s = t('gender.' + v); return s === 'gender.' + v ? v : s; }
+function condName(v) { const s = t('cond.' + v); return s === 'cond.' + v ? v : s; }
+const MESES_EN = ['January','February','March','April','May','June','July','August','September','October','November','December'];
+const MESES_ES = ['enero','febrero','marzo','abril','mayo','junio','julio','agosto','septiembre','octubre','noviembre','diciembre'];
+const DAYNAMES = { en: ['Mon','Tue','Wed','Thu','Fri','Sat','Sun'], es: ['Lun','Mar','Mié','Jue','Vie','Sáb','Dom'] };
+
+function applyI18n() {
+  document.querySelectorAll('[data-i18n]').forEach(el => { el.innerHTML = t(el.getAttribute('data-i18n')); });
+  document.querySelectorAll('[data-i18n-ph]').forEach(el => { el.placeholder = t(el.getAttribute('data-i18n-ph')); });
+  document.querySelectorAll('[data-i18n-title]').forEach(el => { el.title = t(el.getAttribute('data-i18n-title')); });
+  document.querySelectorAll('[data-i18n-alt]').forEach(el => { el.alt = t(el.getAttribute('data-i18n-alt')); });
+  document.querySelectorAll('.lang-toggle button').forEach(b => b.classList.toggle('active', b.getAttribute('data-lang') === LANG));
+  document.documentElement.lang = LANG;
+  document.title = t('app.title');
+  const mm = document.getElementById('m-meal');
+  if (mm) mm.querySelectorAll('option').forEach(o => { o.textContent = mealName(o.value); });
+  ['reg-gender','p-gender'].forEach(id => {
+    const sel = document.getElementById(id);
+    if (sel) sel.querySelectorAll('option').forEach(o => { if (o.value) o.textContent = genderName(o.value); });
+  });
+  document.querySelectorAll('.reg-cond, .p-cond').forEach(c => {
+    const lab = c.closest('label'); if (!lab) return;
+    lab.childNodes.forEach(n => { if (n.nodeType === 3) n.textContent = ' ' + condName(c.value); });
+  });
+  if (typeof auth !== 'undefined' && auth) auth.languageCode = LANG;
+}
+async function refreshDynamic() {
+  const keep = (document.getElementById('dateSel') && document.getElementById('dateSel').value) || null;
+  await loadAll();
+  if (keep) {
+    const sel = document.getElementById('dateSel');
+    if ([...sel.options].some(o => o.value === keep)) { sel.value = keep; render(keep); }
+  }
+}
+function setLang(l) {
+  LANG = (l === 'es') ? 'es' : 'en';
+  try { localStorage.setItem('ronbo-nutri-lang', LANG); } catch (e) {}
+  applyI18n();
+  if (typeof auth !== 'undefined' && auth && auth.currentUser) refreshDynamic();
+}
 
 const $ = id => document.getElementById(id);
-const fmt = n => Number(n || 0).toLocaleString('es-MX', { maximumFractionDigits: 1 });
+const fmt = n => Number(n || 0).toLocaleString(LANG === 'es' ? 'es-MX' : 'en-US', { maximumFractionDigits: 1 });
 const num = v => { const n = parseFloat(String(v || '').replace(',', '.')); return isNaN(n) ? 0 : n; };
 
 function toast(msg, isErr) {
@@ -69,7 +627,8 @@ function showAuthError(msg) {
 function dateName(iso) {
   const m = String(iso).match(/(\d{4})-(\d{2})-(\d{2})/);
   if (!m) return iso;
-  return `${parseInt(m[3],10)} de ${MESES[parseInt(m[2],10)-1]} de ${m[1]}`;
+  const d = parseInt(m[3], 10), mi = parseInt(m[2], 10) - 1, y = m[1];
+  return LANG === 'es' ? `${d} de ${MESES_ES[mi]} de ${y}` : `${MESES_EN[mi]} ${d}, ${y}`;
 }
 function shortDate(iso) {
   const m = String(iso).match(/(\d{4})-(\d{2})-(\d{2})/);
@@ -97,13 +656,15 @@ function showRegError(msg) {
 $('form-register').addEventListener('submit', async e => {
   e.preventDefault();
   showRegError('');
-  const name = $('reg-name').value.trim(), email = $('reg-email').value.trim(), pw = $('reg-password').value;
+  const name = $('reg-name').value.trim(), email = $('reg-email').value.trim(),
+        pw = $('reg-password').value, pw2 = $('reg-password2').value;
   const phone = $('reg-phone').value.trim(), gender = $('reg-gender').value, social = $('reg-social').value.trim();
-  if (!name) { showRegError('Escribe tu nombre y apellido.'); return; }
-  if (!phone) { showRegError('Escribe tu número de teléfono.'); return; }
-  if (!gender) { showRegError('Selecciona tu sexo / género.'); return; }
-  if (!$('reg-consent').checked) { showRegError('Debes aceptar el aviso de privacidad.'); return; }
-  if (!$('reg-health-ok').checked) { showRegError('Debes confirmar tu declaración de salud.'); return; }
+  if (!name) { showRegError(t('err.name')); return; }
+  if (!phone) { showRegError(t('err.phone')); return; }
+  if (!gender) { showRegError(t('err.gender')); return; }
+  if (pw !== pw2) { showRegError(t('err.pwmatch')); return; }
+  if (!$('reg-consent').checked) { showRegError(t('err.consent')); return; }
+  if (!$('reg-health-ok').checked) { showRegError(t('err.health')); return; }
   const conditions = [...document.querySelectorAll('.reg-cond:checked')].map(c => c.value)
     .filter(v => v !== 'Ninguna de las anteriores');
   const healthDetail = $('reg-health-detail').value.trim();
@@ -121,15 +682,15 @@ $('form-register').addEventListener('submit', async e => {
     await signOut(auth);
     suppressAuthCheck = false;
     showRegError('');
-    toast('Cuenta creada. El dueño debe aprobarla antes de que puedas entrar.', false);
+    toast(t('msg.accountCreated'), false);
     $('tab-login').click();
   } catch (err) {
     suppressAuthCheck = false;
     const code = err.code || '';
-    showRegError(code.includes('email-already-in-use') ? 'Ese correo ya tiene cuenta. Entra con "Entrar".'
-      : code.includes('weak-password') ? 'La contraseña debe tener al menos 6 caracteres.'
-      : code.includes('invalid-email') ? 'El correo no es válido.'
-      : 'No se pudo crear la cuenta. Intenta de nuevo.');
+    showRegError(code.includes('email-already-in-use') ? t('err.emailInUse')
+      : code.includes('weak-password') ? t('err.weakPw')
+      : code.includes('invalid-email') ? t('err.badEmail')
+      : t('err.createFail'));
   }
 });
 $('form-login').addEventListener('submit', async e => {
@@ -139,10 +700,24 @@ $('form-login').addEventListener('submit', async e => {
   try {
     await signInWithEmailAndPassword(auth, $('login-email').value.trim(), $('login-password').value);
   } catch {
-    showAuthError('Credenciales incorrectas.');
+    showAuthError(t('err.badCreds'));
   }
 });
 $('btn-logout').addEventListener('click', e => { e.preventDefault(); signOut(auth); });
+$('link-forgot').addEventListener('click', async e => {
+  e.preventDefault();
+  const email = $('login-email').value.trim();
+  if (!email) { showAuthError(t('err.forgotNoEmail')); return; }
+  try {
+    await sendPasswordResetEmail(auth, email);
+    showAuthError('');
+    toast(t('msg.resetSent'), false);
+  } catch (err) {
+    const code = err.code || '';
+    showAuthError(code.includes('invalid-email') ? t('err.badEmail')
+      : t('err.resetFail'));
+  }
+});
 
 onAuthStateChanged(auth, async user => {
   if (!user) {
@@ -157,21 +732,21 @@ onAuthStateChanged(auth, async user => {
     const snap = await getDoc(doc(db, 'users', user.uid));
     if (!snap.exists()) {
       await signOut(auth);
-      showAuthError('Esta cuenta no tiene acceso.');
+      showAuthError(t('err.noAccess'));
       return;
     }
     UDATA = snap.data();
     IS_OWNER = UDATA.isOwner === true;
     if (!IS_OWNER && UDATA.approved !== true) {
       await signOut(auth);
-      showAuthError('Tu cuenta está pendiente de aprobación por el dueño.');
+      showAuthError(t('err.pending'));
       return;
     }
     GOALS = { ...DEFAULT_GOALS, ...(UDATA.goals || {}) };
     $('import-wrap').style.display = IS_OWNER ? '' : 'none';
   } catch {
     await signOut(auth);
-    showAuthError('No se pudo verificar el acceso.');
+    showAuthError(t('err.verifyFail'));
     return;
   }
   $('who').textContent = UDATA.name ? UDATA.name : user.email;
@@ -203,23 +778,23 @@ async function loadAdmin() {
     <div class="user-row">
       <div>${u.photoURL ? `<img class="avatar sm" src="${esc(u.photoURL)}" alt="">` : ''}<b>${esc(u.name || '—')}</b><br><span class="muted">${esc(u.email || '')}</span></div>
       <div class="user-actions">
-        <button class="btn-primary btn-sm" data-approve="${u.id}">Aprobar</button>
-        <button class="btn-ghost btn-sm" data-reject="${u.id}">Rechazar</button>
+        <button class="btn-primary btn-sm" data-approve="${u.id}">${t('admin.approve')}</button>
+        <button class="btn-ghost btn-sm" data-reject="${u.id}">${t('admin.reject')}</button>
       </div>
-    </div>`).join('') : '<div class="wempty">Sin solicitudes pendientes.</div>';
+    </div>`).join('') : `<div class="wempty">${t('admin.noPending')}</div>`;
   $('users-list').innerHTML =
     owners.map(u => `
-    <div class="user-row"><div>${u.photoURL ? `<img class="avatar sm" src="${esc(u.photoURL)}" alt="">` : ''}<b>${esc(u.name || '—')}</b> <span class="owner-badge">dueño</span><br><span class="muted">${esc(u.email || '')}</span></div>
-    <div class="user-actions"><button class="btn-ghost btn-sm" data-profile="${u.id}">Perfil</button><button class="btn-ghost btn-sm" data-goals="${u.id}">Metas</button></div></div>`).join('')
+    <div class="user-row"><div>${u.photoURL ? `<img class="avatar sm" src="${esc(u.photoURL)}" alt="">` : ''}<b>${esc(u.name || '—')}</b> <span class="owner-badge">${t('admin.owner')}</span><br><span class="muted">${esc(u.email || '')}</span></div>
+    <div class="user-actions"><button class="btn-ghost btn-sm" data-profile="${u.id}">${t('admin.profile')}</button><button class="btn-ghost btn-sm" data-goals="${u.id}">${t('admin.goals')}</button></div></div>`).join('')
     + (active.length ? active.map(u => `
     <div class="user-row">
       <div>${u.photoURL ? `<img class="avatar sm" src="${esc(u.photoURL)}" alt="">` : ''}<b>${esc(u.name || '—')}</b><br><span class="muted">${esc(u.email || '')}</span></div>
       <div class="user-actions">
-        <button class="btn-ghost btn-sm" data-profile="${u.id}">Perfil</button>
-        <button class="btn-ghost btn-sm" data-goals="${u.id}">Metas</button>
-        <button class="btn-ghost btn-sm" data-revoke="${u.id}">Quitar acceso</button>
+        <button class="btn-ghost btn-sm" data-profile="${u.id}">${t('admin.profile')}</button>
+        <button class="btn-ghost btn-sm" data-goals="${u.id}">${t('admin.goals')}</button>
+        <button class="btn-ghost btn-sm" data-revoke="${u.id}">${t('admin.revoke')}</button>
       </div>
-    </div>`).join('') : '<div class="wempty">Aún no hay usuarios aprobados.</div>');
+    </div>`).join('') : `<div class="wempty">${t('admin.noUsers')}</div>`);
   document.querySelectorAll('[data-goals]').forEach(b => b.onclick = () => {
     const u = ADMIN_USERS.find(x => x.id === b.dataset.goals);
     if (u) openGoals(u.id, u.name || u.email, u.goals);
@@ -227,17 +802,17 @@ async function loadAdmin() {
   document.querySelectorAll('[data-profile]').forEach(b => b.onclick = () => openProfile(b.dataset.profile));
   document.querySelectorAll('[data-approve]').forEach(b => b.onclick = async () => {
     await setDoc(doc(db, 'users', b.dataset.approve), { approved: true }, { merge: true });
-    toast('Usuario aprobado.'); await loadAdmin();
+    toast(t('msg.approved')); await loadAdmin();
   });
   document.querySelectorAll('[data-revoke]').forEach(b => b.onclick = async () => {
-    if (!confirm('¿Quitar el acceso a este usuario? No podrá volver a entrar.')) return;
+    if (!confirm(t('confirm.revoke'))) return;
     await setDoc(doc(db, 'users', b.dataset.revoke), { approved: false }, { merge: true });
-    toast('Acceso retirado.'); await loadAdmin();
+    toast(t('msg.revoked')); await loadAdmin();
   });
   document.querySelectorAll('[data-reject]').forEach(b => b.onclick = async () => {
-    if (!confirm('¿Rechazar y eliminar esta solicitud?')) return;
+    if (!confirm(t('confirm.reject'))) return;
     await deleteDoc(doc(db, 'users', b.dataset.reject));
-    toast('Solicitud eliminada.'); await loadAdmin();
+    toast(t('msg.rejected')); await loadAdmin();
   });
 }
 
@@ -271,24 +846,24 @@ async function loadClients() {
     const d = daysAgo(lastByUid[u.id]);
     const hasHealth = u.health && u.health.conditions && u.health.conditions.length > 0;
     const badge = u.approved === true
-      ? (d === null ? '<span class="warn-badge">sin pesajes</span>'
-        : d > 7 ? `<span class="warn-badge">hace ${d} días</span>` : `<span class="ok-badge">hace ${d} d</span>`)
-      : '<span class="warn-badge">pendiente</span>';
-    const healthBadge = hasHealth ? ' <span class="warn-badge" title="Declaró condiciones de salud">🏥 salud</span>' : '';
-    const foodBadge = pendingFood[u.id] ? ` <span class="warn-badge" title="Fotos de comida por revisar">📷 ${pendingFood[u.id]}</span>` : '';
+      ? (d === null ? `<span class="warn-badge">${t('clients.noWeighins')}</span>`
+        : d > 7 ? `<span class="warn-badge">${t('clients.daysAgo', { d })}</span>` : `<span class="ok-badge">${t('clients.daysAgoShort', { d })}</span>`)
+      : `<span class="warn-badge">${t('clients.pending')}</span>`;
+    const healthBadge = hasHealth ? ` <span class="warn-badge" title="${t('clients.healthTitle')}">🏥 ${t('clients.healthBadge')}</span>` : '';
+    const foodBadge = pendingFood[u.id] ? ` <span class="warn-badge" title="${t('clients.foodTitle')}">📷 ${pendingFood[u.id]}</span>` : '';
     const lastW = lastWByUid[u.id] ? ` · <b>${lastWByUid[u.id]} kg</b>` : '';
     return `<div class="user-row">
       <div>${u.photoURL ? `<img class="avatar sm" src="${esc(u.photoURL)}" alt="">` : ''}<b>${esc(u.name || '—')}</b> ${badge}${healthBadge}${foodBadge}<br><span class="muted">${esc(u.email || '')}${u.phone ? ' · ' + esc(u.phone) : ''}${lastW}</span></div>
-      <div class="user-actions">${u.approved === true ? `<button class="btn-primary btn-sm" data-client="${u.id}">Ver registro</button>` : ''}</div>
+      <div class="user-actions">${u.approved === true ? `<button class="btn-primary btn-sm" data-client="${u.id}">${t('clients.view')}</button>` : ''}</div>
     </div>`;
-  }).join('') : '<div class="wempty">Aún no hay clientes registrados.</div>';
+  }).join('') : `<div class="wempty">${t('clients.empty')}</div>`;
   $('client-detail').style.display = 'none'; $('client-detail').innerHTML = '';
   document.querySelectorAll('[data-client]').forEach(b => b.onclick = () => openClient(b.dataset.client));
 }
 
 async function openClient(uid) {
   const box = $('client-detail');
-  let uname = 'Cliente', uhealth = null;
+  let uname = t('client.fallbackName'), uhealth = null;
   try {
     const s = await getDoc(doc(db, 'users', uid));
     if (s.exists()) { uname = s.data().name || s.data().email || uname; uhealth = s.data().health || null; }
@@ -307,10 +882,10 @@ async function openClient(uid) {
     <td class="num">${d.fat || '—'}</td><td class="num">${d.muscle || '—'}</td>
     <td class="num">${d.water || '—'}</td><td class="num">${d.visceral || '—'}</td>
     <td>${esc(d.notes)}</td>
-    <td><button class="btn-ghost btn-sm" data-c-edit="${d.id}">Editar</button></td></tr>`).join('');
+    <td><button class="btn-ghost btn-sm" data-c-edit="${d.id}">${t('client.edit')}</button></td></tr>`).join('');
   box.style.display = '';
   const healthAlert = (uhealth && uhealth.conditions && uhealth.conditions.length)
-    ? `<div class="health-alert">🏥 <b>Declaración de salud:</b> ${esc(uhealth.conditions.join(', '))}${uhealth.details ? '<br>' + esc(uhealth.details) : ''}</div>`
+    ? `<div class="health-alert">🏥 <b>${t('client.healthDecl')}</b> ${esc(uhealth.conditions.map(condName).join(', '))}${uhealth.details ? '<br>' + esc(uhealth.details) : ''}</div>`
     : '';
   let foodItems = [];
   try {
@@ -320,19 +895,19 @@ async function openClient(uid) {
   const foodBlock = foodItems.length
     ? `<div class="mealhelp-list" style="margin-bottom:12px">${foodItems.map(m => `
       <div class="mealhelp-item">
-        <img src="${m.photoURL}" alt="Comida" data-food-view="${m.id}" title="Toca para ampliar">
-        <div class="mealhelp-row"><button class="btn-ghost btn-sm" data-food-ok="${m.id}">✓ Revisada</button></div>
+        <img src="${m.photoURL}" alt="${t('mealhelp.foodAlt')}" data-food-view="${m.id}" title="${t('mealhelp.tapZoom')}">
+        <div class="mealhelp-row"><button class="btn-ghost btn-sm" data-food-ok="${m.id}">${t('client.reviewed')}</button></div>
       </div>`).join('')}</div>`
     : '';
   box.innerHTML = `
-    <h3 class="history-title">Registro de peso · ${esc(uname)}</h3>
+    <h3 class="history-title">${t('client.weightLog', { name: esc(uname) })}</h3>
     ${healthAlert}
-    ${foodItems.length ? `<h3 class="history-title">📷 Fotos de comida por revisar (${foodItems.length})</h3>${foodBlock}` : ''}
-    <div style="margin-bottom:10px"><button class="btn-primary btn-sm" id="btn-client-add">＋ Agregar pesaje</button>
-    <button class="btn-ghost btn-sm" id="btn-client-close" style="margin-left:8px">Cerrar</button></div>
-    ${data.length ? weightChartSVG([...data].reverse()) : '<div class="wempty">Este cliente aún no sube su peso.</div>'}
+    ${foodItems.length ? `<h3 class="history-title">${t('client.foodReview', { n: foodItems.length })}</h3>${foodBlock}` : ''}
+    <div style="margin-bottom:10px"><button class="btn-primary btn-sm" id="btn-client-add">${t('client.addWeight')}</button>
+    <button class="btn-ghost btn-sm" id="btn-client-close" style="margin-left:8px">${t('client.close')}</button></div>
+    ${data.length ? weightChartSVG([...data].reverse()) : `<div class="wempty">${t('client.noWeight')}</div>`}
     ${data.length ? `<div class="table-scroll"><table class="detail whist">
-      <thead><tr><th>Fecha</th><th class="num">Peso (kg)</th><th class="num">Grasa %</th><th class="num">Músculo %</th><th class="num">Agua %</th><th class="num">Visc.</th><th>Notas</th><th></th></tr></thead>
+      <thead><tr><th>${t('form.date')}</th><th class="num">${t('form.weight')}</th><th class="num">${t('form.bodyfat')}</th><th class="num">${t('form.muscle')}</th><th class="num">${t('form.water')}</th><th class="num">${t('form.visceral')}</th><th>${t('form.notes')}</th><th></th></tr></thead>
       <tbody>${rows}</tbody></table></div>` : ''}`;
   $('btn-client-close').onclick = () => { box.style.display = 'none'; box.innerHTML = ''; };
   $('btn-client-add').onclick = () => openWeightModal({ uid, docId: null, rec: null });
@@ -344,7 +919,7 @@ async function openClient(uid) {
   box.querySelectorAll('[data-food-view]').forEach(im => im.onclick = () => { const m = foodById(im.dataset.foodView); if (m) showLightbox(m.photoURL); });
   box.querySelectorAll('[data-food-ok]').forEach(b => b.onclick = async () => {
     await setDoc(doc(db, 'meal_help', b.dataset.foodOk), { status: 'reviewed' }, { merge: true });
-    toast('Foto marcada como revisada.');
+    toast(t('msg.foodReviewed'));
     openClient(uid);
   });
   box.scrollIntoView({ behavior: 'smooth', block: 'start' });
@@ -354,7 +929,7 @@ async function openClient(uid) {
 let goalsUid = null;
 function openGoals(uid, name, goals) {
   goalsUid = uid;
-  $('goals-modal-title').textContent = 'Metas · ' + name;
+  $('goals-modal-title').textContent = t('goals.for', { name });
   const g = { ...DEFAULT_GOALS, ...(goals || {}) };
   $('g-kcal').value = g.kcal; $('g-prot').value = g.prot; $('g-carb').value = g.carb;
   $('g-azuc').value = g.azuc; $('g-gras').value = g.gras;
@@ -371,7 +946,7 @@ $('form-goals').addEventListener('submit', async e => {
   const mine = goalsUid === auth.currentUser.uid;
   goalsUid = null;
   $('goals-modal').style.display = 'none';
-  toast('Metas actualizadas.');
+  toast(t('msg.goalsSaved'));
   if (mine) { GOALS = { ...goals }; render($('dateSel').value); }
   await loadAdmin();
 });
@@ -389,7 +964,7 @@ function openProfile(uid) {
   const u = ADMIN_USERS.find(x => x.id === uid);
   if (!u) return;
   profileUid = uid;
-  $('profile-modal-title').textContent = 'Perfil · ' + (u.name || u.email);
+  $('profile-modal-title').textContent = t('profile.for', { name: u.name || u.email });
   $('p-name').value = u.name || '';
   $('p-phone').value = u.phone || '';
   $('p-gender').value = u.gender || '';
@@ -417,7 +992,7 @@ $('form-profile').addEventListener('submit', async e => {
   }, { merge: true });
   profileUid = null;
   $('profile-modal').style.display = 'none';
-  toast('Perfil actualizado.');
+  toast(t('msg.profileSaved'));
   await loadAdmin();
   await loadClients();
 });
@@ -466,7 +1041,7 @@ function applyStorageFlag() {
   document.querySelectorAll('.photo-label').forEach(el => el.style.display = 'none');
   document.querySelectorAll('.photo-hint').forEach(el => el.style.display = '');
   const pu = document.querySelector('.progress-uploads');
-  if (pu) pu.innerHTML = '<div class="wempty">Las fotos de progreso se activarán próximamente.</div>';
+  if (pu) pu.innerHTML = `<div class="wempty">${t('msg.storageSoon')}</div>`;
 }
 
 function buildDateSelector() {
@@ -476,7 +1051,7 @@ function buildDateSelector() {
   const t = todayISO();
   if (!MEALS[t]) {
     const o = document.createElement('option');
-    o.value = t; o.textContent = dateName(t) + ' (hoy)';
+    o.value = t; o.textContent = dateName(t) + t('date.today');
     sel.appendChild(o);
   }
   dates.forEach(d => {
@@ -506,10 +1081,10 @@ function weekDates(iso) {
 function renderWeekChart(date) {
   const el = $('weekChart');
   const days = weekDates(date);
-  const dayNames = ['Lun', 'Mar', 'Mié', 'Jue', 'Vie', 'Sáb', 'Dom'];
+  const dayNames = DAYNAMES[LANG] || DAYNAMES.en;
   const MAXP = 1.25;
   const series = METRICS.map(m => ({
-    color: m.color, name: m.name,
+    color: m.color, name: t('metric.' + m.key),
     pts: days.map(d => {
       const t = totals(d);
       const g = GOALS[m.key] || 1;
@@ -541,7 +1116,7 @@ function renderWeekChart(date) {
   const legend = series.map((s, i) =>
     `<circle cx="${P.l + i * 128}" cy="8" r="4" fill="${s.color}"/><text x="${P.l + i * 128 + 8}" y="12" font-size="10" fill="#4b5563">${s.name}</text>`).join('');
   el.innerHTML = `<div class="chart-wrap"><svg viewBox="0 0 ${W} ${H}" style="width:100%;min-width:520px;display:block">${legend}${grid}${highlight}${lines}${labels}</svg></div>
-    <p class="chart-note">% de la meta diaria por día. La línea punteada es el 100%. En azúcares, lo ideal es mantenerse por debajo.</p>`;
+    <p class="chart-note">${t('chart.note')}</p>`;
 }
 
 /* ================= AYUDA CON COMIDAS (foto para análisis, sin Storage) ================= */
@@ -565,16 +1140,16 @@ async function loadMealHelp() {
   items.sort((a, b) => ts(b) - ts(a));
   box.innerHTML = items.length ? items.slice(0, 12).map(m => `
     <div class="mealhelp-item">
-      <img src="${m.photoURL}" alt="Comida" data-mh-view="${m.id}" title="Toca para ampliar">
-      <div class="mealhelp-row"><span class="mealhelp-status">${m.status === 'reviewed' ? '✓ revisada' : '⏳ pendiente'}</span>
+      <img src="${m.photoURL}" alt="${t('mealhelp.foodAlt')}" data-mh-view="${m.id}" title="${t('mealhelp.tapZoom')}">
+      <div class="mealhelp-row"><span class="mealhelp-status">${m.status === 'reviewed' ? t('mealhelp.reviewed') : t('mealhelp.pending')}</span>
       <button class="btn-ghost btn-sm" data-mh-del="${m.id}">✕</button></div>
-    </div>`).join('') : '<div class="wempty">Aún no has subido fotos.</div>';
+    </div>`).join('') : `<div class="wempty">${t('mealhelp.empty')}</div>`;
   const byId = id => items.find(x => x.id === id);
   box.querySelectorAll('[data-mh-view]').forEach(im => im.onclick = () => { const m = byId(im.dataset.mhView); if (m) showLightbox(m.photoURL); });
   box.querySelectorAll('[data-mh-del]').forEach(b => b.onclick = async () => {
-    if (!confirm('¿Eliminar esta foto?')) return;
+    if (!confirm(t('confirm.delPhoto'))) return;
     await deleteDoc(doc(db, 'meal_help', b.dataset.mhDel));
-    toast('Foto eliminada.'); loadMealHelp();
+    toast(t('msg.photoDeleted')); loadMealHelp();
   });
 }
 const mhFile = $('mealhelp-file');
@@ -640,20 +1215,20 @@ function statusBox(m, val) {
   const over = pct >= 1;
   const diff = Math.abs(val - GOALS[m.key]);
   if (m.max) {
-    if (!over) return `<div class="ring-box ok"><b>Te quedan</b>${fmt(diff)} g<br>(${Math.round((1-pct)*100)}% disponible)</div>`;
-    return `<div class="ring-box over"><b>Excediste el límite</b>+${fmt(diff)} g<br>(${Math.round((pct-1)*100)}% por encima)</div>`;
+    if (!over) return `<div class="ring-box ok"><b>${t('status.left')}</b>${fmt(diff)} g<br>(${Math.round((1-pct)*100)}% ${t('status.available')})</div>`;
+    return `<div class="ring-box over"><b>${t('status.overLimit')}</b>+${fmt(diff)} g<br>(${Math.round((pct-1)*100)}% ${t('status.above')})</div>`;
   }
-  if (!over) return `<div class="ring-box ok"><b>Te quedan</b>${fmt(diff)} ${m.unit}<br>(${Math.round((1-pct)*100)}% disponible)</div>`;
-  return `<div class="ring-box over"><b>Excediste la meta</b>+${fmt(diff)} ${m.unit}<br>(${Math.round((pct-1)*100)}% por encima)</div>`;
+  if (!over) return `<div class="ring-box ok"><b>${t('status.left')}</b>${fmt(diff)} ${m.unit}<br>(${Math.round((1-pct)*100)}% ${t('status.available')})</div>`;
+  return `<div class="ring-box over"><b>${t('status.overGoal')}</b>+${fmt(diff)} ${m.unit}<br>(${Math.round((pct-1)*100)}% ${t('status.above')})</div>`;
 }
 function notesFor(t) {
   const n = [];
   const pc = t.kcal/GOALS.kcal, pp = t.prot/GOALS.prot, pb = t.carb/GOALS.carb, pa = t.azuc/GOALS.azuc, pg = t.gras/GOALS.gras;
-  n.push(pc < 1 ? `🔥 Calorías dentro del rango; quedan ${fmt(GOALS.kcal - t.kcal)} kcal.` : `🔥 Calorías por encima de la meta (+${fmt(t.kcal - GOALS.kcal)} kcal).`);
-  n.push(pp >= 1 ? `💪 Proteína por encima de la meta (+${fmt(t.prot - GOALS.prot)} g).` : pp >= .8 ? `💪 Proteína cerca de la meta (${Math.round(pp*100)}%).` : `💪 Proteína por debajo de la meta (${Math.round(pp*100)}%).`);
-  n.push(pb >= 1 ? `🌾 Carbohidratos por encima de la meta (+${fmt(t.carb - GOALS.carb)} g).` : pb >= .7 ? `🌾 Carbohidratos cerca de la meta (${Math.round(pb*100)}%).` : `🌾 Carbohidratos por debajo de la meta (${Math.round(pb*100)}%).`);
-  n.push(pa <= 1 ? `🍬 Azúcares dentro del límite (${fmt(t.azuc)} de ${GOALS.azuc} g).` : `🍬 Azúcares por encima del límite (+${fmt(t.azuc - GOALS.azuc)} g).`);
-  n.push(pg <= 1 ? `🫀 Grasas dentro de la meta (${Math.round(pg*100)}%).` : pg <= 1.1 ? `🫀 Grasas ligeramente por encima de la meta (+${fmt(t.gras - GOALS.gras)} g).` : `🫀 Grasas por encima de la meta (+${fmt(t.gras - GOALS.gras)} g).`);
+  n.push(pc < 1 ? t('note.kcalIn', { left: fmt(GOALS.kcal - t.kcal) }) : t('note.kcalOver', { over: fmt(t.kcal - GOALS.kcal) }));
+  n.push(pp >= 1 ? t('note.protOver', { over: fmt(t.prot - GOALS.prot) }) : pp >= .8 ? t('note.protNear', { pct: Math.round(pp*100) }) : t('note.protUnder', { pct: Math.round(pp*100) }));
+  n.push(pb >= 1 ? t('note.carbOver', { over: fmt(t.carb - GOALS.carb) }) : pb >= .7 ? t('note.carbNear', { pct: Math.round(pb*100) }) : t('note.carbUnder', { pct: Math.round(pb*100) }));
+  n.push(pa <= 1 ? t('note.sugarIn', { v: fmt(t.azuc), g: GOALS.azuc }) : t('note.sugarOver', { over: fmt(t.azuc - GOALS.azuc) }));
+  n.push(pg <= 1 ? t('note.fatIn', { pct: Math.round(pg*100) }) : pg <= 1.1 ? t('note.fatSlight', { over: fmt(t.gras - GOALS.gras) }) : t('note.fatOver', { over: fmt(t.gras - GOALS.gras) }));
   return n;
 }
 const esc = s => String(s == null ? '' : s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
@@ -694,7 +1269,7 @@ function setAvatar(url) {
       '<text x="32" y="43" font-size="28" text-anchor="middle" fill="#fff" font-family="sans-serif">' + initial + '</text></svg>');
   }
   img.style.display = '';
-  img.title = 'Toca para cambiar tu foto de perfil';
+  img.title = t('avatar.change');
 }
 $('avatar').addEventListener('click', () => $('avatar-file').click());
 $('avatar-file').addEventListener('change', async e => {
@@ -708,7 +1283,7 @@ $('avatar-file').addEventListener('change', async e => {
     await setDoc(doc(db, 'users', auth.currentUser.uid), { photoURL: url }, { merge: true });
     UDATA.photoURL = url;
     setAvatar(url);
-    toast('Foto de perfil actualizada.');
+    toast(t('msg.avatarSaved'));
   } catch { toast('No se pudo subir la foto.', true); }
 });
 async function uploadPhoto(file, path) {
@@ -721,45 +1296,44 @@ async function uploadPhoto(file, path) {
 function render(date) {
   $('dateTitle').textContent = dateName(date);
   $('goals-row').innerHTML =
-    `<span>Calorías: <b>${fmt(GOALS.kcal)} kcal</b></span>` +
-    `<span>Proteína: <b>${fmt(GOALS.prot)} g</b></span>` +
-    `<span>Carbohidratos: <b>${fmt(GOALS.carb)} g</b></span>` +
-    `<span>Azúcares: <b>≤ ${fmt(GOALS.azuc)} g</b></span>` +
-    `<span>Grasas: <b>${fmt(GOALS.gras)} g</b></span>`;
+    `<span>${t('metric.kcal')}: <b>${fmt(GOALS.kcal)} kcal</b></span>` +
+    `<span>${t('metric.prot')}: <b>${fmt(GOALS.prot)} g</b></span>` +
+    `<span>${t('metric.carb')}: <b>${fmt(GOALS.carb)} g</b></span>` +
+    `<span>${t('metric.azuc')}: <b>≤ ${fmt(GOALS.azuc)} g</b></span>` +
+    `<span>${t('metric.gras')}: <b>${fmt(GOALS.gras)} g</b></span>`;
   const t = totals(date);
   const vals = { kcal: t.kcal, prot: t.prot, carb: t.carb, azuc: t.azuc, gras: t.gras };
   $('rings').innerHTML = METRICS.map(m =>
-    `<div class="ring-card"><h3>${m.icon} ${m.name}</h3>${ringSVG(m, vals[m.key])}${statusBox(m, vals[m.key])}</div>`
+    `<div class="ring-card"><h3>${m.icon} ${t('metric.' + m.key)}</h3>${ringSVG(m, vals[m.key])}${statusBox(m, vals[m.key])}</div>`
   ).join('');
   renderWeekChart(date);
   const rows = MEALS[date] || [];
   let html = rows.map(m =>
-    `<tr><td>${esc(m.meal)}</td><td>${esc(m.food)}${m.photoURL ? ` <a href="${esc(m.photoURL)}" target="_blank" rel="noopener" title="Ver foto">📷</a>` : ''}</td><td>${esc(m.qty)}</td>` +
+    `<tr><td>${esc(mealName(m.meal))}</td><td>${esc(m.food)}${m.photoURL ? ` <a href="${esc(m.photoURL)}" target="_blank" rel="noopener" title="${t('track.viewPhoto')}">📷</a>` : ''}</td><td>${esc(m.qty)}</td>` +
     `<td class="num">${fmt(m.kcal)}</td><td class="num">${fmt(m.prot)}</td><td class="num">${fmt(m.carb)}</td>` +
     `<td class="num">${fmt(m.sugar)}</td><td class="num">${fmt(m.fat)}</td>` +
-    `<td><button class="del-btn" data-del-meal="${m.id}" title="Borrar">×</button></td></tr>`
+    `<td><button class="del-btn" data-del-meal="${m.id}" title="${t('track.delete')}">×</button></td></tr>`
   ).join('');
   html += `<tr class="total"><td colspan="3">TOTAL</td><td class="num" style="color:#16A34A">${fmt(t.kcal)}</td><td class="num" style="color:#2563EB">${fmt(t.prot)}</td><td class="num" style="color:#D97706">${fmt(t.carb)}</td><td class="num" style="color:#9333EA">${fmt(t.azuc)}</td><td class="num" style="color:#DC2626">${fmt(t.gras)}</td><td></td></tr>`;
-  $('detailBody').innerHTML = html || `<tr><td colspan="9" class="wempty">Sin registros este día. Usa "＋ Registrar comida".</td></tr>`;
-  const vsNames = { kcal:'Calorías', prot:'Proteína', carb:'Carbohidratos', azuc:'Azúcares', gras:'Grasas' };
+  $('detailBody').innerHTML = html || `<tr><td colspan="9" class="wempty">${t('track.emptyDay', { btn: t('track.addMeal') })}</td></tr>`;
   $('vsRows').innerHTML =
-    `<div class="vsrow head"><span>Indicador</span><span>Consumo</span><span>Meta</span><span>Progreso</span><span></span></div>` +
+    `<div class="vsrow head"><span>${t('vs.indicator')}</span><span>${t('vs.intake')}</span><span>${t('vs.goal')}</span><span>${t('vs.progress')}</span><span></span></div>` +
     METRICS.map(m => {
       const v = vals[m.key], pct = GOALS[m.key] ? v / GOALS[m.key] : 0;
       const w = Math.min(pct, 1) * 100;
-      return `<div class="vsrow"><span>${vsNames[m.key]}</span><span><b>${fmt(v)}</b></span><span>${fmt(GOALS[m.key])}</span><span class="bar-track"><div class="bar-fill" style="width:${w.toFixed(0)}%;background:${m.color}"></div></span><span>${Math.round(pct*100)}%</span></div>`;
+      return `<div class="vsrow"><span>${t('metric.' + m.key)}</span><span><b>${fmt(v)}</b></span><span>${fmt(GOALS[m.key])}</span><span class="bar-track"><div class="bar-fill" style="width:${w.toFixed(0)}%;background:${m.color}"></div></span><span>${Math.round(pct*100)}%</span></div>`;
     }).join('');
   const noteSet = [];
-  rows.forEach(m => { if (m.notes) noteSet.push(`<b>${esc(m.meal)}:</b> ${esc(m.notes)}`); });
+  rows.forEach(m => { if (m.notes) noteSet.push(`<b>${esc(mealName(m.meal))}:</b> ${esc(m.notes)}`); });
   $('notesList').innerHTML = notesFor(t).map(x => `<li>${x}</li>`).join('') + noteSet.map(x => `<li>${x}</li>`).join('');
 
   document.querySelectorAll('[data-del-meal]').forEach(b =>
     b.onclick = async () => {
-      if (!confirm('¿Borrar este registro?')) return;
+      if (!confirm(t('confirm.delMeal'))) return;
       const row = rows.find(r => r.id === b.dataset.delMeal);
       await deleteDoc(doc(db, 'nutrition_meals', b.dataset.delMeal));
       if (row && row.photoPath) { try { await deleteObject(sRef(storage, row.photoPath)); } catch {} }
-      toast('Registro borrado.');
+      toast(t('msg.mealDeleted'));
       await loadAllKeepDate(date);
     });
 }
@@ -801,8 +1375,8 @@ function weightChartSVG(data) {
             <text x="${P.l - 6}" y="${y + 4}" text-anchor="end" font-size="10" fill="#9ca3af">${v.toFixed(1)}</text>`;
   }).join('');
   const legend = grasas.length >= 2
-    ? `<g font-size="11"><circle cx="${P.l}" cy="10" r="4" fill="#0d9488"/><text x="${P.l + 8}" y="14" fill="#4b5563">Peso (kg)</text>
-       <circle cx="${P.l + 110}" cy="10" r="4" fill="#A855F7"/><text x="${P.l + 118}" y="14" fill="#4b5563">Grasa (%)</text></g>` : '';
+    ? `<g font-size="11"><circle cx="${P.l}" cy="10" r="4" fill="#0d9488"/><text x="${P.l + 8}" y="14" fill="#4b5563">${t('weight.chartWeight')}</text>
+       <circle cx="${P.l + 110}" cy="10" r="4" fill="#A855F7"/><text x="${P.l + 118}" y="14" fill="#4b5563">${t('weight.chartFat')}</text></g>` : '';
   return `<div class="chart-wrap"><svg viewBox="0 0 ${W} ${H}" style="width:100%;min-width:480px;display:block">${legend}${grid}
     <polyline points="${pts}" fill="none" stroke="#0d9488" stroke-width="3" stroke-linecap="round"/>${grasaLine}${grasaDots}${dots}</svg></div>`;
 }
@@ -811,7 +1385,7 @@ function renderWeight() {
   const body = $('weightBody');
   const data = WEIGHTS;
   if (!data.length) {
-    body.innerHTML = `<div class="wempty">Aún no hay pesajes registrados.<br>Usa "＋ Registrar pesaje" cuando te peses — la gráfica se dibuja sola.</div>`;
+    body.innerHTML = `<div class="wempty">${t('weight.empty', { btn: t('weight.add') })}</div>`;
     return;
   }
   const last = data[data.length - 1], first = data[0];
@@ -823,43 +1397,43 @@ function renderWeight() {
   // Recordatorio: el pesaje es semanal
   const daysSince = Math.floor((Date.now() - new Date(last.date + 'T12:00:00').getTime()) / 864e5);
   const reminder = daysSince > 7
-    ? `<div class="weigh-reminder">⚠️ Llevas ${daysSince} días sin pesarte. Recuerda subir tu peso cada semana.</div>` : '';
+    ? `<div class="weigh-reminder">${t('weight.reminder', { d: daysSince })}</div>` : '';
   let grasaCard = '';
   if (last.fat > 0) {
     const dg = prev && prev.fat > 0 ? last.fat - prev.fat : 0;
-    grasaCard = `<div class="wstat"><div class="lbl">GRASA CORPORAL</div><div class="val">${last.fat}<small> %</small></div>
+    grasaCard = `<div class="wstat"><div class="lbl">${t('weight.bodyFat')}</div><div class="val">${last.fat}<small> %</small></div>
       <div class="delta ${dCls(dg)}">${prev && prev.fat > 0 ? dTxt(dg).replace('kg','pp') : '—'}</div></div>`;
   }
-  const delBtn = `<div style="text-align:center;margin-top:8px"><button class="btn-ghost btn-sm" id="btn-del-weight">Borrar último pesaje (${shortDate(last.date)})</button></div>`;
+  const delBtn = `<div style="text-align:center;margin-top:8px"><button class="btn-ghost btn-sm" id="btn-del-weight">${t('weight.delLast', { date: shortDate(last.date) })}</button></div>`;
   const histRows = [...data].reverse().map(d => `
     <tr><td>${dateName(d.date)}</td><td class="num"><b>${d.weight}</b></td>
     <td class="num">${d.fat || '—'}</td><td class="num">${d.muscle || '—'}</td>
     <td class="num">${d.water || '—'}</td><td class="num">${d.visceral || '—'}</td>
     <td>${esc(d.notes)}</td>
-    <td><button class="btn-ghost btn-sm" data-edit-weight="${d.id}">Editar</button></td></tr>`).join('');
+    <td><button class="btn-ghost btn-sm" data-edit-weight="${d.id}">${t('client.edit')}</button></td></tr>`).join('');
   body.innerHTML = `
     ${reminder}
     <div class="wstats">
-      <div class="wstat"><div class="lbl">PESO ACTUAL</div><div class="val">${last.weight}<small> kg</small></div>
+      <div class="wstat"><div class="lbl">${t('weight.current')}</div><div class="val">${last.weight}<small> kg</small></div>
         <div class="delta flat">${shortDate(last.date)}</div></div>
-      <div class="wstat"><div class="lbl">VS PESAJE ANTERIOR</div><div class="val">${prev ? dTxt(dW).split(' ')[0] : '—'}<small> ${prev ? 'kg' : ''}</small></div>
-        <div class="delta ${dCls(dW)}">${prev ? dTxt(dW) : 'primer registro'}</div></div>
-      <div class="wstat"><div class="lbl">CAMBIO TOTAL</div><div class="val">${dT > 0 ? '+' : ''}${dT.toFixed(1)}<small> kg</small></div>
-        <div class="delta ${dCls(dT)}">desde ${shortDate(first.date)} · ${data.length} pesaje${data.length > 1 ? 's' : ''}</div></div>
+      <div class="wstat"><div class="lbl">${t('weight.vsPrev')}</div><div class="val">${prev ? dTxt(dW).split(' ')[0] : '—'}<small> ${prev ? 'kg' : ''}</small></div>
+        <div class="delta ${dCls(dW)}">${prev ? dTxt(dW) : t('weight.firstRecord')}</div></div>
+      <div class="wstat"><div class="lbl">${t('weight.totalChange')}</div><div class="val">${dT > 0 ? '+' : ''}${dT.toFixed(1)}<small> kg</small></div>
+        <div class="delta ${dCls(dT)}">${t('weight.since', { d: shortDate(first.date), n: data.length, s: data.length > 1 ? 's' : '' })}</div></div>
       ${grasaCard}
     </div>
     ${weightChartSVG(data)}
-    <h3 class="history-title">Historial de pesajes</h3>
+    <h3 class="history-title">${t('weight.history')}</h3>
     <div class="table-scroll"><table class="detail whist">
-      <thead><tr><th>Fecha</th><th class="num">Peso (kg)</th><th class="num">Grasa %</th><th class="num">Músculo %</th><th class="num">Agua %</th><th class="num">Visc.</th><th>Notas</th><th></th></tr></thead>
+      <thead><tr><th>${t('form.date')}</th><th class="num">${t('form.weight')}</th><th class="num">${t('form.bodyfat')}</th><th class="num">${t('form.muscle')}</th><th class="num">${t('form.water')}</th><th class="num">${t('form.visceral')}</th><th>${t('form.notes')}</th><th></th></tr></thead>
       <tbody>${histRows}</tbody>
     </table></div>
     ${delBtn}`;
   const dw = $('btn-del-weight');
   if (dw) dw.onclick = async () => {
-    if (!confirm(`¿Borrar el pesaje del ${dateName(last.date)}?`)) return;
+    if (!confirm(t('confirm.delWeight', { date: dateName(last.date) }))) return;
     await deleteDoc(doc(db, 'nutrition_weight', last.id));
-    toast('Pesaje borrado.');
+    toast(t('msg.weightDeleted'));
     await loadAll();
   };
   body.querySelectorAll('[data-edit-weight]').forEach(b => b.onclick = () => {
@@ -881,7 +1455,7 @@ function weekId(d) {
 }
 function weekLabel(wid) {
   const m = String(wid).match(/(\d{4})-W(\d{2})/);
-  return m ? `Semana ${parseInt(m[2], 10)} · ${m[1]}` : wid;
+  return m ? t('date.weekLabel', { n: parseInt(m[2], 10), y: m[1] }) : wid;
 }
 let PROGRESS = {}; // weekId -> doc
 async function loadProgress() {
@@ -899,21 +1473,21 @@ function setSlot(which, url) {
 }
 function renderProgress() {
   const wid = weekId();
-  $('progress-week-label').textContent = weekLabel(wid) + ' (esta semana)';
+  $('progress-week-label').textContent = weekLabel(wid) + t('progress.thisWeek');
   const cur = PROGRESS[wid] || {};
   setSlot('front', cur.frontURL); setSlot('side', cur.sideURL);
   const hasF = !!cur.frontURL, hasS = !!cur.sideURL;
-  $('progress-status').textContent = hasF && hasS ? '✅ Semana completa.'
-    : (hasF || hasS) ? 'Te falta una foto esta semana.' : 'Aún no subes fotos esta semana.';
+  $('progress-status').textContent = hasF && hasS ? t('progress.complete')
+    : (hasF || hasS) ? t('progress.missingOne') : t('progress.none');
   const weeks = Object.keys(PROGRESS).filter(w => w !== wid).sort().reverse();
   $('progress-history').innerHTML = weeks.length ? weeks.map(w => {
     const p = PROGRESS[w];
     return `<div class="hist-week"><div class="hist-label">${weekLabel(w)}</div>
       <div class="hist-imgs">
-        ${p.frontURL ? `<a href="${esc(p.frontURL)}" target="_blank" rel="noopener"><img src="${esc(p.frontURL)}" alt="Frente" loading="lazy"></a>` : '<span class="wempty">sin foto</span>'}
-        ${p.sideURL ? `<a href="${esc(p.sideURL)}" target="_blank" rel="noopener"><img src="${esc(p.sideURL)}" alt="Lado" loading="lazy"></a>` : '<span class="wempty">sin foto</span>'}
+        ${p.frontURL ? `<a href="${esc(p.frontURL)}" target="_blank" rel="noopener"><img src="${esc(p.frontURL)}" alt="${t('progress.front')}" loading="lazy"></a>` : `<span class="wempty">${t('progress.noPhoto')}</span>`}
+        ${p.sideURL ? `<a href="${esc(p.sideURL)}" target="_blank" rel="noopener"><img src="${esc(p.sideURL)}" alt="${t('progress.side')}" loading="lazy"></a>` : `<span class="wempty">${t('progress.noPhoto')}</span>`}
       </div></div>`;
-  }).join('') : '<div class="wempty">Tus semanas anteriores aparecerán aquí.</div>';
+  }).join('') : `<div class="wempty">${t('progress.emptyHistory')}</div>`;
 }
 async function uploadProgressPhoto(which, file) {
   const wid = weekId();
@@ -925,7 +1499,7 @@ async function uploadProgressPhoto(which, file) {
     data[which === 'front' ? 'frontURL' : 'sideURL'] = up.url;
     data[which === 'front' ? 'frontPath' : 'sidePath'] = up.path;
     await setDoc(doc(db, 'nutrition_progress', `${auth.currentUser.uid}_${wid}`), data, { merge: true });
-    toast('Foto guardada.');
+    toast(t('msg.photoSaved'));
     await loadProgress();
   } catch { toast('No se pudo subir la foto.', true); }
 }
@@ -955,7 +1529,7 @@ $('form-meal').addEventListener('submit', async e => {
     fat: num($('m-fat').value), notes: $('m-notes').value.trim(),
     createdAt: serverTimestamp()
   };
-  if (!data.date || !data.food) { toast('Faltan fecha o alimento.', true); return; }
+  if (!data.date || !data.food) { toast(t('err.mealMissing'), true); return; }
   const photoFile = $('m-photo').files[0];
   if (photoFile) {
     try {
@@ -963,13 +1537,13 @@ $('form-meal').addEventListener('submit', async e => {
       const path = `nutrition/${auth.currentUser.uid}/meals/${Date.now()}.jpg`;
       const up = await uploadPhoto(photoFile, path);
       data.photoURL = up.url; data.photoPath = up.path;
-    } catch (err) { toast('No se pudo subir la foto; se guarda sin foto.', true); }
+    } catch (err) { toast(t('err.mealPhotoFail'), true); }
   }
   await addDoc(collection(db, 'nutrition_meals'), data);
   $('meal-modal').style.display = 'none';
   e.target.reset();
   $('m-photo-preview').style.display = 'none'; $('m-photo-preview').src = '';
-  toast('Comida registrada.');
+  toast(t('msg.mealSaved'));
   await loadAllKeepDate(data.date);
 });
 
@@ -999,14 +1573,14 @@ $('form-weight').addEventListener('submit', async e => {
   const data = { ownerUid: uid, date, weight: num($('w-weight').value), fat: num($('w-fat').value),
     muscle: num($('w-muscle').value), water: num($('w-water').value), visceral: num($('w-visceral').value),
     notes: $('w-notes').value.trim(), updatedAt: serverTimestamp() };
-  if (!date || data.weight <= 0) { toast('Faltan fecha o peso válido.', true); return; }
+  if (!date || data.weight <= 0) { toast(t('err.weightMissing'), true); return; }
   await setDoc(doc(db, 'nutrition_weight', docId), data);
   $('weight-modal').style.display = 'none';
   e.target.reset();
   const wasClient = weightCtx && weightCtx.uid !== auth.currentUser.uid;
   const clientUid = weightCtx && weightCtx.uid;
   weightCtx = null;
-  toast('Pesaje registrado.');
+  toast(t('msg.weightSaved'));
   if (wasClient) await openClient(clientUid); else await loadAll();
 });
 
@@ -1058,10 +1632,15 @@ $('import-file').addEventListener('change', async e => {
       });
       n++;
     }
-    toast(`Importados ${n} registros.`);
+    toast(t('import.done', { n }));
     await loadAll();
   } catch (err) {
-    toast('Error al importar: ' + err.message, true);
+    toast(t('import.fail', { e: err.message }), true);
   }
   e.target.value = '';
 });
+
+/* ================= LANGUAGE TOGGLE WIRING ================= */
+document.querySelectorAll('.lang-toggle button').forEach(b =>
+  b.addEventListener('click', () => setLang(b.getAttribute('data-lang'))));
+applyI18n();
