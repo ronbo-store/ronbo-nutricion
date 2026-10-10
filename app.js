@@ -86,9 +86,11 @@ onAuthStateChanged(auth, async user => {
     $('app-view').style.display = 'none';
     return;
   }
+  let udata = {};
   try {
     const snap = await getDoc(doc(db, 'users', user.uid));
-    const isOwner = snap.exists() && snap.data().isOwner === true;
+    udata = snap.exists() ? snap.data() : {};
+    const isOwner = udata.isOwner === true;
     if (!isOwner) {
       await signOut(auth);
       showAuthError('Esta cuenta no tiene acceso.');
@@ -99,7 +101,7 @@ onAuthStateChanged(auth, async user => {
     showAuthError('No se pudo verificar el acceso.');
     return;
   }
-  $('who').textContent = user.email;
+  $('who').textContent = udata.name ? udata.name : user.email;
   $('auth-view').style.display = 'none';
   $('app-view').style.display = '';
   await loadAll();
