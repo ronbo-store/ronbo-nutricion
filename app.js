@@ -1,12 +1,16 @@
-/* Mi Nutrición — app privada. Solo el dueño (isOwner) puede entrar y ver datos. */
+/* Mi Nutrición — app privada multiusuario. Cada cuenta ve solo sus datos. */
 import { initializeApp } from "firebase/app";
 import {
-  getAuth, signInWithEmailAndPassword, signOut, onAuthStateChanged,
+  getAuth, signInWithEmailAndPassword, createUserWithEmailAndPassword,
+  signOut, onAuthStateChanged,
 } from "firebase/auth";
 import {
   getFirestore, doc, getDoc, collection, getDocs, addDoc,
   setDoc, deleteDoc, serverTimestamp,
 } from "firebase/firestore";
+import {
+  getStorage, ref as sRef, uploadBytes, getDownloadURL, deleteObject,
+} from "firebase/storage";
 
 /* La apiKey se completa al subir el repo (copiar el bloque firebaseConfig
    del repo ronbo-store/ronbo-admin). Es la misma app Firebase. */
@@ -22,6 +26,11 @@ const firebaseConfig = {
 const app = initializeApp(firebaseConfig);
 const auth = getAuth(app);
 const db = getFirestore(app);
+const storage = getStorage(app);
+
+let UDATA = {};      // users/{uid}: {name, email, role, isOwner, approved}
+let IS_OWNER = false;
+let suppressAuthCheck = false; // evita el chequeo durante el registro (el doc aún se está creando)
 
 const GOALS = { kcal: 1900, prot: 170, carb: 185, azuc: 45, gras: 53 };
 const METRICS = [
@@ -67,7 +76,45 @@ function todayISO() {
   return t.getFullYear() + '-' + String(t.getMonth()+1).padStart(2,'0') + '-' + String(t.getDate()).padStart(2,'0');
 }
 
-/* ================= AUTH (solo dueño) ================= */
+/* ================= AUTH (multiusuario) ================= */
+$('tab-login').onclick = () => {
+  $('tab-login').classList.add('active'); $('tab-register').classList.remove('active');
+  $('form-login').style.display = ''; $('form-register').style.display = 'none';
+};
+$('tab-register').onclick = () => {
+  $('tab-register').classList.add('active'); $('tab-login').classList.remove('active');
+  $('form-register').style.display = ''; $('form-login').style.display = 'none';
+};
+function showRegError(msg) {
+  const el = $('reg-error');
+  el.textContent = msg || '';
+  el.classList.toggle('show', !!msg);
+}
+$('form-register').addEventListener('submit', async e => {
+  e.preventDefault();
+  showRegError('');
+  const name = $('reg-name').value.trim(), email = $('reg-email').value.trim(), pw = $('reg-password').value;
+  if (!name) { showRegError('Escribe tu nombre.'); return; }
+  try {
+    suppressAuthCheck = true;
+    const cred = await createUserWithEmailAndPassword(auth, email, pw);
+    await setDoc(doc(db, 'users', cred.user.uid), {
+      name, email, role: 'user', isOwner: false, approved: false, createdAt: serverTimestamp()
+    });
+    await signOut(auth);
+    suppressAuthCheck = false;
+    showRegError('');
+    toast('Cuenta creada. El dueño debe aprobarla antes de que puedas entrar.', false);
+    $('tab-login').click();
+  } catch (err) {
+    suppressAuthCheck = false;
+    const code = err.code || '';
+    showRegError(code.includes('email-already-in-use') ? 'Ese correo ya tiene cuenta. Entra con "Entrar".'
+      : code.includes('weak-password') ? 'La contraseña debe tener al menos 6 caracteres.'
+      : code.includes('invalid-email') ? 'El correo no es válido.'
+      : 'No se pudo crear la cuenta. Intenta de nuevo.');
+  }
+});
 $('form-login').addEventListener('submit', async e => {
   e.preventDefault();
   showAuthError('');
@@ -86,14 +133,21 @@ onAuthStateChanged(auth, async user => {
     $('app-view').style.display = 'none';
     return;
   }
-  let udata = {};
+  if (suppressAuthCheck) return;
+  UDATA = {};
+  IS_OWNER = false;
   try {
     const snap = await getDoc(doc(db, 'users', user.uid));
-    udata = snap.exists() ? snap.data() : {};
-    const isOwner = udata.isOwner === true;
-    if (!isOwner) {
+    if (!snap.exists()) {
       await signOut(auth);
       showAuthError('Esta cuenta no tiene acceso.');
+      return;
+    }
+    UDATA = snap.data();
+    IS_OWNER = UDATA.isOwner === true;
+    if (!IS_OWNER && UDATA.approved !== true) {
+      await signOut(auth);
+      showAuthError('Tu cuenta está pendiente de aprobación por el dueño.');
       return;
     }
   } catch {
@@ -101,11 +155,57 @@ onAuthStateChanged(auth, async user => {
     showAuthError('No se pudo verificar el acceso.');
     return;
   }
-  $('who').textContent = udata.name ? udata.name : user.email;
+  $('who').textContent = UDATA.name ? UDATA.name : user.email;
   $('auth-view').style.display = 'none';
   $('app-view').style.display = '';
   await loadAll();
 });
+
+/* ================= ADMIN DE ACCESOS (solo dueño) ================= */
+async function loadAdmin() {
+  const sec = $('admin-section');
+  if (!IS_OWNER) { sec.style.display = 'none'; return; }
+  sec.style.display = '';
+  let users = [];
+  try {
+    const snap = await getDocs(collection(db, 'users'));
+    snap.forEach(d => users.push({ id: d.id, ...d.data() }));
+  } catch { users = []; }
+  const pending = users.filter(u => !u.isOwner && u.approved !== true);
+  const active = users.filter(u => !u.isOwner && u.approved === true);
+  const owners = users.filter(u => u.isOwner);
+  $('pending-count').textContent = pending.length;
+  $('pending-list').innerHTML = pending.length ? pending.map(u => `
+    <div class="user-row">
+      <div><b>${esc(u.name || '—')}</b><br><span class="muted">${esc(u.email || '')}</span></div>
+      <div class="user-actions">
+        <button class="btn-primary btn-sm" data-approve="${u.id}">Aprobar</button>
+        <button class="btn-ghost btn-sm" data-reject="${u.id}">Rechazar</button>
+      </div>
+    </div>`).join('') : '<div class="wempty">Sin solicitudes pendientes.</div>';
+  $('users-list').innerHTML =
+    owners.map(u => `
+    <div class="user-row"><div><b>${esc(u.name || '—')}</b> <span class="owner-badge">dueño</span><br><span class="muted">${esc(u.email || '')}</span></div></div>`).join('')
+    + (active.length ? active.map(u => `
+    <div class="user-row">
+      <div><b>${esc(u.name || '—')}</b><br><span class="muted">${esc(u.email || '')}</span></div>
+      <div class="user-actions"><button class="btn-ghost btn-sm" data-revoke="${u.id}">Quitar acceso</button></div>
+    </div>`).join('') : '<div class="wempty">Aún no hay usuarios aprobados.</div>');
+  document.querySelectorAll('[data-approve]').forEach(b => b.onclick = async () => {
+    await setDoc(doc(db, 'users', b.dataset.approve), { approved: true }, { merge: true });
+    toast('Usuario aprobado.'); await loadAdmin();
+  });
+  document.querySelectorAll('[data-revoke]').forEach(b => b.onclick = async () => {
+    if (!confirm('¿Quitar el acceso a este usuario? No podrá volver a entrar.')) return;
+    await setDoc(doc(db, 'users', b.dataset.revoke), { approved: false }, { merge: true });
+    toast('Acceso retirado.'); await loadAdmin();
+  });
+  document.querySelectorAll('[data-reject]').forEach(b => b.onclick = async () => {
+    if (!confirm('¿Rechazar y eliminar esta solicitud?')) return;
+    await deleteDoc(doc(db, 'users', b.dataset.reject));
+    toast('Solicitud eliminada.'); await loadAdmin();
+  });
+}
 
 /* ================= DATA ================= */
 async function loadAll() {
@@ -115,7 +215,8 @@ async function loadAll() {
     const v = d.data();
     const m = { id: d.id, meal: v.meal || '', food: v.food || '', qty: v.qty || '',
       kcal: num(v.kcal), prot: num(v.prot), carb: num(v.carb),
-      sugar: num(v.sugar), fat: num(v.fat), notes: v.notes || '' };
+      sugar: num(v.sugar), fat: num(v.fat), notes: v.notes || '',
+      photoURL: v.photoURL || '', photoPath: v.photoPath || '' };
     (MEALS[v.date] = MEALS[v.date] || []).push(m);
   });
   Object.values(MEALS).forEach(arr =>
@@ -132,6 +233,8 @@ async function loadAll() {
 
   buildDateSelector();
   renderWeight();
+  await loadProgress();
+  await loadAdmin();
 }
 
 function buildDateSelector() {
@@ -200,6 +303,28 @@ function notesFor(t) {
 }
 const esc = s => String(s == null ? '' : s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 
+/* Comprime una imagen a JPEG (máx 1280px) para no saturar el almacenamiento. */
+async function compressImage(file) {
+  try {
+    const bmp = await createImageBitmap(file);
+    const maxDim = 1280;
+    const scale = Math.min(1, maxDim / Math.max(bmp.width, bmp.height));
+    const w = Math.round(bmp.width * scale), h = Math.round(bmp.height * scale);
+    const canvas = document.createElement('canvas');
+    canvas.width = w; canvas.height = h;
+    canvas.getContext('2d').drawImage(bmp, 0, 0, w, h);
+    const blob = await new Promise(res => canvas.toBlob(res, 'image/jpeg', 0.82));
+    if (blob) return blob;
+  } catch { /* usa el original */ }
+  return file;
+}
+async function uploadPhoto(file, path) {
+  const blob = await compressImage(file);
+  const r = sRef(storage, path);
+  await uploadBytes(r, blob, { contentType: 'image/jpeg' });
+  return { url: await getDownloadURL(r), path };
+}
+
 function render(date) {
   $('dateTitle').textContent = dateName(date);
   const t = totals(date);
@@ -209,7 +334,7 @@ function render(date) {
   ).join('');
   const rows = MEALS[date] || [];
   let html = rows.map(m =>
-    `<tr><td>${esc(m.meal)}</td><td>${esc(m.food)}</td><td>${esc(m.qty)}</td>` +
+    `<tr><td>${esc(m.meal)}</td><td>${esc(m.food)}${m.photoURL ? ` <a href="${esc(m.photoURL)}" target="_blank" rel="noopener" title="Ver foto">📷</a>` : ''}</td><td>${esc(m.qty)}</td>` +
     `<td class="num">${fmt(m.kcal)}</td><td class="num">${fmt(m.prot)}</td><td class="num">${fmt(m.carb)}</td>` +
     `<td class="num">${fmt(m.sugar)}</td><td class="num">${fmt(m.fat)}</td>` +
     `<td><button class="del-btn" data-del-meal="${m.id}" title="Borrar">×</button></td></tr>`
@@ -231,7 +356,9 @@ function render(date) {
   document.querySelectorAll('[data-del-meal]').forEach(b =>
     b.onclick = async () => {
       if (!confirm('¿Borrar este registro?')) return;
+      const row = rows.find(r => r.id === b.dataset.delMeal);
       await deleteDoc(doc(db, 'nutrition_meals', b.dataset.delMeal));
+      if (row && row.photoPath) { try { await deleteObject(sRef(storage, row.photoPath)); } catch {} }
       toast('Registro borrado.');
       await loadAllKeepDate(date);
     });
@@ -320,14 +447,86 @@ function renderWeight() {
   };
 }
 
+/* ================= MI PROGRESO (fotos semanales frente/lado) ================= */
+function weekId(d) {
+  const dt = d ? new Date(d + 'T12:00:00') : new Date();
+  const day = (dt.getDay() + 6) % 7; // 0 = lunes
+  const monday = new Date(dt); monday.setDate(dt.getDate() - day);
+  const year = monday.getFullYear();
+  const jan4 = new Date(year, 0, 4);
+  const week1 = new Date(jan4); week1.setDate(jan4.getDate() - ((jan4.getDay() + 6) % 7));
+  const week = Math.round((monday - week1) / (7 * 24 * 3600 * 1000)) + 1;
+  return `${year}-W${String(week).padStart(2, '0')}`;
+}
+function weekLabel(wid) {
+  const m = String(wid).match(/(\d{4})-W(\d{2})/);
+  return m ? `Semana ${parseInt(m[2], 10)} · ${m[1]}` : wid;
+}
+let PROGRESS = {}; // weekId -> doc
+async function loadProgress() {
+  PROGRESS = {};
+  try {
+    const snap = await getDocs(collection(db, 'nutrition_progress'));
+    snap.forEach(d => { const v = d.data(); if (v.weekId) PROGRESS[v.weekId] = { id: d.id, ...v }; });
+  } catch { /* sin acceso o sin docs */ }
+  renderProgress();
+}
+function setSlot(which, url) {
+  const img = $('preview-' + which), empty = $('empty-' + which);
+  if (url) { img.src = url; img.style.display = 'block'; empty.style.display = 'none'; }
+  else { img.src = ''; img.style.display = 'none'; empty.style.display = ''; }
+}
+function renderProgress() {
+  const wid = weekId();
+  $('progress-week-label').textContent = weekLabel(wid) + ' (esta semana)';
+  const cur = PROGRESS[wid] || {};
+  setSlot('front', cur.frontURL); setSlot('side', cur.sideURL);
+  const hasF = !!cur.frontURL, hasS = !!cur.sideURL;
+  $('progress-status').textContent = hasF && hasS ? '✅ Semana completa.'
+    : (hasF || hasS) ? 'Te falta una foto esta semana.' : 'Aún no subes fotos esta semana.';
+  const weeks = Object.keys(PROGRESS).filter(w => w !== wid).sort().reverse();
+  $('progress-history').innerHTML = weeks.length ? weeks.map(w => {
+    const p = PROGRESS[w];
+    return `<div class="hist-week"><div class="hist-label">${weekLabel(w)}</div>
+      <div class="hist-imgs">
+        ${p.frontURL ? `<a href="${esc(p.frontURL)}" target="_blank" rel="noopener"><img src="${esc(p.frontURL)}" alt="Frente" loading="lazy"></a>` : '<span class="wempty">sin foto</span>'}
+        ${p.sideURL ? `<a href="${esc(p.sideURL)}" target="_blank" rel="noopener"><img src="${esc(p.sideURL)}" alt="Lado" loading="lazy"></a>` : '<span class="wempty">sin foto</span>'}
+      </div></div>`;
+  }).join('') : '<div class="wempty">Tus semanas anteriores aparecerán aquí.</div>';
+}
+async function uploadProgressPhoto(which, file) {
+  const wid = weekId();
+  toast('Subiendo foto…');
+  try {
+    const path = `nutrition/${auth.currentUser.uid}/progress/${wid}-${which}.jpg`;
+    const up = await uploadPhoto(file, path);
+    const data = { ownerUid: auth.currentUser.uid, weekId: wid, updatedAt: serverTimestamp() };
+    data[which === 'front' ? 'frontURL' : 'sideURL'] = up.url;
+    data[which === 'front' ? 'frontPath' : 'sidePath'] = up.path;
+    await setDoc(doc(db, 'nutrition_progress', `${auth.currentUser.uid}_${wid}`), data, { merge: true });
+    toast('Foto guardada.');
+    await loadProgress();
+  } catch { toast('No se pudo subir la foto.', true); }
+}
+$('photo-front').addEventListener('change', e => { const f = e.target.files[0]; e.target.value = ''; if (f) uploadProgressPhoto('front', f); });
+$('photo-side').addEventListener('change', e => { const f = e.target.files[0]; e.target.value = ''; if (f) uploadProgressPhoto('side', f); });
+
 /* ================= FORMULARIOS ================= */
 $('btn-add-meal').onclick = () => { $('m-date').value = $('dateSel').value || todayISO(); $('meal-modal').style.display = ''; };
 $('meal-cancel').onclick = () => $('meal-modal').style.display = 'none';
 $('meal-modal').addEventListener('click', e => { if (e.target.id === 'meal-modal') e.target.style.display = 'none'; });
 
+$('m-photo').addEventListener('change', e => {
+  const f = e.target.files[0];
+  const prev = $('m-photo-preview');
+  if (f) { prev.src = URL.createObjectURL(f); prev.style.display = 'block'; }
+  else { prev.src = ''; prev.style.display = 'none'; }
+});
+
 $('form-meal').addEventListener('submit', async e => {
   e.preventDefault();
   const data = {
+    ownerUid: auth.currentUser.uid,
     date: $('m-date').value, meal: $('m-meal').value,
     food: $('m-food').value.trim(), qty: $('m-qty').value.trim(),
     kcal: num($('m-kcal').value), prot: num($('m-prot').value),
@@ -336,9 +535,19 @@ $('form-meal').addEventListener('submit', async e => {
     createdAt: serverTimestamp()
   };
   if (!data.date || !data.food) { toast('Faltan fecha o alimento.', true); return; }
+  const photoFile = $('m-photo').files[0];
+  if (photoFile) {
+    try {
+      toast('Subiendo foto…');
+      const path = `nutrition/${auth.currentUser.uid}/meals/${Date.now()}.jpg`;
+      const up = await uploadPhoto(photoFile, path);
+      data.photoURL = up.url; data.photoPath = up.path;
+    } catch (err) { toast('No se pudo subir la foto; se guarda sin foto.', true); }
+  }
   await addDoc(collection(db, 'nutrition_meals'), data);
   $('meal-modal').style.display = 'none';
   e.target.reset();
+  $('m-photo-preview').style.display = 'none'; $('m-photo-preview').src = '';
   toast('Comida registrada.');
   await loadAllKeepDate(data.date);
 });
@@ -350,7 +559,7 @@ $('weight-modal').addEventListener('click', e => { if (e.target.id === 'weight-m
 $('form-weight').addEventListener('submit', async e => {
   e.preventDefault();
   const date = $('w-date').value;
-  const data = { date, weight: num($('w-weight').value), fat: num($('w-fat').value),
+  const data = { ownerUid: auth.currentUser.uid, date, weight: num($('w-weight').value), fat: num($('w-fat').value),
     muscle: num($('w-muscle').value), notes: $('w-notes').value.trim(), updatedAt: serverTimestamp() };
   if (!date || data.weight <= 0) { toast('Faltan fecha o peso válido.', true); return; }
   await setDoc(doc(db, 'nutrition_weight', date), data);
@@ -400,6 +609,7 @@ $('import-file').addEventListener('change', async e => {
       const fecha = (r[0] || '').trim();
       if (!/^\d{4}-\d{2}-\d{2}$/.test(fecha)) continue;
       await addDoc(collection(db, 'nutrition_meals'), {
+        ownerUid: auth.currentUser.uid,
         date: fecha, meal: (r[1]||'').trim(), food: (r[2]||'').trim(), qty: (r[3]||'').trim(),
         kcal: numSmart(r[4]), prot: numSmart(r[5]), carb: numSmart(r[6]),
         sugar: numSmart(r[9]), fat: numSmart(r[7]),

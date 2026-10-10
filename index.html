@@ -11,7 +11,8 @@
   "imports": {
     "firebase/app": "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js",
     "firebase/auth": "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js",
-    "firebase/firestore": "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js"
+    "firebase/firestore": "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js",
+    "firebase/storage": "https://www.gstatic.com/firebasejs/10.12.0/firebase-storage.js"
   }
 }
 </script>
@@ -23,7 +24,11 @@
   <div class="auth-card">
     <div class="auth-logo">🥗</div>
     <h1>Mi Nutrición</h1>
-    <p class="auth-sub">Acceso privado · solo el dueño</p>
+    <p class="auth-sub">Tu registro privado de nutrición</p>
+    <div class="auth-tabs">
+      <button type="button" id="tab-login" class="auth-tab active">Entrar</button>
+      <button type="button" id="tab-register" class="auth-tab">Crear cuenta</button>
+    </div>
     <form id="form-login">
       <label>Correo
         <input type="email" id="login-email" autocomplete="username" required>
@@ -33,6 +38,20 @@
       </label>
       <div id="auth-error" class="auth-error"></div>
       <button type="submit" class="btn-primary">Entrar</button>
+    </form>
+    <form id="form-register" style="display:none">
+      <label>Nombre
+        <input type="text" id="reg-name" autocomplete="name" required placeholder="Ej. Ronald Borges">
+      </label>
+      <label>Correo
+        <input type="email" id="reg-email" autocomplete="username" required>
+      </label>
+      <label>Contraseña
+        <input type="password" id="reg-password" autocomplete="new-password" minlength="6" required>
+      </label>
+      <div id="reg-error" class="auth-error"></div>
+      <button type="submit" class="btn-primary">Crear mi cuenta</button>
+      <p class="auth-hint">Cada cuenta ve solo sus propios datos.</p>
     </form>
   </div>
 </div>
@@ -98,6 +117,40 @@
     <div id="weightBody"><div class="wempty">Cargando pesajes…</div></div>
   </div>
 
+  <div class="progress-section">
+    <h2>📸 Mi progreso <span class="h2-sub">· foto semanal: frente y lado</span></h2>
+    <p class="progress-hint">Sube tus fotos cada semana. Son privadas: solo tú las ves. Cuando quieras, pídele a tu asistente que compare dos semanas y te diga qué cambio nota.</p>
+    <div class="progress-current">
+      <div class="progress-week" id="progress-week-label">Esta semana</div>
+      <div class="progress-uploads">
+        <label class="progress-slot" id="slot-front">
+          <span class="slot-title">Frente</span>
+          <img id="preview-front" class="slot-img" style="display:none" alt="Frente">
+          <span class="slot-empty" id="empty-front">＋ Subir foto</span>
+          <input type="file" id="photo-front" accept="image/*" style="display:none">
+        </label>
+        <label class="progress-slot" id="slot-side">
+          <span class="slot-title">Lado</span>
+          <img id="preview-side" class="slot-img" style="display:none" alt="Lado">
+          <span class="slot-empty" id="empty-side">＋ Subir foto</span>
+          <input type="file" id="photo-side" accept="image/*" style="display:none">
+        </label>
+      </div>
+      <div id="progress-status" class="progress-status"></div>
+    </div>
+    <h3 class="history-title">Semanas anteriores</h3>
+    <div id="progress-history" class="progress-history"><div class="wempty">Cargando fotos…</div></div>
+  </div>
+
+  <div class="admin-section" id="admin-section" style="display:none">
+    <h2>🔐 Administración de accesos <span class="h2-sub">· solo dueño</span></h2>
+    <p class="progress-hint">Las cuentas nuevas quedan pendientes hasta que las apruebes. Solo los usuarios aprobados pueden entrar y cada uno ve únicamente sus datos.</p>
+    <h3 class="history-title">Pendientes de aprobación (<span id="pending-count">0</span>)</h3>
+    <div id="pending-list"><div class="wempty">Sin solicitudes pendientes.</div></div>
+    <h3 class="history-title">Usuarios con acceso</h3>
+    <div id="users-list"><div class="wempty">Cargando…</div></div>
+  </div>
+
   <div class="foot">Mi Nutrición · privado · tus datos solo los ves tú</div>
 </div>
 
@@ -117,6 +170,10 @@
       </div>
       <label>Alimento <input type="text" id="m-food" required placeholder="Ej. Pechuga de pollo"></label>
       <label>Cantidad <input type="text" id="m-qty" placeholder="Ej. 150 g"></label>
+      <label class="photo-label">📷 Foto de la comida (opcional)
+        <input type="file" id="m-photo" accept="image/*">
+      </label>
+      <img id="m-photo-preview" class="photo-preview" style="display:none" alt="Vista previa">
       <div class="frow3">
         <label>Kcal <input type="number" id="m-kcal" step="any" min="0" value="0"></label>
         <label>Proteína (g) <input type="number" id="m-prot" step="any" min="0" value="0"></label>
