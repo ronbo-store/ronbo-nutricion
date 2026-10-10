@@ -1,4 +1,4 @@
-/* Mi Nutrición — app privada multiusuario. Cada cuenta ve solo sus datos. */
+/* ronbo.nutri — app privada multiusuario. Cada cuenta ve solo sus datos. */
 import { initializeApp } from "firebase/app";
 import {
   getAuth, signInWithEmailAndPassword, createUserWithEmailAndPassword,
@@ -98,13 +98,25 @@ $('form-register').addEventListener('submit', async e => {
   e.preventDefault();
   showRegError('');
   const name = $('reg-name').value.trim(), email = $('reg-email').value.trim(), pw = $('reg-password').value;
-  if (!name) { showRegError('Escribe tu nombre.'); return; }
+  const phone = $('reg-phone').value.trim(), gender = $('reg-gender').value, social = $('reg-social').value.trim();
+  if (!name) { showRegError('Escribe tu nombre y apellido.'); return; }
+  if (!phone) { showRegError('Escribe tu número de teléfono.'); return; }
+  if (!gender) { showRegError('Selecciona tu sexo / género.'); return; }
+  if (!$('reg-consent').checked) { showRegError('Debes aceptar el aviso de privacidad.'); return; }
+  if (!$('reg-health-ok').checked) { showRegError('Debes confirmar tu declaración de salud.'); return; }
+  const conditions = [...document.querySelectorAll('.reg-cond:checked')].map(c => c.value)
+    .filter(v => v !== 'Ninguna de las anteriores');
+  const healthDetail = $('reg-health-detail').value.trim();
   try {
     suppressAuthCheck = true;
     const cred = await createUserWithEmailAndPassword(auth, email, pw);
     await setDoc(doc(db, 'users', cred.user.uid), {
-      name, email, role: 'user', isOwner: false, approved: false,
-      goals: { ...DEFAULT_GOALS }, createdAt: serverTimestamp()
+      name, email, phone, gender, social: social || '',
+      role: 'user', isOwner: false, approved: false,
+      goals: { ...DEFAULT_GOALS },
+      health: { conditions, details: healthDetail, declaredAt: serverTimestamp() },
+      acceptedTerms: true, termsVersion: 'v1-2026-10-10', termsAcceptedAt: serverTimestamp(),
+      createdAt: serverTimestamp()
     });
     await signOut(auth);
     suppressAuthCheck = false;
@@ -166,6 +178,8 @@ onAuthStateChanged(auth, async user => {
   setAvatar(UDATA.photoURL || '');
   $('auth-view').style.display = 'none';
   $('app-view').style.display = '';
+  $('main-tabs').style.display = IS_OWNER ? '' : 'none';
+  switchTab('track');
   await loadAll();
 });
 
@@ -196,11 +210,12 @@ async function loadAdmin() {
   $('users-list').innerHTML =
     owners.map(u => `
     <div class="user-row"><div>${u.photoURL ? `<img class="avatar sm" src="${esc(u.photoURL)}" alt="">` : ''}<b>${esc(u.name || '—')}</b> <span class="owner-badge">dueño</span><br><span class="muted">${esc(u.email || '')}</span></div>
-    <div class="user-actions"><button class="btn-ghost btn-sm" data-goals="${u.id}">Metas</button></div></div>`).join('')
+    <div class="user-actions"><button class="btn-ghost btn-sm" data-profile="${u.id}">Perfil</button><button class="btn-ghost btn-sm" data-goals="${u.id}">Metas</button></div></div>`).join('')
     + (active.length ? active.map(u => `
     <div class="user-row">
       <div>${u.photoURL ? `<img class="avatar sm" src="${esc(u.photoURL)}" alt="">` : ''}<b>${esc(u.name || '—')}</b><br><span class="muted">${esc(u.email || '')}</span></div>
       <div class="user-actions">
+        <button class="btn-ghost btn-sm" data-profile="${u.id}">Perfil</button>
         <button class="btn-ghost btn-sm" data-goals="${u.id}">Metas</button>
         <button class="btn-ghost btn-sm" data-revoke="${u.id}">Quitar acceso</button>
       </div>
@@ -209,6 +224,7 @@ async function loadAdmin() {
     const u = ADMIN_USERS.find(x => x.id === b.dataset.goals);
     if (u) openGoals(u.id, u.name || u.email, u.goals);
   });
+  document.querySelectorAll('[data-profile]').forEach(b => b.onclick = () => openProfile(b.dataset.profile));
   document.querySelectorAll('[data-approve]').forEach(b => b.onclick = async () => {
     await setDoc(doc(db, 'users', b.dataset.approve), { approved: true }, { merge: true });
     toast('Usuario aprobado.'); await loadAdmin();
@@ -240,19 +256,29 @@ async function loadClients() {
   try {
     const ws = await getDocs(collection(db, 'nutrition_weight'));
     ws.forEach(d => { const v = d.data();
-      if (v.ownerUid && num(v.weight) > 0) weights.push({ uid: v.ownerUid, date: v.date }); });
+      if (v.ownerUid && num(v.weight) > 0) weights.push({ uid: v.ownerUid, date: v.date, weight: num(v.weight) }); });
   } catch {}
-  const lastByUid = {};
-  weights.forEach(w => { if (!lastByUid[w.uid] || w.date > lastByUid[w.uid]) lastByUid[w.uid] = w.date; });
+  const lastByUid = {}, lastWByUid = {};
+  weights.forEach(w => { if (!lastByUid[w.uid] || w.date > lastByUid[w.uid]) { lastByUid[w.uid] = w.date; lastWByUid[w.uid] = w.weight; } });
+  let pendingFood = {};
+  try {
+    const fs = await getDocs(collection(db, 'meal_help'));
+    fs.forEach(d => { const v = d.data();
+      if (v.status === 'pending' && v.ownerUid) pendingFood[v.ownerUid] = (pendingFood[v.ownerUid] || 0) + 1; });
+  } catch {}
   const daysAgo = iso => iso ? Math.floor((Date.now() - new Date(iso + 'T12:00:00').getTime()) / 864e5) : null;
   $('clients-list').innerHTML = clients.length ? clients.map(u => {
     const d = daysAgo(lastByUid[u.id]);
+    const hasHealth = u.health && u.health.conditions && u.health.conditions.length > 0;
     const badge = u.approved === true
       ? (d === null ? '<span class="warn-badge">sin pesajes</span>'
         : d > 7 ? `<span class="warn-badge">hace ${d} días</span>` : `<span class="ok-badge">hace ${d} d</span>`)
       : '<span class="warn-badge">pendiente</span>';
+    const healthBadge = hasHealth ? ' <span class="warn-badge" title="Declaró condiciones de salud">🏥 salud</span>' : '';
+    const foodBadge = pendingFood[u.id] ? ` <span class="warn-badge" title="Fotos de comida por revisar">📷 ${pendingFood[u.id]}</span>` : '';
+    const lastW = lastWByUid[u.id] ? ` · <b>${lastWByUid[u.id]} kg</b>` : '';
     return `<div class="user-row">
-      <div><b>${esc(u.name || '—')}</b> ${badge}<br><span class="muted">${esc(u.email || '')}</span></div>
+      <div>${u.photoURL ? `<img class="avatar sm" src="${esc(u.photoURL)}" alt="">` : ''}<b>${esc(u.name || '—')}</b> ${badge}${healthBadge}${foodBadge}<br><span class="muted">${esc(u.email || '')}${u.phone ? ' · ' + esc(u.phone) : ''}${lastW}</span></div>
       <div class="user-actions">${u.approved === true ? `<button class="btn-primary btn-sm" data-client="${u.id}">Ver registro</button>` : ''}</div>
     </div>`;
   }).join('') : '<div class="wempty">Aún no hay clientes registrados.</div>';
@@ -262,10 +288,10 @@ async function loadClients() {
 
 async function openClient(uid) {
   const box = $('client-detail');
-  let uname = 'Cliente';
+  let uname = 'Cliente', uhealth = null;
   try {
     const s = await getDoc(doc(db, 'users', uid));
-    if (s.exists()) uname = s.data().name || s.data().email || uname;
+    if (s.exists()) { uname = s.data().name || s.data().email || uname; uhealth = s.data().health || null; }
   } catch {}
   const data = [];
   try {
@@ -283,8 +309,25 @@ async function openClient(uid) {
     <td>${esc(d.notes)}</td>
     <td><button class="btn-ghost btn-sm" data-c-edit="${d.id}">Editar</button></td></tr>`).join('');
   box.style.display = '';
+  const healthAlert = (uhealth && uhealth.conditions && uhealth.conditions.length)
+    ? `<div class="health-alert">🏥 <b>Declaración de salud:</b> ${esc(uhealth.conditions.join(', '))}${uhealth.details ? '<br>' + esc(uhealth.details) : ''}</div>`
+    : '';
+  let foodItems = [];
+  try {
+    const fs = await getDocs(query(collection(db, 'meal_help'), where('ownerUid', '==', uid), where('status', '==', 'pending')));
+    fs.forEach(d => foodItems.push({ id: d.id, ...d.data() }));
+  } catch {}
+  const foodBlock = foodItems.length
+    ? `<div class="mealhelp-list" style="margin-bottom:12px">${foodItems.map(m => `
+      <div class="mealhelp-item">
+        <img src="${m.photoURL}" alt="Comida" data-food-view="${m.id}" title="Toca para ampliar">
+        <div class="mealhelp-row"><button class="btn-ghost btn-sm" data-food-ok="${m.id}">✓ Revisada</button></div>
+      </div>`).join('')}</div>`
+    : '';
   box.innerHTML = `
     <h3 class="history-title">Registro de peso · ${esc(uname)}</h3>
+    ${healthAlert}
+    ${foodItems.length ? `<h3 class="history-title">📷 Fotos de comida por revisar (${foodItems.length})</h3>${foodBlock}` : ''}
     <div style="margin-bottom:10px"><button class="btn-primary btn-sm" id="btn-client-add">＋ Agregar pesaje</button>
     <button class="btn-ghost btn-sm" id="btn-client-close" style="margin-left:8px">Cerrar</button></div>
     ${data.length ? weightChartSVG([...data].reverse()) : '<div class="wempty">Este cliente aún no sube su peso.</div>'}
@@ -296,6 +339,13 @@ async function openClient(uid) {
   box.querySelectorAll('[data-c-edit]').forEach(b => b.onclick = () => {
     const rec = data.find(w => w.id === b.dataset.cEdit);
     if (rec) openWeightModal({ uid, docId: rec.id, rec });
+  });
+  const foodById = id => foodItems.find(x => x.id === id);
+  box.querySelectorAll('[data-food-view]').forEach(im => im.onclick = () => { const m = foodById(im.dataset.foodView); if (m) showLightbox(m.photoURL); });
+  box.querySelectorAll('[data-food-ok]').forEach(b => b.onclick = async () => {
+    await setDoc(doc(db, 'meal_help', b.dataset.foodOk), { status: 'reviewed' }, { merge: true });
+    toast('Foto marcada como revisada.');
+    openClient(uid);
   });
   box.scrollIntoView({ behavior: 'smooth', block: 'start' });
 }
@@ -333,6 +383,45 @@ function colQuery(name) {
   return IS_OWNER ? c : query(c, where('ownerUid', '==', auth.currentUser.uid));
 }
 
+/* ================= PERFIL DEL CLIENTE (el entrenador completa en la 1ª entrevista) ================= */
+let profileUid = null;
+function openProfile(uid) {
+  const u = ADMIN_USERS.find(x => x.id === uid);
+  if (!u) return;
+  profileUid = uid;
+  $('profile-modal-title').textContent = 'Perfil · ' + (u.name || u.email);
+  $('p-name').value = u.name || '';
+  $('p-phone').value = u.phone || '';
+  $('p-gender').value = u.gender || '';
+  $('p-social').value = u.social || '';
+  $('p-notes').value = u.trainerNotes || '';
+  const hconds = (u.health && u.health.conditions) || [];
+  document.querySelectorAll('.p-cond').forEach(c => { c.checked = hconds.includes(c.value); });
+  $('p-health-detail').value = (u.health && u.health.details) || '';
+  $('profile-modal').style.display = '';
+}
+$('profile-cancel').onclick = () => { $('profile-modal').style.display = 'none'; profileUid = null; };
+$('profile-modal').addEventListener('click', e => { if (e.target.id === 'profile-modal') { e.target.style.display = 'none'; profileUid = null; } });
+$('form-profile').addEventListener('submit', async e => {
+  e.preventDefault();
+  if (!profileUid) return;
+  await setDoc(doc(db, 'users', profileUid), {
+    name: $('p-name').value.trim(), phone: $('p-phone').value.trim(),
+    gender: $('p-gender').value, social: $('p-social').value.trim(),
+    trainerNotes: $('p-notes').value.trim(),
+    health: {
+      conditions: [...document.querySelectorAll('.p-cond:checked')].map(c => c.value),
+      details: $('p-health-detail').value.trim(),
+      updatedAt: serverTimestamp()
+    }
+  }, { merge: true });
+  profileUid = null;
+  $('profile-modal').style.display = 'none';
+  toast('Perfil actualizado.');
+  await loadAdmin();
+  await loadClients();
+});
+
 /* ================= DATA ================= */
 async function loadAll() {
   MEALS = {};
@@ -361,15 +450,21 @@ async function loadAll() {
   buildDateSelector();
   renderWeight();
   await loadProgress();
+  await loadMealHelp();
   await loadAdmin();
   await loadClients();
   applyStorageFlag();
 }
 
-/* Oculta las opciones de foto mientras Storage no esté activado (plan Blaze). */
+/* Oculta las opciones de foto mientras Storage no esté activado (plan Blaze).
+   En su lugar muestra una pista: la foto se usa solo para identificar el alimento por el chat. */
 function applyStorageFlag() {
-  if (STORAGE_READY) return;
+  if (STORAGE_READY) {
+    document.querySelectorAll('.photo-hint').forEach(el => el.style.display = 'none');
+    return;
+  }
   document.querySelectorAll('.photo-label').forEach(el => el.style.display = 'none');
+  document.querySelectorAll('.photo-hint').forEach(el => el.style.display = '');
   const pu = document.querySelector('.progress-uploads');
   if (pu) pu.innerHTML = '<div class="wempty">Las fotos de progreso se activarán próximamente.</div>';
 }
@@ -394,6 +489,129 @@ function buildDateSelector() {
   sel.value = t;
   sel.onchange = e => render(e.target.value);
   render(sel.value);
+}
+
+/* ============ GRÁFICA SEMANAL DE CUMPLIMIENTO ============ */
+function weekDates(iso) {
+  const d = new Date(iso + 'T12:00:00');
+  const day = (d.getDay() + 6) % 7; // lunes = 0
+  const mon = new Date(d); mon.setDate(d.getDate() - day);
+  const out = [];
+  for (let i = 0; i < 7; i++) {
+    const t = new Date(mon); t.setDate(mon.getDate() + i);
+    out.push(t.getFullYear() + '-' + String(t.getMonth() + 1).padStart(2, '0') + '-' + String(t.getDate()).padStart(2, '0'));
+  }
+  return out;
+}
+function renderWeekChart(date) {
+  const el = $('weekChart');
+  const days = weekDates(date);
+  const dayNames = ['Lun', 'Mar', 'Mié', 'Jue', 'Vie', 'Sáb', 'Dom'];
+  const MAXP = 1.25;
+  const series = METRICS.map(m => ({
+    color: m.color, name: m.name,
+    pts: days.map(d => {
+      const t = totals(d);
+      const g = GOALS[m.key] || 1;
+      return Math.min((t[m.key] || 0) / g, MAXP);
+    })
+  }));
+  const W = 680, H = 280, P = { l: 46, r: 14, t: 14, b: 34 };
+  const iw = W - P.l - P.r, ih = H - P.t - P.b;
+  const X = i => P.l + (i / 6) * iw;
+  const Y = p => P.t + ih - (p / MAXP) * ih;
+  const grid = [0, 0.25, 0.5, 0.75, 1, 1.25].map(f => {
+    const y = Y(f);
+    const lbl = Math.round(f * 100) + '%';
+    return `<line x1="${P.l}" y1="${y}" x2="${W - P.r}" y2="${y}" stroke="${f === 1 ? '#94a3b8' : '#eef2f7'}" stroke-width="${f === 1 ? 1.5 : 1}" ${f === 1 ? 'stroke-dasharray="6 4"' : ''}/>
+      <text x="${P.l - 6}" y="${y + 4}" text-anchor="end" font-size="10" fill="#9ca3af">${lbl}</text>`;
+  }).join('');
+  const selIdx = days.indexOf(date);
+  const highlight = selIdx >= 0
+    ? `<rect x="${X(selIdx) - iw / 14}" y="${P.t}" width="${iw / 7}" height="${ih}" fill="#0d9488" opacity="0.07" rx="6"/>` : '';
+  const lines = series.map(s => {
+    const pts = s.pts.map((p, i) => `${X(i).toFixed(1)},${Y(p).toFixed(1)}`).join(' ');
+    const dots = s.pts.map((p, i) =>
+      `<circle cx="${X(i)}" cy="${Y(p)}" r="4" fill="${s.color}" stroke="#fff" stroke-width="1.5"><title>${s.name}: ${Math.round(p * 100)}%</title></circle>`).join('');
+    return `<polyline points="${pts}" fill="none" stroke="${s.color}" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>${dots}`;
+  }).join('');
+  const labels = days.map((d, i) =>
+    `<text x="${X(i)}" y="${H - 16}" text-anchor="middle" font-size="10" fill="#9ca3af">${dayNames[i]}</text>
+     <text x="${X(i)}" y="${H - 4}" text-anchor="middle" font-size="9" fill="#cbd5e1">${shortDate(d)}</text>`).join('');
+  const legend = series.map((s, i) =>
+    `<circle cx="${P.l + i * 128}" cy="8" r="4" fill="${s.color}"/><text x="${P.l + i * 128 + 8}" y="12" font-size="10" fill="#4b5563">${s.name}</text>`).join('');
+  el.innerHTML = `<div class="chart-wrap"><svg viewBox="0 0 ${W} ${H}" style="width:100%;min-width:520px;display:block">${legend}${grid}${highlight}${lines}${labels}</svg></div>
+    <p class="chart-note">% de la meta diaria por día. La línea punteada es el 100%. En azúcares, lo ideal es mantenerse por debajo.</p>`;
+}
+
+/* ================= AYUDA CON COMIDAS (foto para análisis, sin Storage) ================= */
+async function compressFoodPhoto(file, maxDim = 640) {
+  const bmp = await createImageBitmap(file);
+  const scale = Math.min(1, maxDim / Math.max(bmp.width, bmp.height));
+  const canvas = document.createElement('canvas');
+  canvas.width = Math.round(bmp.width * scale); canvas.height = Math.round(bmp.height * scale);
+  canvas.getContext('2d').drawImage(bmp, 0, 0, canvas.width, canvas.height);
+  return canvas.toDataURL('image/jpeg', 0.82);
+}
+async function loadMealHelp() {
+  const box = $('mealhelp-list');
+  if (!box || !auth.currentUser) return;
+  let items = [];
+  try {
+    const snap = await getDocs(query(collection(db, 'meal_help'), where('ownerUid', '==', auth.currentUser.uid)));
+    snap.forEach(d => items.push({ id: d.id, ...d.data() }));
+  } catch {}
+  const ts = m => (m.createdAt && m.createdAt.toMillis) ? m.createdAt.toMillis() : 0;
+  items.sort((a, b) => ts(b) - ts(a));
+  box.innerHTML = items.length ? items.slice(0, 12).map(m => `
+    <div class="mealhelp-item">
+      <img src="${m.photoURL}" alt="Comida" data-mh-view="${m.id}" title="Toca para ampliar">
+      <div class="mealhelp-row"><span class="mealhelp-status">${m.status === 'reviewed' ? '✓ revisada' : '⏳ pendiente'}</span>
+      <button class="btn-ghost btn-sm" data-mh-del="${m.id}">✕</button></div>
+    </div>`).join('') : '<div class="wempty">Aún no has subido fotos.</div>';
+  const byId = id => items.find(x => x.id === id);
+  box.querySelectorAll('[data-mh-view]').forEach(im => im.onclick = () => { const m = byId(im.dataset.mhView); if (m) showLightbox(m.photoURL); });
+  box.querySelectorAll('[data-mh-del]').forEach(b => b.onclick = async () => {
+    if (!confirm('¿Eliminar esta foto?')) return;
+    await deleteDoc(doc(db, 'meal_help', b.dataset.mhDel));
+    toast('Foto eliminada.'); loadMealHelp();
+  });
+}
+const mhFile = $('mealhelp-file');
+if (mhFile) mhFile.addEventListener('change', async e => {
+  const f = e.target.files[0]; e.target.value = '';
+  if (!f) return;
+  try {
+    toast('Subiendo foto…');
+    const url = await compressFoodPhoto(f);
+    if (url.length > 700000) { toast('La imagen es muy pesada, prueba con otra.', true); return; }
+    await addDoc(collection(db, 'meal_help'), {
+      ownerUid: auth.currentUser.uid, photoURL: url, status: 'pending', createdAt: serverTimestamp()
+    });
+    toast('Foto enviada. Avísame por el chat para analizarla.');
+    loadMealHelp();
+  } catch { toast('No se pudo subir la foto.', true); }
+});
+
+/* ================= PESTAÑAS PRINCIPALES ================= */
+function switchTab(name) {
+  document.querySelectorAll('.main-tab').forEach(b => b.classList.toggle('active', b.dataset.tab === name));
+  document.querySelectorAll('.tab-pane').forEach(p => { p.style.display = (p.id === 'tab-' + name) ? '' : 'none'; });
+}
+document.querySelectorAll('.main-tab').forEach(b => b.addEventListener('click', () => switchTab(b.dataset.tab)));
+
+/* Lightbox simple para ampliar fotos */
+function showLightbox(url) {
+  let lb = document.getElementById('lightbox');
+  if (!lb) {
+    lb = document.createElement('div');
+    lb.id = 'lightbox'; lb.className = 'lightbox';
+    lb.innerHTML = '<img id="lightbox-img" alt="Foto ampliada">';
+    lb.addEventListener('click', () => { lb.style.display = 'none'; });
+    document.body.appendChild(lb);
+  }
+  document.getElementById('lightbox-img').src = url;
+  lb.style.display = 'flex';
 }
 
 /* ================= RENDER (igual que la versión anterior) ================= */
@@ -467,8 +685,16 @@ async function compressAvatar(file) {
 }
 function setAvatar(url) {
   const img = $('avatar');
-  if (url) { img.src = url; img.style.display = ''; }
-  else { img.src = ''; img.style.display = 'none'; }
+  if (url) { img.src = url; }
+  else {
+    const nm = (typeof UDATA !== 'undefined' && UDATA && UDATA.name) || '';
+    const initial = (nm.trim().charAt(0) || '•').toUpperCase();
+    img.src = 'data:image/svg+xml;utf8,' + encodeURIComponent(
+      '<svg xmlns="http://www.w3.org/2000/svg" width="64" height="64"><circle cx="32" cy="32" r="32" fill="#0d9488"/>' +
+      '<text x="32" y="43" font-size="28" text-anchor="middle" fill="#fff" font-family="sans-serif">' + initial + '</text></svg>');
+  }
+  img.style.display = '';
+  img.title = 'Toca para cambiar tu foto de perfil';
 }
 $('avatar').addEventListener('click', () => $('avatar-file').click());
 $('avatar-file').addEventListener('change', async e => {
@@ -505,6 +731,7 @@ function render(date) {
   $('rings').innerHTML = METRICS.map(m =>
     `<div class="ring-card"><h3>${m.icon} ${m.name}</h3>${ringSVG(m, vals[m.key])}${statusBox(m, vals[m.key])}</div>`
   ).join('');
+  renderWeekChart(date);
   const rows = MEALS[date] || [];
   let html = rows.map(m =>
     `<tr><td>${esc(m.meal)}</td><td>${esc(m.food)}${m.photoURL ? ` <a href="${esc(m.photoURL)}" target="_blank" rel="noopener" title="Ver foto">📷</a>` : ''}</td><td>${esc(m.qty)}</td>` +

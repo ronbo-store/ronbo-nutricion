@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Mi Nutrición · Privado</title>
+<title>ronbo.nutri · Privado</title>
 <meta name="robots" content="noindex, nofollow">
 <link rel="stylesheet" href="styles.css">
 <script type="importmap">
@@ -23,7 +23,7 @@
 <div id="auth-view" class="auth-wrap">
   <div class="auth-card">
     <div class="auth-logo">🥗</div>
-    <h1>Mi Nutrición</h1>
+    <h1>ronbo.nutri</h1>
     <p class="auth-sub">Tu registro privado de nutrición</p>
     <div class="auth-tabs">
       <button type="button" id="tab-login" class="auth-tab active">Entrar</button>
@@ -40,19 +40,79 @@
       <button type="submit" class="btn-primary">Entrar</button>
     </form>
     <form id="form-register" style="display:none">
-      <label>Nombre
+      <label>Nombre y apellido
         <input type="text" id="reg-name" autocomplete="name" required placeholder="Ej. Ronald Borges">
       </label>
-      <label>Correo
+      <label>Correo electrónico
         <input type="email" id="reg-email" autocomplete="username" required>
+      </label>
+      <label>Número de teléfono
+        <input type="tel" id="reg-phone" autocomplete="tel" required placeholder="Ej. +1 901 555 1234">
+      </label>
+      <label>Sexo / Género
+        <select id="reg-gender" required>
+          <option value="">Selecciona…</option>
+          <option>Femenino</option>
+          <option>Masculino</option>
+          <option>No binario</option>
+          <option>Género fluido</option>
+          <option>Otro</option>
+          <option>Prefiero no decirlo</option>
+        </select>
+      </label>
+      <label>Redes sociales <span class="opt">(opcional)</span>
+        <input type="text" id="reg-social" placeholder="Ej. Instagram: @usuario">
       </label>
       <label>Contraseña
         <input type="password" id="reg-password" autocomplete="new-password" minlength="6" required>
       </label>
+      <div class="health-box">
+        <b>🏥 Declaración de salud</b>
+        <p class="health-hint">Marca las condiciones que tengas. Es por tu seguridad: tu entrenador debe conocerlas antes de asignarte un plan de ejercicio o nutrición.</p>
+        <div class="health-grid">
+          <label><input type="checkbox" class="reg-cond" value="Hipertensión"> Hipertensión</label>
+          <label><input type="checkbox" class="reg-cond" value="Diabetes"> Diabetes</label>
+          <label><input type="checkbox" class="reg-cond" value="Problemas del corazón"> Problemas del corazón</label>
+          <label><input type="checkbox" class="reg-cond" value="Dolor de pecho al ejercitarse"> Dolor de pecho al ejercitarse</label>
+          <label><input type="checkbox" class="reg-cond" value="Mareos o desmayos"> Mareos o desmayos</label>
+          <label><input type="checkbox" class="reg-cond" value="Asma / problemas respiratorios"> Asma / problemas respiratorios</label>
+          <label><input type="checkbox" class="reg-cond" value="Lesiones articulares o musculares"> Lesiones articulares o musculares</label>
+          <label><input type="checkbox" class="reg-cond" value="Cirugía reciente"> Cirugía reciente</label>
+          <label><input type="checkbox" class="reg-cond" value="Embarazo"> Embarazo</label>
+          <label><input type="checkbox" class="reg-cond" value="Ninguna de las anteriores"> Ninguna de las anteriores</label>
+        </div>
+        <label>Detalles / medicamentos <span class="opt">(opcional)</span>
+          <textarea id="reg-health-detail" rows="2" placeholder="Ej. Toma metformina; lesión de rodilla izquierda en 2023…"></textarea>
+        </label>
+        <label class="consent-check"><input type="checkbox" id="reg-health-ok" required> Declaro que la información de salud indicada es verdadera.</label>
+      </div>
+      <div class="consent-box">
+        <div class="consent-text">
+          <b>AVISO DE PRIVACIDAD Y CONSENTIMIENTO PARA EL TRATAMIENTO DE DATOS PERSONALES</b><br><br>
+          Al crear tu cuenta en <b>ronbo.nutri</b>, aceptas lo siguiente:<br><br>
+          <b>1. Responsable.</b> Ronald Borges (@ronaldborges590), entrenador personal certificado ISSA, es responsable de tus datos.<br><br>
+          <b>2. Datos que recogemos.</b> Nombre, correo, teléfono, sexo/género, redes sociales (opcional), declaración de condiciones de salud, registros de alimentación, peso y composición corporal, fotos de perfil, de progreso y de alimentos (para análisis nutricional), y tus metas nutricionales.<br><br>
+          <b>3. Finalidad.</b> Prestar servicios de entrenamiento y asesoría nutricional personalizada, dar seguimiento a tu progreso y comunicarnos contigo.<br><br>
+          <b>4. Almacenamiento.</b> Tus datos se guardan de forma segura en Google Firebase (Estados Unidos), con acceso restringido: solo tú y tu entrenador pueden verlos.<br><br>
+          <b>5. Tus derechos.</b> Puedes pedir en cualquier momento ver, corregir o eliminar tus datos. Eliminar tu cuenta borra tus registros.<br><br>
+          <b>6. Conservación.</b> Guardamos tus datos mientras seas cliente y hasta 2 años después de tu última actividad, salvo que pidas eliminarlos antes.<br><br>
+          <b>7. Menores.</b> Este servicio es solo para mayores de 18 años, o menores con autorización de su padre, madre o tutor.<br><br>
+          <b>8. Revocación.</b> Puedes retirar tu consentimiento en cualquier momento escribiendo a tu entrenador; al hacerlo se eliminarán tus datos y se cerrará tu cuenta.<br><br>
+          <b>9. Salud y ejercicio.</b> El entrenador es un profesional del fitness certificado (ISSA), no un profesional médico. Consulta a tu médico antes de iniciar cualquier programa de ejercicio o nutrición, especialmente si declaraste alguna condición de salud.<br><br>
+          Al marcar la casilla y crear tu cuenta, declaras que leíste este aviso y das tu consentimiento para el tratamiento de tus datos con las finalidades descritas.
+        </div>
+        <label class="consent-check"><input type="checkbox" id="reg-consent" required> He leído y acepto el aviso de privacidad.</label>
+      </div>
       <div id="reg-error" class="auth-error"></div>
       <button type="submit" class="btn-primary">Crear mi cuenta</button>
-      <p class="auth-hint">@ronaldborges590<br>ISSA Certified Personal Trainer</p>
     </form>
+    <div class="auth-brand">
+      <p class="auth-hint">@ronaldborges590<br>ISSA Certified Personal Trainer</p>
+      <div class="auth-social">
+        <a href="https://www.instagram.com/ronaldborges590" target="_blank" rel="noopener">📷 Instagram</a>
+        <a href="https://www.linkedin.com/in/ronaldborges590/" target="_blank" rel="noopener">💼 LinkedIn</a>
+      </div>
+    </div>
   </div>
 </div>
 
@@ -61,7 +121,7 @@
   <div class="topbar">
     <div class="title-card">
       <h1 id="dateTitle">Cargando…</h1>
-      <p class="who-row"><span class="live-dot"></span><img id="avatar" class="avatar" alt="Mi foto" style="display:none" title="Cambiar mi foto de perfil"><span id="who">—</span> · <a href="#" id="btn-logout" class="logout-link">salir</a></p>
+      <p class="who-row"><span class="live-dot"></span><img id="avatar" class="avatar" alt="Mi foto" title="Toca para cambiar tu foto de perfil"><span id="who">—</span> · <a href="#" id="btn-logout" class="logout-link">salir</a></p>
       <input type="file" id="avatar-file" accept="image/*" style="display:none">
     </div>
     <div class="goals-card">
@@ -70,6 +130,12 @@
     </div>
   </div>
 
+  <nav class="main-tabs" id="main-tabs" style="display:none">
+    <button type="button" class="main-tab active" data-tab="track">📊 Mi registro</button>
+    <button type="button" class="main-tab" data-tab="clients">👥 Mis clientes</button>
+    <button type="button" class="main-tab" data-tab="access">🔐 Accesos</button>
+  </nav>
+  <div class="tab-pane" id="tab-track">
   <div class="date-row">
     <label for="dateSel">📅 Fecha:</label>
     <select id="dateSel"></select>
@@ -82,9 +148,15 @@
   <div id="err"></div>
   <div class="rings" id="rings"></div>
 
+  <div class="panel week-panel">
+    <h2>📈 Cumplimiento semanal de metas</h2>
+    <div id="weekChart"></div>
+  </div>
+
   <div class="bottom">
     <div class="panel">
       <h2>Detalle de lo consumido</h2>
+      <div class="table-scroll">
       <table class="detail">
         <thead><tr>
           <th>Momento</th><th>Alimento</th><th>Cantidad</th>
@@ -92,6 +164,7 @@
         </tr></thead>
         <tbody id="detailBody"></tbody>
       </table>
+      </div>
     </div>
     <div>
       <div class="panel">
@@ -137,6 +210,17 @@
     <div id="progress-history" class="progress-history"><div class="wempty">Cargando fotos…</div></div>
   </div>
 
+  <div class="panel mealhelp-panel">
+    <h2>📷 Ayuda con comidas</h2>
+    <p class="progress-hint">¿No sabes los valores de un alimento? Sube su foto aquí y <b>avísame por el chat</b>: la analizo y te pregunto las medidas necesarias (peso, forma de cocción).</p>
+    <label class="btn-ghost btn-sm mealhelp-upload">📷 Subir foto de comida
+      <input type="file" id="mealhelp-file" accept="image/*" style="display:none">
+    </label>
+    <div id="mealhelp-list" class="mealhelp-list"><div class="wempty">Aún no has subido fotos.</div></div>
+  </div>
+  </div><!-- /tab-track -->
+
+  <div class="tab-pane" id="tab-access" style="display:none">
   <div class="admin-section" id="admin-section" style="display:none">
     <h2>🔐 Administración de accesos <span class="h2-sub">· solo dueño</span></h2>
     <p class="progress-hint">Las cuentas nuevas quedan pendientes hasta que las apruebes. Solo los usuarios aprobados pueden entrar y cada uno ve únicamente sus datos.</p>
@@ -145,15 +229,18 @@
     <h3 class="history-title">Usuarios con acceso</h3>
     <div id="users-list"><div class="wempty">Cargando…</div></div>
   </div>
+  </div><!-- /tab-access -->
 
+  <div class="tab-pane" id="tab-clients" style="display:none">
   <div class="admin-section" id="clients-section" style="display:none">
     <h2>👥 Mis clientes <span class="h2-sub">· gestión de entrenador</span></h2>
     <p class="progress-hint">Cada cliente debe subir su peso cada semana. Selecciona uno para ver su historial completo, editar sus pesajes o agregar nuevos. Sus metas las estableces en "Administración de accesos".</p>
     <div id="clients-list"><div class="wempty">Cargando…</div></div>
     <div id="client-detail" style="display:none"></div>
   </div>
+  </div><!-- /tab-clients -->
 
-  <div class="foot">Mi Nutrición · privado · tus datos solo los ves tú</div>
+  <div class="foot">ronbo.nutri · privado · tus datos solo los ves tú</div>
 </div>
 
 <!-- ============ MEAL MODAL ============ -->
@@ -175,6 +262,7 @@
       <label class="photo-label">📷 Foto de la comida (opcional)
         <input type="file" id="m-photo" accept="image/*">
       </label>
+      <p class="photo-hint" style="display:none">📷 ¿No sabes los valores de un alimento? Súbelo en <b>📷 Ayuda con comidas</b> y avísame por el chat para analizarlo.</p>
       <img id="m-photo-preview" class="photo-preview" style="display:none" alt="Vista previa">
       <div class="frow3">
         <label>Kcal <input type="number" id="m-kcal" step="any" min="0" value="0"></label>
@@ -237,6 +325,55 @@
       <div class="modal-foot">
         <button type="button" class="btn-ghost" id="goals-cancel">Cancelar</button>
         <button type="submit" class="btn-primary">Guardar metas</button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<!-- ============ PROFILE MODAL (entrenador completa datos del cliente) ============ -->
+<div id="profile-modal" class="modal-backdrop" style="display:none">
+  <div class="modal">
+    <h2 id="profile-modal-title">Perfil del cliente</h2>
+    <form id="form-profile">
+      <label>Nombre y apellido <input type="text" id="p-name" required></label>
+      <div class="frow">
+        <label>Teléfono <input type="tel" id="p-phone"></label>
+        <label>Sexo / Género
+          <select id="p-gender">
+            <option value="">Selecciona…</option>
+            <option>Femenino</option>
+            <option>Masculino</option>
+            <option>No binario</option>
+            <option>Género fluido</option>
+            <option>Otro</option>
+            <option>Prefiero no decirlo</option>
+          </select>
+        </label>
+      </div>
+      <label>Redes sociales <input type="text" id="p-social" placeholder="Ej. Instagram: @usuario"></label>
+      <label>Notas del entrenador (primera entrevista, objetivos, observaciones)
+        <textarea id="p-notes" rows="3" placeholder="Lo que completes en la primera entrevista…"></textarea>
+      </label>
+      <div class="health-box">
+        <b>🏥 Declaración de salud del cliente</b>
+        <div class="health-grid" id="p-conds">
+          <label><input type="checkbox" class="p-cond" value="Hipertensión"> Hipertensión</label>
+          <label><input type="checkbox" class="p-cond" value="Diabetes"> Diabetes</label>
+          <label><input type="checkbox" class="p-cond" value="Problemas del corazón"> Problemas del corazón</label>
+          <label><input type="checkbox" class="p-cond" value="Dolor de pecho al ejercitarse"> Dolor de pecho al ejercitarse</label>
+          <label><input type="checkbox" class="p-cond" value="Mareos o desmayos"> Mareos o desmayos</label>
+          <label><input type="checkbox" class="p-cond" value="Asma / problemas respiratorios"> Asma / problemas respiratorios</label>
+          <label><input type="checkbox" class="p-cond" value="Lesiones articulares o musculares"> Lesiones articulares o musculares</label>
+          <label><input type="checkbox" class="p-cond" value="Cirugía reciente"> Cirugía reciente</label>
+          <label><input type="checkbox" class="p-cond" value="Embarazo"> Embarazo</label>
+        </div>
+        <label>Detalles / medicamentos
+          <textarea id="p-health-detail" rows="2"></textarea>
+        </label>
+      </div>
+      <div class="modal-foot">
+        <button type="button" class="btn-ghost" id="profile-cancel">Cancelar</button>
+        <button type="submit" class="btn-primary">Guardar perfil</button>
       </div>
     </form>
   </div>
