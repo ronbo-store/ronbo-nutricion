@@ -1,0 +1,163 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Mi Nutrición · Privado</title>
+<meta name="robots" content="noindex, nofollow">
+<link rel="stylesheet" href="styles.css">
+<script type="importmap">
+{
+  "imports": {
+    "firebase/app": "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js",
+    "firebase/auth": "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js",
+    "firebase/firestore": "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js"
+  }
+}
+</script>
+</head>
+<body>
+
+<!-- ============ AUTH VIEW ============ -->
+<div id="auth-view" class="auth-wrap">
+  <div class="auth-card">
+    <div class="auth-logo">🥗</div>
+    <h1>Mi Nutrición</h1>
+    <p class="auth-sub">Acceso privado · solo el dueño</p>
+    <form id="form-login">
+      <label>Correo
+        <input type="email" id="login-email" autocomplete="username" required>
+      </label>
+      <label>Contraseña
+        <input type="password" id="login-password" autocomplete="current-password" required>
+      </label>
+      <div id="auth-error" class="auth-error"></div>
+      <button type="submit" class="btn-primary">Entrar</button>
+    </form>
+  </div>
+</div>
+
+<!-- ============ APP VIEW ============ -->
+<div id="app-view" class="wrap" style="display:none">
+  <div class="topbar">
+    <div class="title-card">
+      <h1 id="dateTitle">Cargando…</h1>
+      <p><span class="live-dot"></span><span id="who">—</span> · <a href="#" id="btn-logout" class="logout-link">salir</a></p>
+    </div>
+    <div class="goals-card">
+      <h2>Tus metas diarias</h2>
+      <div class="goals-row">
+        <span>Calorías: <b>1,900 kcal</b></span>
+        <span>Proteína: <b>170 g</b></span>
+        <span>Carbohidratos: <b>185 g</b></span>
+        <span>Azúcares: <b>≤ 45 g</b></span>
+        <span>Grasas: <b>53 g</b></span>
+      </div>
+    </div>
+  </div>
+
+  <div class="date-row">
+    <label for="dateSel">📅 Fecha:</label>
+    <select id="dateSel"></select>
+    <button id="btn-add-meal" class="btn-primary btn-sm">＋ Registrar comida</button>
+    <button id="btn-import" class="btn-ghost btn-sm" title="Importar registro.csv una sola vez">⤓ Importar CSV</button>
+    <input type="file" id="import-file" accept=".csv" style="display:none">
+  </div>
+
+  <div id="err"></div>
+  <div class="rings" id="rings"></div>
+
+  <div class="bottom">
+    <div class="panel">
+      <h2>Detalle de lo consumido</h2>
+      <table class="detail">
+        <thead><tr>
+          <th>Momento</th><th>Alimento</th><th>Cantidad</th>
+          <th class="num">Cal</th><th class="num">Prot (g)</th><th class="num">Carb (g)</th><th class="num">Azúc (g)</th><th class="num">Gras (g)</th><th></th>
+        </tr></thead>
+        <tbody id="detailBody"></tbody>
+      </table>
+    </div>
+    <div>
+      <div class="panel">
+        <h2>Resumen vs. metas</h2>
+        <div id="vsRows"></div>
+      </div>
+      <div class="notes">
+        <h2>📝 Notas</h2>
+        <ul id="notesList"></ul>
+      </div>
+    </div>
+  </div>
+
+  <div class="weight-section">
+    <h2>⚖️ Evolución de peso <span class="h2-sub">· pesaje semanal</span>
+      <button id="btn-add-weight" class="btn-ghost btn-sm" style="margin-left:8px">＋ Registrar pesaje</button>
+    </h2>
+    <div id="weightBody"><div class="wempty">Cargando pesajes…</div></div>
+  </div>
+
+  <div class="foot">Mi Nutrición · privado · tus datos solo los ves tú</div>
+</div>
+
+<!-- ============ MEAL MODAL ============ -->
+<div id="meal-modal" class="modal-backdrop" style="display:none">
+  <div class="modal">
+    <h2 id="meal-modal-title">Registrar comida</h2>
+    <form id="form-meal">
+      <div class="frow">
+        <label>Fecha <input type="date" id="m-date" required></label>
+        <label>Momento
+          <select id="m-meal">
+            <option>Desayuno</option><option>Almuerzo</option><option>Cena</option>
+            <option>Merienda</option><option>Snack</option>
+          </select>
+        </label>
+      </div>
+      <label>Alimento <input type="text" id="m-food" required placeholder="Ej. Pechuga de pollo"></label>
+      <label>Cantidad <input type="text" id="m-qty" placeholder="Ej. 150 g"></label>
+      <div class="frow3">
+        <label>Kcal <input type="number" id="m-kcal" step="any" min="0" value="0"></label>
+        <label>Proteína (g) <input type="number" id="m-prot" step="any" min="0" value="0"></label>
+        <label>Carbos (g) <input type="number" id="m-carb" step="any" min="0" value="0"></label>
+      </div>
+      <div class="frow3">
+        <label>Azúcares (g) <input type="number" id="m-sugar" step="any" min="0" value="0"></label>
+        <label>Grasas (g) <input type="number" id="m-fat" step="any" min="0" value="0"></label>
+        <label>Notas <input type="text" id="m-notes" placeholder="opcional"></label>
+      </div>
+      <div class="modal-foot">
+        <button type="button" class="btn-ghost" id="meal-cancel">Cancelar</button>
+        <button type="submit" class="btn-primary">Guardar</button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<!-- ============ WEIGHT MODAL ============ -->
+<div id="weight-modal" class="modal-backdrop" style="display:none">
+  <div class="modal">
+    <h2>Registrar pesaje</h2>
+    <form id="form-weight">
+      <div class="frow3">
+        <label>Fecha <input type="date" id="w-date" required></label>
+        <label>Peso (kg) <input type="number" id="w-weight" step="any" min="0" required></label>
+        <label>Grasa corporal (%) <input type="number" id="w-fat" step="any" min="0" placeholder="opcional"></label>
+      </div>
+      <div class="frow">
+        <label>Masa muscular (%) <input type="number" id="w-muscle" step="any" min="0" placeholder="opcional"></label>
+        <label>Notas <input type="text" id="w-notes" placeholder="opcional"></label>
+      </div>
+      <div class="modal-foot">
+        <button type="button" class="btn-ghost" id="weight-cancel">Cancelar</button>
+        <button type="submit" class="btn-primary">Guardar</button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<div id="toast" class="toast"></div>
+
+<script type="module" src="app.js"></script>
+</body>
+</html>
