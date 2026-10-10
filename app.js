@@ -11,7 +11,7 @@ import {
 /* La apiKey se completa al subir el repo (copiar el bloque firebaseConfig
    del repo ronbo-store/ronbo-admin). Es la misma app Firebase. */
 const firebaseConfig = {
-  apiKey: "PEGAR_API_KEY_AQUI",
+  apiKey: "AIzaSyCGE8t2Rz_ty9fC3cRctoQ7pNEVlS2ow3w",
   authDomain: "ronbo-store-admin.firebaseapp.com",
   projectId: "ronbo-store-admin",
   storageBucket: "ronbo-store-admin.firebasestorage.app",
