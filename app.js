@@ -11,7 +11,7 @@ import {
 /* La apiKey se completa al subir el repo (copiar el bloque firebaseConfig
    del repo ronbo-store/ronbo-admin). Es la misma app Firebase. */
 const firebaseConfig = {
-  apiKey: "AIzaSyCGE8t2Rz_ty9fC3cRctoQ7pNEVlS2ow3w",
+  apiKey: "PEGAR_API_KEY_AQUI",
   authDomain: "ronbo-store-admin.firebaseapp.com",
   projectId: "ronbo-store-admin",
   storageBucket: "ronbo-store-admin.firebasestorage.app",
@@ -381,11 +381,9 @@ function parseCSV(text) {
   if (field !== '' || row.length) { row.push(field); rows.push(row); }
   return rows;
 }
-$('btn-import').onclick = () => $('import-file').click();
 $('import-file').addEventListener('change', async e => {
   const f = e.target.files[0];
   if (!f) return;
-  if (!confirm(`¿Importar ${f.name}? Se agregarán los registros a tu base privada.`)) { e.target.value = ''; return; }
   try {
     const rows = parseCSV(await f.text());
     // "1.034" en la hoja significa 1034 (separador de miles)

@@ -60,8 +60,9 @@
     <label for="dateSel">📅 Fecha:</label>
     <select id="dateSel"></select>
     <button id="btn-add-meal" class="btn-primary btn-sm">＋ Registrar comida</button>
-    <button id="btn-import" class="btn-ghost btn-sm" title="Importar registro.csv una sola vez">⤓ Importar CSV</button>
-    <input type="file" id="import-file" accept=".csv" style="display:none">
+    <label class="btn-ghost btn-sm import-label" title="Importar registro.csv una sola vez">⤓ Importar CSV
+      <input type="file" id="import-file" accept=".csv">
+    </label>
   </div>
 
   <div id="err"></div>
