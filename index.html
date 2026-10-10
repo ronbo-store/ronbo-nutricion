@@ -51,7 +51,7 @@
       </label>
       <div id="reg-error" class="auth-error"></div>
       <button type="submit" class="btn-primary">Crear mi cuenta</button>
-      <p class="auth-hint">Cada cuenta ve solo sus propios datos.</p>
+      <p class="auth-hint">@ronaldborges590<br>ISSA Certified Personal Trainer</p>
     </form>
   </div>
 </div>
@@ -61,17 +61,12 @@
   <div class="topbar">
     <div class="title-card">
       <h1 id="dateTitle">Cargando…</h1>
-      <p><span class="live-dot"></span><span id="who">—</span> · <a href="#" id="btn-logout" class="logout-link">salir</a></p>
+      <p class="who-row"><span class="live-dot"></span><img id="avatar" class="avatar" alt="Mi foto" style="display:none" title="Cambiar mi foto de perfil"><span id="who">—</span> · <a href="#" id="btn-logout" class="logout-link">salir</a></p>
+      <input type="file" id="avatar-file" accept="image/*" style="display:none">
     </div>
     <div class="goals-card">
       <h2>Tus metas diarias</h2>
-      <div class="goals-row">
-        <span>Calorías: <b>1,900 kcal</b></span>
-        <span>Proteína: <b>170 g</b></span>
-        <span>Carbohidratos: <b>185 g</b></span>
-        <span>Azúcares: <b>≤ 45 g</b></span>
-        <span>Grasas: <b>53 g</b></span>
-      </div>
+      <div class="goals-row" id="goals-row"></div>
     </div>
   </div>
 
@@ -79,7 +74,7 @@
     <label for="dateSel">📅 Fecha:</label>
     <select id="dateSel"></select>
     <button id="btn-add-meal" class="btn-primary btn-sm">＋ Registrar comida</button>
-    <label class="btn-ghost btn-sm import-label" title="Importar registro.csv una sola vez">⤓ Importar CSV
+    <label class="btn-ghost btn-sm import-label" id="import-wrap" title="Importar registro.csv (solo dueño)">⤓ Importar CSV
       <input type="file" id="import-file" accept=".csv">
     </label>
   </div>
@@ -151,6 +146,13 @@
     <div id="users-list"><div class="wempty">Cargando…</div></div>
   </div>
 
+  <div class="admin-section" id="clients-section" style="display:none">
+    <h2>👥 Mis clientes <span class="h2-sub">· gestión de entrenador</span></h2>
+    <p class="progress-hint">Cada cliente debe subir su peso cada semana. Selecciona uno para ver su historial completo, editar sus pesajes o agregar nuevos. Sus metas las estableces en "Administración de accesos".</p>
+    <div id="clients-list"><div class="wempty">Cargando…</div></div>
+    <div id="client-detail" style="display:none"></div>
+  </div>
+
   <div class="foot">Mi Nutrición · privado · tus datos solo los ves tú</div>
 </div>
 
@@ -202,13 +204,39 @@
         <label>Peso (kg) <input type="number" id="w-weight" step="any" min="0" required></label>
         <label>Grasa corporal (%) <input type="number" id="w-fat" step="any" min="0" placeholder="opcional"></label>
       </div>
-      <div class="frow">
+      <div class="frow3">
         <label>Masa muscular (%) <input type="number" id="w-muscle" step="any" min="0" placeholder="opcional"></label>
+        <label>Agua corporal (%) <input type="number" id="w-water" step="any" min="0" placeholder="opcional"></label>
+        <label>Grasa visceral (nivel) <input type="number" id="w-visceral" step="any" min="0" placeholder="opcional"></label>
+      </div>
+      <div class="frow">
         <label>Notas <input type="text" id="w-notes" placeholder="opcional"></label>
       </div>
       <div class="modal-foot">
         <button type="button" class="btn-ghost" id="weight-cancel">Cancelar</button>
         <button type="submit" class="btn-primary">Guardar</button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<!-- ============ GOALS MODAL (entrenador) ============ -->
+<div id="goals-modal" class="modal-backdrop" style="display:none">
+  <div class="modal">
+    <h2 id="goals-modal-title">Metas del usuario</h2>
+    <form id="form-goals">
+      <div class="frow3">
+        <label>Calorías (kcal) <input type="number" id="g-kcal" min="0" step="any" required></label>
+        <label>Proteína (g) <input type="number" id="g-prot" min="0" step="any" required></label>
+        <label>Carbos (g) <input type="number" id="g-carb" min="0" step="any" required></label>
+      </div>
+      <div class="frow3">
+        <label>Azúcares máx (g) <input type="number" id="g-azuc" min="0" step="any" required></label>
+        <label>Grasas (g) <input type="number" id="g-gras" min="0" step="any" required></label>
+      </div>
+      <div class="modal-foot">
+        <button type="button" class="btn-ghost" id="goals-cancel">Cancelar</button>
+        <button type="submit" class="btn-primary">Guardar metas</button>
       </div>
     </form>
   </div>
