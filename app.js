@@ -58,6 +58,7 @@ en: {
   'form.email': 'Email',
   'form.password': 'Password',
   'auth.forgot': 'Forgot your password?',
+  'pw.show': 'Show password', 'pw.hide': 'Hide password',
   'auth.signin': 'Sign in',
   'form.fullname': 'Full name',
   'form.fullnamePh': 'E.g. Maria Garcia',
@@ -91,8 +92,6 @@ en: {
   'tabs.access': '🔐 Access',
   'track.date': '📅 Date:',
   'track.addMeal': '＋ Log meal',
-  'track.import': '⤓ Import CSV',
-  'track.importTitle': 'Import registro.csv (owner only)',
   'track.weekTitle': '📈 Weekly goal compliance',
   'track.detail': 'Food diary',
   'th.moment': 'Meal', 'th.food': 'Food', 'th.amount': 'Amount',
@@ -137,8 +136,11 @@ en: {
   'progress.history': 'Previous weeks',
   'progress.emptyHistory': 'Your previous weeks will appear here.',
   'mealhelp.title': '📷 Meal help',
-  'mealhelp.hint': 'Don\'t know a food\'s nutrition values? Upload its photo here and <b>let me know in the chat</b>: I\'ll analyze it and ask for the details I need (weight, cooking method).',
+  'mealhelp.hint': 'Don\'t know a food\'s nutrition values? Use the 📷 Take a photo button at the top and <b>let me know in the chat</b>: I\'ll analyze it and ask for the details I need (weight, cooking method).',
   'mealhelp.upload': '📷 Upload food photo',
+  'mealhelp.takePhoto': '📷 Take a photo',
+  'mealhelp.uploaded': 'Photo sent. Let me know in the chat so I can analyze it.',
+  'mealhelp.uploading': 'Uploading photo…', 'mealhelp.uploadFail': 'The photo could not be uploaded.', 'mealhelp.tooBig': 'The image is too heavy, try another one.',
   'mealhelp.empty': 'You haven\'t uploaded photos yet.',
   'mealhelp.reviewed': '✓ reviewed',
   'mealhelp.pending': '⏳ pending',
@@ -146,7 +148,7 @@ en: {
   'mealhelp.tapZoom': 'Tap to enlarge',
   'mealhelp.zoomed': 'Enlarged photo',
   'access.title': '🔐 Access management',
-  'access.sub': '· owner only',
+  'access.sub': '· administrator only',
   'access.hint': 'New accounts stay pending until you approve them. Only approved users can sign in, and each one sees only their own data.',
   'access.pending': 'Pending approval (',
   'access.users': 'Users with access',
@@ -202,7 +204,7 @@ en: {
   'err.forgotNoEmail': 'Type your email above so we can send you the link.',
   'err.resetFail': 'Couldn\'t send the email. Try again.',
   'err.noAccess': 'This account has no access.',
-  'err.pending': 'Your account is pending owner approval.',
+  'err.pending': 'Your account is pending administrator approval.',
   'err.verifyFail': 'Couldn\'t verify access.',
   'err.badCreds': 'Incorrect credentials.',
   'err.tooHeavy': 'The image is too heavy, try another one.',
@@ -210,8 +212,8 @@ en: {
   'err.mealMissing': 'Missing date or food.',
   'err.mealPhotoFail': 'Couldn\'t upload the photo; saved without photo.',
   'err.weightMissing': 'Missing date or valid weight.',
-  'msg.accountCreated': 'Account created. The owner must approve it before you can sign in.',
-  'msg.resetSent': 'We sent you an email to reset your password.',
+  'msg.accountCreated': 'Account created. The administrator must approve it before you can sign in.',
+  'msg.resetSent': 'Reset email sent. It contains a link (not a code): tap the link and set your new password on the page that opens. Check your spam folder too.',
   'msg.approved': 'User approved.',
   'msg.revoked': 'Access removed.',
   'msg.rejected': 'Request deleted.',
@@ -240,7 +242,7 @@ en: {
   'admin.profile': 'Profile',
   'admin.goals': 'Goals',
   'admin.revoke': 'Remove access',
-  'admin.owner': 'owner',
+  'admin.owner': 'admin',
   'clients.empty': 'No clients registered yet.',
   'clients.noWeighins': 'no weigh-ins',
   'clients.daysAgo': '{d} days ago',
@@ -279,8 +281,6 @@ en: {
   'status.overLimit': 'Over the limit',
   'status.above': 'over',
   'status.overGoal': 'Over goal',
-  'import.done': 'Imported {n} entries.',
-  'import.fail': 'Import error: {e}',
   'meal.Desayuno': 'Breakfast',
   'meal.Almuerzo': 'Lunch',
   'meal.Cena': 'Dinner',
@@ -311,6 +311,7 @@ es: {
   'form.email': 'Correo',
   'form.password': 'Contraseña',
   'auth.forgot': '¿Olvidaste tu contraseña?',
+  'pw.show': 'Mostrar contraseña', 'pw.hide': 'Ocultar contraseña',
   'auth.signin': 'Entrar',
   'form.fullname': 'Nombre y apellido',
   'form.fullnamePh': 'Ej. María García',
@@ -344,8 +345,6 @@ es: {
   'tabs.access': '🔐 Accesos',
   'track.date': '📅 Fecha:',
   'track.addMeal': '＋ Registrar comida',
-  'track.import': '⤓ Importar CSV',
-  'track.importTitle': 'Importar registro.csv (solo dueño)',
   'track.weekTitle': '📈 Cumplimiento semanal de metas',
   'track.detail': 'Detalle de lo consumido',
   'th.moment': 'Momento', 'th.food': 'Alimento', 'th.amount': 'Cantidad',
@@ -390,8 +389,11 @@ es: {
   'progress.history': 'Semanas anteriores',
   'progress.emptyHistory': 'Tus semanas anteriores aparecerán aquí.',
   'mealhelp.title': '📷 Ayuda con comidas',
-  'mealhelp.hint': '¿No sabes los valores de un alimento? Sube su foto aquí y <b>avísame por el chat</b>: la analizo y te pregunto las medidas necesarias (peso, forma de cocción).',
+  'mealhelp.hint': '¿No sabes los valores de un alimento? Usa el botón 📷 Tomar una foto de arriba y <b>avísame por el chat</b>: la analizo y te pregunto las medidas necesarias (peso, forma de cocción).',
   'mealhelp.upload': '📷 Subir foto de comida',
+  'mealhelp.takePhoto': '📷 Tomar una foto',
+  'mealhelp.uploaded': 'Foto enviada. Avísame por el chat para analizarla.',
+  'mealhelp.uploading': 'Subiendo foto…', 'mealhelp.uploadFail': 'No se pudo subir la foto.', 'mealhelp.tooBig': 'La imagen es muy pesada, prueba con otra.',
   'mealhelp.empty': 'Aún no has subido fotos.',
   'mealhelp.reviewed': '✓ revisada',
   'mealhelp.pending': '⏳ pendiente',
@@ -399,7 +401,7 @@ es: {
   'mealhelp.tapZoom': 'Toca para ampliar',
   'mealhelp.zoomed': 'Foto ampliada',
   'access.title': '🔐 Administración de accesos',
-  'access.sub': '· solo dueño',
+  'access.sub': '· solo administrador',
   'access.hint': 'Las cuentas nuevas quedan pendientes hasta que las apruebes. Solo los usuarios aprobados pueden entrar y cada uno ve únicamente sus datos.',
   'access.pending': 'Pendientes de aprobación (',
   'access.users': 'Usuarios con acceso',
@@ -455,7 +457,7 @@ es: {
   'err.forgotNoEmail': 'Escribe tu correo arriba para enviarte el enlace.',
   'err.resetFail': 'No se pudo enviar el correo. Intenta de nuevo.',
   'err.noAccess': 'Esta cuenta no tiene acceso.',
-  'err.pending': 'Tu cuenta está pendiente de aprobación por el dueño.',
+  'err.pending': 'Tu cuenta está pendiente de aprobación por el administrador.',
   'err.verifyFail': 'No se pudo verificar el acceso.',
   'err.badCreds': 'Credenciales incorrectas.',
   'err.tooHeavy': 'La imagen es muy pesada, prueba con otra.',
@@ -463,8 +465,8 @@ es: {
   'err.mealMissing': 'Faltan fecha o alimento.',
   'err.mealPhotoFail': 'No se pudo subir la foto; se guarda sin foto.',
   'err.weightMissing': 'Faltan fecha o peso válido.',
-  'msg.accountCreated': 'Cuenta creada. El dueño debe aprobarla antes de que puedas entrar.',
-  'msg.resetSent': 'Te enviamos un correo para restablecer tu contraseña.',
+  'msg.accountCreated': 'Cuenta creada. El administrador debe aprobarla antes de que puedas entrar.',
+  'msg.resetSent': 'Correo enviado. Contiene un enlace (no un código): toca el enlace y escribe tu nueva contraseña en la página que se abre. Revisa también tu carpeta de spam.',
   'msg.approved': 'Usuario aprobado.',
   'msg.revoked': 'Acceso retirado.',
   'msg.rejected': 'Solicitud eliminada.',
@@ -493,7 +495,7 @@ es: {
   'admin.profile': 'Perfil',
   'admin.goals': 'Metas',
   'admin.revoke': 'Quitar acceso',
-  'admin.owner': 'dueño',
+  'admin.owner': 'administrador',
   'clients.empty': 'Aún no hay clientes registrados.',
   'clients.noWeighins': 'sin pesajes',
   'clients.daysAgo': 'hace {d} días',
@@ -532,8 +534,6 @@ es: {
   'status.overLimit': 'Excediste el límite',
   'status.above': 'por encima',
   'status.overGoal': 'Excediste la meta',
-  'import.done': 'Importados {n} registros.',
-  'import.fail': 'Error al importar: {e}',
   'meal.Desayuno': 'Desayuno',
   'meal.Almuerzo': 'Almuerzo',
   'meal.Cena': 'Cena',
@@ -622,6 +622,7 @@ function toast(msg, isErr) {
 function showAuthError(msg) {
   const el = $('auth-error');
   el.textContent = msg;
+  el.classList.remove('ok');
   el.classList.add('show');
 }
 function dateName(iso) {
@@ -710,7 +711,10 @@ $('link-forgot').addEventListener('click', async e => {
   if (!email) { showAuthError(t('err.forgotNoEmail')); return; }
   try {
     await sendPasswordResetEmail(auth, email);
-    showAuthError('');
+    const ae = $('auth-error');
+    ae.textContent = t('msg.resetSent');
+    ae.classList.remove('err');
+    ae.classList.add('show', 'ok');
     toast(t('msg.resetSent'), false);
   } catch (err) {
     const code = err.code || '';
@@ -743,7 +747,6 @@ onAuthStateChanged(auth, async user => {
       return;
     }
     GOALS = { ...DEFAULT_GOALS, ...(UDATA.goals || {}) };
-    $('import-wrap').style.display = IS_OWNER ? '' : 'none';
   } catch {
     await signOut(auth);
     showAuthError(t('err.verifyFail'));
@@ -1157,21 +1160,23 @@ if (mhFile) mhFile.addEventListener('change', async e => {
   const f = e.target.files[0]; e.target.value = '';
   if (!f) return;
   try {
-    toast('Subiendo foto…');
+    toast(t('mealhelp.uploading'));
     const url = await compressFoodPhoto(f);
-    if (url.length > 700000) { toast('La imagen es muy pesada, prueba con otra.', true); return; }
+    if (url.length > 700000) { toast(t('mealhelp.tooBig'), true); return; }
     await addDoc(collection(db, 'meal_help'), {
       ownerUid: auth.currentUser.uid, photoURL: url, status: 'pending', createdAt: serverTimestamp()
     });
-    toast('Foto enviada. Avísame por el chat para analizarla.');
+    toast(t('mealhelp.uploaded'));
     loadMealHelp();
-  } catch { toast('No se pudo subir la foto.', true); }
+  } catch { toast(t('mealhelp.uploadFail'), true); }
 });
 
 /* ================= PESTAÑAS PRINCIPALES ================= */
 function switchTab(name) {
   document.querySelectorAll('.main-tab').forEach(b => b.classList.toggle('active', b.dataset.tab === name));
   document.querySelectorAll('.tab-pane').forEach(p => { p.style.display = (p.id === 'tab-' + name) ? '' : 'none'; });
+  if (IS_OWNER && name === 'access') loadAdmin();
+  if (IS_OWNER && name === 'clients') loadClients();
 }
 document.querySelectorAll('.main-tab').forEach(b => b.addEventListener('click', () => switchTab(b.dataset.tab)));
 
@@ -1584,61 +1589,15 @@ $('form-weight').addEventListener('submit', async e => {
   if (wasClient) await openClient(clientUid); else await loadAll();
 });
 
-/* ================= IMPORTAR CSV (una sola vez) ================= */
-function parseCSV(text) {
-  const rows = [];
-  let row = [], field = '', inQ = false;
-  for (let i = 0; i < text.length; i++) {
-    const c = text[i];
-    if (inQ) {
-      if (c === '"') { if (text[i+1] === '"') { field += '"'; i++; } else inQ = false; }
-      else field += c;
-    } else {
-      if (c === '"') inQ = true;
-      else if (c === ',') { row.push(field); field = ''; }
-      else if (c === '\n' || c === '\r') {
-        if (c === '\r' && text[i+1] === '\n') i++;
-        row.push(field); field = '';
-        if (row.length > 1 || row[0] !== '') rows.push(row);
-        row = [];
-      } else field += c;
-    }
-  }
-  if (field !== '' || row.length) { row.push(field); rows.push(row); }
-  return rows;
-}
-$('import-file').addEventListener('change', async e => {
-  const f = e.target.files[0];
-  if (!f) return;
-  try {
-    const rows = parseCSV(await f.text());
-    // "1.034" en la hoja significa 1034 (separador de miles)
-    const numSmart = v => {
-      let s = String(v || '').trim();
-      if (/^\d{1,3}(\.\d{3})+$/.test(s)) s = s.replace(/\./g, '');
-      return num(s);
-    };
-    let n = 0;
-    for (let i = 1; i < rows.length; i++) {
-      const r = rows[i];
-      const fecha = (r[0] || '').trim();
-      if (!/^\d{4}-\d{2}-\d{2}$/.test(fecha)) continue;
-      await addDoc(collection(db, 'nutrition_meals'), {
-        ownerUid: auth.currentUser.uid,
-        date: fecha, meal: (r[1]||'').trim(), food: (r[2]||'').trim(), qty: (r[3]||'').trim(),
-        kcal: numSmart(r[4]), prot: numSmart(r[5]), carb: numSmart(r[6]),
-        sugar: numSmart(r[9]), fat: numSmart(r[7]),
-        notes: (r[8]||'').trim(), createdAt: serverTimestamp()
-      });
-      n++;
-    }
-    toast(t('import.done', { n }));
-    await loadAll();
-  } catch (err) {
-    toast(t('import.fail', { e: err.message }), true);
-  }
-  e.target.value = '';
-});
+/* Mostrar/ocultar la contraseña (ojito discreto junto al campo) */
+document.querySelectorAll('.pw-eye').forEach(b => b.addEventListener('click', () => {
+  const inp = document.getElementById(b.getAttribute('data-pw'));
+  if (!inp) return;
+  const show = inp.type === 'password';
+  inp.type = show ? 'text' : 'password';
+  b.classList.toggle('on', show);
+  b.title = t(show ? 'pw.hide' : 'pw.show');
+}));
 
 /* ================= LANGUAGE TOGGLE WIRING ================= */
 document.querySelectorAll('.lang-toggle button').forEach(b =>

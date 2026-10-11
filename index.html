@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>ronbo.nutri · Private</title>
 <meta name="robots" content="noindex, nofollow">
-<link rel="stylesheet" href="styles.css">
+<link rel="stylesheet" href="styles.css?v=20261011">
 <script type="importmap">
 {
   "imports": {
@@ -35,7 +35,7 @@
         <input type="email" id="login-email" autocomplete="username" required>
       </label>
       <label><span data-i18n="form.password">Password</span>
-        <input type="password" id="login-password" autocomplete="current-password" required>
+        <span class="pw-wrap"><input type="password" id="login-password" autocomplete="current-password" required><button type="button" class="pw-eye" data-pw="login-password" data-i18n-title="pw.show" title="Show password" aria-label="Show password">👁</button></span>
       </label>
       <a href="#" id="link-forgot" class="forgot-link" data-i18n="auth.forgot">Forgot your password?</a>
       <div id="auth-error" class="auth-error"></div>
@@ -49,11 +49,11 @@
         <input type="email" id="reg-email" autocomplete="username" required>
       </label>
       <label><span data-i18n="form.password">Password</span>
-        <input type="password" id="reg-password" autocomplete="new-password" minlength="6" required>
+        <span class="pw-wrap"><input type="password" id="reg-password" autocomplete="new-password" minlength="6" required><button type="button" class="pw-eye" data-pw="reg-password" data-i18n-title="pw.show" title="Show password" aria-label="Show password">👁</button></span>
         <span class="field-hint" data-i18n="form.passwordHint">This is your ronbo.nutri account password, not your social media one.</span>
       </label>
       <label><span data-i18n="form.password2">Confirm password</span>
-        <input type="password" id="reg-password2" autocomplete="new-password" minlength="6" required>
+        <span class="pw-wrap"><input type="password" id="reg-password2" autocomplete="new-password" minlength="6" required><button type="button" class="pw-eye" data-pw="reg-password2" data-i18n-title="pw.show" title="Show password" aria-label="Show password">👁</button></span>
       </label>
       <label><span data-i18n="form.phone">Phone number</span>
         <input type="tel" id="reg-phone" autocomplete="tel" required data-i18n-ph="form.phonePh" placeholder="E.g. +1 901 555 1234">
@@ -146,8 +146,8 @@
     <label for="dateSel" data-i18n="track.date">📅 Date:</label>
     <select id="dateSel"></select>
     <button id="btn-add-meal" class="btn-primary btn-sm" data-i18n="track.addMeal">＋ Log meal</button>
-    <label class="btn-ghost btn-sm import-label" id="import-wrap" data-i18n-title="track.importTitle" title="Import registro.csv (owner only)"><span data-i18n="track.import">⤓ Import CSV</span>
-      <input type="file" id="import-file" accept=".csv">
+    <label class="btn-ghost btn-sm mealhelp-upload"><span data-i18n="mealhelp.takePhoto">📷 Take a photo</span>
+      <input type="file" id="mealhelp-file" accept="image/*" capture="environment" style="display:none">
     </label>
   </div>
 
@@ -219,9 +219,6 @@
   <div class="panel mealhelp-panel">
     <h2 data-i18n="mealhelp.title">📷 Meal help</h2>
     <p class="progress-hint" data-i18n="mealhelp.hint">Don't know a food's nutrition values? Upload its photo here and <b>let me know in the chat</b>: I'll analyze it and ask for the details I need (weight, cooking method).</p>
-    <label class="btn-ghost btn-sm mealhelp-upload"><span data-i18n="mealhelp.upload">📷 Upload food photo</span>
-      <input type="file" id="mealhelp-file" accept="image/*" style="display:none">
-    </label>
     <div id="mealhelp-list" class="mealhelp-list"><div class="wempty" data-i18n="mealhelp.empty">You haven't uploaded photos yet.</div></div>
   </div>
   </div><!-- /tab-track -->
@@ -387,6 +384,6 @@
 
 <div id="toast" class="toast"></div>
 
-<script type="module" src="app.js"></script>
+<script type="module" src="app.js?v=20261011"></script>
 </body>
 </html>

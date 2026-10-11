@@ -208,3 +208,10 @@ table.whist { min-width: 640px; }
 .auth-social { display: flex; gap: 10px; justify-content: center; margin-top: 10px; flex-wrap: wrap; }
 .auth-social a { display: inline-flex; align-items: center; gap: 5px; font-size: 12px; font-weight: 500; color: #94a3b8; text-decoration: none; padding: 4px 8px; }
 .auth-social a:hover { color: #0d9488; }
+
+/* Ojito discreto para mostrar/ocultar la contraseña */
+.pw-wrap { position: relative; display: block; }
+.pw-wrap input { width: 100%; padding-right: 38px; }
+.pw-eye { position: absolute; right: 4px; top: 50%; transform: translateY(-50%); background: none; border: none; cursor: pointer; font-size: 15px; line-height: 1; opacity: .4; padding: 6px; }
+.pw-eye.on { opacity: 1; }
+.auth-error.ok { background: #e6f7ee; color: #065f46; }
