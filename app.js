@@ -222,6 +222,9 @@ en: {
   'msg.profileSaved': 'Profile updated.',
   'msg.storageSoon': 'Progress photos will be enabled soon.',
   'msg.uploading': 'Uploading photo…',
+  'msg.uploadFail': 'The photo could not be uploaded.',
+  'msg.tooBig': 'The image is too heavy, try another one.',
+  'ui.photoAlt': 'Enlarged photo',
   'msg.photoDeleted': 'Photo deleted.',
   'msg.foodSent': 'Photo sent. Let me know in the chat so I can analyze it.',
   'msg.photoSaved': 'Photo saved.',
@@ -475,6 +478,9 @@ es: {
   'msg.profileSaved': 'Perfil actualizado.',
   'msg.storageSoon': 'Las fotos de progreso se activarán próximamente.',
   'msg.uploading': 'Subiendo foto…',
+  'msg.uploadFail': 'No se pudo subir la foto.',
+  'msg.tooBig': 'La imagen es muy pesada, prueba con otra.',
+  'ui.photoAlt': 'Foto ampliada',
   'msg.photoDeleted': 'Foto eliminada.',
   'msg.foodSent': 'Foto enviada. Avísame por el chat para analizarla.',
   'msg.photoSaved': 'Foto guardada.',
@@ -943,8 +949,8 @@ $('goals-modal').addEventListener('click', e => { if (e.target.id === 'goals-mod
 $('form-goals').addEventListener('submit', async e => {
   e.preventDefault();
   if (!goalsUid) return;
-  const goals = { kcal: num($('g-kcal').value), prot: num($('g-prot').value), carb: num($('g-carb').value),
-    azuc: num($('g-azuc').value), gras: num($('g-gras').value) };
+  const goals = { kcal: Math.max(0, num($('g-kcal').value)), prot: Math.max(0, num($('g-prot').value)), carb: Math.max(0, num($('g-carb').value)),
+    azuc: Math.max(0, num($('g-azuc').value)), gras: Math.max(0, num($('g-gras').value)) };
   await setDoc(doc(db, 'users', goalsUid), { goals }, { merge: true });
   const mine = goalsUid === auth.currentUser.uid;
   goalsUid = null;
@@ -1186,7 +1192,7 @@ function showLightbox(url) {
   if (!lb) {
     lb = document.createElement('div');
     lb.id = 'lightbox'; lb.className = 'lightbox';
-    lb.innerHTML = '<img id="lightbox-img" alt="Foto ampliada">';
+    lb.innerHTML = `<img id="lightbox-img" alt="${t('ui.photoAlt')}">`;
     lb.addEventListener('click', () => { lb.style.display = 'none'; });
     document.body.appendChild(lb);
   }
@@ -1282,14 +1288,14 @@ $('avatar-file').addEventListener('change', async e => {
   e.target.value = '';
   if (!f) return;
   try {
-    toast('Subiendo foto…');
+    toast(t('msg.uploading'));
     const url = await compressAvatar(f);
-    if (url.length > 400000) { toast('La imagen es muy pesada, prueba con otra.', true); return; }
+    if (url.length > 400000) { toast(t('msg.tooBig'), true); return; }
     await setDoc(doc(db, 'users', auth.currentUser.uid), { photoURL: url }, { merge: true });
     UDATA.photoURL = url;
     setAvatar(url);
     toast(t('msg.avatarSaved'));
-  } catch { toast('No se pudo subir la foto.', true); }
+  } catch { toast(t('msg.uploadFail'), true); }
 });
 async function uploadPhoto(file, path) {
   const blob = await compressImage(file);
@@ -1496,7 +1502,7 @@ function renderProgress() {
 }
 async function uploadProgressPhoto(which, file) {
   const wid = weekId();
-  toast('Subiendo foto…');
+  toast(t('msg.uploading'));
   try {
     const path = `nutrition/${auth.currentUser.uid}/progress/${wid}-${which}.jpg`;
     const up = await uploadPhoto(file, path);
@@ -1506,7 +1512,7 @@ async function uploadProgressPhoto(which, file) {
     await setDoc(doc(db, 'nutrition_progress', `${auth.currentUser.uid}_${wid}`), data, { merge: true });
     toast(t('msg.photoSaved'));
     await loadProgress();
-  } catch { toast('No se pudo subir la foto.', true); }
+  } catch { toast(t('msg.uploadFail'), true); }
 }
 $('photo-front').addEventListener('change', e => { const f = e.target.files[0]; e.target.value = ''; if (f) uploadProgressPhoto('front', f); });
 $('photo-side').addEventListener('change', e => { const f = e.target.files[0]; e.target.value = ''; if (f) uploadProgressPhoto('side', f); });
@@ -1529,16 +1535,16 @@ $('form-meal').addEventListener('submit', async e => {
     ownerUid: auth.currentUser.uid,
     date: $('m-date').value, meal: $('m-meal').value,
     food: $('m-food').value.trim(), qty: $('m-qty').value.trim(),
-    kcal: num($('m-kcal').value), prot: num($('m-prot').value),
-    carb: num($('m-carb').value), sugar: num($('m-sugar').value),
-    fat: num($('m-fat').value), notes: $('m-notes').value.trim(),
+    kcal: Math.max(0, num($('m-kcal').value)), prot: Math.max(0, num($('m-prot').value)),
+    carb: Math.max(0, num($('m-carb').value)), sugar: Math.max(0, num($('m-sugar').value)),
+    fat: Math.max(0, num($('m-fat').value)), notes: $('m-notes').value.trim(),
     createdAt: serverTimestamp()
   };
   if (!data.date || !data.food) { toast(t('err.mealMissing'), true); return; }
   const photoFile = $('m-photo').files[0];
   if (photoFile) {
     try {
-      toast('Subiendo foto…');
+      toast(t('msg.uploading'));
       const path = `nutrition/${auth.currentUser.uid}/meals/${Date.now()}.jpg`;
       const up = await uploadPhoto(photoFile, path);
       data.photoURL = up.url; data.photoPath = up.path;
@@ -1575,8 +1581,8 @@ $('form-weight').addEventListener('submit', async e => {
   const date = $('w-date').value;
   const uid = (weightCtx && weightCtx.uid) || auth.currentUser.uid;
   const docId = (weightCtx && weightCtx.docId) || `${uid}_${date}`;
-  const data = { ownerUid: uid, date, weight: num($('w-weight').value), fat: num($('w-fat').value),
-    muscle: num($('w-muscle').value), water: num($('w-water').value), visceral: num($('w-visceral').value),
+  const data = { ownerUid: uid, date, weight: num($('w-weight').value), fat: Math.max(0, num($('w-fat').value)),
+    muscle: Math.max(0, num($('w-muscle').value)), water: Math.max(0, num($('w-water').value)), visceral: Math.max(0, num($('w-visceral').value)),
     notes: $('w-notes').value.trim(), updatedAt: serverTimestamp() };
   if (!date || data.weight <= 0) { toast(t('err.weightMissing'), true); return; }
   await setDoc(doc(db, 'nutrition_weight', docId), data);
