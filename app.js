@@ -2,7 +2,7 @@
 import { initializeApp } from "firebase/app";
 import {
   getAuth, signInWithEmailAndPassword, createUserWithEmailAndPassword,
-  signOut, onAuthStateChanged, sendPasswordResetEmail,
+  signOut, onAuthStateChanged, sendPasswordResetEmail, deleteUser,
 } from "firebase/auth";
 import {
   getFirestore, doc, getDoc, collection, getDocs, addDoc,
@@ -80,7 +80,7 @@ en: {
   'health.ok': 'I declare that the health information provided is true.',
   'health.clientTitle': '🏥 Client health declaration',
   'terms.accept': 'I have read and accept the privacy notice.',
-  'terms.body': '<b>PRIVACY NOTICE AND CONSENT FOR THE PROCESSING OF PERSONAL DATA</b><br><br>When you create your account at <b>ronbo.nutri</b>, you agree to the following:<br><br><b>1. Controller.</b> ronbo.nutri is responsible for your data.<br><br><b>2. Data we collect.</b> Name, email, phone, sex/gender, social media (optional), health condition declaration, food logs, weight and body composition, profile, progress and food photos (for nutritional analysis), and your nutrition goals.<br><br><b>3. Purpose.</b> To provide personalized training and nutrition coaching services, track your progress, and communicate with you.<br><br><b>4. Storage.</b> Your data is stored securely in Google Firebase (United States), with restricted access: only you and your trainer can see it.<br><br><b>5. Your rights.</b> You may at any time request to view, correct, or delete your data. Deleting your account erases your records.<br><br><b>6. Retention.</b> We keep your data while you are a client and up to 2 years after your last activity, unless you request deletion sooner.<br><br><b>7. Minors.</b> This service is for adults 18 and older, or minors with a parent or guardian\'s authorization.<br><br><b>8. Revocation.</b> You may withdraw your consent at any time by writing to your trainer; doing so will delete your data and close your account.<br><br><b>9. Health and exercise.</b> The trainer is an ISSA-certified fitness professional, not a medical professional. Consult your doctor before starting any exercise or nutrition program, especially if you declared a health condition.<br><br>By checking the box and creating your account, you declare that you read this notice and consent to the processing of your data for the purposes described.',
+  'terms.body': '<b>PRIVACY NOTICE AND CONSENT FOR THE PROCESSING OF PERSONAL DATA</b><br><br>When you create your account at <b>ronbo.nutri</b>, you agree to the following:<br><br><b>1. Controller.</b> ronbo.nutri is responsible for your data.<br><br><b>2. Data we collect.</b> Name, email, phone, sex/gender, social media (optional), health condition declaration, food logs, weight and body composition, profile, progress and food photos (for nutritional analysis), and your nutrition goals.<br><br><b>3. Purpose.</b> To provide personalized training and nutrition coaching services, track your progress, and communicate with you.<br><br><b>4. Storage.</b> Your data is stored securely in Google Firebase (United States), with restricted access: only you and your trainer can see it.<br><br><b>5. Your rights.</b> You may at any time request to view, correct, or delete your data. Deleting your account erases your records.<br><br><b>6. Retention.</b> We keep your data while you are a client and up to 2 years after your last activity, unless you request deletion sooner.<br><br><b>7. Minors.</b> This service is for adults 18 and older only.<br><br><b>8. Revocation.</b> You may withdraw your consent at any time by writing to your trainer; doing so will delete your data and close your account.<br><br><b>9. Health and exercise.</b> The trainer is an ISSA-certified fitness professional, not a medical professional. Consult your doctor before starting any exercise or nutrition program, especially if you declared a health condition.<br><br>By checking the box and creating your account, you declare that you read this notice and consent to the processing of your data for the purposes described.',
   'auth.create': 'Create my account',
   'app.logout': 'log out',
   'app.goals': 'Your daily goals',
@@ -245,6 +245,22 @@ en: {
   'train.noPlan': 'No plan assigned yet.', 'train.recent': 'Recent sessions',
   'train.noLogs': 'No sessions logged yet.',
   'train.daysCount': '{n} days', 'train.exCount': '{n} exercises',
+  'form.dob': 'Date of birth', 'form.dobHint': '(to verify you are 18+; it is not stored)',
+  'err.underage': 'You must be 18 or older to create an account.',
+  'priv.title': '🔒 Privacy & Data',
+  'priv.statusAccepted': 'Consent accepted · version {v} · {date}',
+  'priv.statusNone': 'No consent record found for this account.',
+  'priv.statusWithdrawn': 'Consent withdrawn · access revoked.',
+  'priv.viewNotice': 'View the privacy notice', 'priv.download': 'Download my data (JSON)',
+  'priv.downloaded': 'Your data file has been downloaded.',
+  'priv.withdraw': 'Withdraw my consent',
+  'priv.withdrawConfirm': 'If you withdraw your consent, your access is revoked immediately and your trainer will delete your data and close your account. Continue?',
+  'priv.withdrawn': 'Consent withdrawn. Your access has been revoked.',
+  'priv.delete': 'Delete my account and data',
+  'priv.deleteConfirm': 'This permanently deletes your account and ALL your data (meals, weights, progress, plans and meal-help photos). This cannot be undone. Continue?',
+  'priv.deleted': 'Your account and data have been deleted.',
+  'priv.recentLogin': 'Your data was deleted, but Google needs a recent sign-in to delete the account itself: sign out, sign back in, and repeat the deletion. If you get stuck, ask your trainer.',
+  'priv.working': 'Working…',
   'msg.photoSaved': 'Photo saved.',
   'msg.avatarSaved': 'Profile photo updated.',
   'msg.mealSaved': 'Meal logged.',
@@ -354,7 +370,7 @@ es: {
   'health.ok': 'Declaro que la información de salud indicada es verdadera.',
   'health.clientTitle': '🏥 Declaración de salud del cliente',
   'terms.accept': 'He leído y acepto el aviso de privacidad.',
-  'terms.body': '<b>AVISO DE PRIVACIDAD Y CONSENTIMIENTO PARA EL TRATAMIENTO DE DATOS PERSONALES</b><br><br>Al crear tu cuenta en <b>ronbo.nutri</b>, aceptas lo siguiente:<br><br><b>1. Responsable.</b> ronbo.nutri es responsable de tus datos.<br><br><b>2. Datos que recogemos.</b> Nombre, correo, teléfono, sexo/género, redes sociales (opcional), declaración de condiciones de salud, registros de alimentación, peso y composición corporal, fotos de perfil, de progreso y de alimentos (para análisis nutricional), y tus metas nutricionales.<br><br><b>3. Finalidad.</b> Prestar servicios de entrenamiento y asesoría nutricional personalizada, dar seguimiento a tu progreso y comunicarnos contigo.<br><br><b>4. Almacenamiento.</b> Tus datos se guardan de forma segura en Google Firebase (Estados Unidos), con acceso restringido: solo tú y tu entrenador pueden verlos.<br><br><b>5. Tus derechos.</b> Puedes pedir en cualquier momento ver, corregir o eliminar tus datos. Eliminar tu cuenta borra tus registros.<br><br><b>6. Conservación.</b> Guardamos tus datos mientras seas cliente y hasta 2 años después de tu última actividad, salvo que pidas eliminarlos antes.<br><br><b>7. Menores.</b> Este servicio es solo para mayores de 18 años, o menores con autorización de su padre, madre o tutor.<br><br><b>8. Revocación.</b> Puedes retirar tu consentimiento en cualquier momento escribiendo a tu entrenador; al hacerlo se eliminarán tus datos y se cerrará tu cuenta.<br><br><b>9. Salud y ejercicio.</b> El entrenador es un profesional del fitness certificado (ISSA), no un profesional médico. Consulta a tu médico antes de iniciar cualquier programa de ejercicio o nutrición, especialmente si declaraste alguna condición de salud.<br><br>Al marcar la casilla y crear tu cuenta, declaras que leíste este aviso y das tu consentimiento para el tratamiento de tus datos con las finalidades descritas.',
+  'terms.body': '<b>AVISO DE PRIVACIDAD Y CONSENTIMIENTO PARA EL TRATAMIENTO DE DATOS PERSONALES</b><br><br>Al crear tu cuenta en <b>ronbo.nutri</b>, aceptas lo siguiente:<br><br><b>1. Responsable.</b> ronbo.nutri es responsable de tus datos.<br><br><b>2. Datos que recogemos.</b> Nombre, correo, teléfono, sexo/género, redes sociales (opcional), declaración de condiciones de salud, registros de alimentación, peso y composición corporal, fotos de perfil, de progreso y de alimentos (para análisis nutricional), y tus metas nutricionales.<br><br><b>3. Finalidad.</b> Prestar servicios de entrenamiento y asesoría nutricional personalizada, dar seguimiento a tu progreso y comunicarnos contigo.<br><br><b>4. Almacenamiento.</b> Tus datos se guardan de forma segura en Google Firebase (Estados Unidos), con acceso restringido: solo tú y tu entrenador pueden verlos.<br><br><b>5. Tus derechos.</b> Puedes pedir en cualquier momento ver, corregir o eliminar tus datos. Eliminar tu cuenta borra tus registros.<br><br><b>6. Conservación.</b> Guardamos tus datos mientras seas cliente y hasta 2 años después de tu última actividad, salvo que pidas eliminarlos antes.<br><br><b>7. Menores.</b> Este servicio es solo para personas mayores de 18 años.<br><br><b>8. Revocación.</b> Puedes retirar tu consentimiento en cualquier momento escribiendo a tu entrenador; al hacerlo se eliminarán tus datos y se cerrará tu cuenta.<br><br><b>9. Salud y ejercicio.</b> El entrenador es un profesional del fitness certificado (ISSA), no un profesional médico. Consulta a tu médico antes de iniciar cualquier programa de ejercicio o nutrición, especialmente si declaraste alguna condición de salud.<br><br>Al marcar la casilla y crear tu cuenta, declaras que leíste este aviso y das tu consentimiento para el tratamiento de tus datos con las finalidades descritas.',
   'auth.create': 'Crear mi cuenta',
   'app.logout': 'salir',
   'app.goals': 'Tus metas diarias',
@@ -519,6 +535,22 @@ es: {
   'train.noPlan': 'Aún no hay plan asignado.', 'train.recent': 'Sesiones recientes',
   'train.noLogs': 'Aún no hay sesiones registradas.',
   'train.daysCount': '{n} días', 'train.exCount': '{n} ejercicios',
+  'form.dob': 'Fecha de nacimiento', 'form.dobHint': '(para verificar que eres mayor de 18; no se guarda)',
+  'err.underage': 'Debes tener 18 años o más para crear una cuenta.',
+  'priv.title': '🔒 Privacidad y datos',
+  'priv.statusAccepted': 'Consentimiento aceptado · versión {v} · {date}',
+  'priv.statusNone': 'No se encontró registro de consentimiento para esta cuenta.',
+  'priv.statusWithdrawn': 'Consentimiento retirado · acceso revocado.',
+  'priv.viewNotice': 'Ver el aviso de privacidad', 'priv.download': 'Descargar mis datos (JSON)',
+  'priv.downloaded': 'Tu archivo de datos se ha descargado.',
+  'priv.withdraw': 'Retirar mi consentimiento',
+  'priv.withdrawConfirm': 'Si retiras tu consentimiento, tu acceso se revoca de inmediato y tu entrenador eliminará tus datos y cerrará tu cuenta. ¿Continuar?',
+  'priv.withdrawn': 'Consentimiento retirado. Tu acceso ha sido revocado.',
+  'priv.delete': 'Eliminar mi cuenta y mis datos',
+  'priv.deleteConfirm': 'Esto elimina permanentemente tu cuenta y TODOS tus datos (comidas, pesos, progreso, planes y fotos de ayuda). No se puede deshacer. ¿Continuar?',
+  'priv.deleted': 'Tu cuenta y tus datos han sido eliminados.',
+  'priv.recentLogin': 'Tus datos se eliminaron, pero Google necesita un inicio de sesión reciente para borrar la cuenta en sí: cierra sesión, vuelve a entrar y repite la eliminación. Si te atascas, pide ayuda a tu entrenador.',
+  'priv.working': 'Procesando…',
   'msg.photoSaved': 'Foto guardada.',
   'msg.avatarSaved': 'Foto de perfil actualizada.',
   'msg.mealSaved': 'Comida registrada.',
@@ -682,6 +714,14 @@ function todayISO() {
   return t.getFullYear() + '-' + String(t.getMonth()+1).padStart(2,'0') + '-' + String(t.getDate()).padStart(2,'0');
 }
 
+function ageOn(dobISO, onISO) {
+  const b = String(dobISO || '').split('-').map(Number), o = String(onISO || '').split('-').map(Number);
+  if (b.length !== 3 || o.length !== 3 || b.some(isNaN) || o.some(isNaN)) return -1;
+  let a = o[0] - b[0];
+  if (o[1] < b[1] || (o[1] === b[1] && o[2] < b[2])) a--;
+  return a;
+}
+
 /* ================= AUTH (multiusuario) ================= */
 $('tab-login').onclick = () => {
   $('tab-login').classList.add('active'); $('tab-register').classList.remove('active');
@@ -708,6 +748,8 @@ $('form-register').addEventListener('submit', async e => {
   if (pw !== pw2) { showRegError(t('err.pwmatch')); return; }
   if (!$('reg-consent').checked) { showRegError(t('err.consent')); return; }
   if (!$('reg-health-ok').checked) { showRegError(t('err.health')); return; }
+  const age = ageOn($('reg-dob').value, todayISO());
+  if (!(age >= 18 && age <= 120)) { showRegError(t('err.underage')); return; }
   const conditions = [...document.querySelectorAll('.reg-cond:checked')].map(c => c.value)
     .filter(v => v !== 'Ninguna de las anteriores');
   const healthDetail = $('reg-health-detail').value.trim();
@@ -719,7 +761,8 @@ $('form-register').addEventListener('submit', async e => {
       role: 'user', isOwner: false, approved: false,
       goals: { ...DEFAULT_GOALS },
       health: { conditions, details: healthDetail, declaredAt: serverTimestamp() },
-      acceptedTerms: true, termsVersion: 'v1-2026-10-10', termsAcceptedAt: serverTimestamp(),
+      acceptedTerms: true, termsVersion: 'v2-2026-10-14', termsAcceptedAt: serverTimestamp(),
+      adultConfirmed: true, adultConfirmedAt: serverTimestamp(),
       createdAt: serverTimestamp()
     });
     await signOut(auth);
@@ -1074,6 +1117,7 @@ async function loadAll() {
   await loadProgress();
   await loadMealHelp();
   await loadMyTraining();
+  renderPrivacy();
   await loadAdmin();
   await loadClients();
   applyStorageFlag();
@@ -1214,6 +1258,87 @@ if (mhFile) mhFile.addEventListener('change', async e => {
     toast(t('mealhelp.uploaded'));
     loadMealHelp();
   } catch { toast(t('mealhelp.uploadFail'), true); }
+});
+
+/* ================= PRIVACIDAD Y DATOS (cliente) =================
+   Nota: si en el futuro se activa Firebase Storage (Blaze), la eliminación
+   debe borrar también los objetos de Storage referenciados en photoPath. */
+function renderPrivacy() {
+  const st = $('privacy-status');
+  if (!st) return;
+  let when = '';
+  try { if (UDATA.termsAcceptedAt && UDATA.termsAcceptedAt.toDate) when = UDATA.termsAcceptedAt.toDate().toLocaleDateString(LANG === 'es' ? 'es-MX' : 'en-US'); } catch {}
+  let html = UDATA.acceptedTerms
+    ? `<p class="progress-hint">${t('priv.statusAccepted', { v: esc(UDATA.termsVersion || ''), date: esc(when) })}</p>`
+    : `<p class="progress-hint">${t('priv.statusNone')}</p>`;
+  if (UDATA.consentWithdrawnAt) html += `<p class="progress-hint">${t('priv.statusWithdrawn')}</p>`;
+  st.innerHTML = html;
+}
+const MY_DATA_COLLECTIONS = [
+  ['nutrition_meals', 'ownerUid'], ['nutrition_weight', 'ownerUid'],
+  ['nutrition_progress', 'ownerUid'], ['meal_help', 'ownerUid'],
+  ['training_plans', 'clientUid'], ['training_logs', 'clientUid']
+];
+async function fetchMyDocs(uid) {
+  const out = {};
+  for (const [name, field] of MY_DATA_COLLECTIONS) {
+    out[name] = [];
+    try {
+      const snap = await getDocs(query(collection(db, name), where(field, '==', uid)));
+      snap.forEach(d => out[name].push({ id: d.id, data: d.data() }));
+    } catch {}
+  }
+  return out;
+}
+const tsReplacer = (k, v) => (v && typeof v === 'object' && 'seconds' in v && 'nanoseconds' in v)
+  ? new Date(v.seconds * 1000).toISOString() : v;
+$('btn-view-notice') && $('btn-view-notice').addEventListener('click', () => {
+  const n = $('privacy-notice');
+  if (n.style.display === 'none') { n.innerHTML = t('terms.body'); n.style.display = ''; }
+  else n.style.display = 'none';
+});
+$('btn-my-data') && $('btn-my-data').addEventListener('click', async () => {
+  if (!auth.currentUser) return;
+  toast(t('priv.working'));
+  const uid = auth.currentUser.uid;
+  const mine = await fetchMyDocs(uid);
+  const plain = {};
+  for (const [name] of MY_DATA_COLLECTIONS) plain[name] = mine[name].map(x => ({ id: x.id, ...x.data }));
+  const payload = { exportedAt: new Date().toISOString(), profile: { ...UDATA }, ...plain };
+  const blob = new Blob([JSON.stringify(payload, tsReplacer, 2)], { type: 'application/json' });
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(blob);
+  a.download = 'ronbo-nutri-my-data.json';
+  a.click();
+  setTimeout(() => URL.revokeObjectURL(a.href), 4000);
+  toast(t('priv.downloaded'));
+});
+$('btn-withdraw') && $('btn-withdraw').addEventListener('click', async () => {
+  if (!auth.currentUser) return;
+  if (!confirm(t('priv.withdrawConfirm'))) return;
+  await setDoc(doc(db, 'users', auth.currentUser.uid),
+    { consentWithdrawnAt: serverTimestamp(), acceptedTerms: false, approved: false }, { merge: true });
+  toast(t('priv.withdrawn'));
+  await signOut(auth);
+});
+$('btn-delete-account') && $('btn-delete-account').addEventListener('click', async () => {
+  if (!auth.currentUser) return;
+  if (!confirm(t('priv.deleteConfirm'))) return;
+  if (!confirm(t('priv.deleteConfirm'))) return;
+  const user = auth.currentUser;
+  const uid = user.uid;
+  toast(t('priv.working'));
+  const mine = await fetchMyDocs(uid);
+  for (const [name] of MY_DATA_COLLECTIONS)
+    for (const x of mine[name]) { try { await deleteDoc(doc(db, name, x.id)); } catch {} }
+  try { await deleteDoc(doc(db, 'users', uid)); } catch {}
+  try {
+    await deleteUser(user);
+    toast(t('priv.deleted'));
+  } catch (err) {
+    if (err && err.code === 'auth/requires-recent-login') { toast(t('priv.recentLogin'), true); await signOut(auth); }
+    else toast(t('priv.deleted'));
+  }
 });
 
 /* ================= PLANES DE ENTRENAMIENTO (v1) =================

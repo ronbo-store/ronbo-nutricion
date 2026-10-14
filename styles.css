@@ -227,3 +227,7 @@ table.whist { min-width: 640px; }
 .pl-ex-row input { flex: 1; min-width: 0; }
 .pl-ex-row .pl-ex-sets, .pl-ex-row .pl-ex-reps { flex: 0 0 58px; }
 .check-row { display: flex; gap: 8px; align-items: center; }
+
+/* Privacidad y datos */
+.privacy-btns { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 10px; }
+.privacy-btns .danger { color: #b91c1c; }

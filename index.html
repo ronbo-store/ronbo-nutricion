@@ -72,6 +72,9 @@
       <label><span data-i18n="form.social">Social media</span> <span class="opt" data-i18n="form.opt">(optional)</span>
         <input type="text" id="reg-social" data-i18n-ph="form.socialPh" placeholder="E.g. Instagram: @user">
       </label>
+      <label><span data-i18n="form.dob">Date of birth</span> <span class="opt" data-i18n="form.dobHint">(to verify you are 18+; it is not stored)</span>
+        <input type="date" id="reg-dob" required>
+      </label>
       <div class="health-box">
         <b data-i18n="health.title">🏥 Health declaration</b>
         <p class="health-hint" data-i18n="health.hint">Check any conditions you have. It's for your safety: your trainer must know them before assigning an exercise or nutrition plan.</p>
@@ -102,7 +105,7 @@
           <b>4. Storage.</b> Your data is stored securely in Google Firebase (United States), with restricted access: only you and your trainer can see it.<br><br>
           <b>5. Your rights.</b> You may at any time request to view, correct, or delete your data. Deleting your account erases your records.<br><br>
           <b>6. Retention.</b> We keep your data while you are a client and up to 2 years after your last activity, unless you request deletion sooner.<br><br>
-          <b>7. Minors.</b> This service is for adults 18 and older, or minors with a parent or guardian&apos;s authorization.<br><br>
+          <b>7. Minors.</b> This service is for adults 18 and older only.<br><br>
           <b>8. Revocation.</b> You may withdraw your consent at any time by writing to your trainer; doing so will delete your data and close your account.<br><br>
           <b>9. Health and exercise.</b> The trainer is an ISSA-certified fitness professional, not a medical professional. Consult your doctor before starting any exercise or nutrition program, especially if you declared a health condition.<br><br>
           By checking the box and creating your account, you declare that you read this notice and consent to the processing of your data for the purposes described.
@@ -224,6 +227,17 @@
   <div class="panel train-panel">
     <h2 data-i18n="train.title">🏋️ My training plan</h2>
     <div id="my-training"><div class="wempty" data-i18n="train.loading">Loading your plan…</div></div>
+  </div>
+  <div class="panel privacy-panel">
+    <h2 data-i18n="priv.title">🔒 Privacy & Data</h2>
+    <div id="privacy-status"></div>
+    <div id="privacy-notice" class="consent-text" style="display:none"></div>
+    <div class="privacy-btns">
+      <button type="button" class="btn-ghost btn-sm" id="btn-view-notice" data-i18n="priv.viewNotice">View the privacy notice</button>
+      <button type="button" class="btn-ghost btn-sm" id="btn-my-data" data-i18n="priv.download">Download my data (JSON)</button>
+      <button type="button" class="btn-ghost btn-sm" id="btn-withdraw" data-i18n="priv.withdraw">Withdraw my consent</button>
+      <button type="button" class="btn-ghost btn-sm danger" id="btn-delete-account" data-i18n="priv.delete">Delete my account and data</button>
+    </div>
   </div>
   </div><!-- /tab-track -->
 
