@@ -227,6 +227,24 @@ en: {
   'ui.photoAlt': 'Enlarged photo',
   'msg.photoDeleted': 'Photo deleted.',
   'msg.foodSent': 'Photo sent. Let me know in the chat so I can analyze it.',
+  'train.title': '🏋️ My training plan', 'train.loading': 'Loading your plan…',
+  'train.none': 'Your trainer has not assigned you a plan yet.',
+  'train.weekDone': 'Sessions completed this week: {n}',
+  'train.markDone': 'Mark as done today', 'train.doneToday': 'Done today ✓', 'train.undo': 'Undo',
+  'train.saved': 'Plan saved.', 'train.deleted': 'Plan deleted.',
+  'train.editorTitle': 'Training plan', 'train.section': '🏋️ Training',
+  'train.f.title': 'Plan title', 'train.f.titlePh': 'E.g. Strength — 4 days',
+  'train.f.notes': 'Notes for the client', 'train.f.active': 'Active plan (the one the client sees)',
+  'train.f.addDay': '＋ Add day', 'train.f.dayPh': 'Day label (e.g. Day 1 · Chest)',
+  'train.f.addEx': '＋ Add exercise', 'train.f.exPh': 'Exercise', 'train.f.setsPh': 'Sets',
+  'train.f.repsPh': 'Reps', 'train.f.notePh': 'Note', 'train.f.remove': 'Remove',
+  'train.save': 'Save plan', 'train.err': 'Give the plan a title and at least one exercise.',
+  'train.new': 'New plan', 'train.activeBadge': 'Active', 'train.activate': 'Activate',
+  'train.deactivate': 'Deactivate', 'train.delete': 'Delete',
+  'train.deleteConfirm': 'Delete this plan permanently?',
+  'train.noPlan': 'No plan assigned yet.', 'train.recent': 'Recent sessions',
+  'train.noLogs': 'No sessions logged yet.',
+  'train.daysCount': '{n} days', 'train.exCount': '{n} exercises',
   'msg.photoSaved': 'Photo saved.',
   'msg.avatarSaved': 'Profile photo updated.',
   'msg.mealSaved': 'Meal logged.',
@@ -483,6 +501,24 @@ es: {
   'ui.photoAlt': 'Foto ampliada',
   'msg.photoDeleted': 'Foto eliminada.',
   'msg.foodSent': 'Foto enviada. Avísame por el chat para analizarla.',
+  'train.title': '🏋️ Mi plan de entrenamiento', 'train.loading': 'Cargando tu plan…',
+  'train.none': 'Tu entrenador aún no te ha asignado un plan.',
+  'train.weekDone': 'Sesiones completadas esta semana: {n}',
+  'train.markDone': 'Marcar como hecho hoy', 'train.doneToday': 'Hecho hoy ✓', 'train.undo': 'Deshacer',
+  'train.saved': 'Plan guardado.', 'train.deleted': 'Plan eliminado.',
+  'train.editorTitle': 'Plan de entrenamiento', 'train.section': '🏋️ Entrenamiento',
+  'train.f.title': 'Título del plan', 'train.f.titlePh': 'Ej. Fuerza — 4 días',
+  'train.f.notes': 'Notas para el cliente', 'train.f.active': 'Plan activo (el que ve el cliente)',
+  'train.f.addDay': '＋ Añadir día', 'train.f.dayPh': 'Etiqueta del día (ej. Día 1 · Pecho)',
+  'train.f.addEx': '＋ Añadir ejercicio', 'train.f.exPh': 'Ejercicio', 'train.f.setsPh': 'Series',
+  'train.f.repsPh': 'Reps', 'train.f.notePh': 'Nota', 'train.f.remove': 'Quitar',
+  'train.save': 'Guardar plan', 'train.err': 'Ponle un título al plan y al menos un ejercicio.',
+  'train.new': 'Plan nuevo', 'train.activeBadge': 'Activo', 'train.activate': 'Activar',
+  'train.deactivate': 'Desactivar', 'train.delete': 'Eliminar',
+  'train.deleteConfirm': '¿Eliminar este plan permanentemente?',
+  'train.noPlan': 'Aún no hay plan asignado.', 'train.recent': 'Sesiones recientes',
+  'train.noLogs': 'Aún no hay sesiones registradas.',
+  'train.daysCount': '{n} días', 'train.exCount': '{n} ejercicios',
   'msg.photoSaved': 'Foto guardada.',
   'msg.avatarSaved': 'Foto de perfil actualizada.',
   'msg.mealSaved': 'Comida registrada.',
@@ -917,7 +953,8 @@ async function openClient(uid) {
     ${data.length ? weightChartSVG([...data].reverse()) : `<div class="wempty">${t('client.noWeight')}</div>`}
     ${data.length ? `<div class="table-scroll"><table class="detail whist">
       <thead><tr><th>${t('form.date')}</th><th class="num">${t('form.weight')}</th><th class="num">${t('form.bodyfat')}</th><th class="num">${t('form.muscle')}</th><th class="num">${t('form.water')}</th><th class="num">${t('form.visceral')}</th><th>${t('form.notes')}</th><th></th></tr></thead>
-      <tbody>${rows}</tbody></table></div>` : ''}`;
+      <tbody>${rows}</tbody></table></div>` : ''}
+    <div id="client-training"></div>`;
   $('btn-client-close').onclick = () => { box.style.display = 'none'; box.innerHTML = ''; };
   $('btn-client-add').onclick = () => openWeightModal({ uid, docId: null, rec: null });
   box.querySelectorAll('[data-c-edit]').forEach(b => b.onclick = () => {
@@ -931,6 +968,7 @@ async function openClient(uid) {
     toast(t('msg.foodReviewed'));
     openClient(uid);
   });
+  loadClientTraining(uid);
   box.scrollIntoView({ behavior: 'smooth', block: 'start' });
 }
 
@@ -1035,6 +1073,7 @@ async function loadAll() {
   renderWeight();
   await loadProgress();
   await loadMealHelp();
+  await loadMyTraining();
   await loadAdmin();
   await loadClients();
   applyStorageFlag();
@@ -1175,6 +1214,199 @@ if (mhFile) mhFile.addEventListener('change', async e => {
     toast(t('mealhelp.uploaded'));
     loadMealHelp();
   } catch { toast(t('mealhelp.uploadFail'), true); }
+});
+
+/* ================= PLANES DE ENTRENAMIENTO (v1) =================
+   training_plans { clientUid, title, notes, days: [{ label, exercises: [{ name, sets, reps, note }] }], active, createdBy, createdAt, updatedAt }
+   training_logs  { clientUid, planId, date, dayIndex, dayLabel, done, updatedAt } — id: {clientUid}_{planId}_{date}_{dayIndex} */
+function mondayISO(iso) {
+  const d = new Date(iso + 'T12:00:00');
+  const dow = (d.getDay() + 6) % 7;
+  d.setDate(d.getDate() - dow);
+  return d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0') + '-' + String(d.getDate()).padStart(2, '0');
+}
+async function fetchPlans(clientUid) {
+  const out = [];
+  try {
+    const snap = await getDocs(query(collection(db, 'training_plans'), where('clientUid', '==', clientUid)));
+    snap.forEach(d => out.push({ id: d.id, ...d.data() }));
+  } catch {}
+  out.sort((a, b) => String(a.title || '').localeCompare(String(b.title || '')));
+  return out;
+}
+async function fetchLogs(clientUid) {
+  const out = [];
+  try {
+    const snap = await getDocs(query(collection(db, 'training_logs'), where('clientUid', '==', clientUid)));
+    snap.forEach(d => out.push({ id: d.id, ...d.data() }));
+  } catch {}
+  out.sort((a, b) => (a.date < b.date ? 1 : -1));
+  return out;
+}
+function trainExercisesHTML(day) {
+  return (day.exercises || []).map(ex => `
+    <div class="train-ex"><span>${esc(ex.name || '')}${ex.note ? ` <span class="muted">· ${esc(ex.note)}</span>` : ''}</span><span class="sx">${esc([ex.sets, ex.reps].filter(Boolean).join(' × '))}</span></div>`).join('');
+}
+
+/* --- Vista del cliente: su plan activo y registro de sesiones --- */
+async function loadMyTraining() {
+  const box = $('my-training');
+  if (!box || !auth.currentUser) return;
+  const uid = auth.currentUser.uid;
+  const plans = await fetchPlans(uid);
+  const plan = plans.find(p => p.active === true) || null;
+  if (!plan) { box.innerHTML = `<div class="wempty">${t('train.none')}</div>`; return; }
+  const logs = (await fetchLogs(uid)).filter(l => l.planId === plan.id);
+  const today = todayISO();
+  const weekStart = mondayISO(today);
+  const doneToday = new Set(logs.filter(l => l.date === today).map(l => l.dayIndex));
+  const weekCount = logs.filter(l => l.date >= weekStart && l.date <= today).length;
+  box.innerHTML = `
+    <h3 class="history-title">${esc(plan.title || '')}</h3>
+    ${plan.notes ? `<p class="progress-hint">${esc(plan.notes)}</p>` : ''}
+    <p class="progress-hint">${t('train.weekDone', { n: weekCount })}</p>
+    ${(plan.days || []).map((day, di) => {
+      const label = day.label || ('Día ' + (di + 1));
+      const done = doneToday.has(di);
+      return `<div class="train-day"><h4>${esc(label)}</h4>${trainExercisesHTML(day)}
+        <div style="margin-top:8px">${done
+          ? `<span class="ok-badge">${t('train.doneToday')}</span> <button class="btn-ghost btn-sm" data-train-undo="${di}">${t('train.undo')}</button>`
+          : `<button class="btn-primary btn-sm" data-train-done="${di}">${t('train.markDone')}</button>`}</div>
+      </div>`;
+    }).join('')}`;
+  box.querySelectorAll('[data-train-done]').forEach(b => b.onclick = async () => {
+    const di = Number(b.dataset.trainDone);
+    const day = (plan.days || [])[di] || {};
+    await setDoc(doc(db, 'training_logs', `${uid}_${plan.id}_${today}_${di}`),
+      { clientUid: uid, planId: plan.id, date: today, dayIndex: di, dayLabel: day.label || '', done: true, updatedAt: serverTimestamp() });
+    loadMyTraining();
+  });
+  box.querySelectorAll('[data-train-undo]').forEach(b => b.onclick = async () => {
+    await deleteDoc(doc(db, 'training_logs', `${uid}_${plan.id}_${today}_${Number(b.dataset.trainUndo)}`));
+    loadMyTraining();
+  });
+}
+
+/* --- Vista del entrenador (dentro del detalle del cliente) --- */
+async function loadClientTraining(uid) {
+  const box = $('client-training');
+  if (!box) return;
+  const plans = await fetchPlans(uid);
+  const logs = await fetchLogs(uid);
+  const planRows = plans.length ? plans.map(p => `
+    <div class="user-row"><div><b>${esc(p.title || '')}</b>${p.active === true ? ` <span class="ok-badge">${t('train.activeBadge')}</span>` : ''}<br><span class="muted">${t('train.daysCount', { n: (p.days || []).length })} · ${t('train.exCount', { n: (p.days || []).reduce((n, d) => n + (d.exercises || []).length, 0) })}</span></div>
+    <div class="user-actions">
+      <button class="btn-ghost btn-sm" data-plan-edit="${p.id}">${t('client.edit')}</button>
+      <button class="btn-ghost btn-sm" data-plan-toggle="${p.id}">${p.active === true ? t('train.deactivate') : t('train.activate')}</button>
+      <button class="btn-ghost btn-sm" data-plan-del="${p.id}">${t('train.delete')}</button>
+    </div></div>`).join('') : `<div class="wempty">${t('train.noPlan')}</div>`;
+  const logRows = logs.slice(0, 8).map(l => `<div class="train-ex"><span>${esc(l.dayLabel || '')}</span><span class="sx">${dateName(l.date)} ✓</span></div>`).join('');
+  box.innerHTML = `
+    <h3 class="history-title">${t('train.section')}</h3>
+    <div style="margin-bottom:10px"><button class="btn-primary btn-sm" id="btn-plan-new">${t('train.new')}</button></div>
+    ${planRows}
+    <h3 class="history-title">${t('train.recent')}</h3>
+    ${logRows || `<div class="wempty">${t('train.noLogs')}</div>`}`;
+  $('btn-plan-new').onclick = () => openPlanEditor(uid, null);
+  box.querySelectorAll('[data-plan-edit]').forEach(b => b.onclick = () => { const p = plans.find(x => x.id === b.dataset.planEdit); if (p) openPlanEditor(uid, p); });
+  box.querySelectorAll('[data-plan-toggle]').forEach(b => b.onclick = async () => {
+    const p = plans.find(x => x.id === b.dataset.planToggle); if (!p) return;
+    if (p.active === true) {
+      await setDoc(doc(db, 'training_plans', p.id), { active: false, updatedAt: serverTimestamp() }, { merge: true });
+    } else {
+      for (const o of plans) if (o.id !== p.id && o.active === true)
+        await setDoc(doc(db, 'training_plans', o.id), { active: false, updatedAt: serverTimestamp() }, { merge: true });
+      await setDoc(doc(db, 'training_plans', p.id), { active: true, updatedAt: serverTimestamp() }, { merge: true });
+    }
+    loadClientTraining(uid);
+  });
+  box.querySelectorAll('[data-plan-del]').forEach(b => b.onclick = async () => {
+    if (!confirm(t('train.deleteConfirm'))) return;
+    await deleteDoc(doc(db, 'training_plans', b.dataset.planDel));
+    toast(t('train.deleted'));
+    loadClientTraining(uid);
+  });
+}
+
+/* --- Editor de planes (entrenador) --- */
+let planCtx = null;
+function wirePlanExDel(scope) { scope.querySelectorAll('.pl-ex-del').forEach(b => b.onclick = () => b.closest('.pl-ex-row').remove()); }
+function planExRow(ex) {
+  ex = ex || {};
+  return `<div class="pl-ex-row">
+    <input type="text" class="pl-ex-name" placeholder="${t('train.f.exPh')}" value="${esc(ex.name || '')}">
+    <input type="text" class="pl-ex-sets" placeholder="${t('train.f.setsPh')}" value="${esc(ex.sets || '')}">
+    <input type="text" class="pl-ex-reps" placeholder="${t('train.f.repsPh')}" value="${esc(ex.reps || '')}">
+    <input type="text" class="pl-ex-note" placeholder="${t('train.f.notePh')}" value="${esc(ex.note || '')}">
+    <button type="button" class="btn-ghost btn-sm pl-ex-del" title="${t('train.f.remove')}">×</button>
+  </div>`;
+}
+function planDayRow(day) {
+  day = day || { label: '', exercises: [{}] };
+  const wrap = document.createElement('div');
+  wrap.className = 'pl-day';
+  wrap.innerHTML = `
+    <div class="frow"><label style="flex:1"><input type="text" class="pl-day-label" placeholder="${t('train.f.dayPh')}" value="${esc(day.label || '')}"></label>
+    <button type="button" class="btn-ghost btn-sm pl-day-del">${t('train.f.remove')}</button></div>
+    <div class="pl-exs">${(day.exercises && day.exercises.length ? day.exercises : [{}]).map(planExRow).join('')}</div>
+    <button type="button" class="btn-ghost btn-sm pl-ex-add">${t('train.f.addEx')}</button>`;
+  wrap.querySelector('.pl-day-del').onclick = () => wrap.remove();
+  wrap.querySelector('.pl-ex-add').onclick = () => {
+    const d = document.createElement('div'); d.innerHTML = planExRow({});
+    wrap.querySelector('.pl-exs').appendChild(d.firstElementChild); wirePlanExDel(wrap);
+  };
+  wirePlanExDel(wrap);
+  return wrap;
+}
+function openPlanEditor(clientUid, plan) {
+  planCtx = { clientUid, planId: plan ? plan.id : null };
+  $('pl-title').value = plan ? (plan.title || '') : '';
+  $('pl-notes').value = plan ? (plan.notes || '') : '';
+  $('pl-active').checked = plan ? plan.active === true : true;
+  const daysBox = $('pl-days'); daysBox.innerHTML = '';
+  const days = plan && plan.days && plan.days.length ? plan.days : [{ label: '', exercises: [{}] }];
+  days.forEach(d => daysBox.appendChild(planDayRow(d)));
+  $('plan-modal').style.display = '';
+}
+$('pl-add-day').onclick = () => $('pl-days').appendChild(planDayRow(null));
+$('plan-cancel').onclick = () => { $('plan-modal').style.display = 'none'; planCtx = null; };
+$('plan-modal').addEventListener('click', e => { if (e.target.id === 'plan-modal') { $('plan-modal').style.display = 'none'; planCtx = null; } });
+$('form-plan').addEventListener('submit', async e => {
+  e.preventDefault();
+  if (!planCtx) return;
+  const days = [];
+  document.querySelectorAll('#pl-days .pl-day').forEach(dEl => {
+    const label = dEl.querySelector('.pl-day-label').value.trim();
+    const exercises = [];
+    dEl.querySelectorAll('.pl-ex-row').forEach(r => {
+      const name = r.querySelector('.pl-ex-name').value.trim();
+      if (!name) return;
+      exercises.push({ name, sets: r.querySelector('.pl-ex-sets').value.trim(), reps: r.querySelector('.pl-ex-reps').value.trim(), note: r.querySelector('.pl-ex-note').value.trim() });
+    });
+    if (exercises.length) days.push({ label, exercises });
+  });
+  const title = $('pl-title').value.trim();
+  if (!title || !days.length) { toast(t('train.err'), true); return; }
+  const active = $('pl-active').checked;
+  const data = { clientUid: planCtx.clientUid, title, notes: $('pl-notes').value.trim(), days, active, updatedAt: serverTimestamp() };
+  let planId = planCtx.planId;
+  if (planId) {
+    await setDoc(doc(db, 'training_plans', planId), data, { merge: true });
+  } else {
+    data.createdBy = auth.currentUser.uid; data.createdAt = serverTimestamp();
+    planId = (await addDoc(collection(db, 'training_plans'), data)).id;
+  }
+  if (active) {
+    const others = await fetchPlans(planCtx.clientUid);
+    for (const o of others) if (o.id !== planId && o.active === true)
+      await setDoc(doc(db, 'training_plans', o.id), { active: false, updatedAt: serverTimestamp() }, { merge: true });
+  }
+  const cuid = planCtx.clientUid;
+  planCtx = null;
+  $('plan-modal').style.display = 'none';
+  toast(t('train.saved'));
+  if ($('client-training')) loadClientTraining(cuid);
+  if (cuid === auth.currentUser.uid) loadMyTraining();
 });
 
 /* ================= PESTAÑAS PRINCIPALES ================= */

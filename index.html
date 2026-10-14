@@ -221,6 +221,10 @@
     <p class="progress-hint" data-i18n="mealhelp.hint">Don't know a food's nutrition values? Upload its photo here and <b>let me know in the chat</b>: I'll analyze it and ask for the details I need (weight, cooking method).</p>
     <div id="mealhelp-list" class="mealhelp-list"><div class="wempty" data-i18n="mealhelp.empty">You haven't uploaded photos yet.</div></div>
   </div>
+  <div class="panel train-panel">
+    <h2 data-i18n="train.title">🏋️ My training plan</h2>
+    <div id="my-training"><div class="wempty" data-i18n="train.loading">Loading your plan…</div></div>
+  </div>
   </div><!-- /tab-track -->
 
   <div class="tab-pane" id="tab-access" style="display:none">
@@ -328,6 +332,24 @@
       <div class="modal-foot">
         <button type="button" class="btn-ghost" id="goals-cancel" data-i18n="form.cancel">Cancel</button>
         <button type="submit" class="btn-primary" data-i18n="goals.save">Save goals</button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<!-- ============ PLAN MODAL (planes de entrenamiento) ============ -->
+<div id="plan-modal" class="modal-backdrop" style="display:none">
+  <div class="modal">
+    <h2 data-i18n="train.editorTitle">Training plan</h2>
+    <form id="form-plan">
+      <label><span data-i18n="train.f.title">Plan title</span> <input type="text" id="pl-title" required data-i18n-ph="train.f.titlePh" placeholder="E.g. Strength — 4 days"></label>
+      <label><span data-i18n="train.f.notes">Notes for the client</span> <input type="text" id="pl-notes"></label>
+      <label class="check-row"><input type="checkbox" id="pl-active"> <span data-i18n="train.f.active">Active plan (the one the client sees)</span></label>
+      <div id="pl-days"></div>
+      <button type="button" class="btn-ghost btn-sm" id="pl-add-day" data-i18n="train.f.addDay">＋ Add day</button>
+      <div class="frow" style="margin-top:14px">
+        <button type="button" class="btn-ghost" id="plan-cancel" data-i18n="form.cancel">Cancel</button>
+        <button type="submit" class="btn-primary" data-i18n="train.save">Save plan</button>
       </div>
     </form>
   </div>

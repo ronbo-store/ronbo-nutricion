@@ -215,3 +215,15 @@ table.whist { min-width: 640px; }
 .pw-eye { position: absolute; right: 4px; top: 50%; transform: translateY(-50%); background: none; border: none; cursor: pointer; font-size: 15px; line-height: 1; opacity: .4; padding: 6px; }
 .pw-eye.on { opacity: 1; }
 .auth-error.ok { background: #e6f7ee; color: #065f46; }
+
+/* Planes de entrenamiento (v1) */
+.train-day { border: 1px solid #e9ecef; border-radius: 10px; padding: 10px 12px; margin: 10px 0; }
+.train-day h4 { margin: 0 0 6px; color: #1f2a44; }
+.train-ex { display: flex; justify-content: space-between; gap: 8px; padding: 3px 0; border-bottom: 1px dashed #eef1f3; }
+.train-ex:last-child { border-bottom: none; }
+.train-ex .sx { color: #666; white-space: nowrap; }
+.pl-day { border: 1px solid #e9ecef; border-radius: 10px; padding: 10px; margin: 10px 0; }
+.pl-ex-row { display: flex; gap: 6px; margin: 6px 0; }
+.pl-ex-row input { flex: 1; min-width: 0; }
+.pl-ex-row .pl-ex-sets, .pl-ex-row .pl-ex-reps { flex: 0 0 58px; }
+.check-row { display: flex; gap: 8px; align-items: center; }
