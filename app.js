@@ -1290,8 +1290,14 @@ async function fetchMyDocs(uid) {
   }
   return out;
 }
-const tsReplacer = (k, v) => (v && typeof v === 'object' && 'seconds' in v && 'nanoseconds' in v)
-  ? new Date(v.seconds * 1000).toISOString() : v;
+const tsEncode = (v) => {
+  if (v && typeof v === 'object') {
+    if (typeof v.toDate === 'function') return v.toDate().toISOString();
+    if (Array.isArray(v)) return v.map(tsEncode);
+    return Object.fromEntries(Object.entries(v).map(([k, x]) => [k, tsEncode(x)]));
+  }
+  return v;
+};
 $('btn-view-notice') && $('btn-view-notice').addEventListener('click', () => {
   const n = $('privacy-notice');
   if (n.style.display === 'none') { n.innerHTML = t('terms.body'); n.style.display = ''; }
@@ -1305,7 +1311,7 @@ $('btn-my-data') && $('btn-my-data').addEventListener('click', async () => {
   const plain = {};
   for (const [name] of MY_DATA_COLLECTIONS) plain[name] = mine[name].map(x => ({ id: x.id, ...x.data }));
   const payload = { exportedAt: new Date().toISOString(), profile: { ...UDATA }, ...plain };
-  const blob = new Blob([JSON.stringify(payload, tsReplacer, 2)], { type: 'application/json' });
+  const blob = new Blob([JSON.stringify(tsEncode(payload), null, 2)], { type: 'application/json' });
   const a = document.createElement('a');
   a.href = URL.createObjectURL(blob);
   a.download = 'ronbo-nutri-my-data.json';
