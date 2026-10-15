@@ -31,7 +31,7 @@ body { font-family: -apple-system, "Segoe UI", Roboto, Helvetica, Arial, sans-se
 @media (max-width: 900px) { .bottom { grid-template-columns: 1fr; } }
 .panel { background: #fff; border-radius: 12px; padding: 14px 16px; box-shadow: 0 1px 3px rgba(0,0,0,.08); min-width: 0; }
 .panel h2 { font-size: 14px; margin-bottom: 10px; color: #1f2a44; }
-table.detail { width: 100%; border-collapse: collapse; font-size: 12.5px; }
+table.detail { width: 100%; min-width: 600px; border-collapse: collapse; font-size: 12.5px; }
 table.detail th { background: #1f2a44; color: #fff; padding: 8px 6px; text-align: left; font-size: 11.5px; }
 table.detail th.num, table.detail td.num { text-align: right; }
 table.detail td { padding: 7px 6px; border-bottom: 1px solid #eef2f7; vertical-align: top; }
