@@ -1090,7 +1090,10 @@ $('form-profile').addEventListener('submit', async e => {
 /* ================= DATA ================= */
 async function loadAll() {
   MEALS = {};
-  const ms = await getDocs(colQuery('nutrition_meals'));
+  /* Diario personal: siempre filtrado por el uid autenticado, también
+     para el dueño (colQuery sin filtro dejaba ver las comidas de todos
+     los clientes como propias). La administración no usa estas listas. */
+  const ms = await getDocs(query(collection(db, 'nutrition_meals'), where('ownerUid', '==', auth.currentUser.uid)));
   ms.forEach(d => {
     const v = d.data();
     if (!/^\d{4}-\d{2}-\d{2}$/.test(v.date || '')) return;
@@ -1104,7 +1107,7 @@ async function loadAll() {
     arr.sort((a, b) => (MEAL_ORDER[a.meal] || 9) - (MEAL_ORDER[b.meal] || 9)));
 
   WEIGHTS = [];
-  const ws = await getDocs(colQuery('nutrition_weight'));
+  const ws = await getDocs(query(collection(db, 'nutrition_weight'), where('ownerUid', '==', auth.currentUser.uid)));
   ws.forEach(d => {
     const v = d.data();
     if (num(v.weight) > 0) WEIGHTS.push({ id: d.id, date: v.date, weight: num(v.weight),
