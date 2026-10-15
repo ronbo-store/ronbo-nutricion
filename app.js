@@ -12,15 +12,15 @@ import {
   getStorage, ref as sRef, uploadBytes, getDownloadURL, deleteObject,
 } from "firebase/storage";
 
-/* La apiKey se completa al subir el repo (copiar el bloque firebaseConfig
-   del repo ronbo-store/ronbo-admin). Es la misma app Firebase. */
+/* Configuración del proyecto Firebase ronbo-nutri (S4, 2026-10-14).
+   La clave web está restringida por referentes y por API en Google Cloud. */
 const firebaseConfig = {
-  apiKey: "AIzaSyCGE8t2Rz_ty9fC3cRctoQ7pNEVlS2ow3w",
-  authDomain: "ronbo-store-admin.firebaseapp.com",
-  projectId: "ronbo-store-admin",
-  storageBucket: "ronbo-store-admin.firebasestorage.app",
-  messagingSenderId: "413083237162",
-  appId: "1:413083237162:web:3a17f678a4377a026d3c53"
+  apiKey: "AIzaSyAhXRsW2tl0wPxXMuD9_074_ZaS-BaPbno",
+  authDomain: "ronbo-nutri.firebaseapp.com",
+  projectId: "ronbo-nutri",
+  storageBucket: "ronbo-nutri.firebasestorage.app",
+  messagingSenderId: "45863499739",
+  appId: "1:45863499739:web:c78dc218d2452b8c52d9fe"
 };
 
 const app = initializeApp(firebaseConfig);
