@@ -1838,7 +1838,10 @@ let PROGRESS = {}; // weekId -> doc
 async function loadProgress() {
   PROGRESS = {};
   try {
-    const snap = await getDocs(colQuery('nutrition_progress'));
+    /* Progreso personal: filtrado por el uid autenticado, también para
+       el dueño (con colQuery veía las semanas de progreso de sus
+       clientes como propias). Sin relación con Storage/fotos. */
+    const snap = await getDocs(query(collection(db, 'nutrition_progress'), where('ownerUid', '==', auth.currentUser.uid)));
     snap.forEach(d => { const v = d.data(); if (v.weekId) PROGRESS[v.weekId] = { id: d.id, ...v }; });
   } catch { /* sin acceso o sin docs */ }
   renderProgress();
