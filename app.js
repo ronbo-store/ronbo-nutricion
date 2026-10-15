@@ -1180,7 +1180,7 @@ function renderWeekChart(date) {
     pts: days.map(d => {
       const tot = totals(d);
       const g = GOALS[m.key] || 1;
-      return Math.min((t[m.key] || 0) / g, MAXP);
+      return Math.min((tot[m.key] || 0) / g, MAXP);
     })
   }));
   const W = 680, H = 280, P = { l: 46, r: 14, t: 14, b: 34 };
