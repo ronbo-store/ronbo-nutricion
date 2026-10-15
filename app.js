@@ -1598,14 +1598,14 @@ function statusBox(m, val) {
   if (!over) return `<div class="ring-box ok"><b>${t('status.left')}</b>${fmt(diff)} ${m.unit}<br>(${Math.round((1-pct)*100)}% ${t('status.available')})</div>`;
   return `<div class="ring-box over"><b>${t('status.overGoal')}</b>+${fmt(diff)} ${m.unit}<br>(${Math.round((pct-1)*100)}% ${t('status.above')})</div>`;
 }
-function notesFor(t) {
+function notesFor(tot) {
   const n = [];
-  const pc = t.kcal/GOALS.kcal, pp = t.prot/GOALS.prot, pb = t.carb/GOALS.carb, pa = t.azuc/GOALS.azuc, pg = t.gras/GOALS.gras;
-  n.push(pc < 1 ? t('note.kcalIn', { left: fmt(GOALS.kcal - t.kcal) }) : t('note.kcalOver', { over: fmt(t.kcal - GOALS.kcal) }));
-  n.push(pp >= 1 ? t('note.protOver', { over: fmt(t.prot - GOALS.prot) }) : pp >= .8 ? t('note.protNear', { pct: Math.round(pp*100) }) : t('note.protUnder', { pct: Math.round(pp*100) }));
-  n.push(pb >= 1 ? t('note.carbOver', { over: fmt(t.carb - GOALS.carb) }) : pb >= .7 ? t('note.carbNear', { pct: Math.round(pb*100) }) : t('note.carbUnder', { pct: Math.round(pb*100) }));
-  n.push(pa <= 1 ? t('note.sugarIn', { v: fmt(t.azuc), g: GOALS.azuc }) : t('note.sugarOver', { over: fmt(t.azuc - GOALS.azuc) }));
-  n.push(pg <= 1 ? t('note.fatIn', { pct: Math.round(pg*100) }) : pg <= 1.1 ? t('note.fatSlight', { over: fmt(t.gras - GOALS.gras) }) : t('note.fatOver', { over: fmt(t.gras - GOALS.gras) }));
+  const pc = tot.kcal/GOALS.kcal, pp = tot.prot/GOALS.prot, pb = tot.carb/GOALS.carb, pa = tot.azuc/GOALS.azuc, pg = tot.gras/GOALS.gras;
+  n.push(pc < 1 ? t('note.kcalIn', { left: fmt(GOALS.kcal - tot.kcal) }) : t('note.kcalOver', { over: fmt(tot.kcal - GOALS.kcal) }));
+  n.push(pp >= 1 ? t('note.protOver', { over: fmt(tot.prot - GOALS.prot) }) : pp >= .8 ? t('note.protNear', { pct: Math.round(pp*100) }) : t('note.protUnder', { pct: Math.round(pp*100) }));
+  n.push(pb >= 1 ? t('note.carbOver', { over: fmt(tot.carb - GOALS.carb) }) : pb >= .7 ? t('note.carbNear', { pct: Math.round(pb*100) }) : t('note.carbUnder', { pct: Math.round(pb*100) }));
+  n.push(pa <= 1 ? t('note.sugarIn', { v: fmt(tot.azuc), g: GOALS.azuc }) : t('note.sugarOver', { over: fmt(tot.azuc - GOALS.azuc) }));
+  n.push(pg <= 1 ? t('note.fatIn', { pct: Math.round(pg*100) }) : pg <= 1.1 ? t('note.fatSlight', { over: fmt(tot.gras - GOALS.gras) }) : t('note.fatOver', { over: fmt(tot.gras - GOALS.gras) }));
   return n;
 }
 const esc = s => String(s == null ? '' : s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
@@ -1702,7 +1702,7 @@ function render(date) {
     }).join('');
   const noteSet = [];
   rows.forEach(m => { if (m.notes) noteSet.push(`<b>${esc(mealName(m.meal))}:</b> ${esc(m.notes)}`); });
-  $('notesList').innerHTML = notesFor(t).map(x => `<li>${x}</li>`).join('') + noteSet.map(x => `<li>${x}</li>`).join('');
+  $('notesList').innerHTML = notesFor(tot).map(x => `<li>${x}</li>`).join('') + noteSet.map(x => `<li>${x}</li>`).join('');
 
   document.querySelectorAll('[data-del-meal]').forEach(b =>
     b.onclick = async () => {
