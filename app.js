@@ -1140,20 +1140,20 @@ function buildDateSelector() {
   const sel = $('dateSel');
   sel.innerHTML = '';
   const dates = Object.keys(MEALS).sort().reverse();
-  const t = todayISO();
-  if (!MEALS[t]) {
+  const hoy = todayISO();
+  if (!MEALS[hoy]) {
     const o = document.createElement('option');
-    o.value = t; o.textContent = dateName(t) + t('date.today');
+    o.value = hoy; o.textContent = dateName(hoy) + t('date.today');
     sel.appendChild(o);
   }
   dates.forEach(d => {
-    if (d === t) return;
+    if (d === hoy) return;
     const o = document.createElement('option');
     o.value = d; o.textContent = dateName(d);
     sel.appendChild(o);
   });
-  if (!dates.length) { const o = document.createElement('option'); o.value = t; o.textContent = dateName(t); sel.appendChild(o); }
-  sel.value = t;
+  if (!dates.length) { const o = document.createElement('option'); o.value = hoy; o.textContent = dateName(hoy); sel.appendChild(o); }
+  sel.value = hoy;
   sel.onchange = e => render(e.target.value);
   render(sel.value);
 }
@@ -1178,7 +1178,7 @@ function renderWeekChart(date) {
   const series = METRICS.map(m => ({
     color: m.color, name: t('metric.' + m.key),
     pts: days.map(d => {
-      const t = totals(d);
+      const tot = totals(d);
       const g = GOALS[m.key] || 1;
       return Math.min((t[m.key] || 0) / g, MAXP);
     })
@@ -1675,8 +1675,8 @@ function render(date) {
     `<span>${t('metric.carb')}: <b>${fmt(GOALS.carb)} g</b></span>` +
     `<span>${t('metric.azuc')}: <b>≤ ${fmt(GOALS.azuc)} g</b></span>` +
     `<span>${t('metric.gras')}: <b>${fmt(GOALS.gras)} g</b></span>`;
-  const t = totals(date);
-  const vals = { kcal: t.kcal, prot: t.prot, carb: t.carb, azuc: t.azuc, gras: t.gras };
+  const tot = totals(date);
+  const vals = { kcal: tot.kcal, prot: tot.prot, carb: tot.carb, azuc: tot.azuc, gras: tot.gras };
   $('rings').innerHTML = METRICS.map(m =>
     `<div class="ring-card"><h3>${m.icon} ${t('metric.' + m.key)}</h3>${ringSVG(m, vals[m.key])}${statusBox(m, vals[m.key])}</div>`
   ).join('');
@@ -1688,7 +1688,7 @@ function render(date) {
     `<td class="num">${fmt(m.sugar)}</td><td class="num">${fmt(m.fat)}</td>` +
     `<td><button class="del-btn" data-del-meal="${m.id}" title="${t('track.delete')}">×</button></td></tr>`
   ).join('');
-  html += `<tr class="total"><td colspan="3">TOTAL</td><td class="num" style="color:#16A34A">${fmt(t.kcal)}</td><td class="num" style="color:#2563EB">${fmt(t.prot)}</td><td class="num" style="color:#D97706">${fmt(t.carb)}</td><td class="num" style="color:#9333EA">${fmt(t.azuc)}</td><td class="num" style="color:#DC2626">${fmt(t.gras)}</td><td></td></tr>`;
+  html += `<tr class="total"><td colspan="3">TOTAL</td><td class="num" style="color:#16A34A">${fmt(tot.kcal)}</td><td class="num" style="color:#2563EB">${fmt(tot.prot)}</td><td class="num" style="color:#D97706">${fmt(tot.carb)}</td><td class="num" style="color:#9333EA">${fmt(tot.azuc)}</td><td class="num" style="color:#DC2626">${fmt(tot.gras)}</td><td></td></tr>`;
   $('detailBody').innerHTML = html || `<tr><td colspan="9" class="wempty">${t('track.emptyDay', { btn: t('track.addMeal') })}</td></tr>`;
   $('vsRows').innerHTML =
     `<div class="vsrow head"><span>${t('vs.indicator')}</span><span>${t('vs.intake')}</span><span>${t('vs.goal')}</span><span>${t('vs.progress')}</span><span></span></div>` +
