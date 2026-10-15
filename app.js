@@ -1093,6 +1093,7 @@ async function loadAll() {
   const ms = await getDocs(colQuery('nutrition_meals'));
   ms.forEach(d => {
     const v = d.data();
+    if (!/^\d{4}-\d{2}-\d{2}$/.test(v.date || '')) return;
     const m = { id: d.id, meal: v.meal || '', food: v.food || '', qty: v.qty || '',
       kcal: num(v.kcal), prot: num(v.prot), carb: num(v.carb),
       sugar: num(v.sugar), fat: num(v.fat), notes: v.notes || '',
@@ -1141,7 +1142,7 @@ function buildDateSelector() {
   sel.innerHTML = '';
   const dates = Object.keys(MEALS).sort().reverse();
   const hoy = todayISO();
-  if (!MEALS[hoy]) {
+  {
     const o = document.createElement('option');
     o.value = hoy; o.textContent = dateName(hoy) + t('date.today');
     sel.appendChild(o);
@@ -1152,7 +1153,6 @@ function buildDateSelector() {
     o.value = d; o.textContent = dateName(d);
     sel.appendChild(o);
   });
-  if (!dates.length) { const o = document.createElement('option'); o.value = hoy; o.textContent = dateName(hoy); sel.appendChild(o); }
   sel.value = hoy;
   sel.onchange = e => render(e.target.value);
   render(sel.value);
