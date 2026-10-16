@@ -6,7 +6,7 @@ import {
 } from "firebase/auth";
 import {
   getFirestore, doc, getDoc, collection, getDocs, addDoc,
-  setDoc, deleteDoc, serverTimestamp, query, where,
+  setDoc, deleteDoc, serverTimestamp, query, where, writeBatch,
 } from "firebase/firestore";
 import {
   getStorage, ref as sRef, uploadBytes, getDownloadURL, deleteObject,
@@ -79,6 +79,31 @@ en: {
   'health.detailsPh': 'E.g. Takes metformin; left knee injury in 2023…',
   'health.ok': 'I declare that the health information provided is true.',
   'health.clientTitle': '🏥 Client health declaration',
+  'health.regNote': 'You can complete your health declaration later, in your profile, with its own specific consent. It is not required to create your account.',
+  'health.panelTitle': '🏥 My health declaration',
+  'health.specText': 'I give my SPECIFIC consent for ronbo.nutri to process my health declaration so my trainer can adapt my program and take precautions. Only my trainer and I can see it. I can withdraw this consent at any time: withdrawal blocks my trainer\'s access to my answers, but does not delete them.',
+  'health.statusNone': 'You have not given specific consent for health data. Without it, no declaration is collected and your trainer cannot see any health answers.',
+  'health.statusActive': 'Your specific consent is active (version {v} · accepted {date}). Your trainer can view your current declaration.',
+  'health.statusWithdrawnSpec': 'Your specific consent is withdrawn. Your previous declarations are blocked: your trainer cannot view or use them, and they are kept, not deleted. If you renew your consent you will make a NEW declaration; your previous ones stay blocked.',
+  'health.startBtn': 'Give my specific consent and start my declaration',
+  'health.saveDecl': 'Save my declaration',
+  'health.editDecl': 'Edit my declaration',
+  'health.currentTitle': 'Your current declaration',
+  'health.blockedTitle': 'Your previous declarations (blocked)',
+  'health.blockedNote': 'Read-only: you can view them, but they cannot be edited and your trainer cannot see them.',
+  'health.withdrawSpec': 'Withdraw my specific consent (health)',
+  'health.withdrawSpecConfirm': 'Withdraw your SPECIFIC consent for health data? Your trainer will immediately lose access to your declarations. Your answers are kept blocked, not deleted. This is different from withdrawing your general consent or deleting your account.',
+  'health.renewSpec': 'Renew my specific consent',
+  'health.renewSpecConfirm': 'Renew your SPECIFIC consent? This lets you make a NEW declaration. Your previous declarations stay blocked and are NOT reactivated.',
+  'health.renewedSpec': 'Your specific consent is renewed. You can now make a new declaration.',
+  'health.declSaved': 'Your declaration has been saved.',
+  'health.withdrawnSpec': 'Your specific consent has been withdrawn. Your declarations are now blocked.',
+  'health.specGranted': 'Your specific consent is recorded. You can now complete your declaration.',
+  'health.fourActions': 'Four different actions: withdrawing your GENERAL consent (in Privacy & Data), withdrawing your SPECIFIC health consent (here), deleting your health answers (a separate request: ask your trainer), and deleting your account and all its data (in Privacy & Data). Each has different effects.',
+  'health.trainerNoAccess': 'Health declaration not available: this client has no active specific consent, or their declaration is blocked.',
+  'health.trainerViewNote': 'Read-only. Health answers belong to the client; only the client can change them.',
+  'health.needSpec': 'You must first give your specific consent.',
+  'health.versionLabel': 'Declaration {n} · {date}',
   'terms.accept': 'I have read and accept the privacy notice.',
   'terms.body': '<b>PRIVACY NOTICE AND CONSENT FOR THE PROCESSING OF PERSONAL DATA</b><br><br>When you create your account at <b>ronbo.nutri</b>, you agree to the following:<br><br><b>1. Controller.</b> ronbo.nutri is responsible for your data.<br><br><b>2. Data we collect.</b> Name, email, phone, sex/gender, social media (optional), health condition declaration, food logs, weight and body composition, profile, progress and food photos (for nutritional analysis), and your nutrition goals.<br><br><b>3. Purpose.</b> To provide personalized training and nutrition coaching services, track your progress, and communicate with you.<br><br><b>4. Storage.</b> Your data is stored securely in Google Firebase (United States), with restricted access: only you and your trainer can see it.<br><br><b>5. Your rights.</b> You may at any time request to view, correct, or delete your data. Deleting your account erases your records.<br><br><b>6. Retention.</b> We keep your data while you are a client and up to 2 years after your last activity, unless you request deletion sooner.<br><br><b>7. Minors.</b> This service is for adults 18 and older only.<br><br><b>8. Revocation.</b> You may withdraw your consent at any time by writing to your trainer; doing so will delete your data and close your account.<br><br><b>9. Health and exercise.</b> The trainer is an ISSA-certified fitness professional, not a medical professional. Consult your doctor before starting any exercise or nutrition program, especially if you declared a health condition.<br><br>By checking the box and creating your account, you declare that you read this notice and consent to the processing of your data for the purposes described.',
   'auth.create': 'Create my account',
@@ -375,6 +400,31 @@ es: {
   'health.detailsPh': 'Ej. Toma metformina; lesión de rodilla izquierda en 2023…',
   'health.ok': 'Declaro que la información de salud indicada es verdadera.',
   'health.clientTitle': '🏥 Declaración de salud del cliente',
+  'health.regNote': 'Puedes completar tu declaración de salud más tarde, en tu perfil, con su propio consentimiento específico. No es necesaria para crear tu cuenta.',
+  'health.panelTitle': '🏥 Mi declaración de salud',
+  'health.specText': 'Doy mi consentimiento ESPECÍFICO para que ronbo.nutri trate mi declaración de salud, para que mi entrenador adapte mi programa y tome precauciones. Solo mi entrenador y yo podemos verla. Puedo retirar este consentimiento cuando quiera: la retirada bloquea el acceso de mi entrenador a mis respuestas, pero no las elimina.',
+  'health.statusNone': 'No has dado tu consentimiento específico para datos de salud. Sin él, no se recoge ninguna declaración y tu entrenador no puede ver ninguna respuesta de salud.',
+  'health.statusActive': 'Tu consentimiento específico está activo (versión {v} · aceptado el {date}). Tu entrenador puede ver tu declaración vigente.',
+  'health.statusWithdrawnSpec': 'Tu consentimiento específico está retirado. Tus declaraciones anteriores están bloqueadas: tu entrenador no puede verlas ni usarlas, y se conservan, no se eliminan. Si renuevas tu consentimiento harás una declaración NUEVA; las anteriores seguirán bloqueadas.',
+  'health.startBtn': 'Dar mi consentimiento específico y empezar mi declaración',
+  'health.saveDecl': 'Guardar mi declaración',
+  'health.editDecl': 'Editar mi declaración',
+  'health.currentTitle': 'Tu declaración vigente',
+  'health.blockedTitle': 'Tus declaraciones anteriores (bloqueadas)',
+  'health.blockedNote': 'Solo lectura: puedes verlas, pero no se pueden editar y tu entrenador no puede verlas.',
+  'health.withdrawSpec': 'Retirar mi consentimiento específico (salud)',
+  'health.withdrawSpecConfirm': '¿Retirar tu consentimiento ESPECÍFICO para datos de salud? Tu entrenador perderá de inmediato el acceso a tus declaraciones. Tus respuestas se conservan bloqueadas, no se eliminan. Esto es distinto de retirar tu consentimiento general o de eliminar tu cuenta.',
+  'health.renewSpec': 'Renovar mi consentimiento específico',
+  'health.renewSpecConfirm': '¿Renovar tu consentimiento ESPECÍFICO? Esto te permite hacer una declaración NUEVA. Tus declaraciones anteriores seguirán bloqueadas y NO se reactivarán.',
+  'health.renewedSpec': 'Tu consentimiento específico está renovado. Ya puedes hacer una nueva declaración.',
+  'health.declSaved': 'Tu declaración se ha guardado.',
+  'health.withdrawnSpec': 'Tu consentimiento específico se ha retirado. Tus declaraciones están ahora bloqueadas.',
+  'health.specGranted': 'Tu consentimiento específico ha quedado registrado. Ya puedes completar tu declaración.',
+  'health.fourActions': 'Cuatro acciones diferentes: retirar tu consentimiento GENERAL (en Privacidad y datos), retirar tu consentimiento ESPECÍFICO de salud (aquí), eliminar tus respuestas de salud (una solicitud separada: pídelo a tu entrenador) y eliminar tu cuenta y todos sus datos (en Privacidad y datos). Cada una tiene efectos distintos.',
+  'health.trainerNoAccess': 'Declaración de salud no disponible: este cliente no tiene un consentimiento específico activo, o su declaración está bloqueada.',
+  'health.trainerViewNote': 'Solo lectura. Las respuestas de salud pertenecen al cliente; solo el cliente puede cambiarlas.',
+  'health.needSpec': 'Primero debes dar tu consentimiento específico.',
+  'health.versionLabel': 'Declaración {n} · {date}',
   'terms.accept': 'He leído y acepto el aviso de privacidad.',
   'terms.body': '<b>AVISO DE PRIVACIDAD Y CONSENTIMIENTO PARA EL TRATAMIENTO DE DATOS PERSONALES</b><br><br>Al crear tu cuenta en <b>ronbo.nutri</b>, aceptas lo siguiente:<br><br><b>1. Responsable.</b> ronbo.nutri es responsable de tus datos.<br><br><b>2. Datos que recogemos.</b> Nombre, correo, teléfono, sexo/género, redes sociales (opcional), declaración de condiciones de salud, registros de alimentación, peso y composición corporal, fotos de perfil, de progreso y de alimentos (para análisis nutricional), y tus metas nutricionales.<br><br><b>3. Finalidad.</b> Prestar servicios de entrenamiento y asesoría nutricional personalizada, dar seguimiento a tu progreso y comunicarnos contigo.<br><br><b>4. Almacenamiento.</b> Tus datos se guardan de forma segura en Google Firebase (Estados Unidos), con acceso restringido: solo tú y tu entrenador pueden verlos.<br><br><b>5. Tus derechos.</b> Puedes pedir en cualquier momento ver, corregir o eliminar tus datos. Eliminar tu cuenta borra tus registros.<br><br><b>6. Conservación.</b> Guardamos tus datos mientras seas cliente y hasta 2 años después de tu última actividad, salvo que pidas eliminarlos antes.<br><br><b>7. Menores.</b> Este servicio es solo para personas mayores de 18 años.<br><br><b>8. Revocación.</b> Puedes retirar tu consentimiento en cualquier momento escribiendo a tu entrenador; al hacerlo se eliminarán tus datos y se cerrará tu cuenta.<br><br><b>9. Salud y ejercicio.</b> El entrenador es un profesional del fitness certificado (ISSA), no un profesional médico. Consulta a tu médico antes de iniciar cualquier programa de ejercicio o nutrición, especialmente si declaraste alguna condición de salud.<br><br>Al marcar la casilla y crear tu cuenta, declaras que leíste este aviso y das tu consentimiento para el tratamiento de tus datos con las finalidades descritas.',
   'auth.create': 'Crear mi cuenta',
@@ -673,7 +723,7 @@ function applyI18n() {
     const sel = document.getElementById(id);
     if (sel) sel.querySelectorAll('option').forEach(o => { if (o.value) o.textContent = genderName(o.value); });
   });
-  document.querySelectorAll('.reg-cond, .p-cond').forEach(c => {
+  document.querySelectorAll('.h-cond').forEach(c => {
     const lab = c.closest('label'); if (!lab) return;
     lab.childNodes.forEach(n => { if (n.nodeType === 3) n.textContent = ' ' + condName(c.value); });
   });
@@ -770,12 +820,11 @@ $('form-register').addEventListener('submit', async e => {
   if (!gender) { showRegError(t('err.gender')); return; }
   if (pw !== pw2) { showRegError(t('err.pwmatch')); return; }
   if (!$('reg-consent').checked) { showRegError(t('err.consent')); return; }
-  if (!$('reg-health-ok').checked) { showRegError(t('err.health')); return; }
   const age = ageOn($('reg-dob').value, todayISO());
   if (!(age >= 18 && age <= 120)) { showRegError(t('err.underage')); return; }
-  const conditions = [...document.querySelectorAll('.reg-cond:checked')].map(c => c.value)
-    .filter(v => v !== 'Ninguna de las anteriores');
-  const healthDetail = $('reg-health-detail').value.trim();
+  /* La declaración de salud NO se recoge en el registro (Decisión 1:
+     es voluntaria y vive en el perfil, con su consentimiento
+     específico independiente — usuarios/{uid}/healthDeclarations). */
   try {
     suppressAuthCheck = true;
     const cred = await createUserWithEmailAndPassword(auth, email, pw);
@@ -783,7 +832,6 @@ $('form-register').addEventListener('submit', async e => {
       name, email, phone, gender, social: social || '',
       role: 'user', isOwner: false, approved: false,
       goals: { ...DEFAULT_GOALS },
-      health: { conditions, details: healthDetail, declaredAt: serverTimestamp() },
       acceptedTerms: true, termsVersion: 'v2-2026-10-14', termsAcceptedAt: serverTimestamp(),
       adultConfirmed: true, adultConfirmedAt: serverTimestamp(),
       createdAt: serverTimestamp()
@@ -956,7 +1004,7 @@ async function loadClients() {
   const daysAgo = iso => iso ? Math.floor((Date.now() - new Date(iso + 'T12:00:00').getTime()) / 864e5) : null;
   $('clients-list').innerHTML = clients.length ? clients.map(u => {
     const d = daysAgo(lastByUid[u.id]);
-    const hasHealth = u.health && u.health.conditions && u.health.conditions.length > 0;
+    const hasHealth = false; // la salud ya no vive en users/{uid}: la insignia no puede saberlo desde el listado
     const badge = u.approved === true
       ? (d === null ? `<span class="warn-badge">${t('clients.noWeighins')}</span>`
         : d > 7 ? `<span class="warn-badge">${t('clients.daysAgo', { d })}</span>` : `<span class="ok-badge">${t('clients.daysAgoShort', { d })}</span>`)
@@ -975,11 +1023,14 @@ async function loadClients() {
 
 async function openClient(uid) {
   const box = $('client-detail');
-  let uname = t('client.fallbackName'), uhealth = null;
+  let uname = t('client.fallbackName'), udata = null;
   try {
     const s = await getDoc(doc(db, 'users', uid));
-    if (s.exists()) { uname = s.data().name || s.data().email || uname; uhealth = s.data().health || null; }
+    if (s.exists()) { uname = s.data().name || s.data().email || uname; udata = s.data(); }
   } catch {}
+  /* Salud separada: el entrenador solo la obtiene si el consentimiento
+     específico del cliente está activo (fetchClientHealth). */
+  const clientHealth = await fetchClientHealth(uid, udata);
   const data = [];
   try {
     const ws = await getDocs(collection(db, 'nutrition_weight'));
@@ -996,9 +1047,9 @@ async function openClient(uid) {
     <td>${esc(d.notes)}</td>
     <td><button class="btn-ghost btn-sm" data-c-edit="${d.id}">${t('client.edit')}</button></td></tr>`).join('');
   box.style.display = '';
-  const healthAlert = (uhealth && uhealth.conditions && uhealth.conditions.length)
-    ? `<div class="health-alert">🏥 <b>${t('client.healthDecl')}</b> ${esc(uhealth.conditions.map(condName).join(', '))}${uhealth.details ? '<br>' + esc(uhealth.details) : ''}</div>`
-    : '';
+  const healthAlert = clientHealth.decl
+    ? declSummaryHTML(clientHealth.decl)
+    : `<div class="health-alert">🏥 ${t('health.trainerNoAccess')}</div>`;
   let foodItems = [];
   try {
     const fs = await getDocs(query(collection(db, 'meal_help'), where('ownerUid', '==', uid), where('status', '==', 'pending')));
@@ -1074,7 +1125,7 @@ function colQuery(name) {
 
 /* ================= PERFIL DEL CLIENTE (el entrenador completa en la 1ª entrevista) ================= */
 let profileUid = null;
-function openProfile(uid) {
+async function openProfile(uid) {
   const u = ADMIN_USERS.find(x => x.id === uid);
   if (!u) return;
   profileUid = uid;
@@ -1084,9 +1135,16 @@ function openProfile(uid) {
   $('p-gender').value = u.gender || '';
   $('p-social').value = u.social || '';
   $('p-notes').value = u.trainerNotes || '';
-  const hconds = (u.health && u.health.conditions) || [];
-  document.querySelectorAll('.p-cond').forEach(c => { c.checked = hconds.includes(c.value); });
-  $('p-health-detail').value = (u.health && u.health.details) || '';
+  /* Salud: SOLO LECTURA para el entrenador y solo con consentimiento
+     específico activo del cliente (Decisión 7). El guardado de este
+     formulario ya no escribe salud: notas y salud van separados. */
+  const body = $('p-health-body');
+  if (body) {
+    body.innerHTML = `<p class="health-hint">${t('train.loading')}</p>`;
+    const ch = await fetchClientHealth(uid, u);
+    body.innerHTML = (ch.decl ? declSummaryHTML(ch.decl) : `<p class="health-hint">${t('health.trainerNoAccess')}</p>`)
+      + `<p class="health-hint">${t('health.trainerViewNote')}</p>`;
+  }
   $('profile-modal').style.display = '';
 }
 $('profile-cancel').onclick = () => { $('profile-modal').style.display = 'none'; profileUid = null; };
@@ -1094,15 +1152,12 @@ $('profile-modal').addEventListener('click', e => { if (e.target.id === 'profile
 $('form-profile').addEventListener('submit', async e => {
   e.preventDefault();
   if (!profileUid) return;
+  /* Escritura separada: este formulario guarda perfil y notas del
+     entrenador; NUNCA respuestas de salud (pertenecen al cliente). */
   await setDoc(doc(db, 'users', profileUid), {
     name: $('p-name').value.trim(), phone: $('p-phone').value.trim(),
     gender: $('p-gender').value, social: $('p-social').value.trim(),
-    trainerNotes: $('p-notes').value.trim(),
-    health: {
-      conditions: [...document.querySelectorAll('.p-cond:checked')].map(c => c.value),
-      details: $('p-health-detail').value.trim(),
-      updatedAt: serverTimestamp()
-    }
+    trainerNotes: $('p-notes').value.trim()
   }, { merge: true });
   profileUid = null;
   $('profile-modal').style.display = 'none';
@@ -1146,6 +1201,7 @@ async function loadAll() {
   await loadMealHelp();
   await loadMyTraining();
   renderPrivacy();
+  await loadMyHealth();
   await loadAdmin();
   await loadClients();
   applyStorageFlag();
@@ -1406,7 +1462,12 @@ $('btn-my-data') && $('btn-my-data').addEventListener('click', async () => {
   const mine = await fetchMyDocs(uid);
   const plain = {};
   for (const [name] of MY_DATA_COLLECTIONS) plain[name] = mine[name].map(x => ({ id: x.id, ...x.data }));
-  const payload = { exportedAt: new Date().toISOString(), profile: { ...UDATA }, ...plain };
+  /* La exportación del PROPIO cliente incluye sus declaraciones de
+     salud (son sus datos). Las exportaciones del entrenador, en
+     cambio, excluyen las respuestas bloqueadas (aprobación v1). */
+  let myDecls = [];
+  try { myDecls = await fetchDeclarations(uid); } catch {}
+  const payload = { exportedAt: new Date().toISOString(), profile: { ...UDATA }, ...plain, healthDeclarations: myDecls };
   const blob = new Blob([JSON.stringify(tsEncode(payload), null, 2)], { type: 'application/json' });
   const a = document.createElement('a');
   a.href = URL.createObjectURL(blob);
@@ -1433,6 +1494,12 @@ $('btn-delete-account') && $('btn-delete-account').addEventListener('click', asy
   const mine = await fetchMyDocs(uid);
   for (const [name] of MY_DATA_COLLECTIONS)
     for (const x of mine[name]) { try { await deleteDoc(doc(db, name, x.id)); } catch {} }
+  /* Las subcolecciones no se borran al borrar el documento padre:
+     las declaraciones de salud se eliminan una a una, antes. */
+  try {
+    const decls = await fetchDeclarations(uid);
+    for (const d of decls) { try { await deleteDoc(doc(declCol(uid), d.id)); } catch {} }
+  } catch {}
   try { await deleteDoc(doc(db, 'users', uid)); } catch {}
   try {
     await deleteUser(user);
@@ -1442,6 +1509,172 @@ $('btn-delete-account') && $('btn-delete-account').addEventListener('click', asy
     else toast(t('priv.deleted'));
   }
 });
+
+/* ================= DECLARACIÓN DE SALUD Y CONSENTIMIENTO ESPECÍFICO (v1) =================
+   Las respuestas de salud viven FUERA del documento general, en la
+   subcolección users/{uid}/healthDeclarations (Decisiones 6 y 7 +
+   aprobación v1 del 16/10/2026). El estado del consentimiento
+   específico (solo metadatos, sin respuestas) vive en
+   users/{uid}.healthConsent. Principios de esta versión:
+   - Renovar el específico permite una declaración NUEVA; nunca
+     reactiva las anteriores (quedan 'blocked', inmutables).
+   - La recuperación (consulta/reutilización de bloqueadas por el
+     entrenador) NO existe en esta versión.
+   - El cliente consulta sus bloqueadas; no puede modificarlas.
+   - El entrenador solo lee la declaración VIGENTE y solo con
+     consentimiento específico activo; nunca escribe respuestas.
+   - Retirar el específico bloquea la vigente; no borra nada. */
+const SPEC_VERSION = 'v1-2026-10-16';
+const HEALTH_CONDITIONS = ['Hipertensión', 'Diabetes', 'Problemas del corazón',
+  'Dolor de pecho al ejercitarse', 'Mareos o desmayos', 'Asma / problemas respiratorios',
+  'Lesiones articulares o musculares', 'Cirugía reciente', 'Embarazo', 'Ninguna de las anteriores'];
+let MY_DECLS = [];
+let healthEditing = false;
+const specOf = u => (u && u.healthConsent) || null;
+const specIsActive = u => { const s = specOf(u); return !!s && s.status === 'accepted'; };
+const declCol = uid => collection(db, 'users', uid, 'healthDeclarations');
+const activeDecl = () => MY_DECLS.find(d => d.state === 'active') || null;
+async function fetchDeclarations(uid) {
+  const snap = await getDocs(declCol(uid));
+  const out = [];
+  snap.forEach(d => out.push({ id: d.id, ...d.data() }));
+  out.sort((a, b) => (a.version || 0) - (b.version || 0));
+  return out;
+}
+async function fetchClientHealth(uid, userData) {
+  /* Consulta condicionada del entrenador: solo la declaración vigente
+     y solo si el consentimiento específico del cliente está activo. */
+  if (!userData || !specIsActive(userData)) return { available: false, decl: null };
+  try {
+    const snap = await getDocs(query(declCol(uid), where('state', '==', 'active')));
+    let decl = null;
+    snap.forEach(d => { decl = { id: d.id, ...d.data() }; });
+    return { available: !!decl, decl };
+  } catch { return { available: false, decl: null }; }
+}
+function declSummaryHTML(d) {
+  const conds = (d.conditions || []).map(condName).join(', ');
+  return `<div class="health-alert">🏥 <b>${t('client.healthDecl')}</b> ${esc(conds || '—')}${d.details ? '<br>' + esc(d.details) : ''}</div>`;
+}
+function declFormHTML(d) {
+  const sel = new Set((d && d.conditions) || []);
+  const grid = HEALTH_CONDITIONS.map(v =>
+    `<label><input type="checkbox" class="h-cond" value="${esc(v)}"${sel.has(v) ? ' checked' : ''}> ${esc(condName(v))}</label>`).join('');
+  return `<p class="health-hint">${t('health.hint')}</p>
+    <div class="health-grid">${grid}</div>
+    <label><span>${t('health.details')}</span>
+      <textarea id="h-details" rows="2" placeholder="${esc(t('health.detailsPh'))}">${esc((d && d.details) || '')}</textarea></label>
+    <label class="consent-check"><input type="checkbox" id="h-truth"> <span>${t('health.ok')}</span></label>
+    <button type="button" class="btn-primary btn-sm" id="btn-decl-save">${t('health.saveDecl')}</button>`;
+}
+function blockedListHTML() {
+  const blocked = MY_DECLS.filter(d => d.state === 'blocked');
+  if (!blocked.length) return '';
+  const fmtD = ts => { try { return ts && ts.toDate ? ts.toDate().toLocaleDateString(LANG === 'es' ? 'es-MX' : 'en-US') : ''; } catch { return ''; } };
+  return `<h3 class="history-title">${t('health.blockedTitle')}</h3>
+    <p class="progress-hint">${t('health.blockedNote')}</p>` +
+    blocked.map(d => `<div class="wempty" style="text-align:left"><b>${t('health.versionLabel', { n: d.version || '?', date: esc(fmtD(d.declaredAt)) })}</b><br>${declSummaryHTML(d)}</div>`).join('');
+}
+function renderHealthPanel() {
+  const box = $('health-panel-body');
+  if (!box || !auth.currentUser) return;
+  const fmtD = ts => { try { return ts && ts.toDate ? ts.toDate().toLocaleDateString(LANG === 'es' ? 'es-MX' : 'en-US') : ''; } catch { return ''; } };
+  const spec = specOf(UDATA);
+  const act = activeDecl();
+  let html = '';
+  if (specIsActive(UDATA)) {
+    html += `<p class="progress-hint">${t('health.statusActive', { v: esc(spec.version || ''), date: esc(fmtD(spec.acceptedAt)) })}</p>`;
+    if (act && !healthEditing) {
+      html += `<h3 class="history-title">${t('health.currentTitle')}</h3>${declSummaryHTML(act)}
+        <div class="privacy-btns"><button type="button" class="btn-ghost btn-sm" id="btn-decl-edit">${t('health.editDecl')}</button>
+        <button type="button" class="btn-ghost btn-sm danger" id="btn-spec-withdraw">${t('health.withdrawSpec')}</button></div>`;
+    } else {
+      html += declFormHTML(act);
+      html += `<div class="privacy-btns"><button type="button" class="btn-ghost btn-sm danger" id="btn-spec-withdraw">${t('health.withdrawSpec')}</button></div>`;
+    }
+  } else if (spec && spec.status === 'withdrawn') {
+    html += `<p class="progress-hint">${t('health.statusWithdrawnSpec')}</p>
+      <label class="consent-check"><input type="checkbox" id="spec-ok"> <span>${t('health.specText')}</span></label>
+      <button type="button" class="btn-primary btn-sm" id="btn-spec-renew">${t('health.renewSpec')}</button>`;
+  } else {
+    html += `<p class="progress-hint">${t('health.statusNone')}</p>
+      <label class="consent-check"><input type="checkbox" id="spec-ok"> <span>${t('health.specText')}</span></label>
+      <button type="button" class="btn-primary btn-sm" id="btn-spec-start">${t('health.startBtn')}</button>`;
+  }
+  html += blockedListHTML();
+  html += `<p class="progress-hint">${t('health.fourActions')}</p>`;
+  box.innerHTML = html;
+  const wire = (id, fn) => { const el = $(id); if (el) el.onclick = fn; };
+  wire('btn-spec-start', () => grantSpec(false));
+  wire('btn-spec-renew', () => grantSpec(true));
+  wire('btn-spec-withdraw', withdrawSpec);
+  wire('btn-decl-edit', () => { healthEditing = true; renderHealthPanel(); });
+  wire('btn-decl-save', saveDeclaration);
+}
+async function grantSpec(isRenew) {
+  if (!auth.currentUser) return;
+  const ok = $('spec-ok');
+  if (!ok || !ok.checked) { toast(t('health.needSpec'), true); return; }
+  if (isRenew && !confirm(t('health.renewSpecConfirm'))) return;
+  const prev = specOf(UDATA) || {};
+  const next = { status: 'accepted', version: SPEC_VERSION, acceptedAt: serverTimestamp() };
+  if (prev.withdrawnAt) next.withdrawnAt = prev.withdrawnAt; // el historial de retirada se conserva
+  try {
+    await setDoc(doc(db, 'users', auth.currentUser.uid), { healthConsent: next }, { merge: true });
+    UDATA.healthConsent = { status: 'accepted', version: SPEC_VERSION, acceptedAt: new Date(), ...(prev.withdrawnAt ? { withdrawnAt: prev.withdrawnAt } : {}) };
+    healthEditing = true; // tras otorgar/renovar, se muestra el formulario de la declaración (nueva)
+    toast(isRenew ? t('health.renewedSpec') : t('health.specGranted'));
+    renderHealthPanel();
+  } catch { toast(t('err.verifyFail'), true); }
+}
+async function withdrawSpec() {
+  if (!auth.currentUser) return;
+  if (!confirm(t('health.withdrawSpecConfirm'))) return;
+  const prev = specOf(UDATA) || {};
+  const next = { status: 'withdrawn', version: prev.version || SPEC_VERSION, withdrawnAt: serverTimestamp() };
+  if (prev.acceptedAt) next.acceptedAt = prev.acceptedAt; // se conserva la fecha de aceptación como historial
+  try {
+    const batch = writeBatch(db);
+    batch.set(doc(db, 'users', auth.currentUser.uid), { healthConsent: next }, { merge: true });
+    const act = activeDecl();
+    if (act) batch.update(doc(declCol(auth.currentUser.uid), act.id), { state: 'blocked', blockedAt: serverTimestamp() });
+    await batch.commit();
+    UDATA.healthConsent = { status: 'withdrawn', version: next.version, withdrawnAt: new Date(), ...(prev.acceptedAt ? { acceptedAt: prev.acceptedAt } : {}) };
+    if (act) { act.state = 'blocked'; }
+    healthEditing = false;
+    toast(t('health.withdrawnSpec'));
+    renderHealthPanel();
+  } catch { toast(t('err.verifyFail'), true); }
+}
+async function saveDeclaration() {
+  if (!auth.currentUser || !specIsActive(UDATA)) { toast(t('health.needSpec'), true); return; }
+  if (!$('h-truth') || !$('h-truth').checked) { toast(t('err.health'), true); return; }
+  const conditions = [...document.querySelectorAll('.h-cond:checked')].map(c => c.value)
+    .filter(v => v !== 'Ninguna de las anteriores');
+  const details = $('h-details').value.trim();
+  const uid = auth.currentUser.uid;
+  try {
+    const act = activeDecl();
+    if (act) {
+      await setDoc(doc(declCol(uid), act.id), { conditions, details, updatedAt: serverTimestamp() }, { merge: true });
+    } else {
+      const n = MY_DECLS.reduce((m, d) => Math.max(m, d.version || 0), 0) + 1;
+      await setDoc(doc(declCol(uid), 'v' + n), {
+        version: n, conditions, details, state: 'active',
+        declaredAt: serverTimestamp(), updatedAt: serverTimestamp(), blockedAt: null
+      });
+    }
+    MY_DECLS = await fetchDeclarations(uid);
+    healthEditing = false;
+    toast(t('health.declSaved'));
+    renderHealthPanel();
+  } catch { toast(t('err.verifyFail'), true); }
+}
+async function loadMyHealth() {
+  if (!auth.currentUser) return;
+  try { MY_DECLS = await fetchDeclarations(auth.currentUser.uid); } catch { MY_DECLS = []; }
+  renderHealthPanel();
+}
 
 /* ================= PLANES DE ENTRENAMIENTO (v1) =================
    training_plans { clientUid, title, notes, days: [{ label, exercises: [{ name, sets, reps, note }] }], active, createdBy, createdAt, updatedAt }

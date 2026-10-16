@@ -83,23 +83,7 @@
       </label>
       <div class="health-box">
         <b data-i18n="health.title">🏥 Health declaration</b>
-        <p class="health-hint" data-i18n="health.hint">Check any conditions you have. It's for your safety: your trainer must know them before assigning an exercise or nutrition plan.</p>
-        <div class="health-grid">
-          <label><input type="checkbox" class="reg-cond" value="Hipertensión"> High blood pressure</label>
-          <label><input type="checkbox" class="reg-cond" value="Diabetes"> Diabetes</label>
-          <label><input type="checkbox" class="reg-cond" value="Problemas del corazón"> Heart problems</label>
-          <label><input type="checkbox" class="reg-cond" value="Dolor de pecho al ejercitarse"> Chest pain when exercising</label>
-          <label><input type="checkbox" class="reg-cond" value="Mareos o desmayos"> Dizziness or fainting</label>
-          <label><input type="checkbox" class="reg-cond" value="Asma / problemas respiratorios"> Asthma / breathing problems</label>
-          <label><input type="checkbox" class="reg-cond" value="Lesiones articulares o musculares"> Joint or muscle injuries</label>
-          <label><input type="checkbox" class="reg-cond" value="Cirugía reciente"> Recent surgery</label>
-          <label><input type="checkbox" class="reg-cond" value="Embarazo"> Pregnancy</label>
-          <label><input type="checkbox" class="reg-cond" value="Ninguna de las anteriores"> None of the above</label>
-        </div>
-        <label><span data-i18n="health.details">Details / medications</span> <span class="opt" data-i18n="form.opt">(optional)</span>
-          <textarea id="reg-health-detail" rows="2" data-i18n-ph="health.detailsPh" placeholder="E.g. Takes metformin; left knee injury in 2023…"></textarea>
-        </label>
-        <label class="consent-check"><input type="checkbox" id="reg-health-ok" required> <span data-i18n="health.ok">I declare that the health information provided is true.</span></label>
+        <p class="health-hint" data-i18n="health.regNote">You can complete your health declaration later, in your profile, with its own specific consent. It is not required to create your account.</p>
       </div>
       <div class="consent-box">
         <div class="consent-text" data-i18n="terms.body">
@@ -233,6 +217,10 @@
   <div class="panel train-panel">
     <h2 data-i18n="train.title">🏋️ My training plan</h2>
     <div id="my-training"><div class="wempty" data-i18n="train.loading">Loading your plan…</div></div>
+  </div>
+  <div class="panel health-panel">
+    <h2 data-i18n="health.panelTitle">🏥 My health declaration</h2>
+    <div id="health-panel-body"><div class="wempty" data-i18n="train.loading">Loading…</div></div>
   </div>
   <div class="panel privacy-panel">
     <h2 data-i18n="priv.title">🔒 Privacy & Data</h2>
@@ -403,20 +391,7 @@
       </label>
       <div class="health-box">
         <b data-i18n="health.clientTitle">🏥 Client health declaration</b>
-        <div class="health-grid" id="p-conds">
-          <label><input type="checkbox" class="p-cond" value="Hipertensión"> High blood pressure</label>
-          <label><input type="checkbox" class="p-cond" value="Diabetes"> Diabetes</label>
-          <label><input type="checkbox" class="p-cond" value="Problemas del corazón"> Heart problems</label>
-          <label><input type="checkbox" class="p-cond" value="Dolor de pecho al ejercitarse"> Chest pain when exercising</label>
-          <label><input type="checkbox" class="p-cond" value="Mareos o desmayos"> Dizziness or fainting</label>
-          <label><input type="checkbox" class="p-cond" value="Asma / problemas respiratorios"> Asthma / breathing problems</label>
-          <label><input type="checkbox" class="p-cond" value="Lesiones articulares o musculares"> Joint or muscle injuries</label>
-          <label><input type="checkbox" class="p-cond" value="Cirugía reciente"> Recent surgery</label>
-          <label><input type="checkbox" class="p-cond" value="Embarazo"> Pregnancy</label>
-        </div>
-        <label><span data-i18n="health.details">Details / medications</span>
-          <textarea id="p-health-detail" rows="2"></textarea>
-        </label>
+        <div id="p-health-body"><p class="health-hint" data-i18n="train.loading">Loading…</p></div>
       </div>
       <div class="modal-foot">
         <button type="button" class="btn-ghost" id="profile-cancel" data-i18n="form.cancel">Cancel</button>
@@ -428,6 +403,6 @@
 
 <div id="toast" class="toast"></div>
 
-<script type="module" src="app.js?v=20261015"></script>
+<script type="module" src="app.js?v=20261016"></script>
 </body>
 </html>
