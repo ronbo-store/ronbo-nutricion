@@ -259,6 +259,12 @@ en: {
   'priv.delete': 'Delete my account and data',
   'priv.deleteConfirm': 'This permanently deletes your account and ALL your data (meals, weights, progress, plans and meal-help photos). This cannot be undone. Continue?',
   'priv.deleted': 'Your account and data have been deleted.',
+  'priv.renew': 'Renew my consent',
+  'priv.renewAccept': 'I accept the privacy notice',
+  'priv.renewConfirm': 'Your consent will be recorded as accepted today, under notice version {v}. Your previous withdrawal stays on record. Continue?',
+  'priv.renewed': 'Consent renewed.',
+  'priv.statusHistory': 'Previously withdrawn on {d} · renewed on {d2}',
+  'gate.renewIntro': 'Your account is pending administrator approval, and your consent is currently withdrawn. If you wish, you can renew it now: read the privacy notice and accept it. Your renewal is recorded with its date and the notice version; your previous withdrawal stays on record.',
   'priv.recentLogin': 'Your data was deleted, but Google needs a recent sign-in to delete the account itself: sign out, sign back in, and repeat the deletion. If you get stuck, ask your trainer.',
   'priv.working': 'Working…',
   'msg.photoSaved': 'Photo saved.',
@@ -549,6 +555,12 @@ es: {
   'priv.delete': 'Eliminar mi cuenta y mis datos',
   'priv.deleteConfirm': 'Esto elimina permanentemente tu cuenta y TODOS tus datos (comidas, pesos, progreso, planes y fotos de ayuda). No se puede deshacer. ¿Continuar?',
   'priv.deleted': 'Tu cuenta y tus datos han sido eliminados.',
+  'priv.renew': 'Renovar mi consentimiento',
+  'priv.renewAccept': 'Acepto el aviso de privacidad',
+  'priv.renewConfirm': 'Tu consentimiento quedará registrado como aceptado hoy, con la versión {v} del aviso. Tu retirada anterior se conserva en el registro. ¿Continuar?',
+  'priv.renewed': 'Consentimiento renovado.',
+  'priv.statusHistory': 'Retirado el {d} · renovado el {d2}',
+  'gate.renewIntro': 'Tu cuenta está pendiente de aprobación del administrador y tu consentimiento consta como retirado. Si lo deseas, puedes renovarlo ahora: lee el aviso de privacidad y acéptalo. La renovación queda registrada con su fecha y la versión del aviso; tu retirada anterior se conserva en el registro.',
   'priv.recentLogin': 'Tus datos se eliminaron, pero Google necesita un inicio de sesión reciente para borrar la cuenta en sí: cierra sesión, vuelve a entrar y repite la eliminación. Si te atascas, pide ayuda a tu entrenador.',
   'priv.working': 'Procesando…',
   'msg.photoSaved': 'Foto guardada.',
@@ -699,6 +711,17 @@ function showAuthError(msg) {
   el.classList.remove('ok');
   el.classList.add('show');
 }
+/* Puerta con consentimiento retirado: la sesión se mantiene SOLO en la
+   vista de acceso para ofrecer la renovación (las reglas siguen
+   denegando todo dato a cuentas no aprobadas). Tras renovar — o si el
+   consentimiento ya está vigente — se aplica la salida habitual. */
+function showRenewalGate() {
+  showAuthError(t('err.pending'));
+  const box = $('renew-box'); if (!box) return;
+  box.style.display = '';
+  const n = $('renew-notice'); if (n) { n.style.display = 'none'; n.innerHTML = ''; }
+  const ra = $('btn-gate-renew-accept'); if (ra) ra.style.display = 'none';
+}
 function dateName(iso) {
   const m = String(iso).match(/(\d{4})-(\d{2})-(\d{2})/);
   if (!m) return iso;
@@ -827,6 +850,7 @@ onAuthStateChanged(auth, async user => {
     UDATA = snap.data();
     IS_OWNER = UDATA.isOwner === true;
     if (!IS_OWNER && UDATA.approved !== true) {
+      if (!consentIsActive(UDATA)) { showRenewalGate(); return; }
       await signOut(auth);
       showAuthError(t('err.pending'));
       return;
@@ -1266,16 +1290,51 @@ if (mhFile) mhFile.addEventListener('change', async e => {
 /* ================= PRIVACIDAD Y DATOS (cliente) =================
    Nota: si en el futuro se activa Firebase Storage (Blaze), la eliminación
    debe borrar también los objetos de Storage referenciados en photoPath. */
+/* ============ CONSENTIMIENTO: estado y renovación (Fase 1 H-C1) ============
+   El consentimiento es independiente de la aprobación (decisión del
+   entrenador) y del rol de propietario. La renovación registra una
+   aceptación NUEVA (fecha + versión) y CONSERVA consentWithdrawnAt
+   como historial: nunca se borra ni se reescribe. */
+const TERMS_VERSION = 'v2-2026-10-14';
+function tsMs(ts) {
+  if (!ts) return 0;
+  if (typeof ts.toDate === 'function') return ts.toDate().getTime();
+  const n = new Date(ts).getTime();
+  return isNaN(n) ? 0 : n;
+}
+function consentIsActive(u) {
+  if (!u || u.acceptedTerms !== true) return false;
+  const w = tsMs(u.consentWithdrawnAt);
+  if (!w) return true;
+  return tsMs(u.termsAcceptedAt) >= w;
+}
+async function doRenewConsent() {
+  if (!auth.currentUser) return false;
+  if (!confirm(t('priv.renewConfirm', { v: TERMS_VERSION }))) return false;
+  await setDoc(doc(db, 'users', auth.currentUser.uid),
+    { acceptedTerms: true, termsVersion: TERMS_VERSION, termsAcceptedAt: serverTimestamp() },
+    { merge: true });
+  return true;
+}
 function renderPrivacy() {
   const st = $('privacy-status');
   if (!st) return;
-  let when = '';
-  try { if (UDATA.termsAcceptedAt && UDATA.termsAcceptedAt.toDate) when = UDATA.termsAcceptedAt.toDate().toLocaleDateString(LANG === 'es' ? 'es-MX' : 'en-US'); } catch {}
-  let html = UDATA.acceptedTerms
-    ? `<p class="progress-hint">${t('priv.statusAccepted', { v: esc(UDATA.termsVersion || ''), date: esc(when) })}</p>`
-    : `<p class="progress-hint">${t('priv.statusNone')}</p>`;
-  if (UDATA.consentWithdrawnAt) html += `<p class="progress-hint">${t('priv.statusWithdrawn')}</p>`;
+  const fmtD = ts => {
+    try { return ts && ts.toDate ? ts.toDate().toLocaleDateString(LANG === 'es' ? 'es-MX' : 'en-US') : ''; } catch { return ''; }
+  };
+  const active = consentIsActive(UDATA);
+  let html;
+  if (active) {
+    html = `<p class="progress-hint">${t('priv.statusAccepted', { v: esc(UDATA.termsVersion || ''), date: esc(fmtD(UDATA.termsAcceptedAt)) })}</p>`;
+    if (UDATA.consentWithdrawnAt && UDATA.termsAcceptedAt)
+      html += `<p class="progress-hint">${t('priv.statusHistory', { d: esc(fmtD(UDATA.consentWithdrawnAt)), d2: esc(fmtD(UDATA.termsAcceptedAt)) })}</p>`;
+  } else {
+    html = `<p class="progress-hint">${t('priv.statusNone')}</p>`;
+    if (UDATA.consentWithdrawnAt) html += `<p class="progress-hint">${t('priv.statusWithdrawn')}</p>`;
+  }
   st.innerHTML = html;
+  const rb = $('btn-renew'); if (rb) rb.style.display = active ? 'none' : '';
+  const ra = $('btn-renew-accept'); if (ra) ra.style.display = 'none';
 }
 const MY_DATA_COLLECTIONS = [
   ['nutrition_meals', 'ownerUid'], ['nutrition_weight', 'ownerUid'],
@@ -1305,6 +1364,40 @@ $('btn-view-notice') && $('btn-view-notice').addEventListener('click', () => {
   const n = $('privacy-notice');
   if (n.style.display === 'none') { n.innerHTML = t('terms.body'); n.style.display = ''; }
   else n.style.display = 'none';
+});
+$('btn-renew') && $('btn-renew').addEventListener('click', () => {
+  const n = $('privacy-notice');
+  n.innerHTML = t('terms.body');
+  n.style.display = '';
+  const ra = $('btn-renew-accept'); if (ra) ra.style.display = '';
+});
+$('btn-renew-accept') && $('btn-renew-accept').addEventListener('click', async () => {
+  if (!auth.currentUser) return;
+  try {
+    if (!await doRenewConsent()) return;
+    UDATA.acceptedTerms = true;
+    UDATA.termsVersion = TERMS_VERSION;
+    UDATA.termsAcceptedAt = new Date();
+    toast(t('priv.renewed'));
+    const n = $('privacy-notice'); if (n) n.style.display = 'none';
+    renderPrivacy();
+  } catch { toast(t('err.verifyFail')); }
+});
+$('btn-gate-renew') && $('btn-gate-renew').addEventListener('click', () => {
+  const n = $('renew-notice');
+  n.innerHTML = t('terms.body');
+  n.style.display = '';
+  const ra = $('btn-gate-renew-accept'); if (ra) ra.style.display = '';
+});
+$('btn-gate-renew-accept') && $('btn-gate-renew-accept').addEventListener('click', async () => {
+  if (!auth.currentUser) return;
+  try {
+    if (!await doRenewConsent()) return;
+    toast(t('priv.renewed'));
+    const box = $('renew-box'); if (box) box.style.display = 'none';
+    await signOut(auth);
+    showAuthError(t('err.pending'));
+  } catch { toast(t('err.verifyFail')); }
 });
 $('btn-my-data') && $('btn-my-data').addEventListener('click', async () => {
   if (!auth.currentUser) return;

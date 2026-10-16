@@ -41,6 +41,12 @@
       <div id="auth-error" class="auth-error"></div>
       <button type="submit" class="btn-primary" data-i18n="auth.signin">Sign in</button>
     </form>
+    <div id="renew-box" style="display:none">
+      <p class="progress-hint" data-i18n="gate.renewIntro">Your account is pending administrator approval, and your consent is currently withdrawn. If you wish, you can renew it now: read the privacy notice and accept it. Your renewal is recorded with its date and the notice version; your previous withdrawal stays on record.</p>
+      <button type="button" class="btn-ghost btn-sm" id="btn-gate-renew" data-i18n="priv.renew">Renew my consent</button>
+      <div id="renew-notice" class="consent-text" style="display:none"></div>
+      <button type="button" class="btn-primary btn-sm" id="btn-gate-renew-accept" style="display:none" data-i18n="priv.renewAccept">I accept the privacy notice</button>
+    </div>
     <form id="form-register" style="display:none">
       <label><span data-i18n="form.fullname">Full name</span>
         <input type="text" id="reg-name" autocomplete="name" required data-i18n-ph="form.fullnamePh" placeholder="E.g. Maria Garcia">
@@ -232,8 +238,10 @@
     <h2 data-i18n="priv.title">🔒 Privacy & Data</h2>
     <div id="privacy-status"></div>
     <div id="privacy-notice" class="consent-text" style="display:none"></div>
+    <button type="button" class="btn-primary btn-sm" id="btn-renew-accept" style="display:none" data-i18n="priv.renewAccept">I accept the privacy notice</button>
     <div class="privacy-btns">
       <button type="button" class="btn-ghost btn-sm" id="btn-view-notice" data-i18n="priv.viewNotice">View the privacy notice</button>
+      <button type="button" class="btn-ghost btn-sm" id="btn-renew" style="display:none" data-i18n="priv.renew">Renew my consent</button>
       <button type="button" class="btn-ghost btn-sm" id="btn-my-data" data-i18n="priv.download">Download my data (JSON)</button>
       <button type="button" class="btn-ghost btn-sm" id="btn-withdraw" data-i18n="priv.withdraw">Withdraw my consent</button>
       <button type="button" class="btn-ghost btn-sm danger" id="btn-delete-account" data-i18n="priv.delete">Delete my account and data</button>
