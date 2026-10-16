@@ -1,8 +1,12 @@
 name: H-C1 · Batería oficial de reglas (emulador)
 
-# Ejecución SOLO manual. Sin disparadores automáticos de ningún tipo.
+# Disparo manual (workflow_dispatch) y, solo en esta rama de pruebas,
+# disparo automático al empujarla (push) para poder ejecutar la batería
+# sin que el archivo exista en la rama por defecto (Opción J, H-C1).
 on:
   workflow_dispatch: {}
+  push:
+    branches: [ci/hc1-bateria]
 
 # Permiso mínimo: leer el contenido del repositorio. Nada más.
 permissions:
