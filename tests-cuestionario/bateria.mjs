@@ -16,6 +16,14 @@
 // autoaprobación por tres intentos reales de escalada con una
 // ficticia NO aprobada (pendiente). Conteo: 33 casos; P4 es un
 // caso compuesto con 3 subcomprobaciones obligatorias.
+// Ampliación PASO A S7 (autorizada el 16/10/2026): candidato r2
+// (la lectura del entrenador exige además acceptedTerms == true
+// del cliente) y +2 casos: 34 (doble consentimiento: retirar el
+// general deniega get y list del entrenador; renovarlo los
+// restaura sin tocar la declaración) y 35 (cliente NO aprobado
+// con ambos consentimientos: lectura permitida — approved no
+// forma parte de la puerta). Conteo: 35 casos contados.
+// Los casos 1–33 se conservan íntegros.
 // Uso (Mac o CI): firebase emulators:start --only firestore
 //   --project demo-cuestionario-v1  +  node bateria.mjs
 // ============================================================
@@ -154,6 +162,39 @@ await T('CASO INTEGRAL: ciclo completo (retirar → bloqueo → renovar → decl
   await assertSucceeds(getDoc(declOwner('v2'))); // el entrenador consulta la nueva vigente
   await assertFails(getDoc(declOwner('v1'))); // la histórica sigue bloqueada para él
 })(), true);
+
+// ---------- Paso A S7: doble consentimiento (casos 34–35) ----------
+const seed2 = env.withSecurityRulesDisabled(async (ctx) => {
+  const d = ctx.firestore();
+  const base = { role: 'user', isOwner: false, approved: true, acceptedTerms: true, adultConfirmed: true };
+  await setDoc(doc(d, 'users', 'doble'), { ...base, name: 'Doble',
+    healthConsent: { status: 'accepted', version: 'v1-2026-10-16', acceptedAt: new Date('2026-10-16T10:00:00Z') } });
+  await setDoc(doc(d, 'users/doble/healthDeclarations', 'v1'), { version: 1, conditions: ['Hipertensión'], details: '', state: 'active', declaredAt: new Date('2026-10-16T10:01:00Z'), updatedAt: new Date('2026-10-16T10:01:00Z'), blockedAt: null });
+  await setDoc(doc(d, 'users', 'pendiente2'), { ...base, name: 'Pendiente2', approved: false,
+    healthConsent: { status: 'accepted', version: 'v1-2026-10-16', acceptedAt: new Date('2026-10-16T10:00:00Z') } });
+  await setDoc(doc(d, 'users/pendiente2/healthDeclarations', 'v1'), { version: 1, conditions: [], details: '', state: 'active', declaredAt: new Date('2026-10-16T10:01:00Z'), updatedAt: new Date('2026-10-16T10:01:00Z'), blockedAt: null });
+});
+await seed2;
+
+await T('CASO 34 · doble consentimiento: retirar el GENERAL deniega get y list del entrenador; renovarlo los restaura sin tocar la declaración', (async () => {
+  const ref = doc(db('dueno'), 'users/doble/healthDeclarations', 'v1');
+  const lista = query(collection(db('dueno'), 'users/doble/healthDeclarations'), where('state', '==', 'active'));
+  const antes = (await getDoc(decl('doble', 'v1'))).data();
+  await getDoc(ref);            // lectura inicial permitida
+  await getDocs(lista);         // listado inicial permitido
+  await setDoc(doc(db('doble'), 'users', 'doble'), { acceptedTerms: false, approved: false, consentWithdrawnAt: serverTimestamp() }, { merge: true }); // retirada SOLO del general (forma de la app)
+  let getDenegado = false, listDenegado = false;
+  try { await getDoc(ref); } catch { getDenegado = true; }
+  try { await getDocs(lista); } catch { listDenegado = true; }
+  if (!getDenegado) throw new Error('el get del entrenador NO fue denegado tras retirar el general');
+  if (!listDenegado) throw new Error('el list del entrenador NO fue denegado tras retirar el general');
+  await setDoc(doc(db('doble'), 'users', 'doble'), { acceptedTerms: true, termsVersion: 'v2-2026-10-14', termsAcceptedAt: serverTimestamp() }, { merge: true }); // renovación del general (flujo H-C1)
+  await getDoc(ref);            // la lectura vuelve a permitirse
+  const despues = (await getDoc(decl('doble', 'v1'))).data();
+  if (despues.state !== 'active' || JSON.stringify(despues.conditions) !== JSON.stringify(antes.conditions)) throw new Error('la declaración cambió durante el ciclo del general');
+})(), true);
+
+await T('CASO 35 · cliente NO aprobado (approved=false) con ambos consentimientos vigentes: el entrenador SÍ lee su declaración (approved no forma parte de la puerta)', getDoc(doc(db('dueno'), 'users/pendiente2/healthDeclarations', 'v1')), true);
 
 console.log(`\nRESULTADO BATERÍA CUESTIONARIO v1: ${pass} PASS · ${fail} FAIL` + (fails.length ? ' · fallos: ' + fails.join(' | ') : ''));
 await env.cleanup();

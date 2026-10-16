@@ -1,3 +1,11 @@
+// ============================================================
+// CANDIDATO r2 (16/10/2026, Paso A S7 autorizado): UNA condición
+// añadida sobre el candidato v1 (cb24c9af…) — la lectura del
+// entrenador exige además el consentimiento general vigente
+// del cliente (acceptedTerms == true). Nada más cambia.
+// El candidato anterior queda preservado en su archivo.
+// NO PUBLICADO. Pendiente de validación oficial (35 casos).
+// ============================================================
 rules_version = '2';
 
 // =====================================================================
@@ -172,7 +180,9 @@ service cloud.firestore {
           || (isOwnerUser()
               && resource.data.state == 'active'
               && get(/databases/$(database)/documents/users/$(uid))
-                   .data.healthConsent.status == 'accepted');
+                   .data.healthConsent.status == 'accepted'
+              && get(/databases/$(database)/documents/users/$(uid))
+                   .data.acceptedTerms == true);
 
         // Create: only the client, an ACTIVE declaration, and only
         // with their specific consent currently accepted.
