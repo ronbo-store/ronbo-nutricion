@@ -284,6 +284,9 @@ en: {
   'priv.delete': 'Delete my account and data',
   'priv.deleteConfirm': 'This permanently deletes your account and ALL your data (meals, weights, progress, plans and meal-help photos). This cannot be undone. Continue?',
   'priv.deleted': 'Your account and data have been deleted.',
+  'priv.deleteFail': 'We could not complete the deletion. Please try again.',
+  'priv.dataDeletedFinish': 'Your data has been deleted. Sign in once more to finish closing your account.',
+  'priv.finishCloseAsk': 'Your data was already deleted. Do you want to finish closing your account now?',
   'priv.renew': 'Renew my consent',
   'priv.renewAccept': 'I accept the privacy notice',
   'priv.renewConfirm': 'Your consent will be recorded as accepted today, under notice version {v}. Your previous withdrawal stays on record. Continue?',
@@ -605,6 +608,9 @@ es: {
   'priv.delete': 'Eliminar mi cuenta y mis datos',
   'priv.deleteConfirm': 'Esto elimina permanentemente tu cuenta y TODOS tus datos (comidas, pesos, progreso, planes y fotos de ayuda). No se puede deshacer. ¿Continuar?',
   'priv.deleted': 'Tu cuenta y tus datos han sido eliminados.',
+  'priv.deleteFail': 'No pudimos completar la eliminación. Inténtalo de nuevo.',
+  'priv.dataDeletedFinish': 'Tus datos han sido eliminados. Inicia sesión una vez más para terminar de cerrar tu cuenta.',
+  'priv.finishCloseAsk': 'Tus datos ya fueron eliminados. ¿Quieres terminar de cerrar tu cuenta ahora?',
   'priv.renew': 'Renovar mi consentimiento',
   'priv.renewAccept': 'Acepto el aviso de privacidad',
   'priv.renewConfirm': 'Tu consentimiento quedará registrado como aceptado hoy, con la versión {v} del aviso. Tu retirada anterior se conserva en el registro. ¿Continuar?',
@@ -828,14 +834,22 @@ $('form-register').addEventListener('submit', async e => {
   try {
     suppressAuthCheck = true;
     const cred = await createUserWithEmailAndPassword(auth, email, pw);
-    await setDoc(doc(db, 'users', cred.user.uid), {
+    /* A2: el registro es el primer acto de consentimiento — el
+       documento nace en un lote con su recibo 'registered'
+       (consentSeq = 1), como exigen las reglas r3. */
+    const regBatch = writeBatch(db);
+    regBatch.set(doc(db, 'users', cred.user.uid), {
       name, email, phone, gender, social: social || '',
       role: 'user', isOwner: false, approved: false,
       goals: { ...DEFAULT_GOALS },
-      acceptedTerms: true, termsVersion: 'v2-2026-10-14', termsAcceptedAt: serverTimestamp(),
+      acceptedTerms: true, termsVersion: TERMS_VERSION, termsAcceptedAt: serverTimestamp(),
       adultConfirmed: true, adultConfirmedAt: serverTimestamp(),
-      createdAt: serverTimestamp()
+      createdAt: serverTimestamp(),
+      consentSeq: 1, consentReceiptId: cred.user.uid + '_1'
     });
+    regBatch.set(receiptRef(cred.user.uid + '_1'),
+      { uid: cred.user.uid, email, type: 'registered', version: TERMS_VERSION, at: serverTimestamp() });
+    await regBatch.commit();
     await signOut(auth);
     suppressAuthCheck = false;
     showRegError('');
@@ -891,6 +905,23 @@ onAuthStateChanged(auth, async user => {
   try {
     const snap = await getDoc(doc(db, 'users', user.uid));
     if (!snap.exists()) {
+      /* Cierre veraz (A2): si existe el recibo de cierre, los
+         datos ya se eliminaron en un intento anterior y solo
+         falta borrar la identidad de Auth — se ofrece completar
+         el cierre ahora (la sesión es reciente). */
+      try {
+        const rc = await getDoc(receiptRef(user.uid));
+        if (rc.exists() && rc.data().type === 'account-closed') {
+          if (confirm(t('priv.finishCloseAsk'))) {
+            try { await deleteUser(user); toast(t('priv.deleted')); }
+            catch { toast(t('priv.deleteFail'), true); }
+          } else {
+            toast(t('priv.dataDeletedFinish'), true);
+          }
+          await signOut(auth);
+          return;
+        }
+      } catch {}
       await signOut(auth);
       showAuthError(t('err.noAccess'));
       return;
@@ -1358,6 +1389,27 @@ function tsMs(ts) {
   const n = new Date(ts).getTime();
   return isNaN(n) ? 0 : n;
 }
+/* ===== Recibos de consentimiento (A2) =====
+   Cada transición de consentimiento se escribe en UN solo lote
+   con su recibo en consent_receipts/{uid}_{seq}; las reglas r3
+   exigen ambas escrituras juntas (integridad bidireccional
+   verificada en el experimento C2). El recibo lleva solo
+   metadatos: uid, correo de la cuenta, tipo, versión y la marca
+   del servidor — nunca respuestas de salud. */
+const receiptRef = rid => doc(db, 'consent_receipts', rid);
+async function freshUserDoc(uid) {
+  const s = await getDoc(doc(db, 'users', uid));
+  return s.exists() ? s.data() : null;
+}
+function consentBatch(uid, cur, cambios, type, version) {
+  const prevSeq = cur && Number.isInteger(cur.consentSeq) ? cur.consentSeq : 0;
+  const seq = prevSeq + 1;
+  const rid = uid + '_' + seq;
+  const batch = writeBatch(db);
+  batch.set(doc(db, 'users', uid), { ...cambios, consentSeq: seq, consentReceiptId: rid }, { merge: true });
+  batch.set(receiptRef(rid), { uid, email: (cur && cur.email) || (auth.currentUser && auth.currentUser.email) || '', type, version, at: serverTimestamp() });
+  return { batch, seq, rid };
+}
 function consentIsActive(u) {
   if (!u || u.acceptedTerms !== true) return false;
   const w = tsMs(u.consentWithdrawnAt);
@@ -1367,10 +1419,20 @@ function consentIsActive(u) {
 async function doRenewConsent() {
   if (!auth.currentUser) return false;
   if (!confirm(t('priv.renewConfirm', { v: TERMS_VERSION }))) return false;
-  await setDoc(doc(db, 'users', auth.currentUser.uid),
-    { acceptedTerms: true, termsVersion: TERMS_VERSION, termsAcceptedAt: serverTimestamp() },
-    { merge: true });
-  return true;
+  const uid = auth.currentUser.uid;
+  try {
+    const cur = await freshUserDoc(uid);
+    /* A2: la renovación viaja en un lote con su recibo
+       'general-renewed'. Renovar restaura el consentimiento,
+       nunca la aprobación (que no se toca) ni reactiva
+       declaraciones bloqueadas. */
+    const { batch, seq, rid } = consentBatch(uid, cur,
+      { acceptedTerms: true, termsVersion: TERMS_VERSION, termsAcceptedAt: serverTimestamp() },
+      'general-renewed', TERMS_VERSION);
+    await batch.commit();
+    if (UDATA) { UDATA.consentSeq = seq; UDATA.consentReceiptId = rid; UDATA.acceptedTerms = true; UDATA.termsVersion = TERMS_VERSION; }
+    return true;
+  } catch { return false; }
 }
 function renderPrivacy() {
   const st = $('privacy-status');
@@ -1479,8 +1541,14 @@ $('btn-my-data') && $('btn-my-data').addEventListener('click', async () => {
 $('btn-withdraw') && $('btn-withdraw').addEventListener('click', async () => {
   if (!auth.currentUser) return;
   if (!confirm(t('priv.withdrawConfirm'))) return;
-  await setDoc(doc(db, 'users', auth.currentUser.uid),
-    { consentWithdrawnAt: serverTimestamp(), acceptedTerms: false, approved: false }, { merge: true });
+  const uid = auth.currentUser.uid;
+  try {
+    const cur = await freshUserDoc(uid);
+    const { batch } = consentBatch(uid, cur,
+      { consentWithdrawnAt: serverTimestamp(), acceptedTerms: false, approved: false },
+      'general-withdrawn', (cur && cur.termsVersion) || TERMS_VERSION);
+    await batch.commit();
+  } catch { toast(t('err.verifyFail'), true); return; }
   toast(t('priv.withdrawn'));
   await signOut(auth);
 });
@@ -1491,6 +1559,10 @@ $('btn-delete-account') && $('btn-delete-account').addEventListener('click', asy
   const user = auth.currentUser;
   const uid = user.uid;
   toast(t('priv.working'));
+  /* Orden A2 (cierre veraz): 1) datos propios y declaraciones;
+     2) lote de cierre atómico (recibo 'account-closed' + borrar
+     el documento de usuario); 3) identidad de Auth. Ningún paso
+     anuncia un cierre mayor del que realmente ocurrió. */
   const mine = await fetchMyDocs(uid);
   for (const [name] of MY_DATA_COLLECTIONS)
     for (const x of mine[name]) { try { await deleteDoc(doc(db, name, x.id)); } catch {} }
@@ -1500,13 +1572,23 @@ $('btn-delete-account') && $('btn-delete-account').addEventListener('click', asy
     const decls = await fetchDeclarations(uid);
     for (const d of decls) { try { await deleteDoc(doc(declCol(uid), d.id)); } catch {} }
   } catch {}
-  try { await deleteDoc(doc(db, 'users', uid)); } catch {}
+  try {
+    const cur = await freshUserDoc(uid);
+    const closeBatch = writeBatch(db);
+    closeBatch.set(receiptRef(uid),
+      { uid, email: (cur && cur.email) || user.email || '', type: 'account-closed', version: (cur && cur.termsVersion) || TERMS_VERSION, at: serverTimestamp() });
+    closeBatch.delete(doc(db, 'users', uid));
+    await closeBatch.commit();
+  } catch { toast(t('priv.deleteFail'), true); return; }
   try {
     await deleteUser(user);
     toast(t('priv.deleted'));
-  } catch (err) {
-    if (err && err.code === 'auth/requires-recent-login') { toast(t('priv.recentLogin'), true); await signOut(auth); }
-    else toast(t('priv.deleted'));
+  } catch {
+    /* Los datos ya no existen, pero la identidad de Auth sigue
+       viva (p. ej., requires-recent-login): se dice la verdad y
+       el cierre se completa al volver a iniciar sesión. */
+    toast(t('priv.dataDeletedFinish'), true);
+    await signOut(auth);
   }
 });
 
@@ -1616,11 +1698,20 @@ async function grantSpec(isRenew) {
   const ok = $('spec-ok');
   if (!ok || !ok.checked) { toast(t('health.needSpec'), true); return; }
   if (isRenew && !confirm(t('health.renewSpecConfirm'))) return;
-  const prev = specOf(UDATA) || {};
-  const next = { status: 'accepted', version: SPEC_VERSION, acceptedAt: serverTimestamp() };
-  if (prev.withdrawnAt) next.withdrawnAt = prev.withdrawnAt; // el historial de retirada se conserva
   try {
-    await setDoc(doc(db, 'users', auth.currentUser.uid), { healthConsent: next }, { merge: true });
+    const uid = auth.currentUser.uid;
+    const cur = await freshUserDoc(uid);
+    const prev = specOf(cur) || {};
+    const next = { status: 'accepted', version: SPEC_VERSION, acceptedAt: serverTimestamp() };
+    if (prev.withdrawnAt) next.withdrawnAt = prev.withdrawnAt; // el historial de retirada se conserva
+    /* A2: otorgar/renovar viaja en un lote con su recibo
+       ('specific-granted' o 'specific-renewed', según el estado
+       previo real). Renovar habilita una declaración NUEVA;
+       nunca reactiva las bloqueadas. */
+    const { batch, seq, rid } = consentBatch(uid, cur, { healthConsent: next },
+      isRenew ? 'specific-renewed' : 'specific-granted', SPEC_VERSION);
+    await batch.commit();
+    UDATA.consentSeq = seq; UDATA.consentReceiptId = rid;
     UDATA.healthConsent = { status: 'accepted', version: SPEC_VERSION, acceptedAt: new Date(), ...(prev.withdrawnAt ? { withdrawnAt: prev.withdrawnAt } : {}) };
     healthEditing = true; // tras otorgar/renovar, se muestra el formulario de la declaración (nueva)
     toast(isRenew ? t('health.renewedSpec') : t('health.specGranted'));
@@ -1630,15 +1721,19 @@ async function grantSpec(isRenew) {
 async function withdrawSpec() {
   if (!auth.currentUser) return;
   if (!confirm(t('health.withdrawSpecConfirm'))) return;
-  const prev = specOf(UDATA) || {};
-  const next = { status: 'withdrawn', version: prev.version || SPEC_VERSION, withdrawnAt: serverTimestamp() };
-  if (prev.acceptedAt) next.acceptedAt = prev.acceptedAt; // se conserva la fecha de aceptación como historial
   try {
-    const batch = writeBatch(db);
-    batch.set(doc(db, 'users', auth.currentUser.uid), { healthConsent: next }, { merge: true });
+    const uid = auth.currentUser.uid;
+    const cur = await freshUserDoc(uid);
+    const prev = specOf(cur) || {};
+    const next = { status: 'withdrawn', version: prev.version || SPEC_VERSION, withdrawnAt: serverTimestamp() };
+    if (prev.acceptedAt) next.acceptedAt = prev.acceptedAt; // se conserva la fecha de aceptación como historial
+    /* A2: UN solo lote — consentimiento retirado + su recibo
+       'specific-withdrawn' + bloqueo de la declaración vigente. */
+    const { batch, seq, rid } = consentBatch(uid, cur, { healthConsent: next }, 'specific-withdrawn', next.version);
     const act = activeDecl();
-    if (act) batch.update(doc(declCol(auth.currentUser.uid), act.id), { state: 'blocked', blockedAt: serverTimestamp() });
+    if (act) batch.update(doc(declCol(uid), act.id), { state: 'blocked', blockedAt: serverTimestamp() });
     await batch.commit();
+    UDATA.consentSeq = seq; UDATA.consentReceiptId = rid;
     UDATA.healthConsent = { status: 'withdrawn', version: next.version, withdrawnAt: new Date(), ...(prev.acceptedAt ? { acceptedAt: prev.acceptedAt } : {}) };
     if (act) { act.state = 'blocked'; }
     healthEditing = false;
