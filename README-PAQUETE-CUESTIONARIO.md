@@ -12,3 +12,9 @@ originales se conservan íntegros y sin cambios.
 El workflow se dispara con push a esta rama (GitHub no registra
 workflow_dispatch desde ramas no predeterminadas — lección de
 la Opción J de H-C1) y conserva la evidencia como artefacto.
+
+Corrección S4 (16/10/2026, tras la auditoría S3): la batería
+corrige los casos P1–P4 (retirada que elimina acceptedAt,
+retirada positiva aislada en «sofia», flujo retirar→renovar de
+H-C1 y escalada real P4 con ficticia no aprobada). Las reglas
+del paquete no cambian (SHA-256 cb24c9af…).

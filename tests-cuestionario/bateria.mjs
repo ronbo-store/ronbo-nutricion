@@ -7,6 +7,15 @@
 // Ampliación S2 (autorizada el 16/10/2026): +1 caso integral
 // (ciclo completo de la Opción II) = 33 casos contados. La
 // batería original de 32 casos se conserva íntegra arriba.
+// Corrección S4 (autorizada el 16/10/2026, tras la auditoría
+// S3): P1 el caso de retirada de Elena prueba ahora una
+// operación que SÍ elimina acceptedAt (updateDoc sin merge);
+// P2 la retirada positiva usa una ficticia independiente
+// (sofia); P3 la renovación general reproduce el flujo real
+// retirar -> renovar de H-C1; P4 sustituye la falsa
+// autoaprobación por tres intentos reales de escalada con una
+// ficticia NO aprobada (pendiente). Conteo: 33 casos; P4 es un
+// caso compuesto con 3 subcomprobaciones obligatorias.
 // Uso (Mac o CI): firebase emulators:start --only firestore
 //   --project demo-cuestionario-v1  +  node bateria.mjs
 // ============================================================
@@ -38,6 +47,9 @@ const seed = env.withSecurityRulesDisabled(async (ctx) => {
   await setDoc(doc(d, 'users/dora/healthDeclarations', 'v1'), { version: 1, conditions: [], details: 'x', state: 'blocked', declaredAt: new Date('2026-10-01T10:00:00Z'), updatedAt: new Date('2026-10-01T10:00:00Z'), blockedAt: new Date('2026-10-05T10:00:00Z') });
   await setDoc(doc(d, 'users', 'carol'), { ...base, name: 'Carol' });
   await setDoc(doc(d, 'users', 'elena'), { ...base, name: 'Elena' });
+  await setDoc(doc(d, 'users', 'sofia'), { ...base, name: 'Sofía',
+    healthConsent: { status: 'accepted', version: 'v1-2026-10-16', acceptedAt: new Date('2026-10-16T10:00:00Z') } });
+  await setDoc(doc(d, 'users', 'pendiente'), { ...base, name: 'Pendiente', approved: false });
 });
 await seed;
 
@@ -76,10 +88,10 @@ await T('sin sesión lee una declaración → denegado', getDoc(declAnon('v2')),
 // ---------- Consentimiento específico: otorgar / retirar / renovar ----------
 await T('elena otorga su consentimiento específico (serverTimestamp)', setDoc(doc(db('elena'), 'users', 'elena'), { healthConsent: { status: 'accepted', version: 'v1-2026-10-16', acceptedAt: serverTimestamp() } }, { merge: true }), true);
 await T('elena crea su declaración v1 con consentimiento activo', setDoc(doc(db('elena'), 'users/elena/healthDeclarations', 'v1'), { version: 1, conditions: [], details: '', state: 'active', declaredAt: serverTimestamp(), updatedAt: serverTimestamp(), blockedAt: null }), true);
-await T('elena retira su específico (desde aceptado, serverTimestamp)', setDoc(doc(db('elena'), 'users', 'elena'), { healthConsent: { status: 'withdrawn', version: 'v1-2026-10-16', withdrawnAt: serverTimestamp() } }, { merge: true }), false); // debe DENEGARSE: falta acceptedAt conservado -> la app sí lo conserva; ver caso siguiente
-await T('elena retira su específico CORRECTAMENTE (acceptedAt conservado, como la app)', (async () => {
-  const cur = (await getDoc(doc(db('elena'), 'users', 'elena'))).data().healthConsent;
-  await setDoc(doc(db('elena'), 'users', 'elena'), { healthConsent: { status: 'withdrawn', version: 'v1-2026-10-16', acceptedAt: cur.acceptedAt, withdrawnAt: serverTimestamp() } }, { merge: true });
+await T('elena intenta retirar ELIMINANDO acceptedAt (mapa sustituido, sin merge) → denegado', updateDoc(doc(db('elena'), 'users', 'elena'), { healthConsent: { status: 'withdrawn', version: 'v1-2026-10-16', withdrawnAt: serverTimestamp() } }), false); // P1/S4: updateDoc sustituye el mapa: el documento resultante pierde acceptedAt y la sentencia lo deniega
+await T('sofia retira su específico CORRECTAMENTE (fixture independiente, acceptedAt conservado, como la app)', (async () => {
+  const cur = (await getDoc(doc(db('sofia'), 'users', 'sofia'))).data().healthConsent;
+  await setDoc(doc(db('sofia'), 'users', 'sofia'), { healthConsent: { status: 'withdrawn', version: 'v1-2026-10-16', acceptedAt: cur.acceptedAt, withdrawnAt: serverTimestamp() } }, { merge: true });
 })(), true);
 await T('dora intenta crear declaración con consentimiento RETIRADO → denegado', setDoc(doc(db('dora'), 'users/dora/healthDeclarations', 'v2'), { version: 2, conditions: [], details: '', state: 'active', declaredAt: serverTimestamp(), updatedAt: serverTimestamp(), blockedAt: null }), false);
 await T('ana otorga su específico con fecha literal 2030 → denegado (B1)', setDoc(doc(db('ana'), 'users', 'ana'), { healthConsent: { status: 'accepted', version: 'v1-2026-10-16', acceptedAt: new Date('2030-01-01') } }, { merge: true }), false);
@@ -92,13 +104,27 @@ await T('registro con campo health → denegado', setDoc(doc(db('nuevo2'), 'user
 await T('registro con healthConsent prehorneado → denegado', setDoc(doc(db('nuevo3'), 'users', 'nuevo3'), { ...regBase, termsAcceptedAt: serverTimestamp(), healthConsent: { status: 'accepted', version: 'v1', acceptedAt: new Date() } }), false);
 
 // ---------- Regresión H-C1: el consentimiento general no toca el específico ----------
-await T('ana renueva el GENERAL (sentencia H-C1) y su healthConsent queda intacto', (async () => {
-  const antes = (await getDoc(doc(db('ana'), 'users', 'ana'))).data().healthConsent;
-  await setDoc(doc(db('ana'), 'users', 'ana'), { acceptedTerms: true, termsVersion: 'v2-2026-10-14', termsAcceptedAt: serverTimestamp() }, { merge: true });
-  const despues = (await getDoc(doc(db('ana'), 'users', 'ana'))).data().healthConsent;
+await T('ana RETIRA el general y luego lo RENUEVA (flujo H-C1); su healthConsent queda intacto', (async () => {
+  const userRef = doc(db('ana'), 'users', 'ana');
+  const antes = (await getDoc(userRef)).data().healthConsent;
+  await assertSucceeds(setDoc(userRef, { acceptedTerms: false, approved: false, consentWithdrawnAt: serverTimestamp() }, { merge: true }));
+  await assertSucceeds(setDoc(userRef, { acceptedTerms: true, termsVersion: 'v2-2026-10-14', termsAcceptedAt: serverTimestamp() }, { merge: true }));
+  const despues = (await getDoc(userRef)).data().healthConsent;
   if (JSON.stringify(antes) !== JSON.stringify(despues)) throw new Error('healthConsent cambió');
 })(), true);
-await T('ana intenta auto-aprobarse (regresión) → denegado', setDoc(doc(db('ana'), 'users', 'ana'), { approved: true }, { merge: true }), false);
+await T('P4 ESCALADA: cliente NO aprobado intenta autoaprobarse, hacerse propietario y cambiar su rol (3 subcomprobaciones)', (async () => {
+  let fallos = 0;
+  const sub = async (nombre, promesa) => {
+    try { await assertFails(promesa); console.log('  · ' + nombre + ': DENEGADO'); }
+    catch (e) { fallos++; console.log('  · ' + nombre + ': NO DENEGADO (FALLO)'); }
+  };
+  await sub('P4a approved false→true', setDoc(doc(db('pendiente'), 'users', 'pendiente'), { approved: true }, { merge: true }));
+  await sub('P4b isOwner false→true', setDoc(doc(db('pendiente'), 'users', 'pendiente'), { isOwner: true }, { merge: true }));
+  await sub('P4c role user→owner', setDoc(doc(db('pendiente'), 'users', 'pendiente'), { role: 'owner' }, { merge: true }));
+  if (fallos) throw new Error('P4: ' + fallos + ' subcomprobaciones no denegadas');
+  const estado = (await getDoc(doc(db('dueno'), 'users', 'pendiente'))).data();
+  if (estado.approved !== false || estado.isOwner !== false || estado.role !== 'user') throw new Error('P4: el estado de pendiente cambió');
+})(), true);
 
 // ---------- Caso integral 33: ciclo completo de la Opción II ----------
 // Registro bajo reglas -> otorgar -> declarar -> entrenador lee ->
