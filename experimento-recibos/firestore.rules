@@ -1,0 +1,110 @@
+rules_version = '2';
+// ============================================================
+// EXPERIMENTO AISLADO C2 — ¿integridad BIDIRECCIONAL de recibos
+// de consentimiento solo con reglas nativas de Firestore?
+// Esquema mínimo ficticio. NO es el candidato r3 ni deriva de
+// las reglas publicadas. Proyecto demo-recibos-c2.
+// Mecanismo: consentSeq (+1 exacto por transición) +
+// consentReceiptId determinista {uid}_{seq} + verificación
+// cruzada con get()/getAfter()/existsAfter() dentro del lote.
+// ============================================================
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    function userPath(uid) { return /databases/$(database)/documents/users/$(uid); }
+    function receiptPath(rid) { return /databases/$(database)/documents/consent_receipts/$(rid); }
+    function isOwner() {
+      return request.auth != null
+        && exists(userPath(request.auth.uid))
+        && get(userPath(request.auth.uid)).data.get('isOwner', false) == true;
+    }
+    // Tipo de transición derivado SOLO de pares (antes, después)
+    // enumerados; cualquier otra combinación devuelve '' (sin tipo
+    // válido => ningún recibo puede acompañarla).
+    function derivedType(before, after) {
+      let bs = before.get('healthConsent', {}).get('status', 'none');
+      let as2 = after.get('healthConsent', {}).get('status', 'none');
+      return bs != as2
+        ? (as2 == 'accepted' ? (bs == 'withdrawn' ? 'specific-renewed' : 'specific-granted')
+                              : (as2 == 'withdrawn' ? 'specific-withdrawn' : ''))
+        : (before.get('acceptedTerms', false) != after.get('acceptedTerms', false)
+            ? (after.get('acceptedTerms', false) == true ? 'general-renewed' : 'general-withdrawn')
+            : '');
+    }
+
+    match /users/{uid} {
+      allow read: if request.auth != null && (request.auth.uid == uid || isOwner());
+
+      // Registro: exige su recibo 'registered' en el mismo lote.
+      allow create: if request.auth != null && request.auth.uid == uid
+        && request.resource.data.acceptedTerms == true
+        && request.resource.data.consentSeq == 1
+        && request.resource.data.consentReceiptId == uid + '_1'
+        && existsAfter(receiptPath(uid + '_1'))
+        && getAfter(receiptPath(uid + '_1')).data.type == 'registered'
+        && getAfter(receiptPath(uid + '_1')).data.uid == uid
+        && getAfter(receiptPath(uid + '_1')).data.at == request.time;
+
+      allow update: if request.auth != null && request.auth.uid == uid && (
+        // (a) Escritura sin impacto en consentimientos: libre de recibo.
+        ( !request.resource.data.diff(resource.data).affectedKeys()
+            .hasAny(['acceptedTerms', 'termsVersion', 'healthConsent', 'consentSeq', 'consentReceiptId']) )
+        ||
+        // (b) Transición de consentimiento: EXIGE el recibo acoplado.
+        ( request.resource.data.diff(resource.data).affectedKeys()
+            .hasAny(['acceptedTerms', 'termsVersion', 'healthConsent'])
+          && request.resource.data.consentSeq == resource.data.consentSeq + 1
+          && request.resource.data.consentReceiptId == uid + '_' + string(request.resource.data.consentSeq)
+          && existsAfter(receiptPath(request.resource.data.consentReceiptId))
+          && getAfter(receiptPath(request.resource.data.consentReceiptId)).data.type
+               == derivedType(resource.data, request.resource.data)
+          && getAfter(receiptPath(request.resource.data.consentReceiptId)).data.uid == uid
+          && getAfter(receiptPath(request.resource.data.consentReceiptId)).data.at == request.time )
+      );
+
+      // Borrado de la cuenta: EXIGE el documento de cierre
+      // consent_receipts/{uid} creado en el mismo lote.
+      allow delete: if request.auth != null && request.auth.uid == uid
+        && existsAfter(receiptPath(uid))
+        && getAfter(receiptPath(uid)).data.type == 'account-closed'
+        && getAfter(receiptPath(uid)).data.uid == uid
+        && getAfter(receiptPath(uid)).data.at == request.time;
+    }
+
+    match /consent_receipts/{rid} {
+      allow read: if request.auth != null && (resource.data.uid == request.auth.uid || isOwner());
+      allow create: if request.auth != null
+        && request.resource.data.keys().hasOnly(['uid', 'email', 'type', 'version', 'at'])
+        && request.resource.data.uid == request.auth.uid
+        && request.resource.data.at == request.time
+        && (
+          // Marcador de cierre: el lote borra el documento de usuario.
+          ( rid == request.auth.uid
+            && request.resource.data.type == 'account-closed'
+            && exists(userPath(request.auth.uid))
+            && !existsAfter(userPath(request.auth.uid)) )
+          ||
+          // Evento de registro: el lote crea el documento de usuario.
+          ( rid == request.auth.uid + '_1'
+            && request.resource.data.type == 'registered'
+            && !exists(userPath(request.auth.uid))
+            && existsAfter(userPath(request.auth.uid))
+            && getAfter(userPath(request.auth.uid)).data.consentSeq == 1
+            && getAfter(userPath(request.auth.uid)).data.consentReceiptId == rid )
+          ||
+          // Evento de transición: el lote actualiza el consentimiento
+          // y el tipo declarado coincide con la transición derivada.
+          ( exists(userPath(request.auth.uid))
+            && existsAfter(userPath(request.auth.uid))
+            && getAfter(userPath(request.auth.uid)).data.consentReceiptId == rid
+            && request.resource.data.type
+                 == derivedType(get(userPath(request.auth.uid)).data,
+                                getAfter(userPath(request.auth.uid)).data) )
+        );
+      allow update: if false;
+      allow delete: if isOwner();
+    }
+
+    match /{document=**} { allow read, write: if false; }
+  }
+}
