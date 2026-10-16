@@ -1,0 +1,57 @@
+name: H-C1 · Batería oficial de reglas (emulador)
+
+# Ejecución SOLO manual. Sin disparadores automáticos de ningún tipo.
+on:
+  workflow_dispatch: {}
+
+# Permiso mínimo: leer el contenido del repositorio. Nada más.
+permissions:
+  contents: read
+
+jobs:
+  bateria:
+    name: 31 casos contra el emulador oficial (proyecto ficticio)
+    runs-on: ubuntu-24.04
+    timeout-minutes: 20
+    defaults:
+      run:
+        working-directory: tests-hc1
+    steps:
+      - name: Obtener el código
+        uses: actions/checkout@v4
+
+      - name: Instalar Node.js 22
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+
+      - name: Instalar Java 21 (Temurin)
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: 21
+
+      - name: Instalar dependencias de la batería (versiones del lockfile)
+        run: npm ci
+
+      - name: Instalar Firebase Emulator Suite (versión fijada)
+        run: npm install -g firebase-tools@15.34.0
+
+      # Único comando de Firebase de todo el workflow. El proyecto es
+      # ficticio (prefijo demo-): la Suite trabaja en modo emulador,
+      # sin login y sin conectarse a ningún proyecto real. No hay
+      # credenciales, secretos ni cuentas de servicio en este workflow.
+      - name: Ejecutar la batería contra el emulador oficial
+        run: |
+          set -o pipefail
+          firebase emulators:exec --only firestore --project demo-fase1-hc1 "node bateria.mjs" 2>&1 | tee resultado-bateria.txt
+
+      - name: Conservar evidencia descargable
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: evidencia-bateria-hc1
+          path: |
+            tests-hc1/resultado-bateria.txt
+            tests-hc1/firestore-debug.log
+          retention-days: 7
