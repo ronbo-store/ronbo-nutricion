@@ -6,7 +6,7 @@ import {
 } from "firebase/auth";
 import {
   getFirestore, doc, getDoc, getDocFromServer, collection, getDocs, getDocsFromServer, addDoc,
-  setDoc, deleteDoc, serverTimestamp, query, where, limit, writeBatch,
+  setDoc, deleteDoc, serverTimestamp, query, where, limit, writeBatch, onSnapshot,
 } from "firebase/firestore";
 import {
   getStorage, ref as sRef, uploadBytes, getDownloadURL, deleteObject,
@@ -908,6 +908,7 @@ $('link-forgot').addEventListener('click', async e => {
 
 onAuthStateChanged(auth, async user => {
   if (!user) {
+    stopUserDocWatch();
     $('auth-view').style.display = '';
     $('app-view').style.display = 'none';
     return;
@@ -960,7 +961,71 @@ onAuthStateChanged(auth, async user => {
   $('main-tabs').style.display = IS_OWNER ? '' : 'none';
   switchTab('track');
   await loadAll();
+  startUserDocWatch(user.uid);
 });
+
+/* ================= REACCIÓN EN VIVO DE LA SESIÓN (H-C2) =================
+   Hallazgo H-C2: la app cargaba el documento del usuario UNA sola
+   vez al iniciar sesión, así que una revocación de la aprobación o
+   una retirada del consentimiento hechas desde OTRA sesión (u otro
+   dispositivo) no afectaban a la sesión ya abierta hasta recargar.
+   Ahora la sesión se suscribe a su propio documento y reevalúa el
+   acceso con los campos que REALMENTE gobiernan cada estado:
+     - isOwner: el propietario deriva su acceso de isOwner (como en
+       la puerta de entrada) y NUNCA queda bloqueado por
+       approved:false ni por el estado de su consentimiento.
+     - approved (solo clientes): si pasa a false con el
+       consentimiento general vigente → se cierra la sesión
+       (pendiente de aprobación), igual que al iniciar sesión.
+     - consentimiento general (acceptedTerms y la relación
+       termsAcceptedAt/consentWithdrawnAt que evalúa
+       consentIsActive): si deja de estar vigente → puerta de
+       renovación, igual que al iniciar sesión.
+   ALCANCE: esta suscripción corrige la reacción de la INTERFAZ.
+   No cambia ningún permiso de las reglas: las reglas siguen
+   evaluando cada petición por sí mismas, y las colecciones
+   propias de un cliente se rigen por propiedad (uid) — un cliente
+   revocado que llamara a la API directamente, fuera de esta
+   interfaz, conservaría sobre sus propios datos la capacidad que
+   las reglas le den; eso forma parte del diseño aprobado de las
+   reglas y NO se presenta como eliminado por esta corrección. */
+let userWatchUnsub = null;
+let userWatchClass = null;
+function sessionAccessClass(u) {
+  if (!u) return 'none';
+  if (u.isOwner === true) return 'owner';
+  if (u.approved !== true) return consentIsActive(u) ? 'unapproved' : 'gate';
+  return consentIsActive(u) ? 'client' : 'gate';
+}
+function startUserDocWatch(uid) {
+  stopUserDocWatch();
+  userWatchClass = sessionAccessClass(UDATA);
+  userWatchUnsub = onSnapshot(doc(db, 'users', uid), snap => {
+    if (!snap.exists()) return;
+    const fresh = snap.data();
+    const newClass = sessionAccessClass(fresh);
+    UDATA = fresh;
+    IS_OWNER = fresh.isOwner === true;
+    if (newClass === userWatchClass) { renderPrivacy(); return; }
+    userWatchClass = newClass;
+    if (newClass === 'owner' || newClass === 'client') { renderPrivacy(); return; }
+    /* La sesión pierde su clase de acceso: reacciona igual que
+       en la puerta de entrada. */
+    stopUserDocWatch();
+    if (newClass === 'gate') {
+      $('app-view').style.display = 'none';
+      $('auth-view').style.display = '';
+      showRenewalGate();
+    } else { /* 'unapproved': aprobación retirada, consentimiento vigente */
+      signOut(auth);
+      showAuthError(t('err.pending'));
+    }
+  }, () => {});
+}
+function stopUserDocWatch() {
+  if (userWatchUnsub) { try { userWatchUnsub(); } catch {} userWatchUnsub = null; }
+  userWatchClass = null;
+}
 
 /* ================= ADMIN DE ACCESOS (solo dueño) ================= */
 let ADMIN_USERS = [];
@@ -1508,7 +1573,16 @@ function renderPrivacy() {
     if (UDATA.consentWithdrawnAt) html += `<p class="progress-hint">${t('priv.statusWithdrawn')}</p>`;
   }
   st.innerHTML = html;
-  const rb = $('btn-renew'); if (rb) rb.style.display = active ? 'none' : '';
+  /* Corrección A (Paso F, 17/10/2026): el botón de renovar también
+     aparece con el consentimiento VIGENTE pero DESACTUALIZADO (la
+     versión aceptada difiere de la vigente). Sin esto, una cuenta
+     al día no tenía ninguna vía en la interfaz para renovar hacia
+     la nueva versión: el botón solo aparecía con el
+     consentimiento inactivo. La línea de estado sigue mostrando
+     con verdad la versión guardada; la renovación escribe el
+     lote acoplado 'general-renewed' de siempre. */
+  const outdated = (UDATA.termsVersion || '') !== TERMS_VERSION;
+  const rb = $('btn-renew'); if (rb) rb.style.display = (active && !outdated) ? 'none' : '';
   const ra = $('btn-renew-accept'); if (ra) ra.style.display = 'none';
 }
 const MY_DATA_COLLECTIONS = [
