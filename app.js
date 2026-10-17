@@ -2448,6 +2448,10 @@ async function loadProgress() {
 }
 function setSlot(which, url) {
   const img = $('preview-' + which), empty = $('empty-' + which);
+  /* Con Storage inactivo, applyStorageFlag() sustituye la zona de
+     subida y estos elementos dejan de existir: sin ranuras no hay
+     nada que pintar (corrección del error en refrescos, 2026-10-17). */
+  if (!img || !empty) return;
   if (url) { img.src = url; img.style.display = 'block'; empty.style.display = 'none'; }
   else { img.src = ''; img.style.display = 'none'; empty.style.display = ''; }
 }
