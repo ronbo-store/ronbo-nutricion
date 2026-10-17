@@ -188,6 +188,8 @@ en: {
   'ai.unavailable': 'AI analysis is not active yet.',
   'ai.failed': 'The analysis failed. You can log the meal manually.',
   'ai.banner': 'AI draft — check and edit the values before saving.',
+  'ai.retry': 'Retry',
+  'ai.continueManual': 'Continue manually',
   'access.title': '🔐 Access management',
   'access.sub': '· administrator only',
   'access.hint': 'New accounts stay pending until you approve them. Only approved users can sign in, and each one sees only their own data.',
@@ -530,6 +532,8 @@ es: {
   'ai.unavailable': 'El análisis con IA aún no está activo.',
   'ai.failed': 'El análisis falló. Puedes registrar la comida manualmente.',
   'ai.banner': 'Borrador de IA: revisa y edita los valores antes de guardar.',
+  'ai.retry': 'Reintentar',
+  'ai.continueManual': 'Continuar manualmente',
   'access.title': '🔐 Administración de accesos',
   'access.sub': '· solo administrador',
   'access.hint': 'Las cuentas nuevas quedan pendientes hasta que las apruebes. Solo los usuarios aprobados pueden entrar y cada uno ve únicamente sus datos.',
@@ -793,6 +797,7 @@ function setLang(l) {
        permisos/consentimiento (H-C2) no se toca. */
     try { renderPrivacy(); } catch {}
     try { renderHealthPanel(); } catch {}
+    try { aiOnLangChange(); } catch {}
     refreshDynamic();
   }
 }
@@ -1470,12 +1475,10 @@ async function loadMealHelp() {
     <div class="mealhelp-item">
       <img src="${m.photoURL}" alt="${t('mealhelp.foodAlt')}" data-mh-view="${m.id}" title="${t('mealhelp.tapZoom')}">
       <div class="mealhelp-row"><span class="mealhelp-status">${m.status === 'reviewed' ? t('mealhelp.reviewed') : t('mealhelp.pending')}</span>
-      <button class="btn-ghost btn-sm" data-mh-ai="${m.id}" title="${t('ai.analyze')}">✨</button>
       <button class="btn-ghost btn-sm" data-mh-del="${m.id}">✕</button></div>
     </div>`).join('') : `<div class="wempty">${t('mealhelp.empty')}</div>`;
   const byId = id => items.find(x => x.id === id);
   box.querySelectorAll('[data-mh-view]').forEach(im => im.onclick = () => { const m = byId(im.dataset.mhView); if (m) showLightbox(m.photoURL); });
-  box.querySelectorAll('[data-mh-ai]').forEach(b => b.onclick = () => { const m = byId(b.dataset.mhAi); if (m) aiAnalyze(m); });
   box.querySelectorAll('[data-mh-del]').forEach(b => b.onclick = async () => {
     if (!confirm(t('confirm.delPhoto'))) return;
     await deleteDoc(doc(db, 'meal_help', b.dataset.mhDel));
@@ -1499,15 +1502,21 @@ if (mhFile) mhFile.addEventListener('change', async e => {
 });
 
 /* ================= M8 — REVISIÓN AUTOMÁTICA CON IA (Fase C, local) =====
-   Flujo: foto de Meal help → el intermediario (Worker) identifica los
-   alimentos y pregunta lo imprescindible → cálculo anclado a USDA →
-   BORRADOR editable en el modal de comida. Nada se guarda hasta que el
-   usuario confirma en el formulario, como en un registro manual.
+   Flujo TRANSITORIO (corrección 2026-10-17, decisión de Ronald): la foto
+   se captura y vive SOLO en memoria (aiState.dataUrl): captura temporal →
+   análisis → borrador editable → confirmación → registro estructurado
+   SIN imagen. La foto del análisis con IA no se escribe en meal_help,
+   ni en Firestore, ni en Storage, ni en ningún registro. (La ruta manual
+   de Meal help sigue como en producción, intacta.)
+   Si la IA falla, el panel ofrece Reintentar (conservando respuestas) o
+   Continuar manualmente (modal con lo conocido, guardado manual sin
+   source:'ai'); un error nunca escribe nada ni muestra éxito.
    La clave de IA vive SOLO en el intermediario, nunca en esta app.
    AI_ENDPOINT queda vacío hasta la Fase D (URL del Worker); en pruebas
    locales puede fijarse con localStorage 'm8.endpoint'. */
 const AI_ENDPOINT = '';
 let aiDraft = null; // {model, rangeKcal} del borrador pendiente de guardar
+let aiState = null; // {dataUrl, step, r1, answers, r2, errStage} — solo memoria
 function aiEndpoint() {
   try { return localStorage.getItem('m8.endpoint') || AI_ENDPOINT; } catch { return AI_ENDPOINT; }
 }
@@ -1524,33 +1533,107 @@ async function aiCall(path, body) {
 }
 function aiShow(html) { const p = $('ai-panel'); if (p) { p.style.display = ''; p.innerHTML = html; } }
 function aiClosePanel() { const p = $('ai-panel'); if (p) { p.style.display = 'none'; p.innerHTML = ''; } }
-async function aiAnalyze(item) {
-  if (!aiEndpoint()) { toast(t('ai.unavailable'), true); return; }
-  aiShow(`<p class="progress-hint">${t('ai.analyzing')}</p>`);
-  try {
-    const r1 = await aiCall('/identify', { imageDataUrl: item.photoURL, lang: LANG });
-    const foods = r1.foods || [];
-    const qs = (r1.questions || []).slice(0, 3);
-    const list = foods.map(f => `<li>${esc(f.name)} — ${Math.round(f.portion_g_estimate || 0)} g</li>`).join('');
-    const qhtml = qs.map((q, i) => `<div class="ai-q"><p>${esc(q.text)}</p>${(q.options || []).map(o => `<label class="ai-opt"><input type="radio" name="aiq${i}" value="${esc(o)}"> ${esc(o)}</label>`).join('')}<label class="ai-opt"><input type="radio" name="aiq${i}" value="skipped" checked> ${t('ai.skipOption')}</label></div>`).join('');
-    aiShow(`<h3>${t('ai.foodsFound')}</h3><ul class="ai-foods">${list}</ul>${qs.length ? `<h3>${t('ai.questionsTitle')}</h3>${qhtml}` : ''}<div class="ai-actions"><button type="button" class="btn-main btn-sm" id="ai-continue">${t('ai.continue')}</button><button type="button" class="btn-ghost btn-sm" id="ai-cancel">${t('ai.discard')}</button></div>`);
-    $('ai-cancel').onclick = aiClosePanel;
-    $('ai-continue').onclick = async () => {
-      const answers = {};
-      qs.forEach((q, i) => { const sel = document.querySelector(`input[name="aiq${i}"]:checked`); answers[q.id] = sel ? sel.value : 'skipped'; });
-      aiShow(`<p class="progress-hint">${t('ai.analyzing')}</p>`);
-      try {
-        const r2 = await aiCall('/calculate', { foods, answers, lang: LANG });
-        const tot = r2.totals || {};
-        const rows = (r2.items || []).map(it => `<li>${esc(it.name)} — ${Math.round(it.kcal || 0)} kcal</li>`).join('');
-        const range = Array.isArray(tot.range_kcal) ? tot.range_kcal : null;
-        aiShow(`<h3>${t('ai.draftTitle')}</h3><ul class="ai-foods">${rows}</ul><p><b>${Math.round(tot.kcal || 0)} kcal</b> · ${Math.round(tot.prot || 0)} ${t('form.protein')} · ${Math.round(tot.carb || 0)} ${t('form.carbs')} · ${Math.round(tot.fat || 0)} ${t('form.fat')}</p>${range ? `<p class="progress-hint">${t('ai.range').replace('{a}', Math.round(range[0])).replace('{b}', Math.round(range[1]))}</p>` : ''}<div class="ai-actions"><button type="button" class="btn-main btn-sm" id="ai-use">${t('ai.useDraft')}</button><button type="button" class="btn-ghost btn-sm" id="ai-cancel2">${t('ai.discard')}</button></div>`);
-        $('ai-cancel2').onclick = aiClosePanel;
-        $('ai-use').onclick = () => aiUseDraft(r1, r2);
-      } catch { toast(t('ai.failed'), true); aiClosePanel(); }
-    };
-  } catch { toast(t('ai.failed'), true); aiClosePanel(); }
+function aiDiscard() { aiState = null; aiClosePanel(); }
+function aiCaptureAnswers() {
+  if (!aiState || !aiState.r1) return;
+  (aiState.r1.questions || []).slice(0, 3).forEach((q, i) => {
+    const sel = document.querySelector(`input[name="aiq${i}"]:checked`);
+    if (sel) aiState.answers[q.id] = sel.value;
+  });
 }
+function aiOnLangChange() {
+  /* Al cambiar ES/EN con el panel abierto: conserva las respuestas
+     marcadas y re-pinta el panel en el idioma nuevo desde aiState. */
+  if (!aiState) return;
+  aiCaptureAnswers();
+  aiRender();
+}
+async function aiStart(dataUrl) {
+  aiState = { dataUrl, step: 'loading', r1: null, answers: {}, r2: null, errStage: 'identify' };
+  aiRender();
+  try {
+    const r1 = await aiCall('/identify', { imageDataUrl: dataUrl, lang: LANG });
+    if (!aiState) return; // descartado mientras llamaba
+    aiState.r1 = r1;
+    (r1.questions || []).slice(0, 3).forEach(q => { if (!(q.id in aiState.answers)) aiState.answers[q.id] = 'skipped'; });
+    aiState.step = 'questions';
+    aiRender();
+  } catch { if (aiState) { aiState.step = 'error'; aiState.errStage = 'identify'; aiRender(); } }
+}
+async function aiCalculate() {
+  if (!aiState || !aiState.r1) return;
+  aiCaptureAnswers();
+  aiState.step = 'loading'; aiState.errStage = 'calculate';
+  aiRender();
+  try {
+    const r2 = await aiCall('/calculate', { foods: aiState.r1.foods || [], answers: aiState.answers, lang: LANG });
+    if (!aiState) return;
+    aiState.r2 = r2; aiState.step = 'draft';
+    aiRender();
+  } catch { if (aiState) { aiState.step = 'error'; aiRender(); } }
+}
+function aiRetry() {
+  if (!aiState) return;
+  if (aiState.errStage === 'identify') aiStart(aiState.dataUrl);
+  else aiCalculate();
+}
+function aiContinueManual() {
+  /* Salida manual tras un fallo: abre el modal con lo ya conocido
+     (nombres y gramos si la identificación llegó) y aiDraft = null:
+     el guardado será un registro manual ordinario, sin source:'ai',
+     sin registro parcial creado por el error. */
+  const foods = (aiState && aiState.r1 && aiState.r1.foods) || [];
+  aiClearDraft();
+  $('m-date').value = $('dateSel').value || todayISO();
+  if (foods.length) {
+    $('m-food').value = foods.map(f => f.name).join(', ').slice(0, 120);
+    const grams = foods.reduce((s, f) => s + (f.portion_g_estimate || 0), 0);
+    $('m-qty').value = grams ? Math.round(grams) + ' g' : '';
+  }
+  aiDiscard();
+  $('meal-modal').style.display = '';
+}
+function aiRender() {
+  const p = $('ai-panel');
+  if (!p || !aiState) return;
+  if (aiState.step === 'loading') { aiShow(`<p class="progress-hint">${t('ai.analyzing')}</p>`); return; }
+  if (aiState.step === 'error') {
+    aiShow(`<p class="progress-hint">${t('ai.failed')}</p><div class="ai-actions"><button type="button" class="btn-main btn-sm" id="ai-retry">${t('ai.retry')}</button><button type="button" class="btn-ghost btn-sm" id="ai-manual">${t('ai.continueManual')}</button><button type="button" class="btn-ghost btn-sm" id="ai-cancel">${t('ai.discard')}</button></div>`);
+    $('ai-retry').onclick = aiRetry;
+    $('ai-manual').onclick = aiContinueManual;
+    $('ai-cancel').onclick = aiDiscard;
+    return;
+  }
+  if (aiState.step === 'questions') {
+    const r1 = aiState.r1, foods = r1.foods || [], qs = (r1.questions || []).slice(0, 3);
+    const list = foods.map(f => `<li>${esc(f.name)} — ${Math.round(f.portion_g_estimate || 0)} g</li>`).join('');
+    const qhtml = qs.map((q, i) => `<div class="ai-q"><p>${esc(q.text)}</p>${(q.options || []).map(o => `<label class="ai-opt"><input type="radio" name="aiq${i}" value="${esc(o)}"${aiState.answers[q.id] === o ? ' checked' : ''}> ${esc(o)}</label>`).join('')}<label class="ai-opt"><input type="radio" name="aiq${i}" value="skipped"${aiState.answers[q.id] === 'skipped' ? ' checked' : ''}> ${t('ai.skipOption')}</label></div>`).join('');
+    aiShow(`<h3>${t('ai.foodsFound')}</h3><ul class="ai-foods">${list}</ul>${qs.length ? `<h3>${t('ai.questionsTitle')}</h3>${qhtml}` : ''}<div class="ai-actions"><button type="button" class="btn-main btn-sm" id="ai-continue">${t('ai.continue')}</button><button type="button" class="btn-ghost btn-sm" id="ai-cancel">${t('ai.discard')}</button></div>`);
+    p.querySelectorAll('input[type="radio"]').forEach(r => r.addEventListener('change', aiCaptureAnswers));
+    $('ai-cancel').onclick = aiDiscard;
+    $('ai-continue').onclick = aiCalculate;
+    return;
+  }
+  if (aiState.step === 'draft') {
+    const r2 = aiState.r2, tot = r2.totals || {};
+    const rows = (r2.items || []).map(it => `<li>${esc(it.name)} — ${Math.round(it.kcal || 0)} kcal</li>`).join('');
+    const range = Array.isArray(tot.range_kcal) ? tot.range_kcal : null;
+    aiShow(`<h3>${t('ai.draftTitle')}</h3><ul class="ai-foods">${rows}</ul><p><b>${Math.round(tot.kcal || 0)} kcal</b> · ${Math.round(tot.prot || 0)} ${t('form.protein')} · ${Math.round(tot.carb || 0)} ${t('form.carbs')} · ${Math.round(tot.fat || 0)} ${t('form.fat')}</p>${range ? `<p class="progress-hint">${t('ai.range').replace('{a}', Math.round(range[0])).replace('{b}', Math.round(range[1]))}</p>` : ''}<div class="ai-actions"><button type="button" class="btn-main btn-sm" id="ai-use">${t('ai.useDraft')}</button><button type="button" class="btn-ghost btn-sm" id="ai-cancel2">${t('ai.discard')}</button></div>`);
+    $('ai-cancel2').onclick = aiDiscard;
+    $('ai-use').onclick = () => aiUseDraft(aiState.r1, aiState.r2);
+  }
+}
+const aiFile = $('ai-file');
+if (aiFile) aiFile.addEventListener('change', async e => {
+  const f = e.target.files[0]; e.target.value = '';
+  if (!f) return;
+  if (!aiEndpoint()) { toast(t('ai.unavailable'), true); return; }
+  try {
+    const url = await compressFoodPhoto(f); // solo en memoria: NO se sube a meal_help
+    if (url.length > 700000) { toast(t('mealhelp.tooBig'), true); return; }
+    aiStart(url);
+  } catch { toast(t('ai.failed'), true); }
+});
 function aiUseDraft(r1, r2) {
   const tot = r2.totals || {};
   const foods = r1.foods || [];
@@ -1570,7 +1653,7 @@ function aiUseDraft(r1, r2) {
     b.style.display = '';
     b.textContent = t('ai.banner') + (aiDraft.rangeKcal ? ' ' + t('ai.range').replace('{a}', Math.round(aiDraft.rangeKcal[0])).replace('{b}', Math.round(aiDraft.rangeKcal[1])) : '');
   }
-  aiClosePanel();
+  aiDiscard();
   $('meal-modal').style.display = '';
 }
 function aiClearDraft() {
@@ -2611,8 +2694,10 @@ $('m-photo').addEventListener('change', e => {
   else { prev.src = ''; prev.style.display = 'none'; }
 });
 
+let mealSaving = false; // guardia anti-duplicado del guardado de comidas (M8, 2026-10-17)
 $('form-meal').addEventListener('submit', async e => {
   e.preventDefault();
+  if (mealSaving) return; // ya hay un guardado en curso: el segundo envío se ignora
   const data = {
     ownerUid: auth.currentUser.uid,
     date: $('m-date').value, meal: $('m-meal').value,
@@ -2623,23 +2708,31 @@ $('form-meal').addEventListener('submit', async e => {
     createdAt: serverTimestamp()
   };
   if (!data.date || !data.food) { toast(t('err.mealMissing'), true); return; }
-  const photoFile = $('m-photo').files[0];
-  if (photoFile) {
-    try {
-      toast(t('msg.uploading'));
-      const path = `nutrition/${auth.currentUser.uid}/meals/${Date.now()}.jpg`;
-      const up = await uploadPhoto(photoFile, path);
-      data.photoURL = up.url; data.photoPath = up.path;
-    } catch (err) { toast(t('err.mealPhotoFail'), true); }
+  mealSaving = true;
+  const saveBtn = e.target.querySelector('button[type="submit"]');
+  if (saveBtn) saveBtn.disabled = true;
+  try {
+    const photoFile = $('m-photo').files[0];
+    if (photoFile) {
+      try {
+        toast(t('msg.uploading'));
+        const path = `nutrition/${auth.currentUser.uid}/meals/${Date.now()}.jpg`;
+        const up = await uploadPhoto(photoFile, path);
+        data.photoURL = up.url; data.photoPath = up.path;
+      } catch (err) { toast(t('err.mealPhotoFail'), true); }
+    }
+    if (aiDraft) { data.source = 'ai'; data.ai = { model: aiDraft.model, rangeKcal: aiDraft.rangeKcal }; }
+    await addDoc(collection(db, 'nutrition_meals'), data);
+    aiClearDraft();
+    $('meal-modal').style.display = 'none';
+    e.target.reset();
+    $('m-photo-preview').style.display = 'none'; $('m-photo-preview').src = '';
+    toast(t('msg.mealSaved'));
+    await loadAllKeepDate(data.date);
+  } finally {
+    mealSaving = false;
+    if (saveBtn) saveBtn.disabled = false;
   }
-  if (aiDraft) { data.source = 'ai'; data.ai = { model: aiDraft.model, rangeKcal: aiDraft.rangeKcal }; }
-  await addDoc(collection(db, 'nutrition_meals'), data);
-  aiClearDraft();
-  $('meal-modal').style.display = 'none';
-  e.target.reset();
-  $('m-photo-preview').style.display = 'none'; $('m-photo-preview').src = '';
-  toast(t('msg.mealSaved'));
-  await loadAllKeepDate(data.date);
 });
 
 /* weightCtx: null = pesaje propio nuevo; {uid, docId, rec} = editar (propio o de un cliente, solo dueño) */
