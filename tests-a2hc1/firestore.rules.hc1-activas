@@ -1,0 +1,195 @@
+rules_version = '2';
+
+// =====================================================================
+// RONBO NUTRI — Firestore security rules for the NEW independent project
+// LOCAL DRAFT v2 — refined 2026-10-14 (Block 5). NOT PUBLISHED.
+// Do not deploy without Ronald's express authorization.
+//
+// Derived from the actual operations in app.js (dev branch
+// dev/ronbo-nutri-v3, commits 9c73db4 / ede2eb2 / 512b283):
+//   - Registration creates users/{own uid} born unprivileged
+//     (isOwner=false, approved=false, role='user') and, since Block 4,
+//     always with acceptedTerms=true and adultConfirmed=true.
+//   - The trainer (users doc with isOwner=true) lists all users,
+//     approves/revokes, sets goals, edits client profiles and weights,
+//     and authors training plans.
+//   - Clients query their data filtered by ownerUid == own uid
+//     (training collections use clientUid); unfiltered lists by
+//     non-owners must fail.
+//   - Privacy (Block 4): a client may withdraw consent (sets
+//     acceptedTerms=false, approved=false, consentWithdrawnAt) and may
+//     delete their OWN documents and user doc (right to erasure).
+//     A client can NEVER set approved=true or touch role/isOwner.
+//   - There is NO code path that creates an owner: the first owner is
+//     set manually in the Firebase console by the project IAM owner.
+//
+// Collections: users, nutrition_meals, nutrition_weight,
+//              nutrition_progress, meal_help,
+//              training_plans, training_logs
+// =====================================================================
+
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    // ---------- Helpers ----------
+    function signedIn() {
+      return request.auth != null;
+    }
+    function myDoc() {
+      return get(/databases/$(database)/documents/users/$(request.auth.uid)).data;
+    }
+    function myDocExists() {
+      return exists(/databases/$(database)/documents/users/$(request.auth.uid));
+    }
+    function isOwnerUser() {
+      return signedIn() && myDocExists() && myDoc().isOwner == true;
+    }
+    function isApprovedUser() {
+      return signedIn() && myDocExists() && (myDoc().isOwner == true || myDoc().approved == true);
+    }
+    function isSelf(uid) {
+      return signedIn() && request.auth.uid == uid;
+    }
+
+    // ---------- users ----------
+    match /users/{uid} {
+      allow get: if isSelf(uid) || isOwnerUser();
+      allow list: if isOwnerUser();
+
+      // Registration: own doc only, born unprivileged, with the privacy
+      // consent and the 18+ confirmation the app always records.
+      allow create: if isSelf(uid)
+        && request.resource.data.isOwner == false
+        && request.resource.data.approved == false
+        && request.resource.data.role == 'user'
+        && request.resource.data.acceptedTerms == true
+        && request.resource.data.termsAcceptedAt == request.time
+        && request.resource.data.adultConfirmed == true;
+
+      // The trainer may update any user document (approval, goals,
+      // profile, health declarations, notes).
+      allow update: if isOwnerUser();
+      // A client may update ONLY harmless profile fields of their own doc.
+      allow update: if isSelf(uid)
+        && request.resource.data.diff(resource.data).affectedKeys()
+             .hasOnly(['name', 'phone', 'gender', 'social', 'photoURL']);
+      // Consent withdrawal: a client may revoke THEMSELVES only —
+      // acceptedTerms=false, approved=false, withdrawal timestamp —
+      // and nothing else in the same write. At least one of the two
+      // state flags must actually CHANGE value: a repeat withdrawal
+      // against an already-withdrawn document (only the timestamp
+      // would move) is denied, so the recorded withdrawal date is
+      // never silently overwritten (H-C1 B2, 2026-10-16). The
+      // withdrawal timestamp must be the server time of the request
+      // (H-C1 B1): literal dates are rejected.
+      allow update: if isSelf(uid)
+        && request.resource.data.diff(resource.data).affectedKeys()
+             .hasOnly(['acceptedTerms', 'approved', 'consentWithdrawnAt'])
+        && request.resource.data.diff(resource.data).affectedKeys()
+             .hasAny(['acceptedTerms', 'approved'])
+        && request.resource.data.acceptedTerms == false
+        && request.resource.data.approved == false
+        && request.resource.data.consentWithdrawnAt == request.time;
+
+      // Consent renewal: a user may re-grant ONLY their own consent —
+      // acceptedTerms=true with the acceptance timestamp and the
+      // notice version, and NOTHING else in the same write.
+      // affectedKeys() only lists fields whose value actually CHANGES:
+      // termsVersion is therefore allowed to travel but NOT required
+      // to change (a user already on the current version string must
+      // still be able to renew — H-C1 B3-1, 2026-10-16); its resulting
+      // value is still type-checked below. The acceptance timestamp
+      // must be the server time of the request (H-C1 B1): the app
+      // sends serverTimestamp(), which resolves to request.time, and
+      // literal dates (e.g. 2030) are rejected. Approval is not
+      // touched: it stays the trainer's separate decision. The
+      // withdrawal timestamp is preserved as history.
+      allow update: if isSelf(uid)
+        && request.resource.data.diff(resource.data).affectedKeys()
+             .hasOnly(['acceptedTerms', 'termsAcceptedAt', 'termsVersion'])
+        && request.resource.data.diff(resource.data).affectedKeys()
+              .hasAll(['acceptedTerms', 'termsAcceptedAt'])
+        && request.resource.data.acceptedTerms == true
+        && request.resource.data.termsAcceptedAt == request.time
+        && request.resource.data.termsVersion is string;
+
+      // The trainer deletes user docs (reject flow); a client may delete
+      // their OWN user doc (right to erasure, Block 4).
+      allow delete: if isOwnerUser() || isSelf(uid);
+    }
+
+    // ---------- Client nutrition data ----------
+    // Create/update require an approved account and own ownerUid.
+    // Delete of one's own documents is allowed regardless of approval
+    // status (erasure must work even after withdrawal/revocation);
+    // nobody can delete another client's documents except the trainer.
+    match /nutrition_meals/{docId} {
+      allow create: if isApprovedUser()
+        && request.resource.data.ownerUid == request.auth.uid;
+      allow get, list: if isOwnerUser()
+        || (isApprovedUser() && resource.data.ownerUid == request.auth.uid);
+      allow update: if isOwnerUser()
+        || (isApprovedUser() && resource.data.ownerUid == request.auth.uid);
+      allow delete: if isOwnerUser()
+        || (signedIn() && resource.data.ownerUid == request.auth.uid);
+    }
+
+    match /nutrition_weight/{docId} {
+      allow create: if isApprovedUser()
+        && request.resource.data.ownerUid == request.auth.uid;
+      allow get, list: if isOwnerUser()
+        || (isApprovedUser() && resource.data.ownerUid == request.auth.uid);
+      allow update: if isOwnerUser()
+        || (isApprovedUser() && resource.data.ownerUid == request.auth.uid);
+      allow delete: if isOwnerUser()
+        || (signedIn() && resource.data.ownerUid == request.auth.uid);
+    }
+
+    match /nutrition_progress/{docId} {
+      allow create: if isApprovedUser()
+        && request.resource.data.ownerUid == request.auth.uid;
+      allow get, list: if isOwnerUser()
+        || (isApprovedUser() && resource.data.ownerUid == request.auth.uid);
+      allow update: if isOwnerUser()
+        || (isApprovedUser() && resource.data.ownerUid == request.auth.uid);
+      allow delete: if isOwnerUser()
+        || (signedIn() && resource.data.ownerUid == request.auth.uid);
+    }
+
+    match /meal_help/{docId} {
+      allow create: if isApprovedUser()
+        && request.resource.data.ownerUid == request.auth.uid;
+      allow get, list: if isOwnerUser()
+        || (isApprovedUser() && resource.data.ownerUid == request.auth.uid);
+      allow update: if isOwnerUser()
+        || (isApprovedUser() && resource.data.ownerUid == request.auth.uid);
+      allow delete: if isOwnerUser()
+        || (signedIn() && resource.data.ownerUid == request.auth.uid);
+    }
+
+    // ---------- Training (Block 3) ----------
+    // Plans are authored ONLY by the trainer. Clients read their own.
+    match /training_plans/{docId} {
+      allow get, list: if isOwnerUser()
+        || (isApprovedUser() && resource.data.clientUid == request.auth.uid);
+      allow create, update, delete: if isOwnerUser();
+    }
+
+    // Session logs: clients create/delete their own (done/undo);
+    // no updates (the app toggles by create/delete). Trainer reads all.
+    match /training_logs/{docId} {
+      allow create: if isApprovedUser()
+        && request.resource.data.clientUid == request.auth.uid
+        && request.resource.data.done == true;
+      allow get, list: if isOwnerUser()
+        || (isApprovedUser() && resource.data.clientUid == request.auth.uid);
+      allow delete: if isOwnerUser()
+        || (signedIn() && resource.data.clientUid == request.auth.uid);
+    }
+
+    // ---------- Everything else: denied ----------
+    match /{document=**} {
+      allow read, write: if false;
+    }
+  }
+}
