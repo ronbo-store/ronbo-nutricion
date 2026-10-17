@@ -1,0 +1,50 @@
+# RONBO NUTRI — Batería de escenarios de cierre y reversión en el
+# emulador oficial de Firestore (proyectos ficticios demo-cierre-hc1
+# y demo-cierre-r3). Comprobaciones autorizadas por Ronald el
+# 16/10/2026: solo aislamiento, datos ficticios. Sin secretos, sin
+# credenciales de producción, sin despliegue.
+name: Batería cierre/reversión (emulador oficial)
+
+on:
+  workflow_dispatch:
+  push:
+    branches: [ci/cierre-escenarios]
+
+permissions:
+  contents: read
+
+jobs:
+  bateria:
+    name: 6 casos contra el emulador oficial (proyectos ficticios)
+    runs-on: ubuntu-24.04
+    timeout-minutes: 20
+    defaults:
+      run:
+        working-directory: tests-cierre
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: 21
+      - name: Instalar dependencias de la batería (versiones fijadas)
+        run: npm ci
+      - name: Instalar Firebase CLI (versión fijada)
+        run: npm install -g firebase-tools@15.34.0
+      - name: Ejecutar la batería contra el emulador oficial
+        shell: bash
+        run: |
+          set -o pipefail
+          firebase emulators:exec --only firestore --project demo-cierre-escenarios "node bateria-cierre.mjs" 2>&1 | tee resultado-bateria.txt
+      - name: Conservar la evidencia (salida de la batería)
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: evidencia-bateria-cierre
+          path: |
+            tests-cierre/resultado-bateria.txt
+            tests-cierre/firestore-debug.log
+          retention-days: 7
