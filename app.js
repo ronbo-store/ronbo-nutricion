@@ -6,7 +6,7 @@ import {
 } from "firebase/auth";
 import {
   getFirestore, doc, getDoc, collection, getDocs, addDoc,
-  setDoc, deleteDoc, serverTimestamp, query, where, writeBatch,
+  setDoc, deleteDoc, serverTimestamp, query, where, limit, writeBatch,
 } from "firebase/firestore";
 import {
   getStorage, ref as sRef, uploadBytes, getDownloadURL, deleteObject,
@@ -105,7 +105,7 @@ en: {
   'health.needSpec': 'You must first give your specific consent.',
   'health.versionLabel': 'Declaration {n} · {date}',
   'terms.accept': 'I have read and accept the privacy notice.',
-  'terms.body': '<b>PRIVACY NOTICE AND CONSENT FOR THE PROCESSING OF PERSONAL DATA</b><br><br>When you create your account at <b>ronbo.nutri</b>, you agree to the following:<br><br><b>1. Controller.</b> ronbo.nutri is responsible for your data.<br><br><b>2. Data we collect.</b> Name, email, phone, sex/gender, social media (optional), health condition declaration, food logs, weight and body composition, profile, progress and food photos (for nutritional analysis), and your nutrition goals.<br><br><b>3. Purpose.</b> To provide personalized training and nutrition coaching services, track your progress, and communicate with you.<br><br><b>4. Storage.</b> Your data is stored securely in Google Firebase (United States), with restricted access: only you and your trainer can see it.<br><br><b>5. Your rights.</b> You may at any time request to view, correct, or delete your data. Deleting your account erases your records.<br><br><b>6. Retention.</b> We keep your data while you are a client and up to 2 years after your last activity, unless you request deletion sooner.<br><br><b>7. Minors.</b> This service is for adults 18 and older only.<br><br><b>8. Revocation.</b> You may withdraw your consent at any time by writing to your trainer; doing so will delete your data and close your account.<br><br><b>9. Health and exercise.</b> The trainer is an ISSA-certified fitness professional, not a medical professional. Consult your doctor before starting any exercise or nutrition program, especially if you declared a health condition.<br><br>By checking the box and creating your account, you declare that you read this notice and consent to the processing of your data for the purposes described.',
+  'terms.body': '<b>PRIVACY NOTICE AND CONSENT FOR THE PROCESSING OF PERSONAL DATA</b><br><br>When you create your account at <b>ronbo.nutri</b>, you agree to the following:<br><br><b>1. Controller.</b> ronbo.nutri is responsible for your data.<br><br><b>2. Data we collect.</b> Name, email, phone, sex/gender, social media (optional), health condition declaration, food logs, weight and body composition, profile, progress and food photos (for nutritional analysis), and your nutrition goals.<br><br><b>3. Purpose.</b> To provide personalized training and nutrition coaching services, track your progress, and communicate with you.<br><br><b>4. Storage.</b> Your data is stored securely in Google Firebase (United States), with restricted access: only you and your trainer can see it.<br><br><b>5. Your rights.</b> You may at any time request to view, correct, or delete your data. Deleting your account erases your records.<br><br><b>6. Retention.</b> Your general account data (profile, food, weight and activity logs) are kept while your account is active. Your health declarations are treated separately: they are kept only while your specific consent is in force and your training relationship is active. If you withdraw your specific consent, or your training relationship ends, your health declarations are immediately blocked from ordinary use and will be deleted no later than 12 months after the first of those events to occur, unless you ask us to delete them sooner. Later use of the app, renewing your general consent, or resuming your training relationship does not extend or restart that period. Deletion under this clause is carried out through our documented manual procedure; it is not an automated process. If a specific legal obligation or an ongoing claim requires keeping specific information longer, we will keep only that information, for only that period, and we will tell you what is kept, why, and until when. Minimal consent records (the date and text version of each consent you give, withdraw or renew, without your health answers) may be kept as proof of consent while your account exists and for up to 24 months after it is closed.<br><br><b>7. Minors.</b> This service is for adults 18 and older only.<br><br><b>8. Withdrawal of consent.</b> You may withdraw your general consent at any time from the Privacy & Data section of the app, or by writing to your trainer. Withdrawing it suspends your access to the service; it does not by itself delete your data or close your account. Your existing information is kept under the retention policy in clause 6, and you may renew your general consent at any time. Renewing your consent is not the same as being approved as a client: access to the functions reserved for approved clients also requires your trainer's approval, which after a withdrawal may need to be granted again. Your health declaration is governed by a separate, specific consent: withdrawing that specific consent immediately blocks your trainer's ordinary access to your health declarations, which are kept restricted under clause 6 and are never reactivated by renewing the general consent. If you later renew your specific consent, you may submit a new declaration; declarations already blocked are not reactivated. You may at any time request the deletion of your health answers — a separate request that we process manually — without deleting your account. You may also delete your account and your data from the Privacy & Data section, subject only to the minimal consent records and the justified exceptions described in clause 6.<br><br><b>9. Health and exercise.</b> The trainer is an ISSA-certified fitness professional, not a medical professional. Consult your doctor before starting any exercise or nutrition program, especially if you declared a health condition.<br><br>By checking the box and creating your account, you declare that you read this notice and consent to the processing of your data for the purposes described.',
   'auth.create': 'Create my account',
   'app.logout': 'log out',
   'app.goals': 'Your daily goals',
@@ -229,6 +229,7 @@ en: {
   'err.forgotNoEmail': 'Type your email above so we can send you the link.',
   'err.resetFail': 'Couldn\'t send the email. Try again.',
   'err.noAccess': 'This account has no access.',
+  'sys.maintenance': 'Maintenance in progress: consent and account operations are briefly unavailable while we complete a system update. Please try again in a few minutes. Your data is safe.',
   'err.pending': 'Your account is pending administrator approval.',
   'err.verifyFail': 'Couldn\'t verify access.',
   'err.badCreds': 'Incorrect credentials.',
@@ -429,7 +430,7 @@ es: {
   'health.needSpec': 'Primero debes dar tu consentimiento específico.',
   'health.versionLabel': 'Declaración {n} · {date}',
   'terms.accept': 'He leído y acepto el aviso de privacidad.',
-  'terms.body': '<b>AVISO DE PRIVACIDAD Y CONSENTIMIENTO PARA EL TRATAMIENTO DE DATOS PERSONALES</b><br><br>Al crear tu cuenta en <b>ronbo.nutri</b>, aceptas lo siguiente:<br><br><b>1. Responsable.</b> ronbo.nutri es responsable de tus datos.<br><br><b>2. Datos que recogemos.</b> Nombre, correo, teléfono, sexo/género, redes sociales (opcional), declaración de condiciones de salud, registros de alimentación, peso y composición corporal, fotos de perfil, de progreso y de alimentos (para análisis nutricional), y tus metas nutricionales.<br><br><b>3. Finalidad.</b> Prestar servicios de entrenamiento y asesoría nutricional personalizada, dar seguimiento a tu progreso y comunicarnos contigo.<br><br><b>4. Almacenamiento.</b> Tus datos se guardan de forma segura en Google Firebase (Estados Unidos), con acceso restringido: solo tú y tu entrenador pueden verlos.<br><br><b>5. Tus derechos.</b> Puedes pedir en cualquier momento ver, corregir o eliminar tus datos. Eliminar tu cuenta borra tus registros.<br><br><b>6. Conservación.</b> Guardamos tus datos mientras seas cliente y hasta 2 años después de tu última actividad, salvo que pidas eliminarlos antes.<br><br><b>7. Menores.</b> Este servicio es solo para personas mayores de 18 años.<br><br><b>8. Revocación.</b> Puedes retirar tu consentimiento en cualquier momento escribiendo a tu entrenador; al hacerlo se eliminarán tus datos y se cerrará tu cuenta.<br><br><b>9. Salud y ejercicio.</b> El entrenador es un profesional del fitness certificado (ISSA), no un profesional médico. Consulta a tu médico antes de iniciar cualquier programa de ejercicio o nutrición, especialmente si declaraste alguna condición de salud.<br><br>Al marcar la casilla y crear tu cuenta, declaras que leíste este aviso y das tu consentimiento para el tratamiento de tus datos con las finalidades descritas.',
+  'terms.body': '<b>AVISO DE PRIVACIDAD Y CONSENTIMIENTO PARA EL TRATAMIENTO DE DATOS PERSONALES</b><br><br>Al crear tu cuenta en <b>ronbo.nutri</b>, aceptas lo siguiente:<br><br><b>1. Responsable.</b> ronbo.nutri es responsable de tus datos.<br><br><b>2. Datos que recogemos.</b> Nombre, correo, teléfono, sexo/género, redes sociales (opcional), declaración de condiciones de salud, registros de alimentación, peso y composición corporal, fotos de perfil, de progreso y de alimentos (para análisis nutricional), y tus metas nutricionales.<br><br><b>3. Finalidad.</b> Prestar servicios de entrenamiento y asesoría nutricional personalizada, dar seguimiento a tu progreso y comunicarnos contigo.<br><br><b>4. Almacenamiento.</b> Tus datos se guardan de forma segura en Google Firebase (Estados Unidos), con acceso restringido: solo tú y tu entrenador pueden verlos.<br><br><b>5. Tus derechos.</b> Puedes pedir en cualquier momento ver, corregir o eliminar tus datos. Eliminar tu cuenta borra tus registros.<br><br><b>6. Conservación.</b> Tus datos generales de cuenta (perfil, registros de alimentación, peso y actividad) se conservan mientras tu cuenta esté activa. Tus declaraciones de salud reciben un tratamiento separado: se conservan solo mientras tu consentimiento específico esté vigente y tu relación de entrenamiento esté activa. Si retiras tu consentimiento específico, o si finaliza tu relación de entrenamiento, tus declaraciones de salud se bloquean de inmediato para su uso ordinario y se eliminarán a más tardar 12 meses después del primero de esos eventos que ocurra, salvo que pidas eliminarlas antes. El uso posterior de la aplicación, renovar tu consentimiento general o reanudar tu relación de entrenamiento no prolonga ni reinicia ese plazo. La eliminación prevista en esta cláusula se realiza mediante nuestro procedimiento manual documentado; no es un proceso automático. Si una obligación legal concreta o una reclamación en curso exigiera conservar información específica por más tiempo, se conservará solo esa información, solo por ese periodo, y te informaremos de qué se conserva, por qué y hasta cuándo. Los registros mínimos de consentimiento (la fecha y la versión del texto de cada consentimiento que otorgues, retires o renueves, sin tus respuestas de salud) podrán conservarse como prueba del consentimiento mientras tu cuenta exista y hasta 24 meses después de su cierre.<br><br><b>7. Menores.</b> Este servicio es solo para personas mayores de 18 años.<br><br><b>8. Retirada del consentimiento.</b> Puedes retirar tu consentimiento general en cualquier momento desde la sección Privacidad y datos de la aplicación, o escribiendo a tu entrenador. Al retirarlo se suspende tu acceso al servicio; por sí solo no elimina tus datos ni cierra tu cuenta. Tu información existente se conserva conforme a la política de conservación de la cláusula 6, y puedes renovar tu consentimiento general en cualquier momento. Renovar tu consentimiento no equivale a estar aprobado como cliente: el acceso a las funciones reservadas a clientes aprobados requiere además la aprobación de tu entrenador, que tras una retirada podría tener que concederse de nuevo. Tu declaración de salud se rige por un consentimiento específico e independiente: al retirarlo se bloquea de inmediato el acceso ordinario de tu entrenador a tus declaraciones de salud, que se conservan restringidas conforme a la cláusula 6 y nunca se reactivan por renovar el consentimiento general. Si más adelante renuevas tu consentimiento específico, podrás presentar una declaración nueva; las declaraciones ya bloqueadas no se reactivan. Puedes solicitar en cualquier momento la eliminación de tus respuestas de salud —una solicitud independiente que tramitamos manualmente— sin eliminar tu cuenta. También puedes eliminar tu cuenta y tus datos desde la sección Privacidad y datos, con la única salvedad de los registros mínimos de consentimiento y las excepciones justificadas descritas en la cláusula 6.<br><br><b>9. Salud y ejercicio.</b> El entrenador es un profesional del fitness certificado (ISSA), no un profesional médico. Consulta a tu médico antes de iniciar cualquier programa de ejercicio o nutrición, especialmente si declaraste alguna condición de salud.<br><br>Al marcar la casilla y crear tu cuenta, declaras que leíste este aviso y das tu consentimiento para el tratamiento de tus datos con las finalidades descritas.',
   'auth.create': 'Crear mi cuenta',
   'app.logout': 'salir',
   'app.goals': 'Tus metas diarias',
@@ -553,6 +554,7 @@ es: {
   'err.forgotNoEmail': 'Escribe tu correo arriba para enviarte el enlace.',
   'err.resetFail': 'No se pudo enviar el correo. Intenta de nuevo.',
   'err.noAccess': 'Esta cuenta no tiene acceso.',
+  'sys.maintenance': 'Mantenimiento en curso: las operaciones de consentimiento y de cuenta no están disponibles durante unos minutos mientras completamos una actualización del sistema. Inténtalo de nuevo en unos minutos. Tus datos están a salvo.',
   'err.pending': 'Tu cuenta está pendiente de aprobación por el administrador.',
   'err.verifyFail': 'No se pudo verificar el acceso.',
   'err.badCreds': 'Credenciales incorrectas.',
@@ -858,6 +860,15 @@ $('form-register').addEventListener('submit', async e => {
   } catch (err) {
     suppressAuthCheck = false;
     const code = err.code || '';
+    if (code.includes('permission-denied')) {
+      /* Ventana de transición D→E: con las reglas anteriores el lote
+         de registro se deniega atómicamente (no nace ningún dato).
+         Se elimina la identidad recién creada para no dejar cuentas
+         huérfanas y se informa del mantenimiento. */
+      try { if (auth.currentUser) await deleteUser(auth.currentUser); } catch {}
+      showRegError(t('sys.maintenance'));
+      return;
+    }
     showRegError(code.includes('email-already-in-use') ? t('err.emailInUse')
       : code.includes('weak-password') ? t('err.weakPw')
       : code.includes('invalid-email') ? t('err.badEmail')
@@ -1199,6 +1210,7 @@ $('form-profile').addEventListener('submit', async e => {
 
 /* ================= DATA ================= */
 async function loadAll() {
+  if (auth.currentUser && RULES_EPOCH === 'unknown') probeRulesEpoch(auth.currentUser.uid);
   MEALS = {};
   /* Diario personal: siempre filtrado por el uid autenticado, también
      para el dueño (colQuery sin filtro dejaba ver las comidas de todos
@@ -1382,7 +1394,7 @@ if (mhFile) mhFile.addEventListener('change', async e => {
    entrenador) y del rol de propietario. La renovación registra una
    aceptación NUEVA (fecha + versión) y CONSERVA consentWithdrawnAt
    como historial: nunca se borra ni se reescribe. */
-const TERMS_VERSION = 'v2-2026-10-14';
+const TERMS_VERSION = 'v3-2026-10-16'; // v3: cláusulas 6 y 8 corregidas (Paso C)
 function tsMs(ts) {
   if (!ts) return 0;
   if (typeof ts.toDate === 'function') return ts.toDate().getTime();
@@ -1410,6 +1422,43 @@ function consentBatch(uid, cur, cambios, type, version) {
   batch.set(receiptRef(rid), { uid, email: (cur && cur.email) || (auth.currentUser && auth.currentUser.email) || '', type, version, at: serverTimestamp() });
   return { batch, seq, rid };
 }
+/* === Protección de la ventana D→E (sonda de época de reglas) ===
+   Las operaciones de consentimiento de A2 viajan acopladas a un
+   recibo en consent_receipts. Con las reglas H-C1 esa colección no
+   existe y todo lote acoplado se deniega; con r3, leer los recibos
+   propios está permitido. La sonda distingue la época con SOLO
+   LECTURAS: si la lectura se deniega, la app entra en mantenimiento
+   para las operaciones de consentimiento y de cuenta (registro,
+   renovar/retirar el general, otorgar/renovar/retirar el
+   específico y cierre de cuenta) y las bloquea ANTES de cualquier
+   escritura — en particular antes del paso 1 del cierre, que borra
+   datos propios. Los datos ordinarios (comidas, peso, perfil) no se
+   bloquean: funcionan igual bajo ambas reglas. */
+let RULES_EPOCH = 'unknown';
+async function probeRulesEpoch(uid) {
+  try {
+    await getDocs(query(collection(db, 'consent_receipts'), where('uid', '==', uid), limit(1)));
+    RULES_EPOCH = 'r3'; return true;
+  } catch (e1) {
+    try {
+      await getDoc(receiptRef(uid + '_1'));
+      RULES_EPOCH = 'r3'; return true;
+    } catch (e2) {
+      if ((e1 && e1.code === 'permission-denied') || (e2 && e2.code === 'permission-denied')) {
+        RULES_EPOCH = 'hc1'; return false;
+      }
+      return RULES_EPOCH === 'r3';
+    }
+  }
+}
+async function consentOpsAllowed() {
+  const uid = auth.currentUser && auth.currentUser.uid;
+  if (!uid) return false;
+  if (RULES_EPOCH === 'r3') return true;
+  if (await probeRulesEpoch(uid)) return true;
+  toast(t('sys.maintenance'), true);
+  return false;
+}
 function consentIsActive(u) {
   if (!u || u.acceptedTerms !== true) return false;
   const w = tsMs(u.consentWithdrawnAt);
@@ -1418,6 +1467,7 @@ function consentIsActive(u) {
 }
 async function doRenewConsent() {
   if (!auth.currentUser) return false;
+  if (!(await consentOpsAllowed())) return false;
   if (!confirm(t('priv.renewConfirm', { v: TERMS_VERSION }))) return false;
   const uid = auth.currentUser.uid;
   try {
@@ -1541,6 +1591,7 @@ $('btn-my-data') && $('btn-my-data').addEventListener('click', async () => {
 $('btn-withdraw') && $('btn-withdraw').addEventListener('click', async () => {
   if (!auth.currentUser) return;
   if (!confirm(t('priv.withdrawConfirm'))) return;
+  if (!(await consentOpsAllowed())) return;
   const uid = auth.currentUser.uid;
   try {
     const cur = await freshUserDoc(uid);
@@ -1556,6 +1607,7 @@ $('btn-delete-account') && $('btn-delete-account').addEventListener('click', asy
   if (!auth.currentUser) return;
   if (!confirm(t('priv.deleteConfirm'))) return;
   if (!confirm(t('priv.deleteConfirm'))) return;
+  if (!(await consentOpsAllowed())) return;
   const user = auth.currentUser;
   const uid = user.uid;
   toast(t('priv.working'));
@@ -1698,6 +1750,7 @@ async function grantSpec(isRenew) {
   const ok = $('spec-ok');
   if (!ok || !ok.checked) { toast(t('health.needSpec'), true); return; }
   if (isRenew && !confirm(t('health.renewSpecConfirm'))) return;
+  if (!(await consentOpsAllowed())) return;
   try {
     const uid = auth.currentUser.uid;
     const cur = await freshUserDoc(uid);
@@ -1721,6 +1774,7 @@ async function grantSpec(isRenew) {
 async function withdrawSpec() {
   if (!auth.currentUser) return;
   if (!confirm(t('health.withdrawSpecConfirm'))) return;
+  if (!(await consentOpsAllowed())) return;
   try {
     const uid = auth.currentUser.uid;
     const cur = await freshUserDoc(uid);
