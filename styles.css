@@ -167,7 +167,7 @@ table.whist { min-width: 640px; }
 .consent-box { margin: 12px 0; }
 .consent-text { max-height: 180px; overflow-y: auto; background: #f8fafc; border: 1px solid #e5e7eb; border-radius: 8px; padding: 12px; font-size: 12px; line-height: 1.55; color: #4b5563; }
 .consent-check { display: flex; gap: 8px; align-items: flex-start; font-size: 13px; font-weight: 600; margin-top: 10px; cursor: pointer; }
-.consent-check input { width: auto; margin-top: 2px; }
+.consent-check input { width: 22px; height: 22px; margin-top: 1px; flex: 0 0 auto; accent-color: #0f766e; }
 .modal textarea { width: 100%; margin-top: 4px; padding: 9px 11px; border: 1px solid #d1d5db; border-radius: 8px; font-size: 14px; font-family: inherit; resize: vertical; }
 
 /* ===== declaración de salud ===== */
