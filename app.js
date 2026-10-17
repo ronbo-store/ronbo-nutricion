@@ -5,7 +5,7 @@ import {
   signOut, onAuthStateChanged, sendPasswordResetEmail, deleteUser,
 } from "firebase/auth";
 import {
-  getFirestore, doc, getDoc, collection, getDocs, addDoc,
+  getFirestore, doc, getDoc, getDocFromServer, collection, getDocs, getDocsFromServer, addDoc,
   setDoc, deleteDoc, serverTimestamp, query, where, limit, writeBatch,
 } from "firebase/firestore";
 import {
@@ -287,6 +287,7 @@ en: {
   'priv.deleted': 'Your account and data have been deleted.',
   'priv.deleteFail': 'We could not complete the deletion. Please try again.',
   'priv.dataDeletedFinish': 'Your data has been deleted. Sign in once more to finish closing your account.',
+  'priv.closedDataPending': 'Your account is closed. A few items could not be deleted automatically and will be removed manually; you do not need to do anything.',
   'priv.finishCloseAsk': 'Your data was already deleted. Do you want to finish closing your account now?',
   'priv.renew': 'Renew my consent',
   'priv.renewAccept': 'I accept the privacy notice',
@@ -612,6 +613,7 @@ es: {
   'priv.deleted': 'Tu cuenta y tus datos han sido eliminados.',
   'priv.deleteFail': 'No pudimos completar la eliminación. Inténtalo de nuevo.',
   'priv.dataDeletedFinish': 'Tus datos han sido eliminados. Inicia sesión una vez más para terminar de cerrar tu cuenta.',
+  'priv.closedDataPending': 'Tu cuenta está cerrada. Algunos elementos no pudieron eliminarse automáticamente y se eliminarán manualmente; no tienes que hacer nada.',
   'priv.finishCloseAsk': 'Tus datos ya fueron eliminados. ¿Quieres terminar de cerrar tu cuenta ahora?',
   'priv.renew': 'Renovar mi consentimiento',
   'priv.renewAccept': 'Acepto el aviso de privacidad',
@@ -1436,25 +1438,30 @@ function consentBatch(uid, cur, cambios, type, version) {
    bloquean: funcionan igual bajo ambas reglas. */
 let RULES_EPOCH = 'unknown';
 async function probeRulesEpoch(uid) {
+  /* La sonda se ejecuta SIEMPRE en el momento de la operación y
+     SIEMPRE contra el servidor (FromServer): una detección anterior
+     —o un resultado servido desde la caché local de Firestore— NO
+     habilita nada, porque las reglas activas pueden haber cambiado
+     desde entonces (p. ej., una reversión de E). RULES_EPOCH guarda
+     solo el último resultado conocido, con fines informativos. */
   try {
-    await getDocs(query(collection(db, 'consent_receipts'), where('uid', '==', uid), limit(1)));
+    await getDocsFromServer(query(collection(db, 'consent_receipts'), where('uid', '==', uid), limit(1)));
     RULES_EPOCH = 'r3'; return true;
   } catch (e1) {
     try {
-      await getDoc(receiptRef(uid + '_1'));
+      await getDocFromServer(receiptRef(uid + '_1'));
       RULES_EPOCH = 'r3'; return true;
     } catch (e2) {
       if ((e1 && e1.code === 'permission-denied') || (e2 && e2.code === 'permission-denied')) {
         RULES_EPOCH = 'hc1'; return false;
       }
-      return RULES_EPOCH === 'r3';
+      return false; // sin confirmación del servidor: fail-closed
     }
   }
 }
 async function consentOpsAllowed() {
   const uid = auth.currentUser && auth.currentUser.uid;
   if (!uid) return false;
-  if (RULES_EPOCH === 'r3') return true;
   if (await probeRulesEpoch(uid)) return true;
   toast(t('sys.maintenance'), true);
   return false;
@@ -1611,19 +1618,20 @@ $('btn-delete-account') && $('btn-delete-account').addEventListener('click', asy
   const user = auth.currentUser;
   const uid = user.uid;
   toast(t('priv.working'));
-  /* Orden A2 (cierre veraz): 1) datos propios y declaraciones;
-     2) lote de cierre atómico (recibo 'account-closed' + borrar
-     el documento de usuario); 3) identidad de Auth. Ningún paso
-     anuncia un cierre mayor del que realmente ocurrió. */
+  /* Orden de cierre (corregido tras la revisión de escenarios):
+     1) se leen las listas de datos propios (solo lecturas);
+     2) LOTE DE CIERRE ATÓMICO PRIMERO (recibo 'account-closed' +
+     borrar el documento de usuario): si las reglas activas lo
+     deniegan, NO se ha borrado nada y la cuenta sigue intacta —
+     así, ni una reversión de reglas a mitad de sesión ni una app
+     con la época en caché pueden producir un cierre parcial;
+     3) borrado de datos propios y declaraciones (las reglas los
+     permiten por uid/propietario aunque el documento de usuario ya
+     no exista); los fallos se cuentan y se dicen con verdad;
+     4) identidad de Auth, al final. */
   const mine = await fetchMyDocs(uid);
-  for (const [name] of MY_DATA_COLLECTIONS)
-    for (const x of mine[name]) { try { await deleteDoc(doc(db, name, x.id)); } catch {} }
-  /* Las subcolecciones no se borran al borrar el documento padre:
-     las declaraciones de salud se eliminan una a una, antes. */
-  try {
-    const decls = await fetchDeclarations(uid);
-    for (const d of decls) { try { await deleteDoc(doc(declCol(uid), d.id)); } catch {} }
-  } catch {}
+  let decls = [];
+  try { decls = await fetchDeclarations(uid); } catch {}
   try {
     const cur = await freshUserDoc(uid);
     const closeBatch = writeBatch(db);
@@ -1632,13 +1640,20 @@ $('btn-delete-account') && $('btn-delete-account').addEventListener('click', asy
     closeBatch.delete(doc(db, 'users', uid));
     await closeBatch.commit();
   } catch { toast(t('priv.deleteFail'), true); return; }
+  let pending = 0;
+  for (const [name] of MY_DATA_COLLECTIONS)
+    for (const x of mine[name]) { try { await deleteDoc(doc(db, name, x.id)); } catch { pending++; } }
+  /* Las subcolecciones no se borran al borrar el documento padre:
+     las declaraciones se eliminan una a una. */
+  for (const d of decls) { try { await deleteDoc(doc(declCol(uid), d.id)); } catch { pending++; } }
   try {
     await deleteUser(user);
-    toast(t('priv.deleted'));
+    toast(pending ? t('priv.closedDataPending') : t('priv.deleted'), pending ? true : false);
   } catch {
-    /* Los datos ya no existen, pero la identidad de Auth sigue
-       viva (p. ej., requires-recent-login): se dice la verdad y
-       el cierre se completa al volver a iniciar sesión. */
+    /* La identidad de Auth sigue viva (p. ej.,
+       requires-recent-login): se dice la verdad y el cierre de la
+       identidad se completa al volver a iniciar sesión; si quedó
+       algún dato pendiente, lo completa el procedimiento manual. */
     toast(t('priv.dataDeletedFinish'), true);
     await signOut(auth);
   }
