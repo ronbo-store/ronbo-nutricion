@@ -175,6 +175,19 @@ en: {
   'mealhelp.foodAlt': 'Food',
   'mealhelp.tapZoom': 'Tap to enlarge',
   'mealhelp.zoomed': 'Enlarged photo',
+  'ai.analyze': '✨ Analyze with AI',
+  'ai.analyzing': 'Analyzing…',
+  'ai.foodsFound': 'I found these foods:',
+  'ai.questionsTitle': 'A few quick questions (you can skip them):',
+  'ai.skipOption': 'Not sure / skip',
+  'ai.continue': 'Continue',
+  'ai.draftTitle': 'Estimated draft — nothing is saved yet',
+  'ai.range': 'Estimated range: {a}–{b} kcal',
+  'ai.useDraft': 'Use as draft',
+  'ai.discard': 'Discard',
+  'ai.unavailable': 'AI analysis is not active yet.',
+  'ai.failed': 'The analysis failed. You can log the meal manually.',
+  'ai.banner': 'AI draft — check and edit the values before saving.',
   'access.title': '🔐 Access management',
   'access.sub': '· administrator only',
   'access.hint': 'New accounts stay pending until you approve them. Only approved users can sign in, and each one sees only their own data.',
@@ -504,6 +517,19 @@ es: {
   'mealhelp.foodAlt': 'Comida',
   'mealhelp.tapZoom': 'Toca para ampliar',
   'mealhelp.zoomed': 'Foto ampliada',
+  'ai.analyze': '✨ Analizar con IA',
+  'ai.analyzing': 'Analizando…',
+  'ai.foodsFound': 'Encontré estos alimentos:',
+  'ai.questionsTitle': 'Unas preguntas rápidas (puedes saltarlas):',
+  'ai.skipOption': 'No sé / saltar',
+  'ai.continue': 'Continuar',
+  'ai.draftTitle': 'Borrador estimado: aún no se guarda nada',
+  'ai.range': 'Rango estimado: {a}–{b} kcal',
+  'ai.useDraft': 'Usar como borrador',
+  'ai.discard': 'Descartar',
+  'ai.unavailable': 'El análisis con IA aún no está activo.',
+  'ai.failed': 'El análisis falló. Puedes registrar la comida manualmente.',
+  'ai.banner': 'Borrador de IA: revisa y edita los valores antes de guardar.',
   'access.title': '🔐 Administración de accesos',
   'access.sub': '· solo administrador',
   'access.hint': 'Las cuentas nuevas quedan pendientes hasta que las apruebes. Solo los usuarios aprobados pueden entrar y cada uno ve únicamente sus datos.',
@@ -1444,10 +1470,12 @@ async function loadMealHelp() {
     <div class="mealhelp-item">
       <img src="${m.photoURL}" alt="${t('mealhelp.foodAlt')}" data-mh-view="${m.id}" title="${t('mealhelp.tapZoom')}">
       <div class="mealhelp-row"><span class="mealhelp-status">${m.status === 'reviewed' ? t('mealhelp.reviewed') : t('mealhelp.pending')}</span>
+      <button class="btn-ghost btn-sm" data-mh-ai="${m.id}" title="${t('ai.analyze')}">✨</button>
       <button class="btn-ghost btn-sm" data-mh-del="${m.id}">✕</button></div>
     </div>`).join('') : `<div class="wempty">${t('mealhelp.empty')}</div>`;
   const byId = id => items.find(x => x.id === id);
   box.querySelectorAll('[data-mh-view]').forEach(im => im.onclick = () => { const m = byId(im.dataset.mhView); if (m) showLightbox(m.photoURL); });
+  box.querySelectorAll('[data-mh-ai]').forEach(b => b.onclick = () => { const m = byId(b.dataset.mhAi); if (m) aiAnalyze(m); });
   box.querySelectorAll('[data-mh-del]').forEach(b => b.onclick = async () => {
     if (!confirm(t('confirm.delPhoto'))) return;
     await deleteDoc(doc(db, 'meal_help', b.dataset.mhDel));
@@ -1469,6 +1497,87 @@ if (mhFile) mhFile.addEventListener('change', async e => {
     loadMealHelp();
   } catch { toast(t('mealhelp.uploadFail'), true); }
 });
+
+/* ================= M8 — REVISIÓN AUTOMÁTICA CON IA (Fase C, local) =====
+   Flujo: foto de Meal help → el intermediario (Worker) identifica los
+   alimentos y pregunta lo imprescindible → cálculo anclado a USDA →
+   BORRADOR editable en el modal de comida. Nada se guarda hasta que el
+   usuario confirma en el formulario, como en un registro manual.
+   La clave de IA vive SOLO en el intermediario, nunca en esta app.
+   AI_ENDPOINT queda vacío hasta la Fase D (URL del Worker); en pruebas
+   locales puede fijarse con localStorage 'm8.endpoint'. */
+const AI_ENDPOINT = '';
+let aiDraft = null; // {model, rangeKcal} del borrador pendiente de guardar
+function aiEndpoint() {
+  try { return localStorage.getItem('m8.endpoint') || AI_ENDPOINT; } catch { return AI_ENDPOINT; }
+}
+async function aiCall(path, body) {
+  const ep = aiEndpoint();
+  if (!ep) throw new Error('ai-off');
+  const idToken = await auth.currentUser.getIdToken();
+  const r = await fetch(ep + path, {
+    method: 'POST', headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ ...body, idToken })
+  });
+  if (!r.ok) throw new Error('ai-' + r.status);
+  return r.json();
+}
+function aiShow(html) { const p = $('ai-panel'); if (p) { p.style.display = ''; p.innerHTML = html; } }
+function aiClosePanel() { const p = $('ai-panel'); if (p) { p.style.display = 'none'; p.innerHTML = ''; } }
+async function aiAnalyze(item) {
+  if (!aiEndpoint()) { toast(t('ai.unavailable'), true); return; }
+  aiShow(`<p class="progress-hint">${t('ai.analyzing')}</p>`);
+  try {
+    const r1 = await aiCall('/identify', { imageDataUrl: item.photoURL, lang: LANG });
+    const foods = r1.foods || [];
+    const qs = (r1.questions || []).slice(0, 3);
+    const list = foods.map(f => `<li>${esc(f.name)} — ${Math.round(f.portion_g_estimate || 0)} g</li>`).join('');
+    const qhtml = qs.map((q, i) => `<div class="ai-q"><p>${esc(q.text)}</p>${(q.options || []).map(o => `<label class="ai-opt"><input type="radio" name="aiq${i}" value="${esc(o)}"> ${esc(o)}</label>`).join('')}<label class="ai-opt"><input type="radio" name="aiq${i}" value="skipped" checked> ${t('ai.skipOption')}</label></div>`).join('');
+    aiShow(`<h3>${t('ai.foodsFound')}</h3><ul class="ai-foods">${list}</ul>${qs.length ? `<h3>${t('ai.questionsTitle')}</h3>${qhtml}` : ''}<div class="ai-actions"><button type="button" class="btn-main btn-sm" id="ai-continue">${t('ai.continue')}</button><button type="button" class="btn-ghost btn-sm" id="ai-cancel">${t('ai.discard')}</button></div>`);
+    $('ai-cancel').onclick = aiClosePanel;
+    $('ai-continue').onclick = async () => {
+      const answers = {};
+      qs.forEach((q, i) => { const sel = document.querySelector(`input[name="aiq${i}"]:checked`); answers[q.id] = sel ? sel.value : 'skipped'; });
+      aiShow(`<p class="progress-hint">${t('ai.analyzing')}</p>`);
+      try {
+        const r2 = await aiCall('/calculate', { foods, answers, lang: LANG });
+        const tot = r2.totals || {};
+        const rows = (r2.items || []).map(it => `<li>${esc(it.name)} — ${Math.round(it.kcal || 0)} kcal</li>`).join('');
+        const range = Array.isArray(tot.range_kcal) ? tot.range_kcal : null;
+        aiShow(`<h3>${t('ai.draftTitle')}</h3><ul class="ai-foods">${rows}</ul><p><b>${Math.round(tot.kcal || 0)} kcal</b> · ${Math.round(tot.prot || 0)} ${t('form.protein')} · ${Math.round(tot.carb || 0)} ${t('form.carbs')} · ${Math.round(tot.fat || 0)} ${t('form.fat')}</p>${range ? `<p class="progress-hint">${t('ai.range').replace('{a}', Math.round(range[0])).replace('{b}', Math.round(range[1]))}</p>` : ''}<div class="ai-actions"><button type="button" class="btn-main btn-sm" id="ai-use">${t('ai.useDraft')}</button><button type="button" class="btn-ghost btn-sm" id="ai-cancel2">${t('ai.discard')}</button></div>`);
+        $('ai-cancel2').onclick = aiClosePanel;
+        $('ai-use').onclick = () => aiUseDraft(r1, r2);
+      } catch { toast(t('ai.failed'), true); aiClosePanel(); }
+    };
+  } catch { toast(t('ai.failed'), true); aiClosePanel(); }
+}
+function aiUseDraft(r1, r2) {
+  const tot = r2.totals || {};
+  const foods = r1.foods || [];
+  const grams = foods.reduce((s, f) => s + (f.portion_g_estimate || 0), 0);
+  $('m-date').value = $('dateSel').value || todayISO();
+  $('m-food').value = foods.map(f => f.name).join(', ').slice(0, 120);
+  $('m-qty').value = grams ? Math.round(grams) + ' g' : '';
+  $('m-kcal').value = Math.round(tot.kcal || 0);
+  $('m-prot').value = Math.round(tot.prot || 0);
+  $('m-carb').value = Math.round(tot.carb || 0);
+  $('m-sugar').value = Math.round(tot.sugar || 0);
+  $('m-fat').value = Math.round(tot.fat || 0);
+  $('m-notes').value = (r2.items || []).map(it => `${it.name}: ${Math.round(it.kcal || 0)} kcal`).join(' · ').slice(0, 300);
+  aiDraft = { model: r2.model || 'gemini', rangeKcal: Array.isArray(tot.range_kcal) ? tot.range_kcal : null };
+  const b = $('m-ai-banner');
+  if (b) {
+    b.style.display = '';
+    b.textContent = t('ai.banner') + (aiDraft.rangeKcal ? ' ' + t('ai.range').replace('{a}', Math.round(aiDraft.rangeKcal[0])).replace('{b}', Math.round(aiDraft.rangeKcal[1])) : '');
+  }
+  aiClosePanel();
+  $('meal-modal').style.display = '';
+}
+function aiClearDraft() {
+  aiDraft = null;
+  const b = $('m-ai-banner');
+  if (b) { b.style.display = 'none'; b.textContent = ''; }
+}
 
 /* ================= PRIVACIDAD Y DATOS (cliente) =================
    Nota: si en el futuro se activa Firebase Storage (Blaze), la eliminación
@@ -2491,8 +2600,8 @@ $('photo-front').addEventListener('change', e => { const f = e.target.files[0]; 
 $('photo-side').addEventListener('change', e => { const f = e.target.files[0]; e.target.value = ''; if (f) uploadProgressPhoto('side', f); });
 
 /* ================= FORMULARIOS ================= */
-$('btn-add-meal').onclick = () => { $('m-date').value = $('dateSel').value || todayISO(); $('meal-modal').style.display = ''; };
-$('meal-cancel').onclick = () => $('meal-modal').style.display = 'none';
+$('btn-add-meal').onclick = () => { aiClearDraft(); $('m-date').value = $('dateSel').value || todayISO(); $('meal-modal').style.display = ''; };
+$('meal-cancel').onclick = () => { $('meal-modal').style.display = 'none'; aiClearDraft(); };
 $('meal-modal').addEventListener('click', e => { if (e.target.id === 'meal-modal') e.target.style.display = 'none'; });
 
 $('m-photo').addEventListener('change', e => {
@@ -2523,7 +2632,9 @@ $('form-meal').addEventListener('submit', async e => {
       data.photoURL = up.url; data.photoPath = up.path;
     } catch (err) { toast(t('err.mealPhotoFail'), true); }
   }
+  if (aiDraft) { data.source = 'ai'; data.ai = { model: aiDraft.model, rangeKcal: aiDraft.rangeKcal }; }
   await addDoc(collection(db, 'nutrition_meals'), data);
+  aiClearDraft();
   $('meal-modal').style.display = 'none';
   e.target.reset();
   $('m-photo-preview').style.display = 'none'; $('m-photo-preview').src = '';

@@ -238,3 +238,13 @@ table.whist { min-width: 640px; }
 /* Privacidad y datos */
 .privacy-btns { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 10px; }
 .privacy-btns .danger { color: #b91c1c; }
+
+/* M8 — panel de análisis con IA y aviso de borrador (Fase C) */
+.ai-panel{margin-top:12px;border:1px solid #d8e2e0;border-radius:12px;padding:12px}
+.ai-panel h3{margin:8px 0 4px;font-size:15px}
+.ai-foods{margin:4px 0 8px 18px;padding:0}
+.ai-q{margin:10px 0}
+.ai-q p{margin:0 0 4px;font-weight:600}
+.ai-opt{display:block;margin:4px 0;font-weight:400}
+.ai-actions{display:flex;gap:8px;margin-top:12px;flex-wrap:wrap}
+.ai-banner{background:#e6f4f1;border:1px solid #0e7c6b;color:#0b5d51;border-radius:8px;padding:8px 10px;margin-bottom:10px;font-size:13px}

@@ -213,6 +213,7 @@
     <h2 data-i18n="mealhelp.title">📷 Meal help</h2>
     <p class="progress-hint" data-i18n="mealhelp.hint">Don't know a food's nutrition values? Upload its photo here and <b>let me know in the chat</b>: I'll analyze it and ask for the details I need (weight, cooking method).</p>
     <div id="mealhelp-list" class="mealhelp-list"><div class="wempty" data-i18n="mealhelp.empty">You haven't uploaded photos yet.</div></div>
+    <div id="ai-panel" class="ai-panel" style="display:none"></div>
   </div>
   <div class="panel train-panel">
     <h2 data-i18n="train.title">🏋️ My training plan</h2>
@@ -265,6 +266,7 @@
   <div class="modal">
     <h2 id="meal-modal-title" data-i18n="meal.title">Log meal</h2>
     <form id="form-meal">
+      <div id="m-ai-banner" class="ai-banner" style="display:none"></div>
       <div class="frow">
         <label><span data-i18n="form.date">Date</span> <input type="date" id="m-date" required></label>
         <label><span data-i18n="form.moment">Meal</span>
