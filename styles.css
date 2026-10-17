@@ -59,6 +59,10 @@ table.detail tr.total td { font-weight: 800; background: #f0fdf4; border-top: 2p
 .delta.down { color: #16a34a; } .delta.up { color: #d97706; } .delta.flat { color: #6b7280; }
 .chart-wrap { width: 100%; max-width: 100%; overflow-x: auto; }
 .wempty { text-align: center; color: #6b7280; font-size: 13px; padding: 22px 10px; }
+.wempty.compact { padding: 8px 10px; }
+.spec-details { margin: 8px 0; }
+.spec-details > summary { cursor: pointer; font-weight: 600; font-size: 13.5px; padding: 4px 0; }
+.spec-details .consent-check { margin-top: 6px; }
 .loading { text-align: center; padding: 60px 20px; font-size: 15px; color: #6b7280; }
 .error { background: #fde8e8; color: #7f1d1d; border-radius: 10px; padding: 14px 18px; font-size: 14px; margin-bottom: 14px; }
 

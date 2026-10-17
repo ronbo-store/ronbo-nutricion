@@ -100,6 +100,9 @@ en: {
   'health.withdrawnSpec': 'Your specific consent has been withdrawn. Your declarations are now blocked.',
   'health.specGranted': 'Your specific consent is recorded. You can now complete your declaration.',
   'health.fourActions': 'Four different actions: withdrawing your GENERAL consent (in Privacy & Data), withdrawing your SPECIFIC health consent (here), deleting your health answers (a separate request: ask your trainer), and deleting your account and all its data (in Privacy & Data). Each has different effects.',
+  'health.specSummary': 'Summary of the specific consent: ronbo.nutri may process your health declaration so your trainer can adapt your program and take precautions; only you and your trainer can see it; you may withdraw it at any time — withdrawal blocks access but does not delete your answers. The full text, which is the one that governs, appears in full next to the checkbox below.',
+  'health.specFullTitle': 'Full text of the specific consent',
+  'health.fourActionsTitle': 'The four actions, explained',
   'health.trainerNoAccess': 'Health declaration not available: this client has no active specific consent, or their declaration is blocked.',
   'health.trainerViewNote': 'Read-only. Health answers belong to the client; only the client can change them.',
   'health.needSpec': 'You must first give your specific consent.',
@@ -426,6 +429,9 @@ es: {
   'health.withdrawnSpec': 'Tu consentimiento específico se ha retirado. Tus declaraciones están ahora bloqueadas.',
   'health.specGranted': 'Tu consentimiento específico ha quedado registrado. Ya puedes completar tu declaración.',
   'health.fourActions': 'Cuatro acciones diferentes: retirar tu consentimiento GENERAL (en Privacidad y datos), retirar tu consentimiento ESPECÍFICO de salud (aquí), eliminar tus respuestas de salud (una solicitud separada: pídelo a tu entrenador) y eliminar tu cuenta y todos sus datos (en Privacidad y datos). Cada una tiene efectos distintos.',
+  'health.specSummary': 'Resumen del consentimiento específico: ronbo.nutri podrá tratar tu declaración de salud para que tu entrenador adapte tu programa y tome precauciones; solo tú y tu entrenador podrán verla; podrás retirarlo en cualquier momento — la retirada bloquea el acceso, pero no elimina tus respuestas. El texto completo, que es el que rige, aparece íntegro junto a la casilla, abajo.',
+  'health.specFullTitle': 'Texto completo del consentimiento específico',
+  'health.fourActionsTitle': 'Las cuatro acciones, explicadas',
   'health.trainerNoAccess': 'Declaración de salud no disponible: este cliente no tiene un consentimiento específico activo, o su declaración está bloqueada.',
   'health.trainerViewNote': 'Solo lectura. Las respuestas de salud pertenecen al cliente; solo el cliente puede cambiarlas.',
   'health.needSpec': 'Primero debes dar tu consentimiento específico.',
@@ -751,7 +757,18 @@ function setLang(l) {
   LANG = (l === 'es') ? 'es' : 'en';
   try { localStorage.setItem('ronbo-nutri-lang', LANG); } catch (e) {}
   applyI18n();
-  if (typeof auth !== 'undefined' && auth && auth.currentUser) refreshDynamic();
+  if (typeof auth !== 'undefined' && auth && auth.currentUser) {
+    /* E2 (17/10/2026): re-render inmediato, con los datos YA en
+       memoria, de los paneles que se pintan desde el estado local
+       (privacidad y salud), para que todo el texto visible cambie
+       de idioma al instante y no quede una mezcla mientras llega
+       la red. refreshDynamic() sigue actualizando desde el
+       servidor como siempre, y la reacción en vivo a cambios de
+       permisos/consentimiento (H-C2) no se toca. */
+    try { renderPrivacy(); } catch {}
+    try { renderHealthPanel(); } catch {}
+    refreshDynamic();
+  }
 }
 
 const $ = id => document.getElementById(id);
@@ -1817,15 +1834,29 @@ function renderHealthPanel() {
     }
   } else if (spec && spec.status === 'withdrawn') {
     html += `<p class="progress-hint">${t('health.statusWithdrawnSpec')}</p>
-      <label class="consent-check"><input type="checkbox" id="spec-ok"> <span>${t('health.specText')}</span></label>
+      <p class="progress-hint">${t('health.specSummary')}</p>
+      <details class="spec-details" id="spec-details">
+        <summary>${t('health.specFullTitle')}</summary>
+        <label class="consent-check"><input type="checkbox" id="spec-ok"> <span>${t('health.specText')}</span></label>
+      </details>
       <button type="button" class="btn-primary btn-sm" id="btn-spec-renew">${t('health.renewSpec')}</button>`;
   } else {
     html += `<p class="progress-hint">${t('health.statusNone')}</p>
-      <label class="consent-check"><input type="checkbox" id="spec-ok"> <span>${t('health.specText')}</span></label>
+      <p class="progress-hint">${t('health.specSummary')}</p>
+      <details class="spec-details" id="spec-details">
+        <summary>${t('health.specFullTitle')}</summary>
+        <label class="consent-check"><input type="checkbox" id="spec-ok"> <span>${t('health.specText')}</span></label>
+      </details>
       <button type="button" class="btn-primary btn-sm" id="btn-spec-start">${t('health.startBtn')}</button>`;
   }
   html += blockedListHTML();
-  html += `<p class="progress-hint">${t('health.fourActions')}</p>`;
+  /* E1 (17/10/2026): las cuatro acciones, en un despliegue cerrado
+     por defecto; el texto se conserva íntegro. El resumen del
+     consentimiento específico se identifica como resumen y el
+     texto completo —que es el que rige— va junto a la casilla
+     dentro de su despliegue, sin premarcarla; al intentar otorgar
+     con el despliegue cerrado, grantSpec lo abre primero. */
+  html += `<details class="spec-details"><summary>${t('health.fourActionsTitle')}</summary><p class="progress-hint">${t('health.fourActions')}</p></details>`;
   box.innerHTML = html;
   const wire = (id, fn) => { const el = $(id); if (el) el.onclick = fn; };
   wire('btn-spec-start', () => grantSpec(false));
@@ -1836,6 +1867,11 @@ function renderHealthPanel() {
 }
 async function grantSpec(isRenew) {
   if (!auth.currentUser) return;
+  /* E1: al otorgar, el texto completo debe estar desplegado junto
+     a la casilla: si el despliegue está cerrado, se abre y se pide
+     leer y marcar — la casilla nunca se premarca. */
+  const det = $('spec-details');
+  if (det && !det.open) { det.open = true; toast(t('health.needSpec'), true); return; }
   const ok = $('spec-ok');
   if (!ok || !ok.checked) { toast(t('health.needSpec'), true); return; }
   if (isRenew && !confirm(t('health.renewSpecConfirm'))) return;
@@ -1953,7 +1989,7 @@ async function loadMyTraining() {
   const uid = auth.currentUser.uid;
   const plans = await fetchPlans(uid);
   const plan = plans.find(p => p.active === true) || null;
-  if (!plan) { box.innerHTML = `<div class="wempty">${t('train.none')}</div>`; return; }
+  if (!plan) { box.innerHTML = `<div class="wempty compact">${t('train.none')}</div>`; return; }
   const logs = (await fetchLogs(uid)).filter(l => l.planId === plan.id);
   const today = todayISO();
   const weekStart = mondayISO(today);
