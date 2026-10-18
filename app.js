@@ -164,7 +164,7 @@ en: {
   'progress.history': 'Previous weeks',
   'progress.emptyHistory': 'Your previous weeks will appear here.',
   'mealhelp.title': '📷 Meal help',
-  'mealhelp.hint': 'Don\'t know a food\'s nutrition values? Use the 📷 Take a photo button at the top and <b>let me know in the chat</b>: I\'ll analyze it and ask for the details I need (weight, cooking method).',
+  'mealhelp.hint': 'Don\'t know a food\'s nutrition values? Tap <b>Analyze the food</b>, take its photo and answer a few quick questions: you\'ll get an editable draft and nothing is saved until you confirm it. The photo is not stored.',
   'mealhelp.upload': '📷 Upload food photo',
   'mealhelp.takePhoto': '📷 Take a photo',
   'mealhelp.uploaded': 'Photo sent. Let me know in the chat so I can analyze it.',
@@ -175,19 +175,25 @@ en: {
   'mealhelp.foodAlt': 'Food',
   'mealhelp.tapZoom': 'Tap to enlarge',
   'mealhelp.zoomed': 'Enlarged photo',
-  'ai.analyze': '✨ Analyze with AI',
+  'ai.analyze': 'Analyze the food',
   'ai.analyzing': 'Analyzing…',
   'ai.foodsFound': 'I found these foods:',
+  'ai.foodsEditHint': 'You can fix a name or an amount, remove a food or add another one.',
+  'ai.addFood': '＋ Add a food',
+  'ai.removeFood': 'Remove food',
   'ai.questionsTitle': 'A few quick questions (you can skip them):',
   'ai.skipOption': 'Not sure / skip',
+  'ai.otherLabel': 'Other: write your own',
   'ai.continue': 'Continue',
   'ai.draftTitle': 'Estimated draft — nothing is saved yet',
   'ai.range': 'Estimated range: {a}–{b} kcal',
   'ai.useDraft': 'Use as draft',
   'ai.discard': 'Discard',
-  'ai.unavailable': 'AI analysis is not active yet.',
+  'ai.unavailable': 'Food analysis is not active yet.',
   'ai.failed': 'The analysis failed. You can log the meal manually.',
-  'ai.banner': 'AI draft — check and edit the values before saving.',
+  'ai.banner': 'Draft from your photo: check and edit the values before saving.',
+  'ai.draftError': 'Something went wrong while preparing the draft. Nothing was saved — please try again.',
+  'ai.savedInfo': 'Meal saved: {kcal} kcal · Day total: {total} kcal',
   'ai.retry': 'Retry',
   'ai.continueManual': 'Continue manually',
   'access.title': '🔐 Access management',
@@ -508,7 +514,7 @@ es: {
   'progress.history': 'Semanas anteriores',
   'progress.emptyHistory': 'Tus semanas anteriores aparecerán aquí.',
   'mealhelp.title': '📷 Ayuda con comidas',
-  'mealhelp.hint': '¿No sabes los valores de un alimento? Usa el botón 📷 Tomar una foto de arriba y <b>avísame por el chat</b>: la analizo y te pregunto las medidas necesarias (peso, forma de cocción).',
+  'mealhelp.hint': '¿No sabes los valores de un alimento? Toca <b>Analiza la comida</b>, hazle una foto y responde unas preguntas rápidas: obtendrás un borrador editable y no se guarda nada hasta que lo confirmes. La foto no se almacena.',
   'mealhelp.upload': '📷 Subir foto de comida',
   'mealhelp.takePhoto': '📷 Tomar una foto',
   'mealhelp.uploaded': 'Foto enviada. Avísame por el chat para analizarla.',
@@ -519,19 +525,25 @@ es: {
   'mealhelp.foodAlt': 'Comida',
   'mealhelp.tapZoom': 'Toca para ampliar',
   'mealhelp.zoomed': 'Foto ampliada',
-  'ai.analyze': '✨ Analizar con IA',
+  'ai.analyze': 'Analiza la comida',
   'ai.analyzing': 'Analizando…',
   'ai.foodsFound': 'Encontré estos alimentos:',
+  'ai.foodsEditHint': 'Puedes corregir un nombre o una cantidad, quitar un alimento o añadir otro.',
+  'ai.addFood': '＋ Añadir alimento',
+  'ai.removeFood': 'Quitar alimento',
   'ai.questionsTitle': 'Unas preguntas rápidas (puedes saltarlas):',
   'ai.skipOption': 'No sé / saltar',
+  'ai.otherLabel': 'Otro: escríbelo tú',
   'ai.continue': 'Continuar',
   'ai.draftTitle': 'Borrador estimado: aún no se guarda nada',
   'ai.range': 'Rango estimado: {a}–{b} kcal',
   'ai.useDraft': 'Usar como borrador',
   'ai.discard': 'Descartar',
-  'ai.unavailable': 'El análisis con IA aún no está activo.',
+  'ai.unavailable': 'El análisis de la comida aún no está activo.',
   'ai.failed': 'El análisis falló. Puedes registrar la comida manualmente.',
-  'ai.banner': 'Borrador de IA: revisa y edita los valores antes de guardar.',
+  'ai.banner': 'Borrador de tu foto: revisa y edita los valores antes de guardar.',
+  'ai.draftError': 'Algo salió mal al preparar el borrador. No se guardó nada: inténtalo de nuevo.',
+  'ai.savedInfo': 'Comida guardada: {kcal} kcal · Total del día: {total} kcal',
   'ai.retry': 'Reintentar',
   'ai.continueManual': 'Continuar manualmente',
   'access.title': '🔐 Administración de accesos',
@@ -1485,21 +1497,11 @@ async function loadMealHelp() {
     toast(t('msg.photoDeleted')); loadMealHelp();
   });
 }
-const mhFile = $('mealhelp-file');
-if (mhFile) mhFile.addEventListener('change', async e => {
-  const f = e.target.files[0]; e.target.value = '';
-  if (!f) return;
-  try {
-    toast(t('mealhelp.uploading'));
-    const url = await compressFoodPhoto(f);
-    if (url.length > 700000) { toast(t('mealhelp.tooBig'), true); return; }
-    await addDoc(collection(db, 'meal_help'), {
-      ownerUid: auth.currentUser.uid, photoURL: url, status: 'pending', createdAt: serverTimestamp()
-    });
-    toast(t('mealhelp.uploaded'));
-    loadMealHelp();
-  } catch { toast(t('mealhelp.uploadFail'), true); }
-});
+/* Corrección del piloto (Ronald, 2026-10-17 21:59): UN SOLO botón de
+   ingreso de comida por foto — «Analiza la comida» (flujo transitorio).
+   La subida manual a meal_help ya no tiene botón ni handler: la lista
+   de fotos ya guardadas sigue visible arriba (ver/borrar) vía
+   loadMealHelp(), pero la app ya no escribe en meal_help. */
 
 /* ================= M8 — REVISIÓN AUTOMÁTICA CON IA (Fase C, local) =====
    Flujo TRANSITORIO (corrección 2026-10-17, decisión de Ronald): la foto
@@ -1543,22 +1545,71 @@ function aiCaptureAnswers() {
   (aiState.r1.questions || []).slice(0, 3).forEach((q, i) => {
     const sel = document.querySelector(`input[name="aiq${i}"]:checked`);
     if (sel) aiState.answers[q.id] = sel.value;
+    const oth = document.querySelector(`.ai-other[data-qi="${i}"]`);
+    if (oth) { if (!aiState.other) aiState.other = {}; aiState.other[q.id] = oth.value; }
   });
+}
+/* Alimentos EDITABLES (corrección del piloto, Ronald 2026-10-17):
+   aiState.foods = [{src, name, grams}] — src es el objeto identificado
+   original (se conserva para el payload); name/grams son lo que la
+   persona ve y puede corregir. Toda acción captura el DOM antes de
+   tocar el estado, así la edición sobrevive a re-pintados y al cambio
+   de idioma (mismo patrón que aiCaptureAnswers). */
+function aiCaptureFoods() {
+  if (!aiState || !aiState.foods) return;
+  const p = $('ai-panel'); if (!p) return;
+  const rows = p.querySelectorAll('.ai-food-row');
+  if (!rows.length) return;
+  const out = [];
+  rows.forEach((row, i) => {
+    const n = row.querySelector('.ai-food-name');
+    const g = row.querySelector('.ai-food-grams');
+    const prev = aiState.foods[i] || {};
+    out.push({ src: prev.src || null, name: n ? n.value : (prev.name || ''), grams: g ? g.value : (prev.grams ?? '') });
+  });
+  aiState.foods = out;
+}
+function aiFoodRemove(i) {
+  if (!aiState || !aiState.foods) return;
+  aiCaptureFoods(); aiCaptureAnswers();
+  aiState.foods.splice(i, 1);
+  aiRender();
+}
+function aiFoodAdd() {
+  if (!aiState || !aiState.foods) return;
+  aiCaptureFoods(); aiCaptureAnswers();
+  aiState.foods.push({ src: null, name: '', grams: '' });
+  aiRender();
+  const p = $('ai-panel');
+  const ns = p ? p.querySelectorAll('.ai-food-name') : [];
+  if (ns.length) { try { ns[ns.length - 1].focus(); } catch {} }
+}
+/* Respuestas finales: el texto libre de «Otro» manda sobre el radio. */
+function aiFinalAnswers() {
+  const out = { ...(aiState.answers || {}) };
+  ((aiState.r1 && aiState.r1.questions) || []).slice(0, 3).forEach(q => {
+    const o = ((aiState.other || {})[q.id] || '').trim();
+    if (o) out[q.id] = o;
+  });
+  return out;
 }
 function aiOnLangChange() {
   /* Al cambiar ES/EN con el panel abierto: conserva las respuestas
-     marcadas y re-pinta el panel en el idioma nuevo desde aiState. */
+     marcadas, los textos libres y los alimentos editados, y re-pinta
+     el panel en el idioma nuevo desde aiState. */
   if (!aiState) return;
   aiCaptureAnswers();
+  aiCaptureFoods();
   aiRender();
 }
 async function aiStart(dataUrl) {
-  aiState = { dataUrl, step: 'loading', r1: null, answers: {}, r2: null, errStage: 'identify' };
+  aiState = { dataUrl, step: 'loading', r1: null, answers: {}, other: {}, foods: null, r2: null, errStage: 'identify' };
   aiRender();
   try {
     const r1 = await aiCall('/identify', { imageDataUrl: dataUrl, lang: LANG });
     if (!aiState) return; // descartado mientras llamaba
     aiState.r1 = r1;
+    aiState.foods = (r1.foods || []).map(f => ({ src: f, name: f.name || '', grams: Math.round(f.portion_g_estimate || 0) }));
     (r1.questions || []).slice(0, 3).forEach(q => { if (!(q.id in aiState.answers)) aiState.answers[q.id] = 'skipped'; });
     aiState.step = 'questions';
     aiRender();
@@ -1567,10 +1618,20 @@ async function aiStart(dataUrl) {
 async function aiCalculate() {
   if (!aiState || !aiState.r1) return;
   aiCaptureAnswers();
+  aiCaptureFoods();
+  /* El cálculo recibe la lista EDITADA por la persona. Si el nombre
+     difiere del identificado (o el alimento es nuevo), el nombre
+     editado es también el término de búsqueda USDA (usda_query). */
+  const foods = (aiState.foods || []).filter(f => (f.name || '').trim()).map(f => {
+    const name = f.name.trim();
+    const out = { ...(f.src || {}), name, portion_g_estimate: Math.max(0, Math.round(Number(f.grams) || 0)) };
+    if (!f.src || name !== (f.src.name || '') || !out.usda_query) out.usda_query = name;
+    return out;
+  });
   aiState.step = 'loading'; aiState.errStage = 'calculate';
   aiRender();
   try {
-    const r2 = await aiCall('/calculate', { foods: aiState.r1.foods || [], answers: aiState.answers, lang: LANG });
+    const r2 = await aiCall('/calculate', { foods, answers: aiFinalAnswers(), lang: LANG });
     if (!aiState) return;
     aiState.r2 = r2; aiState.step = 'draft';
     aiRender();
@@ -1581,21 +1642,28 @@ function aiRetry() {
   if (aiState.errStage === 'identify') aiStart(aiState.dataUrl);
   else aiCalculate();
 }
+function aiKnownFoods() {
+  /* Lista {name, grams} con lo conocido: la EDITADA si existe; si no,
+     la identificada tal cual llegó. */
+  if (aiState && aiState.foods && aiState.foods.length)
+    return aiState.foods.filter(f => (f.name || '').trim()).map(f => ({ name: f.name.trim(), grams: Number(f.grams) || 0 }));
+  return ((aiState && aiState.r1 && aiState.r1.foods) || []).map(f => ({ name: f.name || '', grams: Math.round(f.portion_g_estimate || 0) }));
+}
 function aiContinueManual() {
   /* Salida manual tras un fallo: abre el modal con lo ya conocido
      (nombres y gramos si la identificación llegó) y aiDraft = null:
      el guardado será un registro manual ordinario, sin source:'ai',
      sin registro parcial creado por el error. */
-  const foods = (aiState && aiState.r1 && aiState.r1.foods) || [];
+  const foods = aiKnownFoods();
   aiClearDraft();
   $('m-date').value = $('dateSel').value || todayISO();
   if (foods.length) {
     $('m-food').value = foods.map(f => f.name).join(', ').slice(0, 120);
-    const grams = foods.reduce((s, f) => s + (f.portion_g_estimate || 0), 0);
+    const grams = foods.reduce((s, f) => s + (f.grams || 0), 0);
     $('m-qty').value = grams ? Math.round(grams) + ' g' : '';
   }
   aiDiscard();
-  $('meal-modal').style.display = '';
+  aiOpenMealModal();
 }
 function aiRender() {
   const p = $('ai-panel');
@@ -1609,11 +1677,15 @@ function aiRender() {
     return;
   }
   if (aiState.step === 'questions') {
-    const r1 = aiState.r1, foods = r1.foods || [], qs = (r1.questions || []).slice(0, 3);
-    const list = foods.map(f => `<li>${esc(f.name)} — ${Math.round(f.portion_g_estimate || 0)} g</li>`).join('');
-    const qhtml = qs.map((q, i) => `<div class="ai-q"><p>${esc(q.text)}</p>${(q.options || []).map(o => `<label class="ai-opt"><input type="radio" name="aiq${i}" value="${esc(o)}"${aiState.answers[q.id] === o ? ' checked' : ''}> ${esc(o)}</label>`).join('')}<label class="ai-opt"><input type="radio" name="aiq${i}" value="skipped"${aiState.answers[q.id] === 'skipped' ? ' checked' : ''}> ${t('ai.skipOption')}</label></div>`).join('');
-    aiShow(`<h3>${t('ai.foodsFound')}</h3><ul class="ai-foods">${list}</ul>${qs.length ? `<h3>${t('ai.questionsTitle')}</h3>${qhtml}` : ''}<div class="ai-actions"><button type="button" class="btn-main btn-sm" id="ai-continue">${t('ai.continue')}</button><button type="button" class="btn-ghost btn-sm" id="ai-cancel">${t('ai.discard')}</button></div>`);
+    const r1 = aiState.r1, foods = aiState.foods || [], qs = (r1.questions || []).slice(0, 3);
+    const list = foods.map((f, i) => `<div class="ai-food-row"><input type="text" class="ai-food-name" data-fi="${i}" value="${esc(f.name)}" placeholder="${t('form.food')}"><input type="number" class="ai-food-grams" data-fi="${i}" value="${f.grams === '' || f.grams == null ? '' : f.grams}" min="0" step="any" inputmode="decimal"><span class="ai-g">g</span><button type="button" class="btn-ghost btn-sm ai-food-del" data-fi="${i}" title="${t('ai.removeFood')}">✕</button></div>`).join('');
+    const qhtml = qs.map((q, i) => `<div class="ai-q"><p>${esc(q.text)}</p>${(q.options || []).map(o => `<label class="ai-opt"><input type="radio" name="aiq${i}" value="${esc(o)}"${aiState.answers[q.id] === o ? ' checked' : ''}> ${esc(o)}</label>`).join('')}<label class="ai-opt"><input type="radio" name="aiq${i}" value="skipped"${aiState.answers[q.id] === 'skipped' ? ' checked' : ''}> ${t('ai.skipOption')}</label><input type="text" class="ai-other" data-qi="${i}" placeholder="${t('ai.otherLabel')}" value="${esc((aiState.other || {})[q.id] || '')}"></div>`).join('');
+    aiShow(`<h3>${t('ai.foodsFound')}</h3><p class="progress-hint">${t('ai.foodsEditHint')}</p>${list}<button type="button" class="btn-ghost btn-sm" id="ai-addfood">${t('ai.addFood')}</button>${qs.length ? `<h3>${t('ai.questionsTitle')}</h3>${qhtml}` : ''}<div class="ai-actions"><button type="button" class="btn-main btn-sm" id="ai-continue">${t('ai.continue')}</button><button type="button" class="btn-ghost btn-sm" id="ai-cancel">${t('ai.discard')}</button></div>`);
     p.querySelectorAll('input[type="radio"]').forEach(r => r.addEventListener('change', aiCaptureAnswers));
+    p.querySelectorAll('.ai-other').forEach(r => r.addEventListener('input', aiCaptureAnswers));
+    p.querySelectorAll('.ai-food-name, .ai-food-grams').forEach(r => r.addEventListener('input', aiCaptureFoods));
+    p.querySelectorAll('.ai-food-del').forEach(b => b.onclick = () => aiFoodRemove(+b.dataset.fi));
+    $('ai-addfood').onclick = aiFoodAdd;
     $('ai-cancel').onclick = aiDiscard;
     $('ai-continue').onclick = aiCalculate;
     return;
@@ -1624,7 +1696,11 @@ function aiRender() {
     const range = Array.isArray(tot.range_kcal) ? tot.range_kcal : null;
     aiShow(`<h3>${t('ai.draftTitle')}</h3><ul class="ai-foods">${rows}</ul><p><b>${Math.round(tot.kcal || 0)} kcal</b> · ${Math.round(tot.prot || 0)} ${t('form.protein')} · ${Math.round(tot.carb || 0)} ${t('form.carbs')} · ${Math.round(tot.fat || 0)} ${t('form.fat')}</p>${range ? `<p class="progress-hint">${t('ai.range').replace('{a}', Math.round(range[0])).replace('{b}', Math.round(range[1]))}</p>` : ''}<div class="ai-actions"><button type="button" class="btn-main btn-sm" id="ai-use">${t('ai.useDraft')}</button><button type="button" class="btn-ghost btn-sm" id="ai-cancel2">${t('ai.discard')}</button></div>`);
     $('ai-cancel2').onclick = aiDiscard;
-    $('ai-use').onclick = () => aiUseDraft(aiState.r1, aiState.r2);
+    $('ai-use').onclick = () => {
+      /* Refuerzo H-2: este clic NUNCA puede morir en silencio. */
+      try { aiUseDraft(aiState && aiState.r1, aiState && aiState.r2); }
+      catch { aiDiscard(); aiOpenMealModal(); toast(t('ai.draftError'), true); }
+    };
   }
 }
 const aiFile = $('ai-file');
@@ -1638,27 +1714,53 @@ if (aiFile) aiFile.addEventListener('change', async e => {
     aiStart(url);
   } catch { toast(t('ai.failed'), true); }
 });
-function aiUseDraft(r1, r2) {
-  const tot = r2.totals || {};
-  const foods = r1.foods || [];
-  const grams = foods.reduce((s, f) => s + (f.portion_g_estimate || 0), 0);
-  $('m-date').value = $('dateSel').value || todayISO();
-  $('m-food').value = foods.map(f => f.name).join(', ').slice(0, 120);
-  $('m-qty').value = grams ? Math.round(grams) + ' g' : '';
-  $('m-kcal').value = Math.round(tot.kcal || 0);
-  $('m-prot').value = Math.round(tot.prot || 0);
-  $('m-carb').value = Math.round(tot.carb || 0);
-  $('m-sugar').value = Math.round(tot.sugar || 0);
-  $('m-fat').value = Math.round(tot.fat || 0);
-  $('m-notes').value = (r2.items || []).map(it => `${it.name}: ${Math.round(it.kcal || 0)} kcal`).join(' · ').slice(0, 300);
-  aiDraft = { model: r2.model || 'gemini', rangeKcal: Array.isArray(tot.range_kcal) ? tot.range_kcal : null };
-  const b = $('m-ai-banner');
-  if (b) {
-    b.style.display = '';
-    b.textContent = t('ai.banner') + (aiDraft.rangeKcal ? ' ' + t('ai.range').replace('{a}', Math.round(aiDraft.rangeKcal[0])).replace('{b}', Math.round(aiDraft.rangeKcal[1])) : '');
+/* Apertura del modal de comida con enfoque visible en el formulario. */
+function aiOpenMealModal() {
+  const m = $('meal-modal');
+  if (m) {
+    m.style.display = '';
+    try { m.scrollIntoView({ block: 'center' }); } catch {}
   }
+  const f = $('m-food');
+  if (f) { try { f.focus({ preventScroll: true }); } catch {} }
+}
+/* Refuerzo H-2 (defecto confirmado por Ronald en producción, 2026-10-17:
+   tocó «Usar como borrador» y no pasó nada visible): el relleno es campo
+   a campo y tolerante a fallos individuales; el modal se abre SIEMPRE,
+   aunque un campo falle; y cualquier fallo muestra un toast de error
+   en vez de silencio. El diagnóstico en motor real (390×844, formas del
+   caso real) no reprodujo el fallo — ver h2-diagnostico.mjs. */
+function aiUseDraft(r1, r2) {
+  let failed = false;
+  const set = (id, val) => {
+    try { const el = $(id); if (el) el.value = val; else failed = true; }
+    catch { failed = true; }
+  };
+  try {
+    const tot = (r2 && r2.totals) || {};
+    const foods = aiKnownFoods();
+    const grams = foods.reduce((s, f) => s + (f.grams || 0), 0);
+    set('m-date', ($('dateSel') && $('dateSel').value) || todayISO());
+    set('m-food', foods.map(f => f.name).join(', ').slice(0, 120));
+    set('m-qty', grams ? Math.round(grams) + ' g' : '');
+    set('m-kcal', Math.round(tot.kcal || 0));
+    set('m-prot', Math.round(tot.prot || 0));
+    set('m-carb', Math.round(tot.carb || 0));
+    set('m-sugar', Math.round(tot.sugar || 0));
+    set('m-fat', Math.round(tot.fat || 0));
+    set('m-notes', ((r2 && r2.items) || []).map(it => `${it.name}: ${Math.round(it.kcal || 0)} kcal`).join(' · ').slice(0, 300));
+    aiDraft = { model: (r2 && r2.model) || 'gemini', rangeKcal: Array.isArray(tot.range_kcal) ? tot.range_kcal : null };
+    try {
+      const b = $('m-ai-banner');
+      if (b) {
+        b.style.display = '';
+        b.textContent = t('ai.banner') + (aiDraft.rangeKcal ? ' ' + t('ai.range').replace('{a}', Math.round(aiDraft.rangeKcal[0])).replace('{b}', Math.round(aiDraft.rangeKcal[1])) : '');
+      }
+    } catch { failed = true; }
+  } catch { failed = true; }
   aiDiscard();
-  $('meal-modal').style.display = '';
+  aiOpenMealModal();
+  if (failed) toast(t('ai.draftError'), true);
 }
 function aiClearDraft() {
   aiDraft = null;
@@ -2726,13 +2828,21 @@ $('form-meal').addEventListener('submit', async e => {
       } catch (err) { toast(t('err.mealPhotoFail'), true); }
     }
     if (aiDraft) { data.source = 'ai'; data.ai = { model: aiDraft.model, rangeKcal: aiDraft.rangeKcal }; }
+    const wasDraft = !!aiDraft;
     await addDoc(collection(db, 'nutrition_meals'), data);
     aiClearDraft();
     $('meal-modal').style.display = 'none';
     e.target.reset();
     $('m-photo-preview').style.display = 'none'; $('m-photo-preview').src = '';
-    toast(t('msg.mealSaved'));
     await loadAllKeepDate(data.date);
+    if (wasDraft) {
+      /* Confirmación visible del borrador (H-2): las kcal guardadas y el
+         total del día YA incluyéndolas — que «sí suma» sea evidente. */
+      const dayTotal = (MEALS[data.date] || []).reduce((s, m) => s + (Number(m.kcal) || 0), 0);
+      toast(t('ai.savedInfo', { kcal: Math.round(data.kcal), total: Math.round(dayTotal) }));
+    } else {
+      toast(t('msg.mealSaved'));
+    }
   } finally {
     mealSaving = false;
     if (saveBtn) saveBtn.disabled = false;

@@ -248,3 +248,8 @@ table.whist { min-width: 640px; }
 .ai-opt{display:block;margin:4px 0;font-weight:400}
 .ai-actions{display:flex;gap:8px;margin-top:12px;flex-wrap:wrap}
 .ai-banner{background:#e6f4f1;border:1px solid #0e7c6b;color:#0b5d51;border-radius:8px;padding:8px 10px;margin-bottom:10px;font-size:13px}
+.ai-food-row{display:flex;gap:6px;align-items:center;margin:5px 0}
+.ai-food-name{flex:1;min-width:0;padding:7px 9px;border:1px solid #d1d5db;border-radius:8px;font-size:14px}
+.ai-food-grams{width:78px;padding:7px 9px;border:1px solid #d1d5db;border-radius:8px;font-size:14px}
+.ai-g{color:#6b7280;font-size:13px}
+.ai-other{width:100%;box-sizing:border-box;margin-top:6px;padding:7px 9px;border:1px solid #d1d5db;border-radius:8px;font-size:14px}
