@@ -1514,7 +1514,7 @@ if (mhFile) mhFile.addEventListener('change', async e => {
    La clave de IA vive SOLO en el intermediario, nunca en esta app.
    AI_ENDPOINT queda vacío hasta la Fase D (URL del Worker); en pruebas
    locales puede fijarse con localStorage 'm8.endpoint'. */
-const AI_ENDPOINT = '';
+const AI_ENDPOINT = 'https://ronbo-nutri-m8.hola-d30.workers.dev';
 let aiDraft = null; // {model, rangeKcal} del borrador pendiente de guardar
 let aiState = null; // {dataUrl, step, r1, answers, r2, errStage} — solo memoria
 function aiEndpoint() {
