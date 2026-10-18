@@ -1518,7 +1518,11 @@ const AI_ENDPOINT = '';
 let aiDraft = null; // {model, rangeKcal} del borrador pendiente de guardar
 let aiState = null; // {dataUrl, step, r1, answers, r2, errStage} — solo memoria
 function aiEndpoint() {
-  try { return localStorage.getItem('m8.endpoint') || AI_ENDPOINT; } catch { return AI_ENDPOINT; }
+  // Corrección B-1 (auditoría de seguridad Fase D, 2026-10-17): si el
+  // endpoint compilado está fijado, manda SOLO ese y el override local se
+  // ignora; el override solo funciona con AI_ENDPOINT vacío (desarrollo).
+  if (AI_ENDPOINT) return AI_ENDPOINT;
+  try { return localStorage.getItem('m8.endpoint') || ''; } catch { return ''; }
 }
 async function aiCall(path, body) {
   const ep = aiEndpoint();
