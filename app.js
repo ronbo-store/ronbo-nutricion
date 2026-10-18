@@ -196,6 +196,15 @@ en: {
   'ai.savedInfo': 'Meal saved: {kcal} kcal · Day total: {total} kcal',
   'ai.retry': 'Retry',
   'ai.continueManual': 'Continue manually',
+  'ai.mealPrompt': 'Which meal is this?',
+  'ai.metricsTitle': 'Values for this meal — you can edit them before saving:',
+  'ai.save': 'Save',
+  'ai.backToFoods': 'Fix the foods',
+  'ai.estPortion': 'estimated portion',
+  'ai.recalcWarn': 'You already adjusted the values by hand. Recalculating will replace those manual adjustments with the new calculation.',
+  'ai.recalcYes': 'Yes, recalculate',
+  'ai.saveError': 'It could not be saved. Your changes are still here: check your connection and tap Save to try again.',
+  'ai.capReached': 'You reached the pilot\u2019s daily analysis limit. Come back tomorrow to analyze another photo — meanwhile you can log the meal manually.',
   'access.title': '🔐 Access management',
   'access.sub': '· administrator only',
   'access.hint': 'New accounts stay pending until you approve them. Only approved users can sign in, and each one sees only their own data.',
@@ -546,6 +555,15 @@ es: {
   'ai.savedInfo': 'Comida guardada: {kcal} kcal · Total del día: {total} kcal',
   'ai.retry': 'Reintentar',
   'ai.continueManual': 'Continuar manualmente',
+  'ai.mealPrompt': '¿A qué comida pertenece?',
+  'ai.metricsTitle': 'Valores de esta comida — puedes editarlos antes de guardar:',
+  'ai.save': 'Guardar',
+  'ai.backToFoods': 'Corregir alimentos',
+  'ai.estPortion': 'porción estimada',
+  'ai.recalcWarn': 'Ya ajustaste los valores a mano. Si se recalcula, esos ajustes manuales se reemplazan por el cálculo nuevo.',
+  'ai.recalcYes': 'Sí, recalcular',
+  'ai.saveError': 'No se pudo guardar. Tus cambios siguen aquí: revisa la conexión y toca Guardar para reintentar.',
+  'ai.capReached': 'Alcanzaste el límite diario de análisis del piloto. Vuelve mañana para analizar otra foto; mientras tanto puedes registrar la comida manualmente.',
   'access.title': '🔐 Administración de accesos',
   'access.sub': '· solo administrador',
   'access.hint': 'Las cuentas nuevas quedan pendientes hasta que las apruebes. Solo los usuarios aprobados pueden entrar y cada uno ve únicamente sus datos.',
@@ -1534,6 +1552,7 @@ async function aiCall(path, body) {
     method: 'POST', headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({ ...body, idToken })
   });
+  if (r.status === 429) throw new Error('ai-cap'); // tope diario: mensaje específico, no genérico
   if (!r.ok) throw new Error('ai-' + r.status);
   return r.json();
 }
@@ -1564,8 +1583,9 @@ function aiCaptureFoods() {
   rows.forEach((row, i) => {
     const n = row.querySelector('.ai-food-name');
     const g = row.querySelector('.ai-food-grams');
+    const u = row.querySelector('.ai-food-unit');
     const prev = aiState.foods[i] || {};
-    out.push({ src: prev.src || null, name: n ? n.value : (prev.name || ''), grams: g ? g.value : (prev.grams ?? '') });
+    out.push({ src: prev.src || null, name: n ? n.value : (prev.name || ''), grams: g ? g.value : (prev.grams ?? ''), unit: u ? u.value : (prev.unit || 'g') });
   });
   aiState.foods = out;
 }
@@ -1578,11 +1598,56 @@ function aiFoodRemove(i) {
 function aiFoodAdd() {
   if (!aiState || !aiState.foods) return;
   aiCaptureFoods(); aiCaptureAnswers();
-  aiState.foods.push({ src: null, name: '', grams: '' });
+  aiState.foods.push({ src: null, name: '', grams: '', unit: 'g' });
   aiRender();
   const p = $('ai-panel');
   const ns = p ? p.querySelectorAll('.ai-food-name') : [];
   if (ns.length) { try { ns[ns.length - 1].focus(); } catch {} }
+}
+/* Comida a la que pertenece el registro (PAQUETE 2, Ronald 2026-10-18):
+   vive en aiState.meal, con selector VISIBLE en el flujo (preguntas y
+   resultado), preselección razonable por hora y siempre cambiable. Se
+   captura del DOM antes de cada acción — nunca se hereda en silencio
+   el «Desayuno» del formulario. */
+const AI_MEALS = ['Desayuno', 'Almuerzo', 'Cena', 'Merienda', 'Snack'];
+function aiDefaultMeal() {
+  const h = new Date().getHours();
+  if (h < 11) return 'Desayuno';
+  if (h < 16) return 'Almuerzo';
+  if (h < 22) return 'Cena';
+  return 'Merienda';
+}
+function aiMealSelectHTML() {
+  const cur = (aiState && aiState.meal) || aiDefaultMeal();
+  return `<label class="ai-meal-row"><span>${t('ai.mealPrompt')}</span><select id="ai-meal">${AI_MEALS.map(v => `<option value="${v}"${v === cur ? ' selected' : ''}>${esc(mealName(v))}</option>`).join('')}</select></label>`;
+}
+function aiCaptureMeal() {
+  if (!aiState) return;
+  const sel = $('ai-meal');
+  if (sel && sel.value) aiState.meal = sel.value;
+}
+function aiWireMeal() {
+  const sel = $('ai-meal');
+  if (sel) sel.addEventListener('change', () => { if (aiState) aiState.meal = sel.value; });
+}
+/* Métricas EDITABLES en el propio resultado (PAQUETE 2): aiState.metrics
+   guarda los cinco valores tal como la persona los deja en el panel;
+   el guardado (directo o vía borrador) usa ESTOS valores. Tocar un
+   campo marca metricsEdited: un recálculo posterior avisa ANTES de
+   reemplazar los ajustes manuales. */
+function aiCaptureMetrics() {
+  if (!aiState) return;
+  const p = $('ai-panel'); if (!p) return;
+  const inputs = p.querySelectorAll('.ai-m');
+  if (!inputs.length) return;
+  const m = { ...(aiState.metrics || {}) };
+  inputs.forEach(inp => { m[inp.dataset.k] = inp.value; });
+  aiState.metrics = m;
+}
+function aiMarkMetricsEdited() {
+  if (!aiState) return;
+  aiCaptureMetrics();
+  aiState.metricsEdited = true;
 }
 /* Respuestas finales: el texto libre de «Otro» manda sobre el radio. */
 function aiFinalAnswers() {
@@ -1600,42 +1665,54 @@ function aiOnLangChange() {
   if (!aiState) return;
   aiCaptureAnswers();
   aiCaptureFoods();
+  aiCaptureMeal();
+  aiCaptureMetrics();
   aiRender();
 }
 async function aiStart(dataUrl) {
-  aiState = { dataUrl, step: 'loading', r1: null, answers: {}, other: {}, foods: null, r2: null, errStage: 'identify' };
+  aiState = { dataUrl, step: 'loading', r1: null, answers: {}, other: {}, foods: null, r2: null, errStage: 'identify', meal: aiDefaultMeal(), metrics: null, metricsEdited: false, cap: false, saveError: false };
   aiRender();
   try {
     const r1 = await aiCall('/identify', { imageDataUrl: dataUrl, lang: LANG });
     if (!aiState) return; // descartado mientras llamaba
     aiState.r1 = r1;
-    aiState.foods = (r1.foods || []).map(f => ({ src: f, name: f.name || '', grams: Math.round(f.portion_g_estimate || 0) }));
+    aiState.foods = (r1.foods || []).map(f => ({ src: f, name: f.name || '', grams: Math.round(f.portion_g_estimate || 0), unit: f.unit === 'ml' ? 'ml' : 'g' }));
     (r1.questions || []).slice(0, 3).forEach(q => { if (!(q.id in aiState.answers)) aiState.answers[q.id] = 'skipped'; });
     aiState.step = 'questions';
     aiRender();
-  } catch { if (aiState) { aiState.step = 'error'; aiState.errStage = 'identify'; aiRender(); } }
+  } catch (e) { if (aiState) { aiState.step = 'error'; aiState.errStage = 'identify'; aiState.cap = !!(e && e.message === 'ai-cap'); aiRender(); } }
 }
 async function aiCalculate() {
   if (!aiState || !aiState.r1) return;
   aiCaptureAnswers();
   aiCaptureFoods();
+  aiCaptureMeal();
+  /* Aviso previo (PAQUETE 2): si la persona ya ajustó las métricas a
+     mano en el resultado, un recálculo las reemplazaría por el cálculo
+     nuevo. Se avisa ANTES (paso 'warn') y solo se sigue con su
+     confirmación expresa; si cancela, nada se recalcula. */
+  if (aiState.metricsEdited && !aiState._recalcOk) { aiState.step = 'warn'; aiRender(); return; }
   /* El cálculo recibe la lista EDITADA por la persona. Si el nombre
      difiere del identificado (o el alimento es nuevo), el nombre
-     editado es también el término de búsqueda USDA (usda_query). */
+     editado es también el término de búsqueda USDA (usda_query). La
+     unidad (g/ml) viaja con cada alimento. */
   const foods = (aiState.foods || []).filter(f => (f.name || '').trim()).map(f => {
     const name = f.name.trim();
-    const out = { ...(f.src || {}), name, portion_g_estimate: Math.max(0, Math.round(Number(f.grams) || 0)) };
+    const out = { ...(f.src || {}), name, portion_g_estimate: Math.max(0, Math.round(Number(f.grams) || 0)), unit: f.unit === 'ml' ? 'ml' : 'g' };
     if (!f.src || name !== (f.src.name || '') || !out.usda_query) out.usda_query = name;
     return out;
   });
-  aiState.step = 'loading'; aiState.errStage = 'calculate';
+  aiState.step = 'loading'; aiState.errStage = 'calculate'; aiState.cap = false;
   aiRender();
   try {
     const r2 = await aiCall('/calculate', { foods, answers: aiFinalAnswers(), lang: LANG });
     if (!aiState) return;
     aiState.r2 = r2; aiState.step = 'draft';
+    /* Resultado nuevo: las métricas del panel parten de ESTOS totales;
+       cualquier ajuste manual anterior quedó sustituido (con aviso). */
+    aiState.metrics = null; aiState.metricsEdited = false; aiState._recalcOk = false; aiState.saveError = false;
     aiRender();
-  } catch { if (aiState) { aiState.step = 'error'; aiRender(); } }
+  } catch (e) { if (aiState) { aiState.step = 'error'; aiState.cap = !!(e && e.message === 'ai-cap'); aiRender(); } }
 }
 function aiRetry() {
   if (!aiState) return;
@@ -1646,8 +1723,8 @@ function aiKnownFoods() {
   /* Lista {name, grams} con lo conocido: la EDITADA si existe; si no,
      la identificada tal cual llegó. */
   if (aiState && aiState.foods && aiState.foods.length)
-    return aiState.foods.filter(f => (f.name || '').trim()).map(f => ({ name: f.name.trim(), grams: Number(f.grams) || 0 }));
-  return ((aiState && aiState.r1 && aiState.r1.foods) || []).map(f => ({ name: f.name || '', grams: Math.round(f.portion_g_estimate || 0) }));
+    return aiState.foods.filter(f => (f.name || '').trim()).map(f => ({ name: f.name.trim(), grams: Number(f.grams) || 0, unit: f.unit === 'ml' ? 'ml' : 'g' }));
+  return ((aiState && aiState.r1 && aiState.r1.foods) || []).map(f => ({ name: f.name || '', grams: Math.round(f.portion_g_estimate || 0), unit: f.unit === 'ml' ? 'ml' : 'g' }));
 }
 function aiContinueManual() {
   /* Salida manual tras un fallo: abre el modal con lo ya conocido
@@ -1670,20 +1747,41 @@ function aiRender() {
   if (!p || !aiState) return;
   if (aiState.step === 'loading') { aiShow(`<p class="progress-hint">${t('ai.analyzing')}</p>`); return; }
   if (aiState.step === 'error') {
+    if (aiState.cap) {
+      /* Tope diario alcanzado (PAQUETE 2): mensaje específico y
+         comprensible; reintentar no sirve hasta el reinicio, así que
+         no se ofrece Reintentar — sí continuar manualmente. */
+      aiShow(`<p class="progress-hint">${t('ai.capReached')}</p><div class="ai-actions"><button type="button" class="btn-main btn-sm" id="ai-manual">${t('ai.continueManual')}</button><button type="button" class="btn-ghost btn-sm" id="ai-cancel">${t('ai.discard')}</button></div>`);
+      $('ai-manual').onclick = aiContinueManual;
+      $('ai-cancel').onclick = aiDiscard;
+      return;
+    }
     aiShow(`<p class="progress-hint">${t('ai.failed')}</p><div class="ai-actions"><button type="button" class="btn-main btn-sm" id="ai-retry">${t('ai.retry')}</button><button type="button" class="btn-ghost btn-sm" id="ai-manual">${t('ai.continueManual')}</button><button type="button" class="btn-ghost btn-sm" id="ai-cancel">${t('ai.discard')}</button></div>`);
     $('ai-retry').onclick = aiRetry;
     $('ai-manual').onclick = aiContinueManual;
     $('ai-cancel').onclick = aiDiscard;
     return;
   }
+  if (aiState.step === 'warn') {
+    /* Aviso previo al recálculo con métricas ajustadas a mano. */
+    aiShow(`<p class="progress-hint">${t('ai.recalcWarn')}</p><div class="ai-actions"><button type="button" class="btn-main btn-sm" id="ai-warn-yes">${t('ai.recalcYes')}</button><button type="button" class="btn-ghost btn-sm" id="ai-warn-no">${t('form.cancel')}</button></div>`);
+    $('ai-warn-yes').onclick = () => { aiState._recalcOk = true; aiCalculate(); };
+    $('ai-warn-no').onclick = () => { aiState.step = 'draft'; aiRender(); };
+    return;
+  }
   if (aiState.step === 'questions') {
     const r1 = aiState.r1, foods = aiState.foods || [], qs = (r1.questions || []).slice(0, 3);
-    const list = foods.map((f, i) => `<div class="ai-food-row"><input type="text" class="ai-food-name" data-fi="${i}" value="${esc(f.name)}" placeholder="${t('form.food')}"><input type="number" class="ai-food-grams" data-fi="${i}" value="${f.grams === '' || f.grams == null ? '' : f.grams}" min="0" step="any" inputmode="decimal"><span class="ai-g">g</span><button type="button" class="btn-ghost btn-sm ai-food-del" data-fi="${i}" title="${t('ai.removeFood')}">✕</button></div>`).join('');
+    const list = foods.map((f, i) => {
+      const est = f.src && (f.src.portion_estimated === true || (typeof f.src.confidence === 'number' && f.src.confidence < 0.7));
+      return `<div class="ai-food-row"><input type="text" class="ai-food-name" data-fi="${i}" value="${esc(f.name)}" placeholder="${t('form.food')}"><input type="number" class="ai-food-grams" data-fi="${i}" value="${f.grams === '' || f.grams == null ? '' : f.grams}" min="0" step="any" inputmode="decimal"><select class="ai-food-unit" data-fi="${i}" aria-label="g/ml"><option value="g"${f.unit !== 'ml' ? ' selected' : ''}>g</option><option value="ml"${f.unit === 'ml' ? ' selected' : ''}>ml</option></select>${est ? `<span class="ai-est">${t('ai.estPortion')}</span>` : ''}<button type="button" class="btn-ghost btn-sm ai-food-del" data-fi="${i}" title="${t('ai.removeFood')}">✕</button></div>`;
+    }).join('');
     const qhtml = qs.map((q, i) => `<div class="ai-q"><p>${esc(q.text)}</p>${(q.options || []).map(o => `<label class="ai-opt"><input type="radio" name="aiq${i}" value="${esc(o)}"${aiState.answers[q.id] === o ? ' checked' : ''}> ${esc(o)}</label>`).join('')}<label class="ai-opt"><input type="radio" name="aiq${i}" value="skipped"${aiState.answers[q.id] === 'skipped' ? ' checked' : ''}> ${t('ai.skipOption')}</label><input type="text" class="ai-other" data-qi="${i}" placeholder="${t('ai.otherLabel')}" value="${esc((aiState.other || {})[q.id] || '')}"></div>`).join('');
-    aiShow(`<h3>${t('ai.foodsFound')}</h3><p class="progress-hint">${t('ai.foodsEditHint')}</p>${list}<button type="button" class="btn-ghost btn-sm" id="ai-addfood">${t('ai.addFood')}</button>${qs.length ? `<h3>${t('ai.questionsTitle')}</h3>${qhtml}` : ''}<div class="ai-actions"><button type="button" class="btn-main btn-sm" id="ai-continue">${t('ai.continue')}</button><button type="button" class="btn-ghost btn-sm" id="ai-cancel">${t('ai.discard')}</button></div>`);
+    aiShow(`<h3>${t('ai.foodsFound')}</h3><p class="progress-hint">${t('ai.foodsEditHint')}</p>${list}<button type="button" class="btn-ghost btn-sm" id="ai-addfood">${t('ai.addFood')}</button>${qs.length ? `<h3>${t('ai.questionsTitle')}</h3>${qhtml}` : ''}${aiMealSelectHTML()}<div class="ai-actions"><button type="button" class="btn-main btn-sm" id="ai-continue">${t('ai.continue')}</button><button type="button" class="btn-ghost btn-sm" id="ai-cancel">${t('ai.discard')}</button></div>`);
+    aiWireMeal();
     p.querySelectorAll('input[type="radio"]').forEach(r => r.addEventListener('change', aiCaptureAnswers));
     p.querySelectorAll('.ai-other').forEach(r => r.addEventListener('input', aiCaptureAnswers));
     p.querySelectorAll('.ai-food-name, .ai-food-grams').forEach(r => r.addEventListener('input', aiCaptureFoods));
+    p.querySelectorAll('.ai-food-unit').forEach(r => r.addEventListener('change', aiCaptureFoods));
     p.querySelectorAll('.ai-food-del').forEach(b => b.onclick = () => aiFoodRemove(+b.dataset.fi));
     $('ai-addfood').onclick = aiFoodAdd;
     $('ai-cancel').onclick = aiDiscard;
@@ -1694,8 +1792,18 @@ function aiRender() {
     const r2 = aiState.r2, tot = r2.totals || {};
     const rows = (r2.items || []).map(it => `<li>${esc(it.name)} — ${Math.round(it.kcal || 0)} kcal</li>`).join('');
     const range = Array.isArray(tot.range_kcal) ? tot.range_kcal : null;
-    aiShow(`<h3>${t('ai.draftTitle')}</h3><ul class="ai-foods">${rows}</ul><p><b>${Math.round(tot.kcal || 0)} kcal</b> · ${Math.round(tot.prot || 0)} ${t('form.protein')} · ${Math.round(tot.carb || 0)} ${t('form.carbs')} · ${Math.round(tot.fat || 0)} ${t('form.fat')}</p>${range ? `<p class="progress-hint">${t('ai.range').replace('{a}', Math.round(range[0])).replace('{b}', Math.round(range[1]))}</p>` : ''}<div class="ai-actions"><button type="button" class="btn-main btn-sm" id="ai-use">${t('ai.useDraft')}</button><button type="button" class="btn-ghost btn-sm" id="ai-cancel2">${t('ai.discard')}</button></div>`);
+    /* PAQUETE 2: las cinco métricas (kcal, proteína, carbos, AZÚCARES,
+       grasas) se muestran EDITABLES en el propio resultado y son las
+       que se guardan; la comida elegida sigue visible y cambiable. */
+    const mv = aiState.metrics || {};
+    const mval = k => (mv[k] != null && mv[k] !== '') ? mv[k] : Math.round(tot[k] || 0);
+    const mfield = (k, label) => `<label class="ai-metric"><span>${label}</span><input type="number" class="ai-m" data-k="${k}" value="${esc(String(mval(k)))}" min="0" step="any" inputmode="decimal"></label>`;
+    aiShow(`<h3>${t('ai.draftTitle')}</h3><ul class="ai-foods">${rows}</ul>${range ? `<p class="progress-hint">${t('ai.range').replace('{a}', Math.round(range[0])).replace('{b}', Math.round(range[1]))}</p>` : ''}${aiMealSelectHTML()}<p class="ai-metrics-title">${t('ai.metricsTitle')}</p><div class="ai-metrics">${mfield('kcal', t('form.kcal'))}${mfield('prot', t('form.protein'))}${mfield('carb', t('form.carbs'))}${mfield('sugar', t('form.sugar'))}${mfield('fat', t('form.fat'))}</div>${aiState.saveError ? `<p class="ai-err">${t('ai.saveError')}</p>` : ''}<div class="ai-actions"><button type="button" class="btn-main btn-sm" id="ai-save">${t('ai.save')}</button><button type="button" class="btn-ghost btn-sm" id="ai-use">${t('ai.useDraft')}</button><button type="button" class="btn-ghost btn-sm" id="ai-foods">${t('ai.backToFoods')}</button><button type="button" class="btn-ghost btn-sm" id="ai-cancel2">${t('ai.discard')}</button></div>`);
+    aiWireMeal();
+    p.querySelectorAll('.ai-m').forEach(inp => inp.addEventListener('input', aiMarkMetricsEdited));
     $('ai-cancel2').onclick = aiDiscard;
+    $('ai-save').onclick = aiSaveDirect;
+    $('ai-foods').onclick = () => { aiCaptureMetrics(); aiCaptureMeal(); aiState.step = 'questions'; aiRender(); };
     $('ai-use').onclick = () => {
       /* Refuerzo H-2: este clic NUNCA puede morir en silencio. */
       try { aiUseDraft(aiState && aiState.r1, aiState && aiState.r2); }
@@ -1738,16 +1846,25 @@ function aiUseDraft(r1, r2) {
   };
   try {
     const tot = (r2 && r2.totals) || {};
+    /* PAQUETE 2: el borrador hereda la comida ELEGIDA en el flujo y las
+       métricas EDITADAS en el panel, si la persona las ajustó — el
+       formulario recibe los valores confirmados, no los crudos. */
+    aiCaptureMeal();
+    aiCaptureMetrics();
+    const mealSel = (typeof aiState !== 'undefined' && aiState && aiState.meal) || null;
+    const mvals = (typeof aiState !== 'undefined' && aiState && aiState.metrics) || {};
+    const mval = k => (mvals[k] != null && mvals[k] !== '') ? Math.round(num(mvals[k])) : Math.round(tot[k] || 0);
     const foods = aiKnownFoods();
     const grams = foods.reduce((s, f) => s + (f.grams || 0), 0);
     set('m-date', ($('dateSel') && $('dateSel').value) || todayISO());
+    if (mealSel) set('m-meal', mealSel);
     set('m-food', foods.map(f => f.name).join(', ').slice(0, 120));
     set('m-qty', grams ? Math.round(grams) + ' g' : '');
-    set('m-kcal', Math.round(tot.kcal || 0));
-    set('m-prot', Math.round(tot.prot || 0));
-    set('m-carb', Math.round(tot.carb || 0));
-    set('m-sugar', Math.round(tot.sugar || 0));
-    set('m-fat', Math.round(tot.fat || 0));
+    set('m-kcal', mval('kcal'));
+    set('m-prot', mval('prot'));
+    set('m-carb', mval('carb'));
+    set('m-sugar', mval('sugar'));
+    set('m-fat', mval('fat'));
     set('m-notes', ((r2 && r2.items) || []).map(it => `${it.name}: ${Math.round(it.kcal || 0)} kcal`).join(' · ').slice(0, 300));
     aiDraft = { model: (r2 && r2.model) || 'gemini', rangeKcal: Array.isArray(tot.range_kcal) ? tot.range_kcal : null };
     try {
@@ -1766,6 +1883,55 @@ function aiClearDraft() {
   aiDraft = null;
   const b = $('m-ai-banner');
   if (b) { b.style.display = 'none'; b.textContent = ''; }
+}
+let aiSaving = false; // guardia del guardado directo (se suma a mealSaving, la del formulario)
+/* Guardado DIRECTO desde el resultado (PAQUETE 2, Ronald 2026-10-18):
+   escribe el registro SIN pasar por otro formulario, con los valores
+   CONFIRMADOS en el panel — métricas editadas, comida elegida en el
+   flujo, alimentos corregidos — y la MISMA forma de documento que el
+   envío de #form-meal (incl. source:'ai' y ai:{model, rangeKcal}).
+   El éxito se anuncia SOLO tras confirmar la escritura, con las kcal
+   guardadas y el total del día recalculado desde una recarga fresca
+   (una sola actualización visible, sin doble conteo). Ante un fallo,
+   el panel CONSERVA todos los cambios, muestra el error y permite
+   reintentar sin duplicar. */
+async function aiSaveDirect() {
+  if (!aiState || aiState.step !== 'draft' || aiSaving || mealSaving) return;
+  aiCaptureMetrics();
+  aiCaptureMeal();
+  const foods = aiKnownFoods();
+  if (!foods.length) { toast(t('err.mealMissing'), true); return; }
+  const tot = (aiState.r2 && aiState.r2.totals) || {};
+  const m = aiState.metrics || {};
+  const val = k => Math.max(0, num((m[k] != null && m[k] !== '') ? m[k] : (tot[k] || 0)));
+  const grams = foods.reduce((s, f) => s + (f.grams || 0), 0);
+  const allMl = foods.every(f => f.unit === 'ml');
+  const data = {
+    ownerUid: auth.currentUser.uid,
+    date: ($('dateSel') && $('dateSel').value) || todayISO(),
+    meal: aiState.meal || aiDefaultMeal(),
+    food: foods.map(f => f.name).join(', ').slice(0, 120),
+    qty: grams ? Math.round(grams) + (allMl ? ' ml' : ' g') : '',
+    kcal: val('kcal'), prot: val('prot'), carb: val('carb'), sugar: val('sugar'), fat: val('fat'),
+    notes: ((aiState.r2 && aiState.r2.items) || []).map(it => `${it.name}: ${Math.round(it.kcal || 0)} kcal`).join(' · ').slice(0, 300),
+    createdAt: serverTimestamp(),
+    source: 'ai',
+    ai: { model: (aiState.r2 && aiState.r2.model) || 'gemini', rangeKcal: Array.isArray(tot.range_kcal) ? tot.range_kcal : null }
+  };
+  aiSaving = true; mealSaving = true;
+  const btn = $('ai-save'); if (btn) btn.disabled = true;
+  try {
+    await addDoc(collection(db, 'nutrition_meals'), data);
+    aiDiscard();
+    await loadAllKeepDate(data.date);
+    const dayTotal = (MEALS[data.date] || []).reduce((s, x) => s + (Number(x.kcal) || 0), 0);
+    toast(t('ai.savedInfo', { kcal: Math.round(data.kcal), total: Math.round(dayTotal) }));
+  } catch {
+    if (aiState) { aiState.saveError = true; aiState.step = 'draft'; aiRender(); }
+    toast(t('ai.saveError'), true);
+  } finally {
+    aiSaving = false; mealSaving = false;
+  }
 }
 
 /* ================= PRIVACIDAD Y DATOS (cliente) =================

@@ -253,3 +253,13 @@ table.whist { min-width: 640px; }
 .ai-food-grams{width:78px;padding:7px 9px;border:1px solid #d1d5db;border-radius:8px;font-size:14px}
 .ai-g{color:#6b7280;font-size:13px}
 .ai-other{width:100%;box-sizing:border-box;margin-top:6px;padding:7px 9px;border:1px solid #d1d5db;border-radius:8px;font-size:14px}
+/* M8 — paquete 2: unidad por alimento, selector de comida, métricas editables */
+.ai-food-unit{padding:7px 4px;border:1px solid #d1d5db;border-radius:8px;font-size:13px;background:#fff}
+.ai-est{color:#92400e;background:#fef3c7;border-radius:6px;padding:2px 5px;font-size:11px;white-space:nowrap}
+.ai-meal-row{display:flex;gap:8px;align-items:center;margin:12px 0 4px;font-weight:600}
+.ai-meal-row select{padding:7px 9px;border:1px solid #d1d5db;border-radius:8px;font-size:14px;background:#fff}
+.ai-metrics-title{margin:10px 0 4px;font-weight:600}
+.ai-metrics{display:grid;grid-template-columns:repeat(auto-fit,minmax(88px,1fr));gap:8px}
+.ai-metric{display:flex;flex-direction:column;gap:3px;font-size:12px;color:#374151;font-weight:400}
+.ai-metric input{padding:7px 9px;border:1px solid #d1d5db;border-radius:8px;font-size:14px;width:100%;box-sizing:border-box}
+.ai-err{color:#b91c1c;font-weight:600;margin:8px 0}
