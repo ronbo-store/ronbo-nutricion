@@ -109,6 +109,7 @@ en: {
   'health.specFullTitle': 'Full text of the specific consent',
   'health.fourActionsTitle': 'The four actions, explained',
   'health.manage': 'Manage my health declaration',
+  'health.sectionTitle': 'Health declaration',
   'health.declActiveNoConds': 'Active · no conditions declared',
   'health.declNoConds': 'No conditions declared',
   'health.declLoadError': 'Your declaration couldn\'t be loaded',
@@ -326,6 +327,9 @@ en: {
   'err.underage': 'You must be 18 or older to create an account.',
   'priv.title': '🔒 Privacy & Data',
   'priv.manage': 'Manage privacy and data',
+  'perm.title': 'Permissions & privacy',
+  'perm.intro': 'Here you manage your permissions: your health declaration and your privacy & data — what you accept, what you share, and what you can withdraw or delete.',
+  'priv.sectionTitle': 'Privacy & data',
   'priv.statusAccepted': 'Consent accepted · version {v} · {date}',
   'priv.statusNone': 'No consent record found for this account.',
   'priv.statusWithdrawn': 'Consent withdrawn · access revoked.',
@@ -485,6 +489,7 @@ es: {
   'health.specFullTitle': 'Texto completo del consentimiento específico',
   'health.fourActionsTitle': 'Las cuatro acciones, explicadas',
   'health.manage': 'Gestionar mi declaración de salud',
+  'health.sectionTitle': 'Declaración de salud',
   'health.declActiveNoConds': 'Activa · sin condiciones declaradas',
   'health.declNoConds': 'Sin condiciones declaradas',
   'health.declLoadError': 'No se pudo cargar tu declaración',
@@ -702,6 +707,9 @@ es: {
   'err.underage': 'Debes tener 18 años o más para crear una cuenta.',
   'priv.title': '🔒 Privacidad y datos',
   'priv.manage': 'Gestionar privacidad y datos',
+  'perm.title': 'Permisos y privacidad',
+  'perm.intro': 'Aquí gestionas tus permisos: tu declaración de salud y tu privacidad y datos — qué aceptas, qué compartes y qué puedes retirar o eliminar.',
+  'priv.sectionTitle': 'Privacidad y datos',
   'priv.statusAccepted': 'Consentimiento aceptado · versión {v} · {date}',
   'priv.statusNone': 'No se encontró registro de consentimiento para esta cuenta.',
   'priv.statusWithdrawn': 'Consentimiento retirado · acceso revocado.',
@@ -2090,21 +2098,27 @@ function renumberManageItems(list) {
     if (chip) chip.textContent = n;
   });
 }
-/* Fila «Gestionar…» (ejemplo 2026-10-19): el botón de privacidad
-   vive en la fila común, fuera de su tarjeta; la tarjeta aloja la
-   lista (y el aviso / botón de aceptación de la renovación) y se
-   oculta mientras no tenga nada que mostrar, para no dejar una
-   tarjeta vacía. Se sincroniza en cada render y en cada toque del
-   botón: visible si la lista está abierta o si el aviso o la
-   aceptación están a la vista (esos flujos nacen de la lista
-   abierta y su comportamiento no cambia). */
-function syncPrivacyPanel() {
-  const p = document.querySelector('.privacy-panel'); if (!p) return;
-  const list = $('privacy-manage-list');
-  const listOpen = !!list && list.style.display !== 'none';
-  const n = $('privacy-notice'); const ra = $('btn-renew-accept');
-  const extra = (!!n && n.style.display !== 'none') || (!!ra && ra.style.display !== 'none');
-  p.style.display = (listOpen || extra) ? '' : 'none';
+/* Botón único «Permisos y privacidad» (decisión de Ronald,
+   2026-10-19 15:45): UN solo botón discreto despliega UN panel
+   con la coletilla y las DOS secciones («Declaración de salud»
+   y «Privacidad y datos»). permsOpen recuerda si el usuario lo
+   desplegó, entre re-pintados (p. ej., al cambiar de idioma).
+   El cuerpo del panel se muestra con el panel abierto O cuando
+   la sección de salud está en un estado de TRABAJO sin vista
+   colapsada (el formulario de declaración, siempre visible como
+   hasta hoy); las listas de ambas secciones siguen ese estado
+   efectivo, y el botón lo refleja (aria-expanded + chevron).
+   Abrir/cerrar solo cambia la presentación: no escribe nada. */
+let permsOpen = false;
+function syncPermsPanel() {
+  const body = $('perms-body'); if (!body) return;
+  const working = !$('health-manage-list');
+  const open = permsOpen || working;
+  body.style.display = open ? '' : 'none';
+  const hl = $('health-manage-list'); if (hl) hl.style.display = open ? '' : 'none';
+  const pl = $('privacy-manage-list'); if (pl) pl.style.display = open ? '' : 'none';
+  const btn = $('btn-perms'); if (btn) btn.setAttribute('aria-expanded', open ? 'true' : 'false');
+  const chev = $('perms-chev'); if (chev) chev.textContent = open ? '▴' : '▾';
 }
 function renderPrivacy() {
   const st = $('privacy-status');
@@ -2135,7 +2149,7 @@ function renderPrivacy() {
   const rb = $('btn-renew'); if (rb) rb.style.display = (active && !outdated) ? 'none' : '';
   const ra = $('btn-renew-accept'); if (ra) ra.style.display = 'none';
   renumberManageItems($('privacy-manage-list'));
-  syncPrivacyPanel();
+  syncPermsPanel();
 }
 const MY_DATA_COLLECTIONS = [
   ['nutrition_meals', 'ownerUid'], ['nutrition_weight', 'ownerUid'],
@@ -2161,20 +2175,14 @@ const tsEncode = (v) => {
   }
   return v;
 };
-/* Simplificación visual: el botón «Gestionar privacidad y datos»
-   SOLO abre/cierra la lista de acciones. No escribe nada, no llama
-   a ninguna función de consentimiento y no altera ningún estado. */
-$('btn-manage-privacy') && $('btn-manage-privacy').addEventListener('click', () => {
-  const list = $('privacy-manage-list'); if (!list) return;
-  const open = list.style.display === 'none';
-  list.style.display = open ? '' : 'none';
-  const chev = $('manage-privacy-chev'); if (chev) chev.textContent = open ? '▴' : '▾';
-  $('btn-manage-privacy').setAttribute('aria-expanded', open ? 'true' : 'false');
-  /* Fila «Gestionar…»: la tarjeta sigue a su lista (el botón vive
-     en la fila, fuera de la tarjeta). */
-  syncPrivacyPanel();
+/* Botón único «Permisos y privacidad»: SOLO abre/cierra el panel
+   (las dos secciones a la vez). No escribe nada, no llama a
+   ninguna función de consentimiento y no altera ningún estado. */
+$('btn-perms') && $('btn-perms').addEventListener('click', () => {
+  permsOpen = !permsOpen;
+  syncPermsPanel();
 });
-syncPrivacyPanel();
+syncPermsPanel();
 /* Rediseño v2 (2026-10-19): tarjetas colapsables de la vista
    principal («Mi progreso» —que ahora contiene la evolución de
    peso como primer bloque y las fotos como segundo—, «Ayuda con
@@ -2378,10 +2386,8 @@ let MY_DECLS = [];
    un fallo de red jamás debe pintarse como ausencia de declaración. */
 let declLoadState = 'loading';
 let healthEditing = false;
-/* Simplificación visual: la lista «Gestionar mi declaración de
-   salud» recuerda si está abierta entre re-pintados (p. ej., al
-   cambiar de idioma). El botón solo abre/cierra; no escribe nada. */
-let healthManageOpen = false;
+/* El estado abierto del panel único «Permisos y privacidad»
+   (permsOpen) se declara junto a syncPermsPanel, más arriba. */
 const specOf = u => (u && u.healthConsent) || null;
 const specIsActive = u => { const s = specOf(u); return !!s && s.status === 'accepted'; };
 const declCol = uid => collection(db, 'users', uid, 'healthDeclarations');
@@ -2459,16 +2465,13 @@ function fourActionsDetailsHTML() {
    (infoHTML), después la lista numerada de acciones (itemsHTML) y
    al final los anexos (extraHTML: sección legal del otorgamiento
    e historial de bloqueadas).
-   Fila «Gestionar…» (ejemplo 2026-10-19, pedido de Ronald 15:31):
-   el botón ya NO se pinta dentro de la tarjeta: vive en la fila
-   horizontal común (#manage-slot-health) junto al de privacidad,
-   y la tarjeta aloja solo la lista, a todo el ancho bajo la fila.
-   El botón conserva id, clases, aria y comportamiento. */
-function healthManageButtonHTML() {
-  return `<button type="button" class="btn-secondary manage-toggle" id="btn-manage-health" aria-expanded="${healthManageOpen ? 'true' : 'false'}"><span>${t('health.manage')}</span><span class="manage-chev" id="manage-health-chev">${healthManageOpen ? '▴' : '▾'}</span></button>`;
-}
+   Botón único (decisión de Ronald, 2026-10-19 15:45): ya no hay
+   botón por tarjeta; la lista vive en la sección «Declaración de
+   salud» del panel único «Permisos y privacidad» y su
+   visibilidad la sincroniza syncPermsPanel con el estado del
+   panel (permsOpen), como la de privacidad. */
 function healthManageListHTML(infoHTML, itemsHTML, extraHTML = '') {
-  return `<div class="manage-list" id="health-manage-list"${healthManageOpen ? '' : ' style="display:none"'}>${infoHTML ? `<div class="manage-info">${infoHTML}</div>` : ''}${itemsHTML}${extraHTML}</div>`;
+  return `<div class="manage-list" id="health-manage-list"${permsOpen ? '' : ' style="display:none"'}>${infoHTML ? `<div class="manage-info">${infoHTML}</div>` : ''}${itemsHTML}${extraHTML}</div>`;
 }
 /* La sección legal del otorgamiento (texto completo + casilla +
    botón principal) es EXACTAMENTE la de siempre; en los estados
@@ -2561,33 +2564,18 @@ function renderHealthPanel() {
      anexos DENTRO del área desplegada, tras las acciones. */
   if (!fourActionsInList) html += fourActionsDetailsHTML();
   box.innerHTML = html;
-  /* Fila «Gestionar…» (ejemplo 2026-10-19): el botón de salud se
-     pinta en la fila común (#manage-slot-health) solo en los
-     estados con lista; en el estado de edición no hay botón (como
-     hasta hoy) y el hueco se queda vacío (CSS lo retira). La
-     tarjeta se oculta entera mientras su lista está cerrada: ya
-     no aloja el botón, y una tarjeta vacía no aportaría nada. En
-     el estado de edición (sin lista) la tarjeta se ve siempre. */
-  const inManage = !!$('health-manage-list');
-  const hSlot = $('manage-slot-health');
-  if (hSlot) hSlot.innerHTML = inManage ? healthManageButtonHTML() : '';
-  const hPanel = box.closest('.panel');
-  if (hPanel) hPanel.style.display = (inManage && !healthManageOpen) ? 'none' : '';
+  /* Botón único «Permisos y privacidad»: ningún botón por tarjeta
+     que pintar ni tarjeta que ocultar — el panel único sincroniza
+     la visibilidad de su cuerpo y de ambas listas. En el estado
+     de edición (sin lista) el cuerpo queda visible como estado
+     de trabajo, igual que la tarjeta se veía siempre hasta hoy. */
+  syncPermsPanel();
   const wire = (id, fn) => { const el = $(id); if (el) el.onclick = fn; };
   wire('btn-spec-start', () => grantSpec(false));
   wire('btn-spec-renew', () => grantSpec(true));
   wire('btn-spec-withdraw', withdrawSpec);
   wire('btn-decl-edit', () => { healthEditing = true; renderHealthPanel(); });
   wire('btn-decl-save', saveDeclaration);
-  wire('btn-manage-health', () => {
-    healthManageOpen = !healthManageOpen;
-    const list = $('health-manage-list'); if (list) list.style.display = healthManageOpen ? '' : 'none';
-    const chev = $('manage-health-chev'); if (chev) chev.textContent = healthManageOpen ? '▴' : '▾';
-    const tg = $('btn-manage-health'); if (tg) tg.setAttribute('aria-expanded', healthManageOpen ? 'true' : 'false');
-    /* Fila «Gestionar…»: la tarjeta sigue a su lista (visible solo
-       con la lista abierta); el botón vive en la fila, fuera. */
-    const hp = box.closest('.panel'); if (hp) hp.style.display = healthManageOpen ? '' : 'none';
-  });
   wire('btn-grant-reveal', () => {
     const s = $('spec-legal'); if (!s) return;
     s.style.display = '';

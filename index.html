@@ -232,33 +232,43 @@
     </div>
     <div id="ai-panel" class="ai-panel" style="display:none"></div>
   </div>
-  <!-- Fila «Gestionar…» (ejemplo 2026-10-19, pedido de Ronald
-       15:31): los dos botones, pequeños y discretos, viven en UNA
-       fila horizontal común donde empieza la primera de las dos
-       tarjetas. El botón de salud lo pinta renderHealthPanel en
-       #manage-slot-health (en el estado de edición no existe y el
-       hueco se retira); el de privacidad vive aquí directamente.
-       Las LISTAS siguen en sus paneles de siempre, a todo el ancho
-       debajo de la fila, y cada panel se oculta mientras su lista
-       está cerrada para no dejar tarjetas vacías. -->
-  <div class="panel manage-row" id="manage-row">
-    <span class="manage-slot" id="manage-slot-health"></span>
-    <span class="manage-slot" id="manage-slot-privacy"><button type="button" class="btn-secondary manage-toggle" id="btn-manage-privacy" aria-expanded="false"><span data-i18n="priv.manage">Manage privacy and data</span><span class="manage-chev" id="manage-privacy-chev">▾</span></button></span>
-  </div>
-  <div class="panel health-panel">
-    <div id="health-panel-body"><div class="wempty" data-i18n="train.loading">Loading…</div></div>
-  </div>
-  <div class="panel privacy-panel" style="display:none">
-    <div class="manage-list" id="privacy-manage-list" style="display:none">
-      <div id="privacy-status" class="manage-info"></div>
-      <button type="button" class="manage-item" id="btn-view-notice"><span class="menu-num"></span><span class="manage-label" data-i18n="priv.viewNotice">View the privacy notice</span><span class="manage-go">›</span></button>
-      <button type="button" class="manage-item" id="btn-renew" style="display:none"><span class="menu-num"></span><span class="manage-label" data-i18n="priv.renew">Renew my consent</span><span class="manage-go">›</span></button>
-      <button type="button" class="manage-item" id="btn-my-data"><span class="menu-num"></span><span class="manage-label" data-i18n="priv.download">Download my data (JSON)</span><span class="manage-go">›</span></button>
-      <button type="button" class="manage-item danger" id="btn-withdraw"><span class="menu-num"></span><span class="manage-label" data-i18n="priv.withdraw">Withdraw my consent</span><span class="manage-go">›</span></button>
-      <button type="button" class="manage-item danger" id="btn-delete-account"><span class="menu-num"></span><span class="manage-label" data-i18n="priv.delete">Delete my account and data</span><span class="manage-go">›</span></button>
+  <!-- Botón único «PERMISOS Y PRIVACIDAD» (decisión de Ronald,
+       2026-10-19 15:45): UN solo botón discreto y fino sustituye
+       a los dos «Gestionar…» y a su fila horizontal. Vive donde
+       empezaba la primera de las dos tarjetas y, al desplegarse,
+       muestra UN panel con una coletilla informativa sencilla y
+       DOS secciones tituladas — «Declaración de salud» y
+       «Privacidad y datos» — que alojan, sin cambiarlos, los
+       contenidos de siempre de ambas tarjetas: en cada sección,
+       primero su estado y después sus opciones numeradas según
+       el estado real, con los actos principales (otorgamiento
+       del específico y «Acepto» de la renovación) intactos. La
+       etiqueta se muestra en MAYÚSCULAS por CSS, como las
+       leyendas del dock; los diccionarios guardan el texto
+       normal. Nada de este contenido se duplica fuera del
+       despliegue. -->
+  <div class="panel perms-panel" id="perms-panel">
+    <button type="button" class="btn-secondary manage-toggle perms-toggle" id="btn-perms" aria-expanded="false"><span data-i18n="perm.title">Permissions & privacy</span><span class="manage-chev" id="perms-chev">▾</span></button>
+    <div id="perms-body" style="display:none">
+      <p class="perms-intro" data-i18n="perm.intro">Here you manage your permissions: your health declaration and your privacy &amp; data — what you accept, what you share, and what you can withdraw or delete.</p>
+      <div class="perms-section health-panel" id="health-section">
+        <h3 class="perms-section-title" data-i18n="health.sectionTitle">Health declaration</h3>
+        <div id="health-panel-body"><div class="wempty" data-i18n="train.loading">Loading…</div></div>
+      </div>
+      <div class="perms-section privacy-panel" id="privacy-section">
+        <h3 class="perms-section-title" data-i18n="priv.sectionTitle">Privacy &amp; data</h3>
+        <div class="manage-list" id="privacy-manage-list" style="display:none">
+          <div id="privacy-status" class="manage-info"></div>
+          <button type="button" class="manage-item" id="btn-view-notice"><span class="menu-num"></span><span class="manage-label" data-i18n="priv.viewNotice">View the privacy notice</span><span class="manage-go">›</span></button>
+          <button type="button" class="manage-item" id="btn-renew" style="display:none"><span class="menu-num"></span><span class="manage-label" data-i18n="priv.renew">Renew my consent</span><span class="manage-go">›</span></button>
+          <button type="button" class="manage-item" id="btn-my-data"><span class="menu-num"></span><span class="manage-label" data-i18n="priv.download">Download my data (JSON)</span><span class="manage-go">›</span></button>
+          <button type="button" class="manage-item danger" id="btn-withdraw"><span class="menu-num"></span><span class="manage-label" data-i18n="priv.withdraw">Withdraw my consent</span><span class="manage-go">›</span></button>
+          <button type="button" class="manage-item danger" id="btn-delete-account"><span class="menu-num"></span><span class="manage-label" data-i18n="priv.delete">Delete my account and data</span><span class="manage-go">›</span></button>
+        </div>
+        <div id="privacy-notice" class="consent-text" style="display:none"></div>
+        <button type="button" class="btn-primary btn-sm" id="btn-renew-accept" style="display:none" data-i18n="priv.renewAccept">I accept the privacy notice</button>
+      </div>
     </div>
-    <div id="privacy-notice" class="consent-text" style="display:none"></div>
-    <button type="button" class="btn-primary btn-sm" id="btn-renew-accept" style="display:none" data-i18n="priv.renewAccept">I accept the privacy notice</button>
   </div>
   <!-- Dock flotante v4.2: la fila de redondos vive DENTRO de #tab-track
        (al ocultarse la pestaña, el dock no se renderiza) pero se pinta
