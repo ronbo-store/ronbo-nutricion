@@ -2090,6 +2090,22 @@ function renumberManageItems(list) {
     if (chip) chip.textContent = n;
   });
 }
+/* Fila «Gestionar…» (ejemplo 2026-10-19): el botón de privacidad
+   vive en la fila común, fuera de su tarjeta; la tarjeta aloja la
+   lista (y el aviso / botón de aceptación de la renovación) y se
+   oculta mientras no tenga nada que mostrar, para no dejar una
+   tarjeta vacía. Se sincroniza en cada render y en cada toque del
+   botón: visible si la lista está abierta o si el aviso o la
+   aceptación están a la vista (esos flujos nacen de la lista
+   abierta y su comportamiento no cambia). */
+function syncPrivacyPanel() {
+  const p = document.querySelector('.privacy-panel'); if (!p) return;
+  const list = $('privacy-manage-list');
+  const listOpen = !!list && list.style.display !== 'none';
+  const n = $('privacy-notice'); const ra = $('btn-renew-accept');
+  const extra = (!!n && n.style.display !== 'none') || (!!ra && ra.style.display !== 'none');
+  p.style.display = (listOpen || extra) ? '' : 'none';
+}
 function renderPrivacy() {
   const st = $('privacy-status');
   if (!st) return;
@@ -2119,6 +2135,7 @@ function renderPrivacy() {
   const rb = $('btn-renew'); if (rb) rb.style.display = (active && !outdated) ? 'none' : '';
   const ra = $('btn-renew-accept'); if (ra) ra.style.display = 'none';
   renumberManageItems($('privacy-manage-list'));
+  syncPrivacyPanel();
 }
 const MY_DATA_COLLECTIONS = [
   ['nutrition_meals', 'ownerUid'], ['nutrition_weight', 'ownerUid'],
@@ -2153,7 +2170,11 @@ $('btn-manage-privacy') && $('btn-manage-privacy').addEventListener('click', () 
   list.style.display = open ? '' : 'none';
   const chev = $('manage-privacy-chev'); if (chev) chev.textContent = open ? '▴' : '▾';
   $('btn-manage-privacy').setAttribute('aria-expanded', open ? 'true' : 'false');
+  /* Fila «Gestionar…»: la tarjeta sigue a su lista (el botón vive
+     en la fila, fuera de la tarjeta). */
+  syncPrivacyPanel();
 });
+syncPrivacyPanel();
 /* Rediseño v2 (2026-10-19): tarjetas colapsables de la vista
    principal («Mi progreso» —que ahora contiene la evolución de
    peso como primer bloque y las fotos como segundo—, «Ayuda con
@@ -2433,15 +2454,21 @@ function fourActionsDetailsHTML() {
   return `<details class="spec-details"><summary>${t('health.fourActionsTitle')}</summary><p class="progress-hint">${t('health.fourActions')}</p></details>`;
 }
 /* Rediseño v2 (2026-10-19): TODA la información de la tarjeta vive
-   DENTRO del área desplegada — con la lista cerrada la tarjeta solo
-   muestra el botón «Gestionar mi declaración de salud», sin título
-   ni estados duplicados fuera. Al abrir: primero el bloque de
-   información/estado (infoHTML), después la lista numerada de
-   acciones (itemsHTML) y al final los anexos (extraHTML: sección
-   legal del otorgamiento e historial de bloqueadas). */
+   DENTRO del área desplegada, sin título ni estados duplicados
+   fuera. Al abrir: primero el bloque de información/estado
+   (infoHTML), después la lista numerada de acciones (itemsHTML) y
+   al final los anexos (extraHTML: sección legal del otorgamiento
+   e historial de bloqueadas).
+   Fila «Gestionar…» (ejemplo 2026-10-19, pedido de Ronald 15:31):
+   el botón ya NO se pinta dentro de la tarjeta: vive en la fila
+   horizontal común (#manage-slot-health) junto al de privacidad,
+   y la tarjeta aloja solo la lista, a todo el ancho bajo la fila.
+   El botón conserva id, clases, aria y comportamiento. */
+function healthManageButtonHTML() {
+  return `<button type="button" class="btn-secondary manage-toggle" id="btn-manage-health" aria-expanded="${healthManageOpen ? 'true' : 'false'}"><span>${t('health.manage')}</span><span class="manage-chev" id="manage-health-chev">${healthManageOpen ? '▴' : '▾'}</span></button>`;
+}
 function healthManageListHTML(infoHTML, itemsHTML, extraHTML = '') {
-  return `<button type="button" class="btn-secondary manage-toggle" id="btn-manage-health" aria-expanded="${healthManageOpen ? 'true' : 'false'}"><span>${t('health.manage')}</span><span class="manage-chev" id="manage-health-chev">${healthManageOpen ? '▴' : '▾'}</span></button>
-  <div class="manage-list" id="health-manage-list"${healthManageOpen ? '' : ' style="display:none"'}>${infoHTML ? `<div class="manage-info">${infoHTML}</div>` : ''}${itemsHTML}${extraHTML}</div>`;
+  return `<div class="manage-list" id="health-manage-list"${healthManageOpen ? '' : ' style="display:none"'}>${infoHTML ? `<div class="manage-info">${infoHTML}</div>` : ''}${itemsHTML}${extraHTML}</div>`;
 }
 /* La sección legal del otorgamiento (texto completo + casilla +
    botón principal) es EXACTAMENTE la de siempre; en los estados
@@ -2534,6 +2561,18 @@ function renderHealthPanel() {
      anexos DENTRO del área desplegada, tras las acciones. */
   if (!fourActionsInList) html += fourActionsDetailsHTML();
   box.innerHTML = html;
+  /* Fila «Gestionar…» (ejemplo 2026-10-19): el botón de salud se
+     pinta en la fila común (#manage-slot-health) solo en los
+     estados con lista; en el estado de edición no hay botón (como
+     hasta hoy) y el hueco se queda vacío (CSS lo retira). La
+     tarjeta se oculta entera mientras su lista está cerrada: ya
+     no aloja el botón, y una tarjeta vacía no aportaría nada. En
+     el estado de edición (sin lista) la tarjeta se ve siempre. */
+  const inManage = !!$('health-manage-list');
+  const hSlot = $('manage-slot-health');
+  if (hSlot) hSlot.innerHTML = inManage ? healthManageButtonHTML() : '';
+  const hPanel = box.closest('.panel');
+  if (hPanel) hPanel.style.display = (inManage && !healthManageOpen) ? 'none' : '';
   const wire = (id, fn) => { const el = $(id); if (el) el.onclick = fn; };
   wire('btn-spec-start', () => grantSpec(false));
   wire('btn-spec-renew', () => grantSpec(true));
@@ -2545,6 +2584,9 @@ function renderHealthPanel() {
     const list = $('health-manage-list'); if (list) list.style.display = healthManageOpen ? '' : 'none';
     const chev = $('manage-health-chev'); if (chev) chev.textContent = healthManageOpen ? '▴' : '▾';
     const tg = $('btn-manage-health'); if (tg) tg.setAttribute('aria-expanded', healthManageOpen ? 'true' : 'false');
+    /* Fila «Gestionar…»: la tarjeta sigue a su lista (visible solo
+       con la lista abierta); el botón vive en la fila, fuera. */
+    const hp = box.closest('.panel'); if (hp) hp.style.display = healthManageOpen ? '' : 'none';
   });
   wire('btn-grant-reveal', () => {
     const s = $('spec-legal'); if (!s) return;

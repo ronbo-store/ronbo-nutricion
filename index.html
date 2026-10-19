@@ -232,11 +232,23 @@
     </div>
     <div id="ai-panel" class="ai-panel" style="display:none"></div>
   </div>
+  <!-- Fila «Gestionar…» (ejemplo 2026-10-19, pedido de Ronald
+       15:31): los dos botones, pequeños y discretos, viven en UNA
+       fila horizontal común donde empieza la primera de las dos
+       tarjetas. El botón de salud lo pinta renderHealthPanel en
+       #manage-slot-health (en el estado de edición no existe y el
+       hueco se retira); el de privacidad vive aquí directamente.
+       Las LISTAS siguen en sus paneles de siempre, a todo el ancho
+       debajo de la fila, y cada panel se oculta mientras su lista
+       está cerrada para no dejar tarjetas vacías. -->
+  <div class="panel manage-row" id="manage-row">
+    <span class="manage-slot" id="manage-slot-health"></span>
+    <span class="manage-slot" id="manage-slot-privacy"><button type="button" class="btn-secondary manage-toggle" id="btn-manage-privacy" aria-expanded="false"><span data-i18n="priv.manage">Manage privacy and data</span><span class="manage-chev" id="manage-privacy-chev">▾</span></button></span>
+  </div>
   <div class="panel health-panel">
     <div id="health-panel-body"><div class="wempty" data-i18n="train.loading">Loading…</div></div>
   </div>
-  <div class="panel privacy-panel">
-    <button type="button" class="btn-secondary manage-toggle" id="btn-manage-privacy" aria-expanded="false"><span data-i18n="priv.manage">Manage privacy and data</span><span class="manage-chev" id="manage-privacy-chev">▾</span></button>
+  <div class="panel privacy-panel" style="display:none">
     <div class="manage-list" id="privacy-manage-list" style="display:none">
       <div id="privacy-status" class="manage-info"></div>
       <button type="button" class="manage-item" id="btn-view-notice"><span class="menu-num"></span><span class="manage-label" data-i18n="priv.viewNotice">View the privacy notice</span><span class="manage-go">›</span></button>

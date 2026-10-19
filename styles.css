@@ -268,6 +268,33 @@ table.whist { min-width: 640px; }
    objetivo táctil), sin volver al bloque de todo el ancho ni a
    texto grande: el aspecto sigue siendo el compacto. */
 .btn-secondary.manage-toggle { display: inline-flex; justify-content: flex-start; gap: 6px; width: auto; max-width: 100%; box-sizing: border-box; margin-top: 0; padding: 12px 13px; font-size: 14.5px; font-weight: 600; line-height: 1.25; }
+/* Fila «Gestionar…» (EJEMPLO 2026-10-19, pedido de Ronald 15:31 —
+   «pequeños y discretos, si es posible alineados horizontalmente»):
+   los dos botones salen de sus tarjetas y viven en UNA fila
+   horizontal común, cada uno en ~la mitad del ancho con una
+   separación pequeña. Presentación ligera: tipografía 13 px,
+   peso 500, contorno FINO (1 px) con el teal de marca, fondo
+   blanco y texto CENTRADO dentro de cada botón (elección para
+   este formato de fila: con dos líneas de nombre se lee mejor
+   centrado). Los nombres COMPLETOS se conservan y envuelven en
+   dos líneas; el alto natural queda en ~50 px y NO se fuerza
+   por debajo de ~40 px (equilibrio discreto/toque declarado
+   en el informe de la etapa). Estructura medida en motor real:
+   un <button> como ítem flex directo de la fila NO cedía por
+   debajo de su ancho de contenido (166.5 px fijos, ni con
+   min-width: 0 ni con flex/width en línea), así que AMBOS
+   botones viven en huecos .manage-slot idénticos — que sí
+   flexionan — y cada botón llena su hueco: reparto en mitades
+   iguales (~159.5 px) y el nombre ES de salud en dos líneas.
+   Las listas siguen en sus paneles, a todo el ancho bajo la
+   fila.
+   Todo va acotado a .manage-row: fuera de la fila, nada cambia
+   (y «Añadir comida manualmente» no usa estas clases). */
+.manage-row { display: flex; align-items: stretch; gap: 8px; padding: 10px 8px; }
+.manage-row .manage-slot { display: flex; flex: 1 1 0; min-width: 0; }
+.manage-row .manage-slot:empty { display: none; }
+.manage-row .btn-secondary.manage-toggle { flex: 1 1 0; min-width: 0; width: auto; max-width: none; justify-content: center; text-align: center; margin-top: 0; padding: 8px 6px; font-size: 13px; font-weight: 500; line-height: 1.25; border-width: 1px; border-radius: 10px; }
+.manage-row .manage-toggle .manage-chev { font-size: 11px; }
 .manage-list { margin-top: 10px; border: 1px solid #e5e7eb; border-radius: 12px; overflow: hidden; }
 .manage-item { display: flex; align-items: center; gap: 10px; width: 100%; min-height: 47px; padding: 8px 12px; background: #fbfcfd; border: none; border-bottom: 1px solid #eef1f4; font-size: 14px; font-weight: 600; color: #1e293b; cursor: pointer; text-align: left; font-family: inherit; }
 .manage-item:last-child { border-bottom: none; }
