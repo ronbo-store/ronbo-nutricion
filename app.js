@@ -1968,7 +1968,11 @@ function aiUseDraft(r1, r2) {
     set('m-carb', mval('carb'));
     set('m-sugar', mval('sugar'));
     set('m-fat', mval('fat'));
-    set('m-notes', ((r2 && r2.items) || []).map(it => `${it.name}: ${Math.round(it.kcal || 0)} kcal`).join(' · ').slice(0, 300));
+    /* SIN ECO EN NOTAS (Ronald, 2026-10-19: «Esta información está de
+       más»): el borrador NO hereda el desglose «alimento: kcal · …» en
+       las notas — ese detalle vive en la pantalla de resultado. El campo
+       queda LIMPIO para lo que la persona quiera escribir a mano. */
+    set('m-notes', '');
     aiDraft = { model: (r2 && r2.model) || 'gemini', rangeKcal: Array.isArray(tot.range_kcal) ? tot.range_kcal : null };
     try {
       const b = $('m-ai-banner');
@@ -2016,7 +2020,9 @@ async function aiSaveDirect() {
     food: aiRecordName(),
     qty: aiQtyString(),
     kcal: val('kcal'), prot: val('prot'), carb: val('carb'), sugar: val('sugar'), fat: val('fat'),
-    notes: ((aiState.r2 && aiState.r2.items) || []).map(it => `${it.name}: ${Math.round(it.kcal || 0)} kcal`).join(' · ').slice(0, 300),
+    /* SIN ECO EN NOTAS (Ronald, 2026-10-19): el guardado directo ya NO
+       escribe la cadena automática de desglose en `notes` — el registro
+       nace sin notas; las notas son solo texto escrito a mano. */
     createdAt: serverTimestamp(),
     source: 'ai',
     ai: { model: (aiState.r2 && aiState.r2.model) || 'gemini', rangeKcal: Array.isArray(tot.range_kcal) ? tot.range_kcal : null }
@@ -3081,9 +3087,12 @@ function render(date) {
       const w = Math.min(pct, 1) * 100;
       return `<div class="vsrow"><span>${t('metric.' + m.key)}</span><span><b>${fmt(v)}</b></span><span>${fmt(GOALS[m.key])}</span><span class="bar-track"><div class="bar-fill" style="width:${w.toFixed(0)}%;background:${m.color}"></div></span><span>${Math.round(pct*100)}%</span></div>`;
     }).join('');
-  const noteSet = [];
-  rows.forEach(m => { if (m.notes) noteSet.push(`<b>${esc(mealName(m.meal))}:</b> ${esc(m.notes)}`); });
-  $('notesList').innerHTML = notesFor(tot).map(x => `<li>${x}</li>`).join('') + noteSet.map(x => `<li>${x}</li>`).join('');
+  /* SIN ECO EN NOTAS (Ronald, 2026-10-19: «Esta información está de
+     más»): la tarjeta «Notas» muestra SOLO las frases automáticas de
+     metas. Las notas de cada comida ya NO se vuelcan aquí como lista:
+     viven en su registro y en el formulario de la comida. No se borra
+     ningún dato guardado; es solo presentación. */
+  $('notesList').innerHTML = notesFor(tot).map(x => `<li>${x}</li>`).join('');
 
   document.querySelectorAll('[data-del-meal]').forEach(b =>
     b.onclick = async () => {
