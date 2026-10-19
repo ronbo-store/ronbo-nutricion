@@ -228,12 +228,13 @@
     <div id="privacy-status"></div>
     <div id="privacy-notice" class="consent-text" style="display:none"></div>
     <button type="button" class="btn-primary btn-sm" id="btn-renew-accept" style="display:none" data-i18n="priv.renewAccept">I accept the privacy notice</button>
-    <div class="privacy-btns">
-      <button type="button" class="btn-ghost btn-sm" id="btn-view-notice" data-i18n="priv.viewNotice">View the privacy notice</button>
-      <button type="button" class="btn-ghost btn-sm" id="btn-renew" style="display:none" data-i18n="priv.renew">Renew my consent</button>
-      <button type="button" class="btn-ghost btn-sm" id="btn-my-data" data-i18n="priv.download">Download my data (JSON)</button>
-      <button type="button" class="btn-ghost btn-sm" id="btn-withdraw" data-i18n="priv.withdraw">Withdraw my consent</button>
-      <button type="button" class="btn-ghost btn-sm danger" id="btn-delete-account" data-i18n="priv.delete">Delete my account and data</button>
+    <button type="button" class="btn-primary manage-toggle" id="btn-manage-privacy" aria-expanded="false"><span data-i18n="priv.manage">Manage privacy and data</span><span class="manage-chev" id="manage-privacy-chev">▾</span></button>
+    <div class="manage-list" id="privacy-manage-list" style="display:none">
+      <button type="button" class="manage-item" id="btn-view-notice"><span class="menu-num"></span><span class="manage-label" data-i18n="priv.viewNotice">View the privacy notice</span><span class="manage-go">›</span></button>
+      <button type="button" class="manage-item" id="btn-renew" style="display:none"><span class="menu-num"></span><span class="manage-label" data-i18n="priv.renew">Renew my consent</span><span class="manage-go">›</span></button>
+      <button type="button" class="manage-item" id="btn-my-data"><span class="menu-num"></span><span class="manage-label" data-i18n="priv.download">Download my data (JSON)</span><span class="manage-go">›</span></button>
+      <button type="button" class="manage-item danger" id="btn-withdraw"><span class="menu-num"></span><span class="manage-label" data-i18n="priv.withdraw">Withdraw my consent</span><span class="manage-go">›</span></button>
+      <button type="button" class="manage-item danger" id="btn-delete-account"><span class="menu-num"></span><span class="manage-label" data-i18n="priv.delete">Delete my account and data</span><span class="manage-go">›</span></button>
     </div>
   </div>
   </div><!-- /tab-track -->

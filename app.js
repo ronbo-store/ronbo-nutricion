@@ -103,6 +103,10 @@ en: {
   'health.specSummary': 'Summary of the specific consent: ronbo.nutri may process your health declaration so your trainer can adapt your program and take precautions; only you and your trainer can see it; you may withdraw it at any time — withdrawal blocks access but does not delete your answers. The full text, which is the one that governs, appears in full next to the checkbox below.',
   'health.specFullTitle': 'Full text of the specific consent',
   'health.fourActionsTitle': 'The four actions, explained',
+  'health.manage': 'Manage my health declaration',
+  'health.declActiveNoConds': 'Declaration active · no conditions declared',
+  'health.declNoConds': 'No conditions declared',
+  'health.declLoadError': 'Your declaration couldn\'t be loaded',
   'health.trainerNoAccess': 'Health declaration not available: this client has no active specific consent, or their declaration is blocked.',
   'health.trainerViewNote': 'Read-only. Health answers belong to the client; only the client can change them.',
   'health.needSpec': 'You must first give your specific consent.',
@@ -307,6 +311,7 @@ en: {
   'form.dob': 'Date of birth', 'form.dobHint': '(to verify you are 18+; it is not stored)',
   'err.underage': 'You must be 18 or older to create an account.',
   'priv.title': '🔒 Privacy & Data',
+  'priv.manage': 'Manage privacy and data',
   'priv.statusAccepted': 'Consent accepted · version {v} · {date}',
   'priv.statusNone': 'No consent record found for this account.',
   'priv.statusWithdrawn': 'Consent withdrawn · access revoked.',
@@ -462,6 +467,10 @@ es: {
   'health.specSummary': 'Resumen del consentimiento específico: ronbo.nutri podrá tratar tu declaración de salud para que tu entrenador adapte tu programa y tome precauciones; solo tú y tu entrenador podrán verla; podrás retirarlo en cualquier momento — la retirada bloquea el acceso, pero no elimina tus respuestas. El texto completo, que es el que rige, aparece íntegro junto a la casilla, abajo.',
   'health.specFullTitle': 'Texto completo del consentimiento específico',
   'health.fourActionsTitle': 'Las cuatro acciones, explicadas',
+  'health.manage': 'Gestionar mi declaración de salud',
+  'health.declActiveNoConds': 'Declaración activa · sin condiciones declaradas',
+  'health.declNoConds': 'Sin condiciones declaradas',
+  'health.declLoadError': 'No se pudo cargar tu declaración',
   'health.trainerNoAccess': 'Declaración de salud no disponible: este cliente no tiene un consentimiento específico activo, o su declaración está bloqueada.',
   'health.trainerViewNote': 'Solo lectura. Las respuestas de salud pertenecen al cliente; solo el cliente puede cambiarlas.',
   'health.needSpec': 'Primero debes dar tu consentimiento específico.',
@@ -666,6 +675,7 @@ es: {
   'form.dob': 'Fecha de nacimiento', 'form.dobHint': '(para verificar que eres mayor de 18; no se guarda)',
   'err.underage': 'Debes tener 18 años o más para crear una cuenta.',
   'priv.title': '🔒 Privacidad y datos',
+  'priv.manage': 'Gestionar privacidad y datos',
   'priv.statusAccepted': 'Consentimiento aceptado · versión {v} · {date}',
   'priv.statusNone': 'No se encontró registro de consentimiento para esta cuenta.',
   'priv.statusWithdrawn': 'Consentimiento retirado · acceso revocado.',
@@ -2037,6 +2047,19 @@ async function doRenewConsent() {
     return true;
   } catch { return false; }
 }
+/* Simplificación visual (2026-10-18): numera en orden los chips de
+   una lista «Gestionar…» contando SOLO los ítems visibles (p. ej.,
+   «Renovar» solo cuenta cuando el estado real lo muestra). */
+function renumberManageItems(list) {
+  if (!list) return;
+  let n = 0;
+  list.querySelectorAll('.manage-item, .manage-details').forEach(el => {
+    if (el.style.display === 'none') return;
+    n++;
+    const chip = el.querySelector('.menu-num');
+    if (chip) chip.textContent = n;
+  });
+}
 function renderPrivacy() {
   const st = $('privacy-status');
   if (!st) return;
@@ -2065,6 +2088,7 @@ function renderPrivacy() {
   const outdated = (UDATA.termsVersion || '') !== TERMS_VERSION;
   const rb = $('btn-renew'); if (rb) rb.style.display = (active && !outdated) ? 'none' : '';
   const ra = $('btn-renew-accept'); if (ra) ra.style.display = 'none';
+  renumberManageItems($('privacy-manage-list'));
 }
 const MY_DATA_COLLECTIONS = [
   ['nutrition_meals', 'ownerUid'], ['nutrition_weight', 'ownerUid'],
@@ -2090,6 +2114,16 @@ const tsEncode = (v) => {
   }
   return v;
 };
+/* Simplificación visual: el botón «Gestionar privacidad y datos»
+   SOLO abre/cierra la lista de acciones. No escribe nada, no llama
+   a ninguna función de consentimiento y no altera ningún estado. */
+$('btn-manage-privacy') && $('btn-manage-privacy').addEventListener('click', () => {
+  const list = $('privacy-manage-list'); if (!list) return;
+  const open = list.style.display === 'none';
+  list.style.display = open ? '' : 'none';
+  const chev = $('manage-privacy-chev'); if (chev) chev.textContent = open ? '▴' : '▾';
+  $('btn-manage-privacy').setAttribute('aria-expanded', open ? 'true' : 'false');
+});
 $('btn-view-notice') && $('btn-view-notice').addEventListener('click', () => {
   const n = $('privacy-notice');
   if (n.style.display === 'none') { n.innerHTML = t('terms.body'); n.style.display = ''; }
@@ -2233,7 +2267,15 @@ const HEALTH_CONDITIONS = ['Hipertensión', 'Diabetes', 'Problemas del corazón'
   'Dolor de pecho al ejercitarse', 'Mareos o desmayos', 'Asma / problemas respiratorios',
   'Lesiones articulares o musculares', 'Cirugía reciente', 'Embarazo', 'Ninguna de las anteriores'];
 let MY_DECLS = [];
+/* Estado de la carga de declaraciones: 'loading' | 'ok' | 'error'.
+   Distingue «cargado, sin declaraciones» de «no se pudo cargar»:
+   un fallo de red jamás debe pintarse como ausencia de declaración. */
+let declLoadState = 'loading';
 let healthEditing = false;
+/* Simplificación visual: la lista «Gestionar mi declaración de
+   salud» recuerda si está abierta entre re-pintados (p. ej., al
+   cambiar de idioma). El botón solo abre/cierra; no escribe nada. */
+let healthManageOpen = false;
 const specOf = u => (u && u.healthConsent) || null;
 const specIsActive = u => { const s = specOf(u); return !!s && s.status === 'accepted'; };
 const declCol = uid => collection(db, 'users', uid, 'healthDeclarations');
@@ -2256,9 +2298,23 @@ async function fetchClientHealth(uid, userData) {
     return { available: !!decl, decl };
   } catch { return { available: false, decl: null }; }
 }
+/* Resumen veraz de una declaración (corrección 2026-10-18): el «—»
+   anterior mezclaba casos distintos. Diagnóstico: (a) declaración
+   con condiciones → se listan (sin cambios); (b) declaración ACTIVA
+   sin condiciones — p. ej., quien marcó solo «Ninguna de las
+   anteriores», que saveDeclaration filtra de la lista — → texto
+   propio «Declaración activa · sin condiciones declaradas»;
+   (c) declaración no activa (bloqueada) sin condiciones → «Sin
+   condiciones declaradas»; (d) fallo de CARGA → nunca llega aquí:
+   loadMyHealth marca declLoadState='error' y el panel muestra
+   health.declLoadError, jamás una ausencia fingida. */
 function declSummaryHTML(d) {
-  const conds = (d.conditions || []).map(condName).join(', ');
-  return `<div class="health-alert">🏥 <b>${t('client.healthDecl')}</b> ${esc(conds || '—')}${d.details ? '<br>' + esc(d.details) : ''}</div>`;
+  const conds = (d.conditions || []).map(condName);
+  let body;
+  if (conds.length) body = esc(conds.join(', '));
+  else if (d.state === 'active') body = esc(t('health.declActiveNoConds'));
+  else body = esc(t('health.declNoConds'));
+  return `<div class="health-alert">🏥 <b>${t('client.healthDecl')}</b> ${body}${d.details ? '<br>' + esc(d.details) : ''}</div>`;
 }
 function declFormHTML(d) {
   const sel = new Set((d && d.conditions) || []);
@@ -2279,6 +2335,34 @@ function blockedListHTML() {
     <p class="progress-hint">${t('health.blockedNote')}</p>` +
     blocked.map(d => `<div class="wempty" style="text-align:left"><b>${t('health.versionLabel', { n: d.version || '?', date: esc(fmtD(d.declaredAt)) })}</b><br>${declSummaryHTML(d)}</div>`).join('');
 }
+/* Simplificación visual (2026-10-18): piezas de la lista
+   «Gestionar mi declaración de salud». El botón solo abre/cierra la
+   lista; las acciones conservan ids, textos, diálogos y efectos.
+   El despliegue de las cuatro acciones conserva su texto íntegro y,
+   como ítem de la lista, se sigue desplegando en su sitio. */
+function fourActionsItemHTML() {
+  return `<details class="spec-details manage-details"><summary><span class="menu-num"></span><span class="manage-label">${t('health.fourActionsTitle')}</span><span class="manage-go">›</span></summary><p class="progress-hint manage-details-body">${t('health.fourActions')}</p></details>`;
+}
+function fourActionsDetailsHTML() {
+  return `<details class="spec-details"><summary>${t('health.fourActionsTitle')}</summary><p class="progress-hint">${t('health.fourActions')}</p></details>`;
+}
+function healthManageListHTML(items) {
+  return `<button type="button" class="btn-primary manage-toggle" id="btn-manage-health" aria-expanded="${healthManageOpen ? 'true' : 'false'}"><span>${t('health.manage')}</span><span class="manage-chev" id="manage-health-chev">${healthManageOpen ? '▴' : '▾'}</span></button>
+  <div class="manage-list" id="health-manage-list"${healthManageOpen ? '' : ' style="display:none"'}>${items}</div>`;
+}
+/* La sección legal del otorgamiento (texto completo + casilla +
+   botón principal) es EXACTAMENTE la de siempre; en los estados
+   sin otorgar nace oculta y la revela el ítem de otorgar de la
+   lista, sin cambiar su estructura ni su comportamiento (E1). */
+function specLegalHTML(grantBtnId, grantLabel) {
+  return `<div id="spec-legal" style="display:none">
+      <details class="spec-details" id="spec-details">
+        <summary>${t('health.specFullTitle')}</summary>
+        <label class="consent-check"><input type="checkbox" id="spec-ok"> <span>${t('health.specText')}</span></label>
+      </details>
+      <button type="button" class="btn-primary btn-sm" id="${grantBtnId}">${grantLabel}</button>
+    </div>`;
+}
 function renderHealthPanel() {
   const box = $('health-panel-body');
   if (!box || !auth.currentUser) return;
@@ -2286,32 +2370,43 @@ function renderHealthPanel() {
   const spec = specOf(UDATA);
   const act = activeDecl();
   let html = '';
+  let fourActionsInList = false;
   if (specIsActive(UDATA)) {
     html += `<p class="progress-hint">${t('health.statusActive', { v: esc(spec.version || ''), date: esc(fmtD(spec.acceptedAt)) })}</p>`;
-    if (act && !healthEditing) {
-      html += `<h3 class="history-title">${t('health.currentTitle')}</h3>${declSummaryHTML(act)}
-        <div class="privacy-btns"><button type="button" class="btn-ghost btn-sm" id="btn-decl-edit">${t('health.editDecl')}</button>
-        <button type="button" class="btn-ghost btn-sm danger" id="btn-spec-withdraw">${t('health.withdrawSpec')}</button></div>`;
+    if (declLoadState === 'error') {
+      /* Fallo de carga de las declaraciones: mensaje propio y
+         veraz — nunca se pinta como «sin declaración» ni como un
+         formulario vacío. Retirar el específico sigue disponible,
+         con su botón y su confirmación de siempre. */
+      html += `<div class="health-alert">⚠️ ${t('health.declLoadError')}</div>
+        <div class="privacy-btns"><button type="button" class="btn-ghost btn-sm danger" id="btn-spec-withdraw">${t('health.withdrawSpec')}</button></div>`;
+    } else if (act && !healthEditing) {
+      html += `<h3 class="history-title">${t('health.currentTitle')}</h3>${declSummaryHTML(act)}`;
+      html += healthManageListHTML(
+        `<button type="button" class="manage-item" id="btn-decl-edit"><span class="menu-num"></span><span class="manage-label">${t('health.editDecl')}</span><span class="manage-go">›</span></button>`
+        + fourActionsItemHTML()
+        + `<button type="button" class="manage-item danger" id="btn-spec-withdraw"><span class="menu-num"></span><span class="manage-label">${t('health.withdrawSpec')}</span><span class="manage-go">›</span></button>`);
+      fourActionsInList = true;
     } else {
       html += declFormHTML(act);
       html += `<div class="privacy-btns"><button type="button" class="btn-ghost btn-sm danger" id="btn-spec-withdraw">${t('health.withdrawSpec')}</button></div>`;
     }
   } else if (spec && spec.status === 'withdrawn') {
     html += `<p class="progress-hint">${t('health.statusWithdrawnSpec')}</p>
-      <p class="progress-hint">${t('health.specSummary')}</p>
-      <details class="spec-details" id="spec-details">
-        <summary>${t('health.specFullTitle')}</summary>
-        <label class="consent-check"><input type="checkbox" id="spec-ok"> <span>${t('health.specText')}</span></label>
-      </details>
-      <button type="button" class="btn-primary btn-sm" id="btn-spec-renew">${t('health.renewSpec')}</button>`;
+      <p class="progress-hint">${t('health.specSummary')}</p>`;
+    html += healthManageListHTML(
+      `<button type="button" class="manage-item" id="btn-grant-reveal"><span class="menu-num"></span><span class="manage-label">${t('health.renewSpec')}</span><span class="manage-go">›</span></button>`
+      + fourActionsItemHTML());
+    html += specLegalHTML('btn-spec-renew', t('health.renewSpec'));
+    fourActionsInList = true;
   } else {
     html += `<p class="progress-hint">${t('health.statusNone')}</p>
-      <p class="progress-hint">${t('health.specSummary')}</p>
-      <details class="spec-details" id="spec-details">
-        <summary>${t('health.specFullTitle')}</summary>
-        <label class="consent-check"><input type="checkbox" id="spec-ok"> <span>${t('health.specText')}</span></label>
-      </details>
-      <button type="button" class="btn-primary btn-sm" id="btn-spec-start">${t('health.startBtn')}</button>`;
+      <p class="progress-hint">${t('health.specSummary')}</p>`;
+    html += healthManageListHTML(
+      `<button type="button" class="manage-item" id="btn-grant-reveal"><span class="menu-num"></span><span class="manage-label">${t('health.startBtn')}</span><span class="manage-go">›</span></button>`
+      + fourActionsItemHTML());
+    html += specLegalHTML('btn-spec-start', t('health.startBtn'));
+    fourActionsInList = true;
   }
   html += blockedListHTML();
   /* E1 (17/10/2026): las cuatro acciones, en un despliegue cerrado
@@ -2319,8 +2414,12 @@ function renderHealthPanel() {
      consentimiento específico se identifica como resumen y el
      texto completo —que es el que rige— va junto a la casilla
      dentro de su despliegue, sin premarcarla; al intentar otorgar
-     con el despliegue cerrado, grantSpec lo abre primero. */
-  html += `<details class="spec-details"><summary>${t('health.fourActionsTitle')}</summary><p class="progress-hint">${t('health.fourActions')}</p></details>`;
+     con el despliegue cerrado, grantSpec lo abre primero.
+     Simplificación visual (18/10/2026): en las vistas con lista
+     «Gestionar…» el despliegue es un ítem más de la lista; en el
+     formulario de edición (cuyo diseño no cambia) sigue al final,
+     como hasta hoy. */
+  if (!fourActionsInList) html += fourActionsDetailsHTML();
   box.innerHTML = html;
   const wire = (id, fn) => { const el = $(id); if (el) el.onclick = fn; };
   wire('btn-spec-start', () => grantSpec(false));
@@ -2328,6 +2427,18 @@ function renderHealthPanel() {
   wire('btn-spec-withdraw', withdrawSpec);
   wire('btn-decl-edit', () => { healthEditing = true; renderHealthPanel(); });
   wire('btn-decl-save', saveDeclaration);
+  wire('btn-manage-health', () => {
+    healthManageOpen = !healthManageOpen;
+    const list = $('health-manage-list'); if (list) list.style.display = healthManageOpen ? '' : 'none';
+    const chev = $('manage-health-chev'); if (chev) chev.textContent = healthManageOpen ? '▴' : '▾';
+    const tg = $('btn-manage-health'); if (tg) tg.setAttribute('aria-expanded', healthManageOpen ? 'true' : 'false');
+  });
+  wire('btn-grant-reveal', () => {
+    const s = $('spec-legal'); if (!s) return;
+    s.style.display = '';
+    const det = $('spec-details'); if (det) det.scrollIntoView({ block: 'nearest' });
+  });
+  renumberManageItems($('health-manage-list'));
 }
 async function grantSpec(isRenew) {
   if (!auth.currentUser) return;
@@ -2403,6 +2514,7 @@ async function saveDeclaration() {
       });
     }
     MY_DECLS = await fetchDeclarations(uid);
+    declLoadState = 'ok';
     healthEditing = false;
     toast(t('health.declSaved'));
     renderHealthPanel();
@@ -2410,7 +2522,8 @@ async function saveDeclaration() {
 }
 async function loadMyHealth() {
   if (!auth.currentUser) return;
-  try { MY_DECLS = await fetchDeclarations(auth.currentUser.uid); } catch { MY_DECLS = []; }
+  try { MY_DECLS = await fetchDeclarations(auth.currentUser.uid); declLoadState = 'ok'; }
+  catch { MY_DECLS = []; declLoadState = 'error'; }
   renderHealthPanel();
 }
 

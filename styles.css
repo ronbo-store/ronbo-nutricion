@@ -239,6 +239,28 @@ table.whist { min-width: 640px; }
 .privacy-btns { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 10px; }
 .privacy-btns .danger { color: #b91c1c; }
 
+/* Simplificación visual (2026-10-18, diseño aprobado por Ronald):
+   un solo botón «Gestionar…» por tarjeta que despliega la lista de
+   acciones en filas de menú (chip numerado, separadores finos).
+   El botón solo abre/cierra la lista; las acciones conservan sus
+   ids, textos, diálogos y efectos de siempre. */
+.manage-toggle { display: flex; align-items: center; justify-content: center; gap: 8px; width: 100%; margin-top: 10px; }
+.manage-toggle .manage-chev { font-size: 12px; }
+.manage-list { margin-top: 10px; border: 1px solid #e5e7eb; border-radius: 12px; overflow: hidden; }
+.manage-item { display: flex; align-items: center; gap: 10px; width: 100%; min-height: 47px; padding: 8px 12px; background: #fbfcfd; border: none; border-bottom: 1px solid #eef1f4; font-size: 14px; font-weight: 600; color: #1e293b; cursor: pointer; text-align: left; font-family: inherit; }
+.manage-item:last-child { border-bottom: none; }
+.manage-item:hover { background: #f1f5f9; }
+.manage-item .menu-num, .manage-details .menu-num { width: 20px; height: 20px; border-radius: 50%; background: #e2e8f0; color: #475569; font-size: 11.5px; font-weight: 700; display: flex; align-items: center; justify-content: center; flex: none; }
+.manage-item .manage-label { flex: 1; }
+.manage-item .manage-go, .manage-details .manage-go { color: #c3cad4; font-size: 17px; flex: none; }
+.manage-item.danger { color: #dc2626; }
+.manage-item.danger .menu-num { background: #fee2e2; color: #b91c1c; }
+.manage-details { margin: 0; }
+.manage-details > summary { display: flex; align-items: center; gap: 10px; min-height: 47px; padding: 8px 12px; background: #fbfcfd; border-bottom: 1px solid #eef1f4; font-size: 14px; font-weight: 600; color: #1e293b; cursor: pointer; list-style: none; }
+.manage-details > summary::-webkit-details-marker { display: none; }
+.manage-details > summary .manage-label { flex: 1; }
+.manage-details .manage-details-body { padding: 10px 12px 2px; margin-bottom: 10px; }
+
 /* M8 — panel de análisis con IA y aviso de borrador (Fase C) */
 .ai-panel{margin-top:12px;border:1px solid #d8e2e0;border-radius:12px;padding:12px}
 .ai-panel h3{margin:8px 0 4px;font-size:15px}
