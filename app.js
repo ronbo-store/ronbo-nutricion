@@ -81,6 +81,7 @@ en: {
   'health.clientTitle': '🏥 Client health declaration',
   'health.regNote': 'You can complete your health declaration later, in your profile, with its own specific consent. It is not required to create your account.',
   'card.toggle': 'Show or hide section',
+  'main.progress': 'Progress', 'main.food': 'Food', 'main.training': 'Training',
   'health.panelTitle': '🏥 My health declaration',
   'health.specText': 'I give my SPECIFIC consent for ronbo.nutri to process my health declaration so my trainer can adapt my program and take precautions. Only my trainer and I can see it. I can withdraw this consent at any time: withdrawal blocks my trainer\'s access to my answers, but does not delete them.',
   'health.statusNone': 'You have not given specific consent for health data. Without it, no declaration is collected and your trainer cannot see any health answers.',
@@ -446,6 +447,7 @@ es: {
   'health.clientTitle': '🏥 Declaración de salud del cliente',
   'health.regNote': 'Puedes completar tu declaración de salud más tarde, en tu perfil, con su propio consentimiento específico. No es necesaria para crear tu cuenta.',
   'card.toggle': 'Mostrar u ocultar la sección',
+  'main.progress': 'Progreso', 'main.food': 'Comida', 'main.training': 'Entrenamiento',
   'health.panelTitle': '🏥 Mi declaración de salud',
   'health.specText': 'Doy mi consentimiento ESPECÍFICO para que ronbo.nutri trate mi declaración de salud, para que mi entrenador adapte mi programa y tome precauciones. Solo mi entrenador y yo podemos verla. Puedo retirar este consentimiento cuando quiera: la retirada bloquea el acceso de mi entrenador a mis respuestas, pero no las elimina.',
   'health.statusNone': 'No has dado tu consentimiento específico para datos de salud. Sin él, no se recoge ninguna declaración y tu entrenador no puede ver ninguna respuesta de salud.',
@@ -802,6 +804,7 @@ function applyI18n() {
   document.querySelectorAll('[data-i18n-ph]').forEach(el => { el.placeholder = t(el.getAttribute('data-i18n-ph')); });
   document.querySelectorAll('[data-i18n-title]').forEach(el => { el.title = t(el.getAttribute('data-i18n-title')); });
   document.querySelectorAll('[data-i18n-alt]').forEach(el => { el.alt = t(el.getAttribute('data-i18n-alt')); });
+  document.querySelectorAll('[data-i18n-aria]').forEach(el => { el.setAttribute('aria-label', t(el.getAttribute('data-i18n-aria'))); });
   document.querySelectorAll('.lang-toggle button').forEach(b => b.classList.toggle('active', b.getAttribute('data-lang') === LANG));
   document.documentElement.lang = LANG;
   document.title = t('app.title');
@@ -2144,7 +2147,23 @@ $('btn-manage-privacy') && $('btn-manage-privacy').addEventListener('click', () 
    ancho bajo la fila tranquila de título de «Ayuda con comidas»;
    los botones «Gestionar…» bajan a SECUNDARIO (.btn-secondary:
    fondo blanco, borde y texto teal). Mismos ids y handlers: esta
-   función sigue alternando el contenido de progreso y plan. */
+   función sigue alternando el contenido de progreso y plan.
+   Fila v4 (2026-10-19): las caras a todo ancho se retiran y las
+   tres protagonistas viven en UNA fila horizontal de botones
+   REDONDOS (.rounds-row dentro de .main-actions): 📸 «Progreso» y
+   🏋️ «Entrenamiento» son botones que abren/cierran sus paneles
+   (#progress-content / #train-content, bajo la fila) y 🍽️
+   «Comida» es la etiqueta de siempre sobre #ai-file (un toque
+   inicia el flujo «Analiza la comida»; no queda otro botón con
+   ese nombre en la vista principal). El contenido secundario de
+   «Ayuda con comidas» se abre con la fila de texto discreta
+   #btn-toggle-mealhelp bajo los redondos; orden de paneles bajo
+   la fila: progreso, ayuda, plan. Los ids de los toggles y esta
+   función NO cambian: los chevrones ▾/▴ viven ahora en la leyenda
+   bajo cada redondo (y en la fila discreta), y el estado abierto
+   se enfatiza con CSS sobre [aria-expanded="true"] (anillo en el
+   círculo). Las leyendas cortas usan las claves main.* y el
+   nombre completo va en aria-label (data-i18n-aria). */
 function wireCardToggle(btnId, contentId, chevId) {
   const btn = $(btnId); if (!btn) return;
   btn.addEventListener('click', () => {

@@ -282,6 +282,26 @@ table.whist { min-width: 640px; }
 .face-toggle + div { margin-top: 12px; }
 .mealhelp-panel .mealhelp-upload { display: block; width: 100%; box-sizing: border-box; text-align: center; margin: 10px 0 0; }
 .mealhelp-panel #mealhelp-content { margin-top: 10px; }
+/* Fila v4 (2026-10-19): las tres protagonistas de la vista principal
+   —«Mi progreso», «Analiza la comida» y «Mi plan de entrenamiento»—
+   se convierten en UNA fila horizontal de botones REDONDOS (círculos
+   teal con icono y leyenda corta debajo), para acortar la página y
+   darle un aire contemporáneo. Sus contenidos (y el secundario de
+   «Ayuda con comidas», tras su fila de texto discreta) se abren en
+   paneles bajo la fila, dentro de la misma tarjeta .main-actions.
+   El estado abierto se marca con anillo sobre el círculo vía
+   [aria-expanded="true"], que wireCardToggle ya mantiene. */
+.main-actions { margin-top: 18px; }
+.rounds-row { display: flex; justify-content: space-around; align-items: flex-start; gap: 8px; }
+.round-action { flex: 1; display: flex; flex-direction: column; align-items: center; gap: 7px; background: none; border: none; padding: 2px 0 0; cursor: pointer; font-family: inherit; text-decoration: none; }
+.round-circle { width: 76px; height: 76px; border-radius: 50%; background: #0d9488; color: #fff; font-size: 34px; line-height: 1; display: flex; align-items: center; justify-content: center; box-shadow: 0 2px 6px rgba(13, 148, 136, .35); }
+.round-action:active .round-circle { background: #0b7c72; }
+.round-action[aria-expanded="true"] .round-circle { background: #0b7c72; box-shadow: 0 0 0 3px #fff, 0 0 0 6px #0d9488; }
+.round-label { font-size: 12.5px; font-weight: 600; color: #1f2a44; text-align: center; line-height: 1.15; }
+.round-chev { font-size: 10px; color: #0d9488; }
+.mealhelp-link { display: flex; align-items: center; gap: 6px; margin: 12px auto 0; background: none; border: none; padding: 4px 6px; font-family: inherit; font-size: 12.5px; font-weight: 600; color: #64748b; cursor: pointer; }
+.mealhelp-link #chev-mealhelp { font-size: 10px; }
+.main-actions #progress-content, .main-actions #mealhelp-content, .main-actions #train-content { margin-top: 12px; }
 .sr-only { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0, 0, 0, 0); white-space: nowrap; }
 .block-head { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; margin-bottom: 10px; }
 .block-head .block-title { flex: 1; font-size: 14px; color: #1f2a44; }
