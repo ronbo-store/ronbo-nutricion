@@ -175,10 +175,7 @@
   </div>
 
   <div class="progress-section">
-    <div class="card-head">
-      <h2><span data-i18n="progress.title">📸 My progress</span> <span class="h2-sub" data-i18n="progress.sub">· weekly photo: front and side</span></h2>
-      <button type="button" class="card-chev" id="btn-toggle-progress" aria-expanded="false"><span class="sr-only" data-i18n="card.toggle">Show or hide section</span><span class="card-chev-icon" id="chev-progress">▾</span></button>
-    </div>
+    <button type="button" class="btn-primary face-toggle" id="btn-toggle-progress" aria-expanded="false"><span data-i18n="progress.title">📸 My progress</span><span class="manage-chev" id="chev-progress">▾</span></button>
     <div id="progress-content" style="display:none">
     <div class="block-head">
       <h3 class="block-title"><span data-i18n="weight.title">⚖️ Weight progress</span> <span class="h2-sub" data-i18n="weight.sub">· weekly weigh-in</span></h3>
@@ -212,11 +209,11 @@
   <div class="panel mealhelp-panel">
     <div class="card-head">
       <h2 data-i18n="mealhelp.title">📷 Meal help</h2>
-      <label class="btn-ghost btn-sm mealhelp-upload"><span data-i18n="ai.analyze">Analyze the food</span>
-        <input type="file" id="ai-file" accept="image/*" capture="environment" style="display:none">
-      </label>
       <button type="button" class="card-chev" id="btn-toggle-mealhelp" aria-expanded="false"><span class="sr-only" data-i18n="card.toggle">Show or hide section</span><span class="card-chev-icon" id="chev-mealhelp">▾</span></button>
     </div>
+    <label class="btn-primary mealhelp-upload"><span data-i18n="ai.analyze">Analyze the food</span>
+      <input type="file" id="ai-file" accept="image/*" capture="environment" style="display:none">
+    </label>
     <div id="mealhelp-content" style="display:none">
       <p class="progress-hint" data-i18n="mealhelp.hint">The photo is not stored.</p>
       <div id="mealhelp-list" class="mealhelp-list"><div class="wempty" data-i18n="mealhelp.empty">You haven't uploaded photos yet.</div></div>
@@ -224,10 +221,7 @@
     <div id="ai-panel" class="ai-panel" style="display:none"></div>
   </div>
   <div class="panel train-panel">
-    <div class="card-head">
-      <h2 data-i18n="train.title">🏋️ My training plan</h2>
-      <button type="button" class="card-chev" id="btn-toggle-train" aria-expanded="false"><span class="sr-only" data-i18n="card.toggle">Show or hide section</span><span class="card-chev-icon" id="chev-train">▾</span></button>
-    </div>
+    <button type="button" class="btn-primary face-toggle" id="btn-toggle-train" aria-expanded="false"><span data-i18n="train.title">🏋️ My training plan</span><span class="manage-chev" id="chev-train">▾</span></button>
     <div id="train-content" style="display:none">
       <div id="my-training"><div class="wempty" data-i18n="train.loading">Loading your plan…</div></div>
     </div>
@@ -236,7 +230,7 @@
     <div id="health-panel-body"><div class="wempty" data-i18n="train.loading">Loading…</div></div>
   </div>
   <div class="panel privacy-panel">
-    <button type="button" class="btn-primary manage-toggle" id="btn-manage-privacy" aria-expanded="false"><span data-i18n="priv.manage">Manage privacy and data</span><span class="manage-chev" id="manage-privacy-chev">▾</span></button>
+    <button type="button" class="btn-secondary manage-toggle" id="btn-manage-privacy" aria-expanded="false"><span data-i18n="priv.manage">Manage privacy and data</span><span class="manage-chev" id="manage-privacy-chev">▾</span></button>
     <div class="manage-list" id="privacy-manage-list" style="display:none">
       <div id="privacy-status" class="manage-info"></div>
       <button type="button" class="manage-item" id="btn-view-notice"><span class="menu-num"></span><span class="manage-label" data-i18n="priv.viewNotice">View the privacy notice</span><span class="manage-go">›</span></button>

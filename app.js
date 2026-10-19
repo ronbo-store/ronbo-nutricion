@@ -2135,7 +2135,16 @@ $('btn-manage-privacy') && $('btn-manage-privacy').addEventListener('click', () 
    por defecto. El chevron SOLO abre/cierra: no escribe nada. Las
    áreas son HTML estático que los renders no recrean (pintan en
    contenedores interiores), así que el estado abierto sobrevive a
-   re-pintados y al cambio de idioma. */
+   re-pintados y al cambio de idioma.
+   Jerarquía v3 (2026-10-19): esas tres tarjetas son las
+   protagonistas de la página — «Mi progreso» y «Mi plan de
+   entrenamiento» tienen por cara un botón PRIMARIO a todo ancho
+   (.btn-primary.face-toggle, sin chevron circular separado ni
+   subtítulo en la cara) y «Analiza la comida» es primario a todo
+   ancho bajo la fila tranquila de título de «Ayuda con comidas»;
+   los botones «Gestionar…» bajan a SECUNDARIO (.btn-secondary:
+   fondo blanco, borde y texto teal). Mismos ids y handlers: esta
+   función sigue alternando el contenido de progreso y plan. */
 function wireCardToggle(btnId, contentId, chevId) {
   const btn = $(btnId); if (!btn) return;
   btn.addEventListener('click', () => {
@@ -2380,7 +2389,7 @@ function fourActionsDetailsHTML() {
    acciones (itemsHTML) y al final los anexos (extraHTML: sección
    legal del otorgamiento e historial de bloqueadas). */
 function healthManageListHTML(infoHTML, itemsHTML, extraHTML = '') {
-  return `<button type="button" class="btn-primary manage-toggle" id="btn-manage-health" aria-expanded="${healthManageOpen ? 'true' : 'false'}"><span>${t('health.manage')}</span><span class="manage-chev" id="manage-health-chev">${healthManageOpen ? '▴' : '▾'}</span></button>
+  return `<button type="button" class="btn-secondary manage-toggle" id="btn-manage-health" aria-expanded="${healthManageOpen ? 'true' : 'false'}"><span>${t('health.manage')}</span><span class="manage-chev" id="manage-health-chev">${healthManageOpen ? '▴' : '▾'}</span></button>
   <div class="manage-list" id="health-manage-list"${healthManageOpen ? '' : ' style="display:none"'}>${infoHTML ? `<div class="manage-info">${infoHTML}</div>` : ''}${itemsHTML}${extraHTML}</div>`;
 }
 /* La sección legal del otorgamiento (texto completo + casilla +
