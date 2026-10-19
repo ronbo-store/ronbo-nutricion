@@ -1571,7 +1571,7 @@ async function aiCall(path, body) {
   if (!r.ok) throw new Error('ai-' + r.status);
   return r.json();
 }
-function aiShow(html) { const p = $('ai-panel'); if (p) { p.style.display = ''; p.innerHTML = html; } }
+function aiShow(html) { const p = $('ai-panel'); if (!p) return; const wasHidden = p.style.display === 'none'; p.style.display = ''; p.innerHTML = html; /* v4.2: el flujo arranca desde el dock flotante, lejos del panel: al MOSTRARSE (transición oculto→visible) se desplaza hasta él; los re-pintados con el panel ya visible no mueven la página. */ if (wasHidden) { try { p.scrollIntoView({ behavior: 'smooth', block: 'start' }); } catch {} } }
 function aiClosePanel() { const p = $('ai-panel'); if (p) { p.style.display = 'none'; p.innerHTML = ''; } }
 function aiDiscard() { aiState = null; aiClosePanel(); }
 function aiCaptureAnswers() {
@@ -2163,8 +2163,14 @@ $('btn-manage-privacy') && $('btn-manage-privacy').addEventListener('click', () 
    bajo cada redondo (y en la fila discreta), y el estado abierto
    se enfatiza con CSS sobre [aria-expanded="true"] (anillo en el
    círculo). Las leyendas cortas usan las claves main.* y el
-   nombre completo va en aria-label (data-i18n-aria). */
-function wireCardToggle(btnId, contentId, chevId) {
+   nombre completo va en aria-label (data-i18n-aria).
+   v4.2 (2026-10-19): la fila de redondos FLOTA en un dock fijo
+   abajo (.actions-dock, dentro de #tab-track). Como el dock está
+   lejos de los paneles, al ABRIR uno de sus paneles (progreso o
+   plan, opts.scroll) la página se desplaza suave hasta el panel;
+   al cerrar, no se mueve. El toggle de «Ayuda con comidas» sigue
+   en su tarjeta, junto a su panel: sin scroll. */
+function wireCardToggle(btnId, contentId, chevId, opts = {}) {
   const btn = $(btnId); if (!btn) return;
   btn.addEventListener('click', () => {
     const c = $(contentId); if (!c) return;
@@ -2172,11 +2178,12 @@ function wireCardToggle(btnId, contentId, chevId) {
     c.style.display = open ? '' : 'none';
     const ch = $(chevId); if (ch) ch.textContent = open ? '▴' : '▾';
     btn.setAttribute('aria-expanded', open ? 'true' : 'false');
+    if (open && opts.scroll) { try { c.scrollIntoView({ behavior: 'smooth', block: 'start' }); } catch {} }
   });
 }
-wireCardToggle('btn-toggle-progress', 'progress-content', 'chev-progress');
+wireCardToggle('btn-toggle-progress', 'progress-content', 'chev-progress', { scroll: true });
 wireCardToggle('btn-toggle-mealhelp', 'mealhelp-content', 'chev-mealhelp');
-wireCardToggle('btn-toggle-train', 'train-content', 'chev-train');
+wireCardToggle('btn-toggle-train', 'train-content', 'chev-train', { scroll: true });
 $('btn-view-notice') && $('btn-view-notice').addEventListener('click', () => {
   const n = $('privacy-notice');
   if (n.style.display === 'none') { n.innerHTML = t('terms.body'); n.style.display = ''; }

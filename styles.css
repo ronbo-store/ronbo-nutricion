@@ -290,17 +290,32 @@ table.whist { min-width: 640px; }
    «Ayuda con comidas», tras su fila de texto discreta) se abren en
    paneles bajo la fila, dentro de la misma tarjeta .main-actions.
    El estado abierto se marca con anillo sobre el círculo vía
-   [aria-expanded="true"], que wireCardToggle ya mantiene. */
+   [aria-expanded="true"], que wireCardToggle ya mantiene.
+   Dock v4.2 (2026-10-19): la fila sale de la tarjeta y FLOTA en una
+   pastilla fija abajo (.actions-dock), siempre visible al hacer
+   scroll dentro de #tab-track; el dock vive en el DOM dentro de
+   #tab-track, así que al cambiar de pestaña (display:none) no se
+   renderiza. z-index 40: sobre el contenido, bajo el modal (50),
+   el toast (99) y el lightbox (9999). Las leyendas van en
+   MAYÚSCULAS por CSS (los diccionarios no cambian). Círculos de
+   68 px (un poco más compactos que los 76 de v4/v4.1 para que el
+   dock tape menos; el SVG de 36 px se conserva). Para que el dock
+   no tape el final de la página, el pie (.foot, último elemento
+   tras las pestañas) gana margen inferior SOLO mientras #tab-track
+   es la pestaña visible (selector de hermano: sin el margen, el
+   pie quedaría bajo la pastilla al llegar al fondo). */
 .main-actions { margin-top: 18px; }
+.actions-dock { position: fixed; left: 50%; transform: translateX(-50%); bottom: calc(env(safe-area-inset-bottom, 0px) + 12px); z-index: 40; width: min(430px, calc(100vw - 24px)); box-sizing: border-box; background: rgba(255, 255, 255, .96); border: 1px solid rgba(15, 23, 42, .06); border-radius: 999px; box-shadow: 0 8px 24px rgba(15, 23, 42, .18); padding: 10px 14px; }
+#tab-track:not([style*="none"]) ~ .foot { margin-bottom: 132px; }
 .rounds-row { display: flex; justify-content: space-around; align-items: flex-start; gap: 8px; }
 .round-action { flex: 1; display: flex; flex-direction: column; align-items: center; gap: 7px; background: none; border: none; padding: 2px 0 0; cursor: pointer; font-family: inherit; text-decoration: none; }
-.round-circle { width: 76px; height: 76px; border-radius: 50%; background: #00aca1; color: #fff; display: flex; align-items: center; justify-content: center; }
+.round-circle { width: 68px; height: 68px; border-radius: 50%; background: #00aca1; color: #fff; display: flex; align-items: center; justify-content: center; }
 .round-circle svg { display: block; }
 .round-action:active .round-circle { background: #00857c; }
 .round-action[aria-expanded="true"] .round-circle { background: #00857c; box-shadow: 0 0 0 3px #fff, 0 0 0 6px #00aca1; }
-.round-label { font-size: 12.5px; font-weight: 600; color: #1f2a44; text-align: center; line-height: 1.15; }
+.round-label { font-size: 12.5px; font-weight: 600; color: #1f2a44; text-align: center; line-height: 1.15; text-transform: uppercase; }
 .round-chev { font-size: 10px; color: #00aca1; }
-.mealhelp-link { display: flex; align-items: center; gap: 6px; margin: 12px auto 0; background: none; border: none; padding: 4px 6px; font-family: inherit; font-size: 12.5px; font-weight: 600; color: #64748b; cursor: pointer; }
+.mealhelp-link { display: flex; align-items: center; gap: 6px; margin: 0 auto; background: none; border: none; padding: 4px 6px; font-family: inherit; font-size: 12.5px; font-weight: 600; color: #64748b; cursor: pointer; }
 .mealhelp-link #chev-mealhelp { font-size: 10px; }
 .main-actions #progress-content, .main-actions #mealhelp-content, .main-actions #train-content { margin-top: 12px; }
 .sr-only { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0, 0, 0, 0); white-space: nowrap; }
