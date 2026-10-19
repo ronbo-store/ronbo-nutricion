@@ -163,7 +163,10 @@
     </div>
     <div>
       <div class="panel">
-        <h2 data-i18n="track.summary">Summary vs. goals</h2>
+        <div class="summary-head">
+          <h2 data-i18n="track.summary">Summary vs. goals</h2>
+          <button type="button" class="btn-secondary meal-manual-pill" id="btn-add-meal-manual" data-i18n="mealhelp.addManual">Add food manually</button>
+        </div>
         <div id="vsRows"></div>
       </div>
       <div class="notes">
@@ -174,7 +177,6 @@
   </div>
 
   <div class="panel main-actions">
-    <button type="button" class="mealhelp-link" id="btn-toggle-mealhelp" aria-expanded="false"><span data-i18n="mealhelp.title">Meal help</span> <span id="chev-mealhelp" aria-hidden="true">▾</span></button>
     <div id="progress-content" style="display:none">
     <div class="block-head">
       <h3 class="block-title"><span data-i18n="weight.title">⚖️ Weight progress</span> <span class="h2-sub" data-i18n="weight.sub">· weekly weigh-in</span></h3>
@@ -222,9 +224,9 @@
     <h3 class="history-title" data-i18n="progress.history">Previous evaluations</h3>
     <div id="progress-history" class="progress-history"><div class="wempty" data-i18n="progress.loading">Loading photos…</div></div>
     </div>
-    <div id="mealhelp-content" style="display:none">
+    <h3 class="mealhelp-head" data-i18n="mealhelp.title">Meal help</h3>
+    <div id="mealhelp-content">
       <p class="progress-hint" data-i18n="mealhelp.hint">The photo is not stored.</p>
-      <button type="button" class="btn-secondary mealhelp-manual" id="btn-add-meal-manual" data-i18n="mealhelp.addManual">Add food manually</button>
       <div id="mealhelp-list" class="mealhelp-list"></div>
     </div>
     <div id="train-content" style="display:none">

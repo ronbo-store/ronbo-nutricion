@@ -31,6 +31,14 @@ body { font-family: -apple-system, "Segoe UI", Roboto, Helvetica, Arial, sans-se
 @media (max-width: 900px) { .bottom { grid-template-columns: 1fr; } }
 .panel { background: #fff; border-radius: 12px; padding: 14px 16px; box-shadow: 0 1px 3px rgba(0,0,0,.08); min-width: 0; }
 .panel h2 { font-size: 14px; margin-bottom: 10px; color: #1f2a44; }
+/* Fila del título de «Resumen vs. metas» con el botón manual a la
+   DERECHA (Ronald, 2026-10-19 16:04: «a lado de meta alineados a
+   la derecha»): flex con envoltura — si título y botón no caben
+   en una línea, el botón baja a su propia línea y SIGUE alineado
+   a la derecha (margin-left:auto). El título no lleva margen
+   inferior dentro de la fila; lo pone la fila. */
+.summary-head { display: flex; align-items: center; gap: 8px 12px; flex-wrap: wrap; margin-bottom: 10px; }
+.summary-head h2 { margin-bottom: 0; }
 table.detail { width: 100%; min-width: 600px; border-collapse: collapse; font-size: 12.5px; }
 table.detail th { background: #1f2a44; color: #fff; padding: 8px 6px; text-align: left; font-size: 11.5px; }
 table.detail th.num, table.detail td.num { text-align: right; }
@@ -323,10 +331,16 @@ table.whist { min-width: 640px; }
 .face-toggle + div { margin-top: 12px; }
 .mealhelp-panel .mealhelp-upload { display: block; width: 100%; box-sizing: border-box; text-align: center; margin: 10px 0 0; }
 .mealhelp-panel #mealhelp-content { margin-top: 10px; }
-/* «Añadir comida manualmente» (2026-10-19): botón secundario de marca
-   a todo ancho dentro de «Ayuda con comidas», donde antes quedaba la
-   leyenda sin salida «Aún no has subido fotos.». */
-.mealhelp-manual { display: block; width: 100%; box-sizing: border-box; margin: 8px 0 12px; padding: 13px 18px; }
+/* «Añadir comida manualmente» (2026-10-19): nació como botón
+   secundario de marca a todo ancho dentro de «Ayuda con comidas»;
+   el ajuste «zona del día» (Ronald, 2026-10-19 16:02–16:04) lo
+   muda a la fila del título de «Resumen vs. metas» como PASTILLA
+   compacta alineada a la derecha: contorno de marca y texto
+   ÍNTEGRO («Añadir comida manualmente» / «Add food manually»),
+   tipografía 13.5 px, relleno reducido, una línea (nowrap), radio
+   de pastilla. Su especificidad (.btn-secondary.meal-manual-pill)
+   gana a .btn-secondary sin modificar esa clase. */
+.btn-secondary.meal-manual-pill { margin-left: auto; width: auto; max-width: 100%; box-sizing: border-box; padding: 7px 13px; font-size: 13.5px; font-weight: 600; line-height: 1.25; border-radius: 999px; white-space: nowrap; }
 /* Fila v4 (2026-10-19): las tres protagonistas de la vista principal
    —«Mi progreso», «Analiza la comida» y «Mi plan de entrenamiento»—
    se convierten en UNA fila horizontal de botones REDONDOS (círculos
@@ -360,8 +374,11 @@ table.whist { min-width: 640px; }
 .round-action[aria-expanded="true"] .round-circle { background: #00857c; box-shadow: 0 0 0 3px #fff, 0 0 0 6px #00aca1; }
 .round-label { font-size: 12.5px; font-weight: 600; color: #1f2a44; text-align: center; line-height: 1.15; text-transform: uppercase; }
 .round-chev { font-size: 10px; color: #00aca1; }
-.mealhelp-link { display: flex; align-items: center; gap: 6px; margin: 0 auto; background: none; border: none; padding: 4px 6px; font-family: inherit; font-size: 12.5px; font-weight: 600; color: #64748b; cursor: pointer; }
-.mealhelp-link #chev-mealhelp { font-size: 10px; }
+/* «Ayuda con comidas» SIN control de colapso (Ronald, 2026-10-19
+   16:01: «Quita eso»): la antigua fila-botón .mealhelp-link con
+   su chevron desaparece; queda un ENCABEZADO FIJO de sección y el
+   contenido siempre abierto bajo él. */
+.mealhelp-head { font-size: 14px; color: #1f2a44; margin: 16px 0 0; }
 .main-actions #progress-content, .main-actions #mealhelp-content, .main-actions #train-content { margin-top: 12px; }
 .sr-only { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0, 0, 0, 0); white-space: nowrap; }
 .block-head { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; margin-bottom: 10px; }

@@ -2223,7 +2223,14 @@ syncPermsPanel();
    lejos de los paneles, al ABRIR uno de sus paneles (progreso o
    plan, opts.scroll) la página se desplaza suave hasta el panel;
    al cerrar, no se mueve. El toggle de «Ayuda con comidas» sigue
-   en su tarjeta, junto a su panel: sin scroll. */
+   en su tarjeta, junto a su panel: sin scroll.
+   Ajuste «zona del día» (Ronald, 2026-10-19 16:01: «Quita eso»
+   sobre la flecha de la cabecera): el control de colapso de
+   «Ayuda con comidas» DESAPARECE — ya no hay #btn-toggle-mealhelp
+   ni #chev-mealhelp ni cableado en esta función; la sección es
+   un encabezado fijo (.mealhelp-head) y #mealhelp-content se
+   renderiza SIEMPRE abierto, como una tarjeta normal. Progreso
+   y plan conservan sus redondos de siempre. */
 function wireCardToggle(btnId, contentId, chevId, opts = {}) {
   const btn = $(btnId); if (!btn) return;
   btn.addEventListener('click', () => {
@@ -2236,7 +2243,6 @@ function wireCardToggle(btnId, contentId, chevId, opts = {}) {
   });
 }
 wireCardToggle('btn-toggle-progress', 'progress-content', 'chev-progress', { scroll: true });
-wireCardToggle('btn-toggle-mealhelp', 'mealhelp-content', 'chev-mealhelp');
 wireCardToggle('btn-toggle-train', 'train-content', 'chev-train', { scroll: true });
 $('btn-view-notice') && $('btn-view-notice').addEventListener('click', () => {
   const n = $('privacy-notice');
@@ -3288,15 +3294,24 @@ PROGRESS_SLOTS.forEach(s => {
    eliminó (Ronald, 2026-10-19 12:27: «Ese botón no es necesario que
    esté allí»): duplicaba la entrada manual. La comida se apunta por
    UN solo lugar según la vía: foto con el botón COMIDA del dock, o
-   manual desde «Ayuda con comidas» (#btn-add-meal-manual, abajo). */
-/* «Añadir comida manualmente» desde «Ayuda con comidas» (Ronald,
-   2026-10-19 12:06: «si ya comí y olvidé tomar la foto puede servir
-   para apuntarlo manual»): abre el MISMO formulario de siempre en
-   modo manual EN BLANCO — sin borrador de IA (aiClearDraft),
-   formulario reiniciado, fecha de hoy y comida preseleccionada por
-   la hora con aiDefaultMeal() (la misma del flujo de análisis),
-   ambos editables en el propio formulario. El guardado es el del
-   formulario: sin source:'ai', un registro manual normal. */
+   manual desde «Resumen vs. metas» (#btn-add-meal-manual, abajo). */
+/* «Añadir comida manualmente» (Ronald, 2026-10-19 12:06: «si ya
+   comí y olvidé tomar la foto puede servir para apuntarlo
+   manual»): abre el MISMO formulario de siempre en modo manual
+   EN BLANCO — sin borrador de IA (aiClearDraft), formulario
+   reiniciado y comida preseleccionada por la hora con
+   aiDefaultMeal() (la misma del flujo de análisis), ambos
+   editables en el propio formulario. El guardado es el del
+   formulario: sin source:'ai', un registro manual normal.
+   Ajuste «zona del día» (Ronald, 2026-10-19 16:02–16:04: «Lo
+   quiero a lado de meta alineados a la derecha»): el botón se
+   muda de «Ayuda con comidas» a la fila del título de «Resumen
+   vs. metas», alineado a la DERECHA, como pastilla compacta con
+   su texto íntegro; sigue existiendo UNA sola vez en el DOM.
+   Única adaptación de comportamiento: la fecha preseleccionada
+   es la del DÍA EN PANTALLA (la que resume esa tarjeta, vía
+   #dateSel — el mismo patrón que ya usan otras rutas del
+   formulario), no siempre hoy. */
 const btnMealManual = $('btn-add-meal-manual');
 if (btnMealManual) btnMealManual.onclick = () => {
   aiClearDraft();
@@ -3304,7 +3319,7 @@ if (btnMealManual) btnMealManual.onclick = () => {
   if (form) form.reset();
   const prev = $('m-photo-preview');
   if (prev) { prev.style.display = 'none'; prev.src = ''; }
-  $('m-date').value = todayISO();
+  $('m-date').value = ($('dateSel') && $('dateSel').value) || todayISO();
   $('m-meal').value = aiDefaultMeal();
   aiOpenMealModal();
 };
