@@ -174,15 +174,17 @@
     </div>
   </div>
 
-  <div class="weight-section">
-    <h2><span data-i18n="weight.title">⚖️ Weight progress</span> <span class="h2-sub" data-i18n="weight.sub">· weekly weigh-in</span>
-      <button id="btn-add-weight" class="btn-ghost btn-sm" style="margin-left:8px" data-i18n="weight.add">＋ Log weigh-in</button>
-    </h2>
-    <div id="weightBody"><div class="wempty" data-i18n="weight.loading">Loading weigh-ins…</div></div>
-  </div>
-
   <div class="progress-section">
-    <h2><span data-i18n="progress.title">📸 My progress</span> <span class="h2-sub" data-i18n="progress.sub">· weekly photo: front and side</span></h2>
+    <div class="card-head">
+      <h2><span data-i18n="progress.title">📸 My progress</span> <span class="h2-sub" data-i18n="progress.sub">· weekly photo: front and side</span></h2>
+      <button type="button" class="card-chev" id="btn-toggle-progress" aria-expanded="false"><span class="sr-only" data-i18n="card.toggle">Show or hide section</span><span class="card-chev-icon" id="chev-progress">▾</span></button>
+    </div>
+    <div id="progress-content" style="display:none">
+    <div class="block-head">
+      <h3 class="block-title"><span data-i18n="weight.title">⚖️ Weight progress</span> <span class="h2-sub" data-i18n="weight.sub">· weekly weigh-in</span></h3>
+      <button id="btn-add-weight" class="btn-ghost btn-sm" data-i18n="weight.add">＋ Log weigh-in</button>
+    </div>
+    <div id="weightBody"><div class="wempty" data-i18n="weight.loading">Loading weigh-ins…</div></div>
     <p class="progress-hint" data-i18n="progress.hint">Upload your photos every week. They're private: only you see them. Anytime, ask your assistant to compare two weeks and tell you what change it notices.</p>
     <div class="progress-current">
       <div class="progress-week" id="progress-week-label" data-i18n="progress.week">This week</div>
@@ -204,38 +206,47 @@
     </div>
     <h3 class="history-title" data-i18n="progress.history">Previous weeks</h3>
     <div id="progress-history" class="progress-history"><div class="wempty" data-i18n="progress.loading">Loading photos…</div></div>
+    </div>
   </div>
 
   <div class="panel mealhelp-panel">
-    <h2 data-i18n="mealhelp.title">📷 Meal help</h2>
-    <p class="progress-hint" data-i18n="mealhelp.hint">Don't know a food's nutrition values? Tap <b>Analyze the food</b>, take its photo and answer a few quick questions: you'll get an editable draft and nothing is saved until you confirm it. The photo is not stored.</p>
-    <div id="mealhelp-list" class="mealhelp-list"><div class="wempty" data-i18n="mealhelp.empty">You haven't uploaded photos yet.</div></div>
-    <label class="btn-ghost btn-sm mealhelp-upload"><span data-i18n="ai.analyze">Analyze the food</span>
-      <input type="file" id="ai-file" accept="image/*" capture="environment" style="display:none">
-    </label>
+    <div class="card-head">
+      <h2 data-i18n="mealhelp.title">📷 Meal help</h2>
+      <label class="btn-ghost btn-sm mealhelp-upload"><span data-i18n="ai.analyze">Analyze the food</span>
+        <input type="file" id="ai-file" accept="image/*" capture="environment" style="display:none">
+      </label>
+      <button type="button" class="card-chev" id="btn-toggle-mealhelp" aria-expanded="false"><span class="sr-only" data-i18n="card.toggle">Show or hide section</span><span class="card-chev-icon" id="chev-mealhelp">▾</span></button>
+    </div>
+    <div id="mealhelp-content" style="display:none">
+      <p class="progress-hint" data-i18n="mealhelp.hint">Don't know a food's nutrition values? Tap <b>Analyze the food</b>, take its photo and answer a few quick questions: you'll get an editable draft and nothing is saved until you confirm it. The photo is not stored.</p>
+      <div id="mealhelp-list" class="mealhelp-list"><div class="wempty" data-i18n="mealhelp.empty">You haven't uploaded photos yet.</div></div>
+    </div>
     <div id="ai-panel" class="ai-panel" style="display:none"></div>
   </div>
   <div class="panel train-panel">
-    <h2 data-i18n="train.title">🏋️ My training plan</h2>
-    <div id="my-training"><div class="wempty" data-i18n="train.loading">Loading your plan…</div></div>
+    <div class="card-head">
+      <h2 data-i18n="train.title">🏋️ My training plan</h2>
+      <button type="button" class="card-chev" id="btn-toggle-train" aria-expanded="false"><span class="sr-only" data-i18n="card.toggle">Show or hide section</span><span class="card-chev-icon" id="chev-train">▾</span></button>
+    </div>
+    <div id="train-content" style="display:none">
+      <div id="my-training"><div class="wempty" data-i18n="train.loading">Loading your plan…</div></div>
+    </div>
   </div>
   <div class="panel health-panel">
-    <h2 data-i18n="health.panelTitle">🏥 My health declaration</h2>
     <div id="health-panel-body"><div class="wempty" data-i18n="train.loading">Loading…</div></div>
   </div>
   <div class="panel privacy-panel">
-    <h2 data-i18n="priv.title">🔒 Privacy & Data</h2>
-    <div id="privacy-status"></div>
-    <div id="privacy-notice" class="consent-text" style="display:none"></div>
-    <button type="button" class="btn-primary btn-sm" id="btn-renew-accept" style="display:none" data-i18n="priv.renewAccept">I accept the privacy notice</button>
     <button type="button" class="btn-primary manage-toggle" id="btn-manage-privacy" aria-expanded="false"><span data-i18n="priv.manage">Manage privacy and data</span><span class="manage-chev" id="manage-privacy-chev">▾</span></button>
     <div class="manage-list" id="privacy-manage-list" style="display:none">
+      <div id="privacy-status" class="manage-info"></div>
       <button type="button" class="manage-item" id="btn-view-notice"><span class="menu-num"></span><span class="manage-label" data-i18n="priv.viewNotice">View the privacy notice</span><span class="manage-go">›</span></button>
       <button type="button" class="manage-item" id="btn-renew" style="display:none"><span class="menu-num"></span><span class="manage-label" data-i18n="priv.renew">Renew my consent</span><span class="manage-go">›</span></button>
       <button type="button" class="manage-item" id="btn-my-data"><span class="menu-num"></span><span class="manage-label" data-i18n="priv.download">Download my data (JSON)</span><span class="manage-go">›</span></button>
       <button type="button" class="manage-item danger" id="btn-withdraw"><span class="menu-num"></span><span class="manage-label" data-i18n="priv.withdraw">Withdraw my consent</span><span class="manage-go">›</span></button>
       <button type="button" class="manage-item danger" id="btn-delete-account"><span class="menu-num"></span><span class="manage-label" data-i18n="priv.delete">Delete my account and data</span><span class="manage-go">›</span></button>
     </div>
+    <div id="privacy-notice" class="consent-text" style="display:none"></div>
+    <button type="button" class="btn-primary btn-sm" id="btn-renew-accept" style="display:none" data-i18n="priv.renewAccept">I accept the privacy notice</button>
   </div>
   </div><!-- /tab-track -->
 

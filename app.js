@@ -80,6 +80,7 @@ en: {
   'health.ok': 'I declare that the health information provided is true.',
   'health.clientTitle': '🏥 Client health declaration',
   'health.regNote': 'You can complete your health declaration later, in your profile, with its own specific consent. It is not required to create your account.',
+  'card.toggle': 'Show or hide section',
   'health.panelTitle': '🏥 My health declaration',
   'health.specText': 'I give my SPECIFIC consent for ronbo.nutri to process my health declaration so my trainer can adapt my program and take precautions. Only my trainer and I can see it. I can withdraw this consent at any time: withdrawal blocks my trainer\'s access to my answers, but does not delete them.',
   'health.statusNone': 'You have not given specific consent for health data. Without it, no declaration is collected and your trainer cannot see any health answers.',
@@ -444,6 +445,7 @@ es: {
   'health.ok': 'Declaro que la información de salud indicada es verdadera.',
   'health.clientTitle': '🏥 Declaración de salud del cliente',
   'health.regNote': 'Puedes completar tu declaración de salud más tarde, en tu perfil, con su propio consentimiento específico. No es necesaria para crear tu cuenta.',
+  'card.toggle': 'Mostrar u ocultar la sección',
   'health.panelTitle': '🏥 Mi declaración de salud',
   'health.specText': 'Doy mi consentimiento ESPECÍFICO para que ronbo.nutri trate mi declaración de salud, para que mi entrenador adapte mi programa y tome precauciones. Solo mi entrenador y yo podemos verla. Puedo retirar este consentimiento cuando quiera: la retirada bloquea el acceso de mi entrenador a mis respuestas, pero no las elimina.',
   'health.statusNone': 'No has dado tu consentimiento específico para datos de salud. Sin él, no se recoge ninguna declaración y tu entrenador no puede ver ninguna respuesta de salud.',
@@ -2124,6 +2126,29 @@ $('btn-manage-privacy') && $('btn-manage-privacy').addEventListener('click', () 
   const chev = $('manage-privacy-chev'); if (chev) chev.textContent = open ? '▴' : '▾';
   $('btn-manage-privacy').setAttribute('aria-expanded', open ? 'true' : 'false');
 });
+/* Rediseño v2 (2026-10-19): tarjetas colapsables de la vista
+   principal («Mi progreso» —que ahora contiene la evolución de
+   peso como primer bloque y las fotos como segundo—, «Ayuda con
+   comidas» y «Mi plan de entrenamiento»). La cabecera con el título
+   (y la acción principal compacta, cuando la hay) queda siempre
+   visible; todo el contenido vive en el área desplegable, cerrada
+   por defecto. El chevron SOLO abre/cierra: no escribe nada. Las
+   áreas son HTML estático que los renders no recrean (pintan en
+   contenedores interiores), así que el estado abierto sobrevive a
+   re-pintados y al cambio de idioma. */
+function wireCardToggle(btnId, contentId, chevId) {
+  const btn = $(btnId); if (!btn) return;
+  btn.addEventListener('click', () => {
+    const c = $(contentId); if (!c) return;
+    const open = c.style.display === 'none';
+    c.style.display = open ? '' : 'none';
+    const ch = $(chevId); if (ch) ch.textContent = open ? '▴' : '▾';
+    btn.setAttribute('aria-expanded', open ? 'true' : 'false');
+  });
+}
+wireCardToggle('btn-toggle-progress', 'progress-content', 'chev-progress');
+wireCardToggle('btn-toggle-mealhelp', 'mealhelp-content', 'chev-mealhelp');
+wireCardToggle('btn-toggle-train', 'train-content', 'chev-train');
 $('btn-view-notice') && $('btn-view-notice').addEventListener('click', () => {
   const n = $('privacy-notice');
   if (n.style.display === 'none') { n.innerHTML = t('terms.body'); n.style.display = ''; }
@@ -2347,9 +2372,16 @@ function fourActionsItemHTML() {
 function fourActionsDetailsHTML() {
   return `<details class="spec-details"><summary>${t('health.fourActionsTitle')}</summary><p class="progress-hint">${t('health.fourActions')}</p></details>`;
 }
-function healthManageListHTML(items) {
+/* Rediseño v2 (2026-10-19): TODA la información de la tarjeta vive
+   DENTRO del área desplegada — con la lista cerrada la tarjeta solo
+   muestra el botón «Gestionar mi declaración de salud», sin título
+   ni estados duplicados fuera. Al abrir: primero el bloque de
+   información/estado (infoHTML), después la lista numerada de
+   acciones (itemsHTML) y al final los anexos (extraHTML: sección
+   legal del otorgamiento e historial de bloqueadas). */
+function healthManageListHTML(infoHTML, itemsHTML, extraHTML = '') {
   return `<button type="button" class="btn-primary manage-toggle" id="btn-manage-health" aria-expanded="${healthManageOpen ? 'true' : 'false'}"><span>${t('health.manage')}</span><span class="manage-chev" id="manage-health-chev">${healthManageOpen ? '▴' : '▾'}</span></button>
-  <div class="manage-list" id="health-manage-list"${healthManageOpen ? '' : ' style="display:none"'}>${items}</div>`;
+  <div class="manage-list" id="health-manage-list"${healthManageOpen ? '' : ' style="display:none"'}>${infoHTML ? `<div class="manage-info">${infoHTML}</div>` : ''}${itemsHTML}${extraHTML}</div>`;
 }
 /* La sección legal del otorgamiento (texto completo + casilla +
    botón principal) es EXACTAMENTE la de siempre; en los estados
@@ -2372,44 +2404,61 @@ function renderHealthPanel() {
   const act = activeDecl();
   let html = '';
   let fourActionsInList = false;
+  let blockedInList = false;
+  const withdrawItem = `<button type="button" class="manage-item danger" id="btn-spec-withdraw"><span class="menu-num"></span><span class="manage-label">${t('health.withdrawSpec')}</span><span class="manage-go">›</span></button>`;
   if (specIsActive(UDATA)) {
-    html += `<p class="progress-hint">${t('health.statusActive', { v: esc(spec.version || ''), date: esc(fmtD(spec.acceptedAt)) })}</p>`;
+    const statusP = `<p class="progress-hint">${t('health.statusActive', { v: esc(spec.version || ''), date: esc(fmtD(spec.acceptedAt)) })}</p>`;
     if (declLoadState === 'error') {
       /* Fallo de carga de las declaraciones: mensaje propio y
          veraz — nunca se pinta como «sin declaración» ni como un
-         formulario vacío. Retirar el específico sigue disponible,
-         con su botón y su confirmación de siempre. */
-      html += `<div class="health-alert">⚠️ ${t('health.declLoadError')}</div>
-        <div class="privacy-btns"><button type="button" class="btn-ghost btn-sm danger" id="btn-spec-withdraw">${t('health.withdrawSpec')}</button></div>`;
-    } else if (act && !healthEditing) {
-      html += `<h3 class="history-title">${t('health.currentTitle')}</h3>${declSummaryHTML(act)}`;
+         formulario vacío. En v2 el mensaje vive dentro del área
+         desplegada y retirar el específico sigue disponible como
+         ítem de la lista, con su confirmación de siempre; las
+         cuatro acciones van como ítem, igual que en la vista
+         normal (antes cerraban la tarjeta como despliegue suelto). */
       html += healthManageListHTML(
+        statusP + `<div class="health-alert">⚠️ ${t('health.declLoadError')}</div>`,
+        fourActionsItemHTML() + withdrawItem, '');
+      fourActionsInList = true;
+    } else if (act && !healthEditing) {
+      html += healthManageListHTML(
+        statusP + `<h3 class="history-title">${t('health.currentTitle')}</h3>${declSummaryHTML(act)}`,
         `<button type="button" class="manage-item" id="btn-decl-edit"><span class="menu-num"></span><span class="manage-label">${t('health.editDecl')}</span><span class="manage-go">›</span></button>`
         + fourActionsItemHTML()
-        + `<button type="button" class="manage-item danger" id="btn-spec-withdraw"><span class="menu-num"></span><span class="manage-label">${t('health.withdrawSpec')}</span><span class="manage-go">›</span></button>`);
+        + withdrawItem,
+        blockedListHTML());
       fourActionsInList = true;
+      blockedInList = true;
     } else {
+      /* Formulario de edición (o primera declaración): es un estado
+         de TRABAJO al que se llega pulsando «Editar» u otorgando;
+         no tiene vista colapsada y se renderiza como siempre —
+         estado, formulario, retirar y cuatro acciones al final —
+         para no tocar el flujo (v2 no cambia esta pantalla). */
+      html += statusP;
       html += declFormHTML(act);
       html += `<div class="privacy-btns"><button type="button" class="btn-ghost btn-sm danger" id="btn-spec-withdraw">${t('health.withdrawSpec')}</button></div>`;
     }
   } else if (spec && spec.status === 'withdrawn') {
-    html += `<p class="progress-hint">${t('health.statusWithdrawnSpec')}</p>
-      <p class="progress-hint">${t('health.specSummary')}</p>`;
     html += healthManageListHTML(
+      `<p class="progress-hint">${t('health.statusWithdrawnSpec')}</p>
+      <p class="progress-hint">${t('health.specSummary')}</p>`,
       `<button type="button" class="manage-item" id="btn-grant-reveal"><span class="menu-num"></span><span class="manage-label">${t('health.renewSpec')}</span><span class="manage-go">›</span></button>`
-      + fourActionsItemHTML());
-    html += specLegalHTML('btn-spec-renew', t('health.renewSpec'));
+      + fourActionsItemHTML(),
+      specLegalHTML('btn-spec-renew', t('health.renewSpec')) + blockedListHTML());
     fourActionsInList = true;
+    blockedInList = true;
   } else {
-    html += `<p class="progress-hint">${t('health.statusNone')}</p>
-      <p class="progress-hint">${t('health.specSummary')}</p>`;
     html += healthManageListHTML(
+      `<p class="progress-hint">${t('health.statusNone')}</p>
+      <p class="progress-hint">${t('health.specSummary')}</p>`,
       `<button type="button" class="manage-item" id="btn-grant-reveal"><span class="menu-num"></span><span class="manage-label">${t('health.startBtn')}</span><span class="manage-go">›</span></button>`
-      + fourActionsItemHTML());
-    html += specLegalHTML('btn-spec-start', t('health.startBtn'));
+      + fourActionsItemHTML(),
+      specLegalHTML('btn-spec-start', t('health.startBtn')) + blockedListHTML());
     fourActionsInList = true;
+    blockedInList = true;
   }
-  html += blockedListHTML();
+  if (!blockedInList) html += blockedListHTML();
   /* E1 (17/10/2026): las cuatro acciones, en un despliegue cerrado
      por defecto; el texto se conserva íntegro. El resumen del
      consentimiento específico se identifica como resumen y el
@@ -2419,7 +2468,10 @@ function renderHealthPanel() {
      Simplificación visual (18/10/2026): en las vistas con lista
      «Gestionar…» el despliegue es un ítem más de la lista; en el
      formulario de edición (cuyo diseño no cambia) sigue al final,
-     como hasta hoy. */
+     como hasta hoy.
+     Rediseño v2 (19/10/2026): en las vistas con lista, la sección
+     legal del otorgamiento y el historial de bloqueadas van como
+     anexos DENTRO del área desplegada, tras las acciones. */
   if (!fourActionsInList) html += fourActionsDetailsHTML();
   box.innerHTML = html;
   const wire = (id, fn) => { const el = $(id); if (el) el.onclick = fn; };
