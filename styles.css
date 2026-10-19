@@ -275,7 +275,7 @@ table.whist { min-width: 640px; }
    y cara-botón primaria a todo ancho para las tarjetas
    protagonistas («Mi progreso», «Mi plan de entrenamiento»);
    «Analiza la comida» primario a todo ancho en «Ayuda con comidas». */
-.btn-secondary { background: #fff; color: #0d9488; border: 1.5px solid #0d9488; border-radius: 8px; padding: 11px 18px; font-size: 14px; font-weight: 700; cursor: pointer; }
+.btn-secondary { background: #fff; color: #00aca1; border: 1.5px solid #00aca1; border-radius: 8px; padding: 11px 18px; font-size: 14px; font-weight: 700; cursor: pointer; }
 .btn-secondary:hover { background: #f0fdfa; }
 .face-toggle { display: flex; align-items: center; justify-content: center; gap: 8px; width: 100%; box-sizing: border-box; font-family: inherit; }
 .face-toggle .manage-chev { font-size: 12px; }
@@ -294,11 +294,12 @@ table.whist { min-width: 640px; }
 .main-actions { margin-top: 18px; }
 .rounds-row { display: flex; justify-content: space-around; align-items: flex-start; gap: 8px; }
 .round-action { flex: 1; display: flex; flex-direction: column; align-items: center; gap: 7px; background: none; border: none; padding: 2px 0 0; cursor: pointer; font-family: inherit; text-decoration: none; }
-.round-circle { width: 76px; height: 76px; border-radius: 50%; background: #0d9488; color: #fff; font-size: 34px; line-height: 1; display: flex; align-items: center; justify-content: center; box-shadow: 0 2px 6px rgba(13, 148, 136, .35); }
-.round-action:active .round-circle { background: #0b7c72; }
-.round-action[aria-expanded="true"] .round-circle { background: #0b7c72; box-shadow: 0 0 0 3px #fff, 0 0 0 6px #0d9488; }
+.round-circle { width: 76px; height: 76px; border-radius: 50%; background: #00aca1; color: #fff; display: flex; align-items: center; justify-content: center; }
+.round-circle svg { display: block; }
+.round-action:active .round-circle { background: #00857c; }
+.round-action[aria-expanded="true"] .round-circle { background: #00857c; box-shadow: 0 0 0 3px #fff, 0 0 0 6px #00aca1; }
 .round-label { font-size: 12.5px; font-weight: 600; color: #1f2a44; text-align: center; line-height: 1.15; }
-.round-chev { font-size: 10px; color: #0d9488; }
+.round-chev { font-size: 10px; color: #00aca1; }
 .mealhelp-link { display: flex; align-items: center; gap: 6px; margin: 12px auto 0; background: none; border: none; padding: 4px 6px; font-family: inherit; font-size: 12.5px; font-weight: 600; color: #64748b; cursor: pointer; }
 .mealhelp-link #chev-mealhelp { font-size: 10px; }
 .main-actions #progress-content, .main-actions #mealhelp-content, .main-actions #train-content { margin-top: 12px; }
