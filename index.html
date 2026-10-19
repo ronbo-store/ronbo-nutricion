@@ -182,26 +182,45 @@
       <button id="btn-add-weight" class="btn-ghost btn-sm" data-i18n="weight.add">＋ Log weigh-in</button>
     </div>
     <div id="weightBody"><div class="wempty" data-i18n="weight.loading">Loading weigh-ins…</div></div>
-    <p class="progress-hint" data-i18n="progress.hint">They're private: only you can see them. Whenever you want, ask your assistant to compare two weeks and tell you what change it notices.</p>
+    <p class="progress-hint" data-i18n="progress.hint">They're private: only you can see them. Take a new evaluation every 15 days: front, side and back. Whenever you want, ask your assistant to compare two evaluations and tell you what change it notices.</p>
     <div class="progress-current">
-      <div class="progress-week" id="progress-week-label" data-i18n="progress.week">This week</div>
+      <div class="progress-week" id="progress-week-label">This week</div>
+      <div class="progress-next" id="progress-next"></div>
       <div class="progress-uploads">
-        <label class="progress-slot" id="slot-front">
+        <div class="progress-slot" id="slot-front">
           <span class="slot-title" data-i18n="progress.front">Front</span>
           <img id="preview-front" class="slot-img" style="display:none" data-i18n-alt="progress.front" alt="Front">
-          <span class="slot-empty" id="empty-front" data-i18n="progress.upload">＋ Upload photo</span>
+          <label class="slot-empty" id="empty-front" for="photo-front" data-i18n="progress.upload">＋ Upload photo</label>
           <input type="file" id="photo-front" accept="image/*" style="display:none">
-        </label>
-        <label class="progress-slot" id="slot-side">
+          <div class="slot-actions" id="actions-front" style="display:none">
+            <label class="slot-link" for="photo-front" data-i18n="progress.replace">Replace</label>
+            <button type="button" class="slot-link danger" id="del-front" data-i18n="progress.delete">Delete</button>
+          </div>
+        </div>
+        <div class="progress-slot" id="slot-side">
           <span class="slot-title" data-i18n="progress.side">Side</span>
           <img id="preview-side" class="slot-img" style="display:none" data-i18n-alt="progress.side" alt="Side">
-          <span class="slot-empty" id="empty-side" data-i18n="progress.upload">＋ Upload photo</span>
+          <label class="slot-empty" id="empty-side" for="photo-side" data-i18n="progress.upload">＋ Upload photo</label>
           <input type="file" id="photo-side" accept="image/*" style="display:none">
-        </label>
+          <div class="slot-actions" id="actions-side" style="display:none">
+            <label class="slot-link" for="photo-side" data-i18n="progress.replace">Replace</label>
+            <button type="button" class="slot-link danger" id="del-side" data-i18n="progress.delete">Delete</button>
+          </div>
+        </div>
+        <div class="progress-slot" id="slot-back">
+          <span class="slot-title" data-i18n="progress.back">Back</span>
+          <img id="preview-back" class="slot-img" style="display:none" data-i18n-alt="progress.back" alt="Back">
+          <label class="slot-empty" id="empty-back" for="photo-back" data-i18n="progress.upload">＋ Upload photo</label>
+          <input type="file" id="photo-back" accept="image/*" style="display:none">
+          <div class="slot-actions" id="actions-back" style="display:none">
+            <label class="slot-link" for="photo-back" data-i18n="progress.replace">Replace</label>
+            <button type="button" class="slot-link danger" id="del-back" data-i18n="progress.delete">Delete</button>
+          </div>
+        </div>
       </div>
       <div id="progress-status" class="progress-status"></div>
     </div>
-    <h3 class="history-title" data-i18n="progress.history">Previous weeks</h3>
+    <h3 class="history-title" data-i18n="progress.history">Previous evaluations</h3>
     <div id="progress-history" class="progress-history"><div class="wempty" data-i18n="progress.loading">Loading photos…</div></div>
     </div>
     <div id="mealhelp-content" style="display:none">

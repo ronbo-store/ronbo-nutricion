@@ -27,8 +27,11 @@ const app = initializeApp(firebaseConfig);
 const auth = getAuth(app);
 const db = getFirestore(app);
 const storage = getStorage(app);
-/* Las fotos (comidas y progreso semanal) requieren Firebase Storage (plan Blaze).
-   STORAGE_READY = false las oculta; cuando el dueño active Blaze, poner true y desplegar. */
+/* La foto de comida del formulario (#m-photo) requiere Firebase Storage
+   (plan Blaze): STORAGE_READY = false la oculta; cuando el dueño active
+   Blaze, poner true y desplegar. Las fotos de PROGRESO no dependen de
+   Storage desde 2026-10-19: se guardan comprimidas como dataURL en
+   Firestore (ver la sección «MI PROGRESO»). */
 const STORAGE_READY = false;
 
 let UDATA = {};      // users/{uid}: {name, email, role, isOwner, approved}
@@ -155,20 +158,28 @@ en: {
   'weight.chartFat': 'Fat (%)',
   'weight.title2': 'Log weigh-in',
   'progress.title': '📸 My progress',
-  'progress.sub': '· weekly photo: front and side',
-  'progress.hint': 'They\'re private: only you can see them. Whenever you want, ask your assistant to compare two weeks and tell you what change it notices.',
+  'progress.sub': '· photos every 15 days: front, side and back',
+  'progress.hint': 'They\'re private: only you can see them. Take a new evaluation every 15 days: front, side and back. Whenever you want, ask your assistant to compare two evaluations and tell you what change it notices.',
   'progress.week': 'This week',
   'progress.thisWeek': ' (this week)',
   'progress.front': 'Front',
   'progress.side': 'Side',
+  'progress.back': 'Back',
   'progress.upload': '＋ Upload photo',
+  'progress.replace': 'Replace',
+  'progress.delete': 'Delete',
+  'progress.delConfirm': 'Delete this photo? This cannot be undone.',
   'progress.loading': 'Loading photos…',
-  'progress.complete': '✅ Week complete.',
+  'progress.complete': '✅ Evaluation complete.',
   'progress.missingOne': 'You\'re missing one photo this week.',
-  'progress.none': 'You haven\'t uploaded photos this week.',
+  'progress.missingList': 'Still missing: {list}',
+  'progress.none': 'You haven\'t uploaded photos for this evaluation yet.',
   'progress.noPhoto': 'no photo',
-  'progress.history': 'Previous weeks',
-  'progress.emptyHistory': 'Your previous weeks will appear here.',
+  'progress.evalLabel': 'Evaluation · {date}',
+  'progress.lastLabel': 'Last evaluation · {date}',
+  'progress.next': 'Next evaluation suggested: {date}',
+  'progress.history': 'Previous evaluations',
+  'progress.emptyHistory': 'Your previous evaluations will appear here.',
   'mealhelp.title': 'Meal help',
   'mealhelp.hint': 'The photo is not stored.',
   'mealhelp.upload': '📷 Upload food photo',
@@ -338,6 +349,7 @@ en: {
   'priv.recentLogin': 'Your data was deleted, but Google needs a recent sign-in to delete the account itself: sign out, sign back in, and repeat the deletion. If you get stuck, ask your trainer.',
   'priv.working': 'Working…',
   'msg.photoSaved': 'Photo saved.',
+  'msg.photoDeleted': 'Photo deleted.',
   'msg.avatarSaved': 'Profile photo updated.',
   'msg.mealSaved': 'Meal logged.',
   'msg.mealDeleted': 'Entry deleted.',
@@ -521,20 +533,28 @@ es: {
   'weight.chartFat': 'Grasa (%)',
   'weight.title2': 'Registrar pesaje',
   'progress.title': '📸 Mi progreso',
-  'progress.sub': '· foto semanal: frente y lado',
-  'progress.hint': 'Son privadas: solo tú las ves. Cuando quieras, pídele a tu asistente que compare dos semanas y te diga qué cambio nota.',
+  'progress.sub': '· fotos cada 15 días: frente, costado y espalda',
+  'progress.hint': 'Son privadas: solo tú las ves. Haz una nueva evaluación cada 15 días: frente, costado y espalda. Cuando quieras, pídele a tu asistente que compare dos evaluaciones y te diga qué cambio nota.',
   'progress.week': 'Esta semana',
   'progress.thisWeek': ' (esta semana)',
   'progress.front': 'Frente',
   'progress.side': 'Lado',
+  'progress.back': 'Espalda',
   'progress.upload': '＋ Subir foto',
+  'progress.replace': 'Reemplazar',
+  'progress.delete': 'Eliminar',
+  'progress.delConfirm': '¿Eliminar esta foto? No se puede deshacer.',
   'progress.loading': 'Cargando fotos…',
-  'progress.complete': '✅ Semana completa.',
+  'progress.complete': '✅ Evaluación completa.',
   'progress.missingOne': 'Te falta una foto esta semana.',
-  'progress.none': 'Aún no subes fotos esta semana.',
+  'progress.missingList': 'Te falta: {list}',
+  'progress.none': 'Aún no subes fotos de esta evaluación.',
   'progress.noPhoto': 'sin foto',
-  'progress.history': 'Semanas anteriores',
-  'progress.emptyHistory': 'Tus semanas anteriores aparecerán aquí.',
+  'progress.evalLabel': 'Evaluación · {date}',
+  'progress.lastLabel': 'Última evaluación · {date}',
+  'progress.next': 'Próxima evaluación sugerida: {date}',
+  'progress.history': 'Evaluaciones anteriores',
+  'progress.emptyHistory': 'Tus evaluaciones anteriores aparecerán aquí.',
   'mealhelp.title': 'Ayuda con comidas',
   'mealhelp.hint': 'La foto no se almacena.',
   'mealhelp.upload': '📷 Subir foto de comida',
@@ -704,6 +724,7 @@ es: {
   'priv.recentLogin': 'Tus datos se eliminaron, pero Google necesita un inicio de sesión reciente para borrar la cuenta en sí: cierra sesión, vuelve a entrar y repite la eliminación. Si te atascas, pide ayuda a tu entrenador.',
   'priv.working': 'Procesando…',
   'msg.photoSaved': 'Foto guardada.',
+  'msg.photoDeleted': 'Foto eliminada.',
   'msg.avatarSaved': 'Foto de perfil actualizada.',
   'msg.mealSaved': 'Comida registrada.',
   'msg.mealDeleted': 'Registro borrado.',
@@ -842,6 +863,7 @@ function setLang(l) {
        permisos/consentimiento (H-C2) no se toca. */
     try { renderPrivacy(); } catch {}
     try { renderHealthPanel(); } catch {}
+    try { renderProgress(); } catch {}
     try { aiOnLangChange(); } catch {}
     refreshDynamic();
   }
@@ -1410,8 +1432,11 @@ async function loadAll() {
   applyStorageFlag();
 }
 
-/* Oculta las opciones de foto mientras Storage no esté activado (plan Blaze).
-   En su lugar muestra una pista: la foto se usa solo para identificar el alimento por el chat. */
+/* Oculta la opción de foto del formulario de comidas mientras Storage
+   no esté activado (plan Blaze); en su lugar muestra la pista de que la
+   foto se analiza desde «Ayuda con comidas». La zona de fotos de
+   PROGRESO ya no se toca aquí: desde 2026-10-19 funciona sin Storage
+   (dataURL comprimido en Firestore). */
 function applyStorageFlag() {
   if (STORAGE_READY) {
     document.querySelectorAll('.photo-hint').forEach(el => el.style.display = 'none');
@@ -1419,8 +1444,6 @@ function applyStorageFlag() {
   }
   document.querySelectorAll('.photo-label').forEach(el => el.style.display = 'none');
   document.querySelectorAll('.photo-hint').forEach(el => el.style.display = '');
-  const pu = document.querySelector('.progress-uploads');
-  if (pu) pu.innerHTML = `<div class="wempty">${t('msg.storageSoon')}</div>`;
 }
 
 function buildDateSelector() {
@@ -3084,76 +3107,149 @@ function renderWeight() {
   });
 }
 
-/* ================= MI PROGRESO (fotos semanales frente/lado) ================= */
-function weekId(d) {
-  const dt = d ? new Date(d + 'T12:00:00') : new Date();
-  const day = (dt.getDay() + 6) % 7; // 0 = lunes
-  const monday = new Date(dt); monday.setDate(dt.getDate() - day);
-  const year = monday.getFullYear();
-  const jan4 = new Date(year, 0, 4);
-  const week1 = new Date(jan4); week1.setDate(jan4.getDate() - ((jan4.getDay() + 6) % 7));
-  const week = Math.round((monday - week1) / (7 * 24 * 3600 * 1000)) + 1;
-  return `${year}-W${String(week).padStart(2, '0')}`;
+/* ================= MI PROGRESO (evaluaciones fotográficas cada 15 días) =================
+   Desde 2026-10-19 las fotos de progreso NO usan Firebase Storage ni
+   Blaze: cada foto se comprime en el navegador (lado mayor máx.
+   1024 px, JPEG 0.72 — mismo patrón canvas que compressAvatar, con
+   tamaño mayor) y se guarda como dataURL en UN documento por foto de
+   la colección nutrition_progress:
+     id: `${uid}_${fecha}_${slot}`  (fecha = yyyy-mm-dd del set)
+     campos: uid, ownerUid, date, slot ('front'|'side'|'back'),
+             photo (dataURL), updatedAt
+   El id determinista hace que subir el mismo slot el mismo día
+   REEMPLACE la foto sin duplicar el set; un documento por foto
+   mantiene cada documento muy por debajo del límite de 1 MiB.
+   El campo ownerUid acompaña a uid porque las reglas r4
+   (match /nutrition_progress/{docId}) exigen
+   request.resource.data.ownerUid == request.auth.uid al crear, y la
+   exportación y el borrado de cuenta filtran por ownerUid.
+   Los documentos semanales antiguos (weekId/frontURL, de la época de
+   Storage) no traen slot/photo/date: esta lectura los ignora.
+   Privacidad: solo se leen los documentos del propio usuario; en
+   esta etapa no hay vista de entrenador para estas fotos. */
+const PROGRESS_SLOTS = ['front', 'side', 'back'];
+let PROG = {};          // fecha -> { front: {id, photo}, side: {...}, back: {...} }
+let PROG_TARGET = null; // fecha del set mostrado en el área principal
+
+function addDaysISO(iso, days) {
+  const d = new Date(iso + 'T12:00:00'); d.setDate(d.getDate() + days);
+  return d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0') + '-' + String(d.getDate()).padStart(2, '0');
 }
-function weekLabel(wid) {
-  const m = String(wid).match(/(\d{4})-W(\d{2})/);
-  return m ? t('date.weekLabel', { n: parseInt(m[2], 10), y: m[1] }) : wid;
+function progressDates() { return Object.keys(PROG).sort(); }
+function progressSetComplete(s) { return !!(s && s.front && s.side && s.back); }
+/* Set MOSTRADO en el área principal: el de HOY si ya existe; si no,
+   la ÚLTIMA evaluación (completa o no), con su fecha. Sin ningún set,
+   se muestra el de hoy vacío. */
+function progressTargetDate() {
+  const today = todayISO();
+  if (PROG[today]) return today;
+  const dates = progressDates();
+  return dates.length ? dates[dates.length - 1] : today;
 }
-let PROGRESS = {}; // weekId -> doc
+/* Fecha a la que escriben las subidas: la del set mostrado, SALVO si
+   ese set ya está completo y no es de hoy — una evaluación cerrada no
+   se sobrescribe: subir una foto abre la evaluación de hoy. */
+function progressUploadDate() {
+  const target = PROG_TARGET || progressTargetDate();
+  if (target !== todayISO() && progressSetComplete(PROG[target])) return todayISO();
+  return target;
+}
 async function loadProgress() {
-  PROGRESS = {};
+  PROG = {};
   try {
     /* Progreso personal: filtrado por el uid autenticado, también para
-       el dueño (con colQuery veía las semanas de progreso de sus
-       clientes como propias). Sin relación con Storage/fotos. */
+       el dueño. Sin relación con Storage. */
     const snap = await getDocs(query(collection(db, 'nutrition_progress'), where('ownerUid', '==', auth.currentUser.uid)));
-    snap.forEach(d => { const v = d.data(); if (v.weekId) PROGRESS[v.weekId] = { id: d.id, ...v }; });
+    snap.forEach(d => { const v = d.data(); if (v && v.slot && v.photo && v.date) { (PROG[v.date] = PROG[v.date] || {})[v.slot] = { id: d.id, photo: v.photo }; } });
   } catch { /* sin acceso o sin docs */ }
   renderProgress();
 }
 function setSlot(which, url) {
-  const img = $('preview-' + which), empty = $('empty-' + which);
-  /* Con Storage inactivo, applyStorageFlag() sustituye la zona de
-     subida y estos elementos dejan de existir: sin ranuras no hay
-     nada que pintar (corrección del error en refrescos, 2026-10-17). */
+  const img = $('preview-' + which), empty = $('empty-' + which), act = $('actions-' + which);
   if (!img || !empty) return;
-  if (url) { img.src = url; img.style.display = 'block'; empty.style.display = 'none'; }
-  else { img.src = ''; img.style.display = 'none'; empty.style.display = ''; }
+  if (url) { img.src = url; img.style.display = 'block'; empty.style.display = 'none'; if (act) act.style.display = ''; }
+  else { img.removeAttribute('src'); img.style.display = 'none'; empty.style.display = ''; if (act) act.style.display = 'none'; }
+}
+function findProgressPhoto(id) {
+  for (const d of progressDates()) for (const s of PROGRESS_SLOTS) {
+    const r = (PROG[d] || {})[s];
+    if (r && r.id === id) return { date: d, slot: s, id: r.id, photo: r.photo };
+  }
+  return null;
 }
 function renderProgress() {
-  const wid = weekId();
-  $('progress-week-label').textContent = weekLabel(wid) + t('progress.thisWeek');
-  const cur = PROGRESS[wid] || {};
-  setSlot('front', cur.frontURL); setSlot('side', cur.sideURL);
-  const hasF = !!cur.frontURL, hasS = !!cur.sideURL;
-  $('progress-status').textContent = hasF && hasS ? t('progress.complete')
-    : (hasF || hasS) ? t('progress.missingOne') : t('progress.none');
-  const weeks = Object.keys(PROGRESS).filter(w => w !== wid).sort().reverse();
-  $('progress-history').innerHTML = weeks.length ? weeks.map(w => {
-    const p = PROGRESS[w];
-    return `<div class="hist-week"><div class="hist-label">${weekLabel(w)}</div>
+  const label = $('progress-week-label'); if (!label) return;
+  const target = progressTargetDate(); PROG_TARGET = target;
+  const set = PROG[target] || {};
+  label.textContent = target === todayISO()
+    ? t('progress.evalLabel', { date: dateName(target) }) + t('date.today')
+    : t('progress.lastLabel', { date: dateName(target) });
+  PROGRESS_SLOTS.forEach(s => setSlot(s, set[s] ? set[s].photo : null));
+  const missing = PROGRESS_SLOTS.filter(s => !set[s]);
+  $('progress-status').textContent = missing.length === 0 ? t('progress.complete')
+    : missing.length === 3 ? t('progress.none')
+    : t('progress.missingList', { list: missing.map(s => t('progress.' + s)).join(', ') });
+  const dates = progressDates();
+  const next = $('progress-next');
+  if (next) next.textContent = dates.length ? t('progress.next', { date: dateName(addDaysISO(dates[dates.length - 1], 15)) }) : '';
+  const hist = dates.filter(d => d !== target).reverse();
+  $('progress-history').innerHTML = hist.length ? hist.map(d => {
+    const s = PROG[d];
+    return `<div class="hist-week"><div class="hist-label">${esc(dateName(d))}</div>
       <div class="hist-imgs">
-        ${p.frontURL ? `<a href="${esc(p.frontURL)}" target="_blank" rel="noopener"><img src="${esc(p.frontURL)}" alt="${t('progress.front')}" loading="lazy"></a>` : `<span class="wempty">${t('progress.noPhoto')}</span>`}
-        ${p.sideURL ? `<a href="${esc(p.sideURL)}" target="_blank" rel="noopener"><img src="${esc(p.sideURL)}" alt="${t('progress.side')}" loading="lazy"></a>` : `<span class="wempty">${t('progress.noPhoto')}</span>`}
+        ${PROGRESS_SLOTS.map(sl => s[sl]
+          ? `<div class="hist-item"><img src="${esc(s[sl].photo)}" alt="${t('progress.' + sl)}" loading="lazy" data-hist-zoom="${esc(s[sl].id)}"><button type="button" class="hist-del" data-hist-del="${esc(s[sl].id)}" title="${t('progress.delete')}">✕</button></div>`
+          : `<span class="wempty">${t('progress.' + sl)}: ${t('progress.noPhoto')}</span>`).join('')}
       </div></div>`;
   }).join('') : `<div class="wempty">${t('progress.emptyHistory')}</div>`;
+  $('progress-history').querySelectorAll('[data-hist-zoom]').forEach(im => im.addEventListener('click', () => {
+    const rec = findProgressPhoto(im.getAttribute('data-hist-zoom')); if (rec) showLightbox(rec.photo);
+  }));
+  $('progress-history').querySelectorAll('[data-hist-del]').forEach(b => b.addEventListener('click', () => deleteProgressPhoto(b.getAttribute('data-hist-del'))));
+}
+/* Compresión de la foto de progreso en memoria: lado mayor máx.
+   1024 px y JPEG calidad 0.72; el resultado típico queda en
+   ~150–350 KB de dataURL, muy por debajo del límite por documento. */
+async function compressProgressPhoto(file) {
+  const bmp = await createImageBitmap(file);
+  const maxDim = 1024;
+  const scale = Math.min(1, maxDim / Math.max(bmp.width, bmp.height));
+  const canvas = document.createElement('canvas');
+  canvas.width = Math.round(bmp.width * scale); canvas.height = Math.round(bmp.height * scale);
+  canvas.getContext('2d').drawImage(bmp, 0, 0, canvas.width, canvas.height);
+  return canvas.toDataURL('image/jpeg', 0.72);
 }
 async function uploadProgressPhoto(which, file) {
-  const wid = weekId();
+  const date = progressUploadDate();
   toast(t('msg.uploading'));
   try {
-    const path = `nutrition/${auth.currentUser.uid}/progress/${wid}-${which}.jpg`;
-    const up = await uploadPhoto(file, path);
-    const data = { ownerUid: auth.currentUser.uid, weekId: wid, updatedAt: serverTimestamp() };
-    data[which === 'front' ? 'frontURL' : 'sideURL'] = up.url;
-    data[which === 'front' ? 'frontPath' : 'sidePath'] = up.path;
-    await setDoc(doc(db, 'nutrition_progress', `${auth.currentUser.uid}_${wid}`), data, { merge: true });
+    const url = await compressProgressPhoto(file);
+    if (url.length > 950000) { toast(t('msg.tooBig'), true); return; }
+    const uid = auth.currentUser.uid;
+    await setDoc(doc(db, 'nutrition_progress', `${uid}_${date}_${which}`), {
+      uid, ownerUid: uid, date, slot: which, photo: url, updatedAt: serverTimestamp()
+    });
     toast(t('msg.photoSaved'));
     await loadProgress();
   } catch { toast(t('msg.uploadFail'), true); }
 }
-$('photo-front').addEventListener('change', e => { const f = e.target.files[0]; e.target.value = ''; if (f) uploadProgressPhoto('front', f); });
-$('photo-side').addEventListener('change', e => { const f = e.target.files[0]; e.target.value = ''; if (f) uploadProgressPhoto('side', f); });
+async function deleteProgressPhoto(id) {
+  const rec = findProgressPhoto(id); if (!rec) return;
+  if (!confirm(t('progress.delConfirm'))) return;
+  try {
+    await deleteDoc(doc(db, 'nutrition_progress', rec.id));
+    toast(t('msg.photoDeleted'));
+    await loadProgress();
+  } catch { toast(t('msg.uploadFail'), true); }
+}
+PROGRESS_SLOTS.forEach(s => {
+  const inp = $('photo-' + s);
+  if (inp) inp.addEventListener('change', e => { const f = e.target.files[0]; e.target.value = ''; if (f) uploadProgressPhoto(s, f); });
+  const del = $('del-' + s);
+  if (del) del.addEventListener('click', () => { const set = PROG[PROG_TARGET] || {}; if (set[s]) deleteProgressPhoto(set[s].id); });
+  const img = $('preview-' + s);
+  if (img) img.addEventListener('click', () => { const src = img.getAttribute('src'); if (src) showLightbox(src); });
+});
 
 /* ================= FORMULARIOS ================= */
 $('btn-add-meal').onclick = () => { aiClearDraft(); $('m-date').value = $('dateSel').value || todayISO(); $('meal-modal').style.display = ''; };
