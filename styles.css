@@ -162,6 +162,10 @@ table.detail tr.total td { font-weight: 800; background: #f0fdf4; border-top: 2p
 .user-row > div:first-child { min-width: 0; overflow-wrap: anywhere; }
 .user-row .muted { font-size: 12px; color: #6b7280; }
 .user-actions { display: flex; flex-wrap: wrap; gap: 8px; flex-shrink: 0; }
+.limits-actions { align-items: center; }
+.limits-input { width: 84px; padding: 8px 10px; border: 1px solid #d1d5db; border-radius: 8px; font-size: 14px; }
+.limits-input:disabled { background: #f3f4f6; color: #9ca3af; }
+.limits-nolimit { display: inline-flex; align-items: center; gap: 5px; font-size: 13px; color: #374151; cursor: pointer; }
 .owner-badge { background: #0d9488; color: #fff; font-size: 11px; font-weight: 700; border-radius: 20px; padding: 2px 10px; vertical-align: middle; }
 
 /* ===== entrenador / pesaje ===== */

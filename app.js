@@ -373,6 +373,18 @@ en: {
   'admin.goals': 'Goals',
   'admin.revoke': 'Remove access',
   'admin.owner': 'admin',
+  'limits.title': '🤖 Analysis limits',
+  'limits.hint': 'Daily photo-analysis limits, set only by you. Each account uses its own limit if it has one, otherwise its trainer\'s, otherwise the global one. No limit set means unlimited.',
+  'limits.global': 'Global limit',
+  'limits.trainers': 'Trainers',
+  'limits.users': 'Users',
+  'limits.perDay': '/ day',
+  'limits.noLimit': 'No limit',
+  'limits.usageToday': 'Today: {n}',
+  'limits.save': 'Save',
+  'limits.saved': 'Limit saved.',
+  'limits.error': 'The limits could not be loaded or saved. Try again.',
+  'limits.invalid': 'Enter a whole number of 0 or more, or choose "No limit".',
   'clients.empty': 'No clients registered yet.',
   'clients.noWeighins': 'no weigh-ins',
   'clients.daysAgo': '{d} days ago',
@@ -753,6 +765,18 @@ es: {
   'admin.goals': 'Metas',
   'admin.revoke': 'Quitar acceso',
   'admin.owner': 'administrador',
+  'limits.title': '🤖 Límites de análisis',
+  'limits.hint': 'Límites diarios de análisis de fotos, fijados solo por ti. Cada cuenta usa su propio límite si lo tiene; si no, el de su entrenador; si no, el global. Sin límite fijado significa ilimitado.',
+  'limits.global': 'Límite global',
+  'limits.trainers': 'Entrenadores',
+  'limits.users': 'Usuarios',
+  'limits.perDay': '/ día',
+  'limits.noLimit': 'Sin límite',
+  'limits.usageToday': 'Hoy: {n}',
+  'limits.save': 'Guardar',
+  'limits.saved': 'Límite guardado.',
+  'limits.error': 'No se pudieron cargar ni guardar los límites. Inténtalo de nuevo.',
+  'limits.invalid': 'Escribe un número entero de 0 o más, o elige «Sin límite».',
   'clients.empty': 'Aún no hay clientes registrados.',
   'clients.noWeighins': 'sin pesajes',
   'clients.daysAgo': 'hace {d} días',
@@ -1208,6 +1232,120 @@ async function loadAdmin() {
     await deleteDoc(doc(db, 'users', b.dataset.reject));
     toast(t('msg.rejected')); await loadAdmin();
   });
+  /* Los límites se cargan SOLO con la pestaña de acceso en pantalla:
+     loadAll() también llama a loadAdmin() al arrancar (con «track»
+     visible) y el panel no debe disparar llamadas al Worker en frío. */
+  const tabAccess = $('tab-access');
+  if (tabAccess && tabAccess.style.display !== 'none') loadLimits();
+}
+
+/* ============ LÍMITES DE ANÁLISIS (solo dueño; Worker /admin/limits) ============
+   Etapa 2026-10-19 (decisión de Ronald): SOLO el administrador fija los
+   límites diarios de análisis de IA — el global, el de cada entrenador y
+   el de cada usuario — y viven en el KV del Worker, no en Firestore.
+   Resolución en el Worker: límite propio del usuario -> el de SU
+   entrenador -> el global -> sin límite. Esta sección solo se pinta
+   dentro de «Administración de accesos» (superficie ya exclusiva del
+   dueño) y solo se carga si IS_OWNER. */
+let LIMITS_STATE = null;
+async function limitsCall(method, body) {
+  const ep = aiEndpoint();
+  if (!ep) throw new Error('ai-off');
+  const idToken = await auth.currentUser.getIdToken();
+  const r = method === 'GET'
+    ? await fetch(ep + '/admin/limits', { headers: { Authorization: 'Bearer ' + idToken } })
+    : await fetch(ep + '/admin/limits', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ ...body, idToken }) });
+  if (!r.ok) throw new Error('limits-' + r.status);
+  return r.json();
+}
+
+/* El mapeo cliente->entrenador se deriva SOLO de datos ciertos de la
+   propia app: los planes de entrenamiento guardan clientUid y createdBy
+   (el entrenador que creó el plan). Al abrir el panel se registran en el
+   Worker los mapeos que falten o difieran; nada se inventa. */
+async function syncLimitMappings(state) {
+  try {
+    const snap = await getDocs(collection(db, 'training_plans'));
+    const pairs = {};
+    snap.forEach(d => { const v = d.data();
+      if (v.clientUid && v.createdBy && v.clientUid !== v.createdBy) pairs[v.clientUid] = v.createdBy; });
+    let changed = false;
+    for (const [uid, tr] of Object.entries(pairs)) {
+      if ((state.mappings || {})[uid] !== tr) {
+        LIMITS_STATE = await limitsCall('POST', { nivel: 'mapeo', uid, entrenador: tr });
+        changed = true;
+      }
+    }
+    return changed;
+  } catch { return false; }
+}
+
+async function loadLimits() {
+  const box = $('limits-box');
+  if (!box || !IS_OWNER) return;
+  try {
+    LIMITS_STATE = await limitsCall('GET');
+    if (await syncLimitMappings(LIMITS_STATE)) LIMITS_STATE = await limitsCall('GET');
+    renderLimits();
+  } catch { box.innerHTML = `<div class="wempty">${t('limits.error')}</div>`; }
+}
+
+function limitRowHTML(nivel, uid, title, sub, isOwnerRow) {
+  const st = LIMITS_STATE || {};
+  const cur = nivel === 'global' ? st.global
+    : nivel === 'entrenador' ? (st.trainers || {})[uid]
+    : (st.users || {})[uid];
+  const usage = uid ? (st.usage || {})[uid] : null;
+  const key = nivel === 'global' ? 'global' : uid;
+  return `<div class="user-row">
+    <div><b>${esc(title)}</b>${isOwnerRow ? ` <span class="owner-badge">${t('admin.owner')}</span>` : ''}<br><span class="muted">${esc(sub || '')}</span>${usage != null ? `<br><span class="muted">${t('limits.usageToday', { n: usage })}</span>` : ''}</div>
+    <div class="user-actions limits-actions">
+      <input type="number" class="limits-input" id="lim-in-${key}" min="0" step="1" inputmode="numeric" value="${cur == null ? '' : cur}" placeholder="∞" ${cur == null ? 'disabled' : ''}>
+      <span class="muted">${t('limits.perDay')}</span>
+      <label class="limits-nolimit"><input type="checkbox" id="lim-nl-${key}" ${cur == null ? 'checked' : ''}> ${t('limits.noLimit')}</label>
+      <button class="btn-primary btn-sm" data-limsave="${nivel}" data-limuid="${uid || ''}">${t('limits.save')}</button>
+    </div>
+  </div>`;
+}
+
+function renderLimits() {
+  const box = $('limits-box');
+  if (!box || !LIMITS_STATE) return;
+  const trainers = ADMIN_USERS.filter(u => u.isOwner);
+  const users = ADMIN_USERS.filter(u => !u.isOwner && u.approved === true);
+  box.innerHTML =
+    limitRowHTML('global', '', t('limits.global'), '', false)
+    + `<h3 class="history-title">${t('limits.trainers')}</h3>`
+    + (trainers.length ? trainers.map(u => limitRowHTML('entrenador', u.id, u.name || '—', u.email || '', true)).join('') : `<div class="wempty">${t('admin.noUsers')}</div>`)
+    + `<h3 class="history-title">${t('limits.users')}</h3>`
+    + (users.length ? users.map(u => limitRowHTML('usuario', u.id, u.name || '—', u.email || '', false)).join('') : `<div class="wempty">${t('admin.noUsers')}</div>`);
+  box.querySelectorAll('[data-limsave]').forEach(b => b.onclick = () => saveLimit(b));
+  box.querySelectorAll('.limits-nolimit input[type="checkbox"]').forEach(c => c.onchange = () => {
+    const key = c.id.replace('lim-nl-', '');
+    const inp = $('lim-in-' + key);
+    if (inp) { inp.disabled = c.checked; if (c.checked) inp.value = ''; }
+  });
+}
+
+async function saveLimit(btn) {
+  const nivel = btn.dataset.limsave, uid = btn.dataset.limuid || '';
+  const key = nivel === 'global' ? 'global' : uid;
+  const nl = $('lim-nl-' + key), inp = $('lim-in-' + key);
+  let limite = null;
+  if (nl && !nl.checked) {
+    const raw = (inp && inp.value || '').trim();
+    if (raw !== '') {
+      const n = Number(raw);
+      if (!Number.isInteger(n) || n < 0) { toast(t('limits.invalid')); return; }
+      limite = n;
+    }
+  }
+  btn.disabled = true;
+  try {
+    LIMITS_STATE = await limitsCall('POST', nivel === 'global' ? { nivel, limite } : { nivel, uid, limite });
+    toast(t('limits.saved'));
+    renderLimits();
+  } catch { toast(t('limits.error')); btn.disabled = false; }
 }
 
 /* ================= MIS CLIENTES (entrenador: ve y edita el peso semanal) ================= */
