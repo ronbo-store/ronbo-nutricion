@@ -290,6 +290,10 @@ table.whist { min-width: 640px; }
 .face-toggle + div { margin-top: 12px; }
 .mealhelp-panel .mealhelp-upload { display: block; width: 100%; box-sizing: border-box; text-align: center; margin: 10px 0 0; }
 .mealhelp-panel #mealhelp-content { margin-top: 10px; }
+/* «Añadir comida manualmente» (2026-10-19): botón secundario de marca
+   a todo ancho dentro de «Ayuda con comidas», donde antes quedaba la
+   leyenda sin salida «Aún no has subido fotos.». */
+.mealhelp-manual { display: block; width: 100%; box-sizing: border-box; margin: 8px 0 12px; padding: 13px 18px; }
 /* Fila v4 (2026-10-19): las tres protagonistas de la vista principal
    —«Mi progreso», «Analiza la comida» y «Mi plan de entrenamiento»—
    se convierten en UNA fila horizontal de botones REDONDOS (círculos

@@ -182,6 +182,7 @@ en: {
   'progress.emptyHistory': 'Your previous evaluations will appear here.',
   'mealhelp.title': 'Meal help',
   'mealhelp.hint': 'The photo is not stored.',
+  'mealhelp.addManual': 'Add food manually',
   'mealhelp.upload': '📷 Upload food photo',
   'mealhelp.takePhoto': '📷 Take a photo',
   'mealhelp.uploaded': 'Photo sent. Let me know in the chat so I can analyze it.',
@@ -557,6 +558,7 @@ es: {
   'progress.emptyHistory': 'Tus evaluaciones anteriores aparecerán aquí.',
   'mealhelp.title': 'Ayuda con comidas',
   'mealhelp.hint': 'La foto no se almacena.',
+  'mealhelp.addManual': 'Añadir comida manualmente',
   'mealhelp.upload': '📷 Subir foto de comida',
   'mealhelp.takePhoto': '📷 Tomar una foto',
   'mealhelp.uploaded': 'Foto enviada. Avísame por el chat para analizarla.',
@@ -1544,7 +1546,7 @@ async function loadMealHelp() {
       <img src="${m.photoURL}" alt="${t('mealhelp.foodAlt')}" data-mh-view="${m.id}" title="${t('mealhelp.tapZoom')}">
       <div class="mealhelp-row"><span class="mealhelp-status">${m.status === 'reviewed' ? t('mealhelp.reviewed') : t('mealhelp.pending')}</span>
       <button class="btn-ghost btn-sm" data-mh-del="${m.id}">✕</button></div>
-    </div>`).join('') : `<div class="wempty">${t('mealhelp.empty')}</div>`;
+    </div>`).join('') : '';
   const byId = id => items.find(x => x.id === id);
   box.querySelectorAll('[data-mh-view]').forEach(im => im.onclick = () => { const m = byId(im.dataset.mhView); if (m) showLightbox(m.photoURL); });
   box.querySelectorAll('[data-mh-del]').forEach(b => b.onclick = async () => {
@@ -3253,6 +3255,25 @@ PROGRESS_SLOTS.forEach(s => {
 
 /* ================= FORMULARIOS ================= */
 $('btn-add-meal').onclick = () => { aiClearDraft(); $('m-date').value = $('dateSel').value || todayISO(); $('meal-modal').style.display = ''; };
+/* «Añadir comida manualmente» desde «Ayuda con comidas» (Ronald,
+   2026-10-19 12:06: «si ya comí y olvidé tomar la foto puede servir
+   para apuntarlo manual»): abre el MISMO formulario de siempre en
+   modo manual EN BLANCO — sin borrador de IA (aiClearDraft),
+   formulario reiniciado, fecha de hoy y comida preseleccionada por
+   la hora con aiDefaultMeal() (la misma del flujo de análisis),
+   ambos editables en el propio formulario. El guardado es el del
+   formulario: sin source:'ai', un registro manual normal. */
+const btnMealManual = $('btn-add-meal-manual');
+if (btnMealManual) btnMealManual.onclick = () => {
+  aiClearDraft();
+  const form = $('form-meal');
+  if (form) form.reset();
+  const prev = $('m-photo-preview');
+  if (prev) { prev.style.display = 'none'; prev.src = ''; }
+  $('m-date').value = todayISO();
+  $('m-meal').value = aiDefaultMeal();
+  aiOpenMealModal();
+};
 $('meal-cancel').onclick = () => { $('meal-modal').style.display = 'none'; aiClearDraft(); };
 $('meal-modal').addEventListener('click', e => { if (e.target.id === 'meal-modal') e.target.style.display = 'none'; });
 
