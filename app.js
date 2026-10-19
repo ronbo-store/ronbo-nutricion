@@ -104,7 +104,7 @@ en: {
   'health.specFullTitle': 'Full text of the specific consent',
   'health.fourActionsTitle': 'The four actions, explained',
   'health.manage': 'Manage my health declaration',
-  'health.declActiveNoConds': 'Declaration active · no conditions declared',
+  'health.declActiveNoConds': 'Active · no conditions declared',
   'health.declNoConds': 'No conditions declared',
   'health.declLoadError': 'Your declaration couldn\'t be loaded',
   'health.trainerNoAccess': 'Health declaration not available: this client has no active specific consent, or their declaration is blocked.',
@@ -468,7 +468,7 @@ es: {
   'health.specFullTitle': 'Texto completo del consentimiento específico',
   'health.fourActionsTitle': 'Las cuatro acciones, explicadas',
   'health.manage': 'Gestionar mi declaración de salud',
-  'health.declActiveNoConds': 'Declaración activa · sin condiciones declaradas',
+  'health.declActiveNoConds': 'Activa · sin condiciones declaradas',
   'health.declNoConds': 'Sin condiciones declaradas',
   'health.declLoadError': 'No se pudo cargar tu declaración',
   'health.trainerNoAccess': 'Declaración de salud no disponible: este cliente no tiene un consentimiento específico activo, o su declaración está bloqueada.',
@@ -2303,7 +2303,8 @@ async function fetchClientHealth(uid, userData) {
    con condiciones → se listan (sin cambios); (b) declaración ACTIVA
    sin condiciones — p. ej., quien marcó solo «Ninguna de las
    anteriores», que saveDeclaration filtra de la lista — → texto
-   propio «Declaración activa · sin condiciones declaradas»;
+   propio «Activa · sin condiciones declaradas» (la etiqueta de la
+   pastilla ya dice «Declaración de salud:»; pulido 2026-10-19);
    (c) declaración no activa (bloqueada) sin condiciones → «Sin
    condiciones declaradas»; (d) fallo de CARGA → nunca llega aquí:
    loadMyHealth marca declLoadState='error' y el panel muestra
