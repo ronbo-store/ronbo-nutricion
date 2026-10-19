@@ -1697,6 +1697,41 @@ function aiMarkMetricsEdited() {
   aiCaptureMetrics();
   aiState.metricsEdited = true;
 }
+/* NOMBRE DEL REGISTRO — FUENTE ÚNICA (Ronald, 2026-10-19: «que el nombre
+   y todos los datos que salen cuando se le da continuar aparezcan de una
+   vez como resultado del análisis», para no revisar dos veces).
+   Antes el nombre NO se veía en el resultado: ambas rutas lo derivaban
+   en silencio de los alimentos corregidos, y solo aparecía precargado
+   en el formulario (m-food). Ahora el resultado lo muestra EDITABLE
+   (aiState.name) y las DOS salidas usan EXACTAMENTE ese valor:
+   aiRecordName() es la única derivación viva. La sugerencia inicial es
+   la derivación histórica (alimentos corregidos, unidos con «, »);
+   si la persona edita el nombre, su texto manda y sobrevive a un
+   recálculo; si no lo toca, la sugerencia se refresca con los
+   alimentos vigentes en cada cálculo. */
+function aiCaptureName() {
+  if (!aiState) return;
+  const inp = $('ai-name');
+  if (inp) aiState.name = inp.value;
+}
+function aiSuggestedName() {
+  return aiKnownFoods().map(f => f.name).join(', ').slice(0, 120);
+}
+function aiRecordName() {
+  aiCaptureName();
+  const n = ((aiState && aiState.name) || '').trim().slice(0, 120);
+  return n || aiSuggestedName();
+}
+/* Cantidad total del registro, UNA sola fórmula para ambas rutas
+   (antes el borrador escribía siempre «g» aunque todo fuera ml;
+   el guardado directo sí respetaba ml — inconsistencia corregida). */
+function aiQtyString() {
+  const foods = aiKnownFoods();
+  const grams = foods.reduce((s, f) => s + (f.grams || 0), 0);
+  if (!grams) return '';
+  const allMl = foods.length > 0 && foods.every(f => f.unit === 'ml');
+  return Math.round(grams) + (allMl ? ' ml' : ' g');
+}
 /* Respuestas finales: el texto libre de «Otro» manda sobre el radio. */
 function aiFinalAnswers() {
   const out = { ...(aiState.answers || {}) };
@@ -1715,10 +1750,11 @@ function aiOnLangChange() {
   aiCaptureFoods();
   aiCaptureMeal();
   aiCaptureMetrics();
+  aiCaptureName();
   aiRender();
 }
 async function aiStart(dataUrl) {
-  aiState = { dataUrl, step: 'loading', r1: null, answers: {}, other: {}, foods: null, r2: null, errStage: 'identify', meal: aiDefaultMeal(), metrics: null, metricsEdited: false, cap: false, saveError: false };
+  aiState = { dataUrl, step: 'loading', r1: null, answers: {}, other: {}, foods: null, r2: null, errStage: 'identify', meal: aiDefaultMeal(), metrics: null, metricsEdited: false, name: null, nameEdited: false, cap: false, saveError: false };
   aiRender();
   try {
     const r1 = await aiCall('/identify', { imageDataUrl: dataUrl, lang: LANG });
@@ -1759,6 +1795,9 @@ async function aiCalculate() {
     /* Resultado nuevo: las métricas del panel parten de ESTOS totales;
        cualquier ajuste manual anterior quedó sustituido (con aviso). */
     aiState.metrics = null; aiState.metricsEdited = false; aiState._recalcOk = false; aiState.saveError = false;
+    /* Nombre unificado: si la persona NO lo editó a mano, la sugerencia
+       se refresca con los alimentos vigentes; si lo editó, se conserva. */
+    if (!aiState.nameEdited) aiState.name = aiSuggestedName();
     aiRender();
   } catch (e) { if (aiState) { aiState.step = 'error'; aiState.cap = !!(e && e.message === 'ai-cap'); aiRender(); } }
 }
@@ -1783,9 +1822,9 @@ function aiContinueManual() {
   aiClearDraft();
   $('m-date').value = $('dateSel').value || todayISO();
   if (foods.length) {
-    $('m-food').value = foods.map(f => f.name).join(', ').slice(0, 120);
-    const grams = foods.reduce((s, f) => s + (f.grams || 0), 0);
-    $('m-qty').value = grams ? Math.round(grams) + ' g' : '';
+    /* Misma fuente única de nombre y cantidad que el resultado. */
+    $('m-food').value = aiSuggestedName();
+    $('m-qty').value = aiQtyString();
   }
   aiDiscard();
   aiOpenMealModal();
@@ -1838,7 +1877,20 @@ function aiRender() {
   }
   if (aiState.step === 'draft') {
     const r2 = aiState.r2, tot = r2.totals || {};
-    const rows = (r2.items || []).map(it => `<li>${esc(it.name)} — ${Math.round(it.kcal || 0)} kcal</li>`).join('');
+    /* Filas del resultado: nombre + CANTIDAD (con unidad) + kcal.
+       El nombre y la cantidad son los de los alimentos CORREGIDOS
+       (la fuente única que se guarda); las kcal por alimento vienen
+       del cálculo, emparejadas por orden. */
+    const known = aiKnownFoods();
+    const items = r2.items || [];
+    const rows = items.length
+      ? items.map((it, i) => {
+          const f = known[i];
+          const nm = f ? f.name : it.name;
+          const qty = f ? ` · ${Math.round(f.grams) || 0} ${f.unit}` : (it.portion_g ? ` · ${Math.round(it.portion_g)} g` : '');
+          return `<li>${esc(nm)}${qty} — ${Math.round(it.kcal || 0)} kcal</li>`;
+        }).join('')
+      : known.map(f => `<li>${esc(f.name)} · ${Math.round(f.grams) || 0} ${f.unit}</li>`).join('');
     const range = Array.isArray(tot.range_kcal) ? tot.range_kcal : null;
     /* PAQUETE 2: las cinco métricas (kcal, proteína, carbos, AZÚCARES,
        grasas) se muestran EDITABLES en el propio resultado y son las
@@ -1846,8 +1898,10 @@ function aiRender() {
     const mv = aiState.metrics || {};
     const mval = k => (mv[k] != null && mv[k] !== '') ? mv[k] : Math.round(tot[k] || 0);
     const mfield = (k, label) => `<label class="ai-metric"><span>${label}</span><input type="number" class="ai-m" data-k="${k}" value="${esc(String(mval(k)))}" min="0" step="any" inputmode="decimal"></label>`;
-    aiShow(`<h3>${t('ai.draftTitle')}</h3><ul class="ai-foods">${rows}</ul>${range ? `<p class="progress-hint">${t('ai.range').replace('{a}', Math.round(range[0])).replace('{b}', Math.round(range[1]))}</p>` : ''}${aiMealSelectHTML()}<p class="ai-metrics-title">${t('ai.metricsTitle')}</p><div class="ai-metrics">${mfield('kcal', t('form.kcal'))}${mfield('prot', t('form.protein'))}${mfield('carb', t('form.carbs'))}${mfield('sugar', t('form.sugar'))}${mfield('fat', t('form.fat'))}</div>${aiState.saveError ? `<p class="ai-err">${t('ai.saveError')}</p>` : ''}<div class="ai-actions"><button type="button" class="btn-main btn-sm" id="ai-save">${t('ai.save')}</button><button type="button" class="btn-ghost btn-sm" id="ai-use">${t('ai.useDraft')}</button><button type="button" class="btn-ghost btn-sm" id="ai-foods">${t('ai.backToFoods')}</button><button type="button" class="btn-ghost btn-sm" id="ai-cancel2">${t('ai.discard')}</button></div>`);
+    aiShow(`<h3>${t('ai.draftTitle')}</h3><label class="ai-metric ai-name"><span>${t('form.food')}</span><input type="text" id="ai-name" value="${esc(aiState.name != null ? aiState.name : aiSuggestedName())}" maxlength="120" placeholder="${t('form.foodPh')}"></label><ul class="ai-foods">${rows}</ul>${range ? `<p class="progress-hint">${t('ai.range').replace('{a}', Math.round(range[0])).replace('{b}', Math.round(range[1]))}</p>` : ''}${aiMealSelectHTML()}<p class="ai-metrics-title">${t('ai.metricsTitle')}</p><div class="ai-metrics">${mfield('kcal', t('form.kcal'))}${mfield('prot', t('form.protein'))}${mfield('carb', t('form.carbs'))}${mfield('sugar', t('form.sugar'))}${mfield('fat', t('form.fat'))}</div>${aiState.saveError ? `<p class="ai-err">${t('ai.saveError')}</p>` : ''}<div class="ai-actions"><button type="button" class="btn-main btn-sm" id="ai-save">${t('ai.save')}</button><button type="button" class="btn-ghost btn-sm" id="ai-use">${t('ai.useDraft')}</button><button type="button" class="btn-ghost btn-sm" id="ai-foods">${t('ai.backToFoods')}</button><button type="button" class="btn-ghost btn-sm" id="ai-cancel2">${t('ai.discard')}</button></div>`);
     aiWireMeal();
+    const nameInp = $('ai-name');
+    if (nameInp) nameInp.addEventListener('input', () => { aiCaptureName(); if (aiState) aiState.nameEdited = true; });
     p.querySelectorAll('.ai-m').forEach(inp => inp.addEventListener('input', aiMarkMetricsEdited));
     $('ai-cancel2').onclick = aiDiscard;
     $('ai-save').onclick = aiSaveDirect;
@@ -1902,12 +1956,13 @@ function aiUseDraft(r1, r2) {
     const mealSel = (typeof aiState !== 'undefined' && aiState && aiState.meal) || null;
     const mvals = (typeof aiState !== 'undefined' && aiState && aiState.metrics) || {};
     const mval = k => (mvals[k] != null && mvals[k] !== '') ? Math.round(num(mvals[k])) : Math.round(tot[k] || 0);
-    const foods = aiKnownFoods();
-    const grams = foods.reduce((s, f) => s + (f.grams || 0), 0);
     set('m-date', ($('dateSel') && $('dateSel').value) || todayISO());
     if (mealSel) set('m-meal', mealSel);
-    set('m-food', foods.map(f => f.name).join(', ').slice(0, 120));
-    set('m-qty', grams ? Math.round(grams) + ' g' : '');
+    /* FUENTE ÚNICA: el formulario recibe el nombre y la cantidad TAL
+       COMO se vieron y editaron en el resultado (aiRecordName /
+       aiQtyString) — nada de una segunda derivación que revisar. */
+    set('m-food', aiRecordName());
+    set('m-qty', aiQtyString());
     set('m-kcal', mval('kcal'));
     set('m-prot', mval('prot'));
     set('m-carb', mval('carb'));
@@ -1952,14 +2007,14 @@ async function aiSaveDirect() {
   const tot = (aiState.r2 && aiState.r2.totals) || {};
   const m = aiState.metrics || {};
   const val = k => Math.max(0, num((m[k] != null && m[k] !== '') ? m[k] : (tot[k] || 0)));
-  const grams = foods.reduce((s, f) => s + (f.grams || 0), 0);
-  const allMl = foods.every(f => f.unit === 'ml');
   const data = {
     ownerUid: auth.currentUser.uid,
     date: ($('dateSel') && $('dateSel').value) || todayISO(),
     meal: aiState.meal || aiDefaultMeal(),
-    food: foods.map(f => f.name).join(', ').slice(0, 120),
-    qty: grams ? Math.round(grams) + (allMl ? ' ml' : ' g') : '',
+    /* FUENTE ÚNICA: el nombre y la cantidad son los del panel de
+       resultado (vistos y editables allí), no una derivación oculta. */
+    food: aiRecordName(),
+    qty: aiQtyString(),
     kcal: val('kcal'), prot: val('prot'), carb: val('carb'), sugar: val('sugar'), fat: val('fat'),
     notes: ((aiState.r2 && aiState.r2.items) || []).map(it => `${it.name}: ${Math.round(it.kcal || 0)} kcal`).join(' · ').slice(0, 300),
     createdAt: serverTimestamp(),
