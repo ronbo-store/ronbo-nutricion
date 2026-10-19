@@ -254,6 +254,15 @@ table.whist { min-width: 640px; }
    ids, textos, diálogos y efectos de siempre. */
 .manage-toggle { display: flex; align-items: center; justify-content: center; gap: 8px; width: 100%; margin-top: 10px; }
 .manage-toggle .manage-chev { font-size: 12px; }
+/* Gestionar compacto (2026-10-19, corrección de Ronald 14:09–14:11):
+   los «Gestionar…» dejan de ser bloques A TODO ANCHO: botón PEQUEÑO
+   (alto ≈ 39 px, texto 14.5 px sin la negrita de bloque), ancho
+   ajustado a su contenido y alineado a la IZQUIERDA de su tarjeta.
+   El texto íntegro (decisión de Ronald, 2026-10-18) y el
+   comportamiento —solo abrir/cerrar su lista— no cambian. La
+   especificidad (.btn-secondary.manage-toggle) gana a .btn-secondary
+   sin tocar esa clase, que usan otros botones. */
+.btn-secondary.manage-toggle { display: inline-flex; justify-content: flex-start; gap: 6px; width: auto; max-width: 100%; box-sizing: border-box; margin-top: 0; padding: 9px 13px; font-size: 14.5px; font-weight: 600; line-height: 1.25; }
 .manage-list { margin-top: 10px; border: 1px solid #e5e7eb; border-radius: 12px; overflow: hidden; }
 .manage-item { display: flex; align-items: center; gap: 10px; width: 100%; min-height: 47px; padding: 8px 12px; background: #fbfcfd; border: none; border-bottom: 1px solid #eef1f4; font-size: 14px; font-weight: 600; color: #1e293b; cursor: pointer; text-align: left; font-family: inherit; }
 .manage-item:last-child { border-bottom: none; }
