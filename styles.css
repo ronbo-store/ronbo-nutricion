@@ -261,8 +261,13 @@ table.whist { min-width: 640px; }
    El texto íntegro (decisión de Ronald, 2026-10-18) y el
    comportamiento —solo abrir/cerrar su lista— no cambian. La
    especificidad (.btn-secondary.manage-toggle) gana a .btn-secondary
-   sin tocar esa clase, que usan otros botones. */
-.btn-secondary.manage-toggle { display: inline-flex; justify-content: flex-start; gap: 6px; width: auto; max-width: 100%; box-sizing: border-box; margin-top: 0; padding: 9px 13px; font-size: 14.5px; font-weight: 600; line-height: 1.25; }
+   sin tocar esa clase, que usan otros botones.
+   Precisión táctil (Ronald, 2026-10-19 15:23): compacto SÍ, pero
+   fácil de tocar en iPhone — el padding vertical sube de 9 a 12 px
+   y el área de toque queda en 44.1 px de alto medidos (≥ 44 px,
+   objetivo táctil), sin volver al bloque de todo el ancho ni a
+   texto grande: el aspecto sigue siendo el compacto. */
+.btn-secondary.manage-toggle { display: inline-flex; justify-content: flex-start; gap: 6px; width: auto; max-width: 100%; box-sizing: border-box; margin-top: 0; padding: 12px 13px; font-size: 14.5px; font-weight: 600; line-height: 1.25; }
 .manage-list { margin-top: 10px; border: 1px solid #e5e7eb; border-radius: 12px; overflow: hidden; }
 .manage-item { display: flex; align-items: center; gap: 10px; width: 100%; min-height: 47px; padding: 8px 12px; background: #fbfcfd; border: none; border-bottom: 1px solid #eef1f4; font-size: 14px; font-weight: 600; color: #1e293b; cursor: pointer; text-align: left; font-family: inherit; }
 .manage-item:last-child { border-bottom: none; }
