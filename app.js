@@ -135,7 +135,7 @@ en: {
   'th.cal': 'Cal', 'th.prot': 'Prot (g)', 'th.carb': 'Carb (g)', 'th.sugar': 'Sugar (g)', 'th.fat': 'Fat (g)',
   'track.summary': 'Summary vs. goals',
   'track.notes': '📝 Notes',
-  'track.emptyDay': 'No entries this day. Use "{btn}".',
+  'track.emptyDay': 'No entries this day. Add a meal with the FOOD button (photo) or from "Meal help" (manual).',
   'track.viewPhoto': 'View photo',
   'track.delete': 'Delete',
   'vs.indicator': 'Metric', 'vs.intake': 'Intake', 'vs.goal': 'Goal', 'vs.progress': 'Progress',
@@ -511,7 +511,7 @@ es: {
   'th.cal': 'Cal', 'th.prot': 'Prot (g)', 'th.carb': 'Carb (g)', 'th.sugar': 'Azúc (g)', 'th.fat': 'Gras (g)',
   'track.summary': 'Resumen vs. metas',
   'track.notes': '📝 Notas',
-  'track.emptyDay': 'Sin registros este día. Usa "{btn}".',
+  'track.emptyDay': 'Sin registros este día. Añade una comida con el botón COMIDA (foto) o desde «Ayuda con comidas» (manual).',
   'track.viewPhoto': 'Ver foto',
   'track.delete': 'Borrar',
   'vs.indicator': 'Indicador', 'vs.intake': 'Consumo', 'vs.goal': 'Meta', 'vs.progress': 'Progreso',
@@ -2982,7 +2982,7 @@ function render(date) {
     `<td><button class="del-btn" data-del-meal="${m.id}" title="${t('track.delete')}">×</button></td></tr>`
   ).join('');
   if (rows.length) html += `<tr class="total"><td colspan="3">TOTAL</td><td class="num" style="color:#16A34A">${fmt(tot.kcal)}</td><td class="num" style="color:#2563EB">${fmt(tot.prot)}</td><td class="num" style="color:#D97706">${fmt(tot.carb)}</td><td class="num" style="color:#9333EA">${fmt(tot.azuc)}</td><td class="num" style="color:#DC2626">${fmt(tot.gras)}</td><td></td></tr>`;
-  $('detailBody').innerHTML = html || `<tr><td colspan="9" class="wempty">${t('track.emptyDay', { btn: t('track.addMeal') })}</td></tr>`;
+  $('detailBody').innerHTML = html || `<tr><td colspan="9" class="wempty">${t('track.emptyDay')}</td></tr>`;
   $('vsRows').innerHTML =
     `<div class="vsrow head"><span>${t('vs.indicator')}</span><span>${t('vs.intake')}</span><span>${t('vs.goal')}</span><span>${t('vs.progress')}</span><span></span></div>` +
     METRICS.map(m => {
@@ -3254,7 +3254,11 @@ PROGRESS_SLOTS.forEach(s => {
 });
 
 /* ================= FORMULARIOS ================= */
-$('btn-add-meal').onclick = () => { aiClearDraft(); $('m-date').value = $('dateSel').value || todayISO(); $('meal-modal').style.display = ''; };
+/* El botón «+ Registrar comida» de la cabecera (junto a la fecha) se
+   eliminó (Ronald, 2026-10-19 12:27: «Ese botón no es necesario que
+   esté allí»): duplicaba la entrada manual. La comida se apunta por
+   UN solo lugar según la vía: foto con el botón COMIDA del dock, o
+   manual desde «Ayuda con comidas» (#btn-add-meal-manual, abajo). */
 /* «Añadir comida manualmente» desde «Ayuda con comidas» (Ronald,
    2026-10-19 12:06: «si ya comí y olvidé tomar la foto puede servir
    para apuntarlo manual»): abre el MISMO formulario de siempre en
