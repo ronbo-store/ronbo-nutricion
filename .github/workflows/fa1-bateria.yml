@@ -1,0 +1,65 @@
+# RONBO NUTRI — Batería oficial del CANDIDATO F-A1 v2 (Etapa 2:
+# regresión r4 íntegra de 70 casos [= R13] + bloque F-A1 R1–R14
+# y señal S1–S8; 110 casos) en el emulador oficial de Firestore
+# (proyecto ficticio demo-fa1). Autorización de Ronald
+# (2026-10-20 02:00 CDT): preparar el candidato ajustado y
+# ejecutar su batería por esta ruta, para PRESENTÁRSELO. La
+# PUBLICACIÓN de reglas NO está autorizada por este workflow:
+# la hará Ronald, como con r4.
+# Sin secretos, sin credenciales de producción, sin despliegue.
+name: Batería F-A1 (emulador oficial)
+
+on:
+  workflow_dispatch:
+  push:
+    branches: [ci/fa1-bateria]
+
+permissions:
+  contents: read
+
+jobs:
+  bateria:
+    name: 110 casos contra el emulador oficial (proyecto ficticio)
+    runs-on: ubuntu-24.04
+    timeout-minutes: 20
+    defaults:
+      run:
+        working-directory: tests-fa1
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: 21
+      - name: Instalar dependencias de la batería (versiones fijadas)
+        run: npm ci
+      - name: Instalar Firebase CLI (versión fijada)
+        run: npm install -g firebase-tools@15.34.0
+      - name: Ejecutar la batería contra el emulador oficial
+        shell: bash
+        run: |
+          set -o pipefail
+          firebase emulators:exec --only firestore --project demo-fa1 "node bateria.mjs" 2>&1 | tee resultado-bateria.txt
+      - name: Publicar el resultado en el resumen del job (legible por API)
+        if: always()
+        shell: bash
+        run: |
+          {
+            echo '## Batería F-A1 — resultado'
+            grep -E 'SUBTOTAL|RESULTADO|DESGLOSE' resultado-bateria.txt || true
+            echo ''
+            echo '### Casos FAIL (si los hay)'
+            grep -E '^FAIL ·' resultado-bateria.txt || echo '(ninguno)'
+          } >> "$GITHUB_STEP_SUMMARY"
+      - name: Conservar la evidencia (salida de la batería)
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: evidencia-bateria-fa1
+          path: |
+            tests-fa1/resultado-bateria.txt
+            tests-fa1/firestore-debug.log
+          retention-days: 7
