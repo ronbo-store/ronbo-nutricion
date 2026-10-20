@@ -576,6 +576,74 @@ en: {
   'fa.lockNote': 'This value lives in your private space: neither your trainer nor anyone else can see it.',
   'fa.loadError': 'Your private data could not be loaded — that is not the same as having none. Check your connection and reload.',
   'fa.myResult': 'Your latest energy calculation: RMR {rmr} · TDEE {tdee} {u} ({eq}).',
+  'pend.title': '🔔 Pendings',
+  'pend.configBtn': '⚙️ Set up reminders',
+  'pend.intro': 'What is left to LOG, grouped in one place. These notices only talk about logging — never about what you did or did not do. Phase 1: they live only inside the app; nothing is sent anywhere.',
+  'pend.actTitle': 'Your reminders are not active yet',
+  'pend.actIntro': 'Nothing is on by default. These are SUGGESTED values: review them, change whatever you want — reminders are only born when you tap «Confirm and activate».',
+  'pend.cfgTitle': 'Reminder settings',
+  'pend.meals': 'Meals and their times',
+  'pend.mealName.Desayuno': 'Breakfast', 'pend.mealName.Almuerzo': 'Lunch', 'pend.mealName.Cena': 'Dinner', 'pend.mealName.Merienda': 'Morning snack', 'pend.mealName.Snack': 'Snack',
+  'pend.weightOn': 'Remind me to log my weight',
+  'pend.weightFreq': 'Weigh-in frequency',
+  'pend.freq.1': 'Every day', 'pend.freq.3': 'Every 3 days', 'pend.freq.7': 'Every week', 'pend.freq.15': 'Every 15 days',
+  'pend.trainOn': 'Remind me of my training sessions',
+  'pend.trainDays': 'My training days',
+  'pend.wd.0': 'S', 'pend.wd.1': 'M', 'pend.wd.2': 'T', 'pend.wd.3': 'W', 'pend.wd.4': 'T', 'pend.wd.5': 'F', 'pend.wd.6': 'S',
+  'pend.quietOn': 'Quiet hours (no pending is shown during this block)',
+  'pend.quietFrom': 'From', 'pend.quietTo': 'To',
+  'pend.cutoff': 'Day cutoff',
+  'pend.cutoffHelp': 'Your logging day starts at this time (suggested: 04:00 — you confirm your own). Before the cutoff, «today» is still the day that started yesterday: a 12:30 a.m. dinner is the dinner of the day that is ending.',
+  'pend.tz': 'Time zone: your device ({tz}). Every «today» and every time uses it.',
+  'pend.phaseNote': 'Phase 1: pendings only appear inside the app, when you open it. Notifications with the app closed are designed but NOT active.',
+  'pend.confirm': 'Confirm and activate',
+  'pend.saveCfg': 'Save settings',
+  'pend.cancel': 'Cancel',
+  'pend.deactivate': 'Turn all reminders off',
+  'pend.deactivateConfirm': 'Turn off ALL reminders? Your settings are kept, but no pending will be born until you activate them again.',
+  'pend.activatedOk': '✓ Reminders activated',
+  'pend.savedOk': '✓ Settings saved',
+  'pend.offOk': '✓ Reminders off',
+  'pend.none': 'Nothing pending. Everything is logged. ✓',
+  'pend.mealTitle': 'You haven\'t logged your {meal} yet.',
+  'pend.mealDetail': 'Reminder you set for {time}',
+  'pend.goMeal': 'Log {meal}',
+  'pend.weightTitle': 'You haven\'t logged your weight yet for this period.',
+  'pend.weightDetail': 'Last log: {when} · your frequency: {freq}',
+  'pend.weightNever': 'no weigh-in yet',
+  'pend.daysAgo': '{d} days ago',
+  'pend.todayWord': 'today',
+  'pend.yesterday': 'yesterday',
+  'pend.goWeight': 'Log weigh-in',
+  'pend.trainTitle': 'You have a training session scheduled that you haven\'t logged yet.',
+  'pend.goTraining': 'Go to my training',
+  'pend.evalTitle': 'Your progress evaluation was due on {date}.',
+  'pend.evalMissing': 'Still missing (required): {items}',
+  'pend.goEval': 'Go to My progress',
+  'pend.snooze': 'Snooze',
+  'pend.snooze.1h': 'In 1 hour ({time})',
+  'pend.snooze.3h': 'In 3 hours ({time})',
+  'pend.snooze.tomorrowSame': 'Tomorrow at this time ({time})',
+  'pend.snooze.tomorrow9': 'Tomorrow at 09:00',
+  'pend.omitOccasion': 'Not applicable today',
+  'pend.discard': 'Discard',
+  'pend.discardConfirm': 'Discard this training pending? It will be recorded as discarded by you.',
+  'pend.traceTitle': 'States',
+  'pend.traceSnoozed': '{label}: snoozed — comes back {when}',
+  'pend.traceOmitted': '{label}: skipped for this occasion only. The reminder stays ON for next time and nothing was marked as done.',
+  'pend.traceDiscarded': '{label}: discarded by you',
+  'pend.traceDone': '{label}: logged ✓',
+  'pend.snoozeQuietShift': 'The time you chose ({time}) falls inside your quiet hours ({from}–{to}), so it was moved to the end of the quiet block.',
+  'pend.whenToday': 'today at {time}',
+  'pend.whenTomorrow': 'tomorrow at {time}',
+  'pend.whenDate': 'on {date} at {time}',
+  'pend.draftTitle': 'Unsaved record',
+  'pend.draftBody': 'You have a meal record typed but not saved yet ({food}). What you typed is kept even if you reload: you can continue it or discard it — it is never written twice.',
+  'pend.draftContinue': 'Continue the record',
+  'pend.draftDiscard': 'Discard draft',
+  'pend.draftDiscardConfirm': 'Discard the unsaved record? What you typed will be lost.',
+  'pend.label.weight': 'Weight', 'pend.label.training': 'Training',
+  'pend.loadError': 'Your pendings could not be loaded — that is not the same as having none. Check your connection and reload.',
   'date.today': ' (today)',
   'date.weekLabel': 'Week {n} · {y}',
   'note.kcalIn': '🔥 Calories within range; {left} kcal left.',
@@ -1135,6 +1203,74 @@ es: {
   'fa.lockNote': 'Este dato vive en tu espacio privado: ni tu entrenador ni nadie más puede verlo.',
   'fa.loadError': 'No se pudo cargar tu espacio privado — no es lo mismo que no tener datos. Revisa tu conexión y recarga.',
   'fa.myResult': 'Tu último cálculo de energía: RMR {rmr} · TDEE {tdee} {u} ({eq}).',
+  'pend.title': '🔔 Pendientes',
+  'pend.configBtn': '⚙️ Configurar avisos',
+  'pend.intro': 'Lo que falta por REGISTRAR, agrupado en un solo sitio. Estos avisos solo hablan del registro — nunca de lo que hiciste o dejaste de hacer. Fase 1: viven solo dentro de la app; no se envía nada a ningún sitio.',
+  'pend.actTitle': 'Tus avisos aún no están activos',
+  'pend.actIntro': 'Nada está activo por defecto. Estos son valores SUGERIDOS: revísalos, cambia lo que quieras — los avisos solo nacen cuando tocas «Confirmar y activar».',
+  'pend.cfgTitle': 'Configuración de avisos',
+  'pend.meals': 'Comidas y sus horas',
+  'pend.mealName.Desayuno': 'Desayuno', 'pend.mealName.Almuerzo': 'Almuerzo', 'pend.mealName.Cena': 'Cena', 'pend.mealName.Merienda': 'Merienda', 'pend.mealName.Snack': 'Snack',
+  'pend.weightOn': 'Avisarme de registrar mi peso',
+  'pend.weightFreq': 'Frecuencia de pesaje',
+  'pend.freq.1': 'Cada día', 'pend.freq.3': 'Cada 3 días', 'pend.freq.7': 'Cada semana', 'pend.freq.15': 'Cada 15 días',
+  'pend.trainOn': 'Avisarme de mis sesiones de entrenamiento',
+  'pend.trainDays': 'Mis días de entrenamiento',
+  'pend.wd.0': 'D', 'pend.wd.1': 'L', 'pend.wd.2': 'M', 'pend.wd.3': 'X', 'pend.wd.4': 'J', 'pend.wd.5': 'V', 'pend.wd.6': 'S',
+  'pend.quietOn': 'Descanso (ningún pendiente se muestra durante este bloque)',
+  'pend.quietFrom': 'Desde', 'pend.quietTo': 'Hasta',
+  'pend.cutoff': 'Corte del día',
+  'pend.cutoffHelp': 'Tu día de registro empieza a esta hora (sugerida: 04:00 — tú confirmas la tuya). Antes del corte, «hoy» sigue siendo el día que empezó ayer: una cena a las 00:30 es la cena del día que termina.',
+  'pend.tz': 'Zona horaria: la de tu dispositivo ({tz}). Cada «hoy» y cada hora la usan.',
+  'pend.phaseNote': 'Fase 1: los pendientes solo aparecen dentro de la app, cuando la abres. Las notificaciones con la app cerrada están diseñadas pero NO activas.',
+  'pend.confirm': 'Confirmar y activar',
+  'pend.saveCfg': 'Guardar configuración',
+  'pend.cancel': 'Cancelar',
+  'pend.deactivate': 'Apagar todos los avisos',
+  'pend.deactivateConfirm': '¿Apagar TODOS los avisos? Tu configuración se conserva, pero no nacerá ningún pendiente hasta que los actives de nuevo.',
+  'pend.activatedOk': '✓ Avisos activados',
+  'pend.savedOk': '✓ Configuración guardada',
+  'pend.offOk': '✓ Avisos apagados',
+  'pend.none': 'Nada pendiente. Todo registrado. ✓',
+  'pend.mealTitle': 'Aún no has registrado tu {meal}.',
+  'pend.mealDetail': 'Aviso que fijaste para las {time}',
+  'pend.goMeal': 'Registrar {meal}',
+  'pend.weightTitle': 'Aún no has registrado tu peso en este periodo.',
+  'pend.weightDetail': 'Último registro: {when} · tu frecuencia: {freq}',
+  'pend.weightNever': 'sin pesaje aún',
+  'pend.daysAgo': 'hace {d} días',
+  'pend.todayWord': 'hoy',
+  'pend.yesterday': 'ayer',
+  'pend.goWeight': 'Registrar pesaje',
+  'pend.trainTitle': 'Tienes una sesión de entrenamiento programada que aún no has registrado.',
+  'pend.goTraining': 'Ir a mi entrenamiento',
+  'pend.evalTitle': 'Tu evaluación de progreso vencía el {date}.',
+  'pend.evalMissing': 'Falta (requerido): {items}',
+  'pend.goEval': 'Ir a Mi progreso',
+  'pend.snooze': 'Posponer',
+  'pend.snooze.1h': 'En 1 hora ({time})',
+  'pend.snooze.3h': 'En 3 horas ({time})',
+  'pend.snooze.tomorrowSame': 'Mañana a esta hora ({time})',
+  'pend.snooze.tomorrow9': 'Mañana a las 09:00',
+  'pend.omitOccasion': 'Hoy no corresponde',
+  'pend.discard': 'Descartar',
+  'pend.discardConfirm': '¿Descartar este pendiente de entrenamiento? Quedará registrado como descartado por ti.',
+  'pend.traceTitle': 'Estados',
+  'pend.traceSnoozed': '{label}: pospuesto — vuelve {when}',
+  'pend.traceOmitted': '{label}: omitido solo esta ocasión. El aviso sigue activo para la próxima vez y nada se marcó como hecho.',
+  'pend.traceDiscarded': '{label}: descartado por ti',
+  'pend.traceDone': '{label}: registrado ✓',
+  'pend.snoozeQuietShift': 'La hora que elegiste ({time}) caía en tu descanso ({from}–{to}): se movió al final del descanso.',
+  'pend.whenToday': 'hoy a las {time}',
+  'pend.whenTomorrow': 'mañana a las {time}',
+  'pend.whenDate': 'el {date} a las {time}',
+  'pend.draftTitle': 'Registro sin guardar',
+  'pend.draftBody': 'Tienes un registro de comida escrito pero aún no guardado ({food}). Lo que escribiste se conserva aunque recargues: puedes continuarlo o descartarlo — nunca se escribe dos veces.',
+  'pend.draftContinue': 'Continuar el registro',
+  'pend.draftDiscard': 'Descartar borrador',
+  'pend.draftDiscardConfirm': '¿Descartar el registro sin guardar? Se perderá lo que escribiste.',
+  'pend.label.weight': 'Peso', 'pend.label.training': 'Entrenamiento',
+  'pend.loadError': 'Tus pendientes no pudieron cargarse — no es lo mismo que no tener ninguno. Revisa tu conexión y recarga.',
   'date.today': ' (hoy)',
   'date.weekLabel': 'Semana {n} · {y}',
   'note.kcalIn': '🔥 Calorías dentro del rango; quedan {left} kcal.',
@@ -1238,6 +1374,7 @@ function setLang(l) {
     try { renderPrivacy(); } catch {}
     try { renderHealthPanel(); } catch {}
     try { renderEnergyPanel(); } catch {}
+    try { renderPendings(); } catch {}
     try { renderProgress(); } catch {}
     try { aiOnLangChange(); } catch {}
     refreshDynamic();
@@ -2242,6 +2379,7 @@ async function loadAll() {
   await loadProgress();
   await loadMealHelp();
   await loadMyTraining();
+  await loadPendings();
   renderPrivacy();
   await loadMyHealth();
   await loadMyEnergy();
@@ -3588,8 +3726,9 @@ async function loadMyTraining() {
   const uid = auth.currentUser.uid;
   const plans = await fetchPlans(uid);
   const plan = plans.find(p => p.active === true) || null;
-  if (!plan) { box.innerHTML = `<div class="wempty compact">${t('train.none')}</div>`; return; }
+  if (!plan) { MY_PLAN = null; MY_LOGS = []; box.innerHTML = `<div class="wempty compact">${t('train.none')}</div>`; return; }
   const logs = (await fetchLogs(uid)).filter(l => l.planId === plan.id);
+  MY_PLAN = plan; MY_LOGS = logs;
   const today = todayISO();
   const weekStart = mondayISO(today);
   const doneToday = new Set(logs.filter(l => l.date === today).map(l => l.dayIndex));
@@ -4601,6 +4740,10 @@ if (btnMealManual) btnMealManual.onclick = () => {
   if (prev) { prev.style.display = 'none'; prev.src = ''; }
   $('m-date').value = ($('dateSel') && $('dateSel').value) || todayISO();
   $('m-meal').value = aiDefaultMeal();
+  /* Espejo de borrador (REC-D D3): la vía manual ARMA el espejo —
+     si ya había un borrador sin guardar, el formulario lo restaura
+     en vez de abrir en blanco. */
+  try { pendDraftArm(); pendDraftRestore(); } catch {}
   aiOpenMealModal();
 };
 /* «Repetir una comida anterior» (tercera pieza del trío de registro:
@@ -4686,6 +4829,10 @@ function repeatAttachScaling() {
 }
 function openRepeatMeal(rec, viewDate) {
   aiClearDraft();
+  /* Repetir NO es la vía manual: el espejo de borrador (D3) se
+     desarma para que lo tecleado aquí no sobrescriba el borrador
+     manual sin guardar (que sigue reflejado en «Pendientes»). */
+  try { pendDraftDisarm(); } catch {}
   const form = $('form-meal');
   if (form) form.reset();
   const prev = $('m-photo-preview');
@@ -4720,7 +4867,7 @@ function repeatClear() {
   repeatCtx = null;
   const b = $('m-rep-banner'); if (b) { b.style.display = 'none'; b.textContent = ''; }
 }
-$('meal-cancel').onclick = () => { $('meal-modal').style.display = 'none'; aiClearDraft(); repeatClear(); };
+$('meal-cancel').onclick = () => { $('meal-modal').style.display = 'none'; aiClearDraft(); repeatClear(); try { pendDraftDisarm(); } catch {} };
 $('meal-modal').addEventListener('click', e => { if (e.target.id === 'meal-modal') { e.target.style.display = 'none'; repeatClear(); } });
 
 $('m-photo').addEventListener('change', e => {
@@ -4770,6 +4917,10 @@ $('form-meal').addEventListener('submit', async e => {
     await addDoc(collection(db, 'nutrition_meals'), data);
     aiClearDraft();
     repeatClear();
+    /* El registro YA se guardó: el espejo de borrador (D3) se
+       limpia — lo escrito no debe seguir figurando como sin guardar
+       ni escribirse dos veces. */
+    try { pendDraftClear(); pendDraftDisarm(); } catch {}
     $('meal-modal').style.display = 'none';
     e.target.reset();
     $('m-photo-preview').style.display = 'none'; $('m-photo-preview').src = '';
@@ -4839,3 +4990,493 @@ document.querySelectorAll('.pw-eye').forEach(b => b.addEventListener('click', ()
 document.querySelectorAll('.lang-toggle button').forEach(b =>
   b.addEventListener('click', () => setLang(b.getAttribute('data-lang'))));
 applyI18n();
+
+/* ================= PENDIENTES DE ACTIVIDADES PROGRAMADAS (REC-D) ==
+   Construcción en DESARROLLO autorizada por Ronald (2026-10-20,
+   decisiones D1–D6 de la Ficha 4): la línea de pendientes de la
+   PROPUESTA CONSOLIDADA v2 (2026-10-19) llevada a la app real.
+     D1 — Fase 1 primero: avisos SOLO dentro de la app.
+     D2 — Panel propio y visible en «Mi registro» (#pend-panel).
+     D3 — El estado «registro sin guardar» se refleja también aquí
+          (espejo del borrador del formulario manual de comidas).
+     D4 — Fase 2 (push) NO se ejecuta: la colección push_subscriptions
+          NO se crea ni se escribe; espera su propio checkpoint de
+          reglas, no autorizado.
+     D5 — Fase 2 (barrido horario del Worker) NO se toca: el Worker
+          no se modifica y no se activa ninguna suscripción.
+     D6 — Corte del día: 04:00 como SUGERENCIA por usuario que cada
+          quien confirma o cambia (decidido 2026-10-20); nunca una
+          regla universal impuesta.
+   D7/D8/D9 están MOOT: el sistema de evaluaciones desplegado ya los
+   resolvió; este módulo NO reimplementa el ciclo — solo REFLEJA su
+   pendiente en el panel cuando el ciclo tiene fecha prevista.
+
+   PERSISTENCIA (veredicto contra las reglas r5 vigentes, idéntico al
+   del módulo de evaluaciones): nutrition_progress no impone esquema
+   de campos y el catch-all deniega colecciones nuevas; el documento
+   de usuario no admite campos nuevos en auto-actualización. Por eso:
+     · configuración: {uid}_pendconfig, kind 'pendConfig'.
+     · marcas (posponer/omitir/descartar por ocasión):
+       {uid}_pendstate, kind 'pendState': { marks: { <id>: {...} } }.
+   Ninguna colección nueva → NINGÚN cambio de reglas requerido.
+   Los pendientes se CALCULAN desde los registros reales (MEALS,
+   WEIGHTS, MY_LOGS y el estado del ciclo de evaluación): registrar
+   la actividad resuelve su pendiente por sí mismo, sin marcas.
+
+   REGLAS DE COMPORTAMIENTO (propuesta v2 §2–§5):
+     · Lenguaje de REGISTRO pendiente: jamás se afirma que la persona
+       no comió / no entrenó / no se pesó.
+     · Nada nace sin activación CONFIRMADA: la activación presenta
+       valores sugeridos editables y solo al confirmar existen.
+     · Identidad única por ocasión (tipo + comida + fecha): posponer
+       conserva identidad y FECHA ORIGINAL; un vencido queda visible
+       con su fecha, sin culpa, y nunca se auto-resuelve; el sistema
+       no genera una copia nueva por día.
+     · «Hoy no corresponde» omite SOLO esa ocasión.
+     · El entrenamiento vencido puede DESCARTARSE expresamente (queda
+       registrado como descartado por el usuario).
+     · Posponer dentro del descanso se mueve al final del descanso y
+       el sistema LO DICE.
+     · Abrir la vista no escribe nada.
+   ND-2 (2026-10-20): este panel es SOLO del propio usuario; no toca
+   ninguna vista de terceros. La futura vista del entrenador nacerá
+   con bitácora de accesos por decisión vinculante — gancho de diseño
+   anotado aquí: cualquier lectura futura de estos datos por un
+   tercero deberá registrarse en esa bitácora (no se construye ahora).
+   ================================================================== */
+let PEND_CFG = null;            // null = aún no cargado; {activated:false} = sin activar
+let PEND_STATE = { marks: {} }; // marcas por ocasión (pospuesto/omitido/descartado)
+let PEND_UI = { configOpen: false };
+let MY_PLAN = null, MY_LOGS = [];   // los rellena loadMyTraining()
+
+const PEND_MEAL_NAMES = ['Desayuno', 'Almuerzo', 'Cena', 'Merienda', 'Snack'];
+function pendCfgRef() { return doc(db, 'nutrition_progress', `${auth.currentUser.uid}_pendconfig`); }
+function pendStateRef() { return doc(db, 'nutrition_progress', `${auth.currentUser.uid}_pendstate`); }
+function pendDefaults() {
+  return { activated: false, activatedAt: null,
+    meals: [
+      { name: 'Desayuno', on: true, time: '08:00' },
+      { name: 'Almuerzo', on: true, time: '13:30' },
+      { name: 'Cena', on: true, time: '20:00' },
+      { name: 'Merienda', on: false, time: '10:30' },
+      { name: 'Snack', on: false, time: '16:00' }
+    ],
+    weightOn: true, weightFreq: 7,
+    trainOn: true, trainDays: [1, 3, 5],
+    quietOn: true, quietFrom: '22:00', quietTo: '07:00',
+    cutoff: '04:00' };
+}
+
+/* ---------- tiempo local y día de registro ---------- */
+function pendParseHM(hm) { const m = String(hm || '').match(/(\d{1,2}):(\d{2})/); return m ? (+m[1]) * 60 + (+m[2]) : 0; }
+function pendFmtHM(mins) { mins = ((mins % 1440) + 1440) % 1440; return String(Math.floor(mins / 60)).padStart(2, '0') + ':' + String(mins % 60).padStart(2, '0'); }
+function pendISOof(d) { return d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0') + '-' + String(d.getDate()).padStart(2, '0'); }
+function pendDateTime(iso, hm) { const p = iso.split('-').map(Number); const mins = pendParseHM(hm); return new Date(p[0], p[1] - 1, p[2], Math.floor(mins / 60), mins % 60); }
+function pendDaysBetween(a, b) { return Math.round((new Date(b + 'T12:00:00') - new Date(a + 'T12:00:00')) / 864e5); }
+/* El día de registro empieza a la hora de corte confirmada por el
+   usuario: antes del corte, «hoy» (a efectos de registro) es el día
+   que empezó la víspera. */
+function pendRegDay(now, cutoff) {
+  const mins = now.getHours() * 60 + now.getMinutes();
+  const today = pendISOof(now);
+  return mins < pendParseHM(cutoff || '04:00') ? addDaysISO(today, -1) : today;
+}
+/* Instante de una ocasión de comida del día de registro `regDate`:
+   si su hora cae ANTES del corte, pertenece al día calendario
+   siguiente (la cena de las 00:30 es del día que termina). */
+function pendMealWhen(regDate, time, cutoff) {
+  const cal = pendParseHM(time) < pendParseHM(cutoff || '04:00') ? addDaysISO(regDate, 1) : regDate;
+  return pendDateTime(cal, time);
+}
+function pendWhenText(dt, now) {
+  const time = pendFmtHM(dt.getHours() * 60 + dt.getMinutes());
+  const dISO = pendISOof(dt), nISO = pendISOof(now);
+  if (dISO === nISO) return t('pend.whenToday', { time });
+  if (dISO === addDaysISO(nISO, 1)) return t('pend.whenTomorrow', { time });
+  return t('pend.whenDate', { date: dateName(dISO), time });
+}
+function pendDateTag(iso, regDay) {
+  if (iso === regDay) return t('pend.todayWord');
+  if (iso === addDaysISO(regDay, -1)) return t('pend.yesterday');
+  return dateName(iso);
+}
+
+/* ---------- carga (solo lectura; abrir la vista no escribe) ------ */
+async function loadPendings() {
+  if (!$('pend-body') || !auth.currentUser) return;
+  try {
+    const [cs, ss] = await Promise.all([getDoc(pendCfgRef()), getDoc(pendStateRef())]);
+    PEND_CFG = cs.exists() ? Object.assign(pendDefaults(), cs.data()) : { activated: false };
+    PEND_STATE = { marks: (ss.exists() && ss.data() && ss.data().marks) || {} };
+  } catch { PEND_CFG = { __error: true }; }
+  renderPendings();
+}
+async function pendSaveCfg(cfg) {
+  await setDoc(pendCfgRef(), Object.assign({ kind: 'pendConfig', uid: auth.currentUser.uid, ownerUid: auth.currentUser.uid, updatedAt: serverTimestamp() }, cfg), { merge: true });
+  PEND_CFG = Object.assign(pendDefaults(), cfg);
+}
+async function pendMark(id, mark) {
+  PEND_STATE.marks = PEND_STATE.marks || {};
+  if (mark) PEND_STATE.marks[id] = mark; else delete PEND_STATE.marks[id];
+  try {
+    await setDoc(pendStateRef(), { kind: 'pendState', uid: auth.currentUser.uid, ownerUid: auth.currentUser.uid, marks: PEND_STATE.marks, updatedAt: serverTimestamp() }, { merge: true });
+  } catch {}
+  renderPendings();
+}
+
+/* ---------- cálculo de pendientes (puro, desde los registros) ---- */
+function pendCompute() {
+  const cfg = PEND_CFG, now = new Date();
+  const out = { items: [], traces: [], regDay: null, now };
+  if (!cfg || !cfg.activated) return out;
+  const regDay = pendRegDay(now, cfg.cutoff);
+  out.regDay = regDay;
+  const marks = (PEND_STATE && PEND_STATE.marks) || {};
+  const winStart = addDaysISO(regDay, -30);
+  const start = (cfg.activatedAt && cfg.activatedAt > winStart) ? cfg.activatedAt : winStart;
+  const traceFrom = addDaysISO(regDay, -7);
+  const classify = id => {
+    const mk = marks[id];
+    if (!mk) return { st: 'active' };
+    if (mk.st === 'omitted') return { st: 'omitted', mk };
+    if (mk.st === 'discarded') return { st: 'discarded', mk };
+    if (mk.st === 'snoozed') return (mk.until && new Date(mk.until) > now) ? { st: 'snoozed', mk } : { st: 'active', mk };
+    return { st: 'active', mk };
+  };
+  const labelOf = it => it.type === 'meal' ? t('pend.mealName.' + it.meal)
+    : it.type === 'weight' ? t('pend.label.weight')
+    : it.type === 'training' ? t('pend.label.training') : '';
+  const settle = (it) => {
+    const c = classify(it.id);
+    if (c.st === 'active') out.items.push(it);
+    else if (it.date >= traceFrom || c.st === 'snoozed') out.traces.push({ kind: c.st, item: it, mk: c.mk, label: labelOf(it) });
+  };
+
+  /* Comidas — una ocasión por comida configurada y día de registro. */
+  (cfg.meals || []).filter(m => m && m.on).forEach(m => {
+    for (let d = start; d <= regDay; d = addDaysISO(d, 1)) {
+      if (pendMealWhen(d, m.time, cfg.cutoff) > now) continue;
+      const it = { id: `meal|${m.name}|${d}`, type: 'meal', meal: m.name, time: m.time, date: d, overdue: d < regDay, age: pendDaysBetween(d, regDay) };
+      if ((MEALS[d] || []).some(x => x.meal === m.name)) {
+        if (d === regDay) out.traces.push({ kind: 'done', item: it, label: labelOf(it) });
+        continue;
+      }
+      settle(it);
+    }
+  });
+
+  /* Peso — una sola ocasión viva: la fecha de vencimiento vigente.
+     La frecuencia corre desde el último pesaje (o la activación);
+     omitir avanza a la siguiente fecha SIN desactivar la frecuencia. */
+  if (cfg.weightOn) {
+    const freq = Number(cfg.weightFreq) || 7;
+    const weighDates = WEIGHTS.map(w => w.date).filter(d => d && d <= regDay).sort();
+    const lastWeigh = weighDates.length ? weighDates[weighDates.length - 1] : null;
+    let due = addDaysISO(lastWeigh || cfg.activatedAt || regDay, freq);
+    let guard = 0;
+    while (due <= regDay && guard++ < 400) {
+      const it = { id: `weight|${due}`, type: 'weight', date: due, overdue: due < regDay, age: pendDaysBetween(due, regDay), lastWeigh, freq };
+      const c = classify(it.id);
+      if (c.st === 'omitted') { due = addDaysISO(due, freq); continue; }
+      if (c.st === 'active') out.items.push(it);
+      else out.traces.push({ kind: c.st, item: it, mk: c.mk, label: labelOf(it) });
+      break;
+    }
+    if (weighDates.includes(regDay)) out.traces.push({ kind: 'done', item: { id: `weight|${regDay}`, type: 'weight', date: regDay }, label: t('pend.label.weight') });
+  }
+
+  /* Entrenamiento — días de semana configurados, con plan activo.
+     La sesión se registra en «Mi entrenamiento»; el vencido puede
+     descartarse expresamente (queda la marca). */
+  if (cfg.trainOn && MY_PLAN) {
+    for (let d = start; d <= regDay; d = addDaysISO(d, 1)) {
+      const dow = new Date(d + 'T12:00:00').getDay();
+      if (!(cfg.trainDays || []).includes(dow)) continue;
+      const it = { id: `training|${d}`, type: 'training', date: d, overdue: d < regDay, age: pendDaysBetween(d, regDay), canDiscard: true };
+      if (MY_LOGS.some(l => l.date === d)) {
+        if (d === regDay) out.traces.push({ kind: 'done', item: it, label: labelOf(it) });
+        continue;
+      }
+      settle(it);
+    }
+  }
+
+  /* Evaluación — REFLEJO del ciclo ya desplegado (no se reimplementa):
+     aparece cuando el ciclo tiene fecha prevista vencida o de hoy y
+     la lista requerida de ESE set sigue incompleta. Su omitir y su
+     registro viven en la tarjeta de «Mi progreso». */
+  try {
+    const due = (typeof evalNextDue === 'function') ? evalNextDue() : null;
+    if (due && due <= regDay && !((EVAL_CYCLE && EVAL_CYCLE.omitted) || []).includes(due)) {
+      const missing = evalMissingItems(due);
+      if (missing.length) out.items.push({ id: `eval|${due}`, type: 'eval', date: due, overdue: due < regDay, age: pendDaysBetween(due, regDay), missing });
+    }
+  } catch {}
+
+  const order = { meal: 1, weight: 2, training: 3, eval: 4 };
+  out.items.sort((a, b) => (a.date < b.date ? -1 : a.date > b.date ? 1 : (order[a.type] || 9) - (order[b.type] || 9)));
+  return out;
+}
+
+/* ---------- posponer: elección, descanso y desplazamiento -------- */
+function pendSnoozeTarget(opt, now) {
+  const cfg = PEND_CFG;
+  let chosen;
+  if (opt === '1h') chosen = new Date(now.getTime() + 3600e3);
+  else if (opt === '3h') chosen = new Date(now.getTime() + 3 * 3600e3);
+  else if (opt === 'tomorrowSame') chosen = new Date(now.getTime() + 86400e3);
+  else chosen = pendDateTime(addDaysISO(pendISOof(now), 1), '09:00');
+  let target = chosen, shifted = false;
+  if (cfg && cfg.quietOn) {
+    const from = pendParseHM(cfg.quietFrom), to = pendParseHM(cfg.quietTo);
+    const mins = chosen.getHours() * 60 + chosen.getMinutes();
+    const inQuiet = from === to ? false : (from < to ? (mins >= from && mins < to) : (mins >= from || mins < to));
+    if (inQuiet) {
+      shifted = true;
+      const endDate = (from > to && mins >= from) ? addDaysISO(pendISOof(chosen), 1) : pendISOof(chosen);
+      target = pendDateTime(endDate, cfg.quietTo);
+    }
+  }
+  const local = d => `${pendISOof(d)}T${pendFmtHM(d.getHours() * 60 + d.getMinutes())}`;
+  return { until: local(target), when: pendWhenText(target, now), shifted,
+    chosenHM: pendFmtHM(chosen.getHours() * 60 + chosen.getMinutes()),
+    quietFrom: cfg ? cfg.quietFrom : '', quietTo: cfg ? cfg.quietTo : '' };
+}
+
+/* ---------- espejo de borrador sin guardar (D3) -------------------
+   El formulario manual de comidas, cuando se abre por la vía manual
+   o desde un pendiente, ARMA el espejo: lo tecleado se guarda en
+   localStorage al escribir; guardar el registro lo limpia; cancelar
+   NO lo borra (ese es el punto: lo sin guardar sobrevive y se
+   refleja aquí). Repetir y el borrador de IA NO arman el espejo. */
+let PEND_DRAFT_ARM = false;
+const PEND_DRAFT_KEY = 'ronbo-pend-draft-v1';
+function pendDraftArm() { PEND_DRAFT_ARM = true; }
+function pendDraftDisarm() { PEND_DRAFT_ARM = false; }
+function pendDraftLive(d) {
+  return !!d && (((d.food || '').trim() !== '') || ((d.qty || '').trim() !== '') || ((d.notes || '').trim() !== '') ||
+    ['kcal', 'prot', 'carb', 'sugar', 'fat'].some(k => Number(d[k]) > 0));
+}
+function pendDraftGet() {
+  try { const s = localStorage.getItem(PEND_DRAFT_KEY); const d = s ? JSON.parse(s) : null; return pendDraftLive(d) ? d : null; }
+  catch { return null; }
+}
+function pendDraftSave() {
+  if (!PEND_DRAFT_ARM) return;
+  const v = id => { const el = $(id); return el ? el.value : ''; };
+  const d = { date: v('m-date'), meal: v('m-meal'), food: v('m-food'), qty: v('m-qty'), kcal: v('m-kcal'), prot: v('m-prot'), carb: v('m-carb'), sugar: v('m-sugar'), fat: v('m-fat'), notes: v('m-notes'), at: Date.now() };
+  try {
+    if (pendDraftLive(d)) localStorage.setItem(PEND_DRAFT_KEY, JSON.stringify(d));
+    else localStorage.removeItem(PEND_DRAFT_KEY);
+  } catch {}
+  renderPendings();
+}
+function pendDraftClear() { try { localStorage.removeItem(PEND_DRAFT_KEY); } catch {} }
+function pendDraftRestore() {
+  const d = pendDraftGet(); if (!d) return;
+  const set = (id, val) => { const el = $(id); if (el && val !== undefined && val !== null) el.value = val; };
+  set('m-date', d.date); set('m-meal', d.meal); set('m-food', d.food); set('m-qty', d.qty);
+  set('m-kcal', d.kcal); set('m-prot', d.prot); set('m-carb', d.carb); set('m-sugar', d.sugar); set('m-fat', d.fat); set('m-notes', d.notes);
+}
+{ const fm = document.getElementById('form-meal'); if (fm) fm.addEventListener('input', () => { try { pendDraftSave(); } catch {} }); }
+
+/* ---------- render del panel ---------- */
+function pendMealLabel(name) { return t('pend.mealName.' + name); }
+function pendItemHTML(it, regDay) {
+  const tag = it.date !== regDay ? ` · ${esc(pendDateTag(it.date, regDay))}` : '';
+  let title = '', detail = '', go = '';
+  if (it.type === 'meal') {
+    title = t('pend.mealTitle', { meal: pendMealLabel(it.meal) });
+    detail = `${esc(t('pend.mealDetail', { time: it.time }))}${tag}`;
+    go = `<button type="button" class="btn-primary btn-sm" data-pend-act="go" data-type="meal" data-date="${it.date}" data-meal="${esc(it.meal)}">${esc(t('pend.goMeal', { meal: pendMealLabel(it.meal) }))}</button>`;
+  } else if (it.type === 'weight') {
+    title = t('pend.weightTitle');
+    const when = it.lastWeigh ? (it.lastWeigh === regDay ? t('pend.todayWord') : t('pend.daysAgo', { d: pendDaysBetween(it.lastWeigh, regDay) })) : t('pend.weightNever');
+    detail = `${esc(t('pend.weightDetail', { when, freq: t('pend.freq.' + it.freq) }))}${tag}`;
+    go = `<button type="button" class="btn-primary btn-sm" data-pend-act="go" data-type="weight" data-date="${it.date}">${esc(t('pend.goWeight'))}</button>`;
+  } else if (it.type === 'training') {
+    title = t('pend.trainTitle');
+    detail = `${esc(dateName(it.date))}${it.overdue ? ` · ${esc(t('pend.daysAgo', { d: it.age }))}` : ''}`;
+    go = `<button type="button" class="btn-primary btn-sm" data-pend-act="go" data-type="training" data-date="${it.date}">${esc(t('pend.goTraining'))}</button>`;
+  } else if (it.type === 'eval') {
+    title = t('pend.evalTitle', { date: dateName(it.date) });
+    const items = it.missing.map(m2 => m2.kind === 'photo' ? t('eval.reqPhoto.' + m2.id) : t('eval.measure.' + m2.id)).join(' · ');
+    detail = `${esc(t('pend.evalMissing', { items }))}${it.overdue ? ` · ${esc(t('pend.daysAgo', { d: it.age }))}` : ''}`;
+    go = `<button type="button" class="btn-primary btn-sm" data-pend-act="go" data-type="eval" data-date="${it.date}">${esc(t('pend.goEval'))}</button>`;
+  }
+  const now = new Date();
+  const hm = d => pendFmtHM(d.getHours() * 60 + d.getMinutes());
+  const opts = [
+    ['1h', t('pend.snooze.1h', { time: hm(new Date(now.getTime() + 3600e3)) })],
+    ['3h', t('pend.snooze.3h', { time: hm(new Date(now.getTime() + 3 * 3600e3)) })],
+    ['tomorrowSame', t('pend.snooze.tomorrowSame', { time: hm(now) })],
+    ['tomorrow9', t('pend.snooze.tomorrow9')]
+  ].map(([v, l]) => `<option value="${v}">${esc(l)}</option>`).join('');
+  const snooze = it.type === 'eval' ? '' : `<label class="pend-snooze"><span>${esc(t('pend.snooze'))}</span><select data-pend-snooze="${esc(it.id)}"><option value="">—</option>${opts}</select></label>`;
+  const omit = it.type === 'eval' ? '' : `<button type="button" class="btn-ghost btn-sm" data-pend-act="omit" data-id="${esc(it.id)}">${esc(t('pend.omitOccasion'))}</button>`;
+  const discard = it.canDiscard ? `<button type="button" class="btn-ghost btn-sm pend-danger" data-pend-act="discard" data-id="${esc(it.id)}">${esc(t('pend.discard'))}</button>` : '';
+  return `<div class="pend-item${it.overdue ? ' pend-overdue' : ''}" data-pend-item="${esc(it.id)}">
+    <p class="pend-text"><b>${esc(title)}</b><br><span class="pend-detail">${detail}</span></p>
+    <div class="pend-actions">${go}${snooze}${omit}${discard}</div>
+  </div>`;
+}
+function pendCfgFormHTML(cfg, first) {
+  const mealRows = PEND_MEAL_NAMES.map(name => {
+    const m = (cfg.meals || []).find(x => x.name === name) || { name, on: false, time: '12:00' };
+    return `<div class="pend-cfg-row"><label class="check-row"><input type="checkbox" id="pc-on-${name}" ${m.on ? 'checked' : ''}> <span>${esc(pendMealLabel(name))}</span></label><input type="time" id="pc-time-${name}" value="${esc(m.time || '12:00')}"></div>`;
+  }).join('');
+  const wd = [0, 1, 2, 3, 4, 5, 6].map(d => `<label class="pend-wd"><input type="checkbox" id="pc-wd-${d}" ${(cfg.trainDays || []).includes(d) ? 'checked' : ''}> <span>${esc(t('pend.wd.' + d))}</span></label>`).join('');
+  const freqOpts = [1, 3, 7, 15].map(f => `<option value="${f}" ${Number(cfg.weightFreq) === f ? 'selected' : ''}>${esc(t('pend.freq.' + f))}</option>`).join('');
+  let tz = ''; try { tz = Intl.DateTimeFormat().resolvedOptions().timeZone || ''; } catch {}
+  return `<div class="pend-cfg">
+    <p class="pend-cfg-title">${esc(first ? t('pend.actTitle') : t('pend.cfgTitle'))}</p>
+    <p class="progress-hint">${esc(t(first ? 'pend.actIntro' : 'pend.phaseNote'))}</p>
+    <p class="pend-cfg-h">${esc(t('pend.meals'))}</p>${mealRows}
+    <div class="pend-cfg-row"><label class="check-row"><input type="checkbox" id="pc-weight-on" ${cfg.weightOn ? 'checked' : ''}> <span>${esc(t('pend.weightOn'))}</span></label>
+    <label class="pend-sel"><span>${esc(t('pend.weightFreq'))}</span><select id="pc-weight-freq">${freqOpts}</select></label></div>
+    <div class="pend-cfg-row"><label class="check-row"><input type="checkbox" id="pc-train-on" ${cfg.trainOn ? 'checked' : ''}> <span>${esc(t('pend.trainOn'))}</span></label></div>
+    <p class="pend-cfg-h">${esc(t('pend.trainDays'))}</p><div class="pend-wds">${wd}</div>
+    <div class="pend-cfg-row"><label class="check-row"><input type="checkbox" id="pc-quiet-on" ${cfg.quietOn ? 'checked' : ''}> <span>${esc(t('pend.quietOn'))}</span></label>
+    <label class="pend-sel"><span>${esc(t('pend.quietFrom'))}</span><input type="time" id="pc-quiet-from" value="${esc(cfg.quietFrom || '22:00')}"></label>
+    <label class="pend-sel"><span>${esc(t('pend.quietTo'))}</span><input type="time" id="pc-quiet-to" value="${esc(cfg.quietTo || '07:00')}"></label></div>
+    <div class="pend-cfg-row"><label class="pend-sel"><span>${esc(t('pend.cutoff'))}</span><input type="time" id="pc-cutoff" value="${esc(cfg.cutoff || '04:00')}"></label></div>
+    <p class="progress-hint">${esc(t('pend.cutoffHelp'))}</p>
+    <p class="progress-hint">${esc(t('pend.tz', { tz }))}</p>
+    ${first ? `<p class="progress-hint">${esc(t('pend.phaseNote'))}</p>` : ''}
+    <div class="pend-actions">
+      <button type="button" class="btn-primary btn-sm" data-pend-act="confirm">${esc(t(first ? 'pend.confirm' : 'pend.saveCfg'))}</button>
+      ${first ? '' : `<button type="button" class="btn-ghost btn-sm" data-pend-act="cancelcfg">${esc(t('pend.cancel'))}</button>
+      <button type="button" class="btn-ghost btn-sm pend-danger" data-pend-act="deactivate">${esc(t('pend.deactivate'))}</button>`}
+    </div>
+  </div>`;
+}
+function renderPendings() {
+  const body = $('pend-body'); if (!body) return;
+  const count = $('pend-count'), cfgBtn = $('btn-pend-config');
+  const cfg = PEND_CFG;
+  if (!cfg) { body.innerHTML = `<div class="wempty">${esc(t('train.loading'))}</div>`; return; }
+  if (cfg.__error) { body.innerHTML = `<p class="progress-hint">${esc(t('pend.loadError'))}</p>`; if (count) count.style.display = 'none'; if (cfgBtn) cfgBtn.style.display = 'none'; return; }
+  if (!cfg.activated) {
+    if (count) count.style.display = 'none';
+    if (cfgBtn) cfgBtn.style.display = 'none';
+    /* Sin activar: el formulario trae los valores SUGERIDOS — o los
+       que el usuario ya guardó si desactivó antes (no se le borra
+       su configuración al apagar). */
+    body.innerHTML = pendCfgFormHTML(cfg.meals ? cfg : pendDefaults(), true);
+    return;
+  }
+  if (cfgBtn) cfgBtn.style.display = '';
+  if (PEND_UI.configOpen) {
+    if (count) count.style.display = 'none';
+    body.innerHTML = pendCfgFormHTML(cfg, false);
+    return;
+  }
+  const { items, traces, regDay } = pendCompute();
+  if (count) {
+    if (items.length) { count.textContent = items.length; count.style.display = ''; }
+    else count.style.display = 'none';
+  }
+  let html = `<p class="progress-hint">${esc(t('pend.intro'))}</p>`;
+  const draft = pendDraftGet();
+  if (draft) {
+    html += `<div class="pend-item pend-draft">
+      <p class="pend-text"><b>${esc(t('pend.draftTitle'))}</b><br><span class="pend-detail">${esc(t('pend.draftBody', { food: (draft.food || '').trim() || '—' }))}</span></p>
+      <div class="pend-actions">
+        <button type="button" class="btn-primary btn-sm" data-pend-act="draft-continue">${esc(t('pend.draftContinue'))}</button>
+        <button type="button" class="btn-ghost btn-sm pend-danger" data-pend-act="draft-discard">${esc(t('pend.draftDiscard'))}</button>
+      </div></div>`;
+  }
+  if (!items.length && !draft) html += `<p class="pend-none">${esc(t('pend.none'))}</p>`;
+  html += items.map(it => pendItemHTML(it, regDay)).join('');
+  if (traces.length) {
+    const lines = traces.map(tr => {
+      if (tr.kind === 'done') return `<li>${esc(t('pend.traceDone', { label: tr.label }))}</li>`;
+      if (tr.kind === 'omitted') return `<li>${esc(t('pend.traceOmitted', { label: tr.label }))}</li>`;
+      if (tr.kind === 'discarded') return `<li>${esc(t('pend.traceDiscarded', { label: tr.label }))}</li>`;
+      if (tr.kind === 'snoozed') {
+        let s = t('pend.traceSnoozed', { label: tr.label, when: tr.mk.whenText || '' });
+        if (tr.mk.shifted) s += ' ' + t('pend.snoozeQuietShift', { time: tr.mk.chosenHM || '', from: tr.mk.quietFrom || '', to: tr.mk.quietTo || '' });
+        return `<li>${esc(s)}</li>`;
+      }
+      return '';
+    }).join('');
+    html += `<div class="pend-traces"><p class="pend-cfg-h">${esc(t('pend.traceTitle'))}</p><ul>${lines}</ul></div>`;
+  }
+  body.innerHTML = html;
+}
+
+/* ---------- acciones del panel ---------- */
+function pendReadForm() {
+  const v = id => { const el = $(id); return el ? el.value : ''; };
+  const c = id => { const el = $(id); return !!(el && el.checked); };
+  return {
+    meals: PEND_MEAL_NAMES.map(name => ({ name, on: c('pc-on-' + name), time: v('pc-time-' + name) || '12:00' })),
+    weightOn: c('pc-weight-on'), weightFreq: Number(v('pc-weight-freq')) || 7,
+    trainOn: c('pc-train-on'), trainDays: [0, 1, 2, 3, 4, 5, 6].filter(d => c('pc-wd-' + d)),
+    quietOn: c('pc-quiet-on'), quietFrom: v('pc-quiet-from') || '22:00', quietTo: v('pc-quiet-to') || '07:00',
+    cutoff: v('pc-cutoff') || '04:00'
+  };
+}
+{ const b = document.getElementById('btn-pend-config');
+  if (b) b.onclick = () => { PEND_UI.configOpen = !PEND_UI.configOpen; renderPendings(); }; }
+{ const body = document.getElementById('pend-body');
+  if (body) {
+    body.addEventListener('change', e => {
+      const s = e.target.closest('[data-pend-snooze]');
+      if (!s || !s.value) return;
+      const res = pendSnoozeTarget(s.value, new Date());
+      pendMark(s.dataset.pendSnooze, { st: 'snoozed', until: res.until, whenText: res.when, shifted: res.shifted, chosenHM: res.chosenHM, quietFrom: res.quietFrom, quietTo: res.quietTo });
+    });
+    body.addEventListener('click', async e => {
+      const b = e.target.closest('[data-pend-act]');
+      if (!b) return;
+      const act = b.dataset.pendAct;
+      if (act === 'confirm') {
+        const first = !(PEND_CFG && PEND_CFG.activated);
+        const cfg = Object.assign({}, PEND_CFG || {}, pendReadForm(), { activated: true });
+        if (first || !cfg.activatedAt) cfg.activatedAt = pendRegDay(new Date(), cfg.cutoff);
+        try { await pendSaveCfg(cfg); PEND_UI.configOpen = false; renderPendings(); toast(t(first ? 'pend.activatedOk' : 'pend.savedOk')); }
+        catch { toast(t('pend.loadError'), true); }
+      } else if (act === 'cancelcfg') {
+        PEND_UI.configOpen = false; renderPendings();
+      } else if (act === 'deactivate') {
+        if (!confirm(t('pend.deactivateConfirm'))) return;
+        try { await pendSaveCfg(Object.assign({}, PEND_CFG, { activated: false })); PEND_UI.configOpen = false; renderPendings(); toast(t('pend.offOk')); } catch {}
+      } else if (act === 'omit') {
+        pendMark(b.dataset.id, { st: 'omitted', at: todayISO() });
+      } else if (act === 'discard') {
+        if (!confirm(t('pend.discardConfirm'))) return;
+        pendMark(b.dataset.id, { st: 'discarded', at: todayISO() });
+      } else if (act === 'draft-discard') {
+        if (!confirm(t('pend.draftDiscardConfirm'))) return;
+        pendDraftClear(); renderPendings();
+      } else if (act === 'draft-continue') {
+        aiClearDraft(); repeatClear();
+        const form = $('form-meal'); if (form) form.reset();
+        pendDraftArm(); pendDraftRestore();
+        aiOpenMealModal();
+      } else if (act === 'go') {
+        const type = b.dataset.type, date = b.dataset.date;
+        if (type === 'meal') {
+          aiClearDraft(); repeatClear();
+          const form = $('form-meal'); if (form) form.reset();
+          $('m-date').value = date;
+          const sel = $('m-meal'); if (sel && [...sel.options].some(o => o.value === b.dataset.meal)) sel.value = b.dataset.meal;
+          pendDraftArm();
+          aiOpenMealModal();
+        } else if (type === 'weight') {
+          openWeightModal(null);
+          $('w-date').value = date;
+        } else if (type === 'training') {
+          const c = $('train-content');
+          if (c && c.style.display === 'none') { const tb = $('btn-toggle-train'); if (tb) tb.click(); }
+          else if (c) { try { c.scrollIntoView({ behavior: 'smooth', block: 'start' }); } catch {} }
+        } else if (type === 'eval') {
+          const c = $('progress-content');
+          if (c && c.style.display === 'none') { const pb = $('btn-toggle-progress'); if (pb) pb.click(); }
+          const r = $('eval-root'); if (r) { try { r.scrollIntoView({ behavior: 'smooth', block: 'start' }); } catch {} }
+        }
+      }
+    });
+  }
+}

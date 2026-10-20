@@ -140,6 +140,20 @@
     <select id="dateSel"></select>
   </div>
 
+  <!-- Panel «Pendientes» (REC-D, fase 1 — solo dentro de la app):
+       vive en «Mi registro», agrupa lo que falta por REGISTRAR
+       (comidas, peso, entrenamiento y el ciclo de evaluación) con
+       contador. Nada nace sin activación confirmada por el usuario;
+       su configuración y sus marcas viven en nutrition_progress
+       (kind pendConfig / pendState). Sin notificaciones externas. -->
+  <div class="panel pend-panel" id="pend-panel">
+    <div class="summary-head">
+      <h2><span data-i18n="pend.title">🔔 Pendings</span> <span class="pend-count" id="pend-count" style="display:none"></span></h2>
+      <button type="button" class="btn-secondary meal-manual-pill" id="btn-pend-config" style="display:none" data-i18n="pend.configBtn">⚙️ Set up reminders</button>
+    </div>
+    <div id="pend-body"><div class="wempty" data-i18n="train.loading">Loading…</div></div>
+  </div>
+
   <div id="err"></div>
   <div class="rings" id="rings"></div>
 
