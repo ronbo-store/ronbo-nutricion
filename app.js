@@ -38,8 +38,12 @@ let UDATA = {};      // users/{uid}: {name, email, role, isOwner, approved}
 let IS_OWNER = false;
 let suppressAuthCheck = false; // evita el chequeo durante el registro (el doc aún se está creando)
 
-const DEFAULT_GOALS = { kcal: 1900, prot: 170, carb: 185, azuc: 45, gras: 53 };
-let GOALS = { ...DEFAULT_GOALS }; // el entrenador puede personalizarlas por usuario
+/* Sin metas por defecto (decisión de Ronald, 2026-10-20: «que nazcan
+   sin metas hasta que el entrenador las fije»): la cuenta nace SIN
+   campo goals y GOALS queda {} hasta que el entrenador las establece
+   desde el editor de metas. goalOf(key) devuelve la meta de una
+   métrica o null si no está fijada; hasAnyGoal() indica si hay alguna. */
+let GOALS = {}; // metas del usuario en sesión; {} = sin metas fijadas
 const METRICS = [
   { key: 'kcal', name: 'CALORÍAS',     icon: '🔥', color: '#22C55E', unit: 'kcal' },
   { key: 'prot', name: 'PROTEÍNA',      icon: '💪', color: '#3B82F6', unit: 'g' },
@@ -48,6 +52,8 @@ const METRICS = [
   { key: 'gras', name: 'GRASAS',        icon: '🫀', color: '#EF4444', unit: 'g' },
 ];
 const MEAL_ORDER = { 'Desayuno': 1, 'Merienda': 2, 'Almuerzo': 3, 'Snack': 4, 'Cena': 5 };
+const goalOf = key => { const v = Number(GOALS[key]); return (isFinite(v) && v > 0) ? v : null; };
+const hasAnyGoal = () => METRICS.some(m => goalOf(m.key) !== null);
 
 let MEALS = {};   // fecha -> [{id, meal, food, qty, kcal, prot, carb, sugar, fat, notes}]
 let WEIGHTS = []; // [{id, date, weight, fat, muscle, notes}]
@@ -338,6 +344,7 @@ en: {
   'form.cal': 'Calories (kcal)',
   'form.sugarMax': 'Max sugars (g)',
   'goals.save': 'Save goals',
+  'goals.none': 'No goals set yet',
   'profile.title': 'Client profile',
   'profile.for': 'Profile · {name}',
   'form.phone2': 'Phone',
@@ -894,6 +901,7 @@ es: {
   'form.cal': 'Calorías (kcal)',
   'form.sugarMax': 'Azúcares máx (g)',
   'goals.save': 'Guardar metas',
+  'goals.none': 'Sin metas fijadas todavía',
   'profile.title': 'Perfil del cliente',
   'profile.for': 'Perfil · {name}',
   'form.phone2': 'Teléfono',
@@ -1323,7 +1331,8 @@ $('form-register').addEventListener('submit', async e => {
     regBatch.set(doc(db, 'users', cred.user.uid), {
       name, email, phone, gender, social: social || '',
       role: 'user', isOwner: false, approved: false,
-      goals: { ...DEFAULT_GOALS },
+      /* Sin goals al nacer (decisión de Ronald, 2026-10-20): las metas
+         las fija el entrenador; la cuenta nueva no trae ninguna. */
       acceptedTerms: true, termsVersion: TERMS_VERSION, termsAcceptedAt: serverTimestamp(),
       adultConfirmed: true, adultConfirmedAt: serverTimestamp(),
       createdAt: serverTimestamp(),
@@ -1426,7 +1435,7 @@ onAuthStateChanged(auth, async user => {
       showAuthError(t('err.pending'));
       return;
     }
-    GOALS = { ...DEFAULT_GOALS, ...(UDATA.goals || {}) };
+    GOALS = { ...(UDATA.goals || {}) }; // sin goals en el doc = sin metas (no hay repliegue a valores de la casa)
   } catch {
     await signOut(auth);
     showAuthError(t('err.verifyFail'));
@@ -2112,9 +2121,11 @@ let goalsUid = null;
 function openGoals(uid, name, goals) {
   goalsUid = uid;
   $('goals-modal-title').textContent = t('goals.for', { name });
-  const g = { ...DEFAULT_GOALS, ...(goals || {}) };
-  $('g-kcal').value = g.kcal; $('g-prot').value = g.prot; $('g-carb').value = g.carb;
-  $('g-azuc').value = g.azuc; $('g-gras').value = g.gras;
+  /* Sin metas fijadas, el editor abre VACÍO (campos en blanco): lo que
+     se guarda es lo que el entrenador teclee, nunca valores de la casa. */
+  const g = goals || {};
+  $('g-kcal').value = g.kcal == null ? '' : g.kcal; $('g-prot').value = g.prot == null ? '' : g.prot; $('g-carb').value = g.carb == null ? '' : g.carb;
+  $('g-azuc').value = g.azuc == null ? '' : g.azuc; $('g-gras').value = g.gras == null ? '' : g.gras;
   $('goals-modal').style.display = '';
 }
 $('goals-cancel').onclick = () => { $('goals-modal').style.display = 'none'; goalsUid = null; };
@@ -2279,14 +2290,18 @@ function weekDates(iso) {
 }
 function renderWeekChart(date) {
   const el = $('weekChart');
+  if (!hasAnyGoal()) { // sin metas no hay cumplimiento que graficar: aviso explícito, ningún % fantasma
+    el.innerHTML = `<p class="chart-note">${t('goals.none')}</p>`;
+    return;
+  }
   const days = weekDates(date);
   const dayNames = DAYNAMES[LANG] || DAYNAMES.en;
   const MAXP = 1.25;
-  const series = METRICS.map(m => ({
+  const series = METRICS.filter(m => goalOf(m.key) !== null).map(m => ({
     color: m.color, name: t('metric.' + m.key),
     pts: days.map(d => {
       const tot = totals(d);
-      const g = GOALS[m.key] || 1;
+      const g = goalOf(m.key);
       return Math.min((tot[m.key] || 0) / g, MAXP);
     })
   }));
@@ -3748,7 +3763,17 @@ function totals(date) {
   return t;
 }
 function ringSVG(m, val) {
-  const pct = GOALS[m.key] ? val / GOALS[m.key] : 0;
+  const goal = goalOf(m.key);
+  if (goal === null) {
+    /* Sin meta para esta métrica: anillo neutro SOLO con el consumo
+       (sin %, sin «/ meta», sin comparación fantasma). */
+    return `<svg class="ring-svg" viewBox="0 0 150 150">
+    <circle cx="75" cy="75" r="62" fill="none" stroke="#E9ECEF" stroke-width="16"/>
+    <text x="75" y="80" text-anchor="middle" font-size="26" font-weight="800" fill="${m.color}">${fmt(val)}</text>
+    <text x="75" y="102" text-anchor="middle" font-size="11" fill="#9ca3af">${m.unit}</text>
+  </svg>`;
+  }
+  const pct = val / goal;
   const shown = Math.min(pct, 1);
   const C = 2 * Math.PI * 62;
   const dash = (shown * C).toFixed(1);
@@ -3758,14 +3783,16 @@ function ringSVG(m, val) {
       stroke-linecap="round" stroke-dasharray="${dash} ${C.toFixed(1)}"
       transform="rotate(-90 75 75)"/>
     <text x="75" y="70" text-anchor="middle" font-size="26" font-weight="800" fill="${m.color}">${Math.round(pct*100)}%</text>
-    <text x="75" y="92" text-anchor="middle" font-size="12" fill="#6b7280">${fmt(val)} / ${fmt(GOALS[m.key])}</text>
+    <text x="75" y="92" text-anchor="middle" font-size="12" fill="#6b7280">${fmt(val)} / ${fmt(goal)}</text>
     <text x="75" y="108" text-anchor="middle" font-size="11" fill="#9ca3af">${m.unit}</text>
   </svg>`;
 }
 function statusBox(m, val) {
-  const pct = GOALS[m.key] ? val / GOALS[m.key] : 0;
+  const goal = goalOf(m.key);
+  if (goal === null) return ''; // sin meta no hay estado que comparar
+  const pct = val / goal;
   const over = pct >= 1;
-  const diff = Math.abs(val - GOALS[m.key]);
+  const diff = Math.abs(val - goal);
   if (m.max) {
     if (!over) return `<div class="ring-box ok"><b>${t('status.left')}</b>${fmt(diff)} g<br>(${Math.round((1-pct)*100)}% ${t('status.available')})</div>`;
     return `<div class="ring-box over"><b>${t('status.overLimit')}</b>+${fmt(diff)} g<br>(${Math.round((pct-1)*100)}% ${t('status.above')})</div>`;
@@ -3774,13 +3801,17 @@ function statusBox(m, val) {
   return `<div class="ring-box over"><b>${t('status.overGoal')}</b>+${fmt(diff)} ${m.unit}<br>(${Math.round((pct-1)*100)}% ${t('status.above')})</div>`;
 }
 function notesFor(tot) {
+  /* Solo se genera la nota de una métrica si TIENE meta fijada: sin
+     meta no hay comparación (nada de divisiones por undefined/NaN).
+     Sin ninguna meta, la lista queda vacía y render() muestra el
+     estado explícito «Sin metas fijadas todavía». */
   const n = [];
-  const pc = tot.kcal/GOALS.kcal, pp = tot.prot/GOALS.prot, pb = tot.carb/GOALS.carb, pa = tot.azuc/GOALS.azuc, pg = tot.gras/GOALS.gras;
-  n.push(pc < 1 ? t('note.kcalIn', { left: fmt(GOALS.kcal - tot.kcal) }) : t('note.kcalOver', { over: fmt(tot.kcal - GOALS.kcal) }));
-  n.push(pp >= 1 ? t('note.protOver', { over: fmt(tot.prot - GOALS.prot) }) : pp >= .8 ? t('note.protNear', { pct: Math.round(pp*100) }) : t('note.protUnder', { pct: Math.round(pp*100) }));
-  n.push(pb >= 1 ? t('note.carbOver', { over: fmt(tot.carb - GOALS.carb) }) : pb >= .7 ? t('note.carbNear', { pct: Math.round(pb*100) }) : t('note.carbUnder', { pct: Math.round(pb*100) }));
-  n.push(pa <= 1 ? t('note.sugarIn', { v: fmt(tot.azuc), g: GOALS.azuc }) : t('note.sugarOver', { over: fmt(tot.azuc - GOALS.azuc) }));
-  n.push(pg <= 1 ? t('note.fatIn', { pct: Math.round(pg*100) }) : pg <= 1.1 ? t('note.fatSlight', { over: fmt(tot.gras - GOALS.gras) }) : t('note.fatOver', { over: fmt(tot.gras - GOALS.gras) }));
+  const gk = goalOf('kcal'), gp = goalOf('prot'), gc = goalOf('carb'), ga = goalOf('azuc'), gg = goalOf('gras');
+  if (gk !== null) { const pc = tot.kcal / gk; n.push(pc < 1 ? t('note.kcalIn', { left: fmt(gk - tot.kcal) }) : t('note.kcalOver', { over: fmt(tot.kcal - gk) })); }
+  if (gp !== null) { const pp = tot.prot / gp; n.push(pp >= 1 ? t('note.protOver', { over: fmt(tot.prot - gp) }) : pp >= .8 ? t('note.protNear', { pct: Math.round(pp*100) }) : t('note.protUnder', { pct: Math.round(pp*100) })); }
+  if (gc !== null) { const pb = tot.carb / gc; n.push(pb >= 1 ? t('note.carbOver', { over: fmt(tot.carb - gc) }) : pb >= .7 ? t('note.carbNear', { pct: Math.round(pb*100) }) : t('note.carbUnder', { pct: Math.round(pb*100) })); }
+  if (ga !== null) { const pa = tot.azuc / ga; n.push(pa <= 1 ? t('note.sugarIn', { v: fmt(tot.azuc), g: ga }) : t('note.sugarOver', { over: fmt(tot.azuc - ga) })); }
+  if (gg !== null) { const pg = tot.gras / gg; n.push(pg <= 1 ? t('note.fatIn', { pct: Math.round(pg*100) }) : pg <= 1.1 ? t('note.fatSlight', { over: fmt(tot.gras - gg) }) : t('note.fatOver', { over: fmt(tot.gras - gg) })); }
   return n;
 }
 const esc = s => String(s == null ? '' : s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
@@ -3847,12 +3878,17 @@ async function uploadPhoto(file, path) {
 
 function render(date) {
   $('dateTitle').textContent = dateName(date);
-  $('goals-row').innerHTML =
-    `<span>${t('metric.kcal')}: <b>${fmt(GOALS.kcal)} kcal</b></span>` +
-    `<span>${t('metric.prot')}: <b>${fmt(GOALS.prot)} g</b></span>` +
-    `<span>${t('metric.carb')}: <b>${fmt(GOALS.carb)} g</b></span>` +
-    `<span>${t('metric.azuc')}: <b>≤ ${fmt(GOALS.azuc)} g</b></span>` +
-    `<span>${t('metric.gras')}: <b>${fmt(GOALS.gras)} g</b></span>`;
+  if (!hasAnyGoal()) {
+    $('goals-row').innerHTML = `<span class="goals-none">${t('goals.none')}</span>`;
+  } else {
+    const gv = (key, suffix, prefix = '') => { const g = goalOf(key); return g === null ? '<b>—</b>' : `<b>${prefix}${fmt(g)}${suffix}</b>`; };
+    $('goals-row').innerHTML =
+      `<span>${t('metric.kcal')}: ${gv('kcal', ' kcal')}</span>` +
+      `<span>${t('metric.prot')}: ${gv('prot', ' g')}</span>` +
+      `<span>${t('metric.carb')}: ${gv('carb', ' g')}</span>` +
+      `<span>${t('metric.azuc')}: ${gv('azuc', ' g', '≤ ')}</span>` +
+      `<span>${t('metric.gras')}: ${gv('gras', ' g')}</span>`;
+  }
   const tot = totals(date);
   const vals = { kcal: tot.kcal, prot: tot.prot, carb: tot.carb, azuc: tot.azuc, gras: tot.gras };
   $('rings').innerHTML = METRICS.map(m =>
@@ -3868,19 +3904,23 @@ function render(date) {
   ).join('');
   if (rows.length) html += `<tr class="total"><td colspan="3">TOTAL</td><td class="num" style="color:#16A34A">${fmt(tot.kcal)}</td><td class="num" style="color:#2563EB">${fmt(tot.prot)}</td><td class="num" style="color:#D97706">${fmt(tot.carb)}</td><td class="num" style="color:#9333EA">${fmt(tot.azuc)}</td><td class="num" style="color:#DC2626">${fmt(tot.gras)}</td><td></td></tr>`;
   $('detailBody').innerHTML = html || `<tr><td colspan="9" class="wempty">${t('track.emptyDay')}</td></tr>`;
-  $('vsRows').innerHTML =
-    `<div class="vsrow head"><span>${t('vs.indicator')}</span><span>${t('vs.intake')}</span><span>${t('vs.goal')}</span><span>${t('vs.progress')}</span><span></span></div>` +
+  $('vsRows').innerHTML = !hasAnyGoal()
+    ? `<div class="nogoals-note">${t('goals.none')}</div>`
+    : `<div class="vsrow head"><span>${t('vs.indicator')}</span><span>${t('vs.intake')}</span><span>${t('vs.goal')}</span><span>${t('vs.progress')}</span><span></span></div>` +
     METRICS.map(m => {
-      const v = vals[m.key], pct = GOALS[m.key] ? v / GOALS[m.key] : 0;
+      const v = vals[m.key], goal = goalOf(m.key);
+      if (goal === null) return `<div class="vsrow"><span>${t('metric.' + m.key)}</span><span><b>${fmt(v)}</b></span><span>—</span><span class="bar-track"><div class="bar-fill" style="width:0%;background:${m.color}"></div></span><span>—</span></div>`;
+      const pct = v / goal;
       const w = Math.min(pct, 1) * 100;
-      return `<div class="vsrow"><span>${t('metric.' + m.key)}</span><span><b>${fmt(v)}</b></span><span>${fmt(GOALS[m.key])}</span><span class="bar-track"><div class="bar-fill" style="width:${w.toFixed(0)}%;background:${m.color}"></div></span><span>${Math.round(pct*100)}%</span></div>`;
+      return `<div class="vsrow"><span>${t('metric.' + m.key)}</span><span><b>${fmt(v)}</b></span><span>${fmt(goal)}</span><span class="bar-track"><div class="bar-fill" style="width:${w.toFixed(0)}%;background:${m.color}"></div></span><span>${Math.round(pct*100)}%</span></div>`;
     }).join('');
   /* SIN ECO EN NOTAS (Ronald, 2026-10-19: «Esta información está de
      más»): la tarjeta «Notas» muestra SOLO las frases automáticas de
      metas. Las notas de cada comida ya NO se vuelcan aquí como lista:
      viven en su registro y en el formulario de la comida. No se borra
      ningún dato guardado; es solo presentación. */
-  $('notesList').innerHTML = notesFor(tot).map(x => `<li>${x}</li>`).join('');
+  const dayNotes = notesFor(tot);
+  $('notesList').innerHTML = dayNotes.length ? dayNotes.map(x => `<li>${x}</li>`).join('') : `<li>${t('goals.none')}</li>`;
 
   document.querySelectorAll('[data-repeat-meal]').forEach(b =>
     b.onclick = () => {
