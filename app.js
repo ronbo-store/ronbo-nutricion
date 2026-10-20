@@ -481,6 +481,15 @@ en: {
   'client.noWeight': 'This client hasn\'t logged their weight yet.',
   'client.edit': 'Edit',
   'client.reviewed': '✓ Reviewed',
+  'fb3.title': '🧮 Protein reference (B-1)',
+  'fb3.range': '{lo}–{hi} g/day',
+  'fb3.basis': 'Based on the latest weight: {w} kg · {date}',
+  'fb3.perkg': 'Reference: 1.4–2.0 g/kg/day (ISSN 2017) for healthy, physically active adults.',
+  'fb3.stale': '⚠️ This weight is {d} days old — the reference may be out of date.',
+  'fb3.noweight': 'No weight logged yet: there is no basis for the protein reference.',
+  'fb3.nogoals': 'Educational reference only — it does not change the goals of this client. You set the goals manually.',
+  'fb3.helpBtn': 'How it is calculated and sources',
+  'fb3.help': '<b>How it is calculated</b><br>Daily protein range = latest body weight × 1.4–2.0 g/kg/day.<br><b>Sources</b><br>• ISSN Position Stand: protein and exercise (Jäger et al., 2017, J Int Soc Sports Nutr 14:20; DOI 10.1186/s12970-017-0177-8): 1.4–2.0 g/kg/day is sufficient for most people who exercise.<br>• Context only (not shown as a range here): for hypertrophy with resistance training, Morton et al. (2018, Br J Sports Med; DOI 10.1136/bjsports-2017-097608) estimated a breakpoint of 1.62 g/kg/day (95% CI upper limit 2.20) — neither a universal target nor a proven individual ceiling.<br>These ranges are educational references, pending validation in this app; they are not a prescription and never modify the goals you set.',
   'date.today': ' (today)',
   'date.weekLabel': 'Week {n} · {y}',
   'note.kcalIn': '🔥 Calories within range; {left} kcal left.',
@@ -951,6 +960,15 @@ es: {
   'client.noWeight': 'Este cliente aún no sube su peso.',
   'client.edit': 'Editar',
   'client.reviewed': '✓ Revisada',
+  'fb3.title': '🧮 Referencia de proteína (B-1)',
+  'fb3.range': '{lo}–{hi} g/día',
+  'fb3.basis': 'Con el último peso: {w} kg · {date}',
+  'fb3.perkg': 'Referencia: 1,4–2,0 g/kg/día (ISSN 2017) para adultos sanos físicamente activos.',
+  'fb3.stale': '⚠️ Este peso tiene {d} días — la referencia puede estar desactualizada.',
+  'fb3.noweight': 'Aún no hay peso registrado: no hay base para la referencia de proteína.',
+  'fb3.nogoals': 'Referencia solo educativa — no modifica las metas de este cliente. Las metas las fijas tú manualmente.',
+  'fb3.helpBtn': 'Cómo se calcula y fuentes',
+  'fb3.help': '<b>Cómo se calcula</b><br>Rango diario de proteína = último peso corporal × 1,4–2,0 g/kg/día.<br><b>Fuentes</b><br>• Position Stand de la ISSN: proteína y ejercicio (Jäger et al., 2017, J Int Soc Sports Nutr 14:20; DOI 10.1186/s12970-017-0177-8): 1,4–2,0 g/kg/día es suficiente para la mayoría de las personas que hacen ejercicio.<br>• Solo contexto (no se muestra como rango aquí): para hipertrofia con entrenamiento de resistencia, Morton et al. (2018, Br J Sports Med; DOI 10.1136/bjsports-2017-097608) estimó un punto de inflexión de 1,62 g/kg/día (límite superior del IC95%: 2,20) — ni meta universal ni techo individual demostrado.<br>Estos rangos son referencias educativas, pendientes de validación en esta app; no son una prescripción y nunca modifican las metas que tú fijas.',
   'date.today': ' (hoy)',
   'date.weekLabel': 'Semana {n} · {y}',
   'note.kcalIn': '🔥 Calorías dentro del rango; quedan {left} kcal.',
@@ -1549,6 +1567,31 @@ async function loadClients() {
   document.querySelectorAll('[data-client]').forEach(b => b.onclick = () => openClient(b.dataset.client));
 }
 
+/* ================= F-B3 · REFERENCIA DE PROTEÍNA B-1 (Etapa 1, desarrollo) =================
+   Referencia educativa SOLO de lectura para el entrenador, en su espacio
+   («Mis clientes» → ficha del cliente). Lee el último peso de la serie
+   ÚNICA nutrition_weight (ya cargada por openClient) y muestra el rango
+   B-1 aprobado: 1.4–2.0 g/kg/día (ISSN 2017, Jäger et al., DOI
+   10.1186/s12970-017-0177-8). NO escribe nada: jamás toca
+   users/{uid}.goals, no crea campos ni colecciones. Sin peso no hay
+   referencia (nunca un número inventado). */
+const FB3_STALE_DAYS = 30; // PROPUESTA de diseño: aviso de desactualización del pesaje
+function fb3ProteinHTML(weights) {
+  const last = weights && weights.length ? weights[weights.length - 1] : null;
+  const head = `<div class="fb3-head"><h3 class="history-title" style="margin:0">${t('fb3.title')}</h3>
+    <button type="button" class="fb3-helpbtn" id="fb3-help-btn" aria-expanded="false" title="${t('fb3.helpBtn')}">?</button></div>`;
+  const help = `<div class="fb3-pop" id="fb3-help" style="display:none">${t('fb3.help')}</div>`;
+  if (!last) return `<div class="fb3-card">${head}<div class="wempty">${t('fb3.noweight')}</div>${help}</div>`;
+  const lo = Math.round(last.weight * 1.4), hi = Math.round(last.weight * 2.0);
+  const days = Math.floor((Date.now() - new Date(last.date + 'T12:00:00').getTime()) / 864e5);
+  return `<div class="fb3-card">${head}
+    <div class="fb3-range">${t('fb3.range', { lo, hi })}</div>
+    <div class="muted">${t('fb3.basis', { w: last.weight, date: dateName(last.date) })}</div>
+    <div class="muted">${t('fb3.perkg')}</div>
+    ${days > FB3_STALE_DAYS ? `<div class="fb3-stale">${t('fb3.stale', { d: days })}</div>` : ''}
+    <div class="muted">${t('fb3.nogoals')}</div>${help}</div>`;
+}
+
 async function openClient(uid) {
   const box = $('client-detail');
   let uname = t('client.fallbackName'), udata = null;
@@ -1600,8 +1643,11 @@ async function openClient(uid) {
     ${data.length ? `<div class="table-scroll"><table class="detail whist">
       <thead><tr><th>${t('form.date')}</th><th class="num">${t('form.weight')}</th><th class="num">${t('form.bodyfat')}</th><th class="num">${t('form.muscle')}</th><th class="num">${t('form.water')}</th><th class="num">${t('form.visceral')}</th><th>${t('form.notes')}</th><th></th></tr></thead>
       <tbody>${rows}</tbody></table></div>` : ''}
+    ${fb3ProteinHTML(data)}
     <div id="client-training"></div>`;
   $('btn-client-close').onclick = () => { box.style.display = 'none'; box.innerHTML = ''; };
+  const fb3b = $('fb3-help-btn');
+  if (fb3b) fb3b.onclick = () => { const p = $('fb3-help'); const open = p.style.display !== 'none'; p.style.display = open ? 'none' : ''; fb3b.setAttribute('aria-expanded', String(!open)); };
   $('btn-client-add').onclick = () => openWeightModal({ uid, docId: null, rec: null });
   box.querySelectorAll('[data-c-edit]').forEach(b => b.onclick = () => {
     const rec = data.find(w => w.id === b.dataset.cEdit);

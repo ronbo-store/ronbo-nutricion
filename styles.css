@@ -453,3 +453,12 @@ table.whist { min-width: 640px; }
 .eval-check input{width:18px;height:18px}
 .eval-cfg-group{margin:12px 0 4px;font-size:13.5px;font-weight:700;color:#111827}
 @media (max-width:520px){ .eval-form{grid-template-columns:1fr} }
+
+/* ===== F-B3 · referencia de proteína B-1 (Etapa 1, desarrollo) ===== */
+.fb3-card { position: relative; border: 1px solid #e5e7eb; border-radius: 12px; padding: 12px 14px; margin: 12px 0; background: #f8fafc; }
+.fb3-head { display: flex; align-items: center; gap: 8px; }
+.fb3-head .history-title { flex: 1; }
+.fb3-helpbtn { flex: none; width: 26px; height: 26px; border-radius: 50%; border: 1px solid #00ACA1; background: #fff; color: #00857c; font-weight: 700; cursor: pointer; font-family: inherit; }
+.fb3-range { font-size: 20px; font-weight: 700; margin: 6px 0 2px; }
+.fb3-stale { color: #991b1b; font-size: 13px; margin-top: 6px; }
+.fb3-pop { position: absolute; right: 10px; top: 46px; z-index: 5; max-width: 340px; background: #fff; border: 1px solid #e5e7eb; border-radius: 12px; box-shadow: 0 10px 30px rgba(0,0,0,.15); padding: 12px 14px; font-size: 13px; line-height: 1.45; }
