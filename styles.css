@@ -523,6 +523,10 @@ table.whist { min-width: 640px; }
 
 /* ===== Pendientes (REC-D, fase 1) ===== */
 .pend-panel { margin-top: 14px; }
+/* Cabecera propia del panel (NO reutilizar .summary-head: otros
+   componentes lo localizan por primera coincidencia en el DOM). */
+.pend-head { display: flex; align-items: center; gap: 8px 12px; flex-wrap: wrap; margin-bottom: 10px; }
+.pend-head h2 { margin-bottom: 0; }
 .pend-count { display: inline-block; min-width: 22px; text-align: center; background: #b45309; color: #fff; border-radius: 999px; padding: 1px 7px; font-size: 13px; vertical-align: middle; }
 .pend-item { border: 1px solid var(--line, #e2e8f0); border-left: 4px solid #0d9488; border-radius: 10px; padding: 10px 12px; margin: 10px 0; background: rgba(13, 148, 136, 0.05); }
 .pend-item.pend-overdue { border-left-color: #b45309; background: rgba(180, 83, 9, 0.06); }
