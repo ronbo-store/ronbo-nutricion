@@ -1960,7 +1960,13 @@ async function faComputeMine(uid) {
   const base = 10 * last.weight + 6.25 * h - 5 * age;
   const rmr = sex === 'male' ? base + 5 : base - 161;
   const snap = { weightKg: last.weight, weightDate: last.date, heightCm: h, ageYears: age, palBasal: pal };
+  /* Sin cambios NO se reescribe — y el «sin cambios» incluye el
+     resultado que corresponde al dato de sexo ACTUAL: el snapshot
+     jamás guarda el valor del sexo, así que la igualdad del
+     snapshot sola no basta (si el cliente corrige su dato con las
+     mismas entradas, hay que recalcular: la constante cambia). */
   if (cfg.equationUsed === 'mifflin-st-jeor' && typeof cfg.rmrKcal === 'number'
+      && Math.abs(cfg.rmrKcal - rmr) < 1e-9 && Math.abs(cfg.tdeeKcal - rmr * pal) < 1e-9
       && cfg.inputsSnapshot && JSON.stringify(cfg.inputsSnapshot) === JSON.stringify(snap)) return;
   const result = { rmrKcal: rmr, tdeeKcal: rmr * pal, equationUsed: 'mifflin-st-jeor', equationVersion: FA_EQUATION_VERSION,
     inputsSnapshot: snap, sexConstantApplied: true, uncertaintyNote: FA_UNCERTAINTY[LANG] || FA_UNCERTAINTY.en,
