@@ -181,6 +181,78 @@ en: {
   'progress.next': 'Next evaluation suggested: {date}',
   'progress.history': 'Previous evaluations',
   'progress.emptyHistory': 'Your previous evaluations will appear here.',
+  'eval.badgePending': 'PENDING',
+  'eval.dueTitle': 'Your progress evaluation is due today.',
+  'eval.dueToday': 'Due: {date} (today)',
+  'eval.dueFuture': 'Due: {date}',
+  'eval.overdue': 'Due: {date} — {n} days ago. It is still the same single pending: no new copy is created each day.',
+  'eval.upcomingTitle': 'Your next progress evaluation is coming up.',
+  'eval.completeTitle': '✅ This evaluation is complete.',
+  'eval.nextCalc': 'How the date is set: your last COMPLETE evaluation was {last}; the next one is that date + 15 days.',
+  'eval.firstTitle': 'Your first progress evaluation.',
+  'eval.firstNote': 'You have no previous evaluation, so this one carries no punitive due date: it is your starting point. When you complete it, the 15-day count starts from its date.',
+  'eval.haveLead': 'Already there:',
+  'eval.missingLead': 'Still missing (required):',
+  'eval.partialSaved': 'Partial progress saved ✓ — this is NOT yet a complete evaluation: it completes when everything required is in.',
+  'eval.optionalNote': 'Every measure is optional unless YOU marked it required in the settings. Optional measures left empty never create pendings and never block completing the evaluation.',
+  'eval.cycleLine': 'Evaluation cycle — last complete: {last} · next expected: {next}',
+  'eval.cycleLastNone': 'none yet',
+  'eval.cycleNextFirst': 'set when you complete the first one (that date + 15 days)',
+  'eval.reqPhoto.front': 'front photo',
+  'eval.reqPhoto.side': 'side photo',
+  'eval.reqPhoto.back': 'back photo',
+  'eval.omitBtn': 'Skip this cycle (just this once)',
+  'eval.omittedNote': 'Cycle skipped. The next expected date is counted from the skipped due date + 15 days, and nothing was marked as done.',
+  'eval.measure.peso': 'Weight',
+  'eval.measure.cintura': 'Waist',
+  'eval.measure.caderas': 'Hips / glutes',
+  'eval.measure.muslos': 'Thighs',
+  'eval.measure.pantorrillas': 'Calves',
+  'eval.measure.brazos': 'Arms / biceps',
+  'eval.measure.hombros': 'Shoulders',
+  'eval.measure.pecho': 'Chest circumference',
+  'eval.guide.peso': 'Scale: on waking, fasting, same time, light clothing.',
+  'eval.guide.cintura': 'Tape on the skin, at navel height, at the end of a normal breath out, standing, not tight. Always the same spot and time of day.',
+  'eval.guide.caderas': 'Tape around the widest part of the glutes, feet together, tape horizontal, not tight.',
+  'eval.guide.muslos': 'Midpoint between groin and knee, right leg, standing with weight evenly spread, leg relaxed. Always the same leg.',
+  'eval.guide.pantorrillas': 'Widest point of the calf, standing, leg relaxed.',
+  'eval.guide.brazos': 'Arm hanging relaxed (not flexed), midpoint between shoulder and elbow. Always the same arm.',
+  'eval.guide.hombros': 'Around the widest part of both deltoids and the back, arms hanging.',
+  'eval.measuresTitle': 'Evaluation measures',
+  'eval.saveMeasures': 'Save measures',
+  'eval.savedOk': '✓ Saved',
+  'eval.fichaTitle': 'Evaluation sheet — measured data',
+  'eval.colMeasure': 'Measure',
+  'eval.colPrev': 'Previous',
+  'eval.colNow': 'Current',
+  'eval.colDiff': 'Difference',
+  'eval.fichaObsNote': 'The numbers above are MEASURED data. Observations about how the body looks live in their own block, kept separate: a change in a circumference does not, by itself, say anything about muscle or fat.',
+  'eval.pechoNote': 'Chest circumference is ONE single circumference around the torso at chest height (tape under the armpits, at the end of a normal breath out). It is NOT a separate back measurement.',
+  'eval.reqTag': 'required',
+  'eval.compTitle': 'Body composition (optional — you log it)',
+  'eval.compNote': 'You log these values yourself if you have them (from a scale, a caliper, a scanner…). They are OPTIONAL: they are never required to complete an evaluation, they never create pendings, and they are NEVER calculated from photos. And a change in a circumference does not prove muscle gain or fat loss.',
+  'eval.compFat': 'Body fat',
+  'eval.compMuscle': 'Muscle mass',
+  'eval.compMuscleNote': 'Muscle mass is NOT the same as fat-free mass: fat-free mass also includes bones, water and organs. They are different quantities — that is why they are never mixed here.',
+  'eval.compMethod': 'Method / source',
+  'eval.compEstimate': 'It is an estimate',
+  'eval.compRegister': 'Log',
+  'eval.compValuePh': 'Value',
+  'eval.compEstTag': 'estimate',
+  'eval.compNone': 'not logged',
+  'eval.compMethodDiff': 'Different method from the previous one: the difference may come from the method, not from a real change.',
+  'eval.compUnitDiff': 'Different units (kg vs %): they are never mixed — the difference is not calculated.',
+  'eval.method.bio': 'Bioimpedance scale',
+  'eval.method.caliper': 'Skinfold caliper',
+  'eval.method.scan': 'Body scanner',
+  'eval.method.other': 'Other / manual',
+  'eval.cfgTitle': 'Evaluation settings',
+  'eval.cfgRequired': 'Measures REQUIRED in the evaluation (only these can create a pending)',
+  'eval.cfgReqNote': 'Every measure is optional unless YOU mark it required here. Only the required ones appear as “missing” and can hold an evaluation open. The three photos (front, side, back) are always part of an evaluation: they are its core, not a configurable extra.',
+  'eval.cfgUnits': 'Measurement units',
+  'eval.unitsMetric': 'Metric (kg, cm)',
+  'eval.unitsImperial': 'Imperial (lb, inches)',
+  'eval.cfgSave': 'Save settings',
   'mealhelp.title': 'Meal help',
   'mealhelp.hint': 'The photo is not stored.',
   'mealhelp.addManual': 'Add food manually',
@@ -573,6 +645,78 @@ es: {
   'progress.next': 'Próxima evaluación sugerida: {date}',
   'progress.history': 'Evaluaciones anteriores',
   'progress.emptyHistory': 'Tus evaluaciones anteriores aparecerán aquí.',
+  'eval.badgePending': 'PENDIENTE',
+  'eval.dueTitle': 'Hoy corresponde tu evaluación de progreso.',
+  'eval.dueToday': 'Vence: {date} (hoy)',
+  'eval.dueFuture': 'Vence: {date}',
+  'eval.overdue': 'Venció: {date} — hace {n} días. Sigue siendo el mismo pendiente de siempre: no se crea una copia nueva cada día.',
+  'eval.upcomingTitle': 'Tu próxima evaluación de progreso.',
+  'eval.completeTitle': '✅ Esta evaluación está completa.',
+  'eval.nextCalc': 'Cómo se calcula la fecha: tu última evaluación COMPLETA fue el {last}; la siguiente es esa fecha + 15 días.',
+  'eval.firstTitle': 'Tu primera evaluación de progreso.',
+  'eval.firstNote': 'No tienes una evaluación anterior, así que esta no tiene una fecha de vencimiento que castigue: es tu punto de partida. Al completarla, la cuenta de 15 días empieza desde su fecha.',
+  'eval.haveLead': 'Ya tienes:',
+  'eval.missingLead': 'Falta (requerido):',
+  'eval.partialSaved': 'Avance guardado ✓ — aún NO es una evaluación completa: se completa cuando esté todo lo requerido.',
+  'eval.optionalNote': 'Toda medida es opcional salvo las que TÚ marcaste como requeridas en la configuración. Las opcionales vacías nunca crean pendientes ni bloquean completar la evaluación.',
+  'eval.cycleLine': 'Ciclo de evaluación — última completa: {last} · próxima prevista: {next}',
+  'eval.cycleLastNone': 'ninguna aún',
+  'eval.cycleNextFirst': 'se fijará al completar la primera (esa fecha + 15 días)',
+  'eval.reqPhoto.front': 'foto de frente',
+  'eval.reqPhoto.side': 'foto de costado',
+  'eval.reqPhoto.back': 'foto de espalda',
+  'eval.omitBtn': 'Omitir este ciclo (solo esta vez)',
+  'eval.omittedNote': 'Ciclo omitido. La próxima fecha prevista se cuenta desde la fecha prevista omitida + 15 días, y nada quedó marcado como hecho.',
+  'eval.measure.peso': 'Peso',
+  'eval.measure.cintura': 'Cintura',
+  'eval.measure.caderas': 'Caderas / glúteos',
+  'eval.measure.muslos': 'Muslos',
+  'eval.measure.pantorrillas': 'Pantorrillas',
+  'eval.measure.brazos': 'Brazos / bíceps',
+  'eval.measure.hombros': 'Hombros',
+  'eval.measure.pecho': 'Contorno de pecho',
+  'eval.guide.peso': 'Báscula: al despertar, en ayunas, a la misma hora, con ropa ligera.',
+  'eval.guide.cintura': 'Cinta sobre la piel, a la altura del ombligo, al final de una espiración normal, de pie, sin apretar. Siempre el mismo punto y la misma hora del día.',
+  'eval.guide.caderas': 'Cinta por la parte más ancha de los glúteos, pies juntos, cinta horizontal y sin apretar.',
+  'eval.guide.muslos': 'Punto medio entre la ingle y la rodilla, pierna derecha, de pie con el peso repartido entre ambas piernas, pierna relajada. Siempre la misma pierna.',
+  'eval.guide.pantorrillas': 'Punto más ancho de la pantorrilla, de pie, pierna relajada.',
+  'eval.guide.brazos': 'Brazo colgando RELAJADO (no flexionado), punto medio entre el acromion (el hueso del hombro) y el codo. Siempre el mismo brazo.',
+  'eval.guide.hombros': 'Contorno sobre la parte más ancha de ambos deltoides y la espalda, con los brazos colgando.',
+  'eval.measuresTitle': 'Medidas de la evaluación',
+  'eval.saveMeasures': 'Guardar medidas',
+  'eval.savedOk': '✓ Guardado',
+  'eval.fichaTitle': 'Ficha de evaluación — datos medidos',
+  'eval.colMeasure': 'Medida',
+  'eval.colPrev': 'Anterior',
+  'eval.colNow': 'Actual',
+  'eval.colDiff': 'Diferencia',
+  'eval.fichaObsNote': 'Los números de arriba son DATOS MEDIDOS. Las observaciones sobre cómo se ve el cuerpo viven en su propio bloque, por separado: un cambio de contorno no dice, por sí solo, nada sobre músculo o grasa.',
+  'eval.pechoNote': 'El contorno de pecho es UNA sola circunferencia alrededor del torso a la altura del pecho (cinta bajo las axilas, al final de una espiración normal). NO es una medida independiente de la espalda.',
+  'eval.reqTag': 'requerida',
+  'eval.compTitle': 'Composición corporal (opcional — la registras tú)',
+  'eval.compNote': 'Estos valores los registras TÚ si los tienes (de una báscula, un calibre, un escáner…). Son OPCIONALES: nunca se exigen para completar una evaluación, nunca generan pendientes y NUNCA se calculan desde las fotos. Y un cambio de perímetro no demuestra ganancia de músculo ni pérdida de grasa.',
+  'eval.compFat': 'Grasa corporal',
+  'eval.compMuscle': 'Masa muscular',
+  'eval.compMuscleNote': 'La masa muscular NO es lo mismo que la masa libre de grasa: la masa libre de grasa incluye también huesos, agua y órganos. Son magnitudes distintas — por eso aquí nunca se mezclan.',
+  'eval.compMethod': 'Método / origen',
+  'eval.compEstimate': 'Es una estimación',
+  'eval.compRegister': 'Registrar',
+  'eval.compValuePh': 'Valor',
+  'eval.compEstTag': 'estimación',
+  'eval.compNone': 'sin registrar',
+  'eval.compMethodDiff': 'Método distinto al anterior: la diferencia puede deberse al método, no a un cambio real.',
+  'eval.compUnitDiff': 'Unidades distintas (kg frente a %): no se mezclan — la diferencia no se calcula.',
+  'eval.method.bio': 'Báscula de bioimpedancia',
+  'eval.method.caliper': 'Calibre (plicómetro)',
+  'eval.method.scan': 'Escáner corporal',
+  'eval.method.other': 'Otro / manual',
+  'eval.cfgTitle': 'Configuración de la evaluación',
+  'eval.cfgRequired': 'Medidas REQUERIDAS en la evaluación (solo estas pueden generar un pendiente)',
+  'eval.cfgReqNote': 'Toda medida es opcional salvo las que TÚ marques aquí como requeridas. Solo las requeridas aparecen como «falta» y pueden mantener abierta una evaluación. Las tres fotos (frente, costado, espalda) forman siempre parte de la evaluación: son su núcleo, no un extra configurable.',
+  'eval.cfgUnits': 'Unidades de las medidas',
+  'eval.unitsMetric': 'Métrico (kg, cm)',
+  'eval.unitsImperial': 'Imperial (lb, pulgadas)',
+  'eval.cfgSave': 'Guardar configuración',
   'mealhelp.title': 'Ayuda con comidas',
   'mealhelp.hint': 'La foto no se almacena.',
   'mealhelp.addManual': 'Añadir comida manualmente',
@@ -3370,6 +3514,11 @@ function renderWeight() {
 const PROGRESS_SLOTS = ['front', 'side', 'back'];
 let PROG = {};          // fecha -> { front: {id, photo}, side: {...}, back: {...} }
 let PROG_TARGET = null; // fecha del set mostrado en el área principal
+/* Estado de la EVALUACIÓN DE PROGRESO (bloque más abajo): se carga
+   en la misma pasada de loadProgress() desde nutrition_progress. */
+let EVALS = {};         // fecha -> { measures:{}, comp:{}, completedAt }
+let EVAL_CYCLE = { omitted: [], closedSets: [] };
+let EVAL_CFG = { requiredMeasures: [], units: 'metric' };
 
 function addDaysISO(iso, days) {
   const d = new Date(iso + 'T12:00:00'); d.setDate(d.getDate() + days);
@@ -3396,11 +3545,21 @@ function progressUploadDate() {
 }
 async function loadProgress() {
   PROG = {};
+  EVALS = {}; EVAL_CYCLE = { omitted: [], closedSets: [] }; EVAL_CFG = { requiredMeasures: [], units: 'metric' };
   try {
     /* Progreso personal: filtrado por el uid autenticado, también para
        el dueño. Sin relación con Storage. */
     const snap = await getDocs(query(collection(db, 'nutrition_progress'), where('ownerUid', '==', auth.currentUser.uid)));
-    snap.forEach(d => { const v = d.data(); if (v && v.slot && v.photo && v.date) { (PROG[v.date] = PROG[v.date] || {})[v.slot] = { id: d.id, photo: v.photo }; } });
+    snap.forEach(d => { const v = d.data(); if (!v) return;
+      if (v.slot && v.photo && v.date) { (PROG[v.date] = PROG[v.date] || {})[v.slot] = { id: d.id, photo: v.photo }; }
+      /* Documentos de la evaluación (ver el bloque EVALUACIÓN DE
+         PROGRESO): viven en la misma colección con discriminador
+         kind; la lectura de fotos los ignora porque no traen
+         slot/photo. */
+      else if (v.kind === 'evaluation' && v.date) EVALS[v.date] = { measures: v.measures || {}, comp: v.comp || null, completedAt: v.completedAt || null };
+      else if (v.kind === 'evalCycle') EVAL_CYCLE = { omitted: Array.isArray(v.omitted) ? v.omitted : [], closedSets: Array.isArray(v.closedSets) ? v.closedSets : [] };
+      else if (v.kind === 'evalConfig') EVAL_CFG = { requiredMeasures: Array.isArray(v.requiredMeasures) ? v.requiredMeasures : [], units: v.units === 'imperial' ? 'imperial' : 'metric' };
+    });
   } catch { /* sin acceso o sin docs */ }
   renderProgress();
 }
@@ -3446,6 +3605,7 @@ function renderProgress() {
     const rec = findProgressPhoto(im.getAttribute('data-hist-zoom')); if (rec) showLightbox(rec.photo);
   }));
   $('progress-history').querySelectorAll('[data-hist-del]').forEach(b => b.addEventListener('click', () => deleteProgressPhoto(b.getAttribute('data-hist-del'))));
+  try { renderEval(); } catch {}
 }
 /* Compresión de la foto de progreso en memoria: lado mayor máx.
    1024 px y JPEG calidad 0.72; el resultado típico queda en
@@ -3471,6 +3631,7 @@ async function uploadProgressPhoto(which, file) {
     });
     toast(t('msg.photoSaved'));
     await loadProgress();
+    await evalReconcile(date);
   } catch { toast(t('msg.uploadFail'), true); }
 }
 async function deleteProgressPhoto(id) {
@@ -3480,6 +3641,7 @@ async function deleteProgressPhoto(id) {
     await deleteDoc(doc(db, 'nutrition_progress', rec.id));
     toast(t('msg.photoDeleted'));
     await loadProgress();
+    await evalReconcile(rec.date);
   } catch { toast(t('msg.uploadFail'), true); }
 }
 PROGRESS_SLOTS.forEach(s => {
@@ -3490,6 +3652,362 @@ PROGRESS_SLOTS.forEach(s => {
   const img = $('preview-' + s);
   if (img) img.addEventListener('click', () => { const src = img.getAttribute('src'); if (src) showLightbox(src); });
 });
+
+/* ================= EVALUACIÓN DE PROGRESO (ciclo quincenal) =================
+   Lleva a la app real el sistema del prototipo aprobado por Ronald
+   (2026-10-19 20:28, sobre las capturas del prototipo y la propuesta
+   consolidada v2, §6–§7): tarjeta del ciclo con fecha prevista,
+   lista exacta de lo que falta, avance parcial que NUNCA se presenta
+   como evaluación completa, ficha comparativa de DATOS MEDIDOS y
+   composición corporal opcional registrada a mano.
+
+   MODELO DE DATOS — veredicto de reglas r4 (sin cambio de reglas):
+   las reglas publicadas (match /nutrition_progress/{docId},
+   firestore.rules.propuesta-r4 líneas 368–377) no imponen esquema
+   de campos: crear exige cuenta aprobada y ownerUid == uid, y el
+   catch-all final deniega cualquier colección nueva. El documento
+   de usuario tampoco sirve para la configuración: la rama de
+   auto-actualización del cliente solo permite campos de perfil.
+   Por eso TODO vive en nutrition_progress, con discriminador kind:
+     · fotos: {uid}_{fecha}_{slot} — SIN cambios (sistema en prod.).
+     · evaluación por set: {uid}_{fecha}_eval, kind 'evaluation':
+       { measures: {cintura: cm, …} (canónico cm; el peso NO se
+       guarda aquí), comp: {fat, muscle}, completedAt }.
+     · ciclo: {uid}_evalcycle, kind 'evalCycle':
+       { omitted: [fechas previstas omitidas], closedSets: [fechas] }.
+     · configuración: {uid}_evalconfig, kind 'evalConfig':
+       { requiredMeasures: [ids], units: 'metric'|'imperial' }.
+   La lectura de fotos ignora estos documentos (no traen slot/photo).
+
+   CICLO (propuesta v2 §6, una sola regla): próxima fecha prevista =
+   (último EVENTO) + 15 días; el evento es una evaluación completada
+   (ancla: su fecha de COMPLETITUD, completedAt) o un ciclo omitido
+   (ancla: su fecha prevista). La primera evaluación no tiene fecha
+   punitiva. Un ciclo atrasado es EL MISMO pendiente único, con su
+   antigüedad; nunca nace una copia por día. Omitir cierra el ciclo
+   sin crear ninguna evaluación (0 documentos de evaluación nuevos).
+   COMPLETITUD de un set: las 3 fotos + SOLO las medidas configuradas
+   como requeridas con valor; las opcionales vacías nunca bloquean.
+   El peso se reutiliza de nutrition_weight (no se duplica): para la
+   completitud cuenta el pesaje DEL DÍA del set; en la ficha se
+   muestra el último pesaje hasta esa fecha.
+   UNIDADES: el dato guardado es único y canónico (kg/cm); el
+   selector solo cambia la PRESENTACIÓN (conversión al mostrar y al
+   capturar, redondeo solo visual): la ida y vuelta no deriva. */
+const EVAL_MEASURES = [
+  { id: 'peso', kind: 'w' },
+  { id: 'cintura', kind: 'l' }, { id: 'caderas', kind: 'l' },
+  { id: 'muslos', kind: 'l' }, { id: 'pantorrillas', kind: 'l' },
+  { id: 'brazos', kind: 'l' }, { id: 'hombros', kind: 'l' },
+  { id: 'pecho', kind: 'l' }
+];
+let EVAL_OK_MSG = '';   // confirmación transitoria tras guardar
+
+function evalDocRef(date) { return doc(db, 'nutrition_progress', `${auth.currentUser.uid}_${date}_eval`); }
+function evalWeightOn(date) { const r = WEIGHTS.find(w => w.date === date); return r ? r.weight : null; }
+function evalWeightUpTo(date) { let v = null; for (const w of WEIGHTS) { if (w.date <= date) v = w.weight; else break; } return v; }
+/* Valor a efectos de COMPLETITUD (el peso exige pesaje del día). */
+function evalMeasureValue(date, id) {
+  if (id === 'peso') return evalWeightOn(date);
+  const e = EVALS[date];
+  return (e && e.measures && e.measures[id] != null) ? e.measures[id] : null;
+}
+/* Valor a efectos de FICHA (el peso muestra el último hasta la fecha). */
+function evalDisplayValue(date, id) {
+  if (id === 'peso') return evalWeightUpTo(date);
+  return evalMeasureValue(date, id);
+}
+function evalMissingItems(date) {
+  const items = [];
+  PROGRESS_SLOTS.forEach(s => { if (!((PROG[date] || {})[s])) items.push({ kind: 'photo', id: s }); });
+  (EVAL_CFG.requiredMeasures || []).forEach(m => { if (evalMeasureValue(date, m) == null) items.push({ kind: 'measure', id: m }); });
+  return items;
+}
+function evalSetComplete(date) {
+  if (!date || (EVAL_CYCLE.closedSets || []).includes(date)) return false;
+  if (!PROG[date] && !EVALS[date]) return false;
+  return evalMissingItems(date).length === 0;
+}
+function evalCompleteDates() {
+  const ds = new Set([...Object.keys(PROG), ...Object.keys(EVALS)]);
+  return [...ds].filter(d => evalSetComplete(d)).sort();
+}
+function evalAnchorOf(date) { const e = EVALS[date]; return (e && e.completedAt) || date; }
+function evalLastCompleteDate() { const ds = evalCompleteDates(); return ds.length ? ds[ds.length - 1] : null; }
+function evalNextDue() {
+  const ev = evalCompleteDates().map(evalAnchorOf).concat(EVAL_CYCLE.omitted || []);
+  if (!ev.length) return null;
+  ev.sort();
+  return addDaysISO(ev[ev.length - 1], 15);
+}
+function evalPrevCompleteDate(before) {
+  const ds = evalCompleteDates().filter(d => d < before);
+  return ds.length ? ds[ds.length - 1] : null;
+}
+/* Set sobre el que trabaja la tarjeta: el mostrado en el área de
+   fotos, SALVO si ya está completo (o su ciclo se omitió) y no es de
+   hoy — una evaluación cerrada no se reabre: se trabaja en la de hoy. */
+function evalTargetDate() {
+  const tday = todayISO();
+  const t = PROG_TARGET || progressTargetDate();
+  if (t !== tday && (evalSetComplete(t) || (EVAL_CYCLE.closedSets || []).includes(t))) return tday;
+  return t;
+}
+function evalHasAdvance(date) {
+  const e = EVALS[date];
+  return !!((PROG[date] && Object.keys(PROG[date]).length)
+    || (e && ((e.measures && Object.keys(e.measures).length) || e.comp)));
+}
+function evalDaysBetween(a, b) { return Math.round((new Date(b + 'T12:00:00') - new Date(a + 'T12:00:00')) / 864e5); }
+/* Sella (o desella) la fecha de completitud cuando un flujo de
+   ESCRITURA cambia la completitud de un set. Nunca se llama desde
+   el render: abrir la vista no escribe nada. */
+async function evalReconcile(date) {
+  if (!auth.currentUser || !date) return;
+  const complete = evalSetComplete(date);
+  const e = EVALS[date];
+  try {
+    if (complete && !(e && e.completedAt)) {
+      await setDoc(evalDocRef(date), { kind: 'evaluation', uid: auth.currentUser.uid, ownerUid: auth.currentUser.uid, date, completedAt: todayISO(), updatedAt: serverTimestamp() }, { merge: true });
+      EVALS[date] = Object.assign({}, e, { completedAt: todayISO() });
+      renderEval();
+    } else if (!complete && e && e.completedAt) {
+      await setDoc(evalDocRef(date), { completedAt: null, updatedAt: serverTimestamp() }, { merge: true });
+      EVALS[date] = Object.assign({}, e, { completedAt: null });
+      renderEval();
+    }
+  } catch {}
+}
+/* ---------- Unidades: presentación sobre el dato canónico ---------- */
+function evalFmtNum(v) { const r = Math.round(v * 10) / 10; return r % 1 === 0 ? String(Math.round(r)) : String(r); }
+function evalMeasureStr(kind, v) {
+  if (EVAL_CFG.units === 'imperial') return kind === 'w' ? evalFmtNum(v * 2.20462) + ' lb' : evalFmtNum(v / 2.54) + ' in';
+  return kind === 'w' ? evalFmtNum(v) + ' kg' : evalFmtNum(v) + ' cm';
+}
+function evalMeasureDiffStr(kind, d) {
+  const conv = EVAL_CFG.units === 'imperial' ? (kind === 'w' ? d * 2.20462 : d / 2.54) : d;
+  const unit = EVAL_CFG.units === 'imperial' ? (kind === 'w' ? ' lb' : ' in') : (kind === 'w' ? ' kg' : ' cm');
+  const r = Math.round(conv * 10) / 10;
+  return (r > 0 ? '+' : r < 0 ? '−' : '') + evalFmtNum(Math.abs(r)) + unit;
+}
+/* De la unidad de presentación al canónico (al capturar un valor). */
+function evalToCanonical(kind, v) {
+  if (EVAL_CFG.units !== 'imperial') return Math.round(v * 10) / 10;
+  return Math.round((kind === 'w' ? v / 2.20462 : v * 2.54) * 10) / 10;
+}
+function evalToDisplay(kind, v) {
+  if (v == null) return '';
+  if (EVAL_CFG.units !== 'imperial') return String(Math.round(v * 10) / 10);
+  return String(Math.round((kind === 'w' ? v * 2.20462 : v / 2.54) * 10) / 10);
+}
+/* ---------- Ficha y composición ---------- */
+function evalFichaHTML(S) {
+  const prev = evalPrevCompleteDate(S);
+  const req = EVAL_CFG.requiredMeasures || [];
+  const rows = EVAL_MEASURES.map(m => {
+    const now = evalDisplayValue(S, m.id);
+    const before = prev ? evalDisplayValue(prev, m.id) : null;
+    let diffTx = '—';
+    if (now != null && before != null) diffTx = evalMeasureDiffStr(m.kind, Math.round((now - before) * 10) / 10);
+    const reqTag = req.includes(m.id) ? ` <span class="req-tag">${esc(t('eval.reqTag'))}</span>` : '';
+    return `<tr><td>${esc(t('eval.measure.' + m.id))}${reqTag}</td><td class="num">${before == null ? '—' : esc(evalMeasureStr(m.kind, before))}</td><td class="num">${now == null ? '—' : esc(evalMeasureStr(m.kind, now))}</td><td class="num">${diffTx}</td></tr>`;
+  }).join('');
+  return `<div class="eval-ficha"><p class="eval-ficha-title">${esc(t('eval.fichaTitle'))}</p>`
+    + `<div class="table-scroll"><table class="eval-table"><thead><tr><th>${esc(t('eval.colMeasure'))}</th><th class="num">${esc(t('eval.colPrev'))}</th><th class="num">${esc(t('eval.colNow'))}</th><th class="num">${esc(t('eval.colDiff'))}</th></tr></thead><tbody>${rows}</tbody></table></div>`
+    + `<p class="eval-detail">${esc(t('eval.fichaObsNote'))}</p>`
+    + `<p class="eval-detail">${esc(t('eval.pechoNote'))}</p></div>`;
+}
+function evalCompEntryText(e) {
+  if (!e) return t('eval.compNone');
+  const parts = [evalFmtNum(e.value) + ' ' + e.unit, t('eval.method.' + (e.method || 'other'))];
+  if (e.estimate) parts.push(t('eval.compEstTag'));
+  if (e.dateISO) parts.push(dateName(e.dateISO));
+  return parts.join(' · ');
+}
+function evalCompRow(kind, prevE, nowE) {
+  let diff = '—'; const notes = [];
+  if (prevE && nowE) {
+    if (prevE.unit !== nowE.unit) notes.push(t('eval.compUnitDiff'));
+    else {
+      const d = Math.round((nowE.value - prevE.value) * 10) / 10;
+      diff = (d > 0 ? '+' : d < 0 ? '−' : '') + evalFmtNum(Math.abs(d)) + ' ' + nowE.unit;
+      if ((prevE.method || '') !== (nowE.method || '')) notes.push(t('eval.compMethodDiff'));
+    }
+  }
+  const label = kind === 'fat' ? t('eval.compFat') : t('eval.compMuscle');
+  return { html: `<tr><td>${esc(label)}</td><td class="num">${esc(evalCompEntryText(prevE))}</td><td class="num">${esc(evalCompEntryText(nowE))}</td><td class="num">${esc(diff)}</td></tr>`, notes };
+}
+function evalCompHTML(S) {
+  const prev = evalPrevCompleteDate(S);
+  const prevComp = (prev && EVALS[prev] && EVALS[prev].comp) || {};
+  const nowComp = (EVALS[S] && EVALS[S].comp) || {};
+  const fat = evalCompRow('fat', prevComp.fat, nowComp.fat), mus = evalCompRow('muscle', prevComp.muscle, nowComp.muscle);
+  const notes = [...fat.notes, ...mus.notes];
+  const methodOpts = ['bio', 'caliper', 'scan', 'other'].map(m => `<option value="${m}">${esc(t('eval.method.' + m))}</option>`).join('');
+  return `<div class="eval-comp"><p class="eval-ficha-title">${esc(t('eval.compTitle'))}</p>`
+    + `<p class="eval-detail">${esc(t('eval.compNote'))}</p>`
+    + `<div class="table-scroll"><table class="eval-table"><thead><tr><th>${esc(t('eval.colMeasure'))}</th><th class="num">${esc(t('eval.colPrev'))}</th><th class="num">${esc(t('eval.colNow'))}</th><th class="num">${esc(t('eval.colDiff'))}</th></tr></thead><tbody>${fat.html}${mus.html}</tbody></table></div>`
+    + notes.map(n => `<p class="eval-detail eval-comp-note">⚠️ ${esc(n)}</p>`).join('')
+    + `<p class="eval-detail">${esc(t('eval.compMuscleNote'))}</p>`
+    + `<div class="eval-comp-form">`
+    + `<div class="eval-comp-row"><span class="eval-comp-name">${esc(t('eval.compFat'))} (%)</span><input type="number" id="eval-comp-fat-value" min="0" step="0.1" placeholder="${esc(t('eval.compValuePh'))}"><select id="eval-comp-fat-method" aria-label="${esc(t('eval.compMethod'))}">${methodOpts}</select><label class="eval-check"><input type="checkbox" id="eval-comp-fat-est"> ${esc(t('eval.compEstimate'))}</label><button type="button" class="btn-ghost btn-sm" id="eval-comp-fat-btn">${esc(t('eval.compRegister'))}</button></div>`
+    + `<div class="eval-comp-row"><span class="eval-comp-name">${esc(t('eval.compMuscle'))}</span><input type="number" id="eval-comp-muscle-value" min="0" step="0.1" placeholder="${esc(t('eval.compValuePh'))}"><select id="eval-comp-muscle-unit" aria-label="kg / %"><option value="kg">kg</option><option value="%">%</option></select><select id="eval-comp-muscle-method" aria-label="${esc(t('eval.compMethod'))}">${methodOpts}</select><label class="eval-check"><input type="checkbox" id="eval-comp-muscle-est"> ${esc(t('eval.compEstimate'))}</label><button type="button" class="btn-ghost btn-sm" id="eval-comp-muscle-btn">${esc(t('eval.compRegister'))}</button></div>`
+    + `</div></div>`;
+}
+/* ---------- Tarjeta del ciclo + formulario + configuración ---------- */
+function renderEval() {
+  const root = $('eval-root');
+  if (!root || !auth.currentUser) return;
+  const S = evalTargetDate();
+  const today = todayISO();
+  const due = evalNextDue();
+  const lastC = evalLastCompleteDate();
+  const missing = evalMissingItems(S);
+  const complete = evalSetComplete(S);
+  const isFirst = !lastC && !(EVAL_CYCLE.omitted || []).length;
+  let card = '';
+  if (complete) {
+    card = `<p class="eval-card-title">${esc(t('eval.completeTitle'))}</p>`;
+  } else if (isFirst) {
+    card = `<p class="eval-card-title">${esc(t('eval.firstTitle'))}</p>`
+      + `<p class="eval-detail">${esc(t('eval.firstNote'))}</p>`;
+  } else {
+    let dueLine = '';
+    if (due) {
+      if (today > due) dueLine = `<p class="eval-detail eval-due">${esc(t('eval.overdue', { date: dateName(due), n: evalDaysBetween(due, today) }))}</p>`;
+      else if (today === due) dueLine = `<p class="eval-detail eval-due">${esc(t('eval.dueToday', { date: dateName(due) }))}</p>`;
+      else dueLine = `<p class="eval-detail eval-due">${esc(t('eval.dueFuture', { date: dateName(due) }))}</p>`;
+    }
+    card = `<p class="eval-card-title">${today >= (due || today) ? `<span class="eval-badge">${esc(t('eval.badgePending'))}</span> ` : ''}${esc(today < (due || today) ? t('eval.upcomingTitle') : t('eval.dueTitle'))}</p>`
+      + dueLine
+      + (lastC ? `<p class="eval-detail">${esc(t('eval.nextCalc', { last: dateName(evalAnchorOf(lastC)) }))}</p>` : '');
+  }
+  if (!complete) {
+    const haveNames = PROGRESS_SLOTS.filter(s => (PROG[S] || {})[s]).map(s => t('eval.reqPhoto.' + s) + ' ✓').join(' · ');
+    const missNames = missing.map(it => it.kind === 'photo' ? t('eval.reqPhoto.' + it.id) : t('eval.measure.' + it.id)).join(' · ');
+    card += `<p class="eval-detail eval-have">${esc(t('eval.haveLead'))} ${esc(haveNames)}</p>`
+      + `<p class="eval-detail eval-missing">${esc(t('eval.missingLead'))} ${esc(missNames)}</p>`
+      + (evalHasAdvance(S) ? `<p class="eval-detail eval-partial">${esc(t('eval.partialSaved'))}</p>` : '')
+      + `<p class="eval-detail">${esc(t('eval.optionalNote'))}</p>`;
+  }
+  const cycleLast = lastC ? dateName(lastC) : t('eval.cycleLastNone');
+  const cycleNext = due ? dateName(due) : t('eval.cycleNextFirst');
+  card += `<p class="eval-detail eval-cycle">${esc(t('eval.cycleLine', { last: cycleLast, next: cycleNext }))}</p>`;
+  const canOmit = !complete && (isFirst || (due && today >= due));
+  if (canOmit) card += `<div class="eval-actions"><button type="button" class="btn-ghost btn-sm" id="eval-omit-btn">${esc(t('eval.omitBtn'))}</button></div>`;
+
+  const formRows = EVAL_MEASURES.map(m => {
+    const cur = m.id === 'peso' ? evalWeightOn(S) : evalMeasureValue(S, m.id);
+    const unitLbl = EVAL_CFG.units === 'imperial' ? (m.kind === 'w' ? 'lb' : 'in') : (m.kind === 'w' ? 'kg' : 'cm');
+    return `<div class="eval-field"><label for="eval-m-${m.id}">${esc(t('eval.measure.' + m.id))} <span class="eval-unit">(${unitLbl})</span></label>`
+      + `<input type="number" id="eval-m-${m.id}" step="0.1" min="0" value="${esc(evalToDisplay(m.kind, cur))}">`
+      + `<span class="eval-guide">${esc(t('eval.guide.' + m.id))}</span></div>`;
+  }).join('');
+  const reqChecks = EVAL_MEASURES.map(m => `<label class="eval-check"><input type="checkbox" data-eval-req="${m.id}" ${(EVAL_CFG.requiredMeasures || []).includes(m.id) ? 'checked' : ''}> ${esc(t('eval.measure.' + m.id))}</label>`).join('');
+  root.innerHTML = `<div class="eval-card" id="eval-card">${card}</div>`
+    + `<div class="eval-block"><p class="eval-ficha-title">${esc(t('eval.measuresTitle'))} · ${esc(dateName(S))}</p>`
+    + `<div class="eval-form">${formRows}</div>`
+    + `<div class="eval-actions"><button type="button" class="btn-primary btn-sm" id="eval-save-measures">${esc(t('eval.saveMeasures'))}</button>${EVAL_OK_MSG ? `<span class="eval-ok">${esc(EVAL_OK_MSG)}</span>` : ''}</div></div>`
+    + evalFichaHTML(S)
+    + evalCompHTML(S)
+    + `<div class="eval-block eval-config"><p class="eval-ficha-title">${esc(t('eval.cfgTitle'))}</p>`
+    + `<p class="eval-cfg-group">${esc(t('eval.cfgRequired'))}</p>${reqChecks}`
+    + `<p class="eval-detail">${esc(t('eval.cfgReqNote'))}</p>`
+    + `<p class="eval-cfg-group">${esc(t('eval.cfgUnits'))}</p>`
+    + `<label class="eval-check"><input type="radio" name="eval-units" value="metric" ${EVAL_CFG.units !== 'imperial' ? 'checked' : ''}> ${esc(t('eval.unitsMetric'))}</label>`
+    + `<label class="eval-check"><input type="radio" name="eval-units" value="imperial" ${EVAL_CFG.units === 'imperial' ? 'checked' : ''}> ${esc(t('eval.unitsImperial'))}</label>`
+    + `<div class="eval-actions"><button type="button" class="btn-ghost btn-sm" id="eval-save-config">${esc(t('eval.cfgSave'))}</button></div></div>`;
+  const omitBtn = $('eval-omit-btn'); if (omitBtn) omitBtn.onclick = evalOmitCycle;
+  const saveBtn = $('eval-save-measures'); if (saveBtn) saveBtn.onclick = evalSaveMeasures;
+  const cfgBtn = $('eval-save-config'); if (cfgBtn) cfgBtn.onclick = evalSaveConfig;
+  const fatBtn = $('eval-comp-fat-btn'); if (fatBtn) fatBtn.onclick = () => evalRegisterComp('fat');
+  const musBtn = $('eval-comp-muscle-btn'); if (musBtn) musBtn.onclick = () => evalRegisterComp('muscle');
+}
+/* Guardar las medidas del set: las de contorno van al documento de
+   evaluación (canónico cm); el peso va a nutrition_weight con el
+   esquema del propio registro de peso (merge: conserva grasa,
+   músculo, agua… si ese día ya tenía pesaje). Vaciar un contorno lo
+   borra; vaciar el peso no borra ningún pesaje (no-op declarado). */
+async function evalSaveMeasures() {
+  const S = evalTargetDate();
+  const uid = auth.currentUser.uid;
+  const measures = {};
+  EVAL_MEASURES.filter(m => m.id !== 'peso').forEach(m => {
+    const el = $('eval-m-' + m.id);
+    const raw = el ? String(el.value).trim() : '';
+    if (raw !== '') { const v = num(raw); if (v > 0) measures[m.id] = evalToCanonical(m.kind, v); }
+  });
+  try {
+    await setDoc(evalDocRef(S), { kind: 'evaluation', uid, ownerUid: uid, date: S, measures, updatedAt: serverTimestamp() }, { merge: true });
+    const prev = EVALS[S] || {};
+    EVALS[S] = Object.assign({}, prev, { measures });
+    const pesoEl = $('eval-m-peso');
+    const pesoRaw = pesoEl ? String(pesoEl.value).trim() : '';
+    if (pesoRaw !== '') {
+      const v = num(pesoRaw);
+      if (v > 0) {
+        const kg = evalToCanonical('w', v);
+        await setDoc(doc(db, 'nutrition_weight', `${uid}_${S}`), { ownerUid: uid, date: S, weight: kg, updatedAt: serverTimestamp() }, { merge: true });
+        const ix = WEIGHTS.findIndex(w => w.date === S);
+        const rec = { id: `${uid}_${S}`, date: S, weight: kg, fat: ix >= 0 ? WEIGHTS[ix].fat : 0, muscle: ix >= 0 ? WEIGHTS[ix].muscle : 0, water: ix >= 0 ? WEIGHTS[ix].water : 0, visceral: ix >= 0 ? WEIGHTS[ix].visceral : 0, notes: ix >= 0 ? WEIGHTS[ix].notes : '' };
+        if (ix >= 0) WEIGHTS[ix] = rec; else { WEIGHTS.push(rec); WEIGHTS.sort((a, b) => a.date < b.date ? -1 : 1); }
+        try { renderWeight(); } catch {}
+      }
+    }
+    EVAL_OK_MSG = t('eval.savedOk');
+    await evalReconcile(S);
+    renderEval();
+    setTimeout(() => { EVAL_OK_MSG = ''; const ok = document.querySelector('.eval-ok'); if (ok) ok.remove(); }, 3000);
+  } catch { toast(t('msg.uploadFail'), true); }
+}
+async function evalRegisterComp(kind) {
+  const S = evalTargetDate();
+  const vEl = $('eval-comp-' + kind + '-value'); if (!vEl) return;
+  const value = num(vEl.value);
+  if (!(value > 0)) return;
+  const unit = kind === 'fat' ? '%' : ((($('eval-comp-muscle-unit') || {}).value) || 'kg');
+  const method = (($('eval-comp-' + kind + '-method') || {}).value) || 'bio';
+  const estimate = !!(($('eval-comp-' + kind + '-est') || {}).checked);
+  const comp = Object.assign({}, (EVALS[S] || {}).comp || {}, { [kind]: { value, unit, method, estimate, dateISO: todayISO() } });
+  try {
+    await setDoc(evalDocRef(S), { kind: 'evaluation', uid: auth.currentUser.uid, ownerUid: auth.currentUser.uid, date: S, comp, updatedAt: serverTimestamp() }, { merge: true });
+    EVALS[S] = Object.assign({}, EVALS[S] || {}, { comp });
+    EVAL_OK_MSG = t('eval.savedOk');
+    renderEval();
+  } catch { toast(t('msg.uploadFail'), true); }
+}
+async function evalSaveConfig() {
+  const requiredMeasures = [...document.querySelectorAll('[data-eval-req]')].filter(c => c.checked).map(c => c.getAttribute('data-eval-req'));
+  const unitsEl = document.querySelector('input[name="eval-units"]:checked');
+  const units = unitsEl && unitsEl.value === 'imperial' ? 'imperial' : 'metric';
+  try {
+    await setDoc(doc(db, 'nutrition_progress', `${auth.currentUser.uid}_evalconfig`), { kind: 'evalConfig', uid: auth.currentUser.uid, ownerUid: auth.currentUser.uid, requiredMeasures, units, updatedAt: serverTimestamp() }, { merge: true });
+    EVAL_CFG = { requiredMeasures, units };
+    EVAL_OK_MSG = t('eval.savedOk');
+    /* La completitud puede cambiar con la nueva configuración:
+       reconcilia el sello de los sets con actividad reciente. */
+    await evalReconcile(evalTargetDate());
+    renderEval();
+  } catch { toast(t('msg.uploadFail'), true); }
+}
+/* Omitir el ciclo: cierra ESTE ciclo como omitido (propuesta v2
+   §6.2b). No crea ninguna evaluación; el ancla es la fecha prevista
+   omitida (o la de hoy, si era la primera) y el set en curso queda
+   cerrado: sus ítems quedan en el historial, sin completar nada. */
+async function evalOmitCycle() {
+  const due = evalNextDue();
+  const anchor = due || todayISO();
+  const S = evalTargetDate();
+  const omitted = [...(EVAL_CYCLE.omitted || []), anchor];
+  const closedSets = [...(EVAL_CYCLE.closedSets || [])];
+  if (!evalSetComplete(S) && !closedSets.includes(S)) closedSets.push(S);
+  try {
+    await setDoc(doc(db, 'nutrition_progress', `${auth.currentUser.uid}_evalcycle`), { kind: 'evalCycle', uid: auth.currentUser.uid, ownerUid: auth.currentUser.uid, omitted, closedSets, updatedAt: serverTimestamp() }, { merge: true });
+    EVAL_CYCLE = { omitted, closedSets };
+    toast(t('eval.omittedNote'));
+    renderEval();
+  } catch { toast(t('msg.uploadFail'), true); }
+}
 
 /* ================= FORMULARIOS ================= */
 /* El botón «+ Registrar comida» de la cabecera (junto a la fecha) se
@@ -3618,7 +4136,7 @@ $('form-weight').addEventListener('submit', async e => {
   const clientUid = weightCtx && weightCtx.uid;
   weightCtx = null;
   toast(t('msg.weightSaved'));
-  if (wasClient) await openClient(clientUid); else await loadAll();
+  if (wasClient) await openClient(clientUid); else { await loadAll(); try { await evalReconcile(date); } catch {} }
 });
 
 /* Mostrar/ocultar la contraseña (ojito discreto junto al campo) */

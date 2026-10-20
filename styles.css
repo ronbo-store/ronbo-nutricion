@@ -414,3 +414,39 @@ table.whist { min-width: 640px; }
 .ai-err{color:#b91c1c;font-weight:600;margin:8px 0}
 /* Resultado único (2026-10-19): campo del nombre del registro en el panel */
 .ai-name{margin:8px 0 4px;max-width:440px}
+/* Evaluación de progreso (desarrollo 2026-10-19): tarjeta del ciclo,
+   ficha de datos medidos, composición y configuración. Paleta de la
+   app en producción (teal #0d9488, tarjetas blancas). */
+.eval-card,.eval-block,.eval-ficha,.eval-comp{border:1px solid #e5e7eb;border-radius:10px;background:#fff;padding:14px;margin:14px 0}
+.eval-card{border-left:4px solid #0d9488}
+.eval-badge{background:#fef3c7;color:#92400e;font-size:11px;font-weight:800;border-radius:6px;padding:2px 8px;letter-spacing:.04em}
+.eval-card-title{margin:0 0 6px;font-size:16px;font-weight:800;color:#111827}
+.eval-detail{margin:4px 0;font-size:13.5px;color:#374151}
+.eval-due{font-weight:700}
+.eval-have{color:#065f46}
+.eval-missing{color:#92400e;font-weight:600}
+.eval-partial{color:#065f46;font-weight:600}
+.eval-cycle{color:#6b7280;font-size:12.5px}
+.eval-ficha-title{margin:0 0 8px;font-size:15px;font-weight:800;color:#111827}
+.eval-table{border-collapse:collapse;width:100%;font-size:13.5px}
+.eval-table th,.eval-table td{border-bottom:1px solid #eef2f7;padding:6px 8px;text-align:left}
+.eval-table th.num,.eval-table td.num{text-align:right;white-space:nowrap}
+.req-tag{background:#fef3c7;color:#92400e;font-size:10.5px;font-weight:800;border-radius:5px;padding:1px 5px;white-space:nowrap}
+.eval-form{display:grid;grid-template-columns:1fr 1fr;gap:10px 14px}
+.eval-field{display:flex;flex-direction:column;gap:3px}
+.eval-field label{font-size:13px;font-weight:600;color:#111827}
+.eval-unit{color:#6b7280;font-weight:400}
+.eval-field input{padding:8px 10px;border:1px solid #d1d5db;border-radius:8px;font-size:15px;width:100%;box-sizing:border-box}
+.eval-guide{font-size:11px;color:#6b7280;line-height:1.35}
+.eval-actions{display:flex;align-items:center;gap:10px;margin-top:12px;flex-wrap:wrap}
+.eval-ok{color:#065f46;font-weight:700;font-size:13.5px}
+.eval-comp-note{color:#92400e;font-weight:600}
+.eval-comp-form{display:flex;flex-direction:column;gap:10px;margin-top:10px}
+.eval-comp-row{display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+.eval-comp-name{font-weight:700;font-size:13.5px;min-width:96px}
+.eval-comp-row input[type="number"]{padding:7px 9px;border:1px solid #d1d5db;border-radius:8px;font-size:14px;width:96px}
+.eval-comp-row select{padding:7px 8px;border:1px solid #d1d5db;border-radius:8px;font-size:13.5px;background:#fff}
+.eval-check{display:inline-flex;align-items:center;gap:6px;font-size:13.5px;margin:4px 14px 4px 0;cursor:pointer}
+.eval-check input{width:18px;height:18px}
+.eval-cfg-group{margin:12px 0 4px;font-size:13.5px;font-weight:700;color:#111827}
+@media (max-width:520px){ .eval-form{grid-template-columns:1fr} }
