@@ -139,6 +139,11 @@ en: {
   'track.emptyDay': 'No entries this day. Add a meal with the FOOD button (photo) or from "Meal help" (manual).',
   'track.viewPhoto': 'View photo',
   'track.delete': 'Delete',
+  'track.repeat': 'Repeat',
+  'repeat.bannerAi': 'Copy of an AI estimate: adjust the amount and the values are recalculated proportionally. Check them before saving.',
+  'repeat.bannerQty': 'Copy of another entry: adjust the amount and the values are recalculated proportionally.',
+  'repeat.bannerPieces': 'This entry is counted in units, not by weight: the macro values are NOT recalculated when the amount changes. Check them by hand.',
+  'repeat.scaled': 'Values recalculated for the new amount (proportional to the original entry).',
   'vs.indicator': 'Metric', 'vs.intake': 'Intake', 'vs.goal': 'Goal', 'vs.progress': 'Progress',
   'metric.kcal': 'CALORIES', 'metric.prot': 'PROTEIN', 'metric.carb': 'CARBS', 'metric.azuc': 'SUGAR', 'metric.gras': 'FAT',
   'weight.title': '⚖️ Weight progress',
@@ -603,6 +608,11 @@ es: {
   'track.emptyDay': 'Sin registros este día. Añade una comida con el botón COMIDA (foto) o desde «Ayuda con comidas» (manual).',
   'track.viewPhoto': 'Ver foto',
   'track.delete': 'Borrar',
+  'track.repeat': 'Repetir',
+  'repeat.bannerAi': 'Copia de una estimación de IA: ajusta la cantidad y los valores se recalculan en proporción. Revísalos antes de guardar.',
+  'repeat.bannerQty': 'Copia de otro registro: ajusta la cantidad y los valores se recalculan en proporción.',
+  'repeat.bannerPieces': 'Este registro se cuenta por unidades, no por peso: los valores NO se recalculan al cambiar la cantidad. Revísalos a mano.',
+  'repeat.scaled': 'Valores recalculados para la cantidad nueva (proporcionales al registro original).',
   'vs.indicator': 'Indicador', 'vs.intake': 'Consumo', 'vs.goal': 'Meta', 'vs.progress': 'Progreso',
   'metric.kcal': 'CALORÍAS', 'metric.prot': 'PROTEÍNA', 'metric.carb': 'CARBOHIDRATOS', 'metric.azuc': 'AZÚCARES', 'metric.gras': 'GRASAS',
   'weight.title': '⚖️ Evolución de peso',
@@ -1696,6 +1706,10 @@ async function loadAll() {
     const m = { id: d.id, meal: v.meal || '', food: v.food || '', qty: v.qty || '',
       kcal: num(v.kcal), prot: num(v.prot), carb: num(v.carb),
       sugar: num(v.sugar), fat: num(v.fat), notes: v.notes || '',
+      /* Procedencia (corrección «Repetir», 2026-10-19): loadAll conserva
+         source/origin del documento para que repetir sepa de dónde viene
+         el original; la renderización ordinaria no cambia. */
+      source: v.source || '', origin: v.origin || '',
       photoURL: v.photoURL || '', photoPath: v.photoPath || '' };
     (MEALS[v.date] = MEALS[v.date] || []).push(m);
   });
@@ -3358,7 +3372,7 @@ function render(date) {
     `<tr><td>${esc(mealName(m.meal))}</td><td>${esc(m.food)}${m.photoURL ? ` <a href="${esc(m.photoURL)}" target="_blank" rel="noopener" title="${t('track.viewPhoto')}">📷</a>` : ''}</td><td>${esc(m.qty)}</td>` +
     `<td class="num">${fmt(m.kcal)}</td><td class="num">${fmt(m.prot)}</td><td class="num">${fmt(m.carb)}</td>` +
     `<td class="num">${fmt(m.sugar)}</td><td class="num">${fmt(m.fat)}</td>` +
-    `<td><button class="del-btn" data-del-meal="${m.id}" title="${t('track.delete')}">×</button></td></tr>`
+    `<td class="meal-actions"><button class="rep-btn" data-repeat-meal="${m.id}" title="${t('track.repeat')}">↻ ${t('track.repeat')}</button><button class="del-btn" data-del-meal="${m.id}" title="${t('track.delete')}">×</button></td></tr>`
   ).join('');
   if (rows.length) html += `<tr class="total"><td colspan="3">TOTAL</td><td class="num" style="color:#16A34A">${fmt(tot.kcal)}</td><td class="num" style="color:#2563EB">${fmt(tot.prot)}</td><td class="num" style="color:#D97706">${fmt(tot.carb)}</td><td class="num" style="color:#9333EA">${fmt(tot.azuc)}</td><td class="num" style="color:#DC2626">${fmt(tot.gras)}</td><td></td></tr>`;
   $('detailBody').innerHTML = html || `<tr><td colspan="9" class="wempty">${t('track.emptyDay')}</td></tr>`;
@@ -3376,6 +3390,11 @@ function render(date) {
      ningún dato guardado; es solo presentación. */
   $('notesList').innerHTML = notesFor(tot).map(x => `<li>${x}</li>`).join('');
 
+  document.querySelectorAll('[data-repeat-meal]').forEach(b =>
+    b.onclick = () => {
+      const row = rows.find(r => r.id === b.dataset.repeatMeal);
+      if (row) openRepeatMeal(row, date);
+    });
   document.querySelectorAll('[data-del-meal]').forEach(b =>
     b.onclick = async () => {
       if (!confirm(t('confirm.delMeal'))) return;
@@ -4043,8 +4062,125 @@ if (btnMealManual) btnMealManual.onclick = () => {
   $('m-meal').value = aiDefaultMeal();
   aiOpenMealModal();
 };
-$('meal-cancel').onclick = () => { $('meal-modal').style.display = 'none'; aiClearDraft(); };
-$('meal-modal').addEventListener('click', e => { if (e.target.id === 'meal-modal') e.target.style.display = 'none'; });
+/* «Repetir una comida anterior» (tercera pieza del trío de registro:
+   foto / escribir / repetir; candidato bcfe957 integrado sobre
+   bb2be02). Cada registro de la lista del día lleva su acción
+   «Repetir» (en render): abre el MISMO formulario de comida precargado
+   con los datos GUARDADOS de ese registro — nombre, cantidad, macros y
+   su tipo de comida como preselección; las notas escritas a mano del
+   original también se precargan, editables — pero la FECHA es la del
+   DÍA EN PANTALLA (la misma regla del botón manual: repetir es
+   registrarla en el día que estás viendo, no resucitar la fecha
+   original; sigue editable antes de guardar). Guardar crea un registro
+   NUEVO (el addDoc de #form-meal, con su guardia mealSaving
+   anti-doble-clic): el original no se toca y abrir no escribe nada.
+
+   DOS CORRECCIONES NUEVAS (Ronald, 2026-10-19 19:44, puntos 3a/3b):
+   (a) CANTIDAD Y MÉTRICAS ACOPLADAS: si al repetir se cambia la
+       cantidad, las 5 métricas se reescalan en proporción (regla de
+       tres sobre la cantidad y las métricas ORIGINALES del registro)
+       en cuanto el campo de cantidad pierde el foco o cambia; tras el
+       reescalado la persona puede seguir editando cualquier cifra a
+       mano (editar una métrica NO vuelve a disparar el reescalado:
+       solo lo dispara cambiar la cantidad). EXCEPCIÓN documentada: si
+       la cantidad original no es una magnitud proporcional (conteo por
+       unidades — «2 uds» — o texto sin número inicial), NO hay
+       reescalado silencioso: el formulario avisa con el banner de
+       unidades que los valores no se recalculan y deben revisarse a
+       mano (la cantidad nueva con cifras antiguas nunca queda en
+       silencio: o escala o avisa).
+   (b) PROCEDENCIA CONSERVADA: la copia NO se disfraza de alta manual
+       exacta. Lleva origin:{kind, fromId, fromDate} — kind
+       'repeat-manual' si el original era manual (o una copia manual) y
+       'repeat-ai' si el original era una estimación de IA (source
+       'ai', o una copia repeat-ai: la estimación no se «lava»
+       repitiéndola dos veces). NO se resucita el payload de IA: sin
+       bloque ai, sin source:'ai' y sin llamada nueva al proveedor;
+       el banner del formulario declara la procedencia («Copia de una
+       estimación de IA…» / «Copia de otro registro…»). */
+let repeatCtx = null; // {kind, fromId, fromDate, qtyText, scaledTo, base:{num,unit,kcal,prot,carb,sugar,fat}} — solo memoria
+function repeatParseQty(q) {
+  const m = String(q || '').trim().replace(',', '.').match(/^(\d+(?:\.\d+)?)\s*(.*)$/);
+  if (!m) return null;
+  const unit = (m[2] || '').trim().toLowerCase();
+  return { num: parseFloat(m[1]), unit, pieces: /^(u|ud|uds|unidad|unidades|unit|units|piece|pieces|pz|pza|huevo|huevos)\b/.test(unit) };
+}
+function repeatSetBanner() {
+  const b = $('m-rep-banner'); if (!b) return;
+  if (!repeatCtx) { b.style.display = 'none'; b.textContent = ''; return; }
+  const p = repeatParseQty(repeatCtx.qtyText);
+  b.style.display = '';
+  b.textContent = (!p || p.pieces) ? t('repeat.bannerPieces')
+    : (repeatCtx.kind === 'repeat-ai' ? t('repeat.bannerAi') : t('repeat.bannerQty'));
+}
+function repeatAttachScaling() {
+  const q = $('m-qty'); if (!q || q.dataset.repWired) return;
+  q.dataset.repWired = '1';
+  q.addEventListener('change', () => {
+    if (!repeatCtx) return;
+    const pNew = repeatParseQty(q.value);
+    if (!pNew || pNew.pieces || !(pNew.num > 0)) { repeatSetBanner(); return; }
+    const b0 = repeatCtx.base;
+    if (!b0 || !(b0.num > 0) || b0.pieces) { repeatSetBanner(); return; }
+    if (pNew.unit !== b0.unit) { repeatSetBanner(); return; }
+    /* Solo se reescala cuando la cantidad CAMBIA de verdad respecto a
+       la última cantidad ya reescalada (scaledTo, que arranca en la
+       del original): un 'change' sin cambio numérico (p. ej. salir y
+       volver al campo) NO debe pisar las métricas que la persona
+       editó a mano tras el reescalado. */
+    const last = (repeatCtx.scaledTo != null) ? repeatCtx.scaledTo : b0.num;
+    if (pNew.num === last) { repeatSetBanner(); return; }
+    const f = pNew.num / b0.num;
+    /* El texto de la cantidad se conserva tal como lo escribió la
+       persona; solo cambian las métricas, siempre desde el ORIGINAL. */
+    $('m-kcal').value = Math.round(b0.kcal * f);
+    $('m-prot').value = Math.round(b0.prot * f * 10) / 10;
+    $('m-carb').value = Math.round(b0.carb * f * 10) / 10;
+    $('m-sugar').value = Math.round(b0.sugar * f * 10) / 10;
+    $('m-fat').value = Math.round(b0.fat * f * 10) / 10;
+    repeatCtx.scaledTo = pNew.num;
+    toast(t('repeat.scaled'));
+    repeatSetBanner();
+  });
+}
+function openRepeatMeal(rec, viewDate) {
+  aiClearDraft();
+  const form = $('form-meal');
+  if (form) form.reset();
+  const prev = $('m-photo-preview');
+  if (prev) { prev.style.display = 'none'; prev.src = ''; }
+  $('m-date').value = viewDate || ($('dateSel') && $('dateSel').value) || todayISO();
+  const sel = $('m-meal');
+  if (sel && [...sel.options].some(o => o.value === rec.meal)) sel.value = rec.meal;
+  $('m-food').value = rec.food || '';
+  $('m-qty').value = rec.qty || '';
+  $('m-kcal').value = rec.kcal || 0;
+  $('m-prot').value = rec.prot || 0;
+  $('m-carb').value = rec.carb || 0;
+  $('m-sugar').value = rec.sugar || 0;
+  $('m-fat').value = rec.fat || 0;
+  $('m-notes').value = rec.notes || '';
+  /* Procedencia: estimación de IA si el documento trae source:'ai' o
+     si ya era una copia de una estimación (origin.kind 'repeat-ai'). */
+  const aiOrigin = rec.source === 'ai' || (rec.origin && rec.origin.kind === 'repeat-ai');
+  const pq = repeatParseQty(rec.qty);
+  repeatCtx = {
+    kind: aiOrigin ? 'repeat-ai' : 'repeat-manual',
+    fromId: rec.id || '', fromDate: rec.date || viewDate || '',
+    qtyText: rec.qty || '',
+    scaledTo: pq ? pq.num : null,
+    base: pq ? { num: pq.num, unit: pq.unit, pieces: pq.pieces, kcal: num(rec.kcal), prot: num(rec.prot), carb: num(rec.carb), sugar: num(rec.sugar), fat: num(rec.fat) } : null
+  };
+  repeatAttachScaling();
+  repeatSetBanner();
+  aiOpenMealModal();
+}
+function repeatClear() {
+  repeatCtx = null;
+  const b = $('m-rep-banner'); if (b) { b.style.display = 'none'; b.textContent = ''; }
+}
+$('meal-cancel').onclick = () => { $('meal-modal').style.display = 'none'; aiClearDraft(); repeatClear(); };
+$('meal-modal').addEventListener('click', e => { if (e.target.id === 'meal-modal') { e.target.style.display = 'none'; repeatClear(); } });
 
 $('m-photo').addEventListener('change', e => {
   const f = e.target.files[0];
@@ -4081,9 +4217,18 @@ $('form-meal').addEventListener('submit', async e => {
       } catch (err) { toast(t('err.mealPhotoFail'), true); }
     }
     if (aiDraft) { data.source = 'ai'; data.ai = { model: aiDraft.model, rangeKcal: aiDraft.rangeKcal }; }
+    /* Procedencia de la repetición (corrección 2026-10-19, punto 3b):
+       si el guardado viene de «Repetir», la copia lleva su origin
+       (kind/fromId/fromDate) — visible en los datos, sin bloque ai ni
+       source:'ai': la estimación no se convierte en medición exacta
+       ni se resucita su foto. repeatCtx se limpia tras la escritura;
+       la ruta de IA es incompatible (aiClearDraft y repeatCtx nunca
+       conviven: repetir limpia el borrador y viceversa). */
+    if (repeatCtx) data.origin = { kind: repeatCtx.kind, fromId: repeatCtx.fromId, fromDate: repeatCtx.fromDate };
     const wasDraft = !!aiDraft;
     await addDoc(collection(db, 'nutrition_meals'), data);
     aiClearDraft();
+    repeatClear();
     $('meal-modal').style.display = 'none';
     e.target.reset();
     $('m-photo-preview').style.display = 'none'; $('m-photo-preview').src = '';

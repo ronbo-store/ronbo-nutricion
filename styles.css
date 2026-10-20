@@ -46,6 +46,9 @@ table.detail td { padding: 7px 6px; border-bottom: 1px solid #eef2f7; vertical-a
 table.detail tr.total td { font-weight: 800; background: #f0fdf4; border-top: 2px solid #1f2a44; border-bottom: none; }
 .del-btn { background: none; border: none; color: #d1d5db; cursor: pointer; font-size: 15px; padding: 2px 6px; }
 .del-btn:hover { color: #dc2626; }
+.meal-actions { white-space: nowrap; text-align: right; }
+.rep-btn { background: none; border: 1px solid #e5e7eb; border-radius: 999px; color: #6b7280; cursor: pointer; font-size: 12px; font-weight: 600; padding: 3px 9px; margin-right: 2px; white-space: nowrap; }
+.rep-btn:hover { color: #0f766e; border-color: #0f766e; }
 .vsrow { display: grid; grid-template-columns: minmax(0,92px) minmax(0,62px) minmax(0,62px) minmax(0,1fr) minmax(0,44px); gap: 8px; align-items: center; font-size: 12.5px; padding: 6px 0; border-bottom: 1px solid #f1f5f9; }
 .vsrow.head { font-weight: 700; color: #6b7280; font-size: 11.5px; border-bottom: 2px solid #e5e7eb; }
 .bar-track { background: #e9ecef; border-radius: 99px; height: 12px; overflow: hidden; }
