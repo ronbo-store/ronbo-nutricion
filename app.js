@@ -5321,8 +5321,9 @@ function pendItemHTML(it, regDay) {
   </div>`;
 }
 function pendCfgFormHTML(cfg, first) {
+  const defMeals = pendDefaults().meals;
   const mealRows = PEND_MEAL_NAMES.map(name => {
-    const m = (cfg.meals || []).find(x => x.name === name) || { name, on: false, time: '12:00' };
+    const m = (cfg.meals || []).find(x => x.name === name) || defMeals.find(x => x.name === name) || { name, on: false, time: '12:00' };
     return `<div class="pend-cfg-row"><label class="check-row"><input type="checkbox" id="pc-on-${name}" ${m.on ? 'checked' : ''}> <span>${esc(pendMealLabel(name))}</span></label><input type="time" id="pc-time-${name}" value="${esc(m.time || '12:00')}"></div>`;
   }).join('');
   const wd = [0, 1, 2, 3, 4, 5, 6].map(d => `<label class="pend-wd"><input type="checkbox" id="pc-wd-${d}" ${(cfg.trainDays || []).includes(d) ? 'checked' : ''}> <span>${esc(t('pend.wd.' + d))}</span></label>`).join('');
