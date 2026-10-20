@@ -525,6 +525,8 @@ en: {
   'fa.act6': 'Sustained heavy physical work',
   'fa.palLabel': 'Activity multiplier (palBasal)',
   'fa.palRules': 'Normal range: 1.40–2.00 · Exception band: 1.20–1.39 (with express confirmation) · Below 1.20: not allowed.',
+  'fa.palGuide': '<b>Guidance — usual values by activity type</b><br>For reference only, to support your judgement: you type the value; nothing is filled in or pre-selected.<br>· Sedentary: 1.20<br>· Light activity: ≈ 1.37<br>· Moderate activity: ≈ 1.55<br>· Very active: ≈ 1.72<br>· Very intense activity: ≈ 1.90<br>Structured exercise is not inside the multiplier: it is counted once only, as session expenditure.',
+  'fa.palPlaceholder': 'E.g. 1.55',
   'fa.palWarn': '⚠ This value is outside the usual physiological range.',
   'fa.palWarnBody': 'It is in the exception band (1.20–1.39): to save it you must confirm it expressly.',
   'fa.palConfirm': 'I expressly confirm this exception value',
@@ -1082,6 +1084,8 @@ es: {
   'fa.act6': 'Trabajo físico pesado sostenido',
   'fa.palLabel': 'Multiplicador de actividad (palBasal)',
   'fa.palRules': 'Rango normal: 1,40–2,00 · Banda de excepción: 1,20–1,39 (con confirmación expresa) · Menos de 1,20: no admitido.',
+  'fa.palGuide': '<b>Guía orientativa — valores habituales según el tipo de actividad</b><br>Solo como referencia para tu criterio: el valor lo escribes tú; nada se rellena ni se preselecciona.<br>· Sedentario: 1,20<br>· Actividad ligera: ≈ 1,37<br>· Actividad moderada: ≈ 1,55<br>· Muy activo: ≈ 1,72<br>· Actividad muy intensa: ≈ 1,90<br>El ejercicio estructurado no va dentro del multiplicador: se cuenta una sola vez, como gasto de sesión.',
+  'fa.palPlaceholder': 'Ej.: 1,55',
   'fa.palWarn': '⚠ Este valor está fuera del rango fisiológico habitual.',
   'fa.palWarnBody': 'Está en la banda de excepción (1,20–1,39): para guardarlo necesitas confirmarlo expresamente.',
   'fa.palConfirm': 'Confirmo expresamente este valor de excepción',
@@ -1780,6 +1784,10 @@ function fb3ProteinHTML(weights) {
      excepción con advertencia y confirmación expresa registrada;
      <1,20 o >2,00 rechazados en la interfaz Y en las reglas. Los
      6 niveles de actividad son contexto descriptivo SIN números.
+     La GUÍA ORIENTATIVA junto al campo palBasal (2026-10-20,
+     decisión de Ronald) es texto de referencia con los factores
+     clásicos publicados: NO rellena el campo, NO preselecciona,
+     NO se ata a los 6 niveles y NO cambia validación ni datos.
    - Ningún cálculo escribe jamás users/{uid}.goals: las metas
      siguen siendo manuales del entrenador (invariante N-01/F-B3). */
 const FA_EQUATION_VERSION = 'mifflin-st-jeor@1.0'; // cadena fijada en la Etapa 2 (la maqueta mostraba «versión 1»)
@@ -1816,7 +1824,8 @@ function faCardHTML(uid, a, weights) {
   const palBlock = `
     <label class="fa-flabel">${t('fa.palLabel')}</label>
     <p class="fa-rules">${t('fa.palRules')}</p>
-    <input type="text" inputmode="decimal" class="fa-pal-input" id="fa-pal" value="${esc(palVal)}" placeholder="1.55">
+    <div class="fa-palguide" id="fa-pal-guide">${t('fa.palGuide')}</div>
+    <input type="text" inputmode="decimal" class="fa-pal-input" id="fa-pal" value="${esc(palVal)}" placeholder="${t('fa.palPlaceholder')}">
     <div class="fa-warn" id="fa-pal-warn" style="display:none"><b>${t('fa.palWarn')}</b><br>${t('fa.palWarnBody')}
       <label class="fa-confirm"><input type="checkbox" id="fa-pal-confirm"${a && a.palExceptionConfirmed === true ? ' checked' : ''}> <span>${t('fa.palConfirm')}</span></label></div>
     <div class="fa-errbox" id="fa-pal-err" style="display:none">${t('fa.palError')}</div>`;
