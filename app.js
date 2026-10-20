@@ -490,6 +490,83 @@ en: {
   'fb3.nogoals': 'Educational reference only — it does not change the goals of this client. You set the goals manually.',
   'fb3.helpBtn': 'How it is calculated and sources',
   'fb3.help': '<b>How it is calculated</b><br>Daily protein range = latest body weight × 1.4–2.0 g/kg/day.<br><b>Sources</b><br>• ISSN Position Stand: protein and exercise (Jäger et al., 2017, J Int Soc Sports Nutr 14:20; DOI 10.1186/s12970-017-0177-8): 1.4–2.0 g/kg/day is sufficient for most people who exercise.<br>• Context only (not shown as a range here): for hypertrophy with resistance training, Morton et al. (2018, Br J Sports Med; DOI 10.1136/bjsports-2017-097608) estimated a breakpoint of 1.62 g/kg/day (95% CI upper limit 2.20) — neither a universal target nor a proven individual ceiling.<br>These ranges are educational references, pending validation in this app; they are not a prescription and never modify the goals you set.',
+  'fa.title': '🧮 Energy calculation',
+  'fa.helpBtn': 'How it is calculated and sources',
+  'fa.help': '<b>How it is calculated · Mifflin-St Jeor</b><br>Men: 10 × weight (kg) + 6.25 × height (cm) − 5 × age (years) + 5<br>Women: 10 × weight (kg) + 6.25 × height (cm) − 5 × age (years) − 161<br>Total expenditure (TDEE) = resting expenditure (RMR) × palBasal.<br><b>Sources</b><br>• Mifflin MD et al., “A new predictive equation for resting energy expenditure in healthy individuals”, Am J Clin Nutr 1990;51(2):241–247. DOI: 10.1093/ajcn/51.2.241<br>• Frankenfield D, Roth-Yousey L, Compher C. Systematic review of predictive equations, 2005. DOI: 10.1016/j.jada.2005.02.005<br><b>Exercise is never counted twice</b><br>The activity multiplier (palBasal) covers rest, daily life and habitual movement, and includes the thermic effect of food and unstructured activity. It does NOT include structured exercise: training sessions are counted ONCE only, as session expenditure, and never inside the multiplier or twice.<br>Uncertainty is inherent to the estimation method; it is not an individual guarantee.',
+  'fa.provided': 'Sex data provided: {v}',
+  'fa.yes': 'Yes',
+  'fa.no': 'No',
+  'fa.equation': 'Equation',
+  'fa.noEquation': 'No equation selected — choose one to calculate',
+  'fa.selected': '✓ selected',
+  'fa.eqMifflin': 'Mifflin-St Jeor',
+  'fa.eqHB': 'Harris-Benedict (revised)',
+  'fa.eqTenHaaf': 'Ten Haaf',
+  'fa.available': 'Available',
+  'fa.unavailable': 'Unavailable · pending verification',
+  'fa.birthYear': 'Birth year',
+  'fa.height': 'Height (cm)',
+  'fa.weightBasis': 'Using the latest weight: {w} kg · {date}',
+  'fa.noWeight': 'No weight logged yet: there is no basis for the calculation.',
+  'fa.actLabel': 'Activity level (context for the trainer — it carries no number)',
+  'fa.actNone': 'No level chosen',
+  'fa.act1': 'Almost total rest / very reduced mobility',
+  'fa.act2': 'Sedentary life, desk work, minimal movement',
+  'fa.act3': 'Sedentary with light daily activity (standing part of the day, short walks)',
+  'fa.act4': 'Active in daily life (standing or light physical work, frequent walks)',
+  'fa.act5': 'Physically demanding job or very active daily life',
+  'fa.act6': 'Sustained heavy physical work',
+  'fa.palLabel': 'Activity multiplier (palBasal)',
+  'fa.palRules': 'Normal range: 1.40–2.00 · Exception band: 1.20–1.39 (with express confirmation) · Below 1.20: not allowed.',
+  'fa.palWarn': '⚠ This value is outside the usual physiological range.',
+  'fa.palWarnBody': 'It is in the exception band (1.20–1.39): to save it you must confirm it expressly.',
+  'fa.palConfirm': 'I expressly confirm this exception value',
+  'fa.palError': 'This value cannot be saved. It is outside the admitted range (1.20–2.00). Adjust the value to continue.',
+  'fa.saveConfig': 'Save data',
+  'fa.configSaved': '✓ Assessment data saved',
+  'fa.errBy': 'Birth year must be a year between 1900 and {max}.',
+  'fa.errH': 'Height must be between 50 and 250 cm.',
+  'fa.errPal': 'palBasal must be between 1.20 and 2.00.',
+  'fa.errConfirm': 'To save a palBasal in the exception band (1.20–1.39) you must confirm it expressly.',
+  'fa.noResult': 'No result',
+  'fa.missEq': 'Not calculated yet: an equation must be chosen first.',
+  'fa.missSex': 'Not calculated yet: the client has not provided their private sex data — only they can provide it.',
+  'fa.missData': 'Not calculated yet: base data are incomplete (birth year, height, multiplier or a logged weight).',
+  'fa.missPending': 'Not calculated yet: everything is ready — the result is recorded from the client’s own session when they open the app.',
+  'fa.rmr': 'RESTING EXPENDITURE (RMR)',
+  'fa.tdee': 'TOTAL EXPENDITURE (TDEE)',
+  'fa.kcalDay': 'kcal/day',
+  'fa.traceTitle': 'Calculation traceability',
+  'fa.trEq': 'Equation used',
+  'fa.trEqVal': '{name} · version {ver}',
+  'fa.trInputs': 'Inputs',
+  'fa.trInputsVal': '{w} kg · {h} cm · {age} years',
+  'fa.trWeight': 'Weight used',
+  'fa.trWeightVal': '{w} kg — weighed on {date}',
+  'fa.trPal': 'Multiplier',
+  'fa.trConst': 'Constant applied',
+  'fa.trConstYes': 'Yes (the value is not shown)',
+  'fa.trConstNo': 'No',
+  'fa.trWhen': 'Calculated',
+  'fa.trWhenVal': '{date} · by {who}',
+  'fa.whoClient': 'the client (their own session)',
+  'fa.whoTrainer': 'the trainer',
+  'fa.zone': '🔒 My private space',
+  'fa.zoneSub': 'Only you can see what you keep here.',
+  'fa.sexTitle': 'Sex for energy calculation',
+  'fa.sexBody': 'The Mifflin-St Jeor equation uses a different constant depending on sex. This value is stored only in your private space: your trainer will see the calculation result, never this value. It is not inferred from your gender and is never used for any other purpose. It is voluntary: without it, this equation cannot be calculated. You can delete it at any time.',
+  'fa.female': 'Female',
+  'fa.male': 'Male',
+  'fa.current': 'Saved value: {v}',
+  'fa.save': 'Save',
+  'fa.delete': 'Delete this data',
+  'fa.deleteConfirm': 'Delete your private sex data? Without it, the energy calculation cannot be done. You can provide it again whenever you want.',
+  'fa.pickOne': 'Choose an option to save it.',
+  'fa.saved': '✓ Saved in your private space',
+  'fa.deleted': '✓ Private data deleted',
+  'fa.lockNote': 'This value lives in your private space: neither your trainer nor anyone else can see it.',
+  'fa.loadError': 'Your private data could not be loaded — that is not the same as having none. Check your connection and reload.',
+  'fa.myResult': 'Your latest energy calculation: RMR {rmr} · TDEE {tdee} {u} ({eq}).',
   'date.today': ' (today)',
   'date.weekLabel': 'Week {n} · {y}',
   'note.kcalIn': '🔥 Calories within range; {left} kcal left.',
@@ -969,6 +1046,83 @@ es: {
   'fb3.nogoals': 'Referencia solo educativa — no modifica las metas de este cliente. Las metas las fijas tú manualmente.',
   'fb3.helpBtn': 'Cómo se calcula y fuentes',
   'fb3.help': '<b>Cómo se calcula</b><br>Rango diario de proteína = último peso corporal × 1,4–2,0 g/kg/día.<br><b>Fuentes</b><br>• Position Stand de la ISSN: proteína y ejercicio (Jäger et al., 2017, J Int Soc Sports Nutr 14:20; DOI 10.1186/s12970-017-0177-8): 1,4–2,0 g/kg/día es suficiente para la mayoría de las personas que hacen ejercicio.<br>• Solo contexto (no se muestra como rango aquí): para hipertrofia con entrenamiento de resistencia, Morton et al. (2018, Br J Sports Med; DOI 10.1136/bjsports-2017-097608) estimó un punto de inflexión de 1,62 g/kg/día (límite superior del IC95%: 2,20) — ni meta universal ni techo individual demostrado.<br>Estos rangos son referencias educativas, pendientes de validación en esta app; no son una prescripción y nunca modifican las metas que tú fijas.',
+  'fa.title': '🧮 Cálculo energético',
+  'fa.helpBtn': 'Cómo se calcula y fuentes',
+  'fa.help': '<b>Cómo se calcula · Mifflin-St Jeor</b><br>Hombres: 10 × peso (kg) + 6,25 × talla (cm) − 5 × edad (años) + 5<br>Mujeres: 10 × peso (kg) + 6,25 × talla (cm) − 5 × edad (años) − 161<br>Gasto total (TDEE) = gasto en reposo (RMR) × palBasal.<br><b>Fuentes</b><br>• Mifflin MD et al., «A new predictive equation for resting energy expenditure in healthy individuals», Am J Clin Nutr 1990;51(2):241–247. DOI: 10.1093/ajcn/51.2.241<br>• Frankenfield D, Roth-Yousey L, Compher C. Revisión sistemática de las ecuaciones predictivas, 2005. DOI: 10.1016/j.jada.2005.02.005<br><b>El ejercicio no se cuenta dos veces</b><br>El multiplicador de actividad (palBasal) cubre el reposo, la vida diaria y el movimiento habitual, e incluye el efecto térmico de los alimentos y la actividad no estructurada. NO incluye el ejercicio estructurado: las sesiones de entrenamiento se cuentan UNA sola vez, como gasto de sesión, y nunca dentro del multiplicador ni dos veces.<br>La incertidumbre es propia del método de estimación; no es una garantía individual.',
+  'fa.provided': 'Dato de sexo aportado: {v}',
+  'fa.yes': 'Sí',
+  'fa.no': 'No',
+  'fa.equation': 'Ecuación',
+  'fa.noEquation': 'Sin ecuación seleccionada — elige una para calcular',
+  'fa.selected': '✓ seleccionada',
+  'fa.eqMifflin': 'Mifflin-St Jeor',
+  'fa.eqHB': 'Harris-Benedict revisada',
+  'fa.eqTenHaaf': 'Ten Haaf',
+  'fa.available': 'Disponible',
+  'fa.unavailable': 'No disponible · pendiente de verificación',
+  'fa.birthYear': 'Año de nacimiento',
+  'fa.height': 'Talla (cm)',
+  'fa.weightBasis': 'Con el último peso: {w} kg · {date}',
+  'fa.noWeight': 'Aún no hay peso registrado: no hay base para el cálculo.',
+  'fa.actLabel': 'Nivel de actividad (contexto para el entrenador — no lleva ningún número)',
+  'fa.actNone': 'Sin nivel elegido',
+  'fa.act1': 'Reposo casi total / movilidad muy reducida',
+  'fa.act2': 'Vida sedentaria, trabajo de escritorio, desplazamientos mínimos',
+  'fa.act3': 'Sedentario con actividad ligera diaria (de pie parte del día, caminatas cortas)',
+  'fa.act4': 'Activo en la vida diaria (trabajo de pie o físico ligero, caminatas frecuentes)',
+  'fa.act5': 'Trabajo físicamente exigente o vida diaria muy activa',
+  'fa.act6': 'Trabajo físico pesado sostenido',
+  'fa.palLabel': 'Multiplicador de actividad (palBasal)',
+  'fa.palRules': 'Rango normal: 1,40–2,00 · Banda de excepción: 1,20–1,39 (con confirmación expresa) · Menos de 1,20: no admitido.',
+  'fa.palWarn': '⚠ Este valor está fuera del rango fisiológico habitual.',
+  'fa.palWarnBody': 'Está en la banda de excepción (1,20–1,39): para guardarlo necesitas confirmarlo expresamente.',
+  'fa.palConfirm': 'Confirmo expresamente este valor de excepción',
+  'fa.palError': 'Este valor no se puede guardar. Está fuera del rango admitido (1,20–2,00). Ajusta el valor para continuar.',
+  'fa.saveConfig': 'Guardar datos',
+  'fa.configSaved': '✓ Datos de cálculo guardados',
+  'fa.errBy': 'El año de nacimiento debe estar entre 1900 y {max}.',
+  'fa.errH': 'La talla debe estar entre 50 y 250 cm.',
+  'fa.errPal': 'palBasal debe estar entre 1,20 y 2,00.',
+  'fa.errConfirm': 'Para guardar un palBasal de la banda de excepción (1,20–1,39) debes confirmarlo expresamente.',
+  'fa.noResult': 'Sin resultado',
+  'fa.missEq': 'Todavía no se ha calculado: falta elegir la ecuación.',
+  'fa.missSex': 'Todavía no se ha calculado: el cliente no ha aportado su dato privado de sexo — solo él puede aportarlo.',
+  'fa.missData': 'Todavía no se ha calculado: faltan datos base (año de nacimiento, talla, multiplicador o un peso registrado).',
+  'fa.missPending': 'Todavía no se ha calculado: todo está listo — el resultado se registra desde la propia sesión del cliente cuando abre la app.',
+  'fa.rmr': 'GASTO EN REPOSO (RMR)',
+  'fa.tdee': 'GASTO TOTAL (TDEE)',
+  'fa.kcalDay': 'kcal/día',
+  'fa.traceTitle': 'Trazabilidad del cálculo',
+  'fa.trEq': 'Ecuación usada',
+  'fa.trEqVal': '{name} · versión {ver}',
+  'fa.trInputs': 'Entradas',
+  'fa.trInputsVal': '{w} kg · {h} cm · {age} años',
+  'fa.trWeight': 'Peso usado',
+  'fa.trWeightVal': '{w} kg — pesaje del {date}',
+  'fa.trPal': 'Multiplicador',
+  'fa.trConst': 'Constante aplicada',
+  'fa.trConstYes': 'Sí (el valor no se muestra)',
+  'fa.trConstNo': 'No',
+  'fa.trWhen': 'Calculado',
+  'fa.trWhenVal': '{date} · por {who}',
+  'fa.whoClient': 'el cliente (su propia sesión)',
+  'fa.whoTrainer': 'el entrenador',
+  'fa.zone': '🔒 Mi espacio privado',
+  'fa.zoneSub': 'Lo que guardes aquí solo lo ves tú.',
+  'fa.sexTitle': 'Sexo para el cálculo de energía',
+  'fa.sexBody': 'La ecuación de Mifflin-St Jeor usa una constante distinta según el sexo. Este dato se guarda solo en tu espacio privado: tu entrenador verá el resultado del cálculo, nunca este valor. No se deduce de tu género y no se usa para ningún otro fin. Es voluntario: sin este dato no se puede calcular con esta ecuación. Puedes borrarlo cuando quieras.',
+  'fa.female': 'Femenino',
+  'fa.male': 'Masculino',
+  'fa.current': 'Dato guardado: {v}',
+  'fa.save': 'Guardar',
+  'fa.delete': 'Borrar este dato',
+  'fa.deleteConfirm': '¿Borrar tu dato privado de sexo? Sin él no se podrá hacer el cálculo de energía. Puedes volver a aportarlo cuando quieras.',
+  'fa.pickOne': 'Elige una opción para guardarlo.',
+  'fa.saved': '✓ Guardado en tu espacio privado',
+  'fa.deleted': '✓ Dato privado borrado',
+  'fa.lockNote': 'Este dato vive en tu espacio privado: ni tu entrenador ni nadie más puede verlo.',
+  'fa.loadError': 'No se pudo cargar tu espacio privado — no es lo mismo que no tener datos. Revisa tu conexión y recarga.',
+  'fa.myResult': 'Tu último cálculo de energía: RMR {rmr} · TDEE {tdee} {u} ({eq}).',
   'date.today': ' (hoy)',
   'date.weekLabel': 'Semana {n} · {y}',
   'note.kcalIn': '🔥 Calorías dentro del rango; quedan {left} kcal.',
@@ -1071,6 +1225,7 @@ function setLang(l) {
        permisos/consentimiento (H-C2) no se toca. */
     try { renderPrivacy(); } catch {}
     try { renderHealthPanel(); } catch {}
+    try { renderEnergyPanel(); } catch {}
     try { renderProgress(); } catch {}
     try { aiOnLangChange(); } catch {}
     refreshDynamic();
@@ -1592,6 +1747,273 @@ function fb3ProteinHTML(weights) {
     <div class="muted">${t('fb3.nogoals')}</div>${help}</div>`;
 }
 
+/* ================= F-A1/F-A2 · CÁLCULO ENERGÉTICO (Etapa 2, desarrollo) =================
+   Motor de cálculo energético del entrenador (diseño aprobado por
+   Ronald el 2026-10-20 01:49, tras ver la maqueta; Etapa 1 §3):
+   - N-01: SIN ecuación por defecto. La elección la hace el
+     entrenador por cliente, persiste y todo resultado la muestra.
+     Única habilitada en v1: Mifflin-St Jeor (verificada contra la
+     fuente primaria). Harris-Benedict revisada y Ten Haaf quedan
+     «pendiente de verificación» y NO se pueden elegir.
+   - La variable de sexo para el cálculo vive SOLO en
+     users/{uid}/energyPrivate/sex (la lee únicamente el propio
+     cliente; NUNCA se infiere de 'gender'). «Sin dato, sin
+     cálculo». El entrenador ve la señal sexDataProvided (sí/no) y
+     los RESULTADOS; jamás el valor. Matriz C-03.
+   - El cálculo se ejecuta en la sesión del PROPIO cliente (su
+     dispositivo sí puede leer su dato privado) y escribe solo el
+     bloque de resultado + snapshot hist_* inmutable, exactamente
+     lo que el candidato de reglas F-A1 v2 permite (la app y las
+     reglas cuentan la misma historia). REGLAS: este código solo
+     funciona en producción cuando Ronald publique el candidato
+     (hasta entonces Firestore deniega estas rutas por defecto).
+   - palBasal (A-3): 1,40–2,00 normal; 1,20–1,39 banda de
+     excepción con advertencia y confirmación expresa registrada;
+     <1,20 o >2,00 rechazados en la interfaz Y en las reglas. Los
+     6 niveles de actividad son contexto descriptivo SIN números.
+   - Ningún cálculo escribe jamás users/{uid}.goals: las metas
+     siguen siendo manuales del entrenador (invariante N-01/F-B3). */
+const FA_EQUATION_VERSION = 'mifflin-st-jeor@1.0'; // cadena fijada en la Etapa 2 (la maqueta mostraba «versión 1»)
+const FA_PURPOSE_VERSION = 'v1-2026-10-20';
+const FA_UNCERTAINTY = {
+  es: 'La incertidumbre es propia del método de estimación; no es una garantía individual.',
+  en: 'Uncertainty is inherent to the estimation method; it is not an individual guarantee'
+};
+let MY_ENERGY = { state: 'loading', sex: null };  // energyPrivate propio (solo el propio usuario)
+let MY_ASMT = { state: 'loading', doc: null };     // assessment/current propio (config + resultado)
+let FA_CARD = { uid: null, asmt: null };           // estado de la ficha abierta (entrenador)
+const faRound10 = n => Math.round(n / 10) * 10;    // mostrar a 10 kcal; precisión completa dentro (Doc. 2 §7)
+const faFmtTs = ts => { try { return ts && ts.toDate ? ts.toDate().toLocaleDateString(LANG === 'es' ? 'es-MX' : 'en-US', { day: 'numeric', month: 'long', year: 'numeric' }) : ''; } catch { return ''; } };
+const faEqName = id => id === 'mifflin-st-jeor' ? t('fa.eqMifflin') : (id || '—');
+
+/* ---------- Vista del entrenador: tarjeta en la ficha del cliente ---------- */
+function faCardHTML(uid, a, weights) {
+  const last = weights && weights.length ? weights[weights.length - 1] : null;
+  const head = `<div class="fb3-head"><h3 class="history-title" style="margin:0">${t('fa.title')}</h3>
+    <button type="button" class="fb3-helpbtn" id="fa-help-btn" aria-expanded="false" title="${t('fa.helpBtn')}">?</button></div>`;
+  const help = `<div class="fb3-pop" id="fa-help" style="display:none">${t('fa.help')}</div>`;
+  const eqSel = !!a && a.equation === 'mifflin-st-jeor';
+  const signal = !!a && a.sexDataProvided === true;
+  const selbox = eqSel
+    ? `<div class="fa-selbox"><span class="fa-val">${t('fa.eqMifflin')}</span><span class="fa-oktag">${t('fa.selected')}</span><span class="fa-chev">▾</span></div>`
+    : `<div class="fa-selbox"><span class="fa-ph">${t('fa.noEquation')}</span><span class="fa-chev">▾</span></div>`;
+  const opts = `
+    <div class="fa-opt${eqSel ? ' sel' : ''}" data-fa-eq="mifflin-st-jeor" role="button" tabindex="0"><span class="fa-radio"></span><span class="fa-nm">${t('fa.eqMifflin')}</span><span class="tag-ok">${t('fa.available')}</span></div>
+    <div class="fa-opt off"><span class="fa-radio"></span><span class="fa-nm">${t('fa.eqHB')}</span><span class="tag-off">${t('fa.unavailable')}</span></div>
+    <div class="fa-opt off"><span class="fa-radio"></span><span class="fa-nm">${t('fa.eqTenHaaf')}</span><span class="tag-off">${t('fa.unavailable')}</span></div>`;
+  const actOpts = [1, 2, 3, 4, 5, 6].map(n =>
+    `<option value="${n}"${a && a.activityCategoryId === n ? ' selected' : ''}>${n}. ${t('fa.act' + n)}</option>`).join('');
+  const palVal = a && a.palBasal != null ? String(a.palBasal) : '';
+  const palBlock = `
+    <label class="fa-flabel">${t('fa.palLabel')}</label>
+    <p class="fa-rules">${t('fa.palRules')}</p>
+    <input type="text" inputmode="decimal" class="fa-pal-input" id="fa-pal" value="${esc(palVal)}" placeholder="1.55">
+    <div class="fa-warn" id="fa-pal-warn" style="display:none"><b>${t('fa.palWarn')}</b><br>${t('fa.palWarnBody')}
+      <label class="fa-confirm"><input type="checkbox" id="fa-pal-confirm"${a && a.palExceptionConfirmed === true ? ' checked' : ''}> <span>${t('fa.palConfirm')}</span></label></div>
+    <div class="fa-errbox" id="fa-pal-err" style="display:none">${t('fa.palError')}</div>`;
+  let resultBlock;
+  if (a && typeof a.rmrKcal === 'number' && typeof a.tdeeKcal === 'number') {
+    const s = a.inputsSnapshot || {};
+    const ver = String(a.equationVersion || '').split('@')[1] || (a.equationVersion || '');
+    resultBlock = `
+    <div class="fa-results">
+      <div class="fa-stat"><div class="l">${t('fa.rmr')}</div><div class="v">${fmt(faRound10(a.rmrKcal))}</div><div class="u">${t('fa.kcalDay')}</div></div>
+      <div class="fa-stat"><div class="l">${t('fa.tdee')}</div><div class="v">${fmt(faRound10(a.tdeeKcal))}</div><div class="u">${t('fa.kcalDay')}</div></div>
+    </div>
+    <div class="fa-trace"><h4>${t('fa.traceTitle')}</h4>
+      <div class="fa-trow"><span class="k">${t('fa.trEq')}</span><span class="v">${esc(t('fa.trEqVal', { name: faEqName(a.equationUsed), ver }))}</span></div>
+      <div class="fa-trow"><span class="k">${t('fa.trInputs')}</span><span class="v">${esc(t('fa.trInputsVal', { w: s.weightKg ?? '—', h: s.heightCm ?? '—', age: s.ageYears ?? '—' }))}</span></div>
+      <div class="fa-trow"><span class="k">${t('fa.trWeight')}</span><span class="v">${esc(t('fa.trWeightVal', { w: s.weightKg ?? '—', date: s.weightDate ? dateName(s.weightDate) : '—' }))}</span></div>
+      <div class="fa-trow"><span class="k">${t('fa.trPal')}</span><span class="v">${s.palBasal ?? '—'}</span></div>
+      <div class="fa-trow"><span class="k">${t('fa.trConst')}</span><span class="v"><b>${a.sexConstantApplied ? t('fa.trConstYes') : t('fa.trConstNo')}</b></span></div>
+      <div class="fa-trow"><span class="k">${t('fa.trWhen')}</span><span class="v">${esc(t('fa.trWhenVal', { date: faFmtTs(a.computedAt), who: a.computedBy === uid ? t('fa.whoClient') : t('fa.whoTrainer') }))}</span></div>
+      ${a.uncertaintyNote ? `<div class="fa-tnote">${esc(a.uncertaintyNote)}</div>` : ''}
+    </div>`;
+  } else {
+    const reason = !eqSel ? t('fa.missEq')
+      : !signal ? t('fa.missSex')
+      : !(a && a.birthYear && num(a.heightCm) > 0 && num(a.palBasal) > 0 && last) ? t('fa.missData')
+      : t('fa.missPending');
+    resultBlock = `<div class="fa-empty"><b>${t('fa.noResult')}</b><span>${reason}</span></div>`;
+  }
+  return `<div class="fb3-card fa-card">${head}${help}
+    <div class="fa-signal">${t('fa.provided', { v: signal ? t('fa.yes') : t('fa.no') })}</div>
+    <label class="fa-flabel">${t('fa.equation')}</label>
+    ${selbox}${opts}
+    <div class="fa-divider"></div>
+    <div class="fa-frow">
+      <div><label class="fa-flabel">${t('fa.birthYear')}</label><input type="text" inputmode="numeric" id="fa-by" value="${a && a.birthYear ? a.birthYear : ''}" placeholder="1996"></div>
+      <div><label class="fa-flabel">${t('fa.height')}</label><input type="text" inputmode="decimal" id="fa-h" value="${a && a.heightCm ? a.heightCm : ''}" placeholder="175"></div>
+    </div>
+    <div class="basis">${last ? t('fa.weightBasis', { w: last.weight, date: dateName(last.date) }) : t('fa.noWeight')}</div>
+    <label class="fa-flabel">${t('fa.actLabel')}</label>
+    <select id="fa-act" class="fa-select"><option value="">${t('fa.actNone')}</option>${actOpts}</select>
+    ${palBlock}
+    <div class="fa-btnrow"><button type="button" class="btn-primary btn-sm" id="fa-save">${t('fa.saveConfig')}</button></div>
+    ${resultBlock}
+  </div>`;
+}
+function faPalSync() {
+  const inp = $('fa-pal'); if (!inp) return;
+  const warn = $('fa-pal-warn'), err = $('fa-pal-err'), save = $('fa-save');
+  const raw = inp.value.trim(); const v = num(raw);
+  let state = 'normal';
+  if (!raw) state = 'empty';
+  else if (!(v >= 1.20 && v <= 2.00)) state = 'invalid';
+  else if (v < 1.40) state = 'exception';
+  if (warn) warn.style.display = state === 'exception' ? '' : 'none';
+  if (err) err.style.display = state === 'invalid' ? '' : 'none';
+  if (save) save.disabled = state === 'invalid';
+}
+async function faSetEquation(uid) {
+  try {
+    await setDoc(doc(db, 'users', uid, 'assessment', 'current'),
+      { equation: 'mifflin-st-jeor', equationChosenBy: auth.currentUser.uid, equationChosenAt: serverTimestamp(), updatedAt: serverTimestamp(), updatedBy: auth.currentUser.uid }, { merge: true });
+    toast(t('fa.configSaved'));
+    openClient(uid);
+  } catch { toast(t('err.verifyFail'), true); }
+}
+async function faSaveConfig(uid) {
+  const byRaw = $('fa-by').value.trim(), hRaw = $('fa-h').value.trim(), palRaw = $('fa-pal').value.trim();
+  const act = $('fa-act').value;
+  const payload = { updatedAt: serverTimestamp(), updatedBy: auth.currentUser.uid };
+  if (byRaw) {
+    const by = parseInt(byRaw, 10), maxY = new Date().getFullYear() - 18;
+    if (!Number.isInteger(by) || by < 1900 || by > maxY) { toast(t('fa.errBy', { max: maxY }), true); return; }
+    payload.birthYear = by;
+  }
+  if (hRaw) {
+    const h = num(hRaw);
+    if (!(h >= 50 && h <= 250)) { toast(t('fa.errH'), true); return; }
+    payload.heightCm = h; payload.heightOriginal = h; payload.heightUnitOriginal = 'cm';
+  }
+  if (act) payload.activityCategoryId = parseInt(act, 10);
+  if (palRaw) {
+    const p = num(palRaw);
+    if (!(p >= 1.20 && p <= 2.00)) { toast(t('fa.errPal'), true); return; }
+    if (p < 1.40 && !($('fa-pal-confirm') && $('fa-pal-confirm').checked)) { toast(t('fa.errConfirm'), true); return; }
+    payload.palBasal = p;
+    payload.palExceptionConfirmed = p < 1.40;
+  }
+  try {
+    await setDoc(doc(db, 'users', uid, 'assessment', 'current'), payload, { merge: true });
+    toast(t('fa.configSaved'));
+    openClient(uid);
+  } catch { toast(t('err.verifyFail'), true); }
+}
+
+/* ---------- Vista del cliente: su espacio privado y su cálculo ---------- */
+function renderEnergyPanel() {
+  const box = $('energy-panel-body');
+  if (!box || !auth.currentUser) return;
+  if (MY_ENERGY.state === 'loading') { box.innerHTML = `<div class="wempty">${t('train.loading')}</div>`; return; }
+  if (MY_ENERGY.state === 'error') { box.innerHTML = `<div class="wempty">${t('fa.loadError')}</div>`; return; }
+  const sex = MY_ENERGY.sex;
+  const cur = sex ? `<div class="fa-current">${t('fa.current', { v: t(sex === 'female' ? 'fa.female' : 'fa.male') })}</div>` : '';
+  const d = MY_ASMT.doc;
+  const own = d && typeof d.rmrKcal === 'number'
+    ? `<div class="fa-ownres">${t('fa.myResult', { rmr: fmt(faRound10(d.rmrKcal)), tdee: fmt(faRound10(d.tdeeKcal)), u: t('fa.kcalDay'), eq: faEqName(d.equationUsed) })}</div>` : '';
+  box.innerHTML = `<div class="fa-privcard">
+    <h3 class="history-title" style="margin-top:0">${t('fa.sexTitle')}</h3>
+    <p class="fa-sextext">${t('fa.sexBody')}</p>
+    ${cur}
+    <div class="fa-opts">
+      <label class="fa-opt2"><input type="radio" name="fa-sex" value="female"${sex === 'female' ? ' checked' : ''}> <span>${t('fa.female')}</span></label>
+      <label class="fa-opt2"><input type="radio" name="fa-sex" value="male"${sex === 'male' ? ' checked' : ''}> <span>${t('fa.male')}</span></label>
+    </div>
+    <div class="fa-btnrow">
+      <button type="button" class="btn-primary btn-sm" id="fa-sex-save">${t('fa.save')}</button>
+      ${sex ? `<button type="button" class="btn-ghost btn-sm fa-delbtn" id="fa-sex-del">${t('fa.delete')}</button>` : ''}
+    </div>
+    <div class="fa-locknote">🔒 ${t('fa.lockNote')}</div>
+    ${own}
+  </div>`;
+  const sv = $('fa-sex-save'); if (sv) sv.onclick = saveMySex;
+  const dl = $('fa-sex-del'); if (dl) dl.onclick = deleteMySex;
+}
+/* La señal «dato aportado: sí/no» vive en assessment/current y SOLO
+   la escribe la sesión del propio cliente (así lo exige el
+   candidato de reglas). Si el documento aún no existe (el
+   entrenador no ha creado la ficha), no hay señal que escribir. */
+async function faSyncSignal(uid) {
+  const a = MY_ASMT.doc; if (!a) return;
+  const want = !!MY_ENERGY.sex;
+  if (a.sexDataProvided === want) return;
+  try {
+    await setDoc(doc(db, 'users', uid, 'assessment', 'current'), { sexDataProvided: want }, { merge: true });
+    MY_ASMT.doc = { ...a, sexDataProvided: want };
+  } catch {}
+}
+/* El cálculo SOLO ocurre con ecuación elegida + datos completos +
+   dato de sexo; en cualquier otro caso no hay resultado (estados
+   vacíos honestos, N-01). Precisión completa dentro; el redondeo
+   a 10 kcal es solo de presentación (faRound10). Sin cambios en
+   las entradas no se reescribe (no se acuñan snapshots en balde). */
+async function faComputeMine(uid) {
+  const cfg = MY_ASMT.doc; if (!cfg) return;
+  const sex = MY_ENERGY.sex; if (!sex) return;
+  if (cfg.equation !== 'mifflin-st-jeor') return;
+  const by = parseInt(cfg.birthYear, 10), h = num(cfg.heightCm), pal = num(cfg.palBasal);
+  const last = WEIGHTS && WEIGHTS.length ? WEIGHTS[WEIGHTS.length - 1] : null;
+  if (!by || !(h > 0) || !(pal > 0) || !last) return;
+  const age = new Date().getFullYear() - by;
+  const base = 10 * last.weight + 6.25 * h - 5 * age;
+  const rmr = sex === 'male' ? base + 5 : base - 161;
+  const snap = { weightKg: last.weight, weightDate: last.date, heightCm: h, ageYears: age, palBasal: pal };
+  if (cfg.equationUsed === 'mifflin-st-jeor' && typeof cfg.rmrKcal === 'number'
+      && cfg.inputsSnapshot && JSON.stringify(cfg.inputsSnapshot) === JSON.stringify(snap)) return;
+  const result = { rmrKcal: rmr, tdeeKcal: rmr * pal, equationUsed: 'mifflin-st-jeor', equationVersion: FA_EQUATION_VERSION,
+    inputsSnapshot: snap, sexConstantApplied: true, uncertaintyNote: FA_UNCERTAINTY[LANG] || FA_UNCERTAINTY.en,
+    computedAt: serverTimestamp(), computedBy: uid };
+  try {
+    await setDoc(doc(db, 'users', uid, 'assessment', 'current'), result, { merge: true });
+    await setDoc(doc(db, 'users', uid, 'assessment', 'hist_' + Date.now()), result);
+    MY_ASMT.doc = { ...cfg, rmrKcal: result.rmrKcal, tdeeKcal: result.tdeeKcal, equationUsed: result.equationUsed,
+      equationVersion: result.equationVersion, inputsSnapshot: snap, sexConstantApplied: true };
+    renderEnergyPanel();
+  } catch {}
+}
+async function saveMySex() {
+  const sel = document.querySelector('input[name="fa-sex"]:checked');
+  if (!sel) { toast(t('fa.pickOne'), true); return; }
+  const uid = auth.currentUser.uid;
+  const data = { sexForCalc: sel.value, purposeVersion: FA_PURPOSE_VERSION, updatedAt: serverTimestamp() };
+  if (!MY_ENERGY.sex) data.providedAt = serverTimestamp();
+  try {
+    await setDoc(doc(db, 'users', uid, 'energyPrivate', 'sex'), data, { merge: true });
+    MY_ENERGY = { state: 'ok', sex: sel.value };
+    toast(t('fa.saved'));
+    renderEnergyPanel();
+    await faSyncSignal(uid);
+    await faComputeMine(uid);
+  } catch { toast(t('err.verifyFail'), true); }
+}
+async function deleteMySex() {
+  if (!confirm(t('fa.deleteConfirm'))) return;
+  const uid = auth.currentUser.uid;
+  try {
+    await deleteDoc(doc(db, 'users', uid, 'energyPrivate', 'sex'));
+    MY_ENERGY = { state: 'ok', sex: null };
+    toast(t('fa.deleted'));
+    renderEnergyPanel();
+    await faSyncSignal(uid);
+  } catch { toast(t('err.verifyFail'), true); }
+}
+async function loadMyEnergy() {
+  if (!auth.currentUser) return;
+  const uid = auth.currentUser.uid;
+  try {
+    const s = await getDoc(doc(db, 'users', uid, 'energyPrivate', 'sex'));
+    MY_ENERGY = { state: 'ok', sex: s.exists() ? (s.data().sexForCalc || null) : null };
+  } catch { MY_ENERGY = { state: 'error', sex: null }; }
+  try {
+    const s = await getDoc(doc(db, 'users', uid, 'assessment', 'current'));
+    MY_ASMT = { state: 'ok', doc: s.exists() ? s.data() : null };
+  } catch { MY_ASMT = { state: 'error', doc: null }; }
+  renderEnergyPanel();
+  if (MY_ENERGY.state === 'ok' && MY_ASMT.state === 'ok') { await faSyncSignal(uid); await faComputeMine(uid); }
+}
+
 async function openClient(uid) {
   const box = $('client-detail');
   let uname = t('client.fallbackName'), udata = null;
@@ -1602,6 +2024,12 @@ async function openClient(uid) {
   /* Salud separada: el entrenador solo la obtiene si el consentimiento
      específico del cliente está activo (fetchClientHealth). */
   const clientHealth = await fetchClientHealth(uid, udata);
+  /* F-A1/F-A2: la ficha de cálculo del cliente (assessment/current).
+     El entrenador la lee entera — configuración, señal y resultado —
+     pero jamás energyPrivate (eso ni se intenta: C-03). */
+  let asmtDoc = null;
+  try { const as = await getDoc(doc(db, 'users', uid, 'assessment', 'current')); if (as.exists()) asmtDoc = as.data(); } catch {}
+  FA_CARD = { uid, asmt: asmtDoc };
   const data = [];
   try {
     const ws = await getDocs(collection(db, 'nutrition_weight'));
@@ -1644,10 +2072,19 @@ async function openClient(uid) {
       <thead><tr><th>${t('form.date')}</th><th class="num">${t('form.weight')}</th><th class="num">${t('form.bodyfat')}</th><th class="num">${t('form.muscle')}</th><th class="num">${t('form.water')}</th><th class="num">${t('form.visceral')}</th><th>${t('form.notes')}</th><th></th></tr></thead>
       <tbody>${rows}</tbody></table></div>` : ''}
     ${fb3ProteinHTML(data)}
+    ${faCardHTML(uid, asmtDoc, data)}
     <div id="client-training"></div>`;
   $('btn-client-close').onclick = () => { box.style.display = 'none'; box.innerHTML = ''; };
   const fb3b = $('fb3-help-btn');
   if (fb3b) fb3b.onclick = () => { const p = $('fb3-help'); const open = p.style.display !== 'none'; p.style.display = open ? 'none' : ''; fb3b.setAttribute('aria-expanded', String(!open)); };
+  const fah = $('fa-help-btn');
+  if (fah) fah.onclick = () => { const p = $('fa-help'); const open = p.style.display !== 'none'; p.style.display = open ? 'none' : ''; fah.setAttribute('aria-expanded', String(!open)); };
+  const faEq = box.querySelector('[data-fa-eq]');
+  if (faEq) { faEq.onclick = () => faSetEquation(uid); faEq.onkeydown = e => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); faSetEquation(uid); } }; }
+  const faSv = $('fa-save');
+  if (faSv) faSv.onclick = () => faSaveConfig(uid);
+  const faPal = $('fa-pal');
+  if (faPal) { faPal.addEventListener('input', faPalSync); faPalSync(); }
   $('btn-client-add').onclick = () => openWeightModal({ uid, docId: null, rec: null });
   box.querySelectorAll('[data-c-edit]').forEach(b => b.onclick = () => {
     const rec = data.find(w => w.id === b.dataset.cEdit);
@@ -1781,6 +2218,7 @@ async function loadAll() {
   await loadMyTraining();
   renderPrivacy();
   await loadMyHealth();
+  await loadMyEnergy();
   await loadAdmin();
   await loadClients();
   applyStorageFlag();

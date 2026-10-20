@@ -258,6 +258,15 @@
         <h3 class="perms-section-title" data-i18n="health.sectionTitle">Health declaration</h3>
         <div id="health-panel-body"><div class="wempty" data-i18n="train.loading">Loading…</div></div>
       </div>
+      <!-- F-A1 (Etapa 2, desarrollo): espacio privado del propio
+           cliente — la variable de sexo para el cálculo energético
+           vive en users/{uid}/energyPrivate y SOLO la ve su dueño.
+           El texto completo aprobado se renderiza desde STR (fa.*). -->
+      <div class="perms-section" id="energy-section">
+        <h3 class="perms-section-title" data-i18n="fa.zone">🔒 My private space</h3>
+        <p class="progress-hint" data-i18n="fa.zoneSub">Only you can see what you keep here.</p>
+        <div id="energy-panel-body"><div class="wempty" data-i18n="train.loading">Loading…</div></div>
+      </div>
       <div class="perms-section privacy-panel" id="privacy-section">
         <h3 class="perms-section-title" data-i18n="priv.sectionTitle">Privacy &amp; data</h3>
         <div class="manage-list" id="privacy-manage-list" style="display:none">

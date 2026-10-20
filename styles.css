@@ -462,3 +462,58 @@ table.whist { min-width: 640px; }
 .fb3-range { font-size: 20px; font-weight: 700; margin: 6px 0 2px; }
 .fb3-stale { color: #991b1b; font-size: 13px; margin-top: 6px; }
 .fb3-pop { position: absolute; right: 10px; top: 46px; z-index: 5; max-width: 340px; background: #fff; border: 1px solid #e5e7eb; border-radius: 12px; box-shadow: 0 10px 30px rgba(0,0,0,.15); padding: 12px 14px; font-size: 13px; line-height: 1.45; }
+
+/* ===== F-A1/F-A2 · cálculo energético (Etapa 2, desarrollo) ===== */
+.fa-signal { margin-top: 8px; font-size: 13px; color: #374151; background: #eefbf7; border: 1px solid #99e5d8; border-radius: 8px; padding: 7px 10px; }
+.fa-flabel { display: block; font-size: 13px; font-weight: 600; color: #374151; margin: 12px 0 0; }
+.fa-selbox { margin-top: 5px; background: #fff; border: 1px solid #d1d5db; border-radius: 8px; padding: 10px 12px; font-size: 14px; display: flex; align-items: center; gap: 8px; }
+.fa-selbox .fa-ph { flex: 1; color: #6b7280; font-style: italic; }
+.fa-selbox .fa-val { flex: 1; font-weight: 600; color: #111827; }
+.fa-selbox .fa-oktag { color: #0d9488; font-weight: 700; font-size: 13px; }
+.fa-selbox .fa-chev { color: #9ca3af; font-size: 13px; }
+.fa-opt { display: flex; align-items: center; gap: 9px; background: #fff; border: 1px solid #e5e7eb; border-radius: 8px; padding: 10px 12px; margin-top: 8px; font-size: 14px; cursor: pointer; }
+.fa-opt .fa-radio { flex: none; width: 18px; height: 18px; border-radius: 50%; border: 2px solid #0d9488; }
+.fa-opt.sel .fa-radio { background: #0d9488; box-shadow: inset 0 0 0 3px #fff; }
+.fa-opt .fa-nm { flex: 1; font-weight: 600; color: #111827; }
+.fa-opt.off { background: #f3f4f6; cursor: default; }
+.fa-opt.off .fa-radio { border-color: #d1d5db; }
+.fa-opt.off .fa-nm { color: #9ca3af; font-weight: 500; }
+.fa-card .tag-ok { flex: none; background: #d9f2e3; color: #14532d; border-radius: 99px; padding: 2px 9px; font-size: 11px; font-weight: 700; }
+.fa-card .tag-off { flex: none; color: #6b7280; font-size: 11.5px; font-weight: 600; text-align: right; }
+.fa-divider { border-top: 1px solid #e5e7eb; margin: 16px 0 4px; }
+.fa-frow { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+.fa-frow input, .fa-pal-input, .fa-select { width: 100%; margin-top: 5px; padding: 9px 11px; border: 1px solid #d1d5db; border-radius: 8px; font-size: 14px; background: #fff; font-family: inherit; color: #111827; }
+.fa-pal-input { width: 130px; font-size: 16px; font-weight: 700; }
+.fa-card .basis { margin-top: 12px; font-size: 13px; color: #6b7280; }
+.fa-rules { margin-top: 4px; font-size: 12.5px; color: #6b7280; line-height: 1.5; }
+.fa-warn { margin-top: 10px; background: #fef3c7; border: 1px solid #f59e0b; border-radius: 10px; padding: 11px 13px; font-size: 13.5px; line-height: 1.5; color: #92400e; }
+.fa-errbox { margin-top: 10px; background: #fde8e8; border-radius: 10px; padding: 11px 13px; font-size: 13.5px; line-height: 1.5; color: #7f1d1d; }
+.fa-confirm { display: flex; align-items: flex-start; gap: 9px; margin-top: 12px; font-size: 14px; font-weight: 600; color: #111827; line-height: 1.4; cursor: pointer; }
+.fa-confirm input { flex: none; width: 21px; height: 21px; margin-top: 1px; accent-color: #0d9488; }
+.fa-btnrow { margin-top: 14px; display: flex; align-items: center; gap: 10px; }
+.fa-btnrow .btn-primary:disabled { opacity: .45; }
+.fa-empty { margin-top: 14px; border: 1.5px dashed #cbd5e1; border-radius: 10px; padding: 16px 12px; text-align: center; background: #fff; }
+.fa-empty b { display: block; font-size: 15px; color: #64748b; margin-bottom: 3px; }
+.fa-empty span { font-size: 12.5px; color: #94a3b8; }
+.fa-results { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-top: 14px; }
+.fa-stat { background: #fff; border: 1px solid #e5e7eb; border-radius: 10px; padding: 12px 8px 10px; text-align: center; }
+.fa-stat .l { font-size: 10.5px; color: #6b7280; letter-spacing: .4px; font-weight: 700; }
+.fa-stat .v { font-size: 27px; font-weight: 800; color: #1f2a44; margin-top: 3px; }
+.fa-stat .u { font-size: 12px; font-weight: 600; color: #6b7280; }
+.fa-trace { margin-top: 14px; background: #fff; border: 1px solid #e5e7eb; border-radius: 10px; padding: 11px 13px; }
+.fa-trace h4 { font-size: 13px; color: #1f2a44; margin: 0 0 7px; }
+.fa-trow { display: flex; gap: 10px; font-size: 12.5px; padding: 4.5px 0; border-bottom: 1px solid #f1f5f9; }
+.fa-trow:last-of-type { border-bottom: none; }
+.fa-trow .k { flex: none; width: 118px; color: #6b7280; font-weight: 600; }
+.fa-trow .v { flex: 1; color: #111827; }
+.fa-tnote { margin-top: 9px; background: #eff6ff; border-radius: 8px; padding: 9px 11px; font-size: 12.5px; line-height: 1.45; color: #1e3a5f; font-style: italic; }
+/* Espacio privado del cliente (variable de sexo) */
+.fa-privcard { background: #fff; border: 1px solid #e5e7eb; border-radius: 12px; padding: 14px; }
+.fa-sextext { font-size: 14px; line-height: 1.55; color: #374151; margin: 6px 0 0; }
+.fa-current { margin-top: 10px; font-size: 13.5px; font-weight: 700; color: #14532d; background: #d9f2e3; border-radius: 8px; padding: 8px 11px; }
+.fa-opts { margin-top: 14px; display: flex; flex-direction: column; gap: 9px; }
+.fa-opt2 { display: flex; align-items: center; gap: 11px; border: 1px solid #d1d5db; border-radius: 10px; padding: 13px 14px; font-size: 15px; font-weight: 600; color: #111827; background: #fff; cursor: pointer; }
+.fa-opt2 input { width: 21px; height: 21px; accent-color: #0d9488; }
+.fa-delbtn { color: #b91c1c; }
+.fa-locknote { margin-top: 14px; font-size: 12.5px; color: #6b7280; line-height: 1.45; }
+.fa-ownres { margin-top: 12px; font-size: 13.5px; color: #1f2a44; background: #f0fdf9; border: 1px solid #99e5d8; border-radius: 8px; padding: 9px 11px; line-height: 1.5; }
