@@ -1,0 +1,586 @@
+// ============================================================
+// CANDIDATO AISLADO CONFIRMACIONES (19/10/2026) — NO PUBLICADO,
+// NO VALIDADO, NO AUTORIZADO PARA PUBLICAR.
+// Derivado de r4 EN PRODUCCIÓN (preparacion-local/
+// firestore.rules.propuesta-r4, 468 líneas, SHA-256
+// 323ef2d994cb6e309607e14adffa935e71b7f252629acead63e86cba95fbdd2d),
+// que queda PRESERVADO E INTACTO. Este archivo es un archivo
+// NUEVO y separado; nada de lo que sigue sustituye a r4 hasta
+// que Ronald autorice la batería y, después y por separado,
+// la publicación.
+// Cambios funcionales EXACTOS respecto a r4 (solo dos):
+//   (1) [CONF-1] nutrition_progress: ningún documento de esa
+//       colección puede NACER ni QUEDAR con los campos de
+//       confirmación del entrenador ('confirmedBy',
+//       'confirmedAt', 'adjustments') ni con un status que la
+//       afirme ('confirmada'/'ajustada'/'confirmed'/'adjusted').
+//       La confirmación NO vive en el documento del cliente.
+//   (2) [CONF-2] Colección NUEVA progress_confirmations/
+//       {ownerUid}_{date}: la confirmación del entrenador vive
+//       SOLO ahí, como documento separado, escribible
+//       únicamente por isOwnerUser() (crear/ajustar/borrar) y
+//       legible por el propietario y por el dueño del análisis.
+// Todo lo demás es r4 sin tocar, línea por línea.
+// Análisis: ../ANALISIS-INTEGRIDAD-CONFIRMACION-2026-10-19.md
+// Batería (escrita, NO ejecutada): ../bateria-confirmaciones/
+// ============================================================
+// ============================================================
+// CANDIDATO r4 (18/10/2026, autorización de Ronald de preparar y
+// validar; publicación NO autorizada todavía): sobre r3 (que
+// queda preservado e intacto, SHA-256 a32a908c...) se corrige
+// SOLO el defecto probado el 18/10/2026: renovar el
+// consentimiento general con el consentimiento ACTIVO
+// (acceptedTerms true→true, p. ej. v2→v3) era imposible contra
+// r3 por dos candados — (1) la rama de renovación exigía
+// 'acceptedTerms' en affectedKeys().hasAll(...), y
+// affectedKeys() solo lista campos cuyo valor CAMBIA; (2)
+// receiptType solo derivaba 'general-renewed' si acceptedTerms
+// cambiaba de valor. Cambios funcionales EXACTOS de r4:
+//   (a) rama de renovación: hasAll(['termsAcceptedAt']) — el
+//       acto de renovación queda anclado a la nueva marca de
+//       aceptación (== request.time); acceptedTerms sigue
+//       exigiéndose == true en el estado resultante.
+//   (b) receiptType: 'general-renewed' también cuando
+//       acceptedTerms permanece true pero termsAcceptedAt
+//       cambia (nuevo acto de aceptación sobre consentimiento
+//       vigente). Sin cambio de termsAcceptedAt no se deriva
+//       tipo alguno (''), como en r3.
+// Todo lo demás es r3 sin tocar.
+// NO PUBLICADO. Pendiente de validación oficial (batería r4).
+// ============================================================
+// CANDIDATO r3 (16/10/2026, A2 autorizado): sobre r2 (que queda
+// preservado e intacto) se añade la integridad bidireccional de
+// recibos de consentimiento verificada en el experimento C2
+// (23/23, corrida 38962565773): toda transición de
+// consentimiento del cliente exige, en el MISMO lote, su
+// recibo en consent_receipts/{uid}_{seq}, con consentSeq en +1
+// exacto; el borrado de la propia cuenta exige el documento de
+// cierre consent_receipts/{uid} en el mismo lote. El
+// propietario no puede tocar consentSeq/consentReceiptId.
+// NO PUBLICADO. Pendiente de validación oficial B2.
+// ============================================================
+rules_version = '2';
+
+// =====================================================================
+// RONBO NUTRI — Firestore security rules for the NEW independent project
+// PROPUESTA CUESTIONARIO v1 — 2026-10-16. NOT PUBLISHED.
+// Base: el texto PUBLICADO en H-C1 (propuesta-renovacion, SHA-256
+// e874f453...), sin tocar sus sentencias salvo lo indicado abajo.
+// Cambios de esta propuesta (aprobación v1 del 16/10/2026):
+//   - users.create: se prohíbe nacer con 'health' o 'healthConsent'.
+//   - users update del propietario: ya NO puede tocar 'healthConsent'
+//     ni el legado 'health' del cliente (Decisión 7).
+//   - users: dos sentencias nuevas SOLO del cliente para su
+//     consentimiento específico (healthConsent: otorgar/renovar y
+//     retirar), con fechas == request.time (patrón H-C1 B1).
+//   - Nueva subcolección users/{uid}/healthDeclarations/{declId}:
+//     las respuestas de salud fuera del documento general.
+// Do not deploy without Ronald's express authorization.
+//
+// Derived from the actual operations in app.js (dev branch
+// dev/ronbo-nutri-v3, commits 9c73db4 / ede2eb2 / 512b283):
+//   - Registration creates users/{own uid} born unprivileged
+//     (isOwner=false, approved=false, role='user') and, since Block 4,
+//     always with acceptedTerms=true and adultConfirmed=true.
+//   - The trainer (users doc with isOwner=true) lists all users,
+//     approves/revokes, sets goals, edits client profiles and weights,
+//     and authors training plans.
+//   - Clients query their data filtered by ownerUid == own uid
+//     (training collections use clientUid); unfiltered lists by
+//     non-owners must fail.
+//   - Privacy (Block 4): a client may withdraw consent (sets
+//     acceptedTerms=false, approved=false, consentWithdrawnAt) and may
+//     delete their OWN documents and user doc (right to erasure).
+//     A client can NEVER set approved=true or touch role/isOwner.
+//   - There is NO code path that creates an owner: the first owner is
+//     set manually in the Firebase console by the project IAM owner.
+//
+// Collections: users, nutrition_meals, nutrition_weight,
+//              nutrition_progress, meal_help,
+//              training_plans, training_logs
+// =====================================================================
+
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    // ---------- Helpers ----------
+    function signedIn() {
+      return request.auth != null;
+    }
+    function myDoc() {
+      return get(/databases/$(database)/documents/users/$(request.auth.uid)).data;
+    }
+    function myDocExists() {
+      return exists(/databases/$(database)/documents/users/$(request.auth.uid));
+    }
+    function isOwnerUser() {
+      return signedIn() && myDocExists() && myDoc().isOwner == true;
+    }
+    function isApprovedUser() {
+      return signedIn() && myDocExists() && (myDoc().isOwner == true || myDoc().approved == true);
+    }
+    function isSelf(uid) {
+      return signedIn() && request.auth.uid == uid;
+    }
+    // ---------- Consent receipts (A2, experimento C2 verificado) ----------
+    function userPath(uid) {
+      return /databases/$(database)/documents/users/$(uid);
+    }
+    function receiptPath(rid) {
+      return /databases/$(database)/documents/consent_receipts/$(rid);
+    }
+    // Transition type derived ONLY from enumerated (before, after)
+    // pairs; any other combination yields '' (no valid type, so no
+    // receipt can accompany it and the transition is denied).
+    // r4: on the general side (healthConsent status unchanged), a
+    // renewal is ALSO derived when acceptedTerms stays true but
+    // termsAcceptedAt changes — a fresh acceptance act over an
+    // already-active consent (e.g. accepting notice v3 while the
+    // v2 acceptance is in force). The sentinel only fires when the
+    // field is absent on a side; two absent fields compare equal,
+    // so no type is derived without a real new acceptance mark.
+    function receiptType(before, after) {
+      let bs = before.get('healthConsent', {}).get('status', 'none');
+      let as2 = after.get('healthConsent', {}).get('status', 'none');
+      return bs != as2
+        ? (as2 == 'accepted' ? (bs == 'withdrawn' ? 'specific-renewed' : 'specific-granted')
+                            : (as2 == 'withdrawn' ? 'specific-withdrawn' : ''))
+        : (before.get('acceptedTerms', false) != after.get('acceptedTerms', false)
+            ? (after.get('acceptedTerms', false) == true ? 'general-renewed' : 'general-withdrawn')
+            : (after.get('acceptedTerms', false) == true
+                && before.get('termsAcceptedAt', timestamp.date(2000, 1, 1))
+                     != after.get('termsAcceptedAt', timestamp.date(2000, 1, 1))
+                ? 'general-renewed' : ''));
+    }
+    function receiptVersion(after, type) {
+      return (type == 'general-renewed' || type == 'general-withdrawn' || type == 'registered')
+        ? after.get('termsVersion', '')
+        : after.get('healthConsent', {}).get('version', '');
+    }
+    // The receipt that must exist AFTER the same batch: exact id,
+    // owner uid, type, version and server timestamp of THIS request.
+    function receiptMatches(rid, uid, type, version) {
+      return existsAfter(receiptPath(rid))
+        && getAfter(receiptPath(rid)).data.uid == uid
+        && getAfter(receiptPath(rid)).data.type == type
+        && getAfter(receiptPath(rid)).data.version == version
+        && getAfter(receiptPath(rid)).data.at == request.time;
+    }
+
+    // ---------- users ----------
+    match /users/{uid} {
+      allow get: if isSelf(uid) || isOwnerUser();
+      allow list: if isOwnerUser();
+
+      // Registration: own doc only, born unprivileged, with the privacy
+      // consent and the 18+ confirmation the app always records.
+      allow create: if isSelf(uid)
+        && request.resource.data.isOwner == false
+        && request.resource.data.approved == false
+        && request.resource.data.role == 'user'
+        && request.resource.data.acceptedTerms == true
+        && request.resource.data.termsAcceptedAt == request.time
+        && request.resource.data.adultConfirmed == true
+        && !('health' in request.resource.data)
+        && !('healthConsent' in request.resource.data)
+        // A2: registration is the first consent act — it must carry
+        // its 'registered' receipt in the same batch (seq starts at 1).
+        && request.resource.data.consentSeq == 1
+        && request.resource.data.consentReceiptId == uid + '_1'
+        && receiptMatches(uid + '_1', uid, 'registered',
+                          request.resource.data.termsVersion);
+
+      // The trainer may update any user document (approval, goals,
+      // profile, notes) — EXCEPT the client's specific-consent state
+      // and the legacy health answers, which belong to the client
+      // (Decision 7). The console bootstrap is IAM-level and is not
+      // affected by rules.
+      allow update: if isOwnerUser()
+        && !request.resource.data.diff(resource.data).affectedKeys()
+              .hasAny(['healthConsent', 'health', 'consentSeq', 'consentReceiptId']);
+      // A client may update ONLY harmless profile fields of their own doc.
+      allow update: if isSelf(uid)
+        && request.resource.data.diff(resource.data).affectedKeys()
+             .hasOnly(['name', 'phone', 'gender', 'social', 'photoURL']);
+      // Consent withdrawal: a client may revoke THEMSELVES only —
+      // acceptedTerms=false, approved=false, withdrawal timestamp —
+      // and nothing else in the same write. At least one of the two
+      // state flags must actually CHANGE value: a repeat withdrawal
+      // against an already-withdrawn document (only the timestamp
+      // would move) is denied, so the recorded withdrawal date is
+      // never silently overwritten (H-C1 B2, 2026-10-16). The
+      // withdrawal timestamp must be the server time of the request
+      // (H-C1 B1): literal dates are rejected.
+      allow update: if isSelf(uid)
+        && request.resource.data.diff(resource.data).affectedKeys()
+             .hasOnly(['acceptedTerms', 'approved', 'consentWithdrawnAt', 'consentSeq', 'consentReceiptId'])
+        && request.resource.data.diff(resource.data).affectedKeys()
+             .hasAny(['acceptedTerms', 'approved'])
+        && request.resource.data.acceptedTerms == false
+        && request.resource.data.approved == false
+        && request.resource.data.consentWithdrawnAt == request.time
+        // A2: coupled 'general-withdrawn' receipt, seq +1 exactly.
+        && request.resource.data.consentSeq == resource.data.consentSeq + 1
+        && request.resource.data.consentReceiptId == uid + '_' + string(request.resource.data.consentSeq)
+        && receiptMatches(request.resource.data.consentReceiptId, uid,
+                          'general-withdrawn', request.resource.data.termsVersion);
+
+      // Consent renewal: a user may re-grant ONLY their own consent —
+      // acceptedTerms=true with the acceptance timestamp and the
+      // notice version, and NOTHING else in the same write.
+      // affectedKeys() only lists fields whose value actually CHANGES:
+      // termsVersion is therefore allowed to travel but NOT required
+      // to change (a user already on the current version string must
+      // still be able to renew — H-C1 B3-1, 2026-10-16); its resulting
+      // value is still type-checked below.
+      // r4 (18/10/2026): 'acceptedTerms' is likewise NOT required in
+      // affectedKeys — renewing with the consent ALREADY ACTIVE
+      // (true→true, e.g. moving from notice v2 to v3) never changes
+      // its value, and r3 therefore made that renewal impossible.
+      // The renewal act is anchored instead on termsAcceptedAt,
+      // which MUST change (hasAll) and must equal the server time
+      // of the request (H-C1 B1): the app sends serverTimestamp(),
+      // which resolves to request.time, and literal dates (e.g.
+      // 2030) are rejected. The resulting acceptedTerms value is
+      // still required == true below. Approval is not touched: it
+      // stays the trainer's separate decision. The withdrawal
+      // timestamp is preserved as history.
+      allow update: if isSelf(uid)
+        && request.resource.data.diff(resource.data).affectedKeys()
+             .hasOnly(['acceptedTerms', 'termsAcceptedAt', 'termsVersion', 'consentSeq', 'consentReceiptId'])
+        && request.resource.data.diff(resource.data).affectedKeys()
+             .hasAll(['termsAcceptedAt'])
+        && request.resource.data.acceptedTerms == true
+        && request.resource.data.termsAcceptedAt == request.time
+        && request.resource.data.termsVersion is string
+        // A2: coupled 'general-renewed' receipt, seq +1 exactly.
+        // Renewal restores consent only — never approval (untouched
+        // above) and never reactivates blocked declarations.
+        && request.resource.data.consentSeq == resource.data.consentSeq + 1
+        && request.resource.data.consentReceiptId == uid + '_' + string(request.resource.data.consentSeq)
+        && receiptMatches(request.resource.data.consentReceiptId, uid,
+                          'general-renewed', request.resource.data.termsVersion);
+
+      // Specific health consent (metadata only — never answers).
+      // Grant/renew: only the client, a NEW acceptance act: status
+      // accepted, acceptance timestamp == server time, version text;
+      // a previous withdrawal timestamp is preserved as history.
+      allow update: if isSelf(uid)
+        && request.resource.data.diff(resource.data).affectedKeys()
+              .hasOnly(['healthConsent', 'consentSeq', 'consentReceiptId'])
+        && request.resource.data.healthConsent.status == 'accepted'
+        && request.resource.data.healthConsent.acceptedAt == request.time
+        && request.resource.data.healthConsent.version is string
+        && (!('healthConsent' in resource.data)
+            || !('withdrawnAt' in resource.data.healthConsent)
+            || request.resource.data.healthConsent.withdrawnAt
+               == resource.data.healthConsent.withdrawnAt)
+        // A2: grant/renew only from a non-accepted state, with its
+        // coupled receipt ('specific-granted' or 'specific-renewed',
+        // derived from the before/after pair), seq +1 exactly.
+        && (!('healthConsent' in resource.data)
+            || resource.data.healthConsent.status != 'accepted')
+        && request.resource.data.consentSeq == resource.data.consentSeq + 1
+        && request.resource.data.consentReceiptId == uid + '_' + string(request.resource.data.consentSeq)
+        && receiptMatches(request.resource.data.consentReceiptId, uid,
+                          receiptType(resource.data, request.resource.data),
+                          request.resource.data.healthConsent.version);
+      // Withdraw the specific consent: only from an accepted state,
+      // withdrawal timestamp == server time, acceptance preserved.
+      allow update: if isSelf(uid)
+        && request.resource.data.diff(resource.data).affectedKeys()
+              .hasOnly(['healthConsent', 'consentSeq', 'consentReceiptId'])
+        && request.resource.data.healthConsent.status == 'withdrawn'
+        && request.resource.data.healthConsent.withdrawnAt == request.time
+        && resource.data.healthConsent.status == 'accepted'
+        && request.resource.data.healthConsent.acceptedAt
+           == resource.data.healthConsent.acceptedAt
+        // A2: coupled 'specific-withdrawn' receipt, seq +1 exactly.
+        && request.resource.data.consentSeq == resource.data.consentSeq + 1
+        && request.resource.data.consentReceiptId == uid + '_' + string(request.resource.data.consentSeq)
+        && receiptMatches(request.resource.data.consentReceiptId, uid,
+                          'specific-withdrawn',
+                          request.resource.data.healthConsent.version);
+
+      // The trainer deletes user docs (reject flow).
+      allow delete: if isOwnerUser();
+      // A client may delete their OWN user doc (right to erasure,
+      // Block 4) ONLY in the same batch that creates their
+      // 'account-closed' receipt (A2): no closure without receipt,
+      // no receipt without closure.
+      allow delete: if isSelf(uid)
+        && existsAfter(receiptPath(uid))
+        && getAfter(receiptPath(uid)).data.type == 'account-closed'
+        && getAfter(receiptPath(uid)).data.uid == uid
+        && getAfter(receiptPath(uid)).data.at == request.time;
+
+      // ---------- Health declarations (the ANSWERS) ----------
+      // They live outside the general document so that rules can
+      // actually block them (rules authorize whole documents).
+      match /healthDeclarations/{declId} {
+        // The client reads ALL of their own declarations (current and
+        // blocked). The trainer reads ONLY the active one and ONLY
+        // while the client's specific consent is accepted. Nobody
+        // else reads anything.
+        allow get, list: if isSelf(uid)
+          || (isOwnerUser()
+              && resource.data.state == 'active'
+              && get(/databases/$(database)/documents/users/$(uid))
+                   .data.healthConsent.status == 'accepted'
+              && get(/databases/$(database)/documents/users/$(uid))
+                   .data.acceptedTerms == true);
+
+        // Create: only the client, an ACTIVE declaration, and only
+        // with their specific consent currently accepted.
+        allow create: if isSelf(uid)
+          && request.resource.data.state == 'active'
+          && request.resource.data.version is number
+          && request.resource.data.conditions is list
+          && request.resource.data.details is string
+          && request.resource.data.declaredAt == request.time
+          && get(/databases/$(database)/documents/users/$(uid))
+               .data.healthConsent.status == 'accepted';
+
+        // Update the CURRENT declaration: only the client, only its
+        // contents. Blocked declarations are immutable for everyone.
+        allow update: if isSelf(uid)
+          && resource.data.state == 'active'
+          && request.resource.data.state == 'active'
+          && request.resource.data.diff(resource.data).affectedKeys()
+                .hasOnly(['conditions', 'details', 'updatedAt'])
+          && request.resource.data.updatedAt == request.time;
+
+        // Block the current declaration when the specific consent is
+        // withdrawn: only the client, only the state change.
+        allow update: if isSelf(uid)
+          && resource.data.state == 'active'
+          && request.resource.data.state == 'blocked'
+          && request.resource.data.diff(resource.data).affectedKeys()
+                .hasOnly(['state', 'blockedAt'])
+          && request.resource.data.blockedAt == request.time;
+
+        // Delete: only the client, their own declarations.
+        allow delete: if isSelf(uid);
+      }
+    }
+
+    // ---------- Client nutrition data ----------
+    // Create/update require an approved account and own ownerUid.
+    // Delete of one's own documents is allowed regardless of approval
+    // status (erasure must work even after withdrawal/revocation);
+    // nobody can delete another client's documents except the trainer.
+    match /nutrition_meals/{docId} {
+      allow create: if isApprovedUser()
+        && request.resource.data.ownerUid == request.auth.uid;
+      allow get, list: if isOwnerUser()
+        || (isApprovedUser() && resource.data.ownerUid == request.auth.uid);
+      allow update: if isOwnerUser()
+        || (isApprovedUser() && resource.data.ownerUid == request.auth.uid);
+      allow delete: if isOwnerUser()
+        || (signedIn() && resource.data.ownerUid == request.auth.uid);
+    }
+
+    match /nutrition_weight/{docId} {
+      allow create: if isApprovedUser()
+        && request.resource.data.ownerUid == request.auth.uid;
+      allow get, list: if isOwnerUser()
+        || (isApprovedUser() && resource.data.ownerUid == request.auth.uid);
+      allow update: if isOwnerUser()
+        || (isApprovedUser() && resource.data.ownerUid == request.auth.uid);
+      allow delete: if isOwnerUser()
+        || (signedIn() && resource.data.ownerUid == request.auth.uid);
+    }
+
+    match /nutrition_progress/{docId} {
+      // [CONF-1 · candidato aislado confirmaciones 19/10/2026]
+      // Invariante nueva: NINGÚN documento de esta colección
+      // —foto o análisis— puede llevar campos de confirmación
+      // del entrenador ni un status que la afirme. Esos datos
+      // viven SOLO en progress_confirmations (bloque [CONF-2],
+      // a continuación). Sin este candado, un usuario aprobado
+      // podía crear su análisis ya «confirmado», modificar la
+      // confirmación o borrarla actuando directamente contra la
+      // API de Firestore (las sentencias de r4 no distinguían
+      // campos en esta colección).
+      allow create: if isApprovedUser()
+        && request.resource.data.ownerUid == request.auth.uid
+        && !('confirmedBy' in request.resource.data)
+        && !('confirmedAt' in request.resource.data)
+        && !('adjustments' in request.resource.data)
+        && (!('status' in request.resource.data)
+            || (request.resource.data.status != 'confirmada'
+                && request.resource.data.status != 'ajustada'
+                && request.resource.data.status != 'confirmed'
+                && request.resource.data.status != 'adjusted'));
+      allow get, list: if isOwnerUser()
+        || (isApprovedUser() && resource.data.ownerUid == request.auth.uid);
+      // La guarda mira SOLO los campos que la escritura TOCA
+      // (diff().affectedKeys(), el patrón de users en r4):
+      // editar fotos u observaciones propias sin tocar la
+      // confirmación sigue permitido como en r4; tocarla
+      // —añadirla, cambiarla o eliminarla (deleteField)—
+      // queda denegado para TODOS en esta colección, también
+      // para el propietario: su cauce es progress_confirmations.
+      // El status resultante tampoco puede afirmar confirmación.
+      allow update: if (isOwnerUser()
+        || (isApprovedUser() && resource.data.ownerUid == request.auth.uid))
+        && !request.resource.data.diff(resource.data).affectedKeys()
+              .hasAny(['confirmedBy', 'confirmedAt', 'adjustments'])
+        && (!('status' in request.resource.data)
+            || (request.resource.data.status != 'confirmada'
+                && request.resource.data.status != 'ajustada'
+                && request.resource.data.status != 'confirmed'
+                && request.resource.data.status != 'adjusted'));
+      allow delete: if isOwnerUser()
+        || (signedIn() && resource.data.ownerUid == request.auth.uid);
+    }
+
+    // ---------- Progress confirmations (trainer) ----------
+    // [CONF-2 · candidato aislado confirmaciones 19/10/2026]
+    // La confirmación/ajuste del entrenador sobre un análisis
+    // de progreso vive SOLO aquí, como documento separado por
+    // set: id determinista {ownerUid}_{date} (date = yyyy-mm-dd
+    // del set analizado). Es la misma técnica que r4 ya usa
+    // para las declaraciones de salud —viven fuera del
+    // documento general «so that rules can actually block
+    // them»— y para consent_receipts: las reglas autorizan
+    // DOCUMENTOS completos, no campos sueltos, así que la
+    // protección robusta es una colección con escritura solo
+    // del propietario, no una lista de campos dentro del
+    // documento del cliente.
+    // Esquema cerrado (keys().hasOnly, patrón consent_receipts):
+    // ownerUid (cliente dueño del análisis), date,
+    // confirmedBy (== uid de quien confirma: no se puede
+    // atribuir la confirmación a otra persona), confirmedAt
+    // (== request.time; fechas literales denegadas, patrón B1
+    // de este archivo), status ('confirmed' | 'adjusted', en
+    // inglés como el resto de estados de r4: 'active',
+    // 'blocked', 'accepted', 'withdrawn') y adjustments
+    // (mapa con los cambios del entrenador; vacío {} cuando
+    // confirma sin ajustar nada).
+    match /progress_confirmations/{confId} {
+      allow get, list: if isOwnerUser()
+        || (isApprovedUser() && resource.data.ownerUid == request.auth.uid);
+      allow create: if isOwnerUser()
+        && request.resource.data.keys()
+             .hasOnly(['ownerUid', 'date', 'confirmedBy', 'confirmedAt', 'status', 'adjustments'])
+        && request.resource.data.ownerUid is string
+        && request.resource.data.date is string
+        && confId == request.resource.data.ownerUid + '_' + request.resource.data.date
+        && request.resource.data.confirmedBy == request.auth.uid
+        && request.resource.data.confirmedAt == request.time
+        && (request.resource.data.status == 'confirmed'
+            || request.resource.data.status == 'adjusted')
+        && request.resource.data.adjustments is map;
+      // Ajustar = nueva escritura del propietario sobre el
+      // mismo documento: la identidad (id, ownerUid, date) no
+      // puede cambiar, confirmedBy sigue siendo quien escribe
+      // y confirmedAt se renueva al momento del ajuste.
+      allow update: if isOwnerUser()
+        && request.resource.data.keys()
+             .hasOnly(['ownerUid', 'date', 'confirmedBy', 'confirmedAt', 'status', 'adjustments'])
+        && request.resource.data.ownerUid == resource.data.ownerUid
+        && request.resource.data.date == resource.data.date
+        && confId == request.resource.data.ownerUid + '_' + request.resource.data.date
+        && request.resource.data.confirmedBy == request.auth.uid
+        && request.resource.data.confirmedAt == request.time
+        && (request.resource.data.status == 'confirmed'
+            || request.resource.data.status == 'adjusted')
+        && request.resource.data.adjustments is map;
+      // Borrar una confirmación es SOLO del propietario
+      // (purga / cierre de cuenta), como consent_receipts en
+      // r4: el cliente no puede borrar la confirmación que el
+      // entrenador hizo de su análisis.
+      allow delete: if isOwnerUser();
+    }
+
+    match /meal_help/{docId} {
+      allow create: if isApprovedUser()
+        && request.resource.data.ownerUid == request.auth.uid;
+      allow get, list: if isOwnerUser()
+        || (isApprovedUser() && resource.data.ownerUid == request.auth.uid);
+      allow update: if isOwnerUser()
+        || (isApprovedUser() && resource.data.ownerUid == request.auth.uid);
+      allow delete: if isOwnerUser()
+        || (signedIn() && resource.data.ownerUid == request.auth.uid);
+    }
+
+    // ---------- Training (Block 3) ----------
+    // Plans are authored ONLY by the trainer. Clients read their own.
+    match /training_plans/{docId} {
+      allow get, list: if isOwnerUser()
+        || (isApprovedUser() && resource.data.clientUid == request.auth.uid);
+      allow create, update, delete: if isOwnerUser();
+    }
+
+    // Session logs: clients create/delete their own (done/undo);
+    // no updates (the app toggles by create/delete). Trainer reads all.
+    match /training_logs/{docId} {
+      allow create: if isApprovedUser()
+        && request.resource.data.clientUid == request.auth.uid
+        && request.resource.data.done == true;
+      allow get, list: if isOwnerUser()
+        || (isApprovedUser() && resource.data.clientUid == request.auth.uid);
+      allow delete: if isOwnerUser()
+        || (signedIn() && resource.data.clientUid == request.auth.uid);
+    }
+
+    // ---------- Consent receipts (A2) ----------
+    // Append-only proof of consent acts (metadata only — never
+    // answers). A receipt can be created ONLY together with the
+    // real transition it records (checked against the user doc
+    // before AND after the batch), by the account holder about
+    // themselves. Nobody updates receipts; only the owner
+    // deletes them (the retention purge).
+    match /consent_receipts/{rid} {
+      allow get, list: if isOwnerUser()
+        || (signedIn() && resource.data.uid == request.auth.uid);
+
+      allow create: if signedIn()
+        && request.resource.data.keys().hasOnly(['uid', 'email', 'type', 'version', 'at'])
+        && request.resource.data.uid == request.auth.uid
+        && request.resource.data.email is string
+        && request.resource.data.version is string
+        && request.resource.data.at == request.time
+        && (
+          // Closure marker: this same batch deletes the user doc.
+          ( rid == request.auth.uid
+            && request.resource.data.type == 'account-closed'
+            && exists(userPath(request.auth.uid))
+            && request.resource.data.version
+                 == get(userPath(request.auth.uid)).data.get('termsVersion', '')
+            && !existsAfter(userPath(request.auth.uid)) )
+          ||
+          // Registration event: this same batch creates the user doc.
+          ( rid == request.auth.uid + '_1'
+            && request.resource.data.type == 'registered'
+            && !exists(userPath(request.auth.uid))
+            && existsAfter(userPath(request.auth.uid))
+            && getAfter(userPath(request.auth.uid)).data.consentSeq == 1
+            && getAfter(userPath(request.auth.uid)).data.consentReceiptId == rid
+            && request.resource.data.version
+                 == getAfter(userPath(request.auth.uid)).data.termsVersion )
+          ||
+          // Consent transition event: the declared type and version
+          // must equal the transition derived from before/after.
+          ( exists(userPath(request.auth.uid))
+            && existsAfter(userPath(request.auth.uid))
+            && getAfter(userPath(request.auth.uid)).data.consentReceiptId == rid
+            && request.resource.data.type
+                 == receiptType(get(userPath(request.auth.uid)).data,
+                                getAfter(userPath(request.auth.uid)).data)
+            && request.resource.data.version
+                 == receiptVersion(getAfter(userPath(request.auth.uid)).data,
+                                   request.resource.data.type) )
+        );
+
+      allow update: if false;
+      allow delete: if isOwnerUser();
+    }
+
+    // ---------- Everything else: denied ----------
+    match /{document=**} {
+      allow read, write: if false;
+    }
+  }
+}
