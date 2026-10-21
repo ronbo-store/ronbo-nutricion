@@ -152,6 +152,10 @@ en: {
   'repeat.scaled': 'Values recalculated for the new amount (proportional to the original entry).',
   'vs.indicator': 'Metric', 'vs.intake': 'Intake', 'vs.goal': 'Goal', 'vs.progress': 'Progress',
   'metric.kcal': 'CALORIES', 'metric.prot': 'PROTEIN', 'metric.carb': 'CARBS', 'metric.azuc': 'SUGAR', 'metric.gras': 'FAT',
+  'rings.title': 'Metric detail',
+  'rings.contributions': 'Contributions',
+  'rings.ofDay': 'of the day',
+  'rings.noContrib': 'No meal contributed to this metric on this day.',
   'weight.title': '⚖️ Weight progress',
   'weight.sub': '· weekly weigh-in',
   'weight.add': '＋ Log weigh-in',
@@ -789,6 +793,10 @@ es: {
   'repeat.scaled': 'Valores recalculados para la cantidad nueva (proporcionales al registro original).',
   'vs.indicator': 'Indicador', 'vs.intake': 'Consumo', 'vs.goal': 'Meta', 'vs.progress': 'Progreso',
   'metric.kcal': 'CALORÍAS', 'metric.prot': 'PROTEÍNA', 'metric.carb': 'CARBOHIDRATOS', 'metric.azuc': 'AZÚCARES', 'metric.gras': 'GRASAS',
+  'rings.title': 'Detalle de la métrica',
+  'rings.contributions': 'Aportes',
+  'rings.ofDay': 'del día',
+  'rings.noContrib': 'Ninguna comida aportó a esta métrica en este día.',
   'weight.title': '⚖️ Evolución de peso',
   'weight.sub': '· pesaje semanal',
   'weight.add': '＋ Registrar pesaje',
@@ -4122,6 +4130,70 @@ function statusBox(m, val) {
   if (!over) return `<div class="ring-box ok"><b>${t('status.left')}</b>${fmt(diff)} ${m.unit}<br>(${Math.round((1-pct)*100)}% ${t('status.available')})</div>`;
   return `<div class="ring-box over"><b>${t('status.overGoal')}</b>+${fmt(diff)} ${m.unit}<br>(${Math.round((pct-1)*100)}% ${t('status.above')})</div>`;
 }
+/* ============ ANILLOS EN FILA + VENTANA DE DETALLE (Ronald, 2026-10-21) ============
+   La vista diaria ya no apila cinco tarjetas grandes: una FILA en el
+   flujo normal de la página (no flotante) con los 5 anillos pequeños,
+   al estilo visual del dock pero estáticos. Al tocar uno se abre la
+   ventana flotante #ring-detail con el anillo GRANDE de esa métrica
+   (ringSVG + statusBox, los de siempre) y la leyenda de aportes.
+   Sin cambios de datos ni de cálculo: la fila se alimenta de los
+   mismos totales de totals() y la leyenda lee MEALS[fecha], ya
+   cargado — cero lecturas nuevas a Firestore, cero llamadas. */
+/* Campo del registro de comida que alimenta cada métrica. La leyenda
+   es por REGISTRO (momento + texto de alimentos del registro): los
+   documentos guardan totales por registro, no por alimento
+   individual — granularidad honesta, no se inventa el desglose. */
+const MEAL_FIELD = { kcal: 'kcal', prot: 'prot', carb: 'carb', azuc: 'sugar', gras: 'fat' };
+function ringMiniSVG(m, val) {
+  const goal = goalOf(m.key);
+  const C = 2 * Math.PI * 30;
+  if (goal === null) {
+    /* Sin meta: anillo neutro con SOLO el consumo, igual que el grande. */
+    return `<svg class="ring-mini-svg" viewBox="0 0 72 72" aria-hidden="true">
+    <circle cx="36" cy="36" r="30" fill="none" stroke="#E9ECEF" stroke-width="7"/>
+    <text x="36" y="41" text-anchor="middle" font-size="15" font-weight="800" fill="${m.color}">${fmt(val)}</text>
+  </svg>`;
+  }
+  const pct = val / goal;
+  const dash = (Math.min(pct, 1) * C).toFixed(1);
+  return `<svg class="ring-mini-svg" viewBox="0 0 72 72" aria-hidden="true">
+    <circle cx="36" cy="36" r="30" fill="none" stroke="#E9ECEF" stroke-width="7"/>
+    <circle cx="36" cy="36" r="30" fill="none" stroke="${m.color}" stroke-width="7"
+      stroke-linecap="round" stroke-dasharray="${dash} ${C.toFixed(1)}"
+      transform="rotate(-90 36 36)"/>
+    <text x="36" y="41" text-anchor="middle" font-size="16" font-weight="800" fill="${m.color}">${Math.round(pct * 100)}%</text>
+  </svg>`;
+}
+function openRingDetail(key, date) {
+  const m = METRICS.find(x => x.key === key);
+  if (!m) return;
+  const val = totals(date)[m.key];
+  const dayRows = MEALS[date] || [];
+  const contrib = dayRows
+    .map(r => ({ r, v: num(r[MEAL_FIELD[m.key]]) }))
+    .filter(x => x.v > 0)
+    .sort((a, b) => b.v - a.v);
+  const legend = !dayRows.length
+    ? `<p class="ring-detail-empty">${t('track.emptyDay')}</p>`
+    : contrib.length
+      ? `<div class="ring-contrib-list">${contrib.map(({ r, v }) =>
+          `<div class="ring-contrib"><span class="rc-food"><b>${esc(mealName(r.meal))}</b> — ${esc(r.food)}</span><span class="rc-val">${fmt(v)} ${m.unit} · ${val > 0 ? Math.round(v / val * 100) : 0}% ${t('rings.ofDay')}</span></div>`).join('')}
+          <div class="ring-contrib total"><span class="rc-food"><b>TOTAL</b></span><span class="rc-val">${fmt(val)} ${m.unit}</span></div></div>`
+      : `<p class="ring-detail-empty">${t('rings.noContrib')}</p>`;
+  $('ring-detail-title').innerHTML = `${m.icon} ${t('metric.' + m.key)}`;
+  $('ring-detail-body').innerHTML = ringSVG(m, val) + statusBox(m, val) +
+    `<h3 class="ring-contrib-title">${t('rings.contributions')}</h3>` + legend;
+  $('ring-detail-backdrop').style.display = '';
+  $('ring-detail').style.display = '';
+}
+function closeRingDetail() {
+  const d = $('ring-detail'), b = $('ring-detail-backdrop');
+  if (d) d.style.display = 'none';
+  if (b) b.style.display = 'none';
+}
+$('btn-ring-detail-close').addEventListener('click', closeRingDetail);
+$('ring-detail-backdrop').addEventListener('click', closeRingDetail);
+document.addEventListener('keydown', e => { if (e.key === 'Escape') closeRingDetail(); });
 function notesFor(tot) {
   /* Solo se genera la nota de una métrica si TIENE meta fijada: sin
      meta no hay comparación (nada de divisiones por undefined/NaN).
@@ -4213,9 +4285,19 @@ function render(date) {
   }
   const tot = totals(date);
   const vals = { kcal: tot.kcal, prot: tot.prot, carb: tot.carb, azuc: tot.azuc, gras: tot.gras };
-  $('rings').innerHTML = METRICS.map(m =>
-    `<div class="ring-card"><h3>${m.icon} ${t('metric.' + m.key)}</h3>${ringSVG(m, vals[m.key])}${statusBox(m, vals[m.key])}</div>`
-  ).join('');
+  closeRingDetail(); // un re-render (otra fecha, otro idioma) cierra el detalle abierto: no queda ventana con datos de otro día
+  $('rings').innerHTML = METRICS.map(m => {
+    const goal = goalOf(m.key);
+    /* Sub compacto: con meta «consumo/meta» (la unidad solo en gramos;
+       en calorías el rótulo ya dice la métrica y «kcal» no cabe a
+       390 px); sin meta, consumo + unidad, como el anillo grande. */
+    const sub = goal === null
+      ? `${fmt(vals[m.key])} ${m.unit}`
+      : `${fmt(vals[m.key])}/${fmt(goal)}${m.key === 'kcal' ? '' : ' ' + m.unit}`;
+    return `<button type="button" class="ring-mini" data-ring="${m.key}" aria-haspopup="dialog" aria-label="${esc(t('metric.' + m.key))}">${ringMiniSVG(m, vals[m.key])}<span class="ring-mini-name">${t('metric.' + m.key)}</span><span class="ring-mini-sub">${sub}</span></button>`;
+  }).join('');
+  document.querySelectorAll('[data-ring]').forEach(b =>
+    b.onclick = () => openRingDetail(b.dataset.ring, date));
   renderWeekChart(date);
   const rows = MEALS[date] || [];
   let html = rows.map(m =>

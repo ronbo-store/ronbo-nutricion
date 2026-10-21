@@ -316,6 +316,22 @@
     </div>
     <div id="pend-body"><div class="wempty" data-i18n="train.loading">Loading…</div></div>
   </div>
+  <!-- Ventana flotante de detalle de anillo (Ronald, 2026-10-21): al
+       tocar un anillo pequeño de la fila se abre con el anillo GRANDE
+       de esa métrica y la leyenda de aportes por REGISTRO de comida
+       de la fecha seleccionada (los documentos guardan totales por
+       registro, no por alimento: la leyenda no inventa desgloses).
+       Sin lecturas nuevas: se alimenta de las comidas ya cargadas.
+       Mismo lenguaje visual que #pend-float. Cierre: ✕, toque fuera
+       (fondo) o Escape. -->
+  <div class="ring-detail-backdrop" id="ring-detail-backdrop" style="display:none"></div>
+  <div class="ring-detail" id="ring-detail" style="display:none" role="dialog" aria-label="Metric detail" data-i18n-aria="rings.title">
+    <div class="ring-detail-head">
+      <h2 id="ring-detail-title"></h2>
+      <button type="button" class="pend-close" id="btn-ring-detail-close" aria-label="Close" data-i18n-aria="client.close">✕</button>
+    </div>
+    <div id="ring-detail-body"></div>
+  </div>
   <!-- Indicador flotante de análisis M8 (Ronald, 2026-10-21): disco
        con anillo de progreso centrado sobre la pastilla del dock
        mientras dura una llamada del flujo de IA. Pura presentación:
@@ -506,6 +522,6 @@
 
 <div id="toast" class="toast"></div>
 
-<script type="module" src="app.js?v=20261021-resultado-m8"></script>
+<script type="module" src="app.js?v=20261021-anillos"></script>
 </body>
 </html>
