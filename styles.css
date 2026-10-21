@@ -539,10 +539,25 @@ table.whist { min-width: 640px; }
 /* Botón PENDIENTES en alerta: el círculo se pinta con el rojo de
    peligro de la casa — el fondo del toast de error (.toast.err,
    #7f1d1d) — SOLO cuando hay ≥1 pendiente vigente; mismo glifo y
-   misma etiqueta. El anillo de «abierto» acompaña el mismo rojo. */
-#btn-toggle-pend.pend-alert .round-circle { background: #7f1d1d; }
+   misma etiqueta. El anillo de «abierto» acompaña el mismo rojo.
+   FLASHEO DISCRETO (2026-10-21, precisión de Ronald antes de
+   publicar): en alerta y con la tarjeta CERRADA, el botón pulsa un
+   halo suave (box-shadow que se expande y se desvanece, 2.4 s,
+   ease-in-out, infinito). El FONDO del círculo NO se anima: queda
+   #7f1d1d constante. Con la tarjeta abierta el pulso se detiene
+   (manda el anillo estático de «abierto») y con
+   prefers-reduced-motion no hay animación alguna. En teal, nada. */
+#btn-toggle-pend.pend-alert .round-circle { background: #7f1d1d; animation: pend-halo 2.4s ease-in-out infinite; }
 #btn-toggle-pend.pend-alert:active .round-circle { background: #7f1d1d; }
-#btn-toggle-pend.pend-alert[aria-expanded="true"] .round-circle { background: #7f1d1d; box-shadow: 0 0 0 3px #fff, 0 0 0 6px #7f1d1d; }
+#btn-toggle-pend.pend-alert[aria-expanded="true"] .round-circle { background: #7f1d1d; box-shadow: 0 0 0 3px #fff, 0 0 0 6px #7f1d1d; animation: none; }
+@keyframes pend-halo {
+  0% { box-shadow: 0 0 0 0 rgba(127, 29, 29, .35); }
+  70% { box-shadow: 0 0 0 12px rgba(127, 29, 29, 0); }
+  100% { box-shadow: 0 0 0 0 rgba(127, 29, 29, 0); }
+}
+@media (prefers-reduced-motion: reduce) {
+  #btn-toggle-pend.pend-alert .round-circle { animation: none; }
+}
 /* Cabecera propia de la tarjeta (NO reutilizar .summary-head: otros
    componentes lo localizan por primera coincidencia en el DOM). */
 .pend-head { display: flex; align-items: center; gap: 8px 12px; flex-wrap: wrap; margin-bottom: 10px; }
