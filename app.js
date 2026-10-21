@@ -4195,6 +4195,9 @@ $('btn-ring-detail-close').addEventListener('click', closeRingDetail);
 $('ring-detail-backdrop').addEventListener('click', closeRingDetail);
 document.addEventListener('keydown', e => { if (e.key === 'Escape') closeRingDetail(); });
 function notesFor(tot) {
+  /* MOTOR CONSERVADO (2026-10-21): la vista principal ya no lo emite
+     por instrucción de Ronald («por ahora»); la función y sus textos
+     quedan intactos para poder reactivar el bloque. Ver render(). */
   /* Solo se genera la nota de una métrica si TIENE meta fijada: sin
      meta no hay comparación (nada de divisiones por undefined/NaN).
      Sin ninguna meta, la lista queda vacía y render() muestra el
@@ -4318,13 +4321,15 @@ function render(date) {
       const w = Math.min(pct, 1) * 100;
       return `<div class="vsrow"><span>${t('metric.' + m.key)}</span><span><b>${fmt(v)}</b></span><span>${fmt(goal)}</span><span class="bar-track"><div class="bar-fill" style="width:${w.toFixed(0)}%;background:${m.color}"></div></span><span>${Math.round(pct*100)}%</span></div>`;
     }).join('');
-  /* SIN ECO EN NOTAS (Ronald, 2026-10-19: «Esta información está de
-     más»): la tarjeta «Notas» muestra SOLO las frases automáticas de
-     metas. Las notas de cada comida ya NO se vuelcan aquí como lista:
-     viven en su registro y en el formulario de la comida. No se borra
-     ningún dato guardado; es solo presentación. */
-  const dayNotes = notesFor(tot);
-  $('notesList').innerHTML = dayNotes.length ? dayNotes.map(x => `<li>${x}</li>`).join('') : `<li>${t('goals.none')}</li>`;
+  /* SIN BLOQUE «NOTAS» EN LA VISTA PRINCIPAL (Ronald, 2026-10-21:
+     «Por ahora tampoco quiero esto en mi vista principal»): el bloque
+     «📝 Notas» ya NO se emite en esta vista — ni el contenedor en
+     index.html ni esta emisión. Retirada REVERSIBLE («por ahora»):
+     el motor notesFor() y los textos note.* / track.notes se conservan
+     intactos; para reactivarlo basta reponer el <div class="notes">
+     en index.html y la emisión de dos líneas que había aquí. Las
+     notas de cada comida siguen viviendo en su registro y en el
+     formulario de la comida; no se borra ningún dato guardado. */
 
   document.querySelectorAll('[data-repeat-meal]').forEach(b =>
     b.onclick = () => {
