@@ -48,6 +48,9 @@ body { font-family: -apple-system, "Segoe UI", Roboto, Helvetica, Arial, sans-se
 .ring-contrib .rc-food { color: #374151; min-width: 0; }
 .ring-contrib .rc-val { flex: none; font-weight: 700; color: #1f2a44; white-space: nowrap; }
 .ring-contrib.total { border-top: 2px solid #e5e7eb; }
+.ring-top-contrib { text-align: left; font-size: 13px; color: #1f2a44; background: #e6f7f4; border: 1px solid #bfe8df; border-radius: 10px; padding: 8px 10px; margin: 8px 0 2px; }
+.ring-contrib.item { padding-left: 18px; font-size: 12.5px; border-top: 1px dashed #eef1f4; }
+.ring-contrib.item .rc-food { color: #4b5563; }
 .ring-detail-empty { text-align: left; font-size: 13px; color: #6b7280; padding: 8px 0 2px; }
 .ring-svg { width: 150px; height: 150px; }
 .ring-box { margin-top: 10px; border-radius: 8px; padding: 8px 6px; font-size: 12px; line-height: 1.45; }

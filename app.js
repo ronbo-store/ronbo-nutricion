@@ -154,6 +154,7 @@ en: {
   'metric.kcal': 'CALORIES', 'metric.prot': 'PROTEIN', 'metric.carb': 'CARBS', 'metric.azuc': 'SUGAR', 'metric.gras': 'FAT',
   'rings.title': 'Metric detail',
   'rings.contributions': 'Contributions',
+  'rings.topContrib': 'Top contributor',
   'rings.ofDay': 'of the day',
   'rings.noContrib': 'No meal contributed to this metric on this day.',
   'weight.title': '⚖️ Weight progress',
@@ -800,6 +801,7 @@ es: {
   'metric.kcal': 'CALORÍAS', 'metric.prot': 'PROTEÍNA', 'metric.carb': 'CARBOHIDRATOS', 'metric.azuc': 'AZÚCARES', 'metric.gras': 'GRASAS',
   'rings.title': 'Detalle de la métrica',
   'rings.contributions': 'Aportes',
+  'rings.topContrib': 'Mayor aporte',
   'rings.ofDay': 'del día',
   'rings.noContrib': 'Ninguna comida aportó a esta métrica en este día.',
   'weight.title': '⚖️ Evolución de peso',
@@ -2509,6 +2511,11 @@ async function loadAll() {
          source/origin del documento para que repetir sepa de dónde viene
          el original; la renderización ordinaria no cambia. */
       source: v.source || '', origin: v.origin || '',
+      /* Desglose por alimento (2026-10-21): viaja en el propio
+         documento (campo items) cuando el guardado desde el análisis
+         lo persistió; loadAll lo conserva tal cual — la ventana del
+         anillo lo lee de aquí, sin lecturas extra a Firestore. */
+      items: Array.isArray(v.items) ? v.items : null,
       photoURL: v.photoURL || '', photoPath: v.photoPath || '' };
     (MEALS[v.date] = MEALS[v.date] || []).push(m);
   });
@@ -3076,6 +3083,51 @@ function aiOpenMealModal() {
   const f = $('m-food');
   if (f) { try { f.focus({ preventScroll: true }); } catch {} }
 }
+/* ============ DESGLOSE POR ALIMENTO (Ronald, 2026-10-21) ============
+   «Que no coloque la comida completa sino que sepa separar qué
+   elemento provocó el aumento de ese valor»: el cálculo M8 devuelve
+   valores POR ALIMENTO (r2.items), pero hasta hoy solo se guardaban
+   los totales del registro y el desglose se perdía al guardar. Desde
+   ahora, al guardar DESDE EL ANÁLISIS se persiste también el desglose
+   en el propio documento (campo items: nombre + kcal/prot/carb/
+   sugar/fat por alimento), con los valores FINALES que la persona
+   dejó en la pantalla de resultado: el nombre es el corregido por
+   ella (emparejado por orden con r2.items, igual que la lista del
+   resultado), kcal entero como se muestra y el resto a 1 decimal.
+   REGLA DE HONESTIDAD: el desglose SOLO se guarda si su suma iguala
+   los totales que se guardan (las cinco métricas, con la tolerancia
+   de redondeo de la propia pantalla — ±0,5 — porque el panel trabaja
+   con totales enteros). Si la persona editó los totales y ya no
+   cuadra, el registro nace SIN desglose y la leyenda de los anillos
+   cae al modo por registro: nunca se reparte un total entre
+   alimentos a ojo. */
+function aiItemsCandidate() {
+  const r2 = aiState && aiState.r2;
+  if (!r2 || !Array.isArray(r2.items) || !r2.items.length) return null;
+  const known = aiKnownFoods();
+  /* Emparejar por orden exige correspondencia 1:1 con los alimentos
+     conocidos (los mismos que alimentaron el cálculo); sin ella no
+     se puede atribuir cada item a su alimento con certeza. */
+  if (known.length !== r2.items.length) return null;
+  const r1d = x => Math.round(num(x) * 10) / 10;
+  const items = [];
+  for (let i = 0; i < r2.items.length; i++) {
+    const it = r2.items[i];
+    const name = (known[i].name || '').trim();
+    if (!name) return null;
+    items.push({ name, kcal: Math.round(num(it.kcal)), prot: r1d(it.prot), carb: r1d(it.carb), sugar: r1d(it.sugar), fat: r1d(it.fat) });
+  }
+  return items;
+}
+function itemsIfSquare(items, tot) {
+  if (!items || !items.length) return null;
+  const r1d = x => Math.round(x * 10) / 10;
+  for (const k of ['kcal', 'prot', 'carb', 'sugar', 'fat']) {
+    const sum = items.reduce((s, it) => s + num(it[k]), 0);
+    if (Math.abs(r1d(sum) - r1d(num(tot[k]))) > 0.5) return null;
+  }
+  return items;
+}
 /* Refuerzo H-2 (defecto confirmado por Ronald en producción, 2026-10-17:
    tocó «Usar como borrador» y no pasó nada visible): el relleno es campo
    a campo y tolerante a fallos individuales; el modal se abre SIEMPRE,
@@ -3115,7 +3167,10 @@ function aiUseDraft(r1, r2) {
        las notas — ese detalle vive en la pantalla de resultado. El campo
        queda LIMPIO para lo que la persona quiera escribir a mano. */
     set('m-notes', '');
-    aiDraft = { model: (r2 && r2.model) || 'gemini', rangeKcal: Array.isArray(tot.range_kcal) ? tot.range_kcal : null };
+    /* El desglose por alimento viaja como CANDIDATO en el borrador:
+       el guardado del formulario lo valida contra los totales
+       FINALES (itemsIfSquare) antes de persistirlo. */
+    aiDraft = { model: (r2 && r2.model) || 'gemini', rangeKcal: Array.isArray(tot.range_kcal) ? tot.range_kcal : null, items: aiItemsCandidate() };
     try {
       const b = $('m-ai-banner');
       if (b) {
@@ -3169,6 +3224,10 @@ async function aiSaveDirect() {
     source: 'ai',
     ai: { model: (aiState.r2 && aiState.r2.model) || 'gemini', rangeKcal: Array.isArray(tot.range_kcal) ? tot.range_kcal : null }
   };
+  /* Desglose por alimento: solo si su suma iguala los totales que se
+     guardan (regla de honestidad de aiItemsCandidate/itemsIfSquare). */
+  const aiIts = itemsIfSquare(aiItemsCandidate(), data);
+  if (aiIts) data.items = aiIts;
   aiSaving = true; mealSaving = true;
   const btn = $('ai-save'); if (btn) btn.disabled = true;
   try {
@@ -4150,9 +4209,12 @@ function statusBox(m, val) {
    mismos totales de totals() y la leyenda lee MEALS[fecha], ya
    cargado — cero lecturas nuevas a Firestore, cero llamadas. */
 /* Campo del registro de comida que alimenta cada métrica. La leyenda
-   es por REGISTRO (momento + texto de alimentos del registro): los
-   documentos guardan totales por registro, no por alimento
-   individual — granularidad honesta, no se inventa el desglose. */
+   es por ELEMENTO cuando el registro trae desglose GUARDADO (items,
+   persistido al guardar desde el análisis con su suma cuadrada a los
+   totales) y por REGISTRO cuando no lo trae (históricos y manuales):
+   momento + texto completo del registro y su total. Granularidad
+   honesta: jamás se reparte un total entre alimentos sin desglose
+   guardado. */
 const MEAL_FIELD = { kcal: 'kcal', prot: 'prot', carb: 'carb', azuc: 'sugar', gras: 'fat' };
 function ringMiniSVG(m, val) {
   const goal = goalOf(m.key);
@@ -4178,16 +4240,42 @@ function openRingDetail(key, date) {
   const m = METRICS.find(x => x.key === key);
   if (!m) return;
   const val = totals(date)[m.key];
+  const field = MEAL_FIELD[m.key];
   const dayRows = MEALS[date] || [];
   const contrib = dayRows
-    .map(r => ({ r, v: num(r[MEAL_FIELD[m.key]]) }))
+    .map(r => ({ r, v: num(r[field]) }))
     .filter(x => x.v > 0)
     .sort((a, b) => b.v - a.v);
+  const pctOf = v => `${val > 0 ? Math.round(v / val * 100) : 0}% ${t('rings.ofDay')}`;
+  /* Elementos de un registro: SOLO su desglose guardado (items), y
+     solo los que aportan a ESTA métrica, de mayor a menor. */
+  const elemsOf = r => (Array.isArray(r.items) ? r.items : [])
+    .map(it => ({ name: it.name || '', v: num(it[field]) }))
+    .filter(x => x.v > 0)
+    .sort((a, b) => b.v - a.v);
+  /* Mayor aporte del día en esta métrica: el elemento individual más
+     alto entre los registros CON desglose (un registro sin desglose
+     no atribuye su total a ningún elemento). */
+  let top = null;
+  contrib.forEach(({ r }) => elemsOf(r).forEach(e => { if (!top || e.v > top.v) top = { name: e.name, v: e.v, meal: r.meal }; }));
+  const topLine = top
+    ? `<div class="ring-top-contrib">⭐ ${t('rings.topContrib')}: <b>${esc(top.name)}</b> (${esc(mealName(top.meal))}) — ${fmt(top.v)} ${m.unit} · ${pctOf(top.v)}</div>`
+    : '';
   const legend = !dayRows.length
     ? `<p class="ring-detail-empty">${t('track.emptyDay')}</p>`
     : contrib.length
-      ? `<div class="ring-contrib-list">${contrib.map(({ r, v }) =>
-          `<div class="ring-contrib"><span class="rc-food"><b>${esc(mealName(r.meal))}</b> — ${esc(r.food)}</span><span class="rc-val">${fmt(v)} ${m.unit} · ${val > 0 ? Math.round(v / val * 100) : 0}% ${t('rings.ofDay')}</span></div>`).join('')}
+      ? topLine + `<div class="ring-contrib-list">${contrib.map(({ r, v }) => {
+          const elems = elemsOf(r);
+          /* Sin desglose guardado: la línea por registro de siempre. */
+          if (!elems.length)
+            return `<div class="ring-contrib"><span class="rc-food"><b>${esc(mealName(r.meal))}</b> — ${esc(r.food)}</span><span class="rc-val">${fmt(v)} ${m.unit} · ${pctOf(v)}</span></div>`;
+          /* Con desglose: encabezado del registro (momento + su
+             total) y debajo sus elementos, de mayor a menor. */
+          const head = `<div class="ring-contrib"><span class="rc-food"><b>${esc(mealName(r.meal))}</b></span><span class="rc-val">${fmt(v)} ${m.unit} · ${pctOf(v)}</span></div>`;
+          const rows = elems.map(e =>
+            `<div class="ring-contrib item"><span class="rc-food">${esc(e.name)}</span><span class="rc-val">${fmt(e.v)} ${m.unit} · ${pctOf(e.v)}</span></div>`).join('');
+          return head + rows;
+        }).join('')}
           <div class="ring-contrib total"><span class="rc-food"><b>TOTAL</b></span><span class="rc-val">${fmt(val)} ${m.unit}</span></div></div>`
       : `<p class="ring-detail-empty">${t('rings.noContrib')}</p>`;
   $('ring-detail-title').innerHTML = `${m.icon} ${t('metric.' + m.key)}`;
@@ -5053,7 +5141,7 @@ if (btnMealManual) btnMealManual.onclick = () => {
        bloque ai, sin source:'ai' y sin llamada nueva al proveedor;
        el banner del formulario declara la procedencia («Copia de una
        estimación de IA…» / «Copia de otro registro…»). */
-let repeatCtx = null; // {kind, fromId, fromDate, qtyText, scaledTo, base:{num,unit,kcal,prot,carb,sugar,fat}} — solo memoria
+let repeatCtx = null; // {kind, fromId, fromDate, qtyText, scaledTo, base:{num,unit,kcal,prot,carb,sugar,fat}, items} — solo memoria
 function repeatParseQty(q) {
   const m = String(q || '').trim().replace(',', '.').match(/^(\d+(?:\.\d+)?)\s*(.*)$/);
   if (!m) return null;
@@ -5128,7 +5216,13 @@ function openRepeatMeal(rec, viewDate) {
     fromId: rec.id || '', fromDate: rec.date || viewDate || '',
     qtyText: rec.qty || '',
     scaledTo: pq ? pq.num : null,
-    base: pq ? { num: pq.num, unit: pq.unit, pieces: pq.pieces, kcal: num(rec.kcal), prot: num(rec.prot), carb: num(rec.carb), sugar: num(rec.sugar), fat: num(rec.fat) } : null
+    base: pq ? { num: pq.num, unit: pq.unit, pieces: pq.pieces, kcal: num(rec.kcal), prot: num(rec.prot), carb: num(rec.carb), sugar: num(rec.sugar), fat: num(rec.fat) } : null,
+    /* El desglose del original viaja TAL CUAL como candidato: la
+       copia lo persiste solo si los totales finales siguen
+       cuadrando con él (misma regla de honestidad del análisis:
+       si la cantidad se reescala, los totales cambian y el desglose
+       sin tocar ya no cuadra — la copia nace sin él). */
+    items: (Array.isArray(rec.items) && rec.items.length) ? rec.items.map(it => ({ ...it })) : null
   };
   repeatAttachScaling();
   repeatSetBanner();
@@ -5184,6 +5278,14 @@ $('form-meal').addEventListener('submit', async e => {
        la ruta de IA es incompatible (aiClearDraft y repeatCtx nunca
        conviven: repetir limpia el borrador y viceversa). */
     if (repeatCtx) data.origin = { kind: repeatCtx.kind, fromId: repeatCtx.fromId, fromDate: repeatCtx.fromDate };
+    /* Desglose por alimento (2026-10-21): el candidato viene del
+       borrador de análisis o de la repetición, y SOLO se persiste si
+       su suma sigue igualando los totales FINALES del formulario —
+       cualquier edición que descuadre lo descarta en silencio y el
+       registro queda en el modo por registro de siempre. */
+    const candItems = (aiDraft && aiDraft.items) || (repeatCtx && repeatCtx.items) || null;
+    const formIts = itemsIfSquare(candItems, data);
+    if (formIts) data.items = formIts;
     const wasDraft = !!aiDraft;
     await addDoc(collection(db, 'nutrition_meals'), data);
     aiClearDraft();
