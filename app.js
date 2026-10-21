@@ -623,6 +623,8 @@ en: {
   'pend.mealDetail': 'Reminder you set for {time}',
   'pend.goMeal': 'Log {meal}',
   'pend.weightTitle': 'You haven\'t logged your weight yet for this period.',
+  'pend.weightTitlePastYday': 'Yesterday you didn\'t log your weight.',
+  'pend.weightTitlePastDate': 'On {date} you didn\'t log your weight.',
   'pend.weightDetail': 'Last log: {when} · your frequency: {freq}',
   'pend.weightNever': 'no weigh-in yet',
   'pend.daysAgo': '{d} days ago',
@@ -630,6 +632,8 @@ en: {
   'pend.yesterday': 'yesterday',
   'pend.goWeight': 'Log weigh-in',
   'pend.trainTitle': 'You have a training session scheduled that you haven\'t logged yet.',
+  'pend.trainTitlePastYday': 'Yesterday you didn\'t log your training.',
+  'pend.trainTitlePastDate': 'On {date} you didn\'t log your training.',
   'pend.goTraining': 'Go to my training',
   'pend.evalTitle': 'Your progress evaluation was due on {date}.',
   'pend.evalMissing': 'Still missing (required): {items}',
@@ -640,6 +644,7 @@ en: {
   'pend.snooze.tomorrowSame': 'Tomorrow at this time ({time})',
   'pend.snooze.tomorrow9': 'Tomorrow at 09:00',
   'pend.omitOccasion': 'Not applicable today',
+  'pend.omitOccasionPast': 'Wasn\'t applicable',
   'pend.discard': 'Discard',
   'pend.discardConfirm': 'Discard this training pending? It will be recorded as discarded by you.',
   'pend.traceTitle': 'States',
@@ -1264,6 +1269,8 @@ es: {
   'pend.mealDetail': 'Aviso que fijaste para las {time}',
   'pend.goMeal': 'Registrar {meal}',
   'pend.weightTitle': 'Aún no has registrado tu peso en este periodo.',
+  'pend.weightTitlePastYday': 'Ayer no registraste tu peso.',
+  'pend.weightTitlePastDate': 'El {date} no registraste tu peso.',
   'pend.weightDetail': 'Último registro: {when} · tu frecuencia: {freq}',
   'pend.weightNever': 'sin pesaje aún',
   'pend.daysAgo': 'hace {d} días',
@@ -1271,6 +1278,8 @@ es: {
   'pend.yesterday': 'ayer',
   'pend.goWeight': 'Registrar pesaje',
   'pend.trainTitle': 'Tienes una sesión de entrenamiento programada que aún no has registrado.',
+  'pend.trainTitlePastYday': 'Ayer no registraste tu entrenamiento.',
+  'pend.trainTitlePastDate': 'El {date} no registraste tu entrenamiento.',
   'pend.goTraining': 'Ir a mi entrenamiento',
   'pend.evalTitle': 'Tu evaluación de progreso vencía el {date}.',
   'pend.evalMissing': 'Falta (requerido): {items}',
@@ -1281,6 +1290,7 @@ es: {
   'pend.snooze.tomorrowSame': 'Mañana a esta hora ({time})',
   'pend.snooze.tomorrow9': 'Mañana a las 09:00',
   'pend.omitOccasion': 'Hoy no corresponde',
+  'pend.omitOccasionPast': 'No correspondía',
   'pend.discard': 'Descartar',
   'pend.discardConfirm': '¿Descartar este pendiente de entrenamiento? Quedará registrado como descartado por ti.',
   'pend.traceTitle': 'Estados',
@@ -5322,6 +5332,12 @@ let PEND_UI = { configOpen: false, floatOpen: false };
 let MY_PLAN = null, MY_LOGS = [];   // los rellena loadMyTraining()
 
 const PEND_MEAL_NAMES = ['Desayuno', 'Almuerzo', 'Cena', 'Merienda', 'Snack'];
+/* Comidas «principales» (instrucción de Ronald, 2026-10-21): las
+   únicas que generan pendiente. Los nombres se guardan siempre en
+   su forma canónica ES (la configuración itera PEND_MEAL_NAMES),
+   así que la clase se decide por nombre, sin depender del idioma;
+   cualquier nombre fuera de esta lista se trata como no principal. */
+const PEND_MAIN_MEALS = ['Desayuno', 'Almuerzo', 'Cena'];
 function pendCfgRef() { return doc(db, 'nutrition_progress', `${auth.currentUser.uid}_pendconfig`); }
 function pendStateRef() { return doc(db, 'nutrition_progress', `${auth.currentUser.uid}_pendstate`); }
 function pendDefaults() {
@@ -5424,9 +5440,15 @@ function pendCompute() {
     else if (it.date >= traceFrom || c.st === 'snoozed') out.traces.push({ kind: c.st, item: it, mk: c.mk, label: labelOf(it) });
   };
 
-  /* Comidas — una ocasión por comida configurada y día de registro. */
-  (cfg.meals || []).filter(m => m && m.on).forEach(m => {
-    for (let d = start; d <= regDay; d = addDaysISO(d, 1)) {
+  /* Comidas — SOLO las principales (Desayuno, Almuerzo, Cena) y SOLO
+     del día de registro en curso (instrucción de Ronald, 2026-10-21:
+     «los recordatorios inmediatos tengan que ver con las comidas
+     principales, luego que correspondan al día»). Merienda, Snack o
+     cualquier otro nombre NO generan pendiente aunque estén activos,
+     y una ocasión de un día pasado ya no se emite: ni tarjeta ni
+     contador; sus marcas quedan en el estado, sin efecto visible. */
+  (cfg.meals || []).filter(m => m && m.on && PEND_MAIN_MEALS.includes(m.name)).forEach(m => {
+    for (let d = regDay; d <= regDay; d = addDaysISO(d, 1)) {
       if (pendMealWhen(d, m.time, cfg.cutoff) > now) continue;
       const it = { id: `meal|${m.name}|${d}`, type: 'meal', meal: m.name, time: m.time, date: d, overdue: d < regDay, age: pendDaysBetween(d, regDay) };
       if ((MEALS[d] || []).some(x => x.meal === m.name)) {
@@ -5592,19 +5614,29 @@ function pendDockTick() {
 /* ---------- render del panel ---------- */
 function pendMealLabel(name) { return t('pend.mealName.' + name); }
 function pendItemHTML(it, regDay) {
-  const tag = it.date !== regDay ? ` · ${esc(pendDateTag(it.date, regDay))}` : '';
+  /* Tarjeta VENCIDA (su fecha es anterior al día de registro): el
+     título lleva la fecha en pasado (rama de cada tipo) y la línea
+     secundaria ya no añade el sufijo «· ayer» / «· <fecha>» — la
+     fecha manda en el título (hallazgo de Ronald, 2026-10-21: la
+     tarjeta en presente con el «ayer» escondido se leía como
+     contradicción junto a «Estados: … registrado ✓» de hoy). */
+  const tag = it.overdue ? '' : (it.date !== regDay ? ` · ${esc(pendDateTag(it.date, regDay))}` : '');
   let title = '', detail = '', go = '';
   if (it.type === 'meal') {
     title = t('pend.mealTitle', { meal: pendMealLabel(it.meal) });
     detail = `${esc(t('pend.mealDetail', { time: it.time }))}${tag}`;
     go = `<button type="button" class="btn-primary btn-sm" data-pend-act="go" data-type="meal" data-date="${it.date}" data-meal="${esc(it.meal)}">${esc(t('pend.goMeal', { meal: pendMealLabel(it.meal) }))}</button>`;
   } else if (it.type === 'weight') {
-    title = t('pend.weightTitle');
+    title = !it.overdue ? t('pend.weightTitle')
+      : it.age === 1 ? t('pend.weightTitlePastYday')
+      : t('pend.weightTitlePastDate', { date: dateName(it.date) });
     const when = it.lastWeigh ? (it.lastWeigh === regDay ? t('pend.todayWord') : t('pend.daysAgo', { d: pendDaysBetween(it.lastWeigh, regDay) })) : t('pend.weightNever');
     detail = `${esc(t('pend.weightDetail', { when, freq: t('pend.freq.' + it.freq) }))}${tag}`;
     go = `<button type="button" class="btn-primary btn-sm" data-pend-act="go" data-type="weight" data-date="${it.date}">${esc(t('pend.goWeight'))}</button>`;
   } else if (it.type === 'training') {
-    title = t('pend.trainTitle');
+    title = !it.overdue ? t('pend.trainTitle')
+      : it.age === 1 ? t('pend.trainTitlePastYday')
+      : t('pend.trainTitlePastDate', { date: dateName(it.date) });
     detail = `${esc(dateName(it.date))}${it.overdue ? ` · ${esc(t('pend.daysAgo', { d: it.age }))}` : ''}`;
     go = `<button type="button" class="btn-primary btn-sm" data-pend-act="go" data-type="training" data-date="${it.date}">${esc(t('pend.goTraining'))}</button>`;
   } else if (it.type === 'eval') {
@@ -5622,7 +5654,7 @@ function pendItemHTML(it, regDay) {
     ['tomorrow9', t('pend.snooze.tomorrow9')]
   ].map(([v, l]) => `<option value="${v}">${esc(l)}</option>`).join('');
   const snooze = it.type === 'eval' ? '' : `<label class="pend-snooze"><span>${esc(t('pend.snooze'))}</span><select data-pend-snooze="${esc(it.id)}"><option value="">—</option>${opts}</select></label>`;
-  const omit = it.type === 'eval' ? '' : `<button type="button" class="btn-ghost btn-sm" data-pend-act="omit" data-id="${esc(it.id)}">${esc(t('pend.omitOccasion'))}</button>`;
+  const omit = it.type === 'eval' ? '' : `<button type="button" class="btn-ghost btn-sm" data-pend-act="omit" data-id="${esc(it.id)}">${esc(t(it.overdue ? 'pend.omitOccasionPast' : 'pend.omitOccasion'))}</button>`;
   const discard = it.canDiscard ? `<button type="button" class="btn-ghost btn-sm pend-danger" data-pend-act="discard" data-id="${esc(it.id)}">${esc(t('pend.discard'))}</button>` : '';
   return `<div class="pend-item${it.overdue ? ' pend-overdue' : ''}" data-pend-item="${esc(it.id)}">
     <p class="pend-text"><b>${esc(title)}</b><br><span class="pend-detail">${detail}</span></p>
