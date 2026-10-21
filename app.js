@@ -90,7 +90,7 @@ en: {
   'health.clientTitle': '🏥 Client health declaration',
   'health.regNote': 'You can complete your health declaration later, in your profile, with its own specific consent. It is not required to create your account.',
   'card.toggle': 'Show or hide section',
-  'main.progress': 'Progress', 'main.food': 'Food', 'main.training': 'Training',
+  'main.progress': 'Progress', 'main.food': 'Food', 'main.training': 'Training', 'main.pendings': 'Pendings',
   'health.panelTitle': '🏥 My health declaration',
   'health.specText': 'I give my SPECIFIC consent for ronbo.nutri to process my health declaration so my trainer can adapt my program and take precautions. Only my trainer and I can see it. I can withdraw this consent at any time: withdrawal blocks my trainer\'s access to my answers, but does not delete them.',
   'health.statusNone': 'You have not given specific consent for health data. Without it, no declaration is collected and your trainer cannot see any health answers.',
@@ -727,7 +727,7 @@ es: {
   'health.clientTitle': '🏥 Declaración de salud del cliente',
   'health.regNote': 'Puedes completar tu declaración de salud más tarde, en tu perfil, con su propio consentimiento específico. No es necesaria para crear tu cuenta.',
   'card.toggle': 'Mostrar u ocultar la sección',
-  'main.progress': 'Progreso', 'main.food': 'Comida', 'main.training': 'Entrenamiento',
+  'main.progress': 'Progreso', 'main.food': 'Comida', 'main.training': 'Entrenamiento', 'main.pendings': 'Pendientes',
   'health.panelTitle': '🏥 Mi declaración de salud',
   'health.specText': 'Doy mi consentimiento ESPECÍFICO para que ronbo.nutri trate mi declaración de salud, para que mi entrenador adapte mi programa y tome precauciones. Solo mi entrenador y yo podemos verla. Puedo retirar este consentimiento cuando quiera: la retirada bloquea el acceso de mi entrenador a mis respuestas, pero no las elimina.',
   'health.statusNone': 'No has dado tu consentimiento específico para datos de salud. Sin él, no se recoge ninguna declaración y tu entrenador no puede ver ninguna respuesta de salud.',
@@ -5140,6 +5140,17 @@ applyI18n();
      D6 — Corte del día: 04:00 como SUGERENCIA por usuario que cada
           quien confirma o cambia (decidido 2026-10-20); nunca una
           regla universal impuesta.
+   PRESENTACIÓN (2026-10-21, pedido expreso de Ronald): el panel en
+   línea SALE de «Mi registro» (D2 queda histórico en ese punto). Los
+   pendientes viven SOLO en el cuarto botón del dock flotante
+   (PENDIENTES, idéntico a los otros tres) y en su tarjeta flotante
+   #pend-float, que la página no aloja en su flujo. El botón se
+   pinta ROJO (#7f1d1d, el rojo de peligro de la casa: fondo del
+   toast de error) cuando pendCompute() lista ≥1 pendiente vigente,
+   y vuelve a teal al resolverse; el error de carga y la falta de
+   activación NUNCA se pintan de rojo ni se disfrazan de «sin
+   pendientes». Sin cambios de semántica, de cómputo ni de
+   persistencia: solo cambia dónde y cómo se presenta.
    D7/D8/D9 están MOOT: el sistema de evaluaciones desplegado ya los
    resolvió; este módulo NO reimplementa el ciclo — solo REFLEJA su
    pendiente en el panel cuando el ciclo tiene fecha prevista.
@@ -5179,7 +5190,7 @@ applyI18n();
    ================================================================== */
 let PEND_CFG = null;            // null = aún no cargado; {activated:false} = sin activar
 let PEND_STATE = { marks: {} }; // marcas por ocasión (pospuesto/omitido/descartado)
-let PEND_UI = { configOpen: false };
+let PEND_UI = { configOpen: false, floatOpen: false };
 let MY_PLAN = null, MY_LOGS = [];   // los rellena loadMyTraining()
 
 const PEND_MEAL_NAMES = ['Desayuno', 'Almuerzo', 'Cena', 'Merienda', 'Snack'];
@@ -5413,6 +5424,43 @@ function pendDraftRestore() {
 }
 { const fm = document.getElementById('form-meal'); if (fm) fm.addEventListener('input', () => { try { pendDraftSave(); } catch {} }); }
 
+/* ---------- botón PENDIENTES del dock y tarjeta flotante --------
+   El color del botón es SOLO un reflejo del cómputo local: rojo
+   #7f1d1d (fondo del toast de error) si pendCompute() lista ≥1
+   pendiente vigente; teal en cualquier otro caso. El error de
+   carga (PEND_CFG.__error) y el estado sin activar devuelven 0 a
+   propósito: el botón no finge «sin pendientes» con rojo ni con
+   ninguna otra señal — al abrir la tarjeta se ve el estado real. */
+function pendActiveCount() {
+  const cfg = PEND_CFG;
+  if (!cfg || cfg.__error || !cfg.activated) return 0;
+  try { return pendCompute().items.length; } catch { return 0; }
+}
+function pendSyncDock() {
+  const b = $('btn-toggle-pend'); if (!b) return;
+  b.classList.toggle('pend-alert', pendActiveCount() > 0);
+}
+function pendSetFloat(open) {
+  PEND_UI.floatOpen = !!open;
+  const f = $('pend-float'), b = $('btn-toggle-pend');
+  if (f) f.style.display = open ? '' : 'none';
+  if (b) b.setAttribute('aria-expanded', String(!!open));
+  /* Al abrir se refresca el contenido, salvo si hay un formulario
+     de pendientes en pantalla (activación o configuración): un
+     re-render lo reiniciaría y perdería lo tecleado sin guardar. */
+  if (open && !document.getElementById('pc-cutoff')) renderPendings();
+  pendSyncDock();
+}
+/* Recálculo sin recargar (al volver a primer plano y cada 60 s):
+   pinta el botón a la hora en punto de un pendiente y refresca la
+   lista si la tarjeta está abierta, sin tocar formularios. Solo
+   cómputo local: ninguna lectura de red nueva. */
+function pendDockTick() {
+  if (!auth.currentUser || !PEND_CFG) return;
+  if (PEND_UI.floatOpen && !document.getElementById('pc-cutoff')) renderPendings();
+  pendSyncDock();
+}
+
 /* ---------- render del panel ---------- */
 function pendMealLabel(name) { return t('pend.mealName.' + name); }
 function pendItemHTML(it, regDay) {
@@ -5488,8 +5536,8 @@ function renderPendings() {
   const body = $('pend-body'); if (!body) return;
   const count = $('pend-count'), cfgBtn = $('btn-pend-config');
   const cfg = PEND_CFG;
-  if (!cfg) { body.innerHTML = `<div class="wempty">${esc(t('train.loading'))}</div>`; return; }
-  if (cfg.__error) { body.innerHTML = `<p class="progress-hint">${esc(t('pend.loadError'))}</p>`; if (count) count.style.display = 'none'; if (cfgBtn) cfgBtn.style.display = 'none'; return; }
+  if (!cfg) { body.innerHTML = `<div class="wempty">${esc(t('train.loading'))}</div>`; pendSyncDock(); return; }
+  if (cfg.__error) { body.innerHTML = `<p class="progress-hint">${esc(t('pend.loadError'))}</p>`; if (count) count.style.display = 'none'; if (cfgBtn) cfgBtn.style.display = 'none'; pendSyncDock(); return; }
   if (!cfg.activated) {
     if (count) count.style.display = 'none';
     if (cfgBtn) cfgBtn.style.display = 'none';
@@ -5497,12 +5545,14 @@ function renderPendings() {
        que el usuario ya guardó si desactivó antes (no se le borra
        su configuración al apagar). */
     body.innerHTML = pendCfgFormHTML(cfg.meals ? cfg : pendDefaults(), true);
+    pendSyncDock();
     return;
   }
   if (cfgBtn) cfgBtn.style.display = '';
   if (PEND_UI.configOpen) {
     if (count) count.style.display = 'none';
     body.innerHTML = pendCfgFormHTML(cfg, false);
+    pendSyncDock();
     return;
   }
   const { items, traces, regDay } = pendCompute();
@@ -5537,6 +5587,7 @@ function renderPendings() {
     html += `<div class="pend-traces"><p class="pend-cfg-h">${esc(t('pend.traceTitle'))}</p><ul>${lines}</ul></div>`;
   }
   body.innerHTML = html;
+  pendSyncDock();
 }
 
 /* ---------- acciones del panel ---------- */
@@ -5553,6 +5604,22 @@ function pendReadForm() {
 }
 { const b = document.getElementById('btn-pend-config');
   if (b) b.onclick = () => { PEND_UI.configOpen = !PEND_UI.configOpen; renderPendings(); }; }
+{ const b = document.getElementById('btn-toggle-pend');
+  if (b) b.onclick = () => pendSetFloat(!PEND_UI.floatOpen); }
+{ const c = document.getElementById('btn-pend-close');
+  if (c) c.onclick = () => pendSetFloat(false); }
+/* Cierre tocando fuera de la tarjeta (el botón del dock se excluye:
+   su propio onclick ya alterna). */
+document.addEventListener('click', e => {
+  if (!PEND_UI.floatOpen) return;
+  const f = $('pend-float'), b = $('btn-toggle-pend');
+  if (f && f.contains(e.target)) return;
+  if (b && b.contains(e.target)) return;
+  pendSetFloat(false);
+});
+document.addEventListener('keydown', e => { if (e.key === 'Escape' && PEND_UI.floatOpen) pendSetFloat(false); });
+document.addEventListener('visibilitychange', () => { if (!document.hidden) { try { pendDockTick(); } catch {} } });
+setInterval(() => { try { pendDockTick(); } catch {} }, 60000);
 { const body = document.getElementById('pend-body');
   if (body) {
     body.addEventListener('change', e => {
@@ -5585,11 +5652,15 @@ function pendReadForm() {
         if (!confirm(t('pend.draftDiscardConfirm'))) return;
         pendDraftClear(); renderPendings();
       } else if (act === 'draft-continue') {
+        pendSetFloat(false);
         aiClearDraft(); repeatClear();
         const form = $('form-meal'); if (form) form.reset();
         pendDraftArm(); pendDraftRestore();
         aiOpenMealModal();
       } else if (act === 'go') {
+        /* «Ir a…» navega fuera de la tarjeta: se cierra para dejar
+           ver el destino (modal de comida/peso o sección expandida). */
+        pendSetFloat(false);
         const type = b.dataset.type, date = b.dataset.date;
         if (type === 'meal') {
           aiClearDraft(); repeatClear();

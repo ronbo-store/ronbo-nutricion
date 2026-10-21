@@ -529,8 +529,21 @@ table.whist { min-width: 640px; }
 .fa-ownres { margin-top: 12px; font-size: 13.5px; color: #1f2a44; background: #f0fdf9; border: 1px solid #99e5d8; border-radius: 8px; padding: 9px 11px; line-height: 1.5; }
 
 /* ===== Pendientes (REC-D, fase 1) ===== */
-.pend-panel { margin-top: 14px; }
-/* Cabecera propia del panel (NO reutilizar .summary-head: otros
+/* Tarjeta flotante (2026-10-21, pedido de Ronald): los pendientes
+   viven SOLO aquí y en su botón del dock; la tarjeta flota sobre la
+   página, anclada centrada justo encima de la pastilla (z 45: sobre
+   el dock 40, bajo el modal 50 y el toast 99), con su propio scroll
+   interno — la página principal no crece. */
+.pend-float { position: fixed; left: 50%; transform: translateX(-50%); bottom: calc(env(safe-area-inset-bottom, 0px) + 140px); z-index: 45; width: min(430px, calc(100vw - 24px)); box-sizing: border-box; background: #fff; border: 1px solid rgba(15, 23, 42, .08); border-radius: 18px; box-shadow: 0 14px 34px rgba(15, 23, 42, .22); padding: 14px 16px; max-height: calc(100dvh - 172px); overflow-y: auto; }
+.pend-close { margin-left: auto; flex: none; width: 30px; height: 30px; border-radius: 50%; border: 1px solid #e5e7eb; background: #fff; color: #374151; font-size: 14px; line-height: 1; cursor: pointer; font-family: inherit; }
+/* Botón PENDIENTES en alerta: el círculo se pinta con el rojo de
+   peligro de la casa — el fondo del toast de error (.toast.err,
+   #7f1d1d) — SOLO cuando hay ≥1 pendiente vigente; mismo glifo y
+   misma etiqueta. El anillo de «abierto» acompaña el mismo rojo. */
+#btn-toggle-pend.pend-alert .round-circle { background: #7f1d1d; }
+#btn-toggle-pend.pend-alert:active .round-circle { background: #7f1d1d; }
+#btn-toggle-pend.pend-alert[aria-expanded="true"] .round-circle { background: #7f1d1d; box-shadow: 0 0 0 3px #fff, 0 0 0 6px #7f1d1d; }
+/* Cabecera propia de la tarjeta (NO reutilizar .summary-head: otros
    componentes lo localizan por primera coincidencia en el DOM). */
 .pend-head { display: flex; align-items: center; gap: 8px 12px; flex-wrap: wrap; margin-bottom: 10px; }
 .pend-head h2 { margin-bottom: 0; }

@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>ronbo.nutri · Private</title>
 <meta name="robots" content="noindex, nofollow">
-<link rel="stylesheet" href="styles.css?v=20261021-integrado">
+<link rel="stylesheet" href="styles.css?v=20261021-integrado-dock">
 <script type="importmap">
 {
   "imports": {
@@ -140,19 +140,10 @@
     <select id="dateSel"></select>
   </div>
 
-  <!-- Panel «Pendientes» (REC-D, fase 1 — solo dentro de la app):
-       vive en «Mi registro», agrupa lo que falta por REGISTRAR
-       (comidas, peso, entrenamiento y el ciclo de evaluación) con
-       contador. Nada nace sin activación confirmada por el usuario;
-       su configuración y sus marcas viven en nutrition_progress
-       (kind pendConfig / pendState). Sin notificaciones externas. -->
-  <div class="panel pend-panel" id="pend-panel">
-    <div class="pend-head">
-      <h2><span data-i18n="pend.title">🔔 Pendings</span> <span class="pend-count" id="pend-count" style="display:none"></span></h2>
-      <button type="button" class="btn-secondary meal-manual-pill" id="btn-pend-config" style="display:none" data-i18n="pend.configBtn">⚙️ Set up reminders</button>
-    </div>
-    <div id="pend-body"><div class="wempty" data-i18n="train.loading">Loading…</div></div>
-  </div>
+  <!-- Pendientes (REC-D, fase 1): desde 2026-10-21 (pedido de Ronald)
+       ya NO viven en una sección de «Mi registro»: se alojan SOLO en
+       el botón PENDIENTES del dock flotante y su tarjeta flotante
+       (#pend-float, junto al dock, abajo). La página no crece. -->
 
   <div id="err"></div>
   <div class="rings" id="rings"></div>
@@ -304,7 +295,26 @@
       <button type="button" class="round-action" id="btn-toggle-progress" aria-expanded="false" aria-label="My progress" data-i18n-aria="progress.title"><span class="round-circle" aria-hidden="true"><svg width="36" height="36" viewBox="0 0 48 48" fill="#fff" aria-hidden="true" focusable="false"><rect x="9" y="32" width="6" height="7" rx="1.5"/><rect x="17.5" y="27" width="6" height="12" rx="1.5"/><rect x="26" y="22" width="6" height="17" rx="1.5"/><rect x="28.5" y="15" width="13" height="4.6" rx="2.3" transform="rotate(-45 35 17.3)"/><polygon points="31.5,6.8 44,6.8 44,19.3"/></svg></span><span class="round-label"><span data-i18n="main.progress">Progress</span> <span class="round-chev" id="chev-progress" aria-hidden="true">▾</span></span></button>
       <label class="round-action" id="btn-round-food" aria-label="Analyze the food" data-i18n-aria="ai.analyze"><span class="round-circle" aria-hidden="true"><svg width="36" height="36" viewBox="0 0 48 48" fill="#fff" aria-hidden="true" focusable="false"><circle cx="24" cy="18.8" r="2.8"/><path d="M9 36 A15 15 0 0 1 39 36 Z"/><rect x="5.5" y="37.6" width="37" height="3.6" rx="1.8"/></svg></span><span class="round-label" data-i18n="main.food">Food</span><input type="file" id="ai-file" accept="image/*" capture="environment" style="display:none"></label>
       <button type="button" class="round-action" id="btn-toggle-train" aria-expanded="false" aria-label="My training plan" data-i18n-aria="train.title"><span class="round-circle" aria-hidden="true"><svg width="36" height="36" viewBox="0 0 48 48" fill="#fff" aria-hidden="true" focusable="false"><rect x="6" y="22.2" width="36" height="3.6" rx="1.8"/><rect x="9.5" y="17.5" width="4.6" height="13" rx="2"/><rect x="16.4" y="13.5" width="5" height="21" rx="2.2"/><rect x="26.6" y="13.5" width="5" height="21" rx="2.2"/><rect x="33.9" y="17.5" width="4.6" height="13" rx="2"/></svg></span><span class="round-label"><span data-i18n="main.training">Training</span> <span class="round-chev" id="chev-train" aria-hidden="true">▾</span></span></button>
+      <button type="button" class="round-action" id="btn-toggle-pend" aria-expanded="false" aria-label="Pendings" data-i18n-aria="main.pendings"><span class="round-circle" aria-hidden="true"><svg width="36" height="36" viewBox="0 0 48 48" fill="#fff" aria-hidden="true" focusable="false"><circle cx="24" cy="7.5" r="2.7"/><path d="M24 11.5c-6.4 0-10.8 4.7-10.8 11.2 0 4.9-1 7.2-2.6 9.4-.5.7-.1 1.7.8 1.7h25.2c.9 0 1.3-1 .8-1.7-1.6-2.2-2.6-4.5-2.6-9.4 0-6.5-4.4-11.2-10.8-11.2z"/><rect x="8.5" y="35.6" width="31" height="3.6" rx="1.8"/><circle cx="24" cy="42.6" r="3"/></svg></span><span class="round-label" data-i18n="main.pendings">Pendings</span></button>
     </div>
+  </div>
+  <!-- Tarjeta flotante de Pendientes (REC-D): vive junto al dock,
+       dentro de #tab-track (al cambiar de pestaña no se renderiza),
+       y FLOTA sobre la página justo encima de la pastilla — la
+       página principal no crece. Aloja TODO lo del antiguo panel en
+       línea: cabecera (título, contador, «Configurar») con cierre ✕
+       y #pend-body (lista y acciones, editor de configuración,
+       activación y aviso de error de carga). El botón del dock se
+       pinta rojo (#7f1d1d, el rojo de peligro de la casa) solo
+       cuando hay ≥1 pendiente vigente; el error de carga y la
+       falta de activación quedan teal, sin disfrazarse. -->
+  <div class="pend-float" id="pend-float" style="display:none" role="dialog" aria-label="Pendings" data-i18n-aria="main.pendings">
+    <div class="pend-head">
+      <h2><span data-i18n="pend.title">🔔 Pendings</span> <span class="pend-count" id="pend-count" style="display:none"></span></h2>
+      <button type="button" class="btn-secondary meal-manual-pill" id="btn-pend-config" style="display:none" data-i18n="pend.configBtn">⚙️ Set up reminders</button>
+      <button type="button" class="pend-close" id="btn-pend-close" aria-label="Close" data-i18n-aria="client.close">✕</button>
+    </div>
+    <div id="pend-body"><div class="wempty" data-i18n="train.loading">Loading…</div></div>
   </div>
   </div><!-- /tab-track -->
 
@@ -480,6 +490,6 @@
 
 <div id="toast" class="toast"></div>
 
-<script type="module" src="app.js?v=20261021-integrado"></script>
+<script type="module" src="app.js?v=20261021-integrado-dock"></script>
 </body>
 </html>
