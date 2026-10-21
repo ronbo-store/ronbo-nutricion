@@ -2688,8 +2688,43 @@ async function aiCall(path, body) {
   return r.json();
 }
 function aiShow(html) { const p = $('ai-panel'); if (!p) return; const wasHidden = p.style.display === 'none'; p.style.display = ''; p.innerHTML = html; /* v4.2: el flujo arranca desde el dock flotante, lejos del panel: al MOSTRARSE (transición oculto→visible) se desplaza hasta él; los re-pintados con el panel ya visible no mueven la página. */ if (wasHidden) { try { p.scrollIntoView({ behavior: 'smooth', block: 'start' }); } catch {} } }
-function aiClosePanel() { const p = $('ai-panel'); if (p) { p.style.display = 'none'; p.innerHTML = ''; } }
+function aiClosePanel() { aiProgHide(); const p = $('ai-panel'); if (p) { p.style.display = 'none'; p.innerHTML = ''; } }
 function aiDiscard() { aiState = null; aiClosePanel(); }
+/* Indicador flotante de análisis (Ronald, 2026-10-21): el anillo de
+   #ai-progress se completa POR ETAPAS reales del flujo M8, sin
+   porcentajes ni temporizadores de progreso y sin llamadas extra —
+   cada avance cuelga de un evento que ya existe:
+     · aiProgShow()  — aiRender pinta el estado 'loading': la llamada
+       (/identify o /calculate) está saliendo → anillo al 35%.
+     · aiProgStage() — la llamada VOLVIÓ (r1/r2 en mano, justo antes
+       de pintar) → anillo al 70%.
+     · aiProgDone()  — aiRender pinta preguntas o el resultado → 100%
+       y el disco se desvanece y se oculta.
+     · aiProgHide()  — error (o descarte): se oculta SIN completar y
+       manda el aviso honesto de error de siempre.
+   pointer-events:none en CSS: el disco nunca intercepta un toque. */
+const AI_PROG_C = 188.5; // 2π·30: circunferencia del anillo SVG
+let aiProgOn = false, aiProgTimer = null;
+function aiProgSet(frac) { const r = $('ai-progress-ring'); if (r) r.style.strokeDashoffset = String(AI_PROG_C * (1 - Math.max(0, Math.min(1, frac)))); }
+function aiProgShow() {
+  const el = $('ai-progress'); if (!el) return;
+  if (aiProgTimer) { clearTimeout(aiProgTimer); aiProgTimer = null; }
+  el.style.display = ''; aiProgOn = true;
+  aiProgSet(0); // arranca vacío; la etapa de envío lo lleva al 35%
+  requestAnimationFrame(() => { el.classList.add('on'); aiProgSet(0.35); });
+}
+function aiProgStage(frac) { if (aiProgOn) aiProgSet(frac); }
+function aiProgDone() {
+  if (!aiProgOn) return;
+  const el = $('ai-progress'); aiProgOn = false;
+  aiProgSet(1);
+  aiProgTimer = setTimeout(() => { if (el) { el.classList.remove('on'); el.style.display = 'none'; } aiProgTimer = null; }, 480);
+}
+function aiProgHide() {
+  const el = $('ai-progress'); aiProgOn = false;
+  if (aiProgTimer) { clearTimeout(aiProgTimer); aiProgTimer = null; }
+  if (el) { el.classList.remove('on'); el.style.display = 'none'; }
+}
 function aiCaptureAnswers() {
   if (!aiState || !aiState.r1) return;
   (aiState.r1.questions || []).slice(0, 3).forEach((q, i) => {
@@ -2842,6 +2877,7 @@ async function aiStart(dataUrl) {
   try {
     const r1 = await aiCall('/identify', { imageDataUrl: dataUrl, lang: LANG });
     if (!aiState) return; // descartado mientras llamaba
+    aiProgStage(0.7); // etapa real: la identificación volvió
     aiState.r1 = r1;
     aiState.foods = (r1.foods || []).map(f => ({ src: f, name: f.name || '', grams: Math.round(f.portion_g_estimate || 0), unit: f.unit === 'ml' ? 'ml' : 'g' }));
     (r1.questions || []).slice(0, 3).forEach(q => { if (!(q.id in aiState.answers)) aiState.answers[q.id] = 'skipped'; });
@@ -2874,6 +2910,7 @@ async function aiCalculate() {
   try {
     const r2 = await aiCall('/calculate', { foods, answers: aiFinalAnswers(), lang: LANG });
     if (!aiState) return;
+    aiProgStage(0.7); // etapa real: el cálculo volvió
     aiState.r2 = r2; aiState.step = 'draft';
     /* Resultado nuevo: las métricas del panel parten de ESTOS totales;
        cualquier ajuste manual anterior quedó sustituido (con aviso). */
@@ -2915,8 +2952,9 @@ function aiContinueManual() {
 function aiRender() {
   const p = $('ai-panel');
   if (!p || !aiState) return;
-  if (aiState.step === 'loading') { aiShow(`<p class="progress-hint">${t('ai.analyzing')}</p>`); return; }
+  if (aiState.step === 'loading') { aiShow(`<p class="progress-hint">${t('ai.analyzing')}</p>`); aiProgShow(); return; }
   if (aiState.step === 'error') {
+    aiProgHide(); // sin completar: manda el aviso honesto de error
     if (aiState.cap) {
       /* Tope diario alcanzado (PAQUETE 2): mensaje específico y
          comprensible; reintentar no sirve hasta el reinicio, así que
@@ -2934,12 +2972,14 @@ function aiRender() {
   }
   if (aiState.step === 'warn') {
     /* Aviso previo al recálculo con métricas ajustadas a mano. */
+    aiProgHide();
     aiShow(`<p class="progress-hint">${t('ai.recalcWarn')}</p><div class="ai-actions"><button type="button" class="btn-main btn-sm" id="ai-warn-yes">${t('ai.recalcYes')}</button><button type="button" class="btn-ghost btn-sm" id="ai-warn-no">${t('form.cancel')}</button></div>`);
     $('ai-warn-yes').onclick = () => { aiState._recalcOk = true; aiCalculate(); };
     $('ai-warn-no').onclick = () => { aiState.step = 'draft'; aiRender(); };
     return;
   }
   if (aiState.step === 'questions') {
+    aiProgDone(); // los resultados se pintan: el anillo se completa
     const r1 = aiState.r1, foods = aiState.foods || [], qs = (r1.questions || []).slice(0, 3);
     const list = foods.map((f, i) => {
       const est = f.src && (f.src.portion_estimated === true || (typeof f.src.confidence === 'number' && f.src.confidence < 0.7));
@@ -2959,6 +2999,7 @@ function aiRender() {
     return;
   }
   if (aiState.step === 'draft') {
+    aiProgDone(); // el resultado se pinta: el anillo se completa
     const r2 = aiState.r2, tot = r2.totals || {};
     /* Filas del resultado: nombre + CANTIDAD (con unidad) + kcal.
        El nombre y la cantidad son los de los alimentos CORREGIDOS
