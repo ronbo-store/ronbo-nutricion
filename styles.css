@@ -510,6 +510,13 @@ table.whist { min-width: 640px; }
 .fa-trow .k { flex: none; width: 118px; color: #6b7280; font-weight: 600; }
 .fa-trow .v { flex: 1; color: #111827; }
 .fa-tnote { margin-top: 9px; background: #eff6ff; border-radius: 8px; padding: 9px 11px; font-size: 12.5px; line-height: 1.45; color: #1e3a5f; font-style: italic; }
+/* Correcciones Santi C-3/C-5 (2026-10-20): vigencia del resultado y ayuda en dos niveles */
+.fa-stale { margin-top: 14px; background: #fef3c7; border: 1px solid #f59e0b; border-radius: 10px; padding: 10px 12px; font-size: 13px; line-height: 1.5; color: #92400e; }
+.fa-stale + .fa-results { margin-top: 8px; }
+.fa-ownres + .fa-stale { margin-top: 8px; }
+.fa-stale-note { margin-top: 10px; background: #f8fafc; border: 1px dashed #cbd5e1; border-radius: 10px; padding: 10px 12px; font-size: 12.5px; line-height: 1.5; color: #64748b; }
+.fa-help-more { margin-top: 10px; background: none; border: none; padding: 0; font-size: 12.5px; font-weight: 600; color: #0d9488; cursor: pointer; }
+.fa-help-detail { margin-top: 9px; border-top: 1px solid #e5e7eb; padding-top: 9px; }
 /* Espacio privado del cliente (variable de sexo) */
 .fa-privcard { background: #fff; border: 1px solid #e5e7eb; border-radius: 12px; padding: 14px; }
 .fa-sextext { font-size: 14px; line-height: 1.55; color: #374151; margin: 6px 0 0; }

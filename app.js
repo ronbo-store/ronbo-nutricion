@@ -499,7 +499,10 @@ en: {
   'fb3.help': '<b>How it is calculated</b><br>Daily protein range = latest body weight × 1.4–2.0 g/kg/day.<br><b>Sources</b><br>• ISSN Position Stand: protein and exercise (Jäger et al., 2017, J Int Soc Sports Nutr 14:20; DOI 10.1186/s12970-017-0177-8): 1.4–2.0 g/kg/day is sufficient for most people who exercise.<br>• Context only (not shown as a range here): for hypertrophy with resistance training, Morton et al. (2018, Br J Sports Med; DOI 10.1136/bjsports-2017-097608) estimated a breakpoint of 1.62 g/kg/day (95% CI upper limit 2.20) — neither a universal target nor a proven individual ceiling.<br>These ranges are educational references, pending validation in this app; they are not a prescription and never modify the goals you set.',
   'fa.title': '🧮 Energy calculation',
   'fa.helpBtn': 'How it is calculated and sources',
-  'fa.help': '<b>How it is calculated · Mifflin-St Jeor</b><br>Men: 10 × weight (kg) + 6.25 × height (cm) − 5 × age (years) + 5<br>Women: 10 × weight (kg) + 6.25 × height (cm) − 5 × age (years) − 161<br>Total expenditure (TDEE) = resting expenditure (RMR) × palBasal.<br><b>Sources</b><br>• Mifflin MD et al., “A new predictive equation for resting energy expenditure in healthy individuals”, Am J Clin Nutr 1990;51(2):241–247. DOI: 10.1093/ajcn/51.2.241<br>• Frankenfield D, Roth-Yousey L, Compher C. Systematic review of predictive equations, 2005. DOI: 10.1016/j.jada.2005.02.005<br><b>Exercise is never counted twice</b><br>The activity multiplier (palBasal) covers rest, daily life and habitual movement, and includes the thermic effect of food and unstructured activity. It does NOT include structured exercise: training sessions are counted ONCE only, as session expenditure, and never inside the multiplier or twice.<br>Uncertainty is inherent to the estimation method; it is not an individual guarantee.',
+  'fa.help': '<b>What this estimates</b><br>Two estimates from the Mifflin-St Jeor equation: your resting expenditure (RMR) and your estimated expenditure without structured exercise (RMR × your activity multiplier).<br><b>What it is for</b><br>An orientation figure to plan with — not a measurement.<br><b>Its limits</b><br>Every figure here is an estimate with inherent uncertainty; it is not an individual guarantee. The multiplier covers rest, daily life and habitual movement; structured exercise is NOT included in this estimate.',
+  'fa.helpDetail': '<b>Formula · Mifflin-St Jeor</b><br>Men: 10 × weight (kg) + 6.25 × height (cm) − 5 × age (years) + 5<br>Women: 10 × weight (kg) + 6.25 × height (cm) − 5 × age (years) − 161<br>Estimated expenditure without structured exercise = RMR × palBasal.<br><b>Sources</b><br>• Mifflin MD et al., “A new predictive equation for resting energy expenditure in healthy individuals”, Am J Clin Nutr 1990;51(2):241–247. DOI: 10.1093/ajcn/51.2.241<br>• Frankenfield D, Roth-Yousey L, Compher C. Systematic review of predictive equations, 2005. DOI: 10.1016/j.jada.2005.02.005<br><b>About structured exercise</b><br>Structured exercise is not inside the multiplier and is not added anywhere else in this version: there is no session-expenditure module yet, so this estimate never promises one.',
+  'fa.helpMore': 'Formula and sources ▾',
+  'fa.helpLess': 'Hide formula and sources ▴',
   'fa.provided': 'Sex data provided: {v}',
   'fa.yes': 'Yes',
   'fa.no': 'No',
@@ -525,7 +528,7 @@ en: {
   'fa.act6': 'Sustained heavy physical work',
   'fa.palLabel': 'Activity multiplier (palBasal)',
   'fa.palRules': 'Normal range: 1.40–2.00 · Exception band: 1.20–1.39 (with express confirmation) · Below 1.20: not allowed.',
-  'fa.palGuide': '<b>Guidance — usual values by activity type</b><br>For reference only, to support your judgement: you type the value; nothing is filled in or pre-selected.<br>· Sedentary: 1.20<br>· Light activity: ≈ 1.37<br>· Moderate activity: ≈ 1.55<br>· Very active: ≈ 1.72<br>· Very intense activity: ≈ 1.90<br>Structured exercise is not inside the multiplier: it is counted once only, as session expenditure.',
+  'fa.palGuide': '<b>Guidance — what this multiplier covers</b><br>For reference only, to support your judgement: you type the value; nothing is filled in or pre-selected.<br>The multiplier covers rest, daily life and habitual movement, including the thermic effect of food and unstructured activity. It does NOT include structured exercise, and no per-category number is assigned: the descriptive activity level above is context only and carries no number.',
   'fa.palPlaceholder': 'E.g. 1.55',
   'fa.palWarn': '⚠ This value is outside the usual physiological range.',
   'fa.palWarnBody': 'It is in the exception band (1.20–1.39): to save it you must confirm it expressly.',
@@ -543,7 +546,7 @@ en: {
   'fa.missData': 'Not calculated yet: base data are incomplete (birth year, height, multiplier or a logged weight).',
   'fa.missPending': 'Not calculated yet: everything is ready — the result is recorded from the client’s own session when they open the app.',
   'fa.rmr': 'RESTING EXPENDITURE (RMR)',
-  'fa.tdee': 'TOTAL EXPENDITURE (TDEE)',
+  'fa.tdee': 'ESTIMATED EXPENDITURE WITHOUT STRUCTURED EXERCISE',
   'fa.kcalDay': 'kcal/day',
   'fa.traceTitle': 'Calculation traceability',
   'fa.trEq': 'Equation used',
@@ -563,7 +566,7 @@ en: {
   'fa.zone': '🔒 My private space',
   'fa.zoneSub': 'Only you can see what you keep here.',
   'fa.sexTitle': 'Sex for energy calculation',
-  'fa.sexBody': 'The Mifflin-St Jeor equation uses a different constant depending on sex. This value is stored only in your private space: your trainer will see the calculation result, never this value. It is not inferred from your gender and is never used for any other purpose. It is voluntary: without it, this equation cannot be calculated. You can delete it at any time.',
+  'fa.sexBody': 'The Mifflin-St Jeor equation uses a different constant depending on sex. This value is stored only in your private space and is never shown directly to your trainer: your trainer sees your data (weight, height, age, multiplier) and the calculation result, but not this value itself. Please note: because the equation is known, the constant applied could be inferred from those inputs and the result. It is not inferred from your gender and is never used for any other purpose. It is voluntary: without it, this equation cannot be calculated. You can delete it at any time.',
   'fa.female': 'Female',
   'fa.male': 'Male',
   'fa.current': 'Saved value: {v}',
@@ -573,9 +576,13 @@ en: {
   'fa.pickOne': 'Choose an option to save it.',
   'fa.saved': '✓ Saved in your private space',
   'fa.deleted': '✓ Private data deleted',
-  'fa.lockNote': 'This value lives in your private space: neither your trainer nor anyone else can see it.',
+  'fa.lockNote': 'This value lives in your private space and is not shown directly to your trainer or to anyone else (it could only be inferred from the calculation inputs and the result, as explained above).',
   'fa.loadError': 'Your private data could not be loaded — that is not the same as having none. Check your connection and reload.',
-  'fa.myResult': 'Your latest energy calculation: RMR {rmr} · TDEE {tdee} {u} ({eq}).',
+  'fa.myResult': 'Your latest energy calculation: RMR {rmr} · estimated expenditure without structured exercise {tdee} {u} ({eq}).',
+  'fa.staleBanner': '⚠ Pending recalculation — the base data changed after this result was calculated. The values below are the PREVIOUS result.',
+  'fa.stalePrev': 'A previous result exists (calculated {date}) but it is NOT current: the private data needed to calculate was withdrawn. The history is kept — nothing was deleted.',
+  'fa.calcInvalid': 'Not calculated: {cause}',
+  'fa.errWeight': 'There is no valid logged weight to calculate with.',
   'pend.title': '🔔 Pendings',
   'pend.configBtn': '⚙️ Set up reminders',
   'pend.intro': 'What is left to LOG, grouped in one place. These notices only talk about logging — never about what you did or did not do. Phase 1: they live only inside the app; nothing is sent anywhere.',
@@ -1126,7 +1133,10 @@ es: {
   'fb3.help': '<b>Cómo se calcula</b><br>Rango diario de proteína = último peso corporal × 1,4–2,0 g/kg/día.<br><b>Fuentes</b><br>• Position Stand de la ISSN: proteína y ejercicio (Jäger et al., 2017, J Int Soc Sports Nutr 14:20; DOI 10.1186/s12970-017-0177-8): 1,4–2,0 g/kg/día es suficiente para la mayoría de las personas que hacen ejercicio.<br>• Solo contexto (no se muestra como rango aquí): para hipertrofia con entrenamiento de resistencia, Morton et al. (2018, Br J Sports Med; DOI 10.1136/bjsports-2017-097608) estimó un punto de inflexión de 1,62 g/kg/día (límite superior del IC95%: 2,20) — ni meta universal ni techo individual demostrado.<br>Estos rangos son referencias educativas, pendientes de validación en esta app; no son una prescripción y nunca modifican las metas que tú fijas.',
   'fa.title': '🧮 Cálculo energético',
   'fa.helpBtn': 'Cómo se calcula y fuentes',
-  'fa.help': '<b>Cómo se calcula · Mifflin-St Jeor</b><br>Hombres: 10 × peso (kg) + 6,25 × talla (cm) − 5 × edad (años) + 5<br>Mujeres: 10 × peso (kg) + 6,25 × talla (cm) − 5 × edad (años) − 161<br>Gasto total (TDEE) = gasto en reposo (RMR) × palBasal.<br><b>Fuentes</b><br>• Mifflin MD et al., «A new predictive equation for resting energy expenditure in healthy individuals», Am J Clin Nutr 1990;51(2):241–247. DOI: 10.1093/ajcn/51.2.241<br>• Frankenfield D, Roth-Yousey L, Compher C. Revisión sistemática de las ecuaciones predictivas, 2005. DOI: 10.1016/j.jada.2005.02.005<br><b>El ejercicio no se cuenta dos veces</b><br>El multiplicador de actividad (palBasal) cubre el reposo, la vida diaria y el movimiento habitual, e incluye el efecto térmico de los alimentos y la actividad no estructurada. NO incluye el ejercicio estructurado: las sesiones de entrenamiento se cuentan UNA sola vez, como gasto de sesión, y nunca dentro del multiplicador ni dos veces.<br>La incertidumbre es propia del método de estimación; no es una garantía individual.',
+  'fa.help': '<b>Qué estima esto</b><br>Dos estimaciones con la ecuación de Mifflin-St Jeor: tu gasto en reposo (RMR) y tu gasto estimado sin ejercicio estructurado (RMR × tu multiplicador de actividad).<br><b>Para qué sirve</b><br>Una cifra de orientación para planificar — no es una medición.<br><b>Sus límites</b><br>Toda cifra aquí es una estimación con incertidumbre propia; no es una garantía individual. El multiplicador cubre el reposo, la vida diaria y el movimiento habitual; el ejercicio estructurado NO está incluido en esta estimación.',
+  'fa.helpDetail': '<b>Fórmula · Mifflin-St Jeor</b><br>Hombres: 10 × peso (kg) + 6,25 × talla (cm) − 5 × edad (años) + 5<br>Mujeres: 10 × peso (kg) + 6,25 × talla (cm) − 5 × edad (años) − 161<br>Gasto estimado sin ejercicio estructurado = RMR × palBasal.<br><b>Fuentes</b><br>• Mifflin MD et al., «A new predictive equation for resting energy expenditure in healthy individuals», Am J Clin Nutr 1990;51(2):241–247. DOI: 10.1093/ajcn/51.2.241<br>• Frankenfield D, Roth-Yousey L, Compher C. Revisión sistemática de las ecuaciones predictivas, 2005. DOI: 10.1016/j.jada.2005.02.005<br><b>Sobre el ejercicio estructurado</b><br>El ejercicio estructurado no va dentro del multiplicador ni se suma en ningún otro sitio en esta versión: aún no existe un módulo de gasto por sesión, así que esta estimación nunca promete uno.',
+  'fa.helpMore': 'Fórmula y fuentes ▾',
+  'fa.helpLess': 'Ocultar fórmula y fuentes ▴',
   'fa.provided': 'Dato de sexo aportado: {v}',
   'fa.yes': 'Sí',
   'fa.no': 'No',
@@ -1152,7 +1162,7 @@ es: {
   'fa.act6': 'Trabajo físico pesado sostenido',
   'fa.palLabel': 'Multiplicador de actividad (palBasal)',
   'fa.palRules': 'Rango normal: 1,40–2,00 · Banda de excepción: 1,20–1,39 (con confirmación expresa) · Menos de 1,20: no admitido.',
-  'fa.palGuide': '<b>Guía orientativa — valores habituales según el tipo de actividad</b><br>Solo como referencia para tu criterio: el valor lo escribes tú; nada se rellena ni se preselecciona.<br>· Sedentario: 1,20<br>· Actividad ligera: ≈ 1,37<br>· Actividad moderada: ≈ 1,55<br>· Muy activo: ≈ 1,72<br>· Actividad muy intensa: ≈ 1,90<br>El ejercicio estructurado no va dentro del multiplicador: se cuenta una sola vez, como gasto de sesión.',
+  'fa.palGuide': '<b>Guía orientativa — qué cubre este multiplicador</b><br>Solo como referencia para tu criterio: el valor lo escribes tú; nada se rellena ni se preselecciona.<br>El multiplicador cubre el reposo, la vida diaria y el movimiento habitual, incluido el efecto térmico de los alimentos y la actividad no estructurada. NO incluye el ejercicio estructurado, y no se asigna ningún número por categoría: el nivel de actividad descriptivo de arriba es solo contexto y no lleva ningún número.',
   'fa.palPlaceholder': 'Ej.: 1,55',
   'fa.palWarn': '⚠ Este valor está fuera del rango fisiológico habitual.',
   'fa.palWarnBody': 'Está en la banda de excepción (1,20–1,39): para guardarlo necesitas confirmarlo expresamente.',
@@ -1170,7 +1180,7 @@ es: {
   'fa.missData': 'Todavía no se ha calculado: faltan datos base (año de nacimiento, talla, multiplicador o un peso registrado).',
   'fa.missPending': 'Todavía no se ha calculado: todo está listo — el resultado se registra desde la propia sesión del cliente cuando abre la app.',
   'fa.rmr': 'GASTO EN REPOSO (RMR)',
-  'fa.tdee': 'GASTO TOTAL (TDEE)',
+  'fa.tdee': 'GASTO ESTIMADO SIN EJERCICIO ESTRUCTURADO',
   'fa.kcalDay': 'kcal/día',
   'fa.traceTitle': 'Trazabilidad del cálculo',
   'fa.trEq': 'Ecuación usada',
@@ -1190,7 +1200,7 @@ es: {
   'fa.zone': '🔒 Mi espacio privado',
   'fa.zoneSub': 'Lo que guardes aquí solo lo ves tú.',
   'fa.sexTitle': 'Sexo para el cálculo de energía',
-  'fa.sexBody': 'La ecuación de Mifflin-St Jeor usa una constante distinta según el sexo. Este dato se guarda solo en tu espacio privado: tu entrenador verá el resultado del cálculo, nunca este valor. No se deduce de tu género y no se usa para ningún otro fin. Es voluntario: sin este dato no se puede calcular con esta ecuación. Puedes borrarlo cuando quieras.',
+  'fa.sexBody': 'La ecuación de Mifflin-St Jeor usa una constante distinta según el sexo. Este dato se guarda solo en tu espacio privado y nunca se muestra directamente a tu entrenador: tu entrenador ve tus datos (peso, talla, edad, multiplicador) y el resultado del cálculo, pero no este valor en sí. Ten en cuenta: como la ecuación es conocida, la constante aplicada podría inferirse a partir de esas entradas y del resultado. No se deduce de tu género y no se usa para ningún otro fin. Es voluntario: sin este dato no se puede calcular con esta ecuación. Puedes borrarlo cuando quieras.',
   'fa.female': 'Femenino',
   'fa.male': 'Masculino',
   'fa.current': 'Dato guardado: {v}',
@@ -1200,9 +1210,13 @@ es: {
   'fa.pickOne': 'Elige una opción para guardarlo.',
   'fa.saved': '✓ Guardado en tu espacio privado',
   'fa.deleted': '✓ Dato privado borrado',
-  'fa.lockNote': 'Este dato vive en tu espacio privado: ni tu entrenador ni nadie más puede verlo.',
+  'fa.lockNote': 'Este dato vive en tu espacio privado y no se muestra directamente a tu entrenador ni a nadie más (solo podría inferirse de las entradas y del resultado del cálculo, como se explica arriba).',
   'fa.loadError': 'No se pudo cargar tu espacio privado — no es lo mismo que no tener datos. Revisa tu conexión y recarga.',
-  'fa.myResult': 'Tu último cálculo de energía: RMR {rmr} · TDEE {tdee} {u} ({eq}).',
+  'fa.myResult': 'Tu último cálculo de energía: RMR {rmr} · gasto estimado sin ejercicio estructurado {tdee} {u} ({eq}).',
+  'fa.staleBanner': '⚠ Pendiente de recálculo — los datos base cambiaron después de calcularse este resultado. Los valores siguientes son el resultado ANTERIOR.',
+  'fa.stalePrev': 'Existe un resultado anterior (calculado el {date}) pero NO está vigente: se retiró el dato privado necesario para calcular. El historial se conserva — no se borró nada.',
+  'fa.calcInvalid': 'No se calculó: {cause}',
+  'fa.errWeight': 'No hay un peso registrado válido para calcular.',
   'pend.title': '🔔 Pendientes',
   'pend.configBtn': '⚙️ Configurar avisos',
   'pend.intro': 'Lo que falta por REGISTRAR, agrupado en un solo sitio. Estos avisos solo hablan del registro — nunca de lo que hiciste o dejaste de hacer. Fase 1: viven solo dentro de la app; no se envía nada a ningún sitio.',
@@ -1909,7 +1923,11 @@ function fb3ProteinHTML(weights) {
      users/{uid}/energyPrivate/sex (la lee únicamente el propio
      cliente; NUNCA se infiere de 'gender'). «Sin dato, sin
      cálculo». El entrenador ve la señal sexDataProvided (sí/no) y
-     los RESULTADOS; jamás el valor. Matriz C-03.
+     los RESULTADOS; nunca el valor DIRECTAMENTE — pero la
+     constante aplicada es inferible de las entradas y el
+     resultado (la ecuación es pública), y los textos al cliente
+     lo dicen fielmente desde la corrección C-4 (revisión Santi
+     2026-10-20). Matriz C-03.
    - El cálculo se ejecuta en la sesión del PROPIO cliente (su
      dispositivo sí puede leer su dato privado) y escribe solo el
      bloque de resultado + snapshot hist_* inmutable, exactamente
@@ -1921,10 +1939,25 @@ function fb3ProteinHTML(weights) {
      excepción con advertencia y confirmación expresa registrada;
      <1,20 o >2,00 rechazados en la interfaz Y en las reglas. Los
      6 niveles de actividad son contexto descriptivo SIN números.
-     La GUÍA ORIENTATIVA junto al campo palBasal (2026-10-20,
-     decisión de Ronald) es texto de referencia con los factores
-     clásicos publicados: NO rellena el campo, NO preselecciona,
-     NO se ata a los 6 niveles y NO cambia validación ni datos.
+     La GUÍA junto al campo palBasal es descriptiva: explica qué
+     cubre el multiplicador, NO rellena el campo, NO preselecciona
+     y NO cambia validación ni datos. (La tabla numérica por
+     categoría desplegada el 2026-10-20 se RETIRÓ con la
+     corrección C-2 de la revisión Santi: asignaba por categoría
+     los factores clásicos, que sí incluyen ejercicio, y por
+     tanto contradecía el criterio A-3/palBasal aprobado.)
+   - CORRECCIONES C-1…C-7 (revisión Santi 2026-10-20, desarrollo
+     SIN publicar; matriz en MATRIZ-C1-C7-2026-10-20.md): el
+     resultado se nombra «gasto estimado sin ejercicio
+     estructurado» (C-1: no existe módulo de gasto por sesión y
+     ningún texto lo promete); vigencia del resultado — si las
+     entradas cambian, se muestra «pendiente de recálculo» y si
+     se retiró el dato, el resultado anterior NO se presenta
+     como vigente (C-3); ayuda en dos niveles (C-5); la
+     confirmación de excepción está vinculada AL VALOR: cambiar
+     el multiplicador dentro de la banda desmarca la casilla y
+     exige confirmación nueva (C-6); el cálculo REVALIDA rangos
+     y datos obligatorios antes de escribir (C-7).
    - Ningún cálculo escribe jamás users/{uid}.goals: las metas
      siguen siendo manuales del entrenador (invariante N-01/F-B3). */
 const FA_EQUATION_VERSION = 'mifflin-st-jeor@1.0'; // cadena fijada en la Etapa 2 (la maqueta mostraba «versión 1»)
@@ -1935,17 +1968,37 @@ const FA_UNCERTAINTY = {
 };
 let MY_ENERGY = { state: 'loading', sex: null };  // energyPrivate propio (solo el propio usuario)
 let MY_ASMT = { state: 'loading', doc: null };     // assessment/current propio (config + resultado)
+let FA_CALC_ERR = null;                            // C-7: causa de «no calculado» por datos inválidos ({key, params} o null)
 let FA_CARD = { uid: null, asmt: null };           // estado de la ficha abierta (entrenador)
 const faRound10 = n => Math.round(n / 10) * 10;    // mostrar a 10 kcal; precisión completa dentro (Doc. 2 §7)
 const faFmtTs = ts => { try { return ts && ts.toDate ? ts.toDate().toLocaleDateString(LANG === 'es' ? 'es-MX' : 'en-US', { day: 'numeric', month: 'long', year: 'numeric' }) : ''; } catch { return ''; } };
 const faEqName = id => id === 'mifflin-st-jeor' ? t('fa.eqMifflin') : (id || '—');
 
 /* ---------- Vista del entrenador: tarjeta en la ficha del cliente ---------- */
+/* Vigencia del resultado (C-3): un resultado solo está VIGENTE si
+   sus entradas (snapshot) coinciden con las entradas ACTUALES —
+   peso y su fecha, talla, edad derivada del año de nacimiento,
+   multiplicador, ecuación y su versión. Si algo cambió, el
+   resultado es el ANTERIOR y se muestra «pendiente de recálculo»;
+   el historial (hist_*) no se toca jamás desde aquí. */
+function faResultStale(a, last) {
+  const s = a && a.inputsSnapshot;
+  if (!s) return true;
+  if (!last) return true;
+  const ageNow = a.birthYear ? new Date().getFullYear() - parseInt(a.birthYear, 10) : null;
+  if (num(s.weightKg) !== num(last.weight) || s.weightDate !== last.date) return true;
+  if (num(s.heightCm) !== num(a.heightCm)) return true;
+  if (s.ageYears !== ageNow) return true;
+  if (num(s.palBasal) !== num(a.palBasal)) return true;
+  if (a.equationUsed !== a.equation) return true;
+  if (a.equationVersion && a.equationVersion !== FA_EQUATION_VERSION) return true;
+  return false;
+}
 function faCardHTML(uid, a, weights) {
   const last = weights && weights.length ? weights[weights.length - 1] : null;
   const head = `<div class="fb3-head"><h3 class="history-title" style="margin:0">${t('fa.title')}</h3>
     <button type="button" class="fb3-helpbtn" id="fa-help-btn" aria-expanded="false" title="${t('fa.helpBtn')}">?</button></div>`;
-  const help = `<div class="fb3-pop" id="fa-help" style="display:none">${t('fa.help')}</div>`;
+  const help = `<div class="fb3-pop" id="fa-help" style="display:none"><div class="fa-help-l1">${t('fa.help')}</div><button type="button" class="fa-help-more" id="fa-help-more" aria-expanded="false">${t('fa.helpMore')}</button><div class="fa-help-detail" id="fa-help-detail" style="display:none">${t('fa.helpDetail')}</div></div>`;
   const eqSel = !!a && a.equation === 'mifflin-st-jeor';
   const signal = !!a && a.sexDataProvided === true;
   const selbox = eqSel
@@ -1967,10 +2020,17 @@ function faCardHTML(uid, a, weights) {
       <label class="fa-confirm"><input type="checkbox" id="fa-pal-confirm"${a && a.palExceptionConfirmed === true ? ' checked' : ''}> <span>${t('fa.palConfirm')}</span></label></div>
     <div class="fa-errbox" id="fa-pal-err" style="display:none">${t('fa.palError')}</div>`;
   let resultBlock;
-  if (a && typeof a.rmrKcal === 'number' && typeof a.tdeeKcal === 'number') {
+  const hasRes = a && typeof a.rmrKcal === 'number' && typeof a.tdeeKcal === 'number';
+  if (hasRes && !signal) {
+    /* C-3: se retiró el dato necesario — el resultado anterior
+       NO se presenta como vigente; el historial se conserva. */
+    resultBlock = `<div class="fa-empty"><b>${t('fa.noResult')}</b><span>${t('fa.missSex')}</span></div>
+    <div class="fa-stale-note">${t('fa.stalePrev', { date: faFmtTs(a.computedAt) || '—' })}</div>`;
+  } else if (hasRes) {
     const s = a.inputsSnapshot || {};
     const ver = String(a.equationVersion || '').split('@')[1] || (a.equationVersion || '');
-    resultBlock = `
+    const stale = faResultStale(a, last);
+    resultBlock = `${stale ? `<div class="fa-stale">${t('fa.staleBanner')}</div>` : ''}
     <div class="fa-results">
       <div class="fa-stat"><div class="l">${t('fa.rmr')}</div><div class="v">${fmt(faRound10(a.rmrKcal))}</div><div class="u">${t('fa.kcalDay')}</div></div>
       <div class="fa-stat"><div class="l">${t('fa.tdee')}</div><div class="v">${fmt(faRound10(a.tdeeKcal))}</div><div class="u">${t('fa.kcalDay')}</div></div>
@@ -2019,6 +2079,18 @@ function faPalSync() {
   if (warn) warn.style.display = state === 'exception' ? '' : 'none';
   if (err) err.style.display = state === 'invalid' ? '' : 'none';
   if (save) save.disabled = state === 'invalid';
+  /* C-6: la confirmación de la banda de excepción está vinculada
+     AL VALOR. Si el valor actual difiere del valor confirmado
+     guardado, la casilla se desmarca: cambiar el multiplicador
+     dentro de la banda exige una confirmación NUEVA para el
+     valor nuevo — la aceptación anterior no se hereda en
+     silencio. (Al abrir, valor == valor confirmado → la casilla
+     conserva su estado registrado.) */
+  const conf = $('fa-pal-confirm');
+  if (conf && state === 'exception') {
+    const a = FA_CARD.asmt;
+    if (!(a && a.palExceptionConfirmed === true && num(a.palBasal) === v)) conf.checked = false;
+  }
 }
 async function faSetEquation(uid) {
   try {
@@ -2066,8 +2138,22 @@ function renderEnergyPanel() {
   const sex = MY_ENERGY.sex;
   const cur = sex ? `<div class="fa-current">${t('fa.current', { v: t(sex === 'female' ? 'fa.female' : 'fa.male') })}</div>` : '';
   const d = MY_ASMT.doc;
-  const own = d && typeof d.rmrKcal === 'number'
-    ? `<div class="fa-ownres">${t('fa.myResult', { rmr: fmt(faRound10(d.rmrKcal)), tdee: fmt(faRound10(d.tdeeKcal)), u: t('fa.kcalDay'), eq: faEqName(d.equationUsed) })}</div>` : '';
+  /* Vigencia en el propio panel (C-3): sin dato, el resultado
+     anterior no se presenta como vigente; con entradas cambiadas,
+     se muestra identificado como ANTERIOR / pendiente de
+     recálculo. Con datos inválidos (C-7), la causa, sin resultado. */
+  let own = '';
+  if (d && typeof d.rmrKcal === 'number') {
+    if (!sex) {
+      own = `<div class="fa-stale-note">${t('fa.stalePrev', { date: faFmtTs(d.computedAt) || '—' })}</div>`;
+    } else {
+      const lastW = WEIGHTS && WEIGHTS.length ? WEIGHTS[WEIGHTS.length - 1] : null;
+      own = `<div class="fa-ownres">${t('fa.myResult', { rmr: fmt(faRound10(d.rmrKcal)), tdee: fmt(faRound10(d.tdeeKcal)), u: t('fa.kcalDay'), eq: faEqName(d.equationUsed) })}</div>`
+        + (faResultStale(d, lastW) ? `<div class="fa-stale">${t('fa.staleBanner')}</div>` : '');
+    }
+  } else if (FA_CALC_ERR && sex && d && d.equation === 'mifflin-st-jeor') {
+    own = `<div class="fa-empty"><span>${t('fa.calcInvalid', { cause: t(FA_CALC_ERR.key, FA_CALC_ERR.params || {}) })}</span></div>`;
+  }
   box.innerHTML = `<div class="fa-privcard">
     <h3 class="history-title" style="margin-top:0">${t('fa.sexTitle')}</h3>
     <p class="fa-sextext">${t('fa.sexBody')}</p>
@@ -2099,18 +2185,44 @@ async function faSyncSignal(uid) {
     MY_ASMT.doc = { ...a, sexDataProvided: want };
   } catch {}
 }
+/* Revalidación EN el cálculo (C-7): los mismos rangos del
+   formulario se comprueban otra vez aquí, sobre los datos YA
+   guardados — el formulario no basta, porque el documento pudo
+   llegar por otra vía (semillas, datos antiguos, escritura
+   directa dentro de lo que las reglas admiten). Devuelve null
+   si todo es válido o {key, params} con la causa. Rangos:
+   año 1900..(año actual − 18) —la app es 18+—, talla 50–250 cm,
+   palBasal 1,20–2,00 (la confirmación de la banda de excepción
+   es un control del GUARDADO de la configuración —formulario y
+   reglas— y no se vuelve a exigir aquí: los casos tabulados
+   aprobados §3f incluyen valores de banda), peso válido > 0. */
+function faCalcCheck(cfg, last) {
+  const maxY = new Date().getFullYear() - 18;
+  const by = parseInt(cfg && cfg.birthYear, 10);
+  if (!Number.isInteger(by) || by < 1900 || by > maxY) return { key: 'fa.errBy', params: { max: maxY } };
+  const h = num(cfg && cfg.heightCm);
+  if (!(h >= 50 && h <= 250)) return { key: 'fa.errH', params: {} };
+  const pal = num(cfg && cfg.palBasal);
+  if (!(pal >= 1.20 && pal <= 2.00)) return { key: 'fa.errPal', params: {} };
+  if (!last || !(num(last.weight) > 0) || num(last.weight) > 1000) return { key: 'fa.errWeight', params: {} };
+  return null;
+}
 /* El cálculo SOLO ocurre con ecuación elegida + datos completos +
    dato de sexo; en cualquier otro caso no hay resultado (estados
    vacíos honestos, N-01). Precisión completa dentro; el redondeo
    a 10 kcal es solo de presentación (faRound10). Sin cambios en
-   las entradas no se reescribe (no se acuñan snapshots en balde). */
+   las entradas no se reescribe (no se acuñan snapshots en balde).
+   Con datos inválidos (C-7) NO se escribe resultado alguno y la
+   causa queda visible en el panel (FA_CALC_ERR). */
 async function faComputeMine(uid) {
   const cfg = MY_ASMT.doc; if (!cfg) return;
   const sex = MY_ENERGY.sex; if (!sex) return;
   if (cfg.equation !== 'mifflin-st-jeor') return;
   const by = parseInt(cfg.birthYear, 10), h = num(cfg.heightCm), pal = num(cfg.palBasal);
   const last = WEIGHTS && WEIGHTS.length ? WEIGHTS[WEIGHTS.length - 1] : null;
-  if (!by || !(h > 0) || !(pal > 0) || !last) return;
+  const bad = faCalcCheck(cfg, last);
+  if (bad) { if (!FA_CALC_ERR || FA_CALC_ERR.key !== bad.key) { FA_CALC_ERR = bad; renderEnergyPanel(); } return; }
+  FA_CALC_ERR = null;
   const age = new Date().getFullYear() - by;
   const base = 10 * last.weight + 6.25 * h - 5 * age;
   const rmr = sex === 'male' ? base + 5 : base - 161;
@@ -2240,6 +2352,8 @@ async function openClient(uid) {
   if (fb3b) fb3b.onclick = () => { const p = $('fb3-help'); const open = p.style.display !== 'none'; p.style.display = open ? 'none' : ''; fb3b.setAttribute('aria-expanded', String(!open)); };
   const fah = $('fa-help-btn');
   if (fah) fah.onclick = () => { const p = $('fa-help'); const open = p.style.display !== 'none'; p.style.display = open ? 'none' : ''; fah.setAttribute('aria-expanded', String(!open)); };
+  const fhm = $('fa-help-more');
+  if (fhm) fhm.onclick = () => { const det = $('fa-help-detail'); const open = det.style.display !== 'none'; det.style.display = open ? 'none' : ''; fhm.setAttribute('aria-expanded', String(!open)); fhm.textContent = open ? t('fa.helpMore') : t('fa.helpLess'); };
   const faEq = box.querySelector('[data-fa-eq]');
   if (faEq) { faEq.onclick = () => faSetEquation(uid); faEq.onkeydown = e => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); faSetEquation(uid); } }; }
   const faSv = $('fa-save');
