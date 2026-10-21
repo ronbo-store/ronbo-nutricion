@@ -393,10 +393,22 @@ await T('FA-R14c · ni el ENTRENADOR lee la subcolección desconocida → DENEGA
 // progreso EXISTENTES (ana y carol). NINGÚN usuario tiene
 // pendconfig/pendstate (no se siembran a propósito): ese es
 // exactamente el escenario del diagnóstico en producción.
+// CORRECCIÓN (2026-10-21, tras la CI run 39636010660: 116 PASS ·
+// 4 FAIL): la protagonista aprobada de este bloque es la usuaria
+// FRESCA «hcu», sembrada aquí aprobada y sin historial. La
+// primera versión usaba a «ana», pero la regresión heredada la
+// deja approved:false (su caso de retirada del general, línea
+// ~140, fija approved:false y la renovación no lo restaura —
+// fiel a la app: la reaprobación es del entrenador). Con «ana»
+// contaminada, HC1/HC2/HC5/HC9a denegaban por isApprovedUser y
+// NO por el candidato: el fallo era de la batería, no de las
+// reglas. Los 110 casos heredados quedan intactos.
 // ============================================================
 const hcPass0 = pass, hcFail0 = fail;
 const seedHc = env.withSecurityRulesDisabled(async (ctx) => {
   const d = ctx.firestore();
+  await setDoc(doc(d, 'users', 'hcu'), { role: 'user', isOwner: false, approved: true, acceptedTerms: true, adultConfirmed: true, termsVersion: 'v3-2026-10-16', consentSeq: 10, name: 'HCU', consentReceiptId: 'hcu_10' });
+  await setDoc(doc(d, 'nutrition_progress', 'hcu_2026-10-21_front'), { uid: 'hcu', ownerUid: 'hcu', date: '2026-10-21', slot: 'front' });
   await setDoc(doc(d, 'nutrition_progress', 'ana_2026-10-21_front'), { uid: 'ana', ownerUid: 'ana', date: '2026-10-21', slot: 'front' });
   await setDoc(doc(d, 'nutrition_progress', 'carol_2026-10-21_front'), { uid: 'carol', ownerUid: 'carol', date: '2026-10-21', slot: 'front' });
 });
@@ -404,16 +416,16 @@ await seedHc;
 
 const prog = (ctxUid, id) => doc(db(ctxUid), 'nutrition_progress', id);
 
-await T('HC1 · aprobada no propietaria: GET de su {uid}_pendconfig INEXISTENTE → PERMITIDO (responde «no existe»; el panel muestra la activación)', getDoc(prog('ana', 'ana_pendconfig')), true);
-await T('HC2 · aprobada no propietaria: GET de su {uid}_pendstate INEXISTENTE → PERMITIDO', getDoc(prog('ana', 'ana_pendstate')), true);
-await T('HC3 · aprobada: GET de documento INEXISTENTE con prefijo de OTRO uid → DENEGADO', getDoc(prog('ana', 'carol_pendconfig')), false);
-await T('HC4 · aprobada: GET de documento EXISTENTE ajeno en nutrition_progress → DENEGADO (manda ownerUid, sin cambio)', getDoc(prog('ana', 'carol_2026-10-21_front')), false);
-await T('HC5 · aprobada: GET de su documento EXISTENTE → PERMITIDO (sin cambio)', getDoc(prog('ana', 'ana_2026-10-21_front')), true);
-await T('HC6 · SIN SESIÓN: GET de documento inexistente → DENEGADO', getDoc(prog(null, 'ana_pendconfig')), false);
+await T('HC1 · aprobada no propietaria: GET de su {uid}_pendconfig INEXISTENTE → PERMITIDO (responde «no existe»; el panel muestra la activación)', getDoc(prog('hcu', 'hcu_pendconfig')), true);
+await T('HC2 · aprobada no propietaria: GET de su {uid}_pendstate INEXISTENTE → PERMITIDO', getDoc(prog('hcu', 'hcu_pendstate')), true);
+await T('HC3 · aprobada: GET de documento INEXISTENTE con prefijo de OTRO uid → DENEGADO', getDoc(prog('hcu', 'carol_pendconfig')), false);
+await T('HC4 · aprobada: GET de documento EXISTENTE ajeno en nutrition_progress → DENEGADO (manda ownerUid, sin cambio)', getDoc(prog('hcu', 'carol_2026-10-21_front')), false);
+await T('HC5 · aprobada: GET de su documento EXISTENTE → PERMITIDO (sin cambio)', getDoc(prog('hcu', 'hcu_2026-10-21_front')), true);
+await T('HC6 · SIN SESIÓN: GET de documento inexistente → DENEGADO', getDoc(prog(null, 'hcu_pendconfig')), false);
 await T('HC7 · autenticada NO aprobada: GET de su «propio» inexistente → DENEGADO (la puerta es isApprovedUser)', getDoc(prog('pendiente', 'pendiente_pendconfig')), false);
 await T('HC8 · PROPIETARIO: GET de su documento inexistente → PERMITIDO (sin cambio, primer disyuntivo)', getDoc(prog('dueno', 'dueno_pendconfig')), true);
-await T('HC9a · LIST sin cambios: la aprobada lista nutrition_progress filtrando por SU ownerUid → PERMITIDO', getDocs(query(collection(db('ana'), 'nutrition_progress'), where('ownerUid', '==', 'ana'))), true);
-await T('HC9b · LIST sin cambios: la aprobada lista filtrando por ownerUid AJENO → DENEGADO', getDocs(query(collection(db('ana'), 'nutrition_progress'), where('ownerUid', '==', 'carol'))), false);
+await T('HC9a · LIST sin cambios: la aprobada lista nutrition_progress filtrando por SU ownerUid → PERMITIDO', getDocs(query(collection(db('hcu'), 'nutrition_progress'), where('ownerUid', '==', 'hcu'))), true);
+await T('HC9b · LIST sin cambios: la aprobada lista filtrando por ownerUid AJENO → DENEGADO', getDocs(query(collection(db('hcu'), 'nutrition_progress'), where('ownerUid', '==', 'carol'))), false);
 
 console.log(`\nSUBTOTAL HALLAZGO C: ${pass - hcPass0} PASS · ${fail - hcFail0} FAIL`);
 

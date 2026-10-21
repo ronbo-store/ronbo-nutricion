@@ -58,3 +58,6 @@ instala Node 22 + Java 21 + firebase-tools 15.34.0, hace
 `node bateria.mjs`. Resultado esperado si el candidato es
 correcto: `RESULTADO ... 120 PASS · 0 FAIL`, con subtotales
 r4 70/0, F-A1 40/0 y Hallazgo C 10/0. Cualquier FAIL => exit 1.
+
+---
+CORRECCIÓN 2026-10-21 (tras la CI run 39636010660, 116 PASS · 4 FAIL): el bloque HALLAZGO C usa ahora la usuaria fresca «hcu» (aprobada, sembrada en seedHc). La primera versión usaba a «ana», a quien la regresión heredada deja approved:false (retirada del general, línea ~140; la renovación no restaura approved, como en la app). Los 4 FAIL (HC1/HC2/HC5/HC9a) eran ese artefacto de la batería, no el candidato. 110 casos heredados intactos; candidato intacto. Pendiente: autorización de Ronald para re-ejecutar la CI.
