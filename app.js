@@ -368,6 +368,9 @@ en: {
   'sys.maintenance': 'Maintenance in progress: consent and account operations are briefly unavailable while we complete a system update. Please try again in a few minutes. Your data is safe.',
   'err.pending': 'Your account is pending administrator approval.',
   'err.verifyFail': 'Couldn\'t verify access.',
+  'err.noPermission': 'Your account doesn\'t have permission to do this. If you think this is a mistake, let your trainer know.',
+  'err.noConnection': 'No connection, or the service isn\'t available right now. Check your connection and try again.',
+  'err.genericFail': 'Something went wrong. Please try again.',
   'err.badCreds': 'Incorrect credentials.',
   'err.tooHeavy': 'The image is too heavy, try another one.',
   'err.uploadFail': 'Couldn\'t upload the photo.',
@@ -1002,6 +1005,9 @@ es: {
   'sys.maintenance': 'Mantenimiento en curso: las operaciones de consentimiento y de cuenta no están disponibles durante unos minutos mientras completamos una actualización del sistema. Inténtalo de nuevo en unos minutos. Tus datos están a salvo.',
   'err.pending': 'Tu cuenta está pendiente de aprobación por el administrador.',
   'err.verifyFail': 'No se pudo verificar el acceso.',
+  'err.noPermission': 'Tu cuenta no tiene permiso para hacer esto. Si crees que es un error, avísale a tu entrenador.',
+  'err.noConnection': 'Sin conexión, o el servicio no está disponible ahora. Revisa tu conexión e inténtalo de nuevo.',
+  'err.genericFail': 'Algo salió mal. Inténtalo de nuevo.',
   'err.badCreds': 'Credenciales incorrectas.',
   'err.tooHeavy': 'La imagen es muy pesada, prueba con otra.',
   'err.uploadFail': 'No se pudo subir la foto.',
@@ -1406,6 +1412,19 @@ function toast(msg, isErr) {
   clearTimeout(t._h);
   t._h = setTimeout(() => t.className = 'toast', 2800);
 }
+/* Aviso honesto (2026-10-20, decisión de Ronald): los catch de las
+   operaciones de acceso/consentimiento ya NO descartan el error.
+   Se conserva err.code — solo en consola, para diagnóstico; nunca se
+   muestran códigos internos en pantalla — y se presenta la causa en
+   lenguaje accionable: permiso denegado ≠ sin conexión ≠ otro fallo. */
+function errCauseKey(e) {
+  const code = (e && e.code) || '';
+  try { console.warn('[ronbo] operación fallida:', code || String((e && e.message) || e)); } catch {}
+  if (code.includes('permission-denied')) return 'err.noPermission';
+  if (code.includes('unavailable') || code.includes('deadline-exceeded') || code.includes('network')) return 'err.noConnection';
+  return 'err.genericFail';
+}
+function failToast(e) { toast(t(errCauseKey(e)), true); }
 function showAuthError(msg) {
   const el = $('auth-error');
   el.textContent = msg;
@@ -1591,9 +1610,9 @@ onAuthStateChanged(auth, async user => {
       return;
     }
     GOALS = { ...(UDATA.goals || {}) }; // sin goals en el doc = sin metas (no hay repliegue a valores de la casa)
-  } catch {
+  } catch (e) {
     await signOut(auth);
-    showAuthError(t('err.verifyFail'));
+    showAuthError(t(errCauseKey(e)));
     return;
   }
   $('who').textContent = UDATA.name ? UDATA.name : user.email;
@@ -2098,7 +2117,7 @@ async function faSetEquation(uid) {
       { equation: 'mifflin-st-jeor', equationChosenBy: auth.currentUser.uid, equationChosenAt: serverTimestamp(), updatedAt: serverTimestamp(), updatedBy: auth.currentUser.uid }, { merge: true });
     toast(t('fa.configSaved'));
     openClient(uid);
-  } catch { toast(t('err.verifyFail'), true); }
+  } catch (e) { failToast(e); }
 }
 async function faSaveConfig(uid) {
   const byRaw = $('fa-by').value.trim(), hRaw = $('fa-h').value.trim(), palRaw = $('fa-pal').value.trim();
@@ -2126,7 +2145,7 @@ async function faSaveConfig(uid) {
     await setDoc(doc(db, 'users', uid, 'assessment', 'current'), payload, { merge: true });
     toast(t('fa.configSaved'));
     openClient(uid);
-  } catch { toast(t('err.verifyFail'), true); }
+  } catch (e) { failToast(e); }
 }
 
 /* ---------- Vista del cliente: su espacio privado y su cálculo ---------- */
@@ -2259,7 +2278,7 @@ async function saveMySex() {
     renderEnergyPanel();
     await faSyncSignal(uid);
     await faComputeMine(uid);
-  } catch { toast(t('err.verifyFail'), true); }
+  } catch (e) { failToast(e); }
 }
 async function deleteMySex() {
   if (!confirm(t('fa.deleteConfirm'))) return;
@@ -2270,7 +2289,7 @@ async function deleteMySex() {
     toast(t('fa.deleted'));
     renderEnergyPanel();
     await faSyncSignal(uid);
-  } catch { toast(t('err.verifyFail'), true); }
+  } catch (e) { failToast(e); }
 }
 async function loadMyEnergy() {
   if (!auth.currentUser) return;
@@ -3208,7 +3227,7 @@ async function doRenewConsent() {
     await batch.commit();
     if (UDATA) { UDATA.consentSeq = seq; UDATA.consentReceiptId = rid; UDATA.acceptedTerms = true; UDATA.termsVersion = TERMS_VERSION; }
     return true;
-  } catch { return false; }
+  } catch (e) { throw e; }
 }
 /* Simplificación visual (2026-10-18): numera en orden los chips de
    una lista «Gestionar…» contando SOLO los ítems visibles (p. ej.,
@@ -3390,7 +3409,7 @@ $('btn-renew-accept') && $('btn-renew-accept').addEventListener('click', async (
     toast(t('priv.renewed'));
     const n = $('privacy-notice'); if (n) n.style.display = 'none';
     renderPrivacy();
-  } catch { toast(t('err.verifyFail')); }
+  } catch (e) { failToast(e); }
 });
 $('btn-gate-renew') && $('btn-gate-renew').addEventListener('click', () => {
   const n = $('renew-notice');
@@ -3406,7 +3425,7 @@ $('btn-gate-renew-accept') && $('btn-gate-renew-accept').addEventListener('click
     const box = $('renew-box'); if (box) box.style.display = 'none';
     await signOut(auth);
     showAuthError(t('err.pending'));
-  } catch { toast(t('err.verifyFail')); }
+  } catch (e) { failToast(e); }
 });
 $('btn-my-data') && $('btn-my-data').addEventListener('click', async () => {
   if (!auth.currentUser) return;
@@ -3440,7 +3459,7 @@ $('btn-withdraw') && $('btn-withdraw').addEventListener('click', async () => {
       { consentWithdrawnAt: serverTimestamp(), acceptedTerms: false, approved: false },
       'general-withdrawn', (cur && cur.termsVersion) || TERMS_VERSION);
     await batch.commit();
-  } catch { toast(t('err.verifyFail'), true); return; }
+  } catch (e) { failToast(e); return; }
   toast(t('priv.withdrawn'));
   await signOut(auth);
 });
@@ -3743,7 +3762,7 @@ async function grantSpec(isRenew) {
     healthEditing = true; // tras otorgar/renovar, se muestra el formulario de la declaración (nueva)
     toast(isRenew ? t('health.renewedSpec') : t('health.specGranted'));
     renderHealthPanel();
-  } catch { toast(t('err.verifyFail'), true); }
+  } catch (e) { failToast(e); }
 }
 async function withdrawSpec() {
   if (!auth.currentUser) return;
@@ -3767,7 +3786,7 @@ async function withdrawSpec() {
     healthEditing = false;
     toast(t('health.withdrawnSpec'));
     renderHealthPanel();
-  } catch { toast(t('err.verifyFail'), true); }
+  } catch (e) { failToast(e); }
 }
 async function saveDeclaration() {
   if (!auth.currentUser || !specIsActive(UDATA)) { toast(t('health.needSpec'), true); return; }
@@ -3792,7 +3811,7 @@ async function saveDeclaration() {
     healthEditing = false;
     toast(t('health.declSaved'));
     renderHealthPanel();
-  } catch { toast(t('err.verifyFail'), true); }
+  } catch (e) { failToast(e); }
 }
 async function loadMyHealth() {
   if (!auth.currentUser) return;
