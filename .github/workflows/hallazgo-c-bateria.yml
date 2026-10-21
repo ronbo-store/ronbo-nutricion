@@ -1,0 +1,71 @@
+# RONBO NUTRI — Batería del CANDIDATO HALLAZGO C (2026-10-21):
+# regresión íntegra de 110 casos (r4 70 = R13 + bloque F-A1
+# R1–R14 + señal S1–S8, SIN MODIFICAR) + bloque nuevo HALLAZGO C
+# (HC1–HC9, 10 casos) = 120 casos, en el emulador oficial de
+# Firestore (proyecto ficticio demo-hallazgo-c). El candidato
+# deriva del texto VIVO verificado 2026-10-21 (ruleset cfe28b3f)
+# y su único cambio es el get de nutrition_progress (documento
+# inexistente con patrón propio {uid}_…).
+# Autorización necesaria de Ronald: (1) empujar esta rama /
+# lanzar este workflow VALIDA el candidato; (2) la PUBLICACIÓN
+# de las reglas NO está autorizada por este workflow: requerirá
+# su autorización expresa posterior y separada, y se hará por la
+# vía CLI ya probada (2026-10-21), con verificación de texto
+# íntegro tras publicar.
+# Sin secretos, sin credenciales de producción, sin despliegue.
+name: Batería Hallazgo C (emulador oficial)
+
+on:
+  workflow_dispatch:
+  push:
+    branches: [ci/hallazgo-c-bateria]
+
+permissions:
+  contents: read
+
+jobs:
+  bateria:
+    name: 120 casos contra el emulador oficial (proyecto ficticio)
+    runs-on: ubuntu-24.04
+    timeout-minutes: 20
+    defaults:
+      run:
+        working-directory: tests-hallazgo-c
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: 21
+      - name: Instalar dependencias de la batería (versiones fijadas)
+        run: npm ci
+      - name: Instalar Firebase CLI (versión fijada)
+        run: npm install -g firebase-tools@15.34.0
+      - name: Ejecutar la batería contra el emulador oficial
+        shell: bash
+        run: |
+          set -o pipefail
+          firebase emulators:exec --only firestore --project demo-hallazgo-c "node bateria.mjs" 2>&1 | tee resultado-bateria.txt
+      - name: Publicar el resultado en el resumen del job (legible por API)
+        if: always()
+        shell: bash
+        run: |
+          {
+            echo '## Batería Hallazgo C — resultado'
+            grep -E 'SUBTOTAL|RESULTADO|DESGLOSE' resultado-bateria.txt || true
+            echo ''
+            echo '### Casos FAIL (si los hay)'
+            grep -E '^FAIL ·' resultado-bateria.txt || echo '(ninguno)'
+          } >> "$GITHUB_STEP_SUMMARY"
+      - name: Conservar la evidencia (salida de la batería)
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: evidencia-bateria-hallazgo-c
+          path: |
+            tests-hallazgo-c/resultado-bateria.txt
+            tests-hallazgo-c/firestore-debug.log
+          retention-days: 7

@@ -1,4 +1,31 @@
 // ============================================================
+// CANDIDATO HALLAZGO C — 2026-10-21. PREPARADO Y POR VALIDAR
+// (batería GitHub Actions: regresión íntegra de 110 casos del
+// paquete F-A1 + bloque nuevo HALLAZGO C de 10 casos; ver
+// INFORME-CANDIDATO-HALLAZGO-C-2026-10-21.md). PUBLICACIÓN NO
+// AUTORIZADA: requiere autorización expresa de Ronald para la
+// CI y otra posterior y separada para el despliegue.
+// Este archivo = el texto VIVO VERIFICADO 2026-10-21 (ruleset
+// cfe28b3f, desplegado el 2026-10-21; SHA-256 del texto base
+// eaf782251189d9b606dc30411953bca7c720f093c7f331428dee742dd0a41cc0)
+// ÍNTEGRO, sin tocar ni una sentencia, EXCEPTO un único cambio
+// dentro de match /nutrition_progress/{docId}: la lectura
+// (antes «allow get, list» conjunta) se separa en list (sin
+// cambios) y get (con un caso nuevo): un usuario aprobado puede
+// leer un documento INEXISTENTE cuyo docId siga su patrón
+// propio {su uid}_… — la lectura responde «no existe» en vez
+// de ser denegada. Diagnóstico: el panel de Pendientes hace
+// getDoc de {uid}_pendconfig y {uid}_pendstate; en cuentas
+// aprobadas no propietarias sin esos documentos, la regla
+// vigente deniega la lectura (resource es nulo y no hay
+// ownerUid que comprobar), y el panel muestra su aviso de
+// error de carga en vez del estado de activación (confirmado
+// en vivo con la cuenta «PRUEBA Ronald», 2026-10-21).
+// create/update/delete de nutrition_progress: SIN cambios.
+// Ningún otro match tocado: ni consentimientos, ni
+// healthDeclarations (S-1 queda exactamente como está).
+// ============================================================
+// ============================================================
 // CANDIDATO F-A1 v2 — Etapa 2 (2026-10-20). PREPARADO Y POR
 // VALIDAR (batería GitHub Actions R1–R14 + señal; ver informe
 // ETAPA2-FA1-FA2-2026-10-20.md). PUBLICACIÓN NO AUTORIZADA:
@@ -540,7 +567,17 @@ service cloud.firestore {
     match /nutrition_progress/{docId} {
       allow create: if isApprovedUser()
         && request.resource.data.ownerUid == request.auth.uid;
-      allow get, list: if isOwnerUser()
+      // Hallazgo C: get se separa de list. La guarda
+      // «resource == null» va PRIMERO dentro del ternario: si el
+      // documento no existe, jamás se evalúa resource.data (que
+      // es lo que denegaba la lectura); solo se admite el get de
+      // un inexistente con el patrón propio {uid}_… del que
+      // pide. Si el documento EXISTE, manda ownerUid como hoy.
+      allow get: if isOwnerUser()
+        || (isApprovedUser() && (resource == null
+          ? docId.matches(request.auth.uid + '_.*')
+          : resource.data.ownerUid == request.auth.uid));
+      allow list: if isOwnerUser()
         || (isApprovedUser() && resource.data.ownerUid == request.auth.uid);
       allow update: if isOwnerUser()
         || (isApprovedUser() && resource.data.ownerUid == request.auth.uid);

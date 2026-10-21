@@ -14,12 +14,25 @@
 // Proyecto ficticio demo-fa1. TODOS los casos cuentan:
 // cualquier FAIL => exit 1.
 // ============================================================
+// PAQUETE HALLAZGO C (2026-10-21): esta batería = la oficial
+// del candidato F-A1 v2 (110 casos: regresión r4 íntegra 70 =
+// R13 + bloque F-A1 R1–R14 + señal S1–S8) SIN MODIFICAR ni un
+// caso, MÁS el bloque HALLAZGO C (HC1–HC9, 10 casos) añadido
+// al final, contra el CANDIDATO HALLAZGO C (base = texto vivo
+// verificado 2026-10-21, ruleset cfe28b3f; único cambio: el
+// get de nutrition_progress). Proyecto ficticio
+// demo-hallazgo-c. Total: 120 casos. Las únicas diferencias
+// mecánicas respecto del archivo oficial F-A1: este párrafo,
+// el nombre del archivo de reglas, el proyecto ficticio, el
+// bloque HC con su SUBTOTAL y la línea DESGLOSE (gana el
+// tercer segmento; la línea RESULTADO suma los 120).
+// ============================================================
 import { readFileSync } from 'node:fs';
 import { initializeTestEnvironment, assertSucceeds, assertFails } from '@firebase/rules-unit-testing';
 import { doc, setDoc, getDoc, getDocs, collection, updateDoc, deleteDoc, serverTimestamp, query, where, writeBatch } from 'firebase/firestore';
 
-const rules = readFileSync(new URL('./firestore.rules.candidato-f-a1-v2-2026-10-20.rules', import.meta.url), 'utf8');
-const env = await initializeTestEnvironment({ projectId: 'demo-fa1', firestore: { rules, host: '127.0.0.1', port: 8799 } });
+const rules = readFileSync(new URL('./firestore.rules.candidato-hallazgo-c-2026-10-21.rules', import.meta.url), 'utf8');
+const env = await initializeTestEnvironment({ projectId: 'demo-hallazgo-c', firestore: { rules, host: '127.0.0.1', port: 8799 } });
 
 let pass = 0, fail = 0; const fails = [];
 async function T(nombre, promesa, debePasar) {
@@ -373,7 +386,38 @@ await T('FA-R14b · crear en una subcolección DESCONOCIDA → DENEGADO',
 await T('FA-R14c · ni el ENTRENADOR lee la subcolección desconocida → DENEGADO',
   getDoc(doc(db('dueno'), 'users/fa1/otraCosa', 'x')), false);
 
-console.log(`\nRESULTADO BATERÍA F-A1: ${pass} PASS · ${fail} FAIL` + (fails.length ? ' · fallos: ' + fails.join(' | ') : ''));
-console.log(`DESGLOSE: regresión r4 (R13) ${r4pass} PASS · ${r4fail} FAIL | bloque F-A1+señal ${pass - r4pass} PASS · ${fail - r4fail} FAIL`);
+
+// ============================================================
+// BLOQUE HALLAZGO C (2026-10-21) — get de documentos
+// INEXISTENTES en nutrition_progress. Fixtures: dos fotos de
+// progreso EXISTENTES (ana y carol). NINGÚN usuario tiene
+// pendconfig/pendstate (no se siembran a propósito): ese es
+// exactamente el escenario del diagnóstico en producción.
+// ============================================================
+const hcPass0 = pass, hcFail0 = fail;
+const seedHc = env.withSecurityRulesDisabled(async (ctx) => {
+  const d = ctx.firestore();
+  await setDoc(doc(d, 'nutrition_progress', 'ana_2026-10-21_front'), { uid: 'ana', ownerUid: 'ana', date: '2026-10-21', slot: 'front' });
+  await setDoc(doc(d, 'nutrition_progress', 'carol_2026-10-21_front'), { uid: 'carol', ownerUid: 'carol', date: '2026-10-21', slot: 'front' });
+});
+await seedHc;
+
+const prog = (ctxUid, id) => doc(db(ctxUid), 'nutrition_progress', id);
+
+await T('HC1 · aprobada no propietaria: GET de su {uid}_pendconfig INEXISTENTE → PERMITIDO (responde «no existe»; el panel muestra la activación)', getDoc(prog('ana', 'ana_pendconfig')), true);
+await T('HC2 · aprobada no propietaria: GET de su {uid}_pendstate INEXISTENTE → PERMITIDO', getDoc(prog('ana', 'ana_pendstate')), true);
+await T('HC3 · aprobada: GET de documento INEXISTENTE con prefijo de OTRO uid → DENEGADO', getDoc(prog('ana', 'carol_pendconfig')), false);
+await T('HC4 · aprobada: GET de documento EXISTENTE ajeno en nutrition_progress → DENEGADO (manda ownerUid, sin cambio)', getDoc(prog('ana', 'carol_2026-10-21_front')), false);
+await T('HC5 · aprobada: GET de su documento EXISTENTE → PERMITIDO (sin cambio)', getDoc(prog('ana', 'ana_2026-10-21_front')), true);
+await T('HC6 · SIN SESIÓN: GET de documento inexistente → DENEGADO', getDoc(prog(null, 'ana_pendconfig')), false);
+await T('HC7 · autenticada NO aprobada: GET de su «propio» inexistente → DENEGADO (la puerta es isApprovedUser)', getDoc(prog('pendiente', 'pendiente_pendconfig')), false);
+await T('HC8 · PROPIETARIO: GET de su documento inexistente → PERMITIDO (sin cambio, primer disyuntivo)', getDoc(prog('dueno', 'dueno_pendconfig')), true);
+await T('HC9a · LIST sin cambios: la aprobada lista nutrition_progress filtrando por SU ownerUid → PERMITIDO', getDocs(query(collection(db('ana'), 'nutrition_progress'), where('ownerUid', '==', 'ana'))), true);
+await T('HC9b · LIST sin cambios: la aprobada lista filtrando por ownerUid AJENO → DENEGADO', getDocs(query(collection(db('ana'), 'nutrition_progress'), where('ownerUid', '==', 'carol'))), false);
+
+console.log(`\nSUBTOTAL HALLAZGO C: ${pass - hcPass0} PASS · ${fail - hcFail0} FAIL`);
+
+console.log(`\nRESULTADO BATERÍA HALLAZGO C (110 regresión + 10 HC): ${pass} PASS · ${fail} FAIL` + (fails.length ? ' · fallos: ' + fails.join(' | ') : ''));
+console.log(`DESGLOSE: regresión r4 (R13) ${r4pass} PASS · ${r4fail} FAIL | bloque F-A1+señal ${hcPass0 - r4pass} PASS · ${hcFail0 - r4fail} FAIL | bloque Hallazgo C ${pass - hcPass0} PASS · ${fail - hcFail0} FAIL`);
 await env.cleanup();
 process.exit(fail ? 1 : 0);
