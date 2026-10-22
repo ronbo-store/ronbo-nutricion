@@ -739,3 +739,28 @@ table.whist { min-width: 640px; }
 .train-align-note { border: 1px solid #f0d9a8; background: #fffaf0; border-radius: 10px; padding: 10px 12px; margin: 10px 0; }
 .train-align-note p { margin: 0 0 8px; font-size: 14px; color: #5b4a1f; }
 .train-align-actions { display: flex; gap: 8px; flex-wrap: wrap; }
+
+/* ===== PAQUETE 7: plantillas visibles al cliente + propuestas (§4.8) ===== */
+.prop-badge { font-size: 11px; font-weight: 700; border-radius: 20px; padding: 2px 10px; vertical-align: middle; }
+.prop-badge.is-pending { background: #fef3c7; color: #92400e; }
+.prop-badge.is-approved { background: #d1fae5; color: #065f46; }
+.prop-badge.is-rejected { background: #fee2e2; color: #991b1b; }
+.prop-note { font-size: 13px; color: #555; margin-top: 4px; }
+.prop-row { align-items: flex-start; }
+/* Tarjetas PROPIAS del explorador del cliente (no reutilizan la
+   clase .pl-tpl-card del editor: aislar los conteos y el estilo). */
+.prop-tpl-card { display: flex; gap: 8px; align-items: center; justify-content: space-between; flex-wrap: wrap; border: 1px solid #e9ecef; border-radius: 10px; padding: 8px 10px; margin: 6px 0; }
+.prop-tpl-info { min-width: 0; }
+.prop-tpl-info b { display: block; font-size: 13.5px; color: #1f2a44; }
+.prop-tpl-meta { display: block; font-size: 12px; color: #6b7280; margin-top: 1px; }
+.prop-tpl-day { width: 100%; margin-top: 6px; }
+.prop-tpl-day h5 { margin: 4px 0; color: #1f2a44; font-size: 13px; }
+.prop-form { border: 1px solid #e3e9f2; border-radius: 10px; padding: 10px 12px; margin: 8px 0; background: #fbfcfe; }
+.prop-form h4 { margin: 0 0 6px; color: #1f2a44; }
+.prop-form-row { display: flex; gap: 16px; flex-wrap: wrap; margin: 6px 0; font-size: 14px; }
+.prop-lab { display: block; font-size: 12px; font-weight: 700; color: #55606e; margin: 8px 0 3px; }
+.prop-form select, .prop-form input[type="text"], .prop-form textarea { width: 100%; box-sizing: border-box; }
+.prop-chosen { font-weight: 600; color: #1f2a44; min-height: 18px; }
+.prop-sug { display: flex; flex-direction: column; gap: 4px; margin-top: 4px; }
+.prop-sug-item { text-align: left; background: #fff; border: 1px solid #d5dbe1; border-radius: 8px; padding: 6px 8px; cursor: pointer; font-size: 13px; }
+.prop-form-actions { display: flex; gap: 8px; margin-top: 10px; }

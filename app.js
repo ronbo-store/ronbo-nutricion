@@ -456,6 +456,37 @@ en: {
   'train.tpl.alignApply': 'Apply alignment',
   'train.tpl.alignIgnore': 'Ignore',
   'train.tpl.alignApplied': '✓ Weekdays applied to the day labels. You can still edit any label.',
+  'train.prop.tplTitle': '📋 Routine templates',
+  'train.prop.tplIntro': 'Browse the routine templates. You can propose adding or swapping an exercise in your active plan — your trainer reviews and decides.',
+  'train.prop.tplUnavailable': '📋 The routine templates are unavailable right now (they may be empty or could not be loaded).',
+  'train.prop.details': 'Details', 'train.prop.hide': 'Hide',
+  'train.prop.proposeBtn': 'Propose for my plan',
+  'train.prop.noPlanNote': 'You don’t have an active plan yet, so you can’t send proposals — but you can still browse the templates.',
+  'train.prop.formTitle': 'New proposal',
+  'train.prop.typeAdd': 'Add an exercise', 'train.prop.typeChange': 'Swap an exercise',
+  'train.prop.day': 'Day of your plan', 'train.prop.currentEx': 'Exercise to replace',
+  'train.prop.newEx': 'Proposed exercise',
+  'train.prop.searchPh': 'Search the exercise library…',
+  'train.prop.fromTpl': 'From template: {name}',
+  'train.prop.note': 'Note for your trainer (optional)',
+  'train.prop.notePh': 'Why would you like this change?',
+  'train.prop.send': 'Send proposal', 'train.prop.cancel': 'Cancel',
+  'train.prop.sent': 'Proposal sent. Your trainer will review it.',
+  'train.prop.needEx': 'Choose an exercise first.',
+  'train.prop.myTitle': '🗳️ My proposals',
+  'train.prop.myEmpty': 'You have no proposals yet.',
+  'train.prop.stPending': 'Pending', 'train.prop.stApproved': 'Approved', 'train.prop.stRejected': 'Rejected',
+  'train.prop.addLine': 'Add {ex} · {day}',
+  'train.prop.changeLine': 'Swap {old} → {ex} · {day}',
+  'train.prop.decidedOn': 'Decided {date}', 'train.prop.sentOn': 'Sent {date}',
+  'train.prop.trayTitle': '🗳️ Client proposals',
+  'train.prop.trayEmpty': 'This client has no proposals.',
+  'train.prop.approve': 'Approve', 'train.prop.reject': 'Reject',
+  'train.prop.openEditor': 'Open plan in editor',
+  'train.prop.approvedNote': 'Approved. The plan has NOT changed — edit it yourself if you decide to apply the change.',
+  'train.prop.byClient': 'Proposed {date}',
+  'train.prop.noteLabel': 'Client note:',
+  'train.prop.planGone': 'The plan no longer exists.',
   'form.dob': 'Date of birth', 'form.dobHint': '(to verify you are 18+; it is not stored)',
   'err.underage': 'You must be 18 or older to create an account.',
   'priv.title': '🔒 Privacy & Data',
@@ -1144,6 +1175,37 @@ es: {
   'train.tpl.alignApply': 'Aplicar alineación',
   'train.tpl.alignIgnore': 'Ignorar',
   'train.tpl.alignApplied': '✓ Días de semana aplicados a las etiquetas. Puedes seguir editando cualquier etiqueta.',
+  'train.prop.tplTitle': '📋 Plantillas de rutina',
+  'train.prop.tplIntro': 'Explora las plantillas de rutina. Puedes proponer añadir o cambiar un ejercicio de tu plan activo: tu entrenador lo revisa y decide.',
+  'train.prop.tplUnavailable': '📋 Las plantillas de rutina no están disponibles ahora mismo (pueden estar vacías o no haberse podido cargar).',
+  'train.prop.details': 'Detalles', 'train.prop.hide': 'Ocultar',
+  'train.prop.proposeBtn': 'Proponer para mi plan',
+  'train.prop.noPlanNote': 'Todavía no tienes un plan activo, así que no puedes enviar propuestas — pero sí explorar las plantillas.',
+  'train.prop.formTitle': 'Nueva propuesta',
+  'train.prop.typeAdd': 'Añadir un ejercicio', 'train.prop.typeChange': 'Cambiar un ejercicio',
+  'train.prop.day': 'Día de tu plan', 'train.prop.currentEx': 'Ejercicio a sustituir',
+  'train.prop.newEx': 'Ejercicio propuesto',
+  'train.prop.searchPh': 'Busca en la biblioteca de ejercicios…',
+  'train.prop.fromTpl': 'Desde la plantilla: {name}',
+  'train.prop.note': 'Nota para tu entrenador (opcional)',
+  'train.prop.notePh': '¿Por qué te gustaría este cambio?',
+  'train.prop.send': 'Enviar propuesta', 'train.prop.cancel': 'Cancelar',
+  'train.prop.sent': 'Propuesta enviada. Tu entrenador la revisará.',
+  'train.prop.needEx': 'Elige primero un ejercicio.',
+  'train.prop.myTitle': '🗳️ Mis propuestas',
+  'train.prop.myEmpty': 'Todavía no tienes propuestas.',
+  'train.prop.stPending': 'Pendiente', 'train.prop.stApproved': 'Aprobada', 'train.prop.stRejected': 'Rechazada',
+  'train.prop.addLine': 'Añadir {ex} · {day}',
+  'train.prop.changeLine': 'Cambiar {old} → {ex} · {day}',
+  'train.prop.decidedOn': 'Resuelta el {date}', 'train.prop.sentOn': 'Enviada el {date}',
+  'train.prop.trayTitle': '🗳️ Propuestas del cliente',
+  'train.prop.trayEmpty': 'Este cliente no tiene propuestas.',
+  'train.prop.approve': 'Aprobar', 'train.prop.reject': 'Rechazar',
+  'train.prop.openEditor': 'Abrir el plan en el editor',
+  'train.prop.approvedNote': 'Aprobada. El plan NO ha cambiado: edítalo tú si decides aplicar el cambio.',
+  'train.prop.byClient': 'Propuesta el {date}',
+  'train.prop.noteLabel': 'Nota del cliente:',
+  'train.prop.planGone': 'El plan ya no existe.',
 
   'form.dob': 'Fecha de nacimiento', 'form.dobHint': '(para verificar que eres mayor de 18; no se guarda)',
   'err.underage': 'Debes tener 18 años o más para crear una cuenta.',
@@ -2620,6 +2682,7 @@ async function loadAll() {
   await loadProgress();
   await loadMealHelp();
   await loadMyTraining();
+  loadPropClient();
   await loadPendings();
   renderPrivacy();
   await loadMyHealth();
@@ -4589,6 +4652,238 @@ async function loadMyTraining() {
   });
 }
 
+/* ================= PAQUETE 7 — PLANTILLAS VISIBLES AL CLIENTE +
+   PROPUESTAS DE CAMBIO (§4.8) =================
+   Diseño: DISENO-DETALLADO-P7-PROPUESTAS-2026-10-22.md.
+   Casa de datos: nutrition_progress con kind 'planProposal' — las
+   reglas vivas (2a1e98c1) ya conceden cada operación del flujo:
+   el cliente aprobado crea con ownerUid propio (L568-569) y lee
+   las suyas (L576-581); el propietario lee y decide (L576-583);
+   un tercero no tiene ninguna rama aplicable. Aprobar escribe
+   SOLO el estado de la propuesta (un setDoc merge sobre su propio
+   documento): este flujo jamás emite una escritura sobre
+   training_plans (L601-604) — el entrenador aplica el cambio a
+   mano en el editor si lo decide. Las plantillas y la biblioteca
+   se leen con las cachés de siempre (tplEnsure/libEnsure). */
+let PROP_TPL_OPEN = new Set();   // plantillas expandidas en la zona del cliente
+let PROP_FORM = null;            // { exerciseId, fromTemplateId, type } | null
+let PROP_TRAY = { uid: null, plans: [] };
+
+const propTs = (v, f) => { const c = v && v[f]; if (!c) return 0; if (typeof c.toMillis === 'function') return c.toMillis(); if (typeof c === 'number') return c; return 0; };
+const propTime = v => propTs(v, 'createdAt');
+const propDecidedTime = v => propTs(v, 'decidedAt');
+function propDate(ms) { return ms ? new Intl.DateTimeFormat(LANG === 'es' ? 'es' : 'en', { dateStyle: 'medium' }).format(new Date(ms)) : ''; }
+function propExName(p) {
+  const entry = p && p.exerciseId ? LIB_BY_ID[p.exerciseId] : null;
+  if (entry) return libNameOf(entry);
+  return (LANG === 'es' ? (p && p.exerciseName_es) : (p && p.exerciseName_en)) || (p && p.exerciseName_es) || (p && p.exerciseName_en) || (p && p.exerciseId) || '';
+}
+function propStatusBadge(st) {
+  const cls = st === 'approved' ? 'is-approved' : st === 'rejected' ? 'is-rejected' : 'is-pending';
+  const lbl = st === 'approved' ? t('train.prop.stApproved') : st === 'rejected' ? t('train.prop.stRejected') : t('train.prop.stPending');
+  return `<span class="prop-badge ${cls}">${lbl}</span>`;
+}
+function propDetailLine(p) {
+  return p.type === 'change'
+    ? t('train.prop.changeLine', { old: p.targetName || '', ex: propExName(p), day: p.dayLabel || '' })
+    : t('train.prop.addLine', { ex: propExName(p), day: p.dayLabel || '' });
+}
+
+/* --- Zona del cliente: plantillas explorables + sus propuestas --- */
+function loadPropClient() {
+  if (!$('my-templates') && !$('my-proposals')) return;
+  renderPropTemplates();
+  renderMyProposals();
+  /* Lecturas únicas con caché (las mismas del editor): al llegar,
+     la zona se re-pinta una vez con los nombres resueltos. */
+  tplEnsure().then(() => renderPropTemplates());
+  libEnsure().then(() => { renderPropTemplates(); renderMyProposals(); });
+}
+function renderPropTemplates() {
+  const box = $('my-templates'); if (!box) return;
+  let inner = `<h3 class="history-title">${t('train.prop.tplTitle')}</h3><p class="progress-hint">${t('train.prop.tplIntro')}</p>`;
+  if (TPL_STATE === 'unavailable') inner += `<div class="wempty compact">${t('train.prop.tplUnavailable')}</div>`;
+  else if (TPL_STATE === 'ok' && TPL) {
+    if (!MY_PLAN) inner += `<div class="prop-note">${t('train.prop.noPlanNote')}</div>`;
+    inner += TPL.map(tpl => propTplCardHTML(tpl)).join('');
+  } else inner += `<div class="wempty compact">${t('train.loading')}</div>`;
+  box.innerHTML = inner;
+  box.querySelectorAll('[data-prop-tpl-toggle]').forEach(b => b.onclick = () => {
+    const id = b.dataset.propTplToggle;
+    if (PROP_TPL_OPEN.has(id)) PROP_TPL_OPEN.delete(id); else PROP_TPL_OPEN.add(id);
+    renderPropTemplates();
+  });
+  box.querySelectorAll('[data-prop-ex]').forEach(b => b.onclick = () => propOpenForm({ exerciseId: b.dataset.propEx, fromTemplateId: b.dataset.propTpl || null }));
+}
+function propTplCardHTML(tpl) {
+  const open = PROP_TPL_OPEN.has(tpl.id);
+  const meta = [tplField(tpl, 'nivel'), t('train.tpl.perWeek', { n: tpl.dias_por_semana }), tplField(tpl, 'objetivo')].filter(Boolean).join(' · ');
+  let detail = '';
+  if (open) {
+    detail = (tpl.days || []).map(d => {
+      const dName = LANG === 'es' ? (d.dia_nombre_es || d.dia_nombre_en || '') : (d.dia_nombre_en || d.dia_nombre_es || '');
+      const exs = (d.exercises || []).map(te => {
+        const entry = te.exerciseId ? LIB_BY_ID[te.exerciseId] : null;
+        const name = entry ? libNameOf(entry) : (te.exerciseId || '');
+        const sx = [te.series, te.repeticiones].filter(Boolean).join(' × ');
+        return `<div class="train-ex"><span>${esc(name)}</span><span class="sx">${esc(sx)}</span>${MY_PLAN ? `<button type="button" class="btn-ghost btn-sm" data-prop-ex="${esc(te.exerciseId || '')}" data-prop-tpl="${esc(tpl.id)}">${t('train.prop.proposeBtn')}</button>` : ''}</div>`;
+      }).join('');
+      return `<div class="prop-tpl-day"><h5>${esc(dName)}</h5>${exs}</div>`;
+    }).join('');
+  }
+  return `<div class="prop-tpl-card"><div class="prop-tpl-info"><b>${esc(tplField(tpl, 'nombre'))}</b><span class="prop-tpl-meta">${esc(meta)}</span></div><button type="button" class="btn-ghost btn-sm" data-prop-tpl-toggle="${esc(tpl.id)}">${open ? t('train.prop.hide') : t('train.prop.details')}</button>${detail}</div>`;
+}
+
+/* --- Formulario de propuesta (cliente) --- */
+function propOpenForm(init) {
+  if (!MY_PLAN) return;
+  PROP_FORM = { exerciseId: (init && init.exerciseId) || '', fromTemplateId: (init && init.fromTemplateId) || null, type: 'add' };
+  renderPropForm();
+  const slot = $('prop-form-slot'); if (slot) slot.scrollIntoView({ behavior: 'smooth', block: 'start' });
+}
+function propCloseForm() { PROP_FORM = null; renderPropForm(); }
+function renderPropForm() {
+  const slot = $('prop-form-slot'); if (!slot) return;
+  if (!PROP_FORM || !MY_PLAN) { slot.innerHTML = ''; return; }
+  const days = MY_PLAN.days || [];
+  const chosenEntry = PROP_FORM.exerciseId ? LIB_BY_ID[PROP_FORM.exerciseId] : null;
+  const chosen = PROP_FORM.exerciseId ? (chosenEntry ? libNameOf(chosenEntry) : PROP_FORM.exerciseId) : '';
+  const tplName = PROP_FORM.fromTemplateId && TPL_BY_ID[PROP_FORM.fromTemplateId] ? tplField(TPL_BY_ID[PROP_FORM.fromTemplateId], 'nombre') : '';
+  slot.innerHTML = `<div class="prop-form">
+    <h4>${t('train.prop.formTitle')}</h4>
+    ${tplName ? `<p class="progress-hint">${t('train.prop.fromTpl', { name: tplName })}</p>` : ''}
+    <div class="prop-form-row">
+      <label><input type="radio" name="prop-type" value="add" ${PROP_FORM.type === 'add' ? 'checked' : ''}> ${t('train.prop.typeAdd')}</label>
+      <label><input type="radio" name="prop-type" value="change" ${PROP_FORM.type === 'change' ? 'checked' : ''}> ${t('train.prop.typeChange')}</label>
+    </div>
+    <label class="prop-lab">${t('train.prop.day')}</label>
+    <select id="prop-day">${days.map((d, i) => `<option value="${i}">${esc(d.label || ('Día ' + (i + 1)))}</option>`).join('')}</select>
+    <div id="prop-target-wrap" style="display:none">
+      <label class="prop-lab">${t('train.prop.currentEx')}</label>
+      <select id="prop-target"></select>
+    </div>
+    <label class="prop-lab">${t('train.prop.newEx')}</label>
+    <div id="prop-chosen" class="prop-chosen">${chosen ? esc(chosen) : ''}</div>
+    <input type="text" id="prop-search" placeholder="${t('train.prop.searchPh')}" autocomplete="off">
+    <div id="prop-sug" class="prop-sug"></div>
+    <label class="prop-lab">${t('train.prop.note')}</label>
+    <textarea id="prop-note" maxlength="300" rows="2" placeholder="${t('train.prop.notePh')}"></textarea>
+    <div class="prop-form-actions">
+      <button type="button" class="btn-primary btn-sm" id="prop-send">${t('train.prop.send')}</button>
+      <button type="button" class="btn-ghost btn-sm" id="prop-cancel">${t('train.prop.cancel')}</button>
+    </div>
+  </div>`;
+  const daySel = $('prop-day');
+  const syncTarget = () => {
+    const isChange = PROP_FORM.type === 'change';
+    $('prop-target-wrap').style.display = isChange ? '' : 'none';
+    if (isChange) {
+      const di = Number(daySel.value || 0);
+      const exs = (days[di] && days[di].exercises) || [];
+      $('prop-target').innerHTML = exs.map((ex, ei) => `<option value="${ei}">${esc(ex.name || ex.exerciseId || '')}</option>`).join('');
+    }
+  };
+  slot.querySelectorAll('input[name="prop-type"]').forEach(r => r.onchange = () => { PROP_FORM.type = r.value; syncTarget(); });
+  daySel.onchange = syncTarget;
+  syncTarget();
+  const sug = $('prop-sug');
+  $('prop-search').oninput = e => {
+    const res = libSearch(e.target.value);
+    sug.innerHTML = res.map(ex => `<button type="button" class="prop-sug-item" data-sug-id="${esc(ex.id)}">${esc(libNameOf(ex))}</button>`).join('');
+    sug.querySelectorAll('[data-sug-id]').forEach(b => b.onclick = () => {
+      PROP_FORM.exerciseId = b.dataset.sugId;
+      $('prop-chosen').textContent = libNameOf(LIB_BY_ID[PROP_FORM.exerciseId]) || PROP_FORM.exerciseId;
+      sug.innerHTML = '';
+    });
+  };
+  $('prop-cancel').onclick = propCloseForm;
+  $('prop-send').onclick = propSend;
+}
+async function propSend() {
+  if (!PROP_FORM || !MY_PLAN || !auth.currentUser) return;
+  if (!PROP_FORM.exerciseId) { toast(t('train.prop.needEx')); return; }
+  const uid = auth.currentUser.uid;
+  const plan = MY_PLAN;
+  const di = Number(($('prop-day') || {}).value || 0);
+  const day = (plan.days || [])[di] || {};
+  const entry = LIB_BY_ID[PROP_FORM.exerciseId] || null;
+  const data = {
+    kind: 'planProposal', ownerUid: uid, uid,
+    planId: plan.id, planTitle: plan.title || '',
+    type: PROP_FORM.type === 'change' ? 'change' : 'add',
+    dayIndex: di, dayLabel: day.label || '',
+    exerciseId: PROP_FORM.exerciseId,
+    exerciseName_es: entry ? (entry.nombre_es || '') : '',
+    exerciseName_en: entry ? (entry.nombre_en || '') : '',
+    note: (($('prop-note') || {}).value || '').trim().slice(0, 300),
+    status: 'pending', createdAt: serverTimestamp(),
+  };
+  if (PROP_FORM.fromTemplateId) data.sourceTemplateId = PROP_FORM.fromTemplateId;
+  if (data.type === 'change') {
+    const ei = Number(($('prop-target') || {}).value || 0);
+    const cur = (day.exercises || [])[ei] || {};
+    data.targetName = cur.name || cur.exerciseId || '';
+    data.targetExerciseId = cur.exerciseId || null;
+  }
+  await setDoc(doc(db, 'nutrition_progress', `${uid}_prop_${Date.now()}`), data);
+  propCloseForm();
+  toast(t('train.prop.sent'));
+  renderMyProposals();
+}
+async function renderMyProposals() {
+  const box = $('my-proposals'); if (!box || !auth.currentUser) return;
+  const uid = auth.currentUser.uid;
+  const mine = [];
+  try {
+    const snap = await getDocs(query(collection(db, 'nutrition_progress'), where('ownerUid', '==', uid)));
+    snap.forEach(d => { const v = d.data(); if (v && v.kind === 'planProposal') mine.push({ id: d.id, ...v }); });
+  } catch {}
+  mine.sort((a, b) => propTime(b) - propTime(a));
+  box.innerHTML = `<h3 class="history-title">${t('train.prop.myTitle')}</h3>
+    <div id="prop-form-slot"></div>
+    ${MY_PLAN ? `<div style="margin-bottom:10px"><button type="button" class="btn-primary btn-sm" id="prop-new">${t('train.prop.formTitle')}</button></div>` : ''}
+    ${mine.length ? mine.map(p => `<div class="user-row prop-row"><div><b>${esc(propDetailLine(p))}</b> ${propStatusBadge(p.status)}<br><span class="muted">${t('train.prop.sentOn', { date: propDate(propTime(p)) })}${p.status !== 'pending' && propDecidedTime(p) ? ` · ${t('train.prop.decidedOn', { date: propDate(propDecidedTime(p)) })}` : ''}</span>${p.note ? `<div class="prop-note">“${esc(p.note)}”</div>` : ''}</div></div>`).join('')
+      : `<div class="wempty compact">${t('train.prop.myEmpty')}</div>`}`;
+  const nb = $('prop-new'); if (nb) nb.onclick = () => propOpenForm({});
+  if (PROP_FORM) renderPropForm();
+}
+
+/* --- Bandeja del entrenador (dentro de la ficha del cliente) --- */
+async function loadClientProposals(uid, plans) {
+  const box = $('client-proposals'); if (!box) return;
+  PROP_TRAY = { uid, plans: plans || [] };
+  const list = [];
+  try {
+    const snap = await getDocs(query(collection(db, 'nutrition_progress'), where('ownerUid', '==', uid)));
+    snap.forEach(d => { const v = d.data(); if (v && v.kind === 'planProposal') list.push({ id: d.id, ...v }); });
+  } catch {}
+  const rank = s => s === 'pending' ? 0 : 1;
+  list.sort((a, b) => rank(a.status) - rank(b.status) || propTime(b) - propTime(a));
+  box.innerHTML = `<h3 class="history-title">${t('train.prop.trayTitle')}</h3>
+    ${list.length ? list.map(p => propTrayCardHTML(p)).join('') : `<div class="wempty">${t('train.prop.trayEmpty')}</div>`}`;
+  box.querySelectorAll('[data-prop-decide]').forEach(b => b.onclick = async () => {
+    const parts = b.dataset.propDecide.split('|');
+    await setDoc(doc(db, 'nutrition_progress', parts[0]), { status: parts[1], decidedAt: serverTimestamp(), decidedBy: auth.currentUser.uid }, { merge: true });
+    loadClientProposals(PROP_TRAY.uid, PROP_TRAY.plans);
+  });
+  box.querySelectorAll('[data-prop-open]').forEach(b => b.onclick = () => {
+    const p = list.find(x => x.id === b.dataset.propOpen); if (!p) return;
+    const plan = PROP_TRAY.plans.find(x => x.id === p.planId); if (plan) openPlanEditor(PROP_TRAY.uid, plan);
+  });
+}
+function propTrayCardHTML(p) {
+  const plan = PROP_TRAY.plans.find(x => x.id === p.planId);
+  const tplName = p.sourceTemplateId ? ((TPL_BY_ID[p.sourceTemplateId] && tplField(TPL_BY_ID[p.sourceTemplateId], 'nombre')) || p.sourceTemplateId) : '';
+  return `<div class="user-row prop-row"><div><b>${esc(propDetailLine(p))}</b> ${propStatusBadge(p.status)}<br>
+    <span class="muted">${esc(p.planTitle || '')} · ${t('train.prop.byClient', { date: propDate(propTime(p)) })}${tplName ? ` · ${t('train.prop.fromTpl', { name: tplName })}` : ''}</span>
+    ${p.note ? `<div class="prop-note">${t('train.prop.noteLabel')} “${esc(p.note)}”</div>` : ''}
+    ${p.status === 'approved' ? `<div class="prop-note">${t('train.prop.approvedNote')}</div>` : ''}
+  </div><div class="user-actions">
+    ${p.status === 'pending' ? `<button class="btn-primary btn-sm" data-prop-decide="${esc(p.id)}|approved">${t('train.prop.approve')}</button><button class="btn-ghost btn-sm" data-prop-decide="${esc(p.id)}|rejected">${t('train.prop.reject')}</button>` : ''}
+    ${p.status === 'approved' ? (plan ? `<button class="btn-ghost btn-sm" data-prop-open="${esc(p.id)}">${t('train.prop.openEditor')}</button>` : `<span class="muted">${t('train.prop.planGone')}</span>`) : ''}
+  </div></div>`;
+}
+
 /* --- Vista del entrenador (dentro del detalle del cliente) --- */
 async function loadClientTraining(uid) {
   const box = $('client-training');
@@ -4607,6 +4902,7 @@ async function loadClientTraining(uid) {
     <h3 class="history-title">${t('train.section')}</h3>
     <div style="margin-bottom:10px"><button class="btn-primary btn-sm" id="btn-plan-new">${t('train.new')}</button></div>
     ${planRows}
+    <div id="client-proposals"></div>
     <h3 class="history-title">${t('train.recent')}</h3>
     ${logRows || `<div class="wempty">${t('train.noLogs')}</div>`}`;
   $('btn-plan-new').onclick = () => openPlanEditor(uid, null);
@@ -4628,6 +4924,7 @@ async function loadClientTraining(uid) {
     toast(t('train.deleted'));
     loadClientTraining(uid);
   });
+  loadClientProposals(uid, plans);
 }
 
 /* ================= PUERTA PAR-Q (§4.5) — guarda de INTERFAZ =================
