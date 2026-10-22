@@ -420,6 +420,8 @@ en: {
   'train.gate.blockFirst': 'This client’s first plan cannot be saved yet: they do not have a valid health declaration on file, or their specific consent is not active. Ask them to complete their health declaration in their app first. (No declaration content is shown here.)',
   'train.gate.warnLater': '⚠️ This client has no valid health declaration on file. This plan can still be saved; you can ask them to complete it in their app.',
   'train.gate.savedWithWarning': 'Plan saved. Note: this client still has no valid health declaration on file.',
+  'train.lib.unavailable': '📚 The exercise library is unavailable right now (it may be empty or could not be loaded). You can keep typing exercises as free text — plans save normally.',
+  'train.lib.photo': 'Photo', 'train.lib.video': 'Video',
   'form.dob': 'Date of birth', 'form.dobHint': '(to verify you are 18+; it is not stored)',
   'err.underage': 'You must be 18 or older to create an account.',
   'priv.title': '🔒 Privacy & Data',
@@ -1072,6 +1074,8 @@ es: {
   'train.gate.blockFirst': 'El primer plan de este cliente aún no se puede guardar: no tiene una declaración de salud vigente registrada, o su consentimiento específico no está activo. Pídele que complete su declaración de salud en su app primero. (Aquí no se muestra ningún contenido de la declaración.)',
   'train.gate.warnLater': '⚠️ Este cliente no tiene una declaración de salud vigente registrada. Este plan sí se puede guardar; puedes pedirle que la complete en su app.',
   'train.gate.savedWithWarning': 'Plan guardado. Nota: este cliente sigue sin una declaración de salud vigente registrada.',
+  'train.lib.unavailable': '📚 La biblioteca de ejercicios no está disponible ahora (puede estar vacía o no pudo cargarse). Puedes seguir escribiendo los ejercicios como texto libre: los planes se guardan con normalidad.',
+  'train.lib.photo': 'Foto', 'train.lib.video': 'Video',
   'form.dob': 'Fecha de nacimiento', 'form.dobHint': '(para verificar que eres mayor de 18; no se guarda)',
   'err.underage': 'Debes tener 18 años o más para crear una cuenta.',
   'priv.title': '🔒 Privacidad y datos',
@@ -4120,13 +4124,191 @@ async function planGateRefresh() {
   planGateRender(state, !planCtx.planId && existing.length === 0);
 }
 
+/* ================= BIBLIOTECA EN EL EDITOR (§4.1) =================
+   Paquete 4 de la integración de entrenamiento (diseño cerrado en la
+   propuesta v1.1 §4.1/§4.6; decisión del propietario, pregunta 7: el
+   nombre mostrado se resuelve por exerciseId contra la biblioteca en
+   el idioma de quien mira, con el name guardado como respaldo; y «el
+   entrenador siempre decide»: la biblioteca AYUDA, no encierra).
+   - Al abrir el editor se lee UNA vez la colección exercise_library
+     (103 documentos) y queda en memoria para la sesión de la página;
+     si la lectura ya tuvo éxito NO se repite. Si falla o la colección
+     viene vacía, el editor sigue en modo texto libre y lo avisa de
+     forma visible y honesta (#pl-lib-note), SIN bloquear el guardado:
+     la única puerta dura sigue siendo la PAR-Q (§4.5), intacta.
+   - Cada fila de ejercicio trae buscador con autocompletado: la
+     búsqueda cubre nombre, grupo muscular, equipo y nivel en AMBOS
+     idiomas (insensible a acentos y mayúsculas); la presentación va
+     siempre en el idioma activo de la interfaz.
+   - Al elegir una sugerencia la fila queda VINCULADA: al guardar se
+     persisten exerciseId + photoUrl/videoUrl COPIADOS de la ficha
+     (una recarga futura de la biblioteca no reescribe planes vivos,
+     §4.6) y el name que el entrenador ve en su idioma. Si el
+     entrenador edita el nombre y deja de coincidir con la ficha (en
+     cualquiera de los dos idiomas), la fila se DESVINCULA y vuelve a
+     ser texto libre, sin error ni bloqueo: el texto libre intacto.
+   - Al reabrir un plan, las filas con exerciseId muestran el nombre
+     resuelto por idioma; si ese id ya no existe en una biblioteca
+     CARGADA, la fila degrada a texto libre con el name guardado
+     (degradación honesta, sin romper el plan) y al guardar se
+     conserva como texto libre, sin el id muerto. */
+let LIB = null;            // documentos de exercise_library (cada uno con su id)
+let LIB_BY_ID = {};        // id -> documento de la biblioteca
+let LIB_STATE = 'idle';    // 'idle' | 'loading' | 'ok' | 'unavailable'
+let LIB_PROMISE = null;
+function libEnsure() {
+  if (LIB_STATE === 'ok') return Promise.resolve();
+  if (LIB_STATE === 'loading' && LIB_PROMISE) return LIB_PROMISE;
+  LIB_STATE = 'loading';
+  LIB_PROMISE = (async () => {
+    try {
+      const snap = await getDocs(collection(db, 'exercise_library'));
+      const docs = [];
+      snap.forEach(d => docs.push({ id: d.id, ...d.data() }));
+      LIB = docs; LIB_BY_ID = {};
+      docs.forEach(x => { if (x && x.id) LIB_BY_ID[x.id] = x; });
+      LIB_STATE = docs.length ? 'ok' : 'unavailable';
+    } catch { LIB = []; LIB_BY_ID = {}; LIB_STATE = 'unavailable'; }
+    libRenderNotice();
+  })();
+  return LIB_PROMISE;
+}
+function libRenderNotice() {
+  const box = $('pl-lib-note');
+  if (!box) return;
+  box.textContent = LIB_STATE === 'unavailable' ? t('train.lib.unavailable') : '';
+}
+const libNorm = s => String(s == null ? '' : s).toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '');
+function libField(ex, base) { return ex ? (ex[base + '_' + LANG] || ex[base + '_es'] || ex[base + '_en'] || '') : ''; }
+function libNameOf(ex) { return libField(ex, 'nombre') || (ex ? ex.id : ''); }
+function libSearch(q) {
+  if (LIB_STATE !== 'ok' || !LIB) return [];
+  const nq = libNorm(q).trim();
+  if (nq.length < 2) return [];
+  const terms = nq.split(/\s+/);
+  const scored = [];
+  for (const ex of LIB) {
+    const hay = libNorm([ex.nombre_es, ex.nombre_en, ex.grupo_muscular_es, ex.grupo_muscular_en, ex.equipo_es, ex.equipo_en, ex.nivel_es, ex.nivel_en].join(' '));
+    if (!terms.every(tm => hay.includes(tm))) continue;
+    const nA = libNorm(LANG === 'es' ? ex.nombre_es : ex.nombre_en);
+    const nO = libNorm(LANG === 'es' ? ex.nombre_en : ex.nombre_es);
+    let rank = 3;
+    if (nA.startsWith(nq)) rank = 0; else if (nA.includes(nq)) rank = 1; else if (nO.includes(nq)) rank = 2;
+    scored.push([rank, ex]);
+  }
+  scored.sort((a, b) => a[0] - b[0] || libNameOf(a[1]).localeCompare(libNameOf(b[1])));
+  return scored.slice(0, 8).map(x => x[1]);
+}
+function libLinksHTML(ex) {
+  /* Enlaces foto/video de una fila vinculada: salen de lo COPIADO en
+     la fila al asignar (photoUrl/videoUrl) y, si falta, de la ficha
+     viva de la biblioteca. Sin exerciseId no hay enlaces. */
+  if (!ex || !ex.exerciseId) return '';
+  const entry = LIB_BY_ID[ex.exerciseId];
+  const photo = ex.photoUrl || (entry ? entry.foto_url : '') || '';
+  const video = ex.videoUrl || (entry ? entry.video_youtube_url : '') || '';
+  if (!photo && !video) return '';
+  return `<div class="pl-ex-links">${photo ? `<button type="button" class="btn-ghost btn-sm pl-ex-photo" data-url="${esc(photo)}">📷 ${t('train.lib.photo')}</button>` : ''}${video ? `<a class="btn-ghost btn-sm pl-ex-video" href="${esc(video)}" target="_blank" rel="noopener">▶ ${t('train.lib.video')}</a>` : ''}</div>`;
+}
+function wireLibLinks(scope) {
+  scope.querySelectorAll('.pl-ex-photo').forEach(b => { if (!b.dataset.wired) { b.dataset.wired = '1'; b.onclick = () => showLightbox(b.dataset.url); } });
+}
+function libCloseSug(row) { const sug = row.querySelector('.pl-ex-sug'); if (sug) sug.innerHTML = ''; }
+function libUnlinkRow(row) {
+  row.removeAttribute('data-exid');
+  row.removeAttribute('data-saved-name');
+  row.removeAttribute('data-photo');
+  row.removeAttribute('data-video');
+  const wrap = row.querySelector('.pl-ex-links-wrap');
+  if (wrap) wrap.innerHTML = '';
+}
+function libLinkRow(row, ex) {
+  const nameIn = row.querySelector('.pl-ex-name');
+  row.dataset.exid = ex.id;
+  if (ex.foto_url) row.dataset.photo = ex.foto_url; else row.removeAttribute('data-photo');
+  if (ex.video_youtube_url) row.dataset.video = ex.video_youtube_url; else row.removeAttribute('data-video');
+  nameIn.value = libNameOf(ex);
+  row.dataset.savedName = nameIn.value;
+  const wrap = row.querySelector('.pl-ex-links-wrap');
+  if (wrap) { wrap.innerHTML = libLinksHTML({ exerciseId: ex.id, photoUrl: ex.foto_url, videoUrl: ex.video_youtube_url }); wireLibLinks(row); }
+  libCloseSug(row);
+}
+function wireLibRow(row) {
+  if (row.dataset.libWired) return;
+  row.dataset.libWired = '1';
+  const nameIn = row.querySelector('.pl-ex-name');
+  const sug = row.querySelector('.pl-ex-sug');
+  if (!nameIn || !sug) return;
+  nameIn.addEventListener('input', () => {
+    /* Si la fila estaba vinculada y el texto deja de coincidir con
+       la ficha (en cualquiera de los dos idiomas), se desvincula:
+       pasa a texto libre, sin error ni bloqueo. */
+    const exid = row.dataset.exid;
+    if (exid) {
+      const entry = LIB_BY_ID[exid];
+      const v = nameIn.value.trim();
+      if (!entry || (v !== (entry.nombre_es || '') && v !== (entry.nombre_en || ''))) libUnlinkRow(row);
+    }
+    if (LIB_STATE !== 'ok') { sug.innerHTML = ''; return; }
+    const hits = libSearch(nameIn.value);
+    sug.innerHTML = hits.map(ex => `<button type="button" class="pl-sug-item" data-lib-id="${esc(ex.id)}"><span class="sg-name">${esc(libNameOf(ex))}</span><span class="sg-meta">${esc([libField(ex, 'grupo_muscular'), libField(ex, 'equipo'), libField(ex, 'nivel')].filter(Boolean).join(' · '))}</span></button>`).join('');
+    sug.querySelectorAll('.pl-sug-item').forEach(b => b.addEventListener('mousedown', ev => {
+      ev.preventDefault();
+      const ex = LIB_BY_ID[b.dataset.libId];
+      if (ex) libLinkRow(row, ex);
+    }));
+  });
+  nameIn.addEventListener('focus', () => { if (LIB_STATE === 'ok' && !row.dataset.exid && nameIn.value.trim().length >= 2) nameIn.dispatchEvent(new Event('input')); });
+  nameIn.addEventListener('blur', () => setTimeout(() => libCloseSug(row), 150));
+  nameIn.addEventListener('keydown', ev => { if (ev.key === 'Escape') libCloseSug(row); });
+}
+function wirePlanExRows(scope) {
+  wirePlanExDel(scope);
+  scope.querySelectorAll('.pl-ex-row').forEach(wireLibRow);
+  wireLibLinks(scope);
+}
+function libRefreshOpenRows() {
+  /* Al terminar la carga de la biblioteca con el editor abierto: las
+     filas vinculadas muestran el nombre resuelto por idioma (sin
+     tocar lo que el entrenador ya haya escrito distinto) y las que
+     apunten a un id ya inexistente degradan a texto libre. */
+  document.querySelectorAll('#pl-days .pl-ex-row').forEach(row => {
+    const exid = row.dataset.exid;
+    if (!exid || LIB_STATE !== 'ok') return;
+    const entry = LIB_BY_ID[exid];
+    if (!entry) { libUnlinkRow(row); return; }
+    const nameIn = row.querySelector('.pl-ex-name');
+    if (nameIn && nameIn.value === (row.dataset.savedName || '')) {
+      nameIn.value = libNameOf(entry);
+      row.dataset.savedName = nameIn.value;
+    }
+    if (!row.dataset.photo && entry.foto_url) row.dataset.photo = entry.foto_url;
+    if (!row.dataset.video && entry.video_youtube_url) row.dataset.video = entry.video_youtube_url;
+    const wrap = row.querySelector('.pl-ex-links-wrap');
+    if (wrap && !wrap.innerHTML) { wrap.innerHTML = libLinksHTML({ exerciseId: exid, photoUrl: row.dataset.photo, videoUrl: row.dataset.video }); wireLibLinks(row); }
+  });
+}
+
 /* --- Editor de planes (entrenador) --- */
 let planCtx = null;
 function wirePlanExDel(scope) { scope.querySelectorAll('.pl-ex-del').forEach(b => b.onclick = () => b.closest('.pl-ex-row').remove()); }
 function planExRow(ex) {
   ex = ex || {};
-  return `<div class="pl-ex-row">
-    <input type="text" class="pl-ex-name" placeholder="${t('train.f.exPh')}" value="${esc(ex.name || '')}">
+  /* Fila vinculada (§4.1): si la biblioteca ya está cargada y la
+     ficha existe, el nombre visible se resuelve por idioma; si la
+     ficha aún no se conoce (biblioteca cargando) o ya no existe, se
+     muestra el name guardado como respaldo y la carga lo confirma o
+     lo degrada a texto libre (libRefreshOpenRows). La vinculación y
+     las URLs copiadas viajan en data-* de la fila hasta el guardado. */
+  const entry = ex.exerciseId ? LIB_BY_ID[ex.exerciseId] : null;
+  const shown = entry ? libNameOf(entry) : (ex.name || '');
+  const linked = ex.exerciseId ? ` data-exid="${esc(ex.exerciseId)}" data-saved-name="${esc(ex.name || '')}" data-photo="${esc(ex.photoUrl || '')}" data-video="${esc(ex.videoUrl || '')}"` : '';
+  return `<div class="pl-ex-row"${linked}>
+    <div class="pl-ex-main">
+      <input type="text" class="pl-ex-name" placeholder="${t('train.f.exPh')}" value="${esc(shown)}" autocomplete="off">
+      <div class="pl-ex-sug"></div>
+      <div class="pl-ex-links-wrap">${libLinksHTML(ex)}</div>
+    </div>
     <input type="text" class="pl-ex-sets" placeholder="${t('train.f.setsPh')}" value="${esc(ex.sets || '')}">
     <input type="text" class="pl-ex-reps" placeholder="${t('train.f.repsPh')}" value="${esc(ex.reps || '')}">
     <input type="text" class="pl-ex-note" placeholder="${t('train.f.notePh')}" value="${esc(ex.note || '')}">
@@ -4145,9 +4327,9 @@ function planDayRow(day) {
   wrap.querySelector('.pl-day-del').onclick = () => wrap.remove();
   wrap.querySelector('.pl-ex-add').onclick = () => {
     const d = document.createElement('div'); d.innerHTML = planExRow({});
-    wrap.querySelector('.pl-exs').appendChild(d.firstElementChild); wirePlanExDel(wrap);
+    wrap.querySelector('.pl-exs').appendChild(d.firstElementChild); wirePlanExRows(wrap);
   };
-  wirePlanExDel(wrap);
+  wirePlanExRows(wrap);
   return wrap;
 }
 function openPlanEditor(clientUid, plan) {
@@ -4160,6 +4342,12 @@ function openPlanEditor(clientUid, plan) {
   days.forEach(d => daysBox.appendChild(planDayRow(d)));
   $('plan-modal').style.display = '';
   planGateRefresh();
+  /* BIBLIOTECA (§4.1): una sola lectura por sesión de página, en
+     segundo plano; al llegar, las filas abiertas se resuelven. Si la
+     biblioteca no está disponible, el aviso queda visible y el
+     editor sigue en texto libre (sin bloquear nada). */
+  libRenderNotice();
+  libEnsure().then(() => libRefreshOpenRows());
 }
 $('pl-add-day').onclick = () => $('pl-days').appendChild(planDayRow(null));
 $('plan-cancel').onclick = () => { $('plan-modal').style.display = 'none'; planCtx = null; };
@@ -4174,7 +4362,16 @@ $('form-plan').addEventListener('submit', async e => {
     dEl.querySelectorAll('.pl-ex-row').forEach(r => {
       const name = r.querySelector('.pl-ex-name').value.trim();
       if (!name) return;
-      exercises.push({ name, sets: r.querySelector('.pl-ex-sets').value.trim(), reps: r.querySelector('.pl-ex-reps').value.trim(), note: r.querySelector('.pl-ex-note').value.trim() });
+      const ex = { name, sets: r.querySelector('.pl-ex-sets').value.trim(), reps: r.querySelector('.pl-ex-reps').value.trim(), note: r.querySelector('.pl-ex-note').value.trim() };
+      /* BIBLIOTECA (§4.1/§4.6): solo las filas VINCULADAS (data-exid)
+         persisten exerciseId y las URLs copiadas de la ficha; las de
+         texto libre se guardan exactamente como hasta hoy. */
+      if (r.dataset.exid) {
+        ex.exerciseId = r.dataset.exid;
+        if (r.dataset.photo) ex.photoUrl = r.dataset.photo;
+        if (r.dataset.video) ex.videoUrl = r.dataset.video;
+      }
+      exercises.push(ex);
     });
     if (exercises.length) days.push({ label, exercises });
   });

@@ -244,6 +244,21 @@ table.whist { min-width: 640px; }
 .pl-gate.warn { background: #fffbeb; border-color: #f59e0b; color: #92400e; }
 .pl-gate.block { background: #fef2f2; border-color: #dc2626; color: #991b1b; }
 
+/* ===== biblioteca en el editor (§4.1): aviso, autocompletado y enlaces ===== */
+.pl-lib-note { background: #fffbeb; border: 1px solid #f59e0b; color: #92400e; border-radius: 10px; padding: 8px 12px; font-size: 12.5px; margin: 10px 0; }
+.pl-lib-note:empty { display: none; }
+.pl-ex-main { flex: 1.6; min-width: 0; position: relative; }
+.pl-ex-main > input { width: 100%; }
+.pl-ex-sug { position: absolute; top: 100%; left: 0; width: min(80vw, 360px); max-height: 264px; overflow-y: auto; z-index: 40; background: #fff; border: 1px solid #d1d5db; border-radius: 10px; box-shadow: 0 10px 28px rgba(15,23,42,.16); margin-top: 2px; }
+.pl-ex-sug:empty { display: none; }
+.pl-sug-item { display: block; width: 100%; text-align: left; background: #fff; border: 0; border-bottom: 1px solid #f1f5f9; padding: 8px 10px; cursor: pointer; font: inherit; }
+.pl-sug-item:last-child { border-bottom: 0; }
+.pl-sug-item:hover { background: #f0fdfa; }
+.pl-sug-item .sg-name { display: block; font-size: 13.5px; font-weight: 600; color: #1f2a44; }
+.pl-sug-item .sg-meta { display: block; font-size: 12px; color: #6b7280; margin-top: 1px; }
+.pl-ex-links { display: flex; gap: 6px; margin-top: 4px; }
+.pl-ex-links a.btn-ghost { text-decoration: none; display: inline-block; }
+
 /* ===== gráfica semanal ===== */
 .week-panel { margin-top: 18px; }
 .week-panel h2 { font-size: 17px; color: #1f2a44; margin-bottom: 10px; }
@@ -292,7 +307,7 @@ table.whist { min-width: 640px; }
 .train-ex:last-child { border-bottom: none; }
 .train-ex .sx { color: #666; white-space: nowrap; }
 .pl-day { border: 1px solid #e9ecef; border-radius: 10px; padding: 10px; margin: 10px 0; }
-.pl-ex-row { display: flex; gap: 6px; margin: 6px 0; }
+.pl-ex-row { display: flex; gap: 6px; margin: 6px 0; align-items: flex-start; }
 .pl-ex-row input { flex: 1; min-width: 0; }
 .pl-ex-row .pl-ex-sets, .pl-ex-row .pl-ex-reps { flex: 0 0 58px; }
 .check-row { display: flex; gap: 8px; align-items: center; }
