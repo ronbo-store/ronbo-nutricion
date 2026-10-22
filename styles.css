@@ -495,6 +495,16 @@ table.whist { min-width: 640px; }
 /* M8 — paquete 2: unidad por alimento, selector de comida, métricas editables */
 .ai-food-unit{padding:7px 4px;border:1px solid #d1d5db;border-radius:8px;font-size:13px;background:#fff}
 .ai-est{color:#92400e;background:#fef3c7;border-radius:6px;padding:2px 5px;font-size:11px;white-space:nowrap}
+/* Fotos múltiples con báscula (2026-10-22): franja de miniaturas de la
+   preparación (quitar/reemplazar antes de enviar) e insignias de
+   procedencia de cada cantidad — báscula (verde) o estimación (ámbar). */
+.ai-stage-strip{display:flex;gap:10px;flex-wrap:wrap;margin:10px 0}
+.ai-thumb{position:relative;width:64px;height:64px}
+.ai-thumb img{width:64px;height:64px;object-fit:cover;border-radius:10px;border:1px solid #d8e2e0;cursor:pointer;display:block}
+.ai-thumb-x{position:absolute;top:-6px;right:-6px;width:20px;height:20px;border-radius:50%;border:1px solid #d1d5db;background:#fff;color:#b91c1c;font-size:12px;line-height:1;cursor:pointer;padding:0}
+.ai-qsrc{border-radius:6px;padding:2px 5px;font-size:11px;white-space:nowrap}
+.ai-qsrc-scale{color:#065f46;background:#d1fae5}
+.ai-qsrc-est{color:#92400e;background:#fef3c7}
 /* Resultado M8 en vertical (defecto en vivo, Ronald 2026-10-21): en
    la fila única, nombre + cantidad (78 px) + unidad + chip «porción
    estimada» (nowrap) + ✕ sumaban más que el ancho útil a 390 px y el

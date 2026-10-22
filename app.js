@@ -319,6 +319,14 @@ en: {
   'aiText.tooShort': 'Describe the meal with a bit more detail first.',
   'aiText.notFound': "AI couldn't identify any food this time. Try again, or log the meal manually.",
   'aiText.banner': 'Draft from your description: check and edit the values before saving.',
+  'aiMulti.title': 'Photos of this meal',
+  'aiMulti.hint': 'They are photos of ONE single meal: the dish as served and each item weighed on your scale. You can remove or replace any photo before analyzing.',
+  'aiMulti.add': '＋ Add another photo',
+  'aiMulti.analyze': 'Analyze the photos',
+  'aiMulti.max': 'A maximum of 5 photos per analysis.',
+  'aiMulti.remove': 'Remove photo',
+  'aiMulti.fromScale': 'From your scale',
+  'aiMulti.estimated': 'Estimated',
   'access.title': '🔐 Access management',
   'access.sub': '· administrator only',
   'access.hint': 'New accounts stay pending until you approve them. Only approved users can sign in, and each one sees only their own data.',
@@ -999,6 +1007,14 @@ es: {
   'aiText.tooShort': 'Describe primero la comida con un poco más de detalle.',
   'aiText.notFound': 'La IA no pudo identificar ningún alimento esta vez. Inténtalo de nuevo o registra la comida manualmente.',
   'aiText.banner': 'Borrador de tu descripción: revisa y edita los valores antes de guardar.',
+  'aiMulti.title': 'Fotos de esta comida',
+  'aiMulti.hint': 'Son fotos de UNA misma comida: el plato servido y cada alimento pesado en tu báscula. Puedes quitar o reemplazar cualquier foto antes de analizar.',
+  'aiMulti.add': '＋ Añadir otra foto',
+  'aiMulti.analyze': 'Analizar las fotos',
+  'aiMulti.max': 'Máximo 5 fotos por análisis.',
+  'aiMulti.remove': 'Quitar foto',
+  'aiMulti.fromScale': 'De tu báscula',
+  'aiMulti.estimated': 'Estimado',
   'access.title': '🔐 Administración de accesos',
   'access.sub': '· solo administrador',
   'access.hint': 'Las cuentas nuevas quedan pendientes hasta que las apruebes. Solo los usuarios aprobados pueden entrar y cada uno ve únicamente sus datos.',
@@ -2816,7 +2832,14 @@ function aiShapeR1(r1) {
   if (!r1 || !Array.isArray(r1.foods)) return null;
   const foods = r1.foods
     .filter(f => f && typeof f === 'object' && String(f.name || '').trim())
-    .map(f => ({ ...f, name: String(f.name).trim() }));
+    .map(f => {
+      const o = { ...f, name: String(f.name).trim() };
+      /* Procedencia de la cantidad (fotos con báscula): solo pasan los
+         dos valores del contrato; cualquier otra cosa se descarta y el
+         alimento queda sin insignia, como en el flujo histórico. */
+      if (o.quantitySource !== 'scale' && o.quantitySource !== 'estimate') delete o.quantitySource;
+      return o;
+    });
   const questions = (Array.isArray(r1.questions) ? r1.questions : [])
     .filter(q => q && typeof q === 'object' && q.id != null && String(q.text || '').trim())
     .slice(0, 3)
@@ -3013,12 +3036,51 @@ function aiOnLangChange() {
   aiRender();
 }
 function aiFreshState(mode) {
-  return { mode, dataUrl: null, descText: '', step: 'loading', r1: null, answers: {}, other: {}, foods: null, r2: null, errStage: 'identify', meal: aiDefaultMeal(), metrics: null, metricsEdited: false, name: null, nameEdited: false, cap: false, saveError: false };
+  return { mode, dataUrl: null, photos: null, descText: '', step: 'loading', r1: null, answers: {}, other: {}, foods: null, r2: null, errStage: 'identify', meal: aiDefaultMeal(), metrics: null, metricsEdited: false, name: null, nameEdited: false, cap: false, saveError: false };
 }
 async function aiStart(dataUrl) {
+  aiStartPhotos([dataUrl]);
+}
+/* FOTOS MÚLTIPLES CON BÁSCULA (Ronald, 2026-10-22): el análisis de una
+   comida puede llevar de 1 a 5 fotos (el plato servido + los componentes
+   pesados). aiState.photos es la lista completa (solo memoria, postura
+   temporal intacta); dataUrl conserva la primera por compatibilidad.
+   El cuerpo de la llamada conserva el formato histórico cuando hay UNA
+   foto (imageDataUrl) y usa el arreglo «images» con 2–5 — el Worker
+   acepta ambos, así la app nueva no depende del despliegue del Worker
+   para el caso de una foto. */
+function aiStartPhotos(urls) {
   aiState = aiFreshState('photo');
-  aiState.dataUrl = dataUrl;
+  aiState.photos = urls.slice();
+  aiState.dataUrl = urls[0] || null;
   aiRunIdentify();
+}
+function aiIdentifyBody() {
+  const photos = (aiState.photos && aiState.photos.length) ? aiState.photos : [aiState.dataUrl];
+  return photos.length === 1
+    ? { imageDataUrl: photos[0], lang: LANG }
+    : { images: photos, lang: LANG };
+}
+/* Reconciliación determinista del lado de la app: si el MISMO alimento
+   llega pesado en dos fotos (dos entradas con el mismo nombre, ambas
+   con procedencia «scale»), el peso mostrado es la SUMA y queda UNA
+   sola entrada. Si alguna de las dos no es «scale» no se fusiona nada:
+   repartir una estimación sería inventar precisión. */
+function aiMergeScaledDuplicates(foods) {
+  const norm = s => String(s || '').trim().toLowerCase().replace(/\s+/g, ' ');
+  const byName = new Map();
+  const out = [];
+  for (const f of foods) {
+    const prev = byName.get(norm(f.name));
+    if (prev && prev.quantitySource === 'scale' && f.quantitySource === 'scale') {
+      prev.portion_g_estimate = Math.round(((Number(prev.portion_g_estimate) || 0) + (Number(f.portion_g_estimate) || 0)) * 10) / 10;
+      continue;
+    }
+    const copy = { ...f };
+    byName.set(norm(f.name), copy);
+    out.push(copy);
+  }
+  return out;
 }
 /* INGRESO MANUAL CON AYUDA DE IA (Ronald, 2026-10-22): la descripción
    escrita hace de IDENTIFICACIÓN — sustituye a la foto — y todo lo
@@ -3036,10 +3098,11 @@ async function aiRunIdentify() {
   try {
     const raw = aiState.mode === 'text'
       ? await aiCall('/identify-text', { description: aiState.descText, lang: LANG })
-      : await aiCall('/identify', { imageDataUrl: aiState.dataUrl, lang: LANG });
+      : await aiCall('/identify', aiIdentifyBody());
     if (!aiState) return; // descartado mientras llamaba
     const r1 = aiShapeR1(raw);
     if (!r1) throw new Error('ai-badshape'); // forma inesperada → aviso honesto (Parte B)
+    r1.foods = aiMergeScaledDuplicates(r1.foods);
     aiProgStage(0.7); // etapa real: la identificación volvió
     aiState.r1 = r1;
     aiState.foods = r1.foods.map(f => ({ src: f, name: f.name || '', grams: Math.round(f.portion_g_estimate || 0), unit: f.unit === 'ml' ? 'ml' : 'g' }));
@@ -3094,16 +3157,26 @@ function aiRetry() {
   if (!aiState) return;
   if (aiState.errStage === 'identify') {
     if (aiState.mode === 'text') aiStartText(aiState.descText);
-    else aiStart(aiState.dataUrl);
+    else aiStartPhotos((aiState.photos && aiState.photos.length) ? aiState.photos : [aiState.dataUrl]);
   }
   else aiCalculate();
 }
 function aiKnownFoods() {
   /* Lista {name, grams} con lo conocido: la EDITADA si existe; si no,
-     la identificada tal cual llegó. */
+     la identificada tal cual llegó. qsrc = procedencia de la cantidad
+     ('scale' | 'estimate' | null) tal como la declaró la identificación;
+     vive en src y sobrevive a las ediciones (aiCaptureFoods lo conserva). */
   if (aiState && aiState.foods && aiState.foods.length)
-    return aiState.foods.filter(f => (f.name || '').trim()).map(f => ({ name: f.name.trim(), grams: Number(f.grams) || 0, unit: f.unit === 'ml' ? 'ml' : 'g' }));
-  return ((aiState && aiState.r1 && aiState.r1.foods) || []).map(f => ({ name: f.name || '', grams: Math.round(f.portion_g_estimate || 0), unit: f.unit === 'ml' ? 'ml' : 'g' }));
+    return aiState.foods.filter(f => (f.name || '').trim()).map(f => ({ name: f.name.trim(), grams: Number(f.grams) || 0, unit: f.unit === 'ml' ? 'ml' : 'g', qsrc: (f.src && f.src.quantitySource) || null }));
+  return ((aiState && aiState.r1 && aiState.r1.foods) || []).map(f => ({ name: f.name || '', grams: Math.round(f.portion_g_estimate || 0), unit: f.unit === 'ml' ? 'ml' : 'g', qsrc: f.quantitySource || null }));
+}
+/* Insignia de procedencia de UNA cantidad: solo se pinta cuando la
+   identificación declaró procedencia (con el prompt histórico no llega
+   ninguna y la vista queda exactamente como hoy). */
+function aiQsrcBadge(qsrc) {
+  if (qsrc === 'scale') return `<span class="ai-qsrc ai-qsrc-scale">${t('aiMulti.fromScale')}</span>`;
+  if (qsrc === 'estimate') return `<span class="ai-qsrc ai-qsrc-est">${t('aiMulti.estimated')}</span>`;
+  return '';
 }
 function aiContinueManual() {
   /* Salida manual tras un fallo: abre el modal con lo ya conocido
@@ -3201,8 +3274,12 @@ function aiRenderInner() {
     aiProgDone(); // los resultados se pintan: el anillo se completa
     const r1 = aiState.r1, foods = aiState.foods || [], qs = (r1.questions || []).slice(0, 3);
     const list = foods.map((f, i) => {
-      const est = f.src && (f.src.portion_estimated === true || (typeof f.src.confidence === 'number' && f.src.confidence < 0.7));
-      return `<div class="ai-food-row"><input type="text" class="ai-food-name" data-fi="${i}" value="${esc(f.name)}" placeholder="${t('form.food')}"><input type="number" class="ai-food-grams" data-fi="${i}" value="${f.grams === '' || f.grams == null ? '' : f.grams}" min="0" step="any" inputmode="decimal"><select class="ai-food-unit" data-fi="${i}" aria-label="g/ml"><option value="g"${f.unit !== 'ml' ? ' selected' : ''}>g</option><option value="ml"${f.unit === 'ml' ? ' selected' : ''}>ml</option></select>${est ? `<span class="ai-est">${t('ai.estPortion')}</span>` : ''}<button type="button" class="btn-ghost btn-sm ai-food-del" data-fi="${i}" title="${t('ai.removeFood')}">✕</button></div>`;
+      const qsrc = (f.src && f.src.quantitySource) || null;
+      /* Con procedencia «scale», el peso leído viene PRE-RESPONDIDO en
+         el campo de gramos (llega en portion_g_estimate) y su insignia
+         sustituye a la de porción estimada; todo sigue editable. */
+      const est = !qsrc && f.src && (f.src.portion_estimated === true || (typeof f.src.confidence === 'number' && f.src.confidence < 0.7));
+      return `<div class="ai-food-row"><input type="text" class="ai-food-name" data-fi="${i}" value="${esc(f.name)}" placeholder="${t('form.food')}"><input type="number" class="ai-food-grams" data-fi="${i}" value="${f.grams === '' || f.grams == null ? '' : f.grams}" min="0" step="any" inputmode="decimal"><select class="ai-food-unit" data-fi="${i}" aria-label="g/ml"><option value="g"${f.unit !== 'ml' ? ' selected' : ''}>g</option><option value="ml"${f.unit === 'ml' ? ' selected' : ''}>ml</option></select>${qsrc === 'scale' ? aiQsrcBadge('scale') : (est ? `<span class="ai-est">${t('ai.estPortion')}</span>` : '')}<button type="button" class="btn-ghost btn-sm ai-food-del" data-fi="${i}" title="${t('ai.removeFood')}">✕</button></div>`;
     }).join('');
     const qhtml = qs.map((q, i) => `<div class="ai-q"><p>${esc(q.text)}</p>${(q.options || []).map(o => `<label class="ai-opt"><input type="radio" name="aiq${i}" value="${esc(o)}"${aiState.answers[q.id] === o ? ' checked' : ''}> ${esc(o)}</label>`).join('')}<label class="ai-opt"><input type="radio" name="aiq${i}" value="skipped"${aiState.answers[q.id] === 'skipped' ? ' checked' : ''}> ${t('ai.skipOption')}</label><input type="text" class="ai-other" data-qi="${i}" placeholder="${t('ai.otherLabel')}" value="${esc((aiState.other || {})[q.id] || '')}"></div>`).join('');
     aiShow(`<h3>${t('ai.foodsFound')}</h3><p class="progress-hint">${t('ai.foodsEditHint')}</p>${list}<button type="button" class="btn-ghost btn-sm" id="ai-addfood">${t('ai.addFood')}</button>${qs.length ? `<h3>${t('ai.questionsTitle')}</h3>${qhtml}` : ''}${aiMealSelectHTML()}<div class="ai-actions"><button type="button" class="btn-main btn-sm" id="ai-continue">${t('ai.continue')}</button><button type="button" class="btn-ghost btn-sm" id="ai-cancel">${t('ai.discard')}</button></div>`);
@@ -3231,9 +3308,9 @@ function aiRenderInner() {
           const f = known[i];
           const nm = f ? f.name : it.name;
           const qty = f ? ` · ${Math.round(f.grams) || 0} ${f.unit}` : (it.portion_g ? ` · ${Math.round(it.portion_g)} g` : '');
-          return `<li>${esc(nm)}${qty} — ${Math.round(it.kcal || 0)} kcal</li>`;
+          return `<li>${esc(nm)}${qty} — ${Math.round(it.kcal || 0)} kcal${f ? ' ' + aiQsrcBadge(f.qsrc) : ''}</li>`;
         }).join('')
-      : known.map(f => `<li>${esc(f.name)} · ${Math.round(f.grams) || 0} ${f.unit}</li>`).join('');
+      : known.map(f => `<li>${esc(f.name)} · ${Math.round(f.grams) || 0} ${f.unit} ${aiQsrcBadge(f.qsrc)}</li>`).join('');
     const range = Array.isArray(tot.range_kcal) ? tot.range_kcal : null;
     /* PAQUETE 2: las cinco métricas (kcal, proteína, carbos, AZÚCARES,
        grasas) se muestran EDITABLES en el propio resultado y son las
@@ -3256,17 +3333,91 @@ function aiRenderInner() {
     };
   }
 }
+/* ============ PREPARACIÓN DE FOTOS (fotos múltiples con báscula) ====
+   aiStage = { photos: [dataUrl, …] } — SOLO memoria, como todo el flujo
+   M8: las fotos jamás se persisten. La preparación (franja de
+   miniaturas) aparece cuando la selección trae 2+ fotos o cuando se
+   añaden a una preparación abierta; con UNA sola foto el flujo visible
+   es el histórico: el análisis arranca al momento, sin paso intermedio.
+   aiStageReplace = índice de la miniatura que la próxima foto elegida
+   reemplaza (−1 = ninguna); tocar una miniatura ofrece reemplazarla y
+   su ✕ la quita. A las 5 fotos (AI_MAX_PHOTOS) no se puede adjuntar
+   una sexta: el botón de añadir desaparece, la selección se recorta y
+   se dice con un toast. */
+const AI_MAX_PHOTOS = 5;
+let aiStage = null;
+let aiStageReplace = -1;
+async function aiCompressChecked(f) {
+  const url = await compressFoodPhoto(f); // solo en memoria: NO se sube a meal_help
+  if (url.length > 700000) { toast(t('mealhelp.tooBig'), true); return null; }
+  return url;
+}
+function aiStageDiscard() {
+  aiStage = null; aiStageReplace = -1;
+  aiClosePanel();
+}
+function aiStageShow() {
+  const p = $('ai-panel');
+  if (!p || !aiStage) return;
+  const photos = aiStage.photos;
+  const thumbs = photos.map((u, i) => `<div class="ai-thumb"><img src="${u}" alt="" data-stage-view="${i}"><button type="button" class="ai-thumb-x" data-stage-del="${i}" title="${t('aiMulti.remove')}">✕</button></div>`).join('');
+  const full = photos.length >= AI_MAX_PHOTOS;
+  aiShow(`<h3>${t('aiMulti.title')}</h3><p class="progress-hint">${t('aiMulti.hint')}</p><div class="ai-stage-strip">${thumbs}</div>${full ? `<p class="progress-hint">${t('aiMulti.max')}</p>` : ''}<div class="ai-actions">${full ? '' : `<button type="button" class="btn-ghost btn-sm" id="ai-stage-add">${t('aiMulti.add')}</button>`}<button type="button" class="btn-main btn-sm" id="ai-stage-go">${t('aiMulti.analyze')}</button><button type="button" class="btn-ghost btn-sm" id="ai-stage-cancel">${t('ai.discard')}</button></div>`);
+  p.querySelectorAll('[data-stage-del]').forEach(b => b.onclick = () => {
+    if (!aiStage) return;
+    aiStage.photos.splice(+b.dataset.stageDel, 1);
+    if (!aiStage.photos.length) { aiStageDiscard(); return; } // conjunto vacío: nunca se llama con 0 fotos
+    aiStageShow();
+  });
+  p.querySelectorAll('[data-stage-view]').forEach(im => im.onclick = () => {
+    aiStageReplace = +im.dataset.stageView;
+    const f = $('ai-file'); if (f) f.click();
+  });
+  const add = $('ai-stage-add');
+  if (add) add.onclick = () => { aiStageReplace = -1; const f = $('ai-file'); if (f) f.click(); };
+  $('ai-stage-go').onclick = () => {
+    if (!aiStage || !aiStage.photos.length) return;
+    const photos = aiStage.photos;
+    aiStage = null; aiStageReplace = -1;
+    aiStartPhotos(photos);
+  };
+  $('ai-stage-cancel').onclick = aiStageDiscard;
+}
 const aiFile = $('ai-file');
-if (aiFile) aiFile.addEventListener('change', async e => {
-  const f = e.target.files[0]; e.target.value = '';
-  if (!f) return;
-  if (!aiEndpoint()) { toast(t('ai.unavailable'), true); return; }
-  try {
-    const url = await compressFoodPhoto(f); // solo en memoria: NO se sube a meal_help
-    if (url.length > 700000) { toast(t('mealhelp.tooBig'), true); return; }
-    aiStart(url);
-  } catch { toast(t('ai.failed'), true); }
-});
+if (aiFile) {
+  aiFile.addEventListener('cancel', () => { aiStageReplace = -1; });
+  aiFile.addEventListener('change', async e => {
+    const files = [...(e.target.files || [])]; e.target.value = '';
+    if (!files.length) return;
+    if (!aiEndpoint()) { toast(t('ai.unavailable'), true); return; }
+    /* Reemplazo de UNA miniatura: solo manda la primera foto elegida. */
+    if (aiStage && aiStageReplace >= 0) {
+      const idx = aiStageReplace; aiStageReplace = -1;
+      try {
+        const url = await aiCompressChecked(files[0]);
+        if (url && aiStage) aiStage.photos[idx] = url;
+      } catch { toast(t('ai.failed'), true); }
+      if (aiStage) aiStageShow();
+      return;
+    }
+    const urls = [];
+    for (const f of files) {
+      try { const url = await aiCompressChecked(f); if (url) urls.push(url); }
+      catch { toast(t('ai.failed'), true); }
+    }
+    if (!urls.length) return;
+    const had = aiStage ? aiStage.photos.length : 0;
+    const room = AI_MAX_PHOTOS - had;
+    if (urls.length > room) toast(t('aiMulti.max'), true); // la sexta NO entra, y se dice
+    const take = urls.slice(0, Math.max(0, room));
+    if (!take.length) { if (aiStage) aiStageShow(); return; }
+    /* Una sola foto y sin preparación abierta: el flujo de siempre. */
+    if (!aiStage && files.length === 1) { aiStartPhotos(take); return; }
+    if (!aiStage) { aiDiscard(); aiStage = { photos: [] }; }
+    aiStage.photos.push(...take);
+    aiStageShow();
+  });
+}
 /* «Analizar la descripción con IA» (formulario manual, Ronald
    2026-10-22): la descripción escrita pasa a ser la identificación
    (aiStartText) y el resto del flujo es el del análisis de foto.
