@@ -704,3 +704,28 @@ table.whist { min-width: 640px; }
 .m-ai-text { margin: 10px 0; padding: 10px; border: 1px dashed #0e7c6b; border-radius: 10px; background: #f4faf8; }
 .m-ai-text textarea { width: 100%; box-sizing: border-box; margin-top: 4px; }
 .m-ai-text .photo-hint { margin: 6px 0; }
+
+/* Vista del cliente del plan — Paquete 6 (2026-10-22): tarjetas por
+   ejercicio con foto, marcas locales con RPE, historial de solo
+   lectura, tarjeta de sesión y aviso de alineación. */
+.train-ex-card { display: flex; gap: 10px; align-items: flex-start; padding: 8px 0; border-bottom: 1px dashed #eef1f3; }
+.train-ex-card:last-of-type { border-bottom: none; }
+.train-ex-card.is-done { background: #f2fbf6; border-radius: 8px; }
+.train-ex-photo { width: 64px; height: 64px; object-fit: cover; border-radius: 8px; flex: none; cursor: pointer; background: #eef1f3; }
+.train-ex-info { flex: 1; min-width: 0; }
+.train-ex-name { font-weight: 600; color: #1f2a44; }
+.train-ex-spec { color: #444; font-size: 13px; margin-top: 1px; }
+.train-ex-sub { color: #777; font-size: 12px; margin-top: 1px; }
+.train-ex-video { display: inline-block; margin-top: 4px; text-decoration: none; }
+.train-ex-side { display: flex; flex-direction: column; align-items: flex-end; gap: 6px; flex: none; }
+.train-ex-check { display: inline-flex; align-items: center; gap: 5px; font-size: 13px; font-weight: 600; color: #065f46; cursor: pointer; }
+.train-ex-check input { width: 20px; height: 20px; accent-color: #0e7c6b; cursor: pointer; }
+.train-ex-rpe { font-size: 12px; padding: 3px 4px; border: 1px solid #d5dbe1; border-radius: 6px; background: #fff; max-width: 92px; }
+.train-ex-rpe:disabled { opacity: .45; }
+.train-session { margin-top: 8px; border: 1px solid #e3e9f2; background: #f7fafd; border-radius: 8px; padding: 8px 10px; }
+.train-session h5 { margin: 0 0 4px; color: #1f2a44; font-size: 13px; }
+.train-block { display: flex; justify-content: space-between; gap: 8px; font-size: 13px; padding: 2px 0; }
+.train-block span { color: #555; text-align: right; }
+.train-align-note { border: 1px solid #f0d9a8; background: #fffaf0; border-radius: 10px; padding: 10px 12px; margin: 10px 0; }
+.train-align-note p { margin: 0 0 8px; font-size: 14px; color: #5b4a1f; }
+.train-align-actions { display: flex; gap: 8px; flex-wrap: wrap; }

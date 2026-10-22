@@ -408,6 +408,12 @@ en: {
   'train.none': 'Your trainer has not assigned you a plan yet.',
   'train.weekDone': 'Sessions completed this week: {n}',
   'train.markDone': 'Mark as done today', 'train.doneToday': 'Done today ✓', 'train.undo': 'Undo',
+  'train.view.rest': 'Rest', 'train.view.warmup': 'Warm-up', 'train.view.session': 'Session',
+  'train.view.rpe': 'RPE', 'train.view.rpeNone': 'No RPE', 'train.view.exDone': 'Done',
+  'train.view.alignBody': 'Your routine: {plan}. Your training reminders: {cfg}. Align your reminders with your plan?',
+  'train.view.sessionsWeek': '{n} sessions a week', 'train.view.noDays': 'no days set',
+  'train.view.alignYes': 'Align with my plan', 'train.view.alignOpen': 'Review settings',
+  'train.view.alignNo': 'Not now', 'train.view.alignDone': 'Training reminders aligned ✓',
   'train.saved': 'Plan saved.', 'train.deleted': 'Plan deleted.',
   'train.editorTitle': 'Training plan', 'train.section': '🏋️ Training',
   'train.f.title': 'Plan title', 'train.f.titlePh': 'E.g. Strength — 4 days',
@@ -1082,6 +1088,12 @@ es: {
   'train.none': 'Tu entrenador aún no te ha asignado un plan.',
   'train.weekDone': 'Sesiones completadas esta semana: {n}',
   'train.markDone': 'Marcar como hecho hoy', 'train.doneToday': 'Hecho hoy ✓', 'train.undo': 'Deshacer',
+  'train.view.rest': 'Descanso', 'train.view.warmup': 'Aproximación', 'train.view.session': 'Sesión',
+  'train.view.rpe': 'RPE', 'train.view.rpeNone': 'Sin RPE', 'train.view.exDone': 'Hecho',
+  'train.view.alignBody': 'Tu rutina: {plan}. Tus avisos de entrenamiento: {cfg}. ¿Alineas tus avisos con tu plan?',
+  'train.view.sessionsWeek': '{n} sesiones por semana', 'train.view.noDays': 'ningún día configurado',
+  'train.view.alignYes': 'Alinear con mi plan', 'train.view.alignOpen': 'Revisar ajustes',
+  'train.view.alignNo': 'Ahora no', 'train.view.alignDone': 'Avisos de entrenamiento alineados ✓',
   'train.saved': 'Plan guardado.', 'train.deleted': 'Plan eliminado.',
   'train.editorTitle': 'Plan de entrenamiento', 'train.section': '🏋️ Entrenamiento',
   'train.f.title': 'Título del plan', 'train.f.titlePh': 'Ej. Fuerza — 4 días',
@@ -4178,7 +4190,164 @@ function trainExercisesHTML(day) {
     <div class="train-ex"><span>${esc(ex.name || '')}${ex.note ? ` <span class="muted">· ${esc(ex.note)}</span>` : ''}</span><span class="sx">${esc([ex.sets, ex.reps].filter(Boolean).join(' × '))}</span></div>`).join('');
 }
 
-/* --- Vista del cliente: su plan activo y registro de sesiones --- */
+/* --- Vista del cliente: su plan activo y registro de sesiones ---
+   PAQUETE 6 (§5.3 / §4.6 / §4.2): tarjetas por ejercicio con foto,
+   video y nombre resuelto por idioma desde la biblioteca (una sola
+   lectura con caché, degradación honesta al nombre guardado); marcas
+   por ejercicio con RPE opcional SOLO en estado local de la sesión —
+   el registro en training_logs nace UNA vez, al cerrar el día, con el
+   detalle exercisesDone (invariante aprobado); un día ya registrado se
+   muestra como historial de solo lectura (las reglas no admiten
+   update en training_logs); aviso de alineación no bloqueante entre
+   los días del plan y su configuración de pendientes. */
+let TRAIN_CHECKS = {};         // "di:ei" -> { rpe: n|null } — solo memoria de la sesión
+let TRAIN_CHECKS_CTX = '';     // planId|fecha a la que pertenecen las marcas
+let TRAIN_LIB_CTX = '';        // ctx ya re-pintado tras cargar la biblioteca
+let TRAIN_ALIGN_DISMISSED = false;  // el aviso no insiste en la misma sesión
+
+function trainExName(ex) {
+  const entry = ex && ex.exerciseId ? LIB_BY_ID[ex.exerciseId] : null;
+  return entry ? libNameOf(entry) : ((ex && ex.name) || '');
+}
+function trainExPhoto(ex) {
+  if (!ex) return '';
+  if (ex.photoUrl) return ex.photoUrl;
+  const entry = ex.exerciseId ? LIB_BY_ID[ex.exerciseId] : null;
+  return entry ? (entry.foto_url || '') : '';
+}
+function trainExVideo(ex) {
+  if (!ex) return '';
+  if (ex.videoUrl) return ex.videoUrl;
+  const entry = ex.exerciseId ? LIB_BY_ID[ex.exerciseId] : null;
+  return entry ? (entry.video_youtube_url || '') : '';
+}
+function trainExInfoHTML(ex) {
+  const photo = trainExPhoto(ex), video = trainExVideo(ex);
+  const spec = [ex.sets, ex.reps].filter(Boolean).join(' × ');
+  const rest = LANG === 'es' ? (ex.rest || ex.rest_en || '') : (ex.rest_en || ex.rest || '');
+  const warm = LANG === 'es' ? (ex.warmup || ex.warmup_en || '') : (ex.warmup_en || ex.warmup || '');
+  const det = [];
+  if (warm) det.push(`${t('train.view.warmup')}: ${warm}`);
+  if (rest) det.push(`${t('train.view.rest')}: ${rest}`);
+  return `${photo ? `<img class="train-ex-photo" src="${esc(photo)}" alt="" loading="lazy" data-train-photo="${esc(photo)}">` : ''}
+    <div class="train-ex-info">
+      <div class="train-ex-name">${esc(trainExName(ex))}${ex.note ? ` <span class="muted">· ${esc(ex.note)}</span>` : ''}</div>
+      ${spec ? `<div class="train-ex-spec">${esc(spec)}</div>` : ''}
+      ${det.length ? `<div class="train-ex-sub">${esc(det.join(' · '))}</div>` : ''}
+      ${video ? `<a class="btn-ghost btn-sm train-ex-video" href="${esc(video)}" target="_blank" rel="noopener">▶ ${t('train.lib.video')}</a>` : ''}
+    </div>`;
+}
+function trainExCardHTML(ex, di, ei) {
+  const key = di + ':' + ei;
+  const chk = TRAIN_CHECKS[key];
+  return `<div class="train-ex-card${chk ? ' is-done' : ''}">${trainExInfoHTML(ex)}
+    <div class="train-ex-side">
+      <label class="train-ex-check"><input type="checkbox" data-train-check="${key}" ${chk ? 'checked' : ''}> <span>${t('train.view.exDone')}</span></label>
+      <select class="train-ex-rpe" data-train-rpe="${key}" ${chk ? '' : 'disabled'} aria-label="${t('train.view.rpe')}">
+        <option value="">${t('train.view.rpeNone')}</option>
+        ${[1, 2, 3, 4, 5, 6, 7, 8, 9, 10].map(n => `<option value="${n}" ${chk && chk.rpe === n ? 'selected' : ''}>${t('train.view.rpe')} ${n}</option>`).join('')}
+      </select>
+    </div>
+  </div>`;
+}
+function trainDayHistHTML(day, log) {
+  const doneList = (log && Array.isArray(log.exercisesDone)) ? log.exercisesDone : [];
+  const byId = {}, byName = {};
+  doneList.forEach(e => { if (!e) return; if (e.exerciseId) byId[e.exerciseId] = e; else if (e.name) byName[e.name] = e; });
+  return (day.exercises || []).map(ex => {
+    const de = (ex.exerciseId && byId[ex.exerciseId]) || (ex.name && byName[ex.name]) || null;
+    return `<div class="train-ex-card is-hist">${trainExInfoHTML(ex)}
+    <div class="train-ex-side">${de
+      ? `<span class="ok-badge">✓ ${t('train.view.exDone')}${de.rpe ? ` · ${t('train.view.rpe')} ${esc(String(de.rpe))}` : ''}</span>`
+      : '<span class="muted">—</span>'}</div>
+  </div>`;
+  }).join('');
+}
+function trainSessionHTML(day) {
+  const blocks = Array.isArray(day.sessionBlocks) ? day.sessionBlocks : [];
+  const rows = blocks.map(b => {
+    const title = b['title_' + LANG] || b.title_es || b.title_en || '';
+    const detail = b['detail_' + LANG] || b.detail_es || b.detail_en || '';
+    if (!title && !detail) return '';
+    return `<div class="train-block"><b>${esc(title)}</b>${detail ? `<span>${esc(detail)}</span>` : ''}</div>`;
+  }).join('');
+  if (!rows) return '';
+  return `<div class="train-session"><h5>${t('train.view.session')}</h5>${rows}</div>`;
+}
+
+/* Alineación (Pregunta 10, mitad del cliente): los días de sesión del
+   plan salen de sus etiquetas cuando TODAS nombran un día de semana
+   (la alineación del editor, Paquete 5, las escribe «Lunes — …»);
+   sin etiquetas completas solo se compara el CONTEO semanal. El aviso
+   es sugerente: aceptar escribe por el camino existente de su
+   configuración de pendientes (pendSaveCfg) cuando los días se
+   conocen, o abre ese mismo formulario cuando solo se conoce el
+   conteo — nunca se inventan días. Ignorar no escribe nada y el
+   aviso no vuelve en la misma sesión. */
+const TRAIN_WD_EN = ['sunday', 'monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday'];
+const TRAIN_WD_ES = ['domingo', 'lunes', 'martes', 'miercoles', 'jueves', 'viernes', 'sabado'];
+function trainPlanWeekdays(days) {
+  const out = [];
+  for (const d of days) {
+    const lab = libNorm((d && d.label) || '').trim();
+    let found = -1;
+    for (let wd = 0; wd < 7; wd++) {
+      if (lab === TRAIN_WD_EN[wd] || lab.startsWith(TRAIN_WD_EN[wd] + ' ') ||
+          lab === TRAIN_WD_ES[wd] || lab.startsWith(TRAIN_WD_ES[wd] + ' ')) { found = wd; break; }
+    }
+    if (found < 0 || out.includes(found)) return null;
+    out.push(found);
+  }
+  return out.sort((a, b) => a - b);
+}
+function trainWdName(wd) {
+  return new Intl.DateTimeFormat(LANG === 'es' ? 'es' : 'en', { weekday: 'long' }).format(new Date(2024, 0, 7 + wd));
+}
+function trainAlignRender() {
+  const slot = $('train-align-slot');
+  if (!slot) return;
+  slot.innerHTML = '';
+  if (TRAIN_ALIGN_DISMISSED) return;
+  const cfg = PEND_CFG, plan = MY_PLAN;
+  if (!cfg || cfg.__error || !cfg.activated || !cfg.trainOn || !plan) return;
+  const days = plan.days || [];
+  if (!days.length) return;
+  const cur = [...new Set((cfg.trainDays || []).map(Number))].sort((a, b) => a - b);
+  const W = trainPlanWeekdays(days);
+  const misaligned = W ? JSON.stringify(W) !== JSON.stringify(cur) : cur.length !== days.length;
+  if (!misaligned) return;
+  const planTxt = W ? W.map(trainWdName).join(', ') : t('train.view.sessionsWeek', { n: days.length });
+  const cfgTxt = cur.length ? cur.map(trainWdName).join(', ') : t('train.view.noDays');
+  slot.innerHTML = `<div class="train-align-note">
+    <p>${t('train.view.alignBody', { plan: planTxt, cfg: cfgTxt })}</p>
+    <div class="train-align-actions">
+      <button type="button" class="btn-primary btn-sm" id="train-align-yes">${W ? t('train.view.alignYes') : t('train.view.alignOpen')}</button>
+      <button type="button" class="btn-ghost btn-sm" id="train-align-no">${t('train.view.alignNo')}</button>
+    </div></div>`;
+  $('train-align-no').onclick = () => { TRAIN_ALIGN_DISMISSED = true; slot.innerHTML = ''; };
+  $('train-align-yes').onclick = async (evYes) => {
+    /* Sin esto, el mismo toque que abre la tarjeta de pendientes la
+       cerraría al instante: el cierre por «toque fuera» escucha en
+       document y este botón vive fuera de la tarjeta. */
+    if (evYes) evYes.stopPropagation();
+    if (W) {
+      const next = Object.assign({}, PEND_CFG);
+      delete next.kind; delete next.uid; delete next.ownerUid; delete next.updatedAt;
+      next.trainOn = true; next.trainDays = W;
+      await pendSaveCfg(next);
+      toast(t('train.view.alignDone'));
+      renderPendings();
+      trainAlignRender();
+    } else {
+      TRAIN_ALIGN_DISMISSED = true;
+      slot.innerHTML = '';
+      PEND_UI.configOpen = true;
+      pendSetFloat(true);
+      renderPendings();
+    }
+  };
+}
+
 async function loadMyTraining() {
   const box = $('my-training');
   if (!box || !auth.currentUser) return;
@@ -4192,29 +4361,80 @@ async function loadMyTraining() {
   const weekStart = mondayISO(today);
   const doneToday = new Set(logs.filter(l => l.date === today).map(l => l.dayIndex));
   const weekCount = logs.filter(l => l.date >= weekStart && l.date <= today).length;
+  const ctx = plan.id + '|' + today;
+  if (TRAIN_CHECKS_CTX !== ctx) { TRAIN_CHECKS = {}; TRAIN_CHECKS_CTX = ctx; }
+  const logByDay = {};
+  logs.filter(l => l.date === today).forEach(l => { logByDay[l.dayIndex] = l; });
   box.innerHTML = `
     <h3 class="history-title">${esc(plan.title || '')}</h3>
     ${plan.notes ? `<p class="progress-hint">${esc(plan.notes)}</p>` : ''}
     <p class="progress-hint">${t('train.weekDone', { n: weekCount })}</p>
+    <div id="train-align-slot"></div>
     ${(plan.days || []).map((day, di) => {
       const label = day.label || ('Día ' + (di + 1));
       const done = doneToday.has(di);
-      return `<div class="train-day"><h4>${esc(label)}</h4>${trainExercisesHTML(day)}
+      const exHtml = done
+        ? trainDayHistHTML(day, logByDay[di])
+        : (day.exercises || []).map((ex, ei) => trainExCardHTML(ex, di, ei)).join('');
+      return `<div class="train-day"><h4>${esc(label)}</h4>${exHtml}${trainSessionHTML(day)}
         <div style="margin-top:8px">${done
           ? `<span class="ok-badge">${t('train.doneToday')}</span> <button class="btn-ghost btn-sm" data-train-undo="${di}">${t('train.undo')}</button>`
           : `<button class="btn-primary btn-sm" data-train-done="${di}">${t('train.markDone')}</button>`}</div>
       </div>`;
     }).join('')}`;
+  box.querySelectorAll('img.train-ex-photo').forEach(img => {
+    img.onerror = () => img.remove();
+    img.onclick = () => showLightbox(img.dataset.trainPhoto);
+  });
+  box.querySelectorAll('[data-train-check]').forEach(c => c.onchange = () => {
+    const key = c.dataset.trainCheck;
+    const card = c.closest('.train-ex-card');
+    const sel = card ? card.querySelector('[data-train-rpe]') : null;
+    if (c.checked) {
+      TRAIN_CHECKS[key] = { rpe: sel && sel.value ? Number(sel.value) : null };
+      if (card) card.classList.add('is-done');
+      if (sel) sel.disabled = false;
+    } else {
+      delete TRAIN_CHECKS[key];
+      if (card) card.classList.remove('is-done');
+      if (sel) { sel.disabled = true; sel.value = ''; }
+    }
+  });
+  box.querySelectorAll('[data-train-rpe]').forEach(s => s.onchange = () => {
+    const key = s.dataset.trainRpe;
+    if (TRAIN_CHECKS[key]) TRAIN_CHECKS[key].rpe = s.value ? Number(s.value) : null;
+  });
   box.querySelectorAll('[data-train-done]').forEach(b => b.onclick = async () => {
     const di = Number(b.dataset.trainDone);
     const day = (plan.days || [])[di] || {};
-    await setDoc(doc(db, 'training_logs', `${uid}_${plan.id}_${today}_${di}`),
-      { clientUid: uid, planId: plan.id, date: today, dayIndex: di, dayLabel: day.label || '', done: true, updatedAt: serverTimestamp() });
+    const data = { clientUid: uid, planId: plan.id, date: today, dayIndex: di, dayLabel: day.label || '', done: true, updatedAt: serverTimestamp() };
+    /* Detalle por ejercicio (§4.6): SOLO lo marcado en la sesión, en
+       el orden del plan; sin marcas, el registro nace como hasta hoy. */
+    const doneList = [];
+    (day.exercises || []).forEach((ex, ei) => {
+      const c = TRAIN_CHECKS[di + ':' + ei];
+      if (!c) return;
+      const e = { done: true };
+      if (ex.exerciseId) e.exerciseId = ex.exerciseId; else if (ex.name) e.name = ex.name;
+      if (c.rpe) e.rpe = c.rpe;
+      doneList.push(e);
+    });
+    if (doneList.length) data.exercisesDone = doneList;
+    await setDoc(doc(db, 'training_logs', `${uid}_${plan.id}_${today}_${di}`), data);
+    Object.keys(TRAIN_CHECKS).forEach(k => { if (k.split(':')[0] === String(di)) delete TRAIN_CHECKS[k]; });
     loadMyTraining();
   });
   box.querySelectorAll('[data-train-undo]').forEach(b => b.onclick = async () => {
     await deleteDoc(doc(db, 'training_logs', `${uid}_${plan.id}_${today}_${Number(b.dataset.trainUndo)}`));
     loadMyTraining();
+  });
+  trainAlignRender();
+  /* Biblioteca (una sola lectura con caché por sesión de página): al
+     llegar, se re-pinta UNA vez por plan/día para resolver nombres y
+     fotos por idioma; si no se puede leer, la vista queda con los
+     nombres guardados, sin error (degradación honesta). */
+  libEnsure().then(() => {
+    if (LIB_STATE === 'ok' && TRAIN_LIB_CTX !== ctx && $('my-training') === box) { TRAIN_LIB_CTX = ctx; loadMyTraining(); }
   });
 }
 
@@ -6267,10 +6487,12 @@ async function loadPendings() {
     PEND_STATE = { marks: (ss.exists() && ss.data() && ss.data().marks) || {} };
   } catch { PEND_CFG = { __error: true }; }
   renderPendings();
+  trainAlignRender();
 }
 async function pendSaveCfg(cfg) {
   await setDoc(pendCfgRef(), Object.assign({ kind: 'pendConfig', uid: auth.currentUser.uid, ownerUid: auth.currentUser.uid, updatedAt: serverTimestamp() }, cfg), { merge: true });
   PEND_CFG = Object.assign(pendDefaults(), cfg);
+  trainAlignRender();
 }
 async function pendMark(id, mark) {
   PEND_STATE.marks = PEND_STATE.marks || {};
