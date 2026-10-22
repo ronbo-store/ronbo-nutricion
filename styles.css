@@ -236,6 +236,14 @@ table.whist { min-width: 640px; }
 .health-box textarea { width: 100%; margin-top: 4px; padding: 9px 11px; border: 1px solid #d1d5db; border-radius: 8px; font-size: 14px; font-family: inherit; resize: vertical; }
 .health-alert { background: #fef2f2; border: 1px solid #fca5a5; color: #991b1b; border-radius: 10px; padding: 10px 14px; font-size: 13px; margin-bottom: 12px; }
 
+/* ===== puerta PAR-Q (§4.5): indicador de estado en el editor de planes =====
+   Solo existencia/estado de la declaración; jamás su contenido. */
+.pl-gate { background: #f1f5f9; border: 1px solid #cbd5e1; color: #334155; border-radius: 10px; padding: 10px 14px; font-size: 13px; margin: 10px 0; }
+.pl-gate:empty { display: none; }
+.pl-gate.ok { background: #ecfdf5; border-color: #6ee7b7; color: #065f46; }
+.pl-gate.warn { background: #fffbeb; border-color: #f59e0b; color: #92400e; }
+.pl-gate.block { background: #fef2f2; border-color: #dc2626; color: #991b1b; }
+
 /* ===== gráfica semanal ===== */
 .week-panel { margin-top: 18px; }
 .week-panel h2 { font-size: 17px; color: #1f2a44; margin-bottom: 10px; }

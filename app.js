@@ -415,6 +415,11 @@ en: {
   'train.noPlan': 'No plan assigned yet.', 'train.recent': 'Recent sessions',
   'train.noLogs': 'No sessions logged yet.',
   'train.daysCount': '{n} days', 'train.exCount': '{n} exercises',
+  'train.gate.checking': 'Checking this client’s health declaration status…',
+  'train.gate.ok': '🏥 Health declaration: this client has a valid declaration on file.',
+  'train.gate.blockFirst': 'This client’s first plan cannot be saved yet: they do not have a valid health declaration on file, or their specific consent is not active. Ask them to complete their health declaration in their app first. (No declaration content is shown here.)',
+  'train.gate.warnLater': '⚠️ This client has no valid health declaration on file. This plan can still be saved; you can ask them to complete it in their app.',
+  'train.gate.savedWithWarning': 'Plan saved. Note: this client still has no valid health declaration on file.',
   'form.dob': 'Date of birth', 'form.dobHint': '(to verify you are 18+; it is not stored)',
   'err.underage': 'You must be 18 or older to create an account.',
   'priv.title': '🔒 Privacy & Data',
@@ -1062,6 +1067,11 @@ es: {
   'train.noPlan': 'Aún no hay plan asignado.', 'train.recent': 'Sesiones recientes',
   'train.noLogs': 'Aún no hay sesiones registradas.',
   'train.daysCount': '{n} días', 'train.exCount': '{n} ejercicios',
+  'train.gate.checking': 'Comprobando el estado de la declaración de salud de este cliente…',
+  'train.gate.ok': '🏥 Declaración de salud: este cliente tiene una declaración vigente registrada.',
+  'train.gate.blockFirst': 'El primer plan de este cliente aún no se puede guardar: no tiene una declaración de salud vigente registrada, o su consentimiento específico no está activo. Pídele que complete su declaración de salud en su app primero. (Aquí no se muestra ningún contenido de la declaración.)',
+  'train.gate.warnLater': '⚠️ Este cliente no tiene una declaración de salud vigente registrada. Este plan sí se puede guardar; puedes pedirle que la complete en su app.',
+  'train.gate.savedWithWarning': 'Plan guardado. Nota: este cliente sigue sin una declaración de salud vigente registrada.',
   'form.dob': 'Fecha de nacimiento', 'form.dobHint': '(para verificar que eres mayor de 18; no se guarda)',
   'err.underage': 'Debes tener 18 años o más para crear una cuenta.',
   'priv.title': '🔒 Privacidad y datos',
@@ -4051,6 +4061,65 @@ async function loadClientTraining(uid) {
   });
 }
 
+/* ================= PUERTA PAR-Q (§4.5) — guarda de INTERFAZ =================
+   Cambio de comportamiento de seguridad decidido por el propietario
+   (2026-10-22; pregunta 5 de OBSERVACIONES-ENTRENAMIENTO-2026-10-22 y
+   §2(b) de ese documento): al guardar el PRIMER plan de un cliente
+   (el cliente no tiene ningún plan previo) se exige que exista una
+   declaración de salud activa válida de ese cliente, legible por la
+   vía del propietario (fetchClientHealth: solo la declaración activa
+   y solo con el consentimiento específico aceptado — la misma lectura
+   condicionada de la ficha del cliente, reglas 356-362).
+   - FALLO CERRADO: si no se puede comprobar una declaración válida
+     (no existe, o el consentimiento específico está retirado o nunca
+     se otorgó, o la lectura falla), el primer plan NO se guarda y no
+     se escribe nada. Coherente con la Decisión 6.
+   - La puerta comprueba SOLO existencia/estado: usa
+     fetchClientHealth(...).available y DESCARTA el contenido; el
+     contenido de la declaración NUNCA se renderiza en el editor.
+   - En guardados posteriores (el cliente ya tiene ≥1 plan) NO
+     bloquea: el editor muestra un aviso visible si falta la
+     declaración, y el guardado la recuerda en su confirmación.
+   - ES UNA GUARDA DE INTERFAZ, NO una barrera de servidor: las reglas
+     no atan planes a declaraciones y el único escritor de planes es
+     el propio entrenador. El hallazgo S-1 sigue ABIERTO: esta puerta
+     ni lo cierra ni lo agrava — lee ESTADO por la vía del propietario
+     (reglas 356-362), no la rama de actualización de la declaración
+     activa señalada por S-1. */
+async function planGateState(clientUid) {
+  /* Devuelve 'valid' | 'missing'. Cualquier fallo de lectura cuenta
+     como 'missing' (fallo cerrado). Nunca devuelve contenido. */
+  let udata = null;
+  try {
+    const s = await getDoc(doc(db, 'users', clientUid));
+    if (s.exists()) udata = s.data();
+  } catch { return 'missing'; }
+  if (!udata || !specIsActive(udata)) return 'missing';
+  try {
+    const ch = await fetchClientHealth(clientUid, udata);
+    return ch && ch.available ? 'valid' : 'missing';
+  } catch { return 'missing'; }
+}
+function planGateRender(state, isFirst) {
+  const box = $('pl-gate');
+  if (!box) return;
+  if (state === 'checking') { box.className = 'pl-gate'; box.textContent = t('train.gate.checking'); return; }
+  if (state === 'valid') { box.className = 'pl-gate ok'; box.textContent = t('train.gate.ok'); return; }
+  box.className = 'pl-gate ' + (isFirst ? 'block' : 'warn');
+  box.textContent = isFirst ? t('train.gate.blockFirst') : t('train.gate.warnLater');
+}
+let planGateSeq = 0;
+async function planGateRefresh() {
+  if (!planCtx) return;
+  const seq = ++planGateSeq;
+  const cuid = planCtx.clientUid;
+  planGateRender('checking', !planCtx.planId);
+  const existing = await fetchPlans(cuid);
+  const state = await planGateState(cuid);
+  if (seq !== planGateSeq || !planCtx || planCtx.clientUid !== cuid) return;
+  planGateRender(state, !planCtx.planId && existing.length === 0);
+}
+
 /* --- Editor de planes (entrenador) --- */
 let planCtx = null;
 function wirePlanExDel(scope) { scope.querySelectorAll('.pl-ex-del').forEach(b => b.onclick = () => b.closest('.pl-ex-row').remove()); }
@@ -4090,6 +4159,7 @@ function openPlanEditor(clientUid, plan) {
   const days = plan && plan.days && plan.days.length ? plan.days : [{ label: '', exercises: [{}] }];
   days.forEach(d => daysBox.appendChild(planDayRow(d)));
   $('plan-modal').style.display = '';
+  planGateRefresh();
 }
 $('pl-add-day').onclick = () => $('pl-days').appendChild(planDayRow(null));
 $('plan-cancel').onclick = () => { $('plan-modal').style.display = 'none'; planCtx = null; };
@@ -4110,6 +4180,20 @@ $('form-plan').addEventListener('submit', async e => {
   });
   const title = $('pl-title').value.trim();
   if (!title || !days.length) { toast(t('train.err'), true); return; }
+  /* PUERTA PAR-Q: la comprobación corre ANTES de cualquier escritura.
+     Primer plan (sin planId y sin planes previos del cliente) sin
+     declaración válida comprobable → bloqueo duro y CERO escrituras
+     (el modal queda abierto y planCtx intacto). Guardados posteriores
+     no se bloquean: se completan y dejan el aviso en la confirmación. */
+  const gateExisting = planCtx.planId ? null : await fetchPlans(planCtx.clientUid);
+  const isFirstSave = !planCtx.planId && gateExisting.length === 0;
+  const gateState = await planGateState(planCtx.clientUid);
+  if (isFirstSave && gateState !== 'valid') {
+    planGateRender('missing', true);
+    toast(t('train.gate.blockFirst'), true);
+    return;
+  }
+  const gateWarnAfter = !isFirstSave && gateState !== 'valid';
   const active = $('pl-active').checked;
   const data = { clientUid: planCtx.clientUid, title, notes: $('pl-notes').value.trim(), days, active, updatedAt: serverTimestamp() };
   let planId = planCtx.planId;
@@ -4127,7 +4211,7 @@ $('form-plan').addEventListener('submit', async e => {
   const cuid = planCtx.clientUid;
   planCtx = null;
   $('plan-modal').style.display = 'none';
-  toast(t('train.saved'));
+  toast(gateWarnAfter ? t('train.gate.savedWithWarning') : t('train.saved'), gateWarnAfter);
   if ($('client-training')) loadClientTraining(cuid);
   if (cuid === auth.currentUser.uid) loadMyTraining();
 });
