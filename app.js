@@ -4409,16 +4409,22 @@ function render(date) {
   ).join('');
   if (rows.length) html += `<tr class="total"><td colspan="3">TOTAL</td><td class="num" style="color:#16A34A">${fmt(tot.kcal)}</td><td class="num" style="color:#2563EB">${fmt(tot.prot)}</td><td class="num" style="color:#D97706">${fmt(tot.carb)}</td><td class="num" style="color:#9333EA">${fmt(tot.azuc)}</td><td class="num" style="color:#DC2626">${fmt(tot.gras)}</td><td></td></tr>`;
   $('detailBody').innerHTML = html || `<tr><td colspan="9" class="wempty">${t('track.emptyDay')}</td></tr>`;
-  $('vsRows').innerHTML = !hasAnyGoal()
-    ? `<div class="nogoals-note">${t('goals.none')}</div>`
-    : `<div class="vsrow head"><span>${t('vs.indicator')}</span><span>${t('vs.intake')}</span><span>${t('vs.goal')}</span><span>${t('vs.progress')}</span><span></span></div>` +
-    METRICS.map(m => {
-      const v = vals[m.key], goal = goalOf(m.key);
-      if (goal === null) return `<div class="vsrow"><span>${t('metric.' + m.key)}</span><span><b>${fmt(v)}</b></span><span>—</span><span class="bar-track"><div class="bar-fill" style="width:0%;background:${m.color}"></div></span><span>—</span></div>`;
-      const pct = v / goal;
-      const w = Math.min(pct, 1) * 100;
-      return `<div class="vsrow"><span>${t('metric.' + m.key)}</span><span><b>${fmt(v)}</b></span><span>${fmt(goal)}</span><span class="bar-track"><div class="bar-fill" style="width:${w.toFixed(0)}%;background:${m.color}"></div></span><span>${Math.round(pct*100)}%</span></div>`;
-    }).join('');
+  /* SIN TABLA «RESUMEN VS. METAS» EN LA VISTA PRINCIPAL (Ronald,
+     2026-10-21 20:47: «Quiero ocultar esto mientras tanto también»,
+     sobre la captura de la tabla): la tabla (Indicador / Consumo /
+     Meta / Progreso con sus barras de colores) ya NO se emite en esta
+     vista — ni el <h2> ni el contenedor #vsRows en index.html ni esta
+     emisión. Retirada REVERSIBLE («mientras tanto»): el cálculo sigue
+     intacto —totals(), goalOf() y METRICS alimentan igual la fila de
+     anillos y su ventana de detalle, que sigue mostrando consumo y
+     meta con normalidad— y los textos track.summary / vs.* y las
+     clases .vsrow / .bar-* se conservan en el código; para
+     reactivarla basta reponer el <h2> y el <div id="vsRows"> en
+     index.html y la emisión que había aquí. El panel conserva SOLO el
+     botón «Añadir comida manualmente» (#btn-add-meal-manual): no
+     forma parte de la tabla —es la única entrada manual de la vista—
+     y por instrucción anterior de Ronald vive en esta fila; no se
+     toca. */
   /* SIN BLOQUE «NOTAS» EN LA VISTA PRINCIPAL (Ronald, 2026-10-21:
      «Por ahora tampoco quiero esto en mi vista principal»): el bloque
      «📝 Notas» ya NO se emite en esta vista — ni el contenedor en
