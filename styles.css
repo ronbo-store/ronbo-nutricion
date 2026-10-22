@@ -698,3 +698,9 @@ table.whist { min-width: 640px; }
 .pend-sel { display: inline-flex; align-items: center; }
 .pend-wds { display: flex; gap: 10px; flex-wrap: wrap; }
 .pend-wd { display: inline-flex; gap: 4px; align-items: center; }
+
+/* Ingreso manual con ayuda de IA (2026-10-22): bloque «Describe tu
+   comida» dentro del formulario manual de comida. */
+.m-ai-text { margin: 10px 0; padding: 10px; border: 1px dashed #0e7c6b; border-radius: 10px; background: #f4faf8; }
+.m-ai-text textarea { width: 100%; box-sizing: border-box; margin-top: 4px; }
+.m-ai-text .photo-hint { margin: 6px 0; }

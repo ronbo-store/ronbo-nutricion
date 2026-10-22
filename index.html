@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>ronbo.nutri · Private</title>
 <meta name="robots" content="noindex, nofollow">
-<link rel="stylesheet" href="styles.css?v=20261021-analisis-centro">
+<link rel="stylesheet" href="styles.css?v=20261022-ingreso-ia-texto">
 <script type="importmap">
 {
   "imports": {
@@ -389,6 +389,13 @@
         </label>
       </div>
       <label><span data-i18n="form.food">Food</span> <input type="text" id="m-food" required data-i18n-ph="form.foodPh" placeholder="E.g. Chicken breast"></label>
+      <div class="m-ai-text">
+        <label><span data-i18n="aiText.label">Describe your meal</span>
+          <textarea id="m-desc" rows="2" maxlength="600" data-i18n-ph="aiText.ph" placeholder="E.g. quinoa tortilla with egg, cottage cheese and turkey ham"></textarea>
+        </label>
+        <p class="photo-hint" data-i18n="aiText.hint">No photo? Describe the dish and AI will suggest its components and amounts — you review and edit everything before saving.</p>
+        <button type="button" class="btn-main btn-sm" id="m-ai-text-btn" data-i18n="aiText.button">Analyze the description with AI</button>
+      </div>
       <label><span data-i18n="form.amount">Amount</span> <input type="text" id="m-qty" data-i18n-ph="form.amountPh" placeholder="E.g. 150 g"></label>
       <label class="photo-label"><span data-i18n="form.photo">📷 Meal photo (optional)</span>
         <input type="file" id="m-photo" accept="image/*">
@@ -533,6 +540,6 @@
 
 <div id="toast" class="toast"></div>
 
-<script type="module" src="app.js?v=20261022-plantillas-editor"></script>
+<script type="module" src="app.js?v=20261022-ingreso-ia-texto"></script>
 </body>
 </html>

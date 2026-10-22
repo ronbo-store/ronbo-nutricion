@@ -312,6 +312,13 @@ en: {
   'ai.recalcYes': 'Yes, recalculate',
   'ai.saveError': 'It could not be saved. Your changes are still here: check your connection and tap Save to try again.',
   'ai.capReached': 'You reached the pilot\u2019s daily analysis limit. Come back tomorrow to analyze another photo — meanwhile you can log the meal manually.',
+  'aiText.label': 'Describe your meal',
+  'aiText.ph': 'E.g. quinoa tortilla with egg, cottage cheese and turkey ham',
+  'aiText.hint': 'No photo? Describe the dish and AI will suggest its components and amounts — you review and edit everything before saving.',
+  'aiText.button': 'Analyze the description with AI',
+  'aiText.tooShort': 'Describe the meal with a bit more detail first.',
+  'aiText.notFound': "AI couldn't identify any food this time. Try again, or log the meal manually.",
+  'aiText.banner': 'Draft from your description: check and edit the values before saving.',
   'access.title': '🔐 Access management',
   'access.sub': '· administrator only',
   'access.hint': 'New accounts stay pending until you approve them. Only approved users can sign in, and each one sees only their own data.',
@@ -979,6 +986,13 @@ es: {
   'ai.recalcYes': 'Sí, recalcular',
   'ai.saveError': 'No se pudo guardar. Tus cambios siguen aquí: revisa la conexión y toca Guardar para reintentar.',
   'ai.capReached': 'Alcanzaste el límite diario de análisis del piloto. Vuelve mañana para analizar otra foto; mientras tanto puedes registrar la comida manualmente.',
+  'aiText.label': 'Describe tu comida',
+  'aiText.ph': 'Ej.: tortilla de quinoa con huevo, queso cottage y jamón de pavo',
+  'aiText.hint': '¿Sin foto? Describe el plato y la IA sugerirá sus componentes y cantidades: tú revisas y editas todo antes de guardar.',
+  'aiText.button': 'Analizar la descripción con IA',
+  'aiText.tooShort': 'Describe primero la comida con un poco más de detalle.',
+  'aiText.notFound': 'La IA no pudo identificar ningún alimento esta vez. Inténtalo de nuevo o registra la comida manualmente.',
+  'aiText.banner': 'Borrador de tu descripción: revisa y edita los valores antes de guardar.',
   'access.title': '🔐 Administración de accesos',
   'access.sub': '· solo administrador',
   'access.hint': 'Las cuentas nuevas quedan pendientes hasta que las apruebes. Solo los usuarios aprobados pueden entrar y cada uno ve únicamente sus datos.',
@@ -2741,17 +2755,66 @@ function aiEndpoint() {
   if (AI_ENDPOINT) return AI_ENDPOINT;
   try { return localStorage.getItem('m8.endpoint') || ''; } catch { return ''; }
 }
+/* ENDURECIMIENTO ANTI-SILENCIO (Parte B, 2026-10-22 — caso real de
+   Ronald: foto de una tortilla compuesta ~09:57 CDT; el diagnóstico de
+   solo lectura probó que el Worker SÍ respondió y que la ruptura
+   estaba en la app, DESPUÉS de la respuesta y ANTES del guardado.
+   Tres huecos cerrados aquí y en aiStart/aiCalculate/aiRender:
+   (1) fetch sin límite de tiempo: una petición colgada dejaba el
+       indicador girando para siempre → ahora hay timeout (90 s) y su
+       error cae en el aviso honesto como cualquier otro fallo.
+   (2) el cuerpo 200 se aceptaba sin validar: vacío, no-JSON o con
+       forma inesperada seguía aguas abajo y moría al pintar → ahora
+       se valida en aiCall (objeto JSON parseable) y en aiShapeR1/
+       aiShapeR2 (forma mínima por fase); lo inválido ES un fallo
+       visible, jamás una desaparición del indicador.
+   (3) una excepción AL PINTAR preguntas/resultado escapaba del flujo
+       → aiRender queda envuelto: todo pintado que explota cae en el
+       aviso de error honesto (ver aiRender/aiRenderErrorFallback). */
+const AI_TIMEOUT_MS = 90000;
 async function aiCall(path, body) {
   const ep = aiEndpoint();
   if (!ep) throw new Error('ai-off');
   const idToken = await auth.currentUser.getIdToken();
-  const r = await fetch(ep + path, {
-    method: 'POST', headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ ...body, idToken })
-  });
+  const ctl = new AbortController();
+  const timer = setTimeout(() => { try { ctl.abort(); } catch {} }, AI_TIMEOUT_MS);
+  let r;
+  try {
+    r = await fetch(ep + path, {
+      method: 'POST', headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ ...body, idToken }),
+      signal: ctl.signal
+    });
+  } catch (e) {
+    if (e && e.name === 'AbortError') throw new Error('ai-timeout');
+    throw e;
+  } finally { clearTimeout(timer); }
   if (r.status === 429) throw new Error('ai-cap'); // tope diario: mensaje específico, no genérico
   if (!r.ok) throw new Error('ai-' + r.status);
-  return r.json();
+  let j = null;
+  try { j = await r.json(); } catch { throw new Error('ai-badjson'); }
+  if (!j || typeof j !== 'object' || Array.isArray(j)) throw new Error('ai-badjson');
+  return j;
+}
+/* Forma mínima de la identificación: foods = lista de objetos con
+   nombre no vacío; questions = a lo sumo 3, con id y texto. Lo que no
+   cumple se descarta; si no queda ningún alimento, aiRunIdentify lo
+   trata como «sin identificación» (estado visible), no como fallo. */
+function aiShapeR1(r1) {
+  if (!r1 || !Array.isArray(r1.foods)) return null;
+  const foods = r1.foods
+    .filter(f => f && typeof f === 'object' && String(f.name || '').trim())
+    .map(f => ({ ...f, name: String(f.name).trim() }));
+  const questions = (Array.isArray(r1.questions) ? r1.questions : [])
+    .filter(q => q && typeof q === 'object' && q.id != null && String(q.text || '').trim())
+    .slice(0, 3)
+    .map(q => ({ id: String(q.id), text: String(q.text), options: Array.isArray(q.options) ? q.options.map(o => String(o)) : [] }));
+  return { ...r1, foods, questions };
+}
+/* Forma mínima del cálculo: un objeto con totals objeto. */
+function aiShapeR2(r2) {
+  if (!r2 || typeof r2 !== 'object' || !r2.totals || typeof r2.totals !== 'object') return null;
+  return r2;
 }
 function aiShow(html) { const p = $('ai-panel'); if (!p) return; const wasHidden = p.style.display === 'none'; p.style.display = ''; p.innerHTML = html; /* v4.2: el flujo arranca desde el dock flotante, lejos del panel: al MOSTRARSE (transición oculto→visible) se desplaza hasta él; los re-pintados con el panel ya visible no mueven la página. */ if (wasHidden) { try { p.scrollIntoView({ behavior: 'smooth', block: 'start' }); } catch {} } }
 function aiClosePanel() { aiProgHide(); const p = $('ai-panel'); if (p) { p.style.display = 'none'; p.innerHTML = ''; } }
@@ -2937,16 +3000,39 @@ function aiOnLangChange() {
   aiCaptureName();
   aiRender();
 }
+function aiFreshState(mode) {
+  return { mode, dataUrl: null, descText: '', step: 'loading', r1: null, answers: {}, other: {}, foods: null, r2: null, errStage: 'identify', meal: aiDefaultMeal(), metrics: null, metricsEdited: false, name: null, nameEdited: false, cap: false, saveError: false };
+}
 async function aiStart(dataUrl) {
-  aiState = { dataUrl, step: 'loading', r1: null, answers: {}, other: {}, foods: null, r2: null, errStage: 'identify', meal: aiDefaultMeal(), metrics: null, metricsEdited: false, name: null, nameEdited: false, cap: false, saveError: false };
+  aiState = aiFreshState('photo');
+  aiState.dataUrl = dataUrl;
+  aiRunIdentify();
+}
+/* INGRESO MANUAL CON AYUDA DE IA (Ronald, 2026-10-22): la descripción
+   escrita hace de IDENTIFICACIÓN — sustituye a la foto — y todo lo
+   demás (preguntas de cantidades, cálculo, revisión editable,
+   guardado) es EXACTAMENTE el flujo del análisis de foto. La marca
+   de origen distingue la vía al guardar: source 'ai-text' (ver
+   aiSaveDirect y el envío de #form-meal vía aiUseDraft). */
+async function aiStartText(desc) {
+  aiState = aiFreshState('text');
+  aiState.descText = desc;
+  aiRunIdentify();
+}
+async function aiRunIdentify() {
   aiRender();
   try {
-    const r1 = await aiCall('/identify', { imageDataUrl: dataUrl, lang: LANG });
+    const raw = aiState.mode === 'text'
+      ? await aiCall('/identify-text', { description: aiState.descText, lang: LANG })
+      : await aiCall('/identify', { imageDataUrl: aiState.dataUrl, lang: LANG });
     if (!aiState) return; // descartado mientras llamaba
+    const r1 = aiShapeR1(raw);
+    if (!r1) throw new Error('ai-badshape'); // forma inesperada → aviso honesto (Parte B)
     aiProgStage(0.7); // etapa real: la identificación volvió
     aiState.r1 = r1;
-    aiState.foods = (r1.foods || []).map(f => ({ src: f, name: f.name || '', grams: Math.round(f.portion_g_estimate || 0), unit: f.unit === 'ml' ? 'ml' : 'g' }));
+    aiState.foods = r1.foods.map(f => ({ src: f, name: f.name || '', grams: Math.round(f.portion_g_estimate || 0), unit: f.unit === 'ml' ? 'ml' : 'g' }));
     (r1.questions || []).slice(0, 3).forEach(q => { if (!(q.id in aiState.answers)) aiState.answers[q.id] = 'skipped'; });
+    if (!aiState.foods.length) { aiState.step = 'notfound'; aiRender(); return; }
     aiState.step = 'questions';
     aiRender();
   } catch (e) { if (aiState) { aiState.step = 'error'; aiState.errStage = 'identify'; aiState.cap = !!(e && e.message === 'ai-cap'); aiRender(); } }
@@ -2971,11 +3057,16 @@ async function aiCalculate() {
     if (!f.src || name !== (f.src.name || '') || !out.usda_query) out.usda_query = name;
     return out;
   });
+  /* Sin alimentos con nombre no hay nada que calcular: se avisa y el
+     flujo se queda en las preguntas (visible), sin llamar al proveedor. */
+  if (!foods.length) { toast(t('err.mealMissing'), true); return; }
   aiState.step = 'loading'; aiState.errStage = 'calculate'; aiState.cap = false;
   aiRender();
   try {
-    const r2 = await aiCall('/calculate', { foods, answers: aiFinalAnswers(), lang: LANG });
+    const raw2 = await aiCall('/calculate', { foods, answers: aiFinalAnswers(), lang: LANG });
     if (!aiState) return;
+    const r2 = aiShapeR2(raw2);
+    if (!r2) throw new Error('ai-badshape'); // forma inesperada → aviso honesto (Parte B)
     aiProgStage(0.7); // etapa real: el cálculo volvió
     aiState.r2 = r2; aiState.step = 'draft';
     /* Resultado nuevo: las métricas del panel parten de ESTOS totales;
@@ -2989,7 +3080,10 @@ async function aiCalculate() {
 }
 function aiRetry() {
   if (!aiState) return;
-  if (aiState.errStage === 'identify') aiStart(aiState.dataUrl);
+  if (aiState.errStage === 'identify') {
+    if (aiState.mode === 'text') aiStartText(aiState.descText);
+    else aiStart(aiState.dataUrl);
+  }
   else aiCalculate();
 }
 function aiKnownFoods() {
@@ -3011,11 +3105,45 @@ function aiContinueManual() {
     /* Misma fuente única de nombre y cantidad que el resultado. */
     $('m-food').value = aiSuggestedName();
     $('m-qty').value = aiQtyString();
+  } else if (aiState && aiState.mode === 'text' && aiState.descText) {
+    /* Vía texto sin identificación utilizable: el formulario hereda
+       las palabras del propio usuario como nombre del registro — su
+       descripción ES la fuente de verdad de lo que comió. */
+    $('m-food').value = aiState.descText.slice(0, 120);
   }
   aiDiscard();
   aiOpenMealModal();
 }
+/* aiRender queda ENVUELTO (Parte B, 2026-10-22): el cuerpo real vive
+   en aiRenderInner; si CUALQUIER pintado explota (datos con forma
+   inesperada al construir preguntas o la revisión — el tramo exacto
+   donde murió el intento real de la tortilla), la caída es al aviso
+   de error honesto, con el indicador oculto: nunca una desaparición
+   silenciosa. El respaldo pinta el panel de error directamente, sin
+   volver a pasar por aiRender (sin recursión). */
 function aiRender() {
+  try { aiRenderInner(); }
+  catch (e) {
+    try { aiRenderErrorFallback(); }
+    catch { try { aiProgHide(); toast(t('ai.failed'), true); } catch {} }
+  }
+}
+function aiRenderErrorFallback() {
+  aiProgHide();
+  if (!aiState) return;
+  aiState.step = 'error';
+  if (aiState.cap) {
+    aiShow(`<p class="progress-hint">${t('ai.capReached')}</p><div class="ai-actions"><button type="button" class="btn-main btn-sm" id="ai-manual">${t('ai.continueManual')}</button><button type="button" class="btn-ghost btn-sm" id="ai-cancel">${t('ai.discard')}</button></div>`);
+    $('ai-manual').onclick = aiContinueManual;
+    $('ai-cancel').onclick = aiDiscard;
+    return;
+  }
+  aiShow(`<p class="progress-hint">${t('ai.failed')}</p><div class="ai-actions"><button type="button" class="btn-main btn-sm" id="ai-retry">${t('ai.retry')}</button><button type="button" class="btn-ghost btn-sm" id="ai-manual">${t('ai.continueManual')}</button><button type="button" class="btn-ghost btn-sm" id="ai-cancel">${t('ai.discard')}</button></div>`);
+  $('ai-retry').onclick = aiRetry;
+  $('ai-manual').onclick = aiContinueManual;
+  $('ai-cancel').onclick = aiDiscard;
+}
+function aiRenderInner() {
   const p = $('ai-panel');
   if (!p || !aiState) return;
   if (aiState.step === 'loading') { aiShow(`<p class="progress-hint">${t('ai.analyzing')}</p>`); aiProgShow(); return; }
@@ -3031,6 +3159,19 @@ function aiRender() {
       return;
     }
     aiShow(`<p class="progress-hint">${t('ai.failed')}</p><div class="ai-actions"><button type="button" class="btn-main btn-sm" id="ai-retry">${t('ai.retry')}</button><button type="button" class="btn-ghost btn-sm" id="ai-manual">${t('ai.continueManual')}</button><button type="button" class="btn-ghost btn-sm" id="ai-cancel">${t('ai.discard')}</button></div>`);
+    $('ai-retry').onclick = aiRetry;
+    $('ai-manual').onclick = aiContinueManual;
+    $('ai-cancel').onclick = aiDiscard;
+    return;
+  }
+  if (aiState.step === 'notfound') {
+    /* La identificación volvió VÁLIDA pero SIN alimentos (una foto que
+       no es comida, una descripción sin alimentos reconocibles):
+       estado VISIBLE y específico, con salida manual. Antes de la
+       Parte B esto pintaba la pantalla de preguntas vacía — y si el
+       pintado fallaba, el indicador «simplemente desaparecía». */
+    aiProgHide();
+    aiShow(`<p class="progress-hint">${t('aiText.notFound')}</p><div class="ai-actions"><button type="button" class="btn-main btn-sm" id="ai-retry">${t('ai.retry')}</button><button type="button" class="btn-ghost btn-sm" id="ai-manual">${t('ai.continueManual')}</button><button type="button" class="btn-ghost btn-sm" id="ai-cancel">${t('ai.discard')}</button></div>`);
     $('ai-retry').onclick = aiRetry;
     $('ai-manual').onclick = aiContinueManual;
     $('ai-cancel').onclick = aiDiscard;
@@ -3113,6 +3254,26 @@ if (aiFile) aiFile.addEventListener('change', async e => {
     if (url.length > 700000) { toast(t('mealhelp.tooBig'), true); return; }
     aiStart(url);
   } catch { toast(t('ai.failed'), true); }
+});
+/* «Analizar la descripción con IA» (formulario manual, Ronald
+   2026-10-22): la descripción escrita pasa a ser la identificación
+   (aiStartText) y el resto del flujo es el del análisis de foto.
+   La comida elegida en el formulario se conserva como la comida del
+   registro — no se hereda en silencio otra. Descripción vacía o de
+   un solo carácter: NO se llama al proveedor y se avisa con toast.
+   El espejo de borrador del formulario se desarma (como al cancelar)
+   para que no siga copiando un formulario ya cerrado. */
+const mAiTextBtn = $('m-ai-text-btn');
+if (mAiTextBtn) mAiTextBtn.addEventListener('click', () => {
+  const desc = (($('m-desc') && $('m-desc').value) || '').trim();
+  if (desc.length < 2) { toast(t('aiText.tooShort'), true); return; }
+  if (!aiEndpoint()) { toast(t('ai.unavailable'), true); return; }
+  const mealSel = $('m-meal');
+  const chosenMeal = mealSel && mealSel.value ? mealSel.value : null;
+  try { pendDraftDisarm(); } catch {}
+  const mm = $('meal-modal'); if (mm) mm.style.display = 'none';
+  aiStartText(desc);
+  if (chosenMeal && aiState) aiState.meal = chosenMeal;
 });
 /* Apertura del modal de comida con enfoque visible en el formulario. */
 function aiOpenMealModal() {
@@ -3211,12 +3372,16 @@ function aiUseDraft(r1, r2) {
     /* El desglose por alimento viaja como CANDIDATO en el borrador:
        el guardado del formulario lo valida contra los totales
        FINALES (itemsIfSquare) antes de persistirlo. */
-    aiDraft = { model: (r2 && r2.model) || 'gemini', rangeKcal: Array.isArray(tot.range_kcal) ? tot.range_kcal : null, items: aiItemsCandidate() };
+    /* Marca de origen VERAZ: el borrador conserva la vía de entrada
+       (foto = 'ai', descripción = 'ai-text') y el envío del formulario
+       la escribe tal cual en el registro. */
+    const fromText = !!(typeof aiState !== 'undefined' && aiState && aiState.mode === 'text');
+    aiDraft = { model: (r2 && r2.model) || 'gemini', rangeKcal: Array.isArray(tot.range_kcal) ? tot.range_kcal : null, items: aiItemsCandidate(), src: fromText ? 'ai-text' : 'ai' };
     try {
       const b = $('m-ai-banner');
       if (b) {
         b.style.display = '';
-        b.textContent = t('ai.banner') + (aiDraft.rangeKcal ? ' ' + t('ai.range').replace('{a}', Math.round(aiDraft.rangeKcal[0])).replace('{b}', Math.round(aiDraft.rangeKcal[1])) : '');
+        b.textContent = t(fromText ? 'aiText.banner' : 'ai.banner') + (aiDraft.rangeKcal ? ' ' + t('ai.range').replace('{a}', Math.round(aiDraft.rangeKcal[0])).replace('{b}', Math.round(aiDraft.rangeKcal[1])) : '');
       }
     } catch { failed = true; }
   } catch { failed = true; }
@@ -3262,7 +3427,9 @@ async function aiSaveDirect() {
        escribe la cadena automática de desglose en `notes` — el registro
        nace sin notas; las notas son solo texto escrito a mano. */
     createdAt: serverTimestamp(),
-    source: 'ai',
+    /* Marca de origen veraz: 'ai' si vino de una foto, 'ai-text' si
+       vino de la descripción escrita (ingreso manual con ayuda de IA). */
+    source: aiState.mode === 'text' ? 'ai-text' : 'ai',
     ai: { model: (aiState.r2 && aiState.r2.model) || 'gemini', rangeKcal: Array.isArray(tot.range_kcal) ? tot.range_kcal : null }
   };
   /* Desglose por alimento: solo si su suma iguala los totales que se
@@ -5806,9 +5973,10 @@ function openRepeatMeal(rec, viewDate) {
   $('m-sugar').value = rec.sugar || 0;
   $('m-fat').value = rec.fat || 0;
   $('m-notes').value = rec.notes || '';
-  /* Procedencia: estimación de IA si el documento trae source:'ai' o
-     si ya era una copia de una estimación (origin.kind 'repeat-ai'). */
-  const aiOrigin = rec.source === 'ai' || (rec.origin && rec.origin.kind === 'repeat-ai');
+  /* Procedencia: estimación de IA si el documento trae source:'ai'
+     (foto) o 'ai-text' (descripción), o si ya era una copia de una
+     estimación (origin.kind 'repeat-ai'). */
+  const aiOrigin = rec.source === 'ai' || rec.source === 'ai-text' || (rec.origin && rec.origin.kind === 'repeat-ai');
   const pq = repeatParseQty(rec.qty);
   repeatCtx = {
     kind: aiOrigin ? 'repeat-ai' : 'repeat-manual',
@@ -5868,7 +6036,7 @@ $('form-meal').addEventListener('submit', async e => {
         data.photoURL = up.url; data.photoPath = up.path;
       } catch (err) { toast(t('err.mealPhotoFail'), true); }
     }
-    if (aiDraft) { data.source = 'ai'; data.ai = { model: aiDraft.model, rangeKcal: aiDraft.rangeKcal }; }
+    if (aiDraft) { data.source = aiDraft.src || 'ai'; data.ai = { model: aiDraft.model, rangeKcal: aiDraft.rangeKcal }; }
     /* Procedencia de la repetición (corrección 2026-10-19, punto 3b):
        si el guardado viene de «Repetir», la copia lleva su origin
        (kind/fromId/fromDate) — visible en los datos, sin bloque ai ni
