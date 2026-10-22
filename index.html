@@ -471,6 +471,20 @@
       <label class="check-row"><input type="checkbox" id="pl-active"> <span data-i18n="train.f.active">Active plan (the one the client sees)</span></label>
       <div id="pl-gate" class="pl-gate"></div>
       <div id="pl-lib-note" class="pl-lib-note"></div>
+      <div id="pl-tpl" class="pl-tpl">
+        <div class="pl-tpl-head" data-i18n="train.tpl.title">📋 Routine templates</div>
+        <div id="pl-tpl-note" class="pl-lib-note"></div>
+        <div id="pl-tpl-list"></div>
+        <div id="pl-tpl-align" class="pl-tpl-align" style="display:none">
+          <label><span data-i18n="train.tpl.startLabel">Start date (for the weekday suggestion)</span> <input type="date" id="pl-tpl-start"></label>
+          <div id="pl-tpl-align-list"></div>
+          <div id="pl-tpl-align-applied" class="pl-tpl-align-applied" style="display:none" data-i18n="train.tpl.alignApplied">✓ Weekdays applied to the day labels. You can still edit any label.</div>
+          <div class="frow" style="margin-top:8px">
+            <button type="button" class="btn-ghost btn-sm" id="pl-tpl-align-ignore" data-i18n="train.tpl.alignIgnore">Ignore</button>
+            <button type="button" class="btn-primary btn-sm" id="pl-tpl-align-apply" data-i18n="train.tpl.alignApply">Apply alignment</button>
+          </div>
+        </div>
+      </div>
       <div id="pl-days"></div>
       <button type="button" class="btn-ghost btn-sm" id="pl-add-day" data-i18n="train.f.addDay">＋ Add day</button>
       <div class="frow" style="margin-top:14px">
@@ -519,6 +533,6 @@
 
 <div id="toast" class="toast"></div>
 
-<script type="module" src="app.js?v=20261022-biblioteca-editor"></script>
+<script type="module" src="app.js?v=20261022-plantillas-editor"></script>
 </body>
 </html>

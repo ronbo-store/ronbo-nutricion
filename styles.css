@@ -259,6 +259,29 @@ table.whist { min-width: 640px; }
 .pl-ex-links { display: flex; gap: 6px; margin-top: 4px; }
 .pl-ex-links a.btn-ghost { text-decoration: none; display: inline-block; }
 
+/* ===== plantillas en el editor (§4.2): selector, bloques de sesión,
+   descanso/aproximación por fila y sugerencia de alineación ===== */
+.pl-tpl { margin: 10px 0; }
+.pl-tpl-head { font-weight: 700; color: #1f2a44; font-size: 14px; margin-bottom: 6px; }
+.pl-tpl-card { display: flex; gap: 8px; align-items: center; justify-content: space-between; border: 1px solid #e9ecef; border-radius: 10px; padding: 8px 10px; margin: 6px 0; }
+.pl-tpl-info { min-width: 0; }
+.pl-tpl-info b { display: block; font-size: 13.5px; color: #1f2a44; }
+.pl-tpl-meta { display: block; font-size: 12px; color: #6b7280; margin-top: 1px; }
+.pl-tpl-use { flex: 0 0 auto; }
+.pl-tpl-align { border: 1px dashed #99f6e4; background: #f0fdfa; border-radius: 10px; padding: 10px 12px; margin-top: 10px; }
+.pl-tpl-align label { display: block; font-size: 13px; color: #334155; }
+.pl-tpl-align-hint, .pl-tpl-align-title { font-size: 12.5px; color: #334155; margin-top: 8px; }
+.pl-tpl-align-row { display: flex; gap: 6px; align-items: baseline; font-size: 12.5px; color: #334155; padding: 2px 0; }
+.pl-tpl-align-arrow { color: #0d9488; }
+.pl-tpl-align-applied { font-size: 12.5px; color: #065f46; margin-top: 8px; }
+.pl-day-blocks { display: flex; flex-wrap: wrap; gap: 6px; margin: 6px 0 2px; }
+.pl-day-blocks:empty { display: none; }
+.pl-block-chip { display: inline-flex; align-items: center; gap: 6px; background: #eef2ff; border: 1px solid #c7d2fe; color: #3730a3; border-radius: 999px; padding: 3px 6px 3px 10px; font-size: 12px; }
+.pl-block-del { background: none; border: 0; color: #6366f1; cursor: pointer; font-size: 14px; line-height: 1; padding: 2px 4px; }
+.pl-ex-row { flex-wrap: wrap; }
+.pl-ex-sub { flex: 1 1 100%; display: flex; gap: 6px; }
+.pl-ex-sub input { flex: 1; min-width: 0; font-size: 12.5px; }
+
 /* ===== gráfica semanal ===== */
 .week-panel { margin-top: 18px; }
 .week-panel h2 { font-size: 17px; color: #1f2a44; margin-bottom: 10px; }

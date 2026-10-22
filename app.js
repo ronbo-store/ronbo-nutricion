@@ -422,6 +422,19 @@ en: {
   'train.gate.savedWithWarning': 'Plan saved. Note: this client still has no valid health declaration on file.',
   'train.lib.unavailable': '📚 The exercise library is unavailable right now (it may be empty or could not be loaded). You can keep typing exercises as free text — plans save normally.',
   'train.lib.photo': 'Photo', 'train.lib.video': 'Video',
+  'train.f.warmupPh': 'Warm-up sets', 'train.f.restPh': 'Rest',
+  'train.tpl.title': '📋 Routine templates',
+  'train.tpl.use': 'Use this template',
+  'train.tpl.perWeek': '{n} days/week',
+  'train.tpl.unavailable': '📋 The routine templates are unavailable right now (they may be empty or could not be loaded). You can keep building the plan by hand — nothing is blocked.',
+  'train.tpl.replaceConfirm': 'Applying this template will REPLACE the current draft in the editor (title, days and exercises). Continue?',
+  'train.tpl.applied': 'Draft created from the template. Review and adjust it — nothing is saved until you tap Save plan.',
+  'train.tpl.startLabel': 'Start date (for the weekday suggestion)',
+  'train.tpl.alignHint': 'Pick a start date to see a suggestion: aligning each template day with a real weekday. The suggestion never changes anything by itself.',
+  'train.tpl.alignTitle': 'Suggested weekday alignment from {date}:',
+  'train.tpl.alignApply': 'Apply alignment',
+  'train.tpl.alignIgnore': 'Ignore',
+  'train.tpl.alignApplied': '✓ Weekdays applied to the day labels. You can still edit any label.',
   'form.dob': 'Date of birth', 'form.dobHint': '(to verify you are 18+; it is not stored)',
   'err.underage': 'You must be 18 or older to create an account.',
   'priv.title': '🔒 Privacy & Data',
@@ -1076,6 +1089,20 @@ es: {
   'train.gate.savedWithWarning': 'Plan guardado. Nota: este cliente sigue sin una declaración de salud vigente registrada.',
   'train.lib.unavailable': '📚 La biblioteca de ejercicios no está disponible ahora (puede estar vacía o no pudo cargarse). Puedes seguir escribiendo los ejercicios como texto libre: los planes se guardan con normalidad.',
   'train.lib.photo': 'Foto', 'train.lib.video': 'Video',
+  'train.f.warmupPh': 'Series de aproximación', 'train.f.restPh': 'Descanso',
+  'train.tpl.title': '📋 Plantillas de rutina',
+  'train.tpl.use': 'Usar esta plantilla',
+  'train.tpl.perWeek': '{n} días/semana',
+  'train.tpl.unavailable': '📋 Las plantillas de rutina no están disponibles ahora (pueden estar vacías o no pudieron cargarse). Puedes seguir armando el plan a mano: nada se bloquea.',
+  'train.tpl.replaceConfirm': 'Aplicar esta plantilla REEMPLAZA el borrador actual del editor (título, días y ejercicios). ¿Continuar?',
+  'train.tpl.applied': 'Borrador creado desde la plantilla. Revísalo y ajústalo: nada se guarda hasta que toques Guardar plan.',
+  'train.tpl.startLabel': 'Fecha de inicio (para la sugerencia de días)',
+  'train.tpl.alignHint': 'Elige una fecha de inicio para ver una sugerencia: alinear cada día de la plantilla con un día de semana real. La sugerencia nunca cambia nada por sí sola.',
+  'train.tpl.alignTitle': 'Alineación de días sugerida desde el {date}:',
+  'train.tpl.alignApply': 'Aplicar alineación',
+  'train.tpl.alignIgnore': 'Ignorar',
+  'train.tpl.alignApplied': '✓ Días de semana aplicados a las etiquetas. Puedes seguir editando cualquier etiqueta.',
+
   'form.dob': 'Fecha de nacimiento', 'form.dobHint': '(para verificar que eres mayor de 18; no se guarda)',
   'err.underage': 'Debes tener 18 años o más para crear una cuenta.',
   'priv.title': '🔒 Privacidad y datos',
@@ -4219,6 +4246,14 @@ function libUnlinkRow(row) {
   row.removeAttribute('data-saved-name');
   row.removeAttribute('data-photo');
   row.removeAttribute('data-video');
+  /* PLANTILLAS (§4.2): al desvincular se descartan también las copias
+     en data-* de descanso/aproximación (los textos del OTRO idioma
+     que traía la fila de plantilla): lo que el entrenador ve en los
+     campos visibles es lo único que persiste. */
+  row.removeAttribute('data-rest');
+  row.removeAttribute('data-rest-en');
+  row.removeAttribute('data-warmup');
+  row.removeAttribute('data-warmup-en');
   const wrap = row.querySelector('.pl-ex-links-wrap');
   if (wrap) wrap.innerHTML = '';
 }
@@ -4289,6 +4324,215 @@ function libRefreshOpenRows() {
   });
 }
 
+/* ================= PLANTILLAS EN EL EDITOR (§4.2) =================
+   Paquete 5 de la integración de entrenamiento (propuesta v1.1
+   §4.2/§4.6; decisiones del propietario: pregunta 1 — las plantillas
+   las ven entrenador, administrador y clientes aprobados — y
+   pregunta 10 — la app SUGIERE alinear los días; la sugerencia
+   nunca cambia días por sí sola).
+   - Al abrir el editor se lee UNA vez la colección routine_templates
+     (8 documentos) y queda en memoria para la sesión de la página,
+     con la misma disciplina que la biblioteca (§4.1). Si la lectura
+     falla o la colección viene vacía, aviso discreto y honesto
+     (#pl-tpl-note) y el editor sigue como hoy, a mano: NADA se
+     bloquea (la única puerta dura sigue siendo la PAR-Q, intacta).
+   - «Usar esta plantilla» genera un BORRADOR en el editor: título,
+     días y ejercicios programados de la plantilla se vuelcan en las
+     filas del editor — cada ejercicio vinculado por su exerciseId
+     con el mecanismo de la biblioteca (§4.1), series/repeticiones
+     como texto tal cual vienen, descanso/aproximación en sus campos
+     (§4.6) y los bloques de sesión del día en sessionBlocks. El
+     borrador es editable por completo (quitar, añadir, reordenar,
+     ajustar) y NADA se guarda hasta que el entrenador guarda el
+     plan por el camino de guardado actual: lo guardado es un plan
+     normal de training_plans — una COPIA, nunca una referencia viva
+     a la plantilla. La plantilla es punto de partida, no decisión
+     automática (y la pregunta 12 sigue fuera: nada se asigna por
+     tipo de cuerpo).
+   - Procedencia (opcional y veraz, §4.6): si el plan nace de una
+     plantilla aplicada en esta sesión del editor, el guardado
+     registra sourceRoutineId + sourceRoutineVersion (y
+     libraryVersion si la biblioteca está cargada). Es trazabilidad:
+     no crea ningún vínculo vivo ni comportamiento automático.
+   - ALINEACIÓN DE DÍAS (pregunta 10): con el borrador generado, el
+     editor ofrece fijar una fecha de inicio; a partir de ella
+     SUGIERE alinear los días de sesión de la plantilla con los días
+     de semana reales (reparto semanal según los días/semana de la
+     plantilla). La sugerencia se muestra; el entrenador la APLICA
+     (reescribe las etiquetas de los días) o la IGNORA (no cambia
+     nada). Jamás se aplica en silencio. */
+let TPL = null;            // documentos de routine_templates (cada uno con su id)
+let TPL_BY_ID = {};        // id -> documento de la plantilla
+let TPL_STATE = 'idle';    // 'idle' | 'loading' | 'ok' | 'unavailable'
+let TPL_PROMISE = null;
+let tplAlignState = { tpl: null, dismissed: false, aligned: false };
+function tplEnsure() {
+  if (TPL_STATE === 'ok') return Promise.resolve();
+  if (TPL_STATE === 'loading' && TPL_PROMISE) return TPL_PROMISE;
+  TPL_STATE = 'loading';
+  TPL_PROMISE = (async () => {
+    try {
+      const snap = await getDocs(collection(db, 'routine_templates'));
+      const docs = [];
+      snap.forEach(d => docs.push({ id: d.id, ...d.data() }));
+      docs.sort((a, b) => String(a.id).localeCompare(String(b.id)));
+      TPL = docs; TPL_BY_ID = {};
+      docs.forEach(x => { if (x && x.id) TPL_BY_ID[x.id] = x; });
+      TPL_STATE = docs.length ? 'ok' : 'unavailable';
+    } catch { TPL = []; TPL_BY_ID = {}; TPL_STATE = 'unavailable'; }
+    tplRenderTplUI();
+  })();
+  return TPL_PROMISE;
+}
+const tplField = (tpl, base) => tpl ? (tpl[base + '_' + LANG] || tpl[base + '_es'] || tpl[base + '_en'] || '') : '';
+function tplRenderNotice() {
+  const box = $('pl-tpl-note');
+  if (!box) return;
+  box.textContent = TPL_STATE === 'unavailable' ? t('train.tpl.unavailable') : '';
+}
+function tplRenderList() {
+  const box = $('pl-tpl-list');
+  if (!box) return;
+  if (TPL_STATE !== 'ok' || !TPL) { box.innerHTML = ''; return; }
+  box.innerHTML = TPL.map(tpl => `
+    <div class="pl-tpl-card">
+      <div class="pl-tpl-info"><b>${esc(tplField(tpl, 'nombre'))}</b>
+      <span class="pl-tpl-meta">${esc([tplField(tpl, 'nivel'), t('train.tpl.perWeek', { n: tpl.dias_por_semana }), tplField(tpl, 'objetivo')].filter(Boolean).join(' · '))}</span></div>
+      <button type="button" class="btn-primary btn-sm pl-tpl-use" data-tpl-id="${esc(tpl.id)}">${t('train.tpl.use')}</button>
+    </div>`).join('');
+  box.querySelectorAll('.pl-tpl-use').forEach(b => b.onclick = () => tplApply(b.dataset.tplId));
+}
+function tplRenderTplUI() { tplRenderNotice(); tplRenderList(); }
+const TPL_BLOCK_TITLES = {
+  cardio_pre: { es: 'Cardio antes', en: 'Cardio before' },
+  cardio_post: { es: 'Cardio después', en: 'Cardio after' },
+  sauna: { es: 'Sauna', en: 'Sauna' },
+};
+function tplSessionBlocks(s) {
+  /* Bloques de sesión del día (§4.6): de la fila session[] de la
+     plantilla a sessionBlocks del plan, como COPIA bilingüe. */
+  const out = [];
+  const add = (kind, dEs, dEn) => {
+    const a = (dEs || '').trim(), b = (dEn || '').trim();
+    if (!a && !b) return;
+    out.push({ kind, title_es: TPL_BLOCK_TITLES[kind].es, title_en: TPL_BLOCK_TITLES[kind].en, detail_es: a, detail_en: b });
+  };
+  add('cardio_pre', s.cardio_antes_es, s.cardio_antes_en);
+  add('cardio_post', s.cardio_despues_es, s.cardio_despues_en);
+  add('sauna', s.sauna_es, s.sauna_en);
+  return out;
+}
+function tplEditorIsDirty() {
+  if (($('pl-title').value || '').trim()) return true;
+  if (document.querySelectorAll('#pl-days .pl-day').length > 1) return true;
+  return [...document.querySelectorAll('#pl-days .pl-ex-name')].some(i => i.value.trim());
+}
+async function tplApply(id) {
+  const tpl = TPL_BY_ID[id];
+  if (!tpl) return;
+  if (tplEditorIsDirty() && !confirm(t('train.tpl.replaceConfirm'))) return;
+  /* La biblioteca resuelve nombres y enlaces (las plantillas NO
+     guardan nombres de ejercicio: se resuelven por exerciseId,
+     §3.2 del mapeo de carga); se asegura su carga antes de volcar. */
+  await libEnsure();
+  const blocksByDay = {};
+  (tpl.session || []).forEach(s => { blocksByDay[Number(s.dia_num)] = tplSessionBlocks(s); });
+  const daysBox = $('pl-days');
+  daysBox.innerHTML = '';
+  (tpl.days || []).forEach(d => {
+    daysBox.appendChild(planDayRow({
+      label: LANG === 'es' ? (d.dia_nombre_es || d.dia_nombre_en || '') : (d.dia_nombre_en || d.dia_nombre_es || ''),
+      sessionBlocks: blocksByDay[Number(d.dia_num)] || [],
+      exercises: (d.exercises || []).map(te => {
+        const entry = LIB_BY_ID[te.exerciseId] || null;
+        return {
+          name: entry ? libNameOf(entry) : (te.exerciseId || ''),
+          sets: te.series || '', reps: te.repeticiones || '', note: '',
+          exerciseId: te.exerciseId || '',
+          photoUrl: entry ? (entry.foto_url || '') : '',
+          videoUrl: entry ? (entry.video_youtube_url || '') : '',
+          rest: te.descanso_es || '', rest_en: te.descanso_en || '',
+          warmup: te.aproximacion_es || '', warmup_en: te.aproximacion_en || '',
+        };
+      }),
+    }));
+  });
+  $('pl-title').value = tplField(tpl, 'nombre');
+  if (planCtx) planCtx.tplSource = { id: tpl.id, version: tpl.version || '' };
+  tplAlignState = { tpl, dismissed: false, aligned: false };
+  tplRenderAlign();
+  toast(t('train.tpl.applied'));
+}
+/* Reparto semanal de la sugerencia de alineación: desplazamientos
+   (en días desde la fecha de inicio) según los días/semana de la
+   plantilla — p. ej. 3 días → inicio, +2 y +4 (lunes/miércoles/
+   viernes si se empieza un lunes). Es SOLO una sugerencia visible. */
+const TPL_WEEK_OFFSETS = { 1: [0], 2: [0, 3], 3: [0, 2, 4], 4: [0, 1, 3, 4], 5: [0, 1, 2, 3, 4], 6: [0, 1, 2, 3, 4, 5], 7: [0, 1, 2, 3, 4, 5, 6] };
+function tplAlignDates() {
+  const inp = $('pl-tpl-start');
+  const v = inp ? inp.value : '';
+  if (!v || !tplAlignState.tpl) return null;
+  const [y, m, d] = v.split('-').map(Number);
+  if (!y || !m || !d) return null;
+  const start = new Date(y, m - 1, d);
+  const n = Math.min(Math.max(Number(tplAlignState.tpl.dias_por_semana) || (tplAlignState.tpl.days || []).length || 1, 1), 7);
+  return TPL_WEEK_OFFSETS[n].map(o => { const dt = new Date(start); dt.setDate(dt.getDate() + o); return dt; });
+}
+function tplRenderAlign() {
+  const area = $('pl-tpl-align'), body = $('pl-tpl-align-list');
+  if (!area || !body) return;
+  if (!tplAlignState.tpl || tplAlignState.dismissed) { area.style.display = 'none'; return; }
+  area.style.display = '';
+  const note = $('pl-tpl-align-applied');
+  if (note) note.style.display = tplAlignState.aligned ? '' : 'none';
+  const applyBtn = $('pl-tpl-align-apply');
+  const dates = tplAlignDates();
+  const loc = LANG === 'es' ? 'es' : 'en';
+  if (!dates) {
+    body.innerHTML = `<div class="pl-tpl-align-hint">${t('train.tpl.alignHint')}</div>`;
+    if (applyBtn) applyBtn.style.display = 'none';
+    return;
+  }
+  if (applyBtn) applyBtn.style.display = '';
+  const dayEls = [...document.querySelectorAll('#pl-days .pl-day')];
+  const startTxt = new Intl.DateTimeFormat(loc, { day: 'numeric', month: 'short', year: 'numeric' }).format(dates[0]);
+  body.innerHTML = `<div class="pl-tpl-align-title">${t('train.tpl.alignTitle', { date: startTxt })}</div>` + dates.map((dt, i) => {
+    const label = dayEls[i] ? (dayEls[i].querySelector('.pl-day-label').value.trim() || '—') : '—';
+    const wd = new Intl.DateTimeFormat(loc, { weekday: 'long' }).format(dt);
+    const ds = new Intl.DateTimeFormat(loc, { day: 'numeric', month: 'short' }).format(dt);
+    return `<div class="pl-tpl-align-row"><span>${esc(label)}</span><span class="pl-tpl-align-arrow">→</span><b>${esc(wd)} ${esc(ds)}</b></div>`;
+  }).join('');
+}
+function tplApplyAlign() {
+  const dates = tplAlignDates();
+  if (!dates) return;
+  const loc = LANG === 'es' ? 'es' : 'en';
+  const dayEls = [...document.querySelectorAll('#pl-days .pl-day')];
+  dates.forEach((dt, i) => {
+    const el = dayEls[i];
+    if (!el) return;
+    const input = el.querySelector('.pl-day-label');
+    const cur = input.value.trim();
+    const tail = cur.includes('—') ? cur.split('—').slice(1).join('—').trim() : cur;
+    let wd = new Intl.DateTimeFormat(loc, { weekday: 'long' }).format(dt);
+    wd = wd.charAt(0).toUpperCase() + wd.slice(1);
+    input.value = tail ? `${wd} — ${tail}` : wd;
+  });
+  tplAlignState.aligned = true;
+  tplRenderAlign();
+}
+function tplOnEditorOpen() {
+  tplAlignState = { tpl: null, dismissed: false, aligned: false };
+  const start = $('pl-tpl-start');
+  if (start) start.value = '';
+  tplRenderAlign();
+  tplRenderTplUI();
+  tplEnsure();
+}
+if ($('pl-tpl-start')) $('pl-tpl-start').addEventListener('change', () => tplRenderAlign());
+if ($('pl-tpl-align-apply')) $('pl-tpl-align-apply').onclick = () => tplApplyAlign();
+if ($('pl-tpl-align-ignore')) $('pl-tpl-align-ignore').onclick = () => { tplAlignState.dismissed = true; tplRenderAlign(); };
+
 /* --- Editor de planes (entrenador) --- */
 let planCtx = null;
 function wirePlanExDel(scope) { scope.querySelectorAll('.pl-ex-del').forEach(b => b.onclick = () => b.closest('.pl-ex-row').remove()); }
@@ -4303,7 +4547,15 @@ function planExRow(ex) {
   const entry = ex.exerciseId ? LIB_BY_ID[ex.exerciseId] : null;
   const shown = entry ? libNameOf(entry) : (ex.name || '');
   const linked = ex.exerciseId ? ` data-exid="${esc(ex.exerciseId)}" data-saved-name="${esc(ex.name || '')}" data-photo="${esc(ex.photoUrl || '')}" data-video="${esc(ex.videoUrl || '')}"` : '';
-  return `<div class="pl-ex-row"${linked}>
+  /* PLANTILLAS (§4.2/§4.6): descanso y aproximación viajan como
+     campos del ejercicio (rest/rest_en, warmup/warmup_en). El campo
+     visible muestra el texto del idioma activo (con el otro como
+     respaldo) y es editable; AMBOS textos viajan en data-* hasta el
+     guardado, que persiste cada uno en su campo. */
+  const rw = `${ex.rest ? ` data-rest="${esc(ex.rest)}"` : ''}${ex.rest_en ? ` data-rest-en="${esc(ex.rest_en)}"` : ''}${ex.warmup ? ` data-warmup="${esc(ex.warmup)}"` : ''}${ex.warmup_en ? ` data-warmup-en="${esc(ex.warmup_en)}"` : ''}`;
+  const restShown = LANG === 'es' ? (ex.rest || ex.rest_en || '') : (ex.rest_en || ex.rest || '');
+  const warmShown = LANG === 'es' ? (ex.warmup || ex.warmup_en || '') : (ex.warmup_en || ex.warmup || '');
+  return `<div class="pl-ex-row"${linked}${rw}>
     <div class="pl-ex-main">
       <input type="text" class="pl-ex-name" placeholder="${t('train.f.exPh')}" value="${esc(shown)}" autocomplete="off">
       <div class="pl-ex-sug"></div>
@@ -4313,7 +4565,32 @@ function planExRow(ex) {
     <input type="text" class="pl-ex-reps" placeholder="${t('train.f.repsPh')}" value="${esc(ex.reps || '')}">
     <input type="text" class="pl-ex-note" placeholder="${t('train.f.notePh')}" value="${esc(ex.note || '')}">
     <button type="button" class="btn-ghost btn-sm pl-ex-del" title="${t('train.f.remove')}">×</button>
+    <div class="pl-ex-sub">
+      <input type="text" class="pl-ex-warmup" placeholder="${t('train.f.warmupPh')}" value="${esc(warmShown)}">
+      <input type="text" class="pl-ex-rest" placeholder="${t('train.f.restPh')}" value="${esc(restShown)}">
+    </div>
   </div>`;
+}
+/* PLANTILLAS (§4.2/§4.6): los bloques de sesión del día
+   (sessionBlocks: cardio previo/posterior y sauna) se muestran en
+   el editor como fichas visibles bajo la etiqueta del día — el
+   entrenador los ve y puede quitar los que no quiera — y viajan en
+   una propiedad del elemento del día hasta el guardado, que los
+   persiste como COPIA en el plan (sin referencia viva a la
+   plantilla). Al reabrir un plan que los trae, se conservan. */
+function renderDayBlocks(wrap) {
+  const box = wrap.querySelector('.pl-day-blocks');
+  if (!box) return;
+  const blocks = wrap._sessionBlocks || [];
+  box.innerHTML = blocks.map((b, i) => {
+    const title = b['title_' + LANG] || b.title_es || b.title_en || '';
+    const detail = b['detail_' + LANG] || b.detail_es || b.detail_en || '';
+    return `<span class="pl-block-chip"><span><b>${esc(title)}</b>${detail ? ` · ${esc(detail)}` : ''}</span><button type="button" class="pl-block-del" data-bi="${i}" title="${t('train.f.remove')}">×</button></span>`;
+  }).join('');
+  box.querySelectorAll('.pl-block-del').forEach(btn => btn.onclick = () => {
+    wrap._sessionBlocks.splice(Number(btn.dataset.bi), 1);
+    renderDayBlocks(wrap);
+  });
 }
 function planDayRow(day) {
   day = day || { label: '', exercises: [{}] };
@@ -4322,8 +4599,11 @@ function planDayRow(day) {
   wrap.innerHTML = `
     <div class="frow"><label style="flex:1"><input type="text" class="pl-day-label" placeholder="${t('train.f.dayPh')}" value="${esc(day.label || '')}"></label>
     <button type="button" class="btn-ghost btn-sm pl-day-del">${t('train.f.remove')}</button></div>
+    <div class="pl-day-blocks"></div>
     <div class="pl-exs">${(day.exercises && day.exercises.length ? day.exercises : [{}]).map(planExRow).join('')}</div>
     <button type="button" class="btn-ghost btn-sm pl-ex-add">${t('train.f.addEx')}</button>`;
+  wrap._sessionBlocks = Array.isArray(day.sessionBlocks) ? day.sessionBlocks.map(b => ({ ...b })) : [];
+  renderDayBlocks(wrap);
   wrap.querySelector('.pl-day-del').onclick = () => wrap.remove();
   wrap.querySelector('.pl-ex-add').onclick = () => {
     const d = document.createElement('div'); d.innerHTML = planExRow({});
@@ -4333,7 +4613,7 @@ function planDayRow(day) {
   return wrap;
 }
 function openPlanEditor(clientUid, plan) {
-  planCtx = { clientUid, planId: plan ? plan.id : null };
+  planCtx = { clientUid, planId: plan ? plan.id : null, tplSource: null };
   $('pl-title').value = plan ? (plan.title || '') : '';
   $('pl-notes').value = plan ? (plan.notes || '') : '';
   $('pl-active').checked = plan ? plan.active === true : true;
@@ -4348,6 +4628,10 @@ function openPlanEditor(clientUid, plan) {
      editor sigue en texto libre (sin bloquear nada). */
   libRenderNotice();
   libEnsure().then(() => libRefreshOpenRows());
+  /* PLANTILLAS (§4.2): el selector se ofrece en el mismo editor; la
+     lectura es única por sesión y el estado de alineación nace
+     limpio en cada apertura. */
+  tplOnEditorOpen();
 }
 $('pl-add-day').onclick = () => $('pl-days').appendChild(planDayRow(null));
 $('plan-cancel').onclick = () => { $('plan-modal').style.display = 'none'; planCtx = null; };
@@ -4371,9 +4655,26 @@ $('form-plan').addEventListener('submit', async e => {
         if (r.dataset.photo) ex.photoUrl = r.dataset.photo;
         if (r.dataset.video) ex.videoUrl = r.dataset.video;
       }
+      /* PLANTILLAS (§4.2/§4.6): descanso y aproximación — el campo
+         visible manda en su idioma y el texto del otro idioma viaja
+         en data-*; solo se persisten los textos no vacíos. */
+      const restIn = r.querySelector('.pl-ex-rest'), warmIn = r.querySelector('.pl-ex-warmup');
+      let rest = r.dataset.rest || '', restEn = r.dataset.restEn || '', warm = r.dataset.warmup || '', warmEn = r.dataset.warmupEn || '';
+      if (restIn) { if (LANG === 'es') rest = restIn.value.trim(); else restEn = restIn.value.trim(); }
+      if (warmIn) { if (LANG === 'es') warm = warmIn.value.trim(); else warmEn = warmIn.value.trim(); }
+      if (rest) ex.rest = rest;
+      if (restEn) ex.rest_en = restEn;
+      if (warm) ex.warmup = warm;
+      if (warmEn) ex.warmup_en = warmEn;
       exercises.push(ex);
     });
-    if (exercises.length) days.push({ label, exercises });
+    if (exercises.length) {
+      const dayObj = { label, exercises };
+      /* PLANTILLAS (§4.2/§4.6): los bloques de sesión del día se
+         persisten como copia en el plan, sin referencia viva. */
+      if (dEl._sessionBlocks && dEl._sessionBlocks.length) dayObj.sessionBlocks = dEl._sessionBlocks.map(b => ({ ...b }));
+      days.push(dayObj);
+    }
   });
   const title = $('pl-title').value.trim();
   if (!title || !days.length) { toast(t('train.err'), true); return; }
@@ -4393,6 +4694,17 @@ $('form-plan').addEventListener('submit', async e => {
   const gateWarnAfter = !isFirstSave && gateState !== 'valid';
   const active = $('pl-active').checked;
   const data = { clientUid: planCtx.clientUid, title, notes: $('pl-notes').value.trim(), days, active, updatedAt: serverTimestamp() };
+  /* PLANTILLAS (§4.2/§4.6): procedencia OPCIONAL y veraz — solo si
+     en ESTA sesión del editor se aplicó una plantilla. Es
+     trazabilidad (qué plantilla y qué versión originaron el
+     borrador); el plan guardado es una copia independiente, sin
+     vínculo vivo con la plantilla. */
+  if (planCtx.tplSource) {
+    data.sourceRoutineId = planCtx.tplSource.id;
+    if (planCtx.tplSource.version) data.sourceRoutineVersion = planCtx.tplSource.version;
+    const lv = (LIB && LIB.length && LIB[0].version) || '';
+    if (lv) data.libraryVersion = lv;
+  }
   let planId = planCtx.planId;
   if (planId) {
     await setDoc(doc(db, 'training_plans', planId), data, { merge: true });
