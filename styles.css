@@ -410,8 +410,8 @@ table.whist { min-width: 640px; }
    — se ajusta a su contenido — y centrada (left 50% + translateX),
    con huecos simétricos de 6 px; a 390 px ninguna etiqueta se corta
    ni hay desborde horizontal. Colores, halo y lógica intactos; el
-   anclaje de .pend-float y el centro de #ai-progress se ajustan a la
-   nueva altura de la pastilla (~92 px frente a ~111 px). */
+   anclaje de .pend-float se ajusta a la nueva altura de la pastilla
+   (~92 px frente a ~111 px). */
 .actions-dock { position: fixed; left: 50%; transform: translateX(-50%); bottom: calc(env(safe-area-inset-bottom, 0px) + 12px); z-index: 40; width: fit-content; max-width: calc(100vw - 24px); box-sizing: border-box; background: rgba(255, 255, 255, .96); border: 1px solid rgba(15, 23, 42, .06); border-radius: 999px; box-shadow: 0 8px 24px rgba(15, 23, 42, .18); padding: 8px 16px; }
 #tab-track:not([style*="none"]) ~ .foot { margin-bottom: 132px; }
 .rounds-row { display: flex; justify-content: center; align-items: flex-start; gap: 6px; }
@@ -465,14 +465,15 @@ table.whist { min-width: 640px; }
 /* Indicador flotante de análisis M8 (Ronald, 2026-10-21): disco
    blanco con anillo teal que se completa POR ETAPAS reales del flujo
    (sale la llamada → vuelve → resultados en pantalla; ver aiProg* en
-   app.js). Flota centrado sobre la pastilla del dock: misma
-   referencia inferior que .actions-dock (bottom 12 px + su centro),
-   z-index 48 (sobre el dock 40 y la tarjeta de pendientes 45, bajo el
-   modal 50). pointer-events:none: jamás intercepta un toque — no
-   bloquea nada que el flujo no bloqueara ya. Con reduced-motion el
-   anillo salta entre etapas sin transición y el disco aparece sin
-   fundido. */
-.ai-progress { position: fixed; left: 50%; transform: translateX(-50%); bottom: calc(env(safe-area-inset-bottom, 0px) + 16px); z-index: 48; width: 84px; height: 84px; border-radius: 50%; background: rgba(255, 255, 255, .97); border: 1px solid rgba(15, 23, 42, .06); box-shadow: 0 10px 28px rgba(15, 23, 42, .22); display: flex; align-items: center; justify-content: center; pointer-events: none; opacity: 0; transition: opacity .3s ease; }
+   app.js). Nació centrado sobre la pastilla del dock; a petición de
+   Ronald (2026-10-21, captura en vivo: el disco tapaba el botón de
+   Entrenamiento) pasa al CENTRO DE LA PANTALLA: left/top al 50% y
+   translate(-50%,-50%), sin referencia alguna al dock. z-index 48
+   (sobre el dock 40 y la tarjeta de pendientes 45, bajo el modal 50).
+   pointer-events:none: jamás intercepta un toque — no bloquea nada
+   que el flujo no bloqueara ya. Con reduced-motion el anillo salta
+   entre etapas sin transición y el disco aparece sin fundido. */
+.ai-progress { position: fixed; left: 50%; top: 50%; transform: translate(-50%, -50%); z-index: 48; width: 84px; height: 84px; border-radius: 50%; background: rgba(255, 255, 255, .97); border: 1px solid rgba(15, 23, 42, .06); box-shadow: 0 10px 28px rgba(15, 23, 42, .22); display: flex; align-items: center; justify-content: center; pointer-events: none; opacity: 0; transition: opacity .3s ease; }
 .ai-progress.on { opacity: 1; }
 .ai-progress svg { display: block; }
 .ai-prog-track { fill: none; stroke: #e5e7eb; stroke-width: 5; }
