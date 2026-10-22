@@ -48,7 +48,11 @@ import { readFileSync } from 'node:fs';
 import { initializeTestEnvironment, assertSucceeds, assertFails } from '@firebase/rules-unit-testing';
 import { doc, setDoc, getDoc, getDocs, collection, updateDoc, deleteDoc, serverTimestamp, query, where, writeBatch } from 'firebase/firestore';
 
-const rules = readFileSync(new URL('./firestore.rules.candidato-entrenamiento-2026-10-22.rules', import.meta.url), 'utf8');
+// Paquete REGLAS C: el archivo de reglas bajo prueba es el candidato
+// Reglas C (texto vivo 1911f450 + bloque body_type_ratings), no el de
+// entrenamiento de la suite madre — esta línea es el ÚNICO cambio de
+// arnés fuera del bloque RC y de las líneas de resumen.
+const rules = readFileSync(new URL('./firestore.rules.candidato-reglas-c-2026-10-22.rules', import.meta.url), 'utf8');
 const env = await initializeTestEnvironment({ projectId: 'demo-entrenamiento', firestore: { rules, host: '127.0.0.1', port: 8799 } });
 
 let pass = 0, fail = 0; const fails = [];
