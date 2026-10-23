@@ -910,3 +910,7 @@ div > .btn-ghost:only-child, div > .btn-main:only-child {
 }
 .ai-actions, .fa-btnrow, .privacy-btns, .prop-form-actions { justify-content: center; }
 .modal form .frow:has(> button) { display: flex; justify-content: center; gap: 10px; }
+
+/* ===== Paquete «orden descendente + hora» (2026-10-23): la hora de
+   registro va junto a la etiqueta de la comida en el detalle ===== */
+.meal-time { font-size: 11.5px; font-weight: 600; color: #6b7280; white-space: nowrap; margin-left: 4px; }

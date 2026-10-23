@@ -2765,6 +2765,13 @@ async function loadAll() {
          lo persistió; loadAll lo conserva tal cual — la ventana del
          anillo lo lee de aquí, sin lecturas extra a Firestore. */
       items: Array.isArray(v.items) ? v.items : null,
+      /* Hora de REGISTRO (paquete «orden descendente + hora»,
+         2026-10-23): el documento nace con createdAt (serverTimestamp)
+         en TODAS las rutas de guardado de comidas (IA foto, IA texto,
+         manual y repetir); se conserva en milisegundos para ordenar
+         el detalle del día y mostrar la hora junto a la etiqueta. Es
+         la hora de registro, NO una hora editable de la comida. */
+      createdAtMs: (v.createdAt && v.createdAt.toMillis) ? v.createdAt.toMillis() : 0,
       photoURL: v.photoURL || '', photoPath: v.photoPath || '' };
     (MEALS[v.date] = MEALS[v.date] || []).push(m);
   });
@@ -6286,6 +6293,11 @@ async function uploadPhoto(file, path) {
   return { url: await getDownloadURL(r), path };
 }
 
+/* Hora de registro en formato hh:mm (24 h) en la zona del usuario
+   (America/Chicago, la misma con la que la app calcula «hoy»). */
+const MEAL_TIME_FMT = new Intl.DateTimeFormat('en-GB', { timeZone: 'America/Chicago', hour: '2-digit', minute: '2-digit', hourCycle: 'h23' });
+const mealTimeStr = ms => MEAL_TIME_FMT.format(new Date(ms));
+
 function render(date) {
   $('dateTitle').textContent = dateName(date);
   if (!hasAnyGoal()) {
@@ -6315,9 +6327,15 @@ function render(date) {
   document.querySelectorAll('[data-ring]').forEach(b =>
     b.onclick = () => openRingDetail(b.dataset.ring, date));
   renderWeekChart(date);
-  const rows = MEALS[date] || [];
+  /* ORDEN DESCENDENTE + HORA (Ronald, 2026-10-23): el «Detalle de lo
+     consumido» se pinta de la comida registrada MÁS RECIENTE a la más
+     antigua, con su hora de registro junto a la etiqueta. Se ordena
+     una COPIA: MEALS conserva su orden por tipo de comida para los
+     demás consumidores (anillos, pendientes, totales). Una fila sin
+     createdAt conocido (0) va al final y no muestra hora inventada. */
+  const rows = (MEALS[date] || []).slice().sort((a, b) => (b.createdAtMs || 0) - (a.createdAtMs || 0));
   let html = rows.map(m =>
-    `<tr><td>${esc(mealName(m.meal))}</td><td>${esc(m.food)}${m.photoURL ? ` <a href="${esc(m.photoURL)}" target="_blank" rel="noopener" title="${t('track.viewPhoto')}">📷</a>` : ''}</td><td>${esc(m.qty)}</td>` +
+    `<tr><td>${esc(mealName(m.meal))}${m.createdAtMs ? ` <span class="meal-time">${mealTimeStr(m.createdAtMs)}</span>` : ''}</td><td>${esc(m.food)}${m.photoURL ? ` <a href="${esc(m.photoURL)}" target="_blank" rel="noopener" title="${t('track.viewPhoto')}">📷</a>` : ''}</td><td>${esc(m.qty)}</td>` +
     `<td class="num">${fmt(m.kcal)}</td><td class="num">${fmt(m.prot)}</td><td class="num">${fmt(m.carb)}</td>` +
     `<td class="num">${fmt(m.sugar)}</td><td class="num">${fmt(m.fat)}</td>` +
     `<td class="meal-actions"><button class="rep-btn" data-repeat-meal="${m.id}" title="${t('track.repeat')}">↻ ${t('track.repeat')}</button><button class="del-btn" data-del-meal="${m.id}" title="${t('track.delete')}">×</button></td></tr>`
