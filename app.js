@@ -478,6 +478,21 @@ en: {
   'train.viz.add': '＋ Add',
   'train.viz.added': 'Added: {name}',
   'train.viz.empty': 'No exercises match this filter.',
+  'train.snap.btn': 'Versions', 'train.snap.title': 'Version history',
+  'train.snap.empty': 'No saved versions yet. The previous version is kept here each time this plan is saved.',
+  'train.snap.view': 'View', 'train.snap.hide': 'Hide', 'train.snap.at': 'Version saved on {d}',
+  'train.sub.btn': 'Substitute', 'train.sub.title': 'Suggested substitutes (same muscle group)',
+  'train.sub.none': 'No substitutes to suggest: the library is unavailable or this exercise has no known muscle group. Free text still works.',
+  'train.sub.sameEq': 'same equipment',
+  'train.btr.btn': 'Body type', 'train.btr.title': 'Ratings by body type — {name}',
+  'train.btr.ecto': 'Ectomorph', 'train.btr.meso': 'Mesomorph', 'train.btr.endo': 'Endomorph',
+  'train.btr.high': 'High', 'train.btr.med': 'Medium', 'train.btr.low': 'Low', 'train.btr.why': 'Why',
+  'train.btr.note': 'Body types are a practical reference guide, not rigid boxes. Most people combine traits of more than one type; the personal goal and individual progress matter more than any label.',
+  'train.btr.disclaimer': 'General reference for THIS exercise only. It does not label any person, and nothing is assigned or preselected by body type — the trainer always decides.',
+  'train.btr.unavailable': 'Body-type ratings are unavailable right now (that collection could not be loaded or is empty). The editor keeps working as usual.',
+  'train.btr.noData': 'This exercise has no body-type rating loaded.',
+  'train.btr.needLink': 'Link this row to a library exercise to see its body-type ratings.',
+  'train.print.btn': '🖨 Print card', 'train.print.title': 'Training plan', 'train.print.session': 'Session',
   'train.f.warmupPh': 'Warm-up sets', 'train.f.restPh': 'Rest',
   'train.tpl.title': '📋 Routine templates',
   'train.tpl.use': 'Use this template',
@@ -1232,6 +1247,21 @@ es: {
   'train.viz.add': '＋ Añadir',
   'train.viz.added': 'Añadido: {name}',
   'train.viz.empty': 'Ningún ejercicio coincide con este filtro.',
+  'train.snap.btn': 'Versiones', 'train.snap.title': 'Historial de versiones',
+  'train.snap.empty': 'Aún no hay versiones guardadas. La versión anterior se conserva aquí cada vez que se guarda este plan.',
+  'train.snap.view': 'Ver', 'train.snap.hide': 'Ocultar', 'train.snap.at': 'Versión guardada el {d}',
+  'train.sub.btn': 'Sustituir', 'train.sub.title': 'Sustitutos sugeridos (mismo grupo muscular)',
+  'train.sub.none': 'Sin sustitutos que sugerir: la biblioteca no está disponible o este ejercicio no tiene grupo muscular conocido. El texto libre sigue funcionando.',
+  'train.sub.sameEq': 'mismo equipo',
+  'train.btr.btn': 'Tipo de cuerpo', 'train.btr.title': 'Calificaciones por tipo de cuerpo — {name}',
+  'train.btr.ecto': 'Ectomorfo', 'train.btr.meso': 'Mesomorfo', 'train.btr.endo': 'Endomorfo',
+  'train.btr.high': 'Alto', 'train.btr.med': 'Medio', 'train.btr.low': 'Bajo', 'train.btr.why': 'Fundamento',
+  'train.btr.note': 'Los tipos de cuerpo son una guía práctica de referencia, no cajas rígidas. La mayoría de las personas combina rasgos de más de un tipo; el objetivo personal y el progreso individual mandan sobre cualquier etiqueta.',
+  'train.btr.disclaimer': 'Referencia general solo para ESTE ejercicio. No etiqueta a ninguna persona, y nada se asigna ni se preselecciona por tipo de cuerpo: el entrenador siempre decide.',
+  'train.btr.unavailable': 'Las calificaciones por tipo de cuerpo no están disponibles ahora (esa colección no pudo cargarse o está vacía). El editor sigue funcionando como siempre.',
+  'train.btr.noData': 'Este ejercicio no tiene calificación por tipo de cuerpo cargada.',
+  'train.btr.needLink': 'Vincula esta fila a un ejercicio de la biblioteca para ver sus calificaciones por tipo de cuerpo.',
+  'train.print.btn': '🖨 Tarjeta imprimible', 'train.print.title': 'Plan de entrenamiento', 'train.print.session': 'Sesión',
   'train.f.warmupPh': 'Series de aproximación', 'train.f.restPh': 'Descanso',
   'train.tpl.title': '📋 Plantillas de rutina',
   'train.tpl.use': 'Usar esta plantilla',
@@ -2015,6 +2045,9 @@ async function syncLimitMappings(state) {
     const snap = await getDocs(collection(db, 'training_plans'));
     const pairs = {};
     snap.forEach(d => { const v = d.data();
+      /* VERSIONADO (§6.4): las instantáneas no alimentan el mapeo
+         de límites — solo cuentan los planes vivos. */
+      if (v.isSnapshot === true) return;
       if (v.clientUid && v.createdBy && v.clientUid !== v.createdBy) pairs[v.clientUid] = v.createdBy; });
     let changed = false;
     for (const [uid, tr] of Object.entries(pairs)) {
@@ -3931,7 +3964,10 @@ async function fetchMyDocs(uid) {
     out[name] = [];
     try {
       const snap = await getDocs(query(collection(db, name), where(field, '==', uid)));
-      snap.forEach(d => out[name].push({ id: d.id, data: d.data() }));
+      /* VERSIONADO (§6.4): la exportación de datos del cliente
+         excluye las instantáneas de planes — son historial del
+         entrenador, no planes del cliente. */
+      snap.forEach(d => { const v = d.data(); if (name === 'training_plans' && v && v.isSnapshot === true) return; out[name].push({ id: d.id, data: v }); });
     } catch {}
   }
   return out;
@@ -4458,9 +4494,36 @@ async function fetchPlans(clientUid) {
   const out = [];
   try {
     const snap = await getDocs(query(collection(db, 'training_plans'), where('clientUid', '==', clientUid)));
-    snap.forEach(d => out.push({ id: d.id, ...d.data() }));
+    /* VERSIONADO (§6.4): las instantáneas viven en esta misma
+       colección marcadas con isSnapshot — NUNCA son planes vivos y
+       este es el punto central de exclusión del que heredan la
+       vista del cliente, la lista del entrenador y la puerta
+       PAR-Q. Su lectura es fetchSnapshots(). */
+    snap.forEach(d => { const v = d.data(); if (v && v.isSnapshot === true) return; out.push({ id: d.id, ...v }); });
   } catch {}
   out.sort((a, b) => String(a.title || '').localeCompare(String(b.title || '')));
+  return out;
+}
+/* VERSIONADO (§6.4): lectura del historial de instantáneas de un
+   cliente. Es SOLO lectura (getDocs): consultar el historial no
+   escribe nada. Las instantáneas jamás pasan por fetchPlans. */
+function snapMillis(ts) {
+  if (!ts) return 0;
+  if (typeof ts.toDate === 'function') { try { return ts.toDate().getTime(); } catch { return 0; } }
+  if (typeof ts.seconds === 'number') return ts.seconds * 1000;
+  return 0;
+}
+function snapDateLabel(ts) {
+  const ms = snapMillis(ts);
+  return ms ? dateName(new Date(ms).toISOString().slice(0, 10)) : '';
+}
+async function fetchSnapshots(clientUid) {
+  const out = [];
+  try {
+    const snap = await getDocs(query(collection(db, 'training_plans'), where('clientUid', '==', clientUid)));
+    snap.forEach(d => { const v = d.data(); if (v && v.isSnapshot === true) out.push({ id: d.id, ...v }); });
+  } catch {}
+  out.sort((a, b) => snapMillis(b.snapshotAt) - snapMillis(a.snapshotAt));
   return out;
 }
 async function fetchLogs(clientUid) {
@@ -4635,6 +4698,24 @@ function trainAlignRender() {
   };
 }
 
+/* TARJETA IMPRIMIBLE (§6.2): generación EN CLIENTE desde el plan
+   activo — sin datos ni reglas nuevas y sin ninguna escritura: se
+   rellena la hoja #print-card (visible solo al imprimir, CSS @media
+   print) con título, días, ejercicios (nombre resuelto por idioma
+   si la biblioteca está cargada), series × reps, descanso,
+   aproximación, notas y bloques de sesión, y se abre el diálogo de
+   impresión del navegador (guardar como PDF incluido). */
+function printCardRender(plan) {
+  const pc = $('print-card');
+  if (!pc || !plan) return;
+  const days = (plan.days || []).map(day => {
+    const exs = (day.exercises || []).map(ex => `<tr><td>${esc(trainExName(ex) || ex.name || '')}</td><td>${esc([ex.sets, ex.reps].filter(Boolean).join(' × '))}</td><td>${esc(LANG === 'es' ? (ex.rest || ex.rest_en || '') : (ex.rest_en || ex.rest || ''))}</td><td>${esc(LANG === 'es' ? (ex.warmup || ex.warmup_en || '') : (ex.warmup_en || ex.warmup || ''))}</td><td>${esc(ex.note || '')}</td></tr>`).join('');
+    const blocks = (day.sessionBlocks || []).map(b => `<div class="pc-block"><b>${t('train.print.session')}:</b> ${esc(LANG === 'es' ? (b.title_es || b.title_en || '') : (b.title_en || b.title_es || ''))}${(b.detail_es || b.detail_en) ? ' — ' + esc(LANG === 'es' ? (b.detail_es || b.detail_en || '') : (b.detail_en || b.detail_es || '')) : ''}</div>`).join('');
+    return `<h4 class="pc-day">${esc(day.label || '')}</h4><table class="pc-table"><tbody>${exs}</tbody></table>${blocks}`;
+  }).join('');
+  pc.innerHTML = `<h2 class="pc-title">${esc(plan.title || '')}</h2><p class="pc-sub">${t('train.print.title')} · ${esc(dateName(todayISO()))}</p>${plan.notes ? `<p class="pc-notes">${esc(plan.notes)}</p>` : ''}${days}`;
+  window.print();
+}
 async function loadMyTraining() {
   const box = $('my-training');
   if (!box || !auth.currentUser) return;
@@ -4656,6 +4737,7 @@ async function loadMyTraining() {
     <h3 class="history-title">${esc(plan.title || '')}</h3>
     ${plan.notes ? `<p class="progress-hint">${esc(plan.notes)}</p>` : ''}
     <p class="progress-hint">${t('train.weekDone', { n: weekCount })}</p>
+    <div style="margin:6px 0"><button class="btn-ghost btn-sm" id="btn-print-card">${t('train.print.btn')}</button></div>
     <div id="train-align-slot"></div>
     ${(plan.days || []).map((day, di) => {
       const label = day.label || ('Día ' + (di + 1));
@@ -4669,6 +4751,8 @@ async function loadMyTraining() {
           : `<button class="btn-primary btn-sm" data-train-done="${di}">${t('train.markDone')}</button>`}</div>
       </div>`;
     }).join('')}`;
+  const pcBtn = $('btn-print-card');
+  if (pcBtn) pcBtn.onclick = () => printCardRender(plan);
   box.querySelectorAll('img.train-ex-photo').forEach(img => {
     img.onerror = () => img.remove();
     img.onclick = () => showLightbox(img.dataset.trainPhoto);
@@ -4968,8 +5052,9 @@ async function loadClientTraining(uid) {
     <div class="user-actions">
       <button class="btn-ghost btn-sm" data-plan-edit="${p.id}">${t('client.edit')}</button>
       <button class="btn-ghost btn-sm" data-plan-toggle="${p.id}">${p.active === true ? t('train.deactivate') : t('train.activate')}</button>
+      <button class="btn-ghost btn-sm" data-plan-history="${p.id}">${t('train.snap.btn')}</button>
       <button class="btn-ghost btn-sm" data-plan-del="${p.id}">${t('train.delete')}</button>
-    </div></div>`).join('') : `<div class="wempty">${t('train.noPlan')}</div>`;
+    </div></div><div class="plan-history" id="ph-${p.id}" style="display:none"></div>`).join('') : `<div class="wempty">${t('train.noPlan')}</div>`;
   const logRows = logs.slice(0, 8).map(l => `<div class="train-ex"><span>${esc(l.dayLabel || '')}</span><span class="sx">${dateName(l.date)} ✓</span></div>`).join('');
   box.innerHTML = `
     <h3 class="history-title">${t('train.section')}</h3>
@@ -4998,6 +5083,29 @@ async function loadClientTraining(uid) {
     loadClientTraining(uid);
   });
   loadClientProposals(uid, plans);
+  /* VERSIONADO (§6.4): el historial se carga perezosamente al abrir
+     y es SOLO LECTURA — ver una instantánea no escribe nada y el
+     plan vivo no se toca desde aquí. */
+  box.querySelectorAll('[data-plan-history]').forEach(b => b.onclick = async () => {
+    const boxH = $('ph-' + b.dataset.planHistory);
+    if (!boxH) return;
+    if (boxH.style.display !== 'none') { boxH.style.display = 'none'; return; }
+    boxH.style.display = '';
+    if (boxH.dataset.loaded) return;
+    boxH.dataset.loaded = '1';
+    const snaps = (await fetchSnapshots(uid)).filter(s => s.sourcePlanId === b.dataset.planHistory);
+    boxH.innerHTML = `<h4 class="history-title">${t('train.snap.title')}</h4>` + (snaps.length ? snaps.map(s => `
+      <div class="train-ex"><span>${esc(t('train.snap.at', { d: snapDateLabel(s.snapshotAt) }))} · <b>${esc(s.title || '')}</b></span><button class="btn-ghost btn-sm" data-snap-view="${s.id}">${t('train.snap.view')}</button></div>
+      <div class="snap-detail" id="sd-${s.id}" style="display:none">${(s.days || []).map(d => `<div class="snap-day"><b>${esc(d.label || '')}</b>${trainExercisesHTML(d)}</div>`).join('')}</div>`).join('')
+      : `<div class="wempty">${t('train.snap.empty')}</div>`);
+    boxH.querySelectorAll('[data-snap-view]').forEach(vb => vb.onclick = () => {
+      const det = $('sd-' + vb.dataset.snapView);
+      if (!det) return;
+      const open = det.style.display !== 'none';
+      det.style.display = open ? 'none' : '';
+      vb.textContent = open ? t('train.snap.view') : t('train.snap.hide');
+    });
+  });
 }
 
 /* ================= PUERTA PAR-Q (§4.5) — guarda de INTERFAZ =================
@@ -5220,7 +5328,126 @@ function wireLibRow(row) {
 function wirePlanExRows(scope) {
   wirePlanExDel(scope);
   scope.querySelectorAll('.pl-ex-row').forEach(wireLibRow);
+  scope.querySelectorAll('.pl-ex-row').forEach(r => { wireSubstRow(r); wireBtrRow(r); });
   wireLibLinks(scope);
+}
+
+/* ================= SUSTITUTO INTELIGENTE (§5.2/§6.7) =================
+   Al editar una fila, «Sustituir» sugiere ejercicios de la biblioteca
+   del MISMO grupo muscular que el ejercicio actual (grupo canónico
+   grupo_muscular_es), con los de equipo igual al actual primero
+   («equipo afín si consta»: el equipo sale de la propia ficha, no de
+   ningún dato del cliente). Sugerir NUNCA sustituye solo: el
+   entrenador toca una sugerencia y la fila se vincula con el
+   mecanismo del Paquete 4 (libLinkRow), igual que si la hubiera
+   elegido del autocompletado. Sin biblioteca legible o sin grupo
+   conocido, no hay sugerencias y NO hay error: la fila sigue en
+   texto libre. La pieza §5.2 plena (filtrar por el equipo QUE EL
+   CLIENTE TIENE) depende del perfil de equipo (§6.5), que es su
+   propio paquete — aquí no se captura ningún dato del cliente. */
+function substCurrentEntry(row) {
+  if (LIB_STATE !== 'ok' || !LIB) return null;
+  const exid = row.dataset.exid;
+  if (exid && LIB_BY_ID[exid]) return LIB_BY_ID[exid];
+  const nameIn = row.querySelector('.pl-ex-name');
+  const v = libNorm(nameIn ? nameIn.value : '');
+  if (!v) return null;
+  return LIB.find(e => libNorm(e.nombre_es) === v || libNorm(e.nombre_en) === v) || null;
+}
+function substRender(row) {
+  const box = row.querySelector('.pl-ex-subst-box');
+  if (!box) return;
+  if (box.dataset.open === '1') { box.innerHTML = ''; box.dataset.open = ''; return; }
+  box.dataset.open = '1';
+  const cur = substCurrentEntry(row);
+  if (!cur || !cur.grupo_muscular_es) { box.innerHTML = `<div class="pl-sub-note">${t('train.sub.none')}</div>`; return; }
+  const cands = LIB.filter(e => e.grupo_muscular_es === cur.grupo_muscular_es && e.id !== cur.id);
+  cands.sort((a, b) => ((b.equipo_es === cur.equipo_es ? 1 : 0) - (a.equipo_es === cur.equipo_es ? 1 : 0)) || libNameOf(a).localeCompare(libNameOf(b)));
+  if (!cands.length) { box.innerHTML = `<div class="pl-sub-note">${t('train.sub.none')}</div>`; return; }
+  box.innerHTML = `<div class="pl-sub-title">${t('train.sub.title')}</div>` + cands.slice(0, 8).map(ex => `
+    <button type="button" class="pl-sug-item" data-sub-id="${esc(ex.id)}"><span class="sg-name">${esc(libNameOf(ex))}</span><span class="sg-meta">${esc([libField(ex, 'grupo_muscular'), libField(ex, 'equipo'), libField(ex, 'nivel')].filter(Boolean).join(' · '))}${ex.equipo_es === cur.equipo_es ? ' · ' + t('train.sub.sameEq') : ''}</span></button>`).join('');
+  box.querySelectorAll('[data-sub-id]').forEach(b => b.onclick = () => {
+    const ex = LIB_BY_ID[b.dataset.subId];
+    if (ex) libLinkRow(row, ex);
+    box.innerHTML = ''; box.dataset.open = '';
+  });
+}
+function wireSubstRow(row) {
+  if (row.dataset.substWired) return;
+  row.dataset.substWired = '1';
+  const b = row.querySelector('.pl-ex-subst');
+  if (b) b.onclick = () => substRender(row);
+}
+
+/* ================= PANEL DE AYUDA POR TIPO DE CUERPO (§4.3) =========
+   Consulta POR EJERCICIO de las calificaciones cargadas en
+   body_type_ratings (Paquete 3-C): al consultar un ejercicio
+   vinculado, el entrenador ve su Alto/Medio/Bajo para cada tipo de
+   cuerpo con su fundamento en el idioma activo, la nota honesta
+   íntegra de la guía C y el recordatorio de que es referencia
+   general. REGLAS DE ORO (v1.1 §4.3/§7): el panel muestra datos de
+   consulta genéricos — JAMÁS etiqueta a una persona con un
+   somatotipo, JAMÁS preselecciona ni asigna nada por tipo de
+   cuerpo, y ningún flujo lee tipo de cuerpo alguno de un cliente
+   (ese dato ni siquiera se captura). La colección se lee UNA vez
+   por sesión de página, con la misma disciplina que la biblioteca;
+   si no se puede leer o está vacía, estado honesto y el editor
+   sigue como siempre. */
+let BTR = null;            // documentos de body_type_ratings
+let BTR_BY_ID = {};        // id de ejercicio -> documento de calificación
+let BTR_STATE = 'idle';    // 'idle' | 'loading' | 'ok' | 'unavailable'
+let BTR_PROMISE = null;
+function btrEnsure() {
+  if (BTR_STATE === 'ok') return Promise.resolve();
+  if (BTR_STATE === 'loading' && BTR_PROMISE) return BTR_PROMISE;
+  BTR_STATE = 'loading';
+  BTR_PROMISE = (async () => {
+    try {
+      const snap = await getDocs(collection(db, 'body_type_ratings'));
+      const docs = [];
+      snap.forEach(d => docs.push({ id: d.id, ...d.data() }));
+      BTR = docs; BTR_BY_ID = {};
+      docs.forEach(x => { if (x && x.id) BTR_BY_ID[x.id] = x; });
+      BTR_STATE = docs.length ? 'ok' : 'unavailable';
+    } catch { BTR = []; BTR_BY_ID = {}; BTR_STATE = 'unavailable'; }
+  })();
+  return BTR_PROMISE;
+}
+function btrGrade(v) {
+  return v === 'Alto' ? t('train.btr.high') : v === 'Medio' ? t('train.btr.med') : v === 'Bajo' ? t('train.btr.low') : (v || '');
+}
+function btrRender(row) {
+  const box = row.querySelector('.pl-ex-btr-box');
+  if (!box) return;
+  if (box.dataset.open === '1') { box.innerHTML = ''; box.dataset.open = ''; return; }
+  box.dataset.open = '1';
+  const exid = row.dataset.exid;
+  if (!exid) { box.innerHTML = `<div class="pl-sub-note">${t('train.btr.needLink')}</div>`; return; }
+  btrEnsure().then(() => {
+    if (box.dataset.open !== '1') return;
+    if (BTR_STATE !== 'ok') { box.innerHTML = `<div class="pl-sub-note">${t('train.btr.unavailable')}</div>`; return; }
+    const d = BTR_BY_ID[exid];
+    if (!d || !d.calificaciones) { box.innerHTML = `<div class="pl-sub-note">${t('train.btr.noData')}</div>`; return; }
+    const c = d.calificaciones;
+    const entry = LIB_BY_ID[exid];
+    const name = entry ? libNameOf(entry) : exid;
+    const fundamento = LANG === 'es' ? (d.fundamento_es || d.fundamento_en || '') : (d.fundamento_en || d.fundamento_es || '');
+    box.innerHTML = `<div class="pl-btr">
+      <div class="pl-sub-title">${esc(t('train.btr.title', { name }))}</div>
+      <div class="pl-btr-row"><span>${t('train.btr.ecto')}</span><span class="btr-badge">${esc(btrGrade(c.ectomorfo))}</span></div>
+      <div class="pl-btr-row"><span>${t('train.btr.meso')}</span><span class="btr-badge">${esc(btrGrade(c.mesomorfo))}</span></div>
+      <div class="pl-btr-row"><span>${t('train.btr.endo')}</span><span class="btr-badge">${esc(btrGrade(c.endomorfo))}</span></div>
+      ${fundamento ? `<p class="pl-btr-why"><b>${t('train.btr.why')}:</b> ${esc(fundamento)}</p>` : ''}
+      <p class="pl-btr-note">${t('train.btr.note')}</p>
+      <p class="pl-btr-note"><b>${t('train.btr.disclaimer')}</b></p>
+    </div>`;
+  });
+}
+function wireBtrRow(row) {
+  if (row.dataset.btrWired) return;
+  row.dataset.btrWired = '1';
+  const b = row.querySelector('.pl-ex-btr');
+  if (b) b.onclick = () => btrRender(row);
 }
 function libRefreshOpenRows() {
   /* Al terminar la carga de la biblioteca con el editor abierto: las
@@ -5636,6 +5863,12 @@ function planExRow(ex) {
       <input type="text" class="pl-ex-warmup" placeholder="${t('train.f.warmupPh')}" value="${esc(warmShown)}">
       <input type="text" class="pl-ex-rest" placeholder="${t('train.f.restPh')}" value="${esc(restShown)}">
     </div>
+    <div class="pl-ex-tools">
+      <button type="button" class="btn-ghost btn-sm pl-ex-subst">⇄ ${t('train.sub.btn')}</button>
+      <button type="button" class="btn-ghost btn-sm pl-ex-btr">🧍 ${t('train.btr.btn')}</button>
+    </div>
+    <div class="pl-ex-subst-box"></div>
+    <div class="pl-ex-btr-box"></div>
   </div>`;
 }
 /* PLANTILLAS (§4.2/§4.6): los bloques de sesión del día
@@ -5777,6 +6010,17 @@ $('form-plan').addEventListener('submit', async e => {
   }
   let planId = planCtx.planId;
   if (planId) {
+    /* VERSIONADO (§6.4, pregunta 13 aceptada): antes de sobrescribir
+       un plan existente, su versión ANTERIOR se conserva como
+       instantánea en la misma colección — copia fiel marcada
+       (isSnapshot, sourcePlanId, snapshotAt) y jamás activa. La
+       instantánea se escribe SOLO tras pasar la puerta PAR-Q: un
+       guardado bloqueado no escribe nada, como siempre. Crear un
+       plan nuevo no genera instantánea (no hay versión anterior). */
+    const prevSnap = await getDoc(doc(db, 'training_plans', planId));
+    if (prevSnap.exists()) {
+      await addDoc(collection(db, 'training_plans'), { ...prevSnap.data(), isSnapshot: true, sourcePlanId: planId, snapshotAt: serverTimestamp(), active: false });
+    }
     await setDoc(doc(db, 'training_plans', planId), data, { merge: true });
   } else {
     data.createdBy = auth.currentUser.uid; data.createdAt = serverTimestamp();

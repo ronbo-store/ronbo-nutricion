@@ -279,6 +279,33 @@ table.whist { min-width: 640px; }
 .pl-block-chip { display: inline-flex; align-items: center; gap: 6px; background: #eef2ff; border: 1px solid #c7d2fe; color: #3730a3; border-radius: 999px; padding: 3px 6px 3px 10px; font-size: 12px; }
 .pl-block-del { background: none; border: 0; color: #6366f1; cursor: pointer; font-size: 14px; line-height: 1; padding: 2px 4px; }
 .pl-ex-row { flex-wrap: wrap; }
+/* PAQUETE 10 — sugerencias §6 restantes: herramientas por fila del
+   editor (sustituto §5.2 y panel por tipo de cuerpo §4.3), historial
+   de instantáneas (§6.4) y tarjeta imprimible (§6.2). */
+.pl-ex-tools { flex: 1 1 100%; display: flex; gap: 6px; }
+.pl-ex-subst-box, .pl-ex-btr-box { flex: 1 1 100%; }
+.pl-sub-note { font-size: 12.5px; color: #6b7280; padding: 6px 2px; }
+.pl-sub-title { font-size: 12.5px; font-weight: 700; padding: 6px 2px 2px; }
+.pl-btr { border: 1px solid #E9ECEF; border-radius: 10px; padding: 8px 10px; margin-top: 6px; }
+.pl-btr-row { display: flex; justify-content: space-between; align-items: center; padding: 3px 0; font-size: 13px; }
+.btr-badge { background: #0d9488; color: #fff; border-radius: 999px; padding: 1px 10px; font-size: 12px; font-weight: 700; }
+.pl-btr-why { font-size: 12.5px; margin: 6px 0; }
+.pl-btr-note { font-size: 12px; color: #6b7280; margin: 4px 0; }
+.plan-history { padding: 4px 2px 10px; }
+.snap-detail { padding: 4px 8px 8px; }
+.snap-day { margin-bottom: 8px; }
+#print-card { display: none; }
+@media print {
+  body > *:not(#print-card) { display: none !important; }
+  #print-card { display: block !important; font-family: inherit; }
+  .pc-title { margin: 0 0 2px; }
+  .pc-sub { color: #555; margin: 0 0 10px; }
+  .pc-notes { margin: 0 0 10px; }
+  .pc-day { margin: 14px 0 4px; }
+  .pc-table { width: 100%; border-collapse: collapse; }
+  .pc-table td { border-bottom: 1px solid #ccc; padding: 4px 6px; font-size: 13px; }
+  .pc-block { margin: 4px 0; font-size: 13px; }
+}
 .pl-ex-sub { flex: 1 1 100%; display: flex; gap: 6px; }
 .pl-ex-sub input { flex: 1; min-width: 0; font-size: 12.5px; }
 
