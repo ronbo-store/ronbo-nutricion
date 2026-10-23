@@ -7835,7 +7835,18 @@ $('form-weight').addEventListener('submit', async e => {
     muscle: Math.max(0, num($('w-muscle').value)), water: Math.max(0, num($('w-water').value)), visceral: Math.max(0, num($('w-visceral').value)),
     notes: $('w-notes').value.trim(), updatedAt: serverTimestamp() };
   if (!date || data.weight <= 0) { toast(t('err.weightMissing'), true); return; }
-  await setDoc(doc(db, 'nutrition_weight', docId), data);
+  /* Aviso HONESTO (corrección «Registrar pesaje», 2026-10-23): si el
+     guardado es rechazado (p. ej. las reglas vivas aún no admiten que
+     el entrenador cree el primer pesaje de un cliente), el error se
+     MUESTRA con su causa (patrón errCauseKey/failToast de 2026-10-20)
+     y el modal queda ABIERTO con los datos intactos: nunca más un
+     fallo en silencio que parece un guardado. */
+  try {
+    await setDoc(doc(db, 'nutrition_weight', docId), data);
+  } catch (err) {
+    failToast(err);
+    return;
+  }
   $('weight-modal').style.display = 'none';
   e.target.reset();
   const wasClient = weightCtx && weightCtx.uid !== auth.currentUser.uid;
