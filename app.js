@@ -36,6 +36,25 @@ const STORAGE_READY = false;
 
 let UDATA = {};      // users/{uid}: {name, email, role, isOwner, approved}
 let IS_OWNER = false;
+/* ============ MODELO DE TRES ROLES (2026-10-23, SOLO desarrollo) ============
+   Requisito de Ronald (correo expreso 2026-10-23 17:53): campo
+   role en users/{uid} con tres valores exactos: 'administrador'
+   (Ronald), 'entrenador', 'usuario'. Solo el administrador lo
+   asigna o cambia (la UI de roles vive solo en su superficie; las
+   reglas vigentes ya impiden que un cliente toque su role — sus
+   ramas de auto-actualización son listas cerradas — y el candidato
+   de reglas del paquete lo hace explícito y añade el alcance del
+   entrenador). Derivación al entrar: isOwner ⇒ administrador;
+   role 'entrenador' ⇒ entrenador; cualquier otro caso (incluido el
+   legado role 'user' o sin campo) ⇒ usuario. Asignación de
+   clientes: users/{uid}.trainerUid (uid del entrenador o del
+   administrador responsable) + assignmentStatus
+   'assigned'|'waiting'; en espera = bajo el administrador. */
+let ROLE = 'usuario';
+function deriveRole(udata, isOwner) {
+  if (isOwner) return 'administrador';
+  return udata && udata.role === 'entrenador' ? 'entrenador' : 'usuario';
+}
 let suppressAuthCheck = false; // evita el chequeo durante el registro (el doc aún se está creando)
 
 /* Sin metas por defecto (decisión de Ronald, 2026-10-20: «que nazcan
@@ -189,6 +208,21 @@ en: {
   'compacc.needClientOpen': 'This setting is created when the client opens the app for the first time. Ask them to open it once, then try again.',
   'compacc.saved': 'Body-composition entry updated.',
   'compacc.blocked': 'Your trainer logs your body composition — this entry is read-only for you.',
+  'roles.administrador': 'Administrator',
+  'roles.entrenador': 'Trainer',
+  'roles.usuario': 'User',
+  'roles.roleLabel': 'Role',
+  'roles.roleSaved': 'Role updated.',
+  'roles.chooseTrainer': 'Who will be your trainer?',
+  'roles.waitingOption': 'Decide later — wait for assignment',
+  'roles.waitingTitle': '⏳ Waiting for assignment',
+  'roles.waitingHint': 'These clients chose to wait for a trainer. They stay under the administrator\'s responsibility until you assign one.',
+  'roles.assign': 'Assign',
+  'roles.assigned': 'Trainer assigned.',
+  'roles.notYourClient': 'This client is not assigned to you.',
+  'roles.dirUpdate': 'Update the trainer directory (for sign-up)',
+  'roles.dirUpdated': 'Trainer directory updated.',
+  'roles.noWaiting': 'Nobody is waiting for assignment.',
   'progress.title': '📸 My progress',
   'progress.sub': '· photos every 15 days: front, side and back',
   'progress.hint': 'They\'re private: only you can see them. Take a new evaluation every 15 days: front, side and back. Whenever you want, ask your assistant to compare two evaluations and tell you what change it notices.',
@@ -972,6 +1006,21 @@ es: {
   'compacc.needClientOpen': 'Este ajuste se crea cuando el cliente abre la app por primera vez. Pídele que la abra una vez y vuelve a intentarlo.',
   'compacc.saved': 'Ingreso de composición corporal actualizado.',
   'compacc.blocked': 'Tu entrenador registra tu composición corporal: este ingreso es de solo lectura para ti.',
+  'roles.administrador': 'Administrador',
+  'roles.entrenador': 'Entrenador',
+  'roles.usuario': 'Usuario',
+  'roles.roleLabel': 'Rol',
+  'roles.roleSaved': 'Rol actualizado.',
+  'roles.chooseTrainer': '¿Quién será tu entrenador?',
+  'roles.waitingOption': 'Decidir después: esperar asignación',
+  'roles.waitingTitle': '⏳ En espera de asignación',
+  'roles.waitingHint': 'Estos clientes eligieron esperar un entrenador. Quedan bajo responsabilidad del administrador hasta que les asignes uno.',
+  'roles.assign': 'Asignar',
+  'roles.assigned': 'Entrenador asignado.',
+  'roles.notYourClient': 'Este cliente no está asignado a ti.',
+  'roles.dirUpdate': 'Actualizar el directorio de entrenadores (para el registro)',
+  'roles.dirUpdated': 'Directorio de entrenadores actualizado.',
+  'roles.noWaiting': 'Nadie está esperando asignación.',
   'progress.title': '📸 Mi progreso',
   'progress.sub': '· fotos cada 15 días: frente, costado y espalda',
   'progress.hint': 'Son privadas: solo tú las ves. Haz una nueva evaluación cada 15 días: frente, costado y espalda. Cuando quieras, pídele a tu asistente que compare dos evaluaciones y te diga qué cambio nota.',
@@ -1766,7 +1815,29 @@ $('tab-login').onclick = () => {
 $('tab-register').onclick = () => {
   $('tab-register').classList.add('active'); $('tab-login').classList.remove('active');
   $('form-register').style.display = ''; $('form-login').style.display = 'none';
+  loadTrainerDirectory();
 };
+/* Directorio de entrenadores para el registro: documento único
+   trainer_directory/current { trainers: [{uid, name}] } que el
+   administrador mantiene desde su panel (las reglas vigentes no
+   dejan listar users sin ser propietario; el candidato de reglas
+   del paquete de roles habilita su lectura para el registro y su
+   escritura solo del administrador). Si no está disponible, el
+   registro ofrece solo la espera de asignación. */
+let REG_TRAINERS_LOADED = false;
+async function loadTrainerDirectory() {
+  if (REG_TRAINERS_LOADED) return;
+  REG_TRAINERS_LOADED = true;
+  try {
+    const snap = await getDoc(doc(db, 'trainer_directory', 'current'));
+    if (!snap.exists()) return;
+    const list = (snap.data().trainers || []).filter(tr => tr && tr.uid);
+    const sel = $('reg-trainer');
+    if (!sel || !list.length) return;
+    sel.innerHTML = `<option value="">${esc(t('roles.waitingOption'))}</option>`
+      + list.map(tr => `<option value="${esc(tr.uid)}">${esc(tr.name || tr.uid)}</option>`).join('');
+  } catch {}
+}
 function showRegError(msg) {
   const el = $('reg-error');
   el.textContent = msg || '';
@@ -1794,10 +1865,20 @@ $('form-register').addEventListener('submit', async e => {
     /* A2: el registro es el primer acto de consentimiento — el
        documento nace en un lote con su recibo 'registered'
        (consentSeq = 1), como exigen las reglas r3. */
+    /* Tres roles (2026-10-23): el registro nace 'usuario' y con la
+       elección del formulario: entrenador elegido (assigned) o
+       espera de asignación (waiting, bajo el administrador). El
+       candidato de reglas del paquete valida estos campos al
+       crear; con las reglas vivas el lote se denegaría (role
+       'user'), así que app y candidato se despliegan juntos o no
+       se despliega — orden: reglas primero (checkpoint aparte). */
+    const trainerChoice = ($('reg-trainer') && $('reg-trainer').value) || '';
     const regBatch = writeBatch(db);
     regBatch.set(doc(db, 'users', cred.user.uid), {
       name, email, phone, gender, social: social || '',
-      role: 'user', isOwner: false, approved: false,
+      role: 'usuario', isOwner: false, approved: false,
+      trainerUid: trainerChoice || null,
+      assignmentStatus: trainerChoice ? 'assigned' : 'waiting',
       /* Sin goals al nacer (decisión de Ronald, 2026-10-20): las metas
          las fija el entrenador; la cuenta nueva no trae ninguna. */
       acceptedTerms: true, termsVersion: TERMS_VERSION, termsAcceptedAt: serverTimestamp(),
@@ -1896,6 +1977,7 @@ onAuthStateChanged(auth, async user => {
     }
     UDATA = snap.data();
     IS_OWNER = UDATA.isOwner === true;
+    ROLE = deriveRole(UDATA, IS_OWNER);
     if (!IS_OWNER && UDATA.approved !== true) {
       if (!consentIsActive(UDATA)) { showRenewalGate(); return; }
       await signOut(auth);
@@ -1912,7 +1994,9 @@ onAuthStateChanged(auth, async user => {
   setAvatar(UDATA.photoURL || '');
   $('auth-view').style.display = 'none';
   $('app-view').style.display = '';
-  $('main-tabs').style.display = IS_OWNER ? '' : 'none';
+  $('main-tabs').style.display = ROLE === 'usuario' ? 'none' : '';
+  const accTabBtn = document.querySelector('.main-tab[data-tab="access"]');
+  if (accTabBtn) accTabBtn.style.display = ROLE === 'administrador' ? '' : 'none';
   switchTab('track');
   await loadAll();
   startUserDocWatch(user.uid);
@@ -2013,11 +2097,30 @@ async function loadAdmin() {
     <div class="user-row">
       <div>${u.photoURL ? `<img class="avatar sm" src="${esc(u.photoURL)}" alt="">` : ''}<b>${esc(u.name || '—')}</b><br><span class="muted">${esc(u.email || '')}</span></div>
       <div class="user-actions">
+        <label class="muted">${t('roles.roleLabel')} <select data-role-for="${u.id}">${['usuario', 'entrenador'].map(r => `<option value="${r}"${(u.role === 'entrenador' ? 'entrenador' : 'usuario') === r ? ' selected' : ''}>${t('roles.' + r)}</option>`).join('')}</select></label>
         <button class="btn-ghost btn-sm" data-profile="${u.id}">${t('admin.profile')}</button>
         <button class="btn-ghost btn-sm" data-goals="${u.id}">${t('admin.goals')}</button>
         <button class="btn-ghost btn-sm" data-revoke="${u.id}">${t('admin.revoke')}</button>
       </div>
     </div>`).join('') : `<div class="wempty">${t('admin.noUsers')}</div>`);
+  /* Roles: SOLO el administrador asigna o cambia el campo role
+     (esta superficie entera ya es solo suya). */
+  document.querySelectorAll('[data-role-for]').forEach(sel => sel.onchange = async () => {
+    if (ROLE !== 'administrador') return;
+    await setDoc(doc(db, 'users', sel.dataset.roleFor), { role: sel.value }, { merge: true });
+    toast(t('roles.roleSaved'));
+    await loadAdmin();
+  });
+  const dirBox = $('trainer-dir-box');
+  if (dirBox) {
+    dirBox.innerHTML = `<div class="eval-actions"><button type="button" class="btn-ghost btn-sm" id="btn-dir-update">${t('roles.dirUpdate')}</button></div>`;
+    $('btn-dir-update').onclick = async () => {
+      const trainers = ADMIN_USERS.filter(u => u.isOwner || u.role === 'entrenador')
+        .map(u => ({ uid: u.id, name: u.name || u.email || u.id }));
+      await setDoc(doc(db, 'trainer_directory', 'current'), { trainers, updatedAt: serverTimestamp() });
+      toast(t('roles.dirUpdated'));
+    };
+  }
   document.querySelectorAll('[data-goals]').forEach(b => b.onclick = () => {
     const u = ADMIN_USERS.find(x => x.id === b.dataset.goals);
     if (u) openGoals(u.id, u.name || u.email, u.goals);
@@ -2159,17 +2262,30 @@ async function saveLimit(btn) {
 /* ================= MIS CLIENTES (entrenador: ve y edita el peso semanal) ================= */
 async function loadClients() {
   const sec = $('clients-section');
-  if (!IS_OWNER) { sec.style.display = 'none'; return; }
+  if (ROLE === 'usuario') { sec.style.display = 'none'; return; }
   sec.style.display = '';
   let users = [];
   try {
-    const snap = await getDocs(collection(db, 'users'));
+    /* El entrenador SOLO lista a sus asignados (consulta acotada por
+       trainerUid — las reglas por documento no actúan de filtro:
+       un listado sin acotar se denegaría entero); el administrador
+       lista a todos. */
+    const snap = ROLE === 'entrenador'
+      ? await getDocs(query(collection(db, 'users'), where('trainerUid', '==', auth.currentUser.uid)))
+      : await getDocs(collection(db, 'users'));
     snap.forEach(d => users.push({ id: d.id, ...d.data() }));
   } catch { users = []; }
-  const clients = users.filter(u => !u.isOwner);
+  /* Alcance por rol: el administrador ve a todos; el entrenador,
+     SOLO a sus clientes asignados (trainerUid == su uid). Los de
+     en espera NO son del entrenador hasta que se le asignen. */
+  const clients = users.filter(u => !u.isOwner && (ROLE === 'administrador' || u.trainerUid === auth.currentUser.uid));
+  renderWaitingTray(users);
   let weights = [];
   try {
-    const ws = await getDocs(collection(db, 'nutrition_weight'));
+    const clientIds = clients.map(u => u.id);
+    const ws = (ROLE === 'entrenador' && clientIds.length)
+      ? await getDocs(query(collection(db, 'nutrition_weight'), where('ownerUid', 'in', clientIds.slice(0, 30))))
+      : await getDocs(collection(db, 'nutrition_weight'));
     ws.forEach(d => { const v = d.data();
       if (v.ownerUid && num(v.weight) > 0) weights.push({ uid: v.ownerUid, date: v.date, weight: num(v.weight) }); });
   } catch {}
@@ -2177,7 +2293,10 @@ async function loadClients() {
   weights.forEach(w => { if (!lastByUid[w.uid] || w.date > lastByUid[w.uid]) { lastByUid[w.uid] = w.date; lastWByUid[w.uid] = w.weight; } });
   let pendingFood = {};
   try {
-    const fs = await getDocs(collection(db, 'meal_help'));
+    const clientIds2 = clients.map(u => u.id);
+    const fs = (ROLE === 'entrenador' && clientIds2.length)
+      ? await getDocs(query(collection(db, 'meal_help'), where('ownerUid', 'in', clientIds2.slice(0, 30))))
+      : await getDocs(collection(db, 'meal_help'));
     fs.forEach(d => { const v = d.data();
       if (v.status === 'pending' && v.ownerUid) pendingFood[v.ownerUid] = (pendingFood[v.ownerUid] || 0) + 1; });
   } catch {}
@@ -2199,6 +2318,34 @@ async function loadClients() {
   }).join('') : `<div class="wempty">${t('clients.empty')}</div>`;
   $('client-detail').style.display = 'none'; $('client-detail').innerHTML = '';
   document.querySelectorAll('[data-client]').forEach(b => b.onclick = () => openClient(b.dataset.client));
+}
+/* Bandeja de espera (SOLO administrador): clientes aprobados con
+   assignmentStatus 'waiting'. Asignar escribe trainerUid +
+   assignmentStatus 'assigned' en su documento (la rama de update
+   del propietario en las reglas vigentes ya lo permite). */
+function renderWaitingTray(users) {
+  const box = $('waiting-box'); if (!box) return;
+  if (ROLE !== 'administrador') { box.style.display = 'none'; box.innerHTML = ''; return; }
+  const waiting = (users || []).filter(u => !u.isOwner && u.approved === true && u.assignmentStatus === 'waiting');
+  const trainers = (users || []).filter(u => u.isOwner || u.role === 'entrenador');
+  box.style.display = '';
+  box.innerHTML = `<h3 class="history-title">${t('roles.waitingTitle')} (${waiting.length})</h3>
+    <p class="progress-hint">${t('roles.waitingHint')}</p>`
+    + (waiting.length ? waiting.map(u => `
+    <div class="user-row">
+      <div><b>${esc(u.name || '—')}</b><br><span class="muted">${esc(u.email || '')}</span></div>
+      <div class="user-actions">
+        <select id="assign-sel-${u.id}">${trainers.map(tr => `<option value="${tr.id}">${esc(tr.name || tr.email || tr.id)}</option>`).join('')}</select>
+        <button class="btn-primary btn-sm" data-assign="${u.id}">${t('roles.assign')}</button>
+      </div>
+    </div>`).join('') : `<div class="wempty">${t('roles.noWaiting')}</div>`);
+  box.querySelectorAll('[data-assign]').forEach(b => b.onclick = async () => {
+    const sel = $('assign-sel-' + b.dataset.assign);
+    if (!sel || !sel.value) return;
+    await setDoc(doc(db, 'users', b.dataset.assign), { trainerUid: sel.value, assignmentStatus: 'assigned' }, { merge: true });
+    toast(t('roles.assigned'));
+    await loadClients();
+  });
 }
 
 /* ================= F-B3 · REFERENCIA DE PROTEÍNA B-1 (Etapa 1, desarrollo) =================
@@ -2609,6 +2756,14 @@ async function openClient(uid) {
     const s = await getDoc(doc(db, 'users', uid));
     if (s.exists()) { uname = s.data().name || s.data().email || uname; udata = s.data(); }
   } catch {}
+  /* Alcance del entrenador: la ficha de un cliente NO asignado no
+     se abre (ni métricas, ni composición, ni planes). El
+     administrador no tiene esta restricción. */
+  if (ROLE === 'entrenador' && (!udata || udata.trainerUid !== auth.currentUser.uid)) {
+    toast(t('roles.notYourClient'), true);
+    box.style.display = 'none'; box.innerHTML = '';
+    return;
+  }
   /* Salud separada: el entrenador solo la obtiene si el consentimiento
      específico del cliente está activo (fetchClientHealth). */
   const clientHealth = await fetchClientHealth(uid, udata);
@@ -2620,7 +2775,7 @@ async function openClient(uid) {
   FA_CARD = { uid, asmt: asmtDoc };
   const data = [];
   try {
-    const ws = await getDocs(collection(db, 'nutrition_weight'));
+    const ws = await getDocs(query(collection(db, 'nutrition_weight'), where('ownerUid', '==', uid)));
     ws.forEach(d => { const v = d.data();
       if (v.ownerUid === uid && num(v.weight) > 0) data.push({ id: d.id, date: v.date, weight: num(v.weight),
         fat: num(v.fat), muscle: num(v.muscle), water: num(v.water), visceral: num(v.visceral), notes: v.notes || '' });
@@ -6145,7 +6300,7 @@ function switchTab(name) {
   document.querySelectorAll('.main-tab').forEach(b => b.classList.toggle('active', b.dataset.tab === name));
   document.querySelectorAll('.tab-pane').forEach(p => { p.style.display = (p.id === 'tab-' + name) ? '' : 'none'; });
   if (IS_OWNER && name === 'access') loadAdmin();
-  if (IS_OWNER && name === 'clients') loadClients();
+  if (ROLE !== 'usuario' && name === 'clients') loadClients();
 }
 document.querySelectorAll('.main-tab').forEach(b => b.addEventListener('click', () => switchTab(b.dataset.tab)));
 

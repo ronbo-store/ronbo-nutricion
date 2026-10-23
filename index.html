@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>ronbo.nutri · Private</title>
 <meta name="robots" content="noindex, nofollow">
-<link rel="stylesheet" href="styles.css?v=20261023-composicion">
+<link rel="stylesheet" href="styles.css?v=20261023-roles">
 <script type="importmap">
 {
   "imports": {
@@ -77,6 +77,9 @@
       </label>
       <label><span data-i18n="form.social">Social media</span> <span class="opt" data-i18n="form.opt">(optional)</span>
         <input type="text" id="reg-social" data-i18n-ph="form.socialPh" placeholder="E.g. Instagram: @user">
+      </label>
+      <label><span data-i18n="roles.chooseTrainer">Who will be your trainer?</span>
+        <select id="reg-trainer"><option value="" data-i18n="roles.waitingOption">Decide later — wait for assignment</option></select>
       </label>
       <label><span data-i18n="form.dob">Date of birth</span> <span class="opt" data-i18n="form.dobHint">(to verify you are 18+; it is not stored)</span>
         <input type="date" id="reg-dob" required>
@@ -365,6 +368,7 @@
     <div id="pending-list"><div class="wempty" data-i18n="admin.noPending">No pending requests.</div></div>
     <h3 class="history-title" data-i18n="access.users">Users with access</h3>
     <div id="users-list"><div class="wempty" data-i18n="access.loading">Loading…</div></div>
+    <div id="trainer-dir-box"></div>
     <h3 class="history-title" data-i18n="limits.title">🤖 Analysis limits</h3>
     <p class="progress-hint" data-i18n="limits.hint">Daily photo-analysis limits, set only by you. Each account uses its own limit if it has one, otherwise its trainer's, otherwise the global one. No limit set means unlimited.</p>
     <p class="progress-hint" data-i18n="limits.countNote">The counter measures requests to the service; a full analysis normally uses two.</p>
@@ -380,6 +384,7 @@
     <h2><span data-i18n="clients.title">👥 My clients</span> <span class="h2-sub" data-i18n="clients.sub">· trainer management</span></h2>
     <p class="progress-hint" data-i18n="clients.hint">Each client must upload their weight every week. Select one to see their full history, edit their weigh-ins, or add new ones. You set their goals under "Access management".</p>
     <div id="clients-list"><div class="wempty" data-i18n="access.loading">Loading…</div></div>
+    <div id="waiting-box" style="display:none"></div>
     <div id="client-detail" style="display:none"></div>
   </div>
   </div><!-- /tab-clients -->
@@ -572,6 +577,6 @@
 <div id="toast" class="toast"></div>
 <div id="print-card" aria-hidden="true"></div>
 
-<script type="module" src="app.js?v=20261023-composicion"></script>
+<script type="module" src="app.js?v=20261023-roles"></script>
 </body>
 </html>
