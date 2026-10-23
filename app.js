@@ -295,8 +295,6 @@ en: {
   'eval.unitsMetric': 'Metric (kg, cm)',
   'eval.unitsImperial': 'Imperial (lb, inches)',
   'eval.cfgSave': 'Save settings',
-  'mealhelp.title': 'Meal help',
-  'mealhelp.hint': 'The photo is not stored.',
   'mealhelp.addManual': 'Add food manually',
   'mealhelp.upload': '📷 Upload food photo',
   'mealhelp.takePhoto': '📷 Take a photo',
@@ -543,6 +541,7 @@ en: {
   'priv.manage': 'Manage privacy and data',
   'perm.title': 'Permissions & privacy',
   'perm.intro': 'Here you manage your permissions: your health declaration and your privacy & data — what you accept, what you share, and what you can withdraw or delete.',
+  'perm.photoNote': 'The food photo you send for analysis is not stored.',
   'priv.sectionTitle': 'Privacy & data',
   'priv.statusAccepted': 'Consent accepted · version {v} · {date}',
   'priv.statusNone': 'No consent record found for this account.',
@@ -1064,8 +1063,6 @@ es: {
   'eval.unitsMetric': 'Métrico (kg, cm)',
   'eval.unitsImperial': 'Imperial (lb, pulgadas)',
   'eval.cfgSave': 'Guardar configuración',
-  'mealhelp.title': 'Ayuda con comidas',
-  'mealhelp.hint': 'La foto no se almacena.',
   'mealhelp.addManual': 'Añadir comida manualmente',
   'mealhelp.upload': '📷 Subir foto de comida',
   'mealhelp.takePhoto': '📷 Tomar una foto',
@@ -1313,6 +1310,7 @@ es: {
   'priv.manage': 'Gestionar privacidad y datos',
   'perm.title': 'Permisos y privacidad',
   'perm.intro': 'Aquí gestionas tus permisos: tu declaración de salud y tu privacidad y datos — qué aceptas, qué compartes y qué puedes retirar o eliminar.',
+  'perm.photoNote': 'La foto de la comida que envías para el análisis no se almacena.',
   'priv.sectionTitle': 'Privacidad y datos',
   'priv.statusAccepted': 'Consentimiento aceptado · versión {v} · {date}',
   'priv.statusNone': 'No se encontró registro de consentimiento para esta cuenta.',
@@ -2899,6 +2897,16 @@ async function compressFoodPhoto(file, maxDim = 640) {
   canvas.getContext('2d').drawImage(bmp, 0, 0, canvas.width, canvas.height);
   return canvas.toDataURL('image/jpeg', 0.82);
 }
+/* Retirada del bloque «Ayuda con comidas» de la vista de comida
+   (Ronald, 2026-10-22): el encabezado y #mealhelp-content salieron
+   del DOM, así que la lista #mealhelp-list ya no tiene casa y esta
+   función queda sin efecto — su guarda ante nulo la hace inofensiva
+   y se conserva por si la ruta manual volviera en otro paquete. La
+   colección meal_help está retirada (la app no escribe en ella
+   desde 2026-10-17); la revisión del entrenador pinta SU propia
+   lista dentro de la ficha del cliente (openClient), intacta. El
+   aviso «la foto no se almacena» vive ahora como nota en «Permisos
+   y privacidad» (perm.photoNote). */
 async function loadMealHelp() {
   const box = $('mealhelp-list');
   if (!box || !auth.currentUser) return;
