@@ -212,6 +212,32 @@ en: {
   'eval.partialSaved': 'Partial progress saved ✓ — this is NOT yet a complete evaluation: it completes when everything required is in.',
   'eval.optionalNote': 'Every measure is optional unless YOU marked it required in the settings. Optional measures left empty never create pendings and never block completing the evaluation.',
   'eval.cycleLine': 'Evaluation cycle — last complete: {last} · next expected: {next}',
+  'cmp.title': '🔍 Compare evaluations',
+  'cmp.first': 'First date',
+  'cmp.second': 'Second date',
+  'cmp.needTwo': 'You need at least two complete evaluations to compare them.',
+  'cmp.planCtx': 'Plan: {title}',
+  'cmp.planRoutine': 'Source routine: {id}',
+  'cmp.noAnchor': 'No plan anchor (before the integration)',
+  'cmp.phaseNote': 'Note from your trainer',
+  'teval.open': '📸 View evaluations & photos',
+  'teval.close': 'Hide evaluations',
+  'teval.empty': 'This client has no evaluations recorded yet.',
+  'teval.noteLabel': 'Phase note (visible to the client)',
+  'teval.notePh': 'Write the note for this evaluation…',
+  'teval.noteSave': 'Save note',
+  'teval.noteSaved': 'Note saved ✓',
+  'teval.noteNoDoc': 'No evaluation document for this date: the note needs the client to record measures first.',
+  'nd2.title': '🗒️ Access log (ND-2)',
+  'nd2.hint': 'Every time the trainer view of a client\'s evaluations and photos is opened, one record is written here: who viewed whose data, and when. Records cannot be edited.',
+  'nd2.empty': 'No accesses recorded yet.',
+  'nd2.unavailable': 'The access log is not available yet (its rules are pending publication).',
+  'nd2.viewer': 'Trainer',
+  'nd2.client': 'Client',
+  'nd2.zone': 'Area',
+  'nd2.when': 'When',
+  'nd2.zone.evaluations': 'Evaluations & photos',
+  'nd2.logFail': '⚠️ This access could not be written to the access log.',
   'eval.cycleLastNone': 'none yet',
   'eval.cycleNextFirst': 'set when you complete the first one (that date + 15 days)',
   'eval.reqPhoto.front': 'front photo',
@@ -931,6 +957,32 @@ es: {
   'eval.partialSaved': 'Avance guardado ✓ — aún NO es una evaluación completa: se completa cuando esté todo lo requerido.',
   'eval.optionalNote': 'Toda medida es opcional salvo las que TÚ marcaste como requeridas en la configuración. Las opcionales vacías nunca crean pendientes ni bloquean completar la evaluación.',
   'eval.cycleLine': 'Ciclo de evaluación — última completa: {last} · próxima prevista: {next}',
+  'cmp.title': '🔍 Comparar evaluaciones',
+  'cmp.first': 'Primera fecha',
+  'cmp.second': 'Segunda fecha',
+  'cmp.needTwo': 'Necesitas al menos dos evaluaciones completas para compararlas.',
+  'cmp.planCtx': 'Plan: {title}',
+  'cmp.planRoutine': 'Rutina de origen: {id}',
+  'cmp.noAnchor': 'Sin anclaje de plan (anterior a la integración)',
+  'cmp.phaseNote': 'Nota de tu entrenador',
+  'teval.open': '📸 Ver evaluaciones y fotos',
+  'teval.close': 'Ocultar evaluaciones',
+  'teval.empty': 'Este cliente aún no tiene evaluaciones registradas.',
+  'teval.noteLabel': 'Nota de fase (visible para el cliente)',
+  'teval.notePh': 'Escribe la nota de esta evaluación…',
+  'teval.noteSave': 'Guardar nota',
+  'teval.noteSaved': 'Nota guardada ✓',
+  'teval.noteNoDoc': 'Sin documento de evaluación en esta fecha: la nota necesita que el cliente registre medidas primero.',
+  'nd2.title': '🗒️ Bitácora de accesos (ND-2)',
+  'nd2.hint': 'Cada vez que se abre la vista del entrenador sobre las evaluaciones y fotos de un cliente, aquí queda un registro: quién vio los datos de quién, y cuándo. Los registros no se pueden editar.',
+  'nd2.empty': 'Aún no hay accesos registrados.',
+  'nd2.unavailable': 'La bitácora aún no está disponible (sus reglas están pendientes de publicación).',
+  'nd2.viewer': 'Entrenador',
+  'nd2.client': 'Cliente',
+  'nd2.zone': 'Zona',
+  'nd2.when': 'Cuándo',
+  'nd2.zone.evaluations': 'Evaluaciones y fotos',
+  'nd2.logFail': '⚠️ Este acceso no pudo registrarse en la bitácora.',
   'eval.cycleLastNone': 'ninguna aún',
   'eval.cycleNextFirst': 'se fijará al completar la primera (esa fecha + 15 días)',
   'eval.reqPhoto.front': 'foto de frente',
@@ -1913,7 +1965,7 @@ async function loadAdmin() {
      loadAll() también llama a loadAdmin() al arrancar (con «track»
      visible) y el panel no debe disparar llamadas al Worker en frío. */
   const tabAccess = $('tab-access');
-  if (tabAccess && tabAccess.style.display !== 'none') loadLimits();
+  if (tabAccess && tabAccess.style.display !== 'none') { loadLimits(); loadAccessLog(); }
 }
 
 /* ============ LÍMITES DE ANÁLISIS (solo dueño; Worker /admin/limits) ============
@@ -2530,7 +2582,8 @@ async function openClient(uid) {
       <tbody>${rows}</tbody></table></div>` : ''}
     ${fb3ProteinHTML(data)}
     ${faCardHTML(uid, asmtDoc, data)}
-    <div id="client-training"></div>`;
+    <div id="client-training"></div>
+    <div id="client-evals"><div class="eval-actions"><button type="button" class="btn-ghost btn-sm" id="btn-client-evals">${t('teval.open')}</button></div><div id="client-evals-body" style="display:none"></div></div>`;
   $('btn-client-close').onclick = () => { box.style.display = 'none'; box.innerHTML = ''; };
   const fb3b = $('fb3-help-btn');
   if (fb3b) fb3b.onclick = () => { const p = $('fb3-help'); const open = p.style.display !== 'none'; p.style.display = open ? 'none' : ''; fb3b.setAttribute('aria-expanded', String(!open)); };
@@ -2557,6 +2610,8 @@ async function openClient(uid) {
     openClient(uid);
   });
   loadClientTraining(uid);
+  const evBtn = $('btn-client-evals');
+  if (evBtn) evBtn.onclick = () => tevalToggle(uid, data);
   box.scrollIntoView({ behavior: 'smooth', block: 'start' });
 }
 
@@ -6037,7 +6092,7 @@ function progressUploadDate() {
 }
 async function loadProgress() {
   PROG = {};
-  EVALS = {}; EVAL_CYCLE = { omitted: [], closedSets: [] }; EVAL_CFG = { requiredMeasures: [], units: 'metric' };
+  EVALS = {}; EVAL_CYCLE = { omitted: [], closedSets: [] }; EVAL_CFG = { requiredMeasures: [], units: 'metric' }; EVAL_CTX_PLANS = null;
   try {
     /* Progreso personal: filtrado por el uid autenticado, también para
        el dueño. Sin relación con Storage. */
@@ -6048,7 +6103,7 @@ async function loadProgress() {
          PROGRESO): viven en la misma colección con discriminador
          kind; la lectura de fotos los ignora porque no traen
          slot/photo. */
-      else if (v.kind === 'evaluation' && v.date) EVALS[v.date] = { measures: v.measures || {}, comp: v.comp || null, completedAt: v.completedAt || null };
+      else if (v.kind === 'evaluation' && v.date) EVALS[v.date] = { measures: v.measures || {}, comp: v.comp || null, completedAt: v.completedAt || null, planContext: v.planContext || null, phaseNote: v.phaseNote || null, phaseNoteAt: v.phaseNoteAt || null };
       else if (v.kind === 'evalCycle') EVAL_CYCLE = { omitted: Array.isArray(v.omitted) ? v.omitted : [], closedSets: Array.isArray(v.closedSets) ? v.closedSets : [] };
       else if (v.kind === 'evalConfig') EVAL_CFG = { requiredMeasures: Array.isArray(v.requiredMeasures) ? v.requiredMeasures : [], units: v.units === 'imperial' ? 'imperial' : 'metric' };
     });
@@ -6251,6 +6306,36 @@ function evalHasAdvance(date) {
     || (e && ((e.measures && Object.keys(e.measures).length) || e.comp)));
 }
 function evalDaysBetween(a, b) { return Math.round((new Date(b + 'T12:00:00') - new Date(a + 'T12:00:00')) / 864e5); }
+/* ---------- Contexto de plan (Paquete 8 · Pregunta 8 · v1.1 §4.4) ----------
+   Foto de contexto del plan activo, INMUTABLE: se adjunta en la
+   PRIMERA escritura que crea el documento de evaluación (medidas,
+   composición o sello de completitud) si aún no la lleva; jamás se
+   sobrescribe una existente ni se le inventa contexto a una
+   evaluación pasada (las anteriores a este paquete se etiquetan
+   «sin anclaje de plan»). Forma §4.6: { planId, title,
+   sourceRoutineId?, planCreatedAt }. Sin plan activo no hay
+   anclaje: la evaluación nace sin planContext. La escribe el
+   propio cliente en su documento (permitido por las reglas
+   vigentes de nutrition_progress: sin reglas nuevas). */
+let EVAL_CTX_PLANS = null;   // caché de planes propios (se refresca en loadProgress)
+function evalCtxDate(v) {
+  if (!v) return null;
+  if (typeof v === 'string') return v.slice(0, 10);
+  if (typeof v.toDate === 'function') { try { return v.toDate().toISOString().slice(0, 10); } catch { return null; } }
+  if (typeof v.seconds === 'number') return new Date(v.seconds * 1000).toISOString().slice(0, 10);
+  return null;
+}
+async function evalFreshContext(date) {
+  const e = EVALS[date];
+  if (e && e.planContext) return null;              // ya anclada: inmutable
+  if (!EVAL_CTX_PLANS) EVAL_CTX_PLANS = await fetchPlans(auth.currentUser.uid);
+  const act = (EVAL_CTX_PLANS || []).find(p => p.active === true);
+  if (!act) return null;                            // sin plan activo: sin anclaje
+  const ctx = { planId: act.id, title: act.title || '' };
+  if (act.sourceRoutineId) ctx.sourceRoutineId = act.sourceRoutineId;
+  const cd = evalCtxDate(act.createdAt); if (cd) ctx.planCreatedAt = cd;
+  return ctx;
+}
 /* Sella (o desella) la fecha de completitud cuando un flujo de
    ESCRITURA cambia la completitud de un set. Nunca se llama desde
    el render: abrir la vista no escribe nada. */
@@ -6260,8 +6345,12 @@ async function evalReconcile(date) {
   const e = EVALS[date];
   try {
     if (complete && !(e && e.completedAt)) {
-      await setDoc(evalDocRef(date), { kind: 'evaluation', uid: auth.currentUser.uid, ownerUid: auth.currentUser.uid, date, completedAt: todayISO(), updatedAt: serverTimestamp() }, { merge: true });
+      const ctx = await evalFreshContext(date);
+      const payload = { kind: 'evaluation', uid: auth.currentUser.uid, ownerUid: auth.currentUser.uid, date, completedAt: todayISO(), updatedAt: serverTimestamp() };
+      if (ctx) payload.planContext = ctx;
+      await setDoc(evalDocRef(date), payload, { merge: true });
       EVALS[date] = Object.assign({}, e, { completedAt: todayISO() });
+      if (ctx) EVALS[date].planContext = ctx;
       renderEval();
     } else if (!complete && e && e.completedAt) {
       await setDoc(evalDocRef(date), { completedAt: null, updatedAt: serverTimestamp() }, { merge: true });
@@ -6408,12 +6497,14 @@ function renderEval() {
     + `<p class="eval-cfg-group">${esc(t('eval.cfgUnits'))}</p>`
     + `<label class="eval-check"><input type="radio" name="eval-units" value="metric" ${EVAL_CFG.units !== 'imperial' ? 'checked' : ''}> ${esc(t('eval.unitsMetric'))}</label>`
     + `<label class="eval-check"><input type="radio" name="eval-units" value="imperial" ${EVAL_CFG.units === 'imperial' ? 'checked' : ''}> ${esc(t('eval.unitsImperial'))}</label>`
-    + `<div class="eval-actions"><button type="button" class="btn-ghost btn-sm" id="eval-save-config">${esc(t('eval.cfgSave'))}</button></div></div>`;
+    + `<div class="eval-actions"><button type="button" class="btn-ghost btn-sm" id="eval-save-config">${esc(t('eval.cfgSave'))}</button></div></div>`
+    + `<div id="cmp-root"></div>`;
   const omitBtn = $('eval-omit-btn'); if (omitBtn) omitBtn.onclick = evalOmitCycle;
   const saveBtn = $('eval-save-measures'); if (saveBtn) saveBtn.onclick = evalSaveMeasures;
   const cfgBtn = $('eval-save-config'); if (cfgBtn) cfgBtn.onclick = evalSaveConfig;
   const fatBtn = $('eval-comp-fat-btn'); if (fatBtn) fatBtn.onclick = () => evalRegisterComp('fat');
   const musBtn = $('eval-comp-muscle-btn'); if (musBtn) musBtn.onclick = () => evalRegisterComp('muscle');
+  try { renderCmpClient(); } catch {}
 }
 /* Guardar las medidas del set: las de contorno van al documento de
    evaluación (canónico cm); el peso va a nutrition_weight con el
@@ -6430,9 +6521,13 @@ async function evalSaveMeasures() {
     if (raw !== '') { const v = num(raw); if (v > 0) measures[m.id] = evalToCanonical(m.kind, v); }
   });
   try {
-    await setDoc(evalDocRef(S), { kind: 'evaluation', uid, ownerUid: uid, date: S, measures, updatedAt: serverTimestamp() }, { merge: true });
+    const ctxM = await evalFreshContext(S);
+    const payloadM = { kind: 'evaluation', uid, ownerUid: uid, date: S, measures, updatedAt: serverTimestamp() };
+    if (ctxM) payloadM.planContext = ctxM;
+    await setDoc(evalDocRef(S), payloadM, { merge: true });
     const prev = EVALS[S] || {};
     EVALS[S] = Object.assign({}, prev, { measures });
+    if (ctxM) EVALS[S].planContext = ctxM;
     const pesoEl = $('eval-m-peso');
     const pesoRaw = pesoEl ? String(pesoEl.value).trim() : '';
     if (pesoRaw !== '') {
@@ -6462,8 +6557,12 @@ async function evalRegisterComp(kind) {
   const estimate = !!(($('eval-comp-' + kind + '-est') || {}).checked);
   const comp = Object.assign({}, (EVALS[S] || {}).comp || {}, { [kind]: { value, unit, method, estimate, dateISO: todayISO() } });
   try {
-    await setDoc(evalDocRef(S), { kind: 'evaluation', uid: auth.currentUser.uid, ownerUid: auth.currentUser.uid, date: S, comp, updatedAt: serverTimestamp() }, { merge: true });
+    const ctxC = await evalFreshContext(S);
+    const payloadC = { kind: 'evaluation', uid: auth.currentUser.uid, ownerUid: auth.currentUser.uid, date: S, comp, updatedAt: serverTimestamp() };
+    if (ctxC) payloadC.planContext = ctxC;
+    await setDoc(evalDocRef(S), payloadC, { merge: true });
     EVALS[S] = Object.assign({}, EVALS[S] || {}, { comp });
+    if (ctxC) EVALS[S].planContext = ctxC;
     EVAL_OK_MSG = t('eval.savedOk');
     renderEval();
   } catch { toast(t('msg.uploadFail'), true); }
@@ -6499,6 +6598,215 @@ async function evalOmitCycle() {
     toast(t('eval.omittedNote'));
     renderEval();
   } catch { toast(t('msg.uploadFail'), true); }
+}
+
+/* ================= COMPARADOR + BITÁCORA ND-2 (Paquete 8) =================
+   Comparador visual de evaluaciones (v1.1 §4.4/§5.4): frente, costado
+   y espalda de DOS evaluaciones completas lado a lado, con las
+   medidas de ambas fechas junto a las fotos, la etiqueta de anclaje
+   de plan de cada fecha (Pregunta 8) y la nota de fase del entrenador
+   (Pregunta 9). Comparar es SOLO LECTURA: no escribe nada. Las dos
+   únicas escrituras de este bloque son la nota de fase (update del
+   entrenador sobre el documento de evaluación del cliente, la vía
+   que las reglas vigentes sí permiten) y el registro ND-2.
+   Regla dura intacta: las fotos informan el ojo humano; jamás
+   generan composición corporal, porcentajes ni diagnósticos.
+
+   BITÁCORA ND-2 (requisito vinculante adoptado el 2026-10-20,
+   Ficha 6): la vista del entrenador sobre las evaluaciones/fotos de
+   un cliente NACE con su registro de accesos. Casa de datos:
+   colección NUEVA access_log (candidato de reglas del paquete:
+   create solo del propietario y solo de sí mismo, lectura solo del
+   propietario, update denegado a todos —append-only, como
+   consent_receipts— y delete solo del propietario para la purga de
+   retención). NO vive en nutrition_progress: allí las ramas
+   genéricas dejarían al propio autor del registro reescribirlo o
+   borrarlo, y una bitácora que el auditado puede alterar no audita.
+   SEMÁNTICA DE APERTURA (exacta): UNA apertura = pasar la sección
+   «Ver evaluaciones y fotos» de la ficha de un cliente de cerrada a
+   abierta. Cada apertura escribe EXACTAMENTE un registro
+   { viewerUid, clientUid, zone: 'evaluations', at }. Los
+   re-pintados internos (cambiar fechas del comparador, guardar una
+   nota, ampliar una foto) NO son aperturas y no escriben registros.
+   Cerrar y reabrir SÍ es otra apertura. Ver la propia ficha no
+   registra (no es acceso a datos de un tercero). Si la escritura
+   del registro falla (p. ej. reglas aún sin publicar), la vista se
+   abre igual pero muestra el aviso nd2.logFail: el fallo nunca es
+   silencioso. */
+function cmpCompleteDates(P, E, cfg, W, cycle) {
+  const req = (cfg && cfg.requiredMeasures) || [];
+  const closed = (cycle && cycle.closedSets) || [];
+  const ds = new Set([...Object.keys(P || {}), ...Object.keys(E || {})]);
+  return [...ds].filter(d => {
+    if (closed.includes(d)) return false;
+    if (!P[d] && !E[d]) return false;
+    for (const s of PROGRESS_SLOTS) if (!((P[d] || {})[s])) return false;
+    for (const m of req) {
+      if (m === 'peso') { if (!(W || []).some(w => w.date === d && num(w.weight) > 0)) return false; }
+      else if (!E[d] || !E[d].measures || E[d].measures[m] == null) return false;
+    }
+    return true;
+  }).sort();
+}
+function cmpMeasureStr(units, kind, v) {
+  if (units === 'imperial') return kind === 'w' ? evalFmtNum(v * 2.20462) + ' lb' : evalFmtNum(v / 2.54) + ' in';
+  return kind === 'w' ? evalFmtNum(v) + ' kg' : evalFmtNum(v) + ' cm';
+}
+function cmpWeightUpTo(W, date) {
+  let v = null;
+  for (const w of (W || [])) { if (w.date <= date) { if (num(w.weight) > 0) v = w.weight; } else break; }
+  return v;
+}
+function cmpValue(E, W, date, id) {
+  if (id === 'peso') return cmpWeightUpTo(W, date);
+  const e = E[date];
+  return (e && e.measures && e.measures[id] != null) ? e.measures[id] : null;
+}
+function cmpAnchorHTML(E, date) {
+  const ctx = E[date] && E[date].planContext;
+  if (!ctx) return `<p class="cmp-anchor">${esc(t('cmp.noAnchor'))}</p>`;
+  return `<p class="cmp-anchor">📌 ${esc(t('cmp.planCtx', { title: ctx.title || ctx.planId || '' }))}${ctx.sourceRoutineId ? ` · ${esc(t('cmp.planRoutine', { id: ctx.sourceRoutineId }))}` : ''}</p>`;
+}
+/* notesMode: 'ro' = el cliente ve la nota de su entrenador (solo
+   lectura); 'edit' = el entrenador la escribe dentro de la
+   evaluación (solo si el documento de evaluación existe). */
+function cmpHTML(P, E, W, cfg, cycle, sel, prefix, notesMode) {
+  const dates = cmpCompleteDates(P, E, cfg, W, cycle);
+  const title = `<p class="eval-ficha-title">${esc(t('cmp.title'))}</p>`;
+  if (dates.length < 2) return `<div class="cmp-block">${title}<p class="eval-detail">${esc(t('cmp.needTwo'))}</p></div>`;
+  if (!dates.includes(sel.a)) sel.a = dates[dates.length - 1];
+  if (!dates.includes(sel.b) || sel.b === sel.a) sel.b = [...dates].reverse().find(d => d !== sel.a);
+  const units = (cfg && cfg.units) || 'metric';
+  const opts = cur => dates.map(d => `<option value="${d}"${d === cur ? ' selected' : ''}>${esc(dateName(d))}</option>`).join('');
+  const noteHTML = d => {
+    const e = E[d];
+    if (notesMode === 'edit') {
+      if (!e) return `<p class="eval-detail">${esc(t('teval.noteNoDoc'))}</p>`;
+      return `<div class="cmp-note"><label class="cmp-note-title" for="${prefix}-note-${d}">✉️ ${esc(t('teval.noteLabel'))}</label>`
+        + `<textarea id="${prefix}-note-${d}" rows="2" placeholder="${esc(t('teval.notePh'))}">${esc(e.phaseNote || '')}</textarea>`
+        + `<div class="eval-actions"><button type="button" class="btn-ghost btn-sm" data-note-save="${d}">${esc(t('teval.noteSave'))}</button></div></div>`;
+    }
+    if (e && e.phaseNote) return `<div class="cmp-note"><p class="cmp-note-title">✉️ ${esc(t('cmp.phaseNote'))}</p><p class="cmp-note-text">${esc(e.phaseNote)}</p></div>`;
+    return '';
+  };
+  const head = d => `<div class="cmp-head"><p class="cmp-date">${esc(dateName(d))}</p>${cmpAnchorHTML(E, d)}${noteHTML(d)}</div>`;
+  const cell = (d, s) => { const r = (P[d] || {})[s]; return r ? `<img class="cmp-img" src="${esc(r.photo)}" alt="${esc(t('progress.' + s))}" data-cmp-zoom="${d}|${s}">` : `<span class="wempty">${esc(t('progress.' + s))}: ${esc(t('progress.noPhoto'))}</span>`; };
+  const slotRows = PROGRESS_SLOTS.map(s => `<div class="cmp-row"><span class="cmp-slot">${esc(t('progress.' + s))}</span><div class="cmp-cells"><div class="cmp-cell">${cell(sel.a, s)}</div><div class="cmp-cell">${cell(sel.b, s)}</div></div></div>`).join('');
+  const mRows = EVAL_MEASURES.map(m => {
+    const va = cmpValue(E, W, sel.a, m.id), vb = cmpValue(E, W, sel.b, m.id);
+    return `<tr><td>${esc(t('eval.measure.' + m.id))}</td><td class="num">${va == null ? '—' : esc(cmpMeasureStr(units, m.kind, va))}</td><td class="num">${vb == null ? '—' : esc(cmpMeasureStr(units, m.kind, vb))}</td></tr>`;
+  }).join('');
+  return `<div class="cmp-block">${title}`
+    + `<div class="cmp-selects"><label>${esc(t('cmp.first'))} <select id="${prefix}-a">${opts(sel.a)}</select></label>`
+    + `<label>${esc(t('cmp.second'))} <select id="${prefix}-b">${opts(sel.b)}</select></label></div>`
+    + `<div class="cmp-heads">${head(sel.a)}${head(sel.b)}</div>`
+    + slotRows
+    + `<div class="table-scroll"><table class="eval-table"><thead><tr><th>${esc(t('eval.colMeasure'))}</th><th class="num">${esc(dateName(sel.a))}</th><th class="num">${esc(dateName(sel.b))}</th></tr></thead><tbody>${mRows}</tbody></table></div>`
+    + `</div>`;
+}
+function cmpWire(root, P, sel, prefix, rerender) {
+  if (!root) return;
+  const sa = root.querySelector('#' + prefix + '-a'), sb = root.querySelector('#' + prefix + '-b');
+  if (sa) sa.onchange = () => { sel.a = sa.value; rerender(); };
+  if (sb) sb.onchange = () => { sel.b = sb.value; rerender(); };
+  root.querySelectorAll('[data-cmp-zoom]').forEach(im => im.addEventListener('click', () => {
+    const parts = im.getAttribute('data-cmp-zoom').split('|');
+    const rec = (P[parts[0]] || {})[parts[1]];
+    if (rec) showLightbox(rec.photo);
+  }));
+}
+/* ---------- El comparador del cliente (sus propias evaluaciones) ---------- */
+let CMP_SEL = { a: null, b: null };
+function renderCmpClient() {
+  const root = $('cmp-root'); if (!root) return;
+  root.innerHTML = cmpHTML(PROG, EVALS, WEIGHTS, EVAL_CFG, EVAL_CYCLE, CMP_SEL, 'cmp', 'ro');
+  cmpWire(root, PROG, CMP_SEL, 'cmp', renderCmpClient);
+}
+/* ---------- La vista del entrenador sobre un cliente (con ND-2) ---------- */
+let CEV = null;   // { uid, prog, evals, cfg, cycle, weights, cmp }
+async function nd2LogView(clientUid) {
+  if (!IS_OWNER || !auth.currentUser || clientUid === auth.currentUser.uid) return true;
+  try {
+    await addDoc(collection(db, 'access_log'), { viewerUid: auth.currentUser.uid, clientUid, zone: 'evaluations', at: serverTimestamp() });
+    return true;
+  } catch { return false; }
+}
+async function tevalToggle(uid, weightsData) {
+  const body = $('client-evals-body'), btn = $('btn-client-evals');
+  if (!body) return;
+  if (body.style.display !== 'none') { body.style.display = 'none'; if (btn) btn.textContent = t('teval.open'); return; }
+  body.style.display = '';
+  if (btn) btn.textContent = t('teval.close');
+  const logged = await nd2LogView(uid);
+  await tevalLoad(uid, weightsData);
+  if (!logged) {
+    const w = document.createElement('p');
+    w.className = 'eval-detail eval-due'; w.textContent = t('nd2.logFail');
+    body.prepend(w);
+  }
+}
+async function tevalLoad(uid, weightsData) {
+  const prog = {}, evals = {};
+  let cfg = { requiredMeasures: [], units: 'metric' }, cycle = { omitted: [], closedSets: [] };
+  try {
+    const snap = await getDocs(query(collection(db, 'nutrition_progress'), where('ownerUid', '==', uid)));
+    snap.forEach(d => { const v = d.data(); if (!v) return;
+      if (v.slot && v.photo && v.date) { (prog[v.date] = prog[v.date] || {})[v.slot] = { id: d.id, photo: v.photo }; }
+      else if (v.kind === 'evaluation' && v.date) evals[v.date] = { measures: v.measures || {}, comp: v.comp || null, completedAt: v.completedAt || null, planContext: v.planContext || null, phaseNote: v.phaseNote || null, phaseNoteAt: v.phaseNoteAt || null };
+      else if (v.kind === 'evalCycle') cycle = { omitted: Array.isArray(v.omitted) ? v.omitted : [], closedSets: Array.isArray(v.closedSets) ? v.closedSets : [] };
+      else if (v.kind === 'evalConfig') cfg = { requiredMeasures: Array.isArray(v.requiredMeasures) ? v.requiredMeasures : [], units: v.units === 'imperial' ? 'imperial' : 'metric' };
+    });
+  } catch {}
+  CEV = { uid, prog, evals, cfg, cycle, weights: (weightsData || []).map(w => ({ date: w.date, weight: w.weight })), cmp: { a: null, b: null } };
+  renderCmpTrainer();
+}
+function renderCmpTrainer() {
+  const body = $('client-evals-body'); if (!body || !CEV) return;
+  const hasAny = Object.keys(CEV.prog).length || Object.keys(CEV.evals).length;
+  body.innerHTML = hasAny ? cmpHTML(CEV.prog, CEV.evals, CEV.weights, CEV.cfg, CEV.cycle, CEV.cmp, 'tcmp', 'edit')
+    : `<div class="wempty">${esc(t('teval.empty'))}</div>`;
+  cmpWire(body, CEV.prog, CEV.cmp, 'tcmp', renderCmpTrainer);
+  body.querySelectorAll('[data-note-save]').forEach(b => b.onclick = () => tevalSaveNote(b.getAttribute('data-note-save')));
+}
+/* Nota de fase (Pregunta 9): vive DENTRO del documento de
+   evaluación del cliente; el entrenador la escribe con un update
+   (setDoc con merge sobre un documento EXISTENTE: la rama
+   «allow update: if isOwnerUser()» de las reglas vigentes — sin
+   reglas nuevas) y el cliente la lee en su propio comparador. El
+   editor solo se pinta si el documento existe: el entrenador no
+   puede crearlo (el create exige ownerUid propio). */
+async function tevalSaveNote(date) {
+  if (!CEV) return;
+  const ta = document.getElementById('tcmp-note-' + date); if (!ta) return;
+  const text = ta.value.trim();
+  try {
+    await setDoc(doc(db, 'nutrition_progress', `${CEV.uid}_${date}_eval`), { phaseNote: text, phaseNoteAt: todayISO(), updatedAt: serverTimestamp() }, { merge: true });
+    if (CEV.evals[date]) { CEV.evals[date].phaseNote = text; CEV.evals[date].phaseNoteAt = todayISO(); }
+    toast(t('teval.noteSaved'));
+  } catch { toast(t('msg.uploadFail'), true); }
+}
+/* ---------- Bitácora ND-2: vista de auditoría (solo propietario) ---------- */
+function nd2When(v) {
+  if (!v) return null;
+  if (typeof v.toDate === 'function') { try { return v.toDate(); } catch { return null; } }
+  if (typeof v.seconds === 'number') return new Date(v.seconds * 1000);
+  if (v instanceof Date) return v;
+  if (typeof v === 'string') { const d = new Date(v); return isNaN(d) ? null : d; }
+  return null;
+}
+async function loadAccessLog() {
+  const box = $('nd2-box');
+  if (!box || !IS_OWNER) return;
+  try {
+    const snap = await getDocs(collection(db, 'access_log'));
+    const rows = [];
+    snap.forEach(d => { const v = d.data() || {}; rows.push({ id: d.id, viewerUid: v.viewerUid || '', clientUid: v.clientUid || '', zone: v.zone || '', at: nd2When(v.at) }); });
+    rows.sort((a, b) => (b.at ? b.at.getTime() : 0) - (a.at ? a.at.getTime() : 0));
+    const nameOf = u2 => { const u = (ADMIN_USERS || []).find(x => x.id === u2); return u ? (u.name || u.email || u2) : u2; };
+    box.innerHTML = rows.length ? `<div class="table-scroll"><table class="detail whist"><thead><tr><th>${esc(t('nd2.when'))}</th><th>${esc(t('nd2.viewer'))}</th><th>${esc(t('nd2.client'))}</th><th>${esc(t('nd2.zone'))}</th></tr></thead><tbody>`
+      + rows.slice(0, 50).map(r => `<tr><td>${r.at ? esc(r.at.toLocaleString()) : '—'}</td><td>${esc(nameOf(r.viewerUid))}</td><td>${esc(nameOf(r.clientUid))}</td><td>${esc(t('nd2.zone.' + r.zone))}</td></tr>`).join('')
+      + `</tbody></table></div>` : `<div class="wempty">${esc(t('nd2.empty'))}</div>`;
+  } catch { box.innerHTML = `<div class="wempty">${esc(t('nd2.unavailable'))}</div>`; }
 }
 
 /* ================= FORMULARIOS ================= */
