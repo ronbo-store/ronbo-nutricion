@@ -208,6 +208,18 @@ en: {
   'compacc.needClientOpen': 'This setting is created when the client opens the app for the first time. Ask them to open it once, then try again.',
   'compacc.saved': 'Body-composition entry updated.',
   'compacc.blocked': 'Your trainer logs your body composition — this entry is read-only for you.',
+  'compacc.pctNote': '🔒 Percentages and notes are recorded by your trainer.',
+  'frame.title': 'Framing guide',
+  'frame.pick': 'Choose photo',
+  'frame.camera': 'Use camera',
+  'frame.capture': 'Take photo',
+  'frame.use': 'Use this photo',
+  'frame.retake': 'Retake',
+  'frame.timer': 'Timer',
+  'frame.noCam': 'The camera is not available here — choose a photo instead.',
+  'frame.guide.front': 'Face the camera, arms relaxed at your sides, your whole body inside the silhouette.',
+  'frame.guide.side': 'Stand sideways to the camera, looking straight ahead, arms relaxed, your whole body inside the silhouette.',
+  'frame.guide.back': 'Turn your back to the camera, arms relaxed at your sides, your whole body inside the silhouette.',
   'roles.administrador': 'Administrator',
   'roles.entrenador': 'Trainer',
   'roles.usuario': 'User',
@@ -1006,6 +1018,18 @@ es: {
   'compacc.needClientOpen': 'Este ajuste se crea cuando el cliente abre la app por primera vez. Pídele que la abra una vez y vuelve a intentarlo.',
   'compacc.saved': 'Ingreso de composición corporal actualizado.',
   'compacc.blocked': 'Tu entrenador registra tu composición corporal: este ingreso es de solo lectura para ti.',
+  'compacc.pctNote': '🔒 Los porcentajes y las notas los registra tu entrenador.',
+  'frame.title': 'Guía de encuadre',
+  'frame.pick': 'Elegir foto',
+  'frame.camera': 'Usar la cámara',
+  'frame.capture': 'Tomar la foto',
+  'frame.use': 'Usar esta foto',
+  'frame.retake': 'Repetir',
+  'frame.timer': 'Temporizador',
+  'frame.noCam': 'La cámara no está disponible aquí: elige una foto.',
+  'frame.guide.front': 'De frente a la cámara, brazos relajados a los lados, el cuerpo entero dentro de la silueta.',
+  'frame.guide.side': 'De costado a la cámara, mirada al frente, brazos relajados, el cuerpo entero dentro de la silueta.',
+  'frame.guide.back': 'De espaldas a la cámara, brazos relajados a los lados, el cuerpo entero dentro de la silueta.',
   'roles.administrador': 'Administrador',
   'roles.entrenador': 'Entrenador',
   'roles.usuario': 'Usuario',
@@ -6671,11 +6695,8 @@ function weightChartSVG(data) {
 function renderWeight() {
   const body = $('weightBody');
   const data = WEIGHTS;
-  const canEdit = compClientCanEdit();
   if (!data.length) {
-    body.innerHTML = canEdit
-      ? `<div class="wempty">${t('weight.empty', { btn: t('weight.add') })}</div>`
-      : `<div class="wempty">${t('compacc.notice')}</div>`;
+    body.innerHTML = `<div class="wempty">${t('weight.empty', { btn: t('weight.add') })}</div>`;
     return;
   }
   const last = data[data.length - 1], first = data[0];
@@ -6694,13 +6715,15 @@ function renderWeight() {
     grasaCard = `<div class="wstat"><div class="lbl">${t('weight.bodyFat')}</div><div class="val">${last.fat}<small> %</small></div>
       <div class="delta ${dCls(dg)}">${prev && prev.fat > 0 ? dTxt(dg).replace('kg','pp') : '—'}</div></div>`;
   }
-  const delBtn = canEdit ? `<div style="text-align:center;margin-top:8px"><button class="btn-ghost btn-sm" id="btn-del-weight">${t('weight.delLast', { date: shortDate(last.date) })}</button></div>` : '';
+  /* Redefinición 18:23: editar/borrar el propio pesaje siempre
+     disponible (el modal abre con los porcentajes según permiso). */
+  const delBtn = `<div style="text-align:center;margin-top:8px"><button class="btn-ghost btn-sm" id="btn-del-weight">${t('weight.delLast', { date: shortDate(last.date) })}</button></div>`;
   const histRows = [...data].reverse().map(d => `
     <tr><td>${dateName(d.date)}</td><td class="num"><b>${d.weight}</b></td>
     <td class="num">${d.fat || '—'}</td><td class="num">${d.muscle || '—'}</td>
     <td class="num">${d.water || '—'}</td><td class="num">${d.visceral || '—'}</td>
     <td>${esc(d.notes)}</td>
-    <td>${canEdit ? `<button class="btn-ghost btn-sm" data-edit-weight="${d.id}">${t('client.edit')}</button>` : ''}</td></tr>`).join('');
+    <td><button class="btn-ghost btn-sm" data-edit-weight="${d.id}">${t('client.edit')}</button></td></tr>`).join('');
   body.innerHTML = `
     ${reminder}
     <div class="wstats">
@@ -6791,11 +6814,14 @@ async function ensureCompAccess() {
   } catch {}
 }
 function applyCompAccessUI() {
+  /* Redefinición 2026-10-23 18:23: el botón de pesaje NUNCA se
+     oculta (el peso lo ingresa siempre el usuario); el aviso bajo
+     el historial pasa a nombrar solo porcentajes y notas. */
   const blocked = !compClientCanEdit();
   const btn = $('btn-add-weight');
-  if (btn) btn.style.display = blocked ? 'none' : '';
+  if (btn) btn.style.display = '';
   const nb = $('compacc-notice');
-  if (nb) { nb.style.display = blocked ? '' : 'none'; nb.textContent = t('compacc.notice'); }
+  if (nb) { nb.style.display = blocked ? '' : 'none'; nb.textContent = t('compacc.pctNote'); }
 }
 
 function addDaysISO(iso, days) {
@@ -6928,12 +6954,109 @@ async function deleteProgressPhoto(id) {
 }
 PROGRESS_SLOTS.forEach(s => {
   const inp = $('photo-' + s);
-  if (inp) inp.addEventListener('change', e => { const f = e.target.files[0]; e.target.value = ''; if (f) uploadProgressPhoto(s, f); });
+  if (inp) inp.addEventListener('change', e => { const f = e.target.files[0]; e.target.value = ''; if (!f) return;
+    /* Con el paso de encuadre abierto para este slot, el archivo se
+       PREVISUALIZA bajo la silueta antes de guardarse; sin paso
+       abierto, sube directo como siempre. */
+    if (FRAME.slot === s && $('frame-modal').style.display !== 'none') frameStageFile(f);
+    else uploadProgressPhoto(s, f); });
   const del = $('del-' + s);
   if (del) del.addEventListener('click', () => { const set = PROG[PROG_TARGET] || {}; if (set[s]) deleteProgressPhoto(set[s].id); });
   const img = $('preview-' + s);
   if (img) img.addEventListener('click', () => { const src = img.getAttribute('src'); if (src) showLightbox(src); });
 });
+
+/* ============ FOTOS DE PROGRESO: PASO DE ENCUADRE (2026-10-23) ====
+   Guías de encuadre con silueta (frente / costado / espalda) y
+   TEMPORIZADOR, SOLO desarrollo. SIN análisis de las fotos: la
+   captura termina en uploadProgressPhoto, la ruta de siempre.
+   Flujo: tocar «Subir foto»/«Reemplazar» abre el paso; la foto
+   elegida se previsualiza BAJO la silueta del ángulo antes de
+   guardarse. Si el navegador ofrece cámara en vivo (getUserMedia,
+   contexto seguro), el paso la usa con temporizador real
+   (0/3/5/10 s) y captura a canvas; donde la plataforma no la
+   ofrece, queda la elección de archivo con la misma previsualización
+   (límite real de la web: un input file con capture no admite
+   temporizador programable). */
+const FRAME_SILHOUETTES = {
+  front: '<svg viewBox="0 0 100 200" aria-hidden="true"><g fill="none" stroke="#ffffff" stroke-width="2" stroke-dasharray="6 5" opacity="0.95"><circle cx="50" cy="18" r="11"/><path d="M34 38 Q50 31 66 38 L72 62 L65 64 L63 50 L62 108 L59 178 L52 178 L50 122 L48 178 L41 178 L38 108 L37 50 L35 64 L28 62 Z"/></g></svg>',
+  side: '<svg viewBox="0 0 100 200" aria-hidden="true"><g fill="none" stroke="#ffffff" stroke-width="2" stroke-dasharray="6 5" opacity="0.95"><circle cx="52" cy="18" r="11"/><path d="M44 36 Q58 32 62 44 L64 62 L59 63 L57 50 L58 106 Q58 118 57 128 L58 178 L51 178 L47 128 L44 108 L42 62 L40 40 Z"/></g></svg>',
+  back: '<svg viewBox="0 0 100 200" aria-hidden="true"><g fill="none" stroke="#ffffff" stroke-width="2" stroke-dasharray="6 5" opacity="0.95"><circle cx="50" cy="18" r="11"/><path d="M34 38 Q50 31 66 38 L72 62 L65 64 L63 50 L62 108 L59 178 L52 178 L50 122 L48 178 L41 178 L38 108 L37 50 L35 64 L28 62 Z"/><line x1="50" y1="34" x2="50" y2="106"/><line x1="39" y1="76" x2="61" y2="76"/></g></svg>'
+};
+let FRAME = { slot: null, file: null, url: null, stream: null, timerId: null };
+function frameStopCamera() {
+  if (FRAME.timerId) { clearInterval(FRAME.timerId); FRAME.timerId = null; }
+  if (FRAME.stream) { try { FRAME.stream.getTracks().forEach(tr => tr.stop()); } catch {} FRAME.stream = null; }
+  const v = $('frame-video'); if (v) { v.srcObject = null; v.style.display = 'none'; }
+  const c = $('frame-capture'); if (c) c.style.display = 'none';
+  const n = $('frame-count'); if (n) n.style.display = 'none';
+}
+function openFrameModal(slot) {
+  FRAME.slot = slot; FRAME.file = null;
+  if (FRAME.url) { URL.revokeObjectURL(FRAME.url); FRAME.url = null; }
+  $('frame-title').textContent = t('frame.title') + ' · ' + t('progress.' + slot);
+  $('frame-guide').textContent = t('frame.guide.' + slot);
+  $('frame-silhouette').innerHTML = FRAME_SILHOUETTES[slot] || '';
+  const img = $('frame-preview'); img.removeAttribute('src'); img.style.display = 'none';
+  $('frame-save').style.display = 'none';
+  frameStopCamera();
+  $('frame-modal').style.display = '';
+}
+function closeFrameModal() {
+  frameStopCamera();
+  FRAME.slot = null; FRAME.file = null;
+  if (FRAME.url) { URL.revokeObjectURL(FRAME.url); FRAME.url = null; }
+  $('frame-modal').style.display = 'none';
+}
+function frameStageFile(file) {
+  FRAME.file = file;
+  if (FRAME.url) URL.revokeObjectURL(FRAME.url);
+  FRAME.url = URL.createObjectURL(file);
+  frameStopCamera();
+  const img = $('frame-preview'); img.src = FRAME.url; img.style.display = '';
+  $('frame-save').style.display = '';
+}
+async function frameStartCamera() {
+  if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) { toast(t('frame.noCam'), true); return; }
+  try {
+    FRAME.stream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: 'environment' }, audio: false });
+    const v = $('frame-video'); v.srcObject = FRAME.stream; v.style.display = '';
+    $('frame-preview').style.display = 'none';
+    $('frame-save').style.display = 'none';
+    $('frame-capture').style.display = '';
+  } catch { toast(t('frame.noCam'), true); }
+}
+function frameShoot() {
+  const v = $('frame-video'); if (!FRAME.stream || !v.videoWidth) return;
+  const canvas = document.createElement('canvas');
+  const targetRatio = 3 / 4;
+  let w = v.videoWidth, h = v.videoHeight;
+  if (w / h > targetRatio) w = Math.round(h * targetRatio); else h = Math.round(w / targetRatio);
+  canvas.width = w; canvas.height = h;
+  canvas.getContext('2d').drawImage(v, (v.videoWidth - w) / 2, (v.videoHeight - h) / 2, w, h, 0, 0, w, h);
+  canvas.toBlob(b => { if (b) frameStageFile(new File([b], 'progress-' + FRAME.slot + '.jpg', { type: 'image/jpeg' })); }, 'image/jpeg', 0.92);
+}
+function frameCapture() {
+  const secs = num($('frame-timer').value);
+  if (!secs) { frameShoot(); return; }
+  let left = secs;
+  const n = $('frame-count'); n.textContent = left; n.style.display = '';
+  FRAME.timerId = setInterval(() => {
+    left--;
+    if (left <= 0) { clearInterval(FRAME.timerId); FRAME.timerId = null; n.style.display = 'none'; frameShoot(); }
+    else n.textContent = left;
+  }, 1000);
+}
+document.querySelectorAll('label[for^="photo-"]').forEach(l => l.addEventListener('click', e => {
+  e.preventDefault();
+  openFrameModal(l.getAttribute('for').slice('photo-'.length));
+}));
+$('frame-cancel').onclick = closeFrameModal;
+$('frame-modal').addEventListener('click', e => { if (e.target.id === 'frame-modal') closeFrameModal(); });
+$('frame-pick').onclick = () => { const inp = $('photo-' + FRAME.slot); if (inp) inp.click(); };
+$('frame-cam').onclick = frameStartCamera;
+$('frame-capture').onclick = frameCapture;
+$('frame-save').onclick = () => { const f = FRAME.file, s = FRAME.slot; closeFrameModal(); if (f && s) uploadProgressPhoto(s, f); };
 
 /* ================= EVALUACIÓN DE PROGRESO (ciclo quincenal) =================
    Lleva a la app real el sistema del prototipo aprobado por Ronald
@@ -6976,6 +7099,17 @@ PROGRESS_SLOTS.forEach(s => {
    UNIDADES: el dato guardado es único y canónico (kg/cm); el
    selector solo cambia la PRESENTACIÓN (conversión al mostrar y al
    capturar, redondeo solo visual): la ida y vuelta no deriva. */
+/* Guía VISUAL de medidas con cinta (2026-10-23, SOLO desarrollo):
+   ilustración SVG simple generada en la propia app — una figura de
+   frente con la banda de la cinta sobre el sitio exacto. Solo UI
+   educativa junto a la guía en texto (eval.guide.*): sin cálculos. */
+function tapeSVG(id) {
+  const band = { hombros: [16, 24, 28, 4], pecho: [17, 36, 26, 4], cintura: [19, 50, 22, 4],
+    caderas: [18, 61, 24, 4], muslos: [21, 76, 18, 4], pantorrillas: [22, 95, 16, 4], brazos: [12.5, 36, 5, 12] }[id];
+  if (!band) return '';
+  const [x, y, w, h] = band;
+  return `<svg class="tape-svg" viewBox="0 0 60 120" aria-hidden="true"><circle cx="30" cy="9" r="6" fill="none" stroke="#64748b" stroke-width="1.6"/><path d="M20 23 Q30 18 40 23 L44 35 L40.5 37 L39.5 30 L38.5 57 L36.5 97 L32.5 97 L30.8 66 L29.2 66 L27.5 97 L23.5 97 L21.5 57 L20.5 30 L19.5 37 L16 35 Z" fill="#eef7f5" stroke="#64748b" stroke-width="1.6"/><rect x="${x}" y="${y}" width="${w}" height="${h}" rx="2" fill="#f59e0b" opacity="0.92"/></svg>`;
+}
 const EVAL_MEASURES = [
   { id: 'peso', kind: 'w' },
   { id: 'cintura', kind: 'l' }, { id: 'caderas', kind: 'l' },
@@ -7218,16 +7352,17 @@ function renderEval() {
   const formRows = EVAL_MEASURES.map(m => {
     const cur = m.id === 'peso' ? evalWeightOn(S) : evalMeasureValue(S, m.id);
     const unitLbl = EVAL_CFG.units === 'imperial' ? (m.kind === 'w' ? 'lb' : 'in') : (m.kind === 'w' ? 'kg' : 'cm');
-    const dis = (compBlocked && m.id === 'peso') ? ' disabled' : '';
+    const dis = '';
     return `<div class="eval-field"><label for="eval-m-${m.id}">${esc(t('eval.measure.' + m.id))} <span class="eval-unit">(${unitLbl})</span></label>`
       + `<input type="number" id="eval-m-${m.id}" step="0.1" min="0" value="${esc(evalToDisplay(m.kind, cur))}"${dis}>`
+      + (m.kind === 'l' ? `<span class="eval-tape">${tapeSVG(m.id)}</span>` : '')
       + `<span class="eval-guide">${esc(t('eval.guide.' + m.id))}</span></div>`;
   }).join('');
   const reqChecks = EVAL_MEASURES.map(m => `<label class="eval-check"><input type="checkbox" data-eval-req="${m.id}" ${(EVAL_CFG.requiredMeasures || []).includes(m.id) ? 'checked' : ''}> ${esc(t('eval.measure.' + m.id))}</label>`).join('');
   root.innerHTML = `<div class="eval-card" id="eval-card">${card}</div>`
     + `<div class="eval-block"><p class="eval-ficha-title">${esc(t('eval.measuresTitle'))} · ${esc(dateName(S))}</p>`
     + `<div class="eval-form">${formRows}</div>`
-    + (compBlocked ? `<p class="eval-detail">🔒 ${esc(t('compacc.noticeShort'))}</p>` : '')
+    + (compBlocked ? `<p class="eval-detail">${esc(t('compacc.pctNote'))}</p>` : '')
     + `<div class="eval-actions"><button type="button" class="btn-primary btn-sm" id="eval-save-measures">${esc(t('eval.saveMeasures'))}</button>${EVAL_OK_MSG ? `<span class="eval-ok">${esc(EVAL_OK_MSG)}</span>` : ''}</div></div>`
     + evalFichaHTML(S)
     + evalCompHTML(S)
@@ -7269,7 +7404,7 @@ async function evalSaveMeasures() {
     EVALS[S] = Object.assign({}, prev, { measures });
     if (ctxM) EVALS[S].planContext = ctxM;
     const pesoEl = $('eval-m-peso');
-    const pesoRaw = (pesoEl && compClientCanEdit()) ? String(pesoEl.value).trim() : '';
+    const pesoRaw = pesoEl ? String(pesoEl.value).trim() : '';
     if (pesoRaw !== '') {
       const v = num(pesoRaw);
       if (v > 0) {
@@ -7799,11 +7934,6 @@ $('form-meal').addEventListener('submit', async e => {
 /* weightCtx: null = pesaje propio nuevo; {uid, docId, rec} = editar (propio o de un cliente, solo dueño) */
 let weightCtx = null;
 function openWeightModal(ctx) {
-  /* Composición corporal: abrir el modal para datos PROPIOS exige
-     habilitación (el entrenador conserva siempre el ingreso, y su
-     contexto trae el uid del cliente). */
-  const ownCtx = !ctx || ctx.uid === auth.currentUser.uid;
-  if (ownCtx && !compClientCanEdit()) { toast(t('compacc.blocked'), true); return; }
   weightCtx = ctx || null;
   const rec = ctx && ctx.rec;
   $('w-date').value = (rec && rec.date) || todayISO();
@@ -7813,6 +7943,16 @@ function openWeightModal(ctx) {
   $('w-water').value = (rec && rec.water) || '';
   $('w-visceral').value = (rec && rec.visceral) || '';
   $('w-notes').value = (rec && rec.notes) || '';
+  /* Formulario POR ROL (correo 2026-10-23 18:23, que REDEFINE el
+     de 17:48 en lo solapado): el PESO lo ingresa SIEMPRE el
+     usuario; los PORCENTAJES (grasa, músculo, agua, visceral) y
+     las NOTAS quedan deshabilitados para el usuario SIN permiso
+     expreso de su entrenador (el interruptor compAccess), con la
+     nota visible. En la vista del entrenador (contexto de cliente)
+     todo queda habilitado. */
+  const pctLocked = (!ctx || ctx.uid === auth.currentUser.uid) && !compClientCanEdit();
+  ['w-fat', 'w-muscle', 'w-water', 'w-visceral', 'w-notes'].forEach(idF => { const el = $(idF); if (el) el.disabled = pctLocked; });
+  const pn = $('w-pct-note'); if (pn) { pn.style.display = pctLocked ? '' : 'none'; pn.textContent = t('compacc.pctNote'); }
   $('weight-modal').style.display = '';
 }
 $('btn-add-weight').onclick = () => openWeightModal(null);
@@ -7823,17 +7963,19 @@ $('form-weight').addEventListener('submit', async e => {
   e.preventDefault();
   const date = $('w-date').value;
   const uid = (weightCtx && weightCtx.uid) || auth.currentUser.uid;
-  /* Guarda de RUTA (no solo de UI): un guardado propio sin
-     habilitación no escribe nada. */
-  if (uid === auth.currentUser.uid && !compClientCanEdit()) {
-    toast(t('compacc.blocked'), true);
-    $('weight-modal').style.display = 'none'; weightCtx = null;
-    return;
-  }
   const docId = (weightCtx && weightCtx.docId) || `${uid}_${date}`;
-  const data = { ownerUid: uid, date, weight: num($('w-weight').value), fat: Math.max(0, num($('w-fat').value)),
-    muscle: Math.max(0, num($('w-muscle').value)), water: Math.max(0, num($('w-water').value)), visceral: Math.max(0, num($('w-visceral').value)),
-    notes: $('w-notes').value.trim(), updatedAt: serverTimestamp() };
+  /* Con los porcentajes bloqueados, el guardado del usuario escribe
+     su PESO y CONSERVA los porcentajes/notas ya registrados por el
+     entrenador (del registro que se edita): nunca los pisa a cero. */
+  const pctLocked = uid === auth.currentUser.uid && !compClientCanEdit();
+  const prevRec = (weightCtx && weightCtx.rec) || {};
+  const data = { ownerUid: uid, date, weight: num($('w-weight').value),
+    fat: pctLocked ? Math.max(0, num(prevRec.fat)) : Math.max(0, num($('w-fat').value)),
+    muscle: pctLocked ? Math.max(0, num(prevRec.muscle)) : Math.max(0, num($('w-muscle').value)),
+    water: pctLocked ? Math.max(0, num(prevRec.water)) : Math.max(0, num($('w-water').value)),
+    visceral: pctLocked ? Math.max(0, num(prevRec.visceral)) : Math.max(0, num($('w-visceral').value)),
+    notes: pctLocked ? String(prevRec.notes || '') : $('w-notes').value.trim(),
+    updatedAt: serverTimestamp() };
   if (!date || data.weight <= 0) { toast(t('err.weightMissing'), true); return; }
   /* Aviso HONESTO (corrección «Registrar pesaje», 2026-10-23): si el
      guardado es rechazado (p. ej. las reglas vivas aún no admiten que
@@ -8441,20 +8583,13 @@ setInterval(() => { try { pendDockTick(); } catch {} }, 60000);
           pendDraftArm();
           aiOpenMealModal();
         } else if (type === 'weight') {
-          if (!compClientCanEdit()) {
-            /* El pendiente de peso SIGUE existiendo (se calcula de
-               los registros reales), pero su acción ya no abre el
-               ingreso: lleva a la vista de solo lectura y avisa.
-               La resolución del pendiente queda en manos del
-               entrenador, que es quien registra el pesaje. */
-            const c = $('progress-content');
-            if (c && c.style.display === 'none') { const pb = $('btn-toggle-progress'); if (pb) pb.click(); }
-            const r = $('weightBody'); if (r) { try { r.scrollIntoView({ behavior: 'smooth', block: 'start' }); } catch {} }
-            toast(t('compacc.blocked'), true);
-          } else {
-            openWeightModal(null);
-            $('w-date').value = date;
-          }
+          /* Redefinición 18:23: el peso lo ingresa el usuario, así
+             que el pendiente vuelve a abrir el modal de pesaje (los
+             porcentajes quedan según su permiso, como en el
+             formulario). El pendiente sigue calculándose de los
+             registros reales. */
+          openWeightModal(null);
+          $('w-date').value = date;
         } else if (type === 'training') {
           const c = $('train-content');
           if (c && c.style.display === 'none') { const tb = $('btn-toggle-train'); if (tb) tb.click(); }

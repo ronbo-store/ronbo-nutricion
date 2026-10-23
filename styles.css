@@ -919,3 +919,14 @@ div > .btn-ghost:only-child, div > .btn-main:only-child {
 .compacc-notice { background:#fef3c7; border:1px solid #f59e0b; color:#92400e; border-radius:10px; padding:10px 12px; font-size:13px; margin:8px 0; }
 .compacc-box { margin:14px 0; }
 .compacc-hist-row { display:flex; justify-content:space-between; gap:10px; font-size:13px; padding:4px 0; border-bottom:1px solid #eef2f7; }
+
+/* Pieza usabilidad 2026-10-23 (desarrollo): guía con cinta, nota de
+   porcentajes y paso de encuadre de fotos de progreso. */
+.eval-tape { display: block; margin-top: 2px; }
+.tape-svg { height: 88px; }
+.form-note { color: #92400e; background: #fef3c7; border-radius: 8px; padding: 6px 10px; font-size: 13px; margin: 8px 0 0; }
+.frame-stage { position: relative; aspect-ratio: 3 / 4; background: #111827; border-radius: 12px; overflow: hidden; margin: 8px 0; }
+.frame-stage video, .frame-stage img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; }
+#frame-silhouette { position: absolute; inset: 0; display: flex; align-items: center; justify-content: center; pointer-events: none; }
+#frame-silhouette svg { height: 94%; }
+#frame-count { position: absolute; inset: 0; display: flex; align-items: center; justify-content: center; font-size: 96px; font-weight: 700; color: #fff; text-shadow: 0 2px 14px rgba(0,0,0,.65); }

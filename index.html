@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>ronbo.nutri · Private</title>
 <meta name="robots" content="noindex, nofollow">
-<link rel="stylesheet" href="styles.css?v=20261023-roles">
+<link rel="stylesheet" href="styles.css?v=20261023-usabilidad">
 <script type="importmap">
 {
   "imports": {
@@ -458,11 +458,36 @@
       <div class="frow">
         <label><span data-i18n="form.notes">Notes</span> <input type="text" id="w-notes" data-i18n-ph="form.optional" placeholder="optional"></label>
       </div>
+      <p id="w-pct-note" class="form-note" style="display:none"></p>
       <div class="modal-foot">
         <button type="button" class="btn-ghost" id="weight-cancel" data-i18n="form.cancel">Cancel</button>
         <button type="submit" class="btn-primary" data-i18n="form.save">Save</button>
       </div>
     </form>
+  </div>
+</div>
+
+<!-- ============ FRAME MODAL (fotos de progreso: encuadre) ============ -->
+<div id="frame-modal" class="modal-backdrop" style="display:none">
+  <div class="modal">
+    <h2 id="frame-title">Framing guide</h2>
+    <p class="muted" id="frame-guide"></p>
+    <div class="frame-stage">
+      <video id="frame-video" autoplay playsinline muted style="display:none"></video>
+      <img id="frame-preview" style="display:none" alt="">
+      <div id="frame-silhouette"></div>
+      <div id="frame-count" style="display:none"></div>
+    </div>
+    <div class="frow">
+      <label><span data-i18n="frame.timer">Timer</span> <select id="frame-timer"><option value="0">0 s</option><option value="3">3 s</option><option value="5">5 s</option><option value="10">10 s</option></select></label>
+    </div>
+    <div class="modal-foot">
+      <button type="button" class="btn-ghost" id="frame-cancel" data-i18n="form.cancel">Cancel</button>
+      <button type="button" class="btn-ghost" id="frame-pick" data-i18n="frame.pick">Choose photo</button>
+      <button type="button" class="btn-ghost" id="frame-cam" data-i18n="frame.camera">Use camera</button>
+      <button type="button" class="btn-primary" id="frame-capture" data-i18n="frame.capture" style="display:none">Take photo</button>
+      <button type="button" class="btn-primary" id="frame-save" data-i18n="frame.use" style="display:none">Use this photo</button>
+    </div>
   </div>
 </div>
 
@@ -577,6 +602,6 @@
 <div id="toast" class="toast"></div>
 <div id="print-card" aria-hidden="true"></div>
 
-<script type="module" src="app.js?v=20261023-roles"></script>
+<script type="module" src="app.js?v=20261023-usabilidad"></script>
 </body>
 </html>
