@@ -282,6 +282,26 @@ table.whist { min-width: 640px; }
 .pl-ex-sub { flex: 1 1 100%; display: flex; gap: 6px; }
 .pl-ex-sub input { flex: 1; min-width: 0; font-size: 12.5px; }
 
+/* ===== constructor visual (§5.1): explorador en rejilla dentro del
+   editor, miniatura de fila y resaltado de la fila recién añadida ===== */
+.pl-viz { margin: 10px 0; border: 1px solid #e9ecef; border-radius: 10px; padding: 10px 12px; }
+.pl-viz-head { display: flex; align-items: center; justify-content: space-between; gap: 8px; }
+.pl-viz-title { font-weight: 700; color: #1f2a44; font-size: 14px; }
+.pl-viz-controls { display: flex; flex-wrap: wrap; gap: 8px; margin: 10px 0; }
+.pl-viz-controls input[type="text"] { flex: 1 1 150px; min-width: 0; }
+.pl-viz-controls select { max-width: 100%; }
+.pl-viz-daylabel { display: inline-flex; align-items: center; gap: 6px; font-size: 13px; color: #334155; }
+.pl-viz-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(104px, 1fr)); gap: 10px; }
+.pl-viz-card { border: 1px solid #e9ecef; border-radius: 10px; padding: 8px; display: flex; flex-direction: column; gap: 4px; background: #fff; }
+.pl-viz-img { width: 100%; height: 78px; object-fit: cover; border-radius: 8px; background: #eef1f3; }
+.pl-viz-noimg { display: flex; align-items: center; justify-content: center; font-size: 26px; }
+.pl-viz-name { font-size: 12.5px; font-weight: 600; color: #1f2a44; line-height: 1.25; }
+.pl-viz-meta { font-size: 11.5px; color: #6b7280; line-height: 1.3; flex: 1; }
+.pl-viz-add { width: 100%; }
+.pl-viz-empty { font-size: 12.5px; color: #6b7280; padding: 6px 0 2px; }
+.pl-ex-thumb { flex: 0 0 44px; width: 44px; height: 44px; object-fit: cover; border-radius: 8px; background: #eef1f3; }
+.pl-ex-just-added { outline: 2px solid #0d9488; outline-offset: 1px; border-radius: 8px; }
+
 /* ===== gráfica semanal ===== */
 .week-panel { margin-top: 18px; }
 .week-panel h2 { font-size: 17px; color: #1f2a44; margin-bottom: 10px; }

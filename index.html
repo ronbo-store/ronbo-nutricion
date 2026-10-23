@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>ronbo.nutri · Private</title>
 <meta name="robots" content="noindex, nofollow">
-<link rel="stylesheet" href="styles.css?v=20261022-comparador">
+<link rel="stylesheet" href="styles.css?v=20261022-constructor-visual">
 <script type="importmap">
 {
   "imports": {
@@ -497,6 +497,22 @@
           </div>
         </div>
       </div>
+      <div id="pl-viz" class="pl-viz">
+        <div class="pl-viz-head">
+          <span class="pl-viz-title" data-i18n="train.viz.title">🧱 Visual builder</span>
+          <button type="button" class="btn-ghost btn-sm" id="pl-viz-toggle" data-i18n="train.viz.toggle">Browse the library visually</button>
+        </div>
+        <div id="pl-viz-body" style="display:none">
+          <div id="pl-viz-note" class="pl-lib-note"></div>
+          <div class="pl-viz-controls">
+            <input type="text" id="pl-viz-q" data-i18n-ph="train.viz.searchPh" placeholder="Search by name, muscle, equipment…" autocomplete="off">
+            <select id="pl-viz-group"></select>
+            <label class="pl-viz-daylabel"><span data-i18n="train.viz.dayLabel">Add to day</span> <select id="pl-viz-day"></select></label>
+          </div>
+          <div id="pl-viz-grid" class="pl-viz-grid"></div>
+          <div id="pl-viz-empty" class="pl-viz-empty" style="display:none" data-i18n="train.viz.empty">No exercises match this filter.</div>
+        </div>
+      </div>
       <div id="pl-days"></div>
       <button type="button" class="btn-ghost btn-sm" id="pl-add-day" data-i18n="train.f.addDay">＋ Add day</button>
       <div class="frow" style="margin-top:14px">
@@ -545,6 +561,6 @@
 
 <div id="toast" class="toast"></div>
 
-<script type="module" src="app.js?v=20261022-comparador"></script>
+<script type="module" src="app.js?v=20261022-constructor-visual"></script>
 </body>
 </html>

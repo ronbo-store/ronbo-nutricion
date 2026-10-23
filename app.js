@@ -469,6 +469,15 @@ en: {
   'train.gate.savedWithWarning': 'Plan saved. Note: this client still has no valid health declaration on file.',
   'train.lib.unavailable': '📚 The exercise library is unavailable right now (it may be empty or could not be loaded). You can keep typing exercises as free text — plans save normally.',
   'train.lib.photo': 'Photo', 'train.lib.video': 'Video',
+  'train.viz.title': '🧱 Visual builder',
+  'train.viz.toggle': 'Browse the library visually',
+  'train.viz.searchPh': 'Search by name, muscle, equipment…',
+  'train.viz.allGroups': 'All muscle groups',
+  'train.viz.dayLabel': 'Add to day',
+  'train.viz.dayN': 'Day {n}',
+  'train.viz.add': '＋ Add',
+  'train.viz.added': 'Added: {name}',
+  'train.viz.empty': 'No exercises match this filter.',
   'train.f.warmupPh': 'Warm-up sets', 'train.f.restPh': 'Rest',
   'train.tpl.title': '📋 Routine templates',
   'train.tpl.use': 'Use this template',
@@ -1214,6 +1223,15 @@ es: {
   'train.gate.savedWithWarning': 'Plan guardado. Nota: este cliente sigue sin una declaración de salud vigente registrada.',
   'train.lib.unavailable': '📚 La biblioteca de ejercicios no está disponible ahora (puede estar vacía o no pudo cargarse). Puedes seguir escribiendo los ejercicios como texto libre: los planes se guardan con normalidad.',
   'train.lib.photo': 'Foto', 'train.lib.video': 'Video',
+  'train.viz.title': '🧱 Constructor visual',
+  'train.viz.toggle': 'Explorar la biblioteca visualmente',
+  'train.viz.searchPh': 'Buscar por nombre, músculo, equipo…',
+  'train.viz.allGroups': 'Todos los grupos musculares',
+  'train.viz.dayLabel': 'Añadir al día',
+  'train.viz.dayN': 'Día {n}',
+  'train.viz.add': '＋ Añadir',
+  'train.viz.added': 'Añadido: {name}',
+  'train.viz.empty': 'Ningún ejercicio coincide con este filtro.',
   'train.f.warmupPh': 'Series de aproximación', 'train.f.restPh': 'Descanso',
   'train.tpl.title': '📋 Plantillas de rutina',
   'train.tpl.use': 'Usar esta plantilla',
@@ -5130,6 +5148,16 @@ function libLinksHTML(ex) {
 function wireLibLinks(scope) {
   scope.querySelectorAll('.pl-ex-photo').forEach(b => { if (!b.dataset.wired) { b.dataset.wired = '1'; b.onclick = () => showLightbox(b.dataset.url); } });
 }
+/* CONSTRUCTOR VISUAL (§5.1): la fila vinculada muestra la MINIATURA
+   de la foto de la ficha (la misma URL copiada en photoUrl): se ve
+   al instante en la lista del día, también al añadir desde la
+   rejilla. Sin foto conocida, la miniatura no ocupa espacio. */
+function libRowThumb(row, url) {
+  const th = row.querySelector('.pl-ex-thumb');
+  if (!th) return;
+  if (url) { th.src = url; th.style.display = ''; }
+  else { th.removeAttribute('src'); th.style.display = 'none'; }
+}
 function libCloseSug(row) { const sug = row.querySelector('.pl-ex-sug'); if (sug) sug.innerHTML = ''; }
 function libUnlinkRow(row) {
   row.removeAttribute('data-exid');
@@ -5144,6 +5172,7 @@ function libUnlinkRow(row) {
   row.removeAttribute('data-rest-en');
   row.removeAttribute('data-warmup');
   row.removeAttribute('data-warmup-en');
+  libRowThumb(row, '');
   const wrap = row.querySelector('.pl-ex-links-wrap');
   if (wrap) wrap.innerHTML = '';
 }
@@ -5154,6 +5183,7 @@ function libLinkRow(row, ex) {
   if (ex.video_youtube_url) row.dataset.video = ex.video_youtube_url; else row.removeAttribute('data-video');
   nameIn.value = libNameOf(ex);
   row.dataset.savedName = nameIn.value;
+  libRowThumb(row, ex.foto_url || '');
   const wrap = row.querySelector('.pl-ex-links-wrap');
   if (wrap) { wrap.innerHTML = libLinksHTML({ exerciseId: ex.id, photoUrl: ex.foto_url, videoUrl: ex.video_youtube_url }); wireLibLinks(row); }
   libCloseSug(row);
@@ -5208,6 +5238,7 @@ function libRefreshOpenRows() {
       row.dataset.savedName = nameIn.value;
     }
     if (!row.dataset.photo && entry.foto_url) row.dataset.photo = entry.foto_url;
+    if (row.dataset.photo) libRowThumb(row, row.dataset.photo);
     if (!row.dataset.video && entry.video_youtube_url) row.dataset.video = entry.video_youtube_url;
     const wrap = row.querySelector('.pl-ex-links-wrap');
     if (wrap && !wrap.innerHTML) { wrap.innerHTML = libLinksHTML({ exerciseId: exid, photoUrl: row.dataset.photo, videoUrl: row.dataset.video }); wireLibLinks(row); }
@@ -5423,6 +5454,147 @@ if ($('pl-tpl-start')) $('pl-tpl-start').addEventListener('change', () => tplRen
 if ($('pl-tpl-align-apply')) $('pl-tpl-align-apply').onclick = () => tplApplyAlign();
 if ($('pl-tpl-align-ignore')) $('pl-tpl-align-ignore').onclick = () => { tplAlignState.dismissed = true; tplRenderAlign(); };
 
+/* ================= CONSTRUCTOR VISUAL (§5.1) =================
+   Paquete 9 de la integración de entrenamiento (propuesta v1.1
+   §5.1): un MODO VISUAL dentro del editor de planes existente — no
+   un editor paralelo. Explorador de la biblioteca en rejilla de
+   tarjetas (foto, nombre en el idioma activo, grupo · equipo ·
+   nivel) con filtro por grupo muscular y buscador de texto con el
+   MISMO criterio bilingüe insensible a acentos de la biblioteca del
+   P4 (§4.1): se reutilizan libEnsure/libNorm/libField/libNameOf y
+   la caché de sesión — la colección se sigue leyendo UNA sola vez
+   por sesión, la lea quien la lea primero.
+   - «Añadir» crea la fila en el día destino con el mecanismo de
+     siempre (planExRow + wirePlanExRows) y la VINCULA con
+     libLinkRow: al guardar persiste exerciseId + photoUrl/videoUrl
+     copiados (§4.6), exactamente igual que eligiéndola desde el
+     autocompletado. Añadir dos veces el mismo ejercicio crea dos
+     filas: lo decide el entrenador, sin bloqueos.
+   - El día destino se elige en el propio panel (selector con las
+     etiquetas vivas de los días del editor) y se sincroniza al
+     tocar un día del editor; el selector se reconstruye al abrir el
+     panel, al añadir un día y antes de cada «Añadir» — nunca apunta
+     a un día que ya no existe.
+   - Si la biblioteca no se puede leer, el panel muestra el aviso
+     honesto de la biblioteca (el mismo texto del P4) y la rejilla
+     queda vacía: el editor clásico sigue plenamente usable y NADA
+     se bloquea — la única puerta dura sigue siendo la PAR-Q (§4.5),
+     intacta: el guardado es el camino existente, sin cambios.
+   - Diferencia deliberada frente al autocompletado: en un
+     explorador, un texto de 0–1 caracteres NO filtra (se navega la
+     rejilla completa o el grupo elegido); con 2+ caracteres filtra
+     con el mismo criterio de términos y orden del P4. */
+function vizGroups() {
+  const seen = new Map();
+  for (const ex of (LIB || [])) {
+    const key = ex.grupo_muscular_es || ex.grupo_muscular_en || '';
+    if (key && !seen.has(key)) seen.set(key, libField(ex, 'grupo_muscular') || key);
+  }
+  return [...seen.entries()].map(([key, label]) => ({ key, label })).sort((a, b) => a.label.localeCompare(b.label));
+}
+function vizFilter() {
+  if (LIB_STATE !== 'ok' || !LIB) return [];
+  const g = ($('pl-viz-group') || {}).value || '';
+  const q = libNorm((($('pl-viz-q') || {}).value || '')).trim();
+  const inGroup = LIB.filter(ex => !g || (ex.grupo_muscular_es || ex.grupo_muscular_en || '') === g);
+  if (q.length < 2) return [...inGroup].sort((a, b) => libNameOf(a).localeCompare(libNameOf(b)));
+  const terms = q.split(/\s+/);
+  const scored = [];
+  for (const ex of inGroup) {
+    const hay = libNorm([ex.nombre_es, ex.nombre_en, ex.grupo_muscular_es, ex.grupo_muscular_en, ex.equipo_es, ex.equipo_en, ex.nivel_es, ex.nivel_en].join(' '));
+    if (!terms.every(tm => hay.includes(tm))) continue;
+    const nA = libNorm(LANG === 'es' ? ex.nombre_es : ex.nombre_en);
+    const nO = libNorm(LANG === 'es' ? ex.nombre_en : ex.nombre_es);
+    let rank = 3;
+    if (nA.startsWith(q)) rank = 0; else if (nA.includes(q)) rank = 1; else if (nO.includes(q)) rank = 2;
+    scored.push([rank, ex]);
+  }
+  scored.sort((a, b) => a[0] - b[0] || libNameOf(a[1]).localeCompare(libNameOf(b[1])));
+  return scored.map(x => x[1]);
+}
+function vizRenderGroups() {
+  const sel = $('pl-viz-group');
+  if (!sel) return;
+  const prev = sel.value;
+  sel.innerHTML = `<option value="">${esc(t('train.viz.allGroups'))}</option>` + vizGroups().map(gr => `<option value="${esc(gr.key)}">${esc(gr.label)}</option>`).join('');
+  if ([...sel.options].some(o => o.value === prev)) sel.value = prev;
+}
+function vizRenderGrid() {
+  const grid = $('pl-viz-grid'), note = $('pl-viz-note'), empty = $('pl-viz-empty');
+  if (!grid) return;
+  if (LIB_STATE !== 'ok') {
+    grid.innerHTML = '';
+    if (note) note.textContent = LIB_STATE === 'unavailable' ? t('train.lib.unavailable') : '';
+    if (empty) empty.style.display = 'none';
+    return;
+  }
+  if (note) note.textContent = '';
+  const list = vizFilter();
+  grid.innerHTML = list.map(ex => {
+    const meta = [libField(ex, 'grupo_muscular'), libField(ex, 'equipo'), libField(ex, 'nivel')].filter(Boolean).join(' · ');
+    return `<div class="pl-viz-card">
+      ${ex.foto_url ? `<img class="pl-viz-img" src="${esc(ex.foto_url)}" alt="${esc(libNameOf(ex))}" loading="lazy">` : `<div class="pl-viz-img pl-viz-noimg">🏋️</div>`}
+      <div class="pl-viz-name">${esc(libNameOf(ex))}</div>
+      <div class="pl-viz-meta">${esc(meta)}</div>
+      <button type="button" class="btn-primary btn-sm pl-viz-add" data-viz-id="${esc(ex.id)}">${t('train.viz.add')}</button>
+    </div>`;
+  }).join('');
+  grid.querySelectorAll('.pl-viz-add').forEach(b => b.onclick = () => vizAddToDay(b.dataset.vizId));
+  if (empty) empty.style.display = list.length ? 'none' : '';
+}
+function vizRefreshDays(keepIdx) {
+  const sel = $('pl-viz-day');
+  if (!sel) return;
+  const days = [...document.querySelectorAll('#pl-days .pl-day')];
+  const prev = keepIdx != null ? keepIdx : Number(sel.value || 0);
+  sel.innerHTML = days.map((d, i) => {
+    const lab = (d.querySelector('.pl-day-label').value || '').trim();
+    return `<option value="${i}">${esc(lab || t('train.viz.dayN', { n: i + 1 }))}</option>`;
+  }).join('');
+  sel.value = String(Math.min(Math.max(Number.isFinite(prev) ? prev : 0, 0), Math.max(days.length - 1, 0)));
+}
+function vizRenderAll() { vizRenderGroups(); vizRenderGrid(); vizRefreshDays(); }
+function vizAddToDay(exId) {
+  const ex = LIB_BY_ID[exId];
+  if (!ex) return;
+  vizRefreshDays();
+  const idx = Number(($('pl-viz-day') || {}).value || 0);
+  const dayEl = document.querySelectorAll('#pl-days .pl-day')[idx];
+  if (!dayEl) return;
+  const d = document.createElement('div');
+  d.innerHTML = planExRow({});
+  const row = d.firstElementChild;
+  dayEl.querySelector('.pl-exs').appendChild(row);
+  wirePlanExRows(dayEl);
+  libLinkRow(row, ex);
+  row.classList.add('pl-ex-just-added');
+  setTimeout(() => row.classList.remove('pl-ex-just-added'), 1500);
+  if (row.scrollIntoView) row.scrollIntoView({ block: 'nearest' });
+  toast(t('train.viz.added', { name: libNameOf(ex) }));
+}
+function vizOnEditorOpen() {
+  const body = $('pl-viz-body');
+  if (body) body.style.display = 'none';
+  const q = $('pl-viz-q');
+  if (q) q.value = '';
+  vizRefreshDays(0);
+}
+if ($('pl-viz-toggle')) $('pl-viz-toggle').onclick = () => {
+  const body = $('pl-viz-body');
+  const open = body.style.display === 'none';
+  body.style.display = open ? '' : 'none';
+  if (open) { vizRenderAll(); libEnsure().then(() => vizRenderAll()); }
+};
+if ($('pl-viz-q')) $('pl-viz-q').addEventListener('input', () => vizRenderGrid());
+if ($('pl-viz-group')) $('pl-viz-group').addEventListener('change', () => vizRenderGrid());
+if ($('pl-days')) $('pl-days').addEventListener('click', e => {
+  const d = e.target.closest('.pl-day');
+  if (!d) return;
+  const idx = [...document.querySelectorAll('#pl-days .pl-day')].indexOf(d);
+  const sel = $('pl-viz-day');
+  if (sel && Number(sel.value) !== idx) vizRefreshDays(idx);
+});
+
 /* --- Editor de planes (entrenador) --- */
 let planCtx = null;
 function wirePlanExDel(scope) { scope.querySelectorAll('.pl-ex-del').forEach(b => b.onclick = () => b.closest('.pl-ex-row').remove()); }
@@ -5445,7 +5617,12 @@ function planExRow(ex) {
   const rw = `${ex.rest ? ` data-rest="${esc(ex.rest)}"` : ''}${ex.rest_en ? ` data-rest-en="${esc(ex.rest_en)}"` : ''}${ex.warmup ? ` data-warmup="${esc(ex.warmup)}"` : ''}${ex.warmup_en ? ` data-warmup-en="${esc(ex.warmup_en)}"` : ''}`;
   const restShown = LANG === 'es' ? (ex.rest || ex.rest_en || '') : (ex.rest_en || ex.rest || '');
   const warmShown = LANG === 'es' ? (ex.warmup || ex.warmup_en || '') : (ex.warmup_en || ex.warmup || '');
+  /* CONSTRUCTOR VISUAL (§5.1): miniatura de la fila — la foto de la
+     ficha (o la photoUrl copiada) cuando se conoce; si no, el
+     elemento nace oculto y libLinkRow/libUnlinkRow lo mantienen. */
+  const thumb = (entry ? entry.foto_url : '') || ex.photoUrl || '';
   return `<div class="pl-ex-row"${linked}${rw}>
+    <img class="pl-ex-thumb" alt=""${thumb ? ` src="${esc(thumb)}"` : ' style="display:none"'}>
     <div class="pl-ex-main">
       <input type="text" class="pl-ex-name" placeholder="${t('train.f.exPh')}" value="${esc(shown)}" autocomplete="off">
       <div class="pl-ex-sug"></div>
@@ -5522,8 +5699,11 @@ function openPlanEditor(clientUid, plan) {
      lectura es única por sesión y el estado de alineación nace
      limpio en cada apertura. */
   tplOnEditorOpen();
+  /* CONSTRUCTOR VISUAL (§5.1): el panel nace cerrado y con el día
+     destino en el primer día en cada apertura del editor. */
+  vizOnEditorOpen();
 }
-$('pl-add-day').onclick = () => $('pl-days').appendChild(planDayRow(null));
+$('pl-add-day').onclick = () => { $('pl-days').appendChild(planDayRow(null)); vizRefreshDays(document.querySelectorAll('#pl-days .pl-day').length - 1); };
 $('plan-cancel').onclick = () => { $('plan-modal').style.display = 'none'; planCtx = null; };
 $('plan-modal').addEventListener('click', e => { if (e.target.id === 'plan-modal') { $('plan-modal').style.display = 'none'; planCtx = null; } });
 $('form-plan').addEventListener('submit', async e => {
