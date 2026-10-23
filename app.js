@@ -174,6 +174,21 @@ en: {
   'weight.chartWeight': 'Weight (kg)',
   'weight.chartFat': 'Fat (%)',
   'weight.title2': 'Log weigh-in',
+  'compacc.notice': '🔒 Your trainer logs your body composition (weight, body fat, muscle, water and visceral fat). You can view it here, but you cannot change it.',
+  'compacc.noticeShort': 'Your trainer logs your body composition.',
+  'compacc.title': 'Body composition entry',
+  'compacc.modeTrainer': 'Right now: the trainer logs this client\'s body composition.',
+  'compacc.modeClient': 'Right now: this client may log their own body composition.',
+  'compacc.grant': 'Allow the client to log it',
+  'compacc.revoke': 'Back to trainer-only',
+  'compacc.history': 'Change history',
+  'compacc.histTrainer': 'Trainer-only entry',
+  'compacc.histClient': 'Client entry allowed',
+  'compacc.histBy': 'by {who} · {when}',
+  'compacc.histEmpty': 'No changes yet — the default (trainer-only) applies.',
+  'compacc.needClientOpen': 'This setting is created when the client opens the app for the first time. Ask them to open it once, then try again.',
+  'compacc.saved': 'Body-composition entry updated.',
+  'compacc.blocked': 'Your trainer logs your body composition — this entry is read-only for you.',
   'progress.title': '📸 My progress',
   'progress.sub': '· photos every 15 days: front, side and back',
   'progress.hint': 'They\'re private: only you can see them. Take a new evaluation every 15 days: front, side and back. Whenever you want, ask your assistant to compare two evaluations and tell you what change it notices.',
@@ -942,6 +957,21 @@ es: {
   'weight.chartWeight': 'Peso (kg)',
   'weight.chartFat': 'Grasa (%)',
   'weight.title2': 'Registrar pesaje',
+  'compacc.notice': '🔒 Tu entrenador registra tu composición corporal (peso, grasa corporal, masa muscular, agua y grasa visceral). Puedes verla aquí, pero no cambiarla.',
+  'compacc.noticeShort': 'Tu entrenador registra tu composición corporal.',
+  'compacc.title': 'Ingreso de composición corporal',
+  'compacc.modeTrainer': 'Ahora: el entrenador registra la composición corporal de este cliente.',
+  'compacc.modeClient': 'Ahora: este cliente puede registrar su propia composición corporal.',
+  'compacc.grant': 'Permitir que el cliente la registre',
+  'compacc.revoke': 'Volver a solo el entrenador',
+  'compacc.history': 'Historial de cambios',
+  'compacc.histTrainer': 'Ingreso solo del entrenador',
+  'compacc.histClient': 'Ingreso del cliente permitido',
+  'compacc.histBy': 'por {who} · {when}',
+  'compacc.histEmpty': 'Sin cambios todavía: aplica el valor por defecto (solo el entrenador).',
+  'compacc.needClientOpen': 'Este ajuste se crea cuando el cliente abre la app por primera vez. Pídele que la abra una vez y vuelve a intentarlo.',
+  'compacc.saved': 'Ingreso de composición corporal actualizado.',
+  'compacc.blocked': 'Tu entrenador registra tu composición corporal: este ingreso es de solo lectura para ti.',
   'progress.title': '📸 Mi progreso',
   'progress.sub': '· fotos cada 15 días: frente, costado y espalda',
   'progress.hint': 'Son privadas: solo tú las ves. Haz una nueva evaluación cada 15 días: frente, costado y espalda. Cuando quieras, pídele a tu asistente que compare dos evaluaciones y te diga qué cambio nota.',
@@ -2631,6 +2661,7 @@ async function openClient(uid) {
       <tbody>${rows}</tbody></table></div>` : ''}
     ${fb3ProteinHTML(data)}
     ${faCardHTML(uid, asmtDoc, data)}
+    <div id="compacc-box"><div class="wempty">${t('access.loading')}</div></div>
     <div id="client-training"></div>
     <div id="client-evals"><div class="eval-actions"><button type="button" class="btn-ghost btn-sm" id="btn-client-evals">${t('teval.open')}</button></div><div id="client-evals-body" style="display:none"></div></div>`;
   $('btn-client-close').onclick = () => { box.style.display = 'none'; box.innerHTML = ''; };
@@ -2647,6 +2678,7 @@ async function openClient(uid) {
   const faPal = $('fa-pal');
   if (faPal) { faPal.addEventListener('input', faPalSync); faPalSync(); }
   $('btn-client-add').onclick = () => openWeightModal({ uid, docId: null, rec: null });
+  compAccLoadTrainer(uid);
   box.querySelectorAll('[data-c-edit]').forEach(b => b.onclick = () => {
     const rec = data.find(w => w.id === b.dataset.cEdit);
     if (rec) openWeightModal({ uid, docId: rec.id, rec });
@@ -2662,6 +2694,60 @@ async function openClient(uid) {
   const evBtn = $('btn-client-evals');
   if (evBtn) evBtn.onclick = () => tevalToggle(uid, data);
   box.scrollIntoView({ behavior: 'smooth', block: 'start' });
+}
+
+/* ============ INTERRUPTOR DE COMPOSICIÓN (vista del entrenador) ============
+   Lee el ajuste {uid}_compaccess del cliente y lo pinta con su
+   historial. Alternar escribe mode + history (append) con quién
+   (uid y nombre del entrenador) y cuándo (ISO). Si el documento
+   aún no existe, el entrenador intenta crearlo; con las reglas
+   vigentes la creación con ownerUid del cliente está reservada al
+   propio cliente, así que el fallo se informa con su causa y su
+   salida (que el cliente abra la app una vez) — nunca en silencio.
+   El candidato de reglas del paquete levanta esa limitación. */
+let COMPACC_CLIENT = null;   // { uid, mode, history, exists }
+function compAccHTML(st) {
+  const modeTx = st.mode === 'client' ? t('compacc.modeClient') : t('compacc.modeTrainer');
+  const btnTx = st.mode === 'client' ? t('compacc.revoke') : t('compacc.grant');
+  const hist = (st.history || []).slice().reverse().map(h => `
+    <div class="compacc-hist-row"><span>${esc(h.mode === 'client' ? t('compacc.histClient') : t('compacc.histTrainer'))}</span>
+    <span class="muted">${esc(t('compacc.histBy', { who: h.byName || h.by || '—', when: h.at ? String(h.at).slice(0, 10) : '—' }))}</span></div>`).join('');
+  return `<div class="compacc-box">
+    <h3 class="history-title">🔒 ${esc(t('compacc.title'))}</h3>
+    <p class="progress-hint">${esc(modeTx)}</p>
+    <div class="eval-actions"><button type="button" class="btn-primary btn-sm" id="compacc-toggle">${esc(btnTx)}</button></div>
+    <p class="eval-cfg-group">${esc(t('compacc.history'))}</p>
+    ${hist || `<p class="eval-detail">${esc(t('compacc.histEmpty'))}</p>`}
+  </div>`;
+}
+async function compAccLoadTrainer(uid) {
+  const box = $('compacc-box'); if (!box) return;
+  let st = { mode: 'trainer', history: [], exists: false };
+  try {
+    const cs = await getDoc(compAccessRef(uid));
+    if (cs.exists()) { const v = cs.data(); st = { mode: v.mode === 'client' ? 'client' : 'trainer', history: Array.isArray(v.history) ? v.history : [], exists: true }; }
+  } catch {}
+  COMPACC_CLIENT = { uid, ...st };
+  box.innerHTML = compAccHTML(st);
+  const btn = $('compacc-toggle');
+  if (btn) btn.onclick = () => compAccToggle(uid);
+}
+async function compAccToggle(uid) {
+  const st = COMPACC_CLIENT; if (!st || st.uid !== uid) return;
+  const newMode = st.mode === 'client' ? 'trainer' : 'client';
+  const entry = { mode: newMode, by: auth.currentUser.uid, byName: (UDATA && UDATA.name) || '', at: new Date().toISOString() };
+  const history = [...(st.history || []), entry].slice(-50);
+  try {
+    if (st.exists) {
+      await setDoc(compAccessRef(uid), { mode: newMode, history, updatedAt: serverTimestamp() }, { merge: true });
+    } else {
+      await setDoc(compAccessRef(uid), { kind: 'compAccess', uid, ownerUid: uid, mode: newMode, history, updatedAt: serverTimestamp() });
+    }
+    toast(t('compacc.saved'));
+    await openClient(uid);
+  } catch {
+    toast(t('compacc.needClientOpen'), true);
+  }
 }
 
 /* ================= METAS POR USUARIO (las establece el entrenador) ================= */
@@ -6430,8 +6516,11 @@ function weightChartSVG(data) {
 function renderWeight() {
   const body = $('weightBody');
   const data = WEIGHTS;
+  const canEdit = compClientCanEdit();
   if (!data.length) {
-    body.innerHTML = `<div class="wempty">${t('weight.empty', { btn: t('weight.add') })}</div>`;
+    body.innerHTML = canEdit
+      ? `<div class="wempty">${t('weight.empty', { btn: t('weight.add') })}</div>`
+      : `<div class="wempty">${t('compacc.notice')}</div>`;
     return;
   }
   const last = data[data.length - 1], first = data[0];
@@ -6450,13 +6539,13 @@ function renderWeight() {
     grasaCard = `<div class="wstat"><div class="lbl">${t('weight.bodyFat')}</div><div class="val">${last.fat}<small> %</small></div>
       <div class="delta ${dCls(dg)}">${prev && prev.fat > 0 ? dTxt(dg).replace('kg','pp') : '—'}</div></div>`;
   }
-  const delBtn = `<div style="text-align:center;margin-top:8px"><button class="btn-ghost btn-sm" id="btn-del-weight">${t('weight.delLast', { date: shortDate(last.date) })}</button></div>`;
+  const delBtn = canEdit ? `<div style="text-align:center;margin-top:8px"><button class="btn-ghost btn-sm" id="btn-del-weight">${t('weight.delLast', { date: shortDate(last.date) })}</button></div>` : '';
   const histRows = [...data].reverse().map(d => `
     <tr><td>${dateName(d.date)}</td><td class="num"><b>${d.weight}</b></td>
     <td class="num">${d.fat || '—'}</td><td class="num">${d.muscle || '—'}</td>
     <td class="num">${d.water || '—'}</td><td class="num">${d.visceral || '—'}</td>
     <td>${esc(d.notes)}</td>
-    <td><button class="btn-ghost btn-sm" data-edit-weight="${d.id}">${t('client.edit')}</button></td></tr>`).join('');
+    <td>${canEdit ? `<button class="btn-ghost btn-sm" data-edit-weight="${d.id}">${t('client.edit')}</button>` : ''}</td></tr>`).join('');
   body.innerHTML = `
     ${reminder}
     <div class="wstats">
@@ -6516,6 +6605,43 @@ let PROG_TARGET = null; // fecha del set mostrado en el área principal
 let EVALS = {};         // fecha -> { measures:{}, comp:{}, completedAt }
 let EVAL_CYCLE = { omitted: [], closedSets: [] };
 let EVAL_CFG = { requiredMeasures: [], units: 'metric' };
+/* ============ COMPOSICIÓN CORPORAL SOLO POR EL ENTRENADOR ============
+   Requisito de Ronald (correo expreso 2026-10-23 17:48, SOLO
+   desarrollo): los datos de composición corporal (peso, grasa %,
+   masa muscular %, agua %, grasa visceral y notas — el registro de
+   nutrition_weight, más el peso y la composición del chequeo) los
+   ingresa POR DEFECTO el entrenador/administrador, desde el primer
+   chequeo y siempre. El entrenador puede habilitar o retirar, POR
+   CLIENTE y de forma expresa, que el cliente los ingrese (caso
+   remoto incluido: el mismo interruptor). Cada cambio queda
+   registrado con quién y cuándo.
+   Casa de datos (patrón del proyecto, sin colección nueva): el
+   documento {uid}_compaccess de nutrition_progress, kind
+   'compAccess': { mode: 'trainer'|'client', history: [...] }.
+   SIN documento = modo 'trainer' (defecto seguro). El cliente crea
+   el suyo al abrir la app (ensureCompAccess); el entrenador lo
+   ACTUALIZA (la rama de update del propietario en las reglas
+   vigentes lo permite, como la nota de fase). Como la puerta PAR-Q,
+   esto es un guard de UI/ruta: la barrera de servidor exige el
+   candidato de reglas del paquete (no publicado). */
+let COMP_ACCESS = { mode: 'trainer', history: [], exists: false };
+function compAccessRef(uid) { return doc(db, 'nutrition_progress', `${uid}_compaccess`); }
+function compClientCanEdit() { return IS_OWNER || COMP_ACCESS.mode === 'client'; }
+async function ensureCompAccess() {
+  if (!auth.currentUser || IS_OWNER || COMP_ACCESS.exists) return;
+  try {
+    await setDoc(compAccessRef(auth.currentUser.uid),
+      { kind: 'compAccess', uid: auth.currentUser.uid, ownerUid: auth.currentUser.uid, mode: 'trainer', history: [], updatedAt: serverTimestamp() });
+    COMP_ACCESS = { mode: 'trainer', history: [], exists: true };
+  } catch {}
+}
+function applyCompAccessUI() {
+  const blocked = !compClientCanEdit();
+  const btn = $('btn-add-weight');
+  if (btn) btn.style.display = blocked ? 'none' : '';
+  const nb = $('compacc-notice');
+  if (nb) { nb.style.display = blocked ? '' : 'none'; nb.textContent = t('compacc.notice'); }
+}
 
 function addDaysISO(iso, days) {
   const d = new Date(iso + 'T12:00:00'); d.setDate(d.getDate() + days);
@@ -6543,6 +6669,7 @@ function progressUploadDate() {
 async function loadProgress() {
   PROG = {};
   EVALS = {}; EVAL_CYCLE = { omitted: [], closedSets: [] }; EVAL_CFG = { requiredMeasures: [], units: 'metric' }; EVAL_CTX_PLANS = null;
+  COMP_ACCESS = { mode: 'trainer', history: [], exists: false };
   try {
     /* Progreso personal: filtrado por el uid autenticado, también para
        el dueño. Sin relación con Storage. */
@@ -6556,9 +6683,12 @@ async function loadProgress() {
       else if (v.kind === 'evaluation' && v.date) EVALS[v.date] = { measures: v.measures || {}, comp: v.comp || null, completedAt: v.completedAt || null, planContext: v.planContext || null, phaseNote: v.phaseNote || null, phaseNoteAt: v.phaseNoteAt || null };
       else if (v.kind === 'evalCycle') EVAL_CYCLE = { omitted: Array.isArray(v.omitted) ? v.omitted : [], closedSets: Array.isArray(v.closedSets) ? v.closedSets : [] };
       else if (v.kind === 'evalConfig') EVAL_CFG = { requiredMeasures: Array.isArray(v.requiredMeasures) ? v.requiredMeasures : [], units: v.units === 'imperial' ? 'imperial' : 'metric' };
+      else if (v.kind === 'compAccess') COMP_ACCESS = { mode: v.mode === 'client' ? 'client' : 'trainer', history: Array.isArray(v.history) ? v.history : [], exists: true };
     });
   } catch { /* sin acceso o sin docs */ }
+  await ensureCompAccess();
   renderProgress();
+  applyCompAccessUI();
 }
 function setSlot(which, url) {
   const img = $('preview-' + which), empty = $('empty-' + which), act = $('actions-' + which);
@@ -6880,10 +7010,12 @@ function evalCompHTML(S) {
     + `<div class="table-scroll"><table class="eval-table"><thead><tr><th>${esc(t('eval.colMeasure'))}</th><th class="num">${esc(t('eval.colPrev'))}</th><th class="num">${esc(t('eval.colNow'))}</th><th class="num">${esc(t('eval.colDiff'))}</th></tr></thead><tbody>${fat.html}${mus.html}</tbody></table></div>`
     + notes.map(n => `<p class="eval-detail eval-comp-note">⚠️ ${esc(n)}</p>`).join('')
     + `<p class="eval-detail">${esc(t('eval.compMuscleNote'))}</p>`
-    + `<div class="eval-comp-form">`
+    + (compClientCanEdit() ? '' : `<p class="eval-detail">🔒 ${esc(t('compacc.notice'))}</p>`)
+    + (compClientCanEdit() ? `<div class="eval-comp-form">`
     + `<div class="eval-comp-row"><span class="eval-comp-name">${esc(t('eval.compFat'))} (%)</span><input type="number" id="eval-comp-fat-value" min="0" step="0.1" placeholder="${esc(t('eval.compValuePh'))}"><select id="eval-comp-fat-method" aria-label="${esc(t('eval.compMethod'))}">${methodOpts}</select><label class="eval-check"><input type="checkbox" id="eval-comp-fat-est"> ${esc(t('eval.compEstimate'))}</label><button type="button" class="btn-ghost btn-sm" id="eval-comp-fat-btn">${esc(t('eval.compRegister'))}</button></div>`
     + `<div class="eval-comp-row"><span class="eval-comp-name">${esc(t('eval.compMuscle'))}</span><input type="number" id="eval-comp-muscle-value" min="0" step="0.1" placeholder="${esc(t('eval.compValuePh'))}"><select id="eval-comp-muscle-unit" aria-label="kg / %"><option value="kg">kg</option><option value="%">%</option></select><select id="eval-comp-muscle-method" aria-label="${esc(t('eval.compMethod'))}">${methodOpts}</select><label class="eval-check"><input type="checkbox" id="eval-comp-muscle-est"> ${esc(t('eval.compEstimate'))}</label><button type="button" class="btn-ghost btn-sm" id="eval-comp-muscle-btn">${esc(t('eval.compRegister'))}</button></div>`
-    + `</div></div>`;
+    + `</div>` : '')
+    + `</div>`;
 }
 /* ---------- Tarjeta del ciclo + formulario + configuración ---------- */
 function renderEval() {
@@ -6927,17 +7059,20 @@ function renderEval() {
   const canOmit = !complete && (isFirst || (due && today >= due));
   if (canOmit) card += `<div class="eval-actions"><button type="button" class="btn-ghost btn-sm" id="eval-omit-btn">${esc(t('eval.omitBtn'))}</button></div>`;
 
+  const compBlocked = !compClientCanEdit();
   const formRows = EVAL_MEASURES.map(m => {
     const cur = m.id === 'peso' ? evalWeightOn(S) : evalMeasureValue(S, m.id);
     const unitLbl = EVAL_CFG.units === 'imperial' ? (m.kind === 'w' ? 'lb' : 'in') : (m.kind === 'w' ? 'kg' : 'cm');
+    const dis = (compBlocked && m.id === 'peso') ? ' disabled' : '';
     return `<div class="eval-field"><label for="eval-m-${m.id}">${esc(t('eval.measure.' + m.id))} <span class="eval-unit">(${unitLbl})</span></label>`
-      + `<input type="number" id="eval-m-${m.id}" step="0.1" min="0" value="${esc(evalToDisplay(m.kind, cur))}">`
+      + `<input type="number" id="eval-m-${m.id}" step="0.1" min="0" value="${esc(evalToDisplay(m.kind, cur))}"${dis}>`
       + `<span class="eval-guide">${esc(t('eval.guide.' + m.id))}</span></div>`;
   }).join('');
   const reqChecks = EVAL_MEASURES.map(m => `<label class="eval-check"><input type="checkbox" data-eval-req="${m.id}" ${(EVAL_CFG.requiredMeasures || []).includes(m.id) ? 'checked' : ''}> ${esc(t('eval.measure.' + m.id))}</label>`).join('');
   root.innerHTML = `<div class="eval-card" id="eval-card">${card}</div>`
     + `<div class="eval-block"><p class="eval-ficha-title">${esc(t('eval.measuresTitle'))} · ${esc(dateName(S))}</p>`
     + `<div class="eval-form">${formRows}</div>`
+    + (compBlocked ? `<p class="eval-detail">🔒 ${esc(t('compacc.noticeShort'))}</p>` : '')
     + `<div class="eval-actions"><button type="button" class="btn-primary btn-sm" id="eval-save-measures">${esc(t('eval.saveMeasures'))}</button>${EVAL_OK_MSG ? `<span class="eval-ok">${esc(EVAL_OK_MSG)}</span>` : ''}</div></div>`
     + evalFichaHTML(S)
     + evalCompHTML(S)
@@ -6979,7 +7114,7 @@ async function evalSaveMeasures() {
     EVALS[S] = Object.assign({}, prev, { measures });
     if (ctxM) EVALS[S].planContext = ctxM;
     const pesoEl = $('eval-m-peso');
-    const pesoRaw = pesoEl ? String(pesoEl.value).trim() : '';
+    const pesoRaw = (pesoEl && compClientCanEdit()) ? String(pesoEl.value).trim() : '';
     if (pesoRaw !== '') {
       const v = num(pesoRaw);
       if (v > 0) {
@@ -6998,6 +7133,7 @@ async function evalSaveMeasures() {
   } catch { toast(t('msg.uploadFail'), true); }
 }
 async function evalRegisterComp(kind) {
+  if (!compClientCanEdit()) { toast(t('compacc.blocked'), true); return; }
   const S = evalTargetDate();
   const vEl = $('eval-comp-' + kind + '-value'); if (!vEl) return;
   const value = num(vEl.value);
@@ -7508,6 +7644,11 @@ $('form-meal').addEventListener('submit', async e => {
 /* weightCtx: null = pesaje propio nuevo; {uid, docId, rec} = editar (propio o de un cliente, solo dueño) */
 let weightCtx = null;
 function openWeightModal(ctx) {
+  /* Composición corporal: abrir el modal para datos PROPIOS exige
+     habilitación (el entrenador conserva siempre el ingreso, y su
+     contexto trae el uid del cliente). */
+  const ownCtx = !ctx || ctx.uid === auth.currentUser.uid;
+  if (ownCtx && !compClientCanEdit()) { toast(t('compacc.blocked'), true); return; }
   weightCtx = ctx || null;
   const rec = ctx && ctx.rec;
   $('w-date').value = (rec && rec.date) || todayISO();
@@ -7527,6 +7668,13 @@ $('form-weight').addEventListener('submit', async e => {
   e.preventDefault();
   const date = $('w-date').value;
   const uid = (weightCtx && weightCtx.uid) || auth.currentUser.uid;
+  /* Guarda de RUTA (no solo de UI): un guardado propio sin
+     habilitación no escribe nada. */
+  if (uid === auth.currentUser.uid && !compClientCanEdit()) {
+    toast(t('compacc.blocked'), true);
+    $('weight-modal').style.display = 'none'; weightCtx = null;
+    return;
+  }
   const docId = (weightCtx && weightCtx.docId) || `${uid}_${date}`;
   const data = { ownerUid: uid, date, weight: num($('w-weight').value), fat: Math.max(0, num($('w-fat').value)),
     muscle: Math.max(0, num($('w-muscle').value)), water: Math.max(0, num($('w-water').value)), visceral: Math.max(0, num($('w-visceral').value)),
@@ -8127,8 +8275,20 @@ setInterval(() => { try { pendDockTick(); } catch {} }, 60000);
           pendDraftArm();
           aiOpenMealModal();
         } else if (type === 'weight') {
-          openWeightModal(null);
-          $('w-date').value = date;
+          if (!compClientCanEdit()) {
+            /* El pendiente de peso SIGUE existiendo (se calcula de
+               los registros reales), pero su acción ya no abre el
+               ingreso: lleva a la vista de solo lectura y avisa.
+               La resolución del pendiente queda en manos del
+               entrenador, que es quien registra el pesaje. */
+            const c = $('progress-content');
+            if (c && c.style.display === 'none') { const pb = $('btn-toggle-progress'); if (pb) pb.click(); }
+            const r = $('weightBody'); if (r) { try { r.scrollIntoView({ behavior: 'smooth', block: 'start' }); } catch {} }
+            toast(t('compacc.blocked'), true);
+          } else {
+            openWeightModal(null);
+            $('w-date').value = date;
+          }
         } else if (type === 'training') {
           const c = $('train-content');
           if (c && c.style.display === 'none') { const tb = $('btn-toggle-train'); if (tb) tb.click(); }
