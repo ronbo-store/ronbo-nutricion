@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>ronbo.nutri · Private</title>
 <meta name="robots" content="noindex, nofollow">
-<link rel="stylesheet" href="styles.css?v=20261022-propuestas-cliente">
+<link rel="stylesheet" href="styles.css?v=20261022-botones-centrados">
 <script type="importmap">
 {
   "imports": {
@@ -224,11 +224,15 @@
     <div id="progress-history" class="progress-history"><div class="wempty" data-i18n="progress.loading">Loading photos…</div></div>
     <div id="eval-root"></div>
     </div>
-    <h3 class="mealhelp-head" data-i18n="mealhelp.title">Meal help</h3>
-    <div id="mealhelp-content">
-      <p class="progress-hint" data-i18n="mealhelp.hint">The photo is not stored.</p>
-      <div id="mealhelp-list" class="mealhelp-list"></div>
-    </div>
+    <!-- «Ayuda con comidas» FUERA de esta vista (Ronald, 2026-10-22:
+         «Eso de ayuda de comida no me gusta»): desaparecen el
+         encabezado, el aviso «La foto no se almacena.» y la lista de
+         la retirada ruta manual (#mealhelp-list; la app no escribe
+         en meal_help desde 2026-10-17 y loadMealHelp() queda
+         protegida ante nulo). El aviso honesto de la foto NO se
+         pierde: se reubica como nota dentro de «Permisos y
+         privacidad», sección «Privacidad y datos» (perm.photoNote).
+         Nada más de esta vista cambia. -->
     <div id="train-content" style="display:none">
       <div id="my-training"><div class="wempty" data-i18n="train.loading">Loading your plan…</div></div>
       <div id="my-templates"></div>
@@ -270,6 +274,11 @@
       </div>
       <div class="perms-section privacy-panel" id="privacy-section">
         <h3 class="perms-section-title" data-i18n="priv.sectionTitle">Privacy &amp; data</h3>
+        <!-- Nota reubicada (Ronald, 2026-10-22): el aviso «la foto no
+             se almacena» del retirado bloque «Ayuda con comidas» vive
+             aquí, en su contexto de privacidad. Dentro de este panel
+             no existía ninguna mención equivalente: no se duplica. -->
+        <p class="progress-hint" data-i18n="perm.photoNote">The food photo you send for analysis is not stored.</p>
         <div class="manage-list" id="privacy-manage-list" style="display:none">
           <div id="privacy-status" class="manage-info"></div>
           <button type="button" class="manage-item" id="btn-view-notice"><span class="menu-num"></span><span class="manage-label" data-i18n="priv.viewNotice">View the privacy notice</span><span class="manage-go">›</span></button>
@@ -542,6 +551,6 @@
 
 <div id="toast" class="toast"></div>
 
-<script type="module" src="app.js?v=20261022-propuestas-cliente"></script>
+<script type="module" src="app.js?v=20261022-botones-centrados"></script>
 </body>
 </html>

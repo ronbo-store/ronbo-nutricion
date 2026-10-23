@@ -146,7 +146,10 @@ table.detail tr.total td { font-weight: 800; background: #f0fdf4; border-top: 2p
 .frow { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
 .frow3 { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 10px; }
 @media (max-width: 520px) { .frow, .frow3 { grid-template-columns: 1fr; } }
-.modal-foot { display: flex; justify-content: flex-end; gap: 10px; margin-top: 14px; }
+/* Pie de modal: el par Cancelar/Guardar se justifica AL CENTRO
+   como grupo (regla global de botones al centro, Ronald,
+   2026-10-22); orden y separación entre ambos no cambian. */
+.modal-foot { display: flex; justify-content: center; gap: 10px; margin-top: 14px; }
 .toast { position: fixed; bottom: 22px; left: 50%; transform: translateX(-50%) translateY(20px); background: #1f2a44; color: #fff; padding: 12px 20px; border-radius: 10px; font-size: 14px; opacity: 0; pointer-events: none; transition: all .25s; z-index: 99; max-width: 90vw; }
 .toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
 .toast.err { background: #7f1d1d; }
@@ -373,8 +376,16 @@ table.whist { min-width: 640px; }
    Al desplegarse, el panel muestra primero una COLETILLA
    informativa sencilla (texto menor y atenuado) y después las
    DOS secciones tituladas en mayúsculas discretas. Nada de esto
-   se duplica fuera del despliegue. */
-.btn-secondary.perms-toggle { justify-content: flex-start; text-align: left; text-transform: uppercase; letter-spacing: .03em; padding: 11px 13px; font-size: 13.5px; font-weight: 600; border-width: 1px; border-radius: 10px; }
+   se duplica fuera del despliegue.
+   CENTRADO (Ronald, 2026-10-22): la regla global «botones
+   siempre al centro» SUSTITUYE a la alineación a la izquierda de
+   2026-10-19. El botón conserva todo lo demás —discreto y fino,
+   ancho ajustado a su contenido, etiqueta en mayúsculas, contorno
+   de 1 px— y solo cambia su justificación: su propia regla lo
+   convierte en bloque flexible de ancho ajustado con márgenes
+   automáticos, centrado en su tarjeta y con su contenido
+   (etiqueta + chevron) también centrado. */
+.btn-secondary.perms-toggle { display: flex; width: fit-content; max-width: 100%; margin-inline: auto; justify-content: center; text-align: center; text-transform: uppercase; letter-spacing: .03em; padding: 11px 13px; font-size: 13.5px; font-weight: 600; border-width: 1px; border-radius: 10px; }
 .perms-toggle .manage-chev { font-size: 11px; }
 .perms-intro { margin: 12px 2px 0; font-size: 12.5px; line-height: 1.45; color: #64748b; }
 .perms-section { margin-top: 16px; }
@@ -414,7 +425,6 @@ table.whist { min-width: 640px; }
 .face-toggle .manage-chev { font-size: 12px; }
 .face-toggle + div { margin-top: 12px; }
 .mealhelp-panel .mealhelp-upload { display: block; width: 100%; box-sizing: border-box; text-align: center; margin: 10px 0 0; }
-.mealhelp-panel #mealhelp-content { margin-top: 10px; }
 /* «Añadir comida manualmente» (2026-10-19): nació como botón
    secundario de marca a todo ancho dentro de «Ayuda con comidas»;
    el ajuste «zona del día» (Ronald, 2026-10-19 16:02–16:04) lo
@@ -423,8 +433,14 @@ table.whist { min-width: 640px; }
    ÍNTEGRO («Añadir comida manualmente» / «Add food manually»),
    tipografía 13.5 px, relleno reducido, una línea (nowrap), radio
    de pastilla. Su especificidad (.btn-secondary.meal-manual-pill)
-   gana a .btn-secondary sin modificar esa clase. */
-.btn-secondary.meal-manual-pill { margin-left: auto; width: auto; max-width: 100%; box-sizing: border-box; padding: 7px 13px; font-size: 13.5px; font-weight: 600; line-height: 1.25; border-radius: 999px; white-space: nowrap; }
+   gana a .btn-secondary sin modificar esa clase.
+   CENTRADO (Ronald, 2026-10-22, regla global «botones siempre al
+   centro»): margin-left:auto se convierte en margin-inline:auto.
+   Como único elemento de su fila (.summary-head de la vista de
+   comida), la pastilla queda justificada AL CENTRO; en .pend-head
+   —fila de cabecera con título y cierre, excepción declarada de
+   la regla— el margen automático solo redistribuye el hueco. */
+.btn-secondary.meal-manual-pill { margin-inline: auto; width: auto; max-width: 100%; box-sizing: border-box; padding: 7px 13px; font-size: 13.5px; font-weight: 600; line-height: 1.25; border-radius: 999px; white-space: nowrap; }
 /* Fila v4 (2026-10-19): las tres protagonistas de la vista principal
    —«Mi progreso», «Analiza la comida» y «Mi plan de entrenamiento»—
    se convierten en UNA fila horizontal de botones REDONDOS (círculos
@@ -468,12 +484,14 @@ table.whist { min-width: 640px; }
 .round-action[aria-expanded="true"] .round-circle { background: #00857c; box-shadow: 0 0 0 3px #fff, 0 0 0 6px #00aca1; }
 .round-label { font-size: 11.5px; font-weight: 600; color: #1f2a44; text-align: center; line-height: 1.15; text-transform: uppercase; white-space: nowrap; }
 .round-chev { font-size: 10px; color: #00aca1; }
-/* «Ayuda con comidas» SIN control de colapso (Ronald, 2026-10-19
-   16:01: «Quita eso»): la antigua fila-botón .mealhelp-link con
-   su chevron desaparece; queda un ENCABEZADO FIJO de sección y el
-   contenido siempre abierto bajo él. */
-.mealhelp-head { font-size: 14px; color: #1f2a44; margin: 16px 0 0; }
-.main-actions #progress-content, .main-actions #mealhelp-content, .main-actions #train-content { margin-top: 12px; }
+/* El encabezado fijo .mealhelp-head y el margen propio de
+   #mealhelp-content desaparecen con el bloque «Ayuda con
+   comidas», retirado de la vista por Ronald el 2026-10-22 (el
+   aviso de la foto vive ahora en «Permisos y privacidad»). Las
+   clases .mealhelp-list/.mealhelp-item se CONSERVAN: las sigue
+   usando la lista de revisión del entrenador en la ficha del
+   cliente, que no es parte del bloque retirado. */
+.main-actions #progress-content, .main-actions #train-content { margin-top: 12px; }
 .sr-only { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0, 0, 0, 0); white-space: nowrap; }
 .block-head { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; margin-bottom: 10px; }
 .block-head .block-title { flex: 1; font-size: 14px; color: #1f2a44; }
@@ -764,3 +782,65 @@ table.whist { min-width: 640px; }
 .prop-sug { display: flex; flex-direction: column; gap: 4px; margin-top: 4px; }
 .prop-sug-item { text-align: left; background: #fff; border: 1px solid #d5dbe1; border-radius: 8px; padding: 6px 8px; cursor: pointer; font-size: 13px; }
 .prop-form-actions { display: flex; gap: 8px; margin-top: 10px; }
+
+/* ============ REGLA DE DISEÑO — BOTONES SIEMPRE AL CENTRO ============
+   (Ronald, 2026-10-22: «Los botones deberían quedar siempre
+   justificados al centro siempre».) La regla se aplica a nivel de
+   SISTEMA —por contenedor y por clase compartida, nunca parche
+   botón a botón— en tres mecanismos:
+
+   (A) BOTÓN INDEPENDIENTE: el botón de acción que vive como hijo
+       directo de una tarjeta/panel, de una sección, de un
+       formulario o del panel de IA se convierte en bloque de ancho
+       ajustado a su contenido y se centra con márgenes automáticos.
+       Cubre también el contenido futuro que se pinte en esos
+       contenedores con las clases de botón de la casa.
+   (B) BOTÓN ÚNICO en un contenedor anónimo: si un <div> contiene
+       SOLO un botón de acción (sin hermanos), ese botón se centra
+       igual. Los botones con hermanos (parejas, filas) no se ven
+       afectados por (B).
+   (C) FILAS DE ACCIONES de un mismo paso: el GRUPO se centra y los
+       botones conservan su orden y su separación — el pie de modal
+       (.modal-foot, ajustado en su propia regla), las acciones del
+       panel de IA (.ai-actions), las filas de guardar de la zona
+       privada (.fa-btnrow), la fila de retirada específica
+       (.privacy-btns), las acciones del formulario de propuestas
+       (.prop-form-actions) y las filas de botones dentro de un
+       modal (.frow con botones directos).
+   Los dos casos de la captura de Ronald se resuelven en las reglas
+   propias de cada clase: la pastilla .meal-manual-pill (margen
+   automático en ambos lados) y el .perms-toggle (bloque flexible
+   centrado en su tarjeta).
+
+   EXCEPCIONES — la posición ES la función y NO se centran:
+   · el dock flotante (.rounds-row: la fila ya es un conjunto
+     centrado y cada redondo es una pestaña, no un botón suelto);
+   · los botones de cerrar «✕» (.pend-close y cierres de modal);
+   · los botones DENTRO de filas: cabeceras con título
+     (.block-head, .card-head, .pend-head), filas de lista con sus
+     acciones (.user-row/.user-actions), filas de tabla (el ✕ del
+     diario), acciones de los huecos de foto (.slot-actions) y
+     sugerencias de una lista (.prop-sug-item);
+   · los selectores segmentados y de navegación (.lang-toggle,
+     .auth-tabs, .main-tabs) — son un control, no botones sueltos;
+   · los controles dentro de campos de formulario (.pw-eye) y las
+     filas de menú a todo ancho (.manage-item: su fila ES el botón);
+   · los enlaces de texto (.forgot-link, .logout-link) no son
+     botones y quedan fuera de la regla. */
+.panel > .btn-primary:not(.face-toggle),
+.panel > .btn-secondary:not(.manage-toggle):not(.face-toggle),
+.panel > .btn-ghost:not(.face-toggle),
+.perms-section > .btn-primary, .perms-section > .btn-secondary, .perms-section > .btn-ghost,
+.ai-panel > .btn-primary, .ai-panel > .btn-secondary, .ai-panel > .btn-ghost, .ai-panel > .btn-main,
+.modal form > .btn-primary, .modal form > .btn-secondary, .modal form > .btn-ghost, .modal form > .btn-main,
+.auth-card form > .btn-primary, .auth-card form > .btn-secondary, .auth-card form > .btn-ghost,
+#renew-box > .btn-primary, #renew-box > .btn-ghost,
+.m-ai-text > .btn-main {
+  display: block; width: fit-content; max-width: 100%; margin-inline: auto;
+}
+div > .btn-primary:only-child, div > .btn-secondary:only-child,
+div > .btn-ghost:only-child, div > .btn-main:only-child {
+  display: block; width: fit-content; max-width: 100%; margin-inline: auto;
+}
+.ai-actions, .fa-btnrow, .privacy-btns, .prop-form-actions { justify-content: center; }
+.modal form .frow:has(> button) { display: flex; justify-content: center; gap: 10px; }
