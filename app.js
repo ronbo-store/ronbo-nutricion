@@ -74,8 +74,18 @@ let suppressAuthCheck = false; // evita el chequeo durante el registro (el doc a
    CONSERVA (las reglas vivas lo validan); la interfaz lo presenta
    como «Alumno». Cuentas SIN campo features = legadas: todo
    habilitado (compatibilidad: Ronald y Prueba Ronald intactos).
-   La modalidad se registra en la relación; CAMBIARLA está apagado
-   por diseño (punto abierto de Ronald, sin decidir). */
+   La modalidad se registra en la relación. Su CAMBIO (punto 9)
+   quedó DECIDIDO por Ronald (correo memphis 2026-10-24 14:00 CDT,
+   id 1a16f4933c82667b): «el Alumno puede cambiar de modalidad
+   después. Lo aprueba el entrenador y lo confirma el
+   administrador» — espejo del flujo de comidas. La solicitud vive
+   en modality_requests/{alumnoUid} (id determinista, como la
+   relación, para que las reglas verifiquen los acoplamientos) y
+   la modalidad VIGENTE no cambia hasta la confirmación del
+   administrador. Sin entrenador (en espera), la solicitud nace
+   ante el administrador y él la resuelve completa. Si el Alumno
+   cambia de entrenador con una solicitud viva, esta se cierra
+   como cancelada en el mismo lote. */
 const ESC_MODALITIES = ['presencial', 'hibrido', 'virtual'];
 const ESC_QUOTA = { basico: 5, premium: 10, elite: 30, libre: 30 };
 const ESC_AI_BY_LEVEL = { basico: 10, premium: 20, elite: 50, libre: 10 };
@@ -159,6 +169,7 @@ async function loadRolesX() {
          lo mueva (cambio de entrenador o solicitud). */
       MY_REL = { trainerUid: UDATA.trainerUid || null, modality: UDATA.modality || null, status: UDATA.assignmentStatus === 'assigned' ? 'activa' : 'en_espera', legacy: true };
     }
+    await loadMyModalityRequest();
   }
   applyFeatureGates();
   renderMyTrainerBox();
@@ -178,8 +189,20 @@ function applyFeatureGates() {
     const tr = document.getElementById('train-content'); if (tr) tr.style.display = 'none';
   }
 }
-/* ---------- Alumno: «Mi entrenador» + comidas por solicitud ---------- */
+/* ---------- Alumno: «Mi entrenador» + comidas y modalidad por solicitud ---------- */
 let MY_MEAL_REQ = undefined; // undefined = sin cargar; null = ninguna
+let MY_MOD_REQ = undefined;  // undefined = sin cargar; null = ninguna
+/* Solicitud de cambio de modalidad (punto 9): UN documento por
+   alumno, modality_requests/{miUid} — la vigente o la última
+   cerrada; el historial completo vive en la subcolección history
+   de la relación y en audit_log. */
+async function loadMyModalityRequest() {
+  MY_MOD_REQ = null;
+  try {
+    const s = await getDoc(doc(db, 'modality_requests', auth.currentUser.uid));
+    if (s.exists()) MY_MOD_REQ = { id: s.id, ...s.data() };
+  } catch {}
+}
 async function loadMyMealRequest() {
   MY_MEAL_REQ = null;
   try {
@@ -196,6 +219,7 @@ async function renderMyTrainerBox() {
   if (ROLE !== 'usuario' || !auth.currentUser) { box.style.display = 'none'; return; }
   box.style.display = '';
   if (MY_MEAL_REQ === undefined) await loadMyMealRequest();
+  if (MY_MOD_REQ === undefined) await loadMyModalityRequest();
   const rel = MY_REL || {};
   const trainerName = rel.trainerUid ? ((ADMIN_NAME_CACHE[rel.trainerUid]) || rel.trainerUid) : null;
   let pool = [];
@@ -206,6 +230,26 @@ async function renderMyTrainerBox() {
     pool = await escPoolTrainers(rel.modality || null, users.filter(u => u.isOwner || u.role === 'entrenador'));
   } catch {}
   const tName = rel.trainerUid ? (ADMIN_NAME_CACHE[rel.trainerUid] || rel.trainerUid) : null;
+  /* Cambio de modalidad (punto 9): mientras una solicitud vive, se
+     muestra su estado y NO se ofrece otra (no duplica); la vigente
+     no se mueve. Sin solicitud viva: selector con las OTRAS dos
+     modalidades (pedir la misma no se ofrece). */
+  const mreq = MY_MOD_REQ;
+  let modHtml = '';
+  if (rel.modality) {
+    if (mreq && mreq.status === 'pendiente_entrenador') modHtml = `<p class="progress-hint">⏳ ${esc(t('esc.modPendingTrainer', { to: escModLabel(mreq.toModality) }))}</p>`;
+    else if (mreq && mreq.status === 'pendiente_administrador') modHtml = `<p class="progress-hint">⏳ ${esc(t(mreq.trainerUid ? 'esc.modPendingAdmin' : 'esc.modPendingAdminDirect', { to: escModLabel(mreq.toModality) }))}</p>`;
+    else {
+      const others = ESC_MODALITIES.filter(m => m !== rel.modality);
+      modHtml = `<h3 class="history-title">${esc(t('esc.modChangeTitle'))}</h3>
+    <p class="progress-hint">${esc(t('esc.modChangeHint'))}</p>
+    ${mreq && mreq.status === 'rechazada' ? `<p class="progress-hint">⚠️ ${esc(t('esc.modRejected'))}</p>` : ''}
+    ${mreq && mreq.status === 'cancelada' ? `<p class="progress-hint">⚠️ ${esc(t('esc.modCancelled'))}</p>` : ''}
+    <label class="muted">${esc(t('esc.modToLabel'))}
+      <select id="mod-to-sel">${others.map(m => `<option value="${m}">${esc(escModLabel(m))}</option>`).join('')}</select></label>
+    <div class="eval-actions"><button type="button" class="btn-primary btn-sm" id="btn-mod-request">${esc(t('esc.modRequestBtn'))}</button></div>`;
+    }
+  }
   const mealsOn = featuresOf(UDATA).meals === true;
   const req = MY_MEAL_REQ;
   let mealsHtml = '';
@@ -221,7 +265,7 @@ async function renderMyTrainerBox() {
     <h3 class="history-title">${esc(t('esc.myTrainerTitle'))}</h3>
     ${rel.trainerUid ? `<p class="progress-hint">${esc(t('esc.currentTrainer'))}: <b>${esc(tName || '')}</b>${rel.modality ? ` · ${esc(t('esc.modality'))}: <b>${esc(escModLabel(rel.modality))}</b>` : ''}</p>`
       : `<p class="progress-hint">${esc(t('esc.noTrainerYet'))}</p>`}
-    ${rel.modality ? `<p class="progress-hint">${esc(t('esc.modalityFixed'))}</p>` : ''}
+    ${modHtml}
     <label class="muted">${esc(t('esc.changeTrainer'))}
       <select id="my-trainer-sel">
         <option value="">${esc(t('esc.waitOption'))}</option>
@@ -242,6 +286,29 @@ async function renderMyTrainerBox() {
     await auditLog('meals', 'meals.requested', auth.currentUser.uid, data.status);
     MY_MEAL_REQ = { ...data, id: 'local' };
     toast(t('esc.mealsRequested'));
+    renderMyTrainerBox();
+  };
+  const modBtn = $('btn-mod-request');
+  if (modBtn) modBtn.onclick = async () => {
+    const sel = $('mod-to-sel');
+    const to = sel ? sel.value : '';
+    const from = rel.modality;
+    /* Pedir la MISMA modalidad no se ofrece en el selector; esta es
+       la doble guarda: si llegara, no se crea ninguna solicitud. */
+    if (!to || !from || to === from) return;
+    const trainerUid = (MY_REL && MY_REL.trainerUid) || UDATA.trainerUid || null;
+    const data = {
+      alumnoUid: auth.currentUser.uid, trainerUid, fromModality: from, toModality: to,
+      status: trainerUid ? 'pendiente_entrenador' : 'pendiente_administrador',
+      requestedAt: serverTimestamp(), note: ''
+    };
+    /* setDoc SIN merge sobre el id determinista: una re-solicitud
+       tras un cierre reemplaza el documento y descarta las firmas
+       del ciclo anterior; con una viva, la interfaz ni lo ofrece. */
+    await setDoc(doc(db, 'modality_requests', auth.currentUser.uid), data);
+    await auditLog('relation', 'modality.requested', auth.currentUser.uid, from + ' → ' + to);
+    MY_MOD_REQ = { ...data };
+    toast(t('esc.modRequested'));
     renderMyTrainerBox();
   };
   const chBtn = $('btn-change-trainer');
@@ -265,7 +332,19 @@ async function escChangeTrainer(newTrainerUid) {
   const oldT = (MY_REL && MY_REL.trainerUid) || null;
   const modality = (MY_REL && MY_REL.modality) || UDATA.modality || 'virtual';
   const approved = UDATA && UDATA.approved === true;
+  /* Punto 9 (decisión documentada): una solicitud de modalidad
+     VIVA se cierra como CANCELADA en el mismo lote del cambio de
+     entrenador — nació bajo la relación anterior y no la hereda el
+     entrenador nuevo; el alumno puede volver a pedirla después. */
+  let liveModReq = null;
+  try {
+    const ms = await getDoc(doc(db, 'modality_requests', me));
+    if (ms.exists() && String(ms.data().status || '').startsWith('pendiente_')) liveModReq = ms.data();
+  } catch {}
   const batch = writeBatch(db);
+  if (liveModReq) batch.update(doc(db, 'modality_requests', me), {
+    status: 'cancelada', cancelledBy: me, cancelledAt: serverTimestamp(), cancelReason: 'cambio_entrenador'
+  });
   batch.set(doc(db, 'trainer_relations', me), {
     alumnoUid: me, trainerUid: newTrainerUid, modality,
     status: newTrainerUid ? 'activa' : 'en_espera',
@@ -295,6 +374,10 @@ async function escChangeTrainer(newTrainerUid) {
     });
   } catch {}
   await auditLog('relation', 'relation.changed', me, (oldT || '—') + ' → ' + (newTrainerUid || '—'));
+  if (liveModReq) {
+    await auditLog('relation', 'modality.cancelled', me, 'cambio_entrenador');
+    MY_MOD_REQ = { ...liveModReq, status: 'cancelada', cancelReason: 'cambio_entrenador' };
+  }
   MY_REL = { trainerUid: newTrainerUid, modality, status: newTrainerUid ? 'activa' : 'en_espera' };
   if (UDATA) { UDATA.trainerUid = newTrainerUid; UDATA.assignmentStatus = newTrainerUid ? 'assigned' : 'waiting'; }
   toast(t('esc.changedOk'));
@@ -379,6 +462,46 @@ async function renderMealTrainerBox() {
     }, { merge: true });
     await auditLog('meals', 'meals.rejected', null, b.dataset.mealReject);
     renderMealTrainerBox();
+  });
+}
+/* ---------- Entrenador: solicitudes de cambio de modalidad (paso 1) ---------- */
+async function renderModalityTrainerBox() {
+  const box = $('modality-trainer-box');
+  if (!box) return;
+  if (ROLE !== 'entrenador' && ROLE !== 'administrador') { box.style.display = 'none'; return; }
+  const me = auth.currentUser.uid;
+  let reqs = [];
+  try {
+    const snap = await getDocs(collection(db, 'modality_requests'));
+    snap.forEach(d => { const v = d.data(); if (v.trainerUid === me && v.status === 'pendiente_entrenador') reqs.push({ id: d.id, ...v }); });
+  } catch {}
+  box.style.display = '';
+  box.innerHTML = `
+  <div class="panel">
+    <h3 class="history-title">${esc(t('esc.modRequestsTitle'))} (${reqs.length})</h3>
+    ${reqs.length ? reqs.map(r => `
+    <div class="user-row">
+      <div><b>${esc(ADMIN_NAME_CACHE[r.alumnoUid] || r.alumnoUid)}</b><br><span class="muted">${esc(escModLabel(r.fromModality))} → ${esc(escModLabel(r.toModality))}</span></div>
+      <div class="user-actions">
+        <button class="btn-primary btn-sm" data-mod-trainer-approve="${r.id}">${esc(t('esc.modApprove'))}</button>
+        <button class="btn-ghost btn-sm" data-mod-reject="${r.id}">${esc(t('esc.rejectBtn'))}</button>
+      </div>
+    </div>`).join('') : `<div class="wempty">${esc(t('esc.noModRequests'))}</div>`}
+  </div>`;
+  document.querySelectorAll('[data-mod-trainer-approve]').forEach(b => b.onclick = async () => {
+    await setDoc(doc(db, 'modality_requests', b.dataset.modTrainerApprove), {
+      status: 'pendiente_administrador', trainerDecisionBy: me, trainerDecisionAt: serverTimestamp()
+    }, { merge: true });
+    await auditLog('relation', 'modality.trainerApproved', b.dataset.modTrainerApprove, '');
+    toast(t('esc.mealApprovedOk'));
+    renderModalityTrainerBox();
+  });
+  document.querySelectorAll('[data-mod-reject]').forEach(b => b.onclick = async () => {
+    await setDoc(doc(db, 'modality_requests', b.dataset.modReject), {
+      status: 'rechazada', trainerDecisionBy: me, trainerDecisionAt: serverTimestamp()
+    }, { merge: true });
+    await auditLog('relation', 'modality.rejected', b.dataset.modReject, '');
+    renderModalityTrainerBox();
   });
 }
 /* ---------- Administrador: membresías, confirmaciones y banderas ---------- */
@@ -478,6 +601,58 @@ async function renderEscAdminBoxes() {
     document.querySelectorAll('[data-meal-admin-reject]').forEach(b => b.onclick = async () => {
       await setDoc(doc(db, 'meal_requests', b.dataset.mealAdminReject), { status: 'rechazada', adminDecisionBy: auth.currentUser.uid, adminDecisionAt: serverTimestamp() }, { merge: true });
       await auditLog('meals', 'meals.rejected', null, b.dataset.mealAdminReject);
+      loadAdmin();
+    });
+  }
+  /* --- Modalidad: confirmación del administrador (segundo paso) ---
+     Confirmar es el ÚNICO gesto que cambia la modalidad: en el
+     mismo lote se aprueba la solicitud, se escribe la modalidad
+     nueva en la relación y en el espejo del usuario; después se
+     anexa el evento al historial de la relación y la auditoría.
+     Si la solicitud nació sin entrenador (trainerUid null), este
+     gesto la resuelve completa (aprueba y confirma a la vez). */
+  const modbox = $('modality-admin-box');
+  if (modbox) {
+    let reqs = [];
+    try {
+      const snap = await getDocs(collection(db, 'modality_requests'));
+      snap.forEach(d => { const v = d.data(); if (v.status === 'pendiente_administrador') reqs.push({ id: d.id, ...v }); });
+    } catch {}
+    modbox.innerHTML = reqs.length ? reqs.map(r => `
+    <div class="user-row">
+      <div><b>${esc((ADMIN_USERS.find(u => u.id === r.alumnoUid) || {}).name || r.alumnoUid)}</b><br><span class="muted">${esc(escModLabel(r.fromModality))} → ${esc(escModLabel(r.toModality))}${r.trainerUid ? '' : ' · ' + esc(t('esc.modNoTrainer'))}</span></div>
+      <div class="user-actions">
+        <button class="btn-primary btn-sm" data-mod-confirm="${r.id}">${esc(t(r.trainerUid ? 'esc.modConfirm' : 'esc.modConfirmDirect'))}</button>
+        <button class="btn-ghost btn-sm" data-mod-admin-reject="${r.id}">${esc(t('esc.rejectBtn'))}</button>
+      </div>
+    </div>`).join('') : `<div class="wempty">${esc(t('esc.noModRequests'))}</div>`;
+    document.querySelectorAll('[data-mod-confirm]').forEach(b => b.onclick = async () => {
+      const alumno = b.dataset.modConfirm;
+      const req = reqs.find(x => x.id === alumno);
+      if (!req) return;
+      let u = {};
+      try { const s = await getDoc(doc(db, 'users', alumno)); if (s.exists()) u = s.data(); } catch {}
+      const batch = writeBatch(db);
+      batch.update(doc(db, 'modality_requests', alumno), { status: 'aprobada', adminDecisionBy: auth.currentUser.uid, adminDecisionAt: serverTimestamp() });
+      batch.set(doc(db, 'trainer_relations', alumno), {
+        alumnoUid: alumno,
+        trainerUid: (u.trainerUid !== undefined ? u.trainerUid : (req.trainerUid || null)),
+        modality: req.toModality, status: u.trainerUid ? 'activa' : 'en_espera', updatedAt: serverTimestamp()
+      }, { merge: true });
+      batch.set(doc(db, 'users', alumno), { modality: req.toModality }, { merge: true });
+      await batch.commit();
+      try {
+        await setDoc(doc(db, 'trainer_relations', alumno, 'history', 'ev' + Date.now()), {
+          type: 'modalidad', fromModality: req.fromModality, toModality: req.toModality,
+          modality: req.toModality, by: auth.currentUser.uid, at: serverTimestamp()
+        });
+      } catch {}
+      await auditLog('relation', 'modality.adminConfirmed', alumno, req.fromModality + ' → ' + req.toModality);
+      toast(t('esc.modChangedOk')); loadAdmin();
+    });
+    document.querySelectorAll('[data-mod-admin-reject]').forEach(b => b.onclick = async () => {
+      await setDoc(doc(db, 'modality_requests', b.dataset.modAdminReject), { status: 'rechazada', adminDecisionBy: auth.currentUser.uid, adminDecisionAt: serverTimestamp() }, { merge: true });
+      await auditLog('relation', 'modality.rejected', b.dataset.modAdminReject, '');
       loadAdmin();
     });
   }
@@ -714,7 +889,25 @@ en: {
   'esc.changeBtn': 'Change',
   'esc.changedOk': 'Trainer changed.',
   'esc.waitOption': 'No trainer for now — wait for assignment',
-  'esc.modalityFixed': 'Your modality stays as registered; changing it is not available yet.',
+  'esc.modChangeTitle': '🔀 Change modality',
+  'esc.modChangeHint': 'A modality change takes two steps: your trainer approves it first and the administrator confirms it. Your current modality stays in place until it is confirmed.',
+  'esc.modToLabel': 'New modality',
+  'esc.modRequestBtn': 'Request the change',
+  'esc.modRequested': 'Modality request sent.',
+  'esc.modPendingTrainer': 'Your change to {to} is waiting for your trainer to approve it.',
+  'esc.modPendingAdmin': 'Your trainer approved the change to {to} — now waiting for the administrator to confirm.',
+  'esc.modPendingAdminDirect': 'Your change to {to} is waiting for the administrator (you have no trainer, so they resolve it in full).',
+  'esc.modRejected': 'Your last modality change was not approved. You can request it again.',
+  'esc.modCancelled': 'Your pending modality change was cancelled because you changed trainer. You can request it again.',
+  'esc.modRequestsTitle': '🔀 Modality change requests',
+  'esc.noModRequests': 'No modality changes waiting.',
+  'esc.modApprove': 'Approve (send to administrator)',
+  'esc.modAdminTitle': '🔀 Modality confirmations',
+  'esc.modAdminHint': 'A modality change applies only when you confirm it, after the trainer approved it. If the student has no trainer, their request reaches you directly and you approve and confirm it yourself.',
+  'esc.modConfirm': 'Confirm — apply the change',
+  'esc.modConfirmDirect': 'Approve and confirm — apply the change',
+  'esc.modNoTrainer': 'no trainer — you resolve it',
+  'esc.modChangedOk': 'Modality updated.',
   'esc.mealsOffTitle': '🍽️ Meal logging is not active yet',
   'esc.mealsOffHint': 'Meal logging turns on by request: your trainer approves it first and the administrator confirms it.',
   'esc.mealsRequest': 'Request meal logging',
@@ -1780,7 +1973,25 @@ es: {
   'esc.changeBtn': 'Cambiar',
   'esc.changedOk': 'Entrenador cambiado.',
   'esc.waitOption': 'Sin entrenador por ahora: esperar asignación',
-  'esc.modalityFixed': 'Tu modalidad queda como la registraste; cambiarla aún no está disponible.',
+  'esc.modChangeTitle': '🔀 Cambiar de modalidad',
+  'esc.modChangeHint': 'El cambio de modalidad va en dos pasos: primero lo aprueba tu entrenador y lo confirma el administrador. Tu modalidad actual sigue vigente hasta que se confirme.',
+  'esc.modToLabel': 'Nueva modalidad',
+  'esc.modRequestBtn': 'Solicitar el cambio',
+  'esc.modRequested': 'Solicitud de modalidad enviada.',
+  'esc.modPendingTrainer': 'Tu cambio a {to} espera la aprobación de tu entrenador.',
+  'esc.modPendingAdmin': 'Tu entrenador aprobó el cambio a {to}: ahora espera la confirmación del administrador.',
+  'esc.modPendingAdminDirect': 'Tu cambio a {to} espera al administrador (no tienes entrenador: lo resuelve completo).',
+  'esc.modRejected': 'Tu último cambio de modalidad no se aprobó. Puedes volver a solicitarlo.',
+  'esc.modCancelled': 'Tu cambio de modalidad en curso se canceló porque cambiaste de entrenador. Puedes volver a solicitarlo.',
+  'esc.modRequestsTitle': '🔀 Solicitudes de cambio de modalidad',
+  'esc.noModRequests': 'Sin cambios de modalidad en espera.',
+  'esc.modApprove': 'Aprobar (pasa al administrador)',
+  'esc.modAdminTitle': '🔀 Confirmaciones de modalidad',
+  'esc.modAdminHint': 'El cambio de modalidad solo se aplica cuando lo confirmas, tras la aprobación del entrenador. Si el alumno no tiene entrenador, su solicitud te llega directa y la apruebas y confirmas tú.',
+  'esc.modConfirm': 'Confirmar: aplicar el cambio',
+  'esc.modConfirmDirect': 'Aprobar y confirmar: aplicar el cambio',
+  'esc.modNoTrainer': 'sin entrenador: lo resuelves tú',
+  'esc.modChangedOk': 'Modalidad actualizada.',
   'esc.mealsOffTitle': '🍽️ El registro de comidas aún no está activo',
   'esc.mealsOffHint': 'Las comidas se activan por solicitud: primero la aprueba tu entrenador y la confirma el administrador.',
   'esc.mealsRequest': 'Solicitar el registro de comidas',
@@ -3519,6 +3730,7 @@ async function loadClients() {
   users.forEach(u => { ADMIN_NAME_CACHE[u.id] = u.name || u.email || u.id; });
   renderMembershipBox();
   renderMealTrainerBox();
+  renderModalityTrainerBox();
 }
 /* Bandeja de espera (SOLO administrador): clientes aprobados con
    assignmentStatus 'waiting'. Asignar escribe trainerUid +
