@@ -78,7 +78,7 @@ const regBase = {
 async function regBatch(db, uid, extra) {
   const b = writeBatch(db);
   b.set(doc(db, 'users', uid), { ...regBase, consentReceiptId: uid + '_1', ...extra });
-  b.set(doc(db, 'consent_receipts', uid + '_1'), { uid, type: 'registered', version: 'v4-2026-10-24', at: serverTimestamp() });
+  b.set(doc(db, 'consent_receipts', uid + '_1'), { uid, email: uid + '@test.local', type: 'registered', version: 'v4-2026-10-24', at: serverTimestamp() });
   return b.commit();
 }
 await T('U1 registro de ALUMNO con modalidad y features (comidas apagadas) nace bien',
