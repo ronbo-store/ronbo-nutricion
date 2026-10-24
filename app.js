@@ -736,9 +736,9 @@ en: {
   'bt.draftBadge': 'DRAFT — pending legal validation (D-06/D-14)',
   'bt.draftNotice': 'This consent text is a draft. It is not a final, legally validated version.',
   'bt.pilotNote': 'Development pilot only: this feature is enabled only for the owner account and the “Prueba Ronald” test account until a separate launch decision.',
-  'bt.providerNone': 'Provider status (D-09): the current paid Gemini service was checked against Google’s official terms. Google does not use paid-service prompts or files to improve its products, but it does log prompts and responses for a limited period for abuse monitoring. That does not meet this module’s no-storage requirement, so Gemini is NOT approved for body photos here and no alternative provider has been connected.',
+  'bt.providerInfo': 'Provider (D-09, updated by the owner’s decision of October 24, 2026): the analysis provider is Google Gemini, the same paid service this app already uses for meal analysis, reached through the M8 worker. Google does not use paid-service prompts or files to improve its products, but it does log prompts and responses — including the photos sent — for a limited period of time, solely to detect policy violations and keep the service safe; Google does not publish an exact number of days. This is NOT zero retention: if you give this consent, your body photos will be sent to Google and temporarily logged there under those terms.',
   'bt.consentIntro': 'A separate, specific and revocable consent for analyzing photos of your body with artificial intelligence.',
-  'bt.consentText': 'I authorize RONBO.NUTRI to analyze my progress body photos (front, side and back) and my recorded physical measurements using an artificial-intelligence system, solely to estimate my body type as a reference for my trainer when setting training and nutrition goals. I understand that: this is a visual estimate, not a medical diagnosis or clinical assessment, and it can place me in the wrong category; my body photos may be transmitted to an analysis provider only after a provider has been approved for this use — at the time of this draft, NO provider is approved and NO analysis can run; I may revoke this consent at any time in the app, and revoking it immediately blocks new analyses and all access to estimates already generated (their physical deletion or retention period is still pending legal validation D-06); my assigned trainer and the platform administrator can see the estimate while this consent is active; and I will see my own estimate only if my trainer shares it with me.',
+  'bt.consentText': 'I authorize RONBO.NUTRI to analyze my progress body photos (front, side and back) and my recorded physical measurements using an artificial-intelligence system, solely to estimate my body type as a reference for my trainer when setting training and nutrition goals. I understand that: this is a visual estimate, not a medical diagnosis or clinical assessment, and it can place me in the wrong category; my body photos will be transmitted to Google Gemini, the paid analysis provider this app uses, through its M8 worker: Google does not use paid-service prompts or files to improve its products, but it does log prompts and responses — including my photos — for a limited period of time, solely to detect policy violations and keep the service safe; Google does not publish an exact number of days, so this is not zero retention and I accept that temporary logging; I may revoke this consent at any time in the app, and revoking it immediately blocks new analyses and all access to estimates already generated (their physical deletion or retention period is still pending legal validation D-06); my assigned trainer and the platform administrator can see the estimate while this consent is active; and I will see my own estimate only if my trainer shares it with me.',
   'bt.consentCheck': 'I declare that I am 18 years or older and I give this specific consent.',
   'bt.statusNone': 'You have not given this specific consent. Without it, no body-photo analysis can run and no estimate can be shown.',
   'bt.statusActive': 'This specific consent is active (draft version {v} · accepted {date}).',
@@ -775,7 +775,7 @@ en: {
   'bt.unshare': 'Stop sharing',
   'bt.sharedState': 'Shared with the client',
   'bt.privateState': 'Not shared with the client',
-  'bt.providerUnavailable': 'No provider is approved for body photos, so no photo was sent and no estimate was generated.',
+  'bt.providerUnavailable': 'No analysis provider is available right now, so no photo was sent and no estimate was generated.',
   'bt.invalidProvider': 'The provider returned an invalid estimate, so nothing was saved.',
   'bt.saved': 'Visual body type estimate saved.',
   'bt.loadError': 'The visual body type estimates could not be loaded.',
@@ -1655,9 +1655,9 @@ es: {
   'bt.draftBadge': 'BORRADOR — validación jurídica pendiente (D-06/D-14)',
   'bt.draftNotice': 'Este texto de consentimiento es un borrador. No es una versión final validada jurídicamente.',
   'bt.pilotNote': 'Piloto solo en desarrollo: esta función está habilitada únicamente para la cuenta del propietario y la cuenta de prueba «Prueba Ronald» hasta una decisión de lanzamiento separada.',
-  'bt.providerNone': 'Estado del proveedor (D-09): el servicio actual de Gemini en nivel pagado se contrastó con los términos oficiales de Google. Google no usa las instrucciones ni los archivos de los servicios pagados para mejorar sus productos, pero SÍ registra las instrucciones y las respuestas durante un periodo limitado para vigilar abusos. Eso no cumple el requisito de no guardar de este módulo, así que Gemini NO está aprobado aquí para fotos corporales y no se ha conectado ningún proveedor alternativo.',
+  'bt.providerInfo': 'Proveedor (D-09, actualizado por decisión del propietario del 24 de octubre de 2026): el proveedor de análisis es Google Gemini, el mismo servicio pagado que esta app ya usa para el análisis de comidas, a través del intermediario M8. Google no usa las instrucciones ni los archivos de los servicios pagados para mejorar sus productos, pero SÍ registra las instrucciones y las respuestas — incluidas las fotos enviadas — durante un periodo limitado, con el único fin de detectar infracciones de sus políticas y mantener la seguridad del servicio; Google no publica un número exacto de días. Esto NO es retención cero: si das este consentimiento, tus fotos corporales se enviarán a Google y quedarán registradas allí temporalmente bajo esos términos.',
   'bt.consentIntro': 'Un consentimiento específico, independiente y revocable para analizar fotos de tu cuerpo con inteligencia artificial.',
-  'bt.consentText': 'Autorizo a RONBO.NUTRI a analizar mis fotografías corporales de progreso (frente, costado y espalda) y mis medidas físicas registradas, mediante un sistema de inteligencia artificial, con el único fin de estimar mi tipo de cuerpo como referencia para mi entrenador al establecer metas de entrenamiento y alimentación. Entiendo que: esta es una estimación visual, no un diagnóstico médico ni una evaluación clínica, y puede ubicarme en la categoría equivocada; mis fotos corporales solo podrán transmitirse a un proveedor de análisis cuando un proveedor haya sido aprobado para este uso — en el momento de este borrador NO hay ningún proveedor aprobado y NO puede ejecutarse ningún análisis; puedo revocar este consentimiento en cualquier momento desde la app, y al revocarlo se bloquean de inmediato los nuevos análisis y todo acceso a las estimaciones ya generadas (su eliminación física o plazo de conservación sigue pendiente de la validación jurídica D-06); mi entrenador asignado y el administrador de la plataforma pueden ver la estimación mientras este consentimiento esté activo; y yo veré mi propia estimación solo si mi entrenador la comparte conmigo.',
+  'bt.consentText': 'Autorizo a RONBO.NUTRI a analizar mis fotografías corporales de progreso (frente, costado y espalda) y mis medidas físicas registradas, mediante un sistema de inteligencia artificial, con el único fin de estimar mi tipo de cuerpo como referencia para mi entrenador al establecer metas de entrenamiento y alimentación. Entiendo que: esta es una estimación visual, no un diagnóstico médico ni una evaluación clínica, y puede ubicarme en la categoría equivocada; mis fotos corporales se transmitirán a Google Gemini, el proveedor de análisis pagado que usa esta app, a través de su intermediario M8: Google no usa las instrucciones ni los archivos de los servicios pagados para mejorar sus productos, pero SÍ registra las instrucciones y las respuestas — incluidas mis fotos — durante un periodo limitado, con el único fin de detectar infracciones de sus políticas y mantener la seguridad del servicio; Google no publica un número exacto de días, así que esto no es retención cero y acepto ese registro temporal; puedo revocar este consentimiento en cualquier momento desde la app, y al revocarlo se bloquean de inmediato los nuevos análisis y todo acceso a las estimaciones ya generadas (su eliminación física o plazo de conservación sigue pendiente de la validación jurídica D-06); mi entrenador asignado y el administrador de la plataforma pueden ver la estimación mientras este consentimiento esté activo; y yo veré mi propia estimación solo si mi entrenador la comparte conmigo.',
   'bt.consentCheck': 'Declaro que tengo 18 años o más y doy este consentimiento específico.',
   'bt.statusNone': 'No has dado este consentimiento específico. Sin él, no puede ejecutarse ningún análisis de fotos corporales ni mostrarse ninguna estimación.',
   'bt.statusActive': 'Este consentimiento específico está activo (versión borrador {v} · aceptado el {date}).',
@@ -1694,7 +1694,7 @@ es: {
   'bt.unshare': 'Dejar de compartir',
   'bt.sharedState': 'Compartida con el cliente',
   'bt.privateState': 'No compartida con el cliente',
-  'bt.providerUnavailable': 'Ningún proveedor está aprobado para fotos corporales, así que no se envió ninguna foto ni se generó ninguna estimación.',
+  'bt.providerUnavailable': 'Ningún proveedor de análisis está disponible ahora mismo, así que no se envió ninguna foto ni se generó ninguna estimación.',
   'bt.invalidProvider': 'El proveedor devolvió una estimación no válida, así que no se guardó nada.',
   'bt.saved': 'Estimación visual de tipo corporal guardada.',
   'bt.loadError': 'No pudieron cargarse las estimaciones visuales de tipo corporal.',
@@ -5393,21 +5393,25 @@ async function withdrawSpec() {
    Nombre honesto SIEMPRE: «estimación visual de tipo corporal» —
    clasificación visual gruesa en 3 categorías; NO es medición
    Heath-Carter (faltan pliegues y diámetros) ni diagnóstico.
-   D-09 (verificado el 2026-10-23 contra los términos oficiales de
-   Google): el proveedor actual del M8 (Gemini, nivel pagado) NO
-   califica para fotos corporales — Google no usa el contenido de
-   los servicios pagados para mejorar sus productos, pero SÍ
-   registra prompts y respuestas por un periodo limitado para
-   vigilar abusos; eso incumple el requisito de no guardar. Por
-   tanto NO hay proveedor aprobado: la transmisión vive tras la
-   interfaz BT_PROVIDER (defecto: ninguno) y NINGUNA foto sale de
-   la app. Ninguna alternativa se conecta sin aprobación previa
-   de Ronald. En desarrollo solo se usan imágenes ficticias.
+   D-09 (ACTUALIZADO por decisión expresa de Ronald, correo memphis
+   2026-10-24 00:27): la retención cero DEJA de ser requisito
+   eliminatorio y el proveedor de este módulo es el MISMO del M8:
+   Google Gemini (nivel pagado, modelo gemini-3.8-flash) tras el
+   Worker. Retención REAL, declarada sin suavizar en el propio
+   consentimiento: en el nivel pagado Google NO usa prompts ni
+   archivos para mejorar sus productos, pero SÍ registra prompts y
+   respuestas — fotos incluidas — durante un periodo limitado, con
+   el único fin de vigilar abusos; Google no publica la duración
+   exacta. NO es retención cero. La transmisión vive tras la
+   interfaz BT_PROVIDER (proveedor gemini-m8; ruta /bodytype del
+   Worker: propuesta en desarrollo, aún NO desplegada — sin esa
+   ruta, la petición falla con el aviso honesto de siempre y no se
+   guarda nada). En desarrollo solo se usan imágenes ficticias.
    Cadena CORTADA: la estimación jamás alimenta body_type_ratings,
    planes ni metas; es solo una referencia que lee el entrenador.
    Piloto (P11): la función solo se habilita para la cuenta del
    propietario y la cuenta de prueba «Prueba Ronald». */
-const BT_VERSION = 'draft-2026-10-23';
+const BT_VERSION = 'draft-2026-10-24';
 const BT_PILOT_UIDS = ['sWfllr4HvYRFUP1T8B1gFGLYU2t2', 'p08nUuFPXkMMcKg3FalMKYs979p2'];
 const btPilot = uid => BT_PILOT_UIDS.includes(uid || '');
 const btOf = u => (u && u.bodyTypeConsent) || null;
@@ -5415,17 +5419,23 @@ const btIsActive = u => { const s = btOf(u); return !!s && s.status === 'accepte
 const btCol = () => collection(db, 'body_type_estimates');
 /* Interfaz de proveedor: estimate({images, measures}) debe
    devolver { category, mix: {ectomorph, mesomorph, endomorph} }.
-   El proveedor por defecto NO está aprobado (D-09): su estimate
-   siempre falla y la app no envía ninguna foto. La batería de
-   desarrollo puede inyectar un proveedor FICTICIO vía
-   window.__BT_FIXTURE_PROVIDER__ (objeto con fixture:true) para
-   ejercitar el flujo con imágenes sintéticas; ese gancho nunca
-   se activa solo y en producción no existe proveedor inyectado. */
-const BT_PROVIDER_NONE = { id: 'none', approved: false, estimate: async () => { throw new Error('bt-provider-unavailable'); } };
+   El proveedor por defecto es el del M8 (Gemini, nivel pagado),
+   aprobado para este módulo por la decisión D-09 de Ronald del
+   2026-10-24: la llamada sale por el Worker (ruta /bodytype,
+   propuesta en somatotipo-d09-m8-2026-10-24/, aún NO desplegada)
+   y la clave jamás vive en la app. La batería de desarrollo puede
+   inyectar un proveedor FICTICIO vía window.__BT_FIXTURE_PROVIDER__
+   (objeto con fixture:true) para ejercitar el flujo con imágenes
+   sintéticas; ese gancho nunca se activa solo y en producción no
+   existe proveedor inyectado. */
+const BT_PROVIDER_GEMINI = {
+  id: 'gemini-m8', approved: true,
+  estimate: async ({ images, measures }) => aiCall('/bodytype', { images, measures, lang: LANG })
+};
 function btResolveProvider() {
   const fx = (typeof window !== 'undefined' && window.__BT_FIXTURE_PROVIDER__) || null;
   if (fx && fx.fixture === true && typeof fx.estimate === 'function') return fx;
-  return BT_PROVIDER_NONE;
+  return BT_PROVIDER_GEMINI;
 }
 function btValidateEstimate(r) {
   if (!r || typeof r !== 'object') return null;
@@ -5513,7 +5523,7 @@ function renderBtPanel() {
     else if (s && s.status === 'withdrawn') html += `<p class="progress-hint">${esc(t('bt.statusWithdrawn'))}</p><p class="progress-hint">${esc(t('bt.blockedNote'))}</p>`;
     else html += `<p class="progress-hint">${esc(t('bt.statusNone'))}</p>`;
     html += `<p class="progress-hint">${esc(t('bt.consentSummary'))}</p>
-      <p class="progress-hint">${esc(t('bt.providerNone'))}</p>
+      <p class="progress-hint">${esc(t('bt.providerInfo'))}</p>
       <details class="spec-details" id="bt-details"><summary>${esc(t('bt.fullTextTitle'))}</summary>
         <label class="consent-check"><input type="checkbox" id="bt-ok"> <span>${esc(t('bt.consentText'))} ${esc(t('bt.consentCheck'))}</span></label>
       </details>
