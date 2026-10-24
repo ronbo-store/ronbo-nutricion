@@ -1,10 +1,11 @@
 # RONBO NUTRI — Batería del CANDIDATO FINAL COMPUESTO 2026-10-23
-# (composición + roles + corrección «Registrar pesaje»): 37 aserciones
-# contra el emulador oficial de Firestore (proyecto ficticio
-# ronbo-nutri-test), en la vía CI del proyecto (la misma que validó
-# el candidato P8 con CI 170). El candidato es copia byte-idéntica de
+# (composición + roles + corrección «Registrar pesaje» + N-07
+# aprobación por entrenadores): 49 aserciones contra el emulador
+# oficial de Firestore (proyecto ficticio ronbo-nutri-test), en la
+# vía CI del proyecto (la misma que validó el candidato P8 con
+# CI 170). El candidato es copia byte-idéntica de
 # preparacion-local/firestore.rules.candidato-final-2026-10-23.rules
-# (diff: 213 líneas contra el texto vivo e5efaef2).
+# (diff: 316 líneas de contenido contra el texto vivo e5efaef2).
 # Autorización: secuencia coordinada de despliegue de la línea
 # completa, autorizada por Ronald el 2026-10-23 18:48 CDT
 # («Despliega la línea completa»). Este workflow SOLO valida el
@@ -23,7 +24,7 @@ permissions:
 
 jobs:
   bateria:
-    name: 37 aserciones contra el emulador oficial (proyecto ficticio)
+    name: 49 aserciones contra el emulador oficial (proyecto ficticio)
     runs-on: ubuntu-24.04
     timeout-minutes: 20
     defaults:

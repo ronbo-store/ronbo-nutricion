@@ -32,6 +32,7 @@ await testEnv.withSecurityRulesDisabled(async (ctx) => {
   const base = { acceptedTerms: true, adultConfirmed: true, isOwner: false, approved: true };
   await setDoc(doc(db, 'users', 'owner1'), { ...base, name: 'Admin Ficticio', isOwner: true, role: 'administrador' });
   await setDoc(doc(db, 'users', 'trainer1'), { ...base, name: 'Entrenador Ficticio', role: 'entrenador' });
+  await setDoc(doc(db, 'users', 'trainer2'), { ...base, name: 'Entrenador Dos Ficticio', role: 'entrenador' });
   await setDoc(doc(db, 'users', 'clientA'), { ...base, name: 'Cliente A', role: 'usuario', trainerUid: 'trainer1', assignmentStatus: 'assigned' });
   await setDoc(doc(db, 'users', 'clientB'), { ...base, name: 'Cliente B', role: 'usuario', trainerUid: 'trainerX', assignmentStatus: 'assigned' });
   await setDoc(doc(db, 'users', 'clientW'), { ...base, name: 'Cliente Espera', role: 'usuario', trainerUid: null, assignmentStatus: 'waiting' });
@@ -107,6 +108,32 @@ await T('G2 el cliente SÍ crea su propia comida', setDoc(doc(A, 'nutrition_meal
 await T('G3 sin sesión NO se crea ningún pesaje', setDoc(WDOC(anon, 'clientA', '2026-10-19'), { ownerUid: 'clientA', date: '2026-10-19', weight: 1 }), false);
 await T('G4 el propietario lo lee todo (pesaje de clientB inexistente: get denegado por patrón no aplica al owner)', getDoc(doc(owner, 'users', 'clientW')), true);
 await T('G5 el cliente en espera NO crea comidas (su cuenta está aprobada en la semilla: sí puede las suyas)', setDoc(doc(W, 'nutrition_meals', 'mealW'), { ownerUid: 'clientW', food: 'Té', kcal: 5 }), true);
+
+// ============ N-07 — aprobación por entrenador con límite del administrador ============
+/* El lote REAL de la app: aprueba asignando al aprobador + sube su
+   contador approvalsUsed exactamente +1 en la misma operación. */
+const trainer2 = testEnv.authenticatedContext('trainer2').firestore();
+const batchApprove = (db, trainerUid, clientUid, used) => {
+  const b = writeBatch(db);
+  b.update(doc(db, 'users', clientUid), { approved: true, trainerUid, assignmentStatus: 'assigned', approvedBy: trainerUid, approvedAt: serverTimestamp() });
+  b.update(doc(db, 'users', trainerUid), { approvalsUsed: used + 1 });
+  return b.commit();
+};
+await T('N1 SIN límite configurado el entrenador NO aprueba (fail-closed)', newUser('newP', { trainerUid: null, assignmentStatus: 'waiting' }).then(() => batchApprove(trainer, 'trainer1', 'newP', 0)), false);
+await T('N2 el ENTRENADOR no escribe el ajuste de límite', setDoc(doc(trainer, 'app_settings', 'approvals'), { maxPerTrainer: 3 }), false);
+await T('N3 un USUARIO común no escribe el ajuste de límite', setDoc(doc(A, 'app_settings', 'approvals'), { maxPerTrainer: 3 }), false);
+await T('N4 el ADMINISTRADOR sí escribe el ajuste de límite', setDoc(doc(owner, 'app_settings', 'approvals'), { maxPerTrainer: 1 }), true);
+await T('N5 el entrenador LEE el ajuste (su cupo)', getDoc(doc(trainer, 'app_settings', 'approvals')), true);
+await T('N6 BAJO el límite el entrenador aprueba y el cliente queda SUYO', batchApprove(trainer, 'trainer1', 'newW', 0)
+  .then(() => getDoc(doc(owner, 'users', 'newW')))
+  .then(s => { const d = s.data(); if (!(d.approved === true && d.trainerUid === 'trainer1' && d.assignmentStatus === 'assigned' && d.approvedBy === 'trainer1')) throw new Error('aprobación sin asignación al aprobador'); }), true);
+await newUser('newP2', { trainerUid: null, assignmentStatus: 'waiting' });
+await T('N7 SOBRE el límite (1 usada de 1) el entrenador ya NO aprueba', batchApprove(trainer, 'trainer1', 'newP2', 1), false);
+await T('N8 aprobar SIN el contador acoplado en el lote se deniega', (() => { const b = writeBatch(trainer2); b.update(doc(trainer2, 'users', 'newP'), { approved: true, trainerUid: 'trainer2', assignmentStatus: 'assigned', approvedBy: 'trainer2', approvedAt: serverTimestamp() }); return b.commit(); })(), false);
+await T('N9 otro entrenador, bajo SU límite, aprueba la cuenta en espera', batchApprove(trainer2, 'trainer2', 'newP', 0), true);
+await T('N10 un USUARIO común NO aprueba cuentas (ni con contador)', batchApprove(A, 'clientA', 'newP2', 0), false);
+await T('N11 el contador NO salta de dos en dos', updateDoc(doc(trainer2, 'users', 'trainer2'), { approvalsUsed: 3 }), false);
+await T('N12 el ADMINISTRADOR aprueba sin límite ni contador (vía del propietario)', setDoc(doc(owner, 'users', 'newP2'), { approved: true }, { merge: true }), true);
 
 console.log(`\nRESULTADO CANDIDATO: ${pass}/${pass + fail} PASS · ${fail} FAIL`);
 if (failures.length) { console.log('FALLOS:'); failures.forEach(f => console.log(' · ' + f)); }

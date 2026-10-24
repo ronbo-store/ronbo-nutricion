@@ -85,6 +85,44 @@
 // La salud (healthDeclarations) NO se amplía: sigue gobernada por
 // el consentimiento específico del cliente, tenga el rol que tenga.
 // ============================================================
+// COMPLETADO N-07 (2026-10-23, SOLO DESARROLLO — NO PUBLICADO).
+// Decisión expresa de Ronald (correo memphis 2026-10-23 19:39,
+// verificada en origen), dos puntos sobre este candidato final:
+//  (N7-1) El ENTRENADOR SÍ puede aprobar cuentas nuevas, con un
+//       límite de aprobaciones que establece el administrador:
+//       · El límite vive en app_settings/approvals.maxPerTrainer,
+//         documento que SOLO el administrador escribe (match
+//         nuevo app_settings; lectura con sesión para ver el cupo).
+//       · Fail-closed: sin documento o sin campo, approvalLimit()
+//         devuelve 0 y el entrenador no aprueba por esta vía.
+//       · La aprobación es UN LOTE atómico (patrón de recibo
+//         acoplado A2): la rama de update del entrenador exige que
+//         el mismo lote suba su propio contador users.approvalsUsed
+//         exactamente +1 (verificado con getAfter) y que el uso
+//         previo sea < límite. El contador vive en el documento
+//         del entrenador porque es lo que las reglas pueden
+//         verificar dentro de la misma operación.
+//       · Lectura señalada para revisión de Ronald: al aprobar, el
+//         cliente queda ASIGNADO al entrenador que aprueba
+//         (trainerUid = aprobador, assignmentStatus 'assigned',
+//         approvedBy = aprobador, approvedAt = hora del servidor).
+//         La bandeja del entrenador = cuentas nuevas sin aprobar:
+//         las que esperan asignación (waiting) y las que lo
+//         eligieron a él al registrarse (assigned a su uid).
+//       · Para poblar esa bandeja, users get/list admite además al
+//         entrenador sobre documentos en espera SIN aprobar (solo
+//         esos: nombre/correo de cuentas pendientes quedan visibles
+//         para cualquier entrenador — es el coste de la bandeja).
+//       · El administrador conserva su aprobación sin límite por la
+//         rama del propietario y no toca contadores.
+//  (N7-2) El administrador actúa también como entrenador de sus
+//       propios clientes: sin cambio de reglas — el directorio ya
+//       lo incluye (la app lo publica junto a los entrenadores),
+//       el registro puede elegirlo y users.trainerUid puede ser su
+//       uid; como propietario ya alcanza todos los datos. La app
+//       lo verifica con batería (informe N-07).
+// Batería CI extendida: pruebas-reglas-candidato (49 aserciones).
+// ============================================================
 // CANDIDATO HALLAZGO C — 2026-10-21. PREPARADO Y POR VALIDAR
 // (batería GitHub Actions: regresión íntegra de 110 casos del
 // paquete F-A1 + bloque nuevo HALLAZGO C de 10 casos; ver
@@ -252,6 +290,19 @@ service cloud.firestore {
         && exists(/databases/$(database)/documents/users/$(ownerUid))
         && get(/databases/$(database)/documents/users/$(ownerUid)).data.get('trainerUid', '') == request.auth.uid;
     }
+    // Candidato N-07 (2026-10-23, NO publicado): ¿quien pide es un
+    // entrenador (role exacto 'entrenador')?
+    function isTrainerUser() {
+      return signedIn() && myDocExists() && myDoc().get('role', '') == 'entrenador';
+    }
+    // Candidato N-07: límite de aprobaciones por entrenador, fijado
+    // SOLO por el administrador en app_settings/approvals.
+    // Fail-closed: sin documento o sin campo, el límite es 0.
+    function approvalLimit() {
+      return exists(/databases/$(database)/documents/app_settings/approvals)
+        ? get(/databases/$(database)/documents/app_settings/approvals).data.get('maxPerTrainer', 0)
+        : 0;
+    }
     // ---------- Consent receipts (A2, experimento C2 verificado) ----------
     function userPath(uid) {
       return /databases/$(database)/documents/users/$(uid);
@@ -300,9 +351,15 @@ service cloud.firestore {
     // ---------- users ----------
     match /users/{uid} {
       allow get: if isSelf(uid) || isOwnerUser()
-        || (signedIn() && resource.data.get('trainerUid', '') == request.auth.uid);
+        || (signedIn() && resource.data.get('trainerUid', '') == request.auth.uid)
+        // N-07: la bandeja del entrenador — cuentas nuevas EN ESPERA
+        // y SIN aprobar (solo esas son legibles para él).
+        || (isTrainerUser() && resource.data.get('approved', false) == false
+            && resource.data.get('assignmentStatus', '') == 'waiting');
       allow list: if isOwnerUser()
-        || (signedIn() && resource.data.get('trainerUid', '') == request.auth.uid);
+        || (signedIn() && resource.data.get('trainerUid', '') == request.auth.uid)
+        || (isTrainerUser() && resource.data.get('approved', false) == false
+            && resource.data.get('assignmentStatus', '') == 'waiting');
 
       // Registration: own doc only, born unprivileged, with the privacy
       // consent and the 18+ confirmation the app always records.
@@ -335,6 +392,40 @@ service cloud.firestore {
       allow update: if isOwnerUser()
         && !request.resource.data.diff(resource.data).affectedKeys()
               .hasAny(['healthConsent', 'health', 'consentSeq', 'consentReceiptId']);
+      // N-07 (decisión de Ronald, 2026-10-23 19:39): el ENTRENADOR
+      // aprueba una cuenta NUEVA — sin aprobar, en espera o ya
+      // asignada a él desde el registro — SOLO dentro de su cupo:
+      // el mismo lote aprueba asignándola AL APROBADOR y sube su
+      // propio contador approvalsUsed exactamente +1 (verificado
+      // con getAfter, patrón de recibo acoplado A2). Sin límite
+      // configurado por el administrador, approvalLimit() = 0 y
+      // esta vía queda cerrada (fail-closed).
+      allow update: if isTrainerUser()
+        && resource.data.get('isOwner', false) == false
+        && resource.data.get('approved', false) == false
+        && !(resource.data.get('role', '') in ['entrenador', 'administrador'])
+        && (resource.data.get('assignmentStatus', '') == 'waiting'
+            || resource.data.get('trainerUid', '') == request.auth.uid)
+        && request.resource.data.diff(resource.data).affectedKeys()
+             .hasOnly(['approved', 'trainerUid', 'assignmentStatus', 'approvedBy', 'approvedAt'])
+        && request.resource.data.approved == true
+        && request.resource.data.trainerUid == request.auth.uid
+        && request.resource.data.assignmentStatus == 'assigned'
+        && request.resource.data.approvedBy == request.auth.uid
+        && request.resource.data.approvedAt == request.time
+        && myDoc().get('approvalsUsed', 0) < approvalLimit()
+        && getAfter(userPath(request.auth.uid)).data.get('approvalsUsed', 0)
+             == myDoc().get('approvalsUsed', 0) + 1;
+      // N-07: el entrenador incrementa SOLO su propio contador y
+      // SOLO de uno en uno; la aprobación que lo justifica se
+      // verifica en la rama anterior dentro del mismo lote (subir
+      // el contador sin aprobar solo consume el propio cupo).
+      allow update: if isSelf(uid)
+        && resource.data.get('role', '') == 'entrenador'
+        && request.resource.data.diff(resource.data).affectedKeys()
+             .hasOnly(['approvalsUsed'])
+        && request.resource.data.approvalsUsed
+             == resource.data.get('approvalsUsed', 0) + 1;
       // A client may update ONLY harmless profile fields of their own doc.
       allow update: if isSelf(uid)
         && request.resource.data.diff(resource.data).affectedKeys()
@@ -885,6 +976,18 @@ service cloud.firestore {
         && request.resource.data.at == request.time;
       allow update: if false;
       allow delete: if isOwnerUser();
+    }
+
+    // ---------- Ajustes del administrador (candidato N-07, NO publicado) ----------
+    // app_settings/approvals = { maxPerTrainer }: cuántas cuentas
+    // nuevas puede aprobar cada entrenador (decisión de Ronald,
+    // 2026-10-23 19:39). Lectura con sesión (el entrenador consulta
+    // su cupo); escritura SOLO del administrador. Sin documento,
+    // approvalLimit() trata el límite como 0 (fail-closed).
+    match /app_settings/{docId} {
+      allow get: if signedIn() && docId == 'approvals';
+      allow list: if false;
+      allow create, update, delete: if isOwnerUser() && docId == 'approvals';
     }
 
     // ---------- Trainer directory (candidato roles, NO publicado) ----------
