@@ -198,7 +198,14 @@ table.detail tr.total td { font-weight: 800; background: #f0fdf4; border-top: 2p
 .user-row { display: flex; flex-wrap: wrap; justify-content: space-between; align-items: center; gap: 10px; border: 1px solid #e5e7eb; background: #fff; border-radius: 10px; padding: 10px 14px; margin-bottom: 8px; }
 .user-row > div:first-child { min-width: 0; overflow-wrap: anywhere; }
 .user-row .muted { font-size: 12px; color: #6b7280; }
-.user-actions { display: flex; flex-wrap: wrap; gap: 8px; flex-shrink: 0; }
+/* Fix layout ficha (2026-10-23): con flex-shrink:0 la fila de acciones
+   nunca bajaba de su ancho de contenido (los 4 botones del plan =
+   359 px) y desbordaba su tarjeta y el documento (411 px de ancho en
+   un teléfono de 390), aunque tuviera flex-wrap: el wrap interno solo
+   actúa si la caja puede estrecharse. Al permitir encoger (y acotar
+   a min-width:0 / max-width:100%), los botones envuelven dentro de
+   la tarjeta, como ya buscaba la corrección D4 de 2026-10-15. */
+.user-actions { display: flex; flex-wrap: wrap; gap: 8px; flex-shrink: 1; min-width: 0; max-width: 100%; }
 .limits-actions { align-items: center; }
 .limits-input { width: 84px; padding: 8px 10px; border: 1px solid #d1d5db; border-radius: 8px; font-size: 14px; }
 .limits-input:disabled { background: #f3f4f6; color: #9ca3af; }
@@ -706,7 +713,10 @@ table.whist { min-width: 640px; }
 .fa-selbox .fa-val { flex: 1; font-weight: 600; color: #111827; }
 .fa-selbox .fa-oktag { color: #0d9488; font-weight: 700; font-size: 13px; }
 .fa-selbox .fa-chev { color: #9ca3af; font-size: 13px; }
-.fa-opt { display: flex; align-items: center; gap: 9px; background: #fff; border: 1px solid #e5e7eb; border-radius: 8px; padding: 10px 12px; margin-top: 8px; font-size: 14px; cursor: pointer; }
+/* Fix layout ficha (2026-10-23): flex-wrap para que la etiqueta de
+   estado (.tag-off, flex:none, 224 px en ES) envuelva a una segunda
+   línea en pantallas de 360 px en vez de desbordar la tarjeta. */
+.fa-opt { display: flex; flex-wrap: wrap; align-items: center; gap: 9px; background: #fff; border: 1px solid #e5e7eb; border-radius: 8px; padding: 10px 12px; margin-top: 8px; font-size: 14px; cursor: pointer; }
 .fa-opt .fa-radio { flex: none; width: 18px; height: 18px; border-radius: 50%; border: 2px solid #0d9488; }
 .fa-opt.sel .fa-radio { background: #0d9488; box-shadow: inset 0 0 0 3px #fff; }
 .fa-opt .fa-nm { flex: 1; font-weight: 600; color: #111827; }
