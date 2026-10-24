@@ -1333,10 +1333,13 @@ en: {
   'health.details': 'Details / medications',
   'health.detailsPh': 'E.g. Takes metformin; left knee injury in 2023…',
   'health.ok': 'I declare that the health information provided is true.',
+  'health.truthHelp': 'In plain words: you confirm that the answers above are true and complete. Your trainer trusts them to avoid exercises or foods that could hurt you — if something changes, tell him and update your declaration.',
+  'health.condHelp': 'Marking a box tells your trainer: “this applies to me”. He will see it and keep it in mind. Leave a box empty if it does not apply to you.',
   'health.clientTitle': '🏥 Client health declaration',
   'health.regNote': 'You can complete your health declaration later, in your profile, with its own specific consent. It is not required to create your account.',
   'card.toggle': 'Show or hide section',
   'main.progress': 'Progress', 'main.food': 'Food', 'main.training': 'Training', 'main.pendings': 'Pendings', 'main.activity': 'Activity',
+  'health.specHelp': 'In plain words: you allow your trainer to see the health answers you write in this declaration, only so he can adapt your program and take care of you. Nobody else can see them, and you can withdraw this whenever you want.',
   'health.panelTitle': '🏥 My health declaration',
   'health.specText': 'I give my SPECIFIC consent for ronbo.nutri to process my health declaration so my trainer can adapt my program and take precautions. Only my trainer and I can see it. I can withdraw this consent at any time: withdrawal blocks my trainer\'s access to my answers, but does not delete them.',
   'health.statusNone': 'You have not given specific consent for health data. Without it, no declaration is collected and your trainer cannot see any health answers.',
@@ -2033,6 +2036,7 @@ en: {
   'train.prop.details': 'Details', 'train.prop.hide': 'Hide',
   'train.prop.proposeBtn': 'Propose for my plan',
   'train.prop.noPlanNote': 'You don’t have an active plan yet, so you can’t send proposals — but you can still browse the templates.',
+  'train.prop.tplTrainerManaged': '📋 Your trainer manages the routine templates for you. You can still propose changes to your own plan in the proposals area — your trainer reviews them and decides.',
   'train.prop.formTitle': 'New proposal',
   'train.prop.typeAdd': 'Add an exercise', 'train.prop.typeChange': 'Swap an exercise',
   'train.prop.day': 'Day of your plan', 'train.prop.currentEx': 'Exercise to replace',
@@ -2607,10 +2611,13 @@ es: {
   'health.details': 'Detalles / medicamentos',
   'health.detailsPh': 'Ej. Toma metformina; lesión de rodilla izquierda en 2023…',
   'health.ok': 'Declaro que la información de salud indicada es verdadera.',
+  'health.truthHelp': 'En palabras simples: confirmas que las respuestas de arriba son verdaderas y completas. Tu entrenador confía en ellas para evitar ejercicios o alimentos que puedan dañarte; si algo cambia, avísale y actualiza tu declaración.',
+  'health.condHelp': 'Marcar una casilla le dice a tu entrenador: «esto me aplica». Él lo verá y lo tendrá en cuenta. Déjala vacía si no te aplica.',
   'health.clientTitle': '🏥 Declaración de salud del cliente',
   'health.regNote': 'Puedes completar tu declaración de salud más tarde, en tu perfil, con su propio consentimiento específico. No es necesaria para crear tu cuenta.',
   'card.toggle': 'Mostrar u ocultar la sección',
   'main.progress': 'Progreso', 'main.food': 'Comida', 'main.training': 'Entrenamiento', 'main.pendings': 'Pendientes', 'main.activity': 'Actividad',
+  'health.specHelp': 'En palabras simples: permites que tu entrenador vea las respuestas de salud que escribas en esta declaración, solo para que adapte tu programa y te cuide. Nadie más puede verlas, y puedes retirar este permiso cuando quieras.',
   'health.panelTitle': '🏥 Mi declaración de salud',
   'health.specText': 'Doy mi consentimiento ESPECÍFICO para que ronbo.nutri trate mi declaración de salud, para que mi entrenador adapte mi programa y tome precauciones. Solo mi entrenador y yo podemos verla. Puedo retirar este consentimiento cuando quiera: la retirada bloquea el acceso de mi entrenador a mis respuestas, pero no las elimina.',
   'health.statusNone': 'No has dado tu consentimiento específico para datos de salud. Sin él, no se recoge ninguna declaración y tu entrenador no puede ver ninguna respuesta de salud.',
@@ -3307,6 +3314,7 @@ es: {
   'train.prop.details': 'Detalles', 'train.prop.hide': 'Ocultar',
   'train.prop.proposeBtn': 'Proponer para mi plan',
   'train.prop.noPlanNote': 'Todavía no tienes un plan activo, así que no puedes enviar propuestas — pero sí explorar las plantillas.',
+  'train.prop.tplTrainerManaged': '📋 Tu entrenador gestiona las plantillas de rutina por ti. Aun así puedes proponer cambios a tu plan en la zona de propuestas: tu entrenador los revisa y decide.',
   'train.prop.formTitle': 'Nueva propuesta',
   'train.prop.typeAdd': 'Añadir un ejercicio', 'train.prop.typeChange': 'Cambiar un ejercicio',
   'train.prop.day': 'Día de tu plan', 'train.prop.currentEx': 'Ejercicio a sustituir',
@@ -3905,6 +3913,9 @@ function applyI18n() {
     const lab = c.closest('label'); if (!lab) return;
     lab.childNodes.forEach(n => { if (n.nodeType === 3) n.textContent = ' ' + condName(c.value); });
   });
+  /* Ajuste UX 2026-10-23 (punto 2): las líneas de ayuda junto a las
+     casillas se re-traducen al cambiar de idioma sin re-renderizar. */
+  document.querySelectorAll('[data-help-key]').forEach(el => { el.textContent = t(el.getAttribute('data-help-key')); });
   if (typeof auth !== 'undefined' && auth) auth.languageCode = LANG;
 }
 async function refreshDynamic() {
@@ -7734,13 +7745,18 @@ function declSummaryHTML(d) {
 }
 function declFormHTML(d) {
   const sel = new Set((d && d.conditions) || []);
+  /* Ajuste UX 2026-10-23 (punto 2 del correo de Ronald): cada casilla
+     del flujo lleva una línea breve en lenguaje simple que explica
+     qué significa marcarla. Las líneas son AYUDA VISUAL auxiliar:
+     no forman parte del texto legal, no lo sustituyen y no cambian
+     su alcance (ver INFORME-AJUSTES-UX-PLANTILLAS-DEV-2026-10-23). */
   const grid = HEALTH_CONDITIONS.map(v =>
-    `<label><input type="checkbox" class="h-cond" value="${esc(v)}"${sel.has(v) ? ' checked' : ''}> ${esc(condName(v))}</label>`).join('');
+    `<label><input type="checkbox" class="h-cond" value="${esc(v)}"${sel.has(v) ? ' checked' : ''}> ${esc(condName(v))}<small class="consent-help" data-help-key="health.condHelp">${t('health.condHelp')}</small></label>`).join('');
   return `<p class="health-hint">${t('health.hint')}</p>
     <div class="health-grid">${grid}</div>
     <label><span>${t('health.details')}</span>
       <textarea id="h-details" rows="2" placeholder="${esc(t('health.detailsPh'))}">${esc((d && d.details) || '')}</textarea></label>
-    <label class="consent-check"><input type="checkbox" id="h-truth"> <span>${t('health.ok')}</span></label>
+    <label class="consent-check"><input type="checkbox" id="h-truth"> <span>${t('health.ok')}<small class="consent-help" data-help-key="health.truthHelp">${t('health.truthHelp')}</small></span></label>
     <button type="button" class="btn-primary btn-sm" id="btn-decl-save">${t('health.saveDecl')}</button>`;
 }
 function blockedListHTML() {
@@ -7784,7 +7800,7 @@ function specLegalHTML(grantBtnId, grantLabel) {
   return `<div id="spec-legal" style="display:none">
       <details class="spec-details" id="spec-details">
         <summary>${t('health.specFullTitle')}</summary>
-        <label class="consent-check"><input type="checkbox" id="spec-ok"> <span>${t('health.specText')}</span></label>
+        <label class="consent-check"><input type="checkbox" id="spec-ok"> <span>${t('health.specText')}<small class="consent-help" data-help-key="health.specHelp">${t('health.specHelp')}</small></span></label>
       </details>
       <button type="button" class="btn-primary btn-sm" id="${grantBtnId}">${grantLabel}</button>
     </div>`;
@@ -8752,17 +8768,42 @@ function propDetailLine(p) {
 }
 
 /* --- Zona del cliente: plantillas explorables + sus propuestas --- */
+/* Ajuste de diseño 2026-10-23 (punto 3 del correo de Ronald):
+   plantillas por rol y asignación. Un cliente (role 'usuario') CON
+   entrenador asignado NO ve el catálogo de plantillas: lo gestiona
+   su entrenador (editor de planes) o el administrador. Un cliente
+   SIN entrenador (en espera) SÍ lo ve. Entrenador y administrador
+   no se ven afectados por esta puerta (su gestión vive en el editor
+   y su propia zona de cliente no es la de un «cliente asignado»).
+   Las propuestas de cambio sobre el plan ya asignado (P7) NO se
+   tocan: el formulario y el botón «nueva propuesta» funcionan igual
+   para todo cliente con plan. «Asignado» = trainerUid presente y
+   assignmentStatus distinto de 'waiting' (el estado 'waiting' es el
+   operativo en el modelo: la bandeja del administrador filtra por
+   él; un documento sin campos de asignación se lee como en espera,
+   igual que un documento sin role se lee como 'usuario'). */
+function clientHasAssignedTrainer(u) {
+  return !!(u && typeof u.trainerUid === 'string' && u.trainerUid && u.assignmentStatus !== 'waiting');
+}
+function tplCatalogHiddenForClient() {
+  return ROLE === 'usuario' && clientHasAssignedTrainer(UDATA);
+}
 function loadPropClient() {
   if (!$('my-templates') && !$('my-proposals')) return;
   renderPropTemplates();
   renderMyProposals();
   /* Lecturas únicas con caché (las mismas del editor): al llegar,
-     la zona se re-pinta una vez con los nombres resueltos. */
-  tplEnsure().then(() => renderPropTemplates());
+     la zona se re-pinta una vez con los nombres resueltos. Con el
+     catálogo oculto no se lee routine_templates en absoluto. */
+  if (!tplCatalogHiddenForClient()) tplEnsure().then(() => renderPropTemplates());
   libEnsure().then(() => { renderPropTemplates(); renderMyProposals(); });
 }
 function renderPropTemplates() {
   const box = $('my-templates'); if (!box) return;
+  if (tplCatalogHiddenForClient()) {
+    box.innerHTML = `<h3 class="history-title">${t('train.prop.tplTitle')}</h3><div class="prop-note">${t('train.prop.tplTrainerManaged')}</div>`;
+    return;
+  }
   let inner = `<h3 class="history-title">${t('train.prop.tplTitle')}</h3><p class="progress-hint">${t('train.prop.tplIntro')}</p>`;
   if (TPL_STATE === 'unavailable') inner += `<div class="wempty compact">${t('train.prop.tplUnavailable')}</div>`;
   else if (TPL_STATE === 'ok' && TPL) {
