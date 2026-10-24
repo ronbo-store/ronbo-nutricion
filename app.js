@@ -9132,51 +9132,42 @@ function propDetailLine(p) {
 }
 
 /* --- Zona del cliente: plantillas explorables + sus propuestas --- */
-/* Ajuste de diseño 2026-10-23 (punto 3 del correo de Ronald):
-   plantillas por rol y asignación. Un cliente (role 'usuario') CON
-   entrenador asignado NO ve el catálogo de plantillas: lo gestiona
-   su entrenador (editor de planes) o el administrador. Un cliente
-   SIN entrenador (en espera) SÍ lo ve. Entrenador y administrador
-   no se ven afectados por esta puerta (su gestión vive en el editor
-   y su propia zona de cliente no es la de un «cliente asignado»).
-   Las propuestas de cambio sobre el plan ya asignado (P7) NO se
-   tocan: el formulario y el botón «nueva propuesta» funcionan igual
-   para todo cliente con plan. «Asignado» = trainerUid presente y
-   assignmentStatus distinto de 'waiting' (el estado 'waiting' es el
-   operativo en el modelo: la bandeja del administrador filtra por
-   él; un documento sin campos de asignación se lee como en espera,
-   igual que un documento sin role se lee como 'usuario'). */
-function clientHasAssignedTrainer(u) {
-  return !!(u && typeof u.trainerUid === 'string' && u.trainerUid && u.assignmentStatus !== 'waiting');
-}
-function tplCatalogHiddenForClient() {
-  return ROLE === 'usuario' && clientHasAssignedTrainer(UDATA);
-}
+/* Historia de esta zona:
+   - Punto 3 (correo de Ronald, 2026-10-23 22:18): el cliente CON
+     entrenador asignado NO veía el catálogo; lo gestionaba su
+     entrenador (puerta tplCatalogHiddenForClient).
+   - RESOLUCIÓN (Ronald, chat, 2026-10-23 23:15 CDT): «Lectura para
+     todos manda: el cliente asignado también ve las plantillas de
+     fábrica». La puerta del punto 3 queda LEVANTADA para las de
+     fábrica: TODO cliente ve el catálogo que su rol puede leer
+     según N-09 — fábrica en SOLO LECTURA (no puede modificarlas),
+     sus privadas propias, y NUNCA las de entrenador ajenas. De la
+     puerta del punto 3 no queda nada en pie: ni la ocultación ni la
+     nota «tu entrenador gestiona las plantillas» (su clave
+     train.prop.tplTrainerManaged queda en el diccionario, sin uso,
+     por si la decisión se revierte; la paridad no se toca).
+   - P7 intacto: el cliente asignado sigue proponiendo cambios desde
+     SU plan (propOpenForm/renderMyProposals), no desde el catálogo. */
 function loadPropClient() {
   if (!$('my-templates') && !$('my-proposals')) return;
   renderPropTemplates();
   renderMyBuilder();
   renderMyProposals();
   /* Lecturas únicas con caché (las mismas del editor): al llegar,
-     la zona se re-pinta una vez con los nombres resueltos. Con el
-     catálogo oculto no se lee routine_templates en absoluto. */
-  if (!tplCatalogHiddenForClient()) tplEnsure().then(() => renderPropTemplates());
+     la zona se re-pinta una vez con los nombres resueltos. */
+  tplEnsure().then(() => renderPropTemplates());
   libEnsure().then(() => { renderPropTemplates(); renderMyProposals(); if (!MYB) renderMyBuilder(); });
 }
 function renderPropTemplates() {
   const box = $('my-templates'); if (!box) return;
-  if (tplCatalogHiddenForClient()) {
-    box.innerHTML = `<h3 class="history-title">${t('train.prop.tplTitle')}</h3><div class="prop-note">${t('train.prop.tplTrainerManaged')}</div>`;
-    return;
-  }
   let inner = `<h3 class="history-title">${t('train.prop.tplTitle')}</h3><p class="progress-hint">${t('train.prop.tplIntro')}</p>`;
   if (TPL_STATE === 'unavailable') inner += `<div class="wempty compact">${t('train.prop.tplUnavailable')}</div>`;
   else if (TPL_STATE === 'ok' && TPL) {
     if (!MY_PLAN) inner += `<div class="prop-note">${t('train.prop.noPlanNote')}</div>`;
-    /* N-09: el catálogo muestra solo lo que este rol puede LEER
-       (fábrica para todos; entrenador: solo su autor y el admin;
-       privadas: solo su dueño y el admin). La puerta del punto 3
-       para el cliente asignado vive encima, en la rama anterior. */
+    /* N-09 + resolución 23:15: el catálogo muestra solo lo que este
+       rol puede LEER (fábrica para todos, también el cliente
+       asignado; entrenador: solo su autor y el admin; privadas:
+       solo su dueño y el admin). */
     inner += TPL.filter(tplCanRead).map(tpl => propTplCardHTML(tpl)).join('');
   } else inner += `<div class="wempty compact">${t('train.loading')}</div>`;
   box.innerHTML = inner;
@@ -10133,13 +10124,13 @@ async function tplApply(id) {
      cualquier carga anterior) se trata como 'factory' por defecto,
      sin tocar sus datos: la lectura no se rompe y su edición queda
      reservada al administrador, como manda N-09 para la clase.
-   - TENSIÓN DOCUMENTADA (no resuelta aquí): el punto 3 construido
-     esta noche (3ac5a13) OCULTA el catálogo al cliente CON entrenador
-     asignado (tplCatalogHiddenForClient, intacto encima de este
-     modelo), mientras N-09 dice «de fábrica: lectura para todos».
-     Este modelo implementa la lectura N-09; la puerta de UI del
-     punto 3 sigue mandando en la zona del cliente hasta que Ronald
-     decida. Ver «Tensión Punto 3 × N-09» en el informe. */
+   - TENSIÓN RESUELTA por Ronald (chat, 2026-10-23 23:15 CDT):
+     «Lectura para todos manda: el cliente asignado también ve las
+     plantillas de fábrica». La puerta del punto 3 (que ocultaba el
+     catálogo al cliente asignado) queda LEVANTADA para las de
+     fábrica; el catálogo se rige solo por tplCanRead. De la puerta
+     no queda nada: ni ocultación ni su nota. Ver la sección de
+     resolución en el informe N-09. */
 const TPL_CLASSES = ['factory', 'trainer', 'private'];
 function tplVisibility(tpl) { const v = tpl && tpl.visibility; return TPL_CLASSES.includes(v) ? v : 'factory'; }
 function tplMyUid() { return auth.currentUser ? auth.currentUser.uid : ''; }
