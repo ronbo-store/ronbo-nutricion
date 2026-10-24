@@ -64,7 +64,11 @@ let suppressAuthCheck = false; // evita el chequeo durante el registro (el doc a
    fechas), trainer_profiles/{uid} (modalidades, bio, disponibilidad,
    contador de cupo) y trainer_relations/{alumnoUid} (relación vigente
    + subcolección history). Membresía = cupo de alumnos activos:
-   Básico 5 · Premium 10 · Élite 30 · Libre 30 (fundador, gratis).
+   Básico 5 · Premium 10 · Élite 30. (Corrección 2026-10-24: Ronald NO
+   aprobó la membresía «Libre 30 para fundadores» — correo memphis
+   15:34 CDT, id 1a16f9f79dffc293 — y ordenó quitarla del diseño y de
+   la implementación: quedan SOLO sus tres niveles. El entrenador sin
+   nivel se muestra «sin membresía», nunca un cuarto nivel.)
    ⚠️ NO confundir con app_settings/approvals.maxPerTrainer (N-07):
    ese es el cupo de APROBACIONES de cuentas nuevas por entrenador;
    este es el cupo de ALUMNOS por membresía. Contadores distintos.
@@ -87,8 +91,8 @@ let suppressAuthCheck = false; // evita el chequeo durante el registro (el doc a
    cambia de entrenador con una solicitud viva, esta se cierra
    como cancelada en el mismo lote. */
 const ESC_MODALITIES = ['presencial', 'hibrido', 'virtual'];
-const ESC_QUOTA = { basico: 5, premium: 10, elite: 30, libre: 30 };
-const ESC_AI_BY_LEVEL = { basico: 10, premium: 20, elite: 50, libre: 10 };
+const ESC_QUOTA = { basico: 5, premium: 10, elite: 30 };
+const ESC_AI_BY_LEVEL = { basico: 10, premium: 20, elite: 50 };
 const ESC_FEATURE_DEFAULTS = { training: true, activity: true, photos: true, metrics: true, meals: false, somatotype: true };
 const ESC_FLAG_KEYS = ['meals', 'activity', 'training', 'photos', 'metrics', 'somatotype'];
 let FEATURE_FLAGS = null;        // app_settings/feature_flags { flags }
@@ -556,7 +560,7 @@ async function renderEscAdminBoxes() {
         ${ESC_MODALITIES.map(md => `<label class="muted"><input type="checkbox" data-mod-for="${u.id}" value="${md}" ${mods.includes(md) ? 'checked' : ''}> ${esc(escModLabel(md))}</label>`).join(' ')}
         </div>
         <div class="user-actions">
-          <label class="muted">${esc(t('esc.grantLevel'))} <select data-grant-for="${u.id}">${['', 'basico', 'premium', 'elite', 'libre'].map(l => `<option value="${l}"${(m.level || '') === l && m.status === 'activa' ? ' selected' : ''}>${l ? esc(escLevelLabel(l)) : '—'}</option>`).join('')}</select></label>
+          <label class="muted">${esc(t('esc.grantLevel'))} <select data-grant-for="${u.id}">${['', 'basico', 'premium', 'elite'].map(l => `<option value="${l}"${(m.level || '') === l && m.status === 'activa' ? ' selected' : ''}>${l ? esc(escLevelLabel(l)) : '—'}</option>`).join('')}</select></label>
         </div>
       </div>`; }).join('')}`;
     document.querySelectorAll('[data-membership-approve]').forEach(b => b.onclick = async () => {
@@ -1521,7 +1525,7 @@ en: {
   'esc.level.basico': 'Basic',
   'esc.level.premium': 'Premium',
   'esc.level.elite': 'Elite',
-  'esc.level.libre': 'Founder (free)',
+
   'esc.status.sin_membresia': 'No membership',
   'esc.status.pendiente': 'Requested — waiting for the administrator',
   'esc.status.activa': 'Active',
@@ -2799,7 +2803,7 @@ es: {
   'esc.level.basico': 'Básico',
   'esc.level.premium': 'Premium',
   'esc.level.elite': 'Élite',
-  'esc.level.libre': 'Fundador (gratis)',
+
   'esc.status.sin_membresia': 'Sin membresía',
   'esc.status.pendiente': 'Solicitada: esperando al administrador',
   'esc.status.activa': 'Activa',
