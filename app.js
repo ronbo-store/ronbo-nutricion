@@ -5593,7 +5593,6 @@ async function btLoadTrainerCard(uid, udata) {
   if (!btPilot(uid)) { box.innerHTML = ''; return; }
   const active = btIsActive(udata);
   let html = `<div class="compacc-box"><h3 class="history-title">🧍 ${esc(t('bt.trainerTitle'))}</h3>
-    <span class="bt-badge">${esc(t('bt.draftBadge'))}</span>
     <p class="progress-hint">${esc(t('bt.consentSignal', { v: active ? t('bt.active') : t('bt.inactive') }))}</p>
     <p class="progress-hint">${esc(t('bt.trainerNote'))}</p>`;
   if (!active) {
