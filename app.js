@@ -873,6 +873,9 @@ en: {
   'pend.trainTitlePastDate': 'On {date} you didn\'t log your training.',
   'pend.goTraining': 'Go to my training',
   'pend.evalTitle': 'Your progress evaluation was due on {date}.',
+  'pend.energyTitle': 'Your energy calculation needs a private datum',
+  'pend.energyDetail': 'Your trainer set up your energy calculation, but it cannot be completed yet: a private datum that only you can provide is missing. Only you can see its value — your trainer only sees whether it has been provided or not.',
+  'pend.goEnergy': 'Complete it now',
   'pend.evalMissing': 'Still missing (required): {items}',
   'pend.goEval': 'Go to My progress',
   'pend.snooze': 'Snooze',
@@ -1738,6 +1741,9 @@ es: {
   'pend.trainTitlePastDate': 'El {date} no registraste tu entrenamiento.',
   'pend.goTraining': 'Ir a mi entrenamiento',
   'pend.evalTitle': 'Tu evaluación de progreso vencía el {date}.',
+  'pend.energyTitle': 'Tu cálculo de energía necesita un dato privado',
+  'pend.energyDetail': 'Tu entrenador dejó preparado tu cálculo de energía, pero aún no puede completarse: falta un dato privado que solo tú puedes aportar. Solo tú puedes ver su valor: tu entrenador solo ve si ya está aportado o no.',
+  'pend.goEnergy': 'Completarlo ahora',
   'pend.evalMissing': 'Falta (requerido): {items}',
   'pend.goEval': 'Ir a Mi progreso',
   'pend.snooze': 'Posponer',
@@ -9024,7 +9030,26 @@ function pendCompute() {
     }
   } catch {}
 
-  const order = { meal: 1, weight: 2, training: 3, eval: 4 };
+  /* Energía — pendiente SOLO del propio cliente (pendCompute corre
+     únicamente sobre los datos del usuario en sesión: el entrenador
+     nunca ve este pendiente). Aparece cuando el cálculo de energía
+     no puede hacerse por faltar el dato privado que SOLO el cliente
+     puede aportar: la evaluación existe, el entrenador ya eligió la
+     ecuación (Mifflin-St Jeor) y la señal sexDataProvided no está
+     aportada — el mismo hueco que la tarjeta del entrenador muestra
+     como «sin resultado» por fa.missSex (o el caso C-3, dato
+     retirado). Sin marcas (no es una ocasión): está mientras falte
+     el dato y desaparece al aportarlo; si falta la ecuación o
+     cualquier otro dato, el bloqueo no es del cliente y NO se
+     genera pendiente. La redacción en superficies del entrenador no
+     cambia: allí sigue solo la señal sí/no de siempre. */
+  try {
+    const a = (typeof MY_ASMT !== 'undefined' && MY_ASMT) ? MY_ASMT.doc : null;
+    if (a && a.equation === 'mifflin-st-jeor' && a.sexDataProvided !== true)
+      out.items.push({ id: 'energy|private-data', type: 'energy', date: regDay, overdue: false, age: 0 });
+  } catch {}
+
+  const order = { meal: 1, weight: 2, training: 3, eval: 4, energy: 5 };
   out.items.sort((a, b) => (a.date < b.date ? -1 : a.date > b.date ? 1 : (order[a.type] || 9) - (order[b.type] || 9)));
   return out;
 }
@@ -9161,6 +9186,10 @@ function pendItemHTML(it, regDay) {
     const items = it.missing.map(m2 => m2.kind === 'photo' ? t('eval.reqPhoto.' + m2.id) : t('eval.measure.' + m2.id)).join(' · ');
     detail = `${esc(t('pend.evalMissing', { items }))}${it.overdue ? ` · ${esc(t('pend.daysAgo', { d: it.age }))}` : ''}`;
     go = `<button type="button" class="btn-primary btn-sm" data-pend-act="go" data-type="eval" data-date="${it.date}">${esc(t('pend.goEval'))}</button>`;
+  } else if (it.type === 'energy') {
+    title = t('pend.energyTitle');
+    detail = t('pend.energyDetail');
+    go = `<button type="button" class="btn-primary btn-sm" data-pend-act="go" data-type="energy" data-date="${it.date}">${esc(t('pend.goEnergy'))}</button>`;
   }
   const now = new Date();
   const hm = d => pendFmtHM(d.getHours() * 60 + d.getMinutes());
@@ -9170,8 +9199,8 @@ function pendItemHTML(it, regDay) {
     ['tomorrowSame', t('pend.snooze.tomorrowSame', { time: hm(now) })],
     ['tomorrow9', t('pend.snooze.tomorrow9')]
   ].map(([v, l]) => `<option value="${v}">${esc(l)}</option>`).join('');
-  const snooze = it.type === 'eval' ? '' : `<label class="pend-snooze"><span>${esc(t('pend.snooze'))}</span><select data-pend-snooze="${esc(it.id)}"><option value="">—</option>${opts}</select></label>`;
-  const omit = it.type === 'eval' ? '' : `<button type="button" class="btn-ghost btn-sm" data-pend-act="omit" data-id="${esc(it.id)}">${esc(t(it.overdue ? 'pend.omitOccasionPast' : 'pend.omitOccasion'))}</button>`;
+  const snooze = (it.type === 'eval' || it.type === 'energy') ? '' : `<label class="pend-snooze"><span>${esc(t('pend.snooze'))}</span><select data-pend-snooze="${esc(it.id)}"><option value="">—</option>${opts}</select></label>`;
+  const omit = (it.type === 'eval' || it.type === 'energy') ? '' : `<button type="button" class="btn-ghost btn-sm" data-pend-act="omit" data-id="${esc(it.id)}">${esc(t(it.overdue ? 'pend.omitOccasionPast' : 'pend.omitOccasion'))}</button>`;
   const discard = it.canDiscard ? `<button type="button" class="btn-ghost btn-sm pend-danger" data-pend-act="discard" data-id="${esc(it.id)}">${esc(t('pend.discard'))}</button>` : '';
   return `<div class="pend-item${it.overdue ? ' pend-overdue' : ''}" data-pend-item="${esc(it.id)}">
     <p class="pend-text"><b>${esc(title)}</b><br><span class="pend-detail">${detail}</span></p>
@@ -9362,6 +9391,13 @@ setInterval(() => { try { pendDockTick(); } catch {} }, 60000);
           const c = $('progress-content');
           if (c && c.style.display === 'none') { const pb = $('btn-toggle-progress'); if (pb) pb.click(); }
           const r = $('eval-root'); if (r) { try { r.scrollIntoView({ behavior: 'smooth', block: 'start' }); } catch {} }
+        } else if (type === 'energy') {
+          /* El dato privado se aporta en «Permisos y privacidad»,
+             sección de energía: se abre el panel si está cerrado y
+             se desplaza hasta la tarjeta del propio cliente. */
+          const pb = $('btn-perms');
+          if (pb && !permsOpen) pb.click();
+          const r = $('energy-section'); if (r) { try { r.scrollIntoView({ behavior: 'smooth', block: 'start' }); } catch {} }
         }
       }
     });
