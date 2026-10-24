@@ -1127,10 +1127,16 @@ service cloud.firestore {
     // 2026-10-23 19:39). Lectura con sesión (el entrenador consulta
     // su cupo); escritura SOLO del administrador. Sin documento,
     // approvalLimit() trata el límite como 0 (fail-closed).
+    // app_settings/ai_control = { enabled }: interruptor general
+    // de IA (pedido de Ronald, 2026-10-24 09:52). Misma postura que
+    // approvals: lectura con sesión (la app refleja el estado y el
+    // Worker lo consulta reenviando el token del llamante) y
+    // escritura SOLO del administrador (isOwnerUser). Sin documento,
+    // el estado por defecto es ACTIVADO (app y Worker lo tratan así).
     match /app_settings/{docId} {
-      allow get: if signedIn() && docId == 'approvals';
+      allow get: if signedIn() && docId in ['approvals', 'ai_control'];
       allow list: if false;
-      allow create, update, delete: if isOwnerUser() && docId == 'approvals';
+      allow create, update, delete: if isOwnerUser() && docId in ['approvals', 'ai_control'];
     }
 
     // ---------- Trainer directory (candidato roles, NO publicado) ----------
