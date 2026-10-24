@@ -121,6 +121,17 @@ function membershipQuotaOf(level) {
   if (c && isFinite(Number(c.quota))) return Number(c.quota);
   return ESC_QUOTA[level] || 0;
 }
+/* Cambio de nivel (§8.3 RESUELTA por Ronald, chat RONBO.NUTRI
+   2026-10-24 17:48 CDT: «simplemente no puede bajar a básico por la
+   cantidad de alumnos que tenga. Lo que puede es aumentar si su
+   demanda aumente»): un entrenador NO puede quedar en un nivel cuyo
+   cupo sea MENOR que sus alumnos activos actuales; subir sí, en
+   cualquier momento. La guarda vive en la app — solicitar, aprobar y
+   conceder comprueban ANTES de escribir y un intento bloqueado no
+   escribe nada —; las reglas vivas no cambian: todas las escrituras
+   del flujo ya están permitidas y la guarda solo las retiene (el
+   mismo patrón que la guarda de interfaz del PAR-Q §4.5). */
+function escLevelFits(level, used) { return !!level && membershipQuotaOf(level) >= (Number(used) || 0); }
 async function auditLog(type, action, targetUid, detail) {
   try {
     await addDoc(collection(db, 'audit_log'), {
@@ -477,15 +488,22 @@ async function renderMembershipBox() {
     ${st.level ? `<p class="progress-hint">${esc(t('esc.quotaOf', { used: st.used, total: st.total === Infinity ? '∞' : st.total }))}</p>
     <p class="progress-hint">${esc(t('esc.aiByLevel', { n: ESC_AI_BY_LEVEL[st.level] || 10 }))}</p>`
       : `<p class="progress-hint">${esc(t('esc.quotaNone'))}</p>`}
-    ${status !== 'pendiente' ? `<div class="eval-actions">${['basico', 'premium', 'elite'].map(l => `<button type="button" class="btn-ghost btn-sm" data-membership-request="${l}">${esc(t('esc.requestLevel'))} ${esc(escLevelLabel(l))} (${membershipQuotaOf(l)})</button>`).join('')}</div>` : ''}
+    ${status !== 'pendiente' ? `<div class="eval-actions">${['basico', 'premium', 'elite'].map(l => `<button type="button" class="btn-ghost btn-sm" data-membership-request="${l}"${escLevelFits(l, st.used) ? '' : ' disabled'}>${esc(t('esc.requestLevel'))} ${esc(escLevelLabel(l))} (${membershipQuotaOf(l)})</button>`).join('')}</div>
+    ${['basico', 'premium', 'elite'].some(l => !escLevelFits(l, st.used)) ? `<p class="progress-hint">⚠️ ${esc(t('esc.levelHint', { used: st.used }))}</p>` : ''}` : ''}
     <label class="muted">${esc(t('esc.bioLabel'))} <input type="text" id="prof-bio" value="${esc(prof.bio || '')}" placeholder="${esc(t('esc.bioPh'))}"></label>
     <label class="muted"><input type="checkbox" id="prof-available" ${prof.available === false ? '' : 'checked'}> ${esc(t('esc.availableLabel'))}</label>
     <p class="progress-hint">${esc(t('esc.modalitiesLabel'))}: ${mods.map(x => esc(escModLabel(x))).join(' · ')}</p>
     <div class="eval-actions"><button type="button" class="btn-primary btn-sm" id="prof-save">${esc(t('form.save'))}</button></div>
   </div>`;
   document.querySelectorAll('[data-membership-request]').forEach(b => b.onclick = async () => {
+    const dest = b.dataset.membershipRequest;
+    /* Guarda §8.3 con la foto FRESCA (el conteo pudo moverse desde
+       el render): si el nivel destino no cabe para sus alumnos
+       activos, se bloquea con el motivo y NO se escribe nada. */
+    const fresh = await escTrainerStanding(me, false);
+    if (!escLevelFits(dest, fresh.used)) { toast(t('esc.levelBlocked', { level: escLevelLabel(dest), quota: membershipQuotaOf(dest), used: fresh.used }), true); return; }
     await setDoc(doc(db, 'memberships', me), {
-      status: 'pendiente', requestedLevel: b.dataset.membershipRequest, requestedAt: serverTimestamp(),
+      status: 'pendiente', requestedLevel: dest, requestedAt: serverTimestamp(),
       level: st.level || null, source: 'gratis'
     }, { merge: true });
     await auditLog('membership', 'membership.requested', me, b.dataset.membershipRequest);
@@ -617,6 +635,15 @@ async function renderEscAdminBoxes() {
       </div>`; }).join('')}`;
     document.querySelectorAll('[data-membership-approve]').forEach(b => b.onclick = async () => {
       const uid = b.dataset.membershipApprove; const m = membs[uid] || {};
+      /* Guarda §8.3 también al APROBAR (el conteo pudo crecer desde
+         la solicitud): si el nivel pedido no cabe para sus alumnos
+         activos, se bloquea con el motivo, sin escribir — la
+         solicitud queda pendiente tal cual. */
+      if (m.requestedLevel) {
+        let usedNow = 0;
+        try { const s = await getDoc(doc(db, 'trainer_profiles', uid)); if (s.exists()) usedNow = Number(s.data().activeStudents) || 0; } catch {}
+        if (!escLevelFits(m.requestedLevel, usedNow)) { toast(t('esc.levelBlocked', { level: escLevelLabel(m.requestedLevel), quota: membershipQuotaOf(m.requestedLevel), used: usedNow }), true); return; }
+      }
       await setDoc(doc(db, 'memberships', uid), {
         level: m.requestedLevel || 'basico', status: 'activa', source: 'gratis',
         decidedBy: auth.currentUser.uid, decidedAt: serverTimestamp(), startedAt: serverTimestamp(), currentPeriodEnd: null
@@ -634,6 +661,16 @@ async function renderEscAdminBoxes() {
     });
     document.querySelectorAll('[data-grant-for]').forEach(sel => sel.onchange = async () => {
       const uid = sel.dataset.grantFor; const lvl = sel.value;
+      /* Guarda §8.3 también al CONCEDER un nivel concreto: si no
+         cabe para sus alumnos activos, se bloquea con el motivo y
+         el selector vuelve a su valor (loadAdmin re-renderiza).
+         Quitar la membresía («—», lvl vacío) NO es un cambio de
+         nivel: queda fuera de la guarda. */
+      if (lvl) {
+        let usedG = 0;
+        try { const s = await getDoc(doc(db, 'trainer_profiles', uid)); if (s.exists()) usedG = Number(s.data().activeStudents) || 0; } catch {}
+        if (!escLevelFits(lvl, usedG)) { toast(t('esc.levelBlocked', { level: escLevelLabel(lvl), quota: membershipQuotaOf(lvl), used: usedG }), true); loadAdmin(); return; }
+      }
       if (lvl) await setDoc(doc(db, 'memberships', uid), { level: lvl, status: 'activa', source: 'gratis', decidedBy: auth.currentUser.uid, decidedAt: serverTimestamp(), startedAt: serverTimestamp(), currentPeriodEnd: null }, { merge: true });
       else await setDoc(doc(db, 'memberships', uid), { level: null, status: 'sin_membresia', decidedBy: auth.currentUser.uid, decidedAt: serverTimestamp() }, { merge: true });
       await auditLog('membership', 'membership.granted', uid, lvl || 'none');
@@ -1582,6 +1619,8 @@ en: {
   'esc.status.pendiente': 'Requested — waiting for the administrator',
   'esc.status.activa': 'Active',
   'esc.quotaOf': '{used} of {total} student spots used',
+  'esc.levelBlocked': 'Blocked: {level} allows {quota} students and there are {used} active students. A trainer cannot move to a level below their current students — moving up is always possible when demand grows.',
+  'esc.levelHint': 'With {used} active students, the levels below that count are disabled: you cannot move down below your current students.',
   'esc.quotaNone': 'You cannot take students until the administrator approves a membership.',
   'esc.requestLevel': 'Request',
   'esc.requestedOk': 'Membership requested.',
@@ -2862,6 +2901,8 @@ es: {
   'esc.status.pendiente': 'Solicitada: esperando al administrador',
   'esc.status.activa': 'Activa',
   'esc.quotaOf': '{used} de {total} cupos de alumnos en uso',
+  'esc.levelBlocked': 'Bloqueado: {level} permite {quota} alumnos y hay {used} alumnos activos. Un entrenador no puede bajar a un nivel menor que sus alumnos actuales — subir sí es posible cuando su demanda crezca.',
+  'esc.levelHint': 'Con {used} alumnos activos, los niveles por debajo de ese número quedan desactivados: no puedes bajar por debajo de tus alumnos actuales.',
   'esc.quotaNone': 'No puedes recibir alumnos hasta que el administrador apruebe una membresía.',
   'esc.requestLevel': 'Solicitar',
   'esc.requestedOk': 'Membresía solicitada.',
