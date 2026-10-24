@@ -243,6 +243,21 @@ async function renderMyTrainerBox() {
     pool = await escPoolTrainers(rel.modality || null, users.filter(u => u.isOwner || u.role === 'entrenador'));
   } catch {}
   const tName = rel.trainerUid ? (ADMIN_NAME_CACHE[rel.trainerUid] || rel.trainerUid) : null;
+  /* Rechazo (§8.2): si el alumno está sin entrenador y el ÚLTIMO
+     evento de SU historial es un rechazo, se le dice con honestidad
+     y sin dureza — está en espera y puede elegir otro. La nota vive
+     solo en SU superficie (el historial es suyo y del administrador,
+     nunca una etiqueta para otros entrenadores) y desaparece en
+     cuanto elige otro entrenador (ese flujo anexa su propio evento). */
+  let rejectedNote = '';
+  if (!rel.trainerUid) {
+    try {
+      const hs = await getDocs(collection(db, 'trainer_relations', auth.currentUser.uid, 'history'));
+      const evs = []; hs.forEach(d => evs.push(d.data()));
+      evs.sort((a, b) => ((b.at && b.at.toMillis) ? b.at.toMillis() : 0) - ((a.at && a.at.toMillis) ? a.at.toMillis() : 0));
+      if (evs[0] && evs[0].type === 'rechazo') rejectedNote = `<p class="progress-hint">ℹ️ ${esc(t('esc.rejectedNote'))}</p>`;
+    } catch {}
+  }
   /* Cambio de modalidad (punto 9): mientras una solicitud vive, se
      muestra su estado y NO se ofrece otra (no duplica); la vigente
      no se mueve. Sin solicitud viva: selector con las OTRAS dos
@@ -278,6 +293,7 @@ async function renderMyTrainerBox() {
     <h3 class="history-title">${esc(t('esc.myTrainerTitle'))}</h3>
     ${rel.trainerUid ? `<p class="progress-hint">${esc(t('esc.currentTrainer'))}: <b>${esc(tName || '')}</b>${rel.modality ? ` · ${esc(t('esc.modality'))}: <b>${esc(escModLabel(rel.modality))}</b>` : ''} <button type="button" class="slot-link" data-dossier-open="${esc(rel.trainerUid)}">${esc(t('esc.dos.viewBtn'))}</button></p>`
       : `<p class="progress-hint">${esc(t('esc.noTrainerYet'))}</p>`}
+    ${rejectedNote}
     ${modHtml}
     <label class="muted">${esc(t('esc.changeTrainer'))}
       <select id="my-trainer-sel">
@@ -345,6 +361,42 @@ async function renderMyTrainerBox() {
 }
 /* Nombre legible por uid para las cajas del alumno (caché local). */
 const ADMIN_NAME_CACHE = {};
+/* Rechazo de un alumno por su entrenador (decisión §8.2 de Ronald,
+   chat RONBO.NUTRI 2026-10-24 17:11 CDT: «Él, el entrenador, así
+   como puede aprobar, puede rechazar a un alumno, por supuesto.»).
+   SOLO sobre un alumno que eligió a ESTE entrenador y sigue SIN
+   aprobar: cierra la elección y lo DEVUELVE A LA ESPERA en un solo
+   lote — espejo legado (trainerUid null, assignmentStatus
+   'waiting'), relación sin entrenador y 'en_espera', y el evento
+   'rechazo' en el historial DENTRO del mismo lote (así el delta de
+   reglas puede verificar el acoplamiento completo con get/getAfter).
+   El contador de cupo NO se toca: un alumno nunca aprobado nunca
+   sumó a activeStudents. Un alumno YA aprobado no pasa por aquí:
+   eso sería baja/reasignación, otro movimiento fuera de alcance.
+   NOTA de reglas: el candidato vivo NO admite estas escrituras del
+   entrenador (su rama de users solo cubre la aprobación y las de
+   trainer_relations/history son del alumno o del administrador);
+   el delta necesario va escrito y separado (preparacion-local/
+   firestore.rules.delta-rechazo-alumno-2026-10-24.md, casos CI
+   Serie F escritos, NO ejecutados). */
+async function escRejectStudent(alumnoUid) {
+  const me = auth.currentUser.uid;
+  let rel = null;
+  try { const s = await getDoc(doc(db, 'trainer_relations', alumnoUid)); if (s.exists()) rel = s.data(); } catch {}
+  const modality = rel ? (rel.modality || null) : null;
+  const batch = writeBatch(db);
+  batch.update(doc(db, 'users', alumnoUid), { trainerUid: null, assignmentStatus: 'waiting' });
+  batch.set(doc(db, 'trainer_relations', alumnoUid), {
+    alumnoUid, trainerUid: null, modality,
+    status: 'en_espera', startedAt: serverTimestamp(), updatedAt: serverTimestamp()
+  });
+  batch.set(doc(db, 'trainer_relations', alumnoUid, 'history', 'ev' + Date.now()), {
+    type: 'rechazo', fromTrainerUid: me, toTrainerUid: null,
+    modality, by: me, at: serverTimestamp()
+  });
+  await batch.commit();
+  await auditLog('relation', 'relation.rejected', alumnoUid, me);
+}
 /* Cambio de entrenador del alumno (pedido 8): cierra la relación
    vigente en el historial, abre la nueva con la MISMA modalidad
    (cambiarla está apagado por diseño), mueve los contadores si la
@@ -1559,6 +1611,8 @@ en: {
   'esc.aiByLevel': 'Suggested AI limit for this level: {n} requests/day (set it in Analysis limits).',
   'esc.memberSince': 'With this trainer since',
   'esc.rejectBtn': 'Reject',
+  'esc.rejectedOk': 'Student returned to the waiting list.',
+  'esc.rejectedNote': 'Your previous trainer could not take you on right now, so you are back on the waiting list. You can choose another trainer whenever you like — your account and your data are unchanged.',
   'esc.dos.viewBtn': '👤 View profile',
   'esc.dos.chooseBtn': 'Choose this trainer',
   'esc.dos.waitBtn': 'Join the waiting list',
@@ -2837,6 +2891,8 @@ es: {
   'esc.aiByLevel': 'Límite de IA sugerido para este nivel: {n} peticiones/día (se fija en Límites de análisis).',
   'esc.memberSince': 'Con este entrenador desde',
   'esc.rejectBtn': 'Rechazar',
+  'esc.rejectedOk': 'Alumno devuelto a la espera.',
+  'esc.rejectedNote': 'Tu entrenador anterior no pudo aceptarte por ahora, así que volviste a la lista de espera. Puedes elegir otro entrenador cuando quieras: tu cuenta y tus datos no cambian.',
   'esc.dos.viewBtn': '👤 Ver dossier',
   'esc.dos.chooseBtn': 'Elegir este entrenador',
   'esc.dos.waitBtn': 'Quedar en espera',
@@ -4879,8 +4935,20 @@ async function renderApprovalsTray(myUsers) {
     + (pend.length ? pend.map(u => `
     <div class="user-row">
       <div><b>${esc(u.name || '—')}</b><br><span class="muted">${esc(u.email || '')}</span></div>
-      <div class="user-actions"><button class="btn-primary btn-sm" data-trainer-approve="${u.id}"${canApprove ? '' : ' disabled'}>${t('admin.approve')}</button></div>
+      <div class="user-actions"><button class="btn-primary btn-sm" data-trainer-approve="${u.id}"${canApprove ? '' : ' disabled'}>${t('admin.approve')}</button>${u.trainerUid === me ? `<button class="btn-ghost btn-sm" data-trainer-reject="${u.id}">${t('esc.rejectBtn')}</button>` : ''}</div>
     </div>`).join('') : `<div class="wempty">${t('appr.none')}</div>`);
+  /* Rechazo (§8.2): SOLO junto a los alumnos que eligieron a ESTE
+     entrenador (trainerUid === me); los de la espera general no son
+     suyos para rechazar. No consume cupo de aprobaciones ni toca el
+     contador de alumnos: el alumno nunca fue aprobado. */
+  box.querySelectorAll('[data-trainer-reject]').forEach(b => b.onclick = async () => {
+    b.disabled = true;
+    try {
+      await escRejectStudent(b.dataset.trainerReject);
+      toast(t('esc.rejectedOk'));
+      await loadClients();
+    } catch { toast(t('appr.error')); b.disabled = false; }
+  });
   box.querySelectorAll('[data-trainer-approve]').forEach(b => b.onclick = async () => {
     b.disabled = true;
     try {
