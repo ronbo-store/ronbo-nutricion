@@ -410,6 +410,8 @@ en: {
   'ai.recalcYes': 'Yes, recalculate',
   'ai.saveError': 'It could not be saved. Your changes are still here: check your connection and tap Save to try again.',
   'ai.capReached': 'You reached the pilot\u2019s daily analysis limit. Come back tomorrow to analyze another photo — meanwhile you can log the meal manually.',
+  'ai.retryHint': 'Try a clearer photo — or describe the meal in text right here:',
+  'ai.newPhoto': 'New photo',
   'aiText.label': 'Describe your meal',
   'aiText.ph': 'E.g. quinoa tortilla with egg, cottage cheese and turkey ham',
   'aiText.hint': 'No photo? Describe the dish and AI will suggest its components and amounts — you review and edit everything before saving.',
@@ -1236,6 +1238,8 @@ es: {
   'ai.recalcYes': 'Sí, recalcular',
   'ai.saveError': 'No se pudo guardar. Tus cambios siguen aquí: revisa la conexión y toca Guardar para reintentar.',
   'ai.capReached': 'Alcanzaste el límite diario de análisis del piloto. Vuelve mañana para analizar otra foto; mientras tanto puedes registrar la comida manualmente.',
+  'ai.retryHint': 'Prueba con una foto más clara — o describe la comida por texto aquí mismo:',
+  'ai.newPhoto': 'Nueva foto',
   'aiText.label': 'Describe tu comida',
   'aiText.ph': 'Ej.: tortilla de quinoa con huevo, queso cottage y jamón de pavo',
   'aiText.hint': '¿Sin foto? Describe el plato y la IA sugerirá sus componentes y cantidades: tú revisas y editas todo antes de guardar.',
@@ -3742,11 +3746,86 @@ async function aiCalculate() {
     aiRender();
   } catch (e) { if (aiState) { aiState.step = 'error'; aiState.cap = !!(e && e.message === 'ai-cap'); aiRender(); } }
 }
+/* REINTENTO DEL ANÁLISIS SIN RESULTADO (decisión de Ronald, correo
+   2026-10-23 23:26 CDT): cuando el análisis de una comida no da
+   resultado —la identificación volvió sin alimentos («notfound») o la
+   llamada falló (red, tiempo agotado, HTTP, respuesta no
+   interpretable)—, la tarjeta ofrece REINTENTAR con la MISMA entrada
+   de la sesión: la foto sigue SOLO en memoria (postura M8 intacta:
+   las fotos de comida no se persisten) o el texto del borrador. Y
+   ofrece además la salida por texto DENTRO de la propia tarjeta
+   (aiFailExtrasHTML): la línea que sugiere una foto más clara o
+   describir la comida, con su caja accionable — no un letrero.
+   El tope diario (429) NO es un «sin resultado»: su tarjeta es la del
+   límite, sin Reintentar, porque el intermediario negaría el
+   reintento igualmente; el reintento que SÍ se hace es una llamada
+   más y cuenta contra ese tope como cualquier otra. */
+function aiHasInput() {
+  if (!aiState) return false;
+  if (aiState.mode === 'text') return String(aiState.descText || '').trim().length > 0;
+  const photos = (aiState.photos && aiState.photos.length) ? aiState.photos : (aiState.dataUrl ? [aiState.dataUrl] : []);
+  return photos.length > 0 && !!photos[0];
+}
+/* Bloque de salidas reales tras un «sin resultado» en la etapa de
+   identificación: sugerencia + caja de descripción accionable. En
+   modo texto la caja nace con la descripción que falló, para
+   corregirla y reanalizar sin reescribirla entera. Si la sesión ya
+   no conserva entrada (withPhotoExit), se añade «Nueva foto», que
+   abre el selector real de imágenes: sin entrada no hay Reintentar
+   —sería un botón falso—, solo salidas que sí existen. */
+function aiFailExtrasHTML(withPhotoExit) {
+  const pre = aiState && aiState.mode === 'text' ? esc(aiState.descText || '') : '';
+  return `<p class="progress-hint">${t('ai.retryHint')}</p><textarea id="ai-alt-desc" class="ai-alt-desc" rows="2" maxlength="600" placeholder="${t('aiText.ph')}">${pre}</textarea><div class="ai-actions"><button type="button" class="btn-ghost btn-sm" id="ai-alt-text">${t('aiText.button')}</button>${withPhotoExit ? `<button type="button" class="btn-ghost btn-sm" id="ai-alt-photo">${t('ai.newPhoto')}</button>` : ''}</div>`;
+}
+function aiWireFailExtras() {
+  const btn = $('ai-alt-text');
+  if (btn) btn.onclick = () => {
+    const desc = (($('ai-alt-desc') && $('ai-alt-desc').value) || '').trim();
+    if (desc.length < 2) { toast(t('aiText.tooShort'), true); return; }
+    if (!aiEndpoint()) { toast(t('ai.unavailable'), true); return; }
+    const keepMeal = aiState && aiState.meal;
+    aiStartText(desc);
+    if (keepMeal && aiState) aiState.meal = keepMeal;
+  };
+  const ph = $('ai-alt-photo');
+  if (ph) ph.onclick = () => { aiDiscard(); const f = $('ai-file'); if (f) f.click(); };
+}
+/* Tarjeta de error del análisis: UN solo constructor para el pintado
+   normal y para el respaldo anti-silencio (aiRenderErrorFallback) —
+   ambas rutas muestran exactamente lo mismo. En identificación sin
+   resultado se suman la sugerencia y la salida por texto; en CÁLCULO
+   la identificación ya tuvo éxito (los alimentos quedaron capturados
+   en el estado) y el reintento es recalcular con lo mismo: misma
+   revisión y mismo saveId, porque aiCalculate no crea estado nuevo. */
+function aiErrorCardHTML() {
+  if (aiState.cap) {
+    return { html: `<p class="progress-hint">${t('ai.capReached')}</p><div class="ai-actions"><button type="button" class="btn-main btn-sm" id="ai-manual">${t('ai.continueManual')}</button><button type="button" class="btn-ghost btn-sm" id="ai-cancel">${t('ai.discard')}</button></div>`, extras: false };
+  }
+  const identify = aiState.errStage === 'identify';
+  const canRetry = !identify || aiHasInput();
+  const retryBtn = canRetry ? `<button type="button" class="btn-main btn-sm" id="ai-retry">${t('ai.retry')}</button>` : '';
+  const extras = identify ? aiFailExtrasHTML(!canRetry) : '';
+  return { html: `<p class="progress-hint">${t('ai.failed')}</p><div class="ai-actions">${retryBtn}<button type="button" class="${canRetry ? 'btn-ghost' : 'btn-main'} btn-sm" id="ai-manual">${t('ai.continueManual')}</button><button type="button" class="btn-ghost btn-sm" id="ai-cancel">${t('ai.discard')}</button></div>${extras}`, extras: identify };
+}
+function aiWireErrorCard(extras) {
+  const r = $('ai-retry'); if (r) r.onclick = aiRetry;
+  const m = $('ai-manual'); if (m) m.onclick = aiContinueManual;
+  const c = $('ai-cancel'); if (c) c.onclick = aiDiscard;
+  if (extras) aiWireFailExtras();
+}
 function aiRetry() {
   if (!aiState) return;
   if (aiState.errStage === 'identify') {
+    /* Sin entrada en la sesión no se finge una llamada: la tarjeta ya
+       pintada ofrece las salidas reales (texto / nueva foto / manual). */
+    if (!aiHasInput()) { aiRender(); return; }
+    /* La comida elegida se conserva (mismo criterio que el botón de
+       texto del formulario manual): el reintento no hereda otra en
+       silencio — antes aiStartText/aiStartPhotos la reiniciaban. */
+    const keepMeal = aiState.meal;
     if (aiState.mode === 'text') aiStartText(aiState.descText);
     else aiStartPhotos((aiState.photos && aiState.photos.length) ? aiState.photos : [aiState.dataUrl]);
+    if (keepMeal && aiState) aiState.meal = keepMeal;
   }
   else aiCalculate();
 }
@@ -3806,16 +3885,12 @@ function aiRenderErrorFallback() {
   aiProgHide();
   if (!aiState) return;
   aiState.step = 'error';
-  if (aiState.cap) {
-    aiShow(`<p class="progress-hint">${t('ai.capReached')}</p><div class="ai-actions"><button type="button" class="btn-main btn-sm" id="ai-manual">${t('ai.continueManual')}</button><button type="button" class="btn-ghost btn-sm" id="ai-cancel">${t('ai.discard')}</button></div>`);
-    $('ai-manual').onclick = aiContinueManual;
-    $('ai-cancel').onclick = aiDiscard;
-    return;
-  }
-  aiShow(`<p class="progress-hint">${t('ai.failed')}</p><div class="ai-actions"><button type="button" class="btn-main btn-sm" id="ai-retry">${t('ai.retry')}</button><button type="button" class="btn-ghost btn-sm" id="ai-manual">${t('ai.continueManual')}</button><button type="button" class="btn-ghost btn-sm" id="ai-cancel">${t('ai.discard')}</button></div>`);
-  $('ai-retry').onclick = aiRetry;
-  $('ai-manual').onclick = aiContinueManual;
-  $('ai-cancel').onclick = aiDiscard;
+  /* La misma tarjeta que pinta aiRenderInner (aiErrorCardHTML): el
+     respaldo anti-silencio no puede ofrecer MENOS salidas que el
+     flujo normal — ni un Reintentar sin la vía de texto. */
+  const card = aiErrorCardHTML();
+  aiShow(card.html);
+  aiWireErrorCard(card.extras);
 }
 function aiRenderInner() {
   const p = $('ai-panel');
@@ -3823,19 +3898,15 @@ function aiRenderInner() {
   if (aiState.step === 'loading') { aiShow(`<p class="progress-hint">${t('ai.analyzing')}</p>`); aiProgShow(); return; }
   if (aiState.step === 'error') {
     aiProgHide(); // sin completar: manda el aviso honesto de error
-    if (aiState.cap) {
-      /* Tope diario alcanzado (PAQUETE 2): mensaje específico y
-         comprensible; reintentar no sirve hasta el reinicio, así que
-         no se ofrece Reintentar — sí continuar manualmente. */
-      aiShow(`<p class="progress-hint">${t('ai.capReached')}</p><div class="ai-actions"><button type="button" class="btn-main btn-sm" id="ai-manual">${t('ai.continueManual')}</button><button type="button" class="btn-ghost btn-sm" id="ai-cancel">${t('ai.discard')}</button></div>`);
-      $('ai-manual').onclick = aiContinueManual;
-      $('ai-cancel').onclick = aiDiscard;
-      return;
-    }
-    aiShow(`<p class="progress-hint">${t('ai.failed')}</p><div class="ai-actions"><button type="button" class="btn-main btn-sm" id="ai-retry">${t('ai.retry')}</button><button type="button" class="btn-ghost btn-sm" id="ai-manual">${t('ai.continueManual')}</button><button type="button" class="btn-ghost btn-sm" id="ai-cancel">${t('ai.discard')}</button></div>`);
-    $('ai-retry').onclick = aiRetry;
-    $('ai-manual').onclick = aiContinueManual;
-    $('ai-cancel').onclick = aiDiscard;
+    /* Tope diario alcanzado (aiState.cap, PAQUETE 2): mensaje
+       específico y comprensible; reintentar no sirve hasta el
+       reinicio, así que la tarjeta del límite —que construye
+       aiErrorCardHTML— no ofrece Reintentar: sí continuar
+       manualmente. Sin tope: Reintentar + sugerencia y vía de texto
+       si el fallo fue de identificación. */
+    const card = aiErrorCardHTML();
+    aiShow(card.html);
+    aiWireErrorCard(card.extras);
     return;
   }
   if (aiState.step === 'notfound') {
@@ -3843,12 +3914,20 @@ function aiRenderInner() {
        no es comida, una descripción sin alimentos reconocibles):
        estado VISIBLE y específico, con salida manual. Antes de la
        Parte B esto pintaba la pantalla de preguntas vacía — y si el
-       pintado fallaba, el indicador «simplemente desaparecía». */
+       pintado fallaba, el indicador «simplemente desaparecía».
+       Desde la decisión de Ronald (2026-10-23 23:26 CDT) la tarjeta
+       ofrece REINTENTAR con la misma entrada de la sesión y la
+       salida por texto accionable (sugerencia + caja). Sin entrada
+       conservada no se pinta Reintentar: salen las salidas reales
+       (texto / nueva foto / manual). */
     aiProgHide();
-    aiShow(`<p class="progress-hint">${t('aiText.notFound')}</p><div class="ai-actions"><button type="button" class="btn-main btn-sm" id="ai-retry">${t('ai.retry')}</button><button type="button" class="btn-ghost btn-sm" id="ai-manual">${t('ai.continueManual')}</button><button type="button" class="btn-ghost btn-sm" id="ai-cancel">${t('ai.discard')}</button></div>`);
-    $('ai-retry').onclick = aiRetry;
+    const canRetry = aiHasInput();
+    const retryBtn = canRetry ? `<button type="button" class="btn-main btn-sm" id="ai-retry">${t('ai.retry')}</button>` : '';
+    aiShow(`<p class="progress-hint">${t('aiText.notFound')}</p><div class="ai-actions">${retryBtn}<button type="button" class="${canRetry ? 'btn-ghost' : 'btn-main'} btn-sm" id="ai-manual">${t('ai.continueManual')}</button><button type="button" class="btn-ghost btn-sm" id="ai-cancel">${t('ai.discard')}</button></div>${aiFailExtrasHTML(!canRetry)}`);
+    if (canRetry) $('ai-retry').onclick = aiRetry;
     $('ai-manual').onclick = aiContinueManual;
     $('ai-cancel').onclick = aiDiscard;
+    aiWireFailExtras();
     return;
   }
   if (aiState.step === 'warn') {

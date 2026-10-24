@@ -607,6 +607,7 @@ table.whist { min-width: 640px; }
 .ai-food-grams{width:78px;padding:7px 9px;border:1px solid #d1d5db;border-radius:8px;font-size:14px}
 .ai-g{color:#6b7280;font-size:13px}
 .ai-other{width:100%;box-sizing:border-box;margin-top:6px;padding:7px 9px;border:1px solid #d1d5db;border-radius:8px;font-size:14px}
+.ai-alt-desc{width:100%;box-sizing:border-box;margin-top:6px;padding:7px 9px;border:1px solid #d1d5db;border-radius:8px;font-size:14px;font-family:inherit;resize:vertical}
 /* M8 — paquete 2: unidad por alimento, selector de comida, métricas editables */
 .ai-food-unit{padding:7px 4px;border:1px solid #d1d5db;border-radius:8px;font-size:13px;background:#fff}
 .ai-est{color:#92400e;background:#fef3c7;border-radius:6px;padding:2px 5px;font-size:11px;white-space:nowrap}
