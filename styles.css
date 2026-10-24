@@ -271,6 +271,14 @@ table.whist { min-width: 640px; }
 
 /* ===== plantillas en el editor (§4.2): selector, bloques de sesión,
    descanso/aproximación por fila y sugerencia de alineación ===== */
+.exp-badge { background: #fee2e2; color: #991b1b; font-size: 11px; font-weight: 700; border-radius: 20px; padding: 2px 10px; vertical-align: middle; }
+.pl-current { background: #eef6ff; border: 1px solid #bfdbfe; border-radius: 10px; padding: 10px 14px; margin: 10px 0; font-size: 14px; }
+.pl-current-head { font-weight: 700; color: #1f2a44; font-size: 13px; margin-bottom: 4px; }
+.pl-current-meta { color: #475569; font-size: 13px; margin-top: 2px; }
+.pl-current .btn-primary { margin-top: 8px; }
+.pl-dates { margin: 10px 0; }
+.pl-dates .frow { align-items: flex-end; }
+.pl-dates-hint { color: #64748b; font-size: 12px; margin-top: 4px; }
 .pl-tpl { margin: 10px 0; }
 .pl-tpl-head { font-weight: 700; color: #1f2a44; font-size: 14px; margin-bottom: 6px; }
 .pl-tpl-card { display: flex; gap: 8px; align-items: center; justify-content: space-between; border: 1px solid #e9ecef; border-radius: 10px; padding: 8px 10px; margin: 6px 0; }

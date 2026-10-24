@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>ronbo.nutri · Private</title>
 <meta name="robots" content="noindex, nofollow">
-<link rel="stylesheet" href="styles.css?v=20261024-reintento">
+<link rel="stylesheet" href="styles.css?v=20261024-editor5">
 <script type="importmap">
 {
   "imports": {
@@ -526,6 +526,23 @@
       <label><span data-i18n="train.f.notes">Notes for the client</span> <input type="text" id="pl-notes"></label>
       <label class="check-row"><input type="checkbox" id="pl-active"> <span data-i18n="train.f.active">Active plan (the one the client sees)</span></label>
       <div id="pl-gate" class="pl-gate"></div>
+      <div id="pl-current" class="pl-current" style="display:none"></div>
+      <div id="pl-dates" class="pl-dates">
+        <div class="frow">
+          <label><span data-i18n="train.dates.start">Start date</span> <input type="date" id="pl-start"></label>
+          <label><span data-i18n="train.dates.duration">Duration</span>
+            <select id="pl-preset">
+              <option value="" data-i18n="train.dates.presetNone">No fixed duration</option>
+              <option value="weekly" data-i18n="train.dates.weekly">Weekly</option>
+              <option value="fortnightly" data-i18n="train.dates.fortnightly">Fortnightly</option>
+              <option value="monthly" data-i18n="train.dates.monthly">Monthly</option>
+              <option value="bimonthly" data-i18n="train.dates.bimonthly">Bimonthly (2 months)</option>
+              <option value="quarterly" data-i18n="train.dates.quarterly">Quarterly (3 months)</option>
+            </select></label>
+          <label><span data-i18n="train.dates.end">End date (expiry)</span> <input type="date" id="pl-end"></label>
+        </div>
+        <div class="pl-dates-hint" data-i18n="train.dates.hint">The end date is calculated from the start date and the duration; you can also adjust it by hand.</div>
+      </div>
       <div id="pl-lib-note" class="pl-lib-note"></div>
       <div id="pl-tpl" class="pl-tpl">
         <div class="pl-tpl-head" data-i18n="train.tpl.title">📋 Routine templates</div>
@@ -615,6 +632,6 @@
 <div id="toast" class="toast"></div>
 <div id="print-card" aria-hidden="true"></div>
 
-<script type="module" src="app.js?v=20261024-reintento"></script>
+<script type="module" src="app.js?v=20261024-editor5"></script>
 </body>
 </html>

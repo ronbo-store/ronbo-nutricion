@@ -572,6 +572,23 @@ en: {
   'train.print.btn': '🖨 Print card', 'train.print.title': 'Training plan', 'train.print.session': 'Session',
   'train.f.warmupPh': 'Warm-up sets', 'train.f.restPh': 'Rest',
   'train.tpl.title': '📋 Routine templates',
+  'train.dates.currentTitle': 'Current active plan',
+  'train.dates.change': 'Change plan',
+  'train.dates.start': 'Start date',
+  'train.dates.end': 'End date (expiry)',
+  'train.dates.duration': 'Duration',
+  'train.dates.presetNone': 'No fixed duration',
+  'train.dates.weekly': 'Weekly',
+  'train.dates.fortnightly': 'Fortnightly',
+  'train.dates.monthly': 'Monthly',
+  'train.dates.bimonthly': 'Bimonthly (2 months)',
+  'train.dates.quarterly': 'Quarterly (3 months)',
+  'train.dates.hint': 'The end date is calculated from the start date and the duration; you can also adjust it by hand.',
+  'train.dates.none': 'No dates set',
+  'train.dates.expired': 'Expired',
+  'train.dates.fromOnly': 'From {d}',
+  'train.dates.untilOnly': 'Until {d}',
+  'train.dates.clientLine': 'Plan period: {period}',
   'train.tpl.use': 'Use this template',
   'train.tpl.perWeek': '{n} days/week',
   'train.tpl.unavailable': '📋 The routine templates are unavailable right now (they may be empty or could not be loaded). You can keep building the plan by hand — nothing is blocked.',
@@ -1400,6 +1417,23 @@ es: {
   'train.print.btn': '🖨 Tarjeta imprimible', 'train.print.title': 'Plan de entrenamiento', 'train.print.session': 'Sesión',
   'train.f.warmupPh': 'Series de aproximación', 'train.f.restPh': 'Descanso',
   'train.tpl.title': '📋 Plantillas de rutina',
+  'train.dates.currentTitle': 'Plan activo actual',
+  'train.dates.change': 'Cambiar plan',
+  'train.dates.start': 'Fecha de inicio',
+  'train.dates.end': 'Fecha de fin (vencimiento)',
+  'train.dates.duration': 'Duración',
+  'train.dates.presetNone': 'Sin duración fija',
+  'train.dates.weekly': 'Semanal',
+  'train.dates.fortnightly': 'Quincenal',
+  'train.dates.monthly': 'Mensual',
+  'train.dates.bimonthly': 'Bimensual (2 meses)',
+  'train.dates.quarterly': 'Trimestral (3 meses)',
+  'train.dates.hint': 'La fecha de fin se calcula desde la fecha de inicio y la duración; también puedes ajustarla a mano.',
+  'train.dates.none': 'Sin fechas registradas',
+  'train.dates.expired': 'Vencido',
+  'train.dates.fromOnly': 'Desde el {d}',
+  'train.dates.untilOnly': 'Hasta el {d}',
+  'train.dates.clientLine': 'Periodo del plan: {period}',
   'train.tpl.use': 'Usar esta plantilla',
   'train.tpl.perWeek': '{n} días/semana',
   'train.tpl.unavailable': '📋 Las plantillas de rutina no están disponibles ahora (pueden estar vacías o no pudieron cargarse). Puedes seguir armando el plan a mano: nada se bloquea.',
@@ -4990,7 +5024,7 @@ async function loadMyHealth() {
 }
 
 /* ================= PLANES DE ENTRENAMIENTO (v1) =================
-   training_plans { clientUid, title, notes, days: [{ label, exercises: [{ name, sets, reps, note }] }], active, createdBy, createdAt, updatedAt }
+   training_plans { clientUid, title, notes, days: [{ label, exercises: [{ name, sets, reps, note }] }], active, createdBy, createdAt, updatedAt[, startsAt, endsAt, durationPreset — EDITOR-PLAN 2026-10-24, opcionales] }
    training_logs  { clientUid, planId, date, dayIndex, dayLabel, done, updatedAt } — id: {clientUid}_{planId}_{date}_{dayIndex} */
 function mondayISO(iso) {
   const d = new Date(iso + 'T12:00:00');
@@ -5244,6 +5278,7 @@ async function loadMyTraining() {
   box.innerHTML = `
     <h3 class="history-title">${esc(plan.title || '')}</h3>
     ${plan.notes ? `<p class="progress-hint">${esc(plan.notes)}</p>` : ''}
+    ${planPeriodText(plan) ? `<p class="progress-hint">${t('train.dates.clientLine', { period: esc(planPeriodText(plan)) })}</p>` : ''}
     <p class="progress-hint">${t('train.weekDone', { n: weekCount })}</p>
     <div style="margin:6px 0"><button class="btn-ghost btn-sm" id="btn-print-card">${t('train.print.btn')}</button></div>
     <div id="train-align-slot"></div>
@@ -5556,7 +5591,7 @@ async function loadClientTraining(uid) {
   const plans = await fetchPlans(uid);
   const logs = await fetchLogs(uid);
   const planRows = plans.length ? plans.map(p => `
-    <div class="user-row"><div><b>${esc(p.title || '')}</b>${p.active === true ? ` <span class="ok-badge">${t('train.activeBadge')}</span>` : ''}<br><span class="muted">${t('train.daysCount', { n: (p.days || []).length })} · ${t('train.exCount', { n: (p.days || []).reduce((n, d) => n + (d.exercises || []).length, 0) })}</span></div>
+    <div class="user-row"><div><b>${esc(p.title || '')}</b>${p.active === true ? ` <span class="ok-badge">${t('train.activeBadge')}</span>` : ''}${p.active === true && planIsExpired(p) ? ` <span class="exp-badge">${t('train.dates.expired')}</span>` : ''}<br><span class="muted">${t('train.daysCount', { n: (p.days || []).length })} · ${t('train.exCount', { n: (p.days || []).reduce((n, d) => n + (d.exercises || []).length, 0) })}${planPeriodText(p) ? ' · ' + esc(planPeriodText(p)) : ''}</span></div>
     <div class="user-actions">
       <button class="btn-ghost btn-sm" data-plan-edit="${p.id}">${t('client.edit')}</button>
       <button class="btn-ghost btn-sm" data-plan-toggle="${p.id}">${p.active === true ? t('train.deactivate') : t('train.activate')}</button>
@@ -6476,11 +6511,111 @@ function planDayRow(day) {
   wirePlanExRows(wrap);
   return wrap;
 }
+/* ================= EDITOR DEL PLAN: FECHAS Y PLAN ACTIVO =================
+   Ajuste del editor (correo de Ronald, memphis, 2026-10-23 23:58 CDT;
+   SOLO desarrollo):
+   - Si el cliente YA tiene un plan activo, el editor NO muestra el
+     catálogo de plantillas al abrir: muestra la TARJETA del plan
+     activo (nombre, días/ejercicios, inicio, fin y estado derivado
+     por fecha) y el catálogo solo se abre al tocar «Cambiar plan».
+     Sin plan activo, el flujo es el de siempre (catálogo visible).
+   - El plan gana tres campos OPCIONALES en training_plans:
+     startsAt / endsAt ('YYYY-MM-DD', cadenas como las fechas de
+     training_logs) y durationPreset ('weekly' | 'fortnightly' |
+     'monthly' | 'bimonthly' | 'quarterly'). Las reglas vivas no
+     tienen lista blanca de campos en training_plans: los admiten
+     tal cual, sin delta. Los planes legados no los traen y todo
+     lector los trata como «sin fechas», sin migración.
+   - ARITMÉTICA DECLARADA: la fecha de fin es el ÚLTIMO día de
+     vigencia (inclusive): semanal = inicio + 7 días − 1; quincenal
+     = + 14 − 1; mensual/bimensual/trimestral = + 1/2/3 MESES de
+     calendario − 1 día (con el día anclado al último día del mes
+     destino si no existe: 31 ene + 1 mes = 28/29 feb). Cambiar el
+     inicio o la duración recalcula el fin; el fin editado a mano se
+     respeta hasta que el inicio o la duración cambien otra vez.
+   - VENCIMIENTO SOLO DE PRESENTACIÓN: un plan activo con endsAt
+     anterior a hoy se muestra «Vencido» (entrenador), pero NADIE lo
+     desactiva, lo borra ni deja de mostrárselo al cliente: el campo
+     active manda como siempre y no existe ningún comportamiento
+     automático por fechas en la app. */
+function planISOAddDays(iso, n) {
+  const d = new Date(iso + 'T12:00:00'); if (isNaN(d)) return '';
+  d.setDate(d.getDate() + n);
+  return d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0') + '-' + String(d.getDate()).padStart(2, '0');
+}
+function planISOAddMonths(iso, n) {
+  const m = String(iso).match(/(\d{4})-(\d{2})-(\d{2})/); if (!m) return '';
+  const y = Number(m[1]), mo = Number(m[2]) - 1, da = Number(m[3]);
+  const first = new Date(y, mo + n, 1);
+  const lastDay = new Date(first.getFullYear(), first.getMonth() + 1, 0).getDate();
+  const d = new Date(first.getFullYear(), first.getMonth(), Math.min(da, lastDay));
+  return d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0') + '-' + String(d.getDate()).padStart(2, '0');
+}
+const PLAN_PRESET_SPAN = { weekly: ['d', 7], fortnightly: ['d', 14], monthly: ['m', 1], bimonthly: ['m', 2], quarterly: ['m', 3] };
+function planEndFromPreset(startIso, preset) {
+  const span = PLAN_PRESET_SPAN[preset];
+  if (!startIso || !span) return '';
+  const raw = span[0] === 'd' ? planISOAddDays(startIso, span[1]) : planISOAddMonths(startIso, span[1]);
+  return raw ? planISOAddDays(raw, -1) : '';
+}
+function planIsExpired(p) { return !!(p && p.endsAt && String(p.endsAt) < todayISO()); }
+function planPeriodText(p) {
+  if (!p) return '';
+  const s = p.startsAt ? dateName(p.startsAt) : '', e = p.endsAt ? dateName(p.endsAt) : '';
+  if (s && e) return s + ' – ' + e;
+  if (s) return t('train.dates.fromOnly', { d: s });
+  if (e) return t('train.dates.untilOnly', { d: e });
+  return '';
+}
+function planDatesSync() {
+  const st = $('pl-start'), pr = $('pl-preset'), en = $('pl-end');
+  if (!st || !pr || !en) return;
+  const end = planEndFromPreset(st.value, pr.value);
+  if (end) en.value = end;
+}
+if ($('pl-start')) $('pl-start').addEventListener('change', planDatesSync);
+if ($('pl-preset')) $('pl-preset').addEventListener('change', planDatesSync);
+function planCurrentCardHTML(p) {
+  const expired = planIsExpired(p);
+  const period = planPeriodText(p);
+  return `<div class="pl-current-head">🗓 ${t('train.dates.currentTitle')}</div>
+    <div><b>${esc(p.title || '')}</b> <span class="ok-badge">${t('train.activeBadge')}</span>${expired ? ` <span class="exp-badge">${t('train.dates.expired')}</span>` : ''}</div>
+    <div class="pl-current-meta">${t('train.daysCount', { n: (p.days || []).length })} · ${t('train.exCount', { n: (p.days || []).reduce((n, d) => n + (d.exercises || []).length, 0) })}</div>
+    <div class="pl-current-meta">${period ? esc(period) : t('train.dates.none')}</div>
+    <button type="button" class="btn-primary btn-sm" id="pl-change-plan">${t('train.dates.change')}</button>`;
+}
+let planCurrentSeq = 0;
+async function planCurrentInit(clientUid) {
+  const seq = ++planCurrentSeq;
+  let active = null;
+  try { active = (await fetchPlans(clientUid)).find(p => p.active === true) || null; } catch { active = null; }
+  if (seq !== planCurrentSeq || !planCtx || planCtx.clientUid !== clientUid) return;
+  const cur = $('pl-current'), tpl = $('pl-tpl');
+  if (!cur || !tpl) return;
+  if (!active) { cur.style.display = 'none'; cur.innerHTML = ''; tpl.style.display = ''; return; }
+  cur.innerHTML = planCurrentCardHTML(active);
+  cur.style.display = '';
+  tpl.style.display = 'none';
+  const btn = $('pl-change-plan');
+  if (btn) btn.onclick = () => { tpl.style.display = ''; btn.style.display = 'none'; tpl.scrollIntoView({ block: 'nearest' }); };
+}
+
 function openPlanEditor(clientUid, plan) {
   planCtx = { clientUid, planId: plan ? plan.id : null, tplSource: null };
   $('pl-title').value = plan ? (plan.title || '') : '';
   $('pl-notes').value = plan ? (plan.notes || '') : '';
   $('pl-active').checked = plan ? plan.active === true : true;
+  /* EDITOR-PLAN (2026-10-24): fechas del plan que se crea/edita —
+     inicio por defecto HOY en un plan nuevo; en uno existente, sus
+     fechas guardadas. El catálogo nace OCULTO en cada apertura (sin
+     destello): planCurrentInit lo muestra solo si el cliente NO
+     tiene plan activo, o cuando el entrenador toca «Cambiar plan». */
+  $('pl-start').value = plan ? (plan.startsAt || '') : todayISO();
+  $('pl-end').value = plan ? (plan.endsAt || '') : '';
+  $('pl-preset').value = plan ? (plan.durationPreset || '') : '';
+  $('pl-current').style.display = 'none'; $('pl-current').innerHTML = '';
+  $('pl-tpl').style.display = 'none';
+  planCurrentInit(clientUid);
   const daysBox = $('pl-days'); daysBox.innerHTML = '';
   const days = plan && plan.days && plan.days.length ? plan.days : [{ label: '', exercises: [{}] }];
   days.forEach(d => daysBox.appendChild(planDayRow(d)));
@@ -6564,6 +6699,13 @@ $('form-plan').addEventListener('submit', async e => {
   const gateWarnAfter = !isFirstSave && gateState !== 'valid';
   const active = $('pl-active').checked;
   const data = { clientUid: planCtx.clientUid, title, notes: $('pl-notes').value.trim(), days, active, updatedAt: serverTimestamp() };
+  /* EDITOR-PLAN (2026-10-24): fechas de la rutina. Sin fecha elegida
+     se escribe null — todos los lectores tratan null y ausente
+     igual — para que una fecha BORRADA al editar desaparezca de
+     verdad del documento fusionado, sin necesitar deleteField. */
+  data.startsAt = $('pl-start').value || null;
+  data.endsAt = $('pl-end').value || null;
+  data.durationPreset = $('pl-preset').value || null;
   /* PLANTILLAS (§4.2/§4.6): procedencia OPCIONAL y veraz — solo si
      en ESTA sesión del editor se aplicó una plantilla. Es
      trazabilidad (qué plantilla y qué versión originaron el
