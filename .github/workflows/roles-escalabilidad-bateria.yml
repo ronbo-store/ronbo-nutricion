@@ -68,6 +68,8 @@ jobs:
         run: |
           grep -E 'RESULTADO:' resultado-bateria.txt | sed 's/^/::notice title=RESULTADO::/' || true
           grep -E '^FAIL — ' resultado-bateria.txt | sed 's/^FAIL — /::error title=FAIL::/' || true
+          echo "::error title=HEAD::$(head -c 800 resultado-bateria.txt | tr '\n' '|')" || true
+          echo "::error title=TAIL::$(tail -c 1200 resultado-bateria.txt | tr '\n' '|')" || true
       - name: Conservar la evidencia (salida de la batería)
         if: always()
         uses: actions/upload-artifact@v4
