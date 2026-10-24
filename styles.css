@@ -1209,3 +1209,21 @@ div > .btn-ghost:only-child, div > .btn-main:only-child {
 .fb2-limits { background: #fff8e6; border: 1px solid #ffe1a8; color: #7a5200; border-radius: 10px; padding: 8px 10px; font-size: 12px; margin: 8px 0; }
 .fb2-amdr { margin-top: 8px; font-size: 13px; }
 .fa-b2note { margin-top: 12px; font-size: 12px; color: #6b7280; border-top: 1px solid #e5e7eb; padding-top: 8px; }
+
+/* N-09 — permisos de biblioteca y plantillas (2026-10-23, desarrollo) */
+.tpl-meta { display: flex; gap: 6px; align-items: center; flex-wrap: wrap; margin-top: 3px; }
+.tpl-badge { font-size: 11px; font-weight: 600; border-radius: 999px; padding: 1px 8px; border: 1px solid #d1d5db; background: #f3f4f6; color: #374151; }
+.tpl-badge-factory { background: #eef2ff; border-color: #c7d2fe; color: #3730a3; }
+.tpl-badge-trainer { background: #ecfdf5; border-color: #a7f3d0; color: #065f46; }
+.tpl-badge-private { background: #fff7ed; border-color: #fed7aa; color: #9a3412; }
+.tpl-byline { font-size: 11px; color: #6b7280; }
+.tpl-lock { font-size: 11px; color: #9ca3af; white-space: nowrap; }
+.pl-tpl-actions { display: flex; gap: 6px; align-items: center; flex-wrap: wrap; justify-content: flex-end; }
+.pl-tpl-n09 { border-top: 1px dashed #e5e7eb; margin-top: 8px; padding-top: 8px; }
+.pl-tpl-n09 .frow { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; }
+.myb-day { border: 1px solid #e9ecef; border-radius: 10px; padding: 8px 10px; margin: 8px 0; }
+.myb-day input[type="text"] { margin: 3px 0; }
+.myb-ex { display: flex; gap: 6px; align-items: center; flex-wrap: wrap; margin: 4px 0; }
+.myb-ex-name { font-weight: 600; font-size: 13px; flex: 1 1 130px; }
+.myb-ex input[type="text"] { flex: 0 1 90px; }
+#myb-name { width: 100%; margin: 6px 0; }

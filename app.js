@@ -2219,6 +2219,35 @@ en: {
   'train.tpl.alignApply': 'Apply alignment',
   'train.tpl.alignIgnore': 'Ignore',
   'train.tpl.alignApplied': '✓ Weekdays applied to the day labels. You can still edit any label.',
+  'train.n09.badgeFactory': '🏭 Factory',
+  'train.n09.badgeTrainer': '🧑‍🏫 Trainer template',
+  'train.n09.badgePrivate': '🔒 Private',
+  'train.n09.byLine': 'by {name} · {date}',
+  'train.n09.lockedNote': '🔒 Read-only for your role',
+  'train.n09.edit': 'Edit', 'train.n09.del': 'Delete',
+  'train.n09.delConfirm': 'Delete this template permanently? This cannot be undone.',
+  'train.n09.deleted': 'Template deleted.',
+  'train.n09.saveAs': '💾 Save draft as template',
+  'train.n09.saveAsClass': 'Template type',
+  'train.n09.classFactory': 'Factory — everyone can read it',
+  'train.n09.classTrainer': 'Trainer — only you and the administrator',
+  'train.n09.savedNew': 'Template saved — it now carries your name as its author.',
+  'train.n09.savedEdit': 'Template updated. Its author and creation date did not change.',
+  'train.n09.editingNote': '✏️ You are editing the template “{name}”. Saving updates it — author and creation date stay as they are.',
+  'train.n09.cancelEdit': 'Cancel editing',
+  'train.n09.needDraft': 'The draft needs a title and at least one day with an exercise.',
+  'train.n09.myTitle': '🛠️ My own routines',
+  'train.n09.myIntro': 'Build your own routines with library exercises and save them as PRIVATE templates — only you can see them. Factory and trainer templates stay read-only for you.',
+  'train.n09.createBtn': '➕ Create my routine',
+  'train.n09.namePh': 'Routine name (e.g. Home routine)',
+  'train.n09.dayPh': 'Day name (e.g. Monday)',
+  'train.n09.addDay': '＋ Add day',
+  'train.n09.setsPh': 'Sets', 'train.n09.repsPh': 'Reps',
+  'train.n09.saveMine': 'Save as my private template',
+  'train.n09.savedMine': 'Your private template is saved. Only you can see it.',
+  'train.n09.needName': 'Give your routine a name first.',
+  'train.n09.needEx': 'Add at least one library exercise.',
+  'train.n09.editMineNote': '✏️ You are editing your private template “{name}”.',
   'train.prop.tplTitle': '📋 Routine templates',
   'train.prop.tplIntro': 'Browse the routine templates. You can propose adding or swapping an exercise in your active plan — your trainer reviews and decides.',
   'train.prop.tplUnavailable': '📋 The routine templates are unavailable right now (they may be empty or could not be loaded).',
@@ -3531,6 +3560,35 @@ es: {
   'train.tpl.alignApply': 'Aplicar alineación',
   'train.tpl.alignIgnore': 'Ignorar',
   'train.tpl.alignApplied': '✓ Días de semana aplicados a las etiquetas. Puedes seguir editando cualquier etiqueta.',
+  'train.n09.badgeFactory': '🏭 De fábrica',
+  'train.n09.badgeTrainer': '🧑‍🏫 De entrenador',
+  'train.n09.badgePrivate': '🔒 Privada',
+  'train.n09.byLine': 'por {name} · {date}',
+  'train.n09.lockedNote': '🔒 Solo lectura para tu rol',
+  'train.n09.edit': 'Editar', 'train.n09.del': 'Borrar',
+  'train.n09.delConfirm': '¿Borrar esta plantilla para siempre? No se puede deshacer.',
+  'train.n09.deleted': 'Plantilla borrada.',
+  'train.n09.saveAs': '💾 Guardar el borrador como plantilla',
+  'train.n09.saveAsClass': 'Tipo de plantilla',
+  'train.n09.classFactory': 'De fábrica — la leen todos',
+  'train.n09.classTrainer': 'De entrenador — solo tú y el administrador',
+  'train.n09.savedNew': 'Plantilla guardada: ya lleva tu nombre como autor.',
+  'train.n09.savedEdit': 'Plantilla actualizada. Su autor y su fecha de creación no cambiaron.',
+  'train.n09.editingNote': '✏️ Estás editando la plantilla «{name}». Al guardar se actualiza: el autor y la fecha de creación quedan como están.',
+  'train.n09.cancelEdit': 'Cancelar edición',
+  'train.n09.needDraft': 'El borrador necesita un título y al menos un día con un ejercicio.',
+  'train.n09.myTitle': '🛠️ Mis propias rutinas',
+  'train.n09.myIntro': 'Crea tus propias rutinas con ejercicios de la biblioteca y guárdalas como plantillas PRIVADAS: solo tú las ves. Las de fábrica y las de tu entrenador quedan en solo lectura para ti.',
+  'train.n09.createBtn': '➕ Crear mi rutina',
+  'train.n09.namePh': 'Nombre de la rutina (p. ej. Rutina en casa)',
+  'train.n09.dayPh': 'Nombre del día (p. ej. Lunes)',
+  'train.n09.addDay': '＋ Añadir día',
+  'train.n09.setsPh': 'Series', 'train.n09.repsPh': 'Repeticiones',
+  'train.n09.saveMine': 'Guardar como mi plantilla privada',
+  'train.n09.savedMine': 'Tu plantilla privada está guardada. Solo tú la ves.',
+  'train.n09.needName': 'Ponle primero un nombre a tu rutina.',
+  'train.n09.needEx': 'Añade al menos un ejercicio de la biblioteca.',
+  'train.n09.editMineNote': '✏️ Estás editando tu plantilla privada «{name}».',
   'train.prop.tplTitle': '📋 Plantillas de rutina',
   'train.prop.tplIntro': 'Explora las plantillas de rutina. Puedes proponer añadir o cambiar un ejercicio de tu plan activo: tu entrenador lo revisa y decide.',
   'train.prop.tplUnavailable': '📋 Las plantillas de rutina no están disponibles ahora mismo (pueden estar vacías o no haberse podido cargar).',
@@ -9097,12 +9155,13 @@ function tplCatalogHiddenForClient() {
 function loadPropClient() {
   if (!$('my-templates') && !$('my-proposals')) return;
   renderPropTemplates();
+  renderMyBuilder();
   renderMyProposals();
   /* Lecturas únicas con caché (las mismas del editor): al llegar,
      la zona se re-pinta una vez con los nombres resueltos. Con el
      catálogo oculto no se lee routine_templates en absoluto. */
   if (!tplCatalogHiddenForClient()) tplEnsure().then(() => renderPropTemplates());
-  libEnsure().then(() => { renderPropTemplates(); renderMyProposals(); });
+  libEnsure().then(() => { renderPropTemplates(); renderMyProposals(); if (!MYB) renderMyBuilder(); });
 }
 function renderPropTemplates() {
   const box = $('my-templates'); if (!box) return;
@@ -9114,7 +9173,11 @@ function renderPropTemplates() {
   if (TPL_STATE === 'unavailable') inner += `<div class="wempty compact">${t('train.prop.tplUnavailable')}</div>`;
   else if (TPL_STATE === 'ok' && TPL) {
     if (!MY_PLAN) inner += `<div class="prop-note">${t('train.prop.noPlanNote')}</div>`;
-    inner += TPL.map(tpl => propTplCardHTML(tpl)).join('');
+    /* N-09: el catálogo muestra solo lo que este rol puede LEER
+       (fábrica para todos; entrenador: solo su autor y el admin;
+       privadas: solo su dueño y el admin). La puerta del punto 3
+       para el cliente asignado vive encima, en la rama anterior. */
+    inner += TPL.filter(tplCanRead).map(tpl => propTplCardHTML(tpl)).join('');
   } else inner += `<div class="wempty compact">${t('train.loading')}</div>`;
   box.innerHTML = inner;
   box.querySelectorAll('[data-prop-tpl-toggle]').forEach(b => b.onclick = () => {
@@ -9122,6 +9185,8 @@ function renderPropTemplates() {
     if (PROP_TPL_OPEN.has(id)) PROP_TPL_OPEN.delete(id); else PROP_TPL_OPEN.add(id);
     renderPropTemplates();
   });
+  box.querySelectorAll('[data-prop-tpl-edit]').forEach(b => b.onclick = () => { const tpl = TPL_BY_ID[b.dataset.propTplEdit]; if (tpl) mybOpenEdit(tpl); });
+  box.querySelectorAll('[data-prop-tpl-del]').forEach(b => b.onclick = () => tplDelete(b.dataset.propTplDel));
   box.querySelectorAll('[data-prop-ex]').forEach(b => b.onclick = () => propOpenForm({ exerciseId: b.dataset.propEx, fromTemplateId: b.dataset.propTpl || null }));
 }
 function propTplCardHTML(tpl) {
@@ -9133,14 +9198,21 @@ function propTplCardHTML(tpl) {
       const dName = LANG === 'es' ? (d.dia_nombre_es || d.dia_nombre_en || '') : (d.dia_nombre_en || d.dia_nombre_es || '');
       const exs = (d.exercises || []).map(te => {
         const entry = te.exerciseId ? LIB_BY_ID[te.exerciseId] : null;
-        const name = entry ? libNameOf(entry) : (te.exerciseId || '');
+        const name = entry ? libNameOf(entry) : (te.nombre_libre || te.exerciseId || '');
         const sx = [te.series, te.repeticiones].filter(Boolean).join(' × ');
         return `<div class="train-ex"><span>${esc(name)}</span><span class="sx">${esc(sx)}</span>${MY_PLAN ? `<button type="button" class="btn-ghost btn-sm" data-prop-ex="${esc(te.exerciseId || '')}" data-prop-tpl="${esc(tpl.id)}">${t('train.prop.proposeBtn')}</button>` : ''}</div>`;
       }).join('');
       return `<div class="prop-tpl-day"><h5>${esc(dName)}</h5>${exs}</div>`;
     }).join('');
   }
-  return `<div class="prop-tpl-card"><div class="prop-tpl-info"><b>${esc(tplField(tpl, 'nombre'))}</b><span class="prop-tpl-meta">${esc(meta)}</span></div><button type="button" class="btn-ghost btn-sm" data-prop-tpl-toggle="${esc(tpl.id)}">${open ? t('train.prop.hide') : t('train.prop.details')}</button>${detail}</div>`;
+  /* N-09: insignia de clase + autor/fecha en las tarjetas nuevas; las
+     privadas propias llevan Editar/Borrar; lo que el rol no puede
+     editar se marca como solo lectura (aviso honesto, sin botones
+     mudos). */
+  const n09acts = (tplVisibility(tpl) === 'private' && tplCanEdit(tpl))
+    ? `<button type="button" class="btn-ghost btn-sm" data-prop-tpl-edit="${esc(tpl.id)}">${t('train.n09.edit')}</button><button type="button" class="btn-ghost btn-sm" data-prop-tpl-del="${esc(tpl.id)}">${t('train.n09.del')}</button>`
+    : (tplCanEdit(tpl) ? '' : `<span class="tpl-lock">${t('train.n09.lockedNote')}</span>`);
+  return `<div class="prop-tpl-card"><div class="prop-tpl-info"><b>${esc(tplField(tpl, 'nombre'))}</b><span class="prop-tpl-meta">${esc(meta)}</span>${tplMetaHTML(tpl)}</div>${n09acts}<button type="button" class="btn-ghost btn-sm" data-prop-tpl-toggle="${esc(tpl.id)}">${open ? t('train.prop.hide') : t('train.prop.details')}</button>${detail}</div>`;
 }
 
 /* --- Formulario de propuesta (cliente) --- */
@@ -9957,15 +10029,27 @@ function tplRenderList() {
   const box = $('pl-tpl-list');
   if (!box) return;
   if (TPL_STATE !== 'ok' || !TPL) { box.innerHTML = ''; return; }
-  box.innerHTML = TPL.map(tpl => `
+  /* N-09: el editor solo lista las plantillas que este rol puede LEER
+     (las de fábrica para todos; las de entrenador, solo su autor y el
+     administrador; las privadas, solo su dueño y el administrador). */
+  const vis = TPL.filter(tplCanRead);
+  box.innerHTML = vis.map(tpl => {
+    const can = tplCanEdit(tpl);
+    return `
     <div class="pl-tpl-card">
       <div class="pl-tpl-info"><b>${esc(tplField(tpl, 'nombre'))}</b>
-      <span class="pl-tpl-meta">${esc([tplField(tpl, 'nivel'), t('train.tpl.perWeek', { n: tpl.dias_por_semana }), tplField(tpl, 'objetivo')].filter(Boolean).join(' · '))}</span></div>
+      <span class="pl-tpl-meta">${esc([tplField(tpl, 'nivel'), t('train.tpl.perWeek', { n: tpl.dias_por_semana }), tplField(tpl, 'objetivo')].filter(Boolean).join(' · '))}</span>${tplMetaHTML(tpl)}</div>
+      <div class="pl-tpl-actions">
       <button type="button" class="btn-primary btn-sm pl-tpl-use" data-tpl-id="${esc(tpl.id)}">${t('train.tpl.use')}</button>
-    </div>`).join('');
+      ${can ? `<button type="button" class="btn-ghost btn-sm" data-tpl-edit="${esc(tpl.id)}">${t('train.n09.edit')}</button><button type="button" class="btn-ghost btn-sm" data-tpl-del="${esc(tpl.id)}">${t('train.n09.del')}</button>` : `<span class="tpl-lock">${t('train.n09.lockedNote')}</span>`}
+      </div>
+    </div>`;
+  }).join('');
   box.querySelectorAll('.pl-tpl-use').forEach(b => b.onclick = () => tplApply(b.dataset.tplId));
+  box.querySelectorAll('[data-tpl-edit]').forEach(b => b.onclick = () => tplEditLoad(b.dataset.tplEdit));
+  box.querySelectorAll('[data-tpl-del]').forEach(b => b.onclick = () => tplDelete(b.dataset.tplDel));
 }
-function tplRenderTplUI() { tplRenderNotice(); tplRenderList(); }
+function tplRenderTplUI() { tplRenderNotice(); tplRenderList(); tplN09RenderSave(); }
 const TPL_BLOCK_TITLES = {
   cardio_pre: { es: 'Cardio antes', en: 'Cardio before' },
   cardio_post: { es: 'Cardio después', en: 'Cardio after' },
@@ -10009,7 +10093,7 @@ async function tplApply(id) {
       exercises: (d.exercises || []).map(te => {
         const entry = LIB_BY_ID[te.exerciseId] || null;
         return {
-          name: entry ? libNameOf(entry) : (te.exerciseId || ''),
+          name: entry ? libNameOf(entry) : (te.nombre_libre || te.exerciseId || ''),
           sets: te.series || '', reps: te.repeticiones || '', note: '',
           exerciseId: te.exerciseId || '',
           photoUrl: entry ? (entry.foto_url || '') : '',
@@ -10026,6 +10110,324 @@ async function tplApply(id) {
   tplRenderAlign();
   toast(t('train.tpl.applied'));
 }
+/* ================= N-09: PERMISOS DE BIBLIOTECA Y PLANTILLAS =================
+   Decisión N-09 de Ronald (correo memphis, 2026-10-23 22:53 CDT),
+   SOLO desarrollo: publicación de reglas y despliegue NO autorizados.
+   Modelo (patrón de roles N-07: ROLE derivado de users.role):
+   - BIBLIOTECA (exercise_library): lectura para los tres roles;
+     crear/modificar/eliminar SOLO el administrador. La app no tiene
+     superficie de edición de biblioteca para ningún rol (las cargas
+     siguen siendo operación del administrador): el permiso vive en
+     el delta de reglas propio (n09-permisos/) y aquí no hay botones
+     que violar: ni usuarios ni entrenadores la tocan.
+   - PLANTILLAS (routine_templates): cada documento lleva
+     createdBy, createdByName, createdAt, visibility
+     ('factory'|'trainer'|'private') y ownerUid.
+       factory → lectura para todos; escribe SOLO el administrador.
+       trainer → la crea un entrenador (o el administrador actuando
+                 como entrenador, N-07 punto 2), asociada a su cuenta;
+                 la leen y editan su autor y el administrador.
+       private → la crea cualquier usuario para sí mismo; la lee y
+                 edita SOLO su dueño (ownerUid) y el administrador.
+   - LEGADO: un documento SIN visibility (las 8 de fábrica R01–R08 y
+     cualquier carga anterior) se trata como 'factory' por defecto,
+     sin tocar sus datos: la lectura no se rompe y su edición queda
+     reservada al administrador, como manda N-09 para la clase.
+   - TENSIÓN DOCUMENTADA (no resuelta aquí): el punto 3 construido
+     esta noche (3ac5a13) OCULTA el catálogo al cliente CON entrenador
+     asignado (tplCatalogHiddenForClient, intacto encima de este
+     modelo), mientras N-09 dice «de fábrica: lectura para todos».
+     Este modelo implementa la lectura N-09; la puerta de UI del
+     punto 3 sigue mandando en la zona del cliente hasta que Ronald
+     decida. Ver «Tensión Punto 3 × N-09» en el informe. */
+const TPL_CLASSES = ['factory', 'trainer', 'private'];
+function tplVisibility(tpl) { const v = tpl && tpl.visibility; return TPL_CLASSES.includes(v) ? v : 'factory'; }
+function tplMyUid() { return auth.currentUser ? auth.currentUser.uid : ''; }
+function tplCanRead(tpl) {
+  const v = tplVisibility(tpl);
+  if (v === 'factory') return true;
+  if (ROLE === 'administrador') return true;
+  if (v === 'trainer') return !!tplMyUid() && tpl.createdBy === tplMyUid();
+  return !!tplMyUid() && tpl.ownerUid === tplMyUid();
+}
+function tplCanEdit(tpl) {
+  const v = tplVisibility(tpl);
+  if (ROLE === 'administrador') return true;
+  if (v === 'factory') return false;
+  if (v === 'trainer') return ROLE === 'entrenador' && !!tplMyUid() && tpl.createdBy === tplMyUid();
+  return !!tplMyUid() && tpl.ownerUid === tplMyUid();
+}
+function tplCanCreateClass(cls) {
+  if (cls === 'factory') return ROLE === 'administrador';
+  if (cls === 'trainer') return ROLE === 'administrador' || ROLE === 'entrenador';
+  if (cls === 'private') return !!auth.currentUser;
+  return false;
+}
+function tplFmtDate(v) {
+  let d = null;
+  if (v && typeof v.toDate === 'function') { try { d = v.toDate(); } catch {} }
+  else if (v) { const p = new Date(v); if (!isNaN(p)) d = p; }
+  if (!d || isNaN(d)) return '';
+  return d.toLocaleDateString(LANG === 'es' ? 'es' : 'en', { year: 'numeric', month: 'short', day: 'numeric' });
+}
+function tplBadgeHTML(tpl) {
+  const v = tplVisibility(tpl);
+  const key = v === 'factory' ? 'train.n09.badgeFactory' : v === 'trainer' ? 'train.n09.badgeTrainer' : 'train.n09.badgePrivate';
+  return `<span class="tpl-badge tpl-badge-${v}">${t(key)}</span>`;
+}
+function tplMetaHTML(tpl) {
+  /* Insignia de clase + autor y fecha en las plantillas NUEVAS (las
+     legadas no llevan createdByName: no se inventa un autor). */
+  let s = tplBadgeHTML(tpl);
+  const name = tpl && tpl.createdByName ? String(tpl.createdByName) : '';
+  if (name) s += `<span class="tpl-byline">${esc(t('train.n09.byLine', { name, date: tplFmtDate(tpl.createdAt) || '—' }))}</span>`;
+  return `<span class="tpl-meta">${s}</span>`;
+}
+
+/* --- Guardar el borrador del editor como plantilla (con autoría) --- */
+let tplEditId = null;   // plantilla en edición desde el editor (su autoría no cambia)
+function tplClassOptions() {
+  const out = [];
+  if (tplCanCreateClass('factory')) out.push('factory');
+  if (tplCanCreateClass('trainer')) out.push('trainer');
+  return out;
+}
+function tplN09RenderSave() {
+  const wrap = $('pl-tpl-n09'); if (!wrap) return;
+  const classes = tplClassOptions();
+  if (!classes.length) { wrap.style.display = 'none'; return; }
+  wrap.style.display = '';
+  const sel = $('pl-tpl-n09-class');
+  sel.innerHTML = classes.map(c => `<option value="${c}">${t(c === 'factory' ? 'train.n09.classFactory' : 'train.n09.classTrainer')}</option>`).join('');
+  const editing = tplEditId && TPL_BY_ID[tplEditId] ? TPL_BY_ID[tplEditId] : null;
+  if (editing) sel.value = tplVisibility(editing);
+  sel.disabled = !!editing;
+  const note = $('pl-tpl-n09-note');
+  if (editing) { note.style.display = ''; note.textContent = t('train.n09.editingNote', { name: tplField(editing, 'nombre') }); }
+  else note.style.display = 'none';
+  $('pl-tpl-n09-cancel').style.display = editing ? '' : 'none';
+  const saveBtn = $('pl-tpl-n09-save');
+  if (saveBtn && !saveBtn.dataset.wired) { saveBtn.dataset.wired = '1'; saveBtn.onclick = () => tplSaveAsTemplate(); }
+  const cancelBtn = $('pl-tpl-n09-cancel');
+  if (cancelBtn && !cancelBtn.dataset.wired) { cancelBtn.dataset.wired = '1'; cancelBtn.onclick = () => { tplEditId = null; tplN09RenderSave(); }; }
+}
+/* Recoge el borrador del editor en el FORMATO de plantilla (el
+   inverso de tplApply): filas vinculadas guardan su exerciseId; las
+   de texto libre guardan nombre_libre para no perder el texto. */
+function tplCollectDraft() {
+  const title = (($('pl-title') || {}).value || '').trim();
+  const days = [], session = [];
+  document.querySelectorAll('#pl-days .pl-day').forEach((dEl, di) => {
+    const label = dEl.querySelector('.pl-day-label').value.trim();
+    const exercises = [];
+    dEl.querySelectorAll('.pl-ex-row').forEach(r => {
+      const name = r.querySelector('.pl-ex-name').value.trim();
+      if (!name) return;
+      const te = { exerciseId: r.dataset.exid || '', series: r.querySelector('.pl-ex-sets').value.trim(), repeticiones: r.querySelector('.pl-ex-reps').value.trim() };
+      if (!te.exerciseId) te.nombre_libre = name;
+      let rest = r.dataset.rest || '', restEn = r.dataset.restEn || '', warm = r.dataset.warmup || '', warmEn = r.dataset.warmupEn || '';
+      const restIn = r.querySelector('.pl-ex-rest'), warmIn = r.querySelector('.pl-ex-warmup');
+      if (restIn) { if (LANG === 'es') rest = restIn.value.trim(); else restEn = restIn.value.trim(); }
+      if (warmIn) { if (LANG === 'es') warm = warmIn.value.trim(); else warmEn = warmIn.value.trim(); }
+      if (rest) te.descanso_es = rest;
+      if (restEn) te.descanso_en = restEn;
+      if (warm) te.aproximacion_es = warm;
+      if (warmEn) te.aproximacion_en = warmEn;
+      exercises.push(te);
+    });
+    if (!exercises.length) return;
+    const num = di + 1;
+    days.push({ dia_num: num, dia_nombre_es: LANG === 'es' ? label : '', dia_nombre_en: LANG === 'en' ? label : '', exercises });
+    const blocks = dEl._sessionBlocks || [];
+    if (blocks.length) {
+      const row = { dia_num: num };
+      blocks.forEach(b => {
+        const pre = b.kind === 'cardio_pre' ? 'cardio_antes' : b.kind === 'cardio_post' ? 'cardio_despues' : b.kind === 'sauna' ? 'sauna' : null;
+        if (!pre) return;
+        if (b.detail_es) row[pre + '_es'] = b.detail_es;
+        if (b.detail_en) row[pre + '_en'] = b.detail_en;
+      });
+      if (Object.keys(row).length > 1) session.push(row);
+    }
+  });
+  if (!title || !days.length) return null;
+  return { title, days, session };
+}
+async function tplSaveAsTemplate() {
+  if (!auth.currentUser) return;
+  const editing = tplEditId && TPL_BY_ID[tplEditId] ? TPL_BY_ID[tplEditId] : null;
+  const cls = editing ? tplVisibility(editing) : (($('pl-tpl-n09-class') || {}).value || '');
+  if (editing ? !tplCanEdit(editing) : !tplCanCreateClass(cls)) { toast(t('train.n09.lockedNote'), true); return; }
+  const draft = tplCollectDraft();
+  if (!draft) { toast(t('train.n09.needDraft'), true); return; }
+  const data = {
+    nombre_es: draft.title, nombre_en: draft.title,
+    dias_por_semana: draft.days.length, days: draft.days, session: draft.session,
+    updatedAt: serverTimestamp(), updatedBy: auth.currentUser.uid,
+  };
+  try {
+    if (editing) {
+      /* La autoría (createdBy/createdByName/createdAt/visibility/
+         ownerUid) NO se toca: solo cambia el contenido. */
+      await setDoc(doc(db, 'routine_templates', editing.id), data, { merge: true });
+      toast(t('train.n09.savedEdit'));
+    } else {
+      data.createdBy = auth.currentUser.uid;
+      data.createdByName = (UDATA && (UDATA.name || UDATA.email)) || '';
+      data.createdAt = serverTimestamp();
+      data.visibility = cls;
+      data.ownerUid = cls === 'factory' ? null : auth.currentUser.uid;
+      await addDoc(collection(db, 'routine_templates'), data);
+      toast(t('train.n09.savedNew'));
+    }
+  } catch (e) { failToast(e); return; }
+  tplEditId = null;
+  TPL_STATE = 'idle'; TPL = null; TPL_BY_ID = {};
+  await tplEnsure();
+  tplRenderTplUI();
+  renderPropTemplates();
+}
+async function tplEditLoad(id) {
+  if (!TPL_BY_ID[id] || !tplCanEdit(TPL_BY_ID[id])) { toast(t('train.n09.lockedNote'), true); return; }
+  await tplApply(id);
+  tplEditId = id;
+  tplN09RenderSave();
+}
+async function tplDelete(id) {
+  const tpl = TPL_BY_ID[id];
+  if (!tpl || !tplCanEdit(tpl)) { toast(t('train.n09.lockedNote'), true); return; }
+  if (!confirm(t('train.n09.delConfirm'))) return;
+  try { await deleteDoc(doc(db, 'routine_templates', id)); }
+  catch (e) { failToast(e); return; }
+  if (tplEditId === id) tplEditId = null;
+  TPL = (TPL || []).filter(x => x.id !== id);
+  delete TPL_BY_ID[id];
+  tplRenderTplUI();
+  renderPropTemplates();
+  toast(t('train.n09.deleted'));
+}
+
+/* --- Constructor del cliente: sus rutinas PRIVADAS (N-09 punto 4) ---
+   Vive en su propia zona (junto al catálogo): arma días con
+   ejercicios DE LA BIBLIOTECA (buscador, como las propuestas P7) y
+   guarda en routine_templates con visibility 'private' y su
+   ownerUid. Nada de aquí permite tocar fábrica ni entrenador: el
+   guardado escribe solo documentos propios de clase private. */
+let MYB = null;   // { editId, name, days: [{label, exercises: [{exerciseId, name, series, repeticiones}]}] }
+function mybHarvest() {
+  if (!MYB) return;
+  const nameIn = $('myb-name'); if (nameIn) MYB.name = nameIn.value;
+  MYB.days.forEach((d, di) => {
+    const lab = document.querySelector(`[data-myb-daylabel="${di}"]`); if (lab) d.label = lab.value;
+    d.exercises.forEach((ex, ei) => {
+      const s = document.querySelector(`[data-myb-sets="${di}-${ei}"]`); if (s) ex.series = s.value;
+      const r = document.querySelector(`[data-myb-reps="${di}-${ei}"]`); if (r) ex.repeticiones = r.value;
+    });
+  });
+}
+function renderMyBuilder() {
+  const box = $('my-builder'); if (!box || !auth.currentUser) return;
+  let inner = `<h3 class="history-title">${t('train.n09.myTitle')}</h3><p class="progress-hint">${t('train.n09.myIntro')}</p>`;
+  if (!MYB) {
+    inner += `<button type="button" class="btn-primary btn-sm" id="myb-open">${t('train.n09.createBtn')}</button>`;
+    box.innerHTML = inner;
+    $('myb-open').onclick = () => { MYB = { editId: null, name: '', days: [{ label: '', exercises: [] }] }; renderMyBuilder(); };
+    return;
+  }
+  if (MYB.editId) inner += `<div class="prop-note">${t('train.n09.editMineNote', { name: MYB.name || '' })}</div>`;
+  inner += `<input type="text" id="myb-name" placeholder="${t('train.n09.namePh')}" value="${esc(MYB.name || '')}">`;
+  MYB.days.forEach((d, di) => {
+    inner += `<div class="myb-day">
+      <div class="frow"><input type="text" data-myb-daylabel="${di}" placeholder="${t('train.n09.dayPh')}" value="${esc(d.label || '')}">
+      <button type="button" class="btn-ghost btn-sm" data-myb-delday="${di}">✕</button></div>
+      ${d.exercises.map((ex, ei) => `<div class="myb-ex"><span class="myb-ex-name">${esc(ex.name || ex.exerciseId || '')}</span><input type="text" data-myb-sets="${di}-${ei}" placeholder="${t('train.n09.setsPh')}" value="${esc(ex.series || '')}"><input type="text" data-myb-reps="${di}-${ei}" placeholder="${t('train.n09.repsPh')}" value="${esc(ex.repeticiones || '')}"><button type="button" class="btn-ghost btn-sm" data-myb-delex="${di}-${ei}">✕</button></div>`).join('')}
+      <input type="text" data-myb-q="${di}" placeholder="${t('train.prop.searchPh')}" autocomplete="off">
+      <div class="prop-sug" data-myb-sug="${di}"></div>
+    </div>`;
+  });
+  inner += `<div class="prop-form-actions">
+    <button type="button" class="btn-ghost btn-sm" id="myb-addday">${t('train.n09.addDay')}</button>
+    <button type="button" class="btn-primary btn-sm" id="myb-save">${t('train.n09.saveMine')}</button>
+    <button type="button" class="btn-ghost btn-sm" id="myb-cancel">${t('train.prop.cancel')}</button>
+  </div>`;
+  box.innerHTML = inner;
+  box.querySelectorAll('[data-myb-q]').forEach(inp => {
+    inp.oninput = () => {
+      const di = Number(inp.dataset.mybQ);
+      const sug = box.querySelector(`[data-myb-sug="${di}"]`);
+      const res = libSearch(inp.value);
+      sug.innerHTML = res.map(ex => `<button type="button" class="prop-sug-item" data-myb-pick="${esc(ex.id)}">${esc(libNameOf(ex))}</button>`).join('');
+      sug.querySelectorAll('[data-myb-pick]').forEach(b => b.onclick = () => {
+        mybHarvest();
+        const ex = LIB_BY_ID[b.dataset.mybPick];
+        if (ex) MYB.days[di].exercises.push({ exerciseId: ex.id, name: libNameOf(ex), series: '', repeticiones: '' });
+        renderMyBuilder();
+      });
+    };
+  });
+  box.querySelectorAll('[data-myb-delday]').forEach(b => b.onclick = () => { mybHarvest(); MYB.days.splice(Number(b.dataset.mybDelday), 1); if (!MYB.days.length) MYB.days.push({ label: '', exercises: [] }); renderMyBuilder(); });
+  box.querySelectorAll('[data-myb-delex]').forEach(b => b.onclick = () => { mybHarvest(); const [di, ei] = b.dataset.mybDelex.split('-').map(Number); MYB.days[di].exercises.splice(ei, 1); renderMyBuilder(); });
+  $('myb-addday').onclick = () => { mybHarvest(); MYB.days.push({ label: '', exercises: [] }); renderMyBuilder(); };
+  $('myb-cancel').onclick = () => { MYB = null; renderMyBuilder(); };
+  $('myb-save').onclick = () => mybSave();
+}
+async function mybSave() {
+  if (!MYB || !auth.currentUser) return;
+  mybHarvest();
+  const name = (MYB.name || '').trim();
+  if (!name) { toast(t('train.n09.needName'), true); return; }
+  const days = [];
+  MYB.days.forEach((d, di) => {
+    const exercises = d.exercises.filter(ex => ex.exerciseId).map(ex => ({ exerciseId: ex.exerciseId, series: (ex.series || '').trim(), repeticiones: (ex.repeticiones || '').trim() }));
+    if (exercises.length) days.push({ dia_num: di + 1, dia_nombre_es: LANG === 'es' ? (d.label || '').trim() : '', dia_nombre_en: LANG === 'en' ? (d.label || '').trim() : '', exercises });
+  });
+  if (!days.length) { toast(t('train.n09.needEx'), true); return; }
+  const uid = auth.currentUser.uid;
+  const data = {
+    nombre_es: name, nombre_en: name,
+    dias_por_semana: days.length, days, session: [],
+    updatedAt: serverTimestamp(), updatedBy: uid,
+  };
+  const editId = MYB.editId;
+  try {
+    if (editId) {
+      const cur = TPL_BY_ID[editId];
+      if (!cur || tplVisibility(cur) !== 'private' || !tplCanEdit(cur)) { toast(t('train.n09.lockedNote'), true); return; }
+      await setDoc(doc(db, 'routine_templates', editId), data, { merge: true });
+      toast(t('train.n09.savedEdit'));
+    } else {
+      data.createdBy = uid;
+      data.createdByName = (UDATA && (UDATA.name || UDATA.email)) || '';
+      data.createdAt = serverTimestamp();
+      data.visibility = 'private';
+      data.ownerUid = uid;
+      await addDoc(collection(db, 'routine_templates'), data);
+      toast(t('train.n09.savedMine'));
+    }
+  } catch (e) { failToast(e); return; }
+  MYB = null;
+  TPL_STATE = 'idle'; TPL = null; TPL_BY_ID = {};
+  await tplEnsure();
+  renderPropTemplates();
+  renderMyBuilder();
+}
+function mybOpenEdit(tpl) {
+  if (!tpl || tplVisibility(tpl) !== 'private' || !tplCanEdit(tpl)) { toast(t('train.n09.lockedNote'), true); return; }
+  MYB = {
+    editId: tpl.id, name: tplField(tpl, 'nombre'),
+    days: (tpl.days || []).map(d => ({
+      label: LANG === 'es' ? (d.dia_nombre_es || d.dia_nombre_en || '') : (d.dia_nombre_en || d.dia_nombre_es || ''),
+      exercises: (d.exercises || []).map(te => {
+        const entry = te.exerciseId ? LIB_BY_ID[te.exerciseId] : null;
+        return { exerciseId: te.exerciseId || '', name: entry ? libNameOf(entry) : (te.nombre_libre || te.exerciseId || ''), series: te.series || '', repeticiones: te.repeticiones || '' };
+      }),
+    })),
+  };
+  if (!MYB.days.length) MYB.days.push({ label: '', exercises: [] });
+  renderMyBuilder();
+  const box = $('my-builder'); if (box) box.scrollIntoView({ behavior: 'smooth', block: 'start' });
+}
+
 /* Reparto semanal de la sugerencia de alineación: desplazamientos
    (en días desde la fecha de inicio) según los días/semana de la
    plantilla — p. ej. 3 días → inicio, +2 y +4 (lunes/miércoles/

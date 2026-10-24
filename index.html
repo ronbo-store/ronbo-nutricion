@@ -287,6 +287,7 @@
     <div id="train-content" style="display:none">
       <div id="my-training"><div class="wempty" data-i18n="train.loading">Loading your plan…</div></div>
       <div id="my-templates"></div>
+      <div id="my-builder"></div>
       <div id="my-proposals"></div>
     </div>
     <div id="ai-off-note" class="progress-hint" style="display:none" data-i18n="ai.disabledByAdmin">AI analysis is turned off by the administrator right now. You can keep logging your meals manually; AI analysis will be back when it is turned on again.</div>
@@ -753,6 +754,14 @@
         <div class="pl-tpl-head" data-i18n="train.tpl.title">📋 Routine templates</div>
         <div id="pl-tpl-note" class="pl-lib-note"></div>
         <div id="pl-tpl-list"></div>
+        <div id="pl-tpl-n09" class="pl-tpl-n09" style="display:none">
+          <div id="pl-tpl-n09-note" class="prop-note" style="display:none"></div>
+          <div class="frow">
+            <label id="pl-tpl-n09-classwrap"><span data-i18n="train.n09.saveAsClass">Template type</span> <select id="pl-tpl-n09-class"></select></label>
+            <button type="button" class="btn-primary btn-sm" id="pl-tpl-n09-save" data-i18n="train.n09.saveAs">💾 Save draft as template</button>
+            <button type="button" class="btn-ghost btn-sm" id="pl-tpl-n09-cancel" style="display:none" data-i18n="train.n09.cancelEdit">Cancel editing</button>
+          </div>
+        </div>
         <div id="pl-tpl-align" class="pl-tpl-align" style="display:none">
           <label><span data-i18n="train.tpl.startLabel">Start date (for the weekday suggestion)</span> <input type="date" id="pl-tpl-start"></label>
           <div id="pl-tpl-align-list"></div>
@@ -837,6 +846,6 @@
 <div id="toast" class="toast"></div>
 <div id="print-card" aria-hidden="true"></div>
 
-<script type="module" src="app.js?v=20261024-reprueba"></script>
+<script type="module" src="app.js?v=20261024-n09r"></script>
 </body>
 </html>
