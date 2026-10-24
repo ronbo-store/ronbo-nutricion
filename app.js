@@ -143,7 +143,7 @@ en: {
   'health.needSpec': 'You must first give your specific consent.',
   'health.versionLabel': 'Declaration {n} · {date}',
   'terms.accept': 'I have read and accept the privacy notice.',
-  'terms.body': '<b>PRIVACY NOTICE AND CONSENT FOR THE PROCESSING OF PERSONAL DATA</b><br><br>When you create your account at <b>ronbo.nutri</b>, you agree to the following:<br><br><b>1. Controller.</b> ronbo.nutri is responsible for your data.<br><br><b>2. Data we collect.</b> Name, email, phone, sex/gender, social media (optional), health condition declaration, food logs, weight and body composition, profile, progress and food photos (for nutritional analysis), and your nutrition goals.<br><br><b>3. Purpose.</b> To provide personalized training and nutrition coaching services, track your progress, and communicate with you.<br><br><b>4. Storage.</b> Your data is stored securely in Google Firebase (United States), with restricted access: only you and your trainer can see it.<br><br><b>5. Your rights.</b> You may at any time request to view, correct, or delete your data. Deleting your account erases your records.<br><br><b>6. Retention.</b> Your general account data (profile, food, weight and activity logs) are kept while your account is active. Your health declarations are treated separately: they are kept only while your specific consent is in force and your training relationship is active. If you withdraw your specific consent, or your training relationship ends, your health declarations are immediately blocked from ordinary use and will be deleted no later than 12 months after the first of those events to occur, unless you ask us to delete them sooner. Later use of the app, renewing your general consent, or resuming your training relationship does not extend or restart that period. Deletion under this clause is carried out through our documented manual procedure; it is not an automated process. If a specific legal obligation or an ongoing claim requires keeping specific information longer, we will keep only that information, for only that period, and we will tell you what is kept, why, and until when. Minimal consent records (the date and text version of each consent you give, withdraw or renew, without your health answers) may be kept as proof of consent while your account exists and for up to 24 months after it is closed.<br><br><b>7. Minors.</b> This service is for adults 18 and older only.<br><br><b>8. Withdrawal of consent.</b> You may withdraw your general consent at any time from the Privacy & Data section of the app, or by writing to your trainer. Withdrawing it suspends your access to the service; it does not by itself delete your data or close your account. Your existing information is kept under the retention policy in clause 6, and you may renew your general consent at any time. Renewing your consent is not the same as being approved as a client: access to the functions reserved for approved clients also requires your trainer\'s approval, which after a withdrawal may need to be granted again. Your health declaration is governed by a separate, specific consent: withdrawing that specific consent immediately blocks your trainer\'s ordinary access to your health declarations, which are kept restricted under clause 6 and are never reactivated by renewing the general consent. If you later renew your specific consent, you may submit a new declaration; declarations already blocked are not reactivated. You may at any time request the deletion of your health answers — a separate request that we process manually — without deleting your account. You may also delete your account and your data from the Privacy & Data section, subject only to the minimal consent records and the justified exceptions described in clause 6.<br><br><b>9. Health and exercise.</b> The trainer is an ISSA-certified fitness professional, not a medical professional. Consult your doctor before starting any exercise or nutrition program, especially if you declared a health condition.<br><br>By checking the box and creating your account, you declare that you read this notice and consent to the processing of your data for the purposes described.',
+  'terms.body': '<b>PRIVACY NOTICE AND CONSENT FOR THE PROCESSING OF PERSONAL DATA</b><br><br>When you create your account at <b>ronbo.nutri</b>, you agree to the following:<br><br><b>1. Controller.</b> ronbo.nutri is responsible for your data.<br><br><b>2. Data we collect.</b> Name, email, phone, sex/gender, social media (optional), health condition declaration, food logs, weight and body composition, activity and step logs, profile, progress and food photos (for nutritional analysis), and your nutrition goals.<br><br><b>3. Purpose.</b> To provide personalized training and nutrition coaching services, track your progress, and communicate with you.<br><br><b>4. Storage.</b> Your data is stored securely in Google Firebase (United States), with restricted access: only you and your trainer can see it.<br><br><b>5. Your rights.</b> You may at any time request to view, correct, or delete your data. Deleting your account erases your records.<br><br><b>6. Retention.</b> Your general account data (profile, food, weight and activity logs) are kept while your account is active. Your health declarations are treated separately: they are kept only while your specific consent is in force and your training relationship is active. If you withdraw your specific consent, or your training relationship ends, your health declarations are immediately blocked from ordinary use and will be deleted no later than 12 months after the first of those events to occur, unless you ask us to delete them sooner. Later use of the app, renewing your general consent, or resuming your training relationship does not extend or restart that period. Deletion under this clause is carried out through our documented manual procedure; it is not an automated process. If a specific legal obligation or an ongoing claim requires keeping specific information longer, we will keep only that information, for only that period, and we will tell you what is kept, why, and until when. Minimal consent records (the date and text version of each consent you give, withdraw or renew, without your health answers) may be kept as proof of consent while your account exists and for up to 24 months after it is closed.<br><br><b>7. Minors.</b> This service is for adults 18 and older only.<br><br><b>8. Withdrawal of consent.</b> You may withdraw your general consent at any time from the Privacy & Data section of the app, or by writing to your trainer. Withdrawing it suspends your access to the service; it does not by itself delete your data or close your account. Your existing information is kept under the retention policy in clause 6, and you may renew your general consent at any time. Renewing your consent is not the same as being approved as a client: access to the functions reserved for approved clients also requires your trainer\'s approval, which after a withdrawal may need to be granted again. Your health declaration is governed by a separate, specific consent: withdrawing that specific consent immediately blocks your trainer\'s ordinary access to your health declarations, which are kept restricted under clause 6 and are never reactivated by renewing the general consent. If you later renew your specific consent, you may submit a new declaration; declarations already blocked are not reactivated. You may at any time request the deletion of your health answers — a separate request that we process manually — without deleting your account. You may also delete your account and your data from the Privacy & Data section, subject only to the minimal consent records and the justified exceptions described in clause 6.<br><br><b>9. Health and exercise.</b> The trainer is an ISSA-certified fitness professional, not a medical professional. Consult your doctor before starting any exercise or nutrition program, especially if you declared a health condition.<br><br>By checking the box and creating your account, you declare that you read this notice and consent to the processing of your data for the purposes described.',
   'auth.create': 'Create my account',
   'app.logout': 'log out',
   'app.goals': 'Your daily goals',
@@ -992,7 +992,77 @@ en: {
   'cond.Lesiones articulares o musculares': 'Joint or muscle injuries',
   'cond.Cirugía reciente': 'Recent surgery',
   'cond.Embarazo': 'Pregnancy',
-  'cond.Ninguna de las anteriores': 'None of the above'
+  'cond.Ninguna de las anteriores': 'None of the above',
+  /* Registro de actividad (desarrollo 2026-10-24): claves act.* —
+     paridad exacta EN=ES verificada por batería. */
+  'act.title': '🔥 Activity',
+  'act.stripLabel': 'Extra activity',
+  'act.loading': 'Loading activity…',
+  'act.estimateNote': 'Estimates only: MET tables are population averages — your real expenditure varies. The figures are gross estimates for the minutes logged (they include the resting part of those minutes), so what is truly added on top of your usual day may be a little lower.',
+  'act.weightRef': 'Reference weight: {w} kg ({d})',
+  'act.noWeight': 'You have no weight on record yet, so activity energy cannot be estimated — nothing is invented. Log your weight first.',
+  'act.noWeightBtn': 'Log weight now',
+  'act.steps': 'Steps',
+  'act.stepsPh': 'e.g. 8500',
+  'act.stepsSave': 'Save steps',
+  'act.stepsInfo': '{km} km · ≈ {kcal} kcal',
+  'act.overlapNote': 'ℹ️ Your steps and unstructured movement are already inside your usual activity level (palBasal) — they are shown for information and are NOT added again.',
+  'act.listTitle': 'Activities',
+  'act.empty': 'No activities logged this day.',
+  'act.notAddedTag': 'not added',
+  'act.del': 'Delete',
+  'act.addTitle': 'Add activity',
+  'act.type': 'Type',
+  'act.typeCustom': 'Which activity was it?',
+  'act.typeCustomPh': 'Describe it',
+  'act.otherWarn': '⚠️ “Other” uses a generic table — this estimate is rougher than the rest.',
+  'act.duration': 'Duration',
+  'act.min': 'min',
+  'act.intensity': 'Intensity',
+  'act.int.suave': 'Light',
+  'act.int.moderada': 'Moderate',
+  'act.int.intensa': 'Hard',
+  'act.rpe': 'Effort (RPE 1–10, optional)',
+  'act.rpeNone': '—',
+  'act.rpeNote': 'A signal for your trainer; it does not change the estimate.',
+  'act.notes': 'Notes (optional)',
+  'act.notesPh': 'How did it feel?',
+  'act.addBtn': 'Add activity',
+  'act.saved': 'Activity saved ✓',
+  'act.dayTitle': 'Estimate for this day',
+  'act.dayBase': 'Usual expenditure, no structured exercise (your assessment)',
+  'act.dayExtra': 'Extra activities',
+  'act.dayTotal': 'Estimated total for the day',
+  'act.dayNoBase': 'There is no valid assessment yet, so only your logged movement is shown — no daily total is invented.',
+  'act.planDone': 'Workout plan: session done — expenditure not estimated yet',
+  'act.planPending': 'Workout plan: no session logged that day — expenditure not estimated yet',
+  'act.habitualTitle': 'Your usual expenditure',
+  'act.habitualLine': 'Usual expenditure (assessment): {n} kcal/day',
+  'act.habitualNote': 'This is your habitual figure and it does not change with daily logs. Structured exercise is not inside it.',
+  'act.habitualNone': 'No assessment result yet.',
+  'act.staleTag': 'previous result',
+  'act.sumSteps': 'Steps (information)',
+  'act.sumExtra': 'Extra that adds up',
+  'act.sumMovement': 'Total logged movement',
+  'act.errSteps': 'Steps must be a whole number from 0 to 200,000.',
+  'act.errDuration': 'Duration must be between 1 and 600 minutes.',
+  'act.errTypeCustom': 'Tell us which activity “Other” was.',
+  'act.errRpe': 'RPE must be between 1 and 10.',
+  'act.errFuture': 'You cannot log activity for a future day.',
+  'act.errNoWeight': 'Log your weight first — without it nothing is estimated.',
+  'act.transportNote': 'Active transport and steps are already inside your usual level — shown, not added.',
+  'act.type.correr': 'Running',
+  'act.type.ejercicios_en_casa': 'Home exercise',
+  'act.type.ciclismo': 'Cycling',
+  'act.type.natacion': 'Swimming',
+  'act.type.futbol': 'Soccer',
+  'act.type.baloncesto': 'Basketball',
+  'act.type.senderismo': 'Hiking',
+  'act.type.baile': 'Dancing',
+  'act.type.artes_marciales': 'Martial arts',
+  'act.type.transporte_activo': 'Active transport (walk / bike)',
+  'act.type.otro': 'Other',
+  'act.kcalUnit': 'kcal'
 },
 es: {
   'app.title': 'ronbo.nutri · Privado',
@@ -1059,7 +1129,7 @@ es: {
   'health.needSpec': 'Primero debes dar tu consentimiento específico.',
   'health.versionLabel': 'Declaración {n} · {date}',
   'terms.accept': 'He leído y acepto el aviso de privacidad.',
-  'terms.body': '<b>AVISO DE PRIVACIDAD Y CONSENTIMIENTO PARA EL TRATAMIENTO DE DATOS PERSONALES</b><br><br>Al crear tu cuenta en <b>ronbo.nutri</b>, aceptas lo siguiente:<br><br><b>1. Responsable.</b> ronbo.nutri es responsable de tus datos.<br><br><b>2. Datos que recogemos.</b> Nombre, correo, teléfono, sexo/género, redes sociales (opcional), declaración de condiciones de salud, registros de alimentación, peso y composición corporal, fotos de perfil, de progreso y de alimentos (para análisis nutricional), y tus metas nutricionales.<br><br><b>3. Finalidad.</b> Prestar servicios de entrenamiento y asesoría nutricional personalizada, dar seguimiento a tu progreso y comunicarnos contigo.<br><br><b>4. Almacenamiento.</b> Tus datos se guardan de forma segura en Google Firebase (Estados Unidos), con acceso restringido: solo tú y tu entrenador pueden verlos.<br><br><b>5. Tus derechos.</b> Puedes pedir en cualquier momento ver, corregir o eliminar tus datos. Eliminar tu cuenta borra tus registros.<br><br><b>6. Conservación.</b> Tus datos generales de cuenta (perfil, registros de alimentación, peso y actividad) se conservan mientras tu cuenta esté activa. Tus declaraciones de salud reciben un tratamiento separado: se conservan solo mientras tu consentimiento específico esté vigente y tu relación de entrenamiento esté activa. Si retiras tu consentimiento específico, o si finaliza tu relación de entrenamiento, tus declaraciones de salud se bloquean de inmediato para su uso ordinario y se eliminarán a más tardar 12 meses después del primero de esos eventos que ocurra, salvo que pidas eliminarlas antes. El uso posterior de la aplicación, renovar tu consentimiento general o reanudar tu relación de entrenamiento no prolonga ni reinicia ese plazo. La eliminación prevista en esta cláusula se realiza mediante nuestro procedimiento manual documentado; no es un proceso automático. Si una obligación legal concreta o una reclamación en curso exigiera conservar información específica por más tiempo, se conservará solo esa información, solo por ese periodo, y te informaremos de qué se conserva, por qué y hasta cuándo. Los registros mínimos de consentimiento (la fecha y la versión del texto de cada consentimiento que otorgues, retires o renueves, sin tus respuestas de salud) podrán conservarse como prueba del consentimiento mientras tu cuenta exista y hasta 24 meses después de su cierre.<br><br><b>7. Menores.</b> Este servicio es solo para personas mayores de 18 años.<br><br><b>8. Retirada del consentimiento.</b> Puedes retirar tu consentimiento general en cualquier momento desde la sección Privacidad y datos de la aplicación, o escribiendo a tu entrenador. Al retirarlo se suspende tu acceso al servicio; por sí solo no elimina tus datos ni cierra tu cuenta. Tu información existente se conserva conforme a la política de conservación de la cláusula 6, y puedes renovar tu consentimiento general en cualquier momento. Renovar tu consentimiento no equivale a estar aprobado como cliente: el acceso a las funciones reservadas a clientes aprobados requiere además la aprobación de tu entrenador, que tras una retirada podría tener que concederse de nuevo. Tu declaración de salud se rige por un consentimiento específico e independiente: al retirarlo se bloquea de inmediato el acceso ordinario de tu entrenador a tus declaraciones de salud, que se conservan restringidas conforme a la cláusula 6 y nunca se reactivan por renovar el consentimiento general. Si más adelante renuevas tu consentimiento específico, podrás presentar una declaración nueva; las declaraciones ya bloqueadas no se reactivan. Puedes solicitar en cualquier momento la eliminación de tus respuestas de salud —una solicitud independiente que tramitamos manualmente— sin eliminar tu cuenta. También puedes eliminar tu cuenta y tus datos desde la sección Privacidad y datos, con la única salvedad de los registros mínimos de consentimiento y las excepciones justificadas descritas en la cláusula 6.<br><br><b>9. Salud y ejercicio.</b> El entrenador es un profesional del fitness certificado (ISSA), no un profesional médico. Consulta a tu médico antes de iniciar cualquier programa de ejercicio o nutrición, especialmente si declaraste alguna condición de salud.<br><br>Al marcar la casilla y crear tu cuenta, declaras que leíste este aviso y das tu consentimiento para el tratamiento de tus datos con las finalidades descritas.',
+  'terms.body': '<b>AVISO DE PRIVACIDAD Y CONSENTIMIENTO PARA EL TRATAMIENTO DE DATOS PERSONALES</b><br><br>Al crear tu cuenta en <b>ronbo.nutri</b>, aceptas lo siguiente:<br><br><b>1. Responsable.</b> ronbo.nutri es responsable de tus datos.<br><br><b>2. Datos que recogemos.</b> Nombre, correo, teléfono, sexo/género, redes sociales (opcional), declaración de condiciones de salud, registros de alimentación, peso y composición corporal, registros de actividad y pasos, fotos de perfil, de progreso y de alimentos (para análisis nutricional), y tus metas nutricionales.<br><br><b>3. Finalidad.</b> Prestar servicios de entrenamiento y asesoría nutricional personalizada, dar seguimiento a tu progreso y comunicarnos contigo.<br><br><b>4. Almacenamiento.</b> Tus datos se guardan de forma segura en Google Firebase (Estados Unidos), con acceso restringido: solo tú y tu entrenador pueden verlos.<br><br><b>5. Tus derechos.</b> Puedes pedir en cualquier momento ver, corregir o eliminar tus datos. Eliminar tu cuenta borra tus registros.<br><br><b>6. Conservación.</b> Tus datos generales de cuenta (perfil, registros de alimentación, peso y actividad) se conservan mientras tu cuenta esté activa. Tus declaraciones de salud reciben un tratamiento separado: se conservan solo mientras tu consentimiento específico esté vigente y tu relación de entrenamiento esté activa. Si retiras tu consentimiento específico, o si finaliza tu relación de entrenamiento, tus declaraciones de salud se bloquean de inmediato para su uso ordinario y se eliminarán a más tardar 12 meses después del primero de esos eventos que ocurra, salvo que pidas eliminarlas antes. El uso posterior de la aplicación, renovar tu consentimiento general o reanudar tu relación de entrenamiento no prolonga ni reinicia ese plazo. La eliminación prevista en esta cláusula se realiza mediante nuestro procedimiento manual documentado; no es un proceso automático. Si una obligación legal concreta o una reclamación en curso exigiera conservar información específica por más tiempo, se conservará solo esa información, solo por ese periodo, y te informaremos de qué se conserva, por qué y hasta cuándo. Los registros mínimos de consentimiento (la fecha y la versión del texto de cada consentimiento que otorgues, retires o renueves, sin tus respuestas de salud) podrán conservarse como prueba del consentimiento mientras tu cuenta exista y hasta 24 meses después de su cierre.<br><br><b>7. Menores.</b> Este servicio es solo para personas mayores de 18 años.<br><br><b>8. Retirada del consentimiento.</b> Puedes retirar tu consentimiento general en cualquier momento desde la sección Privacidad y datos de la aplicación, o escribiendo a tu entrenador. Al retirarlo se suspende tu acceso al servicio; por sí solo no elimina tus datos ni cierra tu cuenta. Tu información existente se conserva conforme a la política de conservación de la cláusula 6, y puedes renovar tu consentimiento general en cualquier momento. Renovar tu consentimiento no equivale a estar aprobado como cliente: el acceso a las funciones reservadas a clientes aprobados requiere además la aprobación de tu entrenador, que tras una retirada podría tener que concederse de nuevo. Tu declaración de salud se rige por un consentimiento específico e independiente: al retirarlo se bloquea de inmediato el acceso ordinario de tu entrenador a tus declaraciones de salud, que se conservan restringidas conforme a la cláusula 6 y nunca se reactivan por renovar el consentimiento general. Si más adelante renuevas tu consentimiento específico, podrás presentar una declaración nueva; las declaraciones ya bloqueadas no se reactivan. Puedes solicitar en cualquier momento la eliminación de tus respuestas de salud —una solicitud independiente que tramitamos manualmente— sin eliminar tu cuenta. También puedes eliminar tu cuenta y tus datos desde la sección Privacidad y datos, con la única salvedad de los registros mínimos de consentimiento y las excepciones justificadas descritas en la cláusula 6.<br><br><b>9. Salud y ejercicio.</b> El entrenador es un profesional del fitness certificado (ISSA), no un profesional médico. Consulta a tu médico antes de iniciar cualquier programa de ejercicio o nutrición, especialmente si declaraste alguna condición de salud.<br><br>Al marcar la casilla y crear tu cuenta, declaras que leíste este aviso y das tu consentimiento para el tratamiento de tus datos con las finalidades descritas.',
   'auth.create': 'Crear mi cuenta',
   'app.logout': 'salir',
   'app.goals': 'Tus metas diarias',
@@ -1909,7 +1979,77 @@ es: {
   'cond.Lesiones articulares o musculares': 'Lesiones articulares o musculares',
   'cond.Cirugía reciente': 'Cirugía reciente',
   'cond.Embarazo': 'Embarazo',
-  'cond.Ninguna de las anteriores': 'Ninguna de las anteriores'
+  'cond.Ninguna de las anteriores': 'Ninguna de las anteriores',
+  /* Registro de actividad (desarrollo 2026-10-24): claves act.* —
+     paridad exacta EN=ES verificada por batería. */
+  'act.title': '🔥 Actividad',
+  'act.stripLabel': 'Actividad extra',
+  'act.loading': 'Cargando actividad…',
+  'act.estimateNote': 'Solo estimaciones: las tablas MET son promedios de población — tu gasto real varía. Las cifras son estimaciones brutas de los minutos registrados (incluyen la parte de reposo de esos minutos), así que lo que realmente se suma a tu día habitual puede ser algo menor.',
+  'act.weightRef': 'Peso de referencia: {w} kg ({d})',
+  'act.noWeight': 'Aún no tienes un peso registrado, así que la energía de la actividad no puede estimarse — no se inventa nada. Registra primero tu pesaje.',
+  'act.noWeightBtn': 'Registrar pesaje',
+  'act.steps': 'Pasos',
+  'act.stepsPh': 'ej. 8500',
+  'act.stepsSave': 'Guardar pasos',
+  'act.stepsInfo': '{km} km · ≈ {kcal} kcal',
+  'act.overlapNote': 'ℹ️ Tus pasos y tu movimiento no estructurado ya están dentro de tu nivel de actividad habitual (palBasal) — se muestran como información y NO se suman otra vez.',
+  'act.listTitle': 'Actividades',
+  'act.empty': 'Sin actividades registradas este día.',
+  'act.notAddedTag': 'no sumado',
+  'act.del': 'Borrar',
+  'act.addTitle': 'Añadir actividad',
+  'act.type': 'Tipo',
+  'act.typeCustom': '¿Qué actividad fue?',
+  'act.typeCustomPh': 'Descríbela',
+  'act.otherWarn': '⚠️ «Otro» usa una tabla genérica — esta estimación es más gruesa que las demás.',
+  'act.duration': 'Duración',
+  'act.min': 'min',
+  'act.intensity': 'Intensidad',
+  'act.int.suave': 'Suave',
+  'act.int.moderada': 'Moderada',
+  'act.int.intensa': 'Intensa',
+  'act.rpe': 'Esfuerzo (RPE 1–10, opcional)',
+  'act.rpeNone': '—',
+  'act.rpeNote': 'Es una señal para tu entrenador; no cambia la estimación.',
+  'act.notes': 'Notas (opcional)',
+  'act.notesPh': '¿Cómo te sentiste?',
+  'act.addBtn': 'Añadir actividad',
+  'act.saved': 'Actividad guardada ✓',
+  'act.dayTitle': 'Estimación de este día',
+  'act.dayBase': 'Gasto habitual, sin ejercicio estructurado (tu evaluación)',
+  'act.dayExtra': 'Actividades extra',
+  'act.dayTotal': 'Total estimado del día',
+  'act.dayNoBase': 'Aún no hay una evaluación válida, así que solo se muestra tu movimiento registrado — no se inventa un total diario.',
+  'act.planDone': 'Plan de entrenamiento: sesión realizada — gasto aún sin estimar',
+  'act.planPending': 'Plan de entrenamiento: sin sesión registrada ese día — gasto aún sin estimar',
+  'act.habitualTitle': 'Tu gasto habitual',
+  'act.habitualLine': 'Gasto habitual (evaluación): {n} kcal/día',
+  'act.habitualNote': 'Es tu cifra habitual y no cambia con los registros diarios. El ejercicio estructurado no va dentro.',
+  'act.habitualNone': 'Aún sin resultado de evaluación.',
+  'act.staleTag': 'resultado anterior',
+  'act.sumSteps': 'Pasos (información)',
+  'act.sumExtra': 'Extra que sí suma',
+  'act.sumMovement': 'Movimiento total registrado',
+  'act.errSteps': 'Los pasos deben ser un número entero entre 0 y 200.000.',
+  'act.errDuration': 'La duración debe estar entre 1 y 600 minutos.',
+  'act.errTypeCustom': 'Dinos qué actividad fue «Otro».',
+  'act.errRpe': 'El RPE debe estar entre 1 y 10.',
+  'act.errFuture': 'No puedes registrar actividad de un día futuro.',
+  'act.errNoWeight': 'Registra primero tu peso — sin él no se estima nada.',
+  'act.transportNote': 'El transporte activo y los pasos ya están dentro de tu nivel habitual — se muestran, no se suman.',
+  'act.type.correr': 'Correr',
+  'act.type.ejercicios_en_casa': 'Ejercicios en casa',
+  'act.type.ciclismo': 'Ciclismo',
+  'act.type.natacion': 'Natación',
+  'act.type.futbol': 'Fútbol',
+  'act.type.baloncesto': 'Baloncesto',
+  'act.type.senderismo': 'Senderismo',
+  'act.type.baile': 'Baile',
+  'act.type.artes_marciales': 'Artes marciales',
+  'act.type.transporte_activo': 'Transporte activo (caminar / bici)',
+  'act.type.otro': 'Otro',
+  'act.kcalUnit': 'kcal'
 }
 };
 let LANG = 'en';
@@ -3096,7 +3236,8 @@ async function loadMyEnergy() {
     MY_ASMT = { state: 'ok', doc: s.exists() ? s.data() : null };
   } catch { MY_ASMT = { state: 'error', doc: null }; }
   renderEnergyPanel();
-  if (MY_ENERGY.state === 'ok' && MY_ASMT.state === 'ok') { await faSyncSignal(uid); await faComputeMine(uid); }
+  renderActivity(actSelDate());
+  if (MY_ENERGY.state === 'ok' && MY_ASMT.state === 'ok') { await faSyncSignal(uid); await faComputeMine(uid); renderActivity(actSelDate()); }
 }
 
 async function openClient(uid) {
@@ -3395,6 +3536,7 @@ async function loadAll() {
   await loadProgress();
   await loadMealHelp();
   await loadMyTraining();
+  await loadActivityLogs();
   loadPropClient();
   await loadPendings();
   renderPrivacy();
@@ -4719,7 +4861,7 @@ async function aiSaveDirect() {
    entrenador) y del rol de propietario. La renovación registra una
    aceptación NUEVA (fecha + versión) y CONSERVA consentWithdrawnAt
    como historial: nunca se borra ni se reescribe. */
-const TERMS_VERSION = 'v3-2026-10-16'; // v3: cláusulas 6 y 8 corregidas (Paso C)
+const TERMS_VERSION = 'v4-2026-10-24'; // v4 (Q5, paquete actividad 2026-10-24): la cláusula 2 nombra los registros de actividad y pasos como datos procesados. SOLO DESARROLLO: viaja con el futuro despliegue; la renovación corre por el flujo ya existente.
 function tsMs(ts) {
   if (!ts) return 0;
   if (typeof ts.toDate === 'function') return ts.toDate().getTime();
@@ -4976,6 +5118,7 @@ function wireCardToggle(btnId, contentId, chevId, opts = {}) {
 }
 wireCardToggle('btn-toggle-progress', 'progress-content', 'chev-progress', { scroll: true });
 wireCardToggle('btn-toggle-train', 'train-content', 'chev-train', { scroll: true });
+wireCardToggle('act-strip', 'activity-content', null, { scroll: true });
 $('btn-view-notice') && $('btn-view-notice').addEventListener('click', () => {
   const n = $('privacy-notice');
   if (n.style.display === 'none') { n.innerHTML = t('terms.body'); n.style.display = ''; }
@@ -7686,6 +7829,312 @@ async function uploadPhoto(file, path) {
 const MEAL_TIME_FMT = new Intl.DateTimeFormat('en-GB', { timeZone: 'America/Chicago', hour: '2-digit', minute: '2-digit', hourCycle: 'h23' });
 const mealTimeStr = ms => MEAL_TIME_FMT.format(new Date(ms));
 
+/* ================================================================
+   REGISTRO DE ACTIVIDAD (desarrollo 2026-10-24 — despliegue NO
+   autorizado). Implementa la espec revisada
+   (INFORME-REVISION-ACTIVIDAD-2026-10-23: VIABLE CON AJUSTES; los
+   15 ajustes mandan sobre la espec original) con las respuestas de
+   Ronald: (1) TDEE en DOS vistas separadas — el del día y el
+   habitual —; (2) ante posible solape la app AVISA y no suma en
+   silencio; (3) el widget SOLO en la pantalla principal; Q4: el
+   gasto del plan del día sale como «aún sin estimar» (la
+   estimación del gasto por sesión es un paquete aparte, NO se
+   construye aquí); Q5: los términos v4 nombran actividad y pasos
+   como datos procesados; Q6: la entrada es un PANEL dentro de la
+   pantalla principal de seguimiento (#tab-track) y el dock sigue
+   en CUATRO botones.
+   Modelo de gasto (corrección central de la revisión): la BASE
+   del día es el TDEE guardado de la evaluación = RMR × palBasal,
+   y palBasal YA paga los pasos y la actividad no estructurada.
+   Por tanto:
+     - pasos = línea INFORMATIVA (nunca un sumando del total);
+     - transporte_activo = línea informativa (nunca sumando);
+     - actividades estructuradas extra = SUMAN, con el MET de la
+       tabla corregida; la cifra es una estimación BRUTA de los
+       minutos registrados y el aviso act.estimateNote lo declara
+       (incluye la parte de reposo de esos minutos).
+   training_logs no registra ni kcal ni duración: el gasto de la
+   sesión del plan NO se estima en v1 (Q4) y jamás se inventa.
+   El RPE es señal para el entrenador: NO interviene en el cálculo.
+   El peso sale SOLO del último nutrition_weight (WEIGHTS): sin
+   pesaje no hay cálculo NI guardado (no existe peso sombra).
+   Guardado idempotente: UN documento activity_logs/{uid}_{fecha}
+   con setDoc y construcción local + intercambio (la disciplina
+   de la corrección del duplicado).
+   ================================================================ */
+const ACT_MET = {
+  correr:             { suave: 8.0,  moderada: 10.0, intensa: 12.0 },
+  ejercicios_en_casa: { suave: 3.5,  moderada: 4.5,  intensa: 8.0  }, // corrección revisión (antes 3/5/7)
+  ciclismo:           { suave: 4.0,  moderada: 8.0,  intensa: 10.0 }, // suave corregido (antes 6)
+  natacion:           { suave: 6.0,  moderada: 8.0,  intensa: 10.0 },
+  futbol:             { suave: 7.0,  moderada: 9.0,  intensa: 10.0 },
+  baloncesto:         { suave: 6.0,  moderada: 8.0,  intensa: 9.0  },
+  senderismo:         { suave: 5.0,  moderada: 6.0,  intensa: 7.5  },
+  baile:              { suave: 4.5,  moderada: 6.0,  intensa: 7.5  },
+  artes_marciales:    { suave: 7.0,  moderada: 9.0,  intensa: 11.0 },
+  transporte_activo:  { suave: 3.0,  moderada: 3.5,  intensa: 4.5  },
+  otro:               { suave: 4.0,  moderada: 6.0,  intensa: 8.0  }
+};
+const ACT_TYPES = Object.keys(ACT_MET);
+const ACT_INTENSITIES = ['suave', 'moderada', 'intensa'];
+const actRound1 = x => Math.round(x * 10) / 10;
+const actIsSummable = type => type !== 'transporte_activo';
+function actStepsKcal(steps, wKg) { return actRound1(steps * 0.0005 * wKg); }
+function actStepsKm(steps) { return actRound1(steps * 0.0008); }
+function actKcalOf(type, intensity, durationMin, wKg) {
+  const m = ACT_MET[type] && ACT_MET[type][intensity];
+  return (typeof m === 'number' && durationMin > 0 && wKg > 0)
+    ? actRound1(m * wKg * (durationMin / 60)) : null;
+}
+function actLastWeight() { return WEIGHTS.length ? WEIGHTS[WEIGHTS.length - 1] : null; }
+let ACT_LOGS = {};      // fecha -> documento (construcción local + intercambio)
+let ACT_LOADED = false;
+let ACT_SAVING = false;
+function actSelDate() { const s = $('dateSel'); return (s && s.value) || todayISO(); }
+
+async function loadActivityLogs() {
+  if (!auth.currentUser) return;
+  try {
+    const fresh = {};
+    const snap = await getDocs(query(collection(db, 'activity_logs'), where('ownerUid', '==', auth.currentUser.uid)));
+    snap.forEach(d => {
+      const v = d.data();
+      if (!/^\d{4}-\d{2}-\d{2}$/.test(v.date || '')) return;
+      fresh[v.date] = { ownerUid: v.ownerUid, date: v.date, steps: num(v.steps),
+        stepKcal: num(v.stepKcal), stepKm: num(v.stepKm), weightKgUsed: num(v.weightKgUsed),
+        weightDateUsed: v.weightDateUsed || '',
+        activities: Array.isArray(v.activities) ? v.activities : [],
+        kcalExtraTotal: num(v.kcalExtraTotal), createdAt: v.createdAt || null };
+    });
+    ACT_LOGS = fresh;
+    ACT_LOADED = true;
+  } catch { /* la vista muestra su estado vacío; jamás rompe loadAll */ }
+  renderActivity(actSelDate());
+}
+
+/* Recalcula TODOS los derivados de un borrador con el último peso:
+   un único sitio de cálculo. Casos conocidos de la revisión:
+   8500 pasos × 88 kg → 374,0 kcal y 6,8 km; correr 30 min moderada
+   × 88 kg → 440,0 kcal; movimiento total registrado → 814,0. */
+function actRecompute(draft, w) {
+  draft.weightKgUsed = w.weight;
+  draft.weightDateUsed = w.date;
+  draft.steps = Math.max(0, Math.floor(num(draft.steps)));
+  draft.stepKcal = actStepsKcal(draft.steps, w.weight);
+  draft.stepKm = actStepsKm(draft.steps);
+  draft.activities = (draft.activities || []).map(a => {
+    const inten = ACT_INTENSITIES.includes(a.intensity) ? a.intensity : 'moderada';
+    const dur = Math.floor(num(a.durationMin));
+    return { type: a.type,
+      typeCustom: a.type === 'otro' ? String(a.typeCustom || '') : '',
+      durationMin: dur, intensity: inten,
+      metUsed: ACT_MET[a.type] ? ACT_MET[a.type][inten] : null,
+      kcalEstimated: actKcalOf(a.type, inten, dur, w.weight),
+      rpe: (a.rpe === null || a.rpe === undefined || a.rpe === '') ? null : Math.floor(num(a.rpe)),
+      notes: String(a.notes || '') };
+  });
+  draft.kcalExtraTotal = actRound1(draft.activities.reduce(
+    (s, a) => s + (actIsSummable(a.type) ? num(a.kcalEstimated) : 0), 0));
+  return draft;
+}
+
+/* Guardado del día completo: id estable {uid}_{fecha}, setDoc.
+   mutate(draft) === false aborta sin escribir nada. */
+async function actSaveDay(date, mutate) {
+  if (ACT_SAVING) return false;
+  if (date > todayISO()) { toast(t('act.errFuture'), true); return false; }
+  const w = actLastWeight();
+  if (!w) { toast(t('act.errNoWeight'), true); renderActivity(date); return false; }
+  const cur = ACT_LOGS[date] || null;
+  const draft = cur ? JSON.parse(JSON.stringify(cur))
+    : { ownerUid: auth.currentUser.uid, date, steps: 0, activities: [] };
+  delete draft.createdAt;
+  if (mutate(draft) === false) return false;
+  actRecompute(draft, w);
+  ACT_SAVING = true;
+  try {
+    const payload = { ownerUid: auth.currentUser.uid, date, steps: draft.steps,
+      stepKcal: draft.stepKcal, stepKm: draft.stepKm,
+      weightKgUsed: draft.weightKgUsed, weightDateUsed: draft.weightDateUsed,
+      activities: draft.activities, kcalExtraTotal: draft.kcalExtraTotal,
+      updatedAt: serverTimestamp() };
+    if (!cur) payload.createdAt = serverTimestamp();
+    else if (cur.createdAt) payload.createdAt = cur.createdAt;
+    await setDoc(doc(db, 'activity_logs', auth.currentUser.uid + '_' + date), payload);
+    ACT_LOGS = { ...ACT_LOGS, [date]: { ...draft, createdAt: cur ? cur.createdAt : 'pending' } };
+    toast(t('act.saved'));
+    renderActivity(date);
+    return true;
+  } catch { toast(t('ai.saveError'), true); return false; }
+  finally { ACT_SAVING = false; }
+}
+
+/* Base del día: el resultado GUARDADO de la evaluación (nunca se
+   recalcula en esta vista; si es anterior se etiqueta como tal). */
+function actBaseInfo() {
+  const a = MY_ASMT.doc;
+  if (MY_ASMT.state !== 'ok' || MY_ENERGY.state !== 'ok' || !a
+      || typeof a.tdeeKcal !== 'number' || !MY_ENERGY.sex) return { ok: false };
+  return { ok: true, tdee: a.tdeeKcal, stale: faResultStale(a, actLastWeight()) };
+}
+
+function actDayView(date) {
+  const d = ACT_LOGS[date] || null;
+  const acts = d ? d.activities : [];
+  return { doc: d,
+    steps: d ? num(d.steps) : 0,
+    stepKcal: d ? num(d.stepKcal) : 0,
+    stepKm: d ? num(d.stepKm) : 0,
+    extras: d ? num(d.kcalExtraTotal) : 0,
+    movTotal: actRound1((d ? num(d.stepKcal) : 0)
+      + acts.reduce((s, a) => s + num(a.kcalEstimated), 0)),
+    planDone: Array.isArray(MY_LOGS) && MY_LOGS.some(l => l.date === date && l.done === true),
+    hasPlan: !!MY_PLAN,
+    hasTransport: acts.some(a => a.type === 'transporte_activo') };
+}
+
+/* TIRA (widget): SOLO vive en #tab-track (pantalla principal).
+   Muestra el extra estructurado que SÍ suma al día. */
+function renderActivityStrip(date) {
+  const strip = $('act-strip'); if (!strip) return;
+  if (!ACT_LOADED) { strip.style.display = 'none'; return; }
+  const v = actDayView(date);
+  strip.style.display = '';
+  strip.innerHTML = `<span class="act-strip-fire" aria-hidden="true">🔥</span>
+    <span class="act-strip-num" id="act-strip-num">${fmt(Math.round(v.extras))} ${t('act.kcalUnit')}</span>
+    <span class="act-strip-label">${t('act.stripLabel')}</span>
+    <span class="act-strip-chev" aria-hidden="true">›</span>`;
+}
+
+/* PANEL (Q6): dentro de la pantalla principal de seguimiento. */
+function renderActivity(date) {
+  renderActivityStrip(date);
+  const box = $('activity-content'); if (!box) return;
+  const w = actLastWeight();
+  const v = actDayView(date);
+  const d = v.doc;
+  const base = actBaseInfo();
+  const staleDays = w ? Math.floor((new Date(todayISO() + 'T00:00:00') - new Date(w.date + 'T00:00:00')) / 86400000) : 0;
+  const acts = d ? d.activities : [];
+  const actRows = acts.length ? acts.map((a, i) => `
+    <div class="act-row">
+      <div class="act-row-main"><b>${esc(a.type === 'otro' && a.typeCustom ? a.typeCustom : t('act.type.' + a.type))}</b>
+        <span class="act-row-meta">${Math.floor(num(a.durationMin))} ${t('act.min')} · ${t('act.int.' + a.intensity)}${a.rpe ? ' · RPE ' + Math.floor(num(a.rpe)) : ''}</span></div>
+      <div class="act-row-kcal">${a.kcalEstimated == null ? '—' : '≈ ' + fmt(a.kcalEstimated) + ' ' + t('act.kcalUnit')}${actIsSummable(a.type) ? '' : ` <span class="act-tag">${t('act.notAddedTag')}</span>`}</div>
+      <button type="button" class="btn-ghost btn-sm" data-act-del="${i}">${t('act.del')}</button>
+    </div>${a.type === 'otro' ? `<div class="act-row-note">${t('act.otherWarn')}</div>` : ''}${a.notes ? `<div class="act-row-note">${esc(a.notes)}</div>` : ''}`).join('')
+    : `<div class="wempty compact">${t('act.empty')}</div>`;
+  const dayHtml = base.ok ? `
+      <div class="act-line"><span>${t('act.dayBase')}</span><b>${fmt(Math.round(base.tdee))} ${t('act.kcalUnit')}</b></div>
+      <div class="act-line"><span>${t('act.dayExtra')}</span><b>+ ${fmt(Math.round(v.extras))} ${t('act.kcalUnit')}</b></div>
+      <div class="act-line act-total"><span>${t('act.dayTotal')}</span><b id="act-day-total">${fmt(Math.round(base.tdee + v.extras))} ${t('act.kcalUnit')}</b></div>
+      ${base.stale ? `<p class="act-note">${t('act.staleTag')}</p>` : ''}`
+    : `<p class="act-note">${t('act.dayNoBase')}</p>
+      <div class="act-line"><span>${t('act.dayExtra')}</span><b>${fmt(Math.round(v.extras))} ${t('act.kcalUnit')}</b></div>`;
+  const planHtml = v.hasPlan ? `<p class="act-note act-plan-line">${v.planDone ? t('act.planDone') : t('act.planPending')}</p>` : '';
+  const habitualHtml = base.ok ? `
+      <div class="act-line"><span>${t('act.habitualLine', { n: fmt(Math.round(base.tdee)) })}</span>${base.stale ? `<span class="act-tag">${t('act.staleTag')}</span>` : ''}</div>
+      <p class="act-note">${t('act.habitualNote')}</p>`
+    : `<p class="act-note">${t('act.habitualNone')}</p>`;
+  box.innerHTML = `
+    <div class="act-head"><h3 class="history-title" style="margin:0">${t('act.title')}</h3><span class="act-date">${esc(dateName(date))}</span></div>
+    <p class="act-note act-est-note">${t('act.estimateNote')}</p>
+    ${!ACT_LOADED ? `<div class="wempty compact">${t('act.loading')}</div>` : `
+    ${w ? `<div class="act-wref">${t('act.weightRef', { w: fmt(w.weight), d: esc(w.date) })}</div>
+      ${staleDays > FB3_STALE_DAYS ? `<div class="fb3-stale">${t('fb3.stale', { d: staleDays })}</div>` : ''}`
+      : `<div class="act-noweight"><p class="act-note">${t('act.noWeight')}</p><button type="button" class="btn-secondary btn-sm" id="act-btn-weight">${t('act.noWeightBtn')}</button></div>`}
+    <div class="act-sec">
+      <label class="act-lab" for="act-steps">${t('act.steps')}</label>
+      <div class="act-steps-row">
+        <input type="number" id="act-steps" min="0" max="200000" step="1" inputmode="numeric" placeholder="${esc(t('act.stepsPh'))}" value="${d && num(d.steps) > 0 ? Math.floor(num(d.steps)) : ''}">
+        <button type="button" class="btn-secondary btn-sm" id="act-steps-save">${t('act.stepsSave')}</button>
+      </div>
+      ${d && num(d.steps) > 0 ? `<div class="act-steps-info" id="act-steps-info">${t('act.stepsInfo', { km: fmt(num(d.stepKm)), kcal: fmt(num(d.stepKcal)) })}</div>` : ''}
+      <p class="act-note">${t('act.overlapNote')}</p>
+    </div>
+    <div class="act-sec">
+      <h4 class="act-sec-title">${t('act.listTitle')}</h4>
+      ${actRows}
+    </div>
+    <form class="act-sec act-form" id="act-form">
+      <h4 class="act-sec-title">${t('act.addTitle')}</h4>
+      <label class="act-lab">${t('act.type')}
+        <select id="act-type">${ACT_TYPES.map(tp => `<option value="${tp}">${t('act.type.' + tp)}</option>`).join('')}</select></label>
+      <div id="act-custom-wrap" style="display:none">
+        <label class="act-lab">${t('act.typeCustom')}
+          <input type="text" id="act-custom" maxlength="60" placeholder="${esc(t('act.typeCustomPh'))}"></label>
+        <p class="act-note">${t('act.otherWarn')}</p>
+      </div>
+      <div class="act-grid">
+        <label class="act-lab">${t('act.duration')} (${t('act.min')})
+          <input type="number" id="act-dur" min="1" max="600" step="1" inputmode="numeric"></label>
+        <label class="act-lab">${t('act.intensity')}
+          <select id="act-int">${ACT_INTENSITIES.map(x => `<option value="${x}"${x === 'moderada' ? ' selected' : ''}>${t('act.int.' + x)}</option>`).join('')}</select></label>
+        <label class="act-lab">${t('act.rpe')}
+          <select id="act-rpe"><option value="">${t('act.rpeNone')}</option>${[1, 2, 3, 4, 5, 6, 7, 8, 9, 10].map(n => `<option value="${n}">${n}</option>`).join('')}</select></label>
+      </div>
+      <p class="act-note">${t('act.rpeNote')}</p>
+      <label class="act-lab">${t('act.notes')}
+        <input type="text" id="act-notes" maxlength="140" placeholder="${esc(t('act.notesPh'))}"></label>
+      <button type="submit" class="btn-primary btn-sm" id="act-add">${t('act.addBtn')}</button>
+    </form>
+    <div class="act-sec">
+      <div class="act-line"><span>${t('act.sumSteps')}</span><b>${fmt(v.stepKcal)} ${t('act.kcalUnit')}</b></div>
+      <div class="act-line"><span>${t('act.sumExtra')}</span><b>${fmt(Math.round(v.extras))} ${t('act.kcalUnit')}</b></div>
+      <div class="act-line"><span>${t('act.sumMovement')}</span><b id="act-mov-total">${fmt(v.movTotal)} ${t('act.kcalUnit')}</b></div>
+      ${v.hasTransport ? `<p class="act-note">${t('act.transportNote')}</p>` : ''}
+    </div>
+    <div class="act-sec">
+      <h4 class="act-sec-title">${t('act.dayTitle')}</h4>
+      ${dayHtml}
+      ${planHtml}
+    </div>
+    <div class="act-sec">
+      <h4 class="act-sec-title">${t('act.habitualTitle')}</h4>
+      ${habitualHtml}
+    </div>`}`;
+  const typeSel = $('act-type');
+  if (typeSel) typeSel.onchange = () => { const cw = $('act-custom-wrap'); if (cw) cw.style.display = typeSel.value === 'otro' ? '' : 'none'; };
+  const sBtn = $('act-steps-save');
+  if (sBtn) sBtn.onclick = async () => {
+    const raw = ($('act-steps') || {}).value;
+    const steps = (raw === '' || raw === undefined) ? 0 : Number(raw);
+    if (!Number.isInteger(steps) || steps < 0 || steps > 200000) { toast(t('act.errSteps'), true); return; }
+    sBtn.disabled = true;
+    await actSaveDay(date, dr => { dr.steps = steps; });
+    sBtn.disabled = false;
+  };
+  box.querySelectorAll('[data-act-del]').forEach(b => b.onclick = async () => {
+    const i = parseInt(b.dataset.actDel, 10);
+    b.disabled = true;
+    await actSaveDay(date, dr => { dr.activities.splice(i, 1); });
+  });
+  const form = $('act-form');
+  if (form) form.onsubmit = async ev => {
+    ev.preventDefault();
+    if (ACT_SAVING) return;
+    const type = $('act-type').value;
+    if (!ACT_MET[type]) return;
+    const typeCustom = (($('act-custom') || {}).value || '').trim();
+    const dur = Number((($('act-dur') || {}).value || ''));
+    const intensity = $('act-int').value;
+    const rpeRaw = $('act-rpe').value;
+    const rpe = rpeRaw === '' ? null : Number(rpeRaw);
+    const notes = (($('act-notes') || {}).value || '').trim();
+    if (type === 'otro' && !typeCustom) { toast(t('act.errTypeCustom'), true); return; }
+    if (!Number.isInteger(dur) || dur < 1 || dur > 600) { toast(t('act.errDuration'), true); return; }
+    if (rpe !== null && (!Number.isInteger(rpe) || rpe < 1 || rpe > 10)) { toast(t('act.errRpe'), true); return; }
+    const btn = $('act-add'); if (btn) btn.disabled = true;
+    await actSaveDay(date, dr => { dr.activities.push({ type, typeCustom, durationMin: dur, intensity, rpe, notes }); });
+    if (btn) btn.disabled = false;
+  };
+  const wBtn = $('act-btn-weight');
+  if (wBtn) wBtn.onclick = () => {
+    const p = $('btn-toggle-progress'); if (p) p.click();
+    const aw = $('btn-add-weight'); if (aw) aw.click();
+  };
+}
+
 function render(date) {
   $('dateTitle').textContent = dateName(date);
   if (!hasAnyGoal()) {
@@ -7780,6 +8229,7 @@ function render(date) {
       toast(t('msg.mealDeleted'));
       await loadAllKeepDate(date);
     });
+  renderActivity(date);
 }
 async function loadAllKeepDate(date) {
   await loadAll();

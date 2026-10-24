@@ -1009,3 +1009,40 @@ div > .btn-ghost:only-child, div > .btn-main:only-child {
 #frame-silhouette { position: absolute; inset: 0; display: flex; align-items: center; justify-content: center; pointer-events: none; }
 #frame-silhouette svg { height: 94%; }
 #frame-count { position: absolute; inset: 0; display: flex; align-items: center; justify-content: center; font-size: 96px; font-weight: 700; color: #fff; text-shadow: 0 2px 14px rgba(0,0,0,.65); }
+
+/* ===== Registro de actividad (desarrollo 2026-10-24) =====
+   Tira (widget) SOLO en la pantalla principal + panel dentro de
+   #tab-track. Sin 5º botón: el dock no se toca. */
+.act-strip { display: flex; align-items: center; gap: 8px; width: 100%; margin: 10px 0 2px;
+  padding: 10px 14px; border: 1px solid #ccfbf1; border-radius: 14px; background: #f0fdfa;
+  font: inherit; font-size: 15px; color: #134e4a; cursor: pointer; text-align: left; }
+.act-strip:active { background: #ccfbf1; }
+.act-strip-num { font-weight: 800; color: #0f766e; }
+.act-strip-label { color: #4b5563; font-size: 13px; }
+.act-strip-chev { margin-left: auto; color: #0f766e; font-weight: 700; }
+#activity-content { margin-top: 12px; }
+.act-head { display: flex; align-items: baseline; gap: 10px; flex-wrap: wrap; }
+.act-date { color: #6b7280; font-size: 13px; }
+.act-note { color: #6b7280; font-size: 12.5px; line-height: 1.45; margin: 6px 0; }
+.act-est-note { background: #fffbeb; border: 1px solid #fde68a; border-radius: 10px; padding: 8px 10px; color: #92400e; }
+.act-wref { font-size: 13px; color: #374151; margin-top: 8px; }
+.act-sec { border-top: 1px solid #eef2f7; padding: 10px 0 4px; margin-top: 10px; }
+.act-sec-title { margin: 0 0 8px; font-size: 14px; color: #134e4a; }
+.act-lab { display: block; font-size: 13px; color: #374151; margin: 8px 0; }
+.act-lab input, .act-lab select { display: block; width: 100%; margin-top: 4px; padding: 8px 10px;
+  border: 1px solid #d1d5db; border-radius: 10px; font: inherit; font-size: 14px; background: #fff; }
+.act-steps-row { display: flex; gap: 8px; align-items: center; }
+.act-steps-row input { flex: 1; padding: 8px 10px; border: 1px solid #d1d5db; border-radius: 10px; font: inherit; font-size: 14px; }
+.act-steps-info { font-size: 13px; color: #0f766e; font-weight: 600; margin-top: 6px; }
+.act-grid { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 8px; }
+@media (max-width: 420px) { .act-grid { grid-template-columns: 1fr 1fr; } }
+.act-row { display: flex; align-items: center; gap: 8px; padding: 7px 0; border-bottom: 1px dashed #eef2f7; }
+.act-row-main { flex: 1; min-width: 0; }
+.act-row-meta { display: block; font-size: 12px; color: #6b7280; }
+.act-row-kcal { font-weight: 700; color: #0f766e; white-space: nowrap; font-size: 13.5px; }
+.act-row-note { font-size: 12px; color: #6b7280; padding: 2px 0 6px; }
+.act-tag { background: #fef3c7; color: #92400e; border-radius: 999px; padding: 1px 7px; font-size: 11px; font-weight: 700; }
+.act-line { display: flex; justify-content: space-between; gap: 10px; padding: 4px 0; font-size: 13.5px; color: #374151; }
+.act-line b { white-space: nowrap; }
+.act-total { border-top: 1px solid #e5e7eb; margin-top: 4px; padding-top: 8px; font-weight: 700; }
+.act-noweight { margin-top: 8px; }

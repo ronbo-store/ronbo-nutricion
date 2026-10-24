@@ -158,6 +158,11 @@
   <div class="rings" id="rings"></div>
   <p class="rings-first-note" id="rings-note" style="display:none"></p>
 
+  <!-- Registro de actividad (desarrollo 2026-10-24, Q6): TIRA/widget SOLO
+       en la pantalla principal (#tab-track) y PANEL dentro de esta misma
+       vista. El dock NO crece: sigue en cuatro botones redondos. -->
+  <button type="button" class="act-strip" id="act-strip" style="display:none" aria-expanded="false"></button>
+
   <div class="panel week-panel">
     <h2 data-i18n="track.weekTitle">📈 Weekly goal compliance</h2>
     <div id="weekChart"></div>
@@ -250,6 +255,9 @@
       <div id="my-proposals"></div>
     </div>
     <div id="ai-panel" class="ai-panel" style="display:none"></div>
+    <!-- Panel del registro de actividad (Q6): junto a Progreso /
+         Entrenamiento / análisis, dentro de la pantalla principal. -->
+    <div id="activity-content" style="display:none"></div>
   </div>
   <!-- Botón único «PERMISOS Y PRIVACIDAD» (decisión de Ronald,
        2026-10-19 15:45): UN solo botón discreto y fino sustituye
