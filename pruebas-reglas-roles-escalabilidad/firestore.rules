@@ -348,6 +348,50 @@ service cloud.firestore {
           || (request.resource.data.status == 'pendiente_administrador'
              && request.resource.data.get('trainerUid', null) == null));
     }
+    // Dossier del entrenador (2026-10-24, NO publicado; orden de
+    // Ronald, correo memphis id 1a16f7a3c063d12b): forma del
+    // documento RESULTANTE cuando el propio entrenador escribe su
+    // dossier. Escalares validados con tipo y tamaño; las listas
+    // solo con tipo y cota de tamaño — el dialecto NO puede validar
+    // en profundidad una lista de mapas (certificaciones, lugares),
+    // límite documentado en DISEÑO-DOSSIER-ENTRENADOR-2026-10-24.md:
+    // la forma fina de cada elemento vive en la app y la moderación
+    // es del administrador (que puede corregir cualquier perfil).
+    // photoUrl es una dataURL comprimida por la app (máx. 1080 px):
+    // la cota deja aire sin acercarse al límite de 1 MiB del
+    // documento. modalities y activeStudents quedan FUERA a
+    // propósito: no son del entrenador (administrador / flujos).
+    function dosShapeOk() {
+      return request.resource.data.get('photoUrl', '') is string
+          && request.resource.data.get('photoUrl', '').size() <= 700000
+          && request.resource.data.get('headline', '') is string
+          && request.resource.data.get('headline', '').size() <= 120
+          && request.resource.data.get('about', '') is string
+          && request.resource.data.get('about', '').size() <= 2000
+          && request.resource.data.get('bio', '') is string
+          && request.resource.data.get('bio', '').size() <= 2000
+          && request.resource.data.get('displayName', '') is string
+          && request.resource.data.get('displayName', '').size() <= 120
+          && request.resource.data.get('experienceYears', 0) is number
+          && request.resource.data.get('experienceYears', 0) >= 0
+          && request.resource.data.get('experienceYears', 0) <= 60
+          && request.resource.data.get('contexts', []) is list
+          && request.resource.data.get('contexts', []).size() <= 4
+          && request.resource.data.get('clientTypes', []) is list
+          && request.resource.data.get('clientTypes', []).size() <= 6
+          && request.resource.data.get('topSkills', []) is list
+          && request.resource.data.get('topSkills', []).size() <= 3
+          && request.resource.data.get('certifications', []) is list
+          && request.resource.data.get('certifications', []).size() <= 12
+          && request.resource.data.get('specialties', []) is list
+          && request.resource.data.get('specialties', []).size() <= 10
+          && request.resource.data.get('notTrains', '') is string
+          && request.resource.data.get('notTrains', '').size() <= 300
+          && request.resource.data.get('languages', []) is list
+          && request.resource.data.get('languages', []).size() <= 4
+          && request.resource.data.get('places', []) is list
+          && request.resource.data.get('places', []).size() <= 8;
+    }
     // Candidato actividad (2026-10-24, NO publicado): lista de
     // claves CERRADA del documento de actividad diaria.
     function actKeysOk() {
@@ -1345,7 +1389,12 @@ service cloud.firestore {
       allow update: if isOwnerUser()
         || (isSelf(trainerUid)
             && request.resource.data.diff(resource.data).affectedKeys()
-                 .hasOnly(['bio', 'available', 'displayName', 'updatedAt']))
+                 .hasOnly(['bio', 'available', 'displayName', 'updatedAt',
+                           'photoUrl', 'headline', 'about', 'experienceYears',
+                           'contexts', 'clientTypes', 'topSkills',
+                           'certifications', 'specialties', 'notTrains',
+                           'languages', 'places'])
+            && dosShapeOk())
         || (isSelf(trainerUid)
             && request.resource.data.diff(resource.data).affectedKeys()
                  .hasOnly(['activeStudents', 'updatedAt'])
@@ -1362,6 +1411,39 @@ service cloud.firestore {
                  && get(/databases/$(database)/documents/trainer_relations/$(request.auth.uid)).data.get('trainerUid', '') == trainerUid
                  && getAfter(/databases/$(database)/documents/trainer_relations/$(request.auth.uid)).data.get('trainerUid', '') != trainerUid)));
       allow delete: if false;
+
+      // Valoraciones del dossier (2026-10-24, NO publicado): UN
+      // documento por pareja alumno–entrenador (id = uid del
+      // alumno). Solo escribe su autor, con forma cerrada y la
+      // antigüedad declarada de la relación (relationStartMs) de
+      // al menos 14 días. Cuando la relación VIGENTE del autor es
+      // con ESTE entrenador, su startedAt debe coincidir con lo
+      // declarado; la verificación de relaciones HISTÓRICAS no es
+      // expresable en el dialecto (el historial es una
+      // subcolección de solo anexar, no consultable desde aquí) —
+      // residual documentado: un alumno podría declarar una fecha
+      // antigua falsa para un entrenador que ya no es el suyo; la
+      // moderación es del administrador (puede borrar cualquier
+      // valoración). El promedio se calcula al mostrar: NO hay
+      // agregado escribible por clientes en el perfil.
+      match /ratings/{alumnoUid} {
+        allow get: if signedIn();
+        allow list: if signedIn();
+        allow create, update: if isSelf(alumnoUid)
+          && request.resource.data.keys().hasOnly(['stars', 'relationStartMs', 'createdAt', 'updatedAt'])
+          && request.resource.data.stars is int
+          && request.resource.data.stars >= 1 && request.resource.data.stars <= 5
+          && request.resource.data.relationStartMs is number
+          && request.resource.data.relationStartMs <= request.time.toMillis() - 1209600000
+          && request.resource.data.updatedAt == request.time
+          && (resource == null
+              ? request.resource.data.createdAt == request.time
+              : request.resource.data.createdAt == resource.data.createdAt)
+          && (!exists(/databases/$(database)/documents/trainer_relations/$(alumnoUid))
+              || get(/databases/$(database)/documents/trainer_relations/$(alumnoUid)).data.get('trainerUid', '') != trainerUid
+              || get(/databases/$(database)/documents/trainer_relations/$(alumnoUid)).data.startedAt.toMillis() == request.resource.data.relationStartMs);
+        allow delete: if isSelf(alumnoUid) || isOwnerUser();
+      }
     }
 
     // ---------- Roles+Escalabilidad: relación alumno–entrenador ----------

@@ -7,7 +7,7 @@
 # (2026-10-24) + SOLO el delta de Roles + Escalabilidad con
 # modality_requests (punto 9):
 # preparacion-local/firestore.rules.candidato-roles-final-2026-10-24.rules,
-# SHA-256 1cf15fdc2beeadae14ddb982f25e61ac42b17bab36d325f74c26420a58aa1eda.
+# SHA-256 08178c76fb30b07bce9aeba397d9d828a00167e2e56fded3877cdb828a781f2a.
 # Despliegue autorizado por Ronald por correo (memphis) el
 # 2026-10-24 14:40 y 14:56 CDT («Autorizo el despliegue de
 # Roles + Escalabilidad en su orden obligatorio» / «Confirmo
