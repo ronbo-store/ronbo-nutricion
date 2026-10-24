@@ -15,7 +15,7 @@ import {
 } from '@firebase/rules-unit-testing';
 import {
   doc, setDoc, getDoc, collection, addDoc,
-  updateDoc, deleteDoc, writeBatch, serverTimestamp
+  updateDoc, deleteDoc, writeBatch, serverTimestamp, Timestamp
 } from 'firebase/firestore';
 
 const testEnv = await initializeTestEnvironment({
@@ -34,10 +34,12 @@ async function T(name, promise, shouldSucceed) {
   }
 }
 
+const REL_START = Date.now() - 20 * 864e5; // relación de al9: 20 días (≥14)
 const adm = testEnv.authenticatedContext('adm').firestore();
 const tr1 = testEnv.authenticatedContext('tr1').firestore();
 const tr2 = testEnv.authenticatedContext('tr2').firestore();
 const al1 = testEnv.authenticatedContext('al1').firestore();
+const al2 = testEnv.authenticatedContext('al2').firestore();
 const al3 = testEnv.authenticatedContext('al3').firestore();
 const anon = testEnv.unauthenticatedContext().firestore();
 
@@ -53,6 +55,8 @@ await testEnv.withSecurityRulesDisabled(async (ctx) => {
     'users/al1': { ...baseUser, name: 'Alumno Uno', role: 'usuario', accountType: 'alumno', modality: 'virtual', trainerUid: 'tr1', assignmentStatus: 'assigned', features: { training: true, activity: true, photos: true, metrics: true, meals: false, somatotype: true } },
     'users/al2': { ...baseUser, name: 'Alumno Dos', role: 'usuario', accountType: 'alumno', modality: 'presencial', trainerUid: null, assignmentStatus: 'waiting', features: { training: true, activity: true, photos: true, metrics: true, meals: false, somatotype: true } },
     'users/al3': { ...baseUser, name: 'Alumno Tres', role: 'usuario', accountType: 'alumno', modality: 'hibrido', trainerUid: null, assignmentStatus: 'waiting', features: { training: true, activity: true, photos: true, metrics: true, meals: false, somatotype: true } },
+    'users/al9': { ...baseUser, name: 'Alumno Nueve', role: 'usuario', accountType: 'alumno', modality: 'virtual', trainerUid: 'tr1', assignmentStatus: 'assigned', features: { training: true, activity: true, photos: true, metrics: true, meals: false, somatotype: true } },
+    'trainer_relations/al9': { alumnoUid: 'al9', trainerUid: 'tr1', modality: 'virtual', status: 'activa', startedAt: Timestamp.fromMillis(REL_START) },
     'trainer_relations/al3': { alumnoUid: 'al3', trainerUid: null, modality: 'hibrido', status: 'en_espera' },
     'memberships/tr1': { level: 'basico', status: 'activa', source: 'gratis', requestedLevel: null },
     'memberships/tr2': { level: null, status: 'sin_membresia', source: 'gratis', requestedLevel: null },
@@ -245,6 +249,37 @@ await T('D17 la solicitud quedó CANCELADA y la modalidad vigente NO se movió (
     .then(s => { if (s.data().status !== 'cancelada') throw new Error('no cancelada'); })
     .then(() => getDoc(doc(al1, 'trainer_relations', 'al1')))
     .then(s => { if (s.data().modality !== 'presencial') throw new Error('modalidad tocada'); }), true);
+
+/* ---------- Serie E: dossier del entrenador y valoraciones ---------- */
+const al9 = testEnv.authenticatedContext('al9').firestore();
+await T('E1 el entrenador edita SU dossier (titular, reseña, foto)',
+  updateDoc(doc(tr1, 'trainer_profiles', 'tr1'), { headline: 'Entrenador personal certificado ISSA', about: 'Mi reseña.', photoUrl: 'data:image/jpeg;base64,AAAA', updatedAt: serverTimestamp() }), true);
+await T('E2 un entrenador NO edita el dossier de otro',
+  updateDoc(doc(tr1, 'trainer_profiles', 'tr2'), { headline: 'Intruso', updatedAt: serverTimestamp() }), false);
+await T('E3 el entrenador NO se cambia las modalidades por la rama propia',
+  updateDoc(doc(tr1, 'trainer_profiles', 'tr1'), { modalities: ['virtual'], updatedAt: serverTimestamp() }), false);
+await T('E4 titular de 200 caracteres DENEGADO (dosShapeOk, máx. 120)',
+  updateDoc(doc(tr1, 'trainer_profiles', 'tr1'), { headline: 'x'.repeat(200), updatedAt: serverTimestamp() }), false);
+await T('E5 banda dorada de 4 habilidades DENEGADA (máx. 3)',
+  updateDoc(doc(tr1, 'trainer_profiles', 'tr1'), { topSkills: ['a', 'b', 'c', 'd'], updatedAt: serverTimestamp() }), false);
+await T('E6 certificaciones como lista de mapas: la forma gruesa pasa (el detalle fino vive en la app)',
+  updateDoc(doc(tr1, 'trainer_profiles', 'tr1'), { certifications: [{ name: 'CPT', institution: 'ISSA', year: 2024, expiresYear: 2026 }, { name: 'CPR', institution: 'AHA', year: 2023, expiresYear: 2020 }], updatedAt: serverTimestamp() }), true);
+await T('E7 valoración del autor con relación vigente de 20 días y startedAt coincidente',
+  setDoc(doc(al9, 'trainer_profiles', 'tr1', 'ratings', 'al9'), { stars: 5, relationStartMs: REL_START, createdAt: serverTimestamp(), updatedAt: serverTimestamp() }), true);
+await T('E8 valoración con antigüedad declarada de 5 días DENEGADA (<14)',
+  setDoc(doc(al1, 'trainer_profiles', 'tr1', 'ratings', 'al1'), { stars: 4, relationStartMs: Date.now() - 5 * 864e5, createdAt: serverTimestamp(), updatedAt: serverTimestamp() }), false);
+await T('E9 (residual documentado) valoración a un entrenador que NO es el vigente: las reglas no pueden verificar el historial — pasa; modera el administrador',
+  setDoc(doc(al1, 'trainer_profiles', 'tr2', 'ratings', 'al1'), { stars: 4, relationStartMs: REL_START, createdAt: serverTimestamp(), updatedAt: serverTimestamp() }), true);
+await T('E10 nadie escribe la valoración de OTRO alumno (id = autor)',
+  setDoc(doc(al3, 'trainer_profiles', 'tr1', 'ratings', 'al9'), { stars: 1, relationStartMs: REL_START, createdAt: serverTimestamp(), updatedAt: serverTimestamp() }), false);
+await T('E11 el autor EDITA su valoración: mismo documento, sin duplicar',
+  updateDoc(doc(al9, 'trainer_profiles', 'tr1', 'ratings', 'al9'), { stars: 3, updatedAt: serverTimestamp() }), true);
+await T('E12 un tercero NO edita la valoración de otro',
+  updateDoc(doc(al3, 'trainer_profiles', 'tr1', 'ratings', 'al9'), { stars: 1, updatedAt: serverTimestamp() }), false);
+await T('E13 estrellas fuera de rango (6) DENEGADAS',
+  setDoc(doc(al9, 'trainer_profiles', 'tr2', 'ratings', 'al9'), { stars: 6, relationStartMs: REL_START, createdAt: serverTimestamp(), updatedAt: serverTimestamp() }), false);
+await T('E14 el administrador puede BORRAR una valoración (moderación)',
+  deleteDoc(doc(adm, 'trainer_profiles', 'tr1', 'ratings', 'al9')), true);
 
 /* ---------- audit_log (patrón ND-2) ---------- */
 let logId = null;
