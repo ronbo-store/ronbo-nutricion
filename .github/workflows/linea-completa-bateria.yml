@@ -1,0 +1,69 @@
+# RONBO NUTRI — Batería del CANDIDATO FINAL COMPUESTO 2026-10-23
+# (composición + roles + corrección «Registrar pesaje»): 37 aserciones
+# contra el emulador oficial de Firestore (proyecto ficticio
+# ronbo-nutri-test), en la vía CI del proyecto (la misma que validó
+# el candidato P8 con CI 170). El candidato es copia byte-idéntica de
+# preparacion-local/firestore.rules.candidato-final-2026-10-23.rules
+# (diff: 213 líneas contra el texto vivo e5efaef2).
+# Autorización: secuencia coordinada de despliegue de la línea
+# completa, autorizada por Ronald el 2026-10-23 18:48 CDT
+# («Despliega la línea completa»). Este workflow SOLO valida el
+# candidato; la publicación se hace después, por la vía CLI probada,
+# con relectura íntegra del texto vivo.
+# Sin secretos, sin credenciales de producción, sin despliegue.
+name: Batería Línea Completa (emulador oficial)
+
+on:
+  workflow_dispatch:
+  push:
+    branches: [ci/linea-completa-bateria]
+
+permissions:
+  contents: read
+
+jobs:
+  bateria:
+    name: 37 aserciones contra el emulador oficial (proyecto ficticio)
+    runs-on: ubuntu-24.04
+    timeout-minutes: 20
+    defaults:
+      run:
+        working-directory: tests-linea-completa
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: 21
+      - name: Instalar dependencias de la batería (versiones fijadas)
+        run: npm ci
+      - name: Instalar Firebase CLI (versión fijada)
+        run: npm install -g firebase-tools@15.34.0
+      - name: Ejecutar la batería contra el emulador oficial
+        shell: bash
+        run: |
+          set -o pipefail
+          firebase emulators:exec --only firestore --project ronbo-nutri-test "node test-candidato.mjs" 2>&1 | tee resultado-bateria.txt
+      - name: Publicar el resultado en el resumen del job (legible por API)
+        if: always()
+        shell: bash
+        run: |
+          {
+            echo '## Batería Línea Completa — resultado'
+            grep -E 'RESULTADO CANDIDATO' resultado-bateria.txt || true
+            echo ''
+            echo '### Casos FAIL (si los hay)'
+            grep -E '^FAIL — ' resultado-bateria.txt || echo '(ninguno)'
+          } >> "$GITHUB_STEP_SUMMARY"
+      - name: Conservar la evidencia (salida de la batería)
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: evidencia-bateria-linea-completa
+          path: |
+            tests-linea-completa/resultado-bateria.txt
+            tests-linea-completa/firestore-debug.log
+          retention-days: 7
