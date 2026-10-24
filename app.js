@@ -171,6 +171,11 @@ async function loadRolesX() {
     }
     await loadMyModalityRequest();
   }
+  if (ROLE === 'entrenador' && auth.currentUser) {
+    /* Su propio dossier alimenta el pendiente de plantilla
+       (pendCompute es síncrono: lee este estado, no la red). */
+    try { const s = await getDoc(doc(db, 'trainer_profiles', auth.currentUser.uid)); MY_DOSSIER = s.exists() ? s.data() : null; } catch { MY_DOSSIER = null; }
+  }
   applyFeatureGates();
   renderMyTrainerBox();
 }
@@ -263,7 +268,7 @@ async function renderMyTrainerBox() {
   box.innerHTML = `
   <div class="panel">
     <h3 class="history-title">${esc(t('esc.myTrainerTitle'))}</h3>
-    ${rel.trainerUid ? `<p class="progress-hint">${esc(t('esc.currentTrainer'))}: <b>${esc(tName || '')}</b>${rel.modality ? ` · ${esc(t('esc.modality'))}: <b>${esc(escModLabel(rel.modality))}</b>` : ''}</p>`
+    ${rel.trainerUid ? `<p class="progress-hint">${esc(t('esc.currentTrainer'))}: <b>${esc(tName || '')}</b>${rel.modality ? ` · ${esc(t('esc.modality'))}: <b>${esc(escModLabel(rel.modality))}</b>` : ''} <button type="button" class="slot-link" data-dossier-open="${esc(rel.trainerUid)}">${esc(t('esc.dos.viewBtn'))}</button></p>`
       : `<p class="progress-hint">${esc(t('esc.noTrainerYet'))}</p>`}
     ${modHtml}
     <label class="muted">${esc(t('esc.changeTrainer'))}
@@ -271,7 +276,9 @@ async function renderMyTrainerBox() {
         <option value="">${esc(t('esc.waitOption'))}</option>
         ${pool.map(p => `<option value="${esc(p.uid)}"${p.full ? ' disabled' : ''}${rel.trainerUid === p.uid ? ' selected' : ''}>${esc(p.name)}${p.full ? esc(t('esc.poolFull')) : ''}</option>`).join('')}
       </select></label>
-    <div class="eval-actions"><button type="button" class="btn-primary btn-sm" id="btn-change-trainer">${esc(t('esc.changeBtn'))}</button></div>
+    <div class="eval-actions"><button type="button" class="btn-primary btn-sm" id="btn-change-trainer">${esc(t('esc.changeBtn'))}</button>
+    <button type="button" class="btn-ghost btn-sm" id="btn-dossier-sel">${esc(t('esc.dos.viewBtn'))}</button></div>
+    <div class="dos-pool-links">${pool.map(p => `<button type="button" class="slot-link" data-dossier-open="${esc(p.uid)}">${esc(t('esc.dos.viewBtn'))}: ${esc(p.name)}</button>`).join(' ')}</div>
     ${mealsHtml}
   </div>`;
   const reqBtn = $('btn-meal-request');
@@ -318,6 +325,14 @@ async function renderMyTrainerBox() {
     const oldT = (MY_REL && MY_REL.trainerUid) || null;
     if ((newT || null) === oldT) return;
     await escChangeTrainer(newT || null);
+  };
+  /* Dossier: ver el perfil del entrenador elegido en el selector de
+     cambio (o el del entrenador actual si no hay otra selección). */
+  const dosBtn = $('btn-dossier-sel');
+  if (dosBtn) dosBtn.onclick = () => {
+    const sel = $('my-trainer-sel');
+    const uid = (sel && sel.value) || (MY_REL && MY_REL.trainerUid) || (UDATA && UDATA.trainerUid) || '';
+    if (uid) openDossierLive(uid);
   };
 }
 /* Nombre legible por uid para las cajas del alumno (caché local). */
@@ -677,6 +692,447 @@ async function renderEscAdminBoxes() {
     });
   }
 }
+/* ============ DOSSIER DEL ENTRENADOR (2026-10-24, SOLO desarrollo) ============
+   Diseño: DISEÑO-DOSSIER-ENTRENADOR-2026-10-24.md. Orden de Ronald
+   (correo memphis 2026-10-24 14:54 CDT, id 1a16f7a3c063d12b): la
+   plantilla de perfil con la que el Alumno elige entrenador del
+   pool. AMPLÍA trainer_profiles/{uid} con los campos del dossier
+   (photoUrl, headline, about = la reseña en palabras del propio
+   entrenador, experienceYears, contexts, clientTypes, topSkills,
+   certifications, specialties, notTrains, languages, places) y la
+   vista del pool. ESTILO fijado por él: lujo claro RONBO (la
+   propuesta oscura quedó DESCARTADA).
+   QUIÉN EDITA QUÉ: el entrenador edita SU dossier completo (esos
+   campos + bio/available/displayName, como ya hacía); las
+   MODALIDADES las sigue fijando solo el administrador y el contador
+   activeStudents solo lo mueven los flujos acoplados.
+   VALORACIÓN (punto 3 de su numeración): tras 2 SEMANAS con ese
+   entrenador, el Alumno lo puntúa 1–5★; el perfil muestra promedio
+   y cantidad; UN documento por pareja en
+   trainer_profiles/{trainerUid}/ratings/{alumnoUid}. DECISIÓN DE
+   DISEÑO (documentada en el diseño): la valoración ES editable por
+   su autor (re-puntuar actualiza el mismo documento, no duplica).
+   El promedio se CALCULA al renderizar leyendo las valoraciones
+   (sin contadores cacheados que un cliente pudiera inflar); el
+   directorio sin sesión lleva la foto del agregado al reconstruirlo
+   el administrador, como ya hace con el cupo.
+   JAMÁS en el dossier: insignia de «Aprobado» (orden expresa),
+   teléfono, correo personal ni datos de alumnos (solo conteos). */
+const DOS_CONTEXTS = ['gimnasio', 'domicilio', 'en_linea', 'equipos'];
+const DOS_RATING_MIN_MS = 14 * 24 * 3600 * 1000;
+let DOS_VIEW = null;      // { mode, uid, data, elig }
+let DOS_EDIT_PHOTO = undefined; // undefined = sin cambio; '' = quitar; dataURL = nueva
+let MY_DOSSIER = undefined; // undefined = aún no cargado; null = sin perfil; objeto = trainer_profiles propio
+/* Comunicación al aprobar a un entrenador (extensión de Ronald,
+   correo memphis 2026-10-24 15:03 CDT, id 1a16f81dae1007dd):
+   «incompleto» = le falta ALGUNO de los campos obligatorios de la
+   plantilla — foto destacada (photoUrl), titular (headline) y
+   reseña (about). Con esos tres, la plantilla está completa y el
+   pendiente se resuelve solo; el resto de secciones enriquecen el
+   dossier pero no bloquean el procedimiento. */
+const DOS_REQUIRED = ['photoUrl', 'headline', 'about'];
+function dosProfileComplete(prof) {
+  return !!prof && DOS_REQUIRED.every(k => String(prof[k] || '').trim() !== '');
+}
+/* Ítem de pendiente de plantilla (maquinaria pendCompute): nace
+   SOLO para el usuario con rol entrenador y dossier incompleto, es
+   visible solo para él (pendCompute corre sobre la sesión propia),
+   sin marcas ni posponer — está mientras falte y desaparece al
+   completarse, como el pendiente de energía. Antes de cargar su
+   perfil (MY_DOSSIER undefined) no se emite: nada se finge. */
+function dosProfilePendItem() {
+  if (typeof ROLE === 'undefined' || ROLE !== 'entrenador') return null;
+  if (typeof MY_DOSSIER === 'undefined') return null;
+  if (dosProfileComplete(MY_DOSSIER)) return null;
+  return { id: 'profile|complete', type: 'profile', date: null, overdue: false, age: 0 };
+}
+function dosMs(v) {
+  if (v == null) return null;
+  if (typeof v === 'number' && isFinite(v)) return v;
+  if (typeof v === 'string') { const p = Date.parse(v); return isNaN(p) ? null : p; }
+  if (typeof v.toMillis === 'function') { try { return v.toMillis(); } catch { return null; } }
+  if (typeof v.toDate === 'function') { try { return v.toDate().getTime(); } catch { return null; } }
+  if (typeof v._seconds === 'number') return v._seconds * 1000;
+  return null;
+}
+function dosStrList(v, cap, itemCap) {
+  if (!Array.isArray(v)) return [];
+  return v.map(x => String(x == null ? '' : x).trim().slice(0, itemCap || 60)).filter(Boolean).slice(0, cap);
+}
+function dosCertExpired(c) {
+  const y = Number(c && c.expiresYear);
+  return isFinite(y) && y > 0 && y < new Date().getFullYear();
+}
+function dosStarsStr(avg) {
+  const full = Math.max(0, Math.min(5, Math.round(Number(avg) || 0)));
+  return '★★★★★'.slice(0, full) + '☆☆☆☆☆'.slice(0, 5 - full);
+}
+/* Forma normalizada del dossier desde un trainer_profiles (+ extras
+   ya resueltos: nombre, foto de respaldo, agregado de valoraciones
+   y cupo). La usan las tres fuentes: directorio (sin sesión),
+   documentos vivos (con sesión) y la vista previa del entrenador. */
+function dosNormalize(uid, prof, x) {
+  prof = prof || {}; x = x || {};
+  const certs = (Array.isArray(prof.certifications) ? prof.certifications : []).map(c => ({
+    name: String((c && c.name) || '').slice(0, 80), institution: String((c && c.institution) || '').slice(0, 80),
+    year: (c && c.year) || null, expiresYear: (c && c.expiresYear) || null
+  })).filter(c => c.name).slice(0, 12);
+  const places = (Array.isArray(prof.places) ? prof.places : []).map(p => ({
+    kind: p && p.kind === 'privado' ? 'privado' : 'publico',
+    name: String((p && p.name) || '').slice(0, 90), detail: String((p && p.detail) || '').slice(0, 140)
+  })).filter(p => p.name).slice(0, 8);
+  return {
+    uid,
+    name: prof.displayName || x.name || uid,
+    photoUrl: prof.photoUrl || x.photoFallback || '',
+    headline: String(prof.headline || '').slice(0, 120),
+    about: String(prof.about || '').slice(0, 2000),
+    years: isFinite(Number(prof.experienceYears)) && Number(prof.experienceYears) > 0 ? Math.floor(Number(prof.experienceYears)) : 0,
+    contexts: dosStrList(prof.contexts, 4, 20).filter(c => DOS_CONTEXTS.includes(c)),
+    clientTypes: dosStrList(prof.clientTypes, 6, 60),
+    topSkills: dosStrList(prof.topSkills, 3, 60),
+    certifications: certs,
+    specialties: dosStrList(prof.specialties, 10, 40),
+    notTrains: String(prof.notTrains || '').slice(0, 300),
+    modalities: Array.isArray(prof.modalities) && prof.modalities.length ? prof.modalities.filter(m => ESC_MODALITIES.includes(m)) : [...ESC_MODALITIES],
+    languages: dosStrList(prof.languages, 4, 30),
+    places,
+    ratingAvg: (x.ratingAvg == null ? null : Math.round(Number(x.ratingAvg) * 10) / 10),
+    ratingCount: Number(x.ratingCount) || 0,
+    myStars: Number(x.myStars) || 0,
+    used: Number(x.used) || 0,
+    total: (x.total === undefined ? null : x.total),
+    full: !!x.full
+  };
+}
+async function dosFetchRatings(trainerUid) {
+  let sum = 0, count = 0, mine = 0;
+  try {
+    const snap = await getDocs(collection(db, 'trainer_profiles', trainerUid, 'ratings'));
+    snap.forEach(d => {
+      const s = Number(d.data().stars);
+      if (s >= 1 && s <= 5) { sum += s; count++; if (auth.currentUser && d.id === auth.currentUser.uid) mine = s; }
+    });
+  } catch {}
+  return { avg: count ? Math.round((sum / count) * 10) / 10 : null, count, mine };
+}
+/* Elegibilidad de valoración: una etapa (stint) de ≥14 días con ESE
+   entrenador — la vigente (trainer_relations.startedAt) o una
+   histórica reconstruida de los eventos de la subcolección history
+   de la propia relación del alumno. Sin etapa elegible: bloqueado,
+   con los días que faltan de la etapa vigente si la hay. */
+async function dosEligibility(trainerUid) {
+  const out = { eligible: false, startMs: null, daysLeft: 14 };
+  if (ROLE !== 'usuario' || !auth.currentUser) return out;
+  const me = auth.currentUser.uid, now = Date.now();
+  const rel = MY_REL || {};
+  if (rel.trainerUid === trainerUid) {
+    let start = dosMs(rel.startedAt);
+    if (start == null && rel.legacy && UDATA) start = dosMs(UDATA.createdAt);
+    if (start != null) {
+      out.startMs = start;
+      out.eligible = (now - start) >= DOS_RATING_MIN_MS;
+      out.daysLeft = Math.max(0, 14 - Math.floor((now - start) / 864e5));
+      return out;
+    }
+    return out;
+  }
+  try {
+    const snap = await getDocs(collection(db, 'trainer_relations', me, 'history'));
+    const evs = [];
+    snap.forEach(d => evs.push(d.data()));
+    evs.sort((a, b) => (dosMs(a.at) || 0) - (dosMs(b.at) || 0));
+    let open = null;
+    for (const ev of evs) {
+      if (ev.toTrainerUid === trainerUid && (ev.type === 'alta' || ev.type === 'asignacion' || ev.type === 'cambio')) open = dosMs(ev.at);
+      if (ev.fromTrainerUid === trainerUid && open != null) {
+        if (((dosMs(ev.at) || now) - open) >= DOS_RATING_MIN_MS) { out.eligible = true; out.startMs = open; out.daysLeft = 0; return out; }
+        open = null;
+      }
+    }
+    if (open != null && (now - open) >= DOS_RATING_MIN_MS) { out.eligible = true; out.startMs = open; out.daysLeft = 0; }
+  } catch {}
+  return out;
+}
+function dosRenderHTML(d, ctx) {
+  const spotsLine = d.full ? esc(t('esc.dos.spotsFull'))
+    : (d.total != null && isFinite(Number(d.total))) ? esc(t('esc.dos.spots', { free: Math.max(0, Number(d.total) - d.used), total: Number(d.total) }))
+    : esc(t('esc.quotaOf', { used: d.used, total: '∞' }));
+  const ratingHead = d.ratingCount > 0
+    ? `<span class="dos-stars">${dosStarsStr(d.ratingAvg)}</span> <b>${Number(d.ratingAvg).toFixed(1)}</b> · ${esc(t('esc.dos.ratingsCount', { n: d.ratingCount }))}`
+    : `<span class="muted" style="color:#D8EDE8">${esc(t('esc.dos.noRatings'))}</span>`;
+  const isEmpty = !d.headline && !d.about && !d.certifications.length && !d.topSkills.length && !d.specialties.length && !d.years;
+  let rateHtml = '';
+  if (ctx.canRate) {
+    const el = ctx.elig || { eligible: false, daysLeft: 14 };
+    rateHtml = `<div class="dos-card" id="dos-rate-card">
+      <h3 class="dos-sec">${esc(t('esc.dos.rateTitle'))}</h3>
+      ${el.eligible ? `<div class="dos-rate-row">${[1, 2, 3, 4, 5].map(i => `<button type="button" class="dos-star-btn${d.myStars >= i ? ' on' : ''}" data-dos-star="${i}" aria-label="${i}★">★</button>`).join('')}</div>
+      <p class="progress-hint">${esc(t('esc.dos.rateHint'))}</p>`
+      : `<p class="progress-hint">🔒 ${esc(t('esc.dos.rateLocked', { days: el.daysLeft }))}</p>`}
+    </div>`;
+  }
+  return `
+  <div class="dos-cover">
+    ${d.photoUrl ? `<img class="dos-photo" src="${esc(d.photoUrl)}" alt="">` : ''}
+    <div class="dos-cover-shade"></div>
+    <button type="button" class="dos-close" id="dos-close" aria-label="${esc(t('esc.dos.close'))}">✕</button>
+    <div class="dos-cover-body">
+      <h2 class="dos-name">${esc(d.name)}</h2>
+      ${d.headline ? `<p class="dos-headline">${esc(d.headline)}</p>` : ''}
+      <div class="dos-cover-rating">${ratingHead}</div>
+    </div>
+  </div>
+  <div class="dos-body">
+    ${isEmpty ? `<div class="dos-card"><p class="progress-hint">${esc(t('esc.dos.empty'))}</p></div>` : ''}
+    ${d.about ? `<div class="dos-card"><h3 class="dos-sec">${esc(t('esc.dos.about'))}</h3><p class="dos-about">${esc(d.about)}</p></div>` : ''}
+    ${d.ratingCount > 0 || ctx.canRate ? `<div class="dos-card"><h3 class="dos-sec">${esc(t('esc.dos.rating'))}</h3>
+      ${d.ratingCount > 0 ? `<div class="dos-kv"><span class="dos-avg">${Number(d.ratingAvg).toFixed(1)}</span><span class="dos-stars">${dosStarsStr(d.ratingAvg)}</span><span class="muted">${esc(t('esc.dos.ratingsCount', { n: d.ratingCount }))}</span></div>` : `<p class="progress-hint">${esc(t('esc.dos.noRatings'))}</p>`}</div>` : ''}
+    ${rateHtml}
+    ${d.topSkills.length ? `<div class="dos-goldband"><h3 class="dos-sec">🏅 ${esc(t('esc.dos.skills'))}</h3><div>${d.topSkills.map(s => `<span class="dos-seal">🏅 ${esc(s)}</span>`).join('')}</div></div>` : ''}
+    ${(d.years || d.contexts.length || d.clientTypes.length) ? `<div class="dos-card"><h3 class="dos-sec">${esc(t('esc.dos.experience'))}</h3>
+      ${d.years ? `<div class="dos-years">${esc(t('esc.dos.years', { n: d.years }))}</div>` : ''}
+      ${d.contexts.length ? `<div style="margin-top:7px">${d.contexts.map(c => `<span class="dos-tag">${esc(t('esc.dos.ctx.' + c))}</span>`).join('')}</div>` : ''}
+      ${d.clientTypes.length ? `<p class="progress-hint" style="margin-top:7px"><b>${esc(t('esc.dos.clientTypes'))}:</b> ${d.clientTypes.map(esc).join(' · ')}</p>` : ''}</div>` : ''}
+    ${d.certifications.length ? `<div class="dos-card" id="dos-certs-card"><h3 class="dos-sec">${esc(t('esc.dos.certifications'))}</h3>
+      ${d.certifications.map(c => { const exp = dosCertExpired(c); return `<div class="dos-cert"><div><div class="dos-cert-name">${esc(c.name)}</div><div class="dos-cert-sub">${esc(c.institution || '')}${c.institution && c.year ? ' · ' : ''}${c.year || ''}${c.expiresYear ? ' · ' + esc(t('esc.dos.certExp')) + ' ' + esc(c.expiresYear) : ' · ' + esc(t('esc.dos.certNoExpiry'))}</div></div><span class="dos-pill ${exp ? 'exp' : 'ok'}">${esc(t(exp ? 'esc.dos.certExpired' : 'esc.dos.certCurrent'))}</span></div>`; }).join('')}</div>` : ''}
+    ${(d.specialties.length || d.notTrains) ? `<div class="dos-card"><h3 class="dos-sec">${esc(t('esc.dos.specialties'))}</h3>
+      ${d.specialties.length ? `<div>${d.specialties.map(s => `<span class="dos-tag">${esc(s)}</span>`).join('')}</div>` : ''}
+      ${d.notTrains ? `<p class="progress-hint" style="margin-top:7px"><b>${esc(t('esc.dos.notTrains'))}:</b> ${esc(d.notTrains)}</p>` : ''}</div>` : ''}
+    <div class="dos-card"><h3 class="dos-sec">${esc(t('esc.modalitiesLabel'))}</h3>
+      <div>${d.modalities.map(m => `<span class="dos-chip ${m}">${esc(escModLabel(m))}</span>`).join('')}</div></div>
+    ${d.modalities.includes('presencial') && d.places.length ? `<div class="dos-card"><h3 class="dos-sec">${esc(t('esc.dos.places'))}</h3>
+      ${d.places.map(p => `<div class="dos-place"><b>${esc(p.name)}</b>${p.kind === 'privado' ? ` <span class="dos-pill exp" style="background:#FEF3C7;color:#92400E">${esc(t('esc.dos.placePrivate'))}</span>` : ''}<br><span class="muted">${esc(p.detail || '')}</span></div>`).join('')}</div>` : ''}
+    <div class="dos-card"><h3 class="dos-sec">${esc(t('esc.dos.languages'))} · ${esc(t('esc.membershipTitle')).replace('🎟️ ', '')}</h3>
+      ${d.languages.length ? `<div>${d.languages.map(l => `<span class="dos-tag">${esc(l)}</span>`).join('')}</div>` : ''}
+      <p class="progress-hint" style="margin-top:6px">🎟️ ${spotsLine}</p></div>
+  </div>
+  <div class="dos-foot">
+    ${ctx.mode === 'preview' ? '' : ctx.isCurrent
+      ? `<div class="dos-current">✅ ${esc(t('esc.dos.yourCurrent'))}</div>`
+      : `<button type="button" class="dos-choose${d.full ? ' wait' : ''}" id="dos-choose">${esc(t(d.full ? 'esc.dos.waitBtn' : 'esc.dos.chooseBtn'))}</button>`}
+  </div>`;
+}
+function dosShow(html) {
+  const ov = $('dossier-overlay'), ct = $('dossier-content');
+  if (!ov || !ct) return;
+  ct.innerHTML = html;
+  ov.style.display = '';
+  ov.scrollTop = 0;
+  const cl = $('dos-close'); if (cl) cl.onclick = closeDossier;
+  const ch = $('dos-choose'); if (ch) ch.onclick = dosChoose;
+  document.querySelectorAll('[data-dos-star]').forEach(b => b.onclick = () => dosRateSet(Number(b.dataset.dosStar)));
+}
+function closeDossier() { const ov = $('dossier-overlay'); if (ov) ov.style.display = 'none'; DOS_VIEW = null; }
+async function openDossierDirectory(uid) {
+  const e = REG_DIRECTORY.find(tr => tr.uid === uid);
+  if (!e) return;
+  const d = dosNormalize(uid, {
+    displayName: e.name, photoUrl: e.photoUrl, headline: e.headline, about: e.about,
+    experienceYears: e.experienceYears, contexts: e.contexts, clientTypes: e.clientTypes,
+    topSkills: e.topSkills, certifications: e.certifications, specialties: e.specialties,
+    notTrains: e.notTrains, modalities: e.modalities, languages: e.languages, places: e.places
+  }, {
+    name: e.name, ratingAvg: (e.ratingAvg == null ? null : e.ratingAvg), ratingCount: e.ratingCount,
+    used: Number(e.quotaUsed) || 0, total: (e.quotaTotal == null ? null : Number(e.quotaTotal)),
+    full: e.quotaTotal != null && isFinite(Number(e.quotaTotal)) && (Number(e.quotaUsed) || 0) >= Number(e.quotaTotal)
+  });
+  DOS_VIEW = { mode: 'directory', uid, data: d, elig: null };
+  dosShow(dosRenderHTML(d, { mode: 'directory', isCurrent: false, canRate: false }));
+}
+async function openDossierLive(uid, mode) {
+  const m = mode || 'live';
+  let prof = null, userName = '', userPhoto = '';
+  try { const s = await getDoc(doc(db, 'trainer_profiles', uid)); if (s.exists()) prof = s.data(); } catch {}
+  try { const s = await getDoc(doc(db, 'users', uid)); if (s.exists()) { userName = s.data().name || s.data().email || ''; userPhoto = s.data().photoURL || ''; } } catch {}
+  const st = await escTrainerStanding(uid, false);
+  let total = st.total;
+  /* El administrador-entrenador no consume membresía (diseño §1.2):
+     si es el propietario, su cupo se trata como abierto. */
+  try { const s = await getDoc(doc(db, 'users', uid)); if (s.exists() && s.data().isOwner) total = null; } catch {}
+  const r = await dosFetchRatings(uid);
+  const canRate = m === 'live' && ROLE === 'usuario' && auth.currentUser && auth.currentUser.uid !== uid;
+  const elig = canRate ? await dosEligibility(uid) : null;
+  const d = dosNormalize(uid, prof, {
+    name: userName, photoFallback: userPhoto, ratingAvg: r.avg, ratingCount: r.count,
+    myStars: r.mine, used: st.used, total: (total === Infinity ? null : total), full: !(st.free > 0) && total !== null
+  });
+  const isCurrent = !!(MY_REL && MY_REL.trainerUid === uid) || !!(UDATA && UDATA.trainerUid === uid && UDATA.assignmentStatus === 'assigned');
+  DOS_VIEW = { mode: m, uid, data: d, elig };
+  dosShow(dosRenderHTML(d, { mode: m, isCurrent, canRate, elig }));
+}
+async function dosChoose() {
+  if (!DOS_VIEW) return;
+  const { mode, uid, data } = DOS_VIEW;
+  if (mode === 'directory') {
+    const sel = $('reg-trainer');
+    if (sel) { sel.value = data.full ? '' : uid; sel.dispatchEvent(new Event('change', { bubbles: true })); }
+    closeDossier();
+    return;
+  }
+  if (mode === 'live') {
+    closeDossier();
+    await escChangeTrainer(data.full ? null : uid);
+  }
+}
+async function dosRateSet(stars) {
+  if (!DOS_VIEW || DOS_VIEW.mode !== 'live' || !auth.currentUser) return;
+  const el = DOS_VIEW.elig;
+  if (!el || !el.eligible || !(stars >= 1 && stars <= 5)) return;
+  const me = auth.currentUser.uid, trainerUid = DOS_VIEW.uid;
+  const ref = doc(db, 'trainer_profiles', trainerUid, 'ratings', me);
+  let existed = false;
+  try { existed = (await getDoc(ref)).exists(); } catch {}
+  const data = { stars, updatedAt: serverTimestamp() };
+  if (!existed) { data.relationStartMs = el.startMs; data.createdAt = serverTimestamp(); }
+  await setDoc(ref, data, { merge: true });
+  await auditLog('relation', 'rating.saved', trainerUid, String(stars));
+  toast(t('esc.dos.rateSaved'));
+  await openDossierLive(trainerUid);
+}
+/* Cierre al tocar el fondo (fuera de la hoja). */
+{ const ov = document.getElementById('dossier-overlay'); if (ov) ov.addEventListener('click', e => { if (e.target === ov) closeDossier(); }); }
+/* Delegación: cualquier [data-dossier-open] abre el dossier vivo
+   (con sesión); [data-dossier-dir] abre el del DIRECTORIO (sin
+   sesión, desde el registro — incluidos los de cupo lleno). */
+document.addEventListener('click', e => {
+  if (!e.target || !e.target.closest) return;
+  const b = e.target.closest('[data-dossier-open]');
+  if (b) { openDossierLive(b.dataset.dossierOpen); return; }
+  const d = e.target.closest('[data-dossier-dir]');
+  if (d) openDossierDirectory(d.dataset.dossierDir);
+});
+/* ---------- Editor del dossier (superficie del propio entrenador) ---------- */
+async function dosCompressCover(file) {
+  const bmp = await createImageBitmap(file);
+  const maxDim = 1080;
+  const scale = Math.min(1, maxDim / Math.max(bmp.width, bmp.height));
+  const canvas = document.createElement('canvas');
+  canvas.width = Math.round(bmp.width * scale); canvas.height = Math.round(bmp.height * scale);
+  canvas.getContext('2d').drawImage(bmp, 0, 0, canvas.width, canvas.height);
+  return canvas.toDataURL('image/jpeg', 0.82);
+}
+function dosCertRowHTML(c) {
+  c = c || {};
+  return `<div class="dos-cert-row">
+    <input type="text" class="dc-name" placeholder="${esc(t('esc.dos.certName'))}" value="${esc(c.name || '')}">
+    <input type="text" class="dc-inst" placeholder="${esc(t('esc.dos.certInst'))}" value="${esc(c.institution || '')}">
+    <input type="number" class="dc-year yr" placeholder="${esc(t('esc.dos.certYear'))}" value="${c.year || ''}">
+    <input type="number" class="dc-exp yr" placeholder="${esc(t('esc.dos.certExp'))}" value="${c.expiresYear || ''}">
+    <button type="button" class="btn-ghost btn-sm dc-del">${esc(t('esc.dos.removeRow'))}</button>
+  </div>`;
+}
+function dosPlaceRowHTML(p) {
+  p = p || {};
+  return `<div class="dos-place-row">
+    <select class="dp-kind"><option value="publico"${p.kind === 'privado' ? '' : ' selected'}>${esc(t('esc.dos.placePublic'))}</option><option value="privado"${p.kind === 'privado' ? ' selected' : ''}>${esc(t('esc.dos.placePrivate'))}</option></select>
+    <input type="text" class="dp-name" placeholder="${esc(t('esc.dos.placeName'))}" value="${esc(p.name || '')}">
+    <input type="text" class="dp-detail" placeholder="${esc(t('esc.dos.placeDetail'))}" value="${esc(p.detail || '')}">
+    <button type="button" class="btn-ghost btn-sm dp-del">${esc(t('esc.dos.removeRow'))}</button>
+  </div>`;
+}
+function dosCollectCerts() {
+  return [...document.querySelectorAll('#dos-certs .dos-cert-row')].map(r => ({
+    name: r.querySelector('.dc-name').value.trim(),
+    institution: r.querySelector('.dc-inst').value.trim(),
+    year: parseInt(r.querySelector('.dc-year').value, 10) || null,
+    expiresYear: parseInt(r.querySelector('.dc-exp').value, 10) || null
+  })).filter(c => c.name).slice(0, 12);
+}
+function dosCollectPlaces() {
+  return [...document.querySelectorAll('#dos-places .dos-place-row')].map(r => ({
+    kind: r.querySelector('.dp-kind').value === 'privado' ? 'privado' : 'publico',
+    name: r.querySelector('.dp-name').value.trim(),
+    detail: r.querySelector('.dp-detail').value.trim()
+  })).filter(p => p.name).slice(0, 8);
+}
+async function renderDossierEditor() {
+  const box = $('dossier-editor-box');
+  if (!box) return;
+  if (!(ROLE === 'entrenador' || IS_OWNER)) { box.style.display = 'none'; return; }
+  box.style.display = '';
+  const me = auth.currentUser.uid;
+  let prof = {};
+  try { const s = await getDoc(doc(db, 'trainer_profiles', me)); if (s.exists()) prof = s.data(); } catch {}
+  MY_DOSSIER = prof;
+  DOS_EDIT_PHOTO = undefined;
+  const certs = Array.isArray(prof.certifications) && prof.certifications.length ? prof.certifications : [{}];
+  const places = Array.isArray(prof.places) && prof.places.length ? prof.places : [{}];
+  box.innerHTML = `
+  <div class="panel">
+    <h3 class="history-title">${esc(t('esc.dos.editTitle'))}</h3>
+    <p class="progress-hint">${esc(t('esc.dos.editHint'))}</p>
+    <label class="muted">${esc(t('esc.dos.photo'))}</label>
+    ${prof.photoUrl ? `<img class="dos-photo-prev" id="dos-photo-prev" src="${esc(prof.photoUrl)}" alt="">` : `<img class="dos-photo-prev" id="dos-photo-prev" style="display:none" alt="">`}
+    <div class="eval-actions"><button type="button" class="btn-ghost btn-sm" id="dos-photo-btn">${esc(t('esc.dos.photoUpload'))}</button>
+    <input type="file" id="dos-photo-file" accept="image/*" style="display:none"></div>
+    <label class="muted">${esc(t('esc.dos.headline'))} <input type="text" id="dos-headline" maxlength="120" value="${esc(prof.headline || '')}" placeholder="${esc(t('esc.dos.headlinePh'))}"></label>
+    <label class="muted">${esc(t('esc.dos.aboutLabel'))} <textarea id="dos-about" rows="4" maxlength="2000">${esc(prof.about || '')}</textarea></label>
+    <label class="muted">${esc(t('esc.dos.yearsLabel'))} <input type="number" id="dos-years" min="0" max="60" value="${prof.experienceYears || ''}"></label>
+    <div class="muted">${esc(t('esc.dos.contextsLabel'))}: ${DOS_CONTEXTS.map(c => `<label class="muted"><input type="checkbox" class="dos-ctx" value="${c}" ${(Array.isArray(prof.contexts) && prof.contexts.includes(c)) ? 'checked' : ''}> ${esc(t('esc.dos.ctx.' + c))}</label>`).join(' ')}</div>
+    <label class="muted">${esc(t('esc.dos.clientTypesLabel'))} <input type="text" id="dos-clienttypes" value="${esc((prof.clientTypes || []).join(', '))}"></label>
+    <label class="muted">${esc(t('esc.dos.skillsLabel'))} <input type="text" id="dos-topskills" value="${esc((prof.topSkills || []).join(', '))}"></label>
+    <div class="muted">${esc(t('esc.dos.certsLabel'))}</div>
+    <p class="progress-hint">${esc(t('esc.dos.certsHint'))}</p>
+    <div id="dos-certs">${certs.map(dosCertRowHTML).join('')}</div>
+    <div class="eval-actions"><button type="button" class="btn-ghost btn-sm" id="dos-cert-add">${esc(t('esc.dos.addRow'))}</button></div>
+    <label class="muted">${esc(t('esc.dos.specialtiesLabel'))} <input type="text" id="dos-specialties" value="${esc((prof.specialties || []).join(', '))}"></label>
+    <label class="muted">${esc(t('esc.dos.notTrainsLabel'))} <input type="text" id="dos-nottrains" maxlength="300" value="${esc(prof.notTrains || '')}"></label>
+    <label class="muted">${esc(t('esc.dos.languagesLabel'))} <input type="text" id="dos-languages" value="${esc((prof.languages || []).join(', '))}"></label>
+    <div class="muted">${esc(t('esc.dos.placesLabel'))}</div>
+    <p class="progress-hint">${esc(t('esc.dos.placesHint'))}</p>
+    <div id="dos-places">${places.map(dosPlaceRowHTML).join('')}</div>
+    <div class="eval-actions"><button type="button" class="btn-ghost btn-sm" id="dos-place-add">${esc(t('esc.dos.addRow'))}</button></div>
+    <p class="progress-hint">${esc(t('esc.dos.adminNote'))}</p>
+    <div class="eval-actions"><button type="button" class="btn-primary btn-sm" id="dos-save">${esc(t('form.save'))}</button>
+    <button type="button" class="btn-ghost btn-sm" id="dos-preview">${esc(t('esc.dos.previewBtn'))}</button></div>
+  </div>`;
+  const wireDels = () => {
+    document.querySelectorAll('#dos-certs .dc-del').forEach(b => b.onclick = () => { b.closest('.dos-cert-row').remove(); });
+    document.querySelectorAll('#dos-places .dp-del').forEach(b => b.onclick = () => { b.closest('.dos-place-row').remove(); });
+  };
+  wireDels();
+  $('dos-cert-add').onclick = () => { $('dos-certs').insertAdjacentHTML('beforeend', dosCertRowHTML({})); wireDels(); };
+  $('dos-place-add').onclick = () => { $('dos-places').insertAdjacentHTML('beforeend', dosPlaceRowHTML({})); wireDels(); };
+  $('dos-photo-btn').onclick = () => $('dos-photo-file').click();
+  $('dos-photo-file').onchange = async e => {
+    const f = e.target.files[0]; e.target.value = '';
+    if (!f) return;
+    try {
+      DOS_EDIT_PHOTO = await dosCompressCover(f);
+      const img = $('dos-photo-prev'); if (img) { img.src = DOS_EDIT_PHOTO; img.style.display = ''; }
+    } catch {}
+  };
+  $('dos-preview').onclick = () => openDossierLive(me, 'preview');
+  $('dos-save').onclick = async () => {
+    await escEnsureTrainerScaffold(me, (UDATA && (UDATA.name || UDATA.email)) || '');
+    const split = (id2, cap, itemCap) => ($(id2).value || '').split(',').map(s => s.trim().slice(0, itemCap)).filter(Boolean).slice(0, cap);
+    const data = {
+      headline: ($('dos-headline').value || '').trim().slice(0, 120),
+      about: ($('dos-about').value || '').trim().slice(0, 2000),
+      experienceYears: Math.max(0, Math.min(60, parseInt($('dos-years').value, 10) || 0)),
+      contexts: [...document.querySelectorAll('.dos-ctx:checked')].map(x => x.value),
+      clientTypes: split('dos-clienttypes', 6, 60),
+      topSkills: split('dos-topskills', 3, 60),
+      certifications: dosCollectCerts(),
+      specialties: split('dos-specialties', 10, 40),
+      notTrains: ($('dos-nottrains').value || '').trim().slice(0, 300),
+      languages: split('dos-languages', 4, 30),
+      places: dosCollectPlaces(),
+      updatedAt: serverTimestamp()
+    };
+    if (DOS_EDIT_PHOTO !== undefined) data.photoUrl = DOS_EDIT_PHOTO;
+    await setDoc(doc(db, 'trainer_profiles', me), data, { merge: true });
+    MY_DOSSIER = { ...(MY_DOSSIER || {}), ...data };
+    await auditLog('role', 'dossier.updated', me, '');
+    toast(t('esc.modSaved'));
+    /* Si la plantilla quedó completa, su pendiente se resuelve en
+       el acto (el cómputo es local y puro). */
+    try { renderPendings(); pendSyncDock(); } catch {}
+    renderDossierEditor();
+  };
+}
+
 /* Andamiaje del entrenador al asignarle el rol: perfil con las tres
    modalidades y contador en 0, y membresía «sin_membresia» (el nivel
    se solicita o lo concede el administrador). Idempotente. */
@@ -962,6 +1418,68 @@ en: {
   'esc.aiByLevel': 'Suggested AI limit for this level: {n} requests/day (set it in Analysis limits).',
   'esc.memberSince': 'With this trainer since',
   'esc.rejectBtn': 'Reject',
+  'esc.dos.viewBtn': '👤 View profile',
+  'esc.dos.chooseBtn': 'Choose this trainer',
+  'esc.dos.waitBtn': 'Join the waiting list',
+  'esc.dos.yourCurrent': 'Your current trainer',
+  'esc.dos.close': 'Close',
+  'esc.dos.about': 'Presentation',
+  'esc.dos.rating': 'Student rating',
+  'esc.dos.noRatings': 'No ratings yet',
+  'esc.dos.ratingsCount': '{n} ratings',
+  'esc.dos.rateTitle': 'Rate your trainer',
+  'esc.dos.rateHint': 'You can rate your trainer after two weeks training together. The profile shows only the average and how many ratings there are.',
+  'esc.dos.rateLocked': 'You will be able to rate your trainer in {days} days — ratings open after two weeks training together.',
+  'esc.dos.rateSaved': 'Thanks! Your rating was saved.',
+  'esc.dos.experience': 'Experience',
+  'esc.dos.years': '{n} years coaching',
+  'esc.dos.ctx.gimnasio': 'Gym',
+  'esc.dos.ctx.domicilio': 'At home',
+  'esc.dos.ctx.en_linea': 'Online',
+  'esc.dos.ctx.equipos': 'Teams & groups',
+  'esc.dos.clientTypes': 'Who I train',
+  'esc.dos.skills': 'Signature skills',
+  'esc.dos.certifications': 'Certifications',
+  'esc.dos.certExpired': 'Expired',
+  'esc.dos.certCurrent': 'Current',
+  'esc.dos.certNoExpiry': 'No expiry',
+  'esc.dos.specialties': 'Specialties',
+  'esc.dos.notTrains': 'I do not train',
+  'esc.dos.places': 'Where I train in person',
+  'esc.dos.placePublic': 'Public place',
+  'esc.dos.placePrivate': 'Private home · area only',
+  'esc.dos.languages': 'Languages',
+  'esc.dos.spots': '{free} of {total} spots open',
+  'esc.dos.spotsFull': 'No spots open right now',
+  'esc.dos.editTitle': '⭐ My trainer profile',
+  'esc.dos.editHint': 'This is the public profile students see when they pick a trainer. Professional information only: it never shows your phone, your email or your students.',
+  'esc.dos.photo': 'Cover photo',
+  'esc.dos.photoUpload': 'Upload photo',
+  'esc.dos.headline': 'Headline',
+  'esc.dos.headlinePh': 'E.g. ISSA Certified Personal Trainer',
+  'esc.dos.aboutLabel': 'Your presentation — in your own words',
+  'esc.dos.yearsLabel': 'Years of experience',
+  'esc.dos.contextsLabel': 'Where you have coached',
+  'esc.dos.clientTypesLabel': 'Types of clients (comma separated)',
+  'esc.dos.skillsLabel': 'Signature skills — up to 3 (comma separated)',
+  'esc.dos.certsLabel': 'Certifications',
+  'esc.dos.certsHint': 'Expired certifications stay visible, marked as expired — they are never hidden.',
+  'esc.dos.certName': 'Certification',
+  'esc.dos.certInst': 'Institution',
+  'esc.dos.certYear': 'Year',
+  'esc.dos.certExp': 'Expires',
+  'esc.dos.addRow': '＋ Add',
+  'esc.dos.removeRow': 'Remove',
+  'esc.dos.specialtiesLabel': 'Specialties (tags, comma separated)',
+  'esc.dos.notTrainsLabel': 'Who you do NOT train',
+  'esc.dos.languagesLabel': 'Languages (comma separated)',
+  'esc.dos.placesLabel': 'Places where you train in person',
+  'esc.dos.placesHint': 'Only if you offer In person. Public places: name and address. Private homes: area only — never an exact address.',
+  'esc.dos.placeName': 'Name / area',
+  'esc.dos.placeDetail': 'Address / area',
+  'esc.dos.previewBtn': 'Preview my profile',
+  'esc.dos.adminNote': 'The modalities you offer are set by the administrator. Everything else on this profile is yours to edit.',
+  'esc.dos.empty': 'This trainer has not completed their profile yet.',
   'appr.title': '🆕 Trainer account approvals',
   'appr.hint': 'Each trainer may approve new accounts up to this limit. Approving an account assigns it to the trainer who approves it. If no limit is set, trainers cannot approve — only you can.',
   'appr.limitLabel': 'Max approvals per trainer',
@@ -1660,6 +2178,15 @@ en: {
   'pend.energyTitle': 'Your energy calculation needs a private datum',
   'pend.energyDetail': 'Your trainer set up your energy calculation, but it cannot be completed yet: a private datum that only you can provide is missing. Only you can see its value — your trainer only sees whether it has been provided or not.',
   'pend.goEnergy': 'Complete it now',
+  'pend.profileTitle': 'Complete your profile template to continue',
+  'pend.profileDetail': 'Students see this template when choosing a trainer in the pool. It is complete when it has your featured photo, your headline and your personal introduction.',
+  'pend.goProfile': 'Complete profile',
+  'esc.mailBtn': '📧 Profile reminder text',
+  'esc.mailComplete': 'This trainer already completed their profile template ✓',
+  'esc.mailCopy': 'Copy text',
+  'esc.mailCopied': 'Text copied',
+  'esc.mailSubject': 'RONBO NUTRI — Complete your trainer profile to continue',
+  'esc.mailBody': 'Hi {name},\n\nYour RONBO NUTRI trainer account has been approved. To continue the process, please complete your profile template (your dossier) in the app: featured photo, headline and your personal introduction — plus your experience, certifications, specialties and the places where you train in person, if that applies to you.\n\nStudents see this template when choosing a trainer, so a complete profile helps them choose you. When you sign in, the app shows you a pending item, "Complete your profile template to continue", which takes you straight to your dossier; it disappears on its own once your template is complete.\n\nThank you,\nRONBO NUTRI',
   'pend.evalMissing': 'Still missing (required): {items}',
   'pend.goEval': 'Go to My progress',
   'pend.snooze': 'Snooze',
@@ -2046,6 +2573,68 @@ es: {
   'esc.aiByLevel': 'Límite de IA sugerido para este nivel: {n} peticiones/día (se fija en Límites de análisis).',
   'esc.memberSince': 'Con este entrenador desde',
   'esc.rejectBtn': 'Rechazar',
+  'esc.dos.viewBtn': '👤 Ver dossier',
+  'esc.dos.chooseBtn': 'Elegir este entrenador',
+  'esc.dos.waitBtn': 'Quedar en espera',
+  'esc.dos.yourCurrent': 'Tu entrenador actual',
+  'esc.dos.close': 'Cerrar',
+  'esc.dos.about': 'Presentación',
+  'esc.dos.rating': 'Valoración de alumnos',
+  'esc.dos.noRatings': 'Aún sin valoraciones',
+  'esc.dos.ratingsCount': '{n} valoraciones',
+  'esc.dos.rateTitle': 'Valora a tu entrenador',
+  'esc.dos.rateHint': 'Puedes valorar a tu entrenador tras dos semanas entrenando juntos. El perfil muestra solo el promedio y cuántas valoraciones hay.',
+  'esc.dos.rateLocked': 'Podrás valorar a tu entrenador en {days} días — las valoraciones se abren tras dos semanas entrenando juntos.',
+  'esc.dos.rateSaved': '¡Gracias! Tu valoración quedó guardada.',
+  'esc.dos.experience': 'Experiencia',
+  'esc.dos.years': '{n} años entrenando',
+  'esc.dos.ctx.gimnasio': 'Gimnasio',
+  'esc.dos.ctx.domicilio': 'A domicilio',
+  'esc.dos.ctx.en_linea': 'En línea',
+  'esc.dos.ctx.equipos': 'Equipos y grupos',
+  'esc.dos.clientTypes': 'A quién entreno',
+  'esc.dos.skills': 'Habilidades destacadas',
+  'esc.dos.certifications': 'Certificaciones',
+  'esc.dos.certExpired': 'Vencida',
+  'esc.dos.certCurrent': 'Vigente',
+  'esc.dos.certNoExpiry': 'Sin vencimiento',
+  'esc.dos.specialties': 'Especialidades',
+  'esc.dos.notTrains': 'No entreno a',
+  'esc.dos.places': 'Dónde atiendo en persona',
+  'esc.dos.placePublic': 'Lugar público',
+  'esc.dos.placePrivate': 'Domicilio privado · solo zona',
+  'esc.dos.languages': 'Idiomas',
+  'esc.dos.spots': '{free} de {total} cupos libres',
+  'esc.dos.spotsFull': 'Sin cupos libres por ahora',
+  'esc.dos.editTitle': '⭐ Mi dossier de entrenador',
+  'esc.dos.editHint': 'Este es el perfil público que ven los alumnos al elegir entrenador. Solo información profesional: nunca muestra tu teléfono, tu correo ni tus alumnos.',
+  'esc.dos.photo': 'Foto destacada',
+  'esc.dos.photoUpload': 'Subir foto',
+  'esc.dos.headline': 'Titular',
+  'esc.dos.headlinePh': 'Ej. Entrenador personal certificado ISSA',
+  'esc.dos.aboutLabel': 'Tu presentación — en tus palabras',
+  'esc.dos.yearsLabel': 'Años de experiencia',
+  'esc.dos.contextsLabel': 'Contextos donde has entrenado',
+  'esc.dos.clientTypesLabel': 'Tipos de clientes (separados por comas)',
+  'esc.dos.skillsLabel': 'Habilidades destacadas — hasta 3 (separadas por comas)',
+  'esc.dos.certsLabel': 'Certificaciones',
+  'esc.dos.certsHint': 'Las certificaciones vencidas quedan visibles, marcadas como vencidas — nunca se ocultan.',
+  'esc.dos.certName': 'Certificación',
+  'esc.dos.certInst': 'Institución',
+  'esc.dos.certYear': 'Año',
+  'esc.dos.certExp': 'Vence',
+  'esc.dos.addRow': '＋ Añadir',
+  'esc.dos.removeRow': 'Quitar',
+  'esc.dos.specialtiesLabel': 'Especialidades (etiquetas, separadas por comas)',
+  'esc.dos.notTrainsLabel': 'A quién NO entrenas',
+  'esc.dos.languagesLabel': 'Idiomas (separados por comas)',
+  'esc.dos.placesLabel': 'Lugares donde atiendes en persona',
+  'esc.dos.placesHint': 'Solo si ofreces Presencial. Lugares públicos: nombre y dirección. Domicilios privados: solo la zona — nunca una dirección exacta.',
+  'esc.dos.placeName': 'Nombre / zona',
+  'esc.dos.placeDetail': 'Dirección o zona',
+  'esc.dos.previewBtn': 'Ver cómo me ven',
+  'esc.dos.adminNote': 'Las modalidades que ofreces las fija el administrador. Todo lo demás de este perfil lo editas tú.',
+  'esc.dos.empty': 'Este entrenador aún no completó su dossier.',
   'appr.title': '🆕 Aprobaciones por entrenadores',
   'appr.hint': 'Cada entrenador puede aprobar cuentas nuevas hasta este límite. Al aprobar, la cuenta queda asignada al entrenador que la aprueba. Si no hay límite fijado, los entrenadores no pueden aprobar: solo tú.',
   'appr.limitLabel': 'Máximo de aprobaciones por entrenador',
@@ -2745,6 +3334,15 @@ es: {
   'pend.energyTitle': 'Tu cálculo de energía necesita un dato privado',
   'pend.energyDetail': 'Tu entrenador dejó preparado tu cálculo de energía, pero aún no puede completarse: falta un dato privado que solo tú puedes aportar. Solo tú puedes ver su valor: tu entrenador solo ve si ya está aportado o no.',
   'pend.goEnergy': 'Completarlo ahora',
+  'pend.profileTitle': 'Completa tu plantilla de perfil para continuar',
+  'pend.profileDetail': 'Los alumnos ven esta plantilla al elegir entrenador en el pool. Está completa cuando tiene tu foto destacada, tu titular y tu reseña personal.',
+  'pend.goProfile': 'Completar perfil',
+  'esc.mailBtn': '📧 Texto de recordatorio de perfil',
+  'esc.mailComplete': 'Este entrenador ya completó su plantilla de perfil ✓',
+  'esc.mailCopy': 'Copiar texto',
+  'esc.mailCopied': 'Texto copiado',
+  'esc.mailSubject': 'RONBO NUTRI — Completa tu plantilla de perfil para continuar',
+  'esc.mailBody': 'Hola {name}:\n\nTu cuenta de entrenador en RONBO NUTRI ha sido aprobada. Para continuar con el procedimiento, completa tu plantilla de perfil (tu dossier) en la app: foto destacada, titular y tu reseña personal — además de tu experiencia, certificaciones, especialidades y los lugares donde atiendes presencialmente, si aplica en tu caso.\n\nLos alumnos ven esta plantilla al elegir entrenador, así que un perfil completo les ayuda a elegirte. Al entrar, la app te mostrará un pendiente, «Completa tu plantilla de perfil para continuar», que te lleva directo a tu dossier; desaparece solo cuando tu plantilla queda completa.\n\nGracias,\nRONBO NUTRI',
   'pend.evalMissing': 'Falta (requerido): {items}',
   'pend.goEval': 'Ir a Mi progreso',
   'pend.snooze': 'Posponer',
@@ -3072,6 +3670,11 @@ function regRenderTrainerOptions() {
       return `<option value="${esc(tr.uid)}"${full ? ' disabled' : ''}>${esc(tr.name || tr.uid)}${full ? esc(t('esc.poolFull')) : ''}</option>`;
     }).join('');
   if (cur) sel.value = cur;
+  /* Dossier: un entrenador con el cupo LLENO no se puede elegir,
+     pero su dossier SÍ se puede ver (su botón dice «Quedar en
+     espera»): enlace por entrenador bajo el selector. */
+  const links = $('reg-dossier-links');
+  if (links) links.innerHTML = opts.map(tr => `<button type="button" class="slot-link" data-dossier-dir="${esc(tr.uid)}">${esc(t('esc.dos.viewBtn'))}: ${esc(tr.name || tr.uid)}</button>`).join(' ');
 }
 async function loadTrainerDirectory() {
   if (REG_TRAINERS_LOADED) return;
@@ -3090,8 +3693,16 @@ function regTypeApply() {
   const isTrainer = ($('reg-type') && $('reg-type').value) === 'entrenador';
   const mw = $('reg-modality-wrap'); if (mw) mw.style.display = isTrainer ? 'none' : '';
   const tw = $('reg-trainer-wrap'); if (tw) tw.style.display = isTrainer ? 'none' : '';
+  const dw = $('reg-dossier-wrap'); if (dw) dw.style.display = isTrainer ? 'none' : '';
   const hint = $('reg-trainer-hint'); if (hint) hint.style.display = isTrainer ? '' : 'none';
 }
+/* Dossier desde el registro (sin sesión): se abre con los datos
+   PÚBLICOS del directorio para el entrenador seleccionado. */
+{ const bd = $('btn-reg-dossier'); if (bd) bd.onclick = () => {
+  const uid = ($('reg-trainer') && $('reg-trainer').value) || '';
+  if (!uid) { toast(t('roles.chooseTrainer')); return; }
+  openDossierDirectory(uid);
+}; }
 { const rt = $('reg-type'); if (rt) rt.addEventListener('change', regTypeApply);
   const rm = $('reg-modality'); if (rm) rm.addEventListener('change', regRenderTrainerOptions); }
 function showRegError(msg) {
@@ -3432,9 +4043,10 @@ async function loadAdmin() {
         <label class="muted">${t('roles.roleLabel')} <select data-role-for="${u.id}">${['usuario', 'entrenador'].map(r => `<option value="${r}"${(u.role === 'entrenador' ? 'entrenador' : 'usuario') === r ? ' selected' : ''}>${t('roles.' + r)}</option>`).join('')}</select></label>
         <button class="btn-ghost btn-sm" data-profile="${u.id}">${t('admin.profile')}</button>
         <button class="btn-ghost btn-sm" data-goals="${u.id}">${t('admin.goals')}</button>
+        ${u.role === 'entrenador' ? `<button class="btn-ghost btn-sm" data-dos-mail="${u.id}">${t('esc.mailBtn')}</button>` : ''}
         <button class="btn-ghost btn-sm" data-revoke="${u.id}">${t('admin.revoke')}</button>
       </div>
-    </div>`).join('') : `<div class="wempty">${t('admin.noUsers')}</div>`);
+    </div>${u.role === 'entrenador' ? `<div class="dos-mail-box" id="dos-mail-${u.id}" style="display:none"></div>` : ''}`).join('') : `<div class="wempty">${t('admin.noUsers')}</div>`);
   /* Roles: SOLO el administrador asigna o cambia el campo role
      (esta superficie entera ya es solo suya). */
   document.querySelectorAll('[data-role-for]').forEach(sel => sel.onchange = async () => {
@@ -3462,6 +4074,38 @@ async function loadAdmin() {
     toast(t('esc.trainerApproved'));
     await loadAdmin();
   });
+  /* Comunicación al aprobar a un entrenador (extensión 2026-10-24):
+     junto a cada entrenador aprobado con la plantilla INCOMPLETA,
+     el administrador despliega el TEXTO del correo recordatorio —
+     bilingüe según el idioma de la interfaz, copiable, para envío
+     MANUAL suyo. Aquí no se envía nada, ni se marca nada como
+     enviado: el envío automático pertenece a la fase de backend. */
+  document.querySelectorAll('[data-dos-mail]').forEach(b => b.onclick = async () => {
+    const uid = b.dataset.dosMail;
+    const box = $('dos-mail-' + uid);
+    if (!box) return;
+    if (box.style.display !== 'none') { box.style.display = 'none'; return; }
+    let prof = null;
+    try { const s = await getDoc(doc(db, 'trainer_profiles', uid)); if (s.exists()) prof = s.data(); } catch {}
+    if (dosProfileComplete(prof)) {
+      box.innerHTML = `<p class="progress-hint">${esc(t('esc.mailComplete'))}</p>`;
+      box.style.display = '';
+      return;
+    }
+    const u = ADMIN_USERS.find(x => x.id === uid);
+    const name = (u && (u.name || u.email)) || uid;
+    const text = `${t('esc.mailSubject')}\n\n${t('esc.mailBody', { name })}`;
+    box.innerHTML = `<textarea class="dos-mail-text" id="dos-mail-text-${uid}" rows="12" readonly>${esc(text)}</textarea>
+      <div class="eval-actions"><button type="button" class="btn-ghost btn-sm" data-dos-copy="${uid}">${esc(t('esc.mailCopy'))}</button></div>`;
+    box.style.display = '';
+    const cp = box.querySelector('[data-dos-copy]');
+    if (cp) cp.onclick = async () => {
+      const ta = $('dos-mail-text-' + uid);
+      try { await navigator.clipboard.writeText(ta.value); }
+      catch { if (ta) { ta.select(); try { document.execCommand('copy'); } catch {} } }
+      toast(t('esc.mailCopied'));
+    };
+  });
   const dirBox = $('trainer-dir-box');
   if (dirBox) {
     dirBox.innerHTML = `<div class="eval-actions"><button type="button" class="btn-ghost btn-sm" id="btn-dir-update">${t('roles.dirUpdate')}</button></div>`;
@@ -3472,12 +4116,26 @@ async function loadAdmin() {
       const trainers = [];
       for (const u of ADMIN_USERS.filter(x => x.isOwner || x.role === 'entrenador')) {
         const st = await escTrainerStanding(u.id, !!u.isOwner);
+        const prof = st.prof || {};
+        /* Dossier: el directorio (lectura SIN sesión) lleva SOLO los
+           campos PROFESIONALES del dossier y el agregado de
+           valoraciones — nunca correo, teléfono ni datos de
+           alumnos. Se refresca con este mismo botón, como el cupo. */
+        const r = await dosFetchRatings(u.id);
         trainers.push({
           uid: u.id, name: u.name || u.email || u.id,
           modalities: st.prof && Array.isArray(st.prof.modalities) ? st.prof.modalities : [...ESC_MODALITIES],
           quotaTotal: st.total === Infinity ? null : st.total,
           quotaUsed: st.used,
-          available: st.prof ? st.prof.available !== false : true
+          available: st.prof ? st.prof.available !== false : true,
+          photoUrl: prof.photoUrl || u.photoURL || '',
+          headline: prof.headline || '', about: prof.about || '',
+          experienceYears: prof.experienceYears || 0,
+          contexts: prof.contexts || [], clientTypes: prof.clientTypes || [],
+          topSkills: prof.topSkills || [], certifications: prof.certifications || [],
+          specialties: prof.specialties || [], notTrains: prof.notTrains || '',
+          languages: prof.languages || [], places: prof.places || [],
+          ratingAvg: r.avg, ratingCount: r.count
         });
       }
       await setDoc(doc(db, 'trainer_directory', 'current'), { trainers, updatedAt: serverTimestamp() });
@@ -3731,6 +4389,7 @@ async function loadClients() {
   renderMembershipBox();
   renderMealTrainerBox();
   renderModalityTrainerBox();
+  renderDossierEditor();
 }
 /* Bandeja de espera (SOLO administrador): clientes aprobados con
    assignmentStatus 'waiting'. Asignar escribe trainerUid +
@@ -10867,6 +11526,17 @@ async function pendMark(id, mark) {
 function pendCompute() {
   const cfg = PEND_CFG, now = new Date();
   const out = { items: [], traces: [], regDay: null, now };
+  /* Plantilla de perfil del entrenador: pendiente de PROCEDIMIENTO
+     ligado al rol, NO un recordatorio de registro — por eso NO
+     depende de la activación de pendientes: al aprobarlo, el
+     entrenador lo ve al entrar aunque nunca haya activado los
+     recordatorios diarios. Identidad única fija ('profile|complete'):
+     recalcular nunca lo duplica, y se resuelve solo al completar
+     los campos obligatorios del dossier. */
+  try {
+    const pit = (typeof dosProfilePendItem === 'function') ? dosProfilePendItem() : null;
+    if (pit) { pit.date = pendRegDay(now, (cfg && cfg.cutoff) || '04:00'); out.items.push(pit); }
+  } catch {}
   if (!cfg || !cfg.activated) return out;
   const regDay = pendRegDay(now, cfg.cutoff);
   out.regDay = regDay;
@@ -10977,7 +11647,7 @@ function pendCompute() {
       out.items.push({ id: 'energy|private-data', type: 'energy', date: regDay, overdue: false, age: 0 });
   } catch {}
 
-  const order = { meal: 1, weight: 2, training: 3, eval: 4, energy: 5 };
+  const order = { profile: 0, meal: 1, weight: 2, training: 3, eval: 4, energy: 5 };
   out.items.sort((a, b) => (a.date < b.date ? -1 : a.date > b.date ? 1 : (order[a.type] || 9) - (order[b.type] || 9)));
   return out;
 }
@@ -11053,7 +11723,10 @@ function pendDraftRestore() {
    ninguna otra señal — al abrir la tarjeta se ve el estado real. */
 function pendActiveCount() {
   const cfg = PEND_CFG;
-  if (!cfg || cfg.__error || !cfg.activated) return 0;
+  if (!cfg || cfg.__error) return 0;
+  /* Sin activar, pendCompute() solo puede listar el pendiente de
+     plantilla del entrenador (procedimiento, no recordatorio): el
+     botón se pinta por él igual que por cualquier otro pendiente. */
   try { return pendCompute().items.length; } catch { return 0; }
 }
 function pendSyncDock() {
@@ -11118,6 +11791,10 @@ function pendItemHTML(it, regDay) {
     title = t('pend.energyTitle');
     detail = t('pend.energyDetail');
     go = `<button type="button" class="btn-primary btn-sm" data-pend-act="go" data-type="energy" data-date="${it.date}">${esc(t('pend.goEnergy'))}</button>`;
+  } else if (it.type === 'profile') {
+    title = t('pend.profileTitle');
+    detail = t('pend.profileDetail');
+    go = `<button type="button" class="btn-primary btn-sm" data-pend-act="go" data-type="profile" data-date="${it.date}">${esc(t('pend.goProfile'))}</button>`;
   }
   const now = new Date();
   const hm = d => pendFmtHM(d.getHours() * 60 + d.getMinutes());
@@ -11127,8 +11804,8 @@ function pendItemHTML(it, regDay) {
     ['tomorrowSame', t('pend.snooze.tomorrowSame', { time: hm(now) })],
     ['tomorrow9', t('pend.snooze.tomorrow9')]
   ].map(([v, l]) => `<option value="${v}">${esc(l)}</option>`).join('');
-  const snooze = (it.type === 'eval' || it.type === 'energy') ? '' : `<label class="pend-snooze"><span>${esc(t('pend.snooze'))}</span><select data-pend-snooze="${esc(it.id)}"><option value="">—</option>${opts}</select></label>`;
-  const omit = (it.type === 'eval' || it.type === 'energy') ? '' : `<button type="button" class="btn-ghost btn-sm" data-pend-act="omit" data-id="${esc(it.id)}">${esc(t(it.overdue ? 'pend.omitOccasionPast' : 'pend.omitOccasion'))}</button>`;
+  const snooze = (it.type === 'eval' || it.type === 'energy' || it.type === 'profile') ? '' : `<label class="pend-snooze"><span>${esc(t('pend.snooze'))}</span><select data-pend-snooze="${esc(it.id)}"><option value="">—</option>${opts}</select></label>`;
+  const omit = (it.type === 'eval' || it.type === 'energy' || it.type === 'profile') ? '' : `<button type="button" class="btn-ghost btn-sm" data-pend-act="omit" data-id="${esc(it.id)}">${esc(t(it.overdue ? 'pend.omitOccasionPast' : 'pend.omitOccasion'))}</button>`;
   const discard = it.canDiscard ? `<button type="button" class="btn-ghost btn-sm pend-danger" data-pend-act="discard" data-id="${esc(it.id)}">${esc(t('pend.discard'))}</button>` : '';
   return `<div class="pend-item${it.overdue ? ' pend-overdue' : ''}" data-pend-item="${esc(it.id)}">
     <p class="pend-text"><b>${esc(title)}</b><br><span class="pend-detail">${detail}</span></p>
@@ -11177,8 +11854,15 @@ function renderPendings() {
     if (cfgBtn) cfgBtn.style.display = 'none';
     /* Sin activar: el formulario trae los valores SUGERIDOS — o los
        que el usuario ya guardó si desactivó antes (no se le borra
-       su configuración al apagar). */
-    body.innerHTML = pendCfgFormHTML(cfg.meals ? cfg : pendDefaults(), true);
+       su configuración al apagar). El pendiente de plantilla del
+       entrenador (procedimiento) se muestra AUNQUE los recordatorios
+       no estén activados: va encima del formulario de activación. */
+    let pre = '';
+    try {
+      const pit = (typeof dosProfilePendItem === 'function') ? dosProfilePendItem() : null;
+      if (pit) { pit.date = pendRegDay(new Date(), cfg.cutoff || '04:00'); pre = pendItemHTML(pit, pit.date); }
+    } catch {}
+    body.innerHTML = pre + pendCfgFormHTML(cfg.meals ? cfg : pendDefaults(), true);
     pendSyncDock();
     return;
   }
@@ -11326,6 +12010,11 @@ setInterval(() => { try { pendDockTick(); } catch {} }, 60000);
           const pb = $('btn-perms');
           if (pb && !permsOpen) pb.click();
           const r = $('energy-section'); if (r) { try { r.scrollIntoView({ behavior: 'smooth', block: 'start' }); } catch {} }
+        } else if (type === 'profile') {
+          /* El pendiente de plantilla lleva al editor del propio
+             dossier (pestaña de clientes, donde vive su plantilla). */
+          switchTab('clients');
+          const r = $('dossier-editor-box'); if (r) { try { r.scrollIntoView({ behavior: 'smooth', block: 'start' }); } catch {} }
         }
       }
     });

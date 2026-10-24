@@ -1056,3 +1056,63 @@ div > .btn-ghost:only-child, div > .btn-main:only-child {
 .aictl-switch input:checked + .aictl-track { background: #00aca1; }
 .aictl-switch input:checked + .aictl-track::after { left: 25px; }
 .aictl-switch input:disabled { cursor: wait; }
+
+/* ============ DOSSIER DEL ENTRENADOR (2026-10-24, SOLO desarrollo) ============
+   Estilo fijado por Ronald: LUJO CLARO profesional, marca RONBO —
+   teal principal, verde oscuro profundo, dorado SUAVE solo para
+   acentos premium, fondo blanco hueso, texto carbón. La propuesta
+   oscura quedó descartada. Portada con foto a ancho completo y
+   degradado de teal a oscuro; tarjetas blancas con bordes amplios
+   y sombra suave; mucho aire. */
+.dos-backdrop { position: fixed; inset: 0; background: rgba(9, 24, 21, .58); z-index: 1200; display: flex; justify-content: center; align-items: flex-start; overflow-y: auto; padding: 16px 10px 28px; }
+.dos-sheet { background: #FAF8F3; color: #22262B; width: min(680px, 100%); border-radius: 22px; overflow: hidden; box-shadow: 0 24px 60px rgba(0,0,0,.35); }
+.dos-cover { position: relative; display: flex; align-items: flex-end; min-height: 240px; background: linear-gradient(135deg, #0d9488 0%, #065f46 55%, #04211d 100%); }
+.dos-cover img.dos-photo { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; }
+.dos-cover-shade { position: absolute; inset: 0; background: linear-gradient(180deg, rgba(13,148,136,.16) 0%, rgba(5,43,38,.55) 55%, rgba(3,30,27,.92) 100%); }
+.dos-cover-body { position: relative; width: 100%; padding: 96px 22px 18px; color: #fff; }
+.dos-name { font-size: 30px; line-height: 1.12; font-weight: 800; margin: 0; letter-spacing: .01em; }
+.dos-headline { color: #E9D193; font-size: 15.5px; font-weight: 600; margin: 5px 0 0; }
+.dos-cover-rating { margin-top: 9px; font-size: 14px; font-weight: 600; display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
+.dos-close { position: absolute; top: 12px; right: 12px; z-index: 3; width: 36px; height: 36px; border-radius: 50%; border: none; background: rgba(255,255,255,.92); color: #05332e; font-size: 17px; font-weight: 800; cursor: pointer; box-shadow: 0 2px 8px rgba(0,0,0,.25); }
+.dos-body { padding: 16px 16px 6px; }
+.dos-card { background: #fff; border-radius: 18px; padding: 15px 17px; box-shadow: 0 2px 12px rgba(23,48,42,.07); margin-bottom: 12px; }
+.dos-sec { font-size: 12px; font-weight: 800; letter-spacing: .09em; text-transform: uppercase; color: #0f766e; margin: 0 0 9px; }
+.dos-about { font-size: 14.5px; line-height: 1.55; white-space: pre-wrap; margin: 0; }
+.dos-stars { color: #C6A15B; font-size: 19px; letter-spacing: 2.5px; }
+.dos-avg { font-size: 26px; font-weight: 800; color: #05332e; }
+.dos-rate-row { display: flex; align-items: center; gap: 4px; margin: 6px 0 2px; }
+.dos-star-btn { background: none; border: none; font-size: 31px; line-height: 1; color: #DCD5BF; cursor: pointer; padding: 2px 3px; }
+.dos-star-btn.on { color: #C6A15B; }
+.dos-goldband { background: linear-gradient(118deg, #B8892E 0%, #E9D193 52%, #C6A15B 100%); border-radius: 18px; padding: 15px 17px; margin-bottom: 12px; box-shadow: 0 4px 16px rgba(160,120,40,.28); }
+.dos-goldband .dos-sec { color: #5B4708; }
+.dos-seal { display: inline-block; background: rgba(255,255,255,.88); border: 1.5px solid #8A6D1F; color: #5B4708; font-weight: 800; font-size: 14px; border-radius: 999px; padding: 7px 14px; margin: 0 7px 7px 0; }
+.dos-kv { display: flex; gap: 8px; flex-wrap: wrap; align-items: baseline; }
+.dos-years { font-size: 21px; font-weight: 800; color: #05332e; }
+.dos-tag { display: inline-block; background: #F1EFE7; color: #33383E; border-radius: 999px; padding: 5px 12px; font-size: 13px; font-weight: 600; margin: 0 6px 6px 0; }
+.dos-chip { display: inline-block; border-radius: 999px; padding: 6px 13px; font-size: 13px; font-weight: 700; margin: 0 6px 6px 0; color: #fff; }
+.dos-chip.presencial { background: #0d9488; }
+.dos-chip.hibrido { background: #065f46; }
+.dos-chip.virtual { background: #fff; color: #8A6D1F; border: 1.5px solid #C6A15B; }
+.dos-cert { display: flex; justify-content: space-between; align-items: flex-start; gap: 10px; padding: 10px 0; border-bottom: 1px dashed #E6E0CF; }
+.dos-cert:last-child { border-bottom: none; padding-bottom: 2px; }
+.dos-cert-name { font-weight: 700; font-size: 14.5px; }
+.dos-cert-sub { color: #6B7280; font-size: 13px; margin-top: 1px; }
+.dos-pill { flex-shrink: 0; font-size: 11px; font-weight: 800; letter-spacing: .03em; border-radius: 999px; padding: 3px 10px; }
+.dos-pill.ok { background: #D1FAE5; color: #065F46; }
+.dos-pill.exp { background: #FEE2E2; color: #991B1B; }
+.dos-place { padding: 8px 0; border-bottom: 1px dashed #E6E0CF; font-size: 14px; }
+.dos-place:last-child { border-bottom: none; }
+.dos-foot { padding: 2px 16px 18px; }
+.dos-choose { width: 100%; background: #0d9488; color: #fff; border: none; border-radius: 12px; padding: 14px 18px; font-size: 15.5px; font-weight: 800; cursor: pointer; }
+.dos-choose:hover { background: #0f766e; }
+.dos-choose.wait { background: #fff; color: #0f766e; border: 2px solid #0d9488; }
+.dos-current { text-align: center; font-weight: 700; color: #065F46; padding: 10px 0 2px; }
+/* Editor del dossier (superficie del propio entrenador) */
+.dos-cert-row, .dos-place-row { display: flex; gap: 6px; flex-wrap: wrap; align-items: center; margin-bottom: 7px; }
+.dos-cert-row input, .dos-place-row input, .dos-place-row select { flex: 1 1 110px; min-width: 0; }
+.dos-cert-row input.yr, .dos-place-row input.yr { flex: 0 1 76px; }
+.dos-photo-prev { width: 100%; max-height: 170px; object-fit: cover; border-radius: 12px; margin: 6px 0; display: block; }
+.dos-mail-box{margin:2px 0 12px}
+.dos-mail-text{width:100%;box-sizing:border-box;border:1px solid #E7E1D3;border-radius:12px;padding:10px 12px;font:13px/1.55 inherit;background:#fff;color:#263238;resize:vertical}
+.dos-pool-links{margin-top:6px;display:flex;flex-wrap:wrap;gap:4px 10px}
+#reg-dossier-links{margin:4px 0 8px;display:flex;flex-wrap:wrap;gap:4px 10px}
