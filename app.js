@@ -1936,6 +1936,13 @@ en: {
   'train.weekDone': 'Sessions completed this week: {n}',
   'train.planFreq': 'Your plan: {n} days per week',
   'train.markDone': 'Mark as done today', 'train.doneToday': 'Done today ✓', 'train.undo': 'Undo',
+  'train.d.set': 'Set', 'train.d.repsPh': 'reps done', 'train.d.loadPh': 'load',
+  'train.d.statusDone': 'Done', 'train.d.statusPartial': 'Partial', 'train.d.statusSkipped': 'Skipped', 'train.d.statusNone': 'Not logged',
+  'train.d.skipDay': 'Skip this day',
+  'train.d.skipConfirm': 'Mark this day as skipped? It will be recorded as skipped (you can undo it afterwards).',
+  'train.d.needCheck': 'Check at least one exercise as done, or use “Skip this day”. Nothing was saved.',
+  'train.d.weekTitle': 'This week', 'train.d.weekSummary': 'Done {d} · Partial {p} · Skipped {s}',
+  'train.d.setsLabel': 'Sets', 'train.d.skippedNote': 'You marked this day as skipped.',
   'train.view.rest': 'Rest', 'train.view.warmup': 'Warm-up', 'train.view.session': 'Session',
   'train.view.rpe': 'RPE', 'train.view.rpeNone': 'No RPE', 'train.view.exDone': 'Done',
   'train.view.alignBody': 'Your routine: {plan}. Your training reminders: {cfg}. Align your reminders with your plan?',
@@ -3183,6 +3190,13 @@ es: {
   'train.weekDone': 'Sesiones completadas esta semana: {n}',
   'train.planFreq': 'Tu plan: {n} días por semana',
   'train.markDone': 'Marcar como hecho hoy', 'train.doneToday': 'Hecho hoy ✓', 'train.undo': 'Deshacer',
+  'train.d.set': 'Serie', 'train.d.repsPh': 'reps hechas', 'train.d.loadPh': 'carga',
+  'train.d.statusDone': 'Hecho', 'train.d.statusPartial': 'Parcial', 'train.d.statusSkipped': 'Saltado', 'train.d.statusNone': 'Sin registrar',
+  'train.d.skipDay': 'Saltar este día',
+  'train.d.skipConfirm': '¿Marcar este día como saltado? Quedará registrado como saltado (podrás deshacerlo después).',
+  'train.d.needCheck': 'Marca al menos un ejercicio como hecho, o usa «Saltar este día». No se guardó nada.',
+  'train.d.weekTitle': 'Esta semana', 'train.d.weekSummary': 'Hechos {d} · Parciales {p} · Saltados {s}',
+  'train.d.setsLabel': 'Series', 'train.d.skippedNote': 'Marcaste este día como saltado.',
   'train.view.rest': 'Descanso', 'train.view.warmup': 'Aproximación', 'train.view.session': 'Sesión',
   'train.view.rpe': 'RPE', 'train.view.rpeNone': 'Sin RPE', 'train.view.exDone': 'Hecho',
   'train.view.alignBody': 'Tu rutina: {plan}. Tus avisos de entrenamiento: {cfg}. ¿Alineas tus avisos con tu plan?',
@@ -8222,8 +8236,43 @@ function trainExercisesHTML(day) {
    muestra como historial de solo lectura (las reglas no admiten
    update en training_logs); aviso de alineación no bloqueante entre
    los días del plan y su configuración de pendientes. */
-let TRAIN_CHECKS = {};         // "di:ei" -> { rpe: n|null } — solo memoria de la sesión
+let TRAIN_CHECKS = {};         // "di:ei" -> { rpe: n|null, sets: [...] } — solo memoria de la sesión
 let TRAIN_CHECKS_CTX = '';     // planId|fecha a la que pertenecen las marcas
+
+/* --- MÓDULO D (P4-3 Etapa 4, desarrollo): ENTRENAMIENTO
+   INTERACTIVO sobre ESTE MISMO módulo (sin duplicarlo) — diseño
+   D-1…D-5 del plan: el registro v2 nace UNA vez al cerrar el día
+   (invariante P6 intacto) con schemaVersion 2, status derivado de
+   las marcas (done/partial) o explícito (skipped, con
+   skippedExplicit{value,at,by}), detalle POR SERIE dentro de
+   exercisesDone (repsPlanned/repsDone y carga canónica kg +
+   original con su unidad, módulo H) y la invariante
+   done == (status == 'done'). Los registros v1 (sin status) se
+   leen como hasta hoy: done -> 'done', sin registro -> 'none'.
+   Cerrar sin ninguna marca y sin saltar NO escribe nada (cambio
+   honesto frente a P6, que escribía done:true vacío): avisa y el
+   día queda sin registrar. Las reglas vivas aún exigen
+   done == true al crear: los estados partial/skipped necesitan el
+   delta propio del módulo (modulos-p4-3/reglas-delta-d-
+   entrenamiento.rules, NO publicado); si Firestore deniega, el
+   aviso es honesto (failToast) y no queda nada a medias. */
+const TRAIN_STATUS_ICON = { done: '✓', partial: '◐', skipped: '✕', none: '—' };
+function trainLogStatus(log) {
+  if (!log) return 'none';
+  if (log.status === 'done' || log.status === 'partial' || log.status === 'skipped') return log.status;
+  return log.done === true ? 'done' : 'none';   /* v1: sin campo status */
+}
+function trainStatusBadge(status) {
+  return `<span class="train-status st-${status}">${TRAIN_STATUS_ICON[status] || '—'} ${t('train.d.status' + status[0].toUpperCase() + status.slice(1))}</span>`;
+}
+function trainPlannedSets(ex) {
+  const m = String((ex && ex.sets) || '').match(/\d+/);
+  const n = m ? parseInt(m[0], 10) : 1;
+  return Math.min(12, Math.max(1, isNaN(n) ? 1 : n));
+}
+function trainDefaultSets(ex) {
+  return Array.from({ length: trainPlannedSets(ex) }, () => ({ repsPlanned: String((ex && ex.reps) || ''), repsDone: '', loadVal: '' }));
+}
 let TRAIN_LIB_CTX = '';        // ctx ya re-pintado tras cargar la biblioteca
 let TRAIN_ALIGN_DISMISSED = false;  // el aviso no insiste en la misma sesión
 
@@ -8262,6 +8311,17 @@ function trainExInfoHTML(ex) {
 function trainExCardHTML(ex, di, ei) {
   const key = di + ':' + ei;
   const chk = TRAIN_CHECKS[key];
+  /* MÓDULO D (D-2): al marcar el ejercicio aparecen sus series —
+     reps hechas y carga en la unidad DEL VISOR (módulo H); lo que
+     se guarda al cerrar el día es la carga CANÓNICA en kg más el
+     original con su unidad. Sin marcar, no hay filas de series. */
+  const sets = chk && Array.isArray(chk.sets) ? chk.sets : null;
+  const setsHtml = sets ? `<div class="train-sets">${sets.map((s, si) => `
+      <div class="train-set-row"><span class="train-set-n">${t('train.d.set')} ${si + 1}${s.repsPlanned ? ` · ${esc(s.repsPlanned)}` : ''}</span>
+        <input type="number" inputmode="decimal" min="0" class="train-set-in" data-train-set-reps="${key}:${si}" placeholder="${t('train.d.repsPh')}" value="${esc(s.repsDone)}" aria-label="${t('train.d.repsPh')}">
+        <input type="number" inputmode="decimal" min="0" step="any" class="train-set-in" data-train-set-load="${key}:${si}" placeholder="${t('train.d.loadPh')}" value="${esc(s.loadVal)}" aria-label="${t('train.d.loadPh')}">
+        <span class="train-set-unit">${esc(UNIT_PREFS.mass)}</span></div>`).join('')}
+    </div>` : '';
   return `<div class="train-ex-card${chk ? ' is-done' : ''}">${trainExInfoHTML(ex)}
     <div class="train-ex-side">
       <label class="train-ex-check"><input type="checkbox" data-train-check="${key}" ${chk ? 'checked' : ''}> <span>${t('train.view.exDone')}</span></label>
@@ -8270,6 +8330,7 @@ function trainExCardHTML(ex, di, ei) {
         ${[1, 2, 3, 4, 5, 6, 7, 8, 9, 10].map(n => `<option value="${n}" ${chk && chk.rpe === n ? 'selected' : ''}>${t('train.view.rpe')} ${n}</option>`).join('')}
       </select>
     </div>
+    ${setsHtml}
   </div>`;
 }
 function trainDayHistHTML(day, log) {
@@ -8278,10 +8339,16 @@ function trainDayHistHTML(day, log) {
   doneList.forEach(e => { if (!e) return; if (e.exerciseId) byId[e.exerciseId] = e; else if (e.name) byName[e.name] = e; });
   return (day.exercises || []).map(ex => {
     const de = (ex.exerciseId && byId[ex.exerciseId]) || (ex.name && byName[ex.name]) || null;
+    /* MÓDULO D (D-2): el detalle por serie del registro v2 se lee
+       tal cual se guardó; la carga se muestra en la unidad del
+       visor desde el canónico kg (módulo H). v1 no trae series. */
+    const setsLine = de && Array.isArray(de.sets) && de.sets.length
+      ? `<div class="train-set-hist">${t('train.d.setsLabel')}: ${de.sets.map((s, si) => `${t('train.d.set')} ${si + 1}: ${s.repsDone != null && s.repsDone !== '' ? esc(String(s.repsDone)) : '—'}${s.repsPlanned ? `/${esc(String(s.repsPlanned))}` : ''} ${t('train.d.repsPh')}${typeof s.loadKg === 'number' ? ` · ${esc(fmtMass(s.loadKg))}` : ''}`).join(' · ')}</div>` : '';
     return `<div class="train-ex-card is-hist">${trainExInfoHTML(ex)}
     <div class="train-ex-side">${de
       ? `<span class="ok-badge">✓ ${t('train.view.exDone')}${de.rpe ? ` · ${t('train.view.rpe')} ${esc(String(de.rpe))}` : ''}</span>`
       : '<span class="muted">—</span>'}</div>
+    ${setsLine}
   </div>`;
   }).join('');
 }
@@ -8400,7 +8467,17 @@ async function loadMyTraining() {
   const today = todayISO();
   const weekStart = mondayISO(today);
   const doneToday = new Set(logs.filter(l => l.date === today).map(l => l.dayIndex));
-  const weekCount = logs.filter(l => l.date >= weekStart && l.date <= today).length;
+  /* MÓDULO D (D-5): la semana se cuenta y se muestra por ESTADO
+     (icono + texto, nunca solo color); v1 cuenta por su done. Un
+     día saltado NO cuenta como sesión en la línea de siempre. */
+  const weekLogs = logs.filter(l => l.date >= weekStart && l.date <= today)
+    .sort((a, b) => String(a.date).localeCompare(String(b.date)) || a.dayIndex - b.dayIndex);
+  const weekByStatus = { done: 0, partial: 0, skipped: 0 };
+  weekLogs.forEach(l => { const s = trainLogStatus(l); if (weekByStatus[s] != null) weekByStatus[s]++; });
+  const weekCount = weekByStatus.done + weekByStatus.partial;
+  const weekHtml = `<div class="train-week"><span class="train-week-title">${t('train.d.weekTitle')}</span>
+    ${weekLogs.map(l => `<span class="train-chip st-${trainLogStatus(l)}">${esc(String(l.date).slice(5))} · ${esc(l.dayLabel || '')} · ${TRAIN_STATUS_ICON[trainLogStatus(l)]} ${t('train.d.status' + trainLogStatus(l)[0].toUpperCase() + trainLogStatus(l).slice(1))}</span>`).join('')}
+    <span class="train-week-sum">${t('train.d.weekSummary', { d: weekByStatus.done, p: weekByStatus.partial, s: weekByStatus.skipped })}</span></div>`;
   const ctx = plan.id + '|' + today;
   if (TRAIN_CHECKS_CTX !== ctx) { TRAIN_CHECKS = {}; TRAIN_CHECKS_CTX = ctx; }
   const logByDay = {};
@@ -8411,18 +8488,21 @@ async function loadMyTraining() {
     ${planPeriodText(plan) ? `<p class="progress-hint">${t('train.dates.clientLine', { period: esc(planPeriodText(plan)) })}</p>` : ''}
     <p class="progress-hint">${t('train.planFreq', { n: (plan.days || []).length })}</p>
     <p class="progress-hint">${t('train.weekDone', { n: weekCount })}</p>
+    ${weekHtml}
     <div style="margin:6px 0"><button class="btn-ghost btn-sm" id="btn-print-card">${t('train.print.btn')}</button></div>
     <div id="train-align-slot"></div>
     ${(plan.days || []).map((day, di) => {
       const label = day.label || ('Día ' + (di + 1));
       const done = doneToday.has(di);
+      const log = logByDay[di];
+      const status = trainLogStatus(log);
       const exHtml = done
-        ? trainDayHistHTML(day, logByDay[di])
+        ? trainDayHistHTML(day, log)
         : (day.exercises || []).map((ex, ei) => trainExCardHTML(ex, di, ei)).join('');
       return `<div class="train-day"><h4>${esc(label)}</h4>${exHtml}${trainSessionHTML(day)}
         <div style="margin-top:8px">${done
-          ? `<span class="ok-badge">${t('train.doneToday')}</span> <button class="btn-ghost btn-sm" data-train-undo="${di}">${t('train.undo')}</button>`
-          : `<button class="btn-primary btn-sm" data-train-done="${di}">${t('train.markDone')}</button>`}</div>
+          ? `${trainStatusBadge(status)}${status === 'skipped' ? ` <span class="muted">${t('train.d.skippedNote')}</span>` : ''} <button class="btn-ghost btn-sm" data-train-undo="${di}">${t('train.undo')}</button>`
+          : `<button class="btn-primary btn-sm" data-train-done="${di}">${t('train.markDone')}</button> <button class="btn-ghost btn-sm" data-train-skip="${di}">${t('train.d.skipDay')}</button>`}</div>
       </div>`;
     }).join('')}`;
   const pcBtn = $('btn-print-card');
@@ -8433,28 +8513,40 @@ async function loadMyTraining() {
   });
   box.querySelectorAll('[data-train-check]').forEach(c => c.onchange = () => {
     const key = c.dataset.trainCheck;
+    const [diS, eiS] = key.split(':');
+    const ex = ((plan.days || [])[Number(diS)] || {}).exercises?.[Number(eiS)] || {};
     const card = c.closest('.train-ex-card');
     const sel = card ? card.querySelector('[data-train-rpe]') : null;
     if (c.checked) {
-      TRAIN_CHECKS[key] = { rpe: sel && sel.value ? Number(sel.value) : null };
-      if (card) card.classList.add('is-done');
-      if (sel) sel.disabled = false;
+      /* MÓDULO D: la marca nace con sus series planificadas (D-2);
+         se re-pinta para mostrarlas (todo input confirma al acto
+         en TRAIN_CHECKS, así que re-pintar no pierde nada). */
+      TRAIN_CHECKS[key] = { rpe: sel && sel.value ? Number(sel.value) : null, sets: trainDefaultSets(ex) };
+      loadMyTraining();
     } else {
       delete TRAIN_CHECKS[key];
-      if (card) card.classList.remove('is-done');
-      if (sel) { sel.disabled = true; sel.value = ''; }
+      loadMyTraining();
     }
   });
   box.querySelectorAll('[data-train-rpe]').forEach(s => s.onchange = () => {
     const key = s.dataset.trainRpe;
     if (TRAIN_CHECKS[key]) TRAIN_CHECKS[key].rpe = s.value ? Number(s.value) : null;
   });
+  box.querySelectorAll('[data-train-set-reps]').forEach(inp => inp.oninput = () => {
+    const [di, ei, si] = inp.dataset.trainSetReps.split(':');
+    const c = TRAIN_CHECKS[di + ':' + ei];
+    if (c && Array.isArray(c.sets) && c.sets[Number(si)]) c.sets[Number(si)].repsDone = inp.value;
+  });
+  box.querySelectorAll('[data-train-set-load]').forEach(inp => inp.oninput = () => {
+    const [di, ei, si] = inp.dataset.trainSetLoad.split(':');
+    const c = TRAIN_CHECKS[di + ':' + ei];
+    if (c && Array.isArray(c.sets) && c.sets[Number(si)]) c.sets[Number(si)].loadVal = inp.value;
+  });
   box.querySelectorAll('[data-train-done]').forEach(b => b.onclick = async () => {
     const di = Number(b.dataset.trainDone);
     const day = (plan.days || [])[di] || {};
-    const data = { clientUid: uid, planId: plan.id, date: today, dayIndex: di, dayLabel: day.label || '', done: true, updatedAt: serverTimestamp() };
-    /* Detalle por ejercicio (§4.6): SOLO lo marcado en la sesión, en
-       el orden del plan; sin marcas, el registro nace como hasta hoy. */
+    /* Detalle por ejercicio (§4.6 + D-2): SOLO lo marcado en la
+       sesión, en el orden del plan, con su detalle por serie. */
     const doneList = [];
     (day.exercises || []).forEach((ex, ei) => {
       const c = TRAIN_CHECKS[di + ':' + ei];
@@ -8462,15 +8554,55 @@ async function loadMyTraining() {
       const e = { done: true };
       if (ex.exerciseId) e.exerciseId = ex.exerciseId; else if (ex.name) e.name = ex.name;
       if (c.rpe) e.rpe = c.rpe;
+      if (Array.isArray(c.sets) && c.sets.length) {
+        e.sets = c.sets.map(s => {
+          const out = { repsPlanned: String(s.repsPlanned || '') };
+          const rd = num(s.repsDone);
+          if (s.repsDone !== '' && s.repsDone != null && !isNaN(rd)) out.repsDone = rd;
+          const lv = parseFloat(s.loadVal);
+          if (s.loadVal !== '' && s.loadVal != null && isFinite(lv) && lv >= 0) {
+            out.loadKg = massToCanonical(lv);        /* canónico kg (módulo H) */
+            out.loadOriginal = lv;
+            out.loadUnitOriginal = UNIT_PREFS.mass;
+          }
+          return out;
+        });
+      }
       doneList.push(e);
     });
-    if (doneList.length) data.exercisesDone = doneList;
-    await setDoc(doc(db, 'training_logs', `${uid}_${plan.id}_${today}_${di}`), data);
+    /* MÓDULO D (D-3): sin ninguna marca NO se escribe un «hecho»
+       vacío — se avisa y el día queda sin registrar (o se salta
+       explícitamente con su botón). */
+    if (!doneList.length) { toast(t('train.d.needCheck'), true); return; }
+    const total = (day.exercises || []).length;
+    const status = doneList.length >= total ? 'done' : 'partial';
+    const data = { clientUid: uid, planId: plan.id, date: today, dayIndex: di, dayLabel: day.label || '',
+      done: status === 'done', schemaVersion: 2, status, exercisesDone: doneList, updatedAt: serverTimestamp() };
+    try {
+      await setDoc(doc(db, 'training_logs', `${uid}_${plan.id}_${today}_${di}`), data);
+    } catch (e) { failToast(e); return; }
+    Object.keys(TRAIN_CHECKS).forEach(k => { if (k.split(':')[0] === String(di)) delete TRAIN_CHECKS[k]; });
+    loadMyTraining();
+  });
+  box.querySelectorAll('[data-train-skip]').forEach(b => b.onclick = async () => {
+    const di = Number(b.dataset.trainSkip);
+    const day = (plan.days || [])[di] || {};
+    if (!confirm(t('train.d.skipConfirm'))) return;
+    /* MÓDULO D (D-3): saltar es EXPLÍCITO — queda quién y cuándo;
+       done:false con status 'skipped' (invariante intacta). */
+    const data = { clientUid: uid, planId: plan.id, date: today, dayIndex: di, dayLabel: day.label || '',
+      done: false, schemaVersion: 2, status: 'skipped',
+      skippedExplicit: { value: true, at: serverTimestamp(), by: uid }, updatedAt: serverTimestamp() };
+    try {
+      await setDoc(doc(db, 'training_logs', `${uid}_${plan.id}_${today}_${di}`), data);
+    } catch (e) { failToast(e); return; }
     Object.keys(TRAIN_CHECKS).forEach(k => { if (k.split(':')[0] === String(di)) delete TRAIN_CHECKS[k]; });
     loadMyTraining();
   });
   box.querySelectorAll('[data-train-undo]').forEach(b => b.onclick = async () => {
-    await deleteDoc(doc(db, 'training_logs', `${uid}_${plan.id}_${today}_${Number(b.dataset.trainUndo)}`));
+    try {
+      await deleteDoc(doc(db, 'training_logs', `${uid}_${plan.id}_${today}_${Number(b.dataset.trainUndo)}`));
+    } catch (e) { failToast(e); return; }
     loadMyTraining();
   });
   trainAlignRender();
