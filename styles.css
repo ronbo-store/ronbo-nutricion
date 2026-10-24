@@ -281,12 +281,10 @@ table.whist { min-width: 640px; }
 .pl-day-blocks:empty { display: none; }
 .pl-block-chip { display: inline-flex; align-items: center; gap: 6px; background: #eef2ff; border: 1px solid #c7d2fe; color: #3730a3; border-radius: 999px; padding: 3px 6px 3px 10px; font-size: 12px; }
 .pl-block-del { background: none; border: 0; color: #6366f1; cursor: pointer; font-size: 14px; line-height: 1; padding: 2px 4px; }
-.pl-ex-row { flex-wrap: wrap; }
 /* PAQUETE 10 — sugerencias §6 restantes: herramientas por fila del
    editor (sustituto §5.2 y panel por tipo de cuerpo §4.3), historial
    de instantáneas (§6.4) y tarjeta imprimible (§6.2). */
-.pl-ex-tools { flex: 1 1 100%; display: flex; gap: 6px; }
-.pl-ex-subst-box, .pl-ex-btr-box { flex: 1 1 100%; }
+.pl-ex-tools { display: flex; gap: 6px; margin-top: 6px; }
 .pl-sub-note { font-size: 12.5px; color: #6b7280; padding: 6px 2px; }
 .pl-sub-title { font-size: 12.5px; font-weight: 700; padding: 6px 2px 2px; }
 .pl-btr { border: 1px solid #E9ECEF; border-radius: 10px; padding: 8px 10px; margin-top: 6px; }
@@ -309,7 +307,7 @@ table.whist { min-width: 640px; }
   .pc-table td { border-bottom: 1px solid #ccc; padding: 4px 6px; font-size: 13px; }
   .pc-block { margin: 4px 0; font-size: 13px; }
 }
-.pl-ex-sub { flex: 1 1 100%; display: flex; gap: 6px; }
+.pl-ex-sub { display: flex; gap: 6px; }
 .pl-ex-sub input { flex: 1; min-width: 0; font-size: 12.5px; }
 
 /* ===== constructor visual (§5.1): explorador en rejilla dentro del
@@ -380,9 +378,30 @@ table.whist { min-width: 640px; }
 .train-ex:last-child { border-bottom: none; }
 .train-ex .sx { color: #666; white-space: nowrap; }
 .pl-day { border: 1px solid #e9ecef; border-radius: 10px; padding: 10px; margin: 10px 0; }
-.pl-ex-row { display: flex; gap: 6px; margin: 6px 0; align-items: flex-start; }
-.pl-ex-row input { flex: 1; min-width: 0; }
-.pl-ex-row .pl-ex-sets, .pl-ex-row .pl-ex-reps { flex: 0 0 58px; }
+/* REDISEÑO DE LA FILA (2026-10-24): una sola línea compacta —
+   miniatura · nombre · SE · REP · nota · ⋯ · × — sin desborde a
+   360 px: el nombre cede (min-width: 0) y la nota tiene tope. */
+.pl-ex-row { display: block; margin: 6px 0; }
+.pl-ex-line { display: flex; gap: 6px; align-items: center; }
+.pl-ex-line input { min-width: 0; }
+.pl-ex-line .pl-ex-main { flex: 1 1 auto; }
+.pl-ex-line .pl-ex-sets, .pl-ex-line .pl-ex-reps { flex: 0 0 42px; text-align: center; padding-left: 4px; padding-right: 4px; }
+.pl-ex-line .pl-ex-note { flex: 0 1 76px; }
+.pl-ex-line .pl-ex-more, .pl-ex-line .pl-ex-del { flex: 0 0 auto; padding-left: 6px; padding-right: 6px; }
+.pl-ex-media-btn { flex: 0 0 40px; width: 40px; height: 40px; border-radius: 8px; border: 1px solid #e2e8f0; background: #eef1f3; padding: 0; overflow: hidden; position: relative; cursor: pointer; }
+.pl-ex-media-btn .pl-ex-thumb { width: 100%; height: 100%; object-fit: cover; display: block; border: 0; border-radius: 0; background: none; }
+.pl-ex-media-btn .pl-ex-media-ico { position: absolute; inset: 0; display: flex; align-items: center; justify-content: center; font-size: 17px; }
+.pl-ex-media-btn.has-photo .pl-ex-media-ico { display: none; }
+.pl-ex-extra { margin-top: 6px; }
+/* Flotante multimedia del ejercicio: hoja inferior en móvil, tarjeta
+   centrada en pantallas anchas; por encima del modal del plan. */
+.ex-media-pop { position: fixed; inset: 0; background: rgba(15,23,42,.45); display: flex; align-items: flex-end; justify-content: center; z-index: 90; }
+.ex-media-card { background: #fff; border-radius: 16px 16px 0 0; padding: 16px; width: min(94vw, 430px); max-height: 82vh; overflow-y: auto; position: relative; box-shadow: 0 -8px 30px rgba(15,23,42,.25); }
+.ex-media-card h3 { margin: 0 36px 10px 0; }
+.ex-media-x { position: absolute; top: 8px; right: 10px; background: none; border: 0; font-size: 22px; line-height: 1; cursor: pointer; color: #475569; padding: 4px 8px; }
+.ex-media-img { width: 100%; border-radius: 10px; display: block; }
+.ex-media-video { display: block; text-align: center; margin-top: 10px; text-decoration: none; }
+@media (min-width: 640px) { .ex-media-pop { align-items: center; } .ex-media-card { border-radius: 16px; } }
 .check-row { display: flex; gap: 8px; align-items: center; }
 
 /* Privacidad y datos */

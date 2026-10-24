@@ -467,6 +467,9 @@ en: {
   'train.gate.savedWithWarning': 'Plan saved. Note: this client still has no valid health declaration on file.',
   'train.lib.unavailable': '📚 The exercise library is unavailable right now (it may be empty or could not be loaded). You can keep typing exercises as free text — plans save normally.',
   'train.lib.photo': 'Photo', 'train.lib.video': 'Video',
+  'train.f.sePh': 'SE', 'train.f.repPh': 'REP', 'train.f.more': 'More options',
+  'train.lib.media': 'Exercise media',
+  'train.lib.noMedia': 'This exercise has no linked photo or video yet. Link it from the library by typing its name and choosing the suggestion.',
   'train.viz.title': '🧱 Visual builder',
   'train.viz.toggle': 'Browse the library visually',
   'train.viz.searchPh': 'Search by name, muscle, equipment…',
@@ -1235,6 +1238,9 @@ es: {
   'train.gate.savedWithWarning': 'Plan guardado. Nota: este cliente sigue sin una declaración de salud vigente registrada.',
   'train.lib.unavailable': '📚 La biblioteca de ejercicios no está disponible ahora (puede estar vacía o no pudo cargarse). Puedes seguir escribiendo los ejercicios como texto libre: los planes se guardan con normalidad.',
   'train.lib.photo': 'Foto', 'train.lib.video': 'Video',
+  'train.f.sePh': 'SE', 'train.f.repPh': 'REP', 'train.f.more': 'Más opciones',
+  'train.lib.media': 'Multimedia del ejercicio',
+  'train.lib.noMedia': 'Este ejercicio aún no tiene foto ni video asociados. Vincúlalo desde la biblioteca escribiendo su nombre y eligiendo la sugerencia.',
   'train.viz.title': '🧱 Constructor visual',
   'train.viz.toggle': 'Explorar la biblioteca visualmente',
   'train.viz.searchPh': 'Buscar por nombre, músculo, equipo…',
@@ -5312,9 +5318,52 @@ function wireLibLinks(scope) {
    rejilla. Sin foto conocida, la miniatura no ocupa espacio. */
 function libRowThumb(row, url) {
   const th = row.querySelector('.pl-ex-thumb');
+  const btn = row.querySelector('.pl-ex-media-btn');
+  if (btn) btn.classList.toggle('has-photo', !!url);
   if (!th) return;
   if (url) { th.src = url; th.style.display = ''; }
   else { th.removeAttribute('src'); th.style.display = 'none'; }
+}
+/* FLOTANTE MULTIMEDIA (rediseño de la fila, 2026-10-24): al tocar la
+   miniatura se abre un desplegable flotante sobre la pantalla con el
+   complemento multimedia REAL del ejercicio. La resolución es la
+   misma de siempre: lo copiado en la fila (data-photo/data-video al
+   vincular o aplicar plantilla) y, si falta, la ficha viva de la
+   biblioteca (foto_url / video_youtube_url). Sin exerciseId o sin
+   media conocida, el flotante lo dice — no inventa nada: hoy la
+   biblioteca solo guarda UNA foto (foto_url) y UN enlace de video de
+   YouTube por ejercicio; no existe campo de GIF en la ficha (el set
+   GIF de desarrollo no está conectado a la app). */
+function exMediaForRow(row) {
+  if (!row) return { name: '', photo: '', video: '' };
+  const entry = row.dataset.exid ? LIB_BY_ID[row.dataset.exid] : null;
+  const nameIn = row.querySelector('.pl-ex-name');
+  return {
+    name: (nameIn && nameIn.value) || (entry ? libNameOf(entry) : ''),
+    photo: row.dataset.photo || (entry ? entry.foto_url : '') || '',
+    video: row.dataset.video || (entry ? entry.video_youtube_url : '') || '',
+  };
+}
+function exMediaOpen(row) {
+  const pop = $('ex-media-pop'); if (!pop || !row) return;
+  const m = exMediaForRow(row);
+  $('ex-media-name').textContent = m.name || t('train.lib.media');
+  $('ex-media-body').innerHTML =
+    (m.photo ? `<img class="ex-media-img" src="${esc(m.photo)}" alt="">` : '')
+    + (m.video ? `<a class="btn-primary ex-media-video" href="${esc(m.video)}" target="_blank" rel="noopener">▶ ${t('train.lib.video')}</a>` : '')
+    + (!m.photo && !m.video ? `<p class="muted">${t('train.lib.noMedia')}</p>` : '');
+  pop.style.display = '';
+}
+function exMediaClose() { const pop = $('ex-media-pop'); if (pop) pop.style.display = 'none'; }
+function wirePlanExMedia(scope) {
+  scope.querySelectorAll('.pl-ex-media-btn').forEach(b => {
+    if (b.dataset.mediaWired) return; b.dataset.mediaWired = '1';
+    b.onclick = () => exMediaOpen(b.closest('.pl-ex-row'));
+  });
+  scope.querySelectorAll('.pl-ex-more').forEach(b => {
+    if (b.dataset.moreWired) return; b.dataset.moreWired = '1';
+    b.onclick = () => { const x = b.closest('.pl-ex-row').querySelector('.pl-ex-extra'); if (x) x.style.display = x.style.display === 'none' ? '' : 'none'; };
+  });
 }
 function libCloseSug(row) { const sug = row.querySelector('.pl-ex-sug'); if (sug) sug.innerHTML = ''; }
 function libUnlinkRow(row) {
@@ -5377,6 +5426,7 @@ function wireLibRow(row) {
 }
 function wirePlanExRows(scope) {
   wirePlanExDel(scope);
+  wirePlanExMedia(scope);
   scope.querySelectorAll('.pl-ex-row').forEach(wireLibRow);
   scope.querySelectorAll('.pl-ex-row').forEach(r => { wireSubstRow(r); wireBtrRow(r); });
   wireLibLinks(scope);
@@ -5898,24 +5948,36 @@ function planExRow(ex) {
      ficha (o la photoUrl copiada) cuando se conoce; si no, el
      elemento nace oculto y libLinkRow/libUnlinkRow lo mantienen. */
   const thumb = (entry ? entry.foto_url : '') || ex.photoUrl || '';
+  /* REDISEÑO DE LA FILA (correo de Ronald, 2026-10-24 00:05 CDT): la
+     fila en reposo es UNA sola línea compacta — miniatura, nombre,
+     SE, REP, nota, eliminar — con títulos cortos. Los botones de
+     Foto/Video SALEN de la fila: la multimedia vive en el flotante
+     que abre la miniatura (exMediaOpen). Aproximación/descanso y las
+     herramientas (sustituto, tipo de cuerpo) NO se pierden: quedan
+     en la franja auxiliar «⋯» de la propia fila, cerrada por
+     defecto. Nada cambia en el guardado: lee los mismos campos. */
   return `<div class="pl-ex-row"${linked}${rw}>
-    <img class="pl-ex-thumb" alt=""${thumb ? ` src="${esc(thumb)}"` : ' style="display:none"'}>
-    <div class="pl-ex-main">
-      <input type="text" class="pl-ex-name" placeholder="${t('train.f.exPh')}" value="${esc(shown)}" autocomplete="off">
-      <div class="pl-ex-sug"></div>
-      <div class="pl-ex-links-wrap">${libLinksHTML(ex)}</div>
+    <div class="pl-ex-line">
+      <button type="button" class="pl-ex-media-btn${thumb ? ' has-photo' : ''}" title="${t('train.lib.media')}"><img class="pl-ex-thumb" alt=""${thumb ? ` src="${esc(thumb)}"` : ' style="display:none"'}><span class="pl-ex-media-ico" aria-hidden="true">🖼</span></button>
+      <div class="pl-ex-main">
+        <input type="text" class="pl-ex-name" placeholder="${t('train.f.exPh')}" value="${esc(shown)}" autocomplete="off">
+        <div class="pl-ex-sug"></div>
+      </div>
+      <input type="text" class="pl-ex-sets" placeholder="${t('train.f.sePh')}" title="${t('train.f.setsPh')}" value="${esc(ex.sets || '')}">
+      <input type="text" class="pl-ex-reps" placeholder="${t('train.f.repPh')}" title="${t('train.f.repsPh')}" value="${esc(ex.reps || '')}">
+      <input type="text" class="pl-ex-note" placeholder="${t('train.f.notePh')}" value="${esc(ex.note || '')}">
+      <button type="button" class="btn-ghost btn-sm pl-ex-more" title="${t('train.f.more')}">⋯</button>
+      <button type="button" class="btn-ghost btn-sm pl-ex-del" title="${t('train.f.remove')}">×</button>
     </div>
-    <input type="text" class="pl-ex-sets" placeholder="${t('train.f.setsPh')}" value="${esc(ex.sets || '')}">
-    <input type="text" class="pl-ex-reps" placeholder="${t('train.f.repsPh')}" value="${esc(ex.reps || '')}">
-    <input type="text" class="pl-ex-note" placeholder="${t('train.f.notePh')}" value="${esc(ex.note || '')}">
-    <button type="button" class="btn-ghost btn-sm pl-ex-del" title="${t('train.f.remove')}">×</button>
-    <div class="pl-ex-sub">
-      <input type="text" class="pl-ex-warmup" placeholder="${t('train.f.warmupPh')}" value="${esc(warmShown)}">
-      <input type="text" class="pl-ex-rest" placeholder="${t('train.f.restPh')}" value="${esc(restShown)}">
-    </div>
-    <div class="pl-ex-tools">
-      <button type="button" class="btn-ghost btn-sm pl-ex-subst">⇄ ${t('train.sub.btn')}</button>
-      <button type="button" class="btn-ghost btn-sm pl-ex-btr">🧍 ${t('train.btr.btn')}</button>
+    <div class="pl-ex-extra" style="display:none">
+      <div class="pl-ex-sub">
+        <input type="text" class="pl-ex-warmup" placeholder="${t('train.f.warmupPh')}" value="${esc(warmShown)}">
+        <input type="text" class="pl-ex-rest" placeholder="${t('train.f.restPh')}" value="${esc(restShown)}">
+      </div>
+      <div class="pl-ex-tools">
+        <button type="button" class="btn-ghost btn-sm pl-ex-subst">⇄ ${t('train.sub.btn')}</button>
+        <button type="button" class="btn-ghost btn-sm pl-ex-btr">🧍 ${t('train.btr.btn')}</button>
+      </div>
     </div>
     <div class="pl-ex-subst-box"></div>
     <div class="pl-ex-btr-box"></div>
@@ -5988,6 +6050,9 @@ function openPlanEditor(clientUid, plan) {
 }
 $('pl-add-day').onclick = () => { $('pl-days').appendChild(planDayRow(null)); vizRefreshDays(document.querySelectorAll('#pl-days .pl-day').length - 1); };
 $('plan-cancel').onclick = () => { $('plan-modal').style.display = 'none'; planCtx = null; };
+if ($('ex-media-x')) $('ex-media-x').onclick = exMediaClose;
+if ($('ex-media-pop')) $('ex-media-pop').addEventListener('click', e => { if (e.target.id === 'ex-media-pop') exMediaClose(); });
+document.addEventListener('keydown', e => { if (e.key === 'Escape') exMediaClose(); });
 $('plan-modal').addEventListener('click', e => { if (e.target.id === 'plan-modal') { $('plan-modal').style.display = 'none'; planCtx = null; } });
 $('form-plan').addEventListener('submit', async e => {
   e.preventDefault();
