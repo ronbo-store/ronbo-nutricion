@@ -39,6 +39,12 @@
       </label>
       <a href="#" id="link-forgot" class="forgot-link" data-i18n="auth.forgot">Forgot your password?</a>
       <div id="auth-error" class="auth-error"></div>
+      <!-- UX10-2: expectativas de aprobación — al crear la cuenta, la
+           pantalla dice qué pasa ahora, quién aprueba y qué NO se
+           promete (ningún plazo). Lo rellena el registro al terminar;
+           vive fuera de ambos formularios para seguir visible tras
+           pasar a la pestaña de entrar. -->
+      <div id="reg-waiting" class="reg-waiting" style="display:none"></div>
       <button type="submit" class="btn-primary" data-i18n="auth.signin">Sign in</button>
     </form>
     <div id="renew-box" style="display:none">
@@ -150,6 +156,7 @@
 
   <div id="err"></div>
   <div class="rings" id="rings"></div>
+  <p class="rings-first-note" id="rings-note" style="display:none"></p>
 
   <div class="panel week-panel">
     <h2 data-i18n="track.weekTitle">📈 Weekly goal compliance</h2>
@@ -632,6 +639,6 @@
 <div id="toast" class="toast"></div>
 <div id="print-card" aria-hidden="true"></div>
 
-<script type="module" src="app.js?v=20261024-unidades"></script>
+<script type="module" src="app.js?v=20261024-ux10"></script>
 </body>
 </html>

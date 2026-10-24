@@ -385,6 +385,14 @@ table.whist { min-width: 640px; }
 .pw-eye { position: absolute; right: 4px; top: 50%; transform: translateY(-50%); background: none; border: none; cursor: pointer; font-size: 15px; line-height: 1; opacity: .4; padding: 6px; }
 .pw-eye.on { opacity: 1; }
 .auth-error.ok { background: #e6f7ee; color: #065f46; }
+/* UX10-2: tarjeta de expectativas tras el registro (quién aprueba,
+   qué pasa ahora, sin plazos prometidos). */
+.reg-waiting { background: #e6f7ee; color: #065f46; border: 1px solid #34d399; border-radius: 10px; padding: 12px 14px; font-size: 13.5px; line-height: 1.5; margin-bottom: 12px; }
+.reg-waiting b { display: block; margin-bottom: 4px; }
+/* UX10-3: nota breve bajo los anillos cuando el día está en cero. */
+.rings-first-note { font-size: 13px; line-height: 1.5; color: var(--muted, #5b6b66); margin: 8px 2px 0; }
+/* UX10-10: insignia «Vista» de las propuestas del cliente. */
+.prop-badge.is-seen { background: #e0e7ff; color: #3730a3; }
 
 /* Planes de entrenamiento (v1) */
 .train-day { border: 1px solid #e9ecef; border-radius: 10px; padding: 10px 12px; margin: 10px 0; }

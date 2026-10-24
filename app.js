@@ -172,6 +172,7 @@ en: {
   'vs.indicator': 'Metric', 'vs.intake': 'Intake', 'vs.goal': 'Goal', 'vs.progress': 'Progress',
   'metric.kcal': 'CALORIES', 'metric.prot': 'PROTEIN', 'metric.carb': 'CARBS', 'metric.azuc': 'SUGAR', 'metric.gras': 'FAT',
   'rings.title': 'Metric detail',
+  'rings.firstNote': 'Your rings are at zero because nothing is logged for this day yet. Each ring fills as you log meals and compares your day with your goal: kcal = the energy you eat · protein = builds and repairs muscle · carbohydrates = your main fuel · sugars = the one to keep under its limit · fat = essential fats. Tap a ring to see its detail.',
   'rings.contributions': 'Contributions',
   'rings.topContrib': 'Top contributor',
   'rings.ofDay': 'of the day',
@@ -250,7 +251,7 @@ en: {
   'appr.error': 'It could not be completed. Please try again.',
   'progress.title': '📸 My progress',
   'progress.sub': '· photos every 15 days: front, side and back',
-  'progress.hint': 'They\'re private: only you can see them. Take a new evaluation every 15 days: front, side and back. Whenever you want, ask your assistant to compare two evaluations and tell you what change it notices.',
+  'progress.hint': 'Your progress photos (front, side and back). Who can see them: only you, your assigned trainer and the program\'s administrator — they are never public. Take a new evaluation every 15 days, and compare two of your evaluations yourself in the comparator in this same section.',
   'progress.week': 'This week',
   'progress.thisWeek': ' (this week)',
   'progress.front': 'Front',
@@ -286,6 +287,7 @@ en: {
   'eval.partialSaved': 'Partial progress saved ✓ — this is NOT yet a complete evaluation: it completes when everything required is in.',
   'eval.optionalNote': 'Every measure is optional unless YOU marked it required in the settings. Optional measures left empty never create pendings and never block completing the evaluation.',
   'eval.cycleLine': 'Evaluation cycle — last complete: {last} · next expected: {next}',
+  'eval.cycleExplain': 'Every 15 days you take a progress evaluation: front, side and back photos plus your body measures. The 15 days are counted from your last COMPLETE evaluation. Your first evaluation has no deadline — it is your starting point.',
   'cmp.title': '🔍 Compare evaluations',
   'cmp.first': 'First date',
   'cmp.second': 'Second date',
@@ -381,6 +383,11 @@ en: {
   'mealhelp.tapZoom': 'Tap to enlarge',
   'mealhelp.zoomed': 'Enlarged photo',
   'ai.analyze': 'Analyze the food',
+  'ai.introTitle': 'Analyze a meal from a photo',
+  'ai.introTake': '📷 Take or choose the photo',
+  'ai.photoNotSaved': '📷 Before you take the photo: food photos are NOT saved. A photo is used only for this analysis, in this moment — the app keeps the meal record (the foods and their values), never the picture. If you want to keep the photo, keep it in your phone\'s gallery as well.',
+  'ai.limitNote': 'Daily analysis limit: photo and text analyses share a daily counter (a complete analysis usually takes 2 requests: identify + calculate). If your account has a daily limit set and you reach it, photo and text analysis pause until the counter resets the next day — you can still log every meal by hand. If no limit is set for your account, there is no cap.',
+  'ai.scaleWhy': 'Why it matters whether a weight came from your scale: the scale gives the real weight, so the calculation rests on a measured fact. An estimate has a wider margin of error — that is why each amount keeps its badge (from your scale / estimated): so you and your trainer know which numbers are measured and which are estimated, and treat them with that honesty.',
   'ai.analyzing': 'Analyzing…',
   'ai.foodsFound': 'I found these foods:',
   'ai.foodsEditHint': 'You can fix a name or an amount, remove a food or add another one.',
@@ -502,7 +509,10 @@ en: {
   'err.mealMissing': 'Missing date or food.',
   'err.mealPhotoFail': 'Couldn\'t upload the photo; saved without photo.',
   'err.weightMissing': 'Missing date or valid weight.',
-  'msg.accountCreated': 'Account created. The administrator must approve it before you can sign in.',
+  'msg.accountCreated': 'Account created. It now waits for approval — see the note below.',
+  'reg.waitTitle': '✅ Your account was created — one step left: approval',
+  'reg.waitTrainer': 'Your account now waits for {name}, the trainer you chose, to approve it. Your trainer reviews new accounts personally; as soon as they approve you, just sign in with your email and password and you will go straight in — there is nothing else to send and no second form. We cannot promise an exact time: it depends on your trainer reviewing it. Meanwhile your account stays closed inside the app — that is normal, and nothing is wrong with your registration.',
+  'reg.waitAdmin': 'Your account now waits for approval: the administrator will assign you a trainer and approve your account. As soon as that happens, just sign in with your email and password and you will go straight in — there is nothing else to send and no second form. We cannot promise an exact time: it depends on the administrator reviewing it. Meanwhile your account stays closed inside the app — that is normal, and nothing is wrong with your registration.',
   'msg.resetSent': 'Reset email sent. It contains a link (not a code): tap the link and set your new password on the page that opens. Check your spam folder too.',
   'msg.approved': 'User approved.',
   'msg.revoked': 'Access removed.',
@@ -520,6 +530,7 @@ en: {
   'train.title': '🏋️ My training plan', 'train.loading': 'Loading your plan…',
   'train.none': 'Your trainer has not assigned you a plan yet.',
   'train.weekDone': 'Sessions completed this week: {n}',
+  'train.planFreq': 'Your plan: {n} days per week',
   'train.markDone': 'Mark as done today', 'train.doneToday': 'Done today ✓', 'train.undo': 'Undo',
   'train.view.rest': 'Rest', 'train.view.warmup': 'Warm-up', 'train.view.session': 'Session',
   'train.view.rpe': 'RPE', 'train.view.rpeNone': 'No RPE', 'train.view.exDone': 'Done',
@@ -624,6 +635,9 @@ en: {
   'train.prop.needEx': 'Choose an exercise first.',
   'train.prop.myTitle': '🗳️ My proposals',
   'train.prop.myEmpty': 'You have no proposals yet.',
+  'train.prop.stSent': 'Sent', 'train.prop.stSeen': 'Seen',
+  'train.prop.seenOn': 'Seen {date}',
+  'train.prop.statusHint': 'How to read these: Sent = your trainer has not opened it yet · Seen = they opened your proposals · Approved / Rejected = their decision. These notices live only inside the app — nothing is sent to your phone.',
   'train.prop.stPending': 'Pending', 'train.prop.stApproved': 'Approved', 'train.prop.stRejected': 'Rejected',
   'train.prop.addLine': 'Add {ex} · {day}',
   'train.prop.changeLine': 'Swap {old} → {ex} · {day}',
@@ -1022,6 +1036,7 @@ es: {
   'vs.indicator': 'Indicador', 'vs.intake': 'Consumo', 'vs.goal': 'Meta', 'vs.progress': 'Progreso',
   'metric.kcal': 'CALORÍAS', 'metric.prot': 'PROTEÍNA', 'metric.carb': 'CARBOHIDRATOS', 'metric.azuc': 'AZÚCARES', 'metric.gras': 'GRASAS',
   'rings.title': 'Detalle de la métrica',
+  'rings.firstNote': 'Tus anillos están en cero porque aún no hay nada registrado en este día. Cada anillo se llena según registras comidas y compara tu día con tu meta: kcal = la energía que comes · proteína = construye y repara el músculo · carbohidratos = tu combustible principal · azúcares = el que conviene mantener bajo su límite · grasas = grasas esenciales. Toca un anillo para ver su detalle.',
   'rings.contributions': 'Aportes',
   'rings.topContrib': 'Mayor aporte',
   'rings.ofDay': 'del día',
@@ -1100,7 +1115,7 @@ es: {
   'appr.error': 'No se pudo completar. Inténtalo de nuevo.',
   'progress.title': '📸 Mi progreso',
   'progress.sub': '· fotos cada 15 días: frente, costado y espalda',
-  'progress.hint': 'Son privadas: solo tú las ves. Haz una nueva evaluación cada 15 días: frente, costado y espalda. Cuando quieras, pídele a tu asistente que compare dos evaluaciones y te diga qué cambio nota.',
+  'progress.hint': 'Tus fotos de progreso (frente, costado y espalda). Quién puede verlas: solo tú, tu entrenador asignado y el administrador del programa; nunca son públicas. Haz una nueva evaluación cada 15 días, y compara dos de tus evaluaciones tú mismo en el comparador de esta misma sección.',
   'progress.week': 'Esta semana',
   'progress.thisWeek': ' (esta semana)',
   'progress.front': 'Frente',
@@ -1136,6 +1151,7 @@ es: {
   'eval.partialSaved': 'Avance guardado ✓ — aún NO es una evaluación completa: se completa cuando esté todo lo requerido.',
   'eval.optionalNote': 'Toda medida es opcional salvo las que TÚ marcaste como requeridas en la configuración. Las opcionales vacías nunca crean pendientes ni bloquean completar la evaluación.',
   'eval.cycleLine': 'Ciclo de evaluación — última completa: {last} · próxima prevista: {next}',
+  'eval.cycleExplain': 'Cada 15 días te toca una evaluación de progreso: fotos de frente, costado y espalda, más tus medidas corporales. Los 15 días se cuentan desde tu última evaluación COMPLETA. Tu primera evaluación no tiene fecha límite: es tu punto de partida.',
   'cmp.title': '🔍 Comparar evaluaciones',
   'cmp.first': 'Primera fecha',
   'cmp.second': 'Segunda fecha',
@@ -1231,6 +1247,11 @@ es: {
   'mealhelp.tapZoom': 'Toca para ampliar',
   'mealhelp.zoomed': 'Foto ampliada',
   'ai.analyze': 'Analiza la comida',
+  'ai.introTitle': 'Analizar una comida desde una foto',
+  'ai.introTake': '📷 Tomar o elegir la foto',
+  'ai.photoNotSaved': '📷 Antes de tomar la foto: las fotos de comida NO se guardan. Una foto se usa solo para este análisis, en este momento: la app conserva el registro de la comida (los alimentos y sus valores), nunca la imagen. Si quieres conservar la foto, guárdala también en la galería de tu teléfono.',
+  'ai.limitNote': 'Límite diario de análisis: los análisis por foto y por texto comparten un contador diario (un análisis completo suele llevar 2 peticiones: identificar + calcular). Si tu cuenta tiene un límite diario fijado y lo alcanzas, el análisis por foto y por texto se pausa hasta que el contador se reinicia al día siguiente; puedes seguir registrando cada comida a mano. Si tu cuenta no tiene límite fijado, no hay tope.',
+  'ai.scaleWhy': 'Por qué importa si un peso era de báscula: la báscula da el peso real, así que el cálculo se apoya en un dato medido. Un estimado tiene más margen de error; por eso cada cantidad conserva su insignia (de tu báscula / estimado): para que tú y tu entrenador sepáis qué números son medidos y cuáles estimados, y los tratéis con esa honestidad.',
   'ai.analyzing': 'Analizando…',
   'ai.foodsFound': 'Encontré estos alimentos:',
   'ai.foodsEditHint': 'Puedes corregir un nombre o una cantidad, quitar un alimento o añadir otro.',
@@ -1352,7 +1373,10 @@ es: {
   'err.mealMissing': 'Faltan fecha o alimento.',
   'err.mealPhotoFail': 'No se pudo subir la foto; se guarda sin foto.',
   'err.weightMissing': 'Faltan fecha o peso válido.',
-  'msg.accountCreated': 'Cuenta creada. El administrador debe aprobarla antes de que puedas entrar.',
+  'msg.accountCreated': 'Cuenta creada. Ahora espera aprobación: lee la nota de abajo.',
+  'reg.waitTitle': '✅ Tu cuenta fue creada: falta un paso, la aprobación',
+  'reg.waitTrainer': 'Tu cuenta ahora espera a que {name}, el entrenador que elegiste, la apruebe. Tu entrenador revisa las cuentas nuevas personalmente; en cuanto te apruebe, entra con tu correo y tu contraseña y pasarás directo: no hay nada más que enviar ni un segundo formulario. No podemos prometer un plazo exacto: depende de que tu entrenador lo revise. Mientras tanto tu cuenta permanece cerrada dentro de la app: es normal y no hay nada malo en tu registro.',
+  'reg.waitAdmin': 'Tu cuenta ahora espera aprobación: el administrador te asignará un entrenador y aprobará tu cuenta. En cuanto eso ocurra, entra con tu correo y tu contraseña y pasarás directo: no hay nada más que enviar ni un segundo formulario. No podemos prometer un plazo exacto: depende de que el administrador lo revise. Mientras tanto tu cuenta permanece cerrada dentro de la app: es normal y no hay nada malo en tu registro.',
   'msg.resetSent': 'Correo enviado. Contiene un enlace (no un código): toca el enlace y escribe tu nueva contraseña en la página que se abre. Revisa también tu carpeta de spam.',
   'msg.approved': 'Usuario aprobado.',
   'msg.revoked': 'Acceso retirado.',
@@ -1370,6 +1394,7 @@ es: {
   'train.title': '🏋️ Mi plan de entrenamiento', 'train.loading': 'Cargando tu plan…',
   'train.none': 'Tu entrenador aún no te ha asignado un plan.',
   'train.weekDone': 'Sesiones completadas esta semana: {n}',
+  'train.planFreq': 'Tu plan: {n} días por semana',
   'train.markDone': 'Marcar como hecho hoy', 'train.doneToday': 'Hecho hoy ✓', 'train.undo': 'Deshacer',
   'train.view.rest': 'Descanso', 'train.view.warmup': 'Aproximación', 'train.view.session': 'Sesión',
   'train.view.rpe': 'RPE', 'train.view.rpeNone': 'Sin RPE', 'train.view.exDone': 'Hecho',
@@ -1474,6 +1499,9 @@ es: {
   'train.prop.needEx': 'Elige primero un ejercicio.',
   'train.prop.myTitle': '🗳️ Mis propuestas',
   'train.prop.myEmpty': 'Todavía no tienes propuestas.',
+  'train.prop.stSent': 'Enviada', 'train.prop.stSeen': 'Vista',
+  'train.prop.seenOn': 'Vista el {date}',
+  'train.prop.statusHint': 'Cómo leerlos: Enviada = tu entrenador aún no la ha abierto · Vista = ya abrió tus propuestas · Aprobada / Rechazada = su decisión. Estos avisos viven solo dentro de la app: no se envía nada a tu teléfono.',
   'train.prop.stPending': 'Pendiente', 'train.prop.stApproved': 'Aprobada', 'train.prop.stRejected': 'Rechazada',
   'train.prop.addLine': 'Añadir {ex} · {day}',
   'train.prop.changeLine': 'Cambiar {old} → {ex} · {day}',
@@ -1782,6 +1810,21 @@ es: {
 };
 let LANG = 'en';
 try { const _l = localStorage.getItem('ronbo-nutri-lang'); if (_l === 'es' || _l === 'en') LANG = _l; } catch (e) {}
+/* UX10-1 (piloto, 2026-10-23): primer arranque SIN elección guardada —
+   la app abre en el idioma del teléfono (navigator.language): español
+   si el teléfono está en español, inglés en cualquier otro caso. La
+   elección manual del selector manda siempre: setLang() la persiste
+   en localStorage y esta detección solo corre cuando no hay nada
+   guardado, así que nunca sobrescribe la elección del usuario. */
+if (LANG === 'en') {
+  try {
+    const _saved = localStorage.getItem('ronbo-nutri-lang');
+    if (!_saved) {
+      const _nav = String((navigator && (navigator.language || (navigator.languages || [])[0])) || '').toLowerCase();
+      if (_nav.startsWith('es')) LANG = 'es';
+    }
+  } catch (e) {}
+}
 function t(k, vars) {
   let s = (STR[LANG] && STR[LANG][k] !== undefined) ? STR[LANG][k] : STR.en[k];
   if (s === undefined) s = k;
@@ -1996,6 +2039,23 @@ $('form-register').addEventListener('submit', async e => {
     await signOut(auth);
     suppressAuthCheck = false;
     showRegError('');
+    /* UX10-2 (piloto, 2026-10-23): expectativas de aprobación EN LA
+       PANTALLA, no solo el toast — qué pasa ahora, quién aprueba (el
+       entrenador elegido o el administrador si quedó en espera), qué
+       puede hacer mientras tanto (entrar en cuanto lo aprueben, sin
+       ningún paso más) y NINGÚN plazo prometido: el texto dice
+       expresamente que no se puede prometer un tiempo exacto. La
+       tarjeta vive fuera de los formularios y sigue visible tras
+       pasar a la pestaña de entrar. */
+    const rw = $('reg-waiting');
+    if (rw) {
+      const selT = $('reg-trainer');
+      const tName = (selT && selT.selectedIndex >= 0) ? (selT.options[selT.selectedIndex].textContent || '').trim() : '';
+      rw.innerHTML = `<b>${esc(t('reg.waitTitle'))}</b>` +
+        (trainerChoice ? esc(t('reg.waitTrainer', { name: tName || t('roles.chooseTrainer') })) : esc(t('reg.waitAdmin')));
+      rw.style.display = '';
+      try { rw.scrollIntoView({ behavior: 'smooth', block: 'center' }); } catch {}
+    }
     toast(t('msg.accountCreated'), false);
     $('tab-login').click();
   } catch (err) {
@@ -3975,7 +4035,7 @@ function aiWireFailExtras() {
    revisión y mismo saveId, porque aiCalculate no crea estado nuevo. */
 function aiErrorCardHTML() {
   if (aiState.cap) {
-    return { html: `<p class="progress-hint">${t('ai.capReached')}</p><div class="ai-actions"><button type="button" class="btn-main btn-sm" id="ai-manual">${t('ai.continueManual')}</button><button type="button" class="btn-ghost btn-sm" id="ai-cancel">${t('ai.discard')}</button></div>`, extras: false };
+    return { html: `<p class="progress-hint">${t('ai.capReached')}</p><p class="progress-hint">${t('ai.limitNote')}</p><div class="ai-actions"><button type="button" class="btn-main btn-sm" id="ai-manual">${t('ai.continueManual')}</button><button type="button" class="btn-ghost btn-sm" id="ai-cancel">${t('ai.discard')}</button></div>`, extras: false };
   }
   const identify = aiState.errStage === 'identify';
   const canRetry = !identify || aiHasInput();
@@ -4013,6 +4073,21 @@ function aiKnownFoods() {
   if (aiState && aiState.foods && aiState.foods.length)
     return aiState.foods.filter(f => (f.name || '').trim()).map(f => ({ name: f.name.trim(), grams: aiEffGrams(f), unit: f.unit === 'unidad' ? 'unidad' : (f.unit === 'ml' ? 'ml' : 'g'), pieces: f.pieces, perPiece: f.perPiece, qsrc: (f.src && f.src.quantitySource) || null }));
   return ((aiState && aiState.r1 && aiState.r1.foods) || []).map(f => { const d = aiFoodFromIdentify(f); return { name: d.name, grams: num(d.grams), unit: d.unit, pieces: d.pieces, perPiece: d.perPiece, qsrc: f.quantitySource || null }; });
+}
+/* UX10-5: ¿está el tema báscula/estimado en juego en el paso de
+   preguntas? Sí si alguna cantidad trae procedencia declarada
+   (scale/estimate, en los alimentos editables o en la identificación
+   cruda) o si alguna pregunta rápida lo menciona en su texto o en
+   sus opciones (la pregunta de la báscula la formula el modelo, así
+   que la app la detecta por su contenido, no por un id fijo). */
+function aiScaleNoteApplies() {
+  if (!aiState || !aiState.r1) return false;
+  const fromFoods = (aiState.foods && aiState.foods.length)
+    ? aiState.foods.some(f => f.src && f.src.quantitySource)
+    : (aiState.r1.foods || []).some(f => f.quantitySource);
+  if (fromFoods) return true;
+  const rx = /báscula|bascula|scale|pesaste|pesado|pesar|weighed|weigh/i;
+  return (aiState.r1.questions || []).some(q => rx.test(String(q.text || '')) || (q.options || []).some(o => rx.test(String(o))));
 }
 /* Insignia de procedencia de UNA cantidad: solo se pinta cuando la
    identificación declaró procedencia (con el prompt histórico no llega
@@ -4132,7 +4207,13 @@ function aiRenderInner() {
       return `<div class="ai-food-row"><input type="text" class="ai-food-name" data-fi="${i}" value="${esc(f.name)}" placeholder="${t('form.food')}"><input type="number" class="ai-food-grams" data-fi="${i}" value="${qtyVal}" min="0" step="any" inputmode="decimal"><select class="ai-food-unit" data-fi="${i}" aria-label="g/ml/${t('ai.unitWord')}"><option value="g"${f.unit === 'g' ? ' selected' : ''}>g</option><option value="ml"${f.unit === 'ml' ? ' selected' : ''}>ml</option><option value="unidad"${isPz ? ' selected' : ''}>${t('ai.unitWord')}</option></select>${pieceBox}${qsrc === 'scale' ? aiQsrcBadge('scale') : (est ? `<span class="ai-est">${t('ai.estPortion')}</span>` : '')}<button type="button" class="btn-ghost btn-sm ai-food-del" data-fi="${i}" title="${t('ai.removeFood')}">✕</button></div>`;
     }).join('');
     const qhtml = qs.map((q, i) => `<div class="ai-q"><p>${esc(q.text)}</p>${(q.options || []).map(o => `<label class="ai-opt"><input type="radio" name="aiq${i}" value="${esc(o)}"${aiState.answers[q.id] === o ? ' checked' : ''}> ${esc(o)}</label>`).join('')}<label class="ai-opt"><input type="radio" name="aiq${i}" value="skipped"${aiState.answers[q.id] === 'skipped' ? ' checked' : ''}> ${t('ai.skipOption')}</label><input type="text" class="ai-other" data-qi="${i}" placeholder="${t('ai.otherLabel')}" value="${esc((aiState.other || {})[q.id] || '')}"></div>`).join('');
-    aiShow(`<h3>${t('ai.foodsFound')}</h3><p class="progress-hint">${t('ai.foodsEditHint')}</p>${list}<button type="button" class="btn-ghost btn-sm" id="ai-addfood">${t('ai.addFood')}</button>${qs.length ? `<h3>${t('ai.questionsTitle')}</h3>${qhtml}` : ''}${aiMealSelectHTML()}<div class="ai-actions"><button type="button" class="btn-main btn-sm" id="ai-continue">${t('ai.continue')}</button><button type="button" class="btn-ghost btn-sm" id="ai-cancel">${t('ai.discard')}</button></div>`);
+    /* UX10-5 (piloto, 2026-10-23): si el tema báscula/estimado está
+       en juego en ESTE paso (alguna cantidad trae procedencia o alguna
+       pregunta lo menciona), se explica en el propio paso por qué
+       importa: la báscula da el dato real; el estimado tiene más
+       margen de error y la app lo trata con esa honestidad. */
+    const scaleNote = aiScaleNoteApplies() ? `<p class="progress-hint">${t('ai.scaleWhy')}</p>` : '';
+    aiShow(`<h3>${t('ai.foodsFound')}</h3><p class="progress-hint">${t('ai.foodsEditHint')}</p>${list}<button type="button" class="btn-ghost btn-sm" id="ai-addfood">${t('ai.addFood')}</button>${qs.length ? `<h3>${t('ai.questionsTitle')}</h3>${scaleNote}${qhtml}` : ''}${aiMealSelectHTML()}<div class="ai-actions"><button type="button" class="btn-main btn-sm" id="ai-continue">${t('ai.continue')}</button><button type="button" class="btn-ghost btn-sm" id="ai-cancel">${t('ai.discard')}</button></div>`);
     aiWireMeal();
     p.querySelectorAll('input[type="radio"]').forEach(r => r.addEventListener('change', aiCaptureAnswers));
     p.querySelectorAll('.ai-other').forEach(r => r.addEventListener('input', aiCaptureAnswers));
@@ -4271,6 +4352,41 @@ if (aiFile) {
     aiStageShow();
   });
 }
+/* UX10-4 + UX10-6 (piloto, 2026-10-23): el flujo de foto ARRANCA con
+   una tarjeta previa, ANTES de capturar — el usuario del piloto se
+   sorprendió de noche de que la foto del desayuno «ya no estaba»:
+   la foto de comida NO se guarda y hay que saberlo antes de hacerla,
+   no solo en «Permisos y privacidad» (perm.photoNote, que se queda).
+   La misma tarjeta explica el tope diario de análisis tal como el
+   Worker M8 lo aplica de verdad (verificado en su código): contador
+   por usuario y día compartido por foto y texto (un análisis
+   completo suele gastar 2 peticiones: /identify o /identify-text +
+   /calculate); sin límite fijado en ningún nivel NO hay tope; al
+   alcanzarlo, foto y texto se pausan hasta el día siguiente y el
+   registro manual sigue disponible (no pasa por el Worker). */
+function aiIntroShow() {
+  if (!aiEndpoint()) { toast(t('ai.unavailable'), true); return; }
+  aiShow(`<h3>${t('ai.introTitle')}</h3><p class="progress-hint">${t('ai.photoNotSaved')}</p><p class="progress-hint">${t('ai.limitNote')}</p><div class="ai-actions"><button type="button" class="btn-main btn-sm" id="ai-intro-take">${t('ai.introTake')}</button><button type="button" class="btn-ghost btn-sm" id="ai-intro-cancel">${t('ai.discard')}</button></div>`);
+  const tk = $('ai-intro-take');
+  if (tk) tk.onclick = () => { const f = $('ai-file'); if (f) f.click(); };
+  const cc = $('ai-intro-cancel');
+  if (cc) cc.onclick = () => { if (aiStage) aiStageDiscard(); else aiClosePanel(); };
+}
+/* El botón redondo «Comida» del dock es un <label> que envuelve el
+   input de archivo: sin interceptar, tocarlo abre la cámara/galería
+   al instante y no existe ningún «antes de capturar». Se intercepta
+   SOLO el toque sobre el label (el target NO es el input); los clics
+   cuyo target ES el input (el botón «Tomar o elegir la foto» de la
+   tarjeta, «Añadir otra foto» y el reemplazo de miniaturas de la
+   preparación, y las baterías que fijan archivos sobre el input)
+   siguen el flujo de siempre, sin pasar por la tarjeta. */
+const foodDockLabel = $('btn-round-food');
+if (foodDockLabel) foodDockLabel.addEventListener('click', e => {
+  if (e.target && e.target.id === 'ai-file') return;
+  e.preventDefault();
+  aiIntroShow();
+});
+
 /* «Analizar la descripción con IA» (formulario manual, Ronald
    2026-10-22): la descripción escrita pasa a ser la identificación
    (aiStartText) y el resto del flujo es el del análisis de foto.
@@ -5442,6 +5558,7 @@ async function loadMyTraining() {
     <h3 class="history-title">${esc(plan.title || '')}</h3>
     ${plan.notes ? `<p class="progress-hint">${esc(plan.notes)}</p>` : ''}
     ${planPeriodText(plan) ? `<p class="progress-hint">${t('train.dates.clientLine', { period: esc(planPeriodText(plan)) })}</p>` : ''}
+    <p class="progress-hint">${t('train.planFreq', { n: (plan.days || []).length })}</p>
     <p class="progress-hint">${t('train.weekDone', { n: weekCount })}</p>
     <div style="margin:6px 0"><button class="btn-ghost btn-sm" id="btn-print-card">${t('train.print.btn')}</button></div>
     <div id="train-align-slot"></div>
@@ -5545,6 +5662,20 @@ function propStatusBadge(st) {
   const cls = st === 'approved' ? 'is-approved' : st === 'rejected' ? 'is-rejected' : 'is-pending';
   const lbl = st === 'approved' ? t('train.prop.stApproved') : st === 'rejected' ? t('train.prop.stRejected') : t('train.prop.stPending');
   return `<span class="prop-badge ${cls}">${lbl}</span>`;
+}
+/* UX10-10 (piloto, 2026-10-23): la insignia DEL CLIENTE distingue si
+   su entrenador ya vio la propuesta. El campo seenAt lo escribe el
+   entrenador al abrir la bandeja de propuestas del cliente
+   (loadClientProposals); sin seenAt y pendiente = «Enviada»; con
+   seenAt y pendiente = «Vista»; aprobada/rechazada mandan sobre el
+   visto (la decisión implica la lectura). La insignia de la bandeja
+   (propStatusBadge) no cambia: para el entrenador «Pendiente» sigue
+   siendo el estado accionable. */
+function propClientStatusBadge(p) {
+  if (p.status === 'approved') return propStatusBadge('approved');
+  if (p.status === 'rejected') return propStatusBadge('rejected');
+  if (propTs(p, 'seenAt')) return `<span class="prop-badge is-seen">${t('train.prop.stSeen')}</span>`;
+  return `<span class="prop-badge is-pending">${t('train.prop.stSent')}</span>`;
 }
 function propDetailLine(p) {
   return p.type === 'change'
@@ -5703,9 +5834,10 @@ async function renderMyProposals() {
   } catch {}
   mine.sort((a, b) => propTime(b) - propTime(a));
   box.innerHTML = `<h3 class="history-title">${t('train.prop.myTitle')}</h3>
+    <p class="progress-hint">${t('train.prop.statusHint')}</p>
     <div id="prop-form-slot"></div>
     ${MY_PLAN ? `<div style="margin-bottom:10px"><button type="button" class="btn-primary btn-sm" id="prop-new">${t('train.prop.formTitle')}</button></div>` : ''}
-    ${mine.length ? mine.map(p => `<div class="user-row prop-row"><div><b>${esc(propDetailLine(p))}</b> ${propStatusBadge(p.status)}<br><span class="muted">${t('train.prop.sentOn', { date: propDate(propTime(p)) })}${p.status !== 'pending' && propDecidedTime(p) ? ` · ${t('train.prop.decidedOn', { date: propDate(propDecidedTime(p)) })}` : ''}</span>${p.note ? `<div class="prop-note">“${esc(p.note)}”</div>` : ''}</div></div>`).join('')
+    ${mine.length ? mine.map(p => `<div class="user-row prop-row"><div><b>${esc(propDetailLine(p))}</b> ${propClientStatusBadge(p)}<br><span class="muted">${t('train.prop.sentOn', { date: propDate(propTime(p)) })}${p.status === 'pending' && propTs(p, 'seenAt') ? ` · ${t('train.prop.seenOn', { date: propDate(propTs(p, 'seenAt')) })}` : ''}${p.status !== 'pending' && propDecidedTime(p) ? ` · ${t('train.prop.decidedOn', { date: propDate(propDecidedTime(p)) })}` : ''}</span>${p.note ? `<div class="prop-note">“${esc(p.note)}”</div>` : ''}</div></div>`).join('')
       : `<div class="wempty compact">${t('train.prop.myEmpty')}</div>`}`;
   const nb = $('prop-new'); if (nb) nb.onclick = () => propOpenForm({});
   if (PROP_FORM) renderPropForm();
@@ -5722,6 +5854,20 @@ async function loadClientProposals(uid, plans) {
   } catch {}
   const rank = s => s === 'pending' ? 0 : 1;
   list.sort((a, b) => rank(a.status) - rank(b.status) || propTime(b) - propTime(a));
+  /* UX10-10: abrir la bandeja MARCA como vistas las propuestas
+     pendientes que aún no lo están (seenAt + seenBy, merge sobre el
+     propio documento — el mismo documento que la decisión ya
+     actualiza; jamás toca training_plans). Es la señal que el
+     cliente lee como «Vista». Si la escritura falla (p. ej. reglas
+     vivas sin la rama del entrenador asignado: ver el delta propio
+     ux10), la bandeja sigue funcionando igual y la marca simplemente
+     no persiste — no se finge un visto que no quedó escrito. */
+  list.filter(p => p.status === 'pending' && !propTs(p, 'seenAt')).forEach(p => {
+    p.seenAt = { toMillis: () => Date.now() };
+    try {
+      setDoc(doc(db, 'nutrition_progress', p.id), { seenAt: serverTimestamp(), seenBy: auth.currentUser.uid }, { merge: true }).catch(() => {});
+    } catch {}
+  });
   box.innerHTML = `<h3 class="history-title">${t('train.prop.trayTitle')}</h3>
     ${list.length ? list.map(p => propTrayCardHTML(p)).join('') : `<div class="wempty">${t('train.prop.trayEmpty')}</div>`}`;
   box.querySelectorAll('[data-prop-decide]').forEach(b => b.onclick = async () => {
@@ -7183,6 +7329,16 @@ function render(date) {
   }).join('');
   document.querySelectorAll('[data-ring]').forEach(b =>
     b.onclick = () => openRingDetail(b.dataset.ring, date));
+  /* UX10-3 (piloto, 2026-10-23): con el día en cero (el primer día,
+     antes de registrar nada), una explicación corta y no invasiva de
+     qué es cada anillo, bajo la fila de anillos. En cuanto el día
+     tiene cualquier consumo, la nota desaparece. */
+  const rn = $('rings-note');
+  if (rn) {
+    const allZero = METRICS.every(m => !(vals[m.key] > 0));
+    rn.textContent = allZero ? t('rings.firstNote') : '';
+    rn.style.display = allZero ? '' : 'none';
+  }
   renderWeekChart(date);
   /* ORDEN DESCENDENTE + HORA (Ronald, 2026-10-23): el «Detalle de lo
      consumido» se pinta de la comida registrada MÁS RECIENTE a la más
@@ -7937,6 +8093,12 @@ function renderEval() {
   const cycleLast = lastC ? dateName(lastC) : t('eval.cycleLastNone');
   const cycleNext = due ? dateName(due) : t('eval.cycleNextFirst');
   card += `<p class="eval-detail eval-cycle">${esc(t('eval.cycleLine', { last: cycleLast, next: cycleNext }))}</p>`;
+  /* UX10-7 (piloto, 2026-10-23): la explicación del ciclo, en la app:
+     cada 15 días toca evaluación con fotos y medidas, contados desde
+     la última COMPLETA (así lo calcula evalNextDue: ancla + 15 días);
+     la primera no tiene fecha límite. Va en la tarjeta del ciclo,
+     junto a las fechas, no escondida en una ayuda. */
+  card += `<p class="eval-detail">${esc(t('eval.cycleExplain'))}</p>`;
   const canOmit = !complete && (isFirst || (due && today >= due));
   if (canOmit) card += `<div class="eval-actions"><button type="button" class="btn-ghost btn-sm" id="eval-omit-btn">${esc(t('eval.omitBtn'))}</button></div>`;
 
@@ -7951,7 +8113,13 @@ function renderEval() {
       + `<span class="eval-guide">${esc(t('eval.guide.' + m.id))}</span></div>`;
   }).join('');
   const reqChecks = EVAL_MEASURES.map(m => `<label class="eval-check"><input type="checkbox" data-eval-req="${m.id}" ${(EVAL_CFG.requiredMeasures || []).includes(m.id) ? 'checked' : ''}> ${esc(t('eval.measure.' + m.id))}</label>`).join('');
+  /* UX10-MÁS (piloto, 2026-10-23): el comparador del cliente sube a
+     justo después de la tarjeta del ciclo — antes vivía al FINAL de
+     toda la vista (tras medidas, ficha, composición y configuración)
+     y había que cavar para encontrarlo. renderCmpClient() lo rellena
+     igual: solo cambia su posición en el DOM. */
   root.innerHTML = `<div class="eval-card" id="eval-card">${card}</div>`
+    + `<div id="cmp-root"></div>`
     + `<div class="eval-block"><p class="eval-ficha-title">${esc(t('eval.measuresTitle'))} · ${esc(dateName(S))}</p>`
     + `<div class="eval-form">${formRows}</div>`
     + (compBlocked ? `<p class="eval-detail">${esc(t('compacc.pctNote'))}</p>` : '')
@@ -7964,8 +8132,7 @@ function renderEval() {
     + `<p class="eval-cfg-group">${esc(t('eval.cfgUnits'))}</p>`
     + `<label class="eval-check"><input type="radio" name="eval-units" value="metric" ${EVAL_CFG.units !== 'imperial' ? 'checked' : ''}> ${esc(t('eval.unitsMetric'))}</label>`
     + `<label class="eval-check"><input type="radio" name="eval-units" value="imperial" ${EVAL_CFG.units === 'imperial' ? 'checked' : ''}> ${esc(t('eval.unitsImperial'))}</label>`
-    + `<div class="eval-actions"><button type="button" class="btn-ghost btn-sm" id="eval-save-config">${esc(t('eval.cfgSave'))}</button></div></div>`
-    + `<div id="cmp-root"></div>`;
+    + `<div class="eval-actions"><button type="button" class="btn-ghost btn-sm" id="eval-save-config">${esc(t('eval.cfgSave'))}</button></div></div>`;
   const omitBtn = $('eval-omit-btn'); if (omitBtn) omitBtn.onclick = evalOmitCycle;
   const saveBtn = $('eval-save-measures'); if (saveBtn) saveBtn.onclick = evalSaveMeasures;
   const cfgBtn = $('eval-save-config'); if (cfgBtn) cfgBtn.onclick = evalSaveConfig;
