@@ -6,7 +6,7 @@
 # preparacion-local/firestore.rules.candidato-s1-2026-10-23.rules
 # (SHA-256 a292011a…; delta SOLO S-1 sobre el texto vivo e5efaef2).
 # Corrida 2026-10-24 (UX10): la batería corre sobre el texto final
-# compuesto preparacion-local/firestore.rules.candidato-somatotipo-final-2026-10-24.rules
+# compuesto preparacion-local/firestore.rules.candidato-actividad-final-2026-10-24.rules
 # (SHA-256 e114e69c…), que conserva el delta S-1 íntegro.
 #
 # INSTALACIÓN (paso futuro, junto con la composición/publicación):

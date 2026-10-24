@@ -290,6 +290,39 @@ service cloud.firestore {
         && exists(/databases/$(database)/documents/users/$(ownerUid))
         && get(/databases/$(database)/documents/users/$(ownerUid)).data.get('trainerUid', '') == request.auth.uid;
     }
+    // Candidato actividad (2026-10-24, NO publicado): lista de
+    // claves CERRADA del documento de actividad diaria.
+    function actKeysOk() {
+      return request.resource.data.keys().hasOnly(['ownerUid', 'date', 'steps',
+        'stepKcal', 'stepKm', 'weightKgUsed', 'weightDateUsed', 'activities',
+        'kcalExtraTotal', 'createdAt', 'updatedAt']);
+    }
+    // Candidato actividad: forma de primer nivel — dueño = quien
+    // pide, docId atado al contenido, fecha con formato y rango,
+    // cotas de pasos/km/kcal y tamaño del array. La validación
+    // fina por actividad vive en la app (las reglas no iteran).
+    function actShapeOk(docId) {
+      return request.resource.data.ownerUid == request.auth.uid
+        && docId == request.resource.data.ownerUid + '_' + request.resource.data.date
+        && request.resource.data.date is string
+        && request.resource.data.date.matches('[0-9]{4}-[0-9]{2}-[0-9]{2}')
+        && request.resource.data.date >= '2020-01-01'
+        && request.resource.data.date <= '2100-01-01'
+        && request.resource.data.steps is int
+        && request.resource.data.steps >= 0 && request.resource.data.steps <= 200000
+        && request.resource.data.stepKcal is number
+        && request.resource.data.stepKcal >= 0 && request.resource.data.stepKcal <= 20000
+        && request.resource.data.stepKm is number
+        && request.resource.data.stepKm >= 0 && request.resource.data.stepKm <= 1000
+        && request.resource.data.weightKgUsed is number
+        && request.resource.data.weightKgUsed > 0 && request.resource.data.weightKgUsed <= 1000
+        && request.resource.data.weightDateUsed is string
+        && request.resource.data.weightDateUsed.matches('[0-9]{4}-[0-9]{2}-[0-9]{2}')
+        && request.resource.data.activities is list
+        && request.resource.data.activities.size() <= 20
+        && request.resource.data.kcalExtraTotal is number
+        && request.resource.data.kcalExtraTotal >= 0 && request.resource.data.kcalExtraTotal <= 50000;
+    }
     // Candidato N-07 (2026-10-23, NO publicado): ¿quien pide es un
     // entrenador (role exacto 'entrenador')?
     function isTrainerUser() {
@@ -949,6 +982,31 @@ service cloud.firestore {
         || isAssignedTrainerOf(resource.data.clientUid);
       allow delete: if isOwnerUser()
         || (signedIn() && resource.data.clientUid == request.auth.uid);
+    }
+
+    // ---------- Registro de actividad (candidato 2026-10-24) ----------
+    // Un documento por usuario y día: {ownerUid}_{yyyy-MM-dd}; el
+    // docId queda ATADO al contenido (ownerUid + '_' + date).
+    match /activity_logs/{docId} {
+      allow get: if isOwnerUser()
+        || (resource != null && isAssignedTrainerOf(resource.data.ownerUid))
+        || (isApprovedUser() && (resource == null
+          ? docId.matches(request.auth.uid + '_[0-9]{4}-[0-9]{2}-[0-9]{2}')
+          : resource.data.ownerUid == request.auth.uid));
+      allow list: if isOwnerUser()
+        || (isApprovedUser() && resource.data.ownerUid == request.auth.uid)
+        || isAssignedTrainerOf(resource.data.ownerUid);
+      allow create: if isApprovedUser()
+        && actKeysOk() && actShapeOk(docId)
+        && request.resource.data.createdAt == request.time
+        && request.resource.data.updatedAt == request.time;
+      allow update: if isApprovedUser()
+        && resource.data.ownerUid == request.auth.uid
+        && actKeysOk() && actShapeOk(docId)
+        && request.resource.data.createdAt == resource.data.createdAt
+        && request.resource.data.updatedAt == request.time;
+      allow delete: if isOwnerUser()
+        || (signedIn() && resource.data.ownerUid == request.auth.uid);
     }
 
     // ---------- Consent receipts (A2) ----------
