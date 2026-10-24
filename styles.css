@@ -994,6 +994,9 @@ div > .btn-ghost:only-child, div > .btn-main:only-child {
 /* Composición corporal solo por el entrenador (2026-10-23, desarrollo) */
 .compacc-notice { background:#fef3c7; border:1px solid #f59e0b; color:#92400e; border-radius:10px; padding:10px 12px; font-size:13px; margin:8px 0; }
 .compacc-box { margin:14px 0; }
+/* Módulo Nivel 2 (desarrollo): estimación visual de tipo corporal. */
+.bt-badge { display:inline-block; font-size:11px; font-weight:700; letter-spacing:.04em; color:#92400e; background:#fef3c7; border:1px solid #f59e0b; border-radius:999px; padding:2px 8px; margin-bottom:6px; }
+.bt-est { border:1px solid #e5e7eb; border-radius:10px; padding:10px 12px; margin:8px 0; background:#f9fafb; font-size:14px; }
 .compacc-hist-row { display:flex; justify-content:space-between; gap:10px; font-size:13px; padding:4px 0; border-bottom:1px solid #eef2f7; }
 
 /* Pieza usabilidad 2026-10-23 (desarrollo): guía con cinta, nota de

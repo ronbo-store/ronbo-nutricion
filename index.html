@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>ronbo.nutri · Private</title>
 <meta name="robots" content="noindex, nofollow">
-<link rel="stylesheet" href="styles.css?v=20261024-unidades">
+<link rel="stylesheet" href="styles.css?v=20261024-somatotipo">
 <script type="importmap">
 {
   "imports": {
@@ -282,6 +282,17 @@
         <h3 class="perms-section-title" data-i18n="fa.zone">🔒 My private space</h3>
         <p class="progress-hint" data-i18n="fa.zoneSub">Only you can see what you keep here.</p>
         <div id="energy-panel-body"><div class="wempty" data-i18n="train.loading">Loading…</div></div>
+      </div>
+      <!-- MÓDULO NIVEL 2 (desplegado 2026-10-24): estimación
+           visual de tipo corporal. La sección nace oculta y solo
+           la muestra renderBtPanel() para las cuentas del piloto
+           (propietario + «Prueba Ronald»). Todo el texto se
+           renderiza desde STR (bt.*) con paridad ES/EN;
+           consentimiento específico propio con el texto final
+           aprobado por Ronald el 2026-10-24. -->
+      <div class="perms-section" id="bt-section" style="display:none">
+        <h3 class="perms-section-title" data-i18n="bt.title">Visual body type estimate</h3>
+        <div id="bt-panel-body"></div>
       </div>
       <div class="perms-section privacy-panel" id="privacy-section">
         <h3 class="perms-section-title" data-i18n="priv.sectionTitle">Privacy &amp; data</h3>
@@ -639,6 +650,6 @@
 <div id="toast" class="toast"></div>
 <div id="print-card" aria-hidden="true"></div>
 
-<script type="module" src="app.js?v=20261024-pendenergia"></script>
+<script type="module" src="app.js?v=20261024-somatotipo"></script>
 </body>
 </html>

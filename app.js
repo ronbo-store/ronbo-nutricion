@@ -732,6 +732,57 @@ en: {
   'client.noWeight': 'This client hasn\'t logged their weight yet.',
   'client.edit': 'Edit',
   'client.reviewed': '✓ Reviewed',
+  'bt.title': 'Visual body type estimate',
+  'bt.draftBadge': 'DRAFT — pending legal validation (D-06/D-14)',
+  'bt.draftNotice': 'This consent text is a draft. It is not a final, legally validated version.',
+  'bt.pilotNote': 'Development pilot only: this feature is enabled only for the owner account and the “Prueba Ronald” test account until a separate launch decision.',
+  'bt.providerNone': 'Provider status (D-09): the current paid Gemini service was checked against Google’s official terms. Google does not use paid-service prompts or files to improve its products, but it does log prompts and responses for a limited period for abuse monitoring. That does not meet this module’s no-storage requirement, so Gemini is NOT approved for body photos here and no alternative provider has been connected.',
+  'bt.consentIntro': 'A separate, specific and revocable consent for analyzing photos of your body with artificial intelligence.',
+  'bt.consentText': 'I authorize RONBO.NUTRI to analyze my progress body photos (front, side and back) and my recorded physical measurements using an artificial-intelligence system, solely to estimate my body type as a reference for my trainer when setting training and nutrition goals. I understand that: this is a visual estimate, not a medical diagnosis or clinical assessment, and it can place me in the wrong category; my body photos may be transmitted to an analysis provider only after a provider has been approved for this use — at the time of this draft, NO provider is approved and NO analysis can run; I may revoke this consent at any time in the app, and revoking it immediately blocks new analyses and all access to estimates already generated (their physical deletion or retention period is still pending legal validation D-06); my assigned trainer and the platform administrator can see the estimate while this consent is active; and I will see my own estimate only if my trainer shares it with me.',
+  'bt.consentCheck': 'I declare that I am 18 years or older and I give this specific consent.',
+  'bt.statusNone': 'You have not given this specific consent. Without it, no body-photo analysis can run and no estimate can be shown.',
+  'bt.statusActive': 'This specific consent is active (draft version {v} · accepted {date}).',
+  'bt.statusWithdrawn': 'This specific consent is withdrawn. New analyses and all access to estimates already generated are blocked.',
+  'bt.grant': 'Give my specific consent (body photos)',
+  'bt.renew': 'Renew my specific consent (body photos)',
+  'bt.withdraw': 'Withdraw my specific consent (body photos)',
+  'bt.withdrawConfirm': 'Withdraw this SPECIFIC consent for body-photo analysis? New analyses will stop and all access to estimates already generated will be blocked immediately. Their physical deletion or retention period is still pending legal validation (D-06).',
+  'bt.granted': 'Your specific consent for body-photo analysis has been recorded.',
+  'bt.renewed': 'Your specific consent for body-photo analysis has been renewed.',
+  'bt.withdrawnToast': 'Your specific consent for body-photo analysis has been withdrawn. Access to the estimates is blocked.',
+  'bt.needConsent': 'This client does not have an active specific consent for body-photo analysis.',
+  'bt.sharedTitle': 'Estimates shared with you',
+  'bt.noShared': 'No estimate has been shared with you yet.',
+  'bt.blockedNote': 'Estimates already generated are not shown while this consent is not active.',
+  'bt.category.ectomorph': 'Ectomorph-leaning build',
+  'bt.category.mesomorph': 'Mesomorph-leaning build',
+  'bt.category.endomorph': 'Endomorph-leaning build',
+  'bt.estimateLine': '{category} · {date}',
+  'bt.mixLine': 'Visual mix: ectomorph {e}% · mesomorph {m}% · endomorph {n}%',
+  'bt.margin': 'Estimate with margin: it may be off by one category.',
+  'bt.notDiagnosis': 'Not a diagnosis and not a Heath-Carter measurement.',
+  'bt.trainerTitle': 'Visual body type estimate',
+  'bt.consentSignal': 'Specific body-photo consent: {v}',
+  'bt.active': 'Active',
+  'bt.inactive': 'Not active',
+  'bt.sourceLine': 'Source evaluation: {date} (front, side and back photos on file).',
+  'bt.sourceMissing': 'One or more source photo records are no longer available; this estimate’s origin is incomplete.',
+  'bt.noCompleteSet': 'No complete photo set (front, side and back) is available for this client yet.',
+  'bt.request': 'Request visual body type estimate',
+  'bt.requesting': 'Requesting…',
+  'bt.noEstimates': 'No estimates have been generated for this client yet.',
+  'bt.share': 'Share with the client',
+  'bt.unshare': 'Stop sharing',
+  'bt.sharedState': 'Shared with the client',
+  'bt.privateState': 'Not shared with the client',
+  'bt.providerUnavailable': 'No provider is approved for body photos, so no photo was sent and no estimate was generated.',
+  'bt.invalidProvider': 'The provider returned an invalid estimate, so nothing was saved.',
+  'bt.saved': 'Visual body type estimate saved.',
+  'bt.loadError': 'The visual body type estimates could not be loaded.',
+  'bt.trainerNote': 'Trainer reference only. This estimate never feeds exercise ratings, training plans or goals automatically.',
+  'bt.consentSummary': 'Summary: a separate consent for analyzing your body photos and measurements to estimate your body type. The full draft text, which is the one shown for acceptance, appears next to the checkbox below.',
+  'bt.fullTextTitle': 'Full draft consent text',
+  'bt.versionMismatch': 'The recorded consent uses a different draft version, so it is treated as inactive.',
   'fb3.title': '🧮 Protein reference (B-1)',
   'fb3.range': '{lo}–{hi} g/day',
   'fb3.basis': 'Based on the latest weight: {w} kg · {date}',
@@ -1600,6 +1651,57 @@ es: {
   'client.noWeight': 'Este cliente aún no sube su peso.',
   'client.edit': 'Editar',
   'client.reviewed': '✓ Revisada',
+  'bt.title': 'Estimación visual de tipo corporal',
+  'bt.draftBadge': 'BORRADOR — validación jurídica pendiente (D-06/D-14)',
+  'bt.draftNotice': 'Este texto de consentimiento es un borrador. No es una versión final validada jurídicamente.',
+  'bt.pilotNote': 'Piloto solo en desarrollo: esta función está habilitada únicamente para la cuenta del propietario y la cuenta de prueba «Prueba Ronald» hasta una decisión de lanzamiento separada.',
+  'bt.providerNone': 'Estado del proveedor (D-09): el servicio actual de Gemini en nivel pagado se contrastó con los términos oficiales de Google. Google no usa las instrucciones ni los archivos de los servicios pagados para mejorar sus productos, pero SÍ registra las instrucciones y las respuestas durante un periodo limitado para vigilar abusos. Eso no cumple el requisito de no guardar de este módulo, así que Gemini NO está aprobado aquí para fotos corporales y no se ha conectado ningún proveedor alternativo.',
+  'bt.consentIntro': 'Un consentimiento específico, independiente y revocable para analizar fotos de tu cuerpo con inteligencia artificial.',
+  'bt.consentText': 'Autorizo a RONBO.NUTRI a analizar mis fotografías corporales de progreso (frente, costado y espalda) y mis medidas físicas registradas, mediante un sistema de inteligencia artificial, con el único fin de estimar mi tipo de cuerpo como referencia para mi entrenador al establecer metas de entrenamiento y alimentación. Entiendo que: esta es una estimación visual, no un diagnóstico médico ni una evaluación clínica, y puede ubicarme en la categoría equivocada; mis fotos corporales solo podrán transmitirse a un proveedor de análisis cuando un proveedor haya sido aprobado para este uso — en el momento de este borrador NO hay ningún proveedor aprobado y NO puede ejecutarse ningún análisis; puedo revocar este consentimiento en cualquier momento desde la app, y al revocarlo se bloquean de inmediato los nuevos análisis y todo acceso a las estimaciones ya generadas (su eliminación física o plazo de conservación sigue pendiente de la validación jurídica D-06); mi entrenador asignado y el administrador de la plataforma pueden ver la estimación mientras este consentimiento esté activo; y yo veré mi propia estimación solo si mi entrenador la comparte conmigo.',
+  'bt.consentCheck': 'Declaro que tengo 18 años o más y doy este consentimiento específico.',
+  'bt.statusNone': 'No has dado este consentimiento específico. Sin él, no puede ejecutarse ningún análisis de fotos corporales ni mostrarse ninguna estimación.',
+  'bt.statusActive': 'Este consentimiento específico está activo (versión borrador {v} · aceptado el {date}).',
+  'bt.statusWithdrawn': 'Este consentimiento específico está retirado. Los nuevos análisis y todo acceso a las estimaciones ya generadas están bloqueados.',
+  'bt.grant': 'Dar mi consentimiento específico (fotos corporales)',
+  'bt.renew': 'Renovar mi consentimiento específico (fotos corporales)',
+  'bt.withdraw': 'Retirar mi consentimiento específico (fotos corporales)',
+  'bt.withdrawConfirm': '¿Retirar este consentimiento ESPECÍFICO para el análisis de fotos corporales? Los nuevos análisis se detendrán y todo acceso a las estimaciones ya generadas se bloqueará de inmediato. Su eliminación física o plazo de conservación sigue pendiente de la validación jurídica (D-06).',
+  'bt.granted': 'Tu consentimiento específico para el análisis de fotos corporales ha quedado registrado.',
+  'bt.renewed': 'Tu consentimiento específico para el análisis de fotos corporales ha sido renovado.',
+  'bt.withdrawnToast': 'Tu consentimiento específico para el análisis de fotos corporales ha sido retirado. El acceso a las estimaciones está bloqueado.',
+  'bt.needConsent': 'Este cliente no tiene un consentimiento específico activo para el análisis de fotos corporales.',
+  'bt.sharedTitle': 'Estimaciones compartidas contigo',
+  'bt.noShared': 'Todavía no se ha compartido ninguna estimación contigo.',
+  'bt.blockedNote': 'Las estimaciones ya generadas no se muestran mientras este consentimiento no esté activo.',
+  'bt.category.ectomorph': 'Constitución con predominio ectomorfo',
+  'bt.category.mesomorph': 'Constitución con predominio mesomorfo',
+  'bt.category.endomorph': 'Constitución con predominio endomorfo',
+  'bt.estimateLine': '{category} · {date}',
+  'bt.mixLine': 'Mezcla visual: ectomorfo {e}% · mesomorfo {m}% · endomorfo {n}%',
+  'bt.margin': 'Estimación con margen: puede equivocarse por una categoría.',
+  'bt.notDiagnosis': 'No es un diagnóstico ni una medición Heath-Carter.',
+  'bt.trainerTitle': 'Estimación visual de tipo corporal',
+  'bt.consentSignal': 'Consentimiento específico de fotos corporales: {v}',
+  'bt.active': 'Activo',
+  'bt.inactive': 'No activo',
+  'bt.sourceLine': 'Evaluación de origen: {date} (fotos de frente, costado y espalda registradas).',
+  'bt.sourceMissing': 'Uno o más registros de las fotos de origen ya no están disponibles; el origen de esta estimación está incompleto.',
+  'bt.noCompleteSet': 'Todavía no hay un juego completo de fotos (frente, costado y espalda) para este cliente.',
+  'bt.request': 'Solicitar estimación visual de tipo corporal',
+  'bt.requesting': 'Solicitando…',
+  'bt.noEstimates': 'Todavía no se han generado estimaciones para este cliente.',
+  'bt.share': 'Compartir con el cliente',
+  'bt.unshare': 'Dejar de compartir',
+  'bt.sharedState': 'Compartida con el cliente',
+  'bt.privateState': 'No compartida con el cliente',
+  'bt.providerUnavailable': 'Ningún proveedor está aprobado para fotos corporales, así que no se envió ninguna foto ni se generó ninguna estimación.',
+  'bt.invalidProvider': 'El proveedor devolvió una estimación no válida, así que no se guardó nada.',
+  'bt.saved': 'Estimación visual de tipo corporal guardada.',
+  'bt.loadError': 'No pudieron cargarse las estimaciones visuales de tipo corporal.',
+  'bt.trainerNote': 'Solo referencia para el entrenador. Esta estimación nunca alimenta automáticamente las valoraciones de ejercicios, los planes de entrenamiento ni las metas.',
+  'bt.consentSummary': 'Resumen: un consentimiento independiente para analizar tus fotos corporales y tus medidas para estimar tu tipo de cuerpo. El texto borrador completo, que es el que se muestra para aceptarlo, aparece junto a la casilla, abajo.',
+  'bt.fullTextTitle': 'Texto completo del consentimiento (borrador)',
+  'bt.versionMismatch': 'El consentimiento registrado usa otra versión borrador, así que se trata como no activo.',
   'fb3.title': '🧮 Referencia de proteína (B-1)',
   'fb3.range': '{lo}–{hi} g/día',
   'fb3.basis': 'Con el último peso: {w} kg · {date}',
@@ -3068,6 +3170,7 @@ async function openClient(uid) {
       <tbody>${rows}</tbody></table></div>` : ''}
     ${fb3ProteinHTML(data)}
     ${faCardHTML(uid, asmtDoc, data)}
+    <div id="bt-card"></div>
     <div id="compacc-box"><div class="wempty">${t('access.loading')}</div></div>
     <div id="client-training"></div>
     <div id="client-evals"><div class="eval-actions"><button type="button" class="btn-ghost btn-sm" id="btn-client-evals">${t('teval.open')}</button></div><div id="client-evals-body" style="display:none"></div></div>`;
@@ -3086,6 +3189,7 @@ async function openClient(uid) {
   if (faPal) { faPal.addEventListener('input', faPalSync); faPalSync(); }
   $('btn-client-add').onclick = () => openWeightModal({ uid, docId: null, rec: null });
   compAccLoadTrainer(uid);
+  btLoadTrainerCard(uid, udata);
   box.querySelectorAll('[data-c-edit]').forEach(b => b.onclick = () => {
     const rec = data.find(w => w.id === b.dataset.cEdit);
     if (rec) openWeightModal({ uid, docId: rec.id, rec });
@@ -5220,6 +5324,10 @@ function renderHealthPanel() {
     const det = $('spec-details'); if (det) det.scrollIntoView({ block: 'nearest' });
   });
   renumberManageItems($('health-manage-list'));
+  /* Módulo Nivel 2 (desarrollo): la sección de estimación visual
+     de tipo corporal vive en el mismo panel único y se repinta
+     con él (también al cambiar de idioma). */
+  try { renderBtPanel(); } catch {}
 }
 async function grantSpec(isRenew) {
   if (!auth.currentUser) return;
@@ -5276,6 +5384,274 @@ async function withdrawSpec() {
     renderHealthPanel();
   } catch (e) { failToast(e); }
 }
+/* ================= ESTIMACIÓN VISUAL DE TIPO CORPORAL (Nivel 2 — SOLO DESARROLLO) =================
+   Autorización expresa de Ronald (correo memphis, 2026-10-23 21:37):
+   implementar en DESARROLLO sin esperar al abogado, con D-06
+   (validación jurídica) y D-14 (texto final del consentimiento)
+   PENDIENTES: el texto que se muestra es el BORRADOR vigente y se
+   etiqueta como borrador en pantalla, nunca como texto final.
+   Nombre honesto SIEMPRE: «estimación visual de tipo corporal» —
+   clasificación visual gruesa en 3 categorías; NO es medición
+   Heath-Carter (faltan pliegues y diámetros) ni diagnóstico.
+   D-09 (verificado el 2026-10-23 contra los términos oficiales de
+   Google): el proveedor actual del M8 (Gemini, nivel pagado) NO
+   califica para fotos corporales — Google no usa el contenido de
+   los servicios pagados para mejorar sus productos, pero SÍ
+   registra prompts y respuestas por un periodo limitado para
+   vigilar abusos; eso incumple el requisito de no guardar. Por
+   tanto NO hay proveedor aprobado: la transmisión vive tras la
+   interfaz BT_PROVIDER (defecto: ninguno) y NINGUNA foto sale de
+   la app. Ninguna alternativa se conecta sin aprobación previa
+   de Ronald. En desarrollo solo se usan imágenes ficticias.
+   Cadena CORTADA: la estimación jamás alimenta body_type_ratings,
+   planes ni metas; es solo una referencia que lee el entrenador.
+   Piloto (P11): la función solo se habilita para la cuenta del
+   propietario y la cuenta de prueba «Prueba Ronald». */
+const BT_VERSION = 'draft-2026-10-23';
+const BT_PILOT_UIDS = ['sWfllr4HvYRFUP1T8B1gFGLYU2t2', 'p08nUuFPXkMMcKg3FalMKYs979p2'];
+const btPilot = uid => BT_PILOT_UIDS.includes(uid || '');
+const btOf = u => (u && u.bodyTypeConsent) || null;
+const btIsActive = u => { const s = btOf(u); return !!s && s.status === 'accepted' && s.version === BT_VERSION; };
+const btCol = () => collection(db, 'body_type_estimates');
+/* Interfaz de proveedor: estimate({images, measures}) debe
+   devolver { category, mix: {ectomorph, mesomorph, endomorph} }.
+   El proveedor por defecto NO está aprobado (D-09): su estimate
+   siempre falla y la app no envía ninguna foto. La batería de
+   desarrollo puede inyectar un proveedor FICTICIO vía
+   window.__BT_FIXTURE_PROVIDER__ (objeto con fixture:true) para
+   ejercitar el flujo con imágenes sintéticas; ese gancho nunca
+   se activa solo y en producción no existe proveedor inyectado. */
+const BT_PROVIDER_NONE = { id: 'none', approved: false, estimate: async () => { throw new Error('bt-provider-unavailable'); } };
+function btResolveProvider() {
+  const fx = (typeof window !== 'undefined' && window.__BT_FIXTURE_PROVIDER__) || null;
+  if (fx && fx.fixture === true && typeof fx.estimate === 'function') return fx;
+  return BT_PROVIDER_NONE;
+}
+function btValidateEstimate(r) {
+  if (!r || typeof r !== 'object') return null;
+  const cats = ['ectomorph', 'mesomorph', 'endomorph'];
+  if (!cats.includes(r.category)) return null;
+  const m = r.mix || {};
+  const vals = cats.map(c => Number(m[c]));
+  if (vals.some(v => !Number.isFinite(v) || v < 0 || v > 100)) return null;
+  const sum = vals.reduce((a, b) => a + b, 0);
+  if (sum < 90 || sum > 110) return null;
+  const dom = cats[vals.indexOf(Math.max(...vals))];
+  if (dom !== r.category) return null;
+  return { category: r.category, mix: { ectomorph: vals[0], mesomorph: vals[1], endomorph: vals[2] } };
+}
+/* Prepara las fotos para un futuro proveedor (P9): redimensiona
+   al lado mayor de 1024 px y recodifica a JPEG vía canvas, lo que
+   elimina los metadatos EXIF. Las originales nunca salen de
+   Firestore; con el proveedor por defecto esto ni se invoca. */
+async function prepareBodyTypeImages(dataUrls) {
+  const out = [];
+  for (const url of dataUrls) {
+    const img = new Image();
+    await new Promise((res, rej) => { img.onload = res; img.onerror = rej; img.src = url; });
+    const maxDim = 1024;
+    const scale = Math.min(1, maxDim / Math.max(img.naturalWidth || 1, img.naturalHeight || 1));
+    const canvas = document.createElement('canvas');
+    canvas.width = Math.round((img.naturalWidth || 1) * scale);
+    canvas.height = Math.round((img.naturalHeight || 1) * scale);
+    canvas.getContext('2d').drawImage(img, 0, 0, canvas.width, canvas.height);
+    out.push(canvas.toDataURL('image/jpeg', 0.85));
+  }
+  return out;
+}
+async function btLatestPhotoSet(uid) {
+  const snap = await getDocs(query(collection(db, 'nutrition_progress'), where('ownerUid', '==', uid)));
+  const byDate = {};
+  snap.forEach(d => {
+    const v = d.data();
+    if (!v || !v.photo || !v.date || !['front', 'side', 'back'].includes(v.slot)) return;
+    (byDate[v.date] = byDate[v.date] || {})[v.slot] = { id: d.id, photo: v.photo };
+  });
+  const dates = Object.keys(byDate).filter(dt => byDate[dt].front && byDate[dt].side && byDate[dt].back).sort();
+  if (!dates.length) return null;
+  const date = dates[dates.length - 1];
+  const s = byDate[date];
+  return { date, front: s.front, side: s.side, back: s.back, docIds: [s.front.id, s.side.id, s.back.id] };
+}
+async function btFetchEstimates(uid) {
+  const snap = await getDocs(query(btCol(), where('clientUid', '==', uid)));
+  const out = [];
+  snap.forEach(d => out.push({ id: d.id, ...d.data() }));
+  out.sort((a, b) => (tsMs(b.createdAt) || 0) - (tsMs(a.createdAt) || 0));
+  return out;
+}
+const fmtBtDate = ts => { try { return ts && ts.toDate ? ts.toDate().toLocaleDateString(LANG === 'es' ? 'es-MX' : 'en-US') : ''; } catch { return ''; } };
+function btEstimateHTML(e, forClient) {
+  return `<div class="bt-est">
+    <b>${esc(t('bt.estimateLine', { category: t('bt.category.' + e.category), date: esc(fmtBtDate(e.createdAt)) }))}</b><br>
+    <span>${esc(t('bt.mixLine', { e: Math.round(e.mix.ectomorph), m: Math.round(e.mix.mesomorph), n: Math.round(e.mix.endomorph) }))}</span><br>
+    <span class="progress-hint">${esc(t('bt.margin'))} ${esc(t('bt.notDiagnosis'))}</span>
+    ${forClient ? '' : `<br><span class="progress-hint">${e.shared ? esc(t('bt.sharedState')) : esc(t('bt.privateState'))}</span>
+    <div class="privacy-btns"><button type="button" class="btn-ghost btn-sm" data-bt-share="${e.id}" data-bt-val="${e.shared ? '0' : '1'}">${e.shared ? esc(t('bt.unshare')) : esc(t('bt.share'))}</button></div>`}
+  </div>`;
+}
+/* ---------- Consentimiento específico de fotos corporales (cliente) ---------- */
+let BT_SHARED_CACHE = { uid: null, active: false, list: null };
+function renderBtPanel() {
+  const sec = $('bt-section'); const box = $('bt-panel-body');
+  if (!sec || !box || !auth.currentUser) return;
+  const me = auth.currentUser.uid;
+  if (!btPilot(me)) { sec.style.display = 'none'; box.innerHTML = ''; return; }
+  sec.style.display = '';
+  const s = btOf(UDATA);
+  const active = btIsActive(UDATA);
+  let html = `<span class="bt-badge">${esc(t('bt.draftBadge'))}</span>
+    <p class="progress-hint">${esc(t('bt.draftNotice'))}</p>
+    <p class="progress-hint">${esc(t('bt.pilotNote'))}</p>
+    <p class="progress-hint">${esc(t('bt.consentIntro'))}</p>`;
+  if (active) {
+    html += `<p class="progress-hint">${esc(t('bt.statusActive', { v: esc(s.version), date: esc(fmtBtDate(s.acceptedAt)) }))}</p>
+      <h3 class="history-title">${esc(t('bt.sharedTitle'))}</h3><div id="bt-shared-list"><div class="wempty">${esc(t('train.loading'))}</div></div>
+      <div class="privacy-btns"><button type="button" class="btn-ghost btn-sm danger" id="btn-bt-withdraw">${esc(t('bt.withdraw'))}</button></div>`;
+  } else {
+    if (s && s.status === 'accepted' && s.version !== BT_VERSION) html += `<p class="progress-hint">${esc(t('bt.versionMismatch'))}</p>`;
+    else if (s && s.status === 'withdrawn') html += `<p class="progress-hint">${esc(t('bt.statusWithdrawn'))}</p><p class="progress-hint">${esc(t('bt.blockedNote'))}</p>`;
+    else html += `<p class="progress-hint">${esc(t('bt.statusNone'))}</p>`;
+    html += `<p class="progress-hint">${esc(t('bt.consentSummary'))}</p>
+      <p class="progress-hint">${esc(t('bt.providerNone'))}</p>
+      <details class="spec-details" id="bt-details"><summary>${esc(t('bt.fullTextTitle'))}</summary>
+        <label class="consent-check"><input type="checkbox" id="bt-ok"> <span>${esc(t('bt.consentText'))} ${esc(t('bt.consentCheck'))}</span></label>
+      </details>
+      <button type="button" class="btn-primary btn-sm" id="btn-bt-grant">${esc(s && s.status === 'withdrawn' ? t('bt.renew') : t('bt.grant'))}</button>`;
+  }
+  box.innerHTML = html;
+  const wire = (id, fn) => { const el = $(id); if (el) el.onclick = fn; };
+  wire('btn-bt-grant', () => grantBt(!!(s && s.status === 'withdrawn')));
+  wire('btn-bt-withdraw', withdrawBt);
+  if (active) btLoadSharedIntoPanel(me);
+}
+async function btLoadSharedIntoPanel(me) {
+  const box = $('bt-shared-list'); if (!box) return;
+  if (BT_SHARED_CACHE.uid === me && BT_SHARED_CACHE.active && BT_SHARED_CACHE.list) {
+    box.innerHTML = BT_SHARED_CACHE.list.length ? BT_SHARED_CACHE.list.map(e => btEstimateHTML(e, true)).join('') : `<div class="wempty">${esc(t('bt.noShared'))}</div>`;
+    return;
+  }
+  try {
+    const snap = await getDocs(query(btCol(), where('clientUid', '==', me), where('shared', '==', true)));
+    const list = [];
+    snap.forEach(d => list.push({ id: d.id, ...d.data() }));
+    list.sort((a, b) => (tsMs(b.createdAt) || 0) - (tsMs(a.createdAt) || 0));
+    BT_SHARED_CACHE = { uid: me, active: true, list };
+    const cur = $('bt-shared-list');
+    if (cur) cur.innerHTML = list.length ? list.map(e => btEstimateHTML(e, true)).join('') : `<div class="wempty">${esc(t('bt.noShared'))}</div>`;
+  } catch { const cur = $('bt-shared-list'); if (cur) cur.innerHTML = `<div class="wempty">${esc(t('bt.loadError'))}</div>`; }
+}
+async function grantBt(isRenew) {
+  if (!auth.currentUser) return;
+  const det = $('bt-details');
+  if (det && !det.open) { det.open = true; toast(t('bt.needConsent'), true); return; }
+  const ok = $('bt-ok');
+  if (!ok || !ok.checked) { toast(t('bt.needConsent'), true); return; }
+  if (!(await consentOpsAllowed())) return;
+  try {
+    const uid = auth.currentUser.uid;
+    const cur = await freshUserDoc(uid);
+    const prev = btOf(cur) || {};
+    const next = { status: 'accepted', version: BT_VERSION, acceptedAt: serverTimestamp() };
+    if (prev.withdrawnAt) next.withdrawnAt = prev.withdrawnAt;
+    const { batch, seq, rid } = consentBatch(uid, cur, { bodyTypeConsent: next },
+      isRenew ? 'bodytype-renewed' : 'bodytype-granted', BT_VERSION);
+    await batch.commit();
+    UDATA.consentSeq = seq; UDATA.consentReceiptId = rid;
+    UDATA.bodyTypeConsent = { status: 'accepted', version: BT_VERSION, acceptedAt: new Date(), ...(prev.withdrawnAt ? { withdrawnAt: prev.withdrawnAt } : {}) };
+    BT_SHARED_CACHE = { uid, active: true, list: null };
+    toast(isRenew ? t('bt.renewed') : t('bt.granted'));
+    renderBtPanel();
+  } catch (e) { failToast(e); }
+}
+async function withdrawBt() {
+  if (!auth.currentUser) return;
+  if (!confirm(t('bt.withdrawConfirm'))) return;
+  if (!(await consentOpsAllowed())) return;
+  try {
+    const uid = auth.currentUser.uid;
+    const cur = await freshUserDoc(uid);
+    const prev = btOf(cur) || {};
+    const next = { status: 'withdrawn', version: prev.version || BT_VERSION, withdrawnAt: serverTimestamp() };
+    if (prev.acceptedAt) next.acceptedAt = prev.acceptedAt;
+    const { batch, seq, rid } = consentBatch(uid, cur, { bodyTypeConsent: next }, 'bodytype-withdrawn', next.version);
+    await batch.commit();
+    UDATA.consentSeq = seq; UDATA.consentReceiptId = rid;
+    UDATA.bodyTypeConsent = { status: 'withdrawn', version: next.version, withdrawnAt: new Date(), ...(prev.acceptedAt ? { acceptedAt: prev.acceptedAt } : {}) };
+    BT_SHARED_CACHE = { uid, active: false, list: null };
+    toast(t('bt.withdrawnToast'));
+    renderBtPanel();
+  } catch (e) { failToast(e); }
+}
+/* ---------- Tarjeta del entrenador (ficha del cliente) ---------- */
+async function btLoadTrainerCard(uid, udata) {
+  const box = $('bt-card'); if (!box) return;
+  if (!btPilot(uid)) { box.innerHTML = ''; return; }
+  const active = btIsActive(udata);
+  let html = `<div class="compacc-box"><h3 class="history-title">🧍 ${esc(t('bt.trainerTitle'))}</h3>
+    <span class="bt-badge">${esc(t('bt.draftBadge'))}</span>
+    <p class="progress-hint">${esc(t('bt.consentSignal', { v: active ? t('bt.active') : t('bt.inactive') }))}</p>
+    <p class="progress-hint">${esc(t('bt.trainerNote'))}</p>`;
+  if (!active) {
+    html += `<div class="health-alert">🔒 ${esc(t('bt.needConsent'))}</div></div>`;
+    box.innerHTML = html; return;
+  }
+  html += `<div id="bt-trainer-body"><div class="wempty">${esc(t('train.loading'))}</div></div></div>`;
+  box.innerHTML = html;
+  const body = $('bt-trainer-body'); if (!body) return;
+  let estimates = [], set = null, loadErr = false;
+  try { estimates = await btFetchEstimates(uid); } catch { loadErr = true; }
+  try { set = await btLatestPhotoSet(uid); } catch {}
+  let inner = '';
+  if (loadErr) inner += `<div class="wempty">${esc(t('bt.loadError'))}</div>`;
+  inner += set
+    ? `<p class="progress-hint">${esc(t('bt.sourceLine', { date: esc(set.date) }))}</p>`
+    : `<p class="progress-hint">${esc(t('bt.noCompleteSet'))}</p>`;
+  if (set) inner += `<div class="eval-actions"><button type="button" class="btn-primary btn-sm" id="btn-bt-request">${esc(t('bt.request'))}</button></div>`;
+  inner += estimates.length ? estimates.map(e => btEstimateHTML(e, false)).join('') : `<div class="wempty">${esc(t('bt.noEstimates'))}</div>`;
+  body.innerHTML = inner;
+  const rq = $('btn-bt-request');
+  if (rq) rq.onclick = () => btRequestEstimate(uid, udata);
+  body.querySelectorAll('[data-bt-share]').forEach(b => b.onclick = () => btSetShared(b.dataset.btShare, b.dataset.btVal === '1', uid, udata));
+}
+async function btSetShared(estId, val, uid, udata) {
+  try {
+    await setDoc(doc(db, 'body_type_estimates', estId), { shared: val, sharedAt: serverTimestamp(), sharedBy: auth.currentUser.uid }, { merge: true });
+    toast(t('bt.saved'));
+    await btLoadTrainerCard(uid, udata);
+  } catch (e) { failToast(e); }
+}
+async function btRequestEstimate(uid, udata) {
+  const btn = $('btn-bt-request');
+  if (!btIsActive(udata)) { toast(t('bt.needConsent'), true); return; }
+  const provider = btResolveProvider();
+  if (!provider || (provider.approved !== true && provider.fixture !== true)) { toast(t('bt.providerUnavailable'), true); return; }
+  if (btn) { btn.disabled = true; btn.textContent = t('bt.requesting'); }
+  try {
+    const set = await btLatestPhotoSet(uid);
+    if (!set) { toast(t('bt.noCompleteSet'), true); return; }
+    const images = await prepareBodyTypeImages([set.front.photo, set.side.photo, set.back.photo]);
+    let measures = {};
+    try {
+      const ws = await getDocs(query(collection(db, 'nutrition_weight'), where('ownerUid', '==', uid)));
+      let latest = null;
+      ws.forEach(d => { const v = d.data(); if (v && v.date && (!latest || v.date > latest.date)) latest = v; });
+      if (latest) measures = { weightKg: num(latest.weight) || null, date: latest.date };
+    } catch {}
+    const raw = await provider.estimate({ images, measures });
+    const est = btValidateEstimate(raw);
+    if (!est) { toast(t('bt.invalidProvider'), true); return; }
+    await setDoc(doc(db, 'body_type_estimates', `${uid}_bt_${Date.now()}`), {
+      kind: 'bodyTypeEstimate', clientUid: uid, category: est.category, mix: est.mix,
+      providerId: String(provider.id || 'unknown'), sourceDate: set.date, sourceDocIds: set.docIds,
+      shared: false, requestedBy: auth.currentUser.uid, consentVersion: BT_VERSION, createdAt: serverTimestamp()
+    });
+    toast(t('bt.saved'));
+    await btLoadTrainerCard(uid, udata);
+  } catch (e) { failToast(e); }
+  finally { const b = $('btn-bt-request'); if (b) { b.disabled = false; b.textContent = t('bt.request'); } }
+}
+
 async function saveDeclaration() {
   if (!auth.currentUser || !specIsActive(UDATA)) { toast(t('health.needSpec'), true); return; }
   if (!$('h-truth') || !$('h-truth').checked) { toast(t('err.health'), true); return; }
