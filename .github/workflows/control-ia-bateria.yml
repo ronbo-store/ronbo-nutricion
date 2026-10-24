@@ -1,35 +1,36 @@
-# RONBO NUTRI — Batería de reglas del registro de actividad
-# 32 casos contra el emulador oficial de Firestore (proyecto
+# RONBO NUTRI — Batería de reglas del Control de IA
+# 18 casos contra el emulador oficial de Firestore (proyecto
 # ficticio ronbo-nutri-test), en la vía CI del proyecto (la misma
-# que validó el candidato P8, la mitigación S-1 y el somatotipo).
-# El texto probado es el FINAL compuesto para producción: texto
-# vivo tras el somatotipo (ruleset 161d70a3) + SOLO las adiciones
-# de actividad (helpers actKeysOk/actShapeOk + match
-# /activity_logs/{docId}): preparacion-local/
-# firestore.rules.candidato-actividad-final-2026-10-24.rules,
-# SHA-256 d94931bc4b507fff3781abd33d78c114f9786710623903001fc097bbd7f24f2f.
-# Despliegue autorizado por Ronald el 2026-10-24 («Autorizo el
-# despliegue», AUTH-2026-10-24-011); este workflow SOLO valida el
-# texto; no publica reglas ni despliega nada.
+# que validó el candidato P8, la mitigación S-1, el somatotipo y
+# la actividad). El texto probado es el FINAL compuesto para
+# producción: texto vivo tras la actividad (ruleset d104e6c3) +
+# SOLO la extensión del bloque app_settings a
+# docId in ['approvals', 'ai_control']:
+# preparacion-local/firestore.rules.candidato-control-ia-final-2026-10-24.rules,
+# SHA-256 8c37ae26850aca98b840c24e3cb6e9c45d2fbd922ab74c39d69bd823b4f2cd75.
+# Despliegue autorizado por Ronald el 2026-10-24 («Desplegarlo»,
+# AUTH-2026-10-24-012); este workflow SOLO valida el texto; no
+# publica reglas ni despliega nada.
 # Sin secretos, sin credenciales de producción, sin despliegue.
-name: Batería actividad (emulador oficial)
+
+name: Batería control-ia (emulador oficial)
 
 on:
   workflow_dispatch:
   push:
-    branches: [ci/actividad-bateria]
+    branches: [ci/control-ia-bateria]
 
 permissions:
   contents: read
 
 jobs:
   bateria:
-    name: 32 casos contra el emulador oficial (proyecto ficticio)
+    name: 18 casos contra el emulador oficial (proyecto ficticio)
     runs-on: ubuntu-24.04
     timeout-minutes: 20
     defaults:
       run:
-        working-directory: actividad-2026-10-24/pruebas-reglas-actividad
+        working-directory: control-ia-2026-10-24/pruebas-reglas-control-ia
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
@@ -47,14 +48,14 @@ jobs:
         shell: bash
         run: |
           set -o pipefail
-          firebase emulators:exec --only firestore --project ronbo-nutri-test "node test-actividad.mjs" 2>&1 | tee resultado-bateria.txt
+          firebase emulators:exec --only firestore --project ronbo-nutri-test "node test-control-ia.mjs" 2>&1 | tee resultado-bateria.txt
       - name: Publicar el resultado en el resumen del job (legible por API)
         if: always()
         shell: bash
         run: |
           {
-            echo '## Batería actividad — resultado'
-            grep -E 'RESULTADO ACTIVIDAD-REGLAS' resultado-bateria.txt || true
+            echo '## Batería control-ia — resultado'
+            grep -E 'CONTROL-IA/REGLAS' resultado-bateria.txt || true
             echo ''
             echo '### Casos FAIL (si los hay)'
             grep -E '^FAIL — ' resultado-bateria.txt || echo '(ninguno)'
@@ -65,6 +66,6 @@ jobs:
         with:
           name: evidencia-bateria-actividad
           path: |
-            actividad-2026-10-24/pruebas-reglas-actividad/resultado-bateria.txt
-            actividad-2026-10-24/pruebas-reglas-actividad/firestore-debug.log
+            control-ia-2026-10-24/pruebas-reglas-control-ia/resultado-bateria.txt
+            control-ia-2026-10-24/pruebas-reglas-control-ia/firestore-debug.log
           retention-days: 7
