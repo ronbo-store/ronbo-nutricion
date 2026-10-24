@@ -293,7 +293,9 @@ async function renderMyTrainerBox() {
   const req = MY_MEAL_REQ;
   let mealsHtml = '';
   if (mealsOn) mealsHtml = `<p class="progress-hint">✅ ${esc(t('esc.mealsOn'))}</p>`;
-  else if (req && req.status === 'pendiente_entrenador') mealsHtml = `<p class="progress-hint">⏳ ${esc(t('esc.mealsPendingTrainer'))}</p>`;
+  else if (req && req.status === 'pendiente_entrenador') mealsHtml = escMealDelayed(req)
+    ? `<p class="progress-hint">🔎 ${esc(t('esc.mealsInReview'))}</p>`
+    : `<p class="progress-hint">⏳ ${esc(t('esc.mealsPendingTrainer'))}</p>`;
   else if (req && req.status === 'pendiente_administrador') mealsHtml = `<p class="progress-hint">⏳ ${esc(t('esc.mealsPendingAdmin'))}</p>`;
   else mealsHtml = `<h3 class="history-title">${esc(t('esc.mealsOffTitle'))}</h3>
     <p class="progress-hint">${esc(t('esc.mealsOffHint'))}</p>
@@ -520,6 +522,29 @@ async function renderMembershipBox() {
     toast(t('esc.modSaved'));
   };
 }
+/* Demora de comidas (§8.4 RESUELTA — Ronald reformuló el punto en
+   el chat RONBO.NUTRI 2026-10-24 17:48 CDT y aceptó la sugerencia
+   de Jett a las 17:49: «4 de acuerdo»): una solicitud que lleva
+   ≥72 h en el paso del entrenador (pendiente_entrenador) sin
+   respuesta se computa DEMORADA al mostrar — desde el requestedAt
+   real de la solicitud, sin escrituras nuevas —: el administrador
+   la ve marcada en su bandeja con un texto recordatorio listo para
+   enviar MANUALMENTE al entrenador, y el alumno ve su estado como
+   «en revisión». La marca nace y muere con el estado: en cuanto el
+   entrenador responde, la solicitud sale del paso y deja de
+   existir. La decisión sigue siendo del entrenador (el
+   administrador no aprueba en su lugar por esta vía) y no hay
+   envíos automáticos ni backend. */
+const ESC_MEAL_DELAY_MS = 72 * 3600 * 1000;
+function escMealDelayHours(req) {
+  const ms = req ? dosMs(req.requestedAt) : null;
+  return ms == null ? 0 : Math.max(0, Math.floor((Date.now() - ms) / 3600000));
+}
+function escMealDelayed(req) {
+  if (!req || req.status !== 'pendiente_entrenador') return false;
+  const ms = dosMs(req.requestedAt);
+  return ms != null && (Date.now() - ms) >= ESC_MEAL_DELAY_MS;
+}
 async function renderMealTrainerBox() {
   const box = $('meal-trainer-box');
   if (!box) return;
@@ -687,19 +712,33 @@ async function renderEscAdminBoxes() {
   /* --- Comidas: confirmación del administrador (segundo paso) --- */
   const abox = $('meal-admin-box');
   if (abox) {
-    let reqs = [];
+    let reqs = [], delayed = [];
     try {
       const snap = await getDocs(collection(db, 'meal_requests'));
-      snap.forEach(d => { const v = d.data(); if (v.status === 'pendiente_administrador') reqs.push({ id: d.id, ...v }); });
+      snap.forEach(d => { const v = d.data(); if (v.status === 'pendiente_administrador') reqs.push({ id: d.id, ...v }); else if (escMealDelayed(v)) delayed.push({ id: d.id, ...v }); });
     } catch {}
-    abox.innerHTML = reqs.length ? reqs.map(r => `
+    const confirmHtml = reqs.map(r => `
     <div class="user-row">
       <div><b>${esc((ADMIN_USERS.find(u => u.id === r.alumnoUid) || {}).name || r.alumnoUid)}</b></div>
       <div class="user-actions">
         <button class="btn-primary btn-sm" data-meal-confirm="${r.id}" data-alumno="${r.alumnoUid}">${esc(t('esc.mealConfirm'))}</button>
         <button class="btn-ghost btn-sm" data-meal-admin-reject="${r.id}">${esc(t('esc.rejectBtn'))}</button>
       </div>
-    </div>`).join('') : `<div class="wempty">${esc(t('esc.noMealRequests'))}</div>`;
+    </div>`).join('');
+    /* Demoradas (§8.4): siguen en el paso del ENTRENADOR — aquí no
+       hay botones de decisión (no se aprueba en su lugar); solo la
+       marca y el texto recordatorio listo para envío manual. */
+    const delayedHtml = delayed.length ? `
+      <h4 class="eval-cfg-group">${esc(t('esc.mealDelayedTitle'))} (${delayed.length})</h4>
+      ${delayed.map(r => `
+      <div class="user-row">
+        <div><b>${esc((ADMIN_USERS.find(u => u.id === r.alumnoUid) || {}).name || r.alumnoUid)}</b><br><span class="muted">⏰ ${esc(t('esc.mealDelayedBadge', { hours: escMealDelayHours(r) }))} · ${esc((ADMIN_USERS.find(u => u.id === r.trainerUid) || {}).name || r.trainerUid || '')}</span></div>
+        <div class="user-actions">
+          <button class="btn-ghost btn-sm" data-meal-delay="${r.id}">${esc(t('esc.mealDelayBtn'))}</button>
+        </div>
+      </div>
+      <div id="meal-delay-${r.id}" style="display:none"></div>`).join('')}` : '';
+    abox.innerHTML = (delayedHtml + confirmHtml) || `<div class="wempty">${esc(t('esc.noMealRequests'))}</div>`;
     document.querySelectorAll('[data-meal-confirm]').forEach(b => b.onclick = async () => {
       const alumno = b.dataset.alumno;
       let feats = { ...ESC_FEATURE_DEFAULTS };
@@ -716,6 +755,29 @@ async function renderEscAdminBoxes() {
       await setDoc(doc(db, 'meal_requests', b.dataset.mealAdminReject), { status: 'rechazada', adminDecisionBy: auth.currentUser.uid, adminDecisionAt: serverTimestamp() }, { merge: true });
       await auditLog('meals', 'meals.rejected', null, b.dataset.mealAdminReject);
       loadAdmin();
+    });
+    /* Texto recordatorio de la demora (§8.4): bilingüe según el
+       idioma de la interfaz, copiable, para que el administrador se
+       lo envíe MANUALMENTE al entrenador. Aquí no se envía nada ni
+       se marca nada como enviado. */
+    document.querySelectorAll('[data-meal-delay]').forEach(b => b.onclick = async () => {
+      const req = delayed.find(x => x.id === b.dataset.mealDelay);
+      const box = $('meal-delay-' + b.dataset.mealDelay);
+      if (!req || !box) return;
+      if (box.style.display !== 'none') { box.style.display = 'none'; return; }
+      const trainer = (ADMIN_USERS.find(u => u.id === req.trainerUid) || {}).name || req.trainerUid || '';
+      const alumno = (ADMIN_USERS.find(u => u.id === req.alumnoUid) || {}).name || req.alumnoUid || '';
+      const text = `${t('esc.mealDelaySubject')}\n\n${t('esc.mealDelayBody', { trainer, alumno, hours: escMealDelayHours(req) })}`;
+      box.innerHTML = `<textarea class="dos-mail-text" id="meal-delay-text-${req.id}" rows="10" readonly>${esc(text)}</textarea>
+      <div class="eval-actions"><button type="button" class="btn-ghost btn-sm" data-meal-delay-copy="${req.id}">${esc(t('esc.mailCopy'))}</button></div>`;
+      box.style.display = '';
+      const cp = box.querySelector('[data-meal-delay-copy]');
+      if (cp) cp.onclick = async () => {
+        const ta = $('meal-delay-text-' + req.id);
+        try { await navigator.clipboard.writeText(ta.value); }
+        catch { if (ta) { ta.select(); try { document.execCommand('copy'); } catch {} } }
+        toast(t('esc.mailCopied'));
+      };
     });
   }
   /* --- Modalidad: confirmación del administrador (segundo paso) ---
@@ -1633,6 +1695,12 @@ en: {
   'esc.bioPh': 'E.g. ISSA certified, 8 years coaching…',
   'esc.availableLabel': 'Accepting new students',
   'esc.mealRequestsTitle': '🍽️ Meal logging requests',
+  'esc.mealsInReview': 'Your meal request is under review.',
+  'esc.mealDelayedTitle': '⏰ Delayed meal requests (no trainer answer in 72 h)',
+  'esc.mealDelayedBadge': 'Delayed · {hours} h waiting for the trainer',
+  'esc.mealDelayBtn': '📧 Reminder text',
+  'esc.mealDelaySubject': 'RONBO NUTRI — Reminder: a meal request is waiting for your answer',
+  'esc.mealDelayBody': 'Hi {trainer},\n\nYour student {alumno} requested meal logging {hours} hours ago, and the request is still waiting for your answer in RONBO NUTRI. Please open the app and approve or decline it from your requests inbox — the decision is yours; this is only a reminder.\n\nThank you,\nRONBO NUTRI',
   'esc.noMealRequests': 'No meal requests waiting.',
   'esc.mealApprove': 'Approve (send to administrator)',
   'esc.mealConfirm': 'Confirm — turn meals on',
@@ -2915,6 +2983,12 @@ es: {
   'esc.bioPh': 'Ej.: certificado ISSA, 8 años de coaching…',
   'esc.availableLabel': 'Acepto alumnos nuevos',
   'esc.mealRequestsTitle': '🍽️ Solicitudes de comidas',
+  'esc.mealsInReview': 'Tu solicitud de comidas está en revisión.',
+  'esc.mealDelayedTitle': '⏰ Solicitudes de comidas demoradas (sin respuesta del entrenador en 72 h)',
+  'esc.mealDelayedBadge': 'Demorada · {hours} h esperando al entrenador',
+  'esc.mealDelayBtn': '📧 Texto recordatorio',
+  'esc.mealDelaySubject': 'RONBO NUTRI — Recordatorio: una solicitud de comidas espera tu respuesta',
+  'esc.mealDelayBody': 'Hola {trainer},\n\nTu alumno {alumno} solicitó el registro de comidas hace {hours} horas y la solicitud sigue esperando tu respuesta en RONBO NUTRI. Entra a la app y apruébala o recházala desde tu bandeja de solicitudes — la decisión es tuya; esto es solo un recordatorio.\n\nGracias,\nRONBO NUTRI',
   'esc.noMealRequests': 'Sin solicitudes de comidas en espera.',
   'esc.mealApprove': 'Aprobar (pasa al administrador)',
   'esc.mealConfirm': 'Confirmar: encender comidas',
