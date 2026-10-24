@@ -875,9 +875,10 @@ service cloud.firestore {
 
         // The trainer creates 'current' with CONFIGURATION only:
         // the equation is BORN ABSENT (N-01: no default) and, when
-        // present, must be on the v1 enabled list (Mifflin-St Jeor
-        // only — Harris-Benedict and Ten Haaf stay blocked as
-        // 'pending verification'). 'sexDataProvided' is NOT in
+        // present, must be on the enabled list (Mifflin-St Jeor,
+        // plus Ten Haaf since Module A — athletes 18–35 by the
+        // client's own declaration; Harris-Benedict stays blocked
+        // as 'pending verification'). 'sexDataProvided' is NOT in
         // the trainer's key lists: the provided-signal is the
         // client's declaration, never the trainer's to write.
         allow create: if (isOwnerUser() || isAssignedTrainerOf(uid)) && docId == 'current'
@@ -888,7 +889,7 @@ service cloud.firestore {
                'updatedAt', 'updatedBy'])
           && !('sexForCalc' in request.resource.data)
           && (!('equation' in request.resource.data)
-              || request.resource.data.equation in ['mifflin-st-jeor'])
+              || request.resource.data.equation in ['mifflin-st-jeor', 'ten-haaf'])
           && (!('birthYear' in request.resource.data)
               || (request.resource.data.birthYear is int
                   && request.resource.data.birthYear >= 1900
@@ -931,7 +932,7 @@ service cloud.firestore {
                      .hasAny(['sexForCalc']))
           && (!request.resource.data.diff(resource.data).affectedKeys()
                 .hasAny(['equation'])
-              || request.resource.data.equation in ['mifflin-st-jeor'])
+              || request.resource.data.equation in ['mifflin-st-jeor', 'ten-haaf'])
           && (!request.resource.data.diff(resource.data).affectedKeys()
                 .hasAny(['birthYear'])
               || (request.resource.data.birthYear is int
@@ -956,7 +957,7 @@ service cloud.firestore {
         //     mark sexConstantApplied (true/false).
         allow update: if isSelf(uid) && docId == 'current'
           && request.resource.data.diff(resource.data).affectedKeys().hasOnly([
-               'sexDataProvided',
+               'sexDataProvided', 'athleteDeclared', 'athleteDeclaredAt',
                'rmrKcal', 'tdeeKcal', 'equationUsed', 'equationVersion',
                'inputsSnapshot', 'sexConstantApplied', 'uncertaintyNote',
                'computedAt', 'computedBy'])
@@ -971,8 +972,14 @@ service cloud.firestore {
                 .hasAny(['rmrKcal', 'tdeeKcal', 'equationUsed', 'equationVersion',
                          'inputsSnapshot', 'sexConstantApplied', 'uncertaintyNote',
                          'computedAt', 'computedBy'])
-              || (request.resource.data.equationUsed in ['mifflin-st-jeor']
-                  && request.resource.data.computedAt == request.time));
+              || (request.resource.data.equationUsed in ['mifflin-st-jeor', 'ten-haaf']
+                  && request.resource.data.computedAt == request.time))
+          && (!request.resource.data.diff(resource.data).affectedKeys()
+                .hasAny(['athleteDeclared'])
+              || request.resource.data.athleteDeclared is bool)
+          && (!request.resource.data.diff(resource.data).affectedKeys()
+                .hasAny(['athleteDeclaredAt'])
+              || request.resource.data.athleteDeclaredAt == request.time);
 
         // History snapshots: created by trainer or client session,
         // immutable afterwards (no update ever), full traceability.
@@ -981,7 +988,7 @@ service cloud.firestore {
                'rmrKcal', 'tdeeKcal', 'equationUsed', 'equationVersion',
                'inputsSnapshot', 'sexConstantApplied', 'uncertaintyNote',
                'computedAt', 'computedBy', 'supersededAt'])
-          && request.resource.data.equationUsed in ['mifflin-st-jeor']
+          && request.resource.data.equationUsed in ['mifflin-st-jeor', 'ten-haaf']
           && request.resource.data.computedAt == request.time
           && (!('inputsSnapshot' in request.resource.data)
               || !request.resource.data.inputsSnapshot.keys()
@@ -991,30 +998,40 @@ service cloud.firestore {
         allow delete: if isSelf(uid) || isOwnerUser();
       }
 
-      // ---------- Activity hobby preferences (rediseño flotante) ----------
-      // The account holder's OWN quick-activity favorites for the
-      // floating Activity buttons. Only the holder reads or writes
-      // them: not the trainer, not the owner role (they are the
-      // client's own shortcuts). Listing the subcollection is
-      // denied; the only enabled document is 'activities'; the
-      // favorites list is a closed-catalog list (the 11 activity
-      // types) with a size cap, and updatedAt must be server time.
+      // ---------- Display preferences of the account holder ----------
+      // Activity hobby favorites (rediseño flotante) and unit
+      // preferences (Module H, P4-3) live side by side here: ONE
+      // match, one branch per document. Only the holder reads or
+      // writes them: not the trainer, not the owner role (they are
+      // the client's own settings). Listing the subcollection is
+      // denied; the only enabled documents are 'activities' and
+      // 'units', each with its own closed shape.
       match /preferences/{docId} {
-        allow get: if isSelf(uid) && docId == 'activities';
+        allow get: if isSelf(uid)
+          && (docId == 'activities' || docId == 'units');
         allow list: if false;
-        allow create, update: if isSelf(uid) && docId == 'activities'
-          && request.resource.data.keys()
-               .hasOnly(['favorites', 'updatedAt'])
-          && request.resource.data.favorites is list
-          && request.resource.data.favorites.size() <= 11
-          && request.resource.data.favorites
-               .hasOnly(['correr', 'ejercicios_en_casa', 'ciclismo',
-                         'natacion', 'futbol', 'baloncesto',
-                         'senderismo', 'baile', 'artes_marciales',
-                         'transporte_activo', 'otro'])
-          && request.resource.data.updatedAt == request.time;
+        allow create, update: if isSelf(uid)
+          && ((docId == 'activities'
+               && request.resource.data.keys()
+                    .hasOnly(['favorites', 'updatedAt'])
+               && request.resource.data.favorites is list
+               && request.resource.data.favorites.size() <= 11
+               && request.resource.data.favorites
+                    .hasOnly(['correr', 'ejercicios_en_casa', 'ciclismo',
+                              'natacion', 'futbol', 'baloncesto',
+                              'senderismo', 'baile', 'artes_marciales',
+                              'transporte_activo', 'otro'])
+               && request.resource.data.updatedAt == request.time)
+              || (docId == 'units'
+               && request.resource.data.keys()
+                    .hasOnly(['mass', 'height', 'distance', 'updatedAt'])
+               && request.resource.data.mass in ['kg', 'lb']
+               && request.resource.data.height in ['cm', 'ft-in']
+               && request.resource.data.distance in ['km', 'mi']
+               && request.resource.data.updatedAt == request.time));
         // Erasure: the holder may delete their own preferences.
-        allow delete: if isSelf(uid) && docId == 'activities';
+        allow delete: if isSelf(uid)
+          && (docId == 'activities' || docId == 'units');
       }
     }
 
@@ -1151,9 +1168,26 @@ service cloud.firestore {
     // Session logs: clients create/delete their own (done/undo);
     // no updates (the app toggles by create/delete). Trainer reads all.
     match /training_logs/{docId} {
+      // Day close (Module D, P4-3): v1 records stay as born
+      // (done == true). v2 admits a PARTIAL close (always with at
+      // least one exercise done) and a SKIPPED close only as the
+      // client's own explicit act, stamped by their session
+      // (skippedExplicit by/at). done == (status == 'done').
       allow create: if isApprovedUser()
         && request.resource.data.clientUid == request.auth.uid
-        && request.resource.data.done == true;
+        && (request.resource.data.done == true
+            || (request.resource.data.schemaVersion == 2
+                && request.resource.data.done == false
+                && request.resource.data.status in ['partial', 'skipped']
+                && (request.resource.data.status != 'partial'
+                    || (request.resource.data.exercisesDone is list
+                        && request.resource.data.exercisesDone.size() > 0))
+                && (request.resource.data.status != 'skipped'
+                    || (request.resource.data.skippedExplicit.value == true
+                        && request.resource.data.skippedExplicit.by
+                             == request.auth.uid
+                        && request.resource.data.skippedExplicit.at
+                             == request.time))));
       allow get, list: if isOwnerUser()
         || (isApprovedUser() && resource.data.clientUid == request.auth.uid)
         || isAssignedTrainerOf(resource.data.clientUid);
