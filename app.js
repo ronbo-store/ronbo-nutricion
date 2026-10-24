@@ -386,7 +386,7 @@ en: {
   'ai.introTitle': 'Analyze a meal from a photo',
   'ai.introTake': '📷 Take or choose the photo',
   'ai.photoNotSaved': '📷 Before you take the photo: food photos are NOT saved. A photo is used only for this analysis, in this moment — the app keeps the meal record (the foods and their values), never the picture. If you want to keep the photo, keep it in your phone\'s gallery as well.',
-  'ai.limitNote': 'Daily analysis limit: photo and text analyses share a daily counter (a complete analysis usually takes 2 requests: identify + calculate). If your account has a daily limit set and you reach it, photo and text analysis pause until the counter resets the next day — you can still log every meal by hand. If no limit is set for your account, there is no cap.',
+  'ai.limitNote': 'Daily analysis limit: photo and text analyses share a daily counter (a complete analysis usually takes 2 requests: identify + calculate). If your account has a daily limit set and you reach it, photo and text analysis pause until the counter resets the next day — you can still log every meal by hand. If no limit is set for your account, a default of 5 requests per day applies.',
   'ai.scaleWhy': 'Why it matters whether a weight came from your scale: the scale gives the real weight, so the calculation rests on a measured fact. An estimate has a wider margin of error — that is why each amount keeps its badge (from your scale / estimated): so you and your trainer know which numbers are measured and which are estimated, and treat them with that honesty.',
   'ai.analyzing': 'Analyzing…',
   'ai.foodsFound': 'I found these foods:',
@@ -422,6 +422,15 @@ en: {
   'ai.recalcYes': 'Yes, recalculate',
   'ai.saveError': 'It could not be saved. Your changes are still here: check your connection and tap Save to try again.',
   'ai.capReached': 'You reached the pilot\u2019s daily analysis limit. Come back tomorrow to analyze another photo — meanwhile you can log the meal manually.',
+  'ai.capReachedN': 'You reached today\u2019s limit of {n} AI requests. It renews tomorrow — meanwhile you can log the meal manually.',
+  'ai.disabledByAdmin': 'AI analysis is turned off by the administrator right now. You can keep logging your meals manually; AI analysis will be back when it is turned on again.',
+  'ai.btWindow': 'Body-type analysis is available once every 15 days. Your window renews on {date}; until then this analysis is paused.',
+  'aictl.title': '🛑 AI master switch',
+  'aictl.hint': 'One switch turns off every AI analysis for everyone — meal photos, text descriptions and body-type estimates. The server enforces it: while it is off, no analysis reaches the AI and nothing is spent. Manual logging always works.',
+  'aictl.stateOn': 'AI is ON for everyone',
+  'aictl.stateOff': 'AI is OFF for everyone',
+  'aictl.saved': 'AI switch saved.',
+  'aictl.error': 'The AI switch could not be saved.',
   'ai.retryHint': 'Try a clearer photo — or describe the meal in text right here:',
   'ai.newPhoto': 'New photo',
   'aiText.label': 'Describe your meal',
@@ -702,7 +711,7 @@ en: {
   'admin.revoke': 'Remove access',
   'admin.owner': 'admin',
   'limits.title': '🤖 Analysis limits',
-  'limits.hint': 'Daily photo-analysis limits, set only by you. Each account uses its own limit if it has one, otherwise its trainer\'s, otherwise the global one. No limit set means unlimited.',
+  'limits.hint': 'Daily photo-analysis limits, set only by you. Each account uses its own limit if it has one, otherwise its trainer\'s, otherwise the global one; if none is set anywhere, a default of 5 requests per day applies.',
   'limits.global': 'Global limit',
   'limits.trainers': 'Trainers',
   'limits.users': 'Users',
@@ -1372,7 +1381,7 @@ es: {
   'ai.introTitle': 'Analizar una comida desde una foto',
   'ai.introTake': '📷 Tomar o elegir la foto',
   'ai.photoNotSaved': '📷 Antes de tomar la foto: las fotos de comida NO se guardan. Una foto se usa solo para este análisis, en este momento: la app conserva el registro de la comida (los alimentos y sus valores), nunca la imagen. Si quieres conservar la foto, guárdala también en la galería de tu teléfono.',
-  'ai.limitNote': 'Límite diario de análisis: los análisis por foto y por texto comparten un contador diario (un análisis completo suele llevar 2 peticiones: identificar + calcular). Si tu cuenta tiene un límite diario fijado y lo alcanzas, el análisis por foto y por texto se pausa hasta que el contador se reinicia al día siguiente; puedes seguir registrando cada comida a mano. Si tu cuenta no tiene límite fijado, no hay tope.',
+  'ai.limitNote': 'Límite diario de análisis: los análisis por foto y por texto comparten un contador diario (un análisis completo suele llevar 2 peticiones: identificar + calcular). Si tu cuenta tiene un límite diario fijado y lo alcanzas, el análisis por foto y por texto se pausa hasta que el contador se reinicia al día siguiente; puedes seguir registrando cada comida a mano. Si tu cuenta no tiene límite fijado, aplica el límite por defecto de 5 peticiones al día.',
   'ai.scaleWhy': 'Por qué importa si un peso era de báscula: la báscula da el peso real, así que el cálculo se apoya en un dato medido. Un estimado tiene más margen de error; por eso cada cantidad conserva su insignia (de tu báscula / estimado): para que tú y tu entrenador sepáis qué números son medidos y cuáles estimados, y los tratéis con esa honestidad.',
   'ai.analyzing': 'Analizando…',
   'ai.foodsFound': 'Encontré estos alimentos:',
@@ -1408,6 +1417,15 @@ es: {
   'ai.recalcYes': 'Sí, recalcular',
   'ai.saveError': 'No se pudo guardar. Tus cambios siguen aquí: revisa la conexión y toca Guardar para reintentar.',
   'ai.capReached': 'Alcanzaste el límite diario de análisis del piloto. Vuelve mañana para analizar otra foto; mientras tanto puedes registrar la comida manualmente.',
+  'ai.capReachedN': 'Alcanzaste el límite de hoy: {n} peticiones a la IA. Se renueva mañana; mientras tanto puedes registrar la comida manualmente.',
+  'ai.disabledByAdmin': 'El análisis con IA está desactivado por el administrador en este momento. Puedes seguir registrando tus comidas manualmente; el análisis con IA volverá cuando se reactive.',
+  'ai.btWindow': 'El análisis de tipo corporal está disponible una vez cada 15 días. Tu ventana se renueva el {date}; hasta entonces este análisis está en pausa.',
+  'aictl.title': '🛑 Interruptor general de IA',
+  'aictl.hint': 'Un solo interruptor apaga todo análisis con IA para todo el mundo: fotos de comida, descripciones por texto y estimaciones de tipo corporal. Lo hace cumplir el servidor: mientras está apagado, ningún análisis llega a la IA y no se gasta nada. El registro manual siempre funciona.',
+  'aictl.stateOn': 'La IA está ACTIVADA para todos',
+  'aictl.stateOff': 'La IA está APAGADA para todos',
+  'aictl.saved': 'Interruptor de IA guardado.',
+  'aictl.error': 'No se pudo guardar el interruptor de IA.',
   'ai.retryHint': 'Prueba con una foto más clara — o describe la comida por texto aquí mismo:',
   'ai.newPhoto': 'Nueva foto',
   'aiText.label': 'Describe tu comida',
@@ -1689,7 +1707,7 @@ es: {
   'admin.revoke': 'Quitar acceso',
   'admin.owner': 'administrador',
   'limits.title': '🤖 Límites de análisis',
-  'limits.hint': 'Límites diarios de análisis de fotos, fijados solo por ti. Cada cuenta usa su propio límite si lo tiene; si no, el de su entrenador; si no, el global. Sin límite fijado significa ilimitado.',
+  'limits.hint': 'Límites diarios de análisis de fotos, fijados solo por ti. Cada cuenta usa su propio límite si lo tiene; si no, el de su entrenador; si no, el global; si no hay ninguno fijado en ningún nivel, aplica el límite por defecto de 5 peticiones al día.',
   'limits.global': 'Límite global',
   'limits.trainers': 'Entrenadores',
   'limits.users': 'Usuarios',
@@ -2475,6 +2493,40 @@ function stopUserDocWatch() {
 
 /* ================= ADMIN DE ACCESOS (solo dueño) ================= */
 let ADMIN_USERS = [];
+/* Interruptor general de IA (desarrollo 2026-10-24; SIN desplegar):
+   escribe app_settings/ai_control { enabled } y SOLO lo acciona el
+   administrador (esta superficie ya es solo del dueño; el delta de
+   reglas preparado en control-ia-2026-10-24/ exige isOwnerUser()).
+   Sin documento = IA activada. El corte real lo hace cumplir el
+   Worker; esta caja escribe el estado y lo refleja al instante. */
+async function renderAiControlBox() {
+  const box = document.getElementById('ai-control-box');
+  if (!box) return;
+  if (!(IS_OWNER && ROLE === 'administrador')) { box.innerHTML = ''; return; }
+  let enabled = true;
+  try {
+    const s = await getDoc(doc(db, 'app_settings', 'ai_control'));
+    enabled = s.exists() ? s.data().enabled !== false : true;
+    aiCtrlSet(enabled, true);
+  } catch {}
+  const paint = () => {
+    box.innerHTML = `<div class="aictl-row"><label class="aictl-switch"><input type="checkbox" id="aictl-toggle"${enabled ? ' checked' : ''}><span class="aictl-track"></span></label><b>${enabled ? t('aictl.stateOn') : t('aictl.stateOff')}</b></div>`;
+    const tg = document.getElementById('aictl-toggle');
+    if (tg) tg.addEventListener('change', async () => {
+      const want = tg.checked;
+      tg.disabled = true;
+      try {
+        await setDoc(doc(db, 'app_settings', 'ai_control'), { enabled: want, updatedAt: serverTimestamp(), updatedBy: auth.currentUser.uid }, { merge: true });
+        enabled = want;
+        aiCtrlSet(want, true);
+        toast(t('aictl.saved'));
+      } catch { toast(t('aictl.error'), true); }
+      tg.disabled = false;
+      paint();
+    });
+  };
+  paint();
+}
 async function loadAdmin() {
   const sec = $('admin-section');
   if (!IS_OWNER) { sec.style.display = 'none'; return; }
@@ -2559,6 +2611,7 @@ async function loadAdmin() {
       };
     })();
   }
+  renderAiControlBox();
   document.querySelectorAll('[data-goals]').forEach(b => b.onclick = () => {
     const u = ADMIN_USERS.find(x => x.id === b.dataset.goals);
     if (u) openGoals(u.id, u.name || u.email, u.goals);
@@ -3479,6 +3532,7 @@ $('form-profile').addEventListener('submit', async e => {
 /* ================= DATA ================= */
 async function loadAll() {
   if (auth.currentUser && RULES_EPOCH === 'unknown') probeRulesEpoch(auth.currentUser.uid);
+  loadAiControl();
   /* Diario personal: siempre filtrado por el uid autenticado, también
      para el dueño (colQuery sin filtro dejaba ver las comidas de todos
      los clientes como propias). La administración no usa estas listas.
@@ -3727,10 +3781,56 @@ function aiEndpoint() {
    (3) una excepción AL PINTAR preguntas/resultado escapaba del flujo
        → aiRender queda envuelto: todo pintado que explota cae en el
        aviso de error honesto (ver aiRender/aiRenderErrorFallback). */
+/* ============ CONTROL DE IA — interruptor del administrador ============
+   (Desarrollo 2026-10-24; SIN desplegar. Pedido de Ronald, 2026-10-24
+   09:52: un switch que corte el flujo a la IA de todo el mundo.)
+   El estado vive en app_settings/ai_control { enabled }: SIN
+   documento, la IA está ACTIVADA (es el estado por defecto; el
+   interruptor nace encendido). La app lo lee al cargar y lo escucha
+   en vivo (onSnapshot). Si la lectura falla, el estado queda
+   «desconocido» y la app NO bloquea nada por su cuenta: el corte real
+   lo hace cumplir el Worker (servidor), que con el interruptor
+   apagado responde 403 {error:'ai-disabled'} SIN llamar a Gemini.
+   La app solo refleja lo que SÍ leyó: esconde los flujos de IA
+   (botón de foto del dock, análisis por texto) y muestra el aviso
+   honesto; y si una llamada vuelve con ai-disabled, converge a la
+   verdad del servidor. El interruptor se acciona desde
+   «Administración de accesos» (renderAiControlBox; solo el dueño). */
+let AI_CTRL = { known: false, enabled: true };
+let aiCtrlUnsub = null;
+function aiCtrlSet(enabled, known) {
+  AI_CTRL = { known: !!known, enabled: enabled !== false };
+  applyAiControl();
+}
+function applyAiControl() {
+  const off = AI_CTRL.known && !AI_CTRL.enabled;
+  const dock = document.getElementById('btn-round-food');
+  if (dock) dock.style.display = off ? 'none' : '';
+  const note = document.getElementById('ai-off-note');
+  if (note) note.style.display = off ? '' : 'none';
+  const noteM = document.getElementById('ai-off-note-modal');
+  if (noteM) noteM.style.display = off ? '' : 'none';
+  document.querySelectorAll('.m-ai-text').forEach(b => { b.style.display = off ? 'none' : ''; });
+}
+async function loadAiControl() {
+  try {
+    const s = await getDoc(doc(db, 'app_settings', 'ai_control'));
+    aiCtrlSet(s.exists() ? s.data().enabled !== false : true, true);
+  } catch { /* sin lectura: estado desconocido → la app no bloquea; manda el Worker */ }
+  if (!aiCtrlUnsub) {
+    try {
+      aiCtrlUnsub = onSnapshot(doc(db, 'app_settings', 'ai_control'),
+        s => aiCtrlSet(s.exists() ? s.data().enabled !== false : true, true),
+        () => {});
+    } catch {}
+  }
+}
 const AI_TIMEOUT_MS = 90000;
 async function aiCall(path, body) {
   const ep = aiEndpoint();
   if (!ep) throw new Error('ai-off');
+  /* Estado conocido apagado: ni siquiera sale la petición. */
+  if (AI_CTRL.known && !AI_CTRL.enabled) throw new Error('ai-disabled');
   const idToken = await auth.currentUser.getIdToken();
   const ctl = new AbortController();
   const timer = setTimeout(() => { try { ctl.abort(); } catch {} }, AI_TIMEOUT_MS);
@@ -3745,7 +3845,29 @@ async function aiCall(path, body) {
     if (e && e.name === 'AbortError') throw new Error('ai-timeout');
     throw e;
   } finally { clearTimeout(timer); }
-  if (r.status === 429) throw new Error('ai-cap'); // tope diario: mensaje específico, no genérico
+  if (r.status === 429) {
+    /* Tope alcanzado: el Worker dice cuál aplica ({limit}) y, para la
+       ventana de tipo corporal, cuándo se renueva ({renewsAt}); el
+       aviso muestra esos datos reales. Sin cuerpo legible, el aviso
+       genérico de siempre. */
+    let info = null;
+    try { info = await r.json(); } catch {}
+    const e = new Error(info && info.error === 'bodytype-window' ? 'ai-bt-window' : 'ai-cap');
+    if (info) {
+      if (isFinite(Number(info.limit))) e.capLimit = Number(info.limit);
+      if (info.renewsAt) e.renewsAt = String(info.renewsAt);
+    }
+    throw e;
+  }
+  if (r.status === 403) {
+    /* Interruptor del administrador (Worker): la app converge a la
+       verdad del servidor y muestra su aviso propio, sin reintento.
+       Otro 403 (p. ej. la puerta del piloto) sigue siendo genérico. */
+    let info = null;
+    try { info = await r.json(); } catch {}
+    if (info && info.error === 'ai-disabled') { aiCtrlSet(false, true); throw new Error('ai-disabled'); }
+    throw new Error('ai-403');
+  }
   if (!r.ok) throw new Error('ai-' + r.status);
   let j = null;
   try { j = await r.json(); } catch { throw new Error('ai-badjson'); }
@@ -4104,7 +4226,19 @@ function aiNewSaveId() {
   return 'meal_' + Date.now().toString(36) + '_' + aiSaveSeq.toString(36) + '_' + Math.random().toString(36).slice(2, 8);
 }
 function aiFreshState(mode) {
-  return { mode, dataUrl: null, photos: null, descText: '', step: 'loading', r1: null, answers: {}, other: {}, foods: null, r2: null, errStage: 'identify', meal: aiDefaultMeal(), metrics: null, metricsEdited: false, name: null, nameEdited: false, cap: false, saveError: false, saveId: aiNewSaveId() };
+  return { mode, dataUrl: null, photos: null, descText: '', step: 'loading', r1: null, answers: {}, other: {}, foods: null, r2: null, errStage: 'identify', meal: aiDefaultMeal(), metrics: null, metricsEdited: false, name: null, nameEdited: false, cap: false, capLimit: null, disabled: false, btWindow: false, btRenews: null, saveError: false, saveId: aiNewSaveId() };
+}
+/* Registra en el estado el tipo de corte que devolvió aiCall: tope
+   diario (con el límite aplicable si el Worker lo dijo), interruptor
+   del administrador o ventana de 15 días de tipo corporal (con su
+   fecha de renovación). La tarjeta de error pinta según esto. */
+function aiNoteError(e) {
+  if (!aiState) return;
+  aiState.cap = !!(e && e.message === 'ai-cap');
+  aiState.disabled = !!(e && e.message === 'ai-disabled');
+  aiState.btWindow = !!(e && e.message === 'ai-bt-window');
+  if (e && e.capLimit != null) aiState.capLimit = e.capLimit;
+  if (e && e.renewsAt) aiState.btRenews = e.renewsAt;
 }
 async function aiStart(dataUrl) {
   aiStartPhotos([dataUrl]);
@@ -4178,7 +4312,7 @@ async function aiRunIdentify() {
     if (!aiState.foods.length) { aiState.step = 'notfound'; aiRender(); return; }
     aiState.step = 'questions';
     aiRender();
-  } catch (e) { if (aiState) { aiState.step = 'error'; aiState.errStage = 'identify'; aiState.cap = !!(e && e.message === 'ai-cap'); aiRender(); } }
+  } catch (e) { if (aiState) { aiState.step = 'error'; aiState.errStage = 'identify'; aiNoteError(e); aiRender(); } }
 }
 async function aiCalculate() {
   if (!aiState || !aiState.r1) return;
@@ -4212,7 +4346,7 @@ async function aiCalculate() {
   /* Sin alimentos con nombre no hay nada que calcular: se avisa y el
      flujo se queda en las preguntas (visible), sin llamar al proveedor. */
   if (!foods.length) { toast(t('err.mealMissing'), true); return; }
-  aiState.step = 'loading'; aiState.errStage = 'calculate'; aiState.cap = false;
+  aiState.step = 'loading'; aiState.errStage = 'calculate'; aiState.cap = false; aiState.disabled = false; aiState.btWindow = false;
   aiRender();
   try {
     const raw2 = await aiCall('/calculate', { foods, answers: aiFinalAnswers(), lang: LANG });
@@ -4228,7 +4362,7 @@ async function aiCalculate() {
        se refresca con los alimentos vigentes; si lo editó, se conserva. */
     if (!aiState.nameEdited) aiState.name = aiSuggestedName();
     aiRender();
-  } catch (e) { if (aiState) { aiState.step = 'error'; aiState.cap = !!(e && e.message === 'ai-cap'); aiRender(); } }
+  } catch (e) { if (aiState) { aiState.step = 'error'; aiNoteError(e); aiRender(); } }
 }
 /* REINTENTO DEL ANÁLISIS SIN RESULTADO (decisión de Ronald, correo
    2026-10-23 23:26 CDT): cuando el análisis de una comida no da
@@ -4282,8 +4416,23 @@ function aiWireFailExtras() {
    en el estado) y el reintento es recalcular con lo mismo: misma
    revisión y mismo saveId, porque aiCalculate no crea estado nuevo. */
 function aiErrorCardHTML() {
+  /* Interruptor del administrador: aviso propio, SIN reintento (el
+     servidor negaría cada intento) y con la salida manual abierta. */
+  if (aiState.disabled) {
+    return { html: `<p class="progress-hint">${t('ai.disabledByAdmin')}</p><div class="ai-actions"><button type="button" class="btn-main btn-sm" id="ai-manual">${t('ai.continueManual')}</button><button type="button" class="btn-ghost btn-sm" id="ai-cancel">${t('ai.discard')}</button></div>`, extras: false };
+  }
+  /* Ventana de 15 días del análisis de tipo corporal: el aviso dice
+     CUÁNDO se renueva (fecha real que devolvió el Worker). */
+  if (aiState.btWindow) {
+    const d = aiState.btRenews ? new Date(aiState.btRenews) : null;
+    const ds = d && isFinite(d.getTime()) ? d.toLocaleDateString(LANG === 'en' ? 'en-US' : 'es', { year: 'numeric', month: 'long', day: 'numeric' }) : '—';
+    return { html: `<p class="progress-hint">${t('ai.btWindow', { date: ds })}</p><div class="ai-actions"><button type="button" class="btn-main btn-sm" id="ai-manual">${t('ai.continueManual')}</button><button type="button" class="btn-ghost btn-sm" id="ai-cancel">${t('ai.discard')}</button></div>`, extras: false };
+  }
   if (aiState.cap) {
-    return { html: `<p class="progress-hint">${t('ai.capReached')}</p><p class="progress-hint">${t('ai.limitNote')}</p><div class="ai-actions"><button type="button" class="btn-main btn-sm" id="ai-manual">${t('ai.continueManual')}</button><button type="button" class="btn-ghost btn-sm" id="ai-cancel">${t('ai.discard')}</button></div>`, extras: false };
+    /* Con el límite aplicable conocido, el aviso lo NOMBRA y dice que
+       se renueva mañana; sin él, el texto genérico de siempre. */
+    const head = aiState.capLimit != null ? t('ai.capReachedN', { n: aiState.capLimit }) : t('ai.capReached');
+    return { html: `<p class="progress-hint">${head}</p><p class="progress-hint">${t('ai.limitNote')}</p><div class="ai-actions"><button type="button" class="btn-main btn-sm" id="ai-manual">${t('ai.continueManual')}</button><button type="button" class="btn-ghost btn-sm" id="ai-cancel">${t('ai.discard')}</button></div>`, extras: false };
   }
   const identify = aiState.errStage === 'identify';
   const canRetry = !identify || aiHasInput();

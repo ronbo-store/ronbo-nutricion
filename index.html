@@ -254,6 +254,7 @@
       <div id="my-templates"></div>
       <div id="my-proposals"></div>
     </div>
+    <div id="ai-off-note" class="progress-hint" style="display:none" data-i18n="ai.disabledByAdmin">AI analysis is turned off by the administrator right now. You can keep logging your meals manually; AI analysis will be back when it is turned on again.</div>
     <div id="ai-panel" class="ai-panel" style="display:none"></div>
     <!-- Panel del registro de actividad (Q6): junto a Progreso /
          Entrenamiento / análisis, dentro de la pantalla principal. -->
@@ -402,6 +403,9 @@
     <p class="progress-hint" data-i18n="limits.hint">Daily photo-analysis limits, set only by you. Each account uses its own limit if it has one, otherwise its trainer's, otherwise the global one. No limit set means unlimited.</p>
     <p class="progress-hint" data-i18n="limits.countNote">The counter measures requests to the service; a full analysis normally uses two.</p>
     <div id="limits-box"><div class="wempty" data-i18n="access.loading">Loading…</div></div>
+    <h3 class="history-title" data-i18n="aictl.title">🛑 AI master switch</h3>
+    <p class="progress-hint" data-i18n="aictl.hint">One switch turns off every AI analysis for everyone — meal photos, text descriptions and body-type estimates. The server enforces it: while it is off, no analysis reaches the AI and nothing is spent. Manual logging always works.</p>
+    <div id="ai-control-box"></div>
     <h3 class="history-title" data-i18n="nd2.title">🗒️ Access log (ND-2)</h3>
     <p class="progress-hint" data-i18n="nd2.hint">Every time the trainer view of a client's evaluations and photos is opened, one record is written here: who viewed whose data, and when. Records cannot be edited.</p>
     <div id="nd2-box"><div class="wempty" data-i18n="access.loading">Loading…</div></div>
@@ -446,6 +450,7 @@
         <p class="photo-hint" data-i18n="aiText.hint">No photo? Describe the dish and AI will suggest its components and amounts — you review and edit everything before saving.</p>
         <button type="button" class="btn-main btn-sm" id="m-ai-text-btn" data-i18n="aiText.button">Analyze the description with AI</button>
       </div>
+      <p class="photo-hint" id="ai-off-note-modal" style="display:none" data-i18n="ai.disabledByAdmin">AI analysis is turned off by the administrator right now. You can keep logging your meals manually; AI analysis will be back when it is turned on again.</p>
       <label><span data-i18n="form.amount">Amount</span> <input type="text" id="m-qty" data-i18n-ph="form.amountPh" placeholder="E.g. 150 g"></label>
       <label class="photo-label"><span data-i18n="form.photo">📷 Meal photo (optional)</span>
         <input type="file" id="m-photo" accept="image/*">
