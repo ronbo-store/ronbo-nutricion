@@ -990,6 +990,32 @@ service cloud.firestore {
 
         allow delete: if isSelf(uid) || isOwnerUser();
       }
+
+      // ---------- Activity hobby preferences (rediseño flotante) ----------
+      // The account holder's OWN quick-activity favorites for the
+      // floating Activity buttons. Only the holder reads or writes
+      // them: not the trainer, not the owner role (they are the
+      // client's own shortcuts). Listing the subcollection is
+      // denied; the only enabled document is 'activities'; the
+      // favorites list is a closed-catalog list (the 11 activity
+      // types) with a size cap, and updatedAt must be server time.
+      match /preferences/{docId} {
+        allow get: if isSelf(uid) && docId == 'activities';
+        allow list: if false;
+        allow create, update: if isSelf(uid) && docId == 'activities'
+          && request.resource.data.keys()
+               .hasOnly(['favorites', 'updatedAt'])
+          && request.resource.data.favorites is list
+          && request.resource.data.favorites.size() <= 11
+          && request.resource.data.favorites
+               .hasOnly(['correr', 'ejercicios_en_casa', 'ciclismo',
+                         'natacion', 'futbol', 'baloncesto',
+                         'senderismo', 'baile', 'artes_marciales',
+                         'transporte_activo', 'otro'])
+          && request.resource.data.updatedAt == request.time;
+        // Erasure: the holder may delete their own preferences.
+        allow delete: if isSelf(uid) && docId == 'activities';
+      }
     }
 
     // ---------- Client nutrition data ----------
