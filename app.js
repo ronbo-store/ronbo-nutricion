@@ -2209,6 +2209,18 @@ en: {
   'fa.eqMifflin': 'Mifflin-St Jeor',
   'fa.eqHB': 'Harris-Benedict (revised)',
   'fa.eqTenHaaf': 'Ten Haaf',
+  'fa.athleteSignal': 'Declared athlete profile: {v}',
+  'fa.athleteTitle': 'Athlete profile (for Ten Haaf)',
+  'fa.athleteBody': 'The Ten Haaf equation was derived specifically for recreational athletes (aged 18–35) and can only be used if you declare an athlete profile here. Your declaration is visible to your trainer as a yes/no signal, next to the other assessment signals. Ten Haaf uses your height in meters and the same private sex datum as Mifflin-St Jeor; without that datum it cannot be calculated either.',
+  'fa.athleteCheck': 'I declare that I am a recreational athlete (I train regularly)',
+  'fa.athleteSaved': 'Athlete declaration saved',
+  'fa.athleteNoDoc': 'Your trainer has not created your assessment sheet yet: this declaration can be saved once it exists.',
+  'fa.thNeedsAthlete': 'Ten Haaf needs the client’s declared athlete profile (the client declares it in their private space).',
+  'fa.errAthlete': 'Ten Haaf can only be calculated with a declared athlete profile.',
+  'fa.errAthleteAge': 'Ten Haaf was derived for athletes aged 18–35; outside that range it is not calculated.',
+  'fa.trCoeff': 'Coefficient applied',
+  'fa.helpTH': '<b>What this estimates</b><br>Two estimates from the Ten Haaf equation: your resting expenditure (RMR) and your estimated expenditure without structured exercise (RMR × your activity multiplier).<br><b>What it is for</b><br>An orientation figure to plan with — not a measurement.<br><b>Its limits</b><br>Ten Haaf was derived only for recreational athletes aged 18–35; every figure is an estimate with inherent uncertainty, not an individual guarantee. The multiplier covers rest, daily life and habitual movement; structured exercise is NOT included in this estimate.',
+  'fa.helpDetailTH': '<b>Formula · Ten Haaf (2014)</b><br>REE (kJ/day) = 49.940 × weight (kg) + 2459.053 × height (m) − 34.014 × age (years) + 799.257 × sex (M = 1, F = 0) + 122.502<br>Height is used in METERS and the result is converted to kcal/day (÷ 4.184). Estimated expenditure without structured exercise = RMR × palBasal.<br><b>Source</b><br>• ten Haaf T, Weijs PJM. “Resting Energy Expenditure Prediction in Recreational Athletes of 18–35 Years”, PLoS ONE 2014;9(10):e108460. DOI: 10.1371/journal.pone.0108460<br><b>About structured exercise</b><br>Structured exercise is not inside the multiplier and is not added anywhere else in this version: there is no session-expenditure module yet, so this estimate never promises one.',
   'fa.available': 'Available',
   'fa.unavailable': 'Unavailable · pending verification',
   'fa.birthYear': 'Birth year',
@@ -3445,6 +3457,18 @@ es: {
   'fa.eqMifflin': 'Mifflin-St Jeor',
   'fa.eqHB': 'Harris-Benedict revisada',
   'fa.eqTenHaaf': 'Ten Haaf',
+  'fa.athleteSignal': 'Perfil de atleta declarado: {v}',
+  'fa.athleteTitle': 'Perfil de atleta (para Ten Haaf)',
+  'fa.athleteBody': 'La ecuación de Ten Haaf se derivó específicamente para atletas recreativos (de 18 a 35 años) y solo puede usarse si declaras aquí un perfil de atleta. Tu declaración es visible para tu entrenador como una señal de sí/no, junto a las demás señales de la evaluación. Ten Haaf usa tu talla en metros y el mismo dato privado de sexo que Mifflin-St Jeor; sin ese dato tampoco puede calcularse.',
+  'fa.athleteCheck': 'Declaro que soy atleta recreativo (entreno con regularidad)',
+  'fa.athleteSaved': 'Declaración de atleta guardada',
+  'fa.athleteNoDoc': 'Tu entrenador aún no crea tu ficha de evaluación: esta declaración podrá guardarse cuando exista.',
+  'fa.thNeedsAthlete': 'Ten Haaf necesita el perfil de atleta declarado del cliente (lo declara el cliente en su espacio privado).',
+  'fa.errAthlete': 'Ten Haaf solo puede calcularse con un perfil de atleta declarado.',
+  'fa.errAthleteAge': 'Ten Haaf se derivó para atletas de 18 a 35 años; fuera de ese rango no se calcula.',
+  'fa.trCoeff': 'Coeficiente aplicado',
+  'fa.helpTH': '<b>Qué estima esto</b><br>Dos estimaciones con la ecuación de Ten Haaf: tu gasto en reposo (RMR) y tu gasto estimado sin ejercicio estructurado (RMR × tu multiplicador de actividad).<br><b>Para qué sirve</b><br>Una cifra de orientación para planificar — no es una medición.<br><b>Sus límites</b><br>Ten Haaf se derivó solo para atletas recreativos de 18 a 35 años; toda cifra es una estimación con incertidumbre propia, no una garantía individual. El multiplicador cubre el reposo, la vida diaria y el movimiento habitual; el ejercicio estructurado NO está incluido en esta estimación.',
+  'fa.helpDetailTH': '<b>Fórmula · Ten Haaf (2014)</b><br>REE (kJ/día) = 49,940 × peso (kg) + 2459,053 × talla (m) − 34,014 × edad (años) + 799,257 × sexo (M = 1, F = 0) + 122,502<br>La talla se usa en METROS y el resultado se convierte a kcal/día (÷ 4,184). Gasto estimado sin ejercicio estructurado = RMR × palBasal.<br><b>Fuente</b><br>• ten Haaf T, Weijs PJM. «Resting Energy Expenditure Prediction in Recreational Athletes of 18–35 Years», PLoS ONE 2014;9(10):e108460. DOI: 10.1371/journal.pone.0108460<br><b>Sobre el ejercicio estructurado</b><br>El ejercicio estructurado no va dentro del multiplicador ni se suma en ningún otro sitio en esta versión: aún no existe un módulo de gasto por sesión, así que esta estimación nunca promete uno.',
   'fa.available': 'Disponible',
   'fa.unavailable': 'No disponible · pendiente de verificación',
   'fa.birthYear': 'Año de nacimiento',
@@ -5015,6 +5039,17 @@ async function saveMyUnits(next) {
    - Ningún cálculo escribe jamás users/{uid}.goals: las metas
      siguen siendo manuales del entrenador (invariante N-01/F-B3). */
 const FA_EQUATION_VERSION = 'mifflin-st-jeor@1.0'; // cadena fijada en la Etapa 2 (la maqueta mostraba «versión 1»)
+/* MÓDULO A (P4-3 Etapa 3, desarrollo): Ten Haaf se habilita como
+   segunda ecuación — SOLO para atletas (perfil deportivo DECLARADO
+   por el propio cliente en su espacio privado, señal
+   athleteDeclared en assessment/current) y con la talla en METROS
+   dentro del cálculo (su fórmula original es en kJ/día con la
+   talla en m; el resultado se convierte a kcal/día ÷ 4.184).
+   Harris-Benedict sigue «pendiente de verificación», sin cambios.
+   N-01 intacto: ninguna ecuación nace elegida; la elige el
+   entrenador por cliente. Versiones por ecuación: */
+const FA_EQ_VERSIONS = { 'mifflin-st-jeor': 'mifflin-st-jeor@1.0', 'ten-haaf': 'ten-haaf@1.0' };
+const FA_EQ_ENABLED = ['mifflin-st-jeor', 'ten-haaf'];
 const FA_PURPOSE_VERSION = 'v1-2026-10-20';
 const FA_UNCERTAINTY = {
   es: 'La incertidumbre es propia del método de estimación; no es una garantía individual.',
@@ -5026,7 +5061,7 @@ let FA_CALC_ERR = null;                            // C-7: causa de «no calcula
 let FA_CARD = { uid: null, asmt: null };           // estado de la ficha abierta (entrenador)
 const faRound10 = n => Math.round(n / 10) * 10;    // mostrar a 10 kcal; precisión completa dentro (Doc. 2 §7)
 const faFmtTs = ts => { try { return ts && ts.toDate ? ts.toDate().toLocaleDateString(LANG === 'es' ? 'es-MX' : 'en-US', { day: 'numeric', month: 'long', year: 'numeric' }) : ''; } catch { return ''; } };
-const faEqName = id => id === 'mifflin-st-jeor' ? t('fa.eqMifflin') : (id || '—');
+const faEqName = id => id === 'mifflin-st-jeor' ? t('fa.eqMifflin') : id === 'ten-haaf' ? t('fa.eqTenHaaf') : (id || '—');
 
 /* ---------- Vista del entrenador: tarjeta en la ficha del cliente ---------- */
 /* Vigencia del resultado (C-3): un resultado solo está VIGENTE si
@@ -5045,23 +5080,28 @@ function faResultStale(a, last) {
   if (s.ageYears !== ageNow) return true;
   if (num(s.palBasal) !== num(a.palBasal)) return true;
   if (a.equationUsed !== a.equation) return true;
-  if (a.equationVersion && a.equationVersion !== FA_EQUATION_VERSION) return true;
+  if (a.equationVersion && a.equationVersion !== (FA_EQ_VERSIONS[a.equationUsed] || FA_EQUATION_VERSION)) return true;
   return false;
 }
 function faCardHTML(uid, a, weights) {
   const last = weights && weights.length ? weights[weights.length - 1] : null;
   const head = `<div class="fb3-head"><h3 class="history-title" style="margin:0">${t('fa.title')}</h3>
     <button type="button" class="fb3-helpbtn" id="fa-help-btn" aria-expanded="false" title="${t('fa.helpBtn')}">?</button></div>`;
-  const help = `<div class="fb3-pop" id="fa-help" style="display:none"><div class="fa-help-l1">${t('fa.help')}</div><button type="button" class="fa-help-more" id="fa-help-more" aria-expanded="false">${t('fa.helpMore')}</button><div class="fa-help-detail" id="fa-help-detail" style="display:none">${t('fa.helpDetail')}</div></div>`;
-  const eqSel = !!a && a.equation === 'mifflin-st-jeor';
+  const help = `<div class="fb3-pop" id="fa-help" style="display:none"><div class="fa-help-l1">${a && a.equation === 'ten-haaf' ? t('fa.helpTH') : t('fa.help')}</div><button type="button" class="fa-help-more" id="fa-help-more" aria-expanded="false">${t('fa.helpMore')}</button><div class="fa-help-detail" id="fa-help-detail" style="display:none">${a && a.equation === 'ten-haaf' ? t('fa.helpDetailTH') : t('fa.helpDetail')}</div></div>`;
+  const eqSel = !!a && FA_EQ_ENABLED.includes(a.equation);
+  const thSel = !!a && a.equation === 'ten-haaf';
+  const thReady = !!a && a.athleteDeclared === true;
   const signal = !!a && a.sexDataProvided === true;
   const selbox = eqSel
-    ? `<div class="fa-selbox"><span class="fa-val">${t('fa.eqMifflin')}</span><span class="fa-oktag">${t('fa.selected')}</span><span class="fa-chev">▾</span></div>`
+    ? `<div class="fa-selbox"><span class="fa-val">${esc(faEqName(a.equation))}</span><span class="fa-oktag">${t('fa.selected')}</span><span class="fa-chev">▾</span></div>`
     : `<div class="fa-selbox"><span class="fa-ph">${t('fa.noEquation')}</span><span class="fa-chev">▾</span></div>`;
   const opts = `
-    <div class="fa-opt${eqSel ? ' sel' : ''}" data-fa-eq="mifflin-st-jeor" role="button" tabindex="0"><span class="fa-radio"></span><span class="fa-nm">${t('fa.eqMifflin')}</span><span class="tag-ok">${t('fa.available')}</span></div>
+    <div class="fa-opt${a && a.equation === 'mifflin-st-jeor' ? ' sel' : ''}" data-fa-eq="mifflin-st-jeor" role="button" tabindex="0"><span class="fa-radio"></span><span class="fa-nm">${t('fa.eqMifflin')}</span><span class="tag-ok">${t('fa.available')}</span></div>
     <div class="fa-opt off"><span class="fa-radio"></span><span class="fa-nm">${t('fa.eqHB')}</span><span class="tag-off">${t('fa.unavailable')}</span></div>
-    <div class="fa-opt off"><span class="fa-radio"></span><span class="fa-nm">${t('fa.eqTenHaaf')}</span><span class="tag-off">${t('fa.unavailable')}</span></div>`;
+    ${thReady
+      ? `<div class="fa-opt${thSel ? ' sel' : ''}" data-fa-eq="ten-haaf" role="button" tabindex="0"><span class="fa-radio"></span><span class="fa-nm">${t('fa.eqTenHaaf')}</span><span class="tag-ok">${t('fa.available')}</span></div>`
+      : `<div class="fa-opt off"><span class="fa-radio"></span><span class="fa-nm">${t('fa.eqTenHaaf')}</span><span class="tag-off">${t('fa.unavailable')}</span></div>`}
+    ${thReady ? '' : `<p class="progress-hint">${esc(t('fa.thNeedsAthlete'))}</p>`}`;
   const actOpts = [1, 2, 3, 4, 5, 6].map(n =>
     `<option value="${n}"${a && a.activityCategoryId === n ? ' selected' : ''}>${n}. ${t('fa.act' + n)}</option>`).join('');
   const palVal = a && a.palBasal != null ? String(a.palBasal) : '';
@@ -5094,7 +5134,7 @@ function faCardHTML(uid, a, weights) {
       <div class="fa-trow"><span class="k">${t('fa.trInputs')}</span><span class="v">${esc(t('fa.trInputsVal', { w: s.weightKg ?? '—', h: s.heightCm ?? '—', age: s.ageYears ?? '—' }))}</span></div>
       <div class="fa-trow"><span class="k">${t('fa.trWeight')}</span><span class="v">${esc(t('fa.trWeightVal', { w: s.weightKg ?? '—', date: s.weightDate ? dateName(s.weightDate) : '—' }))}</span></div>
       <div class="fa-trow"><span class="k">${t('fa.trPal')}</span><span class="v">${s.palBasal ?? '—'}</span></div>
-      <div class="fa-trow"><span class="k">${t('fa.trConst')}</span><span class="v"><b>${a.sexConstantApplied ? t('fa.trConstYes') : t('fa.trConstNo')}</b></span></div>
+      <div class="fa-trow"><span class="k">${a.equationUsed === 'ten-haaf' ? t('fa.trCoeff') : t('fa.trConst')}</span><span class="v"><b>${a.sexConstantApplied ? t('fa.trConstYes') : t('fa.trConstNo')}</b></span></div>
       <div class="fa-trow"><span class="k">${t('fa.trWhen')}</span><span class="v">${esc(t('fa.trWhenVal', { date: faFmtTs(a.computedAt), who: a.computedBy === uid ? t('fa.whoClient') : t('fa.whoTrainer') }))}</span></div>
       ${a.uncertaintyNote ? `<div class="fa-tnote">${esc(a.uncertaintyNote)}</div>` : ''}
     </div>`;
@@ -5107,6 +5147,7 @@ function faCardHTML(uid, a, weights) {
   }
   return `<div class="fb3-card fa-card">${head}${help}
     <div class="fa-signal">${t('fa.provided', { v: signal ? t('fa.yes') : t('fa.no') })}</div>
+    <div class="fa-signal">${t('fa.athleteSignal', { v: thReady ? t('fa.yes') : t('fa.no') })}</div>
     <label class="fa-flabel">${t('fa.equation')}</label>
     ${selbox}${opts}
     <div class="fa-divider"></div>
@@ -5147,10 +5188,15 @@ function faPalSync() {
     if (!(a && a.palExceptionConfirmed === true && num(a.palBasal) === v)) conf.checked = false;
   }
 }
-async function faSetEquation(uid) {
+async function faSetEquation(uid, eq) {
+  const equation = FA_EQ_ENABLED.includes(eq) ? eq : 'mifflin-st-jeor';
+  /* Ten Haaf SOLO con el perfil de atleta declarado del cliente
+     (fallo cerrado: ni la UI lo ofrece ni esta función lo escribe
+     sin la declaración, aunque la llamen con el id a mano). */
+  if (equation === 'ten-haaf' && !(FA_CARD.asmt && FA_CARD.asmt.athleteDeclared === true)) { toast(t('fa.thNeedsAthlete'), true); return; }
   try {
     await setDoc(doc(db, 'users', uid, 'assessment', 'current'),
-      { equation: 'mifflin-st-jeor', equationChosenBy: auth.currentUser.uid, equationChosenAt: serverTimestamp(), updatedAt: serverTimestamp(), updatedBy: auth.currentUser.uid }, { merge: true });
+      { equation, equationChosenBy: auth.currentUser.uid, equationChosenAt: serverTimestamp(), updatedAt: serverTimestamp(), updatedBy: auth.currentUser.uid }, { merge: true });
     toast(t('fa.configSaved'));
     openClient(uid);
   } catch (e) { failToast(e); }
@@ -5212,9 +5258,22 @@ function renderEnergyPanel() {
       own = `<div class="fa-ownres">${t('fa.myResult', { rmr: fmt(faRound10(d.rmrKcal)), tdee: fmt(faRound10(d.tdeeKcal)), u: t('fa.kcalDay'), eq: faEqName(d.equationUsed) })}</div>`
         + (faResultStale(d, lastW) ? `<div class="fa-stale">${t('fa.staleBanner')}</div>` : '');
     }
-  } else if (FA_CALC_ERR && sex && d && d.equation === 'mifflin-st-jeor') {
+  } else if (FA_CALC_ERR && sex && d && FA_EQ_ENABLED.includes(d.equation)) {
     own = `<div class="fa-empty"><span>${t('fa.calcInvalid', { cause: t(FA_CALC_ERR.key, FA_CALC_ERR.params || {}) })}</span></div>`;
   }
+  /* MÓDULO A: la declaración de perfil de atleta vive aquí, en el
+     espacio privado del propio cliente (como el dato de sexo): es
+     SU declaración; el entrenador solo ve la señal sí/no en su
+     ficha. Sin documento de evaluación todavía, se explica y no
+     se escribe nada. */
+  const athleteBlock = `<div class="fa-athlete">
+    <h4 class="fa-athtitle">${t('fa.athleteTitle')}</h4>
+    <p class="fa-sextext">${t('fa.athleteBody')}</p>
+    ${d
+      ? `<label class="fa-opt2"><input type="checkbox" id="fa-athlete" ${d.athleteDeclared === true ? 'checked' : ''}> <span>${t('fa.athleteCheck')}</span></label>
+    <div class="fa-btnrow"><button type="button" class="btn-primary btn-sm" id="fa-athlete-save">${t('fa.save')}</button></div>`
+      : `<div class="fa-stale-note">${t('fa.athleteNoDoc')}</div>`}
+  </div>`;
   box.innerHTML = `<div class="fa-privcard">
     <h3 class="history-title" style="margin-top:0">${t('fa.sexTitle')}</h3>
     <p class="fa-sextext">${t('fa.sexBody')}</p>
@@ -5228,10 +5287,32 @@ function renderEnergyPanel() {
       ${sex ? `<button type="button" class="btn-ghost btn-sm fa-delbtn" id="fa-sex-del">${t('fa.delete')}</button>` : ''}
     </div>
     <div class="fa-locknote">🔒 ${t('fa.lockNote')}</div>
+    ${athleteBlock}
     ${own}
   </div>`;
   const sv = $('fa-sex-save'); if (sv) sv.onclick = saveMySex;
   const dl = $('fa-sex-del'); if (dl) dl.onclick = deleteMySex;
+  const as = $('fa-athlete-save'); if (as) as.onclick = saveMyAthleteDeclaration;
+}
+/* La declaración de atleta se escribe en assessment/current con la
+   sesión del PROPIO cliente (el delta de reglas del módulo A la
+   añade a su lista de claves; en las reglas vivas aún no está —
+   si Firestore la deniega, el aviso es honesto y nada queda a
+   medias). Retirarla (desmarcar) también se guarda: Ten Haaf deja
+   de poder calcularse y el resultado anterior queda como anterior
+   (la vigencia la decide faResultStale + el propio cálculo). */
+async function saveMyAthleteDeclaration() {
+  const chk = $('fa-athlete'); if (!chk || !auth.currentUser) return;
+  const uid = auth.currentUser.uid;
+  const declared = !!chk.checked;
+  try {
+    await setDoc(doc(db, 'users', uid, 'assessment', 'current'),
+      { athleteDeclared: declared, athleteDeclaredAt: serverTimestamp() }, { merge: true });
+  } catch (e) { failToast(e); return; }
+  if (MY_ASMT.doc) MY_ASMT.doc = { ...MY_ASMT.doc, athleteDeclared: declared };
+  toast(t('fa.athleteSaved'));
+  renderEnergyPanel();
+  await faComputeMine(uid);
 }
 /* La señal «dato aportado: sí/no» vive en assessment/current y SOLO
    la escribe la sesión del propio cliente (así lo exige el
@@ -5278,25 +5359,44 @@ function faCalcCheck(cfg, last) {
 async function faComputeMine(uid) {
   const cfg = MY_ASMT.doc; if (!cfg) return;
   const sex = MY_ENERGY.sex; if (!sex) return;
-  if (cfg.equation !== 'mifflin-st-jeor') return;
+  if (!FA_EQ_ENABLED.includes(cfg.equation)) return;
   const by = parseInt(cfg.birthYear, 10), h = num(cfg.heightCm), pal = num(cfg.palBasal);
   const last = WEIGHTS && WEIGHTS.length ? WEIGHTS[WEIGHTS.length - 1] : null;
   const bad = faCalcCheck(cfg, last);
   if (bad) { if (!FA_CALC_ERR || FA_CALC_ERR.key !== bad.key) { FA_CALC_ERR = bad; renderEnergyPanel(); } return; }
-  FA_CALC_ERR = null;
   const age = new Date().getFullYear() - by;
-  const base = 10 * last.weight + 6.25 * h - 5 * age;
-  const rmr = sex === 'male' ? base + 5 : base - 161;
+  /* Puertas de Ten Haaf (Módulo A): SOLO atletas — sin la
+     declaración del propio cliente no se calcula, y fuera de la
+     población de la fuente (18–35 años) tampoco; la causa queda
+     visible en el panel (mismo patrón honesto C-7). */
+  if (cfg.equation === 'ten-haaf') {
+    const gate = cfg.athleteDeclared !== true ? { key: 'fa.errAthlete', params: {} }
+      : (age < 18 || age > 35) ? { key: 'fa.errAthleteAge', params: {} } : null;
+    if (gate) { if (!FA_CALC_ERR || FA_CALC_ERR.key !== gate.key) { FA_CALC_ERR = gate; renderEnergyPanel(); } return; }
+  }
+  FA_CALC_ERR = null;
+  let rmr;
+  if (cfg.equation === 'ten-haaf') {
+    /* Ten Haaf & Weijs 2014 (DOI 10.1371/journal.pone.0108460):
+       REE en kJ/día con la talla en METROS (h viene en cm
+       canónicos: se convierte SOLO dentro del cálculo) y sexo
+       M=1/F=0; el resultado se pasa a kcal/día (÷ 4.184). */
+    const kj = 49.940 * last.weight + 2459.053 * (h / 100) - 34.014 * age + 799.257 * (sex === 'male' ? 1 : 0) + 122.502;
+    rmr = kj / 4.184;
+  } else {
+    const base = 10 * last.weight + 6.25 * h - 5 * age;
+    rmr = sex === 'male' ? base + 5 : base - 161;
+  }
   const snap = { weightKg: last.weight, weightDate: last.date, heightCm: h, ageYears: age, palBasal: pal };
   /* Sin cambios NO se reescribe — y el «sin cambios» incluye el
      resultado que corresponde al dato de sexo ACTUAL: el snapshot
      jamás guarda el valor del sexo, así que la igualdad del
      snapshot sola no basta (si el cliente corrige su dato con las
      mismas entradas, hay que recalcular: la constante cambia). */
-  if (cfg.equationUsed === 'mifflin-st-jeor' && typeof cfg.rmrKcal === 'number'
+  if (cfg.equationUsed === cfg.equation && typeof cfg.rmrKcal === 'number'
       && Math.abs(cfg.rmrKcal - rmr) < 1e-9 && Math.abs(cfg.tdeeKcal - rmr * pal) < 1e-9
       && cfg.inputsSnapshot && JSON.stringify(cfg.inputsSnapshot) === JSON.stringify(snap)) return;
-  const result = { rmrKcal: rmr, tdeeKcal: rmr * pal, equationUsed: 'mifflin-st-jeor', equationVersion: FA_EQUATION_VERSION,
+  const result = { rmrKcal: rmr, tdeeKcal: rmr * pal, equationUsed: cfg.equation, equationVersion: FA_EQ_VERSIONS[cfg.equation] || FA_EQUATION_VERSION,
     inputsSnapshot: snap, sexConstantApplied: true, uncertaintyNote: FA_UNCERTAINTY[LANG] || FA_UNCERTAINTY.en,
     computedAt: serverTimestamp(), computedBy: uid };
   try {
@@ -5429,8 +5529,10 @@ async function openClient(uid) {
   if (fah) fah.onclick = () => { const p = $('fa-help'); const open = p.style.display !== 'none'; p.style.display = open ? 'none' : ''; fah.setAttribute('aria-expanded', String(!open)); };
   const fhm = $('fa-help-more');
   if (fhm) fhm.onclick = () => { const det = $('fa-help-detail'); const open = det.style.display !== 'none'; det.style.display = open ? 'none' : ''; fhm.setAttribute('aria-expanded', String(!open)); fhm.textContent = open ? t('fa.helpMore') : t('fa.helpLess'); };
-  const faEq = box.querySelector('[data-fa-eq]');
-  if (faEq) { faEq.onclick = () => faSetEquation(uid); faEq.onkeydown = e => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); faSetEquation(uid); } }; }
+  box.querySelectorAll('[data-fa-eq]').forEach(faEq => {
+    faEq.onclick = () => faSetEquation(uid, faEq.dataset.faEq);
+    faEq.onkeydown = e => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); faSetEquation(uid, faEq.dataset.faEq); } };
+  });
   const faSv = $('fa-save');
   if (faSv) faSv.onclick = () => faSaveConfig(uid);
   const faPal = $('fa-pal');

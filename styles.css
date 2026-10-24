@@ -1148,3 +1148,7 @@ div > .btn-ghost:only-child, div > .btn-main:only-child {
 /* MÓDULO H — selector de unidades (P4-3 Etapa 1, desarrollo) */
 .units-group { display: flex; gap: 14px; align-items: center; flex-wrap: wrap; margin: 10px 0; }
 .units-glabel { font-weight: 600; min-width: 76px; }
+
+/* MÓDULO A — declaración de atleta en el espacio privado (P4-3 Etapa 3, desarrollo) */
+.fa-athlete { margin-top: 14px; border-top: 1px solid #e5e7eb; padding-top: 10px; }
+.fa-athtitle { margin: 0 0 6px; font-size: 15px; }
