@@ -332,6 +332,12 @@
       <div class="perms-section" id="bt-section" style="display:none">
         <h3 class="perms-section-title" data-i18n="bt.title">Visual body type estimate</h3>
         <div id="bt-panel-body"></div>
+      <!-- MÓDULO H (P4-3 Etapa 1, desarrollo): preferencia de
+           unidades del propio usuario (users/{uid}/preferences/units).
+           El panel lo renderiza renderUnitsPanel() desde STR (units.*). -->
+      <div class="perms-section" id="units-section">
+        <h3 class="perms-section-title" data-i18n="units.title">Units</h3>
+        <div id="units-panel-body"><div class="wempty" data-i18n="train.loading">Loading…</div></div>
       </div>
       <div class="perms-section privacy-panel" id="privacy-section">
         <h3 class="perms-section-title" data-i18n="priv.sectionTitle">Privacy &amp; data</h3>
@@ -589,7 +595,7 @@
     <form id="form-weight">
       <div class="frow3">
         <label><span data-i18n="form.date">Date</span> <input type="date" id="w-date" required></label>
-        <label><span data-i18n="form.weight">Weight (kg)</span> <input type="number" id="w-weight" step="any" min="0" required></label>
+        <label><span id="w-weight-label" data-i18n="form.weight">Weight (kg)</span> <input type="number" id="w-weight" step="any" min="0" required></label>
         <label><span data-i18n="form.bodyfat">Body fat (%)</span> <input type="number" id="w-fat" step="any" min="0" data-i18n-ph="form.optional" placeholder="optional"></label>
       </div>
       <div class="frow3">

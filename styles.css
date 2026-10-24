@@ -1081,8 +1081,7 @@ div > .btn-ghost:only-child, div > .btn-main:only-child {
 .aictl-switch input:checked + .aictl-track::after { left: 25px; }
 .aictl-switch input:disabled { cursor: wait; }
 
-/* ============ DOSSIER DEL ENTRENADOR (2026-10-24, SOLO desarrollo) ============
-   Estilo fijado por Ronald: LUJO CLARO profesional, marca RONBO —
+/* ============ DOSSIER DEL ENTRENADOR (2026-10-24, SOLO desarrollo) =====   Estilo fijado por Ronald: LUJO CLARO profesional, marca RONBO —
    teal principal, verde oscuro profundo, dorado SUAVE solo para
    acentos premium, fondo blanco hueso, texto carbón. La propuesta
    oscura quedó descartada. Portada con foto a ancho completo y
@@ -1145,3 +1144,7 @@ div > .btn-ghost:only-child, div > .btn-main:only-child {
 .pend-check ul{list-style:none;margin:0;padding:0;font-size:13px;color:#374151}
 .pend-check li{margin:2px 0}
 #role-pend-card .pend-card{border-left:4px solid #0d9488}
+=======
+/* MÓDULO H — selector de unidades (P4-3 Etapa 1, desarrollo) */
+.units-group { display: flex; gap: 14px; align-items: center; flex-wrap: wrap; margin: 10px 0; }
+.units-glabel { font-weight: 600; min-width: 76px; }

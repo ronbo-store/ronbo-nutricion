@@ -1748,6 +1748,23 @@ en: {
   'eval.cfgUnits': 'Measurement units',
   'eval.unitsMetric': 'Metric (kg, cm)',
   'eval.unitsImperial': 'Imperial (lb, inches)',
+  'units.title': 'Units',
+  'units.sub': 'Choose how your measurements are shown. Your data never changes — only how it is displayed.',
+  'units.mass': 'Weight',
+  'units.height': 'Height',
+  'units.distance': 'Distance',
+  'units.kg': 'Kilograms (kg)',
+  'units.lb': 'Pounds (lb)',
+  'units.cm': 'Centimeters (cm)',
+  'units.ftin': 'Feet and inches (ft / in)',
+  'units.km': 'Kilometers (km)',
+  'units.mi': 'Miles (mi)',
+  'units.saved': 'Units saved',
+  'units.weightField': 'Weight ({u})',
+  'units.heightField': 'Height ({u})',
+  'units.errWeightRange': 'Weight must be between 20 and 400 kg.',
+  'units.heightHintFtin': 'You can write 5\'10", 5 ft 10 in or 5.83 ft.',
+  'units.errHeightParse': 'Height not understood. Use e.g. 5\'10".',
   'eval.cfgSave': 'Save settings',
   'mealhelp.addManual': 'Add food manually',
   'mealhelp.upload': '📷 Upload food photo',
@@ -2196,7 +2213,7 @@ en: {
   'fa.unavailable': 'Unavailable · pending verification',
   'fa.birthYear': 'Birth year',
   'fa.height': 'Height (cm)',
-  'fa.weightBasis': 'Using the latest weight: {w} kg · {date}',
+  'fa.weightBasis': 'Using the latest weight: {w} · {date}',
   'fa.noWeight': 'No weight logged yet: there is no basis for the calculation.',
   'fa.actLabel': 'Activity level (context for the trainer — it carries no number)',
   'fa.actNone': 'No level chosen',
@@ -2966,6 +2983,23 @@ es: {
   'eval.cfgUnits': 'Unidades de las medidas',
   'eval.unitsMetric': 'Métrico (kg, cm)',
   'eval.unitsImperial': 'Imperial (lb, pulgadas)',
+  'units.title': 'Unidades',
+  'units.sub': 'Elige cómo se muestran tus medidas. Tus datos no cambian nunca: solo cómo se muestran.',
+  'units.mass': 'Peso',
+  'units.height': 'Estatura',
+  'units.distance': 'Distancia',
+  'units.kg': 'Kilogramos (kg)',
+  'units.lb': 'Libras (lb)',
+  'units.cm': 'Centímetros (cm)',
+  'units.ftin': 'Pies y pulgadas (ft / in)',
+  'units.km': 'Kilómetros (km)',
+  'units.mi': 'Millas (mi)',
+  'units.saved': 'Unidades guardadas',
+  'units.weightField': 'Peso ({u})',
+  'units.heightField': 'Talla ({u})',
+  'units.errWeightRange': 'El peso debe estar entre 20 y 400 kg.',
+  'units.heightHintFtin': 'Puedes escribir 5\'10", 5 ft 10 in o 5,83 ft.',
+  'units.errHeightParse': 'Estatura no reconocida. Usa p. ej. 5\'10".',
   'eval.cfgSave': 'Guardar configuración',
   'mealhelp.addManual': 'Añadir comida manualmente',
   'mealhelp.upload': '📷 Subir foto de comida',
@@ -3415,7 +3449,7 @@ es: {
   'fa.unavailable': 'No disponible · pendiente de verificación',
   'fa.birthYear': 'Año de nacimiento',
   'fa.height': 'Talla (cm)',
-  'fa.weightBasis': 'Con el último peso: {w} kg · {date}',
+  'fa.weightBasis': 'Con el último peso: {w} · {date}',
   'fa.noWeight': 'Aún no hay peso registrado: no hay base para el cálculo.',
   'fa.actLabel': 'Nivel de actividad (contexto para el entrenador — no lleva ningún número)',
   'fa.actNone': 'Sin nivel elegido',
@@ -4802,6 +4836,135 @@ function fb3ProteinHTML(weights) {
     <div class="muted">${t('fb3.nogoals')}</div>${help}</div>`;
 }
 
+/* ================= MÓDULO H — UNIDADES DE MEDIDA (P4-3 Etapa 1, desarrollo) =================
+   Preferencia de unidades POR VISOR en users/{uid}/preferences/units:
+   { mass: 'kg'|'lb', height: 'cm'|'ft-in', distance: 'km'|'mi', updatedAt }.
+   El canónico interno NO cambia: kg / cm / km en todo lo guardado; la
+   conversión vive SOLO en la entrada y en la presentación, en estas
+   funciones centrales — ninguna pantalla convierte por su cuenta.
+   Factores exactos (P4-2, H-1): 1 lb = 0.45359237 kg; 1 in = 2.54 cm;
+   1 ft = 30.48 cm; 1 mi = 1.609344 km. Preferencia corrupta o
+   ilegible → métrico (fallback H-5). Los valores NUEVOS guardan el
+   patrón {valueCanonical, valueOriginal, unitOriginal} (peso del
+   formulario de pesaje; talla de la evaluación energética).
+   Cobertura: peso (formulario, historial propio y ficha del
+   entrenador), talla (evaluación F-A), medidas de circunferencia
+   (fmtMeasureCm, ligada a la preferencia de estatura) y la
+   configuración de unidades de las evaluaciones (EVAL_CFG la sigue,
+   para no tener dos controles en conflicto). La composición (%) no
+   tiene unidad: no se convierte. La distancia no tiene aún ningún
+   campo en la app: la preferencia se guarda y quedará aplicada
+   cuando exista el primer campo de distancia.
+   REGLAS: la ruta preferences/ NO existe en las reglas vivas
+   (deny-by-default) — el delta de reglas de este módulo va en
+   archivo propio (modulos-p4-3/reglas-delta-h-unidades.rules), SIN
+   componer con ningún candidato en curso y SIN publicar. Sin ese
+   delta publicado, la lectura/escritura de la preferencia fallará
+   y la app seguirá en métrico por el fallback. */
+const UNIT_LB_KG = 0.45359237, UNIT_IN_CM = 2.54, UNIT_FT_CM = 30.48, UNIT_MI_KM = 1.609344;
+const UNIT_METRIC = { mass: 'kg', height: 'cm', distance: 'km' };
+let UNIT_PREFS = { ...UNIT_METRIC };
+function unitPrefsSanitize(p) {
+  const o = { ...UNIT_METRIC };
+  if (p && typeof p === 'object') {
+    if (p.mass === 'lb' || p.mass === 'kg') o.mass = p.mass;
+    if (p.height === 'ft-in' || p.height === 'cm') o.height = p.height;
+    if (p.distance === 'mi' || p.distance === 'km') o.distance = p.distance;
+  }
+  return o;
+}
+const uRound1 = v => Math.round(v * 10) / 10;
+function massToDisplay(kg) { return UNIT_PREFS.mass === 'lb' ? num(kg) / UNIT_LB_KG : num(kg); }
+function massToCanonical(v) { return UNIT_PREFS.mass === 'lb' ? num(v) * UNIT_LB_KG : num(v); }
+function fmtMassVal(kg) { return kg == null || !(num(kg) > 0) ? '—' : String(uRound1(massToDisplay(kg))); }
+function fmtMass(kg) { return kg == null || !(num(kg) > 0) ? '—' : fmtMassVal(kg) + ' ' + UNIT_PREFS.mass; }
+function fmtHeight(cm) {
+  const v = num(cm); if (!(v > 0)) return '—';
+  if (UNIT_PREFS.height !== 'ft-in') return String(uRound1(v)) + ' cm';
+  const totalIn = v / UNIT_IN_CM;
+  let ft = Math.floor(totalIn / 12), inch = Math.round(totalIn - ft * 12);
+  if (inch === 12) { ft += 1; inch = 0; }
+  return ft + "'" + inch + '"';
+}
+function heightDisplayValue(cm) {
+  const v = num(cm); if (!(v > 0)) return '';
+  return UNIT_PREFS.height === 'ft-in' ? fmtHeight(v) : String(uRound1(v));
+}
+/* Parseo de talla (H-5): en modo cm, un número; en modo ft-in se
+   aceptan 5'10" · 5 ft 10 in · 5.83 ft · 70 in (pulgadas 0–11 en
+   los formatos compuestos); un número pelado se lee como cm
+   canónico (compatibilidad con lo ya escrito). Devuelve cm o null. */
+function parseHeightInput(raw) {
+  const s = String(raw || '').trim().replace(',', '.');
+  if (!s) return null;
+  if (UNIT_PREFS.height !== 'ft-in') { const v = num(s); return v > 0 ? v : null; }
+  let m = s.match(/^(\d+(?:\.\d+)?)\s*'\s*(\d+(?:\.\d+)?)\s*"?$/);
+  if (m) { const inch = parseFloat(m[2]); if (inch > 11) return null; return parseFloat(m[1]) * UNIT_FT_CM + inch * UNIT_IN_CM; }
+  m = s.match(/^(\d+(?:\.\d+)?)\s*ft\s*(\d+(?:\.\d+)?)\s*in$/i);
+  if (m) { const inch = parseFloat(m[2]); if (inch > 11) return null; return parseFloat(m[1]) * UNIT_FT_CM + inch * UNIT_IN_CM; }
+  m = s.match(/^(\d+(?:\.\d+)?)\s*ft$/i);
+  if (m) return parseFloat(m[1]) * UNIT_FT_CM;
+  m = s.match(/^(\d+(?:\.\d+)?)\s*in$/i);
+  if (m) return parseFloat(m[1]) * UNIT_IN_CM;
+  const v = num(s); return v > 0 ? v : null;
+}
+/* Circunferencias (cintura, cadera…): cm, o pulgadas si el visor
+   usa ft-in para la estatura. */
+function fmtMeasureCm(cmVal) {
+  const v = num(cmVal); if (!(v > 0)) return '—';
+  return UNIT_PREFS.height === 'ft-in' ? String(uRound1(v / UNIT_IN_CM)) + ' in' : String(uRound1(v)) + ' cm';
+}
+function weightDisplayOf(rec) {
+  if (!rec || !(num(rec.weight) > 0)) return '';
+  if (rec.weightUnitOriginal === UNIT_PREFS.mass && rec.weightOriginal != null && num(rec.weightOriginal) > 0) return String(rec.weightOriginal);
+  return String(uRound1(massToDisplay(rec.weight)));
+}
+async function loadMyUnits() {
+  if (!auth.currentUser) return;
+  try {
+    const s = await getDoc(doc(db, 'users', auth.currentUser.uid, 'preferences', 'units'));
+    UNIT_PREFS = unitPrefsSanitize(s.exists() ? s.data() : null);
+  } catch { UNIT_PREFS = { ...UNIT_METRIC }; }
+  renderUnitsPanel();
+}
+function renderUnitsPanel() {
+  const box = $('units-panel-body'); if (!box) return;
+  const grp = (name, label, opts) => `<div class="units-group"><span class="units-glabel">${esc(label)}</span>${opts.map(([val, lk]) =>
+    `<label class="fa-opt2"><input type="radio" name="units-${name}" value="${val}"${UNIT_PREFS[name] === val ? ' checked' : ''}> <span>${esc(t(lk))}</span></label>`).join('')}</div>`;
+  box.innerHTML = `<p class="progress-hint">${esc(t('units.sub'))}</p>
+    ${grp('mass', t('units.mass'), [['kg', 'units.kg'], ['lb', 'units.lb']])}
+    ${grp('height', t('units.height'), [['cm', 'units.cm'], ['ft-in', 'units.ftin']])}
+    ${grp('distance', t('units.distance'), [['km', 'units.km'], ['mi', 'units.mi']])}`;
+  box.querySelectorAll('input[type="radio"]').forEach(r => r.onchange = () => {
+    saveMyUnits({ ...UNIT_PREFS, [r.name.replace('units-', '')]: r.value });
+  });
+}
+async function saveMyUnits(next) {
+  const uid = auth.currentUser && auth.currentUser.uid; if (!uid) return;
+  const clean = unitPrefsSanitize(next);
+  try {
+    await setDoc(doc(db, 'users', uid, 'preferences', 'units'), { ...clean, updatedAt: serverTimestamp() }, { merge: true });
+  } catch (e) { failToast(e); renderUnitsPanel(); return; }
+  UNIT_PREFS = clean;
+  /* Sincronía con la configuración de evaluaciones, que ya tenía su
+     propio selector métrico/imperial por usuario: la preferencia H
+     pasa a ser el control único y EVAL_CFG la sigue, para que las
+     medidas del chequeo no contradigan al resto de la app. Es una
+     escritura sobre el documento PROPIO de configuración, con el
+     mismo patrón merge de siempre; si falla, la preferencia H ya
+     quedó guardada y el selector de evaluaciones sigue operativo. */
+  try {
+    const u = clean.mass === 'lb' ? 'imperial' : 'metric';
+    if (EVAL_CFG.units !== u) {
+      await setDoc(doc(db, 'nutrition_progress', `${uid}_evalconfig`), { kind: 'evalConfig', uid, ownerUid: uid, requiredMeasures: EVAL_CFG.requiredMeasures || [], units: u, updatedAt: serverTimestamp() }, { merge: true });
+      EVAL_CFG = { ...EVAL_CFG, units: u };
+    }
+  } catch {}
+  toast(t('units.saved'));
+  renderUnitsPanel();
+  try { renderWeight(); } catch {}
+}
+
 /* ================= F-A1/F-A2 · CÁLCULO ENERGÉTICO (Etapa 2, desarrollo) =================
    Motor de cálculo energético del entrenador (diseño aprobado por
    Ronald el 2026-10-20 01:49, tras ver la maqueta; Etapa 1 §3):
@@ -4949,9 +5112,10 @@ function faCardHTML(uid, a, weights) {
     <div class="fa-divider"></div>
     <div class="fa-frow">
       <div><label class="fa-flabel">${t('fa.birthYear')}</label><input type="text" inputmode="numeric" id="fa-by" value="${a && a.birthYear ? a.birthYear : ''}" placeholder="1996"></div>
-      <div><label class="fa-flabel">${t('fa.height')}</label><input type="text" inputmode="decimal" id="fa-h" value="${a && a.heightCm ? a.heightCm : ''}" placeholder="175"></div>
+      <div><label class="fa-flabel">${esc(t('units.heightField', { u: UNIT_PREFS.height === 'ft-in' ? 'ft/in' : 'cm' }))}</label><input type="text" inputmode="decimal" id="fa-h" value="${a && a.heightCm ? esc(heightDisplayValue(a.heightCm)) : ''}" placeholder="${UNIT_PREFS.height === 'ft-in' ? '5\'9"' : '175'}"></div>
     </div>
-    <div class="basis">${last ? t('fa.weightBasis', { w: last.weight, date: dateName(last.date) }) : t('fa.noWeight')}</div>
+    ${UNIT_PREFS.height === 'ft-in' ? `<p class="progress-hint">${esc(t('units.heightHintFtin'))}</p>` : ''}
+    <div class="basis">${last ? t('fa.weightBasis', { w: fmtMass(last.weight), date: dateName(last.date) }) : t('fa.noWeight')}</div>
     <label class="fa-flabel">${t('fa.actLabel')}</label>
     <select id="fa-act" class="fa-select"><option value="">${t('fa.actNone')}</option>${actOpts}</select>
     ${palBlock}
@@ -5001,9 +5165,15 @@ async function faSaveConfig(uid) {
     payload.birthYear = by;
   }
   if (hRaw) {
-    const h = num(hRaw);
+    /* MÓDULO H: la talla se teclea en la unidad del visor (cm o
+       ft-in con parseo H-5) y se guarda en cm CANÓNICO, con su
+       original: en ft-in, el original son las pulgadas totales. */
+    const h = parseHeightInput(hRaw);
+    if (h == null) { toast(t('units.errHeightParse'), true); return; }
     if (!(h >= 50 && h <= 250)) { toast(t('fa.errH'), true); return; }
-    payload.heightCm = h; payload.heightOriginal = h; payload.heightUnitOriginal = 'cm';
+    payload.heightCm = h;
+    payload.heightOriginal = UNIT_PREFS.height === 'ft-in' ? uRound1(h / UNIT_IN_CM) : h;
+    payload.heightUnitOriginal = UNIT_PREFS.height === 'ft-in' ? 'ft-in' : 'cm';
   }
   if (act) payload.activityCategoryId = parseInt(act, 10);
   if (palRaw) {
@@ -5208,12 +5378,14 @@ async function openClient(uid) {
     const ws = await getDocs(query(collection(db, 'nutrition_weight'), where('ownerUid', '==', uid)));
     ws.forEach(d => { const v = d.data();
       if (v.ownerUid === uid && num(v.weight) > 0) data.push({ id: d.id, date: v.date, weight: num(v.weight),
-        fat: num(v.fat), muscle: num(v.muscle), water: num(v.water), visceral: num(v.visceral), notes: v.notes || '' });
+        fat: num(v.fat), muscle: num(v.muscle), water: num(v.water), visceral: num(v.visceral), notes: v.notes || '',
+        weightOriginal: v.weightOriginal != null ? num(v.weightOriginal) : null,
+        weightUnitOriginal: v.weightUnitOriginal || null });
     });
   } catch {}
   data.sort((a, b) => a.date < b.date ? -1 : 1);
   const rows = data.map(d => `
-    <tr><td>${dateName(d.date)}</td><td class="num"><b>${d.weight}</b></td>
+    <tr><td>${dateName(d.date)}</td><td class="num"><b>${fmtMassVal(d.weight)}</b></td>
     <td class="num">${d.fat || '—'}</td><td class="num">${d.muscle || '—'}</td>
     <td class="num">${d.water || '—'}</td><td class="num">${d.visceral || '—'}</td>
     <td>${esc(d.notes)}</td>
@@ -5242,7 +5414,7 @@ async function openClient(uid) {
     <button class="btn-ghost btn-sm" id="btn-client-close" style="margin-left:8px">${t('client.close')}</button></div>
     ${data.length ? weightChartSVG([...data].reverse()) : `<div class="wempty">${t('client.noWeight')}</div>`}
     ${data.length ? `<div class="table-scroll"><table class="detail whist">
-      <thead><tr><th>${t('form.date')}</th><th class="num">${t('form.weight')}</th><th class="num">${t('form.bodyfat')}</th><th class="num">${t('form.muscle')}</th><th class="num">${t('form.water')}</th><th class="num">${t('form.visceral')}</th><th>${t('form.notes')}</th><th></th></tr></thead>
+      <thead><tr><th>${t('form.date')}</th><th class="num">${esc(t('units.weightField', { u: UNIT_PREFS.mass }))}</th><th class="num">${t('form.bodyfat')}</th><th class="num">${t('form.muscle')}</th><th class="num">${t('form.water')}</th><th class="num">${t('form.visceral')}</th><th>${t('form.notes')}</th><th></th></tr></thead>
       <tbody>${rows}</tbody></table></div>` : ''}
     ${fb3ProteinHTML(data)}
     ${faCardHTML(uid, asmtDoc, data)}
@@ -5468,7 +5640,9 @@ async function loadAll() {
     const v = d.data();
     if (num(v.weight) > 0) WEIGHTS.push({ id: d.id, date: v.date, weight: num(v.weight),
       fat: num(v.fat), muscle: num(v.muscle), water: num(v.water),
-      visceral: num(v.visceral), notes: v.notes || '' });
+      visceral: num(v.visceral), notes: v.notes || '',
+      weightOriginal: v.weightOriginal != null ? num(v.weightOriginal) : null,
+      weightUnitOriginal: v.weightUnitOriginal || null });
   });
   WEIGHTS.sort((a, b) => a.date < b.date ? -1 : 1);
 
@@ -5483,6 +5657,7 @@ async function loadAll() {
   renderPrivacy();
   await loadMyHealth();
   await loadMyEnergy();
+  await loadMyUnits();
   await loadAdmin();
   await loadClients();
   applyStorageFlag();
@@ -10517,7 +10692,7 @@ function renderWeight() {
   const dW = prev ? last.weight - prev.weight : 0;
   const dT = last.weight - first.weight;
   const dCls = v => v < 0 ? 'down' : v > 0 ? 'up' : 'flat';
-  const dTxt = v => `${v < 0 ? '▼' : v > 0 ? '▲' : '●'} ${v > 0 ? '+' : ''}${v.toFixed(1)} kg`;
+  const dTxt = v => `${v < 0 ? '▼' : v > 0 ? '▲' : '●'} ${v > 0 ? '+' : ''}${uRound1(massToDisplay(v))} ${UNIT_PREFS.mass}`;
   // Recordatorio: el pesaje es semanal
   const daysSince = Math.floor((Date.now() - new Date(last.date + 'T12:00:00').getTime()) / 864e5);
   const reminder = daysSince > 7
@@ -10526,13 +10701,13 @@ function renderWeight() {
   if (last.fat > 0) {
     const dg = prev && prev.fat > 0 ? last.fat - prev.fat : 0;
     grasaCard = `<div class="wstat"><div class="lbl">${t('weight.bodyFat')}</div><div class="val">${last.fat}<small> %</small></div>
-      <div class="delta ${dCls(dg)}">${prev && prev.fat > 0 ? dTxt(dg).replace('kg','pp') : '—'}</div></div>`;
+      <div class="delta ${dCls(dg)}">${prev && prev.fat > 0 ? dTxt(dg).replace(' ' + UNIT_PREFS.mass, ' pp') : '—'}</div></div>`;
   }
   /* Redefinición 18:23: editar/borrar el propio pesaje siempre
      disponible (el modal abre con los porcentajes según permiso). */
   const delBtn = `<div style="text-align:center;margin-top:8px"><button class="btn-ghost btn-sm" id="btn-del-weight">${t('weight.delLast', { date: shortDate(last.date) })}</button></div>`;
   const histRows = [...data].reverse().map(d => `
-    <tr><td>${dateName(d.date)}</td><td class="num"><b>${d.weight}</b></td>
+    <tr><td>${dateName(d.date)}</td><td class="num"><b>${fmtMassVal(d.weight)}</b></td>
     <td class="num">${d.fat || '—'}</td><td class="num">${d.muscle || '—'}</td>
     <td class="num">${d.water || '—'}</td><td class="num">${d.visceral || '—'}</td>
     <td>${esc(d.notes)}</td>
@@ -10540,18 +10715,18 @@ function renderWeight() {
   body.innerHTML = `
     ${reminder}
     <div class="wstats">
-      <div class="wstat"><div class="lbl">${t('weight.current')}</div><div class="val">${last.weight}<small> kg</small></div>
+      <div class="wstat"><div class="lbl">${t('weight.current')}</div><div class="val">${fmtMassVal(last.weight)}<small> ${UNIT_PREFS.mass}</small></div>
         <div class="delta flat">${shortDate(last.date)}</div></div>
-      <div class="wstat"><div class="lbl">${t('weight.vsPrev')}</div><div class="val">${prev ? dTxt(dW).split(' ')[0] : '—'}<small> ${prev ? 'kg' : ''}</small></div>
+      <div class="wstat"><div class="lbl">${t('weight.vsPrev')}</div><div class="val">${prev ? dTxt(dW).split(' ')[0] : '—'}<small> ${prev ? UNIT_PREFS.mass : ''}</small></div>
         <div class="delta ${dCls(dW)}">${prev ? dTxt(dW) : t('weight.firstRecord')}</div></div>
-      <div class="wstat"><div class="lbl">${t('weight.totalChange')}</div><div class="val">${dT > 0 ? '+' : ''}${dT.toFixed(1)}<small> kg</small></div>
+      <div class="wstat"><div class="lbl">${t('weight.totalChange')}</div><div class="val">${dT > 0 ? '+' : ''}${uRound1(massToDisplay(dT))}<small> ${UNIT_PREFS.mass}</small></div>
         <div class="delta ${dCls(dT)}">${t('weight.since', { d: shortDate(first.date), n: data.length, s: data.length > 1 ? 's' : '' })}</div></div>
       ${grasaCard}
     </div>
     ${weightChartSVG(data)}
     <h3 class="history-title">${t('weight.history')}</h3>
     <div class="table-scroll"><table class="detail whist">
-      <thead><tr><th>${t('form.date')}</th><th class="num">${t('form.weight')}</th><th class="num">${t('form.bodyfat')}</th><th class="num">${t('form.muscle')}</th><th class="num">${t('form.water')}</th><th class="num">${t('form.visceral')}</th><th>${t('form.notes')}</th><th></th></tr></thead>
+      <thead><tr><th>${t('form.date')}</th><th class="num">${esc(t('units.weightField', { u: UNIT_PREFS.mass }))}</th><th class="num">${t('form.bodyfat')}</th><th class="num">${t('form.muscle')}</th><th class="num">${t('form.water')}</th><th class="num">${t('form.visceral')}</th><th>${t('form.notes')}</th><th></th></tr></thead>
       <tbody>${histRows}</tbody>
     </table></div>
     ${delBtn}`;
@@ -11766,7 +11941,12 @@ function openWeightModal(ctx) {
   weightCtx = ctx || null;
   const rec = ctx && ctx.rec;
   $('w-date').value = (rec && rec.date) || todayISO();
-  $('w-weight').value = (rec && rec.weight) || '';
+  /* MÓDULO H: el peso se muestra y se teclea en la unidad del VISOR;
+     lo guardado sigue siendo kg canónico (ver el submit). Si el
+     registro trae su valor original en esta misma unidad, se
+     muestra ese (exacto, sin reconversión). */
+  const wl = $('w-weight-label'); if (wl) wl.textContent = t('units.weightField', { u: UNIT_PREFS.mass });
+  $('w-weight').value = rec ? weightDisplayOf(rec) : '';
   $('w-fat').value = (rec && rec.fat) || '';
   $('w-muscle').value = (rec && rec.muscle) || '';
   $('w-water').value = (rec && rec.water) || '';
@@ -11798,7 +11978,13 @@ $('form-weight').addEventListener('submit', async e => {
      entrenador (del registro que se edita): nunca los pisa a cero. */
   const pctLocked = uid === auth.currentUser.uid && !compClientCanEdit();
   const prevRec = (weightCtx && weightCtx.rec) || {};
-  const data = { ownerUid: uid, date, weight: num($('w-weight').value),
+  /* MÓDULO H: la entrada llega en la unidad del visor y se guarda
+     en kg CANÓNICO, con el patrón {valueCanonical, valueOriginal,
+     unitOriginal}. Rango canónico H-5: 20–400 kg. */
+  const wDisp = num($('w-weight').value);
+  const wCanon = massToCanonical(wDisp);
+  if (date && wDisp > 0 && !(wCanon >= 20 && wCanon <= 400)) { toast(t('units.errWeightRange'), true); return; }
+  const data = { ownerUid: uid, date, weight: wCanon, weightOriginal: wDisp, weightUnitOriginal: UNIT_PREFS.mass,
     fat: pctLocked ? Math.max(0, num(prevRec.fat)) : Math.max(0, num($('w-fat').value)),
     muscle: pctLocked ? Math.max(0, num(prevRec.muscle)) : Math.max(0, num($('w-muscle').value)),
     water: pctLocked ? Math.max(0, num(prevRec.water)) : Math.max(0, num($('w-water').value)),
