@@ -62,6 +62,12 @@ jobs:
             echo '### Casos FAIL (si los hay)'
             grep -E '^FAIL — ' resultado-bateria.txt || echo '(ninguno)'
           } >> "$GITHUB_STEP_SUMMARY"
+      - name: Publicar el detalle como anotaciones (legibles por API pública)
+        if: always()
+        shell: bash
+        run: |
+          grep -E 'RESULTADO:' resultado-bateria.txt | sed 's/^/::notice title=RESULTADO::/' || true
+          grep -E '^FAIL — ' resultado-bateria.txt | sed 's/^FAIL — /::error title=FAIL::/' || true
       - name: Conservar la evidencia (salida de la batería)
         if: always()
         uses: actions/upload-artifact@v4
