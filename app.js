@@ -4861,7 +4861,7 @@ async function aiSaveDirect() {
    entrenador) y del rol de propietario. La renovación registra una
    aceptación NUEVA (fecha + versión) y CONSERVA consentWithdrawnAt
    como historial: nunca se borra ni se reescribe. */
-const TERMS_VERSION = 'v4-2026-10-24'; // v4 (Q5, paquete actividad 2026-10-24): la cláusula 2 nombra los registros de actividad y pasos como datos procesados. SOLO DESARROLLO: viaja con el futuro despliegue; la renovación corre por el flujo ya existente.
+const TERMS_VERSION = 'v4-2026-10-24'; // v4 (Q5, paquete actividad): la cláusula 2 nombra los registros de actividad y pasos como datos procesados. DESPLEGADO el 2026-10-24 con el paquete de actividad (AUTH-2026-10-24-011): la promoción publica los términos v4 y la renovación corre por el flujo ya existente.
 function tsMs(ts) {
   if (!ts) return 0;
   if (typeof ts.toDate === 'function') return ts.toDate().getTime();
