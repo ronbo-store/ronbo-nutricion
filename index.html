@@ -84,7 +84,26 @@
       <label><span data-i18n="form.social">Social media</span> <span class="opt" data-i18n="form.opt">(optional)</span>
         <input type="text" id="reg-social" data-i18n-ph="form.socialPh" placeholder="E.g. Instagram: @user">
       </label>
-      <label><span data-i18n="roles.chooseTrainer">Who will be your trainer?</span>
+      <!-- ROLES + ESCALABILIDAD (2026-10-24, SOLO desarrollo): tipo de
+           cuenta al registrarse. Alumno: elige modalidad y entrenador
+           del pool (o ninguno: espera). Entrenador: nace sin rol, con
+           roleRequest — lo aprueba el administrador y solo entonces
+           recibe el rol. -->
+      <label><span data-i18n="esc.accountType">Account type</span>
+        <select id="reg-type">
+          <option value="alumno" data-i18n="esc.typeAlumno">Student — I want a trainer</option>
+          <option value="entrenador" data-i18n="esc.typeTrainer">Trainer — I train students</option>
+        </select>
+      </label>
+      <p class="field-hint" id="reg-trainer-hint" style="display:none" data-i18n="esc.trainerHint">Trainer accounts start without a role: the administrator reviews and approves them, and only then is the trainer role assigned.</p>
+      <label id="reg-modality-wrap"><span data-i18n="esc.modality">Modality</span>
+        <select id="reg-modality">
+          <option value="presencial" data-i18n="esc.modPresencial">In person</option>
+          <option value="hibrido" data-i18n="esc.modHibrido">Hybrid</option>
+          <option value="virtual" data-i18n="esc.modVirtual">Virtual</option>
+        </select>
+      </label>
+      <label id="reg-trainer-wrap"><span data-i18n="roles.chooseTrainer">Who will be your trainer?</span>
         <select id="reg-trainer"><option value="" data-i18n="roles.waitingOption">Decide later — wait for assignment</option></select>
       </label>
       <label><span data-i18n="form.dob">Date of birth</span> <span class="opt" data-i18n="form.dobHint">(to verify you are 18+; it is not stored)</span>
@@ -155,6 +174,7 @@
        (#pend-float, junto al dock, abajo). La página no crece. -->
 
   <div id="err"></div>
+  <div id="my-trainer-box" style="display:none"></div>
   <div class="rings" id="rings"></div>
   <p class="rings-first-note" id="rings-note" style="display:none"></p>
 
@@ -406,6 +426,15 @@
     <h3 class="history-title" data-i18n="aictl.title">🛑 AI master switch</h3>
     <p class="progress-hint" data-i18n="aictl.hint">One switch turns off every AI analysis for everyone — meal photos, text descriptions and body-type estimates. The server enforces it: while it is off, no analysis reaches the AI and nothing is spent. Manual logging always works.</p>
     <div id="ai-control-box"></div>
+    <h3 class="history-title" data-i18n="esc.membershipAdminTitle">🎟️ Trainer memberships</h3>
+    <p class="progress-hint" data-i18n="esc.membershipAdminHint">A membership sets how many active students a trainer may have (Basic 5 · Premium 10 · Elite 30). Trainers request a level; only you approve it. This is separate from the account-approval limit above.</p>
+    <div id="membership-admin-box"></div>
+    <h3 class="history-title" data-i18n="esc.mealAdminTitle">🍽️ Meal access confirmations</h3>
+    <p class="progress-hint" data-i18n="esc.mealAdminHint">Meal logging is off for new students until requested. The trainer approves first; you confirm. Confirming turns meal logging on for that student.</p>
+    <div id="meal-admin-box"></div>
+    <h3 class="history-title" data-i18n="esc.flagsTitle">🚩 Feature flags</h3>
+    <p class="progress-hint" data-i18n="esc.flagsHint">Turn whole modules off or on for every student without deploying anything. Trainers and you are not blocked by these flags.</p>
+    <div id="flags-box"></div>
     <h3 class="history-title" data-i18n="nd2.title">🗒️ Access log (ND-2)</h3>
     <p class="progress-hint" data-i18n="nd2.hint">Every time the trainer view of a client's evaluations and photos is opened, one record is written here: who viewed whose data, and when. Records cannot be edited.</p>
     <div id="nd2-box"><div class="wempty" data-i18n="access.loading">Loading…</div></div>
@@ -417,6 +446,8 @@
     <h2><span data-i18n="clients.title">👥 My clients</span> <span class="h2-sub" data-i18n="clients.sub">· trainer management</span></h2>
     <p class="progress-hint" data-i18n="clients.hint">Each client must upload their weight every week. Select one to see their full history, edit their weigh-ins, or add new ones. You set their goals under "Access management".</p>
     <div id="clients-list"><div class="wempty" data-i18n="access.loading">Loading…</div></div>
+    <div id="membership-box" style="display:none"></div>
+    <div id="meal-trainer-box" style="display:none"></div>
     <div id="waiting-box" style="display:none"></div>
     <div id="approvals-box" style="display:none"></div>
     <div id="client-detail" style="display:none"></div>
@@ -663,6 +694,6 @@
 <div id="toast" class="toast"></div>
 <div id="print-card" aria-hidden="true"></div>
 
-<script type="module" src="app.js?v=20261024-controlia"></script>
+<script type="module" src="app.js?v=20261024-rolesx"></script>
 </body>
 </html>

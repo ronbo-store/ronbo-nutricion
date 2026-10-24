@@ -57,6 +57,468 @@ function deriveRole(udata, isOwner) {
 }
 let suppressAuthCheck = false; // evita el chequeo durante el registro (el doc aún se está creando)
 
+/* ============ ROLES + ESCALABILIDAD (2026-10-24, SOLO desarrollo) ============
+   Diseño: DISEÑO-ROLES-ESCALABILIDAD-2026-10-24.md. Pedido de Ronald
+   (correo memphis 2026-10-24): identidad, membresía y relación
+   SEPARADAS — users/{uid} (rol), memberships/{uid} (nivel/estado/
+   fechas), trainer_profiles/{uid} (modalidades, bio, disponibilidad,
+   contador de cupo) y trainer_relations/{alumnoUid} (relación vigente
+   + subcolección history). Membresía = cupo de alumnos activos:
+   Básico 5 · Premium 10 · Élite 30 · Libre 30 (fundador, gratis).
+   ⚠️ NO confundir con app_settings/approvals.maxPerTrainer (N-07):
+   ese es el cupo de APROBACIONES de cuentas nuevas por entrenador;
+   este es el cupo de ALUMNOS por membresía. Contadores distintos.
+   El Alumno nace con training/activity/photos/metrics habilitados y
+   las COMIDAS solo por solicitud en dos pasos (entrenador aprueba →
+   administrador confirma). El valor guardado role 'usuario' SE
+   CONSERVA (las reglas vivas lo validan); la interfaz lo presenta
+   como «Alumno». Cuentas SIN campo features = legadas: todo
+   habilitado (compatibilidad: Ronald y Prueba Ronald intactos).
+   La modalidad se registra en la relación; CAMBIARLA está apagado
+   por diseño (punto abierto de Ronald, sin decidir). */
+const ESC_MODALITIES = ['presencial', 'hibrido', 'virtual'];
+const ESC_QUOTA = { basico: 5, premium: 10, elite: 30, libre: 30 };
+const ESC_AI_BY_LEVEL = { basico: 10, premium: 20, elite: 50, libre: 10 };
+const ESC_FEATURE_DEFAULTS = { training: true, activity: true, photos: true, metrics: true, meals: false, somatotype: true };
+const ESC_FLAG_KEYS = ['meals', 'activity', 'training', 'photos', 'metrics', 'somatotype'];
+let FEATURE_FLAGS = null;        // app_settings/feature_flags { flags }
+let MEMBERSHIP_CATALOG = null;   // app_settings/membership_catalog { levels }
+let MY_REL = null;               // trainer_relations/{miUid} vigente (o derivada del espejo)
+function escModLabel(m) { return m === 'presencial' ? t('esc.modPresencial') : m === 'hibrido' ? t('esc.modHibrido') : m === 'virtual' ? t('esc.modVirtual') : (m || '—'); }
+function escLevelLabel(l) { return l ? t('esc.level.' + l) : t('esc.levelNone'); }
+function featuresOf(udata) {
+  if (udata && udata.features && typeof udata.features === 'object') {
+    const f = {};
+    for (const k of Object.keys(ESC_FEATURE_DEFAULTS)) f[k] = (k in udata.features) ? udata.features[k] === true : ESC_FEATURE_DEFAULTS[k];
+    return f;
+  }
+  /* Cuenta legada (sin campo): todo habilitado — compatibilidad. */
+  return { training: true, activity: true, photos: true, metrics: true, meals: true, somatotype: true };
+}
+function featureOn(key) {
+  if (ROLE !== 'usuario') return true; // banderas y features no bloquean al staff
+  if (FEATURE_FLAGS && FEATURE_FLAGS.flags && FEATURE_FLAGS.flags[key] === false) return false;
+  return featuresOf(UDATA)[key] !== false;
+}
+function mealsGateOff() { return ROLE === 'usuario' && !featureOn('meals'); }
+function membershipQuotaOf(level) {
+  if (!level) return 0;
+  const c = MEMBERSHIP_CATALOG && MEMBERSHIP_CATALOG.levels && MEMBERSHIP_CATALOG.levels[level];
+  if (c && isFinite(Number(c.quota))) return Number(c.quota);
+  return ESC_QUOTA[level] || 0;
+}
+async function auditLog(type, action, targetUid, detail) {
+  try {
+    await addDoc(collection(db, 'audit_log'), {
+      type, action, actorUid: auth.currentUser ? auth.currentUser.uid : null,
+      targetUid: targetUid || null, detail: detail || '', at: serverTimestamp()
+    });
+  } catch { /* la bitácora nunca rompe el flujo (patrón ND-2) */ }
+}
+async function escAdjustQuota(trainerUid, delta) {
+  if (!trainerUid || !delta) return;
+  try {
+    const s = await getDoc(doc(db, 'trainer_profiles', trainerUid));
+    if (!s.exists()) return; // sin perfil (legado): nada que contar
+    const cur = Number(s.data().activeStudents) || 0;
+    await setDoc(doc(db, 'trainer_profiles', trainerUid), { activeStudents: Math.max(0, cur + delta), updatedAt: serverTimestamp() }, { merge: true });
+  } catch {}
+}
+/* Perfil + membresía de un entrenador (para pool y paneles). */
+async function escTrainerStanding(trainerUid, isOwnerTrainer) {
+  let prof = null, memb = null;
+  try { const s = await getDoc(doc(db, 'trainer_profiles', trainerUid)); if (s.exists()) prof = s.data(); } catch {}
+  try { const s = await getDoc(doc(db, 'memberships', trainerUid)); if (s.exists()) memb = s.data(); } catch {}
+  const level = memb && memb.status === 'activa' ? memb.level : null;
+  const total = isOwnerTrainer ? Infinity : membershipQuotaOf(level);
+  const used = prof ? (Number(prof.activeStudents) || 0) : 0;
+  return { prof, memb, level, total, used, free: total - used };
+}
+/* Pool elegible para una modalidad: con cupo libre, disponible y que
+   ofrece la modalidad. Fuente con sesión: trainer_profiles +
+   memberships de los usuarios con role entrenador (o el dueño). */
+async function escPoolTrainers(modality, usersList) {
+  const list = [];
+  for (const u of usersList) {
+    const st = await escTrainerStanding(u.id, !!u.isOwner);
+    const mods = st.prof && Array.isArray(st.prof.modalities) ? st.prof.modalities : ESC_MODALITIES;
+    if (modality && !mods.includes(modality)) continue;
+    if (st.prof && st.prof.available === false) continue;
+    list.push({ uid: u.id, name: u.name || u.email || u.id, free: st.free, total: st.total, used: st.used, full: !(st.free > 0) });
+  }
+  return list;
+}
+async function loadRolesX() {
+  try { const s = await getDoc(doc(db, 'app_settings', 'feature_flags')); if (s.exists()) FEATURE_FLAGS = s.data(); } catch {}
+  try { const s = await getDoc(doc(db, 'app_settings', 'membership_catalog')); if (s.exists()) MEMBERSHIP_CATALOG = s.data(); } catch {}
+  if (ROLE === 'usuario' && auth.currentUser) {
+    try { const s = await getDoc(doc(db, 'trainer_relations', auth.currentUser.uid)); MY_REL = s.exists() ? { id: s.id, ...s.data() } : null; } catch { MY_REL = null; }
+    if (!MY_REL && UDATA) {
+      /* Migración perezosa: sin documento de relación, se deriva del
+         espejo legado y NO se escribe nada hasta que un flujo nuevo
+         lo mueva (cambio de entrenador o solicitud). */
+      MY_REL = { trainerUid: UDATA.trainerUid || null, modality: UDATA.modality || null, status: UDATA.assignmentStatus === 'assigned' ? 'activa' : 'en_espera', legacy: true };
+    }
+  }
+  applyFeatureGates();
+  renderMyTrainerBox();
+}
+function applyFeatureGates() {
+  if (ROLE !== 'usuario') return;
+  const aiOff = (typeof AI_CTRL !== 'undefined') && AI_CTRL.known && !AI_CTRL.enabled;
+  const dock = document.getElementById('btn-round-food');
+  if (dock) dock.style.display = (!featureOn('meals') || aiOff) ? 'none' : '';
+  const manual = document.getElementById('btn-add-meal-manual');
+  if (manual) manual.style.display = featureOn('meals') ? '' : 'none';
+  if (!featureOn('activity')) {
+    const strip = document.getElementById('act-strip'); if (strip) strip.style.display = 'none';
+    const act = document.getElementById('activity-content'); if (act) act.style.display = 'none';
+  }
+  if (!featureOn('training')) {
+    const tr = document.getElementById('train-content'); if (tr) tr.style.display = 'none';
+  }
+}
+/* ---------- Alumno: «Mi entrenador» + comidas por solicitud ---------- */
+let MY_MEAL_REQ = undefined; // undefined = sin cargar; null = ninguna
+async function loadMyMealRequest() {
+  MY_MEAL_REQ = null;
+  try {
+    const snap = await getDocs(collection(db, 'meal_requests'));
+    const mine = [];
+    snap.forEach(d => { const v = d.data(); if (v.alumnoUid === auth.currentUser.uid) mine.push({ id: d.id, ...v }); });
+    mine.sort((a, b) => ((b.requestedAt && b.requestedAt.toMillis) ? b.requestedAt.toMillis() : 0) - ((a.requestedAt && a.requestedAt.toMillis) ? a.requestedAt.toMillis() : 0));
+    MY_MEAL_REQ = mine[0] || null;
+  } catch {}
+}
+async function renderMyTrainerBox() {
+  const box = $('my-trainer-box');
+  if (!box) return;
+  if (ROLE !== 'usuario' || !auth.currentUser) { box.style.display = 'none'; return; }
+  box.style.display = '';
+  if (MY_MEAL_REQ === undefined) await loadMyMealRequest();
+  const rel = MY_REL || {};
+  const trainerName = rel.trainerUid ? ((ADMIN_NAME_CACHE[rel.trainerUid]) || rel.trainerUid) : null;
+  let pool = [];
+  try {
+    const snap = await getDocs(collection(db, 'users'));
+    const users = []; snap.forEach(d => users.push({ id: d.id, ...d.data() }));
+    users.forEach(u => { ADMIN_NAME_CACHE[u.id] = u.name || u.email || u.id; });
+    pool = await escPoolTrainers(rel.modality || null, users.filter(u => u.isOwner || u.role === 'entrenador'));
+  } catch {}
+  const tName = rel.trainerUid ? (ADMIN_NAME_CACHE[rel.trainerUid] || rel.trainerUid) : null;
+  const mealsOn = featuresOf(UDATA).meals === true;
+  const req = MY_MEAL_REQ;
+  let mealsHtml = '';
+  if (mealsOn) mealsHtml = `<p class="progress-hint">✅ ${esc(t('esc.mealsOn'))}</p>`;
+  else if (req && req.status === 'pendiente_entrenador') mealsHtml = `<p class="progress-hint">⏳ ${esc(t('esc.mealsPendingTrainer'))}</p>`;
+  else if (req && req.status === 'pendiente_administrador') mealsHtml = `<p class="progress-hint">⏳ ${esc(t('esc.mealsPendingAdmin'))}</p>`;
+  else mealsHtml = `<h3 class="history-title">${esc(t('esc.mealsOffTitle'))}</h3>
+    <p class="progress-hint">${esc(t('esc.mealsOffHint'))}</p>
+    ${req && req.status === 'rechazada' ? `<p class="progress-hint">⚠️ ${esc(t('esc.mealsRejected'))}</p>` : ''}
+    <div class="eval-actions"><button type="button" class="btn-primary btn-sm" id="btn-meal-request">${esc(t('esc.mealsRequest'))}</button></div>`;
+  box.innerHTML = `
+  <div class="panel">
+    <h3 class="history-title">${esc(t('esc.myTrainerTitle'))}</h3>
+    ${rel.trainerUid ? `<p class="progress-hint">${esc(t('esc.currentTrainer'))}: <b>${esc(tName || '')}</b>${rel.modality ? ` · ${esc(t('esc.modality'))}: <b>${esc(escModLabel(rel.modality))}</b>` : ''}</p>`
+      : `<p class="progress-hint">${esc(t('esc.noTrainerYet'))}</p>`}
+    ${rel.modality ? `<p class="progress-hint">${esc(t('esc.modalityFixed'))}</p>` : ''}
+    <label class="muted">${esc(t('esc.changeTrainer'))}
+      <select id="my-trainer-sel">
+        <option value="">${esc(t('esc.waitOption'))}</option>
+        ${pool.map(p => `<option value="${esc(p.uid)}"${p.full ? ' disabled' : ''}${rel.trainerUid === p.uid ? ' selected' : ''}>${esc(p.name)}${p.full ? esc(t('esc.poolFull')) : ''}</option>`).join('')}
+      </select></label>
+    <div class="eval-actions"><button type="button" class="btn-primary btn-sm" id="btn-change-trainer">${esc(t('esc.changeBtn'))}</button></div>
+    ${mealsHtml}
+  </div>`;
+  const reqBtn = $('btn-meal-request');
+  if (reqBtn) reqBtn.onclick = async () => {
+    const trainerUid = (MY_REL && MY_REL.trainerUid) || UDATA.trainerUid || null;
+    const data = {
+      alumnoUid: auth.currentUser.uid, trainerUid,
+      status: trainerUid ? 'pendiente_entrenador' : 'pendiente_administrador',
+      requestedAt: serverTimestamp(), note: ''
+    };
+    await addDoc(collection(db, 'meal_requests'), data);
+    await auditLog('meals', 'meals.requested', auth.currentUser.uid, data.status);
+    MY_MEAL_REQ = { ...data, id: 'local' };
+    toast(t('esc.mealsRequested'));
+    renderMyTrainerBox();
+  };
+  const chBtn = $('btn-change-trainer');
+  if (chBtn) chBtn.onclick = async () => {
+    const sel = $('my-trainer-sel');
+    const newT = sel ? (sel.value || '') : '';
+    const oldT = (MY_REL && MY_REL.trainerUid) || null;
+    if ((newT || null) === oldT) return;
+    await escChangeTrainer(newT || null);
+  };
+}
+/* Nombre legible por uid para las cajas del alumno (caché local). */
+const ADMIN_NAME_CACHE = {};
+/* Cambio de entrenador del alumno (pedido 8): cierra la relación
+   vigente en el historial, abre la nueva con la MISMA modalidad
+   (cambiarla está apagado por diseño), mueve los contadores si la
+   cuenta está aprobada y actualiza el espejo legado — todo en un
+   lote; la auditoría va aparte, como en ND-2. */
+async function escChangeTrainer(newTrainerUid) {
+  const me = auth.currentUser.uid;
+  const oldT = (MY_REL && MY_REL.trainerUid) || null;
+  const modality = (MY_REL && MY_REL.modality) || UDATA.modality || 'virtual';
+  const approved = UDATA && UDATA.approved === true;
+  const batch = writeBatch(db);
+  batch.set(doc(db, 'trainer_relations', me), {
+    alumnoUid: me, trainerUid: newTrainerUid, modality,
+    status: newTrainerUid ? 'activa' : 'en_espera',
+    startedAt: serverTimestamp(), updatedAt: serverTimestamp()
+  });
+  batch.set(doc(db, 'users', me), {
+    trainerUid: newTrainerUid,
+    assignmentStatus: newTrainerUid ? 'assigned' : 'waiting'
+  }, { merge: true });
+  /* Contadores de cupo EN EL MISMO LOTE (si la cuenta está aprobada
+     y los perfiles existen): el candidato de reglas los verifica
+     acoplados a la relación con get/getAfter (patrón N-07). */
+  if (approved) {
+    for (const [tUid, delta] of [[oldT, -1], [newTrainerUid, +1]]) {
+      if (!tUid || !delta) continue;
+      try {
+        const ps = await getDoc(doc(db, 'trainer_profiles', tUid));
+        if (ps.exists()) batch.set(doc(db, 'trainer_profiles', tUid), { activeStudents: Math.max(0, (Number(ps.data().activeStudents) || 0) + delta), updatedAt: serverTimestamp() }, { merge: true });
+      } catch {}
+    }
+  }
+  await batch.commit();
+  try {
+    await setDoc(doc(db, 'trainer_relations', me, 'history', 'ev' + Date.now()), {
+      type: oldT ? 'cambio' : 'alta', fromTrainerUid: oldT, toTrainerUid: newTrainerUid,
+      modality, by: me, at: serverTimestamp()
+    });
+  } catch {}
+  await auditLog('relation', 'relation.changed', me, (oldT || '—') + ' → ' + (newTrainerUid || '—'));
+  MY_REL = { trainerUid: newTrainerUid, modality, status: newTrainerUid ? 'activa' : 'en_espera' };
+  if (UDATA) { UDATA.trainerUid = newTrainerUid; UDATA.assignmentStatus = newTrainerUid ? 'assigned' : 'waiting'; }
+  toast(t('esc.changedOk'));
+  await renderMyTrainerBox();
+}
+/* ---------- Entrenador: mi membresía + solicitudes de comidas ---------- */
+async function renderMembershipBox() {
+  const box = $('membership-box');
+  if (!box) return;
+  if (ROLE !== 'entrenador') { box.style.display = 'none'; return; }
+  box.style.display = '';
+  const me = auth.currentUser.uid;
+  const st = await escTrainerStanding(me, false);
+  const m = st.memb || {};
+  const status = m.status || 'sin_membresia';
+  const prof = st.prof || {};
+  const mods = Array.isArray(prof.modalities) ? prof.modalities : ESC_MODALITIES;
+  box.innerHTML = `
+  <div class="panel">
+    <h3 class="history-title">${esc(t('esc.membershipTitle'))}</h3>
+    <p class="progress-hint"><b>${esc(escLevelLabel(st.level))}</b> · ${esc(t('esc.status.' + status) || status)}</p>
+    ${st.level ? `<p class="progress-hint">${esc(t('esc.quotaOf', { used: st.used, total: st.total === Infinity ? '∞' : st.total }))}</p>
+    <p class="progress-hint">${esc(t('esc.aiByLevel', { n: ESC_AI_BY_LEVEL[st.level] || 10 }))}</p>`
+      : `<p class="progress-hint">${esc(t('esc.quotaNone'))}</p>`}
+    ${status !== 'pendiente' ? `<div class="eval-actions">${['basico', 'premium', 'elite'].map(l => `<button type="button" class="btn-ghost btn-sm" data-membership-request="${l}">${esc(t('esc.requestLevel'))} ${esc(escLevelLabel(l))} (${membershipQuotaOf(l)})</button>`).join('')}</div>` : ''}
+    <label class="muted">${esc(t('esc.bioLabel'))} <input type="text" id="prof-bio" value="${esc(prof.bio || '')}" placeholder="${esc(t('esc.bioPh'))}"></label>
+    <label class="muted"><input type="checkbox" id="prof-available" ${prof.available === false ? '' : 'checked'}> ${esc(t('esc.availableLabel'))}</label>
+    <p class="progress-hint">${esc(t('esc.modalitiesLabel'))}: ${mods.map(x => esc(escModLabel(x))).join(' · ')}</p>
+    <div class="eval-actions"><button type="button" class="btn-primary btn-sm" id="prof-save">${esc(t('form.save'))}</button></div>
+  </div>`;
+  document.querySelectorAll('[data-membership-request]').forEach(b => b.onclick = async () => {
+    await setDoc(doc(db, 'memberships', me), {
+      status: 'pendiente', requestedLevel: b.dataset.membershipRequest, requestedAt: serverTimestamp(),
+      level: st.level || null, source: 'gratis'
+    }, { merge: true });
+    await auditLog('membership', 'membership.requested', me, b.dataset.membershipRequest);
+    toast(t('esc.requestedOk'));
+    renderMembershipBox();
+  });
+  const save = $('prof-save');
+  if (save) save.onclick = async () => {
+    await setDoc(doc(db, 'trainer_profiles', me), {
+      bio: ($('prof-bio') || {}).value || '', available: !!($('prof-available') || {}).checked, updatedAt: serverTimestamp()
+    }, { merge: true });
+    toast(t('esc.modSaved'));
+  };
+}
+async function renderMealTrainerBox() {
+  const box = $('meal-trainer-box');
+  if (!box) return;
+  if (ROLE !== 'entrenador' && ROLE !== 'administrador') { box.style.display = 'none'; return; }
+  const me = auth.currentUser.uid;
+  let reqs = [];
+  try {
+    const snap = await getDocs(collection(db, 'meal_requests'));
+    snap.forEach(d => { const v = d.data(); if (v.trainerUid === me && v.status === 'pendiente_entrenador') reqs.push({ id: d.id, ...v }); });
+  } catch {}
+  box.style.display = '';
+  box.innerHTML = `
+  <div class="panel">
+    <h3 class="history-title">${esc(t('esc.mealRequestsTitle'))} (${reqs.length})</h3>
+    ${reqs.length ? reqs.map(r => `
+    <div class="user-row">
+      <div><b>${esc(ADMIN_NAME_CACHE[r.alumnoUid] || r.alumnoUid)}</b></div>
+      <div class="user-actions">
+        <button class="btn-primary btn-sm" data-meal-trainer-approve="${r.id}">${esc(t('esc.mealApprove'))}</button>
+        <button class="btn-ghost btn-sm" data-meal-reject="${r.id}">${esc(t('esc.rejectBtn'))}</button>
+      </div>
+    </div>`).join('') : `<div class="wempty">${esc(t('esc.noMealRequests'))}</div>`}
+  </div>`;
+  document.querySelectorAll('[data-meal-trainer-approve]').forEach(b => b.onclick = async () => {
+    await setDoc(doc(db, 'meal_requests', b.dataset.mealTrainerApprove), {
+      status: 'pendiente_administrador', trainerDecisionBy: me, trainerDecisionAt: serverTimestamp()
+    }, { merge: true });
+    await auditLog('meals', 'meals.trainerApproved', null, b.dataset.mealTrainerApprove);
+    toast(t('esc.mealApprovedOk'));
+    renderMealTrainerBox();
+  });
+  document.querySelectorAll('[data-meal-reject]').forEach(b => b.onclick = async () => {
+    await setDoc(doc(db, 'meal_requests', b.dataset.mealReject), {
+      status: 'rechazada', trainerDecisionBy: me, trainerDecisionAt: serverTimestamp()
+    }, { merge: true });
+    await auditLog('meals', 'meals.rejected', null, b.dataset.mealReject);
+    renderMealTrainerBox();
+  });
+}
+/* ---------- Administrador: membresías, confirmaciones y banderas ---------- */
+async function renderEscAdminBoxes() {
+  if (!IS_OWNER) return;
+  /* --- Membresías: solicitudes + concesión directa + modalidades --- */
+  const mbox = $('membership-admin-box');
+  if (mbox) {
+    let membs = {};
+    try { const snap = await getDocs(collection(db, 'memberships')); snap.forEach(d => { membs[d.id] = d.data(); }); } catch {}
+    let profs = {};
+    try { const snap = await getDocs(collection(db, 'trainer_profiles')); snap.forEach(d => { profs[d.id] = d.data(); }); } catch {}
+    const trainers = ADMIN_USERS.filter(u => !u.isOwner && u.role === 'entrenador');
+    const pendingM = Object.entries(membs).filter(([, m]) => m.status === 'pendiente');
+    mbox.innerHTML = `
+      <h4 class="eval-cfg-group">${esc(t('esc.membershipRequests'))} (${pendingM.length})</h4>
+      ${pendingM.length ? pendingM.map(([uid, m]) => `
+      <div class="user-row">
+        <div><b>${esc((ADMIN_USERS.find(u => u.id === uid) || {}).name || uid)}</b><br><span class="muted">${esc(escLevelLabel(m.requestedLevel))} (${membershipQuotaOf(m.requestedLevel)})</span></div>
+        <div class="user-actions">
+          <button class="btn-primary btn-sm" data-membership-approve="${uid}">${esc(t('admin.approve'))}</button>
+          <button class="btn-ghost btn-sm" data-membership-reject="${uid}">${esc(t('esc.rejectBtn'))}</button>
+        </div>
+      </div>`).join('') : `<div class="wempty">${esc(t('esc.noMembershipRequests'))}</div>`}
+      ${trainers.map(u => {
+        const m = membs[u.id] || {}; const p = profs[u.id] || {};
+        const mods = Array.isArray(p.modalities) ? p.modalities : ESC_MODALITIES;
+        return `<div class="user-row">
+        <div><b>${esc(u.name || u.email || u.id)}</b><br><span class="muted">${esc(escLevelLabel(m.status === 'activa' ? m.level : null))} · ${esc(t('esc.quotaOf', { used: Number(p.activeStudents) || 0, total: m.status === 'activa' ? membershipQuotaOf(m.level) : 0 }))}</span><br>
+        <span class="muted">${esc(t('esc.modalitiesLabel'))}:</span>
+        ${ESC_MODALITIES.map(md => `<label class="muted"><input type="checkbox" data-mod-for="${u.id}" value="${md}" ${mods.includes(md) ? 'checked' : ''}> ${esc(escModLabel(md))}</label>`).join(' ')}
+        </div>
+        <div class="user-actions">
+          <label class="muted">${esc(t('esc.grantLevel'))} <select data-grant-for="${u.id}">${['', 'basico', 'premium', 'elite', 'libre'].map(l => `<option value="${l}"${(m.level || '') === l && m.status === 'activa' ? ' selected' : ''}>${l ? esc(escLevelLabel(l)) : '—'}</option>`).join('')}</select></label>
+        </div>
+      </div>`; }).join('')}`;
+    document.querySelectorAll('[data-membership-approve]').forEach(b => b.onclick = async () => {
+      const uid = b.dataset.membershipApprove; const m = membs[uid] || {};
+      await setDoc(doc(db, 'memberships', uid), {
+        level: m.requestedLevel || 'basico', status: 'activa', source: 'gratis',
+        decidedBy: auth.currentUser.uid, decidedAt: serverTimestamp(), startedAt: serverTimestamp(), currentPeriodEnd: null
+      }, { merge: true });
+      await auditLog('membership', 'membership.approved', uid, m.requestedLevel || '');
+      toast(t('esc.mealApprovedOk')); loadAdmin();
+    });
+    document.querySelectorAll('[data-membership-reject]').forEach(b => b.onclick = async () => {
+      const uid = b.dataset.membershipReject;
+      await setDoc(doc(db, 'memberships', uid), {
+        status: 'sin_membresia', requestedLevel: null, decidedBy: auth.currentUser.uid, decidedAt: serverTimestamp()
+      }, { merge: true });
+      await auditLog('membership', 'membership.rejected', uid, '');
+      loadAdmin();
+    });
+    document.querySelectorAll('[data-grant-for]').forEach(sel => sel.onchange = async () => {
+      const uid = sel.dataset.grantFor; const lvl = sel.value;
+      if (lvl) await setDoc(doc(db, 'memberships', uid), { level: lvl, status: 'activa', source: 'gratis', decidedBy: auth.currentUser.uid, decidedAt: serverTimestamp(), startedAt: serverTimestamp(), currentPeriodEnd: null }, { merge: true });
+      else await setDoc(doc(db, 'memberships', uid), { level: null, status: 'sin_membresia', decidedBy: auth.currentUser.uid, decidedAt: serverTimestamp() }, { merge: true });
+      await auditLog('membership', 'membership.granted', uid, lvl || 'none');
+      toast(t('esc.modSaved')); loadAdmin();
+    });
+    document.querySelectorAll('[data-mod-for]').forEach(cb => cb.onchange = async () => {
+      const uid = cb.dataset.modFor;
+      const checked = [...document.querySelectorAll(`[data-mod-for="${uid}"]:checked`)].map(x => x.value);
+      await setDoc(doc(db, 'trainer_profiles', uid), { modalities: checked, updatedAt: serverTimestamp() }, { merge: true });
+      await auditLog('role', 'modalities.updated', uid, checked.join(','));
+      toast(t('esc.modSaved'));
+    });
+  }
+  /* --- Comidas: confirmación del administrador (segundo paso) --- */
+  const abox = $('meal-admin-box');
+  if (abox) {
+    let reqs = [];
+    try {
+      const snap = await getDocs(collection(db, 'meal_requests'));
+      snap.forEach(d => { const v = d.data(); if (v.status === 'pendiente_administrador') reqs.push({ id: d.id, ...v }); });
+    } catch {}
+    abox.innerHTML = reqs.length ? reqs.map(r => `
+    <div class="user-row">
+      <div><b>${esc((ADMIN_USERS.find(u => u.id === r.alumnoUid) || {}).name || r.alumnoUid)}</b></div>
+      <div class="user-actions">
+        <button class="btn-primary btn-sm" data-meal-confirm="${r.id}" data-alumno="${r.alumnoUid}">${esc(t('esc.mealConfirm'))}</button>
+        <button class="btn-ghost btn-sm" data-meal-admin-reject="${r.id}">${esc(t('esc.rejectBtn'))}</button>
+      </div>
+    </div>`).join('') : `<div class="wempty">${esc(t('esc.noMealRequests'))}</div>`;
+    document.querySelectorAll('[data-meal-confirm]').forEach(b => b.onclick = async () => {
+      const alumno = b.dataset.alumno;
+      let feats = { ...ESC_FEATURE_DEFAULTS };
+      try { const s = await getDoc(doc(db, 'users', alumno)); if (s.exists() && s.data().features) feats = { ...feats, ...s.data().features }; } catch {}
+      feats.meals = true;
+      const batch = writeBatch(db);
+      batch.update(doc(db, 'meal_requests', b.dataset.mealConfirm), { status: 'aprobada', adminDecisionBy: auth.currentUser.uid, adminDecisionAt: serverTimestamp() });
+      batch.update(doc(db, 'users', alumno), { features: feats });
+      await batch.commit();
+      await auditLog('meals', 'meals.adminConfirmed', alumno, b.dataset.mealConfirm);
+      toast(t('esc.mealApprovedOk')); loadAdmin();
+    });
+    document.querySelectorAll('[data-meal-admin-reject]').forEach(b => b.onclick = async () => {
+      await setDoc(doc(db, 'meal_requests', b.dataset.mealAdminReject), { status: 'rechazada', adminDecisionBy: auth.currentUser.uid, adminDecisionAt: serverTimestamp() }, { merge: true });
+      await auditLog('meals', 'meals.rejected', null, b.dataset.mealAdminReject);
+      loadAdmin();
+    });
+  }
+  /* --- Banderas de funciones (app_settings/feature_flags) --- */
+  const fbox = $('flags-box');
+  if (fbox) {
+    const flags = (FEATURE_FLAGS && FEATURE_FLAGS.flags) || {};
+    fbox.innerHTML = ESC_FLAG_KEYS.map(k => `
+    <div class="user-row">
+      <div><b>${esc(t('esc.flags.' + k))}</b></div>
+      <div class="user-actions"><label class="muted"><input type="checkbox" data-flag="${k}" ${flags[k] === false ? '' : 'checked'}> ON</label></div>
+    </div>`).join('');
+    document.querySelectorAll('[data-flag]').forEach(cb => cb.onchange = async () => {
+      const nf = { ...((FEATURE_FLAGS && FEATURE_FLAGS.flags) || {}) };
+      ESC_FLAG_KEYS.forEach(k => { if (!(k in nf)) nf[k] = true; });
+      nf[cb.dataset.flag] = cb.checked;
+      FEATURE_FLAGS = { flags: nf };
+      await setDoc(doc(db, 'app_settings', 'feature_flags'), { flags: nf, updatedAt: serverTimestamp(), updatedBy: auth.currentUser.uid });
+      await auditLog('flags', 'flags.updated', null, cb.dataset.flag + '=' + cb.checked);
+      toast(t('esc.flagsSaved'));
+      applyFeatureGates();
+    });
+  }
+}
+/* Andamiaje del entrenador al asignarle el rol: perfil con las tres
+   modalidades y contador en 0, y membresía «sin_membresia» (el nivel
+   se solicita o lo concede el administrador). Idempotente. */
+async function escEnsureTrainerScaffold(uid, name) {
+  try {
+    const ps = await getDoc(doc(db, 'trainer_profiles', uid));
+    if (!ps.exists()) await setDoc(doc(db, 'trainer_profiles', uid), {
+      displayName: name || '', modalities: [...ESC_MODALITIES], bio: '', available: true, activeStudents: 0, updatedAt: serverTimestamp()
+    });
+    const ms = await getDoc(doc(db, 'memberships', uid));
+    if (!ms.exists()) await setDoc(doc(db, 'memberships', uid), {
+      level: null, status: 'sin_membresia', source: 'gratis', requestedLevel: null,
+      requestedAt: null, decidedBy: null, decidedAt: null, startedAt: null, currentPeriodEnd: null, priceSnapshot: null
+    });
+  } catch {}
+}
+
 /* Sin metas por defecto (decisión de Ronald, 2026-10-20: «que nazcan
    sin metas hasta que el entrenador las fije»): la cuenta nace SIN
    campo goals y GOALS queda {} hasta que el entrenador las establece
@@ -223,7 +685,7 @@ en: {
   'frame.guide.back': 'Turn your back to the camera, arms relaxed at your sides, your whole body inside the silhouette.',
   'roles.administrador': 'Administrator',
   'roles.entrenador': 'Trainer',
-  'roles.usuario': 'User',
+  'roles.usuario': 'Student',
   'roles.roleLabel': 'Role',
   'roles.roleSaved': 'Role updated.',
   'roles.chooseTrainer': 'Who will be your trainer?',
@@ -236,6 +698,77 @@ en: {
   'roles.dirUpdate': 'Update the trainer directory (for sign-up)',
   'roles.dirUpdated': 'Trainer directory updated.',
   'roles.noWaiting': 'Nobody is waiting for assignment.',
+  'esc.accountType': 'Account type',
+  'esc.typeAlumno': 'Student — I want a trainer',
+  'esc.typeTrainer': 'Trainer — I train students',
+  'esc.trainerHint': 'Trainer accounts start without a role: the administrator reviews and approves them, and only then is the trainer role assigned.',
+  'esc.modality': 'Modality',
+  'esc.modPresencial': 'In person',
+  'esc.modHibrido': 'Hybrid',
+  'esc.modVirtual': 'Virtual',
+  'esc.poolFull': ' (full)',
+  'esc.myTrainerTitle': '🧑‍🏫 My trainer',
+  'esc.noTrainerYet': 'You are waiting for a trainer — the administrator is responsible for your account meanwhile.',
+  'esc.currentTrainer': 'Your trainer',
+  'esc.changeTrainer': 'Change trainer',
+  'esc.changeBtn': 'Change',
+  'esc.changedOk': 'Trainer changed.',
+  'esc.waitOption': 'No trainer for now — wait for assignment',
+  'esc.modalityFixed': 'Your modality stays as registered; changing it is not available yet.',
+  'esc.mealsOffTitle': '🍽️ Meal logging is not active yet',
+  'esc.mealsOffHint': 'Meal logging turns on by request: your trainer approves it first and the administrator confirms it.',
+  'esc.mealsRequest': 'Request meal logging',
+  'esc.mealsRequested': 'Request sent.',
+  'esc.mealsPendingTrainer': 'Your meal request is waiting for your trainer.',
+  'esc.mealsPendingAdmin': 'Your trainer approved it — now waiting for the administrator to confirm.',
+  'esc.mealsRejected': 'Your last meal request was not approved. You can request it again.',
+  'esc.mealsOn': 'Meal logging is active on your account.',
+  'esc.moduleOff': 'This module is turned off right now.',
+  'esc.membershipTitle': '🎟️ My membership',
+  'esc.membershipAdminTitle': '🎟️ Trainer memberships',
+  'esc.membershipAdminHint': 'A membership sets how many active students a trainer may have (Basic 5 · Premium 10 · Elite 30). Trainers request a level; only you approve it. This is separate from the account-approval limit above.',
+  'esc.mealAdminTitle': '🍽️ Meal access confirmations',
+  'esc.mealAdminHint': 'Meal logging is off for new students until requested. The trainer approves first; you confirm. Confirming turns meal logging on for that student.',
+  'esc.flagsTitle': '🚩 Feature flags',
+  'esc.flagsHint': 'Turn whole modules off or on for every student without deploying anything. Trainers and you are not blocked by these flags.',
+  'esc.levelNone': 'No membership yet',
+  'esc.level.basico': 'Basic',
+  'esc.level.premium': 'Premium',
+  'esc.level.elite': 'Elite',
+  'esc.level.libre': 'Founder (free)',
+  'esc.status.sin_membresia': 'No membership',
+  'esc.status.pendiente': 'Requested — waiting for the administrator',
+  'esc.status.activa': 'Active',
+  'esc.quotaOf': '{used} of {total} student spots used',
+  'esc.quotaNone': 'You cannot take students until the administrator approves a membership.',
+  'esc.requestLevel': 'Request',
+  'esc.requestedOk': 'Membership requested.',
+  'esc.grantLevel': 'Grant level',
+  'esc.membershipRequests': 'Membership requests',
+  'esc.noMembershipRequests': 'No membership requests.',
+  'esc.modalitiesLabel': 'Modalities offered',
+  'esc.modSaved': 'Saved.',
+  'esc.bioLabel': 'Bio (shown to your students)',
+  'esc.bioPh': 'E.g. ISSA certified, 8 years coaching…',
+  'esc.availableLabel': 'Accepting new students',
+  'esc.mealRequestsTitle': '🍽️ Meal logging requests',
+  'esc.noMealRequests': 'No meal requests waiting.',
+  'esc.mealApprove': 'Approve (send to administrator)',
+  'esc.mealConfirm': 'Confirm — turn meals on',
+  'esc.mealApprovedOk': 'Done.',
+  'esc.flags.meals': 'Meal logging',
+  'esc.flags.activity': 'Activity log',
+  'esc.flags.training': 'Training plan',
+  'esc.flags.photos': 'Progress photos',
+  'esc.flags.metrics': 'Metrics tracking',
+  'esc.flags.somatotype': 'Body-type estimate',
+  'esc.flagsSaved': 'Flags updated.',
+  'esc.trainerRequestBadge': 'Wants to be a TRAINER',
+  'esc.approveTrainer': 'Approve as trainer',
+  'esc.trainerApproved': 'Trainer approved and role assigned.',
+  'esc.aiByLevel': 'Suggested AI limit for this level: {n} requests/day (set it in Analysis limits).',
+  'esc.memberSince': 'With this trainer since',
+  'esc.rejectBtn': 'Reject',
   'appr.title': '🆕 Trainer account approvals',
   'appr.hint': 'Each trainer may approve new accounts up to this limit. Approving an account assigns it to the trainer who approves it. If no limit is set, trainers cannot approve — only you can.',
   'appr.limitLabel': 'Max approvals per trainer',
@@ -1218,7 +1751,7 @@ es: {
   'frame.guide.back': 'De espaldas a la cámara, brazos relajados a los lados, el cuerpo entero dentro de la silueta.',
   'roles.administrador': 'Administrador',
   'roles.entrenador': 'Entrenador',
-  'roles.usuario': 'Usuario',
+  'roles.usuario': 'Alumno',
   'roles.roleLabel': 'Rol',
   'roles.roleSaved': 'Rol actualizado.',
   'roles.chooseTrainer': '¿Quién será tu entrenador?',
@@ -1231,6 +1764,77 @@ es: {
   'roles.dirUpdate': 'Actualizar el directorio de entrenadores (para el registro)',
   'roles.dirUpdated': 'Directorio de entrenadores actualizado.',
   'roles.noWaiting': 'Nadie está esperando asignación.',
+  'esc.accountType': 'Tipo de cuenta',
+  'esc.typeAlumno': 'Alumno — quiero un entrenador',
+  'esc.typeTrainer': 'Entrenador — entreno alumnos',
+  'esc.trainerHint': 'Las cuentas de entrenador nacen sin rol: el administrador las revisa y aprueba, y solo entonces se asigna el rol de entrenador.',
+  'esc.modality': 'Modalidad',
+  'esc.modPresencial': 'Presencial',
+  'esc.modHibrido': 'Híbrido',
+  'esc.modVirtual': 'Virtual',
+  'esc.poolFull': ' (cupo lleno)',
+  'esc.myTrainerTitle': '🧑‍🏫 Mi entrenador',
+  'esc.noTrainerYet': 'Estás en espera de un entrenador: mientras tanto, tu cuenta es responsabilidad del administrador.',
+  'esc.currentTrainer': 'Tu entrenador',
+  'esc.changeTrainer': 'Cambiar de entrenador',
+  'esc.changeBtn': 'Cambiar',
+  'esc.changedOk': 'Entrenador cambiado.',
+  'esc.waitOption': 'Sin entrenador por ahora: esperar asignación',
+  'esc.modalityFixed': 'Tu modalidad queda como la registraste; cambiarla aún no está disponible.',
+  'esc.mealsOffTitle': '🍽️ El registro de comidas aún no está activo',
+  'esc.mealsOffHint': 'Las comidas se activan por solicitud: primero la aprueba tu entrenador y la confirma el administrador.',
+  'esc.mealsRequest': 'Solicitar el registro de comidas',
+  'esc.mealsRequested': 'Solicitud enviada.',
+  'esc.mealsPendingTrainer': 'Tu solicitud de comidas espera a tu entrenador.',
+  'esc.mealsPendingAdmin': 'Tu entrenador la aprobó: ahora espera la confirmación del administrador.',
+  'esc.mealsRejected': 'Tu última solicitud de comidas no se aprobó. Puedes volver a solicitarla.',
+  'esc.mealsOn': 'El registro de comidas está activo en tu cuenta.',
+  'esc.moduleOff': 'Este módulo está apagado ahora mismo.',
+  'esc.membershipTitle': '🎟️ Mi membresía',
+  'esc.membershipAdminTitle': '🎟️ Membresías de entrenadores',
+  'esc.membershipAdminHint': 'La membresía fija cuántos alumnos activos puede tener un entrenador (Básico 5 · Premium 10 · Élite 30). El entrenador solicita el nivel; solo tú lo apruebas. Es distinto del límite de aprobaciones de cuentas de arriba.',
+  'esc.mealAdminTitle': '🍽️ Confirmaciones de comidas',
+  'esc.mealAdminHint': 'Las comidas nacen apagadas para los alumnos nuevos y se activan por solicitud: primero aprueba el entrenador y confirmas tú. Al confirmar, se enciende el registro de comidas de ese alumno.',
+  'esc.flagsTitle': '🚩 Banderas de funciones',
+  'esc.flagsHint': 'Apaga o enciende módulos enteros para todos los alumnos sin desplegar nada. Los entrenadores y tú no quedan bloqueados por estas banderas.',
+  'esc.levelNone': 'Aún sin membresía',
+  'esc.level.basico': 'Básico',
+  'esc.level.premium': 'Premium',
+  'esc.level.elite': 'Élite',
+  'esc.level.libre': 'Fundador (gratis)',
+  'esc.status.sin_membresia': 'Sin membresía',
+  'esc.status.pendiente': 'Solicitada: esperando al administrador',
+  'esc.status.activa': 'Activa',
+  'esc.quotaOf': '{used} de {total} cupos de alumnos en uso',
+  'esc.quotaNone': 'No puedes recibir alumnos hasta que el administrador apruebe una membresía.',
+  'esc.requestLevel': 'Solicitar',
+  'esc.requestedOk': 'Membresía solicitada.',
+  'esc.grantLevel': 'Conceder nivel',
+  'esc.membershipRequests': 'Solicitudes de membresía',
+  'esc.noMembershipRequests': 'Sin solicitudes de membresía.',
+  'esc.modalitiesLabel': 'Modalidades que ofrece',
+  'esc.modSaved': 'Guardado.',
+  'esc.bioLabel': 'Bio (visible para tus alumnos)',
+  'esc.bioPh': 'Ej.: certificado ISSA, 8 años de coaching…',
+  'esc.availableLabel': 'Acepto alumnos nuevos',
+  'esc.mealRequestsTitle': '🍽️ Solicitudes de comidas',
+  'esc.noMealRequests': 'Sin solicitudes de comidas en espera.',
+  'esc.mealApprove': 'Aprobar (pasa al administrador)',
+  'esc.mealConfirm': 'Confirmar: encender comidas',
+  'esc.mealApprovedOk': 'Hecho.',
+  'esc.flags.meals': 'Registro de comidas',
+  'esc.flags.activity': 'Registro de actividades',
+  'esc.flags.training': 'Plan de entrenamiento',
+  'esc.flags.photos': 'Fotos de progreso',
+  'esc.flags.metrics': 'Seguimiento de métricas',
+  'esc.flags.somatotype': 'Estimación de tipo corporal',
+  'esc.flagsSaved': 'Banderas actualizadas.',
+  'esc.trainerRequestBadge': 'Quiere ser ENTRENADOR',
+  'esc.approveTrainer': 'Aprobar como entrenador',
+  'esc.trainerApproved': 'Entrenador aprobado y rol asignado.',
+  'esc.aiByLevel': 'Límite de IA sugerido para este nivel: {n} peticiones/día (se fija en Límites de análisis).',
+  'esc.memberSince': 'Con este entrenador desde',
+  'esc.rejectBtn': 'Rechazar',
   'appr.title': '🆕 Aprobaciones por entrenadores',
   'appr.hint': 'Cada entrenador puede aprobar cuentas nuevas hasta este límite. Al aprobar, la cuenta queda asignada al entrenador que la aprueba. Si no hay límite fijado, los entrenadores no pueden aprobar: solo tú.',
   'appr.limitLabel': 'Máximo de aprobaciones por entrenador',
@@ -2234,19 +2838,51 @@ $('tab-register').onclick = () => {
    escritura solo del administrador). Si no está disponible, el
    registro ofrece solo la espera de asignación. */
 let REG_TRAINERS_LOADED = false;
+let REG_DIRECTORY = [];
+/* Roles+Escalabilidad: el pool del registro respeta el CUPO de la
+   membresía y las MODALIDADES de cada entrenador usando los campos
+   enriquecidos del directorio (quotaTotal/quotaUsed/available/
+   modalities). Las entradas legadas (sin esos campos) se ofrecen
+   como hoy — compatibilidad. Sin cupo libre: la opción nace
+   deshabilitada y marcada «(cupo lleno)». */
+function regRenderTrainerOptions() {
+  const sel = $('reg-trainer');
+  if (!sel) return;
+  const modality = ($('reg-modality') && $('reg-modality').value) || '';
+  const cur = sel.value;
+  const opts = REG_DIRECTORY.filter(tr => {
+    if (tr.available === false) return false;
+    if (Array.isArray(tr.modalities) && modality && !tr.modalities.includes(modality)) return false;
+    return true;
+  });
+  sel.innerHTML = `<option value="">${esc(t('roles.waitingOption'))}</option>`
+    + opts.map(tr => {
+      const full = tr.quotaTotal != null && isFinite(Number(tr.quotaTotal)) && (Number(tr.quotaUsed) || 0) >= Number(tr.quotaTotal);
+      return `<option value="${esc(tr.uid)}"${full ? ' disabled' : ''}>${esc(tr.name || tr.uid)}${full ? esc(t('esc.poolFull')) : ''}</option>`;
+    }).join('');
+  if (cur) sel.value = cur;
+}
 async function loadTrainerDirectory() {
   if (REG_TRAINERS_LOADED) return;
   REG_TRAINERS_LOADED = true;
   try {
     const snap = await getDoc(doc(db, 'trainer_directory', 'current'));
     if (!snap.exists()) return;
-    const list = (snap.data().trainers || []).filter(tr => tr && tr.uid);
-    const sel = $('reg-trainer');
-    if (!sel || !list.length) return;
-    sel.innerHTML = `<option value="">${esc(t('roles.waitingOption'))}</option>`
-      + list.map(tr => `<option value="${esc(tr.uid)}">${esc(tr.name || tr.uid)}</option>`).join('');
+    REG_DIRECTORY = (snap.data().trainers || []).filter(tr => tr && tr.uid);
+    regRenderTrainerOptions();
   } catch {}
 }
+/* Tipo de cuenta en el registro: Alumno (modalidad + pool) o
+   Entrenador (sin pool: nace con roleRequest, lo aprueba el
+   administrador). */
+function regTypeApply() {
+  const isTrainer = ($('reg-type') && $('reg-type').value) === 'entrenador';
+  const mw = $('reg-modality-wrap'); if (mw) mw.style.display = isTrainer ? 'none' : '';
+  const tw = $('reg-trainer-wrap'); if (tw) tw.style.display = isTrainer ? 'none' : '';
+  const hint = $('reg-trainer-hint'); if (hint) hint.style.display = isTrainer ? '' : 'none';
+}
+{ const rt = $('reg-type'); if (rt) rt.addEventListener('change', regTypeApply);
+  const rm = $('reg-modality'); if (rm) rm.addEventListener('change', regRenderTrainerOptions); }
 function showRegError(msg) {
   const el = $('reg-error');
   el.textContent = msg || '';
@@ -2281,11 +2917,23 @@ $('form-register').addEventListener('submit', async e => {
        crear; con las reglas vivas el lote se denegaría (role
        'user'), así que app y candidato se despliegan juntos o no
        se despliega — orden: reglas primero (checkpoint aparte). */
-    const trainerChoice = ($('reg-trainer') && $('reg-trainer').value) || '';
+    /* Roles+Escalabilidad (2026-10-24): el registro elige TIPO de
+       cuenta. Entrenador: nace 'usuario' sin aprobar y con
+       roleRequest 'entrenador' — el administrador lo aprueba y SOLO
+       entonces recibe el rol (pedido 2). Alumno: elige modalidad y
+       entrenador del pool (o ninguno → espera) y nace con sus
+       features por defecto: todo menos comidas (pedidos 3 y 6). */
+    const accountType = ($('reg-type') && $('reg-type').value) === 'entrenador' ? 'entrenador' : 'alumno';
+    const isTrainerReg = accountType === 'entrenador';
+    const modality = isTrainerReg ? null : (($('reg-modality') && $('reg-modality').value) || 'virtual');
+    const trainerChoice = isTrainerReg ? '' : (($('reg-trainer') && $('reg-trainer').value) || '');
     const regBatch = writeBatch(db);
     regBatch.set(doc(db, 'users', cred.user.uid), {
       name, email, phone, gender, social: social || '',
       role: 'usuario', isOwner: false, approved: false,
+      accountType,
+      ...(isTrainerReg ? { roleRequest: 'entrenador' } : {}),
+      ...(isTrainerReg ? {} : { modality, features: { ...ESC_FEATURE_DEFAULTS } }),
       trainerUid: trainerChoice || null,
       assignmentStatus: trainerChoice ? 'assigned' : 'waiting',
       /* Sin goals al nacer (decisión de Ronald, 2026-10-20): las metas
@@ -2298,6 +2946,17 @@ $('form-register').addEventListener('submit', async e => {
     regBatch.set(receiptRef(cred.user.uid + '_1'),
       { uid: cred.user.uid, email, type: 'registered', version: TERMS_VERSION, at: serverTimestamp() });
     await regBatch.commit();
+    if (!isTrainerReg) {
+      /* La relación nace con la cuenta (documento vigente; el cupo
+         se consume al APROBAR la cuenta, no al registrarla). */
+      try {
+        await setDoc(doc(db, 'trainer_relations', cred.user.uid), {
+          alumnoUid: cred.user.uid, trainerUid: trainerChoice || null, modality,
+          status: trainerChoice ? 'activa' : 'en_espera',
+          startedAt: serverTimestamp(), updatedAt: serverTimestamp()
+        });
+      } catch {}
+    }
     await signOut(auth);
     suppressAuthCheck = false;
     showRegError('');
@@ -2543,9 +3202,11 @@ async function loadAdmin() {
   $('pending-count').textContent = pending.length;
   $('pending-list').innerHTML = pending.length ? pending.map(u => `
     <div class="user-row">
-      <div>${u.photoURL ? `<img class="avatar sm" src="${esc(u.photoURL)}" alt="">` : ''}<b>${esc(u.name || '—')}</b><br><span class="muted">${esc(u.email || '')}</span></div>
+      <div>${u.photoURL ? `<img class="avatar sm" src="${esc(u.photoURL)}" alt="">` : ''}<b>${esc(u.name || '—')}</b>${u.roleRequest === 'entrenador' ? ` <span class="warn-badge">${t('esc.trainerRequestBadge')}</span>` : ''}<br><span class="muted">${esc(u.email || '')}</span></div>
       <div class="user-actions">
-        <button class="btn-primary btn-sm" data-approve="${u.id}">${t('admin.approve')}</button>
+        ${u.roleRequest === 'entrenador'
+          ? `<button class="btn-primary btn-sm" data-approve-trainer="${u.id}">${t('esc.approveTrainer')}</button>`
+          : `<button class="btn-primary btn-sm" data-approve="${u.id}">${t('admin.approve')}</button>`}
         <button class="btn-ghost btn-sm" data-reject="${u.id}">${t('admin.reject')}</button>
       </div>
     </div>`).join('') : `<div class="wempty">${t('admin.noPending')}</div>`;
@@ -2568,15 +3229,46 @@ async function loadAdmin() {
   document.querySelectorAll('[data-role-for]').forEach(sel => sel.onchange = async () => {
     if (ROLE !== 'administrador') return;
     await setDoc(doc(db, 'users', sel.dataset.roleFor), { role: sel.value }, { merge: true });
+    /* Roles+Escalabilidad: al nacer un entrenador por esta vía se le
+       crea su andamiaje (perfil con las tres modalidades + membresía
+       sin nivel) para que el pool y el cupo funcionen. */
+    if (sel.value === 'entrenador') {
+      const u = ADMIN_USERS.find(x => x.id === sel.dataset.roleFor);
+      await escEnsureTrainerScaffold(sel.dataset.roleFor, u ? (u.name || u.email) : '');
+      await auditLog('role', 'role.assigned', sel.dataset.roleFor, 'entrenador');
+    }
     toast(t('roles.roleSaved'));
+    await loadAdmin();
+  });
+  /* Roles+Escalabilidad: aprobar una SOLICITUD DE ENTRENADOR asigna
+     el rol y crea el andamiaje en el mismo gesto (pedido 2). */
+  document.querySelectorAll('[data-approve-trainer]').forEach(b => b.onclick = async () => {
+    const uid = b.dataset.approveTrainer;
+    const u = ADMIN_USERS.find(x => x.id === uid);
+    await setDoc(doc(db, 'users', uid), { approved: true, role: 'entrenador' }, { merge: true });
+    await escEnsureTrainerScaffold(uid, u ? (u.name || u.email) : '');
+    await auditLog('role', 'role.trainerApproved', uid, '');
+    toast(t('esc.trainerApproved'));
     await loadAdmin();
   });
   const dirBox = $('trainer-dir-box');
   if (dirBox) {
     dirBox.innerHTML = `<div class="eval-actions"><button type="button" class="btn-ghost btn-sm" id="btn-dir-update">${t('roles.dirUpdate')}</button></div>`;
     $('btn-dir-update').onclick = async () => {
-      const trainers = ADMIN_USERS.filter(u => u.isOwner || u.role === 'entrenador')
-        .map(u => ({ uid: u.id, name: u.name || u.email || u.id }));
+      /* Roles+Escalabilidad: el directorio se enriquece con
+         modalidades, cupo y disponibilidad de cada entrenador para
+         que el pool del registro (sin sesión) respete el cupo. */
+      const trainers = [];
+      for (const u of ADMIN_USERS.filter(x => x.isOwner || x.role === 'entrenador')) {
+        const st = await escTrainerStanding(u.id, !!u.isOwner);
+        trainers.push({
+          uid: u.id, name: u.name || u.email || u.id,
+          modalities: st.prof && Array.isArray(st.prof.modalities) ? st.prof.modalities : [...ESC_MODALITIES],
+          quotaTotal: st.total === Infinity ? null : st.total,
+          quotaUsed: st.used,
+          available: st.prof ? st.prof.available !== false : true
+        });
+      }
       await setDoc(doc(db, 'trainer_directory', 'current'), { trainers, updatedAt: serverTimestamp() });
       toast(t('roles.dirUpdated'));
     };
@@ -2619,18 +3311,30 @@ async function loadAdmin() {
   document.querySelectorAll('[data-profile]').forEach(b => b.onclick = () => openProfile(b.dataset.profile));
   document.querySelectorAll('[data-approve]').forEach(b => b.onclick = async () => {
     await setDoc(doc(db, 'users', b.dataset.approve), { approved: true }, { merge: true });
+    /* Roles+Escalabilidad: aprobar a un alumno asignado suma a su
+       entrenador en el contador de cupo de la membresía. */
+    const u = ADMIN_USERS.find(x => x.id === b.dataset.approve);
+    if (u && u.trainerUid) await escAdjustQuota(u.trainerUid, +1);
     toast(t('msg.approved')); await loadAdmin();
   });
   document.querySelectorAll('[data-revoke]').forEach(b => b.onclick = async () => {
     if (!confirm(t('confirm.revoke'))) return;
     await setDoc(doc(db, 'users', b.dataset.revoke), { approved: false }, { merge: true });
+    const u = ADMIN_USERS.find(x => x.id === b.dataset.revoke);
+    if (u && u.approved === true && u.trainerUid) await escAdjustQuota(u.trainerUid, -1);
     toast(t('msg.revoked')); await loadAdmin();
   });
   document.querySelectorAll('[data-reject]').forEach(b => b.onclick = async () => {
     if (!confirm(t('confirm.reject'))) return;
+    const u = ADMIN_USERS.find(x => x.id === b.dataset.reject);
     await deleteDoc(doc(db, 'users', b.dataset.reject));
+    if (u && u.approved === true && u.trainerUid) await escAdjustQuota(u.trainerUid, -1);
     toast(t('msg.rejected')); await loadAdmin();
   });
+  /* Roles+Escalabilidad: cajas del administrador (membresías,
+     confirmaciones de comidas y banderas de funciones). */
+  renderEscAdminBoxes();
+  ADMIN_USERS.forEach(u => { ADMIN_NAME_CACHE[u.id] = u.name || u.email || u.id; });
   /* Los límites se cargan SOLO con la pestaña de acceso en pantalla:
      loadAll() también llama a loadAdmin() al arrancar (con «track»
      visible) y el panel no debe disparar llamadas al Worker en frío. */
@@ -2810,6 +3514,11 @@ async function loadClients() {
   }).join('') : `<div class="wempty">${t('clients.empty')}</div>`;
   $('client-detail').style.display = 'none'; $('client-detail').innerHTML = '';
   document.querySelectorAll('[data-client]').forEach(b => b.onclick = () => openClient(b.dataset.client));
+  /* Roles+Escalabilidad: caché de nombres para las bandejas nuevas y
+     los paneles del entrenador (membresía y solicitudes de comidas). */
+  users.forEach(u => { ADMIN_NAME_CACHE[u.id] = u.name || u.email || u.id; });
+  renderMembershipBox();
+  renderMealTrainerBox();
 }
 /* Bandeja de espera (SOLO administrador): clientes aprobados con
    assignmentStatus 'waiting'. Asignar escribe trainerUid +
@@ -2835,6 +3544,18 @@ function renderWaitingTray(users) {
     const sel = $('assign-sel-' + b.dataset.assign);
     if (!sel || !sel.value) return;
     await setDoc(doc(db, 'users', b.dataset.assign), { trainerUid: sel.value, assignmentStatus: 'assigned' }, { merge: true });
+    /* Roles+Escalabilidad: la asignación abre la relación y suma al
+       contador de cupo del entrenador destino (la bandeja solo lista
+       alumnos YA aprobados). */
+    const u = (users || []).find(x => x.id === b.dataset.assign) || {};
+    try {
+      await setDoc(doc(db, 'trainer_relations', b.dataset.assign), {
+        alumnoUid: b.dataset.assign, trainerUid: sel.value, modality: u.modality || null,
+        status: 'activa', startedAt: serverTimestamp(), updatedAt: serverTimestamp()
+      }, { merge: true });
+    } catch {}
+    await escAdjustQuota(sel.value, +1);
+    await auditLog('relation', 'relation.assigned', b.dataset.assign, sel.value);
     toast(t('roles.assigned'));
     await loadClients();
   });
@@ -2883,6 +3604,14 @@ async function renderApprovalsTray(myUsers) {
       batch.update(doc(db, 'users', b.dataset.trainerApprove),
         { approved: true, trainerUid: me, assignmentStatus: 'assigned', approvedBy: me, approvedAt: serverTimestamp() });
       batch.update(doc(db, 'users', me), { approvalsUsed: myUsed + 1 });
+      /* Roles+Escalabilidad: aprobar asignándoselo suma al contador
+         de cupo de SU membresía EN EL MISMO LOTE (contador distinto
+         del de aprobaciones N-07; el candidato de reglas lo verifica
+         acoplado con getAfter sobre su perfil, si el perfil existe). */
+      try {
+        const ps = await getDoc(doc(db, 'trainer_profiles', me));
+        if (ps.exists()) batch.set(doc(db, 'trainer_profiles', me), { activeStudents: (Number(ps.data().activeStudents) || 0) + 1, updatedAt: serverTimestamp() }, { merge: true });
+      } catch {}
       await batch.commit();
       if (UDATA) UDATA.approvalsUsed = myUsed + 1;
       toast(t('appr.done'));
@@ -3533,6 +4262,7 @@ $('form-profile').addEventListener('submit', async e => {
 async function loadAll() {
   if (auth.currentUser && RULES_EPOCH === 'unknown') probeRulesEpoch(auth.currentUser.uid);
   loadAiControl();
+  loadRolesX();
   /* Diario personal: siempre filtrado por el uid autenticado, también
      para el dueño (colQuery sin filtro dejaba ver las comidas de todos
      los clientes como propias). La administración no usa estas listas.
@@ -3805,7 +4535,11 @@ function aiCtrlSet(enabled, known) {
 function applyAiControl() {
   const off = AI_CTRL.known && !AI_CTRL.enabled;
   const dock = document.getElementById('btn-round-food');
-  if (dock) dock.style.display = off ? 'none' : '';
+  /* Roles+Escalabilidad: el botón de comida también obedece al gate
+     de comidas del alumno (features/banderas) — cualquiera de los dos
+     cortes lo esconde. */
+  const gateOff = (typeof mealsGateOff === 'function') ? mealsGateOff() : false;
+  if (dock) dock.style.display = (off || gateOff) ? 'none' : '';
   const note = document.getElementById('ai-off-note');
   if (note) note.style.display = off ? '' : 'none';
   const noteM = document.getElementById('ai-off-note-modal');
@@ -4806,6 +5540,10 @@ if (mAiTextBtn) mAiTextBtn.addEventListener('click', () => {
 });
 /* Apertura del modal de comida con enfoque visible en el formulario. */
 function aiOpenMealModal() {
+  /* Roles+Escalabilidad: sin la función de comidas activa (solicitud
+     en dos pasos sin aprobar, o bandera apagada) el modal no se abre
+     para el alumno — el aviso vive en «Mi entrenador». */
+  if (typeof mealsGateOff === 'function' && mealsGateOff()) { toast(t('esc.mealsOffTitle'), true); return; }
   const m = $('meal-modal');
   if (m) {
     m.style.display = '';
