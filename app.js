@@ -175,9 +175,12 @@ async function loadRolesX() {
     /* Su propio dossier alimenta el pendiente de plantilla
        (pendCompute es síncrono: lee este estado, no la red). */
     try { const s = await getDoc(doc(db, 'trainer_profiles', auth.currentUser.uid)); MY_DOSSIER = s.exists() ? s.data() : null; } catch { MY_DOSSIER = null; }
+    try { const s = await getDoc(doc(db, 'memberships', auth.currentUser.uid)); MY_MEMB = s.exists() ? s.data() : null; } catch { MY_MEMB = null; }
   }
+  if (IS_OWNER) { try { await escLoadAdminCounts(); } catch {} }
   applyFeatureGates();
   renderMyTrainerBox();
+  try { renderRolePendCard(); } catch {}
 }
 function applyFeatureGates() {
   if (ROLE !== 'usuario') return;
@@ -429,7 +432,9 @@ async function renderMembershipBox() {
       level: st.level || null, source: 'gratis'
     }, { merge: true });
     await auditLog('membership', 'membership.requested', me, b.dataset.membershipRequest);
+    MY_MEMB = { ...(MY_MEMB || {}), status: 'pendiente', requestedLevel: b.dataset.membershipRequest };
     toast(t('esc.requestedOk'));
+    try { renderPendings(); pendSyncDock(); } catch {}
     renderMembershipBox();
   });
   const save = $('prof-save');
@@ -745,6 +750,134 @@ function dosProfilePendItem() {
   if (typeof MY_DOSSIER === 'undefined') return null;
   if (dosProfileComplete(MY_DOSSIER)) return null;
   return { id: 'profile|complete', type: 'profile', date: null, overdue: false, age: 0 };
+}
+/* ============ MAPA DE PENDIENTES POR ROL (extensión de Ronald,
+   correo memphis 2026-10-24 15:07 CDT, id 1a16f8627cc20b35) =====
+   Pendientes de PROCEDIMIENTO por rol — NO de registro diario (las
+   comidas Desayuno/Almuerzo/Cena de su día y demás avisos diarios
+   quedan como están; no se mezclan categorías). Cada ítem es una
+   tarjeta con acción directa en el flotante de pendientes; la
+   TARJETA-RESUMEN de la pantalla principal y el CHECKLIST con %
+   salen de este mismo cómputo. Sin backend: los avisos fuera de la
+   app son los textos de correo listos para envío MANUAL del
+   administrador (el automático + recordatorios a 3/7 días quedan
+   anotados como futuro en el diseño, NO construidos). */
+let MY_MEMB = undefined;     // memberships propio (undefined = sin cargar; null = sin documento)
+let ESC_ADMIN_COUNTS = null; // conteos de la bandeja del administrador (al entrar)
+/* ¿Qué le falta al dossier YA completo en lo obligatorio? Las
+   certificaciones, y los lugares si ofrece Presencial (puntos del
+   mapa: «lugares presenciales y certificaciones dentro del
+   dossier»). Si la plantilla base está incompleta manda su propio
+   pendiente y este no nace. */
+function dosEnrichMissing() {
+  if (typeof MY_DOSSIER === 'undefined' || !dosProfileComplete(MY_DOSSIER)) return false;
+  const p = MY_DOSSIER || {};
+  const noCerts = !Array.isArray(p.certifications) || !p.certifications.length;
+  const mods = Array.isArray(p.modalities) && p.modalities.length ? p.modalities : ESC_MODALITIES;
+  const noPlaces = mods.includes('presencial') && (!Array.isArray(p.places) || !p.places.length);
+  return noCerts || noPlaces;
+}
+function rolePendItems() {
+  const items = [];
+  const push = (id, route, title, detail, go) => items.push({ id, type: 'role', route, title, detail, go, date: null, overdue: false, age: 0 });
+  try {
+    if (ROLE === 'entrenador') {
+      if (MY_MEMB !== undefined && (!MY_MEMB || MY_MEMB.status === 'sin_membresia'))
+        push('trainer|membership', 'membership', t('pend.role.membTitle'), t('pend.role.membDetail'), t('pend.role.membGo'));
+      if (dosEnrichMissing())
+        push('profile|enrich', 'dossier-editor', t('pend.role.enrichTitle'), t('pend.role.enrichDetail'), t('pend.role.enrichGo'));
+    } else if (ROLE === 'usuario') {
+      const rel = (typeof MY_REL !== 'undefined' && MY_REL) || null;
+      if (!rel || !rel.trainerUid)
+        push('alumno|trainer', 'mytrainer', t('pend.role.trainerTitle'), t('pend.role.trainerDetail'), t('pend.role.trainerGo'));
+      if (typeof MY_ASMT !== 'undefined' && MY_ASMT && MY_ASMT.state === 'ok' && !MY_ASMT.doc)
+        push('alumno|eval', 'eval', t('pend.role.evalTitle'), t('pend.role.evalDetail'), t('pend.role.evalGo'));
+      const consent = (typeof specIsActive === 'function') ? specIsActive(UDATA) : false;
+      if (!consent)
+        push('alumno|consent', 'perms', t('pend.role.consentTitle'), t('pend.role.consentDetail'), t('pend.role.consentGo'));
+      else if (typeof activeDecl === 'function' && typeof declLoadState !== 'undefined' && declLoadState === 'ok' && !activeDecl())
+        push('alumno|parq', 'perms', t('pend.role.parqTitle'), t('pend.role.parqDetail'), t('pend.role.parqGo'));
+      if (typeof hasAnyGoal === 'function' && !hasAnyGoal())
+        push('alumno|goals', 'goals', t('pend.role.goalsTitle'), t('pend.role.goalsDetail'), t('pend.role.goalsGo'));
+      const mealsOn2 = (typeof featuresOf === 'function') ? featuresOf(UDATA).meals === true : true;
+      const reqLive = !!((typeof MY_MEAL_REQ !== 'undefined' && MY_MEAL_REQ) && (MY_MEAL_REQ.status === 'pendiente_entrenador' || MY_MEAL_REQ.status === 'pendiente_administrador'));
+      if (!mealsOn2 && !reqLive)
+        push('alumno|meals', 'mytrainer', t('pend.role.mealsTitle'), t('pend.role.mealsDetail'), t('pend.role.mealsGo'));
+    } else if (ROLE === 'administrador' && ESC_ADMIN_COUNTS) {
+      const c = ESC_ADMIN_COUNTS;
+      if (c.accounts > 0) push('admin|accounts', 'admin-pending', t('pend.role.adminAccounts', { n: c.accounts }), '', t('pend.role.adminGo'));
+      if (c.memberships > 0) push('admin|memberships', 'admin-membership', t('pend.role.adminMemberships', { n: c.memberships }), '', t('pend.role.adminGo'));
+      if (c.meals > 0) push('admin|meals', 'admin-meals', t('pend.role.adminMeals', { n: c.meals }), '', t('pend.role.adminGo'));
+      if (c.waiting > 0) push('admin|waiting', 'admin-waiting', t('pend.role.adminWaiting', { n: c.waiting }), '', t('pend.role.adminGo'));
+    }
+  } catch {}
+  return items;
+}
+/* Checklist de inicio con %: universo FIJO por rol (el del mapa);
+   el % es hechos/total del universo aplicable. El administrador no
+   tiene %: su lista es una bandeja viva de trabajo, no un alta
+   personal que «terminar» — documentado en el diseño §10. */
+function roleChecklist() {
+  try {
+    if (ROLE === 'entrenador') {
+      if (typeof MY_DOSSIER === 'undefined') return null;
+      const rows = [
+        { label: t('pend.chk.profile'), done: dosProfileComplete(MY_DOSSIER) },
+        { label: t('pend.chk.membership'), done: !!(MY_MEMB && (MY_MEMB.status === 'pendiente' || MY_MEMB.status === 'activa')) },
+        { label: t('pend.chk.enrich'), done: dosProfileComplete(MY_DOSSIER) && !dosEnrichMissing() },
+      ];
+      const done = rows.filter(r => r.done).length;
+      return { pct: Math.round(done / rows.length * 100), rows };
+    }
+    if (ROLE === 'usuario') {
+      const rel = (typeof MY_REL !== 'undefined' && MY_REL) || null;
+      const rows = [
+        { label: t('pend.chk.trainer'), done: !!(rel && rel.trainerUid) },
+        { label: t('pend.chk.eval'), done: !!(typeof MY_ASMT !== 'undefined' && MY_ASMT && MY_ASMT.doc) },
+        { label: t('pend.chk.consent'), done: (typeof specIsActive === 'function') && specIsActive(UDATA) },
+        { label: t('pend.chk.parq'), done: !!((typeof activeDecl === 'function') && activeDecl()) },
+        { label: t('pend.chk.goals'), done: (typeof hasAnyGoal === 'function') && hasAnyGoal() },
+        { label: t('pend.chk.meals'), done: ((typeof featuresOf === 'function') && featuresOf(UDATA).meals === true) || !!((typeof MY_MEAL_REQ !== 'undefined' && MY_MEAL_REQ) && (MY_MEAL_REQ.status === 'pendiente_entrenador' || MY_MEAL_REQ.status === 'pendiente_administrador')) },
+      ];
+      const done = rows.filter(r => r.done).length;
+      return { pct: Math.round(done / rows.length * 100), rows };
+    }
+  } catch {}
+  return null;
+}
+function pendChecklistHTML() {
+  const chk = roleChecklist();
+  if (!chk) return '';
+  return `<div class="pend-check"><p class="pend-check-title">${esc(t('pend.chkTitle', { pct: chk.pct }))}</p><ul>${chk.rows.map(r => `<li>${r.done ? '✅' : '⬜'} ${esc(r.label)}</li>`).join('')}</ul></div>`;
+}
+/* Tarjeta-resumen en la pantalla principal al entrar (forma de
+   aviso 2 del mapa): aparece SOLO si hay pendientes de
+   procedimiento; su botón abre el flotante de pendientes. */
+function renderRolePendCard() {
+  const card = document.getElementById('role-pend-card');
+  if (!card || !auth.currentUser) return;
+  let items = [];
+  try { items = rolePendItems(); const pit = dosProfilePendItem(); if (pit) items.unshift(pit); } catch {}
+  if (!items.length) { card.style.display = 'none'; card.innerHTML = ''; return; }
+  const chk = roleChecklist();
+  card.innerHTML = `<div class="panel pend-card"><h3 class="history-title">🔔 ${esc(t('pend.cardTitle'))}</h3>
+    ${chk ? `<p class="pend-check-title">${esc(t('pend.chkTitle', { pct: chk.pct }))}</p>` : ''}
+    <p class="progress-hint">${esc(t('pend.cardBody', { n: items.length }))}</p>
+    <div class="eval-actions"><button type="button" class="btn-primary btn-sm" id="btn-role-pend-open">${esc(t('pend.cardBtn'))}</button></div></div>`;
+  card.style.display = '';
+  const b = document.getElementById('btn-role-pend-open');
+  if (b) b.onclick = () => pendSetFloat(true);
+}
+/* Conteos de la bandeja del administrador, cargados al entrar (y
+   refrescados en su superficie): cuentas por aprobar, membresías
+   por aprobar, comidas por confirmar y alumnos en espera. */
+async function escLoadAdminCounts() {
+  if (!IS_OWNER) return;
+  const c = { accounts: 0, memberships: 0, meals: 0, waiting: 0 };
+  try { const s = await getDocs(collection(db, 'users')); s.forEach(d => { const u = d.data(); if (u.isOwner) return; if (u.approved !== true) c.accounts++; else if ((u.role || 'usuario') === 'usuario' && !u.trainerUid) c.waiting++; }); } catch {}
+  try { const s = await getDocs(collection(db, 'memberships')); s.forEach(d => { if (d.data().status === 'pendiente') c.memberships++; }); } catch {}
+  try { const s = await getDocs(collection(db, 'meal_requests')); s.forEach(d => { if (d.data().status === 'pendiente_administrador') c.meals++; }); } catch {}
+  ESC_ADMIN_COUNTS = c;
 }
 function dosMs(v) {
   if (v == null) return null;
@@ -2187,6 +2320,61 @@ en: {
   'esc.mailCopied': 'Text copied',
   'esc.mailSubject': 'RONBO NUTRI — Complete your trainer profile to continue',
   'esc.mailBody': 'Hi {name},\n\nYour RONBO NUTRI trainer account has been approved. To continue the process, please complete your profile template (your dossier) in the app: featured photo, headline and your personal introduction — plus your experience, certifications, specialties and the places where you train in person, if that applies to you.\n\nStudents see this template when choosing a trainer, so a complete profile helps them choose you. When you sign in, the app shows you a pending item, "Complete your profile template to continue", which takes you straight to your dossier; it disappears on its own once your template is complete.\n\nThank you,\nRONBO NUTRI',
+  'pend.role.membTitle': 'Request your trainer membership',
+  'pend.role.membDetail': 'You were born without a level: request one (Basic 5 · Premium 10 · Elite 30 students) and the administrator approves it. Your pool quota depends on it.',
+  'pend.role.membGo': 'Request membership',
+  'pend.role.enrichTitle': 'Round out your dossier: certifications and places',
+  'pend.role.enrichDetail': 'Your template is complete. Add your certifications and, if you train in person, your places: students compare dossiers before choosing.',
+  'pend.role.enrichGo': 'Complete dossier',
+  'pend.role.trainerTitle': 'Choose your trainer and modality',
+  'pend.role.trainerDetail': 'You are waiting: pick a trainer from the pool (or stay waiting for the administrator to assign you one).',
+  'pend.role.trainerGo': 'Choose trainer',
+  'pend.role.evalTitle': 'Complete your initial evaluation',
+  'pend.role.evalDetail': 'Your Level 1 evaluation has not started yet: it is the base your trainer uses to set your plan and goals.',
+  'pend.role.evalGo': 'Go to my evaluation',
+  'pend.role.consentTitle': 'Give your specific health consent',
+  'pend.role.consentDetail': 'The checkbox that lets your trainer see your health declaration and adapt your program. Without it, no health data is collected.',
+  'pend.role.consentGo': 'Review and give consent',
+  'pend.role.parqTitle': 'Fill in your health declaration (PAR-Q) — optional',
+  'pend.role.parqDetail': 'Optional, and it helps your trainer take precautions. It lives behind your specific consent, in Permissions & privacy.',
+  'pend.role.parqGo': 'Fill in declaration',
+  'pend.role.goalsTitle': 'Set your goals',
+  'pend.role.goalsDetail': 'You have no goals yet: they are the rings you see every day in your log.',
+  'pend.role.goalsGo': 'View my goals',
+  'pend.role.mealsTitle': 'Request meal logging',
+  'pend.role.mealsDetail': 'Meals are activated only on request: your trainer approves and the administrator confirms.',
+  'pend.role.mealsGo': 'Request meals',
+  'pend.role.adminAccounts': '{n} account(s) waiting for approval',
+  'pend.role.adminMemberships': '{n} membership request(s) to approve',
+  'pend.role.adminMeals': '{n} meal request(s) to confirm',
+  'pend.role.adminWaiting': '{n} student(s) waiting for a trainer',
+  'pend.role.adminGo': 'Review',
+  'pend.chkTitle': 'Your profile is {pct}% complete',
+  'pend.chk.profile': 'Profile template (photo, headline, intro)',
+  'pend.chk.membership': 'Membership requested or active',
+  'pend.chk.enrich': 'Certifications and places in your dossier',
+  'pend.chk.trainer': 'Trainer and modality chosen',
+  'pend.chk.eval': 'Initial evaluation started',
+  'pend.chk.consent': 'Specific health consent given',
+  'pend.chk.parq': 'Health declaration (PAR-Q)',
+  'pend.chk.goals': 'Goals set',
+  'pend.chk.meals': 'Meals active or requested',
+  'pend.cardTitle': 'You have pending steps',
+  'pend.cardBody': '{n} procedure pending item(s) — they are not daily logs.',
+  'pend.cardBtn': 'View pending items',
+  'esc.mail2.boxTitle': 'Ready-to-send email texts (manual sending)',
+  'esc.mail2.tplTrainer': 'Student: choose your trainer',
+  'esc.mail2.tplEval': 'Student: initial evaluation and consent',
+  'esc.mail2.tplMeals': 'Student: how meal logging is activated',
+  'esc.mail2.tplMembership': 'Trainer: request your membership',
+  'esc.mail2.subjTrainer': 'RONBO NUTRI — Choose your trainer',
+  'esc.mail2.bodyTrainer': 'Hi,\n\nYour RONBO NUTRI account is approved. Your next step is to choose your trainer and modality: sign in and open "My trainer" on your main screen — you can review each trainer\'s profile before choosing. If you prefer, you can stay waiting and the administrator will assign you one.\n\nThank you,\nRONBO NUTRI',
+  'esc.mail2.subjEval': 'RONBO NUTRI — Complete your initial evaluation',
+  'esc.mail2.bodyEval': 'Hi,\n\nTo finish setting up your RONBO NUTRI account, complete your initial evaluation (Level 1 data). In the app you will find a pending item that takes you there. It includes your specific health consent — the checkbox that lets your trainer see your health declaration — and the optional health declaration (PAR-Q) itself.\n\nThank you,\nRONBO NUTRI',
+  'esc.mail2.subjMeals': 'RONBO NUTRI — How meal logging is activated',
+  'esc.mail2.bodyMeals': 'Hi,\n\nIn RONBO NUTRI, meal logging is activated only on request: ask for it from "My trainer" in the app, your trainer approves it, and the administrator confirms it. Once both steps are done, the food button appears in your app.\n\nThank you,\nRONBO NUTRI',
+  'esc.mail2.subjMembership': 'RONBO NUTRI — Request your trainer membership',
+  'esc.mail2.bodyMembership': 'Hi,\n\nYour trainer account is approved, and your membership is still without a level — your student quota depends on it (Basic 5 · Premium 10 · Elite 30). Request your level from your panel in the app ("My clients" tab) and the administrator will approve it.\n\nThank you,\nRONBO NUTRI',
   'pend.evalMissing': 'Still missing (required): {items}',
   'pend.goEval': 'Go to My progress',
   'pend.snooze': 'Snooze',
@@ -3343,6 +3531,61 @@ es: {
   'esc.mailCopied': 'Texto copiado',
   'esc.mailSubject': 'RONBO NUTRI — Completa tu plantilla de perfil para continuar',
   'esc.mailBody': 'Hola {name}:\n\nTu cuenta de entrenador en RONBO NUTRI ha sido aprobada. Para continuar con el procedimiento, completa tu plantilla de perfil (tu dossier) en la app: foto destacada, titular y tu reseña personal — además de tu experiencia, certificaciones, especialidades y los lugares donde atiendes presencialmente, si aplica en tu caso.\n\nLos alumnos ven esta plantilla al elegir entrenador, así que un perfil completo les ayuda a elegirte. Al entrar, la app te mostrará un pendiente, «Completa tu plantilla de perfil para continuar», que te lleva directo a tu dossier; desaparece solo cuando tu plantilla queda completa.\n\nGracias,\nRONBO NUTRI',
+  'pend.role.membTitle': 'Solicita tu membresía de entrenador',
+  'pend.role.membDetail': 'Naciste sin nivel: solicita uno (Básico 5 · Premium 10 · Élite 30 alumnos) y el administrador lo aprueba. Tu cupo en el pool depende de ello.',
+  'pend.role.membGo': 'Solicitar membresía',
+  'pend.role.enrichTitle': 'Redondea tu dossier: certificaciones y lugares',
+  'pend.role.enrichDetail': 'Tu plantilla está completa. Añade tus certificaciones y, si atiendes presencial, tus lugares: los alumnos comparan dossiers antes de elegir.',
+  'pend.role.enrichGo': 'Completar dossier',
+  'pend.role.trainerTitle': 'Elige a tu entrenador y tu modalidad',
+  'pend.role.trainerDetail': 'Estás en espera: elige un entrenador del pool (o quédate en espera de que el administrador te asigne uno).',
+  'pend.role.trainerGo': 'Elegir entrenador',
+  'pend.role.evalTitle': 'Completa tu evaluación inicial',
+  'pend.role.evalDetail': 'Tu evaluación de Nivel 1 aún no ha empezado: es la base con la que tu entrenador fija tu plan y tus metas.',
+  'pend.role.evalGo': 'Ir a mi evaluación',
+  'pend.role.consentTitle': 'Da tu consentimiento específico de salud',
+  'pend.role.consentDetail': 'La casilla que permite a tu entrenador ver tu declaración de salud y adaptar tu programa. Sin ella, no se recoge ningún dato de salud.',
+  'pend.role.consentGo': 'Revisar y dar el consentimiento',
+  'pend.role.parqTitle': 'Rellena tu declaración de salud (PAR-Q) — opcional',
+  'pend.role.parqDetail': 'Opcional, y ayuda a tu entrenador a tomar precauciones. Vive tras tu consentimiento específico, en Permisos y privacidad.',
+  'pend.role.parqGo': 'Rellenar declaración',
+  'pend.role.goalsTitle': 'Define tus metas',
+  'pend.role.goalsDetail': 'Aún no tienes metas: son los anillos que ves cada día en tu registro.',
+  'pend.role.goalsGo': 'Ver mis metas',
+  'pend.role.mealsTitle': 'Solicita el registro de comidas',
+  'pend.role.mealsDetail': 'Las comidas se activan solo a petición: tu entrenador lo aprueba y el administrador lo confirma.',
+  'pend.role.mealsGo': 'Solicitar comidas',
+  'pend.role.adminAccounts': '{n} cuenta(s) esperando aprobación',
+  'pend.role.adminMemberships': '{n} solicitud(es) de membresía por aprobar',
+  'pend.role.adminMeals': '{n} solicitud(es) de comidas por confirmar',
+  'pend.role.adminWaiting': '{n} alumno(s) esperando entrenador',
+  'pend.role.adminGo': 'Revisar',
+  'pend.chkTitle': 'Tu perfil está {pct}% completo',
+  'pend.chk.profile': 'Plantilla de perfil (foto, titular, reseña)',
+  'pend.chk.membership': 'Membresía solicitada o activa',
+  'pend.chk.enrich': 'Certificaciones y lugares en tu dossier',
+  'pend.chk.trainer': 'Entrenador y modalidad elegidos',
+  'pend.chk.eval': 'Evaluación inicial iniciada',
+  'pend.chk.consent': 'Consentimiento específico de salud dado',
+  'pend.chk.parq': 'Declaración de salud (PAR-Q)',
+  'pend.chk.goals': 'Metas definidas',
+  'pend.chk.meals': 'Comidas activas o solicitadas',
+  'pend.cardTitle': 'Tienes pasos pendientes',
+  'pend.cardBody': '{n} pendiente(s) de procedimiento — no son registros diarios.',
+  'pend.cardBtn': 'Ver pendientes',
+  'esc.mail2.boxTitle': 'Textos de correo listos (envío manual)',
+  'esc.mail2.tplTrainer': 'Alumno: elige a tu entrenador',
+  'esc.mail2.tplEval': 'Alumno: evaluación inicial y consentimiento',
+  'esc.mail2.tplMeals': 'Alumno: cómo se activan las comidas',
+  'esc.mail2.tplMembership': 'Entrenador: solicita tu membresía',
+  'esc.mail2.subjTrainer': 'RONBO NUTRI — Elige a tu entrenador',
+  'esc.mail2.bodyTrainer': 'Hola:\n\nTu cuenta de RONBO NUTRI está aprobada. Tu siguiente paso es elegir a tu entrenador y tu modalidad: entra y abre «Mi entrenador» en tu pantalla principal — puedes revisar el perfil de cada entrenador antes de elegir. Si lo prefieres, puedes quedarte en espera y el administrador te asignará uno.\n\nGracias,\nRONBO NUTRI',
+  'esc.mail2.subjEval': 'RONBO NUTRI — Completa tu evaluación inicial',
+  'esc.mail2.bodyEval': 'Hola:\n\nPara terminar de preparar tu cuenta de RONBO NUTRI, completa tu evaluación inicial (datos de Nivel 1). En la app encontrarás un pendiente que te lleva hasta allí. Incluye tu consentimiento específico de salud — la casilla que permite a tu entrenador ver tu declaración de salud — y la propia declaración de salud (PAR-Q), que es opcional.\n\nGracias,\nRONBO NUTRI',
+  'esc.mail2.subjMeals': 'RONBO NUTRI — Cómo se activa el registro de comidas',
+  'esc.mail2.bodyMeals': 'Hola:\n\nEn RONBO NUTRI, el registro de comidas se activa solo a petición: pídelo desde «Mi entrenador» en la app, tu entrenador lo aprueba y el administrador lo confirma. Cuando ambos pasos están, el botón de comida aparece en tu app.\n\nGracias,\nRONBO NUTRI',
+  'esc.mail2.subjMembership': 'RONBO NUTRI — Solicita tu membresía de entrenador',
+  'esc.mail2.bodyMembership': 'Hola:\n\nTu cuenta de entrenador está aprobada y tu membresía sigue sin nivel — de ella depende tu cupo de alumnos (Básico 5 · Premium 10 · Élite 30). Solicita tu nivel desde tu panel en la app (pestaña «Mis clientes») y el administrador lo aprobará.\n\nGracias,\nRONBO NUTRI',
   'pend.evalMissing': 'Falta (requerido): {items}',
   'pend.goEval': 'Ir a Mi progreso',
   'pend.snooze': 'Posponer',
@@ -4171,6 +4414,32 @@ async function loadAdmin() {
         } catch { toast(t('appr.error')); }
       };
     })();
+  }
+  /* Mapa por rol (extensión 2026-10-24): TEXTOS DE CORREO LISTOS
+     para los demás tipos de pendiente — bilingües según la
+     interfaz, copiables, envío MANUAL del administrador. Sin
+     envíos automáticos ni marcas de envío (eso es fase backend). */
+  const mailBox = $('mail-texts-box');
+  if (mailBox) {
+    const TPLS = [
+      ['trainer', 'esc.mail2.subjTrainer', 'esc.mail2.bodyTrainer', 'esc.mail2.tplTrainer'],
+      ['eval', 'esc.mail2.subjEval', 'esc.mail2.bodyEval', 'esc.mail2.tplEval'],
+      ['meals', 'esc.mail2.subjMeals', 'esc.mail2.bodyMeals', 'esc.mail2.tplMeals'],
+      ['membership', 'esc.mail2.subjMembership', 'esc.mail2.bodyMembership', 'esc.mail2.tplMembership'],
+    ];
+    mailBox.innerHTML = `<div class="user-row"><div><b>${esc(t('esc.mail2.boxTitle'))}</b><br>
+      <select id="mail-tpl-sel">${TPLS.map(([k, , , lk]) => `<option value="${k}">${esc(t(lk))}</option>`).join('')}</select></div></div>
+      <textarea class="dos-mail-text" id="mail-tpl-text" rows="10" readonly></textarea>
+      <div class="eval-actions"><button type="button" class="btn-ghost btn-sm" id="mail-tpl-copy">${esc(t('esc.mailCopy'))}</button></div>`;
+    const fill = () => { const k = ($('mail-tpl-sel') || {}).value || 'trainer'; const tp = TPLS.find(x => x[0] === k); const ta = $('mail-tpl-text'); if (ta && tp) ta.value = `${t(tp[1])}\n\n${t(tp[2])}`; };
+    fill();
+    const selEl = $('mail-tpl-sel'); if (selEl) selEl.onchange = fill;
+    const cpBtn = $('mail-tpl-copy'); if (cpBtn) cpBtn.onclick = async () => {
+      const ta = $('mail-tpl-text');
+      try { await navigator.clipboard.writeText(ta.value); }
+      catch { if (ta) { ta.select(); try { document.execCommand('copy'); } catch {} } }
+      toast(t('esc.mailCopied'));
+    };
   }
   renderAiControlBox();
   document.querySelectorAll('[data-goals]').forEach(b => b.onclick = () => {
@@ -11537,6 +11806,11 @@ function pendCompute() {
     const pit = (typeof dosProfilePendItem === 'function') ? dosProfilePendItem() : null;
     if (pit) { pit.date = pendRegDay(now, (cfg && cfg.cutoff) || '04:00'); out.items.push(pit); }
   } catch {}
+  /* Mapa de pendientes por rol: también de PROCEDIMIENTO — mismo
+     criterio, antes de la puerta de activación. */
+  try {
+    if (typeof rolePendItems === 'function') for (const rit of rolePendItems()) { rit.date = pendRegDay(now, (cfg && cfg.cutoff) || '04:00'); out.items.push(rit); }
+  } catch {}
   if (!cfg || !cfg.activated) return out;
   const regDay = pendRegDay(now, cfg.cutoff);
   out.regDay = regDay;
@@ -11647,7 +11921,7 @@ function pendCompute() {
       out.items.push({ id: 'energy|private-data', type: 'energy', date: regDay, overdue: false, age: 0 });
   } catch {}
 
-  const order = { profile: 0, meal: 1, weight: 2, training: 3, eval: 4, energy: 5 };
+  const order = { profile: 0, role: 0, meal: 1, weight: 2, training: 3, eval: 4, energy: 5 };
   out.items.sort((a, b) => (a.date < b.date ? -1 : a.date > b.date ? 1 : (order[a.type] || 9) - (order[b.type] || 9)));
   return out;
 }
@@ -11732,6 +12006,9 @@ function pendActiveCount() {
 function pendSyncDock() {
   const b = $('btn-toggle-pend'); if (!b) return;
   b.classList.toggle('pend-alert', pendActiveCount() > 0);
+  /* La tarjeta-resumen de la pantalla principal refleja el mismo
+     cómputo de procedimiento en cada sincronización. */
+  try { if (typeof renderRolePendCard === 'function') renderRolePendCard(); } catch {}
 }
 function pendSetFloat(open) {
   PEND_UI.floatOpen = !!open;
@@ -11795,6 +12072,10 @@ function pendItemHTML(it, regDay) {
     title = t('pend.profileTitle');
     detail = t('pend.profileDetail');
     go = `<button type="button" class="btn-primary btn-sm" data-pend-act="go" data-type="profile" data-date="${it.date}">${esc(t('pend.goProfile'))}</button>`;
+  } else if (it.type === 'role') {
+    title = it.title || '';
+    detail = it.detail || '';
+    go = `<button type="button" class="btn-primary btn-sm" data-pend-act="go" data-type="role" data-route="${esc(it.route || '')}" data-date="${it.date}">${esc(it.go || '')}</button>`;
   }
   const now = new Date();
   const hm = d => pendFmtHM(d.getHours() * 60 + d.getMinutes());
@@ -11804,8 +12085,8 @@ function pendItemHTML(it, regDay) {
     ['tomorrowSame', t('pend.snooze.tomorrowSame', { time: hm(now) })],
     ['tomorrow9', t('pend.snooze.tomorrow9')]
   ].map(([v, l]) => `<option value="${v}">${esc(l)}</option>`).join('');
-  const snooze = (it.type === 'eval' || it.type === 'energy' || it.type === 'profile') ? '' : `<label class="pend-snooze"><span>${esc(t('pend.snooze'))}</span><select data-pend-snooze="${esc(it.id)}"><option value="">—</option>${opts}</select></label>`;
-  const omit = (it.type === 'eval' || it.type === 'energy' || it.type === 'profile') ? '' : `<button type="button" class="btn-ghost btn-sm" data-pend-act="omit" data-id="${esc(it.id)}">${esc(t(it.overdue ? 'pend.omitOccasionPast' : 'pend.omitOccasion'))}</button>`;
+  const snooze = (it.type === 'eval' || it.type === 'energy' || it.type === 'profile' || it.type === 'role') ? '' : `<label class="pend-snooze"><span>${esc(t('pend.snooze'))}</span><select data-pend-snooze="${esc(it.id)}"><option value="">—</option>${opts}</select></label>`;
+  const omit = (it.type === 'eval' || it.type === 'energy' || it.type === 'profile' || it.type === 'role') ? '' : `<button type="button" class="btn-ghost btn-sm" data-pend-act="omit" data-id="${esc(it.id)}">${esc(t(it.overdue ? 'pend.omitOccasionPast' : 'pend.omitOccasion'))}</button>`;
   const discard = it.canDiscard ? `<button type="button" class="btn-ghost btn-sm pend-danger" data-pend-act="discard" data-id="${esc(it.id)}">${esc(t('pend.discard'))}</button>` : '';
   return `<div class="pend-item${it.overdue ? ' pend-overdue' : ''}" data-pend-item="${esc(it.id)}">
     <p class="pend-text"><b>${esc(title)}</b><br><span class="pend-detail">${detail}</span></p>
@@ -11858,9 +12139,11 @@ function renderPendings() {
        entrenador (procedimiento) se muestra AUNQUE los recordatorios
        no estén activados: va encima del formulario de activación. */
     let pre = '';
+    try { pre += (typeof pendChecklistHTML === 'function') ? pendChecklistHTML() : ''; } catch {}
     try {
       const pit = (typeof dosProfilePendItem === 'function') ? dosProfilePendItem() : null;
-      if (pit) { pit.date = pendRegDay(new Date(), cfg.cutoff || '04:00'); pre = pendItemHTML(pit, pit.date); }
+      if (pit) { pit.date = pendRegDay(new Date(), cfg.cutoff || '04:00'); pre += pendItemHTML(pit, pit.date); }
+      if (typeof rolePendItems === 'function') for (const rit of rolePendItems()) { rit.date = pendRegDay(new Date(), cfg.cutoff || '04:00'); pre += pendItemHTML(rit, rit.date); }
     } catch {}
     body.innerHTML = pre + pendCfgFormHTML(cfg.meals ? cfg : pendDefaults(), true);
     pendSyncDock();
@@ -11879,6 +12162,7 @@ function renderPendings() {
     else count.style.display = 'none';
   }
   let html = `<p class="progress-hint">${esc(t('pend.intro'))}</p>`;
+  try { html += (typeof pendChecklistHTML === 'function') ? pendChecklistHTML() : ''; } catch {}
   const draft = pendDraftGet();
   if (draft) {
     html += `<div class="pend-item pend-draft">
@@ -12015,6 +12299,20 @@ setInterval(() => { try { pendDockTick(); } catch {} }, 60000);
              dossier (pestaña de clientes, donde vive su plantilla). */
           switchTab('clients');
           const r = $('dossier-editor-box'); if (r) { try { r.scrollIntoView({ behavior: 'smooth', block: 'start' }); } catch {} }
+        } else if (type === 'role') {
+          /* Mapa por rol: cada tarjeta lleva a SU superficie. */
+          const route = b.dataset.route;
+          const scroll = id2 => { const r = $(id2); if (r) { try { r.scrollIntoView({ behavior: 'smooth', block: 'start' }); } catch {} } };
+          if (route === 'dossier-editor') { switchTab('clients'); scroll('dossier-editor-box'); }
+          else if (route === 'membership') { switchTab('clients'); scroll('membership-box'); }
+          else if (route === 'mytrainer') { switchTab('track'); scroll('my-trainer-box'); }
+          else if (route === 'eval') { const c = $('progress-content'); if (c && c.style.display === 'none') { const pb = $('btn-toggle-progress'); if (pb) pb.click(); } scroll('eval-root'); }
+          else if (route === 'perms') { const pb = $('btn-perms'); if (pb && !permsOpen) pb.click(); scroll('health-section'); }
+          else if (route === 'goals') { switchTab('track'); scroll('rings'); }
+          else if (route === 'admin-pending') { switchTab('access'); scroll('pending-list'); }
+          else if (route === 'admin-membership') { switchTab('access'); scroll('membership-admin-box'); }
+          else if (route === 'admin-meals') { switchTab('access'); scroll('meal-admin-box'); }
+          else if (route === 'admin-waiting') { switchTab('access'); scroll('users-list'); }
         }
       }
     });

@@ -168,6 +168,10 @@
     <button type="button" class="main-tab" data-tab="access" data-i18n="tabs.access">🔐 Access</button>
   </nav>
   <div class="tab-pane" id="tab-track">
+  <!-- Mapa de pendientes por rol (2026-10-24): tarjeta-resumen en la
+       pantalla principal al entrar; se pinta desde renderRolePendCard()
+       y solo aparece si hay pendientes de procedimiento. -->
+  <div id="role-pend-card" style="display:none"></div>
   <div class="date-row">
     <label for="dateSel" data-i18n="track.date">📅 Date:</label>
     <select id="dateSel"></select>
@@ -421,6 +425,7 @@
     <h3 class="history-title" data-i18n="access.users">Users with access</h3>
     <div id="users-list"><div class="wempty" data-i18n="access.loading">Loading…</div></div>
     <div id="trainer-dir-box"></div>
+    <div id="mail-texts-box"></div>
     <h3 class="history-title" data-i18n="appr.title">🆕 Trainer account approvals</h3>
     <p class="progress-hint" data-i18n="appr.hint">Each trainer may approve new accounts up to this limit. Approving an account assigns it to the trainer who approves it. If no limit is set, trainers cannot approve — only you can.</p>
     <div id="approvals-limit-box"></div>
@@ -715,6 +720,6 @@
 <div id="toast" class="toast"></div>
 <div id="print-card" aria-hidden="true"></div>
 
-<script type="module" src="app.js?v=20261024-dossier"></script>
+<script type="module" src="app.js?v=20261024-pendrol"></script>
 </body>
 </html>

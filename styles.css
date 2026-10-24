@@ -1116,3 +1116,8 @@ div > .btn-ghost:only-child, div > .btn-main:only-child {
 .dos-mail-text{width:100%;box-sizing:border-box;border:1px solid #E7E1D3;border-radius:12px;padding:10px 12px;font:13px/1.55 inherit;background:#fff;color:#263238;resize:vertical}
 .dos-pool-links{margin-top:6px;display:flex;flex-wrap:wrap;gap:4px 10px}
 #reg-dossier-links{margin:4px 0 8px;display:flex;flex-wrap:wrap;gap:4px 10px}
+.pend-check{background:#fff;border:1px solid #E7E1D3;border-radius:14px;padding:10px 12px;margin:0 0 10px}
+.pend-check-title{font-weight:700;color:#065f46;margin:0 0 4px}
+.pend-check ul{list-style:none;margin:0;padding:0;font-size:13px;color:#374151}
+.pend-check li{margin:2px 0}
+#role-pend-card .pend-card{border-left:4px solid #0d9488}
