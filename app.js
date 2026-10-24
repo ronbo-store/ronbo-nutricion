@@ -3118,10 +3118,18 @@ $('form-profile').addEventListener('submit', async e => {
 /* ================= DATA ================= */
 async function loadAll() {
   if (auth.currentUser && RULES_EPOCH === 'unknown') probeRulesEpoch(auth.currentUser.uid);
-  MEALS = {};
   /* Diario personal: siempre filtrado por el uid autenticado, también
      para el dueño (colQuery sin filtro dejaba ver las comidas de todos
-     los clientes como propias). La administración no usa estas listas. */
+     los clientes como propias). La administración no usa estas listas.
+     CONSTRUCCIÓN LOCAL (corrección del duplicado, 2026-10-23): la lista
+     se arma en un objeto LOCAL y se intercambia de una vez cuando la
+     consulta vuelve. Antes se vaciaba y rellenaba el global MEALS a
+     través del await: dos recargas solapadas (p. ej. dos cambios de
+     idioma seguidos, o una recarga cruzada con el guardado) empujaban
+     los MISMOS documentos dos veces sobre el mismo objeto y el diario
+     pintaba cada comida duplicada hasta la siguiente recarga limpia
+     (probado en batería: escenario D6). */
+  const freshMeals = {};
   const ms = await getDocs(query(collection(db, 'nutrition_meals'), where('ownerUid', '==', auth.currentUser.uid)));
   ms.forEach(d => {
     const v = d.data();
@@ -3146,8 +3154,9 @@ async function loadAll() {
          la hora de registro, NO una hora editable de la comida. */
       createdAtMs: (v.createdAt && v.createdAt.toMillis) ? v.createdAt.toMillis() : 0,
       photoURL: v.photoURL || '', photoPath: v.photoPath || '' };
-    (MEALS[v.date] = MEALS[v.date] || []).push(m);
+    (freshMeals[v.date] = freshMeals[v.date] || []).push(m);
   });
+  MEALS = freshMeals;
   Object.values(MEALS).forEach(arr =>
     arr.sort((a, b) => (MEAL_ORDER[a.meal] || 9) - (MEAL_ORDER[b.meal] || 9)));
 
@@ -3592,8 +3601,25 @@ function aiOnLangChange() {
   aiCaptureName();
   aiRender();
 }
+/* IDENTIDAD DE GUARDADO (corrección del duplicado, 2026-10-23): cada
+   revisión de un análisis tiene UN id de documento ESTABLE, nacido con
+   el estado del análisis y compartido por las DOS salidas de guardado
+   (directo y formulario del borrador). Las guardias en vuelo
+   (aiSaving/mealSaving) solo bloquean intentos SIMULTÁNEOS; sin esta
+   identidad, un intento SUCESIVO de la misma revisión — el formulario
+   del borrador que quedó abierto tras completarse el guardado directo,
+   o el reintento cuando la escritura confirmó pero el acuse se perdió —
+   creaba un SEGUNDO documento con otro id (duplicado real en el
+   diario, probado en batería: escenarios D4 y D5). Con el id estable,
+   todo guardado de ESTA revisión reescribe el MISMO documento
+   (setDoc): duplicar por esa vía queda cerrado por construcción. */
+let aiSaveSeq = 0;
+function aiNewSaveId() {
+  aiSaveSeq += 1;
+  return 'meal_' + Date.now().toString(36) + '_' + aiSaveSeq.toString(36) + '_' + Math.random().toString(36).slice(2, 8);
+}
 function aiFreshState(mode) {
-  return { mode, dataUrl: null, photos: null, descText: '', step: 'loading', r1: null, answers: {}, other: {}, foods: null, r2: null, errStage: 'identify', meal: aiDefaultMeal(), metrics: null, metricsEdited: false, name: null, nameEdited: false, cap: false, saveError: false };
+  return { mode, dataUrl: null, photos: null, descText: '', step: 'loading', r1: null, answers: {}, other: {}, foods: null, r2: null, errStage: 'identify', meal: aiDefaultMeal(), metrics: null, metricsEdited: false, name: null, nameEdited: false, cap: false, saveError: false, saveId: aiNewSaveId() };
 }
 async function aiStart(dataUrl) {
   aiStartPhotos([dataUrl]);
@@ -4096,7 +4122,10 @@ function aiUseDraft(r1, r2) {
        (foto = 'ai', descripción = 'ai-text') y el envío del formulario
        la escribe tal cual en el registro. */
     const fromText = !!(typeof aiState !== 'undefined' && aiState && aiState.mode === 'text');
-    aiDraft = { model: (r2 && r2.model) || 'gemini', rangeKcal: Array.isArray(tot.range_kcal) ? tot.range_kcal : null, items: aiItemsCandidate(), src: fromText ? 'ai-text' : 'ai' };
+    /* La identidad de guardado de la revisión viaja al borrador: el
+       envío del formulario escribirá el MISMO documento que el
+       guardado directo de esta revisión (ver aiNewSaveId). */
+    aiDraft = { model: (r2 && r2.model) || 'gemini', rangeKcal: Array.isArray(tot.range_kcal) ? tot.range_kcal : null, items: aiItemsCandidate(), src: fromText ? 'ai-text' : 'ai', saveId: (typeof aiState !== 'undefined' && aiState && aiState.saveId) || null };
     try {
       const b = $('m-ai-banner');
       if (b) {
@@ -4124,7 +4153,9 @@ let aiSaving = false; // guardia del guardado directo (se suma a mealSaving, la 
    guardadas y el total del día recalculado desde una recarga fresca
    (una sola actualización visible, sin doble conteo). Ante un fallo,
    el panel CONSERVA todos los cambios, muestra el error y permite
-   reintentar sin duplicar. */
+   reintentar: el reintento NO duplica porque la escritura usa el id
+   estable de la revisión (aiState.saveId, setDoc), no un documento
+   nuevo por intento. */
 async function aiSaveDirect() {
   if (!aiState || aiState.step !== 'draft' || aiSaving || mealSaving) return;
   aiCaptureMetrics();
@@ -4159,7 +4190,11 @@ async function aiSaveDirect() {
   aiSaving = true; mealSaving = true;
   const btn = $('ai-save'); if (btn) btn.disabled = true;
   try {
-    await addDoc(collection(db, 'nutrition_meals'), data);
+    /* Idempotencia (corrección del duplicado, 2026-10-23): con el id
+       estable de la revisión se escribe SIEMPRE el mismo documento;
+       sin id (un estado heredado) se crea como antes. */
+    if (aiState.saveId) await setDoc(doc(db, 'nutrition_meals', aiState.saveId), data);
+    else await addDoc(collection(db, 'nutrition_meals'), data);
     aiDiscard();
     await loadAllKeepDate(data.date);
     const dayTotal = (MEALS[data.date] || []).reduce((s, x) => s + (Number(x.kcal) || 0), 0);
@@ -8014,7 +8049,12 @@ $('form-meal').addEventListener('submit', async e => {
     const formIts = itemsIfSquare(candItems, data);
     if (formIts) data.items = formIts;
     const wasDraft = !!aiDraft;
-    await addDoc(collection(db, 'nutrition_meals'), data);
+    /* Identidad de guardado del borrador de IA (corrección del
+       duplicado, 2026-10-23): si el formulario viene de una revisión
+       de análisis, escribe el MISMO documento que el guardado directo
+       de esa revisión — nunca un segundo registro del mismo plato. */
+    if (aiDraft && aiDraft.saveId) await setDoc(doc(db, 'nutrition_meals', aiDraft.saveId), data);
+    else await addDoc(collection(db, 'nutrition_meals'), data);
     aiClearDraft();
     repeatClear();
     /* El registro YA se guardó: el espejo de borrador (D3) se
