@@ -618,6 +618,12 @@ table.whist { min-width: 640px; }
 .ai-alt-desc{width:100%;box-sizing:border-box;margin-top:6px;padding:7px 9px;border:1px solid #d1d5db;border-radius:8px;font-size:14px;font-family:inherit;resize:vertical}
 /* M8 — paquete 2: unidad por alimento, selector de comida, métricas editables */
 .ai-food-unit{padding:7px 4px;border:1px solid #d1d5db;border-radius:8px;font-size:13px;background:#fff}
+/* Unidades por pieza (desarrollo 2026-10-24): caja del peso por pieza
+   junto al conteo — campo corregible + etiqueta + equivalencia total. */
+.ai-piece-box{display:inline-flex;gap:4px;align-items:center}
+.ai-food-perpiece{width:64px;padding:7px 9px;border:1px solid #d1d5db;border-radius:8px;font-size:14px}
+.ai-piece-lbl{color:#6b7280;font-size:12px;white-space:nowrap}
+.ai-piece-total{color:#6b7280;font-size:12px;white-space:nowrap}
 .ai-est{color:#92400e;background:#fef3c7;border-radius:6px;padding:2px 5px;font-size:11px;white-space:nowrap}
 /* Fotos múltiples con báscula (2026-10-22): franja de miniaturas de la
    preparación (quitar/reemplazar antes de enviar) e insignias de

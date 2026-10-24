@@ -406,6 +406,11 @@ en: {
   'ai.save': 'Save',
   'ai.backToFoods': 'Fix the foods',
   'ai.estPortion': 'estimated portion',
+  'ai.unitWord': 'unit',
+  'ai.perPiece': 'g per unit',
+  'ai.perPiecePh': 'e.g. 50',
+  'ai.piecesTotal': '≈ {g} g in total',
+  'ai.needPerPiece': 'To calculate, “{name}” needs its weight per unit: type how many grams 1 unit weighs — nothing is made up.',
   'ai.recalcWarn': 'You already adjusted the values by hand. Recalculating will replace those manual adjustments with the new calculation.',
   'ai.recalcYes': 'Yes, recalculate',
   'ai.saveError': 'It could not be saved. Your changes are still here: check your connection and tap Save to try again.',
@@ -1251,6 +1256,11 @@ es: {
   'ai.save': 'Guardar',
   'ai.backToFoods': 'Corregir alimentos',
   'ai.estPortion': 'porción estimada',
+  'ai.unitWord': 'unidad',
+  'ai.perPiece': 'g por unidad',
+  'ai.perPiecePh': 'ej. 50',
+  'ai.piecesTotal': '≈ {g} g en total',
+  'ai.needPerPiece': 'Para calcular falta el peso por unidad de «{name}»: escribe cuántos gramos pesa 1 unidad — no se inventa.',
   'ai.recalcWarn': 'Ya ajustaste los valores a mano. Si se recalcula, esos ajustes manuales se reemplazan por el cálculo nuevo.',
   'ai.recalcYes': 'Sí, recalcular',
   'ai.saveError': 'No se pudo guardar. Tus cambios siguen aquí: revisa la conexión y toca Guardar para reintentar.',
@@ -3524,8 +3534,35 @@ function aiCaptureFoods() {
     const n = row.querySelector('.ai-food-name');
     const g = row.querySelector('.ai-food-grams');
     const u = row.querySelector('.ai-food-unit');
+    const pp = row.querySelector('.ai-food-perpiece');
     const prev = aiState.foods[i] || {};
-    out.push({ src: prev.src || null, name: n ? n.value : (prev.name || ''), grams: g ? g.value : (prev.grams ?? ''), unit: u ? u.value : (prev.unit || 'g') });
+    const name = n ? n.value : (prev.name || '');
+    const unit = u ? u.value : (prev.unit || 'g');
+    const base = { src: prev.src || null, name, unit, pieces: prev.pieces ?? '', perPiece: prev.perPiece ?? '' };
+    if (unit === 'unidad') {
+      /* El campo de cantidad muestra PIEZAS; los gramos efectivos se
+         derivan (pieces × perPiece). Si la unidad ACABA de cambiar
+         desde g/ml, el valor visible aún está en gramos: se reparte
+         con el peso por pieza (identificación → tabla); sin
+         referencia, el peso por pieza queda vacío y el conteo en 1
+         a la vista, para que la persona lo complete — no se inventa. */
+      if (prev.unit !== 'unidad') {
+        base.perPiece = aiSrcPerPiece(prev.src) || aiTablePerPiece(name) || '';
+        const gv = num(g ? g.value : prev.grams);
+        base.pieces = (base.perPiece && gv > 0) ? Math.max(1, Math.round(gv / base.perPiece)) : 1;
+      } else {
+        base.pieces = g ? g.value : (prev.pieces ?? '');
+        base.perPiece = pp ? pp.value : (prev.perPiece ?? '');
+      }
+      const pn = num(base.pieces), gn = num(base.perPiece);
+      base.grams = (pn > 0 && gn > 0) ? Math.round(pn * gn * 10) / 10 : '';
+    } else {
+      /* Hacia g/ml: si la fila venía de piezas, la cantidad visible
+         aún es el conteo — mandan los gramos efectivos ya derivados;
+         pieces/perPiece se conservan en memoria por si vuelve. */
+      base.grams = prev.unit === 'unidad' ? (aiEffGrams(prev) || '') : (g ? g.value : (prev.grams ?? ''));
+    }
+    out.push(base);
   });
   aiState.foods = out;
 }
@@ -3538,11 +3575,98 @@ function aiFoodRemove(i) {
 function aiFoodAdd() {
   if (!aiState || !aiState.foods) return;
   aiCaptureFoods(); aiCaptureAnswers();
-  aiState.foods.push({ src: null, name: '', grams: '', unit: 'g' });
+  aiState.foods.push({ src: null, name: '', grams: '', unit: 'g', pieces: '', perPiece: '' });
   aiRender();
   const p = $('ai-panel');
   const ns = p ? p.querySelectorAll('.ai-food-name') : [];
   if (ns.length) { try { ns[ns.length - 1].focus(); } catch {} }
+}
+/* ============ UNIDADES POR PIEZA (desarrollo, 2026-10-24) ============
+   Hallazgo de Ronald probando (2026-10-23 21:17): los alimentos
+   contables (huevos — «ellos no los peso») no se podían registrar por
+   unidades: el selector solo ofrecía g/ml. Ahora la fila admite una
+   tercera unidad, «unidad»: la cantidad es un CONTEO de piezas y los
+   gramos se derivan de un peso por pieza VISIBLE y corregible en la
+   propia fila. Prioridad del peso por pieza: (1) el que devuelva la
+   propia identificación, (2) la tabla breve de referencias comunes,
+   (3) si no hay referencia, el campo queda VACÍO y el cálculo se
+   bloquea con aviso — nunca se inventa en silencio.
+   En aiState.foods, «grams» sigue siendo SIEMPRE los gramos efectivos
+   (los que alimentan el cálculo, el desglose y los totales); la fila
+   por piezas conserva además pieces y perPiece, y al guardar, el ítem
+   del desglose lleva unit:'unidad' + pieces + gramsPerPiece +
+   portion_g (los gramos derivados), para que anillos y totales
+   cuadren con lo que la persona vio. En g/ml nada cambia. */
+const AI_PIECE_UNITS = ['unidad', 'unidades', 'unit', 'units', 'piece', 'pieces', 'pz', 'pza'];
+function aiIsPieceUnit(u) { return AI_PIECE_UNITS.includes(String(u || '').trim().toLowerCase()); }
+function aiNormName(s) { return String(s || '').toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, ''); }
+/* Tabla breve de referencias comunes (gramos por pieza). Son valores
+   de REFERENCIA, editables en la propia fila — no mediciones. */
+const AI_PIECE_TABLE = [
+  [/huevo|huevos|egg|eggs/, 50],
+  [/platano|banana/, 118],
+  [/manzana|apple/, 182],
+  [/naranja|orange/, 130],
+  [/tortilla/, 30],
+  [/rebanada|pan |bread|slice/, 30]
+];
+function aiTablePerPiece(name) {
+  const n = aiNormName(name);
+  for (const [re, g] of AI_PIECE_TABLE) if (re.test(n)) return g;
+  return null;
+}
+/* Peso por pieza declarado por la identificación, si alguna vez
+   llega: se aceptan los nombres de campo razonables del contrato y
+   solo valores numéricos positivos. */
+function aiSrcPerPiece(src) {
+  if (!src || typeof src !== 'object') return null;
+  for (const k of ['grams_per_piece', 'gramsPerPiece', 'per_piece_g', 'piece_g', 'g_per_piece']) {
+    const v = num(src[k]);
+    if (v > 0) return v;
+  }
+  return null;
+}
+/* Entrada de UN alimento identificado a la fila editable: normaliza
+   la unidad (g / ml / unidad) y, si es contable, reparte lo
+   identificado entre piezas y gramos por pieza sin inventar — lo que
+   no se pueda derivar de lo identificado o de la tabla queda vacío
+   para que la persona lo escriba. */
+function aiFoodFromIdentify(f) {
+  const name = f.name || '';
+  const u = String(f.unit || '').toLowerCase();
+  const total = Math.round(num(f.portion_g_estimate));
+  if (u === 'ml') return { src: f, name, grams: total || '', unit: 'ml', pieces: '', perPiece: '' };
+  if (aiIsPieceUnit(u)) {
+    let pieces = num(f.pieces) || num(f.count) || num(f.units) || '';
+    let perPiece = aiSrcPerPiece(f) || '';
+    if (!perPiece && pieces && total > 0) perPiece = Math.round(total / pieces * 10) / 10;
+    if (!pieces && perPiece && total > 0) pieces = Math.max(1, Math.round(total / perPiece));
+    if (!perPiece) perPiece = aiTablePerPiece(name) || '';
+    if (!pieces) pieces = 1;
+    const grams = (pieces && perPiece) ? Math.round(pieces * perPiece * 10) / 10 : (total || '');
+    return { src: f, name, grams, unit: 'unidad', pieces, perPiece };
+  }
+  return { src: f, name, grams: total || '', unit: 'g', pieces: '', perPiece: '' };
+}
+/* Gramos EFECTIVOS de una fila: en piezas, piezas × gramos por pieza;
+   sin ambos datos no hay gramos (0) — el cálculo se bloquea antes. */
+function aiEffGrams(f) {
+  if (f && f.unit === 'unidad') {
+    const p = num(f.pieces), g = num(f.perPiece);
+    return (p > 0 && g > 0) ? Math.round(p * g * 10) / 10 : 0;
+  }
+  return num(f && f.grams);
+}
+/* Etiqueta de cantidad de UNA fila del resultado: en piezas se lee
+   como conteo con su equivalencia («2 unidad (100 g)»); en g/ml, la
+   histórica («240 g» / «414 ml»). */
+function aiFoodQtyLabel(f) {
+  if (!f) return '';
+  if (f.unit === 'unidad') {
+    const p = Number(f.pieces) || 0, g = Math.round(Number(f.grams) || 0);
+    return p > 0 ? ` · ${p} ${t('ai.unitWord')} (${g} g)` : (g ? ` · ${g} g` : '');
+  }
+  return ` · ${Math.round(f.grams) || 0} ${f.unit}`;
 }
 /* Comida a la que pertenece el registro (PAQUETE 2, Ronald 2026-10-18):
    vive en aiState.meal, con selector VISIBLE en el flujo (preguntas y
@@ -3621,6 +3745,15 @@ function aiQtyString() {
   const foods = aiKnownFoods();
   const grams = foods.reduce((s, f) => s + (f.grams || 0), 0);
   if (!grams) return '';
+  /* Si TODO el registro es por piezas, la cantidad se lee como
+     conteo («2 unidad (100 g)») — formato que «Repetir» ya entiende
+     como piezas (repeatParseQty). Mezclado con g/ml manda el total
+     en gramos de siempre, con los gramos derivados de las piezas
+     sumados: los totales cuadran igual. */
+  if (foods.length > 0 && foods.every(f => f.unit === 'unidad')) {
+    const pieces = foods.reduce((s, f) => s + (Number(f.pieces) || 0), 0);
+    if (pieces > 0) return pieces + ' ' + t('ai.unitWord') + ' (' + Math.round(grams) + ' g)';
+  }
   const allMl = foods.length > 0 && foods.every(f => f.unit === 'ml');
   return Math.round(grams) + (allMl ? ' ml' : ' g');
 }
@@ -3732,7 +3865,7 @@ async function aiRunIdentify() {
     r1.foods = aiMergeScaledDuplicates(r1.foods);
     aiProgStage(0.7); // etapa real: la identificación volvió
     aiState.r1 = r1;
-    aiState.foods = r1.foods.map(f => ({ src: f, name: f.name || '', grams: Math.round(f.portion_g_estimate || 0), unit: f.unit === 'ml' ? 'ml' : 'g' }));
+    aiState.foods = r1.foods.map(aiFoodFromIdentify);
     (r1.questions || []).slice(0, 3).forEach(q => { if (!(q.id in aiState.answers)) aiState.answers[q.id] = 'skipped'; });
     if (!aiState.foods.length) { aiState.step = 'notfound'; aiRender(); return; }
     aiState.step = 'questions';
@@ -3744,6 +3877,12 @@ async function aiCalculate() {
   aiCaptureAnswers();
   aiCaptureFoods();
   aiCaptureMeal();
+  /* UNIDADES POR PIEZA: una fila contable sin piezas o sin peso por
+     pieza NO tiene gramos que calcular y NO se inventan — se avisa
+     nombrando el alimento y el flujo se queda en la revisión. */
+  const namedFoods = (aiState.foods || []).filter(f => (f.name || '').trim());
+  const missingPP = namedFoods.find(f => f.unit === 'unidad' && !(num(f.pieces) > 0 && num(f.perPiece) > 0));
+  if (missingPP) { toast(t('ai.needPerPiece', { name: missingPP.name.trim() }), true); return; }
   /* Aviso previo (PAQUETE 2): si la persona ya ajustó las métricas a
      mano en el resultado, un recálculo las reemplazaría por el cálculo
      nuevo. Se avisa ANTES (paso 'warn') y solo se sigue con su
@@ -3752,10 +3891,13 @@ async function aiCalculate() {
   /* El cálculo recibe la lista EDITADA por la persona. Si el nombre
      difiere del identificado (o el alimento es nuevo), el nombre
      editado es también el término de búsqueda USDA (usda_query). La
-     unidad (g/ml) viaja con cada alimento. */
-  const foods = (aiState.foods || []).filter(f => (f.name || '').trim()).map(f => {
+     unidad (g/ml) viaja con cada alimento; una fila por piezas viaja
+     como su PESO EQUIVALENTE en gramos (el contrato del intermediario
+     es g/ml): la equivalencia es exacta y es la que la persona vio
+     en la fila («≈ N g en total»). */
+  const foods = namedFoods.map(f => {
     const name = f.name.trim();
-    const out = { ...(f.src || {}), name, portion_g_estimate: Math.max(0, Math.round(Number(f.grams) || 0)), unit: f.unit === 'ml' ? 'ml' : 'g' };
+    const out = { ...(f.src || {}), name, portion_g_estimate: Math.max(0, Math.round(aiEffGrams(f))), unit: f.unit === 'ml' ? 'ml' : 'g' };
     if (!f.src || name !== (f.src.name || '') || !out.usda_query) out.usda_query = name;
     return out;
   });
@@ -3869,8 +4011,8 @@ function aiKnownFoods() {
      ('scale' | 'estimate' | null) tal como la declaró la identificación;
      vive en src y sobrevive a las ediciones (aiCaptureFoods lo conserva). */
   if (aiState && aiState.foods && aiState.foods.length)
-    return aiState.foods.filter(f => (f.name || '').trim()).map(f => ({ name: f.name.trim(), grams: Number(f.grams) || 0, unit: f.unit === 'ml' ? 'ml' : 'g', qsrc: (f.src && f.src.quantitySource) || null }));
-  return ((aiState && aiState.r1 && aiState.r1.foods) || []).map(f => ({ name: f.name || '', grams: Math.round(f.portion_g_estimate || 0), unit: f.unit === 'ml' ? 'ml' : 'g', qsrc: f.quantitySource || null }));
+    return aiState.foods.filter(f => (f.name || '').trim()).map(f => ({ name: f.name.trim(), grams: aiEffGrams(f), unit: f.unit === 'unidad' ? 'unidad' : (f.unit === 'ml' ? 'ml' : 'g'), pieces: f.pieces, perPiece: f.perPiece, qsrc: (f.src && f.src.quantitySource) || null }));
+  return ((aiState && aiState.r1 && aiState.r1.foods) || []).map(f => { const d = aiFoodFromIdentify(f); return { name: d.name, grams: num(d.grams), unit: d.unit, pieces: d.pieces, perPiece: d.perPiece, qsrc: f.quantitySource || null }; });
 }
 /* Insignia de procedencia de UNA cantidad: solo se pinta cuando la
    identificación declaró procedencia (con el prompt histórico no llega
@@ -3981,15 +4123,24 @@ function aiRenderInner() {
          el campo de gramos (llega en portion_g_estimate) y su insignia
          sustituye a la de porción estimada; todo sigue editable. */
       const est = !qsrc && f.src && (f.src.portion_estimated === true || (typeof f.src.confidence === 'number' && f.src.confidence < 0.7));
-      return `<div class="ai-food-row"><input type="text" class="ai-food-name" data-fi="${i}" value="${esc(f.name)}" placeholder="${t('form.food')}"><input type="number" class="ai-food-grams" data-fi="${i}" value="${f.grams === '' || f.grams == null ? '' : f.grams}" min="0" step="any" inputmode="decimal"><select class="ai-food-unit" data-fi="${i}" aria-label="g/ml"><option value="g"${f.unit !== 'ml' ? ' selected' : ''}>g</option><option value="ml"${f.unit === 'ml' ? ' selected' : ''}>ml</option></select>${qsrc === 'scale' ? aiQsrcBadge('scale') : (est ? `<span class="ai-est">${t('ai.estPortion')}</span>` : '')}<button type="button" class="btn-ghost btn-sm ai-food-del" data-fi="${i}" title="${t('ai.removeFood')}">✕</button></div>`;
+      /* UNIDADES POR PIEZA: con «unidad» el campo de cantidad es el
+         CONTEO y aparece la caja del peso por pieza (visible y
+         corregible) con la equivalencia total derivada. */
+      const isPz = f.unit === 'unidad';
+      const qtyVal = isPz ? (f.pieces === '' || f.pieces == null ? '' : f.pieces) : (f.grams === '' || f.grams == null ? '' : f.grams);
+      const pieceBox = isPz ? `<span class="ai-piece-box"><input type="number" class="ai-food-perpiece" data-fi="${i}" value="${f.perPiece === '' || f.perPiece == null ? '' : f.perPiece}" min="0" step="any" inputmode="decimal" placeholder="${t('ai.perPiecePh')}" aria-label="${t('ai.perPiece')}"><span class="ai-piece-lbl">${t('ai.perPiece')}</span>${num(f.grams) > 0 ? `<span class="ai-piece-total">${t('ai.piecesTotal', { g: Math.round(num(f.grams)) })}</span>` : ''}</span>` : '';
+      return `<div class="ai-food-row"><input type="text" class="ai-food-name" data-fi="${i}" value="${esc(f.name)}" placeholder="${t('form.food')}"><input type="number" class="ai-food-grams" data-fi="${i}" value="${qtyVal}" min="0" step="any" inputmode="decimal"><select class="ai-food-unit" data-fi="${i}" aria-label="g/ml/${t('ai.unitWord')}"><option value="g"${f.unit === 'g' ? ' selected' : ''}>g</option><option value="ml"${f.unit === 'ml' ? ' selected' : ''}>ml</option><option value="unidad"${isPz ? ' selected' : ''}>${t('ai.unitWord')}</option></select>${pieceBox}${qsrc === 'scale' ? aiQsrcBadge('scale') : (est ? `<span class="ai-est">${t('ai.estPortion')}</span>` : '')}<button type="button" class="btn-ghost btn-sm ai-food-del" data-fi="${i}" title="${t('ai.removeFood')}">✕</button></div>`;
     }).join('');
     const qhtml = qs.map((q, i) => `<div class="ai-q"><p>${esc(q.text)}</p>${(q.options || []).map(o => `<label class="ai-opt"><input type="radio" name="aiq${i}" value="${esc(o)}"${aiState.answers[q.id] === o ? ' checked' : ''}> ${esc(o)}</label>`).join('')}<label class="ai-opt"><input type="radio" name="aiq${i}" value="skipped"${aiState.answers[q.id] === 'skipped' ? ' checked' : ''}> ${t('ai.skipOption')}</label><input type="text" class="ai-other" data-qi="${i}" placeholder="${t('ai.otherLabel')}" value="${esc((aiState.other || {})[q.id] || '')}"></div>`).join('');
     aiShow(`<h3>${t('ai.foodsFound')}</h3><p class="progress-hint">${t('ai.foodsEditHint')}</p>${list}<button type="button" class="btn-ghost btn-sm" id="ai-addfood">${t('ai.addFood')}</button>${qs.length ? `<h3>${t('ai.questionsTitle')}</h3>${qhtml}` : ''}${aiMealSelectHTML()}<div class="ai-actions"><button type="button" class="btn-main btn-sm" id="ai-continue">${t('ai.continue')}</button><button type="button" class="btn-ghost btn-sm" id="ai-cancel">${t('ai.discard')}</button></div>`);
     aiWireMeal();
     p.querySelectorAll('input[type="radio"]').forEach(r => r.addEventListener('change', aiCaptureAnswers));
     p.querySelectorAll('.ai-other').forEach(r => r.addEventListener('input', aiCaptureAnswers));
-    p.querySelectorAll('.ai-food-name, .ai-food-grams').forEach(r => r.addEventListener('input', aiCaptureFoods));
-    p.querySelectorAll('.ai-food-unit').forEach(r => r.addEventListener('change', aiCaptureFoods));
+    p.querySelectorAll('.ai-food-name, .ai-food-grams, .ai-food-perpiece').forEach(r => r.addEventListener('input', aiCaptureFoods));
+    /* Cambiar la unidad re-pinta la fila (la caja de peso por pieza
+       aparece/desaparece y la cantidad cambia de significado); el
+       estado se captura ANTES de re-pintar, como en añadir/quitar. */
+    p.querySelectorAll('.ai-food-unit').forEach(r => r.addEventListener('change', () => { aiCaptureFoods(); aiCaptureAnswers(); aiRender(); }));
     p.querySelectorAll('.ai-food-del').forEach(b => b.onclick = () => aiFoodRemove(+b.dataset.fi));
     $('ai-addfood').onclick = aiFoodAdd;
     $('ai-cancel').onclick = aiDiscard;
@@ -4009,10 +4160,10 @@ function aiRenderInner() {
       ? items.map((it, i) => {
           const f = known[i];
           const nm = f ? f.name : it.name;
-          const qty = f ? ` · ${Math.round(f.grams) || 0} ${f.unit}` : (it.portion_g ? ` · ${Math.round(it.portion_g)} g` : '');
+          const qty = f ? aiFoodQtyLabel(f) : (it.portion_g ? ` · ${Math.round(it.portion_g)} g` : '');
           return `<li>${esc(nm)}${qty} — ${Math.round(it.kcal || 0)} kcal${f ? ' ' + aiQsrcBadge(f.qsrc) : ''}</li>`;
         }).join('')
-      : known.map(f => `<li>${esc(f.name)} · ${Math.round(f.grams) || 0} ${f.unit} ${aiQsrcBadge(f.qsrc)}</li>`).join('');
+      : known.map(f => `<li>${esc(f.name)}${aiFoodQtyLabel(f)} ${aiQsrcBadge(f.qsrc)}</li>`).join('');
     const range = Array.isArray(tot.range_kcal) ? tot.range_kcal : null;
     /* PAQUETE 2: las cinco métricas (kcal, proteína, carbos, AZÚCARES,
        grasas) se muestran EDITABLES en el propio resultado y son las
@@ -4182,7 +4333,19 @@ function aiItemsCandidate() {
     const it = r2.items[i];
     const name = (known[i].name || '').trim();
     if (!name) return null;
-    items.push({ name, kcal: Math.round(num(it.kcal)), prot: r1d(it.prot), carb: r1d(it.carb), sugar: r1d(it.sugar), fat: r1d(it.fat) });
+    const item = { name, kcal: Math.round(num(it.kcal)), prot: r1d(it.prot), carb: r1d(it.carb), sugar: r1d(it.sugar), fat: r1d(it.fat) };
+    /* UNIDADES POR PIEZA: el ítem conserva la forma en que se contó
+       (unit/pieces/gramsPerPiece) y los gramos derivados en
+       portion_g: el desglose que alimenta los anillos queda cuadrado
+       con los totales Y con lo que la persona vio en la revisión.
+       En g/ml el ítem queda EXACTAMENTE como siempre. */
+    if (known[i].unit === 'unidad') {
+      item.portion_g = Math.round(num(known[i].grams));
+      item.unit = 'unidad';
+      item.pieces = num(known[i].pieces);
+      item.gramsPerPiece = num(known[i].perPiece);
+    }
+    items.push(item);
   }
   return items;
 }
