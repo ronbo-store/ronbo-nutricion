@@ -576,7 +576,9 @@ service cloud.firestore {
           && request.resource.data.state == 'active'
           && request.resource.data.diff(resource.data).affectedKeys()
                 .hasOnly(['conditions', 'details', 'updatedAt'])
-          && request.resource.data.updatedAt == request.time;
+          && request.resource.data.updatedAt == request.time
+          && get(/databases/$(database)/documents/users/$(uid))
+               .data.healthConsent.status == 'accepted';
 
         // Block the current declaration when the specific consent is
         // withdrawn: only the client, only the state change.

@@ -1,0 +1,1010 @@
+// ============================================================
+// ============================================================
+// CANDIDATO COMPOSICIÓN CORPORAL SOLO POR EL ENTRENADOR
+// (2026-10-23, SOLO DESARROLLO — PUBLICACIÓN NO AUTORIZADA).
+// Base: texto vivo verificado e5efaef2 (2026-10-23). Cambios:
+//  (1) función compModeIsClient(uid): lee el ajuste
+//      {uid}_compaccess de nutrition_progress; sin documento el
+//      modo es 'trainer' (la barrera deniega al cliente).
+//  (2) nutrition_weight: el cliente solo crea/actualiza su
+//      pesaje si su modo es 'client'; el propietario puede CREAR
+//      pesajes de un cliente (hoy la rama de creación lo deniega:
+//      solo podía actualizar — hueco previo que este requisito
+//      necesita cerrar). get/list/delete sin cambios (el borrado
+//      propio se conserva por el derecho de supresión).
+//  (3) nutrition_progress: el propietario puede crear el ajuste
+//      compAccess de un cliente; el cliente solo puede NACER su
+//      ajuste en modo 'trainer' con historial vacío y NO puede
+//      cambiar mode/history (solo el entrenador alterna); el
+//      campo comp de una evaluación solo lo escribe el cliente
+//      con modo 'client'.
+// Requiere su propia batería de reglas (CI) antes de publicarse.
+// ============================================================
+// CANDIDATO FINAL COMPUESTO (2026-10-23, SOLO DESARROLLO — NO
+// PUBLICADO). Línea única de composición de candidatos, en orden:
+//   vivo verificado e5efaef2 (2026-10-23)
+//     + candidato COMPOSICIÓN (interruptor compAccess)
+//     + candidato ROLES (role/trainerUid/directorio)
+//     + candidato CORRECCIÓN «REGISTRAR PESAJE» (correo de Ronald
+//       2026-10-23 18:18, SOLO desarrollo): se corrige la asimetría
+//       create/update — en el texto vivo, create de nutrition_weight
+//       exige ownerUid == auth.uid y deniega al entrenador crear el
+//       PRIMER pesaje de un cliente (update ya admitía al
+//       propietario). Este candidato:
+//  (P1) nutrition_weight: HECHO en los bloques previos de esta
+//       línea (propietario + entrenador asignado crean; el cliente
+//       solo con su modo en 'client').
+//  (P2) nutrition_meals (PROPUESTA equivalente): el propietario y
+//       el entrenador ASIGNADO pueden crear comidas para el
+//       cliente (ownerUid = el cliente), como ya pueden
+//       actualizarlas en el texto vivo.
+//  (P3) nutrition_progress (PROPUESTA equivalente): el propietario
+//       y el entrenador asignado pueden crear documentos de
+//       progreso del cliente (evaluaciones, fotos, ciclo); si el
+//       documento es el ajuste compAccess, valen las mismas
+//       condiciones de nacimiento seguro del bloque de composición
+//       (id {uid}_compaccess; si nace por esta vía con mode, este
+//       debe ser coherente con el documento). Además el GET del
+//       entrenador asignado se admite (la lista ya lo admitía; la
+//       ficha del cliente lee el ajuste con get y quedaba fuera).
+//  (P4) meal_help (PROPUESTA equivalente): el propietario y el
+//       entrenador asignado pueden crear la ayuda de comida del
+//       cliente, como ya pueden actualizarla/revisarla.
+// Nada de esto está publicado: es el candidato que acompañaría a
+// la app de esta línea (registro role 'usuario' incluido) si
+// Ronald autoriza su publicación en un checkpoint futuro, con su
+// batería de reglas ejecutada antes (emulador local / CI).
+// ============================================================
+// CANDIDATO TRES ROLES (2026-10-23, SOLO DESARROLLO — NO
+// PUBLICADO). Se construye SOBRE el candidato de composición
+// (arriba): incluye sus cambios y añade:
+//  (R1) users: el registro nace role 'usuario' (antes 'user') con
+//       trainerUid/assignmentStatus validados (assigned ⇒
+//       trainerUid string; waiting ⇒ trainerUid null). El role
+//       SOLO lo cambia el propietario (administrador): las ramas
+//       de auto-actualización ya son listas cerradas sin 'role',
+//       'trainerUid' ni 'assignmentStatus' — se deja constancia y
+//       no se abre ninguna rama nueva para el cliente.
+//  (R2) users get/list: el entrenador lee SOLO a sus asignados
+//       (trainerUid == su uid). Las consultas de la app van
+//       acotadas (where trainerUid == uid): las reglas no filtran.
+//  (R3) helper isAssignedTrainerOf(ownerUid): acceso del
+//       entrenador asignado a los datos de SU cliente en
+//       nutrition_meals (lectura), nutrition_weight (lectura y
+//       escritura — incluye el interruptor de composición vía
+//       nutrition_progress), nutrition_progress (lectura y
+//       actualización), meal_help (lectura y revisión),
+//       training_plans (autoría sobre sus clientes),
+//       training_logs (lectura) y users/{uid}/assessment
+//       (lectura y configuración, como el propietario).
+//  (R4) trainer_directory/current: lectura pública (solo nombres
+//       y uid de entrenadores, para el selector del registro),
+//       escritura solo del administrador. Decisión consciente:
+//       sin lectura previa al registro no hay selector posible;
+//       el documento solo contiene lo que el administrador publique.
+// La salud (healthDeclarations) NO se amplía: sigue gobernada por
+// el consentimiento específico del cliente, tenga el rol que tenga.
+// ============================================================
+// COMPLETADO N-07 (2026-10-23, SOLO DESARROLLO — NO PUBLICADO).
+// Decisión expresa de Ronald (correo memphis 2026-10-23 19:39,
+// verificada en origen), dos puntos sobre este candidato final:
+//  (N7-1) El ENTRENADOR SÍ puede aprobar cuentas nuevas, con un
+//       límite de aprobaciones que establece el administrador:
+//       · El límite vive en app_settings/approvals.maxPerTrainer,
+//         documento que SOLO el administrador escribe (match
+//         nuevo app_settings; lectura con sesión para ver el cupo).
+//       · Fail-closed: sin documento o sin campo, approvalLimit()
+//         devuelve 0 y el entrenador no aprueba por esta vía.
+//       · La aprobación es UN LOTE atómico (patrón de recibo
+//         acoplado A2): la rama de update del entrenador exige que
+//         el mismo lote suba su propio contador users.approvalsUsed
+//         exactamente +1 (verificado con getAfter) y que el uso
+//         previo sea < límite. El contador vive en el documento
+//         del entrenador porque es lo que las reglas pueden
+//         verificar dentro de la misma operación.
+//       · Lectura señalada para revisión de Ronald: al aprobar, el
+//         cliente queda ASIGNADO al entrenador que aprueba
+//         (trainerUid = aprobador, assignmentStatus 'assigned',
+//         approvedBy = aprobador, approvedAt = hora del servidor).
+//         La bandeja del entrenador = cuentas nuevas sin aprobar:
+//         las que esperan asignación (waiting) y las que lo
+//         eligieron a él al registrarse (assigned a su uid).
+//       · Para poblar esa bandeja, users get/list admite además al
+//         entrenador sobre documentos en espera SIN aprobar (solo
+//         esos: nombre/correo de cuentas pendientes quedan visibles
+//         para cualquier entrenador — es el coste de la bandeja).
+//       · El administrador conserva su aprobación sin límite por la
+//         rama del propietario y no toca contadores.
+//  (N7-2) El administrador actúa también como entrenador de sus
+//       propios clientes: sin cambio de reglas — el directorio ya
+//       lo incluye (la app lo publica junto a los entrenadores),
+//       el registro puede elegirlo y users.trainerUid puede ser su
+//       uid; como propietario ya alcanza todos los datos. La app
+//       lo verifica con batería (informe N-07).
+// Batería CI extendida: pruebas-reglas-candidato (49 aserciones).
+// ============================================================
+// CANDIDATO HALLAZGO C — 2026-10-21. PREPARADO Y POR VALIDAR
+// (batería GitHub Actions: regresión íntegra de 110 casos del
+// paquete F-A1 + bloque nuevo HALLAZGO C de 10 casos; ver
+// INFORME-CANDIDATO-HALLAZGO-C-2026-10-21.md). PUBLICACIÓN NO
+// AUTORIZADA: requiere autorización expresa de Ronald para la
+// CI y otra posterior y separada para el despliegue.
+// Este archivo = el texto VIVO VERIFICADO 2026-10-21 (ruleset
+// cfe28b3f, desplegado el 2026-10-21; SHA-256 del texto base
+// eaf782251189d9b606dc30411953bca7c720f093c7f331428dee742dd0a41cc0)
+// ÍNTEGRO, sin tocar ni una sentencia, EXCEPTO un único cambio
+// dentro de match /nutrition_progress/{docId}: la lectura
+// (antes «allow get, list» conjunta) se separa en list (sin
+// cambios) y get (con un caso nuevo): un usuario aprobado puede
+// leer un documento INEXISTENTE cuyo docId siga su patrón
+// propio {su uid}_… — la lectura responde «no existe» en vez
+// de ser denegada. Diagnóstico: el panel de Pendientes hace
+// getDoc de {uid}_pendconfig y {uid}_pendstate; en cuentas
+// aprobadas no propietarias sin esos documentos, la regla
+// vigente deniega la lectura (resource es nulo y no hay
+// ownerUid que comprobar), y el panel muestra su aviso de
+// error de carga en vez del estado de activación (confirmado
+// en vivo con la cuenta «PRUEBA Ronald», 2026-10-21).
+// create/update/delete de nutrition_progress: SIN cambios.
+// Ningún otro match tocado: ni consentimientos, ni
+// healthDeclarations (S-1 queda exactamente como está).
+// ============================================================
+// ============================================================
+// CANDIDATO F-A1 v2 — Etapa 2 (2026-10-20). PREPARADO Y POR
+// VALIDAR (batería GitHub Actions R1–R14 + señal; ver informe
+// ETAPA2-FA1-FA2-2026-10-20.md). PUBLICACIÓN NO AUTORIZADA:
+// la publicará Ronald, como hizo con r4, con su autorización
+// expresa posterior. Este archivo = el texto r4 PUBLICADO
+// (firestore.rules.propuesta-r4, SHA-256 323ef2d9...) ÍNTEGRO,
+// sin tocar ni una sentencia, MÁS un bloque nuevo insertado
+// dentro de match /users/{uid}, tras healthDeclarations:
+// las subcolecciones energyPrivate (dato privado de sexo para
+// cálculo, SOLO el propio cliente) y assessment (configuración
+// del entrenador + resultados + señal «dato aportado: sí/no»).
+// Ajustes de la Etapa 2 sobre el bloque aislado de la Etapa 1:
+//   (1) SEÑAL aprobada por Ronald (2026-10-20 01:49): la sesión
+//       del cliente puede escribir en assessment/current SOLO
+//       el booleano 'sexDataProvided' y el bloque de resultado;
+//       el entrenador lo LEE (revela que el dato existe, jamás
+//       su valor) y NO puede escribirlo (no está en sus listas).
+//   (2) A-3 también en la ruta de UPDATE del entrenador: si
+//       palBasal o su confirmación cambian, los valores
+//       resultantes deben cumplir 1,20–2,00 y la banda de
+//       excepción (la Etapa 1 solo validaba la creación).
+//   (3) La ecuación y el año de nacimiento también se validan
+//       cuando cambian en un update del entrenador.
+//   (4) Guarda de contenido: 'sexForCalc' jamás es clave de un
+//       documento de assessment, ni siquiera anidada en
+//       inputsSnapshot (R11).
+// Sin este bloque, el candidato deniega assessment/ y
+// energyPrivate/ por la regla final deny-by-default de r4.
+// ============================================================
+// ============================================================
+// CANDIDATO r4 (18/10/2026, autorización de Ronald de preparar y
+// validar; publicación NO autorizada todavía): sobre r3 (que
+// queda preservado e intacto, SHA-256 a32a908c...) se corrige
+// SOLO el defecto probado el 18/10/2026: renovar el
+// consentimiento general con el consentimiento ACTIVO
+// (acceptedTerms true→true, p. ej. v2→v3) era imposible contra
+// r3 por dos candados — (1) la rama de renovación exigía
+// 'acceptedTerms' en affectedKeys().hasAll(...), y
+// affectedKeys() solo lista campos cuyo valor CAMBIA; (2)
+// receiptType solo derivaba 'general-renewed' si acceptedTerms
+// cambiaba de valor. Cambios funcionales EXACTOS de r4:
+//   (a) rama de renovación: hasAll(['termsAcceptedAt']) — el
+//       acto de renovación queda anclado a la nueva marca de
+//       aceptación (== request.time); acceptedTerms sigue
+//       exigiéndose == true en el estado resultante.
+//   (b) receiptType: 'general-renewed' también cuando
+//       acceptedTerms permanece true pero termsAcceptedAt
+//       cambia (nuevo acto de aceptación sobre consentimiento
+//       vigente). Sin cambio de termsAcceptedAt no se deriva
+//       tipo alguno (''), como en r3.
+// Todo lo demás es r3 sin tocar.
+// NO PUBLICADO. Pendiente de validación oficial (batería r4).
+// ============================================================
+// CANDIDATO r3 (16/10/2026, A2 autorizado): sobre r2 (que queda
+// preservado e intacto) se añade la integridad bidireccional de
+// recibos de consentimiento verificada en el experimento C2
+// (23/23, corrida 38962565773): toda transición de
+// consentimiento del cliente exige, en el MISMO lote, su
+// recibo en consent_receipts/{uid}_{seq}, con consentSeq en +1
+// exacto; el borrado de la propia cuenta exige el documento de
+// cierre consent_receipts/{uid} en el mismo lote. El
+// propietario no puede tocar consentSeq/consentReceiptId.
+// NO PUBLICADO. Pendiente de validación oficial B2.
+// ============================================================
+rules_version = '2';
+
+// =====================================================================
+// RONBO NUTRI — Firestore security rules for the NEW independent project
+// PROPUESTA CUESTIONARIO v1 — 2026-10-16. NOT PUBLISHED.
+// Base: el texto PUBLICADO en H-C1 (propuesta-renovacion, SHA-256
+// e874f453...), sin tocar sus sentencias salvo lo indicado abajo.
+// Cambios de esta propuesta (aprobación v1 del 16/10/2026):
+//   - users.create: se prohíbe nacer con 'health' o 'healthConsent'.
+//   - users update del propietario: ya NO puede tocar 'healthConsent'
+//     ni el legado 'health' del cliente (Decisión 7).
+//   - users: dos sentencias nuevas SOLO del cliente para su
+//     consentimiento específico (healthConsent: otorgar/renovar y
+//     retirar), con fechas == request.time (patrón H-C1 B1).
+//   - Nueva subcolección users/{uid}/healthDeclarations/{declId}:
+//     las respuestas de salud fuera del documento general.
+// Do not deploy without Ronald's express authorization.
+//
+// Derived from the actual operations in app.js (dev branch
+// dev/ronbo-nutri-v3, commits 9c73db4 / ede2eb2 / 512b283):
+//   - Registration creates users/{own uid} born unprivileged
+//     (isOwner=false, approved=false, role='user') and, since Block 4,
+//     always with acceptedTerms=true and adultConfirmed=true.
+//   - The trainer (users doc with isOwner=true) lists all users,
+//     approves/revokes, sets goals, edits client profiles and weights,
+//     and authors training plans.
+//   - Clients query their data filtered by ownerUid == own uid
+//     (training collections use clientUid); unfiltered lists by
+//     non-owners must fail.
+//   - Privacy (Block 4): a client may withdraw consent (sets
+//     acceptedTerms=false, approved=false, consentWithdrawnAt) and may
+//     delete their OWN documents and user doc (right to erasure).
+//     A client can NEVER set approved=true or touch role/isOwner.
+//   - There is NO code path that creates an owner: the first owner is
+//     set manually in the Firebase console by the project IAM owner.
+//
+// Collections: users, nutrition_meals, nutrition_weight,
+//              nutrition_progress, meal_help,
+//              training_plans, training_logs
+// =====================================================================
+
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    // ---------- Helpers ----------
+    function signedIn() {
+      return request.auth != null;
+    }
+    function myDoc() {
+      return get(/databases/$(database)/documents/users/$(request.auth.uid)).data;
+    }
+    function myDocExists() {
+      return exists(/databases/$(database)/documents/users/$(request.auth.uid));
+    }
+    function isOwnerUser() {
+      return signedIn() && myDocExists() && myDoc().isOwner == true;
+    }
+    function isApprovedUser() {
+      return signedIn() && myDocExists() && (myDoc().isOwner == true || myDoc().approved == true);
+    }
+    function isSelf(uid) {
+      return signedIn() && request.auth.uid == uid;
+    }
+    // Candidato composición (2026-10-23, NO publicado): ¿el cliente
+    // tiene habilitado el ingreso propio de composición corporal?
+    function compModeIsClient(uid) {
+      return exists(/databases/$(database)/documents/nutrition_progress/$(uid + '_compaccess'))
+        && get(/databases/$(database)/documents/nutrition_progress/$(uid + '_compaccess')).data.get('mode', 'trainer') == 'client';
+    }
+    // Candidato roles (2026-10-23, NO publicado): ¿quien pide es el
+    // entrenador ASIGNADO del dueño de los datos (ownerUid)?
+    function isAssignedTrainerOf(ownerUid) {
+      return signedIn() && ownerUid is string
+        && exists(/databases/$(database)/documents/users/$(ownerUid))
+        && get(/databases/$(database)/documents/users/$(ownerUid)).data.get('trainerUid', '') == request.auth.uid;
+    }
+    // Candidato N-07 (2026-10-23, NO publicado): ¿quien pide es un
+    // entrenador (role exacto 'entrenador')?
+    function isTrainerUser() {
+      return signedIn() && myDocExists() && myDoc().get('role', '') == 'entrenador';
+    }
+    // Candidato N-07: límite de aprobaciones por entrenador, fijado
+    // SOLO por el administrador en app_settings/approvals.
+    // Fail-closed: sin documento o sin campo, el límite es 0.
+    function approvalLimit() {
+      return exists(/databases/$(database)/documents/app_settings/approvals)
+        ? get(/databases/$(database)/documents/app_settings/approvals).data.get('maxPerTrainer', 0)
+        : 0;
+    }
+    // ---------- Consent receipts (A2, experimento C2 verificado) ----------
+    function userPath(uid) {
+      return /databases/$(database)/documents/users/$(uid);
+    }
+    function receiptPath(rid) {
+      return /databases/$(database)/documents/consent_receipts/$(rid);
+    }
+    // Transition type derived ONLY from enumerated (before, after)
+    // pairs; any other combination yields '' (no valid type, so no
+    // receipt can accompany it and the transition is denied).
+    // r4: on the general side (healthConsent status unchanged), a
+    // renewal is ALSO derived when acceptedTerms stays true but
+    // termsAcceptedAt changes — a fresh acceptance act over an
+    // already-active consent (e.g. accepting notice v3 while the
+    // v2 acceptance is in force). The sentinel only fires when the
+    // field is absent on a side; two absent fields compare equal,
+    // so no type is derived without a real new acceptance mark.
+    function receiptType(before, after) {
+      let bs = before.get('healthConsent', {}).get('status', 'none');
+      let as2 = after.get('healthConsent', {}).get('status', 'none');
+      return bs != as2
+        ? (as2 == 'accepted' ? (bs == 'withdrawn' ? 'specific-renewed' : 'specific-granted')
+                            : (as2 == 'withdrawn' ? 'specific-withdrawn' : ''))
+        : (before.get('acceptedTerms', false) != after.get('acceptedTerms', false)
+            ? (after.get('acceptedTerms', false) == true ? 'general-renewed' : 'general-withdrawn')
+            : (after.get('acceptedTerms', false) == true
+                && before.get('termsAcceptedAt', timestamp.date(2000, 1, 1))
+                     != after.get('termsAcceptedAt', timestamp.date(2000, 1, 1))
+                ? 'general-renewed' : ''));
+    }
+    function receiptVersion(after, type) {
+      return (type == 'general-renewed' || type == 'general-withdrawn' || type == 'registered')
+        ? after.get('termsVersion', '')
+        : after.get('healthConsent', {}).get('version', '');
+    }
+    // The receipt that must exist AFTER the same batch: exact id,
+    // owner uid, type, version and server timestamp of THIS request.
+    function receiptMatches(rid, uid, type, version) {
+      return existsAfter(receiptPath(rid))
+        && getAfter(receiptPath(rid)).data.uid == uid
+        && getAfter(receiptPath(rid)).data.type == type
+        && getAfter(receiptPath(rid)).data.version == version
+        && getAfter(receiptPath(rid)).data.at == request.time;
+    }
+
+    // ---------- users ----------
+    match /users/{uid} {
+      allow get: if isSelf(uid) || isOwnerUser()
+        || (signedIn() && resource.data.get('trainerUid', '') == request.auth.uid)
+        // N-07: la bandeja del entrenador — cuentas nuevas EN ESPERA
+        // y SIN aprobar (solo esas son legibles para él).
+        || (isTrainerUser() && resource.data.get('approved', false) == false
+            && resource.data.get('assignmentStatus', '') == 'waiting');
+      allow list: if isOwnerUser()
+        || (signedIn() && resource.data.get('trainerUid', '') == request.auth.uid)
+        || (isTrainerUser() && resource.data.get('approved', false) == false
+            && resource.data.get('assignmentStatus', '') == 'waiting');
+
+      // Registration: own doc only, born unprivileged, with the privacy
+      // consent and the 18+ confirmation the app always records.
+      allow create: if isSelf(uid)
+        && request.resource.data.isOwner == false
+        && request.resource.data.approved == false
+        && request.resource.data.role == 'usuario'
+        && request.resource.data.assignmentStatus in ['assigned', 'waiting']
+        && ((request.resource.data.assignmentStatus == 'waiting'
+             && request.resource.data.trainerUid == null)
+          || (request.resource.data.assignmentStatus == 'assigned'
+             && request.resource.data.trainerUid is string))
+        && request.resource.data.acceptedTerms == true
+        && request.resource.data.termsAcceptedAt == request.time
+        && request.resource.data.adultConfirmed == true
+        && !('health' in request.resource.data)
+        && !('healthConsent' in request.resource.data)
+        // A2: registration is the first consent act — it must carry
+        // its 'registered' receipt in the same batch (seq starts at 1).
+        && request.resource.data.consentSeq == 1
+        && request.resource.data.consentReceiptId == uid + '_1'
+        && receiptMatches(uid + '_1', uid, 'registered',
+                          request.resource.data.termsVersion);
+
+      // The trainer may update any user document (approval, goals,
+      // profile, notes) — EXCEPT the client's specific-consent state
+      // and the legacy health answers, which belong to the client
+      // (Decision 7). The console bootstrap is IAM-level and is not
+      // affected by rules.
+      allow update: if isOwnerUser()
+        && !request.resource.data.diff(resource.data).affectedKeys()
+              .hasAny(['healthConsent', 'health', 'consentSeq', 'consentReceiptId']);
+      // N-07 (decisión de Ronald, 2026-10-23 19:39): el ENTRENADOR
+      // aprueba una cuenta NUEVA — sin aprobar, en espera o ya
+      // asignada a él desde el registro — SOLO dentro de su cupo:
+      // el mismo lote aprueba asignándola AL APROBADOR y sube su
+      // propio contador approvalsUsed exactamente +1 (verificado
+      // con getAfter, patrón de recibo acoplado A2). Sin límite
+      // configurado por el administrador, approvalLimit() = 0 y
+      // esta vía queda cerrada (fail-closed).
+      allow update: if isTrainerUser()
+        && resource.data.get('isOwner', false) == false
+        && resource.data.get('approved', false) == false
+        && !(resource.data.get('role', '') in ['entrenador', 'administrador'])
+        && (resource.data.get('assignmentStatus', '') == 'waiting'
+            || resource.data.get('trainerUid', '') == request.auth.uid)
+        && request.resource.data.diff(resource.data).affectedKeys()
+             .hasOnly(['approved', 'trainerUid', 'assignmentStatus', 'approvedBy', 'approvedAt'])
+        && request.resource.data.approved == true
+        && request.resource.data.trainerUid == request.auth.uid
+        && request.resource.data.assignmentStatus == 'assigned'
+        && request.resource.data.approvedBy == request.auth.uid
+        && request.resource.data.approvedAt == request.time
+        && myDoc().get('approvalsUsed', 0) < approvalLimit()
+        && getAfter(userPath(request.auth.uid)).data.get('approvalsUsed', 0)
+             == myDoc().get('approvalsUsed', 0) + 1;
+      // N-07: el entrenador incrementa SOLO su propio contador y
+      // SOLO de uno en uno; la aprobación que lo justifica se
+      // verifica en la rama anterior dentro del mismo lote (subir
+      // el contador sin aprobar solo consume el propio cupo).
+      allow update: if isSelf(uid)
+        && resource.data.get('role', '') == 'entrenador'
+        && request.resource.data.diff(resource.data).affectedKeys()
+             .hasOnly(['approvalsUsed'])
+        && request.resource.data.approvalsUsed
+             == resource.data.get('approvalsUsed', 0) + 1;
+      // A client may update ONLY harmless profile fields of their own doc.
+      allow update: if isSelf(uid)
+        && request.resource.data.diff(resource.data).affectedKeys()
+             .hasOnly(['name', 'phone', 'gender', 'social', 'photoURL']);
+      // Consent withdrawal: a client may revoke THEMSELVES only —
+      // acceptedTerms=false, approved=false, withdrawal timestamp —
+      // and nothing else in the same write. At least one of the two
+      // state flags must actually CHANGE value: a repeat withdrawal
+      // against an already-withdrawn document (only the timestamp
+      // would move) is denied, so the recorded withdrawal date is
+      // never silently overwritten (H-C1 B2, 2026-10-16). The
+      // withdrawal timestamp must be the server time of the request
+      // (H-C1 B1): literal dates are rejected.
+      allow update: if isSelf(uid)
+        && request.resource.data.diff(resource.data).affectedKeys()
+             .hasOnly(['acceptedTerms', 'approved', 'consentWithdrawnAt', 'consentSeq', 'consentReceiptId'])
+        && request.resource.data.diff(resource.data).affectedKeys()
+             .hasAny(['acceptedTerms', 'approved'])
+        && request.resource.data.acceptedTerms == false
+        && request.resource.data.approved == false
+        && request.resource.data.consentWithdrawnAt == request.time
+        // A2: coupled 'general-withdrawn' receipt, seq +1 exactly.
+        && request.resource.data.consentSeq == resource.data.consentSeq + 1
+        && request.resource.data.consentReceiptId == uid + '_' + string(request.resource.data.consentSeq)
+        && receiptMatches(request.resource.data.consentReceiptId, uid,
+                          'general-withdrawn', request.resource.data.termsVersion);
+
+      // Consent renewal: a user may re-grant ONLY their own consent —
+      // acceptedTerms=true with the acceptance timestamp and the
+      // notice version, and NOTHING else in the same write.
+      // affectedKeys() only lists fields whose value actually CHANGES:
+      // termsVersion is therefore allowed to travel but NOT required
+      // to change (a user already on the current version string must
+      // still be able to renew — H-C1 B3-1, 2026-10-16); its resulting
+      // value is still type-checked below.
+      // r4 (18/10/2026): 'acceptedTerms' is likewise NOT required in
+      // affectedKeys — renewing with the consent ALREADY ACTIVE
+      // (true→true, e.g. moving from notice v2 to v3) never changes
+      // its value, and r3 therefore made that renewal impossible.
+      // The renewal act is anchored instead on termsAcceptedAt,
+      // which MUST change (hasAll) and must equal the server time
+      // of the request (H-C1 B1): the app sends serverTimestamp(),
+      // which resolves to request.time, and literal dates (e.g.
+      // 2030) are rejected. The resulting acceptedTerms value is
+      // still required == true below. Approval is not touched: it
+      // stays the trainer's separate decision. The withdrawal
+      // timestamp is preserved as history.
+      allow update: if isSelf(uid)
+        && request.resource.data.diff(resource.data).affectedKeys()
+             .hasOnly(['acceptedTerms', 'termsAcceptedAt', 'termsVersion', 'consentSeq', 'consentReceiptId'])
+        && request.resource.data.diff(resource.data).affectedKeys()
+             .hasAll(['termsAcceptedAt'])
+        && request.resource.data.acceptedTerms == true
+        && request.resource.data.termsAcceptedAt == request.time
+        && request.resource.data.termsVersion is string
+        // A2: coupled 'general-renewed' receipt, seq +1 exactly.
+        // Renewal restores consent only — never approval (untouched
+        // above) and never reactivates blocked declarations.
+        && request.resource.data.consentSeq == resource.data.consentSeq + 1
+        && request.resource.data.consentReceiptId == uid + '_' + string(request.resource.data.consentSeq)
+        && receiptMatches(request.resource.data.consentReceiptId, uid,
+                          'general-renewed', request.resource.data.termsVersion);
+
+      // Specific health consent (metadata only — never answers).
+      // Grant/renew: only the client, a NEW acceptance act: status
+      // accepted, acceptance timestamp == server time, version text;
+      // a previous withdrawal timestamp is preserved as history.
+      allow update: if isSelf(uid)
+        && request.resource.data.diff(resource.data).affectedKeys()
+              .hasOnly(['healthConsent', 'consentSeq', 'consentReceiptId'])
+        && request.resource.data.healthConsent.status == 'accepted'
+        && request.resource.data.healthConsent.acceptedAt == request.time
+        && request.resource.data.healthConsent.version is string
+        && (!('healthConsent' in resource.data)
+            || !('withdrawnAt' in resource.data.healthConsent)
+            || request.resource.data.healthConsent.withdrawnAt
+               == resource.data.healthConsent.withdrawnAt)
+        // A2: grant/renew only from a non-accepted state, with its
+        // coupled receipt ('specific-granted' or 'specific-renewed',
+        // derived from the before/after pair), seq +1 exactly.
+        && (!('healthConsent' in resource.data)
+            || resource.data.healthConsent.status != 'accepted')
+        && request.resource.data.consentSeq == resource.data.consentSeq + 1
+        && request.resource.data.consentReceiptId == uid + '_' + string(request.resource.data.consentSeq)
+        && receiptMatches(request.resource.data.consentReceiptId, uid,
+                          receiptType(resource.data, request.resource.data),
+                          request.resource.data.healthConsent.version);
+      // Withdraw the specific consent: only from an accepted state,
+      // withdrawal timestamp == server time, acceptance preserved.
+      allow update: if isSelf(uid)
+        && request.resource.data.diff(resource.data).affectedKeys()
+              .hasOnly(['healthConsent', 'consentSeq', 'consentReceiptId'])
+        && request.resource.data.healthConsent.status == 'withdrawn'
+        && request.resource.data.healthConsent.withdrawnAt == request.time
+        && resource.data.healthConsent.status == 'accepted'
+        && request.resource.data.healthConsent.acceptedAt
+           == resource.data.healthConsent.acceptedAt
+        // A2: coupled 'specific-withdrawn' receipt, seq +1 exactly.
+        && request.resource.data.consentSeq == resource.data.consentSeq + 1
+        && request.resource.data.consentReceiptId == uid + '_' + string(request.resource.data.consentSeq)
+        && receiptMatches(request.resource.data.consentReceiptId, uid,
+                          'specific-withdrawn',
+                          request.resource.data.healthConsent.version);
+
+      // The trainer deletes user docs (reject flow).
+      allow delete: if isOwnerUser();
+      // A client may delete their OWN user doc (right to erasure,
+      // Block 4) ONLY in the same batch that creates their
+      // 'account-closed' receipt (A2): no closure without receipt,
+      // no receipt without closure.
+      allow delete: if isSelf(uid)
+        && existsAfter(receiptPath(uid))
+        && getAfter(receiptPath(uid)).data.type == 'account-closed'
+        && getAfter(receiptPath(uid)).data.uid == uid
+        && getAfter(receiptPath(uid)).data.at == request.time;
+
+      // ---------- Health declarations (the ANSWERS) ----------
+      // They live outside the general document so that rules can
+      // actually block them (rules authorize whole documents).
+      match /healthDeclarations/{declId} {
+        // The client reads ALL of their own declarations (current and
+        // blocked). The trainer reads ONLY the active one and ONLY
+        // while the client's specific consent is accepted. Nobody
+        // else reads anything.
+        allow get, list: if isSelf(uid)
+          || (isOwnerUser()
+              && resource.data.state == 'active'
+              && get(/databases/$(database)/documents/users/$(uid))
+                   .data.healthConsent.status == 'accepted'
+              && get(/databases/$(database)/documents/users/$(uid))
+                   .data.acceptedTerms == true);
+
+        // Create: only the client, an ACTIVE declaration, and only
+        // with their specific consent currently accepted.
+        allow create: if isSelf(uid)
+          && request.resource.data.state == 'active'
+          && request.resource.data.version is number
+          && request.resource.data.conditions is list
+          && request.resource.data.details is string
+          && request.resource.data.declaredAt == request.time
+          && get(/databases/$(database)/documents/users/$(uid))
+               .data.healthConsent.status == 'accepted';
+
+        // Update the CURRENT declaration: only the client, only its
+        // contents. Blocked declarations are immutable for everyone.
+        allow update: if isSelf(uid)
+          && resource.data.state == 'active'
+          && request.resource.data.state == 'active'
+          && request.resource.data.diff(resource.data).affectedKeys()
+                .hasOnly(['conditions', 'details', 'updatedAt'])
+          && request.resource.data.updatedAt == request.time
+          && get(/databases/$(database)/documents/users/$(uid))
+               .data.healthConsent.status == 'accepted';
+
+        // Block the current declaration when the specific consent is
+        // withdrawn: only the client, only the state change.
+        allow update: if isSelf(uid)
+          && resource.data.state == 'active'
+          && request.resource.data.state == 'blocked'
+          && request.resource.data.diff(resource.data).affectedKeys()
+                .hasOnly(['state', 'blockedAt'])
+          && request.resource.data.blockedAt == request.time;
+
+        // Delete: only the client, their own declarations.
+        allow delete: if isSelf(uid);
+      }
+
+      // ---------- Energy-calc private data (F-A1) ----------
+      // ONLY the client themselves: not the trainer, not the
+      // owner role. `sexForCalc` (the sex variable for the energy
+      // calculation) lives HERE and nowhere else: Firestore
+      // authorizes whole documents, never fields, so if this
+      // datum lived in a trainer-readable document the rules
+      // could not hide its value. The trainer works with the
+      // RESULT of the calculation, never with this document.
+      match /energyPrivate/{docId} {
+        allow get, list: if isSelf(uid);
+        allow create, update: if isSelf(uid)
+          && request.resource.data.keys()
+               .hasOnly(['sexForCalc', 'purposeVersion', 'providedAt', 'updatedAt'])
+          && request.resource.data.sexForCalc in ['female', 'male']
+          && request.resource.data.purposeVersion is string
+          && request.resource.data.updatedAt == request.time;
+        // Erasure: only the client may delete their private data.
+        allow delete: if isSelf(uid);
+      }
+
+      // ---------- Metabolic assessment (F-A1/F-A2) ----------
+      match /assessment/{docId} {
+        allow get, list: if isSelf(uid) || isOwnerUser()
+          || isAssignedTrainerOf(uid);
+
+        // The trainer creates 'current' with CONFIGURATION only:
+        // the equation is BORN ABSENT (N-01: no default) and, when
+        // present, must be on the v1 enabled list (Mifflin-St Jeor
+        // only — Harris-Benedict and Ten Haaf stay blocked as
+        // 'pending verification'). 'sexDataProvided' is NOT in
+        // the trainer's key lists: the provided-signal is the
+        // client's declaration, never the trainer's to write.
+        allow create: if (isOwnerUser() || isAssignedTrainerOf(uid)) && docId == 'current'
+          && request.resource.data.keys().hasOnly([
+               'birthYear', 'heightCm', 'heightOriginal', 'heightUnitOriginal',
+               'goal', 'equation', 'equationChosenBy', 'equationChosenAt',
+               'palBasal', 'palNote', 'activityCategoryId', 'palExceptionConfirmed',
+               'updatedAt', 'updatedBy'])
+          && !('sexForCalc' in request.resource.data)
+          && (!('equation' in request.resource.data)
+              || request.resource.data.equation in ['mifflin-st-jeor'])
+          && (!('birthYear' in request.resource.data)
+              || (request.resource.data.birthYear is int
+                  && request.resource.data.birthYear >= 1900
+                  && request.resource.data.birthYear <= 2100))
+          && (!('heightCm' in request.resource.data)
+              || (request.resource.data.heightCm is number
+                  && request.resource.data.heightCm >= 50
+                  && request.resource.data.heightCm <= 250))
+          && (!('activityCategoryId' in request.resource.data)
+              || (request.resource.data.activityCategoryId is int
+                  && request.resource.data.activityCategoryId >= 1
+                  && request.resource.data.activityCategoryId <= 6))
+          && (!('palBasal' in request.resource.data)
+              || (request.resource.data.palBasal is number
+                  && request.resource.data.palBasal >= 1.20
+                  && request.resource.data.palBasal <= 2.00
+                  // A-3: 1.20–1.39 only with the express
+                  // confirmation recorded.
+                  && (request.resource.data.palBasal >= 1.40
+                      || request.resource.data.palExceptionConfirmed == true)));
+
+        // The trainer updates configuration AND may record a
+        // result (when the computation happens in the trainer's
+        // session). A-3 and the enabled-equation list are enforced
+        // on the RESULTING values whenever palBasal, its
+        // confirmation or the equation change (Etapa 2 closes the
+        // update path; the Etapa 1 block validated creation only).
+        allow update: if (isOwnerUser() || isAssignedTrainerOf(uid)) && docId == 'current'
+          && request.resource.data.diff(resource.data).affectedKeys().hasOnly([
+               'birthYear', 'heightCm', 'heightOriginal', 'heightUnitOriginal',
+               'goal', 'equation', 'equationChosenBy', 'equationChosenAt',
+               'palBasal', 'palNote', 'activityCategoryId', 'palExceptionConfirmed',
+               'updatedAt', 'updatedBy',
+               'rmrKcal', 'tdeeKcal', 'equationUsed', 'equationVersion',
+               'inputsSnapshot', 'sexConstantApplied', 'uncertaintyNote',
+               'computedAt', 'computedBy'])
+          && !('sexForCalc' in request.resource.data)
+          && (!('inputsSnapshot' in request.resource.data)
+              || !request.resource.data.inputsSnapshot.keys()
+                     .hasAny(['sexForCalc']))
+          && (!request.resource.data.diff(resource.data).affectedKeys()
+                .hasAny(['equation'])
+              || request.resource.data.equation in ['mifflin-st-jeor'])
+          && (!request.resource.data.diff(resource.data).affectedKeys()
+                .hasAny(['birthYear'])
+              || (request.resource.data.birthYear is int
+                  && request.resource.data.birthYear >= 1900
+                  && request.resource.data.birthYear <= 2100))
+          && (!request.resource.data.diff(resource.data).affectedKeys()
+                .hasAny(['palBasal', 'palExceptionConfirmed'])
+              || (request.resource.data.get('palBasal', 0) is number
+                  && request.resource.data.get('palBasal', 0) >= 1.20
+                  && request.resource.data.get('palBasal', 0) <= 2.00
+                  && (request.resource.data.get('palBasal', 0) >= 1.40
+                      || request.resource.data.get('palExceptionConfirmed', false) == true)));
+
+        // The client's own session writes ONLY two things here:
+        // (1) the provided-signal 'sexDataProvided' — a BOOLEAN
+        //     stating the private datum EXISTS (never its value),
+        //     readable by the trainer through the read rule above;
+        // (2) the RESULT block (their own device computes, reading
+        //     their private energyPrivate doc). Configuration and
+        //     the equation choice are never theirs to touch, and a
+        //     result never carries the sexForCalc value: only the
+        //     mark sexConstantApplied (true/false).
+        allow update: if isSelf(uid) && docId == 'current'
+          && request.resource.data.diff(resource.data).affectedKeys().hasOnly([
+               'sexDataProvided',
+               'rmrKcal', 'tdeeKcal', 'equationUsed', 'equationVersion',
+               'inputsSnapshot', 'sexConstantApplied', 'uncertaintyNote',
+               'computedAt', 'computedBy'])
+          && !('sexForCalc' in request.resource.data)
+          && (!('inputsSnapshot' in request.resource.data)
+              || !request.resource.data.inputsSnapshot.keys()
+                     .hasAny(['sexForCalc']))
+          && (!request.resource.data.diff(resource.data).affectedKeys()
+                .hasAny(['sexDataProvided'])
+              || request.resource.data.sexDataProvided is bool)
+          && (!request.resource.data.diff(resource.data).affectedKeys()
+                .hasAny(['rmrKcal', 'tdeeKcal', 'equationUsed', 'equationVersion',
+                         'inputsSnapshot', 'sexConstantApplied', 'uncertaintyNote',
+                         'computedAt', 'computedBy'])
+              || (request.resource.data.equationUsed in ['mifflin-st-jeor']
+                  && request.resource.data.computedAt == request.time));
+
+        // History snapshots: created by trainer or client session,
+        // immutable afterwards (no update ever), full traceability.
+        allow create: if (isOwnerUser() || isSelf(uid)) && docId.matches('hist_.+')
+          && request.resource.data.keys().hasOnly([
+               'rmrKcal', 'tdeeKcal', 'equationUsed', 'equationVersion',
+               'inputsSnapshot', 'sexConstantApplied', 'uncertaintyNote',
+               'computedAt', 'computedBy', 'supersededAt'])
+          && request.resource.data.equationUsed in ['mifflin-st-jeor']
+          && request.resource.data.computedAt == request.time
+          && (!('inputsSnapshot' in request.resource.data)
+              || !request.resource.data.inputsSnapshot.keys()
+                     .hasAny(['sexForCalc']));
+        allow update: if false;
+
+        allow delete: if isSelf(uid) || isOwnerUser();
+      }
+    }
+
+    // ---------- Client nutrition data ----------
+    // Create/update require an approved account and own ownerUid.
+    // Delete of one's own documents is allowed regardless of approval
+    // status (erasure must work even after withdrawal/revocation);
+    // nobody can delete another client's documents except the trainer.
+    match /nutrition_meals/{docId} {
+      // Corrección pesaje (P2, propuesta): crear para un cliente,
+      // como el update vivo ya permite al propietario.
+      allow create: if isOwnerUser()
+        || isAssignedTrainerOf(request.resource.data.ownerUid)
+        || (isApprovedUser()
+          && request.resource.data.ownerUid == request.auth.uid);
+      allow get, list: if isOwnerUser()
+        || (isApprovedUser() && resource.data.ownerUid == request.auth.uid)
+        || isAssignedTrainerOf(resource.data.ownerUid);
+      allow update: if isOwnerUser()
+        || (isApprovedUser() && resource.data.ownerUid == request.auth.uid);
+      allow delete: if isOwnerUser()
+        || (signedIn() && resource.data.ownerUid == request.auth.uid);
+    }
+
+    match /nutrition_weight/{docId} {
+      // Candidato composición: creación del propietario para un
+      // cliente + creación/actualización del cliente solo con su
+      // modo en 'client'.
+      allow create: if isOwnerUser()
+        || isAssignedTrainerOf(request.resource.data.ownerUid)
+        || (isApprovedUser()
+          && request.resource.data.ownerUid == request.auth.uid
+          && compModeIsClient(request.auth.uid));
+      allow get, list: if isOwnerUser()
+        || (isApprovedUser() && resource.data.ownerUid == request.auth.uid)
+        || isAssignedTrainerOf(resource.data.ownerUid);
+      allow update: if isOwnerUser()
+        || isAssignedTrainerOf(resource.data.ownerUid)
+        || (isApprovedUser() && resource.data.ownerUid == request.auth.uid
+          && compModeIsClient(request.auth.uid));
+      allow delete: if isOwnerUser()
+        || (signedIn() && resource.data.ownerUid == request.auth.uid);
+    }
+
+    match /nutrition_progress/{docId} {
+      // Candidato composición: el propietario crea el ajuste
+      // compAccess de un cliente (ownerUid = el cliente del id).
+      allow create: if isOwnerUser()
+        && request.resource.data.kind == 'compAccess'
+        && docId == request.resource.data.ownerUid + '_compaccess';
+      // Corrección pesaje (P3, propuesta): el propietario y el
+      // entrenador ASIGNADO crean progreso de su cliente; para el
+      // ajuste compAccess rigen las condiciones de nacimiento.
+      allow create: if (isOwnerUser()
+          || isAssignedTrainerOf(request.resource.data.ownerUid))
+        && (request.resource.data.get('kind', '') != 'compAccess'
+            || (docId == request.resource.data.ownerUid + '_compaccess'
+                && request.resource.data.get('history', []).size() == 0));
+      allow create: if isApprovedUser()
+        && request.resource.data.ownerUid == request.auth.uid
+        && (request.resource.data.get('kind', '') != 'compAccess'
+            || (request.resource.data.mode == 'trainer'
+                && request.resource.data.get('history', []).size() == 0))
+        && (request.resource.data.get('kind', '') != 'evaluation'
+            || request.resource.data.get('comp', null) == null
+            || compModeIsClient(request.auth.uid));
+      // Hallazgo C: get se separa de list. La guarda
+      // «resource == null» va PRIMERO dentro del ternario: si el
+      // documento no existe, jamás se evalúa resource.data (que
+      // es lo que denegaba la lectura); solo se admite el get de
+      // un inexistente con el patrón propio {uid}_… del que
+      // pide. Si el documento EXISTE, manda ownerUid como hoy.
+      allow get: if isOwnerUser()
+        || (resource != null && isAssignedTrainerOf(resource.data.ownerUid))
+        || (isApprovedUser() && (resource == null
+          ? docId.matches(request.auth.uid + '_.*')
+          : resource.data.ownerUid == request.auth.uid));
+      allow list: if isOwnerUser()
+        || (isApprovedUser() && resource.data.ownerUid == request.auth.uid)
+        || isAssignedTrainerOf(resource.data.ownerUid);
+      allow update: if isOwnerUser()
+        || isAssignedTrainerOf(resource.data.ownerUid)
+        || (isApprovedUser() && resource.data.ownerUid == request.auth.uid
+          && (resource.data.get('kind', '') != 'compAccess'
+              || !request.resource.data.diff(resource.data).affectedKeys()
+                    .hasAny(['mode', 'history', 'kind', 'ownerUid', 'uid']))
+          && (resource.data.get('kind', '') != 'evaluation'
+              || !request.resource.data.diff(resource.data).affectedKeys()
+                    .hasAny(['comp'])
+              || compModeIsClient(request.auth.uid)));
+      allow delete: if isOwnerUser()
+        || (signedIn() && resource.data.ownerUid == request.auth.uid);
+    }
+
+    match /meal_help/{docId} {
+      // Corrección pesaje (P4, propuesta): crear para un cliente,
+      // como el update vivo ya permite al propietario.
+      allow create: if isOwnerUser()
+        || isAssignedTrainerOf(request.resource.data.ownerUid)
+        || (isApprovedUser()
+          && request.resource.data.ownerUid == request.auth.uid);
+      allow get, list: if isOwnerUser()
+        || (isApprovedUser() && resource.data.ownerUid == request.auth.uid)
+        || isAssignedTrainerOf(resource.data.ownerUid);
+      allow update: if isOwnerUser()
+        || isAssignedTrainerOf(resource.data.ownerUid)
+        || (isApprovedUser() && resource.data.ownerUid == request.auth.uid);
+      allow delete: if isOwnerUser()
+        || (signedIn() && resource.data.ownerUid == request.auth.uid);
+    }
+
+    // ---------- Training (Block 3) ----------
+    // Plans are authored ONLY by the trainer. Clients read their own.
+    match /training_plans/{docId} {
+      allow get, list: if isOwnerUser()
+        || (isApprovedUser() && resource.data.clientUid == request.auth.uid)
+        || isAssignedTrainerOf(resource.data.clientUid);
+      allow create, update, delete: if isOwnerUser()
+        || isAssignedTrainerOf(request.resource.data.clientUid);
+    }
+
+    // Session logs: clients create/delete their own (done/undo);
+    // no updates (the app toggles by create/delete). Trainer reads all.
+    match /training_logs/{docId} {
+      allow create: if isApprovedUser()
+        && request.resource.data.clientUid == request.auth.uid
+        && request.resource.data.done == true;
+      allow get, list: if isOwnerUser()
+        || (isApprovedUser() && resource.data.clientUid == request.auth.uid)
+        || isAssignedTrainerOf(resource.data.clientUid);
+      allow delete: if isOwnerUser()
+        || (signedIn() && resource.data.clientUid == request.auth.uid);
+    }
+
+    // ---------- Consent receipts (A2) ----------
+    // Append-only proof of consent acts (metadata only — never
+    // answers). A receipt can be created ONLY together with the
+    // real transition it records (checked against the user doc
+    // before AND after the batch), by the account holder about
+    // themselves. Nobody updates receipts; only the owner
+    // deletes them (the retention purge).
+    match /consent_receipts/{rid} {
+      allow get, list: if isOwnerUser()
+        || (signedIn() && resource.data.uid == request.auth.uid);
+
+      allow create: if signedIn()
+        && request.resource.data.keys().hasOnly(['uid', 'email', 'type', 'version', 'at'])
+        && request.resource.data.uid == request.auth.uid
+        && request.resource.data.email is string
+        && request.resource.data.version is string
+        && request.resource.data.at == request.time
+        && (
+          // Closure marker: this same batch deletes the user doc.
+          ( rid == request.auth.uid
+            && request.resource.data.type == 'account-closed'
+            && exists(userPath(request.auth.uid))
+            && request.resource.data.version
+                 == get(userPath(request.auth.uid)).data.get('termsVersion', '')
+            && !existsAfter(userPath(request.auth.uid)) )
+          ||
+          // Registration event: this same batch creates the user doc.
+          ( rid == request.auth.uid + '_1'
+            && request.resource.data.type == 'registered'
+            && !exists(userPath(request.auth.uid))
+            && existsAfter(userPath(request.auth.uid))
+            && getAfter(userPath(request.auth.uid)).data.consentSeq == 1
+            && getAfter(userPath(request.auth.uid)).data.consentReceiptId == rid
+            && request.resource.data.version
+                 == getAfter(userPath(request.auth.uid)).data.termsVersion )
+          ||
+          // Consent transition event: the declared type and version
+          // must equal the transition derived from before/after.
+          ( exists(userPath(request.auth.uid))
+            && existsAfter(userPath(request.auth.uid))
+            && getAfter(userPath(request.auth.uid)).data.consentReceiptId == rid
+            && request.resource.data.type
+                 == receiptType(get(userPath(request.auth.uid)).data,
+                                getAfter(userPath(request.auth.uid)).data)
+            && request.resource.data.version
+                 == receiptVersion(getAfter(userPath(request.auth.uid)).data,
+                                   request.resource.data.type) )
+        );
+
+      allow update: if false;
+      allow delete: if isOwnerUser();
+    }
+
+    // ---------- Training content (nuevo bloque, junto al Block 3) ----------
+    // Biblioteca de ejercicios: contenido genérico, sin datos de clientes.
+    // Lectura: usuarios APROBADOS (el propietario incluido vía isApprovedUser).
+    // Escritura desde cliente: NUNCA — la carga es operación Admin versionada.
+    match /exercise_library/{docId} {
+      allow read: if isApprovedUser();
+      allow write: if false;
+    }
+
+    // Plantillas de rutina: lectura para el entrenador/propietario Y para
+    // clientes APROBADOS (decisión del propietario, pregunta 1: los clientes
+    // las ven y pueden proponer cambios; proponer no escribe aquí).
+    // Escritura desde cliente: NUNCA — la carga es operación Admin versionada.
+    match /routine_templates/{docId} {
+      allow read: if isApprovedUser();
+      allow write: if false;
+    }
+
+    // Calificaciones por tipo de cuerpo: contenido GENÉRICO por ejercicio
+    // (decisión del propietario: colección propia de solo lectura, opción
+    // (b)). Jamás etiqueta de somatotipo por cliente (v1.1 §7).
+    // Lectura: usuarios APROBADOS. Escritura desde cliente: NUNCA —
+    // la carga es operación Admin con token temporal del propietario.
+    match /body_type_ratings/{docId} {
+      allow read: if isApprovedUser();
+      allow write: if false;
+    }
+
+    // ---------- Access log ND-2 (candidato Paquete 8, 2026-10-22) ----------
+    // Bitácora APPEND-ONLY de accesos del entrenador a los datos de
+    // un cliente (requisito vinculante ND-2 adoptado el 2026-10-20,
+    // Ficha 6 del paquete de decisiones documentales): la vista del
+    // entrenador sobre las evaluaciones/fotos de un cliente nace con
+    // su registro de quién vio los datos de quién, y cuándo.
+    // · Lectura: SOLO el propietario (vista de auditoría). Ni el
+    //   cliente mirado ni ningún tercero la leen.
+    // · Creación: SOLO el propietario, y SOLO de sí mismo
+    //   (viewerUid == uid de quien crea): nadie registra accesos de
+    //   otro, nadie se registra mirándose a sí mismo, y el documento
+    //   lleva EXACTAMENTE los cuatro campos del registro, con la
+    //   hora del servidor (at == request.time).
+    // · Actualización: DENEGADA a todos — ni el autor puede
+    //   reescribir un registro (mismo precedente que
+    //   consent_receipts: nadie actualiza recibos).
+    // · Borrado: SOLO el propietario, para la purga de retención
+    //   (el mismo precedente que consent_receipts).
+    match /access_log/{logId} {
+      allow get, list: if isOwnerUser();
+      allow create: if isOwnerUser()
+        && request.resource.data.keys().hasOnly(['viewerUid', 'clientUid', 'zone', 'at'])
+        && request.resource.data.viewerUid == request.auth.uid
+        && request.resource.data.clientUid is string
+        && request.resource.data.clientUid != request.auth.uid
+        && request.resource.data.zone == 'evaluations'
+        && request.resource.data.at == request.time;
+      allow update: if false;
+      allow delete: if isOwnerUser();
+    }
+
+    // ---------- Ajustes del administrador (candidato N-07, NO publicado) ----------
+    // app_settings/approvals = { maxPerTrainer }: cuántas cuentas
+    // nuevas puede aprobar cada entrenador (decisión de Ronald,
+    // 2026-10-23 19:39). Lectura con sesión (el entrenador consulta
+    // su cupo); escritura SOLO del administrador. Sin documento,
+    // approvalLimit() trata el límite como 0 (fail-closed).
+    match /app_settings/{docId} {
+      allow get: if signedIn() && docId == 'approvals';
+      allow list: if false;
+      allow create, update, delete: if isOwnerUser() && docId == 'approvals';
+    }
+
+    // ---------- Trainer directory (candidato roles, NO publicado) ----------
+    // Documento único 'current': { trainers: [{uid, name}] }.
+    // Lo mantiene el administrador; se lee sin sesión para que el
+    // formulario de registro pueda ofrecer la elección.
+    match /trainer_directory/{docId} {
+      allow get: if docId == 'current';
+      allow list: if false;
+      allow create, update, delete: if isOwnerUser();
+    }
+
+    // ---------- Everything else: denied ----------
+    match /{document=**} {
+      allow read, write: if false;
+    }
+  }
+}
