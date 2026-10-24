@@ -380,15 +380,39 @@ table.whist { min-width: 640px; }
 .pl-day { border: 1px solid #e9ecef; border-radius: 10px; padding: 10px; margin: 10px 0; }
 /* REDISEÑO DE LA FILA (2026-10-24): una sola línea compacta —
    miniatura · nombre · SE · REP · nota · ⋯ · × — sin desborde a
-   360 px: el nombre cede (min-width: 0) y la nota tiene tope. */
+   360 px: el nombre cede (min-width: 0) y la nota tiene tope.
+   AJUSTE DE ANCHOS (2026-10-24, evidencia: captura real de iPhone
+   de Ronald sobre bb4b625): el reparto interno dejaba el NOMBRE
+   hambriento — con flex-basis automática, el nombre absorbía casi
+   todo el encogido y se leían «Press de» / «Press m», y el REP de
+   dos cifras se recortaba («12-15» → «12-1») en sus 42 px.
+   Rebalanceo, sin tocar la estructura ni los datos:
+   - el nombre pasa a flex 1 1 0: se queda EXACTAMENTE con el
+     espacio sobrante, sin competir en el encogido;
+   - SE se estrecha a su contenido (1–2 cifras) y REP se ensancha
+     lo justo para que «12-15» quepa entero;
+   - los inputs de la línea pierden el padding horizontal de modal
+     (11 px → 5 px): ese aire va al texto;
+   - la NOTA se compacta a 42 px con letra 12.5 px: su placeholder
+     «Nota» se lee entero y deja de robarle al nombre;
+   - huecos entre elementos 6 → 3 px y miniatura 40 → 32 px. */
 .pl-ex-row { display: block; margin: 6px 0; }
-.pl-ex-line { display: flex; gap: 6px; align-items: center; }
-.pl-ex-line input { min-width: 0; }
-.pl-ex-line .pl-ex-main { flex: 1 1 auto; }
-.pl-ex-line .pl-ex-sets, .pl-ex-line .pl-ex-reps { flex: 0 0 42px; text-align: center; padding-left: 4px; padding-right: 4px; }
-.pl-ex-line .pl-ex-note { flex: 0 1 76px; }
-.pl-ex-line .pl-ex-more, .pl-ex-line .pl-ex-del { flex: 0 0 auto; padding-left: 6px; padding-right: 6px; }
-.pl-ex-media-btn { flex: 0 0 40px; width: 40px; height: 40px; border-radius: 8px; border: 1px solid #e2e8f0; background: #eef1f3; padding: 0; overflow: hidden; position: relative; cursor: pointer; }
+.pl-ex-line { display: flex; gap: 3px; align-items: center; }
+.pl-ex-line input { min-width: 0; padding-left: 5px; padding-right: 5px; }
+.pl-ex-line .pl-ex-main { flex: 1 1 0; }
+.pl-ex-line .pl-ex-sets { flex: 0 0 28px; text-align: center; padding-left: 2px; padding-right: 2px; }
+.pl-ex-line .pl-ex-reps { flex: 0 0 44px; text-align: center; padding-left: 2px; padding-right: 2px; }
+.pl-ex-line .pl-ex-note { flex: 0 1 42px; min-width: 38px; font-size: 12.5px; padding-left: 4px; padding-right: 4px; }
+.pl-ex-line .pl-ex-more, .pl-ex-line .pl-ex-del { flex: 0 0 auto; padding-left: 4px; padding-right: 4px; }
+.pl-ex-media-btn { flex: 0 0 32px; width: 32px; height: 40px; border-radius: 8px; border: 1px solid #e2e8f0; background: #eef1f3; padding: 0; overflow: hidden; position: relative; cursor: pointer; }
+/* El editor de planes es una superficie de trabajo: en móvil el
+   cromo del modal (fondo + tarjeta + día) se estrecha para que el
+   aire vaya a las filas, no al marco. Solo el modal de planes. */
+@media (max-width: 520px) {
+  #plan-modal { padding: 8px; }
+  #plan-modal .modal { padding: 18px 12px; }
+  #plan-modal .pl-day { padding: 8px 6px; }
+}
 .pl-ex-media-btn .pl-ex-thumb { width: 100%; height: 100%; object-fit: cover; display: block; border: 0; border-radius: 0; background: none; }
 .pl-ex-media-btn .pl-ex-media-ico { position: absolute; inset: 0; display: flex; align-items: center; justify-content: center; font-size: 17px; }
 .pl-ex-media-btn.has-photo .pl-ex-media-ico { display: none; }
