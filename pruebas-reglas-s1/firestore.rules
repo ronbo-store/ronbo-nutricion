@@ -323,7 +323,17 @@ service cloud.firestore {
     function receiptType(before, after) {
       let bs = before.get('healthConsent', {}).get('status', 'none');
       let as2 = after.get('healthConsent', {}).get('status', 'none');
-      return bs != as2
+      // Nivel 2 (somatotipo, desplegado 2026-10-24 — AUTH-2026-10-24-010):
+      // bodyTypeConsent transitions derive their own receipt types.
+      // The app never mixes a bodyType transition with a health or
+      // general transition in one batch; if it did, this derivation
+      // wins and the other branch's receipt check fails closed.
+      let bb = before.get('bodyTypeConsent', {}).get('status', 'none');
+      let ba = after.get('bodyTypeConsent', {}).get('status', 'none');
+      return bb != ba
+        ? (ba == 'accepted' ? (bb == 'withdrawn' ? 'bodytype-renewed' : 'bodytype-granted')
+                            : (ba == 'withdrawn' ? 'bodytype-withdrawn' : ''))
+        : (bs != as2
         ? (as2 == 'accepted' ? (bs == 'withdrawn' ? 'specific-renewed' : 'specific-granted')
                             : (as2 == 'withdrawn' ? 'specific-withdrawn' : ''))
         : (before.get('acceptedTerms', false) != after.get('acceptedTerms', false)
@@ -331,12 +341,14 @@ service cloud.firestore {
             : (after.get('acceptedTerms', false) == true
                 && before.get('termsAcceptedAt', timestamp.date(2000, 1, 1))
                      != after.get('termsAcceptedAt', timestamp.date(2000, 1, 1))
-                ? 'general-renewed' : ''));
+                ? 'general-renewed' : '')));
     }
     function receiptVersion(after, type) {
-      return (type == 'general-renewed' || type == 'general-withdrawn' || type == 'registered')
-        ? after.get('termsVersion', '')
-        : after.get('healthConsent', {}).get('version', '');
+      return type == 'bodytype-granted' || type == 'bodytype-renewed' || type == 'bodytype-withdrawn'
+        ? after.get('bodyTypeConsent', {}).get('version', '')
+        : ((type == 'general-renewed' || type == 'general-withdrawn' || type == 'registered')
+            ? after.get('termsVersion', '')
+            : after.get('healthConsent', {}).get('version', ''));
     }
     // The receipt that must exist AFTER the same batch: exact id,
     // owner uid, type, version and server timestamp of THIS request.
@@ -346,6 +358,23 @@ service cloud.firestore {
         && getAfter(receiptPath(rid)).data.type == type
         && getAfter(receiptPath(rid)).data.version == version
         && getAfter(receiptPath(rid)).data.at == request.time;
+    }
+
+    // ---------- Visual body type estimate (Nivel 2, candidato somatotipo 2026-10-23 — NO publicado) ----------
+    // The body-photo consent is verified INSIDE the rules at EVERY
+    // use (S-1 pattern): creating, reading and share-updating an
+    // estimate all re-check the client's CURRENT bodyTypeConsent.
+    function btConsentActive(uid) {
+      return exists(userPath(uid))
+        && get(userPath(uid)).data.get('bodyTypeConsent', {}).get('status', '') == 'accepted';
+    }
+    // Staff for a client: the platform owner, or a trainer
+    // (role == 'entrenador') to whom the client is assigned.
+    function btStaffFor(uid) {
+      return isOwnerUser()
+        || (signedIn() && myDocExists() && myDoc().get('role', '') == 'entrenador'
+            && exists(userPath(uid))
+            && get(userPath(uid)).data.get('trainerUid', '') == request.auth.uid);
     }
 
     // ---------- users ----------
@@ -377,6 +406,7 @@ service cloud.firestore {
         && request.resource.data.adultConfirmed == true
         && !('health' in request.resource.data)
         && !('healthConsent' in request.resource.data)
+        && !('bodyTypeConsent' in request.resource.data)
         // A2: registration is the first consent act — it must carry
         // its 'registered' receipt in the same batch (seq starts at 1).
         && request.resource.data.consentSeq == 1
@@ -391,7 +421,7 @@ service cloud.firestore {
       // affected by rules.
       allow update: if isOwnerUser()
         && !request.resource.data.diff(resource.data).affectedKeys()
-              .hasAny(['healthConsent', 'health', 'consentSeq', 'consentReceiptId']);
+              .hasAny(['healthConsent', 'health', 'bodyTypeConsent', 'consentSeq', 'consentReceiptId']);
       // N-07 (decisión de Ronald, 2026-10-23 19:39): el ENTRENADOR
       // aprueba una cuenta NUEVA — sin aprobar, en espera o ya
       // asignada a él desde el registro — SOLO dentro de su cupo:
@@ -529,6 +559,47 @@ service cloud.firestore {
         && receiptMatches(request.resource.data.consentReceiptId, uid,
                           'specific-withdrawn',
                           request.resource.data.healthConsent.version);
+
+      // Body-photo consent (Nivel 2, metadata only — never photos).
+      // Grant/renew: only the client, a NEW acceptance act: status
+      // accepted, acceptance timestamp == server time, draft version
+      // text; a previous withdrawal timestamp is preserved. Coupled
+      // receipt ('bodytype-granted' or 'bodytype-renewed', derived
+      // from the before/after pair), seq +1 exactly.
+      allow update: if isSelf(uid)
+        && request.resource.data.diff(resource.data).affectedKeys()
+              .hasOnly(['bodyTypeConsent', 'consentSeq', 'consentReceiptId'])
+        && request.resource.data.bodyTypeConsent.status == 'accepted'
+        && request.resource.data.bodyTypeConsent.acceptedAt == request.time
+        && request.resource.data.bodyTypeConsent.version is string
+        && (!('bodyTypeConsent' in resource.data)
+            || !('withdrawnAt' in resource.data.bodyTypeConsent)
+            || request.resource.data.bodyTypeConsent.withdrawnAt
+               == resource.data.bodyTypeConsent.withdrawnAt)
+        && (!('bodyTypeConsent' in resource.data)
+            || resource.data.bodyTypeConsent.status != 'accepted')
+        && request.resource.data.consentSeq == resource.data.consentSeq + 1
+        && request.resource.data.consentReceiptId == uid + '_' + string(request.resource.data.consentSeq)
+        && receiptMatches(request.resource.data.consentReceiptId, uid,
+                          receiptType(resource.data, request.resource.data),
+                          request.resource.data.bodyTypeConsent.version);
+      // Withdraw the body-photo consent: only from an accepted
+      // state, withdrawal timestamp == server time, acceptance
+      // timestamp preserved; coupled 'bodytype-withdrawn' receipt,
+      // seq +1 exactly.
+      allow update: if isSelf(uid)
+        && request.resource.data.diff(resource.data).affectedKeys()
+              .hasOnly(['bodyTypeConsent', 'consentSeq', 'consentReceiptId'])
+        && request.resource.data.bodyTypeConsent.status == 'withdrawn'
+        && request.resource.data.bodyTypeConsent.withdrawnAt == request.time
+        && resource.data.bodyTypeConsent.status == 'accepted'
+        && request.resource.data.bodyTypeConsent.acceptedAt
+           == resource.data.bodyTypeConsent.acceptedAt
+        && request.resource.data.consentSeq == resource.data.consentSeq + 1
+        && request.resource.data.consentReceiptId == uid + '_' + string(request.resource.data.consentSeq)
+        && receiptMatches(request.resource.data.consentReceiptId, uid,
+                          'bodytype-withdrawn',
+                          request.resource.data.bodyTypeConsent.version);
 
       // The trainer deletes user docs (reject flow).
       allow delete: if isOwnerUser();
@@ -1012,6 +1083,54 @@ service cloud.firestore {
       allow get: if docId == 'current';
       allow list: if false;
       allow create, update, delete: if isOwnerUser();
+    }
+
+    // ---------- Visual body type estimates (Nivel 2, candidato somatotipo 2026-10-23 — NO publicado) ----------
+    // Segregated, IMMUTABLE collection: one document per analysis.
+    // The stored label is a coarse VISUAL estimate (3 categories)
+    // — never a Heath-Carter measurement and never a diagnosis.
+    // CHAIN CUT: no rule anywhere reads this collection to write
+    // body_type_ratings, training plans or goals; the estimate
+    // never feeds anything automatically.
+    // Consent is re-verified inside the rule at EVERY use (S-1
+    // pattern): create, read and share-update all require the
+    // client's bodyTypeConsent CURRENTLY accepted. Revoking the
+    // consent closes every access immediately. Documents are NOT
+    // auto-deleted on revocation: their physical deletion or
+    // retention period is pending legal validation (D-06).
+    match /body_type_estimates/{estId} {
+      allow get, list: if resource.data.clientUid is string
+        && btConsentActive(resource.data.clientUid)
+        && (btStaffFor(resource.data.clientUid)
+            || (isSelf(resource.data.clientUid) && resource.data.shared == true));
+      allow create: if request.resource.data.clientUid is string
+        && btConsentActive(request.resource.data.clientUid)
+        && btStaffFor(request.resource.data.clientUid)
+        && request.resource.data.keys().hasOnly(['kind', 'clientUid', 'category', 'mix', 'providerId', 'sourceDate', 'sourceDocIds', 'shared', 'requestedBy', 'consentVersion', 'createdAt'])
+        && request.resource.data.keys().hasAll(['kind', 'clientUid', 'category', 'mix', 'providerId', 'sourceDate', 'sourceDocIds', 'shared', 'requestedBy', 'consentVersion', 'createdAt'])
+        && request.resource.data.kind == 'bodyTypeEstimate'
+        && request.resource.data.category in ['ectomorph', 'mesomorph', 'endomorph']
+        && request.resource.data.mix.keys().hasOnly(['ectomorph', 'mesomorph', 'endomorph'])
+        && request.resource.data.mix.ectomorph is number
+        && request.resource.data.mix.mesomorph is number
+        && request.resource.data.mix.endomorph is number
+        && request.resource.data.providerId is string
+        && request.resource.data.sourceDate is string
+        && request.resource.data.sourceDocIds is list
+        && request.resource.data.shared == false
+        && request.resource.data.requestedBy == request.auth.uid
+        && request.resource.data.consentVersion is string
+        && request.resource.data.createdAt == request.time;
+      // The ONLY update ever allowed: staff sharing or unsharing,
+      // and only while the consent is still active. The estimate
+      // itself (category, mix, origin) can never be edited.
+      allow update: if resource.data.clientUid is string
+        && btConsentActive(resource.data.clientUid)
+        && btStaffFor(resource.data.clientUid)
+        && request.resource.data.diff(resource.data).affectedKeys()
+              .hasOnly(['shared', 'sharedAt', 'sharedBy'])
+        && request.resource.data.sharedBy == request.auth.uid;
+      allow delete: if false;
     }
 
     // ---------- Everything else: denied ----------
