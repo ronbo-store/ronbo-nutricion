@@ -1,0 +1,77 @@
+# RONBO NUTRI — Batería de reglas del módulo de somatotipo (Nivel 2)
+# 36 casos contra el emulador oficial de Firestore (proyecto
+# ficticio ronbo-nutri-test), en la vía CI del proyecto (la misma
+# que validó el candidato P8 y la mitigación S-1).
+# El texto probado es el FINAL compuesto para producción:
+# texto vivo 8d80d3fd (línea completa + UX10, 2026-10-24) + SOLO el
+# delta del módulo de somatotipo (bloques byte-idénticos al candidato
+# revisado 8acc2485…): preparacion-local/
+# firestore.rules.candidato-somatotipo-final-2026-10-24.rules,
+# SHA-256 0f99d9faf1ba8de5989181c5eb766806bd57e496216d6ca4ef00dccbecdfd37d.
+# Despliegue autorizado por Ronald el 2026-10-24 («Despliega
+# somatotipo», AUTH-2026-10-24-010); este workflow SOLO valida.
+#
+# INSTALACIÓN (paso futuro): este archivo va en
+# .github/workflows/somatotipo-bateria.yml de una rama
+# ci/somatotipo-bateria que contenga además la carpeta
+# somatotipo-2026-10-23/pruebas-reglas-somatotipo/ accesible desde
+# la raíz del repo. La rama la crea y la empuja la coordinación
+# cuando Ronald autorice componer/publicar — ESTE workflow SOLO
+# valida el candidato; no publica reglas ni despliega nada.
+# Sin secretos, sin credenciales de producción, sin despliegue.
+name: Batería somatotipo (emulador oficial)
+
+on:
+  workflow_dispatch:
+  push:
+    branches: [ci/somatotipo-bateria]
+
+permissions:
+  contents: read
+
+jobs:
+  bateria:
+    name: 36 casos contra el emulador oficial (proyecto ficticio)
+    runs-on: ubuntu-24.04
+    timeout-minutes: 20
+    defaults:
+      run:
+        working-directory: somatotipo-2026-10-23/pruebas-reglas-somatotipo
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: 21
+      - name: Instalar dependencias de la batería (versiones fijadas)
+        run: npm ci
+      - name: Instalar Firebase CLI (versión fijada)
+        run: npm install -g firebase-tools@15.34.0
+      - name: Ejecutar la batería contra el emulador oficial
+        shell: bash
+        run: |
+          set -o pipefail
+          firebase emulators:exec --only firestore --project ronbo-nutri-test "node test-somatotipo.mjs" 2>&1 | tee resultado-bateria.txt
+      - name: Publicar el resultado en el resumen del job (legible por API)
+        if: always()
+        shell: bash
+        run: |
+          {
+            echo '## Batería somatotipo — resultado'
+            grep -E 'RESULTADO SOMATOTIPO' resultado-bateria.txt || true
+            echo ''
+            echo '### Casos FAIL (si los hay)'
+            grep -E '^FAIL — ' resultado-bateria.txt || echo '(ninguno)'
+          } >> "$GITHUB_STEP_SUMMARY"
+      - name: Conservar la evidencia (salida de la batería)
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: evidencia-bateria-somatotipo
+          path: |
+            somatotipo-2026-10-23/pruebas-reglas-somatotipo/resultado-bateria.txt
+            somatotipo-2026-10-23/pruebas-reglas-somatotipo/firestore-debug.log
+          retention-days: 7
