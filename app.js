@@ -1335,7 +1335,7 @@ en: {
   'health.clientTitle': '🏥 Client health declaration',
   'health.regNote': 'You can complete your health declaration later, in your profile, with its own specific consent. It is not required to create your account.',
   'card.toggle': 'Show or hide section',
-  'main.progress': 'Progress', 'main.food': 'Food', 'main.training': 'Training', 'main.pendings': 'Pendings',
+  'main.progress': 'Progress', 'main.food': 'Food', 'main.training': 'Training', 'main.pendings': 'Pendings', 'main.activity': 'Activity',
   'health.panelTitle': '🏥 My health declaration',
   'health.specText': 'I give my SPECIFIC consent for ronbo.nutri to process my health declaration so my trainer can adapt my program and take precautions. Only my trainer and I can see it. I can withdraw this consent at any time: withdrawal blocks my trainer\'s access to my answers, but does not delete them.',
   'health.statusNone': 'You have not given specific consent for health data. Without it, no declaration is collected and your trainer cannot see any health answers.',
@@ -2512,7 +2512,15 @@ en: {
   'act.type.artes_marciales': 'Martial arts',
   'act.type.transporte_activo': 'Active transport (walk / bike)',
   'act.type.otro': 'Other',
-  'act.kcalUnit': 'kcal'
+  'act.kcalUnit': 'kcal',
+  /* Rediseño flotante (2026-10-24): hobbies, configuración y llamita. */
+  'act.hobbiesTitle': 'My hobbies',
+  'act.configTitle': 'Set up my hobbies',
+  'act.configHint': 'Choose the activities you do most — they show up as quick buttons when you tap Activity in the dock. They are saved to your account.',
+  'act.favSave': 'Save hobbies',
+  'act.favSaved': 'Hobbies saved ✓',
+  'act.favLocalNote': 'They could not be saved to your account yet — for now they apply on this device only.',
+  'act.noFavs': 'You have no hobbies chosen yet. Tap ⚙ to pick yours.'
 },
 es: {
   'app.title': 'ronbo.nutri · Privado',
@@ -2545,7 +2553,7 @@ es: {
   'health.clientTitle': '🏥 Declaración de salud del cliente',
   'health.regNote': 'Puedes completar tu declaración de salud más tarde, en tu perfil, con su propio consentimiento específico. No es necesaria para crear tu cuenta.',
   'card.toggle': 'Mostrar u ocultar la sección',
-  'main.progress': 'Progreso', 'main.food': 'Comida', 'main.training': 'Entrenamiento', 'main.pendings': 'Pendientes',
+  'main.progress': 'Progreso', 'main.food': 'Comida', 'main.training': 'Entrenamiento', 'main.pendings': 'Pendientes', 'main.activity': 'Actividad',
   'health.panelTitle': '🏥 Mi declaración de salud',
   'health.specText': 'Doy mi consentimiento ESPECÍFICO para que ronbo.nutri trate mi declaración de salud, para que mi entrenador adapte mi programa y tome precauciones. Solo mi entrenador y yo podemos verla. Puedo retirar este consentimiento cuando quiera: la retirada bloquea el acceso de mi entrenador a mis respuestas, pero no las elimina.',
   'health.statusNone': 'No has dado tu consentimiento específico para datos de salud. Sin él, no se recoge ninguna declaración y tu entrenador no puede ver ninguna respuesta de salud.',
@@ -3723,7 +3731,15 @@ es: {
   'act.type.artes_marciales': 'Artes marciales',
   'act.type.transporte_activo': 'Transporte activo (caminar / bici)',
   'act.type.otro': 'Otro',
-  'act.kcalUnit': 'kcal'
+  'act.kcalUnit': 'kcal',
+  /* Rediseño flotante (2026-10-24): hobbies, configuración y llamita. */
+  'act.hobbiesTitle': 'Mis hobbies',
+  'act.configTitle': 'Configurar mis hobbies',
+  'act.configHint': 'Elige las actividades que más haces — aparecerán como botones rápidos al tocar Actividad en el dock. Se guardan en tu cuenta.',
+  'act.favSave': 'Guardar hobbies',
+  'act.favSaved': 'Hobbies guardados ✓',
+  'act.favLocalNote': 'Aún no se pudieron guardar en tu cuenta — por ahora se aplican solo en este dispositivo.',
+  'act.noFavs': 'Aún no tienes hobbies elegidos. Toca ⚙ para elegir los tuyos.'
 }
 };
 let LANG = 'en';
@@ -7145,7 +7161,9 @@ function wireCardToggle(btnId, contentId, chevId, opts = {}) {
 }
 wireCardToggle('btn-toggle-progress', 'progress-content', 'chev-progress', { scroll: true });
 wireCardToggle('btn-toggle-train', 'train-content', 'chev-train', { scroll: true });
-wireCardToggle('act-strip', 'activity-content', null, { scroll: true });
+/* El rediseño flotante de actividad (2026-10-24) retira el cableado
+   de la tira: el botón ACTIVIDAD del dock y la llamita se cablean en
+   el propio módulo de actividad (junto a ACT_UI). */
 $('btn-view-notice') && $('btn-view-notice').addEventListener('click', () => {
   const n = $('privacy-notice');
   if (n.style.display === 'none') { n.innerHTML = t('terms.body'); n.style.display = ''; }
@@ -9888,6 +9906,14 @@ const mealTimeStr = ms => MEAL_TIME_FMT.format(new Date(ms));
    Guardado idempotente: UN documento activity_logs/{uid}_{fecha}
    con setDoc y construcción local + intercambio (la disciplina
    de la corrección del duplicado).
+   REDISEÑO DE PRESENTACIÓN (2026-10-24, orden de Ronald por
+   correo 13:54; SOLO desarrollo): lo de Q6 queda sustituido —
+   el dock pasa a CINCO botones con ACTIVIDAD a la derecha de
+   ENTRENAMIENTO, la tira y el panel salen de seguimiento, y la
+   presentación es flotante (hobbies + ingreso + llamita del
+   total). El modelo de datos y de cómputo de este encabezado NO
+   cambia; el detalle vive en el bloque «REDISEÑO FLOTANTE»
+   junto a los renders.
    ================================================================ */
 const ACT_MET = {
   correr:             { suave: 8.0,  moderada: 10.0, intensa: 12.0 },
@@ -9936,6 +9962,7 @@ async function loadActivityLogs() {
     ACT_LOGS = fresh;
     ACT_LOADED = true;
   } catch { /* la vista muestra su estado vacío; jamás rompe loadAll */ }
+  await loadActFavs();
   renderActivity(actSelDate());
 }
 
@@ -10020,23 +10047,208 @@ function actDayView(date) {
     hasTransport: acts.some(a => a.type === 'transporte_activo') };
 }
 
-/* TIRA (widget): SOLO vive en #tab-track (pantalla principal).
-   Muestra el extra estructurado que SÍ suma al día. */
-function renderActivityStrip(date) {
-  const strip = $('act-strip'); if (!strip) return;
-  if (!ACT_LOADED) { strip.style.display = 'none'; return; }
-  const v = actDayView(date);
-  strip.style.display = '';
-  strip.innerHTML = `<span class="act-strip-fire" aria-hidden="true">🔥</span>
-    <span class="act-strip-num" id="act-strip-num">${fmt(Math.round(v.extras))} ${t('act.kcalUnit')}</span>
-    <span class="act-strip-label">${t('act.stripLabel')}</span>
-    <span class="act-strip-chev" aria-hidden="true">›</span>`;
+/* ================================================================
+   REDISEÑO FLOTANTE (2026-10-24, orden de Ronald por correo
+   13:54): la tira «Actividad extra» y el panel dentro de
+   seguimiento DESAPARECEN. La actividad vive en el DOCK (botón
+   ACTIVIDAD, el 5º, a la derecha de ENTRENAMIENTO) y en
+   superficies FLOTANTES junto a él, sin salir de la pantalla
+   principal y sin que la página crezca:
+   · #act-float — botones flotantes con los HOBBIES elegidos por
+     el usuario (del catálogo ACT_MET de siempre) + ⚙ de
+     configuración;
+   · #act-entry — hoja flotante de ingreso de un hobby
+     (duración, intensidad, RPE, notas): el MISMO formulario y
+     el MISMO guardado de siempre (actSaveDay → activity_logs);
+   · #act-config — «mis hobbies»: agregar/quitar favoritos del
+     catálogo; se guardan en users/{uid}/preferences/activities
+     {favorites, updatedAt} (precedente del módulo H:
+     preferences/units). Las reglas vivas aún NO tienen bloque
+     preferences/: el delta va como candidato aparte (sin
+     publicar) y, si la escritura fallara, los favoritos quedan
+     en memoria con su aviso honesto (act.favLocalNote) — nunca
+     se finge un guardado que no ocurrió;
+   · #act-flame — la LLAMITA flotante del TOTAL DIARIO, icono
+     aparte y parpadeante; al tocarla, #act-day con el desglose
+     del día y la honestidad del modelo INTACTA (base TDEE,
+     extras que sí suman, pasos/transporte informativos con su
+     aviso de solape, plan «aún sin estimar», sin peso no hay
+     cálculo ni guardado).
+   Una sola superficie abierta a la vez; cierre con ✕, toque
+   fuera o Escape — el patrón de la tarjeta de Pendientes.
+   ================================================================ */
+const ACT_ICONS = { correr: '🏃', ejercicios_en_casa: '🏠', ciclismo: '🚴',
+  natacion: '🏊', futbol: '⚽', baloncesto: '🏀', senderismo: '🥾',
+  baile: '💃', artes_marciales: '🥋', transporte_activo: '🚶', otro: '➕' };
+const ACT_FAV_DEFAULTS = ['correr', 'natacion', 'ciclismo', 'ejercicios_en_casa'];
+let ACT_FAVS = null;          // null = aún sin cargar (se usan los de por defecto)
+let ACT_FAVS_PERSISTED = true;
+
+function actFavs() {
+  const src = Array.isArray(ACT_FAVS) ? ACT_FAVS : ACT_FAV_DEFAULTS;
+  return src.filter(tp => ACT_MET[tp]);
+}
+async function loadActFavs() {
+  if (!auth.currentUser) return;
+  try {
+    const s = await getDoc(doc(db, 'users', auth.currentUser.uid, 'preferences', 'activities'));
+    if (s.exists()) {
+      const v = s.data();
+      if (Array.isArray(v.favorites)) { ACT_FAVS = v.favorites.filter(tp => ACT_MET[tp]); ACT_FAVS_PERSISTED = true; return; }
+    }
+    if (ACT_FAVS === null) ACT_FAVS = [...ACT_FAV_DEFAULTS];
+  } catch { if (ACT_FAVS === null) ACT_FAVS = [...ACT_FAV_DEFAULTS]; }
+}
+async function saveActFavs(list) {
+  ACT_FAVS = list.filter(tp => ACT_MET[tp]);
+  if (!auth.currentUser) { ACT_FAVS_PERSISTED = false; return false; }
+  try {
+    await setDoc(doc(db, 'users', auth.currentUser.uid, 'preferences', 'activities'),
+      { favorites: ACT_FAVS, updatedAt: serverTimestamp() });
+    ACT_FAVS_PERSISTED = true;
+    return true;
+  } catch { ACT_FAVS_PERSISTED = false; return false; }
 }
 
-/* PANEL (Q6): dentro de la pantalla principal de seguimiento. */
-function renderActivity(date) {
-  renderActivityStrip(date);
-  const box = $('activity-content'); if (!box) return;
+const actIsOpen = id => { const el = $(id); return !!el && el.style.display !== 'none'; };
+function actShowOnly(which) {
+  const map = { float: 'act-float', entry: 'act-entry', config: 'act-config', day: 'act-day' };
+  for (const [k, id] of Object.entries(map)) { const el = $(id); if (el) el.style.display = (k === which) ? '' : 'none'; }
+  const b = $('btn-toggle-activity');
+  if (b) {
+    const open = which === 'float' || which === 'entry' || which === 'config';
+    b.setAttribute('aria-expanded', open ? 'true' : 'false');
+    const ch = $('chev-activity'); if (ch) ch.textContent = open ? '▴' : '▾';
+  }
+}
+function actCloseAll() { actShowOnly(null); }
+function actOpenFloat() { renderActHobbies(); actShowOnly('float'); }
+function actOpenDay() { renderActDay(actSelDate()); actShowOnly('day'); }
+function actOpenEntry(type) { if (!ACT_MET[type]) return; renderActEntry(type); actShowOnly('entry'); }
+function actOpenConfig() { renderActConfig(); actShowOnly('config'); }
+
+/* LLAMITA: el TOTAL DIARIO (base + extras que sí suman). Sin
+   evaluación válida no hay total que mostrar: la llamita enseña
+   «—» y el desglose declara la causa — no se disfraza el extra
+   de total. Solo vive en #tab-track (pantalla principal). */
+function renderActFlame(date) {
+  const f = $('act-flame'); if (!f) return;
+  if (!ACT_LOADED) { f.style.display = 'none'; return; }
+  const v = actDayView(date);
+  const base = actBaseInfo();
+  f.style.display = '';
+  const num = $('act-flame-num');
+  if (num) num.textContent = base.ok ? fmt(Math.round(base.tdee + v.extras)) : '—';
+}
+
+/* Botones flotantes de hobbies: los favoritos del usuario. */
+function renderActHobbies() {
+  const body = $('act-float-body'); if (!body) return;
+  const favs = actFavs();
+  body.innerHTML = favs.length
+    ? `<div class="act-hobby-grid">${favs.map(tp => `
+      <button type="button" class="act-chip" data-act-hobby="${tp}">
+        <span class="act-chip-ico" aria-hidden="true">${ACT_ICONS[tp] || '➕'}</span>
+        <span class="act-chip-lab">${esc(t('act.type.' + tp))}</span>
+      </button>`).join('')}</div>`
+    : `<p class="act-note">${t('act.noFavs')}</p>`;
+  body.querySelectorAll('[data-act-hobby]').forEach(b =>
+    b.onclick = () => actOpenEntry(b.dataset.actHobby));
+}
+
+/* Hoja flotante de INGRESO de un hobby: el formulario de siempre
+   (duración, intensidad, RPE, notas; «otro» con su nombre) y el
+   guardado de siempre (actSaveDay). Al guardar, se vuelve a la
+   capa de hobbies para poder encadenar otro ingreso. */
+function renderActEntry(type) {
+  const title = $('act-entry-title');
+  if (title) title.textContent = `${ACT_ICONS[type] || ''} ${t('act.type.' + type)}`.trim();
+  const body = $('act-entry-body'); if (!body) return;
+  const date = actSelDate();
+  const w = actLastWeight();
+  body.innerHTML = `
+    <div class="act-date" style="margin-bottom:6px">${esc(dateName(date))}</div>
+    ${w ? `<div class="act-wref">${t('act.weightRef', { w: fmt(w.weight), d: esc(w.date) })}</div>`
+      : `<div class="act-noweight"><p class="act-note">${t('act.noWeight')}</p><button type="button" class="btn-secondary btn-sm" id="actf-btn-weight">${t('act.noWeightBtn')}</button></div>`}
+    <form class="act-form" id="actf-form">
+      <div id="actf-custom-wrap" style="display:${type === 'otro' ? '' : 'none'}">
+        <label class="act-lab">${t('act.typeCustom')}
+          <input type="text" id="actf-custom" maxlength="60" placeholder="${esc(t('act.typeCustomPh'))}"></label>
+        <p class="act-note">${t('act.otherWarn')}</p>
+      </div>
+      <div class="act-grid">
+        <label class="act-lab">${t('act.duration')} (${t('act.min')})
+          <input type="number" id="actf-dur" min="1" max="600" step="1" inputmode="numeric"></label>
+        <label class="act-lab">${t('act.intensity')}
+          <select id="actf-int">${ACT_INTENSITIES.map(x => `<option value="${x}"${x === 'moderada' ? ' selected' : ''}>${t('act.int.' + x)}</option>`).join('')}</select></label>
+        <label class="act-lab">${t('act.rpe')}
+          <select id="actf-rpe"><option value="">${t('act.rpeNone')}</option>${[1, 2, 3, 4, 5, 6, 7, 8, 9, 10].map(n => `<option value="${n}">${n}</option>`).join('')}</select></label>
+      </div>
+      <p class="act-note">${t('act.rpeNote')}</p>
+      <label class="act-lab">${t('act.notes')}
+        <input type="text" id="actf-notes" maxlength="140" placeholder="${esc(t('act.notesPh'))}"></label>
+      <button type="submit" class="btn-primary btn-sm" id="actf-add">${t('act.addBtn')}</button>
+    </form>`;
+  const wb = $('actf-btn-weight');
+  if (wb) wb.onclick = () => {
+    actCloseAll();
+    const p = $('btn-toggle-progress'); if (p) p.click();
+    const aw = $('btn-add-weight'); if (aw) aw.click();
+  };
+  const form = $('actf-form');
+  if (form) form.onsubmit = async ev => {
+    ev.preventDefault();
+    if (ACT_SAVING) return;
+    const typeCustom = (($('actf-custom') || {}).value || '').trim();
+    const dur = Number((($('actf-dur') || {}).value || ''));
+    const intensity = $('actf-int').value;
+    const rpeRaw = $('actf-rpe').value;
+    const rpe = rpeRaw === '' ? null : Number(rpeRaw);
+    const notes = (($('actf-notes') || {}).value || '').trim();
+    if (type === 'otro' && !typeCustom) { toast(t('act.errTypeCustom'), true); return; }
+    if (!Number.isInteger(dur) || dur < 1 || dur > 600) { toast(t('act.errDuration'), true); return; }
+    if (rpe !== null && (!Number.isInteger(rpe) || rpe < 1 || rpe > 10)) { toast(t('act.errRpe'), true); return; }
+    const btn = $('actf-add'); if (btn) btn.disabled = true;
+    const okSave = await actSaveDay(actSelDate(), dr => { dr.activities.push({ type, typeCustom, durationMin: dur, intensity, rpe, notes }); });
+    if (btn) btn.disabled = false;
+    if (okSave) actOpenFloat();
+  };
+}
+
+/* «Mis hobbies»: agregar/quitar favoritos del catálogo. El orden
+   guardado es el del catálogo (determinista). Sin cuenta o con la
+   escritura denegada (reglas aún sin preferences/), el aviso
+   honesto act.favLocalNote lo dice y la elección vive en memoria. */
+function renderActConfig() {
+  const body = $('act-config-body'); if (!body) return;
+  const favs = actFavs();
+  body.innerHTML = `
+    <p class="act-note">${t('act.configHint')}</p>
+    <div class="act-cfg-list">${ACT_TYPES.map(tp => `
+      <label class="check-row act-cfg-row"><input type="checkbox" data-act-fav="${tp}" ${favs.includes(tp) ? 'checked' : ''}> <span>${ACT_ICONS[tp] || ''} ${esc(t('act.type.' + tp))}</span></label>`).join('')}</div>
+    ${ACT_FAVS_PERSISTED ? '' : `<p class="act-note">${t('act.favLocalNote')}</p>`}
+    <div class="act-cfg-actions"><button type="button" class="btn-primary btn-sm" id="actf-fav-save">${t('act.favSave')}</button></div>`;
+  const sb = $('actf-fav-save');
+  if (sb) sb.onclick = async () => {
+    const list = ACT_TYPES.filter(tp => { const c = body.querySelector(`[data-act-fav="${tp}"]`); return c && c.checked; });
+    sb.disabled = true;
+    const okSave = await saveActFavs(list);
+    sb.disabled = false;
+    if (okSave) { toast(t('act.favSaved')); actOpenFloat(); }
+    else { toast(t('act.favLocalNote'), true); renderActConfig(); }
+  };
+}
+
+/* DESGLOSE DEL DÍA (lo que abre la llamita): el contenido del
+   antiguo panel, con la honestidad del modelo intacta — aviso de
+   estimación, peso de referencia (o su ausencia declarada),
+   pasos con el aviso de solape, lista del día con borrado,
+   resumen de movimiento, vista del día (base + extras = total;
+   el plan «aún sin estimar») y vista habitual separada. El
+   ingreso ya NO vive aquí: vive en los hobbies flotantes. */
+function renderActDay(date) {
+  const box = $('act-day-body'); if (!box) return;
+  const dEl = $('act-day-date'); if (dEl) dEl.textContent = dateName(date);
   const w = actLastWeight();
   const v = actDayView(date);
   const d = v.doc;
@@ -10048,7 +10260,7 @@ function renderActivity(date) {
       <div class="act-row-main"><b>${esc(a.type === 'otro' && a.typeCustom ? a.typeCustom : t('act.type.' + a.type))}</b>
         <span class="act-row-meta">${Math.floor(num(a.durationMin))} ${t('act.min')} · ${t('act.int.' + a.intensity)}${a.rpe ? ' · RPE ' + Math.floor(num(a.rpe)) : ''}</span></div>
       <div class="act-row-kcal">${a.kcalEstimated == null ? '—' : '≈ ' + fmt(a.kcalEstimated) + ' ' + t('act.kcalUnit')}${actIsSummable(a.type) ? '' : ` <span class="act-tag">${t('act.notAddedTag')}</span>`}</div>
-      <button type="button" class="btn-ghost btn-sm" data-act-del="${i}">${t('act.del')}</button>
+      <button type="button" class="btn-ghost btn-sm" data-actd-del="${i}">${t('act.del')}</button>
     </div>${a.type === 'otro' ? `<div class="act-row-note">${t('act.otherWarn')}</div>` : ''}${a.notes ? `<div class="act-row-note">${esc(a.notes)}</div>` : ''}`).join('')
     : `<div class="wempty compact">${t('act.empty')}</div>`;
   const dayHtml = base.ok ? `
@@ -10064,47 +10276,24 @@ function renderActivity(date) {
       <p class="act-note">${t('act.habitualNote')}</p>`
     : `<p class="act-note">${t('act.habitualNone')}</p>`;
   box.innerHTML = `
-    <div class="act-head"><h3 class="history-title" style="margin:0">${t('act.title')}</h3><span class="act-date">${esc(dateName(date))}</span></div>
     <p class="act-note act-est-note">${t('act.estimateNote')}</p>
     ${!ACT_LOADED ? `<div class="wempty compact">${t('act.loading')}</div>` : `
     ${w ? `<div class="act-wref">${t('act.weightRef', { w: fmt(w.weight), d: esc(w.date) })}</div>
       ${staleDays > FB3_STALE_DAYS ? `<div class="fb3-stale">${t('fb3.stale', { d: staleDays })}</div>` : ''}`
-      : `<div class="act-noweight"><p class="act-note">${t('act.noWeight')}</p><button type="button" class="btn-secondary btn-sm" id="act-btn-weight">${t('act.noWeightBtn')}</button></div>`}
+      : `<div class="act-noweight"><p class="act-note">${t('act.noWeight')}</p><button type="button" class="btn-secondary btn-sm" id="actd-btn-weight">${t('act.noWeightBtn')}</button></div>`}
     <div class="act-sec">
-      <label class="act-lab" for="act-steps">${t('act.steps')}</label>
+      <label class="act-lab" for="actd-steps">${t('act.steps')}</label>
       <div class="act-steps-row">
-        <input type="number" id="act-steps" min="0" max="200000" step="1" inputmode="numeric" placeholder="${esc(t('act.stepsPh'))}" value="${d && num(d.steps) > 0 ? Math.floor(num(d.steps)) : ''}">
-        <button type="button" class="btn-secondary btn-sm" id="act-steps-save">${t('act.stepsSave')}</button>
+        <input type="number" id="actd-steps" min="0" max="200000" step="1" inputmode="numeric" placeholder="${esc(t('act.stepsPh'))}" value="${d && num(d.steps) > 0 ? Math.floor(num(d.steps)) : ''}">
+        <button type="button" class="btn-secondary btn-sm" id="actd-steps-save">${t('act.stepsSave')}</button>
       </div>
-      ${d && num(d.steps) > 0 ? `<div class="act-steps-info" id="act-steps-info">${t('act.stepsInfo', { km: fmt(num(d.stepKm)), kcal: fmt(num(d.stepKcal)) })}</div>` : ''}
+      ${d && num(d.steps) > 0 ? `<div class="act-steps-info" id="actd-steps-info">${t('act.stepsInfo', { km: fmt(num(d.stepKm)), kcal: fmt(num(d.stepKcal)) })}</div>` : ''}
       <p class="act-note">${t('act.overlapNote')}</p>
     </div>
     <div class="act-sec">
       <h4 class="act-sec-title">${t('act.listTitle')}</h4>
       ${actRows}
     </div>
-    <form class="act-sec act-form" id="act-form">
-      <h4 class="act-sec-title">${t('act.addTitle')}</h4>
-      <label class="act-lab">${t('act.type')}
-        <select id="act-type">${ACT_TYPES.map(tp => `<option value="${tp}">${t('act.type.' + tp)}</option>`).join('')}</select></label>
-      <div id="act-custom-wrap" style="display:none">
-        <label class="act-lab">${t('act.typeCustom')}
-          <input type="text" id="act-custom" maxlength="60" placeholder="${esc(t('act.typeCustomPh'))}"></label>
-        <p class="act-note">${t('act.otherWarn')}</p>
-      </div>
-      <div class="act-grid">
-        <label class="act-lab">${t('act.duration')} (${t('act.min')})
-          <input type="number" id="act-dur" min="1" max="600" step="1" inputmode="numeric"></label>
-        <label class="act-lab">${t('act.intensity')}
-          <select id="act-int">${ACT_INTENSITIES.map(x => `<option value="${x}"${x === 'moderada' ? ' selected' : ''}>${t('act.int.' + x)}</option>`).join('')}</select></label>
-        <label class="act-lab">${t('act.rpe')}
-          <select id="act-rpe"><option value="">${t('act.rpeNone')}</option>${[1, 2, 3, 4, 5, 6, 7, 8, 9, 10].map(n => `<option value="${n}">${n}</option>`).join('')}</select></label>
-      </div>
-      <p class="act-note">${t('act.rpeNote')}</p>
-      <label class="act-lab">${t('act.notes')}
-        <input type="text" id="act-notes" maxlength="140" placeholder="${esc(t('act.notesPh'))}"></label>
-      <button type="submit" class="btn-primary btn-sm" id="act-add">${t('act.addBtn')}</button>
-    </form>
     <div class="act-sec">
       <div class="act-line"><span>${t('act.sumSteps')}</span><b>${fmt(v.stepKcal)} ${t('act.kcalUnit')}</b></div>
       <div class="act-line"><span>${t('act.sumExtra')}</span><b>${fmt(Math.round(v.extras))} ${t('act.kcalUnit')}</b></div>
@@ -10120,47 +10309,60 @@ function renderActivity(date) {
       <h4 class="act-sec-title">${t('act.habitualTitle')}</h4>
       ${habitualHtml}
     </div>`}`;
-  const typeSel = $('act-type');
-  if (typeSel) typeSel.onchange = () => { const cw = $('act-custom-wrap'); if (cw) cw.style.display = typeSel.value === 'otro' ? '' : 'none'; };
-  const sBtn = $('act-steps-save');
+  const sBtn = $('actd-steps-save');
   if (sBtn) sBtn.onclick = async () => {
-    const raw = ($('act-steps') || {}).value;
+    const raw = ($('actd-steps') || {}).value;
     const steps = (raw === '' || raw === undefined) ? 0 : Number(raw);
     if (!Number.isInteger(steps) || steps < 0 || steps > 200000) { toast(t('act.errSteps'), true); return; }
     sBtn.disabled = true;
     await actSaveDay(date, dr => { dr.steps = steps; });
     sBtn.disabled = false;
   };
-  box.querySelectorAll('[data-act-del]').forEach(b => b.onclick = async () => {
-    const i = parseInt(b.dataset.actDel, 10);
+  box.querySelectorAll('[data-actd-del]').forEach(b => b.onclick = async () => {
+    const i = parseInt(b.dataset.actdDel, 10);
     b.disabled = true;
     await actSaveDay(date, dr => { dr.activities.splice(i, 1); });
   });
-  const form = $('act-form');
-  if (form) form.onsubmit = async ev => {
-    ev.preventDefault();
-    if (ACT_SAVING) return;
-    const type = $('act-type').value;
-    if (!ACT_MET[type]) return;
-    const typeCustom = (($('act-custom') || {}).value || '').trim();
-    const dur = Number((($('act-dur') || {}).value || ''));
-    const intensity = $('act-int').value;
-    const rpeRaw = $('act-rpe').value;
-    const rpe = rpeRaw === '' ? null : Number(rpeRaw);
-    const notes = (($('act-notes') || {}).value || '').trim();
-    if (type === 'otro' && !typeCustom) { toast(t('act.errTypeCustom'), true); return; }
-    if (!Number.isInteger(dur) || dur < 1 || dur > 600) { toast(t('act.errDuration'), true); return; }
-    if (rpe !== null && (!Number.isInteger(rpe) || rpe < 1 || rpe > 10)) { toast(t('act.errRpe'), true); return; }
-    const btn = $('act-add'); if (btn) btn.disabled = true;
-    await actSaveDay(date, dr => { dr.activities.push({ type, typeCustom, durationMin: dur, intensity, rpe, notes }); });
-    if (btn) btn.disabled = false;
-  };
-  const wBtn = $('act-btn-weight');
+  const wBtn = $('actd-btn-weight');
   if (wBtn) wBtn.onclick = () => {
+    actCloseAll();
     const p = $('btn-toggle-progress'); if (p) p.click();
     const aw = $('btn-add-weight'); if (aw) aw.click();
   };
 }
+
+/* Render maestro del módulo: lo llaman los mismos sitios de
+   siempre (render(), loadAll/loadActivityLogs, actSaveDay, el
+   flujo F-A). Refresca la llamita SIEMPRE y las superficies
+   abiertas que no son formularios en curso (hobbies y desglose);
+   el ingreso y la configuración se pintan al abrirse y no se
+   re-pintan bajo los dedos del usuario. */
+function renderActivity(date) {
+  renderActFlame(date);
+  if (actIsOpen('act-float')) renderActHobbies();
+  if (actIsOpen('act-day')) renderActDay(date);
+}
+
+/* ---------- cableado del dock, la llamita y los cierres ---------- */
+{ const b = $('btn-toggle-activity');
+  if (b) b.onclick = () => { if (actIsOpen('act-float')) actCloseAll(); else actOpenFloat(); }; }
+{ const f = $('act-flame');
+  if (f) f.onclick = () => { if (actIsOpen('act-day')) actCloseAll(); else actOpenDay(); }; }
+{ const c = $('btn-act-close'); if (c) c.onclick = () => actCloseAll(); }
+{ const g = $('btn-act-config'); if (g) g.onclick = () => actOpenConfig(); }
+{ const c = $('btn-act-entry-close'); if (c) c.onclick = () => actOpenFloat(); }
+{ const c = $('btn-act-config-close'); if (c) c.onclick = () => actOpenFloat(); }
+{ const c = $('btn-act-day-close'); if (c) c.onclick = () => actCloseAll(); }
+/* Cierre tocando fuera (el botón ACTIVIDAD del dock y la llamita
+   se excluyen: sus propios onclick ya alternan). */
+document.addEventListener('click', e => {
+  if (!['act-float', 'act-entry', 'act-config', 'act-day'].some(actIsOpen)) return;
+  for (const id of ['act-float', 'act-entry', 'act-config', 'act-day']) { const el = $(id); if (el && el.contains(e.target)) return; }
+  const b = $('btn-toggle-activity'); if (b && b.contains(e.target)) return;
+  const f = $('act-flame'); if (f && f.contains(e.target)) return;
+  actCloseAll();
+});
+document.addEventListener('keydown', e => { if (e.key === 'Escape') actCloseAll(); });
 
 function render(date) {
   $('dateTitle').textContent = dateName(date);

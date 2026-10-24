@@ -187,10 +187,14 @@
   <div class="rings" id="rings"></div>
   <p class="rings-first-note" id="rings-note" style="display:none"></p>
 
-  <!-- Registro de actividad (desarrollo 2026-10-24, Q6): TIRA/widget SOLO
-       en la pantalla principal (#tab-track) y PANEL dentro de esta misma
-       vista. El dock NO crece: sigue en cuatro botones redondos. -->
-  <button type="button" class="act-strip" id="act-strip" style="display:none" aria-expanded="false"></button>
+  <!-- Registro de actividad — REDISEÑO FLOTANTE (desarrollo
+       2026-10-24, orden de Ronald por correo 13:54): la tira
+       «Actividad extra» y el panel dentro de esta vista SE RETIRAN.
+       La actividad vive ahora en el dock (5º botón ACTIVIDAD, a la
+       derecha de ENTRENAMIENTO) con botones flotantes de hobbies,
+       hoja flotante de ingreso y la LLAMITA flotante del total
+       diario — todo junto al dock, al final de #tab-track. El
+       modelo de datos y de cómputo NO cambia (activity_logs). -->
 
   <div class="panel week-panel">
     <h2 data-i18n="track.weekTitle">📈 Weekly goal compliance</h2>
@@ -285,9 +289,6 @@
     </div>
     <div id="ai-off-note" class="progress-hint" style="display:none" data-i18n="ai.disabledByAdmin">AI analysis is turned off by the administrator right now. You can keep logging your meals manually; AI analysis will be back when it is turned on again.</div>
     <div id="ai-panel" class="ai-panel" style="display:none"></div>
-    <!-- Panel del registro de actividad (Q6): junto a Progreso /
-         Entrenamiento / análisis, dentro de la pantalla principal. -->
-    <div id="activity-content" style="display:none"></div>
   </div>
   <!-- Botón único «PERMISOS Y PRIVACIDAD» (decisión de Ronald,
        2026-10-19 15:45): UN solo botón discreto y fino sustituye
@@ -360,6 +361,7 @@
       <button type="button" class="round-action" id="btn-toggle-progress" aria-expanded="false" aria-label="My progress" data-i18n-aria="progress.title"><span class="round-circle" aria-hidden="true"><svg width="36" height="36" viewBox="0 0 48 48" fill="#fff" aria-hidden="true" focusable="false"><rect x="9" y="32" width="6" height="7" rx="1.5"/><rect x="17.5" y="27" width="6" height="12" rx="1.5"/><rect x="26" y="22" width="6" height="17" rx="1.5"/><rect x="28.5" y="15" width="13" height="4.6" rx="2.3" transform="rotate(-45 35 17.3)"/><polygon points="31.5,6.8 44,6.8 44,19.3"/></svg></span><span class="round-label"><span data-i18n="main.progress">Progress</span> <span class="round-chev" id="chev-progress" aria-hidden="true">▾</span></span></button>
       <label class="round-action" id="btn-round-food" aria-label="Analyze the food" data-i18n-aria="ai.analyze"><span class="round-circle" aria-hidden="true"><svg width="36" height="36" viewBox="0 0 48 48" fill="#fff" aria-hidden="true" focusable="false"><circle cx="24" cy="18.8" r="2.8"/><path d="M9 36 A15 15 0 0 1 39 36 Z"/><rect x="5.5" y="37.6" width="37" height="3.6" rx="1.8"/></svg></span><span class="round-label" data-i18n="main.food">Food</span><input type="file" id="ai-file" accept="image/*" multiple style="display:none"></label>
       <button type="button" class="round-action" id="btn-toggle-train" aria-expanded="false" aria-label="My training plan" data-i18n-aria="train.title"><span class="round-circle" aria-hidden="true"><svg width="36" height="36" viewBox="0 0 48 48" fill="#fff" aria-hidden="true" focusable="false"><rect x="6" y="22.2" width="36" height="3.6" rx="1.8"/><rect x="9.5" y="17.5" width="4.6" height="13" rx="2"/><rect x="16.4" y="13.5" width="5" height="21" rx="2.2"/><rect x="26.6" y="13.5" width="5" height="21" rx="2.2"/><rect x="33.9" y="17.5" width="4.6" height="13" rx="2"/></svg></span><span class="round-label"><span data-i18n="main.training">Training</span> <span class="round-chev" id="chev-train" aria-hidden="true">▾</span></span></button>
+      <button type="button" class="round-action" id="btn-toggle-activity" aria-expanded="false" aria-label="Activity" data-i18n-aria="main.activity"><span class="round-circle" aria-hidden="true"><svg width="36" height="36" viewBox="0 0 48 48" fill="none" stroke="#fff" stroke-width="4.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><polyline points="5,24 15,24 20,11 27,37 32,24 43,24"/></svg></span><span class="round-label"><span data-i18n="main.activity">Activity</span> <span class="round-chev" id="chev-activity" aria-hidden="true">▾</span></span></button>
       <button type="button" class="round-action" id="btn-toggle-pend" aria-expanded="false" aria-label="Pendings" data-i18n-aria="main.pendings"><span class="round-circle" aria-hidden="true"><svg width="36" height="36" viewBox="0 0 48 48" fill="#fff" aria-hidden="true" focusable="false"><circle cx="24" cy="7.5" r="2.7"/><path d="M24 11.5c-6.4 0-10.8 4.7-10.8 11.2 0 4.9-1 7.2-2.6 9.4-.5.7-.1 1.7.8 1.7h25.2c.9 0 1.3-1 .8-1.7-1.6-2.2-2.6-4.5-2.6-9.4 0-6.5-4.4-11.2-10.8-11.2z"/><rect x="8.5" y="35.6" width="31" height="3.6" rx="1.8"/><circle cx="24" cy="42.6" r="3"/></svg></span><span class="round-label" data-i18n="main.pendings">Pendings</span></button>
     </div>
   </div>
@@ -396,6 +398,54 @@
       <button type="button" class="pend-close" id="btn-ring-detail-close" aria-label="Close" data-i18n-aria="client.close">✕</button>
     </div>
     <div id="ring-detail-body"></div>
+  </div>
+  <!-- Registro de actividad — capa FLOTANTE (rediseño 2026-10-24):
+       todo vive junto al dock, dentro de #tab-track, sin navegar
+       fuera de la pantalla principal y sin que la página crezca.
+       · #act-flame: la LLAMITA del TOTAL DIARIO (icono flotante
+         aparte, parpadeante); al tocarla se abre #act-day.
+       · #act-float: los botones flotantes de los HOBBIES elegidos
+         por el usuario (+ ⚙ de configuración); lo abre el botón
+         ACTIVIDAD del dock.
+       · #act-entry: la hoja flotante de ingreso de un hobby
+         (duración, intensidad, RPE, notas — el mismo modelo de
+         activity_logs de siempre).
+       · #act-config: «mis hobbies» (agregar/quitar favoritos del
+         catálogo; se guardan en users/{uid}/preferences/activities).
+       · #act-day: el desglose del día con la honestidad del modelo
+         intacta (base TDEE, extras que suman, pasos/transporte
+         informativos con aviso de solape, plan «aún sin estimar»).
+       Una sola superficie abierta a la vez; cierre con ✕, toque
+       fuera o Escape, como la tarjeta de Pendientes. -->
+  <button type="button" class="act-flame" id="act-flame" style="display:none" aria-label="Daily total" data-i18n-aria="act.dayTotal"><span class="act-flame-ico" aria-hidden="true">🔥</span><span class="act-flame-num" id="act-flame-num">—</span></button>
+  <div class="act-float" id="act-float" style="display:none" role="dialog" aria-label="Activity" data-i18n-aria="main.activity">
+    <div class="pend-head">
+      <h2 data-i18n="act.hobbiesTitle">My hobbies</h2>
+      <button type="button" class="btn-secondary meal-manual-pill" id="btn-act-config" aria-label="Set up my hobbies" data-i18n-aria="act.configTitle">⚙️</button>
+      <button type="button" class="pend-close" id="btn-act-close" aria-label="Close" data-i18n-aria="client.close">✕</button>
+    </div>
+    <div id="act-float-body"></div>
+  </div>
+  <div class="act-float act-sheet" id="act-entry" style="display:none" role="dialog">
+    <div class="pend-head">
+      <h2 id="act-entry-title"></h2>
+      <button type="button" class="pend-close" id="btn-act-entry-close" aria-label="Close" data-i18n-aria="client.close">✕</button>
+    </div>
+    <div id="act-entry-body"></div>
+  </div>
+  <div class="act-float act-sheet" id="act-config" style="display:none" role="dialog" aria-label="Set up my hobbies" data-i18n-aria="act.configTitle">
+    <div class="pend-head">
+      <h2 data-i18n="act.configTitle">Set up my hobbies</h2>
+      <button type="button" class="pend-close" id="btn-act-config-close" aria-label="Close" data-i18n-aria="client.close">✕</button>
+    </div>
+    <div id="act-config-body"></div>
+  </div>
+  <div class="act-float act-sheet" id="act-day" style="display:none" role="dialog" aria-label="Estimate for this day" data-i18n-aria="act.dayTitle">
+    <div class="pend-head">
+      <h2><span data-i18n="act.dayTitle">Estimate for this day</span> <span class="act-date" id="act-day-date"></span></h2>
+      <button type="button" class="pend-close" id="btn-act-day-close" aria-label="Close" data-i18n-aria="client.close">✕</button>
+    </div>
+    <div id="act-day-body"></div>
   </div>
   <!-- Indicador flotante de análisis M8 (Ronald, 2026-10-21): disco
        con anillo de progreso en el CENTRO DE LA PANTALLA (nació sobre
