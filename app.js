@@ -235,6 +235,19 @@ en: {
   'roles.dirUpdate': 'Update the trainer directory (for sign-up)',
   'roles.dirUpdated': 'Trainer directory updated.',
   'roles.noWaiting': 'Nobody is waiting for assignment.',
+  'appr.title': '🆕 Trainer account approvals',
+  'appr.hint': 'Each trainer may approve new accounts up to this limit. Approving an account assigns it to the trainer who approves it. If no limit is set, trainers cannot approve — only you can.',
+  'appr.limitLabel': 'Max approvals per trainer',
+  'appr.saved': 'Approvals limit saved.',
+  'appr.noLimitSet': 'No limit set: trainers cannot approve accounts.',
+  'appr.usedOf': '{used} of {limit} approvals used',
+  'appr.trayTitle': '🆕 New accounts',
+  'appr.trayHint': 'New accounts waiting for approval. Approving one assigns it to you and uses one of your approvals.',
+  'appr.noLimit': 'The administrator has not set an approval limit yet, so you cannot approve accounts.',
+  'appr.exhausted': 'You have used all your approvals.',
+  'appr.none': 'No new accounts are waiting for approval.',
+  'appr.done': 'Account approved — the client is now assigned to you.',
+  'appr.error': 'It could not be completed. Please try again.',
   'progress.title': '📸 My progress',
   'progress.sub': '· photos every 15 days: front, side and back',
   'progress.hint': 'They\'re private: only you can see them. Take a new evaluation every 15 days: front, side and back. Whenever you want, ask your assistant to compare two evaluations and tell you what change it notices.',
@@ -1045,6 +1058,19 @@ es: {
   'roles.dirUpdate': 'Actualizar el directorio de entrenadores (para el registro)',
   'roles.dirUpdated': 'Directorio de entrenadores actualizado.',
   'roles.noWaiting': 'Nadie está esperando asignación.',
+  'appr.title': '🆕 Aprobaciones por entrenadores',
+  'appr.hint': 'Cada entrenador puede aprobar cuentas nuevas hasta este límite. Al aprobar, la cuenta queda asignada al entrenador que la aprueba. Si no hay límite fijado, los entrenadores no pueden aprobar: solo tú.',
+  'appr.limitLabel': 'Máximo de aprobaciones por entrenador',
+  'appr.saved': 'Límite de aprobaciones guardado.',
+  'appr.noLimitSet': 'Sin límite fijado: los entrenadores no pueden aprobar cuentas.',
+  'appr.usedOf': '{used} de {limit} aprobaciones usadas',
+  'appr.trayTitle': '🆕 Cuentas nuevas',
+  'appr.trayHint': 'Cuentas nuevas en espera de aprobación. Al aprobar una, queda asignada a ti y consume una de tus aprobaciones.',
+  'appr.noLimit': 'El administrador aún no fijó un límite de aprobaciones, así que no puedes aprobar cuentas.',
+  'appr.exhausted': 'Ya usaste todas tus aprobaciones.',
+  'appr.none': 'No hay cuentas nuevas en espera de aprobación.',
+  'appr.done': 'Cuenta aprobada: el cliente queda asignado a ti.',
+  'appr.error': 'No se pudo completar. Inténtalo de nuevo.',
   'progress.title': '📸 Mi progreso',
   'progress.sub': '· fotos cada 15 días: frente, costado y espalda',
   'progress.hint': 'Son privadas: solo tú las ves. Haz una nueva evaluación cada 15 días: frente, costado y espalda. Cuando quieras, pídele a tu asistente que compare dos evaluaciones y te diga qué cambio nota.',
@@ -2145,6 +2171,36 @@ async function loadAdmin() {
       toast(t('roles.dirUpdated'));
     };
   }
+  /* N-07 (decisión de Ronald, 2026-10-23 19:39): el límite de
+     aprobaciones por entrenador vive en app_settings/approvals y
+     SOLO el administrador lo escribe (esta superficie ya es solo
+     suya; el candidato de reglas lo exige). Sin límite fijado, el
+     entrenador no puede aprobar (fail-closed en las reglas). */
+  const apprBox = $('approvals-limit-box');
+  if (apprBox) {
+    (async () => {
+      let lim = null;
+      try { const s = await getDoc(doc(db, 'app_settings', 'approvals')); if (s.exists() && isFinite(Number(s.data().maxPerTrainer))) lim = Number(s.data().maxPerTrainer); } catch {}
+      const trainers = ADMIN_USERS.filter(u => !u.isOwner && u.role === 'entrenador');
+      apprBox.innerHTML = `
+        <div class="user-row">
+          <div><label class="muted">${t('appr.limitLabel')} <input type="number" id="appr-limit-input" min="0" step="1" value="${lim === null ? '' : lim}" style="width:90px"></label>
+          ${lim === null ? `<br><span class="muted">${t('appr.noLimitSet')}</span>` : ''}</div>
+          <div class="user-actions"><button class="btn-primary btn-sm" id="appr-limit-save">${t('form.save')}</button></div>
+        </div>`
+        + trainers.map(u => `<div class="user-row"><div><b>${esc(u.name || u.email || u.id)}</b></div><div class="user-actions"><span class="muted">${t('appr.usedOf', { used: Number(u.approvalsUsed) || 0, limit: lim === null ? '—' : lim })}</span></div></div>`).join('');
+      const saveBtn = $('appr-limit-save');
+      if (saveBtn) saveBtn.onclick = async () => {
+        const v = parseInt(($('appr-limit-input') || {}).value, 10);
+        if (!isFinite(v) || v < 0) { toast(t('appr.error')); return; }
+        try {
+          await setDoc(doc(db, 'app_settings', 'approvals'), { maxPerTrainer: v, updatedAt: serverTimestamp(), updatedBy: auth.currentUser.uid });
+          toast(t('appr.saved'));
+          await loadAdmin();
+        } catch { toast(t('appr.error')); }
+      };
+    })();
+  }
   document.querySelectorAll('[data-goals]').forEach(b => b.onclick = () => {
     const u = ADMIN_USERS.find(x => x.id === b.dataset.goals);
     if (u) openGoals(u.id, u.name || u.email, u.goals);
@@ -2304,6 +2360,7 @@ async function loadClients() {
      en espera NO son del entrenador hasta que se le asignen. */
   const clients = users.filter(u => !u.isOwner && (ROLE === 'administrador' || u.trainerUid === auth.currentUser.uid));
   renderWaitingTray(users);
+  renderApprovalsTray(users);
   let weights = [];
   try {
     const clientIds = clients.map(u => u.id);
@@ -2369,6 +2426,57 @@ function renderWaitingTray(users) {
     await setDoc(doc(db, 'users', b.dataset.assign), { trainerUid: sel.value, assignmentStatus: 'assigned' }, { merge: true });
     toast(t('roles.assigned'));
     await loadClients();
+  });
+}
+
+/* N-07 (decisión de Ronald, 2026-10-23 19:39): bandeja de cuentas
+   NUEVAS del entrenador — sin aprobar, en espera de asignación o
+   asignadas a él desde el registro. Aprobar (solo dentro del cupo
+   que fija el administrador en app_settings/approvals) asigna la
+   cuenta AL APROBADOR en un solo lote atómico con su contador
+   approvalsUsed +1, como verifica el candidato de reglas. Sin
+   límite fijado, la bandeja informa y los botones nacen
+   deshabilitados (fail-closed, igual que las reglas). El
+   administrador NO usa esta bandeja: la suya (Acceso) no tiene
+   límite ni contador. */
+async function renderApprovalsTray(myUsers) {
+  const box = $('approvals-box'); if (!box) return;
+  if (ROLE !== 'entrenador') { box.style.display = 'none'; box.innerHTML = ''; return; }
+  const me = auth.currentUser.uid;
+  let limit = null;
+  try { const s = await getDoc(doc(db, 'app_settings', 'approvals')); if (s.exists() && isFinite(Number(s.data().maxPerTrainer))) limit = Number(s.data().maxPerTrainer); } catch {}
+  let myUsed = isFinite(Number(UDATA && UDATA.approvalsUsed)) ? Number(UDATA.approvalsUsed) : 0;
+  try { const mine = await getDoc(doc(db, 'users', me)); if (mine.exists() && isFinite(Number(mine.data().approvalsUsed))) myUsed = Number(mine.data().approvalsUsed); } catch {}
+  let waiting = [];
+  try {
+    const snap = await getDocs(query(collection(db, 'users'), where('assignmentStatus', '==', 'waiting'), where('approved', '==', false)));
+    snap.forEach(d => waiting.push({ id: d.id, ...d.data() }));
+  } catch {}
+  const minePending = (myUsers || []).filter(u => !u.isOwner && u.approved !== true && u.trainerUid === me);
+  const seen = new Set(); const pend = [];
+  [...minePending, ...waiting.filter(u => !u.isOwner && u.approved !== true)].forEach(u => { if (!seen.has(u.id)) { seen.add(u.id); pend.push(u); } });
+  const canApprove = limit !== null && myUsed < limit;
+  box.style.display = '';
+  box.innerHTML = `<h3 class="history-title">${t('appr.trayTitle')} (${pend.length})</h3>
+    <p class="progress-hint">${t('appr.trayHint')}</p>
+    <p class="progress-hint">${limit === null ? t('appr.noLimit') : (canApprove ? t('appr.usedOf', { used: myUsed, limit }) : t('appr.exhausted'))}</p>`
+    + (pend.length ? pend.map(u => `
+    <div class="user-row">
+      <div><b>${esc(u.name || '—')}</b><br><span class="muted">${esc(u.email || '')}</span></div>
+      <div class="user-actions"><button class="btn-primary btn-sm" data-trainer-approve="${u.id}"${canApprove ? '' : ' disabled'}>${t('admin.approve')}</button></div>
+    </div>`).join('') : `<div class="wempty">${t('appr.none')}</div>`);
+  box.querySelectorAll('[data-trainer-approve]').forEach(b => b.onclick = async () => {
+    b.disabled = true;
+    try {
+      const batch = writeBatch(db);
+      batch.update(doc(db, 'users', b.dataset.trainerApprove),
+        { approved: true, trainerUid: me, assignmentStatus: 'assigned', approvedBy: me, approvedAt: serverTimestamp() });
+      batch.update(doc(db, 'users', me), { approvalsUsed: myUsed + 1 });
+      await batch.commit();
+      if (UDATA) UDATA.approvalsUsed = myUsed + 1;
+      toast(t('appr.done'));
+      await loadClients();
+    } catch { toast(t('appr.error')); b.disabled = false; }
   });
 }
 

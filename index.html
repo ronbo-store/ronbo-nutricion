@@ -369,6 +369,9 @@
     <h3 class="history-title" data-i18n="access.users">Users with access</h3>
     <div id="users-list"><div class="wempty" data-i18n="access.loading">Loading…</div></div>
     <div id="trainer-dir-box"></div>
+    <h3 class="history-title" data-i18n="appr.title">🆕 Trainer account approvals</h3>
+    <p class="progress-hint" data-i18n="appr.hint">Each trainer may approve new accounts up to this limit. Approving an account assigns it to the trainer who approves it. If no limit is set, trainers cannot approve — only you can.</p>
+    <div id="approvals-limit-box"></div>
     <h3 class="history-title" data-i18n="limits.title">🤖 Analysis limits</h3>
     <p class="progress-hint" data-i18n="limits.hint">Daily photo-analysis limits, set only by you. Each account uses its own limit if it has one, otherwise its trainer's, otherwise the global one. No limit set means unlimited.</p>
     <p class="progress-hint" data-i18n="limits.countNote">The counter measures requests to the service; a full analysis normally uses two.</p>
@@ -385,6 +388,7 @@
     <p class="progress-hint" data-i18n="clients.hint">Each client must upload their weight every week. Select one to see their full history, edit their weigh-ins, or add new ones. You set their goals under "Access management".</p>
     <div id="clients-list"><div class="wempty" data-i18n="access.loading">Loading…</div></div>
     <div id="waiting-box" style="display:none"></div>
+    <div id="approvals-box" style="display:none"></div>
     <div id="client-detail" style="display:none"></div>
   </div>
   </div><!-- /tab-clients -->
@@ -602,6 +606,6 @@
 <div id="toast" class="toast"></div>
 <div id="print-card" aria-hidden="true"></div>
 
-<script type="module" src="app.js?v=20261023-usabilidad"></script>
+<script type="module" src="app.js?v=20261023-n07"></script>
 </body>
 </html>
