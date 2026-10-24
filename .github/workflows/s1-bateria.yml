@@ -2,9 +2,12 @@
 # 17 casos contra el emulador oficial de Firestore (proyecto
 # ficticio ronbo-nutri-test), en la vía CI del proyecto (la misma
 # que validó el candidato P8 con CI 170 y la línea completa).
-# El candidato es copia byte-idéntica de
+# Corrida original: copia byte-idéntica de
 # preparacion-local/firestore.rules.candidato-s1-2026-10-23.rules
 # (SHA-256 a292011a…; delta SOLO S-1 sobre el texto vivo e5efaef2).
+# Corrida 2026-10-24 (UX10): la batería corre sobre el texto final
+# compuesto preparacion-local/firestore.rules.candidato-ux10-visto-2026-10-24.rules
+# (SHA-256 e114e69c…), que conserva el delta S-1 íntegro.
 #
 # INSTALACIÓN (paso futuro, junto con la composición/publicación):
 # este archivo va en .github/workflows/s1-bateria.yml de una rama

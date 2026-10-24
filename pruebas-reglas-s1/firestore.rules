@@ -824,6 +824,18 @@ service cloud.firestore {
               || !request.resource.data.diff(resource.data).affectedKeys()
                     .hasAny(['comp'])
               || compModeIsClient(request.auth.uid)));
+      // Delta propuestas-visto UX10 (2026-10-24): el entrenador
+      // asignado marca la propuesta de su cliente como vista —
+      // solo seenAt/seenBy, solo planProposal, seenBy = él mismo.
+      // El helper isAssignedTrainerOf ya existe en este texto
+      // (vino con la línea); la rama es subconjunto expreso del
+      // allow update general anterior y documenta la intención
+      // del punto 10 de UX10 en el texto publicado.
+      allow update: if isAssignedTrainerOf(resource.data.ownerUid)
+        && resource.data.get('kind', '') == 'planProposal'
+        && request.resource.data.diff(resource.data).affectedKeys()
+             .hasOnly(['seenAt', 'seenBy'])
+        && request.resource.data.get('seenBy', '') == request.auth.uid;
       allow delete: if isOwnerUser()
         || (signedIn() && resource.data.ownerUid == request.auth.uid);
     }

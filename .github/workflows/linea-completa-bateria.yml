@@ -3,9 +3,11 @@
 # aprobación por entrenadores): 49 aserciones contra el emulador
 # oficial de Firestore (proyecto ficticio ronbo-nutri-test), en la
 # vía CI del proyecto (la misma que validó el candidato P8 con
-# CI 170). El candidato es copia byte-idéntica de
-# preparacion-local/firestore.rules.candidato-final-2026-10-23.rules
-# (diff: 316 líneas de contenido contra el texto vivo e5efaef2).
+# CI 170). Corrida 2026-10-24 (UX10): el texto bajo prueba es copia
+# byte-idéntica de
+# preparacion-local/firestore.rules.candidato-ux10-visto-2026-10-24.rules
+# (SHA-256 e114e69c…): texto vivo e52ba976 (línea + S-1) + SOLO la
+# rama estrecha del delta propuestas-visto de UX10 (punto 10).
 # Autorización: secuencia coordinada de despliegue de la línea
 # completa, autorizada por Ronald el 2026-10-23 18:48 CDT
 # («Despliega la línea completa»). Este workflow SOLO valida el
