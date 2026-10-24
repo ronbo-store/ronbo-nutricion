@@ -290,6 +290,64 @@ service cloud.firestore {
         && exists(/databases/$(database)/documents/users/$(ownerUid))
         && get(/databases/$(database)/documents/users/$(ownerUid)).data.get('trainerUid', '') == request.auth.uid;
     }
+    // Roles+Escalabilidad (2026-10-24, NO publicado): cupo de
+    // alumnos por nivel de membresía (Básico 5 · Premium 10 ·
+    // Élite 30 · Libre 30 · sin membresía 0).
+    function escLevelQuota(level) {
+      return level == 'basico' ? 5
+        : level == 'premium' ? 10
+        : (level == 'elite' || level == 'libre') ? 30
+        : 0;
+    }
+    // ¿El entrenador tiene cupo libre según su membresía activa y el
+    // contador de su perfil? El propietario (administrador cuando
+    // actúa de entrenador) no consume membresía: siempre abierto.
+    function escQuotaOpen(trainerUid) {
+      return trainerUid is string
+        && exists(/databases/$(database)/documents/users/$(trainerUid))
+        && (get(/databases/$(database)/documents/users/$(trainerUid)).data.get('isOwner', false) == true
+          || (exists(/databases/$(database)/documents/memberships/$(trainerUid))
+              && get(/databases/$(database)/documents/memberships/$(trainerUid)).data.get('status', '') == 'activa'
+              && (!exists(/databases/$(database)/documents/trainer_profiles/$(trainerUid))
+                  || get(/databases/$(database)/documents/trainer_profiles/$(trainerUid)).data.get('activeStudents', 0)
+                       < escLevelQuota(get(/databases/$(database)/documents/memberships/$(trainerUid)).data.get('level', '')))));
+    }
+    // Punto 9 (decisión de Ronald, correo memphis 2026-10-24 14:00
+    // CDT, id 1a16f4933c82667b): el Alumno PUEDE cambiar de
+    // modalidad después — lo solicita él, lo aprueba su entrenador
+    // y lo confirma el administrador. Modalidad y entrenador
+    // VIGENTES de un alumno: la relación es la fuente; sin
+    // documento de relación (cuentas legadas), el espejo de users.
+    function escModalityOf(uid) {
+      return exists(/databases/$(database)/documents/trainer_relations/$(uid))
+        ? get(/databases/$(database)/documents/trainer_relations/$(uid)).data.get('modality', '')
+        : get(/databases/$(database)/documents/users/$(uid)).data.get('modality', '');
+    }
+    function escTrainerOf(uid) {
+      return exists(/databases/$(database)/documents/trainer_relations/$(uid))
+        ? get(/databases/$(database)/documents/trainer_relations/$(uid)).data.get('trainerUid', null)
+        : get(/databases/$(database)/documents/users/$(uid)).data.get('trainerUid', null);
+    }
+    // Forma cerrada de la solicitud de modalidad al nacer (y al
+    // re-solicitar tras un cierre, cuando el documento resultante
+    // vuelve a ser exactamente esta forma): de la modalidad
+    // vigente a OTRA distinta, con el estado inicial que
+    // corresponde — pendiente_entrenador si tiene entrenador;
+    // pendiente_administrador si está en espera (sin entrenador:
+    // el administrador la resuelve completa).
+    function escModReqShapeOk(alumnoUid) {
+      return request.resource.data.keys().hasOnly(['alumnoUid', 'trainerUid', 'fromModality', 'toModality', 'status', 'requestedAt', 'note'])
+        && request.resource.data.alumnoUid == alumnoUid
+        && request.resource.data.requestedAt == request.time
+        && request.resource.data.fromModality == escModalityOf(alumnoUid)
+        && request.resource.data.toModality in ['presencial', 'hibrido', 'virtual']
+        && request.resource.data.toModality != request.resource.data.fromModality
+        && ((request.resource.data.status == 'pendiente_entrenador'
+             && request.resource.data.get('trainerUid', null) == escTrainerOf(alumnoUid)
+             && request.resource.data.get('trainerUid', null) != null)
+          || (request.resource.data.status == 'pendiente_administrador'
+             && request.resource.data.get('trainerUid', null) == null));
+    }
     // Candidato actividad (2026-10-24, NO publicado): lista de
     // claves CERRADA del documento de actividad diaria.
     function actKeysOk() {
@@ -442,6 +500,29 @@ service cloud.firestore {
         && !('bodyTypeConsent' in request.resource.data)
         // A2: registration is the first consent act — it must carry
         // its 'registered' receipt in the same batch (seq starts at 1).
+        // Roles+Escalabilidad (2026-10-24): campos nuevos del
+        // registro, validados SOLO cuando vienen (las cuentas
+        // legadas no los traen). accountType en su lista; una
+        // solicitud de entrenador nace sin entrenador asignado y en
+        // espera; la modalidad dentro de su lista cerrada; features
+        // con claves cerradas, valores booleanos y comidas NUNCA
+        // activas al nacer (solo por solicitud en dos pasos).
+        && (!('accountType' in request.resource.data)
+            || request.resource.data.accountType in ['alumno', 'entrenador'])
+        && (!('roleRequest' in request.resource.data)
+            || (request.resource.data.roleRequest == 'entrenador'
+                && request.resource.data.trainerUid == null
+                && request.resource.data.assignmentStatus == 'waiting'))
+        && (!('modality' in request.resource.data)
+            || request.resource.data.modality in ['presencial', 'hibrido', 'virtual'])
+        && (!('features' in request.resource.data)
+            || (request.resource.data.features.keys().hasOnly(['training', 'activity', 'photos', 'metrics', 'meals', 'somatotype'])
+                && request.resource.data.features.get('meals', false) == false
+                && request.resource.data.features.get('training', true) is bool
+                && request.resource.data.features.get('activity', true) is bool
+                && request.resource.data.features.get('photos', true) is bool
+                && request.resource.data.features.get('metrics', true) is bool
+                && request.resource.data.features.get('somatotype', true) is bool))
         && request.resource.data.consentSeq == 1
         && request.resource.data.consentReceiptId == uid + '_1'
         && receiptMatches(uid + '_1', uid, 'registered',
@@ -478,7 +559,14 @@ service cloud.firestore {
         && request.resource.data.approvedAt == request.time
         && myDoc().get('approvalsUsed', 0) < approvalLimit()
         && getAfter(userPath(request.auth.uid)).data.get('approvalsUsed', 0)
-             == myDoc().get('approvalsUsed', 0) + 1;
+             == myDoc().get('approvalsUsed', 0) + 1
+        // Roles+Escalabilidad: si el aprobador tiene perfil, el
+        // mismo lote suma +1 a su contador de cupo de membresía
+        // (contador DISTINTO del de aprobaciones); sin perfil
+        // (legado) no hay contador que mover.
+        && (!exists(/databases/$(database)/documents/trainer_profiles/$(request.auth.uid))
+            || getAfter(/databases/$(database)/documents/trainer_profiles/$(request.auth.uid)).data.get('activeStudents', 0)
+                 == get(/databases/$(database)/documents/trainer_profiles/$(request.auth.uid)).data.get('activeStudents', 0) + 1);
       // N-07: el entrenador incrementa SOLO su propio contador y
       // SOLO de uno en uno; la aprobación que lo justifica se
       // verifica en la rama anterior dentro del mismo lote (subir
@@ -489,6 +577,25 @@ service cloud.firestore {
              .hasOnly(['approvalsUsed'])
         && request.resource.data.approvalsUsed
              == resource.data.get('approvalsUsed', 0) + 1;
+      // Roles+Escalabilidad (2026-10-24): el ALUMNO cambia de
+      // entrenador (o pasa a espera) — solo los campos espejo
+      // trainerUid/assignmentStatus, acoplado a su documento de
+      // relación (getAfter, patrón A2/N-07): la relación del mismo
+      // lote debe quedar apuntando al mismo destino, y el destino
+      // debe tener cupo abierto (escQuotaOpen). La modalidad NO se
+      // toca en esta rama: su cambio va SOLO por la solicitud de
+      // modality_requests (punto 9, dos pasos con confirmación).
+      allow update: if isSelf(uid)
+        && resource.data.get('isOwner', false) == false
+        && request.resource.data.diff(resource.data).affectedKeys()
+             .hasOnly(['trainerUid', 'assignmentStatus'])
+        && ((request.resource.data.trainerUid == null
+             && request.resource.data.assignmentStatus == 'waiting')
+          || (request.resource.data.trainerUid is string
+             && request.resource.data.assignmentStatus == 'assigned'
+             && escQuotaOpen(request.resource.data.trainerUid)))
+        && getAfter(/databases/$(database)/documents/trainer_relations/$(uid)).data.get('trainerUid', '')
+             == request.resource.data.get('trainerUid', '');
       // A client may update ONLY harmless profile fields of their own doc.
       allow update: if isSelf(uid)
         && request.resource.data.diff(resource.data).affectedKeys()
@@ -1134,9 +1241,9 @@ service cloud.firestore {
     // escritura SOLO del administrador (isOwnerUser). Sin documento,
     // el estado por defecto es ACTIVADO (app y Worker lo tratan así).
     match /app_settings/{docId} {
-      allow get: if signedIn() && docId in ['approvals', 'ai_control'];
+      allow get: if signedIn() && docId in ['approvals', 'ai_control', 'feature_flags', 'membership_catalog'];
       allow list: if false;
-      allow create, update, delete: if isOwnerUser() && docId in ['approvals', 'ai_control'];
+      allow create, update, delete: if isOwnerUser() && docId in ['approvals', 'ai_control', 'feature_flags', 'membership_catalog'];
     }
 
     // ---------- Trainer directory (candidato roles, NO publicado) ----------
@@ -1195,6 +1302,239 @@ service cloud.firestore {
               .hasOnly(['shared', 'sharedAt', 'sharedBy'])
         && request.resource.data.sharedBy == request.auth.uid;
       allow delete: if false;
+    }
+
+    // ---------- Roles+Escalabilidad: membresías (2026-10-24, NO publicado) ----------
+    // memberships/{trainerUid}: nivel/estado/fechas de la membresía
+    // del entrenador. El entrenador SOLO puede solicitar (pasar a
+    // 'pendiente' con un nivel válido); aprobar, conceder, rechazar
+    // y cualquier otra escritura es del administrador. Nadie borra:
+    // el historial de la membresía jamás se elimina (los eventos
+    // viven en audit_log).
+    match /memberships/{trainerUid} {
+      allow get: if isSelf(trainerUid) || isOwnerUser();
+      allow list: if isOwnerUser();
+      allow create: if isOwnerUser()
+        || (isSelf(trainerUid)
+            && request.resource.data.get('status', '') == 'sin_membresia'
+            && request.resource.data.get('level', null) == null);
+      allow update: if isOwnerUser()
+        || (isSelf(trainerUid)
+            && request.resource.data.diff(resource.data).affectedKeys()
+                 .hasOnly(['status', 'requestedLevel', 'requestedAt'])
+            && request.resource.data.status == 'pendiente'
+            && request.resource.data.requestedLevel in ['basico', 'premium', 'elite']
+            && request.resource.data.requestedAt == request.time);
+      allow delete: if false;
+    }
+
+    // ---------- Roles+Escalabilidad: perfiles de entrenador ----------
+    // trainer_profiles/{trainerUid}: modalidades (las escribe el
+    // administrador), bio/disponibilidad (el propio entrenador) y el
+    // contador de cupo activeStudents. El contador se mueve SOLO:
+    // (a) por el administrador; (b) +1 por el propio entrenador en el
+    // lote de una aprobación suya — dirección inocua (solo consume
+    // su propio cupo) y verificada desde la rama de users con
+    // getAfter; nunca -1 por su mano; (c) ±1 por el ALUMNO en el
+    // lote de su cambio de entrenador, acoplado a su relación con
+    // get/getAfter. Lectura con sesión: el pool lo necesita.
+    match /trainer_profiles/{trainerUid} {
+      allow get: if signedIn();
+      allow list: if isApprovedUser();
+      allow create: if isOwnerUser();
+      allow update: if isOwnerUser()
+        || (isSelf(trainerUid)
+            && request.resource.data.diff(resource.data).affectedKeys()
+                 .hasOnly(['bio', 'available', 'displayName', 'updatedAt']))
+        || (isSelf(trainerUid)
+            && request.resource.data.diff(resource.data).affectedKeys()
+                 .hasOnly(['activeStudents', 'updatedAt'])
+            && request.resource.data.activeStudents
+                 == resource.data.get('activeStudents', 0) + 1)
+        || (signedIn()
+            && request.resource.data.diff(resource.data).affectedKeys()
+                 .hasOnly(['activeStudents', 'updatedAt'])
+            && exists(/databases/$(database)/documents/trainer_relations/$(request.auth.uid))
+            && ((request.resource.data.activeStudents == resource.data.get('activeStudents', 0) + 1
+                 && get(/databases/$(database)/documents/trainer_relations/$(request.auth.uid)).data.get('trainerUid', '') != trainerUid
+                 && getAfter(/databases/$(database)/documents/trainer_relations/$(request.auth.uid)).data.get('trainerUid', '') == trainerUid)
+              || (request.resource.data.activeStudents == resource.data.get('activeStudents', 0) - 1
+                 && get(/databases/$(database)/documents/trainer_relations/$(request.auth.uid)).data.get('trainerUid', '') == trainerUid
+                 && getAfter(/databases/$(database)/documents/trainer_relations/$(request.auth.uid)).data.get('trainerUid', '') != trainerUid)));
+      allow delete: if false;
+    }
+
+    // ---------- Roles+Escalabilidad: relación alumno–entrenador ----------
+    // trainer_relations/{alumnoUid}: la relación VIGENTE (id
+    // determinista = uid del alumno, para poder verificar los
+    // cambios acoplados). Abrirla hacia un entrenador exige cupo
+    // abierto (escQuotaOpen). El historial vive en la subcolección
+    // history: solo anexar, jamás editar ni borrar.
+    // MODALIDAD (punto 9, decisión 2026-10-24): la rama del alumno
+    // la mantiene CONGELADA (igualdad exacta) y la del
+    // administrador la deja intacta SOLO mientras la modalidad no
+    // cambie; si la modalidad cambia, la única vía es la
+    // confirmación acoplada de modality_requests (la solicitud en
+    // pendiente_administrador, con el paso del entrenador cumplido
+    // o sin entrenador, que en el mismo lote queda 'aprobada' por
+    // quien firma). Cambio directo de modalidad: denegado siempre.
+    match /trainer_relations/{alumnoUid} {
+      allow get: if isSelf(alumnoUid) || isOwnerUser()
+        || (signedIn() && resource.data.get('trainerUid', '') == request.auth.uid);
+      allow list: if isOwnerUser();
+      allow create: if (isSelf(alumnoUid) || isOwnerUser())
+        && request.resource.data.alumnoUid == alumnoUid
+        && (request.resource.data.get('trainerUid', null) == null
+            || escQuotaOpen(request.resource.data.trainerUid))
+        && (!('modality' in request.resource.data)
+            || request.resource.data.modality in ['presencial', 'hibrido', 'virtual']);
+      allow update: if (isOwnerUser()
+            && request.resource.data.get('modality', '') == resource.data.get('modality', ''))
+        || (isOwnerUser()
+            && request.resource.data.get('modality', '') in ['presencial', 'hibrido', 'virtual']
+            && exists(/databases/$(database)/documents/modality_requests/$(alumnoUid))
+            && get(/databases/$(database)/documents/modality_requests/$(alumnoUid)).data.get('alumnoUid', '') == alumnoUid
+            && get(/databases/$(database)/documents/modality_requests/$(alumnoUid)).data.get('status', '') == 'pendiente_administrador'
+            && get(/databases/$(database)/documents/modality_requests/$(alumnoUid)).data.get('fromModality', '') == resource.data.get('modality', '')
+            && get(/databases/$(database)/documents/modality_requests/$(alumnoUid)).data.get('toModality', '') == request.resource.data.get('modality', '')
+            && (get(/databases/$(database)/documents/modality_requests/$(alumnoUid)).data.get('trainerUid', null) == null
+                || get(/databases/$(database)/documents/modality_requests/$(alumnoUid)).data.get('trainerDecisionBy', '') == get(/databases/$(database)/documents/modality_requests/$(alumnoUid)).data.get('trainerUid', ''))
+            && getAfter(/databases/$(database)/documents/modality_requests/$(alumnoUid)).data.get('status', '') == 'aprobada'
+            && getAfter(/databases/$(database)/documents/modality_requests/$(alumnoUid)).data.get('adminDecisionBy', '') == request.auth.uid)
+        || (isSelf(alumnoUid)
+            && request.resource.data.diff(resource.data).affectedKeys()
+                 .hasOnly(['trainerUid', 'modality', 'status', 'startedAt', 'updatedAt'])
+            && request.resource.data.get('modality', '') == resource.data.get('modality', '')
+            && (request.resource.data.get('trainerUid', null) == null
+                || escQuotaOpen(request.resource.data.trainerUid)));
+      allow delete: if false;
+      match /history/{eventId} {
+        allow get, list: if isSelf(alumnoUid) || isOwnerUser();
+        allow create: if (isSelf(alumnoUid) || isOwnerUser())
+          && request.resource.data.get('by', '') == request.auth.uid;
+        allow update, delete: if false;
+      }
+    }
+
+    // ---------- Roles+Escalabilidad: solicitudes de comidas ----------
+    // meal_requests/{id}: dos pasos — aprueba el entrenador de la
+    // solicitud y confirma el administrador. La confirmación va
+    // acoplada (getAfter) a encender features.meals del alumno en el
+    // mismo lote. Sin borrado: las solicitudes son historial.
+    match /meal_requests/{reqId} {
+      allow get: if isOwnerUser()
+        || (signedIn() && resource.data.get('alumnoUid', '') == request.auth.uid)
+        || (signedIn() && resource.data.get('trainerUid', '') == request.auth.uid);
+      allow list: if isOwnerUser()
+        || (signedIn() && resource.data.get('trainerUid', '') == request.auth.uid)
+        || (signedIn() && resource.data.get('alumnoUid', '') == request.auth.uid);
+      allow create: if signedIn()
+        && request.resource.data.alumnoUid == request.auth.uid
+        && request.resource.data.keys().hasOnly(['alumnoUid', 'trainerUid', 'status', 'requestedAt', 'note'])
+        && request.resource.data.requestedAt == request.time
+        && ((request.resource.data.status == 'pendiente_entrenador'
+             && request.resource.data.trainerUid == myDoc().get('trainerUid', ''))
+          || (request.resource.data.status == 'pendiente_administrador'
+             && request.resource.data.trainerUid == null));
+      allow update: if (signedIn()
+            && resource.data.get('trainerUid', '') == request.auth.uid
+            && resource.data.get('status', '') == 'pendiente_entrenador'
+            && request.resource.data.diff(resource.data).affectedKeys()
+                 .hasOnly(['status', 'trainerDecisionBy', 'trainerDecisionAt'])
+            && request.resource.data.status in ['pendiente_administrador', 'rechazada']
+            && request.resource.data.trainerDecisionBy == request.auth.uid
+            && request.resource.data.trainerDecisionAt == request.time)
+        || (isOwnerUser()
+            && resource.data.get('status', '') == 'pendiente_administrador'
+            && request.resource.data.diff(resource.data).affectedKeys()
+                 .hasOnly(['status', 'adminDecisionBy', 'adminDecisionAt'])
+            && request.resource.data.status in ['aprobada', 'rechazada']
+            && request.resource.data.adminDecisionBy == request.auth.uid
+            && request.resource.data.adminDecisionAt == request.time
+            && (request.resource.data.status == 'rechazada'
+                || getAfter(/databases/$(database)/documents/users/$(resource.data.alumnoUid)).data.get('features', {}).get('meals', false) == true));
+      allow delete: if false;
+    }
+
+    // ---------- Punto 9: solicitudes de cambio de modalidad ----------
+    // modality_requests/{alumnoUid}: UN documento por alumno (id
+    // determinista, como la relación: las reglas verifican los
+    // acoplamientos por get/getAfter sin enumerar). Guarda la
+    // solicitud VIGENTE o la última cerrada; el historial completo
+    // vive en trainer_relations/{alumnoUid}/history y en audit_log
+    // (por eso aquí basta un documento, a diferencia de
+    // meal_requests). Dos pasos, espejo de las comidas: el alumno
+    // solicita → el entrenador de la solicitud aprueba → el
+    // administrador confirma. Sin entrenador, nace directamente
+    // pendiente_administrador y el administrador la resuelve
+    // completa (su rama exige entonces que no haya paso de
+    // entrenador que cumplir). La confirmación va acoplada
+    // (getAfter) a la modalidad nueva en la relación Y en el
+    // espejo de users en el mismo lote — y la rama de
+    // trainer_relations exige esta confirmación para dejar cambiar
+    // la modalidad: el círculo se cierra por los dos lados.
+    // Mientras la solicitud vive, la modalidad NO cambia; un
+    // rechazo en cualquier paso la cierra sin tocar la relación.
+    // Cuarta transición: si el alumno cambia de entrenador con una
+    // solicitud viva, ÉL la cierra como 'cancelada' en el mismo
+    // lote en que su relación pasa a otro entrenador (acoplado por
+    // getAfter a la relación). Sin borrado: es historial.
+    match /modality_requests/{alumnoUid} {
+      allow get: if isOwnerUser() || isSelf(alumnoUid)
+        || (signedIn() && resource.data.get('trainerUid', '') == request.auth.uid);
+      allow list: if isOwnerUser()
+        || (signedIn() && resource.data.get('trainerUid', '') == request.auth.uid)
+        || (signedIn() && resource.data.get('alumnoUid', '') == request.auth.uid);
+      allow create: if isSelf(alumnoUid) && escModReqShapeOk(alumnoUid);
+      allow update: if (isSelf(alumnoUid)
+            && resource.data.get('status', '') in ['rechazada', 'aprobada', 'cancelada']
+            && escModReqShapeOk(alumnoUid))
+        || (signedIn()
+            && resource.data.get('trainerUid', '') == request.auth.uid
+            && resource.data.get('status', '') == 'pendiente_entrenador'
+            && request.resource.data.diff(resource.data).affectedKeys()
+                 .hasOnly(['status', 'trainerDecisionBy', 'trainerDecisionAt'])
+            && request.resource.data.status in ['pendiente_administrador', 'rechazada']
+            && request.resource.data.trainerDecisionBy == request.auth.uid
+            && request.resource.data.trainerDecisionAt == request.time)
+        || (isOwnerUser()
+            && resource.data.get('status', '') == 'pendiente_administrador'
+            && request.resource.data.diff(resource.data).affectedKeys()
+                 .hasOnly(['status', 'adminDecisionBy', 'adminDecisionAt'])
+            && request.resource.data.status in ['aprobada', 'rechazada']
+            && request.resource.data.adminDecisionBy == request.auth.uid
+            && request.resource.data.adminDecisionAt == request.time
+            && (resource.data.get('trainerUid', null) == null
+                || resource.data.get('trainerDecisionBy', '') == resource.data.trainerUid)
+            && (request.resource.data.status == 'rechazada'
+                || (getAfter(/databases/$(database)/documents/trainer_relations/$(alumnoUid)).data.get('modality', '') == resource.data.toModality
+                    && getAfter(/databases/$(database)/documents/users/$(alumnoUid)).data.get('modality', '') == resource.data.toModality)))
+        || (isSelf(alumnoUid)
+            && resource.data.get('status', '') in ['pendiente_entrenador', 'pendiente_administrador']
+            && request.resource.data.diff(resource.data).affectedKeys()
+                 .hasOnly(['status', 'cancelledBy', 'cancelledAt', 'cancelReason'])
+            && request.resource.data.status == 'cancelada'
+            && request.resource.data.cancelledBy == request.auth.uid
+            && request.resource.data.cancelledAt == request.time
+            && request.resource.data.cancelReason == 'cambio_entrenador'
+            && getAfter(/databases/$(database)/documents/trainer_relations/$(alumnoUid)).data.get('trainerUid', null)
+                 != resource.data.get('trainerUid', null));
+      allow delete: if false;
+    }
+
+    // ---------- Roles+Escalabilidad: auditoría (patrón ND-2) ----------
+    // audit_log/{id}: eventos de roles, membresías, relaciones,
+    // comidas y banderas — quién y cuándo. SOLO crear (con el actor
+    // = quien firma), leer solo el administrador, y NADIE actualiza
+    // ni borra: una bitácora alterable no audita.
+    match /audit_log/{logId} {
+      allow create: if signedIn()
+        && request.resource.data.actorUid == request.auth.uid
+        && request.resource.data.keys().hasOnly(['type', 'action', 'actorUid', 'targetUid', 'detail', 'at'])
+        && request.resource.data.type in ['role', 'membership', 'relation', 'meals', 'flags', 'catalog']
+        && request.resource.data.at == request.time;
+      allow get, list: if isOwnerUser();
+      allow update, delete: if false;
     }
 
     // ---------- Everything else: denied ----------
