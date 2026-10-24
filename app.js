@@ -190,8 +190,9 @@ function applyFeatureGates() {
   const manual = document.getElementById('btn-add-meal-manual');
   if (manual) manual.style.display = featureOn('meals') ? '' : 'none';
   if (!featureOn('activity')) {
-    const strip = document.getElementById('act-strip'); if (strip) strip.style.display = 'none';
-    const act = document.getElementById('activity-content'); if (act) act.style.display = 'none';
+    const dockAct = document.getElementById('btn-toggle-activity'); if (dockAct) dockAct.style.display = 'none';
+    const fl = document.getElementById('act-float'); if (fl) fl.style.display = 'none';
+    const flame = document.getElementById('act-flame'); if (flame) flame.style.display = 'none';
   }
   if (!featureOn('training')) {
     const tr = document.getElementById('train-content'); if (tr) tr.style.display = 'none';
