@@ -1167,3 +1167,9 @@ div > .btn-ghost:only-child, div > .btn-main:only-child {
 .train-week { display: flex; flex-wrap: wrap; gap: 6px; align-items: center; margin: 6px 0; }
 .train-week-title { font-size: 12px; font-weight: 700; color: #374151; }
 .train-week-sum { font-size: 12px; color: #4b5563; }
+
+/* MÓDULO B — referencias educativas (P4-3 Etapa 2, desarrollo) */
+.fb2-row { display: flex; justify-content: space-between; gap: 10px; padding: 5px 0; border-bottom: 1px dashed #e5e7eb; font-size: 13px; }
+.fb2-limits { background: #fff8e6; border: 1px solid #ffe1a8; color: #7a5200; border-radius: 10px; padding: 8px 10px; font-size: 12px; margin: 8px 0; }
+.fb2-amdr { margin-top: 8px; font-size: 13px; }
+.fa-b2note { margin-top: 12px; font-size: 12px; color: #6b7280; border-top: 1px solid #e5e7eb; padding-top: 8px; }

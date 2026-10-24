@@ -2192,6 +2192,26 @@ en: {
   'bt.consentSummary': 'Summary: a separate consent for analyzing your body photos and measurements to estimate your body type. The full text, which is the one shown for acceptance, appears next to the checkbox below.',
   'bt.fullTextTitle': 'Full consent text',
   'bt.versionMismatch': 'The recorded consent uses a different version, so it is treated as inactive.',
+  'fb2.title': '📚 Educational references (B)',
+  'fb2.helpBtn': 'About these references',
+  'fb2.help': '<b>What this card is</b><br>Educational reference ranges for the trainer, computed live from the assessment’s estimated expenditure (TDEE). They are references to plan with — never a prescription and never written anywhere.<br><b>Sources and nature</b><br>• Macronutrient bands: IOM AMDR (protein 10–35%, carbohydrates 45–65%, fat 20–35% of energy), shown as information only (decision N-02).<br>• Fat-loss band: the absolute educational framework decided in N-03 (ACSM/NIH: TDEE − 500…1000 kcal/day) with its limits, always visible below.<br>• Maintenance ±5% and surplus +5…15% are the working conventions of the P4-3 plan, labeled educational.<br>• The protein reference in g/kg lives in its own card (B-1) and is not duplicated here.<br><b>What it never does</b><br>It never assigns a deficit, a surplus or goals: the client’s goals are set manually by the trainer, as always.',
+  'fb2.nodata': 'Not enough data yet: these references appear when the assessment holds a current estimated expenditure (TDEE). Nothing is estimated from incomplete data.',
+  'fb2.basis': 'From the assessment’s estimated expenditure without structured exercise (TDEE): {kcal} kcal/day.',
+  'fb2.stale': 'Heads-up: that estimate comes from previous inputs, so read these ranges as an earlier reference.',
+  'fb2.maint': 'Maintenance (TDEE ±5%)',
+  'fb2.loss': 'Fat loss — educational framework (TDEE − 500…1000 kcal/day)',
+  'fb2.gain': 'Muscle gain (TDEE + 5…15%)',
+  'fb2.rangeKcal': '{lo}–{hi} kcal/day',
+  'fb2.limitsTitle': 'Limits of the fat-loss framework — always in view',
+  'fb2.limits': 'Adults 18+ only · Not applicable in pregnancy or lactation, eating disorders, or chronic disease without professional supervision (refer instead) · It applies only over an ESTIMATED TDEE (own uncertainty ≈ ±10%) · Expected rate ≈ 0.5–1 kg/week; a faster rate is not recommended · Never assigned automatically · Does not replace clinical judgment.',
+  'fb2.amdrTitle': 'Macronutrient ranges — AMDR (IOM), informative only',
+  'fb2.amdrProtein': 'Protein · 10–35%',
+  'fb2.amdrCarbs': 'Carbohydrates · 45–65%',
+  'fb2.amdrFat': 'Fat · 20–35%',
+  'fb2.amdrGrams': '{lo}–{hi} g/day at this TDEE',
+  'fb2.flagsNote': 'If this client has active medical flags or an incomplete health declaration, treat every range here with extra caution and refer out when in doubt.',
+  'fb2.nogoals': 'Nothing on this card is copied to the client’s goals: the trainer sets them manually.',
+  'fb2.clientNote': 'Your trainer also works with educational reference ranges (energy and macronutrient bands from public guidelines). Those ranges are educational references, not an individual prescription: your goals are set by your trainer, with you.',
   'fb3.title': '🧮 Protein reference (B-1)',
   'fb3.range': '{lo}–{hi} g/day',
   'fb3.basis': 'Based on the latest weight: {w} kg · {date}',
@@ -3447,6 +3467,26 @@ es: {
   'bt.consentSummary': 'Resumen: un consentimiento independiente para analizar tus fotos corporales y tus medidas para estimar tu tipo de cuerpo. El texto completo, que es el que se muestra para aceptarlo, aparece junto a la casilla, abajo.',
   'bt.fullTextTitle': 'Texto completo del consentimiento',
   'bt.versionMismatch': 'El consentimiento registrado usa otra versión, así que se trata como no activo.',
+  'fb2.title': '📚 Referencias educativas (B)',
+  'fb2.helpBtn': 'Sobre estas referencias',
+  'fb2.help': '<b>Qué es esta tarjeta</b><br>Rangos de referencia educativos para el entrenador, calculados en vivo desde el gasto estimado de la evaluación (TDEE). Son referencias para planificar — nunca una prescripción y nunca se escriben en ningún sitio.<br><b>Fuentes y naturaleza</b><br>• Bandas de macronutrientes: AMDR del IOM (proteína 10–35%, carbohidratos 45–65%, grasa 20–35% de la energía), solo como información (decisión N-02).<br>• Banda de pérdida de grasa: el marco educativo absoluto decidido en N-03 (ACSM/NIH: TDEE − 500…1000 kcal/día) con sus límites, siempre visibles debajo.<br>• Mantenimiento ±5% y superávit +5…15% son las convenciones de trabajo del plan P4-3, etiquetadas como educativas.<br>• La referencia de proteína en g/kg vive en su propia tarjeta (B-1) y no se duplica aquí.<br><b>Lo que nunca hace</b><br>Nunca asigna un déficit, un superávit ni metas: las metas del cliente las fija el entrenador a mano, como siempre.',
+  'fb2.nodata': 'Aún no hay datos suficientes: estas referencias aparecen cuando la evaluación tiene un gasto estimado vigente (TDEE). Con datos incompletos no se estima nada.',
+  'fb2.basis': 'Desde el gasto estimado sin ejercicio estructurado de la evaluación (TDEE): {kcal} kcal/día.',
+  'fb2.stale': 'Ojo: esa estimación viene de entradas anteriores, así que lee estos rangos como una referencia anterior.',
+  'fb2.maint': 'Mantenimiento (TDEE ±5%)',
+  'fb2.loss': 'Pérdida de grasa — marco educativo (TDEE − 500…1000 kcal/día)',
+  'fb2.gain': 'Ganancia muscular (TDEE + 5…15%)',
+  'fb2.rangeKcal': '{lo}–{hi} kcal/día',
+  'fb2.limitsTitle': 'Límites del marco de pérdida de grasa — siempre a la vista',
+  'fb2.limits': 'Solo adultos (18+) · No aplicable en embarazo o lactancia, trastornos de la conducta alimentaria ni enfermedad crónica sin supervisión profesional (en su lugar, derivar) · Se aplica solo sobre un TDEE ESTIMADO (incertidumbre propia ≈ ±10%) · Ritmo esperado ≈ 0,5–1 kg/semana; uno mayor no se recomienda · Nunca se asigna automáticamente · No sustituye el criterio clínico.',
+  'fb2.amdrTitle': 'Rangos de macronutrientes — AMDR (IOM), solo informativo',
+  'fb2.amdrProtein': 'Proteína · 10–35%',
+  'fb2.amdrCarbs': 'Carbohidratos · 45–65%',
+  'fb2.amdrFat': 'Grasa · 20–35%',
+  'fb2.amdrGrams': '{lo}–{hi} g/día con este TDEE',
+  'fb2.flagsNote': 'Si este cliente tiene banderas médicas activas o su declaración de salud incompleta, trata cada rango de aquí con cautela extra y deriva ante la duda.',
+  'fb2.nogoals': 'Nada de esta tarjeta se copia a las metas del cliente: las fija el entrenador a mano.',
+  'fb2.clientNote': 'Tu entrenador trabaja también con rangos de referencia educativos (bandas de energía y macronutrientes de guías públicas). Esos rangos son referencias educativas, no una prescripción individual: tus metas las fija tu entrenador, contigo.',
   'fb3.title': '🧮 Referencia de proteína (B-1)',
   'fb3.range': '{lo}–{hi} g/día',
   'fb3.basis': 'Con el último peso: {w} kg · {date}',
@@ -4874,6 +4914,47 @@ function fb3ProteinHTML(weights) {
     <div class="muted">${t('fb3.nogoals')}</div>${help}</div>`;
 }
 
+/* ================= MÓDULO B (P4-3 Etapa 2, desarrollo) — REFERENCIAS
+   EDUCATIVAS (F-B2 + F-B3-AMDR, decisiones N-02/N-03) =================
+   Tarjeta del ENTRENADOR junto a la evaluación: bandas educativas
+   calculadas EN VIVO desde el TDEE estimado vigente — efímeras,
+   sin persistencia: esta tarjeta NO escribe nada (sin botón de
+   aplicar ni de copiar; las metas se siguen fijando a mano, N-03).
+   La proteína g/kg NO se duplica: vive en su tarjeta B-1 (fb3).
+   Sin resultado vigente en la evaluación: «datos insuficientes» y
+   NINGÚN número (no se estima desde datos incompletos). Si el
+   resultado es de entradas anteriores (faResultStale), se muestra
+   con su aviso de «referencia anterior», como hace F-B3. */
+function fb2CardHTML(a, weights) {
+  const head = `<div class="fb3-head"><h3 class="history-title" style="margin:0">${t('fb2.title')}</h3>
+    <button type="button" class="fb3-helpbtn" id="fb2-help-btn" aria-expanded="false" title="${t('fb2.helpBtn')}">?</button></div>`;
+  const help = `<div class="fb3-pop" id="fb2-help" style="display:none">${t('fb2.help')}</div>`;
+  const last = weights && weights.length ? weights[weights.length - 1] : null;
+  const hasResult = !!a && typeof a.tdeeKcal === 'number' && isFinite(a.tdeeKcal) && a.tdeeKcal > 0 && !!a.computedAt;
+  if (!hasResult) return `<div class="fb3-card fb2-card">${head}<div class="wempty">${t('fb2.nodata')}</div>${help}</div>`;
+  const tdee = a.tdeeKcal;
+  const fmt0 = n => Math.round(n).toLocaleString(LANG === 'es' ? 'es-MX' : 'en-US');
+  const rng = (lo, hi) => t('fb2.rangeKcal', { lo: fmt0(lo), hi: fmt0(hi) });
+  const amdrRow = (labelKey, loPct, hiPct, perGram) => {
+    const lo = Math.round(tdee * loPct / perGram), hi = Math.round(tdee * hiPct / perGram);
+    return `<div class="fb2-row"><span>${t(labelKey)}</span><b>${t('fb2.amdrGrams', { lo: fmt0(lo), hi: fmt0(hi) })}</b></div>`;
+  };
+  return `<div class="fb3-card fb2-card">${head}
+    <div class="muted">${t('fb2.basis', { kcal: fmt0(tdee) })}</div>
+    ${faResultStale(a, last) ? `<div class="fb3-stale">${t('fb2.stale')}</div>` : ''}
+    <div class="fb2-row"><span>${t('fb2.maint')}</span><b>${rng(tdee * 0.95, tdee * 1.05)}</b></div>
+    <div class="fb2-row"><span>${t('fb2.loss')}</span><b>${rng(tdee - 1000, tdee - 500)}</b></div>
+    <div class="fb2-limits"><b>${t('fb2.limitsTitle')}</b><br>${t('fb2.limits')}</div>
+    <div class="fb2-row"><span>${t('fb2.gain')}</span><b>${rng(tdee * 1.05, tdee * 1.15)}</b></div>
+    <div class="fb2-amdr"><b>${t('fb2.amdrTitle')}</b>
+      ${amdrRow('fb2.amdrProtein', 0.10, 0.35, 4)}
+      ${amdrRow('fb2.amdrCarbs', 0.45, 0.65, 4)}
+      ${amdrRow('fb2.amdrFat', 0.20, 0.35, 9)}
+    </div>
+    <div class="muted">${t('fb2.flagsNote')}</div>
+    <div class="muted">${t('fb2.nogoals')}</div>${help}</div>`;
+}
+
 /* ================= MÓDULO H — UNIDADES DE MEDIDA (P4-3 Etapa 1, desarrollo) =================
    Preferencia de unidades POR VISOR en users/{uid}/preferences/units:
    { mass: 'kg'|'lb', height: 'cm'|'ft-in', distance: 'km'|'mi', updatedAt }.
@@ -5303,6 +5384,7 @@ function renderEnergyPanel() {
     <div class="fa-locknote">🔒 ${t('fa.lockNote')}</div>
     ${athleteBlock}
     ${own}
+    <div class="fa-b2note">${t('fb2.clientNote')}</div>
   </div>`;
   const sv = $('fa-sex-save'); if (sv) sv.onclick = saveMySex;
   const dl = $('fa-sex-del'); if (dl) dl.onclick = deleteMySex;
@@ -5533,12 +5615,15 @@ async function openClient(uid) {
     ${fb3ProteinHTML(data)}
     ${faCardHTML(uid, asmtDoc, data)}
     <div id="bt-card"></div>
+    ${fb2CardHTML(asmtDoc, data)}
     <div id="compacc-box"><div class="wempty">${t('access.loading')}</div></div>
     <div id="client-training"></div>
     <div id="client-evals"><div class="eval-actions"><button type="button" class="btn-ghost btn-sm" id="btn-client-evals">${t('teval.open')}</button></div><div id="client-evals-body" style="display:none"></div></div>`;
   $('btn-client-close').onclick = () => { box.style.display = 'none'; box.innerHTML = ''; };
   const fb3b = $('fb3-help-btn');
   if (fb3b) fb3b.onclick = () => { const p = $('fb3-help'); const open = p.style.display !== 'none'; p.style.display = open ? 'none' : ''; fb3b.setAttribute('aria-expanded', String(!open)); };
+  const fb2b = $('fb2-help-btn');
+  if (fb2b) fb2b.onclick = () => { const p = $('fb2-help'); const open = p.style.display !== 'none'; p.style.display = open ? 'none' : ''; fb2b.setAttribute('aria-expanded', String(!open)); };
   const fah = $('fa-help-btn');
   if (fah) fah.onclick = () => { const p = $('fa-help'); const open = p.style.display !== 'none'; p.style.display = open ? 'none' : ''; fah.setAttribute('aria-expanded', String(!open)); };
   const fhm = $('fa-help-more');
