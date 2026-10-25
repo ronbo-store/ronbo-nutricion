@@ -18,9 +18,15 @@
 // documento a documento. El emulador, en listas sin acotar, evalúa
 // con laxitud distinta de producción: por eso la suite NO afirma
 // nada sobre la lista sin filtros — afirma las consultas reales.
-// U10 queda determinista con el ajuste mínimo del delta: el update
-// exige hasAll(['updatedAt','updatedBy']) (toda edición toca su
-// rastro); las semillas llevan la forma que la app escribe.
+// U10/U12 fijan la semántica REAL del rastro, con semillas en la
+// forma que la app escribe (con updatedBy): tras cada edición,
+// updatedBy debe nombrar a quien editó. Si un editor no escribe el
+// campo y el guardado nombraba a OTRO, la igualdad lo deniega
+// (U10, determinista en emulador y producción); si el guardado ya
+// nombraba al propio editor, el rastro sigue siendo veraz (U12).
+// Un hasAll sobre diff() NO sirve para esto: diff() no ve una
+// escritura con el mismo valor y denegaría al autor editando lo
+// suyo — la CI del rediseño lo demostró y el ajuste se descartó.
 import {
   initializeTestEnvironment, assertSucceeds, assertFails
 } from '@firebase/rules-unit-testing';
@@ -172,9 +178,9 @@ await T('U6 editar cambiando createdBy (reescribir autoría)', updateDoc(TPL(tr1
 await T('U7 dueño edita SU privada', updBy(A, 'PV1', 'clientA'), true);
 await T('U8 el entrenador asignado NO edita la privada de su cliente', updBy(tr1, 'PV1', 'trainer1'), false);
 await T('U9 administrador edita una privada ajena (ve y gobierna todo)', updBy(owner, 'PV1', 'owner1'), true);
-await T('U10 editar SIN tocar updatedBy (sin rastro nuevo: hasAll lo deniega siempre)', updateDoc(TPL(tr1, 'TF1'), { nombre_es: 'Sin rastro', updatedAt: serverTimestamp() }), false);
+await T('U10 el administrador edita la de un entrenador SIN escribir updatedBy: el rastro quedaría del autor, no del editor → denegado', updateDoc(TPL(owner, 'TF1'), { nombre_es: 'Sin rastro', updatedAt: serverTimestamp() }), false);
 await T('U11 editar con updatedBy de OTRO (rastro suplantado)', updateDoc(TPL(tr1, 'TF1'), { nombre_es: 'Rastro falso', updatedAt: serverTimestamp(), updatedBy: 'trainer2' }), false);
-await T('U12 edición mínima legítima: solo tocar updatedAt+updatedBy propios (el hasAll no bloquea lo válido)', updateDoc(TPL(tr1, 'TF1'), { updatedAt: serverTimestamp(), updatedBy: 'trainer1' }), true);
+await T('U12 el autor toca solo updatedAt sin reescribir updatedBy: el guardado ya lo nombra a ÉL, el rastro sigue veraz → permitido', updateDoc(TPL(tr1, 'TF1'), { updatedAt: serverTimestamp() }), true);
 
 // ============ PLANTILLAS: borrar (misma matriz que editar) ============
 await T('D1 otro entrenador NO borra la de entrenador ajena', deleteDoc(TPL(tr2, 'TF1')), false);

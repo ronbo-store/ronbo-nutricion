@@ -1366,8 +1366,6 @@ service cloud.firestore {
                'nombre_es', 'nombre_en', 'nivel_es', 'nivel_en',
                'objetivo_es', 'objetivo_en', 'dias_por_semana',
                'days', 'session', 'version', 'updatedAt', 'updatedBy'])
-        && request.resource.data.diff(resource.data)
-             .affectedKeys().hasAll(['updatedAt', 'updatedBy'])
         && request.resource.data.updatedAt == request.time
         && request.resource.data.updatedBy == request.auth.uid;
       allow delete: if isApprovedUser() && tplCanEditDoc();
