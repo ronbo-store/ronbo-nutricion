@@ -1,16 +1,32 @@
 // RONBO NUTRI — Batería CI del delta N-09 (permisos de biblioteca y
 // plantillas). Usuarios FICTICIOS, emulador LOCAL. Nunca toca
-// producción. Banco de reglas: ./firestore.rules (generado por
-// build-fixture.py = candidato de la línea N-07 + delta N-09; es un
-// fixture de pruebas, NO un candidato de publicación).
+// producción. Banco de reglas: ./firestore.rules (fixture de
+// pruebas: candidato de composición + delta N-09; NO es un
+// candidato de publicación).
 // Matriz ejercitada: admin/entrenador/usuario × biblioteca × tres
 // clases de plantilla × leer/crear/modificar/borrar.
+//
+// REDISEÑO 2026-10-24 (tras la detención del paquete en la cadena):
+// la primera versión de esta batería suponía que una LISTA sin
+// filtros se filtra por documento en el servidor — semántica que
+// Firestore NO tiene (las reglas no son filtros): en producción esa
+// consulta se deniega entera. Los casos de lista (serie LQ) prueban
+// ahora LAS CONSULTAS REALES de la app rediseñada (tplFetchClassDocs):
+// una por clase, acotadas a lo que quien lee puede leer, más el get
+// individual de las legadas R01–R08 sin visibility. La matriz GET
+// por documento (serie R) sigue probando el predicado del delta
+// documento a documento. El emulador, en listas sin acotar, evalúa
+// con laxitud distinta de producción: por eso la suite NO afirma
+// nada sobre la lista sin filtros — afirma las consultas reales.
+// U10 queda determinista con el ajuste mínimo del delta: el update
+// exige hasAll(['updatedAt','updatedBy']) (toda edición toca su
+// rastro); las semillas llevan la forma que la app escribe.
 import {
   initializeTestEnvironment, assertSucceeds, assertFails
 } from '@firebase/rules-unit-testing';
 import {
   doc, setDoc, getDoc, getDocs, collection, addDoc,
-  updateDoc, deleteDoc, serverTimestamp
+  updateDoc, deleteDoc, serverTimestamp, query, where
 } from 'firebase/firestore';
 
 const testEnv = await initializeTestEnvironment({
@@ -28,9 +44,9 @@ async function T(name, promise, shouldSucceed) {
     console.log('FAIL — ' + name + ' :: ' + String(e && e.message || e).slice(0, 140));
   }
 }
-async function TList(name, db, mustHave, mustNotHave) {
+async function TQuery(name, q, mustHave, mustNotHave) {
   try {
-    const snap = await getDocs(collection(db, 'routine_templates'));
+    const snap = await getDocs(q);
     const ids = snap.docs.map(d => d.id);
     const ok = mustHave.every(i => ids.includes(i)) && mustNotHave.every(i => !ids.includes(i));
     if (!ok) throw new Error('ids=' + ids.join(','));
@@ -54,11 +70,15 @@ await testEnv.withSecurityRulesDisabled(async (ctx) => {
   await setDoc(doc(db, 'exercise_library', 'E001'), { nombre_es: 'Sentadilla', nombre_en: 'Squat' });
   await setDoc(doc(db, 'exercise_library', 'EDEL'), { nombre_es: 'Borrable', nombre_en: 'Deletable' });
   const days = [{ dia_num: 1, dia_nombre_es: 'Día 1', dia_nombre_en: 'Day 1', exercises: [{ exerciseId: 'E001', series: '4', repeticiones: '8-10' }] }];
-  // RF: LEGADA, sin visibility ni autoría → factory por defecto.
+  // RF y R01: LEGADAS, sin visibility ni autoría → factory por defecto.
+  // (R01 espeja los ids reales de la carga del Paquete 3, R01–R08.)
   await setDoc(doc(db, 'routine_templates', 'RF'), { nombre_es: 'Fábrica legada', nombre_en: 'Legacy factory', dias_por_semana: 1, days, session: [] });
-  await setDoc(doc(db, 'routine_templates', 'TF1'), { nombre_es: 'Del entrenador 1', nombre_en: 'Trainer one', dias_por_semana: 1, days, session: [], visibility: 'trainer', createdBy: 'trainer1', createdByName: 'Entrenador Uno', ownerUid: 'trainer1' });
-  await setDoc(doc(db, 'routine_templates', 'TF2'), { nombre_es: 'Del entrenador 2', nombre_en: 'Trainer two', dias_por_semana: 1, days, session: [], visibility: 'trainer', createdBy: 'trainer2', createdByName: 'Entrenador Dos', ownerUid: 'trainer2' });
-  await setDoc(doc(db, 'routine_templates', 'PV1'), { nombre_es: 'Privada de A', nombre_en: 'A private', dias_por_semana: 1, days, session: [], visibility: 'private', createdBy: 'clientA', createdByName: 'Cliente A', ownerUid: 'clientA' });
+  await setDoc(doc(db, 'routine_templates', 'R01'), { nombre_es: 'Legada R01', nombre_en: 'Legacy R01', dias_por_semana: 1, days, session: [] });
+  // FN1: fábrica CON visibility explícito (la forma de toda carga futura).
+  await setDoc(doc(db, 'routine_templates', 'FN1'), { nombre_es: 'Fábrica nueva', nombre_en: 'New factory', dias_por_semana: 1, days, session: [], visibility: 'factory', createdBy: 'owner1', createdByName: 'Admin Ficticio', ownerUid: null, updatedBy: 'owner1' });
+  await setDoc(doc(db, 'routine_templates', 'TF1'), { nombre_es: 'Del entrenador 1', nombre_en: 'Trainer one', dias_por_semana: 1, days, session: [], visibility: 'trainer', createdBy: 'trainer1', createdByName: 'Entrenador Uno', ownerUid: 'trainer1', updatedBy: 'trainer1' });
+  await setDoc(doc(db, 'routine_templates', 'TF2'), { nombre_es: 'Del entrenador 2', nombre_en: 'Trainer two', dias_por_semana: 1, days, session: [], visibility: 'trainer', createdBy: 'trainer2', createdByName: 'Entrenador Dos', ownerUid: 'trainer2', updatedBy: 'trainer2' });
+  await setDoc(doc(db, 'routine_templates', 'PV1'), { nombre_es: 'Privada de A', nombre_en: 'A private', dias_por_semana: 1, days, session: [], visibility: 'private', createdBy: 'clientA', createdByName: 'Cliente A', ownerUid: 'clientA', updatedBy: 'clientA' });
 });
 
 const owner = testEnv.authenticatedContext('owner1').firestore();
@@ -70,6 +90,13 @@ const noob = testEnv.authenticatedContext('noob1').firestore();
 const anon = testEnv.unauthenticatedContext().firestore();
 const LIB = (db, id) => doc(db, 'exercise_library', id);
 const TPL = (db, id) => doc(db, 'routine_templates', id);
+const TPLC = db => collection(db, 'routine_templates');
+/* Las consultas EXACTAS de la app rediseñada (tplFetchClassDocs). */
+const qFactory = db => query(TPLC(db), where('visibility', '==', 'factory'));
+const qTrainerMine = (db, uid) => query(TPLC(db), where('visibility', '==', 'trainer'), where('createdBy', '==', uid));
+const qTrainerAll = db => query(TPLC(db), where('visibility', '==', 'trainer'));
+const qPrivateMine = (db, uid) => query(TPLC(db), where('visibility', '==', 'private'), where('ownerUid', '==', uid));
+const qPrivateAll = db => query(TPLC(db), where('visibility', '==', 'private'));
 const tplDoc = (over = {}) => ({
   nombre_es: 'Nueva', nombre_en: 'New', dias_por_semana: 1,
   days: [{ dia_num: 1, dia_nombre_es: 'Día 1', dia_nombre_en: 'Day 1', exercises: [{ exerciseId: 'E001', series: '4', repeticiones: '10' }] }],
@@ -89,7 +116,7 @@ await T('L8 biblioteca: modificar como entrenador', updateDoc(LIB(tr1, 'E001'), 
 await T('L9 biblioteca: borrar como entrenador', deleteDoc(LIB(tr1, 'EDEL')), false);
 await T('L10 biblioteca: borrar como administrador', deleteDoc(LIB(owner, 'EDEL')), true);
 
-// ============ PLANTILLAS: lectura por clase ============
+// ============ PLANTILLAS: lectura por documento (matriz del delta) ============
 await T('R1 fábrica legada (sin visibility): la lee un cliente en espera', getDoc(TPL(W, 'RF')), true);
 await T('R2 fábrica legada: la lee el cliente ASIGNADO (resolución 23:15, lectura para todos)', getDoc(TPL(A, 'RF')), true);
 await T('R3 de entrenador: la lee su autor', getDoc(TPL(tr1, 'TF1')), true);
@@ -100,9 +127,25 @@ await T('R7 privada: la lee su dueño', getDoc(TPL(A, 'PV1')), true);
 await T('R8 privada: NO la lee otro cliente', getDoc(TPL(W, 'PV1')), false);
 await T('R9 privada: NO la lee el entrenador asignado del dueño', getDoc(TPL(tr1, 'PV1')), false);
 await T('R10 privada: la lee el administrador (ve todo)', getDoc(TPL(owner, 'PV1')), true);
-await TList('R11 list del entrenador 2: ve fábrica + la suya; NO TF1 ni PV1', tr2, ['RF', 'TF2'], ['TF1', 'PV1']);
-await TList('R12 list del cliente en espera: solo fábrica', W, ['RF'], ['TF1', 'TF2', 'PV1']);
-await TList('R13 list del cliente asignado: fábrica + su privada; NO las de entrenador', A, ['RF', 'PV1'], ['TF1', 'TF2']);
+await T('R14 sin aprobar NO lee ni la de fábrica (puerta isApprovedUser)', getDoc(TPL(noob, 'FN1')), false);
+await T('R15 sin aprobar NO lee una privada', getDoc(TPL(noob, 'PV1')), false);
+await T('R16 anónimo NO lee plantillas', getDoc(TPL(anon, 'FN1')), false);
+
+// ============ PLANTILLAS: las consultas REALES de la app (rediseño) ============
+// La consulta de fábrica devuelve SOLO documentos con el campo
+// puesto: las legadas sin visibility NO aparecen por esta vía (en
+// Firestore una consulta nunca matchea un documento sin el campo) —
+// llegan por el get individual de LQ5, como hace la app.
+await TQuery('LQ1 fábrica por consulta (visibility==factory), cliente en espera: solo FN1; ni legadas ni otras clases', qFactory(W), ['FN1'], ['RF', 'R01', 'TF1', 'TF2', 'PV1']);
+await TQuery('LQ2 fábrica por consulta, cliente ASIGNADO (resolución 23:15 por la vía real)', qFactory(A), ['FN1'], ['TF1', 'TF2', 'PV1']);
+await TQuery('LQ3 de entrenador acotada al autor (visibility==trainer ∧ createdBy==trainer2): solo TF2', qTrainerMine(tr2, 'trainer2'), ['TF2'], ['TF1', 'PV1', 'FN1']);
+await TQuery('LQ4 privadas acotadas al dueño (visibility==private ∧ ownerUid==clientA): solo PV1', qPrivateMine(A, 'clientA'), ['PV1'], ['TF1', 'TF2', 'FN1']);
+await T('LQ5a legada R01 por GET individual (el camino de la app), cliente en espera', getDoc(TPL(W, 'R01')), true);
+await T('LQ5b legada R01 por GET individual, otro entrenador (fábrica es de todos)', getDoc(TPL(tr2, 'R01')), true);
+await TQuery('LQ6a administrador, consulta amplia de entrenador (visibility==trainer): TF1 y TF2', qTrainerAll(owner), ['TF1', 'TF2'], ['PV1', 'FN1']);
+await TQuery('LQ6b administrador, consulta amplia de privadas (visibility==private): PV1', qPrivateAll(owner), ['PV1'], ['TF1', 'TF2']);
+await TQuery('LQ6c administrador, consulta de fábrica: FN1', qFactory(owner), ['FN1'], ['RF', 'R01', 'TF1', 'PV1']);
+await TQuery('LQ7 la consulta de entrenador con createdBy de un cliente (no autor) vuelve VACÍA, sin error', qTrainerMine(A, 'clientA'), [], ['TF1', 'TF2', 'PV1', 'FN1']);
 
 // ============ PLANTILLAS: crear (autoría veraz, clase por rol) ============
 await T('C1 entrenador crea plantilla DE ENTRENADOR con su autoría', addDoc(collection(tr1, 'routine_templates'), tplDoc({ visibility: 'trainer', createdBy: 'trainer1', createdByName: 'Entrenador Uno', ownerUid: 'trainer1', updatedBy: 'trainer1' })), true);
@@ -129,7 +172,9 @@ await T('U6 editar cambiando createdBy (reescribir autoría)', updateDoc(TPL(tr1
 await T('U7 dueño edita SU privada', updBy(A, 'PV1', 'clientA'), true);
 await T('U8 el entrenador asignado NO edita la privada de su cliente', updBy(tr1, 'PV1', 'trainer1'), false);
 await T('U9 administrador edita una privada ajena (ve y gobierna todo)', updBy(owner, 'PV1', 'owner1'), true);
-await T('U10 editar sin updatedBy (sin rastro de quién edita)', updateDoc(TPL(tr1, 'TF1'), { nombre_es: 'Sin rastro', updatedAt: serverTimestamp() }), false);
+await T('U10 editar SIN tocar updatedBy (sin rastro nuevo: hasAll lo deniega siempre)', updateDoc(TPL(tr1, 'TF1'), { nombre_es: 'Sin rastro', updatedAt: serverTimestamp() }), false);
+await T('U11 editar con updatedBy de OTRO (rastro suplantado)', updateDoc(TPL(tr1, 'TF1'), { nombre_es: 'Rastro falso', updatedAt: serverTimestamp(), updatedBy: 'trainer2' }), false);
+await T('U12 edición mínima legítima: solo tocar updatedAt+updatedBy propios (el hasAll no bloquea lo válido)', updateDoc(TPL(tr1, 'TF1'), { updatedAt: serverTimestamp(), updatedBy: 'trainer1' }), true);
 
 // ============ PLANTILLAS: borrar (misma matriz que editar) ============
 await T('D1 otro entrenador NO borra la de entrenador ajena', deleteDoc(TPL(tr2, 'TF1')), false);
