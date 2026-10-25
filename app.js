@@ -202,6 +202,10 @@ function applyFeatureGates() {
   const aiOff = (typeof AI_CTRL !== 'undefined') && AI_CTRL.known && !AI_CTRL.enabled;
   const dock = document.getElementById('btn-round-food');
   if (dock) dock.style.display = (!featureOn('meals') || aiOff) ? 'none' : '';
+  /* Rediseño comida flotante (2026-10-24): si la función de comidas
+     o la IA se apagan, las hojas flotantes de comida abiertas se
+     cierran — la puerta manda sobre la superficie, como el dock. */
+  if (!featureOn('meals') || aiOff) { for (const id of ['food-float', 'food-text', 'food-help']) { const el = document.getElementById(id); if (el) el.style.display = 'none'; } }
   const manual = document.getElementById('btn-add-meal-manual');
   if (manual) manual.style.display = featureOn('meals') ? '' : 'none';
   if (!featureOn('activity')) {
@@ -2065,6 +2069,7 @@ en: {
   'ai.banner': 'Draft from your photo: check and edit the values before saving.',
   'ai.draftError': 'Something went wrong while preparing the draft. Nothing was saved — please try again.',
   'ai.savedInfo': 'Meal saved: {kcal} kcal · Day total: {total} kcal',
+  'ai.savedPhotoNote': 'Your photo wasn\'t kept — only the meal record was.',
   'ai.retry': 'Retry',
   'ai.continueManual': 'Continue manually',
   'ai.mealPrompt': 'Which meal is this?',
@@ -2118,6 +2123,10 @@ en: {
   'clients.hint': 'Each client must upload their weight every week. Select one to see their full history, edit their weigh-ins, or add new ones. You set their goals under "Access management".',
   'foot': 'ronbo.nutri · private · only you can see your data',
   'meal.title': 'Log meal',
+  'food.photo': 'Photo',
+  'food.text': 'Text',
+  'food.manual': 'Manual',
+  'food.help': 'Help',
   'form.date': 'Date',
   'form.moment': 'Meal',
   'form.food': 'Food',
@@ -3411,6 +3420,7 @@ es: {
   'ai.banner': 'Borrador de tu foto: revisa y edita los valores antes de guardar.',
   'ai.draftError': 'Algo salió mal al preparar el borrador. No se guardó nada: inténtalo de nuevo.',
   'ai.savedInfo': 'Comida guardada: {kcal} kcal · Total del día: {total} kcal',
+  'ai.savedPhotoNote': 'Tu foto no se guardó: solo quedó el registro de la comida.',
   'ai.retry': 'Reintentar',
   'ai.continueManual': 'Continuar manualmente',
   'ai.mealPrompt': '¿A qué comida pertenece?',
@@ -3464,6 +3474,10 @@ es: {
   'clients.hint': 'Cada cliente debe subir su peso cada semana. Selecciona uno para ver su historial completo, editar sus pesajes o agregar nuevos. Sus metas las estableces en "Administración de accesos".',
   'foot': 'ronbo.nutri · privado · tus datos solo los ves tú',
   'meal.title': 'Registrar comida',
+  'food.photo': 'Foto',
+  'food.text': 'Texto',
+  'food.manual': 'Manual',
+  'food.help': 'Ayuda',
   'form.date': 'Fecha',
   'form.moment': 'Momento',
   'form.food': 'Alimento',
@@ -6513,6 +6527,10 @@ function applyAiControl() {
      cortes lo esconde. */
   const gateOff = (typeof mealsGateOff === 'function') ? mealsGateOff() : false;
   if (dock) dock.style.display = (off || gateOff) ? 'none' : '';
+  /* Rediseño comida flotante (2026-10-24): con la IA apagada o la
+     función de comidas cortada, las hojas flotantes de comida se
+     cierran si estaban abiertas — mismo corte que el dock. */
+  if ((off || gateOff) && typeof foodCloseAll === 'function') foodCloseAll();
   const note = document.getElementById('ai-off-note');
   if (note) note.style.display = off ? '' : 'none';
   const noteM = document.getElementById('ai-off-note-modal');
@@ -7456,40 +7474,94 @@ if (aiFile) {
     aiStageShow();
   });
 }
-/* UX10-4 + UX10-6 (piloto, 2026-10-23): el flujo de foto ARRANCA con
-   una tarjeta previa, ANTES de capturar — el usuario del piloto se
-   sorprendió de noche de que la foto del desayuno «ya no estaba»:
-   la foto de comida NO se guarda y hay que saberlo antes de hacerla,
-   no solo en «Permisos y privacidad» (perm.photoNote, que se queda).
-   La misma tarjeta explica el tope diario de análisis tal como el
-   Worker M8 lo aplica de verdad (verificado en su código): contador
-   por usuario y día compartido por foto y texto (un análisis
-   completo suele gastar 2 peticiones: /identify o /identify-text +
-   /calculate); sin límite fijado en ningún nivel NO hay tope; al
-   alcanzarlo, foto y texto se pausan hasta el día siguiente y el
-   registro manual sigue disponible (no pasa por el Worker). */
-function aiIntroShow() {
-  if (!aiEndpoint()) { toast(t('ai.unavailable'), true); return; }
-  aiShow(`<h3>${t('ai.introTitle')}</h3><p class="progress-hint">${t('ai.photoNotSaved')}</p><p class="progress-hint">${t('ai.limitNote')}</p><div class="ai-actions"><button type="button" class="btn-main btn-sm" id="ai-intro-take">${t('ai.introTake')}</button><button type="button" class="btn-ghost btn-sm" id="ai-intro-cancel">${t('ai.discard')}</button></div>`);
-  const tk = $('ai-intro-take');
-  if (tk) tk.onclick = () => { const f = $('ai-file'); if (f) f.click(); };
-  const cc = $('ai-intro-cancel');
-  if (cc) cc.onclick = () => { if (aiStage) aiStageDiscard(); else aiClosePanel(); };
+/* ===== ENTRADA DE COMIDA FLOTANTE (rediseño 2026-10-24) =====
+   La tarjeta previa UX10-4/UX10-6 que abría el flujo de foto — la
+   «pared de texto» con ai.photoNotSaved + ai.limitNote antes de
+   capturar — DESAPARECE como puerta por orden de Ronald (chat
+   2026-10-24 20:37 CDT): creaba un caos visual y obligaba a un
+   segundo toque para llegar a la gestión de la foto. El modelo
+   nuevo es el de ACTIVIDAD: al presionar COMIDA se abre la hoja
+   flotante #food-float con TRES botones en horizontal — 📷 Foto
+   abre DIRECTAMENTE el selector vigente (el input #ai-file con su
+   flujo multi-foto 1–5 y báscula), ✍️ Texto abre la hoja de
+   análisis por texto (#food-text: las mismas claves aiText.* y el
+   mismo aiStartText del formulario) y ✋ Manual abre el formulario
+   de siempre (aiOpenMealModal). Los dos textos largos quedan
+   ÍNTEGROS solo en la hoja de AYUDA (#food-help), byte-idénticos a
+   los valores del diccionario — son textos de honestidad/
+   consentimiento y no se reescriben — y la advertencia de la foto
+   se repite en una línea breve (ai.savedPhotoNote) SOLO dentro de
+   la confirmación de un guardado por foto (corrección de Ronald,
+   20:39 CDT: sin línea permanente en la superficie). El aviso
+   perm.photoNote de «Permisos y privacidad» no se toca. Las
+   puertas vigentes no cambian: applyAiControl y applyFeatureGates
+   siguen ocultando el botón COMIDA del dock con la IA apagada o
+   la función de comidas deshabilitada (el registro manual queda
+   entonces en su botón de la vista, como hoy), y cada entrada
+   conserva al tocarla las comprobaciones honestas de siempre
+   (aiEndpoint / mealsGateOff). La tarjeta del límite alcanzado
+   (aiErrorCardHTML) conserva su nota: es el aviso DEL EVENTO del
+   tope, no la puerta de entrada. */
+const foodIsOpen = id => { const el = $(id); return !!el && el.style.display !== 'none'; };
+function foodShowOnly(which) {
+  const map = { float: 'food-float', text: 'food-text', help: 'food-help' };
+  for (const [k, id] of Object.entries(map)) { const el = $(id); if (el) el.style.display = (k === which) ? '' : 'none'; }
 }
+function foodCloseAll() { foodShowOnly(null); }
+function foodOpenFloat() { foodShowOnly('float'); }
+function foodOpenText() { foodShowOnly('text'); const ta = $('food-text-desc'); if (ta) { try { ta.focus(); } catch {} } }
+function foodOpenHelp() { foodShowOnly('help'); }
+
 /* El botón redondo «Comida» del dock es un <label> que envuelve el
-   input de archivo: sin interceptar, tocarlo abre la cámara/galería
-   al instante y no existe ningún «antes de capturar». Se intercepta
-   SOLO el toque sobre el label (el target NO es el input); los clics
-   cuyo target ES el input (el botón «Tomar o elegir la foto» de la
-   tarjeta, «Añadir otra foto» y el reemplazo de miniaturas de la
-   preparación, y las baterías que fijan archivos sobre el input)
-   siguen el flujo de siempre, sin pasar por la tarjeta. */
+   input de archivo: sin interceptar, tocarlo abriría la
+   cámara/galería al instante, sin pasar por la hoja de los tres
+   modos. Se intercepta SOLO el toque sobre el label (el target NO
+   es el input); los clics cuyo target ES el input (el botón
+   📷 Foto de la hoja, «Añadir otra foto» y el reemplazo de
+   miniaturas de la preparación, y las baterías que fijan archivos
+   sobre el input) siguen el flujo de siempre. */
 const foodDockLabel = $('btn-round-food');
 if (foodDockLabel) foodDockLabel.addEventListener('click', e => {
   if (e.target && e.target.id === 'ai-file') return;
   e.preventDefault();
-  aiIntroShow();
+  dockHome($('food-float'));
+  if (foodIsOpen('food-float')) foodCloseAll(); else foodOpenFloat();
 });
+{ const b = $('btn-food-photo');
+  if (b) b.onclick = () => {
+    if (!aiEndpoint()) { toast(t('ai.unavailable'), true); return; }
+    foodCloseAll();
+    const f = $('ai-file'); if (f) f.click();
+  }; }
+{ const b = $('btn-food-text'); if (b) b.onclick = () => foodOpenText(); }
+{ const b = $('btn-food-manual');
+  if (b) b.onclick = () => { foodCloseAll(); aiOpenMealModal(); }; }
+{ const b = $('btn-food-help'); if (b) b.onclick = () => foodOpenHelp(); }
+{ const c = $('btn-food-close'); if (c) c.onclick = () => foodCloseAll(); }
+{ const c = $('btn-food-text-close'); if (c) c.onclick = () => foodOpenFloat(); }
+{ const c = $('btn-food-help-close'); if (c) c.onclick = () => foodOpenFloat(); }
+/* «Analizar la descripción con IA» desde la hoja de texto: la
+   MISMA validación honesta del botón del formulario manual
+   (descripción de al menos 2 caracteres y endpoint disponible) y
+   el mismo aiStartText; la hoja se cierra y el flujo continúa en
+   el panel de análisis, como siempre. */
+{ const b = $('btn-food-text-go');
+  if (b) b.onclick = () => {
+    const desc = (($('food-text-desc') && $('food-text-desc').value) || '').trim();
+    if (desc.length < 2) { toast(t('aiText.tooShort'), true); return; }
+    if (!aiEndpoint()) { toast(t('ai.unavailable'), true); return; }
+    foodCloseAll();
+    aiStartText(desc);
+  }; }
+/* Cierre tocando fuera (el label COMIDA del dock se excluye: su
+   propio handler ya alterna) y con Escape — espejo de actividad. */
+document.addEventListener('click', e => {
+  if (!['food-float', 'food-text', 'food-help'].some(foodIsOpen)) return;
+  for (const id of ['food-float', 'food-text', 'food-help']) { const el = $(id); if (el && el.contains(e.target)) return; }
+  const l = $('btn-round-food'); if (l && l.contains(e.target)) return;
+  foodCloseAll();
+});
+document.addEventListener('keydown', e => { if (e.key === 'Escape') foodCloseAll(); });
 
 /* «Analizar la descripción con IA» (formulario manual, Ronald
    2026-10-22): la descripción escrita pasa a ser la identificación
@@ -7704,7 +7776,13 @@ async function aiSaveDirect() {
     aiDiscard();
     await loadAllKeepDate(data.date);
     const dayTotal = (MEALS[data.date] || []).reduce((s, x) => s + (Number(x.kcal) || 0), 0);
-    toast(t('ai.savedInfo', { kcal: Math.round(data.kcal), total: Math.round(dayTotal) }));
+    /* Corrección de Ronald (2026-10-24 20:39 CDT): SOLO si el
+       registro viene de una FOTO (source 'ai'), la MISMA
+       confirmación de guardado lleva la línea breve de que la foto
+       no se guardó — nunca en un aviso nuevo; por texto
+       ('ai-text') no aparece, y si el guardado falla esta línea
+       jamás se ejecuta (el fallo muestra ai.saveError). */
+    toast(t('ai.savedInfo', { kcal: Math.round(data.kcal), total: Math.round(dayTotal) }) + (data.source === 'ai' ? ' ' + t('ai.savedPhotoNote') : ''));
   } catch {
     if (aiState) { aiState.saveError = true; aiState.step = 'draft'; aiRender(); }
     toast(t('ai.saveError'), true);
@@ -13261,7 +13339,11 @@ $('form-meal').addEventListener('submit', async e => {
       /* Confirmación visible del borrador (H-2): las kcal guardadas y el
          total del día YA incluyéndolas — que «sí suma» sea evidente. */
       const dayTotal = (MEALS[data.date] || []).reduce((s, m) => s + (Number(m.kcal) || 0), 0);
-      toast(t('ai.savedInfo', { kcal: Math.round(data.kcal), total: Math.round(dayTotal) }));
+      /* La línea breve de la foto (ai.savedPhotoNote) va SOLO si
+         el borrador vino de una FOTO (source 'ai'); el borrador de
+         texto ('ai-text') confirma sin ella, como el guardado
+         directo. */
+      toast(t('ai.savedInfo', { kcal: Math.round(data.kcal), total: Math.round(dayTotal) }) + (data.source === 'ai' ? ' ' + t('ai.savedPhotoNote') : ''));
     } else {
       toast(t('msg.mealSaved'));
     }

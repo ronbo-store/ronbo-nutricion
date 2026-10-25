@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>ronbo.nutri · Private</title>
 <meta name="robots" content="noindex, nofollow">
-<link rel="stylesheet" href="styles.css?v=20261024-perfil">
+<link rel="stylesheet" href="styles.css?v=20261024-comidaflotante">
 <script type="importmap">
 {
   "imports": {
@@ -455,6 +455,61 @@
     </div>
     <div id="act-day-body"></div>
   </div>
+  <!-- ============ ENTRADA DE COMIDA — REDISEÑO FLOTANTE (2026-10-24) =====
+       Mismo modelo que ACTIVIDAD (orden de Ronald, chat 2026-10-24
+       20:37 CDT): al presionar COMIDA ya NO se abre la tarjeta-puerta
+       «Analizar una comida desde una foto» con la pared de texto
+       (ai.photoNotSaved + ai.limitNote) ni hace falta un segundo toque
+       para llegar a la foto; se abre esta hoja flotante con TRES
+       botones EN HORIZONTAL — 📷 Foto (directo al selector vigente,
+       con su flujo multi-foto 1–5 y báscula), ✍️ Texto (la hoja de
+       análisis por texto) y ✋ Manual (el formulario de registro de
+       siempre). Los dos textos largos viven ÍNTEGROS solo en la hoja
+       de AYUDA (#food-help), byte-idénticos a los valores del
+       diccionario — textos de honestidad/consentimiento, sin
+       reescribir — y la advertencia de la foto se repite en una línea
+       breve SOLO dentro de la confirmación de un guardado por foto
+       (ai.savedPhotoNote; corrección de Ronald, 20:39 CDT: sin línea
+       permanente en la superficie). ===== -->
+  <div class="act-float" id="food-float" style="display:none" role="dialog" aria-label="Log meal" data-i18n-aria="meal.title">
+    <div class="pend-head">
+      <h2 data-i18n="meal.title">Log meal</h2>
+      <button type="button" class="btn-secondary meal-manual-pill" id="btn-food-help" aria-label="Help" data-i18n-aria="food.help">❓</button>
+      <button type="button" class="pend-close" id="btn-food-close" aria-label="Close" data-i18n-aria="client.close">✕</button>
+    </div>
+    <div class="food-chip-row">
+      <button type="button" class="act-chip" id="btn-food-photo">
+        <span class="act-chip-ico" aria-hidden="true">📷</span>
+        <span class="act-chip-lab" data-i18n="food.photo">Photo</span>
+      </button>
+      <button type="button" class="act-chip" id="btn-food-text">
+        <span class="act-chip-ico" aria-hidden="true">✍️</span>
+        <span class="act-chip-lab" data-i18n="food.text">Text</span>
+      </button>
+      <button type="button" class="act-chip" id="btn-food-manual">
+        <span class="act-chip-ico" aria-hidden="true">✋</span>
+        <span class="act-chip-lab" data-i18n="food.manual">Manual</span>
+      </button>
+    </div>
+  </div>
+  <div class="act-float act-sheet" id="food-text" style="display:none" role="dialog" aria-label="Describe your meal" data-i18n-aria="aiText.label">
+    <div class="pend-head">
+      <h2 data-i18n="aiText.label">Describe your meal</h2>
+      <button type="button" class="pend-close" id="btn-food-text-close" aria-label="Close" data-i18n-aria="client.close">✕</button>
+    </div>
+    <p class="photo-hint" data-i18n="aiText.hint">No photo? Describe the dish and AI will suggest its components and amounts — you review and edit everything before saving.</p>
+    <textarea id="food-text-desc" class="food-textarea" rows="3" maxlength="600" data-i18n-ph="aiText.ph" placeholder="E.g. quinoa tortilla with egg, cottage cheese and turkey ham"></textarea>
+    <div class="ai-actions"><button type="button" class="btn-main btn-sm" id="btn-food-text-go" data-i18n="aiText.button">Analyze the description with AI</button></div>
+  </div>
+  <div class="act-float act-sheet" id="food-help" style="display:none" role="dialog" aria-label="Help" data-i18n-aria="food.help">
+    <div class="pend-head">
+      <h2 data-i18n="food.help">Help</h2>
+      <button type="button" class="pend-close" id="btn-food-help-close" aria-label="Close" data-i18n-aria="client.close">✕</button>
+    </div>
+    <h3 data-i18n="ai.introTitle">Analyze a meal from a photo</h3>
+    <p class="progress-hint" data-i18n="ai.photoNotSaved">📷 Before you take the photo: food photos are NOT saved. A photo is used only for this analysis, in this moment — the app keeps the meal record (the foods and their values), never the picture. If you want to keep the photo, keep it in your phone's gallery as well.</p>
+    <p class="progress-hint" data-i18n="ai.limitNote">Daily analysis limit: photo and text analyses share a daily counter (a complete analysis usually takes 2 requests: identify + calculate). If your account has a daily limit set and you reach it, photo and text analysis pause until the counter resets the next day — you can still log every meal by hand. If no limit is set for your account, a default of 10 requests per day applies — enough for five complete meals (2 requests each).</p>
+  </div>
   <!-- Indicador flotante de análisis M8 (Ronald, 2026-10-21): disco
        con anillo de progreso en el CENTRO DE LA PANTALLA (nació sobre
        la pastilla del dock; Ronald, 2026-10-21: tapaba el botón de
@@ -860,6 +915,6 @@
 <div id="toast" class="toast"></div>
 <div id="print-card" aria-hidden="true"></div>
 
-<script type="module" src="app.js?v=20261024-perfil"></script>
+<script type="module" src="app.js?v=20261024-comidaflotante"></script>
 </body>
 </html>
