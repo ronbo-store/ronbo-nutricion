@@ -2907,7 +2907,7 @@ en: {
   'act.int.intensa': 'Hard',
   'act.rpe': 'Effort (RPE 1–10, optional)',
   'act.rpeNone': '—',
-  'act.rpeNote': 'A signal for your trainer; it does not change the estimate.',
+  'act.rpeNote': 'How hard did it feel? 1 = very easy · 5 = medium · 10 = the maximum you could give. A signal for your trainer; it does not change the estimate.',
   'act.notes': 'Notes (optional)',
   'act.notesPh': 'How did it feel?',
   'act.addBtn': 'Add activity',
@@ -4307,7 +4307,7 @@ es: {
   'act.int.intensa': 'Intensa',
   'act.rpe': 'Esfuerzo (RPE 1–10, opcional)',
   'act.rpeNone': '—',
-  'act.rpeNote': 'Es una señal para tu entrenador; no cambia la estimación.',
+  'act.rpeNote': '¿Qué tan duro lo sentiste? 1 = muy fácil · 5 = esfuerzo medio · 10 = lo máximo que pudiste dar. Es una señal para tu entrenador; no cambia la estimación.',
   'act.notes': 'Notas (opcional)',
   'act.notesPh': '¿Cómo te sentiste?',
   'act.addBtn': 'Añadir actividad',
@@ -14762,7 +14762,7 @@ setInterval(() => { try { pendDockTick(); } catch {} }, 60000);
  *  - El SW (sw.js) solo cachea la cáscara del mismo origen en modo
  *    RED PRIMERO: Auth/Firestore/Worker jamás pasan por la caché.
  * ================================================================ */
-const PWA_SW_VERSION = '20261025-logofit';
+const PWA_SW_VERSION = '20261025-ayuda-rpe';
 let pwaDeferredPrompt = null;
 function pwaIsStandalone() {
   try {
