@@ -12,7 +12,7 @@ No se afirma ningún resultado hasta leer la corrida allí.
   (SHA-256 `75c2033f…`): texto vivo verificado `b135f2f8` + SOLO el
   delta de biblioteca comunitaria (bloque `exercise_library`).
 - `firebase.json` — emulador en 127.0.0.1:8080.
-- `test-libcom.mjs` — 44 casos: GET por documento y estado
+- `test-libcom.mjs` — 45 casos: GET por documento y estado
   (fábrica/aprobado/pendiente/rechazado × admin/autor/otro
   entrenador/cliente/sin aprobar/anónimo), las consultas reales de la
   app (`libFetchClassDocs`) con conjuntos exactos, altas con la forma

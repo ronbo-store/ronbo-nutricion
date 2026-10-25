@@ -88,6 +88,7 @@ await testEnv.withSecurityRulesDisabled(async (ctx) => {
   await L('CPE', { ...CONTENT, estado: 'pendiente', createdBy: 'trainer1', createdByName: 'Entrenador Uno', createdAt: TS });
   await L('CPE2', { ...CONTENT, estado: 'pendiente', createdBy: 'trainer2', createdByName: 'Entrenador Dos', createdAt: TS });
   await L('CPE3', { ...CONTENT, estado: 'pendiente', createdBy: 'trainer2', createdByName: 'Entrenador Dos', createdAt: TS });
+  await L('CPE4', { ...CONTENT, estado: 'pendiente', createdBy: 'trainer2', createdByName: 'Entrenador Dos', createdAt: TS });
   // Comunitario RECHAZADO de cada entrenador.
   await L('CRE1', { ...CONTENT, estado: 'rechazado', createdBy: 'trainer1', createdByName: 'Entrenador Uno', createdAt: TS });
   await L('CRE2', { ...CONTENT, estado: 'rechazado', createdBy: 'trainer2', createdByName: 'Entrenador Dos', createdAt: TS });
@@ -124,11 +125,11 @@ await TQuery('LQ1 cliente: where(estado==aprobado) devuelve SOLO los aprobados (
 await TQuery('LQ2 entrenador 1: where(createdBy==su uid) devuelve TODOS sus aportes y solo los suyos',
   query(LIBC(tr1), where('createdBy', '==', 'trainer1')), ['CAP', 'CPE', 'CRE1', 'DELA', 'DELP']);
 await TQuery('LQ3 administrador: where(estado==pendiente) es su bandeja completa',
-  query(LIBC(owner), where('estado', '==', 'pendiente')), ['CPE', 'CPE2', 'CPE3', 'DELP']);
+  query(LIBC(owner), where('estado', '==', 'pendiente')), ['CPE', 'CPE2', 'CPE3', 'CPE4', 'DELP']);
 await TQuery('LQ4 administrador: where(createdBy==trainer2) ve los aportes de ese autor en todo estado',
-  query(LIBC(owner), where('createdBy', '==', 'trainer2')), ['CPE2', 'CPE3', 'CRE2']);
+  query(LIBC(owner), where('createdBy', '==', 'trainer2')), ['CPE2', 'CPE3', 'CPE4', 'CRE2']);
 await TQuery('LQ5 entrenador 2: where(createdBy==su uid) — simétrico al de entrenador 1',
-  query(LIBC(tr2), where('createdBy', '==', 'trainer2')), ['CPE2', 'CPE3', 'CRE2']);
+  query(LIBC(tr2), where('createdBy', '==', 'trainer2')), ['CPE2', 'CPE3', 'CPE4', 'CRE2']);
 
 // ============ C — CREAR ============
 await T('C1 entrenador crea su aporte: nace PENDIENTE con su autoría y la hora del servidor',
@@ -176,8 +177,17 @@ await T('U10 el administrador edita el contenido de la fábrica (con rastro)',
   U(owner, 'E001', { equipo_es: 'Barra olímpica', updatedAt: serverTimestamp(), updatedBy: 'owner1' }), true);
 await T('U11 nadie reescribe la autoría: el autor intentando cambiar createdBy al editar',
   U(tr1, 'CPE', { createdBy: 'trainer2', updatedAt: serverTimestamp(), updatedBy: 'trainer1' }), false);
-await T('U12 sin rastro no hay edición: el administrador editando sin updatedBy',
-  U(owner, 'E001', { equipo_es: 'Otra', updatedAt: serverTimestamp() }), false);
+// La garantía del rastro es la IGUALDAD tras la escritura (updatedBy
+// nombra a quien edita), no la frescura del campo: es la semántica
+// que la CI de N-09 fijó con su U10/U12 — un hasAll sobre diff() no
+// sirve porque diff() no ve una escritura con el mismo valor y
+// denegaría al editor legítimo que guarda dos veces. U12 es el caso
+// determinista (el documento NO trae rastro y la edición no lo
+// escribe); U13 fija el caso veraz complementario.
+await T('U12 sin rastro no hay edición: el administrador edita un pendiente SIN rastro previo y sin escribir updatedBy',
+  U(owner, 'CPE4', { nombre_es: 'Sin rastro', updatedAt: serverTimestamp() }), false);
+await T('U13 el rastro que ya nombra al editor sigue siendo veraz: el administrador re-edita E001 sin reescribir updatedBy (U10 ya lo dejó con su nombre)',
+  U(owner, 'E001', { equipo_es: 'Barra fija', updatedAt: serverTimestamp() }), true);
 
 // ============ D — BORRAR ============
 await T('D1 el autor borra su propio pendiente', deleteDoc(LIB(tr1, 'DELP')), true);
