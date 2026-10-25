@@ -9956,12 +9956,13 @@ function libRefreshOpenRows() {
    las ven entrenador, administrador y clientes aprobados — y
    pregunta 10 — la app SUGIERE alinear los días; la sugerencia
    nunca cambia días por sí sola).
-   - Al abrir el editor se lee UNA vez la colección routine_templates
-     (8 documentos) y queda en memoria para la sesión de la página,
-     con la misma disciplina que la biblioteca (§4.1). Si la lectura
-     falla o la colección viene vacía, aviso discreto y honesto
-     (#pl-tpl-note) y el editor sigue como hoy, a mano: NADA se
-     bloquea (la única puerta dura sigue siendo la PAR-Q, intacta).
+   - Al abrir el editor se leen UNA vez las plantillas que este rol
+     puede leer (por clases, ver el rediseño de lectura N-09 junto a
+     tplFetchClassDocs) y quedan en memoria para la sesión de la
+     página, con la misma disciplina que la biblioteca (§4.1). Si la
+     lectura falla o no llega ninguna plantilla, aviso discreto y
+     honesto (#pl-tpl-note) y el editor sigue como hoy, a mano: NADA
+     se bloquea (la única puerta dura sigue siendo la PAR-Q, intacta).
    - «Usar esta plantilla» genera un BORRADOR en el editor: título,
      días y ejercicios programados de la plantilla se vuelcan en las
      filas del editor — cada ejercicio vinculado por su exerciseId
@@ -9992,15 +9993,68 @@ let TPL_BY_ID = {};        // id -> documento de la plantilla
 let TPL_STATE = 'idle';    // 'idle' | 'loading' | 'ok' | 'unavailable'
 let TPL_PROMISE = null;
 let tplAlignState = { tpl: null, dismissed: false, aligned: false };
+/* === REDISEÑO DE LECTURA N-09 (2026-10-24, desarrollo) ===
+   El paquete N-09 se DETUVO en la cadena de despliegues porque su
+   CI de reglas reveló la semántica real de Firestore: LAS REGLAS NO
+   SON FILTROS. La versión anterior leía con UNA consulta sin filtros
+   y filtraba en el cliente (tplCanRead); el delta de reglas gobierna
+   la lectura con predicados por documento (visibility/createdBy/
+   ownerUid), y una consulta sin restricciones cuyo predicado depende
+   de los datos de cada documento NO se puede probar para todo
+   resultado posible: Firestore real la DENIEGA ENTERA (el catálogo
+   caería para todos). La lectura pasa a ser POR CLASES, con
+   consultas que las reglas sí pueden probar — cada una pide
+   exactamente documentos que quien lee puede leer según la misma
+   matriz del delta (tplCanReadDoc):
+     · fábrica:        visibility == 'factory'
+     · de entrenador:  visibility == 'trainer' && createdBy == uid
+       (el administrador las pide SIN el filtro de autor: su lectura
+       la sostiene isAdminUser(), que no depende del documento)
+     · privadas:       visibility == 'private' && ownerUid == uid
+       (el administrador, igual, sin el filtro de dueño)
+   El filtro en el cliente (tplCanRead) se conserva al pintar, como
+   segunda capa: la composición TPL/TPL_BY_ID no cambia y ninguna
+   superficie (editor, catálogo del cliente, propuestas P7) se toca.
+   LEGADAS R01–R08 (decisión documentada en el informe del rediseño):
+   las 8 de fábrica cargadas el 2026-10-22 (Paquete 3 de datos) NO
+   llevan el campo visibility y ninguna consulta por
+   visibility == 'factory' las devuelve jamás (una consulta nunca
+   matchea un documento sin el campo consultado). Tratamiento SIN
+   backfill: se leen por getDoc individual, donde la regla aplica
+   sobre el documento real su defecto 'factory'. Toda carga futura
+   de fábrica debe escribir visibility: 'factory' explícito. */
+const TPL_LEGACY_FACTORY_IDS = ['R01', 'R02', 'R03', 'R04', 'R05', 'R06', 'R07', 'R08'];
+async function tplFetchClassDocs() {
+  const coll = collection(db, 'routine_templates');
+  const uid = tplMyUid();
+  const admin = ROLE === 'administrador';
+  const queries = [query(coll, where('visibility', '==', 'factory'))];
+  queries.push(admin
+    ? query(coll, where('visibility', '==', 'trainer'))
+    : query(coll, where('visibility', '==', 'trainer'), where('createdBy', '==', uid)));
+  queries.push(admin
+    ? query(coll, where('visibility', '==', 'private'))
+    : query(coll, where('visibility', '==', 'private'), where('ownerUid', '==', uid)));
+  const byId = new Map();
+  const snaps = await Promise.all(queries.map(q => getDocs(q)));
+  snaps.forEach(snap => snap.forEach(d => { if (!byId.has(d.id)) byId.set(d.id, { id: d.id, ...d.data() }); }));
+  /* Legadas sin visibility: lectura individual (get), mejor esfuerzo
+     por documento — si una ya no existe o no se puede leer, el resto
+     del catálogo no cae con ella. */
+  const legacy = await Promise.allSettled(TPL_LEGACY_FACTORY_IDS.map(id => getDoc(doc(db, 'routine_templates', id))));
+  legacy.forEach((r, i) => {
+    const id = TPL_LEGACY_FACTORY_IDS[i];
+    if (r.status === 'fulfilled' && r.value.exists() && !byId.has(id)) byId.set(id, { id, ...r.value.data() });
+  });
+  return [...byId.values()];
+}
 function tplEnsure() {
   if (TPL_STATE === 'ok') return Promise.resolve();
   if (TPL_STATE === 'loading' && TPL_PROMISE) return TPL_PROMISE;
   TPL_STATE = 'loading';
   TPL_PROMISE = (async () => {
     try {
-      const snap = await getDocs(collection(db, 'routine_templates'));
-      const docs = [];
-      snap.forEach(d => docs.push({ id: d.id, ...d.data() }));
+      const docs = await tplFetchClassDocs();
       docs.sort((a, b) => String(a.id).localeCompare(String(b.id)));
       TPL = docs; TPL_BY_ID = {};
       docs.forEach(x => { if (x && x.id) TPL_BY_ID[x.id] = x; });
@@ -10123,7 +10177,11 @@ async function tplApply(id) {
    - LEGADO: un documento SIN visibility (las 8 de fábrica R01–R08 y
      cualquier carga anterior) se trata como 'factory' por defecto,
      sin tocar sus datos: la lectura no se rompe y su edición queda
-     reservada al administrador, como manda N-09 para la clase.
+     reservada al administrador, como manda N-09 para la clase. Con
+     la lectura por clases (rediseño 2026-10-24), las legadas no
+     llegan por la consulta de fábrica — que exige el campo — sino
+     por lectura individual (getDoc, TPL_LEGACY_FACTORY_IDS): la
+     regla las evalúa como 'factory' sobre el documento real.
    - TENSIÓN RESUELTA por Ronald (chat, 2026-10-23 23:15 CDT):
      «Lectura para todos manda: el cliente asignado también ve las
      plantillas de fábrica». La puerta del punto 3 (que ocultaba el
