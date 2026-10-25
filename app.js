@@ -891,7 +891,7 @@ async function renderEscAdminBoxes() {
     fbox.innerHTML = ESC_FLAG_KEYS.map(k => `
     <div class="user-row">
       <div><b>${esc(t('esc.flags.' + k))}</b></div>
-      <div class="user-actions"><label class="muted"><input type="checkbox" data-flag="${k}" ${flags[k] === false ? '' : 'checked'}> ON</label></div>
+      <div class="user-actions"><label class="muted"><input type="checkbox" data-flag="${k}" ${flags[k] === false ? '' : 'checked'}> ${esc(t('esc.flagOn'))}</label></div>
     </div>`).join('');
     document.querySelectorAll('[data-flag]').forEach(cb => cb.onchange = async () => {
       const nf = { ...((FEATURE_FLAGS && FEATURE_FLAGS.flags) || {}) };
@@ -1913,6 +1913,7 @@ en: {
   'esc.mealAdminTitle': '🍽️ Meal access confirmations',
   'esc.mealAdminHint': 'Meal logging is off for new students until requested. The trainer approves first; you confirm. Confirming turns meal logging on for that student.',
   'esc.flagsTitle': '🚩 Feature flags',
+  'esc.flagOn': 'ON',
   'esc.flagsHint': 'Turn whole modules off or on for every student without deploying anything. Trainers and you are not blocked by these flags.',
   'esc.levelNone': 'No membership yet',
   'esc.level.basico': 'Basic',
@@ -2124,6 +2125,7 @@ en: {
   'eval.guide.pantorrillas': 'Dominant side: widest point of the calf, standing, leg relaxed.',
   'eval.guide.brazos': 'Dominant side: arm hanging relaxed, not flexed, midpoint between the acromion (the shoulder bone) and the elbow.',
   'eval.guide.hombros': 'Around the widest part of both deltoids and the back, arms hanging.',
+  'eval.guide.pecho': 'Tape around the torso at chest height, under the armpits, at the end of a normal breath out, standing.',
   'eval.measuresTitle': 'Evaluation measures',
   'eval.saveMeasures': 'Save measures',
   'eval.savedOk': '✓ Saved',
@@ -3370,6 +3372,7 @@ es: {
   'esc.mealAdminTitle': '🍽️ Confirmaciones de comidas',
   'esc.mealAdminHint': 'Las comidas nacen apagadas para los alumnos nuevos y se activan por solicitud: primero aprueba el entrenador y confirmas tú. Al confirmar, se enciende el registro de comidas de ese alumno.',
   'esc.flagsTitle': '🚩 Banderas de funciones',
+  'esc.flagOn': 'ACTIVADO',
   'esc.flagsHint': 'Apaga o enciende módulos enteros para todos los alumnos sin desplegar nada. Los entrenadores y tú no quedan bloqueados por estas banderas.',
   'esc.levelNone': 'Aún sin membresía',
   'esc.level.basico': 'Básico',
@@ -3581,6 +3584,7 @@ es: {
   'eval.guide.pantorrillas': 'Lado dominante: punto más ancho de la pantorrilla, de pie, pierna relajada.',
   'eval.guide.brazos': 'Lado dominante: brazo colgando relajado, sin flexionar, punto medio entre el acromion (el hueso del hombro) y el codo.',
   'eval.guide.hombros': 'Contorno sobre la parte más ancha de ambos deltoides y la espalda, con los brazos colgando.',
+  'eval.guide.pecho': 'Cinta alrededor del torso a la altura del pecho, bajo las axilas, al final de una espiración normal, de pie.',
   'eval.measuresTitle': 'Medidas de la evaluación',
   'eval.saveMeasures': 'Guardar medidas',
   'eval.savedOk': '✓ Guardado',
@@ -4604,10 +4608,31 @@ async function refreshDynamic() {
     if ([...sel.options].some(o => o.value === keep)) { sel.value = keep; render(keep); }
   }
 }
+/* Fuga de idioma (2026-10-25, captura de Ronald en su iPhone): al
+   cambiar de idioma, la vista principal —selector de fecha, fila de
+   metas, anillos, nota del día vacío, gráfica semanal y bloque de
+   peso— solo se repintaba cuando refreshDynamic() completaba su
+   recarga de RED; las demás superficies se repintan al instante
+   desde el estado local. Si la recarga tardaba o no completaba, la
+   vista principal quedaba en el idioma anterior y la pantalla salía
+   mezclada (fecha y anillos en inglés con el resto en español).
+   Este repintado es LOCAL e inmediato —solo usa el estado ya en
+   memoria (MEALS, WEIGHTS, GOALS), sin red— y refreshDynamic()
+   sigue trayendo los datos frescos por detrás, como siempre. */
+function renderTrackLocal() {
+  const sel = $('dateSel');
+  if (sel && sel.options.length) buildDateSelector(sel.value);
+  renderWeight();
+}
 function setLang(l) {
   LANG = (l === 'es') ? 'es' : 'en';
   try { localStorage.setItem('ronbo-nutri-lang', LANG); } catch (e) {}
   applyI18n();
+  /* Las opciones del selector de entrenador del registro se pintan
+     una sola vez al cargar el directorio; sin este repintado quedan
+     en el idioma anterior si se cambia de idioma con el registro
+     abierto. Repintado local, seguro también sin sesión. */
+  try { regRenderTrainerOptions(); } catch {}
   if (typeof auth !== 'undefined' && auth && auth.currentUser) {
     /* E2 (17/10/2026): re-render inmediato, con los datos YA en
        memoria, de los paneles que se pintan desde el estado local
@@ -4621,6 +4646,7 @@ function setLang(l) {
     try { renderEnergyPanel(); } catch {}
     try { renderPendings(); } catch {}
     try { renderProgress(); } catch {}
+    try { renderTrackLocal(); } catch {}
     try { aiOnLangChange(); } catch {}
     try { shareRelang(); } catch {}
     refreshDynamic();
@@ -6637,7 +6663,7 @@ function applyStorageFlag() {
   document.querySelectorAll('.photo-hint:not(#ai-off-note-modal):not([data-i18n="meal.photoHint"])').forEach(el => el.style.display = '');
 }
 
-function buildDateSelector() {
+function buildDateSelector(keep) {
   const sel = $('dateSel');
   sel.innerHTML = '';
   const dates = Object.keys(MEALS).sort().reverse();
@@ -6653,7 +6679,10 @@ function buildDateSelector() {
     o.value = d; o.textContent = dateName(d);
     sel.appendChild(o);
   });
-  sel.value = hoy;
+  /* keep (opcional): conserva el día seleccionado al reconstruir
+     (repintado local por cambio de idioma); sin keep, hoy, como
+     siempre en la carga normal. */
+  sel.value = (keep && [...sel.options].some(o => o.value === keep)) ? keep : hoy;
   sel.onchange = e => render(e.target.value);
   render(sel.value);
 }
