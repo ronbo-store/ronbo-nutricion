@@ -292,11 +292,11 @@ service cloud.firestore {
     }
     // Roles+Escalabilidad (2026-10-24, NO publicado): cupo de
     // alumnos por nivel de membresía (Básico 5 · Premium 10 ·
-    // Élite 30 · Libre 30 · sin membresía 0).
+    // Élite 30 · sin membresía 0).
     function escLevelQuota(level) {
       return level == 'basico' ? 5
         : level == 'premium' ? 10
-        : (level == 'elite' || level == 'libre') ? 30
+        : level == 'elite' ? 30
         : 0;
     }
     // ¿El entrenador tiene cupo libre según su membresía activa y el
@@ -429,14 +429,6 @@ service cloud.firestore {
     // entrenador (role exacto 'entrenador')?
     function isTrainerUser() {
       return signedIn() && myDocExists() && myDoc().get('role', '') == 'entrenador';
-    }
-    // N-09: ¿quien pide es el ADMINISTRADOR? El propietario lo es
-    // por construcción (deriveRole: isOwner ⇒ administrador) y un
-    // documento con role exacto 'administrador' también cuenta.
-    function isAdminUser() {
-      return signedIn() && myDocExists()
-        && (myDoc().isOwner == true
-            || myDoc().get('role', '') == 'administrador');
     }
     // Candidato N-07: límite de aprobaciones por entrenador, fijado
     // SOLO por el administrador en app_settings/approvals.
@@ -619,6 +611,25 @@ service cloud.firestore {
         && (!exists(/databases/$(database)/documents/trainer_profiles/$(request.auth.uid))
             || getAfter(/databases/$(database)/documents/trainer_profiles/$(request.auth.uid)).data.get('activeStudents', 0)
                  == get(/databases/$(database)/documents/trainer_profiles/$(request.auth.uid)).data.get('activeStudents', 0) + 1);
+      // Roles+Escalabilidad — RECHAZO (decisión §8.2 de Ronald,
+      // 2026-10-24): el entrenador devuelve a la espera al alumno
+      // que lo eligió y sigue SIN aprobar. Espejo inverso de la
+      // aprobación: sin contador de aprobaciones, sin contador de
+      // cupo (nunca sumó) y acoplado con getAfter a la relación
+      // cerrada en el mismo lote.
+      allow update: if isTrainerUser()
+        && resource.data.get('isOwner', false) == false
+        && resource.data.get('approved', false) == false
+        && !(resource.data.get('role', '') in ['entrenador', 'administrador'])
+        && resource.data.get('trainerUid', '') == request.auth.uid
+        && resource.data.get('assignmentStatus', '') == 'assigned'
+        && request.resource.data.diff(resource.data).affectedKeys()
+             .hasOnly(['trainerUid', 'assignmentStatus'])
+        && request.resource.data.get('trainerUid', null) == null
+        && request.resource.data.get('assignmentStatus', '') == 'waiting'
+        && request.resource.data.get('approved', false) == false
+        && getAfter(/databases/$(database)/documents/trainer_relations/$(uid)).data.get('trainerUid', null) == null
+        && getAfter(/databases/$(database)/documents/trainer_relations/$(uid)).data.get('status', '') == 'en_espera';
       // N-07: el entrenador incrementa SOLO su propio contador y
       // SOLO de uno en uno; la aprobación que lo justifica se
       // verifica en la rama anterior dentro del mismo lote (subir
@@ -1287,7 +1298,7 @@ service cloud.firestore {
     // Escritura desde cliente: NUNCA — la carga es operación Admin versionada.
     match /exercise_library/{docId} {
       allow read: if isApprovedUser();
-      allow create, update, delete: if isAdminUser();
+      allow write: if false;
     }
 
     // Plantillas de rutina: lectura para el entrenador/propietario Y para
@@ -1295,69 +1306,8 @@ service cloud.firestore {
     // las ven y pueden proponer cambios; proponer no escribe aquí).
     // Escritura desde cliente: NUNCA — la carga es operación Admin versionada.
     match /routine_templates/{docId} {
-      function tplVis() {
-        return resource.data.get('visibility', 'factory');
-      }
-      function tplVisNew() {
-        return request.resource.data.get('visibility', '');
-      }
-      function tplCanReadDoc() {
-        return tplVis() == 'factory'
-          || isAdminUser()
-          || (tplVis() == 'trainer'
-              && resource.data.get('createdBy', '') == request.auth.uid)
-          || (tplVis() == 'private'
-              && resource.data.get('ownerUid', '') == request.auth.uid);
-      }
-      function tplCanEditDoc() {
-        return isAdminUser()
-          || (tplVis() == 'trainer' && isTrainerUser()
-              && resource.data.get('createdBy', '') == request.auth.uid)
-          || (tplVis() == 'private'
-              && resource.data.get('ownerUid', '') == request.auth.uid);
-      }
-      // Lectura por clase (get y list se evalúan por documento).
-      allow get, list: if isApprovedUser() && tplCanReadDoc();
-      // Crear: autoría veraz (createdBy = quien escribe, con su
-      // nombre y la hora del servidor) y clase cerrada por rol:
-      // fábrica solo-admin; entrenador: entrenador o admin, con la
-      // plantilla asociada a SU cuenta (ownerUid = autor);
-      // privada: cualquier usuario aprobado, solo para sí mismo.
-      allow create: if isApprovedUser()
-        && request.resource.data.keys().hasOnly([
-             'nombre_es', 'nombre_en', 'nivel_es', 'nivel_en',
-             'objetivo_es', 'objetivo_en', 'dias_por_semana', 'days',
-             'session', 'version', 'createdBy', 'createdByName',
-             'createdAt', 'visibility', 'ownerUid', 'updatedAt',
-             'updatedBy'])
-        && (request.resource.data.get('nombre_es', '') != ''
-            || request.resource.data.get('nombre_en', '') != '')
-        && request.resource.data.days is list
-        && request.resource.data.createdBy == request.auth.uid
-        && request.resource.data.createdByName is string
-        && request.resource.data.createdAt == request.time
-        && tplVisNew() in ['factory', 'trainer', 'private']
-        && ( (tplVisNew() == 'factory' && isAdminUser())
-          || (tplVisNew() == 'trainer'
-              && (isAdminUser() || isTrainerUser())
-              && request.resource.data.ownerUid == request.auth.uid)
-          || (tplVisNew() == 'private'
-              && request.resource.data.ownerUid == request.auth.uid) );
-      // Actualizar: SOLO contenido. La autoría y la clase son
-      // inmutables (createdBy, createdByName, createdAt, visibility
-      // y ownerUid no están en la lista de claves tocables), y cada
-      // actualización lleva updatedAt del servidor y updatedBy de
-      // quien edita.
-      allow update: if isApprovedUser() && tplCanEditDoc()
-        && request.resource.data.diff(resource.data)
-             .affectedKeys().hasOnly([
-               'nombre_es', 'nombre_en', 'nivel_es', 'nivel_en',
-               'objetivo_es', 'objetivo_en', 'dias_por_semana',
-               'days', 'session', 'version', 'updatedAt', 'updatedBy'])
-        && request.resource.data.updatedAt == request.time
-        && request.resource.data.updatedBy == request.auth.uid;
-      // Borrar: la misma matriz que editar.
-      allow delete: if isApprovedUser() && tplCanEditDoc();
+      allow read: if isApprovedUser();
+      allow write: if false;
     }
 
     // Calificaciones por tipo de cuerpo: contenido GENÉRICO por ejercicio
@@ -1617,12 +1567,33 @@ service cloud.firestore {
                  .hasOnly(['trainerUid', 'modality', 'status', 'startedAt', 'updatedAt'])
             && request.resource.data.get('modality', '') == resource.data.get('modality', '')
             && (request.resource.data.get('trainerUid', null) == null
-                || escQuotaOpen(request.resource.data.trainerUid)));
+                || escQuotaOpen(request.resource.data.trainerUid)))
+        || (isTrainerUser()
+            && resource.data.get('trainerUid', '') == request.auth.uid
+            && request.resource.data.get('alumnoUid', '') == alumnoUid
+            && get(/databases/$(database)/documents/users/$(alumnoUid)).data.get('approved', false) == false
+            && get(/databases/$(database)/documents/users/$(alumnoUid)).data.get('trainerUid', '') == request.auth.uid
+            && request.resource.data.diff(resource.data).affectedKeys()
+                 .hasOnly(['trainerUid', 'status', 'startedAt', 'updatedAt'])
+            && request.resource.data.get('trainerUid', null) == null
+            && request.resource.data.get('status', '') == 'en_espera'
+            && request.resource.data.get('modality', '') == resource.data.get('modality', '')
+            && getAfter(/databases/$(database)/documents/users/$(alumnoUid)).data.get('trainerUid', null) == null
+            && getAfter(/databases/$(database)/documents/users/$(alumnoUid)).data.get('assignmentStatus', '') == 'waiting');
       allow delete: if false;
       match /history/{eventId} {
         allow get, list: if isSelf(alumnoUid) || isOwnerUser();
-        allow create: if (isSelf(alumnoUid) || isOwnerUser())
-          && request.resource.data.get('by', '') == request.auth.uid;
+        allow create: if ((isSelf(alumnoUid) || isOwnerUser())
+          && request.resource.data.get('by', '') == request.auth.uid)
+        || (isTrainerUser()
+            && request.resource.data.get('by', '') == request.auth.uid
+            && request.resource.data.get('type', '') == 'rechazo'
+            && request.resource.data.get('fromTrainerUid', '') == request.auth.uid
+            && request.resource.data.get('toTrainerUid', null) == null
+            && get(/databases/$(database)/documents/users/$(alumnoUid)).data.get('approved', false) == false
+            && get(/databases/$(database)/documents/trainer_relations/$(alumnoUid)).data.get('trainerUid', '') == request.auth.uid
+            && getAfter(/databases/$(database)/documents/trainer_relations/$(alumnoUid)).data.get('trainerUid', null) == null
+            && getAfter(/databases/$(database)/documents/users/$(alumnoUid)).data.get('assignmentStatus', '') == 'waiting');
         allow update, delete: if false;
       }
     }
