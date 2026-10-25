@@ -14762,7 +14762,7 @@ setInterval(() => { try { pendDockTick(); } catch {} }, 60000);
  *  - El SW (sw.js) solo cachea la cáscara del mismo origen en modo
  *    RED PRIMERO: Auth/Firestore/Worker jamás pasan por la caché.
  * ================================================================ */
-const PWA_SW_VERSION = '20261025-autocompletado';
+const PWA_SW_VERSION = '20261025-logofit';
 let pwaDeferredPrompt = null;
 function pwaIsStandalone() {
   try {
