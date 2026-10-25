@@ -1561,6 +1561,7 @@ en: {
   'libadm.saved': 'Exercise saved ✓',
   'libadm.created': 'Exercise created ✓',
   'libadm.empty': 'No exercises match your search.',
+  'libadm.readonlyNote': '⚠️ Read-only for now: the live permission rules still deny every write to the factory library — the N-09 rules package that enables administrator editing is written but not yet published. You can browse and search the catalogue here; editing and new exercises switch on as soon as those rules are published.',
   'track.date': '📅 Date:',
   'track.addMeal': '＋ Log meal',
   'track.weekTitle': '📈 Weekly goal compliance',
@@ -2872,6 +2873,7 @@ es: {
   'libadm.saved': 'Ejercicio guardado ✓',
   'libadm.created': 'Ejercicio creado ✓',
   'libadm.empty': 'Ningún ejercicio coincide con la búsqueda.',
+  'libadm.readonlyNote': '⚠️ Por ahora es de solo lectura: las reglas de permisos vigentes todavía niegan toda escritura en la biblioteca de fábrica — el paquete de reglas N-09 que habilita la edición del administrador está escrito, pero aún no publicado. Aquí puedes consultar y buscar el catálogo; la edición y las altas se activan en cuanto esas reglas se publiquen.',
   'track.date': '📅 Fecha:',
   'track.addMeal': '＋ Registrar comida',
   'track.weekTitle': '📈 Cumplimiento semanal de metas',
@@ -9550,6 +9552,14 @@ function libRowThumb(row, url) {
    quedan como estaban. El alta calcula el siguiente id libre E###
    a partir del catálogo cargado. */
 let LIB_ADMIN_EDIT = null; // id en edición | 'new' | null
+/* PUERTA DE COMPOSICIÓN (despliegue reprueba, 2026-10-24): las reglas
+   VIVAS (ruleset 3c3790d8) dicen de exercise_library «allow write:
+   if false» — la escritura del administrador es el delta N-09, que
+   quedó DETENIDO sin publicar (su CI de reglas falló). Sin improvisar
+   reglas: la vista lista y busca, la ficha se abre, pero el guardado
+   se niega AQUÍ sin escribir nada. Al publicar N-09, poner esta
+   constante en true reactiva editar/dar de alta tal como se construyó. */
+const LIBADM_WRITE_ENABLED = false;
 async function renderLibAdmin() {
   const sec = $('library-section'); if (!sec) return;
   if (ROLE !== 'administrador') { sec.style.display = 'none'; return; }
@@ -9575,11 +9585,12 @@ function libAdminRenderList() {
   if (LIB_STATE !== 'ok') { box.innerHTML = `<div class="wempty">${esc(t('train.lib.unavailable'))}</div>`; if (cnt) cnt.textContent = ''; return; }
   const rows = libAdminFiltered();
   if (cnt) cnt.textContent = t('libadm.count', { n: rows.length });
-  box.innerHTML = rows.length ? rows.map(ex => `
+  const gateNote = LIBADM_WRITE_ENABLED ? '' : `<div class="wempty">${esc(t('libadm.readonlyNote'))}</div>`;
+  box.innerHTML = gateNote + (rows.length ? rows.map(ex => `
     <div class="user-row">
       <div>${ex.foto_url ? `<img class="avatar sm" src="${esc(ex.foto_url)}" alt="">` : ''}<b>${esc(libNameOf(ex))}</b> <span class="muted">${esc(ex.id)}</span><br><span class="muted">${esc(libField(ex, 'grupo_muscular'))}${(ex.equipo_es || ex.equipo_en) ? ' · ' + esc(libField(ex, 'equipo')) : ''}</span></div>
       <div class="user-actions"><button type="button" class="btn-ghost btn-sm" data-lib-edit="${esc(ex.id)}">${esc(t('libadm.edit'))}</button></div>
-    </div>`).join('') : `<div class="wempty">${esc(t('libadm.empty'))}</div>`;
+    </div>`).join('') : `<div class="wempty">${esc(t('libadm.empty'))}</div>`);
   box.querySelectorAll('[data-lib-edit]').forEach(b => b.onclick = () => libAdminOpenEditor(b.dataset.libEdit));
 }
 function libAdminOpenEditor(id) {
@@ -9603,6 +9614,7 @@ function libAdminOpenEditor(id) {
 }
 async function libAdminSave() {
   if (ROLE !== 'administrador' || !LIB_ADMIN_EDIT) return;
+  if (!LIBADM_WRITE_ENABLED) { toast(t('libadm.readonlyNote')); return; } // puerta de composición: ver LIBADM_WRITE_ENABLED
   const v = id => (($(id) || {}).value || '').trim();
   const data = { nombre_es: v('la-nombre_es'), nombre_en: v('la-nombre_en'),
     grupo_muscular_es: v('la-grupo_es'), grupo_muscular_en: v('la-grupo_en'),
