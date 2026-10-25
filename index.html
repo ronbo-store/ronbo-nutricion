@@ -524,7 +524,7 @@
       <button type="button" class="pend-close" id="btn-food-text-close" aria-label="Close" data-i18n-aria="client.close">✕</button>
     </div>
     <p class="photo-hint" data-i18n="aiText.hint">No photo? Describe the dish and AI will suggest its components and amounts — you review and edit everything before saving.</p>
-    <textarea id="food-text-desc" class="food-textarea" rows="3" maxlength="600" data-i18n-ph="aiText.ph" placeholder="E.g. quinoa tortilla with egg, cottage cheese and turkey ham"></textarea>
+    <span class="ac-wrap"><textarea id="food-text-desc" class="food-textarea" rows="3" maxlength="600" data-i18n-ph="aiText.ph" placeholder="E.g. quinoa tortilla with egg, cottage cheese and turkey ham"></textarea><span class="ac-sug" id="ac-sug-text"></span></span>
     <div class="ai-actions"><button type="button" class="btn-main btn-sm" id="btn-food-text-go" data-i18n="aiText.button">Analyze the description with AI</button></div>
   </div>
   <div class="act-float act-sheet" id="food-help" style="display:none" role="dialog" aria-label="Help" data-i18n-aria="food.help">
@@ -734,10 +734,10 @@
           </select>
         </label>
       </div>
-      <label><span data-i18n="form.food">Food</span> <input type="text" id="m-food" required data-i18n-ph="form.foodPh" placeholder="E.g. Chicken breast"></label>
+      <label><span data-i18n="form.food">Food</span> <span class="ac-wrap"><input type="text" id="m-food" required data-i18n-ph="form.foodPh" placeholder="E.g. Chicken breast"><span class="ac-sug" id="ac-sug-food"></span></span></label>
       <div class="m-ai-text">
         <label><span data-i18n="aiText.label">Describe your meal</span>
-          <textarea id="m-desc" rows="2" maxlength="600" data-i18n-ph="aiText.ph" placeholder="E.g. quinoa tortilla with egg, cottage cheese and turkey ham"></textarea>
+          <span class="ac-wrap"><textarea id="m-desc" rows="2" maxlength="600" data-i18n-ph="aiText.ph" placeholder="E.g. quinoa tortilla with egg, cottage cheese and turkey ham"></textarea><span class="ac-sug" id="ac-sug-desc"></span></span>
         </label>
         <p class="photo-hint" data-i18n="aiText.hint">No photo? Describe the dish and AI will suggest its components and amounts — you review and edit everything before saving.</p>
         <button type="button" class="btn-main btn-sm" id="m-ai-text-btn" data-i18n="aiText.button">Analyze the description with AI</button>

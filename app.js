@@ -2173,6 +2173,8 @@ en: {
   'aiText.hint': 'No photo? Describe the dish and AI will suggest its components and amounts — you review and edit everything before saving.',
   'aiText.button': 'Analyze the description with AI',
   'aiText.tooShort': 'Describe the meal with a bit more detail first.',
+  'ac.title': 'From your history',
+  'ac.values': '{kcal} kcal · protein {prot} g · carbs {carb} g · sugar {sugar} g · fat {fat} g',
   'aiText.notFound': "AI couldn't identify any food this time. Try again, or log the meal manually.",
   'aiText.banner': 'Draft from your description: check and edit the values before saving.',
   'aiMulti.title': 'Photos of this meal',
@@ -3570,6 +3572,8 @@ es: {
   'aiText.hint': '¿Sin foto? Describe el plato y la IA sugerirá sus componentes y cantidades: tú revisas y editas todo antes de guardar.',
   'aiText.button': 'Analizar la descripción con IA',
   'aiText.tooShort': 'Describe primero la comida con un poco más de detalle.',
+  'ac.title': 'De tu historial',
+  'ac.values': '{kcal} kcal · proteína {prot} g · carbos {carb} g · azúcares {sugar} g · grasas {fat} g',
   'aiText.notFound': 'La IA no pudo identificar ningún alimento esta vez. Inténtalo de nuevo o registra la comida manualmente.',
   'aiText.banner': 'Borrador de tu descripción: revisa y edita los valores antes de guardar.',
   'aiMulti.title': 'Fotos de esta comida',
@@ -7247,9 +7251,10 @@ function aiHasInput() {
    —sería un botón falso—, solo salidas que sí existen. */
 function aiFailExtrasHTML(withPhotoExit) {
   const pre = aiState && aiState.mode === 'text' ? esc(aiState.descText || '') : '';
-  return `<p class="progress-hint">${t('ai.retryHint')}</p><textarea id="ai-alt-desc" class="ai-alt-desc" rows="2" maxlength="600" placeholder="${t('aiText.ph')}">${pre}</textarea><div class="ai-actions"><button type="button" class="btn-ghost btn-sm" id="ai-alt-text">${t('aiText.button')}</button>${withPhotoExit ? `<button type="button" class="btn-ghost btn-sm" id="ai-alt-photo">${t('ai.newPhoto')}</button>` : ''}</div>`;
+  return `<p class="progress-hint">${t('ai.retryHint')}</p><span class="ac-wrap"><textarea id="ai-alt-desc" class="ai-alt-desc" rows="2" maxlength="600" placeholder="${t('aiText.ph')}">${pre}</textarea><span class="ac-sug"></span></span><div class="ai-actions"><button type="button" class="btn-ghost btn-sm" id="ai-alt-text">${t('aiText.button')}</button>${withPhotoExit ? `<button type="button" class="btn-ghost btn-sm" id="ai-alt-photo">${t('ai.newPhoto')}</button>` : ''}</div>`;
 }
 function aiWireFailExtras() {
+  acWireAltDesc();
   const btn = $('ai-alt-text');
   if (btn) btn.onclick = () => {
     const desc = (($('ai-alt-desc') && $('ai-alt-desc').value) || '').trim();
@@ -13748,6 +13753,137 @@ function repeatClear() {
 }
 $('meal-cancel').onclick = () => { $('meal-modal').style.display = 'none'; aiClearDraft(); repeatClear(); try { pendDraftDisarm(); } catch {} };
 $('meal-modal').addEventListener('click', e => { if (e.target.id === 'meal-modal') { e.target.style.display = 'none'; repeatClear(); } });
+
+/* ============ AUTOCOMPLETADO DESDE EL HISTORIAL (Ronald, 2026-10-25) ============
+   «Quiero que el registro de la comida tenga esa posibilidad de
+   registrar lo guardado antes con fines de facilitar la repetición de
+   comida… en el campo de escribir se vaya llenando automáticamente
+   mientras las palabras coincidan.» Mientras la persona escribe en el
+   nombre de la comida del formulario manual o en los campos de
+   descripción para la IA, aparecen sugerencias tomadas de SU PROPIO
+   historial ya guardado (el MEALS que loadAll carga filtrado por su
+   uid — ningún dato de otro usuario entra nunca al índice, y no se
+   hace ninguna lectura nueva: el alcance es exactamente el historial
+   que la app ya cargó). Cada sugerencia muestra el nombre tal como se
+   guardó y los valores de su registro MÁS RECIENTE con ese nombre
+   (deduplicado por nombre normalizado); al tocarla:
+   - en el nombre del formulario manual, rellena nombre, cantidad y
+     las cinco métricas — la repetición queda en dos toques (elegir y
+     Guardar). Aplicarla define un alta MANUAL NUEVA: limpia el
+     borrador de IA y el contexto de «Repetir», para que el guardado
+     no herede procedencia ni reescalados de otro registro;
+   - en un campo de descripción, rellena el texto con el nombre
+     guardado, listo para analizar o para continuar manualmente.
+   RELACIÓN CON «REPETIR»: no se duplica — «Repetir» (botón ↻ de cada
+   registro del día) abre el formulario precargado desde UN registro
+   concreto, con reescalado proporcional al cambiar la cantidad y su
+   procedencia origin; el autocompletado actúa ANTES, mientras se
+   escribe, sobre todo el historial y sin procedencia. Se complementan.
+   Coincidencia: subcadena sobre el nombre normalizado (NFD sin
+   acentos, minúsculas), mínimo 2 caracteres; orden: más reciente
+   primero (fecha y hora de registro del último guardado con ese
+   nombre), desempate por frecuencia de uso; máximo 6. Mismo patrón
+   visual y de cableado que las sugerencias de la biblioteca en el
+   editor de planes (.pl-sug-item / mousedown antes del blur). */
+function acNorm(s) {
+  return String(s == null ? '' : s).normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase().trim();
+}
+/* (el rango de arriba es U+0300–U+036F, marcas combinantes: la misma
+   normalización que aiNormName/libNorm en el resto de la app) */
+function acNum(v) { const n = num(v); return Number.isInteger(n) ? String(n) : String(Math.round(n * 10) / 10); }
+let acCacheFor = null, acCache = [];
+function acIndex() {
+  if (acCacheFor === MEALS) return acCache;
+  const byKey = new Map();
+  for (const d of Object.keys(MEALS || {})) {
+    for (const m of (MEALS[d] || [])) {
+      const name = String(m.food || '').trim();
+      if (!name) continue;
+      const key = acNorm(name);
+      if (!key) continue;
+      const ex = byKey.get(key);
+      if (ex) {
+        ex.count++;
+        /* Los valores que mandan son los del guardado MÁS RECIENTE
+           con ese nombre (fecha, y dentro del día la hora de
+           registro): un duplicado antiguo solo suma frecuencia. */
+        if (d > ex.date || (d === ex.date && (m.createdAtMs || 0) > ex.ms)) {
+          ex.date = d; ex.ms = m.createdAtMs || 0;
+          ex.name = name; ex.qty = m.qty || '';
+          ex.kcal = num(m.kcal); ex.prot = num(m.prot); ex.carb = num(m.carb);
+          ex.sugar = num(m.sugar); ex.fat = num(m.fat);
+        }
+      } else {
+        byKey.set(key, { key, name, qty: m.qty || '', kcal: num(m.kcal), prot: num(m.prot),
+          carb: num(m.carb), sugar: num(m.sugar), fat: num(m.fat),
+          date: d, ms: m.createdAtMs || 0, count: 1 });
+      }
+    }
+  }
+  acCache = [...byKey.values()].sort((a, b) =>
+    (a.date !== b.date ? (a.date < b.date ? 1 : -1) : (b.ms - a.ms)) || (b.count - a.count));
+  acCacheFor = MEALS;
+  return acCache;
+}
+function acSearch(q) {
+  const nq = acNorm(q);
+  if (nq.length < 2) return [];
+  return acIndex().filter(e => e.key.includes(nq)).slice(0, 6);
+}
+function acMeta(e) {
+  const vals = t('ac.values', { kcal: acNum(e.kcal), prot: acNum(e.prot), carb: acNum(e.carb), sugar: acNum(e.sugar), fat: acNum(e.fat) });
+  return e.qty ? (e.qty + ' · ' + vals) : vals;
+}
+function acApply(input, e, mode) {
+  if (!e) return;
+  if (mode === 'food') {
+    aiClearDraft();
+    repeatClear();
+    const set = (id, v) => { const el = $(id); if (el) { el.value = v; el.dispatchEvent(new Event('input', { bubbles: true })); } };
+    set('m-food', e.name);
+    set('m-qty', e.qty);
+    set('m-kcal', e.kcal); set('m-prot', e.prot); set('m-carb', e.carb);
+    set('m-sugar', e.sugar); set('m-fat', e.fat);
+  } else {
+    input.value = e.name;
+    input.dispatchEvent(new Event('input', { bubbles: true }));
+  }
+  try { input.focus({ preventScroll: true }); } catch {}
+}
+function acWire(input, box, mode) {
+  if (!input || !box || input.dataset.acWired) return;
+  input.dataset.acWired = '1';
+  const close = () => { box.innerHTML = ''; };
+  const render = () => {
+    const hits = acSearch(input.value);
+    if (!hits.length) { close(); return; }
+    box.innerHTML = `<span class="ac-head"><span>${t('ac.title')}</span><button type="button" class="ac-x" aria-label="${esc(t('client.close'))}">✕</button></span>` +
+      hits.map((e, i) => `<button type="button" class="pl-sug-item" data-ac-i="${i}"><span class="sg-name">${esc(e.name)}</span><span class="sg-meta">${esc(acMeta(e))}</span></button>`).join('');
+    const x = box.querySelector('.ac-x');
+    if (x) x.addEventListener('mousedown', ev => { ev.preventDefault(); close(); try { input.focus({ preventScroll: true }); } catch {} });
+    box.querySelectorAll('[data-ac-i]').forEach(b => b.addEventListener('mousedown', ev => {
+      ev.preventDefault();
+      acApply(input, hits[Number(b.dataset.acI)], mode);
+      close();
+    }));
+  };
+  input.addEventListener('input', render);
+  input.addEventListener('focus', render);
+  input.addEventListener('blur', () => setTimeout(close, 150));
+  input.addEventListener('keydown', ev => { if (ev.key === 'Escape') close(); });
+}
+/* El campo de reintento (#ai-alt-desc) nace con cada pintado del
+   panel de análisis: se cablea al construirse sus salidas
+   (aiWireFailExtras llama aquí en cada pintado). */
+function acWireAltDesc() {
+  const ta = $('ai-alt-desc');
+  if (!ta) return;
+  const wrap = ta.closest('.ac-wrap');
+  acWire(ta, wrap ? wrap.querySelector('.ac-sug') : null, 'desc');
+}
+acWire($('m-food'), $('ac-sug-food'), 'food');
+acWire($('m-desc'), $('ac-sug-desc'), 'desc');
+acWire($('food-text-desc'), $('ac-sug-text'), 'desc');
 
 $('m-photo').addEventListener('change', e => {
   const f = e.target.files[0];
