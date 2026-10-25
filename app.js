@@ -6309,7 +6309,11 @@ function applyStorageFlag() {
     return;
   }
   document.querySelectorAll('.photo-label').forEach(el => el.style.display = 'none');
-  document.querySelectorAll('.photo-hint').forEach(el => el.style.display = '');
+  /* El barrido NO resucita las notas gobernadas por otra vía: #ai-off-note-modal
+     la gobierna applyAiControl() por id (interruptor de IA) y meal.photoHint es
+     una pista retirada; ambas quedaban visibles en el formulario aunque la IA
+     estuviera encendida (hallazgo del informe de comida flotante, 2026-10-24). */
+  document.querySelectorAll('.photo-hint:not(#ai-off-note-modal):not([data-i18n="meal.photoHint"])').forEach(el => el.style.display = '');
 }
 
 function buildDateSelector() {
