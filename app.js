@@ -1335,6 +1335,73 @@ function dosCollectPlaces() {
     detail: r.querySelector('.dp-detail').value.trim()
   })).filter(p => p.name).slice(0, 8);
 }
+/* ============ MI PERFIL — superficie propia (perfil-visible,
+   2026-10-24) ============
+   Pedido de Ronald (chat RONBO.NUTRI, 2026-10-24 20:26 CDT): el
+   perfil del entrenador estaba «mal ubicado» dentro de «Mis
+   clientes»; ahora vive en su propia vista (#tab-profile), con DOS
+   entradas hacia la MISMA superficie: la píldora «Mi perfil» junto a
+   «Mi registro» (entrenador/administrador) y la foto del encabezado
+   (todos los roles; el alumno no tiene barra de pestañas y entra por
+   su foto). La vista contiene: (a) la tarjeta básica del usuario con
+   sesión — SOLO datos que la app ya almacena (users/{uid}: nombre,
+   correo, foto, rol; para el alumno, su modalidad y su entrenador
+   según trainer_relations/users) — ningún campo nuevo; (b) solo
+   para entrenador/administrador, el editor del dossier MUDADO aquí:
+   renderDossierEditor sigue siendo el único camino de escritura y
+   #dossier-editor-box existe UNA sola vez en el DOM. El cambio de
+   foto conserva su camino de siempre (#avatar-file). */
+async function renderProfileView() {
+  const box = $('profile-card-box'); if (!box) return;
+  const u = UDATA || {};
+  const me = auth.currentUser;
+  const name = u.name || (me && me.email) || '—';
+  const email = u.email || (me && me.email) || '';
+  const photo = u.photoURL || '';
+  const initial = 'data:image/svg+xml;utf8,' + encodeURIComponent(`<svg xmlns="http://www.w3.org/2000/svg" width="96" height="96"><circle cx="48" cy="48" r="48" fill="#0d9488"/><text x="48" y="62" font-size="40" text-anchor="middle" fill="#ffffff" font-family="sans-serif">${esc(String(name).trim().charAt(0).toUpperCase() || 'R')}</text></svg>`);
+  let rows = `<p class="myprof-row"><span class="myprof-k">${esc(t('roles.roleLabel'))}</span><span class="myprof-v">${esc(t('roles.' + ROLE))}</span></p>`;
+  if (ROLE === 'usuario') {
+    const rel = MY_REL || {};
+    const modality = rel.modality || u.modality || null;
+    if (modality) rows += `<p class="myprof-row"><span class="myprof-k">${esc(t('esc.modality'))}</span><span class="myprof-v">${esc(escModLabel(modality))}</span></p>`;
+    const tUid = rel.trainerUid || u.trainerUid || null;
+    rows += `<p class="myprof-row"><span class="myprof-k">${esc(t('esc.currentTrainer'))}</span><span class="myprof-v" id="myprof-trainer-name">${tUid ? esc(ADMIN_NAME_CACHE[tUid] || '…') : esc(t('myprof.noTrainer'))}</span></p>`;
+  }
+  box.innerHTML = `
+  <div class="panel myprof-card">
+    <h3 class="history-title">${esc(t('myprof.title'))}</h3>
+    <div class="myprof-head">
+      <img class="myprof-photo" src="${esc(photo || initial)}" alt="">
+      <div class="myprof-id"><b>${esc(name)}</b>${email ? `<br><span class="muted">${esc(email)}</span>` : ''}</div>
+    </div>
+    ${rows}
+    <div class="eval-actions"><button type="button" class="btn-ghost btn-sm" id="myprof-photo-btn">${esc(t('myprof.changePhoto'))}</button></div>
+  </div>`;
+  const pb = $('myprof-photo-btn');
+  if (pb) pb.addEventListener('click', () => { const f = $('avatar-file'); if (f) f.click(); });
+  /* Nombre del entrenador del alumno: la caché de nombres se llena
+     al pintar «Mi entrenador» en Mi registro; si aún no está, se
+     resuelve con la lectura puntual de users/{uid} (con respaldo en
+     el nombre visible del dossier) y se parchea la celda. */
+  if (ROLE === 'usuario') {
+    const tUid = (MY_REL && MY_REL.trainerUid) || u.trainerUid || null;
+    const cell = $('myprof-trainer-name');
+    if (tUid && cell && !ADMIN_NAME_CACHE[tUid]) {
+      try {
+        const s = await getDoc(doc(db, 'users', tUid));
+        let nm = s.exists() ? (s.data().name || '') : '';
+        if (!nm) { const p = await getDoc(doc(db, 'trainer_profiles', tUid)); if (p.exists()) nm = p.data().displayName || ''; }
+        if (nm) { ADMIN_NAME_CACHE[tUid] = nm; const c2 = $('myprof-trainer-name'); if (c2) c2.textContent = nm; }
+        else cell.textContent = '—';
+      } catch { cell.textContent = '—'; }
+    }
+  }
+  /* (b) el editor del dossier, solo entrenador/administrador: su
+     propia puerta (ROLE entrenador o dueño) decide la visibilidad;
+     para el alumno la caja queda oculta y sin contenido. */
+  renderDossierEditor();
+}
+
 async function renderDossierEditor() {
   const box = $('dossier-editor-box');
   if (!box) return;
@@ -1348,27 +1415,27 @@ async function renderDossierEditor() {
   const certs = Array.isArray(prof.certifications) && prof.certifications.length ? prof.certifications : [{}];
   const places = Array.isArray(prof.places) && prof.places.length ? prof.places : [{}];
   box.innerHTML = `
-  <div class="panel">
+  <div class="panel dos-form">
     <h3 class="history-title">${esc(t('esc.dos.editTitle'))}</h3>
     <p class="progress-hint">${esc(t('esc.dos.editHint'))}</p>
-    <label class="muted">${esc(t('esc.dos.photo'))}</label>
+    <label class="muted dos-field dos-field-static">${esc(t('esc.dos.photo'))}</label>
     ${prof.photoUrl ? `<img class="dos-photo-prev" id="dos-photo-prev" src="${esc(prof.photoUrl)}" alt="">` : `<img class="dos-photo-prev" id="dos-photo-prev" style="display:none" alt="">`}
     <div class="eval-actions"><button type="button" class="btn-ghost btn-sm" id="dos-photo-btn">${esc(t('esc.dos.photoUpload'))}</button>
     <input type="file" id="dos-photo-file" accept="image/*" style="display:none"></div>
-    <label class="muted">${esc(t('esc.dos.headline'))} <input type="text" id="dos-headline" maxlength="120" value="${esc(prof.headline || '')}" placeholder="${esc(t('esc.dos.headlinePh'))}"></label>
-    <label class="muted">${esc(t('esc.dos.aboutLabel'))} <textarea id="dos-about" rows="4" maxlength="2000">${esc(prof.about || '')}</textarea></label>
-    <label class="muted">${esc(t('esc.dos.yearsLabel'))} <input type="number" id="dos-years" min="0" max="60" value="${prof.experienceYears || ''}"></label>
-    <div class="muted">${esc(t('esc.dos.contextsLabel'))}: ${DOS_CONTEXTS.map(c => `<label class="muted"><input type="checkbox" class="dos-ctx" value="${c}" ${(Array.isArray(prof.contexts) && prof.contexts.includes(c)) ? 'checked' : ''}> ${esc(t('esc.dos.ctx.' + c))}</label>`).join(' ')}</div>
-    <label class="muted">${esc(t('esc.dos.clientTypesLabel'))} <input type="text" id="dos-clienttypes" value="${esc((prof.clientTypes || []).join(', '))}"></label>
-    <label class="muted">${esc(t('esc.dos.skillsLabel'))} <input type="text" id="dos-topskills" value="${esc((prof.topSkills || []).join(', '))}"></label>
-    <div class="muted">${esc(t('esc.dos.certsLabel'))}</div>
+    <label class="muted dos-field">${esc(t('esc.dos.headline'))}<input type="text" id="dos-headline" maxlength="120" value="${esc(prof.headline || '')}" placeholder="${esc(t('esc.dos.headlinePh'))}"></label>
+    <label class="muted dos-field">${esc(t('esc.dos.aboutLabel'))}<textarea id="dos-about" rows="4" maxlength="2000">${esc(prof.about || '')}</textarea></label>
+    <label class="muted dos-field">${esc(t('esc.dos.yearsLabel'))}<input type="number" id="dos-years" min="0" max="60" value="${prof.experienceYears || ''}"></label>
+    <div class="muted dos-ctx-group"><span class="dos-ctx-title">${esc(t('esc.dos.contextsLabel'))}:</span><div class="dos-ctx-grid">${DOS_CONTEXTS.map(c => `<label class="dos-ctx-item"><input type="checkbox" class="dos-ctx" value="${c}" ${(Array.isArray(prof.contexts) && prof.contexts.includes(c)) ? 'checked' : ''}> ${esc(t('esc.dos.ctx.' + c))}</label>`).join('')}</div></div>
+    <label class="muted dos-field">${esc(t('esc.dos.clientTypesLabel'))}<input type="text" id="dos-clienttypes" value="${esc((prof.clientTypes || []).join(', '))}"></label>
+    <label class="muted dos-field">${esc(t('esc.dos.skillsLabel'))}<input type="text" id="dos-topskills" value="${esc((prof.topSkills || []).join(', '))}"></label>
+    <div class="muted dos-section-title">${esc(t('esc.dos.certsLabel'))}</div>
     <p class="progress-hint">${esc(t('esc.dos.certsHint'))}</p>
     <div id="dos-certs">${certs.map(dosCertRowHTML).join('')}</div>
     <div class="eval-actions"><button type="button" class="btn-ghost btn-sm" id="dos-cert-add">${esc(t('esc.dos.addRow'))}</button></div>
-    <label class="muted">${esc(t('esc.dos.specialtiesLabel'))} <input type="text" id="dos-specialties" value="${esc((prof.specialties || []).join(', '))}"></label>
-    <label class="muted">${esc(t('esc.dos.notTrainsLabel'))} <input type="text" id="dos-nottrains" maxlength="300" value="${esc(prof.notTrains || '')}"></label>
-    <label class="muted">${esc(t('esc.dos.languagesLabel'))} <input type="text" id="dos-languages" value="${esc((prof.languages || []).join(', '))}"></label>
-    <div class="muted">${esc(t('esc.dos.placesLabel'))}</div>
+    <label class="muted dos-field">${esc(t('esc.dos.specialtiesLabel'))}<input type="text" id="dos-specialties" value="${esc((prof.specialties || []).join(', '))}"></label>
+    <label class="muted dos-field">${esc(t('esc.dos.notTrainsLabel'))}<input type="text" id="dos-nottrains" maxlength="300" value="${esc(prof.notTrains || '')}"></label>
+    <label class="muted dos-field">${esc(t('esc.dos.languagesLabel'))}<input type="text" id="dos-languages" value="${esc((prof.languages || []).join(', '))}"></label>
+    <div class="muted dos-section-title">${esc(t('esc.dos.placesLabel'))}</div>
     <p class="progress-hint">${esc(t('esc.dos.placesHint'))}</p>
     <div id="dos-places">${places.map(dosPlaceRowHTML).join('')}</div>
     <div class="eval-actions"><button type="button" class="btn-ghost btn-sm" id="dos-place-add">${esc(t('esc.dos.addRow'))}</button></div>
@@ -1535,7 +1602,12 @@ en: {
   'app.myPhoto': 'My photo',
   'app.loading': 'Loading…',
   'avatar.change': 'Tap to change your profile photo',
+  'myprof.open': 'Open my profile',
+  'myprof.title': '👤 My profile',
+  'myprof.changePhoto': 'Change photo',
+  'myprof.noTrainer': 'Waiting for assignment',
   'tabs.track': '📊 My log',
+  'tabs.profile': '👤 My profile',
   'tabs.clients': '👥 My clients',
   'tabs.access': '🔐 Access',
   'tabs.trainers': '👨‍🏫 Trainers',
@@ -2876,7 +2948,12 @@ es: {
   'app.myPhoto': 'Mi foto',
   'app.loading': 'Cargando…',
   'avatar.change': 'Toca para cambiar tu foto de perfil',
+  'myprof.open': 'Abrir mi perfil',
+  'myprof.title': '👤 Mi perfil',
+  'myprof.changePhoto': 'Cambiar foto',
+  'myprof.noTrainer': 'En espera de asignación',
   'tabs.track': '📊 Mi registro',
+  'tabs.profile': '👤 Mi perfil',
   'tabs.clients': '👥 Mis clientes',
   'tabs.access': '🔐 Accesos',
   'tabs.trainers': '👨‍🏫 Entrenadores',
@@ -4574,6 +4651,11 @@ onAuthStateChanged(auth, async user => {
   if (trTabBtn) trTabBtn.style.display = ROLE === 'administrador' ? '' : 'none';
   const libTabBtn = document.querySelector('.main-tab[data-tab="library"]');
   if (libTabBtn) libTabBtn.style.display = ROLE === 'administrador' ? '' : 'none';
+  /* «Mi perfil» (perfil-visible, 2026-10-24): la píldora junto a
+     «Mi registro» es del entrenador y del administrador; el alumno
+     no tiene barra de pestañas y entra por su foto del encabezado. */
+  const profTabBtn = document.querySelector('.main-tab[data-tab="profile"]');
+  if (profTabBtn) profTabBtn.style.display = (ROLE === 'entrenador' || ROLE === 'administrador') ? '' : 'none';
   switchTab('track');
   await loadAll();
   startUserDocWatch(user.uid);
@@ -5099,7 +5181,9 @@ async function loadClients() {
   renderMembershipBox();
   renderMealTrainerBox();
   renderModalityTrainerBox();
-  renderDossierEditor();
+  /* El editor del dossier YA NO vive en esta pestaña (perfil-visible,
+     2026-10-24): se mudó a «Mi perfil» y lo pinta renderProfileView.
+     MY_DOSSIER para los pendientes se carga en loadRolesX, no aquí. */
 }
 /* Bandeja de espera (SOLO administrador): clientes aprobados con
    assignmentStatus 'waiting'. Asignar escribe trainerUid +
@@ -11039,6 +11123,7 @@ function switchTab(name) {
   if (IS_OWNER && (name === 'access' || name === 'trainers')) loadAdmin();
   if (ROLE !== 'usuario' && name === 'clients') loadClients();
   if (ROLE === 'administrador' && name === 'library') renderLibAdmin();
+  if (name === 'profile') renderProfileView();
 }
 document.querySelectorAll('.main-tab').forEach(b => b.addEventListener('click', () => switchTab(b.dataset.tab)));
 
@@ -11248,9 +11333,15 @@ function setAvatar(url) {
       '<text x="32" y="43" font-size="28" text-anchor="middle" fill="#fff" font-family="sans-serif">' + initial + '</text></svg>');
   }
   img.style.display = '';
-  img.title = t('avatar.change');
+  img.title = t('myprof.open');
 }
-$('avatar').addEventListener('click', () => $('avatar-file').click());
+/* La foto del encabezado es la ENTRADA a «Mi perfil» (perfil-visible,
+   2026-10-24): el botón #avatar-btn que la envuelve abre la vista
+   desde cualquier pestaña y para todos los roles (el alumno entra
+   SOLO por aquí). Cambiar la foto se hace dentro de la tarjeta de
+   perfil, por el MISMO camino de siempre (#avatar-file, justo
+   debajo): esta entrada ya no abre el selector de archivos. */
+{ const ab = $('avatar-btn'); if (ab) ab.addEventListener('click', () => switchTab('profile')); }
 $('avatar-file').addEventListener('change', async e => {
   const f = e.target.files[0];
   e.target.value = '';
@@ -13930,14 +14021,15 @@ setInterval(() => { try { pendDockTick(); } catch {} }, 60000);
           const r = $('energy-section'); if (r) { try { r.scrollIntoView({ behavior: 'smooth', block: 'start' }); } catch {} }
         } else if (type === 'profile') {
           /* El pendiente de plantilla lleva al editor del propio
-             dossier (pestaña de clientes, donde vive su plantilla). */
-          switchTab('clients');
+             dossier, que ahora vive en «Mi perfil» (perfil-visible,
+             2026-10-24 — antes en la pestaña de clientes). */
+          switchTab('profile');
           const r = $('dossier-editor-box'); if (r) { try { r.scrollIntoView({ behavior: 'smooth', block: 'start' }); } catch {} }
         } else if (type === 'role') {
           /* Mapa por rol: cada tarjeta lleva a SU superficie. */
           const route = b.dataset.route;
           const scroll = id2 => { const r = $(id2); if (r) { try { r.scrollIntoView({ behavior: 'smooth', block: 'start' }); } catch {} } };
-          if (route === 'dossier-editor') { switchTab('clients'); scroll('dossier-editor-box'); }
+          if (route === 'dossier-editor') { switchTab('profile'); scroll('dossier-editor-box'); }
           else if (route === 'membership') { switchTab('clients'); scroll('membership-box'); }
           else if (route === 'mytrainer') { switchTab('track'); scroll('my-trainer-box'); }
           else if (route === 'eval') { const c = $('progress-content'); if (c && c.style.display === 'none') { const pb = $('btn-toggle-progress'); if (pb) pb.click(); } scroll('eval-root'); }

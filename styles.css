@@ -230,6 +230,11 @@ table.whist { min-width: 640px; }
 .who-row { display: flex; align-items: center; gap: 8px; }
 .avatar { width: 34px; height: 34px; border-radius: 50%; object-fit: cover; border: 2px solid #0d9488; cursor: pointer; flex-shrink: 0; }
 .avatar.sm { width: 28px; height: 28px; border-width: 1px; cursor: default; vertical-align: middle; margin-right: 6px; }
+/* Botón que envuelve la foto del encabezado (perfil-visible,
+   2026-10-24): tocar la foto abre «Mi perfil». Sin fondo ni borde
+   propios: la foto conserva exactamente su aspecto de siempre. */
+.avatar-btn { background: none; border: none; padding: 0; margin: 0; cursor: pointer; border-radius: 50%; display: inline-flex; flex-shrink: 0; }
+.avatar-btn:focus-visible { outline: 2px solid #0d9488; outline-offset: 2px; }
 
 /* ===== registro: consentimiento legal ===== */
 .opt { font-weight: 400; color: #9ca3af; font-size: 12px; }
@@ -1171,6 +1176,36 @@ div > .btn-ghost:only-child, div > .btn-main:only-child {
 .dos-cert-row input, .dos-place-row input, .dos-place-row select { flex: 1 1 110px; min-width: 0; }
 .dos-cert-row input.yr, .dos-place-row input.yr { flex: 0 1 76px; }
 .dos-photo-prev { width: 100%; max-height: 170px; object-fit: cover; border-radius: 12px; margin: 6px 0; display: block; }
+
+/* ===== «Mi perfil» (perfil-visible, 2026-10-24) =====
+   Tarjeta básica del usuario con sesión: foto grande, identidad y
+   filas dato/valor con lo que la app ya almacena. */
+.myprof-head { display: flex; align-items: center; gap: 12px; margin: 8px 0 4px; }
+.myprof-photo { width: 64px; height: 64px; border-radius: 50%; object-fit: cover; border: 2px solid #0d9488; flex-shrink: 0; }
+.myprof-id { font-size: 15px; line-height: 1.4; min-width: 0; overflow-wrap: anywhere; }
+.myprof-row { display: flex; gap: 10px; align-items: baseline; margin: 8px 0 0; font-size: 14px; }
+.myprof-k { color: #6b7280; flex: 0 0 42%; }
+.myprof-v { font-weight: 600; min-width: 0; overflow-wrap: anywhere; }
+
+/* ===== Formulario del dossier en filas limpias (perfil-visible,
+   2026-10-24) =====
+   Evidencia: la captura de Ronald a 390 px — etiquetas y campos se
+   mezclaban EN LÍNEA (titular/presentación/años/contextos encimados,
+   casillas desalineadas) porque las etiquetas fluían en línea con su
+   campo. Ahora cada etiqueta va SOBRE su campo, los campos ocupan el
+   ancho completo y los contextos forman una rejilla ordenada de
+   2 columnas. Sin cambios de campos, orden ni textos: solo la
+   presentación del formulario (.dos-form). */
+.dos-form label.dos-field { display: block; margin-top: 12px; }
+.dos-form label.dos-field input[type="text"],
+.dos-form label.dos-field input[type="number"],
+.dos-form label.dos-field textarea { display: block; width: 100%; box-sizing: border-box; margin-top: 5px; padding: 9px 11px; border: 1px solid #d1d5db; border-radius: 8px; font-size: 14px; font-family: inherit; background: #fff; color: #1f2937; }
+.dos-form .dos-ctx-group { margin-top: 12px; }
+.dos-form .dos-ctx-title { display: block; margin-bottom: 6px; }
+.dos-form .dos-ctx-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 7px; }
+.dos-form label.dos-ctx-item { display: flex; align-items: center; gap: 8px; padding: 8px 10px; border: 1px solid #e5e7eb; border-radius: 10px; background: #fff; font-size: 13.5px; color: #1f2937; }
+.dos-form .dos-ctx-item input { width: 17px; height: 17px; flex: none; margin: 0; accent-color: #0d9488; }
+.dos-form .dos-section-title { margin-top: 16px; }
 .dos-mail-box{margin:2px 0 12px}
 .dos-mail-text{width:100%;box-sizing:border-box;border:1px solid #E7E1D3;border-radius:12px;padding:10px 12px;font:13px/1.55 inherit;background:#fff;color:#263238;resize:vertical}
 .dos-pool-links{margin-top:6px;display:flex;flex-wrap:wrap;gap:4px 10px}

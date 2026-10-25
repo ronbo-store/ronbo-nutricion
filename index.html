@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>ronbo.nutri · Private</title>
 <meta name="robots" content="noindex, nofollow">
-<link rel="stylesheet" href="styles.css?v=20261024-n09r">
+<link rel="stylesheet" href="styles.css?v=20261024-perfil">
 <script type="importmap">
 {
   "imports": {
@@ -153,7 +153,7 @@
   <div class="topbar">
     <div class="title-card">
       <h1 id="dateTitle">Loading…</h1>
-      <p class="who-row"><span class="live-dot"></span><img id="avatar" class="avatar" data-i18n-alt="app.myPhoto" alt="My photo" data-i18n-title="avatar.change" title="Tap to change your profile photo"><span id="who">—</span> · <a href="#" id="btn-logout" class="logout-link" data-i18n="app.logout">log out</a> · <span class="lang-toggle"><button type="button" data-lang="en" class="active">EN</button><button type="button" data-lang="es">ES</button></span></p>
+      <p class="who-row"><span class="live-dot"></span><button type="button" id="avatar-btn" class="avatar-btn" data-i18n-aria="myprof.open" aria-label="Open my profile" data-i18n-title="myprof.open" title="Open my profile"><img id="avatar" class="avatar" data-i18n-alt="app.myPhoto" alt="My photo"></button><span id="who">—</span> · <a href="#" id="btn-logout" class="logout-link" data-i18n="app.logout">log out</a> · <span class="lang-toggle"><button type="button" data-lang="en" class="active">EN</button><button type="button" data-lang="es">ES</button></span></p>
       <input type="file" id="avatar-file" accept="image/*" style="display:none">
     </div>
     <div class="goals-card">
@@ -164,6 +164,7 @@
 
   <nav class="main-tabs" id="main-tabs" style="display:none">
     <button type="button" class="main-tab active" data-tab="track" data-i18n="tabs.track">📊 My log</button>
+    <button type="button" class="main-tab" data-tab="profile" data-i18n="tabs.profile">👤 My profile</button>
     <button type="button" class="main-tab" data-tab="clients" data-i18n="tabs.clients">👥 My clients</button>
     <button type="button" class="main-tab" data-tab="access" data-i18n="tabs.access">🔐 Access</button>
     <button type="button" class="main-tab" data-tab="trainers" data-i18n="tabs.trainers">👨‍🏫 Trainers</button>
@@ -473,6 +474,20 @@
   </div>
   </div><!-- /tab-track -->
 
+  <!-- ============ VISTA: MI PERFIL (perfil-visible, 2026-10-24) ============
+       Superficie propia y ÚNICA del perfil: tarjeta básica del usuario
+       con sesión (#profile-card-box, la pinta renderProfileView) y, solo
+       para entrenador/administrador, el editor del dossier
+       (#dossier-editor-box) MUDADO aquí desde «Mis clientes» — una sola
+       instancia en el DOM, mismo camino de escritura. Se entra por la
+       píldora «Mi perfil» (entrenador/administrador) o tocando la foto
+       del encabezado (todos los roles, incluido el alumno). -->
+  <div class="tab-pane" id="tab-profile" style="display:none">
+    <div id="profile-card-box"></div>
+    <div id="dossier-editor-box" style="display:none"></div>
+  </div>
+  <!-- /tab-profile -->
+
   <div class="tab-pane" id="tab-access" style="display:none">
   <div class="admin-section" id="admin-section" style="display:none">
     <h2><span data-i18n="access.title">🔐 Access management</span> <span class="h2-sub" data-i18n="access.sub">· owner only</span></h2>
@@ -558,7 +573,6 @@
     <div id="membership-box" style="display:none"></div>
     <div id="meal-trainer-box" style="display:none"></div>
     <div id="modality-trainer-box" style="display:none"></div>
-    <div id="dossier-editor-box" style="display:none"></div>
     <div id="waiting-box" style="display:none"></div>
     <div id="approvals-box" style="display:none"></div>
     <div id="client-detail" style="display:none"></div>
@@ -846,6 +860,6 @@
 <div id="toast" class="toast"></div>
 <div id="print-card" aria-hidden="true"></div>
 
-<script type="module" src="app.js?v=20261024-n09r"></script>
+<script type="module" src="app.js?v=20261024-perfil"></script>
 </body>
 </html>
