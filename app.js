@@ -9621,8 +9621,13 @@ let LIB_ADMIN_EDIT = null; // id en edición | 'new' | null
    quedó DETENIDO sin publicar (su CI de reglas falló). Sin improvisar
    reglas: la vista lista y busca, la ficha se abre, pero el guardado
    se niega AQUÍ sin escribir nada. Al publicar N-09, poner esta
-   constante en true reactiva editar/dar de alta tal como se construyó. */
-const LIBADM_WRITE_ENABLED = false;
+   constante en true reactiva editar/dar de alta tal como se construyó.
+   LEVANTADA en la composición del reingreso de N-09 rediseñado
+   (2026-10-24, noche): las reglas publicadas (ruleset b135f2f8)
+   dicen de exercise_library «allow create, update, delete: if
+   isAdminUser()» — verificado sobre el texto vivo re-leído tras la
+   publicación, diff cero contra el candidato validado por la CI. */
+const LIBADM_WRITE_ENABLED = true;
 async function renderLibAdmin() {
   const sec = $('library-section'); if (!sec) return;
   if (ROLE !== 'administrador') { sec.style.display = 'none'; return; }
