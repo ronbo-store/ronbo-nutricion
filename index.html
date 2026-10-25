@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>ronbo.nutri · Private</title>
 <meta name="robots" content="noindex, nofollow">
-<link rel="stylesheet" href="styles.css?v=20261024-demora">
+<link rel="stylesheet" href="styles.css?v=20261024-hotfixdiv">
 <script type="importmap">
 {
   "imports": {
@@ -332,6 +332,16 @@
       <div class="perms-section" id="bt-section" style="display:none">
         <h3 class="perms-section-title" data-i18n="bt.title">Visual body type estimate</h3>
         <div id="bt-panel-body"></div>
+      </div>
+      <!-- Corrección reprueba (2026-10-24): el </div> que cierra
+           #bt-section FALTABA desde el paquete de somatotipo: el
+           parser lo suplía cerrando #perms-panel con el cierre de
+           #tab-track, y #tab-track quedaba abierto tragándose
+           #tab-access, #tab-clients y el pie como hijos — al cambiar
+           de pestaña, «Mis clientes» y «Accesos» quedaban dentro del
+           panel oculto y NO se veían (comprobado sobre la base
+           85e58eb: checkVisibility = false). Con el cierre puesto, las
+           tres pestañas son hermanas y el dock global vive fuera. -->
       <!-- MÓDULO H (P4-3 Etapa 1, desarrollo): preferencia de
            unidades del propio usuario (users/{uid}/preferences/units).
            El panel lo renderiza renderUnitsPanel() desde STR (units.*). -->
@@ -776,6 +786,6 @@
 <div id="toast" class="toast"></div>
 <div id="print-card" aria-hidden="true"></div>
 
-<script type="module" src="app.js?v=20261024-demora"></script>
+<script type="module" src="app.js?v=20261024-hotfixdiv"></script>
 </body>
 </html>
