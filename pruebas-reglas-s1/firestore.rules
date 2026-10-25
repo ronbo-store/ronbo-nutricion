@@ -430,6 +430,14 @@ service cloud.firestore {
     function isTrainerUser() {
       return signedIn() && myDocExists() && myDoc().get('role', '') == 'entrenador';
     }
+    // N-09: ¿quien pide es el ADMINISTRADOR? El propietario lo es
+    // por construcción (deriveRole: isOwner ⇒ administrador) y un
+    // documento con role exacto 'administrador' también cuenta.
+    function isAdminUser() {
+      return signedIn() && myDocExists()
+        && (myDoc().isOwner == true
+            || myDoc().get('role', '') == 'administrador');
+    }
     // Candidato N-07: límite de aprobaciones por entrenador, fijado
     // SOLO por el administrador en app_settings/approvals.
     // Fail-closed: sin documento o sin campo, el límite es 0.
@@ -1279,7 +1287,7 @@ service cloud.firestore {
     // Escritura desde cliente: NUNCA — la carga es operación Admin versionada.
     match /exercise_library/{docId} {
       allow read: if isApprovedUser();
-      allow write: if false;
+      allow create, update, delete: if isAdminUser();
     }
 
     // Plantillas de rutina: lectura para el entrenador/propietario Y para
@@ -1287,8 +1295,69 @@ service cloud.firestore {
     // las ven y pueden proponer cambios; proponer no escribe aquí).
     // Escritura desde cliente: NUNCA — la carga es operación Admin versionada.
     match /routine_templates/{docId} {
-      allow read: if isApprovedUser();
-      allow write: if false;
+      function tplVis() {
+        return resource.data.get('visibility', 'factory');
+      }
+      function tplVisNew() {
+        return request.resource.data.get('visibility', '');
+      }
+      function tplCanReadDoc() {
+        return tplVis() == 'factory'
+          || isAdminUser()
+          || (tplVis() == 'trainer'
+              && resource.data.get('createdBy', '') == request.auth.uid)
+          || (tplVis() == 'private'
+              && resource.data.get('ownerUid', '') == request.auth.uid);
+      }
+      function tplCanEditDoc() {
+        return isAdminUser()
+          || (tplVis() == 'trainer' && isTrainerUser()
+              && resource.data.get('createdBy', '') == request.auth.uid)
+          || (tplVis() == 'private'
+              && resource.data.get('ownerUid', '') == request.auth.uid);
+      }
+      // Lectura por clase (get y list se evalúan por documento).
+      allow get, list: if isApprovedUser() && tplCanReadDoc();
+      // Crear: autoría veraz (createdBy = quien escribe, con su
+      // nombre y la hora del servidor) y clase cerrada por rol:
+      // fábrica solo-admin; entrenador: entrenador o admin, con la
+      // plantilla asociada a SU cuenta (ownerUid = autor);
+      // privada: cualquier usuario aprobado, solo para sí mismo.
+      allow create: if isApprovedUser()
+        && request.resource.data.keys().hasOnly([
+             'nombre_es', 'nombre_en', 'nivel_es', 'nivel_en',
+             'objetivo_es', 'objetivo_en', 'dias_por_semana', 'days',
+             'session', 'version', 'createdBy', 'createdByName',
+             'createdAt', 'visibility', 'ownerUid', 'updatedAt',
+             'updatedBy'])
+        && (request.resource.data.get('nombre_es', '') != ''
+            || request.resource.data.get('nombre_en', '') != '')
+        && request.resource.data.days is list
+        && request.resource.data.createdBy == request.auth.uid
+        && request.resource.data.createdByName is string
+        && request.resource.data.createdAt == request.time
+        && tplVisNew() in ['factory', 'trainer', 'private']
+        && ( (tplVisNew() == 'factory' && isAdminUser())
+          || (tplVisNew() == 'trainer'
+              && (isAdminUser() || isTrainerUser())
+              && request.resource.data.ownerUid == request.auth.uid)
+          || (tplVisNew() == 'private'
+              && request.resource.data.ownerUid == request.auth.uid) );
+      // Actualizar: SOLO contenido. La autoría y la clase son
+      // inmutables (createdBy, createdByName, createdAt, visibility
+      // y ownerUid no están en la lista de claves tocables), y cada
+      // actualización lleva updatedAt del servidor y updatedBy de
+      // quien edita.
+      allow update: if isApprovedUser() && tplCanEditDoc()
+        && request.resource.data.diff(resource.data)
+             .affectedKeys().hasOnly([
+               'nombre_es', 'nombre_en', 'nivel_es', 'nivel_en',
+               'objetivo_es', 'objetivo_en', 'dias_por_semana',
+               'days', 'session', 'version', 'updatedAt', 'updatedBy'])
+        && request.resource.data.updatedAt == request.time
+        && request.resource.data.updatedBy == request.auth.uid;
+      // Borrar: la misma matriz que editar.
+      allow delete: if isApprovedUser() && tplCanEditDoc();
     }
 
     // Calificaciones por tipo de cuerpo: contenido GENÉRICO por ejercicio
