@@ -2,10 +2,26 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
 <title>ronbo.fit · Private</title>
 <meta name="robots" content="noindex, nofollow">
-<link rel="stylesheet" href="styles.css?v=20261025-ronbofit">
+<!-- ===== INSTALABLE PWA (2026-10-25) =====
+     Manifiesto como manifest.json: GitHub Pages sirve la extensión
+     .json SIEMPRE como application/json (la .webmanifest no tiene el
+     Content-Type garantizado en Pages); Chrome acepta el manifiesto
+     como JSON. Iconos propios e integración iOS: apple-touch-icon
+     180×180 real (iOS ignora los iconos del manifiesto) y metas
+     apple-mobile-web-app. El registro del SW vive en app.js,
+     protegido por feature-detect. -->
+<meta name="theme-color" content="#00ACA1">
+<link rel="manifest" href="manifest.json">
+<link rel="icon" type="image/png" sizes="192x192" href="icons/icon-192.png">
+<link rel="apple-touch-icon" sizes="180x180" href="icons/apple-touch-icon.png">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="RONBO FIT">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<link rel="stylesheet" href="styles.css?v=20261025-instalable">
 <script type="importmap">
 {
   "imports": {
@@ -144,6 +160,16 @@
         <a href="https://www.instagram.com/ronaldborges590" target="_blank" rel="noopener">📷 Instagram</a>
         <a href="https://www.linkedin.com/in/ronaldborges590/" target="_blank" rel="noopener">💼 LinkedIn</a>
       </div>
+    </div>
+    <!-- INSTALABLE PWA (2026-10-25): tarjeta de instalación en la
+         pantalla de acceso. La pinta app.js (pwaPaintInstall): botón
+         propio cuando el navegador ofrece beforeinstallprompt, guía
+         breve en iOS Safari, ✕ con recuerdo en localStorage, y oculta
+         por completo en modo standalone. Sin sesión: no toca datos. -->
+    <div id="pwa-install-auth" class="pwa-box" style="display:none">
+      <button type="button" id="pwa-install-close" class="pwa-close" aria-label="✕">✕</button>
+      <button type="button" id="pwa-install-btn" class="btn-primary pwa-install-btn" style="display:none" data-i18n="pwa.installBtn">📲 Install RONBO FIT</button>
+      <p id="pwa-ios-guide" class="pwa-guide" style="display:none" data-i18n="pwa.iosText">To install the app: tap the Share button and then “Add to Home Screen”.</p>
     </div>
   </div>
 </div>
@@ -539,6 +565,17 @@
        del encabezado (todos los roles, incluido el alumno). -->
   <div class="tab-pane" id="tab-profile" style="display:none">
     <div id="profile-card-box"></div>
+    <!-- INSTALABLE PWA (2026-10-25): fila de instalación/estado en
+         «Mi perfil» (aditiva; la pinta pwaPaintInstall en app.js):
+         botón propio con beforeinstallprompt, guía corta en iOS y
+         marca de «instalada» en modo standalone. -->
+    <div id="pwa-profile-row" class="pwa-row" style="display:none">
+      <span class="pwa-row-ico" aria-hidden="true">📲</span>
+      <span class="pwa-row-label" data-i18n="pwa.rowLabel">RONBO FIT app</span>
+      <button type="button" id="pwa-profile-btn" class="btn-ghost btn-sm" style="display:none" data-i18n="pwa.installBtn">📲 Install RONBO FIT</button>
+      <span id="pwa-profile-ios" class="pwa-guide" style="display:none" data-i18n="pwa.iosText">To install the app: tap the Share button and then “Add to Home Screen”.</span>
+      <span id="pwa-profile-installed" class="pwa-installed" style="display:none" data-i18n="pwa.installed">✓ App installed</span>
+    </div>
     <div id="dossier-editor-box" style="display:none"></div>
   </div>
   <!-- /tab-profile -->
@@ -933,6 +970,6 @@
 <div id="toast" class="toast"></div>
 <div id="print-card" aria-hidden="true"></div>
 
-<script type="module" src="app.js?v=20261025-ronbofit"></script>
+<script type="module" src="app.js?v=20261025-instalable"></script>
 </body>
 </html>

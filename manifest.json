@@ -1,0 +1,34 @@
+{
+  "name": "RONBO FIT",
+  "short_name": "RONBO FIT",
+  "id": ".",
+  "start_url": ".",
+  "scope": ".",
+  "display": "standalone",
+  "orientation": "portrait",
+  "lang": "en",
+  "dir": "ltr",
+  "theme_color": "#00ACA1",
+  "background_color": "#f1f5f9",
+  "description": "RONBO FIT — private nutrition and training log by Ronald Borges, ISSA Certified Personal Trainer.",
+  "icons": [
+    {
+      "purpose": "any",
+      "sizes": "192x192",
+      "src": "icons/icon-192.png",
+      "type": "image/png"
+    },
+    {
+      "purpose": "any",
+      "sizes": "512x512",
+      "src": "icons/icon-512.png",
+      "type": "image/png"
+    },
+    {
+      "purpose": "maskable",
+      "sizes": "512x512",
+      "src": "icons/icon-maskable-512.png",
+      "type": "image/png"
+    }
+  ]
+}

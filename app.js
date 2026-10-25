@@ -2951,7 +2951,12 @@ en: {
   'act.favSave': 'Save hobbies',
   'act.favSaved': 'Hobbies saved ✓',
   'act.favLocalNote': 'They could not be saved to your account yet — for now they apply on this device only.',
-  'act.noFavs': 'You have no hobbies chosen yet. Tap ⚙ to pick yours.'
+  'act.noFavs': 'You have no hobbies chosen yet. Tap ⚙ to pick yours.',
+  /* Instalable PWA (2026-10-25): botón propio de instalación y guía iOS. */
+  'pwa.installBtn': '📲 Install RONBO FIT',
+  'pwa.iosText': 'To install the app: tap the Share button and then “Add to Home Screen”.',
+  'pwa.installed': '✓ App installed',
+  'pwa.rowLabel': 'RONBO FIT app'
 },
 es: {
   'app.title': 'ronbo.fit · Privado',
@@ -4344,7 +4349,12 @@ es: {
   'act.favSave': 'Guardar hobbies',
   'act.favSaved': 'Hobbies guardados ✓',
   'act.favLocalNote': 'Aún no se pudieron guardar en tu cuenta — por ahora se aplican solo en este dispositivo.',
-  'act.noFavs': 'Aún no tienes hobbies elegidos. Toca ⚙ para elegir los tuyos.'
+  'act.noFavs': 'Aún no tienes hobbies elegidos. Toca ⚙ para elegir los tuyos.',
+  /* Instalable PWA (2026-10-25): botón propio de instalación y guía iOS. */
+  'pwa.installBtn': '📲 Instalar RONBO FIT',
+  'pwa.iosText': 'Para instalar la app: toca el botón Compartir y luego «Añadir a pantalla de inicio».',
+  'pwa.installed': '✓ App instalada',
+  'pwa.rowLabel': 'App RONBO FIT'
 }
 };
 let LANG = 'en';
@@ -14598,3 +14608,114 @@ setInterval(() => { try { pendDockTick(); } catch {} }, 60000);
     });
   }
 }
+
+/* ================================================================
+ * INSTALABLE PWA (2026-10-25) — registro del service worker y UX de
+ * instalación. Todo ADITIVO y defensivo (cada bloque en try/catch):
+ * si algo falla aquí, la app sigue funcionando exactamente igual.
+ *  - Registro del SW SOLO con feature-detect ('serviceWorker' in
+ *    navigator): un Safari viejo sin soporte queda intacto.
+ *  - Recarga ÚNICA al tomar el control un SW nuevo, y solo si ya
+ *    había controlador (en la primera instalación NO se recarga),
+ *    con guarda por versión en sessionStorage contra bucles.
+ *  - Botón propio de instalación (beforeinstallprompt) en la
+ *    pantalla de acceso y en «Mi perfil»; en iOS Safari, guía breve
+ *    (Compartir → «Añadir a pantalla de inicio») descartable con ✕
+ *    y recuerdo en localStorage. En modo standalone no se muestra
+ *    ninguna llamada a instalar.
+ *  - El SW (sw.js) solo cachea la cáscara del mismo origen en modo
+ *    RED PRIMERO: Auth/Firestore/Worker jamás pasan por la caché.
+ * ================================================================ */
+const PWA_SW_VERSION = '20261025-instalable';
+let pwaDeferredPrompt = null;
+function pwaIsStandalone() {
+  try {
+    return window.matchMedia('(display-mode: standalone)').matches || window.navigator.standalone === true;
+  } catch (e) { return false; }
+}
+function pwaIsIOSSafari() {
+  try {
+    const ua = navigator.userAgent || '';
+    const ios = /iphone|ipad|ipod/i.test(ua) || (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
+    return ios && /safari/i.test(ua) && !/crios|fxios|edgios|opios/i.test(ua);
+  } catch (e) { return false; }
+}
+function pwaGuideDismissed() {
+  try { return localStorage.getItem('ronbofit-pwa-guide-dismissed') === '1'; } catch (e) { return false; }
+}
+function pwaPaintInstall() {
+  const standalone = pwaIsStandalone();
+  const hasPrompt = !!pwaDeferredPrompt;
+  const iosGuide = !standalone && pwaIsIOSSafari();
+  /* Pantalla de acceso: botón (Android/Chrome) o guía (iOS), salvo descarte. */
+  const box = document.getElementById('pwa-install-auth');
+  if (box) {
+    const btn = document.getElementById('pwa-install-btn');
+    const guide = document.getElementById('pwa-ios-guide');
+    const showBox = !standalone && !pwaGuideDismissed() && (hasPrompt || iosGuide);
+    box.style.display = showBox ? '' : 'none';
+    if (btn) btn.style.display = showBox && hasPrompt ? '' : 'none';
+    if (guide) guide.style.display = showBox && !hasPrompt && iosGuide ? '' : 'none';
+  }
+  /* «Mi perfil»: fila de estado — botón, guía corta o «instalada». */
+  const row = document.getElementById('pwa-profile-row');
+  if (row) {
+    const btn = document.getElementById('pwa-profile-btn');
+    const ios = document.getElementById('pwa-profile-ios');
+    const done = document.getElementById('pwa-profile-installed');
+    if (btn) btn.style.display = !standalone && hasPrompt ? '' : 'none';
+    if (ios) ios.style.display = !standalone && !hasPrompt && iosGuide ? '' : 'none';
+    if (done) done.style.display = standalone ? '' : 'none';
+    row.style.display = (standalone || hasPrompt || iosGuide) ? '' : 'none';
+  }
+}
+async function pwaDoInstall() {
+  if (!pwaDeferredPrompt) return;
+  try {
+    pwaDeferredPrompt.prompt();
+    await pwaDeferredPrompt.userChoice;
+  } catch (e) { /* el usuario cerró el diálogo: no pasa nada */ }
+  pwaDeferredPrompt = null;
+  pwaPaintInstall();
+}
+(function pwaInit() {
+  try {
+    const b1 = document.getElementById('pwa-install-btn');
+    if (b1) b1.addEventListener('click', pwaDoInstall);
+    const b2 = document.getElementById('pwa-profile-btn');
+    if (b2) b2.addEventListener('click', pwaDoInstall);
+    const close = document.getElementById('pwa-install-close');
+    if (close) close.addEventListener('click', () => {
+      try { localStorage.setItem('ronbofit-pwa-guide-dismissed', '1'); } catch (e) {}
+      pwaPaintInstall();
+    });
+    window.addEventListener('beforeinstallprompt', (e) => {
+      e.preventDefault();
+      pwaDeferredPrompt = e;
+      pwaPaintInstall();
+    });
+    window.addEventListener('appinstalled', () => {
+      pwaDeferredPrompt = null;
+      pwaPaintInstall();
+    });
+    pwaPaintInstall();
+  } catch (e) { /* la UX de instalación nunca rompe la app */ }
+  /* Registro del SW — siempre tras feature-detect. */
+  try {
+    if ('serviceWorker' in navigator) {
+      const hadController = !!navigator.serviceWorker.controller;
+      let pwaReloaded = false;
+      navigator.serviceWorker.addEventListener('controllerchange', () => {
+        if (!hadController || pwaReloaded) return;
+        try {
+          const key = 'ronbofit-pwa-reloaded-' + PWA_SW_VERSION;
+          if (sessionStorage.getItem(key) === '1') return;
+          sessionStorage.setItem(key, '1');
+        } catch (e) {}
+        pwaReloaded = true;
+        window.location.reload();
+      });
+      navigator.serviceWorker.register('sw.js').catch(() => {});
+    }
+  } catch (e) { /* sin SW, la app funciona como siempre */ }
+})();
