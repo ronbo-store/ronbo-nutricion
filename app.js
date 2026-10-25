@@ -1668,6 +1668,12 @@ en: {
   'libadm.created': 'Exercise created ✓',
   'libadm.empty': 'No exercises match your search.',
   'libadm.readonlyNote': '⚠️ Read-only for now: the live permission rules still deny every write to the factory library — the N-09 rules package that enables administrator editing is written but not yet published. You can browse and search the catalogue here; editing and new exercises switch on as soon as those rules are published.',
+  'libcat.all': 'All',
+  'libcat.category': 'Category',
+  'libcat.level': 'Level',
+  'libcat.allCategories': 'All categories',
+  'libcat.allLevels': 'All levels',
+  'libcat.noGroup': 'No muscle group',
   'track.date': '📅 Date:',
   'track.addMeal': '＋ Log meal',
   'track.weekTitle': '📈 Weekly goal compliance',
@@ -3019,6 +3025,12 @@ es: {
   'libadm.created': 'Ejercicio creado ✓',
   'libadm.empty': 'Ningún ejercicio coincide con la búsqueda.',
   'libadm.readonlyNote': '⚠️ Por ahora es de solo lectura: las reglas de permisos vigentes todavía niegan toda escritura en la biblioteca de fábrica — el paquete de reglas N-09 que habilita la edición del administrador está escrito, pero aún no publicado. Aquí puedes consultar y buscar el catálogo; la edición y las altas se activan en cuanto esas reglas se publiquen.',
+  'libcat.all': 'Todos',
+  'libcat.category': 'Categoría',
+  'libcat.level': 'Nivel',
+  'libcat.allCategories': 'Todas las categorías',
+  'libcat.allLevels': 'Todos los niveles',
+  'libcat.noGroup': 'Sin grupo muscular',
   'track.date': '📅 Fecha:',
   'track.addMeal': '＋ Registrar comida',
   'track.weekTitle': '📈 Cumplimiento semanal de metas',
@@ -9770,6 +9782,69 @@ function libRenderNotice() {
 const libNorm = s => String(s == null ? '' : s).toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '');
 function libField(ex, base) { return ex ? (ex[base + '_' + LANG] || ex[base + '_es'] || ex[base + '_en'] || '') : ''; }
 function libNameOf(ex) { return libField(ex, 'nombre') || (ex ? ex.id : ''); }
+
+/* ================= AGRUPACIÓN POR CATEGORÍAS (2026-10-24) ============
+   Pedido de Ronald: la biblioteca (vista del administrador) y el
+   navegador visual del editor de planes dejan de ser UNA lista larga:
+   los ejercicios se presentan AGRUPADOS por grupo muscular, con una
+   fila horizontal de chips (Todos + cada grupo, con su conteo) y dos
+   filtros secundarios componibles — Categoría y Nivel — que se cruzan
+   con el grupo y con la búsqueda vigente. TODO se deriva de campos
+   que la ficha ya trae (grupo_muscular_*, categoria_*, nivel_*): sin
+   cambios de datos, sin reglas nuevas, sin escrituras.
+   La clave canónica de cada faceta es el valor _es (con _en de
+   respaldo), el mismo criterio que ya usaba el navegador visual; la
+   etiqueta visible sale de libField en el idioma activo. El orden de
+   los grupos es el anatómico de la casa. Un ejercicio sin grupo (el
+   censo de fábrica no tiene ninguno) cae en una sección honesta
+   «Sin grupo muscular» al final — no se inventa un grupo para él.
+   Los conteos de los chips son de FACETA: cuentan el contexto vigente
+   (búsqueda + categoría + nivel) ignorando el propio grupo, así cada
+   chip dice cuántos ejercicios verías al tocarlo. */
+const LIB_GROUP_ORDER = ['Pecho', 'Espalda', 'Hombros', 'Bíceps', 'Tríceps', 'Cuádriceps', 'Isquiotibiales', 'Glúteos', 'Pantorrillas', 'Core', 'Cuerpo completo'];
+const LIB_CAT_ORDER = ['Con máquinas', 'Asistido', 'Sin máquinas y sin asistencia'];
+const LIB_LEVEL_ORDER = ['Principiante', 'Intermedio', 'Avanzado'];
+function libGroupKey(ex) { return ex ? (ex.grupo_muscular_es || ex.grupo_muscular_en || '') : ''; }
+function libFacetKey(ex, base) { return ex ? (ex[base + '_es'] || ex[base + '_en'] || '') : ''; }
+function libOrderRank(key, order) { const i = order.indexOf(key); return i < 0 ? order.length : i; }
+/* Secciones ordenadas de una lista ya filtrada: [{ key, label, items }]
+   conservando dentro de cada grupo el orden de la lista recibida. */
+function libSections(list) {
+  const byKey = new Map();
+  for (const ex of list) { const k = libGroupKey(ex); if (!byKey.has(k)) byKey.set(k, []); byKey.get(k).push(ex); }
+  const secs = [...byKey.entries()].map(([key, items]) => ({ key, label: key ? (libField(items[0], 'grupo_muscular') || key) : t('libcat.noGroup'), items }));
+  const tier = s => (s.key === '' ? 2 : (LIB_GROUP_ORDER.includes(s.key) ? 0 : 1));
+  secs.sort((a, b) => (tier(a) - tier(b))
+    || (tier(a) === 0 ? LIB_GROUP_ORDER.indexOf(a.key) - LIB_GROUP_ORDER.indexOf(b.key) : 0)
+    || (tier(a) === 1 ? a.label.localeCompare(b.label) : 0));
+  return secs;
+}
+/* Grupos presentes en la biblioteca cargada, en el orden de la casa. */
+function libGroupFacets() {
+  const seen = new Map();
+  for (const ex of (LIB || [])) { const k = libGroupKey(ex); if (k && !seen.has(k)) seen.set(k, libField(ex, 'grupo_muscular') || k); }
+  return [...seen.entries()].map(([key, label]) => ({ key, label }))
+    .sort((a, b) => (libOrderRank(a.key, LIB_GROUP_ORDER) - libOrderRank(b.key, LIB_GROUP_ORDER)) || a.label.localeCompare(b.label));
+}
+function libGroupCounts(list) { const m = new Map(); for (const ex of list) { const k = libGroupKey(ex); if (k) m.set(k, (m.get(k) || 0) + 1); } return m; }
+function libChipsHTML(counts, total, selected) {
+  const chip = (key, label, n) => `<button type="button" class="libcat-chip${key === selected ? ' on' : ''}" data-libcat-group="${esc(key)}"${n === 0 && key !== selected ? ' disabled' : ''}>${esc(label)} <span class="libcat-n">${n}</span></button>`;
+  return chip('', t('libcat.all'), total) + libGroupFacets().map(g => chip(g.key, g.label, counts.get(g.key) || 0)).join('');
+}
+function libWireChips(box, onPick) { if (box) box.querySelectorAll('[data-libcat-group]').forEach(b => { b.onclick = () => onPick(b.dataset.libcatGroup); }); }
+/* Valores presentes de una faceta (categoría/nivel) con su orden de
+   censo; la etiqueta sale del campo en el idioma activo. */
+function libFacetOptions(base, order) {
+  const seen = new Map();
+  for (const ex of (LIB || [])) { const k = libFacetKey(ex, base); if (k && !seen.has(k)) seen.set(k, libField(ex, base) || k); }
+  return [...seen.entries()].map(([key, label]) => ({ key, label }))
+    .sort((a, b) => (libOrderRank(a.key, order) - libOrderRank(b.key, order)) || a.label.localeCompare(b.label));
+}
+function libFillFacet(sel, base, order, allLabel, current) {
+  if (!sel) return;
+  sel.innerHTML = `<option value="">${esc(allLabel)}</option>` + libFacetOptions(base, order).map(o => `<option value="${esc(o.key)}"${o.key === current ? ' selected' : ''}>${esc(o.label)}</option>`).join('');
+  sel.value = current || '';
+}
 function libSearch(q) {
   if (LIB_STATE !== 'ok' || !LIB) return [];
   const nq = libNorm(q).trim();
@@ -9831,6 +9906,7 @@ function libRowThumb(row, url) {
    quedan como estaban. El alta calcula el siguiente id libre E###
    a partir del catálogo cargado. */
 let LIB_ADMIN_EDIT = null; // id en edición | 'new' | null
+const LIBADM_F = { group: '', cat: '', level: '' }; // facetas de la vista: grupo (chip) + categoría + nivel
 /* PUERTA DE COMPOSICIÓN (despliegue reprueba, 2026-10-24): las reglas
    VIVAS (ruleset 3c3790d8) dicen de exercise_library «allow write:
    if false» — la escritura del administrador es el delta N-09, que
@@ -9854,6 +9930,10 @@ async function renderLibAdmin() {
   if (q && !q.dataset.wired) { q.dataset.wired = '1'; q.addEventListener('input', () => libAdminRenderList()); }
   const nb = $('lib-admin-new');
   if (nb && !nb.dataset.wired) { nb.dataset.wired = '1'; nb.onclick = () => libAdminOpenEditor(null); }
+  const cs = $('lib-admin-cat');
+  if (cs && !cs.dataset.wired) { cs.dataset.wired = '1'; cs.addEventListener('change', () => { LIBADM_F.cat = cs.value; libAdminRenderList(); }); }
+  const ls = $('lib-admin-level');
+  if (ls && !ls.dataset.wired) { ls.dataset.wired = '1'; ls.addEventListener('change', () => { LIBADM_F.level = ls.value; libAdminRenderList(); }); }
 }
 function libAdminFiltered() {
   if (LIB_STATE !== 'ok' || !LIB) return [];
@@ -9863,18 +9943,39 @@ function libAdminFiltered() {
   const terms = q.split(/\s+/);
   return all.filter(ex => terms.every(tm => libNorm([ex.nombre_es, ex.nombre_en, ex.grupo_muscular_es, ex.grupo_muscular_en, ex.equipo_es, ex.equipo_en, ex.id].join(' ')).includes(tm)));
 }
-function libAdminRenderList() {
-  const box = $('lib-admin-list'); if (!box) return;
-  const cnt = $('lib-admin-count');
-  if (LIB_STATE !== 'ok') { box.innerHTML = `<div class="wempty">${esc(t('train.lib.unavailable'))}</div>`; if (cnt) cnt.textContent = ''; return; }
-  const rows = libAdminFiltered();
-  if (cnt) cnt.textContent = t('libadm.count', { n: rows.length });
-  const gateNote = LIBADM_WRITE_ENABLED ? '' : `<div class="wempty">${esc(t('libadm.readonlyNote'))}</div>`;
-  box.innerHTML = gateNote + (rows.length ? rows.map(ex => `
+/* La búsqueda primero (libAdminFiltered); encima, las facetas. Con
+   ignore se obtiene el contexto de conteo de una faceta (los chips
+   cuentan sin el grupo; cada selector no se filtra a sí mismo). */
+function libAdminFaceted(ignore) {
+  let rows = libAdminFiltered();
+  if (ignore !== 'cat' && LIBADM_F.cat) rows = rows.filter(ex => libFacetKey(ex, 'categoria') === LIBADM_F.cat);
+  if (ignore !== 'level' && LIBADM_F.level) rows = rows.filter(ex => libFacetKey(ex, 'nivel') === LIBADM_F.level);
+  if (ignore !== 'group' && LIBADM_F.group) rows = rows.filter(ex => libGroupKey(ex) === LIBADM_F.group);
+  return rows;
+}
+function libAdminRowHTML(ex) {
+  return `
     <div class="user-row">
       <div>${ex.foto_url ? `<img class="avatar sm" src="${esc(ex.foto_url)}" alt="">` : ''}<b>${esc(libNameOf(ex))}</b> <span class="muted">${esc(ex.id)}</span><br><span class="muted">${esc(libField(ex, 'grupo_muscular'))}${(ex.equipo_es || ex.equipo_en) ? ' · ' + esc(libField(ex, 'equipo')) : ''}</span></div>
       <div class="user-actions"><button type="button" class="btn-ghost btn-sm" data-lib-edit="${esc(ex.id)}">${esc(t('libadm.edit'))}</button></div>
-    </div>`).join('') : `<div class="wempty">${esc(t('libadm.empty'))}</div>`);
+    </div>`;
+}
+function libAdminRenderList() {
+  const box = $('lib-admin-list'); if (!box) return;
+  const cnt = $('lib-admin-count');
+  const chipsBox = $('lib-admin-chips');
+  if (LIB_STATE !== 'ok') { box.innerHTML = `<div class="wempty">${esc(t('train.lib.unavailable'))}</div>`; if (cnt) cnt.textContent = ''; if (chipsBox) chipsBox.innerHTML = ''; return; }
+  if (chipsBox) {
+    const ctx = libAdminFaceted('group');
+    chipsBox.innerHTML = libChipsHTML(libGroupCounts(ctx), ctx.length, LIBADM_F.group);
+    libWireChips(chipsBox, k => { LIBADM_F.group = k; libAdminRenderList(); });
+  }
+  libFillFacet($('lib-admin-cat'), 'categoria', LIB_CAT_ORDER, t('libcat.allCategories'), LIBADM_F.cat);
+  libFillFacet($('lib-admin-level'), 'nivel', LIB_LEVEL_ORDER, t('libcat.allLevels'), LIBADM_F.level);
+  const rows = libAdminFaceted();
+  if (cnt) cnt.textContent = t('libadm.count', { n: rows.length });
+  const gateNote = LIBADM_WRITE_ENABLED ? '' : `<div class="wempty">${esc(t('libadm.readonlyNote'))}</div>`;
+  box.innerHTML = gateNote + (rows.length ? libSections(rows).map(sec => `<div class="libcat-sec">${esc(sec.label)} <span class="libcat-sec-n">${sec.items.length}</span></div>` + sec.items.map(libAdminRowHTML).join('')).join('') : `<div class="wempty">${esc(t('libadm.empty'))}</div>`);
   box.querySelectorAll('[data-lib-edit]').forEach(b => b.onclick = () => libAdminOpenEditor(b.dataset.libEdit));
 }
 function libAdminOpenEditor(id) {
@@ -10797,25 +10898,28 @@ if ($('pl-tpl-align-ignore')) $('pl-tpl-align-ignore').onclick = () => { tplAlig
    - Diferencia deliberada frente al autocompletado: en un
      explorador, un texto de 0–1 caracteres NO filtra (se navega la
      rejilla completa o el grupo elegido); con 2+ caracteres filtra
-     con el mismo criterio de términos y orden del P4. */
-function vizGroups() {
-  const seen = new Map();
-  for (const ex of (LIB || [])) {
-    const key = ex.grupo_muscular_es || ex.grupo_muscular_en || '';
-    if (key && !seen.has(key)) seen.set(key, libField(ex, 'grupo_muscular') || key);
-  }
-  return [...seen.entries()].map(([key, label]) => ({ key, label })).sort((a, b) => a.label.localeCompare(b.label));
-}
-function vizFilter() {
+     con el mismo criterio de términos y orden del P4.
+   - AGRUPACIÓN POR CATEGORÍAS (2026-10-24): la rejilla se pinta por
+     SECCIONES de grupo muscular (libSections, la misma lógica de la
+     vista de Biblioteca del administrador) y el antiguo selector de
+     grupo se sustituye por la fila de CHIPS con conteos de faceta,
+     más los selectores secundarios de Categoría y Nivel. La búsqueda
+     suma categoria_* a su pajar (una faceta también se puede teclear).
+     Buscar o filtrar nunca pierde tarjetas: la rejilla muestra en qué
+     grupo cae cada resultado. */
+const VIZ_F = { group: '', cat: '', level: '' }; // facetas del navegador visual
+function vizFiltered(ignore) {
   if (LIB_STATE !== 'ok' || !LIB) return [];
-  const g = ($('pl-viz-group') || {}).value || '';
+  let pool = LIB;
+  if (ignore !== 'cat' && VIZ_F.cat) pool = pool.filter(ex => libFacetKey(ex, 'categoria') === VIZ_F.cat);
+  if (ignore !== 'level' && VIZ_F.level) pool = pool.filter(ex => libFacetKey(ex, 'nivel') === VIZ_F.level);
+  if (ignore !== 'group' && VIZ_F.group) pool = pool.filter(ex => libGroupKey(ex) === VIZ_F.group);
   const q = libNorm((($('pl-viz-q') || {}).value || '')).trim();
-  const inGroup = LIB.filter(ex => !g || (ex.grupo_muscular_es || ex.grupo_muscular_en || '') === g);
-  if (q.length < 2) return [...inGroup].sort((a, b) => libNameOf(a).localeCompare(libNameOf(b)));
+  if (q.length < 2) return [...pool].sort((a, b) => libNameOf(a).localeCompare(libNameOf(b)));
   const terms = q.split(/\s+/);
   const scored = [];
-  for (const ex of inGroup) {
-    const hay = libNorm([ex.nombre_es, ex.nombre_en, ex.grupo_muscular_es, ex.grupo_muscular_en, ex.equipo_es, ex.equipo_en, ex.nivel_es, ex.nivel_en].join(' '));
+  for (const ex of pool) {
+    const hay = libNorm([ex.nombre_es, ex.nombre_en, ex.grupo_muscular_es, ex.grupo_muscular_en, ex.categoria_es, ex.categoria_en, ex.equipo_es, ex.equipo_en, ex.nivel_es, ex.nivel_en].join(' '));
     if (!terms.every(tm => hay.includes(tm))) continue;
     const nA = libNorm(LANG === 'es' ? ex.nombre_es : ex.nombre_en);
     const nO = libNorm(LANG === 'es' ? ex.nombre_en : ex.nombre_es);
@@ -10826,12 +10930,26 @@ function vizFilter() {
   scored.sort((a, b) => a[0] - b[0] || libNameOf(a[1]).localeCompare(libNameOf(b[1])));
   return scored.map(x => x[1]);
 }
-function vizRenderGroups() {
-  const sel = $('pl-viz-group');
-  if (!sel) return;
-  const prev = sel.value;
-  sel.innerHTML = `<option value="">${esc(t('train.viz.allGroups'))}</option>` + vizGroups().map(gr => `<option value="${esc(gr.key)}">${esc(gr.label)}</option>`).join('');
-  if ([...sel.options].some(o => o.value === prev)) sel.value = prev;
+function vizFilter() { return vizFiltered(); }
+function vizRenderChips() {
+  const box = $('pl-viz-chips'); if (!box) return;
+  if (LIB_STATE !== 'ok') { box.innerHTML = ''; return; }
+  const ctx = vizFiltered('group');
+  box.innerHTML = libChipsHTML(libGroupCounts(ctx), ctx.length, VIZ_F.group);
+  libWireChips(box, k => { VIZ_F.group = k; vizRenderChips(); vizRenderGrid(); });
+}
+function vizRenderFacets() {
+  libFillFacet($('pl-viz-cat'), 'categoria', LIB_CAT_ORDER, t('libcat.allCategories'), VIZ_F.cat);
+  libFillFacet($('pl-viz-level'), 'nivel', LIB_LEVEL_ORDER, t('libcat.allLevels'), VIZ_F.level);
+}
+function vizCardHTML(ex) {
+  const meta = [libField(ex, 'grupo_muscular'), libField(ex, 'equipo'), libField(ex, 'nivel')].filter(Boolean).join(' · ');
+  return `<div class="pl-viz-card">
+      ${ex.foto_url ? `<img class="pl-viz-img" src="${esc(ex.foto_url)}" alt="${esc(libNameOf(ex))}" loading="lazy">` : `<div class="pl-viz-img pl-viz-noimg">🏋️</div>`}
+      <div class="pl-viz-name">${esc(libNameOf(ex))}</div>
+      <div class="pl-viz-meta">${esc(meta)}</div>
+      <button type="button" class="btn-primary btn-sm pl-viz-add" data-viz-id="${esc(ex.id)}">${t('train.viz.add')}</button>
+    </div>`;
 }
 function vizRenderGrid() {
   const grid = $('pl-viz-grid'), note = $('pl-viz-note'), empty = $('pl-viz-empty');
@@ -10844,15 +10962,7 @@ function vizRenderGrid() {
   }
   if (note) note.textContent = '';
   const list = vizFilter();
-  grid.innerHTML = list.map(ex => {
-    const meta = [libField(ex, 'grupo_muscular'), libField(ex, 'equipo'), libField(ex, 'nivel')].filter(Boolean).join(' · ');
-    return `<div class="pl-viz-card">
-      ${ex.foto_url ? `<img class="pl-viz-img" src="${esc(ex.foto_url)}" alt="${esc(libNameOf(ex))}" loading="lazy">` : `<div class="pl-viz-img pl-viz-noimg">🏋️</div>`}
-      <div class="pl-viz-name">${esc(libNameOf(ex))}</div>
-      <div class="pl-viz-meta">${esc(meta)}</div>
-      <button type="button" class="btn-primary btn-sm pl-viz-add" data-viz-id="${esc(ex.id)}">${t('train.viz.add')}</button>
-    </div>`;
-  }).join('');
+  grid.innerHTML = libSections(list).map(sec => `<div class="pl-viz-sec">${esc(sec.label)} <span class="libcat-sec-n">${sec.items.length}</span></div>` + sec.items.map(vizCardHTML).join('')).join('');
   grid.querySelectorAll('.pl-viz-add').forEach(b => b.onclick = () => vizAddToDay(b.dataset.vizId));
   if (empty) empty.style.display = list.length ? 'none' : '';
 }
@@ -10867,7 +10977,7 @@ function vizRefreshDays(keepIdx) {
   }).join('');
   sel.value = String(Math.min(Math.max(Number.isFinite(prev) ? prev : 0, 0), Math.max(days.length - 1, 0)));
 }
-function vizRenderAll() { vizRenderGroups(); vizRenderGrid(); vizRefreshDays(); }
+function vizRenderAll() { vizRenderChips(); vizRenderFacets(); vizRenderGrid(); vizRefreshDays(); }
 function vizAddToDay(exId) {
   const ex = LIB_BY_ID[exId];
   if (!ex) return;
@@ -10899,8 +11009,9 @@ if ($('pl-viz-toggle')) $('pl-viz-toggle').onclick = () => {
   body.style.display = open ? '' : 'none';
   if (open) { vizRenderAll(); libEnsure().then(() => vizRenderAll()); }
 };
-if ($('pl-viz-q')) $('pl-viz-q').addEventListener('input', () => vizRenderGrid());
-if ($('pl-viz-group')) $('pl-viz-group').addEventListener('change', () => vizRenderGrid());
+if ($('pl-viz-q')) $('pl-viz-q').addEventListener('input', () => { vizRenderChips(); vizRenderGrid(); });
+if ($('pl-viz-cat')) $('pl-viz-cat').addEventListener('change', e => { VIZ_F.cat = e.target.value; vizRenderChips(); vizRenderGrid(); });
+if ($('pl-viz-level')) $('pl-viz-level').addEventListener('change', e => { VIZ_F.level = e.target.value; vizRenderChips(); vizRenderGrid(); });
 if ($('pl-days')) $('pl-days').addEventListener('click', e => {
   const d = e.target.closest('.pl-day');
   if (!d) return;

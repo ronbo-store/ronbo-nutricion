@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>ronbo.nutri · Private</title>
 <meta name="robots" content="noindex, nofollow">
-<link rel="stylesheet" href="styles.css?v=20261024-hotfixperfil">
+<link rel="stylesheet" href="styles.css?v=20261024-libcat">
 <script type="importmap">
 {
   "imports": {
@@ -614,6 +614,11 @@
       <input type="search" id="lib-admin-q" data-i18n-ph="libadm.search" placeholder="Search by name, muscle group or equipment…" style="flex:1 1 200px">
       <button type="button" class="btn-primary btn-sm" id="lib-admin-new" data-i18n="libadm.new">＋ New exercise</button>
     </div>
+    <div id="lib-admin-chips" class="libcat-chips"></div>
+    <div class="libcat-filters">
+      <label class="libcat-flabel"><span data-i18n="libcat.category">Category</span> <select id="lib-admin-cat"></select></label>
+      <label class="libcat-flabel"><span data-i18n="libcat.level">Level</span> <select id="lib-admin-level"></select></label>
+    </div>
     <p class="progress-hint" id="lib-admin-count"></p>
     <div id="lib-admin-list"><div class="wempty" data-i18n="access.loading">Loading…</div></div>
     <div id="lib-admin-editor" style="display:none"></div>
@@ -855,9 +860,11 @@
           <div id="pl-viz-note" class="pl-lib-note"></div>
           <div class="pl-viz-controls">
             <input type="text" id="pl-viz-q" data-i18n-ph="train.viz.searchPh" placeholder="Search by name, muscle, equipment…" autocomplete="off">
-            <select id="pl-viz-group"></select>
+            <label class="libcat-flabel"><span data-i18n="libcat.category">Category</span> <select id="pl-viz-cat"></select></label>
+            <label class="libcat-flabel"><span data-i18n="libcat.level">Level</span> <select id="pl-viz-level"></select></label>
             <label class="pl-viz-daylabel"><span data-i18n="train.viz.dayLabel">Add to day</span> <select id="pl-viz-day"></select></label>
           </div>
+          <div id="pl-viz-chips" class="libcat-chips"></div>
           <div id="pl-viz-grid" class="pl-viz-grid"></div>
           <div id="pl-viz-empty" class="pl-viz-empty" style="display:none" data-i18n="train.viz.empty">No exercises match this filter.</div>
         </div>
@@ -921,6 +928,6 @@
 <div id="toast" class="toast"></div>
 <div id="print-card" aria-hidden="true"></div>
 
-<script type="module" src="app.js?v=20261024-hotfixperfil"></script>
+<script type="module" src="app.js?v=20261024-libcat"></script>
 </body>
 </html>
