@@ -946,7 +946,7 @@ function rolePendItems() {
       const rel = (typeof MY_REL !== 'undefined' && MY_REL) || null;
       if (!rel || !rel.trainerUid)
         push('alumno|trainer', 'mytrainer', t('pend.role.trainerTitle'), t('pend.role.trainerDetail'), t('pend.role.trainerGo'));
-      if (typeof MY_ASMT !== 'undefined' && MY_ASMT && MY_ASMT.state === 'ok' && !MY_ASMT.doc)
+      if (typeof MY_ASMT !== 'undefined' && MY_ASMT && MY_ASMT.state === 'ok' && !faHasResult(MY_ASMT.doc))
         push('alumno|eval', 'eval', t('pend.role.evalTitle'), t('pend.role.evalDetail'), t('pend.role.evalGo'));
       const consent = (typeof specIsActive === 'function') ? specIsActive(UDATA) : false;
       if (!consent)
@@ -989,7 +989,7 @@ function roleChecklist() {
       const rel = (typeof MY_REL !== 'undefined' && MY_REL) || null;
       const rows = [
         { label: t('pend.chk.trainer'), done: !!(rel && rel.trainerUid) },
-        { label: t('pend.chk.eval'), done: !!(typeof MY_ASMT !== 'undefined' && MY_ASMT && MY_ASMT.doc) },
+        { label: t('pend.chk.eval'), done: (typeof MY_ASMT !== 'undefined' && !!MY_ASMT && faHasResult(MY_ASMT.doc)) },
         { label: t('pend.chk.consent'), done: (typeof specIsActive === 'function') && specIsActive(UDATA) },
         { label: t('pend.chk.parq'), done: !!((typeof activeDecl === 'function') && activeDecl()) },
         { label: t('pend.chk.goals'), done: (typeof hasAnyGoal === 'function') && hasAnyGoal() },
@@ -1538,6 +1538,29 @@ en: {
   'tabs.track': '📊 My log',
   'tabs.clients': '👥 My clients',
   'tabs.access': '🔐 Access',
+  'tabs.trainers': '👨‍🏫 Trainers',
+  'tabs.library': '📚 Library',
+  'trainers.title': '👨‍🏫 Trainer administration',
+  'trainers.hint': 'Everything about trainers in one place: role requests, memberships (levels and quotas), the two-step confirmations that start with a trainer, the trainer approval limit and the public directory.',
+  'trainers.requests': 'Trainer role requests (',
+  'libadm.title': '📚 Exercise library',
+  'libadm.hint': 'The factory library that feeds the plan editor. Everyone can read it; only the administrator can change it (rule N-09). Edits apply to the library itself — plans already saved keep their own copies.',
+  'libadm.search': 'Search by name, muscle group or equipment…',
+  'libadm.count': '{n} exercise(s)',
+  'libadm.new': '＋ New exercise',
+  'libadm.edit': 'Edit',
+  'libadm.save': 'Save',
+  'libadm.cancel': 'Cancel',
+  'libadm.f.nameEs': 'Name (ES)',
+  'libadm.f.nameEn': 'Name (EN)',
+  'libadm.f.groupEs': 'Muscle group (ES)',
+  'libadm.f.groupEn': 'Muscle group (EN)',
+  'libadm.f.equipEs': 'Equipment (ES)',
+  'libadm.f.equipEn': 'Equipment (EN)',
+  'libadm.f.photo': 'Photo URL (foto_url)',
+  'libadm.saved': 'Exercise saved ✓',
+  'libadm.created': 'Exercise created ✓',
+  'libadm.empty': 'No exercises match your search.',
   'track.date': '📅 Date:',
   'track.addMeal': '＋ Log meal',
   'track.weekTitle': '📈 Weekly goal compliance',
@@ -2826,6 +2849,29 @@ es: {
   'tabs.track': '📊 Mi registro',
   'tabs.clients': '👥 Mis clientes',
   'tabs.access': '🔐 Accesos',
+  'tabs.trainers': '👨‍🏫 Entrenadores',
+  'tabs.library': '📚 Biblioteca',
+  'trainers.title': '👨‍🏫 Administración de entrenadores',
+  'trainers.hint': 'Todo lo de los entrenadores en un solo lugar: solicitudes de rol, membresías (niveles y cupos), las confirmaciones en dos pasos que empiezan con un entrenador, el límite de aprobaciones de entrenadores y el directorio público.',
+  'trainers.requests': 'Solicitudes de rol de entrenador (',
+  'libadm.title': '📚 Biblioteca de ejercicios',
+  'libadm.hint': 'La biblioteca de fábrica que alimenta el editor de planes. La leen todos; solo la cambia el administrador (regla N-09). Las ediciones aplican a la biblioteca: los planes ya guardados conservan sus copias.',
+  'libadm.search': 'Busca por nombre, grupo muscular o equipo…',
+  'libadm.count': '{n} ejercicio(s)',
+  'libadm.new': '＋ Ejercicio nuevo',
+  'libadm.edit': 'Editar',
+  'libadm.save': 'Guardar',
+  'libadm.cancel': 'Cancelar',
+  'libadm.f.nameEs': 'Nombre (ES)',
+  'libadm.f.nameEn': 'Nombre (EN)',
+  'libadm.f.groupEs': 'Grupo muscular (ES)',
+  'libadm.f.groupEn': 'Grupo muscular (EN)',
+  'libadm.f.equipEs': 'Equipo (ES)',
+  'libadm.f.equipEn': 'Equipo (EN)',
+  'libadm.f.photo': 'URL de la foto (foto_url)',
+  'libadm.saved': 'Ejercicio guardado ✓',
+  'libadm.created': 'Ejercicio creado ✓',
+  'libadm.empty': 'Ningún ejercicio coincide con la búsqueda.',
   'track.date': '📅 Fecha:',
   'track.addMeal': '＋ Registrar comida',
   'track.weekTitle': '📈 Cumplimiento semanal de metas',
@@ -4462,6 +4508,12 @@ onAuthStateChanged(auth, async user => {
   $('main-tabs').style.display = ROLE === 'usuario' ? 'none' : '';
   const accTabBtn = document.querySelector('.main-tab[data-tab="access"]');
   if (accTabBtn) accTabBtn.style.display = ROLE === 'administrador' ? '' : 'none';
+  /* Vistas dedicadas (corrección reprueba, 2026-10-24): Entrenadores
+     y Biblioteca son SOLO del administrador, como Accesos. */
+  const trTabBtn = document.querySelector('.main-tab[data-tab="trainers"]');
+  if (trTabBtn) trTabBtn.style.display = ROLE === 'administrador' ? '' : 'none';
+  const libTabBtn = document.querySelector('.main-tab[data-tab="library"]');
+  if (libTabBtn) libTabBtn.style.display = ROLE === 'administrador' ? '' : 'none';
   switchTab('track');
   await loadAll();
   startUserDocWatch(user.uid);
@@ -4568,19 +4620,28 @@ async function renderAiControlBox() {
 }
 async function loadAdmin() {
   const sec = $('admin-section');
-  if (!IS_OWNER) { sec.style.display = 'none'; return; }
+  const tsec = $('trainers-section');
+  if (!IS_OWNER) { sec.style.display = 'none'; if (tsec) tsec.style.display = 'none'; return; }
   sec.style.display = '';
+  if (tsec) tsec.style.display = '';
   let users = [];
   try {
     const snap = await getDocs(collection(db, 'users'));
     snap.forEach(d => users.push({ id: d.id, ...d.data() }));
   } catch { users = []; }
   ADMIN_USERS = users;
-  const pending = users.filter(u => !u.isOwner && u.approved !== true);
+  /* Vista dedicada de Entrenadores (corrección reprueba, 2026-10-24):
+     las solicitudes con roleRequest de entrenador se pintan EN SU
+     vista y las demás en Accesos — misma fila (pendRow), mismo
+     cableado (data-approve-trainer / data-approve / data-reject se
+     enganchan abajo sobre todo el documento): cada solicitud vive
+     en UNA sola superficie, sin duplicar. */
+  const pendingAll = users.filter(u => !u.isOwner && u.approved !== true);
+  const pending = pendingAll.filter(u => u.roleRequest !== 'entrenador');
+  const pendingTrainer = pendingAll.filter(u => u.roleRequest === 'entrenador');
   const active = users.filter(u => !u.isOwner && u.approved === true);
   const owners = users.filter(u => u.isOwner);
-  $('pending-count').textContent = pending.length;
-  $('pending-list').innerHTML = pending.length ? pending.map(u => `
+  const pendRow = u => `
     <div class="user-row">
       <div>${u.photoURL ? `<img class="avatar sm" src="${esc(u.photoURL)}" alt="">` : ''}<b>${esc(u.name || '—')}</b>${u.roleRequest === 'entrenador' ? ` <span class="warn-badge">${t('esc.trainerRequestBadge')}</span>` : ''}<br><span class="muted">${esc(u.email || '')}</span></div>
       <div class="user-actions">
@@ -4589,7 +4650,12 @@ async function loadAdmin() {
           : `<button class="btn-primary btn-sm" data-approve="${u.id}">${t('admin.approve')}</button>`}
         <button class="btn-ghost btn-sm" data-reject="${u.id}">${t('admin.reject')}</button>
       </div>
-    </div>`).join('') : `<div class="wempty">${t('admin.noPending')}</div>`;
+    </div>`;
+  $('pending-count').textContent = pending.length;
+  $('pending-list').innerHTML = pending.length ? pending.map(pendRow).join('') : `<div class="wempty">${t('admin.noPending')}</div>`;
+  const trc = $('trainer-req-count'); if (trc) trc.textContent = pendingTrainer.length;
+  const trl = $('trainer-requests-list');
+  if (trl) trl.innerHTML = pendingTrainer.length ? pendingTrainer.map(pendRow).join('') : `<div class="wempty">${t('admin.noPending')}</div>`;
   $('users-list').innerHTML =
     owners.map(u => `
     <div class="user-row"><div>${u.photoURL ? `<img class="avatar sm" src="${esc(u.photoURL)}" alt="">` : ''}<b>${esc(u.name || '—')}</b> <span class="owner-badge">${t('admin.owner')}</span><br><span class="muted">${esc(u.email || '')}</span></div>
@@ -5110,6 +5176,18 @@ function fb3ProteinHTML(weights) {
     <div class="muted">${t('fb3.perkg')}</div>
     ${days > FB3_STALE_DAYS ? `<div class="fb3-stale">${t('fb3.stale', { d: days })}</div>` : ''}
     <div class="muted">${t('fb3.nogoals')}</div>${help}</div>`;
+}
+
+/* ¿La evaluación energética tiene RESULTADO vigente? Mismo test
+   que la tarjeta de referencias (fb2CardHTML) y que la base de la
+   llamita de actividad (actBaseInfo): TDEE numérico + computedAt.
+   Corrección reprueba (2026-10-24): el documento assessment/current
+   puede existir SIN resultado — faSetEquation lo crea solo con la
+   ecuación elegida y faSaveConfig puede guardarlo parcial — y ese
+   cascarón NO es una evaluación hecha: ni marca la fila del
+   checklist de inicio ni suprime su pendiente. */
+function faHasResult(a) {
+  return !!a && typeof a.tdeeKcal === 'number' && isFinite(a.tdeeKcal) && a.tdeeKcal > 0 && !!a.computedAt;
 }
 
 /* ================= MÓDULO B (P4-3 Etapa 2, desarrollo) — REFERENCIAS
@@ -6121,12 +6199,26 @@ function renderWeekChart(date) {
   const series = METRICS.filter(m => goalOf(m.key) !== null).map(m => ({
     color: m.color, name: t('metric.' + m.key),
     pts: days.map(d => {
+      /* Corrección reprueba (2026-10-24): un día SIN registros no es
+         un 0% — es ausencia de dato. Antes totals() devolvía ceros y
+         el punto caía a la línea del 0%, arrastrando la polilínea de
+         TODAS las series a cero en los días vacíos (p. ej. el último
+         día, aún sin registrar). Sin dato → null → sin punto y la
+         línea se corta (hueco). Un día con registros, aunque sea
+         parcial, conserva su valor real. */
+      if (!(MEALS[d] || []).length) return null;
       const tot = totals(d);
       const g = goalOf(m.key);
       return Math.min((tot[m.key] || 0) / g, MAXP);
     })
   }));
-  const W = 680, H = 280, P = { l: 46, r: 14, t: 14, b: 34 };
+  /* P.r amplio a propósito (corrección reprueba, 2026-10-24): es la
+     ZONA SEGURA de la llamita de actividad (#act-flame, fija abajo a
+     la derecha, ~98 px de banda desde el borde de la pantalla). Con
+     el margen anterior (14) el punto y la etiqueta del último día
+     caían justo bajo la llamita y quedaban tapados; ahora el área
+     útil termina antes de esa banda a cualquier scroll. */
+  const W = 680, H = 280, P = { l: 46, r: 150, t: 14, b: 34 };
   const iw = W - P.l - P.r, ih = H - P.t - P.b;
   const X = i => P.l + (i / 6) * iw;
   const Y = p => P.t + ih - (p / MAXP) * ih;
@@ -6140,10 +6232,16 @@ function renderWeekChart(date) {
   const highlight = selIdx >= 0
     ? `<rect x="${X(selIdx) - iw / 14}" y="${P.t}" width="${iw / 7}" height="${ih}" fill="#0d9488" opacity="0.07" rx="6"/>` : '';
   const lines = series.map(s => {
-    const pts = s.pts.map((p, i) => `${X(i).toFixed(1)},${Y(p).toFixed(1)}`).join(' ');
-    const dots = s.pts.map((p, i) =>
+    /* Segmentos entre días con dato: al llegar a un día sin dato
+       (null) el tramo se cierra; un punto aislado queda solo con su
+       círculo, sin línea que lo una a través del hueco. */
+    let out = '', run = [];
+    const flush = () => { if (run.length > 1) out += `<polyline points="${run.join(' ')}" fill="none" stroke="${s.color}" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>`; run = []; };
+    s.pts.forEach((p, i) => { if (p === null) { flush(); return; } run.push(`${X(i).toFixed(1)},${Y(p).toFixed(1)}`); });
+    flush();
+    const dots = s.pts.map((p, i) => p === null ? '' :
       `<circle cx="${X(i)}" cy="${Y(p)}" r="4" fill="${s.color}" stroke="#fff" stroke-width="1.5"><title>${s.name}: ${Math.round(p * 100)}%</title></circle>`).join('');
-    return `<polyline points="${pts}" fill="none" stroke="${s.color}" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>${dots}`;
+    return out + dots;
   }).join('');
   const labels = days.map((d, i) =>
     `<text x="${X(i)}" y="${H - 16}" text-anchor="middle" font-size="10" fill="#9ca3af">${dayNames[i]}</text>
@@ -7723,10 +7821,24 @@ syncPermsPanel();
    un encabezado fijo (.mealhelp-head) y #mealhelp-content se
    renderiza SIEMPRE abierto, como una tarjeta normal. Progreso
    y plan conservan sus redondos de siempre. */
+/* Dock GLOBAL (corrección reprueba, 2026-10-24): el dock ya no
+   vive dentro de #tab-track — es hijo de #app-view y se ve en las
+   tres áreas principales. Las superficies que abren sus botones
+   (paneles de progreso/plan, flotantes de pendientes y actividad,
+   el flujo de foto de comida) siguen viviendo en «Mi registro»: si
+   el gesto llega desde otra área, primero se vuelve a la pestaña
+   dueña de la superficie y el gesto sigue su curso normal. Mismo
+   botón, mismo comportamiento, una sola instancia; las puertas por
+   rol (applyFeatureGates) siguen actuando por id, intactas. */
+function dockHome(el) {
+  const pane = el ? el.closest('.tab-pane') : $('tab-track');
+  if (pane && pane.style.display === 'none') switchTab(pane.id.replace('tab-', ''));
+}
 function wireCardToggle(btnId, contentId, chevId, opts = {}) {
   const btn = $(btnId); if (!btn) return;
   btn.addEventListener('click', () => {
     const c = $(contentId); if (!c) return;
+    dockHome(c);
     const open = c.style.display === 'none';
     c.style.display = open ? '' : 'none';
     const ch = $(chevId); if (ch) ch.textContent = open ? '▴' : '▾';
@@ -7736,6 +7848,11 @@ function wireCardToggle(btnId, contentId, chevId, opts = {}) {
 }
 wireCardToggle('btn-toggle-progress', 'progress-content', 'chev-progress', { scroll: true });
 wireCardToggle('btn-toggle-train', 'train-content', 'chev-train', { scroll: true });
+/* «Comida» es una etiqueta sobre #ai-file: el selector de foto se
+   abre igual desde cualquier área, pero el flujo del análisis vive
+   en «Mi registro» — al tocarla desde otra área se vuelve allí
+   primero, para que el resultado caiga en su pantalla. */
+{ const fl = $('btn-round-food'); if (fl) fl.addEventListener('click', () => dockHome($('tab-track'))); }
 /* El rediseño flotante de actividad (2026-10-24) retira el cableado
    de la tira: el botón ACTIVIDAD del dock y la llamita se cablean en
    el propio módulo de actividad (junto a ACT_UI). */
@@ -9416,6 +9533,100 @@ function libRowThumb(row, url) {
   if (url) { th.src = url; th.style.display = ''; }
   else { th.removeAttribute('src'); th.style.display = 'none'; }
 }
+
+/* ================= ADMINISTRACIÓN DE LA BIBLIOTECA (vista propia) =====
+   Corrección reprueba (2026-10-24): la vista «Biblioteca» del
+   administrador — buscar en el catálogo de fábrica, editar la ficha
+   (nombre ES/EN, grupo muscular ES/EN, equipo ES/EN y foto_url) y
+   dar de alta ejercicios nuevos. Regla N-09: la lectura es de todos
+   (la misma libEnsure del editor) y la escritura SOLO del
+   administrador: la píldora se oculta a los demás roles,
+   renderLibAdmin se corta por rol y las reglas vigentes son la
+   barrera real. NO es el explorador visual del editor de planes
+   (ese queda intacto): esto escribe en exercise_library, y la
+   memoria de la sesión (LIB/LIB_BY_ID) se actualiza en el acto para
+   que el editor vea el cambio sin recargar. El guardado usa merge:
+   los campos que el formulario no toca (nivel, video_youtube_url…)
+   quedan como estaban. El alta calcula el siguiente id libre E###
+   a partir del catálogo cargado. */
+let LIB_ADMIN_EDIT = null; // id en edición | 'new' | null
+async function renderLibAdmin() {
+  const sec = $('library-section'); if (!sec) return;
+  if (ROLE !== 'administrador') { sec.style.display = 'none'; return; }
+  sec.style.display = '';
+  await libEnsure();
+  libAdminRenderList();
+  const q = $('lib-admin-q');
+  if (q && !q.dataset.wired) { q.dataset.wired = '1'; q.addEventListener('input', () => libAdminRenderList()); }
+  const nb = $('lib-admin-new');
+  if (nb && !nb.dataset.wired) { nb.dataset.wired = '1'; nb.onclick = () => libAdminOpenEditor(null); }
+}
+function libAdminFiltered() {
+  if (LIB_STATE !== 'ok' || !LIB) return [];
+  const q = libNorm(($('lib-admin-q') || {}).value || '').trim();
+  const all = [...LIB].sort((a, b) => String(a.id).localeCompare(String(b.id)));
+  if (!q) return all;
+  const terms = q.split(/\s+/);
+  return all.filter(ex => terms.every(tm => libNorm([ex.nombre_es, ex.nombre_en, ex.grupo_muscular_es, ex.grupo_muscular_en, ex.equipo_es, ex.equipo_en, ex.id].join(' ')).includes(tm)));
+}
+function libAdminRenderList() {
+  const box = $('lib-admin-list'); if (!box) return;
+  const cnt = $('lib-admin-count');
+  if (LIB_STATE !== 'ok') { box.innerHTML = `<div class="wempty">${esc(t('train.lib.unavailable'))}</div>`; if (cnt) cnt.textContent = ''; return; }
+  const rows = libAdminFiltered();
+  if (cnt) cnt.textContent = t('libadm.count', { n: rows.length });
+  box.innerHTML = rows.length ? rows.map(ex => `
+    <div class="user-row">
+      <div>${ex.foto_url ? `<img class="avatar sm" src="${esc(ex.foto_url)}" alt="">` : ''}<b>${esc(libNameOf(ex))}</b> <span class="muted">${esc(ex.id)}</span><br><span class="muted">${esc(libField(ex, 'grupo_muscular'))}${(ex.equipo_es || ex.equipo_en) ? ' · ' + esc(libField(ex, 'equipo')) : ''}</span></div>
+      <div class="user-actions"><button type="button" class="btn-ghost btn-sm" data-lib-edit="${esc(ex.id)}">${esc(t('libadm.edit'))}</button></div>
+    </div>`).join('') : `<div class="wempty">${esc(t('libadm.empty'))}</div>`;
+  box.querySelectorAll('[data-lib-edit]').forEach(b => b.onclick = () => libAdminOpenEditor(b.dataset.libEdit));
+}
+function libAdminOpenEditor(id) {
+  const ed = $('lib-admin-editor'); if (!ed) return;
+  LIB_ADMIN_EDIT = id || 'new';
+  const ex = id ? (LIB_BY_ID[id] || {}) : {};
+  const F = (key, label, val) => `<div class="eval-field"><label for="la-${key}">${esc(label)}</label><input type="text" id="la-${key}" value="${esc(val || '')}"></div>`;
+  ed.innerHTML = `<div class="eval-block"><p class="eval-ficha-title">${id ? esc(id) + ' · ' + esc(libNameOf(ex)) : esc(t('libadm.new'))}</p>
+    <div class="eval-form">
+    ${F('nombre_es', t('libadm.f.nameEs'), ex.nombre_es)}${F('nombre_en', t('libadm.f.nameEn'), ex.nombre_en)}
+    ${F('grupo_es', t('libadm.f.groupEs'), ex.grupo_muscular_es)}${F('grupo_en', t('libadm.f.groupEn'), ex.grupo_muscular_en)}
+    ${F('equipo_es', t('libadm.f.equipEs'), ex.equipo_es)}${F('equipo_en', t('libadm.f.equipEn'), ex.equipo_en)}
+    ${F('foto', t('libadm.f.photo'), ex.foto_url)}
+    </div>
+    <div class="eval-actions"><button type="button" class="btn-primary btn-sm" id="la-save">${esc(t('libadm.save'))}</button>
+    <button type="button" class="btn-ghost btn-sm" id="la-cancel">${esc(t('libadm.cancel'))}</button></div></div>`;
+  ed.style.display = '';
+  try { ed.scrollIntoView({ behavior: 'smooth', block: 'start' }); } catch {}
+  $('la-cancel').onclick = () => { LIB_ADMIN_EDIT = null; ed.style.display = 'none'; ed.innerHTML = ''; };
+  $('la-save').onclick = libAdminSave;
+}
+async function libAdminSave() {
+  if (ROLE !== 'administrador' || !LIB_ADMIN_EDIT) return;
+  const v = id => (($(id) || {}).value || '').trim();
+  const data = { nombre_es: v('la-nombre_es'), nombre_en: v('la-nombre_en'),
+    grupo_muscular_es: v('la-grupo_es'), grupo_muscular_en: v('la-grupo_en'),
+    equipo_es: v('la-equipo_es'), equipo_en: v('la-equipo_en'), foto_url: v('la-foto') };
+  let id = LIB_ADMIN_EDIT;
+  const isNew = id === 'new';
+  try {
+    if (isNew) {
+      let max = 0;
+      (LIB || []).forEach(x => { const m = /^E(\d+)$/.exec(x.id || ''); if (m) max = Math.max(max, parseInt(m[1], 10)); });
+      id = 'E' + String(max + 1).padStart(3, '0');
+      await setDoc(doc(db, 'exercise_library', id), data);
+    } else {
+      await setDoc(doc(db, 'exercise_library', id), data, { merge: true });
+    }
+    const merged = { ...(LIB_BY_ID[id] || {}), ...data, id };
+    if (LIB_BY_ID[id]) { LIB_BY_ID[id] = merged; const ix = (LIB || []).findIndex(x => x.id === id); if (ix >= 0) LIB[ix] = merged; }
+    else { LIB_BY_ID[id] = merged; if (LIB) LIB.push(merged); }
+    LIB_ADMIN_EDIT = null;
+    const ed = $('lib-admin-editor'); if (ed) { ed.style.display = 'none'; ed.innerHTML = ''; }
+    toast(t(isNew ? 'libadm.created' : 'libadm.saved'));
+    libAdminRenderList();
+  } catch (e) { failToast(e); }
+}
 /* FLOTANTE MULTIMEDIA (rediseño de la fila, 2026-10-24): al tocar la
    miniatura se abre un desplegable flotante sobre la pantalla con el
    complemento multimedia REAL del ejercicio. La resolución es la
@@ -10357,8 +10568,9 @@ $('form-plan').addEventListener('submit', async e => {
 function switchTab(name) {
   document.querySelectorAll('.main-tab').forEach(b => b.classList.toggle('active', b.dataset.tab === name));
   document.querySelectorAll('.tab-pane').forEach(p => { p.style.display = (p.id === 'tab-' + name) ? '' : 'none'; });
-  if (IS_OWNER && name === 'access') loadAdmin();
+  if (IS_OWNER && (name === 'access' || name === 'trainers')) loadAdmin();
   if (ROLE !== 'usuario' && name === 'clients') loadClients();
+  if (ROLE === 'administrador' && name === 'library') renderLibAdmin();
 }
 document.querySelectorAll('.main-tab').forEach(b => b.addEventListener('click', () => switchTab(b.dataset.tab)));
 
@@ -11068,7 +11280,7 @@ function renderActivity(date) {
 
 /* ---------- cableado del dock, la llamita y los cierres ---------- */
 { const b = $('btn-toggle-activity');
-  if (b) b.onclick = () => { if (actIsOpen('act-float')) actCloseAll(); else actOpenFloat(); }; }
+  if (b) b.onclick = () => { dockHome($('act-float')); if (actIsOpen('act-float')) actCloseAll(); else actOpenFloat(); }; }
 { const f = $('act-flame');
   if (f) f.onclick = () => { if (actIsOpen('act-day')) actCloseAll(); else actOpenDay(); }; }
 { const c = $('btn-act-close'); if (c) c.onclick = () => actCloseAll(); }
@@ -11631,6 +11843,16 @@ $('frame-save').onclick = () => { const f = FRAME.file, s = FRAME.slot; closeFra
    El peso se reutiliza de nutrition_weight (no se duplica): para la
    completitud cuenta el pesaje DEL DÍA del set; en la ficha se
    muestra el último pesaje hasta esa fecha.
+   SUELO DE DATOS (corrección reprueba, 2026-10-24): además de lo
+   anterior, el set debe contener AL MENOS UN dato de evaluación —
+   una medida con valor (el pesaje del día cuenta) o un registro de
+   composición. Sin ese suelo, con la configuración nacida vacía
+   (requiredMeasures = [], el valor por defecto) bastaban las 3 fotos
+   para sellar «completa» una evaluación SIN ninguna medida ni
+   composición: el documento quedaba un cascarón (solo
+   completedAt/fecha) que anclaba el ciclo y se presentaba como
+   evaluación completa sin contener dato alguno. Fotos solas =
+   avance parcial, nunca evaluación completa.
    UNIDADES: el dato guardado es único y canónico (kg/cm); el
    selector solo cambia la PRESENTACIÓN (conversión al mostrar y al
    capturar, redondeo solo visual): la ida y vuelta no deriva. */
@@ -11674,10 +11896,18 @@ function evalMissingItems(date) {
   (EVAL_CFG.requiredMeasures || []).forEach(m => { if (evalMeasureValue(date, m) == null) items.push({ kind: 'measure', id: m }); });
   return items;
 }
+/* ¿El set contiene ALGÚN dato de evaluación? (suelo de la
+   corrección de la reprueba: una medida con valor — incluida el
+   peso del día, vía evalMeasureValue — o composición registrada.) */
+function evalHasData(date) {
+  const e = EVALS[date] || {};
+  if (e.comp && (e.comp.fat || e.comp.muscle)) return true;
+  return EVAL_MEASURES.some(m => evalMeasureValue(date, m.id) != null);
+}
 function evalSetComplete(date) {
   if (!date || (EVAL_CYCLE.closedSets || []).includes(date)) return false;
   if (!PROG[date] && !EVALS[date]) return false;
-  return evalMissingItems(date).length === 0;
+  return evalMissingItems(date).length === 0 && evalHasData(date);
 }
 function evalCompleteDates() {
   const ds = new Set([...Object.keys(PROG), ...Object.keys(EVALS)]);
@@ -13143,7 +13373,7 @@ function pendReadForm() {
 { const b = document.getElementById('btn-pend-config');
   if (b) b.onclick = () => { PEND_UI.configOpen = !PEND_UI.configOpen; renderPendings(); }; }
 { const b = document.getElementById('btn-toggle-pend');
-  if (b) b.onclick = () => pendSetFloat(!PEND_UI.floatOpen); }
+  if (b) b.onclick = () => { dockHome($('pend-float')); pendSetFloat(!PEND_UI.floatOpen); }; }
 { const c = document.getElementById('btn-pend-close');
   if (c) c.onclick = () => pendSetFloat(false); }
 /* Cierre tocando fuera de la tarjeta (el botón del dock se excluye:
@@ -13246,8 +13476,8 @@ setInterval(() => { try { pendDockTick(); } catch {} }, 60000);
           else if (route === 'perms') { const pb = $('btn-perms'); if (pb && !permsOpen) pb.click(); scroll('health-section'); }
           else if (route === 'goals') { switchTab('track'); scroll('rings'); }
           else if (route === 'admin-pending') { switchTab('access'); scroll('pending-list'); }
-          else if (route === 'admin-membership') { switchTab('access'); scroll('membership-admin-box'); }
-          else if (route === 'admin-meals') { switchTab('access'); scroll('meal-admin-box'); }
+          else if (route === 'admin-membership') { switchTab('trainers'); scroll('membership-admin-box'); }
+          else if (route === 'admin-meals') { switchTab('trainers'); scroll('meal-admin-box'); }
           else if (route === 'admin-waiting') { switchTab('access'); scroll('users-list'); }
         }
       }

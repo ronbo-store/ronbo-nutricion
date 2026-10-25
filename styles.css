@@ -26,11 +26,17 @@ body { font-family: -apple-system, "Segoe UI", Roboto, Helvetica, Arial, sans-se
    botón (flex 0 1 auto, mínimo = su círculo): la columna de
    «CARBOHIDRATOS» toma el ancho que su rótulo necesita sin cortarlo. */
 .rings { display: flex; flex-wrap: nowrap; align-items: flex-start; justify-content: space-between; gap: 2px; background: #fff; border-radius: 12px; box-shadow: 0 1px 3px rgba(0,0,0,.08); padding: 12px 6px 10px; margin-bottom: 14px; }
-.ring-mini { flex: 0 1 auto; min-width: 60px; background: none; border: 0; padding: 2px 0; display: flex; flex-direction: column; align-items: center; gap: 3px; cursor: pointer; font-family: inherit; -webkit-tap-highlight-color: transparent; }
+/* Corrección reprueba (2026-10-24): columnas IGUALES de un quinto
+   (flex 1 1 0, min-width 0) y nombre más compacto. Antes cada botón
+   medía lo que su etiqueta — «CARBOHIDRATOS» hacía su botón de 91 px
+   y su nombre quedaba a ~6 px de los vecinos en Chromium y pegado
+   en iOS (su fuente es más ancha) — : las etiquetas se encimaban
+   visualmente entre anillos. La fila sigue siendo única. */
+.ring-mini { flex: 1 1 0; min-width: 0; background: none; border: 0; padding: 2px 0; display: flex; flex-direction: column; align-items: center; gap: 3px; cursor: pointer; font-family: inherit; -webkit-tap-highlight-color: transparent; }
 .ring-mini:focus-visible { outline: 2px solid #00aca1; outline-offset: 2px; border-radius: 10px; }
 .ring-mini-svg { width: 60px; height: 60px; flex: none; }
-.ring-mini-name { font-size: 10px; font-weight: 700; letter-spacing: .2px; color: #1f2a44; white-space: nowrap; }
-.ring-mini-sub { font-size: 9.5px; color: #6b7280; white-space: nowrap; }
+.ring-mini-name { font-size: 8.5px; font-weight: 700; letter-spacing: -.2px; color: #1f2a44; white-space: nowrap; }
+.ring-mini-sub { font-size: 9px; color: #6b7280; white-space: nowrap; }
 /* Ventana flotante de detalle del anillo: mismo lenguaje que
    #pend-float (tarjeta blanca, radio 18, sombra suave), centrada,
    con fondo propio para el «tocar fuera» y cierre ✕ / Escape. */
@@ -361,7 +367,13 @@ table.whist { min-width: 640px; }
 .photo-hint b { color: #0d9488; }
 
 /* ===== pestañas principales ===== */
-.main-tabs { display: flex; gap: 8px; margin: 14px 0 6px; flex-wrap: wrap; }
+/* Navegación superior (corrección reprueba, 2026-10-24): con CINCO
+   píldoras (Mi registro · Mis clientes · Accesos · Entrenadores ·
+   Biblioteca) la fila se envuelve en filas CENTRADAS y equilibradas
+   — regla permanente de la casa: botones siempre centrados. Cada
+   fila se centra por sí misma (3+2 en administrador; las que vea
+   cada rol quedan centradas igual). */
+.main-tabs { display: flex; gap: 8px; margin: 14px 0 6px; flex-wrap: wrap; justify-content: center; }
 .main-tab { padding: 9px 18px; border-radius: 999px; border: 1px solid #d1d5db; background: #fff; font-size: 14px; cursor: pointer; color: #374151; }
 .main-tab.active { background: #0d9488; border-color: #0d9488; color: #fff; font-weight: 600; }
 
@@ -574,14 +586,20 @@ table.whist { min-width: 640px; }
    scroll dentro de #tab-track; el dock vive en el DOM dentro de
    #tab-track, así que al cambiar de pestaña (display:none) no se
    renderiza. z-index 40: sobre el contenido, bajo el modal (50),
-   el toast (99) y el lightbox (9999). Las leyendas van en
+   el toast (99) y el lightbox (9999).
+   GLOBAL (corrección reprueba, 2026-10-24): el dock sale de
+   #tab-track y vive como hijo directo de #app-view — visible en
+   las TRES áreas principales (Mi registro, Mis clientes, Accesos),
+   una sola instancia con su estado (pendientes en rojo) intacto;
+   ver la nota junto al marcado en index.html y dockHome en app.js.
+   Las leyendas van en
    MAYÚSCULAS por CSS (los diccionarios no cambian). Círculos de
    68 px (un poco más compactos que los 76 de v4/v4.1 para que el
    dock tape menos; el SVG de 36 px se conserva). Para que el dock
    no tape el final de la página, el pie (.foot, último elemento
-   tras las pestañas) gana margen inferior SOLO mientras #tab-track
-   es la pestaña visible (selector de hermano: sin el margen, el
-   pie quedaría bajo la pastilla al llegar al fondo). */
+   tras las pestañas) gana margen inferior: nació solo con
+   #tab-track visible y desde el dock global (2026-10-24) es
+   permanente, porque la pastilla acompaña en las tres áreas. */
 .main-actions { margin-top: 18px; }
 /* Dock compacto y centrado (Ronald, 2026-10-21, con captura de
    producción): los círculos de 68 px se veían enormes, la pastilla
@@ -594,7 +612,11 @@ table.whist { min-width: 640px; }
    anclaje de .pend-float se ajusta a la nueva altura de la pastilla
    (~92 px frente a ~111 px). */
 .actions-dock { position: fixed; left: 50%; transform: translateX(-50%); bottom: calc(env(safe-area-inset-bottom, 0px) + 12px); z-index: 40; width: fit-content; max-width: calc(100vw - 24px); box-sizing: border-box; background: rgba(255, 255, 255, .96); border: 1px solid rgba(15, 23, 42, .06); border-radius: 999px; box-shadow: 0 8px 24px rgba(15, 23, 42, .18); padding: 8px 16px; }
-#tab-track:not([style*="none"]) ~ .foot { margin-bottom: 132px; }
+/* El pie reserva siempre el alto del dock: antes el margen era solo
+   con #tab-track visible (el dock vivía allí); con el dock global
+   (2026-10-24) el final de CUALQUIER área necesita la misma reserva
+   para que la pastilla no tape el pie al llegar al fondo. */
+#app-view .foot { margin-bottom: 132px; }
 .rounds-row { display: flex; justify-content: center; align-items: flex-start; gap: 6px; }
 .round-action { flex: 0 1 auto; display: flex; flex-direction: column; align-items: center; gap: 5px; background: none; border: none; padding: 2px 0 0; cursor: pointer; font-family: inherit; text-decoration: none; }
 .round-circle { width: 56px; height: 56px; border-radius: 50%; background: #00aca1; color: #fff; display: flex; align-items: center; justify-content: center; }
@@ -1043,8 +1065,16 @@ div > .btn-ghost:only-child, div > .btn-main:only-child {
 @media (prefers-reduced-motion: reduce) { .act-flame-ico { animation: none; } }
 @media (max-width: 480px) {
   .actions-dock { padding: 8px 10px; }
-  .rounds-row { gap: 2px; }
-  .round-label { font-size: 9.5px; }
+  /* Corrección reprueba (2026-10-24): a 390 px las etiquetas ES del
+     dock (ENTRENAMIENTO, PENDIENTES…) se tocaban entre sí — la fila
+     se encogía y los rótulos, en nowrap, se derramaban unos sobre
+     otros y el conjunto se leía como cajas pegadas en vez de los
+     cinco círculos del diseño. Círculos de 52 px, rótulo de 9 px
+     con tracking cerrado y hueco de 4 px: la fila cabe entera y
+     cada etiqueta respira. */
+  .rounds-row { gap: 4px; }
+  .round-circle { width: 52px; height: 52px; }
+  .round-label { font-size: 9px; letter-spacing: -.2px; }
 }
 @media (max-width: 380px) {
   .round-circle { width: 48px; height: 48px; }

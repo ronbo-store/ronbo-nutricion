@@ -166,6 +166,8 @@
     <button type="button" class="main-tab active" data-tab="track" data-i18n="tabs.track">📊 My log</button>
     <button type="button" class="main-tab" data-tab="clients" data-i18n="tabs.clients">👥 My clients</button>
     <button type="button" class="main-tab" data-tab="access" data-i18n="tabs.access">🔐 Access</button>
+    <button type="button" class="main-tab" data-tab="trainers" data-i18n="tabs.trainers">👨‍🏫 Trainers</button>
+    <button type="button" class="main-tab" data-tab="library" data-i18n="tabs.library">📚 Library</button>
   </nav>
   <div class="tab-pane" id="tab-track">
   <!-- Mapa de pendientes por rol (2026-10-24): tarjeta-resumen en la
@@ -369,18 +371,6 @@
       </div>
     </div>
   </div>
-  <!-- Dock flotante v4.2: la fila de redondos vive DENTRO de #tab-track
-       (al ocultarse la pestaña, el dock no se renderiza) pero se pinta
-       fija abajo con .actions-dock (position:fixed). -->
-  <div class="actions-dock">
-    <div class="rounds-row">
-      <button type="button" class="round-action" id="btn-toggle-progress" aria-expanded="false" aria-label="My progress" data-i18n-aria="progress.title"><span class="round-circle" aria-hidden="true"><svg width="36" height="36" viewBox="0 0 48 48" fill="#fff" aria-hidden="true" focusable="false"><rect x="9" y="32" width="6" height="7" rx="1.5"/><rect x="17.5" y="27" width="6" height="12" rx="1.5"/><rect x="26" y="22" width="6" height="17" rx="1.5"/><rect x="28.5" y="15" width="13" height="4.6" rx="2.3" transform="rotate(-45 35 17.3)"/><polygon points="31.5,6.8 44,6.8 44,19.3"/></svg></span><span class="round-label"><span data-i18n="main.progress">Progress</span> <span class="round-chev" id="chev-progress" aria-hidden="true">▾</span></span></button>
-      <label class="round-action" id="btn-round-food" aria-label="Analyze the food" data-i18n-aria="ai.analyze"><span class="round-circle" aria-hidden="true"><svg width="36" height="36" viewBox="0 0 48 48" fill="#fff" aria-hidden="true" focusable="false"><circle cx="24" cy="18.8" r="2.8"/><path d="M9 36 A15 15 0 0 1 39 36 Z"/><rect x="5.5" y="37.6" width="37" height="3.6" rx="1.8"/></svg></span><span class="round-label" data-i18n="main.food">Food</span><input type="file" id="ai-file" accept="image/*" multiple style="display:none"></label>
-      <button type="button" class="round-action" id="btn-toggle-train" aria-expanded="false" aria-label="My training plan" data-i18n-aria="train.title"><span class="round-circle" aria-hidden="true"><svg width="36" height="36" viewBox="0 0 48 48" fill="#fff" aria-hidden="true" focusable="false"><rect x="6" y="22.2" width="36" height="3.6" rx="1.8"/><rect x="9.5" y="17.5" width="4.6" height="13" rx="2"/><rect x="16.4" y="13.5" width="5" height="21" rx="2.2"/><rect x="26.6" y="13.5" width="5" height="21" rx="2.2"/><rect x="33.9" y="17.5" width="4.6" height="13" rx="2"/></svg></span><span class="round-label"><span data-i18n="main.training">Training</span> <span class="round-chev" id="chev-train" aria-hidden="true">▾</span></span></button>
-      <button type="button" class="round-action" id="btn-toggle-activity" aria-expanded="false" aria-label="Activity" data-i18n-aria="main.activity"><span class="round-circle" aria-hidden="true"><svg width="36" height="36" viewBox="0 0 48 48" fill="none" stroke="#fff" stroke-width="4.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><polyline points="5,24 15,24 20,11 27,37 32,24 43,24"/></svg></span><span class="round-label"><span data-i18n="main.activity">Activity</span> <span class="round-chev" id="chev-activity" aria-hidden="true">▾</span></span></button>
-      <button type="button" class="round-action" id="btn-toggle-pend" aria-expanded="false" aria-label="Pendings" data-i18n-aria="main.pendings"><span class="round-circle" aria-hidden="true"><svg width="36" height="36" viewBox="0 0 48 48" fill="#fff" aria-hidden="true" focusable="false"><circle cx="24" cy="7.5" r="2.7"/><path d="M24 11.5c-6.4 0-10.8 4.7-10.8 11.2 0 4.9-1 7.2-2.6 9.4-.5.7-.1 1.7.8 1.7h25.2c.9 0 1.3-1 .8-1.7-1.6-2.2-2.6-4.5-2.6-9.4 0-6.5-4.4-11.2-10.8-11.2z"/><rect x="8.5" y="35.6" width="31" height="3.6" rx="1.8"/><circle cx="24" cy="42.6" r="3"/></svg></span><span class="round-label" data-i18n="main.pendings">Pendings</span></button>
-    </div>
-  </div>
   <!-- Tarjeta flotante de Pendientes (REC-D): vive junto al dock,
        dentro de #tab-track (al cambiar de pestaña no se renderiza),
        y FLOTA sobre la página justo encima de la pastilla — la
@@ -490,11 +480,7 @@
     <div id="pending-list"><div class="wempty" data-i18n="admin.noPending">No pending requests.</div></div>
     <h3 class="history-title" data-i18n="access.users">Users with access</h3>
     <div id="users-list"><div class="wempty" data-i18n="access.loading">Loading…</div></div>
-    <div id="trainer-dir-box"></div>
     <div id="mail-texts-box"></div>
-    <h3 class="history-title" data-i18n="appr.title">🆕 Trainer account approvals</h3>
-    <p class="progress-hint" data-i18n="appr.hint">Each trainer may approve new accounts up to this limit. Approving an account assigns it to the trainer who approves it. If no limit is set, trainers cannot approve — only you can.</p>
-    <div id="approvals-limit-box"></div>
     <h3 class="history-title" data-i18n="limits.title">🤖 Analysis limits</h3>
     <p class="progress-hint" data-i18n="limits.hint">Daily photo-analysis limits, set only by you. Each account uses its own limit if it has one, otherwise its trainer's, otherwise the global one. No limit set means unlimited.</p>
     <p class="progress-hint" data-i18n="limits.countNote">The counter measures requests to the service; a full analysis normally uses two.</p>
@@ -502,6 +488,33 @@
     <h3 class="history-title" data-i18n="aictl.title">🛑 AI master switch</h3>
     <p class="progress-hint" data-i18n="aictl.hint">One switch turns off every AI analysis for everyone — meal photos, text descriptions and body-type estimates. The server enforces it: while it is off, no analysis reaches the AI and nothing is spent. Manual logging always works.</p>
     <div id="ai-control-box"></div>
+    <h3 class="history-title" data-i18n="esc.flagsTitle">🚩 Feature flags</h3>
+    <p class="progress-hint" data-i18n="esc.flagsHint">Turn whole modules off or on for every student without deploying anything. Trainers and you are not blocked by these flags.</p>
+    <div id="flags-box"></div>
+    <h3 class="history-title" data-i18n="nd2.title">🗒️ Access log (ND-2)</h3>
+    <p class="progress-hint" data-i18n="nd2.hint">Every time the trainer view of a client's evaluations and photos is opened, one record is written here: who viewed whose data, and when. Records cannot be edited.</p>
+    <div id="nd2-box"><div class="wempty" data-i18n="access.loading">Loading…</div></div>
+  </div>
+  </div><!-- /tab-access -->
+
+  <!-- Administración de ENTRENADORES (corrección reprueba, 2026-10-24):
+       vista propia, solo administrador. Reúne lo que vivía dentro de
+       Accesos — solicitudes de rol de entrenador, límite de
+       aprobaciones, membresías, confirmaciones de comidas y de
+       modalidad y el directorio — MOVIDO, no duplicado: cada bloque
+       existe una sola vez en el DOM y lo sigue pintando loadAdmin /
+       renderEscAdminBoxes. Accesos conserva cuentas y accesos
+       (pendientes de cuenta, usuarios, límites de análisis,
+       interruptor de IA, banderas, textos de correo y ND-2). -->
+  <div class="tab-pane" id="tab-trainers" style="display:none">
+  <div class="admin-section" id="trainers-section" style="display:none">
+    <h2><span data-i18n="trainers.title">👨‍🏫 Trainer administration</span> <span class="h2-sub" data-i18n="access.sub">· owner only</span></h2>
+    <p class="progress-hint" data-i18n="trainers.hint">Everything about trainers in one place: role requests, memberships (levels and quotas), the two-step confirmations that start with a trainer, the trainer approval limit and the public directory.</p>
+    <h3 class="history-title"><span data-i18n="trainers.requests">Trainer role requests (</span><span id="trainer-req-count">0</span>)</h3>
+    <div id="trainer-requests-list"><div class="wempty" data-i18n="admin.noPending">No pending requests.</div></div>
+    <h3 class="history-title" data-i18n="appr.title">🆕 Trainer account approvals</h3>
+    <p class="progress-hint" data-i18n="appr.hint">Each trainer may approve new accounts up to this limit. Approving an account assigns it to the trainer who approves it. If no limit is set, trainers cannot approve — only you can.</p>
+    <div id="approvals-limit-box"></div>
     <h3 class="history-title" data-i18n="esc.membershipAdminTitle">🎟️ Trainer memberships</h3>
     <p class="progress-hint" data-i18n="esc.membershipAdminHint">A membership sets how many active students a trainer may have (Basic 5 · Premium 10 · Elite 30). Trainers request a level; only you approve it. This is separate from the account-approval limit above.</p>
     <div id="membership-admin-box"></div>
@@ -511,14 +524,30 @@
     <h3 class="history-title" data-i18n="esc.modAdminTitle">🔀 Modality confirmations</h3>
     <p class="progress-hint" data-i18n="esc.modAdminHint">A modality change applies only when you confirm it, after the trainer approved it. If the student has no trainer, their request reaches you directly and you approve and confirm it yourself.</p>
     <div id="modality-admin-box"></div>
-    <h3 class="history-title" data-i18n="esc.flagsTitle">🚩 Feature flags</h3>
-    <p class="progress-hint" data-i18n="esc.flagsHint">Turn whole modules off or on for every student without deploying anything. Trainers and you are not blocked by these flags.</p>
-    <div id="flags-box"></div>
-    <h3 class="history-title" data-i18n="nd2.title">🗒️ Access log (ND-2)</h3>
-    <p class="progress-hint" data-i18n="nd2.hint">Every time the trainer view of a client's evaluations and photos is opened, one record is written here: who viewed whose data, and when. Records cannot be edited.</p>
-    <div id="nd2-box"><div class="wempty" data-i18n="access.loading">Loading…</div></div>
+    <div id="trainer-dir-box"></div>
   </div>
-  </div><!-- /tab-access -->
+  </div><!-- /tab-trainers -->
+
+  <!-- Administración de la BIBLIOTECA (corrección reprueba,
+       2026-10-24): vista propia, solo administrador, para la
+       biblioteca de fábrica (exercise_library) bajo la regla N-09 —
+       lectura para todos, escritura solo del administrador. NO es el
+       explorador visual del editor de planes (ese queda intacto):
+       esto es la mesa de trabajo del catálogo: buscar, editar los
+       campos de la ficha y dar de alta ejercicios. -->
+  <div class="tab-pane" id="tab-library" style="display:none">
+  <div class="admin-section" id="library-section" style="display:none">
+    <h2><span data-i18n="libadm.title">📚 Exercise library</span> <span class="h2-sub" data-i18n="access.sub">· owner only</span></h2>
+    <p class="progress-hint" data-i18n="libadm.hint">The factory library that feeds the plan editor. Everyone can read it; only the administrator can change it (rule N-09). Edits apply to the library itself — plans already saved keep their own copies.</p>
+    <div class="eval-actions" style="justify-content:flex-start;gap:8px;flex-wrap:wrap">
+      <input type="search" id="lib-admin-q" data-i18n-ph="libadm.search" placeholder="Search by name, muscle group or equipment…" style="flex:1 1 200px">
+      <button type="button" class="btn-primary btn-sm" id="lib-admin-new" data-i18n="libadm.new">＋ New exercise</button>
+    </div>
+    <p class="progress-hint" id="lib-admin-count"></p>
+    <div id="lib-admin-list"><div class="wempty" data-i18n="access.loading">Loading…</div></div>
+    <div id="lib-admin-editor" style="display:none"></div>
+  </div>
+  </div><!-- /tab-library -->
 
   <div class="tab-pane" id="tab-clients" style="display:none">
   <div class="admin-section" id="clients-section" style="display:none">
@@ -534,6 +563,28 @@
     <div id="client-detail" style="display:none"></div>
   </div>
   </div><!-- /tab-clients -->
+
+  <!-- Dock flotante GLOBAL (corrección reprueba, 2026-10-24): la fila
+       de redondos vive FUERA de las pestañas, como hija directa de
+       #app-view, y se pinta fija abajo con .actions-dock
+       (position:fixed). Antes vivía dentro de #tab-track y al pasar a
+       «Mis clientes» o «Accesos» la pestaña oculta se lo llevaba: los
+       botones principales solo existían en «Mi registro». Ahora el
+       dock — UNA sola instancia, con su estado (pendientes en rojo) —
+       acompaña en las tres áreas; sus superficies (paneles y
+       flotantes) siguen en #tab-track y sus botones vuelven allí
+       primero si se tocan desde otra área (dockHome en app.js). Las
+       puertas por rol no cambian: applyFeatureGates oculta botones
+       por id, como siempre. -->
+  <div class="actions-dock">
+    <div class="rounds-row">
+      <button type="button" class="round-action" id="btn-toggle-progress" aria-expanded="false" aria-label="My progress" data-i18n-aria="progress.title"><span class="round-circle" aria-hidden="true"><svg width="36" height="36" viewBox="0 0 48 48" fill="#fff" aria-hidden="true" focusable="false"><rect x="9" y="32" width="6" height="7" rx="1.5"/><rect x="17.5" y="27" width="6" height="12" rx="1.5"/><rect x="26" y="22" width="6" height="17" rx="1.5"/><rect x="28.5" y="15" width="13" height="4.6" rx="2.3" transform="rotate(-45 35 17.3)"/><polygon points="31.5,6.8 44,6.8 44,19.3"/></svg></span><span class="round-label"><span data-i18n="main.progress">Progress</span> <span class="round-chev" id="chev-progress" aria-hidden="true">▾</span></span></button>
+      <label class="round-action" id="btn-round-food" aria-label="Analyze the food" data-i18n-aria="ai.analyze"><span class="round-circle" aria-hidden="true"><svg width="36" height="36" viewBox="0 0 48 48" fill="#fff" aria-hidden="true" focusable="false"><circle cx="24" cy="18.8" r="2.8"/><path d="M9 36 A15 15 0 0 1 39 36 Z"/><rect x="5.5" y="37.6" width="37" height="3.6" rx="1.8"/></svg></span><span class="round-label" data-i18n="main.food">Food</span><input type="file" id="ai-file" accept="image/*" multiple style="display:none"></label>
+      <button type="button" class="round-action" id="btn-toggle-train" aria-expanded="false" aria-label="My training plan" data-i18n-aria="train.title"><span class="round-circle" aria-hidden="true"><svg width="36" height="36" viewBox="0 0 48 48" fill="#fff" aria-hidden="true" focusable="false"><rect x="6" y="22.2" width="36" height="3.6" rx="1.8"/><rect x="9.5" y="17.5" width="4.6" height="13" rx="2"/><rect x="16.4" y="13.5" width="5" height="21" rx="2.2"/><rect x="26.6" y="13.5" width="5" height="21" rx="2.2"/><rect x="33.9" y="17.5" width="4.6" height="13" rx="2"/></svg></span><span class="round-label"><span data-i18n="main.training">Training</span> <span class="round-chev" id="chev-train" aria-hidden="true">▾</span></span></button>
+      <button type="button" class="round-action" id="btn-toggle-activity" aria-expanded="false" aria-label="Activity" data-i18n-aria="main.activity"><span class="round-circle" aria-hidden="true"><svg width="36" height="36" viewBox="0 0 48 48" fill="none" stroke="#fff" stroke-width="4.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><polyline points="5,24 15,24 20,11 27,37 32,24 43,24"/></svg></span><span class="round-label"><span data-i18n="main.activity">Activity</span> <span class="round-chev" id="chev-activity" aria-hidden="true">▾</span></span></button>
+      <button type="button" class="round-action" id="btn-toggle-pend" aria-expanded="false" aria-label="Pendings" data-i18n-aria="main.pendings"><span class="round-circle" aria-hidden="true"><svg width="36" height="36" viewBox="0 0 48 48" fill="#fff" aria-hidden="true" focusable="false"><circle cx="24" cy="7.5" r="2.7"/><path d="M24 11.5c-6.4 0-10.8 4.7-10.8 11.2 0 4.9-1 7.2-2.6 9.4-.5.7-.1 1.7.8 1.7h25.2c.9 0 1.3-1 .8-1.7-1.6-2.2-2.6-4.5-2.6-9.4 0-6.5-4.4-11.2-10.8-11.2z"/><rect x="8.5" y="35.6" width="31" height="3.6" rx="1.8"/><circle cx="24" cy="42.6" r="3"/></svg></span><span class="round-label" data-i18n="main.pendings">Pendings</span></button>
+    </div>
+  </div>
 
   <div class="foot" data-i18n="foot">ronbo.nutri · private · only you can see your data</div>
 </div>
