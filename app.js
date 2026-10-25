@@ -6626,7 +6626,7 @@ function aiShapeR2(r2) {
   if (!r2 || typeof r2 !== 'object' || !r2.totals || typeof r2.totals !== 'object') return null;
   return r2;
 }
-function aiShow(html) { const p = $('ai-panel'); if (!p) return; const wasHidden = p.style.display === 'none'; p.style.display = ''; p.innerHTML = html; /* v4.2: el flujo arranca desde el dock flotante, lejos del panel: al MOSTRARSE (transición oculto→visible) se desplaza hasta él; los re-pintados con el panel ya visible no mueven la página. */ if (wasHidden) { try { p.scrollIntoView({ behavior: 'smooth', block: 'start' }); } catch {} } }
+function aiShow(html) { const p = $('ai-panel'); if (!p) return; const wasHidden = p.style.display === 'none'; p.style.display = ''; /* ✕ compartida (ampliación 2026-10-24): TODA tarjeta del panel de análisis lleva su salida en la esquina superior derecha, conectada al camino de descarte propio de cada paso — con la preparación de fotos abierta descarta la preparación (aiStageDiscard, su propio Cancelar); con un análisis en curso lo descarta (aiDiscard, su Descartar); sin ninguno, cierra el panel. Sin semánticas nuevas. */ p.innerHTML = `<button type="button" class="pend-close ai-x" id="ai-x" aria-label="${esc(t('client.close'))}">✕</button>` + html; const ax = $('ai-x'); if (ax) ax.onclick = () => { if (aiStage) aiStageDiscard(); else if (aiState) aiDiscard(); else aiClosePanel(); }; /* v4.2: el flujo arranca desde el dock flotante, lejos del panel: al MOSTRARSE (transición oculto→visible) se desplaza hasta él; los re-pintados con el panel ya visible no mueven la página. */ if (wasHidden) { try { p.scrollIntoView({ behavior: 'smooth', block: 'start' }); } catch {} } }
 function aiClosePanel() { aiProgHide(); const p = $('ai-panel'); if (p) { p.style.display = 'none'; p.innerHTML = ''; } }
 function aiDiscard() { aiState = null; aiClosePanel(); }
 /* Indicador flotante de análisis (Ronald, 2026-10-21): el anillo de
@@ -7535,7 +7535,13 @@ if (foodDockLabel) foodDockLabel.addEventListener('click', e => {
   }; }
 { const b = $('btn-food-text'); if (b) b.onclick = () => foodOpenText(); }
 { const b = $('btn-food-manual');
-  if (b) b.onclick = () => { foodCloseAll(); aiOpenMealModal(); }; }
+  /* El chip delega en el botón vigente «Añadir comida manualmente»:
+     SU handler es el que prepara el formulario (fecha del día
+     elegido, comida por defecto, espejo de borrador) y llama a
+     aiOpenMealModal — aiOpenMealModal a secas NO prepara nada, y un
+     formulario sin fecha ni siquiera se puede enviar. Una sola
+     fuente para la vía manual, como con la foto y el texto. */
+  if (b) b.onclick = () => { foodCloseAll(); const m = $('btn-add-meal-manual'); if (m) m.click(); else aiOpenMealModal(); }; }
 { const b = $('btn-food-help'); if (b) b.onclick = () => foodOpenHelp(); }
 { const c = $('btn-food-close'); if (c) c.onclick = () => foodCloseAll(); }
 { const c = $('btn-food-text-close'); if (c) c.onclick = () => foodOpenFloat(); }
@@ -7562,6 +7568,20 @@ document.addEventListener('click', e => {
   foodCloseAll();
 });
 document.addEventListener('keydown', e => { if (e.key === 'Escape') foodCloseAll(); });
+
+/* ===== ✕ EN LOS MODALES (ampliación 2026-10-24, Ronald 20:48 CDT) =====
+   Con captura del formulario «Registrar comida» a pantalla completa
+   y SIN botón de salida visible: «Necesito que esta pestaña al igual
+   que sus similares, todas, tengan un botón de X para salir de
+   ella». Los seis modales tenían su salida SOLO en el botón
+   «Cancelar» del pie — en el teléfono queda bajo el pliegue. Cada
+   modal lleva ahora la ✕ compartida (.pend-close.modal-x, esquina
+   superior derecha de la cabecera) y cada ✕ PULSA el Cancelar propio
+   de su modal: el camino de cierre es exactamente el de siempre
+   (descartar el borrador, limpiar el contexto), sin semánticas
+   nuevas. Auditoría completa en INFORME-COMIDA-FLOTANTE-DEV. */
+{ const xPairs = [['btn-meal-x', 'meal-cancel'], ['btn-weight-x', 'weight-cancel'], ['btn-frame-x', 'frame-cancel'], ['btn-goals-x', 'goals-cancel'], ['btn-plan-x', 'plan-cancel'], ['btn-profile-x', 'profile-cancel']];
+  for (const [x, c] of xPairs) { const b = $(x); if (b) b.onclick = () => { const k = $(c); if (k) k.click(); }; } }
 
 /* «Analizar la descripción con IA» (formulario manual, Ronald
    2026-10-22): la descripción escrita pasa a ser la identificación
@@ -11211,7 +11231,10 @@ function showLightbox(url) {
   if (!lb) {
     lb = document.createElement('div');
     lb.id = 'lightbox'; lb.className = 'lightbox';
-    lb.innerHTML = `<img id="lightbox-img" alt="${t('ui.photoAlt')}">`;
+    /* ✕ visible (ampliación 2026-10-24): el visor cerraba solo
+       tocando cualquier punto, sin botón que lo anunciara; la ✕
+       compartida lleva al MISMO cierre (su clic burbujea al fondo). */
+    lb.innerHTML = `<button type="button" class="pend-close lightbox-x" aria-label="${esc(t('client.close'))}">✕</button><img id="lightbox-img" alt="${t('ui.photoAlt')}">`;
     lb.addEventListener('click', () => { lb.style.display = 'none'; });
     document.body.appendChild(lb);
   }

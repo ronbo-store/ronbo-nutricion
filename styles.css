@@ -1062,6 +1062,16 @@ div > .btn-ghost:only-child, div > .btn-main:only-child {
    pidió Ronald), reutilizando el chip de actividad (.act-chip). */
 .food-chip-row { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; margin-top: 4px; }
 .food-textarea { width: 100%; box-sizing: border-box; }
+/* ✕ compartida en TODAS las hojas superpuestas (2026-10-24, orden de
+   Ronald): la misma .pend-close de las hojas flotantes, fijada en la
+   esquina superior derecha de la cabecera — en los modales (cuyo
+   Cancelar quedaba al pie, fuera de pantalla en el teléfono), en el
+   panel de análisis y en el visor de fotos. */
+.modal { position: relative; }
+.modal-x { position: absolute; top: 10px; right: 12px; margin-left: 0; z-index: 2; }
+.ai-panel { position: relative; }
+.ai-x { position: absolute; top: 8px; right: 8px; margin-left: 0; z-index: 2; }
+.lightbox-x { position: absolute; top: 14px; right: 14px; margin-left: 0; z-index: 2; }
 .act-cfg-list { margin: 6px 0 10px; }
 .act-cfg-row { padding: 6px 0; border-bottom: 1px dashed #eef2f7; font-size: 14px; color: #1f2a44; }
 .act-cfg-actions { display: flex; justify-content: center; margin-top: 10px; }
