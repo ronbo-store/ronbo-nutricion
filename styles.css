@@ -1283,6 +1283,13 @@ div > .btn-ghost:only-child, div > .btn-main:only-child {
 .tpl-badge-trainer { background: #ecfdf5; border-color: #a7f3d0; color: #065f46; }
 .tpl-badge-private { background: #fff7ed; border-color: #fed7aa; color: #9a3412; }
 .tpl-byline { font-size: 11px; color: #6b7280; }
+/* Biblioteca comunitaria (2026-10-24): insignias de estado del aporte */
+.lib-badge { font-size: 11px; font-weight: 600; border-radius: 999px; padding: 1px 8px; border: 1px solid #d1d5db; background: #f3f4f6; color: #374151; white-space: nowrap; }
+.lib-st-ok { background: #ecfdf5; border-color: #a7f3d0; color: #065f46; }
+.lib-st-wait { background: #fff8e6; border-color: #ffe1a8; color: #7a5200; }
+.lib-st-no { background: #fef2f2; border-color: #fecaca; color: #991b1b; }
+#lib-pending-box { border: 1px solid #ffe1a8; background: #fffaf0; border-radius: 12px; padding: 10px 12px; margin: 10px 0; }
+#lib-mine-box { margin-top: 18px; }
 .tpl-lock { font-size: 11px; color: #9ca3af; white-space: nowrap; }
 .pl-tpl-actions { display: flex; gap: 6px; align-items: center; flex-wrap: wrap; justify-content: flex-end; }
 .pl-tpl-n09 { border-top: 1px dashed #e5e7eb; margin-top: 8px; padding-top: 8px; }

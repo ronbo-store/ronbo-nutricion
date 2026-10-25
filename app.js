@@ -1650,7 +1650,7 @@ en: {
   'trainers.hint': 'Everything about trainers in one place: role requests, memberships (levels and quotas), the two-step confirmations that start with a trainer, the trainer approval limit and the public directory.',
   'trainers.requests': 'Trainer role requests (',
   'libadm.title': '📚 Exercise library',
-  'libadm.hint': 'The factory library that feeds the plan editor. Everyone can read it; only the administrator can change it (rule N-09). Edits apply to the library itself — plans already saved keep their own copies.',
+  'libadm.hint': 'The library that feeds the plan editor. Everyone reads it; trainers contribute new exercises and the administrator approves them before they appear for everyone. Edits apply to the library itself — plans already saved keep their own copies.',
   'libadm.search': 'Search by name, muscle group or equipment…',
   'libadm.count': '{n} exercise(s)',
   'libadm.new': '＋ New exercise',
@@ -1674,6 +1674,41 @@ en: {
   'libcat.allCategories': 'All categories',
   'libcat.allLevels': 'All levels',
   'libcat.noGroup': 'No muscle group',
+  'libcom.subAdmin': '· administrator',
+  'libcom.subTrainer': '· community',
+  'libcom.hintTrainer': 'The shared library everyone trains with. Browse it here; your own exercises live under “My contributions” — the administrator reviews each one before it appears for everyone.',
+  'libcom.trayTitle': '🗂️ Contributions awaiting your decision ({n})',
+  'libcom.approve': 'Approve',
+  'libcom.reject': 'Reject',
+  'libcom.approvedToast': 'Approved ✓ — it is now in everyone’s library',
+  'libcom.rejectedToast': 'Contribution rejected',
+  'libcom.mineTitle': '📥 My contributions',
+  'libcom.mineHint': 'Exercises you created. While one is pending or rejected, only you and the administrator can see it; once approved, it joins the shared library for everyone.',
+  'libcom.mineEmpty': 'You have not created any exercise yet.',
+  'libcom.createBtn': '✍️ Create exercise',
+  'libcom.statePendiente': 'Pending',
+  'libcom.stateAprobado': 'Approved',
+  'libcom.stateRechazado': 'Rejected',
+  'libcom.byLine': 'Created by {name} · {date}',
+  'libcom.rejectedNote': 'The administrator did not approve this exercise. You can fix it and send it again, or delete it.',
+  'libcom.pendingNote': 'Awaiting the administrator’s review — only you and the administrator can see it.',
+  'libcom.sentToast': 'Exercise sent ✓ — it will appear for everyone once the administrator approves it',
+  'libcom.resubToast': 'Changes saved and sent for review again ✓',
+  'libcom.del': 'Delete',
+  'libcom.delConfirm': 'Delete this exercise? This cannot be undone.',
+  'libcom.deletedToast': 'Exercise deleted',
+  'libcom.f.catEs': 'Category (ES)',
+  'libcom.f.catEn': 'Category (EN)',
+  'libcom.f.levelEs': 'Level (ES)',
+  'libcom.f.levelEn': 'Level (EN)',
+  'libcom.f.howEs': 'How to do it (ES)',
+  'libcom.f.howEn': 'How to do it (EN)',
+  'libcom.f.avoidEs': 'Mistakes to avoid (ES)',
+  'libcom.f.avoidEn': 'Mistakes to avoid (EN)',
+  'libcom.f.video': 'YouTube video URL (optional)',
+  'libcom.f.secEs': 'Secondary muscles (ES)',
+  'libcom.f.secEn': 'Secondary muscles (EN)',
+  'libcom.needName': 'Give the exercise a name (ES or EN) so the community can find it.',
   'track.date': '📅 Date:',
   'track.addMeal': '＋ Log meal',
   'track.weekTitle': '📈 Weekly goal compliance',
@@ -3007,7 +3042,7 @@ es: {
   'trainers.hint': 'Todo lo de los entrenadores en un solo lugar: solicitudes de rol, membresías (niveles y cupos), las confirmaciones en dos pasos que empiezan con un entrenador, el límite de aprobaciones de entrenadores y el directorio público.',
   'trainers.requests': 'Solicitudes de rol de entrenador (',
   'libadm.title': '📚 Biblioteca de ejercicios',
-  'libadm.hint': 'La biblioteca de fábrica que alimenta el editor de planes. La leen todos; solo la cambia el administrador (regla N-09). Las ediciones aplican a la biblioteca: los planes ya guardados conservan sus copias.',
+  'libadm.hint': 'La biblioteca que alimenta el editor de planes. La leen todos; los entrenadores aportan ejercicios nuevos y el administrador los aprueba antes de que aparezcan para todos. Las ediciones aplican a la biblioteca: los planes ya guardados conservan sus copias.',
   'libadm.search': 'Busca por nombre, grupo muscular o equipo…',
   'libadm.count': '{n} ejercicio(s)',
   'libadm.new': '＋ Ejercicio nuevo',
@@ -3031,6 +3066,41 @@ es: {
   'libcat.allCategories': 'Todas las categorías',
   'libcat.allLevels': 'Todos los niveles',
   'libcat.noGroup': 'Sin grupo muscular',
+  'libcom.subAdmin': '· administrador',
+  'libcom.subTrainer': '· comunidad',
+  'libcom.hintTrainer': 'La biblioteca compartida con la que entrena todo el mundo. Consúltala aquí; tus propios ejercicios viven en «Mis aportes» — el administrador revisa cada uno antes de que aparezca para todos.',
+  'libcom.trayTitle': '🗂️ Aportes en espera de tu decisión ({n})',
+  'libcom.approve': 'Aprobar',
+  'libcom.reject': 'Rechazar',
+  'libcom.approvedToast': 'Aprobado ✓ — ya está en la biblioteca de todos',
+  'libcom.rejectedToast': 'Aporte rechazado',
+  'libcom.mineTitle': '📥 Mis aportes',
+  'libcom.mineHint': 'Los ejercicios que tú creaste. Mientras uno esté pendiente o rechazado, solo lo veis tú y el administrador; al aprobarse, entra en la biblioteca compartida para todos.',
+  'libcom.mineEmpty': 'Todavía no creaste ningún ejercicio.',
+  'libcom.createBtn': '✍️ Crear ejercicio',
+  'libcom.statePendiente': 'Pendiente',
+  'libcom.stateAprobado': 'Aprobado',
+  'libcom.stateRechazado': 'Rechazado',
+  'libcom.byLine': 'Creado por {name} · {date}',
+  'libcom.rejectedNote': 'El administrador no aprobó este ejercicio. Puedes corregirlo y enviarlo de nuevo, o borrarlo.',
+  'libcom.pendingNote': 'En espera de la revisión del administrador — solo lo veis tú y el administrador.',
+  'libcom.sentToast': 'Ejercicio enviado ✓ — aparecerá para todos cuando el administrador lo apruebe',
+  'libcom.resubToast': 'Cambios guardados y enviados a revisión de nuevo ✓',
+  'libcom.del': 'Borrar',
+  'libcom.delConfirm': '¿Borrar este ejercicio? No se puede deshacer.',
+  'libcom.deletedToast': 'Ejercicio borrado',
+  'libcom.f.catEs': 'Categoría (ES)',
+  'libcom.f.catEn': 'Categoría (EN)',
+  'libcom.f.levelEs': 'Nivel (ES)',
+  'libcom.f.levelEn': 'Nivel (EN)',
+  'libcom.f.howEs': 'Cómo se hace (ES)',
+  'libcom.f.howEn': 'Cómo se hace (EN)',
+  'libcom.f.avoidEs': 'Errores a evitar (ES)',
+  'libcom.f.avoidEn': 'Errores a evitar (EN)',
+  'libcom.f.video': 'URL del video de YouTube (opcional)',
+  'libcom.f.secEs': 'Músculos secundarios (ES)',
+  'libcom.f.secEn': 'Músculos secundarios (EN)',
+  'libcom.needName': 'Ponle un nombre al ejercicio (ES o EN) para que la comunidad lo encuentre.',
   'track.date': '📅 Fecha:',
   'track.addMeal': '＋ Registrar comida',
   'track.weekTitle': '📈 Cumplimiento semanal de metas',
@@ -4702,11 +4772,14 @@ onAuthStateChanged(auth, async user => {
   const accTabBtn = document.querySelector('.main-tab[data-tab="access"]');
   if (accTabBtn) accTabBtn.style.display = ROLE === 'administrador' ? '' : 'none';
   /* Vistas dedicadas (corrección reprueba, 2026-10-24): Entrenadores
-     y Biblioteca son SOLO del administrador, como Accesos. */
+     es SOLO del administrador, como Accesos. Biblioteca la tienen el
+     administrador Y el entrenador (Biblioteca comunitaria, decisión
+     de Ronald 2026-10-24 20:57: el botón de Biblioteca también para
+     los entrenadores, que aportan y el administrador aprueba). */
   const trTabBtn = document.querySelector('.main-tab[data-tab="trainers"]');
   if (trTabBtn) trTabBtn.style.display = ROLE === 'administrador' ? '' : 'none';
   const libTabBtn = document.querySelector('.main-tab[data-tab="library"]');
-  if (libTabBtn) libTabBtn.style.display = ROLE === 'administrador' ? '' : 'none';
+  if (libTabBtn) libTabBtn.style.display = (ROLE === 'administrador' || ROLE === 'entrenador') ? '' : 'none';
   /* «Mi perfil» (perfil-visible, 2026-10-24): la píldora junto a
      «Mi registro» es del entrenador y del administrador; el alumno
      no tiene barra de pestañas y entra por su foto del encabezado. */
@@ -9753,8 +9826,10 @@ async function planGateRefresh() {
      CARGADA, la fila degrada a texto libre con el name guardado
      (degradación honesta, sin romper el plan) y al guardar se
      conserva como texto libre, sin el id muerto. */
-let LIB = null;            // documentos de exercise_library (cada uno con su id)
-let LIB_BY_ID = {};        // id -> documento de la biblioteca
+let LIB = null;            // catálogo COMPARTIDO: fábrica + aportes aprobados
+let LIB_BY_ID = {};        // id -> documento (catálogo + aportes propios + bandeja)
+let LIB_OWN = [];          // aportes del usuario con sesión, en cualquier estado
+let LIB_PENDING = [];      // bandeja del administrador: aportes en 'pendiente'
 let LIB_STATE = 'idle';    // 'idle' | 'loading' | 'ok' | 'unavailable'
 let LIB_PROMISE = null;
 function libEnsure() {
@@ -9763,16 +9838,106 @@ function libEnsure() {
   LIB_STATE = 'loading';
   LIB_PROMISE = (async () => {
     try {
-      const snap = await getDocs(collection(db, 'exercise_library'));
-      const docs = [];
-      snap.forEach(d => docs.push({ id: d.id, ...d.data() }));
-      LIB = docs; LIB_BY_ID = {};
-      docs.forEach(x => { if (x && x.id) LIB_BY_ID[x.id] = x; });
-      LIB_STATE = docs.length ? 'ok' : 'unavailable';
-    } catch { LIB = []; LIB_BY_ID = {}; LIB_STATE = 'unavailable'; }
+      await libFetchClassDocs();
+      LIB_STATE = LIB.length ? 'ok' : 'unavailable';
+    } catch { LIB = []; LIB_BY_ID = {}; LIB_OWN = []; LIB_PENDING = []; LIB_STATE = 'unavailable'; }
     libRenderNotice();
   })();
   return LIB_PROMISE;
+}
+/* LECTURA POR CLASES de exercise_library (Biblioteca comunitaria,
+   2026-10-24) — la misma lección que el rediseño de N-09 con las
+   plantillas: las reglas del paquete gobiernan la lectura POR
+   DOCUMENTO (fábrica y aprobados para todo aprobado; pendientes y
+   rechazados solo para su autor y el administrador), y las reglas no
+   son filtros: una consulta sin acotar se denegaría entera en
+   Firestore real. Por eso libEnsure ya NO lee la colección de una
+   vez: emite SOLO consultas demostrables contra esos predicados —
+   · where('estado','==','aprobado'): el catálogo comunitario visible
+     para todos (los documentos devueltos cumplen el predicado por su
+     propio campo).
+   · where('createdBy','==',uid): «Mis aportes» de quien lee, en
+     cualquier estado (la rama de autoría del predicado).
+   · where('estado','==','pendiente'): SOLO la emite el administrador
+     (su rama isAdminUser sostiene el predicado): la bandeja.
+   · La FÁBRICA (los 103 y cualquier alta antigua sin 'estado') no la
+     devuelve ninguna consulta por igualdad — sin el campo no hay
+     match —: llega por GET individual sobre el espacio contiguo de
+     ids E###, por tandas, mejor esfuerzo por documento (un id que no
+     existe devuelve no-encontrado; el GET de las reglas lo admite
+     para el lector aprobado), como las legadas R01–R08 de N-09 y SIN
+     backfill: la ausencia de 'estado' ES la marca de fábrica. Las
+     altas futuras (del administrador o de la comunidad) nacen ya con
+     'estado' y entran por las consultas, así que el sondeo cubre un
+     espacio legado congelado; se exploran siempre al menos E001–E125
+     y se sigue mientras la tanda anterior haya traído documentos. */
+async function libFetchClassDocs() {
+  const colRef = collection(db, 'exercise_library');
+  const uid = (auth.currentUser && auth.currentUser.uid) || '';
+  const byId = new Map();
+  const put = x => { if (x && x.id && !byId.has(x.id)) byId.set(x.id, x); };
+  const s1 = await getDocs(query(colRef, where('estado', '==', 'aprobado')));
+  s1.forEach(d => put({ id: d.id, ...d.data() }));
+  let n = 1;
+  while (n <= 400) {
+    const ids = [];
+    for (let i = 0; i < 25; i++) ids.push('E' + String(n + i).padStart(3, '0'));
+    const snaps = await Promise.all(ids.map(id => getDoc(doc(db, 'exercise_library', id)).catch(() => null)));
+    let hits = 0;
+    snaps.forEach((s, i) => { if (s && s.exists()) { hits++; put({ id: ids[i], ...s.data() }); } });
+    n += 25;
+    if (hits === 0 && n > 125) break;
+  }
+  const own = [];
+  if (uid) {
+    const s2 = await getDocs(query(colRef, where('createdBy', '==', uid)));
+    s2.forEach(d => { const x = { id: d.id, ...d.data() }; own.push(x); if (!byId.has(x.id)) byId.set(x.id, x); });
+  }
+  const pending = [];
+  if (ROLE === 'administrador') {
+    const s3 = await getDocs(query(colRef, where('estado', '==', 'pendiente')));
+    s3.forEach(d => { const x = { id: d.id, ...d.data() }; pending.push(x); if (!byId.has(x.id)) byId.set(x.id, x); });
+  }
+  LIB_BY_ID = {};
+  byId.forEach(x => { LIB_BY_ID[x.id] = x; });
+  LIB = [...byId.values()].filter(x => !x.estado || x.estado === 'aprobado');
+  LIB_OWN = own;
+  LIB_PENDING = pending;
+}
+/* El estado de un documento de la biblioteca: sin campo = fábrica. */
+function libEstadoOf(ex) { return ex && ex.estado ? ex.estado : 'fabrica'; }
+/* Marca de autoría de la comunidad (decisión de Ronald, 2026-10-24
+   20:57): «Creado por {nombre} · {fecha}» en todo aporte comunitario;
+   la fábrica no lleva marca. */
+function libByLineHTML(ex) {
+  if (!ex || !ex.estado || !ex.createdByName) return '';
+  return `<br><span class="tpl-byline">${esc(t('libcom.byLine', { name: ex.createdByName, date: tplFmtDate(ex.createdAt) || '—' }))}</span>`;
+}
+function libStateBadge(ex) {
+  if (!ex || !ex.estado) return '';
+  const key = 'libcom.state' + ex.estado.charAt(0).toUpperCase() + ex.estado.slice(1);
+  const cls = ex.estado === 'aprobado' ? 'lib-st-ok' : ex.estado === 'rechazado' ? 'lib-st-no' : 'lib-st-wait';
+  return ` <span class="lib-badge ${cls}">${esc(t(key))}</span>`;
+}
+/* Memoria de la sesión tras una escritura: recoloca el documento en
+   el catálogo / aportes / bandeja según su estado, sin recargar. */
+function libMemPut(x) {
+  if (!x || !x.id) return;
+  LIB_BY_ID[x.id] = x;
+  const uid = (auth.currentUser && auth.currentUser.uid) || '';
+  const inLib = !x.estado || x.estado === 'aprobado';
+  LIB = (LIB || []).filter(y => y.id !== x.id);
+  if (inLib) LIB.push(x);
+  LIB_OWN = (LIB_OWN || []).filter(y => y.id !== x.id);
+  if (x.createdBy && x.createdBy === uid) LIB_OWN.push(x);
+  LIB_PENDING = (LIB_PENDING || []).filter(y => y.id !== x.id);
+  if (x.estado === 'pendiente') LIB_PENDING.push(x);
+}
+function libMemDrop(id) {
+  delete LIB_BY_ID[id];
+  LIB = (LIB || []).filter(y => y.id !== id);
+  LIB_OWN = (LIB_OWN || []).filter(y => y.id !== id);
+  LIB_PENDING = (LIB_PENDING || []).filter(y => y.id !== id);
 }
 function libRenderNotice() {
   const box = $('pl-lib-note');
@@ -9890,23 +10055,36 @@ function libRowThumb(row, url) {
   else { th.removeAttribute('src'); th.style.display = 'none'; }
 }
 
-/* ================= ADMINISTRACIÓN DE LA BIBLIOTECA (vista propia) =====
-   Corrección reprueba (2026-10-24): la vista «Biblioteca» del
-   administrador — buscar en el catálogo de fábrica, editar la ficha
-   (nombre ES/EN, grupo muscular ES/EN, equipo ES/EN y foto_url) y
-   dar de alta ejercicios nuevos. Regla N-09: la lectura es de todos
-   (la misma libEnsure del editor) y la escritura SOLO del
-   administrador: la píldora se oculta a los demás roles,
-   renderLibAdmin se corta por rol y las reglas vigentes son la
-   barrera real. NO es el explorador visual del editor de planes
-   (ese queda intacto): esto escribe en exercise_library, y la
-   memoria de la sesión (LIB/LIB_BY_ID) se actualiza en el acto para
-   que el editor vea el cambio sin recargar. El guardado usa merge:
-   los campos que el formulario no toca (nivel, video_youtube_url…)
-   quedan como estaban. El alta calcula el siguiente id libre E###
-   a partir del catálogo cargado. */
-let LIB_ADMIN_EDIT = null; // id en edición | 'new' | null
-const LIBADM_F = { group: '', cat: '', level: '' }; // facetas de la vista: grupo (chip) + categoría + nivel
+/* ================= BIBLIOTECA (vista propia) =================
+   Nació en la corrección de la reprueba (2026-10-24) como la mesa de
+   trabajo del administrador sobre el catálogo de fábrica, y la
+   decisión de Ronald de esa misma noche (20:57) la hizo COMUNITARIA:
+   la píldora y la vista las tienen el administrador Y el entrenador.
+   - El catálogo compartido (fábrica + aportes aprobados) se busca y
+     se consulta aquí; el administrador edita cualquier ficha y da de
+     alta ejercicios que nacen aprobados con su firma; el entrenador
+     lo consulta en lectura.
+   - «Mis aportes»: los ejercicios del propio usuario con su estado;
+     el autor edita y borra lo suyo en pendiente/rechazado, y al
+     guardar un rechazado lo REENVÍA a revisión.
+   - «Crear ejercicio» (entrenador): el mismo formulario completo del
+     administrador; el aporte nace 'pendiente' con su autoría y solo
+     lo ven él y el administrador hasta la aprobación.
+   - La BANDEJA del administrador: los pendientes con su conteo;
+     aprobar firma la decisión (approvedBy/approvedAt) y el ejercicio
+     entra en el catálogo de todos (esta lista, el navegador del
+     editor de planes y el catálogo del cliente, que leen de LIB);
+     rechazar lo devuelve al autor con su nota suave.
+   Todo ejercicio comunitario aprobado lleva en su tarjeta la marca
+   «Creado por {nombre} · {fecha}»; la fábrica, sin marca. NO es el
+   explorador visual del editor de planes (ese queda intacto): esto
+   escribe en exercise_library, y la memoria de la sesión
+   (LIB/LIB_BY_ID/LIB_OWN/LIB_PENDING) se actualiza en el acto. El
+   guardado usa merge: los campos que el formulario no trae quedan
+   como estaban. Las reglas del paquete son la barrera real; la
+   interfaz solo ofrece lo que cada rol puede hacer. */
+let LIB_EDIT = null; // { id: string|null, ctx: 'admin'|'mine' } | null
+const LIBADM_F = { group: '', cat: '', level: '' }; // facetas de la vista (paquete de categorías): grupo (chip) + categoría + nivel
 /* PUERTA DE COMPOSICIÓN (despliegue reprueba, 2026-10-24): las reglas
    VIVAS (ruleset 3c3790d8) dicen de exercise_library «allow write:
    if false» — la escritura del administrador es el delta N-09, que
@@ -9918,22 +10096,101 @@ const LIBADM_F = { group: '', cat: '', level: '' }; // facetas de la vista: grup
    (2026-10-24, noche): las reglas publicadas (ruleset b135f2f8)
    dicen de exercise_library «allow create, update, delete: if
    isAdminUser()» — verificado sobre el texto vivo re-leído tras la
-   publicación, diff cero contra el candidato validado por la CI. */
+   publicación, diff cero contra el candidato validado por la CI.
+   Con la BIBLIOTECA COMUNITARIA la constante sigue gobernando las
+   affordances de escritura de ESTA vista (si volviera a false, la
+   vista queda de consulta para todos los roles, con su nota); las
+   escrituras del entrenador (crear/editar/reenviar/borrar lo suyo)
+   las gobiernan además el rol y las reglas del paquete. */
 const LIBADM_WRITE_ENABLED = true;
-async function renderLibAdmin() {
+async function renderLibrary() {
   const sec = $('library-section'); if (!sec) return;
-  if (ROLE !== 'administrador') { sec.style.display = 'none'; return; }
+  if (ROLE !== 'administrador' && ROLE !== 'entrenador') { sec.style.display = 'none'; return; }
   sec.style.display = '';
-  await libEnsure();
-  libAdminRenderList();
+  const sub = $('lib-role-sub');
+  if (sub) sub.textContent = t(ROLE === 'administrador' ? 'libcom.subAdmin' : 'libcom.subTrainer');
+  const hint = $('lib-hint');
+  if (hint) hint.textContent = t(ROLE === 'administrador' ? 'libadm.hint' : 'libcom.hintTrainer');
+  const nb = $('lib-admin-new');
+  if (nb) nb.textContent = t(ROLE === 'administrador' ? 'libadm.new' : 'libcom.createBtn');
+  if (nb && !nb.dataset.wired) {
+    nb.dataset.wired = '1';
+    nb.onclick = () => libOpenEditor(null, ROLE === 'administrador' ? 'admin' : 'mine');
+  }
   const q = $('lib-admin-q');
   if (q && !q.dataset.wired) { q.dataset.wired = '1'; q.addEventListener('input', () => libAdminRenderList()); }
-  const nb = $('lib-admin-new');
-  if (nb && !nb.dataset.wired) { nb.dataset.wired = '1'; nb.onclick = () => libAdminOpenEditor(null); }
   const cs = $('lib-admin-cat');
   if (cs && !cs.dataset.wired) { cs.dataset.wired = '1'; cs.addEventListener('change', () => { LIBADM_F.cat = cs.value; libAdminRenderList(); }); }
   const ls = $('lib-admin-level');
   if (ls && !ls.dataset.wired) { ls.dataset.wired = '1'; ls.addEventListener('change', () => { LIBADM_F.level = ls.value; libAdminRenderList(); }); }
+  await libEnsure();
+  libRenderTray();
+  libAdminRenderList();
+  libRenderMine();
+}
+/* BANDEJA DEL ADMINISTRADOR: los aportes en 'pendiente', con su
+   conteo. Aprobar firma la decisión y el ejercicio entra en el
+   catálogo de todos; rechazar se lo devuelve a su autor. */
+function libRenderTray() {
+  const box = $('lib-pending-box'); if (!box) return;
+  if (ROLE !== 'administrador' || !LIB_PENDING || !LIB_PENDING.length) { box.style.display = 'none'; box.innerHTML = ''; return; }
+  box.style.display = '';
+  const rows = [...LIB_PENDING].sort((a, b) => String(a.id).localeCompare(String(b.id)));
+  box.innerHTML = `<h3 class="history-title">${esc(t('libcom.trayTitle', { n: rows.length }))}</h3>` + rows.map(ex => `
+    <div class="user-row">
+      <div>${ex.foto_url ? `<img class="avatar sm" src="${esc(ex.foto_url)}" alt="">` : ''}<b>${esc(libNameOf(ex))}</b><br><span class="muted">${esc(libField(ex, 'grupo_muscular'))}${(ex.equipo_es || ex.equipo_en) ? ' · ' + esc(libField(ex, 'equipo')) : ''}</span>${libByLineHTML(ex)}</div>
+      <div class="user-actions"><button type="button" class="btn-primary btn-sm" data-lib-approve="${esc(ex.id)}">${esc(t('libcom.approve'))}</button><button type="button" class="btn-ghost btn-sm" data-lib-reject="${esc(ex.id)}">${esc(t('libcom.reject'))}</button></div>
+    </div>`).join('');
+  box.querySelectorAll('[data-lib-approve]').forEach(b => b.onclick = () => libDecide(b.dataset.libApprove, true));
+  box.querySelectorAll('[data-lib-reject]').forEach(b => b.onclick = () => libDecide(b.dataset.libReject, false));
+}
+async function libDecide(id, approve) {
+  if (ROLE !== 'administrador') return;
+  const ex = LIB_BY_ID[id]; if (!ex) return;
+  const uid = auth.currentUser.uid;
+  const patch = approve
+    ? { estado: 'aprobado', approvedAt: serverTimestamp(), approvedBy: uid, updatedAt: serverTimestamp(), updatedBy: uid }
+    : { estado: 'rechazado', updatedAt: serverTimestamp(), updatedBy: uid };
+  try {
+    await setDoc(doc(db, 'exercise_library', id), patch, { merge: true });
+    const merged = { ...ex, estado: approve ? 'aprobado' : 'rechazado', updatedBy: uid };
+    if (approve) { merged.approvedBy = uid; merged.approvedAt = new Date(); }
+    libMemPut(merged);
+    toast(t(approve ? 'libcom.approvedToast' : 'libcom.rejectedToast'));
+    libRenderTray(); libAdminRenderList(); libRenderMine();
+  } catch (e) { failToast(e); }
+}
+/* «MIS APORTES»: lo del propio usuario con su estado. El autor
+   edita/borra lo suyo en pendiente o rechazado (las reglas ponen el
+   mismo límite); lo aprobado ya es de la comunidad y aquí solo se
+   muestra, con su insignia. */
+function libRenderMine() {
+  const box = $('lib-mine-box'); if (!box) return;
+  const rows = [...(LIB_OWN || [])].sort((a, b) => String(a.id).localeCompare(String(b.id)));
+  box.innerHTML = `<h3 class="history-title">${esc(t('libcom.mineTitle'))}</h3>
+    <p class="progress-hint">${esc(t('libcom.mineHint'))}</p>` + (rows.length ? rows.map(ex => {
+    const editable = ex.estado === 'pendiente' || ex.estado === 'rechazado';
+    const note = ex.estado === 'rechazado' ? `<br><span class="muted">${esc(t('libcom.rejectedNote'))}</span>`
+      : ex.estado === 'pendiente' ? `<br><span class="muted">${esc(t('libcom.pendingNote'))}</span>` : '';
+    return `
+    <div class="user-row">
+      <div>${ex.foto_url ? `<img class="avatar sm" src="${esc(ex.foto_url)}" alt="">` : ''}<b>${esc(libNameOf(ex))}</b>${libStateBadge(ex)}<br><span class="muted">${esc(libField(ex, 'grupo_muscular'))}${(ex.equipo_es || ex.equipo_en) ? ' · ' + esc(libField(ex, 'equipo')) : ''}</span>${libByLineHTML(ex)}${note}</div>
+      ${editable && LIBADM_WRITE_ENABLED ? `<div class="user-actions"><button type="button" class="btn-ghost btn-sm" data-lib-mine-edit="${esc(ex.id)}">${esc(t('libadm.edit'))}</button><button type="button" class="btn-ghost btn-sm" data-lib-mine-del="${esc(ex.id)}">${esc(t('libcom.del'))}</button></div>` : ''}
+    </div>`;
+  }).join('') : `<div class="wempty">${esc(t('libcom.mineEmpty'))}</div>`);
+  box.querySelectorAll('[data-lib-mine-edit]').forEach(b => b.onclick = () => libOpenEditor(b.dataset.libMineEdit, 'mine'));
+  box.querySelectorAll('[data-lib-mine-del]').forEach(b => b.onclick = () => libDeleteOwn(b.dataset.libMineDel));
+}
+async function libDeleteOwn(id) {
+  const ex = LIB_BY_ID[id]; if (!ex) return;
+  if (ex.createdBy !== auth.currentUser.uid) return;
+  if (!window.confirm(t('libcom.delConfirm'))) return;
+  try {
+    await deleteDoc(doc(db, 'exercise_library', id));
+    libMemDrop(id);
+    toast(t('libcom.deletedToast'));
+    libRenderMine(); libAdminRenderList(); libRenderTray();
+  } catch (e) { failToast(e); }
 }
 function libAdminFiltered() {
   if (LIB_STATE !== 'ok' || !LIB) return [];
@@ -9956,8 +10213,8 @@ function libAdminFaceted(ignore) {
 function libAdminRowHTML(ex) {
   return `
     <div class="user-row">
-      <div>${ex.foto_url ? `<img class="avatar sm" src="${esc(ex.foto_url)}" alt="">` : ''}<b>${esc(libNameOf(ex))}</b> <span class="muted">${esc(ex.id)}</span><br><span class="muted">${esc(libField(ex, 'grupo_muscular'))}${(ex.equipo_es || ex.equipo_en) ? ' · ' + esc(libField(ex, 'equipo')) : ''}</span></div>
-      <div class="user-actions"><button type="button" class="btn-ghost btn-sm" data-lib-edit="${esc(ex.id)}">${esc(t('libadm.edit'))}</button></div>
+      <div>${ex.foto_url ? `<img class="avatar sm" src="${esc(ex.foto_url)}" alt="">` : ''}<b>${esc(libNameOf(ex))}</b> <span class="muted">${esc(ex.id)}</span><br><span class="muted">${esc(libField(ex, 'grupo_muscular'))}${(ex.equipo_es || ex.equipo_en) ? ' · ' + esc(libField(ex, 'equipo')) : ''}</span>${libByLineHTML(ex)}</div>
+      ${ROLE === 'administrador' && LIBADM_WRITE_ENABLED ? `<div class="user-actions"><button type="button" class="btn-ghost btn-sm" data-lib-edit="${esc(ex.id)}">${esc(t('libadm.edit'))}</button></div>` : ''}
     </div>`;
 }
 function libAdminRenderList() {
@@ -9976,52 +10233,99 @@ function libAdminRenderList() {
   if (cnt) cnt.textContent = t('libadm.count', { n: rows.length });
   const gateNote = LIBADM_WRITE_ENABLED ? '' : `<div class="wempty">${esc(t('libadm.readonlyNote'))}</div>`;
   box.innerHTML = gateNote + (rows.length ? libSections(rows).map(sec => `<div class="libcat-sec">${esc(sec.label)} <span class="libcat-sec-n">${sec.items.length}</span></div>` + sec.items.map(libAdminRowHTML).join('')).join('') : `<div class="wempty">${esc(t('libadm.empty'))}</div>`);
-  box.querySelectorAll('[data-lib-edit]').forEach(b => b.onclick = () => libAdminOpenEditor(b.dataset.libEdit));
+  box.querySelectorAll('[data-lib-edit]').forEach(b => b.onclick = () => libOpenEditor(b.dataset.libEdit, 'admin'));
 }
-function libAdminOpenEditor(id) {
+/* El formulario de la ficha es UNO para los dos roles (decisión
+   2026-10-24: el alta del entrenador trae los mismos campos que la
+   creación del administrador): nombres ES/EN, grupo muscular,
+   secundarios, categoría, equipo, nivel, cómo se hace, errores a
+   evitar, foto_url y video (opcional). */
+const LIB_FIELDS = [
+  ['nombre_es', 'libadm.f.nameEs', 'in'], ['nombre_en', 'libadm.f.nameEn', 'in'],
+  ['grupo_muscular_es', 'libadm.f.groupEs', 'in'], ['grupo_muscular_en', 'libadm.f.groupEn', 'in'],
+  ['musculos_secundarios_es', 'libcom.f.secEs', 'in'], ['musculos_secundarios_en', 'libcom.f.secEn', 'in'],
+  ['categoria_es', 'libcom.f.catEs', 'in'], ['categoria_en', 'libcom.f.catEn', 'in'],
+  ['equipo_es', 'libadm.f.equipEs', 'in'], ['equipo_en', 'libadm.f.equipEn', 'in'],
+  ['nivel_es', 'libcom.f.levelEs', 'in'], ['nivel_en', 'libcom.f.levelEn', 'in'],
+  ['como_se_hace_es', 'libcom.f.howEs', 'ta'], ['como_se_hace_en', 'libcom.f.howEn', 'ta'],
+  ['errores_a_evitar_es', 'libcom.f.avoidEs', 'ta'], ['errores_a_evitar_en', 'libcom.f.avoidEn', 'ta'],
+  ['foto_url', 'libadm.f.photo', 'in'], ['video_youtube_url', 'libcom.f.video', 'in'],
+];
+function libOpenEditor(id, ctx) {
   const ed = $('lib-admin-editor'); if (!ed) return;
-  LIB_ADMIN_EDIT = id || 'new';
+  if (!LIBADM_WRITE_ENABLED) { toast(t('libadm.readonlyNote')); return; } // puerta de composición: ver LIBADM_WRITE_ENABLED
+  if (ctx === 'mine' && id) {
+    const own = LIB_BY_ID[id];
+    if (!own || own.createdBy !== auth.currentUser.uid || (own.estado !== 'pendiente' && own.estado !== 'rechazado')) return;
+  }
+  if (ctx === 'admin' && ROLE !== 'administrador') return;
+  LIB_EDIT = { id: id || null, ctx };
   const ex = id ? (LIB_BY_ID[id] || {}) : {};
-  const F = (key, label, val) => `<div class="eval-field"><label for="la-${key}">${esc(label)}</label><input type="text" id="la-${key}" value="${esc(val || '')}"></div>`;
-  ed.innerHTML = `<div class="eval-block"><p class="eval-ficha-title">${id ? esc(id) + ' · ' + esc(libNameOf(ex)) : esc(t('libadm.new'))}</p>
+  const F = ([key, label, kind]) => kind === 'ta'
+    ? `<div class="eval-field"><label for="la-${key}">${esc(t(label))}</label><textarea id="la-${key}" rows="3">${esc(ex[key] || '')}</textarea></div>`
+    : `<div class="eval-field"><label for="la-${key}">${esc(t(label))}</label><input type="text" id="la-${key}" value="${esc(ex[key] || '')}"></div>`;
+  ed.innerHTML = `<div class="eval-block"><p class="eval-ficha-title">${id ? esc(id) + ' · ' + esc(libNameOf(ex)) : esc(t(ctx === 'admin' ? 'libadm.new' : 'libcom.createBtn'))}</p>
     <div class="eval-form">
-    ${F('nombre_es', t('libadm.f.nameEs'), ex.nombre_es)}${F('nombre_en', t('libadm.f.nameEn'), ex.nombre_en)}
-    ${F('grupo_es', t('libadm.f.groupEs'), ex.grupo_muscular_es)}${F('grupo_en', t('libadm.f.groupEn'), ex.grupo_muscular_en)}
-    ${F('equipo_es', t('libadm.f.equipEs'), ex.equipo_es)}${F('equipo_en', t('libadm.f.equipEn'), ex.equipo_en)}
-    ${F('foto', t('libadm.f.photo'), ex.foto_url)}
+    ${LIB_FIELDS.map(F).join('')}
     </div>
     <div class="eval-actions"><button type="button" class="btn-primary btn-sm" id="la-save">${esc(t('libadm.save'))}</button>
     <button type="button" class="btn-ghost btn-sm" id="la-cancel">${esc(t('libadm.cancel'))}</button></div></div>`;
   ed.style.display = '';
   try { ed.scrollIntoView({ behavior: 'smooth', block: 'start' }); } catch {}
-  $('la-cancel').onclick = () => { LIB_ADMIN_EDIT = null; ed.style.display = 'none'; ed.innerHTML = ''; };
-  $('la-save').onclick = libAdminSave;
+  $('la-cancel').onclick = () => { LIB_EDIT = null; ed.style.display = 'none'; ed.innerHTML = ''; };
+  $('la-save').onclick = libSaveEditor;
 }
-async function libAdminSave() {
-  if (ROLE !== 'administrador' || !LIB_ADMIN_EDIT) return;
+async function libSaveEditor() {
+  if (!LIB_EDIT) return;
   if (!LIBADM_WRITE_ENABLED) { toast(t('libadm.readonlyNote')); return; } // puerta de composición: ver LIBADM_WRITE_ENABLED
-  const v = id => (($(id) || {}).value || '').trim();
-  const data = { nombre_es: v('la-nombre_es'), nombre_en: v('la-nombre_en'),
-    grupo_muscular_es: v('la-grupo_es'), grupo_muscular_en: v('la-grupo_en'),
-    equipo_es: v('la-equipo_es'), equipo_en: v('la-equipo_en'), foto_url: v('la-foto') };
-  let id = LIB_ADMIN_EDIT;
-  const isNew = id === 'new';
+  const { id, ctx } = LIB_EDIT;
+  const uid = auth.currentUser.uid;
+  const myName = (UDATA && (UDATA.name || UDATA.email)) || '';
+  const data = {};
+  LIB_FIELDS.forEach(([key]) => { data[key] = (($('la-' + key) || {}).value || '').trim(); });
+  if (!data.nombre_es && !data.nombre_en) { toast(t('libcom.needName')); return; }
+  const closeEditor = () => { LIB_EDIT = null; const ed = $('lib-admin-editor'); if (ed) { ed.style.display = 'none'; ed.innerHTML = ''; } };
   try {
-    if (isNew) {
+    if (ctx === 'admin' && !id) {
+      /* Alta del administrador: siguiente E### libre sobre TODO lo
+         conocido (catálogo, aportes y bandeja viven en LIB_BY_ID) y
+         nace APROBADO con su firma — las reglas lo exigen así. */
       let max = 0;
-      (LIB || []).forEach(x => { const m = /^E(\d+)$/.exec(x.id || ''); if (m) max = Math.max(max, parseInt(m[1], 10)); });
-      id = 'E' + String(max + 1).padStart(3, '0');
-      await setDoc(doc(db, 'exercise_library', id), data);
+      Object.keys(LIB_BY_ID || {}).forEach(k => { const m = /^E(\d+)$/.exec(k); if (m) max = Math.max(max, parseInt(m[1], 10)); });
+      const newId = 'E' + String(max + 1).padStart(3, '0');
+      const full = { ...data, estado: 'aprobado', createdBy: uid, createdByName: myName, createdAt: serverTimestamp(), approvedAt: serverTimestamp(), approvedBy: uid };
+      await setDoc(doc(db, 'exercise_library', newId), full);
+      libMemPut({ ...data, id: newId, estado: 'aprobado', createdBy: uid, createdByName: myName, createdAt: new Date(), approvedBy: uid, approvedAt: new Date() });
+      closeEditor();
+      toast(t('libadm.created'));
+    } else if (ctx === 'admin') {
+      const patch = { ...data, updatedAt: serverTimestamp(), updatedBy: uid };
+      await setDoc(doc(db, 'exercise_library', id), patch, { merge: true });
+      libMemPut({ ...(LIB_BY_ID[id] || {}), ...data, id, updatedBy: uid });
+      closeEditor();
+      toast(t('libadm.saved'));
+    } else if (!id) {
+      /* Alta del entrenador: nace PENDIENTE con su autoría y SIN
+         firma; id automático (el espacio E### es de la fábrica y del
+         administrador). Solo lo ven él y el administrador. */
+      const full = { ...data, estado: 'pendiente', createdBy: uid, createdByName: myName, createdAt: serverTimestamp() };
+      const ref = await addDoc(collection(db, 'exercise_library'), full);
+      libMemPut({ ...data, id: ref.id, estado: 'pendiente', createdBy: uid, createdByName: myName, createdAt: new Date() });
+      closeEditor();
+      toast(t('libcom.sentToast'));
     } else {
-      await setDoc(doc(db, 'exercise_library', id), data, { merge: true });
+      /* Edición del autor sobre lo suyo (pendiente o rechazado): el
+         estado resultante es 'pendiente' — editar un pendiente lo
+         deja pendiente y editar un rechazado lo REENVÍA. */
+      const before = LIB_BY_ID[id] || {};
+      const wasRejected = before.estado === 'rechazado';
+      const patch = { ...data, estado: 'pendiente', updatedAt: serverTimestamp(), updatedBy: uid };
+      await setDoc(doc(db, 'exercise_library', id), patch, { merge: true });
+      libMemPut({ ...before, ...data, id, estado: 'pendiente', updatedBy: uid });
+      closeEditor();
+      toast(t(wasRejected ? 'libcom.resubToast' : 'libadm.saved'));
     }
-    const merged = { ...(LIB_BY_ID[id] || {}), ...data, id };
-    if (LIB_BY_ID[id]) { LIB_BY_ID[id] = merged; const ix = (LIB || []).findIndex(x => x.id === id); if (ix >= 0) LIB[ix] = merged; }
-    else { LIB_BY_ID[id] = merged; if (LIB) LIB.push(merged); }
-    LIB_ADMIN_EDIT = null;
-    const ed = $('lib-admin-editor'); if (ed) { ed.style.display = 'none'; ed.innerHTML = ''; }
-    toast(t(isNew ? 'libadm.created' : 'libadm.saved'));
-    libAdminRenderList();
+    libRenderTray(); libAdminRenderList(); libRenderMine();
   } catch (e) { failToast(e); }
 }
 /* FLOTANTE MULTIMEDIA (rediseño de la fila, 2026-10-24): al tocar la
@@ -11365,7 +11669,7 @@ function switchTab(name) {
   document.querySelectorAll('.tab-pane').forEach(p => { p.style.display = (p.id === 'tab-' + name) ? '' : 'none'; });
   if (IS_OWNER && (name === 'access' || name === 'trainers')) loadAdmin();
   if (ROLE !== 'usuario' && name === 'clients') loadClients();
-  if (ROLE === 'administrador' && name === 'library') renderLibAdmin();
+  if ((ROLE === 'administrador' || ROLE === 'entrenador') && name === 'library') renderLibrary();
   if (name === 'profile') renderProfileView();
 }
 document.querySelectorAll('.main-tab').forEach(b => b.addEventListener('click', () => switchTab(b.dataset.tab)));

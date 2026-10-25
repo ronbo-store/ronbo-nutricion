@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>ronbo.nutri · Private</title>
 <meta name="robots" content="noindex, nofollow">
-<link rel="stylesheet" href="styles.css?v=20261024-libcat">
+<link rel="stylesheet" href="styles.css?v=20261024-libcom">
 <script type="importmap">
 {
   "imports": {
@@ -599,17 +599,21 @@
   </div>
   </div><!-- /tab-trainers -->
 
-  <!-- Administración de la BIBLIOTECA (corrección reprueba,
-       2026-10-24): vista propia, solo administrador, para la
-       biblioteca de fábrica (exercise_library) bajo la regla N-09 —
-       lectura para todos, escritura solo del administrador. NO es el
-       explorador visual del editor de planes (ese queda intacto):
-       esto es la mesa de trabajo del catálogo: buscar, editar los
-       campos de la ficha y dar de alta ejercicios. -->
+  <!-- BIBLIOTECA (corrección reprueba, 2026-10-24; COMUNITARIA la
+       misma noche, decisión de Ronald 20:57): vista propia para la
+       biblioteca (exercise_library) — la tienen el administrador y el
+       entrenador. El catálogo compartido (fábrica + aportes
+       aprobados) se busca y se consulta; el administrador edita y da
+       de alta, y decide en su bandeja los aportes de los
+       entrenadores, que nacen pendientes con su autoría y entran
+       para todos al aprobarse, con la marca «Creado por … · fecha».
+       NO es el explorador visual del editor de planes (ese queda
+       intacto). -->
   <div class="tab-pane" id="tab-library" style="display:none">
   <div class="admin-section" id="library-section" style="display:none">
-    <h2><span data-i18n="libadm.title">📚 Exercise library</span> <span class="h2-sub" data-i18n="access.sub">· owner only</span></h2>
-    <p class="progress-hint" data-i18n="libadm.hint">The factory library that feeds the plan editor. Everyone can read it; only the administrator can change it (rule N-09). Edits apply to the library itself — plans already saved keep their own copies.</p>
+    <h2><span data-i18n="libadm.title">📚 Exercise library</span> <span class="h2-sub" id="lib-role-sub">· administrator</span></h2>
+    <p class="progress-hint" id="lib-hint" data-i18n="libadm.hint">The library that feeds the plan editor. Everyone reads it; trainers contribute new exercises and the administrator approves them before they appear for everyone. Edits apply to the library itself — plans already saved keep their own copies.</p>
+    <div id="lib-pending-box" style="display:none"></div>
     <div class="eval-actions" style="justify-content:flex-start;gap:8px;flex-wrap:wrap">
       <input type="search" id="lib-admin-q" data-i18n-ph="libadm.search" placeholder="Search by name, muscle group or equipment…" style="flex:1 1 200px">
       <button type="button" class="btn-primary btn-sm" id="lib-admin-new" data-i18n="libadm.new">＋ New exercise</button>
@@ -622,6 +626,7 @@
     <p class="progress-hint" id="lib-admin-count"></p>
     <div id="lib-admin-list"><div class="wempty" data-i18n="access.loading">Loading…</div></div>
     <div id="lib-admin-editor" style="display:none"></div>
+    <div id="lib-mine-box"></div>
   </div>
   </div><!-- /tab-library -->
 
@@ -928,6 +933,6 @@
 <div id="toast" class="toast"></div>
 <div id="print-card" aria-hidden="true"></div>
 
-<script type="module" src="app.js?v=20261024-libcat"></script>
+<script type="module" src="app.js?v=20261024-libcom"></script>
 </body>
 </html>
