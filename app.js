@@ -1406,15 +1406,45 @@ async function renderProfileView() {
   renderDossierEditor();
 }
 
+let DOS_PAINT_SEQ = 0;
 async function renderDossierEditor() {
   const box = $('dossier-editor-box');
   if (!box) return;
   if (!(ROLE === 'entrenador' || IS_OWNER)) { box.style.display = 'none'; return; }
   box.style.display = '';
   const me = auth.currentUser.uid;
-  let prof = {};
-  try { const s = await getDoc(doc(db, 'trainer_profiles', me)); if (s.exists()) prof = s.data(); } catch {}
+  /* HOTFIX 2026-10-24 (defecto cazado por Ronald en su iPhone: en
+     «Mi perfil» solo se veía su tarjeta y «Cambiar foto»): la primera
+     pintura del editor ya NO espera a la lectura de red de
+     trainer_profiles/{me} — ese getDoc, primera lectura sin caché de
+     la colección, podía no resolverse en su sesión y dejar la caja
+     vacía. Ahora el formulario se pinta AL INSTANTE con el mejor
+     dato local (MY_DOSSIER, ya cargado al entrar para el sistema de
+     pendientes) y la lectura autoritativa hidrata en segundo plano:
+     repinta solo si trae datos distintos y el formulario sigue sin
+     tocar. Ante cualquier excepción al pintar se repinta vacío: el
+     editor nunca puede quedar ausente para entrenador/administrador. */
+  const seq = ++DOS_PAINT_SEQ;
+  box.__dosDirty = false;
+  box.oninput = () => { box.__dosDirty = true; };
+  box.onchange = () => { box.__dosDirty = true; };
+  const local = (typeof MY_DOSSIER !== 'undefined' && MY_DOSSIER) || {};
+  try { dosPaintEditor(box, me, local); } catch { try { dosPaintEditor(box, me, {}); } catch {} }
+  try {
+    const s = await getDoc(doc(db, 'trainer_profiles', me));
+    if (s.exists()) {
+      const fresh = s.data();
+      MY_DOSSIER = fresh;
+      if (seq === DOS_PAINT_SEQ && !box.__dosDirty && box.__dosSig !== JSON.stringify(fresh)) {
+        try { dosPaintEditor(box, me, fresh); } catch {}
+      }
+    }
+  } catch {}
+}
+
+function dosPaintEditor(box, me, prof) {
   MY_DOSSIER = prof;
+  box.__dosSig = JSON.stringify(prof || {});
   DOS_EDIT_PHOTO = undefined;
   const certs = Array.isArray(prof.certifications) && prof.certifications.length ? prof.certifications : [{}];
   const places = Array.isArray(prof.places) && prof.places.length ? prof.places : [{}];

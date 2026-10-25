@@ -1197,7 +1197,8 @@ div > .btn-ghost:only-child, div > .btn-main:only-child {
    filas dato/valor con lo que la app ya almacena. */
 .myprof-head { display: flex; align-items: center; gap: 12px; margin: 8px 0 4px; }
 .myprof-photo { width: 64px; height: 64px; border-radius: 50%; object-fit: cover; border: 2px solid #0d9488; flex-shrink: 0; }
-.myprof-id { font-size: 15px; line-height: 1.4; min-width: 0; overflow-wrap: anywhere; }
+.myprof-id { font-size: 15px; line-height: 1.4; min-width: 0; overflow-wrap: break-word; }
+.myprof-id .muted { font-size: 13px; overflow-wrap: break-word; }
 .myprof-row { display: flex; gap: 10px; align-items: baseline; margin: 8px 0 0; font-size: 14px; }
 .myprof-k { color: #6b7280; flex: 0 0 42%; }
 .myprof-v { font-weight: 600; min-width: 0; overflow-wrap: anywhere; }
