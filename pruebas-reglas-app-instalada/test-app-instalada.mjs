@@ -105,8 +105,8 @@ await T('AI14 señal + goals saneados en la MISMA escritura del dueño: admitida
   updateDoc(USR(A, 'clientA'), { appInstall: SIGNAL, goals: { kcal: 2000, prot: 130, carb: 210, azuc: 25, gras: 55 } }), true);
 await T('AI15 señal + approved colado: denegada (ninguna rama del alumno abre approved)',
   updateDoc(USR(D, 'clientD'), { appInstall: SIGNAL, approved: true }), false);
-await T('AI16 señal + name en la misma escritura: denegada (la señal viaja sola; el nombre va por su rama)',
-  updateDoc(USR(B, 'clientB'), { appInstall: SIGNAL, name: 'Cliente B' }), false);
+await T('AI16 señal + name CAMBIADO en la misma escritura: denegada (la señal viaja sola; el nombre va por su rama)',
+  updateDoc(USR(B, 'clientB'), { appInstall: SIGNAL, name: 'Cliente B Cambiado' }), false);
 await T('AI17 un ENTRENADOR escribe su PROPIA señal: admitida (la señal es de cualquier cuenta)',
   updateDoc(USR(tr1, 'trainer1'), { appInstall: SIGNAL }), true);
 
