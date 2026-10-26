@@ -20,13 +20,13 @@
  * `activate` y el cliente termina en la versión nueva sin que nadie
  * borre la caché a mano (recarga única controlada desde app.js).
  */
-const SW_VERSION = '20261025-ayuda-rpe';
+const SW_VERSION = '20261025-pantalla-completa';
 const CACHE_NAME = 'ronbofit-shell-' + SW_VERSION;
 const SHELL_URLS = [
   './',
   './index.html',
-  './styles.css?v=20261025-ayuda-rpe',
-  './app.js?v=20261025-ayuda-rpe',
+  './styles.css?v=20261025-pantalla-completa',
+  './app.js?v=20261025-pantalla-completa',
   './manifest.json',
   './icons/icon-192.png',
   './icons/icon-512.png',

@@ -1329,3 +1329,19 @@ div > .btn-ghost:only-child, div > .btn-main:only-child {
    (viewport-fit=cover, app instalada): en el navegador normal env()
    vale 0 y el relleno queda en los 16px de siempre. */
 body { padding: max(16px, env(safe-area-inset-top)) max(16px, env(safe-area-inset-right)) max(16px, env(safe-area-inset-bottom)) max(16px, env(safe-area-inset-left)); }
+
+/* ===== Pantalla completa en el teléfono (Ronald, 2026-10-25 19:08 CDT:
+   «No me gustan que en la app quedan muchos bordes alrededor») =====
+   En pantallas pequeñas la app llena TODO el ancho y el alto útil:
+   fuera el marco pálido del body y fuera la tarjeta de acceso flotante.
+   Las áreas seguras no desaparecen: pasan a ser relleno INTERNO del
+   contenido (tarjeta de acceso, contenedor y toggle de idioma), no un
+   marco exterior de dos tonos. Las tarjetas de contenido conservan su
+   radio; el escritorio (>700px) queda exactamente como estaba. */
+@media (max-width: 700px) {
+  body { padding: 0; }
+  .wrap { max-width: none; margin: 0; padding: calc(12px + env(safe-area-inset-top, 0px)) 12px calc(16px + env(safe-area-inset-bottom, 0px)); }
+  .auth-wrap { min-height: 100dvh; align-items: stretch; padding: 0; }
+  .auth-card { max-width: none; border-radius: 0; box-shadow: none; padding: calc(24px + env(safe-area-inset-top, 0px)) 24px calc(24px + env(safe-area-inset-bottom, 0px)); display: flex; flex-direction: column; justify-content: center; }
+  #lang-toggle-auth { top: calc(12px + env(safe-area-inset-top, 0px)); right: 16px; }
+}
