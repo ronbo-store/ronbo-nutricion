@@ -694,7 +694,7 @@ service cloud.firestore {
       // ninguna rama del alumno los abre, como hasta hoy.
       allow update: if isSelf(uid)
         && request.resource.data.diff(resource.data).affectedKeys()
-             .hasOnly(['goals', 'goalsProvenance', 'goalObjective', 'paceSuggestion', 'goalsTerms', 'goalsProposal', 'goalsDayOverrides', 'goalsAgreement'])
+             .hasOnly(['goals', 'goalsProvenance', 'goalObjective', 'paceSuggestion', 'goalsTerms', 'goalsProposal', 'goalsDayOverrides', 'goalsAgreement', 'appInstall'])
         && (!request.resource.data.diff(resource.data).affectedKeys().hasAny(['goals'])
             || (request.resource.data.goals is map
                 && request.resource.data.goals.keys().hasOnly(['kcal', 'prot', 'carb', 'azuc', 'gras'])
@@ -806,6 +806,23 @@ service cloud.firestore {
                     || request.resource.data.goalsAgreement.records is list)
                 && (!('updatedAt' in request.resource.data.goalsAgreement)
                     || request.resource.data.goalsAgreement.updatedAt == request.time)))
+        // App instalada visible (2026-10-26): appInstall — la señal
+        // de instalación que el PROPIO usuario escribe en su
+        // documento al abrir la app en modo instalado/standalone.
+        // Forma cerrada {everInstalled: true, lastStandaloneAt ==
+        // hora del servidor}: nadie puede escribirla por otro (esta
+        // rama es isSelf; el entrenador NO tiene rama para este
+        // campo), nadie puede escribirla en falso (everInstalled
+        // SOLO puede valer true: la señal afirma una apertura
+        // instalada real, no es un estado libre) y nadie puede
+        // fecharla a mano (la fecha es la del servidor). El
+        // administrador conserva su rama vigente de propietario.
+        && (!request.resource.data.diff(resource.data).affectedKeys().hasAny(['appInstall'])
+            || (request.resource.data.appInstall is map
+                && request.resource.data.appInstall.keys()
+                     .hasOnly(['everInstalled', 'lastStandaloneAt'])
+                && request.resource.data.appInstall.everInstalled == true
+                && request.resource.data.appInstall.lastStandaloneAt == request.time))
         && (!request.resource.data.diff(resource.data).affectedKeys().hasAny(['paceSuggestion'])
             || (request.resource.data.paceSuggestion is map
                 && request.resource.data.paceSuggestion.keys()
