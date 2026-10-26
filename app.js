@@ -169,7 +169,7 @@ async function escPoolTrainers(modality, usersList) {
     const mods = st.prof && Array.isArray(st.prof.modalities) ? st.prof.modalities : ESC_MODALITIES;
     if (modality && !mods.includes(modality)) continue;
     if (st.prof && st.prof.available === false) continue;
-    list.push({ uid: u.id, name: u.name || u.email || u.id, free: st.free, total: st.total, used: st.used, full: !(st.free > 0) });
+    list.push({ uid: u.id, name: (st.prof && st.prof.displayName) || u.name || t('esc.currentTrainer'), free: st.free, total: st.total, used: st.used, full: !(st.free > 0) });
   }
   return list;
 }
@@ -249,15 +249,16 @@ async function renderMyTrainerBox() {
   if (MY_MEAL_REQ === undefined) await loadMyMealRequest();
   if (MY_MOD_REQ === undefined) await loadMyModalityRequest();
   const rel = MY_REL || {};
-  const trainerName = rel.trainerUid ? ((ADMIN_NAME_CACHE[rel.trainerUid]) || rel.trainerUid) : null;
+  const trainerName = rel.trainerUid ? ((ADMIN_NAME_CACHE[rel.trainerUid]) || null) : null;
   let pool = [];
   try {
     const snap = await getDocs(collection(db, 'users'));
     const users = []; snap.forEach(d => users.push({ id: d.id, ...d.data() }));
-    users.forEach(u => { ADMIN_NAME_CACHE[u.id] = u.name || u.email || u.id; });
+    users.forEach(u => { ADMIN_NAME_CACHE[u.id] = u.name || u.email || ''; });
     pool = await escPoolTrainers(rel.modality || null, users.filter(u => u.isOwner || u.role === 'entrenador'));
   } catch {}
-  const tName = rel.trainerUid ? (ADMIN_NAME_CACHE[rel.trainerUid] || rel.trainerUid) : null;
+  const tNameRaw = rel.trainerUid ? (ADMIN_NAME_CACHE[rel.trainerUid] || '') : '';
+  const tName = rel.trainerUid ? ((tNameRaw && tNameRaw !== rel.trainerUid && !tNameRaw.includes('@')) ? tNameRaw : '—') : null;
   /* Rechazo (§8.2): si el alumno está sin entrenador y el ÚLTIMO
      evento de SU historial es un rechazo, se le dice con honestidad
      y sin dureza — está en espera y puede elegir otro. La nota vive
@@ -565,7 +566,7 @@ async function renderMealTrainerBox() {
     <h3 class="history-title">${esc(t('esc.mealRequestsTitle'))} (${reqs.length})</h3>
     ${reqs.length ? reqs.map(r => `
     <div class="user-row">
-      <div><b>${esc(ADMIN_NAME_CACHE[r.alumnoUid] || r.alumnoUid)}</b></div>
+      <div><b>${esc(ADMIN_NAME_CACHE[r.alumnoUid] || '—')}</b></div>
       <div class="user-actions">
         <button class="btn-primary btn-sm" data-meal-trainer-approve="${r.id}">${esc(t('esc.mealApprove'))}</button>
         <button class="btn-ghost btn-sm" data-meal-reject="${r.id}">${esc(t('esc.rejectBtn'))}</button>
@@ -605,7 +606,7 @@ async function renderModalityTrainerBox() {
     <h3 class="history-title">${esc(t('esc.modRequestsTitle'))} (${reqs.length})</h3>
     ${reqs.length ? reqs.map(r => `
     <div class="user-row">
-      <div><b>${esc(ADMIN_NAME_CACHE[r.alumnoUid] || r.alumnoUid)}</b><br><span class="muted">${esc(escModLabel(r.fromModality))} → ${esc(escModLabel(r.toModality))}</span></div>
+      <div><b>${esc(ADMIN_NAME_CACHE[r.alumnoUid] || '—')}</b><br><span class="muted">${esc(escModLabel(r.fromModality))} → ${esc(escModLabel(r.toModality))}</span></div>
       <div class="user-actions">
         <button class="btn-primary btn-sm" data-mod-trainer-approve="${r.id}">${esc(t('esc.modApprove'))}</button>
         <button class="btn-ghost btn-sm" data-mod-reject="${r.id}">${esc(t('esc.rejectBtn'))}</button>
@@ -644,7 +645,7 @@ async function renderEscAdminBoxes() {
       <h4 class="eval-cfg-group">${esc(t('esc.membershipRequests'))} (${pendingM.length})</h4>
       ${pendingM.length ? pendingM.map(([uid, m]) => `
       <div class="user-row">
-        <div><b>${esc((ADMIN_USERS.find(u => u.id === uid) || {}).name || uid)}</b><br><span class="muted">${esc(escLevelLabel(m.requestedLevel))} (${membershipQuotaOf(m.requestedLevel)})</span></div>
+        <div><b>${esc((ADMIN_USERS.find(u => u.id === uid) || {}).name || '—')}</b><br><span class="muted">${esc(escLevelLabel(m.requestedLevel))} (${membershipQuotaOf(m.requestedLevel)})</span></div>
         <div class="user-actions">
           <button class="btn-primary btn-sm" data-membership-approve="${uid}">${esc(t('admin.approve'))}</button>
           <button class="btn-ghost btn-sm" data-membership-reject="${uid}">${esc(t('esc.rejectBtn'))}</button>
@@ -654,7 +655,7 @@ async function renderEscAdminBoxes() {
         const m = membs[u.id] || {}; const p = profs[u.id] || {};
         const mods = Array.isArray(p.modalities) ? p.modalities : ESC_MODALITIES;
         return `<div class="user-row">
-        <div><b>${esc(u.name || u.email || u.id)}</b><br><span class="muted">${esc(escLevelLabel(m.status === 'activa' ? m.level : null))} · ${esc(t('esc.quotaOf', { used: Number(p.activeStudents) || 0, total: m.status === 'activa' ? membershipQuotaOf(m.level) : 0 }))}</span><br>
+        <div><b>${esc(u.name || u.email || '—')}</b><br><span class="muted">${esc(escLevelLabel(m.status === 'activa' ? m.level : null))} · ${esc(t('esc.quotaOf', { used: Number(p.activeStudents) || 0, total: m.status === 'activa' ? membershipQuotaOf(m.level) : 0 }))}</span><br>
         <span class="muted">${esc(t('esc.modalitiesLabel'))}:</span>
         ${ESC_MODALITIES.map(md => `<label class="muted"><input type="checkbox" data-mod-for="${u.id}" value="${md}" ${mods.includes(md) ? 'checked' : ''}> ${esc(escModLabel(md))}</label>`).join(' ')}
         </div>
@@ -723,7 +724,7 @@ async function renderEscAdminBoxes() {
     } catch {}
     const confirmHtml = reqs.map(r => `
     <div class="user-row">
-      <div><b>${esc((ADMIN_USERS.find(u => u.id === r.alumnoUid) || {}).name || r.alumnoUid)}</b></div>
+      <div><b>${esc((ADMIN_USERS.find(u => u.id === r.alumnoUid) || {}).name || '—')}</b></div>
       <div class="user-actions">
         <button class="btn-primary btn-sm" data-meal-confirm="${r.id}" data-alumno="${r.alumnoUid}">${esc(t('esc.mealConfirm'))}</button>
         <button class="btn-ghost btn-sm" data-meal-admin-reject="${r.id}">${esc(t('esc.rejectBtn'))}</button>
@@ -736,7 +737,7 @@ async function renderEscAdminBoxes() {
       <h4 class="eval-cfg-group">${esc(t('esc.mealDelayedTitle'))} (${delayed.length})</h4>
       ${delayed.map(r => `
       <div class="user-row">
-        <div><b>${esc((ADMIN_USERS.find(u => u.id === r.alumnoUid) || {}).name || r.alumnoUid)}</b><br><span class="muted">⏰ ${esc(t('esc.mealDelayedBadge', { hours: escMealDelayHours(r) }))} · ${esc((ADMIN_USERS.find(u => u.id === r.trainerUid) || {}).name || r.trainerUid || '')}</span></div>
+        <div><b>${esc((ADMIN_USERS.find(u => u.id === r.alumnoUid) || {}).name || '—')}</b><br><span class="muted">⏰ ${esc(t('esc.mealDelayedBadge', { hours: escMealDelayHours(r) }))} · ${esc((ADMIN_USERS.find(u => u.id === r.trainerUid) || {}).name || '')}</span></div>
         <div class="user-actions">
           <button class="btn-ghost btn-sm" data-meal-delay="${r.id}">${esc(t('esc.mealDelayBtn'))}</button>
         </div>
@@ -800,7 +801,7 @@ async function renderEscAdminBoxes() {
     } catch {}
     modbox.innerHTML = reqs.length ? reqs.map(r => `
     <div class="user-row">
-      <div><b>${esc((ADMIN_USERS.find(u => u.id === r.alumnoUid) || {}).name || r.alumnoUid)}</b><br><span class="muted">${esc(escModLabel(r.fromModality))} → ${esc(escModLabel(r.toModality))}${r.trainerUid ? '' : ' · ' + esc(t('esc.modNoTrainer'))}</span></div>
+      <div><b>${esc((ADMIN_USERS.find(u => u.id === r.alumnoUid) || {}).name || '—')}</b><br><span class="muted">${esc(escModLabel(r.fromModality))} → ${esc(escModLabel(r.toModality))}${r.trainerUid ? '' : ' · ' + esc(t('esc.modNoTrainer'))}</span></div>
       <div class="user-actions">
         <button class="btn-primary btn-sm" data-mod-confirm="${r.id}">${esc(t(r.trainerUid ? 'esc.modConfirm' : 'esc.modConfirmDirect'))}</button>
         <button class="btn-ghost btn-sm" data-mod-admin-reject="${r.id}">${esc(t('esc.rejectBtn'))}</button>
@@ -1076,7 +1077,12 @@ function dosNormalize(uid, prof, x) {
   })).filter(p => p.name).slice(0, 8);
   return {
     uid,
-    name: prof.displayName || x.name || uid,
+    /* Nombre visible del entrenador (corrección 2026-10-26): la cadena es
+       displayName del dossier → nombre de la cuenta → etiqueta genérica
+       localizada. PROHIBIDO cerrar en el uid: el identificador interno
+       jamás se pinta como nombre (defecto visto por Ronald en su iPhone:
+       la cabecera del dossier mostraba «sWfllr4HvYRFUP1T8B1…»). */
+    name: prof.displayName || x.name || t('esc.currentTrainer'),
     photoUrl: prof.photoUrl || x.photoFallback || '',
     headline: String(prof.headline || '').slice(0, 120),
     about: String(prof.about || '').slice(0, 2000),
@@ -1237,7 +1243,12 @@ async function openDossierLive(uid, mode) {
   const m = mode || 'live';
   let prof = null, userName = '', userPhoto = '';
   try { const s = await getDoc(doc(db, 'trainer_profiles', uid)); if (s.exists()) prof = s.data(); } catch {}
-  try { const s = await getDoc(doc(db, 'users', uid)); if (s.exists()) { userName = s.data().name || s.data().email || ''; userPhoto = s.data().photoURL || ''; } } catch {}
+  try { const s = await getDoc(doc(db, 'users', uid)); if (s.exists()) { userName = s.data().name || ''; userPhoto = s.data().photoURL || ''; } } catch {}
+  /* Las reglas vigentes deniegan al alumno leer el users/{entrenador}
+     (get: self/owner/trainer-of), así que el getDoc anterior puede venir
+     vacío en silencio; la caché de nombres — alimentada desde el pool con
+     datos de users — es el mismo nombre de cuenta por una ruta legible. */
+  if (!userName) { const cn = (typeof ADMIN_NAME_CACHE !== 'undefined' && ADMIN_NAME_CACHE[uid]) || ''; if (cn && cn !== uid && !cn.includes('@')) userName = cn; }
   const st = await escTrainerStanding(uid, false);
   let total = st.total;
   /* El administrador-entrenador no consume membresía (diseño §1.2):
@@ -4665,14 +4676,14 @@ function regRenderTrainerOptions() {
   sel.innerHTML = `<option value="">${esc(t('roles.waitingOption'))}</option>`
     + opts.map(tr => {
       const full = tr.quotaTotal != null && isFinite(Number(tr.quotaTotal)) && (Number(tr.quotaUsed) || 0) >= Number(tr.quotaTotal);
-      return `<option value="${esc(tr.uid)}"${full ? ' disabled' : ''}>${esc(tr.name || tr.uid)}${full ? esc(t('esc.poolFull')) : ''}</option>`;
+      return `<option value="${esc(tr.uid)}"${full ? ' disabled' : ''}>${esc(tr.name || t('esc.currentTrainer'))}${full ? esc(t('esc.poolFull')) : ''}</option>`;
     }).join('');
   if (cur) sel.value = cur;
   /* Dossier: un entrenador con el cupo LLENO no se puede elegir,
      pero su dossier SÍ se puede ver (su botón dice «Quedar en
      espera»): enlace por entrenador bajo el selector. */
   const links = $('reg-dossier-links');
-  if (links) links.innerHTML = opts.map(tr => `<button type="button" class="slot-link" data-dossier-dir="${esc(tr.uid)}">${esc(t('esc.dos.viewBtn'))}: ${esc(tr.name || tr.uid)}</button>`).join(' ');
+  if (links) links.innerHTML = opts.map(tr => `<button type="button" class="slot-link" data-dossier-dir="${esc(tr.uid)}">${esc(t('esc.dos.viewBtn'))}: ${esc(tr.name || t('esc.currentTrainer'))}</button>`).join(' ');
 }
 async function loadTrainerDirectory() {
   if (REG_TRAINERS_LOADED) return;
@@ -5122,7 +5133,7 @@ async function loadAdmin() {
       return;
     }
     const u = ADMIN_USERS.find(x => x.id === uid);
-    const name = (u && (u.name || u.email)) || uid;
+    const name = (u && (u.name || u.email)) || '';
     const text = `${t('esc.mailSubject')}\n\n${t('esc.mailBody', { name })}`;
     box.innerHTML = `<textarea class="dos-mail-text" id="dos-mail-text-${uid}" rows="12" readonly>${esc(text)}</textarea>
       <div class="eval-actions"><button type="button" class="btn-ghost btn-sm" data-dos-copy="${uid}">${esc(t('esc.mailCopy'))}</button></div>`;
@@ -5152,7 +5163,7 @@ async function loadAdmin() {
            alumnos. Se refresca con este mismo botón, como el cupo. */
         const r = await dosFetchRatings(u.id);
         trainers.push({
-          uid: u.id, name: u.name || u.email || u.id,
+          uid: u.id, name: prof.displayName || u.name || t('esc.currentTrainer'),
           modalities: st.prof && Array.isArray(st.prof.modalities) ? st.prof.modalities : [...ESC_MODALITIES],
           quotaTotal: st.total === Infinity ? null : st.total,
           quotaUsed: st.used,
@@ -5188,7 +5199,7 @@ async function loadAdmin() {
           ${lim === null ? `<br><span class="muted">${t('appr.noLimitSet')}</span>` : ''}</div>
           <div class="user-actions"><button class="btn-primary btn-sm" id="appr-limit-save">${t('form.save')}</button></div>
         </div>`
-        + trainers.map(u => `<div class="user-row"><div><b>${esc(u.name || u.email || u.id)}</b></div><div class="user-actions"><span class="muted">${t('appr.usedOf', { used: Number(u.approvalsUsed) || 0, limit: lim === null ? '—' : lim })}</span></div></div>`).join('');
+        + trainers.map(u => `<div class="user-row"><div><b>${esc(u.name || u.email || '—')}</b></div><div class="user-actions"><span class="muted">${t('appr.usedOf', { used: Number(u.approvalsUsed) || 0, limit: lim === null ? '—' : lim })}</span></div></div>`).join('');
       const saveBtn = $('appr-limit-save');
       if (saveBtn) saveBtn.onclick = async () => {
         const v = parseInt(($('appr-limit-input') || {}).value, 10);
@@ -5258,7 +5269,7 @@ async function loadAdmin() {
   /* Roles+Escalabilidad: cajas del administrador (membresías,
      confirmaciones de comidas y banderas de funciones). */
   renderEscAdminBoxes();
-  ADMIN_USERS.forEach(u => { ADMIN_NAME_CACHE[u.id] = u.name || u.email || u.id; });
+  ADMIN_USERS.forEach(u => { ADMIN_NAME_CACHE[u.id] = u.name || u.email || ''; });
   /* Los límites se cargan SOLO con la pestaña de acceso en pantalla:
      loadAll() también llama a loadAdmin() al arrancar (con «track»
      visible) y el panel no debe disparar llamadas al Worker en frío. */
@@ -5440,7 +5451,7 @@ async function loadClients() {
   document.querySelectorAll('[data-client]').forEach(b => b.onclick = () => openClient(b.dataset.client));
   /* Roles+Escalabilidad: caché de nombres para las bandejas nuevas y
      los paneles del entrenador (membresía y solicitudes de comidas). */
-  users.forEach(u => { ADMIN_NAME_CACHE[u.id] = u.name || u.email || u.id; });
+  users.forEach(u => { ADMIN_NAME_CACHE[u.id] = u.name || u.email || ''; });
   renderMembershipBox();
   renderMealTrainerBox();
   renderModalityTrainerBox();
@@ -14159,7 +14170,7 @@ async function loadAccessLog() {
     const rows = [];
     snap.forEach(d => { const v = d.data() || {}; rows.push({ id: d.id, viewerUid: v.viewerUid || '', clientUid: v.clientUid || '', zone: v.zone || '', at: nd2When(v.at) }); });
     rows.sort((a, b) => (b.at ? b.at.getTime() : 0) - (a.at ? a.at.getTime() : 0));
-    const nameOf = u2 => { const u = (ADMIN_USERS || []).find(x => x.id === u2); return u ? (u.name || u.email || u2) : u2; };
+    const nameOf = u2 => { const u = (ADMIN_USERS || []).find(x => x.id === u2); return u ? (u.name || u.email || '—') : '—'; };
     box.innerHTML = rows.length ? `<div class="table-scroll"><table class="detail whist"><thead><tr><th>${esc(t('nd2.when'))}</th><th>${esc(t('nd2.viewer'))}</th><th>${esc(t('nd2.client'))}</th><th>${esc(t('nd2.zone'))}</th></tr></thead><tbody>`
       + rows.slice(0, 50).map(r => `<tr><td>${r.at ? esc(r.at.toLocaleString()) : '—'}</td><td>${esc(nameOf(r.viewerUid))}</td><td>${esc(nameOf(r.clientUid))}</td><td>${esc(t('nd2.zone.' + r.zone))}</td></tr>`).join('')
       + `</tbody></table></div>` : `<div class="wempty">${esc(t('nd2.empty'))}</div>`;
@@ -16090,7 +16101,7 @@ document.addEventListener('keydown', e => { if (e.key === 'Escape') shareClose()
  *  - El SW (sw.js) solo cachea la cáscara del mismo origen en modo
  *    RED PRIMERO: Auth/Firestore/Worker jamás pasan por la caché.
  * ================================================================ */
-const PWA_SW_VERSION = '20261026-tarjeta-compacta';
+const PWA_SW_VERSION = '20261026-nombre-dossier';
 let pwaDeferredPrompt = null;
 function pwaIsStandalone() {
   try {
