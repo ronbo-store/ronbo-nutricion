@@ -3133,12 +3133,12 @@ en: {
   'gm.dayTypeTitle': 'Day type (your call)',
   'gm.dayTypeDetected': 'For {date} your plan founds: {level}. You can set another type.',
   'gm.dayTypeApply': 'Set day type',
-  'gm.agreeTitle': 'Agreement for this change (draft)',
-  'gm.agreementText': 'DRAFT — PENDING APPROVAL · Version draft-2026-10-26. By accepting, I confirm that: (1) the app showed me the warning and the scientific basis for the founded value of the number I am changing, and the founded value and my chosen value are recorded with this acceptance, with the date; (2) the founded values are an educational reference, not medical advice; (3) I make this change strictly under my own responsibility and I release the platform and my trainer, if I have one, from responsibility for effects on my health that may result from this change; (4) I can return to the founded values at any time from this same screen. This text is a draft: it is not active until its wording is approved.',
+  'gm.agreeTitle': 'Agreement for this change',
+  'gm.agreementText': 'Version v1-2026-10-26. By accepting, I confirm that: (1) the app showed me the warning and the scientific basis for the founded value of the number I am changing, and the founded value and my chosen value are recorded with this acceptance, with the date; (2) the founded values are an educational reference, not medical advice; (3) I make this change strictly under my own responsibility and I release the platform and my trainer, if I have one, from responsibility for effects on my health that may result from this change; (4) I can return to the founded values at any time from this same screen.',
   'gm.agreementDraftNotice': 'The agreement that would cover this change is still a draft pending approval, so the change cannot be applied yet. The founded values stay in place.',
   'gm.agreeAccept': 'I accept the agreement and apply the change',
   'gm.agreeCancel': 'Cancel',
-  'gm.agreementApplied': 'Agreement recorded (draft-2026-10-26). Your change was applied under your responsibility.',
+  'gm.agreementApplied': 'Agreement recorded (v1-2026-10-26). Your change was applied under your responsibility.',
   'gm.proposalTitle': '🎯 Client proposals (pace and goals)',
   'gm.proposalNone': 'This client has no goal change waiting.',
   'gm.proposalItem': 'Change: {param} · founded {founded} → chosen {chosen}{date} · status: {status}',
@@ -4699,12 +4699,12 @@ es: {
   'gm.dayTypeTitle': 'Tipo de día (tú decides)',
   'gm.dayTypeDetected': 'Para el {date} tu plan fundamenta: {level}. Puedes fijar otro tipo.',
   'gm.dayTypeApply': 'Fijar tipo de día',
-  'gm.agreeTitle': 'Acuerdo para este cambio (borrador)',
-  'gm.agreementText': 'BORRADOR — PENDIENTE DE APROBACIÓN · Versión draft-2026-10-26. Al aceptar, confirmo que: (1) la app me mostró la advertencia y el fundamento científico del valor fundado del número que cambio, y que el valor fundado y el valor que elegí quedan registrados con esta aceptación, con la fecha; (2) los valores fundados son una referencia educativa, no consejo médico; (3) hago este cambio estrictamente bajo mi propia responsabilidad y libero a la plataforma y a mi entrenador, si lo tengo, de responsabilidad por los efectos en mi salud que puedan derivarse de este cambio; (4) puedo volver a los valores fundados en cualquier momento desde esta misma pantalla. Este texto es un borrador: no está activo hasta que su redacción sea aprobada.',
+  'gm.agreeTitle': 'Acuerdo para este cambio',
+  'gm.agreementText': 'Versión v1-2026-10-26. Al aceptar, confirmo que: (1) la app me mostró la advertencia y el fundamento científico del valor fundado del número que cambio, y que el valor fundado y el valor que elegí quedan registrados con esta aceptación, con la fecha; (2) los valores fundados son una referencia educativa, no consejo médico; (3) hago este cambio estrictamente bajo mi propia responsabilidad y libero a la plataforma y a mi entrenador, si lo tengo, de responsabilidad por los efectos en mi salud que puedan derivarse de este cambio; (4) puedo volver a los valores fundados en cualquier momento desde esta misma pantalla.',
   'gm.agreementDraftNotice': 'El acuerdo que cubriría este cambio aún es un borrador pendiente de aprobación, así que el cambio aún no puede aplicarse. Quedan los valores fundados.',
   'gm.agreeAccept': 'Acepto el acuerdo y aplico el cambio',
   'gm.agreeCancel': 'Cancelar',
-  'gm.agreementApplied': 'Acuerdo registrado (draft-2026-10-26). Tu cambio se aplicó bajo tu responsabilidad.',
+  'gm.agreementApplied': 'Acuerdo registrado (v1-2026-10-26). Tu cambio se aplicó bajo tu responsabilidad.',
   'gm.proposalTitle': '🎯 Propuestas del cliente (ritmo y metas)',
   'gm.proposalNone': 'Este cliente no tiene cambios de metas esperando.',
   'gm.proposalItem': 'Cambio: {param} · fundado {founded} → elegido {chosen}{date} · estado: {status}',
@@ -6996,23 +6996,31 @@ function goalOfDay(key, iso) {
    firmado por cambio. La compuerta del ritmo §F queda absorbida: la
    presentación se unifica (tarjeta de propuestas del entrenador),
    sin tocar la forma de datos viva de paceSuggestion.
-   ⚠️ TEXTO LEGAL: el acuerdo es un BORRADOR (versión
-   draft-2026-10-26) pendiente de la aprobación de redacción de
-   Ronald. GOALS_AGREEMENT_ACTIVE = false: en producción la vía sin
-   entrenador muestra la advertencia + el aviso honesto de borrador y
-   NO aplica el cambio. El mecanismo completo (aceptar → registro →
-   aplica) solo se ejercita en pruebas/dobles con el gancho
-   window.__goalsAgreementTestAllow === true. */
-const GOALS_AGREEMENT_VERSION = 'draft-2026-10-26';
-const GOALS_AGREEMENT_ACTIVE = false;
+   TEXTO LEGAL: el acuerdo nació como borrador
+   (draft-2026-10-26) y Ronald APROBÓ su redacción tal como está
+   el 2026-10-26: versión vigente v1-2026-10-26 y
+   GOALS_AGREEMENT_ACTIVE = true — la vía sin entrenador muestra la
+   advertencia + el acuerdo aprobado y, al aceptarlo, REGISTRA la
+   aceptación y APLICA el cambio bajo su responsabilidad. La clave
+   gm.agreementDraftNotice queda en el diccionario (paridad) pero
+   inalcanzable: la compuerta ya está activa de forma permanente.
+   El gancho window.__goalsAgreementTestAllow se conserva para
+   pruebas. */
+const GOALS_AGREEMENT_VERSION = 'v1-2026-10-26';
+const GOALS_AGREEMENT_ACTIVE = true;
 function goalsAgreementActive() { return GOALS_AGREEMENT_ACTIVE || (typeof window !== 'undefined' && window.__goalsAgreementTestAllow === true); }
 /* Bandas fundadas por parámetro (bordes y fuentes en el informe v3):
-   kcal: mantener TDEE ±5% · ganar +5…15% · bajar = valor fundado del
-   ritmo (aprobado/decidido; sin decisión, el mantenimiento calculado).
+   kcal: mantener TDEE ±5% · ganar +5…15% · bajar = fundado ±5%
+   (fundado = TDEE − ritmo aprobado; sin decisión, el mantenimiento
+   calculado — banda ±5% por decisión de Ronald 2026-10-26 14:23,
+   §M.1 del diseño; el ritmo en sí no cambia ni lo mueve la banda).
    prot (g/kg, sobre el peso): mantener/ganar ISSN 1.4–2.0 · bajar
    2.2–3.1 (referencia §G = piso en déficit; Helms/ISSN masa magra).
-   gras: 15%–30% de las kcal fundadas (§K). azuc: hasta el valor
-   fundado OMS 5%. carb: mínimo IOM 130 g/día, sin techo fundado. */
+   gras: 15%–30% de las kcal fundadas (§K). azuc: el fundado sigue
+   siendo el OMS 5% (§D), pero la BANDA llega hasta el 10% OMS de las
+   kcal fundadas (decisión de Ronald 2026-10-26 14:36, §M.3): entre
+   5% y 10% aplica directo; sobre el 10%, advertencia y compuerta.
+   carb: mínimo IOM 130 g/día, sin techo fundado. */
 const GM3_PROT_BAND = { mantener: [1.4, 2.0], ganar: [1.4, 2.0], bajar: [2.2, 3.1] };
 function goalsBandFor(param, ctx) {
   const c = ctx || {}, f = c.founded || {}, tdee = Number(c.tdeeKcal), w = Number(c.weightKg);
@@ -7021,11 +7029,11 @@ function goalsBandFor(param, ctx) {
     if (c.objective === 'mantener') return { min: Math.round(tdee * 0.95), max: Math.round(tdee * 1.05), founded: f.kcal != null ? f.kcal : Math.round(tdee) };
     if (c.objective === 'ganar') return { min: Math.round(tdee * 1.05), max: Math.round(tdee * 1.15), founded: f.kcal != null ? f.kcal : Math.round(tdee * 1.10) };
     const founded = f.kcal != null ? f.kcal : (Number(c.paceKcal) > 0 ? Math.round(tdee - Number(c.paceKcal)) : Math.round(tdee));
-    return { min: founded, max: founded, founded };
+    return { min: Math.round(founded * 0.95), max: Math.round(founded * 1.05), founded };
   }
   if (param === 'prot') { const b = GM3_PROT_BAND[c.objective] || GM3_PROT_BAND.mantener; if (!(w > 0)) return null; return { min: Math.round(b[0] * w), max: Math.round(b[1] * w), founded: f.prot != null ? f.prot : null }; }
   if (param === 'gras') { if (!(f.kcal > 0)) return null; return { min: Math.round(f.kcal * 0.15 / 9), max: Math.round(f.kcal * 0.30 / 9), founded: f.gras != null ? f.gras : null }; }
-  if (param === 'azuc') { if (!(f.kcal > 0)) return null; const fv = f.azuc != null ? f.azuc : Math.round(f.kcal * 0.05 / 4); return { min: 0, max: fv, founded: fv }; }
+  if (param === 'azuc') { if (!(f.kcal > 0)) return null; const fv = f.azuc != null ? f.azuc : Math.round(f.kcal * 0.05 / 4); return { min: 0, max: Math.round(f.kcal * 0.10 / 4), founded: fv }; }
   if (param === 'carb') { return { min: 130, max: null, founded: f.carb != null ? f.carb : null }; }
   return null;
 }
@@ -7296,7 +7304,7 @@ function gmEditSectionHTML(prov) {
       h += `<p class="pend-cfg-h">${esc(t('gm.dayTypeTitle'))}</p><p class="progress-hint">${esc(t('gm.dayTypeDetected', { date: viewIso, level: t('gm.day.' + det.dayLevel) }))}</p><label class="pend-sel"><span>${esc(viewIso)}</span><select id="gm-daytype-sel">${opts}</select></label> <button type="button" class="btn-ghost btn-sm" id="gm-daytype-apply">${esc(t('gm.dayTypeApply'))}</button>`;
     }
   } catch {}
-  /* Acuerdo (sin entrenador): borrador inactivo en producción */
+  /* Acuerdo (sin entrenador): ACTIVO — texto aprobado v1-2026-10-26 */
   if (GM3_PENDING) {
     h += `<div id="gm-agree"><p class="pend-cfg-h">${esc(t('gm.agreeTitle'))}</p><p class="progress-hint" id="gm-agree-text">${esc(t('gm.agreementText'))}</p>`;
     if (!goalsAgreementActive()) h += `<div class="health-alert" id="gm-agree-draft">⚠ ${esc(t('gm.agreementDraftNotice'))}</div>`;
@@ -7385,7 +7393,7 @@ async function gmAcceptAgreement() {
   if (!GM3_PENDING) return;
   const ok = $('gm-agree-ok');
   if (!ok || !ok.checked) { toast(t('gm.agreementText'), true); return; }
-  if (!goalsAgreementActive()) { toast(t('gm.agreementDraftNotice'), true); return; } // borrador inactivo: NO aplica
+  if (!goalsAgreementActive()) { toast(t('gm.agreementDraftNotice'), true); return; } // guarda defensiva: inalcanzable con GOALS_AGREEMENT_ACTIVE = true
   const items = GM3_PENDING;
   try {
     const records = items.map(it => ({ kind: it.kind, param: it.param, date: it.date || null, foundedValue: it.foundedValue, chosenValue: it.chosenValue, warningKey: it.warningKey || '', agreementVersion: GOALS_AGREEMENT_VERSION, acceptedAt: new Date().toISOString() }));
@@ -17281,7 +17289,7 @@ document.addEventListener('keydown', e => { if (e.key === 'Escape') shareClose()
  *  - El SW (sw.js) solo cachea la cáscara del mismo origen en modo
  *    RED PRIMERO: Auth/Firestore/Worker jamás pasan por la caché.
  * ================================================================ */
-const PWA_SW_VERSION = '20261026-reprueba-2';
+const PWA_SW_VERSION = '20261026-acuerdo-activo';
 let pwaDeferredPrompt = null;
 function pwaIsStandalone() {
   try {
