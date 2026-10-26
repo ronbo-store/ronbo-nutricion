@@ -15792,7 +15792,68 @@ function shareDrawWeek(ctx, W, H, d) {
    el día, al siguiente el siguiente, y al agotar el banco vuelve
    el primero. VACÍO = franja oculta (el banco aprobado entra como
    micro-paquete de datos; jamás textos de relleno). */
-const SHARE_MSG_BANK = [];
+const SHARE_MSG_BANK = [
+  { en: "Breathe in calm, breathe out hurry — your day starts here.", es: "Inhala calma, exhala prisa: tu día empieza aquí." },
+  { en: "Show up today; your future self is watching and grateful.", es: "Preséntate hoy; tu yo del futuro te mira y te lo agradece." },
+  { en: "Your body is not a problem to fix; it is a home to care for.", es: "Tu cuerpo no es un problema por arreglar: es un hogar por cuidar." },
+  { en: "Small steps daily beat big promises once in a while.", es: "Pasos pequeños cada día valen más que promesas grandes de vez en cuando." },
+  { en: "Gratitude turns an ordinary workout into a celebration.", es: "La gratitud convierte un entrenamiento común en una celebración." },
+  { en: "Begin where you are; that is always the right place.", es: "Empieza donde estás; ese es siempre el lugar correcto." },
+  { en: "Rest is training too — your body grows while you recover.", es: "Descansar también es entrenar: tu cuerpo crece mientras te recuperas." },
+  { en: "One deep breath can change the whole pace of your day.", es: "Una respiración profunda puede cambiar el ritmo de todo tu día." },
+  { en: "Do not compare your chapter one with someone else's chapter ten.", es: "No compares tu capítulo uno con el capítulo diez de otra persona." },
+  { en: "Discipline is choosing what you want most over what you want now.", es: "La disciplina es elegir lo que más quieres por encima de lo que quieres ahora." },
+  { en: "Move your body like you love it, not like you punish it.", es: "Mueve tu cuerpo como quien lo quiere, no como quien lo castiga." },
+  { en: "Today's effort is tomorrow's energy.", es: "El esfuerzo de hoy es la energía de mañana." },
+  { en: "Live this rep, this step, this moment.", es: "Vive esta repetición, este paso, este momento." },
+  { en: "A grateful heart trains lighter and lives fuller.", es: "Un corazón agradecido entrena más ligero y vive más pleno." },
+  { en: "Patience: strong roots grow in silence before the flower shows.", es: "Paciencia: las raíces fuertes crecen en silencio antes de que se vea la flor." },
+  { en: "You do not need motivation to start; starting creates motivation.", es: "No necesitas motivación para empezar; al empezar, la motivación llega." },
+  { en: "Sleep well tonight; strength is rebuilt while you dream.", es: "Duerme bien esta noche; la fuerza se reconstruye mientras sueñas." },
+  { en: "Focus on your lane — your only rival is yesterday's version of you.", es: "Concéntrate en tu carril: tu único rival es tu versión de ayer." },
+  { en: "Exhale slowly and let your shoulders drop the day's weight.", es: "Exhala despacio y deja que tus hombros suelten el peso del día." },
+  { en: "Consistency whispers; results eventually shout.", es: "La constancia susurra; con el tiempo, los resultados gritan." },
+  { en: "Sweat is just your body saying thank you for moving.", es: "El sudor es la manera que tiene tu cuerpo de darte las gracias por moverte." },
+  { en: "Thank your legs today: they carry your whole story.", es: "Dale las gracias a tus piernas hoy: cargan toda tu historia." },
+  { en: "Slow progress is still progress — keep walking.", es: "Avanzar despacio también es avanzar: sigue caminando." },
+  { en: "The best day to begin was yesterday; the second best is today.", es: "El mejor día para empezar fue ayer; el segundo mejor es hoy." },
+  { en: "Breathe before you react; presence is your quiet strength.", es: "Respira antes de reaccionar; la presencia es tu fuerza tranquila." },
+  { en: "Train your mind to stay, and your body will follow.", es: "Entrena tu mente para quedarse, y tu cuerpo la seguirá." },
+  { en: "Rest without guilt: pauses make the music.", es: "Descansa sin culpa: las pausas también hacen la música." },
+  { en: "Nobody else's pace sets your worth — run your own race.", es: "El ritmo de nadie define tu valor: corre tu propia carrera." },
+  { en: "Hydrate, breathe, move: three small gifts to yourself today.", es: "Agua, respiración y movimiento: tres regalos pequeños para ti hoy." },
+  { en: "Halfway is proof: you are stronger than your excuses.", es: "Ir a mitad de camino ya es prueba: eres más fuerte que tus excusas." },
+  { en: "Notice one good thing right now and let it hold your attention.", es: "Nota una cosa buena ahora mismo y deja que se quede con tu atención." },
+  { en: "Gratitude for what you have fuels what you are building.", es: "Agradecer lo que tienes le da fuerza a lo que estás construyendo." },
+  { en: "Your body keeps every promise you make to it — keep them kind.", es: "Tu cuerpo guarda cada promesa que le haces: que sean amables." },
+  { en: "Do the small thing today that your week will thank you for.", es: "Haz hoy esa cosa pequeña que tu semana te va a agradecer." },
+  { en: "A calm breath is a door: walk through it before the noise.", es: "Una respiración calmada es una puerta: crúzala antes que el ruido." },
+  { en: "Begin again, as many times as you need — that is courage.", es: "Vuelve a empezar las veces que haga falta: eso es valentía." },
+  { en: "Muscles grow in recovery; respect your pauses.", es: "Los músculos crecen en la recuperación: respeta tus pausas." },
+  { en: "Eyes on your path; applause for others costs you nothing.", es: "La mirada en tu camino; aplaudir a otros no te cuesta nada." },
+  { en: "Strength is built on ordinary days, not only on great ones.", es: "La fuerza se construye en los días comunes, no solo en los grandes." },
+  { en: "Feel your feet on the ground: you are here, and that is enough.", es: "Siente los pies en el suelo: estás aquí, y eso basta." },
+  { en: "Thank the food, the water and the sun that fuel your steps.", es: "Agradece la comida, el agua y el sol que alimentan tus pasos." },
+  { en: "Move daily, and your energy will quietly change its story.", es: "Muévete a diario y tu energía cambiará de historia en silencio." },
+  { en: "Seeds do not rush the spring; trust your season.", es: "Las semillas no apuran la primavera: confía en tu temporada." },
+  { en: "Start before you feel ready; readiness grows on the road.", es: "Empieza antes de sentirte listo; la preparación crece en el camino." },
+  { en: "Four slow breaths: in, hold, out — welcome back to yourself.", es: "Cuatro respiraciones lentas: entra, sostén, suelta — bienvenido a ti." },
+  { en: "Your streak matters less than your return after a pause.", es: "Tu racha importa menos que tu regreso después de una pausa." },
+  { en: "A rested mind makes kinder choices all day long.", es: "Una mente descansada elige mejor durante todo el día." },
+  { en: "Compare less, breathe more, live your own measure.", es: "Compara menos, respira más, vive a tu propia medida." },
+  { en: "Stand tall: your posture speaks before you do.", es: "Párate erguido: tu postura habla antes que tú." },
+  { en: "This moment is the only gym where presence trains.", es: "Este momento es el único gimnasio donde se entrena la presencia." },
+  { en: "Gratitude multiplies what effort started.", es: "La gratitud multiplica lo que el esfuerzo comenzó." },
+  { en: "One workout will not change everything; every workout changes something.", es: "Un entrenamiento no lo cambia todo; cada entrenamiento cambia algo." },
+  { en: "Walk outside and let the daylight reset your mind.", es: "Sal a caminar y deja que la luz del día te reinicie la mente." },
+  { en: "Be patient with the process; it is being patient with you.", es: "Ten paciencia con el proceso; él la está teniendo contigo." },
+  { en: "Today is a fresh page: write it with your feet.", es: "Hoy es una página en blanco: escríbela con tus pasos." },
+  { en: "Slow breathing tells your whole body: we are safe.", es: "Respirar despacio le dice a todo tu cuerpo: estamos a salvo." },
+  { en: "Tonight, let the day go; tomorrow deserves a light heart.", es: "Esta noche suelta el día; mañana merece un corazón ligero." },
+  { en: "Your measure is effort and honesty, never someone else's mirror.", es: "Tu medida es el esfuerzo y la honestidad, nunca el espejo de otro." },
+  { en: "Celebrate the rep you finished, not only the goal you chase.", es: "Celebra la repetición que terminaste, no solo la meta que persigues." },
+  { en: "Day by day, breath by breath: this is how a life changes.", es: "Día a día, respiro a respiro: así cambia una vida." },
+];
 /* Icono de la franja por día de semana DE LA FECHA (índice
    getDay(): 0 domingo … 6 sábado) — dato editable junto al banco:
    domingo 🌙 · lunes 📖 · martes 💡 · miércoles ☀️ · jueves 🌱 ·
@@ -16120,7 +16181,7 @@ document.addEventListener('keydown', e => { if (e.key === 'Escape') shareClose()
  *  - El SW (sw.js) solo cachea la cáscara del mismo origen en modo
  *    RED PRIMERO: Auth/Firestore/Worker jamás pasan por la caché.
  * ================================================================ */
-const PWA_SW_VERSION = '20261026-boton-pendientes';
+const PWA_SW_VERSION = '20261026-banco-mensajes';
 let pwaDeferredPrompt = null;
 function pwaIsStandalone() {
   try {
