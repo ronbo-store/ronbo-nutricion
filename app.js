@@ -9253,6 +9253,45 @@ function trainDayHistHTML(day, log) {
   </div>`;
   }).join('');
 }
+/* TARJETA COMPACTA (corrección de la reprueba de Ronald, chat
+   2026-10-26 07:25 CDT): la fila del ejercicio en la tarjeta del
+   día lleva SOLO los datos principales — franja de color (la pone
+   dressExRows), miniatura pequeña, nombre, series × reps (con la
+   nota si la hay) y el control rápido de Hecho con su estado —
+   igual que la tarjeta exportable aprobada. FUERA de la fila:
+   texto de especificaciones (aproximación/descanso), botón de
+   video, selector RPE y casillas de series; todo eso vive SOLO
+   en la ventana flotante (#train-ex-float) al tocar la fila, que
+   no cambia: mismos datos, mismo TRAIN_CHECKS, misma escritura
+   al cerrar el día. En modo read el estado es la insignia de
+   siempre (✓ Hecho · RPE n / —), sin la línea de series (el
+   detalle por serie también vive en la flotante). */
+function trainExCompactHTML(ex, di, ei, mode, de) {
+  const key = di + ':' + ei;
+  const chk = mode === 'edit' ? TRAIN_CHECKS[key] : null;
+  const spec = [ex.sets, ex.reps].filter(Boolean).join(' × ');
+  const photo = trainExPhoto(ex);
+  return `<div class="train-ex-card train-ex-compact${chk || de ? ' is-done' : ''}">${photo ? `<img class="train-ex-photo" src="${esc(photo)}" alt="" loading="lazy" data-train-photo="${esc(photo)}">` : ''}
+    <div class="train-ex-info">
+      <div class="train-ex-name">${esc(trainExName(ex))}</div>
+      ${spec || ex.note ? `<div class="train-ex-spec">${esc(spec)}${ex.note ? `${spec ? ' · ' : ''}${esc(ex.note)}` : ''}</div>` : ''}
+    </div>
+    <div class="train-ex-side">${mode === 'edit'
+      ? `<label class="train-ex-check"><input type="checkbox" data-train-check="${key}" ${chk ? 'checked' : ''}> <span>${t('train.view.exDone')}</span></label>`
+      : mode === 'read'
+        ? (de ? `<span class="ok-badge">✓ ${t('train.view.exDone')}${de.rpe ? ` · ${t('train.view.rpe')} ${esc(String(de.rpe))}` : ''}</span>` : '<span class="muted">—</span>')
+        : ''}</div>
+  </div>`;
+}
+function trainDayCompactHistHTML(day, log, di) {
+  const doneList = (log && Array.isArray(log.exercisesDone)) ? log.exercisesDone : [];
+  const byId = {}, byName = {};
+  doneList.forEach(e => { if (!e) return; if (e.exerciseId) byId[e.exerciseId] = e; else if (e.name) byName[e.name] = e; });
+  return (day.exercises || []).map((ex, ei) => {
+    const de = (ex.exerciseId && byId[ex.exerciseId]) || (ex.name && byName[ex.name]) || null;
+    return trainExCompactHTML(ex, di, ei, 'read', de);
+  }).join('');
+}
 function trainSessionHTML(day) {
   const blocks = Array.isArray(day.sessionBlocks) ? day.sessionBlocks : [];
   const rows = blocks.map(b => {
@@ -9669,6 +9708,30 @@ async function loadMyTraining() {
         : `<button class="btn-primary btn-sm" data-train-done="${di}">${t('train.markDone')}</button> <button class="btn-ghost btn-sm" data-train-skip="${di}">${t('train.d.skipDay')}</button>`}</div>
     </div>`;
   };
+  /* TARJETA COMPACTA: interior de la tarjeta VESTIDA del día
+     visto — filas compactas (trainExCompactHTML) + el bloque de
+     sesión del día + las acciones de siempre (Marcar/Saltar en
+     edición; insignia de estado y Deshacer si el día ya está
+     cerrado). mode: 'edit' (hoy sin cerrar), 'done' (hoy
+     cerrado), 'read' (pasado; la cola la aporta el llamador con
+     su línea de estado), 'ficha' (futuro; ídem). La interior
+     expandida de dayCardHTML ya NO se pinta en esta vista: con
+     la lista de días retirada (abajo), su única superficie era
+     esta tarjeta. */
+  const dayCompactHTML = (day, di, mode, log, tailHTML) => {
+    const label = day.label || ('Día ' + (di + 1));
+    let exHtml;
+    if (mode === 'edit') exHtml = (day.exercises || []).map((ex, ei) => trainExCompactHTML(ex, di, ei, 'edit', null)).join('');
+    else if (mode === 'ficha') exHtml = (day.exercises || []).map((ex, ei) => trainExCompactHTML(ex, di, ei, 'ficha', null)).join('');
+    else exHtml = trainDayCompactHistHTML(day, log, di);
+    let tail = tailHTML;
+    if (tail == null) {
+      if (mode === 'edit') tail = `<div style="margin-top:8px"><button class="btn-primary btn-sm" data-train-done="${di}">${t('train.markDone')}</button> <button class="btn-ghost btn-sm" data-train-skip="${di}">${t('train.d.skipDay')}</button></div>`;
+      else if (mode === 'done') { const status = trainLogStatus(log); tail = `<div style="margin-top:8px">${trainStatusBadge(status)}${status === 'skipped' ? ` <span class="muted">${t('train.d.skippedNote')}</span>` : ''} <button class="btn-ghost btn-sm" data-train-undo="${di}">${t('train.undo')}</button></div>`; }
+      else tail = '';
+    }
+    return `<h4>${esc(label)}</h4>${exHtml}${trainSessionHTML(day)}${tail}`;
+  };
   /* ENTRENAMIENTO-HOY: tira semanal + tarjeta del día (por defecto
      HOY). La configuración de pendientes es la ancla «cfg»: si
      loadPendings aún no la ha cargado, se lee aquí el mismo
@@ -9680,18 +9743,21 @@ async function loadMyTraining() {
   const sel = TRAIN_VIEW.sel;
   const dayLabelOf = di => { const d = (plan.days || [])[di] || {}; return d.label || ('Día ' + (di + 1)); };
   const histCardHTML = (day, log) => `<div class="train-day is-readonly"><h4>${esc(log.dayLabel || day.label || '')}</h4>${trainDayHistHTML(day, log)}${trainSessionHTML(day)}<div style="margin-top:8px">${trainStatusBadge(trainLogStatus(log))}</div></div>`;
-  /* CHECKLIST FLOTANTE: la tarjeta del día seleccionado se viste.
-     La de HOY conserva EXACTAMENTE el interior de dayCardHTML (los
-     mismos controles data-train-* y los mismos manejadores): la
-     envoltura solo añade la cabecera vestida y marca las filas
-     como tocables (modo edit, o read si el día ya está cerrado).
-     Las de historial se visten igual, en solo lectura. */
+  /* CHECKLIST FLOTANTE + TARJETA COMPACTA: la tarjeta del día
+     seleccionado se viste. Su interior es el compacto de
+     dayCompactHTML: filas con solo los datos principales y el
+     control rápido de Hecho (mismo data-train-check y mismos
+     manejadores de siempre); el registro completo vive en la
+     flotante. La envoltura añade la cabecera vestida y marca las
+     filas como tocables (modo edit, o read si el día ya está
+     cerrado). Las de historial se visten igual, en solo lectura. */
   const dressedTodayCard = (day, di) => {
-    const inner = dayCardHTML(day, di).replace(/^<div class="train-day">/, '').replace(/<\/div>$/, '');
-    return trainDressedCardHTML(plan, logs, di, sel, dressExRows(inner, di, doneToday.has(di) ? 'read' : 'edit'), '');
+    const done = doneToday.has(di);
+    const inner = dayCompactHTML(day, di, done ? 'done' : 'edit', logByDay[di] || null, null);
+    return trainDressedCardHTML(plan, logs, di, sel, dressExRows(inner, di, done ? 'read' : 'edit'), '');
   };
   const dressedHistCard = (day, log) => {
-    const inner = `<h4>${esc(log.dayLabel || day.label || '')}</h4>` + dressExRows(trainDayHistHTML(day, log), log.dayIndex, 'read') + trainSessionHTML(day)
+    const inner = `<h4>${esc(log.dayLabel || day.label || '')}</h4>` + dressExRows(trainDayCompactHistHTML(day, log, log.dayIndex), log.dayIndex, 'read') + trainSessionHTML(day)
       + `<div style="margin-top:8px">${trainStatusBadge(trainLogStatus(log))}</div>`;
     return trainDressedCardHTML(plan, logs, log.dayIndex, sel, inner, 'is-readonly');
   };
@@ -9707,10 +9773,10 @@ async function loadMyTraining() {
         const stLine = logSD ? trainStatusBadge(trainLogStatus(logSD))
           : (other.length ? `${trainStatusBadge(trainLogStatus(other[0]))} <span class="muted">${esc(t('train.today.loggedOther', { label: other[0].dayLabel || dayLabelOf(other[0].dayIndex) }))}</span>`
             : trainStatusBadge('none'));
-        const innerP = `<h4>${esc(dayLabelOf(selDi))}</h4>` + dressExRows(trainDayHistHTML(day, logSD), selDi, 'read') + trainSessionHTML(day) + `<div style="margin-top:8px">${stLine}</div>`;
+        const innerP = `<h4>${esc(dayLabelOf(selDi))}</h4>` + dressExRows(trainDayCompactHistHTML(day, logSD, selDi), selDi, 'read') + trainSessionHTML(day) + `<div style="margin-top:8px">${stLine}</div>`;
         selCard = trainDressedCardHTML(plan, logs, selDi, sel, innerP, 'is-readonly') + trainShareRowHTML(selDi, sel);
       } else {
-        const innerF = `<h4>${esc(dayLabelOf(selDi))}</h4>` + dressExRows(trainDayHistHTML(day, null), selDi, 'ficha') + trainSessionHTML(day) + `<div style="margin-top:8px"><span class="train-status st-skipped">● ${t('train.today.scheduled')}</span></div>`;
+        const innerF = `<h4>${esc(dayLabelOf(selDi))}</h4>` + dressExRows((day.exercises || []).map((ex, ei) => trainExCompactHTML(ex, selDi, ei, 'ficha', null)).join(''), selDi, 'ficha') + trainSessionHTML(day) + `<div style="margin-top:8px"><span class="train-status st-skipped">● ${t('train.today.scheduled')}</span></div>`;
         selCard = trainDressedCardHTML(plan, logs, selDi, sel, innerF, 'is-readonly') + trainShareRowHTML(selDi, sel);
       }
     } else {
@@ -9776,7 +9842,12 @@ async function loadMyTraining() {
     ${weekHtml}
     <div style="margin:6px 0"><button class="btn-ghost btn-sm" id="btn-print-card">${t('train.print.btn')}</button></div>
     <div id="train-align-slot"></div>
-    ${(plan.days || []).map((day, di) => dayCardHTML(day, di)).join('')}`;
+    <!-- TARJETA COMPACTA (Ronald, 2026-10-26 07:25 CDT): bajo la
+         tarjeta del día visto NO se pinta ningún otro día del
+         plan; a los demás días se llega SOLO por la tira semanal
+         de arriba. La lista completa que aquí se renderizaba
+         alargaba la página y era además la superficie donde las
+         filas de series aplastaban la columna del nombre. -->`;
   const pcBtn = $('btn-print-card');
   if (pcBtn) pcBtn.onclick = () => printCardRender(plan);
   box.querySelectorAll('[data-train-day]').forEach(b => b.onclick = () => { TRAIN_VIEW.sel = b.dataset.trainDay; loadMyTraining(); });
@@ -16019,7 +16090,7 @@ document.addEventListener('keydown', e => { if (e.key === 'Escape') shareClose()
  *  - El SW (sw.js) solo cachea la cáscara del mismo origen en modo
  *    RED PRIMERO: Auth/Firestore/Worker jamás pasan por la caché.
  * ================================================================ */
-const PWA_SW_VERSION = '20261026-armonia-pildoras';
+const PWA_SW_VERSION = '20261026-tarjeta-compacta';
 let pwaDeferredPrompt = null;
 function pwaIsStandalone() {
   try {

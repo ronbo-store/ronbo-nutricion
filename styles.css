@@ -1288,11 +1288,16 @@ div > .btn-ghost:only-child, div > .btn-main:only-child {
 .fa-athtitle { margin: 0 0 6px; font-size: 15px; }
 
 /* MÓDULO D — entrenamiento interactivo (P4-3 Etapa 4, desarrollo) */
-.train-sets { margin: 8px 0 2px; border-top: 1px dashed #e5e7eb; padding-top: 6px; }
-.train-set-row { display: flex; align-items: center; gap: 6px; margin: 4px 0; flex-wrap: wrap; }
-.train-set-n { font-size: 12px; color: #6b7280; min-width: 74px; }
-.train-set-in { width: 84px; padding: 5px 7px; border: 1px solid #d1d5db; border-radius: 8px; font-size: 13px; }
-.train-set-unit { font-size: 12px; color: #6b7280; }
+.train-sets { margin: 8px 0 2px; border-top: 1px dashed #e5e7eb; padding-top: 6px; flex: 1 1 100%; min-width: 0; }
+/* TARJETA COMPACTA (Ronald, 2026-10-26 07:25 CDT): las casillas de
+   series viven ahora SOLO en la flotante; su fila debe caber sin
+   desbordamiento horizontal en anchos de 360–430 px: etiqueta que
+   puede encogerse sin aplastar (envuelve su propio texto), inputs
+   flexibles con min-width:0 y la unidad («kg») siempre visible. */
+.train-set-row { display: flex; align-items: center; gap: 6px; margin: 4px 0; flex-wrap: nowrap; min-width: 0; }
+.train-set-n { font-size: 12px; color: #6b7280; flex: 0 1 auto; min-width: 0; }
+.train-set-in { flex: 1 1 0; min-width: 0; width: auto; padding: 5px 7px; border: 1px solid #d1d5db; border-radius: 8px; font-size: 13px; }
+.train-set-unit { font-size: 12px; color: #6b7280; flex: none; }
 .train-set-hist { font-size: 12px; color: #4b5563; margin-top: 4px; }
 .train-status, .train-chip { display: inline-block; padding: 2px 8px; border-radius: 999px; font-size: 12px; font-weight: 600; border: 1px solid transparent; }
 .train-status.st-done, .train-chip.st-done { background: #e7f6ee; color: #157347; border-color: #bfe6cf; }
@@ -1460,6 +1465,14 @@ body { padding: max(16px, env(safe-area-inset-top)) max(16px, env(safe-area-inse
 .train-day-dressed .train-block span { color: rgba(255,255,255,.82); }
 .train-day-dressed .btn-ghost { color: #fff; border-color: rgba(255,255,255,.55); background: rgba(255,255,255,.08); }
 .train-day-dressed .progress-hint { color: rgba(255,255,255,.85); }
+/* TARJETA COMPACTA (Ronald, 2026-10-26 07:25 CDT): la fila del
+   ejercicio en la tarjeta vestida es una sola línea de datos
+   principales — miniatura pequeña, nombre y series × reps, y el
+   control rápido de Hecho a la derecha — sin envoltura (ya no hay
+   bloque de series dentro de la fila que deba bajar a otra línea). */
+.train-day-dressed .train-ex-compact { flex-wrap: nowrap; align-items: center; }
+.train-day-dressed .train-ex-compact .train-ex-photo { width: 44px; height: 44px; }
+.train-day-dressed .train-ex-compact .train-ex-side { justify-content: center; }
 /* Ventana flotante por ejercicio: hoja del sistema con recogida al
    cerrar/guardar (la animación conserva el translateX(-50%) de
    .act-float en todos sus fotogramas). */
@@ -1470,6 +1483,11 @@ body { padding: max(16px, env(safe-area-inset-top)) max(16px, env(safe-area-inse
 .train-float-photo { width: 100%; max-height: 230px; object-fit: cover; border-radius: 12px; cursor: pointer; display: block; margin-bottom: 8px; background: #eef1f3; }
 .train-float-spec { font-weight: 600; color: #1f2a44; }
 .train-float-sub { color: #777; font-size: 12.5px; margin-top: 2px; }
+/* TARJETA COMPACTA: la hoja flotante nunca excede el viewport y su
+   contenido (especificaciones incluidas) envuelve dentro de ella. */
+#train-ex-float { max-width: calc(100vw - 24px); }
+#train-ex-float-body { min-width: 0; }
+#train-ex-float .train-float-spec, #train-ex-float .train-float-sub { overflow-wrap: anywhere; }
 .train-float-check { display: flex; align-items: center; gap: 8px; font-weight: 700; color: #065f46; margin: 12px 0 4px; font-size: 15px; cursor: pointer; }
 .train-float-check input { width: 22px; height: 22px; accent-color: #22c55e; cursor: pointer; }
 .train-float-actions { display: flex; gap: 8px; margin-top: 14px; }
