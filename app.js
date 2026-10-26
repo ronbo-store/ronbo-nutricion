@@ -2279,6 +2279,17 @@ en: {
   'msg.foodSent': 'Photo sent. Let me know in the chat so I can analyze it.',
   'train.title': '🏋️ My training plan', 'train.loading': 'Loading your plan…',
   'train.none': 'Your trainer has not assigned you a plan yet.',
+  'train.noneNamed': 'Your trainer {name} hasn\'t assigned you a plan yet.',
+  'train.today.btnToday': 'Today', 'train.today.todayWord': 'Today',
+  'train.today.restToday': 'Today is your rest day', 'train.today.restDay': 'Rest day',
+  'train.today.nextTomorrow': 'Tomorrow: {label}', 'train.today.nextOn': 'On {date}: {label}',
+  'train.today.scheduled': 'Scheduled', 'train.today.loggedOther': 'That day you logged: {label}',
+  'train.today.weekSummary': 'This week: {x} of {y} sessions completed',
+  'train.today.rotationNote': 'This plan follows a day order, not fixed weekdays — so no session is pinned to this date. The next sessions in the plan\'s order are:',
+  'shareW.btn': 'Share this workout',
+  'shareW.kicker': 'MY WORKOUT', 'shareW.kickerToday': 'MY WORKOUT TODAY',
+  'shareW.progress': '{x} of {y} exercises', 'shareW.tag': 'Let\'s go!',
+  'shareW.done': 'Workout completed!', 'shareW.lab': 'Workout', 'shareW.hecho': 'DONE',
   'train.weekDone': 'Sessions completed this week: {n}',
   'train.planFreq': 'Your plan: {n} days per week',
   'train.markDone': 'Mark as done today', 'train.doneToday': 'Done today ✓', 'train.undo': 'Undo',
@@ -3718,6 +3729,17 @@ es: {
   'msg.foodSent': 'Foto enviada. Avísame por el chat para analizarla.',
   'train.title': '🏋️ Mi plan de entrenamiento', 'train.loading': 'Cargando tu plan…',
   'train.none': 'Tu entrenador aún no te ha asignado un plan.',
+  'train.noneNamed': 'Tu entrenador {name} aún no te ha asignado un plan.',
+  'train.today.btnToday': 'Hoy', 'train.today.todayWord': 'Hoy',
+  'train.today.restToday': 'Hoy es tu día de descanso', 'train.today.restDay': 'Día de descanso',
+  'train.today.nextTomorrow': 'Mañana: {label}', 'train.today.nextOn': 'El {date}: {label}',
+  'train.today.scheduled': 'Programada', 'train.today.loggedOther': 'Ese día registraste: {label}',
+  'train.today.weekSummary': 'Esta semana: {x} de {y} sesiones completadas',
+  'train.today.rotationNote': 'Este plan sigue un orden de días, no días de semana fijos — por eso no hay una sesión fijada a esta fecha. Las próximas sesiones en el orden del plan son:',
+  'shareW.btn': 'Compartir este entrenamiento',
+  'shareW.kicker': 'MI ENTRENAMIENTO', 'shareW.kickerToday': 'MI ENTRENAMIENTO DE HOY',
+  'shareW.progress': '{x} de {y} ejercicios', 'shareW.tag': '¡A darle!',
+  'shareW.done': '¡Entrenamiento completado!', 'shareW.lab': 'Entrenamiento', 'shareW.hecho': 'HECHO',
   'train.weekDone': 'Sesiones completadas esta semana: {n}',
   'train.planFreq': 'Tu plan: {n} días por semana',
   'train.markDone': 'Marcar como hecho hoy', 'train.doneToday': 'Hecho hoy ✓', 'train.undo': 'Deshacer',
@@ -9317,13 +9339,134 @@ function printCardRender(plan) {
   pc.innerHTML = `<h2 class="pc-title">${esc(plan.title || '')}</h2><p class="pc-sub">${t('train.print.title')} · ${esc(dateName(todayISO()))}</p>${plan.notes ? `<p class="pc-notes">${esc(plan.notes)}</p>` : ''}${days}`;
   window.print();
 }
+/* ENTRENAMIENTO-HOY (diseño aprobado por Ronald, chat 2026-10-26
+   01:54 CDT): la vista abre en la sesión de HOY con tira semanal.
+   RESOLUCIÓN fecha→día SOLO con anclas reales del modelo existente:
+   (a) «weekday» — TODAS las etiquetas del plan nombran un día de
+   semana (las escribe la alineación del editor; mismo parseo que
+   trainPlanWeekdays, conservando el dayIndex); (b) «cfg» — sin
+   etiquetas de semana, la configuración de pendientes del propio
+   usuario (activada, trainOn) declara sus días de entrenamiento y
+   su conteo coincide con el de días del plan: el k-ésimo día de
+   entrenamiento (ordenado) corresponde al día k del plan — la misma
+   correspondencia por conteo que compara el aviso de alineación y
+   los días que pendCompute usa para generar el pendiente de
+   entrenamiento; (c) «rotation» — sin ancla semanal: NO se afirma
+   ningún día de semana; hoy muestra la siguiente sesión en el
+   ORDEN del plan tras la última registrada (de training_logs), el
+   pasado muestra lo realmente registrado y el futuro solo el orden
+   de la rotación, sin fijar sesiones a fechas. startsAt/endsAt del
+   plan son SOLO presentación (sin comportamiento por fechas) y
+   TPL_WEEK_OFFSETS es una ayuda de etiquetado del editor: ninguno
+   de los dos es un horario y ninguno se usa aquí. */
+let TRAIN_VIEW = { planId: null, sel: null };   // sel: fecha ISO mostrada en la tarjeta del día
+function trainWeekdayPairs(days) {
+  const pairs = {};
+  for (let di = 0; di < (days || []).length; di++) {
+    const lab = libNorm((days[di] && days[di].label) || '').trim();
+    let found = -1;
+    for (let wd = 0; wd < 7; wd++) {
+      if (lab === TRAIN_WD_EN[wd] || lab.startsWith(TRAIN_WD_EN[wd] + ' ') ||
+          lab === TRAIN_WD_ES[wd] || lab.startsWith(TRAIN_WD_ES[wd] + ' ')) { found = wd; break; }
+    }
+    if (found < 0 || pairs[found] != null) return null;
+    pairs[found] = di;
+  }
+  return Object.keys(pairs).length ? pairs : null;
+}
+function trainDayMap(plan, cfg) {
+  const days = (plan && plan.days) || [];
+  if (!days.length) return { mode: 'rotation', pairs: null };
+  const pairs = trainWeekdayPairs(days);
+  if (pairs) return { mode: 'weekday', pairs };
+  if (cfg && cfg.activated && cfg.trainOn) {
+    const W = [...new Set((cfg.trainDays || []).map(Number))].sort((a, b) => a - b);
+    if (W.length === days.length) { const p = {}; W.forEach((wd, k) => { p[wd] = k; }); return { mode: 'cfg', pairs: p }; }
+  }
+  return { mode: 'rotation', pairs: null };
+}
+function trainRotationNext(plan, logs, today) {
+  const n = ((plan && plan.days) || []).length;
+  if (!n) return 0;
+  const doneToday = new Set(logs.filter(l => l.date === today).map(l => l.dayIndex));
+  const past = logs.filter(l => l.date <= today).slice()
+    .sort((a, b) => (a.date < b.date ? -1 : a.date > b.date ? 1 : a.dayIndex - b.dayIndex));
+  const start = past.length ? (past[past.length - 1].dayIndex + 1) % n : 0;
+  for (let k = 0; k < n; k++) { const cand = (start + k) % n; if (!doneToday.has(cand)) return cand; }
+  return start;
+}
+/* ENMIENDA (Ronald, chat 2026-10-26 01:56 CDT) — el mensaje «sin
+   plan» nombra al entrenador cuando el alumno TIENE entrenador
+   asignado y su nombre es resoluble por la vía que la app ya usa
+   para el alumno (la misma de «Mi perfil»: users/{trainerUid}.name
+   y, en su defecto, el displayName del dossier en
+   trainer_profiles/{trainerUid}; ambas lecturas puntuales ya
+   ejercidas por el rol alumno en producción). Sin nombre resoluble
+   queda el genérico train.none. Nunca se muestra el uid ni el
+   correo como «nombre». Se pinta primero el genérico y se parchea
+   al resolver, como en Mi perfil. */
+async function trainNoneNamedRender(box) {
+  try {
+    const tUid = (typeof MY_REL !== 'undefined' && MY_REL && MY_REL.trainerUid) ||
+      (typeof UDATA !== 'undefined' && UDATA && UDATA.trainerUid) || null;
+    if (!tUid) return;
+    const assigned = (typeof MY_REL !== 'undefined' && MY_REL) ? (MY_REL.status === 'activa')
+      : (typeof UDATA !== 'undefined' && UDATA && UDATA.assignmentStatus === 'assigned');
+    if (!assigned) return;
+    let nm = (typeof ADMIN_NAME_CACHE !== 'undefined' && ADMIN_NAME_CACHE[tUid]) || '';
+    if (nm === tUid || nm.includes('@')) nm = '';
+    if (!nm) {
+      const s = await getDoc(doc(db, 'users', tUid));
+      nm = s.exists() ? (s.data().name || '') : '';
+      if (!nm) { const p = await getDoc(doc(db, 'trainer_profiles', tUid)); if (p.exists()) nm = p.data().displayName || ''; }
+      if (nm && typeof ADMIN_NAME_CACHE !== 'undefined') ADMIN_NAME_CACHE[tUid] = nm;
+    }
+    const el = box.querySelector('#train-none-msg');
+    if (nm && el) el.textContent = t('train.noneNamed', { name: nm });
+  } catch {}
+}
+/* ENMIENDA 2 (Ronald, chat 2026-10-26 02:11 CDT) — tarjeta de
+   entrenamiento exportable: el modelo del checklist es EXACTAMENTE
+   el estado que muestra la vista: hoy, los checks en curso
+   (TRAIN_CHECKS) salvo que el día ya esté cerrado (entonces el
+   log real, igual que la tarjeta de historial); un día pasado, su
+   training_log real; un día futuro, ninguno hecho. Sin registros
+   paralelos, sin escrituras, sin IA; la imagen solo existe en el
+   lienzo del cliente hasta que el usuario la comparte o descarga. */
+function trainShareModel(plan, logs, di, iso) {
+  const day = (plan.days || [])[di] || {};
+  const today = todayISO();
+  const log = logs.find(l => l.date === iso && l.dayIndex === di) || null;
+  let doneSet = new Set();
+  if (log) {
+    const byId = {}, byName = {};
+    (log.exercisesDone || []).forEach(e => { if (!e) return; if (e.exerciseId) byId[e.exerciseId] = e; else if (e.name) byName[e.name] = e; });
+    (day.exercises || []).forEach((ex, ei) => { if ((ex.exerciseId && byId[ex.exerciseId]) || (ex.name && byName[ex.name])) doneSet.add(ei); });
+  } else if (iso === today) {
+    (day.exercises || []).forEach((ex, ei) => { if (TRAIN_CHECKS[di + ':' + ei]) doneSet.add(ei); });
+  }
+  const exercises = (day.exercises || []).map((ex, ei) => {
+    const spec = [ex.sets, ex.reps].filter(Boolean).join(' × ');
+    return { name: trainExName(ex), detail: ex.note ? (spec ? spec + ' · ' + ex.note : ex.note) : spec, done: doneSet.has(ei) };
+  });
+  return { label: day.label || ('Día ' + (di + 1)), dateISO: iso, exercises,
+    doneCount: exercises.filter(e => e.done).length, total: exercises.length };
+}
+function trainShareRowHTML(di, iso) {
+  return `<div class="train-share-row"><button type="button" class="btn-ghost btn-sm" data-train-share="${di}|${iso}">📣 ${t('shareW.btn')}</button></div>`;
+}
+function trainShareOpen(model) {
+  SHARE.type = 'workout'; SHARE.workout = model;
+  shareIconEnsure();
+  shareOpen();
+}
 async function loadMyTraining() {
   const box = $('my-training');
   if (!box || !auth.currentUser) return;
   const uid = auth.currentUser.uid;
   const plans = await fetchPlans(uid);
   const plan = plans.find(p => p.active === true) || null;
-  if (!plan) { MY_PLAN = null; MY_LOGS = []; box.innerHTML = `<div class="wempty compact">${t('train.none')}</div>`; return; }
+  if (!plan) { MY_PLAN = null; MY_LOGS = []; box.innerHTML = `<div class="wempty compact" id="train-none-msg">${t('train.none')}</div>`; trainNoneNamedRender(box); return; }
   const logs = (await fetchLogs(uid)).filter(l => l.planId === plan.id);
   MY_PLAN = plan; MY_LOGS = logs;
   const today = todayISO();
@@ -9344,31 +9487,123 @@ async function loadMyTraining() {
   if (TRAIN_CHECKS_CTX !== ctx) { TRAIN_CHECKS = {}; TRAIN_CHECKS_CTX = ctx; }
   const logByDay = {};
   logs.filter(l => l.date === today).forEach(l => { logByDay[l.dayIndex] = l; });
+  /* Tarjeta interactiva de UN día del plan para el cierre de HOY
+     (la misma que pinta la lista completa; la tarjeta HOY de la
+     tira la reutiliza tal cual: mismos checks y mismo cierre). */
+  const dayCardHTML = (day, di) => {
+    const label = day.label || ('Día ' + (di + 1));
+    const done = doneToday.has(di);
+    const log = logByDay[di];
+    const status = trainLogStatus(log);
+    const exHtml = done
+      ? trainDayHistHTML(day, log)
+      : (day.exercises || []).map((ex, ei) => trainExCardHTML(ex, di, ei)).join('');
+    return `<div class="train-day"><h4>${esc(label)}</h4>${exHtml}${trainSessionHTML(day)}
+      <div style="margin-top:8px">${done
+        ? `${trainStatusBadge(status)}${status === 'skipped' ? ` <span class="muted">${t('train.d.skippedNote')}</span>` : ''} <button class="btn-ghost btn-sm" data-train-undo="${di}">${t('train.undo')}</button>`
+        : `<button class="btn-primary btn-sm" data-train-done="${di}">${t('train.markDone')}</button> <button class="btn-ghost btn-sm" data-train-skip="${di}">${t('train.d.skipDay')}</button>`}</div>
+    </div>`;
+  };
+  /* ENTRENAMIENTO-HOY: tira semanal + tarjeta del día (por defecto
+     HOY). La configuración de pendientes es la ancla «cfg»: si
+     loadPendings aún no la ha cargado, se lee aquí el mismo
+     documento (solo lectura, la misma vía de pendCompute). */
+  let trainCfg = (typeof PEND_CFG !== 'undefined' && PEND_CFG && !PEND_CFG.__error) ? PEND_CFG : null;
+  if (!trainCfg) { try { const cs = await getDoc(pendCfgRef()); if (cs.exists()) trainCfg = Object.assign(pendDefaults(), cs.data()); } catch {} }
+  const tmap = trainDayMap(plan, trainCfg);
+  if (TRAIN_VIEW.planId !== plan.id || !TRAIN_VIEW.sel) TRAIN_VIEW = { planId: plan.id, sel: today };
+  const sel = TRAIN_VIEW.sel;
+  const dayLabelOf = di => { const d = (plan.days || [])[di] || {}; return d.label || ('Día ' + (di + 1)); };
+  const histCardHTML = (day, log) => `<div class="train-day is-readonly"><h4>${esc(log.dayLabel || day.label || '')}</h4>${trainDayHistHTML(day, log)}${trainSessionHTML(day)}<div style="margin-top:8px">${trainStatusBadge(trainLogStatus(log))}</div></div>`;
+  let selCard = '';
+  if (tmap.pairs) {
+    const selDi = tmap.pairs[new Date(sel + 'T12:00:00').getDay()];
+    if (selDi != null) {
+      const day = (plan.days || [])[selDi] || {};
+      if (sel === today) selCard = dayCardHTML(day, selDi) + trainShareRowHTML(selDi, sel);
+      else if (sel < today) {
+        const logSD = logs.find(l => l.date === sel && l.dayIndex === selDi) || null;
+        const other = logs.filter(l => l.date === sel && l.dayIndex !== selDi);
+        const stLine = logSD ? trainStatusBadge(trainLogStatus(logSD))
+          : (other.length ? `${trainStatusBadge(trainLogStatus(other[0]))} <span class="muted">${esc(t('train.today.loggedOther', { label: other[0].dayLabel || dayLabelOf(other[0].dayIndex) }))}</span>`
+            : trainStatusBadge('none'));
+        selCard = `<div class="train-day is-readonly"><h4>${esc(dayLabelOf(selDi))}</h4>${trainDayHistHTML(day, logSD)}${trainSessionHTML(day)}<div style="margin-top:8px">${stLine}</div></div>` + trainShareRowHTML(selDi, sel);
+      } else {
+        selCard = `<div class="train-day is-readonly"><h4>${esc(dayLabelOf(selDi))}</h4>${trainDayHistHTML(day, null)}${trainSessionHTML(day)}<div style="margin-top:8px"><span class="train-status st-skipped">● ${t('train.today.scheduled')}</span></div></div>` + trainShareRowHTML(selDi, sel);
+      }
+    } else {
+      const logsSel = logs.filter(l => l.date === sel).sort((a, b) => a.dayIndex - b.dayIndex);
+      const extra = logsSel.map(l => histCardHTML((plan.days || [])[l.dayIndex] || {}, l) + trainShareRowHTML(l.dayIndex, sel)).join('');
+      if (sel === today) {
+        let nextLine = '';
+        for (let k = 1; k <= 7; k++) {
+          const nd = addDaysISO(today, k);
+          const ndi = tmap.pairs[new Date(nd + 'T12:00:00').getDay()];
+          if (ndi != null) { nextLine = k === 1 ? t('train.today.nextTomorrow', { label: dayLabelOf(ndi) }) : t('train.today.nextOn', { date: dateName(nd), label: dayLabelOf(ndi) }); break; }
+        }
+        selCard = `<div class="train-day train-rest"><h4>${t('train.today.restToday')}</h4>${nextLine ? `<p class="progress-hint">${esc(nextLine)}</p>` : ''}</div>` + extra;
+      } else {
+        selCard = `<div class="train-day train-rest"><h4>${t('train.today.restDay')}</h4></div>` + extra;
+      }
+    }
+  } else {
+    if (sel === today) {
+      const di = trainRotationNext(plan, logs, today);
+      selCard = dayCardHTML((plan.days || [])[di] || {}, di) + trainShareRowHTML(di, sel);
+    } else if (sel < today) {
+      const logsSel = logs.filter(l => l.date === sel).sort((a, b) => a.dayIndex - b.dayIndex);
+      selCard = logsSel.length
+        ? logsSel.map(l => histCardHTML((plan.days || [])[l.dayIndex] || {}, l) + trainShareRowHTML(l.dayIndex, sel)).join('')
+        : `<div class="train-day is-readonly"><div>${trainStatusBadge('none')}</div></div>`;
+    } else {
+      const diT = trainRotationNext(plan, logs, today);
+      const nDays = (plan.days || []).length;
+      const chips = [];
+      for (let k = 1; k <= nDays; k++) chips.push(`<span class="train-chip">${esc(dayLabelOf((diT + k) % nDays))}</span>`);
+      selCard = `<div class="train-day is-readonly"><p class="progress-hint">${t('train.today.rotationNote')}</p><div class="train-week">${chips.join('')}</div></div>`;
+    }
+  }
+  const mon = mondayISO(sel);
+  const wkLogs = logs.filter(l => l.date >= mon && l.date <= addDaysISO(mon, 6));
+  const wkDone = wkLogs.filter(l => { const s = trainLogStatus(l); return s === 'done' || s === 'partial'; }).length;
+  const cells = [];
+  for (let k = 0; k < 7; k++) {
+    const iso = addDaysISO(mon, k);
+    const dt = new Date(iso + 'T12:00:00');
+    const wdN = new Intl.DateTimeFormat(LANG === 'es' ? 'es' : 'en', { weekday: 'narrow' }).format(dt);
+    const ls = logs.filter(l => l.date === iso);
+    let mark = '–';
+    if (ls.some(l => { const s = trainLogStatus(l); return s === 'done' || s === 'partial'; })) mark = '✓';
+    else if (ls.length) mark = '✕';
+    else if (tmap.pairs) mark = tmap.pairs[dt.getDay()] != null ? '●' : '–';
+    else mark = iso === today ? '●' : (iso < today ? '–' : '·');
+    cells.push(`<button type="button" class="train-wd${iso === sel ? ' is-sel' : ''}${iso === today ? ' is-today' : ''}" data-train-day="${iso}"><span class="train-wd-l">${esc(wdN)}</span><span class="train-wd-n">${dt.getDate()}</span><span class="train-wd-m">${mark}</span></button>`);
+  }
+  const trainTodayHTML = `<div class="train-today">
+    <div class="train-strip"><button type="button" class="train-nav" data-train-week="-1" aria-label="‹">‹</button><div class="train-strip-days">${cells.join('')}</div><button type="button" class="train-nav" data-train-week="1" aria-label="›">›</button></div>
+    <div class="train-strip-actions"><button type="button" class="btn-ghost btn-sm" data-train-today="1">${t('train.today.btnToday')}</button><span class="train-week-sum">${t('train.today.weekSummary', { x: wkDone, y: (plan.days || []).length })}</span></div>
+    <div class="train-sel-head"><b>${esc(dateName(sel))}</b>${sel === today ? ` <span class="ok-badge">${t('train.today.todayWord')}</span>` : ''}</div>
+    ${selCard}</div>`;
   box.innerHTML = `
     <h3 class="history-title">${esc(plan.title || '')}</h3>
     ${plan.notes ? `<p class="progress-hint">${esc(plan.notes)}</p>` : ''}
     ${planPeriodText(plan) ? `<p class="progress-hint">${t('train.dates.clientLine', { period: esc(planPeriodText(plan)) })}</p>` : ''}
     <p class="progress-hint">${t('train.planFreq', { n: (plan.days || []).length })}</p>
+    ${trainTodayHTML}
     <p class="progress-hint">${t('train.weekDone', { n: weekCount })}</p>
     ${weekHtml}
     <div style="margin:6px 0"><button class="btn-ghost btn-sm" id="btn-print-card">${t('train.print.btn')}</button></div>
     <div id="train-align-slot"></div>
-    ${(plan.days || []).map((day, di) => {
-      const label = day.label || ('Día ' + (di + 1));
-      const done = doneToday.has(di);
-      const log = logByDay[di];
-      const status = trainLogStatus(log);
-      const exHtml = done
-        ? trainDayHistHTML(day, log)
-        : (day.exercises || []).map((ex, ei) => trainExCardHTML(ex, di, ei)).join('');
-      return `<div class="train-day"><h4>${esc(label)}</h4>${exHtml}${trainSessionHTML(day)}
-        <div style="margin-top:8px">${done
-          ? `${trainStatusBadge(status)}${status === 'skipped' ? ` <span class="muted">${t('train.d.skippedNote')}</span>` : ''} <button class="btn-ghost btn-sm" data-train-undo="${di}">${t('train.undo')}</button>`
-          : `<button class="btn-primary btn-sm" data-train-done="${di}">${t('train.markDone')}</button> <button class="btn-ghost btn-sm" data-train-skip="${di}">${t('train.d.skipDay')}</button>`}</div>
-      </div>`;
-    }).join('')}`;
+    ${(plan.days || []).map((day, di) => dayCardHTML(day, di)).join('')}`;
   const pcBtn = $('btn-print-card');
   if (pcBtn) pcBtn.onclick = () => printCardRender(plan);
+  box.querySelectorAll('[data-train-day]').forEach(b => b.onclick = () => { TRAIN_VIEW.sel = b.dataset.trainDay; loadMyTraining(); });
+  box.querySelectorAll('[data-train-week]').forEach(b => b.onclick = () => { TRAIN_VIEW.sel = addDaysISO(TRAIN_VIEW.sel || today, 7 * Number(b.dataset.trainWeek)); loadMyTraining(); });
+  box.querySelectorAll('[data-train-today]').forEach(b => b.onclick = () => { TRAIN_VIEW.sel = today; loadMyTraining(); });
+  box.querySelectorAll('[data-train-share]').forEach(b => b.onclick = () => {
+    const [diS, iso] = b.dataset.trainShare.split('|');
+    trainShareOpen(trainShareModel(plan, logs, Number(diS), iso));
+  });
   box.querySelectorAll('img.train-ex-photo').forEach(img => {
     img.onerror = () => img.remove();
     img.onclick = () => showLightbox(img.dataset.trainPhoto);
@@ -14843,7 +15078,7 @@ setInterval(() => { try { pendDockTick(); } catch {} }, 60000);
    1:1 (1080×1080: la misma composición adaptada — héroe + lo
    esencial, sin la línea de reto). Los emojis se dibujan con la
    fuente de emojis del propio dispositivo (fillText). */
-const SHARE = { type: 'day', format: '916', blob: null, fileName: '' };
+const SHARE = { type: 'day', format: '916', blob: null, fileName: '', workout: null };
 const SHARE_WD = { en: ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'],
                    es: ['lunes', 'martes', 'miércoles', 'jueves', 'viernes', 'sábado', 'domingo'] };
 const SHARE_LETTERS = { en: ['M', 'T', 'W', 'T', 'F', 'S', 'S'], es: ['L', 'M', 'X', 'J', 'V', 'S', 'D'] };
@@ -15235,6 +15470,235 @@ function shareDrawWeek(ctx, W, H, d) {
 }
 
 /* ---------- generación, vista previa y salidas ---------- */
+/* ---------- tarjeta «Mi entrenamiento» (diseño CERRADO v4/v5-final,
+   2026-10-26) ----------
+   Lenguaje visual de las tarjetas de logros (degradado teal de
+   borde a borde de shareBg) con: kicker lima SIN emoji; anillo de %
+   en lima neón con glow; etiqueta gancho coral→rosa; barra
+   ámbar→lima; filas de CRISTAL con franja lateral vibrante de la
+   paleta de logros y sello «HECHO» junto al ✓ verde #22c55e
+   (pendiente = círculo hueco); marca de agua = el ICONO de la app
+   (icons/icon-512.png, mismo origen) grande, inclinado −14° y a
+   opacidad 0.13 tras las filas — si no carga, la tarjeta sale sin
+   marca (degradación honesta, nunca bloquea); pie «R ronbo.fit» +
+   #MiEntrenamientoRonboFit en dorado, con línea divisoria sobre el
+   pie. DENSIDAD ADAPTABLE: el alto de fila se calcula del espacio
+   real entre la lista y la divisoria del pie, de modo que la
+   ÚLTIMA fila nunca toca el pie (con muchas filas se compacta y,
+   bajo 64px, la fila pasa a una sola línea sin detalle).
+   FRANJA «mensaje del día» (mecanismo cerrado 2026-10-26): bajo la
+   barra, panel de cristal SOLO con el icono del día de semana de la
+   FECHA de la tarjeta y la frase en cursiva de esa fecha — sin
+   etiqueta de texto y sin contador (decisión final 02:24 CDT). */
+/* BANCO de frases: 60 pares {en, es} aprobados por Ronald, como
+   bloque de datos PROPIO (se actualiza sin tocar lógica). La
+   rotación es por la fecha de la tarjeta: días UTC desde la época
+   de esa fecha, módulo el tamaño del banco — el mismo mensaje todo
+   el día, al siguiente el siguiente, y al agotar el banco vuelve
+   el primero. VACÍO = franja oculta (el banco aprobado entra como
+   micro-paquete de datos; jamás textos de relleno). */
+const SHARE_MSG_BANK = [];
+/* Icono de la franja por día de semana DE LA FECHA (índice
+   getDay(): 0 domingo … 6 sábado) — dato editable junto al banco:
+   domingo 🌙 · lunes 📖 · martes 💡 · miércoles ☀️ · jueves 🌱 ·
+   viernes 🧘 · sábado 🤸. */
+const SHARE_MSG_ICONS = ['🌙', '📖', '💡', '☀️', '🌱', '🧘', '🤸'];
+function shareMsgForDate(iso) {
+  if (!SHARE_MSG_BANK.length) return null;
+  const [y, m, d] = String(iso || '').split('-').map(Number);
+  if (!y || !m || !d) return null;
+  const days = Math.floor(Date.UTC(y, m - 1, d) / 86400000);
+  const idx = ((days % SHARE_MSG_BANK.length) + SHARE_MSG_BANK.length) % SHARE_MSG_BANK.length;
+  const e = SHARE_MSG_BANK[idx] || {};
+  const text = (LANG === 'es' ? e.es : e.en) || e.en || e.es || null;
+  if (!text) return null;
+  return { text, icon: SHARE_MSG_ICONS[new Date(y, m - 1, d).getDay()] || '' };
+}
+/* Marca de agua: el icono de la app, cargado una vez (mismo origen)
+   y cacheado en memoria junto al resto de recursos de las tarjetas. */
+const SHARE_ICON = { img: null, state: 'idle' };
+function shareIconEnsure() {
+  if (SHARE_ICON.state !== 'idle') return;
+  SHARE_ICON.state = 'loading';
+  try {
+    const im = new Image();
+    im.onload = () => { SHARE_ICON.img = im; SHARE_ICON.state = 'ok'; const f = $('share-float'); if (f && f.style.display !== 'none' && SHARE.type === 'workout') shareRender(); };
+    im.onerror = () => { SHARE_ICON.state = 'fail'; };
+    im.src = 'icons/icon-512.png';
+  } catch (e) { SHARE_ICON.state = 'fail'; }
+}
+/* Geometría FIJA de la tarjeta (la batería la verifica a nivel de
+   píxel y de posiciones): margen X 72; la lista vive entre rowsTop
+   y rowsLimit (sobre la divisoria del pie) — ver constantes en el
+   cuerpo de shareDrawWorkout. */
+const SHARE_W_PALETTE = ['#FF4D2E', '#FFB300', '#FF2E88', '#6C4DFF', '#38BDF8', '#A3E635', '#FFD83D'];
+function shareGlassPanel(ctx, x, y, w, h, r) {
+  ctx.save();
+  ctx.beginPath();
+  shareRR(ctx, x, y, w, h, r);
+  ctx.fillStyle = 'rgba(255,255,255,.10)'; ctx.fill();
+  ctx.lineWidth = 1.5; ctx.strokeStyle = 'rgba(255,255,255,.28)'; ctx.stroke();
+  ctx.restore();
+}
+function shareDrawWorkout(ctx, W, H, d) {
+  const cp = H < 1500;
+  shareBg(ctx, W, H);
+  /* marca de agua: icono de la app, tras el degradado y antes de
+     todo el contenido (si aún no cargó, se pide y esta tarjeta sale
+     sin ella; la siguiente ya la trae) */
+  if (SHARE_ICON.state === 'ok' && SHARE_ICON.img) {
+    ctx.save();
+    ctx.globalAlpha = 0.13;
+    ctx.translate(W * 0.60, H * 0.57);
+    ctx.rotate(-14 * Math.PI / 180);
+    const S = cp ? 560 : 860;
+    try { ctx.drawImage(SHARE_ICON.img, -S / 2, -S / 2, S, S); } catch (e) {}
+    ctx.restore();
+  } else shareIconEnsure();
+  const MX = 72;
+  const frac = d.total > 0 ? d.doneCount / d.total : 0;
+  const complete = d.total > 0 && d.doneCount >= d.total;
+  /* cabecera */
+  shareTxt(ctx, d.dateISO === todayISO() ? t('shareW.kickerToday') : t('shareW.kicker'), MX, cp ? 78 : 100,
+    shareCtxFont(700, cp ? 24 : 29), '#C6FF4A', { align: 'left', ls: 6 });
+  const titlePx = shareFitPx(ctx, d.label, 900, cp ? 60 : 82, W - MX * 2 - (cp ? 150 : 190));
+  shareTxt(ctx, d.label, MX, cp ? 148 : 170, shareCtxFont(900, titlePx), '#ffffff', { align: 'left', shadowBlur: 24, shadowColor: 'rgba(0,60,52,.35)' });
+  shareTxt(ctx, shareDayLabel(d.dateISO), MX, cp ? 194 : 220, shareCtxFont(500, cp ? 28 : 36), 'rgba(255,255,255,.92)', { align: 'left' });
+  /* anillo de % en lima neón */
+  const ringCx = W - MX - (cp ? 58 : 78), ringCy = cp ? 96 : 118, ringR = cp ? 58 : 76;
+  ctx.save();
+  ctx.beginPath(); ctx.lineWidth = cp ? 12 : 15; ctx.strokeStyle = 'rgba(255,255,255,.25)';
+  ctx.arc(ringCx, ringCy, ringR, 0, Math.PI * 2); ctx.stroke();
+  if (frac > 0) {
+    ctx.beginPath(); ctx.lineCap = 'round'; ctx.lineWidth = cp ? 12 : 15; ctx.strokeStyle = '#C6FF4A';
+    ctx.shadowColor = 'rgba(198,255,74,.65)'; ctx.shadowBlur = 22;
+    ctx.arc(ringCx, ringCy, ringR, -Math.PI / 2, -Math.PI / 2 + frac * Math.PI * 2); ctx.stroke();
+  }
+  ctx.restore();
+  shareTxt(ctx, Math.round(frac * 100) + '%', ringCx, ringCy + (cp ? 34 : 44) * 0.36, shareCtxFont(900, cp ? 34 : 44), '#ffffff', { shadowBlur: 12 });
+  /* etiqueta gancho coral→rosa */
+  const tagTop = cp ? 214 : 246, tagH = cp ? 46 : 54;
+  const tagText = complete ? t('shareW.done') : t('shareW.tag') + ' 🔥 ' + t('shareW.progress', { x: d.doneCount, y: d.total });
+  const tagPx = cp ? 25 : 29;
+  ctx.font = shareCtxFont(800, tagPx);
+  const tagW = Math.min(W - MX * 2, ctx.measureText(tagText).width + (cp ? 48 : 60));
+  const tagX = (W - tagW) / 2;   /* píldora CENTRADA en el ancho útil (decisión final 02:27 CDT) */
+  ctx.save();
+  const tg = ctx.createLinearGradient(tagX, 0, tagX + tagW, 0);
+  tg.addColorStop(0, '#FF4D2E'); tg.addColorStop(1, '#FF2E88');
+  ctx.shadowColor = 'rgba(255,46,136,.45)'; ctx.shadowBlur = 18; ctx.shadowOffsetY = 4;
+  ctx.fillStyle = tg;
+  shareRR(ctx, tagX, tagTop, tagW, tagH, tagH / 2); ctx.fill();
+  ctx.restore();
+  shareTxt(ctx, tagText, W / 2, tagTop + tagH / 2 + tagPx * 0.36, shareCtxFont(800, tagPx), '#ffffff', { shadow: false });
+  /* barra de progreso ámbar→lima */
+  const barY = cp ? 282 : 322, barH = cp ? 13 : 16, barW = W - MX * 2;
+  ctx.save();
+  ctx.fillStyle = 'rgba(255,255,255,.25)';
+  shareRR(ctx, MX, barY, barW, barH, barH / 2); ctx.fill();
+  if (frac > 0) {
+    const bg2 = ctx.createLinearGradient(MX, 0, MX + barW, 0);
+    bg2.addColorStop(0, '#FFB300'); bg2.addColorStop(1, '#C6FF4A');
+    ctx.shadowColor = 'rgba(150,230,0,.40)'; ctx.shadowBlur = 14;
+    ctx.fillStyle = bg2;
+    shareRR(ctx, MX, barY, Math.max(barH, barW * frac), barH, barH / 2); ctx.fill();
+  }
+  ctx.restore();
+  /* franja del mensaje del día (solo icono + frase, si hay banco) */
+  const msg = shareMsgForDate(d.dateISO);
+  let rowsTop = barY + (cp ? 40 : 48);
+  if (msg) {
+    const stripTop = barY + (cp ? 28 : 34);
+    const phrasePx = cp ? 26 : 30, lineH = cp ? 34 : 40;
+    ctx.font = 'italic 500 ' + phrasePx + 'px ' + SHARE_FONT;
+    const maxPhraseW = W - (MX + 104) - MX - 10;
+    const words = msg.text.split(/\s+/).filter(Boolean);
+    const lines = []; let cur = '';
+    for (const w of words) { const t2 = cur ? cur + ' ' + w : w; if (cur && ctx.measureText(t2).width > maxPhraseW) { lines.push(cur); cur = w; } else cur = t2; }
+    if (cur) lines.push(cur);
+    const useLines = lines.slice(0, 3);
+    const stripH = useLines.length * lineH + (cp ? 34 : 46);
+    shareGlassPanel(ctx, MX, stripTop, W - MX * 2, stripH, cp ? 18 : 22);
+    shareTxt(ctx, msg.icon, MX + 52, stripTop + stripH / 2 + (cp ? 36 : 44) * 0.36, shareCtxFont(400, cp ? 36 : 44, true), '#ffffff', { shadow: false });
+    const blockH = useLines.length * lineH;
+    useLines.forEach((ln, li) => {
+      shareTxt(ctx, ln, MX + 104, stripTop + (stripH - blockH) / 2 + phrasePx + li * lineH - 4, 'italic 500 ' + phrasePx + 'px ' + SHARE_FONT, 'rgba(255,255,255,.96)', { align: 'left' });
+    });
+    rowsTop = stripTop + stripH + (cp ? 18 : 22);
+  }
+  /* filas de cristal con densidad adaptable: la última NUNCA toca
+     la divisoria del pie */
+  const dividerY = H - (cp ? 118 : 168);
+  const rowsLimit = dividerY - (cp ? 20 : 26);
+  const gap = cp ? 10 : 14;
+  const n = Math.max(1, d.total);
+  const panelH = Math.min(cp ? 120 : 168, Math.floor((rowsLimit - rowsTop - (n - 1) * gap) / n));
+  const single = panelH < 64;
+  d.exercises.forEach((ex, i) => {
+    const top = rowsTop + i * (panelH + gap), cy = top + panelH / 2;
+    shareGlassPanel(ctx, MX, top, W - MX * 2, panelH, cp ? 18 : 22);
+    ctx.save();
+    ctx.fillStyle = SHARE_W_PALETTE[i % SHARE_W_PALETTE.length];
+    shareRR(ctx, MX + 16, top + 18, 9, Math.max(10, panelH - 36), 4.5); ctx.fill();
+    ctx.restore();
+    const R = single ? Math.min(24, panelH * 0.32) : Math.min(30, Math.max(19, panelH * 0.20));
+    const ccx = MX + 82;
+    if (ex.done) {
+      ctx.save();
+      ctx.shadowColor = 'rgba(34,197,94,.55)'; ctx.shadowBlur = 16;
+      ctx.fillStyle = '#22c55e';
+      ctx.beginPath(); ctx.arc(ccx, cy, R, 0, Math.PI * 2); ctx.fill();
+      ctx.restore();
+      ctx.save();
+      ctx.strokeStyle = '#ffffff'; ctx.lineWidth = R * 0.20; ctx.lineCap = 'round'; ctx.lineJoin = 'round';
+      ctx.beginPath();
+      ctx.moveTo(ccx - R * 0.41, cy + R * 0.04);
+      ctx.lineTo(ccx - R * 0.11, cy + R * 0.33);
+      ctx.lineTo(ccx + R * 0.44, cy - R * 0.33);
+      ctx.stroke();
+      ctx.restore();
+    } else {
+      ctx.save();
+      ctx.strokeStyle = 'rgba(255,255,255,.85)'; ctx.lineWidth = 3.5;
+      ctx.beginPath(); ctx.arc(ccx, cy, R, 0, Math.PI * 2); ctx.stroke();
+      ctx.restore();
+    }
+    const nameX = MX + 132;
+    const namePx = Math.round(Math.min(42, Math.max(24, panelH * 0.26)));
+    const nameMaxW = W - nameX - MX - (ex.done && !single ? 150 : 16);
+    const fitPx = shareFitPx(ctx, ex.name, 800, namePx, nameMaxW);
+    if (single) {
+      shareTxt(ctx, ex.name, nameX, cy + fitPx * 0.36, shareCtxFont(800, fitPx), '#ffffff', { align: 'left', shadowBlur: 8 });
+    } else {
+      shareTxt(ctx, ex.name, nameX, cy - 6, shareCtxFont(800, fitPx), '#ffffff', { align: 'left', shadowBlur: 8 });
+      if (ex.detail) {
+        const detPx = Math.round(Math.min(29, Math.max(19, panelH * 0.185)));
+        shareTxt(ctx, ex.detail, nameX, cy + Math.round(panelH * 0.24) + 8, shareCtxFont(500, detPx), 'rgba(255,255,255,.85)', { align: 'left' });
+      }
+    }
+    if (ex.done && !single) {
+      const pw = 118, ph = 40;
+      ctx.save();
+      ctx.fillStyle = '#22c55e';
+      shareRR(ctx, W - MX - 16 - pw, cy - ph / 2, pw, ph, ph / 2); ctx.fill();
+      ctx.restore();
+      shareTxt(ctx, t('shareW.hecho'), W - MX - 16 - pw / 2, cy + 8, shareCtxFont(800, 22), '#ffffff', { shadow: false, ls: 1 });
+    }
+  });
+  /* pie: divisoria + marca (hashtag en dorado) */
+  const footCy = H - (cp ? 58 : 100), fR = cp ? 28 : 38;
+  ctx.save();
+  ctx.strokeStyle = 'rgba(255,255,255,.35)'; ctx.lineWidth = 2;
+  ctx.beginPath(); ctx.moveTo(MX, dividerY); ctx.lineTo(W - MX, dividerY); ctx.stroke();
+  ctx.restore();
+  ctx.save();
+  ctx.fillStyle = 'rgba(0,40,35,.55)';
+  ctx.beginPath(); ctx.arc(MX + fR, footCy, fR, 0, Math.PI * 2); ctx.fill();
+  ctx.restore();
+  shareTxt(ctx, 'R', MX + fR, footCy + (cp ? 28 : 38) * 0.36, shareCtxFont(900, cp ? 30 : 40), '#ffffff', { shadow: false });
+  shareTxt(ctx, 'ronbo.fit', MX + fR * 2 + 22, footCy + (cp ? 30 : 40) * 0.36, shareCtxFont(800, cp ? 32 : 42), '#ffffff', { align: 'left', shadowBlur: 12 });
+  shareTxt(ctx, '#MiEntrenamientoRonboFit', W - MX, footCy + (cp ? 30 : 40) * 0.36, shareCtxFont(700, cp ? 25 : 32), '#FFD83D', { align: 'right' });
+}
 function shareRender() {
   const cv = $('share-canvas'); if (!cv) return;
   const W = 1080, H = SHARE.format === '11' ? 1080 : 1920;
@@ -15242,7 +15706,15 @@ function shareRender() {
   if (cv.height !== H) cv.height = H;
   const ctx = cv.getContext('2d');
   let summary;
-  if (SHARE.type === 'week') {
+  if (SHARE.type === 'workout' && SHARE.workout) {
+    const d = SHARE.workout;
+    shareDrawWorkout(ctx, W, H, d);
+    const msg = shareMsgForDate(d.dateISO);
+    summary = t('shareW.lab') + ' · ' + d.label + ' · ' + shareDayLabel(d.dateISO) + ' · ' +
+      (d.total > 0 && d.doneCount >= d.total ? t('shareW.done') : t('shareW.progress', { x: d.doneCount, y: d.total })) +
+      (msg ? ' · ' + msg.icon + ' ' + msg.text : '') +
+      ' · ronbo.fit #MiEntrenamientoRonboFit';
+  } else if (SHARE.type === 'week') {
     const d = shareWeekData();
     shareDrawWeek(ctx, W, H, d);
     summary = t('share.weekLab') + ' · ' + shareWeekLabel(d.days) + ' · ' + t('share.streak') + ': ' + d.streak +
@@ -15262,7 +15734,9 @@ function shareRender() {
       ' · ' + (d.phrase === 'done' ? t('share.phraseDone') : d.phrase === 'start' ? t('share.phraseStart') : t('share.phraseGoing')) + ' · ronbo.fit';
   }
   cv.setAttribute('aria-label', summary);
-  SHARE.fileName = (SHARE.type === 'week' ? 'ronbo-fit-week-' : 'ronbo-fit-goal-') + todayISO() + '.png';
+  SHARE.fileName = SHARE.type === 'workout' && SHARE.workout
+    ? 'ronbo-fit-workout-' + SHARE.workout.dateISO + '.png'
+    : (SHARE.type === 'week' ? 'ronbo-fit-week-' : 'ronbo-fit-goal-') + todayISO() + '.png';
   SHARE.blob = null;
   shareRefreshShareBtn();
   try { cv.toBlob(b => { SHARE.blob = b; shareRefreshShareBtn(); }, 'image/png'); } catch (e) {}
@@ -15290,18 +15764,24 @@ function shareDownload() {
   document.body.appendChild(a); a.click(); a.remove();
   setTimeout(() => { try { URL.revokeObjectURL(url); } catch (e) {} }, 4000);
 }
+function shareSyncTypeUI() {
+  const f = $('share-float'); if (!f) return;
+  f.classList.toggle('share-workout-mode', SHARE.type === 'workout');
+  const bd = $('btn-share-day'), bw = $('btn-share-week');
+  if (bd) bd.setAttribute('aria-pressed', SHARE.type === 'day' ? 'true' : 'false');
+  if (bw) bw.setAttribute('aria-pressed', SHARE.type === 'week' ? 'true' : 'false');
+}
 function shareOpen() {
   const f = $('share-float'); if (!f) return;
   dockHome(f);
   f.style.display = '';
+  shareSyncTypeUI();
   shareRender();
 }
 function shareClose() { const f = $('share-float'); if (f) f.style.display = 'none'; }
 function shareSetType(type) {
   SHARE.type = type;
-  const bd = $('btn-share-day'), bw = $('btn-share-week');
-  if (bd) bd.setAttribute('aria-pressed', type === 'day' ? 'true' : 'false');
-  if (bw) bw.setAttribute('aria-pressed', type === 'week' ? 'true' : 'false');
+  shareSyncTypeUI();
   shareRender();
 }
 function shareSetFormat(fmt) {
@@ -15314,7 +15794,8 @@ function shareSetFormat(fmt) {
 function shareRelang() { const f = $('share-float'); if (f && f.style.display !== 'none') shareRender(); }
 { const b = $('btn-share-open'); if (b) b.addEventListener('click', () => {
     const f = $('share-float');
-    if (f && f.style.display !== 'none') shareClose(); else shareOpen();
+    if (f && f.style.display !== 'none') shareClose();
+    else { if (SHARE.type === 'workout') SHARE.type = 'day'; shareOpen(); }
   }); }
 { const b = $('btn-share-close'); if (b) b.addEventListener('click', shareClose); }
 { const b = $('btn-share-day'); if (b) b.addEventListener('click', () => shareSetType('day')); }
@@ -15342,7 +15823,7 @@ document.addEventListener('keydown', e => { if (e.key === 'Escape') shareClose()
  *  - El SW (sw.js) solo cachea la cáscara del mismo origen en modo
  *    RED PRIMERO: Auth/Firestore/Worker jamás pasan por la caché.
  * ================================================================ */
-const PWA_SW_VERSION = '20261026-slogan';
+const PWA_SW_VERSION = '20261026-entrenamiento-hoy';
 let pwaDeferredPrompt = null;
 function pwaIsStandalone() {
   try {
