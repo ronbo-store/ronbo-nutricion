@@ -1000,6 +1000,8 @@ function rolePendItems() {
           if (!cu || cu.isOwner || cu.trainerUid !== me2) continue;
           const hp = cu.goalsProvenance && Array.isArray(cu.goalsProvenance.heldParams) ? cu.goalsProvenance.heldParams : [];
           if (hp.length) push('trainer|goals-held|' + cu.id, 'clients', t('pend.trainerHeldTitle'), t('pend.trainerHeldDetail', { name: cu.name || cu.email || '—', params: hp.map(p2 => t('gm.param.' + p2)).join(', ') }), t('pend.trainerHeldGo'));
+          const gp = cu.goalsProposal || null;
+          if (gp && gp.status === 'pending') push('trainer|goals-proposal|' + cu.id, 'clients', t('pend.trainerProposalTitle'), t('pend.trainerProposalDetail', { name: cu.name || cu.email || '—', param: gp.kind === 'daytype' ? t('gm.param.dayType') : t('gm.param.' + gp.param) }), t('pend.trainerProposalGo'));
         }
       }
     } else if (ROLE === 'usuario') {
@@ -3097,6 +3099,42 @@ en: {
   'share.labSugar': 'Sugars',
   'share.labFat': 'Fats',
   'gm.param.gras': 'Fats',
+  'gm.param.dayType': 'Day type',
+  'gm.editTitle': 'Change your goals yourself',
+  'gm.editHint': 'The founded values are the recommendation. You can change any number: inside its founded range it applies at once; outside it, you will see the warning and its basis, and the change goes through your trainer\u2019s approval or a signed agreement.',
+  'gm.founded': 'Founded: {v}',
+  'gm.setBtn': 'Apply',
+  'gm.warn.kcal': '⚠ Outside the founded range for calories. The founded bands are: maintenance = your estimated expenditure ±5%; gaining = +5% to +15%; losing = the value from the pace decided under the ACSM/NIH educational band (−500…−1000 kcal/day).',
+  'gm.warn.prot': '⚠ Outside the founded range for protein. The ISSN position stand (2017) sets 1.4–2.0 g/kg/day for most people who train; in a calorie deficit the founded reference rises (2.2 g/kg here; Helms et al., 2014: 2.3–3.1 g/kg of lean mass) to protect muscle mass.',
+  'gm.warn.gras': '⚠ Outside the founded range for fats: 15%–30% of the calorie goal (Helms, Aragon & Fitschen, 2014). Below 15%, the intake of essential fatty acids and fat-soluble vitamins can fall short.',
+  'gm.warn.azuc': '⚠ Above the founded sugar value. The World Health Organization (WHO) guideline recommends free sugars below 10% of total energy (strong recommendation) and below 5% for additional benefit (conditional); this app uses the stricter 5% as the founded value. Added sugar is not an essential part of eating.',
+  'gm.warn.carb': '⚠ Below the founded reference for carbohydrates: the Institute of Medicine (IOM) sets 130 g/day as the minimum, based on the average amount of glucose the brain uses. Below that reference, the body must produce glucose from other sources.',
+  'gm.warn.daytype': '⚠ This day type differs from the one your plan founds for this date (demanding day: carbohydrates +20% paid from fats; rest day: carbohydrates −20% with fats up within their band). Changing it moves this day\u2019s carbohydrates and fats away from the founded values for the date.',
+  'gm.appliedDirect': 'Applied. It is inside the founded range.',
+  'gm.proposalPending': 'You already have a change waiting for a decision. When it is decided you can send another.',
+  'gm.proposalSent': 'Change sent to your trainer. The founded values stay in place until it is decided.',
+  'gm.myProposalPending': '⏳ Your change is waiting: {param} → {chosen}. The founded values still apply.',
+  'gm.myProposalDecided': 'Your last change ({param} → {chosen}) was decided: {status}.',
+  'gm.status.rejected': 'rejected',
+  'gm.dayTypeTitle': 'Day type (your call)',
+  'gm.dayTypeDetected': 'For {date} your plan founds: {level}. You can set another type.',
+  'gm.dayTypeApply': 'Set day type',
+  'gm.agreeTitle': 'Agreement for this change (draft)',
+  'gm.agreementText': 'DRAFT — PENDING APPROVAL · Version draft-2026-10-26. By accepting, I confirm that: (1) the app showed me the warning and the scientific basis for the founded value of the number I am changing, and the founded value and my chosen value are recorded with this acceptance, with the date; (2) the founded values are an educational reference, not medical advice; (3) I make this change strictly under my own responsibility and I release the platform and my trainer, if I have one, from responsibility for effects on my health that may result from this change; (4) I can return to the founded values at any time from this same screen. This text is a draft: it is not active until its wording is approved.',
+  'gm.agreementDraftNotice': 'The agreement that would cover this change is still a draft pending approval, so the change cannot be applied yet. The founded values stay in place.',
+  'gm.agreeAccept': 'I accept the agreement and apply the change',
+  'gm.agreeCancel': 'Cancel',
+  'gm.agreementApplied': 'Agreement recorded (draft-2026-10-26). Your change was applied under your responsibility.',
+  'gm.proposalTitle': '🎯 Client proposals (pace and goals)',
+  'gm.proposalNone': 'This client has no goal change waiting.',
+  'gm.proposalItem': 'Change: {param} · founded {founded} → chosen {chosen}{date} · status: {status}',
+  'gm.proposalPaceLine': 'There is also a pace suggestion waiting (−{n} kcal/day): decide it in the pace card above.',
+  'gm.proposalApprove': 'Approve and apply',
+  'gm.proposalReject': 'Reject',
+  'gm.proposalDecided': 'Decision saved for this client.',
+  'pend.trainerProposalTitle': 'Goal change waiting for your decision',
+  'pend.trainerProposalDetail': '{name}: a change outside the founded range is waiting ({param}). The founded values still apply.',
+  'pend.trainerProposalGo': 'Open clients',
   'gm.prov2': 'Fat share of your calorie goal: {fat}% · Day level of this calculation: {level}. Carbohydrates are what remains after protein and fats.',
   'gm.day.base': 'regular day',
   'gm.day.exigente': 'demanding day',
@@ -4624,6 +4662,42 @@ es: {
   'share.labSugar': 'Azúcares',
   'share.labFat': 'Grasas',
   'gm.param.gras': 'Grasas',
+  'gm.param.dayType': 'Tipo de día',
+  'gm.editTitle': 'Cambia tus metas tú mismo',
+  'gm.editHint': 'Los valores fundados son la recomendación. Puedes cambiar cualquier número: dentro de su banda fundada se aplica al momento; fuera de ella verás la advertencia y su fundamento, y el cambio pasa por la aprobación de tu entrenador o por un acuerdo firmado.',
+  'gm.founded': 'Fundado: {v}',
+  'gm.setBtn': 'Aplicar',
+  'gm.warn.kcal': '⚠ Fuera de la banda fundada de calorías. Las bandas fundadas son: mantenimiento = tu gasto estimado ±5%; ganar = +5% a +15%; bajar = el valor del ritmo decidido bajo la banda educativa ACSM/NIH (−500…−1000 kcal/día).',
+  'gm.warn.prot': '⚠ Fuera de la banda fundada de proteína. La posición oficial de la ISSN (2017) fija 1,4–2,0 g/kg/día para la mayoría de las personas que entrenan; en déficit calórico la referencia fundada sube (aquí 2,2 g/kg; Helms et al., 2014: 2,3–3,1 g/kg de masa magra) para proteger la masa muscular.',
+  'gm.warn.gras': '⚠ Fuera de la banda fundada de grasas: 15%–30% de la meta de calorías (Helms, Aragon & Fitschen, 2014). Por debajo del 15% puede faltar grasa para los ácidos grasos esenciales y las vitaminas liposolubles.',
+  'gm.warn.azuc': '⚠ Por encima del valor fundado de azúcares. La guía de la Organización Mundial de la Salud (OMS) recomienda los azúcares libres por debajo del 10% de la energía total (recomendación fuerte) y por debajo del 5% para un beneficio adicional (condicional); esta app usa el 5%, el más estricto, como valor fundado. El azúcar añadido no es una parte esencial de la alimentación.',
+  'gm.warn.carb': '⚠ Por debajo de la referencia fundada de carbohidratos: el Instituto de Medicina (IOM) fija 130 g/día como mínimo, según la cantidad media de glucosa que usa el cerebro. Por debajo de esa referencia, el cuerpo debe producir glucosa desde otras fuentes.',
+  'gm.warn.daytype': '⚠ Este tipo de día difiere del que tu plan fundamenta para esta fecha (día exigente: carbohidratos +20% pagados desde las grasas; día de descanso: carbohidratos −20% con la grasa al alza dentro de su banda). Cambiarlo aparta los carbohidratos y las grasas de ese día de los valores fundados para la fecha.',
+  'gm.appliedDirect': 'Aplicado. Está dentro de la banda fundada.',
+  'gm.proposalPending': 'Ya tienes un cambio esperando decisión. Cuando se decida podrás enviar otro.',
+  'gm.proposalSent': 'Cambio enviado a tu entrenador. Los valores fundados quedan vigentes hasta que se decida.',
+  'gm.myProposalPending': '⏳ Tu cambio está esperando: {param} → {chosen}. Los valores fundados siguen vigentes.',
+  'gm.myProposalDecided': 'Tu último cambio ({param} → {chosen}) fue decidido: {status}.',
+  'gm.status.rejected': 'rechazado',
+  'gm.dayTypeTitle': 'Tipo de día (tú decides)',
+  'gm.dayTypeDetected': 'Para el {date} tu plan fundamenta: {level}. Puedes fijar otro tipo.',
+  'gm.dayTypeApply': 'Fijar tipo de día',
+  'gm.agreeTitle': 'Acuerdo para este cambio (borrador)',
+  'gm.agreementText': 'BORRADOR — PENDIENTE DE APROBACIÓN · Versión draft-2026-10-26. Al aceptar, confirmo que: (1) la app me mostró la advertencia y el fundamento científico del valor fundado del número que cambio, y que el valor fundado y el valor que elegí quedan registrados con esta aceptación, con la fecha; (2) los valores fundados son una referencia educativa, no consejo médico; (3) hago este cambio estrictamente bajo mi propia responsabilidad y libero a la plataforma y a mi entrenador, si lo tengo, de responsabilidad por los efectos en mi salud que puedan derivarse de este cambio; (4) puedo volver a los valores fundados en cualquier momento desde esta misma pantalla. Este texto es un borrador: no está activo hasta que su redacción sea aprobada.',
+  'gm.agreementDraftNotice': 'El acuerdo que cubriría este cambio aún es un borrador pendiente de aprobación, así que el cambio aún no puede aplicarse. Quedan los valores fundados.',
+  'gm.agreeAccept': 'Acepto el acuerdo y aplico el cambio',
+  'gm.agreeCancel': 'Cancelar',
+  'gm.agreementApplied': 'Acuerdo registrado (draft-2026-10-26). Tu cambio se aplicó bajo tu responsabilidad.',
+  'gm.proposalTitle': '🎯 Propuestas del cliente (ritmo y metas)',
+  'gm.proposalNone': 'Este cliente no tiene cambios de metas esperando.',
+  'gm.proposalItem': 'Cambio: {param} · fundado {founded} → elegido {chosen}{date} · estado: {status}',
+  'gm.proposalPaceLine': 'También hay una sugerencia de ritmo esperando (−{n} kcal/día): decídela en la tarjeta de ritmo de arriba.',
+  'gm.proposalApprove': 'Aprobar y aplicar',
+  'gm.proposalReject': 'Rechazar',
+  'gm.proposalDecided': 'Decisión guardada para este cliente.',
+  'pend.trainerProposalTitle': 'Cambio de metas esperando tu decisión',
+  'pend.trainerProposalDetail': '{name}: un cambio fuera de la banda fundada está esperando ({param}). Los valores fundados siguen vigentes.',
+  'pend.trainerProposalGo': 'Abrir clientes',
   'gm.prov2': 'Parte de grasas de tu meta de calorías: {fat}% · Nivel del día de este cálculo: {level}. Los carbohidratos son lo que queda tras la proteína y las grasas.',
   'gm.day.base': 'día normal',
   'gm.day.exigente': 'día exigente',
@@ -6535,6 +6609,7 @@ async function openClient(uid) {
     ${fb2CardHTML(asmtDoc, data)}
     <div id="pace-card"></div>
     <div id="held-card"></div>
+    <div id="proposal-card"></div>
     <div id="compacc-box"><div class="wempty">${t('access.loading')}</div></div>
     <div id="client-training"></div>
     <div id="client-evals"><div class="eval-actions"><button type="button" class="btn-ghost btn-sm" id="btn-client-evals">${t('teval.open')}</button></div><div id="client-evals-body" style="display:none"></div></div>`;
@@ -6630,7 +6705,7 @@ async function compAccToggle(uid) {
   }
 }
 
-/* ================= MOTOR DE METAS CON FUNDAMENTO v2 (2026-10-26) =================
+/* ================= MOTOR DE METAS CON FUNDAMENTO v3 (2026-10-26) =================
    Diseño: DISEÑO-METAS-CON-FUNDAMENTO-2026-10-26.md (§C–§K).
    v2 = v1 (kcal/prot/azuc, §C–§I, en producción como e0914a57) + §K:
    el motor escribe las CINCO metas. Grasas: % de las kcal meta según
@@ -6662,7 +6737,7 @@ async function compAccToggle(uid) {
    Escritura SOLO si el resultado cambió y sin pisar ajustes manuales
    posteriores salvo que cambien los datos de fundamento (ver
    goalsEngineRun, comparación por huella con gmPick5). */
-const GOALS_ENGINE_VERSION = 'metas-v2-2026-10-26';
+const GOALS_ENGINE_VERSION = 'metas-v3-2026-10-26';
 const GOALS_TERMS_VERSION = 'v1-2026-10-26';
 const GOALS_PROTEIN_FACTOR = { mantener: 1.6, ganar: 1.8, bajar: 2.2 };
 const GOALS_FAT_PCT = { mantener: 0.25, ganar: 0.25, bajar: 0.20 };
@@ -6869,6 +6944,12 @@ function goalsDayGoalsFor(iso) {
   const prov = (typeof UDATA !== 'undefined' && UDATA) ? UDATA.goalsProvenance : null;
   if (!(base.kcal > 0) || !(base.carb > 0) || !(base.gras > 0)) return { goals: { ...base }, dayLevel: 'base', dayIndex: null, mode: 'none' };
   if (prov && Array.isArray(prov.heldParams) && prov.heldParams.includes('carb')) return { goals: { ...base }, dayLevel: 'base', dayIndex: null, mode: 'held' };
+  const ov = (typeof UDATA !== 'undefined' && UDATA && UDATA.goalsDayOverrides) ? UDATA.goalsDayOverrides[iso] : null;
+  if (ov && ['base', 'exigente', 'descanso'].includes(ov)) {
+    const fatPctOv = prov && prov.fatPct != null ? prov.fatPct : null;
+    const adjOv = goalsDayAdjust({ goals: base, fatPct: fatPctOv, dayLevel: ov });
+    return { goals: adjOv.goals, dayLevel: ov, dayIndex: null, mode: 'override' };
+  }
   const plan = (typeof MY_PLAN !== 'undefined') ? MY_PLAN : null;
   const cfg = (typeof PEND_CFG !== 'undefined' && PEND_CFG && !PEND_CFG.__error) ? PEND_CFG : null;
   const det = goalsDayLevelForDate(iso, plan, cfg, (typeof LIB_BY_ID !== 'undefined' ? LIB_BY_ID : {}));
@@ -6883,7 +6964,74 @@ function goalOfDay(key, iso) {
   const v = Number(r.goals ? r.goals[key] : undefined);
   return (isFinite(v) && v > 0) ? v : null;
 }
-try { window.__goalsCore = { compute: goalsCoreCompute, healthMap: goalsHealthMap, dayAdjust: goalsDayAdjust, dayLevelForDate: goalsDayLevelForDate, dayIsDemanding: goalsDayIsDemanding, dayGoalsFor: goalsDayGoalsFor, setView: goalsSetView, goalOfDay, version: GOALS_ENGINE_VERSION, termsVersion: GOALS_TERMS_VERSION }; } catch {}
+
+/* ================= §L — LIBERTAD DEL ALUMNO CON COMPUERTA (2026-10-26) =================
+   Los valores fundados (§§D/G/K) son el cálculo por defecto y la
+   recomendación, no una jaula: el alumno puede cambiar sus metas, el
+   tipo de día, su objetivo y sus datos. Todo cambio FUERA de la banda
+   fundada del parámetro genera ADVERTENCIA con su fundamento y pasa
+   por la compuerta: con entrenador → PROPUESTA pendiente (mandan los
+   fundados hasta que apruebe); sin entrenador → ADVERTENCIA + ACUERDO
+   firmado por cambio. La compuerta del ritmo §F queda absorbida: la
+   presentación se unifica (tarjeta de propuestas del entrenador),
+   sin tocar la forma de datos viva de paceSuggestion.
+   ⚠️ TEXTO LEGAL: el acuerdo es un BORRADOR (versión
+   draft-2026-10-26) pendiente de la aprobación de redacción de
+   Ronald. GOALS_AGREEMENT_ACTIVE = false: en producción la vía sin
+   entrenador muestra la advertencia + el aviso honesto de borrador y
+   NO aplica el cambio. El mecanismo completo (aceptar → registro →
+   aplica) solo se ejercita en pruebas/dobles con el gancho
+   window.__goalsAgreementTestAllow === true. */
+const GOALS_AGREEMENT_VERSION = 'draft-2026-10-26';
+const GOALS_AGREEMENT_ACTIVE = false;
+function goalsAgreementActive() { return GOALS_AGREEMENT_ACTIVE || (typeof window !== 'undefined' && window.__goalsAgreementTestAllow === true); }
+/* Bandas fundadas por parámetro (bordes y fuentes en el informe v3):
+   kcal: mantener TDEE ±5% · ganar +5…15% · bajar = valor fundado del
+   ritmo (aprobado/decidido; sin decisión, el mantenimiento calculado).
+   prot (g/kg, sobre el peso): mantener/ganar ISSN 1.4–2.0 · bajar
+   2.2–3.1 (referencia §G = piso en déficit; Helms/ISSN masa magra).
+   gras: 15%–30% de las kcal fundadas (§K). azuc: hasta el valor
+   fundado OMS 5%. carb: mínimo IOM 130 g/día, sin techo fundado. */
+const GM3_PROT_BAND = { mantener: [1.4, 2.0], ganar: [1.4, 2.0], bajar: [2.2, 3.1] };
+function goalsBandFor(param, ctx) {
+  const c = ctx || {}, f = c.founded || {}, tdee = Number(c.tdeeKcal), w = Number(c.weightKg);
+  if (param === 'kcal') {
+    if (!(tdee > 0)) return null;
+    if (c.objective === 'mantener') return { min: Math.round(tdee * 0.95), max: Math.round(tdee * 1.05), founded: f.kcal != null ? f.kcal : Math.round(tdee) };
+    if (c.objective === 'ganar') return { min: Math.round(tdee * 1.05), max: Math.round(tdee * 1.15), founded: f.kcal != null ? f.kcal : Math.round(tdee * 1.10) };
+    const founded = f.kcal != null ? f.kcal : (Number(c.paceKcal) > 0 ? Math.round(tdee - Number(c.paceKcal)) : Math.round(tdee));
+    return { min: founded, max: founded, founded };
+  }
+  if (param === 'prot') { const b = GM3_PROT_BAND[c.objective] || GM3_PROT_BAND.mantener; if (!(w > 0)) return null; return { min: Math.round(b[0] * w), max: Math.round(b[1] * w), founded: f.prot != null ? f.prot : null }; }
+  if (param === 'gras') { if (!(f.kcal > 0)) return null; return { min: Math.round(f.kcal * 0.15 / 9), max: Math.round(f.kcal * 0.30 / 9), founded: f.gras != null ? f.gras : null }; }
+  if (param === 'azuc') { if (!(f.kcal > 0)) return null; const fv = f.azuc != null ? f.azuc : Math.round(f.kcal * 0.05 / 4); return { min: 0, max: fv, founded: fv }; }
+  if (param === 'carb') { return { min: 130, max: null, founded: f.carb != null ? f.carb : null }; }
+  return null;
+}
+/* Decisión de compuerta (pura): dentro de banda → 'direct'; fuera →
+   'proposal' (con entrenador) o 'agreement' (sin entrenador). */
+function goalsGateDecision(inp) {
+  const band = goalsBandFor(inp.param, inp.ctx || {});
+  if (!band) return { inBand: true, band: null, foundedValue: null, action: 'direct' };
+  const v = Number(inp.value);
+  const inBand = v >= band.min && (band.max == null || v <= band.max);
+  return { inBand, band, foundedValue: band.founded, action: inBand ? 'direct' : (inp.hasTrainer ? 'proposal' : 'agreement') };
+}
+/* Compuerta del tipo de día (pura): el nivel fundado de una fecha es
+   el DETECTADO del plan. Elegir el mismo nivel → directo; con el
+   nivel detectado en 'base' (día normal de entrenamiento), exigente
+   y descanso son la variación fundada §K → directo; si el plan ya
+   periodiza esa fecha (detectado exigente o descanso), cambiarla
+   contradice la periodización fundada → compuerta; con carb retenido
+   por §E, cualquier cambio de tipo → compuerta (y la supresión de §E
+   sigue mandando al pintar). */
+function goalsDayTypeGate(detected, chosen, carbHeld) {
+  if (chosen === detected) return 'direct';
+  if (carbHeld) return 'gate';
+  if (detected === 'base') return 'direct';
+  return 'gate';
+}
+try { window.__goalsCore = { compute: goalsCoreCompute, healthMap: goalsHealthMap, dayAdjust: goalsDayAdjust, dayLevelForDate: goalsDayLevelForDate, dayIsDemanding: goalsDayIsDemanding, dayGoalsFor: goalsDayGoalsFor, setView: goalsSetView, goalOfDay, bandFor: goalsBandFor, gateDecision: goalsGateDecision, dayTypeGate: goalsDayTypeGate, agreementActive: goalsAgreementActive, agreementVersion: GOALS_AGREEMENT_VERSION, studentSetGoal: gmStudentSetGoal, studentSetDayType: gmStudentSetDayType, acceptAgreement: gmAcceptAgreement, trainerCardLoad: goalsTrainerCardLoad, trainerDecideProposal: goalsTrainerDecideProposal, version: GOALS_ENGINE_VERSION, termsVersion: GOALS_TERMS_VERSION }; } catch {}
 const gmPick5 = g => { const o = {}; for (const k of ['kcal', 'prot', 'carb', 'azuc', 'gras']) if (g && g[k] != null) o[k] = g[k]; return o; };
 const gmHasTrainer = () => !!(((typeof MY_REL !== 'undefined' && MY_REL) && MY_REL.trainerUid) || (typeof UDATA !== 'undefined' && UDATA && UDATA.trainerUid));
 async function goalsEngineRun(reason) {
@@ -6904,7 +7052,7 @@ async function goalsEngineRun(reason) {
   let dayLevelNow = 'base';
   try { const tIso = (typeof todayISO === 'function') ? todayISO() : new Date().toISOString().slice(0, 10); dayLevelNow = goalsDayLevelForDate(tIso, (typeof MY_PLAN !== 'undefined' ? MY_PLAN : null), (typeof PEND_CFG !== 'undefined' && PEND_CFG && !PEND_CFG.__error) ? PEND_CFG : null, (typeof LIB_BY_ID !== 'undefined' ? LIB_BY_ID : {})).dayLevel; } catch {}
   if (res.heldParams.includes('carb')) dayLevelNow = 'base'; // §E: con carb retenido no hay variación que registrar
-  const prov = { objective, equationUsed: a.equationUsed || a.equation || '', tdeeKcal: Math.round(a.tdeeKcal), weightKg: num(last.weight), weightDate: last.date, heightCm: num(a.heightCm), age: new Date().getFullYear() - parseInt(a.birthYear, 10), palBasal: num(a.palBasal), proteinFactor: res.proteinFactor, fatPct: res.fatPct, dayLevel: dayLevelNow, sugarRule: 'OMS-5%', paceKcal: res.paceKcal, paceState: res.paceState, heldParams: res.heldParams, heldDetails: res.heldDetails, guardHeld: res.guardHeld, infoAlerts: res.infoAlerts, engineGoals: res.goals, fingerprint: res.fingerprint, computedAt: new Date().toISOString(), engineVersion: GOALS_ENGINE_VERSION };
+  const prov = { objective, equationUsed: a.equationUsed || a.equation || '', tdeeKcal: Math.round(a.tdeeKcal), weightKg: num(last.weight), weightDate: last.date, heightCm: num(a.heightCm), age: new Date().getFullYear() - parseInt(a.birthYear, 10), palBasal: num(a.palBasal), proteinFactor: res.proteinFactor, fatPct: res.fatPct, dayLevel: dayLevelNow, sugarRule: 'OMS-5%', paceKcal: res.paceKcal, paceState: res.paceState, heldParams: res.heldParams, heldDetails: res.heldDetails, guardHeld: res.guardHeld, infoAlerts: res.infoAlerts, engineGoals: res.goals, changeLog: (UDATA.goalsProvenance && UDATA.goalsProvenance.changeLog) || [], fingerprint: res.fingerprint, computedAt: new Date().toISOString(), engineVersion: GOALS_ENGINE_VERSION };
   const curProv = UDATA.goalsProvenance || null, curGoals = UDATA.goals || null;
   /* Ajuste manual posterior del entrenador/administrador: si las metas
      actuales ya no coinciden con las últimas del motor (las CINCO) y
@@ -6973,11 +7121,13 @@ function renderGoalsEngine() {
     }
     html += `</div>`;
   }
+  html += gmEditSectionHTML(prov);
   html += `<p class="progress-hint">${esc(t('gm.eduNote'))}</p></div>`;
   box.innerHTML = html;
   box.querySelectorAll('[data-gm-obj]').forEach(b => b.onclick = () => gmSetObjective(b.dataset.gmObj));
   const send = $('gm-pace-send'); if (send) send.onclick = gmSuggestPace;
   const acc = $('gm-terms-accept'); if (acc) acc.onclick = gmAcceptTerms;
+  try { gmWireEditor(); } catch {}
 }
 async function gmSetObjective(o) {
   if (!['mantener', 'bajar', 'ganar'].includes(o)) return;
@@ -7053,6 +7203,23 @@ async function goalsTrainerCardLoad(uid, udata) {
     const ap = $('gm-tp-approve'); if (ap) ap.onclick = () => goalsTrainerDecidePace(uid, Number(ps.paceKcal));
     const st = $('gm-tp-set'); if (st) st.onclick = () => goalsTrainerDecidePace(uid, Number(($('gm-tp-sel') || {}).value || 500));
   }
+  const pc2 = $('proposal-card');
+  if (pc2) {
+    const prop = u.goalsProposal || null;
+    let h = `<div class="fb3-card"><h3 class="history-title" style="margin:0">${esc(t('gm.proposalTitle'))}</h3>`;
+    if (ps && ps.status === 'pending') h += `<p class="progress-hint">${esc(t('gm.proposalPaceLine', { n: ps.paceKcal || '—' }))}</p>`;
+    if (prop) {
+      const pName = prop.kind === 'daytype' ? t('gm.param.dayType') : t('gm.param.' + prop.param);
+      const fVal = prop.kind === 'daytype' ? t('gm.day.' + prop.foundedValue) : prop.foundedValue;
+      const cVal = prop.kind === 'daytype' ? t('gm.day.' + prop.chosenValue) : prop.chosenValue;
+      h += `<p class="progress-hint">${esc(t('gm.proposalItem', { param: pName, founded: fVal, chosen: cVal, date: prop.date ? ' · ' + prop.date : '', status: t('gm.status.' + (prop.status || 'pending')) }))}</p>`;
+      if (prop.status === 'pending') h += `<div class="eval-actions" style="justify-content:flex-start;gap:8px"><button type="button" class="btn-primary btn-sm" id="gm-prop-approve">${esc(t('gm.proposalApprove'))}</button><button type="button" class="btn-ghost btn-sm" id="gm-prop-reject">${esc(t('gm.proposalReject'))}</button></div>`;
+    } else h += `<p class="progress-hint">${esc(t('gm.proposalNone'))}</p>`;
+    h += `</div>`;
+    pc2.innerHTML = h;
+    const ap2 = $('gm-prop-approve'); if (ap2) ap2.onclick = () => goalsTrainerDecideProposal(uid, true);
+    const rj2 = $('gm-prop-reject'); if (rj2) rj2.onclick = () => goalsTrainerDecideProposal(uid, false);
+  }
   if (hc) {
     const det = (prov && prov.heldDetails) || [];
     if (det.length) {
@@ -7066,6 +7233,167 @@ async function goalsTrainerDecidePace(uid, pace) {
   try { const s = await getDoc(doc(db, 'users', uid)); if (s.exists()) cur = s.data().paceSuggestion || {}; } catch {}
   const data = { paceKcal: cur.paceKcal || Number(pace), suggestedAt: cur.suggestedAt || null, status: Number(cur.paceKcal) === Number(pace) ? 'approved' : 'replaced', decidedPaceKcal: Number(pace), decidedBy: auth.currentUser.uid, decidedAt: new Date().toISOString() };
   try { await setDoc(doc(db, 'users', uid), { paceSuggestion: data }, { merge: true }); toast(t('gm.paceDecided')); await openClient(uid); }
+  catch (e) { failToast(e); }
+}
+
+/* ================= §L — Superficies del alumno y del entrenador ================= */
+let GM3_PENDING = null;      // cambios fuera de banda esperando acuerdo (sin entrenador)
+let GM3_LAST_WARN = '';      // última advertencia mostrada en el editor
+function gm3Ctx() {
+  const prov = (typeof UDATA !== 'undefined' && UDATA) ? UDATA.goalsProvenance : null;
+  return { objective: (typeof UDATA !== 'undefined' && UDATA) ? UDATA.goalObjective : '', tdeeKcal: prov ? prov.tdeeKcal : null, weightKg: prov ? prov.weightKg : null, paceKcal: prov && (prov.paceState === 'approved' || prov.paceState === 'self-accepted') ? prov.paceKcal : null, founded: (prov && prov.engineGoals) || (typeof GOALS !== 'undefined' ? GOALS : {}) };
+}
+function gm3ProvWithLog(entry) {
+  const prov = (UDATA && UDATA.goalsProvenance) || {};
+  const log = [...((prov.changeLog) || []), entry].slice(-50);
+  return { ...prov, changeLog: log };
+}
+function gmEditSectionHTML(prov) {
+  if (!prov || !(typeof GOALS !== 'undefined' && GOALS && GOALS.kcal > 0)) return '';
+  const founded = (prov && prov.engineGoals) || GOALS;
+  const units = { kcal: ' kcal', prot: ' g', carb: ' g', azuc: ' g', gras: ' g' };
+  let h = `<div id="gm-edit"><p class="pend-cfg-h">${esc(t('gm.editTitle'))}</p><p class="progress-hint">${esc(t('gm.editHint'))}</p>`;
+  for (const k of ['kcal', 'prot', 'carb', 'azuc', 'gras']) {
+    h += `<label class="pend-sel"><span>${esc(t('gm.param.' + k))} · ${esc(t('gm.founded', { v: founded[k] != null ? fmt(founded[k]) + units[k] : '—' }))}</span><input type="number" id="gm-edit-${k}" value="${esc(GOALS[k] != null ? GOALS[k] : '')}"></label> <button type="button" class="btn-ghost btn-sm" data-gm-set="${k}">${esc(t('gm.setBtn'))}</button><br>`;
+  }
+  h += `<div id="gm-edit-warn">${GM3_LAST_WARN || ''}</div>`;
+  const prop = UDATA.goalsProposal || null;
+  if (prop) {
+    const pName = prop.kind === 'daytype' ? t('gm.param.dayType') : t('gm.param.' + prop.param);
+    const cVal = prop.kind === 'daytype' ? t('gm.day.' + prop.chosenValue) : prop.chosenValue;
+    h += prop.status === 'pending'
+      ? `<p class="progress-hint" id="gm-myproposal">${esc(t('gm.myProposalPending', { param: pName, chosen: cVal }))}</p>`
+      : `<p class="progress-hint" id="gm-myproposal">${esc(t('gm.myProposalDecided', { param: pName, chosen: cVal, status: t('gm.status.' + prop.status) }))}</p>`;
+  }
+  /* Tipo de día del día visualizado */
+  try {
+    const viewIso = GM_VIEW.date || (typeof todayISO === 'function' ? todayISO() : '');
+    if (viewIso) {
+      const det = goalsDayLevelForDate(viewIso, (typeof MY_PLAN !== 'undefined' ? MY_PLAN : null), (typeof PEND_CFG !== 'undefined' && PEND_CFG && !PEND_CFG.__error) ? PEND_CFG : null, (typeof LIB_BY_ID !== 'undefined' ? LIB_BY_ID : {}));
+      const cur = (UDATA.goalsDayOverrides && UDATA.goalsDayOverrides[viewIso]) || det.dayLevel;
+      const opts = ['base', 'exigente', 'descanso'].map(l => `<option value="${l}"${cur === l ? ' selected' : ''}>${esc(t('gm.day.' + l))}</option>`).join('');
+      h += `<p class="pend-cfg-h">${esc(t('gm.dayTypeTitle'))}</p><p class="progress-hint">${esc(t('gm.dayTypeDetected', { date: viewIso, level: t('gm.day.' + det.dayLevel) }))}</p><label class="pend-sel"><span>${esc(viewIso)}</span><select id="gm-daytype-sel">${opts}</select></label> <button type="button" class="btn-ghost btn-sm" id="gm-daytype-apply">${esc(t('gm.dayTypeApply'))}</button>`;
+    }
+  } catch {}
+  /* Acuerdo (sin entrenador): borrador inactivo en producción */
+  if (GM3_PENDING) {
+    h += `<div id="gm-agree"><p class="pend-cfg-h">${esc(t('gm.agreeTitle'))}</p><p class="progress-hint" id="gm-agree-text">${esc(t('gm.agreementText'))}</p>`;
+    if (!goalsAgreementActive()) h += `<div class="health-alert" id="gm-agree-draft">⚠ ${esc(t('gm.agreementDraftNotice'))}</div>`;
+    h += `<label class="consent-check"><input type="checkbox" id="gm-agree-ok"> <span>${esc(t('gm.agreeAccept'))}</span></label><div class="eval-actions" style="justify-content:flex-start;gap:8px"><button type="button" class="btn-primary btn-sm" id="gm-agree-accept">${esc(t('gm.agreeAccept'))}</button><button type="button" class="btn-ghost btn-sm" id="gm-agree-cancel">${esc(t('gm.agreeCancel'))}</button></div></div>`;
+  }
+  h += `</div>`;
+  return h;
+}
+function gmWireEditor() {
+  document.querySelectorAll('[data-gm-set]').forEach(b => b.onclick = () => gmStudentSetGoal(b.dataset.gmSet));
+  const dt = $('gm-daytype-apply'); if (dt) dt.onclick = gmStudentSetDayType;
+  const aa = $('gm-agree-accept'); if (aa) aa.onclick = gmAcceptAgreement;
+  const ac = $('gm-agree-cancel'); if (ac) ac.onclick = () => { GM3_PENDING = null; renderGoalsEngine(); };
+}
+async function gm3ApplyItems(items, gate, byUid) {
+  /* Aplica items ya autorizados por la vía que sea (directo / acuerdo)
+     sobre el propio documento y deja el registro en changeLog. */
+  const patch = {};
+  for (const it of items) {
+    if (it.kind === 'daytype') patch.goalsDayOverrides = { ...((UDATA && UDATA.goalsDayOverrides) || {}), [it.date]: it.chosenValue };
+    else if (it.kind === 'objective') patch.goalObjective = it.chosenValue;
+    else patch.goals = { ...(patch.goals || GOALS), [it.param]: it.chosenValue };
+  }
+  let prov = (UDATA && UDATA.goalsProvenance) || {};
+  for (const it of items) prov = { ...prov, changeLog: [...((prov.changeLog) || []), { at: new Date().toISOString(), kind: it.kind, param: it.param, date: it.date || null, foundedValue: it.foundedValue, chosenValue: it.chosenValue, gate, by: byUid }].slice(-50) };
+  patch.goalsProvenance = prov;
+  await setDoc(doc(db, 'users', auth.currentUser.uid), patch, { merge: true });
+  if (patch.goals) { UDATA.goals = patch.goals; GOALS = { ...patch.goals }; }
+  if (patch.goalsDayOverrides) UDATA.goalsDayOverrides = patch.goalsDayOverrides;
+  if (patch.goalObjective) UDATA.goalObjective = patch.goalObjective;
+  UDATA.goalsProvenance = prov;
+}
+async function gmStudentSetGoal(param) {
+  const inp = $('gm-edit-' + param); if (!inp) return;
+  const v = Number(inp.value);
+  if (!(v > 0) || v > 20000) { toast(t('gm.warn.' + param), true); return; }
+  const dec = goalsGateDecision({ param, value: v, ctx: gm3Ctx(), hasTrainer: gmHasTrainer() });
+  GM3_LAST_WARN = dec.inBand ? '' : `<div class="health-alert">${esc(t('gm.warn.' + param))}</div>`;
+  try {
+    if (dec.inBand) {
+      await gm3ApplyItems([{ kind: 'goal', param, foundedValue: dec.foundedValue, chosenValue: v }], 'direct', auth.currentUser.uid);
+      toast(t('gm.appliedDirect'));
+    } else if (gmHasTrainer()) {
+      if (UDATA.goalsProposal && UDATA.goalsProposal.status === 'pending') { toast(t('gm.proposalPending'), true); renderGoalsEngine(); return; }
+      const prop = { kind: 'goal', param, date: null, foundedValue: dec.foundedValue, chosenValue: v, warningKey: 'gm.warn.' + param, status: 'pending', proposedAt: serverTimestamp(), decidedBy: null, decidedAt: null };
+      const prov = gm3ProvWithLog({ at: new Date().toISOString(), kind: 'goal', param, date: null, foundedValue: dec.foundedValue, chosenValue: v, gate: 'pending', by: auth.currentUser.uid });
+      await setDoc(doc(db, 'users', auth.currentUser.uid), { goalsProposal: prop, goalsProvenance: prov }, { merge: true });
+      UDATA.goalsProposal = prop; UDATA.goalsProvenance = prov;
+      toast(t('gm.proposalSent'));
+    } else {
+      GM3_PENDING = [{ kind: 'goal', param, foundedValue: dec.foundedValue, chosenValue: v, warningKey: 'gm.warn.' + param }];
+    }
+  } catch (e) { failToast(e); }
+  const ds = $('dateSel'); if (ds) render(ds.value);
+  renderGoalsEngine();
+}
+async function gmStudentSetDayType() {
+  const sel = $('gm-daytype-sel'); if (!sel) return;
+  const chosen = sel.value;
+  const date = GM_VIEW.date || (typeof todayISO === 'function' ? todayISO() : '');
+  if (!date) return;
+  const det = goalsDayLevelForDate(date, (typeof MY_PLAN !== 'undefined' ? MY_PLAN : null), (typeof PEND_CFG !== 'undefined' && PEND_CFG && !PEND_CFG.__error) ? PEND_CFG : null, (typeof LIB_BY_ID !== 'undefined' ? LIB_BY_ID : {}));
+  const prov = UDATA.goalsProvenance || null;
+  const carbHeld = !!(prov && Array.isArray(prov.heldParams) && prov.heldParams.includes('carb'));
+  const gate = goalsDayTypeGate(det.dayLevel, chosen, carbHeld);
+  GM3_LAST_WARN = gate === 'direct' ? '' : `<div class="health-alert">${esc(t('gm.warn.daytype'))}</div>`;
+  try {
+    if (gate === 'direct') {
+      await gm3ApplyItems([{ kind: 'daytype', param: 'dayType', date, foundedValue: det.dayLevel, chosenValue: chosen }], 'direct', auth.currentUser.uid);
+      toast(t('gm.appliedDirect'));
+    } else if (gmHasTrainer()) {
+      if (UDATA.goalsProposal && UDATA.goalsProposal.status === 'pending') { toast(t('gm.proposalPending'), true); renderGoalsEngine(); return; }
+      const prop = { kind: 'daytype', param: 'dayType', date, foundedValue: det.dayLevel, chosenValue: chosen, warningKey: 'gm.warn.daytype', status: 'pending', proposedAt: serverTimestamp(), decidedBy: null, decidedAt: null };
+      const prov2 = gm3ProvWithLog({ at: new Date().toISOString(), kind: 'daytype', param: 'dayType', date, foundedValue: det.dayLevel, chosenValue: chosen, gate: 'pending', by: auth.currentUser.uid });
+      await setDoc(doc(db, 'users', auth.currentUser.uid), { goalsProposal: prop, goalsProvenance: prov2 }, { merge: true });
+      UDATA.goalsProposal = prop; UDATA.goalsProvenance = prov2;
+      toast(t('gm.proposalSent'));
+    } else {
+      GM3_PENDING = [{ kind: 'daytype', param: 'dayType', date, foundedValue: det.dayLevel, chosenValue: chosen, warningKey: 'gm.warn.daytype' }];
+    }
+  } catch (e) { failToast(e); }
+  const ds = $('dateSel'); if (ds) render(ds.value);
+  renderGoalsEngine();
+}
+async function gmAcceptAgreement() {
+  if (!GM3_PENDING) return;
+  const ok = $('gm-agree-ok');
+  if (!ok || !ok.checked) { toast(t('gm.agreementText'), true); return; }
+  if (!goalsAgreementActive()) { toast(t('gm.agreementDraftNotice'), true); return; } // borrador inactivo: NO aplica
+  const items = GM3_PENDING;
+  try {
+    const records = items.map(it => ({ kind: it.kind, param: it.param, date: it.date || null, foundedValue: it.foundedValue, chosenValue: it.chosenValue, warningKey: it.warningKey || '', agreementVersion: GOALS_AGREEMENT_VERSION, acceptedAt: new Date().toISOString() }));
+    const prev = (UDATA && UDATA.goalsAgreement) || {};
+    await gm3ApplyItems(items, 'accepted', auth.currentUser.uid);
+    await setDoc(doc(db, 'users', auth.currentUser.uid), { goalsAgreement: { version: GOALS_AGREEMENT_VERSION, records: [...((prev.records) || []), ...records], updatedAt: serverTimestamp() } }, { merge: true });
+    UDATA.goalsAgreement = { version: GOALS_AGREEMENT_VERSION, records: [...((prev.records) || []), ...records] };
+    GM3_PENDING = null; GM3_LAST_WARN = '';
+    toast(t('gm.agreementApplied'));
+  } catch (e) { failToast(e); }
+  const ds = $('dateSel'); if (ds) render(ds.value);
+  renderGoalsEngine();
+}
+/* ---------- Decisión del entrenador sobre la propuesta general (§L) ---------- */
+async function goalsTrainerDecideProposal(uid, approve) {
+  let data = {};
+  try { const s = await getDoc(doc(db, 'users', uid)); if (s.exists()) data = s.data(); } catch {}
+  const prop = data.goalsProposal || null;
+  if (!prop || prop.status !== 'pending') return;
+  const decided = { ...prop, status: approve ? 'approved' : 'rejected', decidedBy: auth.currentUser.uid, decidedAt: serverTimestamp() };
+  const patch = { goalsProposal: decided };
+  if (approve) {
+    if (prop.kind === 'daytype') patch.goalsDayOverrides = { ...((data.goalsDayOverrides) || {}), [prop.date]: prop.chosenValue };
+    else if (prop.kind === 'objective') patch.goalObjective = prop.chosenValue;
+    else patch.goals = { ...((data.goals) || {}), [prop.param]: prop.chosenValue };
+  }
+  const prov = data.goalsProvenance || {};
+  patch.goalsProvenance = { ...prov, changeLog: [...((prov.changeLog) || []), { at: new Date().toISOString(), kind: prop.kind, param: prop.param, date: prop.date || null, foundedValue: prop.foundedValue, chosenValue: prop.chosenValue, gate: approve ? 'approved' : 'rejected', by: auth.currentUser.uid }].slice(-50) };
+  try { await setDoc(doc(db, 'users', uid), patch, { merge: true }); toast(t('gm.proposalDecided')); if (typeof openClient === 'function') await openClient(uid); }
   catch (e) { failToast(e); }
 }
 
@@ -16922,7 +17250,7 @@ document.addEventListener('keydown', e => { if (e.key === 'Escape') shareClose()
  *  - El SW (sw.js) solo cachea la cáscara del mismo origen en modo
  *    RED PRIMERO: Auth/Firestore/Worker jamás pasan por la caché.
  * ================================================================ */
-const PWA_SW_VERSION = '20261026-metas-v2';
+const PWA_SW_VERSION = '20261026-metas-v3';
 let pwaDeferredPrompt = null;
 function pwaIsStandalone() {
   try {
