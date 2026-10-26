@@ -1113,9 +1113,21 @@ div > .btn-ghost:only-child, div > .btn-main:only-child {
    Ronald): la misma .pend-close de las hojas flotantes, fijada en la
    esquina superior derecha de la cabecera — en los modales (cuyo
    Cancelar quedaba al pie, fuera de pantalla en el teléfono), en el
-   panel de análisis y en el visor de fotos. */
+   panel de análisis y en el visor de fotos.
+   REPRUEBA-4 (2026-10-26, orden de Ronald con captura de su iPhone:
+   «Necesito que aquí arriba haya una X para salir de esa página»):
+   la ✕ de los MODALES era position:absolute DENTRO de .modal — y
+   .modal es su propio contenedor con scroll (overflow-y:auto) — así
+   que al bajar por el formulario la ✕ se iba con el contenido y la
+   hoja quedaba sin salida visible arriba (medido: con +120px de
+   scroll interno la ✕ ya sale de la vista). Ahora es STICKY: vive en
+   el flujo como primer hijo de .modal (margen inferior negativo: no
+   empuja el título, lo solapa como antes), queda pegada arriba al
+   hacer scroll y su objetivo táctil sube a 44×44px (la .pend-close
+   de las hojas flotantes sigue en 30px). El cierre NO cambia: cada
+   ✕ sigue pulsando el Cancelar de su modal, el camino de siempre. */
 .modal { position: relative; }
-.modal-x { position: absolute; top: 10px; right: 12px; margin-left: 0; z-index: 2; }
+.modal-x { position: sticky; top: 8px; display: block; width: 44px; height: 44px; margin: 0 0 -44px auto; font-size: 16px; z-index: 2; }
 .ai-panel { position: relative; }
 .ai-x { position: absolute; top: 8px; right: 8px; margin-left: 0; z-index: 2; }
 .lightbox-x { position: absolute; top: 14px; right: 14px; margin-left: 0; z-index: 2; }
