@@ -251,14 +251,39 @@ async function renderMyTrainerBox() {
   const rel = MY_REL || {};
   const trainerName = rel.trainerUid ? ((ADMIN_NAME_CACHE[rel.trainerUid]) || null) : null;
   let pool = [];
+  let usersAll = [];
   try {
     const snap = await getDocs(collection(db, 'users'));
     const users = []; snap.forEach(d => users.push({ id: d.id, ...d.data() }));
+    usersAll = users;
     users.forEach(u => { ADMIN_NAME_CACHE[u.id] = u.name || u.email || ''; });
     pool = await escPoolTrainers(rel.modality || null, users.filter(u => u.isOwner || u.role === 'entrenador'));
   } catch {}
   const tNameRaw = rel.trainerUid ? (ADMIN_NAME_CACHE[rel.trainerUid] || '') : '';
   const tName = rel.trainerUid ? ((tNameRaw && tNameRaw !== rel.trainerUid && !tNameRaw.includes('@')) ? tNameRaw : '—') : null;
+  /* Zona descriptiva del entrenador asignado (rediseño 2026-10-26,
+     orden de Ronald: la foto a la derecha y los datos a la izquierda,
+     con UN solo «Ver dossier»): el nombre se resuelve por la cadena
+     segura — displayName del dossier → nombre de la cuenta → sin
+     nombre (la línea queda en el genérico «Tu entrenador»); el uid
+     NUNCA se pinta. El titular y las modalidades salen del propio
+     trainer_profiles (la misma lectura que ya hace la vista del
+     dossier) y la foto de photoUrl con respaldo en users.photoURL;
+     sin foto (o si no carga) quedan las iniciales sobre verde de
+     marca. Sin inventar datos: lo que el perfil no aporta, no sale. */
+  let tProf = null, tNameSafe = '', tHeadline = '', tPhoto = '', tInitials = '👤', tMods = [];
+  if (rel.trainerUid) {
+    try { const ps = await getDoc(doc(db, 'trainer_profiles', rel.trainerUid)); if (ps.exists()) tProf = ps.data(); } catch {}
+    const tu = usersAll.find(u => u.id === rel.trainerUid) || {};
+    tNameSafe = (tProf && tProf.displayName) || tu.name || '';
+    tHeadline = tProf ? String(tProf.headline || '').slice(0, 120) : '';
+    tPhoto = (tProf && tProf.photoUrl) || tu.photoURL || '';
+    tMods = (tProf && Array.isArray(tProf.modalities)) ? tProf.modalities.filter(m => ESC_MODALITIES.includes(m)) : [];
+    if (tNameSafe) {
+      const w = tNameSafe.trim().split(/\s+/);
+      tInitials = (((w[0] || '')[0] || '') + ((w[1] || '')[0] || '')).toUpperCase() || '👤';
+    }
+  }
   /* Rechazo (§8.2): si el alumno está sin entrenador y el ÚLTIMO
      evento de SU historial es un rechazo, se le dice con honestidad
      y sin dureza — está en espera y puede elegir otro. La nota vive
@@ -308,9 +333,22 @@ async function renderMyTrainerBox() {
     <div class="eval-actions"><button type="button" class="btn-primary btn-sm" id="btn-meal-request">${esc(t('esc.mealsRequest'))}</button></div>`;
   box.innerHTML = `
   <div class="panel">
-    <h3 class="history-title">${esc(t('esc.myTrainerTitle'))}</h3>
-    ${rel.trainerUid ? `<p class="progress-hint">${esc(t('esc.currentTrainer'))}: <b>${esc(tName || '')}</b>${rel.modality ? ` · ${esc(t('esc.modality'))}: <b>${esc(escModLabel(rel.modality))}</b>` : ''} <button type="button" class="slot-link" data-dossier-open="${esc(rel.trainerUid)}">${esc(t('esc.dos.viewBtn'))}</button></p>`
-      : `<p class="progress-hint">${esc(t('esc.noTrainerYet'))}</p>`}
+    ${rel.trainerUid ? `<div class="mt-head">
+      <div class="mt-info">
+        <h3 class="history-title">${esc(t('esc.myTrainerTitle'))}</h3>
+        <p class="progress-hint mt-line">${esc(t('esc.currentTrainer'))}${tNameSafe ? `: <b>${esc(tNameSafe)}</b>` : ''}</p>
+        ${tHeadline ? `<p class="mt-headline">${esc(tHeadline)}</p>` : ''}
+        ${rel.modality ? `<p class="progress-hint mt-line">${esc(t('esc.modality'))}: <b>${esc(escModLabel(rel.modality))}</b></p>` : ''}
+        ${tMods.length ? `<p class="progress-hint mt-line">${esc(t('esc.modalitiesLabel'))}: ${tMods.map(m => esc(escModLabel(m))).join(' · ')}</p>` : ''}
+        <p class="mt-line"><button type="button" class="slot-link" data-dossier-open="${esc(rel.trainerUid)}">${esc(t('esc.dos.viewBtn'))}</button></p>
+      </div>
+      <button type="button" class="mt-photo" data-dossier-open="${esc(rel.trainerUid)}" aria-label="${esc(tNameSafe || t('esc.currentTrainer'))}">
+        <span class="mt-initials">${esc(tInitials)}</span>
+        ${tPhoto ? `<img class="mt-photo-img" src="${esc(tPhoto)}" alt="">` : ''}
+      </button>
+    </div>`
+      : `<h3 class="history-title">${esc(t('esc.myTrainerTitle'))}</h3>
+    <p class="progress-hint">${esc(t('esc.noTrainerYet'))}</p>`}
     ${rejectedNote}
     ${modHtml}
     <label class="muted">${esc(t('esc.changeTrainer'))}
@@ -318,9 +356,9 @@ async function renderMyTrainerBox() {
         <option value="">${esc(t('esc.waitOption'))}</option>
         ${pool.map(p => `<option value="${esc(p.uid)}"${p.full ? ' disabled' : ''}${rel.trainerUid === p.uid ? ' selected' : ''}>${esc(p.name)}${p.full ? esc(t('esc.poolFull')) : ''}</option>`).join('')}
       </select></label>
-    <div class="eval-actions"><button type="button" class="btn-primary btn-sm" id="btn-change-trainer">${esc(t('esc.changeBtn'))}</button>
-    <button type="button" class="btn-ghost btn-sm" id="btn-dossier-sel">${esc(t('esc.dos.viewBtn'))}</button></div>
-    <div class="dos-pool-links">${pool.map(p => `<button type="button" class="slot-link" data-dossier-open="${esc(p.uid)}">${esc(t('esc.dos.viewBtn'))}: ${esc(p.name)}</button>`).join(' ')}</div>
+    <div class="eval-actions"><button type="button" class="btn-primary btn-sm" id="btn-change-trainer">${esc(t('esc.changeBtn'))}</button>${rel.trainerUid ? '' : `
+    <button type="button" class="btn-ghost btn-sm" id="btn-dossier-sel">${esc(t('esc.dos.viewBtn'))}</button>`}</div>
+    <div class="dos-pool-links">${pool.map(p => `<button type="button" class="slot-link" data-dossier-open="${esc(p.uid)}">👤 ${esc(p.name)}</button>`).join(' ')}</div>
     ${mealsHtml}
   </div>`;
   const reqBtn = $('btn-meal-request');
@@ -368,8 +406,17 @@ async function renderMyTrainerBox() {
     if ((newT || null) === oldT) return;
     await escChangeTrainer(newT || null);
   };
+  /* Foto del entrenador: si la URL no carga, la imagen se retira y
+     queda visible el marcador de iniciales que lleva debajo. */
+  const mtImg = box.querySelector('.mt-photo-img');
+  if (mtImg) {
+    if (mtImg.complete && mtImg.naturalWidth === 0) mtImg.remove();
+    else mtImg.addEventListener('error', () => mtImg.remove());
+  }
   /* Dossier: ver el perfil del entrenador elegido en el selector de
-     cambio (o el del entrenador actual si no hay otra selección). */
+     cambio (o el del entrenador actual si no hay otra selección).
+     Con entrenador asignado el botón no se pinta: la tarjeta ya
+     lleva su único «Ver dossier» en la zona descriptiva. */
   const dosBtn = $('btn-dossier-sel');
   if (dosBtn) dosBtn.onclick = () => {
     const sel = $('my-trainer-sel');
@@ -16181,7 +16228,7 @@ document.addEventListener('keydown', e => { if (e.key === 'Escape') shareClose()
  *  - El SW (sw.js) solo cachea la cáscara del mismo origen en modo
  *    RED PRIMERO: Auth/Firestore/Worker jamás pasan por la caché.
  * ================================================================ */
-const PWA_SW_VERSION = '20261026-banco-mensajes';
+const PWA_SW_VERSION = '20261026-tarjeta-entrenador';
 let pwaDeferredPrompt = null;
 function pwaIsStandalone() {
   try {

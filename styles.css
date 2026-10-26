@@ -1512,3 +1512,16 @@ body { padding: max(16px, env(safe-area-inset-top)) max(16px, env(safe-area-inse
 .install-step b { color: #0b7a6e; }
 .install-btn { margin-top: 14px; width: 100%; background: #0d9488; color: #fff; border: none; text-align: center; font-weight: 700; font-size: 15.5px; border-radius: 13px; padding: 13px 0; cursor: pointer; }
 .install-fine { text-align: center; font-size: 11px; color: #93a5a3; margin: 11px 0 0; }
+/* Tarjeta «Mi entrenador» (rediseño 2026-10-26): zona descriptiva en
+   dos columnas — datos del entrenador a la izquierda, su foto a la
+   derecha (88px, redondeada); sin foto (o si no carga), marcador de
+   iniciales sobre el verde de marca. */
+.mt-head { display: flex; gap: 14px; align-items: flex-start; }
+.mt-info { flex: 1 1 auto; min-width: 0; }
+.mt-info .history-title { margin-top: 2px; }
+.mt-info p { overflow-wrap: break-word; }
+.mt-line { margin-bottom: 6px; }
+.mt-headline { font-size: 13px; color: #374151; font-style: italic; margin: 0 0 6px; }
+.mt-photo { position: relative; flex: none; width: 88px; height: 88px; border-radius: 20px; overflow: hidden; background: #0d9488; border: none; padding: 0; cursor: pointer; }
+.mt-initials { position: absolute; inset: 0; display: flex; align-items: center; justify-content: center; color: #fff; font-size: 30px; font-weight: 800; letter-spacing: .5px; }
+.mt-photo-img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; display: block; }
