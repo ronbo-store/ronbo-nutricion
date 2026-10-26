@@ -1109,6 +1109,14 @@ div > .btn-ghost:only-child, div > .btn-main:only-child {
 .voice-bars { display: flex; align-items: center; gap: 3px; height: 26px; }
 .voice-bars i { display: block; width: 4px; border-radius: 2px; background: #fff; height: 8px; transition: height .09s linear; }
 .voice-status { margin: 0; font-size: 13px; color: var(--muted, #5b6b66); text-align: center; }
+/* ICONO DE VOZ AFUERA (2026-10-26): el chip de voz de la hoja flotante
+   de comida lleva EL MISMO icono del botón de dictado — círculo en el
+   verde de marca #0d9488 con sus 5 barras blancas — en miniatura fiel
+   dentro del hueco de icono del chip (.act-chip-ico, 24px de emoji en
+   los demás chips); las barras van quietas, como el botón en reposo. */
+.voice-chip-ico { display: flex; align-items: center; justify-content: center; width: 38px; height: 38px; border-radius: 50%; background: #0d9488; box-shadow: 0 2px 6px rgba(13, 148, 136, .35); }
+.voice-chip-ico .voice-bars { height: 18px; gap: 2px; }
+.voice-chip-ico .voice-bars i { width: 3px; height: 7px; transition: none; }
 /* «Comparte tus logros» (2026-10-25): el botón vive en «Mi progreso»
    y se centra como manda la regla del sistema; la hoja reusa
    .act-float/.act-chip con DOS opciones; la vista previa es el propio

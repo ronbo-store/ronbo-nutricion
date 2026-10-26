@@ -21,7 +21,7 @@
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-title" content="RONBO FIT">
 <meta name="apple-mobile-web-app-status-bar-style" content="default">
-<link rel="stylesheet" href="styles.css?v=20261026-audio-comidas">
+<link rel="stylesheet" href="styles.css?v=20261026-voz-afuera">
 <script type="importmap">
 {
   "imports": {
@@ -516,9 +516,15 @@
         <span class="act-chip-lab" data-i18n="food.text">Text</span>
       </button>
       <!-- BOTÓN DE VOZ (2026-10-26): cuarto chip — abre la hoja de
-           dictado #food-voice, espejo de la de texto. -->
+           dictado #food-voice, espejo de la de texto.
+           ICONO DE VOZ AFUERA (2026-10-26, orden de Ronald 18:28 CDT):
+           el icono del chip ES el botón de ondas — círculo en el verde
+           de marca #0d9488 con sus 5 barras blancas — en miniatura
+           fiel, para que la vía de dictado se reconozca en esta
+           superficie exterior (junto a foto, escribir y manual) igual
+           que dentro del formulario y de la hoja de dictado. -->
       <button type="button" class="act-chip" id="btn-food-voice">
-        <span class="act-chip-ico" aria-hidden="true">🎙️</span>
+        <span class="act-chip-ico voice-chip-ico" aria-hidden="true"><span class="voice-bars"><i></i><i></i><i></i><i></i><i></i></span></span>
         <span class="act-chip-lab" data-i18n="food.voice">Voice</span>
       </button>
       <button type="button" class="act-chip" id="btn-food-manual">
@@ -1071,6 +1077,6 @@
 <div id="toast" class="toast"></div>
 <div id="print-card" aria-hidden="true"></div>
 
-<script type="module" src="app.js?v=20261026-audio-comidas"></script>
+<script type="module" src="app.js?v=20261026-voz-afuera"></script>
 </body>
 </html>
