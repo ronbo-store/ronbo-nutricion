@@ -12263,7 +12263,14 @@ function wireLibRow(row) {
     }
     if (LIB_STATE !== 'ok') { sug.innerHTML = ''; return; }
     const hits = libSearch(nameIn.value);
-    sug.innerHTML = hits.map(ex => `<button type="button" class="pl-sug-item" data-lib-id="${esc(ex.id)}"><span class="sg-name">${esc(libNameOf(ex))}</span><span class="sg-meta">${esc([libField(ex, 'grupo_muscular'), libField(ex, 'equipo'), libField(ex, 'nivel')].filter(Boolean).join(' · '))}</span></button>`).join('');
+    /* IMÁGENES EN EL DESPLEGABLE (2026-10-26, instrucción de Ronald):
+       cada sugerencia lleva la miniatura de la biblioteca (la foto_url
+       ya cargada en memoria — sin lecturas nuevas; el navegador las
+       pide perezosas y quedan en su caché; máx. 8 por lista). Sin foto
+       o con la foto caída, la opción se compone SIN la imagen (se
+       auto-retira con onerror, el patrón honesto de la casa) y sin
+       hueco roto. */
+    sug.innerHTML = hits.map(ex => `<button type="button" class="pl-sug-item" data-lib-id="${esc(ex.id)}">${ex.foto_url ? `<img class="sg-thumb" src="${esc(ex.foto_url)}" alt="" loading="lazy" decoding="async" onerror="this.remove()">` : ''}<span class="sg-text"><span class="sg-name">${esc(libNameOf(ex))}</span><span class="sg-meta">${esc([libField(ex, 'grupo_muscular'), libField(ex, 'equipo'), libField(ex, 'nivel')].filter(Boolean).join(' · '))}</span></span></button>`).join('');
     sug.querySelectorAll('.pl-sug-item').forEach(b => b.addEventListener('mousedown', ev => {
       ev.preventDefault();
       const ex = LIB_BY_ID[b.dataset.libId];
@@ -12315,7 +12322,7 @@ function substRender(row) {
   cands.sort((a, b) => ((b.equipo_es === cur.equipo_es ? 1 : 0) - (a.equipo_es === cur.equipo_es ? 1 : 0)) || libNameOf(a).localeCompare(libNameOf(b)));
   if (!cands.length) { box.innerHTML = `<div class="pl-sub-note">${t('train.sub.none')}</div>`; return; }
   box.innerHTML = `<div class="pl-sub-title">${t('train.sub.title')}</div>` + cands.slice(0, 8).map(ex => `
-    <button type="button" class="pl-sug-item" data-sub-id="${esc(ex.id)}"><span class="sg-name">${esc(libNameOf(ex))}</span><span class="sg-meta">${esc([libField(ex, 'grupo_muscular'), libField(ex, 'equipo'), libField(ex, 'nivel')].filter(Boolean).join(' · '))}${ex.equipo_es === cur.equipo_es ? ' · ' + t('train.sub.sameEq') : ''}</span></button>`).join('');
+    <button type="button" class="pl-sug-item" data-sub-id="${esc(ex.id)}">${ex.foto_url ? `<img class="sg-thumb" src="${esc(ex.foto_url)}" alt="" loading="lazy" decoding="async" onerror="this.remove()">` : ''}<span class="sg-text"><span class="sg-name">${esc(libNameOf(ex))}</span><span class="sg-meta">${esc([libField(ex, 'grupo_muscular'), libField(ex, 'equipo'), libField(ex, 'nivel')].filter(Boolean).join(' · '))}${ex.equipo_es === cur.equipo_es ? ' · ' + t('train.sub.sameEq') : ''}</span></span></button>`).join('');
   box.querySelectorAll('[data-sub-id]').forEach(b => b.onclick = () => {
     const ex = LIB_BY_ID[b.dataset.subId];
     if (ex) libLinkRow(row, ex);
@@ -17529,7 +17536,7 @@ document.addEventListener('keydown', e => { if (e.key === 'Escape') shareClose()
  *  - El SW (sw.js) solo cachea la cáscara del mismo origen en modo
  *    RED PRIMERO: Auth/Firestore/Worker jamás pasan por la caché.
  * ================================================================ */
-const PWA_SW_VERSION = '20261026-editor-guardar';
+const PWA_SW_VERSION = '20261026-imagenes-selector';
 let pwaDeferredPrompt = null;
 function pwaIsStandalone() {
   try {
