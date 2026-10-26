@@ -21,7 +21,7 @@
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-title" content="RONBO FIT">
 <meta name="apple-mobile-web-app-status-bar-style" content="default">
-<link rel="stylesheet" href="styles.css?v=20261026-voz-afuera">
+<link rel="stylesheet" href="styles.css?v=20261026-editor-guardar">
 <script type="importmap">
 {
   "imports": {
@@ -1001,6 +1001,9 @@
       </div>
       <div id="pl-days"></div>
       <button type="button" class="btn-ghost btn-sm" id="pl-add-day" data-i18n="train.f.addDay">＋ Add day</button>
+      <!-- GUARDAR SIN CERRAR (2026-10-26): confirmación visible del
+           guardado DENTRO del editor, que permanece abierto. -->
+      <div id="pl-saved-note" class="pl-saved-note" style="display:none" role="status"></div>
       <div class="frow" style="margin-top:14px">
         <button type="button" class="btn-ghost" id="plan-cancel" data-i18n="form.cancel">Cancel</button>
         <button type="submit" class="btn-primary" data-i18n="train.save">Save plan</button>
@@ -1077,6 +1080,6 @@
 <div id="toast" class="toast"></div>
 <div id="print-card" aria-hidden="true"></div>
 
-<script type="module" src="app.js?v=20261026-voz-afuera"></script>
+<script type="module" src="app.js?v=20261026-editor-guardar"></script>
 </body>
 </html>

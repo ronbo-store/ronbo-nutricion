@@ -268,6 +268,10 @@ table.whist { min-width: 640px; }
 /* ===== puerta PAR-Q (§4.5): indicador de estado en el editor de planes =====
    Solo existencia/estado de la declaración; jamás su contenido. */
 .pl-gate { background: #f1f5f9; border: 1px solid #cbd5e1; color: #334155; border-radius: 10px; padding: 10px 14px; font-size: 13px; margin: 10px 0; }
+/* GUARDAR SIN CERRAR (2026-10-26): la confirmación visible del
+   guardado dentro del editor de planes, que permanece abierto —
+   verde de éxito, hermana de .pl-gate.ok. */
+.pl-saved-note { background: #ecfdf5; border: 1px solid #0d9488; color: #065f46; border-radius: 10px; padding: 10px 14px; font-size: 13.5px; font-weight: 600; margin: 12px 0 0; }
 .pl-gate:empty { display: none; }
 .pl-gate.ok { background: #ecfdf5; border-color: #6ee7b7; color: #065f46; }
 .pl-gate.warn { background: #fffbeb; border-color: #f59e0b; color: #92400e; }

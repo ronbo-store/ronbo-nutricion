@@ -2412,6 +2412,8 @@ en: {
   'train.view.alignYes': 'Align with my plan', 'train.view.alignOpen': 'Review settings',
   'train.view.alignNo': 'Not now', 'train.view.alignDone': 'Training reminders aligned ✓',
   'train.saved': 'Plan saved.', 'train.deleted': 'Plan deleted.',
+  'train.discardChanges': 'Discard the unsaved changes to this plan? What you typed will be lost.',
+  'train.savedStay': '✓ Plan saved. The editor stays open — keep editing, or close with ✕ / Cancel when you are done.',
   'train.editorTitle': 'Training plan', 'train.section': '🏋️ Training',
   'train.f.title': 'Plan title', 'train.f.titlePh': 'E.g. Strength — 4 days',
   'train.f.notes': 'Notes for the client', 'train.f.active': 'Active plan (the one the client sees)',
@@ -3988,6 +3990,8 @@ es: {
   'train.view.alignYes': 'Alinear con mi plan', 'train.view.alignOpen': 'Revisar ajustes',
   'train.view.alignNo': 'Ahora no', 'train.view.alignDone': 'Avisos de entrenamiento alineados ✓',
   'train.saved': 'Plan guardado.', 'train.deleted': 'Plan eliminado.',
+  'train.discardChanges': '¿Descartar los cambios sin guardar de este plan? Se perderá lo que escribiste.',
+  'train.savedStay': '✓ Plan guardado. El editor sigue abierto: sigue editando o cierra con ✕ / Cancelar cuando termines.',
   'train.editorTitle': 'Plan de entrenamiento', 'train.section': '🏋️ Entrenamiento',
   'train.f.title': 'Título del plan', 'train.f.titlePh': 'Ej. Fuerza — 4 días',
   'train.f.notes': 'Notas para el cliente', 'train.f.active': 'Plan activo (el que ve el cliente)',
@@ -13383,7 +13387,7 @@ function openPlanEditor(clientUid, plan) {
      biblioteca no está disponible, el aviso queda visible y el
      editor sigue en texto libre (sin bloquear nada). */
   libRenderNotice();
-  libEnsure().then(() => libRefreshOpenRows());
+  libEnsure().then(() => { libRefreshOpenRows(); if (!planTouched) planBaseline = planSignature(); });
   /* PLANTILLAS (§4.2): el selector se ofrece en el mismo editor; la
      lectura es única por sesión y el estado de alineación nace
      limpio en cada apertura. */
@@ -13391,13 +13395,64 @@ function openPlanEditor(clientUid, plan) {
   /* CONSTRUCTOR VISUAL (§5.1): el panel nace cerrado y con el día
      destino en el primer día en cada apertura del editor. */
   vizOnEditorOpen();
+  /* GUARDAR SIN CERRAR (2026-10-26): el estado recién abierto es la
+     línea base del aviso de descarte, y la nota de guardado nace
+     oculta en cada apertura. */
+  planTouched = false;
+  planBaseline = planSignature();
+  const svn0 = $('pl-saved-note'); if (svn0) svn0.style.display = 'none';
+}
+/* GUARDAR SIN CERRAR (2026-10-26, instrucción de Ronald): foto del
+   estado del editor (campos + días + filas, incluidos los textos de
+   descanso/aproximación visibles y los vínculos de biblioteca) para
+   saber si hay trabajo SIN GUARDAR. Solo lee el DOM: no escribe. */
+function planSignature() {
+  const v = id => { const el = $(id); return el ? (el.type === 'checkbox' ? (el.checked ? '1' : '0') : el.value) : ''; };
+  const days = [];
+  document.querySelectorAll('#pl-days .pl-day').forEach(dEl => {
+    const exs = [];
+    dEl.querySelectorAll('.pl-ex-row').forEach(r => {
+      const q = s => { const i = r.querySelector(s); return i ? i.value : ''; };
+      exs.push([q('.pl-ex-name'), q('.pl-ex-sets'), q('.pl-ex-reps'), q('.pl-ex-note'), q('.pl-ex-rest'), q('.pl-ex-warmup'), r.dataset.exid || '', r.dataset.rest || '', r.dataset.restEn || '', r.dataset.warmup || '', r.dataset.warmupEn || ''].join('|'));
+    });
+    const dl = dEl.querySelector('.pl-day-label');
+    days.push([(dl ? dl.value : ''), (dEl._sessionBlocks || []).length].join('#') + ':' + exs.join(';'));
+  });
+  return JSON.stringify([v('pl-title'), v('pl-notes'), v('pl-active'), v('pl-start'), v('pl-end'), v('pl-preset'), planCtx && planCtx.tplSource ? planCtx.tplSource.id : '', days.join('~')]);
+}
+let planBaseline = null;
+/* «Tocado» = el entrenador ya escribió/cambió algo en el formulario
+   (evento input). La resolución de la biblioteca al abrir puede
+   re-pintar nombres de filas vinculadas SIN ser trabajo suyo: si aún
+   no ha tocado nada, la línea base se re-captura tras esa resolución
+   (ver el .then de libEnsure en openPlanEditor) y no hay falso aviso. */
+let planTouched = false;
+function planCloseEditor() {
+  $('plan-modal').style.display = 'none';
+  planCtx = null; planBaseline = null; planTouched = false;
+  const svn = $('pl-saved-note'); if (svn) svn.style.display = 'none';
+}
+function planRequestClose() {
+  if (!planCtx) { planCloseEditor(); return; }
+  /* Salir con cambios sin guardar PREGUNTA antes de descartar (el
+     patrón confirm() de la casa). Sin cambios — recién abierto o
+     recién guardado — cierra directo, sin preguntar. */
+  if (planBaseline !== null && planSignature() !== planBaseline && !confirm(t('train.discardChanges'))) return;
+  planCloseEditor();
 }
 $('pl-add-day').onclick = () => { $('pl-days').appendChild(planDayRow(null)); vizRefreshDays(document.querySelectorAll('#pl-days .pl-day').length - 1); };
-$('plan-cancel').onclick = () => { $('plan-modal').style.display = 'none'; planCtx = null; };
+$('plan-cancel').onclick = () => planRequestClose();
+/* La nota de «guardado» se apaga en cuanto el entrenador vuelve a
+   tocar el formulario: ya no describe el estado actual. */
+{ const fp = $('form-plan'); if (fp) fp.addEventListener('input', () => { planTouched = true; const n = $('pl-saved-note'); if (n) n.style.display = 'none'; }); }
 if ($('ex-media-x')) $('ex-media-x').onclick = exMediaClose;
 if ($('ex-media-pop')) $('ex-media-pop').addEventListener('click', e => { if (e.target.id === 'ex-media-pop') exMediaClose(); });
 document.addEventListener('keydown', e => { if (e.key === 'Escape') exMediaClose(); });
-$('plan-modal').addEventListener('click', e => { if (e.target.id === 'plan-modal') { $('plan-modal').style.display = 'none'; planCtx = null; } });
+/* GUARDAR SIN CERRAR (2026-10-26): el editor de planes YA NO se
+   cierra tocando el fondo del modal — por instrucción de Ronald, el
+   cierre es SOLO con los botones ✕ / Cancelar (la ✕ pulsa Cancelar
+   por el cableado compartido). Un toque accidental fuera de la hoja
+   ya no bota el trabajo sin guardar. */
 $('form-plan').addEventListener('submit', async e => {
   e.preventDefault();
   if (!planCtx) return;
@@ -13498,8 +13553,16 @@ $('form-plan').addEventListener('submit', async e => {
       await setDoc(doc(db, 'training_plans', o.id), { active: false, updatedAt: serverTimestamp() }, { merge: true });
   }
   const cuid = planCtx.clientUid;
-  planCtx = null;
-  $('plan-modal').style.display = 'none';
+  /* GUARDAR SIN CERRAR (2026-10-26, instrucción de Ronald): guardar
+     PERSISTE y la ventana PERMANECE ABIERTA, con su confirmación
+     visible dentro del editor — el cierre es solo con ✕ / Cancelar.
+     El contexto adopta el id guardado (un segundo Guardar actualiza
+     el MISMO plan, no crea otro) y la línea base se refresca con lo
+     recién guardado: ya no cuenta como «sin guardar». */
+  planCtx.planId = planId;
+  planTouched = false;
+  planBaseline = planSignature();
+  const svn = $('pl-saved-note'); if (svn) { svn.textContent = t('train.savedStay'); svn.style.display = ''; }
   toast(gateWarnAfter ? t('train.gate.savedWithWarning') : t('train.saved'), gateWarnAfter);
   if ($('client-training')) loadClientTraining(cuid);
   if (cuid === auth.currentUser.uid) loadMyTraining();
@@ -17466,7 +17529,7 @@ document.addEventListener('keydown', e => { if (e.key === 'Escape') shareClose()
  *  - El SW (sw.js) solo cachea la cáscara del mismo origen en modo
  *    RED PRIMERO: Auth/Firestore/Worker jamás pasan por la caché.
  * ================================================================ */
-const PWA_SW_VERSION = '20261026-voz-afuera';
+const PWA_SW_VERSION = '20261026-editor-guardar';
 let pwaDeferredPrompt = null;
 function pwaIsStandalone() {
   try {
