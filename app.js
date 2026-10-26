@@ -1564,6 +1564,13 @@ const STR = {
 en: {
   'app.title': 'RONBO.FIT · Private',
   'auth.subtitle': 'Eat well. Train strong. Live present.',
+  'install.title': 'Take RONBO FIT on your phone!',
+  'install.sub': 'Install it as an app: you get its icon on your screen and open it in one tap, without the browser.',
+  'install.ios': '<b>iPhone:</b> in Safari tap <b>Share</b>, then <b>“Add to Home Screen”</b>.',
+  'install.android': '<b>Android:</b> in Chrome tap the <b>⋮</b> menu, then <b>“Install app”</b>.',
+  'install.ok': 'Got it',
+  'install.once': 'We only show you this message the first time.',
+  'install.close': 'Close',
   'auth.tabLogin': 'Sign in',
   'auth.tabRegister': 'Create account',
   'form.email': 'Email',
@@ -3014,6 +3021,13 @@ en: {
 es: {
   'app.title': 'RONBO.FIT · Privado',
   'auth.subtitle': 'Come bien. Entrena fuerte. Vive el presente.',
+  'install.title': '¡Lleva RONBO FIT en tu teléfono!',
+  'install.sub': 'Instálala como una app: tendrás tu ícono en la pantalla y entrarás de un solo toque, sin abrir el navegador.',
+  'install.ios': '<b>iPhone:</b> en Safari toca <b>Compartir</b> y luego <b>«Agregar a pantalla de inicio»</b>.',
+  'install.android': '<b>Android:</b> en Chrome toca el menú <b>⋮</b> y luego <b>«Instalar app»</b>.',
+  'install.ok': 'Entendido',
+  'install.once': 'Solo te mostramos este mensaje la primera vez.',
+  'install.close': 'Cerrar',
   'auth.tabLogin': 'Entrar',
   'auth.tabRegister': 'Crear cuenta',
   'form.email': 'Correo',
@@ -4883,6 +4897,9 @@ onAuthStateChanged(auth, async user => {
   }
   $('who').textContent = UDATA.name ? UDATA.name : user.email;
   setAvatar(UDATA.photoURL || '');
+  /* Mensaje de instalación (2026-10-26): con sesión iniciada la
+     tarjeta de primera visita nunca queda sobre la app. */
+  const _ic = $('install-card-overlay'); if (_ic) _ic.style.display = 'none';
   $('auth-view').style.display = 'none';
   $('app-view').style.display = '';
   $('main-tabs').style.display = ROLE === 'usuario' ? 'none' : '';
@@ -16002,7 +16019,7 @@ document.addEventListener('keydown', e => { if (e.key === 'Escape') shareClose()
  *  - El SW (sw.js) solo cachea la cáscara del mismo origen en modo
  *    RED PRIMERO: Auth/Firestore/Worker jamás pasan por la caché.
  * ================================================================ */
-const PWA_SW_VERSION = '20261026-checklist-flotante';
+const PWA_SW_VERSION = '20261026-mensaje-instalacion';
 let pwaDeferredPrompt = null;
 function pwaIsStandalone() {
   try {
@@ -16094,4 +16111,52 @@ async function pwaDoInstall() {
       navigator.serviceWorker.register('sw.js').catch(() => {});
     }
   } catch (e) { /* sin SW, la app funciona como siempre */ }
+})();
+
+/* ================================================================
+ * MENSAJE FLOTANTE DE INSTALACIÓN (2026-10-26, diseño CERRADO por
+ * Ronald — maqueta v4): tarjeta de PRIMERA VISITA sobre la pantalla
+ * de acceso que explica cómo instalar la app como icono (iPhone /
+ * Android). Solo UI + localStorage; sin escrituras de datos.
+ *  - La tarjeta NACE OCULTA en el HTML: si este JS falla, el acceso
+ *    queda intacto y jamás bloqueado.
+ *  - Se muestra una sola vez por navegador/dispositivo: al cerrarla
+ *    (✕ o «Entendido»/«Got it») deja la marca local
+ *    'ronbofit-install-card-seen'.
+ *  - NUNCA en modo standalone (app ya instalada): pwaIsStandalone().
+ *  - Sin localStorage disponible no se muestra (fallo silencioso y
+ *    seguro: mejor ninguna tarjeta que una que no puede recordar
+ *    su descarte); el cierre también va en try/catch.
+ *  - La decisión de mostrar espera a ver qué vista queda en pie:
+ *    solo se muestra si la pantalla de acceso sigue visible (si ya
+ *    hay sesión, el observador de Auth la oculta además al entrar).
+ *  - Los textos viven en el diccionario (claves install.*): se
+ *    pintan con applyI18n() y se repintan al cambiar el idioma con
+ *    la tarjeta abierta, como el resto de la pantalla de acceso.
+ * ================================================================ */
+(function installCardInit() {
+  try {
+    const KEY = 'ronbofit-install-card-seen';
+    let seen = null;
+    try { seen = localStorage.getItem(KEY); } catch (e) { return; }
+    if (seen === '1') return;
+    if (pwaIsStandalone()) return;
+    const ov = document.getElementById('install-card-overlay');
+    if (!ov) return;
+    const close = () => {
+      try { localStorage.setItem(KEY, '1'); } catch (e) {}
+      ov.style.display = 'none';
+    };
+    const x = document.getElementById('install-card-close');
+    if (x) x.addEventListener('click', close);
+    const ok = document.getElementById('install-card-ok');
+    if (ok) ok.addEventListener('click', close);
+    setTimeout(() => {
+      try {
+        if (pwaIsStandalone()) return;
+        const av = document.getElementById('auth-view');
+        if (av && av.style.display !== 'none') ov.style.display = 'flex';
+      } catch (e) {}
+    }, 650);
+  } catch (e) { /* el mensaje de instalación nunca rompe el acceso */ }
 })();

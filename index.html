@@ -21,7 +21,7 @@
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-title" content="RONBO FIT">
 <meta name="apple-mobile-web-app-status-bar-style" content="default">
-<link rel="stylesheet" href="styles.css?v=20261026-checklist-flotante">
+<link rel="stylesheet" href="styles.css?v=20261026-mensaje-instalacion">
 <script type="importmap">
 {
   "imports": {
@@ -1018,9 +1018,28 @@
   </div>
 </div>
 
+<!-- ============ MENSAJE FLOTANTE DE INSTALACIÓN (2026-10-26) ============
+     Tarjeta de primera visita sobre la pantalla de acceso: cómo
+     instalar la app como icono. Nace OCULTA siempre: solo la muestra
+     el JS de app.js cuando aplica (primera visita en este navegador,
+     nunca en modo standalone) y jamás bloquea el acceso si algo
+     falla. Diseño CERRADO por Ronald (maqueta v4 aprobada). -->
+<div id="install-card-overlay" class="install-overlay" style="display:none" role="dialog" aria-modal="true" aria-labelledby="install-card-title">
+  <div class="install-card">
+    <button type="button" class="install-x" id="install-card-close" data-i18n-aria="install.close" aria-label="Close">✕</button>
+    <div class="install-hand" aria-hidden="true"><span>✋</span></div>
+    <h2 class="install-title" id="install-card-title" data-i18n="install.title">Take RONBO FIT on your phone!</h2>
+    <p class="install-sub" data-i18n="install.sub">Install it as an app: you get its icon on your screen and open it in one tap, without the browser.</p>
+    <div class="install-step"><div class="install-ic" aria-hidden="true">🍎</div><p data-i18n="install.ios"><b>iPhone:</b> in Safari tap <b>Share</b>, then <b>“Add to Home Screen”</b>.</p></div>
+    <div class="install-step"><div class="install-ic" aria-hidden="true">🤖</div><p data-i18n="install.android"><b>Android:</b> in Chrome tap the <b>⋮</b> menu, then <b>“Install app”</b>.</p></div>
+    <button type="button" class="install-btn" id="install-card-ok" data-i18n="install.ok">Got it</button>
+    <p class="install-fine" data-i18n="install.once">We only show you this message the first time.</p>
+  </div>
+</div>
+
 <div id="toast" class="toast"></div>
 <div id="print-card" aria-hidden="true"></div>
 
-<script type="module" src="app.js?v=20261026-checklist-flotante"></script>
+<script type="module" src="app.js?v=20261026-mensaje-instalacion"></script>
 </body>
 </html>

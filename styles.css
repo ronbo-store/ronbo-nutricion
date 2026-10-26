@@ -1468,3 +1468,24 @@ body { padding: max(16px, env(safe-area-inset-top)) max(16px, env(safe-area-inse
 .train-float-check { display: flex; align-items: center; gap: 8px; font-weight: 700; color: #065f46; margin: 12px 0 4px; font-size: 15px; cursor: pointer; }
 .train-float-check input { width: 22px; height: 22px; accent-color: #22c55e; cursor: pointer; }
 .train-float-actions { display: flex; gap: 8px; margin-top: 14px; }
+
+/* ============ MENSAJE FLOTANTE DE INSTALACIÓN (2026-10-26) ============
+   Tarjeta de primera visita sobre la pantalla de acceso (diseño
+   CERRADO por Ronald, maqueta v4): círculo rojo con la manito de
+   stop en blanco, dos pasos (iPhone/Android) y «Entendido». El
+   velo oscurece el acceso; la tarjeta nace oculta (display:none en
+   el HTML) y solo la muestra app.js en la primera visita, nunca en
+   modo standalone. */
+.install-overlay { position: fixed; inset: 0; z-index: 1300; background: rgba(13, 42, 40, .38); display: flex; align-items: center; justify-content: center; padding: 20px 22px; box-sizing: border-box; }
+.install-card { position: relative; background: #fff; border-radius: 22px; box-shadow: 0 24px 60px rgba(0, 0, 0, .35); padding: 26px 24px 22px; width: 100%; max-width: 380px; max-height: calc(100dvh - 40px); overflow-y: auto; box-sizing: border-box; }
+.install-x { position: absolute; top: 12px; right: 14px; width: 30px; height: 30px; border-radius: 50%; border: none; background: #eef4f3; color: #5b6b6a; font-size: 15px; line-height: 1; cursor: pointer; display: flex; align-items: center; justify-content: center; padding: 0; }
+.install-hand { width: 58px; height: 58px; border-radius: 50%; background: #d92d20; margin: 2px auto 12px; display: flex; align-items: center; justify-content: center; }
+.install-hand span { font-size: 30px; line-height: 1; filter: brightness(0) invert(1); }
+.install-title { font-size: 20px; color: #17323a; text-align: center; font-weight: 800; letter-spacing: .2px; margin: 0; }
+.install-sub { font-size: 13.5px; color: #5b6b6a; text-align: center; margin: 8px 4px 16px; line-height: 1.45; }
+.install-step { display: flex; gap: 11px; background: #f4f9f8; border: 1px solid #e2efed; border-radius: 14px; padding: 11px 12px; margin-bottom: 9px; }
+.install-ic { font-size: 19px; line-height: 1.2; }
+.install-step p { font-size: 13px; color: #2c4442; line-height: 1.45; margin: 0; }
+.install-step b { color: #0b7a6e; }
+.install-btn { margin-top: 14px; width: 100%; background: #0d9488; color: #fff; border: none; text-align: center; font-weight: 700; font-size: 15.5px; border-radius: 13px; padding: 13px 0; cursor: pointer; }
+.install-fine { text-align: center; font-size: 11px; color: #93a5a3; margin: 11px 0 0; }
