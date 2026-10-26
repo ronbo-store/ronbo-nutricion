@@ -2827,6 +2827,10 @@ en: {
   'pend.evalTitle': 'Your progress evaluation was due on {date}.',
   'pend.energyTitle': 'Your energy calculation needs a private datum',
   'pend.energyDetail': 'Your trainer set up your energy calculation, but it cannot be completed yet: a private datum that only you can provide is missing. Only you can see its value — your trainer only sees whether it has been provided or not.',
+  'pend.energyWeightTitle': 'Your energy calculation needs your weight',
+  'pend.energyWeightDetail': 'Your trainer set up your energy calculation, but it cannot be completed yet: there is no weigh-in logged by you. Log your current weight and your result will be calculated from your own session.',
+  'pend.energyAthleteTitle': 'Your energy calculation needs your athlete declaration',
+  'pend.energyAthleteDetail': 'Your trainer chose an equation that only applies to athletes, and it can only be used with your own declaration. Only you can make it — your trainer only sees whether it has been made or not.',
   'pend.goEnergy': 'Complete it now',
   'pend.profileTitle': 'Complete your profile template to continue',
   'pend.profileDetail': 'Students see this template when choosing a trainer in the pool. It is complete when it has your featured photo, your headline and your personal introduction.',
@@ -4287,6 +4291,10 @@ es: {
   'pend.evalTitle': 'Tu evaluación de progreso vencía el {date}.',
   'pend.energyTitle': 'Tu cálculo de energía necesita un dato privado',
   'pend.energyDetail': 'Tu entrenador dejó preparado tu cálculo de energía, pero aún no puede completarse: falta un dato privado que solo tú puedes aportar. Solo tú puedes ver su valor: tu entrenador solo ve si ya está aportado o no.',
+  'pend.energyWeightTitle': 'A tu cálculo de energía le falta tu peso',
+  'pend.energyWeightDetail': 'Tu entrenador dejó preparado tu cálculo de energía, pero aún no puede completarse: no hay ningún pesaje registrado por ti. Registra tu peso actual y tu resultado se calculará desde tu propia sesión.',
+  'pend.energyAthleteTitle': 'A tu cálculo de energía le falta tu declaración de atleta',
+  'pend.energyAthleteDetail': 'Tu entrenador eligió una ecuación que solo aplica a atletas, y solo puede usarse con tu propia declaración. Solo tú puedes hacerla: tu entrenador solo ve si ya está hecha o no.',
   'pend.goEnergy': 'Completarlo ahora',
   'pend.profileTitle': 'Completa tu plantilla de perfil para continuar',
   'pend.profileDetail': 'Los alumnos ven esta plantilla al elegir entrenador en el pool. Está completa cuando tiene tu foto destacada, tu titular y tu reseña personal.',
@@ -15028,6 +15036,46 @@ function pendCompute() {
       out.items.push({ id: 'energy|private-data', type: 'energy', date: regDay, overdue: false, age: 0 });
   } catch {}
 
+  /* Energía — el RESTO del hueco (decisión de Ronald, chat
+     RONBO.NUTRI, 2026-10-26 07:40 CDT: «correcto que lo vea el
+     cliente»): con la ecuación ya elegida y el dato privado ya
+     aportado (el pendiente anterior manda: en la tarjeta del
+     entrenador fa.missSex precede a fa.missData, y faComputeMine
+     comprueba el sexo antes que todo), el cálculo puede seguir
+     sin poder completarse por datos que SOLO el cliente aporta.
+     Cuáles son se lee del motor, no se inventa: faCalcCheck
+     valida año de nacimiento, talla y palBasal — CONFIGURACIÓN
+     DEL ENTRENADOR (faSaveConfig; las reglas solo dejan al
+     cliente escribir sexDataProvided, athleteDeclared y el
+     resultado en assessment/current), así que si falla cualquiera
+     de esos tres, el bloqueo NO es del cliente y NO se genera
+     pendiente — y el ÚNICO dato base restante de faCalcCheck es
+     el peso registrado, que lo ingresa el propio usuario
+     (fa.errWeight). Tras faCalcCheck, faComputeMine aplica la
+     puerta de Ten Haaf: sin la declaración de atleta DEL PROPIO
+     CLIENTE (athleteDeclared, que vive en su panel privado y el
+     entrenador solo ve como señal sí/no) esa ecuación no puede
+     calcularse. Ambos ítems conviven con el del dato privado sin
+     duplicarse: aquel exige sexDataProvided !== true y estos
+     exigen === true (excluyentes por construcción), y entre sí
+     siguen el orden del motor (peso primero: si falta el peso,
+     la declaración se pide cuando el peso ya está). Sin marcas,
+     como el precedente: están mientras falte el dato y
+     desaparecen al aportarlo. Si todo está listo (fa.missPending)
+     no hay pendiente: el resultado se registra solo desde la
+     propia sesión al abrir la app. */
+  try {
+    const a = (typeof MY_ASMT !== 'undefined' && MY_ASMT) ? MY_ASMT.doc : null;
+    if (a && FA_EQ_ENABLED.includes(a.equation) && a.sexDataProvided === true) {
+      const lastW = (typeof WEIGHTS !== 'undefined' && WEIGHTS && WEIGHTS.length) ? WEIGHTS[WEIGHTS.length - 1] : null;
+      const bad = (typeof faCalcCheck === 'function') ? faCalcCheck(a, lastW) : null;
+      if (bad && bad.key === 'fa.errWeight')
+        out.items.push({ id: 'energy|base-weight', type: 'energy', kind: 'base-weight', date: regDay, overdue: false, age: 0 });
+      else if (!bad && a.equation === 'ten-haaf' && a.athleteDeclared !== true)
+        out.items.push({ id: 'energy|athlete', type: 'energy', kind: 'athlete', date: regDay, overdue: false, age: 0 });
+    }
+  } catch {}
+
   const order = { profile: 0, role: 0, meal: 1, weight: 2, training: 3, eval: 4, energy: 5 };
   out.items.sort((a, b) => (a.date < b.date ? -1 : a.date > b.date ? 1 : (order[a.type] || 9) - (order[b.type] || 9)));
   return out;
@@ -15172,9 +15220,19 @@ function pendItemHTML(it, regDay) {
     detail = `${esc(t('pend.evalMissing', { items }))}${it.overdue ? ` · ${esc(t('pend.daysAgo', { d: it.age }))}` : ''}`;
     go = `<button type="button" class="btn-primary btn-sm" data-pend-act="go" data-type="eval" data-date="${it.date}">${esc(t('pend.goEval'))}</button>`;
   } else if (it.type === 'energy') {
-    title = t('pend.energyTitle');
-    detail = t('pend.energyDetail');
-    go = `<button type="button" class="btn-primary btn-sm" data-pend-act="go" data-type="energy" data-date="${it.date}">${esc(t('pend.goEnergy'))}</button>`;
+    if (it.kind === 'base-weight') {
+      title = t('pend.energyWeightTitle');
+      detail = t('pend.energyWeightDetail');
+      go = `<button type="button" class="btn-primary btn-sm" data-pend-act="go" data-type="energy" data-ekind="base-weight" data-date="${it.date}">${esc(t('pend.goWeight'))}</button>`;
+    } else if (it.kind === 'athlete') {
+      title = t('pend.energyAthleteTitle');
+      detail = t('pend.energyAthleteDetail');
+      go = `<button type="button" class="btn-primary btn-sm" data-pend-act="go" data-type="energy" data-ekind="athlete" data-date="${it.date}">${esc(t('pend.goEnergy'))}</button>`;
+    } else {
+      title = t('pend.energyTitle');
+      detail = t('pend.energyDetail');
+      go = `<button type="button" class="btn-primary btn-sm" data-pend-act="go" data-type="energy" data-date="${it.date}">${esc(t('pend.goEnergy'))}</button>`;
+    }
   } else if (it.type === 'profile') {
     title = t('pend.profileTitle');
     detail = t('pend.profileDetail');
@@ -15400,12 +15458,20 @@ setInterval(() => { try { pendDockTick(); } catch {} }, 60000);
           if (c && c.style.display === 'none') { const pb = $('btn-toggle-progress'); if (pb) pb.click(); }
           const r = $('eval-root'); if (r) { try { r.scrollIntoView({ behavior: 'smooth', block: 'start' }); } catch {} }
         } else if (type === 'energy') {
-          /* El dato privado se aporta en «Permisos y privacidad»,
-             sección de energía: se abre el panel si está cerrado y
-             se desplaza hasta la tarjeta del propio cliente. */
-          const pb = $('btn-perms');
-          if (pb && !permsOpen) pb.click();
-          const r = $('energy-section'); if (r) { try { r.scrollIntoView({ behavior: 'smooth', block: 'start' }); } catch {} }
+          if (b.dataset.ekind === 'base-weight') {
+            /* El peso lo ingresa el usuario: el «Ir a» abre el
+               modal de pesaje, igual que el pendiente de peso. */
+            openWeightModal(null);
+            const wd = $('w-date'); if (wd) wd.value = date;
+          } else {
+            /* El dato privado y la declaración de atleta se aportan
+               en «Permisos y privacidad», sección de energía: se
+               abre el panel si está cerrado y se desplaza hasta la
+               tarjeta del propio cliente. */
+            const pb = $('btn-perms');
+            if (pb && !permsOpen) pb.click();
+            const r = $('energy-section'); if (r) { try { r.scrollIntoView({ behavior: 'smooth', block: 'start' }); } catch {} }
+          }
         } else if (type === 'profile') {
           /* El pendiente de plantilla lleva al editor del propio
              dossier, que ahora vive en «Mi perfil» (perfil-visible,
@@ -16257,7 +16323,7 @@ document.addEventListener('keydown', e => { if (e.key === 'Escape') shareClose()
  *  - El SW (sw.js) solo cachea la cáscara del mismo origen en modo
  *    RED PRIMERO: Auth/Firestore/Worker jamás pasan por la caché.
  * ================================================================ */
-const PWA_SW_VERSION = '20261026-fugas-idioma';
+const PWA_SW_VERSION = '20261026-pendenergia-cliente';
 let pwaDeferredPrompt = null;
 function pwaIsStandalone() {
   try {
