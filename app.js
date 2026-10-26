@@ -2488,6 +2488,7 @@ en: {
   'train.n09.editMineNote': '✏️ You are editing your private template “{name}”.',
   'train.prop.tplTitle': '📋 Routine templates',
   'train.prop.tplIntro': 'Browse the routine templates. You can propose adding or swapping an exercise in your active plan — your trainer reviews and decides.',
+  'train.prop.viewTemplates': 'View templates', 'train.prop.hideTemplates': 'Hide templates',
   'train.prop.tplUnavailable': '📋 The routine templates are unavailable right now (they may be empty or could not be loaded).',
   'train.prop.details': 'Details', 'train.prop.hide': 'Hide',
   'train.prop.proposeBtn': 'Propose for my plan',
@@ -3951,6 +3952,7 @@ es: {
   'train.n09.editMineNote': '✏️ Estás editando tu plantilla privada «{name}».',
   'train.prop.tplTitle': '📋 Plantillas de rutina',
   'train.prop.tplIntro': 'Explora las plantillas de rutina. Puedes proponer añadir o cambiar un ejercicio de tu plan activo: tu entrenador lo revisa y decide.',
+  'train.prop.viewTemplates': 'Ver plantillas', 'train.prop.hideTemplates': 'Ocultar plantillas',
   'train.prop.tplUnavailable': '📋 Las plantillas de rutina no están disponibles ahora mismo (pueden estar vacías o no haberse podido cargar).',
   'train.prop.details': 'Detalles', 'train.prop.hide': 'Ocultar',
   'train.prop.proposeBtn': 'Proponer para mi plan',
@@ -10100,6 +10102,7 @@ async function loadMyTraining() {
    mano en el editor si lo decide. Las plantillas y la biblioteca
    se leen con las cachés de siempre (tplEnsure/libEnsure). */
 let PROP_TPL_OPEN = new Set();   // plantillas expandidas en la zona del cliente
+let PROP_TPL_LIST_OPEN = false;  // REPRUEBA-3: la LISTA de plantillas nace recogida; el alumno la abre con «Ver plantillas». Solo memoria: un repintado no la cierra a mitad de tarea y al recargar la app vuelve a nacer recogida
 let PROP_FORM = null;            // { exerciseId, fromTemplateId, type } | null
 let PROP_TRAY = { uid: null, plans: [] };
 
@@ -10169,14 +10172,26 @@ function renderPropTemplates() {
   let inner = `<h3 class="history-title">${t('train.prop.tplTitle')}</h3><p class="progress-hint">${t('train.prop.tplIntro')}</p>`;
   if (TPL_STATE === 'unavailable') inner += `<div class="wempty compact">${t('train.prop.tplUnavailable')}</div>`;
   else if (TPL_STATE === 'ok' && TPL) {
-    if (!MY_PLAN) inner += `<div class="prop-note">${t('train.prop.noPlanNote')}</div>`;
-    /* N-09 + resolución 23:15: el catálogo muestra solo lo que este
-       rol puede LEER (fábrica para todos, también el cliente
-       asignado; entrenador: solo su autor y el admin; privadas:
-       solo su dueño y el admin). */
-    inner += TPL.filter(tplCanRead).map(tpl => propTplCardHTML(tpl)).join('');
+    /* REPRUEBA-3 (orden de Ronald, chat, 2026-10-26): la lista nace
+       RECOGIDA — las tarjetas no se pintan (ni ocupan alto) hasta que
+       el alumno toca «Ver plantillas»; la bandera vive solo en
+       memoria (PROP_TPL_LIST_OPEN), así un repintado de la zona no la
+       cierra a mitad de tarea y al recargar vuelve a nacer recogida.
+       El acceso de solo lectura (N-09) y el flujo de propuestas (P7)
+       quedan intactos: al abrirla, la lista es la de siempre. */
+    inner += `<button type="button" class="btn-ghost btn-sm" data-prop-tpl-list-toggle aria-expanded="${PROP_TPL_LIST_OPEN}">${PROP_TPL_LIST_OPEN ? `${t('train.prop.hideTemplates')} ▴` : `${t('train.prop.viewTemplates')} ▾`}</button>`;
+    if (PROP_TPL_LIST_OPEN) {
+      if (!MY_PLAN) inner += `<div class="prop-note">${t('train.prop.noPlanNote')}</div>`;
+      /* N-09 + resolución 23:15: el catálogo muestra solo lo que este
+         rol puede LEER (fábrica para todos, también el cliente
+         asignado; entrenador: solo su autor y el admin; privadas:
+         solo su dueño y el admin). */
+      inner += TPL.filter(tplCanRead).map(tpl => propTplCardHTML(tpl)).join('');
+    }
   } else inner += `<div class="wempty compact">${t('train.loading')}</div>`;
   box.innerHTML = inner;
+  const listBtn = box.querySelector('[data-prop-tpl-list-toggle]');
+  if (listBtn) listBtn.onclick = () => { PROP_TPL_LIST_OPEN = !PROP_TPL_LIST_OPEN; renderPropTemplates(); };
   box.querySelectorAll('[data-prop-tpl-toggle]').forEach(b => b.onclick = () => {
     const id = b.dataset.propTplToggle;
     if (PROP_TPL_OPEN.has(id)) PROP_TPL_OPEN.delete(id); else PROP_TPL_OPEN.add(id);
@@ -16323,7 +16338,7 @@ document.addEventListener('keydown', e => { if (e.key === 'Escape') shareClose()
  *  - El SW (sw.js) solo cachea la cáscara del mismo origen en modo
  *    RED PRIMERO: Auth/Firestore/Worker jamás pasan por la caché.
  * ================================================================ */
-const PWA_SW_VERSION = '20261026-pendenergia-cliente';
+const PWA_SW_VERSION = '20261026-reprueba-3';
 let pwaDeferredPrompt = null;
 function pwaIsStandalone() {
   try {
