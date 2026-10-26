@@ -2271,6 +2271,16 @@ en: {
   'ac.values': '{kcal} kcal · protein {prot} g · carbs {carb} g · sugar {sugar} g · fat {fat} g',
   'aiText.notFound': "AI couldn't identify any food this time. Try again, or log the meal manually.",
   'aiText.banner': 'Draft from your description: check and edit the values before saving.',
+  'aiVoice.label': 'Dictate your meal',
+  'aiVoice.hint': 'Or say it: tap the button and dictate what you ate — food, amount and preparation (e.g. "300 grams of skinless chicken breast made in the air fryer"). AI transcribes it and suggests the values; you review and edit everything before saving. The audio is never saved.',
+  'aiVoice.tap': 'Tap to dictate',
+  'aiVoice.listening': 'Listening… tap again to stop and analyze',
+  'aiVoice.processing': 'Analyzing your voice note…',
+  'aiVoice.denied': 'Microphone permission was denied. You can allow it in your browser settings — or keep using photo, text or manual entry.',
+  'aiVoice.unsupported': 'Voice recording is not available in this browser. You can still use photo, text or manual entry.',
+  'aiVoice.tooShort': 'Nothing was heard. Try again, speaking close to the microphone.',
+  'aiVoice.banner': 'Draft from your voice note: check and edit the values before saving.',
+  'aiVoice.savedNote': 'Your voice note was not saved.',
   'aiMulti.title': 'Photos of this meal',
   'aiMulti.hint': 'They are photos of ONE single meal: the dish as served and each item weighed on your scale. You can remove or replace any photo before analyzing.',
   'aiMulti.add': '＋ Add another photo',
@@ -2292,6 +2302,7 @@ en: {
   'meal.title': 'Log meal',
   'food.photo': 'Photo',
   'food.text': 'Text',
+  'food.voice': 'Voice',
   'food.manual': 'Manual',
   'food.help': 'Help',
   'form.date': 'Date',
@@ -3836,6 +3847,16 @@ es: {
   'ac.values': '{kcal} kcal · proteína {prot} g · carbos {carb} g · azúcares {sugar} g · grasas {fat} g',
   'aiText.notFound': 'La IA no pudo identificar ningún alimento esta vez. Inténtalo de nuevo o registra la comida manualmente.',
   'aiText.banner': 'Borrador de tu descripción: revisa y edita los valores antes de guardar.',
+  'aiVoice.label': 'Dicta tu comida',
+  'aiVoice.hint': 'O dilo: toca el botón y dicta lo que comiste — alimento, cantidad y preparación (ej.: «300 gramos de pechuga sin piel hecha al air fryer»). La IA lo transcribe y sugiere los valores; tú revisas y editas todo antes de guardar. El audio nunca se guarda.',
+  'aiVoice.tap': 'Toca para dictar',
+  'aiVoice.listening': 'Escuchando… toca otra vez para detener y analizar',
+  'aiVoice.processing': 'Analizando tu nota de voz…',
+  'aiVoice.denied': 'El permiso del micrófono fue denegado. Puedes permitirlo en los ajustes de tu navegador — o seguir usando foto, texto o registro manual.',
+  'aiVoice.unsupported': 'La grabación de voz no está disponible en este navegador. Puedes seguir usando foto, texto o registro manual.',
+  'aiVoice.tooShort': 'No se escuchó nada. Inténtalo de nuevo, hablando cerca del micrófono.',
+  'aiVoice.banner': 'Borrador de tu nota de voz: revisa y edita los valores antes de guardar.',
+  'aiVoice.savedNote': 'Tu nota de voz no se guardó.',
   'aiMulti.title': 'Fotos de esta comida',
   'aiMulti.hint': 'Son fotos de UNA misma comida: el plato servido y cada alimento pesado en tu báscula. Puedes quitar o reemplazar cualquier foto antes de analizar.',
   'aiMulti.add': '＋ Añadir otra foto',
@@ -3857,6 +3878,7 @@ es: {
   'meal.title': 'Registrar comida',
   'food.photo': 'Foto',
   'food.text': 'Texto',
+  'food.voice': 'Voz',
   'food.manual': 'Manual',
   'food.help': 'Ayuda',
   'form.date': 'Fecha',
@@ -8249,7 +8271,7 @@ function aiNewSaveId() {
   return 'meal_' + Date.now().toString(36) + '_' + aiSaveSeq.toString(36) + '_' + Math.random().toString(36).slice(2, 8);
 }
 function aiFreshState(mode) {
-  return { mode, dataUrl: null, photos: null, descText: '', step: 'loading', r1: null, answers: {}, other: {}, foods: null, r2: null, errStage: 'identify', meal: aiDefaultMeal(), metrics: null, metricsEdited: false, name: null, nameEdited: false, cap: false, capLimit: null, disabled: false, btWindow: false, btRenews: null, saveError: false, saveId: aiNewSaveId() };
+  return { mode, dataUrl: null, photos: null, descText: '', audioDataUrl: null, step: 'loading', r1: null, answers: {}, other: {}, foods: null, r2: null, errStage: 'identify', meal: aiDefaultMeal(), metrics: null, metricsEdited: false, name: null, nameEdited: false, cap: false, capLimit: null, disabled: false, btWindow: false, btRenews: null, saveError: false, saveId: aiNewSaveId() };
 }
 /* Registra en el estado el tipo de corte que devolvió aiCall: tope
    diario (con el límite aplicable si el Worker lo dijo), interruptor
@@ -8318,12 +8340,27 @@ async function aiStartText(desc) {
   aiState.descText = desc;
   aiRunIdentify();
 }
+/* BOTÓN DE VOZ (Ronald, 2026-10-26): la nota de voz dictada hace de
+   IDENTIFICACIÓN — sustituye a la foto y a la descripción — y todo lo
+   demás (preguntas de cantidades, cálculo, revisión editable,
+   guardado) es EXACTAMENTE el flujo vigente. El audio vive SOLO en
+   memoria en el estado (un data URL con su mime real), como la foto:
+   jamás se almacena ni se sube a ningún bucket. La marca de origen
+   distingue la vía al guardar: source 'ai-audio' (ver aiSaveDirect y
+   el envío de #form-meal vía aiUseDraft). */
+async function aiStartAudio(dataUrl) {
+  aiState = aiFreshState('audio');
+  aiState.audioDataUrl = dataUrl;
+  aiRunIdentify();
+}
 async function aiRunIdentify() {
   aiRender();
   try {
     const raw = aiState.mode === 'text'
       ? await aiCall('/identify-text', { description: aiState.descText, lang: LANG })
-      : await aiCall('/identify', aiIdentifyBody());
+      : aiState.mode === 'audio'
+        ? await aiCall('/identify-audio', { audioDataUrl: aiState.audioDataUrl, lang: LANG })
+        : await aiCall('/identify', aiIdentifyBody());
     if (!aiState) return; // descartado mientras llamaba
     const r1 = aiShapeR1(raw);
     if (!r1) throw new Error('ai-badshape'); // forma inesperada → aviso honesto (Parte B)
@@ -8404,6 +8441,7 @@ async function aiCalculate() {
 function aiHasInput() {
   if (!aiState) return false;
   if (aiState.mode === 'text') return String(aiState.descText || '').trim().length > 0;
+  if (aiState.mode === 'audio') return !!aiState.audioDataUrl;
   const photos = (aiState.photos && aiState.photos.length) ? aiState.photos : (aiState.dataUrl ? [aiState.dataUrl] : []);
   return photos.length > 0 && !!photos[0];
 }
@@ -8481,6 +8519,7 @@ function aiRetry() {
        silencio — antes aiStartText/aiStartPhotos la reiniciaban. */
     const keepMeal = aiState.meal;
     if (aiState.mode === 'text') aiStartText(aiState.descText);
+    else if (aiState.mode === 'audio') aiStartAudio(aiState.audioDataUrl);
     else aiStartPhotos((aiState.photos && aiState.photos.length) ? aiState.photos : [aiState.dataUrl]);
     if (keepMeal && aiState) aiState.meal = keepMeal;
   }
@@ -8803,13 +8842,14 @@ if (aiFile) {
    tope, no la puerta de entrada. */
 const foodIsOpen = id => { const el = $(id); return !!el && el.style.display !== 'none'; };
 function foodShowOnly(which) {
-  const map = { float: 'food-float', text: 'food-text', help: 'food-help' };
+  const map = { float: 'food-float', text: 'food-text', help: 'food-help', voice: 'food-voice' };
   for (const [k, id] of Object.entries(map)) { const el = $(id); if (el) el.style.display = (k === which) ? '' : 'none'; }
 }
 function foodCloseAll() { foodShowOnly(null); }
 function foodOpenFloat() { foodShowOnly('float'); }
 function foodOpenText() { foodShowOnly('text'); const ta = $('food-text-desc'); if (ta) { try { ta.focus(); } catch {} } }
 function foodOpenHelp() { foodShowOnly('help'); }
+function foodOpenVoice() { foodShowOnly('voice'); }
 
 /* El botón redondo «Comida» del dock es un <label> que envuelve el
    input de archivo: sin interceptar, tocarlo abriría la
@@ -8833,6 +8873,7 @@ if (foodDockLabel) foodDockLabel.addEventListener('click', e => {
     const f = $('ai-file'); if (f) f.click();
   }; }
 { const b = $('btn-food-text'); if (b) b.onclick = () => foodOpenText(); }
+{ const b = $('btn-food-voice'); if (b) b.onclick = () => foodOpenVoice(); }
 { const b = $('btn-food-manual');
   /* El chip delega en el botón vigente «Añadir comida manualmente»:
      SU handler es el que prepara el formulario (fecha del día
@@ -8845,6 +8886,7 @@ if (foodDockLabel) foodDockLabel.addEventListener('click', e => {
 { const c = $('btn-food-close'); if (c) c.onclick = () => foodCloseAll(); }
 { const c = $('btn-food-text-close'); if (c) c.onclick = () => foodOpenFloat(); }
 { const c = $('btn-food-help-close'); if (c) c.onclick = () => foodOpenFloat(); }
+{ const c = $('btn-food-voice-close'); if (c) c.onclick = () => foodOpenFloat(); }
 /* «Analizar la descripción con IA» desde la hoja de texto: la
    MISMA validación honesta del botón del formulario manual
    (descripción de al menos 2 caracteres y endpoint disponible) y
@@ -8861,8 +8903,8 @@ if (foodDockLabel) foodDockLabel.addEventListener('click', e => {
 /* Cierre tocando fuera (el label COMIDA del dock se excluye: su
    propio handler ya alterna) y con Escape — espejo de actividad. */
 document.addEventListener('click', e => {
-  if (!['food-float', 'food-text', 'food-help'].some(foodIsOpen)) return;
-  for (const id of ['food-float', 'food-text', 'food-help']) { const el = $(id); if (el && el.contains(e.target)) return; }
+  if (!['food-float', 'food-text', 'food-help', 'food-voice'].some(foodIsOpen)) return;
+  for (const id of ['food-float', 'food-text', 'food-help', 'food-voice']) { const el = $(id); if (el && el.contains(e.target)) return; }
   const l = $('btn-round-food'); if (l && l.contains(e.target)) return;
   foodCloseAll();
 });
@@ -8902,6 +8944,138 @@ if (mAiTextBtn) mAiTextBtn.addEventListener('click', () => {
   aiStartText(desc);
   if (chosenMeal && aiState) aiState.meal = chosenMeal;
 });
+/* ===== BOTÓN DE VOZ «ONDAS» (Ronald, 2026-10-26) =====
+   Diseño elegido por Ronald: «ondas tipo ChatGPT» en colores de
+   marca — círculo en el verde de marca #0d9488 con 5 barras que
+   BAILAN con el nivel de la voz (AnalyserNode sobre el stream del
+   micrófono); en reposo, barras cortas y quietas. Dos instancias del
+   MISMO control — el formulario manual (#m-voice-btn) y la hoja
+   flotante de comida (#fv-voice-btn) — y UN solo controlador: nunca
+   hay dos grabaciones a la vez y el estado se pinta en ambas.
+   Grabación con MediaRecorder y negociación de formato honesta: iOS
+   produce audio/mp4 y el escritorio audio/webm — el mime REAL viaja
+   en el data URL y el Worker lo reenvía tal cual al proveedor. Tope
+   de 120 s por nota (corte automático con el mismo camino de
+   análisis). Estados honestos: sin API de grabación →
+   aiVoice.unsupported; permiso denegado → aiVoice.denied (con las
+   salidas de siempre: foto, texto o manual); nota vacía →
+   aiVoice.tooShort; el error de red/IA lo pinta el panel de análisis
+   como en las demás vías. Al detener, la nota entra por aiStartAudio
+   en el flujo vigente: nada se guarda sin su revisión y el audio no
+   sale nunca de la memoria. */
+const voiceCtl = { rec: null, stream: null, ac: null, analyser: null, raf: 0, timer: 0, chunks: [], mime: '', busy: false, fromModal: false };
+const VOICE_MAX_MS = 120000;
+function voiceSupported() {
+  return !!(navigator.mediaDevices && navigator.mediaDevices.getUserMedia && typeof MediaRecorder !== 'undefined');
+}
+function voicePickMime() {
+  if (typeof MediaRecorder === 'undefined' || !MediaRecorder.isTypeSupported) return '';
+  const cands = ['audio/mp4', 'audio/webm;codecs=opus', 'audio/webm', 'audio/ogg;codecs=opus', 'audio/ogg', 'audio/aac'];
+  for (const c of cands) { try { if (MediaRecorder.isTypeSupported(c)) return c; } catch {} }
+  return '';
+}
+function voicePaint(state, msg) {
+  for (const [bId, sId] of [['m-voice-btn', 'm-voice-status'], ['fv-voice-btn', 'fv-voice-status']]) {
+    const b = $(bId), s = $(sId);
+    if (b) { b.classList.toggle('recording', state === 'rec'); b.disabled = state === 'busy'; }
+    if (s) s.textContent = state === 'rec' ? t('aiVoice.listening') : state === 'busy' ? t('aiVoice.processing') : (msg || t('aiVoice.tap'));
+  }
+}
+function voiceBarsReset() {
+  document.querySelectorAll('.voice-bars i').forEach(i => { i.style.height = '8px'; });
+}
+function voiceStopTracks() {
+  if (voiceCtl.raf) { cancelAnimationFrame(voiceCtl.raf); voiceCtl.raf = 0; }
+  if (voiceCtl.timer) { clearTimeout(voiceCtl.timer); voiceCtl.timer = 0; }
+  if (voiceCtl.stream) { voiceCtl.stream.getTracks().forEach(tr => { try { tr.stop(); } catch {} }); voiceCtl.stream = null; }
+  if (voiceCtl.ac) { try { voiceCtl.ac.close(); } catch {} voiceCtl.ac = null; }
+  voiceCtl.analyser = null;
+  voiceBarsReset();
+}
+function voiceAnimate() {
+  if (!voiceCtl.rec || voiceCtl.rec.state !== 'recording' || !voiceCtl.analyser) return;
+  const data = new Uint8Array(voiceCtl.analyser.frequencyBinCount);
+  voiceCtl.analyser.getByteFrequencyData(data);
+  const levels = [];
+  for (let b = 0; b < 5; b++) {
+    const from = Math.floor((b / 5) * data.length * 0.7);
+    const to = Math.max(from + 1, Math.floor(((b + 1) / 5) * data.length * 0.7));
+    let sum = 0; for (let i = from; i < to; i++) sum += data[i];
+    levels.push((sum / (to - from)) / 255);
+  }
+  document.querySelectorAll('.voice-bars').forEach(box => {
+    const bars = box.querySelectorAll('i');
+    for (let b = 0; b < bars.length && b < 5; b++) bars[b].style.height = Math.round(6 + levels[b] * 20) + 'px';
+  });
+  voiceCtl.raf = requestAnimationFrame(voiceAnimate);
+}
+async function voiceToggle(fromModal) {
+  if (voiceCtl.busy) return;
+  if (voiceCtl.rec && voiceCtl.rec.state === 'recording') { try { voiceCtl.rec.stop(); } catch {} return; }
+  if (!voiceSupported()) { toast(t('aiVoice.unsupported'), true); return; }
+  if (!aiEndpoint()) { toast(t('ai.unavailable'), true); return; }
+  let stream;
+  try { stream = await navigator.mediaDevices.getUserMedia({ audio: true }); }
+  catch { voicePaint('idle', t('aiVoice.denied')); toast(t('aiVoice.denied'), true); return; }
+  voiceCtl.stream = stream;
+  voiceCtl.chunks = [];
+  voiceCtl.fromModal = !!fromModal;
+  const mime = voicePickMime();
+  let rec;
+  try { rec = mime ? new MediaRecorder(stream, { mimeType: mime }) : new MediaRecorder(stream); }
+  catch { voiceStopTracks(); toast(t('aiVoice.unsupported'), true); return; }
+  voiceCtl.rec = rec;
+  voiceCtl.mime = (rec.mimeType || mime || 'audio/webm').split(';')[0];
+  try {
+    const AC = window.AudioContext || window.webkitAudioContext;
+    if (AC) {
+      voiceCtl.ac = new AC();
+      if (voiceCtl.ac.state === 'suspended') { try { await voiceCtl.ac.resume(); } catch {} }
+      voiceCtl.analyser = voiceCtl.ac.createAnalyser();
+      voiceCtl.analyser.fftSize = 256;
+      voiceCtl.ac.createMediaStreamSource(stream).connect(voiceCtl.analyser);
+    }
+  } catch { voiceCtl.analyser = null; }
+  rec.ondataavailable = e => { if (e.data && e.data.size) voiceCtl.chunks.push(e.data); };
+  rec.onstop = () => {
+    const blob = new Blob(voiceCtl.chunks, { type: voiceCtl.mime });
+    voiceCtl.chunks = [];
+    voiceCtl.rec = null;
+    voiceStopTracks();
+    if (!blob.size) { voicePaint('idle', t('aiVoice.tooShort')); toast(t('aiVoice.tooShort'), true); return; }
+    voiceCtl.busy = true;
+    voicePaint('busy');
+    const rd = new FileReader();
+    rd.onload = () => {
+      voiceCtl.busy = false;
+      voicePaint('idle');
+      const dataUrl = String(rd.result || '');
+      if (!dataUrl.startsWith('data:')) { toast(t('aiVoice.unsupported'), true); return; }
+      if (voiceCtl.fromModal) {
+        /* Espejo del botón de texto del formulario: la comida elegida
+           se conserva y el espejo de borrador se desarma. */
+        const mealSel = $('m-meal');
+        const chosenMeal = mealSel && mealSel.value ? mealSel.value : null;
+        try { pendDraftDisarm(); } catch {}
+        const mm = $('meal-modal'); if (mm) mm.style.display = 'none';
+        aiStartAudio(dataUrl);
+        if (chosenMeal && aiState) aiState.meal = chosenMeal;
+      } else {
+        foodCloseAll();
+        aiStartAudio(dataUrl);
+      }
+    };
+    rd.onerror = () => { voiceCtl.busy = false; voicePaint('idle'); toast(t('aiVoice.unsupported'), true); };
+    rd.readAsDataURL(blob);
+  };
+  try { rec.start(250); } catch { voiceStopTracks(); toast(t('aiVoice.unsupported'), true); return; }
+  voicePaint('rec');
+  voiceAnimate();
+  voiceCtl.timer = setTimeout(() => { if (voiceCtl.rec && voiceCtl.rec.state === 'recording') { try { voiceCtl.rec.stop(); } catch {} } }, VOICE_MAX_MS);
+}
+{ const b = $('m-voice-btn'); if (b) b.onclick = () => voiceToggle(true); }
+{ const b = $('fv-voice-btn'); if (b) b.onclick = () => voiceToggle(false); }
+
 /* Apertura del modal de comida con enfoque visible en el formulario. */
 function aiOpenMealModal() {
   /* Roles+Escalabilidad: sin la función de comidas activa (solicitud
@@ -9016,18 +9190,19 @@ function aiUseDraft(r1, r2) {
        el guardado del formulario lo valida contra los totales
        FINALES (itemsIfSquare) antes de persistirlo. */
     /* Marca de origen VERAZ: el borrador conserva la vía de entrada
-       (foto = 'ai', descripción = 'ai-text') y el envío del formulario
-       la escribe tal cual en el registro. */
+       (foto = 'ai', descripción = 'ai-text', voz = 'ai-audio') y el
+       envío del formulario la escribe tal cual en el registro. */
     const fromText = !!(typeof aiState !== 'undefined' && aiState && aiState.mode === 'text');
+    const fromAudio = !!(typeof aiState !== 'undefined' && aiState && aiState.mode === 'audio');
     /* La identidad de guardado de la revisión viaja al borrador: el
        envío del formulario escribirá el MISMO documento que el
        guardado directo de esta revisión (ver aiNewSaveId). */
-    aiDraft = { model: (r2 && r2.model) || 'gemini', rangeKcal: Array.isArray(tot.range_kcal) ? tot.range_kcal : null, items: aiItemsCandidate(), src: fromText ? 'ai-text' : 'ai', saveId: (typeof aiState !== 'undefined' && aiState && aiState.saveId) || null };
+    aiDraft = { model: (r2 && r2.model) || 'gemini', rangeKcal: Array.isArray(tot.range_kcal) ? tot.range_kcal : null, items: aiItemsCandidate(), src: fromText ? 'ai-text' : fromAudio ? 'ai-audio' : 'ai', saveId: (typeof aiState !== 'undefined' && aiState && aiState.saveId) || null };
     try {
       const b = $('m-ai-banner');
       if (b) {
         b.style.display = '';
-        b.textContent = t(fromText ? 'aiText.banner' : 'ai.banner') + (aiDraft.rangeKcal ? ' ' + t('ai.range').replace('{a}', Math.round(aiDraft.rangeKcal[0])).replace('{b}', Math.round(aiDraft.rangeKcal[1])) : '');
+        b.textContent = t(fromText ? 'aiText.banner' : fromAudio ? 'aiVoice.banner' : 'ai.banner') + (aiDraft.rangeKcal ? ' ' + t('ai.range').replace('{a}', Math.round(aiDraft.rangeKcal[0])).replace('{b}', Math.round(aiDraft.rangeKcal[1])) : '');
       }
     } catch { failed = true; }
   } catch { failed = true; }
@@ -9076,8 +9251,9 @@ async function aiSaveDirect() {
        nace sin notas; las notas son solo texto escrito a mano. */
     createdAt: serverTimestamp(),
     /* Marca de origen veraz: 'ai' si vino de una foto, 'ai-text' si
-       vino de la descripción escrita (ingreso manual con ayuda de IA). */
-    source: aiState.mode === 'text' ? 'ai-text' : 'ai',
+       vino de la descripción escrita y 'ai-audio' si vino de la nota
+       de voz dictada (botón de voz, 2026-10-26). */
+    source: aiState.mode === 'text' ? 'ai-text' : aiState.mode === 'audio' ? 'ai-audio' : 'ai',
     ai: { model: (aiState.r2 && aiState.r2.model) || 'gemini', rangeKcal: Array.isArray(tot.range_kcal) ? tot.range_kcal : null }
   };
   /* Desglose por alimento: solo si su suma iguala los totales que se
@@ -9101,7 +9277,7 @@ async function aiSaveDirect() {
        no se guardó — nunca en un aviso nuevo; por texto
        ('ai-text') no aparece, y si el guardado falla esta línea
        jamás se ejecuta (el fallo muestra ai.saveError). */
-    toast(t('ai.savedInfo', { kcal: Math.round(data.kcal), total: Math.round(dayTotal) }) + (data.source === 'ai' ? ' ' + t('ai.savedPhotoNote') : ''));
+    toast(t('ai.savedInfo', { kcal: Math.round(data.kcal), total: Math.round(dayTotal) }) + (data.source === 'ai' ? ' ' + t('ai.savedPhotoNote') : data.source === 'ai-audio' ? ' ' + t('aiVoice.savedNote') : ''));
   } catch {
     if (aiState) { aiState.saveError = true; aiState.step = 'draft'; aiRender(); }
     toast(t('ai.saveError'), true);
@@ -15382,7 +15558,7 @@ function openRepeatMeal(rec, viewDate) {
   /* Procedencia: estimación de IA si el documento trae source:'ai'
      (foto) o 'ai-text' (descripción), o si ya era una copia de una
      estimación (origin.kind 'repeat-ai'). */
-  const aiOrigin = rec.source === 'ai' || rec.source === 'ai-text' || (rec.origin && rec.origin.kind === 'repeat-ai');
+  const aiOrigin = rec.source === 'ai' || rec.source === 'ai-text' || rec.source === 'ai-audio' || (rec.origin && rec.origin.kind === 'repeat-ai');
   const pq = repeatParseQty(rec.qty);
   repeatCtx = {
     kind: aiOrigin ? 'repeat-ai' : 'repeat-manual',
@@ -15614,8 +15790,9 @@ $('form-meal').addEventListener('submit', async e => {
       /* La línea breve de la foto (ai.savedPhotoNote) va SOLO si
          el borrador vino de una FOTO (source 'ai'); el borrador de
          texto ('ai-text') confirma sin ella, como el guardado
-         directo. */
-      toast(t('ai.savedInfo', { kcal: Math.round(data.kcal), total: Math.round(dayTotal) }) + (data.source === 'ai' ? ' ' + t('ai.savedPhotoNote') : ''));
+         directo; el de VOZ ('ai-audio') lleva su línea gemela
+         (aiVoice.savedNote: la nota de voz no se guardó). */
+      toast(t('ai.savedInfo', { kcal: Math.round(data.kcal), total: Math.round(dayTotal) }) + (data.source === 'ai' ? ' ' + t('ai.savedPhotoNote') : data.source === 'ai-audio' ? ' ' + t('aiVoice.savedNote') : ''));
     } else {
       toast(t('msg.mealSaved'));
     }
@@ -17289,7 +17466,7 @@ document.addEventListener('keydown', e => { if (e.key === 'Escape') shareClose()
  *  - El SW (sw.js) solo cachea la cáscara del mismo origen en modo
  *    RED PRIMERO: Auth/Firestore/Worker jamás pasan por la caché.
  * ================================================================ */
-const PWA_SW_VERSION = '20261026-acuerdo-activo';
+const PWA_SW_VERSION = '20261026-audio-comidas';
 let pwaDeferredPrompt = null;
 function pwaIsStandalone() {
   try {

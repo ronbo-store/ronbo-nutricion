@@ -21,7 +21,7 @@
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-title" content="RONBO FIT">
 <meta name="apple-mobile-web-app-status-bar-style" content="default">
-<link rel="stylesheet" href="styles.css?v=20261026-acuerdo-activo">
+<link rel="stylesheet" href="styles.css?v=20261026-audio-comidas">
 <script type="importmap">
 {
   "imports": {
@@ -515,6 +515,12 @@
         <span class="act-chip-ico" aria-hidden="true">✍️</span>
         <span class="act-chip-lab" data-i18n="food.text">Text</span>
       </button>
+      <!-- BOTÓN DE VOZ (2026-10-26): cuarto chip — abre la hoja de
+           dictado #food-voice, espejo de la de texto. -->
+      <button type="button" class="act-chip" id="btn-food-voice">
+        <span class="act-chip-ico" aria-hidden="true">🎙️</span>
+        <span class="act-chip-lab" data-i18n="food.voice">Voice</span>
+      </button>
       <button type="button" class="act-chip" id="btn-food-manual">
         <span class="act-chip-ico" aria-hidden="true">✋</span>
         <span class="act-chip-lab" data-i18n="food.manual">Manual</span>
@@ -529,6 +535,20 @@
     <p class="photo-hint" data-i18n="aiText.hint">No photo? Describe the dish and AI will suggest its components and amounts — you review and edit everything before saving.</p>
     <span class="ac-wrap"><textarea id="food-text-desc" class="food-textarea" rows="3" maxlength="600" data-i18n-ph="aiText.ph" placeholder="E.g. quinoa tortilla with egg, cottage cheese and turkey ham"></textarea><span class="ac-sug" id="ac-sug-text"></span></span>
     <div class="ai-actions"><button type="button" class="btn-main btn-sm" id="btn-food-text-go" data-i18n="aiText.button">Analyze the description with AI</button></div>
+  </div>
+  <!-- BOTÓN DE VOZ (2026-10-26): hoja de dictado, espejo de #food-text.
+       El MISMO botón de ondas del formulario (un solo controlador,
+       voice*, en app.js maneja ambas instancias). -->
+  <div class="act-float act-sheet" id="food-voice" style="display:none" role="dialog" aria-label="Dictate your meal" data-i18n-aria="aiVoice.label">
+    <div class="pend-head">
+      <h2 data-i18n="aiVoice.label">Dictate your meal</h2>
+      <button type="button" class="pend-close" id="btn-food-voice-close" aria-label="Close" data-i18n-aria="client.close">✕</button>
+    </div>
+    <p class="photo-hint" data-i18n="aiVoice.hint">Or say it: tap the button and dictate what you ate — food, amount and preparation (e.g. "300 grams of skinless chicken breast made in the air fryer"). AI transcribes it and suggests the values; you review and edit everything before saving. The audio is never saved.</p>
+    <div class="voice-box">
+      <button type="button" class="voice-btn" id="fv-voice-btn" aria-label="Dictate your meal" data-i18n-aria="aiVoice.label"><span class="voice-bars" aria-hidden="true"><i></i><i></i><i></i><i></i><i></i></span></button>
+      <p class="voice-status" id="fv-voice-status" data-i18n="aiVoice.tap">Tap to dictate</p>
+    </div>
   </div>
   <div class="act-float act-sheet" id="food-help" style="display:none" role="dialog" aria-label="Help" data-i18n-aria="food.help">
     <div class="pend-head">
@@ -793,6 +813,16 @@
         </label>
         <p class="photo-hint" data-i18n="aiText.hint">No photo? Describe the dish and AI will suggest its components and amounts — you review and edit everything before saving.</p>
         <button type="button" class="btn-main btn-sm" id="m-ai-text-btn" data-i18n="aiText.button">Analyze the description with AI</button>
+        <!-- BOTÓN DE VOZ (2026-10-26): junto al texto, la vía de dictado
+             — el botón de ondas en el verde de marca (#0d9488), 5 barras
+             que bailan con el nivel de la voz vía AnalyserNode. El audio
+             vive solo en memoria y jamás se guarda (ver aiStartAudio y
+             el controlador voice* en app.js). -->
+        <p class="photo-hint" data-i18n="aiVoice.hint">Or say it: tap the button and dictate what you ate — food, amount and preparation (e.g. "300 grams of skinless chicken breast made in the air fryer"). AI transcribes it and suggests the values; you review and edit everything before saving. The audio is never saved.</p>
+        <div class="voice-box">
+          <button type="button" class="voice-btn" id="m-voice-btn" aria-label="Dictate your meal" data-i18n-aria="aiVoice.label"><span class="voice-bars" aria-hidden="true"><i></i><i></i><i></i><i></i><i></i></span></button>
+          <p class="voice-status" id="m-voice-status" data-i18n="aiVoice.tap">Tap to dictate</p>
+        </div>
       </div>
       <p class="photo-hint" id="ai-off-note-modal" style="display:none" data-i18n="ai.disabledByAdmin">AI analysis is turned off by the administrator right now. You can keep logging your meals manually; AI analysis will be back when it is turned on again.</p>
       <label><span data-i18n="form.amount">Amount</span> <input type="text" id="m-qty" data-i18n-ph="form.amountPh" placeholder="E.g. 150 g"></label>
@@ -1041,6 +1071,6 @@
 <div id="toast" class="toast"></div>
 <div id="print-card" aria-hidden="true"></div>
 
-<script type="module" src="app.js?v=20261026-acuerdo-activo"></script>
+<script type="module" src="app.js?v=20261026-audio-comidas"></script>
 </body>
 </html>

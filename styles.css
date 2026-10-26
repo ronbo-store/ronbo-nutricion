@@ -1096,6 +1096,19 @@ div > .btn-ghost:only-child, div > .btn-main:only-child {
    pidió Ronald), reutilizando el chip de actividad (.act-chip). */
 .food-chip-row { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; margin-top: 4px; }
 .food-textarea { width: 100%; box-sizing: border-box; }
+/* BOTÓN DE VOZ «ONDAS» (2026-10-26, diseño elegido por Ronald «tipo
+   ChatGPT» en colores de marca): círculo en el verde de marca #0d9488
+   con 5 barras verticales blancas que BAILAN con el nivel de la voz
+   (el controlador fija su altura por AnalyserNode); en reposo, barras
+   cortas y quietas. Objetivo táctil 64×64 (≥44). */
+.voice-box { display: flex; flex-direction: column; align-items: center; gap: 8px; padding: 10px 0 4px; }
+.voice-btn { width: 64px; height: 64px; min-width: 64px; min-height: 64px; border-radius: 50%; border: none; background: #0d9488; display: flex; align-items: center; justify-content: center; cursor: pointer; box-shadow: 0 2px 8px rgba(13, 148, 136, .35); padding: 0; }
+.voice-btn:disabled { opacity: .55; cursor: default; }
+.voice-btn.recording { animation: voicePulse 1.2s ease-in-out infinite; }
+@keyframes voicePulse { 0%, 100% { box-shadow: 0 0 0 0 rgba(13, 148, 136, .45); } 50% { box-shadow: 0 0 0 12px rgba(13, 148, 136, 0); } }
+.voice-bars { display: flex; align-items: center; gap: 3px; height: 26px; }
+.voice-bars i { display: block; width: 4px; border-radius: 2px; background: #fff; height: 8px; transition: height .09s linear; }
+.voice-status { margin: 0; font-size: 13px; color: var(--muted, #5b6b66); text-align: center; }
 /* «Comparte tus logros» (2026-10-25): el botón vive en «Mi progreso»
    y se centra como manda la regla del sistema; la hoja reusa
    .act-float/.act-chip con DOS opciones; la vista previa es el propio
