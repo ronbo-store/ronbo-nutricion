@@ -1089,6 +1089,19 @@ div > .btn-ghost:only-child, div > .btn-main:only-child {
    pidió Ronald), reutilizando el chip de actividad (.act-chip). */
 .food-chip-row { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; margin-top: 4px; }
 .food-textarea { width: 100%; box-sizing: border-box; }
+/* «Comparte tus logros» (2026-10-25): el botón vive en «Mi progreso»
+   y se centra como manda la regla del sistema; la hoja reusa
+   .act-float/.act-chip con DOS opciones; la vista previa es el propio
+   lienzo generado (1080 de ancho), reducido por CSS a la hoja. La
+   opción elegida (tarjeta y formato) se marca con el anillo teal de
+   la casa, como los redondos del dock con [aria-expanded="true"]. */
+#progress-content > .btn-primary { display: block; width: fit-content; max-width: 100%; margin: 2px auto 14px; }
+.share-opts { grid-template-columns: repeat(2, 1fr); }
+.share-opts .act-chip[aria-pressed="true"] { background: #ccfbf1; border-color: #0d9488; box-shadow: 0 0 0 2px #0d9488 inset; }
+.share-fmt { display: flex; gap: 8px; justify-content: center; margin: 12px 0 2px; }
+.share-fmt .btn-ghost[aria-pressed="true"] { background: #0d9488; border-color: #0d9488; color: #fff; }
+.share-preview { margin: 10px auto 6px; max-width: 300px; }
+.share-preview canvas { display: block; width: 100%; height: auto; border-radius: 14px; box-shadow: 0 14px 34px rgba(15, 23, 42, .28); background: #00ACA1; }
 /* ✕ compartida en TODAS las hojas superpuestas (2026-10-24, orden de
    Ronald): la misma .pend-close de las hojas flotantes, fijada en la
    esquina superior derecha de la cabecera — en los modales (cuyo

@@ -2958,7 +2958,47 @@ en: {
   'pwa.installBtn': '📲 Install RONBO FIT',
   'pwa.iosText': 'To install the app: tap the Share button and then “Add to Home Screen”.',
   'pwa.installed': '✓ App installed',
-  'pwa.rowLabel': 'RONBO FIT app'
+  'pwa.rowLabel': 'RONBO FIT app',
+  /* «Comparte tus logros» (2026-10-25): tarjetas para redes generadas
+     en el teléfono con Canvas; la app nunca publica por el usuario. */
+  'share.button': '📣 Share your progress',
+  'share.title': 'Share your progress',
+  'share.choose': 'Choose your card:',
+  'share.dayLab': 'My goal for today',
+  'share.weekLab': 'My week in review',
+  'share.dayChip': '🎯 MY GOAL FOR TODAY',
+  'share.weekChip': '🏆 MY WEEK IN REVIEW',
+  'share.format916': 'Story 9:16',
+  'share.format11': 'Post 1:1',
+  'share.send': 'Share',
+  'share.download': 'Download PNG',
+  'share.noShare': 'Direct sharing is not available on this device — use Download.',
+  'share.privNote': 'Only your progress goes on the card: no weight, no measurements, no photos.',
+  'share.hello': "Let's go, {name}!",
+  'share.ofGoal': 'of my goal',
+  'share.kcalOf': 'of',
+  'share.kcalToday': 'kcal today',
+  'share.phraseGoing': "Going for today's goal 💪",
+  'share.phraseDone': "Today's goal: done! 🎉",
+  'share.phraseStart': 'Today I start my journey with RONBO FIT',
+  'share.phraseWeek': 'Consistency shows 💪',
+  'share.streak': 'active streak days',
+  'share.daysActive': 'active days',
+  'share.workouts': 'workouts',
+  'share.minActivity': 'min of activity',
+  'share.meals': 'meals',
+  'share.minPerDay': 'MINUTES PER DAY',
+  'share.bestDay': '★ Best day: {day}',
+  'share.weekSame': 'Week of {m} {d1} – {d2} · {name}',
+  'share.weekDiff': 'Week of {m1} {d1} – {m2} {d2} · {name}',
+  'share.mileWeek': 'First full week',
+  'share.mileStreak': '7-day streak',
+  'share.mileWorkouts': '10 workouts',
+  'share.challenge': 'Take the challenge? 👀',
+  'share.labProt': 'Protein',
+  'share.labCarb': 'Carbs',
+  'share.labSugar': 'Sugars',
+  'share.labFat': 'Fats'
 },
 es: {
   'app.title': 'ronbo.fit · Privado',
@@ -4358,7 +4398,47 @@ es: {
   'pwa.installBtn': '📲 Instalar RONBO FIT',
   'pwa.iosText': 'Para instalar la app: toca el botón Compartir y luego «Añadir a pantalla de inicio».',
   'pwa.installed': '✓ App instalada',
-  'pwa.rowLabel': 'App RONBO FIT'
+  'pwa.rowLabel': 'App RONBO FIT',
+  /* «Comparte tus logros» (2026-10-25): tarjetas para redes generadas
+     en el teléfono con Canvas; la app nunca publica por el usuario. */
+  'share.button': '📣 Comparte tus logros',
+  'share.title': 'Comparte tus logros',
+  'share.choose': 'Elige tu tarjeta:',
+  'share.dayLab': 'Mi meta del día',
+  'share.weekLab': 'Mis logros de la semana',
+  'share.dayChip': '🎯 MI META DEL DÍA',
+  'share.weekChip': '🏆 MIS LOGROS DE LA SEMANA',
+  'share.format916': 'Historia 9:16',
+  'share.format11': 'Publicación 1:1',
+  'share.send': 'Compartir',
+  'share.download': 'Descargar PNG',
+  'share.noShare': 'Este dispositivo no permite compartir directo: usa Descargar.',
+  'share.privNote': 'En la tarjeta solo sale tu avance: sin peso, sin medidas, sin fotos.',
+  'share.hello': '¡Vamos, {name}!',
+  'share.ofGoal': 'de mi meta',
+  'share.kcalOf': 'de',
+  'share.kcalToday': 'kcal hoy',
+  'share.phraseGoing': 'Voy por mi meta de hoy 💪',
+  'share.phraseDone': '¡Meta del día cumplida! 🎉',
+  'share.phraseStart': 'Hoy empiezo mi camino con RONBO FIT',
+  'share.phraseWeek': 'La constancia se nota 💪',
+  'share.streak': 'días de racha activo',
+  'share.daysActive': 'días activo',
+  'share.workouts': 'entrenamientos',
+  'share.minActivity': 'min de actividad',
+  'share.meals': 'comidas',
+  'share.minPerDay': 'MINUTOS POR DÍA',
+  'share.bestDay': '★ Mejor día: {day}',
+  'share.weekSame': 'Semana del {d1} al {d2} de {m} · {name}',
+  'share.weekDiff': 'Semana del {d1} de {m1} al {d2} de {m2} · {name}',
+  'share.mileWeek': 'Primera semana completa',
+  'share.mileStreak': 'Racha de 7 días',
+  'share.mileWorkouts': '10 entrenamientos',
+  'share.challenge': '¿Aceptas el reto? 👀',
+  'share.labProt': 'Proteína',
+  'share.labCarb': 'Carbos',
+  'share.labSugar': 'Azúcares',
+  'share.labFat': 'Grasas'
 }
 };
 let LANG = 'en';
@@ -4442,6 +4522,7 @@ function setLang(l) {
     try { renderPendings(); } catch {}
     try { renderProgress(); } catch {}
     try { aiOnLangChange(); } catch {}
+    try { shareRelang(); } catch {}
     refreshDynamic();
   }
 }
@@ -14746,6 +14827,505 @@ setInterval(() => { try { pendDockTick(); } catch {} }, 60000);
 }
 
 /* ================================================================
+   «COMPARTE TUS LOGROS» (Ronald, 2026-10-25) — tarjetas para redes
+   generadas 100 % en el cliente con Canvas 2D, desde los datos que
+   la app YA tiene cargados (MEALS, ACT_LOGS, MY_LOGS, GOALS): sin
+   lecturas nuevas, sin Worker, sin IA ($0) y sin cambios de reglas.
+   La app NUNCA publica por el usuario: genera la imagen, la enseña
+   en vista previa y el usuario toca Compartir (Web Share con
+   archivo PNG) o Descargar. La imagen no se sube ni se guarda en
+   ningún servidor. PRIVACIDAD: jamás peso, medidas ni fotos — solo
+   el avance que el usuario ya ve de sí mismo.
+   Estilo: el de las maquetas v6 aprobadas (fondo teal vivo borde a
+   borde SIN panel, héroes blancos gigantes, anillos y barras
+   vibrantes con glow, línea de marca «ronbo.fit» en vez del nombre
+   del entrenador — §10 del diseño). Formatos: 9:16 (1080×1920) y
+   1:1 (1080×1080: la misma composición adaptada — héroe + lo
+   esencial, sin la línea de reto). Los emojis se dibujan con la
+   fuente de emojis del propio dispositivo (fillText). */
+const SHARE = { type: 'day', format: '916', blob: null, fileName: '' };
+const SHARE_WD = { en: ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'],
+                   es: ['lunes', 'martes', 'miércoles', 'jueves', 'viernes', 'sábado', 'domingo'] };
+const SHARE_LETTERS = { en: ['M', 'T', 'W', 'T', 'F', 'S', 'S'], es: ['L', 'M', 'X', 'J', 'V', 'S', 'D'] };
+const SHARE_NUT = [ { key: 'prot', color: '#FF4D2E', glow: 'rgba(255,77,46,.65)', lab: 'share.labProt' },
+                    { key: 'carb', color: '#FFB300', glow: 'rgba(255,179,0,.60)', lab: 'share.labCarb' },
+                    { key: 'azuc', color: '#FF2E88', glow: 'rgba(255,46,136,.60)', lab: 'share.labSugar' },
+                    { key: 'gras', color: '#6C4DFF', glow: 'rgba(108,77,255,.65)', lab: 'share.labFat' } ];
+/* Barras de la semana: un color vibrante por día ACTIVO, recorriendo
+   la paleta en orden (el día mejor va siempre en dorado y no consume
+   posición de la paleta) — reproduce la maqueta v5/v6 con los datos
+   de cualquier semana. */
+const SHARE_BAR_COLORS = [ ['#FF8A66', '#FF4D2E', 'rgba(255,77,46,.55)'], ['#FF6FB5', '#FF2E88', 'rgba(255,46,136,.55)'],
+                           ['#C6FF4A', '#83D600', 'rgba(150,230,0,.50)'], ['#9D85FF', '#6C4DFF', 'rgba(108,77,255,.60)'] ];
+const SHARE_BAR_BEST = ['#FFD83D', '#FF8500', 'rgba(255,170,40,.80)'];
+
+/* ---------- datos: solo las cachés de la sesión ---------- */
+function shareFirstName() {
+  const n = String((UDATA && UDATA.name) || '').trim();
+  if (n) return n.split(/\s+/)[0];
+  const e = String((UDATA && UDATA.email) || (auth.currentUser && auth.currentUser.email) || '');
+  return e ? e.split('@')[0] : '';
+}
+function shareActMinutes(iso) {
+  const d = ACT_LOGS[iso]; if (!d || !Array.isArray(d.activities)) return 0;
+  return d.activities.reduce((s, a) => s + Math.max(0, Math.floor(num(a && a.durationMin))), 0);
+}
+function shareTrainDone(iso) { return MY_LOGS.some(l => l.date === iso && trainLogStatus(l) === 'done'); }
+/* Día activo — definición ÚNICA para la racha y para el contador de
+   la semana: comida registrada, actividad (minutos o pasos) o
+   entrenamiento completado. */
+function shareIsActiveDay(iso) {
+  if ((MEALS[iso] || []).length) return true;
+  if (shareActMinutes(iso) > 0) return true;
+  const a = ACT_LOGS[iso]; if (a && num(a.steps) > 0) return true;
+  return shareTrainDone(iso);
+}
+function shareStreak() {
+  let d = todayISO();
+  if (!shareIsActiveDay(d)) d = addDaysISO(d, -1);
+  let n = 0;
+  while (shareIsActiveDay(d) && n < 3660) { n++; d = addDaysISO(d, -1); }
+  return n;
+}
+function shareDayData() {
+  const iso = todayISO();
+  const tot = totals(iso);
+  const goalKcal = goalOf('kcal');
+  const pctKcal = goalKcal ? tot.kcal / goalKcal : null;
+  const hasMeals = (MEALS[iso] || []).length > 0;
+  const phrase = !hasMeals ? 'start' : (pctKcal !== null && pctKcal >= 1 ? 'done' : 'going');
+  return { iso, name: shareFirstName(), tot, goalKcal, pctKcal, hasMeals, phrase,
+    minis: SHARE_NUT.map(n => { const g = goalOf(n.key); const v = tot[n.key];
+      return { key: n.key, color: n.color, glow: n.glow, lab: n.lab, val: v, goal: g, pct: g ? v / g : null }; }) };
+}
+function shareWeekData() {
+  const days = weekDates(todayISO());
+  const minutes = days.map(shareActMinutes);
+  const active = days.map(shareIsActiveDay);
+  const workoutsWeek = MY_LOGS.filter(l => days.indexOf(l.date) >= 0 && trainLogStatus(l) === 'done').length;
+  const mealsWeek = days.reduce((s, d) => s + (MEALS[d] || []).length, 0);
+  const minutesTotal = minutes.reduce((s, m) => s + m, 0);
+  let bestIdx = -1, best = 0;
+  minutes.forEach((m, i) => { if (m > best) { best = m; bestIdx = i; } });
+  const streak = shareStreak();
+  const totalWorkouts = MY_LOGS.filter(l => trainLogStatus(l) === 'done').length;
+  const allDays = new Set([...Object.keys(MEALS), ...Object.keys(ACT_LOGS), ...MY_LOGS.map(l => l.date)]);
+  let activeAllTime = 0; allDays.forEach(d => { if (shareIsActiveDay(d)) activeAllTime++; });
+  /* Hitos SOLO si son reales, con umbrales fijos y honestos:
+     primera semana completa = ≥7 días activos en todo el historial;
+     racha de 7 = la racha actual llega a 7; 10 entrenamientos =
+     ≥10 sesiones completadas en todo el historial. */
+  const milestones = [];
+  if (activeAllTime >= 7) milestones.push(t('share.mileWeek'));
+  if (streak >= 7) milestones.push(t('share.mileStreak'));
+  if (totalWorkouts >= 10) milestones.push(t('share.mileWorkouts'));
+  const hasActivity = minutesTotal > 0 || workoutsWeek > 0 || mealsWeek > 0;
+  return { days, minutes, activeDays: active.filter(Boolean).length, workoutsWeek, mealsWeek,
+    minutesTotal, bestIdx, streak, milestones, phrase: hasActivity ? 'week' : 'start', name: shareFirstName() };
+}
+function shareDayLabel(iso) {
+  const p = iso.split('-').map(Number); const d = new Date(p[0], p[1] - 1, p[2]);
+  const wd = (SHARE_WD[LANG] || SHARE_WD.en)[(d.getDay() + 6) % 7];
+  const months = LANG === 'es' ? MESES_ES : MESES_EN;
+  return LANG === 'es' ? `${wd} ${p[2]} de ${months[p[1] - 1]}` : `${wd}, ${months[p[1] - 1]} ${p[2]}`;
+}
+function shareWeekLabel(days) {
+  const a = days[0].split('-').map(Number), b = days[6].split('-').map(Number);
+  const months = LANG === 'es' ? MESES_ES : MESES_EN; const name = shareFirstName();
+  if (a[1] === b[1]) return t('share.weekSame', { m: months[a[1] - 1], d1: a[2], d2: b[2], name });
+  return t('share.weekDiff', { m1: months[a[1] - 1], d1: a[2], m2: months[b[1] - 1], d2: b[2], name });
+}
+
+/* ---------- primitivas de dibujo ---------- */
+const SHARE_FONT = "'Noto Sans','Segoe UI',Arial,sans-serif";
+const SHARE_EMOJI = "'Apple Color Emoji','Segoe UI Emoji','Noto Color Emoji',sans-serif";
+function shareCtxFont(weight, px, emoji) { return weight + ' ' + px + 'px ' + (emoji ? SHARE_EMOJI : SHARE_FONT); }
+function shareTxt(ctx, str, x, y, font, color, opt) {
+  opt = opt || {};
+  ctx.save();
+  ctx.font = font; ctx.fillStyle = color;
+  ctx.textAlign = opt.align || 'center'; ctx.textBaseline = 'alphabetic';
+  if (opt.ls) { try { ctx.letterSpacing = opt.ls + 'px'; } catch (e) {} }
+  if (opt.shadow !== false) { ctx.shadowColor = opt.shadowColor || 'rgba(0,60,52,.40)'; ctx.shadowBlur = opt.shadowBlur != null ? opt.shadowBlur : 16; ctx.shadowOffsetY = opt.shadowY != null ? opt.shadowY : 4; }
+  ctx.fillText(str, x, y);
+  ctx.restore();
+}
+function shareFitPx(ctx, str, weight, px, maxW, emoji) {
+  let p = px; ctx.save(); ctx.font = shareCtxFont(weight, p, emoji);
+  while (p > 16 && ctx.measureText(str).width > maxW) { p -= 2; ctx.font = shareCtxFont(weight, p, emoji); }
+  ctx.restore(); return p;
+}
+function shareTextW(ctx, str, weight, px) {
+  ctx.save(); ctx.font = shareCtxFont(weight, px);
+  const w = ctx.measureText(str).width; ctx.restore(); return w;
+}
+function shareRR(ctx, x, y, w, h, r) {
+  ctx.beginPath();
+  if (ctx.roundRect) { ctx.roundRect(x, y, w, h, r); return; }
+  ctx.moveTo(x + r, y); ctx.arcTo(x + w, y, x + w, y + h, r); ctx.arcTo(x + w, y + h, x, y + h, r);
+  ctx.arcTo(x, y + h, x, y, r); ctx.arcTo(x, y, x + w, y, r); ctx.closePath();
+}
+function sharePill(ctx, cx, cy, text, fontPx, opt) {
+  opt = opt || {};
+  const w = shareTextW(ctx, text, 900, fontPx) + (opt.padX || 38) * 2 + (opt.ls ? opt.ls * 2 : 0);
+  const h = fontPx + (opt.padY != null ? opt.padY : 17) * 2;
+  ctx.save();
+  ctx.shadowColor = opt.shadowColor || 'rgba(0,42,36,.30)'; ctx.shadowBlur = opt.shadowBlur || 34; ctx.shadowOffsetY = opt.shadowY != null ? opt.shadowY : 16;
+  ctx.fillStyle = opt.bg || '#ffffff';
+  shareRR(ctx, cx - w / 2, cy - h / 2, w, h, h / 2); ctx.fill();
+  ctx.restore();
+  shareTxt(ctx, text, cx, cy + fontPx * 0.35, shareCtxFont(900, fontPx), opt.color || '#00705f', { shadow: false, ls: opt.ls });
+  return w;
+}
+function sharePillFixed(ctx, cx, cy, w, h, text, fontPx) {
+  ctx.save();
+  ctx.shadowColor = 'rgba(0,42,36,.40)'; ctx.shadowBlur = 48; ctx.shadowOffsetY = 24;
+  ctx.fillStyle = '#ffffff';
+  shareRR(ctx, cx - w / 2, cy - h / 2, w, h, h / 2); ctx.fill();
+  ctx.restore();
+  shareTxt(ctx, text, cx, cy + fontPx * 0.35, shareCtxFont(900, fontPx), '#00705f', { shadow: false });
+}
+function shareRing(ctx, cx, cy, r, lw, frac, stroke, glow) {
+  ctx.save();
+  ctx.beginPath(); ctx.lineWidth = lw; ctx.strokeStyle = 'rgba(255,255,255,.28)';
+  ctx.arc(cx, cy, r, 0, Math.PI * 2); ctx.stroke();
+  if (frac > 0) {
+    ctx.beginPath(); ctx.lineCap = 'round'; ctx.lineWidth = lw; ctx.strokeStyle = stroke;
+    if (glow) { ctx.shadowColor = glow; ctx.shadowBlur = 22; }
+    ctx.arc(cx, cy, r, -Math.PI / 2, -Math.PI / 2 + Math.min(1, frac) * Math.PI * 2); ctx.stroke();
+  }
+  ctx.restore();
+}
+function shareBg(ctx, W, H) {
+  const g = ctx.createLinearGradient(0, 0, W * 0.30, H);
+  [[0, '#00e2c4'], [0.30, '#00c2ae'], [0.55, '#00ACA1'], [0.82, '#00836f'], [1, '#005c4f']].forEach(s => g.addColorStop(s[0], s[1]));
+  ctx.fillStyle = g; ctx.fillRect(0, 0, W, H);
+  const rad = (x, y, r, inner) => { const rg = ctx.createRadialGradient(x, y, 0, x, y, r); rg.addColorStop(0, inner); rg.addColorStop(1, 'rgba(255,255,255,0)'); ctx.fillStyle = rg; ctx.fillRect(x - r, y - r, r * 2, r * 2); };
+  rad(W * 0.88, -H * 0.06, W * 1.11, 'rgba(255,255,255,.32)');
+  rad(W * 0.5, H * 0.34, W * 0.70, 'rgba(255,255,255,.14)');
+  rad(-W * 0.18, H * 1.08, W * 0.93, 'rgba(0,30,26,.35)');
+  ctx.save();
+  ctx.fillStyle = 'rgba(255,255,255,.14)';
+  ctx.beginPath(); ctx.arc(W - 150, 90, 390, 0, Math.PI * 2); ctx.fill();
+  ctx.fillStyle = 'rgba(255,255,255,.10)';
+  ctx.beginPath(); ctx.arc(80, H - 50, 280, 0, Math.PI * 2); ctx.fill();
+  ctx.strokeStyle = 'rgba(255,255,255,.10)'; ctx.lineWidth = 34;
+  ctx.beginPath(); ctx.arc(-20, 870 * (H / 1920), 310, 0, Math.PI * 2); ctx.stroke();
+  ctx.strokeStyle = 'rgba(255,255,255,.08)'; ctx.lineWidth = 26;
+  ctx.beginPath(); ctx.arc(W, H - 320 * (H / 1920), 190, 0, Math.PI * 2); ctx.stroke();
+  ctx.translate(W / 2, 390 * (H / 1920)); ctx.rotate(-24 * Math.PI / 180);
+  const bg2 = ctx.createLinearGradient(-750, 0, 750, 0);
+  bg2.addColorStop(0, 'rgba(255,255,255,0)'); bg2.addColorStop(0.5, 'rgba(255,255,255,.10)'); bg2.addColorStop(1, 'rgba(255,255,255,0)');
+  ctx.fillStyle = bg2; ctx.fillRect(-750, -150, 1500, 300);
+  ctx.restore();
+}
+function shareBrand(ctx, W, y, px) {
+  ctx.save();
+  try { ctx.letterSpacing = '12px'; } catch {}
+  const w1 = shareTextW(ctx, 'RONBO', 900, px), w2 = shareTextW(ctx, 'FIT', 300, px);
+  ctx.restore();
+  const gap = px * 0.45, x = (W - (w1 + gap + w2)) / 2;
+  shareTxt(ctx, 'RONBO', x, y, shareCtxFont(900, px), '#ffffff', { align: 'left', ls: 12, shadowBlur: 22, shadowColor: 'rgba(0,60,52,.35)' });
+  shareTxt(ctx, 'FIT', x + w1 + gap, y, shareCtxFont(300, px), '#ffffff', { align: 'left', ls: 12, shadowBlur: 22, shadowColor: 'rgba(0,60,52,.35)' });
+  ctx.save(); ctx.shadowColor = 'rgba(0,60,52,.30)'; ctx.shadowBlur = 16; ctx.shadowOffsetY = 4;
+  ctx.fillStyle = 'rgba(255,255,255,.9)';
+  shareRR(ctx, W / 2 - 42, y + 14, 84, 8, 4); ctx.fill(); ctx.restore();
+}
+/* Zona inferior anclada: frase (píldora), reto (solo 9:16) y pie. */
+function shareBottom(ctx, W, H, phrase, withReto) {
+  const cp = H < 1500;
+  shareTxt(ctx, 'RONBO FIT · fit.ronbo.store · #MiAvanceRonboFit', W / 2, H - (cp ? 24 : 92),
+    shareCtxFont(700, cp ? 22 : 28), 'rgba(255,255,255,.94)', { ls: cp ? 2 : 3, shadowBlur: 14 });
+  let pillBottom = H - (cp ? 24 : 92) - (cp ? 36 : 66);
+  if (withReto) {
+    shareTxt(ctx, t('share.challenge'), W / 2, pillBottom, shareCtxFont(800, cp ? 24 : 31), '#ffffff', { shadowBlur: 16 });
+    pillBottom -= (cp ? 42 : 58);
+  }
+  const pillH = cp ? 84 : 104;
+  const px = shareFitPx(ctx, phrase, 900, cp ? 38 : 48, 936 - 96);
+  sharePillFixed(ctx, W / 2, pillBottom - pillH / 2, 936, pillH, phrase, px);
+  return pillBottom - pillH;
+}
+
+/* ---------- tarjeta «Mi meta del día» ---------- */
+function shareDrawDay(ctx, W, H, d) {
+  const cp = H < 1500;
+  shareBg(ctx, W, H);
+  shareBrand(ctx, W, cp ? 100 : 160, cp ? 42 : 54);
+  const chipPx = cp ? 27 : 32, chipTop = cp ? 148 : 234;
+  sharePill(ctx, W / 2, chipTop + (chipPx + 34) / 2, t('share.dayChip'), chipPx, { ls: 3 });
+  const chipBottom = chipTop + chipPx + 34;
+  /* fila del usuario: avatar con anillo de progreso + saludo + fecha */
+  const hello = t('share.hello', { name: d.name });
+  const avS = cp ? 92 : 124;
+  const helloPx = shareFitPx(ctx, hello, 900, cp ? 46 : 62, 660);
+  const helloW = shareTextW(ctx, hello, 900, helloPx);
+  const rowX = (W - (avS + 28 + helloW)) / 2;
+  const rowTop = chipBottom + (cp ? 24 : 42);
+  const avCx = rowX + avS / 2, avCy = rowTop + avS / 2;
+  shareRing(ctx, avCx, avCy, avS * 0.4435, cp ? 6 : 7, d.pctKcal || 0, '#ffffff');
+  const grd = ctx.createLinearGradient(avCx - 40, avCy - 40, avCx + 40, avCy + 40);
+  grd.addColorStop(0, '#0b5a4c'); grd.addColorStop(1, '#04382f');
+  ctx.save(); ctx.beginPath(); ctx.fillStyle = grd; ctx.arc(avCx, avCy, avS * 0.387, 0, Math.PI * 2); ctx.fill();
+  ctx.lineWidth = 2; ctx.strokeStyle = 'rgba(255,255,255,.55)'; ctx.stroke(); ctx.restore();
+  shareTxt(ctx, (d.name || 'R').charAt(0).toUpperCase(), avCx, avCy + (cp ? 40 : 52) * 0.36, shareCtxFont(900, cp ? 40 : 52), '#ffffff', { shadow: false });
+  shareTxt(ctx, hello, rowX + avS + 28, rowTop + (cp ? 44 : 60), shareCtxFont(900, helloPx), '#ffffff', { align: 'left', shadowBlur: 24 });
+  shareTxt(ctx, shareDayLabel(d.iso), rowX + avS + 28, rowTop + (cp ? 44 : 60) + (cp ? 36 : 46), shareCtxFont(600, cp ? 25 : 30), 'rgba(255,255,255,.88)', { align: 'left', shadowBlur: 12 });
+  /* anillo héroe de kcal */
+  const ringS = cp ? 330 : 600;
+  const ringTop = rowTop + avS + (cp ? 20 : 40);
+  const cx = W / 2, cy = ringTop + ringS / 2, r = ringS * 0.43, lw = ringS * 0.0967;
+  ctx.save(); ctx.shadowColor = 'rgba(255,255,255,.30)'; ctx.shadowBlur = 36;
+  ctx.beginPath(); ctx.lineWidth = lw; ctx.strokeStyle = 'rgba(255,255,255,.30)'; ctx.arc(cx, cy, r, 0, Math.PI * 2); ctx.stroke(); ctx.restore();
+  if (d.pctKcal > 0) {
+    const hg = ctx.createLinearGradient(cx - r, cy - r, cx + r, cy + r);
+    hg.addColorStop(0, '#ffffff'); hg.addColorStop(0.55, '#d9fff7'); hg.addColorStop(1, '#a9ffee');
+    ctx.save(); ctx.beginPath(); ctx.lineCap = 'round'; ctx.lineWidth = lw; ctx.strokeStyle = hg;
+    ctx.shadowColor = 'rgba(255,255,255,.35)'; ctx.shadowBlur = 30;
+    ctx.arc(cx, cy, r, -Math.PI / 2, -Math.PI / 2 + Math.min(1, d.pctKcal) * Math.PI * 2); ctx.stroke(); ctx.restore();
+  }
+  if (d.goalKcal) {
+    const pctStr = String(Math.round(d.pctKcal * 100));
+    const bigPx = shareFitPx(ctx, pctStr + '%', 900, cp ? 140 : 216, W - 280);
+    const wN = shareTextW(ctx, pctStr, 900, bigPx), wP = shareTextW(ctx, '%', 900, bigPx * 0.55);
+    const gx = cx - (wN + wP) / 2, base = cy + bigPx * 0.30;
+    shareTxt(ctx, pctStr, gx, base, shareCtxFont(900, bigPx), '#ffffff', { align: 'left', shadowBlur: 38, shadowColor: 'rgba(0,60,52,.42)', shadowY: 8 });
+    shareTxt(ctx, '%', gx + wN, base, shareCtxFont(900, bigPx * 0.55), '#ffffff', { align: 'left', shadowBlur: 38, shadowColor: 'rgba(0,60,52,.42)', shadowY: 8 });
+    shareTxt(ctx, t('share.ofGoal'), cx, base + (cp ? 46 : 66), shareCtxFont(700, cp ? 28 : 38), 'rgba(255,255,255,.92)');
+  } else {
+    const bigPx = shareFitPx(ctx, fmt(d.tot.kcal), 900, cp ? 120 : 170, W - 260);
+    shareTxt(ctx, fmt(d.tot.kcal), cx, cy + bigPx * 0.32, shareCtxFont(900, bigPx), '#ffffff', { shadowBlur: 38, shadowColor: 'rgba(0,60,52,.42)', shadowY: 8 });
+    shareTxt(ctx, t('share.kcalToday'), cx, cy + bigPx * 0.32 + (cp ? 46 : 66), shareCtxFont(700, cp ? 28 : 38), 'rgba(255,255,255,.92)');
+  }
+  /* línea de kcal bajo el anillo */
+  const klY = cy + r + lw / 2 + (cp ? 54 : 78);
+  if (d.goalKcal) {
+    const a = fmt(d.tot.kcal), b = ' ' + t('share.kcalOf') + ' ' + fmt(d.goalKcal) + ' kcal', kPx = cp ? 36 : 46;
+    const wa = shareTextW(ctx, a, 900, kPx), wb = shareTextW(ctx, b, 700, kPx), sx = cx - (wa + wb) / 2;
+    shareTxt(ctx, a, sx, klY, shareCtxFont(900, kPx), '#ffffff', { align: 'left' });
+    shareTxt(ctx, b, sx + wa, klY, shareCtxFont(700, kPx), '#ffffff', { align: 'left' });
+  } else {
+    shareTxt(ctx, fmt(d.tot.kcal) + ' kcal', cx, klY, shareCtxFont(700, cp ? 36 : 46), '#ffffff');
+  }
+  /* mini anillos de nutrientes, vibrantes con glow */
+  const miniS = cp ? 118 : 168, miniCy = klY + (cp ? 24 : 34) + miniS / 2;
+  const gap = 28, totalW = 4 * miniS + 3 * gap;
+  d.minis.forEach((m, i) => {
+    const mx = (W - totalW) / 2 + i * (miniS + gap) + miniS / 2;
+    shareRing(ctx, mx, miniCy, miniS * 0.405, cp ? 13 : 17, m.pct || 0, m.color, m.glow);
+    if (m.goal) {
+      shareTxt(ctx, Math.round(m.pct * 100) + '%', mx, miniCy + (cp ? 32 : 43) * 0.36, shareCtxFont(900, cp ? 32 : 43), '#ffffff', { shadowBlur: 14 });
+    } else {
+      const vp = shareFitPx(ctx, fmt(m.val), 900, cp ? 26 : 34, miniS - 28);
+      shareTxt(ctx, fmt(m.val), mx, miniCy + vp * 0.36, shareCtxFont(900, vp), '#ffffff', { shadowBlur: 14 });
+    }
+    shareTxt(ctx, t(m.lab), mx, miniCy + miniS / 2 + (cp ? 30 : 42), shareCtxFont(800, cp ? 22 : 28), '#ffffff', { shadowBlur: 10 });
+    shareTxt(ctx, m.goal ? fmt(m.val) + ' / ' + fmt(m.goal) + ' g' : fmt(m.val) + ' g', mx, miniCy + miniS / 2 + (cp ? 30 : 42) + (cp ? 27 : 34), shareCtxFont(600, cp ? 20 : 26), 'rgba(255,255,255,.88)', { shadowBlur: 10 });
+  });
+  const phrase = d.phrase === 'done' ? t('share.phraseDone') : d.phrase === 'start' ? t('share.phraseStart') : t('share.phraseGoing');
+  shareBottom(ctx, W, H, phrase, !cp);
+}
+
+/* ---------- tarjeta «Mis logros de la semana» ---------- */
+function shareDrawWeek(ctx, W, H, d) {
+  const cp = H < 1500;
+  shareBg(ctx, W, H);
+  const hy = cp ? 330 : 580;
+  const rg = ctx.createRadialGradient(W / 2, hy, 0, W / 2, hy, cp ? 300 : 430);
+  rg.addColorStop(0, 'rgba(255,170,40,.20)'); rg.addColorStop(1, 'rgba(255,170,40,0)');
+  ctx.fillStyle = rg; ctx.fillRect(0, 0, W, H);
+  shareBrand(ctx, W, cp ? 100 : 160, cp ? 42 : 54);
+  const chipPx = cp ? 27 : 32, chipTop = cp ? 148 : 234;
+  sharePill(ctx, W / 2, chipTop + (chipPx + 34) / 2, t('share.weekChip'), chipPx, { ls: 3 });
+  const chipBottom = chipTop + chipPx + 34;
+  shareTxt(ctx, shareWeekLabel(d.days), W / 2, chipBottom + (cp ? 44 : 60), shareCtxFont(600, cp ? 24 : 32), 'rgba(255,255,255,.92)', { shadowBlur: 12 });
+  /* héroe: llama + racha */
+  const flameY = chipBottom + (cp ? 112 : 172);
+  shareTxt(ctx, '🔥', W / 2, flameY, shareCtxFont(400, cp ? 46 : 64, true), '#ffffff', { shadowColor: 'rgba(255,150,30,.75)', shadowBlur: 26 });
+  const numPx = cp ? 128 : 200, numY = flameY + (cp ? 122 : 208);
+  shareTxt(ctx, String(d.streak), W / 2, numY, shareCtxFont(900, numPx), '#ffffff', { shadowBlur: 44, shadowColor: 'rgba(0,60,52,.42)', shadowY: 10 });
+  shareTxt(ctx, t('share.streak'), W / 2, numY + (cp ? 46 : 68), shareCtxFont(900, cp ? 32 : 45), '#ffffff', { shadowBlur: 18 });
+  /* tira de totales SIN caja: números sobre el fondo, filetes de luz */
+  const stripW = 936, sx = (W - stripW) / 2, colW = stripW / 4;
+  const nY = numY + (cp ? 46 : 68) + (cp ? 64 : 96);
+  const stats = [ [String(d.activeDays) + '/7', t('share.daysActive')], [String(d.workoutsWeek), t('share.workouts')],
+                  [fmt(d.minutesTotal), t('share.minActivity')], [String(d.mealsWeek), t('share.meals')] ];
+  stats.forEach((s, i) => {
+    const ccx = sx + colW * i + colW / 2;
+    shareTxt(ctx, s[0], ccx, nY, shareCtxFont(900, cp ? 46 : 60), '#ffffff', { shadowBlur: 18 });
+    shareTxt(ctx, s[1], ccx, nY + (cp ? 28 : 38), shareCtxFont(700, cp ? 20 : 25), 'rgba(255,255,255,.90)', { shadowBlur: 10 });
+    if (i > 0) { ctx.save(); ctx.strokeStyle = 'rgba(255,255,255,.35)'; ctx.lineWidth = 2; ctx.beginPath(); ctx.moveTo(sx + colW * i, nY - (cp ? 44 : 58)); ctx.lineTo(sx + colW * i, nY + (cp ? 26 : 36)); ctx.stroke(); ctx.restore(); }
+  });
+  /* gráfica de barras SIN caja */
+  const headY = nY + (cp ? 28 : 38) + (cp ? 50 : 68);
+  shareTxt(ctx, t('share.minPerDay'), sx + 4, headY, shareCtxFont(900, cp ? 23 : 29), 'rgba(255,255,255,.88)', { align: 'left', ls: 2, shadowBlur: 10 });
+  if (d.bestIdx >= 0) {
+    const tag = t('share.bestDay', { day: (SHARE_WD[LANG] || SHARE_WD.en)[d.bestIdx] });
+    const tagPx = cp ? 22 : 27, tagW = shareTextW(ctx, tag, 900, tagPx) + 48;
+    sharePill(ctx, sx + stripW - tagW / 2, headY - (cp ? 9 : 11), tag, tagPx, { bg: '#fff3df', color: '#b05f00', padX: 24, padY: cp ? 8 : 10, shadowBlur: 26, shadowY: 12 });
+  }
+  const maxMin = Math.max(...d.minutes, 1), maxBarH = cp ? 92 : 170;
+  const axisY = headY + (cp ? 34 : 44) + maxBarH;
+  const innerX = sx + 22, innerW = stripW - 44, gapB = 26;
+  const colBW = (innerW - gapB * 6) / 7, barW = cp ? 62 : 76;
+  const letters = SHARE_LETTERS[LANG] || SHARE_LETTERS.en;
+  let colorIdx = 0;
+  d.minutes.forEach((mins, i) => {
+    const ccx = innerX + colBW * i + colBW / 2;
+    const isBest = i === d.bestIdx;
+    const h = mins > 0 ? Math.max(14, Math.round(mins / maxMin * maxBarH)) : 12;
+    const barTop = axisY - h;
+    shareTxt(ctx, String(mins), ccx, barTop - 10, shareCtxFont(800, cp ? 21 : 27), isBest ? '#ffe1a8' : '#ffffff', { shadowBlur: 10 });
+    ctx.save();
+    if (mins > 0) {
+      const cols = isBest ? SHARE_BAR_BEST : SHARE_BAR_COLORS[colorIdx++ % SHARE_BAR_COLORS.length];
+      const bg3 = ctx.createLinearGradient(0, barTop, 0, axisY);
+      bg3.addColorStop(0, cols[0]); bg3.addColorStop(1, cols[1]);
+      ctx.fillStyle = bg3; ctx.shadowColor = cols[2]; ctx.shadowBlur = isBest ? 48 : 26;
+    } else {
+      ctx.fillStyle = 'rgba(255,255,255,.30)';
+    }
+    shareRR(ctx, ccx - barW / 2, barTop, barW, h, Math.min(cp ? 12 : 18, h));
+    ctx.fill(); ctx.restore();
+    shareTxt(ctx, letters[i], ccx, axisY + (cp ? 34 : 44), shareCtxFont(900, cp ? 22 : 28), isBest ? '#ffe1a8' : '#ffffff', { shadowBlur: 10 });
+  });
+  /* hitos como chips (solo los reales) */
+  let flowBottom = axisY + (cp ? 34 : 44);
+  if (d.milestones.length) {
+    const chipFont = cp ? 24 : 31, ck = cp ? 34 : 42, chipH = chipFont + (cp ? 24 : 30);
+    const items = d.milestones.map(m => ({ text: m, w: shareTextW(ctx, m, 800, chipFont) + ck + 13 + 44 }));
+    const rows = []; let row = [], rowW = 0;
+    items.forEach(it => { const add = (row.length ? 16 : 0) + it.w; if (rowW + add > 936 && row.length) { rows.push(row); row = []; rowW = 0; } row.push(it); rowW += (row.length > 1 ? 16 : 0) + it.w; });
+    if (row.length) rows.push(row);
+    let ry = flowBottom + (cp ? 26 : 34);
+    rows.forEach(rw => {
+      const total = rw.reduce((s, it) => s + it.w, 0) + 16 * (rw.length - 1);
+      let px = (W - total) / 2;
+      rw.forEach(it => {
+        ctx.save(); ctx.shadowColor = 'rgba(0,42,36,.28)'; ctx.shadowBlur = 30; ctx.shadowOffsetY = 14;
+        ctx.fillStyle = '#ffffff'; shareRR(ctx, px, ry, it.w, chipH, chipH / 2); ctx.fill(); ctx.restore();
+        const ckCx = px + 16 + ck / 2, ckCy = ry + chipH / 2;
+        const ckg = ctx.createLinearGradient(ckCx - ck / 2, ckCy - ck / 2, ckCx + ck / 2, ckCy + ck / 2);
+        ckg.addColorStop(0, '#00b98d'); ckg.addColorStop(1, '#008f6d');
+        ctx.save(); ctx.beginPath(); ctx.fillStyle = ckg; ctx.shadowColor = 'rgba(0,150,110,.35)'; ctx.shadowBlur = 14; ctx.shadowOffsetY = 6;
+        ctx.arc(ckCx, ckCy, ck / 2, 0, Math.PI * 2); ctx.fill(); ctx.restore();
+        shareTxt(ctx, '✓', ckCx, ckCy + ck * 0.19, shareCtxFont(900, ck * 0.6), '#ffffff', { shadow: false });
+        shareTxt(ctx, it.text, px + 16 + ck + 13, ry + chipH / 2 + chipFont * 0.35, shareCtxFont(800, chipFont), '#22434f', { align: 'left', shadow: false });
+        px += it.w + 16;
+      });
+      ry += chipH + 16;
+    });
+    flowBottom = ry - 16;
+  }
+  /* línea de marca «ronbo.fit» (decisión §10: nunca el entrenador) */
+  const blCy = flowBottom + (cp ? 38 : 56);
+  const btPx = cp ? 27 : 36, bav = cp ? 48 : 64;
+  const btW = shareTextW(ctx, 'ronbo.fit', 900, btPx);
+  const gx = (W - (bav + 18 + btW)) / 2;
+  const bg4 = ctx.createLinearGradient(gx, blCy - bav / 2, gx + bav, blCy + bav / 2);
+  bg4.addColorStop(0, '#0b5a4c'); bg4.addColorStop(1, '#04382f');
+  ctx.save(); ctx.beginPath(); ctx.fillStyle = bg4; ctx.shadowColor = 'rgba(0,42,36,.40)'; ctx.shadowBlur = 22; ctx.shadowOffsetY = 10;
+  ctx.arc(gx + bav / 2, blCy, bav / 2, 0, Math.PI * 2); ctx.fill(); ctx.restore();
+  ctx.save(); ctx.beginPath(); ctx.lineWidth = 2; ctx.strokeStyle = 'rgba(255,255,255,.55)';
+  ctx.arc(gx + bav / 2, blCy, bav / 2 - 1, 0, Math.PI * 2); ctx.stroke(); ctx.restore();
+  shareTxt(ctx, 'R', gx + bav / 2, blCy + bav * 0.47 * 0.36 + 4, shareCtxFont(900, bav * 0.47), '#ffffff', { shadow: false });
+  shareTxt(ctx, 'ronbo.fit', gx + bav + 18, blCy + btPx * 0.35, shareCtxFont(900, btPx), '#ffffff', { align: 'left', shadowBlur: 12 });
+  const phrase = d.phrase === 'week' ? t('share.phraseWeek') : t('share.phraseStart');
+  shareBottom(ctx, W, H, phrase, !cp);
+}
+
+/* ---------- generación, vista previa y salidas ---------- */
+function shareRender() {
+  const cv = $('share-canvas'); if (!cv) return;
+  const W = 1080, H = SHARE.format === '11' ? 1080 : 1920;
+  if (cv.width !== W) cv.width = W;
+  if (cv.height !== H) cv.height = H;
+  const ctx = cv.getContext('2d');
+  let summary;
+  if (SHARE.type === 'week') {
+    const d = shareWeekData();
+    shareDrawWeek(ctx, W, H, d);
+    summary = t('share.weekLab') + ' · ' + shareWeekLabel(d.days) + ' · ' + t('share.streak') + ': ' + d.streak +
+      ' · ' + d.activeDays + '/7 ' + t('share.daysActive') + ' · ' + d.workoutsWeek + ' ' + t('share.workouts') +
+      ' · ' + fmt(d.minutesTotal) + ' ' + t('share.minActivity') + ' · ' + d.mealsWeek + ' ' + t('share.meals') +
+      ' · ' + d.minutes.join(',') +
+      (d.bestIdx >= 0 ? ' · ' + t('share.bestDay', { day: (SHARE_WD[LANG] || SHARE_WD.en)[d.bestIdx] }) : '') +
+      (d.milestones.length ? ' · ' + d.milestones.join(' · ') : '') +
+      ' · ' + (d.phrase === 'week' ? t('share.phraseWeek') : t('share.phraseStart')) + ' · ronbo.fit';
+  } else {
+    const d = shareDayData();
+    shareDrawDay(ctx, W, H, d);
+    summary = t('share.dayLab') + ' · ' + shareDayLabel(d.iso) + ' · ' +
+      (d.goalKcal ? Math.round(d.pctKcal * 100) + '% ' + t('share.ofGoal') + ' · ' + fmt(d.tot.kcal) + ' / ' + fmt(d.goalKcal) + ' kcal'
+                  : fmt(d.tot.kcal) + ' ' + t('share.kcalToday')) +
+      d.minis.map(m => ' · ' + t(m.lab) + ' ' + (m.goal ? Math.round(m.pct * 100) + '%' : fmt(m.val))).join('') +
+      ' · ' + (d.phrase === 'done' ? t('share.phraseDone') : d.phrase === 'start' ? t('share.phraseStart') : t('share.phraseGoing')) + ' · ronbo.fit';
+  }
+  cv.setAttribute('aria-label', summary);
+  SHARE.fileName = (SHARE.type === 'week' ? 'ronbo-fit-week-' : 'ronbo-fit-goal-') + todayISO() + '.png';
+  SHARE.blob = null;
+  shareRefreshShareBtn();
+  try { cv.toBlob(b => { SHARE.blob = b; shareRefreshShareBtn(); }, 'image/png'); } catch (e) {}
+}
+function shareFile() { return SHARE.blob ? new File([SHARE.blob], SHARE.fileName, { type: 'image/png' }) : null; }
+function shareCanShare() {
+  const f = shareFile(); if (!f) return false;
+  try { return !!(navigator.share && navigator.canShare && navigator.canShare({ files: [f] })); } catch (e) { return false; }
+}
+function shareRefreshShareBtn() {
+  const b = $('btn-share-send'), n = $('share-noshare'), ok = shareCanShare();
+  if (b) b.style.display = ok ? '' : 'none';
+  if (n) n.style.display = ok ? 'none' : '';
+}
+async function shareSend() {
+  const f = shareFile(); if (!f) return;
+  try { await navigator.share({ files: [f], title: 'RONBO FIT' }); }
+  catch (e) { /* el usuario cerró la hoja del sistema: no es un error */ }
+}
+function shareDownload() {
+  if (!SHARE.blob) return;
+  const url = URL.createObjectURL(SHARE.blob);
+  const a = document.createElement('a');
+  a.href = url; a.download = SHARE.fileName;
+  document.body.appendChild(a); a.click(); a.remove();
+  setTimeout(() => { try { URL.revokeObjectURL(url); } catch (e) {} }, 4000);
+}
+function shareOpen() {
+  const f = $('share-float'); if (!f) return;
+  dockHome(f);
+  f.style.display = '';
+  shareRender();
+}
+function shareClose() { const f = $('share-float'); if (f) f.style.display = 'none'; }
+function shareSetType(type) {
+  SHARE.type = type;
+  const bd = $('btn-share-day'), bw = $('btn-share-week');
+  if (bd) bd.setAttribute('aria-pressed', type === 'day' ? 'true' : 'false');
+  if (bw) bw.setAttribute('aria-pressed', type === 'week' ? 'true' : 'false');
+  shareRender();
+}
+function shareSetFormat(fmt) {
+  SHARE.format = fmt;
+  const b9 = $('btn-share-f916'), b1 = $('btn-share-f11');
+  if (b9) b9.setAttribute('aria-pressed', fmt === '916' ? 'true' : 'false');
+  if (b1) b1.setAttribute('aria-pressed', fmt === '11' ? 'true' : 'false');
+  shareRender();
+}
+function shareRelang() { const f = $('share-float'); if (f && f.style.display !== 'none') shareRender(); }
+{ const b = $('btn-share-open'); if (b) b.addEventListener('click', () => {
+    const f = $('share-float');
+    if (f && f.style.display !== 'none') shareClose(); else shareOpen();
+  }); }
+{ const b = $('btn-share-close'); if (b) b.addEventListener('click', shareClose); }
+{ const b = $('btn-share-day'); if (b) b.addEventListener('click', () => shareSetType('day')); }
+{ const b = $('btn-share-week'); if (b) b.addEventListener('click', () => shareSetType('week')); }
+{ const b = $('btn-share-f916'); if (b) b.addEventListener('click', () => shareSetFormat('916')); }
+{ const b = $('btn-share-f11'); if (b) b.addEventListener('click', () => shareSetFormat('11')); }
+{ const b = $('btn-share-send'); if (b) b.addEventListener('click', shareSend); }
+{ const b = $('btn-share-download'); if (b) b.addEventListener('click', shareDownload); }
+document.addEventListener('keydown', e => { if (e.key === 'Escape') shareClose(); });
+
+/* ================================================================
  * INSTALABLE PWA (2026-10-25) — registro del service worker y UX de
  * instalación. Todo ADITIVO y defensivo (cada bloque en try/catch):
  * si algo falla aquí, la app sigue funcionando exactamente igual.
@@ -14762,7 +15342,7 @@ setInterval(() => { try { pendDockTick(); } catch {} }, 60000);
  *  - El SW (sw.js) solo cachea la cáscara del mismo origen en modo
  *    RED PRIMERO: Auth/Firestore/Worker jamás pasan por la caché.
  * ================================================================ */
-const PWA_SW_VERSION = '20261025-pantalla-completa';
+const PWA_SW_VERSION = '20261025-compartir';
 let pwaDeferredPrompt = null;
 function pwaIsStandalone() {
   try {

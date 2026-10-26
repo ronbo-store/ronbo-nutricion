@@ -21,7 +21,7 @@
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-title" content="RONBO FIT">
 <meta name="apple-mobile-web-app-status-bar-style" content="default">
-<link rel="stylesheet" href="styles.css?v=20261025-pantalla-completa">
+<link rel="stylesheet" href="styles.css?v=20261025-compartir">
 <script type="importmap">
 {
   "imports": {
@@ -254,6 +254,7 @@
 
   <div class="panel main-actions">
     <div id="progress-content" style="display:none">
+    <button type="button" class="btn-primary" id="btn-share-open" data-i18n="share.button">📣 Share your progress</button>
     <div class="block-head">
       <h3 class="block-title"><span data-i18n="weight.title">⚖️ Weight progress</span> <span class="h2-sub" data-i18n="weight.sub">· weekly weigh-in</span></h3>
       <button id="btn-add-weight" class="btn-ghost btn-sm" data-i18n="weight.add">＋ Log weigh-in</button>
@@ -535,6 +536,40 @@
     <h3 data-i18n="ai.introTitle">Analyze a meal from a photo</h3>
     <p class="progress-hint" data-i18n="ai.photoNotSaved">📷 Before you take the photo: food photos are NOT saved. A photo is used only for this analysis, in this moment — the app keeps the meal record (the foods and their values), never the picture. If you want to keep the photo, keep it in your phone's gallery as well.</p>
     <p class="progress-hint" data-i18n="ai.limitNote">Daily analysis limit: photo and text analyses share a daily counter (a complete analysis usually takes 2 requests: identify + calculate). If your account has a daily limit set and you reach it, photo and text analysis pause until the counter resets the next day — you can still log every meal by hand. If no limit is set for your account, a default of 10 requests per day applies — enough for five complete meals (2 requests each).</p>
+  </div>
+  <!-- «Comparte tus logros» (Ronald, 2026-10-25): hoja flotante con
+       las DOS tarjetas (meta del día / logros de la semana). La imagen
+       se genera en el propio teléfono con Canvas desde los datos ya
+       cargados; no se sube ni se guarda en ningún servidor y la app
+       nunca publica por el usuario: él ve la vista previa y toca
+       Compartir o Descargar. Sin peso, sin medidas, sin fotos. -->
+  <div class="act-float act-sheet" id="share-float" style="display:none" role="dialog" aria-label="Share your progress" data-i18n-aria="share.title">
+    <div class="pend-head">
+      <h2 data-i18n="share.title">Share your progress</h2>
+      <button type="button" class="pend-close" id="btn-share-close" aria-label="Close" data-i18n-aria="client.close">✕</button>
+    </div>
+    <p class="photo-hint" data-i18n="share.choose">Choose your card:</p>
+    <div class="food-chip-row share-opts">
+      <button type="button" class="act-chip" id="btn-share-day" aria-pressed="true">
+        <span class="act-chip-ico" aria-hidden="true">🎯</span>
+        <span class="act-chip-lab" data-i18n="share.dayLab">My goal for today</span>
+      </button>
+      <button type="button" class="act-chip" id="btn-share-week" aria-pressed="false">
+        <span class="act-chip-ico" aria-hidden="true">🏆</span>
+        <span class="act-chip-lab" data-i18n="share.weekLab">My week in review</span>
+      </button>
+    </div>
+    <div class="share-fmt" role="group">
+      <button type="button" class="btn-ghost btn-sm" id="btn-share-f916" aria-pressed="true" data-i18n="share.format916">Story 9:16</button>
+      <button type="button" class="btn-ghost btn-sm" id="btn-share-f11" aria-pressed="false" data-i18n="share.format11">Post 1:1</button>
+    </div>
+    <div class="share-preview"><canvas id="share-canvas" width="1080" height="1920" role="img"></canvas></div>
+    <p class="progress-hint" data-i18n="share.privNote">Only your progress goes on the card: no weight, no measurements, no photos.</p>
+    <p class="progress-hint" id="share-noshare" style="display:none" data-i18n="share.noShare">Direct sharing is not available on this device — use Download.</p>
+    <div class="ai-actions">
+      <button type="button" class="btn-main btn-sm" id="btn-share-send" data-i18n="share.send">Share</button>
+      <button type="button" class="btn-secondary btn-sm" id="btn-share-download" data-i18n="share.download">Download PNG</button>
+    </div>
   </div>
   <!-- Indicador flotante de análisis M8 (Ronald, 2026-10-21): disco
        con anillo de progreso en el CENTRO DE LA PANTALLA (nació sobre
@@ -970,6 +1005,6 @@
 <div id="toast" class="toast"></div>
 <div id="print-card" aria-hidden="true"></div>
 
-<script type="module" src="app.js?v=20261025-pantalla-completa"></script>
+<script type="module" src="app.js?v=20261025-compartir"></script>
 </body>
 </html>
