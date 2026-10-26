@@ -1457,21 +1457,32 @@ async function renderProfileView() {
   </div>`;
   const pb = $('myprof-photo-btn');
   if (pb) pb.addEventListener('click', () => { const f = $('avatar-file'); if (f) f.click(); });
-  /* Nombre del entrenador del alumno: la caché de nombres se llena
-     al pintar «Mi entrenador» en Mi registro; si aún no está, se
-     resuelve con la lectura puntual de users/{uid} (con respaldo en
-     el nombre visible del dossier) y se parchea la celda. */
+  /* Nombre del entrenador del alumno (pieza B del paquete «App
+     instalada visible», 2026-10-26): se resuelve SIEMPRE con la
+     cadena ÚNICA del proyecto — la misma de la tarjeta «Mi
+     entrenador» y del dossier: displayName del dossier →
+     nombre de la cuenta → el genérico «Tu entrenador» — jamás el
+     uid, jamás un correo y jamás «—» si hay entrenador asignado.
+     La versión anterior consultaba primero la cuenta, dependía de
+     una caché que podía traer el correo y dejaba la celda en «—»
+     cuando la cuenta del entrenador no trae nombre (el caso de
+     Ronald con su alumno de prueba asignado, verificado el
+     2026-10-26: trainerUid asignado y la fila pintaba «—»). */
   if (ROLE === 'usuario') {
     const tUid = (MY_REL && MY_REL.trainerUid) || u.trainerUid || null;
     const cell = $('myprof-trainer-name');
-    if (tUid && cell && !ADMIN_NAME_CACHE[tUid]) {
+    if (tUid && cell) {
       try {
-        const s = await getDoc(doc(db, 'users', tUid));
-        let nm = s.exists() ? (s.data().name || '') : '';
-        if (!nm) { const p = await getDoc(doc(db, 'trainer_profiles', tUid)); if (p.exists()) nm = p.data().displayName || ''; }
-        if (nm) { ADMIN_NAME_CACHE[tUid] = nm; const c2 = $('myprof-trainer-name'); if (c2) c2.textContent = nm; }
-        else cell.textContent = '—';
-      } catch { cell.textContent = '—'; }
+        let nm = '';
+        const p = await getDoc(doc(db, 'trainer_profiles', tUid));
+        if (p.exists()) nm = p.data().displayName || '';
+        if (!nm) { const s = await getDoc(doc(db, 'users', tUid)); if (s.exists()) nm = s.data().name || ''; }
+        nm = String(nm || '').trim();
+        if (!nm || nm === tUid || nm.includes('@')) nm = '';
+        if (nm) ADMIN_NAME_CACHE[tUid] = nm;
+        const c2 = $('myprof-trainer-name');
+        if (c2) c2.textContent = nm || t('esc.currentTrainer');
+      } catch { const c2 = $('myprof-trainer-name'); if (c2) c2.textContent = t('esc.currentTrainer'); }
     }
   }
   /* (b) el editor del dossier, solo entrenador/administrador: su
@@ -3056,6 +3067,9 @@ en: {
   /* Instalable PWA (2026-10-25): botón propio de instalación y guía iOS. */
   'pwa.installBtn': '📲 Install RONBO FIT',
   'pwa.iosText': 'To install the app: tap the Share button and then “Add to Home Screen”.',
+  'appinst.installed': 'Installed',
+  'appinst.last': 'App on this device · last opened installed on the date shown',
+  'appinst.noSignal': 'No install signal',
   'pwa.installed': '✓ App installed',
   'pwa.rowLabel': 'RONBO FIT app',
   /* «Comparte tus logros» (2026-10-25): tarjetas para redes generadas
@@ -4619,6 +4633,9 @@ es: {
   /* Instalable PWA (2026-10-25): botón propio de instalación y guía iOS. */
   'pwa.installBtn': '📲 Instalar RONBO FIT',
   'pwa.iosText': 'Para instalar la app: toca el botón Compartir y luego «Añadir a pantalla de inicio».',
+  'appinst.installed': 'Instalada',
+  'appinst.last': 'App en este dispositivo · última apertura instalada en la fecha mostrada',
+  'appinst.noSignal': 'Sin señal de instalación',
   'pwa.installed': '✓ App instalada',
   'pwa.rowLabel': 'App RONBO FIT',
   /* «Comparte tus logros» (2026-10-25): tarjetas para redes generadas
@@ -5203,9 +5220,12 @@ onAuthStateChanged(auth, async user => {
   }
   $('who').textContent = UDATA.name ? UDATA.name : user.email;
   setAvatar(UDATA.photoURL || '');
-  /* Mensaje de instalación (2026-10-26): con sesión iniciada la
-     tarjeta de primera visita nunca queda sobre la app. */
-  const _ic = $('install-card-overlay'); if (_ic) _ic.style.display = 'none';
+  /* Mensaje de instalación (pieza C, 2026-10-26): con sesión
+     iniciada en navegador la tarjeta SÍ se ofrece — aparece en
+     cada inicio de sesión hasta que la app corra instalada; la
+     decisión (nunca en modo standalone, nunca si ya se cerró en
+     esta carga) vive en installCardMaybeShow. */
+  setTimeout(() => { try { installCardMaybeShow(); } catch (e) {} }, 400);
   $('auth-view').style.display = 'none';
   $('app-view').style.display = '';
   $('main-tabs').style.display = ROLE === 'usuario' ? 'none' : '';
@@ -5228,6 +5248,7 @@ onAuthStateChanged(auth, async user => {
   switchTab('track');
   await loadAll();
   startUserDocWatch(user.uid);
+  appInstallSignal();
 });
 
 /* ================= REACCIÓN EN VIVO DE LA SESIÓN (H-C2) =================
@@ -5373,7 +5394,7 @@ async function loadAdmin() {
     <div class="user-actions"><button class="btn-ghost btn-sm" data-profile="${u.id}">${t('admin.profile')}</button><button class="btn-ghost btn-sm" data-goals="${u.id}">${t('admin.goals')}</button></div></div>`).join('')
     + (active.length ? active.map(u => `
     <div class="user-row">
-      <div>${u.photoURL ? `<img class="avatar sm" src="${esc(u.photoURL)}" alt="">` : ''}<b>${esc(u.name || '—')}</b><br><span class="muted">${esc(u.email || '')}</span></div>
+      <div>${u.photoURL ? `<img class="avatar sm" src="${esc(u.photoURL)}" alt="">` : ''}<b>${esc(u.name || '—')}</b>${appInstallMarkHtml(u)}<br><span class="muted">${esc(u.email || '')}${appInstallNoteHtml(u)}</span></div>
       <div class="user-actions">
         <label class="muted">${t('roles.roleLabel')} <select data-role-for="${u.id}">${['usuario', 'entrenador'].map(r => `<option value="${r}"${(u.role === 'entrenador' ? 'entrenador' : 'usuario') === r ? ' selected' : ''}>${t('roles.' + r)}</option>`).join('')}</select></label>
         <button class="btn-ghost btn-sm" data-profile="${u.id}">${t('admin.profile')}</button>
@@ -5738,7 +5759,7 @@ async function loadClients() {
     const foodBadge = pendingFood[u.id] ? ` <span class="warn-badge" title="${t('clients.foodTitle')}">📷 ${pendingFood[u.id]}</span>` : '';
     const lastW = lastWByUid[u.id] ? ` · <b>${lastWByUid[u.id]} kg</b>` : '';
     return `<div class="user-row">
-      <div>${u.photoURL ? `<img class="avatar sm" src="${esc(u.photoURL)}" alt="">` : ''}<b>${esc(u.name || '—')}</b> ${badge}${healthBadge}${foodBadge}<br><span class="muted">${esc(u.email || '')}${u.phone ? ' · ' + esc(u.phone) : ''}${lastW}</span></div>
+      <div>${u.photoURL ? `<img class="avatar sm" src="${esc(u.photoURL)}" alt="">` : ''}<b>${esc(u.name || '—')}</b> ${badge}${healthBadge}${foodBadge}${appInstallMarkHtml(u)}<br><span class="muted">${esc(u.email || '')}${u.phone ? ' · ' + esc(u.phone) : ''}${lastW}${appInstallNoteHtml(u)}</span></div>
       <div class="user-actions">${u.approved === true ? `<button class="btn-primary btn-sm" data-client="${u.id}">${t('clients.view')}</button>` : ''}</div>
     </div>`;
   }).join('') : `<div class="wempty">${t('clients.empty')}</div>`;
@@ -17250,7 +17271,7 @@ document.addEventListener('keydown', e => { if (e.key === 'Escape') shareClose()
  *  - El SW (sw.js) solo cachea la cáscara del mismo origen en modo
  *    RED PRIMERO: Auth/Firestore/Worker jamás pasan por la caché.
  * ================================================================ */
-const PWA_SW_VERSION = '20261026-reprueba-4';
+const PWA_SW_VERSION = '20261026-app-instalada';
 let pwaDeferredPrompt = null;
 function pwaIsStandalone() {
   try {
@@ -17345,49 +17366,142 @@ async function pwaDoInstall() {
 })();
 
 /* ================================================================
- * MENSAJE FLOTANTE DE INSTALACIÓN (2026-10-26, diseño CERRADO por
- * Ronald — maqueta v4): tarjeta de PRIMERA VISITA sobre la pantalla
- * de acceso que explica cómo instalar la app como icono (iPhone /
- * Android). Solo UI + localStorage; sin escrituras de datos.
- *  - La tarjeta NACE OCULTA en el HTML: si este JS falla, el acceso
- *    queda intacto y jamás bloqueado.
- *  - Se muestra una sola vez por navegador/dispositivo: al cerrarla
- *    (✕ o «Entendido»/«Got it») deja la marca local
- *    'ronbofit-install-card-seen'.
- *  - NUNCA en modo standalone (app ya instalada): pwaIsStandalone().
- *  - Sin localStorage disponible no se muestra (fallo silencioso y
- *    seguro: mejor ninguna tarjeta que una que no puede recordar
- *    su descarte); el cierre también va en try/catch.
- *  - La decisión de mostrar espera a ver qué vista queda en pie:
- *    solo se muestra si la pantalla de acceso sigue visible (si ya
- *    hay sesión, el observador de Auth la oculta además al entrar).
- *  - Los textos viven en el diccionario (claves install.*): se
- *    pintan con applyI18n() y se repintan al cambiar el idioma con
- *    la tarjeta abierta, como el resto de la pantalla de acceso.
+ * APP INSTALADA VISIBLE (2026-10-26, piezas A y B del paquete) —
+ * la señal de instalación, su marca visible y la cadena de nombre
+ * del entrenador en «Mi perfil» la usa renderProfileView.
+ *  A. SEÑAL: cuando la app corre en modo instalado/standalone (la
+ *     MISMA detección que pinta «✓ App instalada» en el perfil,
+ *     pwaIsStandalone), escribe en el documento del PROPIO usuario
+ *     — y solo en el suyo — la señal mínima y de forma cerrada
+ *       appInstall: { everInstalled: true,
+ *                     lastStandaloneAt: serverTimestamp() }
+ *     admitida por las reglas en la rama isSelf de users/{uid}.
+ *     Se escribe al entrar con sesión si falta y se refresca como
+ *     máximo una vez cada 24 h (appInstallShouldWrite): la señal
+ *     dice «abierta instalada por última vez el…», no es un
+ *     registro de aperturas. Sin modo instalado NO se escribe
+ *     nada: la AUSENCIA de señal no afirma «no instalada» (puede
+ *     ser navegador, o instalada aún no abierta desde que la
+ *     señal existe) — por eso la cara visible sin señal dice
+ *     «Sin señal de instalación», nunca «no instalada».
+ *  B. MARCA: junto a cada cliente, en «Mis clientes» y en
+ *     «Accesos»: insignia «📲 Instalada · {fecha}» si hay señal
+ *     (appInstallMarkHtml, en la línea de insignias) o el texto
+ *     honesto en la línea atenuada si no la hay
+ *     (appInstallNoteHtml). Solo lectura: estas superficies ya
+ *     cargan el documento completo del usuario.
+ *  Todo en try/catch: la señal y su marca jamás rompen la app.
  * ================================================================ */
-(function installCardInit() {
+const APP_INSTALL_REFRESH_MS = 24 * 3600 * 1000;
+let appInstallSignalTried = false;
+function appInstallTsMs(v) {
   try {
-    const KEY = 'ronbofit-install-card-seen';
-    let seen = null;
-    try { seen = localStorage.getItem(KEY); } catch (e) { return; }
-    if (seen === '1') return;
+    if (!v) return 0;
+    if (typeof v.toMillis === 'function') return v.toMillis() || 0;
+    if (typeof v.toDate === 'function') { const d = v.toDate(); return d ? d.getTime() : 0; }
+    if (typeof v.seconds === 'number') return v.seconds * 1000;
+    if (typeof v === 'number') return v;
+  } catch (e) {}
+  return 0;
+}
+function appInstallShouldWrite(cur, nowMs) {
+  if (!cur || cur.everInstalled !== true) return true;
+  const last = appInstallTsMs(cur.lastStandaloneAt);
+  if (!last) return true;
+  return (nowMs - last) >= APP_INSTALL_REFRESH_MS;
+}
+async function appInstallSignal() {
+  if (appInstallSignalTried) return;
+  appInstallSignalTried = true;
+  try {
+    if (!pwaIsStandalone()) return;
+    const me = auth.currentUser;
+    if (!me) return;
+    const cur = (typeof UDATA !== 'undefined' && UDATA) ? (UDATA.appInstall || null) : null;
+    if (!appInstallShouldWrite(cur, Date.now())) return;
+    await setDoc(doc(db, 'users', me.uid), { appInstall: { everInstalled: true, lastStandaloneAt: serverTimestamp() } }, { merge: true });
+  } catch (e) { /* la señal de instalación nunca rompe la app */ }
+}
+function appInstallDateStr(v) {
+  try {
+    const ms = appInstallTsMs(v);
+    if (!ms) return '';
+    return new Date(ms).toLocaleDateString(LANG === 'es' ? 'es-MX' : 'en-US', { day: 'numeric', month: 'short', year: 'numeric' });
+  } catch (e) { return ''; }
+}
+function appInstallMarkHtml(u) {
+  try {
+    const ai = u && u.appInstall;
+    if (ai && ai.everInstalled === true) {
+      const d = appInstallDateStr(ai.lastStandaloneAt);
+      return ` <span class="ok-badge" title="${esc(t('appinst.last'))}">📲 ${esc(t('appinst.installed'))}${d ? ' · ' + esc(d) : ''}</span>`;
+    }
+  } catch (e) {}
+  return '';
+}
+function appInstallNoteHtml(u) {
+  try {
+    const ai = u && u.appInstall;
+    if (ai && ai.everInstalled === true) return '';
+    return ` · ${esc(t('appinst.noSignal'))}`;
+  } catch (e) { return ''; }
+}
+
+/* ================================================================
+ * MENSAJE FLOTANTE DE INSTALACIÓN (2026-10-26, diseño CERRADO por
+ * Ronald — maqueta v4; PERSISTENCIA nueva de la pieza C del
+ * paquete «App instalada visible», requisito de Ronald): tarjeta
+ * que explica cómo instalar la app como icono (iPhone / Android)
+ * y que aparece en la pantalla de acceso y, con la sesión
+ * iniciada, sobre la propia app.
+ *  - PERSISTENCIA (pieza C): ya NO es «solo primera visita» —
+ *    para quien NO corre en modo instalado, la tarjeta aparece en
+ *    CADA inicio de sesión (cada carga de la app con o sin sesión
+ *    previa, hasta que la app corra instalada). El observador de
+ *    Auth la reevalúa al entrar (installCardMaybeShow).
+ *  - Dentro de una misma carga se puede cerrar (✕ o
+ *    «Entendido»/«Got it») y NO reaparece: el descarte vive SOLO
+ *    en memoria (installCardDismissed) — el cierre NO escribe
+ *    nada permanente que lo suprima en sesiones futuras. La
+ *    marca histórica de localStorage 'ronbofit-install-card-seen'
+ *    (la de «primera visita») dejó de mandar: se retira al
+ *    iniciar y ya no suprime nada.
+ *  - NUNCA en modo standalone (app ya instalada): la detección
+ *    local e inmediata de pwaIsStandalone(), sin depender de la
+ *    señal del servidor (pieza A). Si llega el evento
+ *    'appinstalled' con la tarjeta abierta, se cierra y no
+ *    vuelve en esta carga.
+ *  - La tarjeta NACE OCULTA en el HTML: si este JS falla, el
+ *    acceso queda intacto y jamás bloqueado; todo en try/catch.
+ *  - Los textos viven en el diccionario (claves install.*): se
+ *    pintan con applyI18n() y se repintan al cambiar el idioma
+ *    con la tarjeta abierta, como el resto de la pantalla.
+ * ================================================================ */
+let installCardDismissed = false;
+function installCardMaybeShow() {
+  try {
+    if (installCardDismissed) return;
     if (pwaIsStandalone()) return;
     const ov = document.getElementById('install-card-overlay');
     if (!ov) return;
-    const close = () => {
-      try { localStorage.setItem(KEY, '1'); } catch (e) {}
-      ov.style.display = 'none';
-    };
+    const av = document.getElementById('auth-view');
+    const appv = document.getElementById('app-view');
+    const visible = (av && av.style.display !== 'none') || (appv && appv.style.display !== 'none');
+    if (visible) ov.style.display = 'flex';
+  } catch (e) { /* el mensaje de instalación nunca rompe la app */ }
+}
+(function installCardInit() {
+  try {
+    /* La marca histórica «ya visto» deja de suprimir: se retira. */
+    try { localStorage.removeItem('ronbofit-install-card-seen'); } catch (e) {}
+    const ov = document.getElementById('install-card-overlay');
+    if (!ov) return;
+    const close = () => { installCardDismissed = true; ov.style.display = 'none'; };
     const x = document.getElementById('install-card-close');
     if (x) x.addEventListener('click', close);
     const ok = document.getElementById('install-card-ok');
     if (ok) ok.addEventListener('click', close);
-    setTimeout(() => {
-      try {
-        if (pwaIsStandalone()) return;
-        const av = document.getElementById('auth-view');
-        if (av && av.style.display !== 'none') ov.style.display = 'flex';
-      } catch (e) {}
-    }, 650);
+    window.addEventListener('appinstalled', close);
+    setTimeout(installCardMaybeShow, 650);
   } catch (e) { /* el mensaje de instalación nunca rompe el acceso */ }
 })();
