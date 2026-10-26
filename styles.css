@@ -408,8 +408,13 @@ table.whist { min-width: 640px; }
    fila se centra por sí misma (3+2 en administrador; las que vea
    cada rol quedan centradas igual). */
 .main-tabs { display: flex; gap: 8px; margin: 14px 0 6px; flex-wrap: wrap; justify-content: center; }
-.main-tab { padding: 9px 18px; border-radius: 999px; border: 1px solid #d1d5db; background: #fff; font-size: 14px; cursor: pointer; color: #374151; }
+.main-tab { padding: 9px 18px; border-radius: 999px; border: 1px solid #d1d5db; background: #fff; font-size: 14px; cursor: pointer; color: #374151; display: inline-flex; align-items: center; gap: 8px; }
 .main-tab.active { background: #0d9488; border-color: #0d9488; color: #fff; font-weight: 600; }
+/* Armonía de píldoras (2026-10-26): una sola familia de iconos de
+   línea (mismo trazo que los tres iconos de marca) en las píldoras
+   de navegación — verde de marca en reposo, blanco en la activa. */
+.main-tab svg { width: 24px; height: 24px; flex: none; color: #0d9488; }
+.main-tab.active svg { color: #fff; }
 
 /* ===== ayuda con comidas ===== */
 .mealhelp-panel { margin-top: 18px; }
