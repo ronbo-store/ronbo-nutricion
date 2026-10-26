@@ -694,7 +694,7 @@ service cloud.firestore {
       // ninguna rama del alumno los abre, como hasta hoy.
       allow update: if isSelf(uid)
         && request.resource.data.diff(resource.data).affectedKeys()
-             .hasOnly(['goals', 'goalsProvenance', 'goalObjective', 'paceSuggestion', 'goalsTerms'])
+             .hasOnly(['goals', 'goalsProvenance', 'goalObjective', 'paceSuggestion', 'goalsTerms', 'goalsProposal', 'goalsDayOverrides', 'goalsAgreement'])
         && (!request.resource.data.diff(resource.data).affectedKeys().hasAny(['goals'])
             || (request.resource.data.goals is map
                 && request.resource.data.goals.keys().hasOnly(['kcal', 'prot', 'carb', 'azuc', 'gras'])
@@ -730,6 +730,82 @@ service cloud.firestore {
                     || request.resource.data.goalsTerms.acceptedAt == request.time)
                 && (!('version' in request.resource.data.goalsTerms)
                     || request.resource.data.goalsTerms.version is string)))
+        // Metas-L (§L, 2026-10-26): goalsProposal — la propuesta
+        // viva del alumno (forma REAL del bloque motor v3).
+        // Claves cerradas; status SOLO 'pending'; proposedAt ==
+        // hora del servidor; la decisión viaja NULA (decidedBy/
+        // decidedAt == null, presentes o ausentes): el dueño JAMÁS
+        // escribe una decisión. Coherencia por kind: goal -> param
+        // en las 5 metas, date null, foundedValue número o null,
+        // chosenValue número >0 y <=20000; daytype -> param
+        // 'dayType', date 'YYYY-MM-DD', founded/chosen en
+        // base|exigente|descanso; objective -> param
+        // 'goalObjective', date null, founded nulo o en
+        // mantener|bajar|ganar, chosen en mantener|bajar|ganar.
+        // Una propuesta 'pending' es INMUTABLE para el dueño (la
+        // app ya bloquea la segunda mientras una vive): solo puede
+        // sustituir una inexistente o ya DECIDIDA por una nueva
+        // 'pending'.
+        && (!request.resource.data.diff(resource.data).affectedKeys().hasAny(['goalsProposal'])
+            || (request.resource.data.goalsProposal is map
+                && request.resource.data.goalsProposal.keys()
+                     .hasOnly(['kind', 'param', 'date', 'foundedValue', 'chosenValue', 'warningKey', 'status', 'proposedAt', 'decidedBy', 'decidedAt'])
+                && request.resource.data.goalsProposal.status == 'pending'
+                && request.resource.data.goalsProposal.proposedAt == request.time
+                && request.resource.data.goalsProposal.get('decidedBy', null) == null
+                && request.resource.data.goalsProposal.get('decidedAt', null) == null
+                && request.resource.data.goalsProposal.warningKey is string
+                && request.resource.data.goalsProposal.warningKey.size() <= 80
+                && resource.data.get('goalsProposal', {}).get('status', '') != 'pending'
+                && ((request.resource.data.goalsProposal.kind == 'goal'
+                     && request.resource.data.goalsProposal.param in ['kcal', 'prot', 'carb', 'azuc', 'gras']
+                     && request.resource.data.goalsProposal.get('date', null) == null
+                     && (request.resource.data.goalsProposal.get('foundedValue', null) == null
+                         || request.resource.data.goalsProposal.foundedValue is number)
+                     && request.resource.data.goalsProposal.chosenValue is number
+                     && request.resource.data.goalsProposal.chosenValue > 0
+                     && request.resource.data.goalsProposal.chosenValue <= 20000)
+                  || (request.resource.data.goalsProposal.kind == 'daytype'
+                     && request.resource.data.goalsProposal.param == 'dayType'
+                     && request.resource.data.goalsProposal.date is string
+                     && request.resource.data.goalsProposal.date.matches('^[0-9]{4}-[0-9]{2}-[0-9]{2}$')
+                     && request.resource.data.goalsProposal.foundedValue in ['base', 'exigente', 'descanso']
+                     && request.resource.data.goalsProposal.chosenValue in ['base', 'exigente', 'descanso'])
+                  || (request.resource.data.goalsProposal.kind == 'objective'
+                     && request.resource.data.goalsProposal.param == 'goalObjective'
+                     && request.resource.data.goalsProposal.get('date', null) == null
+                     && (request.resource.data.goalsProposal.get('foundedValue', null) == null
+                         || request.resource.data.goalsProposal.foundedValue in ['mantener', 'bajar', 'ganar'])
+                     && request.resource.data.goalsProposal.chosenValue in ['mantener', 'bajar', 'ganar']))))
+        // Metas-L (§L): goalsDayOverrides — mapa fecha ->
+        // base|exigente|descanso ya autorizados (directo o por
+        // aprobación). El dialecto NO puede iterar un mapa de
+        // claves dinámicas: la regla exige que sea un mapa y la
+        // forma fina (clave 'YYYY-MM-DD', valor en la lista
+        // cerrada) la fija la app — mismo nivel que goalsProvenance.
+        // La compuerta vive en la app, como manda el diseño §L.
+        && (!request.resource.data.diff(resource.data).affectedKeys().hasAny(['goalsDayOverrides'])
+            || request.resource.data.goalsDayOverrides is map)
+        // Metas-L (§L): goalsAgreement — SOLO el dueño (esta rama
+        // es isSelf; el entrenador NO tiene rama para este campo y
+        // el administrador conserva su rama vigente). Forma:
+        // {version: string, records: list, updatedAt == hora del
+        // servidor si viaja}. records es una lista de mapas de
+        // claves cerradas en la app; el dialecto no valida listas
+        // de mapas en profundidad (límite documentado). OJO forma
+        // real: acceptedAt de cada registro es una CADENA ISO que
+        // escribe la app (new Date().toISOString()), NO la hora
+        // del servidor; updatedAt SÍ es serverTimestamp().
+        && (!request.resource.data.diff(resource.data).affectedKeys().hasAny(['goalsAgreement'])
+            || (request.resource.data.goalsAgreement is map
+                && request.resource.data.goalsAgreement.keys()
+                     .hasOnly(['version', 'records', 'updatedAt'])
+                && (!('version' in request.resource.data.goalsAgreement)
+                    || request.resource.data.goalsAgreement.version is string)
+                && (!('records' in request.resource.data.goalsAgreement)
+                    || request.resource.data.goalsAgreement.records is list)
+                && (!('updatedAt' in request.resource.data.goalsAgreement)
+                    || request.resource.data.goalsAgreement.updatedAt == request.time)))
         && (!request.resource.data.diff(resource.data).affectedKeys().hasAny(['paceSuggestion'])
             || (request.resource.data.paceSuggestion is map
                 && request.resource.data.paceSuggestion.keys()
@@ -761,6 +837,108 @@ service cloud.firestore {
              == resource.data.get('paceSuggestion', {}).get('paceKcal', 0)
         && request.resource.data.paceSuggestion.suggestedAt
              == resource.data.get('paceSuggestion', {}).get('suggestedAt', request.time);
+      // Metas-L (§L): la DECISIÓN sobre goalsProposal — SOLO el
+      // entrenador ASIGNADO, SOLO sobre una propuesta 'pending', y
+      // el CONTENIDO de la propuesta queda byte a byte igual
+      // (kind/param/date/foundedValue/chosenValue/warningKey/
+      // proposedAt): el entrenador solo pone status
+      // approved/rejected firmando decidedBy == su uid y
+      // decidedAt == hora del servidor. El entrenador NO puede
+      // crear propuestas ni tocar goalsAgreement.
+      // APROBAR: en la MISMA escritura puede APLICAR el valor —
+      // goals (saneado como en la rama del dueño), goalsDayOverrides
+      // (mapa) y goalObjective (string <= 40) — JUNTO CON la
+      // decisión y el registro en goalsProvenance (mapa). La
+      // escritura DEBE traer la decisión (goalsProposal entre las
+      // claves afectadas); ningún otro campo puede cambiar.
+      allow update: if isAssignedTrainerOf(uid)
+        && request.resource.data.diff(resource.data).affectedKeys()
+             .hasOnly(['goalsProposal', 'goalsProvenance', 'goals', 'goalsDayOverrides', 'goalObjective'])
+        && request.resource.data.diff(resource.data).affectedKeys()
+             .hasAny(['goalsProposal'])
+        && resource.data.get('goalsProposal', {}).get('status', '') == 'pending'
+        && request.resource.data.goalsProposal is map
+        && request.resource.data.goalsProposal.keys()
+             .hasOnly(['kind', 'param', 'date', 'foundedValue', 'chosenValue', 'warningKey', 'status', 'proposedAt', 'decidedBy', 'decidedAt'])
+        && request.resource.data.goalsProposal.status == 'approved'
+        && request.resource.data.goalsProposal.decidedBy == request.auth.uid
+        && request.resource.data.goalsProposal.decidedAt == request.time
+        && request.resource.data.goalsProposal.kind
+             == resource.data.get('goalsProposal', {}).get('kind', '')
+        && request.resource.data.goalsProposal.param
+             == resource.data.get('goalsProposal', {}).get('param', '')
+        && request.resource.data.goalsProposal.get('date', null)
+             == resource.data.get('goalsProposal', {}).get('date', null)
+        && request.resource.data.goalsProposal.get('foundedValue', null)
+             == resource.data.get('goalsProposal', {}).get('foundedValue', null)
+        && request.resource.data.goalsProposal.get('chosenValue', null)
+             == resource.data.get('goalsProposal', {}).get('chosenValue', null)
+        && request.resource.data.goalsProposal.warningKey
+             == resource.data.get('goalsProposal', {}).get('warningKey', '')
+        && request.resource.data.goalsProposal.proposedAt
+             == resource.data.get('goalsProposal', {}).get('proposedAt', request.time)
+        && (!request.resource.data.diff(resource.data).affectedKeys().hasAny(['goalsProvenance'])
+            || request.resource.data.goalsProvenance is map)
+        && (!request.resource.data.diff(resource.data).affectedKeys().hasAny(['goals'])
+            || (request.resource.data.goals is map
+                && request.resource.data.goals.keys().hasOnly(['kcal', 'prot', 'carb', 'azuc', 'gras'])
+                && (!('kcal' in request.resource.data.goals)
+                    || (request.resource.data.goals.kcal is number
+                        && request.resource.data.goals.kcal > 0
+                        && request.resource.data.goals.kcal <= 20000))
+                && (!('prot' in request.resource.data.goals)
+                    || (request.resource.data.goals.prot is number
+                        && request.resource.data.goals.prot > 0
+                        && request.resource.data.goals.prot <= 20000))
+                && (!('carb' in request.resource.data.goals)
+                    || (request.resource.data.goals.carb is number
+                        && request.resource.data.goals.carb > 0
+                        && request.resource.data.goals.carb <= 20000))
+                && (!('azuc' in request.resource.data.goals)
+                    || (request.resource.data.goals.azuc is number
+                        && request.resource.data.goals.azuc > 0
+                        && request.resource.data.goals.azuc <= 20000))
+                && (!('gras' in request.resource.data.goals)
+                    || (request.resource.data.goals.gras is number
+                        && request.resource.data.goals.gras > 0
+                        && request.resource.data.goals.gras <= 20000))
+                ))
+        && (!request.resource.data.diff(resource.data).affectedKeys().hasAny(['goalsDayOverrides'])
+            || request.resource.data.goalsDayOverrides is map)
+        && (!request.resource.data.diff(resource.data).affectedKeys().hasAny(['goalObjective'])
+            || (request.resource.data.goalObjective is string
+                && request.resource.data.goalObjective.size() <= 40));
+      // Metas-L (§L): RECHAZAR — la misma decisión firmada, pero
+      // la escritura SOLO puede tocar goalsProposal y
+      // goalsProvenance (el registro del rechazo). Sin aplicación.
+      allow update: if isAssignedTrainerOf(uid)
+        && request.resource.data.diff(resource.data).affectedKeys()
+             .hasOnly(['goalsProposal', 'goalsProvenance'])
+        && request.resource.data.diff(resource.data).affectedKeys()
+             .hasAny(['goalsProposal'])
+        && resource.data.get('goalsProposal', {}).get('status', '') == 'pending'
+        && request.resource.data.goalsProposal is map
+        && request.resource.data.goalsProposal.keys()
+             .hasOnly(['kind', 'param', 'date', 'foundedValue', 'chosenValue', 'warningKey', 'status', 'proposedAt', 'decidedBy', 'decidedAt'])
+        && request.resource.data.goalsProposal.status == 'rejected'
+        && request.resource.data.goalsProposal.decidedBy == request.auth.uid
+        && request.resource.data.goalsProposal.decidedAt == request.time
+        && request.resource.data.goalsProposal.kind
+             == resource.data.get('goalsProposal', {}).get('kind', '')
+        && request.resource.data.goalsProposal.param
+             == resource.data.get('goalsProposal', {}).get('param', '')
+        && request.resource.data.goalsProposal.get('date', null)
+             == resource.data.get('goalsProposal', {}).get('date', null)
+        && request.resource.data.goalsProposal.get('foundedValue', null)
+             == resource.data.get('goalsProposal', {}).get('foundedValue', null)
+        && request.resource.data.goalsProposal.get('chosenValue', null)
+             == resource.data.get('goalsProposal', {}).get('chosenValue', null)
+        && request.resource.data.goalsProposal.warningKey
+             == resource.data.get('goalsProposal', {}).get('warningKey', '')
+        && request.resource.data.goalsProposal.proposedAt
+             == resource.data.get('goalsProposal', {}).get('proposedAt', request.time)
+        && (!request.resource.data.diff(resource.data).affectedKeys().hasAny(['goalsProvenance'])
+            || request.resource.data.goalsProvenance is map);
       // Consent withdrawal: a client may revoke THEMSELVES only —
       // acceptedTerms=false, approved=false, withdrawal timestamp —
       // and nothing else in the same write. At least one of the two
