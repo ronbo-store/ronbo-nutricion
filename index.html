@@ -21,7 +21,7 @@
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-title" content="RONBO FIT">
 <meta name="apple-mobile-web-app-status-bar-style" content="default">
-<link rel="stylesheet" href="styles.css?v=20261026-entrenamiento-hoy">
+<link rel="stylesheet" href="styles.css?v=20261026-checklist-flotante">
 <script type="importmap">
 {
   "imports": {
@@ -572,6 +572,21 @@
       <button type="button" class="btn-secondary btn-sm" id="btn-share-download" data-i18n="share.download">Download PNG</button>
     </div>
   </div>
+  <!-- CHECKLIST FLOTANTE (cuarta enmienda de Ronald, chat 2026-10-26
+       02:32 CDT): ventana flotante por ejercicio de la tarjeta del
+       día vestida. Tocar una fila del día abre aquí todo lo ya
+       construido para ese ejercicio (multimedia + registro del
+       proceso con RPE); Guardar confirma en el MISMO estado local
+       de siempre (TRAIN_CHECKS) y la hoja se recoge — la única
+       escritura sigue siendo el cierre del día en training_logs.
+       Pasado y futuro abren la misma hoja en solo lectura. -->
+  <div class="act-float act-sheet" id="train-ex-float" style="display:none" role="dialog">
+    <div class="pend-head">
+      <h2 id="train-ex-float-title"></h2>
+      <button type="button" class="pend-close" id="btn-train-ex-close" aria-label="Close" data-i18n-aria="client.close">✕</button>
+    </div>
+    <div id="train-ex-float-body"></div>
+  </div>
   <!-- Indicador flotante de análisis M8 (Ronald, 2026-10-21): disco
        con anillo de progreso en el CENTRO DE LA PANTALLA (nació sobre
        la pastilla del dock; Ronald, 2026-10-21: tapaba el botón de
@@ -1006,6 +1021,6 @@
 <div id="toast" class="toast"></div>
 <div id="print-card" aria-hidden="true"></div>
 
-<script type="module" src="app.js?v=20261026-entrenamiento-hoy"></script>
+<script type="module" src="app.js?v=20261026-checklist-flotante"></script>
 </body>
 </html>

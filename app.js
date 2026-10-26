@@ -9460,6 +9460,154 @@ function trainShareOpen(model) {
   shareIconEnsure();
   shareOpen();
 }
+/* CHECKLIST FLOTANTE (cuarta enmienda de Ronald, chat 2026-10-26
+   02:32 CDT; §6 del informe de Entrenamiento-HOY): la tarjeta del
+   día seleccionado se VISTE con el sistema visual de la tarjeta
+   exportable — mismo degradado teal, anillo de % en lima, etiqueta
+   gancho centrada coral→rosa, barra ámbar→lima, filas de cristal
+   con franja lateral de la paleta vibrante y marca de agua del
+   logo-icono — y tocar una fila abre la ventana flotante del
+   ejercicio (#train-ex-float) con todo lo ya construido para él:
+   multimedia (foto/GIF que abre el lightbox de siempre y enlace de
+   video) y el registro del proceso (hecho o no, series con reps y
+   carga, RPE). SIN modelo de datos nuevo: la flotante edita un
+   BORRADOR y «Guardar» confirma sobre el MISMO estado local
+   TRAIN_CHECKS que usan los controles de la fila; la única
+   escritura sigue siendo el cierre del día en training_logs con
+   la semántica y el documento de siempre. Al guardar, la hoja SE
+   RECOGE (animación de cierre) y la tarjeta se re-pinta con el
+   estado nuevo. Pasado: la flotante abre en SOLO LECTURA con lo
+   registrado; futuro: ficha con multimedia, sin registro; el día
+   de descanso no tiene filas ni flotante. La franja del mensaje
+   del día aparece solo si shareMsgForDate devuelve texto (con el
+   banco vacío no aparece: la pantalla funciona sin franja). */
+function dressExRows(html, di, mode) {
+  let n = 0;
+  return String(html || '').replace(/<div class="train-ex-card[^"]*"/g, m =>
+    `${m} data-train-row="${di}:${n}:${mode}" style="--stripe:${SHARE_W_PALETTE[n++ % SHARE_W_PALETTE.length]}"`);
+}
+function trainDressedHeadHTML(plan, logs, di, iso) {
+  const m = trainShareModel(plan, logs, di, iso);
+  const pct = m.total ? Math.round(100 * m.doneCount / m.total) : 0;
+  const log = logs.find(l => l.date === iso && l.dayIndex === di) || null;
+  const st = trainLogStatus(log);
+  let hook;
+  if (log && st === 'skipped') hook = esc(t('train.d.statusSkipped'));
+  else if (!log && iso < todayISO()) hook = esc(t('train.d.statusNone'));
+  else if (m.total > 0 && m.doneCount >= m.total) hook = esc(t('shareW.done'));
+  else hook = esc(t('shareW.tag')) + ' 🔥 ' + esc(t('shareW.progress', { x: m.doneCount, y: m.total }));
+  const C = 2 * Math.PI * 24;
+  const msg = shareMsgForDate(iso);
+  return `<div class="train-dressed-head">
+    <div class="train-dressed-top"><span class="train-dressed-kicker">${esc(iso === todayISO() ? t('shareW.kickerToday') : t('shareW.kicker'))}</span>
+    <span class="train-dressed-ring"><svg width="56" height="56" viewBox="0 0 56 56" aria-hidden="true"><circle cx="28" cy="28" r="24" fill="none" stroke="rgba(255,255,255,.25)" stroke-width="5"/><circle cx="28" cy="28" r="24" fill="none" stroke="#C6FF4A" stroke-width="5" stroke-linecap="round" stroke-dasharray="${C.toFixed(1)}" stroke-dashoffset="${(C * (1 - pct / 100)).toFixed(1)}" transform="rotate(-90 28 28)"/></svg><span class="train-dressed-pct">${pct}%</span></span></div>
+    <span class="train-dressed-tag">${hook}</span>
+    <div class="train-dressed-bar"><i style="width:${pct}%"></i></div>
+    ${msg ? `<div class="train-dressed-msg">${esc(msg.icon)} ${esc(msg.text)}</div>` : ''}
+  </div>`;
+}
+function trainDressedCardHTML(plan, logs, di, iso, innerHTML, extraCls) {
+  return `<div class="train-day ${extraCls || ''} train-day-dressed"><img class="train-dressed-wm" src="icons/icon-512.png" alt="" aria-hidden="true" onerror="this.remove()"><div class="train-dressed-content">${trainDressedHeadHTML(plan, logs, di, iso)}${innerHTML}</div></div>`;
+}
+let TRAIN_FLOAT = null;   // { di, ei, mode, iso, draft } — borrador de la flotante; nada se confirma hasta Guardar
+function trainFloatSetsHTML(draft) {
+  if (!draft || !draft.done) return '';
+  const sets = Array.isArray(draft.sets) ? draft.sets : [];
+  return `<div class="train-sets">${sets.map((s, si) => `
+    <div class="train-set-row"><span class="train-set-n">${t('train.d.set')} ${si + 1}${s.repsPlanned ? ` · ${esc(s.repsPlanned)}` : ''}</span>
+      <input type="number" inputmode="decimal" min="0" class="train-set-in" data-tf-reps="${si}" placeholder="${t('train.d.repsPh')}" value="${esc(s.repsDone)}" aria-label="${t('train.d.repsPh')}">
+      <input type="number" inputmode="decimal" min="0" step="any" class="train-set-in" data-tf-load="${si}" placeholder="${t('train.d.loadPh')}" value="${esc(s.loadVal)}" aria-label="${t('train.d.loadPh')}">
+      <span class="train-set-unit">${esc(UNIT_PREFS.mass)}</span></div>`).join('')}</div>`;
+}
+function trainFloatWireSets(body, draft) {
+  body.querySelectorAll('[data-tf-reps]').forEach(inp => inp.oninput = () => { const s = draft.sets[Number(inp.dataset.tfReps)]; if (s) s.repsDone = inp.value; });
+  body.querySelectorAll('[data-tf-load]').forEach(inp => inp.oninput = () => { const s = draft.sets[Number(inp.dataset.tfLoad)]; if (s) s.loadVal = inp.value; });
+}
+function trainFloatOpen(plan, logs, di, ei, mode, iso) {
+  const fl = $('train-ex-float');
+  if (!fl || !plan) return;
+  const day = (plan.days || [])[di] || {};
+  const ex = (day.exercises || [])[ei] || {};
+  const body = $('train-ex-float-body');
+  $('train-ex-float-title').textContent = trainExName(ex) || ex.name || '';
+  const photo = trainExPhoto(ex), video = trainExVideo(ex);
+  const spec = [ex.sets, ex.reps].filter(Boolean).join(' × ');
+  const rest = LANG === 'es' ? (ex.rest || ex.rest_en || '') : (ex.rest_en || ex.rest || '');
+  const warm = LANG === 'es' ? (ex.warmup || ex.warmup_en || '') : (ex.warmup_en || ex.warmup || '');
+  const det = [];
+  if (warm) det.push(`${t('train.view.warmup')}: ${warm}`);
+  if (rest) det.push(`${t('train.view.rest')}: ${rest}`);
+  let html = `${photo ? `<img class="train-float-photo" src="${esc(photo)}" alt="" data-tf-photo="${esc(photo)}">` : ''}
+    ${spec || ex.note ? `<div class="train-float-spec">${esc(spec)}${ex.note ? ` <span class="muted">· ${esc(ex.note)}</span>` : ''}</div>` : ''}
+    ${det.length ? `<div class="train-float-sub">${esc(det.join(' · '))}</div>` : ''}
+    ${video ? `<a class="btn-ghost btn-sm train-ex-video" href="${esc(video)}" target="_blank" rel="noopener">▶ ${t('train.lib.video')}</a>` : ''}`;
+  if (mode === 'edit') {
+    const key = di + ':' + ei;
+    const chk = TRAIN_CHECKS[key];
+    const draft = { done: !!chk, rpe: chk ? chk.rpe : null,
+      sets: chk && Array.isArray(chk.sets) ? chk.sets.map(s => ({ ...s })) : trainDefaultSets(ex) };
+    TRAIN_FLOAT = { di, ei, mode, iso, draft };
+    html += `<label class="train-float-check"><input type="checkbox" id="tf-done" ${draft.done ? 'checked' : ''}> <span>${t('train.view.exDone')}</span></label>
+      <div id="tf-sets">${trainFloatSetsHTML(draft)}</div>
+      <div><label class="prop-lab" for="tf-rpe">${t('train.view.rpe')}</label>
+      <select class="train-ex-rpe" id="tf-rpe" ${draft.done ? '' : 'disabled'}>
+        <option value="">${t('train.view.rpeNone')}</option>
+        ${[1, 2, 3, 4, 5, 6, 7, 8, 9, 10].map(n => `<option value="${n}" ${draft.rpe === n ? 'selected' : ''}>${t('train.view.rpe')} ${n}</option>`).join('')}
+      </select></div>
+      <div class="train-float-actions"><button type="button" class="btn-main btn-sm" id="tf-save">${t('form.save')}</button></div>`;
+  } else {
+    TRAIN_FLOAT = { di, ei, mode, iso, draft: null };
+    if (mode === 'read') {
+      const log = logs.find(l => l.date === iso && l.dayIndex === di) || null;
+      const doneList = (log && Array.isArray(log.exercisesDone)) ? log.exercisesDone : [];
+      const de = doneList.find(e => e && ((ex.exerciseId && e.exerciseId === ex.exerciseId) || (!ex.exerciseId && ex.name && e.name === ex.name))) || null;
+      const setsLine = de && Array.isArray(de.sets) && de.sets.length
+        ? `<div class="train-set-hist">${t('train.d.setsLabel')}: ${de.sets.map((s, si) => `${t('train.d.set')} ${si + 1}: ${s.repsDone != null && s.repsDone !== '' ? esc(String(s.repsDone)) : '—'}${s.repsPlanned ? `/${esc(String(s.repsPlanned))}` : ''} ${t('train.d.repsPh')}${typeof s.loadKg === 'number' ? ` · ${esc(fmtMass(s.loadKg))}` : ''}`).join(' · ')}</div>` : '';
+      html += `<div style="margin-top:10px">${de ? `<span class="ok-badge">✓ ${t('train.view.exDone')}${de.rpe ? ` · ${t('train.view.rpe')} ${esc(String(de.rpe))}` : ''}</span>` : '<span class="muted">—</span>'}</div>${setsLine}`;
+    } else {
+      html += `<div style="margin-top:10px"><span class="train-status st-skipped">● ${t('train.today.scheduled')}</span></div>`;
+    }
+  }
+  body.innerHTML = html;
+  const ph = body.querySelector('[data-tf-photo]');
+  if (ph) { ph.onerror = () => ph.remove(); ph.onclick = () => showLightbox(ph.dataset.tfPhoto); }
+  if (mode === 'edit' && TRAIN_FLOAT) {
+    const d = TRAIN_FLOAT.draft;
+    const doneBox = body.querySelector('#tf-done');
+    const rpeSel = body.querySelector('#tf-rpe');
+    doneBox.onchange = () => {
+      d.done = doneBox.checked;
+      if (d.done && (!Array.isArray(d.sets) || !d.sets.length)) d.sets = trainDefaultSets(ex);
+      body.querySelector('#tf-sets').innerHTML = trainFloatSetsHTML(d);
+      rpeSel.disabled = !d.done;
+      trainFloatWireSets(body, d);
+    };
+    rpeSel.onchange = () => { d.rpe = rpeSel.value ? Number(rpeSel.value) : null; };
+    trainFloatWireSets(body, d);
+    body.querySelector('#tf-save').onclick = () => {
+      /* Guardar = la MISMA confirmación que hace la fila: la marca
+         vive en TRAIN_CHECKS con la misma forma {rpe, sets}; la
+         flotante no escribe nada en Firestore (eso sigue siendo
+         solo el cierre del día). Después la hoja se recoge y la
+         tarjeta se re-pinta con el estado nuevo al instante. */
+      const key = di + ':' + ei;
+      if (d.done) TRAIN_CHECKS[key] = { rpe: d.rpe, sets: d.sets.map(s => ({ ...s })) };
+      else delete TRAIN_CHECKS[key];
+      trainFloatClose();
+      loadMyTraining();
+    };
+  }
+  fl.classList.remove('is-closing');
+  fl.classList.add('is-open');
+  fl.style.display = 'block';
+}
+function trainFloatClose() {
+  const fl = $('train-ex-float');
+  if (!fl) return;
+  TRAIN_FLOAT = null;
+  fl.classList.add('is-closing');
+  setTimeout(() => { fl.style.display = 'none'; fl.classList.remove('is-closing'); fl.classList.remove('is-open'); }, 170);
+}
 async function loadMyTraining() {
   const box = $('my-training');
   if (!box || !auth.currentUser) return;
@@ -9515,25 +9663,42 @@ async function loadMyTraining() {
   const sel = TRAIN_VIEW.sel;
   const dayLabelOf = di => { const d = (plan.days || [])[di] || {}; return d.label || ('Día ' + (di + 1)); };
   const histCardHTML = (day, log) => `<div class="train-day is-readonly"><h4>${esc(log.dayLabel || day.label || '')}</h4>${trainDayHistHTML(day, log)}${trainSessionHTML(day)}<div style="margin-top:8px">${trainStatusBadge(trainLogStatus(log))}</div></div>`;
+  /* CHECKLIST FLOTANTE: la tarjeta del día seleccionado se viste.
+     La de HOY conserva EXACTAMENTE el interior de dayCardHTML (los
+     mismos controles data-train-* y los mismos manejadores): la
+     envoltura solo añade la cabecera vestida y marca las filas
+     como tocables (modo edit, o read si el día ya está cerrado).
+     Las de historial se visten igual, en solo lectura. */
+  const dressedTodayCard = (day, di) => {
+    const inner = dayCardHTML(day, di).replace(/^<div class="train-day">/, '').replace(/<\/div>$/, '');
+    return trainDressedCardHTML(plan, logs, di, sel, dressExRows(inner, di, doneToday.has(di) ? 'read' : 'edit'), '');
+  };
+  const dressedHistCard = (day, log) => {
+    const inner = `<h4>${esc(log.dayLabel || day.label || '')}</h4>` + dressExRows(trainDayHistHTML(day, log), log.dayIndex, 'read') + trainSessionHTML(day)
+      + `<div style="margin-top:8px">${trainStatusBadge(trainLogStatus(log))}</div>`;
+    return trainDressedCardHTML(plan, logs, log.dayIndex, sel, inner, 'is-readonly');
+  };
   let selCard = '';
   if (tmap.pairs) {
     const selDi = tmap.pairs[new Date(sel + 'T12:00:00').getDay()];
     if (selDi != null) {
       const day = (plan.days || [])[selDi] || {};
-      if (sel === today) selCard = dayCardHTML(day, selDi) + trainShareRowHTML(selDi, sel);
+      if (sel === today) selCard = dressedTodayCard(day, selDi) + trainShareRowHTML(selDi, sel);
       else if (sel < today) {
         const logSD = logs.find(l => l.date === sel && l.dayIndex === selDi) || null;
         const other = logs.filter(l => l.date === sel && l.dayIndex !== selDi);
         const stLine = logSD ? trainStatusBadge(trainLogStatus(logSD))
           : (other.length ? `${trainStatusBadge(trainLogStatus(other[0]))} <span class="muted">${esc(t('train.today.loggedOther', { label: other[0].dayLabel || dayLabelOf(other[0].dayIndex) }))}</span>`
             : trainStatusBadge('none'));
-        selCard = `<div class="train-day is-readonly"><h4>${esc(dayLabelOf(selDi))}</h4>${trainDayHistHTML(day, logSD)}${trainSessionHTML(day)}<div style="margin-top:8px">${stLine}</div></div>` + trainShareRowHTML(selDi, sel);
+        const innerP = `<h4>${esc(dayLabelOf(selDi))}</h4>` + dressExRows(trainDayHistHTML(day, logSD), selDi, 'read') + trainSessionHTML(day) + `<div style="margin-top:8px">${stLine}</div>`;
+        selCard = trainDressedCardHTML(plan, logs, selDi, sel, innerP, 'is-readonly') + trainShareRowHTML(selDi, sel);
       } else {
-        selCard = `<div class="train-day is-readonly"><h4>${esc(dayLabelOf(selDi))}</h4>${trainDayHistHTML(day, null)}${trainSessionHTML(day)}<div style="margin-top:8px"><span class="train-status st-skipped">● ${t('train.today.scheduled')}</span></div></div>` + trainShareRowHTML(selDi, sel);
+        const innerF = `<h4>${esc(dayLabelOf(selDi))}</h4>` + dressExRows(trainDayHistHTML(day, null), selDi, 'ficha') + trainSessionHTML(day) + `<div style="margin-top:8px"><span class="train-status st-skipped">● ${t('train.today.scheduled')}</span></div>`;
+        selCard = trainDressedCardHTML(plan, logs, selDi, sel, innerF, 'is-readonly') + trainShareRowHTML(selDi, sel);
       }
     } else {
       const logsSel = logs.filter(l => l.date === sel).sort((a, b) => a.dayIndex - b.dayIndex);
-      const extra = logsSel.map(l => histCardHTML((plan.days || [])[l.dayIndex] || {}, l) + trainShareRowHTML(l.dayIndex, sel)).join('');
+      const extra = logsSel.map(l => dressedHistCard((plan.days || [])[l.dayIndex] || {}, l) + trainShareRowHTML(l.dayIndex, sel)).join('');
       if (sel === today) {
         let nextLine = '';
         for (let k = 1; k <= 7; k++) {
@@ -9549,11 +9714,11 @@ async function loadMyTraining() {
   } else {
     if (sel === today) {
       const di = trainRotationNext(plan, logs, today);
-      selCard = dayCardHTML((plan.days || [])[di] || {}, di) + trainShareRowHTML(di, sel);
+      selCard = dressedTodayCard((plan.days || [])[di] || {}, di) + trainShareRowHTML(di, sel);
     } else if (sel < today) {
       const logsSel = logs.filter(l => l.date === sel).sort((a, b) => a.dayIndex - b.dayIndex);
       selCard = logsSel.length
-        ? logsSel.map(l => histCardHTML((plan.days || [])[l.dayIndex] || {}, l) + trainShareRowHTML(l.dayIndex, sel)).join('')
+        ? logsSel.map(l => dressedHistCard((plan.days || [])[l.dayIndex] || {}, l) + trainShareRowHTML(l.dayIndex, sel)).join('')
         : `<div class="train-day is-readonly"><div>${trainStatusBadge('none')}</div></div>`;
     } else {
       const diT = trainRotationNext(plan, logs, today);
@@ -9606,8 +9771,20 @@ async function loadMyTraining() {
   });
   box.querySelectorAll('img.train-ex-photo').forEach(img => {
     img.onerror = () => img.remove();
-    img.onclick = () => showLightbox(img.dataset.trainPhoto);
+    /* CHECKLIST FLOTANTE: dentro de una fila tocable de la tarjeta
+       vestida, la foto abre la flotante del ejercicio (y desde ahí
+       el lightbox); en el resto de tarjetas sigue abriendo el
+       lightbox como siempre. */
+    img.onclick = () => { if (!img.closest('[data-train-row]')) showLightbox(img.dataset.trainPhoto); };
   });
+  /* CHECKLIST FLOTANTE: tocar el cuerpo de una fila vestida (fuera
+     de sus controles: check, select, inputs, botones, enlaces)
+     abre la ventana flotante del ejercicio en su modo. */
+  box.querySelectorAll('[data-train-row]').forEach(r => r.addEventListener('click', e => {
+    if (e.target.closest('input, select, button, a, label, textarea')) return;
+    const [diS, eiS, mode] = String(r.dataset.trainRow || '').split(':');
+    if (mode) trainFloatOpen(plan, logs, Number(diS), Number(eiS), mode, sel);
+  }));
   box.querySelectorAll('[data-train-check]').forEach(c => c.onchange = () => {
     const key = c.dataset.trainCheck;
     const [diS, eiS] = key.split(':');
@@ -15798,6 +15975,8 @@ function shareRelang() { const f = $('share-float'); if (f && f.style.display !=
     else { if (SHARE.type === 'workout') SHARE.type = 'day'; shareOpen(); }
   }); }
 { const b = $('btn-share-close'); if (b) b.addEventListener('click', shareClose); }
+{ const b = $('btn-train-ex-close'); if (b) b.addEventListener('click', trainFloatClose); }
+document.addEventListener('keydown', e => { if (e.key === 'Escape') { const f = $('train-ex-float'); if (f && f.style.display !== 'none') trainFloatClose(); } });
 { const b = $('btn-share-day'); if (b) b.addEventListener('click', () => shareSetType('day')); }
 { const b = $('btn-share-week'); if (b) b.addEventListener('click', () => shareSetType('week')); }
 { const b = $('btn-share-f916'); if (b) b.addEventListener('click', () => shareSetFormat('916')); }
@@ -15823,7 +16002,7 @@ document.addEventListener('keydown', e => { if (e.key === 'Escape') shareClose()
  *  - El SW (sw.js) solo cachea la cáscara del mismo origen en modo
  *    RED PRIMERO: Auth/Firestore/Worker jamás pasan por la caché.
  * ================================================================ */
-const PWA_SW_VERSION = '20261026-entrenamiento-hoy';
+const PWA_SW_VERSION = '20261026-checklist-flotante';
 let pwaDeferredPrompt = null;
 function pwaIsStandalone() {
   try {

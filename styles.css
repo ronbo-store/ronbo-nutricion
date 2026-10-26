@@ -1408,3 +1408,63 @@ body { padding: max(16px, env(safe-area-inset-top)) max(16px, env(safe-area-inse
    de logros (la tarjeta es la del día visto en Entrenamiento). */
 #share-float.share-workout-mode .share-opts,
 #share-float.share-workout-mode .photo-hint { display: none; }
+
+/* ===== CHECKLIST FLOTANTE (cuarta enmienda de Ronald, chat 2026-10-26
+   02:32 CDT) =====
+   La tarjeta del día seleccionado (.train-today) se viste con el
+   sistema visual de la tarjeta exportable: degradado teal de marca,
+   anillo de % en lima, etiqueta gancho centrada coral→rosa, barra
+   ámbar→lima, filas de cristal con franja lateral de la paleta
+   vibrante y marca de agua del logo-icono. SOLO esa tarjeta cambia;
+   la tira semanal y el resto de la app conservan su tema. La ventana
+   flotante por ejercicio (#train-ex-float) es una hoja blanca del
+   sistema de siempre que se recoge al guardar. */
+.train-day.train-day-dressed { position: relative; overflow: hidden; border: none; border-radius: 16px; padding: 14px 14px 12px; color: #fff;
+  background: linear-gradient(160deg, #00e2c4 0%, #00c2ae 26%, #00ACA1 52%, #00836f 80%, #005c4f 100%); }
+.train-day-dressed::before { content: ''; position: absolute; inset: 0; pointer-events: none;
+  background: radial-gradient(420px 300px at 12% -6%, rgba(255,255,255,.20), rgba(255,255,255,0) 60%), radial-gradient(380px 300px at 95% 108%, rgba(198,255,74,.14), rgba(198,255,74,0) 62%); }
+.train-dressed-wm { position: absolute; width: 250px; height: 250px; right: -46px; top: 34%; opacity: .13; transform: rotate(-14deg); pointer-events: none; }
+.train-dressed-content { position: relative; }
+.train-dressed-head { margin-bottom: 2px; }
+.train-dressed-top { display: flex; justify-content: space-between; align-items: flex-start; gap: 10px; }
+.train-dressed-kicker { font-size: 11px; font-weight: 800; letter-spacing: .14em; color: #C6FF4A; text-transform: uppercase; padding-top: 8px; }
+.train-dressed-ring { position: relative; width: 56px; height: 56px; flex: none; }
+.train-dressed-ring svg { display: block; }
+.train-dressed-pct { position: absolute; inset: 0; display: flex; align-items: center; justify-content: center; font-size: 13px; font-weight: 800; color: #fff; }
+.train-dressed-tag { display: block; width: fit-content; max-width: 94%; margin: 8px auto 0; text-align: center; background: linear-gradient(90deg, #FF4D2E, #FF2E88); color: #fff; font-weight: 800; font-size: 14px; padding: 6px 16px; border-radius: 999px; box-shadow: 0 6px 16px rgba(255,46,136,.35); }
+.train-dressed-bar { height: 9px; border-radius: 99px; background: rgba(255,255,255,.22); overflow: hidden; margin-top: 10px; }
+.train-dressed-bar i { display: block; height: 100%; border-radius: 99px; background: linear-gradient(90deg, #FFB300, #C6FF4A); }
+.train-dressed-msg { margin-top: 10px; background: rgba(255,255,255,.10); border: 1px solid rgba(255,255,255,.28); border-radius: 12px; padding: 8px 12px; font-style: italic; font-size: 13.5px; text-align: center; }
+.train-day-dressed h4 { color: #fff; font-size: 17px; margin-top: 12px; }
+.train-day-dressed .train-ex-card { background: rgba(255,255,255,.10); border: 1px solid rgba(255,255,255,.28); border-left: 5px solid var(--stripe, #38BDF8); border-radius: 12px; padding: 9px 10px; margin: 7px 0; flex-wrap: wrap; cursor: pointer; }
+.train-day-dressed .train-ex-card.is-done { background: rgba(34,197,94,.20); }
+.train-day-dressed .train-ex-name { color: #fff; }
+.train-day-dressed .train-ex-name .muted, .train-day-dressed .muted { color: rgba(255,255,255,.72); }
+.train-day-dressed .train-ex-spec { color: #eafffb; }
+.train-day-dressed .train-ex-sub { color: rgba(255,255,255,.75); }
+.train-day-dressed .train-ex-photo { border: 2px solid rgba(255,255,255,.35); background: rgba(255,255,255,.15); }
+.train-day-dressed .train-ex-check { color: #d9ffe9; }
+.train-day-dressed .train-ex-check input { accent-color: #22c55e; }
+.train-day-dressed .train-ex-video { color: #fff; border-color: rgba(255,255,255,.5); }
+.train-day-dressed .train-sets { flex: 1 1 100%; border-top: 1px dashed rgba(255,255,255,.35); }
+.train-day-dressed .train-set-n, .train-day-dressed .train-set-unit { color: rgba(255,255,255,.82); }
+.train-day-dressed .train-set-in { background: #fff; color: #1f2a44; }
+.train-day-dressed .train-set-hist { color: rgba(255,255,255,.88); flex: 1 1 100%; }
+.train-day-dressed .train-session { background: rgba(255,255,255,.10); border-color: rgba(255,255,255,.28); }
+.train-day-dressed .train-session h5 { color: #fff; }
+.train-day-dressed .train-block span { color: rgba(255,255,255,.82); }
+.train-day-dressed .btn-ghost { color: #fff; border-color: rgba(255,255,255,.55); background: rgba(255,255,255,.08); }
+.train-day-dressed .progress-hint { color: rgba(255,255,255,.85); }
+/* Ventana flotante por ejercicio: hoja del sistema con recogida al
+   cerrar/guardar (la animación conserva el translateX(-50%) de
+   .act-float en todos sus fotogramas). */
+@keyframes trainFloatIn { from { opacity: 0; transform: translateX(-50%) translateY(16px) scale(.97); } to { opacity: 1; transform: translateX(-50%) translateY(0) scale(1); } }
+@keyframes trainFloatOut { from { opacity: 1; transform: translateX(-50%) translateY(0) scale(1); } to { opacity: 0; transform: translateX(-50%) translateY(14px) scale(.95); } }
+#train-ex-float.is-open { animation: trainFloatIn .18s ease-out; }
+#train-ex-float.is-closing { animation: trainFloatOut .17s ease-in forwards; }
+.train-float-photo { width: 100%; max-height: 230px; object-fit: cover; border-radius: 12px; cursor: pointer; display: block; margin-bottom: 8px; background: #eef1f3; }
+.train-float-spec { font-weight: 600; color: #1f2a44; }
+.train-float-sub { color: #777; font-size: 12.5px; margin-top: 2px; }
+.train-float-check { display: flex; align-items: center; gap: 8px; font-weight: 700; color: #065f46; margin: 12px 0 4px; font-size: 15px; cursor: pointer; }
+.train-float-check input { width: 22px; height: 22px; accent-color: #22c55e; cursor: pointer; }
+.train-float-actions { display: flex; gap: 8px; margin-top: 14px; }
