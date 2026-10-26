@@ -1492,7 +1492,15 @@ body { padding: max(16px, env(safe-area-inset-top)) max(16px, env(safe-area-inse
 @keyframes trainFloatOut { from { opacity: 1; transform: translateX(-50%) translateY(0) scale(1); } to { opacity: 0; transform: translateX(-50%) translateY(14px) scale(.95); } }
 #train-ex-float.is-open { animation: trainFloatIn .18s ease-out; }
 #train-ex-float.is-closing { animation: trainFloatOut .17s ease-in forwards; }
-.train-float-photo { width: 100%; max-height: 230px; object-fit: cover; border-radius: 12px; cursor: pointer; display: block; margin-bottom: 8px; background: #eef1f3; }
+/* REPRUEBA-2 (2026-10-26): la foto de la flotante va a la IZQUIERDA
+   de la cabecera, en columna fija (~104–140px según el ancho de
+   pantalla, cuadrada como la foto del entrenador); a su derecha, la
+   meta (.train-float-meta: especificación, detalles, video). Sin
+   foto no hay cabecera y la meta ocupa una sola columna. Si la foto
+   no carga se retira sola y la meta ocupa todo el ancho. */
+.train-float-head { display: flex; gap: 12px; align-items: flex-start; margin-bottom: 8px; }
+.train-float-meta { flex: 1 1 auto; min-width: 0; }
+.train-float-photo { flex: none; width: clamp(104px, 32vw, 140px); height: clamp(104px, 32vw, 140px); object-fit: cover; border-radius: 12px; cursor: pointer; display: block; background: #eef1f3; }
 .train-float-spec { font-weight: 600; color: #1f2a44; }
 .train-float-sub { color: #777; font-size: 12.5px; margin-top: 2px; }
 /* TARJETA COMPACTA: la hoja flotante nunca excede el viewport y su
@@ -1527,7 +1535,9 @@ body { padding: max(16px, env(safe-area-inset-top)) max(16px, env(safe-area-inse
 /* Tarjeta «Mi entrenador» (rediseño 2026-10-26): zona descriptiva en
    dos columnas — datos del entrenador a la izquierda, su foto a la
    derecha (88px, redondeada); sin foto (o si no carga), marcador de
-   iniciales sobre el verde de marca. */
+   iniciales sobre el verde de marca. REPRUEBA-2 (2026-10-26): la
+   foto ES el acceso al dossier (cursor pointer, data-dossier-open);
+   la tarjeta ya no pinta ningún rótulo «Ver dossier». */
 .mt-head { display: flex; gap: 14px; align-items: flex-start; }
 .mt-info { flex: 1 1 auto; min-width: 0; }
 .mt-info .history-title { margin-top: 2px; }

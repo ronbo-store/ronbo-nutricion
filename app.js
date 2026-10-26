@@ -262,8 +262,13 @@ async function renderMyTrainerBox() {
   const tNameRaw = rel.trainerUid ? (ADMIN_NAME_CACHE[rel.trainerUid] || '') : '';
   const tName = rel.trainerUid ? ((tNameRaw && tNameRaw !== rel.trainerUid && !tNameRaw.includes('@')) ? tNameRaw : '—') : null;
   /* Zona descriptiva del entrenador asignado (rediseño 2026-10-26,
-     orden de Ronald: la foto a la derecha y los datos a la izquierda,
-     con UN solo «Ver dossier»): el nombre se resuelve por la cadena
+     orden de Ronald: la foto a la derecha y los datos a la izquierda;
+     REPRUEBA-2, 2026-10-26 12:17 CDT: el rótulo «Ver dossier»
+     DESAPARECE de la tarjeta — el acceso al dossier es LA FOTO
+     misma (el botón .mt-photo con data-dossier-open, con el
+     marcador de iniciales dentro cuando no hay foto o no carga);
+     en espera, el acceso queda por los enlaces del pool
+     «👤 {nombre}»): el nombre se resuelve por la cadena
      segura — displayName del dossier → nombre de la cuenta → sin
      nombre (la línea queda en el genérico «Tu entrenador»); el uid
      NUNCA se pinta. El titular y las modalidades salen del propio
@@ -340,7 +345,6 @@ async function renderMyTrainerBox() {
         ${tHeadline ? `<p class="mt-headline">${esc(tHeadline)}</p>` : ''}
         ${rel.modality ? `<p class="progress-hint mt-line">${esc(t('esc.modality'))}: <b>${esc(escModLabel(rel.modality))}</b></p>` : ''}
         ${tMods.length ? `<p class="progress-hint mt-line">${esc(t('esc.modalitiesLabel'))}: ${tMods.map(m => esc(escModLabel(m))).join(' · ')}</p>` : ''}
-        <p class="mt-line"><button type="button" class="slot-link" data-dossier-open="${esc(rel.trainerUid)}">${esc(t('esc.dos.viewBtn'))}</button></p>
       </div>
       <button type="button" class="mt-photo" data-dossier-open="${esc(rel.trainerUid)}" aria-label="${esc(tNameSafe || t('esc.currentTrainer'))}">
         <span class="mt-initials">${esc(tInitials)}</span>
@@ -356,8 +360,7 @@ async function renderMyTrainerBox() {
         <option value="">${esc(t('esc.waitOption'))}</option>
         ${pool.map(p => `<option value="${esc(p.uid)}"${p.full ? ' disabled' : ''}${rel.trainerUid === p.uid ? ' selected' : ''}>${esc(p.name)}${p.full ? esc(t('esc.poolFull')) : ''}</option>`).join('')}
       </select></label>
-    <div class="eval-actions"><button type="button" class="btn-primary btn-sm" id="btn-change-trainer">${esc(t('esc.changeBtn'))}</button>${rel.trainerUid ? '' : `
-    <button type="button" class="btn-ghost btn-sm" id="btn-dossier-sel">${esc(t('esc.dos.viewBtn'))}</button>`}</div>
+    <div class="eval-actions"><button type="button" class="btn-primary btn-sm" id="btn-change-trainer">${esc(t('esc.changeBtn'))}</button></div>
     <div class="dos-pool-links">${pool.map(p => `<button type="button" class="slot-link" data-dossier-open="${esc(p.uid)}">👤 ${esc(p.name)}</button>`).join(' ')}</div>
     ${mealsHtml}
   </div>`;
@@ -413,16 +416,13 @@ async function renderMyTrainerBox() {
     if (mtImg.complete && mtImg.naturalWidth === 0) mtImg.remove();
     else mtImg.addEventListener('error', () => mtImg.remove());
   }
-  /* Dossier: ver el perfil del entrenador elegido en el selector de
-     cambio (o el del entrenador actual si no hay otra selección).
-     Con entrenador asignado el botón no se pinta: la tarjeta ya
-     lleva su único «Ver dossier» en la zona descriptiva. */
-  const dosBtn = $('btn-dossier-sel');
-  if (dosBtn) dosBtn.onclick = () => {
-    const sel = $('my-trainer-sel');
-    const uid = (sel && sel.value) || (MY_REL && MY_REL.trainerUid) || (UDATA && UDATA.trainerUid) || '';
-    if (uid) openDossierLive(uid);
-  };
+  /* Dossier (REPRUEBA-2): la tarjeta ya NO pinta ningún rótulo
+     «Ver dossier» en ningún estado. Las rutas al dossier son la
+     foto del entrenador asignado (.mt-photo, data-dossier-open,
+     con el marcador de iniciales dentro si no hay foto) y los
+     enlaces del pool «👤 {nombre}» (.dos-pool-links, también
+     data-dossier-open); ambos los atiende la delegación global
+     de [data-dossier-open]. Ningún estado queda sin ruta. */
 }
 /* Nombre legible por uid para las cajas del alumno (caché local). */
 const ADMIN_NAME_CACHE = {};
@@ -10631,10 +10631,20 @@ function trainFloatOpen(plan, logs, di, ei, mode, iso) {
   const det = [];
   if (warm) det.push(`${t('train.view.warmup')}: ${warm}`);
   if (rest) det.push(`${t('train.view.rest')}: ${rest}`);
-  let html = `${photo ? `<img class="train-float-photo" src="${esc(photo)}" alt="" data-tf-photo="${esc(photo)}">` : ''}
-    ${spec || ex.note ? `<div class="train-float-spec">${esc(spec)}${ex.note ? ` <span class="muted">· ${esc(ex.note)}</span>` : ''}</div>` : ''}
+  /* Cabecera de la flotante (REPRUEBA-2, orden de Ronald 2026-10-26
+     12:15 CDT: «la imagen del ejercicio vaya a la izquierda»): con
+     foto, la cabecera va en DOS columnas — IZQUIERDA la foto (el
+     mismo img de siempre: su tap abre el mismo lightbox y su error
+     la retira sola) y DERECHA la meta (especificación, detalles y
+     enlace de video). Sin foto, la meta va sola a una columna, sin
+     hueco vacío. Debajo, a todo ancho, los controles de siempre
+     (editar / solo lectura / programado) sin ningún cambio. */
+  const metaHtml = `${spec || ex.note ? `<div class="train-float-spec">${esc(spec)}${ex.note ? ` <span class="muted">· ${esc(ex.note)}</span>` : ''}</div>` : ''}
     ${det.length ? `<div class="train-float-sub">${esc(det.join(' · '))}</div>` : ''}
     ${video ? `<a class="btn-ghost btn-sm train-ex-video" href="${esc(video)}" target="_blank" rel="noopener">▶ ${t('train.lib.video')}</a>` : ''}`;
+  let html = photo
+    ? `<div class="train-float-head"><img class="train-float-photo" src="${esc(photo)}" alt="" data-tf-photo="${esc(photo)}"><div class="train-float-meta">${metaHtml}</div></div>`
+    : metaHtml;
   if (mode === 'edit') {
     const key = di + ':' + ei;
     const chk = TRAIN_CHECKS[key];
@@ -17271,7 +17281,7 @@ document.addEventListener('keydown', e => { if (e.key === 'Escape') shareClose()
  *  - El SW (sw.js) solo cachea la cáscara del mismo origen en modo
  *    RED PRIMERO: Auth/Firestore/Worker jamás pasan por la caché.
  * ================================================================ */
-const PWA_SW_VERSION = '20261026-app-instalada';
+const PWA_SW_VERSION = '20261026-reprueba-2';
 let pwaDeferredPrompt = null;
 function pwaIsStandalone() {
   try {
