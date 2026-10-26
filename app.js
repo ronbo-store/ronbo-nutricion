@@ -1027,7 +1027,13 @@ function renderRolePendCard() {
     <div class="eval-actions"><button type="button" class="btn-primary btn-sm" id="btn-role-pend-open">${esc(t('pend.cardBtn'))}</button></div></div>`;
   card.style.display = '';
   const b = document.getElementById('btn-role-pend-open');
-  if (b) b.onclick = () => pendSetFloat(true);
+  /* stopPropagation OBLIGATORIO: sin esto, el mismo toque que abre la
+     tarjeta la cierra al instante — el cierre por «toque fuera» escucha
+     en document y este botón vive fuera de la tarjeta (la misma trampa
+     que el botón de alineación de entrenamiento ya evita así).
+     Corrección del reporte de Ronald (2026-10-26 07:28 CDT): «le doy
+     al botón de pendientes y no aparece absolutamente nada». */
+  if (b) b.onclick = e => { if (e && e.stopPropagation) e.stopPropagation(); pendSetFloat(true); };
 }
 /* Conteos de la bandeja del administrador, cargados al entrar (y
    refrescados en su superficie): cuentas por aprobar, membresías
@@ -6552,6 +6558,14 @@ async function loadAll() {
   renderPrivacy();
   await loadMyHealth();
   await loadMyEnergy();
+  /* El primer renderPendings() (dentro de loadPendings) corre ANTES
+     de que carguen la declaración de salud y la evaluación: la
+     tarjeta nace con la foto de ese instante (sin esos pendientes de
+     procedimiento) y, como el formulario ya existe en el DOM, al
+     abrirla no se re-renderiza. Con salud y energía ya cargadas se
+     re-renderiza una vez para que la tarjeta muestre los pendientes
+     reales (corrección 2026-10-26, mismo reporte de Ronald). */
+  try { renderPendings(); } catch {}
   await loadMyUnits();
   await loadAdmin();
   await loadClients();
@@ -15234,6 +15248,11 @@ document.addEventListener('click', e => {
   const f = $('pend-float'), b = $('btn-toggle-pend');
   if (f && f.contains(e.target)) return;
   if (b && b.contains(e.target)) return;
+  /* El botón «Ver pendientes» del aviso TAMBIÉN abre la tarjeta: un
+     toque sobre él nunca es un «toque fuera» (segunda guarda de la
+     corrección 2026-10-26, por si un repintado re-cablea el botón). */
+  const rb = document.getElementById('btn-role-pend-open');
+  if (rb && rb.contains(e.target)) return;
   pendSetFloat(false);
 });
 document.addEventListener('keydown', e => { if (e.key === 'Escape' && PEND_UI.floatOpen) pendSetFloat(false); });
@@ -16101,7 +16120,7 @@ document.addEventListener('keydown', e => { if (e.key === 'Escape') shareClose()
  *  - El SW (sw.js) solo cachea la cáscara del mismo origen en modo
  *    RED PRIMERO: Auth/Firestore/Worker jamás pasan por la caché.
  * ================================================================ */
-const PWA_SW_VERSION = '20261026-nombre-dossier';
+const PWA_SW_VERSION = '20261026-boton-pendientes';
 let pwaDeferredPrompt = null;
 function pwaIsStandalone() {
   try {
