@@ -1360,3 +1360,29 @@ body { padding: max(16px, env(safe-area-inset-top)) max(16px, env(safe-area-inse
   .auth-card { max-width: none; border-radius: 0; box-shadow: none; padding: calc(24px + env(safe-area-inset-top, 0px)) 24px calc(24px + env(safe-area-inset-bottom, 0px)); display: flex; flex-direction: column; justify-content: center; }
   #lang-toggle-auth { top: calc(12px + env(safe-area-inset-top, 0px)); right: 16px; }
 }
+
+/* ===== Papel tapiz de iconos de marca en el acceso (Ronald, 2026-10-25
+   23:05 CDT: «quiero que estén regados orgánicamente por todo el fondo de
+   la pantalla, color plateado brillante pero sutil, que se vea como marca
+   de agua, bien distribuidos, sin una armonía clara, solo como fondo de
+   papel tapiz») =====
+   Los TRES iconos de marca (.auth-logo: nutrición, entrenamiento y
+   progreso, los mismos trazos SVG) se repiten regados a mano por todo el
+   fondo de la vista de acceso — posiciones irregulares sin retícula,
+   tamaños y giros leves variados, fijados en línea en el HTML — en trazo
+   PLATEADO (#aeb6c2) con opacidad baja por icono (0.30–0.55): brillo
+   plateado perceptible sin competir con el contenido (marca de agua).
+   La capa es decorativa: aria-hidden, pointer-events none y z-index 0,
+   por debajo de la tarjeta (z-index 1), y lleva el fondo blanco actual
+   de la pantalla, para que el fondo siga siendo el blanco de siempre. En escritorio la tarjeta conserva
+   su fondo blanco, su radio y su sombra, y el tapiz se ve alrededor; en
+   el teléfono (tarjeta a pantalla completa) la tarjeta pasa a fondo
+   transparente y el tapiz cubre toda la pantalla tras el contenido — los
+   campos y botones son opacos y quedan por encima. El interior de la app
+   NO lleva tapiz. */
+.auth-wallpaper { position: fixed; inset: 0; overflow: hidden; pointer-events: none; z-index: 0; background: #ffffff; }
+.auth-wallpaper svg { position: absolute; display: block; height: auto; color: #aeb6c2; }
+.auth-card { z-index: 1; }
+@media (max-width: 700px) {
+  .auth-card { background: transparent; }
+}
