@@ -1563,7 +1563,7 @@ let WEIGHTS = []; // [{id, date, weight, fat, muscle, notes}]
 const STR = {
 en: {
   'app.title': 'RONBO.FIT · Private',
-  'auth.subtitle': 'Your private nutrition log',
+  'auth.subtitle': 'Eat well. Train strong. Live present.',
   'auth.tabLogin': 'Sign in',
   'auth.tabRegister': 'Create account',
   'form.email': 'Email',
@@ -3002,7 +3002,7 @@ en: {
 },
 es: {
   'app.title': 'RONBO.FIT · Privado',
-  'auth.subtitle': 'Tu registro privado de nutrición',
+  'auth.subtitle': 'Come bien. Entrena fuerte. Vive el presente.',
   'auth.tabLogin': 'Entrar',
   'auth.tabRegister': 'Crear cuenta',
   'form.email': 'Correo',
@@ -15342,7 +15342,7 @@ document.addEventListener('keydown', e => { if (e.key === 'Escape') shareClose()
  *  - El SW (sw.js) solo cachea la cáscara del mismo origen en modo
  *    RED PRIMERO: Auth/Firestore/Worker jamás pasan por la caché.
  * ================================================================ */
-const PWA_SW_VERSION = '20261025-papel-tapiz';
+const PWA_SW_VERSION = '20261026-slogan';
 let pwaDeferredPrompt = null;
 function pwaIsStandalone() {
   try {
