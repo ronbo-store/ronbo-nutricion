@@ -994,6 +994,14 @@ function rolePendItems() {
         push('trainer|membership', 'membership', t('pend.role.membTitle'), t('pend.role.membDetail'), t('pend.role.membGo'));
       if (dosEnrichMissing())
         push('profile|enrich', 'dossier-editor', t('pend.role.enrichTitle'), t('pend.role.enrichDetail'), t('pend.role.enrichGo'));
+      if (typeof ADMIN_USERS !== 'undefined' && Array.isArray(ADMIN_USERS)) {
+        const me2 = (typeof auth !== 'undefined' && auth.currentUser) ? auth.currentUser.uid : null;
+        for (const cu of ADMIN_USERS) {
+          if (!cu || cu.isOwner || cu.trainerUid !== me2) continue;
+          const hp = cu.goalsProvenance && Array.isArray(cu.goalsProvenance.heldParams) ? cu.goalsProvenance.heldParams : [];
+          if (hp.length) push('trainer|goals-held|' + cu.id, 'clients', t('pend.trainerHeldTitle'), t('pend.trainerHeldDetail', { name: cu.name || cu.email || '—', params: hp.map(p2 => t('gm.param.' + p2)).join(', ') }), t('pend.trainerHeldGo'));
+        }
+      }
     } else if (ROLE === 'usuario') {
       const rel = (typeof MY_REL !== 'undefined' && MY_REL) || null;
       if (!rel || !rel.trainerUid)
@@ -1006,7 +1014,7 @@ function rolePendItems() {
       else if (typeof activeDecl === 'function' && typeof declLoadState !== 'undefined' && declLoadState === 'ok' && !activeDecl())
         push('alumno|parq', 'perms', t('pend.role.parqTitle'), t('pend.role.parqDetail'), t('pend.role.parqGo'));
       if (typeof hasAnyGoal === 'function' && !hasAnyGoal())
-        push('alumno|goals', 'goals', t('pend.role.goalsTitle'), t('pend.role.goalsDetail'), t('pend.role.goalsGo'));
+        push('alumno|goals', 'goals-setup', t('pend.role.goalsTitle'), t('pend.role.goalsDetail2'), t('pend.role.goalsGo2'));
       const mealsOn2 = (typeof featuresOf === 'function') ? featuresOf(UDATA).meals === true : true;
       const reqLive = !!((typeof MY_MEAL_REQ !== 'undefined' && MY_MEAL_REQ) && (MY_MEAL_REQ.status === 'pendiente_entrenador' || MY_MEAL_REQ.status === 'pendiente_administrador'));
       if (!mealsOn2 && !reqLive)
@@ -3087,7 +3095,61 @@ en: {
   'share.labProt': 'Protein',
   'share.labCarb': 'Carbs',
   'share.labSugar': 'Sugars',
-  'share.labFat': 'Fats'
+  'share.labFat': 'Fats',
+  'gm.title': 'Your goals, with a basis',
+  'gm.objective': 'Your goal',
+  'gm.obj.mantener': 'Maintain',
+  'gm.obj.bajar': 'Lose weight',
+  'gm.obj.ganar': 'Gain muscle',
+  'gm.needData': 'Your goals are calculated from your own data — birth year, height, activity multiplier and your latest weight — plus the goal you choose. Until those data are complete there are no goals: nothing is invented.',
+  'gm.prov': 'Calculated {date} from your data: expenditure {tdee} kcal/day ({eq}), latest weight {w} kg ({wdate}), height {h} cm, age {age}, activity multiplier {pal}. Protein factor {pf} g/kg for your goal. Educational reference, not medical advice.',
+  'gm.sugarInfo': '🍬 <b>Where your sugar goal comes from:</b> the World Health Organization (WHO) guideline sets free sugars below 5% of total energy as its stricter reference. 5% of your calorie goal ({kcal} kcal) ÷ 4 kcal per gram = <b>{g} g/day</b>. It is a reference limit: the ring counts the sugars reported by each meal analysis.',
+  'gm.eduNote': 'These goals are an educational reference calculated from your data. They are not medical advice.',
+  'gm.paceTitle': 'Your weight-loss pace',
+  'gm.paceSuggest': 'Suggest a pace (kcal/day below your maintenance)',
+  'gm.paceSuggestBtn': 'Send suggestion',
+  'gm.paceReview': '⏳ Your pace is under review by your trainer. Until it is decided, your calorie goal stays at maintenance ({tdee} kcal).',
+  'gm.paceReviewMine': '⏳ You suggested −{n} kcal/day. Your trainer has not decided yet: your calorie goal stays at maintenance.',
+  'gm.paceApproved': '✓ Pace decided by your trainer: −{n} kcal/day (suggested: −{s}). Your calorie goal already includes it.',
+  'gm.paceSelfTitle': 'No trainer to approve your pace?',
+  'gm.paceSelfBody': 'Evidence-based recommendation: a gentle pace of −500 kcal/day (the lower end of the ACSM/NIH educational band of −500…1000 kcal/day, with an expected pace of about 0.5–1 kg/week). It only applies if you accept the conditions below.',
+  'gm.termsText': 'I understand that this pace and these goals are an educational reference calculated from my own data, not medical advice; that I can change my goal or stop at any time; and that if I have a declared health condition, the affected numbers stay unset until a health professional or my trainer reviews them.',
+  'gm.termsAccept': 'I accept the conditions and apply −500 kcal/day',
+  'gm.paceSelfAccepted': '✓ You accepted the conditions (version {v}) on {date}: pace −500 kcal/day applied.',
+  'gm.heldTitle': '⚠ Numbers under review',
+  'gm.heldItem': '{param}: held back because of your health declaration ({cond}).',
+  'gm.heldTrainer': 'Your trainer reviews this number. It stays unset until then.',
+  'gm.heldNoTrainer': 'It stays unset. Please review it with your health professional.',
+  'gm.infoTrainer': 'Your trainer also gets a general review notice because of your health declaration.',
+  'gm.param.kcal': 'Calories',
+  'gm.param.prot': 'Protein',
+  'gm.param.carb': 'Carbohydrates',
+  'gm.param.azuc': 'Sugars',
+  'gm.param.deficit': 'the weight-loss pace',
+  'gm.foundation': 'Your basis data (you can edit them here; your trainer supervises them)',
+  'gm.foundationHint': 'Saving these data recalculates your energy estimate and your goals automatically.',
+  'gm.saveFoundation': 'Save my data',
+  'gm.saved': 'Saved. Your goals were recalculated.',
+  'gm.objectiveSaved': 'Goal saved. Your goals were recalculated.',
+  'gm.paceSaved': 'Suggestion sent to your trainer.',
+  'gm.termsAccepted': 'Conditions accepted. Your pace was applied.',
+  'gm.trainerPaceTitle': '🎯 Goal pace (weight loss)',
+  'gm.trainerPaceNone': 'This client has not suggested a pace.',
+  'gm.trainerPaceSuggested': 'Client suggestion: −{n} kcal/day · {date} · status: {status}',
+  'gm.trainerPaceCurrent': 'Decided pace: −{n} kcal/day by {by} · {date}',
+  'gm.trainerPaceApprove': 'Approve suggested',
+  'gm.trainerPaceSet': 'Set pace',
+  'gm.paceDecided': 'Pace saved for this client.',
+  'gm.trainerHeldTitle': '⚠ Goals held for health review',
+  'gm.trainerHeldItem': '{param} is held back (health declaration: {cond}). Set it manually with the Goals editor if appropriate, or review the basis data with the client.',
+  'gm.status.pending': 'pending',
+  'gm.status.approved': 'approved',
+  'gm.status.replaced': 'set by trainer',
+  'pend.role.goalsDetail2': 'You have no goals yet: complete your basis data and choose your goal — the app calculates them from your data.',
+  'pend.role.goalsGo2': 'Complete my data',
+  'pend.trainerHeldTitle': 'Goals held for health review',
+  'pend.trainerHeldDetail': '{name}: {params} held back by their health declaration. Review it in their file.',
+  'pend.trainerHeldGo': 'Open clients',
 },
 es: {
   'app.title': 'RONBO.FIT · Privado',
@@ -4552,7 +4614,61 @@ es: {
   'share.labProt': 'Proteína',
   'share.labCarb': 'Carbos',
   'share.labSugar': 'Azúcares',
-  'share.labFat': 'Grasas'
+  'share.labFat': 'Grasas',
+  'gm.title': 'Tus metas, con fundamento',
+  'gm.objective': 'Tu objetivo',
+  'gm.obj.mantener': 'Mantener',
+  'gm.obj.bajar': 'Bajar de peso',
+  'gm.obj.ganar': 'Ganar masa muscular',
+  'gm.needData': 'Tus metas se calculan desde tus propios datos — año de nacimiento, talla, multiplicador de actividad y tu último peso — más el objetivo que elijas. Hasta que esos datos estén completos no hay metas: no se inventa nada.',
+  'gm.prov': 'Calculadas el {date} desde tus datos: gasto {tdee} kcal/día ({eq}), último peso {w} kg ({wdate}), talla {h} cm, edad {age}, multiplicador de actividad {pal}. Factor de proteína {pf} g/kg según tu objetivo. Referencia educativa, no consejo médico.',
+  'gm.sugarInfo': '🍬 <b>De dónde sale tu meta de azúcares:</b> la guía de la Organización Mundial de la Salud (OMS) fija los azúcares libres por debajo del 5% de la energía total como su referencia más estricta. El 5% de tu meta de calorías ({kcal} kcal) ÷ 4 kcal por gramo = <b>{g} g/día</b>. Es un límite de referencia: el anillo cuenta los azúcares que reporta el análisis de cada comida.',
+  'gm.eduNote': 'Estas metas son una referencia educativa calculada desde tus datos. No son consejo médico.',
+  'gm.paceTitle': 'Tu ritmo al bajar de peso',
+  'gm.paceSuggest': 'Sugiere un ritmo (kcal/día bajo tu mantenimiento)',
+  'gm.paceSuggestBtn': 'Enviar sugerencia',
+  'gm.paceReview': '⏳ Tu ritmo está en revisión de tu entrenador. Hasta que se decida, tu meta de calorías queda en mantenimiento ({tdee} kcal).',
+  'gm.paceReviewMine': '⏳ Sugeriste −{n} kcal/día. Tu entrenador aún no decide: tu meta de calorías queda en mantenimiento.',
+  'gm.paceApproved': '✓ Ritmo decidido por tu entrenador: −{n} kcal/día (sugerido: −{s}). Tu meta de calorías ya lo incluye.',
+  'gm.paceSelfTitle': '¿Sin entrenador que apruebe tu ritmo?',
+  'gm.paceSelfBody': 'Recomendación basada en evidencia: un ritmo suave de −500 kcal/día (el extremo bajo de la banda educativa ACSM/NIH de −500…1000 kcal/día, con un ritmo esperado de unos 0,5–1 kg/semana). Solo se aplica si aceptas las condiciones siguientes.',
+  'gm.termsText': 'Entiendo que este ritmo y estas metas son una referencia educativa calculada desde mis propios datos, no consejo médico; que puedo cambiar mi objetivo o detenerme en cualquier momento; y que si tengo una afección de salud declarada, los números afectados quedan sin fijar hasta que los revise un profesional de salud o mi entrenador.',
+  'gm.termsAccept': 'Acepto las condiciones y aplico −500 kcal/día',
+  'gm.paceSelfAccepted': '✓ Aceptaste las condiciones (versión {v}) el {date}: ritmo de −500 kcal/día aplicado.',
+  'gm.heldTitle': '⚠ Números en revisión',
+  'gm.heldItem': '{param}: queda sin fijar por tu declaración de salud ({cond}).',
+  'gm.heldTrainer': 'Tu entrenador revisa este número. Queda sin fijar hasta entonces.',
+  'gm.heldNoTrainer': 'Queda sin fijar. Revísalo con tu profesional de salud.',
+  'gm.infoTrainer': 'Tu entrenador también recibe un aviso general de revisión por tu declaración de salud.',
+  'gm.param.kcal': 'Calorías',
+  'gm.param.prot': 'Proteína',
+  'gm.param.carb': 'Carbohidratos',
+  'gm.param.azuc': 'Azúcares',
+  'gm.param.deficit': 'el ritmo al bajar de peso',
+  'gm.foundation': 'Tus datos de fundamento (puedes editarlos aquí; tu entrenador los supervisa)',
+  'gm.foundationHint': 'Al guardar estos datos se recalculan tu estimación de energía y tus metas automáticamente.',
+  'gm.saveFoundation': 'Guardar mis datos',
+  'gm.saved': 'Guardado. Tus metas se recalcularon.',
+  'gm.objectiveSaved': 'Objetivo guardado. Tus metas se recalcularon.',
+  'gm.paceSaved': 'Sugerencia enviada a tu entrenador.',
+  'gm.termsAccepted': 'Condiciones aceptadas. Tu ritmo se aplicó.',
+  'gm.trainerPaceTitle': '🎯 Ritmo del objetivo (bajar de peso)',
+  'gm.trainerPaceNone': 'Este cliente no ha sugerido un ritmo.',
+  'gm.trainerPaceSuggested': 'Sugerencia del cliente: −{n} kcal/día · {date} · estado: {status}',
+  'gm.trainerPaceCurrent': 'Ritmo decidido: −{n} kcal/día por {by} · {date}',
+  'gm.trainerPaceApprove': 'Aprobar el sugerido',
+  'gm.trainerPaceSet': 'Fijar ritmo',
+  'gm.paceDecided': 'Ritmo guardado para este cliente.',
+  'gm.trainerHeldTitle': '⚠ Metas retenidas por revisión de salud',
+  'gm.trainerHeldItem': '{param} está retenido (declaración de salud: {cond}). Fíjalo a mano con el editor de Metas si procede, o revisa los datos de fundamento con el cliente.',
+  'gm.status.pending': 'pendiente',
+  'gm.status.approved': 'aprobado',
+  'gm.status.replaced': 'fijado por el entrenador',
+  'pend.role.goalsDetail2': 'Aún no tienes metas: completa tus datos de fundamento y elige tu objetivo — la app las calcula desde tus datos.',
+  'pend.role.goalsGo2': 'Completar mis datos',
+  'pend.trainerHeldTitle': 'Metas retenidas por revisión de salud',
+  'pend.trainerHeldDetail': '{name}: {params} retenido(s) por su declaración de salud. Revísalo en su ficha.',
+  'pend.trainerHeldGo': 'Abrir clientes',
 }
 };
 let LANG = 'en';
@@ -6167,11 +6283,13 @@ function renderEnergyPanel() {
     <div class="fa-locknote">🔒 ${t('fa.lockNote')}</div>
     ${athleteBlock}
     ${own}
+    ${typeof goalsFoundationHTML === 'function' ? goalsFoundationHTML() : ''}
     <div class="fa-b2note">${t('fb2.clientNote')}</div>
   </div>`;
   const sv = $('fa-sex-save'); if (sv) sv.onclick = saveMySex;
   const dl = $('fa-sex-del'); if (dl) dl.onclick = deleteMySex;
   const as = $('fa-athlete-save'); if (as) as.onclick = saveMyAthleteDeclaration;
+  try { goalsFoundationWire(); } catch {}
 }
 /* La declaración de atleta se escribe en assessment/current con la
    sesión del PROPIO cliente (el delta de reglas del módulo A la
@@ -6399,6 +6517,8 @@ async function openClient(uid) {
     ${faCardHTML(uid, asmtDoc, data)}
     <div id="bt-card"></div>
     ${fb2CardHTML(asmtDoc, data)}
+    <div id="pace-card"></div>
+    <div id="held-card"></div>
     <div id="compacc-box"><div class="wempty">${t('access.loading')}</div></div>
     <div id="client-training"></div>
     <div id="client-evals"><div class="eval-actions"><button type="button" class="btn-ghost btn-sm" id="btn-client-evals">${t('teval.open')}</button></div><div id="client-evals-body" style="display:none"></div></div>`;
@@ -6421,6 +6541,7 @@ async function openClient(uid) {
   if (faPal) { faPal.addEventListener('input', faPalSync); faPalSync(); }
   $('btn-client-add').onclick = () => openWeightModal({ uid, docId: null, rec: null });
   compAccLoadTrainer(uid);
+  try { goalsTrainerCardLoad(uid, udata); } catch {}
   btLoadTrainerCard(uid, udata);
   box.querySelectorAll('[data-c-edit]').forEach(b => b.onclick = () => {
     const rec = data.find(w => w.id === b.dataset.cEdit);
@@ -6491,6 +6612,230 @@ async function compAccToggle(uid) {
   } catch {
     toast(t('compacc.needClientOpen'), true);
   }
+}
+
+/* ================= MOTOR DE METAS CON FUNDAMENTO (2026-10-26) =================
+   Diseño: DISEÑO-METAS-CON-FUNDAMENTO-2026-10-26.md (§C–§I) + orden del
+   coordinador. Las metas las calcula el sistema desde los datos de
+   fundamento del propio alumno (evaluación F-A1/F-A2 vigente + último
+   peso + objetivo elegido por él) — nunca valores de fábrica.
+   REGLA DEL HUECO §B: el motor NO escribe `carb` ni `gras` (sin fórmula
+   decidida; quedan sin fijar y se pintan «—»). Solo escribe kcal, prot
+   y azuc. Si el editor manual dejó carb/gras, se conservan tal cual.
+   Escritura SOLO si el resultado cambió (sin tormentas de escritura) y
+   sin pisar ajustes manuales posteriores salvo que cambien los datos
+   de fundamento (ver goalsEngineRun). */
+const GOALS_ENGINE_VERSION = 'metas-v1-2026-10-26';
+const GOALS_TERMS_VERSION = 'v1-2026-10-26';
+const GOALS_PROTEIN_FACTOR = { mantener: 1.6, ganar: 1.8, bajar: 2.2 };
+function goalsNorm(s) { return String(s || '').toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, ''); }
+/* Mapa §E: condiciones ESTRUCTURADAS de la declaración vigente →
+   parámetros retenidos. La lista estructurada actual solo expone
+   Diabetes, Hipertensión, Problemas del corazón y Embarazo; el mapa
+   también reconoce por texto normalizado renal/prediabetes/
+   hipoglucemia/insulina/lactancia/trastorno alimentario por si la
+   declaración los incorpora. El texto libre NUNCA se interpreta. */
+function goalsHealthMap(conds) {
+  const held = new Set(), details = [], info = [];
+  const add = (param, cond) => { held.add(param); if (!details.some(d => d.param === param)) details.push({ param, cond }); };
+  for (const c of conds || []) {
+    const n = goalsNorm(c);
+    if (/diabetes|prediabet|hipogluc|insulin/.test(n)) { add('azuc', c); add('carb', c); add('deficit', c); }
+    if (/renal|kidney|rinon/.test(n)) add('prot', c);
+    if (/embarazo|pregnan|lactan|breastfeed/.test(n)) { add('kcal', c); add('prot', c); add('azuc', c); add('carb', c); }
+    if (/trastorno|eating disorder|anorex|bulim/.test(n)) { add('kcal', c); add('prot', c); add('azuc', c); add('carb', c); }
+    if (/hipertens|corazon|heart|cardiovas/.test(n)) { if (!info.includes('cardiovascular')) info.push('cardiovascular'); }
+  }
+  return { held: [...held], details, info };
+}
+/* Núcleo PURO (sin DOM ni red): testeable tal cual.
+   inp: { objective, tdeeKcal, weightKg, hasTrainer, paceSuggestion,
+          goalsTerms, conditions } */
+function goalsCoreCompute(inp) {
+  const obj = inp.objective, tdee = Number(inp.tdeeKcal), w = Number(inp.weightKg);
+  const hm = goalsHealthMap(inp.conditions || []);
+  const held = new Set(hm.held);
+  const pf = GOALS_PROTEIN_FACTOR[obj] || 1.6;
+  let paceState = 'none', paceKcal = null, kcal = null;
+  if (obj === 'mantener') kcal = Math.round(tdee);
+  else if (obj === 'ganar') kcal = Math.round(tdee * 1.10);
+  else if (obj === 'bajar') {
+    const ps = inp.paceSuggestion || null;
+    const decided = !!(ps && (ps.status === 'approved' || ps.status === 'replaced') && Number(ps.decidedPaceKcal) > 0);
+    if (decided) { paceKcal = Number(ps.decidedPaceKcal); paceState = 'approved'; kcal = Math.round(tdee - paceKcal); }
+    else if (inp.hasTrainer) { paceState = 'review'; kcal = Math.round(tdee); }
+    else if (inp.goalsTerms && inp.goalsTerms.version === GOALS_TERMS_VERSION && Number(inp.goalsTerms.paceKcal) === 500) { paceKcal = 500; paceState = 'self-accepted'; kcal = Math.round(tdee - 500); }
+    else { paceState = 'review'; kcal = Math.round(tdee); }
+    if (held.has('deficit') || held.has('kcal')) kcal = null; // §E manda: la aceptación nunca salta una alerta de salud
+  }
+  const goals = {};
+  if (kcal != null && !held.has('kcal')) goals.kcal = kcal;
+  if (!held.has('prot')) goals.prot = Math.round(pf * w);
+  if (goals.kcal != null && !held.has('azuc')) goals.azuc = Math.round(goals.kcal * 0.05 / 4);
+  const fingerprint = [obj, Math.round(tdee), w, paceState, paceKcal || 0, [...held].sort().join(','), (inp.conditions || []).join(',')].join('|');
+  return { goals, proteinFactor: pf, paceState, paceKcal, heldParams: [...held], heldDetails: hm.details, infoAlerts: hm.info, fingerprint };
+}
+try { window.__goalsCore = { compute: goalsCoreCompute, healthMap: goalsHealthMap, version: GOALS_ENGINE_VERSION, termsVersion: GOALS_TERMS_VERSION }; } catch {}
+const gmPick3 = g => { const o = {}; for (const k of ['kcal', 'prot', 'azuc']) if (g && g[k] != null) o[k] = g[k]; return o; };
+const gmHasTrainer = () => !!(((typeof MY_REL !== 'undefined' && MY_REL) && MY_REL.trainerUid) || (typeof UDATA !== 'undefined' && UDATA && UDATA.trainerUid));
+async function goalsEngineRun(reason) {
+  if (!auth.currentUser) return;
+  if (typeof declLoadState !== 'undefined' && declLoadState === 'error') { renderGoalsEngine(); return; }
+  try { await faComputeMine(auth.currentUser.uid); } catch {}
+  const a = (typeof MY_ASMT !== 'undefined' && MY_ASMT) ? MY_ASMT.doc : null;
+  const last = (typeof WEIGHTS !== 'undefined' && WEIGHTS && WEIGHTS.length) ? WEIGHTS[WEIGHTS.length - 1] : null;
+  if (!a || !faHasResult(a) || !last || faResultStale(a, last)) { renderGoalsEngine(); return; }
+  const objective = UDATA.goalObjective;
+  if (!['mantener', 'bajar', 'ganar'].includes(objective || '')) { renderGoalsEngine(); return; }
+  const conds = (typeof activeDecl === 'function' && declLoadState === 'ok') ? ((activeDecl() || {}).conditions || []) : [];
+  const res = goalsCoreCompute({ objective, tdeeKcal: a.tdeeKcal, weightKg: num(last.weight), hasTrainer: gmHasTrainer(), paceSuggestion: UDATA.paceSuggestion || null, goalsTerms: UDATA.goalsTerms || null, conditions: conds });
+  const prov = { objective, equationUsed: a.equationUsed || a.equation || '', tdeeKcal: Math.round(a.tdeeKcal), weightKg: num(last.weight), weightDate: last.date, heightCm: num(a.heightCm), age: new Date().getFullYear() - parseInt(a.birthYear, 10), palBasal: num(a.palBasal), proteinFactor: res.proteinFactor, sugarRule: 'OMS-5%', paceKcal: res.paceKcal, paceState: res.paceState, heldParams: res.heldParams, heldDetails: res.heldDetails, infoAlerts: res.infoAlerts, engineGoals: res.goals, fingerprint: res.fingerprint, computedAt: new Date().toISOString(), engineVersion: GOALS_ENGINE_VERSION };
+  const curProv = UDATA.goalsProvenance || null, curGoals = UDATA.goals || null;
+  /* Ajuste manual posterior del entrenador/administrador: si las metas
+     actuales ya no coinciden con las últimas del motor y la huella de
+     fundamento NO cambió, el motor no las pisa. */
+  if (curProv && curProv.fingerprint === prov.fingerprint && curGoals && JSON.stringify(gmPick3(curGoals)) !== JSON.stringify(curProv.engineGoals || {})) { renderGoalsEngine(); return; }
+  const newGoals = { ...res.goals };
+  if (curGoals) { if (curGoals.carb != null) newGoals.carb = curGoals.carb; if (curGoals.gras != null) newGoals.gras = curGoals.gras; }
+  const provCmp = { ...prov }; delete provCmp.computedAt;
+  const curCmp = curProv ? { ...curProv } : null; if (curCmp) delete curCmp.computedAt;
+  if (JSON.stringify(newGoals) === JSON.stringify(curGoals || {}) && JSON.stringify(provCmp) === JSON.stringify(curCmp)) { renderGoalsEngine(); return; }
+  try {
+    await setDoc(doc(db, 'users', auth.currentUser.uid), { goals: newGoals, goalsProvenance: prov }, { merge: true });
+    UDATA.goals = newGoals; UDATA.goalsProvenance = prov; GOALS = { ...newGoals };
+    const ds = $('dateSel'); if (ds) render(ds.value);
+  } catch {}
+  renderGoalsEngine();
+}
+/* ---------- Tarjeta del alumno (junto a «Tus metas diarias») ---------- */
+function renderGoalsEngine() {
+  const box = $('goals-engine'); if (!box || !auth.currentUser) return;
+  const prov = UDATA.goalsProvenance || null;
+  const obj = UDATA.goalObjective || '';
+  const objBtns = ['mantener', 'bajar', 'ganar'].map(o => `<button type="button" class="btn-ghost btn-sm" data-gm-obj="${o}"${obj === o ? ' style="border-color:#0d9488;font-weight:700"' : ''}>${esc(t('gm.obj.' + o))}</button>`).join(' ');
+  let html = `<div class="fb3-card" id="gm-card"><h3 class="history-title" style="margin-top:0">${esc(t('gm.title'))}</h3>`;
+  html += `<p class="progress-hint">${esc(t('gm.objective'))}</p><div class="eval-actions" style="justify-content:flex-start;gap:8px;flex-wrap:wrap">${objBtns}</div>`;
+  if (!prov) html += `<p class="progress-hint">${esc(t('gm.needData'))}</p>`;
+  if (prov) {
+    html += `<p class="progress-hint" id="gm-prov">${esc(t('gm.prov', { date: String(prov.computedAt || '').slice(0, 10), tdee: fmt(prov.tdeeKcal), eq: esc(prov.equationUsed || ''), w: prov.weightKg, wdate: esc(prov.weightDate || ''), h: prov.heightCm, age: prov.age, pal: prov.palBasal, pf: prov.proteinFactor }))}</p>`;
+    const az = goalOf('azuc');
+    if (az != null && goalOf('kcal') != null) html += `<p class="progress-hint" id="gm-sugar">${t('gm.sugarInfo', { kcal: fmt(goalOf('kcal')), g: az })}</p>`;
+    if (Array.isArray(prov.heldParams) && prov.heldParams.length) {
+      const det = {}; (prov.heldDetails || []).forEach(d => { det[d.param] = d.cond; });
+      html += `<div class="health-alert" id="gm-held"><b>${esc(t('gm.heldTitle'))}</b><br>` + prov.heldParams.map(p => esc(t('gm.heldItem', { param: t('gm.param.' + p), cond: condName(det[p] || '') }))).join('<br>') + `<br>${esc(t(gmHasTrainer() ? 'gm.heldTrainer' : 'gm.heldNoTrainer'))}</div>`;
+    }
+    if (Array.isArray(prov.infoAlerts) && prov.infoAlerts.length) html += `<p class="progress-hint">${esc(t('gm.infoTrainer'))}</p>`;
+  }
+  if (obj === 'bajar') {
+    const ps = UDATA.paceSuggestion || null, gt = UDATA.goalsTerms || null;
+    html += `<div id="gm-pace"><p class="pend-cfg-h">${esc(t('gm.paceTitle'))}</p>`;
+    if (ps && (ps.status === 'approved' || ps.status === 'replaced')) {
+      html += `<p class="progress-hint">${esc(t('gm.paceApproved', { n: ps.decidedPaceKcal, s: ps.paceKcal || '—' }))}</p>`;
+    } else if (gmHasTrainer()) {
+      if (ps && ps.status === 'pending') html += `<p class="progress-hint">${esc(t('gm.paceReviewMine', { n: ps.paceKcal }))}</p>`;
+      else if (prov) html += `<p class="progress-hint">${esc(t('gm.paceReview', { tdee: fmt(prov.tdeeKcal) }))}</p>`;
+      html += `<label class="pend-sel"><span>${esc(t('gm.paceSuggest'))}</span><select id="gm-pace-sel"><option value="500">−500</option><option value="750">−750</option><option value="1000">−1000</option></select></label> <button type="button" class="btn-primary btn-sm" id="gm-pace-send">${esc(t('gm.paceSuggestBtn'))}</button>`;
+    } else if (gt && gt.version === GOALS_TERMS_VERSION) {
+      html += `<p class="progress-hint">${esc(t('gm.paceSelfAccepted', { v: esc(gt.version), date: String(gt.acceptedAt || '').slice(0, 10) }))}</p>`;
+    } else {
+      html += `<p class="progress-hint"><b>${esc(t('gm.paceSelfTitle'))}</b><br>${esc(t('gm.paceSelfBody'))}</p><label class="consent-check"><input type="checkbox" id="gm-terms-ok"> <span>${esc(t('gm.termsText'))}</span></label><div class="eval-actions" style="justify-content:flex-start"><button type="button" class="btn-primary btn-sm" id="gm-terms-accept">${esc(t('gm.termsAccept'))}</button></div>`;
+    }
+    html += `</div>`;
+  }
+  html += `<p class="progress-hint">${esc(t('gm.eduNote'))}</p></div>`;
+  box.innerHTML = html;
+  box.querySelectorAll('[data-gm-obj]').forEach(b => b.onclick = () => gmSetObjective(b.dataset.gmObj));
+  const send = $('gm-pace-send'); if (send) send.onclick = gmSuggestPace;
+  const acc = $('gm-terms-accept'); if (acc) acc.onclick = gmAcceptTerms;
+}
+async function gmSetObjective(o) {
+  if (!['mantener', 'bajar', 'ganar'].includes(o)) return;
+  try { await setDoc(doc(db, 'users', auth.currentUser.uid), { goalObjective: o }, { merge: true }); UDATA.goalObjective = o; toast(t('gm.objectiveSaved')); await goalsEngineRun('objective'); }
+  catch (e) { failToast(e); }
+}
+async function gmSuggestPace() {
+  const sel = $('gm-pace-sel'); if (!sel) return;
+  const paceKcal = Number(sel.value);
+  const data = { paceKcal, suggestedAt: new Date().toISOString(), status: 'pending' };
+  try { await setDoc(doc(db, 'users', auth.currentUser.uid), { paceSuggestion: data }, { merge: true }); UDATA.paceSuggestion = data; toast(t('gm.paceSaved')); await goalsEngineRun('pace'); }
+  catch (e) { failToast(e); }
+}
+async function gmAcceptTerms() {
+  const ok = $('gm-terms-ok');
+  if (!ok || !ok.checked) { toast(t('gm.termsText'), true); return; }
+  const data = { version: GOALS_TERMS_VERSION, acceptedAt: new Date().toISOString(), paceKcal: 500 };
+  try { await setDoc(doc(db, 'users', auth.currentUser.uid), { goalsTerms: data }, { merge: true }); UDATA.goalsTerms = data; toast(t('gm.termsAccepted')); await goalsEngineRun('terms'); }
+  catch (e) { failToast(e); }
+}
+/* ---------- Datos de fundamento editables por el propio alumno (§C) ----------
+   Vive en su panel de energía (su vista de evaluación). Mismos
+   guardarraíles del formulario del entrenador: 18+, talla 50–250,
+   palBasal 1.20–2.00 con confirmación expresa en la banda 1.20–1.39.
+   La ecuación la sigue eligiendo el entrenador. */
+function goalsFoundationHTML() {
+  const d = (typeof MY_ASMT !== 'undefined' && MY_ASMT) ? (MY_ASMT.doc || {}) : {};
+  const actOpts = ['', '1', '2', '3', '4', '5', '6'].map(v => `<option value="${v}"${String(d.activityCategoryId || '') === v ? ' selected' : ''}>${esc(v === '' ? t('fa.actNone') : t('fa.act' + v))}</option>`).join('');
+  return `<div class="fa-athlete" id="gm-foundation"><h4 class="fa-athtitle">${esc(t('gm.foundation'))}</h4>
+    <p class="fa-sextext">${esc(t('gm.foundationHint'))}</p>
+    <label><span>${esc(t('fa.birthYear'))}</span><input type="number" id="gm-by" value="${esc(d.birthYear || '')}" min="1900" max="${new Date().getFullYear() - 18}"></label>
+    <label><span>${esc(t('fa.height'))}</span><input type="number" id="gm-h" value="${esc(d.heightCm || '')}" min="50" max="250"></label>
+    <label><span>${esc(t('fa.actLabel'))}</span><select id="gm-act">${actOpts}</select></label>
+    <label><span>${esc(t('fa.palLabel'))}</span><input type="number" id="gm-pal" step="0.01" value="${esc(d.palBasal || '')}" placeholder="${esc(t('fa.palPlaceholder'))}"></label>
+    <p class="fa-sextext">${esc(t('fa.palRules'))}</p>
+    <label class="fa-opt2"><input type="checkbox" id="gm-pal-confirm"> <span>${esc(t('fa.palConfirm'))}</span></label>
+    <div class="fa-btnrow"><button type="button" class="btn-primary btn-sm" id="gm-foundation-save">${esc(t('gm.saveFoundation'))}</button></div></div>`;
+}
+function goalsFoundationWire() {
+  const b = $('gm-foundation-save'); if (b) b.onclick = gmSaveFoundation;
+}
+async function gmSaveFoundation() {
+  if (!auth.currentUser) return;
+  const byRaw = ($('gm-by') && $('gm-by').value.trim()) || '', hRaw = ($('gm-h') && $('gm-h').value.trim()) || '', palRaw = ($('gm-pal') && $('gm-pal').value.trim()) || '';
+  const act = ($('gm-act') && $('gm-act').value) || '';
+  const payload = { updatedAt: serverTimestamp(), updatedBy: auth.currentUser.uid };
+  if (byRaw) { const by = parseInt(byRaw, 10), maxY = new Date().getFullYear() - 18; if (!Number.isInteger(by) || by < 1900 || by > maxY) { toast(t('fa.errBy', { max: maxY }), true); return; } payload.birthYear = by; }
+  if (hRaw) { const h = num(hRaw); if (!(h >= 50 && h <= 250)) { toast(t('fa.errH'), true); return; } payload.heightCm = h; }
+  if (act) payload.activityCategoryId = parseInt(act, 10);
+  if (palRaw) { const p = num(palRaw); if (!(p >= 1.20 && p <= 2.00)) { toast(t('fa.errPal'), true); return; } if (p < 1.40 && !($('gm-pal-confirm') && $('gm-pal-confirm').checked)) { toast(t('fa.errConfirm'), true); return; } payload.palBasal = p; payload.palExceptionConfirmed = p < 1.40; }
+  try {
+    await setDoc(doc(db, 'users', auth.currentUser.uid, 'assessment', 'current'), payload, { merge: true });
+    MY_ASMT.doc = { ...(MY_ASMT.doc || {}), ...payload };
+    toast(t('gm.saved'));
+    await faComputeMine(auth.currentUser.uid);
+    renderEnergyPanel();
+    await goalsEngineRun('foundation');
+  } catch (e) { failToast(e); }
+}
+/* ---------- Ficha del cliente: aprobación del ritmo (§F) + alertas (§E) ---------- */
+async function goalsTrainerCardLoad(uid, udata) {
+  const pc = $('pace-card'), hc = $('held-card'); if (!pc && !hc) return;
+  const u = udata || {};
+  const ps = u.paceSuggestion || null, prov = u.goalsProvenance || null;
+  if (pc) {
+    let h = `<div class="fb3-card"><h3 class="history-title" style="margin:0">${esc(t('gm.trainerPaceTitle'))}</h3>`;
+    if (ps) {
+      h += `<p class="progress-hint">${esc(t('gm.trainerPaceSuggested', { n: ps.paceKcal || '—', date: String(ps.suggestedAt || '').slice(0, 10), status: t('gm.status.' + (ps.status || 'pending')) }))}</p>`;
+      if (ps.decidedPaceKcal) h += `<p class="progress-hint">${esc(t('gm.trainerPaceCurrent', { n: ps.decidedPaceKcal, by: esc(ps.decidedBy || '—'), date: String(ps.decidedAt || '').slice(0, 10) }))}</p>`;
+    } else h += `<p class="progress-hint">${esc(t('gm.trainerPaceNone'))}</p>`;
+    h += `<div class="eval-actions" style="justify-content:flex-start;gap:8px;flex-wrap:wrap"><select id="gm-tp-sel"><option value="500">−500</option><option value="750">−750</option><option value="1000">−1000</option></select>${ps && ps.paceKcal ? `<button type="button" class="btn-primary btn-sm" id="gm-tp-approve">${esc(t('gm.trainerPaceApprove'))}</button>` : ''}<button type="button" class="btn-ghost btn-sm" id="gm-tp-set">${esc(t('gm.trainerPaceSet'))}</button></div></div>`;
+    pc.innerHTML = h;
+    const ap = $('gm-tp-approve'); if (ap) ap.onclick = () => goalsTrainerDecidePace(uid, Number(ps.paceKcal));
+    const st = $('gm-tp-set'); if (st) st.onclick = () => goalsTrainerDecidePace(uid, Number(($('gm-tp-sel') || {}).value || 500));
+  }
+  if (hc) {
+    const det = (prov && prov.heldDetails) || [];
+    if (det.length) {
+      hc.innerHTML = `<div class="fb3-card"><h3 class="history-title" style="margin:0">${esc(t('gm.trainerHeldTitle'))}</h3>` + det.map(d => `<p class="progress-hint">${esc(t('gm.trainerHeldItem', { param: t('gm.param.' + d.param), cond: condName(d.cond || '') }))}</p>`).join('') + `</div>`;
+    } else hc.innerHTML = '';
+  }
+}
+async function goalsTrainerDecidePace(uid, pace) {
+  if (![500, 750, 1000].includes(Number(pace))) return;
+  let cur = {};
+  try { const s = await getDoc(doc(db, 'users', uid)); if (s.exists()) cur = s.data().paceSuggestion || {}; } catch {}
+  const data = { paceKcal: cur.paceKcal || Number(pace), suggestedAt: cur.suggestedAt || null, status: Number(cur.paceKcal) === Number(pace) ? 'approved' : 'replaced', decidedPaceKcal: Number(pace), decidedBy: auth.currentUser.uid, decidedAt: new Date().toISOString() };
+  try { await setDoc(doc(db, 'users', uid), { paceSuggestion: data }, { merge: true }); toast(t('gm.paceDecided')); await openClient(uid); }
+  catch (e) { failToast(e); }
 }
 
 /* ================= METAS POR USUARIO (las establece el entrenador) ================= */
@@ -6649,6 +6994,7 @@ async function loadAll() {
      re-renderiza una vez para que la tarjeta muestre los pendientes
      reales (corrección 2026-10-26, mismo reporte de Ronald). */
   try { renderPendings(); } catch {}
+  try { await goalsEngineRun('load'); } catch {}
   await loadMyUnits();
   await loadAdmin();
   await loadClients();
@@ -9170,6 +9516,7 @@ async function saveDeclaration() {
     healthEditing = false;
     toast(t('health.declSaved'));
     renderHealthPanel();
+    try { await goalsEngineRun('health'); } catch {}
   } catch (e) { failToast(e); }
 }
 async function loadMyHealth() {
@@ -13141,6 +13488,7 @@ function render(date) {
       `<span>${t('metric.azuc')}: ${gv('azuc', ' g', '≤ ')}</span>` +
       `<span>${t('metric.gras')}: ${gv('gras', ' g')}</span>`;
   }
+  try { if (typeof renderGoalsEngine === 'function') renderGoalsEngine(); } catch {}
   const tot = totals(date);
   const vals = { kcal: tot.kcal, prot: tot.prot, carb: tot.carb, azuc: tot.azuc, gras: tot.gras };
   closeRingDetail(); // un re-render (otra fecha, otro idioma) cierra el detalle abierto: no queda ventana con datos de otro día
@@ -15503,6 +15851,8 @@ setInterval(() => { try { pendDockTick(); } catch {} }, 60000);
           else if (route === 'eval') { const c = $('progress-content'); if (c && c.style.display === 'none') { const pb = $('btn-toggle-progress'); if (pb) pb.click(); } scroll('eval-root'); }
           else if (route === 'perms') { const pb = $('btn-perms'); if (pb && !permsOpen) pb.click(); scroll('health-section'); }
           else if (route === 'goals') { switchTab('track'); scroll('rings'); }
+          else if (route === 'goals-setup') { switchTab('track'); scroll('goals-engine'); const pb2 = $('btn-perms'); if (pb2 && !permsOpen) pb2.click(); scroll('energy-section'); }
+          else if (route === 'clients') { switchTab('clients'); }
           else if (route === 'admin-pending') { switchTab('access'); scroll('pending-list'); }
           else if (route === 'admin-membership') { switchTab('trainers'); scroll('membership-admin-box'); }
           else if (route === 'admin-meals') { switchTab('trainers'); scroll('meal-admin-box'); }
@@ -16338,7 +16688,7 @@ document.addEventListener('keydown', e => { if (e.key === 'Escape') shareClose()
  *  - El SW (sw.js) solo cachea la cáscara del mismo origen en modo
  *    RED PRIMERO: Auth/Firestore/Worker jamás pasan por la caché.
  * ================================================================ */
-const PWA_SW_VERSION = '20261026-manifest-eslogan';
+const PWA_SW_VERSION = '20261026-metas-fundamento';
 let pwaDeferredPrompt = null;
 function pwaIsStandalone() {
   try {
