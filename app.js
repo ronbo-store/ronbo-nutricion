@@ -3096,6 +3096,14 @@ en: {
   'share.labCarb': 'Carbs',
   'share.labSugar': 'Sugars',
   'share.labFat': 'Fats',
+  'gm.param.gras': 'Fats',
+  'gm.prov2': 'Fat share of your calorie goal: {fat}% · Day level of this calculation: {level}. Carbohydrates are what remains after protein and fats.',
+  'gm.day.base': 'regular day',
+  'gm.day.exigente': 'demanding day',
+  'gm.day.descanso': 'rest day',
+  'gm.dayInfo': 'For {date} ({level}): carbohydrates {carb} g and fats {gras} g for this day. Your calorie goal does not change.',
+  'gm.dayHeld': 'Because carbohydrates are under health review, the day variation does not apply: carbohydrates and fats stay at their base values for every day.',
+  'gm.guardCarb': 'Carbohydrates were not set: with the current calorie and protein goals there is no room left above zero for them. The numbers can be reviewed with your trainer or your health professional.',
   'gm.title': 'Your goals, with a basis',
   'gm.objective': 'Your goal',
   'gm.obj.mantener': 'Maintain',
@@ -4615,6 +4623,14 @@ es: {
   'share.labCarb': 'Carbos',
   'share.labSugar': 'Azúcares',
   'share.labFat': 'Grasas',
+  'gm.param.gras': 'Grasas',
+  'gm.prov2': 'Parte de grasas de tu meta de calorías: {fat}% · Nivel del día de este cálculo: {level}. Los carbohidratos son lo que queda tras la proteína y las grasas.',
+  'gm.day.base': 'día normal',
+  'gm.day.exigente': 'día exigente',
+  'gm.day.descanso': 'día de descanso',
+  'gm.dayInfo': 'Para el {date} ({level}): carbohidratos {carb} g y grasas {gras} g de este día. Tu meta de calorías no cambia.',
+  'gm.dayHeld': 'Como los carbohidratos están en revisión de salud, la variación por día no se aplica: carbohidratos y grasas quedan en sus valores base todos los días.',
+  'gm.guardCarb': 'Los carbohidratos no se fijaron: con las metas actuales de calorías y proteína no queda margen por encima de cero para ellos. Los números pueden revisarse con tu entrenador o tu profesional de salud.',
   'gm.title': 'Tus metas, con fundamento',
   'gm.objective': 'Tu objetivo',
   'gm.obj.mantener': 'Mantener',
@@ -6614,20 +6630,44 @@ async function compAccToggle(uid) {
   }
 }
 
-/* ================= MOTOR DE METAS CON FUNDAMENTO (2026-10-26) =================
-   Diseño: DISEÑO-METAS-CON-FUNDAMENTO-2026-10-26.md (§C–§I) + orden del
-   coordinador. Las metas las calcula el sistema desde los datos de
-   fundamento del propio alumno (evaluación F-A1/F-A2 vigente + último
-   peso + objetivo elegido por él) — nunca valores de fábrica.
-   REGLA DEL HUECO §B: el motor NO escribe `carb` ni `gras` (sin fórmula
-   decidida; quedan sin fijar y se pintan «—»). Solo escribe kcal, prot
-   y azuc. Si el editor manual dejó carb/gras, se conservan tal cual.
-   Escritura SOLO si el resultado cambió (sin tormentas de escritura) y
-   sin pisar ajustes manuales posteriores salvo que cambien los datos
-   de fundamento (ver goalsEngineRun). */
-const GOALS_ENGINE_VERSION = 'metas-v1-2026-10-26';
+/* ================= MOTOR DE METAS CON FUNDAMENTO v2 (2026-10-26) =================
+   Diseño: DISEÑO-METAS-CON-FUNDAMENTO-2026-10-26.md (§C–§K).
+   v2 = v1 (kcal/prot/azuc, §C–§I, en producción como e0914a57) + §K:
+   el motor escribe las CINCO metas. Grasas: % de las kcal meta según
+   el objetivo (mantener 25% · ganar 25% · bajar 20%), con PISO DURO
+   del 15% para ese % base. Carbohidratos: el resto —
+   (kcal meta − kcal de proteína − kcal de grasas) ÷ 4.
+   CONVENCIÓN DE REDONDEO §K: todo el cálculo se hace en espacio-kcal
+   SIN redondeos intermedios y cada meta se redondea UNA sola vez al
+   final (por eso el descanso del ejemplo del diseño da grasa 50 g y
+   no ≈51 g, que salía de redondear pasos intermedios; tolerancia ±1 g).
+   VARIACIÓN POR DÍA (§K): `goals` guarda las metas BASE. La variación
+   (exigente +20% carbos financiados bajando la grasa del día, con las
+   kcal del día intactas — la grasa del día exigente puede quedar bajo
+   el 15%: la financiación es completa, como en el ejemplo verificado
+   del diseño, 23 g ≈ 12,5%; descanso −20% carbos con la grasa subiendo
+   dentro de su banda, techo 30% — si el techo ligara, la bajada de
+   carbos se limita a lo que el techo permite, para no romper ni el
+   techo ni las kcal del día) se aplica SOLO al día visualizado en los
+   anillos y en la fila de metas (ver goalsDayGoalsFor / goalOfDay y
+   los reemplazos de cableado), nunca a lo guardado.
+   §E MANDA POR ENCIMA: diabetes retiene carbos → con carb retenido NO
+   hay variación del día (carb/gras del día = base); embarazo/lactancia/
+   trastorno alimentario retiene TODO (también gras); renal retiene
+   proteína → sin proteína no se puede repartir el resto, así que carb
+   y gras quedan retenidos también (en heldParams, con la misma
+   condición). GUARDIA: si los carbos calculados quedaran ≤ 0, carb NO
+   se escribe nunca (las reglas exigen > 0): queda en `guardHeld` con
+   aviso visible, separado de las retenciones de salud.
+   Escritura SOLO si el resultado cambió y sin pisar ajustes manuales
+   posteriores salvo que cambien los datos de fundamento (ver
+   goalsEngineRun, comparación por huella con gmPick5). */
+const GOALS_ENGINE_VERSION = 'metas-v2-2026-10-26';
 const GOALS_TERMS_VERSION = 'v1-2026-10-26';
 const GOALS_PROTEIN_FACTOR = { mantener: 1.6, ganar: 1.8, bajar: 2.2 };
+const GOALS_FAT_PCT = { mantener: 0.25, ganar: 0.25, bajar: 0.20 };
+const GOALS_FAT_FLOOR_PCT = 0.15;
+const GOALS_FAT_CEIL_PCT = 0.30;
 function goalsNorm(s) { return String(s || '').toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, ''); }
 /* Mapa §E: condiciones ESTRUCTURADAS de la declaración vigente →
    parámetros retenidos. La lista estructurada actual solo expone
@@ -6642,20 +6682,28 @@ function goalsHealthMap(conds) {
     const n = goalsNorm(c);
     if (/diabetes|prediabet|hipogluc|insulin/.test(n)) { add('azuc', c); add('carb', c); add('deficit', c); }
     if (/renal|kidney|rinon/.test(n)) add('prot', c);
-    if (/embarazo|pregnan|lactan|breastfeed/.test(n)) { add('kcal', c); add('prot', c); add('azuc', c); add('carb', c); }
-    if (/trastorno|eating disorder|anorex|bulim/.test(n)) { add('kcal', c); add('prot', c); add('azuc', c); add('carb', c); }
+    if (/embarazo|pregnan|lactan|breastfeed/.test(n)) { add('kcal', c); add('prot', c); add('azuc', c); add('carb', c); add('gras', c); }
+    if (/trastorno|eating disorder|anorex|bulim/.test(n)) { add('kcal', c); add('prot', c); add('azuc', c); add('carb', c); add('gras', c); }
     if (/hipertens|corazon|heart|cardiovas/.test(n)) { if (!info.includes('cardiovascular')) info.push('cardiovascular'); }
   }
   return { held: [...held], details, info };
 }
 /* Núcleo PURO (sin DOM ni red): testeable tal cual.
    inp: { objective, tdeeKcal, weightKg, hasTrainer, paceSuggestion,
-          goalsTerms, conditions } */
+          goalsTerms, conditions }
+   Devuelve además (v2): fatPct (% de grasa base usado, tras el piso),
+   dayLevel 'base' (las metas guardadas son las BASE; la variación del
+   día es de la vista) y guardHeld (parámetros frenados por la guardia
+   de > 0, hoy solo 'carb'). */
 function goalsCoreCompute(inp) {
   const obj = inp.objective, tdee = Number(inp.tdeeKcal), w = Number(inp.weightKg);
   const hm = goalsHealthMap(inp.conditions || []);
   const held = new Set(hm.held);
+  const heldDetails = hm.details.slice();
+  const addHeld = (param, cond) => { held.add(param); if (!heldDetails.some(d => d.param === param)) heldDetails.push({ param, cond }); };
+  const condOf = p => { const d = heldDetails.find(x => x.param === p); return d ? d.cond : ''; };
   const pf = GOALS_PROTEIN_FACTOR[obj] || 1.6;
+  const fatPct = Math.max(GOALS_FAT_PCT[obj] != null ? GOALS_FAT_PCT[obj] : 0.25, GOALS_FAT_FLOOR_PCT);
   let paceState = 'none', paceKcal = null, kcal = null;
   if (obj === 'mantener') kcal = Math.round(tdee);
   else if (obj === 'ganar') kcal = Math.round(tdee * 1.10);
@@ -6669,14 +6717,174 @@ function goalsCoreCompute(inp) {
     if (held.has('deficit') || held.has('kcal')) kcal = null; // §E manda: la aceptación nunca salta una alerta de salud
   }
   const goals = {};
+  const guardHeld = [];
   if (kcal != null && !held.has('kcal')) goals.kcal = kcal;
-  if (!held.has('prot')) goals.prot = Math.round(pf * w);
+  if (goals.kcal == null) {
+    /* Sin meta calórica no hay base para repartir: carb/gras retenidos
+       con la condición que frenó las kcal (o la del déficit). */
+    const cnd = condOf('kcal') || condOf('deficit') || '';
+    if (!held.has('carb')) addHeld('carb', cnd);
+    if (!held.has('gras')) addHeld('gras', cnd);
+  } else if (held.has('prot')) {
+    /* §E renal: sin proteína escrita no se puede repartir el resto. */
+    const cnd = condOf('prot');
+    if (!held.has('carb')) addHeld('carb', cnd);
+    if (!held.has('gras')) addHeld('gras', cnd);
+  } else {
+    goals.prot = Math.round(pf * w);
+  }
+  if (goals.kcal != null && goals.prot != null) {
+    const fatKcal = goals.kcal * fatPct; // sin redondear: espacio-kcal
+    if (!held.has('gras')) { const gras = Math.round(fatKcal / 9); if (gras > 0) goals.gras = gras; }
+    if (!held.has('carb')) {
+      const carbKcal = goals.kcal - goals.prot * 4 - fatKcal;
+      if (carbKcal <= 0) guardHeld.push('carb'); // guardia > 0: jamás escribir carb ≤ 0
+      else goals.carb = Math.round(carbKcal / 4);
+    }
+  }
   if (goals.kcal != null && !held.has('azuc')) goals.azuc = Math.round(goals.kcal * 0.05 / 4);
-  const fingerprint = [obj, Math.round(tdee), w, paceState, paceKcal || 0, [...held].sort().join(','), (inp.conditions || []).join(',')].join('|');
-  return { goals, proteinFactor: pf, paceState, paceKcal, heldParams: [...held], heldDetails: hm.details, infoAlerts: hm.info, fingerprint };
+  const fingerprint = [obj, Math.round(tdee), w, paceState, paceKcal || 0, fatPct, guardHeld.join(','), [...held].sort().join(','), (inp.conditions || []).join(',')].join('|');
+  return { goals, proteinFactor: pf, fatPct, dayLevel: 'base', paceState, paceKcal, heldParams: [...held], heldDetails, guardHeld, infoAlerts: hm.info, fingerprint };
 }
-try { window.__goalsCore = { compute: goalsCoreCompute, healthMap: goalsHealthMap, version: GOALS_ENGINE_VERSION, termsVersion: GOALS_TERMS_VERSION }; } catch {}
-const gmPick3 = g => { const o = {}; for (const k of ['kcal', 'prot', 'azuc']) if (g && g[k] != null) o[k] = g[k]; return o; };
+/* ---------- Variación por día (§K) — funciones puras ---------- */
+/* Ajuste del día: base + nivel → carb/gras de ESE día. kcal/prot/azuc
+   no cambian; las kcal del día quedan intactas salvo el redondeo final
+   de cada macro (deriva teórica ≤ 6,5 kcal). Si falta alguna base
+   (carb/gras retenidos o en guardia) NO hay variación: se devuelve la
+   base tal cual — así lo manda §E para el carb retenido. */
+function goalsDayAdjust(inp) {
+  const g = (inp && inp.goals) || {};
+  const level = (inp && inp.dayLevel) || 'base';
+  const out = { goals: { ...g }, dayLevel: level, fatPctDay: inp && inp.fatPct != null ? inp.fatPct : null, limitedByCeil: false, applied: false };
+  if (level !== 'exigente' && level !== 'descanso') return out;
+  if (!(g.kcal > 0) || !(g.prot > 0) || !(g.carb > 0) || !(g.gras > 0)) return out;
+  const protKcal = g.prot * 4;
+  const fatKcalBase = inp.fatPct != null ? g.kcal * inp.fatPct : g.gras * 9;
+  const carbKcalBase = g.kcal - protKcal - fatKcalBase;
+  if (carbKcalBase <= 0) return out;
+  let carbKcal, fatKcal;
+  if (level === 'exigente') {
+    carbKcal = carbKcalBase * 1.20;
+    fatKcal = g.kcal - protKcal - carbKcal; // financiación completa (puede quedar < 15%)
+  } else {
+    carbKcal = carbKcalBase * 0.80;
+    fatKcal = g.kcal - protKcal - carbKcal;
+    const ceilKcal = g.kcal * GOALS_FAT_CEIL_PCT;
+    if (fatKcal > ceilKcal) { fatKcal = ceilKcal; carbKcal = g.kcal - protKcal - fatKcal; out.limitedByCeil = true; }
+  }
+  const carb = Math.round(carbKcal / 4), gras = Math.round(fatKcal / 9);
+  if (carb <= 0 || gras <= 0) return out; // guardia > 0 también en la vista
+  out.goals.carb = carb; out.goals.gras = gras;
+  out.fatPctDay = fatKcal / g.kcal; out.applied = true;
+  return out;
+}
+/* Señales de día EXIGENTE sobre el modelo REAL del plan
+   (training_plans.days[]: { label, exercises: [{ name, exerciseId,
+   sets, reps, note }], sessionBlocks? } — verificado en el editor y en
+   fetchPlans: el día NO tiene ningún campo de intensidad/marca en el
+   código vivo, así que la marca se reconoce de forma defensiva si
+   apareciera, y el resto son señales reales):
+   1) marca expresa: day.demanding / day.exigente / day.hard === true,
+      o day.level / day.intensity / day.difficulty con texto exigente;
+   2) grupo muscular de piernas o cuerpo completo de la biblioteca
+      (LIB_BY_ID[exerciseId].grupo_muscular_es/_en; orden de la casa
+      LIB_GROUP_ORDER: Cuádriceps, Isquiotibiales, Glúteos,
+      Pantorrillas, Cuerpo completo);
+   3) texto de la etiqueta del día o de los nombres de ejercicio
+      (guardados o resueltos por la biblioteca) con vocabulario de
+      piernas / grandes levantamientos. */
+const GM_LEG_GROUPS = ['cuadriceps', 'isquiotibiales', 'gluteos', 'pantorrillas', 'cuerpo completo', 'quadriceps', 'hamstrings', 'glutes', 'calves', 'full body'];
+const GM_LEG_TEXT = /pierna|\blegs?\b|cuadriceps|quadriceps|isquiotibial|hamstring|glute|pantorrilla|\bcalves\b|sentadilla|squat|peso muerto|deadlift|prensa|leg press|hip thrust|zancada|\blunge/;
+const GM_DEMAND_TEXT = /exigent|demand|hard|intenso|pesado|\bheavy\b/;
+function goalsDayIsDemanding(day, libById) {
+  if (!day) return false;
+  if (day.demanding === true || day.exigente === true || day.hard === true) return true;
+  if (GM_DEMAND_TEXT.test(goalsNorm([day.level, day.intensity, day.difficulty].filter(Boolean).join(' ')))) return true;
+  const lib = libById || {};
+  const texts = [day.label, day.name, day.note, day.notes];
+  for (const ex of day.exercises || []) {
+    if (!ex) continue;
+    texts.push(ex.name);
+    const entry = ex.exerciseId ? lib[ex.exerciseId] : null;
+    if (entry) {
+      const grp = goalsNorm(entry.grupo_muscular_es || entry.grupo_muscular_en || '');
+      if (GM_LEG_GROUPS.includes(grp)) return true;
+      texts.push(entry.nombre_es, entry.nombre_en);
+    }
+  }
+  const all = goalsNorm(texts.filter(Boolean).join(' '));
+  if (GM_DEMAND_TEXT.test(all) && /exigent|demand/.test(all)) return true;
+  return GM_LEG_TEXT.test(all);
+}
+/* Resolución fecha → día del plan: el MISMO criterio que la vista de
+   entrenamiento (trainDayMap / trainWeekdayPairs de app.js): solo hay
+   ancla real cuando las etiquetas nombran días de semana («weekday»)
+   o cuando la configuración de pendientes declara los días y su conteo
+   coincide con el del plan («cfg»). En modo «rotation» la fecha no
+   está fijada a ninguna sesión: señal ambigua → día normal ('base').
+   Sin sesión ese día con ancla real → 'descanso'. Sin plan → 'base'
+   (no hay plan del que descansar; no se inventa variación). */
+const GM_WD_EN = ['sunday', 'monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday'];
+const GM_WD_ES = ['domingo', 'lunes', 'martes', 'miercoles', 'jueves', 'viernes', 'sabado'];
+function gmWeekdayPairs(days) {
+  const pairs = {};
+  for (let di = 0; di < (days || []).length; di++) {
+    const lab = goalsNorm((days[di] && days[di].label) || '').trim();
+    let found = -1;
+    for (let wd = 0; wd < 7; wd++) {
+      if (lab === GM_WD_EN[wd] || lab.startsWith(GM_WD_EN[wd] + ' ') || lab === GM_WD_ES[wd] || lab.startsWith(GM_WD_ES[wd] + ' ')) { found = wd; break; }
+    }
+    if (found < 0 || pairs[found] != null) return null;
+    pairs[found] = di;
+  }
+  return Object.keys(pairs).length ? pairs : null;
+}
+function goalsDayLevelForDate(iso, plan, cfg, libById) {
+  if (!iso || !plan || !Array.isArray(plan.days) || !plan.days.length) return { dayLevel: 'base', dayIndex: null, mode: 'none' };
+  let pairs = null, mode = 'rotation';
+  if (typeof trainDayMap === 'function') { try { const m = trainDayMap(plan, cfg); pairs = m.pairs; mode = m.mode; } catch {} }
+  if (!pairs) {
+    pairs = gmWeekdayPairs(plan.days);
+    if (pairs) mode = 'weekday';
+    else if (cfg && cfg.activated && cfg.trainOn) {
+      const W = [...new Set((cfg.trainDays || []).map(Number))].sort((a, b) => a - b);
+      if (W.length === plan.days.length) { const p = {}; W.forEach((wd, k) => { p[wd] = k; }); pairs = p; mode = 'cfg'; }
+    }
+  }
+  if (!pairs) return { dayLevel: 'base', dayIndex: null, mode };
+  const wd = new Date(iso + 'T12:00:00').getDay();
+  const di = pairs[wd];
+  if (di == null) return { dayLevel: 'descanso', dayIndex: null, mode };
+  const lib = libById || (typeof LIB_BY_ID !== 'undefined' ? LIB_BY_ID : {});
+  return { dayLevel: goalsDayIsDemanding(plan.days[di], lib) ? 'exigente' : 'base', dayIndex: di, mode };
+}
+/* Metas del día VISUALIZADO: base guardada + variación §K de esa
+   fecha. Con carb retenido (§E) no hay variación. Sin procedencia del
+   motor (metas manuales del editor), el % de grasa se deriva de las
+   propias metas base (gras×9/kcal) y la variación se aplica igual:
+   son las metas base vigentes, vengan de donde vengan. */
+let GM_VIEW = { date: null, dayLevel: 'base', goals: null };
+function goalsDayGoalsFor(iso) {
+  const base = (typeof GOALS !== 'undefined' && GOALS) || {};
+  const prov = (typeof UDATA !== 'undefined' && UDATA) ? UDATA.goalsProvenance : null;
+  if (!(base.kcal > 0) || !(base.carb > 0) || !(base.gras > 0)) return { goals: { ...base }, dayLevel: 'base', dayIndex: null, mode: 'none' };
+  if (prov && Array.isArray(prov.heldParams) && prov.heldParams.includes('carb')) return { goals: { ...base }, dayLevel: 'base', dayIndex: null, mode: 'held' };
+  const plan = (typeof MY_PLAN !== 'undefined') ? MY_PLAN : null;
+  const cfg = (typeof PEND_CFG !== 'undefined' && PEND_CFG && !PEND_CFG.__error) ? PEND_CFG : null;
+  const det = goalsDayLevelForDate(iso, plan, cfg, (typeof LIB_BY_ID !== 'undefined' ? LIB_BY_ID : {}));
+  const fatPct = prov && prov.fatPct != null ? prov.fatPct : null;
+  const adj = goalsDayAdjust({ goals: base, fatPct, dayLevel: det.dayLevel });
+  return { goals: adj.goals, dayLevel: det.dayLevel, dayIndex: det.dayIndex, mode: det.mode };
+}
+function goalsSetView(iso) { const r = goalsDayGoalsFor(iso); GM_VIEW = { date: iso || null, dayLevel: r.dayLevel, goals: r.goals }; return r; }
+function goalOfDay(key, iso) {
+  if (key !== 'carb' && key !== 'gras') return (typeof goalOf === 'function') ? goalOf(key) : null;
+  const r = (GM_VIEW.date && (!iso || GM_VIEW.date === iso) && GM_VIEW.goals) ? GM_VIEW : goalsDayGoalsFor(iso);
+  const v = Number(r.goals ? r.goals[key] : undefined);
+  return (isFinite(v) && v > 0) ? v : null;
+}
+try { window.__goalsCore = { compute: goalsCoreCompute, healthMap: goalsHealthMap, dayAdjust: goalsDayAdjust, dayLevelForDate: goalsDayLevelForDate, dayIsDemanding: goalsDayIsDemanding, dayGoalsFor: goalsDayGoalsFor, setView: goalsSetView, goalOfDay, version: GOALS_ENGINE_VERSION, termsVersion: GOALS_TERMS_VERSION }; } catch {}
+const gmPick5 = g => { const o = {}; for (const k of ['kcal', 'prot', 'carb', 'azuc', 'gras']) if (g && g[k] != null) o[k] = g[k]; return o; };
 const gmHasTrainer = () => !!(((typeof MY_REL !== 'undefined' && MY_REL) && MY_REL.trainerUid) || (typeof UDATA !== 'undefined' && UDATA && UDATA.trainerUid));
 async function goalsEngineRun(reason) {
   if (!auth.currentUser) return;
@@ -6689,14 +6897,20 @@ async function goalsEngineRun(reason) {
   if (!['mantener', 'bajar', 'ganar'].includes(objective || '')) { renderGoalsEngine(); return; }
   const conds = (typeof activeDecl === 'function' && declLoadState === 'ok') ? ((activeDecl() || {}).conditions || []) : [];
   const res = goalsCoreCompute({ objective, tdeeKcal: a.tdeeKcal, weightKg: num(last.weight), hasTrainer: gmHasTrainer(), paceSuggestion: UDATA.paceSuggestion || null, goalsTerms: UDATA.goalsTerms || null, conditions: conds });
-  const prov = { objective, equationUsed: a.equationUsed || a.equation || '', tdeeKcal: Math.round(a.tdeeKcal), weightKg: num(last.weight), weightDate: last.date, heightCm: num(a.heightCm), age: new Date().getFullYear() - parseInt(a.birthYear, 10), palBasal: num(a.palBasal), proteinFactor: res.proteinFactor, sugarRule: 'OMS-5%', paceKcal: res.paceKcal, paceState: res.paceState, heldParams: res.heldParams, heldDetails: res.heldDetails, infoAlerts: res.infoAlerts, engineGoals: res.goals, fingerprint: res.fingerprint, computedAt: new Date().toISOString(), engineVersion: GOALS_ENGINE_VERSION };
+  /* §K: la procedencia registra también el % de grasa base y el nivel
+     del día DEL CÓMPUTO (el de hoy, resuelto del plan real si ya está
+     cargado; la variación de cada día visualizado se resuelve al
+     pintar, con el plan ya cargado). */
+  let dayLevelNow = 'base';
+  try { const tIso = (typeof todayISO === 'function') ? todayISO() : new Date().toISOString().slice(0, 10); dayLevelNow = goalsDayLevelForDate(tIso, (typeof MY_PLAN !== 'undefined' ? MY_PLAN : null), (typeof PEND_CFG !== 'undefined' && PEND_CFG && !PEND_CFG.__error) ? PEND_CFG : null, (typeof LIB_BY_ID !== 'undefined' ? LIB_BY_ID : {})).dayLevel; } catch {}
+  if (res.heldParams.includes('carb')) dayLevelNow = 'base'; // §E: con carb retenido no hay variación que registrar
+  const prov = { objective, equationUsed: a.equationUsed || a.equation || '', tdeeKcal: Math.round(a.tdeeKcal), weightKg: num(last.weight), weightDate: last.date, heightCm: num(a.heightCm), age: new Date().getFullYear() - parseInt(a.birthYear, 10), palBasal: num(a.palBasal), proteinFactor: res.proteinFactor, fatPct: res.fatPct, dayLevel: dayLevelNow, sugarRule: 'OMS-5%', paceKcal: res.paceKcal, paceState: res.paceState, heldParams: res.heldParams, heldDetails: res.heldDetails, guardHeld: res.guardHeld, infoAlerts: res.infoAlerts, engineGoals: res.goals, fingerprint: res.fingerprint, computedAt: new Date().toISOString(), engineVersion: GOALS_ENGINE_VERSION };
   const curProv = UDATA.goalsProvenance || null, curGoals = UDATA.goals || null;
   /* Ajuste manual posterior del entrenador/administrador: si las metas
-     actuales ya no coinciden con las últimas del motor y la huella de
-     fundamento NO cambió, el motor no las pisa. */
-  if (curProv && curProv.fingerprint === prov.fingerprint && curGoals && JSON.stringify(gmPick3(curGoals)) !== JSON.stringify(curProv.engineGoals || {})) { renderGoalsEngine(); return; }
+     actuales ya no coinciden con las últimas del motor (las CINCO) y
+     la huella de fundamento NO cambió, el motor no las pisa. */
+  if (curProv && curProv.fingerprint === prov.fingerprint && curGoals && JSON.stringify(gmPick5(curGoals)) !== JSON.stringify(curProv.engineGoals || {})) { renderGoalsEngine(); return; }
   const newGoals = { ...res.goals };
-  if (curGoals) { if (curGoals.carb != null) newGoals.carb = curGoals.carb; if (curGoals.gras != null) newGoals.gras = curGoals.gras; }
   const provCmp = { ...prov }; delete provCmp.computedAt;
   const curCmp = curProv ? { ...curProv } : null; if (curCmp) delete curCmp.computedAt;
   if (JSON.stringify(newGoals) === JSON.stringify(curGoals || {}) && JSON.stringify(provCmp) === JSON.stringify(curCmp)) { renderGoalsEngine(); return; }
@@ -6718,8 +6932,25 @@ function renderGoalsEngine() {
   if (!prov) html += `<p class="progress-hint">${esc(t('gm.needData'))}</p>`;
   if (prov) {
     html += `<p class="progress-hint" id="gm-prov">${esc(t('gm.prov', { date: String(prov.computedAt || '').slice(0, 10), tdee: fmt(prov.tdeeKcal), eq: esc(prov.equationUsed || ''), w: prov.weightKg, wdate: esc(prov.weightDate || ''), h: prov.heightCm, age: prov.age, pal: prov.palBasal, pf: prov.proteinFactor }))}</p>`;
+    if (prov.fatPct != null) html += `<p class="progress-hint" id="gm-prov2">${esc(t('gm.prov2', { fat: Math.round(prov.fatPct * 100), level: t('gm.day.' + (prov.dayLevel || 'base')) }))}</p>`;
     const az = goalOf('azuc');
     if (az != null && goalOf('kcal') != null) html += `<p class="progress-hint" id="gm-sugar">${t('gm.sugarInfo', { kcal: fmt(goalOf('kcal')), g: az })}</p>`;
+    if (Array.isArray(prov.guardHeld) && prov.guardHeld.includes('carb')) html += `<p class="progress-hint" id="gm-guard">⚠ ${esc(t('gm.guardCarb'))}</p>`;
+    /* Línea del día VISUALIZADO (§K): la variación aplicada a esa
+       fecha, o el aviso de que §E la deja en base. */
+    try {
+      const viewIso = GM_VIEW.date || (typeof todayISO === 'function' ? todayISO() : null);
+      if (viewIso) {
+        const carbHeld = Array.isArray(prov.heldParams) && prov.heldParams.includes('carb');
+        if (carbHeld) {
+          const detH = goalsDayLevelForDate(viewIso, (typeof MY_PLAN !== 'undefined' ? MY_PLAN : null), (typeof PEND_CFG !== 'undefined' && PEND_CFG && !PEND_CFG.__error) ? PEND_CFG : null, (typeof LIB_BY_ID !== 'undefined' ? LIB_BY_ID : {}));
+          if (detH.dayLevel !== 'base') html += `<p class="progress-hint" id="gm-day">⚠ ${esc(t('gm.dayHeld'))}</p>`;
+        } else {
+          const vr = (GM_VIEW.date === viewIso && GM_VIEW.goals) ? GM_VIEW : goalsDayGoalsFor(viewIso);
+          if (vr.dayLevel === 'exigente' || vr.dayLevel === 'descanso') html += `<p class="progress-hint" id="gm-day">${esc(t('gm.dayInfo', { date: viewIso, level: t('gm.day.' + vr.dayLevel), carb: fmt(vr.goals.carb), gras: fmt(vr.goals.gras) }))}</p>`;
+        }
+      }
+    } catch {}
     if (Array.isArray(prov.heldParams) && prov.heldParams.length) {
       const det = {}; (prov.heldDetails || []).forEach(d => { det[d.param] = d.cond; });
       html += `<div class="health-alert" id="gm-held"><b>${esc(t('gm.heldTitle'))}</b><br>` + prov.heldParams.map(p => esc(t('gm.heldItem', { param: t('gm.param.' + p), cond: condName(det[p] || '') }))).join('<br>') + `<br>${esc(t(gmHasTrainer() ? 'gm.heldTrainer' : 'gm.heldNoTrainer'))}</div>`;
@@ -7076,7 +7307,7 @@ function renderWeekChart(date) {
          parcial, conserva su valor real. */
       if (!(MEALS[d] || []).length) return null;
       const tot = totals(d);
-      const g = goalOf(m.key);
+      const g = (m.key === 'carb' || m.key === 'gras') && typeof goalOfDay === 'function' ? goalOfDay(m.key, d) : goalOf(m.key);
       return Math.min((tot[m.key] || 0) / g, MAXP);
     })
   }));
@@ -10131,6 +10362,7 @@ async function loadMyTraining() {
   if (!plan) { MY_PLAN = null; MY_LOGS = []; box.innerHTML = `<div class="wempty compact" id="train-none-msg">${t('train.none')}</div>`; trainNoneNamedRender(box); return; }
   const logs = (await fetchLogs(uid)).filter(l => l.planId === plan.id);
   MY_PLAN = plan; MY_LOGS = logs;
+  try { const ds2 = $('dateSel'); if (ds2 && typeof render === 'function') render(ds2.value); } catch {}
   const today = todayISO();
   const weekStart = mondayISO(today);
   const doneToday = new Set(logs.filter(l => l.date === today).map(l => l.dayIndex));
@@ -12764,8 +12996,8 @@ function totals(date) {
   (MEALS[date] || []).forEach(m => { t.kcal += m.kcal; t.prot += m.prot; t.carb += m.carb; t.azuc += m.sugar; t.gras += m.fat; });
   return t;
 }
-function ringSVG(m, val) {
-  const goal = goalOf(m.key);
+function ringSVG(m, val, goalOv) {
+  const goal = goalOv !== undefined ? goalOv : goalOf(m.key);
   if (goal === null) {
     /* Sin meta para esta métrica: anillo neutro SOLO con el consumo
        (sin %, sin «/ meta», sin comparación fantasma). */
@@ -12789,8 +13021,8 @@ function ringSVG(m, val) {
     <text x="75" y="108" text-anchor="middle" font-size="11" fill="#9ca3af">${m.unit}</text>
   </svg>`;
 }
-function statusBox(m, val) {
-  const goal = goalOf(m.key);
+function statusBox(m, val, goalOv) {
+  const goal = goalOv !== undefined ? goalOv : goalOf(m.key);
   if (goal === null) return ''; // sin meta no hay estado que comparar
   const pct = val / goal;
   const over = pct >= 1;
@@ -12819,8 +13051,8 @@ function statusBox(m, val) {
    honesta: jamás se reparte un total entre alimentos sin desglose
    guardado. */
 const MEAL_FIELD = { kcal: 'kcal', prot: 'prot', carb: 'carb', azuc: 'sugar', gras: 'fat' };
-function ringMiniSVG(m, val) {
-  const goal = goalOf(m.key);
+function ringMiniSVG(m, val, goalOv) {
+  const goal = goalOv !== undefined ? goalOv : goalOf(m.key);
   const C = 2 * Math.PI * 30;
   if (goal === null) {
     /* Sin meta: anillo neutro con SOLO el consumo, igual que el grande. */
@@ -12882,7 +13114,8 @@ function openRingDetail(key, date) {
           <div class="ring-contrib total"><span class="rc-food"><b>TOTAL</b></span><span class="rc-val">${fmt(val)} ${m.unit}</span></div></div>`
       : `<p class="ring-detail-empty">${t('rings.noContrib')}</p>`;
   $('ring-detail-title').innerHTML = `${m.icon} ${t('metric.' + m.key)}`;
-  $('ring-detail-body').innerHTML = ringSVG(m, val) + statusBox(m, val) +
+  const gDay = (m.key === 'carb' || m.key === 'gras') && typeof goalOfDay === 'function' ? goalOfDay(m.key, date) : undefined;
+  $('ring-detail-body').innerHTML = ringSVG(m, val, gDay) + statusBox(m, val, gDay) +
     `<h3 class="ring-contrib-title">${t('rings.contributions')}</h3>` + legend;
   $('ring-detail-backdrop').style.display = '';
   $('ring-detail').style.display = '';
@@ -13477,10 +13710,11 @@ document.addEventListener('keydown', e => { if (e.key === 'Escape') actCloseAll(
 
 function render(date) {
   $('dateTitle').textContent = dateName(date);
+  try { if (typeof goalsSetView === 'function') goalsSetView(date); } catch {}
   if (!hasAnyGoal()) {
     $('goals-row').innerHTML = `<span class="goals-none">${t('goals.none')}</span>`;
   } else {
-    const gv = (key, suffix, prefix = '') => { const g = goalOf(key); return g === null ? '<b>—</b>' : `<b>${prefix}${fmt(g)}${suffix}</b>`; };
+    const gv = (key, suffix, prefix = '') => { const g = (key === 'carb' || key === 'gras') && typeof goalOfDay === 'function' ? goalOfDay(key, date) : goalOf(key); return g === null ? '<b>—</b>' : `<b>${prefix}${fmt(g)}${suffix}</b>`; };
     $('goals-row').innerHTML =
       `<span>${t('metric.kcal')}: ${gv('kcal', ' kcal')}</span>` +
       `<span>${t('metric.prot')}: ${gv('prot', ' g')}</span>` +
@@ -13493,14 +13727,14 @@ function render(date) {
   const vals = { kcal: tot.kcal, prot: tot.prot, carb: tot.carb, azuc: tot.azuc, gras: tot.gras };
   closeRingDetail(); // un re-render (otra fecha, otro idioma) cierra el detalle abierto: no queda ventana con datos de otro día
   $('rings').innerHTML = METRICS.map(m => {
-    const goal = goalOf(m.key);
+    const goal = (m.key === 'carb' || m.key === 'gras') && typeof goalOfDay === 'function' ? goalOfDay(m.key, date) : goalOf(m.key);
     /* Sub compacto: con meta «consumo/meta» (la unidad solo en gramos;
        en calorías el rótulo ya dice la métrica y «kcal» no cabe a
        390 px); sin meta, consumo + unidad, como el anillo grande. */
     const sub = goal === null
       ? `${fmt(vals[m.key])} ${m.unit}`
       : `${fmt(vals[m.key])}/${fmt(goal)}${m.key === 'kcal' ? '' : ' ' + m.unit}`;
-    return `<button type="button" class="ring-mini" data-ring="${m.key}" aria-haspopup="dialog" aria-label="${esc(t('metric.' + m.key))}">${ringMiniSVG(m, vals[m.key])}<span class="ring-mini-name">${t('metric.' + m.key)}</span><span class="ring-mini-sub">${sub}</span></button>`;
+    return `<button type="button" class="ring-mini" data-ring="${m.key}" aria-haspopup="dialog" aria-label="${esc(t('metric.' + m.key))}">${ringMiniSVG(m, vals[m.key], goal)}<span class="ring-mini-name">${t('metric.' + m.key)}</span><span class="ring-mini-sub">${sub}</span></button>`;
   }).join('');
   document.querySelectorAll('[data-ring]').forEach(b =>
     b.onclick = () => openRingDetail(b.dataset.ring, date));
@@ -15932,7 +16166,7 @@ function shareDayData() {
   const hasMeals = (MEALS[iso] || []).length > 0;
   const phrase = !hasMeals ? 'start' : (pctKcal !== null && pctKcal >= 1 ? 'done' : 'going');
   return { iso, name: shareFirstName(), tot, goalKcal, pctKcal, hasMeals, phrase,
-    minis: SHARE_NUT.map(n => { const g = goalOf(n.key); const v = tot[n.key];
+    minis: SHARE_NUT.map(n => { const g = (n.key === 'carb' || n.key === 'gras') && typeof goalOfDay === 'function' ? goalOfDay(n.key, iso) : goalOf(n.key); const v = tot[n.key];
       return { key: n.key, color: n.color, glow: n.glow, lab: n.lab, val: v, goal: g, pct: g ? v / g : null }; }) };
 }
 function shareWeekData() {
@@ -16688,7 +16922,7 @@ document.addEventListener('keydown', e => { if (e.key === 'Escape') shareClose()
  *  - El SW (sw.js) solo cachea la cáscara del mismo origen en modo
  *    RED PRIMERO: Auth/Firestore/Worker jamás pasan por la caché.
  * ================================================================ */
-const PWA_SW_VERSION = '20261026-metas-fundamento';
+const PWA_SW_VERSION = '20261026-metas-v2';
 let pwaDeferredPrompt = null;
 function pwaIsStandalone() {
   try {
