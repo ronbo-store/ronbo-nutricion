@@ -1562,7 +1562,7 @@ let WEIGHTS = []; // [{id, date, weight, fat, muscle, notes}]
 /* ================= I18N (English default, ES/EN toggle) ================= */
 const STR = {
 en: {
-  'app.title': 'ronbo.fit · Private',
+  'app.title': 'RONBO.FIT · Private',
   'auth.subtitle': 'Your private nutrition log',
   'auth.tabLogin': 'Sign in',
   'auth.tabRegister': 'Create account',
@@ -2194,7 +2194,7 @@ en: {
   'clients.title': '👥 My clients',
   'clients.sub': '· trainer management',
   'clients.hint': 'Each client must upload their weight every week. Select one to see their full history, edit their weigh-ins, or add new ones. You set their goals under "Access management".',
-  'foot': 'ronbo.fit · private · only you can see your data',
+  'foot': '· private · only you can see your data',
   'meal.title': 'Log meal',
   'food.photo': 'Photo',
   'food.text': 'Text',
@@ -3001,7 +3001,7 @@ en: {
   'share.labFat': 'Fats'
 },
 es: {
-  'app.title': 'ronbo.fit · Privado',
+  'app.title': 'RONBO.FIT · Privado',
   'auth.subtitle': 'Tu registro privado de nutrición',
   'auth.tabLogin': 'Entrar',
   'auth.tabRegister': 'Crear cuenta',
@@ -3633,7 +3633,7 @@ es: {
   'clients.title': '👥 Mis clientes',
   'clients.sub': '· gestión de entrenador',
   'clients.hint': 'Cada cliente debe subir su peso cada semana. Selecciona uno para ver su historial completo, editar sus pesajes o agregar nuevos. Sus metas las estableces en "Administración de accesos".',
-  'foot': 'ronbo.fit · privado · tus datos solo los ves tú',
+  'foot': '· privado · tus datos solo los ves tú',
   'meal.title': 'Registrar comida',
   'food.photo': 'Foto',
   'food.text': 'Texto',
@@ -15342,7 +15342,7 @@ document.addEventListener('keydown', e => { if (e.key === 'Escape') shareClose()
  *  - El SW (sw.js) solo cachea la cáscara del mismo origen en modo
  *    RED PRIMERO: Auth/Firestore/Worker jamás pasan por la caché.
  * ================================================================ */
-const PWA_SW_VERSION = '20261025-compartir';
+const PWA_SW_VERSION = '20261025-wordmark';
 let pwaDeferredPrompt = null;
 function pwaIsStandalone() {
   try {
