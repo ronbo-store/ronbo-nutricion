@@ -1690,6 +1690,12 @@ en: {
   'card.toggle': 'Show or hide section',
   'main.progress': 'Progress', 'main.food': 'Food', 'main.training': 'Training', 'main.pendings': 'Pendings', 'main.activity': 'Activity',
   'nav.home': 'Home', 'nav.back': 'Back', 'nav.goalsSummary': '{obj} · {kcal} kcal',
+  'sw.open': 'Stopwatch', 'sw.title': 'STOPWATCH', 'sw.close': 'Close stopwatch',
+  'sw.running': '● RUNNING', 'sw.paused': '❚❚ PAUSED',
+  'sw.start': 'Start', 'sw.pause': 'Pause', 'sw.resume': 'Resume',
+  'sw.lap': 'Lap', 'sw.reset': 'Reset', 'sw.lapN': 'LAP {n}', 'sw.split': 'split',
+  'sw.currentLap': 'Current lap', 'sw.totalLaps': 'Total · {n} laps', 'sw.totalLaps1': 'Total · 1 lap',
+  'sw.foot': 'FREE TOOL · NOTHING IS SAVED',
   'health.specHelp': 'In plain words: you allow your trainer to see the health answers you write in this declaration, only so he can adapt your program and take care of you. Nobody else can see them, and you can withdraw this whenever you want.',
   'health.panelTitle': '🏥 My health declaration',
   'health.specText': 'I give my SPECIFIC consent for ronbo.nutri to process my health declaration so my trainer can adapt my program and take precautions. Only my trainer and I can see it. I can withdraw this consent at any time: withdrawal blocks my trainer\'s access to my answers, but does not delete them.',
@@ -3340,6 +3346,12 @@ es: {
   'card.toggle': 'Mostrar u ocultar la sección',
   'main.progress': 'Progreso', 'main.food': 'Comida', 'main.training': 'Entrenamiento', 'main.pendings': 'Pendientes', 'main.activity': 'Actividad',
   'nav.home': 'Inicio', 'nav.back': 'Volver', 'nav.goalsSummary': '{obj} · {kcal} kcal',
+  'sw.open': 'Cronómetro', 'sw.title': 'CRONÓMETRO', 'sw.close': 'Cerrar el cronómetro',
+  'sw.running': '● EN CURSO', 'sw.paused': '❚❚ EN PAUSA',
+  'sw.start': 'Iniciar', 'sw.pause': 'Pausar', 'sw.resume': 'Seguir',
+  'sw.lap': 'Vuelta', 'sw.reset': 'Reiniciar', 'sw.lapN': 'VUELTA {n}', 'sw.split': 'parcial',
+  'sw.currentLap': 'Vuelta actual', 'sw.totalLaps': 'Total · {n} vueltas', 'sw.totalLaps1': 'Total · 1 vuelta',
+  'sw.foot': 'HERRAMIENTA LIBRE · NO SE GUARDA',
   'health.specHelp': 'En palabras simples: permites que tu entrenador vea las respuestas de salud que escribas en esta declaración, solo para que adapte tu programa y te cuide. Nadie más puede verlas, y puedes retirar este permiso cuando quieras.',
   'health.panelTitle': '🏥 Mi declaración de salud',
   'health.specText': 'Doy mi consentimiento ESPECÍFICO para que ronbo.nutri trate mi declaración de salud, para que mi entrenador adapte mi programa y tome precauciones. Solo mi entrenador y yo podemos verla. Puedo retirar este consentimiento cuando quiera: la retirada bloquea el acceso de mi entrenador a mis respuestas, pero no las elimina.',
@@ -5054,6 +5066,7 @@ function setLang(l) {
     try { renderTrackLocal(); } catch {}
     try { aiOnLangChange(); } catch {}
     try { shareRelang(); } catch {}
+    try { swRelang(); } catch {}
     refreshDynamic();
   }
 }
@@ -18407,7 +18420,7 @@ document.addEventListener('keydown', e => { if (e.key === 'Escape') shareClose()
  *  - El SW (sw.js) solo cachea la cáscara del mismo origen en modo
  *    RED PRIMERO: Auth/Firestore/Worker jamás pasan por la caché.
  * ================================================================ */
-const PWA_SW_VERSION = '20261027-correccion-checklist';
+const PWA_SW_VERSION = '20261027-cronometro-deportivo';
 let pwaDeferredPrompt = null;
 function pwaIsStandalone() {
   try {
@@ -18653,6 +18666,121 @@ function installCardMaybeShow() {
     if (visible) ov.style.display = 'flex';
   } catch (e) { /* el mensaje de instalación nunca rompe la app */ }
 }
+
+/* ============================================================
+   CRONÓMETRO DEPORTIVO LIBRE (2026-10-27, diseño
+   DISEÑO-CRONOMETRO-DEPORTIVO-2026-10-27, previa aprobada por
+   Ronald tal cual). Herramienta a pantalla completa sobre el
+   papel tapiz de la marca. Es LIBRE: su estado vive SOLO en
+   memoria — no escribe Firestore, ni localStorage, ni toca el
+   cronómetro de la sesión del plan (trainChrono*), ni la
+   llamita, ni el motor de metas. La precisión sale del reloj
+   del sistema (performance.now()): el tiempo se CALCULA desde
+   marcas de tiempo en cada pintado, jamás se cuenta por ticks,
+   así que no hay deriva aunque el navegador estrangule frames.
+   ============================================================ */
+const STOPW = { open: false, running: false, startAt: 0, acc: 0, laps: [], raf: 0 };
+function swElapsed() { return STOPW.acc + (STOPW.running ? performance.now() - STOPW.startAt : 0); }
+function swPad2(n) { return String(n).padStart(2, '0'); }
+function swFmtParts(ms) {
+  const cs = Math.floor(ms / 10) % 100, s = Math.floor(ms / 1000) % 60, m = Math.floor(ms / 60000);
+  return { main: swPad2(m) + ':' + swPad2(s), cs: '.' + swPad2(cs), full: swPad2(m) + ':' + swPad2(s) + '.' + swPad2(cs) };
+}
+function swLapBase() { return STOPW.laps.reduce((a, l) => a + l.lapMs, 0); }
+function swSetBtn(el, label, cls, disabled) {
+  if (!el) return;
+  el.textContent = label;
+  el.className = 'sw-cbtn ' + cls;
+  if (disabled) el.setAttribute('disabled', ''); else el.removeAttribute('disabled');
+}
+function swPaint() {
+  const ov = $('sw-overlay'); if (!ov) return;
+  const el = swElapsed(), f = swFmtParts(el);
+  const main = $('sw-time-main'), csEl = $('sw-time-cs');
+  if (main) main.textContent = f.main;
+  if (csEl) csEl.textContent = f.cs;
+  const st = $('sw-status');
+  if (st) {
+    if (STOPW.running) { st.textContent = t('sw.running'); st.className = 'sw-status run'; }
+    else if (el > 0) { st.textContent = t('sw.paused'); st.className = 'sw-status pause'; }
+    else { st.textContent = ''; st.className = 'sw-status'; }
+  }
+  const sub = $('sw-sub');
+  if (sub) {
+    if (STOPW.running) sub.innerHTML = esc(t('sw.currentLap')) + ' · <b>' + swFmtParts(el - swLapBase()).full + '</b>';
+    else if (STOPW.laps.length) sub.textContent = t(STOPW.laps.length === 1 ? 'sw.totalLaps1' : 'sw.totalLaps', { n: STOPW.laps.length });
+    else sub.textContent = '';
+  }
+  const ring = $('sw-ring');
+  if (ring) ring.classList.toggle('sm', STOPW.laps.length > 0);
+  const lapsEl = $('sw-laps');
+  if (lapsEl) {
+    lapsEl.innerHTML = STOPW.laps.map((l, i) =>
+      '<div class="lr"><span class="ln">' + esc(t('sw.lapN', { n: i + 1 })) + '</span>' +
+      '<span class="lt">' + swFmtParts(l.lapMs).full + '</span>' +
+      '<span class="lp">' + esc(t('sw.split')) + '</span></div>').reverse().join('');
+  }
+  const L = $('sw-btn-left'), M = $('sw-btn-main'), R = $('sw-btn-right');
+  if (STOPW.running) {
+    swSetBtn(L, t('sw.lap'), 'side', false);
+    swSetBtn(M, t('sw.pause'), 'main amber', false);
+    swSetBtn(R, t('sw.reset'), 'side', false);
+  } else if (el > 0) {
+    swSetBtn(L, t('sw.reset'), 'side', false);
+    swSetBtn(M, t('sw.resume'), 'main green', false);
+    swSetBtn(R, t('sw.lap'), 'side', false);
+  } else {
+    swSetBtn(L, t('sw.reset'), 'side', true);
+    swSetBtn(M, t('sw.start'), 'main green', false);
+    swSetBtn(R, t('sw.lap'), 'side', true);
+  }
+}
+function swTick() {
+  if (!STOPW.open) { STOPW.raf = 0; return; }
+  swPaint();
+  STOPW.raf = STOPW.running ? requestAnimationFrame(swTick) : 0;
+}
+function swKick() { if (STOPW.open && STOPW.running && !STOPW.raf) STOPW.raf = requestAnimationFrame(swTick); }
+function swMainAction() {
+  if (STOPW.running) { STOPW.acc += performance.now() - STOPW.startAt; STOPW.running = false; }
+  else { STOPW.startAt = performance.now(); STOPW.running = true; swKick(); }
+  swPaint();
+}
+function swLapAction() {
+  const el = swElapsed(); if (el <= 0) return;
+  const prev = swLapBase();
+  STOPW.laps.push({ lapMs: el - prev, totalMs: el });
+  swPaint();
+}
+function swResetAction() {
+  STOPW.running = false; STOPW.acc = 0; STOPW.startAt = 0; STOPW.laps = [];
+  swPaint();
+}
+function swSideAction(side) {
+  if (STOPW.running) { if (side === 'left') swLapAction(); else swResetAction(); }
+  else if (swElapsed() > 0) { if (side === 'left') swResetAction(); else swLapAction(); }
+}
+function swOpenTool() {
+  const ov = $('sw-overlay'); if (!ov) return;
+  STOPW.open = true;
+  ov.style.display = 'block';
+  swPaint(); swKick();
+}
+function swCloseTool() {
+  const ov = $('sw-overlay'); if (!ov) return;
+  STOPW.open = false;
+  if (STOPW.raf) { cancelAnimationFrame(STOPW.raf); STOPW.raf = 0; }
+  ov.style.display = 'none';
+}
+function swRelang() { if (STOPW.open) swPaint(); }
+(function swInit() {
+  const pill = $('btn-stopwatch'); if (pill) pill.addEventListener('click', swOpenTool);
+  const x = $('sw-close'); if (x) x.addEventListener('click', swCloseTool);
+  const M = $('sw-btn-main'); if (M) M.addEventListener('click', swMainAction);
+  const L = $('sw-btn-left'); if (L) L.addEventListener('click', () => swSideAction('left'));
+  const R = $('sw-btn-right'); if (R) R.addEventListener('click', () => swSideAction('right'));
+})();
+
 (function installCardInit() {
   try {
     /* La marca histórica «ya visto» deja de suprimir: se retira. */

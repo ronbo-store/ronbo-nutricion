@@ -1631,3 +1631,47 @@ body { padding: max(16px, env(safe-area-inset-top)) max(16px, env(safe-area-inse
 .mt-photo { position: relative; flex: none; width: 88px; height: 88px; border-radius: 20px; overflow: hidden; background: #0d9488; border: none; padding: 0; cursor: pointer; }
 .mt-initials { position: absolute; inset: 0; display: flex; align-items: center; justify-content: center; color: #fff; font-size: 30px; font-weight: 800; letter-spacing: .5px; }
 .mt-photo-img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; display: block; }
+
+/* ===== Cronómetro deportivo libre (2026-10-27) =====
+   Pastilla discreta en la barra superior y herramienta a pantalla
+   completa sobre el papel tapiz de la marca. Solo presentación: el
+   módulo STOPW de app.js no guarda nada ni escribe en ningún sitio. */
+.sw-row { display: flex; justify-content: flex-end; margin-top: 2px; flex: 0 0 100%; }
+.sw-btn { display: inline-flex; align-items: center; gap: 8px; background: rgba(255,255,255,.92); border: 1.5px solid #0d9488; color: #0f766e; font-size: 14.5px; font-weight: 700; padding: 9px 16px; border-radius: 999px; box-shadow: 0 3px 10px rgba(13,148,136,.18); cursor: pointer; font-family: inherit; }
+.sw-btn .sw-ico { font-size: 17px; }
+#sw-overlay { position: fixed; inset: 0; z-index: 1400; background: #ffffff; overflow: hidden; }
+#sw-overlay .auth-wallpaper { z-index: 0; }
+.swfull { position: relative; z-index: 1; height: 100dvh; display: flex; flex-direction: column; padding: 20px 22px 30px; box-sizing: border-box; }
+.sw-top { display: flex; align-items: center; justify-content: space-between; }
+.sw-close { width: 44px; height: 44px; border-radius: 50%; border: none; background: rgba(255,255,255,.85); box-shadow: 0 4px 14px rgba(15,23,42,.14); display: flex; align-items: center; justify-content: center; font-size: 19px; color: #334155; font-weight: 700; cursor: pointer; font-family: inherit; }
+.sw-brand { font-size: 21px; font-weight: 900; letter-spacing: 2.5px; color: #0f766e; text-align: right; }
+.sw-brand small { display: block; text-align: right; font-size: 9.5px; letter-spacing: 3.5px; color: #94a3b8; font-weight: 700; margin-top: 1px; }
+.sw-status { margin-top: 30px; text-align: center; font-size: 13px; font-weight: 800; letter-spacing: 4px; min-height: 17px; }
+.sw-status.run { color: #0d9488; }
+.sw-status.pause { color: #d97706; }
+.sw-ring { margin: 18px auto 6px; width: min(308px, 86vw); aspect-ratio: 1 / 1; border-radius: 50%; background: rgba(255,255,255,.78); box-shadow: 0 24px 50px rgba(13,148,136,.20), inset 0 0 0 3px rgba(13,148,136,.25); display: flex; flex-direction: column; align-items: center; justify-content: center; flex: none; }
+.sw-ring.sm { width: min(262px, 74vw); margin-top: 10px; }
+.sw-time { font-size: 74px; font-weight: 800; letter-spacing: -1px; color: #0b2239; font-variant-numeric: tabular-nums; line-height: 1; white-space: nowrap; }
+.sw-time .cs { font-size: 40px; color: #0d9488; font-weight: 800; }
+.sw-ring.sm .sw-time { font-size: 62px; }
+.sw-ring.sm .sw-time .cs { font-size: 34px; }
+.sw-lapcur { margin-top: 12px; font-size: 14.5px; font-weight: 700; color: #64748b; font-variant-numeric: tabular-nums; min-height: 19px; text-align: center; padding: 0 12px; }
+.sw-lapcur b { color: #0f766e; }
+.sw-laps { margin: 6px auto 2px; width: 100%; max-width: 330px; overflow-y: auto; }
+.sw-laps .lr { display: flex; justify-content: space-between; align-items: baseline; background: rgba(255,255,255,.82); border-radius: 14px; padding: 11px 16px; margin-top: 8px; box-shadow: 0 4px 12px rgba(15,23,42,.07); font-variant-numeric: tabular-nums; }
+.sw-laps .ln { font-size: 13px; font-weight: 800; letter-spacing: 1.5px; color: #64748b; }
+.sw-laps .lt { font-size: 19px; font-weight: 800; color: #0b2239; }
+.sw-laps .lp { font-size: 13.5px; font-weight: 700; color: #0f766e; }
+.sw-controls { margin-top: auto; display: flex; align-items: center; justify-content: space-between; padding: 0 6px; }
+.sw-cbtn { width: 86px; height: 86px; border-radius: 50%; border: none; font-size: 15.5px; font-weight: 800; display: flex; align-items: center; justify-content: center; text-align: center; cursor: pointer; font-family: inherit; padding: 6px; }
+.sw-cbtn.side { background: rgba(255,255,255,.9); color: #334155; box-shadow: 0 8px 20px rgba(15,23,42,.16), inset 0 0 0 2px #e2e8f0; }
+.sw-cbtn.main { width: 104px; height: 104px; font-size: 18px; color: #fff; }
+.sw-cbtn.green { background: linear-gradient(145deg,#14b8a6,#0d9488); box-shadow: 0 14px 30px rgba(13,148,136,.45), inset 0 2px 3px rgba(255,255,255,.5), inset 0 -4px 8px rgba(0,0,0,.18); }
+.sw-cbtn.amber { background: linear-gradient(145deg,#f59e0b,#d97706); box-shadow: 0 14px 30px rgba(217,119,6,.4), inset 0 2px 3px rgba(255,255,255,.5), inset 0 -4px 8px rgba(0,0,0,.18); }
+.sw-cbtn[disabled] { opacity: .42; pointer-events: none; }
+.sw-foot { text-align: center; margin-top: 22px; font-size: 11px; letter-spacing: 2.5px; font-weight: 700; color: #94a3b8; }
+@media (max-width: 360px) {
+  .sw-time { font-size: 60px; } .sw-time .cs { font-size: 33px; }
+  .sw-ring.sm .sw-time { font-size: 52px; } .sw-ring.sm .sw-time .cs { font-size: 28px; }
+  .sw-cbtn { width: 76px; height: 76px; font-size: 14px; } .sw-cbtn.main { width: 92px; height: 92px; font-size: 16px; }
+}
