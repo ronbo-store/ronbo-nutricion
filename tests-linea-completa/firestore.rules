@@ -694,7 +694,7 @@ service cloud.firestore {
       // ninguna rama del alumno los abre, como hasta hoy.
       allow update: if isSelf(uid)
         && request.resource.data.diff(resource.data).affectedKeys()
-             .hasOnly(['goals', 'goalsProvenance', 'goalObjective', 'paceSuggestion', 'goalsTerms', 'goalsProposal', 'goalsDayOverrides', 'goalsAgreement', 'appInstall'])
+             .hasOnly(['goals', 'goalsProvenance', 'goalObjective', 'paceSuggestion', 'goalsTerms', 'goalsProposal', 'goalsDayOverrides', 'goalsAgreement', 'appInstall', 'goalFocus'])
         && (!request.resource.data.diff(resource.data).affectedKeys().hasAny(['goals'])
             || (request.resource.data.goals is map
                 && request.resource.data.goals.keys().hasOnly(['kcal', 'prot', 'carb', 'azuc', 'gras'])
@@ -823,6 +823,72 @@ service cloud.firestore {
                      .hasOnly(['everInstalled', 'lastStandaloneAt'])
                 && request.resource.data.appInstall.everInstalled == true
                 && request.resource.data.appInstall.lastStandaloneAt == request.time))
+        // Enfoque de objetivos (2026-10-26, diseño de dos capas
+        // DISEÑO-ENFOQUE-OBJETIVOS §5): goalFocus — la declaración
+        // del alumno sobre su intención (general | recomposicion |
+        // competencia), hermana de goalObjective. Forma cerrada de
+        // §2.2. El alumno declara y corrige SU fecha de
+        // competición; la DECISIÓN de competencia (decidedBy/
+        // decidedAt) y la FASE (phase/phaseObjective/
+        // checkinEveryDays) jamás las escribe él: viajan byte a
+        // byte como estaban (o nulas al nacer la declaración).
+        // Competencia nace SOLO 'pending-trainer' y solo si el
+        // documento PREVIO ya tiene entrenador asignado
+        // (trainerUid/assignmentStatus del documento previo, que
+        // el alumno no puede escribir en ninguna rama: no son
+        // falsificables por esta vía). strengthConfirmed solo
+        // tiene sentido en recomposicion (en el resto, nulo).
+        && (!request.resource.data.diff(resource.data).affectedKeys().hasAny(['goalFocus'])
+            || (request.resource.data.goalFocus is map
+                && request.resource.data.goalFocus.keys()
+                     .hasOnly(['focus', 'status', 'declaredAt', 'strengthConfirmed', 'competition', 'decidedBy', 'decidedAt', 'updatedAt'])
+                && request.resource.data.goalFocus.keys()
+                     .hasAll(['focus', 'status', 'declaredAt', 'updatedAt'])
+                && request.resource.data.goalFocus.focus in ['general', 'recomposicion', 'competencia']
+                && request.resource.data.goalFocus.status in ['active', 'pending-trainer']
+                && (request.resource.data.goalFocus.declaredAt == request.time
+                    || request.resource.data.goalFocus.declaredAt
+                         == resource.data.get('goalFocus', {}).get('declaredAt', null))
+                && request.resource.data.goalFocus.updatedAt == request.time
+                && (request.resource.data.goalFocus.get('strengthConfirmed', null) == null
+                    || request.resource.data.goalFocus.strengthConfirmed is bool)
+                && (request.resource.data.goalFocus.focus == 'recomposicion'
+                    || request.resource.data.goalFocus.get('strengthConfirmed', null) == null)
+                && ((request.resource.data.goalFocus.focus == 'competencia'
+                     && resource.data.get('goalFocus', {}).get('focus', '') != 'competencia')
+                    ? (request.resource.data.goalFocus.get('decidedBy', null) == null
+                       && request.resource.data.goalFocus.get('decidedAt', null) == null)
+                    : (request.resource.data.goalFocus.get('decidedBy', null)
+                         == resource.data.get('goalFocus', {}).get('decidedBy', null)
+                       && request.resource.data.goalFocus.get('decidedAt', null)
+                         == resource.data.get('goalFocus', {}).get('decidedAt', null)))
+                && ((request.resource.data.goalFocus.focus in ['general', 'recomposicion']
+                     && request.resource.data.goalFocus.status == 'active'
+                     && request.resource.data.goalFocus.get('competition', null) == null)
+                  || (request.resource.data.goalFocus.focus == 'competencia'
+                     && resource.data.get('assignmentStatus', '') == 'assigned'
+                     && resource.data.get('trainerUid', '') is string
+                     && resource.data.get('trainerUid', '') != ''
+                     && (resource.data.get('goalFocus', {}).get('focus', '') == 'competencia'
+                         ? request.resource.data.goalFocus.status
+                             == resource.data.get('goalFocus', {}).get('status', '')
+                         : request.resource.data.goalFocus.status == 'pending-trainer')
+                     && request.resource.data.goalFocus.competition is map
+                     && request.resource.data.goalFocus.competition.keys()
+                          .hasOnly(['date', 'phase', 'phaseObjective', 'checkinEveryDays'])
+                     && request.resource.data.goalFocus.competition.date is string
+                     && request.resource.data.goalFocus.competition.date
+                          .matches('^[0-9]{4}-[0-9]{2}-[0-9]{2}$')
+                     && (resource.data.get('goalFocus', {}).get('competition', null) is map
+                         ? (request.resource.data.goalFocus.competition.get('phase', null)
+                              == resource.data.get('goalFocus', {}).get('competition', {}).get('phase', null)
+                            && request.resource.data.goalFocus.competition.get('phaseObjective', null)
+                              == resource.data.get('goalFocus', {}).get('competition', {}).get('phaseObjective', null)
+                            && request.resource.data.goalFocus.competition.get('checkinEveryDays', null)
+                              == resource.data.get('goalFocus', {}).get('competition', {}).get('checkinEveryDays', null))
+                         : (request.resource.data.goalFocus.competition.get('phase', null) == null
+                            && request.resource.data.goalFocus.competition.get('phaseObjective', null) == null
+                            && request.resource.data.goalFocus.competition.get('checkinEveryDays', null) == null)))))
         && (!request.resource.data.diff(resource.data).affectedKeys().hasAny(['paceSuggestion'])
             || (request.resource.data.paceSuggestion is map
                 && request.resource.data.paceSuggestion.keys()
@@ -954,6 +1020,67 @@ service cloud.firestore {
              == resource.data.get('goalsProposal', {}).get('warningKey', '')
         && request.resource.data.goalsProposal.proposedAt
              == resource.data.get('goalsProposal', {}).get('proposedAt', request.time)
+        && (!request.resource.data.diff(resource.data).affectedKeys().hasAny(['goalsProvenance'])
+            || request.resource.data.goalsProvenance is map);
+      // Enfoque de objetivos (2026-10-26): la ACTIVACIÓN de
+      // competencia y el CAMBIO DE FASE — SOLO el entrenador
+      // ASIGNADO, SOLO sobre una declaración de competencia del
+      // alumno, y el contenido del alumno (focus, declaredAt,
+      // strengthConfirmed, competition.date) queda byte a byte
+      // igual: el entrenador firma la activación (decidedBy == su
+      // uid, decidedAt == hora del servidor) fijando la fase
+      // inicial con su pareja coherente (volumen<->ganar,
+      // definicion<->bajar, semana-final<->mantener) y, solo al
+      // activar, la frecuencia de seguimiento (checkinEveryDays
+      // 1..31 o nula); con la competencia ya activa solo mueve la
+      // fase (decisión y frecuencia quedan como estaban). La
+      // escritura solo puede tocar goalFocus y goalsProvenance
+      // (el registro en el changeLog). El entrenador NO puede
+      // crear la declaración ni corregir la fecha del alumno.
+      allow update: if isAssignedTrainerOf(uid)
+        && request.resource.data.diff(resource.data).affectedKeys()
+             .hasOnly(['goalFocus', 'goalsProvenance'])
+        && request.resource.data.diff(resource.data).affectedKeys()
+             .hasAny(['goalFocus'])
+        && resource.data.get('goalFocus', {}).get('focus', '') == 'competencia'
+        && resource.data.get('goalFocus', {}).get('competition', null) is map
+        && request.resource.data.goalFocus is map
+        && request.resource.data.goalFocus.keys()
+             .hasOnly(['focus', 'status', 'declaredAt', 'strengthConfirmed', 'competition', 'decidedBy', 'decidedAt', 'updatedAt'])
+        && request.resource.data.goalFocus.keys()
+             .hasAll(['focus', 'status', 'declaredAt', 'updatedAt'])
+        && request.resource.data.goalFocus.focus == 'competencia'
+        && request.resource.data.goalFocus.status == 'active'
+        && request.resource.data.goalFocus.declaredAt
+             == resource.data.get('goalFocus', {}).get('declaredAt', null)
+        && request.resource.data.goalFocus.get('strengthConfirmed', null)
+             == resource.data.get('goalFocus', {}).get('strengthConfirmed', null)
+        && request.resource.data.goalFocus.updatedAt == request.time
+        && request.resource.data.goalFocus.competition is map
+        && request.resource.data.goalFocus.competition.keys()
+             .hasOnly(['date', 'phase', 'phaseObjective', 'checkinEveryDays'])
+        && request.resource.data.goalFocus.competition.get('date', null)
+             == resource.data.get('goalFocus', {}).get('competition', {}).get('date', null)
+        && ((request.resource.data.goalFocus.competition.get('phase', null) == 'volumen'
+             && request.resource.data.goalFocus.competition.get('phaseObjective', null) == 'ganar')
+          || (request.resource.data.goalFocus.competition.get('phase', null) == 'definicion'
+             && request.resource.data.goalFocus.competition.get('phaseObjective', null) == 'bajar')
+          || (request.resource.data.goalFocus.competition.get('phase', null) == 'semana-final'
+             && request.resource.data.goalFocus.competition.get('phaseObjective', null) == 'mantener'))
+        && ((resource.data.get('goalFocus', {}).get('status', '') == 'pending-trainer'
+             && request.resource.data.goalFocus.decidedBy == request.auth.uid
+             && request.resource.data.goalFocus.decidedAt == request.time
+             && (request.resource.data.goalFocus.competition.get('checkinEveryDays', null) == null
+                 || (request.resource.data.goalFocus.competition.checkinEveryDays is number
+                     && request.resource.data.goalFocus.competition.checkinEveryDays >= 1
+                     && request.resource.data.goalFocus.competition.checkinEveryDays <= 31)))
+          || (resource.data.get('goalFocus', {}).get('status', '') == 'active'
+             && request.resource.data.goalFocus.get('decidedBy', null)
+                == resource.data.get('goalFocus', {}).get('decidedBy', null)
+             && request.resource.data.goalFocus.get('decidedAt', null)
+                == resource.data.get('goalFocus', {}).get('decidedAt', null)
+             && request.resource.data.goalFocus.competition.get('checkinEveryDays', null)
+                == resource.data.get('goalFocus', {}).get('competition', {}).get('checkinEveryDays', null)))
         && (!request.resource.data.diff(resource.data).affectedKeys().hasAny(['goalsProvenance'])
             || request.resource.data.goalsProvenance is map);
       // Consent withdrawal: a client may revoke THEMSELVES only —
