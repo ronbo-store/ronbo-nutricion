@@ -2954,6 +2954,7 @@ en: {
   'pend.omitOccasionPast': 'Wasn\'t applicable',
   'pend.discard': 'Discard',
   'pend.discardConfirm': 'Discard this training pending? It will be recorded as discarded by you.',
+  'pend.mealsToday': "Today's meals",
   'pend.traceTitle': 'States',
   'pend.traceSnoozed': '{label}: snoozed — comes back {when}',
   'pend.traceOmitted': '{label}: skipped for this occasion only. The reminder stays ON for next time and nothing was marked as done.',
@@ -4602,6 +4603,7 @@ es: {
   'pend.omitOccasionPast': 'No correspondía',
   'pend.discard': 'Descartar',
   'pend.discardConfirm': '¿Descartar este pendiente de entrenamiento? Quedará registrado como descartado por ti.',
+  'pend.mealsToday': 'Comidas de hoy',
   'pend.traceTitle': 'Estados',
   'pend.traceSnoozed': '{label}: pospuesto — vuelve {when}',
   'pend.traceOmitted': '{label}: omitido solo esta ocasión. El aviso sigue activo para la próxima vez y nada se marcó como hecho.',
@@ -17325,22 +17327,40 @@ function renderPendings() {
   }
   if (!items.length && !draft) html += `<p class="pend-none">${esc(t('pend.none'))}</p>`;
   html += items.map(it => pendItemHTML(it, regDay)).join('');
-  if (traces.length) {
-    const lines = traces.map(tr => {
-      if (tr.kind === 'done') return `<li>${esc(t('pend.traceDone', { label: tr.label }))}</li>`;
-      if (tr.kind === 'omitted') return `<li>${esc(t('pend.traceOmitted', { label: tr.label }))}</li>`;
-      if (tr.kind === 'discarded') return `<li>${esc(t('pend.traceDiscarded', { label: tr.label }))}</li>`;
-      if (tr.kind === 'snoozed') {
-        let s = t('pend.traceSnoozed', { label: tr.label, when: tr.mk.whenText || '' });
-        if (tr.mk.shifted) s += ' ' + t('pend.snoozeQuietShift', { time: tr.mk.chosenHM || '', from: tr.mk.quietFrom || '', to: tr.mk.quietTo || '' });
-        return `<li>${esc(s)}</li>`;
-      }
-      return '';
-    }).join('');
-    html += `<div class="pend-traces"><p class="pend-cfg-h">${esc(t('pend.traceTitle'))}</p><ul>${lines}</ul></div>`;
-  }
+  html += pendMealsChecklistHTML(regDay, new Date());
   body.innerHTML = html;
   pendSyncDock();
+}
+
+/* ---------- checklist de comidas del día (vista del alumno) -----
+   Paquete «checklist de comidas» (instrucción directa de Ronald,
+   2026-10-27: «quiero borrar esos estados infinitos, solamente
+   quiero dejar un checklist de las comidas que he realizado en el
+   día»). Sustituye en el panel del alumno a la antigua lista-rastro
+   «Estados»: exactamente tres filas — Desayuno · Almuerzo · Cena —
+   con ✓ si la comida está registrada en el día de registro en
+   curso, ✗ si no está registrada y ya pasó su hora configurada
+   (las mismas horas y el mismo instante que usa el motor de
+   pendientes: pendMealWhen con el corte configurado) y ○ si aún
+   no llega su hora. SOLO PRESENTACIÓN: sale de MEALS y PEND_CFG ya
+   cargados en memoria — no lee ni escribe nada en Firestore, y el
+   motor de pendientes, sus marcas y el rastro interno (traces de
+   pendCompute) quedan intactos para la vista del entrenador y el
+   historial. Sin Peso, sin Entrenamiento, sin frases largas. */
+function pendMealsChecklistHTML(regDay, now) {
+  const cfg = PEND_CFG || {};
+  const defs = pendDefaults();
+  const timeOf = name => {
+    const m = (cfg.meals || []).find(x => x && x.name === name) || defs.meals.find(x => x.name === name);
+    return (m && m.time) || '12:00';
+  };
+  const rows = PEND_MAIN_MEALS.map(name => {
+    const logged = (MEALS[regDay] || []).some(x => x.meal === name);
+    const st = logged ? 'done' : (pendMealWhen(regDay, timeOf(name), cfg.cutoff) > now ? 'todo' : 'missed');
+    const mark = st === 'done' ? '✓' : st === 'missed' ? '✗' : '○';
+    return `<li class="pend-meal-row pend-meal-${st}"><span class="pend-meal-mark">${mark}</span> ${esc(t('pend.mealName.' + name))}</li>`;
+  }).join('');
+  return `<div class="pend-meals"><p class="pend-cfg-h">${esc(t('pend.mealsToday'))}</p><ul class="pend-meals-list">${rows}</ul></div>`;
 }
 
 /* ---------- acciones del panel ---------- */
@@ -18371,7 +18391,7 @@ document.addEventListener('keydown', e => { if (e.key === 'Escape') shareClose()
  *  - El SW (sw.js) solo cachea la cáscara del mismo origen en modo
  *    RED PRIMERO: Auth/Firestore/Worker jamás pasan por la caché.
  * ================================================================ */
-const PWA_SW_VERSION = '20261027-dias-futuros';
+const PWA_SW_VERSION = '20261027-checklist-comidas';
 let pwaDeferredPrompt = null;
 function pwaIsStandalone() {
   try {

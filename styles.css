@@ -929,6 +929,15 @@ table.whist { min-width: 640px; }
 .pend-none { margin: 8px 0; }
 .pend-traces { margin-top: 10px; }
 .pend-traces ul { margin: 4px 0 0; padding-left: 18px; }
+/* Checklist de comidas del día (2026-10-27): tres filas sobrias que
+   sustituyen a la lista-rastro «Estados» en la vista del alumno. */
+.pend-meals { margin-top: 10px; }
+.pend-meals-list { list-style: none; margin: 4px 0 0; padding: 0; }
+.pend-meal-row { display: flex; gap: 8px; align-items: center; padding: 3px 0; }
+.pend-meal-mark { font-weight: 700; width: 1.2em; text-align: center; }
+.pend-meal-done .pend-meal-mark { color: #0e7c6b; }
+.pend-meal-missed .pend-meal-mark { color: #b91c1c; }
+.pend-meal-todo { opacity: .75; }
 .pend-cfg-title { font-weight: 700; margin: 4px 0; }
 .pend-cfg-h { font-weight: 600; margin: 12px 0 4px; }
 .pend-cfg-row { display: flex; flex-wrap: wrap; gap: 8px 16px; align-items: center; margin: 6px 0; }
