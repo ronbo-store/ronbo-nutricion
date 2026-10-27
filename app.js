@@ -2736,6 +2736,10 @@ en: {
   'clients.healthBadge': 'health',
   'clients.foodTitle': 'Food photos to review',
   'clients.view': 'View log',
+  'clients.chkTitle': 'Profile {pct}% complete',
+  'clients.chkComplete': 'Profile complete',
+  'clients.chkMissing': 'Missing',
+  'clients.chkHidden': 'not visible to your role',
   'client.fallbackName': 'Client',
   'client.weightLog': 'Weight log · {name}',
   'client.healthDecl': 'Health declaration:',
@@ -4394,6 +4398,10 @@ es: {
   'clients.healthBadge': 'salud',
   'clients.foodTitle': 'Fotos de comida por revisar',
   'clients.view': 'Ver registro',
+  'clients.chkTitle': 'Perfil {pct}% completo',
+  'clients.chkComplete': 'Perfil completo',
+  'clients.chkMissing': 'Falta',
+  'clients.chkHidden': 'no visible para tu rol',
   'client.fallbackName': 'Cliente',
   'client.weightLog': 'Registro de peso · {name}',
   'client.healthDecl': 'Declaración de salud:',
@@ -5984,6 +5992,66 @@ async function saveLimit(btn) {
 }
 
 /* ================= MIS CLIENTES (entrenador: ve y edita el peso semanal) ================= */
+/* Completitud del perfil de UN alumno, derivada EXACTAMENTE como la
+   deriva su propio checklist de inicio (roleChecklist, rol usuario):
+   mismas fuentes y mismos tests, leídos del alumno — nunca una
+   segunda definición de «completo». Solo metadatos de procedimiento
+   (los mismos booleanos que ya ve el alumno): jamás el contenido de
+   la declaración ni de la evaluación. done === null marca el ítem NO
+   verificable para quien mira: la declaración de salud solo la abren
+   las reglas al propio alumno y — con su consentimiento específico
+   aceptado y los términos aceptados — al propietario; un entrenador
+   no propietario no puede leerla en ningún caso. Ese ítem se muestra
+   como no visible y el % se calcula sobre los ítems verificables,
+   sin inventar el dato (decisión de Ronald, 2026-10-27: en «Mis
+   clientes», % de perfil completo y lo que le falta a cada alumno). */
+async function clientProfileChecklist(u, latestMealReq) {
+  const rows = [];
+  /* 1) Entrenador y modalidad: la relación; sin documento, la misma
+     derivación perezosa desde el espejo que hace loadRolesX. */
+  let rel = null;
+  try { const s = await getDoc(doc(db, 'trainer_relations', u.id)); if (s.exists()) rel = s.data(); } catch {}
+  rows.push({ label: t('pend.chk.trainer'), done: rel ? !!rel.trainerUid : !!u.trainerUid });
+  /* 2) Evaluación inicial iniciada: users/{uid}/assessment/current
+     con resultado vigente (faHasResult, el mismo test). */
+  let evalDone = false;
+  try { const s = await getDoc(doc(db, 'users', u.id, 'assessment', 'current')); evalDone = s.exists() && faHasResult(s.data()); } catch {}
+  rows.push({ label: t('pend.chk.eval'), done: evalDone });
+  /* 3) Consentimiento específico de salud: specIsActive sobre su
+     propio users (el mismo test que su checklist). */
+  rows.push({ label: t('pend.chk.consent'), done: specIsActive(u) });
+  /* 4) Declaración de salud (PAR-Q): legible SOLO en las condiciones
+     exactas de las reglas (propietario + consentimiento aceptado +
+     términos aceptados, y solo la declaración activa). Fuera de
+     ellas: null (no verificable), nunca un falso «falta». */
+  let parqDone = null;
+  if (IS_OWNER && specIsActive(u) && u.acceptedTerms === true) {
+    try { const s = await getDocs(query(declCol(u.id), where('state', '==', 'active'))); parqDone = !s.empty; } catch { parqDone = null; }
+  }
+  rows.push({ label: t('pend.chk.parq'), done: parqDone });
+  /* 5) Metas definidas: el test de hasAnyGoal aplicado a su
+     users.goals (alguna métrica con valor numérico > 0). */
+  const g = u.goals || {};
+  rows.push({ label: t('pend.chk.goals'), done: METRICS.some(m => { const v = Number(g[m.key]); return isFinite(v) && v > 0; }) });
+  /* 6) Comidas activas o solicitadas: features.meals, o su ÚLTIMA
+     solicitud de comidas en estado pendiente (el mismo criterio de
+     MY_MEAL_REQ en su checklist). */
+  const reqDone = !!(latestMealReq && (latestMealReq.status === 'pendiente_entrenador' || latestMealReq.status === 'pendiente_administrador'));
+  rows.push({ label: t('pend.chk.meals'), done: featuresOf(u).meals === true || reqDone });
+  const known = rows.filter(r => r.done !== null);
+  const done = known.filter(r => r.done).length;
+  return { pct: known.length ? Math.round(done / known.length * 100) : 0, rows, complete: rows.length > 0 && rows.every(r => r.done === true) };
+}
+function clientChecklistHTML(chk) {
+  if (!chk) return '';
+  if (chk.complete) return `<div class="client-chk" style="margin-top:4px"><span class="ok-badge">✅ ${esc(t('clients.chkComplete'))}</span></div>`;
+  const missing = chk.rows.filter(r => r.done === false).map(r => r.label);
+  const hidden = chk.rows.filter(r => r.done === null).map(r => r.label);
+  let h = `<div class="client-chk" style="margin-top:4px"><b>${esc(t('clients.chkTitle', { pct: chk.pct }))}</b>`;
+  if (missing.length) h += `<br><span class="muted">${esc(t('clients.chkMissing'))}: ${missing.map(x => esc(x)).join(' · ')}</span>`;
+  hidden.forEach(l => { h += `<br><span class="muted">🔒 ${esc(l)} — ${esc(t('clients.chkHidden'))}</span>`; });
+  return h + '</div>';
+}
 async function loadClients() {
   const sec = $('clients-section');
   if (ROLE === 'usuario') { sec.style.display = 'none'; return; }
@@ -6025,6 +6093,24 @@ async function loadClients() {
     fs.forEach(d => { const v = d.data();
       if (v.status === 'pending' && v.ownerUid) pendingFood[v.ownerUid] = (pendingFood[v.ownerUid] || 0) + 1; });
   } catch {}
+  /* Completitud de perfil por cliente (decisión de Ronald,
+     2026-10-27): el % y lo que falta, derivados por
+     clientProfileChecklist de las mismas fuentes que el checklist
+     del alumno. Las solicitudes de comidas se leen UNA vez y
+     acotadas: el administrador las lista todas; el entrenador,
+     solo las dirigidas a él (la consulta que las reglas prueban). */
+  let mealReqsAll = [];
+  try {
+    const mq = ROLE === 'entrenador'
+      ? await getDocs(query(collection(db, 'meal_requests'), where('trainerUid', '==', auth.currentUser.uid)))
+      : await getDocs(collection(db, 'meal_requests'));
+    mq.forEach(d => mealReqsAll.push({ id: d.id, ...d.data() }));
+  } catch {}
+  const reqMs = x => (x && x.requestedAt && x.requestedAt.toMillis) ? x.requestedAt.toMillis() : 0;
+  const latestReqByUid = {};
+  mealReqsAll.forEach(r => { if (r.alumnoUid && (!latestReqByUid[r.alumnoUid] || reqMs(r) >= reqMs(latestReqByUid[r.alumnoUid]))) latestReqByUid[r.alumnoUid] = r; });
+  const chkByUid = {};
+  await Promise.all(clients.map(async u => { try { chkByUid[u.id] = await clientProfileChecklist(u, latestReqByUid[u.id] || null); } catch {} }));
   const daysAgo = iso => iso ? Math.floor((Date.now() - new Date(iso + 'T12:00:00').getTime()) / 864e5) : null;
   $('clients-list').innerHTML = clients.length ? clients.map(u => {
     const d = daysAgo(lastByUid[u.id]);
@@ -6037,7 +6123,7 @@ async function loadClients() {
     const foodBadge = pendingFood[u.id] ? ` <span class="warn-badge" title="${t('clients.foodTitle')}">📷 ${pendingFood[u.id]}</span>` : '';
     const lastW = lastWByUid[u.id] ? ` · <b>${lastWByUid[u.id]} kg</b>` : '';
     return `<div class="user-row">
-      <div>${u.photoURL ? `<img class="avatar sm" src="${esc(u.photoURL)}" alt="">` : ''}<b>${esc(u.name || '—')}</b> ${badge}${healthBadge}${foodBadge}${appInstallMarkHtml(u)}<br><span class="muted">${esc(u.email || '')}${u.phone ? ' · ' + esc(u.phone) : ''}${lastW}${appInstallNoteHtml(u)}</span></div>
+      <div>${u.photoURL ? `<img class="avatar sm" src="${esc(u.photoURL)}" alt="">` : ''}<b>${esc(u.name || '—')}</b> ${badge}${healthBadge}${foodBadge}${appInstallMarkHtml(u)}<br><span class="muted">${esc(u.email || '')}${u.phone ? ' · ' + esc(u.phone) : ''}${lastW}${appInstallNoteHtml(u)}</span>${clientChecklistHTML(chkByUid[u.id])}</div>
       <div class="user-actions">${u.approved === true ? `<button class="btn-primary btn-sm" data-client="${u.id}">${t('clients.view')}</button>` : ''}</div>
     </div>`;
   }).join('') : `<div class="wempty">${t('clients.empty')}</div>`;
@@ -18525,7 +18611,7 @@ document.addEventListener('keydown', e => { if (e.key === 'Escape') shareClose()
  *  - El SW (sw.js) solo cachea la cáscara del mismo origen en modo
  *    RED PRIMERO: Auth/Firestore/Worker jamás pasan por la caché.
  * ================================================================ */
-const PWA_SW_VERSION = '20261027-cupo-dueno';
+const PWA_SW_VERSION = '20261027-completitud-clientes';
 let pwaDeferredPrompt = null;
 function pwaIsStandalone() {
   try {
