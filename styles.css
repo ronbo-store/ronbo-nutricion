@@ -1194,6 +1194,16 @@ div > .btn-ghost:only-child, div > .btn-main:only-child {
 /* PUENTE ENTRENAMIENTO→LLAMITA (2026-10-27): cronómetro y cierre. */
 .train-chrono { margin-top: 10px; font-size: 13px; color: #475569; }
 .train-chrono.is-on { font-weight: 700; color: #0d9488; }
+/* BOTONES DEL CRONÓMETRO A LOS LATERALES (AUTH-036): pareja pegada
+   a los extremos de la tarjeta; verde 3D que sobresale a la derecha
+   (INICIAR) y rojo a la izquierda (Finalizado). */
+.train-chrono-pair { display: flex; align-items: stretch; justify-content: space-between; gap: 8px; margin-top: 10px; }
+.train-chrono-run { align-self: center; flex: 1; text-align: center; font-size: 13px; font-weight: 700; color: #0d9488; }
+.btn-chrono-start3d, .btn-chrono-finish { border: none; border-radius: 12px; padding: 10px 14px; font-size: 15px; font-weight: 800; color: #fff; cursor: pointer; white-space: nowrap; }
+.btn-chrono-start3d { background: linear-gradient(180deg, #22c55e, #16a34a); box-shadow: 0 4px 0 #15803d, 0 8px 14px rgba(21, 128, 61, .35); }
+.btn-chrono-start3d:active { transform: translateY(3px); box-shadow: 0 1px 0 #15803d, 0 3px 6px rgba(21, 128, 61, .30); }
+.btn-chrono-finish { background: linear-gradient(180deg, #ef4444, #dc2626); box-shadow: 0 4px 0 #991b1b, 0 8px 14px rgba(153, 27, 27, .30); }
+.btn-chrono-finish:active { transform: translateY(3px); box-shadow: 0 1px 0 #991b1b, 0 3px 6px rgba(153, 27, 27, .28); }
 .train-close-form { margin-top: 10px; padding: 10px; border: 1px solid #e2e8f0; border-radius: 12px; background: #f8fafc; }
 .train-close-form .act-lab { display: block; margin-bottom: 8px; }
 @keyframes act-flick { 0%, 100% { transform: scale(1) rotate(-2deg); opacity: 1; } 50% { transform: scale(1.16) rotate(2.5deg); opacity: .85; } }

@@ -2403,6 +2403,8 @@ en: {
   'train.markDone': 'Mark as done today', 'train.doneToday': 'Done today ✓', 'train.undo': 'Undo',
   /* PUENTE ENTRENAMIENTO→LLAMITA (2026-10-27): cronómetro y cierre. */
   'train.chronoStart': '▶ Start workout',
+  'train.chronoStartBtn': '▶ Start',
+  'train.chronoFinishBtn': 'Finished',
   'train.chronoRunning': '⏱ Session in progress: {min} min',
   'train.durLabel': 'Session duration (minutes)',
   'train.durAutoNote': 'Filled from your session timer — correct it if it does not match.',
@@ -4051,6 +4053,8 @@ es: {
   'train.markDone': 'Marcar como hecho hoy', 'train.doneToday': 'Hecho hoy ✓', 'train.undo': 'Deshacer',
   /* PUENTE ENTRENAMIENTO→LLAMITA (2026-10-27): cronómetro y cierre. */
   'train.chronoStart': '▶ Iniciar entrenamiento',
+  'train.chronoStartBtn': '▶ Iniciar',
+  'train.chronoFinishBtn': 'Finalizado',
   'train.chronoRunning': '⏱ Sesión en curso: {min} min',
   'train.durLabel': 'Duración de la sesión (minutos)',
   'train.durAutoNote': 'Rellenado con el cronómetro de tu sesión — corrígelo si no coincide.',
@@ -10855,11 +10859,17 @@ function trainChronoSuggestion(planId) {
   const raw = Math.max(1, Math.round((c.last - c.start) / 60000));
   return { min: Math.min(raw, 240), capped: raw > 240 };
 }
+/* BOTONES DEL CRONÓMETRO A LOS LATERALES (AUTH-036, 2026-10-27):
+   SOLO presentación — la pareja vive pegada a los extremos de la
+   tarjeta: IZQUIERDA el botón ROJO «Finalizado» (el mismo
+   data-train-done de siempre: abre el panel de cierre) y DERECHA
+   el botón VERDE 3D de INICIAR (el mismo data-train-start de
+   siempre). En curso, el tiempo transcurrido se lee en el centro.
+   La lógica del cronómetro y del cierre no cambia en nada. */
 function trainChronoHTML(planId, di) {
   const c = trainChronoRead(planId);
-  if (!c) return `<div class="train-chrono"><button type="button" class="btn-ghost btn-sm" data-train-start="${di}">${t('train.chronoStart')}</button></div>`;
-  const el = Math.max(0, Math.round((Date.now() - c.start) / 60000));
-  return `<div class="train-chrono is-on">${t('train.chronoRunning', { min: el })}</div>`;
+  const run = c ? `<span class="train-chrono-run">${t('train.chronoRunning', { min: Math.max(0, Math.round((Date.now() - c.start) / 60000)) })}</span>` : '';
+  return `<div class="train-chrono-pair"><button type="button" class="btn-chrono-finish" data-train-done="${di}">${t('train.chronoFinishBtn')}</button>${run}<button type="button" class="btn-chrono-start3d" data-train-start="${di}">${t('train.chronoStartBtn')}</button></div>`;
 }
 /* Panel de cierre (D1/D2/D4): duración corregible (pre-rellenada
    con la sugerencia del cronómetro), intensidad declarada
@@ -18391,7 +18401,7 @@ document.addEventListener('keydown', e => { if (e.key === 'Escape') shareClose()
  *  - El SW (sw.js) solo cachea la cáscara del mismo origen en modo
  *    RED PRIMERO: Auth/Firestore/Worker jamás pasan por la caché.
  * ================================================================ */
-const PWA_SW_VERSION = '20261027-checklist-comidas';
+const PWA_SW_VERSION = '20261027-botones-cronometro';
 let pwaDeferredPrompt = null;
 function pwaIsStandalone() {
   try {
