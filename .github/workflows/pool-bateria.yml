@@ -1,0 +1,404 @@
+# RONBO NUTRI — Batería de reglas del delta POOL DE
+# ENTRENADORES VISIBLE PARA EL ALUMNO (2026-10-27,
+# AUTH-2026-10-27-041): la suite NUEVA Pool (14 casos +
+# 2 verificaciones de datos) contra el candidato, la MISMA suite
+# contra el texto VIVO con la expectativa invertida en P2/P13
+# (el contraste), MÁS la regresión completa de las suites
+# vigentes: Metas-L §L (45), Metas A/G (45), Biblioteca
+# Comunitaria (45), Línea Completa (49) y S-1 (17). Todo contra
+# el emulador oficial de Firestore (proyecto ficticio
+# ronbo-nutri-test). El texto probado en las regresiones es el
+# MISMO candidato: texto vivo verificado a4435194 (SHA-256
+# 08d90807...) + SOLO el delta memberships get para el usuario
+# aprobado (candidato SHA-256 c7d039bb...). Este workflow SOLO
+# valida el texto; NO publica reglas ni despliega nada. Sin
+# secretos, sin credenciales de producción.
+name: Batería Pool de Entrenadores (emulador oficial)
+
+on:
+  workflow_dispatch:
+  push:
+    branches: [ci/pool-bateria]
+
+permissions:
+  contents: read
+
+jobs:
+  pool:
+    name: Serie Pool (14 casos + 2 datos) contra el CANDIDATO (emulador oficial, proyecto ficticio)
+    runs-on: ubuntu-24.04
+    timeout-minutes: 20
+    defaults:
+      run:
+        working-directory: pruebas-reglas-pool
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: 21
+      - name: Instalar dependencias de la batería (versiones fijadas)
+        run: npm ci
+      - name: Instalar Firebase CLI (versión fijada)
+        run: npm install -g firebase-tools@15.34.0
+      - name: Ejecutar la batería contra el emulador oficial
+        shell: bash
+        run: |
+          set -o pipefail
+          firebase emulators:exec --only firestore --project ronbo-nutri-test "node test-pool.mjs" 2>&1 | tee resultado-bateria.txt
+      - name: Publicar el resultado en el resumen del job (legible por API)
+        if: always()
+        shell: bash
+        run: |
+          {
+            echo '## Serie Pool (14 casos + 2 datos) contra el CANDIDATO (emulador oficial, proyecto ficticio) — resultado'
+            grep -E 'POOL:' resultado-bateria.txt || true
+            echo ''
+            echo '### Casos FAIL (si los hay)'
+            grep -E '^FAIL' resultado-bateria.txt || echo '(ninguno)'
+          } >> "$GITHUB_STEP_SUMMARY"
+      - name: Publicar el detalle como anotaciones (legibles por API pública)
+        if: always()
+        shell: bash
+        run: |
+          grep -E 'POOL:' resultado-bateria.txt | sed 's/^/::notice title=RESULTADO::/' || true
+          grep -E '^FAIL' resultado-bateria.txt | sed 's/^FAIL — /::error title=FAIL::/' || true
+          echo "::error title=HEAD::$(head -c 800 resultado-bateria.txt | tr '\n' '|')" || true
+          echo "::error title=TAIL::$(tail -c 1200 resultado-bateria.txt | tr '\n' '|')" || true
+      - name: Conservar la evidencia (salida de la batería)
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: evidencia-pool
+          path: |
+            pruebas-reglas-pool/resultado-bateria.txt
+            pruebas-reglas-pool/firestore-debug.log
+          retention-days: 7
+
+  pool-vivo:
+    name: Contraste Pool contra el texto VIVO a4435194 (P2/P13 denegados — el delta es lo que desbloquea)
+    runs-on: ubuntu-24.04
+    timeout-minutes: 20
+    defaults:
+      run:
+        working-directory: pruebas-reglas-pool-vivo
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: 21
+      - name: Instalar dependencias de la batería (versiones fijadas)
+        run: npm ci
+      - name: Instalar Firebase CLI (versión fijada)
+        run: npm install -g firebase-tools@15.34.0
+      - name: Ejecutar la batería contra el emulador oficial
+        shell: bash
+        run: |
+          set -o pipefail
+          firebase emulators:exec --only firestore --project ronbo-nutri-test "node test-pool-vivo.mjs" 2>&1 | tee resultado-bateria.txt
+      - name: Publicar el resultado en el resumen del job (legible por API)
+        if: always()
+        shell: bash
+        run: |
+          {
+            echo '## Contraste Pool contra el texto VIVO a4435194 (P2/P13 denegados — el delta es lo que desbloquea) — resultado'
+            grep -E 'POOL-VIVO:' resultado-bateria.txt || true
+            echo ''
+            echo '### Casos FAIL (si los hay)'
+            grep -E '^FAIL' resultado-bateria.txt || echo '(ninguno)'
+          } >> "$GITHUB_STEP_SUMMARY"
+      - name: Publicar el detalle como anotaciones (legibles por API pública)
+        if: always()
+        shell: bash
+        run: |
+          grep -E 'POOL-VIVO:' resultado-bateria.txt | sed 's/^/::notice title=RESULTADO::/' || true
+          grep -E '^FAIL' resultado-bateria.txt | sed 's/^FAIL — /::error title=FAIL::/' || true
+          echo "::error title=HEAD::$(head -c 800 resultado-bateria.txt | tr '\n' '|')" || true
+          echo "::error title=TAIL::$(tail -c 1200 resultado-bateria.txt | tr '\n' '|')" || true
+      - name: Conservar la evidencia (salida de la batería)
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: evidencia-pool-vivo
+          path: |
+            pruebas-reglas-pool-vivo/resultado-bateria.txt
+            pruebas-reglas-pool-vivo/firestore-debug.log
+          retention-days: 7
+
+  regresion-metas-l:
+    name: Regresión Metas-L §L (45 casos) contra el MISMO candidato
+    runs-on: ubuntu-24.04
+    timeout-minutes: 20
+    defaults:
+      run:
+        working-directory: pruebas-reglas-metas-l
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: 21
+      - name: Instalar dependencias de la batería (versiones fijadas)
+        run: npm ci
+      - name: Instalar Firebase CLI (versión fijada)
+        run: npm install -g firebase-tools@15.34.0
+      - name: Ejecutar la batería contra el emulador oficial
+        shell: bash
+        run: |
+          set -o pipefail
+          firebase emulators:exec --only firestore --project ronbo-nutri-test "node test-metas-l.mjs" 2>&1 | tee resultado-bateria.txt
+      - name: Publicar el resultado en el resumen del job (legible por API)
+        if: always()
+        shell: bash
+        run: |
+          {
+            echo '## Regresión Metas-L §L (45 casos) contra el MISMO candidato — resultado'
+            grep -E 'METAS-L' resultado-bateria.txt || true
+            echo ''
+            echo '### Casos FAIL (si los hay)'
+            grep -E '^FAIL' resultado-bateria.txt || echo '(ninguno)'
+          } >> "$GITHUB_STEP_SUMMARY"
+      - name: Publicar el detalle como anotaciones (legibles por API pública)
+        if: always()
+        shell: bash
+        run: |
+          grep -E 'METAS-L' resultado-bateria.txt | sed 's/^/::notice title=RESULTADO::/' || true
+          grep -E '^FAIL' resultado-bateria.txt | sed 's/^FAIL — /::error title=FAIL::/' || true
+          echo "::error title=HEAD::$(head -c 800 resultado-bateria.txt | tr '\n' '|')" || true
+          echo "::error title=TAIL::$(tail -c 1200 resultado-bateria.txt | tr '\n' '|')" || true
+      - name: Conservar la evidencia (salida de la batería)
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: evidencia-regresion-metas-l
+          path: |
+            pruebas-reglas-metas-l/resultado-bateria.txt
+            pruebas-reglas-metas-l/firestore-debug.log
+          retention-days: 7
+
+  regresion-metas:
+    name: Regresión Metas A/G (45 casos) contra el MISMO candidato
+    runs-on: ubuntu-24.04
+    timeout-minutes: 20
+    defaults:
+      run:
+        working-directory: pruebas-reglas-metas
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: 21
+      - name: Instalar dependencias de la batería (versiones fijadas)
+        run: npm ci
+      - name: Instalar Firebase CLI (versión fijada)
+        run: npm install -g firebase-tools@15.34.0
+      - name: Ejecutar la batería contra el emulador oficial
+        shell: bash
+        run: |
+          set -o pipefail
+          firebase emulators:exec --only firestore --project ronbo-nutri-test "node test-metas.mjs" 2>&1 | tee resultado-bateria.txt
+      - name: Publicar el resultado en el resumen del job (legible por API)
+        if: always()
+        shell: bash
+        run: |
+          {
+            echo '## Regresión Metas A/G (45 casos) contra el MISMO candidato — resultado'
+            grep -E 'METAS CON FUNDAMENTO:' resultado-bateria.txt || true
+            echo ''
+            echo '### Casos FAIL (si los hay)'
+            grep -E '^FAIL' resultado-bateria.txt || echo '(ninguno)'
+          } >> "$GITHUB_STEP_SUMMARY"
+      - name: Publicar el detalle como anotaciones (legibles por API pública)
+        if: always()
+        shell: bash
+        run: |
+          grep -E 'METAS CON FUNDAMENTO:' resultado-bateria.txt | sed 's/^/::notice title=RESULTADO::/' || true
+          grep -E '^FAIL' resultado-bateria.txt | sed 's/^FAIL — /::error title=FAIL::/' || true
+          echo "::error title=HEAD::$(head -c 800 resultado-bateria.txt | tr '\n' '|')" || true
+          echo "::error title=TAIL::$(tail -c 1200 resultado-bateria.txt | tr '\n' '|')" || true
+      - name: Conservar la evidencia (salida de la batería)
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: evidencia-regresion-metas
+          path: |
+            pruebas-reglas-metas/resultado-bateria.txt
+            pruebas-reglas-metas/firestore-debug.log
+          retention-days: 7
+
+  regresion-libcom:
+    name: Regresión Biblioteca Comunitaria (45 casos) contra el MISMO candidato
+    runs-on: ubuntu-24.04
+    timeout-minutes: 20
+    defaults:
+      run:
+        working-directory: pruebas-reglas-libcom
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: 21
+      - name: Instalar dependencias de la batería (versiones fijadas)
+        run: npm ci
+      - name: Instalar Firebase CLI (versión fijada)
+        run: npm install -g firebase-tools@15.34.0
+      - name: Ejecutar la batería contra el emulador oficial
+        shell: bash
+        run: |
+          set -o pipefail
+          firebase emulators:exec --only firestore --project ronbo-nutri-test "node test-libcom.mjs" 2>&1 | tee resultado-bateria.txt
+      - name: Publicar el resultado en el resumen del job (legible por API)
+        if: always()
+        shell: bash
+        run: |
+          {
+            echo '## Regresión Biblioteca Comunitaria (45 casos) contra el MISMO candidato — resultado'
+            grep -E 'BIBLIOTECA COMUNITARIA:' resultado-bateria.txt || true
+            echo ''
+            echo '### Casos FAIL (si los hay)'
+            grep -E '^FAIL' resultado-bateria.txt || echo '(ninguno)'
+          } >> "$GITHUB_STEP_SUMMARY"
+      - name: Publicar el detalle como anotaciones (legibles por API pública)
+        if: always()
+        shell: bash
+        run: |
+          grep -E 'BIBLIOTECA COMUNITARIA:' resultado-bateria.txt | sed 's/^/::notice title=RESULTADO::/' || true
+          grep -E '^FAIL' resultado-bateria.txt | sed 's/^FAIL — /::error title=FAIL::/' || true
+          echo "::error title=HEAD::$(head -c 800 resultado-bateria.txt | tr '\n' '|')" || true
+          echo "::error title=TAIL::$(tail -c 1200 resultado-bateria.txt | tr '\n' '|')" || true
+      - name: Conservar la evidencia (salida de la batería)
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: evidencia-regresion-libcom
+          path: |
+            pruebas-reglas-libcom/resultado-bateria.txt
+            pruebas-reglas-libcom/firestore-debug.log
+          retention-days: 7
+
+  regresion-linea:
+    name: Regresión Línea Completa (49 aserciones) contra el MISMO candidato
+    runs-on: ubuntu-24.04
+    timeout-minutes: 20
+    defaults:
+      run:
+        working-directory: tests-linea-completa
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: 21
+      - name: Instalar dependencias de la batería (versiones fijadas)
+        run: npm ci
+      - name: Instalar Firebase CLI (versión fijada)
+        run: npm install -g firebase-tools@15.34.0
+      - name: Ejecutar la batería contra el emulador oficial
+        shell: bash
+        run: |
+          set -o pipefail
+          firebase emulators:exec --only firestore --project ronbo-nutri-test "node test-candidato.mjs" 2>&1 | tee resultado-bateria.txt
+      - name: Publicar el resultado en el resumen del job (legible por API)
+        if: always()
+        shell: bash
+        run: |
+          {
+            echo '## Regresión Línea Completa (49 aserciones) contra el MISMO candidato — resultado'
+            grep -E 'RESULTADO' resultado-bateria.txt || true
+            echo ''
+            echo '### Casos FAIL (si los hay)'
+            grep -E '^FAIL' resultado-bateria.txt || echo '(ninguno)'
+          } >> "$GITHUB_STEP_SUMMARY"
+      - name: Publicar el detalle como anotaciones (legibles por API pública)
+        if: always()
+        shell: bash
+        run: |
+          grep -E 'RESULTADO' resultado-bateria.txt | sed 's/^/::notice title=RESULTADO::/' || true
+          grep -E '^FAIL' resultado-bateria.txt | sed 's/^FAIL — /::error title=FAIL::/' || true
+          echo "::error title=HEAD::$(head -c 800 resultado-bateria.txt | tr '\n' '|')" || true
+          echo "::error title=TAIL::$(tail -c 1200 resultado-bateria.txt | tr '\n' '|')" || true
+      - name: Conservar la evidencia (salida de la batería)
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: evidencia-regresion-linea
+          path: |
+            tests-linea-completa/resultado-bateria.txt
+            tests-linea-completa/firestore-debug.log
+          retention-days: 7
+
+  regresion-s1:
+    name: Regresión S-1 (17 casos) contra el MISMO candidato
+    runs-on: ubuntu-24.04
+    timeout-minutes: 20
+    defaults:
+      run:
+        working-directory: pruebas-reglas-s1
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: 21
+      - name: Instalar dependencias de la batería (versiones fijadas)
+        run: npm ci
+      - name: Instalar Firebase CLI (versión fijada)
+        run: npm install -g firebase-tools@15.34.0
+      - name: Ejecutar la batería contra el emulador oficial
+        shell: bash
+        run: |
+          set -o pipefail
+          firebase emulators:exec --only firestore --project ronbo-nutri-test "node test-s1.mjs" 2>&1 | tee resultado-bateria.txt
+      - name: Publicar el resultado en el resumen del job (legible por API)
+        if: always()
+        shell: bash
+        run: |
+          {
+            echo '## Regresión S-1 (17 casos) contra el MISMO candidato — resultado'
+            grep -E 'S-1' resultado-bateria.txt || true
+            echo ''
+            echo '### Casos FAIL (si los hay)'
+            grep -E '^FAIL' resultado-bateria.txt || echo '(ninguno)'
+          } >> "$GITHUB_STEP_SUMMARY"
+      - name: Publicar el detalle como anotaciones (legibles por API pública)
+        if: always()
+        shell: bash
+        run: |
+          grep -E 'S-1' resultado-bateria.txt | sed 's/^/::notice title=RESULTADO::/' || true
+          grep -E '^FAIL' resultado-bateria.txt | sed 's/^FAIL — /::error title=FAIL::/' || true
+          echo "::error title=HEAD::$(head -c 800 resultado-bateria.txt | tr '\n' '|')" || true
+          echo "::error title=TAIL::$(tail -c 1200 resultado-bateria.txt | tr '\n' '|')" || true
+      - name: Conservar la evidencia (salida de la batería)
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: evidencia-regresion-s1
+          path: |
+            pruebas-reglas-s1/resultado-bateria.txt
+            pruebas-reglas-s1/firestore-debug.log
+          retention-days: 7
+

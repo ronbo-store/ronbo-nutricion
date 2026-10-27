@@ -2068,7 +2068,12 @@ service cloud.firestore {
     // el historial de la membresía jamás se elimina (los eventos
     // viven en audit_log).
     match /memberships/{trainerUid} {
-      allow get: if isSelf(trainerUid) || isOwnerUser();
+      // AUTH-2026-10-27-041 (pool visible): el usuario aprobado
+      // también puede LEER (get) la membresía de un entrenador —
+      // es el dato de standing/cupo que el pool de perfiles
+      // públicos muestra al alumno al elegir. La LISTA sigue
+      // siendo solo del propietario.
+      allow get: if isSelf(trainerUid) || isOwnerUser() || isApprovedUser();
       allow list: if isOwnerUser();
       allow create: if isOwnerUser()
         || (isSelf(trainerUid)
