@@ -11440,9 +11440,29 @@ async function loadMyTraining() {
     } else {
       const diT = trainRotationNext(plan, logs, today);
       const nDays = (plan.days || []).length;
-      const chips = [];
-      for (let k = 1; k <= nDays; k++) chips.push(`<span class="train-chip">${esc(dayLabelOf((diT + k) % nDays))}</span>`);
-      selCard = `<div class="train-day is-readonly"><p class="progress-hint">${t('train.today.rotationNote')}</p><div class="train-week">${chips.join('')}</div></div>`;
+      if (nDays > 0) {
+        /* SESIÓN QUE VIENE VISIBLE (2026-10-26, instrucción de
+           Ronald: «si ya tengo plan de entrenamiento debería
+           aparecerme para mi propia planificación»): tocar un día
+           futuro ya no deja solo el texto explicativo — la PRÓXIMA
+           sesión del orden (la primera de la lista de siempre) se
+           muestra con su ficha completa en modo ficha: filas
+           tocables que abren la flotante de consulta (foto, spec y
+           video), como en los planes con días fijos. Es
+           planificación anticipada: la flotante en modo ficha no
+           trae series ni Guardar (no registra nada), la sesión NO
+           se fija a esta fecha y ningún contador se mueve. Debajo
+           se conserva la nota de rotación con el resto del orden. */
+        const diNext = (diT + 1) % nDays;
+        const dayN = (plan.days || [])[diNext] || {};
+        const innerN = `<h4>${esc(dayLabelOf(diNext))}</h4>` + dressExRows((dayN.exercises || []).map((ex, ei) => trainExCompactHTML(ex, diNext, ei, 'ficha', null)).join(''), diNext, 'ficha') + trainSessionHTML(dayN) + `<div style="margin-top:8px"><span class="train-status st-skipped">● ${t('train.today.scheduled')}</span></div>`;
+        const chips = [];
+        for (let k = 2; k <= nDays; k++) chips.push(`<span class="train-chip">${esc(dayLabelOf((diT + k) % nDays))}</span>`);
+        selCard = trainDressedCardHTML(plan, logs, diNext, sel, innerN, 'is-readonly') + trainShareRowHTML(diNext, sel)
+          + `<div class="train-day is-readonly"><p class="progress-hint">${t('train.today.rotationNote')}</p>${chips.length ? `<div class="train-week">${chips.join('')}</div>` : ''}</div>`;
+      } else {
+        selCard = `<div class="train-day is-readonly"><p class="progress-hint">${t('train.today.rotationNote')}</p><div class="train-week"></div></div>`;
+      }
     }
   }
   const mon = mondayISO(sel);
@@ -17934,7 +17954,7 @@ document.addEventListener('keydown', e => { if (e.key === 'Escape') shareClose()
  *  - El SW (sw.js) solo cachea la cáscara del mismo origen en modo
  *    RED PRIMERO: Auth/Firestore/Worker jamás pasan por la caché.
  * ================================================================ */
-const PWA_SW_VERSION = '20261026-enfoque';
+const PWA_SW_VERSION = '20261026-sesion-futura';
 let pwaDeferredPrompt = null;
 function pwaIsStandalone() {
   try {
