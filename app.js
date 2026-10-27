@@ -311,6 +311,18 @@ async function loadMyMealRequest() {
     MY_MEAL_REQ = mine[0] || null;
   } catch {}
 }
+/* TARJETA DE ENTRENADOR RECOGIDA (2026-10-27, pedido de Ronald con
+   captura de las 11:38 CDT): al entrar, el alumno NO se encuentra
+   toda la información del entrenador desplegada — la tarjeta «Mi
+   entrenador» nace RECOGIDA en una sola línea (foto, nombre y
+   titular del entrenador; en espera, el estado de espera) y tocar
+   la línea despliega TODO el resto, tal como está hoy. SOLO
+   presentación: ningún flujo, texto ni manejador del interior
+   cambia. El estado vive en memoria (MT_CARD_OPEN), como la
+   tarjeta de metas (GM_CARD_OPEN, AUTH-031) y las plantillas
+   (AUTH-015): cada carga nace recogida y un repintado no la
+   cierra a mitad de tarea. */
+let MT_CARD_OPEN = false;
 async function renderMyTrainerBox() {
   const box = $('my-trainer-box');
   if (!box) return;
@@ -411,9 +423,15 @@ async function renderMyTrainerBox() {
     <p class="progress-hint">${esc(t('esc.mealsOffHint'))}</p>
     ${req && req.status === 'rechazada' ? `<p class="progress-hint">⚠️ ${esc(t('esc.mealsRejected'))}</p>` : ''}
     <div class="eval-actions"><button type="button" class="btn-primary btn-sm" id="btn-meal-request">${esc(t('esc.mealsRequest'))}</button></div>`;
-  box.innerHTML = `
-  <div class="panel">
-    ${rel.trainerUid ? `<div class="mt-head">
+  /* Línea recogida + cuerpo (TARJETA RECOGIDA): la línea es el
+     interruptor y el cuerpo (bodyHtml) es EXACTAMENTE el contenido
+     que la tarjeta pintaba siempre — mismo HTML, mismos ids,
+     mismos textos — solo que nace oculto tras la línea. Con
+     entrenador: miniatura redonda + nombre (cadena segura de
+     siempre; jamás el uid ni un correo) + titular del dossier.
+     En espera: la misma frase de estado que hoy abre la tarjeta. */
+  const lineHtml = `<button type="button" class="mt-toggle" id="mt-toggle" aria-expanded="${MT_CARD_OPEN ? 'true' : 'false'}">${rel.trainerUid ? `<span class="mt-thumb"><span class="mt-thumb-initials">${esc(tInitials)}</span>${tPhoto ? `<img class="mt-thumb-img" src="${esc(tPhoto)}" alt="">` : ''}</span><span class="mt-toggle-text"><b>${esc(tNameSafe || t('esc.currentTrainer'))}</b>${tHeadline ? `<span class="mt-toggle-head"> · ${esc(tHeadline)}</span>` : ''}</span>` : `<span class="mt-thumb mt-thumb-wait"><span class="mt-thumb-emoji" aria-hidden="true">🧑‍🏫</span></span><span class="mt-toggle-text"><span class="mt-toggle-wait">${esc(t('esc.noTrainerYet'))}</span></span>`}<span class="gm-chev" aria-hidden="true">${MT_CARD_OPEN ? '▴' : '▾'}</span></button>`;
+  const bodyHtml = `${rel.trainerUid ? `<div class="mt-head">
       <div class="mt-info">
         <h3 class="history-title">${esc(t('esc.myTrainerTitle'))}</h3>
         <p class="progress-hint mt-line">${esc(t('esc.currentTrainer'))}${tNameSafe ? `: <b>${esc(tNameSafe)}</b>` : ''}</p>
@@ -437,7 +455,11 @@ async function renderMyTrainerBox() {
       </select></label>
     <div class="eval-actions"><button type="button" class="btn-primary btn-sm" id="btn-change-trainer">${esc(t('esc.changeBtn'))}</button></div>
     <div class="dos-pool-links">${pool.map(p => `<button type="button" class="slot-link" data-dossier-open="${esc(p.uid)}">👤 ${esc(p.name)}</button>`).join(' ')}</div>
-    ${mealsHtml}
+    ${mealsHtml}`;
+  box.innerHTML = `
+  <div class="panel">
+    ${lineHtml}
+    ${MT_CARD_OPEN ? `<div class="mt-body">${bodyHtml}</div>` : ''}
   </div>`;
   const reqBtn = $('btn-meal-request');
   if (reqBtn) reqBtn.onclick = async () => {
@@ -492,6 +514,20 @@ async function renderMyTrainerBox() {
   if (mtImg) {
     if (mtImg.complete && mtImg.naturalWidth === 0) mtImg.remove();
     else mtImg.addEventListener('error', () => mtImg.remove());
+  }
+  /* Interruptor de la TARJETA RECOGIDA: alterna el estado en
+     memoria y repinta; el cuerpo y sus manejadores (comidas,
+     modalidad, CAMBIAR) se cablean arriba como siempre cuando la
+     tarjeta está desplegada — recogida, esos nodos no existen y
+     los cableados quedan en nada por sus propias guardas. */
+  const mtTg = $('mt-toggle');
+  if (mtTg) mtTg.onclick = () => { MT_CARD_OPEN = !MT_CARD_OPEN; renderMyTrainerBox(); };
+  /* Miniatura de la línea: si la foto no carga, la imagen se
+     retira y quedan las iniciales, como en la foto grande. */
+  const mtThumb = box.querySelector('.mt-thumb-img');
+  if (mtThumb) {
+    if (mtThumb.complete && mtThumb.naturalWidth === 0) mtThumb.remove();
+    else mtThumb.addEventListener('error', () => mtThumb.remove());
   }
   /* Dossier (REPRUEBA-2): la tarjeta ya NO pinta ningún rótulo
      «Ver dossier» en ningún estado. Las rutas al dossier son la
@@ -18974,7 +19010,7 @@ document.addEventListener('keydown', e => { if (e.key === 'Escape') shareClose()
  *  - El SW (sw.js) solo cachea la cáscara del mismo origen en modo
  *    RED PRIMERO: Auth/Firestore/Worker jamás pasan por la caché.
  * ================================================================ */
-const PWA_SW_VERSION = '20261027-alertas-alumnos';
+const PWA_SW_VERSION = '20261027-tarjeta-recogida';
 let pwaDeferredPrompt = null;
 function pwaIsStandalone() {
   try {
