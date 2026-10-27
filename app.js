@@ -12108,11 +12108,55 @@ function libEnsure() {
     try {
       await libFetchClassDocs();
       LIB_STATE = LIB.length ? 'ok' : 'unavailable';
+      if (LIB_STATE === 'ok') LIB_LOADED_AT = Date.now();
     } catch { LIB = []; LIB_BY_ID = {}; LIB_OWN = []; LIB_PENDING = []; LIB_STATE = 'unavailable'; }
     libRenderNotice();
   })();
   return LIB_PROMISE;
 }
+/* REFRESCO DE LA BIBLIOTECA EN SESIÓN (2026-10-26; diagnóstico en
+   INFORME-DIAGNOSTICO-PULLOVER-2026-10-26): la biblioteca se leía
+   UNA vez por sesión de página y nunca se refrescaba — un alta
+   hecha con la sesión abierta (el E104 que Ronald no encontraba)
+   no aparecía hasta recargar, aunque el dato estaba sano. Ahora,
+   al volver la app a primer plano (visibilitychange a visible o
+   pageshow) tras al menos 5 minutos desde la última lectura, el
+   catálogo se REVALIDA por la misma ruta de carga
+   (libFetchClassDocs) y se actualiza en memoria SIN recargar la
+   página ni perder el estado del usuario: si la firma del
+   catálogo no cambia, no se repinta nada; si cambia, solo se
+   repintan las superficies seguras — la lista de la biblioteca si
+   su sección está visible y los nombres/fotos enlazados del
+   editor de planes abierto (libRefreshOpenRows nunca pisa lo que
+   el usuario haya tecleado distinto). La lectura inicial por
+   sesión queda como estaba. Si la revalidación falla, el catálogo
+   en memoria se conserva y se reintenta a la próxima vuelta. */
+let LIB_LOADED_AT = 0;
+let LIB_REVALIDATING = false;
+const LIB_REVALIDATE_MS = 5 * 60 * 1000;
+function libCatalogSignature() {
+  if (!LIB_BY_ID) return '';
+  return Object.keys(LIB_BY_ID).sort().map(id => { const x = LIB_BY_ID[id]; return id + '|' + (x.estado || '') + '|' + (x.nombre_es || '') + '|' + (x.nombre_en || '') + '|' + (x.foto_url || ''); }).join(';')
+    + '#' + (LIB_OWN || []).length + '#' + (LIB_PENDING || []).length;
+}
+async function libRevalidate() {
+  if (LIB_STATE !== 'ok' || LIB_REVALIDATING) return;
+  if (!LIB_LOADED_AT || Date.now() - LIB_LOADED_AT < LIB_REVALIDATE_MS) return;
+  LIB_REVALIDATING = true;
+  const before = libCatalogSignature();
+  try {
+    await libFetchClassDocs();
+    LIB_LOADED_AT = Date.now();
+    if (libCatalogSignature() !== before) {
+      const sec = $('library-section');
+      if (sec && sec.style.display !== 'none') { try { libRenderTray(); libAdminRenderList(); libRenderMine(); } catch {} }
+      try { libRefreshOpenRows(); } catch {}
+    }
+  } catch {}
+  LIB_REVALIDATING = false;
+}
+document.addEventListener('visibilitychange', () => { if (document.visibilityState === 'visible') libRevalidate(); });
+window.addEventListener('pageshow', () => { libRevalidate(); });
 /* LECTURA POR CLASES de exercise_library (Biblioteca comunitaria,
    2026-10-24) — la misma lección que el rediseño de N-09 con las
    plantillas: las reglas del paquete gobiernan la lectura POR
@@ -18004,7 +18048,7 @@ document.addEventListener('keydown', e => { if (e.key === 'Escape') shareClose()
  *  - El SW (sw.js) solo cachea la cáscara del mismo origen en modo
  *    RED PRIMERO: Auth/Firestore/Worker jamás pasan por la caché.
  * ================================================================ */
-const PWA_SW_VERSION = '20261026-foto-tarjeta';
+const PWA_SW_VERSION = '20261026-refresco-biblioteca';
 let pwaDeferredPrompt = null;
 function pwaIsStandalone() {
   try {
