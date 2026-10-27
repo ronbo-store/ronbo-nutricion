@@ -17347,12 +17347,16 @@ function renderPendings() {
    2026-10-27: «quiero borrar esos estados infinitos, solamente
    quiero dejar un checklist de las comidas que he realizado en el
    día»). Sustituye en el panel del alumno a la antigua lista-rastro
-   «Estados»: exactamente tres filas — Desayuno · Almuerzo · Cena —
+   «Estados»: las comidas del día — Desayuno · Almuerzo · Cena —
    con ✓ si la comida está registrada en el día de registro en
-   curso, ✗ si no está registrada y ya pasó su hora configurada
+   curso y ✗ si no está registrada y ya pasó su hora configurada
    (las mismas horas y el mismo instante que usa el motor de
-   pendientes: pendMealWhen con el corte configurado) y ○ si aún
-   no llega su hora. SOLO PRESENTACIÓN: sale de MEALS y PEND_CFG ya
+   pendientes: pendMealWhen con el corte configurado). CORRECCIÓN
+   de Ronald (2026-10-27 03:01): si la hora de una comida aún no
+   llega y no está registrada, su fila NI SIQUIERA SE PINTA — el
+   estado ○ que añadió el paquete original no es su modelo; y si
+   ninguna comida aplica todavía, el bloque entero no se pinta.
+   SOLO PRESENTACIÓN: sale de MEALS y PEND_CFG ya
    cargados en memoria — no lee ni escribe nada en Firestore, y el
    motor de pendientes, sus marcas y el rastro interno (traces de
    pendCompute) quedan intactos para la vista del entrenador y el
@@ -17366,10 +17370,12 @@ function pendMealsChecklistHTML(regDay, now) {
   };
   const rows = PEND_MAIN_MEALS.map(name => {
     const logged = (MEALS[regDay] || []).some(x => x.meal === name);
-    const st = logged ? 'done' : (pendMealWhen(regDay, timeOf(name), cfg.cutoff) > now ? 'todo' : 'missed');
-    const mark = st === 'done' ? '✓' : st === 'missed' ? '✗' : '○';
+    if (!logged && pendMealWhen(regDay, timeOf(name), cfg.cutoff) > now) return '';
+    const st = logged ? 'done' : 'missed';
+    const mark = logged ? '✓' : '✗';
     return `<li class="pend-meal-row pend-meal-${st}"><span class="pend-meal-mark">${mark}</span> ${esc(t('pend.mealName.' + name))}</li>`;
   }).join('');
+  if (!rows) return '';
   return `<div class="pend-meals"><p class="pend-cfg-h">${esc(t('pend.mealsToday'))}</p><ul class="pend-meals-list">${rows}</ul></div>`;
 }
 
@@ -18401,7 +18407,7 @@ document.addEventListener('keydown', e => { if (e.key === 'Escape') shareClose()
  *  - El SW (sw.js) solo cachea la cáscara del mismo origen en modo
  *    RED PRIMERO: Auth/Firestore/Worker jamás pasan por la caché.
  * ================================================================ */
-const PWA_SW_VERSION = '20261027-botones-cronometro';
+const PWA_SW_VERSION = '20261027-correccion-checklist';
 let pwaDeferredPrompt = null;
 function pwaIsStandalone() {
   try {
