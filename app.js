@@ -12237,8 +12237,22 @@ function trainShareModel(plan, logs, di, iso) {
        plan o foto_url de la biblioteca por exerciseId). */
     return { name: trainExName(ex), detail: ex.note ? (spec ? spec + ' · ' + ex.note : ex.note) : spec, done: doneSet.has(ei), photo: trainExPhoto(ex) || '' };
   });
+  /* LLAMITA EN LA TARJETA (2026-10-27, pedido de Ronald): el quemado
+     del día sale de LA MISMA fuente que la llamita de la app —
+     actDayView(iso).extras, el kcalExtraTotal guardado del día
+     (sesión cerrada estimada + actividades manuales sumables) — sin
+     un segundo cálculo y con su mismo redondeo. Solo hay cifra si
+     existe de verdad: módulo sin cargar, día sin registro o total 0
+     (p. ej. sesión cerrada sin duración y sin actividades) → null y
+     la tarjeta NO pinta la línea: nada de ceros inventados. */
+  let burnedKcal = null;
+  if (ACT_LOADED) {
+    const bv = actDayView(iso);
+    if (bv && bv.extras > 0) burnedKcal = Math.round(bv.extras);
+  }
   return { label: day.label || ('Día ' + (di + 1)), dateISO: iso, exercises,
-    doneCount: exercises.filter(e => e.done).length, total: exercises.length };
+    doneCount: exercises.filter(e => e.done).length, total: exercises.length,
+    burnedKcal };
 }
 function trainShareRowHTML(di, iso) {
   return `<div class="train-share-row"><button type="button" class="btn-ghost btn-sm" data-train-share="${di}|${iso}">📣 ${t('shareW.btn')}</button></div>`;
@@ -19185,11 +19199,24 @@ function shareDrawWorkout(ctx, W, H, d) {
     shareRR(ctx, MX, barY, Math.max(barH, barW * frac), barH, barH / 2); ctx.fill();
   }
   ctx.restore();
+  /* LLAMITA (2026-10-27): el quemado del día bajo la barra de
+     progreso, centrado, en el lenguaje de la tarjeta (🔥 + la clave
+     de la propia llamita, act.flameBurned: «quemado hoy» / «burned
+     today», con la cifra exacta de la app). SOLO si el modelo trae
+     cifra real; sin ella burnShift = 0 y la geometría queda byte a
+     byte la v7. Con línea, filas y franja bajan burnShift y el alto
+     de fila se recalcula solo: la última nunca toca la divisoria. */
+  const burnShift = d.burnedKcal ? (cp ? 50 : 62) : 0;
+  if (d.burnedKcal) {
+    shareTxt(ctx, '🔥 ' + t('act.flameBurned') + ': ' + fmt(d.burnedKcal) + ' kcal', W / 2,
+      barY + barH + (cp ? 34 : 44), shareCtxFont(700, cp ? 27 : 33), '#FFE3B3',
+      { align: 'center', shadowColor: 'rgba(255,150,30,.55)', shadowBlur: 14 });
+  }
   /* franja del mensaje del día (solo icono + frase, si hay banco) */
   const msg = shareMsgRevealedFor(d.dateISO);
-  let rowsTop = barY + (cp ? 40 : 48);
+  let rowsTop = barY + (cp ? 40 : 48) + burnShift;
   if (msg) {
-    const stripTop = barY + (cp ? 28 : 34);
+    const stripTop = barY + (cp ? 28 : 34) + burnShift;
     const phrasePx = cp ? 26 : 30, lineH = cp ? 34 : 40;
     ctx.font = 'italic 500 ' + phrasePx + 'px ' + SHARE_FONT;
     const maxPhraseW = W - (MX + 104) - MX - 10;
@@ -19300,6 +19327,7 @@ function shareRender() {
     const msg = shareMsgRevealedFor(d.dateISO);
     summary = t('shareW.lab') + ' · ' + d.label + ' · ' + shareDayLabel(d.dateISO) + ' · ' +
       (d.total > 0 && d.doneCount >= d.total ? t('shareW.done') : t('shareW.progress', { x: d.doneCount, y: d.total })) +
+      (d.burnedKcal ? ' · 🔥 ' + t('act.flameBurned') + ': ' + fmt(d.burnedKcal) + ' kcal' : '') +
       (msg ? ' · ' + msg.icon + ' ' + msg.text : '') +
       ' · ronbo.fit #MiEntrenamientoRonboFit';
   } else if (SHARE.type === 'week') {
@@ -19413,7 +19441,7 @@ document.addEventListener('keydown', e => { if (e.key === 'Escape') shareClose()
  *  - El SW (sw.js) solo cachea la cáscara del mismo origen en modo
  *    RED PRIMERO: Auth/Firestore/Worker jamás pasan por la caché.
  * ================================================================ */
-const PWA_SW_VERSION = '20261027-cambios-sesion';
+const PWA_SW_VERSION = '20261027-tarjeta-llamita';
 let pwaDeferredPrompt = null;
 function pwaIsStandalone() {
   try {
