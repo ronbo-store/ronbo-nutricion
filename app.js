@@ -3418,6 +3418,54 @@ en: {
   'gm.prov': 'Calculated {date} from your data: expenditure {tdee} kcal/day ({eq}), latest weight {w} kg ({wdate}), height {h} cm, age {age}, activity multiplier {pal}. Protein factor {pf} g/kg for your goal. Educational reference, not medical advice.',
   'gm.sugarInfo': '🍬 <b>Where your sugar goal comes from:</b> the World Health Organization (WHO) guideline sets free sugars below 5% of total energy as its stricter reference. 5% of your calorie goal ({kcal} kcal) ÷ 4 kcal per gram = <b>{g} g/day</b>. It is a reference limit: the ring counts the sugars reported by each meal analysis.',
   'gm.eduNote': 'These goals are an educational reference calculated from your data. They are not medical advice.',
+  'gmi.title': 'Today’s goals',
+  'gmi.titleDate': 'Goals for {date}',
+  'gmi.ofDay': 'of the day',
+  'gmi.tapHint': 'Tap the ring to see the detail',
+  'gmi.open': 'See my goals in detail',
+  'gmi.ofKcal': '{a} of {b} kcal',
+  'gmi.leftToday': 'You have {n} kcal left today',
+  'gmi.leftDate': 'You have {n} kcal left',
+  'gmi.headOk': 'You are on track: there is still room to close the day within your goal.',
+  'gmi.headExact': 'You landed exactly on your goal. Clean close.',
+  'gmi.headOver': 'You went over by {n} kcal. Tomorrow is a new day to get back on track.',
+  'gmi.dayChip': 'Day: {level}',
+  'gmi.dayShort.base': 'normal',
+  'gmi.dayShort.exigente': 'demanding',
+  'gmi.dayShort.descanso': 'rest',
+  'gmi.objChip': 'Goal: {obj}',
+  'gmi.objShort.mantener': 'maintain',
+  'gmi.objShort.bajar': 'lose',
+  'gmi.objShort.ganar': 'gain',
+  'gmi.focusChip': 'Focus: {focus}',
+  'gmi.objBlockTitle': 'YOUR GOAL FOR YOUR BODY',
+  'gmi.objTitle.mantener.general': 'Stay at your weight, strong and steady',
+  'gmi.objTitle.bajar.general': 'Lose fat, step by step',
+  'gmi.objTitle.ganar.general': 'Build muscle, consistently',
+  'gmi.objTitle.bajar.recomposicion': 'Lose fat, protect your muscle',
+  'gmi.objTitle.mantener.recomposicion': 'Same weight, better composition',
+  'gmi.objTitle.ganar.recomposicion': 'Gain muscle with minimal fat',
+  'gmi.objTitle.mantener.competencia': 'Hold your shape into competition',
+  'gmi.objTitle.bajar.competencia': 'Cut down to your best stage shape',
+  'gmi.objTitle.ganar.competencia': 'Build stage muscle',
+  'gmi.sumTitle': 'EXECUTIVE SUMMARY · IN HUMAN TERMS',
+  'gmi.sumIntent.mantener.general': 'You want to stay at your weight and feel strong every day.',
+  'gmi.sumIntent.bajar.general': 'You want to see and feel yourself lighter, without rushing.',
+  'gmi.sumIntent.ganar.general': 'You want to gain muscle and strength, eating enough to grow.',
+  'gmi.sumIntent.bajar.recomposicion': 'You want to see and feel yourself lighter without losing muscle.',
+  'gmi.sumIntent.mantener.recomposicion': 'You want to trade fat for muscle at the same weight.',
+  'gmi.sumIntent.ganar.recomposicion': 'You want to gain muscle while keeping fat in check.',
+  'gmi.sumIntent.bajar.competencia': 'You are preparing to step on stage at your leanest.',
+  'gmi.sumIntent.ganar.competencia': 'You are building the muscle you will show on stage.',
+  'gmi.sumIntent.mantener.competencia': 'You are holding your shape on the road to your competition.',
+  'gmi.sumRoute': 'Today you are on track: you are at {pct}% and you have {left} kcal left to close the day within your goal.',
+  'gmi.sumRouteDone': 'You closed the day right at your goal: {pct}% complete.',
+  'gmi.sumRouteOver': 'Today you went over by {over} kcal ({pct}% of your goal). Tomorrow is a new day to get back on track.',
+  'gmi.sumLagging': 'What is furthest behind: {metric} ({mpct}% of its goal).',
+  'gmi.met.prot': 'protein',
+  'gmi.met.carb': 'carbohydrates',
+  'gmi.met.gras': 'fats',
+  'gmi.foundNote': 'With a scientific basis: energy by Mifflin-St Jeor · protein ISSN 2017 · sugars WHO 5% · carbs and fats per Helms et al. They are recalculated from your weight and your goal.',
   'gm.paceTitle': 'Your weight-loss pace',
   'gm.paceSuggest': 'Suggest a pace (kcal/day below your maintenance)',
   'gm.paceSuggestBtn': 'Send suggestion',
@@ -5113,6 +5161,54 @@ es: {
   'gm.prov': 'Calculadas el {date} desde tus datos: gasto {tdee} kcal/día ({eq}), último peso {w} kg ({wdate}), talla {h} cm, edad {age}, multiplicador de actividad {pal}. Factor de proteína {pf} g/kg según tu objetivo. Referencia educativa, no consejo médico.',
   'gm.sugarInfo': '🍬 <b>De dónde sale tu meta de azúcares:</b> la guía de la Organización Mundial de la Salud (OMS) fija los azúcares libres por debajo del 5% de la energía total como su referencia más estricta. El 5% de tu meta de calorías ({kcal} kcal) ÷ 4 kcal por gramo = <b>{g} g/día</b>. Es un límite de referencia: el anillo cuenta los azúcares que reporta el análisis de cada comida.',
   'gm.eduNote': 'Estas metas son una referencia educativa calculada desde tus datos. No son consejo médico.',
+  'gmi.title': 'Metas de hoy',
+  'gmi.titleDate': 'Metas del {date}',
+  'gmi.ofDay': 'del día',
+  'gmi.tapHint': 'Toca el anillo para ver el detalle',
+  'gmi.open': 'Ver el detalle de mis metas',
+  'gmi.ofKcal': '{a} de {b} kcal',
+  'gmi.leftToday': 'Te quedan {n} kcal hoy',
+  'gmi.leftDate': 'Te quedan {n} kcal',
+  'gmi.headOk': 'Vas bien: aún tienes margen para cerrar el día sin pasarte de tu meta.',
+  'gmi.headExact': 'Llegaste justo a tu meta. Cierre limpio.',
+  'gmi.headOver': 'Te pasaste por {n} kcal. Mañana es un día nuevo para volver a la ruta.',
+  'gmi.dayChip': 'Día: {level}',
+  'gmi.dayShort.base': 'normal',
+  'gmi.dayShort.exigente': 'exigente',
+  'gmi.dayShort.descanso': 'descanso',
+  'gmi.objChip': 'Objetivo: {obj}',
+  'gmi.objShort.mantener': 'mantener',
+  'gmi.objShort.bajar': 'bajar',
+  'gmi.objShort.ganar': 'ganar',
+  'gmi.focusChip': 'Enfoque: {focus}',
+  'gmi.objBlockTitle': 'TU OBJETIVO CON TU CUERPO',
+  'gmi.objTitle.mantener.general': 'Mantenerte en tu peso, fuerte y estable',
+  'gmi.objTitle.bajar.general': 'Bajar grasa, paso a paso',
+  'gmi.objTitle.ganar.general': 'Ganar músculo, con constancia',
+  'gmi.objTitle.bajar.recomposicion': 'Bajar grasa, cuidar el músculo',
+  'gmi.objTitle.mantener.recomposicion': 'El mismo peso, mejor composición',
+  'gmi.objTitle.ganar.recomposicion': 'Ganar músculo con la mínima grasa',
+  'gmi.objTitle.mantener.competencia': 'Llegar en forma a la competencia',
+  'gmi.objTitle.bajar.competencia': 'Definir hasta tu mejor forma de competencia',
+  'gmi.objTitle.ganar.competencia': 'Construir músculo de competencia',
+  'gmi.sumTitle': 'RESUMEN EJECUTIVO · EN HUMANO',
+  'gmi.sumIntent.mantener.general': 'Quieres mantenerte en tu peso y sentirte fuerte cada día.',
+  'gmi.sumIntent.bajar.general': 'Quieres verte y sentirte más ligero, sin prisas.',
+  'gmi.sumIntent.ganar.general': 'Quieres ganar músculo y fuerza, comiendo lo necesario para crecer.',
+  'gmi.sumIntent.bajar.recomposicion': 'Quieres verte y sentirte más ligero sin perder músculo.',
+  'gmi.sumIntent.mantener.recomposicion': 'Quieres cambiar grasa por músculo manteniendo tu peso.',
+  'gmi.sumIntent.ganar.recomposicion': 'Quieres ganar músculo manteniendo la grasa a raya.',
+  'gmi.sumIntent.bajar.competencia': 'Te preparas para subir al escenario en tu punto más definido.',
+  'gmi.sumIntent.ganar.competencia': 'Estás construyendo el músculo que mostrarás en el escenario.',
+  'gmi.sumIntent.mantener.competencia': 'Mantienes tu forma en el camino a tu competencia.',
+  'gmi.sumRoute': 'Hoy vas en ruta: llevas el {pct}% y te quedan {left} kcal para cerrar el día sin pasarte de tu meta.',
+  'gmi.sumRouteDone': 'Cerraste el día justo en tu meta: {pct}% completado.',
+  'gmi.sumRouteOver': 'Hoy te pasaste por {over} kcal ({pct}% de tu meta). Mañana es un día nuevo para volver a la ruta.',
+  'gmi.sumLagging': 'Lo que va más atrás: {metric} ({mpct}% de su meta).',
+  'gmi.met.prot': 'la proteína',
+  'gmi.met.carb': 'los carbohidratos',
+  'gmi.met.gras': 'las grasas',
+  'gmi.foundNote': 'Con fundamento científico: energía por Mifflin-St Jeor · proteína ISSN 2017 · azúcares OMS 5% · carbos y grasas según Helms et al. Se recalculan con tu peso y tu objetivo.',
   'gm.paceTitle': 'Tu ritmo al bajar de peso',
   'gm.paceSuggest': 'Sugiere un ritmo (kcal/día bajo tu mantenimiento)',
   'gm.paceSuggestBtn': 'Enviar sugerencia',
@@ -8246,11 +8342,141 @@ function gmCardSummary() {
     return objTxt ? t('nav.goalsSummary', { obj: objTxt, kcal: fmt(kcal) }) : (fmt(kcal) + ' kcal');
   } catch { return t('goals.none'); }
 }
-function gmHeadHTML() {
+function gmHeadHTML(hasRing) {
   let h = `<button type="button" class="gm-head" id="gm-toggle" aria-expanded="${GM_CARD_OPEN ? 'true' : 'false'}"><span class="history-title gm-head-title">${esc(t('gm.title'))}</span><span class="gm-chev" aria-hidden="true">${GM_CARD_OPEN ? '▴' : '▾'}</span></button>`;
-  if (!GM_CARD_OPEN) h += `<p class="progress-hint gm-sum">${esc(gmCardSummary())}</p>`;
+  /* Con anillo maestro (METAS EN UN ICONO) la línea-resumen no se
+     pinta recogida: el anillo ya dice el objetivo y las kcal del
+     día, más ricas. Sin anillo, la línea queda como siempre. */
+  if (!GM_CARD_OPEN && !hasRing) h += `<p class="progress-hint gm-sum">${esc(gmCardSummary())}</p>`;
   return h;
 }
+/* ============ METAS EN UN ICONO — ANILLO MAESTRO + VENTANA (2026-10-27) ============
+   Pedido de Ronald (correos 2026-10-27 16:52–17:26 CDT): las metas
+   del día reunidas en UN icono redondo y llamativo — un ANILLO
+   MAESTRO dentro de la tarjeta de metas — y al presionarlo, TODO
+   el detalle en una ventana flotante: las 5 metas con barras, el
+   tipo de día, el objetivo y el enfoque en lenguaje claro, un
+   resumen ejecutivo humano y la nota de fundamento. PROPUESTA 1
+   aprobada con su condición; MAQUETA v2 aprobada tal cual
+   («Aprobado», 17:26 CDT).
+   SOLO PRESENTACIÓN sobre el motor de siempre: las metas del día
+   salen de goalsDayGoalsFor (base guardada + variación §K de la
+   fecha visualizada, la MISMA que pinta la fila de anillos y la
+   ficha del cliente de AUTH-044) y el consumo de totals(). Ni un
+   número nuevo ni una llamada a la IA: el resumen se compone POR
+   PLANTILLA desde el objetivo/enfoque declarados (gmFocusEffective)
+   y las cifras reales del día — determinista, sin coste de tokens.
+   Sin metas fundadas (sin goalsProvenance del motor) NO hay anillo
+   ni resumen: la tarjeta queda como estaba (AUTH-031) y manda su
+   estado honesto.
+   INTEGRACIÓN CON AUTH-031: el anillo SUSTITUYE la cabecera visual
+   de la tarjeta — con anillo no se pinta la línea-resumen
+   (gmCardSummary), porque el anillo ya la dice más rica — y el
+   contenido previo (objetivo, enfoque, ritmo, editor) queda COMO
+   ESTABA, bajo su propio desplegable «Tus metas con fundamento».
+   La ventana es hermana de #ring-detail: mismo patrón de cierre
+   (✕, fondo o Escape) y un re-render la cierra. */
+function gmiDayData() {
+  try {
+    if (typeof UDATA === 'undefined' || !UDATA || !UDATA.goalsProvenance) return null;
+    const gv = (typeof GM_VIEW !== 'undefined' && GM_VIEW) ? GM_VIEW : { date: null, goals: null };
+    const iso = gv.date || (typeof todayISO === 'function' ? todayISO() : null);
+    if (!iso) return null;
+    const view = (gv.date === iso && gv.goals) ? gv : goalsDayGoalsFor(iso);
+    const goals = view.goals || {};
+    if (!(goals.kcal > 0)) return null;
+    const tot = (typeof totals === 'function') ? totals(iso) : { kcal: 0, prot: 0, carb: 0, azuc: 0, gras: 0 };
+    return { iso, goals, dayLevel: view.dayLevel || 'base', tot, pct: Math.round(tot.kcal / goals.kcal * 100), left: goals.kcal - tot.kcal };
+  } catch { return null; }
+}
+function gmiRingSVG(pct) {
+  const R = 52, C = 2 * Math.PI * R;
+  const frac = Math.max(0, Math.min(pct, 100)) / 100;
+  const color = pct > 100 ? '#DC2626' : '#0d9488';
+  return `<svg class="gmi-ring" viewBox="0 0 120 120" aria-hidden="true"><circle cx="60" cy="60" r="${R}" fill="none" stroke="#E9ECEF" stroke-width="13"/><circle cx="60" cy="60" r="${R}" fill="none" stroke="${color}" stroke-width="13" stroke-linecap="round" stroke-dasharray="${(frac * C).toFixed(1)} ${C.toFixed(1)}" transform="rotate(-90 60 60)"/><text x="60" y="66" text-anchor="middle" font-size="29" font-weight="800" fill="#1f2a44">${pct}%</text><text x="60" y="86" text-anchor="middle" font-size="12" fill="#6b7280">${esc(t('gmi.ofDay'))}</text></svg>`;
+}
+function gmiBarHTML(m, val, goal, inWindow) {
+  if (!(goal > 0)) return '';
+  const pct = Math.round(val / goal * 100);
+  const w = Math.max(0, Math.min(pct, 100));
+  const gv = m.key === 'azuc' ? '≤ ' + fmt(goal) : fmt(goal);
+  return `<div class="gmi-bar"><div class="gmi-bar-top">${inWindow ? `<span class="gmi-dot" style="background:${m.color}"></span>` : ''}<span class="gmi-bar-name">${esc(t('metric.' + m.key))}</span><span class="gmi-bar-nums">${fmt(val)} / ${gv} ${m.unit}</span>${inWindow ? `<span class="gmi-bar-pct" style="color:${m.color}">${pct}%</span>` : ''}</div><div class="gmi-bar-track"><div class="gmi-bar-fill" style="width:${w}%;background:${m.color}"></div></div></div>`;
+}
+function gmiIsToday(iso) { return iso === (typeof todayISO === 'function' ? todayISO() : ''); }
+function gmiTitleFor(iso) { return gmiIsToday(iso) ? t('gmi.title') : t('gmi.titleDate', { date: dateName(iso) }); }
+function gmiHeadHTML(d) {
+  const mini = ['prot', 'carb', 'azuc'].map(k => gmiBarHTML(METRICS.find(x => x.key === k), d.tot[k], d.goals[k], false)).join('');
+  const chip = t('gm.day.' + d.dayLevel);
+  return `<button type="button" class="gmi-head" id="gmi-open" aria-haspopup="dialog" aria-label="${esc(t('gmi.open'))}"><span class="gmi-head-top"><span class="gmi-head-title">🎯 ${esc(gmiTitleFor(d.iso))}</span><span class="gmi-chip">${esc(chip.charAt(0).toUpperCase() + chip.slice(1))}</span></span><span class="gmi-head-main">${gmiRingSVG(d.pct)}<span class="gmi-head-side"><span class="gmi-kcal"><b>${fmt(d.tot.kcal)}</b> / ${fmt(d.goals.kcal)} kcal</span>${mini}<span class="gmi-tap">${esc(t('gmi.tapHint'))} ›</span></span></span></button>`;
+}
+function gmiCombo() {
+  try {
+    const fx = gmFocusEffective(UDATA);
+    let obj = fx.objective;
+    if (!['mantener', 'bajar', 'ganar'].includes(obj)) obj = (UDATA && UDATA.goalObjective) || ((UDATA && UDATA.goalsProvenance) || {}).objective || '';
+    if (!['mantener', 'bajar', 'ganar'].includes(obj)) return null;
+    return { obj, focus: ['general', 'recomposicion', 'competencia'].includes(fx.focus) ? fx.focus : 'general', fx };
+  } catch { return null; }
+}
+function gmiSummaryParts(d) {
+  const c = gmiCombo(); if (!c) return null;
+  const intent = t('gmi.sumIntent.' + c.obj + '.' + c.focus);
+  let route;
+  if (d.left > 0) route = t('gmi.sumRoute', { pct: d.pct, left: fmt(d.left) });
+  else if (d.left === 0) route = t('gmi.sumRouteDone', { pct: d.pct });
+  else route = t('gmi.sumRouteOver', { pct: d.pct, over: fmt(-d.left) });
+  let lag = '', best = null;
+  ['prot', 'carb', 'gras'].forEach(k => { const g = d.goals[k]; if (g > 0) { const r = d.tot[k] / g; if (best === null || r < best.r) best = { k, r }; } });
+  if (best && Math.round(best.r * 100) < d.pct) lag = t('gmi.sumLagging', { metric: t('gmi.met.' + best.k), mpct: Math.round(best.r * 100) });
+  return { intent, route, lag };
+}
+function gmiWindowHTML(d) {
+  const chips = [`<span class="gmi-chip">${esc(t('gmi.dayChip', { level: t('gmi.dayShort.' + d.dayLevel) }))}</span>`];
+  const c = gmiCombo();
+  if (c) {
+    chips.push(`<span class="gmi-chip">${esc(t('gmi.objChip', { obj: t('gmi.objShort.' + c.obj) }))}</span>`);
+    chips.push(`<span class="gmi-chip">${esc(t('gmi.focusChip', { focus: t('gfocus.opt.' + c.focus) }))}</span>`);
+  }
+  let h = `<div class="gmi-chips">${chips.join('')}</div>`;
+  let line2 = '', line3 = '';
+  if (d.left > 0) { line2 = `<div class="gmi-left">${esc(t(gmiIsToday(d.iso) ? 'gmi.leftToday' : 'gmi.leftDate', { n: fmt(d.left) }))}</div>`; line3 = `<div class="gmi-head-note">${esc(t('gmi.headOk'))}</div>`; }
+  else if (d.left === 0) line2 = `<div class="gmi-left">${esc(t('gmi.headExact'))}</div>`;
+  else line2 = `<div class="gmi-left over">${esc(t('gmi.headOver', { n: fmt(-d.left) }))}</div>`;
+  h += `<div class="gmi-hero">${gmiRingSVG(d.pct)}<div class="gmi-hero-side"><div class="gmi-hero-kcal">${esc(t('gmi.ofKcal', { a: fmt(d.tot.kcal), b: fmt(d.goals.kcal) }))}</div>${line2}${line3}</div></div>`;
+  if (c) {
+    h += `<div class="gmi-objbox"><div class="gmi-objbox-k">${esc(t('gmi.objBlockTitle'))}</div><div class="gmi-objbox-t">${esc(t('gmi.objTitle.' + c.obj + '.' + c.focus))}</div><p class="gmi-objbox-s">${esc(t('gfocus.title'))}: ${esc(t('gfocus.opt.' + c.focus))} — ${esc(t('gfocus.expl.' + c.focus))}</p>`;
+    if (c.fx.source === 'competition-phase' && c.fx.phase) h += `<p class="gmi-objbox-s">${esc(t('gfocus.objFromPhase', { phase: t('gfocus.phase.' + c.fx.phase) }))}</p>`;
+    if (c.focus === 'competencia' && c.fx.pending) h += `<p class="gmi-objbox-s">${esc(t('gfocus.compPending'))}</p>`;
+    h += `</div>`;
+    const s = gmiSummaryParts(d);
+    if (s) h += `<div class="gmi-sumbox"><div class="gmi-sumbox-k">${esc(t('gmi.sumTitle'))}</div><p class="gmi-sumbox-t">${esc(s.intent)} ${esc(s.route)}${s.lag ? ' ' + esc(s.lag) : ''}</p></div>`;
+  }
+  h += `<div class="gmi-bars">` + METRICS.map(m => gmiBarHTML(m, d.tot[m.key], d.goals[m.key], true)).join('') + `</div>`;
+  h += `<p class="gmi-found">${esc(t('gmi.foundNote'))}</p>`;
+  return h;
+}
+function openGmiDetail() {
+  const box = $('gmi-detail'), body = $('gmi-body'), title = $('gmi-title');
+  if (!box || !body) return;
+  const d = gmiDayData();
+  if (!d) {
+    /* Sin metas fundadas: la ventana muestra el estado honesto de
+       siempre (el mismo texto de la tarjeta), sin anillo ni resumen. */
+    if (title) title.textContent = t('gmi.title');
+    body.innerHTML = `<p class="ring-detail-empty">${esc(t('gm.needData'))}</p>`;
+  } else {
+    if (title) title.textContent = gmiTitleFor(d.iso);
+    body.innerHTML = gmiWindowHTML(d);
+  }
+  const bd = $('gmi-backdrop'); if (bd) bd.style.display = '';
+  box.style.display = '';
+}
+function closeGmiDetail() {
+  const d = $('gmi-detail'), b = $('gmi-backdrop');
+  if (d) d.style.display = 'none';
+  if (b) b.style.display = 'none';
+}
+
 /* ---------- Tarjeta del alumno (junto a «Tus metas diarias») ---------- */
 function renderGoalsEngine() {
   const box = $('goals-engine'); if (!box || !auth.currentUser) return;
@@ -8258,7 +8484,8 @@ function renderGoalsEngine() {
   const obj = UDATA.goalObjective || '';
   const fx = gmFocusEffective(UDATA);
   const objBtns = ['mantener', 'bajar', 'ganar'].map(o => `<button type="button" class="btn-ghost btn-sm" data-gm-obj="${o}"${obj === o ? ' style="border-color:#0d9488;font-weight:700"' : ''}>${esc(t('gm.obj.' + o))}</button>`).join(' ');
-  let html = `<div class="fb3-card" id="gm-card">` + gmHeadHTML();
+  const gmiD = gmiDayData();
+  let html = `<div class="fb3-card" id="gm-card">` + (gmiD ? gmiHeadHTML(gmiD) : '') + gmHeadHTML(!!gmiD);
   if (GM_CARD_OPEN) {
   html += `<p class="progress-hint">${esc(t('gm.objective'))}</p><div class="eval-actions" style="justify-content:flex-start;gap:8px;flex-wrap:wrap">${objBtns}</div>`;
   html += gmFocusSectionHTML();
@@ -8319,6 +8546,7 @@ function renderGoalsEngine() {
   html += `</div>`;
   box.innerHTML = html;
   const tg = $('gm-toggle'); if (tg) tg.onclick = () => { GM_CARD_OPEN = !GM_CARD_OPEN; renderGoalsEngine(); };
+  const go = $('gmi-open'); if (go) go.onclick = () => openGmiDetail();
   if (GM_CARD_OPEN) {
     box.querySelectorAll('[data-gm-obj]').forEach(b => b.onclick = () => gmSetObjective(b.dataset.gmObj));
     try { gmFocusWire(); } catch {}
@@ -15744,6 +15972,9 @@ function closeRingDetail() {
 $('btn-ring-detail-close').addEventListener('click', closeRingDetail);
 $('ring-detail-backdrop').addEventListener('click', closeRingDetail);
 document.addEventListener('keydown', e => { if (e.key === 'Escape') closeRingDetail(); });
+$('btn-gmi-close').addEventListener('click', closeGmiDetail);
+$('gmi-backdrop').addEventListener('click', closeGmiDetail);
+document.addEventListener('keydown', e => { if (e.key === 'Escape') closeGmiDetail(); });
 function notesFor(tot) {
   /* MOTOR CONSERVADO (2026-10-21): la vista principal ya no lo emite
      por instrucción de Ronald («por ahora»); la función y sus textos
@@ -16436,6 +16667,7 @@ function render(date) {
   const tot = totals(date);
   const vals = { kcal: tot.kcal, prot: tot.prot, carb: tot.carb, azuc: tot.azuc, gras: tot.gras };
   closeRingDetail(); // un re-render (otra fecha, otro idioma) cierra el detalle abierto: no queda ventana con datos de otro día
+  closeGmiDetail(); // Ídem la ventana del anillo maestro de metas: jamás datos de otro día ni de otro idioma
   $('rings').innerHTML = METRICS.map(m => {
     const goal = (m.key === 'carb' || m.key === 'gras') && typeof goalOfDay === 'function' ? goalOfDay(m.key, date) : goalOf(m.key);
     /* Sub compacto: con meta «consumo/meta» (la unidad solo en gramos;
@@ -19735,7 +19967,7 @@ document.addEventListener('keydown', e => { if (e.key === 'Escape') shareClose()
  *  - El SW (sw.js) solo cachea la cáscara del mismo origen en modo
  *    RED PRIMERO: Auth/Firestore/Worker jamás pasan por la caché.
  * ================================================================ */
-const PWA_SW_VERSION = '20261027-botones-ficha';
+const PWA_SW_VERSION = '20261027-metas-icono';
 let pwaDeferredPrompt = null;
 function pwaIsStandalone() {
   try {

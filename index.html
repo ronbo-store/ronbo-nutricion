@@ -21,7 +21,7 @@
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-title" content="RONBO FIT">
 <meta name="apple-mobile-web-app-status-bar-style" content="default">
-<link rel="stylesheet" href="styles.css?v=20261027-botones-ficha">
+<link rel="stylesheet" href="styles.css?v=20261027-metas-icono">
 <script type="importmap">
 {
   "imports": {
@@ -462,6 +462,23 @@
       <button type="button" class="pend-close" id="btn-ring-detail-close" aria-label="Close" data-i18n-aria="client.close">✕</button>
     </div>
     <div id="ring-detail-body"></div>
+  </div>
+  <!-- METAS EN UN ICONO (2026-10-27): ventana flotante del anillo
+       maestro de la tarjeta de metas — las 5 metas del día
+       visualizado con sus barras, el tipo de día, el objetivo y el
+       enfoque en lenguaje claro, un resumen ejecutivo humano por
+       plantilla y la nota de fundamento. Mismo patrón que
+       #ring-detail (cierre: ✕, toque en el fondo o Escape; un
+       re-render la cierra). Solo presentación: lee las mismas
+       fuentes que la fila de anillos (goalsDayGoalsFor + totals),
+       sin escrituras ni llamadas nuevas. -->
+  <div class="ring-detail-backdrop" id="gmi-backdrop" style="display:none"></div>
+  <div class="ring-detail gmi-detail" id="gmi-detail" style="display:none" role="dialog" aria-label="Today's goals" data-i18n-aria="gmi.title">
+    <div class="ring-detail-head">
+      <h2 id="gmi-title"></h2>
+      <button type="button" class="pend-close" id="btn-gmi-close" aria-label="Close" data-i18n-aria="client.close">✕</button>
+    </div>
+    <div id="gmi-body"></div>
   </div>
   <!-- Registro de actividad — capa FLOTANTE (rediseño 2026-10-24):
        todo vive junto al dock, dentro de #tab-track, sin navegar
@@ -1149,6 +1166,6 @@
 <div id="toast" class="toast"></div>
 <div id="print-card" aria-hidden="true"></div>
 
-<script type="module" src="app.js?v=20261027-botones-ficha"></script>
+<script type="module" src="app.js?v=20261027-metas-icono"></script>
 </body>
 </html>

@@ -58,6 +58,48 @@ body { font-family: -apple-system, "Segoe UI", Roboto, Helvetica, Arial, sans-se
 .ring-contrib.item { padding-left: 18px; font-size: 12.5px; border-top: 1px dashed #eef1f4; }
 .ring-contrib.item .rc-food { color: #4b5563; }
 .ring-detail-empty { text-align: left; font-size: 13px; color: #6b7280; padding: 8px 0 2px; }
+/* ===== METAS EN UN ICONO — anillo maestro + ventana (2026-10-27) =====
+   Cabecera de la tarjeta de metas (#gmi-open): anillo grande con el
+   % del día, las kcal y tres mini-barras; la ventana (#gmi-detail)
+   reusa el armazón de .ring-detail con el interior alineado a la
+   izquierda: chips, héroe con anillo, bloque de objetivo, resumen
+   ejecutivo oscuro, las 5 barras y la nota de fundamento. */
+.gmi-head { display: block; width: 100%; background: none; border: 0; border-bottom: 1px solid #e5e7eb; padding: 0 0 10px; margin: 0 0 10px; cursor: pointer; text-align: left; color: inherit; font: inherit; }
+.gmi-head-top { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; margin-bottom: 8px; }
+.gmi-head-title { font-size: 16px; font-weight: 700; color: #1f2a44; }
+.gmi-chip { background: #e6f4f1; color: #0d7a6f; border-radius: 999px; padding: 3px 10px; font-size: 12px; font-weight: 600; white-space: nowrap; }
+.gmi-head-main { display: flex; gap: 14px; align-items: center; }
+.gmi-ring { width: 118px; height: 118px; flex: none; display: block; }
+.gmi-head-side { flex: 1; min-width: 0; display: block; }
+.gmi-kcal { display: block; font-size: 15px; color: #6b7280; margin-bottom: 4px; }
+.gmi-kcal b { color: #1f2a44; font-size: 17px; }
+.gmi-bar { margin: 7px 0; }
+.gmi-bar-top { display: flex; align-items: baseline; gap: 6px; font-size: 13px; }
+.gmi-bar-name { color: #374151; text-transform: lowercase; }
+.gmi-bar-name::first-letter { text-transform: uppercase; }
+.gmi-bar-nums { margin-left: auto; color: #6b7280; font-weight: 600; white-space: nowrap; }
+.gmi-bar-pct { font-weight: 800; white-space: nowrap; }
+.gmi-dot { width: 9px; height: 9px; border-radius: 50%; flex: none; align-self: center; }
+.gmi-bar-track { height: 8px; border-radius: 999px; background: #E9ECEF; margin-top: 3px; overflow: hidden; }
+.gmi-bar-fill { height: 100%; border-radius: 999px; }
+.gmi-tap { display: block; margin-top: 8px; color: #0d9488; font-weight: 700; font-size: 13.5px; }
+.gmi-detail { text-align: left; }
+.gmi-chips { display: flex; gap: 6px; flex-wrap: wrap; margin-bottom: 12px; }
+.gmi-hero { display: flex; gap: 14px; align-items: center; background: #f2f7f6; border: 1px solid #e0ebe9; border-radius: 14px; padding: 12px 14px; margin-bottom: 12px; }
+.gmi-hero .gmi-ring { width: 84px; height: 84px; }
+.gmi-hero-side { flex: 1; min-width: 0; }
+.gmi-hero-kcal { font-size: 17px; font-weight: 800; color: #1f2a44; }
+.gmi-left { color: #0d9488; font-weight: 700; font-size: 14.5px; margin-top: 2px; }
+.gmi-left.over { color: #DC2626; }
+.gmi-head-note { color: #6b7280; font-size: 13px; margin-top: 3px; }
+.gmi-objbox { background: #f2f7f6; border: 1px solid #e0ebe9; border-radius: 14px; padding: 12px 14px; margin-bottom: 12px; }
+.gmi-objbox-k { color: #0d9488; font-size: 11.5px; font-weight: 800; letter-spacing: .6px; }
+.gmi-objbox-t { font-size: 19px; font-weight: 800; color: #1f2a44; margin: 3px 0; }
+.gmi-objbox-s { color: #374151; font-size: 13.5px; margin: 2px 0 0; }
+.gmi-sumbox { background: #1f2a44; border-radius: 14px; padding: 12px 14px; margin-bottom: 14px; }
+.gmi-sumbox-k { color: #7dd3c8; font-size: 11.5px; font-weight: 800; letter-spacing: .6px; }
+.gmi-sumbox-t { color: #fff; font-size: 14.5px; margin: 4px 0 0; line-height: 1.45; }
+.gmi-found { background: #f2f7f6; border-radius: 12px; padding: 10px 12px; color: #4b5563; font-size: 12.5px; margin: 12px 0 0; }
 .ring-svg { width: 150px; height: 150px; }
 .ring-box { margin-top: 10px; border-radius: 8px; padding: 8px 6px; font-size: 12px; line-height: 1.45; }
 .ring-box b { display: block; font-size: 13px; }
