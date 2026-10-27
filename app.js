@@ -1780,6 +1780,8 @@ en: {
   'install.ok': 'Got it',
   'install.once': 'We only show you this message the first time.',
   'install.close': 'Close',
+  'install.webviewIos': '<b>First:</b> you are in the {app} browser, where RONBO FIT can’t be installed. Tap the <b>⋯</b> menu and choose <b>“Open in Safari”</b>. Then, in Safari, follow the iPhone step below.',
+  'install.webviewAndroid': '<b>First:</b> you are in the {app} browser, where RONBO FIT can’t be installed. Tap the <b>⋮</b> menu and choose <b>“Open in Chrome”</b>. Then, in Chrome, follow the Android step below.',
   'auth.tabLogin': 'Sign in',
   'auth.tabRegister': 'Create account',
   'form.email': 'Email',
@@ -3246,6 +3248,10 @@ en: {
   /* Instalable PWA (2026-10-25): botón propio de instalación y guía iOS. */
   'pwa.installBtn': '📲 Install RONBO FIT',
   'pwa.iosText': 'To install the app: tap the Share button and then “Add to Home Screen”.',
+  'pwa.webviewTextIos': 'You’re inside another app, where the app can’t be installed: tap the ⋯ menu → “Open in Safari”, then Share → “Add to Home Screen”.',
+  'pwa.webviewTextAndroid': 'You’re inside another app, where the app can’t be installed: tap the ⋮ menu → “Open in Chrome”, then ⋮ → “Install app”.',
+  'pwa.copyLink': '📋 Copy link',
+  'pwa.copied': '✓ Link copied',
   'appinst.installed': 'Installed',
   'appinst.last': 'App on this device · last opened installed on the date shown',
   'appinst.noSignal': 'No install signal',
@@ -3449,6 +3455,8 @@ es: {
   'install.ok': 'Entendido',
   'install.once': 'Solo te mostramos este mensaje la primera vez.',
   'install.close': 'Cerrar',
+  'install.webviewIos': '<b>Primero:</b> estás en el navegador de {app}, donde RONBO FIT no se puede instalar. Toca el menú <b>⋯</b> y elige <b>«Abrir en Safari»</b>. Después, ya en Safari, sigue el paso de iPhone de abajo.',
+  'install.webviewAndroid': '<b>Primero:</b> estás en el navegador de {app}, donde RONBO FIT no se puede instalar. Toca el menú <b>⋮</b> y elige <b>«Abrir en Chrome»</b>. Después, ya en Chrome, sigue el paso de Android de abajo.',
   'auth.tabLogin': 'Entrar',
   'auth.tabRegister': 'Crear cuenta',
   'form.email': 'Correo',
@@ -4916,6 +4924,10 @@ es: {
   /* Instalable PWA (2026-10-25): botón propio de instalación y guía iOS. */
   'pwa.installBtn': '📲 Instalar RONBO FIT',
   'pwa.iosText': 'Para instalar la app: toca el botón Compartir y luego «Añadir a pantalla de inicio».',
+  'pwa.webviewTextIos': 'Estás dentro de otra app, donde la app no se puede instalar: toca el menú ⋯ → «Abrir en Safari», luego Compartir → «Añadir a pantalla de inicio».',
+  'pwa.webviewTextAndroid': 'Estás dentro de otra app, donde la app no se puede instalar: toca el menú ⋮ → «Abrir en Chrome», luego ⋮ → «Instalar app».',
+  'pwa.copyLink': '📋 Copiar enlace',
+  'pwa.copied': '✓ Enlace copiado',
   'appinst.installed': 'Instalada',
   'appinst.last': 'App en este dispositivo · última apertura instalada en la fecha mostrada',
   'appinst.noSignal': 'Sin señal de instalación',
@@ -5198,6 +5210,10 @@ function setLang(l) {
      en el idioma anterior si se cambia de idioma con el registro
      abierto. Repintado local, seguro también sin sesión. */
   try { regRenderTrainerOptions(); } catch {}
+  /* Superficies de instalación: al cambiar de idioma se repintan
+     con su variante (Safari o navegador interno) ya elegida. */
+  try { pwaPaintInstall(); } catch {}
+  try { installCardPaintVariant(); } catch {}
   if (typeof auth !== 'undefined' && auth && auth.currentUser) {
     /* E2 (17/10/2026): re-render inmediato, con los datos YA en
        memoria, de los paneles que se pintan desde el estado local
@@ -19100,19 +19116,70 @@ document.addEventListener('keydown', e => { if (e.key === 'Escape') shareClose()
  *  - El SW (sw.js) solo cachea la cáscara del mismo origen en modo
  *    RED PRIMERO: Auth/Firestore/Worker jamás pasan por la caché.
  * ================================================================ */
-const PWA_SW_VERSION = '20261027-plan-calendario';
+const PWA_SW_VERSION = '20261027-instalacion-webview';
 let pwaDeferredPrompt = null;
 function pwaIsStandalone() {
   try {
     return window.matchMedia('(display-mode: standalone)').matches || window.navigator.standalone === true;
   } catch (e) { return false; }
 }
+function pwaIsIOSDevice() {
+  try {
+    const ua = navigator.userAgent || '';
+    return /iphone|ipad|ipod/i.test(ua) || (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
+  } catch (e) { return false; }
+}
 function pwaIsIOSSafari() {
   try {
     const ua = navigator.userAgent || '';
-    const ios = /iphone|ipad|ipod/i.test(ua) || (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
-    return ios && /safari/i.test(ua) && !/crios|fxios|edgios|opios/i.test(ua);
+    return pwaIsIOSDevice() && /safari/i.test(ua) && !/crios|fxios|edgios|opios/i.test(ua);
   } catch (e) { return false; }
+}
+/* NAVEGADORES INTERNOS (2026-10-27, reporte de Ronald con captura
+   desde el enlace de Instagram): las apps que abren los enlaces en
+   su propio navegador (Instagram, Facebook, WhatsApp, TikTok, LINE,
+   Snapchat) NO pueden instalar una PWA — no existe el botón
+   Compartir ni «Añadir a pantalla de inicio», y la guía de Safari
+   dejaba al usuario nuevo atascado. Devuelve el nombre visible de
+   la app o null si es un navegador normal. Detección SOLO por user
+   agent; manda sobre las superficies de instalación, donde la
+   única salida real es abrir la página en Safari/Chrome. */
+function pwaInAppBrowser() {
+  try {
+    const ua = navigator.userAgent || '';
+    if (/instagram/i.test(ua)) return 'Instagram';
+    if (/fbav|fban|fb_iab|fbios|fb4a/i.test(ua)) return 'Facebook';
+    if (/whatsapp/i.test(ua)) return 'WhatsApp';
+    if (/musical_ly|tiktok|bytedancewebview|snssdk/i.test(ua)) return 'TikTok';
+    if (/line\//i.test(ua)) return 'LINE';
+    if (/snapchat/i.test(ua)) return 'Snapchat';
+    return null;
+  } catch (e) { return null; }
+}
+/* Copiar el enlace de la app (variante de navegador interno): vía
+   moderna y, si falla, el respaldo clásico de la casa (área de
+   texto + execCommand). La confirmación vive en el propio botón:
+   «✓ Enlace copiado»; si ni así se pudo, el botón muestra la URL
+   para copiarla a mano — jamás un éxito fingido. */
+const PWA_APP_URL = 'https://fit.ronbo.store';
+async function pwaCopyAppLink(btn) {
+  let ok = false;
+  try { await navigator.clipboard.writeText(PWA_APP_URL); ok = true; }
+  catch (e) {
+    try {
+      const ta = document.createElement('textarea');
+      ta.value = PWA_APP_URL;
+      ta.style.position = 'fixed'; ta.style.opacity = '0';
+      document.body.appendChild(ta); ta.select();
+      ok = document.execCommand('copy');
+      ta.remove();
+    } catch (e2) { ok = false; }
+  }
+  if (btn) {
+    btn.textContent = ok ? t('pwa.copied') : PWA_APP_URL;
+    setTimeout(() => { try { btn.textContent = t('pwa.copyLink'); } catch (e) {} }, 2600);
+  }
+  return ok;
 }
 function pwaGuideDismissed() {
   try { return localStorage.getItem('ronbofit-pwa-guide-dismissed') === '1'; } catch (e) { return false; }
@@ -19120,16 +19187,34 @@ function pwaGuideDismissed() {
 function pwaPaintInstall() {
   const standalone = pwaIsStandalone();
   const hasPrompt = !!pwaDeferredPrompt;
-  const iosGuide = !standalone && pwaIsIOSSafari();
+  const webview = pwaInAppBrowser();
+  /* La guía aparece en Safari iOS y, con su variante de salida, en
+     navegadores internos (que jamás instalan: ahí la guía de Safari
+     era imposible de seguir). En navegador interno la guía manda
+     sobre el botón de instalación si el prompt existiera. */
+  const iosGuide = !standalone && (pwaIsIOSSafari() || !!webview);
+  /* La guía es la MISMA etiqueta en las dos superficies: se conmuta
+     su clave data-i18n (Safari ↔ navegador interno, por plataforma)
+     para que applyI18n la repinte bien al cambiar de idioma. */
+  const paintGuide = (el) => {
+    if (!el) return;
+    const key = webview ? (pwaIsIOSDevice() ? 'pwa.webviewTextIos' : 'pwa.webviewTextAndroid') : 'pwa.iosText';
+    el.setAttribute('data-i18n', key);
+    el.innerHTML = t(key);
+  };
   /* Pantalla de acceso: botón (Android/Chrome) o guía (iOS), salvo descarte. */
   const box = document.getElementById('pwa-install-auth');
   if (box) {
     const btn = document.getElementById('pwa-install-btn');
     const guide = document.getElementById('pwa-ios-guide');
-    const showBox = !standalone && !pwaGuideDismissed() && (hasPrompt || iosGuide);
+    const copy = document.getElementById('pwa-copy-link');
+    const showBtn = hasPrompt && !webview;
+    const showGuide = !showBtn && iosGuide;
+    const showBox = !standalone && !pwaGuideDismissed() && (showBtn || showGuide);
     box.style.display = showBox ? '' : 'none';
-    if (btn) btn.style.display = showBox && hasPrompt ? '' : 'none';
-    if (guide) guide.style.display = showBox && !hasPrompt && iosGuide ? '' : 'none';
+    if (btn) btn.style.display = showBox && showBtn ? '' : 'none';
+    if (guide) { paintGuide(guide); guide.style.display = showBox && showGuide ? '' : 'none'; }
+    if (copy) copy.style.display = showBox && showGuide && webview ? '' : 'none';
   }
   /* «Mi perfil»: fila de estado — botón, guía corta o «instalada». */
   const row = document.getElementById('pwa-profile-row');
@@ -19137,10 +19222,14 @@ function pwaPaintInstall() {
     const btn = document.getElementById('pwa-profile-btn');
     const ios = document.getElementById('pwa-profile-ios');
     const done = document.getElementById('pwa-profile-installed');
-    if (btn) btn.style.display = !standalone && hasPrompt ? '' : 'none';
-    if (ios) ios.style.display = !standalone && !hasPrompt && iosGuide ? '' : 'none';
+    const copy = document.getElementById('pwa-profile-copy');
+    const showBtn = !standalone && hasPrompt && !webview;
+    const showGuide = !standalone && !showBtn && iosGuide;
+    if (btn) btn.style.display = showBtn ? '' : 'none';
+    if (ios) { paintGuide(ios); ios.style.display = showGuide ? '' : 'none'; }
+    if (copy) copy.style.display = showGuide && webview ? '' : 'none';
     if (done) done.style.display = standalone ? '' : 'none';
-    row.style.display = (standalone || hasPrompt || iosGuide) ? '' : 'none';
+    row.style.display = (standalone || showBtn || showGuide) ? '' : 'none';
   }
 }
 async function pwaDoInstall() {
@@ -19163,6 +19252,12 @@ async function pwaDoInstall() {
       try { localStorage.setItem('ronbofit-pwa-guide-dismissed', '1'); } catch (e) {}
       pwaPaintInstall();
     });
+    const c1 = document.getElementById('pwa-copy-link');
+    if (c1) c1.addEventListener('click', () => pwaCopyAppLink(c1));
+    const c2 = document.getElementById('pwa-profile-copy');
+    if (c2) c2.addEventListener('click', () => pwaCopyAppLink(c2));
+    const c3 = document.getElementById('install-card-copy');
+    if (c3) c3.addEventListener('click', () => pwaCopyAppLink(c3));
     window.addEventListener('beforeinstallprompt', (e) => {
       e.preventDefault();
       pwaDeferredPrompt = e;
@@ -19332,12 +19427,34 @@ function appInstallNoteHtml(u) {
  *  - Los textos viven en el diccionario (claves install.*): se
  *    pintan con applyI18n() y se repintan al cambiar el idioma
  *    con la tarjeta abierta, como el resto de la pantalla.
+ *  - NAVEGADOR INTERNO (2026-10-27): dentro de Instagram/Facebook/
+ *    WhatsApp/TikTok… la tarjeta antepone el «paso 0» de salida al
+ *    navegador real (claves install.webviewIos/Android, con el
+ *    nombre de la app) y ofrece «Copiar enlace»; los pasos de
+ *    Safari/Chrome quedan intactos debajo, porque mandan tras la
+ *    salida (installCardPaintVariant).
  * ================================================================ */
 let installCardDismissed = false;
+function installCardPaintVariant() {
+  try {
+    const webview = pwaInAppBrowser();
+    const step = document.getElementById('install-card-webview-step');
+    const txt = document.getElementById('install-card-webview-text');
+    const copy = document.getElementById('install-card-copy');
+    if (step) step.style.display = webview ? '' : 'none';
+    if (txt && webview) {
+      const key = pwaIsIOSDevice() ? 'install.webviewIos' : 'install.webviewAndroid';
+      txt.setAttribute('data-i18n', key);
+      txt.innerHTML = t(key, { app: webview });
+    }
+    if (copy) copy.style.display = webview ? '' : 'none';
+  } catch (e) { /* la variante nunca rompe la tarjeta */ }
+}
 function installCardMaybeShow() {
   try {
     if (installCardDismissed) return;
     if (pwaIsStandalone()) return;
+    installCardPaintVariant();
     const ov = document.getElementById('install-card-overlay');
     if (!ov) return;
     const av = document.getElementById('auth-view');

@@ -21,7 +21,7 @@
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-title" content="RONBO FIT">
 <meta name="apple-mobile-web-app-status-bar-style" content="default">
-<link rel="stylesheet" href="styles.css?v=20261027-plan-calendario">
+<link rel="stylesheet" href="styles.css?v=20261027-instalacion-webview">
 <script type="importmap">
 {
   "imports": {
@@ -171,6 +171,7 @@
       <button type="button" id="pwa-install-close" class="pwa-close" aria-label="✕">✕</button>
       <button type="button" id="pwa-install-btn" class="btn-primary pwa-install-btn" style="display:none" data-i18n="pwa.installBtn">📲 Install RONBO FIT</button>
       <p id="pwa-ios-guide" class="pwa-guide" style="display:none" data-i18n="pwa.iosText">To install the app: tap the Share button and then “Add to Home Screen”.</p>
+      <button type="button" id="pwa-copy-link" class="btn-ghost btn-sm pwa-copy-btn" style="display:none" data-i18n="pwa.copyLink">📋 Copy link</button>
     </div>
   </div>
 </div>
@@ -667,6 +668,7 @@
       <span class="pwa-row-label" data-i18n="pwa.rowLabel">RONBO FIT app</span>
       <button type="button" id="pwa-profile-btn" class="btn-ghost btn-sm" style="display:none" data-i18n="pwa.installBtn">📲 Install RONBO FIT</button>
       <span id="pwa-profile-ios" class="pwa-guide" style="display:none" data-i18n="pwa.iosText">To install the app: tap the Share button and then “Add to Home Screen”.</span>
+      <button type="button" id="pwa-profile-copy" class="btn-ghost btn-sm" style="display:none" data-i18n="pwa.copyLink">📋 Copy link</button>
       <span id="pwa-profile-installed" class="pwa-installed" style="display:none" data-i18n="pwa.installed">✓ App installed</span>
     </div>
     <div id="dossier-editor-box" style="display:none"></div>
@@ -1086,8 +1088,10 @@
     <div class="install-hand" aria-hidden="true"><span>✋</span></div>
     <h2 class="install-title" id="install-card-title" data-i18n="install.title">Take RONBO FIT on your phone!</h2>
     <p class="install-sub" data-i18n="install.sub">Install it as an app: you get its icon on your screen and open it in one tap, without the browser.</p>
+    <div class="install-step" id="install-card-webview-step" style="display:none"><div class="install-ic" aria-hidden="true">🧭</div><p id="install-card-webview-text"></p></div>
     <div class="install-step"><div class="install-ic" aria-hidden="true">🍎</div><p data-i18n="install.ios"><b>iPhone:</b> in Safari tap <b>Share</b>, then <b>“Add to Home Screen”</b>.</p></div>
     <div class="install-step"><div class="install-ic" aria-hidden="true">🤖</div><p data-i18n="install.android"><b>Android:</b> in Chrome tap the <b>⋮</b> menu, then <b>“Install app”</b>.</p></div>
+    <button type="button" class="install-copy-btn" id="install-card-copy" style="display:none" data-i18n="pwa.copyLink">📋 Copy link</button>
     <button type="button" class="install-btn" id="install-card-ok" data-i18n="install.ok">Got it</button>
     <p class="install-fine" data-i18n="install.once">We only show you this message the first time.</p>
   </div>
@@ -1127,6 +1131,6 @@
 <div id="toast" class="toast"></div>
 <div id="print-card" aria-hidden="true"></div>
 
-<script type="module" src="app.js?v=20261027-plan-calendario"></script>
+<script type="module" src="app.js?v=20261027-instalacion-webview"></script>
 </body>
 </html>
