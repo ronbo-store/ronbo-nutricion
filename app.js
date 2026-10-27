@@ -14758,13 +14758,7 @@ function renderActDay(date) {
       <div class="act-line"><span>${t('act.habitualLine', { n: fmt(Math.round(base.tdee)) })}</span>${base.stale ? `<span class="act-tag">${t('act.staleTag')}</span>` : ''}</div>
       <p class="act-note">${t('act.habitualNote')}</p>`
     : `<p class="act-note">${t('act.habitualNone')}</p>`;
-  box.innerHTML = `
-    <p class="act-note act-est-note">${t('act.estimateNote')}</p>
-    ${!ACT_LOADED ? `<div class="wempty compact">${t('act.loading')}</div>` : `
-    ${w ? `<div class="act-wref">${t('act.weightRef', { w: fmt(w.weight), d: esc(w.date) })}</div>
-      ${staleDays > FB3_STALE_DAYS ? `<div class="fb3-stale">${t('fb3.stale', { d: staleDays })}</div>` : ''}`
-      : `<div class="act-noweight"><p class="act-note">${t('act.noWeight')}</p><button type="button" class="btn-secondary btn-sm" id="actd-btn-weight">${t('act.noWeightBtn')}</button></div>`}
-    <div class="act-sec">
+  const stepsSec = `<div class="act-sec">
       <label class="act-lab" for="actd-steps">${t('act.steps')}</label>
       <div class="act-steps-row">
         <input type="number" id="actd-steps" min="0" max="200000" step="1" inputmode="numeric" placeholder="${esc(t('act.stepsPh'))}" value="${d && num(d.steps) > 0 ? Math.floor(num(d.steps)) : ''}">
@@ -14772,26 +14766,46 @@ function renderActDay(date) {
       </div>
       ${d && num(d.steps) > 0 ? `<div class="act-steps-info" id="actd-steps-info">${t('act.stepsInfo', { km: fmt(num(d.stepKm)), kcal: fmt(num(d.stepKcal)) })}</div>` : ''}
       <p class="act-note">${t('act.overlapNote')}</p>
-    </div>
-    <div class="act-sec">
+    </div>`;
+  const listSec = `<div class="act-sec">
       <h4 class="act-sec-title">${t('act.listTitle')}</h4>
       ${actRows}
-    </div>
-    <div class="act-sec">
+    </div>`;
+  const sumsSec = `<div class="act-sec">
       <div class="act-line"><span>${t('act.sumSteps')}</span><b>${fmt(v.stepKcal)} ${t('act.kcalUnit')}</b></div>
       <div class="act-line"><span>${t('act.sumExtra')}</span><b>${fmt(Math.round(v.extras))} ${t('act.kcalUnit')}</b></div>
       <div class="act-line"><span>${t('act.sumMovement')}</span><b id="act-mov-total">${fmt(v.movTotal)} ${t('act.kcalUnit')}</b></div>
       ${v.hasTransport ? `<p class="act-note">${t('act.transportNote')}</p>` : ''}
-    </div>
-    <div class="act-sec">
+    </div>`;
+  const daySec = `<div class="act-sec">
       <h4 class="act-sec-title">${t('act.dayTitle')}</h4>
       ${dayHtml}
       ${planHtml}
-    </div>
-    <div class="act-sec">
+    </div>`;
+  const habSec = `<div class="act-sec">
       <h4 class="act-sec-title">${t('act.habitualTitle')}</h4>
       ${habitualHtml}
-    </div>`}`;
+    </div>`;
+  /* CORRECCIÓN 2026-10-26 (diagnóstico mañana-y-llama): sin base
+     válida (!base.ok) la causa honesta (act.dayNoBase, dentro de la
+     sección «Estimación de este día») quedaba enterrada tras el
+     formulario de pasos, la lista y las sumas — fuera de la primera
+     pantalla de la hoja, así que la llamita parecía no arrojar
+     ninguna información. Sin base, esa sección y la habitual se
+     pintan PRIMERAS (tras la nota de estimación y el peso de
+     referencia), antes de pasos/lista/sumas. Con base válida el
+     orden y el contenido quedan byte a byte como siempre. Sin
+     textos nuevos, sin escrituras, sin tocar el modelo. */
+  const secsHtml = base.ok
+    ? [stepsSec, listSec, sumsSec, daySec, habSec].join('\n    ')
+    : [daySec, habSec, stepsSec, listSec, sumsSec].join('\n    ');
+  box.innerHTML = `
+    <p class="act-note act-est-note">${t('act.estimateNote')}</p>
+    ${!ACT_LOADED ? `<div class="wempty compact">${t('act.loading')}</div>` : `
+    ${w ? `<div class="act-wref">${t('act.weightRef', { w: fmt(w.weight), d: esc(w.date) })}</div>
+      ${staleDays > FB3_STALE_DAYS ? `<div class="fb3-stale">${t('fb3.stale', { d: staleDays })}</div>` : ''}`
+      : `<div class="act-noweight"><p class="act-note">${t('act.noWeight')}</p><button type="button" class="btn-secondary btn-sm" id="actd-btn-weight">${t('act.noWeightBtn')}</button></div>`}
+    ${secsHtml}`}`;
   const sBtn = $('actd-steps-save');
   if (sBtn) sBtn.onclick = async () => {
     const raw = ($('actd-steps') || {}).value;
@@ -18108,7 +18122,7 @@ document.addEventListener('keydown', e => { if (e.key === 'Escape') shareClose()
  *  - El SW (sw.js) solo cachea la cáscara del mismo origen en modo
  *    RED PRIMERO: Auth/Firestore/Worker jamás pasan por la caché.
  * ================================================================ */
-const PWA_SW_VERSION = '20261026-navegacion';
+const PWA_SW_VERSION = '20261026-manana-llama';
 let pwaDeferredPrompt = null;
 function pwaIsStandalone() {
   try {
@@ -18198,6 +18212,33 @@ async function pwaDoInstall() {
         window.location.reload();
       });
       navigator.serviceWorker.register('sw.js').catch(() => {});
+      /* CORRECCIÓN 2026-10-26 (diagnóstico mañana-y-llama): una
+         página instalada que nunca se recarga puede quedarse días
+         en una versión vieja — iOS reanuda la vista sin recargar y
+         la comprobación del SW queda al navegador; todo el mecanismo
+         de arriba solo corre cuando la página (re)carga. Al volver
+         a primer plano se PIDE la comprobación: si hay un SW nuevo
+         en espera/instalándose según el flujo actual, toma el
+         control y la recarga única de arriba (con su guarda
+         anti-bucle, intacta) deja la app en la versión servida.
+         Guarda de ráfaga: como máximo una petición cada 60 s — los
+         visibilitychange/pageshow repetidos no la repiten ni pueden
+         provocar recargas en bucle (la recarga sigue gobernada solo
+         por el controllerchange protegido de arriba). */
+      let pwaLastUpdateCheck = 0;
+      const pwaCheckUpdate = () => {
+        try {
+          const now = Date.now();
+          if (now - pwaLastUpdateCheck < 60000) return;
+          pwaLastUpdateCheck = now;
+          navigator.serviceWorker.getRegistration()
+            .then(r => { if (r) r.update(); }).catch(() => {});
+        } catch (e) {}
+      };
+      document.addEventListener('visibilitychange', () => {
+        if (document.visibilityState === 'visible') pwaCheckUpdate();
+      });
+      window.addEventListener('pageshow', pwaCheckUpdate);
     }
   } catch (e) { /* sin SW, la app funciona como siempre */ }
 })();
