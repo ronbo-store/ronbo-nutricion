@@ -11477,9 +11477,71 @@ function trainExercisesHTML(day) {
    muestra como historial de solo lectura (las reglas no admiten
    update en training_logs); aviso de alineación no bloqueante entre
    los días del plan y su configuración de pendientes. */
-let TRAIN_CHECKS = {};         // "di:ei" -> { rpe: n|null, sets: [...] } — solo memoria de la sesión
+let TRAIN_CHECKS = {};         // "di:ei" -> { rpe: n|null, sets: [...] } — estado en curso del día; vive en memoria Y en su borrador local (abajo)
 let TRAIN_CHECKS_CTX = '';     // planId|fecha a la que pertenecen las marcas
 let TRAIN_CLOSE_DI = null;     // día con el panel de cierre abierto (solo memoria)
+
+/* --- MARCAS QUE SOBREVIVEN (aprobado por Ronald, chat 2026-10-27
+   14:03 CDT: «Sí, corrige las dos cosas (marcas que sobreviven +
+   «completado» honesto)»). Origen: el diagnóstico de la llamita
+   (13:23 CDT) probó que las marcas vivían SOLO en la memoria de
+   la página y al propio Ronald se le borraron los 4 ✓ al reabrir
+   la app, sin sesión guardada. Ahora las marcas en curso del día
+   se guardan además como BORRADOR LOCAL en el dispositivo
+   (localStorage, usuario|plan|fecha — el patrón del cronómetro
+   de sesión y del borrador de cambios de AUTH-050), se restauran
+   al reabrir o recargar la vista de ese día y se limpian al
+   cerrar el día (confirmar o saltar). El borrador es SOLO local:
+   jamás escribe en Firestore por su cuenta — la invariante P6
+   no cambia y el registro en training_logs sigue naciendo UNA
+   sola vez, al cerrar. Convive con el borrador de cambios (clave
+   distinta, sin pisarse): las marcas se guardan por índice
+   EFECTIVO — el mismo que resuelve trainEffectiveList en cada
+   pintado leyendo su propio borrador — así que al restaurar, la
+   lista efectiva se aplica primero y las marcas caen sobre ella;
+   el remapeo al quitar un agregado es el de siempre y también
+   persiste. Un borrador de otra fecha es peso muerto (las marcas
+   solo existen para hoy): al restaurar se podan los de fechas
+   pasadas del mismo plan. */
+function trainChecksKey(planId) {
+  const uid = auth.currentUser ? auth.currentUser.uid : '';
+  return 'ronbofit-session-checks-' + uid + '|' + planId + '|' + todayISO();
+}
+function trainChecksRead(planId) {
+  try {
+    const v = JSON.parse(localStorage.getItem(trainChecksKey(planId)) || 'null');
+    if (!v || typeof v !== 'object' || Array.isArray(v)) return {};
+    const out = {};
+    Object.keys(v).forEach(k => {
+      const c = v[k];
+      if (!/^\d+:\d+$/.test(k) || !c || typeof c !== 'object') return;
+      out[k] = { rpe: (typeof c.rpe === 'number' && isFinite(c.rpe)) ? c.rpe : null,
+        sets: Array.isArray(c.sets) ? c.sets.filter(s => s && typeof s === 'object').map(s => ({
+          repsPlanned: String(s.repsPlanned == null ? '' : s.repsPlanned),
+          repsDone: String(s.repsDone == null ? '' : s.repsDone),
+          loadVal: String(s.loadVal == null ? '' : s.loadVal) })) : [] };
+    });
+    return out;
+  } catch { return {}; }
+}
+function trainChecksPersist(planId) {
+  try {
+    if (!planId) return;
+    if (TRAIN_CHECKS && Object.keys(TRAIN_CHECKS).length)
+      localStorage.setItem(trainChecksKey(planId), JSON.stringify(TRAIN_CHECKS));
+    else localStorage.removeItem(trainChecksKey(planId));
+  } catch {}
+}
+function trainChecksPruneStale(planId) {
+  try {
+    const uid = auth.currentUser ? auth.currentUser.uid : '';
+    const pre = 'ronbofit-session-checks-' + uid + '|' + planId + '|';
+    const keep = trainChecksKey(planId);
+    const drop = [];
+    for (let i = 0; i < localStorage.length; i++) { const k = localStorage.key(i); if (k && k.startsWith(pre) && k !== keep) drop.push(k); }
+    drop.forEach(k => localStorage.removeItem(k));
+  } catch {}
+}
 
 /* --- PERSONALIZA TUS ASIGNACIONES DE HOY (pedido de Ronald, chat
    2026-10-27 12:46 CDT; decisión suya por widget 12:47: el cambio
@@ -11689,6 +11751,7 @@ function trainCustomWire(plan, di) {
       else if (n > effIdx) shifted[dS + ':' + (n - 1)] = TRAIN_CHECKS[k];
     });
     TRAIN_CHECKS = shifted;
+    trainChecksPersist(plan.id);   /* MARCAS QUE SOBREVIVEN: el remapeo también se guarda (las marcas restauradas caen en su índice efectivo nuevo) */
     if (TRAIN_FLOAT) trainFloatClose();
     loadMyTraining();
   });
@@ -12264,7 +12327,14 @@ function trainShareModel(plan, logs, di, iso) {
   }
   return { label: day.label || ('Día ' + (di + 1)), dateISO: iso, exercises,
     doneCount: exercises.filter(e => e.done).length, total: exercises.length,
-    burnedKcal };
+    burnedKcal,
+    /* COMPLETADO HONESTO (aprobado por Ronald, chat 2026-10-27
+       14:03 CDT): el estado CERRADO del día sale de su registro
+       real — 'done' solo si training_logs lo dice. Las marcas en
+       curso (doneCount) son el AVANCE, nunca un completado: los
+       consumidores (cabecera vestida, lienzo y resumen) afirman
+       «¡Entrenamiento completado!» solo con closedStatus 'done'. */
+    closedStatus: log ? trainLogStatus(log) : 'none' };
 }
 function trainShareRowHTML(di, iso) {
   return `<div class="train-share-row"><button type="button" class="btn-ghost btn-sm" data-train-share="${di}|${iso}">📣 ${t('shareW.btn')}</button></div>`;
@@ -12377,7 +12447,11 @@ function trainDressedHeadHTML(plan, logs, di, iso) {
   let hook;
   if (log && st === 'skipped') hook = esc(t('train.d.statusSkipped'));
   else if (!log && iso < todayISO()) hook = esc(t('train.d.statusNone'));
-  else if (m.total > 0 && m.doneCount >= m.total) hook = esc(t('shareW.done'));
+  /* COMPLETADO HONESTO: el gancho de completado exige el registro
+     cerrado (closedStatus 'done'); con solo marcas — aunque estén
+     todas — la cabecera muestra el AVANCE, como el resto de
+     estados no completados. */
+  else if (m.closedStatus === 'done') hook = esc(t('shareW.done'));
   else hook = esc(t('shareW.tag')) + ' 🔥 ' + esc(t('shareW.progress', { x: m.doneCount, y: m.total }));
   const C = 2 * Math.PI * 24;
   const msg = shareMsgRevealedFor(iso);
@@ -12428,6 +12502,7 @@ async function trainSetMassUnit(newUnit) {
     if (TRAIN_FLOAT && TRAIN_FLOAT.draft && Array.isArray(TRAIN_FLOAT.draft.sets))
       TRAIN_FLOAT.draft.sets.forEach(s => { s.loadVal = convLoadDisplay(s.loadVal, old, newUnit); });
     Object.values(TRAIN_CHECKS).forEach(c => { if (c && Array.isArray(c.sets)) c.sets.forEach(s => { s.loadVal = convLoadDisplay(s.loadVal, old, newUnit); }); });
+    trainChecksPersist(MY_PLAN ? MY_PLAN.id : null);   /* MARCAS QUE SOBREVIVEN: las cargas convertidas también se guardan en el borrador */
   }
   /* Éxito o denegación: repintar con la preferencia REAL resultante
      (si el guardado falló, saveMyUnits ya avisó y la preferencia no
@@ -12548,6 +12623,7 @@ function trainFloatOpen(plan, logs, di, ei, mode, iso) {
       const key = di + ':' + ei;
       if (d.done) { TRAIN_CHECKS[key] = { rpe: d.rpe, sets: d.sets.map(s => ({ ...s })) }; trainChronoTouch(plan.id); }
       else delete TRAIN_CHECKS[key];
+      trainChecksPersist(plan.id);   /* MARCAS QUE SOBREVIVEN: la marca confirmada en la flotante entra en el borrador local */
       trainFloatClose();
       loadMyTraining();
     };
@@ -12588,7 +12664,17 @@ async function loadMyTraining() {
     ${weekLogs.map(l => `<span class="train-chip st-${trainLogStatus(l)}">${esc(String(l.date).slice(5))} · ${esc(l.dayLabel || '')} · ${TRAIN_STATUS_ICON[trainLogStatus(l)]} ${t('train.d.status' + trainLogStatus(l)[0].toUpperCase() + trainLogStatus(l).slice(1))}</span>`).join('')}
     <span class="train-week-sum">${t('train.d.weekSummary', { d: weekByStatus.done, p: weekByStatus.partial, s: weekByStatus.skipped })}</span></div>`;
   const ctx = plan.id + '|' + today;
-  if (TRAIN_CHECKS_CTX !== ctx) { TRAIN_CHECKS = {}; TRAIN_CHECKS_CTX = ctx; }
+  if (TRAIN_CHECKS_CTX !== ctx) {
+    /* MARCAS QUE SOBREVIVEN: al entrar en un contexto nuevo (el
+       plan de hoy, el primer pintado o un cambio de día) las
+       marcas en curso se RESTAURAN de su borrador local —
+       reabrir o recargar la app ya no las borra. Sin borrador,
+       el día nace limpio, como siempre. Los borradores de
+       fechas pasadas del mismo plan se podan aquí. */
+    TRAIN_CHECKS = trainChecksRead(plan.id);
+    TRAIN_CHECKS_CTX = ctx;
+    trainChecksPruneStale(plan.id);
+  }
   const logByDay = {};
   logs.filter(l => l.date === today).forEach(l => { logByDay[l.dayIndex] = l; });
   /* Tarjeta interactiva de UN día del plan para el cierre de HOY
@@ -12811,27 +12897,29 @@ async function loadMyTraining() {
          en TRAIN_CHECKS, así que re-pintar no pierde nada). */
       TRAIN_CHECKS[key] = { rpe: sel && sel.value ? Number(sel.value) : null, sets: trainDefaultSets(ex) };
       trainChronoTouch(plan.id);   /* PUENTE: la marca alimenta el cronómetro (y lo arranca si no se pulsó INICIAR) */
+      trainChecksPersist(plan.id);   /* MARCAS QUE SOBREVIVEN */
       loadMyTraining();
     } else {
       delete TRAIN_CHECKS[key];
+      trainChecksPersist(plan.id);   /* MARCAS QUE SOBREVIVEN */
       loadMyTraining();
     }
   });
   box.querySelectorAll('[data-train-rpe]').forEach(s => s.onchange = () => {
     const key = s.dataset.trainRpe;
-    if (TRAIN_CHECKS[key]) TRAIN_CHECKS[key].rpe = s.value ? Number(s.value) : null;
+    if (TRAIN_CHECKS[key]) { TRAIN_CHECKS[key].rpe = s.value ? Number(s.value) : null; trainChecksPersist(plan.id); }
   });
   box.querySelectorAll('[data-train-set-reps]').forEach(inp => inp.oninput = () => {
     const [di, ei, si] = inp.dataset.trainSetReps.split(':');
     const c = TRAIN_CHECKS[di + ':' + ei];
-    if (c && Array.isArray(c.sets) && c.sets[Number(si)]) c.sets[Number(si)].repsDone = inp.value;
+    if (c && Array.isArray(c.sets) && c.sets[Number(si)]) { c.sets[Number(si)].repsDone = inp.value; trainChecksPersist(plan.id); }
   });
   trainWireUnitSels(box);
   trainExtrasWire(box);
   box.querySelectorAll('[data-train-set-load]').forEach(inp => inp.oninput = () => {
     const [di, ei, si] = inp.dataset.trainSetLoad.split(':');
     const c = TRAIN_CHECKS[di + ':' + ei];
-    if (c && Array.isArray(c.sets) && c.sets[Number(si)]) c.sets[Number(si)].loadVal = inp.value;
+    if (c && Array.isArray(c.sets) && c.sets[Number(si)]) { c.sets[Number(si)].loadVal = inp.value; trainChecksPersist(plan.id); }
   });
   box.querySelectorAll('[data-train-done]').forEach(b => b.onclick = () => {
     const di = Number(b.dataset.trainDone);
@@ -12937,6 +13025,7 @@ async function loadMyTraining() {
     TRAIN_CLOSE_DI = null;
     trainEditsClear(plan.id);   /* PERSONALIZA: los cambios de hoy ya viven en el registro; el borrador local se retira */
     Object.keys(TRAIN_CHECKS).forEach(k => { if (k.split(':')[0] === String(di)) delete TRAIN_CHECKS[k]; });
+    trainChecksPersist(plan.id);   /* MARCAS QUE SOBREVIVEN: cerrado el día, el borrador de marcas se retira con él */
     loadMyTraining();
   });
   box.querySelectorAll('[data-train-skip]').forEach(b => b.onclick = async () => {
@@ -12962,6 +13051,7 @@ async function loadMyTraining() {
     const prevSkip = logs.find(l => l.date === today && l.dayIndex === di);
     if (prevSkip && prevSkip.sessionKcal != null) await trainDumpSession(today, null);
     Object.keys(TRAIN_CHECKS).forEach(k => { if (k.split(':')[0] === String(di)) delete TRAIN_CHECKS[k]; });
+    trainChecksPersist(plan.id);   /* MARCAS QUE SOBREVIVEN: saltar también cierra el día — el borrador de marcas se retira */
     loadMyTraining();
   });
   box.querySelectorAll('[data-train-undo]').forEach(b => b.onclick = async () => {
@@ -12974,6 +13064,30 @@ async function loadMyTraining() {
        (solo si ese registro lo tenía: nada que retirar si el
        cierre fue sin estimación). */
     if (prevUndo && prevUndo.sessionKcal != null) await trainDumpSession(today, null);
+    /* MARCAS QUE SOBREVIVEN: deshacer el cierre devuelve el día
+       a editable CON sus marcas — se reconstruyen desde el
+       detalle del registro retirado (las filas del historial
+       emparejan cada entrada con su índice efectivo, con sus
+       marcas de cambio/agregado) y vuelven al borrador local:
+       RPE y series tal como quedaron al cerrar; la carga vuelve
+       como valor tecleado (el original con su unidad si viajó;
+       si no, el canónico kg en la unidad vigente). Un día
+       saltado no tenía marcas: nada que restaurar. */
+    if (prevUndo && trainLogStatus(prevUndo) !== 'skipped') {
+      const dayU = (plan.days || [])[diU] || {};
+      trainHistRows(dayU, prevUndo).forEach((row, ei) => {
+        const de = row.de;
+        if (!de) return;
+        const sets = (Array.isArray(de.sets) && de.sets.length) ? de.sets.map(s => ({
+          repsPlanned: String(s.repsPlanned == null ? '' : s.repsPlanned),
+          repsDone: s.repsDone == null ? '' : String(s.repsDone),
+          loadVal: s.loadOriginal != null ? convLoadDisplay(String(s.loadOriginal), s.loadUnitOriginal || UNIT_PREFS.mass, UNIT_PREFS.mass)
+            : (typeof s.loadKg === 'number' ? String(uRound1(massToDisplay(s.loadKg))) : '')
+        })) : trainDefaultSets(row.ex);
+        TRAIN_CHECKS[diU + ':' + ei] = { rpe: (typeof de.rpe === 'number' && isFinite(de.rpe)) ? de.rpe : null, sets };
+      });
+      trainChecksPersist(plan.id);
+    }
     loadMyTraining();
   });
   /* PERSONALIZA (2026-10-27): las herramientas de la sesión de
@@ -19275,7 +19389,10 @@ function shareDrawWorkout(ctx, W, H, d) {
   } else shareIconEnsure();
   const MX = 72;
   const frac = d.total > 0 ? d.doneCount / d.total : 0;
-  const complete = d.total > 0 && d.doneCount >= d.total;
+  /* COMPLETADO HONESTO: la píldora dice «¡Entrenamiento
+     completado!» solo si el día tiene registro cerrado 'done';
+     con solo marcas la tarjeta muestra el avance («X de Y»). */
+  const complete = d.closedStatus === 'done';
   /* cabecera */
   shareTxt(ctx, d.dateISO === todayISO() ? t('shareW.kickerToday') : t('shareW.kicker'), MX, cp ? 78 : 100,
     shareCtxFont(700, cp ? 24 : 29), '#C6FF4A', { align: 'left', ls: 6 });
@@ -19449,7 +19566,7 @@ function shareRender() {
     shareDrawWorkout(ctx, W, H, d);
     const msg = shareMsgRevealedFor(d.dateISO);
     summary = t('shareW.lab') + ' · ' + d.label + ' · ' + shareDayLabel(d.dateISO) + ' · ' +
-      (d.total > 0 && d.doneCount >= d.total ? t('shareW.done') : t('shareW.progress', { x: d.doneCount, y: d.total })) +
+      (d.closedStatus === 'done' ? t('shareW.done') : t('shareW.progress', { x: d.doneCount, y: d.total })) +
       (d.burnedKcal ? ' · 🔥 ' + t('act.flameBurned') + ': ' + fmt(d.burnedKcal) + ' kcal' : '') +
       (msg ? ' · ' + msg.icon + ' ' + msg.text : '') +
       ' · ronbo.fit #MiEntrenamientoRonboFit';
@@ -19564,7 +19681,7 @@ document.addEventListener('keydown', e => { if (e.key === 'Escape') shareClose()
  *  - El SW (sw.js) solo cachea la cáscara del mismo origen en modo
  *    RED PRIMERO: Auth/Firestore/Worker jamás pasan por la caché.
  * ================================================================ */
-const PWA_SW_VERSION = '20261027-extras-marcador';
+const PWA_SW_VERSION = '20261027-marcas-persistentes';
 let pwaDeferredPrompt = null;
 function pwaIsStandalone() {
   try {
