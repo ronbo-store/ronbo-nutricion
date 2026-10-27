@@ -18420,7 +18420,7 @@ document.addEventListener('keydown', e => { if (e.key === 'Escape') shareClose()
  *  - El SW (sw.js) solo cachea la cáscara del mismo origen en modo
  *    RED PRIMERO: Auth/Firestore/Worker jamás pasan por la caché.
  * ================================================================ */
-const PWA_SW_VERSION = '20261027-cronometro-deportivo';
+const PWA_SW_VERSION = '20261027-salida-cronometro';
 let pwaDeferredPrompt = null;
 function pwaIsStandalone() {
   try {
@@ -18773,8 +18773,25 @@ function swCloseTool() {
   ov.style.display = 'none';
 }
 function swRelang() { if (STOPW.open) swPaint(); }
+/* Botón redondo flotante (sustituye a la pastilla): refleja el estado
+   del cronómetro cuando la herramienta está minimizada — anillo
+   pulsante y tiempo vivo si corre; tiempo congelado con ❚❚ si está
+   en pausa; nada si está a cero. Solo pinta DOM: no escribe nada. */
+let SW_FAB_LAST = '';
+function swFabPaint() {
+  const fab = $('btn-stopwatch'); if (!fab) return;
+  const el = swElapsed();
+  let cls = 'sw-fab', txt = '';
+  if (STOPW.running) { cls = 'sw-fab live'; txt = swFmtParts(el).main; }
+  else if (el > 0) { cls = 'sw-fab paused'; txt = '❚❚ ' + swFmtParts(el).main; }
+  if (fab.className !== cls) fab.className = cls;
+  const lab = $('sw-fab-time');
+  if (lab && SW_FAB_LAST !== txt) { lab.textContent = txt; SW_FAB_LAST = txt; }
+}
 (function swInit() {
-  const pill = $('btn-stopwatch'); if (pill) pill.addEventListener('click', swOpenTool);
+  const fab = $('btn-stopwatch'); if (fab) fab.addEventListener('click', swOpenTool);
+  swFabPaint();
+  setInterval(() => { if (!STOPW.open) swFabPaint(); }, 250);
   const x = $('sw-close'); if (x) x.addEventListener('click', swCloseTool);
   const M = $('sw-btn-main'); if (M) M.addEventListener('click', swMainAction);
   const L = $('sw-btn-left'); if (L) L.addEventListener('click', () => swSideAction('left'));

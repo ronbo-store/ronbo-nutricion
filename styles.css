@@ -1633,17 +1633,27 @@ body { padding: max(16px, env(safe-area-inset-top)) max(16px, env(safe-area-inse
 .mt-photo-img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; display: block; }
 
 /* ===== Cronómetro deportivo libre (2026-10-27) =====
-   Pastilla discreta en la barra superior y herramienta a pantalla
-   completa sobre el papel tapiz de la marca. Solo presentación: el
-   módulo STOPW de app.js no guarda nada ni escribe en ningún sitio. */
-.sw-row { display: flex; justify-content: flex-end; margin-top: 2px; flex: 0 0 100%; }
-.sw-btn { display: inline-flex; align-items: center; gap: 8px; background: rgba(255,255,255,.92); border: 1.5px solid #0d9488; color: #0f766e; font-size: 14.5px; font-weight: 700; padding: 9px 16px; border-radius: 999px; box-shadow: 0 3px 10px rgba(13,148,136,.18); cursor: pointer; font-family: inherit; }
-.sw-btn .sw-ico { font-size: 17px; }
+   Botón redondo flotante arriba a la derecha (familia de la llamita;
+   sustituye a la pastilla de la barra superior) y herramienta a
+   pantalla completa sobre el papel tapiz de la marca. La franja
+   superior del overlay respeta el área segura (env(safe-area-inset-*))
+   para que la ✕ de salida se vea entera bajo el notch. Solo
+   presentación: el módulo STOPW de app.js no guarda nada ni escribe
+   en ningún sitio. */
+.sw-fab { position: fixed; top: calc(env(safe-area-inset-top, 0px) + 14px); right: calc(env(safe-area-inset-right, 0px) + 14px); z-index: 44; width: 58px; height: 58px; border-radius: 50%; border: 1.5px solid rgba(13,148,136,.55); background: rgba(255,255,255,.97); box-shadow: 0 8px 22px rgba(15,23,42,.20); display: flex; align-items: center; justify-content: center; cursor: pointer; font-family: inherit; color: #0f766e; padding: 0; }
+.sw-fab-ico { width: 27px; height: 27px; display: block; }
+.sw-fab.live { border-color: #0d9488; color: #0d9488; animation: sw-fab-pulse 1.6s ease-out infinite; }
+.sw-fab.paused { border-color: rgba(217,119,6,.7); color: #b45309; }
+.sw-fab-time { position: absolute; top: calc(100% + 5px); left: 50%; transform: translateX(-50%); background: #0b2239; color: #fff; font-size: 10.5px; font-weight: 800; letter-spacing: .4px; padding: 3px 8px; border-radius: 999px; font-variant-numeric: tabular-nums; white-space: nowrap; box-shadow: 0 4px 12px rgba(15,23,42,.25); display: none; }
+.sw-fab.live .sw-fab-time, .sw-fab.paused .sw-fab-time { display: block; }
+.sw-fab.paused .sw-fab-time { background: #b45309; }
+@keyframes sw-fab-pulse { 0% { box-shadow: 0 8px 22px rgba(15,23,42,.20), 0 0 0 0 rgba(13,148,136,.45); } 70% { box-shadow: 0 8px 22px rgba(15,23,42,.20), 0 0 0 12px rgba(13,148,136,0); } 100% { box-shadow: 0 8px 22px rgba(15,23,42,.20), 0 0 0 0 rgba(13,148,136,0); } }
+@media (prefers-reduced-motion: reduce) { .sw-fab.live { animation: none; } }
 #sw-overlay { position: fixed; inset: 0; z-index: 1400; background: #ffffff; overflow: hidden; }
 #sw-overlay .auth-wallpaper { z-index: 0; }
-.swfull { position: relative; z-index: 1; height: 100dvh; display: flex; flex-direction: column; padding: 20px 22px 30px; box-sizing: border-box; }
+.swfull { position: relative; z-index: 1; height: 100dvh; display: flex; flex-direction: column; padding: calc(20px + env(safe-area-inset-top, 0px)) calc(22px + env(safe-area-inset-right, 0px)) calc(30px + env(safe-area-inset-bottom, 0px)) calc(22px + env(safe-area-inset-left, 0px)); box-sizing: border-box; }
 .sw-top { display: flex; align-items: center; justify-content: space-between; }
-.sw-close { width: 44px; height: 44px; border-radius: 50%; border: none; background: rgba(255,255,255,.85); box-shadow: 0 4px 14px rgba(15,23,42,.14); display: flex; align-items: center; justify-content: center; font-size: 19px; color: #334155; font-weight: 700; cursor: pointer; font-family: inherit; }
+.sw-close { width: 48px; height: 48px; border-radius: 50%; border: 2px solid rgba(13,148,136,.55); background: rgba(255,255,255,.97); box-shadow: 0 6px 18px rgba(15,23,42,.22); display: flex; align-items: center; justify-content: center; font-size: 21px; color: #0b2239; font-weight: 700; cursor: pointer; font-family: inherit; flex: none; }
 .sw-brand { font-size: 21px; font-weight: 900; letter-spacing: 2.5px; color: #0f766e; text-align: right; }
 .sw-brand small { display: block; text-align: right; font-size: 9.5px; letter-spacing: 3.5px; color: #94a3b8; font-weight: 700; margin-top: 1px; }
 .sw-status { margin-top: 30px; text-align: center; font-size: 13px; font-weight: 800; letter-spacing: 4px; min-height: 17px; }
