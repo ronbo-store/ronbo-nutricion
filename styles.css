@@ -264,6 +264,7 @@ table.whist { min-width: 640px; }
 .health-grid input { width: auto; }
 .health-box textarea { width: 100%; margin-top: 4px; padding: 9px 11px; border: 1px solid #d1d5db; border-radius: 8px; font-size: 14px; font-family: inherit; resize: vertical; }
 .health-alert { background: #fef2f2; border: 1px solid #fca5a5; color: #991b1b; border-radius: 10px; padding: 10px 14px; font-size: 13px; margin-bottom: 12px; }
+.gfocus-note { background: #f0fdfa; border: 1px solid #99f6e4; color: #115e59; border-radius: 10px; padding: 10px 14px; font-size: 13px; margin-bottom: 12px; }
 
 /* ===== puerta PAR-Q (§4.5): indicador de estado en el editor de planes =====
    Solo existencia/estado de la declaración; jamás su contenido. */

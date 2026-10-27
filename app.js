@@ -1002,6 +1002,8 @@ function rolePendItems() {
           if (hp.length) push('trainer|goals-held|' + cu.id, 'clients', t('pend.trainerHeldTitle'), t('pend.trainerHeldDetail', { name: cu.name || cu.email || '—', params: hp.map(p2 => t('gm.param.' + p2)).join(', ') }), t('pend.trainerHeldGo'));
           const gp = cu.goalsProposal || null;
           if (gp && gp.status === 'pending') push('trainer|goals-proposal|' + cu.id, 'clients', t('pend.trainerProposalTitle'), t('pend.trainerProposalDetail', { name: cu.name || cu.email || '—', param: gp.kind === 'daytype' ? t('gm.param.dayType') : t('gm.param.' + gp.param) }), t('pend.trainerProposalGo'));
+          const gfoc = cu.goalFocus || null;
+          if (gfoc && gfoc.focus === 'competencia' && gfoc.status === 'pending-trainer') push('trainer|focus-activation|' + cu.id, 'clients', t('pend.trainerFocusTitle'), t('pend.trainerFocusDetail', { name: cu.name || cu.email || '—' }), t('pend.trainerFocusGo'));
         }
       }
     } else if (ROLE === 'usuario') {
@@ -3159,9 +3161,58 @@ en: {
   'gm.proposalApprove': 'Approve and apply',
   'gm.proposalReject': 'Reject',
   'gm.proposalDecided': 'Decision saved for this client.',
+  'gfocus.title': 'Focus',
+  'gfocus.hint': 'Your objective says what to calculate; your focus says what for. The focus never changes the formulas: it orients the recommendation inside the founded ranges.',
+  'gfocus.opt.general': 'General',
+  'gfocus.opt.recomposicion': 'Body recomposition',
+  'gfocus.opt.competencia': 'Competition',
+  'gfocus.expl.general': 'The standard path: your objective rules, with the founded values.',
+  'gfocus.expl.recomposicion': 'Lose fat and gain muscle at the same time: a moderate deficit, high protein and progressive strength training.',
+  'gfocus.expl.competencia': 'Preparing for a bodybuilding competition, in phases (bulking, cutting, final week), always guided by your trainer.',
+  'gfocus.recompNote': 'Fat does not come off one spot: in a deficit you lose it from your whole body, and the area you care about shows as your total percentage drops. Training that area does build the muscle that will show. Gaining muscle in a moderate deficit is possible — slower than eating above your expenditure — with high protein and progressive strength training.',
+  'gfocus.recompNeedBajar': 'Body recomposition is declared with the Lose weight objective: choose that objective first.',
+  'gfocus.strengthLabel': 'I train strength with progression (I log my loads and aim to progress)',
+  'gfocus.strengthNeed': 'To declare body recomposition, first confirm that you train strength with progression.',
+  'gfocus.declareBtn': 'Declare this focus',
+  'gfocus.compDateLabel': 'Competition date',
+  'gfocus.compNeedTrainer': 'You need an assigned trainer for the Competition focus: your trainer activates it and moves its phases.',
+  'gfocus.compPending': '⏳ Your Competition declaration is waiting for your trainer to activate it and set the first phase. Until then, your own objective rules.',
+  'gfocus.compActiveLine': 'Competition on {date} · {days} days left · Phase: {phase} · Phase objective: {obj}',
+  'gfocus.phase.volumen': 'Bulking',
+  'gfocus.phase.definicion': 'Cutting',
+  'gfocus.phase.semana-final': 'Final week',
+  'gfocus.objFromPhase': 'Right now your goals are calculated from your competition phase ({phase}), not from the objective above.',
+  'gfocus.compPaceTrainer': 'In Competition, your trainer decides the pace: no deficit is applied automatically.',
+  'gfocus.finalWeekNote': 'Final week: the objective is to maintain. The app does not automate water, sodium or carbohydrate loading: that is handled in person with your trainer.',
+  'gfocus.guardNote': '⚠ Your Competition focus is active, but you no longer have an assigned trainer, so the competition calculation is paused: your goals follow your own objective, with no deficit applied. Your declaration is kept.',
+  'gfocus.recompPaceNote': 'For body recomposition, the founded suggestion starts at the soft end of the range (−500 kcal/day), with the high protein of the Lose objective (2.2 g/kg).',
+  'gfocus.saved': 'Focus saved.',
+  'gfocus.dateSaved': 'Competition date updated.',
+  'gfocus.dateSaveBtn': 'Save date',
+  'gfocus.trainerTitle': '🎯 Focus',
+  'gfocus.badgeGeneral': 'Focus: General',
+  'gfocus.badgeRecomp': 'Focus: Body recomposition',
+  'gfocus.badgeCompPending': 'Focus: Competition — waiting for your activation',
+  'gfocus.badgeCompActive': 'Focus: Competition · {phase} · {date} ({days} days left)',
+  'gfocus.activateTitle': 'Activate the Competition focus',
+  'gfocus.activateBtn': 'Activate focus',
+  'gfocus.phaseLabel': 'Phase',
+  'gfocus.checkinLabel': 'Progress check-in every (days, optional)',
+  'gfocus.phaseChangeBtn': 'Change phase',
+  'gfocus.edBlocked': '⚠ Activation blocked: this client\u2019s health declaration includes an eating disorder. Under the founded criteria, the Competition focus is not activated while that alert is active.',
+  'gfocus.defRef': 'Founded reference for cutting (Helms et al., 2014): a pace of 0.5–1% of body weight per week. It is a reference for your decision; the app does not apply it automatically.',
+  'gfocus.compBlockTitle': 'Competition tracking',
+  'gfocus.lastWeight': 'Latest weight: {w} kg · {date}',
+  'gfocus.noWeight': 'No weight logged yet.',
+  'gfocus.staleTrack': '⚠ No progress check-in within the frequency you set ({n} days).',
+  'gfocus.activated': 'Competition focus activated.',
+  'gfocus.phaseChanged': 'Phase updated.',
   'pend.trainerProposalTitle': 'Goal change waiting for your decision',
   'pend.trainerProposalDetail': '{name}: a change outside the founded range is waiting ({param}). The founded values still apply.',
   'pend.trainerProposalGo': 'Open clients',
+  'pend.trainerFocusTitle': 'Competition focus waiting for activation',
+  'pend.trainerFocusDetail': '{name} declared the Competition focus: activate it and set the first phase from their file.',
+  'pend.trainerFocusGo': 'Open clients',
   'gm.prov2': 'Fat share of your calorie goal: {fat}% · Day level of this calculation: {level}. Carbohydrates are what remains after protein and fats.',
   'gm.day.base': 'regular day',
   'gm.day.exigente': 'demanding day',
@@ -4738,9 +4789,58 @@ es: {
   'gm.proposalApprove': 'Aprobar y aplicar',
   'gm.proposalReject': 'Rechazar',
   'gm.proposalDecided': 'Decisión guardada para este cliente.',
+  'gfocus.title': 'Enfoque',
+  'gfocus.hint': 'Tu objetivo dice qué se calcula; tu enfoque dice para qué. El enfoque nunca cambia las fórmulas: orienta la recomendación dentro de los rangos fundados.',
+  'gfocus.opt.general': 'General',
+  'gfocus.opt.recomposicion': 'Recomposición',
+  'gfocus.opt.competencia': 'Competencia',
+  'gfocus.expl.general': 'El camino estándar: manda tu objetivo, con los valores fundados.',
+  'gfocus.expl.recomposicion': 'Bajar grasa y ganar músculo a la vez: déficit moderado, proteína alta y fuerza con progresión.',
+  'gfocus.expl.competencia': 'Preparación para una competencia de físicoculturismo, por fases (volumen, definición, semana final), siempre guiada por tu entrenador.',
+  'gfocus.recompNote': 'La grasa no baja de una sola zona: con el déficit se pierde de todo el cuerpo, y la zona que te importa se define cuando baja tu porcentaje total. El trabajo de esa zona sí construye el músculo que se verá al bajar. Ganar músculo en déficit moderado es posible — más lento que comiendo por encima de tu gasto — con proteína alta y fuerza progresiva.',
+  'gfocus.recompNeedBajar': 'La recomposición se declara con el objetivo Bajar de peso: elige primero ese objetivo.',
+  'gfocus.strengthLabel': 'Entreno fuerza con progresión (registro mis cargas y busco progresar)',
+  'gfocus.strengthNeed': 'Para declarar la recomposición, confirma primero que entrenas fuerza con progresión.',
+  'gfocus.declareBtn': 'Declarar este enfoque',
+  'gfocus.compDateLabel': 'Fecha de la competencia',
+  'gfocus.compNeedTrainer': 'Necesitas un entrenador asignado para el enfoque de Competencia: tu entrenador lo activa y mueve sus fases.',
+  'gfocus.compPending': '⏳ Tu declaración de Competencia espera que tu entrenador la active y fije la primera fase. Mientras tanto, manda tu propio objetivo.',
+  'gfocus.compActiveLine': 'Competencia el {date} · quedan {days} días · Fase: {phase} · Objetivo de la fase: {obj}',
+  'gfocus.phase.volumen': 'Volumen',
+  'gfocus.phase.definicion': 'Definición',
+  'gfocus.phase.semana-final': 'Semana final',
+  'gfocus.objFromPhase': 'Ahora tus metas se calculan desde tu fase de competencia ({phase}), no desde el objetivo de arriba.',
+  'gfocus.compPaceTrainer': 'En Competencia, el ritmo lo decide tu entrenador: ningún déficit se aplica en automático.',
+  'gfocus.finalWeekNote': 'Semana final: el objetivo es mantener. La app no automatiza agua, sodio ni cargas de carbohidratos: eso se maneja en persona con tu entrenador.',
+  'gfocus.guardNote': '⚠ Tu enfoque de Competencia está activo, pero ya no tienes un entrenador asignado, así que el cálculo de competencia está en pausa: tus metas siguen tu propio objetivo, sin déficit aplicado. Tu declaración se conserva.',
+  'gfocus.recompPaceNote': 'Para la recomposición, la sugerencia fundada nace en el extremo suave del rango (−500 kcal/día), con la proteína alta del objetivo Bajar (2,2 g/kg).',
+  'gfocus.saved': 'Enfoque guardado.',
+  'gfocus.dateSaved': 'Fecha de competencia actualizada.',
+  'gfocus.dateSaveBtn': 'Guardar fecha',
+  'gfocus.trainerTitle': '🎯 Enfoque',
+  'gfocus.badgeGeneral': 'Enfoque: General',
+  'gfocus.badgeRecomp': 'Enfoque: Recomposición',
+  'gfocus.badgeCompPending': 'Enfoque: Competencia — esperando tu activación',
+  'gfocus.badgeCompActive': 'Enfoque: Competencia · {phase} · {date} (quedan {days} días)',
+  'gfocus.activateTitle': 'Activar el enfoque de Competencia',
+  'gfocus.activateBtn': 'Activar enfoque',
+  'gfocus.phaseLabel': 'Fase',
+  'gfocus.checkinLabel': 'Seguimiento del progreso cada (días, opcional)',
+  'gfocus.phaseChangeBtn': 'Cambiar fase',
+  'gfocus.edBlocked': '⚠ Activación bloqueada: la declaración de salud de este cliente incluye un trastorno alimentario. Por el criterio fundado, el enfoque de Competencia no se activa mientras esa alerta esté activa.',
+  'gfocus.defRef': 'Referencia fundada para definición (Helms et al., 2014): un ritmo de 0,5–1 % del peso corporal por semana. Es una referencia para tu decisión; la app no la aplica en automático.',
+  'gfocus.compBlockTitle': 'Seguimiento de competencia',
+  'gfocus.lastWeight': 'Último peso: {w} kg · {date}',
+  'gfocus.noWeight': 'Sin peso registrado todavía.',
+  'gfocus.staleTrack': '⚠ Sin registro de progreso dentro de la frecuencia que fijaste ({n} días).',
+  'gfocus.activated': 'Enfoque de Competencia activado.',
+  'gfocus.phaseChanged': 'Fase actualizada.',
   'pend.trainerProposalTitle': 'Cambio de metas esperando tu decisión',
   'pend.trainerProposalDetail': '{name}: un cambio fuera de la banda fundada está esperando ({param}). Los valores fundados siguen vigentes.',
   'pend.trainerProposalGo': 'Abrir clientes',
+  'pend.trainerFocusTitle': 'Enfoque de Competencia esperando activación',
+  'pend.trainerFocusDetail': '{name} declaró el enfoque de Competencia: actívalo y fija la primera fase desde su ficha.',
+  'pend.trainerFocusGo': 'Abrir clientes',
   'gm.prov2': 'Parte de grasas de tu meta de calorías: {fat}% · Nivel del día de este cálculo: {level}. Los carbohidratos son lo que queda tras la proteína y las grasas.',
   'gm.day.base': 'día normal',
   'gm.day.exigente': 'día exigente',
@@ -6657,6 +6757,7 @@ async function openClient(uid) {
     <div id="pace-card"></div>
     <div id="held-card"></div>
     <div id="proposal-card"></div>
+    <div id="focus-card"></div>
     <div id="compacc-box"><div class="wempty">${t('access.loading')}</div></div>
     <div id="client-training"></div>
     <div id="client-evals"><div class="eval-actions"><button type="button" class="btn-ghost btn-sm" id="btn-client-evals">${t('teval.open')}</button></div><div id="client-evals-body" style="display:none"></div></div>`;
@@ -6679,7 +6780,7 @@ async function openClient(uid) {
   if (faPal) { faPal.addEventListener('input', faPalSync); faPalSync(); }
   $('btn-client-add').onclick = () => openWeightModal({ uid, docId: null, rec: null });
   compAccLoadTrainer(uid);
-  try { goalsTrainerCardLoad(uid, udata); } catch {}
+  try { goalsTrainerCardLoad(uid, udata, { conditions: (clientHealth && clientHealth.decl && clientHealth.decl.conditions) || [], weights: data }); } catch {}
   btLoadTrainerCard(uid, udata);
   box.querySelectorAll('[data-c-edit]').forEach(b => b.onclick = () => {
     const rec = data.find(w => w.id === b.dataset.cEdit);
@@ -7086,7 +7187,7 @@ function goalsDayTypeGate(detected, chosen, carbHeld) {
   if (detected === 'base') return 'direct';
   return 'gate';
 }
-try { window.__goalsCore = { compute: goalsCoreCompute, healthMap: goalsHealthMap, dayAdjust: goalsDayAdjust, dayLevelForDate: goalsDayLevelForDate, dayIsDemanding: goalsDayIsDemanding, dayGoalsFor: goalsDayGoalsFor, setView: goalsSetView, goalOfDay, bandFor: goalsBandFor, gateDecision: goalsGateDecision, dayTypeGate: goalsDayTypeGate, agreementActive: goalsAgreementActive, agreementVersion: GOALS_AGREEMENT_VERSION, studentSetGoal: gmStudentSetGoal, studentSetDayType: gmStudentSetDayType, acceptAgreement: gmAcceptAgreement, trainerCardLoad: goalsTrainerCardLoad, trainerDecideProposal: goalsTrainerDecideProposal, version: GOALS_ENGINE_VERSION, termsVersion: GOALS_TERMS_VERSION }; } catch {}
+try { window.__goalsCore = { compute: goalsCoreCompute, healthMap: goalsHealthMap, dayAdjust: goalsDayAdjust, dayLevelForDate: goalsDayLevelForDate, dayIsDemanding: goalsDayIsDemanding, dayGoalsFor: goalsDayGoalsFor, setView: goalsSetView, goalOfDay, bandFor: goalsBandFor, gateDecision: goalsGateDecision, dayTypeGate: goalsDayTypeGate, agreementActive: goalsAgreementActive, agreementVersion: GOALS_AGREEMENT_VERSION, studentSetGoal: gmStudentSetGoal, studentSetDayType: gmStudentSetDayType, acceptAgreement: gmAcceptAgreement, trainerCardLoad: goalsTrainerCardLoad, trainerDecideProposal: goalsTrainerDecideProposal, focusOf: gmFocusOf, focusEffective: gmFocusEffective, focusEdBlocked: gmFocusEdBlocked, version: GOALS_ENGINE_VERSION, termsVersion: GOALS_TERMS_VERSION }; } catch {}
 const gmPick5 = g => { const o = {}; for (const k of ['kcal', 'prot', 'carb', 'azuc', 'gras']) if (g && g[k] != null) o[k] = g[k]; return o; };
 const gmHasTrainer = () => !!(((typeof MY_REL !== 'undefined' && MY_REL) && MY_REL.trainerUid) || (typeof UDATA !== 'undefined' && UDATA && UDATA.trainerUid));
 async function goalsEngineRun(reason) {
@@ -7096,10 +7197,18 @@ async function goalsEngineRun(reason) {
   const a = (typeof MY_ASMT !== 'undefined' && MY_ASMT) ? MY_ASMT.doc : null;
   const last = (typeof WEIGHTS !== 'undefined' && WEIGHTS && WEIGHTS.length) ? WEIGHTS[WEIGHTS.length - 1] : null;
   if (!a || !faHasResult(a) || !last || faResultStale(a, last)) { renderGoalsEngine(); return; }
-  const objective = UDATA.goalObjective;
+  const fx = gmFocusEffective(UDATA);
+  const objective = fx.objective;
   if (!['mantener', 'bajar', 'ganar'].includes(objective || '')) { renderGoalsEngine(); return; }
   const conds = (typeof activeDecl === 'function' && declLoadState === 'ok') ? ((activeDecl() || {}).conditions || []) : [];
-  const res = goalsCoreCompute({ objective, tdeeKcal: a.tdeeKcal, weightKg: num(last.weight), hasTrainer: gmHasTrainer(), paceSuggestion: UDATA.paceSuggestion || null, goalsTerms: UDATA.goalsTerms || null, conditions: conds });
+  /* Enfoque (§3.2/§3.3.6): en competencia activa manda el objetivo de
+     la fase y el ritmo decidido FUERA de la fase no se hereda
+     (paceSuggestion y goalsTerms no entran: ningún déficit de
+     definición nace en automático); si la asignación se perdió, el
+     déficit se apaga por la misma vía y manda el objetivo del alumno. */
+  const paceIn = (fx.source === 'competition-phase' || fx.guardNoTrainer) ? null : (UDATA.paceSuggestion || null);
+  const termsIn = (fx.source === 'competition-phase' || fx.guardNoTrainer) ? null : (UDATA.goalsTerms || null);
+  const res = goalsCoreCompute({ objective, tdeeKcal: a.tdeeKcal, weightKg: num(last.weight), hasTrainer: gmHasTrainer(), paceSuggestion: paceIn, goalsTerms: termsIn, conditions: conds });
   /* §K: la procedencia registra también el % de grasa base y el nivel
      del día DEL CÓMPUTO (el de hoy, resuelto del plan real si ya está
      cargado; la variación de cada día visualizado se resuelve al
@@ -7107,7 +7216,7 @@ async function goalsEngineRun(reason) {
   let dayLevelNow = 'base';
   try { const tIso = (typeof todayISO === 'function') ? todayISO() : new Date().toISOString().slice(0, 10); dayLevelNow = goalsDayLevelForDate(tIso, (typeof MY_PLAN !== 'undefined' ? MY_PLAN : null), (typeof PEND_CFG !== 'undefined' && PEND_CFG && !PEND_CFG.__error) ? PEND_CFG : null, (typeof LIB_BY_ID !== 'undefined' ? LIB_BY_ID : {})).dayLevel; } catch {}
   if (res.heldParams.includes('carb')) dayLevelNow = 'base'; // §E: con carb retenido no hay variación que registrar
-  const prov = { objective, equationUsed: a.equationUsed || a.equation || '', tdeeKcal: Math.round(a.tdeeKcal), weightKg: num(last.weight), weightDate: last.date, heightCm: num(a.heightCm), age: new Date().getFullYear() - parseInt(a.birthYear, 10), palBasal: num(a.palBasal), proteinFactor: res.proteinFactor, fatPct: res.fatPct, dayLevel: dayLevelNow, sugarRule: 'OMS-5%', paceKcal: res.paceKcal, paceState: res.paceState, heldParams: res.heldParams, heldDetails: res.heldDetails, guardHeld: res.guardHeld, infoAlerts: res.infoAlerts, engineGoals: res.goals, changeLog: (UDATA.goalsProvenance && UDATA.goalsProvenance.changeLog) || [], fingerprint: res.fingerprint, computedAt: new Date().toISOString(), engineVersion: GOALS_ENGINE_VERSION };
+  const prov = { objective, equationUsed: a.equationUsed || a.equation || '', tdeeKcal: Math.round(a.tdeeKcal), weightKg: num(last.weight), weightDate: last.date, heightCm: num(a.heightCm), age: new Date().getFullYear() - parseInt(a.birthYear, 10), palBasal: num(a.palBasal), proteinFactor: res.proteinFactor, fatPct: res.fatPct, dayLevel: dayLevelNow, sugarRule: 'OMS-5%', paceKcal: res.paceKcal, paceState: res.paceState, heldParams: res.heldParams, heldDetails: res.heldDetails, guardHeld: res.guardHeld, infoAlerts: res.infoAlerts, engineGoals: res.goals, focus: fx.focus, objectiveSource: fx.source, competitionPhase: fx.phase, changeLog: (UDATA.goalsProvenance && UDATA.goalsProvenance.changeLog) || [], fingerprint: res.fingerprint, computedAt: new Date().toISOString(), engineVersion: GOALS_ENGINE_VERSION };
   const curProv = UDATA.goalsProvenance || null, curGoals = UDATA.goals || null;
   /* Ajuste manual posterior del entrenador/administrador: si las metas
      actuales ya no coinciden con las últimas del motor (las CINCO) y
@@ -7124,14 +7233,242 @@ async function goalsEngineRun(reason) {
   } catch {}
   renderGoalsEngine();
 }
+/* ================= ENFOQUE — CAPA DECLARATIVA (2026-10-26) =================
+   Modelo de DOS CAPAS (DISEÑO-ENFOQUE-OBJETIVOS-2026-10-26, aprobado
+   por Ronald): los 3 objetivos de siempre (mantener/bajar/ganar) son
+   lo ÚNICO que calcula; el ENFOQUE (goalFocus) es una capa declarativa
+   que orienta la recomendación DENTRO de las bandas aprobadas (§§F–M)
+   sin tocar fórmulas (§§D/G/K), bandas (§L/§M) ni alertas (§E):
+   - general: el camino estándar (sin campo = general, §J: sin valores
+     de fábrica).
+   - recomposicion (con objetivo bajar): la sugerencia de ritmo nace
+     en −500 (extremo suave de la banda F-B2) y la proteína es la de
+     bajar (2,2 g/kg, §G). Exige la confirmación expresa de fuerza con
+     progresión, que queda registrada (strengthConfirmed).
+   - competencia: nace 'pending-trainer'; SOLO el entrenador asignado
+     la activa y mueve las fases con las parejas obligadas
+     (volumen↔ganar, definición↔bajar, semana-final↔mantener). Activa,
+     manda el objetivo de la fase; el ritmo de fuera de la fase NO se
+     hereda (ningún déficit nace en automático) y la vía del acuerdo
+     firmado NO existe en competencia. Semana final: mantener, con la
+     guarda expresa de NO automatizar agua/sodio/cargas. Si la
+     asignación se pierde con la competencia activa, el cálculo vuelve
+     al objetivo del alumno SIN déficit y la declaración se conserva
+     (guardia §3.3.6, computada al leer — no se escribe nada). Con
+     trastorno alimentario activo en la declaración, la activación
+     queda bloqueada en la ficha del entrenador.
+   La procedencia anota focus/objectiveSource/competitionPhase y el
+   changeLog (tope 50) gana los kinds focus / focus-activation /
+   focus-phase. Las reglas (delta goalFocus, ruleset a4435194) son la
+   barrera real de forma y transición; esta capa es la experiencia. */
+const GF_PHASE_PAIR = { volumen: 'ganar', definicion: 'bajar', 'semana-final': 'mantener' };
+let GMFOCUS_PENDING = null; // 'recomposicion' | 'competencia' — confirmación en curso en la tarjeta
+function gmFocusOf(u) {
+  const f = (u && u.goalFocus) || null;
+  if (!f || !['general', 'recomposicion', 'competencia'].includes(f.focus)) return { focus: 'general', status: 'active', strengthConfirmed: null, competition: null, decidedBy: null, decidedAt: null };
+  return f;
+}
+function gmFocusAssigned(u) { return !!u && u.assignmentStatus === 'assigned' && typeof u.trainerUid === 'string' && u.trainerUid !== ''; }
+function gmFocusEffective(u) {
+  const f = gmFocusOf(u);
+  const assigned = gmFocusAssigned(u);
+  let objective = (u && u.goalObjective) || '', source = 'student', phase = null, guardNoTrainer = false, pending = false;
+  if (f.focus === 'competencia') {
+    if (f.status === 'pending-trainer') pending = true;
+    else if (f.status === 'active') {
+      const po = f.competition && f.competition.phaseObjective;
+      if (assigned && ['mantener', 'bajar', 'ganar'].includes(po || '')) { objective = po; source = 'competition-phase'; phase = f.competition.phase || null; }
+      else if (!assigned) guardNoTrainer = true;
+    }
+  }
+  return { focus: f.focus, status: f.status || 'active', competition: f.competition || null, strengthConfirmed: f.strengthConfirmed, objective, source, phase, guardNoTrainer, pending, assigned };
+}
+function gmFocusDaysLeft(dateStr) {
+  if (!dateStr) return '—';
+  const today = (typeof todayISO === 'function') ? todayISO() : new Date().toISOString().slice(0, 10);
+  const d = Math.round((new Date(dateStr + 'T12:00:00') - new Date(today + 'T12:00:00')) / 86400000);
+  return isFinite(d) ? d : '—';
+}
+function gmFocusEdBlocked(conds) { return (conds || []).some(c => /trastorno|eating disorder|anorex|bulim/.test(goalsNorm(c))); }
+/* Escritura del dueño: goalFocus + (si ya existe procedencia del
+   motor) el changeLog en la misma escritura — la cláusula viva de
+   goalsProvenance exige su forma del motor, así que sin procedencia
+   previa se escribe solo goalFocus y el registro nace con el primer
+   cálculo (la declaración misma queda en goalFocus.declaredAt). */
+async function gmFocusWrite(gf, log) {
+  const patch = { goalFocus: gf };
+  if (UDATA.goalsProvenance && UDATA.goalsProvenance.computedAt) {
+    patch.goalsProvenance = gm3ProvWithLog({ at: new Date().toISOString(), kind: log.kind, param: 'focus', date: log.date || null, foundedValue: log.foundedValue, chosenValue: log.chosenValue, gate: log.gate, by: auth.currentUser.uid });
+  }
+  await setDoc(doc(db, 'users', auth.currentUser.uid), patch, { merge: true });
+  UDATA.goalFocus = gf;
+  if (patch.goalsProvenance) UDATA.goalsProvenance = patch.goalsProvenance;
+}
+async function gmFocusTap(f) {
+  const fx = gmFocusEffective(UDATA);
+  if (f === fx.focus) { GMFOCUS_PENDING = null; renderGoalsEngine(); return; }
+  if (f === 'recomposicion') {
+    if ((UDATA.goalObjective || '') !== 'bajar') { toast(t('gfocus.recompNeedBajar'), true); return; }
+    GMFOCUS_PENDING = 'recomposicion'; renderGoalsEngine(); return;
+  }
+  if (f === 'competencia') {
+    if (!gmFocusAssigned(UDATA)) { toast(t('gfocus.compNeedTrainer'), true); return; }
+    GMFOCUS_PENDING = 'competencia'; renderGoalsEngine(); return;
+  }
+  /* general: declaración inmediata (salir de competencia también es
+     libre; la decisión del entrenador se conserva como historial). */
+  GMFOCUS_PENDING = null;
+  const prev = UDATA.goalFocus || null;
+  const gf = { focus: 'general', status: 'active', declaredAt: serverTimestamp(), strengthConfirmed: null, competition: null, decidedBy: prev ? (prev.decidedBy ?? null) : null, decidedAt: prev ? (prev.decidedAt ?? null) : null, updatedAt: serverTimestamp() };
+  try { await gmFocusWrite(gf, { kind: 'focus', foundedValue: prev ? prev.focus : 'general', chosenValue: 'general', gate: 'direct' }); toast(t('gfocus.saved')); await goalsEngineRun('focus'); }
+  catch (e) { failToast(e); }
+  renderGoalsEngine();
+}
+async function gmFocusConfirmRecomp() {
+  const ok = $('gm-focus-strength');
+  if (!ok || !ok.checked) { toast(t('gfocus.strengthNeed'), true); return; }
+  const prev = UDATA.goalFocus || null;
+  const gf = { focus: 'recomposicion', status: 'active', declaredAt: serverTimestamp(), strengthConfirmed: true, competition: null, decidedBy: prev ? (prev.decidedBy ?? null) : null, decidedAt: prev ? (prev.decidedAt ?? null) : null, updatedAt: serverTimestamp() };
+  try { await gmFocusWrite(gf, { kind: 'focus', foundedValue: prev ? prev.focus : 'general', chosenValue: 'recomposicion', gate: 'direct' }); GMFOCUS_PENDING = null; toast(t('gfocus.saved')); await goalsEngineRun('focus'); }
+  catch (e) { failToast(e); }
+  renderGoalsEngine();
+}
+async function gmFocusConfirmComp() {
+  const inp = $('gm-focus-date'); const date = inp ? inp.value : '';
+  if (!/^\d{4}-\d{2}-\d{2}$/.test(date || '')) { toast(t('gfocus.compDateLabel'), true); return; }
+  const prev = UDATA.goalFocus || null;
+  const gf = { focus: 'competencia', status: 'pending-trainer', declaredAt: serverTimestamp(), strengthConfirmed: null, competition: { date, phase: null, phaseObjective: null, checkinEveryDays: null }, decidedBy: null, decidedAt: null, updatedAt: serverTimestamp() };
+  try { await gmFocusWrite(gf, { kind: 'focus', date, foundedValue: prev ? prev.focus : 'general', chosenValue: 'competencia', gate: 'pending' }); GMFOCUS_PENDING = null; toast(t('gfocus.saved')); await goalsEngineRun('focus'); }
+  catch (e) { failToast(e); }
+  renderGoalsEngine();
+}
+async function gmFocusSaveDate() {
+  const inp = $('gm-focus-date2'); const date = inp ? inp.value : '';
+  const prev = UDATA.goalFocus || null;
+  if (!prev || prev.focus !== 'competencia' || !prev.competition) return;
+  if (!/^\d{4}-\d{2}-\d{2}$/.test(date || '')) { toast(t('gfocus.compDateLabel'), true); return; }
+  const gf = { ...prev, competition: { ...prev.competition, date }, updatedAt: serverTimestamp() };
+  try { await gmFocusWrite(gf, { kind: 'focus', date, foundedValue: prev.competition.date || null, chosenValue: date, gate: 'direct' }); toast(t('gfocus.dateSaved')); }
+  catch (e) { failToast(e); }
+  renderGoalsEngine();
+}
+function gmFocusSectionHTML() {
+  const fx = gmFocusEffective(UDATA);
+  const cur = fx.focus;
+  const btns = ['general', 'recomposicion', 'competencia'].map(f => `<button type="button" class="btn-ghost btn-sm" data-gm-focus="${f}"${cur === f ? ' style="border-color:#0d9488;font-weight:700"' : ''}>${esc(t('gfocus.opt.' + f))}</button>`).join(' ');
+  let h = `<div id="gm-focus"><p class="pend-cfg-h">${esc(t('gfocus.title'))}</p><p class="progress-hint">${esc(t('gfocus.hint'))}</p><div class="eval-actions" style="justify-content:flex-start;gap:8px;flex-wrap:wrap">${btns}</div>`;
+  h += `<p class="progress-hint">${esc(t('gfocus.expl.' + cur))}</p>`;
+  if (!fx.assigned) h += `<p class="progress-hint">${esc(t('gfocus.compNeedTrainer'))}</p>`;
+  if (cur === 'recomposicion') h += `<div class="gfocus-note">${esc(t('gfocus.recompNote'))}</div>`;
+  if (GMFOCUS_PENDING === 'recomposicion' && cur !== 'recomposicion') {
+    h += `<div class="gfocus-note">${esc(t('gfocus.recompNote'))}</div><label class="consent-check"><input type="checkbox" id="gm-focus-strength"> <span>${esc(t('gfocus.strengthLabel'))}</span></label><div class="eval-actions" style="justify-content:flex-start"><button type="button" class="btn-primary btn-sm" id="gm-focus-confirm-recomp">${esc(t('gfocus.declareBtn'))}</button></div>`;
+  }
+  if (GMFOCUS_PENDING === 'competencia' && cur !== 'competencia') {
+    h += `<label class="pend-sel"><span>${esc(t('gfocus.compDateLabel'))}</span><input type="date" id="gm-focus-date"></label> <button type="button" class="btn-primary btn-sm" id="gm-focus-confirm-comp">${esc(t('gfocus.declareBtn'))}</button>`;
+  }
+  if (cur === 'competencia') {
+    if (fx.pending) h += `<p class="progress-hint">${esc(t('gfocus.compPending'))}</p>`;
+    if (fx.competition && fx.competition.date) {
+      if (fx.status === 'active' && fx.phase) h += `<p class="progress-hint">${esc(t('gfocus.compActiveLine', { date: fx.competition.date, days: gmFocusDaysLeft(fx.competition.date), phase: t('gfocus.phase.' + fx.phase), obj: t('gm.obj.' + fx.objective) }))}</p>`;
+      h += `<label class="pend-sel"><span>${esc(t('gfocus.compDateLabel'))}</span><input type="date" id="gm-focus-date2" value="${esc(fx.competition.date)}"></label> <button type="button" class="btn-ghost btn-sm" id="gm-focus-savedate">${esc(t('gfocus.dateSaveBtn'))}</button>`;
+    }
+    if (fx.source === 'competition-phase') h += `<p class="progress-hint">${esc(t('gfocus.objFromPhase', { phase: t('gfocus.phase.' + fx.phase) }))}</p>`;
+    if (fx.guardNoTrainer) h += `<div class="health-alert">${esc(t('gfocus.guardNote'))}</div>`;
+  }
+  h += `</div>`;
+  return h;
+}
+function gmFocusWire() {
+  document.querySelectorAll('[data-gm-focus]').forEach(b => b.onclick = () => gmFocusTap(b.dataset.gmFocus));
+  const cr = $('gm-focus-confirm-recomp'); if (cr) cr.onclick = gmFocusConfirmRecomp;
+  const cc = $('gm-focus-confirm-comp'); if (cc) cc.onclick = gmFocusConfirmComp;
+  const sd = $('gm-focus-savedate'); if (sd) sd.onclick = gmFocusSaveDate;
+}
+/* ---------- Ficha del cliente: insignia, activación y bloque de competencia ---------- */
+function gmFocusTrainerCard(uid, udata, extra) {
+  const box = $('focus-card'); if (!box) return;
+  const u = udata || {};
+  const fx = gmFocusEffective(u);
+  const conds = (extra && extra.conditions) || [];
+  const weights = (extra && extra.weights) || [];
+  let badge;
+  if (fx.focus === 'recomposicion') badge = t('gfocus.badgeRecomp');
+  else if (fx.focus === 'competencia' && fx.pending) badge = t('gfocus.badgeCompPending');
+  else if (fx.focus === 'competencia' && fx.phase) badge = t('gfocus.badgeCompActive', { phase: t('gfocus.phase.' + fx.phase), date: (fx.competition && fx.competition.date) || '—', days: gmFocusDaysLeft(fx.competition && fx.competition.date) });
+  else badge = t('gfocus.badgeGeneral');
+  let h = `<div class="fb3-card"><h3 class="history-title" style="margin:0">${esc(t('gfocus.trainerTitle'))}</h3><p class="progress-hint">${esc(badge)}</p>`;
+  if (fx.focus === 'competencia' && fx.pending) {
+    h += `<p class="pend-cfg-h">${esc(t('gfocus.activateTitle'))}</p>`;
+    if (gmFocusEdBlocked(conds)) h += `<div class="health-alert">${esc(t('gfocus.edBlocked'))}</div>`;
+    else {
+      const phaseOpts = ['volumen', 'definicion', 'semana-final'].map(p => `<option value="${p}">${esc(t('gfocus.phase.' + p))}</option>`).join('');
+      h += `<label class="pend-sel"><span>${esc(t('gfocus.phaseLabel'))}</span><select id="gf-phase-sel">${phaseOpts}</select></label> <label class="pend-sel"><span>${esc(t('gfocus.checkinLabel'))}</span><input type="number" id="gf-checkin" min="1" max="31" style="width:70px"></label> <button type="button" class="btn-primary btn-sm" id="gf-activate">${esc(t('gfocus.activateBtn'))}</button>`;
+    }
+  }
+  if (fx.focus === 'competencia' && fx.status === 'active') {
+    const comp = fx.competition || {};
+    h += `<p class="pend-cfg-h">${esc(t('gfocus.compBlockTitle'))}</p>`;
+    if (comp.date && fx.phase) h += `<p class="progress-hint">${esc(t('gfocus.compActiveLine', { date: comp.date, days: gmFocusDaysLeft(comp.date), phase: t('gfocus.phase.' + fx.phase), obj: t('gm.obj.' + fx.objective) }))}</p>`;
+    const lastW = weights.length ? weights[weights.length - 1] : null;
+    if (lastW) h += `<p class="progress-hint">${esc(t('gfocus.lastWeight', { w: lastW.weight, date: lastW.date }))}</p>`;
+    else h += `<p class="progress-hint">${esc(t('gfocus.noWeight'))}</p>`;
+    if (comp.checkinEveryDays && lastW) {
+      const ageDays = Math.round((new Date(((typeof todayISO === 'function') ? todayISO() : new Date().toISOString().slice(0, 10)) + 'T12:00:00') - new Date(lastW.date + 'T12:00:00')) / 86400000);
+      if (isFinite(ageDays) && ageDays > Number(comp.checkinEveryDays)) h += `<p class="progress-hint">${esc(t('gfocus.staleTrack', { n: comp.checkinEveryDays }))}</p>`;
+    }
+    if (fx.phase === 'definicion') h += `<p class="progress-hint">${esc(t('gfocus.defRef'))}</p>`;
+    const phaseOpts2 = ['volumen', 'definicion', 'semana-final'].map(p => `<option value="${p}"${fx.phase === p ? ' selected' : ''}>${esc(t('gfocus.phase.' + p))}</option>`).join('');
+    h += `<label class="pend-sel"><span>${esc(t('gfocus.phaseLabel'))}</span><select id="gf-phase-sel2">${phaseOpts2}</select></label> <button type="button" class="btn-ghost btn-sm" id="gf-setphase">${esc(t('gfocus.phaseChangeBtn'))}</button>`;
+  }
+  h += `</div>`;
+  box.innerHTML = h;
+  const act = $('gf-activate'); if (act) act.onclick = () => gmFocusTrainerActivate(uid);
+  const sp = $('gf-setphase'); if (sp) sp.onclick = () => gmFocusTrainerSetPhase(uid);
+}
+async function gmFocusTrainerWriteFocus(uid, gf, log) {
+  let cur = {};
+  try { const s = await getDoc(doc(db, 'users', uid)); if (s.exists()) cur = s.data(); } catch {}
+  const prevProv = cur.goalsProvenance || {};
+  const prov = { ...prevProv, changeLog: [...((prevProv.changeLog) || []), { at: new Date().toISOString(), kind: log.kind, param: 'focus', date: log.date || null, foundedValue: log.foundedValue, chosenValue: log.chosenValue, gate: 'approved', by: auth.currentUser.uid }].slice(-50) };
+  await setDoc(doc(db, 'users', uid), { goalFocus: gf, goalsProvenance: prov }, { merge: true });
+}
+async function gmFocusTrainerActivate(uid) {
+  const sel = $('gf-phase-sel'); if (!sel) return;
+  const phase = sel.value; const pair = GF_PHASE_PAIR[phase]; if (!pair) return;
+  const chkRaw = (($('gf-checkin') && $('gf-checkin').value) || '').trim();
+  let checkin = null;
+  if (chkRaw) { const n = parseInt(chkRaw, 10); if (Number.isInteger(n) && n >= 1 && n <= 31) checkin = n; }
+  let cur = {};
+  try { const s = await getDoc(doc(db, 'users', uid)); if (s.exists()) cur = s.data(); } catch {}
+  const prev = cur.goalFocus || null;
+  if (!prev || prev.focus !== 'competencia' || prev.status !== 'pending-trainer' || !prev.competition) return;
+  const gf = { ...prev, status: 'active', competition: { ...prev.competition, phase, phaseObjective: pair, checkinEveryDays: checkin }, decidedBy: auth.currentUser.uid, decidedAt: serverTimestamp(), updatedAt: serverTimestamp() };
+  try { await gmFocusTrainerWriteFocus(uid, gf, { kind: 'focus-activation', date: prev.competition.date || null, foundedValue: null, chosenValue: phase }); toast(t('gfocus.activated')); await openClient(uid); }
+  catch (e) { failToast(e); }
+}
+async function gmFocusTrainerSetPhase(uid) {
+  const sel = $('gf-phase-sel2'); if (!sel) return;
+  const phase = sel.value; const pair = GF_PHASE_PAIR[phase]; if (!pair) return;
+  let cur = {};
+  try { const s = await getDoc(doc(db, 'users', uid)); if (s.exists()) cur = s.data(); } catch {}
+  const prev = cur.goalFocus || null;
+  if (!prev || prev.focus !== 'competencia' || prev.status !== 'active' || !prev.competition) return;
+  if (prev.competition.phase === phase) return;
+  const gf = { ...prev, competition: { ...prev.competition, phase, phaseObjective: pair }, updatedAt: serverTimestamp() };
+  try { await gmFocusTrainerWriteFocus(uid, gf, { kind: 'focus-phase', date: prev.competition.date || null, foundedValue: prev.competition.phase || null, chosenValue: phase }); toast(t('gfocus.phaseChanged')); await openClient(uid); }
+  catch (e) { failToast(e); }
+}
+
 /* ---------- Tarjeta del alumno (junto a «Tus metas diarias») ---------- */
 function renderGoalsEngine() {
   const box = $('goals-engine'); if (!box || !auth.currentUser) return;
   const prov = UDATA.goalsProvenance || null;
   const obj = UDATA.goalObjective || '';
+  const fx = gmFocusEffective(UDATA);
   const objBtns = ['mantener', 'bajar', 'ganar'].map(o => `<button type="button" class="btn-ghost btn-sm" data-gm-obj="${o}"${obj === o ? ' style="border-color:#0d9488;font-weight:700"' : ''}>${esc(t('gm.obj.' + o))}</button>`).join(' ');
   let html = `<div class="fb3-card" id="gm-card"><h3 class="history-title" style="margin-top:0">${esc(t('gm.title'))}</h3>`;
   html += `<p class="progress-hint">${esc(t('gm.objective'))}</p><div class="eval-actions" style="justify-content:flex-start;gap:8px;flex-wrap:wrap">${objBtns}</div>`;
+  html += gmFocusSectionHTML();
   if (!prov) html += `<p class="progress-hint">${esc(t('gm.needData'))}</p>`;
   if (prov) {
     html += `<p class="progress-hint" id="gm-prov">${esc(t('gm.prov', { date: String(prov.computedAt || '').slice(0, 10), tdee: fmt(prov.tdeeKcal), eq: esc(prov.equationUsed || ''), w: prov.weightKg, wdate: esc(prov.weightDate || ''), h: prov.heightCm, age: prov.age, pal: prov.palBasal, pf: prov.proteinFactor }))}</p>`;
@@ -7160,7 +7497,13 @@ function renderGoalsEngine() {
     }
     if (Array.isArray(prov.infoAlerts) && prov.infoAlerts.length) html += `<p class="progress-hint">${esc(t('gm.infoTrainer'))}</p>`;
   }
-  if (obj === 'bajar') {
+  if (fx.source === 'competition-phase') {
+    /* En competencia el ritmo no se sugiere ni se auto-acepta: lo
+       decide el entrenador (definición) y la semana final no
+       automatiza nada (§3.2). */
+    if (fx.phase === 'definicion') html += `<div id="gm-pace"><p class="progress-hint">${esc(t('gfocus.compPaceTrainer'))}</p></div>`;
+    else if (fx.phase === 'semana-final') html += `<div id="gm-pace"><p class="progress-hint">${esc(t('gfocus.finalWeekNote'))}</p></div>`;
+  } else if (obj === 'bajar') {
     const ps = UDATA.paceSuggestion || null, gt = UDATA.goalsTerms || null;
     html += `<div id="gm-pace"><p class="pend-cfg-h">${esc(t('gm.paceTitle'))}</p>`;
     if (ps && (ps.status === 'approved' || ps.status === 'replaced')) {
@@ -7168,18 +7511,20 @@ function renderGoalsEngine() {
     } else if (gmHasTrainer()) {
       if (ps && ps.status === 'pending') html += `<p class="progress-hint">${esc(t('gm.paceReviewMine', { n: ps.paceKcal }))}</p>`;
       else if (prov) html += `<p class="progress-hint">${esc(t('gm.paceReview', { tdee: fmt(prov.tdeeKcal) }))}</p>`;
-      html += `<label class="pend-sel"><span>${esc(t('gm.paceSuggest'))}</span><select id="gm-pace-sel"><option value="500">−500</option><option value="750">−750</option><option value="1000">−1000</option></select></label> <button type="button" class="btn-primary btn-sm" id="gm-pace-send">${esc(t('gm.paceSuggestBtn'))}</button>`;
+      html += `<label class="pend-sel"><span>${esc(t('gm.paceSuggest'))}</span><select id="gm-pace-sel"><option value="500"${fx.focus === 'recomposicion' ? ' selected' : ''}>−500</option><option value="750">−750</option><option value="1000">−1000</option></select></label> <button type="button" class="btn-primary btn-sm" id="gm-pace-send">${esc(t('gm.paceSuggestBtn'))}</button>`;
     } else if (gt && gt.version === GOALS_TERMS_VERSION) {
       html += `<p class="progress-hint">${esc(t('gm.paceSelfAccepted', { v: esc(gt.version), date: String(gt.acceptedAt || '').slice(0, 10) }))}</p>`;
     } else {
       html += `<p class="progress-hint"><b>${esc(t('gm.paceSelfTitle'))}</b><br>${esc(t('gm.paceSelfBody'))}</p><label class="consent-check"><input type="checkbox" id="gm-terms-ok"> <span>${esc(t('gm.termsText'))}</span></label><div class="eval-actions" style="justify-content:flex-start"><button type="button" class="btn-primary btn-sm" id="gm-terms-accept">${esc(t('gm.termsAccept'))}</button></div>`;
     }
+    if (fx.focus === 'recomposicion') html += `<p class="progress-hint">${esc(t('gfocus.recompPaceNote'))}</p>`;
     html += `</div>`;
   }
   html += gmEditSectionHTML(prov);
   html += `<p class="progress-hint">${esc(t('gm.eduNote'))}</p></div>`;
   box.innerHTML = html;
   box.querySelectorAll('[data-gm-obj]').forEach(b => b.onclick = () => gmSetObjective(b.dataset.gmObj));
+  try { gmFocusWire(); } catch {}
   const send = $('gm-pace-send'); if (send) send.onclick = gmSuggestPace;
   const acc = $('gm-terms-accept'); if (acc) acc.onclick = gmAcceptTerms;
   try { gmWireEditor(); } catch {}
@@ -7243,7 +7588,7 @@ async function gmSaveFoundation() {
   } catch (e) { failToast(e); }
 }
 /* ---------- Ficha del cliente: aprobación del ritmo (§F) + alertas (§E) ---------- */
-async function goalsTrainerCardLoad(uid, udata) {
+async function goalsTrainerCardLoad(uid, udata, extra) {
   const pc = $('pace-card'), hc = $('held-card'); if (!pc && !hc) return;
   const u = udata || {};
   const ps = u.paceSuggestion || null, prov = u.goalsProvenance || null;
@@ -7281,6 +7626,7 @@ async function goalsTrainerCardLoad(uid, udata) {
       hc.innerHTML = `<div class="fb3-card"><h3 class="history-title" style="margin:0">${esc(t('gm.trainerHeldTitle'))}</h3>` + det.map(d => `<p class="progress-hint">${esc(t('gm.trainerHeldItem', { param: t('gm.param.' + d.param), cond: condName(d.cond || '') }))}</p>`).join('') + `</div>`;
     } else hc.innerHTML = '';
   }
+  try { gmFocusTrainerCard(uid, u, extra || {}); } catch {}
 }
 async function goalsTrainerDecidePace(uid, pace) {
   if (![500, 750, 1000].includes(Number(pace))) return;
@@ -17588,7 +17934,7 @@ document.addEventListener('keydown', e => { if (e.key === 'Escape') shareClose()
  *  - El SW (sw.js) solo cachea la cáscara del mismo origen en modo
  *    RED PRIMERO: Auth/Firestore/Worker jamás pasan por la caché.
  * ================================================================ */
-const PWA_SW_VERSION = '20261026-unidad-carga';
+const PWA_SW_VERSION = '20261026-enfoque';
 let pwaDeferredPrompt = null;
 function pwaIsStandalone() {
   try {
