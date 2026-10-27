@@ -2588,6 +2588,7 @@ en: {
   'train.lib.unavailable': '📚 The exercise library is unavailable right now (it may be empty or could not be loaded). You can keep typing exercises as free text — plans save normally.',
   'train.lib.photo': 'Photo', 'train.lib.video': 'Video',
   'train.f.sePh': 'SE', 'train.f.repPh': 'REP', 'train.f.more': 'More options',
+  'train.f.drag': 'Drag to reorder',
   'train.lib.media': 'Exercise media',
   'train.lib.noMedia': 'This exercise has no linked photo or video yet. Link it from the library by typing its name and choosing the suggestion.',
   'train.viz.title': '🧱 Visual builder',
@@ -4331,6 +4332,7 @@ es: {
   'train.lib.unavailable': '📚 La biblioteca de ejercicios no está disponible ahora (puede estar vacía o no pudo cargarse). Puedes seguir escribiendo los ejercicios como texto libre: los planes se guardan con normalidad.',
   'train.lib.photo': 'Foto', 'train.lib.video': 'Video',
   'train.f.sePh': 'SE', 'train.f.repPh': 'REP', 'train.f.more': 'Más opciones',
+  'train.f.drag': 'Arrastrar para reordenar',
   'train.lib.media': 'Multimedia del ejercicio',
   'train.lib.noMedia': 'Este ejercicio aún no tiene foto ni video asociados. Vincúlalo desde la biblioteca escribiendo su nombre y eligiendo la sugerencia.',
   'train.viz.title': '🧱 Constructor visual',
@@ -14586,8 +14588,87 @@ function wireLibRow(row) {
   nameIn.addEventListener('blur', () => setTimeout(() => libCloseSug(row), 150));
   nameIn.addEventListener('keydown', ev => { if (ev.key === 'Escape') libCloseSug(row); });
 }
+/* ARRASTRAR PARA REORDENAR (2026-10-27, correo de Ronald 17:33 CDT):
+   cada fila del editor lleva un asa (⠿) al inicio de su línea; desde
+   ella, con eventos de puntero (mouse Y tacto — el asa declara
+   touch-action:none en CSS para que el gesto no pelee con el scroll),
+   la fila se mueve EN VIVO dentro de su propio día (.pl-exs). El nodo
+   DOM se traslada TAL CUAL, así que todo lo que cuelga de la fila
+   viaja con ella: valores de los campos, data-* de biblioteca
+   (exid/foto/video), descanso y aproximación en ambos idiomas y los
+   cableados ya puestos (onclick y listeners viven en la fila). El
+   guardado de siempre lee las filas en orden DOM: el orden nuevo ES
+   el orden del arreglo guardado — sin campos nuevos, sin escritura
+   nueva, sin delta de reglas. Arrastrar ENTRE días no existe. Esc o
+   soltar cancelando restaura la posición original. Al soltar con un
+   cambio real de posición, el reorden cuenta como edición del
+   formulario (evento «input» sobre #form-plan): la firma del editor
+   (planSignature) ya lo detecta por orden DOM, y la nota de
+   «guardado» se apaga igual que si el entrenador hubiera tecleado.
+   El editor de PLANTILLAS es ESTE mismo editor (tplApply vuelca la
+   plantilla con planDayRow y tplSaveAsTemplate recoge del mismo
+   #pl-days), así que el arrastre aplica también al editar
+   plantillas — no hay un segundo componente de lista por día. */
+let planDrag = null;
+function planDragEnd(commit) {
+  if (!planDrag) return;
+  const d = planDrag; planDrag = null;
+  window.removeEventListener('pointermove', planDragMove, true);
+  window.removeEventListener('pointerup', planDragUp, true);
+  window.removeEventListener('pointercancel', planDragUp, true);
+  window.removeEventListener('keydown', planDragKey, true);
+  d.row.classList.remove('pl-ex-dragging');
+  if (!commit) {
+    if (d.next && d.next.parentNode === d.box) d.box.insertBefore(d.row, d.next);
+    else d.box.appendChild(d.row);
+    return;
+  }
+  if (d.row.nextElementSibling !== d.next) {
+    const f = $('form-plan');
+    if (f) f.dispatchEvent(new Event('input', { bubbles: true }));
+  }
+}
+function planDragKey(e) { if (e.key === 'Escape') { e.preventDefault(); planDragEnd(false); } }
+function planDragMove(e) {
+  if (!planDrag) return;
+  const d = planDrag, y = e.clientY;
+  /* Auto-scroll de la tarjeta del modal al acercarse a sus bordes:
+     sin esto, reordenar en un día largo obligaría a soltar a mitad. */
+  const sc = d.row.closest('.modal');
+  if (sc) { const r = sc.getBoundingClientRect(); if (y < r.top + 56) sc.scrollTop -= 14; else if (y > r.bottom - 56) sc.scrollTop += 14; }
+  const rows = [...d.box.querySelectorAll(':scope > .pl-ex-row')].filter(r => r !== d.row);
+  for (const r of rows) {
+    const rc = r.getBoundingClientRect();
+    if (y < rc.top + rc.height / 2) { if (r.previousElementSibling !== d.row) d.box.insertBefore(d.row, r); return; }
+  }
+  const last = rows[rows.length - 1];
+  if (last && y > last.getBoundingClientRect().bottom && d.box.lastElementChild !== d.row) d.box.appendChild(d.row);
+}
+function planDragUp() { planDragEnd(true); }
+function wirePlanExDrag(scope) {
+  scope.querySelectorAll('.pl-ex-row').forEach(row => {
+    const h = row.querySelector('.pl-ex-drag');
+    if (!h || h.dataset.dragWired) return;
+    h.dataset.dragWired = '1';
+    h.addEventListener('pointerdown', e => {
+      if (planDrag) return;
+      if (e.pointerType === 'mouse' && e.button !== 0) return;
+      const box = row.closest('.pl-exs');
+      if (!box) return;
+      e.preventDefault();
+      planDrag = { row, box, next: row.nextElementSibling };
+      row.classList.add('pl-ex-dragging');
+      try { h.setPointerCapture(e.pointerId); } catch {}
+      window.addEventListener('pointermove', planDragMove, true);
+      window.addEventListener('pointerup', planDragUp, true);
+      window.addEventListener('pointercancel', planDragUp, true);
+      window.addEventListener('keydown', planDragKey, true);
+    });
+  });
+}
 function wirePlanExRows(scope) {
   wirePlanExDel(scope);
+  wirePlanExDrag(scope);
   wirePlanExMedia(scope);
   scope.querySelectorAll('.pl-ex-row').forEach(wireLibRow);
   scope.querySelectorAll('.pl-ex-row').forEach(r => { wireSubstRow(r); wireBtrRow(r); });
@@ -15518,6 +15599,7 @@ function planExRow(ex) {
      defecto. Nada cambia en el guardado: lee los mismos campos. */
   return `<div class="pl-ex-row"${linked}${rw}>
     <div class="pl-ex-line">
+      <button type="button" class="pl-ex-drag" title="${t('train.f.drag')}" aria-label="${t('train.f.drag')}">⠿</button>
       <button type="button" class="pl-ex-media-btn${thumb ? ' has-photo' : ''}" title="${t('train.lib.media')}"><img class="pl-ex-thumb" alt=""${thumb ? ` src="${esc(thumb)}"` : ' style="display:none"'}><span class="pl-ex-media-ico" aria-hidden="true">🖼</span></button>
       <div class="pl-ex-main">
         <input type="text" class="pl-ex-name" placeholder="${t('train.f.exPh')}" value="${esc(shown)}" autocomplete="off">
@@ -20041,7 +20123,7 @@ document.addEventListener('keydown', e => { if (e.key === 'Escape') shareClose()
  *  - El SW (sw.js) solo cachea la cáscara del mismo origen en modo
  *    RED PRIMERO: Auth/Firestore/Worker jamás pasan por la caché.
  * ================================================================ */
-const PWA_SW_VERSION = '20261027-alertas-agrupadas';
+const PWA_SW_VERSION = '20261027-reordenar-editor';
 let pwaDeferredPrompt = null;
 function pwaIsStandalone() {
   try {
