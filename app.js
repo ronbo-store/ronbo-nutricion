@@ -2795,6 +2795,7 @@ en: {
   'talert.excess': 'Over the goal: {detail}',
   'talert.training': '{n} scheduled sessions in a row unlogged',
   'talert.unmarked': 'Unmarked: {detail}',
+  'talert.count': '{n} alerts',
   'client.weightLog': 'Weight log · {name}',
   'client.healthDecl': 'Health declaration:',
   'client.foodReview': '📷 Food photos to review ({n})',
@@ -4538,6 +4539,7 @@ es: {
   'talert.excess': 'Por encima de la meta: {detail}',
   'talert.training': '{n} sesiones programadas seguidas sin registrar',
   'talert.unmarked': 'Sin marcar: {detail}',
+  'talert.count': '{n} alertas',
   'client.weightLog': 'Registro de peso · {name}',
   'client.healthDecl': 'Declaración de salud:',
   'client.foodReview': '📷 Fotos de comida por revisar ({n})',
@@ -6330,7 +6332,7 @@ async function loadClients() {
     const foodBadge = pendingFood[u.id] ? ` <span class="warn-badge" title="${t('clients.foodTitle')}">📷 ${pendingFood[u.id]}</span>` : '';
     const lastW = lastWByUid[u.id] ? ` · <b>${lastWByUid[u.id]} kg</b>` : '';
     return `<div class="user-row">
-      <div>${u.photoURL ? `<img class="avatar sm" src="${esc(u.photoURL)}" alt="">` : ''}<b>${esc(u.name || '—')}</b> ${badge}${healthBadge}${foodBadge}${appInstallMarkHtml(u)}<br><span class="muted">${esc(u.email || '')}${u.phone ? ' · ' + esc(u.phone) : ''}${lastW}${appInstallNoteHtml(u)}</span>${clientChecklistHTML(chkByUid[u.id])}${talertClientHTML(alertsByUid[u.id], false)}</div>
+      <div>${u.photoURL ? `<img class="avatar sm" src="${esc(u.photoURL)}" alt="">` : ''}<b>${esc(u.name || '—')}</b> ${badge}${healthBadge}${foodBadge}${appInstallMarkHtml(u)}<br><span class="muted">${esc(u.email || '')}${u.phone ? ' · ' + esc(u.phone) : ''}${lastW}${appInstallNoteHtml(u)}</span>${clientChecklistHTML(chkByUid[u.id])}${talertClientHTML(alertsByUid[u.id], false, u.id)}</div>
       <div class="user-actions">${u.approved === true ? `<button class="btn-primary btn-sm" data-client="${u.id}">${t('clients.view')}</button>` : ''}</div>
     </div>`;
   }).join('') : `<div class="wempty">${t('clients.empty')}</div>`;
@@ -7467,6 +7469,11 @@ const TALERT_TTL_MS = 30000;
 let TALERTS_CACHE = {};   // uid -> { at, alerts } (solo memoria; la derivación manda)
 let TALERTS_SEQ = 0;
 let TALERT_FICHA_SEQ = 0;
+/* Agrupado por alumno (pedido de Ronald, 2026-10-27 17:29 CDT):
+   uids cuyo grupo de alertas está DESPLEGADO. Solo memoria, como
+   MT_CARD_OPEN / GM_CARD_OPEN: cada carga nace con todos los
+   grupos recogidos. Sin escrituras ni estado persistido. */
+let TALERT_GROUPS_OPEN = new Set();
 /* Réplica parametrizada de cringDayGoalsFor (AUTH-044): la meta
    ajustada del día con los datos del alumno dado, guarda a guarda,
    llamando a las mismas funciones puras del motor. */
@@ -7648,13 +7655,59 @@ function talertDateTag(iso) {
   return pendDateTag(iso, vReg);
 }
 /* Líneas de alerta de un cliente: en su tarjeta (sin título) y en
-   su ficha (con título y estado vacío honesto). */
-function talertClientHTML(alerts, withTitle) {
+   su ficha (con título y estado vacío honesto). AGRUPADO (pedido
+   de Ronald, 2026-10-27 17:29 CDT: «las alertas de un alumno si
+   tiene varias enciérralas en una sola, no quiero una lista de
+   alertas larga»): con 2 o más alertas, el bloque nace RECOGIDO
+   tras una cabecera «⚠️ N alertas ▾» que despliega las MISMAS
+   filas de siempre; con UNA sola alerta no se fuerza grupo: la
+   fila se muestra directa, idéntica a la de AUTH-045. */
+function talertClientHTML(alerts, withTitle, uid) {
   if (!alerts || !alerts.length)
     return withTitle ? `<div class="client-alerts"><h3 class="history-title">${esc(t('talert.title'))}</h3><p class="pend-none">${esc(t('talert.none'))}</p></div>` : '';
-  const lines = alerts.map(a => `<div class="talert-row">⚠️ ${esc(talertText(a))} <span class="muted">· ${esc(talertDateTag(a.date))}</span></div>`).join('');
-  return `<div class="client-alerts" style="margin-top:4px">${withTitle ? `<h3 class="history-title">${esc(t('talert.title'))}</h3>` : ''}${lines}</div>`;
+  const title = withTitle ? `<h3 class="history-title">${esc(t('talert.title'))}</h3>` : '';
+  const blockAttr = uid ? ` data-talert-block="${uid}"` : '';
+  if (alerts.length === 1 || !uid) {
+    const lines = alerts.map(a => `<div class="talert-row">⚠️ ${esc(talertText(a))} <span class="muted">· ${esc(talertDateTag(a.date))}</span></div>`).join('');
+    return `<div class="client-alerts" style="margin-top:4px"${blockAttr}>${title}${lines}</div>`;
+  }
+  const open = TALERT_GROUPS_OPEN.has(uid);
+  const head = `<button type="button" class="talert-group-head" data-talert-group="${uid}" aria-expanded="${open ? 'true' : 'false'}" style="display:flex;justify-content:space-between;align-items:center;width:100%;background:#fff7ed;border:1px solid #fed7aa;border-radius:8px;padding:6px 9px;margin-top:2px;cursor:pointer;font:inherit;color:inherit;text-align:left"><span>⚠️ <b>${esc(t('talert.count', { n: alerts.length }))}</b></span><span aria-hidden="true">${open ? '▴' : '▾'}</span></button>`;
+  const lines = open ? alerts.map(a => `<div class="talert-row">⚠️ ${esc(talertText(a))} <span class="muted">· ${esc(talertDateTag(a.date))}</span></div>`).join('') : '';
+  return `<div class="client-alerts" style="margin-top:4px"${blockAttr}>${title}${head}${lines}</div>`;
 }
+/* Re-pintado de las superficies de alertas de UN alumno tras
+   desplegar/recoger su grupo: la ficha (si es el cliente abierto)
+   y su tarjeta en «Mis clientes» se re-pintan desde la caché en
+   memoria de la derivación, sin lecturas nuevas; la lista de
+   Pendientes se re-pinta con su propio render de AUTH-045 (el
+   mismo que corre al abrir Pendientes). Cero escrituras. */
+function talertRerender(uid) {
+  const alerts = (TALERTS_CACHE[uid] || {}).alerts || [];
+  const ficha = $('client-alerts');
+  if (ficha && ficha.dataset.uid === uid) ficha.innerHTML = talertClientHTML(alerts, true, uid);
+  document.querySelectorAll(`[data-talert-block="${uid}"]`).forEach(el => {
+    const tmp = document.createElement('div');
+    tmp.innerHTML = talertClientHTML(alerts, false, uid);
+    if (tmp.firstElementChild) el.replaceWith(tmp.firstElementChild);
+  });
+  const pend = $('trainer-alerts');
+  if (pend && pend.querySelector(`[data-talert-group="${uid}"], [data-talert-uid="${uid}"]`)) {
+    try { trainerAlertsRender(); } catch {}
+  }
+}
+function talertToggleGroup(uid) {
+  if (TALERT_GROUPS_OPEN.has(uid)) TALERT_GROUPS_OPEN.delete(uid); else TALERT_GROUPS_OPEN.add(uid);
+  talertRerender(uid);
+}
+/* Delegación única para las cabeceras de grupo en las tres
+   superficies (Pendientes, tarjeta y ficha). Las líneas de alerta
+   NO llevan data-talert-group: su toque sigue abriendo la ficha
+   por la vía de AUTH-045. */
+document.addEventListener('click', e => {
+  const h = e.target.closest('[data-talert-group]');
+  if (h) talertToggleGroup(h.dataset.talertGroup);
+});
 async function loadClientAlerts(uid, udata) {
   const box = $('client-alerts'); if (!box) return;
   const seq = ++TALERT_FICHA_SEQ;
@@ -7662,7 +7715,7 @@ async function loadClientAlerts(uid, udata) {
   if (seq !== TALERT_FICHA_SEQ) return;
   const cur = $('client-alerts');
   if (!cur || cur.dataset.uid !== uid) return;
-  cur.innerHTML = talertClientHTML(alerts, true);
+  cur.innerHTML = talertClientHTML(alerts, true, uid);
 }
 /* Lista diaria en los Pendientes del entrenador/administrador:
    el MISMO alcance que «Mis clientes» (el entrenador, solo sus
@@ -7687,8 +7740,29 @@ async function trainerAlertsRender() {
   let h = `<div class="talerts" style="margin-top:10px"><p class="pend-cfg-h">${esc(t('talert.title'))}</p>`;
   const withAlerts = per.filter(x => x.alerts.length);
   if (!withAlerts.length) h += `<p class="pend-none">${esc(t('talert.none'))}</p>`;
-  for (const { u, alerts } of withAlerts) for (const a of alerts)
-    h += `<button type="button" class="talert-line" data-talert-uid="${u.id}" style="display:block;width:100%;text-align:left;background:none;border:none;border-bottom:1px solid #e5e7eb;padding:7px 2px;cursor:pointer;font:inherit;color:inherit"><b>${esc(u.name || '—')}</b> — ${esc(talertText(a))} <span class="muted">· ${esc(talertDateTag(a.date))}</span></button>`;
+  /* AGRUPADO por alumno (pedido de Ronald, 2026-10-27 17:29 CDT):
+     con 2 o más alertas, el alumno ocupa UNA sola entrada —
+     cabecera «Nombre · N alertas» nacida recogida — y sus alertas,
+     con los textos de siempre, se ven al desplegarla; tocar una
+     alerta desplegada abre la ficha como en AUTH-045. Con UNA
+     sola alerta, la entrada es la línea de siempre, sin grupo.
+     ORDEN: el de AUTH-045 no cambia — los alumnos salen en el
+     orden de la lista actual y el grupo ocupa la posición que
+     ocupaba la primera alerta del alumno (sus alertas ya eran
+     contiguas); dentro del grupo, las alertas conservan el orden
+     de derivación. */
+  const lineStyle = 'display:block;width:100%;text-align:left;background:none;border:none;border-bottom:1px solid #e5e7eb;padding:7px 2px;cursor:pointer;font:inherit;color:inherit';
+  for (const { u, alerts } of withAlerts) {
+    if (alerts.length === 1) {
+      const a = alerts[0];
+      h += `<button type="button" class="talert-line" data-talert-uid="${u.id}" style="${lineStyle}"><b>${esc(u.name || '—')}</b> — ${esc(talertText(a))} <span class="muted">· ${esc(talertDateTag(a.date))}</span></button>`;
+      continue;
+    }
+    const open = TALERT_GROUPS_OPEN.has(u.id);
+    h += `<button type="button" class="talert-line talert-group-head" data-talert-group="${u.id}" aria-expanded="${open ? 'true' : 'false'}" style="${lineStyle}"><b>${esc(u.name || '—')}</b> · ${esc(t('talert.count', { n: alerts.length }))} <span aria-hidden="true">${open ? '▴' : '▾'}</span></button>`;
+    if (open) for (const a of alerts)
+      h += `<button type="button" class="talert-line" data-talert-uid="${u.id}" style="${lineStyle};padding-left:16px">⚠️ ${esc(talertText(a))} <span class="muted">· ${esc(talertDateTag(a.date))}</span></button>`;
+  }
   cur.innerHTML = h + '</div>';
 }
 { const box = document.getElementById('trainer-alerts');
@@ -19967,7 +20041,7 @@ document.addEventListener('keydown', e => { if (e.key === 'Escape') shareClose()
  *  - El SW (sw.js) solo cachea la cáscara del mismo origen en modo
  *    RED PRIMERO: Auth/Firestore/Worker jamás pasan por la caché.
  * ================================================================ */
-const PWA_SW_VERSION = '20261027-metas-icono';
+const PWA_SW_VERSION = '20261027-alertas-agrupadas';
 let pwaDeferredPrompt = null;
 function pwaIsStandalone() {
   try {
