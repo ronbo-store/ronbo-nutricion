@@ -1649,11 +1649,23 @@ body { padding: max(16px, env(safe-area-inset-top)) max(16px, env(safe-area-inse
 /* ===== Tarjeta de entrenador RECOGIDA (2026-10-27) =====
    La tarjeta «Mi entrenador» nace en UNA línea: miniatura redonda
    del entrenador (44px, con sus iniciales debajo si la foto falta
-   o no carga) + nombre y titular en una sola línea con elipsis, y
-   el chevron de la familia .gm-chev; en espera, círculo claro con
-   🧑‍🏫 y la frase de estado. La línea entera es el interruptor
-   (patrón .gm-head); el cuerpo completo vive en .mt-body. */
-.mt-toggle { display: flex; align-items: center; gap: 10px; width: 100%; background: none; border: 0; padding: 0; margin: 0; cursor: pointer; text-align: left; color: inherit; font: inherit; }
+   o no carga) + nombre y titular en una sola línea con elipsis; en
+   espera, círculo claro con 🧑‍🏫 y la frase de estado. La línea
+   entera es el interruptor (patrón .gm-head); el cuerpo completo
+   vive en .mt-body.
+   SEÑAL DE DESPLIEGUE A (2026-10-27, propuesta A aprobada por
+   Ronald tal como se maquetó): la línea se lee como TARJETA-BOTÓN
+   — fondo blanco, borde suave y la sombra ligera de las demás
+   tarjetas — y a la derecha lleva un botón circular en verde
+   marca suave (.mt-chev) con la flecha ▾ que GIRA 180° al abrir
+   (queda ▴) y vuelve al recoger. El círculo es la señal y parte
+   del mismo control: toda la línea sigue desplegando/recogiendo
+   al tocarla, como siempre. El estado en espera recibe el mismo
+   tratamiento visual. SOLO presentación: el interior (.mt-body)
+   y la lógica quedan como AUTH-046 los dejó. */
+.mt-toggle { display: flex; align-items: center; gap: 10px; width: 100%; background: #fff; border: 1px solid #dcebe8; border-radius: 14px; box-shadow: 0 1px 3px rgba(0,0,0,.08); padding: 10px 12px; margin: 0; cursor: pointer; text-align: left; color: inherit; font: inherit; }
+.mt-chev { flex: none; width: 34px; height: 34px; border-radius: 50%; background: #d9f2ec; border: 1.5px solid #0d9488; color: #0d9488; display: flex; align-items: center; justify-content: center; font-size: 14px; line-height: 1; transition: transform .25s ease; }
+.mt-toggle[aria-expanded="true"] .mt-chev { transform: rotate(180deg); }
 .mt-thumb { position: relative; flex: none; width: 44px; height: 44px; border-radius: 50%; overflow: hidden; background: #0d9488; }
 .mt-thumb-initials { position: absolute; inset: 0; display: flex; align-items: center; justify-content: center; color: #fff; font-size: 16px; font-weight: 800; letter-spacing: .5px; }
 .mt-thumb-img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; display: block; }

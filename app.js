@@ -430,7 +430,7 @@ async function renderMyTrainerBox() {
      entrenador: miniatura redonda + nombre (cadena segura de
      siempre; jamás el uid ni un correo) + titular del dossier.
      En espera: la misma frase de estado que hoy abre la tarjeta. */
-  const lineHtml = `<button type="button" class="mt-toggle" id="mt-toggle" aria-expanded="${MT_CARD_OPEN ? 'true' : 'false'}">${rel.trainerUid ? `<span class="mt-thumb"><span class="mt-thumb-initials">${esc(tInitials)}</span>${tPhoto ? `<img class="mt-thumb-img" src="${esc(tPhoto)}" alt="">` : ''}</span><span class="mt-toggle-text"><b>${esc(tNameSafe || t('esc.currentTrainer'))}</b>${tHeadline ? `<span class="mt-toggle-head"> · ${esc(tHeadline)}</span>` : ''}</span>` : `<span class="mt-thumb mt-thumb-wait"><span class="mt-thumb-emoji" aria-hidden="true">🧑‍🏫</span></span><span class="mt-toggle-text"><span class="mt-toggle-wait">${esc(t('esc.noTrainerYet'))}</span></span>`}<span class="gm-chev" aria-hidden="true">${MT_CARD_OPEN ? '▴' : '▾'}</span></button>`;
+  const lineHtml = `<button type="button" class="mt-toggle" id="mt-toggle" aria-expanded="${MT_CARD_OPEN ? 'true' : 'false'}">${rel.trainerUid ? `<span class="mt-thumb"><span class="mt-thumb-initials">${esc(tInitials)}</span>${tPhoto ? `<img class="mt-thumb-img" src="${esc(tPhoto)}" alt="">` : ''}</span><span class="mt-toggle-text"><b>${esc(tNameSafe || t('esc.currentTrainer'))}</b>${tHeadline ? `<span class="mt-toggle-head"> · ${esc(tHeadline)}</span>` : ''}</span>` : `<span class="mt-thumb mt-thumb-wait"><span class="mt-thumb-emoji" aria-hidden="true">🧑‍🏫</span></span><span class="mt-toggle-text"><span class="mt-toggle-wait">${esc(t('esc.noTrainerYet'))}</span></span>`}<span class="mt-chev" aria-hidden="true">▾</span></button>`;
   const bodyHtml = `${rel.trainerUid ? `<div class="mt-head">
       <div class="mt-info">
         <h3 class="history-title">${esc(t('esc.myTrainerTitle'))}</h3>
@@ -19681,7 +19681,7 @@ document.addEventListener('keydown', e => { if (e.key === 'Escape') shareClose()
  *  - El SW (sw.js) solo cachea la cáscara del mismo origen en modo
  *    RED PRIMERO: Auth/Firestore/Worker jamás pasan por la caché.
  * ================================================================ */
-const PWA_SW_VERSION = '20261027-marcas-persistentes';
+const PWA_SW_VERSION = '20261027-senal-entrenador';
 let pwaDeferredPrompt = null;
 function pwaIsStandalone() {
   try {
