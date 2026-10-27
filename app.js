@@ -11075,7 +11075,11 @@ function trainShareModel(plan, logs, di, iso) {
   }
   const exercises = (day.exercises || []).map((ex, ei) => {
     const spec = [ex.sets, ex.reps].filter(Boolean).join(' × ');
-    return { name: trainExName(ex), detail: ex.note ? (spec ? spec + ' · ' + ex.note : ex.note) : spec, done: doneSet.has(ei) };
+    /* FOTO EN LA TARJETA (2026-10-26, instrucción de Ronald: «Quiero
+       que se vea la foto del ejercicio a la izquierda»): el modelo
+       lleva la MISMA foto que resuelve la flotante (photoUrl del
+       plan o foto_url de la biblioteca por exerciseId). */
+    return { name: trainExName(ex), detail: ex.note ? (spec ? spec + ' · ' + ex.note : ex.note) : spec, done: doneSet.has(ei), photo: trainExPhoto(ex) || '' };
   });
   return { label: day.label || ('Día ' + (di + 1)), dateISO: iso, exercises,
     doneCount: exercises.filter(e => e.done).length, total: exercises.length };
@@ -17656,6 +17660,45 @@ function shareIconEnsure() {
     im.src = 'icons/icon-512.png';
   } catch (e) { SHARE_ICON.state = 'fail'; }
 }
+/* Fotos de ejercicio de la tarjeta (2026-10-26): caché en memoria
+   por URL, mismo patrón que la marca de agua. Se cargan con
+   crossOrigin 'anonymous': el host de la biblioteca (GitHub Pages)
+   sirve Access-Control-Allow-Origin: *, así la foto entra al lienzo
+   SIN contaminarlo (la imagen compartida se sigue pudiendo
+   generar); un host sin CORS hace fallar la CARGA — nunca el
+   lienzo — y la fila se compone sin foto, sin hueco roto. Al
+   terminar de cargar con la hoja abierta, la tarjeta se re-pinta
+   sola, como con la marca de agua. */
+const SHARE_PHOTOS = {};
+function sharePhotoEnsure(url) {
+  if (!url || SHARE_PHOTOS[url]) return;
+  const rec = SHARE_PHOTOS[url] = { img: null, state: 'loading' };
+  try {
+    const im = new Image();
+    im.crossOrigin = 'anonymous';
+    im.onload = () => { rec.img = im; rec.state = 'ok'; const f = $('share-float'); if (f && f.style.display !== 'none' && SHARE.type === 'workout') shareRender(); };
+    im.onerror = () => { rec.state = 'fail'; };
+    im.src = url;
+  } catch (e) { rec.state = 'fail'; }
+}
+/* Pinta la foto cuadrada (recorte centrado, esquinas redondeadas) y
+   devuelve true SOLO si la pintó; si no está lista, dispara la
+   carga y devuelve false: la fila se compone con la geometría de
+   siempre, sin reservar hueco. */
+function sharePhotoDraw(ctx, url, x, y, s) {
+  if (!url) return false;
+  const rec = SHARE_PHOTOS[url];
+  if (!rec) { sharePhotoEnsure(url); return false; }
+  if (rec.state !== 'ok' || !rec.img) return false;
+  const im = rec.img, iw = im.naturalWidth || im.width, ih = im.naturalHeight || im.height;
+  if (!iw || !ih) return false;
+  ctx.save();
+  ctx.beginPath(); shareRR(ctx, x, y, s, s, Math.max(10, Math.round(s * 0.14))); ctx.clip();
+  const sc = Math.max(s / iw, s / ih), dw = iw * sc, dh = ih * sc;
+  try { ctx.drawImage(im, x + (s - dw) / 2, y + (s - dh) / 2, dw, dh); } catch (e) { ctx.restore(); return false; }
+  ctx.restore();
+  return true;
+}
 /* Geometría FIJA de la tarjeta (la batería la verifica a nivel de
    píxel y de posiciones): margen X 72; la lista vive entre rowsTop
    y rowsLimit (sobre la divisoria del pie) — ver constantes en el
@@ -17771,7 +17814,14 @@ function shareDrawWorkout(ctx, W, H, d) {
     shareRR(ctx, MX + 16, top + 18, 9, Math.max(10, panelH - 36), 4.5); ctx.fill();
     ctx.restore();
     const R = single ? Math.min(24, panelH * 0.32) : Math.min(30, Math.max(19, panelH * 0.20));
-    const ccx = MX + 82;
+    /* FOTO A LA IZQUIERDA (2026-10-26): si la foto del ejercicio ya
+       está cargada, ocupa la columna izquierda de la fila y el
+       círculo y el nombre se desplazan a su derecha; sin foto (o
+       caída, o aún cargando), la fila conserva EXACTAMENTE la
+       geometría v7 — sin hueco reservado. */
+    const photoS = single ? Math.max(28, panelH - 16) : Math.min(104, panelH - 30);
+    const hasPhoto = sharePhotoDraw(ctx, ex.photo, MX + 34, top + (panelH - photoS) / 2, photoS);
+    const ccx = hasPhoto ? MX + 34 + photoS + 34 : MX + 82;
     if (ex.done) {
       ctx.save();
       ctx.shadowColor = 'rgba(34,197,94,.55)'; ctx.shadowBlur = 16;
@@ -17792,7 +17842,7 @@ function shareDrawWorkout(ctx, W, H, d) {
       ctx.beginPath(); ctx.arc(ccx, cy, R, 0, Math.PI * 2); ctx.stroke();
       ctx.restore();
     }
-    const nameX = MX + 132;
+    const nameX = hasPhoto ? ccx + R + 24 : MX + 132;
     const namePx = Math.round(Math.min(42, Math.max(24, panelH * 0.26)));
     const nameMaxW = W - nameX - MX - (ex.done && !single ? 150 : 16);
     const fitPx = shareFitPx(ctx, ex.name, 800, namePx, nameMaxW);
@@ -17954,7 +18004,7 @@ document.addEventListener('keydown', e => { if (e.key === 'Escape') shareClose()
  *  - El SW (sw.js) solo cachea la cáscara del mismo origen en modo
  *    RED PRIMERO: Auth/Firestore/Worker jamás pasan por la caché.
  * ================================================================ */
-const PWA_SW_VERSION = '20261026-sesion-futura';
+const PWA_SW_VERSION = '20261026-foto-tarjeta';
 let pwaDeferredPrompt = null;
 function pwaIsStandalone() {
   try {
