@@ -21,7 +21,7 @@
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-title" content="RONBO FIT">
 <meta name="apple-mobile-web-app-status-bar-style" content="default">
-<link rel="stylesheet" href="styles.css?v=20261027-instalacion-webview">
+<link rel="stylesheet" href="styles.css?v=20261027-cambios-sesion">
 <script type="importmap">
 {
   "imports": {
@@ -324,9 +324,27 @@
          Nada más de esta vista cambia. -->
     <div id="train-content" style="display:none">
       <div id="my-training"><div class="wempty" data-i18n="train.loading">Loading your plan…</div></div>
-      <div id="my-templates"></div>
-      <div id="my-builder"></div>
-      <div id="my-proposals"></div>
+      <!-- PERSONALIZA TUS ASIGNACIONES DE HOY (pedido de Ronald,
+           2026-10-27 12:50 CDT): UN solo botón desplegable, nacido
+           recogido (patrón de la casa: perms-panel / tarjeta de
+           metas), junto a la tarjeta del día. Dentro viven, en
+           orden: (1) las herramientas de la sesión de hoy
+           (#train-custom-tools: Cambiar por ejercicio con el
+           selector de la biblioteca y «+ Agregar ejercicio»),
+           (2) «Plantillas de rutina» (#my-templates), (3) «Mis
+           propias rutinas» (#my-builder) y (4) «Mis propuestas»
+           (#my-proposals) — las tres zonas de siempre con sus
+           mismos contenedores y funciones, SIN duplicar: dejan de
+           aparecer sueltas en esta vista y pasan a vivir aquí. -->
+      <div class="panel train-custom-panel" id="train-custom-panel">
+        <button type="button" class="btn-secondary manage-toggle train-custom-toggle" id="btn-train-custom" aria-expanded="false"><span data-i18n="train.custom.title">Customize today's assignments</span><span class="manage-chev" id="train-custom-chev">▾</span></button>
+        <div id="train-custom-body" style="display:none">
+          <div id="train-custom-tools"></div>
+          <div id="my-templates"></div>
+          <div id="my-builder"></div>
+          <div id="my-proposals"></div>
+        </div>
+      </div>
     </div>
     <div id="ai-off-note" class="progress-hint" style="display:none" data-i18n="ai.disabledByAdmin">AI analysis is turned off by the administrator right now. You can keep logging your meals manually; AI analysis will be back when it is turned on again.</div>
     <div id="ai-panel" class="ai-panel" style="display:none"></div>
@@ -1131,6 +1149,6 @@
 <div id="toast" class="toast"></div>
 <div id="print-card" aria-hidden="true"></div>
 
-<script type="module" src="app.js?v=20261027-instalacion-webview"></script>
+<script type="module" src="app.js?v=20261027-cambios-sesion"></script>
 </body>
 </html>

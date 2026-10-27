@@ -2523,6 +2523,14 @@ en: {
   'train.today.restToday': 'Today is your rest day', 'train.today.restDay': 'Rest day',
   'train.today.nextTomorrow': 'Tomorrow: {label}', 'train.today.nextOn': 'On {date}: {label}',
   'train.today.scheduled': 'Scheduled', 'train.today.loggedOther': 'That day you logged: {label}',
+  'train.custom.title': 'Customize today\'s assignments',
+  'train.custom.sessionTitle': 'Today\'s session',
+  'train.custom.swap': 'Change', 'train.custom.add': '+ Add exercise',
+  'train.custom.undoSwap': 'Undo change', 'train.custom.removeAdded': 'Remove',
+  'train.custom.swappedFor': 'Changed for "{name}"', 'train.custom.addedMark': 'Added',
+  'train.custom.pickSwap': 'Change "{name}" for…', 'train.custom.pickAdd': 'Add an exercise',
+  'train.custom.restNote': 'Today is your rest day — there is no session to customize.',
+  'train.custom.closedNote': 'Today\'s session is already logged. Undo it from the day card if you want to change it first.',
   'train.today.weekSummary': 'This week: {x} of {y} sessions completed',
   'train.today.rotationNote': 'This plan follows a day order, not fixed weekdays — so no session is pinned to this date. The next sessions in the plan\'s order are:',
   'shareW.btn': 'Share this workout',
@@ -4198,6 +4206,14 @@ es: {
   'train.today.restToday': 'Hoy es tu día de descanso', 'train.today.restDay': 'Día de descanso',
   'train.today.nextTomorrow': 'Mañana: {label}', 'train.today.nextOn': 'El {date}: {label}',
   'train.today.scheduled': 'Programada', 'train.today.loggedOther': 'Ese día registraste: {label}',
+  'train.custom.title': 'Personaliza tus asignaciones de hoy',
+  'train.custom.sessionTitle': 'Sesión de hoy',
+  'train.custom.swap': 'Cambiar', 'train.custom.add': '+ Agregar ejercicio',
+  'train.custom.undoSwap': 'Deshacer cambio', 'train.custom.removeAdded': 'Quitar',
+  'train.custom.swappedFor': 'Cambiado por «{name}»', 'train.custom.addedMark': 'Agregado',
+  'train.custom.pickSwap': 'Cambiar «{name}» por…', 'train.custom.pickAdd': 'Agregar un ejercicio',
+  'train.custom.restNote': 'Hoy es tu día de descanso: no hay sesión que personalizar.',
+  'train.custom.closedNote': 'La sesión de hoy ya está registrada. Deshazla desde la tarjeta del día si quieres cambiarla antes.',
   'train.today.weekSummary': 'Esta semana: {x} de {y} sesiones completadas',
   'train.today.rotationNote': 'Este plan sigue un orden de días, no días de semana fijos — por eso no hay una sesión fijada a esta fecha. Las próximas sesiones en el orden del plan son:',
   'shareW.btn': 'Compartir este entrenamiento',
@@ -11453,6 +11469,245 @@ let TRAIN_CHECKS = {};         // "di:ei" -> { rpe: n|null, sets: [...] } — so
 let TRAIN_CHECKS_CTX = '';     // planId|fecha a la que pertenecen las marcas
 let TRAIN_CLOSE_DI = null;     // día con el panel de cierre abierto (solo memoria)
 
+/* --- PERSONALIZA TUS ASIGNACIONES DE HOY (pedido de Ronald, chat
+   2026-10-27 12:46 CDT; decisión suya por widget 12:47: el cambio
+   aplica SOLO a la sesión de hoy — el plan NO se toca; refinamiento
+   12:50: todas las herramientas viven dentro de UN desplegable
+   «Personaliza tus asignaciones de hoy» en la vista de
+   Entrenamiento, junto a la tarjeta del día, nacido recogido).
+   Cambiar/agregar ejercicios de la sesión de hoy: la lista
+   EFECTIVA (plan + cambios + agregados) manda para el progreso,
+   el cierre y la llamita; el plan (training_plans) jamás se
+   escribe desde aquí — los cambios viven antes del cierre en
+   localStorage (usuario|plan|fecha, el mismo patrón del
+   cronómetro, porque la sesión de página es larga) y al cerrar
+   quedan en el training_logs del día con sus marcas
+   (swappedFrom/swappedFromId, added) para que el historial — y el
+   entrenador — vean lo que se hizo de verdad. Sin escrituras
+   nuevas en Firestore: el único documento que nace sigue siendo
+   el cierre del día, con la misma forma y dos campos extra
+   DENTRO de las entradas de exercisesDone (las reglas vivas
+   13c0a457 no validan el interior de esas entradas). */
+let TRAIN_CUSTOM_OPEN = false;   // el desplegable nace recogido; solo memoria
+let TRAIN_PICK = null;           // { kind:'swap', idx } | { kind:'add' } — selector de biblioteca abierto dentro del desplegable
+function trainEditsKey(planId) {
+  const uid = auth.currentUser ? auth.currentUser.uid : '';
+  return 'ronbofit-session-edits-' + uid + '|' + planId + '|' + todayISO();
+}
+function trainEditsRead(planId) {
+  try {
+    const v = JSON.parse(localStorage.getItem(trainEditsKey(planId)) || 'null');
+    if (!v || typeof v !== 'object') return null;
+    const swaps = (v.swaps && typeof v.swaps === 'object' && !Array.isArray(v.swaps)) ? v.swaps : {};
+    const added = Array.isArray(v.added) ? v.added.filter(a => a && typeof a === 'object') : [];
+    if (!Object.keys(swaps).length && !added.length) return null;
+    return { swaps, added };
+  } catch { return null; }
+}
+function trainEditsWrite(planId, ed) {
+  try {
+    if (ed && ((ed.swaps && Object.keys(ed.swaps).length) || (ed.added && ed.added.length)))
+      localStorage.setItem(trainEditsKey(planId), JSON.stringify(ed));
+    else localStorage.removeItem(trainEditsKey(planId));
+  } catch {}
+}
+function trainEditsClear(planId) { trainEditsWrite(planId, null); }
+/* Lista EFECTIVA de un día: el plan con los cambios (el elegido
+   ocupa el lugar del original heredando sus series × reps) y los
+   agregados al final. Cada item: { ex, kind:'plan'|'swap'|'add',
+   slot (índice en el plan; -1 si agregado), from (el original,
+   solo en 'swap') }. Sin cambios devuelve el plan tal cual. */
+function trainEffectiveList(plan, di) {
+  const day = (plan && plan.days || [])[di] || {};
+  const base = (day.exercises || []).map((ex, ei) => ({ ex, kind: 'plan', slot: ei }));
+  const ed = plan ? trainEditsRead(plan.id) : null;
+  if (!ed) return base;
+  const out = base.map(item => {
+    const sw = ed.swaps[String(item.slot)];
+    if (!sw) return item;
+    return { ex: { exerciseId: sw.exerciseId || null, name: sw.name || '', sets: item.ex.sets, reps: item.ex.reps },
+      kind: 'swap', slot: item.slot, from: item.ex };
+  });
+  ed.added.forEach(a => out.push({ ex: { exerciseId: a.exerciseId || null, name: a.name || '', sets: a.sets || '', reps: a.reps || '' }, kind: 'add', slot: -1 }));
+  return out;
+}
+/* Filas del HISTORIAL de un día cerrado: empareja el registro con
+   los ejercicios del plan conservando la semántica de siempre
+   (por exerciseId; por nombre solo si la entrada no trae id) y,
+   con las marcas de este paquete, coloca el ejercicio REALIZADO
+   en el lugar de su original (cambiado) y añade al final los
+   agregados. Sin marcas, el resultado es idéntico al de siempre:
+   las entradas sin marca que no casan con el plan no se pintan.
+   Cada fila: { ex, de, mark: null | {type:'swap', from} | {type:'add'} }. */
+function trainHistRows(day, log) {
+  const doneList = (log && Array.isArray(log.exercisesDone)) ? log.exercisesDone : [];
+  const used = new Set();
+  const findDe = pred => {
+    for (let i = 0; i < doneList.length; i++) {
+      if (used.has(i)) continue;
+      const e = doneList[i];
+      if (e && pred(e)) { used.add(i); return e; }
+    }
+    return null;
+  };
+  const rows = (day.exercises || []).map(ex => {
+    let de = findDe(e => ex.exerciseId && e.exerciseId === ex.exerciseId)
+      || findDe(e => !e.exerciseId && ex.name && e.name === ex.name);
+    let mark = null;
+    if (!de) {
+      de = findDe(e => e.swappedFrom && ((e.swappedFromId && ex.exerciseId && e.swappedFromId === ex.exerciseId)
+        || (!ex.exerciseId && ex.name && e.swappedFrom === ex.name)));
+      if (de) mark = { type: 'swap', from: de.swappedFrom || ex.name || '' };
+    }
+    if (de && de.swappedFrom && !mark) mark = { type: 'swap', from: de.swappedFrom };
+    const pex = (de && mark && mark.type === 'swap')
+      ? { exerciseId: de.exerciseId || null, name: de.name || '', sets: ex.sets, reps: ex.reps, note: '' }
+      : ex;
+    return { ex: pex, de, mark };
+  });
+  doneList.forEach((e, i) => {
+    if (used.has(i) || !e) return;
+    if (e.added === true || e.swappedFrom) {
+      const sets = Array.isArray(e.sets) ? e.sets : [];
+      rows.push({ ex: { exerciseId: e.exerciseId || null, name: e.name || '', sets: sets.length ? String(sets.length) : '', reps: sets.length ? String(sets[0].repsPlanned || '') : '', note: '' },
+        de: e, mark: e.added === true ? { type: 'add' } : { type: 'swap', from: e.swappedFrom } });
+    }
+  });
+  return rows;
+}
+function trainMarkChipHTML(mark) {
+  if (!mark) return '';
+  if (mark.type === 'swap') return `<div class="train-mark">⇄ ${esc(t('train.custom.swappedFor', { name: mark.from }))}</div>`;
+  if (mark.type === 'add') return `<div class="train-mark">＋ ${esc(t('train.custom.addedMark'))}</div>`;
+  return '';
+}
+function trainRowWithMark(html, mark) {
+  if (!mark) return html;
+  return String(html).replace(/<\/div>\s*$/, trainMarkChipHTML(mark) + '</div>');
+}
+/* Herramientas de la sesión de hoy DENTRO del desplegable
+   «Personaliza tus asignaciones de hoy» (el bloque #train-custom-
+   tools; las otras tres piezas del desplegable — plantillas,
+   rutinas propias y propuestas — se pintan en sus contenedores de
+   siempre, ahora dentro del mismo cuerpo). todayDi = día del plan
+   que toca hoy (la misma resolución de la tarjeta: pares/plancal/
+   rotación) o null si hoy es descanso; closed = la sesión de hoy
+   ya está registrada (sin edición: se deshace desde la tarjeta). */
+function trainCustomRenderSession(plan, todayDi, closed) {
+  const btn = $('btn-train-custom');
+  if (btn && !btn.dataset.wired) {
+    btn.dataset.wired = '1';
+    btn.onclick = () => {
+      TRAIN_CUSTOM_OPEN = !TRAIN_CUSTOM_OPEN;
+      const body = $('train-custom-body');
+      if (body) body.style.display = TRAIN_CUSTOM_OPEN ? '' : 'none';
+      btn.setAttribute('aria-expanded', TRAIN_CUSTOM_OPEN ? 'true' : 'false');
+      const chev = $('train-custom-chev');
+      if (chev) chev.textContent = TRAIN_CUSTOM_OPEN ? '▴' : '▾';
+    };
+  }
+  if (btn) btn.setAttribute('aria-expanded', TRAIN_CUSTOM_OPEN ? 'true' : 'false');
+  const bodyEl = $('train-custom-body');
+  if (bodyEl) bodyEl.style.display = TRAIN_CUSTOM_OPEN ? '' : 'none';
+  const chevEl = $('train-custom-chev');
+  if (chevEl) chevEl.textContent = TRAIN_CUSTOM_OPEN ? '▴' : '▾';
+  const tools = $('train-custom-tools');
+  if (!tools) return;
+  if (!plan) { tools.innerHTML = ''; return; }
+  if (todayDi == null) {
+    tools.innerHTML = `<h4 class="tcu-title">${t('train.custom.sessionTitle')}</h4><p class="progress-hint">${t('train.custom.restNote')}</p>`;
+    return;
+  }
+  if (closed) {
+    tools.innerHTML = `<h4 class="tcu-title">${t('train.custom.sessionTitle')}</h4><p class="progress-hint">${t('train.custom.closedNote')}</p>`;
+    return;
+  }
+  const di = todayDi;
+  const eff = trainEffectiveList(plan, di);
+  let inner = `<h4 class="tcu-title">${t('train.custom.sessionTitle')}</h4>`;
+  if (TRAIN_PICK) {
+    const target = TRAIN_PICK.kind === 'swap' ? eff[TRAIN_PICK.idx] : null;
+    inner += `<div class="tcu-pick"><div class="tcu-pick-title">${esc(TRAIN_PICK.kind === 'swap' && target ? t('train.custom.pickSwap', { name: trainExName(target.ex) || target.ex.name || '' }) : t('train.custom.pickAdd'))}</div>
+      <input type="text" id="tcu-search" placeholder="${esc(t('train.prop.searchPh'))}" autocomplete="off">
+      <div id="tcu-sug" class="prop-sug"></div>
+      <div style="margin-top:8px"><button type="button" class="btn-ghost btn-sm" data-tcu-cancel="1">${t('form.cancel')}</button></div></div>`;
+  } else {
+    inner += `<div class="tcu-list">${eff.map((it, idx) => {
+      const spec = [it.ex.sets, it.ex.reps].filter(Boolean).join(' × ');
+      let ctl = '';
+      if (it.kind === 'swap') ctl = `<span class="train-mark">⇄ ${esc(t('train.custom.swappedFor', { name: trainExName(it.from) || it.from.name || '' }))}</span><button type="button" class="btn-ghost btn-sm" data-tcu-undo-swap="${it.slot}">${t('train.custom.undoSwap')}</button>`;
+      else if (it.kind === 'add') ctl = `<span class="train-mark">＋ ${esc(t('train.custom.addedMark'))}</span><button type="button" class="btn-ghost btn-sm" data-tcu-unadd="${idx}">${t('train.custom.removeAdded')}</button>`;
+      else ctl = `<button type="button" class="btn-ghost btn-sm" data-tcu-swap="${idx}">${t('train.custom.swap')}</button>`;
+      return `<div class="tcu-row"><span class="tcu-name">${esc(trainExName(it.ex) || it.ex.name || '')}${spec ? ` <span class="tcu-spec">${esc(spec)}</span>` : ''}</span>${ctl}</div>`;
+    }).join('')}</div>
+    <div style="margin-top:8px"><button type="button" class="btn-secondary btn-sm" data-tcu-add="1">${t('train.custom.add')}</button></div>`;
+  }
+  tools.innerHTML = inner;
+  trainCustomWire(plan, di);
+}
+function trainCustomWire(plan, di) {
+  const tools = $('train-custom-tools');
+  if (!tools || !plan) return;
+  tools.querySelectorAll('[data-tcu-swap]').forEach(b => b.onclick = () => { TRAIN_PICK = { kind: 'swap', idx: Number(b.dataset.tcuSwap) }; loadMyTraining(); });
+  tools.querySelectorAll('[data-tcu-add]').forEach(b => b.onclick = () => { TRAIN_PICK = { kind: 'add' }; loadMyTraining(); });
+  tools.querySelectorAll('[data-tcu-cancel]').forEach(b => b.onclick = () => { TRAIN_PICK = null; loadMyTraining(); });
+  tools.querySelectorAll('[data-tcu-undo-swap]').forEach(b => b.onclick = () => {
+    const ed = trainEditsRead(plan.id) || { swaps: {}, added: [] };
+    delete ed.swaps[String(b.dataset.tcuUndoSwap)];
+    trainEditsWrite(plan.id, ed);
+    loadMyTraining();
+  });
+  tools.querySelectorAll('[data-tcu-unadd]').forEach(b => b.onclick = () => {
+    const effIdx = Number(b.dataset.tcuUnadd);
+    const eff = trainEffectiveList(plan, di);
+    const it = eff[effIdx];
+    if (!it || it.kind !== 'add') return;
+    const addPos = eff.slice(0, effIdx).filter(x => x.kind === 'add').length;
+    const ed = trainEditsRead(plan.id) || { swaps: {}, added: [] };
+    ed.added.splice(addPos, 1);
+    trainEditsWrite(plan.id, ed);
+    /* Las marcas TRAIN_CHECKS van por índice EFECTIVO: al quitar
+       un agregado, su marca se borra y las posteriores bajan uno. */
+    const shifted = {};
+    Object.keys(TRAIN_CHECKS).forEach(k => {
+      const [dS, eS] = k.split(':');
+      if (Number(dS) !== di) { shifted[k] = TRAIN_CHECKS[k]; return; }
+      const n = Number(eS);
+      if (n < effIdx) shifted[k] = TRAIN_CHECKS[k];
+      else if (n > effIdx) shifted[dS + ':' + (n - 1)] = TRAIN_CHECKS[k];
+    });
+    TRAIN_CHECKS = shifted;
+    if (TRAIN_FLOAT) trainFloatClose();
+    loadMyTraining();
+  });
+  const search = tools.querySelector('#tcu-search');
+  const sug = tools.querySelector('#tcu-sug');
+  if (search && sug) {
+    search.oninput = () => {
+      const res = libSearch(search.value);
+      sug.innerHTML = res.map(ex => `<button type="button" class="prop-sug-item" data-tcu-pick="${esc(ex.id)}">${esc(libNameOf(ex))}</button>`).join('');
+      sug.querySelectorAll('[data-tcu-pick]').forEach(pb => pb.onclick = () => {
+        const entry = LIB_BY_ID[pb.dataset.tcuPick];
+        if (!entry || !TRAIN_PICK) return;
+        const ed = trainEditsRead(plan.id) || { swaps: {}, added: [] };
+        if (TRAIN_PICK.kind === 'swap') {
+          const it2 = trainEffectiveList(plan, di)[TRAIN_PICK.idx];
+          if (it2 && it2.slot >= 0) ed.swaps[String(it2.slot)] = { exerciseId: entry.id, name: libNameOf(entry) };
+        } else {
+          /* Agregado: series × reps de su ficha si las trajera; la
+             biblioteca no las trae — campos vacíos, como en el
+             editor; se ajustan en la ventana de registro. */
+          ed.added.push({ exerciseId: entry.id, name: libNameOf(entry), sets: '', reps: '' });
+        }
+        trainEditsWrite(plan.id, ed);
+        TRAIN_PICK = null;
+        loadMyTraining();
+      });
+    };
+    search.focus();
+  }
+}
+
 /* --- PUENTE ENTRENAMIENTO→LLAMITA: CRONÓMETRO DE SESIÓN (Anexo 2
    del diseño, mecanismo de Ronald): INICIAR sella el comienzo de la
    sesión; cada marca de ejercicio actualiza la última marca;
@@ -11644,22 +11899,18 @@ function trainExCardHTML(ex, di, ei) {
   </div>`;
 }
 function trainDayHistHTML(day, log) {
-  const doneList = (log && Array.isArray(log.exercisesDone)) ? log.exercisesDone : [];
-  const byId = {}, byName = {};
-  doneList.forEach(e => { if (!e) return; if (e.exerciseId) byId[e.exerciseId] = e; else if (e.name) byName[e.name] = e; });
-  return (day.exercises || []).map(ex => {
-    const de = (ex.exerciseId && byId[ex.exerciseId]) || (ex.name && byName[ex.name]) || null;
+  return trainHistRows(day, log).map(({ ex, de, mark }) => {
     /* MÓDULO D (D-2): el detalle por serie del registro v2 se lee
        tal cual se guardó; la carga se muestra en la unidad del
        visor desde el canónico kg (módulo H). v1 no trae series. */
     const setsLine = de && Array.isArray(de.sets) && de.sets.length
       ? `<div class="train-set-hist">${t('train.d.setsLabel')}: ${de.sets.map((s, si) => `${t('train.d.set')} ${si + 1}: ${s.repsDone != null && s.repsDone !== '' ? esc(String(s.repsDone)) : '—'}${s.repsPlanned ? `/${esc(String(s.repsPlanned))}` : ''} ${t('train.d.repsPh')}${typeof s.loadKg === 'number' ? ` · ${esc(fmtMass(s.loadKg))}` : ''}`).join(' · ')}</div>` : '';
-    return `<div class="train-ex-card is-hist">${trainExInfoHTML(ex)}
+    return trainRowWithMark(`<div class="train-ex-card is-hist">${trainExInfoHTML(ex)}
     <div class="train-ex-side">${de
       ? `<span class="ok-badge">✓ ${t('train.view.exDone')}${de.rpe ? ` · ${t('train.view.rpe')} ${esc(String(de.rpe))}` : ''}</span>`
       : '<span class="muted">—</span>'}</div>
     ${setsLine}
-  </div>`;
+  </div>`, mark);
   }).join('');
 }
 /* TARJETA COMPACTA (corrección de la reprueba de Ronald, chat
@@ -11693,13 +11944,7 @@ function trainExCompactHTML(ex, di, ei, mode, de) {
   </div>`;
 }
 function trainDayCompactHistHTML(day, log, di) {
-  const doneList = (log && Array.isArray(log.exercisesDone)) ? log.exercisesDone : [];
-  const byId = {}, byName = {};
-  doneList.forEach(e => { if (!e) return; if (e.exerciseId) byId[e.exerciseId] = e; else if (e.name) byName[e.name] = e; });
-  return (day.exercises || []).map((ex, ei) => {
-    const de = (ex.exerciseId && byId[ex.exerciseId]) || (ex.name && byName[ex.name]) || null;
-    return trainExCompactHTML(ex, di, ei, 'read', de);
-  }).join('');
+  return trainHistRows(day, log).map((row, ei) => trainRowWithMark(trainExCompactHTML(row.ex, di, ei, 'read', row.de), row.mark)).join('');
 }
 function trainSessionHTML(day) {
   const blocks = Array.isArray(day.sessionBlocks) ? day.sessionBlocks : [];
@@ -11967,15 +12212,24 @@ function trainShareModel(plan, logs, di, iso) {
   const day = (plan.days || [])[di] || {};
   const today = todayISO();
   const log = logs.find(l => l.date === iso && l.dayIndex === di) || null;
-  let doneSet = new Set();
+  /* PERSONALIZA (2026-10-27): el modelo manda sobre la lista
+     EFECTIVA — hoy sin cerrar, la del plan con cambios y agregados
+     (el progreso cuenta sobre ella); día cerrado, las filas del
+     historial con sus marcas (lo realizado ocupa el lugar de su
+     original y los agregados cuentan). Sin cambios ni marcas, el
+     modelo es el de siempre, ejercicio a ejercicio del plan. */
+  let rowExs, doneSet = new Set();
   if (log) {
-    const byId = {}, byName = {};
-    (log.exercisesDone || []).forEach(e => { if (!e) return; if (e.exerciseId) byId[e.exerciseId] = e; else if (e.name) byName[e.name] = e; });
-    (day.exercises || []).forEach((ex, ei) => { if ((ex.exerciseId && byId[ex.exerciseId]) || (ex.name && byName[ex.name])) doneSet.add(ei); });
+    const rows = trainHistRows(day, log);
+    rowExs = rows.map(r => r.ex);
+    rows.forEach((r, ei) => { if (r.de) doneSet.add(ei); });
   } else if (iso === today) {
-    (day.exercises || []).forEach((ex, ei) => { if (TRAIN_CHECKS[di + ':' + ei]) doneSet.add(ei); });
+    rowExs = trainEffectiveList(plan, di).map(it => it.ex);
+    rowExs.forEach((ex, ei) => { if (TRAIN_CHECKS[di + ':' + ei]) doneSet.add(ei); });
+  } else {
+    rowExs = (day.exercises || []).slice();
   }
-  const exercises = (day.exercises || []).map((ex, ei) => {
+  const exercises = rowExs.map((ex, ei) => {
     const spec = [ex.sets, ex.reps].filter(Boolean).join(' × ');
     /* FOTO EN LA TARJETA (2026-10-26, instrucción de Ronald: «Quiero
        que se vea la foto del ejercicio a la izquierda»): el modelo
@@ -12110,7 +12364,20 @@ function trainFloatOpen(plan, logs, di, ei, mode, iso) {
   const fl = $('train-ex-float');
   if (!fl || !plan) return;
   const day = (plan.days || [])[di] || {};
-  const ex = (day.exercises || [])[ei] || {};
+  let ex = (day.exercises || [])[ei] || {};
+  /* PERSONALIZA (2026-10-27): en edición de HOY la flotante abre
+     el ejercicio EFECTIVO (el cambiado o el agregado que ocupa la
+     fila); en lectura abre la fila del historial — el ejercicio
+     realizado, con su marca — y no el ejercicio del plan. */
+  let histRow = null;
+  if (mode === 'edit' && iso === todayISO()) {
+    const eff = trainEffectiveList(plan, di);
+    if (eff[ei]) ex = eff[ei].ex;
+  } else if (mode === 'read') {
+    const logR = logs.find(l => l.date === iso && l.dayIndex === di) || null;
+    histRow = trainHistRows(day, logR)[ei] || null;
+    if (histRow) ex = histRow.ex;
+  }
   const body = $('train-ex-float-body');
   $('train-ex-float-title').textContent = trainExName(ex) || ex.name || '';
   const photo = trainExPhoto(ex), video = trainExVideo(ex);
@@ -12151,12 +12418,10 @@ function trainFloatOpen(plan, logs, di, ei, mode, iso) {
   } else {
     TRAIN_FLOAT = { di, ei, mode, iso, draft: null };
     if (mode === 'read') {
-      const log = logs.find(l => l.date === iso && l.dayIndex === di) || null;
-      const doneList = (log && Array.isArray(log.exercisesDone)) ? log.exercisesDone : [];
-      const de = doneList.find(e => e && ((ex.exerciseId && e.exerciseId === ex.exerciseId) || (!ex.exerciseId && ex.name && e.name === ex.name))) || null;
+      const de = histRow ? histRow.de : null;
       const setsLine = de && Array.isArray(de.sets) && de.sets.length
         ? `<div class="train-set-hist">${t('train.d.setsLabel')}: ${de.sets.map((s, si) => `${t('train.d.set')} ${si + 1}: ${s.repsDone != null && s.repsDone !== '' ? esc(String(s.repsDone)) : '—'}${s.repsPlanned ? `/${esc(String(s.repsPlanned))}` : ''} ${t('train.d.repsPh')}${typeof s.loadKg === 'number' ? ` · ${esc(fmtMass(s.loadKg))}` : ''}`).join(' · ')}</div>` : '';
-      html += `<div style="margin-top:10px">${de ? `<span class="ok-badge">✓ ${t('train.view.exDone')}${de.rpe ? ` · ${t('train.view.rpe')} ${esc(String(de.rpe))}` : ''}</span>` : '<span class="muted">—</span>'}</div>${setsLine}`;
+      html += `<div style="margin-top:10px">${de ? `<span class="ok-badge">✓ ${t('train.view.exDone')}${de.rpe ? ` · ${t('train.view.rpe')} ${esc(String(de.rpe))}` : ''}</span>` : '<span class="muted">—</span>'}</div>${histRow ? trainMarkChipHTML(histRow.mark) : ''}${setsLine}`;
     } else {
       html += `<div style="margin-top:10px"><span class="train-status st-skipped">● ${t('train.today.scheduled')}</span></div>`;
     }
@@ -12209,7 +12474,7 @@ async function loadMyTraining() {
   const uid = auth.currentUser.uid;
   const plans = await fetchPlans(uid);
   const plan = plans.find(p => p.active === true) || null;
-  if (!plan) { MY_PLAN = null; MY_LOGS = []; box.innerHTML = `<div class="wempty compact" id="train-none-msg">${t('train.none')}</div>`; trainNoneNamedRender(box); return; }
+  if (!plan) { MY_PLAN = null; MY_LOGS = []; box.innerHTML = `<div class="wempty compact" id="train-none-msg">${t('train.none')}</div>`; trainNoneNamedRender(box); trainCustomRenderSession(null, null, false); return; }
   const logs = (await fetchLogs(uid)).filter(l => l.planId === plan.id);
   MY_PLAN = plan; MY_LOGS = logs;
   try { const ds2 = $('dateSel'); if (ds2 && typeof render === 'function') render(ds2.value); } catch {}
@@ -12261,7 +12526,7 @@ async function loadMyTraining() {
   const dayCompactHTML = (day, di, mode, log, tailHTML) => {
     const label = day.label || ('Día ' + (di + 1));
     let exHtml;
-    if (mode === 'edit') exHtml = (day.exercises || []).map((ex, ei) => trainExCompactHTML(ex, di, ei, 'edit', null)).join('');
+    if (mode === 'edit') exHtml = trainEffectiveList(plan, di).map((it, ei) => trainExCompactHTML(it.ex, di, ei, 'edit', null)).join('');
     else if (mode === 'ficha') exHtml = (day.exercises || []).map((ex, ei) => trainExCompactHTML(ex, di, ei, 'ficha', null)).join('');
     else exHtml = trainDayCompactHistHTML(day, log, di);
     let tail = tailHTML;
@@ -12441,7 +12706,8 @@ async function loadMyTraining() {
   box.querySelectorAll('[data-train-check]').forEach(c => c.onchange = () => {
     const key = c.dataset.trainCheck;
     const [diS, eiS] = key.split(':');
-    const ex = ((plan.days || [])[Number(diS)] || {}).exercises?.[Number(eiS)] || {};
+    const effChk = trainEffectiveList(plan, Number(diS));
+    const ex = (effChk[Number(eiS)] || {}).ex || {};
     const card = c.closest('.train-ex-card');
     const sel = card ? card.querySelector('[data-train-rpe]') : null;
     if (c.checked) {
@@ -12473,8 +12739,7 @@ async function loadMyTraining() {
   });
   box.querySelectorAll('[data-train-done]').forEach(b => b.onclick = () => {
     const di = Number(b.dataset.trainDone);
-    const day = (plan.days || [])[di] || {};
-    const any = (day.exercises || []).some((ex, ei) => TRAIN_CHECKS[di + ':' + ei]);
+    const any = trainEffectiveList(plan, di).some((it, ei) => TRAIN_CHECKS[di + ':' + ei]);
     /* MÓDULO D (D-3): sin ninguna marca no hay cierre que abrir. */
     if (!any) { toast(t('train.d.needCheck'), true); return; }
     /* PUENTE ENTRENAMIENTO→LLAMITA (2026-10-27): TERMINAR abre el
@@ -12496,13 +12761,24 @@ async function loadMyTraining() {
     const di = Number(b.dataset.trainCloseConfirm);
     const day = (plan.days || [])[di] || {};
     /* Detalle por ejercicio (§4.6 + D-2): SOLO lo marcado en la
-       sesión, en el orden del plan, con su detalle por serie. */
+       sesión, en el orden de la lista EFECTIVA, con su detalle por
+       serie. PERSONALIZA (2026-10-27): el ejercicio realizado es
+       el de la lista efectiva; un cambio guarda su marca
+       (swappedFrom/swappedFromId del original) y un agregado la
+       suya (added) — el plan no se escribe, la verdad queda en
+       este registro. */
     const doneList = [];
-    (day.exercises || []).forEach((ex, ei) => {
+    trainEffectiveList(plan, di).forEach((it, ei) => {
+      const ex = it.ex;
       const c = TRAIN_CHECKS[di + ':' + ei];
       if (!c) return;
       const e = { done: true };
       if (ex.exerciseId) e.exerciseId = ex.exerciseId; else if (ex.name) e.name = ex.name;
+      if (it.kind === 'swap') {
+        e.swappedFrom = trainExName(it.from) || it.from.name || '';
+        if (it.from.exerciseId) e.swappedFromId = it.from.exerciseId;
+      }
+      if (it.kind === 'add') e.added = true;
       if (c.rpe) e.rpe = c.rpe;
       if (Array.isArray(c.sets) && c.sets.length) {
         e.sets = c.sets.map(s => {
@@ -12524,7 +12800,7 @@ async function loadMyTraining() {
        vacío — se avisa y el día queda sin registrar (o se salta
        explícitamente con su botón). */
     if (!doneList.length) { toast(t('train.d.needCheck'), true); return; }
-    const total = (day.exercises || []).length;
+    const total = trainEffectiveList(plan, di).length;
     const status = doneList.length >= total ? 'done' : 'partial';
     const form = b.closest('.train-close-form');
     const durRaw = form ? String(form.querySelector('[data-tclose-dur]').value || '').trim() : '';
@@ -12563,6 +12839,7 @@ async function loadMyTraining() {
       : { type: 'entrenamiento_plan', typeCustom: '', durationMin: effMin, intensity: inten, rpe: rpeAvg, notes: '' });
     trainChronoWrite(plan.id, null);
     TRAIN_CLOSE_DI = null;
+    trainEditsClear(plan.id);   /* PERSONALIZA: los cambios de hoy ya viven en el registro; el borrador local se retira */
     Object.keys(TRAIN_CHECKS).forEach(k => { if (k.split(':')[0] === String(di)) delete TRAIN_CHECKS[k]; });
     loadMyTraining();
   });
@@ -12585,6 +12862,7 @@ async function loadMyTraining() {
        cerrada: su quemado no se toca). */
     trainChronoWrite(plan.id, null);
     if (TRAIN_CLOSE_DI === di) TRAIN_CLOSE_DI = null;
+    trainEditsClear(plan.id);   /* PERSONALIZA: saltar también cierra la sesión — el borrador de cambios de hoy se retira */
     const prevSkip = logs.find(l => l.date === today && l.dayIndex === di);
     if (prevSkip && prevSkip.sessionKcal != null) await trainDumpSession(today, null);
     Object.keys(TRAIN_CHECKS).forEach(k => { if (k.split(':')[0] === String(di)) delete TRAIN_CHECKS[k]; });
@@ -12602,6 +12880,12 @@ async function loadMyTraining() {
     if (prevUndo && prevUndo.sessionKcal != null) await trainDumpSession(today, null);
     loadMyTraining();
   });
+  /* PERSONALIZA (2026-10-27): las herramientas de la sesión de
+     hoy dentro del desplegable — el día de hoy se resuelve con la
+     misma semántica de la tarjeta (pares/plancal/rotación) y un
+     día ya cerrado no se edita desde aquí. */
+  const tDiCustom = (tmap.pairs || isCal) ? diForDate(today) : trainRotationNext(plan, logs, today);
+  trainCustomRenderSession(plan, tDiCustom, tDiCustom != null ? !!logByDay[tDiCustom] : false);
   trainAlignRender();
   /* Biblioteca (una sola lectura con caché por sesión de página): al
      llegar, se re-pinta UNA vez por plan/día para resolver nombres y
@@ -12930,7 +13214,20 @@ async function loadClientTraining(uid) {
       <button class="btn-ghost btn-sm" data-plan-history="${p.id}">${t('train.snap.btn')}</button>
       <button class="btn-ghost btn-sm" data-plan-del="${p.id}">${t('train.delete')}</button>
     </div></div><div class="plan-history" id="ph-${p.id}" style="display:none"></div>`).join('') : `<div class="wempty">${t('train.noPlan')}</div>`;
-  const logRows = logs.slice(0, 8).map(l => `<div class="train-ex"><span>${esc(l.dayLabel || '')}</span><span class="sx">${dateName(l.date)} ✓</span></div>`).join('');
+  /* PERSONALIZA (2026-10-27): si el registro trae cambios o
+     agregados de la sesión, el entrenador ve la verdad con sus
+     marcas también en este resumen (el detalle vive en el
+     historial del alumno). */
+  const logMarks = l => {
+    const parts = [];
+    (Array.isArray(l.exercisesDone) ? l.exercisesDone : []).forEach(e => {
+      if (!e) return;
+      if (e.swappedFrom) parts.push(`⇄ ${esc(e.name || '')} · ${esc(t('train.custom.swappedFor', { name: e.swappedFrom }))}`);
+      if (e.added) parts.push(`＋ ${esc(e.name || '')} · ${esc(t('train.custom.addedMark'))}`);
+    });
+    return parts.length ? `<br><span class="muted">${parts.join(' · ')}</span>` : '';
+  };
+  const logRows = logs.slice(0, 8).map(l => `<div class="train-ex"><span>${esc(l.dayLabel || '')}${logMarks(l)}</span><span class="sx">${dateName(l.date)} ✓</span></div>`).join('');
   box.innerHTML = `
     <h3 class="history-title">${t('train.section')}</h3>
     <div style="margin-bottom:10px"><button class="btn-primary btn-sm" id="btn-plan-new">${t('train.new')}</button></div>
@@ -19116,7 +19413,7 @@ document.addEventListener('keydown', e => { if (e.key === 'Escape') shareClose()
  *  - El SW (sw.js) solo cachea la cáscara del mismo origen en modo
  *    RED PRIMERO: Auth/Firestore/Worker jamás pasan por la caché.
  * ================================================================ */
-const PWA_SW_VERSION = '20261027-instalacion-webview';
+const PWA_SW_VERSION = '20261027-cambios-sesion';
 let pwaDeferredPrompt = null;
 function pwaIsStandalone() {
   try {
