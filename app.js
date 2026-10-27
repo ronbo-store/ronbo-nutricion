@@ -10443,7 +10443,7 @@ function trainExCardHTML(ex, di, ei) {
      se guarda al cerrar el día es la carga CANÓNICA en kg más el
      original con su unidad. Sin marcar, no hay filas de series. */
   const sets = chk && Array.isArray(chk.sets) ? chk.sets : null;
-  const setsHtml = sets ? `<div class="train-sets">${sets.map((s, si) => `
+  const setsHtml = sets ? `<div class="train-sets-unit"><span class="train-sets-unit-lab">${esc(t('units.mass'))}</span>${trainUnitSelHTML()}</div><div class="train-sets">${sets.map((s, si) => `
       <div class="train-set-row"><span class="train-set-n">${t('train.d.set')} ${si + 1}${s.repsPlanned ? ` · ${esc(s.repsPlanned)}` : ''}</span>
         <input type="number" inputmode="decimal" min="0" class="train-set-in" data-train-set-reps="${key}:${si}" placeholder="${t('train.d.repsPh')}" value="${esc(s.repsDone)}" aria-label="${t('train.d.repsPh')}">
         <input type="number" inputmode="decimal" min="0" step="any" class="train-set-in" data-train-set-load="${key}:${si}" placeholder="${t('train.d.loadPh')}" value="${esc(s.loadVal)}" aria-label="${t('train.d.loadPh')}">
@@ -10792,10 +10792,59 @@ function trainDressedCardHTML(plan, logs, di, iso, innerHTML, extraCls) {
   return `<div class="train-day ${extraCls || ''} train-day-dressed"><img class="train-dressed-wm" src="icons/icon-512.png" alt="" aria-hidden="true" onerror="this.remove()"><div class="train-dressed-content">${trainDressedHeadHTML(plan, logs, di, iso)}${innerHTML}</div></div>`;
 }
 let TRAIN_FLOAT = null;   // { di, ei, mode, iso, draft } — borrador de la flotante; nada se confirma hasta Guardar
+/* UNIDAD DE CARGA EN EL PUNTO DE REGISTRO (2026-10-26, instrucción
+   de Ronald: «Debe escoger entre lb y kg»): el módulo H ya guardaba
+   la preferencia por usuario (users/{uid}/preferences/units, forma
+   cerrada admitida por las reglas vivas) y cada registro con su
+   canónico en kg más el original con su unidad — pero en el punto
+   de registro la unidad era un rótulo FIJO y la elección vivía solo
+   en el panel de ajustes. Ahora el selector vive donde se teclea la
+   carga (la flotante y la tarjeta del día: el mismo componente de
+   series) y mueve la MISMA preferencia (saveMyUnits). Al cambiarla,
+   los valores tecleados y AÚN SIN GUARDAR se convierten a la nueva
+   unidad vía el canónico kg, para que ningún número quede leído en
+   la unidad equivocada; lo ya guardado no se toca jamás: su
+   presentación sale siempre del loadKg canónico. */
+function trainUnitSelHTML() {
+  return `<select class="train-unit-sel" data-train-unit-sel aria-label="${esc(t('units.mass'))}">${['kg', 'lb'].map(u => `<option value="${u}"${UNIT_PREFS.mass === u ? ' selected' : ''}>${u}</option>`).join('')}</select>`;
+}
+function convLoadDisplay(v, from, to) {
+  if (from === to) return v;
+  const s = String(v == null ? '' : v).trim();
+  if (!s) return v;
+  const n = parseFloat(s);
+  if (!isFinite(n) || n < 0) return v;
+  const kg = from === 'lb' ? n * UNIT_LB_KG : n;
+  return String(uRound1(to === 'lb' ? kg / UNIT_LB_KG : kg));
+}
+async function trainSetMassUnit(newUnit) {
+  const old = UNIT_PREFS.mass;
+  if (!newUnit || newUnit === old) return;
+  await saveMyUnits({ ...UNIT_PREFS, mass: newUnit });
+  if (UNIT_PREFS.mass === newUnit) {
+    /* Lo tecleado y aún sin guardar pasa a la nueva unidad: el
+       borrador de la flotante y el estado de la tarjeta del día. */
+    if (TRAIN_FLOAT && TRAIN_FLOAT.draft && Array.isArray(TRAIN_FLOAT.draft.sets))
+      TRAIN_FLOAT.draft.sets.forEach(s => { s.loadVal = convLoadDisplay(s.loadVal, old, newUnit); });
+    Object.values(TRAIN_CHECKS).forEach(c => { if (c && Array.isArray(c.sets)) c.sets.forEach(s => { s.loadVal = convLoadDisplay(s.loadVal, old, newUnit); }); });
+  }
+  /* Éxito o denegación: repintar con la preferencia REAL resultante
+     (si el guardado falló, saveMyUnits ya avisó y la preferencia no
+     se movió — los selectores vuelven a la unidad verdadera). */
+  loadMyTraining();
+  if (TRAIN_FLOAT && TRAIN_FLOAT.mode === 'edit') {
+    const b = $('train-ex-float-body');
+    const boxS = b ? b.querySelector('#tf-sets') : null;
+    if (boxS) { boxS.innerHTML = trainFloatSetsHTML(TRAIN_FLOAT.draft); trainFloatWireSets(b, TRAIN_FLOAT.draft); trainWireUnitSels(b); }
+  }
+}
+function trainWireUnitSels(scope) {
+  (scope || document).querySelectorAll('[data-train-unit-sel]').forEach(sel => { sel.onchange = () => trainSetMassUnit(sel.value); });
+}
 function trainFloatSetsHTML(draft) {
   if (!draft || !draft.done) return '';
   const sets = Array.isArray(draft.sets) ? draft.sets : [];
-  return `<div class="train-sets">${sets.map((s, si) => `
+  return `<div class="train-sets-unit"><span class="train-sets-unit-lab">${esc(t('units.mass'))}</span>${trainUnitSelHTML()}</div><div class="train-sets">${sets.map((s, si) => `
     <div class="train-set-row"><span class="train-set-n">${t('train.d.set')} ${si + 1}${s.repsPlanned ? ` · ${esc(s.repsPlanned)}` : ''}</span>
       <input type="number" inputmode="decimal" min="0" class="train-set-in" data-tf-reps="${si}" placeholder="${t('train.d.repsPh')}" value="${esc(s.repsDone)}" aria-label="${t('train.d.repsPh')}">
       <input type="number" inputmode="decimal" min="0" step="any" class="train-set-in" data-tf-load="${si}" placeholder="${t('train.d.loadPh')}" value="${esc(s.loadVal)}" aria-label="${t('train.d.loadPh')}">
@@ -10873,9 +10922,11 @@ function trainFloatOpen(plan, logs, di, ei, mode, iso) {
       body.querySelector('#tf-sets').innerHTML = trainFloatSetsHTML(d);
       rpeSel.disabled = !d.done;
       trainFloatWireSets(body, d);
+      trainWireUnitSels(body);
     };
     rpeSel.onchange = () => { d.rpe = rpeSel.value ? Number(rpeSel.value) : null; };
     trainFloatWireSets(body, d);
+    trainWireUnitSels(body);
     body.querySelector('#tf-save').onclick = () => {
       /* Guardar = la MISMA confirmación que hace la fila: la marca
          vive en TRAIN_CHECKS con la misma forma {rpe, sets}; la
@@ -11136,6 +11187,7 @@ async function loadMyTraining() {
     const c = TRAIN_CHECKS[di + ':' + ei];
     if (c && Array.isArray(c.sets) && c.sets[Number(si)]) c.sets[Number(si)].repsDone = inp.value;
   });
+  trainWireUnitSels(box);
   box.querySelectorAll('[data-train-set-load]').forEach(inp => inp.oninput = () => {
     const [di, ei, si] = inp.dataset.trainSetLoad.split(':');
     const c = TRAIN_CHECKS[di + ':' + ei];
@@ -17536,7 +17588,7 @@ document.addEventListener('keydown', e => { if (e.key === 'Escape') shareClose()
  *  - El SW (sw.js) solo cachea la cáscara del mismo origen en modo
  *    RED PRIMERO: Auth/Firestore/Worker jamás pasan por la caché.
  * ================================================================ */
-const PWA_SW_VERSION = '20261026-imagenes-selector';
+const PWA_SW_VERSION = '20261026-unidad-carga';
 let pwaDeferredPrompt = null;
 function pwaIsStandalone() {
   try {
