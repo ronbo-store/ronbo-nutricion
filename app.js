@@ -11317,7 +11317,7 @@ function trainDressedHeadHTML(plan, logs, di, iso) {
   else if (m.total > 0 && m.doneCount >= m.total) hook = esc(t('shareW.done'));
   else hook = esc(t('shareW.tag')) + ' 🔥 ' + esc(t('shareW.progress', { x: m.doneCount, y: m.total }));
   const C = 2 * Math.PI * 24;
-  const msg = shareMsgForDate(iso);
+  const msg = shareMsgRevealedFor(iso);
   return `<div class="train-dressed-head">
     <div class="train-dressed-top"><span class="train-dressed-kicker">${esc(iso === todayISO() ? t('shareW.kickerToday') : t('shareW.kicker'))}</span>
     <span class="train-dressed-ring"><svg width="56" height="56" viewBox="0 0 56 56" aria-hidden="true"><circle cx="28" cy="28" r="24" fill="none" stroke="rgba(255,255,255,.25)" stroke-width="5"/><circle cx="28" cy="28" r="24" fill="none" stroke="#C6FF4A" stroke-width="5" stroke-linecap="round" stroke-dasharray="${C.toFixed(1)}" stroke-dashoffset="${(C * (1 - pct / 100)).toFixed(1)}" transform="rotate(-90 28 28)"/></svg><span class="train-dressed-pct">${pct}%</span></span></div>
@@ -11633,24 +11633,23 @@ async function loadMyTraining() {
       const diT = trainRotationNext(plan, logs, today);
       const nDays = (plan.days || []).length;
       if (nDays > 0) {
-        /* SESIÓN QUE VIENE VISIBLE (2026-10-26, instrucción de
-           Ronald: «si ya tengo plan de entrenamiento debería
-           aparecerme para mi propia planificación»): tocar un día
-           futuro ya no deja solo el texto explicativo — la PRÓXIMA
-           sesión del orden (la primera de la lista de siempre) se
-           muestra con su ficha completa en modo ficha: filas
-           tocables que abren la flotante de consulta (foto, spec y
-           video), como en los planes con días fijos. Es
-           planificación anticipada: la flotante en modo ficha no
-           trae series ni Guardar (no registra nada), la sesión NO
-           se fija a esta fecha y ningún contador se mueve. Debajo
-           se conserva la nota de rotación con el resto del orden. */
-        const diNext = (diT + 1) % nDays;
-        const dayN = (plan.days || [])[diNext] || {};
-        const innerN = `<h4>${esc(dayLabelOf(diNext))}</h4>` + dressExRows((dayN.exercises || []).map((ex, ei) => trainExCompactHTML(ex, diNext, ei, 'ficha', null)).join(''), diNext, 'ficha') + trainSessionHTML(dayN) + `<div style="margin-top:8px"><span class="train-status st-skipped">● ${t('train.today.scheduled')}</span></div>`;
+        /* DÍAS FUTUROS SOBRIOS (2026-10-27, diseño cerrado de
+           Ronald — DISEÑO-DIAS-FUTUROS-Y-REFLEXION-2026-10-27;
+           sustituye en rotación a la «sesión que viene visible» de
+           AUTH-028): un día futuro ya NO viste la tarjeta completa
+           de la próxima sesión repetida en cada fecha. Muestra como
+           máximo SU sesión — la que le toca proyectando el orden
+           desde hoy (hoy = la siguiente del orden; cada día futuro
+           avanza un paso) — en estado vacío y sobrio: solo su
+           nombre y su estado de programada, sin filas, sin ficha,
+           sin UI de completado ni marcas. Hoy y el pasado no
+           cambian. Debajo se conserva la nota de rotación con el
+           resto del orden. */
+        const offset = Math.round((new Date(sel + 'T12:00:00') - new Date(today + 'T12:00:00')) / 86400000);
+        const diDay = (diT + offset) % nDays;
         const chips = [];
-        for (let k = 2; k <= nDays; k++) chips.push(`<span class="train-chip">${esc(dayLabelOf((diT + k) % nDays))}</span>`);
-        selCard = trainDressedCardHTML(plan, logs, diNext, sel, innerN, 'is-readonly') + trainShareRowHTML(diNext, sel)
+        for (let k = 1; k < nDays; k++) chips.push(`<span class="train-chip">${esc(dayLabelOf((diDay + k) % nDays))}</span>`);
+        selCard = `<div class="train-day is-readonly"><h4>${esc(dayLabelOf(diDay))}</h4><div style="margin-top:8px"><span class="train-status st-skipped">● ${t('train.today.scheduled')}</span></div></div>`
           + `<div class="train-day is-readonly"><p class="progress-hint">${t('train.today.rotationNote')}</p>${chips.length ? `<div class="train-week">${chips.join('')}</div>` : ''}</div>`;
       } else {
         selCard = `<div class="train-day is-readonly"><p class="progress-hint">${t('train.today.rotationNote')}</p><div class="train-week"></div></div>`;
@@ -18001,6 +18000,20 @@ function shareMsgForDate(iso) {
   if (!text) return null;
   return { text, icon: SHARE_MSG_ICONS[new Date(y, m - 1, d).getDay()] || '' };
 }
+/* REFLEXIÓN SORPRESA (2026-10-27, diseño cerrado de Ronald —
+   DISEÑO-DIAS-FUTUROS-Y-REFLEXION-2026-10-27): qué reflexión se
+   MUESTRA sigue su propio reloj, independiente del corte contable
+   de pendientes: la de un día se revela a las 05:00 locales de ese
+   día; entre las 00:00 y las 04:59 se sigue viendo la de AYER (ya
+   revelada); un día FUTURO nunca muestra la suya. El banco y su
+   rotación por fecha (shareMsgForDate) no cambian: esta función
+   solo decide qué fecha se pinta según el momento. */
+function shareMsgRevealedFor(iso) {
+  const today = todayISO();
+  if (!iso || iso > today) return null;
+  if (iso === today && new Date().getHours() < 5) return shareMsgForDate(addDaysISO(iso, -1));
+  return shareMsgForDate(iso);
+}
 /* Marca de agua: el icono de la app, cargado una vez (mismo origen)
    y cacheado en memoria junto al resto de recursos de las tarjetas. */
 const SHARE_ICON = { img: null, state: 'idle' };
@@ -18131,7 +18144,7 @@ function shareDrawWorkout(ctx, W, H, d) {
   }
   ctx.restore();
   /* franja del mensaje del día (solo icono + frase, si hay banco) */
-  const msg = shareMsgForDate(d.dateISO);
+  const msg = shareMsgRevealedFor(d.dateISO);
   let rowsTop = barY + (cp ? 40 : 48);
   if (msg) {
     const stripTop = barY + (cp ? 28 : 34);
@@ -18242,7 +18255,7 @@ function shareRender() {
   if (SHARE.type === 'workout' && SHARE.workout) {
     const d = SHARE.workout;
     shareDrawWorkout(ctx, W, H, d);
-    const msg = shareMsgForDate(d.dateISO);
+    const msg = shareMsgRevealedFor(d.dateISO);
     summary = t('shareW.lab') + ' · ' + d.label + ' · ' + shareDayLabel(d.dateISO) + ' · ' +
       (d.total > 0 && d.doneCount >= d.total ? t('shareW.done') : t('shareW.progress', { x: d.doneCount, y: d.total })) +
       (msg ? ' · ' + msg.icon + ' ' + msg.text : '') +
@@ -18358,7 +18371,7 @@ document.addEventListener('keydown', e => { if (e.key === 'Escape') shareClose()
  *  - El SW (sw.js) solo cachea la cáscara del mismo origen en modo
  *    RED PRIMERO: Auth/Firestore/Worker jamás pasan por la caché.
  * ================================================================ */
-const PWA_SW_VERSION = '20261027-llamita-quemado';
+const PWA_SW_VERSION = '20261027-dias-futuros';
 let pwaDeferredPrompt = null;
 function pwaIsStandalone() {
   try {
