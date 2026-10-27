@@ -2741,6 +2741,7 @@ en: {
   'clients.chkMissing': 'Missing',
   'clients.chkHidden': 'not visible to your role',
   'client.fallbackName': 'Client',
+  'client.ringsTitle': '🍽️ Daily food rings',
   'client.weightLog': 'Weight log · {name}',
   'client.healthDecl': 'Health declaration:',
   'client.foodReview': '📷 Food photos to review ({n})',
@@ -4403,6 +4404,7 @@ es: {
   'clients.chkMissing': 'Falta',
   'clients.chkHidden': 'no visible para tu rol',
   'client.fallbackName': 'Cliente',
+  'client.ringsTitle': '🍽️ Anillos de comida del día',
   'client.weightLog': 'Registro de peso · {name}',
   'client.healthDecl': 'Declaración de salud:',
   'client.foodReview': '📷 Fotos de comida por revisar ({n})',
@@ -6998,6 +7000,7 @@ async function openClient(uid) {
   box.innerHTML = `
     <h3 class="history-title">${t('client.weightLog', { name: esc(uname) })}</h3>
     ${healthAlert}
+    <div id="client-rings"></div>
     ${foodItems.length ? `<h3 class="history-title">${t('client.foodReview', { n: foodItems.length })}</h3>${foodBlock}` : ''}
     <div style="margin-bottom:10px"><button class="btn-primary btn-sm" id="btn-client-add">${t('client.addWeight')}</button>
     <button class="btn-ghost btn-sm" id="btn-client-close" style="margin-left:8px">${t('client.close')}</button></div>
@@ -7035,6 +7038,7 @@ async function openClient(uid) {
   if (faPal) { faPal.addEventListener('input', faPalSync); faPalSync(); }
   $('btn-client-add').onclick = () => openWeightModal({ uid, docId: null, rec: null });
   compAccLoadTrainer(uid);
+  loadClientRings(uid, udata);
   try { goalsTrainerCardLoad(uid, udata, { conditions: (clientHealth && clientHealth.decl && clientHealth.decl.conditions) || [], weights: data }); } catch {}
   btLoadTrainerCard(uid, udata);
   box.querySelectorAll('[data-c-edit]').forEach(b => b.onclick = () => {
@@ -7106,6 +7110,85 @@ async function compAccToggle(uid) {
   } catch {
     toast(t('compacc.needClientOpen'), true);
   }
+}
+
+/* ============ ANILLOS DE COMIDA DEL CLIENTE (vista del entrenador) ============
+   Pedido de Ronald (2026-10-27): ver en la ficha del cliente sus
+   avances de comida — los mismos anillos redondos que el alumno ve
+   en su «Mi registro», con lo consumido contra la meta del día.
+   SOLO LECTURA: este bloque no escribe nada ni abre el detalle del
+   alumno. FUENTE ÚNICA DE VERDAD: los totales salen de sumar los
+   registros de nutrition_meals del cliente con el mismo mapeo de
+   campos de loadAll()/totals(), y la meta del día sale de las
+   MISMAS funciones puras del motor (goalsDayLevelForDate +
+   goalsDayAdjust) alimentadas con los datos DEL CLIENTE (metas y
+   procedencia de su users, su plan activo y su pendconfig) — la
+   réplica parametrizada de goalsDayGoalsFor de abajo, guarda a
+   guarda. Sin metas o sin registro, el estado honesto es el mismo
+   que ve el alumno: «goals.none» y anillos neutros/en cero. */
+let CRING = { uid: null, totals: {}, goals: {}, prov: null, overrides: null, plan: null, cfg: null };
+function cringDayGoalsFor(iso) {
+  const base = CRING.goals || {};
+  const prov = CRING.prov;
+  if (!(base.kcal > 0) || !(base.carb > 0) || !(base.gras > 0)) return { goals: { ...base }, dayLevel: 'base' };
+  if (prov && Array.isArray(prov.heldParams) && prov.heldParams.includes('carb')) return { goals: { ...base }, dayLevel: 'base' };
+  const ov = CRING.overrides ? CRING.overrides[iso] : null;
+  if (ov && ['base', 'exigente', 'descanso'].includes(ov)) {
+    const adjOv = goalsDayAdjust({ goals: base, fatPct: prov && prov.fatPct != null ? prov.fatPct : null, dayLevel: ov });
+    return { goals: adjOv.goals, dayLevel: ov };
+  }
+  const det = goalsDayLevelForDate(iso, CRING.plan, CRING.cfg, (typeof LIB_BY_ID !== 'undefined' ? LIB_BY_ID : {}));
+  const adj = goalsDayAdjust({ goals: base, fatPct: prov && prov.fatPct != null ? prov.fatPct : null, dayLevel: det.dayLevel });
+  return { goals: adj.goals, dayLevel: det.dayLevel };
+}
+async function loadClientRings(uid, udata) {
+  const box = $('client-rings'); if (!box) return;
+  CRING = { uid, totals: {}, goals: (udata && udata.goals) || {}, prov: (udata && udata.goalsProvenance) || null,
+    overrides: (udata && udata.goalsDayOverrides) || null, plan: null, cfg: null };
+  box.innerHTML = `<h3 class="history-title">${esc(t('client.ringsTitle'))}</h3><div class="wempty">${t('access.loading')}</div>`;
+  try {
+    const ms = await getDocs(query(collection(db, 'nutrition_meals'), where('ownerUid', '==', uid)));
+    const byDate = {};
+    ms.forEach(d => { const v = d.data();
+      if (!/^\d{4}-\d{2}-\d{2}$/.test(v.date || '')) return;
+      const tt = byDate[v.date] = byDate[v.date] || { kcal: 0, prot: 0, carb: 0, azuc: 0, gras: 0 };
+      tt.kcal += num(v.kcal); tt.prot += num(v.prot); tt.carb += num(v.carb); tt.azuc += num(v.sugar); tt.gras += num(v.fat);
+    });
+    if (CRING.uid === uid) CRING.totals = byDate;
+  } catch {}
+  try { const plans = await fetchPlans(uid); if (CRING.uid === uid) CRING.plan = plans.find(p => p.active === true) || null; } catch {}
+  try {
+    const cs = await getDoc(doc(db, 'nutrition_progress', uid + '_pendconfig'));
+    if (CRING.uid === uid) CRING.cfg = cs.exists() ? Object.assign(pendDefaults(), cs.data()) : { activated: false };
+  } catch { if (CRING.uid === uid) CRING.cfg = null; }
+  if (CRING.uid === uid) paintClientRings(todayISO());
+}
+function paintClientRings(date) {
+  const box = $('client-rings'); if (!box || !CRING.uid) return;
+  const tot = CRING.totals[date] || { kcal: 0, prot: 0, carb: 0, azuc: 0, gras: 0 };
+  const base = CRING.goals || {};
+  const hasGoals = METRICS.some(m => { const v = Number(base[m.key]); return isFinite(v) && v > 0; });
+  const day = cringDayGoalsFor(date);
+  const goalFor = key => { const v = Number(day.goals[key]); return (isFinite(v) && v > 0) ? v : null; };
+  const hoy = todayISO();
+  const opts = [...new Set([hoy, ...Object.keys(CRING.totals).sort().reverse()])];
+  const rings = METRICS.map(m => {
+    const goal = goalFor(m.key);
+    const val = tot[m.key];
+    /* Sub compacto idéntico al de la fila del alumno: con meta
+       «consumo/meta» (la unidad solo en gramos; en calorías el
+       rótulo ya dice la métrica); sin meta, consumo + unidad, como
+       el anillo neutro que ve el alumno. */
+    const sub = goal === null ? `${fmt(val)} ${m.unit}` : `${fmt(val)}/${fmt(goal)}${m.key === 'kcal' ? '' : ' ' + m.unit}`;
+    return `<div class="ring-mini" style="cursor:default">${ringMiniSVG(m, val, goal)}<span class="ring-mini-name">${t('metric.' + m.key)}</span><span class="ring-mini-sub">${sub}</span></div>`;
+  }).join('');
+  box.innerHTML = `<h3 class="history-title">${esc(t('client.ringsTitle'))}</h3>
+    <label style="display:block;margin-bottom:8px"><span class="muted">${t('form.date')}:</span>
+    <select id="client-rings-date">${opts.map(d => `<option value="${d}"${d === date ? ' selected' : ''}>${esc(dateName(d))}${d === hoy ? esc(t('date.today')) : ''}</option>`).join('')}</select></label>
+    ${hasGoals ? '' : `<div style="margin-bottom:8px"><span class="goals-none">${t('goals.none')}</span></div>`}
+    <div class="rings">${rings}</div>`;
+  const sel = $('client-rings-date');
+  if (sel) sel.onchange = () => paintClientRings(sel.value);
 }
 
 /* ================= MOTOR DE METAS CON FUNDAMENTO v3 (2026-10-26) =================
@@ -18611,7 +18694,7 @@ document.addEventListener('keydown', e => { if (e.key === 'Escape') shareClose()
  *  - El SW (sw.js) solo cachea la cáscara del mismo origen en modo
  *    RED PRIMERO: Auth/Firestore/Worker jamás pasan por la caché.
  * ================================================================ */
-const PWA_SW_VERSION = '20261027-completitud-clientes';
+const PWA_SW_VERSION = '20261027-anillos-cliente';
 let pwaDeferredPrompt = null;
 function pwaIsStandalone() {
   try {
