@@ -3234,7 +3234,13 @@ en: {
   'act.type.artes_marciales': 'Martial arts',
   'act.type.transporte_activo': 'Active transport (walk / bike)',
   'act.type.otro': 'Other',
+  'act.type.caminadora': 'Treadmill walking',
+  'act.type.sauna': 'Sauna',
   'act.type.entrenamiento_plan': 'Workout session (plan)',
+  /* EXTRAS DEL MARCADOR (2026-10-27): la zona de extras de la tarjeta de hoy. */
+  'train.extras.title': "Today's optional extras",
+  'train.extras.hint': 'They add to your burned today — they do not count toward the session.',
+  'train.extras.more': '+ More from the catalog…',
   /* PUENTE ENTRENAMIENTO→LLAMITA (2026-10-27): el quemado del día. */
   'act.flameBurned': 'burned today',
   'act.burnedTitle': 'Your burn today',
@@ -4918,7 +4924,13 @@ es: {
   'act.type.artes_marciales': 'Artes marciales',
   'act.type.transporte_activo': 'Transporte activo (caminar / bici)',
   'act.type.otro': 'Otro',
+  'act.type.caminadora': 'Caminadora',
+  'act.type.sauna': 'Sauna',
   'act.type.entrenamiento_plan': 'Sesión de entrenamiento (plan)',
+  /* EXTRAS DEL MARCADOR (2026-10-27): la zona de extras de la tarjeta de hoy. */
+  'train.extras.title': 'Extras opcionales de hoy',
+  'train.extras.hint': 'Suman a tu quemado de hoy — no cuentan para la sesión.',
+  'train.extras.more': '+ Otro del catálogo…',
   /* PUENTE ENTRENAMIENTO→LLAMITA (2026-10-27): el quemado del día. */
   'act.flameBurned': 'quemado hoy',
   'act.burnedTitle': 'Tu quemado de hoy',
@@ -12257,6 +12269,75 @@ function trainShareModel(plan, logs, di, iso) {
 function trainShareRowHTML(di, iso) {
   return `<div class="train-share-row"><button type="button" class="btn-ghost btn-sm" data-train-share="${di}|${iso}">📣 ${t('shareW.btn')}</button></div>`;
 }
+/* EXTRAS OPCIONALES DE HOY (2026-10-27, pedido de Ronald: «Quiero
+   que sea más accesible, que también esté en el marcador de los
+   ejercicios diarios como opcional»): la caminadora del inicio y
+   la sauna del final se registran DESDE la tarjeta de la sesión
+   de hoy, sin irse a la pestaña de Actividad. Zona discreta al pie
+   de la tarjeta: accesos rápidos [Caminadora] [Sauna] [+ Otro del
+   catálogo…]; cada toque abre LA MISMA hoja de ingreso de
+   actividades (actOpenCardExtra: fecha fijada a hoy, 15 min
+   sugeridos) y el guardado es el de siempre (actSaveDay →
+   activity_logs del día → la llamita por el actRecompute de
+   siempre). Los extras pintados son las actividades manuales del
+   día — todas menos la sesión del plan, que es la propia tarjeta —
+   con su nombre, minutos y kcal estimado, y se quitan desde aquí
+   con el mismo guardado (splice + actSaveDay, el patrón de borrado
+   de la hoja de la llamita). Sin extras, la zona se ofrece discreta
+   y la tarjeta se ve como hoy.
+   OPCIONALES DE VERDAD: la zona NO toca TRAIN_CHECKS ni el modelo
+   de la cabecera vestida (trainShareModel): el «X de Y», el %,
+   «¡Entrenamiento completado!», el estado de cierre, la A4 y los
+   pendientes dependen SOLO de los ejercicios del plan, como hoy.
+   El plan no se escribe; no hay segundo cálculo de quemado. */
+let TRAIN_EXTRAS_PICK = false;   // «otro del catálogo» desplegado (solo memoria)
+function trainExtrasZoneHTML() {
+  const today = todayISO();
+  const rows = [];
+  if (ACT_LOADED) {
+    const acts = (ACT_LOGS[today] || {}).activities || [];
+    acts.forEach((a, i) => {
+      if (!a || a.type === 'entrenamiento_plan') return;
+      const name = a.type === 'otro' && a.typeCustom ? a.typeCustom : t('act.type.' + a.type);
+      rows.push(`<div class="train-extra-row"><span class="train-extra-name">${ACT_ICONS[a.type] || '➕'} ${esc(name)}</span><span class="train-extra-meta">${Math.floor(num(a.durationMin))} ${t('act.min')} · ${a.kcalEstimated == null ? '—' : '≈ ' + fmt(a.kcalEstimated) + ' ' + t('act.kcalUnit')}${actIsSummable(a.type) ? '' : ` <span class="act-tag">${t('act.notAddedTag')}</span>`}</span><button type="button" class="btn-ghost btn-sm" data-train-extra-del="${i}">${t('act.del')}</button></div>`);
+    });
+  }
+  const pickTypes = ACT_TYPES.filter(tp => tp !== 'caminadora' && tp !== 'sauna');
+  return `<div class="train-extras">
+    <div class="train-extras-title">🧩 ${t('train.extras.title')}</div>
+    ${rows.join('')}
+    <div class="train-extras-btns">
+      <button type="button" class="btn-ghost btn-sm" data-train-extra="caminadora">${ACT_ICONS.caminadora} ${t('act.type.caminadora')}</button>
+      <button type="button" class="btn-ghost btn-sm" data-train-extra="sauna">${ACT_ICONS.sauna} ${t('act.type.sauna')}</button>
+      <button type="button" class="btn-ghost btn-sm" data-train-extra-more aria-expanded="${TRAIN_EXTRAS_PICK ? 'true' : 'false'}">${t('train.extras.more')}</button>
+    </div>
+    <div class="train-extras-pick" style="display:${TRAIN_EXTRAS_PICK ? '' : 'none'}">${pickTypes.map(tp => `<button type="button" class="btn-ghost btn-sm" data-train-extra="${tp}">${ACT_ICONS[tp] || '➕'} ${esc(t('act.type.' + tp))}</button>`).join('')}</div>
+    <p class="train-extras-hint">${t('train.extras.hint')}</p>
+  </div>`;
+}
+/* Cableado de la zona: los accesos abren la hoja de ingreso con la
+   fecha fijada a hoy (con stopPropagation: el clic NO debe llegar
+   al cierre por toque fuera de las superficies de actividad, que
+   cerraría la hoja recién abierta), el despliegue del resto del
+   catálogo y quitar un extra (el mismo guardado de siempre). Lo
+   usan loadMyTraining (al pintar la tarjeta) y el refresco en el
+   sitio de renderActivity (al cambiar el día desde Actividad). */
+function trainExtrasWire(box) {
+  if (!box) return;
+  box.querySelectorAll('[data-train-extra]').forEach(b => b.onclick = e => { e.stopPropagation(); actOpenCardExtra(b.dataset.trainExtra); });
+  box.querySelectorAll('[data-train-extra-more]').forEach(b => b.onclick = () => {
+    TRAIN_EXTRAS_PICK = !TRAIN_EXTRAS_PICK;
+    const p = box.querySelector('.train-extras-pick');
+    if (p) p.style.display = TRAIN_EXTRAS_PICK ? '' : 'none';
+    b.setAttribute('aria-expanded', TRAIN_EXTRAS_PICK ? 'true' : 'false');
+  });
+  box.querySelectorAll('[data-train-extra-del]').forEach(b => b.onclick = async () => {
+    const i = parseInt(b.dataset.trainExtraDel, 10);
+    b.disabled = true;
+    await actSaveDay(todayISO(), dr => { dr.activities.splice(i, 1); });
+    loadMyTraining();
+  });
+}
 function trainShareOpen(model) {
   SHARE.type = 'workout'; SHARE.workout = model;
   shareIconEnsure();
@@ -12549,7 +12630,7 @@ async function loadMyTraining() {
       else if (mode === 'done') { const status = trainLogStatus(log); tail = `<div style="margin-top:8px">${trainStatusBadge(status)}${status === 'skipped' ? ` <span class="muted">${t('train.d.skippedNote')}</span>` : ''} <button class="btn-ghost btn-sm" data-train-undo="${di}">${t('train.undo')}</button></div>`; }
       else tail = '';
     }
-    return `<h4>${esc(label)}</h4>${exHtml}${trainSessionHTML(day)}${tail}`;
+    return `<h4>${esc(label)}</h4>${exHtml}${trainSessionHTML(day)}${tail}${trainExtrasZoneHTML()}`;
   };
   /* ENTRENAMIENTO-HOY: tira semanal + tarjeta del día (por defecto
      HOY). La configuración de pendientes es la ancla «cfg»: si
@@ -12746,6 +12827,7 @@ async function loadMyTraining() {
     if (c && Array.isArray(c.sets) && c.sets[Number(si)]) c.sets[Number(si)].repsDone = inp.value;
   });
   trainWireUnitSels(box);
+  trainExtrasWire(box);
   box.querySelectorAll('[data-train-set-load]').forEach(inp => inp.oninput = () => {
     const [di, ei, si] = inp.dataset.trainSetLoad.split(':');
     const c = TRAIN_CHECKS[di + ':' + ei];
@@ -15647,6 +15729,23 @@ const ACT_MET = {
   artes_marciales:    { suave: 7.0,  moderada: 9.0,  intensa: 11.0 },
   transporte_activo:  { suave: 3.0,  moderada: 3.5,  intensa: 4.5  },
   otro:               { suave: 4.0,  moderada: 6.0,  intensa: 8.0  },
+  /* EXTRAS DEL MARCADOR (2026-10-27, pedido de Ronald: registrar
+     la caminadora del inicio y la sauna del final DESDE la tarjeta
+     de hoy): dos tipos nuevos y SUMABLES (actIsSummable intacto),
+     con fundamento del Compendium of Physical Activities:
+     · caminadora = caminar en cinta, en nivel (Ainsworth et al.
+       2011): suave 3,0 (código 17170 — 2,5 mph), moderada 3,5
+       (código 17190 — 2,8 a 3,2 mph, ritmo moderado), intensa 4,3
+       (código 17200 — 3,5 mph, vivo, «walking for exercise»).
+       15 min moderada a 84 kg → 73,5 kcal.
+     · sauna = 1,5 PLANO en las tres intensidades: el Compendio
+       no publica código propio de sauna (la lista 2024 tampoco);
+       el ancla es su «bathing (sitting)» (código 13010 = 1,5) y
+       el valor de baño térmico de la literatura (Katsuyama et
+       al. 2018, NEAT). Estimación baja y honesta, sin bandas
+       inventadas: 15 min a 84 kg → 31,5 kcal. */
+  caminadora:         { suave: 3.0,  moderada: 3.5,  intensa: 4.3  },
+  sauna:              { suave: 1.5,  moderada: 1.5,  intensa: 1.5  },
   /* PUENTE ENTRENAMIENTO→LLAMITA (2026-10-27, diseño
      DISEÑO-LLAMITA-QUEMADO-2026-10-27, decisiones D1–D6 + Anexo 2):
      la sesión del plan cerrada vuelca aquí su gasto estimado con la
@@ -15811,6 +15910,7 @@ function actDayView(date) {
 const ACT_ICONS = { correr: '🏃', ejercicios_en_casa: '🏠', ciclismo: '🚴',
   natacion: '🏊', futbol: '⚽', baloncesto: '🏀', senderismo: '🥾',
   baile: '💃', artes_marciales: '🥋', transporte_activo: '🚶', otro: '➕',
+  caminadora: '👟', sauna: '🧖',
   entrenamiento_plan: '🏋️' };
 const ACT_FAV_DEFAULTS = ['correr', 'natacion', 'ciclismo', 'ejercicios_en_casa'];
 let ACT_FAVS = null;          // null = aún sin cargar (se usan los de por defecto)
@@ -15856,7 +15956,17 @@ function actShowOnly(which) {
 function actCloseAll() { actShowOnly(null); }
 function actOpenFloat() { renderActHobbies(); actShowOnly('float'); }
 function actOpenDay() { renderActDay(actSelDate()); actShowOnly('day'); }
-function actOpenEntry(type) { if (!ACT_MET[type]) return; renderActEntry(type); actShowOnly('entry'); }
+/* EXTRAS DEL MARCADOR (2026-10-27): la hoja de ingreso puede nacer
+   de la tarjeta de la sesión de hoy (actOpenCardExtra). Entonces la
+   fecha queda FIJADA a hoy — la tarjeta es la de hoy, no la del
+   selector de seguimiento —, la duración nace con 15 min sugeridos
+   y al guardar se vuelve a la tarjeta (no a la capa de hobbies) y
+   esta se re-pinta con el extra nuevo. Sin contexto (la vía de los
+   hobbies de siempre), todo se comporta como hasta hoy. */
+let ACT_ENTRY_DATE = null;
+let ACT_ENTRY_CARD = false;
+function actOpenEntry(type) { if (!ACT_MET[type]) return; ACT_ENTRY_DATE = null; ACT_ENTRY_CARD = false; renderActEntry(type); actShowOnly('entry'); }
+function actOpenCardExtra(type) { if (!ACT_MET[type]) return; ACT_ENTRY_DATE = todayISO(); ACT_ENTRY_CARD = true; renderActEntry(type); actShowOnly('entry'); }
 function actOpenConfig() { renderActConfig(); actShowOnly('config'); }
 
 /* LLAMITA: el TOTAL DIARIO (base + extras que sí suman). Sin
@@ -15903,7 +16013,7 @@ function renderActEntry(type) {
   const title = $('act-entry-title');
   if (title) title.textContent = `${ACT_ICONS[type] || ''} ${t('act.type.' + type)}`.trim();
   const body = $('act-entry-body'); if (!body) return;
-  const date = actSelDate();
+  const date = ACT_ENTRY_DATE || actSelDate();
   const w = actLastWeight();
   body.innerHTML = `
     <div class="act-date" style="margin-bottom:6px">${esc(dateName(date))}</div>
@@ -15917,7 +16027,7 @@ function renderActEntry(type) {
       </div>
       <div class="act-grid">
         <label class="act-lab">${t('act.duration')} (${t('act.min')})
-          <input type="number" id="actf-dur" min="1" max="600" step="1" inputmode="numeric"></label>
+          <input type="number" id="actf-dur" min="1" max="600" step="1" inputmode="numeric"${ACT_ENTRY_CARD ? ' value="15"' : ''}></label>
         <label class="act-lab">${t('act.intensity')}
           <select id="actf-int">${ACT_INTENSITIES.map(x => `<option value="${x}"${x === 'moderada' ? ' selected' : ''}>${t('act.int.' + x)}</option>`).join('')}</select></label>
         <label class="act-lab">${t('act.rpe')}
@@ -15948,9 +16058,9 @@ function renderActEntry(type) {
     if (!Number.isInteger(dur) || dur < 1 || dur > 600) { toast(t('act.errDuration'), true); return; }
     if (rpe !== null && (!Number.isInteger(rpe) || rpe < 1 || rpe > 10)) { toast(t('act.errRpe'), true); return; }
     const btn = $('actf-add'); if (btn) btn.disabled = true;
-    const okSave = await actSaveDay(actSelDate(), dr => { dr.activities.push({ type, typeCustom, durationMin: dur, intensity, rpe, notes }); });
+    const okSave = await actSaveDay(ACT_ENTRY_DATE || actSelDate(), dr => { dr.activities.push({ type, typeCustom, durationMin: dur, intensity, rpe, notes }); });
     if (btn) btn.disabled = false;
-    if (okSave) actOpenFloat();
+    if (okSave) { if (ACT_ENTRY_CARD) { actCloseAll(); loadMyTraining(); } else actOpenFloat(); }
   };
 }
 
@@ -16104,6 +16214,19 @@ function renderActivity(date) {
   renderActFlame(date);
   if (actIsOpen('act-float')) renderActHobbies();
   if (actIsOpen('act-day')) renderActDay(date);
+  /* EXTRAS DEL MARCADOR (2026-10-27, refuerzo de Ronald: UN SOLO
+     REGISTRO también en la presentación): la zona de la tarjeta de
+     hoy se refresca EN EL SITIO desde el mismo documento — lo que
+     se agrega o se borra en Actividad aparece en la tarjeta sin
+     recargar la vista, y viceversa (la vía de la tarjeta ya
+     re-pinta con loadMyTraining). */
+  const zx = document.querySelector('#my-training .train-extras');
+  if (zx) {
+    const tmp = document.createElement('div');
+    tmp.innerHTML = trainExtrasZoneHTML();
+    const nz = tmp.firstElementChild;
+    if (nz) { zx.replaceWith(nz); trainExtrasWire($('my-training')); }
+  }
 }
 
 /* ---------- cableado del dock, la llamita y los cierres ---------- */
@@ -16113,7 +16236,7 @@ function renderActivity(date) {
   if (f) f.onclick = () => { if (actIsOpen('act-day')) actCloseAll(); else actOpenDay(); }; }
 { const c = $('btn-act-close'); if (c) c.onclick = () => actCloseAll(); }
 { const g = $('btn-act-config'); if (g) g.onclick = () => actOpenConfig(); }
-{ const c = $('btn-act-entry-close'); if (c) c.onclick = () => actOpenFloat(); }
+{ const c = $('btn-act-entry-close'); if (c) c.onclick = () => { if (ACT_ENTRY_CARD) { ACT_ENTRY_CARD = false; ACT_ENTRY_DATE = null; actCloseAll(); } else actOpenFloat(); }; }
 { const c = $('btn-act-config-close'); if (c) c.onclick = () => actOpenFloat(); }
 { const c = $('btn-act-day-close'); if (c) c.onclick = () => actCloseAll(); }
 /* Cierre tocando fuera (el botón ACTIVIDAD del dock y la llamita
@@ -19441,7 +19564,7 @@ document.addEventListener('keydown', e => { if (e.key === 'Escape') shareClose()
  *  - El SW (sw.js) solo cachea la cáscara del mismo origen en modo
  *    RED PRIMERO: Auth/Firestore/Worker jamás pasan por la caché.
  * ================================================================ */
-const PWA_SW_VERSION = '20261027-tarjeta-llamita';
+const PWA_SW_VERSION = '20261027-extras-marcador';
 let pwaDeferredPrompt = null;
 function pwaIsStandalone() {
   try {

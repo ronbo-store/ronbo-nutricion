@@ -1553,6 +1553,18 @@ body { padding: max(16px, env(safe-area-inset-top)) max(16px, env(safe-area-inse
 .train-day-dressed .train-ex-check { color: #d9ffe9; }
 .train-day-dressed .train-ex-check input { accent-color: #22c55e; }
 .train-day-dressed .train-ex-video { color: #fff; border-color: rgba(255,255,255,.5); }
+/* EXTRAS OPCIONALES DE HOY (2026-10-27): zona discreta al pie de la
+   tarjeta vestida — cristal como las filas del día. */
+.train-extras { margin-top: 12px; padding-top: 10px; border-top: 1px dashed rgba(255,255,255,.35); }
+.train-extras-title { font-weight: 700; font-size: 14.5px; color: #fff; margin-bottom: 4px; }
+.train-extra-row { display: flex; align-items: center; gap: 8px; background: rgba(255,255,255,.10); border: 1px solid rgba(255,255,255,.28); border-radius: 12px; padding: 7px 10px; margin: 6px 0; }
+.train-extra-name { font-weight: 600; color: #fff; }
+.train-extra-meta { margin-left: auto; color: rgba(255,255,255,.85); font-size: 13px; white-space: nowrap; }
+.train-extra-row .btn-ghost { color: #fff; border-color: rgba(255,255,255,.5); }
+.train-extras-btns { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 8px; }
+.train-extras-btns .btn-ghost, .train-extras-pick .btn-ghost { color: #fff; border-color: rgba(255,255,255,.5); background: rgba(255,255,255,.08); }
+.train-extras-pick { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 6px; }
+.train-extras-hint { font-size: 12.5px; color: rgba(255,255,255,.75); margin: 8px 0 2px; }
 .train-day-dressed .train-sets { flex: 1 1 100%; border-top: 1px dashed rgba(255,255,255,.35); }
 .train-day-dressed .train-set-n, .train-day-dressed .train-set-unit { color: rgba(255,255,255,.82); }
 .train-day-dressed .train-set-in { background: #fff; color: #1f2a44; }
