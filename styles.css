@@ -1640,7 +1640,16 @@ body { padding: max(16px, env(safe-area-inset-top)) max(16px, env(safe-area-inse
    para que la ✕ de salida se vea entera bajo el notch. Solo
    presentación: el módulo STOPW de app.js no guarda nada ni escribe
    en ningún sitio. */
-.sw-fab { position: fixed; top: calc(env(safe-area-inset-top, 0px) + 14px); right: calc(env(safe-area-inset-right, 0px) + 14px); z-index: 44; width: 58px; height: 58px; border-radius: 50%; border: 1.5px solid rgba(13,148,136,.55); background: rgba(255,255,255,.97); box-shadow: 0 8px 22px rgba(15,23,42,.20); display: flex; align-items: center; justify-content: center; cursor: pointer; font-family: inherit; color: #0f766e; padding: 0; }
+/* BOTÓN SOBRE LA LLAMITA (AUTH-040; orden de Ronald 2026-10-27 tras
+   probarlo en su iPhone: arriba a la derecha tapaba el selector EN/ES).
+   El botón redondo se apila ENCIMA de la llamita flotante (.act-flame:
+   fixed, right 14px, bottom = área segura + 122px, alto medido 69,4px
+   → 70px). bottom = 122 (ancla de la llamita) + 70 (su alto) + 28 de
+   hueco: en esos 28px vive la etiqueta de tiempo del botón cuando corre
+   o está en pausa (5px de separación + 18px de etiqueta + ~5px de
+   aire), así la etiqueta nunca toca la llamita y a cero el hueco entre
+   ambos se ve limpio. Misma derecha que la llamita (14px). */
+.sw-fab { position: fixed; right: 14px; bottom: calc(env(safe-area-inset-bottom, 0px) + 122px + 70px + 28px); z-index: 44; width: 58px; height: 58px; border-radius: 50%; border: 1.5px solid rgba(13,148,136,.55); background: rgba(255,255,255,.97); box-shadow: 0 8px 22px rgba(15,23,42,.20); display: flex; align-items: center; justify-content: center; cursor: pointer; font-family: inherit; color: #0f766e; padding: 0; }
 .sw-fab-ico { width: 27px; height: 27px; display: block; }
 .sw-fab.live { border-color: #0d9488; color: #0d9488; animation: sw-fab-pulse 1.6s ease-out infinite; }
 .sw-fab.paused { border-color: rgba(217,119,6,.7); color: #b45309; }
