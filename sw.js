@@ -20,13 +20,13 @@
  * `activate` y el cliente termina en la versión nueva sin que nadie
  * borre la caché a mano (recarga única controlada desde app.js).
  */
-const SW_VERSION = '20261026-manana-llama';
+const SW_VERSION = '20261027-llamita-quemado';
 const CACHE_NAME = 'ronbofit-shell-' + SW_VERSION;
 const SHELL_URLS = [
   './',
   './index.html',
-  './styles.css?v=20261026-manana-llama',
-  './app.js?v=20261026-manana-llama',
+  './styles.css?v=20261027-llamita-quemado',
+  './app.js?v=20261027-llamita-quemado',
   './manifest.json',
   './icons/icon-192.png',
   './icons/icon-512.png',

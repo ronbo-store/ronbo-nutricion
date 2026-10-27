@@ -21,7 +21,7 @@
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-title" content="RONBO FIT">
 <meta name="apple-mobile-web-app-status-bar-style" content="default">
-<link rel="stylesheet" href="styles.css?v=20261026-manana-llama">
+<link rel="stylesheet" href="styles.css?v=20261027-llamita-quemado">
 <script type="importmap">
 {
   "imports": {
@@ -439,8 +439,10 @@
   <!-- Registro de actividad — capa FLOTANTE (rediseño 2026-10-24):
        todo vive junto al dock, dentro de #tab-track, sin navegar
        fuera de la pantalla principal y sin que la página crezca.
-       · #act-flame: la LLAMITA del TOTAL DIARIO (icono flotante
-         aparte, parpadeante); al tocarla se abre #act-day.
+       · #act-flame: la LLAMITA del QUEMADO del día (desde el
+         PUENTE 2026-10-27: el quemado registrado, no la base;
+         icono flotante aparte, parpadeante); al tocarla se abre
+         #act-day.
        · #act-float: los botones flotantes de los HOBBIES elegidos
          por el usuario (+ ⚙ de configuración); lo abre el botón
          ACTIVIDAD del dock.
@@ -454,7 +456,7 @@
          informativos con aviso de solape, plan «aún sin estimar»).
        Una sola superficie abierta a la vez; cierre con ✕, toque
        fuera o Escape, como la tarjeta de Pendientes. -->
-  <button type="button" class="act-flame" id="act-flame" style="display:none" aria-label="Daily total" data-i18n-aria="act.dayTotal"><span class="act-flame-ico" aria-hidden="true">🔥</span><span class="act-flame-num" id="act-flame-num">—</span></button>
+  <button type="button" class="act-flame" id="act-flame" style="display:none" aria-label="Burned today" data-i18n-aria="act.flameBurned"><span class="act-flame-ico" aria-hidden="true">🔥</span><span class="act-flame-num" id="act-flame-num">—</span><span class="act-flame-lab" id="act-flame-lab"></span></button>
   <div class="act-float" id="act-float" style="display:none" role="dialog" aria-label="Activity" data-i18n-aria="main.activity">
     <div class="pend-head">
       <h2 data-i18n="act.hobbiesTitle">My hobbies</h2>
@@ -1086,6 +1088,6 @@
 <div id="toast" class="toast"></div>
 <div id="print-card" aria-hidden="true"></div>
 
-<script type="module" src="app.js?v=20261026-manana-llama"></script>
+<script type="module" src="app.js?v=20261027-llamita-quemado"></script>
 </body>
 </html>

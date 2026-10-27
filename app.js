@@ -2401,6 +2401,15 @@ en: {
   'train.weekDone': 'Sessions completed this week: {n}',
   'train.planFreq': 'Your plan: {n} days per week',
   'train.markDone': 'Mark as done today', 'train.doneToday': 'Done today ✓', 'train.undo': 'Undo',
+  /* PUENTE ENTRENAMIENTO→LLAMITA (2026-10-27): cronómetro y cierre. */
+  'train.chronoStart': '▶ Start workout',
+  'train.chronoRunning': '⏱ Session in progress: {min} min',
+  'train.durLabel': 'Session duration (minutes)',
+  'train.durAutoNote': 'Filled from your session timer — correct it if it does not match.',
+  'train.durCapped': 'The timer passed 4 h, so the suggestion is capped at 240 min — correct it to your real time.',
+  'train.intLabel': 'Session intensity',
+  'train.warmLabel': 'Warm-up minutes (not counted)',
+  'train.noDurNoEstimate': 'No duration: the session is saved as done, without estimating its burn.',
   'train.d.set': 'Set', 'train.d.repsPh': 'reps done', 'train.d.loadPh': 'load',
   'train.d.statusDone': 'Done', 'train.d.statusPartial': 'Partial', 'train.d.statusSkipped': 'Skipped', 'train.d.statusNone': 'Not logged',
   'train.d.skipDay': 'Skip this day',
@@ -3071,6 +3080,16 @@ en: {
   'act.type.artes_marciales': 'Martial arts',
   'act.type.transporte_activo': 'Active transport (walk / bike)',
   'act.type.otro': 'Other',
+  'act.type.entrenamiento_plan': 'Workout session (plan)',
+  /* PUENTE ENTRENAMIENTO→LLAMITA (2026-10-27): el quemado del día. */
+  'act.flameBurned': 'burned today',
+  'act.burnedTitle': 'Your burn today',
+  'act.burnedTotal': 'Estimated burn',
+  'act.burnedTrainLine': 'Workout session: {min} min · {int} · ≈ {kcal} kcal',
+  'act.burnedActsLine': 'Other extra activities: ≈ {kcal} kcal',
+  'act.burnedEstNote': 'The session burn is an estimate (Compendium of Physical Activities MET values): it guides you, it is not a measurement — your real burn varies with rest between sets and the muscles involved.',
+  'act.burnedOverlapNote': 'ℹ️ If the activity level behind your usual expenditure already counted your gym days, part of this burn may also be reflected there. This figure is information about your process; it is not added to any goal.',
+  'act.dayTotalRef': 'Estimated total for the day (reference)',
   'act.kcalUnit': 'kcal',
   /* Rediseño flotante (2026-10-24): hobbies, configuración y llamita. */
   'act.hobbiesTitle': 'My hobbies',
@@ -4029,6 +4048,15 @@ es: {
   'train.weekDone': 'Sesiones completadas esta semana: {n}',
   'train.planFreq': 'Tu plan: {n} días por semana',
   'train.markDone': 'Marcar como hecho hoy', 'train.doneToday': 'Hecho hoy ✓', 'train.undo': 'Deshacer',
+  /* PUENTE ENTRENAMIENTO→LLAMITA (2026-10-27): cronómetro y cierre. */
+  'train.chronoStart': '▶ Iniciar entrenamiento',
+  'train.chronoRunning': '⏱ Sesión en curso: {min} min',
+  'train.durLabel': 'Duración de la sesión (minutos)',
+  'train.durAutoNote': 'Rellenado con el cronómetro de tu sesión — corrígelo si no coincide.',
+  'train.durCapped': 'El cronómetro pasó de 4 h, así que la sugerencia se limita a 240 min — corrígela a tu tiempo real.',
+  'train.intLabel': 'Intensidad de la sesión',
+  'train.warmLabel': 'Minutos de calentamiento (no cuentan)',
+  'train.noDurNoEstimate': 'Sin duración: la sesión se guarda como hecha, sin estimar su quemado.',
   'train.d.set': 'Serie', 'train.d.repsPh': 'reps hechas', 'train.d.loadPh': 'carga',
   'train.d.statusDone': 'Hecho', 'train.d.statusPartial': 'Parcial', 'train.d.statusSkipped': 'Saltado', 'train.d.statusNone': 'Sin registrar',
   'train.d.skipDay': 'Saltar este día',
@@ -4700,6 +4728,16 @@ es: {
   'act.type.artes_marciales': 'Artes marciales',
   'act.type.transporte_activo': 'Transporte activo (caminar / bici)',
   'act.type.otro': 'Otro',
+  'act.type.entrenamiento_plan': 'Sesión de entrenamiento (plan)',
+  /* PUENTE ENTRENAMIENTO→LLAMITA (2026-10-27): el quemado del día. */
+  'act.flameBurned': 'quemado hoy',
+  'act.burnedTitle': 'Tu quemado de hoy',
+  'act.burnedTotal': 'Quemado estimado',
+  'act.burnedTrainLine': 'Sesión de entrenamiento: {min} min · {int} · ≈ {kcal} kcal',
+  'act.burnedActsLine': 'Otras actividades extra: ≈ {kcal} kcal',
+  'act.burnedEstNote': 'El quemado de la sesión es una estimación (valores MET del Compendio de Actividades Físicas): te guía, no es una medición — tu quemado real varía con los descansos entre series y los músculos involucrados.',
+  'act.burnedOverlapNote': 'ℹ️ Si el nivel de actividad detrás de tu gasto habitual ya contaba tus días de gimnasio, parte de este quemado puede estar reflejada también allí. Esta cifra es información sobre tu proceso; no se suma a ninguna meta.',
+  'act.dayTotalRef': 'Total estimado del día (referencia)',
   'act.kcalUnit': 'kcal',
   /* Rediseño flotante (2026-10-24): hobbies, configuración y llamita. */
   'act.hobbiesTitle': 'Mis hobbies',
@@ -10770,6 +10808,97 @@ function trainExercisesHTML(day) {
    los días del plan y su configuración de pendientes. */
 let TRAIN_CHECKS = {};         // "di:ei" -> { rpe: n|null, sets: [...] } — solo memoria de la sesión
 let TRAIN_CHECKS_CTX = '';     // planId|fecha a la que pertenecen las marcas
+let TRAIN_CLOSE_DI = null;     // día con el panel de cierre abierto (solo memoria)
+
+/* --- PUENTE ENTRENAMIENTO→LLAMITA: CRONÓMETRO DE SESIÓN (Anexo 2
+   del diseño, mecanismo de Ronald): INICIAR sella el comienzo de la
+   sesión; cada marca de ejercicio actualiza la última marca;
+   TERMINAR (el botón de cierre de siempre) abre el panel de cierre
+   con la duración sugerida. Los sellos viven en localStorage por
+   usuario|plan|fecha porque las sesiones de página son largas y la
+   memoria no basta. Redes de seguridad del propio mecanismo: si no
+   se pulsó INICIAR, la primera marca arranca el reloj; si se olvida
+   TERMINAR, la duración sugerida se corta en la última marca (el
+   reloj nunca corre «para siempre» dentro de la sugerencia). */
+function trainChronoKey(planId) {
+  const uid = auth.currentUser ? auth.currentUser.uid : '';
+  return 'ronbofit-chrono-' + uid + '|' + planId + '|' + todayISO();
+}
+function trainChronoRead(planId) {
+  try { const v = JSON.parse(localStorage.getItem(trainChronoKey(planId)) || 'null');
+    return (v && typeof v.start === 'number' && typeof v.last === 'number') ? v : null;
+  } catch { return null; }
+}
+function trainChronoWrite(planId, v) {
+  try { if (v) localStorage.setItem(trainChronoKey(planId), JSON.stringify(v));
+    else localStorage.removeItem(trainChronoKey(planId)); } catch {}
+}
+function trainChronoStart(planId) {
+  const now = Date.now();
+  const c = trainChronoRead(planId);
+  if (c) { c.last = now; trainChronoWrite(planId, c); }
+  else trainChronoWrite(planId, { start: now, last: now });
+}
+function trainChronoTouch(planId) {
+  const now = Date.now();
+  const c = trainChronoRead(planId);
+  if (c) { c.last = now; trainChronoWrite(planId, c); }
+  else trainChronoWrite(planId, { start: now, last: now });
+}
+/* Minutos sugeridos al cerrar: última marca − inicio (D1 híbrida +
+   Anexo 2). Más de 240 se recorta a 240 y se avisa (capped). */
+function trainChronoSuggestion(planId) {
+  const c = trainChronoRead(planId);
+  if (!c) return null;
+  const raw = Math.max(1, Math.round((c.last - c.start) / 60000));
+  return { min: Math.min(raw, 240), capped: raw > 240 };
+}
+function trainChronoHTML(planId, di) {
+  const c = trainChronoRead(planId);
+  if (!c) return `<div class="train-chrono"><button type="button" class="btn-ghost btn-sm" data-train-start="${di}">${t('train.chronoStart')}</button></div>`;
+  const el = Math.max(0, Math.round((Date.now() - c.start) / 60000));
+  return `<div class="train-chrono is-on">${t('train.chronoRunning', { min: el })}</div>`;
+}
+/* Panel de cierre (D1/D2/D4): duración corregible (pre-rellenada
+   con la sugerencia del cronómetro), intensidad declarada
+   (moderada por defecto; el RPE NO entra en el cálculo) y minutos
+   de calentamiento que se RESTAN antes de estimar. */
+function trainCloseFormHTML(planId, di) {
+  const sug = trainChronoSuggestion(planId);
+  return `<div class="train-close-form">
+    <label class="act-lab">${t('train.durLabel')}
+      <input type="number" data-tclose-dur min="1" max="600" step="1" inputmode="numeric" value="${sug ? sug.min : ''}"></label>
+    ${sug ? `<p class="act-note">${t('train.durAutoNote')}${sug.capped ? ' ' + t('train.durCapped') : ''}</p>` : ''}
+    <label class="act-lab">${t('train.intLabel')}
+      <select data-tclose-int>${ACT_INTENSITIES.map(x => `<option value="${x}"${x === 'moderada' ? ' selected' : ''}>${t('act.int.' + x)}</option>`).join('')}</select></label>
+    <label class="act-lab">${t('train.warmLabel')}
+      <input type="number" data-tclose-warm min="0" max="300" step="1" inputmode="numeric" value="0"></label>
+    <p class="act-note">${t('train.noDurNoEstimate')}</p>
+    <div style="margin-top:8px"><button type="button" class="btn-primary btn-sm" data-train-close-confirm="${di}">${t('train.markDone')}</button> <button type="button" class="btn-ghost btn-sm" data-train-close-cancel="${di}">${t('form.cancel')}</button></div>
+  </div>`;
+}
+/* Cola de la tarjeta en modo edición: cronómetro + (botones de
+   siempre | panel de cierre si está abierto para este día). */
+function trainEditTailHTML(planId, di) {
+  const chrono = trainChronoHTML(planId, di);
+  if (TRAIN_CLOSE_DI === di) return chrono + trainCloseFormHTML(planId, di);
+  return chrono + `<div style="margin-top:8px"><button class="btn-primary btn-sm" data-train-done="${di}">${t('train.markDone')}</button> <button class="btn-ghost btn-sm" data-train-skip="${di}">${t('train.d.skipDay')}</button></div>`;
+}
+/* El volcado de la sesión en el día de actividad: UNA sola entrada
+   'entrenamiento_plan', reemplazada al re-cerrar y retirada al
+   saltar o deshacer (idempotencia del módulo de actividad). Solo
+   se llama cuando hay algo que volcar o algo que retirar, y el
+   propio actSaveDay exige pesaje vigente (sin peso no hay kcal
+   que conservar: la entrada vieja, si la hubiera, nació con peso
+   y su recomputación la conserva coherente). */
+async function trainDumpSession(date, entry) {
+  const has = (((ACT_LOGS[date] || {}).activities) || []).some(a => a.type === 'entrenamiento_plan');
+  if (!entry && !has) return;
+  await actSaveDay(date, dr => {
+    dr.activities = (dr.activities || []).filter(a => a.type !== 'entrenamiento_plan');
+    if (entry) dr.activities.push(entry);
+  });
+}
 
 /* --- MÓDULO D (P4-3 Etapa 4, desarrollo): ENTRENAMIENTO
    INTERACTIVO sobre ESTE MISMO módulo (sin duplicarlo) — diseño
@@ -11343,7 +11472,7 @@ function trainFloatOpen(plan, logs, di, ei, mode, iso) {
          solo el cierre del día). Después la hoja se recoge y la
          tarjeta se re-pinta con el estado nuevo al instante. */
       const key = di + ':' + ei;
-      if (d.done) TRAIN_CHECKS[key] = { rpe: d.rpe, sets: d.sets.map(s => ({ ...s })) };
+      if (d.done) { TRAIN_CHECKS[key] = { rpe: d.rpe, sets: d.sets.map(s => ({ ...s })) }; trainChronoTouch(plan.id); }
       else delete TRAIN_CHECKS[key];
       trainFloatClose();
       loadMyTraining();
@@ -11402,7 +11531,7 @@ async function loadMyTraining() {
     return `<div class="train-day"><h4>${esc(label)}</h4>${exHtml}${trainSessionHTML(day)}
       <div style="margin-top:8px">${done
         ? `${trainStatusBadge(status)}${status === 'skipped' ? ` <span class="muted">${t('train.d.skippedNote')}</span>` : ''} <button class="btn-ghost btn-sm" data-train-undo="${di}">${t('train.undo')}</button>`
-        : `<button class="btn-primary btn-sm" data-train-done="${di}">${t('train.markDone')}</button> <button class="btn-ghost btn-sm" data-train-skip="${di}">${t('train.d.skipDay')}</button>`}</div>
+        : trainEditTailHTML(plan.id, di)}</div>
     </div>`;
   };
   /* TARJETA COMPACTA: interior de la tarjeta VESTIDA del día
@@ -11423,7 +11552,7 @@ async function loadMyTraining() {
     else exHtml = trainDayCompactHistHTML(day, log, di);
     let tail = tailHTML;
     if (tail == null) {
-      if (mode === 'edit') tail = `<div style="margin-top:8px"><button class="btn-primary btn-sm" data-train-done="${di}">${t('train.markDone')}</button> <button class="btn-ghost btn-sm" data-train-skip="${di}">${t('train.d.skipDay')}</button></div>`;
+      if (mode === 'edit') tail = trainEditTailHTML(plan.id, di);
       else if (mode === 'done') { const status = trainLogStatus(log); tail = `<div style="margin-top:8px">${trainStatusBadge(status)}${status === 'skipped' ? ` <span class="muted">${t('train.d.skippedNote')}</span>` : ''} <button class="btn-ghost btn-sm" data-train-undo="${di}">${t('train.undo')}</button></div>`; }
       else tail = '';
     }
@@ -11601,6 +11730,7 @@ async function loadMyTraining() {
          se re-pinta para mostrarlas (todo input confirma al acto
          en TRAIN_CHECKS, así que re-pintar no pierde nada). */
       TRAIN_CHECKS[key] = { rpe: sel && sel.value ? Number(sel.value) : null, sets: trainDefaultSets(ex) };
+      trainChronoTouch(plan.id);   /* PUENTE: la marca alimenta el cronómetro (y lo arranca si no se pulsó INICIAR) */
       loadMyTraining();
     } else {
       delete TRAIN_CHECKS[key];
@@ -11622,8 +11752,29 @@ async function loadMyTraining() {
     const c = TRAIN_CHECKS[di + ':' + ei];
     if (c && Array.isArray(c.sets) && c.sets[Number(si)]) c.sets[Number(si)].loadVal = inp.value;
   });
-  box.querySelectorAll('[data-train-done]').forEach(b => b.onclick = async () => {
+  box.querySelectorAll('[data-train-done]').forEach(b => b.onclick = () => {
     const di = Number(b.dataset.trainDone);
+    const day = (plan.days || [])[di] || {};
+    const any = (day.exercises || []).some((ex, ei) => TRAIN_CHECKS[di + ':' + ei]);
+    /* MÓDULO D (D-3): sin ninguna marca no hay cierre que abrir. */
+    if (!any) { toast(t('train.d.needCheck'), true); return; }
+    /* PUENTE ENTRENAMIENTO→LLAMITA (2026-10-27): TERMINAR abre el
+       panel de cierre — duración corregible, intensidad declarada
+       y calentamiento a restar (D1/D2/D4). La escritura ocurre al
+       confirmar (data-train-close-confirm), no aquí. */
+    TRAIN_CLOSE_DI = di;
+    loadMyTraining();
+  });
+  box.querySelectorAll('[data-train-start]').forEach(b => b.onclick = () => {
+    trainChronoStart(plan.id);
+    loadMyTraining();
+  });
+  box.querySelectorAll('[data-train-close-cancel]').forEach(b => b.onclick = () => {
+    TRAIN_CLOSE_DI = null;
+    loadMyTraining();
+  });
+  box.querySelectorAll('[data-train-close-confirm]').forEach(b => b.onclick = async () => {
+    const di = Number(b.dataset.trainCloseConfirm);
     const day = (plan.days || [])[di] || {};
     /* Detalle por ejercicio (§4.6 + D-2): SOLO lo marcado en la
        sesión, en el orden del plan, con su detalle por serie. */
@@ -11656,11 +11807,43 @@ async function loadMyTraining() {
     if (!doneList.length) { toast(t('train.d.needCheck'), true); return; }
     const total = (day.exercises || []).length;
     const status = doneList.length >= total ? 'done' : 'partial';
+    const form = b.closest('.train-close-form');
+    const durRaw = form ? String(form.querySelector('[data-tclose-dur]').value || '').trim() : '';
+    const warmRaw = form ? String(form.querySelector('[data-tclose-warm]').value || '').trim() : '';
+    const inten = form ? String(form.querySelector('[data-tclose-int]').value || 'moderada') : 'moderada';
+    let durMin = null;
+    if (durRaw !== '') { durMin = Math.floor(Number(durRaw)); if (!(durMin >= 1 && durMin <= 600)) { toast(t('act.errDuration'), true); return; } }
+    let warmMin = 0;
+    if (warmRaw !== '') { warmMin = Math.floor(Number(warmRaw)); if (!(warmMin >= 0 && warmMin <= 300)) warmMin = 0; }
+    /* D4: el calentamiento se resta ANTES de estimar. D6: la
+       sesión parcial vale por la duración completa declarada, sin
+       descuento proporcional. El RPE NO entra en el cálculo (regla
+       del módulo de actividad): viaja como señal en la entrada. */
+    const effMin = durMin == null ? null : Math.max(0, durMin - warmMin);
+    const w = actLastWeight();
+    const sessionKcal = (effMin != null && effMin > 0 && w) ? actKcalOf('entrenamiento_plan', inten, effMin, w.weight) : null;
+    const sug = trainChronoSuggestion(plan.id);
+    const rpes = doneList.map(e => e.rpe).filter(r => r != null);
+    const rpeAvg = rpes.length ? Math.round(rpes.reduce((a, c) => a + c, 0) / rpes.length) : null;
     const data = { clientUid: uid, planId: plan.id, date: today, dayIndex: di, dayLabel: day.label || '',
-      done: status === 'done', schemaVersion: 2, status, exercisesDone: doneList, updatedAt: serverTimestamp() };
+      done: status === 'done', schemaVersion: 2, status, exercisesDone: doneList, updatedAt: serverTimestamp(),
+      durationMin: durMin,
+      warmupMin: durMin == null ? null : warmMin,
+      durationSource: durMin == null ? null : (sug && durMin === sug.min ? 'auto' : 'manual'),
+      intensity: durMin == null ? null : inten,
+      sessionKcal,
+      weightKgUsed: sessionKcal == null ? null : w.weight,
+      metUsed: sessionKcal == null ? null : ACT_MET.entrenamiento_plan[inten] };
     try {
       await setDoc(doc(db, 'training_logs', `${uid}_${plan.id}_${today}_${di}`), data);
     } catch (e) { failToast(e); return; }
+    /* El volcado: la sesión entra en el día de actividad (o sale,
+       si el cierre quedó sin estimación) en la misma operación
+       lógica — una sola entrada, idempotente al re-cerrar. */
+    await trainDumpSession(today, sessionKcal == null ? null
+      : { type: 'entrenamiento_plan', typeCustom: '', durationMin: effMin, intensity: inten, rpe: rpeAvg, notes: '' });
+    trainChronoWrite(plan.id, null);
+    TRAIN_CLOSE_DI = null;
     Object.keys(TRAIN_CHECKS).forEach(k => { if (k.split(':')[0] === String(di)) delete TRAIN_CHECKS[k]; });
     loadMyTraining();
   });
@@ -11676,13 +11859,28 @@ async function loadMyTraining() {
     try {
       await setDoc(doc(db, 'training_logs', `${uid}_${plan.id}_${today}_${di}`), data);
     } catch (e) { failToast(e); return; }
+    /* PUENTE: saltar apaga el cronómetro y el panel de cierre.
+       El gasto volcado solo se retira si el registro QUE SE
+       REEMPLAZA era el de esa misma sesión con estimación (en
+       rotación, saltar apunta a la sesión siguiente, no a la ya
+       cerrada: su quemado no se toca). */
+    trainChronoWrite(plan.id, null);
+    if (TRAIN_CLOSE_DI === di) TRAIN_CLOSE_DI = null;
+    const prevSkip = logs.find(l => l.date === today && l.dayIndex === di);
+    if (prevSkip && prevSkip.sessionKcal != null) await trainDumpSession(today, null);
     Object.keys(TRAIN_CHECKS).forEach(k => { if (k.split(':')[0] === String(di)) delete TRAIN_CHECKS[k]; });
     loadMyTraining();
   });
   box.querySelectorAll('[data-train-undo]').forEach(b => b.onclick = async () => {
+    const diU = Number(b.dataset.trainUndo);
+    const prevUndo = logs.find(l => l.date === today && l.dayIndex === diU);
     try {
-      await deleteDoc(doc(db, 'training_logs', `${uid}_${plan.id}_${today}_${Number(b.dataset.trainUndo)}`));
+      await deleteDoc(doc(db, 'training_logs', `${uid}_${plan.id}_${today}_${diU}`));
     } catch (e) { failToast(e); return; }
+    /* PUENTE: deshacer el cierre retira también su gasto volcado
+       (solo si ese registro lo tenía: nada que retirar si el
+       cierre fue sin estimación). */
+    if (prevUndo && prevUndo.sessionKcal != null) await trainDumpSession(today, null);
     loadMyTraining();
   });
   trainAlignRender();
@@ -14383,6 +14581,15 @@ const mealTimeStr = ms => MEAL_TIME_FMT.format(new Date(ms));
        (incluye la parte de reposo de esos minutos).
    training_logs no registra ni kcal ni duración: el gasto de la
    sesión del plan NO se estima en v1 (Q4) y jamás se inventa.
+   PUENTE (2026-10-27, decisión expresa de Ronald; diseño
+   DISEÑO-LLAMITA-QUEMADO-2026-10-27, D1–D6 + Anexo 2): la sesión
+   CERRADA sí se estima desde entonces — el cierre guarda duración
+   e intensidad declarada (sin RPE en el cálculo, como manda este
+   encabezado), calcula con actKcalOf y vuelca el gasto como
+   actividad sumable de tipo 'entrenamiento_plan' en este mismo
+   módulo. La sesión NO cerrada sigue sin estimarse: jamás se
+   inventa. Y la llamita pasa a mostrar el QUEMADO del día (los
+   extras), no la base: la base queda como referencia en la hoja.
    El RPE es señal para el entrenador: NO interviene en el cálculo.
    El peso sale SOLO del último nutrition_weight (WEIGHTS): sin
    pesaje no hay cálculo NI guardado (no existe peso sombra).
@@ -14409,9 +14616,20 @@ const ACT_MET = {
   baile:              { suave: 4.5,  moderada: 6.0,  intensa: 7.5  },
   artes_marciales:    { suave: 7.0,  moderada: 9.0,  intensa: 11.0 },
   transporte_activo:  { suave: 3.0,  moderada: 3.5,  intensa: 4.5  },
-  otro:               { suave: 4.0,  moderada: 6.0,  intensa: 8.0  }
+  otro:               { suave: 4.0,  moderada: 6.0,  intensa: 8.0  },
+  /* PUENTE ENTRENAMIENTO→LLAMITA (2026-10-27, diseño
+     DISEÑO-LLAMITA-QUEMADO-2026-10-27, decisiones D1–D6 + Anexo 2):
+     la sesión del plan cerrada vuelca aquí su gasto estimado con la
+     fórmula de siempre. Anclas del Compendio de Actividades
+     Físicas: suave 3,5 (código 02052, Ainsworth 2011), moderada
+     5,0 (actualización 2024, Herrmann), intensa 6,0 (código 02050,
+     Ainsworth 2011). Este tipo NUNCA se ofrece en los selectores
+     manuales: su entrada nace solo del cierre de la sesión. */
+  entrenamiento_plan: { suave: 3.5,  moderada: 5.0,  intensa: 6.0  }
 };
-const ACT_TYPES = Object.keys(ACT_MET);
+/* Tipos ofrecidos a mano: la sesión del plan queda FUERA de los
+   pickers y de favoritos (ver la nota de ACT_MET). */
+const ACT_TYPES = Object.keys(ACT_MET).filter(tp => tp !== 'entrenamiento_plan');
 const ACT_INTENSITIES = ['suave', 'moderada', 'intensa'];
 const actRound1 = x => Math.round(x * 10) / 10;
 const actIsSummable = type => type !== 'transporte_activo';
@@ -14562,14 +14780,15 @@ function actDayView(date) {
    ================================================================ */
 const ACT_ICONS = { correr: '🏃', ejercicios_en_casa: '🏠', ciclismo: '🚴',
   natacion: '🏊', futbol: '⚽', baloncesto: '🏀', senderismo: '🥾',
-  baile: '💃', artes_marciales: '🥋', transporte_activo: '🚶', otro: '➕' };
+  baile: '💃', artes_marciales: '🥋', transporte_activo: '🚶', otro: '➕',
+  entrenamiento_plan: '🏋️' };
 const ACT_FAV_DEFAULTS = ['correr', 'natacion', 'ciclismo', 'ejercicios_en_casa'];
 let ACT_FAVS = null;          // null = aún sin cargar (se usan los de por defecto)
 let ACT_FAVS_PERSISTED = true;
 
 function actFavs() {
   const src = Array.isArray(ACT_FAVS) ? ACT_FAVS : ACT_FAV_DEFAULTS;
-  return src.filter(tp => ACT_MET[tp]);
+  return src.filter(tp => ACT_MET[tp] && tp !== 'entrenamiento_plan');
 }
 async function loadActFavs() {
   if (!auth.currentUser) return;
@@ -14614,14 +14833,21 @@ function actOpenConfig() { renderActConfig(); actShowOnly('config'); }
    evaluación válida no hay total que mostrar: la llamita enseña
    «—» y el desglose declara la causa — no se disfraza el extra
    de total. Solo vive en #tab-track (pantalla principal). */
+/* PUENTE ENTRENAMIENTO→LLAMITA (2026-10-27, corrección expresa de
+   Ronald: «no necesito ver mi base, necesito ver mi proceso»): la
+   llamita pinta el QUEMADO del día — los extras sumables
+   registrados (sesión del plan incluida) — SIN depender de la
+   base: el «—» solo aparece mientras el módulo carga. La base
+   queda como referencia dentro de la hoja, nunca como titular. */
 function renderActFlame(date) {
   const f = $('act-flame'); if (!f) return;
   if (!ACT_LOADED) { f.style.display = 'none'; return; }
   const v = actDayView(date);
-  const base = actBaseInfo();
   f.style.display = '';
   const num = $('act-flame-num');
-  if (num) num.textContent = base.ok ? fmt(Math.round(base.tdee + v.extras)) : '—';
+  if (num) num.textContent = fmt(Math.round(v.extras));
+  const lab = $('act-flame-lab');
+  if (lab) lab.textContent = t('act.flameBurned');
 }
 
 /* Botones flotantes de hobbies: los favoritos del usuario. */
@@ -14749,11 +14975,15 @@ function renderActDay(date) {
   const dayHtml = base.ok ? `
       <div class="act-line"><span>${t('act.dayBase')}</span><b>${fmt(Math.round(base.tdee))} ${t('act.kcalUnit')}</b></div>
       <div class="act-line"><span>${t('act.dayExtra')}</span><b>+ ${fmt(Math.round(v.extras))} ${t('act.kcalUnit')}</b></div>
-      <div class="act-line act-total"><span>${t('act.dayTotal')}</span><b id="act-day-total">${fmt(Math.round(base.tdee + v.extras))} ${t('act.kcalUnit')}</b></div>
+      <div class="act-line act-total"><span>${t('act.dayTotalRef')}</span><b id="act-day-total">${fmt(Math.round(base.tdee + v.extras))} ${t('act.kcalUnit')}</b></div>
       ${base.stale ? `<p class="act-note">${t('act.staleTag')}</p>` : ''}`
     : `<p class="act-note">${t('act.dayNoBase')}</p>
       <div class="act-line"><span>${t('act.dayExtra')}</span><b>${fmt(Math.round(v.extras))} ${t('act.kcalUnit')}</b></div>`;
-  const planHtml = v.hasPlan ? `<p class="act-note act-plan-line">${v.planDone ? t('act.planDone') : t('act.planPending')}</p>` : '';
+  /* PUENTE: si la sesión ya volcó su gasto, su desglose vive en la
+     sección del quemado y la línea «gasto aún sin estimar» no se
+     pinta (ya no sería verdad). */
+  const sessEntry = acts.find(a => a.type === 'entrenamiento_plan') || null;
+  const planHtml = v.hasPlan && !sessEntry ? `<p class="act-note act-plan-line">${v.planDone ? t('act.planDone') : t('act.planPending')}</p>` : '';
   const habitualHtml = base.ok ? `
       <div class="act-line"><span>${t('act.habitualLine', { n: fmt(Math.round(base.tdee)) })}</span>${base.stale ? `<span class="act-tag">${t('act.staleTag')}</span>` : ''}</div>
       <p class="act-note">${t('act.habitualNote')}</p>`
@@ -14786,19 +15016,25 @@ function renderActDay(date) {
       <h4 class="act-sec-title">${t('act.habitualTitle')}</h4>
       ${habitualHtml}
     </div>`;
-  /* CORRECCIÓN 2026-10-26 (diagnóstico mañana-y-llama): sin base
-     válida (!base.ok) la causa honesta (act.dayNoBase, dentro de la
-     sección «Estimación de este día») quedaba enterrada tras el
-     formulario de pasos, la lista y las sumas — fuera de la primera
-     pantalla de la hoja, así que la llamita parecía no arrojar
-     ninguna información. Sin base, esa sección y la habitual se
-     pintan PRIMERAS (tras la nota de estimación y el peso de
-     referencia), antes de pasos/lista/sumas. Con base válida el
-     orden y el contenido quedan byte a byte como siempre. Sin
-     textos nuevos, sin escrituras, sin tocar el modelo. */
-  const secsHtml = base.ok
-    ? [stepsSec, listSec, sumsSec, daySec, habSec].join('\n    ')
-    : [daySec, habSec, stepsSec, listSec, sumsSec].join('\n    ');
+  /* PUENTE ENTRENAMIENTO→LLAMITA (2026-10-27, D5 + corrección
+     expresa de Ronald): la hoja abre con el QUEMADO del día — la
+     misma cifra de la llamita — con su desglose (sesión del plan y
+     demás actividades extra), su nota de estimación y el aviso de
+     posible solape con el PAL. La estimación del día queda como
+     REFERENCIA etiquetada en segundo lugar (y sin base válida, su
+     causa honesta act.dayNoBase sigue ahí, en esa misma segunda
+     posición: la ganancia de AUTH-2026-10-26-032 no se pierde). */
+  const sessKcal = sessEntry ? num(sessEntry.kcalEstimated) : 0;
+  const otherKcal = actRound1(v.extras - sessKcal);
+  const burnedSec = `<div class="act-sec">
+      <h4 class="act-sec-title">${t('act.burnedTitle')}</h4>
+      <div class="act-line act-total"><span>${t('act.burnedTotal')}</span><b id="act-burned-total">≈ ${fmt(Math.round(v.extras))} ${t('act.kcalUnit')}</b></div>
+      ${sessEntry ? `<div class="act-line"><span>${t('act.burnedTrainLine', { min: Math.floor(num(sessEntry.durationMin)), int: t('act.int.' + sessEntry.intensity), kcal: fmt(sessKcal) })}</span></div>
+      <p class="act-note">${t('act.burnedEstNote')}</p>
+      <p class="act-note">${t('act.burnedOverlapNote')}</p>` : ''}
+      ${otherKcal > 0 ? `<div class="act-line"><span>${t('act.burnedActsLine', { kcal: fmt(otherKcal) })}</span></div>` : ''}
+    </div>`;
+  const secsHtml = [burnedSec, daySec, habSec, stepsSec, listSec, sumsSec].join('\n    ');
   box.innerHTML = `
     <p class="act-note act-est-note">${t('act.estimateNote')}</p>
     ${!ACT_LOADED ? `<div class="wempty compact">${t('act.loading')}</div>` : `
@@ -18122,7 +18358,7 @@ document.addEventListener('keydown', e => { if (e.key === 'Escape') shareClose()
  *  - El SW (sw.js) solo cachea la cáscara del mismo origen en modo
  *    RED PRIMERO: Auth/Firestore/Worker jamás pasan por la caché.
  * ================================================================ */
-const PWA_SW_VERSION = '20261026-manana-llama';
+const PWA_SW_VERSION = '20261027-llamita-quemado';
 let pwaDeferredPrompt = null;
 function pwaIsStandalone() {
   try {

@@ -1181,6 +1181,12 @@ div > .btn-ghost:only-child, div > .btn-main:only-child {
   border-radius: 16px; box-shadow: 0 8px 22px rgba(15, 23, 42, .20); font: inherit; cursor: pointer; }
 .act-flame-ico { font-size: 24px; line-height: 1.1; display: inline-block; transform-origin: 50% 90%; animation: act-flick 1.6s ease-in-out infinite; }
 .act-flame-num { font-size: 12.5px; font-weight: 800; color: #b45309; white-space: nowrap; }
+.act-flame-lab { font-size: 9px; font-weight: 700; color: #92400e; white-space: nowrap; }
+/* PUENTE ENTRENAMIENTO→LLAMITA (2026-10-27): cronómetro y cierre. */
+.train-chrono { margin-top: 10px; font-size: 13px; color: #475569; }
+.train-chrono.is-on { font-weight: 700; color: #0d9488; }
+.train-close-form { margin-top: 10px; padding: 10px; border: 1px solid #e2e8f0; border-radius: 12px; background: #f8fafc; }
+.train-close-form .act-lab { display: block; margin-bottom: 8px; }
 @keyframes act-flick { 0%, 100% { transform: scale(1) rotate(-2deg); opacity: 1; } 50% { transform: scale(1.16) rotate(2.5deg); opacity: .85; } }
 @media (prefers-reduced-motion: reduce) { .act-flame-ico { animation: none; } }
 @media (max-width: 480px) {
