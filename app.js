@@ -2742,6 +2742,13 @@ en: {
   'clients.chkHidden': 'not visible to your role',
   'client.fallbackName': 'Client',
   'client.ringsTitle': '🍽️ Daily food rings',
+  'talert.title': '⚠️ Student alerts',
+  'talert.none': 'No active alerts.',
+  'talert.protein': 'Protein not covered: {pct}% of the goal',
+  'talert.goalsLow': 'Goals not covered: {detail}',
+  'talert.excess': 'Over the goal: {detail}',
+  'talert.training': '{n} scheduled sessions in a row unlogged',
+  'talert.unmarked': 'Unmarked: {detail}',
   'client.weightLog': 'Weight log · {name}',
   'client.healthDecl': 'Health declaration:',
   'client.foodReview': '📷 Food photos to review ({n})',
@@ -4405,6 +4412,13 @@ es: {
   'clients.chkHidden': 'no visible para tu rol',
   'client.fallbackName': 'Cliente',
   'client.ringsTitle': '🍽️ Anillos de comida del día',
+  'talert.title': '⚠️ Alertas de alumnos',
+  'talert.none': 'Sin alertas activas.',
+  'talert.protein': 'Proteína no cubierta: {pct}% de la meta',
+  'talert.goalsLow': 'Metas no cubiertas: {detail}',
+  'talert.excess': 'Por encima de la meta: {detail}',
+  'talert.training': '{n} sesiones programadas seguidas sin registrar',
+  'talert.unmarked': 'Sin marcar: {detail}',
   'client.weightLog': 'Registro de peso · {name}',
   'client.healthDecl': 'Declaración de salud:',
   'client.foodReview': '📷 Fotos de comida por revisar ({n})',
@@ -6113,6 +6127,11 @@ async function loadClients() {
   mealReqsAll.forEach(r => { if (r.alumnoUid && (!latestReqByUid[r.alumnoUid] || reqMs(r) >= reqMs(latestReqByUid[r.alumnoUid]))) latestReqByUid[r.alumnoUid] = r; });
   const chkByUid = {};
   await Promise.all(clients.map(async u => { try { chkByUid[u.id] = await clientProfileChecklist(u, latestReqByUid[u.id] || null); } catch {} }));
+  /* Alertas vigentes por cliente (pedido de Ronald, 2026-10-27):
+     las mismas derivadas al render que alimentan sus Pendientes y
+     la ficha — la tarjeta las muestra bajo la completitud. */
+  const alertsByUid = {};
+  await Promise.all(clients.map(async u => { try { alertsByUid[u.id] = await trainerAlertsFor(u.id, u); } catch {} }));
   const daysAgo = iso => iso ? Math.floor((Date.now() - new Date(iso + 'T12:00:00').getTime()) / 864e5) : null;
   $('clients-list').innerHTML = clients.length ? clients.map(u => {
     const d = daysAgo(lastByUid[u.id]);
@@ -6125,7 +6144,7 @@ async function loadClients() {
     const foodBadge = pendingFood[u.id] ? ` <span class="warn-badge" title="${t('clients.foodTitle')}">📷 ${pendingFood[u.id]}</span>` : '';
     const lastW = lastWByUid[u.id] ? ` · <b>${lastWByUid[u.id]} kg</b>` : '';
     return `<div class="user-row">
-      <div>${u.photoURL ? `<img class="avatar sm" src="${esc(u.photoURL)}" alt="">` : ''}<b>${esc(u.name || '—')}</b> ${badge}${healthBadge}${foodBadge}${appInstallMarkHtml(u)}<br><span class="muted">${esc(u.email || '')}${u.phone ? ' · ' + esc(u.phone) : ''}${lastW}${appInstallNoteHtml(u)}</span>${clientChecklistHTML(chkByUid[u.id])}</div>
+      <div>${u.photoURL ? `<img class="avatar sm" src="${esc(u.photoURL)}" alt="">` : ''}<b>${esc(u.name || '—')}</b> ${badge}${healthBadge}${foodBadge}${appInstallMarkHtml(u)}<br><span class="muted">${esc(u.email || '')}${u.phone ? ' · ' + esc(u.phone) : ''}${lastW}${appInstallNoteHtml(u)}</span>${clientChecklistHTML(chkByUid[u.id])}${talertClientHTML(alertsByUid[u.id], false)}</div>
       <div class="user-actions">${u.approved === true ? `<button class="btn-primary btn-sm" data-client="${u.id}">${t('clients.view')}</button>` : ''}</div>
     </div>`;
   }).join('') : `<div class="wempty">${t('clients.empty')}</div>`;
@@ -6134,6 +6153,7 @@ async function loadClients() {
   /* Roles+Escalabilidad: caché de nombres para las bandejas nuevas y
      los paneles del entrenador (membresía y solicitudes de comidas). */
   users.forEach(u => { ADMIN_NAME_CACHE[u.id] = u.name || u.email || ''; });
+  try { trainerAlertsRender(); } catch {}
   renderMembershipBox();
   renderMealTrainerBox();
   renderModalityTrainerBox();
@@ -7001,6 +7021,7 @@ async function openClient(uid) {
     <h3 class="history-title">${t('client.weightLog', { name: esc(uname) })}</h3>
     ${healthAlert}
     <div id="client-rings"></div>
+    <div id="client-alerts" data-uid="${uid}"></div>
     ${foodItems.length ? `<h3 class="history-title">${t('client.foodReview', { n: foodItems.length })}</h3>${foodBlock}` : ''}
     <div style="margin-bottom:10px"><button class="btn-primary btn-sm" id="btn-client-add">${t('client.addWeight')}</button>
     <button class="btn-ghost btn-sm" id="btn-client-close" style="margin-left:8px">${t('client.close')}</button></div>
@@ -7039,6 +7060,7 @@ async function openClient(uid) {
   $('btn-client-add').onclick = () => openWeightModal({ uid, docId: null, rec: null });
   compAccLoadTrainer(uid);
   loadClientRings(uid, udata);
+  loadClientAlerts(uid, udata);
   try { goalsTrainerCardLoad(uid, udata, { conditions: (clientHealth && clientHealth.decl && clientHealth.decl.conditions) || [], weights: data }); } catch {}
   btLoadTrainerCard(uid, udata);
   box.querySelectorAll('[data-c-edit]').forEach(b => b.onclick = () => {
@@ -7190,6 +7212,263 @@ function paintClientRings(date) {
   const sel = $('client-rings-date');
   if (sel) sel.onchange = () => paintClientRings(sel.value);
 }
+
+/* ============ ALERTAS DE ALUMNOS PARA EL ENTRENADOR ============
+   Pedido de Ronald (2026-10-27 11:02 CDT) con el diseño cerrado
+   por sus cinco decisiones (DISEÑO-ALERTAS-ALUMNOS-2026-10-27.md):
+   alertas SENCILLAS cuando un alumno no cumple — proteína no
+   cubierta, metas no cubiertas, exceso de alimentación, dejó de
+   entrenar y comidas sin marcar. Como la completitud
+   (AUTH-043), son DERIVADAS AL RENDER: sin colección nueva y sin
+   escrituras; se calculan desde las MISMAS funciones y fuentes
+   que ve el alumno (totales de nutrition_meals y meta ajustada del
+   día por goalsDayLevelForDate + goalsDayAdjust; ocasiones y
+   marcas del motor de pendientes) sobre los datos DEL ALUMNO.
+   DÓNDE: la lista diaria en los Pendientes del entrenador y del
+   administrador (#trainer-alerts, tocar una línea abre la ficha) y
+   las alertas vigentes dentro de la tarjeta («Mis clientes») y la
+   ficha del cliente. CUÁNDO: A1/A2/A4/A5 y la consolidada de A3 se
+   juzgan sobre el último día de registro CERRADO (el día cierra a
+   las 04:00 del alumno); A3 además AL MOMENTO sobre el día en
+   curso. Solo metadatos de cumplimiento: jamás contenido de salud.
+   Si el alumno no tiene metas, plan o registro iniciado, las
+   alertas que dependen de eso NO nacen: nada de alertas sobre
+   datos inexistentes. */
+const TALERT_TTL_MS = 30000;
+let TALERTS_CACHE = {};   // uid -> { at, alerts } (solo memoria; la derivación manda)
+let TALERTS_SEQ = 0;
+let TALERT_FICHA_SEQ = 0;
+/* Réplica parametrizada de cringDayGoalsFor (AUTH-044): la meta
+   ajustada del día con los datos del alumno dado, guarda a guarda,
+   llamando a las mismas funciones puras del motor. */
+function talertDayGoalsFor(ctx, iso) {
+  const base = ctx.goals || {};
+  const prov = ctx.prov;
+  if (!(base.kcal > 0) || !(base.carb > 0) || !(base.gras > 0)) return { goals: { ...base }, dayLevel: 'base' };
+  if (prov && Array.isArray(prov.heldParams) && prov.heldParams.includes('carb')) return { goals: { ...base }, dayLevel: 'base' };
+  const ov = ctx.overrides ? ctx.overrides[iso] : null;
+  if (ov && ['base', 'exigente', 'descanso'].includes(ov)) {
+    const adjOv = goalsDayAdjust({ goals: base, fatPct: prov && prov.fatPct != null ? prov.fatPct : null, dayLevel: ov });
+    return { goals: adjOv.goals, dayLevel: ov };
+  }
+  const det = goalsDayLevelForDate(iso, ctx.plan, ctx.cfg, (typeof LIB_BY_ID !== 'undefined' ? LIB_BY_ID : {}));
+  const adj = goalsDayAdjust({ goals: base, fatPct: prov && prov.fatPct != null ? prov.fatPct : null, dayLevel: det.dayLevel });
+  return { goals: adj.goals, dayLevel: det.dayLevel };
+}
+/* Clasificación de una marca del estado de pendientes, ESPEJO de
+   la de pendCompute: omitida o descartada («no correspondía»)
+   excusa la ocasión; pospuesta vigente también (sigue viva, no
+   vencida); pospuesta caducada o sin marca = activa. */
+function talertClassify(marks, now) {
+  return id => {
+    const mk = (marks || {})[id];
+    if (!mk) return 'active';
+    if (mk.st === 'omitted') return 'omitted';
+    if (mk.st === 'discarded') return 'discarded';
+    if (mk.st === 'snoozed') return (mk.until && new Date(mk.until) > now) ? 'snoozed' : 'active';
+    return 'active';
+  };
+}
+function talertOverParts(dg, tot) {
+  const parts = [];
+  for (const k of ['kcal', 'carb', 'gras', 'azuc']) {
+    const g = Number(dg[k]);
+    if (!(g > 0)) continue;
+    const v = Number(tot[k]) || 0;
+    if (v > g) parts.push({ metric: k, over: Math.round((v - g) * 10) / 10 });
+  }
+  return parts;
+}
+/* Cómputo puro de las alertas de UN alumno desde sus datos ya
+   leídos (ctx: metas/procedencia/overrides/plan/pendconfig;
+   data: totales y comidas por fecha, marcas, fechas con
+   training_log y actividad por fecha). */
+function trainerAlertsCompute(ctx, data) {
+  const alerts = [];
+  const now = new Date();
+  const cutoff = (ctx.cfg && ctx.cfg.cutoff) || '04:00';
+  const regDay = pendRegDay(now, cutoff);
+  const closedDay = addDaysISO(regDay, -1);
+  const zeros = { kcal: 0, prot: 0, carb: 0, azuc: 0, gras: 0 };
+  const base = ctx.goals || {};
+  const hasGoals = METRICS.some(m => { const v = Number(base[m.key]); return isFinite(v) && v > 0; });
+  if (hasGoals) {
+    /* Sin NINGÚN registro de comida hasta el día cerrado, las
+       alertas de comida no nacen: no se puede incumplir un
+       registro que aún no ha empezado. */
+    const started = Object.keys(data.totals).some(d => d <= closedDay);
+    if (started) {
+      const dgC = talertDayGoalsFor(ctx, closedDay).goals;
+      const totC = data.totals[closedDay] || zeros;
+      /* A1 — proteína del día cerrado bajo el 90% de la ajustada. */
+      if (dgC.prot > 0 && totC.prot < 0.9 * dgC.prot)
+        alerts.push({ kind: 'A1', date: closedDay, pct: Math.round(totC.prot / dgC.prot * 100) });
+      /* A2 — calorías o carbohidratos bajo el 90% (sin duplicar A1). */
+      const lowParts = [];
+      if (dgC.kcal > 0 && totC.kcal < 0.9 * dgC.kcal) lowParts.push({ metric: 'kcal', pct: Math.round(totC.kcal / dgC.kcal * 100) });
+      if (dgC.carb > 0 && totC.carb < 0.9 * dgC.carb) lowParts.push({ metric: 'carb', pct: Math.round(totC.carb / dgC.carb * 100) });
+      if (lowParts.length) alerts.push({ kind: 'A2', date: closedDay, parts: lowParts });
+      /* A3 consolidada — kcal o cualquier macro por encima. */
+      const overC = talertOverParts(dgC, totC);
+      if (overC.length) alerts.push({ kind: 'A3', date: closedDay, parts: overC });
+    }
+    /* A3 al momento — el exceso del día en curso, cuando el
+       entrenador mira (el día aún no ha cerrado). */
+    const dgT = talertDayGoalsFor(ctx, regDay).goals;
+    const overT = talertOverParts(dgT, data.totals[regDay] || zeros);
+    if (overT.length) alerts.push({ kind: 'A3L', date: regDay, parts: overT });
+  }
+  const cfg = ctx.cfg;
+  const classify = talertClassify(data.marks, now);
+  /* A4 — dos sesiones PROGRAMADAS consecutivas cerradas sin
+     training_log, con la semántica del pendiente de entrenamiento
+     del alumno: ocasión = día de semana configurado con plan
+     activo, dentro de su ventana de activación; la excusa (marca
+     omitida/descartada/pospuesta vigente) rompe la racha. */
+  if (cfg && cfg.activated && cfg.trainOn && ctx.plan) {
+    const winStart = addDaysISO(regDay, -30);
+    const start = (cfg.activatedAt && cfg.activatedAt > winStart) ? cfg.activatedAt : winStart;
+    let streak = 0, lastMiss = null;
+    for (let d = start; d <= closedDay; d = addDaysISO(d, 1)) {
+      const dow = new Date(d + 'T12:00:00').getDay();
+      if (!(cfg.trainDays || []).includes(dow)) continue;
+      if (data.logDates.has(d)) { streak = 0; lastMiss = null; continue; }
+      if (classify(`training|${d}`) === 'active') { streak++; lastMiss = d; }
+      else { streak = 0; lastMiss = null; }
+    }
+    if (streak >= 2) alerts.push({ kind: 'A4', date: lastMiss, n: streak });
+  }
+  /* A5 — el día cerrado quedó con comidas principales SIN MARCAR.
+     Base EXACTA (dirección del coordinador, 2026-10-27): la
+     disposición del alumno («Hoy no corresponde» = marca
+     'omitted', posponer, descartar) deja traza distinguible en
+     nutrition_progress/{uid}_pendstate — tres estados legibles
+     por el entrenador asignado y mutuamente excluyentes:
+     registrado (doc en nutrition_meals) / dispuesto (marca en el
+     estado) / no tocado (ninguno de los dos). La alerta nace SOLO
+     del tercer estado y SOLO si la ocasión existía en su sistema
+     (pendientes activados a más tardar ese día, comida encendida).
+     La ACTIVIDAD queda FUERA a propósito: el motor de pendientes
+     del alumno NO tiene ocasión de actividad — nunca se le pide
+     registrarla ni puede disponerla — así que la ausencia de un
+     activity_logs es indistinguible de un día de descanso:
+     fuente insuficiente, no se deriva ninguna señal de ella. */
+  if (cfg && cfg.activated && !(cfg.activatedAt && cfg.activatedAt > closedDay)) {
+    const d = closedDay;
+    const missedMeals = [];
+    (cfg.meals || []).filter(m => m && m.on && PEND_MAIN_MEALS.includes(m.name)).forEach(m => {
+      const logged = (data.mealsByDate[d] || []).includes(m.name);
+      if (!logged && classify(`meal|${m.name}|${d}`) === 'active') missedMeals.push(m.name);
+    });
+    if (missedMeals.length)
+      alerts.push({ kind: 'A5', date: d, meals: missedMeals });
+  }
+  return alerts;
+}
+/* Lectura de los datos de UN alumno (las mismas fuentes que la
+   ficha y el motor del alumno) y su cómputo. SOLO LECTURA. */
+async function trainerAlertsFetch(uid, udata) {
+  const ctx = { goals: (udata && udata.goals) || {}, prov: (udata && udata.goalsProvenance) || null,
+    overrides: (udata && udata.goalsDayOverrides) || null, plan: null, cfg: null };
+  const totals = {}, mealsByDate = {};
+  try {
+    const ms = await getDocs(query(collection(db, 'nutrition_meals'), where('ownerUid', '==', uid)));
+    ms.forEach(d => { const v = d.data();
+      if (!/^\d{4}-\d{2}-\d{2}$/.test(v.date || '')) return;
+      const tt = totals[v.date] = totals[v.date] || { kcal: 0, prot: 0, carb: 0, azuc: 0, gras: 0 };
+      tt.kcal += num(v.kcal); tt.prot += num(v.prot); tt.carb += num(v.carb); tt.azuc += num(v.sugar); tt.gras += num(v.fat);
+      (mealsByDate[v.date] = mealsByDate[v.date] || []).push(v.meal);
+    });
+  } catch {}
+  try { const plans = await fetchPlans(uid); ctx.plan = plans.find(p => p.active === true) || null; } catch {}
+  try {
+    const cs = await getDoc(doc(db, 'nutrition_progress', uid + '_pendconfig'));
+    ctx.cfg = cs.exists() ? Object.assign(pendDefaults(), cs.data()) : { activated: false };
+  } catch { ctx.cfg = null; }
+  let marks = {};
+  try { const ss = await getDoc(doc(db, 'nutrition_progress', uid + '_pendstate')); if (ss.exists()) marks = (ss.data() && ss.data().marks) || {}; } catch {}
+  const logDates = new Set();
+  try { const logs = await fetchLogs(uid); logs.forEach(l => { if (l.date) logDates.add(l.date); }); } catch {}
+  return trainerAlertsCompute(ctx, { totals, mealsByDate, marks, logDates });
+}
+async function trainerAlertsFor(uid, udata) {
+  const c = TALERTS_CACHE[uid];
+  if (c && (Date.now() - c.at) < TALERT_TTL_MS) return c.alerts;
+  let alerts = [];
+  try { alerts = await trainerAlertsFetch(uid, udata); } catch {}
+  TALERTS_CACHE[uid] = { at: Date.now(), alerts };
+  return alerts;
+}
+function talertText(a) {
+  if (a.kind === 'A1') return t('talert.protein', { pct: a.pct });
+  if (a.kind === 'A2') return t('talert.goalsLow', { detail: a.parts.map(p => `${t('metric.' + p.metric)} ${p.pct}%`).join(' · ') });
+  if (a.kind === 'A3' || a.kind === 'A3L') return t('talert.excess', { detail: a.parts.map(p => `${t('metric.' + p.metric)} +${fmt(p.over)}${p.metric === 'kcal' ? '' : ' g'}`).join(' · ') });
+  if (a.kind === 'A4') return t('talert.training', { n: a.n });
+  if (a.kind === 'A5') return t('talert.unmarked', { detail: (a.meals || []).map(n => t('pend.mealName.' + n)).join(', ') });
+  return '';
+}
+function talertDateTag(iso) {
+  const vReg = pendRegDay(new Date(), (typeof PEND_CFG !== 'undefined' && PEND_CFG && PEND_CFG.cutoff) || '04:00');
+  return pendDateTag(iso, vReg);
+}
+/* Líneas de alerta de un cliente: en su tarjeta (sin título) y en
+   su ficha (con título y estado vacío honesto). */
+function talertClientHTML(alerts, withTitle) {
+  if (!alerts || !alerts.length)
+    return withTitle ? `<div class="client-alerts"><h3 class="history-title">${esc(t('talert.title'))}</h3><p class="pend-none">${esc(t('talert.none'))}</p></div>` : '';
+  const lines = alerts.map(a => `<div class="talert-row">⚠️ ${esc(talertText(a))} <span class="muted">· ${esc(talertDateTag(a.date))}</span></div>`).join('');
+  return `<div class="client-alerts" style="margin-top:4px">${withTitle ? `<h3 class="history-title">${esc(t('talert.title'))}</h3>` : ''}${lines}</div>`;
+}
+async function loadClientAlerts(uid, udata) {
+  const box = $('client-alerts'); if (!box) return;
+  const seq = ++TALERT_FICHA_SEQ;
+  const alerts = await trainerAlertsFor(uid, udata);
+  if (seq !== TALERT_FICHA_SEQ) return;
+  const cur = $('client-alerts');
+  if (!cur || cur.dataset.uid !== uid) return;
+  cur.innerHTML = talertClientHTML(alerts, true);
+}
+/* Lista diaria en los Pendientes del entrenador/administrador:
+   el MISMO alcance que «Mis clientes» (el entrenador, solo sus
+   asignados; el administrador, todos los que su vista alcanza).
+   Tocar una línea abre la ficha del cliente. */
+async function trainerAlertsRender() {
+  const box = $('trainer-alerts'); if (!box) return;
+  if (ROLE !== 'entrenador' && ROLE !== 'administrador') { box.innerHTML = ''; return; }
+  if (!auth.currentUser) return;
+  const seq = ++TALERTS_SEQ;
+  let users = [];
+  try {
+    const snap = ROLE === 'entrenador'
+      ? await getDocs(query(collection(db, 'users'), where('trainerUid', '==', auth.currentUser.uid)))
+      : await getDocs(collection(db, 'users'));
+    snap.forEach(d => users.push({ id: d.id, ...d.data() }));
+  } catch { users = []; }
+  const clients = users.filter(u => !u.isOwner && (ROLE === 'administrador' || u.trainerUid === auth.currentUser.uid));
+  const per = await Promise.all(clients.map(async u => ({ u, alerts: await trainerAlertsFor(u.id, u) })));
+  if (seq !== TALERTS_SEQ) return;
+  const cur = $('trainer-alerts'); if (!cur) return;
+  let h = `<div class="talerts" style="margin-top:10px"><p class="pend-cfg-h">${esc(t('talert.title'))}</p>`;
+  const withAlerts = per.filter(x => x.alerts.length);
+  if (!withAlerts.length) h += `<p class="pend-none">${esc(t('talert.none'))}</p>`;
+  for (const { u, alerts } of withAlerts) for (const a of alerts)
+    h += `<button type="button" class="talert-line" data-talert-uid="${u.id}" style="display:block;width:100%;text-align:left;background:none;border:none;border-bottom:1px solid #e5e7eb;padding:7px 2px;cursor:pointer;font:inherit;color:inherit"><b>${esc(u.name || '—')}</b> — ${esc(talertText(a))} <span class="muted">· ${esc(talertDateTag(a.date))}</span></button>`;
+  cur.innerHTML = h + '</div>';
+}
+{ const box = document.getElementById('trainer-alerts');
+  if (box) box.addEventListener('click', async e => {
+    const b = e.target.closest('[data-talert-uid]');
+    if (!b) return;
+    const uid = b.dataset.talertUid;
+    pendSetFloat(false);
+    switchTab('clients');
+    /* switchTab ya disparó un loadClients cuyo final oculta la
+       ficha para dejar la lista limpia: se espera a que la lista
+       se asiente (segunda pasada, con la caché caliente) antes de
+       abrir la ficha, o esa limpieza la taparía al terminar. */
+    try { await loadClients(); } catch {}
+    openClient(uid);
+  }); }
 
 /* ================= MOTOR DE METAS CON FUNDAMENTO v3 (2026-10-26) =================
    Diseño: DISEÑO-METAS-CON-FUNDAMENTO-2026-10-26.md (§C–§K).
@@ -17459,6 +17738,7 @@ function pendSetFloat(open) {
      de pendientes en pantalla (activación o configuración): un
      re-render lo reiniciaría y perdería lo tecleado sin guardar. */
   if (open && !document.getElementById('pc-cutoff')) renderPendings();
+  if (open) { try { trainerAlertsRender(); } catch {} }
   pendSyncDock();
 }
 /* Recálculo sin recargar (al volver a primer plano y cada 60 s):
@@ -18694,7 +18974,7 @@ document.addEventListener('keydown', e => { if (e.key === 'Escape') shareClose()
  *  - El SW (sw.js) solo cachea la cáscara del mismo origen en modo
  *    RED PRIMERO: Auth/Firestore/Worker jamás pasan por la caché.
  * ================================================================ */
-const PWA_SW_VERSION = '20261027-anillos-cliente';
+const PWA_SW_VERSION = '20261027-alertas-alumnos';
 let pwaDeferredPrompt = null;
 function pwaIsStandalone() {
   try {
