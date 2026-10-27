@@ -173,6 +173,42 @@ async function escPoolTrainers(modality, usersList) {
   }
   return list;
 }
+/* Pool del selector del alumno desde los PERFILES PÚBLICOS
+   (AUTH-2026-10-27-041): lista `trainer_profiles` — las reglas lo
+   permiten al usuario aprobado — en vez de la lista de `users`,
+   denegada al alumno (el pool nacía vacío para TODOS; punto 4 de
+   la cola en vivo, verificado 2026-10-26). El cupo sale de
+   `memberships` por lectura puntual vía escTrainerStanding, como
+   en el resto de la app. Un perfil SIN documento de membresía se
+   trata como cupo abierto: el único perfil que puede existir sin
+   membresía es el del administrador-propietario — los entrenadores
+   reciben la suya («sin_membresia») del andamiaje al asignarles el
+   rol — y las reglas ya tratan al propietario como cupo abierto
+   (escQuotaOpen). Nombre resoluble: displayName del perfil o el
+   nombre de la cuenta por getDoc PUNTUAL (nunca la lista); sin
+   nombre resoluble el perfil no se ofrece. */
+async function escPoolTrainersFromProfiles(modality) {
+  const list = [];
+  let snap = null;
+  try { snap = await getDocs(collection(db, 'trainer_profiles')); } catch {}
+  if (!snap) return list;
+  const profs = []; snap.forEach(d => profs.push({ id: d.id, ...d.data() }));
+  for (const p of profs) {
+    if (p.available === false) continue;
+    const mods = Array.isArray(p.modalities) ? p.modalities : ESC_MODALITIES;
+    if (modality && !mods.includes(modality)) continue;
+    let name = String(p.displayName || '').trim();
+    if (!name) {
+      try { const us = await getDoc(doc(db, 'users', p.id)); if (us.exists()) name = String(us.data().name || '').trim(); } catch {}
+    }
+    if (!name) continue;
+    let membExists = true;
+    try { const ms = await getDoc(doc(db, 'memberships', p.id)); membExists = ms.exists(); } catch { membExists = true; }
+    const st = await escTrainerStanding(p.id, !membExists);
+    list.push({ uid: p.id, name, headline: String(p.headline || '').slice(0, 120), photoUrl: p.photoUrl || '', free: st.free, total: st.total, used: st.used, full: !(st.free > 0) });
+  }
+  return list;
+}
 async function loadRolesX() {
   try { const s = await getDoc(doc(db, 'app_settings', 'feature_flags')); if (s.exists()) FEATURE_FLAGS = s.data(); } catch {}
   try { const s = await getDoc(doc(db, 'app_settings', 'membership_catalog')); if (s.exists()) MEMBERSHIP_CATALOG = s.data(); } catch {}
@@ -250,15 +286,20 @@ async function renderMyTrainerBox() {
   if (MY_MOD_REQ === undefined) await loadMyModalityRequest();
   const rel = MY_REL || {};
   const trainerName = rel.trainerUid ? ((ADMIN_NAME_CACHE[rel.trainerUid]) || null) : null;
-  let pool = [];
-  let usersAll = [];
-  try {
-    const snap = await getDocs(collection(db, 'users'));
-    const users = []; snap.forEach(d => users.push({ id: d.id, ...d.data() }));
-    usersAll = users;
-    users.forEach(u => { ADMIN_NAME_CACHE[u.id] = u.name || u.email || ''; });
-    pool = await escPoolTrainers(rel.modality || null, users.filter(u => u.isOwner || u.role === 'entrenador'));
-  } catch {}
+  /* POOL DESDE PERFILES PÚBLICOS (AUTH-2026-10-27-041): el
+     selector ya NO lista `users` — las reglas deniegan ese list al
+     alumno y el pool nacía vacío (punto 4 de la cola en vivo). La
+     fuente son los perfiles públicos y, para el entrenador
+     ASIGNADO, el respaldo de nombre/foto de su cuenta se lee
+     PUNTUAL por getDoc: para el alumno esa lectura puede venir
+     denegada y la cadena segura cae al dossier, como ya documenta
+     la vista del dossier. */
+  let pool = await escPoolTrainersFromProfiles(rel.modality || null);
+  let tu = {};
+  if (rel.trainerUid) {
+    try { const us = await getDoc(doc(db, 'users', rel.trainerUid)); if (us.exists()) tu = us.data(); } catch {}
+    if (tu.name) ADMIN_NAME_CACHE[rel.trainerUid] = tu.name;
+  }
   const tNameRaw = rel.trainerUid ? (ADMIN_NAME_CACHE[rel.trainerUid] || '') : '';
   const tName = rel.trainerUid ? ((tNameRaw && tNameRaw !== rel.trainerUid && !tNameRaw.includes('@')) ? tNameRaw : '—') : null;
   /* Zona descriptiva del entrenador asignado (rediseño 2026-10-26,
@@ -279,8 +320,8 @@ async function renderMyTrainerBox() {
   let tProf = null, tNameSafe = '', tHeadline = '', tPhoto = '', tInitials = '👤', tMods = [];
   if (rel.trainerUid) {
     try { const ps = await getDoc(doc(db, 'trainer_profiles', rel.trainerUid)); if (ps.exists()) tProf = ps.data(); } catch {}
-    const tu = usersAll.find(u => u.id === rel.trainerUid) || {};
     tNameSafe = (tProf && tProf.displayName) || tu.name || '';
+    if (tNameSafe) ADMIN_NAME_CACHE[rel.trainerUid] = tNameSafe;
     tHeadline = tProf ? String(tProf.headline || '').slice(0, 120) : '';
     tPhoto = (tProf && tProf.photoUrl) || tu.photoURL || '';
     tMods = (tProf && Array.isArray(tProf.modalities)) ? tProf.modalities.filter(m => ESC_MODALITIES.includes(m)) : [];
@@ -406,7 +447,9 @@ async function renderMyTrainerBox() {
     const sel = $('my-trainer-sel');
     const newT = sel ? (sel.value || '') : '';
     const oldT = (MY_REL && MY_REL.trainerUid) || null;
-    if ((newT || null) === oldT) return;
+    /* AUTH-2026-10-27-041: elegir el estado ACTUAL ya no traga el
+       clic en silencio — se avisa («Ya estás en ese estado»). */
+    if ((newT || null) === oldT) { toast(t('esc.alreadyState')); return; }
     await escChangeTrainer(newT || null);
   };
   /* Foto del entrenador: si la URL no carga, la imagen se retira y
@@ -1907,6 +1950,7 @@ en: {
   'esc.currentTrainer': 'Your trainer',
   'esc.changeTrainer': 'Change trainer',
   'esc.changeBtn': 'Change',
+  'esc.alreadyState': 'You\'re already in that state',
   'esc.changedOk': 'Trainer changed.',
   'esc.waitOption': 'No trainer for now — wait for assignment',
   'esc.modChangeTitle': '🔀 Change modality',
@@ -3563,6 +3607,7 @@ es: {
   'esc.currentTrainer': 'Tu entrenador',
   'esc.changeTrainer': 'Cambiar de entrenador',
   'esc.changeBtn': 'Cambiar',
+  'esc.alreadyState': 'Ya estás en ese estado',
   'esc.changedOk': 'Entrenador cambiado.',
   'esc.waitOption': 'Sin entrenador por ahora: esperar asignación',
   'esc.modChangeTitle': '🔀 Cambiar de modalidad',
@@ -5988,19 +6033,36 @@ function renderWaitingTray(users) {
   box.querySelectorAll('[data-assign]').forEach(b => b.onclick = async () => {
     const sel = $('assign-sel-' + b.dataset.assign);
     if (!sel || !sel.value) return;
-    await setDoc(doc(db, 'users', b.dataset.assign), { trainerUid: sel.value, assignmentStatus: 'assigned' }, { merge: true });
-    /* Roles+Escalabilidad: la asignación abre la relación y suma al
-       contador de cupo del entrenador destino (la bandeja solo lista
-       alumnos YA aprobados). */
-    const u = (users || []).find(x => x.id === b.dataset.assign) || {};
+    const alumno = b.dataset.assign, destino = sel.value;
+    const u = (users || []).find(x => x.id === alumno) || {};
+    /* FUENTE ÚNICA DE VERDAD (AUTH-2026-10-27-041): espejo,
+       relación y contador de cupo se escriben EN EL MISMO LOTE.
+       Antes eran escrituras sueltas y la de la relación iba en un
+       try/catch mudo: si las reglas la denegaban (p. ej. la
+       modalidad del lote difería de la vigente en la relación, o
+       la relación nacía con modalidad nula), el espejo quedaba
+       'assigned' y la relación 'en_espera' — la divergencia
+       verificada en producción (punto 4 de la cola en vivo). La
+       modalidad del lote es la de la RELACIÓN vigente si existe
+       (la rama del propietario exige no cambiarla); si no existe,
+       la del alumno o 'virtual'. La bandeja solo lista alumnos
+       YA aprobados. */
+    let relMod = null;
+    try { const rs = await getDoc(doc(db, 'trainer_relations', alumno)); if (rs.exists()) relMod = rs.data().modality || null; } catch {}
+    const modality = relMod || u.modality || 'virtual';
+    let profSnap = null;
+    try { profSnap = await getDoc(doc(db, 'trainer_profiles', destino)); } catch {}
     try {
-      await setDoc(doc(db, 'trainer_relations', b.dataset.assign), {
-        alumnoUid: b.dataset.assign, trainerUid: sel.value, modality: u.modality || null,
+      const batch = writeBatch(db);
+      batch.set(doc(db, 'users', alumno), { trainerUid: destino, assignmentStatus: 'assigned' }, { merge: true });
+      batch.set(doc(db, 'trainer_relations', alumno), {
+        alumnoUid: alumno, trainerUid: destino, modality,
         status: 'activa', startedAt: serverTimestamp(), updatedAt: serverTimestamp()
       }, { merge: true });
-    } catch {}
-    await escAdjustQuota(sel.value, +1);
-    await auditLog('relation', 'relation.assigned', b.dataset.assign, sel.value);
+      if (profSnap && profSnap.exists()) batch.set(doc(db, 'trainer_profiles', destino), { activeStudents: (Number(profSnap.data().activeStudents) || 0) + 1, updatedAt: serverTimestamp() }, { merge: true });
+      await batch.commit();
+    } catch { toast(t('appr.error'), true); return; }
+    await auditLog('relation', 'relation.assigned', alumno, destino);
     toast(t('roles.assigned'));
     await loadClients();
   });
@@ -18420,7 +18482,7 @@ document.addEventListener('keydown', e => { if (e.key === 'Escape') shareClose()
  *  - El SW (sw.js) solo cachea la cáscara del mismo origen en modo
  *    RED PRIMERO: Auth/Firestore/Worker jamás pasan por la caché.
  * ================================================================ */
-const PWA_SW_VERSION = '20261027-boton-sobre-llamita';
+const PWA_SW_VERSION = '20261027-pool-entrenadores';
 let pwaDeferredPrompt = null;
 function pwaIsStandalone() {
   try {
