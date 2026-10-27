@@ -799,6 +799,15 @@ table.whist { min-width: 640px; }
 
 /* ===== F-B3 · referencia de proteína B-1 (Etapa 1, desarrollo) ===== */
 .fb3-card { position: relative; border: 1px solid #e5e7eb; border-radius: 12px; padding: 12px 14px; margin: 12px 0; background: #f8fafc; }
+/* NAVEGACIÓN (2026-10-26): cabecera plegable de la tarjeta de metas y
+   «← Volver» de «Mi perfil». La cabecera es un botón a todo ancho:
+   título a la izquierda y flecha a la derecha; bajo ella, recogida,
+   va la línea resumen (.gm-sum). */
+.gm-head { display: flex; align-items: center; gap: 10px; width: 100%; background: none; border: 0; padding: 0; margin: 0; cursor: pointer; text-align: left; color: inherit; font: inherit; }
+.gm-head-title { margin: 0; flex: 1; }
+.gm-chev { flex: none; font-size: 15px; color: #0d9488; }
+.gm-sum { margin: 6px 0 0; }
+#btn-profile-back { margin: 0 0 10px; }
 .fb3-head { display: flex; align-items: center; gap: 8px; }
 .fb3-head .history-title { flex: 1; }
 .fb3-helpbtn { flex: none; width: 26px; height: 26px; border-radius: 50%; border: 1px solid #00ACA1; background: #fff; color: #00857c; font-weight: 700; cursor: pointer; font-family: inherit; }
@@ -1175,7 +1184,7 @@ div > .btn-ghost:only-child, div > .btn-main:only-child {
 @keyframes act-flick { 0%, 100% { transform: scale(1) rotate(-2deg); opacity: 1; } 50% { transform: scale(1.16) rotate(2.5deg); opacity: .85; } }
 @media (prefers-reduced-motion: reduce) { .act-flame-ico { animation: none; } }
 @media (max-width: 480px) {
-  .actions-dock { padding: 8px 10px; }
+  .actions-dock { padding: 8px 8px; }
   /* Corrección reprueba (2026-10-24): a 390 px las etiquetas ES del
      dock (ENTRENAMIENTO, PENDIENTES…) se tocaban entre sí — la fila
      se encogía y los rótulos, en nowrap, se derramaban unos sobre
@@ -1183,14 +1192,25 @@ div > .btn-ghost:only-child, div > .btn-main:only-child {
      cinco círculos del diseño. Círculos de 52 px, rótulo de 9 px
      con tracking cerrado y hueco de 4 px: la fila cabe entera y
      cada etiqueta respira. */
-  .rounds-row { gap: 4px; }
-  .round-circle { width: 52px; height: 52px; }
-  .round-label { font-size: 9px; letter-spacing: -.2px; }
+  /* Ajuste NAVEGACIÓN (2026-10-26): el dock gana el SEXTO botón
+     (Inicio, primero) y la fila medida se salía de la pastilla
+     (~375 px contra el tope de 366 a 390 px; a 360 los círculos
+     extremos cruzaban el borde de la pantalla). Se aprieta lo
+     mínimo en esta misma franja — círculos de 50, hueco de 3 y
+     rótulo de 8.5 con tracking más cerrado — y la fila vuelve a
+     caber entera dentro de la pastilla sin tocar el diseño. */
+  .rounds-row { gap: 3px; }
+  .round-circle { width: 50px; height: 50px; }
+  .round-label { font-size: 8.5px; letter-spacing: -.3px; }
 }
 @media (max-width: 380px) {
   .round-circle { width: 48px; height: 48px; }
   .round-circle svg { width: 26px; height: 26px; }
-  .round-label { font-size: 9px; }
+  /* NAVEGACIÓN (2026-10-26): a ≤380 la fila de seis aún se salía
+     (~366 contra tope de 336); rótulo de 8 y hueco de 2 la dejan
+     dentro de la pastilla también en pantallas estrechas. */
+  .rounds-row { gap: 2px; }
+  .round-label { font-size: 8px; letter-spacing: -.4px; }
 }
 .act-head { display: flex; align-items: baseline; gap: 10px; flex-wrap: wrap; }
 .act-date { color: #6b7280; font-size: 13px; }

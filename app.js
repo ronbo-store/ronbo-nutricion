@@ -1689,6 +1689,7 @@ en: {
   'health.regNote': 'You can complete your health declaration later, in your profile, with its own specific consent. It is not required to create your account.',
   'card.toggle': 'Show or hide section',
   'main.progress': 'Progress', 'main.food': 'Food', 'main.training': 'Training', 'main.pendings': 'Pendings', 'main.activity': 'Activity',
+  'nav.home': 'Home', 'nav.back': 'Back', 'nav.goalsSummary': '{obj} · {kcal} kcal',
   'health.specHelp': 'In plain words: you allow your trainer to see the health answers you write in this declaration, only so he can adapt your program and take care of you. Nobody else can see them, and you can withdraw this whenever you want.',
   'health.panelTitle': '🏥 My health declaration',
   'health.specText': 'I give my SPECIFIC consent for ronbo.nutri to process my health declaration so my trainer can adapt my program and take precautions. Only my trainer and I can see it. I can withdraw this consent at any time: withdrawal blocks my trainer\'s access to my answers, but does not delete them.',
@@ -3316,6 +3317,7 @@ es: {
   'health.regNote': 'Puedes completar tu declaración de salud más tarde, en tu perfil, con su propio consentimiento específico. No es necesaria para crear tu cuenta.',
   'card.toggle': 'Mostrar u ocultar la sección',
   'main.progress': 'Progreso', 'main.food': 'Comida', 'main.training': 'Entrenamiento', 'main.pendings': 'Pendientes', 'main.activity': 'Actividad',
+  'nav.home': 'Inicio', 'nav.back': 'Volver', 'nav.goalsSummary': '{obj} · {kcal} kcal',
   'health.specHelp': 'En palabras simples: permites que tu entrenador vea las respuestas de salud que escribas en esta declaración, solo para que adapte tu programa y te cuide. Nadie más puede verlas, y puedes retirar este permiso cuando quieras.',
   'health.panelTitle': '🏥 Mi declaración de salud',
   'health.specText': 'Doy mi consentimiento ESPECÍFICO para que ronbo.nutri trate mi declaración de salud, para que mi entrenador adapte mi programa y tome precauciones. Solo mi entrenador y yo podemos verla. Puedo retirar este consentimiento cuando quiera: la retirada bloquea el acceso de mi entrenador a mis respuestas, pero no las elimina.',
@@ -5371,6 +5373,11 @@ onAuthStateChanged(auth, async user => {
      no tiene barra de pestañas y entra por su foto del encabezado. */
   const profTabBtn = document.querySelector('.main-tab[data-tab="profile"]');
   if (profTabBtn) profTabBtn.style.display = (ROLE === 'entrenador' || ROLE === 'administrador') ? '' : 'none';
+  /* «← Volver» de «Mi perfil» (paquete NAVEGACIÓN, 2026-10-26):
+     solo el alumno lo necesita — no tiene barra de pestañas y entra
+     al perfil por su foto; el personal conserva sus píldoras. */
+  const profBackBtn = $('btn-profile-back');
+  if (profBackBtn) profBackBtn.style.display = ROLE === 'usuario' ? '' : 'none';
   switchTab('track');
   await loadAll();
   startUserDocWatch(user.uid);
@@ -7459,6 +7466,29 @@ async function gmFocusTrainerSetPhase(uid) {
   catch (e) { failToast(e); }
 }
 
+/* ---------- NAVEGACIÓN (2026-10-26): tarjeta de metas PLEGABLE ----------
+   La tarjeta del motor de metas nace RECOGIDA: cabecera con el título
+   y una línea resumen (objetivo + kcal del día visualizado, o el
+   estado «sin metas fijadas» cuando no hay metas). Tocar la cabecera
+   la despliega con TODO el contenido de siempre — motor, editor §L,
+   propuestas, alertas §E y guardados intactos: es SOLO presentación.
+   El estado vive en memoria (GM_CARD_OPEN): cada carga nace recogida
+   y el botón Inicio del dock la vuelve a plegar (navGoHome). */
+let GM_CARD_OPEN = false;
+function gmCardSummary() {
+  try {
+    const kcal = (typeof goalOf === 'function') ? goalOf('kcal') : null;
+    if (kcal == null) return t('goals.none');
+    const obj = (typeof UDATA !== 'undefined' && UDATA && UDATA.goalObjective) || '';
+    const objTxt = ['mantener', 'bajar', 'ganar'].includes(obj) ? t('gm.obj.' + obj) : '';
+    return objTxt ? t('nav.goalsSummary', { obj: objTxt, kcal: fmt(kcal) }) : (fmt(kcal) + ' kcal');
+  } catch { return t('goals.none'); }
+}
+function gmHeadHTML() {
+  let h = `<button type="button" class="gm-head" id="gm-toggle" aria-expanded="${GM_CARD_OPEN ? 'true' : 'false'}"><span class="history-title gm-head-title">${esc(t('gm.title'))}</span><span class="gm-chev" aria-hidden="true">${GM_CARD_OPEN ? '▴' : '▾'}</span></button>`;
+  if (!GM_CARD_OPEN) h += `<p class="progress-hint gm-sum">${esc(gmCardSummary())}</p>`;
+  return h;
+}
 /* ---------- Tarjeta del alumno (junto a «Tus metas diarias») ---------- */
 function renderGoalsEngine() {
   const box = $('goals-engine'); if (!box || !auth.currentUser) return;
@@ -7466,7 +7496,8 @@ function renderGoalsEngine() {
   const obj = UDATA.goalObjective || '';
   const fx = gmFocusEffective(UDATA);
   const objBtns = ['mantener', 'bajar', 'ganar'].map(o => `<button type="button" class="btn-ghost btn-sm" data-gm-obj="${o}"${obj === o ? ' style="border-color:#0d9488;font-weight:700"' : ''}>${esc(t('gm.obj.' + o))}</button>`).join(' ');
-  let html = `<div class="fb3-card" id="gm-card"><h3 class="history-title" style="margin-top:0">${esc(t('gm.title'))}</h3>`;
+  let html = `<div class="fb3-card" id="gm-card">` + gmHeadHTML();
+  if (GM_CARD_OPEN) {
   html += `<p class="progress-hint">${esc(t('gm.objective'))}</p><div class="eval-actions" style="justify-content:flex-start;gap:8px;flex-wrap:wrap">${objBtns}</div>`;
   html += gmFocusSectionHTML();
   if (!prov) html += `<p class="progress-hint">${esc(t('gm.needData'))}</p>`;
@@ -7521,13 +7552,18 @@ function renderGoalsEngine() {
     html += `</div>`;
   }
   html += gmEditSectionHTML(prov);
-  html += `<p class="progress-hint">${esc(t('gm.eduNote'))}</p></div>`;
+  html += `<p class="progress-hint">${esc(t('gm.eduNote'))}</p>`;
+  }
+  html += `</div>`;
   box.innerHTML = html;
-  box.querySelectorAll('[data-gm-obj]').forEach(b => b.onclick = () => gmSetObjective(b.dataset.gmObj));
-  try { gmFocusWire(); } catch {}
-  const send = $('gm-pace-send'); if (send) send.onclick = gmSuggestPace;
-  const acc = $('gm-terms-accept'); if (acc) acc.onclick = gmAcceptTerms;
-  try { gmWireEditor(); } catch {}
+  const tg = $('gm-toggle'); if (tg) tg.onclick = () => { GM_CARD_OPEN = !GM_CARD_OPEN; renderGoalsEngine(); };
+  if (GM_CARD_OPEN) {
+    box.querySelectorAll('[data-gm-obj]').forEach(b => b.onclick = () => gmSetObjective(b.dataset.gmObj));
+    try { gmFocusWire(); } catch {}
+    const send = $('gm-pace-send'); if (send) send.onclick = gmSuggestPace;
+    const acc = $('gm-terms-accept'); if (acc) acc.onclick = gmAcceptTerms;
+    try { gmWireEditor(); } catch {}
+  }
 }
 async function gmSetObjective(o) {
   if (!['mantener', 'bajar', 'ganar'].includes(o)) return;
@@ -9915,6 +9951,29 @@ function wireCardToggle(btnId, contentId, chevId, opts = {}) {
 }
 wireCardToggle('btn-toggle-progress', 'progress-content', 'chev-progress', { scroll: true });
 wireCardToggle('btn-toggle-train', 'train-content', 'chev-train', { scroll: true });
+/* Botón INICIO del dock y «Volver» de «Mi perfil» (paquete
+   NAVEGACIÓN, 2026-10-26 — consulta de Ronald: con la tarjeta de
+   metas desplegada no encontraba cómo volver a Home). La vista
+   principal de TODOS los roles es «Mi registro»: es donde aterriza
+   la sesión al entrar (switchTab('track') en el arranque, para
+   alumno, entrenador y administrador por igual) — Inicio lleva
+   ahí en cada rol. El gesto: cierra las hojas flotantes del dock
+   (comida, actividad, pendientes y la flotante del ejercicio),
+   pliega la tarjeta de metas, cambia a «Mi registro» y sube al
+   principio. Los MODALES de datos no se fuerzan: conservan sus
+   caminos propios de cierre (con confirmación al descartar en el
+   editor de planes), como manda la casa. */
+function navGoHome() {
+  try { foodCloseAll(); } catch {}
+  try { actCloseAll(); } catch {}
+  try { pendSetFloat(false); } catch {}
+  try { const fl = $('train-ex-float'); if (fl && fl.style.display !== 'none') trainFloatClose(); } catch {}
+  GM_CARD_OPEN = false;
+  switchTab('track');
+  try { renderGoalsEngine(); } catch {}
+  try { window.scrollTo({ top: 0, behavior: 'smooth' }); } catch {}
+}
+{ const hb = $('btn-nav-home'); if (hb) hb.addEventListener('click', navGoHome); }
 /* «Comida» es una etiqueta sobre #ai-file: el selector de foto se
    abre igual desde cualquier área, pero el flujo del análisis vive
    en «Mi registro» — al tocarla desde otra área se vuelve allí
@@ -14271,6 +14330,7 @@ function setAvatar(url) {
    perfil, por el MISMO camino de siempre (#avatar-file, justo
    debajo): esta entrada ya no abre el selector de archivos. */
 { const ab = $('avatar-btn'); if (ab) ab.addEventListener('click', () => switchTab('profile')); }
+{ const pb = $('btn-profile-back'); if (pb) pb.addEventListener('click', navGoHome); }
 $('avatar-file').addEventListener('change', async e => {
   const f = e.target.files[0];
   e.target.value = '';
@@ -18048,7 +18108,7 @@ document.addEventListener('keydown', e => { if (e.key === 'Escape') shareClose()
  *  - El SW (sw.js) solo cachea la cáscara del mismo origen en modo
  *    RED PRIMERO: Auth/Firestore/Worker jamás pasan por la caché.
  * ================================================================ */
-const PWA_SW_VERSION = '20261026-refresco-biblioteca';
+const PWA_SW_VERSION = '20261026-navegacion';
 let pwaDeferredPrompt = null;
 function pwaIsStandalone() {
   try {
