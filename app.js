@@ -7357,17 +7357,24 @@ function trainerAlertsCompute(ctx, data) {
   const cfg = ctx.cfg;
   const classify = talertClassify(data.marks, now);
   /* A4 — dos sesiones PROGRAMADAS consecutivas cerradas sin
-     training_log, con la semántica del pendiente de entrenamiento
-     del alumno: ocasión = día de semana configurado con plan
-     activo, dentro de su ventana de activación; la excusa (marca
+     training_log. La ocasión «programada» se lee de la MISMA
+     resolución fecha→día del alumno (trainDayMap): si su plan
+     manda por plan-calendario, programada = fecha con rutina
+     asignada en el MAPA del plan (planCalDayIndex), nazca o no
+     de su configuración de pendientes — el plan se basta solo
+     (decisión de Ronald, 2026-10-27); en los demás modos sigue
+     la semántica del pendiente de entrenamiento del alumno:
+     ocasión = día de semana configurado con plan activo, dentro
+     de su ventana de activación. La excusa (marca
      omitida/descartada/pospuesta vigente) rompe la racha. */
-  if (cfg && cfg.activated && cfg.trainOn && ctx.plan) {
+  const a4Cal = (() => { try { return !!(ctx.plan && typeof trainDayMap === 'function' && trainDayMap(ctx.plan, cfg).mode === 'plancal'); } catch { return false; } })();
+  if (ctx.plan && (a4Cal || (cfg && cfg.activated && cfg.trainOn))) {
     const winStart = addDaysISO(regDay, -30);
-    const start = (cfg.activatedAt && cfg.activatedAt > winStart) ? cfg.activatedAt : winStart;
+    const start = (!a4Cal && cfg.activatedAt && cfg.activatedAt > winStart) ? cfg.activatedAt : winStart;
     let streak = 0, lastMiss = null;
     for (let d = start; d <= closedDay; d = addDaysISO(d, 1)) {
-      const dow = new Date(d + 'T12:00:00').getDay();
-      if (!(cfg.trainDays || []).includes(dow)) continue;
+      const isOcc = a4Cal ? (planCalDayIndex(ctx.plan, d) != null) : (cfg.trainDays || []).includes(new Date(d + 'T12:00:00').getDay());
+      if (!isOcc) continue;
       if (data.logDates.has(d)) { streak = 0; lastMiss = null; continue; }
       if (classify(`training|${d}`) === 'active') { streak++; lastMiss = d; }
       else { streak = 0; lastMiss = null; }
@@ -7694,12 +7701,15 @@ function goalsDayIsDemanding(day, libById) {
 }
 /* Resolución fecha → día del plan: el MISMO criterio que la vista de
    entrenamiento (trainDayMap / trainWeekdayPairs de app.js): solo hay
-   ancla real cuando las etiquetas nombran días de semana («weekday»)
-   o cuando la configuración de pendientes declara los días y su conteo
-   coincide con el del plan («cfg»). En modo «rotation» la fecha no
-   está fijada a ninguna sesión: señal ambigua → día normal ('base').
-   Sin sesión ese día con ancla real → 'descanso'. Sin plan → 'base'
-   (no hay plan del que descansar; no se inventa variación). */
+   ancla real cuando las etiquetas nombran días de semana («weekday»),
+   cuando la configuración de pendientes declara los días y su conteo
+   coincide con el del plan («cfg»), o cuando el plan trae su propio
+   calendario («plancal»: startsAt + cadencia → planCalDayIndex, el
+   MISMO mapa que pinta la tarjeta del día — decisión de Ronald
+   2026-10-27). En modo «rotation» la fecha no está fijada a ninguna
+   sesión: señal ambigua → día normal ('base'). Sin sesión ese día
+   con ancla real → 'descanso'. Sin plan → 'base' (no hay plan del
+   que descansar; no se inventa variación). */
 const GM_WD_EN = ['sunday', 'monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday'];
 const GM_WD_ES = ['domingo', 'lunes', 'martes', 'miercoles', 'jueves', 'viernes', 'sabado'];
 function gmWeekdayPairs(days) {
@@ -7726,6 +7736,15 @@ function goalsDayLevelForDate(iso, plan, cfg, libById) {
       const W = [...new Set((cfg.trainDays || []).map(Number))].sort((a, b) => a - b);
       if (W.length === plan.days.length) { const p = {}; W.forEach((wd, k) => { p[wd] = k; }); pairs = p; mode = 'cfg'; }
     }
+  }
+  if (!pairs && mode === 'plancal' && typeof planCalDayIndex === 'function') {
+    /* PLAN-CALENDARIO: la fecha se resuelve contra el mapa del
+       plan (no por día de semana): fecha en blanco → 'descanso';
+       fecha con sesión → exigente si SU rutina lo es. */
+    const diC = planCalDayIndex(plan, iso);
+    if (diC == null) return { dayLevel: 'descanso', dayIndex: null, mode };
+    const libC = libById || (typeof LIB_BY_ID !== 'undefined' ? LIB_BY_ID : {});
+    return { dayLevel: goalsDayIsDemanding(plan.days[diC], libC) ? 'exigente' : 'base', dayIndex: diC, mode };
   }
   if (!pairs) return { dayLevel: 'base', dayIndex: null, mode };
   const wd = new Date(iso + 'T12:00:00').getDay();
@@ -11715,6 +11734,12 @@ function trainAlignRender() {
   if (!cfg || cfg.__error || !cfg.activated || !cfg.trainOn || !plan) return;
   const days = plan.days || [];
   if (!days.length) return;
+  /* PLAN-CALENDARIO (2026-10-27): si el plan se ancla solo por su
+     calendario (modo plancal), no hay nada que alinear: el aviso
+     no debe empujar al alumno a «alinear» sus días contra un plan
+     que se basta solo. Los modos weekday/cfg/rotation conservan
+     su aviso intacto. */
+  try { if (trainDayMap(plan, cfg).mode === 'plancal') return; } catch {}
   const cur = [...new Set((cfg.trainDays || []).map(Number))].sort((a, b) => a - b);
   const W = trainPlanWeekdays(days);
   const misaligned = W ? JSON.stringify(W) !== JSON.stringify(cur) : cur.length !== days.length;
@@ -11785,10 +11810,20 @@ function printCardRender(plan) {
    ningún día de semana; hoy muestra la siguiente sesión en el
    ORDEN del plan tras la última registrada (de training_logs), el
    pasado muestra lo realmente registrado y el futuro solo el orden
-   de la rotación, sin fijar sesiones a fechas. startsAt/endsAt del
-   plan son SOLO presentación (sin comportamiento por fechas) y
-   TPL_WEEK_OFFSETS es una ayuda de etiquetado del editor: ninguno
-   de los dos es un horario y ninguno se usa aquí. */
+   de la rotación, sin fijar sesiones a fechas.
+   ENMIENDA PLAN-CALENDARIO (decisión EXPRESA de Ronald, chat
+   RONBO.NUTRI 2026-10-27 11:58 CDT: «cúmplase o no se cumpla el
+   ejercicio del día… cada día tiene su propia rutina y hay que
+   esperarla. Si otro día no la tiene, se deja en blanco»): entre
+   «cfg» y «rotation» manda ahora (d) «plancal» — el plan con
+   startsAt y cadencia semanal genera su propio MAPA fecha→día
+   (planCalDayIndex), calculado SOLO del plan, y los registros NO
+   lo mueven. Esta enmienda SUSTITUYE la regla anterior de este
+   comentario («startsAt/endsAt son SOLO presentación»): para un
+   plan con fechas, startsAt SÍ tiene comportamiento (es el ancla
+   del mapa) y endsAt cierra su ventana; sin fechas ni anclas,
+   «rotation» queda como último recurso, intacto. TPL_WEEK_OFFSETS
+   sigue siendo una ayuda de etiquetado del editor, no un horario. */
 let TRAIN_VIEW = { planId: null, sel: null };   // sel: fecha ISO mostrada en la tarjeta del día
 function trainWeekdayPairs(days) {
   const pairs = {};
@@ -11804,6 +11839,46 @@ function trainWeekdayPairs(days) {
   }
   return Object.keys(pairs).length ? pairs : null;
 }
+/* PLAN-CALENDARIO (decisión EXPRESA de Ronald, 2026-10-27):
+   la cadencia semanal del plan (sesiones por semana). Si el plan
+   trajera un campo propio (sessionsPerWeek) manda él; hoy el
+   modelo la expresa como su número de días — así la presentan
+   train.planFreq y el resumen semanal, y así la guardan las
+   plantillas en dias_por_semana (= days.length al guardar). */
+function planCalWeeklySessions(plan) {
+  const days = (plan && plan.days) || [];
+  const n = Math.floor(Number(plan && plan.sessionsPerWeek));
+  if (Number.isFinite(n) && n >= 1) return Math.min(7, n);
+  return Math.min(7, days.length);
+}
+function planCalApplies(plan) {
+  if (!plan || !Array.isArray(plan.days) || !plan.days.length) return false;
+  const s = String(plan.startsAt || '').slice(0, 10);
+  return /^\d{4}-\d{2}-\d{2}$/.test(s) && planCalWeeklySessions(plan) >= 1;
+}
+/* MAPA fecha→día del plan-calendario: dentro de cada bloque de 7
+   días contado desde startsAt, las primeras N fechas (N = la
+   cadencia) son de entrenamiento y sobre ellas se reparte la
+   secuencia de días del plan EN ORDEN Y EN CICLO (4 plantillas a
+   2/semana → sem 1: Día 1, Día 2 · sem 2: Día 3, Día 4 · sem 3:
+   Día 1…). Devuelve el dayIndex de esa fecha o null si la fecha
+   queda EN BLANCO (sin sesión): antes de startsAt, después de
+   endsAt (si el plan lo trae) o en una fecha que no es de
+   entrenamiento. Los registros NO entran en el cálculo: la
+   sesión de una fecha es la suya, cúmplase o no se cumpla. */
+function planCalDayIndex(plan, iso) {
+  if (!planCalApplies(plan) || !/^\d{4}-\d{2}-\d{2}$/.test(iso || '')) return null;
+  const start = String(plan.startsAt).slice(0, 10);
+  if (iso < start) return null;
+  const end = plan.endsAt ? String(plan.endsAt).slice(0, 10) : null;
+  if (end && /^\d{4}-\d{2}-\d{2}$/.test(end) && iso > end) return null;
+  const n = planCalWeeklySessions(plan);
+  const diff = Math.round((new Date(iso + 'T12:00:00') - new Date(start + 'T12:00:00')) / 86400000);
+  const pos = diff % 7;
+  if (pos >= n) return null;
+  const ordinal = Math.floor(diff / 7) * n + pos;
+  return ordinal % plan.days.length;
+}
 function trainDayMap(plan, cfg) {
   const days = (plan && plan.days) || [];
   if (!days.length) return { mode: 'rotation', pairs: null };
@@ -11813,6 +11888,15 @@ function trainDayMap(plan, cfg) {
     const W = [...new Set((cfg.trainDays || []).map(Number))].sort((a, b) => a - b);
     if (W.length === days.length) { const p = {}; W.forEach((wd, k) => { p[wd] = k; }); return { mode: 'cfg', pairs: p }; }
   }
+  /* PLAN-CALENDARIO: sin ancla más específica, el plan con fechas
+     se ancla solo por su calendario (precedencia: weekday >
+     cfg > plancal > rotation — las etiquetas de semana y la
+     configuración del alumno son anclas DECLARADAS; el calendario
+     del plan es el ancla que el propio plan trae; rotation queda
+     para planes sin fechas ni anclas). El mapa no es por día de
+     semana sino por fecha: pairs queda null y la resolución
+     fecha→día la hace planCalDayIndex. */
+  if (planCalApplies(plan)) return { mode: 'plancal', pairs: null };
   return { mode: 'rotation', pairs: null };
 }
 function trainRotationNext(plan, logs, today) {
@@ -12179,6 +12263,12 @@ async function loadMyTraining() {
   let trainCfg = (typeof PEND_CFG !== 'undefined' && PEND_CFG && !PEND_CFG.__error) ? PEND_CFG : null;
   if (!trainCfg) { try { const cs = await getDoc(pendCfgRef()); if (cs.exists()) trainCfg = Object.assign(pendDefaults(), cs.data()); } catch {} }
   const tmap = trainDayMap(plan, trainCfg);
+  const isCal = tmap.mode === 'plancal';
+  /* Resolución fecha→día de ESTA vista: por día de semana cuando
+     hay pares (weekday/cfg) o contra el MAPA del plan en modo
+     plancal (planCalDayIndex — la misma función pura que lee el
+     motor de metas: visor y metas nunca divergen). */
+  const diForDate = iso => tmap.pairs ? tmap.pairs[new Date(iso + 'T12:00:00').getDay()] : (isCal ? planCalDayIndex(plan, iso) : null);
   if (TRAIN_VIEW.planId !== plan.id || !TRAIN_VIEW.sel) TRAIN_VIEW = { planId: plan.id, sel: today };
   const sel = TRAIN_VIEW.sel;
   const dayLabelOf = di => { const d = (plan.days || [])[di] || {}; return d.label || ('Día ' + (di + 1)); };
@@ -12202,8 +12292,8 @@ async function loadMyTraining() {
     return trainDressedCardHTML(plan, logs, log.dayIndex, sel, inner, 'is-readonly');
   };
   let selCard = '';
-  if (tmap.pairs) {
-    const selDi = tmap.pairs[new Date(sel + 'T12:00:00').getDay()];
+  if (tmap.pairs || isCal) {
+    const selDi = diForDate(sel);
     if (selDi != null) {
       const day = (plan.days || [])[selDi] || {};
       if (sel === today) selCard = dressedTodayCard(day, selDi) + trainShareRowHTML(selDi, sel);
@@ -12226,7 +12316,7 @@ async function loadMyTraining() {
         let nextLine = '';
         for (let k = 1; k <= 7; k++) {
           const nd = addDaysISO(today, k);
-          const ndi = tmap.pairs[new Date(nd + 'T12:00:00').getDay()];
+          const ndi = diForDate(nd);
           if (ndi != null) { nextLine = k === 1 ? t('train.today.nextTomorrow', { label: dayLabelOf(ndi) }) : t('train.today.nextOn', { date: dateName(nd), label: dayLabelOf(ndi) }); break; }
         }
         selCard = `<div class="train-day train-rest"><h4>${t('train.today.restToday')}</h4>${nextLine ? `<p class="progress-hint">${esc(nextLine)}</p>` : ''}</div>` + extra;
@@ -12282,7 +12372,7 @@ async function loadMyTraining() {
     let mark = '–';
     if (ls.some(l => { const s = trainLogStatus(l); return s === 'done' || s === 'partial'; })) mark = '✓';
     else if (ls.length) mark = '✕';
-    else if (tmap.pairs) mark = tmap.pairs[dt.getDay()] != null ? '●' : '–';
+    else if (tmap.pairs || isCal) mark = diForDate(iso) != null ? '●' : '–';
     else mark = iso === today ? '●' : (iso < today ? '–' : '·');
     cells.push(`<button type="button" class="train-wd${iso === sel ? ' is-sel' : ''}${iso === today ? ' is-today' : ''}" data-train-day="${iso}"><span class="train-wd-l">${esc(wdN)}</span><span class="train-wd-n">${dt.getDate()}</span><span class="train-wd-m">${mark}</span></button>`);
   }
@@ -19010,7 +19100,7 @@ document.addEventListener('keydown', e => { if (e.key === 'Escape') shareClose()
  *  - El SW (sw.js) solo cachea la cáscara del mismo origen en modo
  *    RED PRIMERO: Auth/Firestore/Worker jamás pasan por la caché.
  * ================================================================ */
-const PWA_SW_VERSION = '20261027-tarjeta-recogida';
+const PWA_SW_VERSION = '20261027-plan-calendario';
 let pwaDeferredPrompt = null;
 function pwaIsStandalone() {
   try {
