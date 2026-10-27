@@ -179,14 +179,26 @@ async function escPoolTrainers(modality, usersList) {
    denegada al alumno (el pool nacía vacío para TODOS; punto 4 de
    la cola en vivo, verificado 2026-10-26). El cupo sale de
    `memberships` por lectura puntual vía escTrainerStanding, como
-   en el resto de la app. Un perfil SIN documento de membresía se
-   trata como cupo abierto: el único perfil que puede existir sin
-   membresía es el del administrador-propietario — los entrenadores
-   reciben la suya («sin_membresia») del andamiaje al asignarles el
-   rol — y las reglas ya tratan al propietario como cupo abierto
-   (escQuotaOpen). Nombre resoluble: displayName del perfil o el
-   nombre de la cuenta por getDoc PUNTUAL (nunca la lista); sin
-   nombre resoluble el perfil no se ofrece. */
+   en el resto de la app. Nombre resoluble: displayName del perfil
+   o el nombre de la cuenta por getDoc PUNTUAL (nunca la lista);
+   sin nombre resoluble el perfil no se ofrece.
+   CORRECCIÓN (AUTH-2026-10-27-042): la premisa de 041 —«sin
+   documento de membresía ⇒ propietario»— era FALSA en producción:
+   el andamiaje también crea la membresía «sin_membresia» del
+   propietario cuando guarda su dossier (su guardado llama a
+   escEnsureTrainerScaffold), así que el dueño apareció «cupo
+   lleno» en el selector (captura de Ronald, 2026-10-27 09:51).
+   Y su role en `users` no es legible desde el pool: las reglas
+   deniegan al alumno el get de users/{entrenador} (self /
+   propietario / su entrenador). El propietario se identifica
+   ahora por el SELLO quotaOpen === true de su propio perfil:
+   señal determinista que solo una sesión del propietario puede
+   escribir (create reservado al propietario; la autoedición del
+   entrenador tiene la lista de claves cerrada y quotaOpen no
+   está en ella). Sin sello: membresía «activa» ⇒ cupo de su
+   nivel; «sin_membresia» ⇒ cupo lleno; SIN documento con la
+   lectura RESUELTA ⇒ abierto (criterio 041); lectura DENEGADA
+   ⇒ cerrado por precaución, jamás disfrazada de ausencia. */
 async function escPoolTrainersFromProfiles(modality) {
   const list = [];
   let snap = null;
@@ -202,9 +214,17 @@ async function escPoolTrainersFromProfiles(modality) {
       try { const us = await getDoc(doc(db, 'users', p.id)); if (us.exists()) name = String(us.data().name || '').trim(); } catch {}
     }
     if (!name) continue;
-    let membExists = true;
-    try { const ms = await getDoc(doc(db, 'memberships', p.id)); membExists = ms.exists(); } catch { membExists = true; }
-    const st = await escTrainerStanding(p.id, !membExists);
+    /* AUTH-042: cupo abierto SOLO con señal determinista — el
+       sello quotaOpen del perfil (propietario) o la ausencia de
+       membresía con la lectura resuelta; si la lectura de la
+       membresía falla, NO se presume ausencia: queda cerrado. */
+    let cupoAbierto = p.quotaOpen === true;
+    if (!cupoAbierto) {
+      let membResuelta = false, membExiste = false;
+      try { const ms = await getDoc(doc(db, 'memberships', p.id)); membResuelta = true; membExiste = ms.exists(); } catch {}
+      cupoAbierto = membResuelta && !membExiste;
+    }
+    const st = await escTrainerStanding(p.id, cupoAbierto);
     list.push({ uid: p.id, name, headline: String(p.headline || '').slice(0, 120), photoUrl: p.photoUrl || '', free: st.free, total: st.total, used: st.used, full: !(st.free > 0) });
   }
   return list;
@@ -229,6 +249,20 @@ async function loadRolesX() {
     try { const s = await getDoc(doc(db, 'memberships', auth.currentUser.uid)); MY_MEMB = s.exists() ? s.data() : null; } catch { MY_MEMB = null; }
   }
   if (IS_OWNER) { try { await escLoadAdminCounts(); } catch {} }
+  if (IS_OWNER && auth.currentUser) {
+    /* Sello de cupo abierto en el perfil PROPIO (AUTH-2026-10-27-042):
+       el pool del alumno identifica así al propietario sin leer su
+       cuenta (denegada al alumno por las reglas). Idempotente:
+       escribe una sola vez, solo si su perfil existe y aún no trae
+       el sello; los perfiles creados desde su propio dossier ya
+       nacen sellados en el andamiaje. */
+    try {
+      const meUid = auth.currentUser.uid;
+      const ps = await getDoc(doc(db, 'trainer_profiles', meUid));
+      if (ps.exists() && ps.data().quotaOpen !== true)
+        await setDoc(doc(db, 'trainer_profiles', meUid), { quotaOpen: true, updatedAt: serverTimestamp() }, { merge: true });
+    } catch {}
+  }
   applyFeatureGates();
   renderMyTrainerBox();
   try { renderRolePendCard(); } catch {}
@@ -1360,8 +1394,12 @@ async function openDossierLive(uid, mode) {
   const st = await escTrainerStanding(uid, false);
   let total = st.total;
   /* El administrador-entrenador no consume membresía (diseño §1.2):
-     si es el propietario, su cupo se trata como abierto. */
-  try { const s = await getDoc(doc(db, 'users', uid)); if (s.exists() && s.data().isOwner) total = null; } catch {}
+     si es el propietario, su cupo se trata como abierto. Señales:
+     el sello quotaOpen del perfil (AUTH-042; el alumno SÍ puede
+     leerlo, viene con el propio perfil) o el isOwner de su cuenta
+     (legible solo para sí mismo / el propietario en sesión). */
+  if (prof && prof.quotaOpen === true) total = null;
+  else { try { const s = await getDoc(doc(db, 'users', uid)); if (s.exists() && s.data().isOwner) total = null; } catch {} }
   const r = await dosFetchRatings(uid);
   const canRate = m === 'live' && ROLE === 'usuario' && auth.currentUser && auth.currentUser.uid !== uid;
   const elig = canRate ? await dosEligibility(uid) : null;
@@ -1660,7 +1698,12 @@ async function escEnsureTrainerScaffold(uid, name) {
   try {
     const ps = await getDoc(doc(db, 'trainer_profiles', uid));
     if (!ps.exists()) await setDoc(doc(db, 'trainer_profiles', uid), {
-      displayName: name || '', modalities: [...ESC_MODALITIES], bio: '', available: true, activeStudents: 0, updatedAt: serverTimestamp()
+      displayName: name || '', modalities: [...ESC_MODALITIES], bio: '', available: true, activeStudents: 0, updatedAt: serverTimestamp(),
+      /* Sello de cupo abierto (AUTH-042): nace SOLO cuando el perfil
+         creado es el del propio propietario en sesión (la ruta de
+         su dossier); al asignar el rol a OTRO, uid ≠ sesión y el
+         perfil nace sin sello. */
+      ...(uid === (auth.currentUser && auth.currentUser.uid) && IS_OWNER ? { quotaOpen: true } : {})
     });
     const ms = await getDoc(doc(db, 'memberships', uid));
     if (!ms.exists()) await setDoc(doc(db, 'memberships', uid), {
@@ -18482,7 +18525,7 @@ document.addEventListener('keydown', e => { if (e.key === 'Escape') shareClose()
  *  - El SW (sw.js) solo cachea la cáscara del mismo origen en modo
  *    RED PRIMERO: Auth/Firestore/Worker jamás pasan por la caché.
  * ================================================================ */
-const PWA_SW_VERSION = '20261027-pool-entrenadores';
+const PWA_SW_VERSION = '20261027-cupo-dueno';
 let pwaDeferredPrompt = null;
 function pwaIsStandalone() {
   try {
