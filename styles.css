@@ -1760,3 +1760,13 @@ body { padding: max(16px, env(safe-area-inset-top)) max(16px, env(safe-area-inse
 .tcu-pick-title { font-weight: 600; margin-bottom: 6px; }
 .tcu-pick input[type="text"] { width: 100%; box-sizing: border-box; }
 .train-mark { font-size: 12px; color: #0d9488; font-weight: 600; margin-top: 2px; }
+
+/* BOTONES DESPLEGABLES DE LA FICHA — FUNDAMENTO EN 5 BOTONES
+   (2026-10-27): el botón ES la cabecera de su bloque (patrón
+   .mt-toggle de AUTH-046): título a la izquierda con el chev de
+   la familia .gm-chev y, en B-1/referencias, la ayuda «?» de
+   siempre a su derecha. Solo presentación. */
+.ffold-head { margin: 8px 0 4px; }
+.fb3-card > .ffold-head:first-child { margin-top: 0; }
+.ffold-toggle { display: flex; align-items: center; gap: 8px; flex: 1; min-width: 0; background: none; border: 0; padding: 0; margin: 0; cursor: pointer; text-align: left; color: inherit; font: inherit; }
+.ffold-title { flex: 1; margin: 0; font-weight: 700; }

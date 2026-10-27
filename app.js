@@ -2881,6 +2881,11 @@ en: {
   'fb3.nogoals': 'Educational reference only — it does not change the goals of this client. You set the goals manually.',
   'fb3.helpBtn': 'How it is calculated and sources',
   'fb3.help': '<b>How it is calculated</b><br>Daily protein range = latest body weight × 1.4–2.0 g/kg/day.<br><b>Sources</b><br>• ISSN Position Stand: protein and exercise (Jäger et al., 2017, J Int Soc Sports Nutr 14:20; DOI 10.1186/s12970-017-0177-8): 1.4–2.0 g/kg/day is sufficient for most people who exercise.<br>• Context only (not shown as a range here): for hypertrophy with resistance training, Morton et al. (2018, Br J Sports Med; DOI 10.1136/bjsports-2017-097608) estimated a breakpoint of 1.62 g/kg/day (95% CI upper limit 2.20) — neither a universal target nor a proven individual ceiling.<br>These ranges are educational references, pending validation in this app; they are not a prescription and never modify the goals you set.',
+  'ffold.protein': 'Your science-backed protein guide',
+  'ffold.base': 'How we calculate the base burn',
+  'ffold.activity': 'Daily activity and its multiplier',
+  'ffold.refs': 'Your scientific references',
+  'ffold.pace': 'Weight-loss pace',
   'fa.title': '🧮 Energy calculation',
   'fa.helpBtn': 'How it is calculated and sources',
   'fa.help': '<b>What this estimates</b><br>Two estimates from the Mifflin-St Jeor equation: your resting expenditure (RMR) and your estimated expenditure without structured exercise (RMR × your activity multiplier).<br><b>What it is for</b><br>An orientation figure to plan with — not a measurement.<br><b>Its limits</b><br>Every figure here is an estimate with inherent uncertainty; it is not an individual guarantee. The multiplier covers rest, daily life and habitual movement; structured exercise is NOT included in this estimate.',
@@ -4571,6 +4576,11 @@ es: {
   'fb3.nogoals': 'Referencia solo educativa — no modifica las metas de este cliente. Las metas las fijas tú manualmente.',
   'fb3.helpBtn': 'Cómo se calcula y fuentes',
   'fb3.help': '<b>Cómo se calcula</b><br>Rango diario de proteína = último peso corporal × 1,4–2,0 g/kg/día.<br><b>Fuentes</b><br>• Position Stand de la ISSN: proteína y ejercicio (Jäger et al., 2017, J Int Soc Sports Nutr 14:20; DOI 10.1186/s12970-017-0177-8): 1,4–2,0 g/kg/día es suficiente para la mayoría de las personas que hacen ejercicio.<br>• Solo contexto (no se muestra como rango aquí): para hipertrofia con entrenamiento de resistencia, Morton et al. (2018, Br J Sports Med; DOI 10.1136/bjsports-2017-097608) estimó un punto de inflexión de 1,62 g/kg/día (límite superior del IC95%: 2,20) — ni meta universal ni techo individual demostrado.<br>Estos rangos son referencias educativas, pendientes de validación en esta app; no son una prescripción y nunca modifican las metas que tú fijas.',
+  'ffold.protein': 'Tu guía científica de proteína',
+  'ffold.base': 'Cómo calculamos el gasto base',
+  'ffold.activity': 'Su actividad diaria y su multiplicador',
+  'ffold.refs': 'Tus referencias científicas',
+  'ffold.pace': 'Ritmo para bajar de peso',
   'fa.title': '🧮 Cálculo energético',
   'fa.helpBtn': 'Cómo se calcula y fuentes',
   'fa.help': '<b>Qué estima esto</b><br>Dos estimaciones con la ecuación de Mifflin-St Jeor: tu gasto en reposo (RMR) y tu gasto estimado sin ejercicio estructurado (RMR × tu multiplicador de actividad).<br><b>Para qué sirve</b><br>Una cifra de orientación para planificar — no es una medición.<br><b>Sus límites</b><br>Toda cifra aquí es una estimación con incertidumbre propia; no es una garantía individual. El multiplicador cubre el reposo, la vida diaria y el movimiento habitual; el ejercicio estructurado NO está incluido en esta estimación.',
@@ -6378,21 +6388,57 @@ async function renderApprovalsTray(myUsers) {
    10.1186/s12970-017-0177-8). NO escribe nada: jamás toca
    users/{uid}.goals, no crea campos ni colecciones. Sin peso no hay
    referencia (nunca un número inventado). */
+/* ================= BOTONES DESPLEGABLES DE LA FICHA — FUNDAMENTO
+   EN 5 BOTONES (2026-10-27, pedido de Ronald por correo «BOTONES -
+   ENTRENAMIENTO»): en la ficha del cliente, los cinco bloques del
+   panel de fundamento nacen RECOGIDOS tras su propio botón, con
+   títulos amables suyos — la información de dentro es la de
+   siempre, byte a byte; lo único que cambia es que ya no se
+   despliega toda a la vez. SOLO presentación: ningún cálculo,
+   ninguna meta y ningún dato se toca, y la superficie de
+   operaciones Firestore es idéntica a la base. El estado vive en
+   memoria (patrón de la casa AUTH-046/050) y se reaplica en cada
+   render de la ficha: un bloque abierto sigue abierto al volver.
+   Mapa bloque → botón: B-1 proteína → protein · ecuación e
+   insumos del cálculo → base · nivel de actividad y palBasal →
+   activity · referencias educativas (B) → refs · ritmo del
+   objetivo → pace. Las ayudas «?» de cada tarjeta quedan FUERA
+   del cuerpo plegado, operativas como siempre. */
+const FICHA_FOLD_OPEN = { protein: false, base: false, activity: false, refs: false, pace: false };
+function fichaFoldHead(id, titleKey, extra = '') {
+  const open = FICHA_FOLD_OPEN[id] === true;
+  return `<div class="fb3-head ffold-head"><button type="button" class="ffold-toggle" id="ffold-btn-${id}" aria-expanded="${open ? 'true' : 'false'}"><span class="history-title ffold-title">${esc(t(titleKey))}</span><span class="gm-chev" id="ffold-chev-${id}" aria-hidden="true">${open ? '▴' : '▾'}</span></button>${extra}</div>`;
+}
+function fichaFoldBodyAttr(id) { return FICHA_FOLD_OPEN[id] === true ? '' : ' style="display:none"'; }
+function fichaFoldWire(id) {
+  const btn = $('ffold-btn-' + id); if (!btn || btn.dataset.wired) return;
+  btn.dataset.wired = '1';
+  btn.onclick = () => {
+    FICHA_FOLD_OPEN[id] = !FICHA_FOLD_OPEN[id];
+    const body = $('ffold-body-' + id);
+    if (body) body.style.display = FICHA_FOLD_OPEN[id] ? '' : 'none';
+    btn.setAttribute('aria-expanded', FICHA_FOLD_OPEN[id] ? 'true' : 'false');
+    const chev = $('ffold-chev-' + id);
+    if (chev) chev.textContent = FICHA_FOLD_OPEN[id] ? '▴' : '▾';
+  };
+}
+function fichaFoldWireAll() { Object.keys(FICHA_FOLD_OPEN).forEach(fichaFoldWire); }
+
 const FB3_STALE_DAYS = 30; // PROPUESTA de diseño: aviso de desactualización del pesaje
 function fb3ProteinHTML(weights) {
   const last = weights && weights.length ? weights[weights.length - 1] : null;
-  const head = `<div class="fb3-head"><h3 class="history-title" style="margin:0">${t('fb3.title')}</h3>
-    <button type="button" class="fb3-helpbtn" id="fb3-help-btn" aria-expanded="false" title="${t('fb3.helpBtn')}">?</button></div>`;
+  const head = fichaFoldHead('protein', 'ffold.protein', `<button type="button" class="fb3-helpbtn" id="fb3-help-btn" aria-expanded="false" title="${t('fb3.helpBtn')}">?</button>`);
   const help = `<div class="fb3-pop" id="fb3-help" style="display:none">${t('fb3.help')}</div>`;
-  if (!last) return `<div class="fb3-card">${head}<div class="wempty">${t('fb3.noweight')}</div>${help}</div>`;
+  if (!last) return `<div class="fb3-card">${head}${help}<div id="ffold-body-protein"${fichaFoldBodyAttr('protein')}><div class="wempty">${t('fb3.noweight')}</div></div></div>`;
   const lo = Math.round(last.weight * 1.4), hi = Math.round(last.weight * 2.0);
   const days = Math.floor((Date.now() - new Date(last.date + 'T12:00:00').getTime()) / 864e5);
-  return `<div class="fb3-card">${head}
+  return `<div class="fb3-card">${head}${help}
+    <div id="ffold-body-protein"${fichaFoldBodyAttr('protein')}>
     <div class="fb3-range">${t('fb3.range', { lo, hi })}</div>
     <div class="muted">${t('fb3.basis', { w: last.weight, date: dateName(last.date) })}</div>
     <div class="muted">${t('fb3.perkg')}</div>
     ${days > FB3_STALE_DAYS ? `<div class="fb3-stale">${t('fb3.stale', { d: days })}</div>` : ''}
-    <div class="muted">${t('fb3.nogoals')}</div>${help}</div>`;
+    <div class="muted">${t('fb3.nogoals')}</div></div></div>`;
 }
 
 /* ¿La evaluación energética tiene RESULTADO vigente? Mismo test
@@ -6419,12 +6465,11 @@ function faHasResult(a) {
    resultado es de entradas anteriores (faResultStale), se muestra
    con su aviso de «referencia anterior», como hace F-B3. */
 function fb2CardHTML(a, weights) {
-  const head = `<div class="fb3-head"><h3 class="history-title" style="margin:0">${t('fb2.title')}</h3>
-    <button type="button" class="fb3-helpbtn" id="fb2-help-btn" aria-expanded="false" title="${t('fb2.helpBtn')}">?</button></div>`;
+  const head = fichaFoldHead('refs', 'ffold.refs', `<button type="button" class="fb3-helpbtn" id="fb2-help-btn" aria-expanded="false" title="${t('fb2.helpBtn')}">?</button>`);
   const help = `<div class="fb3-pop" id="fb2-help" style="display:none">${t('fb2.help')}</div>`;
   const last = weights && weights.length ? weights[weights.length - 1] : null;
   const hasResult = !!a && typeof a.tdeeKcal === 'number' && isFinite(a.tdeeKcal) && a.tdeeKcal > 0 && !!a.computedAt;
-  if (!hasResult) return `<div class="fb3-card fb2-card">${head}<div class="wempty">${t('fb2.nodata')}</div>${help}</div>`;
+  if (!hasResult) return `<div class="fb3-card fb2-card">${head}${help}<div id="ffold-body-refs"${fichaFoldBodyAttr('refs')}><div class="wempty">${t('fb2.nodata')}</div></div></div>`;
   const tdee = a.tdeeKcal;
   const fmt0 = n => Math.round(n).toLocaleString(LANG === 'es' ? 'es-MX' : 'en-US');
   const rng = (lo, hi) => t('fb2.rangeKcal', { lo: fmt0(lo), hi: fmt0(hi) });
@@ -6432,7 +6477,8 @@ function fb2CardHTML(a, weights) {
     const lo = Math.round(tdee * loPct / perGram), hi = Math.round(tdee * hiPct / perGram);
     return `<div class="fb2-row"><span>${t(labelKey)}</span><b>${t('fb2.amdrGrams', { lo: fmt0(lo), hi: fmt0(hi) })}</b></div>`;
   };
-  return `<div class="fb3-card fb2-card">${head}
+  return `<div class="fb3-card fb2-card">${head}${help}
+    <div id="ffold-body-refs"${fichaFoldBodyAttr('refs')}>
     <div class="muted">${t('fb2.basis', { kcal: fmt0(tdee) })}</div>
     ${faResultStale(a, last) ? `<div class="fb3-stale">${t('fb2.stale')}</div>` : ''}
     <div class="fb2-row"><span>${t('fb2.maint')}</span><b>${rng(tdee * 0.95, tdee * 1.05)}</b></div>
@@ -6445,7 +6491,7 @@ function fb2CardHTML(a, weights) {
       ${amdrRow('fb2.amdrFat', 0.20, 0.35, 9)}
     </div>
     <div class="muted">${t('fb2.flagsNote')}</div>
-    <div class="muted">${t('fb2.nogoals')}</div>${help}</div>`;
+    <div class="muted">${t('fb2.nogoals')}</div></div></div>`;
 }
 
 /* ================= MÓDULO H — UNIDADES DE MEDIDA (P4-3 Etapa 1, desarrollo) =================
@@ -6734,6 +6780,8 @@ function faCardHTML(uid, a, weights) {
     resultBlock = `<div class="fa-empty"><b>${t('fa.noResult')}</b><span>${reason}</span></div>`;
   }
   return `<div class="fb3-card fa-card">${head}${help}
+    ${fichaFoldHead('base', 'ffold.base')}
+    <div id="ffold-body-base"${fichaFoldBodyAttr('base')}>
     <div class="fa-signal">${t('fa.provided', { v: signal ? t('fa.yes') : t('fa.no') })}</div>
     <div class="fa-signal">${t('fa.athleteSignal', { v: thReady ? t('fa.yes') : t('fa.no') })}</div>
     <label class="fa-flabel">${t('fa.equation')}</label>
@@ -6745,11 +6793,15 @@ function faCardHTML(uid, a, weights) {
     </div>
     ${UNIT_PREFS.height === 'ft-in' ? `<p class="progress-hint">${esc(t('units.heightHintFtin'))}</p>` : ''}
     <div class="basis">${last ? t('fa.weightBasis', { w: fmtMass(last.weight), date: dateName(last.date) }) : t('fa.noWeight')}</div>
+    ${resultBlock}
+    </div>
+    ${fichaFoldHead('activity', 'ffold.activity')}
+    <div id="ffold-body-activity"${fichaFoldBodyAttr('activity')}>
     <label class="fa-flabel">${t('fa.actLabel')}</label>
     <select id="fa-act" class="fa-select"><option value="">${t('fa.actNone')}</option>${actOpts}</select>
     ${palBlock}
+    </div>
     <div class="fa-btnrow"><button type="button" class="btn-primary btn-sm" id="fa-save">${t('fa.saveConfig')}</button></div>
-    ${resultBlock}
   </div>`;
 }
 function faPalSync() {
@@ -7129,6 +7181,7 @@ async function openClient(uid) {
   if (fah) fah.onclick = () => { const p = $('fa-help'); const open = p.style.display !== 'none'; p.style.display = open ? 'none' : ''; fah.setAttribute('aria-expanded', String(!open)); };
   const fhm = $('fa-help-more');
   if (fhm) fhm.onclick = () => { const det = $('fa-help-detail'); const open = det.style.display !== 'none'; det.style.display = open ? 'none' : ''; fhm.setAttribute('aria-expanded', String(!open)); fhm.textContent = open ? t('fa.helpMore') : t('fa.helpLess'); };
+  fichaFoldWireAll();
   box.querySelectorAll('[data-fa-eq]').forEach(faEq => {
     faEq.onclick = () => faSetEquation(uid, faEq.dataset.faEq);
     faEq.onkeydown = e => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); faSetEquation(uid, faEq.dataset.faEq); } };
@@ -8338,13 +8391,14 @@ async function goalsTrainerCardLoad(uid, udata, extra) {
   const u = udata || {};
   const ps = u.paceSuggestion || null, prov = u.goalsProvenance || null;
   if (pc) {
-    let h = `<div class="fb3-card"><h3 class="history-title" style="margin:0">${esc(t('gm.trainerPaceTitle'))}</h3>`;
+    let h = `<div class="fb3-card">${fichaFoldHead('pace', 'ffold.pace')}<div id="ffold-body-pace"${fichaFoldBodyAttr('pace')}>`;
     if (ps) {
       h += `<p class="progress-hint">${esc(t('gm.trainerPaceSuggested', { n: ps.paceKcal || '—', date: String(ps.suggestedAt || '').slice(0, 10), status: t('gm.status.' + (ps.status || 'pending')) }))}</p>`;
       if (ps.decidedPaceKcal) h += `<p class="progress-hint">${esc(t('gm.trainerPaceCurrent', { n: ps.decidedPaceKcal, by: esc(ps.decidedBy || '—'), date: String(ps.decidedAt || '').slice(0, 10) }))}</p>`;
     } else h += `<p class="progress-hint">${esc(t('gm.trainerPaceNone'))}</p>`;
-    h += `<div class="eval-actions" style="justify-content:flex-start;gap:8px;flex-wrap:wrap"><select id="gm-tp-sel"><option value="500">−500</option><option value="750">−750</option><option value="1000">−1000</option></select>${ps && ps.paceKcal ? `<button type="button" class="btn-primary btn-sm" id="gm-tp-approve">${esc(t('gm.trainerPaceApprove'))}</button>` : ''}<button type="button" class="btn-ghost btn-sm" id="gm-tp-set">${esc(t('gm.trainerPaceSet'))}</button></div></div>`;
+    h += `<div class="eval-actions" style="justify-content:flex-start;gap:8px;flex-wrap:wrap"><select id="gm-tp-sel"><option value="500">−500</option><option value="750">−750</option><option value="1000">−1000</option></select>${ps && ps.paceKcal ? `<button type="button" class="btn-primary btn-sm" id="gm-tp-approve">${esc(t('gm.trainerPaceApprove'))}</button>` : ''}<button type="button" class="btn-ghost btn-sm" id="gm-tp-set">${esc(t('gm.trainerPaceSet'))}</button></div></div></div>`;
     pc.innerHTML = h;
+    fichaFoldWire('pace');
     const ap = $('gm-tp-approve'); if (ap) ap.onclick = () => goalsTrainerDecidePace(uid, Number(ps.paceKcal));
     const st = $('gm-tp-set'); if (st) st.onclick = () => goalsTrainerDecidePace(uid, Number(($('gm-tp-sel') || {}).value || 500));
   }
@@ -19681,7 +19735,7 @@ document.addEventListener('keydown', e => { if (e.key === 'Escape') shareClose()
  *  - El SW (sw.js) solo cachea la cáscara del mismo origen en modo
  *    RED PRIMERO: Auth/Firestore/Worker jamás pasan por la caché.
  * ================================================================ */
-const PWA_SW_VERSION = '20261027-senal-entrenador';
+const PWA_SW_VERSION = '20261027-botones-ficha';
 let pwaDeferredPrompt = null;
 function pwaIsStandalone() {
   try {
