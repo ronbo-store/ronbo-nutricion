@@ -1997,9 +1997,9 @@ service cloud.firestore {
     // escritura SOLO del administrador (isOwnerUser). Sin documento,
     // el estado por defecto es ACTIVADO (app y Worker lo tratan así).
     match /app_settings/{docId} {
-      allow get: if signedIn() && docId in ['approvals', 'ai_control', 'feature_flags', 'membership_catalog'];
+      allow get: if signedIn() && docId in ['approvals', 'ai_control', 'feature_flags', 'membership_catalog', 'faq'];
       allow list: if false;
-      allow create, update, delete: if isOwnerUser() && docId in ['approvals', 'ai_control', 'feature_flags', 'membership_catalog'];
+      allow create, update, delete: if isOwnerUser() && docId in ['approvals', 'ai_control', 'feature_flags', 'membership_catalog', 'faq'];
     }
 
     // ---------- Trainer directory (candidato roles, NO publicado) ----------
