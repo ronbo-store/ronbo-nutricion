@@ -1635,15 +1635,19 @@ async function renderProfileView() {
      propia puerta (ROLE entrenador o dueño) decide la visibilidad;
      para el alumno la caja queda oculta y sin contenido. */
   renderDossierEditor();
-  /* Zona «Administración» (AUTH-2026-10-28-067): solo el rol
-     administrador la pinta; para los demás queda oculta y vacía
-     y jamás llama a la red. Un fallo suyo nunca rompe el perfil. */
-  try { renderAdminZone().catch(() => {}); } catch {}
+  /* La zona «Administración» YA NO vive en «Mi perfil»
+     (AUTH-2026-10-28-069): se mudó a su vista propia del panel
+     principal y se pinta al abrirla (gancho en switchTab). El
+     perfil del administrador queda como el de cualquier rol. */
 }
 
 /* ============ ADMINISTRACIÓN — zona con subespacios (AUTH-2026-10-28-067) ============
-   Zona propia dentro de «Mi perfil», visible SOLO para el rol
-   administrador. Se organiza en SUBESPACIOS con título propio:
+   Vista PROPIA «Administración» en el panel principal (pastilla
+   junto a las demás), visible SOLO para el rol administrador —
+   desde AUTH-2026-10-28-069 vive en su pestaña (#tab-admin) y se
+   pinta al abrirla (gancho en switchTab); antes (AUTH-067) vivía
+   dentro de «Mi perfil» y se mudó por corrección de Ronald.
+   Se organiza en SUBESPACIOS con título propio:
    en esta fase se pinta únicamente el subespacio «Tech» y, dentro
    de él, su primer bloque «Consumo de IA». Arquitectura preparada
    para crecer sin reescribir la zona: cada subespacio futuro será
@@ -1986,6 +1990,7 @@ en: {
   'tabs.access': '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="5" y="10.4" width="14" height="9.6" rx="2"/><path d="M8 10.4V7.6a4 4 0 0 1 8 0v2.8"/><circle cx="12" cy="15.2" r="1.4"/></svg> Access',
   'tabs.trainers': '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="10" cy="7.6" r="3.2"/><path d="M4.2 19.6c.6-3.1 2.8-4.7 5.8-4.7 1 0 1.9.2 2.7.6"/><path d="M15.5 16.2v3"/><path d="M13.4 17.7h4.2"/><path d="M17.9 15.4v4.6"/><path d="M20.4 16.2v3"/></svg> Trainers',
   'tabs.library': '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 4.6A1.6 1.6 0 0 1 6.6 3H19v15H6.6A1.6 1.6 0 0 0 5 19.4z"/><path d="M5 16.4A1.6 1.6 0 0 1 6.6 14.8H19V18"/><path d="M9 7h6"/></svg> Library',
+  'tabs.admin': '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94l-3.76 3.76z"/></svg> Administration',
   'trainers.title': '👨‍🏫 Trainer administration',
   'trainers.hint': 'Everything about trainers in one place: role requests, memberships (levels and quotas), the two-step confirmations that start with a trainer, the trainer approval limit and the public directory.',
   'trainers.requests': 'Trainer role requests (',
@@ -3811,6 +3816,7 @@ es: {
   'tabs.access': '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="5" y="10.4" width="14" height="9.6" rx="2"/><path d="M8 10.4V7.6a4 4 0 0 1 8 0v2.8"/><circle cx="12" cy="15.2" r="1.4"/></svg> Accesos',
   'tabs.trainers': '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="10" cy="7.6" r="3.2"/><path d="M4.2 19.6c.6-3.1 2.8-4.7 5.8-4.7 1 0 1.9.2 2.7.6"/><path d="M15.5 16.2v3"/><path d="M13.4 17.7h4.2"/><path d="M17.9 15.4v4.6"/><path d="M20.4 16.2v3"/></svg> Entrenadores',
   'tabs.library': '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 4.6A1.6 1.6 0 0 1 6.6 3H19v15H6.6A1.6 1.6 0 0 0 5 19.4z"/><path d="M5 16.4A1.6 1.6 0 0 1 6.6 14.8H19V18"/><path d="M9 7h6"/></svg> Biblioteca',
+  'tabs.admin': '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94l-3.76 3.76z"/></svg> Administración',
   'trainers.title': '👨‍🏫 Administración de entrenadores',
   'trainers.hint': 'Todo lo de los entrenadores en un solo lugar: solicitudes de rol, membresías (niveles y cupos), las confirmaciones en dos pasos que empiezan con un entrenador, el límite de aprobaciones de entrenadores y el directorio público.',
   'trainers.requests': 'Solicitudes de rol de entrenador (',
@@ -6007,6 +6013,11 @@ onAuthStateChanged(auth, async user => {
      no tiene barra de pestañas y entra por su foto del encabezado. */
   const profTabBtn = document.querySelector('.main-tab[data-tab="profile"]');
   if (profTabBtn) profTabBtn.style.display = (ROLE === 'entrenador' || ROLE === 'administrador') ? '' : 'none';
+  /* «Administración» (AUTH-2026-10-28-069): la pastilla del panel
+     principal es SOLO del administrador, como Accesos y
+     Entrenadores; entrenador y alumno ni la ven. */
+  const admTabBtn = document.querySelector('.main-tab[data-tab="admin"]');
+  if (admTabBtn) admTabBtn.style.display = ROLE === 'administrador' ? '' : 'none';
   /* «← Volver» de «Mi perfil» (paquete NAVEGACIÓN, 2026-10-26):
      solo el alumno lo necesita — no tiene barra de pestañas y entra
      al perfil por su foto; el personal conserva sus píldoras. */
@@ -16578,6 +16589,11 @@ function switchTab(name) {
   if (ROLE !== 'usuario' && name === 'clients') loadClients();
   if ((ROLE === 'administrador' || ROLE === 'entrenador') && name === 'library') renderLibrary();
   if (name === 'profile') renderProfileView();
+  /* «Administración» (AUTH-2026-10-28-069): la zona se pinta al
+     ABRIR su vista — perezosa, como cuando vivía en «Mi perfil»:
+     una llamada a /admin/usage por apertura y ninguna antes. Su
+     propia puerta de rol vive dentro de renderAdminZone. */
+  if (name === 'admin') { try { renderAdminZone().catch(() => {}); } catch {} }
   try { helpFabSync(name); } catch {}
 }
 document.querySelectorAll('.main-tab').forEach(b => b.addEventListener('click', () => switchTab(b.dataset.tab)));
@@ -20732,7 +20748,7 @@ document.addEventListener('keydown', e => { if (e.key === 'Escape') shareClose()
  *  - El SW (sw.js) solo cachea la cáscara del mismo origen en modo
  *    RED PRIMERO: Auth/Firestore/Worker jamás pasan por la caché.
  * ================================================================ */
-const PWA_SW_VERSION = '20261028-consumo-ia';
+const PWA_SW_VERSION = '20261028-admin-panel';
 let pwaDeferredPrompt = null;
 function pwaIsStandalone() {
   try {
