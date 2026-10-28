@@ -558,6 +558,10 @@ service cloud.firestore {
         // ese campo solo llega despues, por la rama de perfil
         // inofensivo y con la hora del servidor.
         && !('emailConfirmedAt' in request.resource.data)
+        // AUTH-2026-10-28-071: nadie nace interesado en la puerta
+        // falsa de la camara; fdCamAt solo llega despues, por la
+        // rama de perfil inofensivo y como cadena ISO.
+        && !('fdCamAt' in request.resource.data)
         // A2: registration is the first consent act — it must carry
         // its 'registered' receipt in the same batch (seq starts at 1).
         // Roles+Escalabilidad (2026-10-24): campos nuevos del
@@ -627,6 +631,23 @@ service cloud.firestore {
         && (!exists(/databases/$(database)/documents/trainer_profiles/$(request.auth.uid))
             || getAfter(/databases/$(database)/documents/trainer_profiles/$(request.auth.uid)).data.get('activeStudents', 0)
                  == get(/databases/$(database)/documents/trainer_profiles/$(request.auth.uid)).data.get('activeStudents', 0) + 1);
+      // AUTH-2026-10-28-072: el entrenador que APROBÓ a este alumno
+      // anota el envío de su bienvenida (notices.welcome), como hoy
+      // hace el propietario con su rama general. Solo la entrada
+      // welcome, firmada por él y con la hora del servidor, y solo
+      // sobre un alumno ya aprobado por él y aún asignado a él.
+      allow update: if isTrainerUser()
+        && resource.data.get('approved', false) == true
+        && resource.data.get('approvedBy', '') == request.auth.uid
+        && resource.data.get('trainerUid', '') == request.auth.uid
+        && request.resource.data.diff(resource.data).affectedKeys()
+             .hasOnly(['notices'])
+        && request.resource.data.notices is map
+        && request.resource.data.notices.keys()
+             .hasOnly(['welcome', 'trainer', 'eval', 'meals', 'membership', 'dossier'])
+        && request.resource.data.notices.welcome.at == request.time
+        && request.resource.data.notices.welcome.by == request.auth.uid
+        && request.resource.data.notices.welcome.template == 'welcome';
       // Roles+Escalabilidad — RECHAZO (decisión §8.2 de Ronald,
       // 2026-10-24): el entrenador devuelve a la espera al alumno
       // que lo eligió y sigue SIN aprobar. Espejo inverso de la
@@ -683,13 +704,19 @@ service cloud.firestore {
       // AUTH-2026-10-28-068: emailConfirmedAt = la confirmacion del
       // correo por el propio usuario tras el enlace verificado; si
       // el campo cambia, su valor debe ser la hora del servidor.
+      // AUTH-2026-10-28-071: fdCamAt = la marca de interes del
+      // propio alumno en la puerta falsa Camera Coach (diseno
+      // aprobado el 2026-10-28); si el campo cambia, su valor debe
+      // ser una cadena (la fecha ISO que escribe la app).
       allow update: if isSelf(uid)
         && request.resource.data.diff(resource.data).affectedKeys()
-             .hasOnly(['name', 'phone', 'gender', 'social', 'photoURL', 'mailLang', 'emailConfirmedAt'])
+             .hasOnly(['name', 'phone', 'gender', 'social', 'photoURL', 'mailLang', 'emailConfirmedAt', 'fdCamAt'])
         && (!request.resource.data.diff(resource.data).affectedKeys().hasAny(['mailLang'])
             || request.resource.data.mailLang in ['en', 'es'])
         && (!request.resource.data.diff(resource.data).affectedKeys().hasAny(['emailConfirmedAt'])
-            || request.resource.data.emailConfirmedAt == request.time);
+            || request.resource.data.emailConfirmedAt == request.time)
+        && (!request.resource.data.diff(resource.data).affectedKeys().hasAny(['fdCamAt'])
+            || request.resource.data.fdCamAt is string);
       // Metas con fundamento (2026-10-26, diseño §§C–I): el DUEÑO
       // escribe en su propio documento SOLO los campos del motor de
       // metas — las metas que el cálculo fija (goals, con claves
@@ -2178,6 +2205,25 @@ service cloud.firestore {
       }
     }
 
+    // AUTH-2026-10-28-072: contacto mínimo del entrenador para el
+    // aviso delegado de registro. Lo escribe SOLO el propio
+    // entrenador (su correo de cuenta y su idioma de correo); lo
+    // lee el Worker reenviando el token de un registrante PENDIENTE
+    // que eligió a ESE entrenador (y el propietario). Sin lista:
+    // ningún correo queda enumerable.
+    match /trainer_notify/{trainerUid} {
+      allow get: if isSelf(trainerUid) || isOwnerUser()
+        || (signedIn() && myDocExists()
+            && myDoc().get('approved', false) == false
+            && myDoc().get('trainerUid', '') == trainerUid);
+      allow list: if false;
+      allow create, update: if isSelf(trainerUid) && isTrainerUser()
+        && request.resource.data.keys().hasOnly(['email', 'mailLang', 'updatedAt'])
+        && request.resource.data.email == myDoc().get('email', '')
+        && request.resource.data.mailLang in ['en', 'es']
+        && request.resource.data.updatedAt == request.time;
+      allow delete: if isSelf(trainerUid) || isOwnerUser();
+    }
     // ---------- Roles+Escalabilidad: relación alumno–entrenador ----------
     // trainer_relations/{alumnoUid}: la relación VIGENTE (id
     // determinista = uid del alumno, para poder verificar los
