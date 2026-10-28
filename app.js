@@ -1600,6 +1600,10 @@ async function renderProfileView() {
         await setDoc(doc(db, 'users', me.uid), { mailLang: v }, { merge: true });
         UDATA = { ...UDATA, mailLang: v };
         toast(t('msg.mailLangSaved'));
+        /* AUTH-072: refresco inmediato de trainer_notify tras
+           guardar el idioma de correo (la función se auto-protege
+           por rol: para no-entrenadores no hace nada). */
+        trainerNotifySync();
       } catch (e) { ms.value = prev; failToast(e); }
     });
   }
@@ -2953,6 +2957,8 @@ en: {
   'signup.approveInvalid': 'This approval link is not valid.',
   'signup.approveFailed': 'The approval could not be completed. Please try from Access.',
   'signup.closeBtn': 'Close',
+  'signup.quotaLine': 'You have used {used} of {limit} trainer approvals.',
+  'signup.quotaFull': 'Your trainer approval quota is full ({limit}). The administrator can still approve this student.',
   'admin.mailConfirmed': '✉ confirmed',
   'admin.mailUnconfirmed': '✉ not confirmed',
   'clients.empty': 'No clients registered yet.',
@@ -4818,6 +4824,8 @@ es: {
   'signup.approveInvalid': 'Este enlace de aprobación no es válido.',
   'signup.approveFailed': 'La aprobación no se pudo completar. Inténtalo desde Accesos.',
   'signup.closeBtn': 'Cerrar',
+  'signup.quotaLine': 'Llevas {used} de {limit} aprobaciones de entrenador.',
+  'signup.quotaFull': 'Tu cupo de aprobaciones de entrenador está lleno ({limit}). El administrador aún puede aprobar a este alumno.',
   'admin.mailConfirmed': '✉ confirmado',
   'admin.mailUnconfirmed': '✉ sin confirmar',
   'clients.empty': 'Aún no hay clientes registrados.',
@@ -6129,6 +6137,11 @@ onAuthStateChanged(auth, async user => {
   await loadAll();
   startUserDocWatch(user.uid);
   appInstallSignal();
+  /* AUTH-072: sincronización perezosa de trainer_notify — ancla:
+     la carga principal de sesión, con ROLE y UDATA ya fijados y la
+     app ya visible (junto a las demás sincronizaciones de sesión);
+     la función se auto-protege por rol y corre en silencio. */
+  trainerNotifySync();
   /* AUTH-068: reanudar un enlace de aprobación si lo hay. */
   signupApproveResume();
 });
@@ -10099,7 +10112,16 @@ async function mailAutoWelcome(uid, name) {
    solo si el aviso entregó) y la confirmación se hace VISIBLE
    (aviso persistente en la pantalla de acceso mientras el enlace
    espera sesión, y línea de éxito en la pantalla de pendiente).
-   Sin rutas ni escrituras nuevas. */
+   Sin rutas ni escrituras nuevas.
+   AUTH-072 (delegación de la aprobación al entrenador elegido):
+   el enlace de aprobación puede traer tr (entrenador destinatario)
+   y la tarjeta admite la sesión de ESE entrenador — el Worker
+   verifica firma+tr+que sigue siendo su entrenador y devuelve su
+   cupo; la aprobación del entrenador ejecuta el lote N-07 de la
+   bandeja (trainerApproveNow, con cupo) y el welcome de siempre.
+   Única escritura nueva de este paquete: trainer_notify/{me} del
+   PROPIO entrenador (su correo e idioma de correo), sincronizada
+   en silencio al cargar la sesión y al guardar su mailLang. */
 let SIGNUP_CARD_DISMISSED = false;
 async function signupWorkerCall(path, bodyObj, timeoutMs) {
   try {
@@ -10136,7 +10158,10 @@ function captureSignupLinks() {
     const cu = q.get('confirm'), ct = q.get('t');
     if (cu) { try { sessionStorage.setItem('rf-link-confirm', JSON.stringify({ uid: cu, t: ct || '' })); } catch {} captured = true; }
     const au = q.get('approve');
-    if (au) { try { sessionStorage.setItem('rf-link-approve', JSON.stringify({ uid: au, t: ct || '' })); } catch {} captured = true; }
+    /* AUTH-072: el enlace de aprobación delegado trae además tr
+       (uid del entrenador destinatario); se guarda con el enlace.
+       Los enlaces sin tr se comportan exactamente como hoy. */
+    if (au) { try { sessionStorage.setItem('rf-link-approve', JSON.stringify({ uid: au, t: ct || '', tr: q.get('tr') || '' })); } catch {} captured = true; }
     if (captured) { try { history.replaceState(null, '', location.pathname); } catch {} }
   } catch {}
 }
@@ -10145,7 +10170,7 @@ function signupStoredLink(kind) {
     const raw = sessionStorage.getItem('rf-link-' + kind);
     if (!raw) return null;
     const o = JSON.parse(raw);
-    return o && o.uid ? { uid: String(o.uid), t: String(o.t || '') } : null;
+    return o && o.uid ? { uid: String(o.uid), t: String(o.t || ''), tr: String(o.tr || '') } : null;
   } catch { return null; }
 }
 function signupClearLink(kind) {
@@ -10213,8 +10238,12 @@ async function signupApproveResume() {
   try {
     const al = signupStoredLink('approve');
     if (!al || SIGNUP_CARD_DISMISSED) return;
-    if (ROLE !== 'administrador') { toast(t('signup.adminOnly'), true); signupClearLink('approve'); return; }
-    const r = await signupWorkerCall('/approve-verify', { uid: al.uid, t: al.t }, 15000);
+    /* AUTH-072: la puerta admite también al ENTRENADOR destinatario
+       de un enlace delegado: verifica con {uid, t, tr} y el Worker
+       decide (sin tr o con tr ajeno → 403 → signup.approveInvalid,
+       como hoy). Cualquier otro rol: el descarte de hoy. */
+    if (ROLE !== 'administrador' && ROLE !== 'entrenador') { toast(t('signup.adminOnly'), true); signupClearLink('approve'); return; }
+    const r = await signupWorkerCall('/approve-verify', ROLE === 'entrenador' ? { uid: al.uid, t: al.t, tr: al.tr || '' } : { uid: al.uid, t: al.t }, 15000);
     if (!r) return;
     if (r.status === 410) { toast(t('signup.approveExpired'), true); signupClearLink('approve'); return; }
     if (r.status === 400 || r.status === 403) { toast(t('signup.approveInvalid'), true); signupClearLink('approve'); return; }
@@ -10252,7 +10281,12 @@ function signupApproveCardShow(s, uid) {
       ? `<span class="ok-badge">${esc(t('signup.approveMailYes', { date: signupDateStr(s.emailConfirmedAt) }))}</span>`
       : `<span class="warn-badge">${esc(t('signup.approveMailNo'))}</span>`;
     let trainerRow = '';
-    if (s.roleRequest !== 'entrenador') {
+    /* AUTH-072: en la variante del entrenador (via 'trainer') NO se
+       pinta la fila de entrenador: el aprobador ES el entrenador y su
+       sesión no carga ADMIN_USERS. En su lugar, tras la fecha de
+       registro va su línea de cupo (si el Worker la trajo). */
+    const viaTrainer = s.via === 'trainer';
+    if (!viaTrainer && s.roleRequest !== 'entrenador') {
       if (s.trainerUid) {
         const tr = ADMIN_USERS.find(x => x.id === s.trainerUid);
         trainerRow = `<div class="signup-row">${esc(t('signup.approveTrainer', { name: tr ? (tr.name || tr.email || '') : '' }))}</div>`;
@@ -10260,13 +10294,20 @@ function signupApproveCardShow(s, uid) {
         trainerRow = `<div class="signup-row">${esc(t('signup.approveWaiting'))}</div>`;
       }
     }
+    const quotaFull = viaTrainer && s.quotaLimit != null && Number(s.quotaUsed) >= Number(s.quotaLimit);
+    const quotaRow = viaTrainer && s.quotaLimit != null
+      ? `<div class="signup-row">${esc(t('signup.quotaLine', { used: s.quotaUsed, limit: s.quotaLimit }))}</div>` : '';
+    const actionsHtml = quotaFull
+      ? `<div class="signup-row">${esc(t('signup.quotaFull', { limit: s.quotaLimit }))}</div><div class="signup-actions"><button type="button" class="btn-ghost" data-signup-notnow>${esc(t('signup.notNowBtn'))}</button></div>`
+      : `<div class="signup-actions"><button type="button" class="btn-primary signup-approve" data-signup-approve>${esc(t('signup.approveBtn'))}</button><button type="button" class="btn-ghost" data-signup-notnow>${esc(t('signup.notNowBtn'))}</button></div>`;
     box.innerHTML = `<h2 class="signup-title">${esc(t('signup.approveAsk', { name: s.name || s.email || '', type: t(s.roleRequest === 'entrenador' ? 'signup.typeEntrenador' : 'signup.typeAlumno') }))}</h2>`
       + `<div class="signup-row">${esc(s.email || '')}</div>`
       + `<div class="signup-row">${mailRow}</div>`
       + trainerRow
       + `<div class="signup-row">${esc(t('signup.approveRegistered', { date: signupDateStr(s.createdAt) }))}</div>`
+      + quotaRow
       + `<p class="signup-note">${esc(t('signup.approveNote'))}</p>`
-      + `<div class="signup-actions"><button type="button" class="btn-primary signup-approve" data-signup-approve>${esc(t('signup.approveBtn'))}</button><button type="button" class="btn-ghost" data-signup-notnow>${esc(t('signup.notNowBtn'))}</button></div>`;
+      + actionsHtml;
     box.style.display = '';
     const nb = box.querySelector('[data-signup-notnow]');
     if (nb) nb.onclick = () => { SIGNUP_CARD_DISMISSED = true; box.style.display = 'none'; };
@@ -10276,8 +10317,12 @@ function signupApproveCardShow(s, uid) {
       const nb2 = box.querySelector('[data-signup-notnow]');
       if (nb2) nb2.disabled = true;
       let res = null;
-      try { res = await (s.roleRequest === 'entrenador' ? approveTrainerNow(uid) : approveUserNow(uid)); }
+      try { res = await (viaTrainer ? trainerApproveNow(uid, s.name || s.email || '') : (s.roleRequest === 'entrenador' ? approveTrainerNow(uid) : approveUserNow(uid))); }
       catch { toast(t('signup.approveFailed'), true); ab.disabled = false; if (nb2) nb2.disabled = false; return; }
+      /* AUTH-072: cupo agotado ENTRE la tarjeta y el toque —
+         trainerApproveNow ya avisó (appr.exhausted) y NO escribió
+         nada: la tarjeta se queda, sin pintar un aprobado falso. */
+      if (res && res.error === 'quota') { ab.disabled = false; if (nb2) nb2.disabled = false; return; }
       box.innerHTML = `<h2 class="signup-title">${esc(t('signup.approvedOk'))}</h2><div class="signup-row">${esc(res && res.ok ? t('mail.sentOk', { email: res.to }) : mailReasonText(res || { status: 0, error: '' }))}</div><div class="signup-actions"><button type="button" class="btn-primary" data-signup-close>${esc(t('signup.closeBtn'))}</button></div>`;
       box.style.display = '';
       paintClose();
@@ -10299,6 +10344,63 @@ async function approveTrainerNow(uid) {
   toast(t('esc.trainerApproved'));
   await loadAdmin();
   return mailAutoWelcome(uid, u ? (u.name || u.email || '') : '');
+}
+/* AUTH-072 · Delegación de la aprobación: aprobación de UN alumno
+   desde la sesión de SU entrenador (el de la tarjeta del enlace
+   delegado). Réplica FIEL del lote de la bandeja N-07
+   (renderApprovalsTray): límite y contador leídos FRESCOS; con el
+   cupo lleno (o sin límite configurado, fail-closed como las
+   reglas) rehúsa SIN escribir; el lote es el alumno con la forma
+   fija de 5 campos + el propio approvalsUsed +1 + activeStudents
+   +1 del perfil si existe. Las rutinas de administrador
+   (approveUserNow/approveTrainerNow) NO sirven aquí: su forma no
+   la admite ninguna rama de reglas desde una sesión de entrenador.
+   Al final, el welcome de siempre (mailAutoWelcome): la aprobación
+   nunca se bloquea por el correo. */
+async function trainerApproveNow(uid, name) {
+  const me = auth.currentUser.uid;
+  let limit = null;
+  try { const s = await getDoc(doc(db, 'app_settings', 'approvals')); if (s.exists() && isFinite(Number(s.data().maxPerTrainer))) limit = Number(s.data().maxPerTrainer); } catch {}
+  let myUsed = isFinite(Number(UDATA && UDATA.approvalsUsed)) ? Number(UDATA.approvalsUsed) : 0;
+  try { const mine = await getDoc(doc(db, 'users', me)); if (mine.exists() && isFinite(Number(mine.data().approvalsUsed))) myUsed = Number(mine.data().approvalsUsed); } catch {}
+  if (limit === null || myUsed >= limit) { toast(t('appr.exhausted'), true); return { ok: false, status: 0, error: 'quota' }; }
+  const batch = writeBatch(db);
+  batch.update(doc(db, 'users', uid),
+    { approved: true, trainerUid: me, assignmentStatus: 'assigned', approvedBy: me, approvedAt: serverTimestamp() });
+  batch.update(doc(db, 'users', me), { approvalsUsed: myUsed + 1 });
+  try {
+    const ps = await getDoc(doc(db, 'trainer_profiles', me));
+    if (ps.exists()) batch.set(doc(db, 'trainer_profiles', me), { activeStudents: (Number(ps.data().activeStudents) || 0) + 1, updatedAt: serverTimestamp() }, { merge: true });
+  } catch {}
+  await batch.commit();
+  if (UDATA) UDATA.approvalsUsed = myUsed + 1;
+  toast(t('appr.done'));
+  return mailAutoWelcome(uid, name);
+}
+/* AUTH-072 · trainer_notify/{me}: contacto mínimo del entrenador
+   (correo de su cuenta + idioma de correo) para que el Worker
+   pueda avisarle de los registros que lo eligen (diseño §1f: el
+   token del registrante no puede leer users/{entrenador}).
+   Sincronización perezosa e idempotente, en silencio y sin UI:
+   solo corre con rol entrenador; si el documento falta o su
+   email/mailLang difieren de los deseados, lo (re)escribe con
+   merge; si ya coincide, no escribe nada. La escritura exige el
+   delta de reglas nº 1 de AUTH-072 (colección trainer_notify). */
+async function trainerNotifySync() {
+  try {
+    if (ROLE !== 'entrenador') return;
+    const me = auth.currentUser && auth.currentUser.uid;
+    if (!me) return;
+    const desired = {
+      email: (UDATA && UDATA.email) || (auth.currentUser && auth.currentUser.email) || '',
+      mailLang: (UDATA && (UDATA.mailLang === 'es' || UDATA.mailLang === 'en')) ? UDATA.mailLang : LANG,
+      updatedAt: serverTimestamp()
+    };
+    let cur = null;
+    try { const s = await getDoc(doc(db, 'trainer_notify', me)); if (s.exists()) cur = s.data(); } catch {}
+    if (cur && cur.email === desired.email && cur.mailLang === desired.mailLang) return;
+    await setDoc(doc(db, 'trainer_notify', me), desired, { merge: true });
+  } catch {}
 }
 function emailConfirmMarkHtml(u) {
   try {
@@ -21148,7 +21250,7 @@ document.addEventListener('keydown', e => { if (e.key === 'Escape') shareClose()
  *  - El SW (sw.js) solo cachea la cáscara del mismo origen en modo
  *    RED PRIMERO: Auth/Firestore/Worker jamás pasan por la caché.
  * ================================================================ */
-const PWA_SW_VERSION = '20261028-analitica-umami';
+const PWA_SW_VERSION = '20261028-delegacion';
 let pwaDeferredPrompt = null;
 function pwaIsStandalone() {
   try {
