@@ -21,7 +21,7 @@
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-title" content="RONBO FIT">
 <meta name="apple-mobile-web-app-status-bar-style" content="default">
-<link rel="stylesheet" href="styles.css?v=20261028-registro-aprobacion">
+<link rel="stylesheet" href="styles.css?v=20261028-correccion-068">
 <script type="importmap">
 {
   "imports": {
@@ -56,6 +56,7 @@
       </label>
       <a href="#" id="link-forgot" class="forgot-link" data-i18n="auth.forgot">Forgot your password?</a>
       <div id="auth-error" class="auth-error"></div>
+      <!-- AUTH-2026-10-28-070: aviso persistente de confirmación de correo pendiente en la pantalla de acceso (sin sesión); lo pinta app.js con signupPaintConfirmHint --><div id="signup-confirm-hint" class="signup-confirm-hint" style="display:none"></div>
       <!-- UX10-2: expectativas de aprobación — al crear la cuenta, la
            pantalla dice qué pasa ahora, quién aprueba y qué NO se
            promete (ningún plazo). Lo rellena el registro al terminar;
@@ -1205,6 +1206,6 @@
 <div id="toast" class="toast"></div>
 <div id="print-card" aria-hidden="true"></div>
 
-<script type="module" src="app.js?v=20261028-registro-aprobacion"></script>
+<script type="module" src="app.js?v=20261028-correccion-068"></script>
 </body>
 </html>

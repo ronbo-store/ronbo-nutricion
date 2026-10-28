@@ -2923,6 +2923,8 @@ en: {
   'signup.confirmExpired': 'This confirmation link has expired.',
   'signup.confirmInvalid': 'This confirmation link is not valid.',
   'signup.confirmFailed': 'Your email could not be confirmed. Please try again later.',
+  'signup.confirmHint': 'You have a pending email confirmation: sign in with that account to complete it.',
+  'signup.pendingConfirmed': 'Email confirmed ✓',
   'signup.typeAlumno': 'student',
   'signup.typeEntrenador': 'trainer',
   'signup.approveAsk': 'Approve {name} as {type}?',
@@ -4776,6 +4778,8 @@ es: {
   'signup.confirmExpired': 'Este enlace de confirmación caducó.',
   'signup.confirmInvalid': 'Este enlace de confirmación no es válido.',
   'signup.confirmFailed': 'No se pudo confirmar tu correo. Inténtalo de nuevo más tarde.',
+  'signup.confirmHint': 'Tienes una confirmación de correo pendiente: inicia sesión con esa cuenta para completarla',
+  'signup.pendingConfirmed': 'Correo confirmado ✓',
   'signup.typeAlumno': 'alumno',
   'signup.typeEntrenador': 'entrenador',
   'signup.approveAsk': '¿Aprobar a {name} como {type}?',
@@ -5646,6 +5650,9 @@ function applyI18n() {
      casillas se re-traducen al cambiar de idioma sin re-renderizar. */
   document.querySelectorAll('[data-help-key]').forEach(el => { el.textContent = t(el.getAttribute('data-help-key')); });
   if (typeof auth !== 'undefined' && auth) auth.languageCode = LANG;
+  /* AUTH-070: el aviso de confirmación pendiente se repinta en el
+     idioma nuevo (su texto no vive en un data-i18n). */
+  try { signupPaintConfirmHint(); } catch {}
 }
 async function refreshDynamic() {
   const keep = (document.getElementById('dateSel') && document.getElementById('dateSel').value) || null;
@@ -5920,8 +5927,14 @@ $('form-register').addEventListener('submit', async e => {
         });
       } catch {}
     }
-    /* AUTH-068: aviso de registro (nunca bloquea el registro). */
-    await signupNotifyCall();
+    /* AUTH-068: aviso de registro (nunca bloquea el registro).
+       AUTH-070 (corrección tras la prueba real §8): tope de 25 s y
+       UN reintento inmediato si el primer intento no entrega; si
+       ambos fallan el registro termina igual y el respaldo de la
+       puerta lo reintenta cuando la cuenta entre. */
+    let notifyRes = null;
+    try { notifyRes = await signupNotifyCall(25000); } catch {}
+    if (!notifyRes || !notifyRes.ok) { try { await signupNotifyCall(25000); } catch {} }
     await signOut(auth);
     suppressAuthCheck = false;
     showRegError('');
@@ -5994,6 +6007,10 @@ $('link-forgot').addEventListener('click', async e => {
 onAuthStateChanged(auth, async user => {
   if (!user) {
     stopUserDocWatch();
+    /* AUTH-070: sin sesión también se capturan los enlaces de la
+       URL y se pinta el aviso de confirmación pendiente, para que
+       quien abre su enlace de confirmación VEA qué paso sigue. */
+    try { captureSignupLinks(); signupPaintConfirmHint(); } catch {}
     $('auth-view').style.display = '';
     $('app-view').style.display = 'none';
     return;
@@ -6029,11 +6046,20 @@ onAuthStateChanged(auth, async user => {
     IS_OWNER = UDATA.isOwner === true;
     ROLE = deriveRole(UDATA, IS_OWNER);
     /* AUTH-068: enlaces de registro (confirmación y respaldo de aviso). */
-    await signupLinkDoor(user);
+    const doorRes = await signupLinkDoor(user);
     if (!IS_OWNER && UDATA.approved !== true) {
       if (!consentIsActive(UDATA)) { showRenewalGate(); return; }
       await signOut(auth);
       showAuthError(t('err.pending'));
+      /* AUTH-070: si la puerta acaba de confirmar el correo en ESTA
+         entrada, la pantalla de pendiente lo dice con su línea de
+         éxito (antes la confirmación quedaba invisible tras el
+         cierre de sesión y la tarjeta del administrador seguía
+         mostrando «sin confirmar» sin que el usuario lo supiera). */
+      if (doorRes && doorRes.confirmedNow) {
+        const ae = $('auth-error');
+        if (ae) ae.innerHTML = esc(t('err.pending')) + '<br>' + esc(t('signup.pendingConfirmed'));
+      }
       return;
     }
     GOALS = { ...(UDATA.goals || {}) }; // sin goals en el doc = sin metas (no hay repliegue a valores de la casa)
@@ -10045,8 +10071,15 @@ async function mailAutoWelcome(uid, name) {
    sin sesión, y sin sesión no hay verificación ni tarjeta de
    aprobación). El Worker nunca escribe en Firestore: la única
    escritura nueva de la app es {emailConfirmedAt} del PROPIO
-   usuario, solo tras el ok de /confirm-verify. NO DESPLEGADO. */
-let SIGNUP_NOTIFY_TRIED = false;
+   usuario, solo tras el ok de /confirm-verify.
+   AUTH-070 (corrección tras la prueba real del despliegue, §8 del
+   informe INFORME-DESPLIEGUE-REGISTRO-APROBACION-2026-10-28): el
+   disparo del aviso se endurece (tope de 25 s, un reintento en el
+   registro y respaldo ESPERADO en la puerta, con marca por sesión
+   solo si el aviso entregó) y la confirmación se hace VISIBLE
+   (aviso persistente en la pantalla de acceso mientras el enlace
+   espera sesión, y línea de éxito en la pantalla de pendiente).
+   Sin rutas ni escrituras nuevas. */
 let SIGNUP_CARD_DISMISSED = false;
 async function signupWorkerCall(path, bodyObj, timeoutMs) {
   try {
@@ -10069,8 +10102,12 @@ async function signupWorkerCall(path, bodyObj, timeoutMs) {
     finally { clearTimeout(timer); }
   } catch { return null; }
 }
-async function signupNotifyCall() {
-  try { await signupWorkerCall('/signup-notify', { lang: LANG }, 8000); } catch {}
+async function signupNotifyCall(timeoutMs) {
+  /* AUTH-070: devuelve el resultado (antes se tragaba en silencio)
+     para que el llamador pueda reintentar, y el tope por defecto
+     sube de 8 s a 25 s (el envío doble del Worker — aviso +
+     confirmación — puede tardar más que eso en frío). */
+  try { return await signupWorkerCall('/signup-notify', { lang: LANG }, timeoutMs || 25000); } catch { return null; }
 }
 function captureSignupLinks() {
   try {
@@ -10094,9 +10131,28 @@ function signupStoredLink(kind) {
 function signupClearLink(kind) {
   try { sessionStorage.removeItem('rf-link-' + kind); } catch {}
 }
-async function signupLinkDoor(user) {
+function signupPaintConfirmHint() {
+  /* AUTH-070: aviso PERSISTENTE en la pantalla de acceso cuando un
+     enlace de confirmación espera sesión: sin sesión la puerta no
+     puede procesarlo, y hasta hoy ese espera era invisible. Vive
+     hasta que el enlace se procesa o la puerta lo descarta. */
   try {
-    if (!user) return;
+    const el = $('signup-confirm-hint');
+    if (!el) return;
+    if (signupStoredLink('confirm')) { el.textContent = t('signup.confirmHint'); el.style.display = ''; }
+    else { el.textContent = ''; el.style.display = 'none'; }
+  } catch {}
+}
+/* AUTH-070: al arrancar se capturan los enlaces de la URL AUNQUE no
+   haya sesión (antes la captura vivía solo dentro de la puerta, ya
+   con sesión) y se pinta el aviso de confirmación pendiente. */
+try { captureSignupLinks(); signupPaintConfirmHint(); } catch {}
+async function signupLinkDoor(user) {
+  /* Devuelve { confirmedNow } para que la puerta de pendientes
+     pueda MOSTRAR la confirmación recién hecha (AUTH-070). */
+  const out = { confirmedNow: false };
+  try {
+    if (!user) return out;
     captureSignupLinks();
     const cl = signupStoredLink('confirm');
     if (cl) {
@@ -10105,7 +10161,7 @@ async function signupLinkDoor(user) {
       else {
         const r = await signupWorkerCall('/confirm-verify', { uid: cl.uid, t: cl.t }, 15000);
         if (r && r.ok) {
-          try { await setDoc(doc(db, 'users', user.uid), { emailConfirmedAt: serverTimestamp() }, { merge: true }); toast(t('signup.confirmDone')); }
+          try { await setDoc(doc(db, 'users', user.uid), { emailConfirmedAt: serverTimestamp() }, { merge: true }); out.confirmedNow = true; toast(t('signup.confirmDone')); }
           catch { toast(t('signup.confirmFailed'), true); }
           signupClearLink('confirm');
         }
@@ -10114,8 +10170,24 @@ async function signupLinkDoor(user) {
         /* r null o 5xx: el enlace se conserva para otro intento en esta pestaña */
       }
     }
-    if (!IS_OWNER && UDATA.approved !== true && !SIGNUP_NOTIFY_TRIED) { SIGNUP_NOTIFY_TRIED = true; signupNotifyCall(); }
+    /* AUTH-070: el respaldo del aviso se ESPERA (await) — antes se
+       disparaba sin esperar y la puerta de pendientes cerraba la
+       sesión encima, dejándolo a mitad. La marca de «ya entregado»
+       vive en sessionStorage (por sesión, no por carga) y SOLO se
+       fija si el aviso entregó (ok): si falló, la próxima entrada
+       o recarga lo reintenta. La guarda real anti-duplicado son
+       las marcas KV del Worker, una por correo y por cuenta. */
+    if (!IS_OWNER && UDATA.approved !== true) {
+      let notifyDone = false;
+      try { notifyDone = sessionStorage.getItem('rf-notify-done') === user.uid; } catch {}
+      if (!notifyDone) {
+        const nr = await signupNotifyCall(25000);
+        if (nr && nr.ok) { try { sessionStorage.setItem('rf-notify-done', user.uid); } catch {} }
+      }
+    }
+    signupPaintConfirmHint();
   } catch {}
+  return out;
 }
 async function signupApproveResume() {
   try {
@@ -20973,7 +21045,7 @@ document.addEventListener('keydown', e => { if (e.key === 'Escape') shareClose()
  *  - El SW (sw.js) solo cachea la cáscara del mismo origen en modo
  *    RED PRIMERO: Auth/Firestore/Worker jamás pasan por la caché.
  * ================================================================ */
-const PWA_SW_VERSION = '20261028-registro-aprobacion';
+const PWA_SW_VERSION = '20261028-correccion-068';
 let pwaDeferredPrompt = null;
 function pwaIsStandalone() {
   try {
