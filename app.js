@@ -1635,6 +1635,91 @@ async function renderProfileView() {
      propia puerta (ROLE entrenador o dueño) decide la visibilidad;
      para el alumno la caja queda oculta y sin contenido. */
   renderDossierEditor();
+  /* Zona «Administración» (AUTH-2026-10-28-067): solo el rol
+     administrador la pinta; para los demás queda oculta y vacía
+     y jamás llama a la red. Un fallo suyo nunca rompe el perfil. */
+  try { renderAdminZone().catch(() => {}); } catch {}
+}
+
+/* ============ ADMINISTRACIÓN — zona con subespacios (AUTH-2026-10-28-067) ============
+   Zona propia dentro de «Mi perfil», visible SOLO para el rol
+   administrador. Se organiza en SUBESPACIOS con título propio:
+   en esta fase se pinta únicamente el subespacio «Tech» y, dentro
+   de él, su primer bloque «Consumo de IA». Arquitectura preparada
+   para crecer sin reescribir la zona: cada subespacio futuro será
+   una función propia (renderAdmin<Subespacio>) llamada desde
+   renderAdminZone tras el esqueleto común; el subespacio
+   «SISTEMA» NO se pinta en esta fase.
+   Superficie Firestore: CERO operaciones nuevas en todo este
+   bloque — los datos de consumo llegan SOLO por el Worker
+   (GET /admin/usage) y los nombres legibles salen de ADMIN_USERS
+   y ADMIN_NAME_CACHE, que la sesión del administrador ya carga
+   con loadAdmin; jamás se muestra un uid como nombre. */
+async function usageCall() {
+  const ep = aiEndpoint();
+  if (!ep) throw new Error('ai-off');
+  const idToken = await auth.currentUser.getIdToken();
+  const r = await fetch(ep + '/admin/usage', { headers: { Authorization: 'Bearer ' + idToken } });
+  if (!r.ok) throw new Error('usage-' + r.status);
+  return r.json();
+}
+function admuseShortDate(iso) {
+  const m = /^(\d{4})-(\d{2})-(\d{2})/.exec(String(iso || ''));
+  if (!m) return '';
+  const months = LANG === 'es' ? MESES_ES : MESES_EN;
+  return Number(m[3]) + ' ' + months[Number(m[2]) - 1].slice(0, 3);
+}
+function admuseNameOf(uid) {
+  const u = (typeof ADMIN_USERS !== 'undefined' && Array.isArray(ADMIN_USERS)) ? ADMIN_USERS.find(x => x.id === uid) : null;
+  let nm = (u && u.name) || ((typeof ADMIN_NAME_CACHE !== 'undefined' && ADMIN_NAME_CACHE) ? ADMIN_NAME_CACHE[uid] : '') || '';
+  nm = String(nm || '').trim();
+  if (!nm || nm === uid) nm = t('admuse.unknownUser');
+  return { name: nm, isOwner: !!(u && u.isOwner) || uid === (auth.currentUser && auth.currentUser.uid) };
+}
+function admuseSkeleton(inner) {
+  return `<div class="panel admuse-zone"><h3 class="history-title">${esc(t('admuse.title'))}</h3><p class="progress-hint">${esc(t('admuse.sub'))}</p><div class="admuse-subspace"><h4 class="admuse-subhead">${esc(t('admuse.subTech'))}</h4><div class="admuse-block"><h4 class="admuse-aititle">${esc(t('admuse.aiTitle'))}</h4><p class="progress-hint">${esc(t('admuse.aiHint'))}</p>${inner}</div></div></div>`;
+}
+async function renderAdminZone() {
+  const box = $('admin-zone-box');
+  if (!box) return;
+  if (ROLE !== 'administrador') { box.innerHTML = ''; box.style.display = 'none'; return; }
+  box.style.display = '';
+  box.innerHTML = admuseSkeleton(`<p class="admuse-loading">${esc(t('admuse.loading'))}</p>`);
+  try {
+    const data = await usageCall();
+    const day = String(data.counterDayUTC || '');
+    const yDay = day ? new Date(Date.parse(day + 'T00:00:00Z') - 86400000).toISOString().slice(0, 10) : '';
+    const days = data.days || {}, totals = data.totals || {}, bodytype = data.bodytype || {}, limits = data.limits || {};
+    const sum = o => Object.values(o || {}).reduce((a, v) => a + (Number(v) || 0), 0);
+    const todayN = sum(days[day]), yestN = sum(days[yDay]), totalN = sum(totals);
+    const uids = [...new Set([...Object.keys(totals), ...Object.keys(days[day] || {}), ...Object.keys(days[yDay] || {}), ...Object.keys(bodytype), ...Object.keys(limits)])];
+    uids.sort((a, b) => (Number(totals[b]) || 0) - (Number(totals[a]) || 0));
+    const rows = uids.map(uid => {
+      const who = admuseNameOf(uid);
+      const lim = Object.prototype.hasOwnProperty.call(limits, uid) ? (limits[uid] === null ? esc(t('limits.noLimit')) : String(Number(limits[uid]) || 0)) : '—';
+      return `<tr><td>${esc(who.name)}${who.isOwner ? ` <span class="owner-badge">${esc(t('admin.owner'))}</span>` : ''}</td><td>${Number((days[day] || {})[uid]) || 0}</td><td>${Number(totals[uid]) || 0}</td><td>${lim}</td></tr>`;
+    }).join('');
+    const bodyLines = Object.keys(bodytype).map(uid => {
+      const who = admuseNameOf(uid);
+      const d = new Date(Number(bodytype[uid]) || 0);
+      const months = LANG === 'es' ? MESES_ES : MESES_EN;
+      const when = isNaN(d.getTime()) ? '' : d.getDate() + ' ' + months[d.getMonth()].slice(0, 3) + ' ' + d.getFullYear();
+      return `<p class="admuse-lastbody"><span class="muted">${esc(t('admuse.lastBody'))}</span> ${esc(who.name)} · ${esc(when)}</p>`;
+    }).join('');
+    box.innerHTML = admuseSkeleton(`
+      <div class="admuse-switchrow"><span>${esc(t('admuse.switch'))}</span><span class="admuse-pill ${data.aiEnabled ? 'on' : 'off'}">${esc(data.aiEnabled ? t('admuse.on') : t('admuse.off'))}</span></div>
+      <div class="admuse-kpis">
+        <div class="admuse-kpi"><div class="admuse-kpin">${todayN}</div><div class="admuse-kpil">${esc(t('admuse.today'))} (${esc(admuseShortDate(day))})</div><div class="admuse-kpisub">${esc(t('admuse.requests'))}</div></div>
+        <div class="admuse-kpi"><div class="admuse-kpin">${yestN}</div><div class="admuse-kpil">${esc(t('admuse.yesterday'))} (${esc(admuseShortDate(yDay))})</div><div class="admuse-kpisub">${esc(t('admuse.requests'))}</div></div>
+        <div class="admuse-kpi"><div class="admuse-kpin">${totalN}</div><div class="admuse-kpil">${esc(t('admuse.totalKpi'))}</div><div class="admuse-kpisub">${esc(t('admuse.production'))}</div></div>
+      </div>
+      <table class="admuse-table"><thead><tr><th>${esc(t('admuse.colUser'))}</th><th>${esc(t('admuse.colToday'))}</th><th>${esc(t('admuse.colTotal'))}</th><th>${esc(t('admuse.colLimit'))}</th></tr></thead><tbody>${rows}</tbody></table>
+      ${bodyLines}
+      <p class="admuse-note">${esc(t('admuse.note'))}</p>
+      <p class="admuse-eqnote">${esc(t('admuse.eqNote'))}</p>`);
+  } catch {
+    box.innerHTML = admuseSkeleton(`<p class="admuse-unavailable">${esc(t('admuse.unavailable'))}</p>`);
+  }
 }
 
 let DOS_PAINT_SEQ = 0;
@@ -2804,6 +2889,29 @@ en: {
   'limits.error': 'The limits could not be loaded or saved. Try again.',
   'limits.invalid': 'Enter a whole number of 0 or more, or choose "No limit".',
   'limits.countNote': 'The counter measures requests to the service; a full analysis normally uses two.',
+  'admuse.title': '🛠 Administration',
+  'admuse.sub': 'Administrator only · your management zone',
+  'admuse.subTech': 'Tech',
+  'admuse.aiTitle': '🤖 AI usage',
+  'admuse.aiHint': 'Real server data · updated when opened',
+  'admuse.switch': 'AI switch',
+  'admuse.on': 'ON',
+  'admuse.off': 'OFF',
+  'admuse.today': 'TODAY',
+  'admuse.yesterday': 'YESTERDAY',
+  'admuse.totalKpi': 'ACCUMULATED',
+  'admuse.requests': 'requests',
+  'admuse.production': 'production',
+  'admuse.colUser': 'User',
+  'admuse.colToday': 'Today',
+  'admuse.colTotal': 'Total',
+  'admuse.colLimit': 'Limit/day',
+  'admuse.lastBody': 'Last body analysis',
+  'admuse.note': 'These figures count AI requests (photo ≈ 2 · text/voice ≈ 1). Exact tokens and cost live in the Google panel: they are shown here with their date when reconciled.',
+  'admuse.eqNote': 'Equivalent to the counters that apply the daily limits of each user.',
+  'admuse.unavailable': 'Unavailable right now',
+  'admuse.loading': 'Loading…',
+  'admuse.unknownUser': 'Unnamed user',
   'clients.empty': 'No clients registered yet.',
   'clients.noWeighins': 'no weigh-ins',
   'clients.daysAgo': '{d} days ago',
@@ -4607,6 +4715,29 @@ es: {
   'limits.error': 'No se pudieron cargar ni guardar los límites. Inténtalo de nuevo.',
   'limits.invalid': 'Escribe un número entero de 0 o más, o elige «Sin límite».',
   'limits.countNote': 'El contador mide solicitudes al servicio; un análisis completo usa normalmente dos.',
+  'admuse.title': '🛠 Administración',
+  'admuse.sub': 'Solo administrador · tu zona de gestión',
+  'admuse.subTech': 'Tech',
+  'admuse.aiTitle': '🤖 Consumo de IA',
+  'admuse.aiHint': 'Datos reales del servidor · actualizado al abrir',
+  'admuse.switch': 'Interruptor de IA',
+  'admuse.on': 'ENCENDIDO',
+  'admuse.off': 'APAGADO',
+  'admuse.today': 'HOY',
+  'admuse.yesterday': 'AYER',
+  'admuse.totalKpi': 'ACUMULADO',
+  'admuse.requests': 'solicitudes',
+  'admuse.production': 'producción',
+  'admuse.colUser': 'Usuario',
+  'admuse.colToday': 'Hoy',
+  'admuse.colTotal': 'Total',
+  'admuse.colLimit': 'Límite/día',
+  'admuse.lastBody': 'Último análisis corporal',
+  'admuse.note': 'Las cifras cuentan solicitudes de IA (foto ≈ 2 · texto/voz ≈ 1). Los tokens y el costo exacto viven en el panel de Google: aquí se muestran con su fecha cuando se concilian.',
+  'admuse.eqNote': 'Equivale a los contadores que aplican los límites diarios de cada usuario.',
+  'admuse.unavailable': 'No disponible ahora',
+  'admuse.loading': 'Cargando…',
+  'admuse.unknownUser': 'Usuario sin nombre',
   'clients.empty': 'Aún no hay clientes registrados.',
   'clients.noWeighins': 'sin pesajes',
   'clients.daysAgo': 'hace {d} días',
@@ -20601,7 +20732,7 @@ document.addEventListener('keydown', e => { if (e.key === 'Escape') shareClose()
  *  - El SW (sw.js) solo cachea la cáscara del mismo origen en modo
  *    RED PRIMERO: Auth/Firestore/Worker jamás pasan por la caché.
  * ================================================================ */
-const PWA_SW_VERSION = '20261028-organizar-clientes';
+const PWA_SW_VERSION = '20261028-consumo-ia';
 let pwaDeferredPrompt = null;
 function pwaIsStandalone() {
   try {
