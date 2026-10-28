@@ -21,7 +21,7 @@
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-title" content="RONBO FIT">
 <meta name="apple-mobile-web-app-status-bar-style" content="default">
-<link rel="stylesheet" href="styles.css?v=20261027-ajuste-metas">
+<link rel="stylesheet" href="styles.css?v=20261027-correo-automatico">
 <script type="importmap">
 {
   "imports": {
@@ -715,6 +715,7 @@
     <h2><span data-i18n="access.title">🔐 Access management</span> <span class="h2-sub" data-i18n="access.sub">· owner only</span></h2>
     <p class="progress-hint" data-i18n="access.hint">New accounts stay pending until you approve them. Only approved users can sign in, and each one sees only their own data.</p>
     <h3 class="history-title"><span data-i18n="access.pending">Pending approval (</span><span id="pending-count">0</span>)</h3>
+    <div id="mail-notice" class="mail-notice" style="display:none"></div>
     <div id="pending-list"><div class="wempty" data-i18n="admin.noPending">No pending requests.</div></div>
     <h3 class="history-title" data-i18n="access.users">Users with access</h3>
     <div id="users-list"><div class="wempty" data-i18n="access.loading">Loading…</div></div>
@@ -1166,6 +1167,6 @@
 <div id="toast" class="toast"></div>
 <div id="print-card" aria-hidden="true"></div>
 
-<script type="module" src="app.js?v=20261027-ajuste-metas"></script>
+<script type="module" src="app.js?v=20261027-correo-automatico"></script>
 </body>
 </html>

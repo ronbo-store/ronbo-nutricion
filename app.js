@@ -3045,6 +3045,21 @@ en: {
   'esc.mailBtn': '📧 Profile reminder text',
   'esc.mailComplete': 'This trainer already completed their profile template ✓',
   'esc.mailCopy': 'Copy text',
+  'esc.mail2.tplWelcome': 'New user: account approved (welcome)',
+  'esc.mail2.subjWelcome': 'RONBO FIT — Your account is approved',
+  'esc.mail2.bodyWelcome': 'Hi {name},\n\nGreat news: your RONBO FIT account has been approved. You can sign in now and start setting up your training and food plan:\n\nhttps://fit.ronbo.store\n\nEat well. Train strong. Live present.\n\nThank you,\nRONBO FIT',
+  'mail.sendBtn': '📧 Send via Gmail',
+  'mail.recipient': 'Send to',
+  'mail.sending': 'Sending…',
+  'mail.sentOk': 'Email sent ✓ to {email}',
+  'mail.resendBtn': '📧 Resend welcome email',
+  'mail.approvedNotSent': 'User approved ✓ — but the welcome email to {name} did NOT go out: {reason}.',
+  'mail.reasonNotConnected': 'email is not connected yet',
+  'mail.reasonOff': 'email sending is turned off',
+  'mail.reasonForbidden': 'this account is not allowed to send email',
+  'mail.reasonGeneric': 'sending error',
+  'mail.retryBtn': 'Retry sending',
+  'mail.sendFailed': 'The email did NOT go out: {reason}.',
   'esc.mailCopied': 'Text copied',
   'esc.mailSubject': 'RONBO FIT — Complete your trainer profile to continue',
   'esc.mailBody': 'Hi {name},\n\nYour RONBO FIT trainer account has been approved. To continue the process, please complete your profile template (your dossier) in the app: featured photo, headline and your personal introduction — plus your experience, certifications, specialties and the places where you train in person, if that applies to you.\n\nStudents see this template when choosing a trainer, so a complete profile helps them choose you. When you sign in, the app shows you a pending item, "Complete your profile template to continue", which takes you straight to your dossier; it disappears on its own once your template is complete.\n\nThank you,\nRONBO FIT',
@@ -4792,6 +4807,21 @@ es: {
   'esc.mailBtn': '📧 Texto de recordatorio de perfil',
   'esc.mailComplete': 'Este entrenador ya completó su plantilla de perfil ✓',
   'esc.mailCopy': 'Copiar texto',
+  'esc.mail2.tplWelcome': 'Usuario nuevo: cuenta aprobada (bienvenida)',
+  'esc.mail2.subjWelcome': 'RONBO FIT — Tu cuenta está aprobada',
+  'esc.mail2.bodyWelcome': 'Hola {name}:\n\nBuenas noticias: tu cuenta de RONBO FIT está aprobada. Ya puedes entrar y empezar a preparar tu plan de entrenamiento y comidas:\n\nhttps://fit.ronbo.store\n\nCome bien. Entrena fuerte. Vive el presente.\n\nGracias,\nRONBO FIT',
+  'mail.sendBtn': '📧 Enviar por Gmail',
+  'mail.recipient': 'Enviar a',
+  'mail.sending': 'Enviando…',
+  'mail.sentOk': 'Correo enviado ✓ a {email}',
+  'mail.resendBtn': '📧 Reenviar aviso de aprobación',
+  'mail.approvedNotSent': 'Usuario aprobado ✓ — pero el correo de bienvenida para {name} NO salió: {reason}.',
+  'mail.reasonNotConnected': 'el correo aún no está conectado',
+  'mail.reasonOff': 'el envío de correo está apagado',
+  'mail.reasonForbidden': 'esta cuenta no tiene permiso para enviar correo',
+  'mail.reasonGeneric': 'error de envío',
+  'mail.retryBtn': 'Reintentar el envío',
+  'mail.sendFailed': 'El correo NO salió: {reason}.',
   'esc.mailCopied': 'Texto copiado',
   'esc.mailSubject': 'RONBO FIT — Completa tu plantilla de perfil para continuar',
   'esc.mailBody': 'Hola {name}:\n\nTu cuenta de entrenador en RONBO FIT ha sido aprobada. Para continuar con el procedimiento, completa tu plantilla de perfil (tu dossier) en la app: foto destacada, titular y tu reseña personal — además de tu experiencia, certificaciones, especialidades y los lugares donde atiendes presencialmente, si aplica en tu caso.\n\nLos alumnos ven esta plantilla al elegir entrenador, así que un perfil completo les ayuda a elegirte. Al entrar, la app te mostrará un pendiente, «Completa tu plantilla de perfil para continuar», que te lleva directo a tu dossier; desaparece solo cuando tu plantilla queda completa.\n\nGracias,\nRONBO FIT',
@@ -5896,6 +5926,7 @@ async function loadAdmin() {
         <button class="btn-ghost btn-sm" data-profile="${u.id}">${t('admin.profile')}</button>
         <button class="btn-ghost btn-sm" data-goals="${u.id}">${t('admin.goals')}</button>
         ${u.role === 'entrenador' ? `<button class="btn-ghost btn-sm" data-dos-mail="${u.id}">${t('esc.mailBtn')}</button>` : ''}
+        <button class="btn-ghost btn-sm" data-mail-resend="${u.id}">${t('mail.resendBtn')}</button>
         <button class="btn-ghost btn-sm" data-revoke="${u.id}">${t('admin.revoke')}</button>
       </div>
     </div>${u.role === 'entrenador' ? `<div class="dos-mail-box" id="dos-mail-${u.id}" style="display:none"></div>` : ''}`).join('') : `<div class="wempty">${t('admin.noUsers')}</div>`);
@@ -5925,6 +5956,9 @@ async function loadAdmin() {
     await auditLog('role', 'role.trainerApproved', uid, '');
     toast(t('esc.trainerApproved'));
     await loadAdmin();
+    /* CORREO AUTOMÁTICO: mismo aviso de bienvenida al aprobar la
+       solicitud de entrenador (la aprobación ya quedó guardada). */
+    mailAutoWelcome(uid, u ? (u.name || u.email || '') : '');
   });
   /* Comunicación al aprobar a un entrenador (extensión 2026-10-24):
      junto a cada entrenador aprobado con la plantilla INCOMPLETA,
@@ -5948,7 +5982,7 @@ async function loadAdmin() {
     const name = (u && (u.name || u.email)) || '';
     const text = `${t('esc.mailSubject')}\n\n${t('esc.mailBody', { name })}`;
     box.innerHTML = `<textarea class="dos-mail-text" id="dos-mail-text-${uid}" rows="12" readonly>${esc(text)}</textarea>
-      <div class="eval-actions"><button type="button" class="btn-ghost btn-sm" data-dos-copy="${uid}">${esc(t('esc.mailCopy'))}</button></div>`;
+      <div class="eval-actions"><button type="button" class="btn-primary btn-sm" data-dos-send="${uid}">${esc(t('mail.sendBtn'))}</button><button type="button" class="btn-ghost btn-sm" data-dos-copy="${uid}">${esc(t('esc.mailCopy'))}</button></div>`;
     box.style.display = '';
     const cp = box.querySelector('[data-dos-copy]');
     if (cp) cp.onclick = async () => {
@@ -5957,6 +5991,25 @@ async function loadAdmin() {
       catch { if (ta) { ta.select(); try { document.execCommand('copy'); } catch {} } }
       toast(t('esc.mailCopied'));
     };
+    /* CORREO AUTOMÁTICO: la misma comunicación del dossier, enviada
+       por Gmail al entrenador de la fila (plantilla «dossier»). */
+    const sd = box.querySelector('[data-dos-send]');
+    if (sd) sd.onclick = async () => {
+      sd.disabled = true;
+      const res = await mailDeliver(uid, 'dossier');
+      sd.disabled = false;
+      if (res.ok) toast(t('mail.sentOk', { email: res.to }));
+      else toast(t('mail.sendFailed', { reason: mailReasonText(res) }));
+    };
+  });
+  /* CORREO AUTOMÁTICO: reenvío del aviso de aprobación por usuario. */
+  document.querySelectorAll('[data-mail-resend]').forEach(b => b.onclick = async () => {
+    const uid = b.dataset.mailResend;
+    b.disabled = true;
+    const res = await mailDeliver(uid, 'welcome');
+    b.disabled = false;
+    if (res.ok) toast(t('mail.sentOk', { email: res.to }));
+    else toast(t('mail.sendFailed', { reason: mailReasonText(res) }));
   });
   const dirBox = $('trainer-dir-box');
   if (dirBox) {
@@ -6031,6 +6084,7 @@ async function loadAdmin() {
   const mailBox = $('mail-texts-box');
   if (mailBox) {
     const TPLS = [
+      ['welcome', 'esc.mail2.subjWelcome', 'esc.mail2.bodyWelcome', 'esc.mail2.tplWelcome'],
       ['trainer', 'esc.mail2.subjTrainer', 'esc.mail2.bodyTrainer', 'esc.mail2.tplTrainer'],
       ['eval', 'esc.mail2.subjEval', 'esc.mail2.bodyEval', 'esc.mail2.tplEval'],
       ['meals', 'esc.mail2.subjMeals', 'esc.mail2.bodyMeals', 'esc.mail2.tplMeals'],
@@ -6039,7 +6093,10 @@ async function loadAdmin() {
     mailBox.innerHTML = `<div class="user-row"><div><b>${esc(t('esc.mail2.boxTitle'))}</b><br>
       <select id="mail-tpl-sel">${TPLS.map(([k, , , lk]) => `<option value="${k}">${esc(t(lk))}</option>`).join('')}</select></div></div>
       <textarea class="dos-mail-text" id="mail-tpl-text" rows="10" readonly></textarea>
-      <div class="eval-actions"><button type="button" class="btn-ghost btn-sm" id="mail-tpl-copy">${esc(t('esc.mailCopy'))}</button></div>`;
+      <div class="eval-actions"><button type="button" class="btn-ghost btn-sm" id="mail-tpl-copy">${esc(t('esc.mailCopy'))}</button>
+      <label class="muted">${esc(t('mail.recipient'))} <select id="mail-tpl-user">${ADMIN_USERS.filter(u => !u.isOwner).map(u => `<option value="${u.id}">${esc(u.name || u.email || u.id)} (${esc(u.email || '')})</option>`).join('')}</select></label>
+      <button type="button" class="btn-primary btn-sm" id="mail-tpl-send">${esc(t('mail.sendBtn'))}</button></div>
+      <p class="progress-hint" id="mail-tpl-status"></p>`;
     const fill = () => { const k = ($('mail-tpl-sel') || {}).value || 'trainer'; const tp = TPLS.find(x => x[0] === k); const ta = $('mail-tpl-text'); if (ta && tp) ta.value = `${t(tp[1])}\n\n${t(tp[2])}`; };
     fill();
     const selEl = $('mail-tpl-sel'); if (selEl) selEl.onchange = fill;
@@ -6048,6 +6105,19 @@ async function loadAdmin() {
       try { await navigator.clipboard.writeText(ta.value); }
       catch { if (ta) { ta.select(); try { document.execCommand('copy'); } catch {} } }
       toast(t('esc.mailCopied'));
+    };
+    /* CORREO AUTOMÁTICO: enviar la plantilla elegida al usuario
+       elegido, por Gmail (el Worker compone y envía; aquí solo se
+       pide y se anuncia el resultado, sin silencio). */
+    const sendBtn = $('mail-tpl-send'); if (sendBtn) sendBtn.onclick = async () => {
+      const uid = ($('mail-tpl-user') || {}).value || '';
+      const st = $('mail-tpl-status');
+      if (!uid) return;
+      sendBtn.disabled = true;
+      if (st) st.textContent = t('mail.sending');
+      const res = await mailDeliver(uid, ($('mail-tpl-sel') || {}).value || 'welcome');
+      sendBtn.disabled = false;
+      if (st) st.textContent = res.ok ? t('mail.sentOk', { email: res.to }) : t('mail.sendFailed', { reason: mailReasonText(res) });
     };
   }
   renderAiControlBox();
@@ -6063,6 +6133,9 @@ async function loadAdmin() {
     const u = ADMIN_USERS.find(x => x.id === b.dataset.approve);
     if (u && u.trainerUid) await escAdjustQuota(u.trainerUid, +1);
     toast(t('msg.approved')); await loadAdmin();
+    /* CORREO AUTOMÁTICO: la aprobación ya quedó guardada; el aviso de
+       bienvenida sale solo y su fallo se anuncia, nunca bloquea. */
+    mailAutoWelcome(b.dataset.approve, u ? (u.name || u.email || '') : '');
   });
   document.querySelectorAll('[data-revoke]').forEach(b => b.onclick = async () => {
     if (!confirm(t('confirm.revoke'))) return;
@@ -9420,6 +9493,75 @@ async function aiCall(path, body) {
   try { j = await r.json(); } catch { throw new Error('ai-badjson'); }
   if (!j || typeof j !== 'object' || Array.isArray(j)) throw new Error('ai-badjson');
   return j;
+}
+/* ═══════════ CORREO AUTOMÁTICO (paquete 2026-10-27) ═══════════
+   Al aprobar a un usuario (y con los botones «Enviar por Gmail» de
+   Accesos) la app pide al Worker (POST /mail/send) que envíe la
+   plantilla fija correspondiente como ronbo.fit@gmail.com. La app
+   NUNCA compone el correo ni conoce el destinatario: el Worker lee
+   el correo y el nombre desde Firestore y compone desde SUS
+   plantillas. Si el envío sale, la app anota el aviso en el propio
+   documento del usuario (notices.<plantilla>) con la misma vía de
+   actualización que usa la aprobación — el propietario puede
+   escribir cualquier campo salvo los de consentimiento (reglas
+   vigentes, sin delta). Si el envío NO sale, la aprobación queda
+   firme y se muestra el aviso visible #mail-notice con reintento:
+   jamás un fallo silencioso ni una aprobación bloqueada. */
+async function mailSend(uid, template) {
+  const ep = aiEndpoint();
+  if (!ep) return { ok: false, status: 0, error: 'no-endpoint' };
+  let idToken = '';
+  try { idToken = await auth.currentUser.getIdToken(); } catch { return { ok: false, status: 0, error: 'no-token' }; }
+  const ctl = new AbortController();
+  const timer = setTimeout(() => { try { ctl.abort(); } catch {} }, 30000);
+  try {
+    const r = await fetch(ep + '/mail/send', {
+      method: 'POST', headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ idToken, uid, template, lang: LANG }),
+      signal: ctl.signal
+    });
+    let j = null; try { j = await r.json(); } catch {}
+    return { ok: r.ok && !!(j && j.ok), status: r.status, error: (j && j.error) || '', to: (j && j.to) || '' };
+  } catch { return { ok: false, status: 0, error: 'network' }; }
+  finally { clearTimeout(timer); }
+}
+function mailReasonText(res) {
+  if (res.status === 503 || res.error === 'mail-not-connected') return t('mail.reasonNotConnected');
+  if (res.error === 'mail-off') return t('mail.reasonOff');
+  if (res.status === 403) return t('mail.reasonForbidden');
+  return t('mail.reasonGeneric');
+}
+async function mailRecordNotice(uid, template) {
+  try {
+    await setDoc(doc(db, 'users', uid), { notices: { [template]: { at: serverTimestamp(), by: auth.currentUser.uid, template } } }, { merge: true });
+  } catch {}
+}
+async function mailDeliver(uid, template) {
+  const res = await mailSend(uid, template);
+  if (res.ok) await mailRecordNotice(uid, template);
+  return res;
+}
+function mailShowNotice(uid, name, reason) {
+  const box = $('mail-notice');
+  if (!box) return;
+  box.innerHTML = `<span>${esc(t('mail.approvedNotSent', { name: name || '', reason }))}</span> <button type="button" class="btn-primary btn-sm" id="mail-notice-retry">${esc(t('mail.retryBtn'))}</button> <button type="button" class="btn-ghost btn-sm" id="mail-notice-close">✕</button>`;
+  box.style.display = '';
+  const rt = $('mail-notice-retry');
+  if (rt) rt.onclick = async () => {
+    rt.disabled = true;
+    const res = await mailDeliver(uid, 'welcome');
+    if (res.ok) { box.style.display = 'none'; box.innerHTML = ''; toast(t('mail.sentOk', { email: res.to })); }
+    else mailShowNotice(uid, name, mailReasonText(res));
+  };
+  const cl = $('mail-notice-close');
+  if (cl) cl.onclick = () => { box.style.display = 'none'; box.innerHTML = ''; };
+}
+async function mailAutoWelcome(uid, name) {
+  try {
+    const res = await mailDeliver(uid, 'welcome');
+    if (res.ok) toast(t('mail.sentOk', { email: res.to }));
+    else mailShowNotice(uid, name, mailReasonText(res));
+  } catch { mailShowNotice(uid, name, t('mail.reasonGeneric')); }
 }
 /* Forma mínima de la identificación: foods = lista de objetos con
    nombre no vacío; questions = a lo sumo 3, con id y texto. Lo que no
@@ -20172,7 +20314,7 @@ document.addEventListener('keydown', e => { if (e.key === 'Escape') shareClose()
  *  - El SW (sw.js) solo cachea la cáscara del mismo origen en modo
  *    RED PRIMERO: Auth/Firestore/Worker jamás pasan por la caché.
  * ================================================================ */
-const PWA_SW_VERSION = '20261027-ajuste-metas';
+const PWA_SW_VERSION = '20261027-correo-automatico';
 let pwaDeferredPrompt = null;
 function pwaIsStandalone() {
   try {
