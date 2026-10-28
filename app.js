@@ -1573,10 +1573,36 @@ async function renderProfileView() {
       <div class="myprof-id"><b>${esc(name)}</b>${email ? `<br><span class="muted">${esc(email)}</span>` : ''}</div>
     </div>
     ${rows}
+    <p class="myprof-row"><span class="myprof-k">${esc(t('myprof.mailLang'))}</span><span class="myprof-v"><select id="myprof-maillang" aria-label="${esc(t('myprof.mailLang'))}"><option value="en">English</option><option value="es">Español</option></select></span></p>
+    <p class="progress-hint">${esc(t('myprof.mailLangHint'))}</p>
     <div class="eval-actions"><button type="button" class="btn-ghost btn-sm" id="myprof-photo-btn">${esc(t('myprof.changePhoto'))}</button></div>
   </div>`;
   const pb = $('myprof-photo-btn');
   if (pb) pb.addEventListener('click', () => { const f = $('avatar-file'); if (f) f.click(); });
+  /* Selector de idioma de correo (AUTH-062, 2026-10-28): la
+     preferencia vive en el campo mailLang del PROPIO documento y
+     se guarda por la rama de perfil inofensivo (el delta de
+     reglas de AUTH-062 admite mailLang en su lista cerrada, con
+     el valor cerrado a en/es). Sin valor guardado, el selector
+     NACE mostrando el idioma de la interfaz — el mismo respaldo
+     que la cadena del Worker aplica al enviar (mailLang → lang
+     del documento → idioma reportado por la app → EN) — y no se
+     escribe nada hasta que la persona lo cambia. Si el guardado
+     falla, el selector vuelve a su valor y el error se dice con
+     failToast: jamás un guardado fingido. */
+  const ms = $('myprof-maillang');
+  if (ms) {
+    ms.value = (u.mailLang === 'es' || u.mailLang === 'en') ? u.mailLang : LANG;
+    ms.addEventListener('change', async () => {
+      const v = ms.value === 'es' ? 'es' : 'en';
+      const prev = (UDATA.mailLang === 'es' || UDATA.mailLang === 'en') ? UDATA.mailLang : LANG;
+      try {
+        await setDoc(doc(db, 'users', me.uid), { mailLang: v }, { merge: true });
+        UDATA = { ...UDATA, mailLang: v };
+        toast(t('msg.mailLangSaved'));
+      } catch (e) { ms.value = prev; failToast(e); }
+    });
+  }
   /* Nombre del entrenador del alumno (pieza B del paquete «App
      instalada visible», 2026-10-26): se resuelve SIEMPRE con la
      cadena ÚNICA del proyecto — la misma de la tarjeta «Mi
@@ -1866,6 +1892,9 @@ en: {
   'myprof.title': '👤 My profile',
   'myprof.changePhoto': 'Change photo',
   'myprof.noTrainer': 'Waiting for assignment',
+  'myprof.mailLang': 'Email language',
+  'myprof.mailLangHint': 'The language of the emails we send you (your welcome and your notices). It starts with your app language; change it here anytime.',
+  'msg.mailLangSaved': 'Email language saved.',
   'tabs.track': '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 20V10"/><path d="M10 20V4"/><path d="M16 20v-8"/><path d="M21 20H3"/></svg> My log',
   'tabs.profile': '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="8" r="3.6"/><path d="M5 20c.8-3.4 3.6-5 7-5s6.2 1.6 7 5"/></svg> My profile',
   'tabs.clients': '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="9" cy="8.4" r="3.2"/><path d="M3.4 19.4c.7-3 2.9-4.5 5.6-4.5s4.9 1.5 5.6 4.5"/><path d="M15.6 5.6a3.2 3.2 0 0 1 0 5.9"/><path d="M17.8 15.3c1.7.7 2.7 2 3.1 4.1"/></svg> My clients',
@@ -3651,6 +3680,9 @@ es: {
   'myprof.title': '👤 Mi perfil',
   'myprof.changePhoto': 'Cambiar foto',
   'myprof.noTrainer': 'En espera de asignación',
+  'myprof.mailLang': 'Idioma de los correos',
+  'myprof.mailLangHint': 'El idioma de los correos que te enviamos (tu bienvenida y tus avisos). Empieza con el idioma de tu app; cámbialo aquí cuando quieras.',
+  'msg.mailLangSaved': 'Idioma de correo guardado.',
   'tabs.track': '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 20V10"/><path d="M10 20V4"/><path d="M16 20v-8"/><path d="M21 20H3"/></svg> Mi registro',
   'tabs.profile': '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="8" r="3.6"/><path d="M5 20c.8-3.4 3.6-5 7-5s6.2 1.6 7 5"/></svg> Mi perfil',
   'tabs.clients': '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="9" cy="8.4" r="3.2"/><path d="M3.4 19.4c.7-3 2.9-4.5 5.6-4.5s4.9 1.5 5.6 4.5"/><path d="M15.6 5.6a3.2 3.2 0 0 1 0 5.9"/><path d="M17.8 15.3c1.7.7 2.7 2 3.1 4.1"/></svg> Mis clientes',
@@ -20366,7 +20398,7 @@ document.addEventListener('keydown', e => { if (e.key === 'Escape') shareClose()
  *  - El SW (sw.js) solo cachea la cáscara del mismo origen en modo
  *    RED PRIMERO: Auth/Firestore/Worker jamás pasan por la caché.
  * ================================================================ */
-const PWA_SW_VERSION = '20261028-icono-reenviar';
+const PWA_SW_VERSION = '20261028-auth062';
 let pwaDeferredPrompt = null;
 function pwaIsStandalone() {
   try {
