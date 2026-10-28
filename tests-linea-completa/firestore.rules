@@ -554,6 +554,10 @@ service cloud.firestore {
         && !('health' in request.resource.data)
         && !('healthConsent' in request.resource.data)
         && !('bodyTypeConsent' in request.resource.data)
+        // AUTH-2026-10-28-068: nadie nace con el correo confirmado;
+        // ese campo solo llega despues, por la rama de perfil
+        // inofensivo y con la hora del servidor.
+        && !('emailConfirmedAt' in request.resource.data)
         // A2: registration is the first consent act — it must carry
         // its 'registered' receipt in the same batch (seq starts at 1).
         // Roles+Escalabilidad (2026-10-24): campos nuevos del
@@ -672,9 +676,20 @@ service cloud.firestore {
         && getAfter(/databases/$(database)/documents/trainer_relations/$(uid)).data.get('trainerUid', '')
              == request.resource.data.get('trainerUid', '');
       // A client may update ONLY harmless profile fields of their own doc.
+      // AUTH-062 (2026-10-28): mailLang = la preferencia de idioma de
+      // correo del propio usuario (selector en «Mi perfil»); si el
+      // campo cambia, su valor queda cerrado a 'en'/'es'. Ningun otro
+      // campo se abre en esta rama.
+      // AUTH-2026-10-28-068: emailConfirmedAt = la confirmacion del
+      // correo por el propio usuario tras el enlace verificado; si
+      // el campo cambia, su valor debe ser la hora del servidor.
       allow update: if isSelf(uid)
         && request.resource.data.diff(resource.data).affectedKeys()
-             .hasOnly(['name', 'phone', 'gender', 'social', 'photoURL']);
+             .hasOnly(['name', 'phone', 'gender', 'social', 'photoURL', 'mailLang', 'emailConfirmedAt'])
+        && (!request.resource.data.diff(resource.data).affectedKeys().hasAny(['mailLang'])
+            || request.resource.data.mailLang in ['en', 'es'])
+        && (!request.resource.data.diff(resource.data).affectedKeys().hasAny(['emailConfirmedAt'])
+            || request.resource.data.emailConfirmedAt == request.time);
       // Metas con fundamento (2026-10-26, diseño §§C–I): el DUEÑO
       // escribe en su propio documento SOLO los campos del motor de
       // metas — las metas que el cálculo fija (goals, con claves
