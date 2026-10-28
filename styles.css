@@ -1858,3 +1858,26 @@ body { padding: max(16px, env(safe-area-inset-top)) max(16px, env(safe-area-inse
 /* CORREO AUTOMÁTICO (paquete 2026-10-27): aviso visible cuando la
    aprobación quedó guardada pero el correo de bienvenida no salió. */
 .mail-notice{margin:10px 0;padding:10px 12px;border:1px solid #d97706;background:#fff7ed;color:#7c2d12;border-radius:10px;display:flex;gap:8px;align-items:center;flex-wrap:wrap}
+
+/* ORGANIZAR CLIENTES (AUTH-2026-10-28-066): rejilla de avatares con
+   categorías automáticas en «Mis clientes». Clases nuevas acotadas
+   a esta sección; ninguna clase existente cambia. */
+.clients-viewbar { display: flex; flex-wrap: wrap; align-items: center; gap: 10px; margin: 4px 0 10px; }
+.cview-seg { display: inline-flex; border: 1px solid #cbd5e1; border-radius: 999px; overflow: hidden; background: #fff; }
+.cview-seg button { border: 0; background: transparent; padding: 6px 14px; font: inherit; font-size: 13px; cursor: pointer; color: #475569; }
+.cview-seg button.on { background: #0d9488; color: #fff; font-weight: 700; }
+.cview-filter { display: inline-flex; align-items: center; gap: 6px; font-size: 13px; color: #475569; }
+.cview-filter select { font: inherit; font-size: 13px; padding: 5px 8px; border: 1px solid #cbd5e1; border-radius: 8px; background: #fff; color: #1f2937; }
+.cgrid-group { margin-bottom: 14px; }
+.cgrid-ghead { display: flex; align-items: center; gap: 7px; margin: 10px 2px 8px; font-size: 14px; }
+.cgrid-dot { width: 10px; height: 10px; border-radius: 50%; flex: none; }
+.cgrid-count { background: #e2e8f0; color: #334155; border-radius: 999px; font-size: 12px; padding: 1px 8px; font-weight: 700; }
+.cgrid { display: grid; grid-template-columns: repeat(auto-fill, minmax(104px, 1fr)); gap: 10px; }
+.cgrid-cell { display: flex; flex-direction: column; align-items: center; gap: 2px; background: #fff; border: 1px solid #e5e7eb; border-radius: 12px; padding: 10px 6px 8px; font: inherit; color: inherit; text-align: center; cursor: pointer; width: 100%; box-sizing: border-box; }
+div.cgrid-cell { cursor: default; }
+.cgrid-ava { position: relative; display: block; border: 3px solid #0d9488; border-radius: 50%; line-height: 0; }
+.cgrid-thumb { position: relative; display: block; width: 64px; height: 64px; border-radius: 50%; overflow: hidden; background: #0d9488; }
+.cgrid-badge { position: absolute; top: -7px; right: -11px; background: #dc2626; color: #fff; font-size: 11px; font-weight: 800; border-radius: 999px; padding: 2px 7px; line-height: 1.25; z-index: 1; }
+.cgrid-name { font-weight: 700; font-size: 13px; max-width: 100%; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.cgrid-cat { font-size: 11px; font-weight: 800; text-transform: uppercase; letter-spacing: .4px; }
+.cgrid-detail { font-size: 11px; color: #6b7280; overflow-wrap: anywhere; }

@@ -2817,6 +2817,20 @@ en: {
   'clients.chkComplete': 'Profile complete',
   'clients.chkMissing': 'Missing',
   'clients.chkHidden': 'not visible to your role',
+  'clients.viewGrid': '▦ Grid',
+  'clients.viewList': '☰ List',
+  'clients.catFilter': 'Category',
+  'clients.catAll': 'All',
+  'clients.cat.pendiente': 'Pending approval',
+  'clients.cat.alertas': 'With alerts',
+  'clients.cat.incompleto': 'Incomplete profile',
+  'clients.cat.sinplan': 'No active plan',
+  'clients.cat.sinpesaje': 'No recent weigh-in',
+  'clients.cat.aldia': 'Up to date',
+  'clients.catSubMeals': 'Meals',
+  'clients.catSubTraining': 'Training',
+  'clients.catSubUnmarked': 'Unmarked',
+  'clients.catEmpty': 'No clients in this category.',
   'client.fallbackName': 'Client',
   'client.ringsTitle': '🍽️ Daily food rings',
   'talert.title': '⚠️ Student alerts',
@@ -4606,6 +4620,20 @@ es: {
   'clients.chkComplete': 'Perfil completo',
   'clients.chkMissing': 'Falta',
   'clients.chkHidden': 'no visible para tu rol',
+  'clients.viewGrid': '▦ Rejilla',
+  'clients.viewList': '☰ Lista',
+  'clients.catFilter': 'Categoría',
+  'clients.catAll': 'Todas',
+  'clients.cat.pendiente': 'Pendiente de aprobación',
+  'clients.cat.alertas': 'Con alertas',
+  'clients.cat.incompleto': 'Perfil incompleto',
+  'clients.cat.sinplan': 'Sin plan activo',
+  'clients.cat.sinpesaje': 'Sin pesaje reciente',
+  'clients.cat.aldia': 'Al día',
+  'clients.catSubMeals': 'Comidas',
+  'clients.catSubTraining': 'Entrenamiento',
+  'clients.catSubUnmarked': 'Sin marcar',
+  'clients.catEmpty': 'Ningún cliente en esta categoría.',
   'client.fallbackName': 'Cliente',
   'client.ringsTitle': '🍽️ Anillos de comida del día',
   'talert.title': '⚠️ Alertas de alumnos',
@@ -6418,6 +6446,183 @@ function clientChecklistHTML(chk) {
   hidden.forEach(l => { h += `<br><span class="muted">🔒 ${esc(l)} — ${esc(t('clients.chkHidden'))}</span>`; });
   return h + '</div>';
 }
+/* ================================================================
+   ORGANIZAR CLIENTES — rejilla de avatares con categorías
+   automáticas en «Mis clientes» (AUTH-2026-10-28-066; diseño
+   cerrado DISENO-ORGANIZAR-CLIENTES-2026-10-28 + ajuste de Ronald
+   por correo 2026-10-28 01:13/01:21 CDT: selección MÚLTIPLE — cada
+   cliente aparece en TODAS las categorías que cumple — y filtro
+   que nace en «Todas»).
+   Presentación derivada en el cliente sobre la MISMA pasada de
+   loadClients: cero lecturas nuevas, cero escrituras, cero delta
+   de reglas y de Worker. El conmutador Rejilla/Lista y el filtro
+   viven SOLO en memoria (el patrón de TALERT_GROUPS_OPEN /
+   MT_CARD_OPEN): la rejilla nace por defecto en cada carga y
+   cambiar de vista NO re-deriva ni re-lee nada — ambas vistas se
+   pintan desde CLIENTS_LAST, la foto de la última pasada. */
+let CLIENTS_VIEW = 'grid';        // 'grid' | 'list' (nace en rejilla)
+let CLIENTS_CAT_FILTER = 'all';   // 'all' = «Todas» + las 7 claves
+let CLIENTS_LAST = null;          // última pasada de loadClients
+const CLIENT_CATS = [
+  { key: 'pendiente', color: '#d97706' },
+  { key: 'alertas',    color: '#dc2626' },
+  { key: 'incompleto', color: '#ea580c' },
+  { key: 'sinplan',    color: '#2563eb' },
+  { key: 'sinpesaje',  color: '#db2777' },
+  { key: 'sinsenal',   color: '#9ca3af' },
+  { key: 'aldia',      color: '#0d9488' }
+];
+function clientCatLabel(key) {
+  /* «Sin señal» reutiliza la cadena de AUTH-021: la ausencia de
+     señal NO afirma que la app no esté instalada. */
+  return key === 'sinsenal' ? t('appinst.noSignal') : t('clients.cat.' + key);
+}
+function clientsDaysAgo(iso) {
+  return iso ? Math.floor((Date.now() - new Date(iso + 'T12:00:00').getTime()) / 864e5) : null;
+}
+/* Las categorías que un cliente CUMPLE (pueden ser varias; la
+   lista es cerrada y sigue el orden de prioridad del diseño).
+   d = { chk, alerts, hasPlan, lastDate } de la pasada vigente.
+   Las filas del checklist con done === null (PAR-Q no visible
+   para el rol que mira) NUNCA cuentan como falta. Sin ninguna
+   categoría: «al día». */
+function clientCategories(u, d) {
+  const cats = [];
+  if (u.approved !== true) cats.push('pendiente');
+  if (d.alerts && d.alerts.length) cats.push('alertas');
+  if (d.chk && d.chk.rows && d.chk.rows.some(r => r.done === false)) cats.push('incompleto');
+  if (!d.hasPlan) cats.push('sinplan');
+  const da = clientsDaysAgo(d.lastDate);
+  if (da === null || da > 7) cats.push('sinpesaje');
+  if (!(u.appInstall && u.appInstall.everInstalled === true)) cats.push('sinsenal');
+  if (!cats.length) cats.push('aldia');
+  return cats;
+}
+function clientAlertSubs(alerts) {
+  const subs = [];
+  if (alerts.some(a => a.kind === 'A1' || a.kind === 'A2' || a.kind === 'A3' || a.kind === 'A3L')) subs.push(t('clients.catSubMeals'));
+  if (alerts.some(a => a.kind === 'A4')) subs.push(t('clients.catSubTraining'));
+  if (alerts.some(a => a.kind === 'A5')) subs.push(t('clients.catSubUnmarked'));
+  return subs;
+}
+/* UNA línea de detalle por celda: la más accionable de la
+   categoría del grupo donde la celda aparece. */
+function clientCellDetail(key, u, d) {
+  if (key === 'pendiente') return esc(u.email || '');
+  if (key === 'alertas') {
+    const subs = clientAlertSubs(d.alerts);
+    return esc(t('talert.count', { n: d.alerts.length })) + (subs.length ? ' · ' + esc(subs.join(' · ')) : '');
+  }
+  if (key === 'incompleto') {
+    if (!d.chk) return '';
+    const miss = d.chk.rows.filter(r => r.done === false);
+    return esc(t('clients.chkTitle', { pct: d.chk.pct })) + (miss.length ? ' · ' + esc(t('clients.chkMissing')) + ': ' + esc(miss[0].label) : '');
+  }
+  if (key === 'sinplan') {
+    if (d.chk && d.chk.complete) return '✓ ' + esc(t('clients.chkComplete'));
+    return d.chk ? esc(t('clients.chkTitle', { pct: d.chk.pct })) : '';
+  }
+  if (key === 'sinpesaje') {
+    const da = clientsDaysAgo(d.lastDate);
+    return da === null ? esc(t('clients.noWeighins')) : esc(t('clients.daysAgo', { d: da })) + (d.lastW ? ' · ' + esc(String(d.lastW)) + ' kg' : '');
+  }
+  if (key === 'sinsenal') return '';
+  if (key === 'aldia') {
+    if (u.appInstall && u.appInstall.everInstalled === true) {
+      const dt = appInstallDateStr(u.appInstall.lastStandaloneAt);
+      return '📲 ' + esc(t('appinst.installed')) + (dt ? ' · ' + esc(dt) : '');
+    }
+    return '';
+  }
+  return '';
+}
+function clientInitials(u) {
+  const nm = (u.name || '').trim();
+  if (!nm) return '👤';
+  const w = nm.split(/\s+/);
+  return ((((w[0] || '')[0] || '') + ((w[1] || '')[0] || '')).toUpperCase()) || '👤';
+}
+/* Celda de la rejilla: máximo 3 señales (anillo de la categoría,
+   insignia ⚠n solo si hay alertas, micro-etiqueta + UNA línea de
+   detalle). Avatar de 64 px con el patrón de AUTH-046: la foto va
+   SOBRE el disco de iniciales y desaparece si no carga. Las
+   celdas pendientes NO son tocables (paridad con la lista: su
+   gestión vive en Accesos); el resto abre openClient(uid). */
+function clientGridCell(key, u, d) {
+  const cat = CLIENT_CATS.find(c => c.key === key);
+  const badge = d.alerts && d.alerts.length ? `<span class="cgrid-badge">⚠ ${d.alerts.length}</span>` : '';
+  const detail = clientCellDetail(key, u, d);
+  const inner = `<span class="cgrid-ava" style="border-color:${cat.color}${key === 'sinsenal' ? ';border-style:dashed' : ''}"><span class="cgrid-thumb"><span class="mt-thumb-initials">${esc(clientInitials(u))}</span>${u.photoURL ? `<img class="mt-thumb-img" src="${esc(u.photoURL)}" alt="" onerror="this.remove()">` : ''}</span>${badge}</span>`
+    + `<span class="cgrid-name">${esc(u.name || '—')}</span>`
+    + `<span class="cgrid-cat" style="color:${cat.color}">${esc(clientCatLabel(key))}</span>`
+    + (detail ? `<span class="cgrid-detail">${detail}</span>` : '');
+  return u.approved === true
+    ? `<button type="button" class="cgrid-cell" data-client="${u.id}">${inner}</button>`
+    : `<div class="cgrid-cell cgrid-notap">${inner}</div>`;
+}
+function clientsGridHTML() {
+  const L = CLIENTS_LAST;
+  if (!L) return '';
+  if (!L.clients.length) return `<div class="wempty">${t('clients.empty')}</div>`;
+  const dataOf = u => ({ chk: L.chkByUid[u.id] || null, alerts: L.alertsByUid[u.id] || [], hasPlan: !!L.planByUid[u.id], lastDate: L.lastByUid[u.id] || null, lastW: L.lastWByUid[u.id] || null });
+  const byUid = {};
+  L.clients.forEach(u => { const d = dataOf(u); byUid[u.id] = { d, cats: clientCategories(u, d) }; });
+  const byName = (a, b) => String(a.name || '').localeCompare(String(b.name || ''));
+  let h = '';
+  CLIENT_CATS.forEach(cat => {
+    if (CLIENTS_CAT_FILTER !== 'all' && CLIENTS_CAT_FILTER !== cat.key) return;
+    const members = L.clients.filter(u => byUid[u.id].cats.includes(cat.key));
+    if (cat.key === 'alertas') members.sort((a, b) => (byUid[b.id].d.alerts.length - byUid[a.id].d.alerts.length) || byName(a, b));
+    else if (cat.key === 'incompleto') members.sort((a, b) => ((byUid[a.id].d.chk ? byUid[a.id].d.chk.pct : 0) - (byUid[b.id].d.chk ? byUid[b.id].d.chk.pct : 0)) || byName(a, b));
+    else members.sort(byName);
+    if (!members.length) return;
+    h += `<div class="cgrid-group"><div class="cgrid-ghead"><span class="cgrid-dot" style="background:${cat.color}"></span><b>${esc(clientCatLabel(cat.key))}</b><span class="cgrid-count">${members.length}</span></div><div class="cgrid">${members.map(u => clientGridCell(cat.key, u, byUid[u.id].d)).join('')}</div></div>`;
+  });
+  return h || `<div class="wempty">${t('clients.catEmpty')}</div>`;
+}
+/* La vista de LISTA de siempre, intacta: se mudó tal cual desde
+   loadClients y se pinta desde la misma pasada (CLIENTS_LAST). */
+function clientsListHTML() {
+  const L = CLIENTS_LAST;
+  if (!L) return '';
+  const { clients, chkByUid, alertsByUid, lastByUid, lastWByUid, pendingFood } = L;
+  return clients.length ? clients.map(u => {
+    const d = clientsDaysAgo(lastByUid[u.id]);
+    const hasHealth = false; // la salud ya no vive en users/{uid}: la insignia no puede saberlo desde el listado
+    const badge = u.approved === true
+      ? (d === null ? `<span class="warn-badge">${t('clients.noWeighins')}</span>`
+        : d > 7 ? `<span class="warn-badge">${t('clients.daysAgo', { d })}</span>` : `<span class="ok-badge">${t('clients.daysAgoShort', { d })}</span>`)
+      : `<span class="warn-badge">${t('clients.pending')}</span>`;
+    const healthBadge = hasHealth ? ` <span class="warn-badge" title="${t('clients.healthTitle')}">🏥 ${t('clients.healthBadge')}</span>` : '';
+    const foodBadge = pendingFood[u.id] ? ` <span class="warn-badge" title="${t('clients.foodTitle')}">📷 ${pendingFood[u.id]}</span>` : '';
+    const lastW = lastWByUid[u.id] ? ` · <b>${lastWByUid[u.id]} kg</b>` : '';
+    return `<div class="user-row">
+      <div>${u.photoURL ? `<img class="avatar sm" src="${esc(u.photoURL)}" alt="">` : ''}<b>${esc(u.name || '—')}</b> ${badge}${healthBadge}${foodBadge}${appInstallMarkHtml(u)}<br><span class="muted">${esc(u.email || '')}${u.phone ? ' · ' + esc(u.phone) : ''}${lastW}${appInstallNoteHtml(u)}</span>${clientChecklistHTML(chkByUid[u.id])}${talertClientHTML(alertsByUid[u.id], false, u.id)}</div>
+      <div class="user-actions">${u.approved === true ? `<button class="btn-primary btn-sm" data-client="${u.id}">${t('clients.view')}</button>` : ''}</div>
+    </div>`;
+  }).join('') : `<div class="wempty">${t('clients.empty')}</div>`;
+}
+function renderClientsBody() {
+  const el = $('clients-list');
+  if (!el || !CLIENTS_LAST) return;
+  el.innerHTML = CLIENTS_VIEW === 'grid' ? clientsGridHTML() : clientsListHTML();
+  document.querySelectorAll('[data-client]').forEach(b => b.onclick = () => openClient(b.dataset.client));
+}
+/* Barra de la vista: conmutador segmentado Rejilla/Lista (la
+   rejilla nace por defecto) + filtro por categoría que nace en
+   «Todas» (solo aplica a la rejilla; la lista siempre es íntegra). */
+function renderClientsViewbar() {
+  const bar = $('clients-viewbar');
+  if (!bar) return;
+  bar.innerHTML = `<div class="clients-viewbar">`
+    + `<span class="cview-seg" role="group"><button type="button" id="cv-grid" class="${CLIENTS_VIEW === 'grid' ? 'on' : ''}">${esc(t('clients.viewGrid'))}</button><button type="button" id="cv-list" class="${CLIENTS_VIEW === 'list' ? 'on' : ''}">${esc(t('clients.viewList'))}</button></span>`
+    + (CLIENTS_VIEW === 'grid' ? `<label class="cview-filter"><span>${esc(t('clients.catFilter'))}</span><select id="cv-filter"><option value="all"${CLIENTS_CAT_FILTER === 'all' ? ' selected' : ''}>${esc(t('clients.catAll'))}</option>${CLIENT_CATS.map(c => `<option value="${c.key}"${CLIENTS_CAT_FILTER === c.key ? ' selected' : ''}>${esc(clientCatLabel(c.key))}</option>`).join('')}</select></label>` : '')
+    + `</div>`;
+  $('cv-grid').onclick = () => { if (CLIENTS_VIEW !== 'grid') { CLIENTS_VIEW = 'grid'; renderClientsViewbar(); renderClientsBody(); } };
+  $('cv-list').onclick = () => { if (CLIENTS_VIEW !== 'list') { CLIENTS_VIEW = 'list'; renderClientsViewbar(); renderClientsBody(); } };
+  const sel = $('cv-filter');
+  if (sel) sel.onchange = () => { CLIENTS_CAT_FILTER = sel.value; renderClientsBody(); };
+}
 async function loadClients() {
   const sec = $('clients-section');
   if (ROLE === 'usuario') { sec.style.display = 'none'; return; }
@@ -6482,24 +6687,18 @@ async function loadClients() {
      la ficha — la tarjeta las muestra bajo la completitud. */
   const alertsByUid = {};
   await Promise.all(clients.map(async u => { try { alertsByUid[u.id] = await trainerAlertsFor(u.id, u); } catch {} }));
-  const daysAgo = iso => iso ? Math.floor((Date.now() - new Date(iso + 'T12:00:00').getTime()) / 864e5) : null;
-  $('clients-list').innerHTML = clients.length ? clients.map(u => {
-    const d = daysAgo(lastByUid[u.id]);
-    const hasHealth = false; // la salud ya no vive en users/{uid}: la insignia no puede saberlo desde el listado
-    const badge = u.approved === true
-      ? (d === null ? `<span class="warn-badge">${t('clients.noWeighins')}</span>`
-        : d > 7 ? `<span class="warn-badge">${t('clients.daysAgo', { d })}</span>` : `<span class="ok-badge">${t('clients.daysAgoShort', { d })}</span>`)
-      : `<span class="warn-badge">${t('clients.pending')}</span>`;
-    const healthBadge = hasHealth ? ` <span class="warn-badge" title="${t('clients.healthTitle')}">🏥 ${t('clients.healthBadge')}</span>` : '';
-    const foodBadge = pendingFood[u.id] ? ` <span class="warn-badge" title="${t('clients.foodTitle')}">📷 ${pendingFood[u.id]}</span>` : '';
-    const lastW = lastWByUid[u.id] ? ` · <b>${lastWByUid[u.id]} kg</b>` : '';
-    return `<div class="user-row">
-      <div>${u.photoURL ? `<img class="avatar sm" src="${esc(u.photoURL)}" alt="">` : ''}<b>${esc(u.name || '—')}</b> ${badge}${healthBadge}${foodBadge}${appInstallMarkHtml(u)}<br><span class="muted">${esc(u.email || '')}${u.phone ? ' · ' + esc(u.phone) : ''}${lastW}${appInstallNoteHtml(u)}</span>${clientChecklistHTML(chkByUid[u.id])}${talertClientHTML(alertsByUid[u.id], false, u.id)}</div>
-      <div class="user-actions">${u.approved === true ? `<button class="btn-primary btn-sm" data-client="${u.id}">${t('clients.view')}</button>` : ''}</div>
-    </div>`;
-  }).join('') : `<div class="wempty">${t('clients.empty')}</div>`;
+  /* ORGANIZAR CLIENTES (AUTH-2026-10-28-066): «tiene plan activo»
+     por cliente, propagado de la MISMA lectura que ya hizo
+     trainerAlertsFetch dentro de trainerAlertsFor (su caché de
+     30 s) — cero consultas nuevas. La pasada entera queda en
+     CLIENTS_LAST y la pintan la rejilla o la lista según el
+     conmutador, sin re-derivar nada al cambiar de vista. */
+  const planByUid = {};
+  clients.forEach(u => { const c = TALERTS_CACHE[u.id]; planByUid[u.id] = !!(c && c.hasPlan); });
+  CLIENTS_LAST = { clients, chkByUid, alertsByUid, planByUid, lastByUid, lastWByUid, pendingFood };
+  renderClientsViewbar();
+  renderClientsBody();
   $('client-detail').style.display = 'none'; $('client-detail').innerHTML = '';
-  document.querySelectorAll('[data-client]').forEach(b => b.onclick = () => openClient(b.dataset.client));
   /* Roles+Escalabilidad: caché de nombres para las bandejas nuevas y
      los paneles del entrenador (membresía y solicitudes de comidas). */
   users.forEach(u => { ADMIN_NAME_CACHE[u.id] = u.name || u.email || ''; });
@@ -7628,7 +7827,7 @@ function paintClientRings(date) {
    alertas que dependen de eso NO nacen: nada de alertas sobre
    datos inexistentes. */
 const TALERT_TTL_MS = 30000;
-let TALERTS_CACHE = {};   // uid -> { at, alerts } (solo memoria; la derivación manda)
+let TALERTS_CACHE = {};   // uid -> { at, alerts, hasPlan } (solo memoria; la derivación manda)
 let TALERTS_SEQ = 0;
 let TALERT_FICHA_SEQ = 0;
 /* Agrupado por alumno (pedido de Ronald, 2026-10-27 17:29 CDT):
@@ -7786,6 +7985,10 @@ async function trainerAlertsFetch(uid, udata) {
     });
   } catch {}
   try { const plans = await fetchPlans(uid); ctx.plan = plans.find(p => p.active === true) || null; } catch {}
+  /* ORGANIZAR CLIENTES (AUTH-2026-10-28-066): el booleano «tiene
+     plan activo» sale de ESTA misma lectura (cero consultas nuevas)
+     y viaja con el resultado para que la rejilla de «Mis clientes»
+     derive su categoría «sin plan» sin volver a leer nada. */
   try {
     const cs = await getDoc(doc(db, 'nutrition_progress', uid + '_pendconfig'));
     ctx.cfg = cs.exists() ? Object.assign(pendDefaults(), cs.data()) : { activated: false };
@@ -7794,14 +7997,14 @@ async function trainerAlertsFetch(uid, udata) {
   try { const ss = await getDoc(doc(db, 'nutrition_progress', uid + '_pendstate')); if (ss.exists()) marks = (ss.data() && ss.data().marks) || {}; } catch {}
   const logDates = new Set();
   try { const logs = await fetchLogs(uid); logs.forEach(l => { if (l.date) logDates.add(l.date); }); } catch {}
-  return trainerAlertsCompute(ctx, { totals, mealsByDate, marks, logDates });
+  return { alerts: trainerAlertsCompute(ctx, { totals, mealsByDate, marks, logDates }), hasPlan: !!ctx.plan };
 }
 async function trainerAlertsFor(uid, udata) {
   const c = TALERTS_CACHE[uid];
   if (c && (Date.now() - c.at) < TALERT_TTL_MS) return c.alerts;
-  let alerts = [];
-  try { alerts = await trainerAlertsFetch(uid, udata); } catch {}
-  TALERTS_CACHE[uid] = { at: Date.now(), alerts };
+  let alerts = []; let hasPlan = false;
+  try { const r = await trainerAlertsFetch(uid, udata); alerts = r.alerts; hasPlan = r.hasPlan; } catch {}
+  TALERTS_CACHE[uid] = { at: Date.now(), alerts, hasPlan };
   return alerts;
 }
 function talertText(a) {
@@ -20398,7 +20601,7 @@ document.addEventListener('keydown', e => { if (e.key === 'Escape') shareClose()
  *  - El SW (sw.js) solo cachea la cáscara del mismo origen en modo
  *    RED PRIMERO: Auth/Firestore/Worker jamás pasan por la caché.
  * ================================================================ */
-const PWA_SW_VERSION = '20261028-ayuda-welcome';
+const PWA_SW_VERSION = '20261028-organizar-clientes';
 let pwaDeferredPrompt = null;
 function pwaIsStandalone() {
   try {
