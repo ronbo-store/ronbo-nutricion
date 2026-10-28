@@ -27,6 +27,10 @@ import {
 } from 'firebase/firestore';
 
 const ESPERA_DELTA = true;   // en la suite sobre el texto vivo: false
+// Borrar mailLang: con el campo PRESENTE (esta suite, tras A5) es un
+// cambio real y la validación lo deniega; SIN el campo (suite vivo)
+// es un no-op de diff vacío que no cambia ningún dato y se admite.
+const ESPERA_BORRADO = !ESPERA_DELTA;
 const NOMBRE = 'AUTH062';
 
 const testEnv = await initializeTestEnvironment({
@@ -53,11 +57,13 @@ await testEnv.withSecurityRulesDisabled(async (ctx) => {
   await setDoc(doc(db, 'users', 'clientA'), { ...base, name: 'Cliente A', role: 'usuario', trainerUid: null, assignmentStatus: 'waiting', modality: 'virtual' });
   await setDoc(doc(db, 'users', 'clientB'), { ...base, name: 'Cliente B', role: 'usuario', trainerUid: null, assignmentStatus: 'waiting', modality: 'virtual' });
   await setDoc(doc(db, 'users', 'clientSin'), { ...base, name: 'Cliente Sin', role: 'usuario', trainerUid: null, assignmentStatus: 'waiting', modality: 'virtual' });
+  await setDoc(doc(db, 'users', 'clientU'), { ...base, name: 'Cliente U', role: 'usuario', approved: false, trainerUid: null, assignmentStatus: 'waiting', modality: 'virtual' });
 });
 
 const A = testEnv.authenticatedContext('clientA').firestore();
 const B = testEnv.authenticatedContext('clientB').firestore();
 const S = testEnv.authenticatedContext('clientSin').firestore();
+const UU = testEnv.authenticatedContext('clientU').firestore();
 const anon = testEnv.unauthenticatedContext().firestore();
 const UA = (db) => doc(db, 'users', 'clientA');
 const ETQ = ESPERA_DELTA ? 'admitido (el delta)' : 'denegado (texto vivo)';
@@ -67,12 +73,13 @@ await T('A1 el alumno AÑADE mailLang=\'es\' a su propio documento (el primer gu
   updateDoc(UA(A), { mailLang: 'es' }), ESPERA_DELTA);
 await T('A2 el alumno CAMBIA su mailLang a \'en\': ' + ETQ,
   updateDoc(UA(A), { mailLang: 'en' }), ESPERA_DELTA);
-await T('D1 dato: el mailLang guardado es el último valor válido (\'en\'), leído por el propio alumno: ' + (ESPERA_DELTA ? 'verificado' : 'en el texto vivo el campo nunca se escribió — el dato no existe'),
+await T('D1 dato: el mailLang guardado es el último valor válido (\'en\'), leído por el propio alumno: ' + (ESPERA_DELTA ? 'verificado' : 'en el texto vivo el campo nunca se escribió — el dato no existe (la lectura procede y el campo está ausente)'),
   (async () => {
     const s = await getDoc(UA(A));
     if (!s.exists()) throw new Error('el documento debe existir');
-    if (s.data().mailLang !== 'en') throw new Error('mailLang=' + s.data().mailLang);
-  })(), ESPERA_DELTA);
+    const v = s.data().mailLang;
+    if (ESPERA_DELTA ? v !== 'en' : v === 'en') throw new Error('mailLang=' + v);
+  })(), true);
 await T('A5 el alumno guarda nombre + mailLang=\'es\' en la misma actualización (la vía completa del perfil): ' + ETQ,
   updateDoc(UA(A), { name: 'Cliente A Editado', mailLang: 'es' }), ESPERA_DELTA);
 
@@ -81,8 +88,8 @@ await T('A3 mailLang=\'fr\' (fuera de la lista cerrada en/es): denegado',
   updateDoc(UA(A), { mailLang: 'fr' }), false);
 await T('A4 mailLang=123 (no es texto): denegado',
   updateDoc(UA(A), { mailLang: 123 }), false);
-await T('A12 BORRAR mailLang (deleteField): denegado — la preferencia se cambia entre en/es, no se borra por esta rama',
-  updateDoc(UA(A), { mailLang: deleteField() }), false);
+await T('A12 BORRAR mailLang (deleteField): ' + (ESPERA_DELTA ? 'con el campo presente (tras A5) es un cambio real y la validación lo deniega' : 'sin el campo es un no-op de diff vacío — se admite sin cambiar ningún dato (con el campo presente sería denegado: suite del candidato)'),
+  updateDoc(UA(A), { mailLang: deleteField() }), ESPERA_BORRADO);
 
 // ---- La rama inofensiva de siempre: sin cambio ----
 await T('A6 el alumno actualiza SOLO su nombre (la rama de siempre): admitido',
@@ -95,8 +102,8 @@ await T('D2 dato: un documento que NUNCA tuvo mailLang (clientSin) sigue actuali
 // ---- Nada fuera de la lista, ni propio ni ajeno ----
 await T('A8 mailLang + role (fuera de la lista): denegado',
   updateDoc(UA(A), { mailLang: 'es', role: 'entrenador' }), false);
-await T('A9 mailLang + approved (fuera de la lista): denegado',
-  updateDoc(UA(A), { mailLang: 'es', approved: true }), false);
+await T('A9 el alumno SIN aprobar (clientU, approved=false) intenta mailLang + approved=true — auto-aprobarse con un cambio real del campo: denegado',
+  updateDoc(doc(UU, 'users', 'clientU'), { mailLang: 'es', approved: true }), false);
 await T('A10 OTRO alumno (clientB) intenta poner el mailLang de clientA: denegado',
   updateDoc(UA(B), { mailLang: 'en' }), false);
 await T('A11 un ANÓNIMO intenta poner el mailLang de clientA: denegado',
