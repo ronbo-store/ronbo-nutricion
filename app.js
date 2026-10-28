@@ -2917,6 +2917,32 @@ en: {
   'admuse.unavailable': 'Unavailable right now',
   'admuse.loading': 'Loading…',
   'admuse.unknownUser': 'Unnamed user',
+  'signup.confirmDone': '✓ Email confirmed',
+  'signup.confirmAlready': 'Your email is already confirmed.',
+  'signup.confirmWrong': 'This confirmation link belongs to a different account.',
+  'signup.confirmExpired': 'This confirmation link has expired.',
+  'signup.confirmInvalid': 'This confirmation link is not valid.',
+  'signup.confirmFailed': 'Your email could not be confirmed. Please try again later.',
+  'signup.typeAlumno': 'student',
+  'signup.typeEntrenador': 'trainer',
+  'signup.approveAsk': 'Approve {name} as {type}?',
+  'signup.approveMailYes': '✉ Email confirmed on {date}',
+  'signup.approveMailNo': '✉ Email not confirmed yet',
+  'signup.approveTrainer': 'Trainer: {name}',
+  'signup.approveWaiting': 'Waiting for a trainer assignment',
+  'signup.approveRegistered': 'Registered: {date}',
+  'signup.approveNote': 'The link alone approves no one: approval happens with this tap, in your session. When you approve, their welcome email is sent on its own.',
+  'signup.approveBtn': 'Approve',
+  'signup.notNowBtn': 'Not now',
+  'signup.approvedOk': '✓ Approved',
+  'signup.alreadyApproved': 'This account is already approved.',
+  'signup.adminOnly': 'This approval link only works with the administrator account.',
+  'signup.approveExpired': 'This approval link has expired. You can still approve from Access, as usual.',
+  'signup.approveInvalid': 'This approval link is not valid.',
+  'signup.approveFailed': 'The approval could not be completed. Please try from Access.',
+  'signup.closeBtn': 'Close',
+  'admin.mailConfirmed': '✉ confirmed',
+  'admin.mailUnconfirmed': '✉ not confirmed',
   'clients.empty': 'No clients registered yet.',
   'clients.noWeighins': 'no weigh-ins',
   'clients.daysAgo': '{d} days ago',
@@ -4744,6 +4770,32 @@ es: {
   'admuse.unavailable': 'No disponible ahora',
   'admuse.loading': 'Cargando…',
   'admuse.unknownUser': 'Usuario sin nombre',
+  'signup.confirmDone': '✓ Correo confirmado',
+  'signup.confirmAlready': 'Tu correo ya está confirmado.',
+  'signup.confirmWrong': 'Este enlace de confirmación es de otra cuenta.',
+  'signup.confirmExpired': 'Este enlace de confirmación caducó.',
+  'signup.confirmInvalid': 'Este enlace de confirmación no es válido.',
+  'signup.confirmFailed': 'No se pudo confirmar tu correo. Inténtalo de nuevo más tarde.',
+  'signup.typeAlumno': 'alumno',
+  'signup.typeEntrenador': 'entrenador',
+  'signup.approveAsk': '¿Aprobar a {name} como {type}?',
+  'signup.approveMailYes': '✉ Correo confirmado el {date}',
+  'signup.approveMailNo': '✉ Correo aún sin confirmar',
+  'signup.approveTrainer': 'Entrenador: {name}',
+  'signup.approveWaiting': 'En espera de asignación de entrenador',
+  'signup.approveRegistered': 'Registrado: {date}',
+  'signup.approveNote': 'El enlace solo no aprueba a nadie: la aprobación ocurre con este toque, en tu sesión. Al aprobar, su correo de bienvenida sale solo.',
+  'signup.approveBtn': 'Aprobar',
+  'signup.notNowBtn': 'Ahora no',
+  'signup.approvedOk': '✓ Aprobado',
+  'signup.alreadyApproved': 'Esta cuenta ya está aprobada.',
+  'signup.adminOnly': 'Este enlace de aprobación solo funciona con la cuenta del administrador.',
+  'signup.approveExpired': 'Este enlace de aprobación caducó. Todavía puedes aprobar desde Accesos, como siempre.',
+  'signup.approveInvalid': 'Este enlace de aprobación no es válido.',
+  'signup.approveFailed': 'La aprobación no se pudo completar. Inténtalo desde Accesos.',
+  'signup.closeBtn': 'Cerrar',
+  'admin.mailConfirmed': '✉ confirmado',
+  'admin.mailUnconfirmed': '✉ sin confirmar',
   'clients.empty': 'Aún no hay clientes registrados.',
   'clients.noWeighins': 'sin pesajes',
   'clients.daysAgo': 'hace {d} días',
@@ -5868,6 +5920,8 @@ $('form-register').addEventListener('submit', async e => {
         });
       } catch {}
     }
+    /* AUTH-068: aviso de registro (nunca bloquea el registro). */
+    await signupNotifyCall();
     await signOut(auth);
     suppressAuthCheck = false;
     showRegError('');
@@ -5974,6 +6028,8 @@ onAuthStateChanged(auth, async user => {
     UDATA = snap.data();
     IS_OWNER = UDATA.isOwner === true;
     ROLE = deriveRole(UDATA, IS_OWNER);
+    /* AUTH-068: enlaces de registro (confirmación y respaldo de aviso). */
+    await signupLinkDoor(user);
     if (!IS_OWNER && UDATA.approved !== true) {
       if (!consentIsActive(UDATA)) { showRenewalGate(); return; }
       await signOut(auth);
@@ -6027,6 +6083,8 @@ onAuthStateChanged(auth, async user => {
   await loadAll();
   startUserDocWatch(user.uid);
   appInstallSignal();
+  /* AUTH-068: reanudar un enlace de aprobación si lo hay. */
+  signupApproveResume();
 });
 
 /* ================= REACCIÓN EN VIVO DE LA SESIÓN (H-C2) =================
@@ -6153,7 +6211,7 @@ async function loadAdmin() {
   const owners = users.filter(u => u.isOwner);
   const pendRow = u => `
     <div class="user-row">
-      <div>${u.photoURL ? `<img class="avatar sm" src="${esc(u.photoURL)}" alt="">` : ''}<b>${esc(u.name || '—')}</b>${u.roleRequest === 'entrenador' ? ` <span class="warn-badge">${t('esc.trainerRequestBadge')}</span>` : ''}<br><span class="muted">${esc(u.email || '')}</span></div>
+      <div>${u.photoURL ? `<img class="avatar sm" src="${esc(u.photoURL)}" alt="">` : ''}<b>${esc(u.name || '—')}</b>${u.roleRequest === 'entrenador' ? ` <span class="warn-badge">${t('esc.trainerRequestBadge')}</span>` : ''}<br><span class="muted">${esc(u.email || '')}</span>${emailConfirmMarkHtml(u)}</div>
       <div class="user-actions">
         ${u.roleRequest === 'entrenador'
           ? `<button class="btn-primary btn-sm" data-approve-trainer="${u.id}">${t('esc.approveTrainer')}</button>`
@@ -6172,7 +6230,7 @@ async function loadAdmin() {
     <div class="user-actions"><button class="btn-ghost btn-sm" data-profile="${u.id}">${t('admin.profile')}</button><button class="btn-ghost btn-sm" data-goals="${u.id}">${t('admin.goals')}</button></div></div>`).join('')
     + (active.length ? active.map(u => `
     <div class="user-row">
-      <div>${u.photoURL ? `<img class="avatar sm" src="${esc(u.photoURL)}" alt="">` : ''}<b>${esc(u.name || '—')}</b>${appInstallMarkHtml(u)}<br><span class="muted">${esc(u.email || '')}${appInstallNoteHtml(u)}</span></div>
+      <div>${u.photoURL ? `<img class="avatar sm" src="${esc(u.photoURL)}" alt="">` : ''}<b>${esc(u.name || '—')}</b>${appInstallMarkHtml(u)}<br><span class="muted">${esc(u.email || '')}${appInstallNoteHtml(u)}</span>${emailConfirmMarkHtml(u)}</div>
       <div class="user-actions">
         <label class="muted">${t('roles.roleLabel')} <select data-role-for="${u.id}">${['usuario', 'entrenador'].map(r => `<option value="${r}"${(u.role === 'entrenador' ? 'entrenador' : 'usuario') === r ? ' selected' : ''}>${t('roles.' + r)}</option>`).join('')}</select></label>
         <button class="btn-ghost btn-sm" data-profile="${u.id}">${t('admin.profile')}</button>
@@ -6200,18 +6258,7 @@ async function loadAdmin() {
   });
   /* Roles+Escalabilidad: aprobar una SOLICITUD DE ENTRENADOR asigna
      el rol y crea el andamiaje en el mismo gesto (pedido 2). */
-  document.querySelectorAll('[data-approve-trainer]').forEach(b => b.onclick = async () => {
-    const uid = b.dataset.approveTrainer;
-    const u = ADMIN_USERS.find(x => x.id === uid);
-    await setDoc(doc(db, 'users', uid), { approved: true, role: 'entrenador' }, { merge: true });
-    await escEnsureTrainerScaffold(uid, u ? (u.name || u.email) : '');
-    await auditLog('role', 'role.trainerApproved', uid, '');
-    toast(t('esc.trainerApproved'));
-    await loadAdmin();
-    /* CORREO AUTOMÁTICO: mismo aviso de bienvenida al aprobar la
-       solicitud de entrenador (la aprobación ya quedó guardada). */
-    mailAutoWelcome(uid, u ? (u.name || u.email || '') : '');
-  });
+  document.querySelectorAll('[data-approve-trainer]').forEach(b => b.onclick = async () => { await approveTrainerNow(b.dataset.approveTrainer); });
   /* Comunicación al aprobar a un entrenador (extensión 2026-10-24):
      junto a cada entrenador aprobado con la plantilla INCOMPLETA,
      el administrador despliega el TEXTO del correo recordatorio —
@@ -6379,17 +6426,7 @@ async function loadAdmin() {
     if (u) openGoals(u.id, u.name || u.email, u.goals);
   });
   document.querySelectorAll('[data-profile]').forEach(b => b.onclick = () => openProfile(b.dataset.profile));
-  document.querySelectorAll('[data-approve]').forEach(b => b.onclick = async () => {
-    await setDoc(doc(db, 'users', b.dataset.approve), { approved: true }, { merge: true });
-    /* Roles+Escalabilidad: aprobar a un alumno asignado suma a su
-       entrenador en el contador de cupo de la membresía. */
-    const u = ADMIN_USERS.find(x => x.id === b.dataset.approve);
-    if (u && u.trainerUid) await escAdjustQuota(u.trainerUid, +1);
-    toast(t('msg.approved')); await loadAdmin();
-    /* CORREO AUTOMÁTICO: la aprobación ya quedó guardada; el aviso de
-       bienvenida sale solo y su fallo se anuncia, nunca bloquea. */
-    mailAutoWelcome(b.dataset.approve, u ? (u.name || u.email || '') : '');
-  });
+  document.querySelectorAll('[data-approve]').forEach(b => b.onclick = async () => { await approveUserNow(b.dataset.approve); });
   document.querySelectorAll('[data-revoke]').forEach(b => b.onclick = async () => {
     if (!confirm(t('confirm.revoke'))) return;
     await setDoc(doc(db, 'users', b.dataset.revoke), { approved: false }, { merge: true });
@@ -9989,7 +10026,195 @@ async function mailAutoWelcome(uid, name) {
     const res = await mailDeliver(uid, 'welcome');
     if (res.ok) toast(t('mail.sentOk', { email: res.to }));
     else mailShowNotice(uid, name, mailReasonText(res));
-  } catch { mailShowNotice(uid, name, t('mail.reasonGeneric')); }
+    return res;
+  } catch { mailShowNotice(uid, name, t('mail.reasonGeneric')); return { ok: false, status: 0, error: 'exception' }; }
+}
+
+/* ═══════════ REGISTRO Y APROBACIÓN EN UN CLIC (AUTH-2026-10-28-068) ═══════════
+   Enlaces firmados que llegan por correo (diseño
+   DISENO-REGISTRO-APROBACION-2026-10-28.md, decisiones P1/P2):
+   P1 — el enlace de aprobación por sí solo NO aprueba a nadie: la
+   app, con la sesión real del administrador, pide al Worker solo la
+   LECTURA de verificación (/approve-verify) y pinta la tarjeta; la
+   escritura ocurre únicamente al tocar «Aprobar», reutilizando la
+   rutina única de Accesos (approveUserNow / approveTrainerNow).
+   P2 — la confirmación de correo sale con la marca y NO compuerta
+   la aprobación: su estado se VE (tarjeta y distintivo de Accesos),
+   nunca bloquea. Abrir cualquiera de los dos enlaces no escribe
+   nada (anti-prefetch: los clientes de correo pre-cargan enlaces
+   sin sesión, y sin sesión no hay verificación ni tarjeta de
+   aprobación). El Worker nunca escribe en Firestore: la única
+   escritura nueva de la app es {emailConfirmedAt} del PROPIO
+   usuario, solo tras el ok de /confirm-verify. NO DESPLEGADO. */
+let SIGNUP_NOTIFY_TRIED = false;
+let SIGNUP_CARD_DISMISSED = false;
+async function signupWorkerCall(path, bodyObj, timeoutMs) {
+  try {
+    const ep = aiEndpoint();
+    if (!ep) return null;
+    let idToken = '';
+    try { idToken = await auth.currentUser.getIdToken(); } catch { return null; }
+    if (!idToken) return null;
+    const ctl = new AbortController();
+    const timer = setTimeout(() => { try { ctl.abort(); } catch {} }, timeoutMs || 15000);
+    try {
+      const r = await fetch(ep + path, {
+        method: 'POST', headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ idToken, ...(bodyObj || {}) }),
+        signal: ctl.signal
+      });
+      let j = null; try { j = await r.json(); } catch {}
+      return { ok: r.ok && !!(j && j.ok), status: r.status, j };
+    } catch { return null; }
+    finally { clearTimeout(timer); }
+  } catch { return null; }
+}
+async function signupNotifyCall() {
+  try { await signupWorkerCall('/signup-notify', { lang: LANG }, 8000); } catch {}
+}
+function captureSignupLinks() {
+  try {
+    const q = new URLSearchParams(location.search || '');
+    let captured = false;
+    const cu = q.get('confirm'), ct = q.get('t');
+    if (cu) { try { sessionStorage.setItem('rf-link-confirm', JSON.stringify({ uid: cu, t: ct || '' })); } catch {} captured = true; }
+    const au = q.get('approve');
+    if (au) { try { sessionStorage.setItem('rf-link-approve', JSON.stringify({ uid: au, t: ct || '' })); } catch {} captured = true; }
+    if (captured) { try { history.replaceState(null, '', location.pathname); } catch {} }
+  } catch {}
+}
+function signupStoredLink(kind) {
+  try {
+    const raw = sessionStorage.getItem('rf-link-' + kind);
+    if (!raw) return null;
+    const o = JSON.parse(raw);
+    return o && o.uid ? { uid: String(o.uid), t: String(o.t || '') } : null;
+  } catch { return null; }
+}
+function signupClearLink(kind) {
+  try { sessionStorage.removeItem('rf-link-' + kind); } catch {}
+}
+async function signupLinkDoor(user) {
+  try {
+    if (!user) return;
+    captureSignupLinks();
+    const cl = signupStoredLink('confirm');
+    if (cl) {
+      if (cl.uid !== user.uid) { toast(t('signup.confirmWrong'), true); signupClearLink('confirm'); }
+      else if (UDATA.emailConfirmedAt) { toast(t('signup.confirmAlready')); signupClearLink('confirm'); }
+      else {
+        const r = await signupWorkerCall('/confirm-verify', { uid: cl.uid, t: cl.t }, 15000);
+        if (r && r.ok) {
+          try { await setDoc(doc(db, 'users', user.uid), { emailConfirmedAt: serverTimestamp() }, { merge: true }); toast(t('signup.confirmDone')); }
+          catch { toast(t('signup.confirmFailed'), true); }
+          signupClearLink('confirm');
+        }
+        else if (r && r.status === 410) { toast(t('signup.confirmExpired'), true); signupClearLink('confirm'); }
+        else if (r && (r.status === 400 || r.status === 403)) { toast(t('signup.confirmInvalid'), true); signupClearLink('confirm'); }
+        /* r null o 5xx: el enlace se conserva para otro intento en esta pestaña */
+      }
+    }
+    if (!IS_OWNER && UDATA.approved !== true && !SIGNUP_NOTIFY_TRIED) { SIGNUP_NOTIFY_TRIED = true; signupNotifyCall(); }
+  } catch {}
+}
+async function signupApproveResume() {
+  try {
+    const al = signupStoredLink('approve');
+    if (!al || SIGNUP_CARD_DISMISSED) return;
+    if (ROLE !== 'administrador') { toast(t('signup.adminOnly'), true); signupClearLink('approve'); return; }
+    const r = await signupWorkerCall('/approve-verify', { uid: al.uid, t: al.t }, 15000);
+    if (!r) return;
+    if (r.status === 410) { toast(t('signup.approveExpired'), true); signupClearLink('approve'); return; }
+    if (r.status === 400 || r.status === 403) { toast(t('signup.approveInvalid'), true); signupClearLink('approve'); return; }
+    if (!r.ok || !r.j) return;
+    signupApproveCardShow(r.j, al.uid);
+  } catch {}
+}
+function signupDateStr(iso) {
+  try {
+    if (!iso) return '';
+    let d = null;
+    if (typeof iso === 'string' || typeof iso === 'number') d = new Date(iso);
+    else if (typeof iso.toDate === 'function') d = iso.toDate();
+    else if (typeof iso.seconds === 'number') d = new Date(iso.seconds * 1000);
+    else d = new Date(iso);
+    if (!d || isNaN(d.getTime())) return '';
+    return d.toLocaleDateString(LANG === 'es' ? 'es-MX' : 'en-US', { day: 'numeric', month: 'long', year: 'numeric' });
+  } catch { return ''; }
+}
+function signupApproveCardShow(s, uid) {
+  try {
+    const box = $('signup-card');
+    if (!box || !s) return;
+    const paintClose = () => {
+      const cb = box.querySelector('[data-signup-close]');
+      if (cb) cb.onclick = () => { box.style.display = 'none'; box.innerHTML = ''; signupClearLink('approve'); };
+    };
+    if (s.state === 'already-approved') {
+      box.innerHTML = `<h2 class="signup-title">${esc(t('signup.approvedOk'))}</h2><div class="signup-row">${esc(t('signup.alreadyApproved'))}</div><div class="signup-actions"><button type="button" class="btn-primary" data-signup-close>${esc(t('signup.closeBtn'))}</button></div>`;
+      box.style.display = '';
+      paintClose();
+      return;
+    }
+    const mailRow = s.emailConfirmedAt
+      ? `<span class="ok-badge">${esc(t('signup.approveMailYes', { date: signupDateStr(s.emailConfirmedAt) }))}</span>`
+      : `<span class="warn-badge">${esc(t('signup.approveMailNo'))}</span>`;
+    let trainerRow = '';
+    if (s.roleRequest !== 'entrenador') {
+      if (s.trainerUid) {
+        const tr = ADMIN_USERS.find(x => x.id === s.trainerUid);
+        trainerRow = `<div class="signup-row">${esc(t('signup.approveTrainer', { name: tr ? (tr.name || tr.email || '') : '' }))}</div>`;
+      } else {
+        trainerRow = `<div class="signup-row">${esc(t('signup.approveWaiting'))}</div>`;
+      }
+    }
+    box.innerHTML = `<h2 class="signup-title">${esc(t('signup.approveAsk', { name: s.name || s.email || '', type: t(s.roleRequest === 'entrenador' ? 'signup.typeEntrenador' : 'signup.typeAlumno') }))}</h2>`
+      + `<div class="signup-row">${esc(s.email || '')}</div>`
+      + `<div class="signup-row">${mailRow}</div>`
+      + trainerRow
+      + `<div class="signup-row">${esc(t('signup.approveRegistered', { date: signupDateStr(s.createdAt) }))}</div>`
+      + `<p class="signup-note">${esc(t('signup.approveNote'))}</p>`
+      + `<div class="signup-actions"><button type="button" class="btn-primary signup-approve" data-signup-approve>${esc(t('signup.approveBtn'))}</button><button type="button" class="btn-ghost" data-signup-notnow>${esc(t('signup.notNowBtn'))}</button></div>`;
+    box.style.display = '';
+    const nb = box.querySelector('[data-signup-notnow]');
+    if (nb) nb.onclick = () => { SIGNUP_CARD_DISMISSED = true; box.style.display = 'none'; };
+    const ab = box.querySelector('[data-signup-approve]');
+    if (ab) ab.onclick = async () => {
+      ab.disabled = true;
+      const nb2 = box.querySelector('[data-signup-notnow]');
+      if (nb2) nb2.disabled = true;
+      let res = null;
+      try { res = await (s.roleRequest === 'entrenador' ? approveTrainerNow(uid) : approveUserNow(uid)); }
+      catch { toast(t('signup.approveFailed'), true); ab.disabled = false; if (nb2) nb2.disabled = false; return; }
+      box.innerHTML = `<h2 class="signup-title">${esc(t('signup.approvedOk'))}</h2><div class="signup-row">${esc(res && res.ok ? t('mail.sentOk', { email: res.to }) : mailReasonText(res || { status: 0, error: '' }))}</div><div class="signup-actions"><button type="button" class="btn-primary" data-signup-close>${esc(t('signup.closeBtn'))}</button></div>`;
+      box.style.display = '';
+      paintClose();
+    };
+  } catch {}
+}
+async function approveUserNow(uid) {
+  const u = ADMIN_USERS.find(x => x.id === uid);
+  await setDoc(doc(db, 'users', uid), { approved: true }, { merge: true });
+  if (u && u.trainerUid) await escAdjustQuota(u.trainerUid, +1);
+  toast(t('msg.approved')); await loadAdmin();
+  return mailAutoWelcome(uid, u ? (u.name || u.email || '') : '');
+}
+async function approveTrainerNow(uid) {
+  const u = ADMIN_USERS.find(x => x.id === uid);
+  await setDoc(doc(db, 'users', uid), { approved: true, role: 'entrenador' }, { merge: true });
+  await escEnsureTrainerScaffold(uid, u ? (u.name || u.email) : '');
+  await auditLog('role', 'role.trainerApproved', uid, '');
+  toast(t('esc.trainerApproved'));
+  await loadAdmin();
+  return mailAutoWelcome(uid, u ? (u.name || u.email || '') : '');
+}
+function emailConfirmMarkHtml(u) {
+  try {
+    if (u && u.emailConfirmedAt) {
+      return ` <span class="ok-badge" title="${esc(appInstallDateStr(u.emailConfirmedAt))}">${esc(t('admin.mailConfirmed'))}</span>`;
+    }
+    return ` <span class="warn-badge">${esc(t('admin.mailUnconfirmed'))}</span>`;
+  } catch { return ''; }
 }
 /* Forma mínima de la identificación: foods = lista de objetos con
    nombre no vacío; questions = a lo sumo 3, con id y texto. Lo que no
@@ -20748,7 +20973,7 @@ document.addEventListener('keydown', e => { if (e.key === 'Escape') shareClose()
  *  - El SW (sw.js) solo cachea la cáscara del mismo origen en modo
  *    RED PRIMERO: Auth/Firestore/Worker jamás pasan por la caché.
  * ================================================================ */
-const PWA_SW_VERSION = '20261028-admin-panel';
+const PWA_SW_VERSION = '20261028-registro-aprobacion';
 let pwaDeferredPrompt = null;
 function pwaIsStandalone() {
   try {
