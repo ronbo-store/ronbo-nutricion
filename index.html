@@ -21,7 +21,7 @@
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-title" content="RONBO FIT">
 <meta name="apple-mobile-web-app-status-bar-style" content="default">
-<link rel="stylesheet" href="styles.css?v=20261028-correccion-068">
+<link rel="stylesheet" href="styles.css?v=20261028-puerta-falsa-camara">
 <script type="importmap">
 {
   "imports": {
@@ -333,6 +333,14 @@
          privacidad», sección «Privacidad y datos» (perm.photoNote).
          Nada más de esta vista cambia. -->
     <div id="train-content" style="display:none">
+      <!-- PUERTA FALSA «Camera Coach» (AUTH-2026-10-28-071, diseño
+           aprobado por Ronald el 2026-10-28): contenedor vacío que
+           app.js rellena SOLO para alumnos aprobados (fdCamRender).
+           La tarjeta anuncia una función que AÚN NO EXISTE y recoge
+           el interés en el campo fdCamAt del propio documento; la
+           hoja con la explicación es #fdcam-float. Sin plan o sin
+           vista de entrenamiento, el contenedor queda vacío. -->
+      <div id="fdcam-box" style="display:none"></div>
       <div id="my-training"><div class="wempty" data-i18n="train.loading">Loading your plan…</div></div>
       <!-- PERSONALIZA TUS ASIGNACIONES DE HOY (pedido de Ronald,
            2026-10-27 12:50 CDT): UN solo botón desplegable, nacido
@@ -683,6 +691,22 @@
       <button type="button" class="pend-close" id="btn-train-ex-close" aria-label="Close" data-i18n-aria="client.close">✕</button>
     </div>
     <div id="train-ex-float-body"></div>
+  </div>
+  <!-- PUERTA FALSA «Camera Coach» (AUTH-2026-10-28-071): hoja de la
+       tarjeta #fdcam-box. Dice la verdad: la función aún no está
+       disponible; confirmar escribe SOLO {fdCamAt} en el propio
+       documento (patrón mailLang de AUTH-062) y la tarjeta pasa a
+       «Ya estás en la lista». Sin cámara, sin correos, sin Worker. -->
+  <div class="act-float act-sheet" id="fdcam-float" style="display:none" role="dialog">
+    <div class="pend-head">
+      <h2 data-i18n="fdcam.sheetTitle">Camera Coach is not available yet</h2>
+      <button type="button" class="pend-close" id="btn-fdcam-close" aria-label="Close" data-i18n-aria="client.close">✕</button>
+    </div>
+    <p class="progress-hint" data-i18n="fdcam.sheetBody">We're building it: automatic rep counting, live form cues in English and Spanish, and your video never leaves your phone. If enough students ask for it, it gets built first. Tap below and you'll be among the first to try it.</p>
+    <div class="eval-actions">
+      <button type="button" class="btn-primary" id="fdcam-join" data-i18n="fdcam.join">Count me in</button>
+      <button type="button" class="btn-ghost" id="fdcam-later" data-i18n="fdcam.later">Not now</button>
+    </div>
   </div>
   <!-- Indicador flotante de análisis M8 (Ronald, 2026-10-21): disco
        con anillo de progreso en el CENTRO DE LA PANTALLA (nació sobre
@@ -1206,6 +1230,6 @@
 <div id="toast" class="toast"></div>
 <div id="print-card" aria-hidden="true"></div>
 
-<script type="module" src="app.js?v=20261028-correccion-068"></script>
+<script type="module" src="app.js?v=20261028-puerta-falsa-camara"></script>
 </body>
 </html>

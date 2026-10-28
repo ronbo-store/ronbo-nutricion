@@ -1984,6 +1984,16 @@ en: {
   'myprof.mailLang': 'Email language',
   'myprof.mailLangHint': 'The language of the emails we send you (your welcome and your notices). It starts with your app language; change it here anytime.',
   'msg.mailLangSaved': 'Email language saved.',
+  'fdcam.tag': 'COMING SOON',
+  'fdcam.title': 'Camera Coach',
+  'fdcam.body': 'Your phone counts your reps and watches your form while you train — and the set is logged for you.',
+  'fdcam.notify': 'Notify me',
+  'fdcam.done': "You're on the list ✓",
+  'fdcam.sheetTitle': 'Camera Coach is not available yet',
+  'fdcam.sheetBody': "We're building it: automatic rep counting, live form cues in English and Spanish, and your video never leaves your phone. If enough students ask for it, it gets built first. Tap below and you'll be among the first to try it.",
+  'fdcam.join': 'Count me in',
+  'fdcam.later': 'Not now',
+  'fdcam.saved': 'Done — you are on the Camera Coach list.',
   'tabs.track': '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 20V10"/><path d="M10 20V4"/><path d="M16 20v-8"/><path d="M21 20H3"/></svg> My log',
   'tabs.profile': '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="8" r="3.6"/><path d="M5 20c.8-3.4 3.6-5 7-5s6.2 1.6 7 5"/></svg> My profile',
   'tabs.clients': '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="9" cy="8.4" r="3.2"/><path d="M3.4 19.4c.7-3 2.9-4.5 5.6-4.5s4.9 1.5 5.6 4.5"/><path d="M15.6 5.6a3.2 3.2 0 0 1 0 5.9"/><path d="M17.8 15.3c1.7.7 2.7 2 3.1 4.1"/></svg> My clients',
@@ -3838,6 +3848,16 @@ es: {
   'myprof.mailLang': 'Idioma de los correos',
   'myprof.mailLangHint': 'El idioma de los correos que te enviamos (tu bienvenida y tus avisos). Empieza con el idioma de tu app; cámbialo aquí cuando quieras.',
   'msg.mailLangSaved': 'Idioma de correo guardado.',
+  'fdcam.tag': 'MUY PRONTO',
+  'fdcam.title': 'Entrena con cámara',
+  'fdcam.body': 'Tu móvil cuenta tus repeticiones y mira tu técnica mientras entrenas — y la serie queda registrada sola.',
+  'fdcam.notify': 'Avísame',
+  'fdcam.done': 'Ya estás en la lista ✓',
+  'fdcam.sheetTitle': 'Entrenar con cámara aún no está disponible',
+  'fdcam.sheetBody': 'Lo estamos construyendo: conteo automático de repeticiones, correcciones de técnica en vivo en inglés y español, y tu video nunca sale de tu teléfono. Si suficientes alumnos lo piden, se construye primero. Toca abajo y estarás entre los primeros en probarlo.',
+  'fdcam.join': 'Quiero entrar',
+  'fdcam.later': 'Ahora no',
+  'fdcam.saved': 'Listo — ya estás en la lista de Entrena con cámara.',
   'tabs.track': '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 20V10"/><path d="M10 20V4"/><path d="M16 20v-8"/><path d="M21 20H3"/></svg> Mi registro',
   'tabs.profile': '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="8" r="3.6"/><path d="M5 20c.8-3.4 3.6-5 7-5s6.2 1.6 7 5"/></svg> Mi perfil',
   'tabs.clients': '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="9" cy="8.4" r="3.2"/><path d="M3.4 19.4c.7-3 2.9-4.5 5.6-4.5s4.9 1.5 5.6 4.5"/><path d="M15.6 5.6a3.2 3.2 0 0 1 0 5.9"/><path d="M17.8 15.3c1.7.7 2.7 2 3.1 4.1"/></svg> Mis clientes',
@@ -13913,9 +13933,73 @@ function trainFloatClose() {
   fl.classList.add('is-closing');
   setTimeout(() => { fl.style.display = 'none'; fl.classList.remove('is-closing'); fl.classList.remove('is-open'); }, 170);
 }
+/* ================================================================
+ * PUERTA FALSA «Camera Coach» (AUTH-2026-10-28-071) — diseño
+ * aprobado por Ronald el 2026-10-28 (chat del análisis del video
+ * de Adrián Sáenz; documento PAQUETE-PUERTA-FALSA-CAMARA-DISENO-
+ * 2026-10-28): la tarjeta vive al inicio de #train-content y solo
+ * la ven los alumnos APROBADOS. Anuncia una función que AÚN NO
+ * EXISTE (conteo de repeticiones y técnica por cámara) y recoge
+ * el interés confirmando: la ÚNICA escritura de la pieza es
+ * {fdCamAt: ISO} en el PROPIO documento del alumno por la rama de
+ * perfil inofensivo — el mismo patrón de mailLang (AUTH-062) — y
+ * exige el delta de reglas de UN campo que la admite en su lista
+ * cerrada (autorización de reglas APARTE; sin ese delta el
+ * guardado falla y la pieza lo dice con failToast, sin fingir).
+ * El estado «en la lista» se deriva del propio UDATA.fdCamAt que
+ * la app ya carga: cero lecturas nuevas. Sin cámara, sin correos,
+ * sin Worker, sin UI de conteo (el conteo llega por lectura REST
+ * en la auditoría semanal). Si el guardado falla, el botón se
+ * rehabilita y nada cambia de estado.
+ * ================================================================ */
+function fdCamRender() {
+  const box = $('fdcam-box');
+  if (!box) return;
+  const show = ROLE === 'usuario' && UDATA && UDATA.approved === true;
+  if (!show) { box.style.display = 'none'; box.innerHTML = ''; return; }
+  box.style.display = 'block';
+  const joined = typeof UDATA.fdCamAt === 'string' && UDATA.fdCamAt.length > 0;
+  box.innerHTML = `<div class="panel fdcam-card">
+    <span class="fdcam-tag">${esc(t('fdcam.tag'))}</span>
+    <div class="fdcam-title">📷 ${esc(t('fdcam.title'))}</div>
+    <p class="fdcam-body">${esc(t('fdcam.body'))}</p>
+    ${joined
+      ? `<div class="fdcam-done">${esc(t('fdcam.done'))}</div>`
+      : `<button type="button" class="btn-primary" id="fdcam-notify">${esc(t('fdcam.notify'))}</button>`}
+  </div>`;
+  const b = $('fdcam-notify');
+  if (b) b.addEventListener('click', fdCamOpen);
+}
+function fdCamOpen() {
+  const fl = $('fdcam-float');
+  if (!fl) return;
+  fl.classList.remove('is-closing');
+  fl.classList.add('is-open');
+  fl.style.display = 'block';
+}
+function fdCamClose() {
+  const fl = $('fdcam-float');
+  if (!fl) return;
+  fl.classList.add('is-closing');
+  setTimeout(() => { fl.style.display = 'none'; fl.classList.remove('is-closing'); fl.classList.remove('is-open'); }, 170);
+}
+async function fdCamJoin() {
+  if (!auth.currentUser) return;
+  const btn = $('fdcam-join');
+  if (btn) btn.disabled = true;
+  try {
+    const v = new Date().toISOString();
+    await setDoc(doc(db, 'users', auth.currentUser.uid), { fdCamAt: v }, { merge: true });
+    UDATA = { ...UDATA, fdCamAt: v };
+    fdCamClose();
+    fdCamRender();
+    toast(t('fdcam.saved'));
+  } catch (e) { if (btn) btn.disabled = false; failToast(e); }
+}
 async function loadMyTraining() {
   const box = $('my-training');
   if (!box || !auth.currentUser) return;
+  fdCamRender();
   const uid = auth.currentUser.uid;
   const plans = await fetchPlans(uid);
   const plan = plans.find(p => p.active === true) || null;
@@ -21019,6 +21103,10 @@ function shareRelang() { const f = $('share-float'); if (f && f.style.display !=
   }); }
 { const b = $('btn-share-close'); if (b) b.addEventListener('click', shareClose); }
 { const b = $('btn-train-ex-close'); if (b) b.addEventListener('click', trainFloatClose); }
+{ const b = $('btn-fdcam-close'); if (b) b.addEventListener('click', fdCamClose); }
+{ const b = $('fdcam-later'); if (b) b.addEventListener('click', fdCamClose); }
+{ const b = $('fdcam-join'); if (b) b.addEventListener('click', fdCamJoin); }
+document.addEventListener('keydown', e => { if (e.key === 'Escape') { const f = $('fdcam-float'); if (f && f.style.display !== 'none') fdCamClose(); } });
 document.addEventListener('keydown', e => { if (e.key === 'Escape') { const f = $('train-ex-float'); if (f && f.style.display !== 'none') trainFloatClose(); } });
 { const b = $('btn-share-day'); if (b) b.addEventListener('click', () => shareSetType('day')); }
 { const b = $('btn-share-week'); if (b) b.addEventListener('click', () => shareSetType('week')); }
@@ -21045,7 +21133,7 @@ document.addEventListener('keydown', e => { if (e.key === 'Escape') shareClose()
  *  - El SW (sw.js) solo cachea la cáscara del mismo origen en modo
  *    RED PRIMERO: Auth/Firestore/Worker jamás pasan por la caché.
  * ================================================================ */
-const PWA_SW_VERSION = '20261028-correccion-068';
+const PWA_SW_VERSION = '20261028-puerta-falsa-camara';
 let pwaDeferredPrompt = null;
 function pwaIsStandalone() {
   try {

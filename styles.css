@@ -1924,3 +1924,11 @@ div.cgrid-cell { cursor: default; }
    pantalla de acceso. Una sola clase nueva, acotada al prefijo
    signup- como el resto del bloque AUTH-068. */
 .signup-confirm-hint { background: #e6f4f1; border: 1px dashed #0d9488; border-radius: 10px; color: #0f3d38; font-size: 13px; line-height: 1.45; margin: 10px 0; padding: 10px 12px; text-align: center; }
+/* PUERTA FALSA «Camera Coach» (AUTH-2026-10-28-071): SOLO clases
+   .fdcam- de la tarjeta en #train-content y su estado confirmado.
+   La hoja #fdcam-float reutiliza .act-float/.act-sheet sin tocar. */
+.fdcam-card { border: 1.5px solid #0d9488; }
+.fdcam-tag { display: inline-block; font-size: 10.5px; font-weight: 700; letter-spacing: .6px; color: #0d9488; border: 1px solid #0d9488; border-radius: 999px; padding: 2px 8px; margin-bottom: 8px; }
+.fdcam-title { font-size: 17px; font-weight: 800; color: #14201f; }
+.fdcam-body { font-size: 13.5px; line-height: 1.5; color: #4b5563; margin: 8px 0 12px; }
+.fdcam-done { font-size: 14px; font-weight: 700; color: #0d9488; padding: 6px 0 2px; }
