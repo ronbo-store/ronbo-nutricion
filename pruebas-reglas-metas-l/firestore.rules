@@ -672,9 +672,15 @@ service cloud.firestore {
         && getAfter(/databases/$(database)/documents/trainer_relations/$(uid)).data.get('trainerUid', '')
              == request.resource.data.get('trainerUid', '');
       // A client may update ONLY harmless profile fields of their own doc.
+      // AUTH-062 (2026-10-28): mailLang = la preferencia de idioma de
+      // correo del propio usuario (selector en «Mi perfil»); si el
+      // campo cambia, su valor queda cerrado a 'en'/'es'. Ningun otro
+      // campo se abre en esta rama.
       allow update: if isSelf(uid)
         && request.resource.data.diff(resource.data).affectedKeys()
-             .hasOnly(['name', 'phone', 'gender', 'social', 'photoURL']);
+             .hasOnly(['name', 'phone', 'gender', 'social', 'photoURL', 'mailLang'])
+        && (!request.resource.data.diff(resource.data).affectedKeys().hasAny(['mailLang'])
+            || request.resource.data.mailLang in ['en', 'es']);
       // Metas con fundamento (2026-10-26, diseño §§C–I): el DUEÑO
       // escribe en su propio documento SOLO los campos del motor de
       // metas — las metas que el cálculo fija (goals, con claves
