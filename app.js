@@ -5976,7 +5976,7 @@ async function loadAdmin() {
         <button class="btn-ghost btn-sm" data-profile="${u.id}">${t('admin.profile')}</button>
         <button class="btn-ghost btn-sm" data-goals="${u.id}">${t('admin.goals')}</button>
         ${u.role === 'entrenador' ? `<button class="btn-ghost btn-sm" data-dos-mail="${u.id}">${t('esc.mailBtn')}</button>` : ''}
-        <button class="btn-ghost btn-sm" data-mail-resend="${u.id}">${t('mail.resendBtn')}</button>
+        <button class="btn-ghost btn-sm" data-mail-resend="${u.id}" title="${t('mail.resendBtn')}" aria-label="${t('mail.resendBtn')}">📧</button>
         <button class="btn-ghost btn-sm" data-revoke="${u.id}">${t('admin.revoke')}</button>
       </div>
     </div>${u.role === 'entrenador' ? `<div class="dos-mail-box" id="dos-mail-${u.id}" style="display:none"></div>` : ''}`).join('') : `<div class="wempty">${t('admin.noUsers')}</div>`);
@@ -20366,7 +20366,7 @@ document.addEventListener('keydown', e => { if (e.key === 'Escape') shareClose()
  *  - El SW (sw.js) solo cachea la cáscara del mismo origen en modo
  *    RED PRIMERO: Auth/Firestore/Worker jamás pasan por la caché.
  * ================================================================ */
-const PWA_SW_VERSION = '20261028-faq';
+const PWA_SW_VERSION = '20261028-icono-reenviar';
 let pwaDeferredPrompt = null;
 function pwaIsStandalone() {
   try {
