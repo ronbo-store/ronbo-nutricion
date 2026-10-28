@@ -21,7 +21,7 @@
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-title" content="RONBO FIT">
 <meta name="apple-mobile-web-app-status-bar-style" content="default">
-<link rel="stylesheet" href="styles.css?v=20261027-correo-automatico">
+<link rel="stylesheet" href="styles.css?v=20261028-faq">
 <script type="importmap">
 {
   "imports": {
@@ -197,6 +197,13 @@
        vivo en una mini-etiqueta cuando el cronómetro corre minimizado
        y su estado cuando está en pausa (módulo STOPW de app.js). -->
   <button type="button" class="sw-fab" id="btn-stopwatch" aria-label="Stopwatch" data-i18n-aria="sw.open"><svg class="sw-fab-ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9.5 2.5h5"/><path d="M12 2.5v3"/><path d="M18.7 7.2l1.8-1.8"/><circle cx="12" cy="14" r="7.3"/><path d="M12 10.6V14l2.4 1.9"/></svg><span class="sw-fab-time" id="sw-fab-time" aria-hidden="true"></span></button>
+  <!-- Botón redondo flotante de AYUDA / FAQ (paquete 2026-10-28):
+       ENCIMA del cronómetro en la pila de la derecha (llamita
+       debajo, cronómetro en el medio, «?» arriba, según la maqueta
+       aprobada); SOLO en la pantalla principal — helpFabSync lo
+       muestra únicamente con la pestaña «Mi registro» activa.
+       Abre el panel de ayuda #faq-panel. -->
+  <button type="button" class="help-fab" id="btn-help" style="display:none" aria-label="Help" data-i18n-aria="faq.open">?</button>
 
   <nav class="main-tabs" id="main-tabs" style="display:none">
     <button type="button" class="main-tab active" data-tab="track" data-i18n="tabs.track"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 20V10"/><path d="M10 20V4"/><path d="M16 20v-8"/><path d="M21 20H3"/></svg> My log</button>
@@ -480,6 +487,20 @@
     </div>
     <div id="gmi-body"></div>
   </div>
+  <!-- Panel de AYUDA / FAQ (paquete 2026-10-28): hoja inferior con
+       los 7 bloques plegables en acordeón; el contenido lo pinta
+       renderFaqPanel() desde app_settings/faq con la semilla
+       aprobada (FAQ_SEED) como respaldo. Cierre: ✕, fondo o Escape. -->
+  <div class="ring-detail-backdrop" id="faq-backdrop" style="display:none"></div>
+  <div class="faq-panel" id="faq-panel" style="display:none" role="dialog" aria-label="Help" data-i18n-aria="faq.title">
+    <div class="faq-grip" aria-hidden="true"></div>
+    <div class="faq-head">
+      <h2 data-i18n="faq.title">Help</h2>
+      <button type="button" class="pend-close" id="btn-faq-close" aria-label="Close" data-i18n-aria="client.close">✕</button>
+    </div>
+    <p class="faq-sub" data-i18n="faq.sub">Frequently asked questions — tap a block to open it.</p>
+    <div id="faq-body"></div>
+  </div>
   <!-- Registro de actividad — capa FLOTANTE (rediseño 2026-10-24):
        todo vive junto al dock, dentro de #tab-track, sin navegar
        fuera de la pantalla principal y sin que la página crezca.
@@ -730,6 +751,9 @@
     <h3 class="history-title" data-i18n="esc.flagsTitle">🚩 Feature flags</h3>
     <p class="progress-hint" data-i18n="esc.flagsHint">Turn whole modules off or on for every student without deploying anything. Trainers and you are not blocked by these flags.</p>
     <div id="flags-box"></div>
+    <h3 class="history-title" data-i18n="faq.edTitle">❓ Help editor (FAQ)</h3>
+    <p class="progress-hint" data-i18n="faq.edHint">These questions and answers are what every user sees in Help (the floating ? on the main screen). Edit, add or delete entries: changes are saved to the app settings and reach everyone on their next visit.</p>
+    <div id="faq-editor-box"></div>
     <h3 class="history-title" data-i18n="nd2.title">🗒️ Access log (ND-2)</h3>
     <p class="progress-hint" data-i18n="nd2.hint">Every time the trainer view of a client's evaluations and photos is opened, one record is written here: who viewed whose data, and when. Records cannot be edited.</p>
     <div id="nd2-box"><div class="wempty" data-i18n="access.loading">Loading…</div></div>
@@ -1167,6 +1191,6 @@
 <div id="toast" class="toast"></div>
 <div id="print-card" aria-hidden="true"></div>
 
-<script type="module" src="app.js?v=20261027-correo-automatico"></script>
+<script type="module" src="app.js?v=20261028-faq"></script>
 </body>
 </html>

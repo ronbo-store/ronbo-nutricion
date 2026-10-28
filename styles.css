@@ -1764,6 +1764,28 @@ body { padding: max(16px, env(safe-area-inset-top)) max(16px, env(safe-area-inse
 .sw-fab.paused .sw-fab-time { background: #b45309; }
 @keyframes sw-fab-pulse { 0% { box-shadow: 0 8px 22px rgba(15,23,42,.20), 0 0 0 0 rgba(13,148,136,.45); } 70% { box-shadow: 0 8px 22px rgba(15,23,42,.20), 0 0 0 12px rgba(13,148,136,0); } 100% { box-shadow: 0 8px 22px rgba(15,23,42,.20), 0 0 0 0 rgba(13,148,136,0); } }
 @media (prefers-reduced-motion: reduce) { .sw-fab.live { animation: none; } }
+/* ===== AYUDA / FAQ (paquete 2026-10-28) =====
+   El «?» se apila ENCIMA del cronómetro (.sw-fab, bottom
+   122+70+28) con el mismo paso de la pila: 58px de botón + 14px
+   de aire = +72. Panel inferior según la maqueta aprobada. */
+.help-fab { position: fixed; right: 14px; bottom: calc(env(safe-area-inset-bottom, 0px) + 122px + 70px + 28px + 72px); z-index: 44; width: 58px; height: 58px; border-radius: 50%; border: 3px solid #fff; background: #0d9488; color: #fff; box-shadow: 0 8px 22px rgba(15,23,42,.25); font-family: inherit; font-size: 30px; font-weight: 800; line-height: 1; display: flex; align-items: center; justify-content: center; cursor: pointer; padding: 0; }
+.faq-panel { position: fixed; left: 0; right: 0; bottom: 0; top: 64px; z-index: 47; background: #f6fbfb; border-radius: 26px 26px 0 0; box-shadow: 0 -12px 34px rgba(15,23,42,.25); padding: 12px 18px 28px; overflow-y: auto; box-sizing: border-box; }
+.faq-grip { width: 44px; height: 5px; border-radius: 3px; background: #c8dcd8; margin: 0 auto 12px; }
+.faq-head { display: flex; align-items: center; justify-content: space-between; gap: 10px; }
+.faq-head h2 { font-size: 21px; color: #14312e; }
+.faq-sub { font-size: 12.5px; color: #3f5a56; margin: 3px 0 14px; }
+.faq-blk { background: #fff; border-radius: 16px; padding: 4px 15px; margin-bottom: 11px; box-shadow: 0 2px 8px rgba(20,49,46,.08); }
+.faq-blk-t { display: flex; width: 100%; align-items: center; justify-content: space-between; gap: 10px; background: none; border: 0; padding: 10px 0; font: inherit; font-size: 15.5px; font-weight: 700; color: #14312e; cursor: pointer; text-align: left; }
+.faq-chev { color: #0d9488; flex: none; }
+.faq-qa { border-top: 1px solid #eef4f3; padding: 10px 0; }
+.faq-qa b { font-size: 14px; color: #14312e; display: block; }
+.faq-qa p { font-size: 13px; color: #3f5a56; line-height: 1.45; margin-top: 3px; }
+.faq-ed-row { background: #fff; border: 1px solid #e3efed; border-radius: 14px; padding: 12px; margin-bottom: 12px; }
+.faq-ed-top { display: flex; flex-wrap: wrap; align-items: center; gap: 10px; margin-bottom: 8px; }
+.faq-ed-top label { font-size: 12.5px; color: #3f5a56; }
+.faq-ed-btns { margin-left: auto; display: inline-flex; gap: 8px; }
+.faq-ed-lab { display: block; font-size: 12px; font-weight: 700; color: #3f5a56; margin: 8px 0 4px; }
+.faq-ed-in { width: 100%; box-sizing: border-box; border: 1px solid #E7E1D3; border-radius: 12px; padding: 10px 12px; font: 13px/1.4 inherit; background: #fff; color: #263238; }
 #sw-overlay { position: fixed; inset: 0; z-index: 1400; background: #ffffff; overflow: hidden; }
 #sw-overlay .auth-wallpaper { z-index: 0; }
 .swfull { position: relative; z-index: 1; height: 100dvh; display: flex; flex-direction: column; padding: calc(20px + env(safe-area-inset-top, 0px)) calc(22px + env(safe-area-inset-right, 0px)) calc(30px + env(safe-area-inset-bottom, 0px)) calc(22px + env(safe-area-inset-left, 0px)); box-sizing: border-box; }

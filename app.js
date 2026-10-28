@@ -232,6 +232,7 @@ async function escPoolTrainersFromProfiles(modality) {
 async function loadRolesX() {
   try { const s = await getDoc(doc(db, 'app_settings', 'feature_flags')); if (s.exists()) FEATURE_FLAGS = s.data(); } catch {}
   try { const s = await getDoc(doc(db, 'app_settings', 'membership_catalog')); if (s.exists()) MEMBERSHIP_CATALOG = s.data(); } catch {}
+  try { await faqLoad(); } catch {}
   if (ROLE === 'usuario' && auth.currentUser) {
     try { const s = await getDoc(doc(db, 'trainer_relations', auth.currentUser.uid)); MY_REL = s.exists() ? { id: s.id, ...s.data() } : null; } catch { MY_REL = null; }
     if (!MY_REL && UDATA) {
@@ -3530,6 +3531,30 @@ en: {
   'pend.trainerHeldTitle': 'Goals held for health review',
   'pend.trainerHeldDetail': '{name}: {params} held back by their health declaration. Review it in their file.',
   'pend.trainerHeldGo': 'Open clients',
+  'faq.open': 'Help',
+  'faq.title': 'Help',
+  'faq.sub': 'Frequently asked questions — tap a block to open it.',
+  'faq.b1': 'Access & installation',
+  'faq.b2': 'Account & access',
+  'faq.b3': 'Meals',
+  'faq.b4': 'Training',
+  'faq.b5': 'Founded goals',
+  'faq.b6': 'Privacy & permissions',
+  'faq.b7': 'Common problems',
+  'faq.empty': 'No questions in this block yet.',
+  'faq.edTitle': '❓ Help editor (FAQ)',
+  'faq.edHint': 'These questions and answers are what every user sees in Help (the floating ? on the main screen). Edit, add or delete entries: changes are saved to the app settings and reach everyone on their next visit.',
+  'faq.edBlock': 'Block',
+  'faq.edOrder': 'Order',
+  'faq.edQEn': 'Question (English)',
+  'faq.edAEn': 'Answer (English)',
+  'faq.edQEs': 'Question (Spanish)',
+  'faq.edAEs': 'Answer (Spanish)',
+  'faq.edAdd': 'Add question',
+  'faq.edDelete': 'Delete',
+  'faq.edSaved': 'Help updated ✓',
+  'faq.edError': 'The change could not be saved. Please try again.',
+  'faq.edConfirmDelete': 'Delete this question from Help?',
 },
 es: {
   'app.title': 'RONBO.FIT · Privado',
@@ -5292,6 +5317,30 @@ es: {
   'pend.trainerHeldTitle': 'Metas retenidas por revisión de salud',
   'pend.trainerHeldDetail': '{name}: {params} retenido(s) por su declaración de salud. Revísalo en su ficha.',
   'pend.trainerHeldGo': 'Abrir clientes',
+  'faq.open': 'Ayuda',
+  'faq.title': 'Ayuda',
+  'faq.sub': 'Preguntas frecuentes — toca un bloque para abrirlo.',
+  'faq.b1': 'Acceso e instalación',
+  'faq.b2': 'Cuenta y acceso',
+  'faq.b3': 'Comidas',
+  'faq.b4': 'Entrenamiento',
+  'faq.b5': 'Metas fundadas',
+  'faq.b6': 'Privacidad y permisos',
+  'faq.b7': 'Problemas frecuentes',
+  'faq.empty': 'Este bloque aún no tiene preguntas.',
+  'faq.edTitle': '❓ Editor de ayuda (FAQ)',
+  'faq.edHint': 'Estas preguntas y respuestas son lo que cada usuario ve en Ayuda (el ? flotante de la pantalla principal). Edita, añade o borra entradas: los cambios se guardan en los ajustes de la app y llegan a todos en su próxima visita.',
+  'faq.edBlock': 'Bloque',
+  'faq.edOrder': 'Orden',
+  'faq.edQEn': 'Pregunta (inglés)',
+  'faq.edAEn': 'Respuesta (inglés)',
+  'faq.edQEs': 'Pregunta (español)',
+  'faq.edAEs': 'Respuesta (español)',
+  'faq.edAdd': 'Añadir pregunta',
+  'faq.edDelete': 'Borrar',
+  'faq.edSaved': 'Ayuda actualizada ✓',
+  'faq.edError': 'No se pudo guardar el cambio. Inténtalo de nuevo.',
+  'faq.edConfirmDelete': '¿Borrar esta pregunta de la Ayuda?',
 }
 };
 let LANG = 'en';
@@ -5386,6 +5435,7 @@ function setLang(l) {
      con su variante (Safari o navegador interno) ya elegida. */
   try { pwaPaintInstall(); } catch {}
   try { installCardPaintVariant(); } catch {}
+  try { if (faqIsOpen()) renderFaqPanel(); } catch {}
   if (typeof auth !== 'undefined' && auth && auth.currentUser) {
     /* E2 (17/10/2026): re-render inmediato, con los datos YA en
        memoria, de los paneles que se pintan desde el estado local
@@ -6121,6 +6171,7 @@ async function loadAdmin() {
     };
   }
   renderAiControlBox();
+  renderFaqEditorBox();
   document.querySelectorAll('[data-goals]').forEach(b => b.onclick = () => {
     const u = ADMIN_USERS.find(x => x.id === b.dataset.goals);
     if (u) openGoals(u.id, u.name || u.email, u.goals);
@@ -16161,6 +16212,7 @@ function switchTab(name) {
   if (ROLE !== 'usuario' && name === 'clients') loadClients();
   if ((ROLE === 'administrador' || ROLE === 'entrenador') && name === 'library') renderLibrary();
   if (name === 'profile') renderProfileView();
+  try { helpFabSync(name); } catch {}
 }
 document.querySelectorAll('.main-tab').forEach(b => b.addEventListener('click', () => switchTab(b.dataset.tab)));
 
@@ -20314,7 +20366,7 @@ document.addEventListener('keydown', e => { if (e.key === 'Escape') shareClose()
  *  - El SW (sw.js) solo cachea la cáscara del mismo origen en modo
  *    RED PRIMERO: Auth/Firestore/Worker jamás pasan por la caché.
  * ================================================================ */
-const PWA_SW_VERSION = '20261027-correo-automatico';
+const PWA_SW_VERSION = '20261028-faq';
 let pwaDeferredPrompt = null;
 function pwaIsStandalone() {
   try {
@@ -20661,6 +20713,770 @@ function installCardMaybeShow() {
     if (visible) ov.style.display = 'flex';
   } catch (e) { /* el mensaje de instalación nunca rompe la app */ }
 }
+
+/* ============================================================
+   AYUDA / FAQ (paquete 2026-10-28; diseño aprobado por Ronald:
+   maqueta en maqueta-faq-2026-10-28/ + su instrucción del editor
+   de administrador). Contenido EDITABLE: las preguntas y las
+   respuestas viven en app_settings/faq
+   { entries: [{ id, block, order, q: {en, es}, a: {en, es} }] } —
+   lectura con sesión y escritura SOLO del propietario, por la
+   misma vía de app_settings que approvals / ai_control /
+   feature_flags. La semilla FAQ_SEED (las 49 aprobadas en
+   BORRADOR-FAQ-2026-10-28.md) es el RESPALDO: si el documento no
+   existe o la lectura falla, la ayuda muestra la semilla y nunca
+   sale vacía. El docId 'faq' exige el delta de reglas presentado
+   como decisión separada (INFORME-PAQUETE-FAQ-2026-10-28.md):
+   sin ese delta, en producción la lectura cae a la semilla y el
+   editor no puede guardar (error honesto), sin romper nada más.
+   Vista: botón «?» flotante ENCIMA del cronómetro en la pila de
+   la derecha, SOLO en la pantalla principal (helpFabSync sigue a
+   switchTab); panel inferior con los 7 bloques en acordeón.
+   Editor del administrador: en Accesos (renderFaqEditorBox, solo
+   propietario) — editar, añadir y borrar entradas bilingües.
+   ============================================================ */
+const FAQ_SEED = [
+ {
+  "id": "1.1",
+  "block": 1,
+  "order": 1,
+  "q": {
+   "en": "How do I install RONBO FIT on my iPhone?",
+   "es": "¿Cómo instalo RONBO FIT en mi iPhone?"
+  },
+  "a": {
+   "en": "Open https://fit.ronbo.store in **Safari**, tap **Share** and then **“Add to Home Screen.”** The app icon appears on your home screen and opens full screen, like any other app.",
+   "es": "Abre https://fit.ronbo.store en **Safari**, toca **Compartir** y luego **«Añadir a pantalla de inicio».** El icono queda en tu pantalla de inicio y se abre a pantalla completa, como cualquier app."
+  }
+ },
+ {
+  "id": "1.2",
+  "block": 1,
+  "order": 2,
+  "q": {
+   "en": "How do I install it on Android?",
+   "es": "¿Cómo lo instalo en Android?"
+  },
+  "a": {
+   "en": "Open https://fit.ronbo.store in **Chrome**, tap the **⋮** menu and choose **“Install app.”** If Chrome offers the install banner, you can accept it there too.",
+   "es": "Abre https://fit.ronbo.store en **Chrome**, toca el menú **⋮** y elige **«Instalar app».** Si Chrome te ofrece el aviso de instalación, también puedes aceptarlo ahí."
+  }
+ },
+ {
+  "id": "1.3",
+  "block": 1,
+  "order": 3,
+  "q": {
+   "en": "I opened the link from Instagram, WhatsApp or Facebook and there is no install option. What do I do?",
+   "es": "Abrí el enlace desde Instagram, WhatsApp o Facebook y no aparece la opción de instalar. ¿Qué hago?"
+  },
+  "a": {
+   "en": "You are inside that app's own browser, where RONBO FIT cannot be installed. Tap the **⋯ / ⋮** menu and choose **“Open in Safari”** (iPhone) or **“Open in Chrome”** (Android), or use **“Copy link”** and paste it into your browser. Then follow steps 1.1 or 1.2.",
+   "es": "Estás en el navegador interno de esa app, donde RONBO FIT no se puede instalar. Toca el menú **⋯ / ⋮** y elige **«Abrir en Safari»** (iPhone) o **«Abrir en Chrome»** (Android), o usa **«Copiar enlace»** y pégalo en tu navegador. Después sigue los pasos 1.1 o 1.2."
+  }
+ },
+ {
+  "id": "1.4",
+  "block": 1,
+  "order": 4,
+  "q": {
+   "en": "Do I have to install it to use it?",
+   "es": "¿Tengo que instalarla para usarla?"
+  },
+  "a": {
+   "en": "No. RONBO FIT also works right in your browser at https://fit.ronbo.store. Installing simply puts it on your home screen — and the install reminder that appears when you sign in goes away once the app detects it is installed.",
+   "es": "No. RONBO FIT también funciona en tu navegador, en https://fit.ronbo.store. Instalarla solo la pone en tu pantalla de inicio — y el recordatorio de instalación que aparece al entrar deja de salir cuando la app detecta que ya está instalada."
+  }
+ },
+ {
+  "id": "1.5",
+  "block": 1,
+  "order": 5,
+  "q": {
+   "en": "How do I know the app is installed?",
+   "es": "¿Cómo sé si la app quedó instalada?"
+  },
+  "a": {
+   "en": "Your profile shows the installation signal: **“📲 Installed · (date)”** when the app has opened from your home screen. If it shows “No signal,” open the app once from the home-screen icon.",
+   "es": "Tu perfil muestra la señal de instalación: **«📲 Instalada · (fecha)»** cuando la app se ha abierto desde el icono de inicio. Si dice «Sin señal», abre la app una vez desde el icono. ---"
+  }
+ },
+ {
+  "id": "2.1",
+  "block": 2,
+  "order": 1,
+  "q": {
+   "en": "How do I create my account?",
+   "es": "¿Cómo creo mi cuenta?"
+  },
+  "a": {
+   "en": "Go to https://fit.ronbo.store, choose to register and create your account with your email and a password. Your account starts as **pending approval**: you will be able to enter once your trainer or the administrator approves it.",
+   "es": "Entra a https://fit.ronbo.store, elige registrarte y crea tu cuenta con tu correo y una contraseña. Tu cuenta nace **pendiente de aprobación**: podrás entrar cuando tu entrenador o el administrador la apruebe."
+  }
+ },
+ {
+  "id": "2.2",
+  "block": 2,
+  "order": 2,
+  "q": {
+   "en": "I registered but I still can't get in. Why?",
+   "es": "Me registré pero todavía no puedo entrar. ¿Por qué?"
+  },
+  "a": {
+   "en": "Your approval is still pending — this is normal and protects who can enter. The moment you are approved, a welcome email is sent automatically from **ronbo.fit@gmail.com** and you can sign in.",
+   "es": "Tu aprobación sigue pendiente — es normal y protege quién puede entrar. En el momento en que te aprueban, sale automáticamente un correo de bienvenida desde **ronbo.fit@gmail.com** y ya puedes entrar."
+  }
+ },
+ {
+  "id": "2.3",
+  "block": 2,
+  "order": 3,
+  "q": {
+   "en": "I forgot my password. What do I do?",
+   "es": "Olvidé mi contraseña. ¿Qué hago?"
+  },
+  "a": {
+   "en": "On the sign-in screen, type your email in the email field and tap **“Forgot your password?”** The app emails you a link to set a new one. Without the email typed in, it cannot send the link.",
+   "es": "En la pantalla de entrada, escribe tu correo en el campo de correo y toca **«¿Olvidaste tu contraseña?»**. La app te envía un enlace para crear una nueva. Sin el correo escrito, no puede enviar el enlace."
+  }
+ },
+ {
+  "id": "2.4",
+  "block": 2,
+  "order": 4,
+  "q": {
+   "en": "The app asks me to renew my consent when I sign in. Is something wrong?",
+   "es": "Al entrar, la app me pide renovar mi consentimiento. ¿Pasó algo?"
+  },
+  "a": {
+   "en": "No. It means the terms were updated since your last acceptance, and the app asks **you** to renew your own consent before continuing. Nobody — not even the administrator — can accept in your place.",
+   "es": "No. Significa que los términos se actualizaron desde tu última aceptación, y la app te pide a **ti** renovar tu propio consentimiento antes de continuar. Nadie — ni siquiera el administrador — puede aceptar en tu lugar."
+  }
+ },
+ {
+  "id": "2.5",
+  "block": 2,
+  "order": 5,
+  "q": {
+   "en": "How do I choose or change my trainer?",
+   "es": "¿Cómo elijo o cambio a mi entrenador?"
+  },
+  "a": {
+   "en": "On your main screen, the **“My trainer”** card starts folded into one line: tap it to open it. There you can review the trainer profiles and choose yours, or stay in waiting and let the administrator assign one. Your trainer relationship can be in person, virtual or hybrid.",
+   "es": "En tu pantalla principal, la tarjeta **«Mi entrenador»** nace recogida en una línea: tócala para desplegarla. Ahí puedes revisar los perfiles de los entrenadores y elegir el tuyo, o quedarte en espera y que el administrador te asigne uno. La relación con tu entrenador puede ser presencial, virtual o híbrida."
+  }
+ },
+ {
+  "id": "2.6",
+  "block": 2,
+  "order": 6,
+  "q": {
+   "en": "Who can see and approve accounts?",
+   "es": "¿Quién puede ver y aprobar cuentas?"
+  },
+  "a": {
+   "en": "There are three roles: **student, trainer and administrator.** Only the administrator assigns roles. Trainers can approve new student accounts up to their approval quota, and each trainer only ever sees their own assigned students.",
+   "es": "Hay tres roles: **alumno, entrenador y administrador.** Solo el administrador asigna roles. Los entrenadores pueden aprobar cuentas nuevas de alumnos hasta su cupo de aprobaciones, y cada entrenador ve únicamente a sus alumnos asignados. ---"
+  }
+ },
+ {
+  "id": "3.1",
+  "block": 3,
+  "order": 1,
+  "q": {
+   "en": "How do I log a meal with a photo?",
+   "es": "¿Cómo registro una comida con una foto?"
+  },
+  "a": {
+   "en": "Open **Food**, take or choose the meal photo and let the analysis identify the foods. You get a review card with the items and values: check them, adjust what you need and tap **Save**. A complete analysis uses 2 requests of your daily counter (identify + calculate).",
+   "es": "Abre **Comida**, toma o elige la foto de la comida y deja que el análisis identifique los alimentos. Recibes una tarjeta de revisión con los elementos y los valores: revísalos, ajusta lo que haga falta y toca **Guardar**. Un análisis completo usa 2 peticiones de tu contador diario (identificar + calcular)."
+  }
+ },
+ {
+  "id": "3.2",
+  "block": 3,
+  "order": 2,
+  "q": {
+   "en": "Can I log a meal by writing what I ate?",
+   "es": "¿Puedo registrar una comida escribiendo lo que comí?"
+  },
+  "a": {
+   "en": "Yes. In **Food** you can also describe the meal in text and analyze it the same way: review card first, save when it looks right. Photo and text analyses share the same daily counter.",
+   "es": "Sí. En **Comida** también puedes describir la comida en texto y analizarla igual: primero la tarjeta de revisión, y guardas cuando se vea bien. Los análisis por foto y por texto comparten el mismo contador diario."
+  }
+ },
+ {
+  "id": "3.3",
+  "block": 3,
+  "order": 3,
+  "q": {
+   "en": "How does the voice button work?",
+   "es": "¿Cómo funciona el botón de voz?"
+  },
+  "a": {
+   "en": "The green sound-wave button in meals lets you dictate what you ate instead of typing. The audio is used only for that analysis at that moment — it is not saved in your log — and it counts as 1 request of the same daily counter.",
+   "es": "El botón verde de ondas en comidas te deja dictar lo que comiste en vez de escribirlo. El audio se usa solo para ese análisis en ese momento — no se guarda en tu registro — y cuenta como 1 petición del mismo contador diario."
+  }
+ },
+ {
+  "id": "3.4",
+  "block": 3,
+  "order": 4,
+  "q": {
+   "en": "What does “From your scale” mean in the review card?",
+   "es": "¿Qué significa «De tu báscula» en la tarjeta de revisión?"
+  },
+  "a": {
+   "en": "If you weighed your food, tell the app the real weight: the values are recalculated for that exact amount instead of a visual estimate. A weighed portion is always more accurate than a photo guess.",
+   "es": "Si pesaste tu comida, dile a la app el peso real: los valores se recalculan para esa cantidad exacta en vez de una estimación visual. Una porción pesada siempre es más precisa que una estimación por foto."
+  }
+ },
+ {
+  "id": "3.5",
+  "block": 3,
+  "order": 5,
+  "q": {
+   "en": "What is the “Today's meals” checklist on my main screen?",
+   "es": "¿Qué es la lista «Comidas de hoy» de mi pantalla principal?"
+  },
+  "a": {
+   "en": "It tracks only the three main meals — **Breakfast, Lunch and Dinner.** ✓ means the meal is logged today; ✗ means its usual time already passed with no log; ○ means its time has not come yet. Nothing else appears there.",
+   "es": "Sigue solo las tres comidas principales — **Desayuno, Almuerzo y Cena.** ✓ significa que la comida está registrada hoy; ✗, que su hora habitual ya pasó sin registro; ○, que su hora aún no llega. Nada más aparece ahí."
+  }
+ },
+ {
+  "id": "3.6",
+  "block": 3,
+  "order": 6,
+  "q": {
+   "en": "What are the rings on my main screen?",
+   "es": "¿Qué son los anillos de mi pantalla principal?"
+  },
+  "a": {
+   "en": "Five rings compare what you have eaten today against your goals: **calories, protein, carbs, sugars and fat.** They use the goals adjusted to today's day type (see Block 5), so they can differ from one day to the next.",
+   "es": "Cinco anillos comparan lo que has comido hoy contra tus metas: **calorías, proteína, carbohidratos, azúcares y grasas.** Usan las metas ajustadas al tipo de día de hoy (ver Bloque 5), así que pueden cambiar de un día a otro."
+  }
+ },
+ {
+  "id": "3.7",
+  "block": 3,
+  "order": 7,
+  "q": {
+   "en": "Is there a daily limit for photo and text analysis?",
+   "es": "¿Hay un límite diario para el análisis por foto y por texto?"
+  },
+  "a": {
+   "en": "Yes. If your account has no personal limit set, a default of **10 requests per day** applies — enough for five complete meals (2 requests each). If you reach your limit, photo and text analysis pause until the counter resets the next day.",
+   "es": "Sí. Si tu cuenta no tiene un límite personal fijado, aplica el predeterminado de **10 peticiones al día** — suficiente para cinco comidas completas (2 peticiones cada una). Si alcanzas tu límite, el análisis por foto y por texto se pausa hasta que el contador se reinicia al día siguiente."
+  }
+ },
+ {
+  "id": "3.8",
+  "block": 3,
+  "order": 8,
+  "q": {
+   "en": "If I reach the limit, can I still log my meals?",
+   "es": "Si alcanzo el límite, ¿puedo seguir registrando mis comidas?"
+  },
+  "a": {
+   "en": "Yes, always. Manual logging by hand never pauses: you can enter every meal yourself with its values, with no daily limit.",
+   "es": "Sí, siempre. El registro manual nunca se pausa: puedes introducir cada comida tú mismo con sus valores, sin límite diario."
+  }
+ },
+ {
+  "id": "3.9",
+  "block": 3,
+  "order": 9,
+  "q": {
+   "en": "Why don't I see the food section yet? How is meal logging activated?",
+   "es": "¿Por qué aún no veo la sección de comidas? ¿Cómo se activa el registro de comidas?"
+  },
+  "a": {
+   "en": "Meal logging is activated on request: ask for it from **“My trainer”** in the app, your trainer approves it, and the administrator confirms it. Once both steps are done, the food button appears in your app.",
+   "es": "El registro de comidas se activa a petición: pídelo desde **«Mi entrenador»** en la app, tu entrenador lo aprueba y el administrador lo confirma. Cuando ambos pasos están, el botón de comida aparece en tu app. ---"
+  }
+ },
+ {
+  "id": "4.1",
+  "block": 4,
+  "order": 1,
+  "q": {
+   "en": "Why does each date show a different routine — and some dates none?",
+   "es": "¿Por qué cada fecha muestra una rutina distinta — y algunas ninguna?"
+  },
+  "a": {
+   "en": "Your plan is anchored to the calendar: every date has its own assigned training day, and dates without a routine stay blank as rest. The map does not move when you miss a day — a routine waits for its own date.",
+   "es": "Tu plan está anclado al calendario: cada fecha tiene su propio día de entrenamiento asignado, y las fechas sin rutina quedan en blanco como descanso. El mapa no se mueve cuando faltas un día — cada rutina espera a su fecha."
+  }
+ },
+ {
+  "id": "4.2",
+  "block": 4,
+  "order": 2,
+  "q": {
+   "en": "How do I follow today's session?",
+   "es": "¿Cómo sigo la sesión de hoy?"
+  },
+  "a": {
+   "en": "**Training** opens directly on **Today**, with today's routine. Mark each exercise as you complete it — your marks are kept even if you leave and come back — and the day only counts as completed when the session is actually closed in your log.",
+   "es": "**Entrenamiento** se abre directamente en **Hoy**, con la rutina de hoy. Marca cada ejercicio al completarlo — tus marcas se conservan aunque salgas y vuelvas — y el día solo cuenta como completado cuando la sesión queda cerrada de verdad en tu registro."
+  }
+ },
+ {
+  "id": "4.3",
+  "block": 4,
+  "order": 3,
+  "q": {
+   "en": "What are the “Start” and “Finished” buttons on the day card?",
+   "es": "¿Qué son los botones «Iniciar» y «Finalizado» de la tarjeta del día?"
+  },
+  "a": {
+   "en": "They run the session timer: **Start** (green, right side) begins timing your workout and **Finished** (red, left side) closes it. Closing the session calculates its estimated burn with the intensity you declare — moderate if you say nothing — and adds it to today's flame (4.4).",
+   "es": "Manejan el cronómetro de la sesión: **Iniciar** (verde, a la derecha) empieza a contar tu entrenamiento y **Finalizado** (rojo, a la izquierda) lo cierra. Al cerrar la sesión se calcula su quemado estimado con la intensidad que declares — moderada si no dices nada — y se suma a la llamita de hoy (4.4)."
+  }
+ },
+ {
+  "id": "4.4",
+  "block": 4,
+  "order": 4,
+  "q": {
+   "en": "What does the little flame (🔥 burned today) mean?",
+   "es": "¿Qué significa la llamita (🔥 quemado hoy)?"
+  },
+  "a": {
+   "en": "It is the calories you have **burned today** through exercise: the estimated burn of your closed sessions plus any manual activities you add (4.6). Your base daily expenditure appears only as a reference inside the flame sheet — it is never added to the flame.",
+   "es": "Son las calorías que has **quemado hoy** con el ejercicio: el quemado estimado de tus sesiones cerradas más las actividades manuales que añadas (4.6). Tu gasto diario base aparece solo como referencia dentro de la hoja de la llamita — nunca se suma a la llamita."
+  }
+ },
+ {
+  "id": "4.5",
+  "block": 4,
+  "order": 5,
+  "q": {
+   "en": "What is the round clock button above the flame?",
+   "es": "¿Qué es el botón redondo de reloj encima de la llamita?"
+  },
+  "a": {
+   "en": "It opens a free sports stopwatch for anything you want to time on the spot. It lives only while you use it: it saves nothing — no log, no burn — unless you close a real session with the day card's timer (4.3).",
+   "es": "Abre un cronómetro deportivo libre para lo que quieras medir en el momento. Vive solo mientras lo usas: no guarda nada — ni registro ni quemado — salvo que cierres una sesión real con el cronómetro de la tarjeta del día (4.3)."
+  }
+ },
+ {
+  "id": "4.6",
+  "block": 4,
+  "order": 6,
+  "q": {
+   "en": "Can I add activity outside my plan, like treadmill or sauna?",
+   "es": "¿Puedo añadir actividad fuera de mi plan, como caminadora o sauna?"
+  },
+  "a": {
+   "en": "Yes. You can add manual activities — including treadmill sessions (by speed) and sauna — and their estimated burn joins today's flame. Their values come from the Compendium of Physical Activities (MET values), the same scientific source the app uses for session burn.",
+   "es": "Sí. Puedes añadir actividades manuales — incluidas sesiones de caminadora (por velocidad) y sauna — y su quemado estimado se suma a la llamita de hoy. Sus valores salen del Compendio de Actividades Físicas (valores MET), la misma fuente científica que la app usa para el quemado de las sesiones."
+  }
+ },
+ {
+  "id": "4.7",
+  "block": 4,
+  "order": 7,
+  "q": {
+   "en": "Can I change today's session without changing my plan?",
+   "es": "¿Puedo cambiar la sesión de hoy sin cambiar mi plan?"
+  },
+  "a": {
+   "en": "Yes. Changes you make inside today's session apply **only to that session**: your plan itself is never rewritten. Your trainer's plan stays intact for the next dates.",
+   "es": "Sí. Los cambios que haces dentro de la sesión de hoy aplican **solo a esa sesión**: tu plan nunca se reescribe. El plan de tu entrenador queda intacto para las próximas fechas."
+  }
+ },
+ {
+  "id": "4.8",
+  "block": 4,
+  "order": 8,
+  "q": {
+   "en": "How do I share my progress?",
+   "es": "¿Cómo comparto mi progreso?"
+  },
+  "a": {
+   "en": "The **“Share your achievements”** card builds an image with your rings and your flame that you can send wherever you like. If one of your photos does not appear on the card, see 7.3.",
+   "es": "La tarjeta **«Comparte tus logros»** crea una imagen con tus anillos y tu llamita para enviarla donde quieras. Si alguna de tus fotos no aparece en la tarjeta, mira el punto 7.3. ---"
+  }
+ },
+ {
+  "id": "5.1",
+  "block": 5,
+  "order": 1,
+  "q": {
+   "en": "Where do my goals come from?",
+   "es": "¿De dónde salen mis metas?"
+  },
+  "a": {
+   "en": "They are **calculated from your own data** — weight, height, age and activity level — using the Mifflin-St Jeor equation for your resting expenditure. You supply the data; the automatic calculation sets the goals. There are no factory numbers typed in by hand.",
+   "es": "Se **calculan con tus propios datos** — peso, estatura, edad y nivel de actividad — usando la ecuación de Mifflin-St Jeor para tu gasto en reposo. Tú aportas los datos; el cálculo automático fija las metas. No hay cifras de fábrica escritas a mano."
+  }
+ },
+ {
+  "id": "5.2",
+  "block": 5,
+  "order": 2,
+  "q": {
+   "en": "What objectives can I choose?",
+   "es": "¿Qué objetivos puedo elegir?"
+  },
+  "a": {
+   "en": "Three: **lose** (bajar), **gain** (aumentar) and **maintain** (mantenimiento). The objective changes the recipe: for example, protein is 2.2 g/kg when losing, 1.8 g/kg when gaining and 1.6 g/kg when maintaining (ISSN 2017).",
+   "es": "Tres: **bajar**, **aumentar** y **mantenimiento**. El objetivo cambia la receta: por ejemplo, la proteína es 2,2 g/kg al bajar, 1,8 g/kg al aumentar y 1,6 g/kg al mantener (ISSN 2017)."
+  }
+ },
+ {
+  "id": "5.3",
+  "block": 5,
+  "order": 3,
+  "q": {
+   "en": "What are General, Recomposition and Competition?",
+   "es": "¿Qué son General, Recomposición y Competencia?"
+  },
+  "a": {
+   "en": "They are your declared **focus**, a layer on top of the objective. **General** is the standard track; **Recomposition** pairs a moderate deficit with lose-level protein; **Competition** is stricter and can only be activated and moved forward by your assigned trainer.",
+   "es": "Son tu **enfoque** declarado, una capa encima del objetivo. **General** es la vía estándar; **Recomposición** combina un déficit moderado con la proteína del nivel de bajar; **Competencia** es más estricta y solo puede activarla y moverla tu entrenador asignado."
+  }
+ },
+ {
+  "id": "5.4",
+  "block": 5,
+  "order": 4,
+  "q": {
+   "en": "Why do my carbs and fats change from day to day?",
+   "es": "¿Por qué mis carbohidratos y grasas cambian de un día a otro?"
+  },
+  "a": {
+   "en": "Because goals adjust to the type of day your calendar plan assigns. On a **demanding day** (for example, legs) carbs rise 20%, paid from fat; on a **rest day** carbs drop 20% and fat rises within its cap. Calories and protein stay the same.",
+   "es": "Porque las metas se ajustan al tipo de día que asigna tu plan de calendario. En un **día exigente** (por ejemplo, piernas) los carbohidratos suben un 20%, pagados desde la grasa; en un **día de descanso** bajan un 20% y la grasa sube dentro de su tope. Las calorías y la proteína no cambian."
+  }
+ },
+ {
+  "id": "5.5",
+  "block": 5,
+  "order": 5,
+  "q": {
+   "en": "What science are the goals based on?",
+   "es": "¿En qué ciencia se basan las metas?"
+  },
+  "a": {
+   "en": "Protein follows the **ISSN Position Stand (2017)**; sugars are the **WHO strict 5%** of your calories; carbs and fats follow **Helms et al.** and the “fuel for the work required” approach. Inside the app, the goals window and each exercise sheet show their foundation in collapsible buttons you can read.",
+   "es": "La proteína sigue el **Position Stand de la ISSN (2017)**; los azúcares son el **5% estricto de la OMS** sobre tus calorías; los carbohidratos y las grasas siguen a **Helms et al.** y el enfoque «combustible para el trabajo requerido». Dentro de la app, la ventana de metas y cada ficha de ejercicio muestran su fundamento en botones desplegables que puedes leer."
+  }
+ },
+ {
+  "id": "5.6",
+  "block": 5,
+  "order": 6,
+  "q": {
+   "en": "Can I change my goals myself?",
+   "es": "¿Puedo cambiar mis metas yo mismo?"
+  },
+  "a": {
+   "en": "Yes — you can change everything, but never silently: an out-of-range value shows a warning with its scientific recommendation. If you have a trainer, the founded values stay in force until your trainer approves your change; without a trainer, each change asks you to sign a short agreement first.",
+   "es": "Sí — puedes cambiarlo todo, pero nunca en silencio: un valor fuera de rango muestra un aviso con su recomendación científica. Si tienes entrenador, los valores fundados siguen vigentes hasta que tu entrenador apruebe tu cambio; sin entrenador, cada cambio te pide firmar antes un acuerdo corto."
+  }
+ },
+ {
+  "id": "5.7",
+  "block": 5,
+  "order": 7,
+  "q": {
+   "en": "Why is one of my goals empty or unset?",
+   "es": "¿Por qué una de mis metas está vacía o sin fijar?"
+  },
+  "a": {
+   "en": "If your health declaration includes a condition that affects a value (for example, kidney disease and protein, or diabetes and sugars), that value is **held** instead of applied silently: your trainer reviews it, and without a trainer it stays unset with an honest notice. The app never diagnoses — it just refuses to guess with your health.",
+   "es": "Si tu declaración de salud incluye una condición que afecta a un valor (por ejemplo, enfermedad renal y la proteína, o diabetes y los azúcares), ese valor **se retiene** en vez de aplicarse en silencio: tu entrenador lo revisa, y sin entrenador queda sin fijar con un aviso honesto. La app nunca diagnostica — simplemente se niega a adivinar con tu salud."
+  }
+ },
+ {
+  "id": "5.8",
+  "block": 5,
+  "order": 8,
+  "q": {
+   "en": "Where do I see today's goals quickly?",
+   "es": "¿Dónde veo las metas de hoy rápidamente?"
+  },
+  "a": {
+   "en": "Tap the **goals icon**: a master ring opens the goals window with today's full numbers — day type, objective, focus and calories — calculated for today, with no AI involved.",
+   "es": "Toca el **icono de metas**: un anillo maestro abre la ventana de metas con todas las cifras de hoy — tipo de día, objetivo, enfoque y calorías — calculadas para hoy, sin IA de por medio."
+  }
+ },
+ {
+  "id": "5.9",
+  "block": 5,
+  "order": 9,
+  "q": {
+   "en": "The app reminded me that my weight is old. Why?",
+   "es": "La app me avisó de que mi peso es antiguo. ¿Por qué?"
+  },
+  "a": {
+   "en": "If 30 days pass without a new weight, the app warns you, because every goal is calculated from your weight. Entering your current weight refreshes the whole calculation.",
+   "es": "Si pasan 30 días sin un peso nuevo, la app te avisa, porque todas las metas se calculan desde tu peso. Al introducir tu peso actual, todo el cálculo se refresca. ---"
+  }
+ },
+ {
+  "id": "6.1",
+  "block": 6,
+  "order": 1,
+  "q": {
+   "en": "What can my trainer see?",
+   "es": "¿Qué puede ver mi entrenador?"
+  },
+  "a": {
+   "en": "Your trainer sees only you if you are their assigned student: your training, your logs and your progress. Your **health declaration** reaches your trainer only when you give the specific health consent — the checkbox that exists exactly for that.",
+   "es": "Tu entrenador solo te ve a ti si eres su alumno asignado: tu entrenamiento, tus registros y tu progreso. Tu **declaración de salud** llega a tu entrenador únicamente cuando das el consentimiento específico de salud — la casilla que existe exactamente para eso."
+  }
+ },
+ {
+  "id": "6.2",
+  "block": 6,
+  "order": 2,
+  "q": {
+   "en": "What can my trainer NOT see?",
+   "es": "¿Qué NO puede ver mi entrenador?"
+  },
+  "a": {
+   "en": "Your password, other trainers' students, and one private datum from your initial evaluation — a voluntary activity variable used only for your energy calculation — which is **never shown to any trainer**. If you never gave the specific consent, your health declaration stays invisible too (6.1).",
+   "es": "Tu contraseña, los alumnos de otros entrenadores y un dato privado de tu evaluación inicial — una variable voluntaria de actividad que solo sirve para tu cálculo de energía — que **nunca se muestra a ningún entrenador**. Y si nunca diste el consentimiento específico, tu declaración de salud también permanece invisible (6.1)."
+  }
+ },
+ {
+  "id": "6.3",
+  "block": 6,
+  "order": 3,
+  "q": {
+   "en": "What consents does the app ask for?",
+   "es": "¿Qué consentimientos pide la app?"
+  },
+  "a": {
+   "en": "Two levels: the **general terms** you accept to use the app, and a **separate specific consent** for your health data. Accepting or renewing them is always your own tap — nobody can do it for you (2.4).",
+   "es": "Dos niveles: los **términos generales** que aceptas para usar la app, y un **consentimiento específico aparte** para tus datos de salud. Aceptarlos o renovarlos es siempre un toque tuyo — nadie puede hacerlo por ti (2.4)."
+  }
+ },
+ {
+  "id": "6.4",
+  "block": 6,
+  "order": 4,
+  "q": {
+   "en": "Where do I manage my permissions?",
+   "es": "¿Dónde administro mis permisos?"
+  },
+  "a": {
+   "en": "In **Permissions & privacy** inside the app: there you manage your health declaration and your privacy & data — what you accepted, what you share, and what you can withdraw or delete.",
+   "es": "En **Permisos y privacidad** dentro de la app: ahí administras tu declaración de salud y tu privacidad y datos — qué aceptaste, qué compartes y qué puedes retirar o borrar."
+  }
+ },
+ {
+  "id": "6.5",
+  "block": 6,
+  "order": 5,
+  "q": {
+   "en": "Where is the full privacy notice?",
+   "es": "¿Dónde está el aviso de privacidad completo?"
+  },
+  "a": {
+   "en": "The complete notice is public at **https://fit.ronbo.store/privacidad** — you can read it without an account. It explains what data is collected, why, where it is stored (Google Firebase, United States, with restricted access: only you and your trainer) and your rights.",
+   "es": "El aviso completo es público en **https://fit.ronbo.store/privacidad** — puedes leerlo sin tener cuenta. Explica qué datos se recogen, para qué, dónde se guardan (Google Firebase, Estados Unidos, con acceso restringido: solo tú y tu entrenador) y tus derechos."
+  }
+ },
+ {
+  "id": "6.6",
+  "block": 6,
+  "order": 6,
+  "q": {
+   "en": "Can I withdraw my consent or delete my data?",
+   "es": "¿Puedo retirar mi consentimiento o borrar mis datos?"
+  },
+  "a": {
+   "en": "Yes. You may at any time ask to view, correct or delete your data, and deleting your account erases your records. If you withdraw your specific health consent, your health declarations are blocked from ordinary use immediately and deleted within the period the notice sets (6.5).",
+   "es": "Sí. En cualquier momento puedes pedir ver, corregir o borrar tus datos, y borrar tu cuenta elimina tus registros. Si retiras tu consentimiento específico de salud, tus declaraciones de salud se bloquean para el uso ordinario de inmediato y se borran dentro del plazo que fija el aviso (6.5)."
+  }
+ },
+ {
+  "id": "6.7",
+  "block": 6,
+  "order": 7,
+  "q": {
+   "en": "Who analyzes my meal photos, text and voice?",
+   "es": "¿Quién analiza mis fotos, textos y voz de comidas?"
+  },
+  "a": {
+   "en": "The analysis runs through the app's own server using **Google Gemini**. Your photo, text or voice note is sent for the analysis at that moment; the result comes back as the review card you check before saving (3.1).",
+   "es": "El análisis corre por el servidor propio de la app usando **Google Gemini**. Tu foto, texto o nota de voz se envía para el análisis en ese momento; el resultado vuelve como la tarjeta de revisión que compruebas antes de guardar (3.1). ---"
+  }
+ },
+ {
+  "id": "7.1",
+  "block": 7,
+  "order": 1,
+  "q": {
+   "en": "My welcome email never arrived.",
+   "es": "No me llegó el correo de bienvenida."
+  },
+  "a": {
+   "en": "First check your **spam/promotions** folders — the welcome is sent automatically from **ronbo.fit@gmail.com** the moment your account is approved. If it is nowhere, tell the administrator: from **Access** they can resend your approval notice with one tap.",
+   "es": "Primero revisa tus carpetas de **spam/promociones** — el welcome sale automáticamente desde **ronbo.fit@gmail.com** en el momento en que tu cuenta se aprueba. Si no aparece, avisa al administrador: desde **Accesos** puede reenviarte el aviso de aprobación con un toque."
+  }
+ },
+ {
+  "id": "7.2",
+  "block": 7,
+  "order": 2,
+  "q": {
+   "en": "The app looks old or does not update.",
+   "es": "La app se ve antigua o no se actualiza."
+  },
+  "a": {
+   "en": "RONBO FIT refreshes itself when you bring it back to the front. Close the app completely and reopen it — or switch away and return — with a connection on. If it still looks old, open https://fit.ronbo.store in your browser and sign in there once.",
+   "es": "RONBO FIT se actualiza sola cuando la traes de nuevo al frente. Cierra la app por completo y vuelve a abrirla — o cambia a otra app y regresa — con conexión. Si sigue viéndose antigua, abre https://fit.ronbo.store en tu navegador y entra una vez desde ahí."
+  }
+ },
+ {
+  "id": "7.3",
+  "block": 7,
+  "order": 3,
+  "q": {
+   "en": "A photo does not appear on my achievements card.",
+   "es": "Una foto no aparece en mi tarjeta de logros."
+  },
+  "a": {
+   "en": "The share card can only draw photos whose host allows reuse in images; a few outside photos are blocked by their own servers and silently stay out of the card. The photo is **not lost** — it still shows normally inside the app. Photos from the app's own library always appear.",
+   "es": "La tarjeta para compartir solo puede dibujar fotos cuyo servidor permite reutilizarlas en imágenes; algunas fotos externas están bloqueadas por sus propios servidores y quedan fuera de la tarjeta en silencio. La foto **no se perdió** — sigue viéndose normal dentro de la app. Las fotos de la biblioteca propia de la app siempre aparecen."
+  }
+ },
+ {
+  "id": "7.4",
+  "block": 7,
+  "order": 4,
+  "q": {
+   "en": "Saving a meal gets stuck (“Save” stays greyed out).",
+   "es": "Guardar una comida se queda colgado («Guardar» se queda en gris)."
+  },
+  "a": {
+   "en": "That means the save is waiting on your connection — do not close the app or discard the card. Toggle **airplane mode** on for about 20 seconds and off again; when the button comes back or an error appears, tap **Save** again: retrying writes the same meal, it never duplicates it. If it still fails, use **“Use as draft”** and save the same values from the manual form.",
+   "es": "Eso significa que el guardado está esperando a tu conexión — no cierres la app ni descartes la tarjeta. Activa el **modo avión** unos 20 segundos y desactívalo; cuando el botón se reactive o aparezca un error, toca **Guardar** de nuevo: el reintento escribe la misma comida, nunca la duplica. Si sigue fallando, usa **«Usar como borrador»** y guarda los mismos valores desde el formulario manual."
+  }
+ },
+ {
+  "id": "7.5",
+  "block": 7,
+  "order": 5,
+  "q": {
+   "en": "I trained, but my flame still shows zero.",
+   "es": "Entrené, pero mi llamita sigue en cero."
+  },
+  "a": {
+   "en": "The flame only counts **closed** sessions: if the session was never closed, its burn is never added. Go to today's card, mark the exercises you did and close the session with **Finished** — today's burn appears in the flame right away.",
+   "es": "La llamita solo cuenta sesiones **cerradas**: si la sesión nunca se cerró, su quemado nunca se suma. Ve a la tarjeta de hoy, marca los ejercicios que hiciste y cierra la sesión con **Finalizado** — el quemado de hoy aparece en la llamita al momento. --- *End of draft · Fin del borrador*"
+  }
+ }
+];
+let FAQ_ENTRIES = null;   // entradas vivas del documento (o null)
+let FAQ_OPEN_BLOCK = 0;   // bloque desplegado del acordeón (0 = ninguno)
+let FAQ_IS_OPEN = false;
+function faqEntries() { return (Array.isArray(FAQ_ENTRIES) && FAQ_ENTRIES.length) ? FAQ_ENTRIES : FAQ_SEED; }
+function faqSorted(list) { return [...list].sort((x, y) => ((Number(x.block) || 0) - (Number(y.block) || 0)) || ((Number(x.order) || 0) - (Number(y.order) || 0))); }
+async function faqLoad() {
+  try {
+    const s = await getDoc(doc(db, 'app_settings', 'faq'));
+    if (s.exists() && Array.isArray(s.data().entries) && s.data().entries.length) FAQ_ENTRIES = s.data().entries;
+  } catch { /* sin documento o sin permiso de lectura: manda la semilla */ }
+}
+/* Las respuestas aprobadas usan **negrita** como único formato. */
+function faqRich(txt) { return esc(String(txt == null ? '' : txt)).replace(/\*\*([^*]+)\*\*/g, '<b>$1</b>'); }
+function faqIsOpen() { return FAQ_IS_OPEN; }
+function renderFaqPanel() {
+  const body = $('faq-body'); if (!body) return;
+  const L = LANG === 'es' ? 'es' : 'en';
+  const list = faqSorted(faqEntries());
+  let html = '';
+  for (let b = 1; b <= 7; b++) {
+    const open = FAQ_OPEN_BLOCK === b;
+    html += `<div class="faq-blk"><button type="button" class="faq-blk-t" data-faq-block="${b}" aria-expanded="${open ? 'true' : 'false'}"><span>${b} · ${esc(t('faq.b' + b))}</span><span class="faq-chev" aria-hidden="true">${open ? '▴' : '▾'}</span></button>`;
+    if (open) {
+      const items = list.filter(e => Number(e.block) === b);
+      html += items.length
+        ? items.map(e => `<div class="faq-qa"><b>${esc((e.q && (e.q[L] || e.q.en)) || '')}</b><p>${faqRich((e.a && (e.a[L] || e.a.en)) || '')}</p></div>`).join('')
+        : `<div class="faq-qa"><p>${esc(t('faq.empty'))}</p></div>`;
+    }
+    html += '</div>';
+  }
+  body.innerHTML = html;
+  body.querySelectorAll('[data-faq-block]').forEach(btn => { btn.onclick = () => { const b = Number(btn.dataset.faqBlock); FAQ_OPEN_BLOCK = (FAQ_OPEN_BLOCK === b) ? 0 : b; renderFaqPanel(); }; });
+}
+function faqOpenPanel() { FAQ_IS_OPEN = true; renderFaqPanel(); const bd = $('faq-backdrop'); if (bd) bd.style.display = ''; const p = $('faq-panel'); if (p) p.style.display = ''; }
+function faqClosePanel() { FAQ_IS_OPEN = false; const bd = $('faq-backdrop'); if (bd) bd.style.display = 'none'; const p = $('faq-panel'); if (p) p.style.display = 'none'; }
+function helpFabSync(tabName) { const f = $('btn-help'); if (f) f.style.display = (tabName === 'track') ? '' : 'none'; }
+/* ---------- Editor del administrador (Accesos, solo dueño) ---------- */
+let FAQ_ED = null;   // borrador editable del editor
+async function renderFaqEditorBox() {
+  const box = $('faq-editor-box'); if (!box) return;
+  if (!(IS_OWNER && ROLE === 'administrador')) { box.innerHTML = ''; return; }
+  if (!FAQ_ENTRIES) { try { await faqLoad(); } catch {} }
+  FAQ_ED = faqSorted(faqEntries()).map(e => ({ id: e.id, block: Number(e.block) || 1, order: Number(e.order) || 0, q: { en: (e.q && e.q.en) || '', es: (e.q && e.q.es) || '' }, a: { en: (e.a && e.a.en) || '', es: (e.a && e.a.es) || '' } }));
+  paintFaqEditor();
+}
+function paintFaqEditor() {
+  const box = $('faq-editor-box'); if (!box || !FAQ_ED) return;
+  const blkOpts = sel => { let o = ''; for (let b = 1; b <= 7; b++) o += `<option value="${b}"${b === sel ? ' selected' : ''}>${b} · ${esc(t('faq.b' + b))}</option>`; return o; };
+  const rows = FAQ_ED.map((e, i) => `
+    <div class="faq-ed-row" data-faq-ed="${i}">
+      <div class="faq-ed-top"><b>${esc(e.id)}</b>
+        <label>${esc(t('faq.edBlock'))} <select data-f="block">${blkOpts(e.block)}</select></label>
+        <label>${esc(t('faq.edOrder'))} <input type="number" data-f="order" value="${e.order}" style="width:64px"></label>
+        <span class="faq-ed-btns"><button type="button" class="btn-primary btn-sm" data-faq-save="${i}">${esc(t('form.save'))}</button>
+        <button type="button" class="btn-ghost btn-sm" data-faq-del="${i}">${esc(t('faq.edDelete'))}</button></span>
+      </div>
+      <label class="faq-ed-lab">${esc(t('faq.edQEn'))}</label><input type="text" class="faq-ed-in" data-f="q_en" value="${esc(e.q.en)}">
+      <label class="faq-ed-lab">${esc(t('faq.edAEn'))}</label><textarea class="dos-mail-text" data-f="a_en" rows="3">${esc(e.a.en)}</textarea>
+      <label class="faq-ed-lab">${esc(t('faq.edQEs'))}</label><input type="text" class="faq-ed-in" data-f="q_es" value="${esc(e.q.es)}">
+      <label class="faq-ed-lab">${esc(t('faq.edAEs'))}</label><textarea class="dos-mail-text" data-f="a_es" rows="3">${esc(e.a.es)}</textarea>
+    </div>`).join('');
+  box.innerHTML = rows + `
+    <div class="faq-ed-row">
+      <div class="faq-ed-top"><b>+</b>
+        <label>${esc(t('faq.edBlock'))} <select id="faq-new-block">${blkOpts(1)}</select></label>
+        <span class="faq-ed-btns"><button type="button" class="btn-primary btn-sm" id="faq-new-add">${esc(t('faq.edAdd'))}</button></span>
+      </div>
+      <label class="faq-ed-lab">${esc(t('faq.edQEn'))}</label><input type="text" class="faq-ed-in" id="faq-new-qen">
+      <label class="faq-ed-lab">${esc(t('faq.edAEn'))}</label><textarea class="dos-mail-text" id="faq-new-aen" rows="3"></textarea>
+      <label class="faq-ed-lab">${esc(t('faq.edQEs'))}</label><input type="text" class="faq-ed-in" id="faq-new-qes">
+      <label class="faq-ed-lab">${esc(t('faq.edAEs'))}</label><textarea class="dos-mail-text" id="faq-new-aes" rows="3"></textarea>
+    </div>`;
+  box.querySelectorAll('[data-faq-save]').forEach(b => { b.onclick = () => faqEdSave(Number(b.dataset.faqSave)); });
+  box.querySelectorAll('[data-faq-del]').forEach(b => { b.onclick = () => faqEdDelete(Number(b.dataset.faqDel)); });
+  const add = $('faq-new-add'); if (add) add.onclick = faqEdAdd;
+}
+function faqEdCollect(i) {
+  const row = document.querySelector(`[data-faq-ed="${i}"]`); if (!row || !FAQ_ED || !FAQ_ED[i]) return;
+  const g = f => { const el = row.querySelector(`[data-f="${f}"]`); return el ? el.value : ''; };
+  FAQ_ED[i].block = Math.min(7, Math.max(1, parseInt(g('block'), 10) || 1));
+  FAQ_ED[i].order = parseInt(g('order'), 10) || 0;
+  FAQ_ED[i].q.en = g('q_en'); FAQ_ED[i].a.en = g('a_en');
+  FAQ_ED[i].q.es = g('q_es'); FAQ_ED[i].a.es = g('a_es');
+}
+async function faqEdPersist() {
+  const entries = faqSorted(FAQ_ED).map(e => ({ id: e.id, block: e.block, order: e.order, q: { en: e.q.en, es: e.q.es }, a: { en: e.a.en, es: e.a.es } }));
+  await setDoc(doc(db, 'app_settings', 'faq'), { entries, updatedAt: serverTimestamp(), updatedBy: auth.currentUser.uid });
+  FAQ_ENTRIES = entries;
+  FAQ_ED = faqSorted(entries).map(e => ({ id: e.id, block: e.block, order: e.order, q: { en: e.q.en, es: e.q.es }, a: { en: e.a.en, es: e.a.es } }));
+}
+async function faqEdSave(i) { faqEdCollect(i); try { await faqEdPersist(); toast(t('faq.edSaved')); paintFaqEditor(); } catch { toast(t('faq.edError'), true); } }
+async function faqEdDelete(i) { if (!window.confirm(t('faq.edConfirmDelete'))) return; FAQ_ED.splice(i, 1); try { await faqEdPersist(); toast(t('faq.edSaved')); paintFaqEditor(); } catch { toast(t('faq.edError'), true); renderFaqEditorBox(); } }
+async function faqEdAdd() {
+  const g = id => { const el = $(id); return el ? el.value.trim() : ''; };
+  const block = Math.min(7, Math.max(1, parseInt(($('faq-new-block') || {}).value, 10) || 1));
+  const order = FAQ_ED.filter(e => e.block === block).reduce((m, e) => Math.max(m, e.order), 0) + 1;
+  FAQ_ED.push({ id: 'c' + Date.now().toString(36), block, order, q: { en: g('faq-new-qen'), es: g('faq-new-qes') }, a: { en: g('faq-new-aen'), es: g('faq-new-aes') } });
+  try { await faqEdPersist(); toast(t('faq.edSaved')); paintFaqEditor(); } catch { toast(t('faq.edError'), true); renderFaqEditorBox(); }
+}
+{ const hb = $('btn-help'); if (hb) hb.addEventListener('click', faqOpenPanel);
+  const xc = $('btn-faq-close'); if (xc) xc.addEventListener('click', faqClosePanel);
+  const bd = $('faq-backdrop'); if (bd) bd.addEventListener('click', faqClosePanel);
+  document.addEventListener('keydown', e => { if (e.key === 'Escape' && FAQ_IS_OPEN) faqClosePanel(); }); }
 
 /* ============================================================
    CRONÓMETRO DEPORTIVO LIBRE (2026-10-27, diseño
