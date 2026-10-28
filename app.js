@@ -13952,12 +13952,25 @@ function trainFloatClose() {
  * en la auditoría semanal). Si el guardado falla, el botón se
  * rehabilita y nada cambia de estado.
  * ================================================================ */
+/* ================================================================
+ * AUTH-2026-10-28-073 · Analítica de producto (Umami Cloud, plan
+ * gratuito). SOLO embudo de la puerta falsa de la cámara: tres
+ * eventos SIN propiedades y SIN identidad — jamás la función
+ * identify, jamás datos de salud, comidas o entrenamiento. Si Umami
+ * no cargó (bloqueador, red, caída), trackEvt no hace nada y la
+ * app ni se entera: la analítica nunca puede romper la app.
+ * ================================================================ */
+function trackEvt(name) {
+  try { if (window.umami && typeof window.umami.track === 'function') window.umami.track(name); } catch (e) {}
+}
+let fdcamViewSent = false;
 function fdCamRender() {
   const box = $('fdcam-box');
   if (!box) return;
   const show = ROLE === 'usuario' && UDATA && UDATA.approved === true;
   if (!show) { box.style.display = 'none'; box.innerHTML = ''; return; }
   box.style.display = 'block';
+  if (!fdcamViewSent) { fdcamViewSent = true; trackEvt('fdcam-view'); }
   const joined = typeof UDATA.fdCamAt === 'string' && UDATA.fdCamAt.length > 0;
   box.innerHTML = `<div class="panel fdcam-card">
     <span class="fdcam-tag">${esc(t('fdcam.tag'))}</span>
@@ -13973,6 +13986,7 @@ function fdCamRender() {
 function fdCamOpen() {
   const fl = $('fdcam-float');
   if (!fl) return;
+  trackEvt('fdcam-open');
   fl.classList.remove('is-closing');
   fl.classList.add('is-open');
   fl.style.display = 'block';
@@ -13993,6 +14007,7 @@ async function fdCamJoin() {
     UDATA = { ...UDATA, fdCamAt: v };
     fdCamClose();
     fdCamRender();
+    trackEvt('fdcam-join');
     toast(t('fdcam.saved'));
   } catch (e) { if (btn) btn.disabled = false; failToast(e); }
 }
@@ -21133,7 +21148,7 @@ document.addEventListener('keydown', e => { if (e.key === 'Escape') shareClose()
  *  - El SW (sw.js) solo cachea la cáscara del mismo origen en modo
  *    RED PRIMERO: Auth/Firestore/Worker jamás pasan por la caché.
  * ================================================================ */
-const PWA_SW_VERSION = '20261028-puerta-falsa-camara';
+const PWA_SW_VERSION = '20261028-analitica-umami';
 let pwaDeferredPrompt = null;
 function pwaIsStandalone() {
   try {
