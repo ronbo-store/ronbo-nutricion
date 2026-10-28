@@ -3435,6 +3435,8 @@ en: {
   'gmi.dayShort.base': 'normal',
   'gmi.dayShort.exigente': 'demanding',
   'gmi.dayShort.descanso': 'rest',
+  'gmi.dayNote.exigente': 'Heads up: today is a demanding day — your carbs go up to {carb} g (a normal day: {base} g).',
+  'gmi.dayNote.descanso': 'Today is a rest day — your carbs ease down to {carb} g (a normal day: {base} g).',
   'gmi.objChip': 'Goal: {obj}',
   'gmi.objShort.mantener': 'maintain',
   'gmi.objShort.bajar': 'lose',
@@ -5180,6 +5182,8 @@ es: {
   'gmi.dayShort.base': 'normal',
   'gmi.dayShort.exigente': 'exigente',
   'gmi.dayShort.descanso': 'descanso',
+  'gmi.dayNote.exigente': 'Atención: hoy es un día exigente — tus carbohidratos suben a {carb} g (un día normal: {base} g).',
+  'gmi.dayNote.descanso': 'Hoy es un día de descanso — tus carbohidratos bajan a {carb} g (un día normal: {base} g).',
   'gmi.objChip': 'Objetivo: {obj}',
   'gmi.objShort.mantener': 'mantener',
   'gmi.objShort.bajar': 'bajar',
@@ -8451,7 +8455,20 @@ function gmHeadHTML(hasRing) {
    contenido previo (objetivo, enfoque, ritmo, editor) queda COMO
    ESTABA, bajo su propio desplegable «Tus metas con fundamento».
    La ventana es hermana de #ring-detail: mismo patrón de cierre
-   (✕, fondo o Escape) y un re-render la cierra. */
+   (✕, fondo o Escape) y un re-render la cierra.
+   AJUSTE DE LA TARJETA (2026-10-27, correos de Ronald 19:26 y
+   19:32 CDT, alcance confirmado por él a las 19:45 «correcto»):
+   fuera de la pantalla principal las mini-barras de macros — el
+   detalle completo sigue SOLO en la ventana, al tocar el anillo —
+   y en su lugar la cabecera pinta el bloque del día: aviso del
+   tipo de día con la medida que lo diferencia (los carbohidratos
+   de hoy frente a un día normal, del mismo motor §K), la línea
+   Día/Objetivo/Enfoque, las kcal consumidas de la meta, las que
+   quedan, la frase de estado y el bloque «TU OBJETIVO CON TU
+   CUERPO». En la ventana, el resumen pierde su título («RESUMEN
+   EJECUTIVO · EN HUMANO»): queda solo el párrafo, por plantilla
+   como siempre. El motor no se toca; el módulo sigue sin
+   escribir nada. */
 function gmiDayData() {
   try {
     if (typeof UDATA === 'undefined' || !UDATA || !UDATA.goalsProvenance) return null;
@@ -8462,7 +8479,16 @@ function gmiDayData() {
     const goals = view.goals || {};
     if (!(goals.kcal > 0)) return null;
     const tot = (typeof totals === 'function') ? totals(iso) : { kcal: 0, prot: 0, carb: 0, azuc: 0, gras: 0 };
-    return { iso, goals, dayLevel: view.dayLevel || 'base', tot, pct: Math.round(tot.kcal / goals.kcal * 100), left: goals.kcal - tot.kcal };
+    /* Aviso del tipo de día (ajuste 2026-10-27): solo cuando el
+       día difiere del normal y la medida del motor de verdad
+       cambia — los carbohidratos de hoy frente a los de un día
+       normal (la base guardada, la misma de goalsDayGoalsFor). */
+    let dayNote = '';
+    if (view.dayLevel === 'exigente' || view.dayLevel === 'descanso') {
+      const base = (typeof GOALS !== 'undefined' && GOALS) || {};
+      if (base.carb > 0 && goals.carb > 0 && goals.carb !== base.carb) dayNote = t('gmi.dayNote.' + view.dayLevel, { carb: fmt(goals.carb), base: fmt(base.carb) });
+    }
+    return { iso, goals, dayLevel: view.dayLevel || 'base', tot, pct: Math.round(tot.kcal / goals.kcal * 100), left: goals.kcal - tot.kcal, dayNote };
   } catch { return null; }
 }
 function gmiRingSVG(pct) {
@@ -8480,10 +8506,43 @@ function gmiBarHTML(m, val, goal, inWindow) {
 }
 function gmiIsToday(iso) { return iso === (typeof todayISO === 'function' ? todayISO() : ''); }
 function gmiTitleFor(iso) { return gmiIsToday(iso) ? t('gmi.title') : t('gmi.titleDate', { date: dateName(iso) }); }
+/* Piezas compartidas cabecera/ventana (ajuste 2026-10-27): la
+   ventana las pinta con div/p — su salida queda byte a byte como
+   estaba — y la cabecera, que vive dentro del <button> #gmi-open,
+   con span. */
+function gmiChipsInner(d, c) {
+  const chips = [`<span class="gmi-chip">${esc(t('gmi.dayChip', { level: t('gmi.dayShort.' + d.dayLevel) }))}</span>`];
+  if (c) {
+    chips.push(`<span class="gmi-chip">${esc(t('gmi.objChip', { obj: t('gmi.objShort.' + c.obj) }))}</span>`);
+    chips.push(`<span class="gmi-chip">${esc(t('gmi.focusChip', { focus: t('gfocus.opt.' + c.focus) }))}</span>`);
+  }
+  return chips.join('');
+}
+function gmiLeftHTML(d, tag) {
+  let l2 = '', l3 = '';
+  if (d.left > 0) { l2 = `<${tag} class="gmi-left">${esc(t(gmiIsToday(d.iso) ? 'gmi.leftToday' : 'gmi.leftDate', { n: fmt(d.left) }))}</${tag}>`; l3 = `<${tag} class="gmi-head-note">${esc(t('gmi.headOk'))}</${tag}>`; }
+  else if (d.left === 0) l2 = `<${tag} class="gmi-left">${esc(t('gmi.headExact'))}</${tag}>`;
+  else l2 = `<${tag} class="gmi-left over">${esc(t('gmi.headOver', { n: fmt(-d.left) }))}</${tag}>`;
+  return l2 + l3;
+}
+function gmiObjBoxHTML(c, tag) {
+  const p = tag === 'div' ? 'p' : 'span';
+  let h = `<${tag} class="gmi-objbox"><${tag} class="gmi-objbox-k">${esc(t('gmi.objBlockTitle'))}</${tag}><${tag} class="gmi-objbox-t">${esc(t('gmi.objTitle.' + c.obj + '.' + c.focus))}</${tag}><${p} class="gmi-objbox-s">${esc(t('gfocus.title'))}: ${esc(t('gfocus.opt.' + c.focus))} — ${esc(t('gfocus.expl.' + c.focus))}</${p}>`;
+  if (c.fx.source === 'competition-phase' && c.fx.phase) h += `<${p} class="gmi-objbox-s">${esc(t('gfocus.objFromPhase', { phase: t('gfocus.phase.' + c.fx.phase) }))}</${p}>`;
+  if (c.focus === 'competencia' && c.fx.pending) h += `<${p} class="gmi-objbox-s">${esc(t('gfocus.compPending'))}</${p}>`;
+  h += `</${tag}>`;
+  return h;
+}
 function gmiHeadHTML(d) {
-  const mini = ['prot', 'carb', 'azuc'].map(k => gmiBarHTML(METRICS.find(x => x.key === k), d.tot[k], d.goals[k], false)).join('');
-  const chip = t('gm.day.' + d.dayLevel);
-  return `<button type="button" class="gmi-head" id="gmi-open" aria-haspopup="dialog" aria-label="${esc(t('gmi.open'))}"><span class="gmi-head-top"><span class="gmi-head-title">🎯 ${esc(gmiTitleFor(d.iso))}</span><span class="gmi-chip">${esc(chip.charAt(0).toUpperCase() + chip.slice(1))}</span></span><span class="gmi-head-main">${gmiRingSVG(d.pct)}<span class="gmi-head-side"><span class="gmi-kcal"><b>${fmt(d.tot.kcal)}</b> / ${fmt(d.goals.kcal)} kcal</span>${mini}<span class="gmi-tap">${esc(t('gmi.tapHint'))} ›</span></span></span></button>`;
+  const c = gmiCombo();
+  let h = `<button type="button" class="gmi-head" id="gmi-open" aria-haspopup="dialog" aria-label="${esc(t('gmi.open'))}">`;
+  h += `<span class="gmi-head-top"><span class="gmi-head-title">🎯 ${esc(gmiTitleFor(d.iso))}</span></span>`;
+  if (d.dayNote) h += `<span class="gmi-daynote">${esc(d.dayNote)}</span>`;
+  h += `<span class="gmi-chips">${gmiChipsInner(d, c)}</span>`;
+  h += `<span class="gmi-head-main">${gmiRingSVG(d.pct)}<span class="gmi-head-side"><span class="gmi-kcal">${esc(t('gmi.ofKcal', { a: fmt(d.tot.kcal), b: fmt(d.goals.kcal) }))}</span>${gmiLeftHTML(d, 'span')}<span class="gmi-tap">${esc(t('gmi.tapHint'))} ›</span></span></span>`;
+  if (c) h += gmiObjBoxHTML(c, 'span');
+  h += `</button>`;
+  return h;
 }
 function gmiCombo() {
   try {
@@ -8507,25 +8566,15 @@ function gmiSummaryParts(d) {
   return { intent, route, lag };
 }
 function gmiWindowHTML(d) {
-  const chips = [`<span class="gmi-chip">${esc(t('gmi.dayChip', { level: t('gmi.dayShort.' + d.dayLevel) }))}</span>`];
   const c = gmiCombo();
+  let h = `<div class="gmi-chips">${gmiChipsInner(d, c)}</div>`;
+  h += `<div class="gmi-hero">${gmiRingSVG(d.pct)}<div class="gmi-hero-side"><div class="gmi-hero-kcal">${esc(t('gmi.ofKcal', { a: fmt(d.tot.kcal), b: fmt(d.goals.kcal) }))}</div>${gmiLeftHTML(d, 'div')}</div></div>`;
   if (c) {
-    chips.push(`<span class="gmi-chip">${esc(t('gmi.objChip', { obj: t('gmi.objShort.' + c.obj) }))}</span>`);
-    chips.push(`<span class="gmi-chip">${esc(t('gmi.focusChip', { focus: t('gfocus.opt.' + c.focus) }))}</span>`);
-  }
-  let h = `<div class="gmi-chips">${chips.join('')}</div>`;
-  let line2 = '', line3 = '';
-  if (d.left > 0) { line2 = `<div class="gmi-left">${esc(t(gmiIsToday(d.iso) ? 'gmi.leftToday' : 'gmi.leftDate', { n: fmt(d.left) }))}</div>`; line3 = `<div class="gmi-head-note">${esc(t('gmi.headOk'))}</div>`; }
-  else if (d.left === 0) line2 = `<div class="gmi-left">${esc(t('gmi.headExact'))}</div>`;
-  else line2 = `<div class="gmi-left over">${esc(t('gmi.headOver', { n: fmt(-d.left) }))}</div>`;
-  h += `<div class="gmi-hero">${gmiRingSVG(d.pct)}<div class="gmi-hero-side"><div class="gmi-hero-kcal">${esc(t('gmi.ofKcal', { a: fmt(d.tot.kcal), b: fmt(d.goals.kcal) }))}</div>${line2}${line3}</div></div>`;
-  if (c) {
-    h += `<div class="gmi-objbox"><div class="gmi-objbox-k">${esc(t('gmi.objBlockTitle'))}</div><div class="gmi-objbox-t">${esc(t('gmi.objTitle.' + c.obj + '.' + c.focus))}</div><p class="gmi-objbox-s">${esc(t('gfocus.title'))}: ${esc(t('gfocus.opt.' + c.focus))} — ${esc(t('gfocus.expl.' + c.focus))}</p>`;
-    if (c.fx.source === 'competition-phase' && c.fx.phase) h += `<p class="gmi-objbox-s">${esc(t('gfocus.objFromPhase', { phase: t('gfocus.phase.' + c.fx.phase) }))}</p>`;
-    if (c.focus === 'competencia' && c.fx.pending) h += `<p class="gmi-objbox-s">${esc(t('gfocus.compPending'))}</p>`;
-    h += `</div>`;
+    h += gmiObjBoxHTML(c, 'div');
     const s = gmiSummaryParts(d);
-    if (s) h += `<div class="gmi-sumbox"><div class="gmi-sumbox-k">${esc(t('gmi.sumTitle'))}</div><p class="gmi-sumbox-t">${esc(s.intent)} ${esc(s.route)}${s.lag ? ' ' + esc(s.lag) : ''}</p></div>`;
+    /* Ajuste 2026-10-27 (correo 19:26): el resumen va SIN título —
+       solo el párrafo, generado por plantilla como siempre. */
+    if (s) h += `<div class="gmi-sumbox"><p class="gmi-sumbox-t">${esc(s.intent)} ${esc(s.route)}${s.lag ? ' ' + esc(s.lag) : ''}</p></div>`;
   }
   h += `<div class="gmi-bars">` + METRICS.map(m => gmiBarHTML(m, d.tot[m.key], d.goals[m.key], true)).join('') + `</div>`;
   h += `<p class="gmi-found">${esc(t('gmi.foundNote'))}</p>`;
@@ -20123,7 +20172,7 @@ document.addEventListener('keydown', e => { if (e.key === 'Escape') shareClose()
  *  - El SW (sw.js) solo cachea la cáscara del mismo origen en modo
  *    RED PRIMERO: Auth/Firestore/Worker jamás pasan por la caché.
  * ================================================================ */
-const PWA_SW_VERSION = '20261027-reordenar-editor';
+const PWA_SW_VERSION = '20261027-ajuste-metas';
 let pwaDeferredPrompt = null;
 function pwaIsStandalone() {
   try {
