@@ -2862,6 +2862,8 @@ en: {
   'train.f.addEx': '＋ Add exercise', 'train.f.exPh': 'Exercise', 'train.f.setsPh': 'Sets',
   'train.f.repsPh': 'Reps', 'train.f.notePh': 'Note', 'train.f.remove': 'Remove',
   'train.save': 'Save plan', 'train.err': 'Give the plan a title and at least one exercise.',
+  'train.saving': 'Saving…',
+  'train.saveError': 'The plan was NOT saved — a step failed while saving. Your changes are still in the editor; check your connection and try again.',
   'train.new': 'New plan', 'train.activeBadge': 'Active', 'train.activate': 'Activate',
   'train.deactivate': 'Deactivate', 'train.delete': 'Delete',
   'train.deleteConfirm': 'Delete this plan permanently?',
@@ -4757,6 +4759,8 @@ es: {
   'train.f.addEx': '＋ Añadir ejercicio', 'train.f.exPh': 'Ejercicio', 'train.f.setsPh': 'Series',
   'train.f.repsPh': 'Reps', 'train.f.notePh': 'Nota', 'train.f.remove': 'Quitar',
   'train.save': 'Guardar plan', 'train.err': 'Ponle un título al plan y al menos un ejercicio.',
+  'train.saving': 'Guardando…',
+  'train.saveError': 'El plan NO se guardó: un paso falló al guardar. Tus cambios siguen en el editor; revisa tu conexión e inténtalo de nuevo.',
   'train.new': 'Plan nuevo', 'train.activeBadge': 'Activo', 'train.activate': 'Activar',
   'train.deactivate': 'Desactivar', 'train.delete': 'Eliminar',
   'train.deleteConfirm': '¿Eliminar este plan permanentemente?',
@@ -17302,9 +17306,37 @@ document.addEventListener('keydown', e => { if (e.key === 'Escape') exMediaClose
    cierre es SOLO con los botones ✕ / Cancelar (la ✕ pulsa Cancelar
    por el cableado compartido). Un toque accidental fuera de la hoja
    ya no bota el trabajo sin guardar. */
+/* GUARDADO VISIBLE (2026-10-29): el guardado de un plan grande
+   tarda segundos — puerta PAR-Q, instantánea §6.4 con la copia
+   completa, el guardado mismo y las desactivaciones, todo en
+   serie — y hasta hoy el botón no decía nada mientras tanto: se
+   vivía como «no puedo modificar el plan». Desde el toque, el
+   botón muestra «Guardando…» y queda deshabilitado (un segundo
+   toque o un Enter no duplica el guardado, y la bandera cubre
+   también los envíos que no pasan por el botón); si cualquier
+   escritura del camino es rechazada, el aviso dice con
+   honestidad que el plan NO se guardó, sin confirmación falsa,
+   y el editor queda abierto con los cambios intactos. SOLO
+   presentación y superficie de error: la lógica de guardado
+   (orden, lecturas y escrituras) no cambia. */
+let planSaveBusy = false;
+function planSaveBtnBusy(on) {
+  const b = $('pl-save');
+  if (!b) return;
+  b.disabled = !!on;
+  b.textContent = on ? t('train.saving') : t('train.save');
+}
 $('form-plan').addEventListener('submit', async e => {
   e.preventDefault();
   if (!planCtx) return;
+  /* GUARDADO VISIBLE: el estado ocupado nace con el toque y se
+     apaga en saveDone(), llamado en TODA salida del handler
+     (validación, bloqueo PAR-Q, confirmación cancelada, error de
+     escritura y éxito). */
+  if (planSaveBusy) return;
+  planSaveBusy = true;
+  planSaveBtnBusy(true);
+  const saveDone = () => { planSaveBusy = false; planSaveBtnBusy(false); };
   const days = [];
   document.querySelectorAll('#pl-days .pl-day').forEach(dEl => {
     const label = dEl.querySelector('.pl-day-label').value.trim();
@@ -17347,7 +17379,7 @@ $('form-plan').addEventListener('submit', async e => {
     }
   });
   const title = $('pl-title').value.trim();
-  if (!title || !days.length) { toast(t('train.err'), true); return; }
+  if (!title || !days.length) { toast(t('train.err'), true); saveDone(); return; }
   /* PUERTA PAR-Q: la comprobación corre ANTES de cualquier escritura.
      Primer plan (sin planId y sin planes previos del cliente) sin
      declaración válida comprobable → bloqueo duro y CERO escrituras
@@ -17359,6 +17391,7 @@ $('form-plan').addEventListener('submit', async e => {
   if (isFirstSave && gateState !== 'valid') {
     planGateRender('missing', true);
     toast(t('train.gate.blockFirst'), true);
+    saveDone();
     return;
   }
   const gateWarnAfter = !isFirstSave && gateState !== 'valid';
@@ -17396,30 +17429,47 @@ $('form-plan').addEventListener('submit', async e => {
   if (planCtx.repeatWeekWarn && active) {
     const othersW = await fetchPlans(planCtx.clientUid);
     const curW = othersW.find(o => o.active === true && o.id !== planCtx.planId);
-    if (curW && !confirm(t('train.repeat.activateWarn', { title: curW.title || '' }))) return;
+    if (curW && !confirm(t('train.repeat.activateWarn', { title: curW.title || '' }))) { saveDone(); return; }
   }
   let planId = planCtx.planId;
-  if (planId) {
-    /* VERSIONADO (§6.4, pregunta 13 aceptada): antes de sobrescribir
-       un plan existente, su versión ANTERIOR se conserva como
-       instantánea en la misma colección — copia fiel marcada
-       (isSnapshot, sourcePlanId, snapshotAt) y jamás activa. La
-       instantánea se escribe SOLO tras pasar la puerta PAR-Q: un
-       guardado bloqueado no escribe nada, como siempre. Crear un
-       plan nuevo no genera instantánea (no hay versión anterior). */
-    const prevSnap = await getDoc(doc(db, 'training_plans', planId));
-    if (prevSnap.exists()) {
-      await addDoc(collection(db, 'training_plans'), { ...prevSnap.data(), isSnapshot: true, sourcePlanId: planId, snapshotAt: serverTimestamp(), active: false });
+  /* GUARDADO VISIBLE: TODA la secuencia de escrituras del guardado
+     (lectura previa + instantánea §6.4, guardado/creación y
+     desactivación de los demás planes activos) va dentro del try.
+     Hasta hoy un rechazo aquí moría en silencio — sin aviso, sin
+     error y con el editor aparentemente «guardando» para siempre. */
+  try {
+    if (planId) {
+      /* VERSIONADO (§6.4, pregunta 13 aceptada): antes de sobrescribir
+         un plan existente, su versión ANTERIOR se conserva como
+         instantánea en la misma colección — copia fiel marcada
+         (isSnapshot, sourcePlanId, snapshotAt) y jamás activa. La
+         instantánea se escribe SOLO tras pasar la puerta PAR-Q: un
+         guardado bloqueado no escribe nada, como siempre. Crear un
+         plan nuevo no genera instantánea (no hay versión anterior). */
+      const prevSnap = await getDoc(doc(db, 'training_plans', planId));
+      if (prevSnap.exists()) {
+        await addDoc(collection(db, 'training_plans'), { ...prevSnap.data(), isSnapshot: true, sourcePlanId: planId, snapshotAt: serverTimestamp(), active: false });
+      }
+      await setDoc(doc(db, 'training_plans', planId), data, { merge: true });
+    } else {
+      data.createdBy = auth.currentUser.uid; data.createdAt = serverTimestamp();
+      planId = (await addDoc(collection(db, 'training_plans'), data)).id;
     }
-    await setDoc(doc(db, 'training_plans', planId), data, { merge: true });
-  } else {
-    data.createdBy = auth.currentUser.uid; data.createdAt = serverTimestamp();
-    planId = (await addDoc(collection(db, 'training_plans'), data)).id;
-  }
-  if (active) {
-    const others = await fetchPlans(planCtx.clientUid);
-    for (const o of others) if (o.id !== planId && o.active === true)
-      await setDoc(doc(db, 'training_plans', o.id), { active: false, updatedAt: serverTimestamp() }, { merge: true });
+    if (active) {
+      const others = await fetchPlans(planCtx.clientUid);
+      for (const o of others) if (o.id !== planId && o.active === true)
+        await setDoc(doc(db, 'training_plans', o.id), { active: false, updatedAt: serverTimestamp() }, { merge: true });
+    }
+  } catch (saveErr) {
+    /* GUARDADO VISIBLE: si cualquier escritura del camino es
+       rechazada, se dice con honestidad — el plan NO se guardó,
+       cero confirmación falsa, la nota de «guardado» no aparece
+       y la línea base NO se toca (cerrar seguirá preguntando si
+       se descartan los cambios). El botón vuelve a su estado y
+       el editor queda abierto con los cambios intactos. */
+    toast(t('train.saveError'), true);
+    saveDone();
+    return;
   }
   const cuid = planCtx.clientUid;
   /* GUARDAR SIN CERRAR (2026-10-26, instrucción de Ronald): guardar
@@ -17433,6 +17483,9 @@ $('form-plan').addEventListener('submit', async e => {
   planBaseline = planSignature();
   const svn = $('pl-saved-note'); if (svn) { svn.textContent = t('train.savedStay'); svn.style.display = ''; }
   toast(gateWarnAfter ? t('train.gate.savedWithWarning') : t('train.saved'), gateWarnAfter);
+  /* GUARDADO VISIBLE: con la confirmación ya visible, el botón
+     vuelve a «Guardar plan» y queda listo para otro guardado. */
+  saveDone();
   if ($('client-training')) loadClientTraining(cuid);
   if (cuid === auth.currentUser.uid) loadMyTraining();
 });
@@ -21881,7 +21934,7 @@ document.addEventListener('keydown', e => { if (e.key === 'Escape') shareClose()
  *  - El SW (sw.js) solo cachea la cáscara del mismo origen en modo
  *    RED PRIMERO: Auth/Firestore/Worker jamás pasan por la caché.
  * ================================================================ */
-const PWA_SW_VERSION = '20261028-organizacion-admin';
+const PWA_SW_VERSION = '20261029-guardado-visible';
 let pwaDeferredPrompt = null;
 function pwaIsStandalone() {
   try {
