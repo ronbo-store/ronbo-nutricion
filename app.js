@@ -2672,6 +2672,30 @@ en: {
   'shareW.progress': '{x} of {y} exercises', 'shareW.tag': 'Let\'s go!',
   'shareW.done': 'Workout completed!', 'shareW.lab': 'Workout', 'shareW.hecho': 'DONE',
   'train.weekDone': 'Sessions completed this week: {n}',
+  'train.repeat.weekBtn': '🔁 Repeat week',
+  'train.repeat.dayBtn': '🔁 Repeat day',
+  'train.repeat.weekNote': 'Copy of “{title}” to repeat its week — check the dates and save. Nothing is saved yet.',
+  'train.repeat.dayNote': 'Day copied into this plan — it joins the rotation when you save. Nothing is saved yet.',
+  'train.repeat.suffix': '(repeated)',
+  'train.repeat.nextOn': 'This day comes up next on {date}.',
+  'train.repeat.lastTime': 'Last time · {date}: {summary}',
+  'train.repeat.refSummary': '{n} sets · {loads}',
+  'train.repeat.activateWarn': 'This plan will become the active one and “{title}” will stop being active — its remaining sessions will no longer show.',
+  'train.repeat.modeGuard': 'Repeating this day here would change how this plan is scheduled, so it was not added. Your trainer can place it by editing the plan.',
+  'train.repeat.noSource': 'There is no earlier day to repeat yet.',
+  'train.repeat.fromHistory': 'Repeat this day',
+  'train.repeat.oneDayTitle': '{day} — {date}',
+  'train.repeat.cadenceKept': 'Weekly sessions stay at {n}, as before.',
+  'train.repeat.logNote': 'Day rebuilt from the session of {date}; the per-set detail stays in the record.',
+  'train.repeat.reqWeekBtn': '🔁 Ask to repeat week',
+  'train.repeat.reqDayBtn': '🔁 Ask to repeat this day',
+  'train.repeat.propWeekLine': 'Asks to repeat the week of the plan “{plan}”',
+  'train.repeat.propDayLine': 'Asks to repeat the day “{day}” of the plan “{plan}”',
+  'train.repeat.propDayLogLine': 'Asks to repeat the day done on {date} (“{day}”)',
+  'train.repeat.propSent': 'Request sent to your trainer.',
+  'train.repeat.propDup': 'You already have a pending request for this.',
+  'train.repeat.applyBtn': 'Apply repeat',
+  'train.repeat.applyNote': 'Approved. Nothing is saved yet: applying opens the editor with the copy ready and your save makes it real.',
   'train.planFreq': 'Your plan: {n} days per week',
   'train.markDone': 'Mark as done today', 'train.doneToday': 'Done today ✓', 'train.undo': 'Undo',
   /* PUENTE ENTRENAMIENTO→LLAMITA (2026-10-27): cronómetro y cierre. */
@@ -4538,6 +4562,30 @@ es: {
   'shareW.progress': '{x} de {y} ejercicios', 'shareW.tag': '¡A darle!',
   'shareW.done': '¡Entrenamiento completado!', 'shareW.lab': 'Entrenamiento', 'shareW.hecho': 'HECHO',
   'train.weekDone': 'Sesiones completadas esta semana: {n}',
+  'train.repeat.weekBtn': '🔁 Repetir semana',
+  'train.repeat.dayBtn': '🔁 Repetir día',
+  'train.repeat.weekNote': 'Copia de «{title}» para repetir su semana — revisa las fechas y guarda. Aún no se ha guardado nada.',
+  'train.repeat.dayNote': 'Día copiado en este plan — entrará en la rotación al guardar. Aún no se ha guardado nada.',
+  'train.repeat.suffix': '(repetido)',
+  'train.repeat.nextOn': 'Este día volverá a tocar el {date}.',
+  'train.repeat.lastTime': 'Última vez · {date}: {summary}',
+  'train.repeat.refSummary': '{n} series · {loads}',
+  'train.repeat.activateWarn': 'Este plan pasará a ser el activo y «{title}» dejará de serlo — sus sesiones restantes ya no se mostrarán.',
+  'train.repeat.modeGuard': 'Repetir este día aquí cambiaría cómo se programa este plan, así que no se agregó. Tu entrenador puede colocarlo editando el plan.',
+  'train.repeat.noSource': 'Todavía no hay un día anterior para repetir.',
+  'train.repeat.fromHistory': 'Repetir este día',
+  'train.repeat.oneDayTitle': '{day} — {date}',
+  'train.repeat.cadenceKept': 'Las sesiones por semana se mantienen en {n}, como antes.',
+  'train.repeat.logNote': 'Día reconstruido desde la sesión del {date}; el detalle por serie queda en el registro.',
+  'train.repeat.reqWeekBtn': '🔁 Pedir repetir la semana',
+  'train.repeat.reqDayBtn': '🔁 Pedir repetir este día',
+  'train.repeat.propWeekLine': 'Pide repetir la semana del plan «{plan}»',
+  'train.repeat.propDayLine': 'Pide repetir el día «{day}» del plan «{plan}»',
+  'train.repeat.propDayLogLine': 'Pide repetir el día hecho el {date} («{day}»)',
+  'train.repeat.propSent': 'Solicitud enviada a tu entrenador.',
+  'train.repeat.propDup': 'Ya tienes una solicitud pendiente de esto.',
+  'train.repeat.applyBtn': 'Aplicar repetición',
+  'train.repeat.applyNote': 'Aprobada. Aún no se guarda nada: al aplicar se abre el editor con la copia lista y tu guardado la hace real.',
   'train.planFreq': 'Tu plan: {n} días por semana',
   'train.markDone': 'Marcar como hecho hoy', 'train.doneToday': 'Hecho hoy ✓', 'train.undo': 'Deshacer',
   /* PUENTE ENTRENAMIENTO→LLAMITA (2026-10-27): cronómetro y cierre. */
@@ -14313,6 +14361,23 @@ async function loadMyTraining() {
     else mark = iso === today ? '●' : (iso < today ? '–' : '·');
     cells.push(`<button type="button" class="train-wd${iso === sel ? ' is-sel' : ''}${iso === today ? ' is-today' : ''}" data-train-day="${iso}"><span class="train-wd-l">${esc(wdN)}</span><span class="train-wd-n">${dt.getDate()}</span><span class="train-wd-m">${mark}</span></button>`);
   }
+  /* REPETIR (2026-10-29): fila de acciones sobre el propio plan.
+     SIN entrenador → repetir directo (abre el editor sobre su plan;
+     la escritura la conceden las reglas: hoy el entrenador/propie-
+     tario y, para el alumno sin entrenador, el delta candidato del
+     paquete). CON entrenador → las mismas acciones como PROPUESTA
+     planProposal (Q5): nada se aplica hasta que él decida. El día
+     ofrecido es el de la fecha vista (resuelto por el mapa) o, si
+     esa fecha tiene registro, el día ejecutado de ese registro. */
+  const myTrainerUid = (typeof MY_REL !== 'undefined' && MY_REL && MY_REL.status === 'activa' && MY_REL.trainerUid)
+    ? MY_REL.trainerUid
+    : ((typeof UDATA !== 'undefined' && UDATA && UDATA.assignmentStatus === 'assigned' && UDATA.trainerUid) ? UDATA.trainerUid : '');
+  const selDiRow = diForDate(sel);
+  const logSelRow = logs.find(l => l.date === sel) || null;
+  let repeatRow = `<div style="margin:10px 0"><button type="button" class="btn-ghost btn-sm" data-my-repeat="week">${myTrainerUid ? t('train.repeat.reqWeekBtn') : t('train.repeat.weekBtn')}</button>`;
+  if (logSelRow) repeatRow += ` <button type="button" class="btn-ghost btn-sm" data-my-repeat="day" data-mode="log" data-log-id="${esc(logSelRow.id)}">${myTrainerUid ? t('train.repeat.reqDayBtn') : t('train.repeat.fromHistory')}</button>`;
+  else if (selDiRow != null) repeatRow += ` <button type="button" class="btn-ghost btn-sm" data-my-repeat="day" data-mode="plan" data-di="${selDiRow}">${myTrainerUid ? t('train.repeat.reqDayBtn') : t('train.repeat.dayBtn')}</button>`;
+  repeatRow += '</div>';
   const trainTodayHTML = `<div class="train-today">
     <div class="train-strip"><button type="button" class="train-nav" data-train-week="-1" aria-label="‹">‹</button><div class="train-strip-days">${cells.join('')}</div><button type="button" class="train-nav" data-train-week="1" aria-label="›">›</button></div>
     <div class="train-strip-actions"><button type="button" class="btn-ghost btn-sm" data-train-today="1">${t('train.today.btnToday')}</button><span class="train-week-sum">${t('train.today.weekSummary', { x: wkDone, y: (plan.days || []).length })}</span></div>
@@ -14323,6 +14388,7 @@ async function loadMyTraining() {
     ${plan.notes ? `<p class="progress-hint">${esc(plan.notes)}</p>` : ''}
     ${planPeriodText(plan) ? `<p class="progress-hint">${t('train.dates.clientLine', { period: esc(planPeriodText(plan)) })}</p>` : ''}
     <p class="progress-hint">${t('train.planFreq', { n: (plan.days || []).length })}</p>
+    ${repeatRow}
     ${trainTodayHTML}
     <p class="progress-hint">${t('train.weekDone', { n: weekCount })}</p>
     ${weekHtml}
@@ -14336,6 +14402,21 @@ async function loadMyTraining() {
          filas de series aplastaban la columna del nombre. -->`;
   const pcBtn = $('btn-print-card');
   if (pcBtn) pcBtn.onclick = () => printCardRender(plan);
+  box.querySelectorAll('[data-my-repeat]').forEach(b => b.onclick = async () => {
+    if (b.dataset.myRepeat === 'week') {
+      if (myTrainerUid) { await repeatProposalSend('repeatWeek', {}); return; }
+      repeatWeekOpen(uid, plan, plans); return;
+    }
+    if (b.dataset.mode === 'log') {
+      const l = logs.find(x => x.id === b.dataset.logId); if (!l) return;
+      if (myTrainerUid) { await repeatProposalSend('repeatDay', { dayIndex: l.dayIndex, dayLabel: l.dayLabel || '', sourceLogId: l.id, sourceLogDate: l.date }); return; }
+      repeatDayFromLogOpen(uid, l, plans); return;
+    }
+    const di = Number(b.dataset.di);
+    if (!(plan.days || [])[di]) return;
+    if (myTrainerUid) { await repeatProposalSend('repeatDay', { dayIndex: di, dayLabel: (plan.days[di].label || '') }); return; }
+    repeatDayAppendOpen(uid, plan, (plan.days || [])[di], {});
+  });
   box.querySelectorAll('[data-train-day]').forEach(b => b.onclick = () => { TRAIN_VIEW.sel = b.dataset.trainDay; loadMyTraining(); });
   box.querySelectorAll('[data-train-week]').forEach(b => b.onclick = () => { TRAIN_VIEW.sel = addDaysISO(TRAIN_VIEW.sel || today, 7 * Number(b.dataset.trainWeek)); loadMyTraining(); });
   box.querySelectorAll('[data-train-today]').forEach(b => b.onclick = () => { TRAIN_VIEW.sel = today; loadMyTraining(); });
@@ -14628,6 +14709,12 @@ function propClientStatusBadge(p) {
   return `<span class="prop-badge is-pending">${t('train.prop.stSent')}</span>`;
 }
 function propDetailLine(p) {
+  /* REPETIR (Q5, 2026-10-29): las propuestas de repetición viajan
+     por este mismo canal con type 'repeatDay' | 'repeatWeek'. */
+  if (p.type === 'repeatWeek') return t('train.repeat.propWeekLine', { plan: p.planTitle || '' });
+  if (p.type === 'repeatDay') return p.sourceLogDate
+    ? t('train.repeat.propDayLogLine', { date: dateName(p.sourceLogDate), day: p.dayLabel || '' })
+    : t('train.repeat.propDayLine', { day: p.dayLabel || '', plan: p.planTitle || '' });
   return p.type === 'change'
     ? t('train.prop.changeLine', { old: p.targetName || '', ex: propExName(p), day: p.dayLabel || '' })
     : t('train.prop.addLine', { ex: propExName(p), day: p.dayLabel || '' });
@@ -14871,6 +14958,31 @@ async function loadClientProposals(uid, plans) {
     const p = list.find(x => x.id === b.dataset.propOpen); if (!p) return;
     const plan = PROP_TRAY.plans.find(x => x.id === p.planId); if (plan) openPlanEditor(PROP_TRAY.uid, plan);
   });
+  /* REPETIR (Q5): APLICAR una propuesta de repetición aprobada =
+     abrir el editor con la copia lista (semana: plan nuevo en
+     borrador; día: agregado al plan de la propuesta o reconstruido
+     desde el registro). Nada se guarda hasta que el entrenador
+     guarda en el editor — el mismo invariante de P7. */
+  box.querySelectorAll('[data-prop-apply]').forEach(b => b.onclick = async () => {
+    const p = list.find(x => x.id === b.dataset.propApply); if (!p) return;
+    const plansNow = PROP_TRAY.plans;
+    if (p.type === 'repeatWeek') {
+      const plan = plansNow.find(x => x.id === p.planId);
+      if (plan) repeatWeekOpen(PROP_TRAY.uid, plan, plansNow);
+      else toast(t('train.prop.planGone'), true);
+      return;
+    }
+    if (p.sourceLogId) {
+      const logs = await fetchLogs(PROP_TRAY.uid);
+      const log = logs.find(l => l.id === p.sourceLogId);
+      if (log) repeatDayFromLogOpen(PROP_TRAY.uid, log, plansNow);
+      else toast(t('train.repeat.noSource'), true);
+      return;
+    }
+    const plan = plansNow.find(x => x.id === p.planId);
+    if (plan && (plan.days || [])[p.dayIndex]) repeatDayAppendOpen(PROP_TRAY.uid, plan, (plan.days || [])[p.dayIndex], {});
+    else toast(t('train.repeat.noSource'), true);
+  });
 }
 function propTrayCardHTML(p) {
   const plan = PROP_TRAY.plans.find(x => x.id === p.planId);
@@ -14878,10 +14990,12 @@ function propTrayCardHTML(p) {
   return `<div class="user-row prop-row"><div><b>${esc(propDetailLine(p))}</b> ${propStatusBadge(p.status)}<br>
     <span class="muted">${esc(p.planTitle || '')} · ${t('train.prop.byClient', { date: propDate(propTime(p)) })}${tplName ? ` · ${t('train.prop.fromTpl', { name: tplName })}` : ''}</span>
     ${p.note ? `<div class="prop-note">${t('train.prop.noteLabel')} “${esc(p.note)}”</div>` : ''}
-    ${p.status === 'approved' ? `<div class="prop-note">${t('train.prop.approvedNote')}</div>` : ''}
+    ${p.status === 'approved' ? `<div class="prop-note">${(p.type === 'repeatDay' || p.type === 'repeatWeek') ? t('train.repeat.applyNote') : t('train.prop.approvedNote')}</div>` : ''}
   </div><div class="user-actions">
     ${p.status === 'pending' ? `<button class="btn-primary btn-sm" data-prop-decide="${esc(p.id)}|approved">${t('train.prop.approve')}</button><button class="btn-ghost btn-sm" data-prop-decide="${esc(p.id)}|rejected">${t('train.prop.reject')}</button>` : ''}
-    ${p.status === 'approved' ? (plan ? `<button class="btn-ghost btn-sm" data-prop-open="${esc(p.id)}">${t('train.prop.openEditor')}</button>` : `<span class="muted">${t('train.prop.planGone')}</span>`) : ''}
+    ${p.status === 'approved' ? ((p.type === 'repeatDay' || p.type === 'repeatWeek')
+      ? `<button class="btn-primary btn-sm" data-prop-apply="${esc(p.id)}">${t('train.repeat.applyBtn')}</button>`
+      : (plan ? `<button class="btn-ghost btn-sm" data-prop-open="${esc(p.id)}">${t('train.prop.openEditor')}</button>` : `<span class="muted">${t('train.prop.planGone')}</span>`)) : ''}
   </div></div>`;
 }
 
@@ -14895,6 +15009,7 @@ async function loadClientTraining(uid) {
     <div class="user-row"><div><b>${esc(p.title || '')}</b>${p.active === true ? ` <span class="ok-badge">${t('train.activeBadge')}</span>` : ''}${p.active === true && planIsExpired(p) ? ` <span class="exp-badge">${t('train.dates.expired')}</span>` : ''}<br><span class="muted">${t('train.daysCount', { n: (p.days || []).length })} · ${t('train.exCount', { n: (p.days || []).reduce((n, d) => n + (d.exercises || []).length, 0) })}${planPeriodText(p) ? ' · ' + esc(planPeriodText(p)) : ''}</span></div>
     <div class="user-actions">
       <button class="btn-ghost btn-sm" data-plan-edit="${p.id}">${t('client.edit')}</button>
+      <button class="btn-ghost btn-sm" data-plan-repeat-week="${p.id}">${t('train.repeat.weekBtn')}</button>
       <button class="btn-ghost btn-sm" data-plan-toggle="${p.id}">${p.active === true ? t('train.deactivate') : t('train.activate')}</button>
       <button class="btn-ghost btn-sm" data-plan-history="${p.id}">${t('train.snap.btn')}</button>
       <button class="btn-ghost btn-sm" data-plan-del="${p.id}">${t('train.delete')}</button>
@@ -14912,7 +15027,7 @@ async function loadClientTraining(uid) {
     });
     return parts.length ? `<br><span class="muted">${parts.join(' · ')}</span>` : '';
   };
-  const logRows = logs.slice(0, 8).map(l => `<div class="train-ex"><span>${esc(l.dayLabel || '')}${logMarks(l)}</span><span class="sx">${dateName(l.date)} ✓</span></div>`).join('');
+  const logRows = logs.slice(0, 8).map(l => `<div class="train-ex"><span>${esc(l.dayLabel || '')}${logMarks(l)}</span><span class="sx">${dateName(l.date)} ✓</span><button class="btn-ghost btn-sm" data-log-repeat="${l.id}">${t('train.repeat.fromHistory')}</button></div>`).join('');
   box.innerHTML = `
     <h3 class="history-title">${t('train.section')}</h3>
     <div style="margin-bottom:10px"><button class="btn-primary btn-sm" id="btn-plan-new">${t('train.new')}</button></div>
@@ -14922,6 +15037,11 @@ async function loadClientTraining(uid) {
     ${logRows || `<div class="wempty">${t('train.noLogs')}</div>`}`;
   $('btn-plan-new').onclick = () => openPlanEditor(uid, null);
   box.querySelectorAll('[data-plan-edit]').forEach(b => b.onclick = () => { const p = plans.find(x => x.id === b.dataset.planEdit); if (p) openPlanEditor(uid, p); });
+  /* REPETIR: semana desde la tarjeta del plan; día desde un
+     registro del historial (la copia nace en el editor; aquí no se
+     escribe nada). */
+  box.querySelectorAll('[data-plan-repeat-week]').forEach(b => b.onclick = () => { const p = plans.find(x => x.id === b.dataset.planRepeatWeek); if (p) repeatWeekOpen(uid, p, plans); });
+  box.querySelectorAll('[data-log-repeat]').forEach(b => b.onclick = () => { const l = logs.find(x => x.id === b.dataset.logRepeat); if (l) repeatDayFromLogOpen(uid, l, plans); });
   box.querySelectorAll('[data-plan-toggle]').forEach(b => b.onclick = async () => {
     const p = plans.find(x => x.id === b.dataset.planToggle); if (!p) return;
     if (p.active === true) {
@@ -16682,6 +16802,14 @@ if ($('pl-days')) $('pl-days').addEventListener('click', e => {
 
 /* --- Editor de planes (entrenador) --- */
 let planCtx = null;
+/* REPETIR (2026-10-29): campos del ejercicio que el editor conoce y
+   round-trip por el DOM. Todo OTRO campo presente en el objeto
+   (p. ej. una futura marca por serie del paquete de series al
+   fallo) NO se pierde: planDayRow lo pega a su fila DOM (_extra /
+   _dayExtra) y el guardado lo restituye — la copia que viaja por
+   el editor es GENÉRICA (objeto entero), no una lista blanca. */
+const PLAN_EX_KNOWN = ['name', 'sets', 'reps', 'note', 'exerciseId', 'photoUrl', 'videoUrl', 'rest', 'rest_en', 'warmup', 'warmup_en'];
+const PLAN_DAY_KNOWN = ['label', 'exercises', 'sessionBlocks'];
 function wirePlanExDel(scope) { scope.querySelectorAll('.pl-ex-del').forEach(b => b.onclick = () => b.closest('.pl-ex-row').remove()); }
 function planExRow(ex) {
   ex = ex || {};
@@ -16769,11 +16897,22 @@ function planDayRow(day) {
   wrap.className = 'pl-day';
   wrap.innerHTML = `
     <div class="frow"><label style="flex:1"><input type="text" class="pl-day-label" placeholder="${t('train.f.dayPh')}" value="${esc(day.label || '')}"></label>
+    <button type="button" class="btn-ghost btn-sm pl-day-repeat" title="${t('train.repeat.dayBtn')}">🔁</button>
     <button type="button" class="btn-ghost btn-sm pl-day-del">${t('train.f.remove')}</button></div>
     <div class="pl-day-blocks"></div>
     <div class="pl-exs">${(day.exercises && day.exercises.length ? day.exercises : [{}]).map(planExRow).join('')}</div>
     <button type="button" class="btn-ghost btn-sm pl-ex-add">${t('train.f.addEx')}</button>`;
   wrap._sessionBlocks = Array.isArray(day.sessionBlocks) ? day.sessionBlocks.map(b => ({ ...b })) : [];
+  /* REPETIR: campos no conocidos del día y de sus ejercicios quedan
+     pegados a su elemento DOM (ver PLAN_EX_KNOWN arriba). */
+  { const dex = {}; Object.keys(day || {}).forEach(k => { if (!PLAN_DAY_KNOWN.includes(k)) dex[k] = day[k]; });
+    if (Object.keys(dex).length) wrap._dayExtra = dex;
+    const rowEls = wrap.querySelectorAll('.pl-ex-row');
+    const srcExs = (day.exercises && day.exercises.length) ? day.exercises : [];
+    srcExs.forEach((ex, ei) => { const rowEl = rowEls[ei]; if (!rowEl || !ex) return;
+      const x = {}; Object.keys(ex).forEach(k => { if (!PLAN_EX_KNOWN.includes(k)) x[k] = ex[k]; });
+      if (Object.keys(x).length) rowEl._extra = x; }); }
+  wrap.querySelector('.pl-day-repeat').onclick = () => repeatDayInEditor(wrap);
   renderDayBlocks(wrap);
   wrap.querySelector('.pl-day-del').onclick = () => wrap.remove();
   wrap.querySelector('.pl-ex-add').onclick = () => {
@@ -16873,7 +17012,7 @@ async function planCurrentInit(clientUid) {
 }
 
 function openPlanEditor(clientUid, plan) {
-  planCtx = { clientUid, planId: plan ? plan.id : null, tplSource: null };
+  planCtx = { clientUid, planId: plan ? plan.id : null, tplSource: null, planData: plan ? JSON.parse(JSON.stringify(plan)) : null };
   $('pl-title').value = plan ? (plan.title || '') : '';
   $('pl-notes').value = plan ? (plan.notes || '') : '';
   $('pl-active').checked = plan ? plan.active === true : true;
@@ -16887,6 +17026,9 @@ function openPlanEditor(clientUid, plan) {
   $('pl-preset').value = plan ? (plan.durationPreset || '') : '';
   $('pl-current').style.display = 'none'; $('pl-current').innerHTML = '';
   $('pl-tpl').style.display = 'none';
+  /* REPETIR: las notas de repetición nacen limpias en cada apertura;
+     los flujos de repetir las fijan DESPUÉS de abrir el editor. */
+  repeatNoteShow(''); repeatRefShow([]);
   planCurrentInit(clientUid);
   const daysBox = $('pl-days'); daysBox.innerHTML = '';
   const days = plan && plan.days && plan.days.length ? plan.days : [{ label: '', exercises: [{}] }];
@@ -16994,6 +17136,9 @@ $('form-plan').addEventListener('submit', async e => {
       if (restEn) ex.rest_en = restEn;
       if (warm) ex.warmup = warm;
       if (warmEn) ex.warmup_en = warmEn;
+      /* REPETIR: restitución de los campos no conocidos que viajan
+         pegados a la fila (copia genérica, ver planDayRow). */
+      if (r._extra) Object.keys(r._extra).forEach(k => { if (!(k in ex)) ex[k] = JSON.parse(JSON.stringify(r._extra[k])); });
       exercises.push(ex);
     });
     if (exercises.length) {
@@ -17001,6 +17146,7 @@ $('form-plan').addEventListener('submit', async e => {
       /* PLANTILLAS (§4.2/§4.6): los bloques de sesión del día se
          persisten como copia en el plan, sin referencia viva. */
       if (dEl._sessionBlocks && dEl._sessionBlocks.length) dayObj.sessionBlocks = dEl._sessionBlocks.map(b => ({ ...b }));
+      if (dEl._dayExtra) Object.keys(dEl._dayExtra).forEach(k => { if (!(k in dayObj)) dayObj[k] = JSON.parse(JSON.stringify(dEl._dayExtra[k])); });
       days.push(dayObj);
     }
   });
@@ -17029,6 +17175,14 @@ $('form-plan').addEventListener('submit', async e => {
   data.startsAt = $('pl-start').value || null;
   data.endsAt = $('pl-end').value || null;
   data.durationPreset = $('pl-preset').value || null;
+  /* REPETIR (diseño §4.3): la cadencia se conserva POR ESCRITO solo
+     en guardados que nacen de un repetir — al agregar un día a un
+     plan sin sessionsPerWeek propio, sin este campo la cadencia
+     subiría en silencio con days.length. En el plan de un día
+     (§4.2) la cadencia es 1 y el fin es el propio inicio. */
+  const repSpw = planCtx.repeatCadence || planCtx.repeatSessionsPerWeek;
+  if (repSpw) data.sessionsPerWeek = repSpw;
+  if (planCtx.repeatOneDay) { data.endsAt = data.startsAt; data.sessionsPerWeek = 1; }
   /* PLANTILLAS (§4.2/§4.6): procedencia OPCIONAL y veraz — solo si
      en ESTA sesión del editor se aplicó una plantilla. Es
      trazabilidad (qué plantilla y qué versión originaron el
@@ -17039,6 +17193,14 @@ $('form-plan').addEventListener('submit', async e => {
     if (planCtx.tplSource.version) data.sourceRoutineVersion = planCtx.tplSource.version;
     const lv = (LIB && LIB.length && LIB[0].version) || '';
     if (lv) data.libraryVersion = lv;
+  }
+  /* REPETIR SEMANA (diseño §3.1): si este guardado activa la copia
+     apagando otro plan activo, se confirma con su aviso específico
+     ANTES de cualquier escritura (ni instantánea ni plan). */
+  if (planCtx.repeatWeekWarn && active) {
+    const othersW = await fetchPlans(planCtx.clientUid);
+    const curW = othersW.find(o => o.active === true && o.id !== planCtx.planId);
+    if (curW && !confirm(t('train.repeat.activateWarn', { title: curW.title || '' }))) return;
   }
   let planId = planCtx.planId;
   if (planId) {
@@ -17078,6 +17240,264 @@ $('form-plan').addEventListener('submit', async e => {
   if ($('client-training')) loadClientTraining(cuid);
   if (cuid === auth.currentUser.uid) loadMyTraining();
 });
+
+/* ================= REPETIR DÍA / REPETIR SEMANA (2026-10-29) =================
+   Diseño: DISENO-REPETIR-DIA-SEMANA-2026-10-28.md + decisiones de
+   Ronald del 2026-10-29 (Q1 rotación · Q2 cargas solo como
+   referencia · Q3 semana repetida nace en espera · Q4 alumno sin
+   entrenador con editor completo — delta de reglas candidato
+   aparte · Q5 alumno CON entrenador propone y su entrenador
+   decide, por el canal planProposal de P7).
+   Repetir es AUTORÍA por el BORRADOR del editor (patrón tplApply):
+   tocar «Repetir» no escribe nada; el guardado ordinario hace la
+   copia real con su puerta PAR-Q, su instantánea §6.4 y su
+   activación exclusiva. Se copia lo PROGRAMADO (copia profunda
+   GENÉRICA: objeto entero, ver PLAN_EX_KNOWN) y jamás lo ejecutado:
+   los training_logs no se tocan en ningún flujo de este módulo. */
+const repeatClone = o => JSON.parse(JSON.stringify(o == null ? null : o));
+function repeatNoteShow(txt) { const el = $('pl-repeat-note'); if (el) { el.textContent = txt || ''; el.style.display = txt ? '' : 'none'; } }
+function repeatRefShow(lines) { const el = $('pl-repeat-ref'); if (!el) return; el.innerHTML = (lines || []).map(l => `<div>${esc(l)}</div>`).join(''); el.style.display = lines && lines.length ? '' : 'none'; }
+function uniqueRepeatLabel(base, existing) {
+  const suf = t('train.repeat.suffix');
+  const clean = String(base || '').trim();
+  let cand = clean ? clean + ' ' + suf : suf;
+  if (!existing.includes(cand)) return cand;
+  let n = 2;
+  const numbered = m => suf.replace(/\)\s*$/, ' ' + m + ')');
+  if (!suf.includes(')')) { while (existing.includes(cand)) cand = clean + ' ' + suf + ' ' + (n++); return cand; }
+  while (existing.includes(cand)) { cand = (clean ? clean + ' ' : '') + numbered(n++); }
+  return cand;
+}
+function repeatNextMonday(iso) { let d = planISOAddDays(iso, 1); while (new Date(d + 'T12:00:00').getDay() !== 1) d = planISOAddDays(d, 1); return d; }
+/* Configuración de pendientes del cliente para la guarda de modo:
+   la del propio alumno sale de su documento (PEND_CFG o su lectura
+   de siempre); la de un cliente, de su {uid}_pendconfig por la vía
+   que las reglas ya conceden al entrenador asignado. Sin documento
+   no puede haber modo «cfg» activo, así que null es honesto. */
+async function repeatCfgFor(clientUid) {
+  try {
+    if (auth.currentUser && clientUid === auth.currentUser.uid) {
+      if (typeof PEND_CFG !== 'undefined' && PEND_CFG && !PEND_CFG.__error) return PEND_CFG;
+      const cs = await getDoc(pendCfgRef());
+      return cs.exists() ? Object.assign(pendDefaults(), cs.data()) : null;
+    }
+    const cs = await getDoc(doc(db, 'nutrition_progress', clientUid + '_pendconfig'));
+    return cs.exists() ? Object.assign(pendDefaults(), cs.data()) : null;
+  } catch { return null; }
+}
+/* GUARDA DE MODO (diseño §4.4): agregar el día no puede cambiar el
+   modo del mapa del plan. Se simula trainDayMap sobre el borrador
+   con la MISMA cfg en ambos lados; si el modo cambia, no se abre
+   el editor y no se escribe nada. */
+function repeatModeGuardOk(plan, draftDays, cfg) {
+  const before = trainDayMap(plan, cfg || null).mode;
+  const after = trainDayMap({ ...plan, days: draftDays }, cfg || null).mode;
+  return before === after;
+}
+/* Primera fecha en que el día agregado (último del borrador) toca,
+   calculada con el propio planCalDayIndex y la cadencia que el
+   guardado conservará por escrito. Solo en modo plancal. */
+function repeatNextOn(plan, draftDays) {
+  const draft = { ...plan, days: draftDays };
+  if (plan.sessionsPerWeek == null) draft.sessionsPerWeek = planCalWeeklySessions(plan);
+  if (!planCalApplies(draft)) return '';
+  const target = draftDays.length - 1;
+  const start = String(draft.startsAt).slice(0, 10);
+  const from = todayISO() > start ? todayISO() : start;
+  const limit = draft.endsAt ? String(draft.endsAt).slice(0, 10) : planISOAddDays(from, 70);
+  for (let d = from; d <= limit; d = planISOAddDays(d, 1)) if (planCalDayIndex(draft, d) === target) return d;
+  return '';
+}
+/* --- REPETIR SEMANA: plan nuevo, copia íntegra, fechas nuevas --- */
+async function repeatWeekOpen(clientUid, srcPlan, allPlans) {
+  if (!srcPlan || !Array.isArray(srcPlan.days) || !srcPlan.days.length) { toast(t('train.repeat.noSource'), true); return; }
+  const plans = allPlans || await fetchPlans(clientUid);
+  const hasOtherActive = plans.some(p => p.active === true && p.id !== srcPlan.id);
+  const start = repeatNextMonday(srcPlan.endsAt || todayISO());
+  let end = '';
+  if (srcPlan.startsAt && srcPlan.endsAt) {
+    const span = Math.round((new Date(String(srcPlan.endsAt).slice(0, 10) + 'T12:00:00') - new Date(String(srcPlan.startsAt).slice(0, 10) + 'T12:00:00')) / 86400000);
+    if (isFinite(span) && span >= 0) end = planISOAddDays(start, span);
+  }
+  const draft = {
+    title: (srcPlan.title || '') + ' ' + t('train.repeat.suffix'),
+    notes: srcPlan.notes || '',
+    days: repeatClone(srcPlan.days),
+    active: !hasOtherActive,
+    startsAt: start, endsAt: end,
+    durationPreset: srcPlan.durationPreset || '',
+  };
+  openPlanEditor(clientUid, draft);
+  planCtx.repeatWeekWarn = true;
+  planCtx.repeatSourceId = srcPlan.id;
+  if (srcPlan.sessionsPerWeek) planCtx.repeatSessionsPerWeek = srcPlan.sessionsPerWeek;
+  planTouched = true;
+  repeatNoteShow(t('train.repeat.weekNote', { title: srcPlan.title || '' }));
+}
+/* --- REPETIR DÍA sobre un plan (lo abre en el editor con el día
+   agregado al final de la secuencia, Q1) o plan de un día si no
+   hay plan destino (§4.2) --- */
+async function repeatDayAppendOpen(clientUid, targetPlan, dayData, opts = {}) {
+  if (!dayData || !(dayData.exercises || []).length) { toast(t('train.repeat.noSource'), true); return; }
+  if (!targetPlan) {
+    const today = todayISO();
+    const draft = {
+      title: t('train.repeat.oneDayTitle', { day: dayData.label || '', date: dateName(today) }),
+      notes: '',
+      days: [repeatClone(dayData)],
+      active: true, startsAt: today, endsAt: today, durationPreset: '',
+    };
+    openPlanEditor(clientUid, draft);
+    planCtx.repeatOneDay = true;
+    planTouched = true;
+    let note = t('train.repeat.dayNote');
+    if (opts.logNote) note += ' ' + opts.logNote;
+    repeatNoteShow(note);
+    if (opts.refLines) repeatRefShow(opts.refLines);
+    return;
+  }
+  const cfg = opts.cfg !== undefined ? opts.cfg : await repeatCfgFor(clientUid);
+  const draftDays = repeatClone(targetPlan.days || []);
+  const appended = { ...repeatClone(dayData), label: uniqueRepeatLabel(dayData.label || '', draftDays.map(d => d.label || '')) };
+  draftDays.push(appended);
+  if (!repeatModeGuardOk(targetPlan, draftDays, cfg)) { toast(t('train.repeat.modeGuard'), true); return; }
+  openPlanEditor(clientUid, { ...targetPlan, days: draftDays });
+  if (targetPlan.sessionsPerWeek == null) planCtx.repeatCadence = planCalWeeklySessions(targetPlan);
+  planTouched = true;
+  let note = t('train.repeat.dayNote');
+  const nx = repeatNextOn(targetPlan, draftDays);
+  if (nx) note += ' ' + t('train.repeat.nextOn', { date: dateName(nx) });
+  if (planCtx.repeatCadence) note += ' ' + t('train.repeat.cadenceKept', { n: planCtx.repeatCadence });
+  if (opts.logNote) note += ' ' + opts.logNote;
+  repeatNoteShow(note);
+  if (opts.refLines) repeatRefShow(opts.refLines);
+}
+/* --- REPETIR DESDE EL HISTORIAL: el día se reconstruye desde
+   exercisesDone (conversión con pérdida declarada, diseño §4.1) y
+   las cargas reales se muestran SOLO como referencia (Q2) --- */
+function repeatDayFromLog(log) {
+  const exercises = [];
+  (Array.isArray(log.exercisesDone) ? log.exercisesDone : []).forEach(e => {
+    if (!e || e.done === false) return;
+    const sets = Array.isArray(e.sets) ? e.sets : [];
+    const ex = { name: e.name || '', sets: sets.length ? String(sets.length) : '', reps: sets.length ? String(sets[0].repsPlanned == null ? '' : sets[0].repsPlanned) : '', note: '' };
+    if (e.exerciseId) {
+      ex.exerciseId = e.exerciseId;
+      const entry = (typeof LIB_BY_ID !== 'undefined' && LIB_BY_ID[e.exerciseId]) || null;
+      if (entry) { ex.name = libNameOf(entry); ex.photoUrl = entry.foto_url || ''; ex.videoUrl = entry.video_youtube_url || ''; }
+    }
+    exercises.push(ex);
+  });
+  return { label: log.dayLabel || '', exercises };
+}
+function repeatRefLines(log) {
+  const lines = [];
+  (Array.isArray(log.exercisesDone) ? log.exercisesDone : []).forEach(e => {
+    if (!e) return;
+    const sets = Array.isArray(e.sets) ? e.sets : [];
+    if (!sets.length) return;
+    const entry = e.exerciseId && typeof LIB_BY_ID !== 'undefined' ? LIB_BY_ID[e.exerciseId] : null;
+    const name = entry ? libNameOf(entry) : (e.name || '');
+    const loads = [];
+    sets.forEach(s => {
+      const v = (s.loadOriginal != null && s.loadUnitOriginal) ? (s.loadOriginal + ' ' + s.loadUnitOriginal) : (s.loadKg != null ? (s.loadKg + ' kg') : '');
+      if (v && !loads.includes(v)) loads.push(v);
+    });
+    lines.push(t('train.repeat.lastTime', { date: dateName(log.date), summary: name + ' — ' + t('train.repeat.refSummary', { n: sets.length, loads: loads.join(' / ') || '—' }) }));
+  });
+  return lines;
+}
+async function repeatDayFromLogOpen(clientUid, log, plans) {
+  if (!log) { toast(t('train.repeat.noSource'), true); return; }
+  try { await libEnsure(); } catch {}
+  const day = repeatDayFromLog(log);
+  if (!day.exercises.length) { toast(t('train.repeat.noSource'), true); return; }
+  const all = plans || await fetchPlans(clientUid);
+  const active = all.find(p => p.active === true) || null;
+  await repeatDayAppendOpen(clientUid, active, day, { refLines: repeatRefLines(log), logNote: t('train.repeat.logNote', { date: dateName(log.date) }) });
+}
+/* --- REPETIR DÍA dentro del propio editor: lee el día de su fila
+   DOM con la MISMA extracción del guardado (así la copia incluye
+   lo que el entrenador ve, con sus campos genéricos pegados) --- */
+function repeatDayFromRow(dEl) {
+  const label = dEl.querySelector('.pl-day-label').value.trim();
+  const exercises = [];
+  dEl.querySelectorAll('.pl-ex-row').forEach(r => {
+    const name = r.querySelector('.pl-ex-name').value.trim();
+    if (!name) return;
+    const ex = { name, sets: r.querySelector('.pl-ex-sets').value.trim(), reps: r.querySelector('.pl-ex-reps').value.trim(), note: r.querySelector('.pl-ex-note').value.trim() };
+    if (r.dataset.exid) {
+      ex.exerciseId = r.dataset.exid;
+      if (r.dataset.photo) ex.photoUrl = r.dataset.photo;
+      if (r.dataset.video) ex.videoUrl = r.dataset.video;
+    }
+    const restIn = r.querySelector('.pl-ex-rest'), warmIn = r.querySelector('.pl-ex-warmup');
+    let rest = r.dataset.rest || '', restEn = r.dataset.restEn || '', warm = r.dataset.warmup || '', warmEn = r.dataset.warmupEn || '';
+    if (restIn) { if (LANG === 'es') rest = restIn.value.trim(); else restEn = restIn.value.trim(); }
+    if (warmIn) { if (LANG === 'es') warm = warmIn.value.trim(); else warmEn = warmIn.value.trim(); }
+    if (rest) ex.rest = rest;
+    if (restEn) ex.rest_en = restEn;
+    if (warm) ex.warmup = warm;
+    if (warmEn) ex.warmup_en = warmEn;
+    if (r._extra) Object.keys(r._extra).forEach(k => { if (!(k in ex)) ex[k] = repeatClone(r._extra[k]); });
+    exercises.push(ex);
+  });
+  const day = { label, exercises };
+  if (dEl._sessionBlocks && dEl._sessionBlocks.length) day.sessionBlocks = repeatClone(dEl._sessionBlocks);
+  if (dEl._dayExtra) Object.keys(dEl._dayExtra).forEach(k => { if (!(k in day)) day[k] = repeatClone(dEl._dayExtra[k]); });
+  return day;
+}
+async function repeatDayInEditor(wrap) {
+  if (!planCtx) return;
+  const dayData = repeatDayFromRow(wrap);
+  if (!dayData.exercises.length) { toast(t('train.repeat.noSource'), true); return; }
+  const base = planCtx.planData;
+  const labels = [...document.querySelectorAll('#pl-days .pl-day-label')].map(i => i.value.trim());
+  const newDay = { ...dayData, label: uniqueRepeatLabel(dayData.label, labels) };
+  if (base && base.id) {
+    const cfg = await repeatCfgFor(planCtx.clientUid);
+    const draftDays = [...(base.days || []), newDay];
+    if (!repeatModeGuardOk(base, draftDays, cfg)) { toast(t('train.repeat.modeGuard'), true); return; }
+  }
+  $('pl-days').appendChild(planDayRow(newDay));
+  try { vizRefreshDays(document.querySelectorAll('#pl-days .pl-day').length - 1); } catch {}
+  planTouched = true;
+  let note = t('train.repeat.dayNote');
+  if (base && base.id) {
+    if (base.sessionsPerWeek == null && !planCtx.repeatCadence) planCtx.repeatCadence = planCalWeeklySessions(base);
+    const nx = repeatNextOn(base, [...(base.days || []), newDay]);
+    if (nx) note += ' ' + t('train.repeat.nextOn', { date: dateName(nx) });
+    if (planCtx.repeatCadence) note += ' ' + t('train.repeat.cadenceKept', { n: planCtx.repeatCadence });
+  }
+  repeatNoteShow(note);
+}
+/* --- Q5: el alumno CON entrenador PROPONE un repetir por el canal
+   planProposal de P7 (mismo documento y mismas reglas vivas: el
+   cliente crea con ownerUid propio; el entrenador decide con un
+   merge de estado; aprobar NO escribe planes — al aplicar, el
+   entrenador abre el editor con la copia y su guardado la hace
+   real, como en P7). Sin duplicar una propuesta pendiente igual. --- */
+async function repeatProposalSend(type, extra) {
+  if (!auth.currentUser || !MY_PLAN) return;
+  const uid = auth.currentUser.uid;
+  const payload = { dayIndex: null, dayLabel: '', sourceLogId: null, sourceLogDate: null, ...(extra || {}) };
+  try {
+    const snap = await getDocs(query(collection(db, 'nutrition_progress'), where('ownerUid', '==', uid)));
+    let dup = false;
+    snap.forEach(d => { const v = d.data(); if (v && v.kind === 'planProposal' && v.status === 'pending' && v.type === type && v.planId === MY_PLAN.id
+      && (v.dayIndex == null ? null : v.dayIndex) === payload.dayIndex && (v.sourceLogId || null) === payload.sourceLogId) dup = true; });
+    if (dup) { toast(t('train.repeat.propDup')); return; }
+  } catch {}
+  const data = {
+    kind: 'planProposal', ownerUid: uid, uid,
+    planId: MY_PLAN.id, planTitle: MY_PLAN.title || '',
+    type, note: '', status: 'pending', createdAt: serverTimestamp(),
+    ...payload,
+  };
+  await setDoc(doc(db, 'nutrition_progress', `${uid}_prop_${Date.now()}`), data);
+  toast(t('train.repeat.propSent'));
+  renderMyProposals();
+}
 
 /* ================= PESTAÑAS PRINCIPALES ================= */
 function switchTab(name) {
@@ -21250,7 +21670,7 @@ document.addEventListener('keydown', e => { if (e.key === 'Escape') shareClose()
  *  - El SW (sw.js) solo cachea la cáscara del mismo origen en modo
  *    RED PRIMERO: Auth/Firestore/Worker jamás pasan por la caché.
  * ================================================================ */
-const PWA_SW_VERSION = '20261028-delegacion';
+const PWA_SW_VERSION = '20261029-repetir';
 let pwaDeferredPrompt = null;
 function pwaIsStandalone() {
   try {

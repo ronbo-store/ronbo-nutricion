@@ -21,7 +21,7 @@
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-title" content="RONBO FIT">
 <meta name="apple-mobile-web-app-status-bar-style" content="default">
-<link rel="stylesheet" href="styles.css?v=20261028-delegacion">
+<link rel="stylesheet" href="styles.css?v=20261029-repetir">
 <script defer src="https://cloud.umami.is/script.js" data-website-id="a29706d4-44a2-47cf-900a-5f74d74abfa8"></script>
 <script type="importmap">
 {
@@ -1059,6 +1059,11 @@
       <label><span data-i18n="train.f.notes">Notes for the client</span> <input type="text" id="pl-notes"></label>
       <label class="check-row"><input type="checkbox" id="pl-active"> <span data-i18n="train.f.active">Active plan (the one the client sees)</span></label>
       <div id="pl-gate" class="pl-gate"></div>
+      <!-- REPETIR (2026-10-29): procedencia del borrador de repetición
+           y referencia «Última vez» al repetir desde el historial.
+           Solo presentación: nada de lo que muestran se guarda. -->
+      <div id="pl-repeat-note" class="pl-lib-note" style="display:none"></div>
+      <div id="pl-repeat-ref" class="pl-lib-note" style="display:none"></div>
       <div id="pl-current" class="pl-current" style="display:none"></div>
       <div id="pl-dates" class="pl-dates">
         <div class="frow">
@@ -1231,6 +1236,6 @@
 <div id="toast" class="toast"></div>
 <div id="print-card" aria-hidden="true"></div>
 
-<script type="module" src="app.js?v=20261028-delegacion"></script>
+<script type="module" src="app.js?v=20261029-repetir"></script>
 </body>
 </html>
