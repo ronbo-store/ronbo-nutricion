@@ -2456,6 +2456,7 @@ en: {
   'appr.none': 'No new accounts are waiting for approval.',
   'appr.done': 'Account approved — the client is now assigned to you.',
   'appr.error': 'It could not be completed. Please try again.',
+  'appr.approving': 'Approving…',
   'progress.title': '📸 My progress',
   'progress.sub': '· photos every 15 days: front, side and back',
   'progress.hint': 'Your progress photos (front, side and back). Who can see them: only you, your assigned trainer and the program\'s administrator — they are never public. Take a new evaluation every 15 days, and compare two of your evaluations yourself in the comparator in this same section.',
@@ -4355,6 +4356,7 @@ es: {
   'appr.none': 'No hay cuentas nuevas en espera de aprobación.',
   'appr.done': 'Cuenta aprobada: el cliente queda asignado a ti.',
   'appr.error': 'No se pudo completar. Inténtalo de nuevo.',
+  'appr.approving': 'Aprobando…',
   'progress.title': '📸 Mi progreso',
   'progress.sub': '· fotos cada 15 días: frente, costado y espalda',
   'progress.hint': 'Tus fotos de progreso (frente, costado y espalda). Quién puede verlas: solo tú, tu entrenador asignado y el administrador del programa; nunca son públicas. Haz una nueva evaluación cada 15 días, y compara dos de tus evaluaciones tú mismo en el comparador de esta misma sección.',
@@ -6552,7 +6554,7 @@ async function loadAdmin() {
   });
   /* Roles+Escalabilidad: aprobar una SOLICITUD DE ENTRENADOR asigna
      el rol y crea el andamiaje en el mismo gesto (pedido 2). */
-  document.querySelectorAll('[data-approve-trainer]').forEach(b => b.onclick = async () => { await approveTrainerNow(b.dataset.approveTrainer); });
+  document.querySelectorAll('[data-approve-trainer]').forEach(b => b.onclick = () => approveBtnRun(b, () => approveTrainerNow(b.dataset.approveTrainer)));
   /* Comunicación al aprobar a un entrenador (extensión 2026-10-24):
      junto a cada entrenador aprobado con la plantilla INCOMPLETA,
      el administrador despliega el TEXTO del correo recordatorio —
@@ -6720,7 +6722,7 @@ async function loadAdmin() {
     if (u) openGoals(u.id, u.name || u.email, u.goals);
   });
   document.querySelectorAll('[data-profile]').forEach(b => b.onclick = () => openProfile(b.dataset.profile));
-  document.querySelectorAll('[data-approve]').forEach(b => b.onclick = async () => { await approveUserNow(b.dataset.approve); });
+  document.querySelectorAll('[data-approve]').forEach(b => b.onclick = () => approveBtnRun(b, () => approveUserNow(b.dataset.approve)));
   document.querySelectorAll('[data-revoke]').forEach(b => b.onclick = async () => {
     if (!confirm(t('confirm.revoke'))) return;
     await setDoc(doc(db, 'users', b.dataset.revoke), { approved: false }, { merge: true });
@@ -10271,11 +10273,29 @@ async function aiCall(path, body) {
    vigentes, sin delta). Si el envío NO sale, la aprobación queda
    firme y se muestra el aviso visible #mail-notice con reintento:
    jamás un fallo silencioso ni una aprobación bloqueada. */
+/* APROBACIÓN SIN RESPUESTA VISIBLE — DESACOPLAR EL CORREO
+   (2026-10-29; diagnóstico INFORME-DIAGNOSTICO-APROBAR-2026-10-29):
+   la aprobación SÍ escribía, pero la rutina esperaba la promesa
+   del correo de bienvenida — y el getIdToken() de mailSend no
+   tenía tope alguno — así que la interfaz no confirmaba nada
+   mientras la cadena colgaba. Dos arreglos: (1) ninguna espera
+   de red del flujo de aprobación puede colgar en silencio:
+   promiseWithTimeout pone tope de 10 s a los getIdToken() de
+   mailSend y de signupWorkerCall (los fetch ya llevaban su
+   aborto: 30 s en mailSend, el timeoutMs en signupWorkerCall;
+   las escrituras de Firestore resuelven o rechazan por su SDK
+   y no se les pone carrera, que podría declarar fallida una
+   escritura que sí aterriza); (2) la aprobación TERMINA al
+   aterrizar la escritura (ver approveUserNow/approveTrainerNow/
+   trainerApproveNow) y la bienvenida se dispara sin esperarla. */
+function promiseWithTimeout(p, ms) {
+  return Promise.race([p, new Promise((_, reject) => setTimeout(() => reject(new Error('timeout')), ms))]);
+}
 async function mailSend(uid, template) {
   const ep = aiEndpoint();
   if (!ep) return { ok: false, status: 0, error: 'no-endpoint' };
   let idToken = '';
-  try { idToken = await auth.currentUser.getIdToken(); } catch { return { ok: false, status: 0, error: 'no-token' }; }
+  try { idToken = await promiseWithTimeout(auth.currentUser.getIdToken(), 10000); } catch { return { ok: false, status: 0, error: 'no-token' }; }
   const ctl = new AbortController();
   const timer = setTimeout(() => { try { ctl.abort(); } catch {} }, 30000);
   try {
@@ -10368,7 +10388,7 @@ async function signupWorkerCall(path, bodyObj, timeoutMs) {
     const ep = aiEndpoint();
     if (!ep) return null;
     let idToken = '';
-    try { idToken = await auth.currentUser.getIdToken(); } catch { return null; }
+    try { idToken = await promiseWithTimeout(auth.currentUser.getIdToken(), 10000); } catch { return null; }
     if (!idToken) return null;
     const ctl = new AbortController();
     const timer = setTimeout(() => { try { ctl.abort(); } catch {} }, timeoutMs || 15000);
@@ -10557,37 +10577,76 @@ function signupApproveCardShow(s, uid) {
     if (nb) nb.onclick = () => { SIGNUP_CARD_DISMISSED = true; box.style.display = 'none'; };
     const ab = box.querySelector('[data-signup-approve]');
     if (ab) ab.onclick = async () => {
+      /* APROBACIÓN DESACOPLADA (2026-10-29): estado ocupado
+         honesto en el botón del diálogo (patrón AUTH-078): dice
+         «Aprobando…» desde el toque; etiqueta restaurada en el
+         error y en el cupo agotado. */
+      const abLabel = ab.textContent;
       ab.disabled = true;
+      ab.textContent = t('appr.approving');
       const nb2 = box.querySelector('[data-signup-notnow]');
       if (nb2) nb2.disabled = true;
       let res = null;
       try { res = await (viaTrainer ? trainerApproveNow(uid, s.name || s.email || '') : (s.roleRequest === 'entrenador' ? approveTrainerNow(uid) : approveUserNow(uid))); }
-      catch { toast(t('signup.approveFailed'), true); ab.disabled = false; if (nb2) nb2.disabled = false; return; }
+      catch { toast(t('signup.approveFailed'), true); ab.disabled = false; ab.textContent = abLabel; if (nb2) nb2.disabled = false; return; }
       /* AUTH-072: cupo agotado ENTRE la tarjeta y el toque —
          trainerApproveNow ya avisó (appr.exhausted) y NO escribió
          nada: la tarjeta se queda, sin pintar un aprobado falso. */
-      if (res && res.error === 'quota') { ab.disabled = false; if (nb2) nb2.disabled = false; return; }
-      box.innerHTML = `<h2 class="signup-title">${esc(t('signup.approvedOk'))}</h2><div class="signup-row">${esc(res && res.ok ? t('mail.sentOk', { email: res.to }) : mailReasonText(res || { status: 0, error: '' }))}</div><div class="signup-actions"><button type="button" class="btn-primary" data-signup-close>${esc(t('signup.closeBtn'))}</button></div>`;
+      if (res && res.error === 'quota') { ab.disabled = false; ab.textContent = abLabel; if (nb2) nb2.disabled = false; return; }
+      /* La tarjeta confirma la APROBACIÓN en cuanto la escritura
+         aterriza: el resultado del correo ya NO se espera aquí
+         (llega por el toast/#mail-notice de mailAutoWelcome) y
+         por eso la fila de resultado del correo desaparece: no
+         hay línea de correo que pintar en este instante. */
+      box.innerHTML = `<h2 class="signup-title">${esc(t('signup.approvedOk'))}</h2><div class="signup-actions"><button type="button" class="btn-primary" data-signup-close>${esc(t('signup.closeBtn'))}</button></div>`;
       box.style.display = '';
       paintClose();
     };
   } catch {}
 }
+/* APROBACIÓN DESACOPLADA (2026-10-29): estado ocupado honesto
+   de los botones de aprobar de las LISTAS (patrón AUTH-078):
+   desde el toque el botón se desactiva y dice «Aprobando…»; si
+   la rutina lanza, el botón se restaura y sale el toast de
+   error que la lista no tenía. En el éxito la propia rutina
+   recarga la lista (loadAdmin), que repinta los botones. */
+async function approveBtnRun(b, fn) {
+  if (!b || b.disabled) return;
+  const label = b.textContent;
+  b.disabled = true;
+  b.textContent = t('appr.approving');
+  try { await fn(); }
+  catch { toast(t('appr.error'), true); b.disabled = false; b.textContent = label; }
+}
 async function approveUserNow(uid) {
   const u = ADMIN_USERS.find(x => x.id === uid);
-  await setDoc(doc(db, 'users', uid), { approved: true }, { merge: true });
+  /* La aprobación del propietario firma también approvedBy/
+     approvedAt (la rama del propietario de las reglas vivas ya
+     lo permite, probado en el diagnóstico): toda aprobación
+     queda firmada igual que la del entrenador. */
+  await setDoc(doc(db, 'users', uid), { approved: true, approvedBy: auth.currentUser.uid, approvedAt: serverTimestamp() }, { merge: true });
   if (u && u.trainerUid) await escAdjustQuota(u.trainerUid, +1);
   toast(t('msg.approved')); await loadAdmin();
-  return mailAutoWelcome(uid, u ? (u.name || u.email || '') : '');
+  /* APROBACIÓN DESACOPLADA: la aprobación TERMINA aquí. La
+     bienvenida se dispara SIN esperarla: su resultado llega por
+     las vías de siempre de mailAutoWelcome (toast mail.sentOk si
+     sale; #mail-notice con reintento si no — y el botón 📧 de la
+     ficha sigue siendo la vía de reenvío). Si el correo falla o
+     cuelga, la aprobación queda firme y visible igual. */
+  mailAutoWelcome(uid, u ? (u.name || u.email || '') : '');
+  return { ok: true, approved: true };
 }
 async function approveTrainerNow(uid) {
   const u = ADMIN_USERS.find(x => x.id === uid);
-  await setDoc(doc(db, 'users', uid), { approved: true, role: 'entrenador' }, { merge: true });
+  await setDoc(doc(db, 'users', uid), { approved: true, role: 'entrenador', approvedBy: auth.currentUser.uid, approvedAt: serverTimestamp() }, { merge: true });
   await escEnsureTrainerScaffold(uid, u ? (u.name || u.email) : '');
   await auditLog('role', 'role.trainerApproved', uid, '');
   toast(t('esc.trainerApproved'));
   await loadAdmin();
-  return mailAutoWelcome(uid, u ? (u.name || u.email || '') : '');
+  /* APROBACIÓN DESACOPLADA: como en approveUserNow, la
+     bienvenida se dispara sin esperarla. */
+  mailAutoWelcome(uid, u ? (u.name || u.email || '') : '');
+  return { ok: true, approved: true };
 }
 /* AUTH-072 · Delegación de la aprobación: aprobación de UN alumno
    desde la sesión de SU entrenador (el de la tarjeta del enlace
@@ -10624,7 +10683,14 @@ async function trainerApproveNow(uid, name) {
      vista con datos viejos hasta recargar la página. */
   try { await loadClients(); } catch {}
   toast(t('appr.done'));
-  return mailAutoWelcome(uid, name);
+  /* APROBACIÓN DESACOPLADA (2026-10-29): el mismo patrón de
+     atasco vivía aquí — la tarjeta del entrenador esperaba la
+     promesa del correo — y recibe el mismo desacople: la
+     bienvenida se dispara sin esperarla. (La BANDEJA del
+     entrenador, renderApprovalsTray, ya nacía desacoplada:
+     nunca llamó a mailAutoWelcome.) */
+  mailAutoWelcome(uid, name);
+  return { ok: true, approved: true };
 }
 /* AUTH-072 · trainer_notify/{me}: contacto mínimo del entrenador
    (correo de su cuenta + idioma de correo) para que el Worker
@@ -21978,7 +22044,7 @@ document.addEventListener('keydown', e => { if (e.key === 'Escape') shareClose()
  *  - El SW (sw.js) solo cachea la cáscara del mismo origen en modo
  *    RED PRIMERO: Auth/Firestore/Worker jamás pasan por la caché.
  * ================================================================ */
-const PWA_SW_VERSION = '20261029-llamita-entrenador';
+const PWA_SW_VERSION = '20261029-aprobacion-desacoplada';
 let pwaDeferredPrompt = null;
 function pwaIsStandalone() {
   try {
