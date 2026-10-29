@@ -1,11 +1,12 @@
 # RONBO FIT — Batería de reglas del delta «Ayuda pública sin
 # iniciar sesión — Opción B» (diseño
 # DISENO-AYUDA-SIN-LOGIN-2026-10-28, §2 y §6): la suite AYUDA
-# (15 casos P1–P15) contra el CANDIDATO de reglas (texto vivo
-# f91e6f97…, ruleset f5352f7c, + SOLO la pieza faq_public en el
+# (15 casos P1–P15) contra el CANDIDATO de reglas REBASEADO para el
+# despliegue 2026-10-29 (texto vivo ff4691cd…, ruleset 8def2007, + SOLO la pieza faq_public en el
 # match /app_settings: get sin sesión de ese único documento y
 # 'faq_public' en la lista de escritura del propietario;
-# candidato SHA-256 98379d34…) y la MISMA suite contra el
+# candidato rebaseado SHA-256 3e3c5ea1…; el delta es línea a línea
+# idéntico al validado en la construcción, run 40809090795) y la MISMA suite contra el
 # texto VIVO con las expectativas del delta invertidas (el
 # contraste). Todo contra el emulador oficial de Firestore
 # (proyecto ficticio ronbo-nutri-test). Este workflow SOLO
@@ -15,13 +16,13 @@
 # Colocación: este archivo va en .github/workflows/ del repo
 # CI y las suites en pruebas-reglas-ayuda/ y
 # pruebas-reglas-ayuda-vivo/ en la raíz del mismo repo, en la
-# rama ci/ayuda-bateria.
+# rama ci/ayuda-bateria-rebase.
 name: Batería Ayuda pública Opción B (emulador oficial)
 
 on:
   workflow_dispatch:
   push:
-    branches: [ci/ayuda-bateria]
+    branches: [ci/ayuda-bateria-rebase]
 
 permissions:
   contents: read

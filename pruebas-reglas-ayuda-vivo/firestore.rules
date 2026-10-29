@@ -294,6 +294,12 @@ service cloud.firestore {
         && exists(/databases/$(database)/documents/users/$(ownerUid))
         && get(/databases/$(database)/documents/users/$(ownerUid)).data.get('trainerUid', '') == request.auth.uid;
     }
+    // Delta candidato Repetir (2026-10-29): alumno SIN entrenador
+    // asignado — el campo trainerUid de su propio documento de
+    // usuario es la señal viva (vacío = sin entrenador).
+    function selfAuthorNoTrainer() {
+      return isApprovedUser() && myDoc().get('trainerUid', '') == '';
+    }
     // Roles+Escalabilidad (2026-10-24, NO publicado): cupo de
     // alumnos por nivel de membresía (Básico 5 · Premium 10 ·
     // Élite 30 · sin membresía 0).
@@ -1738,12 +1744,26 @@ service cloud.firestore {
     }
 
     // ---------- Training (Block 3) ----------
-    // Plans are authored ONLY by the trainer. Clients read their own.
+    // Plans are authored by the trainer. Clients read their own.
+    // DELTA CANDIDATO REPETIR (2026-10-29, diseño §7.2 — NO publicado):
+    // el alumno SIN entrenador asignado puede crear/editar SUS PROPIOS
+    // planes (autoría propia, editor completo Q4 de Repetir). La señal
+    // viva es users.trainerUid: si aparece un entrenador, esta vía se
+    // cierra sola. Sus instantáneas de guardado viven en esta misma
+    // colección (mismo match) y quedan cubiertas. Borrar planes NO se
+    // amplía: la línea de delete conserva la expresión viva exacta.
     match /training_plans/{docId} {
       allow get, list: if isOwnerUser()
         || (isApprovedUser() && resource.data.clientUid == request.auth.uid)
         || isAssignedTrainerOf(resource.data.clientUid);
-      allow create, update, delete: if isOwnerUser()
+      allow create: if isOwnerUser()
+        || isAssignedTrainerOf(request.resource.data.clientUid)
+        || (selfAuthorNoTrainer() && request.resource.data.clientUid == request.auth.uid);
+      allow update: if isOwnerUser()
+        || isAssignedTrainerOf(request.resource.data.clientUid)
+        || (selfAuthorNoTrainer() && resource.data.clientUid == request.auth.uid
+            && request.resource.data.clientUid == request.auth.uid);
+      allow delete: if isOwnerUser()
         || isAssignedTrainerOf(request.resource.data.clientUid);
     }
 
@@ -2008,6 +2028,9 @@ service cloud.firestore {
     //   otro, nadie se registra mirándose a sí mismo, y el documento
     //   lleva EXACTAMENTE los cuatro campos del registro, con la
     //   hora del servidor (at == request.time).
+    //   (Organización 2026-10-28: + el entrenador aprobado y
+    //   asignado a ese cliente, con la misma forma exacta — ver la
+    //   nota junto al allow create.)
     // · Actualización: DENEGADA a todos — ni el autor puede
     //   reescribir un registro (mismo precedente que
     //   consent_receipts: nadie actualiza recibos).
@@ -2015,13 +2038,29 @@ service cloud.firestore {
     //   (el mismo precedente que consent_receipts).
     match /access_log/{logId} {
       allow get, list: if isOwnerUser();
-      allow create: if isOwnerUser()
-        && request.resource.data.keys().hasOnly(['viewerUid', 'clientUid', 'zone', 'at'])
+      // Organización de Administración (2026-10-28): se añade la
+      // rama del ENTRENADOR — la ND-2 nació para auditar la vista
+      // del entrenador sobre las evaluaciones de un cliente, pero
+      // el create era solo del propietario y la app ni siquiera
+      // intentaba escribir para un entrenador (hueco silencioso
+      // cazado en el diagnóstico del paquete). La rama nueva exige
+      // EXACTAMENTE la misma forma (cuatro campos, viewerUid ==
+      // quien crea, cliente ajeno, zone 'evaluations', at ==
+      // request.time) Y que quien crea sea un entrenador aprobado
+      // (isTrainerUser + isApprovedUser) ASIGNADO a ese cliente
+      // (isAssignedTrainerOf sobre users/{clientUid}.trainerUid).
+      // La rama del propietario queda con sus predicados intactos.
+      // Lectura, update y delete NO cambian: la bitácora la sigue
+      // leyendo solo el propietario y sigue siendo append-only.
+      allow create: if request.resource.data.keys().hasOnly(['viewerUid', 'clientUid', 'zone', 'at'])
         && request.resource.data.viewerUid == request.auth.uid
         && request.resource.data.clientUid is string
         && request.resource.data.clientUid != request.auth.uid
         && request.resource.data.zone == 'evaluations'
-        && request.resource.data.at == request.time;
+        && request.resource.data.at == request.time
+        && (isOwnerUser()
+            || (isTrainerUser() && isApprovedUser()
+                && isAssignedTrainerOf(request.resource.data.clientUid)));
       allow update: if false;
       allow delete: if isOwnerUser();
     }

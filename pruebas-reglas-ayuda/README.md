@@ -1,9 +1,11 @@
 # Batería CI — delta «Ayuda pública sin iniciar sesión — Opción B» (candidato)
 
 Suite AYUDA (15 casos P1–P15) contra el CANDIDATO de reglas:
-texto vivo `f91e6f97…` (ruleset f5352f7c) + SOLO la pieza del
-diseño DISENO-AYUDA-SIN-LOGIN-2026-10-28 §2 Opción B
-(candidato SHA-256 `98379d34…`):
+texto vivo `ff4691cd…` (ruleset 8def2007) + SOLO la pieza del
+diseño DISENO-AYUDA-SIN-LOGIN-2026-10-28 §2 Opción B — REBASE
+del despliegue 2026-10-29: el candidato original `98379d34…`
+(sobre f91e6f97) se rebasó sobre el vivo actual; el delta es
+línea a línea idéntico (candidato rebaseado SHA-256 `3e3c5ea1…`):
 
 - En el match `/app_settings/{docId}`: el `get` admite SIN
   sesión únicamente el documento `faq_public` (la copia pública
