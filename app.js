@@ -2869,6 +2869,8 @@ en: {
   'train.deleteConfirm': 'Delete this plan permanently?',
   'train.noPlan': 'No plan assigned yet.', 'train.recent': 'Recent sessions',
   'train.noLogs': 'No sessions logged yet.',
+  'train.burnSession': 'Session ≈ {n} kcal',
+  'train.burnExtras': 'Extras ≈ {n} kcal',
   'train.daysCount': '{n} days', 'train.exCount': '{n} exercises',
   'train.gate.checking': 'Checking this client’s health declaration status…',
   'train.gate.ok': '🏥 Health declaration: this client has a valid declaration on file.',
@@ -4766,6 +4768,8 @@ es: {
   'train.deleteConfirm': '¿Eliminar este plan permanentemente?',
   'train.noPlan': 'Aún no hay plan asignado.', 'train.recent': 'Sesiones recientes',
   'train.noLogs': 'Aún no hay sesiones registradas.',
+  'train.burnSession': 'Sesión ≈ {n} kcal',
+  'train.burnExtras': 'Extras ≈ {n} kcal',
   'train.daysCount': '{n} días', 'train.exCount': '{n} ejercicios',
   'train.gate.checking': 'Comprobando el estado de la declaración de salud de este cliente…',
   'train.gate.ok': '🏥 Declaración de salud: este cliente tiene una declaración vigente registrada.',
@@ -13106,6 +13110,22 @@ async function fetchLogs(clientUid) {
   out.sort((a, b) => (a.date < b.date ? 1 : -1));
   return out;
 }
+
+/* LLAMITA PARA EL ENTRENADOR (2026-10-29): los activity_logs del
+   CLIENTE, de solo lectura, para pintar su quemado en la ficha del
+   entrenador (loadClientTraining). Las reglas vivas ya autorizan la
+   lista al entrenador asignado (isAssignedTrainerOf sobre ownerUid,
+   el campo que la consulta fija — el mismo patrón que fetchLogs).
+   Sin delta de reglas. Si la lectura falla, mapa vacío: la ficha se
+   ve como hoy, sin llamitas, jamás rota. */
+async function fetchClientActLogs(clientUid) {
+  const out = {};
+  try {
+    const snap = await getDocs(query(collection(db, 'activity_logs'), where('ownerUid', '==', clientUid)));
+    snap.forEach(d => { const v = d.data(); if (v && /^\d{4}-\d{2}-\d{2}$/.test(v.date || '')) out[v.date] = { kcalExtraTotal: num(v.kcalExtraTotal) }; });
+  } catch {}
+  return out;
+}
 function trainExercisesHTML(day) {
   return (day.exercises || []).map(ex => `
     <div class="train-ex"><span>${esc(ex.name || '')}${ex.note ? ` <span class="muted">· ${esc(ex.note)}</span>` : ''}</span><span class="sx">${esc([ex.sets, ex.reps].filter(Boolean).join(' × '))}</span></div>`).join('');
@@ -15205,6 +15225,7 @@ async function loadClientTraining(uid) {
   if (!box) return;
   const plans = await fetchPlans(uid);
   const logs = await fetchLogs(uid);
+  const actByDate = await fetchClientActLogs(uid);
   const planRows = plans.length ? plans.map(p => `
     <div class="user-row"><div><b>${esc(p.title || '')}</b>${p.active === true ? ` <span class="ok-badge">${t('train.activeBadge')}</span>` : ''}${p.active === true && planIsExpired(p) ? ` <span class="exp-badge">${t('train.dates.expired')}</span>` : ''}<br><span class="muted">${t('train.daysCount', { n: (p.days || []).length })} · ${t('train.exCount', { n: (p.days || []).reduce((n, d) => n + (d.exercises || []).length, 0) })}${planPeriodText(p) ? ' · ' + esc(planPeriodText(p)) : ''}</span></div>
     <div class="user-actions">
@@ -15227,7 +15248,30 @@ async function loadClientTraining(uid) {
     });
     return parts.length ? `<br><span class="muted">${parts.join(' · ')}</span>` : '';
   };
-  const logRows = logs.slice(0, 8).map(l => `<div class="train-ex"><span>${esc(l.dayLabel || '')}${logMarks(l)}</span><span class="sx">${dateName(l.date)} ✓</span><button class="btn-ghost btn-sm" data-log-repeat="${l.id}">${t('train.repeat.fromHistory')}</button></div>`).join('');
+  /* LLAMITA PARA EL ENTRENADOR (2026-10-29, paquete aprobado por
+     Ronald tras el «no conforme» de los 24 chequeos): el quemado de
+     cada día cerrado, con LA MISMA fuente y el MISMO redondeo que la
+     llamita del alumno — el kcalExtraTotal guardado del día (el
+     actDayView del alumno) redondeado. Sin documento o con total 0
+     no se pinta nada (nada de ceros inventados); el desglose
+     sesión/extras solo se pinta cuando el sessionKcal del registro
+     permite derivarlo sin mentir (si falta, o el total vigente ya
+     quedó por debajo de la sesión, se pinta solo el total). */
+  const logBurn = l => {
+    const d = actByDate[l.date];
+    const total = d ? Math.round(num(d.kcalExtraTotal)) : 0;
+    if (!(total > 0)) return '';
+    const ses = (typeof l.sessionKcal === 'number' && isFinite(l.sessionKcal)) ? Math.round(l.sessionKcal) : null;
+    let parts = '';
+    if (ses !== null && ses > 0 && total >= ses) {
+      const seg = [t('train.burnSession', { n: fmt(ses) })];
+      const ext = total - ses;
+      if (ext > 0) seg.push(t('train.burnExtras', { n: fmt(ext) }));
+      parts = ` <span class="muted">${seg.join(' · ')}</span>`;
+    }
+    return `<br><span class="act-flame-ico" aria-hidden="true">🔥</span> <span class="act-flame-num">${fmt(total)} ${t('act.kcalUnit')}</span>${parts}`;
+  };
+  const logRows = logs.slice(0, 8).map(l => `<div class="train-ex"><span>${esc(l.dayLabel || '')}${logMarks(l)}${logBurn(l)}</span><span class="sx">${dateName(l.date)} ✓</span><button class="btn-ghost btn-sm" data-log-repeat="${l.id}">${t('train.repeat.fromHistory')}</button></div>`).join('');
   box.innerHTML = `
     <h3 class="history-title">${t('train.section')}</h3>
     <div style="margin-bottom:10px"><button class="btn-primary btn-sm" id="btn-plan-new">${t('train.new')}</button></div>
@@ -21934,7 +21978,7 @@ document.addEventListener('keydown', e => { if (e.key === 'Escape') shareClose()
  *  - El SW (sw.js) solo cachea la cáscara del mismo origen en modo
  *    RED PRIMERO: Auth/Firestore/Worker jamás pasan por la caché.
  * ================================================================ */
-const PWA_SW_VERSION = '20261028-ayuda-publica';
+const PWA_SW_VERSION = '20261029-llamita-entrenador';
 let pwaDeferredPrompt = null;
 function pwaIsStandalone() {
   try {
