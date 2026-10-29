@@ -21,7 +21,7 @@
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-title" content="RONBO FIT">
 <meta name="apple-mobile-web-app-status-bar-style" content="default">
-<link rel="stylesheet" href="styles.css?v=20261028-defectos-072">
+<link rel="stylesheet" href="styles.css?v=20261028-organizacion-admin">
 <script defer src="https://cloud.umami.is/script.js" data-website-id="a29706d4-44a2-47cf-900a-5f74d74abfa8"></script>
 <script type="importmap">
 {
@@ -198,8 +198,15 @@
        derecha, familia de la llamita): sustituye a la pastilla de la
        barra superior (orden de Ronald, 2026-10-27). Muestra el tiempo
        vivo en una mini-etiqueta cuando el cronómetro corre minimizado
-       y su estado cuando está en pausa (módulo STOPW de app.js). -->
-  <button type="button" class="sw-fab" id="btn-stopwatch" aria-label="Stopwatch" data-i18n-aria="sw.open"><svg class="sw-fab-ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9.5 2.5h5"/><path d="M12 2.5v3"/><path d="M18.7 7.2l1.8-1.8"/><circle cx="12" cy="14" r="7.3"/><path d="M12 10.6V14l2.4 1.9"/></svg><span class="sw-fab-time" id="sw-fab-time" aria-hidden="true"></span></button>
+       y su estado cuando está en pausa (módulo STOPW de app.js).
+       Organización 2026-10-28 (decisión de Ronald): el botón se ve
+       SOLO en la pantalla de Inicio («Mi registro») — nace oculto y
+       swFabSync (app.js, gancho en switchTab, espejo de helpFabSync)
+       lo muestra únicamente con esa pestaña activa; el estado del
+       cronómetro vive en el módulo STOPW y NO se pierde al cambiar
+       de pantalla: al volver a Inicio el botón refleja el tiempo
+       en curso. -->
+  <button type="button" class="sw-fab" id="btn-stopwatch" style="display:none" aria-label="Stopwatch" data-i18n-aria="sw.open"><svg class="sw-fab-ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9.5 2.5h5"/><path d="M12 2.5v3"/><path d="M18.7 7.2l1.8-1.8"/><circle cx="12" cy="14" r="7.3"/><path d="M12 10.6V14l2.4 1.9"/></svg><span class="sw-fab-time" id="sw-fab-time" aria-hidden="true"></span></button>
   <!-- Botón redondo flotante de AYUDA / FAQ (paquete 2026-10-28):
        ENCIMA del cronómetro en la pila de la derecha (llamita
        debajo, cronómetro en el medio, «?» arriba, según la maqueta
@@ -773,18 +780,19 @@
     <p class="progress-hint" data-i18n="limits.hint">Daily photo-analysis limits, set only by you. Each account uses its own limit if it has one, otherwise its trainer's, otherwise the global one. No limit set means unlimited.</p>
     <p class="progress-hint" data-i18n="limits.countNote">The counter measures requests to the service; a full analysis normally uses two.</p>
     <div id="limits-box"><div class="wempty" data-i18n="access.loading">Loading…</div></div>
-    <h3 class="history-title" data-i18n="aictl.title">🛑 AI master switch</h3>
-    <p class="progress-hint" data-i18n="aictl.hint">One switch turns off every AI analysis for everyone — meal photos, text descriptions and body-type estimates. The server enforces it: while it is off, no analysis reaches the AI and nothing is spent. Manual logging always works.</p>
-    <div id="ai-control-box"></div>
-    <h3 class="history-title" data-i18n="esc.flagsTitle">🚩 Feature flags</h3>
-    <p class="progress-hint" data-i18n="esc.flagsHint">Turn whole modules off or on for every student without deploying anything. Trainers and you are not blocked by these flags.</p>
-    <div id="flags-box"></div>
+    <!-- Organización de Administración (2026-10-28): el interruptor
+         de IA se MUDÓ a la sección «Consumo de IA» de la vista
+         «Administración» (vive dentro de #adm-aictl-box, lo pinta
+         renderAiControlBox); las banderas de funciones se MUDARON a
+         su propia sección de «Administración» (#flags-box lo crea
+         admSecMountFlags); y la bitácora de accesos ND-2 se MUDÓ a
+         su sección de «Administración» (#nd2-box lo crea
+         admSecMountAccessLog y lo sigue cargando loadAccessLog).
+         MOVIDO, no duplicado: cada caja existe una sola vez en el
+         DOM, dentro de su sección. -->
     <h3 class="history-title" data-i18n="faq.edTitle">❓ Help editor (FAQ)</h3>
     <p class="progress-hint" data-i18n="faq.edHint">These questions and answers are what every user sees in Help (the floating ? on the main screen). Edit, add or delete entries: changes are saved to the app settings and reach everyone on their next visit.</p>
     <div id="faq-editor-box"></div>
-    <h3 class="history-title" data-i18n="nd2.title">🗒️ Access log (ND-2)</h3>
-    <p class="progress-hint" data-i18n="nd2.hint">Every time the trainer view of a client's evaluations and photos is opened, one record is written here: who viewed whose data, and when. Records cannot be edited.</p>
-    <div id="nd2-box"><div class="wempty" data-i18n="access.loading">Loading…</div></div>
   </div>
   </div><!-- /tab-access -->
 
@@ -870,7 +878,13 @@
        zona «Administración» de AUTH-067 se MUDÓ aquí desde «Mi perfil»
        (corrección de Ronald, 2026-10-28: «ADMINISTRACIÓN DEBE IR ALLÍ
        EN MI PANEL PRINCIPAL»). La pinta renderAdminZone (app.js) al
-       abrir la vista; el contenedor es el mismo #admin-zone-box. -->
+       abrir la vista; el contenedor es el mismo #admin-zone-box.
+       Organización 2026-10-28: la zona se organiza en SECCIONES
+       DESPLEGABLES (base común ADMIN_SECTIONS de app.js) que nacen
+       recogidas: Tech → «Consumo de IA» (con el interruptor dentro)
+       y «Banderas de funciones»; SISTEMA → «Bitácora de accesos».
+       La misma base recibirá «Plantillas de correo» y «Preguntas
+       frecuentes» del paquete del editor, sin duplicar la zona. -->
   <div class="tab-pane" id="tab-admin" style="display:none">
     <div id="admin-zone-box" style="display:none"></div>
   </div>
@@ -1236,6 +1250,6 @@
 <div id="toast" class="toast"></div>
 <div id="print-card" aria-hidden="true"></div>
 
-<script type="module" src="app.js?v=20261028-defectos-072"></script>
+<script type="module" src="app.js?v=20261028-organizacion-admin"></script>
 </body>
 </html>
