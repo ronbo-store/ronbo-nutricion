@@ -998,26 +998,36 @@ async function renderEscAdminBoxes() {
       loadAdmin();
     });
   }
-  /* --- Banderas de funciones (app_settings/feature_flags) --- */
+  /* Las banderas de funciones YA NO se pintan aquí: se mudaron a
+     su propia sección de Administración (paintFlagsBox, llamada
+     por admSecMountFlags). Organización 2026-10-28. */
+}
+/* --- Banderas de funciones (app_settings/feature_flags) ---
+   Organización 2026-10-28: la caja vive en la sección desplegable
+   «Banderas de funciones» de Administración (#flags-box lo crea
+   admSecMountFlags); esta función la pinta con los valores y
+   efectos de siempre: mismo documento, misma escritura, mismo
+   auditLog y mismo applyFeatureGates al cambiar una bandera.
+   Reorganizar la caja no activa ni desactiva ninguna función. */
+function paintFlagsBox() {
   const fbox = $('flags-box');
-  if (fbox) {
-    const flags = (FEATURE_FLAGS && FEATURE_FLAGS.flags) || {};
-    fbox.innerHTML = ESC_FLAG_KEYS.map(k => `
+  if (!fbox) return;
+  const flags = (FEATURE_FLAGS && FEATURE_FLAGS.flags) || {};
+  fbox.innerHTML = ESC_FLAG_KEYS.map(k => `
     <div class="user-row">
       <div><b>${esc(t('esc.flags.' + k))}</b></div>
       <div class="user-actions"><label class="muted"><input type="checkbox" data-flag="${k}" ${flags[k] === false ? '' : 'checked'}> ${esc(t('esc.flagOn'))}</label></div>
     </div>`).join('');
-    document.querySelectorAll('[data-flag]').forEach(cb => cb.onchange = async () => {
-      const nf = { ...((FEATURE_FLAGS && FEATURE_FLAGS.flags) || {}) };
-      ESC_FLAG_KEYS.forEach(k => { if (!(k in nf)) nf[k] = true; });
-      nf[cb.dataset.flag] = cb.checked;
-      FEATURE_FLAGS = { flags: nf };
-      await setDoc(doc(db, 'app_settings', 'feature_flags'), { flags: nf, updatedAt: serverTimestamp(), updatedBy: auth.currentUser.uid });
-      await auditLog('flags', 'flags.updated', null, cb.dataset.flag + '=' + cb.checked);
-      toast(t('esc.flagsSaved'));
-      applyFeatureGates();
-    });
-  }
+  document.querySelectorAll('[data-flag]').forEach(cb => cb.onchange = async () => {
+    const nf = { ...((FEATURE_FLAGS && FEATURE_FLAGS.flags) || {}) };
+    ESC_FLAG_KEYS.forEach(k => { if (!(k in nf)) nf[k] = true; });
+    nf[cb.dataset.flag] = cb.checked;
+    FEATURE_FLAGS = { flags: nf };
+    await setDoc(doc(db, 'app_settings', 'feature_flags'), { flags: nf, updatedAt: serverTimestamp(), updatedBy: auth.currentUser.uid });
+    await auditLog('flags', 'flags.updated', null, cb.dataset.flag + '=' + cb.checked);
+    toast(t('esc.flagsSaved'));
+    applyFeatureGates();
+  });
 }
 /* ============ DOSSIER DEL ENTRENADOR (2026-10-24, SOLO desarrollo) ============
    Diseño: DISEÑO-DOSSIER-ENTRENADOR-2026-10-24.md. Orden de Ronald
@@ -1662,7 +1672,37 @@ async function renderProfileView() {
    bloque — los datos de consumo llegan SOLO por el Worker
    (GET /admin/usage) y los nombres legibles salen de ADMIN_USERS
    y ADMIN_NAME_CACHE, que la sesión del administrador ya carga
-   con loadAdmin; jamás se muestra un uid como nombre. */
+   con loadAdmin; jamás se muestra un uid como nombre.
+
+   ORGANIZACIÓN DE ADMINISTRACIÓN (2026-10-28, correo de Ronald
+   22:11 CDT): la zona pasa a SECCIONES DESPLEGABLES sobre UNA
+   base común (ADMIN_SECTIONS): cada sección es un botón compacto
+   con su nombre que se abre y se cierra, y nace RECOGIDA — abrir
+   la vista no muestra todo de golpe ni dispara ninguna lectura.
+   El contenido de cada sección se monta PEREZOSO la primera vez
+   que se abre (mount) y se refresca al reabrirla (refresh). Abrir
+   o cerrar una sección es SOLO presentación (DOM): cero
+   escrituras y cero cambios de estado — en particular, abrir
+   «Consumo de IA» NUNCA enciende ni apaga la IA.
+   Secciones de este paquete:
+   · Tech → «Consumo de IA» (admSecMountAiUsage): el consumo del
+     Worker (lo que pintaba renderAdminZone desde AUTH-067) CON
+     el interruptor general de IA dentro (renderAiControlBox,
+     mudado desde Accesos) y la hora de consulta de los datos: si
+     una actualización falla, se dice el fallo y los datos
+     anteriores se marcan como ANTERIORES (admuse.stale), nunca
+     como actuales.
+   · Tech → «Banderas de funciones» (admSecMountFlags): las
+     banderas de app_settings/feature_flags, mudadas desde
+     Accesos con sus valores y efectos intactos (paintFlagsBox).
+   · SISTEMA → «Bitácora de accesos» (admSecMountAccessLog): la
+     vista ND-2 de access_log, mudada desde Accesos; se carga al
+     abrir la sección y se RE-lee en cada reapertura.
+   CONTRATO PARA EL PAQUETE DEL EDITOR (plantillas + FAQ): para
+   añadir una sección basta con registrar una entrada más en
+   ADMIN_SECTIONS { id, sub: 'tech'|'system', titleKey, mount,
+   refresh? } — la base pinta el botón, el cuerpo y el cableado;
+   no se crea otra zona ni otro esqueleto. */
 async function usageCall() {
   const ep = aiEndpoint();
   if (!ep) throw new Error('ai-off');
@@ -1684,38 +1724,116 @@ function admuseNameOf(uid) {
   if (!nm || nm === uid) nm = t('admuse.unknownUser');
   return { name: nm, isOwner: !!(u && u.isOwner) || uid === (auth.currentUser && auth.currentUser.uid) };
 }
-function admuseSkeleton(inner) {
-  return `<div class="panel admuse-zone"><h3 class="history-title">${esc(t('admuse.title'))}</h3><p class="progress-hint">${esc(t('admuse.sub'))}</p><div class="admuse-subspace"><h4 class="admuse-subhead">${esc(t('admuse.subTech'))}</h4><div class="admuse-block"><h4 class="admuse-aititle">${esc(t('admuse.aiTitle'))}</h4><p class="progress-hint">${esc(t('admuse.aiHint'))}</p>${inner}</div></div></div>`;
+/* ---------- Base común de secciones desplegables ----------
+   Registro ÚNICO de las secciones de Administración. El paquete
+   del editor (plantillas de correo + FAQ) añade sus secciones
+   registrando aquí sus entradas — misma base, misma zona. */
+const ADMIN_SECTIONS = [
+  { id: 'aiusage', sub: 'tech', titleKey: 'admuse.aiTitle', mount: admSecMountAiUsage, refresh: admUsageRefresh },
+  { id: 'flags', sub: 'tech', titleKey: 'esc.flagsTitle', mount: admSecMountFlags },
+  { id: 'accesslog', sub: 'system', titleKey: 'nd2.title', mount: admSecMountAccessLog, refresh: admSecRefreshAccessLog },
+];
+const ADM_SEC_OPEN = {};     // id → abierta (solo presentación)
+const ADM_SEC_MOUNTED = {};  // id → contenido ya montado
+function admuseSkeleton() {
+  const secHTML = s => `<div class="admsec" data-admsec="${s.id}"><button type="button" class="admsec-head" data-admsec-btn="${s.id}" aria-expanded="${ADM_SEC_OPEN[s.id] ? 'true' : 'false'}"><span>${esc(t(s.titleKey))}</span><span class="admsec-chev" aria-hidden="true">${ADM_SEC_OPEN[s.id] ? '▾' : '▸'}</span></button><div class="admsec-body" data-admsec-body="${s.id}"${ADM_SEC_OPEN[s.id] ? '' : ' style="display:none"'}></div></div>`;
+  const tech = ADMIN_SECTIONS.filter(s => s.sub === 'tech').map(secHTML).join('');
+  const sys = ADMIN_SECTIONS.filter(s => s.sub === 'system').map(secHTML).join('');
+  return `<div class="panel admuse-zone"><h3 class="history-title">${esc(t('admuse.title'))}</h3><p class="progress-hint">${esc(t('admuse.sub'))}</p>`
+    + `<div class="admuse-subspace"><h4 class="admuse-subhead">${esc(t('admuse.subTech'))}</h4>${tech}</div>`
+    + `<div class="admuse-subspace"><h4 class="admuse-subhead">${esc(t('admuse.subSystem'))}</h4>${sys}</div></div>`;
+}
+function admSecToggle(id) {
+  const sec = ADMIN_SECTIONS.find(s => s.id === id);
+  const body = document.querySelector(`[data-admsec-body="${id}"]`);
+  const btn = document.querySelector(`[data-admsec-btn="${id}"]`);
+  if (!sec || !body || !btn) return;
+  const open = !ADM_SEC_OPEN[id];
+  ADM_SEC_OPEN[id] = open;
+  body.style.display = open ? '' : 'none';
+  btn.setAttribute('aria-expanded', open ? 'true' : 'false');
+  const chev = btn.querySelector('.admsec-chev');
+  if (chev) chev.textContent = open ? '▾' : '▸';
+  if (!open) return;
+  /* Abrir = solo presentación: montar la primera vez (lecturas
+     propias de la sección) y refrescar al reabrir. Jamás una
+     escritura por abrir o cerrar. */
+  if (!ADM_SEC_MOUNTED[id]) { ADM_SEC_MOUNTED[id] = true; try { sec.mount(body); } catch {} }
+  else if (sec.refresh) { try { sec.refresh(); } catch {} }
 }
 async function renderAdminZone() {
   const box = $('admin-zone-box');
   if (!box) return;
   if (ROLE !== 'administrador') { box.innerHTML = ''; box.style.display = 'none'; return; }
   box.style.display = '';
-  box.innerHTML = admuseSkeleton(`<p class="admuse-loading">${esc(t('admuse.loading'))}</p>`);
+  box.innerHTML = admuseSkeleton();
+  box.querySelectorAll('[data-admsec-btn]').forEach(b => b.addEventListener('click', () => admSecToggle(b.getAttribute('data-admsec-btn'))));
+  /* Las secciones que estaban abiertas se re-montan (el DOM es
+     nuevo); las recogidas no disparan ninguna lectura. */
+  ADMIN_SECTIONS.forEach(s => {
+    if (ADM_SEC_OPEN[s.id]) {
+      ADM_SEC_MOUNTED[s.id] = true;
+      const body = box.querySelector(`[data-admsec-body="${s.id}"]`);
+      if (body) { try { s.mount(body); } catch {} }
+    } else ADM_SEC_MOUNTED[s.id] = false;
+  });
+}
+/* ---------- Sección «Consumo de IA» (Tech) ----------
+   El consumo llega SOLO por el Worker (GET /admin/usage), como
+   desde AUTH-067; el interruptor general vive DENTRO de esta
+   sección (#adm-aictl-box, renderAiControlBox). ADM_USAGE guarda
+   la última lectura BUENA con su hora: si una actualización
+   falla, los datos anteriores se quedan visibles marcados como
+   anteriores (admuse.stale) con su hora real de consulta. */
+let ADM_USAGE = { data: null, at: 0 };
+function admUsageWhen() {
+  if (!ADM_USAGE.at) return '';
+  try { return new Date(ADM_USAGE.at).toLocaleString(); } catch { return ''; }
+}
+function admSecMountAiUsage(body) {
+  body.innerHTML = `<p class="progress-hint">${esc(t('admuse.aiHint'))}</p>`
+    + `<h4 class="admuse-aititle">${esc(t('aictl.title'))}</h4><p class="progress-hint">${esc(t('aictl.hint'))}</p><div id="adm-aictl-box"></div>`
+    + `<div id="adm-usage-body"><p class="admuse-loading">${esc(t('admuse.loading'))}</p></div>`;
+  renderAiControlBox();
+  admUsageRefresh();
+}
+async function admUsageRefresh() {
+  const ub = $('adm-usage-body');
+  if (!ub) return;
   try {
     const data = await usageCall();
-    const day = String(data.counterDayUTC || '');
-    const yDay = day ? new Date(Date.parse(day + 'T00:00:00Z') - 86400000).toISOString().slice(0, 10) : '';
-    const days = data.days || {}, totals = data.totals || {}, bodytype = data.bodytype || {}, limits = data.limits || {};
-    const sum = o => Object.values(o || {}).reduce((a, v) => a + (Number(v) || 0), 0);
-    const todayN = sum(days[day]), yestN = sum(days[yDay]), totalN = sum(totals);
-    const uids = [...new Set([...Object.keys(totals), ...Object.keys(days[day] || {}), ...Object.keys(days[yDay] || {}), ...Object.keys(bodytype), ...Object.keys(limits)])];
-    uids.sort((a, b) => (Number(totals[b]) || 0) - (Number(totals[a]) || 0));
-    const rows = uids.map(uid => {
-      const who = admuseNameOf(uid);
-      const lim = Object.prototype.hasOwnProperty.call(limits, uid) ? (limits[uid] === null ? esc(t('limits.noLimit')) : String(Number(limits[uid]) || 0)) : '—';
-      return `<tr><td>${esc(who.name)}${who.isOwner ? ` <span class="owner-badge">${esc(t('admin.owner'))}</span>` : ''}</td><td>${Number((days[day] || {})[uid]) || 0}</td><td>${Number(totals[uid]) || 0}</td><td>${lim}</td></tr>`;
-    }).join('');
-    const bodyLines = Object.keys(bodytype).map(uid => {
-      const who = admuseNameOf(uid);
-      const d = new Date(Number(bodytype[uid]) || 0);
-      const months = LANG === 'es' ? MESES_ES : MESES_EN;
-      const when = isNaN(d.getTime()) ? '' : d.getDate() + ' ' + months[d.getMonth()].slice(0, 3) + ' ' + d.getFullYear();
-      return `<p class="admuse-lastbody"><span class="muted">${esc(t('admuse.lastBody'))}</span> ${esc(who.name)} · ${esc(when)}</p>`;
-    }).join('');
-    box.innerHTML = admuseSkeleton(`
+    ADM_USAGE = { data, at: Date.now() };
+    admPaintUsage(data, false);
+  } catch {
+    if (ADM_USAGE.data) admPaintUsage(ADM_USAGE.data, true);
+    else ub.innerHTML = `<p class="admuse-unavailable">${esc(t('admuse.unavailable'))}</p>`;
+  }
+}
+function admPaintUsage(data, stale) {
+  const ub = $('adm-usage-body');
+  if (!ub) return;
+  const day = String(data.counterDayUTC || '');
+  const yDay = day ? new Date(Date.parse(day + 'T00:00:00Z') - 86400000).toISOString().slice(0, 10) : '';
+  const days = data.days || {}, totals = data.totals || {}, bodytype = data.bodytype || {}, limits = data.limits || {};
+  const sum = o => Object.values(o || {}).reduce((a, v) => a + (Number(v) || 0), 0);
+  const todayN = sum(days[day]), yestN = sum(days[yDay]), totalN = sum(totals);
+  const uids = [...new Set([...Object.keys(totals), ...Object.keys(days[day] || {}), ...Object.keys(days[yDay] || {}), ...Object.keys(bodytype), ...Object.keys(limits)])];
+  uids.sort((a, b) => (Number(totals[b]) || 0) - (Number(totals[a]) || 0));
+  const rows = uids.map(uid => {
+    const who = admuseNameOf(uid);
+    const lim = Object.prototype.hasOwnProperty.call(limits, uid) ? (limits[uid] === null ? esc(t('limits.noLimit')) : String(Number(limits[uid]) || 0)) : '—';
+    return `<tr><td>${esc(who.name)}${who.isOwner ? ` <span class="owner-badge">${esc(t('admin.owner'))}</span>` : ''}</td><td>${Number((days[day] || {})[uid]) || 0}</td><td>${Number(totals[uid]) || 0}</td><td>${lim}</td></tr>`;
+  }).join('');
+  const bodyLines = Object.keys(bodytype).map(uid => {
+    const who = admuseNameOf(uid);
+    const d = new Date(Number(bodytype[uid]) || 0);
+    const months = LANG === 'es' ? MESES_ES : MESES_EN;
+    const when = isNaN(d.getTime()) ? '' : d.getDate() + ' ' + months[d.getMonth()].slice(0, 3) + ' ' + d.getFullYear();
+    return `<p class="admuse-lastbody"><span class="muted">${esc(t('admuse.lastBody'))}</span> ${esc(who.name)} · ${esc(when)}</p>`;
+  }).join('');
+  ub.innerHTML = `
       <div class="admuse-switchrow"><span>${esc(t('admuse.switch'))}</span><span class="admuse-pill ${data.aiEnabled ? 'on' : 'off'}">${esc(data.aiEnabled ? t('admuse.on') : t('admuse.off'))}</span></div>
+      ${stale ? `<p class="admuse-stale">${esc(t('admuse.stale', { when: admUsageWhen() }))}</p>` : `<p class="admuse-fetched">${esc(t('admuse.fetchedAt', { when: admUsageWhen() }))}</p>`}
       <div class="admuse-kpis">
         <div class="admuse-kpi"><div class="admuse-kpin">${todayN}</div><div class="admuse-kpil">${esc(t('admuse.today'))} (${esc(admuseShortDate(day))})</div><div class="admuse-kpisub">${esc(t('admuse.requests'))}</div></div>
         <div class="admuse-kpi"><div class="admuse-kpin">${yestN}</div><div class="admuse-kpil">${esc(t('admuse.yesterday'))} (${esc(admuseShortDate(yDay))})</div><div class="admuse-kpisub">${esc(t('admuse.requests'))}</div></div>
@@ -1724,11 +1842,22 @@ async function renderAdminZone() {
       <table class="admuse-table"><thead><tr><th>${esc(t('admuse.colUser'))}</th><th>${esc(t('admuse.colToday'))}</th><th>${esc(t('admuse.colTotal'))}</th><th>${esc(t('admuse.colLimit'))}</th></tr></thead><tbody>${rows}</tbody></table>
       ${bodyLines}
       <p class="admuse-note">${esc(t('admuse.note'))}</p>
-      <p class="admuse-eqnote">${esc(t('admuse.eqNote'))}</p>`);
-  } catch {
-    box.innerHTML = admuseSkeleton(`<p class="admuse-unavailable">${esc(t('admuse.unavailable'))}</p>`);
-  }
+      <p class="admuse-eqnote">${esc(t('admuse.eqNote'))}</p>
+      <div class="eval-actions"><button type="button" class="btn-ghost btn-sm" id="adm-usage-refresh">${esc(t('admuse.refresh'))}</button></div>`;
+  const rb = $('adm-usage-refresh');
+  if (rb) rb.addEventListener('click', () => admUsageRefresh());
 }
+/* ---------- Sección «Banderas de funciones» (Tech) ---------- */
+function admSecMountFlags(body) {
+  body.innerHTML = `<p class="progress-hint">${esc(t('esc.flagsHint'))}</p><div id="flags-box"></div>`;
+  paintFlagsBox();
+}
+/* ---------- Sección «Bitácora de accesos» (SISTEMA) ---------- */
+function admSecMountAccessLog(body) {
+  body.innerHTML = `<p class="progress-hint">${esc(t('nd2.hint'))}</p><div id="nd2-box"><div class="wempty">${esc(t('access.loading'))}</div></div>`;
+  loadAccessLog();
+}
+function admSecRefreshAccessLog() { loadAccessLog(); }
 
 let DOS_PAINT_SEQ = 0;
 async function renderDossierEditor() {
@@ -2930,6 +3059,10 @@ en: {
   'admuse.eqNote': 'Equivalent to the counters that apply the daily limits of each user.',
   'admuse.unavailable': 'Unavailable right now',
   'admuse.loading': 'Loading…',
+  'admuse.subSystem': 'System',
+  'admuse.fetchedAt': 'Data checked: {when}',
+  'admuse.stale': '⚠️ The refresh failed — showing the previous data from {when}; it is not current.',
+  'admuse.refresh': 'Refresh',
   'admuse.unknownUser': 'Unnamed user',
   'signup.confirmDone': '✓ Email confirmed',
   'signup.confirmAlready': 'Your email is already confirmed.',
@@ -4797,6 +4930,10 @@ es: {
   'admuse.eqNote': 'Equivale a los contadores que aplican los límites diarios de cada usuario.',
   'admuse.unavailable': 'No disponible ahora',
   'admuse.loading': 'Cargando…',
+  'admuse.subSystem': 'Sistema',
+  'admuse.fetchedAt': 'Datos consultados: {when}',
+  'admuse.stale': '⚠️ La actualización falló — se muestran los datos anteriores de {when}; no son los actuales.',
+  'admuse.refresh': 'Actualizar',
   'admuse.unknownUser': 'Usuario sin nombre',
   'signup.confirmDone': '✓ Correo confirmado',
   'signup.confirmAlready': 'Tu correo ya está confirmado.',
@@ -6216,9 +6353,17 @@ let ADMIN_USERS = [];
    administrador (esta superficie ya es solo del dueño; el delta de
    reglas preparado en control-ia-2026-10-24/ exige isOwnerUser()).
    Sin documento = IA activada. El corte real lo hace cumplir el
-   Worker; esta caja escribe el estado y lo refleja al instante. */
+   Worker; esta caja escribe el estado y lo refleja al instante.
+   Organización 2026-10-28: la caja vive DENTRO de la sección
+   «Consumo de IA» de Administración (#adm-aictl-box, montada por
+   admSecMountAiUsage) — MOVIDA desde Accesos, no duplicada. Si la
+   sección aún no se ha abierto, la caja no existe en el DOM y esta
+   función no hace nada (la llamada desde loadAdmin queda inocua);
+   con la sección montada, la repinta con el estado vigente. El
+   cambio de estado se confirma SOLO tras el setDoc (el toast de
+   guardado sale después del await, como siempre). */
 async function renderAiControlBox() {
-  const box = document.getElementById('ai-control-box');
+  const box = document.getElementById('adm-aictl-box');
   if (!box) return;
   if (!(IS_OWNER && ROLE === 'administrador')) { box.innerHTML = ''; return; }
   let enabled = true;
@@ -6506,9 +6651,12 @@ async function loadAdmin() {
   ADMIN_USERS.forEach(u => { ADMIN_NAME_CACHE[u.id] = u.name || u.email || ''; });
   /* Los límites se cargan SOLO con la pestaña de acceso en pantalla:
      loadAll() también llama a loadAdmin() al arrancar (con «track»
-     visible) y el panel no debe disparar llamadas al Worker en frío. */
+     visible) y el panel no debe disparar llamadas al Worker en frío.
+     La bitácora ND-2 ya no se carga desde aquí: vive en su sección
+     de Administración y la carga admSecMountAccessLog al abrirla
+     (y la refresca en cada reapertura). Organización 2026-10-28. */
   const tabAccess = $('tab-access');
-  if (tabAccess && tabAccess.style.display !== 'none') { loadLimits(); loadAccessLog(); }
+  if (tabAccess && tabAccess.style.display !== 'none') { loadLimits(); }
 }
 
 /* ============ LÍMITES DE ANÁLISIS (solo dueño; Worker /admin/limits) ============
@@ -9930,8 +10078,10 @@ function aiEndpoint() {
    La app solo refleja lo que SÍ leyó: esconde los flujos de IA
    (botón de foto del dock, análisis por texto) y muestra el aviso
    honesto; y si una llamada vuelve con ai-disabled, converge a la
-   verdad del servidor. El interruptor se acciona desde
-   «Administración de accesos» (renderAiControlBox; solo el dueño). */
+   verdad del servidor. El interruptor se acciona desde la sección
+   «Consumo de IA» de «Administración» (renderAiControlBox en
+   #adm-aictl-box; solo el dueño — antes vivía en Accesos y se
+   mudó con la Organización de Administración, 2026-10-28). */
 let AI_CTRL = { known: false, enabled: true };
 let aiCtrlUnsub = null;
 function aiCtrlSet(enabled, known) {
@@ -17093,6 +17243,7 @@ function switchTab(name) {
      propia puerta de rol vive dentro de renderAdminZone. */
   if (name === 'admin') { try { renderAdminZone().catch(() => {}); } catch {} }
   try { helpFabSync(name); } catch {}
+  try { swFabSync(name); } catch {}
 }
 document.querySelectorAll('.main-tab').forEach(b => b.addEventListener('click', () => switchTab(b.dataset.tab)));
 
@@ -21250,7 +21401,7 @@ document.addEventListener('keydown', e => { if (e.key === 'Escape') shareClose()
  *  - El SW (sw.js) solo cachea la cáscara del mismo origen en modo
  *    RED PRIMERO: Auth/Firestore/Worker jamás pasan por la caché.
  * ================================================================ */
-const PWA_SW_VERSION = '20261028-delegacion';
+const PWA_SW_VERSION = '20261028-organizacion-admin';
 let pwaDeferredPrompt = null;
 function pwaIsStandalone() {
   try {
@@ -22294,6 +22445,15 @@ function renderFaqPanel() {
 function faqOpenPanel() { FAQ_IS_OPEN = true; renderFaqPanel(); const bd = $('faq-backdrop'); if (bd) bd.style.display = ''; const p = $('faq-panel'); if (p) p.style.display = ''; }
 function faqClosePanel() { FAQ_IS_OPEN = false; const bd = $('faq-backdrop'); if (bd) bd.style.display = 'none'; const p = $('faq-panel'); if (p) p.style.display = 'none'; }
 function helpFabSync(tabName) { const f = $('btn-help'); if (f) f.style.display = (tabName === 'track') ? '' : 'none'; }
+/* Cronómetro SOLO en Inicio (decisión de Ronald, correo
+   2026-10-28 22:11 CDT): el botón flotante se muestra únicamente
+   con la pestaña «Mi registro» (Inicio) activa, para todo usuario
+   autenticado según su rol — el mismo patrón que helpFabSync.
+   Ocultar el botón NO toca el módulo STOPW: su estado (acc,
+   startAt, laps) vive fuera del DOM y el intervalo de swFabPaint
+   lo sigue reflejando; al volver a Inicio el botón muestra el
+   tiempo en curso tal cual, sin reinicio ni pérdida. */
+function swFabSync(tabName) { const f = $('btn-stopwatch'); if (f) f.style.display = (tabName === 'track') ? '' : 'none'; }
 /* ---------- Editor del administrador (Accesos, solo dueño) ---------- */
 let FAQ_ED = null;   // borrador editable del editor
 async function renderFaqEditorBox() {

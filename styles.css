@@ -1932,3 +1932,14 @@ div.cgrid-cell { cursor: default; }
 .fdcam-title { font-size: 17px; font-weight: 800; color: #14201f; }
 .fdcam-body { font-size: 13.5px; line-height: 1.5; color: #4b5563; margin: 8px 0 12px; }
 .fdcam-done { font-size: 14px; font-weight: 700; color: #0d9488; padding: 6px 0 2px; }
+/* ORGANIZACIÓN DE ADMINISTRACIÓN (2026-10-28): secciones
+   desplegables de la zona «Administración» — SOLO clases .admsec-
+   más las dos notas de frescura de datos de «Consumo de IA»
+   (.admuse-fetched/.admuse-stale). La cabecera es un botón
+   compacto de ancho completo; el cuerpo nace recogido. */
+.admsec { border: 1px solid #e5e7eb; border-radius: 12px; margin: 10px 0; background: #fff; overflow: hidden; }
+.admsec-head { display: flex; align-items: center; justify-content: space-between; gap: 10px; width: 100%; box-sizing: border-box; background: #f6faf9; border: 0; padding: 12px 14px; font-size: 15px; font-weight: 700; color: #14201f; cursor: pointer; text-align: left; }
+.admsec-chev { color: #0d9488; font-weight: 800; }
+.admsec-body { padding: 4px 14px 14px; }
+.admuse-fetched { font-size: 12.5px; color: #6b7280; margin: 6px 0; }
+.admuse-stale { background: #fdf3e3; border: 1px dashed #d97706; border-radius: 10px; color: #7c4a03; font-size: 13px; line-height: 1.45; margin: 8px 0; padding: 8px 10px; }
