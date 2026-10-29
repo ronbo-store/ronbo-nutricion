@@ -2622,6 +2622,7 @@ en: {
   'err.noAccess': 'This account has no access.',
   'sys.maintenance': 'Maintenance in progress: consent and account operations are briefly unavailable while we complete a system update. Please try again in a few minutes. Your data is safe.',
   'err.pending': 'Your account is pending administrator approval.',
+  'err.pendingTrainer': 'Your account is pending approval by {name}, the trainer you chose.',
   'err.verifyFail': 'Couldn\'t verify access.',
   'err.noPermission': 'Your account doesn\'t have permission to do this. If you think this is a mistake, let your trainer know.',
   'err.noConnection': 'No connection, or the service isn\'t available right now. Check your connection and try again.',
@@ -4512,6 +4513,7 @@ es: {
   'err.noAccess': 'Esta cuenta no tiene acceso.',
   'sys.maintenance': 'Mantenimiento en curso: las operaciones de consentimiento y de cuenta no están disponibles durante unos minutos mientras completamos una actualización del sistema. Inténtalo de nuevo en unos minutos. Tus datos están a salvo.',
   'err.pending': 'Tu cuenta está pendiente de aprobación por el administrador.',
+  'err.pendingTrainer': 'Tu cuenta está pendiente de aprobación por {name}, el entrenador que elegiste.',
   'err.verifyFail': 'No se pudo verificar el acceso.',
   'err.noPermission': 'Tu cuenta no tiene permiso para hacer esto. Si crees que es un error, avísale a tu entrenador.',
   'err.noConnection': 'Sin conexión, o el servicio no está disponible ahora. Revisa tu conexión e inténtalo de nuevo.',
@@ -5819,12 +5821,39 @@ function showAuthError(msg) {
   el.classList.remove('ok');
   el.classList.add('show');
 }
+/* DEFECTOS-072 (b): la pantalla de espera nombra al entrenador
+   elegido cuando lo hay — la misma verdad que ya dice la pantalla
+   final del registro (reg.waitTrainer). El nombre sale del
+   directorio público (trainer_directory/current), la única fuente
+   con nombres legible para una cuenta aún no aprobada; si no se
+   puede resolver (sin elección, fuera del directorio o lectura
+   fallida), se devuelve el texto genérico de siempre (err.pending).
+   Solo para cuentas SIN aprobar: una cuenta aprobada que ve la
+   puerta de renovación conserva el texto genérico, porque su
+   espera es de consentimiento, no de aprobación. */
+async function pendingApprovalMsg() {
+  try {
+    if (UDATA && UDATA.approved !== true && UDATA.trainerUid) {
+      const snap = await getDoc(doc(db, 'trainer_directory', 'current'));
+      if (snap.exists()) {
+        const tr = (snap.data().trainers || []).find(x => x && x.uid === UDATA.trainerUid);
+        if (tr && tr.name) return t('err.pendingTrainer', { name: tr.name });
+      }
+    }
+  } catch {}
+  return t('err.pending');
+}
 /* Puerta con consentimiento retirado: la sesión se mantiene SOLO en la
    vista de acceso para ofrecer la renovación (las reglas siguen
    denegando todo dato a cuentas no aprobadas). Tras renovar — o si el
    consentimiento ya está vigente — se aplica la salida habitual. */
 function showRenewalGate() {
   showAuthError(t('err.pending'));
+  /* DEFECTOS-072 (b): si la cuenta está sin aprobar y eligió
+     entrenador, el aviso pasa a nombrarlo en cuanto el directorio
+     lo resuelve (mejora progresiva: si no se resuelve, queda el
+     texto genérico ya pintado). */
+  pendingApprovalMsg().then(m => { if (m !== t('err.pending')) showAuthError(m); });
   const box = $('renew-box'); if (!box) return;
   box.style.display = '';
   const n = $('renew-notice'); if (n) { n.style.display = 'none'; n.innerHTML = ''; }
@@ -6125,8 +6154,12 @@ onAuthStateChanged(auth, async user => {
     const doorRes = await signupLinkDoor(user);
     if (!IS_OWNER && UDATA.approved !== true) {
       if (!consentIsActive(UDATA)) { showRenewalGate(); return; }
+      /* DEFECTOS-072 (b): el texto de espera se resuelve ANTES de
+         cerrar la sesión (la lectura del directorio usa la sesión
+         viva) y nombra al entrenador elegido cuando lo hay. */
+      const pendMsg = await pendingApprovalMsg();
       await signOut(auth);
-      showAuthError(t('err.pending'));
+      showAuthError(pendMsg);
       /* AUTH-070: si la puerta acaba de confirmar el correo en ESTA
          entrada, la pantalla de pendiente lo dice con su línea de
          éxito (antes la confirmación quedaba invisible tras el
@@ -6134,7 +6167,7 @@ onAuthStateChanged(auth, async user => {
          mostrando «sin confirmar» sin que el usuario lo supiera). */
       if (doorRes && doorRes.confirmedNow) {
         const ae = $('auth-error');
-        if (ae) ae.innerHTML = esc(t('err.pending')) + '<br>' + esc(t('signup.pendingConfirmed'));
+        if (ae) ae.innerHTML = esc(pendMsg) + '<br>' + esc(t('signup.pendingConfirmed'));
       }
       return;
     }
@@ -6247,8 +6280,9 @@ function startUserDocWatch(uid) {
       $('auth-view').style.display = '';
       showRenewalGate();
     } else { /* 'unapproved': aprobación retirada, consentimiento vigente */
-      signOut(auth);
-      showAuthError(t('err.pending'));
+      /* DEFECTOS-072 (b): el mismo texto de espera resuelto
+         (nombra al entrenador elegido cuando lo hay). */
+      pendingApprovalMsg().then(m => { signOut(auth); showAuthError(m); });
     }
   }, () => {});
 }
@@ -10342,9 +10376,13 @@ function signupApproveCardShow(s, uid) {
         trainerRow = `<div class="signup-row">${esc(t('signup.approveWaiting'))}</div>`;
       }
     }
-    const quotaFull = viaTrainer && s.quotaLimit != null && Number(s.quotaUsed) >= Number(s.quotaLimit);
+    /* DEFECTOS-072 (a): el cupo usado se convierte a número con
+       respaldo 0 ANTES de pintarlo o compararlo: un null del Worker
+       (entrenador sin contador) jamás se pinta como texto «null». */
+    const quotaUsedN = isFinite(Number(s.quotaUsed)) ? Number(s.quotaUsed) : 0;
+    const quotaFull = viaTrainer && s.quotaLimit != null && quotaUsedN >= Number(s.quotaLimit);
     const quotaRow = viaTrainer && s.quotaLimit != null
-      ? `<div class="signup-row">${esc(t('signup.quotaLine', { used: s.quotaUsed, limit: s.quotaLimit }))}</div>` : '';
+      ? `<div class="signup-row">${esc(t('signup.quotaLine', { used: quotaUsedN, limit: s.quotaLimit }))}</div>` : '';
     const actionsHtml = quotaFull
       ? `<div class="signup-row">${esc(t('signup.quotaFull', { limit: s.quotaLimit }))}</div><div class="signup-actions"><button type="button" class="btn-ghost" data-signup-notnow>${esc(t('signup.notNowBtn'))}</button></div>`
       : `<div class="signup-actions"><button type="button" class="btn-primary signup-approve" data-signup-approve>${esc(t('signup.approveBtn'))}</button><button type="button" class="btn-ghost" data-signup-notnow>${esc(t('signup.notNowBtn'))}</button></div>`;
@@ -10422,6 +10460,11 @@ async function trainerApproveNow(uid, name) {
   } catch {}
   await batch.commit();
   if (UDATA) UDATA.approvalsUsed = myUsed + 1;
+  /* DEFECTOS-072 (c): refrescar «Mis clientes» (y las bandejas y
+     los cupos que pinta loadClients) en el acto de aprobar: sin
+     esto, el entrenador que aprobaba desde la tarjeta veía la
+     vista con datos viejos hasta recargar la página. */
+  try { await loadClients(); } catch {}
   toast(t('appr.done'));
   return mailAutoWelcome(uid, name);
 }
@@ -12170,8 +12213,11 @@ $('btn-gate-renew-accept') && $('btn-gate-renew-accept').addEventListener('click
     if (!await doRenewConsent()) return;
     toast(t('priv.renewed'));
     const box = $('renew-box'); if (box) box.style.display = 'none';
+    /* DEFECTOS-072 (b): el texto de espera resuelto antes de
+       cerrar la sesión (nombra al entrenador elegido). */
+    const pendMsg = await pendingApprovalMsg();
     await signOut(auth);
-    showAuthError(t('err.pending'));
+    showAuthError(pendMsg);
   } catch (e) { failToast(e); }
 });
 $('btn-my-data') && $('btn-my-data').addEventListener('click', async () => {
@@ -21670,7 +21716,7 @@ document.addEventListener('keydown', e => { if (e.key === 'Escape') shareClose()
  *  - El SW (sw.js) solo cachea la cáscara del mismo origen en modo
  *    RED PRIMERO: Auth/Firestore/Worker jamás pasan por la caché.
  * ================================================================ */
-const PWA_SW_VERSION = '20261029-repetir';
+const PWA_SW_VERSION = '20261028-defectos-072';
 let pwaDeferredPrompt = null;
 function pwaIsStandalone() {
   try {
