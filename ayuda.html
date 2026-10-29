@@ -1,0 +1,117 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>RONBO FIT — Help &amp; FAQ · Ayuda y preguntas frecuentes</title>
+<style>
+  body { font-family: -apple-system, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; margin: 0; color: #14312e; background: #f6fbfb; }
+  main { max-width: 760px; margin: 0 auto; padding: 28px 20px 40px; }
+  header { text-align: center; margin-bottom: 28px; }
+  .wordmark { font-size: 34px; font-weight: 800; letter-spacing: 1px; color: #0d9488; }
+  .slogan { margin-top: 6px; font-size: 15px; color: #3f5a56; }
+  h2.lang { font-size: 15px; text-transform: uppercase; letter-spacing: 2px; color: #0d9488; border-bottom: 2px solid #0d9488; padding-bottom: 6px; margin: 34px 0 14px; }
+  h3 { font-size: 20px; margin: 22px 0 8px; }
+  p { line-height: 1.55; font-size: 16px; }
+  .qa { margin: 0 0 14px; }
+  .qa b.q { display: block; font-size: 16px; margin-bottom: 2px; }
+  .qa p { margin: 0; }
+  .notice { line-height: 1.55; font-size: 16px; background: #ffffff; border: 1px dashed #0d9488; border-radius: 14px; padding: 16px 18px; }
+  a { color: #0d9488; font-weight: 600; }
+  footer { text-align: center; margin-top: 40px; font-size: 14px; color: #3f5a56; }
+  footer a { margin: 0 8px; }
+</style>
+</head>
+<body>
+<main>
+<header>
+  <div class="wordmark">RONBO FIT</div>
+  <div class="slogan">Eat well. Train strong. Live present.</div>
+  <div class="slogan">Come bien. Entrena fuerte. Vive el presente.</div>
+</header>
+
+<!-- Ayuda pública SIN iniciar sesión (Opción B, diseño
+     DISENO-AYUDA-SIN-LOGIN-2026-10-28): esta página lee el
+     documento público app_settings/faq_public por la API REST de
+     Firestore, sin sesión y sin SDK. Ese documento es la copia
+     que el editor de Ayuda del propietario sincroniza en el
+     mismo guardado que app_settings/faq (la FAQ interna sigue
+     tras sesión; las reglas solo abren la lectura anónima de
+     ESTE documento). Si la lectura falla o el documento aún no
+     existe, se muestra el aviso de reserva con los enlaces de
+     siempre — nunca una página en blanco. -->
+<div id="ayuda-fallback" class="notice">
+  <p><b>Loading help…</b><br>If the questions do not appear in a few seconds, open the app and tap the «?» button on the main screen: <a href="https://fit.ronbo.store">Open RONBO FIT</a> · <a href="/privacidad">Privacy notice</a></p>
+  <p><b>Cargando la ayuda…</b><br>Si las preguntas no aparecen en unos segundos, abre la app y toca el botón «?» de la pantalla principal: <a href="https://fit.ronbo.store">Abrir RONBO FIT</a> · <a href="/privacidad">Aviso de privacidad</a></p>
+</div>
+<div id="ayuda-content" hidden></div>
+
+<footer>
+  <div><a href="https://fit.ronbo.store">Open RONBO FIT / Abrir RONBO FIT</a> · <a href="/privacidad">Privacy notice / Aviso de privacidad</a></div>
+  <div style="margin-top:10px">RONBO.FIT</div>
+</footer>
+</main>
+<script>
+(function () {
+  var BLOCKS = {
+    en: ['Access & installation', 'Account & access', 'Meals', 'Training', 'Founded goals', 'Privacy & permissions', 'Common problems'],
+    es: ['Acceso e instalación', 'Cuenta y acceso', 'Comidas', 'Entrenamiento', 'Metas fundadas', 'Privacidad y permisos', 'Problemas frecuentes']
+  };
+  var INTRO = {
+    en: 'Help & frequently asked questions — the same answers you find inside the app, no account or sign-in needed.',
+    es: 'Ayuda y preguntas frecuentes — las mismas respuestas que encuentras dentro de la app, sin cuenta ni iniciar sesión.'
+  };
+  var URL = 'https://firestore.googleapis.com/v1/projects/ronbo-nutri/databases/(default)/documents/app_settings/faq_public?key=AIzaSyAhXRsW2tl0wPxXMuD9_074_ZaS-BaPbno';
+  function esc(s) { return String(s == null ? '' : s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;'); }
+  /* El único formato de las respuestas es **negrita** (mismo
+     criterio que faqRich en la app): se escapa primero y solo
+     después se convierte la negrita. */
+  function rich(s) { return esc(s).replace(/\*\*([^*]+)\*\*/g, '<b>$1</b>'); }
+  function val(v) {
+    if (!v) return null;
+    if (typeof v.stringValue === 'string') return v.stringValue;
+    if (typeof v.integerValue === 'string') return parseInt(v.integerValue, 10);
+    if (v.mapValue && v.mapValue.fields) { var o = {}; for (var k in v.mapValue.fields) o[k] = val(v.mapValue.fields[k]); return o; }
+    if (v.arrayValue && v.arrayValue.values) return v.arrayValue.values.map(val);
+    return null;
+  }
+  function render(entries) {
+    var sorted = entries.slice().sort(function (x, y) { return ((Number(x.block) || 0) - (Number(y.block) || 0)) || ((Number(x.order) || 0) - (Number(y.order) || 0)); });
+    var html = '';
+    ['en', 'es'].forEach(function (L) {
+      html += '<h2 class="lang">' + (L === 'en' ? 'English' : 'Español') + '</h2>';
+      html += '<p>' + esc(INTRO[L]) + '</p>';
+      for (var b = 1; b <= 7; b++) {
+        var items = sorted.filter(function (e) { return Number(e.block) === b; });
+        if (!items.length) continue;
+        html += '<h3>' + b + ' · ' + esc(BLOCKS[L][b - 1]) + '</h3>';
+        html += items.map(function (e) {
+          var q = (e.q && (e.q[L] || e.q.en)) || '';
+          var a = (e.a && (e.a[L] || e.a.en)) || '';
+          return '<div class="qa"><b class="q">' + esc(q) + '</b><p>' + rich(a) + '</p></div>';
+        }).join('');
+      }
+    });
+    var c = document.getElementById('ayuda-content');
+    c.innerHTML = html;
+    c.hidden = false;
+    document.getElementById('ayuda-fallback').style.display = 'none';
+  }
+  function fail() {
+    document.getElementById('ayuda-fallback').innerHTML =
+      '<p><b>Help could not be loaded right now.</b><br>Open the app and tap the «?» button on the main screen — the same questions and answers live there: <a href="https://fit.ronbo.store">Open RONBO FIT</a> · <a href="/privacidad">Privacy notice</a></p>' +
+      '<p><b>La ayuda no se pudo cargar ahora.</b><br>Abre la app y toca el botón «?» de la pantalla principal — ahí viven las mismas preguntas y respuestas: <a href="https://fit.ronbo.store">Abrir RONBO FIT</a> · <a href="/privacidad">Aviso de privacidad</a></p>';
+  }
+  fetch(URL).then(function (r) {
+    if (!r.ok) throw new Error('http ' + r.status);
+    return r.json();
+  }).then(function (doc) {
+    var fields = (doc && doc.fields) || {};
+    var entries = val(fields.entries);
+    if (!Array.isArray(entries) || !entries.length) throw new Error('sin entradas');
+    render(entries);
+  }).catch(fail);
+})();
+</script>
+</body>
+</html>

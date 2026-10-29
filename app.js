@@ -3408,7 +3408,7 @@ en: {
   'esc.mailCopy': 'Copy text',
   'esc.mail2.tplWelcome': 'New user: account approved (welcome)',
   'esc.mail2.subjWelcome': 'Welcome to RONBO FIT — start today',
-  'esc.mail2.bodyWelcome': 'RONBO.FIT\nEat well. Train strong. Live present.\n\nWelcome to RONBO FIT. Your account is approved and you can start now.\n\nSTEP 1 — DO THIS TODAY: Complete your profile\nComplete your profile today — weight, health information, activity level, goal and focus — so your goals (calories, protein, carbs, sugars and fats) are calculated with a real foundation and appear as soon as possible. Without your data, there is no honest number.\n\nSTEP 2 — Choose a trainer (recommended, always optional)\nWith a trainer (recommended): they assign your routines and follow your progress.\nWithout a trainer (just as valid): build your plan yourself from the exercise library in the app.\nChoosing a trainer is recommended, never required to use the app.\n\nSTEP 3 — Log your meals\nLog what you eat each day so you can see your totals against your goals.\n\nSTEP 4 — Train and mark each session\nFollow your scheduled session and mark it when you finish.\n\nSTEP 5 — Track your progress\nKeep your weight and progress photos up to date so you and, if you have one, your trainer can see real change.\n\n[ Open RONBO FIT ] → https://fit.ronbo.store\n\nQuestions? Help & FAQ → https://fit.ronbo.store\n\nEmail language: you can choose English or Spanish for these emails inside the app, in your profile. It starts with your app language and you can change it anytime.',
+  'esc.mail2.bodyWelcome': 'RONBO.FIT\nEat well. Train strong. Live present.\n\nWelcome to RONBO FIT. Your account is approved and you can start now.\n\nSTEP 1 — DO THIS TODAY: Complete your profile\nComplete your profile today — weight, health information, activity level, goal and focus — so your goals (calories, protein, carbs, sugars and fats) are calculated with a real foundation and appear as soon as possible. Without your data, there is no honest number.\n\nSTEP 2 — Choose a trainer (recommended, always optional)\nWith a trainer (recommended): they assign your routines and follow your progress.\nWithout a trainer (just as valid): build your plan yourself from the exercise library in the app.\nChoosing a trainer is recommended, never required to use the app.\n\nSTEP 3 — Log your meals\nLog what you eat each day so you can see your totals against your goals.\n\nSTEP 4 — Train and mark each session\nFollow your scheduled session and mark it when you finish.\n\nSTEP 5 — Track your progress\nKeep your weight and progress photos up to date so you and, if you have one, your trainer can see real change.\n\n[ Open RONBO FIT ] → https://fit.ronbo.store\n\nQuestions? Help & FAQ → https://fit.ronbo.store/ayuda\n\nEmail language: you can choose English or Spanish for these emails inside the app, in your profile. It starts with your app language and you can change it anytime.',
   'mail.sendBtn': '📧 Send via Gmail',
   'mail.recipient': 'Send to',
   'mail.sending': 'Sending…',
@@ -5306,7 +5306,7 @@ es: {
   'esc.mailCopy': 'Copiar texto',
   'esc.mail2.tplWelcome': 'Usuario nuevo: cuenta aprobada (bienvenida)',
   'esc.mail2.subjWelcome': 'Bienvenido a RONBO FIT — empieza hoy',
-  'esc.mail2.bodyWelcome': 'RONBO.FIT\nCome bien. Entrena fuerte. Vive el presente.\n\nBienvenido a RONBO FIT. Tu cuenta está aprobada y ya puedes empezar.\n\nPASO 1 — HAZLO HOY: Completa tu perfil\nCompleta tu perfil hoy — peso, datos de salud, nivel de actividad, objetivo y enfoque — para que tus metas (calorías, proteína, carbos, azúcares y grasas) se calculen con fundamento real y aparezcan lo antes posible. Sin tus datos, no hay un número honesto.\n\nPASO 2 — Elige un entrenador (recomendado, siempre opcional)\nCon entrenador (lo recomendado): te asigna tus rutinas y sigue tu progreso.\nSin entrenador (igual de válido): construye tu plan tú mismo desde la biblioteca de ejercicios de la app.\nElegir entrenador es una recomendación, nunca un requisito para usar la app.\n\nPASO 3 — Registra tus comidas\nRegistra lo que comes cada día para ver tus totales frente a tus metas.\n\nPASO 4 — Entrena y marca cada sesión\nSigue tu sesión programada y márcala al terminar.\n\nPASO 5 — Sigue tu progreso\nMantén al día tu peso y tus fotos de progreso para que tú y, si lo tienes, tu entrenador vean el cambio real.\n\n[ Abrir RONBO FIT ] → https://fit.ronbo.store\n\n¿Dudas? Ayuda y preguntas frecuentes → https://fit.ronbo.store\n\nIdioma del correo: puedes elegir inglés o español para estos correos dentro de la app, en tu perfil. Nace con el idioma de tu app y lo puedes cambiar cuando quieras.',
+  'esc.mail2.bodyWelcome': 'RONBO.FIT\nCome bien. Entrena fuerte. Vive el presente.\n\nBienvenido a RONBO FIT. Tu cuenta está aprobada y ya puedes empezar.\n\nPASO 1 — HAZLO HOY: Completa tu perfil\nCompleta tu perfil hoy — peso, datos de salud, nivel de actividad, objetivo y enfoque — para que tus metas (calorías, proteína, carbos, azúcares y grasas) se calculen con fundamento real y aparezcan lo antes posible. Sin tus datos, no hay un número honesto.\n\nPASO 2 — Elige un entrenador (recomendado, siempre opcional)\nCon entrenador (lo recomendado): te asigna tus rutinas y sigue tu progreso.\nSin entrenador (igual de válido): construye tu plan tú mismo desde la biblioteca de ejercicios de la app.\nElegir entrenador es una recomendación, nunca un requisito para usar la app.\n\nPASO 3 — Registra tus comidas\nRegistra lo que comes cada día para ver tus totales frente a tus metas.\n\nPASO 4 — Entrena y marca cada sesión\nSigue tu sesión programada y márcala al terminar.\n\nPASO 5 — Sigue tu progreso\nMantén al día tu peso y tus fotos de progreso para que tú y, si lo tienes, tu entrenador vean el cambio real.\n\n[ Abrir RONBO FIT ] → https://fit.ronbo.store\n\n¿Dudas? Ayuda y preguntas frecuentes → https://fit.ronbo.store/ayuda\n\nIdioma del correo: puedes elegir inglés o español para estos correos dentro de la app, en tu perfil. Nace con el idioma de tu app y lo puedes cambiar cuando quieras.',
   'mail.sendBtn': '📧 Enviar por Gmail',
   'mail.recipient': 'Enviar a',
   'mail.sending': 'Enviando…',
@@ -21934,7 +21934,7 @@ document.addEventListener('keydown', e => { if (e.key === 'Escape') shareClose()
  *  - El SW (sw.js) solo cachea la cáscara del mismo origen en modo
  *    RED PRIMERO: Auth/Firestore/Worker jamás pasan por la caché.
  * ================================================================ */
-const PWA_SW_VERSION = '20261029-guardado-visible';
+const PWA_SW_VERSION = '20261028-ayuda-publica';
 let pwaDeferredPrompt = null;
 function pwaIsStandalone() {
   try {
@@ -22366,7 +22366,7 @@ const FAQ_SEED = [
   },
   "a": {
    "en": "Your profile shows the installation signal: **“📲 Installed · (date)”** when the app has opened from your home screen. If it shows “No signal,” open the app once from the home-screen icon.",
-   "es": "Tu perfil muestra la señal de instalación: **«📲 Instalada · (fecha)»** cuando la app se ha abierto desde el icono de inicio. Si dice «Sin señal», abre la app una vez desde el icono. ---"
+   "es": "Tu perfil muestra la señal de instalación: **«📲 Instalada · (fecha)»** cuando la app se ha abierto desde el icono de inicio. Si dice «Sin señal», abre la app una vez desde el icono."
   }
  },
  {
@@ -22444,7 +22444,7 @@ const FAQ_SEED = [
   },
   "a": {
    "en": "There are three roles: **student, trainer and administrator.** Only the administrator assigns roles. Trainers can approve new student accounts up to their approval quota, and each trainer only ever sees their own assigned students.",
-   "es": "Hay tres roles: **alumno, entrenador y administrador.** Solo el administrador asigna roles. Los entrenadores pueden aprobar cuentas nuevas de alumnos hasta su cupo de aprobaciones, y cada entrenador ve únicamente a sus alumnos asignados. ---"
+   "es": "Hay tres roles: **alumno, entrenador y administrador.** Solo el administrador asigna roles. Los entrenadores pueden aprobar cuentas nuevas de alumnos hasta su cupo de aprobaciones, y cada entrenador ve únicamente a sus alumnos asignados."
   }
  },
  {
@@ -22561,7 +22561,7 @@ const FAQ_SEED = [
   },
   "a": {
    "en": "Meal logging is activated on request: ask for it from **“My trainer”** in the app, your trainer approves it, and the administrator confirms it. Once both steps are done, the food button appears in your app.",
-   "es": "El registro de comidas se activa a petición: pídelo desde **«Mi entrenador»** en la app, tu entrenador lo aprueba y el administrador lo confirma. Cuando ambos pasos están, el botón de comida aparece en tu app. ---"
+   "es": "El registro de comidas se activa a petición: pídelo desde **«Mi entrenador»** en la app, tu entrenador lo aprueba y el administrador lo confirma. Cuando ambos pasos están, el botón de comida aparece en tu app."
   }
  },
  {
@@ -22665,7 +22665,7 @@ const FAQ_SEED = [
   },
   "a": {
    "en": "The **“Share your achievements”** card builds an image with your rings and your flame that you can send wherever you like. If one of your photos does not appear on the card, see 7.3.",
-   "es": "La tarjeta **«Comparte tus logros»** crea una imagen con tus anillos y tu llamita para enviarla donde quieras. Si alguna de tus fotos no aparece en la tarjeta, mira el punto 7.3. ---"
+   "es": "La tarjeta **«Comparte tus logros»** crea una imagen con tus anillos y tu llamita para enviarla donde quieras. Si alguna de tus fotos no aparece en la tarjeta, mira el punto 7.3."
   }
  },
  {
@@ -22782,7 +22782,7 @@ const FAQ_SEED = [
   },
   "a": {
    "en": "If 30 days pass without a new weight, the app warns you, because every goal is calculated from your weight. Entering your current weight refreshes the whole calculation.",
-   "es": "Si pasan 30 días sin un peso nuevo, la app te avisa, porque todas las metas se calculan desde tu peso. Al introducir tu peso actual, todo el cálculo se refresca. ---"
+   "es": "Si pasan 30 días sin un peso nuevo, la app te avisa, porque todas las metas se calculan desde tu peso. Al introducir tu peso actual, todo el cálculo se refresca."
   }
  },
  {
@@ -22873,7 +22873,7 @@ const FAQ_SEED = [
   },
   "a": {
    "en": "The analysis runs through the app's own server using **Google Gemini**. Your photo, text or voice note is sent for the analysis at that moment; the result comes back as the review card you check before saving (3.1).",
-   "es": "El análisis corre por el servidor propio de la app usando **Google Gemini**. Tu foto, texto o nota de voz se envía para el análisis en ese momento; el resultado vuelve como la tarjeta de revisión que compruebas antes de guardar (3.1). ---"
+   "es": "El análisis corre por el servidor propio de la app usando **Google Gemini**. Tu foto, texto o nota de voz se envía para el análisis en ese momento; el resultado vuelve como la tarjeta de revisión que compruebas antes de guardar (3.1)."
   }
  },
  {
@@ -22938,7 +22938,7 @@ const FAQ_SEED = [
   },
   "a": {
    "en": "The flame only counts **closed** sessions: if the session was never closed, its burn is never added. Go to today's card, mark the exercises you did and close the session with **Finished** — today's burn appears in the flame right away.",
-   "es": "La llamita solo cuenta sesiones **cerradas**: si la sesión nunca se cerró, su quemado nunca se suma. Ve a la tarjeta de hoy, marca los ejercicios que hiciste y cierra la sesión con **Finalizado** — el quemado de hoy aparece en la llamita al momento. --- *End of draft · Fin del borrador*"
+   "es": "La llamita solo cuenta sesiones **cerradas**: si la sesión nunca se cerró, su quemado nunca se suma. Ve a la tarjeta de hoy, marca los ejercicios que hiciste y cierra la sesión con **Finalizado** — el quemado de hoy aparece en la llamita al momento."
   }
  }
 ];
@@ -23035,9 +23035,28 @@ function faqEdCollect(i) {
   FAQ_ED[i].q.en = g('q_en'); FAQ_ED[i].a.en = g('a_en');
   FAQ_ED[i].q.es = g('q_es'); FAQ_ED[i].a.es = g('a_es');
 }
+/* AYUDA PÚBLICA — Opción B (diseño DISENO-AYUDA-SIN-LOGIN-
+   2026-10-28; autorización de construcción de Ronald por correo
+   2026-10-28 21:35 CDT): la copia pública app_settings/faq_public
+   alimenta la página /ayuda SIN sesión (delta de reglas: lectura
+   anónima SOLO de ese documento; escritura solo del propietario,
+   por esta misma vía). La sincronización vive EN el guardado del
+   editor: primero la FAQ interna y DESPUÉS la copia; si la copia
+   falla, el guardado entero se reporta como error (faq.edError) y
+   basta re-guardar — ambas escrituras son setDoc de documento
+   completo, así que reintentar nunca duplica ni deja mezcla.
+   FAQ_PUBLIC_HIDDEN: entradas que NO salen a la copia pública
+   (detalle operativo interno: 2.6 roles y cupos de aprobación;
+   3.7 límite de IA por defecto). Quedan solo dentro de la app
+   hasta que Ronald diga expresamente que salen; la estructura no
+   presupone su decisión — publicarlas mañana es quitar el id de
+   esta lista y re-guardar. */
+const FAQ_PUBLIC_HIDDEN = ['2.6', '3.7'];
+function faqPublicEntries(entries) { return entries.filter(e => !FAQ_PUBLIC_HIDDEN.includes(e.id)); }
 async function faqEdPersist() {
   const entries = faqSorted(FAQ_ED).map(e => ({ id: e.id, block: e.block, order: e.order, q: { en: e.q.en, es: e.q.es }, a: { en: e.a.en, es: e.a.es } }));
   await setDoc(doc(db, 'app_settings', 'faq'), { entries, updatedAt: serverTimestamp(), updatedBy: auth.currentUser.uid });
+  await setDoc(doc(db, 'app_settings', 'faq_public'), { entries: faqPublicEntries(entries), updatedAt: serverTimestamp(), updatedBy: auth.currentUser.uid });
   FAQ_ENTRIES = entries;
   FAQ_ED = faqSorted(entries).map(e => ({ id: e.id, block: e.block, order: e.order, q: { en: e.q.en, es: e.q.es }, a: { en: e.a.en, es: e.a.es } }));
 }
