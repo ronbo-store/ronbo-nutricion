@@ -1,11 +1,12 @@
 # RONBO FIT — Batería de reglas del delta «Organización de
 # Administración» (2026-10-28): captura de la bitácora ND-2 por
-# el entrenador asignado. La suite ORGADMIN (16 casos L1–L16)
-# contra el CANDIDATO (texto vivo f91e6f97…, ruleset f5352f7c,
-# + SOLO la rama del entrenador aprobado y asignado en el allow
-# create de match /access_log/{logId}; candidato SHA-256
-# ce0962bb…) y la MISMA suite contra el texto VIVO con la
-# expectativa de L2 invertida (el contraste). Todo contra el
+# el entrenador asignado. REBASE 2026-10-29 para el despliegue:
+# la suite ORGADMIN (16 casos L1–L16) contra el CANDIDATO
+# REBASEADO (texto vivo cba128f2…, ruleset 544fc61e, + SOLO la
+# rama del entrenador aprobado y asignado en el allow create de
+# match /access_log/{logId}; candidato rebaseado SHA-256
+# ff4691cd…) y la MISMA suite contra el texto VIVO ACTUAL
+# (cba128f2…) con la expectativa de L2 invertida (el contraste). Todo contra el
 # emulador oficial de Firestore (proyecto ficticio
 # ronbo-nutri-test). Este workflow SOLO valida el texto; NO
 # publica reglas ni despliega nada. Sin secretos, sin
@@ -20,7 +21,7 @@ name: Batería Organización Admin — Bitácora ND-2 (emulador oficial)
 on:
   workflow_dispatch:
   push:
-    branches: [ci/orgadmin-bateria]
+    branches: [ci/orgadmin-bateria-rebase]
 
 permissions:
   contents: read

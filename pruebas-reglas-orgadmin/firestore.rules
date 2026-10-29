@@ -294,6 +294,12 @@ service cloud.firestore {
         && exists(/databases/$(database)/documents/users/$(ownerUid))
         && get(/databases/$(database)/documents/users/$(ownerUid)).data.get('trainerUid', '') == request.auth.uid;
     }
+    // Delta candidato Repetir (2026-10-29): alumno SIN entrenador
+    // asignado — el campo trainerUid de su propio documento de
+    // usuario es la señal viva (vacío = sin entrenador).
+    function selfAuthorNoTrainer() {
+      return isApprovedUser() && myDoc().get('trainerUid', '') == '';
+    }
     // Roles+Escalabilidad (2026-10-24, NO publicado): cupo de
     // alumnos por nivel de membresía (Básico 5 · Premium 10 ·
     // Élite 30 · sin membresía 0).
@@ -1738,12 +1744,26 @@ service cloud.firestore {
     }
 
     // ---------- Training (Block 3) ----------
-    // Plans are authored ONLY by the trainer. Clients read their own.
+    // Plans are authored by the trainer. Clients read their own.
+    // DELTA CANDIDATO REPETIR (2026-10-29, diseño §7.2 — NO publicado):
+    // el alumno SIN entrenador asignado puede crear/editar SUS PROPIOS
+    // planes (autoría propia, editor completo Q4 de Repetir). La señal
+    // viva es users.trainerUid: si aparece un entrenador, esta vía se
+    // cierra sola. Sus instantáneas de guardado viven en esta misma
+    // colección (mismo match) y quedan cubiertas. Borrar planes NO se
+    // amplía: la línea de delete conserva la expresión viva exacta.
     match /training_plans/{docId} {
       allow get, list: if isOwnerUser()
         || (isApprovedUser() && resource.data.clientUid == request.auth.uid)
         || isAssignedTrainerOf(resource.data.clientUid);
-      allow create, update, delete: if isOwnerUser()
+      allow create: if isOwnerUser()
+        || isAssignedTrainerOf(request.resource.data.clientUid)
+        || (selfAuthorNoTrainer() && request.resource.data.clientUid == request.auth.uid);
+      allow update: if isOwnerUser()
+        || isAssignedTrainerOf(request.resource.data.clientUid)
+        || (selfAuthorNoTrainer() && resource.data.clientUid == request.auth.uid
+            && request.resource.data.clientUid == request.auth.uid);
+      allow delete: if isOwnerUser()
         || isAssignedTrainerOf(request.resource.data.clientUid);
     }
 
