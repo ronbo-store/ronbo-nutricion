@@ -1,0 +1,100 @@
+# RONBO FIT — Batería de reglas del delta «Ayuda pública sin
+# iniciar sesión — Opción B» (diseño
+# DISENO-AYUDA-SIN-LOGIN-2026-10-28, §2 y §6): la suite AYUDA
+# (15 casos P1–P15) contra el CANDIDATO de reglas (texto vivo
+# f91e6f97…, ruleset f5352f7c, + SOLO la pieza faq_public en el
+# match /app_settings: get sin sesión de ese único documento y
+# 'faq_public' en la lista de escritura del propietario;
+# candidato SHA-256 98379d34…) y la MISMA suite contra el
+# texto VIVO con las expectativas del delta invertidas (el
+# contraste). Todo contra el emulador oficial de Firestore
+# (proyecto ficticio ronbo-nutri-test). Este workflow SOLO
+# valida el texto; NO publica reglas ni despliega nada. Sin
+# secretos, sin credenciales de producción.
+#
+# Colocación: este archivo va en .github/workflows/ del repo
+# CI y las suites en pruebas-reglas-ayuda/ y
+# pruebas-reglas-ayuda-vivo/ en la raíz del mismo repo, en la
+# rama ci/ayuda-bateria.
+name: Batería Ayuda pública Opción B (emulador oficial)
+
+on:
+  workflow_dispatch:
+  push:
+    branches: [ci/ayuda-bateria]
+
+permissions:
+  contents: read
+
+jobs:
+  ayuda-candidato:
+    name: Serie AYUDA (15 casos) contra el CANDIDATO
+    runs-on: ubuntu-24.04
+    timeout-minutes: 20
+    defaults:
+      run:
+        working-directory: pruebas-reglas-ayuda
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: 21
+      - name: Instalar dependencias de la batería (versiones fijadas)
+        run: npm ci
+      - name: Instalar Firebase CLI (versión fijada)
+        run: npm install -g firebase-tools@15.34.0
+      - name: Ejecutar la batería contra el emulador oficial
+        shell: bash
+        run: |
+          set -o pipefail
+          firebase emulators:exec --only firestore --project ronbo-nutri-test "node test-ayuda.mjs" 2>&1 | tee resultado-bateria.txt
+      - name: Publicar el resultado en el resumen del job
+        if: always()
+        shell: bash
+        run: |
+          {
+            echo '## Serie AYUDA contra el CANDIDATO'
+            echo '```'
+            cat resultado-bateria.txt || true
+            echo '```'
+          } >> "$GITHUB_STEP_SUMMARY"
+
+  ayuda-vivo:
+    name: Serie AYUDA (15 casos) contra el texto VIVO (contraste)
+    runs-on: ubuntu-24.04
+    timeout-minutes: 20
+    defaults:
+      run:
+        working-directory: pruebas-reglas-ayuda-vivo
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: 21
+      - name: Instalar dependencias de la batería (versiones fijadas)
+        run: npm ci
+      - name: Instalar Firebase CLI (versión fijada)
+        run: npm install -g firebase-tools@15.34.0
+      - name: Ejecutar la batería contra el emulador oficial
+        shell: bash
+        run: |
+          set -o pipefail
+          firebase emulators:exec --only firestore --project ronbo-nutri-test "node test-ayuda.mjs" 2>&1 | tee resultado-bateria.txt
+      - name: Publicar el resultado en el resumen del job
+        if: always()
+        shell: bash
+        run: |
+          {
+            echo '## Serie AYUDA contra el texto VIVO (contraste)'
+            echo '```'
+            cat resultado-bateria.txt || true
+            echo '```'
+          } >> "$GITHUB_STEP_SUMMARY"
