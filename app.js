@@ -19160,7 +19160,21 @@ function renderCmpClient() {
 /* ---------- La vista del entrenador sobre un cliente (con ND-2) ---------- */
 let CEV = null;   // { uid, prog, evals, cfg, cycle, weights, cmp }
 async function nd2LogView(clientUid) {
-  if (!IS_OWNER || !auth.currentUser || clientUid === auth.currentUser.uid) return true;
+  /* Organización 2026-10-28 — corrección del diagnóstico de la
+     bitácora: hasta aquí SOLO se registraba al propietario
+     (IS_OWNER); la apertura de un ENTRENADOR devolvía «registrado»
+     sin escribir nada, y la ND-2 quedaba ciega justo para el rol
+     que audita. Desde esta pieza, la apertura la registra quien
+     la hace — propietario o entrenador (de un cliente ajeno) —
+     con la misma forma exacta de siempre. OJO AL ORDEN DE
+     DESPLIEGUE: la escritura del entrenador solo la admiten las
+     reglas del candidato de este paquete (access_log: create del
+     entrenador asignado aprobado); hasta que ese delta se
+     publique, el intento del entrenador falla y la vista muestra
+     el aviso honesto nd2.logFail — nunca un silencio. Este commit
+     se despliega DESPUÉS de publicar ese delta de reglas. */
+  if (!auth.currentUser || clientUid === auth.currentUser.uid) return true;
+  if (!(IS_OWNER || ROLE === 'entrenador')) return true;
   try {
     await addDoc(collection(db, 'access_log'), { viewerUid: auth.currentUser.uid, clientUid, zone: 'evaluations', at: serverTimestamp() });
     return true;
