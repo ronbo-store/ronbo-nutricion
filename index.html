@@ -21,7 +21,7 @@
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-title" content="RONBO FIT">
 <meta name="apple-mobile-web-app-status-bar-style" content="default">
-<link rel="stylesheet" href="styles.css?v=20261030-reescalado-cantidad">
+<link rel="stylesheet" href="styles.css?v=20261030-metas-solo-inicio">
 <script defer src="https://cloud.umami.is/script.js" data-website-id="a29706d4-44a2-47cf-900a-5f74d74abfa8"></script>
 <script type="importmap">
 {
@@ -218,7 +218,14 @@
        diarias» (h2 + #goals-row) que la precedía en la cabecera
        se retiró para todos los roles (BARRA-SUSTITUYE-METAS,
        2026-10-30, orden de Ronald): las cifras del día viven en
-       el anillo maestro y en su ventana de detalle. -->
+       el anillo maestro y en su ventana de detalle.
+       SOLO EN INICIO (METAS-SOLO-INICIO, 2026-10-30, orden de
+       Ronald): la tarjeta vive en el flujo común, fuera de los
+       paneles, y se pinta ÚNICAMENTE en la pantalla principal
+       («Mi registro», el Inicio del dock) — goalsCardSync en
+       app.js, gancho en switchTab, espejo de los flotantes de
+       Inicio (helpFabSync/swFabSync), la muestra solo con esa
+       pestaña activa y la oculta en todas las demás. -->
   <div class="goals-card">
     <div id="goals-engine"></div>
   </div>
@@ -1284,6 +1291,6 @@
 <div id="toast" class="toast"></div>
 <div id="print-card" aria-hidden="true"></div>
 
-<script type="module" src="app.js?v=20261030-reescalado-cantidad"></script>
+<script type="module" src="app.js?v=20261030-metas-solo-inicio"></script>
 </body>
 </html>

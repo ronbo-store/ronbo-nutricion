@@ -18093,6 +18093,7 @@ function switchTab(name) {
   if (name === 'admin') { try { renderAdminZone().catch(() => {}); } catch {} }
   try { helpFabSync(name); } catch {}
   try { swFabSync(name); } catch {}
+  try { goalsCardSync(name); } catch {}
 }
 document.querySelectorAll('.main-tab').forEach(b => b.addEventListener('click', () => switchTab(b.dataset.tab)));
 
@@ -22327,7 +22328,7 @@ document.addEventListener('keydown', e => { if (e.key === 'Escape') shareClose()
  *  - El SW (sw.js) solo cachea la cáscara del mismo origen en modo
  *    RED PRIMERO: Auth/Firestore/Worker jamás pasan por la caché.
  * ================================================================ */
-const PWA_SW_VERSION = '20261030-reescalado-cantidad';
+const PWA_SW_VERSION = '20261030-metas-solo-inicio';
 let pwaDeferredPrompt = null;
 function pwaIsStandalone() {
   try {
@@ -23380,6 +23381,19 @@ function helpFabSync(tabName) { const f = $('btn-help'); if (f) f.style.display 
    lo sigue reflejando; al volver a Inicio el botón muestra el
    tiempo en curso tal cual, sin reinicio ni pérdida. */
 function swFabSync(tabName) { const f = $('btn-stopwatch'); if (f) f.style.display = (tabName === 'track') ? '' : 'none'; }
+/* Tarjeta de metas SOLO en Inicio (orden de Ronald, chat
+   2026-10-30 02:10 CDT: «Las metas de hoy solo deben aparecer en
+   el botón de inicio! En la pantalla principal»): la tarjeta del
+   motor (.goals-card, con «Metas de hoy», el anillo, «Tu objetivo
+   con tu cuerpo» y «Tus metas, con fundamento») vive en el flujo
+   común de #app-view, FUERA de los paneles — sin este gancho se
+   pintaba sobre cualquier pestaña (su captura: Biblioteca con la
+   tarjeta entera encima). Espejo de helpFabSync/swFabSync: se
+   muestra únicamente con «Mi registro» (Inicio) activa. Ocultarla
+   NO toca el motor: render() sigue llamando a renderGoalsEngine()
+   y el HTML interno se actualiza igual, así que al volver a Inicio
+   el anillo trae el consumo al día sin recargar. */
+function goalsCardSync(tabName) { const c = document.querySelector('.goals-card'); if (c) c.style.display = (tabName === 'track') ? '' : 'none'; }
 /* ---------- Editor del administrador (Accesos, solo dueño) ---------- */
 let FAQ_ED = null;   // borrador editable del editor
 async function renderFaqEditorBox() {
