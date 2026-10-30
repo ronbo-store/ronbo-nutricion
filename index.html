@@ -21,7 +21,7 @@
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-title" content="RONBO FIT">
 <meta name="apple-mobile-web-app-status-bar-style" content="default">
-<link rel="stylesheet" href="styles.css?v=20261030-ficha-historial">
+<link rel="stylesheet" href="styles.css?v=20261030-barra-metas">
 <script defer src="https://cloud.umami.is/script.js" data-website-id="a29706d4-44a2-47cf-900a-5f74d74abfa8"></script>
 <script type="importmap">
 {
@@ -187,11 +187,40 @@
       <p class="who-row"><span class="live-dot"></span><button type="button" id="avatar-btn" class="avatar-btn" data-i18n-aria="myprof.open" aria-label="Open my profile" data-i18n-title="myprof.open" title="Open my profile"><img id="avatar" class="avatar" data-i18n-alt="app.myPhoto" alt="My photo"></button><span id="who">—</span> · <a href="#" id="btn-logout" class="logout-link" data-i18n="app.logout">log out</a> · <span class="lang-toggle"><button type="button" data-lang="en" class="active">EN</button><button type="button" data-lang="es">ES</button></span></p>
       <input type="file" id="avatar-file" accept="image/*" style="display:none">
     </div>
-    <div class="goals-card">
-      <h2 data-i18n="app.goals">Your daily goals</h2>
-      <div class="goals-row" id="goals-row"></div>
-      <div id="goals-engine"></div>
-    </div>
+  </div>
+
+  <!-- Barra superior de navegación (PASTILLAS PROPUESTA A,
+       2026-10-29): las pastillas principales pasan a UNA barra de
+       segmentos en la cabecera — icono arriba y nombre completo
+       debajo, el activo como tarjeta blanca — que se desliza de
+       lado cuando las secciones no caben. El envoltorio solo
+       pinta el desvanecido del borde derecho que anuncia el
+       desplazamiento; el pintado por rol y los botones son los
+       de siempre (switchTab y app.js intactos).
+       MOVIDA a la cabecera (BARRA-SUSTITUYE-METAS, 2026-10-30,
+       orden de Ronald): la barra es lo primero bajo la tarjeta de
+       cabecera, en el puesto del bloque «Tus metas diarias»
+       retirado; su aspecto y su comportamiento no cambian. -->
+  <div class="main-tabs-wrap">
+  <nav class="main-tabs" id="main-tabs" style="display:none">
+    <button type="button" class="main-tab active" data-tab="track" data-i18n="tabs.track"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="5" y="4" width="14" height="17" rx="2"/><path d="M9 4.5V3h6v1.5"/><path d="M9 10h6M9 14h4"/></svg> My log</button>
+    <button type="button" class="main-tab" data-tab="profile" data-i18n="tabs.profile"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="8" r="3.6"/><path d="M5 20c.8-3.4 3.6-5 7-5s6.2 1.6 7 5"/></svg> My profile</button>
+    <button type="button" class="main-tab" data-tab="clients" data-i18n="tabs.clients"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="9" cy="8.4" r="3.2"/><path d="M3.4 19.4c.7-3 2.9-4.5 5.6-4.5s4.9 1.5 5.6 4.5"/><path d="M15.6 5.6a3.2 3.2 0 0 1 0 5.9"/><path d="M17.8 15.3c1.7.7 2.7 2 3.1 4.1"/></svg> My clients</button>
+    <button type="button" class="main-tab" data-tab="access" data-i18n="tabs.access"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="8.5" cy="14.5" r="4.5"/><path d="M11.8 11.2L20 3"/><path d="M16.5 6.5l3 3"/><path d="M14 9l2.4 2.4"/></svg> Access</button>
+    <button type="button" class="main-tab" data-tab="trainers" data-i18n="tabs.trainers"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6.5 6.5v11"/><path d="M3.5 9v6"/><path d="M17.5 6.5v11"/><path d="M20.5 9v6"/><path d="M6.5 12h11"/></svg> Trainers</button>
+    <button type="button" class="main-tab" data-tab="library" data-i18n="tabs.library"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 4.6A1.6 1.6 0 0 1 6.6 3H19v15H6.6A1.6 1.6 0 0 0 5 19.4z"/><path d="M5 16.4A1.6 1.6 0 0 1 6.6 14.8H19V18"/><path d="M9 7h6"/></svg> Library</button>
+    <button type="button" class="main-tab" data-tab="admin" data-i18n="tabs.admin"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="3.2"/><path d="M12 2.8v3"/><path d="M12 18.2v3"/><path d="M2.8 12h3"/><path d="M18.2 12h3"/><path d="M5.2 5.2l2.1 2.1"/><path d="M16.7 16.7l2.1 2.1"/><path d="M18.8 5.2l-2.1 2.1"/><path d="M7.3 16.7l-2.1 2.1"/></svg> Administration</button>
+  </nav>
+  </div>
+
+  <!-- Tarjeta del motor de metas («Metas de hoy» + «Tus metas,
+       con fundamento»): intacta. El bloque de texto «Tus metas
+       diarias» (h2 + #goals-row) que la precedía en la cabecera
+       se retiró para todos los roles (BARRA-SUSTITUYE-METAS,
+       2026-10-30, orden de Ronald): las cifras del día viven en
+       el anillo maestro y en su ventana de detalle. -->
+  <div class="goals-card">
+    <div id="goals-engine"></div>
   </div>
 
   <!-- Botón redondo flotante del cronómetro deportivo (arriba a la
@@ -226,25 +255,6 @@
        bandeja, que se leía «subir/exportar»). -->
   <button type="button" class="share-fab" id="btn-share-fab" style="display:none" aria-label="Share your progress" data-i18n-aria="share.title"><svg class="share-fab-ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/><path d="M8.59 13.51L15.42 17.49"/><path d="M15.41 6.51L8.59 10.49"/></svg></button>
 
-  <!-- Barra superior de navegación (PASTILLAS PROPUESTA A,
-       2026-10-29): las pastillas principales pasan a UNA barra de
-       segmentos en la cabecera — icono arriba y nombre completo
-       debajo, el activo como tarjeta blanca — que se desliza de
-       lado cuando las secciones no caben. El envoltorio solo
-       pinta el desvanecido del borde derecho que anuncia el
-       desplazamiento; el pintado por rol y los botones son los
-       de siempre (switchTab y app.js intactos). -->
-  <div class="main-tabs-wrap">
-  <nav class="main-tabs" id="main-tabs" style="display:none">
-    <button type="button" class="main-tab active" data-tab="track" data-i18n="tabs.track"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="5" y="4" width="14" height="17" rx="2"/><path d="M9 4.5V3h6v1.5"/><path d="M9 10h6M9 14h4"/></svg> My log</button>
-    <button type="button" class="main-tab" data-tab="profile" data-i18n="tabs.profile"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="8" r="3.6"/><path d="M5 20c.8-3.4 3.6-5 7-5s6.2 1.6 7 5"/></svg> My profile</button>
-    <button type="button" class="main-tab" data-tab="clients" data-i18n="tabs.clients"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="9" cy="8.4" r="3.2"/><path d="M3.4 19.4c.7-3 2.9-4.5 5.6-4.5s4.9 1.5 5.6 4.5"/><path d="M15.6 5.6a3.2 3.2 0 0 1 0 5.9"/><path d="M17.8 15.3c1.7.7 2.7 2 3.1 4.1"/></svg> My clients</button>
-    <button type="button" class="main-tab" data-tab="access" data-i18n="tabs.access"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="8.5" cy="14.5" r="4.5"/><path d="M11.8 11.2L20 3"/><path d="M16.5 6.5l3 3"/><path d="M14 9l2.4 2.4"/></svg> Access</button>
-    <button type="button" class="main-tab" data-tab="trainers" data-i18n="tabs.trainers"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6.5 6.5v11"/><path d="M3.5 9v6"/><path d="M17.5 6.5v11"/><path d="M20.5 9v6"/><path d="M6.5 12h11"/></svg> Trainers</button>
-    <button type="button" class="main-tab" data-tab="library" data-i18n="tabs.library"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 4.6A1.6 1.6 0 0 1 6.6 3H19v15H6.6A1.6 1.6 0 0 0 5 19.4z"/><path d="M5 16.4A1.6 1.6 0 0 1 6.6 14.8H19V18"/><path d="M9 7h6"/></svg> Library</button>
-    <button type="button" class="main-tab" data-tab="admin" data-i18n="tabs.admin"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="3.2"/><path d="M12 2.8v3"/><path d="M12 18.2v3"/><path d="M2.8 12h3"/><path d="M18.2 12h3"/><path d="M5.2 5.2l2.1 2.1"/><path d="M16.7 16.7l2.1 2.1"/><path d="M18.8 5.2l-2.1 2.1"/><path d="M7.3 16.7l-2.1 2.1"/></svg> Administration</button>
-  </nav>
-  </div>
   <div class="tab-pane" id="tab-track">
   <!-- Mapa de pendientes por rol (2026-10-24): tarjeta-resumen en la
        pantalla principal al entrar; se pinta desde renderRolePendCard()
@@ -1274,6 +1284,6 @@
 <div id="toast" class="toast"></div>
 <div id="print-card" aria-hidden="true"></div>
 
-<script type="module" src="app.js?v=20261030-ficha-historial"></script>
+<script type="module" src="app.js?v=20261030-barra-metas"></script>
 </body>
 </html>

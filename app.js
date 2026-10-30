@@ -18928,17 +18928,11 @@ document.addEventListener('keydown', e => { if (e.key === 'Escape') actCloseAll(
 function render(date) {
   $('dateTitle').textContent = dateName(date);
   try { if (typeof goalsSetView === 'function') goalsSetView(date); } catch {}
-  if (!hasAnyGoal()) {
-    $('goals-row').innerHTML = `<span class="goals-none">${t('goals.none')}</span>`;
-  } else {
-    const gv = (key, suffix, prefix = '') => { const g = (key === 'carb' || key === 'gras') && typeof goalOfDay === 'function' ? goalOfDay(key, date) : goalOf(key); return g === null ? '<b>—</b>' : `<b>${prefix}${fmt(g)}${suffix}</b>`; };
-    $('goals-row').innerHTML =
-      `<span>${t('metric.kcal')}: ${gv('kcal', ' kcal')}</span>` +
-      `<span>${t('metric.prot')}: ${gv('prot', ' g')}</span>` +
-      `<span>${t('metric.carb')}: ${gv('carb', ' g')}</span>` +
-      `<span>${t('metric.azuc')}: ${gv('azuc', ' g', '≤ ')}</span>` +
-      `<span>${t('metric.gras')}: ${gv('gras', ' g')}</span>`;
-  }
+  /* PAQUETE BARRA-SUSTITUYE-METAS (2026-10-30, orden de Ronald):
+     la fila de metas en texto (#goals-row, el bloque «Tus metas
+     diarias») se retira para todos los roles — las cifras del día
+     viven en el anillo maestro y en su ventana de detalle. El
+     motor de metas y renderGoalsEngine() no se tocan. */
   try { if (typeof renderGoalsEngine === 'function') renderGoalsEngine(); } catch {}
   const tot = totals(date);
   const vals = { kcal: tot.kcal, prot: tot.prot, carb: tot.carb, azuc: tot.azuc, gras: tot.gras };
@@ -22266,7 +22260,7 @@ document.addEventListener('keydown', e => { if (e.key === 'Escape') shareClose()
  *  - El SW (sw.js) solo cachea la cáscara del mismo origen en modo
  *    RED PRIMERO: Auth/Firestore/Worker jamás pasan por la caché.
  * ================================================================ */
-const PWA_SW_VERSION = '20261030-ficha-historial';
+const PWA_SW_VERSION = '20261030-barra-metas';
 let pwaDeferredPrompt = null;
 function pwaIsStandalone() {
   try {

@@ -9,12 +9,9 @@ body { font-family: -apple-system, "Segoe UI", Roboto, Helvetica, Arial, sans-se
 .logout-link { color: #9cc3ff; }
 .live-dot { display: inline-block; width: 9px; height: 9px; border-radius: 99px; background: #22c55e; margin-right: 6px; animation: pulse 2s infinite; }
 @keyframes pulse { 0%,100% { opacity: 1; } 50% { opacity: .35; } }
-.goals-card { background: #fff; border-radius: 12px; padding: 14px 20px; flex: 2 1 420px; box-shadow: 0 1px 3px rgba(0,0,0,.08); }
-.goals-card h2 { font-size: 14px; margin-bottom: 8px; }
-.goals-row { display: flex; flex-wrap: wrap; gap: 6px 16px; font-size: 13px; color: #4b5563; }
+.goals-card { background: #fff; border-radius: 12px; padding: 14px 20px; margin-bottom: 14px; box-shadow: 0 1px 3px rgba(0,0,0,.08); }
 .goals-none { font-style: italic; color: #6b7280; }
 .nogoals-note { font-size: 12.5px; font-style: italic; color: #6b7280; padding: 6px 0; }
-.goals-row b { color: #111827; }
 .date-row { display: flex; align-items: center; gap: 10px; margin-bottom: 14px; flex-wrap: wrap; }
 .date-row label { font-size: 14px; font-weight: 600; }
 .date-row select { font-size: 15px; padding: 8px 12px; border-radius: 8px; border: 1px solid #d1d5db; background: #fff; }
@@ -482,11 +479,18 @@ table.whist { min-width: 640px; }
    (min-width: min-content): el nombre nunca se recorta. El pintado por
    rol y el comportamiento son los de siempre (app.js intacto).
    El envoltorio existe solo para pintar el desvanecido del borde
-   derecho que anuncia el desplazamiento: no lleva márgenes
-   propios (los de la barra se conservan y lo atraviesan por
-   colapso, así su caja ES la caja de la barra) y con la barra
-   oculta (rol usuario) queda en altura cero y no pinta nada. */
-.main-tabs-wrap { position: relative; }
+   derecho que anuncia el desplazamiento: los márgenes de la barra
+   lo atraviesan por colapso y con la barra oculta (rol usuario)
+   queda en altura cero y no pinta nada.
+   MOVIDA (BARRA-SUSTITUYE-METAS, 2026-10-30, orden de Ronald):
+   la barra es ahora lo primero bajo la cabecera, en el puesto del
+   antiguo bloque de texto «Tus metas diarias», retirado para
+   todos los roles. El envoltorio gana margin-bottom de 14px: se
+   funde por colapso con los 6px inferiores de la barra (14px de
+   aire antes de la tarjeta del motor de metas) y, vacío para el
+   alumno, el colapso lo deja en el único hueco de 14px de la
+   cabecera — sin píxeles muertos. */
+.main-tabs-wrap { position: relative; margin-bottom: 14px; }
 .main-tabs-wrap::after { content: ""; position: absolute; top: 0; right: 0; bottom: 0; width: 28px;
   background: linear-gradient(to right, rgba(232, 239, 238, 0), #e8efee);
   border-radius: 0 16px 16px 0; pointer-events: none; }
