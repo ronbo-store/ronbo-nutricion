@@ -2694,6 +2694,74 @@ en: {
   'aiText.tooShort': 'Describe the meal with a bit more detail first.',
   'ac.title': 'From your history',
   'ac.values': '{kcal} kcal · protein {prot} g · carbs {carb} g · sugar {sugar} g · fat {fat} g',
+  'ac.community': 'From the community',
+  'foodlib.title': '🥗 Community foods',
+  'foodlib.open': 'Browse',
+  'foodlib.hint': 'Foods shared by people in the community and reviewed before they appear. No names and no dates: just the food and its values.',
+  'foodlib.searchPh': 'Search a food…',
+  'foodlib.more': 'Show more',
+  'foodlib.empty': 'No foods here yet. The first shared foods will appear in this list.',
+  'foodlib.use': 'Use',
+  'foodlib.edit': 'Edit',
+  'foodlib.report': 'Report',
+  'foodlib.reportSend': 'Send report',
+  'foodlib.reportSent': 'Report sent ✓ — a reviewer will take a look',
+  'foodlib.reportReason': 'Reason',
+  'foodlib.reason.valores': 'Wrong values',
+  'foodlib.reason.duplicado': 'Duplicate',
+  'foodlib.reason.nombre': 'Name not publishable',
+  'foodlib.reason.otro': 'Other',
+  'foodlib.reason.nounico': 'Not a single food',
+  'foodlib.shareBtn': 'Share a food',
+  'foodlib.shareShort': 'Share',
+  'foodlib.mineBtn': 'My contributions',
+  'foodlib.trayBtn': 'Review tray',
+  'foodlib.shareTitle': 'Share this food',
+  'foodlib.shareExplain': 'Only the name and its values are shared — never your name, never the date, never the meal where you logged it. A reviewer checks every food before it appears for everyone.',
+  'foodlib.shareSend': 'Share anonymously',
+  'foodlib.shareOk': 'Sent ✓ — it will appear for everyone once a reviewer approves it',
+  'foodlib.alreadyLib': 'That food is already in the community library.',
+  'foodlib.alreadyPending': 'You already have this food awaiting review.',
+  'foodlib.offerQ': 'Share “{name}” with the community?',
+  'foodlib.offerNo': 'Not now',
+  'foodlib.f.unit': 'Unit',
+  'foodlib.f.piece': 'g per unit',
+  'foodlib.unit.g': 'grams (g)',
+  'foodlib.unit.ml': 'milliliters (ml)',
+  'foodlib.unit.unidad': 'units',
+  'foodlib.errHard': 'Check the values before sharing: the amount, the sugars within the carbs, or a density no real food has does not add up.',
+  'foodlib.errName': 'The name looks like it carries personal data (an email, a phone, a link). Use just the food’s name.',
+  'foodlib.softNote': 'Heads-up for the reviewer: {flags}',
+  'foodlib.flag.atwater': 'the calories do not match the macros (protein, carbs and fat add up to a different energy)',
+  'foodlib.flag.densityHigh': 'very high energy density for its amount',
+  'foodlib.flag.compound': 'the name sounds like several foods in one',
+  'foodlib.flag.dupDiverge': 'a library food with this name differs a lot in calories',
+  'foodlib.state.pendiente': 'Pending review',
+  'foodlib.state.aprobado': 'Approved',
+  'foodlib.state.rechazado': 'Rejected',
+  'foodlib.state.retirado': 'Withdrawn',
+  'foodlib.state.resuelto': 'Resolved',
+  'foodlib.mineEmpty': 'You have not shared any food yet.',
+  'foodlib.mineApprovedNote': 'It is in the library, available to everyone.',
+  'foodlib.rejectReasonNote': 'Reason: {reason}',
+  'foodlib.withdraw': 'Withdraw',
+  'foodlib.withdrawn': 'Contribution withdrawn',
+  'foodlib.delete': 'Delete',
+  'foodlib.deleted': 'Contribution deleted',
+  'foodlib.trayEmpty': 'Nothing awaiting review. 🎉',
+  'foodlib.trayBy': 'Shared by {name}',
+  'foodlib.publishedToast': 'Published ✓ — it is now in the community library',
+  'foodlib.rejectedToast': 'Contribution rejected',
+  'foodlib.resolvedToast': 'Report marked as resolved',
+  'foodlib.reportOf': 'Report on “{name}”',
+  'foodlib.editSave': 'Save correction',
+  'foodlib.correctionSaved': 'Correction saved ✓',
+  'foodlib.removeLib': 'Remove from library',
+  'foodlib.removeConfirm': 'Remove this food from the community library? Copies already adopted stay in each person’s diary.',
+  'foodlib.removedLib': 'Food removed from the library',
+  'foodlib.pickTitle': 'Your foods — pick one to share it',
+  'foodlib.pickEmpty': 'You have no logged foods yet. Log a meal first and you can share it from here.',
+  'foodlib.communityTag': 'Community',
   'aiText.notFound': "AI couldn't identify any food this time. Try again, or log the meal manually.",
   'aiText.banner': 'Draft from your description: check and edit the values before saving.',
   'aiVoice.label': 'Dictate your meal',
@@ -4689,6 +4757,74 @@ es: {
   'aiText.tooShort': 'Describe primero la comida con un poco más de detalle.',
   'ac.title': 'De tu historial',
   'ac.values': '{kcal} kcal · proteína {prot} g · carbos {carb} g · azúcares {sugar} g · grasas {fat} g',
+  'ac.community': 'De la comunidad',
+  'foodlib.title': '🥗 Alimentos de la comunidad',
+  'foodlib.open': 'Explorar',
+  'foodlib.hint': 'Alimentos compartidos por personas de la comunidad y revisados antes de aparecer. Sin nombres y sin fechas: solo el alimento y sus valores.',
+  'foodlib.searchPh': 'Busca un alimento…',
+  'foodlib.more': 'Mostrar más',
+  'foodlib.empty': 'Todavía no hay alimentos aquí. Los primeros alimentos compartidos aparecerán en esta lista.',
+  'foodlib.use': 'Usar',
+  'foodlib.edit': 'Editar',
+  'foodlib.report': 'Reportar',
+  'foodlib.reportSend': 'Enviar reporte',
+  'foodlib.reportSent': 'Reporte enviado ✓ — un revisor lo mirará',
+  'foodlib.reportReason': 'Motivo',
+  'foodlib.reason.valores': 'Valores incorrectos',
+  'foodlib.reason.duplicado': 'Duplicado',
+  'foodlib.reason.nombre': 'Nombre no publicable',
+  'foodlib.reason.otro': 'Otro',
+  'foodlib.reason.nounico': 'No es un alimento único',
+  'foodlib.shareBtn': 'Compartir un alimento',
+  'foodlib.shareShort': 'Compartir',
+  'foodlib.mineBtn': 'Mis aportes',
+  'foodlib.trayBtn': 'Bandeja de revisión',
+  'foodlib.shareTitle': 'Compartir este alimento',
+  'foodlib.shareExplain': 'Solo se comparten el nombre y sus valores — nunca tu nombre, nunca la fecha, nunca la comida en la que lo registraste. Un revisor comprueba cada alimento antes de que aparezca para todos.',
+  'foodlib.shareSend': 'Compartir anónimamente',
+  'foodlib.shareOk': 'Enviado ✓ — aparecerá para todos cuando un revisor lo apruebe',
+  'foodlib.alreadyLib': 'Ese alimento ya está en la biblioteca de la comunidad.',
+  'foodlib.alreadyPending': 'Ya tienes este alimento en espera de revisión.',
+  'foodlib.offerQ': '¿Compartir «{name}» con la comunidad?',
+  'foodlib.offerNo': 'Ahora no',
+  'foodlib.f.unit': 'Unidad',
+  'foodlib.f.piece': 'g por unidad',
+  'foodlib.unit.g': 'gramos (g)',
+  'foodlib.unit.ml': 'mililitros (ml)',
+  'foodlib.unit.unidad': 'unidades',
+  'foodlib.errHard': 'Revisa los valores antes de compartir: la cantidad, los azúcares dentro de los carbos o una densidad que ningún alimento real tiene no cuadran.',
+  'foodlib.errName': 'El nombre parece llevar datos personales (un correo, un teléfono, un enlace). Usa solo el nombre del alimento.',
+  'foodlib.softNote': 'Aviso para el revisor: {flags}',
+  'foodlib.flag.atwater': 'las calorías no cuadran con los macros (proteína, carbos y grasa suman otra energía)',
+  'foodlib.flag.densityHigh': 'densidad de energía muy alta para su cantidad',
+  'foodlib.flag.compound': 'el nombre suena a varios alimentos en uno',
+  'foodlib.flag.dupDiverge': 'un alimento de la biblioteca con este nombre difiere mucho en calorías',
+  'foodlib.state.pendiente': 'En espera de revisión',
+  'foodlib.state.aprobado': 'Aprobado',
+  'foodlib.state.rechazado': 'Rechazado',
+  'foodlib.state.retirado': 'Retirado',
+  'foodlib.state.resuelto': 'Resuelto',
+  'foodlib.mineEmpty': 'Todavía no has compartido ningún alimento.',
+  'foodlib.mineApprovedNote': 'Ya está en la biblioteca, disponible para todos.',
+  'foodlib.rejectReasonNote': 'Motivo: {reason}',
+  'foodlib.withdraw': 'Retirar',
+  'foodlib.withdrawn': 'Aporte retirado',
+  'foodlib.delete': 'Borrar',
+  'foodlib.deleted': 'Aporte borrado',
+  'foodlib.trayEmpty': 'Nada en espera de revisión. 🎉',
+  'foodlib.trayBy': 'Compartido por {name}',
+  'foodlib.publishedToast': 'Publicado ✓ — ya está en la biblioteca de la comunidad',
+  'foodlib.rejectedToast': 'Aporte rechazado',
+  'foodlib.resolvedToast': 'Reporte marcado como resuelto',
+  'foodlib.reportOf': 'Reporte sobre «{name}»',
+  'foodlib.editSave': 'Guardar corrección',
+  'foodlib.correctionSaved': 'Corrección guardada ✓',
+  'foodlib.removeLib': 'Quitar de la biblioteca',
+  'foodlib.removeConfirm': '¿Quitar este alimento de la biblioteca de la comunidad? Las copias ya adoptadas se quedan en el diario de cada persona.',
+  'foodlib.removedLib': 'Alimento quitado de la biblioteca',
+  'foodlib.pickTitle': 'Tus alimentos — elige uno para compartirlo',
+  'foodlib.pickEmpty': 'Todavía no tienes alimentos registrados. Registra primero una comida y podrás compartirla desde aquí.',
+  'foodlib.communityTag': 'Comunidad',
   'aiText.notFound': 'La IA no pudo identificar ningún alimento esta vez. Inténtalo de nuevo o registra la comida manualmente.',
   'aiText.banner': 'Borrador de tu descripción: revisa y edita los valores antes de guardar.',
   'aiVoice.label': 'Dicta tu comida',
@@ -20624,6 +20760,7 @@ document.addEventListener('keydown', e => { if (e.key === 'Escape') actCloseAll(
 
 function render(date) {
   $('dateTitle').textContent = dateName(date);
+  try { if (typeof foodlibOfferData !== 'undefined' && foodlibOfferData && foodlibOfferData.date !== date) foodlibOfferClear(); } catch {}
   try { if (typeof goalsSetView === 'function') goalsSetView(date); } catch {}
   /* PAQUETE BARRA-SUSTITUYE-METAS (2026-10-30, orden de Ronald):
      la fila de metas en texto (#goals-row, el bloque «Tus metas
@@ -20669,7 +20806,7 @@ function render(date) {
     `<tr><td>${esc(mealName(m.meal))}${m.createdAtMs ? ` <span class="meal-time">${mealTimeStr(m.createdAtMs)}</span>` : ''}</td><td>${esc(m.food)}${m.photoURL ? ` <a href="${esc(m.photoURL)}" target="_blank" rel="noopener" title="${t('track.viewPhoto')}">📷</a>` : ''}</td><td>${esc(m.qty)}</td>` +
     `<td class="num">${fmt(m.kcal)}</td><td class="num">${fmt(m.prot)}</td><td class="num">${fmt(m.carb)}</td>` +
     `<td class="num">${fmt(m.sugar)}</td><td class="num">${fmt(m.fat)}</td>` +
-    `<td class="meal-actions"><button class="rep-btn" data-repeat-meal="${m.id}" title="${t('track.repeat')}">↻ ${t('track.repeat')}</button><button class="del-btn" data-del-meal="${m.id}" title="${t('track.delete')}">×</button></td></tr>`
+    `<td class="meal-actions"><button class="rep-btn" data-repeat-meal="${m.id}" title="${t('track.repeat')}">↻ ${t('track.repeat')}</button><button class="rep-btn" data-share-meal="${m.id}" title="${t('foodlib.shareBtn')}">↗ ${t('foodlib.shareShort')}</button><button class="del-btn" data-del-meal="${m.id}" title="${t('track.delete')}">×</button></td></tr>`
   ).join('');
   if (rows.length) html += `<tr class="total"><td colspan="3">TOTAL</td><td class="num" style="color:#16A34A">${fmt(tot.kcal)}</td><td class="num" style="color:#2563EB">${fmt(tot.prot)}</td><td class="num" style="color:#D97706">${fmt(tot.carb)}</td><td class="num" style="color:#9333EA">${fmt(tot.azuc)}</td><td class="num" style="color:#DC2626">${fmt(tot.gras)}</td><td></td></tr>`;
   $('detailBody').innerHTML = html || `<tr><td colspan="9" class="wempty">${t('track.emptyDay')}</td></tr>`;
@@ -20712,6 +20849,14 @@ function render(date) {
       if (row && row.photoPath) { try { await deleteObject(sRef(storage, row.photoPath)); } catch {} }
       toast(t('msg.mealDeleted'));
       await loadAllKeepDate(date);
+    });
+  /* Compartir ESTE registro con la comunidad (opt-in por alimento,
+     diseño §2.1 punto 2): abre la hoja de aporte con sus valores tal
+     como quedaron guardados. El registro no se toca. */
+  document.querySelectorAll('[data-share-meal]').forEach(b =>
+    b.onclick = () => {
+      const row = rows.find(r => r.id === b.dataset.shareMeal);
+      if (row) foodlibOpenShare(foodlibFromMeal(row));
     });
   renderActivity(date);
 }
@@ -22121,11 +22266,18 @@ function acWire(input, box, mode) {
   if (!input || !box || input.dataset.acWired) return;
   input.dataset.acWired = '1';
   const close = () => { box.innerHTML = ''; };
-  const render = () => {
-    const hits = acSearch(input.value);
-    if (!hits.length) { close(); return; }
-    box.innerHTML = `<span class="ac-head"><span>${t('ac.title')}</span><button type="button" class="ac-x" aria-label="${esc(t('client.close'))}">✕</button></span>` +
-      hits.map((e, i) => `<button type="button" class="pl-sug-item" data-ac-i="${i}"><span class="sg-name">${esc(e.name)}</span><span class="sg-meta">${esc(acMeta(e))}</span></button>`).join('');
+  const paint = (hits, comm) => {
+    if (!hits.length && !comm.length) { close(); return; }
+    let html = '';
+    if (hits.length) {
+      html += `<span class="ac-head"><span>${t('ac.title')}</span><button type="button" class="ac-x" aria-label="${esc(t('client.close'))}">✕</button></span>` +
+        hits.map((e, i) => `<button type="button" class="pl-sug-item" data-ac-i="${i}"><span class="sg-name">${esc(e.name)}</span><span class="sg-meta">${esc(acMeta(e))}</span></button>`).join('');
+    }
+    if (comm.length) {
+      html += `<span class="ac-head"><span>${t('ac.community')}</span>${hits.length ? '' : `<button type="button" class="ac-x" aria-label="${esc(t('client.close'))}">✕</button>`}</span>` +
+        comm.map((f, i) => `<button type="button" class="pl-sug-item" data-fl-i="${i}"><span class="sg-name">${esc(f.name)}</span><span class="sg-meta">${esc(acMeta(foodlibEntry(f)))}</span><span class="fl-tag">${esc(t('foodlib.communityTag'))}</span></button>`).join('');
+    }
+    box.innerHTML = html;
     const x = box.querySelector('.ac-x');
     if (x) x.addEventListener('mousedown', ev => { ev.preventDefault(); close(); try { input.focus({ preventScroll: true }); } catch {} });
     box.querySelectorAll('[data-ac-i]').forEach(b => b.addEventListener('mousedown', ev => {
@@ -22133,6 +22285,31 @@ function acWire(input, box, mode) {
       acApply(input, hits[Number(b.dataset.acI)], mode);
       close();
     }));
+    box.querySelectorAll('[data-fl-i]').forEach(b => b.addEventListener('mousedown', ev => {
+      ev.preventDefault();
+      acApply(input, foodlibEntry(comm[Number(b.dataset.flI)]), mode);
+      close();
+    }));
+  };
+  const render = () => {
+    const hits = acSearch(input.value);
+    paint(hits, []);
+    /* SEGUNDA FUENTE — Biblioteca comunitaria de alimentos: rellena
+       los huecos hasta 6 SOLO si el historial no los llena; consulta
+       por prefijo sobre nameKey con debounce de 250 ms y caché de
+       sesión (diseño §3.1/§4.3: si el historial ya da 6, cero
+       lecturas). Lo que ya está en el historial propio nunca se
+       ofrece como comunitario (§2.3). */
+    if (hits.length >= 6) return;
+    const q = acNorm(input.value);
+    if (q.length < 2) return;
+    clearTimeout(input._flTimer);
+    input._flTimer = setTimeout(async () => {
+      if (acNorm(input.value) !== q) return;
+      const comm = await foodlibSearch(q, 6 - hits.length).catch(() => []);
+      if (acNorm(input.value) !== q) return;
+      paint(hits, comm);
+    }, 250);
   };
   input.addEventListener('input', render);
   input.addEventListener('focus', render);
@@ -22151,6 +22328,431 @@ function acWireAltDesc() {
 acWire($('m-food'), $('ac-sug-food'), 'food');
 acWire($('m-desc'), $('ac-sug-desc'), 'desc');
 acWire($('food-text-desc'), $('ac-sug-text'), 'desc');
+
+/* ============ BIBLIOTECA COMUNITARIA DE ALIMENTOS (2026-10-30) ============
+   Diseño: DISENO-BIBLIOTECA-ALIMENTOS-COMUNIDAD-2026-10-30.md.
+   Decisiones de Ronald P1-P5 (chat, 2026-10-30 18:26-18:31 CDT) y su
+   «aprobado y ejecútalo» (correo 18:13 CDT). DOS colecciones:
+   food_library — la ficha pública SANEADA: sin autor, sin fecha, sin
+   procedencia (no «ocultos»: no existen en el dato, y la lista
+   cerrada de las reglas hace imposible escribirlos);
+   food_contrib — la antesala privada (aportes y reportes): la leen
+   solo su autor y los curadores (administrador y entrenadores, P3).
+   Entrada SOLO por opt-in expreso por alimento (P1); también valen
+   fichas nacidas de IA (P4) y la marca puede ir en el nombre (P5):
+   el filtro es el motor de posibles errores + la curaduría. Adoptar
+   una ficha rellena el formulario por acApply (con su reescalado
+   AUTH-089) y al guardar escribe un nutrition_meals propio y normal
+   por la cláusula de siempre: la biblioteca es el arranque y el
+   historial personal toma el relevo. */
+const foodlibSugCache = new Map(); // prefijo normalizado -> filas públicas de la sesión
+const foodlibRows = new Map();     // id -> ficha pública pintada en la ventana
+let foodlibLastKey = null, foodlibQuery = '', foodlibIsOpen = false;
+let foodlibOfferData = null, flShareBase = null;
+
+function foodlibCurator() { return ROLE === 'administrador' || ROLE === 'entrenador'; }
+function foodlibQtyText(f) {
+  return f.qtyUnit === 'unidad'
+    ? `${acNum(f.qtyNum)} unidad (${acNum(num(f.qtyNum) * num(f.pieceGrams))} g)`
+    : `${acNum(f.qtyNum)} ${f.qtyUnit}`;
+}
+function foodlibEntry(f) {
+  return { key: f.nameKey || acNorm(f.name), name: f.name, qty: foodlibQtyText(f),
+    kcal: num(f.kcal), prot: num(f.prot), carb: num(f.carb), sugar: num(f.sugar), fat: num(f.fat) };
+}
+function foodlibBaseOf(v) { return v.qtyUnit === 'unidad' ? num(v.qtyNum) * num(v.pieceGrams) : num(v.qtyNum); }
+function foodlibReasonText(code) { return t('foodlib.reason.' + (code === 'no-unico' ? 'nounico' : code)); }
+/* MOTOR DE POSIBLES ERRORES (diseño §2.2): rechazos duros (no entra
+   ni a la antesala) y señales blandas que viajan como flags para la
+   curaduría. Las mismas guardias duras viven en las reglas: lo que
+   aquí se detecta, el servidor lo exige. */
+function foodlibValidate(v) {
+  const hard = [], soft = [];
+  const name = String(v.name || '').trim();
+  if (name.length < 2 || name.length > 80) hard.push('name');
+  if (/@|https?:|www\./i.test(name) || /\d{7,}/.test(name)) hard.push('personal');
+  if (!(num(v.qtyNum) > 0)) hard.push('qty');
+  if (!['g', 'ml', 'unidad'].includes(v.qtyUnit)) hard.push('unit');
+  if (v.qtyUnit === 'unidad' && !(num(v.pieceGrams) >= 5 && num(v.pieceGrams) <= 500)) hard.push('piece');
+  for (const k of ['kcal', 'prot', 'carb', 'sugar', 'fat']) if (!(num(v[k]) >= 0)) hard.push('neg');
+  const base = foodlibBaseOf(v);
+  if (base > 0) {
+    if (num(v.kcal) * 100 > 950 * base) hard.push('density');
+    for (const k of ['prot', 'carb', 'sugar', 'fat']) if (num(v[k]) * 100 > 100 * base) hard.push('density');
+    if (num(v.sugar) > num(v.carb) + 1) hard.push('sugar');
+    const atw = 4 * num(v.prot) + 4 * num(v.carb) + 9 * num(v.fat);
+    if (num(v.kcal) > 0 && Math.abs(atw - num(v.kcal)) > 0.30 * num(v.kcal)) soft.push('atwater');
+    if (num(v.kcal) * 100 > 700 * base) soft.push('densityHigh');
+    if (/,/.test(name) || / con /i.test(name)) soft.push('compound');
+  }
+  return { hard: [...new Set(hard)], soft: [...new Set(soft)] };
+}
+function foodlibFlagsText(flags) {
+  const map = { atwater: 'foodlib.flag.atwater', densityHigh: 'foodlib.flag.densityHigh', compound: 'foodlib.flag.compound', dupDiverge: 'foodlib.flag.dupDiverge' };
+  return (flags || []).filter(f => map[f]).map(f => t(map[f])).join(' · ');
+}
+/* Segunda fuente del buscador de alimentos (ver acWire): prefijo
+   sobre nameKey, acotada por limit(12) y cacheada por prefijo en la
+   sesión; excluye TODO lo que ya vive en el historial propio. */
+async function foodlibSearch(q, n) {
+  const own = new Set(acIndex().map(e => e.key));
+  let rows = foodlibSugCache.get(q);
+  if (!rows) {
+    const snap = await getDocs(query(collection(db, 'food_library'),
+      where('nameKey', '>=', q), where('nameKey', '<', q + '\uf8ff'), limit(12)));
+    rows = snap.docs.map(d => ({ id: d.id, ...d.data() }));
+    foodlibSugCache.set(q, rows);
+  }
+  return rows.filter(f => !own.has(f.nameKey)).slice(0, n);
+}
+/* Deriva la cantidad de referencia de la ficha desde el qty TEXTUAL
+   del registro guardado, con el parser vivo de «Repetir»: gramos y
+   ml directos; piezas -> 'unidad' con los gramos por pieza del
+   paréntesis «(100 g)» cuando el registro lo trae. Lo no convertible
+   (taza, plato, texto libre) deja la cantidad vacía y la hoja la
+   pide: el par cantidad<->valores nunca nace descuadrado. */
+function foodlibFromMeal(m) {
+  const v = { name: String((m && m.food) || '').trim(), kcal: num(m && m.kcal), prot: num(m && m.prot),
+    carb: num(m && m.carb), sugar: num(m && m.sugar), fat: num(m && m.fat),
+    qtyNum: NaN, qtyUnit: 'g', pieceGrams: NaN };
+  const p = repeatParseQty((m && m.qty) || '');
+  if (p) {
+    if (p.pieces) {
+      v.qtyNum = p.num; v.qtyUnit = 'unidad';
+      const tot = String((m && m.qty) || '').match(/\((\d+(?:\.\d+)?)\s*g\)/);
+      if (tot && p.num > 0) v.pieceGrams = Math.round((parseFloat(tot[1]) / p.num) * 10) / 10;
+    } else if (/^(g|gr|gramos?)$/.test(p.unit) || p.unit === '') { v.qtyNum = p.num; v.qtyUnit = 'g'; }
+    else if (p.unit === 'ml') { v.qtyNum = p.num; v.qtyUnit = 'ml'; }
+  }
+  return v;
+}
+/* ---------- Hoja de aporte (consentimiento expreso por alimento) ---------- */
+function foodlibOpenShare(v) {
+  const set = (id, val) => { const el = $(id); if (el) el.value = val; };
+  set('fl-name', v.name || '');
+  set('fl-qty', Number.isFinite(v.qtyNum) ? v.qtyNum : '');
+  set('fl-unit', v.qtyUnit || 'g');
+  set('fl-piece', Number.isFinite(v.pieceGrams) ? v.pieceGrams : '');
+  set('fl-kcal', v.kcal); set('fl-prot', v.prot); set('fl-carb', v.carb); set('fl-sugar', v.sugar); set('fl-fat', v.fat);
+  flShareBase = { grams: foodlibBaseOf(v) || 0, kcal: num(v.kcal), prot: num(v.prot), carb: num(v.carb), sugar: num(v.sugar), fat: num(v.fat) };
+  foodlibShareSync();
+  const m = $('foodlib-share-modal'); if (m) m.style.display = '';
+}
+function foodlibShareVals() {
+  return { name: $('fl-name').value.trim(), qtyNum: num($('fl-qty').value), qtyUnit: $('fl-unit').value,
+    pieceGrams: num($('fl-piece').value), kcal: num($('fl-kcal').value), prot: num($('fl-prot').value),
+    carb: num($('fl-carb').value), sugar: num($('fl-sugar').value), fat: num($('fl-fat').value) };
+}
+function foodlibShareSync() {
+  const wrap = $('fl-piece-wrap'); if (wrap) wrap.style.display = $('fl-unit').value === 'unidad' ? '' : 'none';
+  const box = $('foodlib-share-flags'); if (!box) return;
+  const errs = foodlibValidate(foodlibShareVals());
+  box.innerHTML = errs.soft.length ? `<p class="photo-hint">⚠️ ${esc(t('foodlib.softNote', { flags: foodlibFlagsText(errs.soft) }))}</p>` : '';
+}
+/* Si la cantidad de referencia cambia en la hoja, las métricas se
+   reescalan en proporción desde el par original. El registro
+   guardado jamás se toca: esto es solo la ficha que se comparte. */
+function foodlibShareRescale() {
+  if (!flShareBase || !(flShareBase.grams > 0)) return;
+  const v = foodlibShareVals();
+  const g = foodlibBaseOf(v);
+  if (!(g > 0) || g === flShareBase.grams) { foodlibShareSync(); return; }
+  const f = g / flShareBase.grams, r1 = x => Math.round(x * 10) / 10;
+  $('fl-kcal').value = Math.round(flShareBase.kcal * f);
+  $('fl-prot').value = r1(flShareBase.prot * f);
+  $('fl-carb').value = r1(flShareBase.carb * f);
+  $('fl-sugar').value = r1(flShareBase.sugar * f);
+  $('fl-fat').value = r1(flShareBase.fat * f);
+  flShareBase = { grams: g, kcal: num($('fl-kcal').value), prot: num($('fl-prot').value), carb: num($('fl-carb').value), sugar: num($('fl-sugar').value), fat: num($('fl-fat').value) };
+  foodlibShareSync();
+}
+async function foodlibSubmitShare(ev) {
+  ev.preventDefault();
+  const v = foodlibShareVals();
+  const errs = foodlibValidate(v);
+  if (errs.hard.includes('personal')) { toast(t('foodlib.errName'), true); return; }
+  if (errs.hard.length) { toast(t('foodlib.errHard'), true); return; }
+  v.nameKey = acNorm(v.name);
+  const flags = [...errs.soft];
+  const btn = ev.target.querySelector('button[type="submit"]');
+  if (btn) btn.disabled = true;
+  try {
+    /* MOTOR ACTIVO ANTI-DUPLICADOS (diseño §2.3): contra la
+       biblioteca pública (misma clave y unidad: dentro de ±10 % en
+       kcal ya está; divergencia > 25 % pasa señalada) y contra la
+       propia antesala (un pendiente con la misma clave no se
+       duplica: se muestra su estado). */
+    const dupSnap = await getDocs(query(collection(db, 'food_library'), where('nameKey', '==', v.nameKey), limit(5)));
+    for (const d of dupSnap.docs) {
+      const f = d.data();
+      if (num(f.kcal) > 0 && Math.abs(num(f.kcal) - v.kcal) > 0.25 * num(f.kcal)) flags.push('dupDiverge');
+      else if (f.qtyUnit === v.qtyUnit) { toast(t('foodlib.alreadyLib'), true); return; }
+    }
+    const uid = auth.currentUser.uid;
+    const mineSnap = await getDocs(query(collection(db, 'food_contrib'), where('contributorUid', '==', uid)));
+    if (mineSnap.docs.some(d => { const a = d.data(); return a.kind === 'aporte' && a.estado === 'pendiente' && a.nameKey === v.nameKey; })) {
+      toast(t('foodlib.alreadyPending'), true); return;
+    }
+    const data = { kind: 'aporte', name: v.name, nameKey: v.nameKey, qtyNum: v.qtyNum, qtyUnit: v.qtyUnit,
+      kcal: v.kcal, prot: v.prot, carb: v.carb, sugar: v.sugar, fat: v.fat,
+      flags: [...new Set(flags)], contributorUid: uid,
+      contributorName: (typeof UDATA !== 'undefined' && UDATA && (UDATA.name || UDATA.email)) || '',
+      estado: 'pendiente', createdAt: serverTimestamp() };
+    if (v.qtyUnit === 'unidad') data.pieceGrams = v.pieceGrams;
+    await addDoc(collection(db, 'food_contrib'), data);
+    $('foodlib-share-modal').style.display = 'none';
+    toast(t('foodlib.shareOk'));
+  } catch (e) { toast(t('foodlib.errHard'), true); }
+  finally { if (btn) btn.disabled = false; }
+}
+/* ---------- Oferta tras guardar (punto de entrada 1) ---------- */
+function foodlibOffer(data) {
+  foodlibOfferData = data;
+  const box = $('foodlib-offer'); if (!box) return;
+  box.innerHTML = `<span>${esc(t('foodlib.offerQ', { name: data.food }))}</span><span class="foodlib-offer-btns"><button type="button" class="btn-primary btn-sm" id="foodlib-offer-yes">${esc(t('foodlib.shareShort'))}</button><button type="button" class="btn-ghost btn-sm" id="foodlib-offer-no">${esc(t('foodlib.offerNo'))}</button></span>`;
+  box.style.display = '';
+  $('foodlib-offer-yes').onclick = () => { const d = foodlibOfferData; foodlibOfferClear(); if (d) foodlibOpenShare(foodlibFromMeal(d)); };
+  $('foodlib-offer-no').onclick = () => foodlibOfferClear();
+}
+function foodlibOfferClear() {
+  const box = $('foodlib-offer');
+  if (box) { box.style.display = 'none'; box.innerHTML = ''; }
+  foodlibOfferData = null;
+}
+/* ---------- Ventana «Alimentos de la comunidad» (descubrir) ---------- */
+function foodlibRowHTML(f) {
+  const e = foodlibEntry(f);
+  return `<div class="foodlib-row" data-fl-row="${f.id}">
+    <div class="foodlib-row-main"><span class="sg-name">${esc(f.name)}</span><span class="sg-meta">${esc(acMeta(e))}</span></div>
+    <div class="foodlib-row-btns">
+      <button type="button" class="btn-primary btn-sm" data-fl-use="${f.id}">${esc(t('foodlib.use'))}</button>
+      <button type="button" class="btn-ghost btn-sm" data-fl-report="${f.id}">${esc(t('foodlib.report'))}</button>
+      ${foodlibCurator() ? `<button type="button" class="btn-ghost btn-sm" data-fl-edit="${f.id}">${esc(t('foodlib.edit'))}</button><button type="button" class="btn-ghost btn-sm" data-fl-remove="${f.id}">${esc(t('foodlib.removeLib'))}</button>` : ''}
+    </div>
+    <div class="foodlib-row-sub" id="fl-sub-${f.id}"></div>
+  </div>`;
+}
+function foodlibWireRows(scope) {
+  scope.querySelectorAll('[data-fl-use]').forEach(b => b.onclick = () => {
+    const f = foodlibRows.get(b.dataset.flUse); if (!f) return;
+    aiOpenMealModal();
+    acApply($('m-food'), foodlibEntry(f), 'food');
+  });
+  scope.querySelectorAll('[data-fl-report]').forEach(b => b.onclick = () => foodlibReportOpen(b.dataset.flReport));
+  scope.querySelectorAll('[data-fl-edit]').forEach(b => b.onclick = () => foodlibEditOpen(b.dataset.flEdit));
+  scope.querySelectorAll('[data-fl-remove]').forEach(b => b.onclick = async () => {
+    if (!confirm(t('foodlib.removeConfirm'))) return;
+    try {
+      await deleteDoc(doc(db, 'food_library', b.dataset.flRemove));
+      foodlibSugCache.clear(); foodlibRows.delete(b.dataset.flRemove);
+      toast(t('foodlib.removedLib'));
+      foodlibLoadList(true);
+    } catch { toast(t('foodlib.errHard'), true); }
+  });
+}
+async function foodlibLoadList(reset) {
+  const list = $('foodlib-list'); if (!list) return;
+  if (reset) { foodlibLastKey = null; list.innerHTML = ''; foodlibRows.clear(); }
+  const conds = [];
+  if (foodlibQuery) { conds.push(where('nameKey', '>=', foodlibQuery), where('nameKey', '<', foodlibQuery + '\uf8ff')); }
+  else conds.push(where('nameKey', '>=', ''));
+  if (foodlibLastKey) conds.push(where('nameKey', '>', foodlibLastKey));
+  conds.push(limit(51));
+  let docs = [];
+  try {
+    const snap = await getDocs(query(collection(db, 'food_library'), ...conds));
+    docs = snap.docs.map(d => ({ id: d.id, ...d.data() }));
+  } catch { if (reset) list.innerHTML = `<p class="wempty">${esc(t('foodlib.empty'))}</p>`; return; }
+  const page = docs.slice(0, 50);
+  if (docs.length) foodlibLastKey = docs[Math.min(49, docs.length - 1)].nameKey;
+  const more = $('foodlib-more'); if (more) more.style.display = docs.length > 50 ? '' : 'none';
+  if (reset && !page.length) { list.innerHTML = `<p class="wempty">${esc(t('foodlib.empty'))}</p>`; return; }
+  for (const f of page) foodlibRows.set(f.id, f);
+  list.insertAdjacentHTML('beforeend', page.map(f => foodlibRowHTML(f)).join(''));
+  foodlibWireRows(list);
+}
+function foodlibReportOpen(id) {
+  const f = foodlibRows.get(id); const sub = $('fl-sub-' + id); if (!f || !sub) return;
+  sub.innerHTML = `<label>${esc(t('foodlib.reportReason'))} <select id="fl-rep-reason-${id}">${['valores', 'duplicado', 'nombre', 'otro'].map(r => `<option value="${r}">${esc(foodlibReasonText(r))}</option>`).join('')}</select></label> <button type="button" class="btn-primary btn-sm" id="fl-rep-send-${id}">${esc(t('foodlib.reportSend'))}</button>`;
+  $('fl-rep-send-' + id).onclick = async () => {
+    try {
+      await addDoc(collection(db, 'food_contrib'), { kind: 'reporte', publicId: id, foodName: f.name,
+        reason: $('fl-rep-reason-' + id).value, reporterUid: auth.currentUser.uid, estado: 'pendiente', createdAt: serverTimestamp() });
+      sub.innerHTML = '';
+      toast(t('foodlib.reportSent'));
+    } catch { toast(t('foodlib.errHard'), true); }
+  };
+}
+function foodlibValFieldsHTML(prefix, v) {
+  return `<label>${esc(t('form.food'))} <input type="text" data-vf="name" value="${esc(v.name || '')}" maxlength="80"></label>
+    <div class="frow3">
+      <label>${esc(t('form.amount'))} <input type="number" data-vf="qtyNum" step="any" value="${v.qtyNum != null && Number.isFinite(num(v.qtyNum)) ? v.qtyNum : ''}"></label>
+      <label>${esc(t('foodlib.f.unit'))} <select data-vf="qtyUnit">${['g', 'ml', 'unidad'].map(u => `<option value="${u}"${v.qtyUnit === u ? ' selected' : ''}>${esc(t('foodlib.unit.' + u))}</option>`).join('')}</select></label>
+      <label data-vf-piece style="${v.qtyUnit === 'unidad' ? '' : 'display:none'}">${esc(t('foodlib.f.piece'))} <input type="number" data-vf="pieceGrams" step="any" value="${v.pieceGrams != null && Number.isFinite(num(v.pieceGrams)) ? v.pieceGrams : ''}"></label>
+    </div>
+    <div class="frow3">
+      <label>${esc(t('form.kcal'))} <input type="number" data-vf="kcal" step="any" value="${v.kcal != null ? v.kcal : ''}"></label>
+      <label>${esc(t('form.protein'))} <input type="number" data-vf="prot" step="any" value="${v.prot != null ? v.prot : ''}"></label>
+      <label>${esc(t('form.carbs'))} <input type="number" data-vf="carb" step="any" value="${v.carb != null ? v.carb : ''}"></label>
+    </div>
+    <div class="frow3">
+      <label>${esc(t('form.sugar'))} <input type="number" data-vf="sugar" step="any" value="${v.sugar != null ? v.sugar : ''}"></label>
+      <label>${esc(t('form.fat'))} <input type="number" data-vf="fat" step="any" value="${v.fat != null ? v.fat : ''}"></label>
+    </div>`;
+}
+function foodlibValsFrom(scope) {
+  const g = k => { const el = scope.querySelector(`[data-vf="${k}"]`); return el ? el.value : ''; };
+  return { name: String(g('name')).trim(), qtyNum: num(g('qtyNum')), qtyUnit: g('qtyUnit'),
+    pieceGrams: num(g('pieceGrams')), kcal: num(g('kcal')), prot: num(g('prot')),
+    carb: num(g('carb')), sugar: num(g('sugar')), fat: num(g('fat')) };
+}
+function foodlibCleanFicha(v) {
+  const ficha = { name: v.name, nameKey: acNorm(v.name), qtyNum: v.qtyNum, qtyUnit: v.qtyUnit,
+    kcal: v.kcal, prot: v.prot, carb: v.carb, sugar: v.sugar, fat: v.fat };
+  if (v.qtyUnit === 'unidad') ficha.pieceGrams = v.pieceGrams;
+  return ficha;
+}
+/* Corrección curada de una ficha pública (diseño §2.5): lo que se
+   publica es la versión corregida; las copias ya adoptadas son el
+   diario de cada quien y NO se reescriben. */
+function foodlibEditOpen(id) {
+  const f = foodlibRows.get(id); const sub = $('fl-sub-' + id); if (!f || !sub) return;
+  sub.innerHTML = foodlibValFieldsHTML('lib', f) + `<button type="button" class="btn-primary btn-sm" id="fl-edit-save-${id}">${esc(t('foodlib.editSave'))}</button>`;
+  const unitSel = sub.querySelector('[data-vf="qtyUnit"]');
+  if (unitSel) unitSel.onchange = () => { const w = sub.querySelector('[data-vf-piece]'); if (w) w.style.display = unitSel.value === 'unidad' ? '' : 'none'; };
+  $('fl-edit-save-' + id).onclick = async () => {
+    const v = foodlibValsFrom(sub);
+    if (foodlibValidate(v).hard.length) { toast(t('foodlib.errHard'), true); return; }
+    const ficha = foodlibCleanFicha(v);
+    const upd = { ...ficha };
+    if (ficha.qtyUnit !== 'unidad') upd.pieceGrams = deleteField();
+    try {
+      await setDoc(doc(db, 'food_library', id), upd, { merge: true });
+      foodlibSugCache.clear();
+      toast(t('foodlib.correctionSaved'));
+      foodlibLoadList(true);
+    } catch { toast(t('foodlib.errHard'), true); }
+  };
+}
+/* ---------- Compartir desde el propio historial (punto de entrada 3) ---------- */
+function foodlibPick() {
+  const sub = $('foodlib-sub'); if (!sub) return;
+  const idx = acIndex();
+  if (!idx.length) { sub.innerHTML = `<h4>${esc(t('foodlib.pickTitle'))}</h4><p class="wempty">${esc(t('foodlib.pickEmpty'))}</p>`; return; }
+  sub.innerHTML = `<h4>${esc(t('foodlib.pickTitle'))}</h4>` + idx.map((e, i) => `<div class="foodlib-row"><div class="foodlib-row-main"><span class="sg-name">${esc(e.name)}</span><span class="sg-meta">${esc(acMeta(e))}</span></div><div class="foodlib-row-btns"><button type="button" class="btn-primary btn-sm" data-fl-pick="${i}">${esc(t('foodlib.shareShort'))}</button></div></div>`).join('');
+  sub.querySelectorAll('[data-fl-pick]').forEach(b => b.onclick = () => {
+    const e = idx[Number(b.dataset.flPick)];
+    foodlibOpenShare(foodlibFromMeal({ food: e.name, qty: e.qty, kcal: e.kcal, prot: e.prot, carb: e.carb, sugar: e.sugar, fat: e.fat }));
+  });
+}
+/* ---------- Mis aportes (su propio dato, en la antesala) ---------- */
+async function foodlibLoadMine() {
+  const sub = $('foodlib-sub'); if (!sub) return;
+  const uid = auth.currentUser.uid;
+  let mine = [];
+  try {
+    const snap = await getDocs(query(collection(db, 'food_contrib'), where('contributorUid', '==', uid)));
+    mine = snap.docs.map(d => ({ id: d.id, ...d.data() })).filter(a => a.kind === 'aporte')
+      .sort((a, b) => String(a.name).localeCompare(String(b.name)));
+  } catch {}
+  if (!mine.length) { sub.innerHTML = `<h4>${esc(t('foodlib.mineBtn'))}</h4><p class="wempty">${esc(t('foodlib.mineEmpty'))}</p>`; return; }
+  sub.innerHTML = `<h4>${esc(t('foodlib.mineBtn'))}</h4>` + mine.map(a => `<div class="foodlib-row"><div class="foodlib-row-main"><span class="sg-name">${esc(a.name)}</span><span class="sg-meta">${esc(acMeta(foodlibEntry(a)))}</span><span class="fl-state fl-state-${esc(a.estado)}">${esc(t('foodlib.state.' + a.estado))}</span>${a.estado === 'aprobado' ? `<span class="sg-meta">${esc(t('foodlib.mineApprovedNote'))}</span>` : ''}${a.estado === 'rechazado' && a.rejectReason ? `<span class="sg-meta">${esc(t('foodlib.rejectReasonNote', { reason: foodlibReasonText(a.rejectReason) }))}</span>` : ''}</div><div class="foodlib-row-btns">${a.estado === 'pendiente' ? `<button type="button" class="btn-ghost btn-sm" data-fl-withdraw="${a.id}">${esc(t('foodlib.withdraw'))}</button>` : ''}${(a.estado === 'rechazado' || a.estado === 'retirado') ? `<button type="button" class="btn-ghost btn-sm" data-fl-mdel="${a.id}">${esc(t('foodlib.delete'))}</button>` : ''}</div></div>`).join('');
+  sub.querySelectorAll('[data-fl-withdraw]').forEach(b => b.onclick = async () => {
+    try { await setDoc(doc(db, 'food_contrib', b.dataset.flWithdraw), { estado: 'retirado' }, { merge: true }); toast(t('foodlib.withdrawn')); foodlibLoadMine(); }
+    catch { toast(t('foodlib.errHard'), true); }
+  });
+  sub.querySelectorAll('[data-fl-mdel]').forEach(b => b.onclick = async () => {
+    try { await deleteDoc(doc(db, 'food_contrib', b.dataset.flMdel)); toast(t('foodlib.deleted')); foodlibLoadMine(); }
+    catch { toast(t('foodlib.errHard'), true); }
+  });
+}
+/* ---------- Bandeja de curaduría (administrador y entrenadores) ---------- */
+async function foodlibLoadTray() {
+  const sub = $('foodlib-sub'); if (!sub) return;
+  let docs = [];
+  try {
+    const snap = await getDocs(query(collection(db, 'food_contrib'), where('estado', '==', 'pendiente')));
+    docs = snap.docs.map(d => ({ id: d.id, ...d.data() }));
+  } catch {}
+  const aportes = docs.filter(d => d.kind === 'aporte');
+  const reportes = docs.filter(d => d.kind === 'reporte');
+  if (!docs.length) { sub.innerHTML = `<h4>${esc(t('foodlib.trayBtn'))}</h4><p class="wempty">${esc(t('foodlib.trayEmpty'))}</p>`; return; }
+  sub.innerHTML = `<h4>${esc(t('foodlib.trayBtn'))} (${docs.length})</h4>` +
+    aportes.map(a => { const flags = foodlibFlagsText(a.flags); return `<div class="foodlib-row foodlib-tray-row" data-tray="${a.id}">
+      <div class="foodlib-row-main"><span class="sg-name">${esc(a.name)}</span><span class="sg-meta">${esc(t('foodlib.trayBy', { name: a.contributorName || a.contributorUid }))}</span>${flags ? `<span class="sg-meta">⚠️ ${esc(flags)}</span>` : ''}</div>
+      ${foodlibValFieldsHTML('tray', a)}
+      <div class="foodlib-row-btns">
+        <button type="button" class="btn-primary btn-sm" data-fl-approve="${a.id}">${esc(t('libcom.approve'))}</button>
+        <select data-tray-reason="${a.id}">${['valores', 'duplicado', 'no-unico', 'nombre'].map(r => `<option value="${r}">${esc(foodlibReasonText(r))}</option>`).join('')}</select>
+        <button type="button" class="btn-ghost btn-sm" data-fl-reject="${a.id}">${esc(t('libcom.reject'))}</button>
+      </div></div>`; }).join('') +
+    reportes.map(r => `<div class="foodlib-row"><div class="foodlib-row-main"><span class="sg-name">${esc(t('foodlib.reportOf', { name: r.foodName }))}</span><span class="sg-meta">${esc(foodlibReasonText(r.reason))}</span></div><div class="foodlib-row-btns"><button type="button" class="btn-primary btn-sm" data-fl-resolve="${r.id}">${esc(t('foodlib.state.resuelto'))}</button></div></div>`).join('');
+  sub.querySelectorAll('[data-tray]').forEach(row => {
+    const unitSel = row.querySelector('[data-vf="qtyUnit"]');
+    if (unitSel) unitSel.onchange = () => { const w = row.querySelector('[data-vf-piece]'); if (w) w.style.display = unitSel.value === 'unidad' ? '' : 'none'; };
+  });
+  sub.querySelectorAll('[data-fl-approve]').forEach(b => b.onclick = async () => {
+    const row = sub.querySelector(`[data-tray="${b.dataset.flApprove}"]`); if (!row) return;
+    const v = foodlibValsFrom(row);
+    if (foodlibValidate(v).hard.length) { toast(t('foodlib.errHard'), true); return; }
+    try {
+      const ref = await addDoc(collection(db, 'food_library'), foodlibCleanFicha(v));
+      await setDoc(doc(db, 'food_contrib', b.dataset.flApprove),
+        { estado: 'aprobado', publicId: ref.id, resolvedBy: auth.currentUser.uid, resolvedAt: serverTimestamp() }, { merge: true });
+      foodlibSugCache.clear();
+      toast(t('foodlib.publishedToast'));
+      foodlibLoadTray();
+      if (foodlibIsOpen) foodlibLoadList(true);
+    } catch { toast(t('foodlib.errHard'), true); }
+  });
+  sub.querySelectorAll('[data-fl-reject]').forEach(b => b.onclick = async () => {
+    const sel = sub.querySelector(`[data-tray-reason="${b.dataset.flReject}"]`);
+    try {
+      await setDoc(doc(db, 'food_contrib', b.dataset.flReject),
+        { estado: 'rechazado', rejectReason: sel ? sel.value : 'valores', resolvedBy: auth.currentUser.uid, resolvedAt: serverTimestamp() }, { merge: true });
+      toast(t('foodlib.rejectedToast'));
+      foodlibLoadTray();
+    } catch { toast(t('foodlib.errHard'), true); }
+  });
+  sub.querySelectorAll('[data-fl-resolve]').forEach(b => b.onclick = async () => {
+    try {
+      await setDoc(doc(db, 'food_contrib', b.dataset.flResolve),
+        { estado: 'resuelto', resolvedBy: auth.currentUser.uid, resolvedAt: serverTimestamp() }, { merge: true });
+      toast(t('foodlib.resolvedToast'));
+      foodlibLoadTray();
+    } catch { toast(t('foodlib.errHard'), true); }
+  });
+}
+/* ---------- Cableado de la ventana y de la hoja ---------- */
+{
+  const toggle = $('foodlib-toggle');
+  if (toggle) toggle.onclick = () => {
+    const body = $('foodlib-body'); if (!body) return;
+    const open = body.style.display === 'none';
+    body.style.display = open ? '' : 'none';
+    foodlibIsOpen = open;
+    if (open) {
+      const tb = $('foodlib-tray-open'); if (tb) tb.style.display = foodlibCurator() ? '' : 'none';
+      foodlibLoadList(true);
+    }
+  };
+  const q = $('foodlib-q');
+  if (q) q.addEventListener('input', () => {
+    clearTimeout(q._flT);
+    q._flT = setTimeout(() => { foodlibQuery = acNorm(q.value); foodlibLoadList(true); }, 300);
+  });
+  const more = $('foodlib-more'); if (more) more.onclick = () => foodlibLoadList(false);
+  const shareOpen = $('foodlib-share-open'); if (shareOpen) shareOpen.onclick = () => foodlibPick();
+  const mineOpen = $('foodlib-mine-open'); if (mineOpen) mineOpen.onclick = () => foodlibLoadMine();
+  const trayOpen = $('foodlib-tray-open'); if (trayOpen) trayOpen.onclick = () => foodlibLoadTray();
+  const form = $('form-foodlib-share'); if (form) form.addEventListener('submit', foodlibSubmitShare);
+  const cancel = $('foodlib-share-cancel'); if (cancel) cancel.onclick = () => { $('foodlib-share-modal').style.display = 'none'; };
+  const x = $('foodlib-share-x'); if (x) x.onclick = () => { $('foodlib-share-modal').style.display = 'none'; };
+  const modal = $('foodlib-share-modal');
+  if (modal) modal.addEventListener('click', e => { if (e.target.id === 'foodlib-share-modal') modal.style.display = 'none'; });
+  for (const id of ['fl-qty', 'fl-unit', 'fl-piece']) { const el = $(id); if (el) el.addEventListener('change', foodlibShareRescale); }
+  for (const id of ['fl-name', 'fl-kcal', 'fl-prot', 'fl-carb', 'fl-sugar', 'fl-fat']) { const el = $(id); if (el) el.addEventListener('input', foodlibShareSync); }
+}
 
 $('m-photo').addEventListener('change', e => {
   const f = e.target.files[0];
@@ -22233,6 +22835,10 @@ $('form-meal').addEventListener('submit', async e => {
     } else {
       toast(t('msg.mealSaved'));
     }
+    /* Oferta de compartir lo recién guardado (opt-in por alimento,
+       diseño §2.1 punto 1): aviso con botón en el panel del diario;
+       «Ahora no» o cambiar de fecha lo retira. */
+    try { foodlibOffer(data); } catch {}
   } finally {
     mealSaving = false;
     if (saveBtn) saveBtn.disabled = false;
@@ -24055,7 +24661,7 @@ document.addEventListener('keydown', e => { if (e.key === 'Escape') shareClose()
  *  - El SW (sw.js) solo cachea la cáscara del mismo origen en modo
  *    RED PRIMERO: Auth/Firestore/Worker jamás pasan por la caché.
  * ================================================================ */
-const PWA_SW_VERSION = '20261030-series-sesion';
+const PWA_SW_VERSION = '20261030-biblioteca-alimentos';
 let pwaDeferredPrompt = null;
 function pwaIsStandalone() {
   try {

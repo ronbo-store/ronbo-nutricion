@@ -21,7 +21,7 @@
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-title" content="RONBO FIT">
 <meta name="apple-mobile-web-app-status-bar-style" content="default">
-<link rel="stylesheet" href="styles.css?v=20261030-series-sesion">
+<link rel="stylesheet" href="styles.css?v=20261030-biblioteca-alimentos">
 <script defer src="https://cloud.umami.is/script.js" data-website-id="a29706d4-44a2-47cf-900a-5f74d74abfa8"></script>
 <script type="importmap">
 {
@@ -309,12 +309,38 @@
       </table>
       </div>
     </div>
+    <!-- BIBLIOTECA COMUNITARIA DE ALIMENTOS (2026-10-30): oferta de
+         compartir lo recién guardado (opt-in por alimento); la pinta
+         foodlibOffer() solo tras un guardado con éxito. -->
+    <div id="foodlib-offer" class="foodlib-offer" style="display:none"></div>
     <div>
       <div class="panel">
         <div class="summary-head">
           <button type="button" class="btn-secondary meal-manual-pill" id="btn-add-meal-manual" data-i18n="mealhelp.addManual">Add food manually</button>
         </div>
       </div>
+    </div>
+  </div>
+
+  <!-- BIBLIOTECA COMUNITARIA DE ALIMENTOS (2026-10-30): la ventana
+       «Alimentos de la comunidad» vive en el territorio de Comida,
+       bajo el diario. Perezosa: cero lecturas hasta abrirla. -->
+  <div class="panel" id="foodlib-panel">
+    <div class="block-head">
+      <h3 class="block-title" data-i18n="foodlib.title">🥗 Community foods</h3>
+      <button type="button" class="btn-ghost btn-sm" id="foodlib-toggle" data-i18n="foodlib.open">Browse</button>
+    </div>
+    <div id="foodlib-body" style="display:none">
+      <p class="progress-hint" data-i18n="foodlib.hint">Foods shared by people in the community and reviewed before they appear. No names and no dates: just the food and its values.</p>
+      <label><input type="text" id="foodlib-q" data-i18n-ph="foodlib.searchPh" placeholder="Search a food…"></label>
+      <div id="foodlib-list"></div>
+      <button type="button" class="btn-ghost btn-sm" id="foodlib-more" style="display:none" data-i18n="foodlib.more">Show more</button>
+      <div class="foodlib-actions">
+        <button type="button" class="btn-secondary btn-sm" id="foodlib-share-open" data-i18n="foodlib.shareBtn">Share a food</button>
+        <button type="button" class="btn-ghost btn-sm" id="foodlib-mine-open" data-i18n="foodlib.mineBtn">My contributions</button>
+        <button type="button" class="btn-ghost btn-sm" id="foodlib-tray-open" style="display:none" data-i18n="foodlib.trayBtn">Review tray</button>
+      </div>
+      <div id="foodlib-sub"></div>
     </div>
   </div>
 
@@ -1056,6 +1082,43 @@
   </div>
 </div>
 
+<!-- ============ FOODLIB SHARE MODAL (Biblioteca comunitaria de alimentos, 2026-10-30) ============ -->
+<div id="foodlib-share-modal" class="modal-backdrop" style="display:none">
+  <div class="modal">
+    <button type="button" class="pend-close modal-x" id="foodlib-share-x" aria-label="Close" data-i18n-aria="client.close">✕</button>
+    <h2 data-i18n="foodlib.shareTitle">Share this food</h2>
+    <p class="photo-hint" data-i18n="foodlib.shareExplain">Only the name and its values are shared — never your name, never the date, never the meal where you logged it. A reviewer checks every food before it appears for everyone.</p>
+    <div id="foodlib-share-flags"></div>
+    <form id="form-foodlib-share">
+      <label><span data-i18n="form.food">Food</span> <input type="text" id="fl-name" maxlength="80" required></label>
+      <div class="frow3">
+        <label><span data-i18n="form.amount">Amount</span> <input type="number" id="fl-qty" step="any" min="0" required></label>
+        <label><span data-i18n="foodlib.f.unit">Unit</span>
+          <select id="fl-unit">
+            <option value="g" data-i18n="foodlib.unit.g">grams (g)</option>
+            <option value="ml" data-i18n="foodlib.unit.ml">milliliters (ml)</option>
+            <option value="unidad" data-i18n="foodlib.unit.unidad">units</option>
+          </select></label>
+        <label id="fl-piece-wrap" style="display:none"><span data-i18n="foodlib.f.piece">g per unit</span> <input type="number" id="fl-piece" step="any" min="0"></label>
+      </div>
+      <div class="frow3">
+        <label><span data-i18n="form.kcal">Kcal</span> <input type="number" id="fl-kcal" step="any" min="0" required></label>
+        <label><span data-i18n="form.protein">Protein (g)</span> <input type="number" id="fl-prot" step="any" min="0" required></label>
+        <label><span data-i18n="form.carbs">Carbs (g)</span> <input type="number" id="fl-carb" step="any" min="0" required></label>
+      </div>
+      <div class="frow3">
+        <label><span data-i18n="form.sugar">Sugars (g)</span> <input type="number" id="fl-sugar" step="any" min="0" required></label>
+        <label><span data-i18n="form.fat">Fats (g)</span> <input type="number" id="fl-fat" step="any" min="0" required></label>
+        <label></label>
+      </div>
+      <div class="modal-foot">
+        <button type="button" class="btn-ghost" id="foodlib-share-cancel" data-i18n="form.cancel">Cancel</button>
+        <button type="submit" class="btn-primary" data-i18n="foodlib.shareSend">Share anonymously</button>
+      </div>
+    </form>
+  </div>
+</div>
+
 <!-- ============ WEIGHT MODAL ============ -->
 <div id="weight-modal" class="modal-backdrop" style="display:none">
   <div class="modal">
@@ -1319,6 +1382,6 @@
 <div id="toast" class="toast"></div>
 <div id="print-card" aria-hidden="true"></div>
 
-<script type="module" src="app.js?v=20261030-series-sesion"></script>
+<script type="module" src="app.js?v=20261030-biblioteca-alimentos"></script>
 </body>
 </html>
