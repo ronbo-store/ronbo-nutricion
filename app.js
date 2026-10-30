@@ -18446,6 +18446,13 @@ function renderActFlame(date) {
   if (num) num.textContent = fmt(Math.round(v.extras));
   const lab = $('act-flame-lab');
   if (lab) lab.textContent = t('act.flameBurned');
+  /* ARMONÍA DE FLOTANTES (2026-10-29): dentro del disco el rótulo
+     ya no se pinta; el texto completo vive como nombre accesible
+     y título del botón, compuesto con las claves de siempre y
+     refrescado en este mismo pintado (también al cambiar de
+     idioma, que llega aquí vía refreshDynamic → renderActivity). */
+  const full = fmt(Math.round(v.extras)) + ' ' + t('act.kcalUnit') + ' ' + t('act.flameBurned');
+  f.setAttribute('aria-label', full); f.title = full;
 }
 
 /* Botones flotantes de hobbies: los favoritos del usuario. */
@@ -22049,7 +22056,7 @@ document.addEventListener('keydown', e => { if (e.key === 'Escape') shareClose()
  *  - El SW (sw.js) solo cachea la cáscara del mismo origen en modo
  *    RED PRIMERO: Auth/Firestore/Worker jamás pasan por la caché.
  * ================================================================ */
-const PWA_SW_VERSION = '20261029-boton-compartir';
+const PWA_SW_VERSION = '20261029-armonia-flotantes';
 let pwaDeferredPrompt = null;
 function pwaIsStandalone() {
   try {

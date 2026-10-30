@@ -21,7 +21,7 @@
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-title" content="RONBO FIT">
 <meta name="apple-mobile-web-app-status-bar-style" content="default">
-<link rel="stylesheet" href="styles.css?v=20261029-boton-compartir">
+<link rel="stylesheet" href="styles.css?v=20261029-armonia-flotantes">
 <script defer src="https://cloud.umami.is/script.js" data-website-id="a29706d4-44a2-47cf-900a-5f74d74abfa8"></script>
 <script type="importmap">
 {
@@ -219,8 +219,12 @@
        mismo paso +72); SOLO en la pantalla principal — helpFabSync
        lo muestra únicamente con la pestaña «Mi registro» activa,
        en espejo de la «?». Abre la MISMA hoja #share-float que el
-       botón de Progreso (#btn-share-open), sin tocar su lógica. -->
-  <button type="button" class="share-fab" id="btn-share-fab" style="display:none" aria-label="Share your progress" data-i18n-aria="share.title"><svg class="share-fab-ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 15V3.8"/><path d="M7.2 8.2L12 3.4l4.8 4.8"/><path d="M5 13.5v5A1.5 1.5 0 0 0 6.5 20h11A1.5 1.5 0 0 0 19 18.5v-5"/></svg></button>
+       botón de Progreso (#btn-share-open), sin tocar su lógica.
+       ARMONÍA (2026-10-29): el glifo es el símbolo universal de
+       compartir — tres nodos unidos por dos trazos — en la familia
+       de trazo 1.8 de la casa (antes: flecha saliendo de una
+       bandeja, que se leía «subir/exportar»). -->
+  <button type="button" class="share-fab" id="btn-share-fab" style="display:none" aria-label="Share your progress" data-i18n-aria="share.title"><svg class="share-fab-ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/><path d="M8.59 13.51L15.42 17.49"/><path d="M15.41 6.51L8.59 10.49"/></svg></button>
 
   <nav class="main-tabs" id="main-tabs" style="display:none">
     <button type="button" class="main-tab active" data-tab="track" data-i18n="tabs.track"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 20V10"/><path d="M10 20V4"/><path d="M16 20v-8"/><path d="M21 20H3"/></svg> My log</button>
@@ -547,7 +551,7 @@
          informativos con aviso de solape, plan «aún sin estimar»).
        Una sola superficie abierta a la vez; cierre con ✕, toque
        fuera o Escape, como la tarjeta de Pendientes. -->
-  <button type="button" class="act-flame" id="act-flame" style="display:none" aria-label="Burned today" data-i18n-aria="act.flameBurned"><span class="act-flame-ico" aria-hidden="true">🔥</span><span class="act-flame-num" id="act-flame-num">—</span><span class="act-flame-lab" id="act-flame-lab"></span></button>
+  <button type="button" class="act-flame" id="act-flame" style="display:none" aria-label="Burned today"><span class="act-flame-ico" aria-hidden="true">🔥</span><span class="act-flame-num" id="act-flame-num">—</span><span class="act-flame-lab" id="act-flame-lab"></span></button>
   <div class="act-float" id="act-float" style="display:none" role="dialog" aria-label="Activity" data-i18n-aria="main.activity">
     <div class="pend-head">
       <h2 data-i18n="act.hobbiesTitle">My hobbies</h2>
@@ -1257,6 +1261,6 @@
 <div id="toast" class="toast"></div>
 <div id="print-card" aria-hidden="true"></div>
 
-<script type="module" src="app.js?v=20261029-boton-compartir"></script>
+<script type="module" src="app.js?v=20261029-armonia-flotantes"></script>
 </body>
 </html>

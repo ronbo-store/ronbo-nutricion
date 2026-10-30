@@ -1247,12 +1247,21 @@ div > .btn-ghost:only-child, div > .btn-main:only-child {
 .act-cfg-row { padding: 6px 0; border-bottom: 1px dashed #eef2f7; font-size: 14px; color: #1f2a44; }
 .act-cfg-actions { display: flex; justify-content: center; margin-top: 10px; }
 .act-flame { position: fixed; right: 14px; bottom: calc(env(safe-area-inset-bottom, 0px) + 122px); z-index: 44;
-  display: flex; flex-direction: column; align-items: center; gap: 1px; min-width: 58px;
-  padding: 8px 10px 7px; background: rgba(255, 255, 255, .97); border: 1px solid rgba(15, 23, 42, .08);
-  border-radius: 16px; box-shadow: 0 8px 22px rgba(15, 23, 42, .20); font: inherit; cursor: pointer; }
+  display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 1px; width: 58px; height: 58px;
+  padding: 0; background: rgba(255, 255, 255, .97); border: 1.5px solid rgba(13, 148, 136, .55);
+  border-radius: 50%; box-shadow: 0 8px 22px rgba(15, 23, 42, .20); font: inherit; cursor: pointer; }
 .act-flame-ico { font-size: 24px; line-height: 1.1; display: inline-block; transform-origin: 50% 90%; animation: act-flick 1.6s ease-in-out infinite; }
 .act-flame-num { font-size: 12.5px; font-weight: 800; color: #b45309; white-space: nowrap; }
 .act-flame-lab { font-size: 9px; font-weight: 700; color: #92400e; white-space: nowrap; }
+/* ARMONÍA DE FLOTANTES (2026-10-29): DENTRO del disco de la llamita
+   la llama y la cifra se encogen a microtexto y el rótulo no se
+   pinta (el texto completo vive en el aria-label/title del botón,
+   que pone renderActFlame). Ámbito .act-flame: la llamita en línea
+   del entrenador (AUTH-082) usa las clases base fuera del botón y
+   NO se toca. */
+.act-flame .act-flame-ico { font-size: 20px; }
+.act-flame .act-flame-num { font-size: 11.5px; line-height: 1.15; }
+.act-flame .act-flame-lab { display: none; }
 /* PUENTE ENTRENAMIENTO→LLAMITA (2026-10-27): cronómetro y cierre. */
 .train-chrono { margin-top: 10px; font-size: 13px; color: #475569; }
 .train-chrono.is-on { font-weight: 700; color: #0d9488; }
@@ -1749,33 +1758,42 @@ body { padding: max(16px, env(safe-area-inset-top)) max(16px, env(safe-area-inse
 /* BOTÓN SOBRE LA LLAMITA (AUTH-040; orden de Ronald 2026-10-27 tras
    probarlo en su iPhone: arriba a la derecha tapaba el selector EN/ES).
    El botón redondo se apila ENCIMA de la llamita flotante (.act-flame:
-   fixed, right 14px, bottom = área segura + 122px, alto medido 69,4px
-   → 70px). bottom = 122 (ancla de la llamita) + 70 (su alto) + 28 de
-   hueco: en esos 28px vive la etiqueta de tiempo del botón cuando corre
-   o está en pausa (5px de separación + 18px de etiqueta + ~5px de
-   aire), así la etiqueta nunca toca la llamita y a cero el hueco entre
-   ambos se ve limpio. Misma derecha que la llamita (14px). */
-.sw-fab { position: fixed; right: 14px; bottom: calc(env(safe-area-inset-bottom, 0px) + 122px + 70px + 28px); z-index: 44; width: 58px; height: 58px; border-radius: 50%; border: 1.5px solid rgba(13,148,136,.55); background: rgba(255,255,255,.97); box-shadow: 0 8px 22px rgba(15,23,42,.20); display: flex; align-items: center; justify-content: center; cursor: pointer; font-family: inherit; color: #0f766e; padding: 0; }
+   fixed, right 14px, bottom = área segura + 122px).
+   ARMONÍA DE FLOTANTES (2026-10-29): la llamita es ya un disco de
+   58px y TODA la pila respira con el mismo paso — 58px de disco +
+   14px de aire = +72 — así que bottom = 122 (ancla) + 72. La
+   etiqueta de tiempo del botón, cuando corre o está en pausa, cuelga
+   5px bajo el disco y con el hueco uniforme solapa ~10px el borde
+   superior del disco de la llamita: la regla .sw-fab.live/.paused
+   de abajo lo sube a z-index 45 para que la hora se siga leyendo
+   (la llama, centrada, no queda tapada). Misma derecha (14px). */
+.sw-fab { position: fixed; right: 14px; bottom: calc(env(safe-area-inset-bottom, 0px) + 122px + 72px); z-index: 44; width: 58px; height: 58px; border-radius: 50%; border: 1.5px solid rgba(13,148,136,.55); background: rgba(255,255,255,.97); box-shadow: 0 8px 22px rgba(15,23,42,.20); display: flex; align-items: center; justify-content: center; cursor: pointer; font-family: inherit; color: #0f766e; padding: 0; }
 .sw-fab-ico { width: 27px; height: 27px; display: block; }
 .sw-fab.live { border-color: #0d9488; color: #0d9488; animation: sw-fab-pulse 1.6s ease-out infinite; }
 .sw-fab.paused { border-color: rgba(217,119,6,.7); color: #b45309; }
 .sw-fab-time { position: absolute; top: calc(100% + 5px); left: 50%; transform: translateX(-50%); background: #0b2239; color: #fff; font-size: 10.5px; font-weight: 800; letter-spacing: .4px; padding: 3px 8px; border-radius: 999px; font-variant-numeric: tabular-nums; white-space: nowrap; box-shadow: 0 4px 12px rgba(15,23,42,.25); display: none; }
 .sw-fab.live .sw-fab-time, .sw-fab.paused .sw-fab-time { display: block; }
 .sw-fab.paused .sw-fab-time { background: #b45309; }
+/* Con el paso uniforme de la pila (armonía 2026-10-29), la etiqueta
+   de tiempo legible manda sobre el borde del disco de la llamita. */
+.sw-fab.live, .sw-fab.paused { z-index: 45; }
 @keyframes sw-fab-pulse { 0% { box-shadow: 0 8px 22px rgba(15,23,42,.20), 0 0 0 0 rgba(13,148,136,.45); } 70% { box-shadow: 0 8px 22px rgba(15,23,42,.20), 0 0 0 12px rgba(13,148,136,0); } 100% { box-shadow: 0 8px 22px rgba(15,23,42,.20), 0 0 0 0 rgba(13,148,136,0); } }
 @media (prefers-reduced-motion: reduce) { .sw-fab.live { animation: none; } }
 /* ===== AYUDA / FAQ (paquete 2026-10-28) =====
-   El «?» se apila ENCIMA del cronómetro (.sw-fab, bottom
-   122+70+28) con el mismo paso de la pila: 58px de botón + 14px
-   de aire = +72. Panel inferior según la maqueta aprobada. */
-.help-fab { position: fixed; right: 14px; bottom: calc(env(safe-area-inset-bottom, 0px) + 122px + 70px + 28px + 72px); z-index: 44; width: 58px; height: 58px; border-radius: 50%; border: 3px solid #fff; background: #0d9488; color: #fff; box-shadow: 0 8px 22px rgba(15,23,42,.25); font-family: inherit; font-size: 30px; font-weight: 800; line-height: 1; display: flex; align-items: center; justify-content: center; cursor: pointer; padding: 0; }
+   El «?» se apila ENCIMA del cronómetro (.sw-fab, bottom 122+72)
+   con el mismo paso de la pila: 58px de botón + 14px de aire = +72.
+   ARMONÍA DE FLOTANTES (2026-10-29): la «?» deja el relleno sólido
+   y el borde blanco — pasa al ÚNICO lenguaje de la pila: disco
+   blanco, borde teal de 1.5px y glifo teal, como sus hermanos.
+   Panel inferior según la maqueta aprobada. */
+.help-fab { position: fixed; right: 14px; bottom: calc(env(safe-area-inset-bottom, 0px) + 122px + 72px + 72px); z-index: 44; width: 58px; height: 58px; border-radius: 50%; border: 1.5px solid rgba(13,148,136,.55); background: rgba(255,255,255,.97); color: #0f766e; box-shadow: 0 8px 22px rgba(15,23,42,.20); font-family: inherit; font-size: 30px; font-weight: 800; line-height: 1; display: flex; align-items: center; justify-content: center; cursor: pointer; padding: 0; }
 /* ===== COMPARTIR FLOTANTE (paquete 2026-10-29) =====
    El botón de compartir se apila ENCIMA de la «?» (.help-fab,
-   bottom 122+70+28+72) con el mismo paso de la pila: 58px de
-   botón + 14px de aire = +72 → 122+70+28+72+72. Disco BLANCO de
-   la familia del cronómetro (.sw-fab): queda pegado a la «?»
-   verde sólida y un segundo disco verde se confundiría con ella. */
-.share-fab { position: fixed; right: 14px; bottom: calc(env(safe-area-inset-bottom, 0px) + 122px + 70px + 28px + 72px + 72px); z-index: 44; width: 58px; height: 58px; border-radius: 50%; border: 1.5px solid rgba(13,148,136,.55); background: rgba(255,255,255,.97); box-shadow: 0 8px 22px rgba(15,23,42,.20); display: flex; align-items: center; justify-content: center; cursor: pointer; font-family: inherit; color: #0f766e; padding: 0; }
+   bottom 122+72+72) con el mismo paso de la pila: 58px de botón +
+   14px de aire = +72 → 122+72+72+72 (ARMONÍA DE FLOTANTES
+   2026-10-29: paso uniforme en los cuatro discos). Disco BLANCO
+   de la familia del cronómetro (.sw-fab), como toda la pila. */
+.share-fab { position: fixed; right: 14px; bottom: calc(env(safe-area-inset-bottom, 0px) + 122px + 72px + 72px + 72px); z-index: 44; width: 58px; height: 58px; border-radius: 50%; border: 1.5px solid rgba(13,148,136,.55); background: rgba(255,255,255,.97); box-shadow: 0 8px 22px rgba(15,23,42,.20); display: flex; align-items: center; justify-content: center; cursor: pointer; font-family: inherit; color: #0f766e; padding: 0; }
 .share-fab-ico { width: 27px; height: 27px; display: block; }
 .faq-panel { position: fixed; left: 0; right: 0; bottom: 0; top: 64px; z-index: 47; background: #f6fbfb; border-radius: 26px 26px 0 0; box-shadow: 0 -12px 34px rgba(15,23,42,.25); padding: 12px 18px 28px; overflow-y: auto; box-sizing: border-box; }
 .faq-grip { width: 44px; height: 5px; border-radius: 3px; background: #c8dcd8; margin: 0 auto 12px; }
