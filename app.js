@@ -2821,6 +2821,15 @@ en: {
   'train.custom.undoSwap': 'Undo change', 'train.custom.removeAdded': 'Remove',
   'train.custom.swappedFor': 'Changed for "{name}"', 'train.custom.addedMark': 'Added',
   'train.custom.pickSwap': 'Change "{name}" for…', 'train.custom.pickAdd': 'Add an exercise',
+  'train.swap.dropTitle': 'You are swapping out',
+  'train.swap.variantsTitle': 'Variants of this exercise',
+  'train.swap.variantTag': 'Variant of this exercise',
+  'train.swap.variantNote': 'Variants are shown here, but choosing one cannot be saved yet: it needs one extra saved field for the chosen variant, pending approval.',
+  'train.swap.directTitle': 'Direct replacements',
+  'train.swap.sameEquipment': 'Same equipment', 'train.swap.sameCategory': 'Same category',
+  'train.swap.alsoGroup': 'Also work {group}', 'train.swap.moreTitle': 'All exercises',
+  'train.swap.resultsTitle': 'Results', 'train.swap.noResults': 'No exercises match that search.',
+  'train.swap.addBtn': 'Add',
   'train.custom.restNote': 'Today is your rest day — there is no session to customize.',
   'train.custom.closedNote': 'Today\'s session is already logged. Undo it from the day card if you want to change it first.',
   'train.bring.btn': 'Bring the next day', 'train.bring.note': 'Advanced session · from {date} — your plan does not change: that day stays pending on its own date.',
@@ -4801,6 +4810,15 @@ es: {
   'train.custom.undoSwap': 'Deshacer cambio', 'train.custom.removeAdded': 'Quitar',
   'train.custom.swappedFor': 'Cambiado por «{name}»', 'train.custom.addedMark': 'Agregado',
   'train.custom.pickSwap': 'Cambiar «{name}» por…', 'train.custom.pickAdd': 'Agregar un ejercicio',
+  'train.swap.dropTitle': 'Ya no quieres este',
+  'train.swap.variantsTitle': 'Variantes de este ejercicio',
+  'train.swap.variantTag': 'Variante de este ejercicio',
+  'train.swap.variantNote': 'Las variantes se muestran aquí, pero elegir una aún no se puede guardar: necesita un campo guardado nuevo para la variante elegida, pendiente de aprobación.',
+  'train.swap.directTitle': 'Reemplazos directos',
+  'train.swap.sameEquipment': 'Mismo equipo', 'train.swap.sameCategory': 'Misma categoría',
+  'train.swap.alsoGroup': 'También trabajan {group}', 'train.swap.moreTitle': 'Todos los ejercicios',
+  'train.swap.resultsTitle': 'Resultados', 'train.swap.noResults': 'Ningún ejercicio coincide con esa búsqueda.',
+  'train.swap.addBtn': 'Agregar',
   'train.custom.restNote': 'Hoy es tu día de descanso: no hay sesión que personalizar.',
   'train.custom.closedNote': 'La sesión de hoy ya está registrada. Deshazla desde la tarjeta del día si quieres cambiarla antes.',
   'train.bring.btn': 'Traer el próximo día', 'train.bring.note': 'Sesión adelantada · del {date} — tu plan no cambia: ese día sigue pendiente en su fecha.',
@@ -13759,25 +13777,21 @@ function trainCustomRenderSession(plan, todayDi, closed) {
   if (chevEl) chevEl.textContent = TRAIN_CUSTOM_OPEN ? '▴' : '▾';
   const tools = $('train-custom-tools');
   if (!tools) return;
-  if (!plan) { tools.innerHTML = ''; return; }
+  if (!plan) { tools.innerHTML = ''; swapSheetSync(null); return; }
   if (todayDi == null) {
     tools.innerHTML = `<h4 class="tcu-title">${t('train.custom.sessionTitle')}</h4><p class="progress-hint">${t('train.custom.restNote')}</p>`;
+    swapSheetSync(null);
     return;
   }
   if (closed) {
     tools.innerHTML = `<h4 class="tcu-title">${t('train.custom.sessionTitle')}</h4><p class="progress-hint">${t('train.custom.closedNote')}</p>`;
+    swapSheetSync(null);
     return;
   }
   const di = todayDi;
   const eff = trainEffectiveList(plan, di);
   let inner = `<h4 class="tcu-title">${t('train.custom.sessionTitle')}</h4>`;
-  if (TRAIN_PICK) {
-    const target = TRAIN_PICK.kind === 'swap' ? eff[TRAIN_PICK.idx] : null;
-    inner += `<div class="tcu-pick"><div class="tcu-pick-title">${esc(TRAIN_PICK.kind === 'swap' && target ? t('train.custom.pickSwap', { name: trainExName(target.ex) || target.ex.name || '' }) : t('train.custom.pickAdd'))}</div>
-      <input type="text" id="tcu-search" placeholder="${esc(t('train.prop.searchPh'))}" autocomplete="off">
-      <div id="tcu-sug" class="prop-sug"></div>
-      <div style="margin-top:8px"><button type="button" class="btn-ghost btn-sm" data-tcu-cancel="1">${t('form.cancel')}</button></div></div>`;
-  } else {
+  {
     inner += `<div class="tcu-list">${eff.map((it, idx) => {
       const spec = [it.ex.sets, it.ex.reps].filter(Boolean).join(' × ');
       let ctl = '';
@@ -13790,13 +13804,13 @@ function trainCustomRenderSession(plan, todayDi, closed) {
   }
   tools.innerHTML = inner;
   trainCustomWire(plan, di);
+  swapSheetSync(plan, di);
 }
 function trainCustomWire(plan, di) {
   const tools = $('train-custom-tools');
   if (!tools || !plan) return;
-  tools.querySelectorAll('[data-tcu-swap]').forEach(b => b.onclick = () => { TRAIN_PICK = { kind: 'swap', idx: Number(b.dataset.tcuSwap) }; loadMyTraining(); });
-  tools.querySelectorAll('[data-tcu-add]').forEach(b => b.onclick = () => { TRAIN_PICK = { kind: 'add' }; loadMyTraining(); });
-  tools.querySelectorAll('[data-tcu-cancel]').forEach(b => b.onclick = () => { TRAIN_PICK = null; loadMyTraining(); });
+  tools.querySelectorAll('[data-tcu-swap]').forEach(b => b.onclick = () => { TRAIN_PICK = { kind: 'swap', idx: Number(b.dataset.tcuSwap) }; SWAP_QUERY = ''; loadMyTraining(); });
+  tools.querySelectorAll('[data-tcu-add]').forEach(b => b.onclick = () => { TRAIN_PICK = { kind: 'add' }; SWAP_QUERY = ''; loadMyTraining(); });
   tools.querySelectorAll('[data-tcu-undo-swap]').forEach(b => b.onclick = () => {
     const ed = trainEditsRead(plan.id) || { swaps: {}, added: [] };
     delete ed.swaps[String(b.dataset.tcuUndoSwap)];
@@ -13827,32 +13841,227 @@ function trainCustomWire(plan, di) {
     if (TRAIN_FLOAT) trainFloatClose();
     loadMyTraining();
   });
-  const search = tools.querySelector('#tcu-search');
-  const sug = tools.querySelector('#tcu-sug');
-  if (search && sug) {
-    search.oninput = () => {
-      const res = libSearch(search.value);
-      sug.innerHTML = res.map(ex => `<button type="button" class="prop-sug-item" data-tcu-pick="${esc(ex.id)}">${esc(libNameOf(ex))}</button>`).join('');
-      sug.querySelectorAll('[data-tcu-pick]').forEach(pb => pb.onclick = () => {
-        const entry = LIB_BY_ID[pb.dataset.tcuPick];
-        if (!entry || !TRAIN_PICK) return;
-        const ed = trainEditsRead(plan.id) || { swaps: {}, added: [] };
-        if (TRAIN_PICK.kind === 'swap') {
-          const it2 = trainEffectiveList(plan, di)[TRAIN_PICK.idx];
-          if (it2 && it2.slot >= 0) ed.swaps[String(it2.slot)] = { exerciseId: entry.id, name: libNameOf(entry) };
-        } else {
-          /* Agregado: series × reps de su ficha si las trajera; la
-             biblioteca no las trae — campos vacíos, como en el
-             editor; se ajustan en la ventana de registro. */
-          ed.added.push({ exerciseId: entry.id, name: libNameOf(entry), sets: '', reps: '' });
-        }
-        trainEditsWrite(plan.id, ed);
-        TRAIN_PICK = null;
-        loadMyTraining();
-      });
-    };
-    search.focus();
+}
+
+/* === SELECTOR «CAMBIAR EJERCICIO» (paquete 2026-10-30; diseño
+   PROPUESTA-SELECTOR-CAMBIO-EJERCICIO-2026-10-30.md; criterio de
+   Ronald: «las opciones deben ser asociadas al ejercicio que ya no se
+   quiere, PRIORIZANDO LAS VARIANTES») ===
+   Hoja a pantalla completa que sustituye al buscador en línea de
+   «Personaliza tus asignaciones de hoy». SIN búsqueda, el orden de
+   secciones es: 1) cabecera con el ejercicio que se abandona (foto y
+   forma actual si la ficha la declara); 2) variantes de ese mismo
+   ejercicio; 3) reemplazos directos; 4) resto de su grupo muscular.
+   REGLA DE ORDENACIÓN (literal, con los datos que la biblioteca
+   realmente tiene):
+   - Variantes: las del campo variantes[] de la ficha, en su orden,
+     SIN la marcada es_estandar (esa es la forma actual).
+   - Reemplazos directos: mismo grupo muscular (grupo_muscular) que el
+     ejercicio abandonado; primero los de MISMO EQUIPO (equipo) y
+     después los de MISMA CATEGORÍA (categoria); dentro de cada nivel,
+     orden alfabético por nombre en el idioma activo. La etiqueta de
+     cada tarjeta dice exactamente eso («Same equipment» / «Same
+     category»): la regla NO garantiza el mismo patrón de movimiento.
+     NOTA DE DATOS (verificada contra la biblioteca viva): el campo
+     equipo trae frases descriptivas largas (~90 valores distintos
+     para 138 fichas), así que el nivel «mismo equipo» exacto casi
+     nunca tiene candidatos y el nivel que ordena en la práctica es
+     «misma categoría» (p. ej. para E044: directos = E110 y E043,
+     ambos «Con máquinas»). No se normalizan las frases: la regla es
+     la literal aprobada.
+   - Resto del grupo: los demás ejercicios de ese grupo, alfabéticos.
+   BUSCADOR (secundario): si el texto coincide EXACTO con un grupo
+   muscular o un sinónimo (ES/EN), devuelve SOLO ese grupo; si no,
+   busca SOLO por nombre (nombre_es/nombre_en), nunca por
+   grupo/equipo/nivel — así «Pecho» ya no trae «Jalón al pecho»
+   (Espalda), el fallo de la captura de Ronald.
+   ESCRITURA: elegir una tarjeta escribe EXACTAMENTE lo mismo que el
+   selector anterior (edición de sesión en localStorage:
+   swaps[slot] = {exerciseId, name}; added.push({exerciseId, name,
+   sets:'', reps:''})). Sin campos persistidos nuevos y sin delta de
+   reglas.
+   BLOQUEO DECLARADO — ELEGIR UNA VARIANTE NO SE PUEDE GUARDAR con la
+   representación actual: la variante no tiene id propio; si su nombre
+   se guardara en `name`, trainExName() lo ignora cuando hay
+   exerciseId (resuelve el nombre DESDE la biblioteca) y el cierre del
+   día omite `name` cuando hay exerciseId — la variante elegida
+   desaparecería de la pantalla y del registro. Haría falta UN campo
+   nuevo (p. ej. variantIndex) en la edición de sesión y en
+   exercisesDone; desbloquearlo es decisión de Ronald. Por eso las
+   variantes se MUESTRAN primero (con su nota honesta) pero no son
+   elegibles: SWAP_VARIANT_PICK = false. === */
+const SWAP_VARIANT_PICK = false;
+let SWAP_QUERY = '';
+const SWAP_GROUP_SYNONYMS = {
+  'Pecho': ['pecho', 'pectoral', 'pectorales', 'chest', 'pecs'],
+  'Espalda': ['espalda', 'back', 'dorsales', 'lats'],
+  'Hombros': ['hombros', 'hombro', 'shoulders', 'shoulder', 'deltoides', 'delts'],
+  'Bíceps': ['biceps', 'bicep'],
+  'Tríceps': ['triceps', 'tricep'],
+  'Cuádriceps': ['cuadriceps', 'quadriceps', 'quads', 'piernas', 'legs'],
+  'Isquiotibiales': ['isquiotibiales', 'femorales', 'hamstrings'],
+  'Glúteos': ['gluteos', 'gluteo', 'glutes', 'glute'],
+  'Pantorrillas': ['pantorrillas', 'gemelos', 'calves', 'calf'],
+  'Core': ['core', 'abdomen', 'abdominales', 'abs'],
+  'Cuerpo completo': ['cuerpo completo', 'full body', 'fullbody']
+};
+function swapGroupOfQuery(q) {
+  const n = libNorm(String(q || '').trim());
+  if (!n) return null;
+  for (const canon of Object.keys(SWAP_GROUP_SYNONYMS)) {
+    if (libNorm(canon) === n) return canon;
+    if (SWAP_GROUP_SYNONYMS[canon].some(s => libNorm(s) === n)) return canon;
   }
+  return null;
+}
+function swapNameSearch(q) {
+  const terms = libNorm(q).split(/\s+/).filter(Boolean);
+  if (!terms.length) return [];
+  return LIB.filter(ex => {
+    const name = libNorm((ex.nombre_es || '') + ' ' + (ex.nombre_en || ''));
+    return terms.every(tm => name.includes(tm));
+  }).map(ex => ({ ex, rank: libNorm(libNameOf(ex)).startsWith(terms[0]) ? 0 : 1 }))
+    .sort((a, b) => a.rank - b.rank || libNameOf(a.ex).localeCompare(libNameOf(b.ex)))
+    .slice(0, 12).map(r => r.ex);
+}
+function swapSectionsFor(entry) {
+  const out = { variants: [], direct: [], group: [] };
+  if (!entry) return out;
+  out.variants = (Array.isArray(entry.variantes) ? entry.variantes : [])
+    .map((v, vi) => ({ v, vi })).filter(x => x.v && !x.v.es_estandar);
+  const g = libGroupKey(entry);
+  if (!g) return out;
+  const byName = (a, b) => libNameOf(a).localeCompare(libNameOf(b));
+  const pool = LIB.filter(ex => ex.id !== entry.id && libGroupKey(ex) === g);
+  const eqK = libFacetKey(entry, 'equipo'), catK = libFacetKey(entry, 'categoria');
+  const directIds = new Set();
+  if (eqK) pool.filter(ex => libFacetKey(ex, 'equipo') === eqK).sort(byName)
+    .forEach(ex => { out.direct.push({ ex, tag: 'train.swap.sameEquipment' }); directIds.add(ex.id); });
+  if (catK) pool.filter(ex => !directIds.has(ex.id) && libFacetKey(ex, 'categoria') === catK).sort(byName)
+    .forEach(ex => { out.direct.push({ ex, tag: 'train.swap.sameCategory' }); directIds.add(ex.id); });
+  out.group = pool.filter(ex => !directIds.has(ex.id)).sort(byName);
+  return out;
+}
+function swapCardHTML(ex, opts) {
+  opts = opts || {};
+  const sub = [libField(ex, 'equipo'), libField(ex, 'nivel')].filter(Boolean).join(' · ');
+  const tag = opts.tagKey ? `<span class="swap-card-tag">${esc(t(opts.tagKey))}</span>` : '';
+  const btn = TRAIN_PICK && TRAIN_PICK.kind === 'add' ? t('train.swap.addBtn') : t('train.custom.swap');
+  return `<button type="button" class="swap-card" data-swap-pick="${esc(ex.id)}">
+    ${ex.foto_url ? `<img class="swap-card-img" src="${esc(ex.foto_url)}" alt="" loading="lazy">` : '<span class="swap-card-img swap-card-noimg" aria-hidden="true"></span>'}
+    <span class="swap-card-main"><span class="swap-card-name">${esc(libNameOf(ex))}</span>${sub ? `<span class="swap-card-sub">${esc(sub)}</span>` : ''}${tag}</span><span class="swap-card-btn">${esc(btn)}</span></button>`;
+}
+function swapVariantCardHTML(entry, v) {
+  const sub = [libField(v, 'cambio'), libField(v, 'enfasis')].filter(Boolean).join(' · ');
+  return `<div class="swap-card swap-card-variant">
+    ${entry.foto_url ? `<img class="swap-card-img" src="${esc(entry.foto_url)}" alt="" loading="lazy">` : '<span class="swap-card-img swap-card-noimg" aria-hidden="true"></span>'}
+    <span class="swap-card-main"><span class="swap-card-name">${esc(libNameOf(entry))} — ${esc(libField(v, 'nombre'))}</span>${sub ? `<span class="swap-card-sub">${esc(sub)}</span>` : ''}<span class="swap-card-tag">${esc(t('train.swap.variantTag'))}</span></span></div>`;
+}
+function swapSheetResultsHTML(plan, di) {
+  if (!LIB.length) return `<p class="progress-hint">${esc(t('train.lib.unavailable'))}</p>`;
+  const eff = trainEffectiveList(plan, di);
+  const target = TRAIN_PICK && TRAIN_PICK.kind === 'swap' ? eff[TRAIN_PICK.idx] : null;
+  const tEntry = target && target.ex && target.ex.exerciseId ? (LIB_BY_ID[target.ex.exerciseId] || null) : null;
+  const q = SWAP_QUERY.trim();
+  if (q.length >= 2) {
+    const g = swapGroupOfQuery(q);
+    if (g) {
+      const list = LIB.filter(ex => libGroupKey(ex) === g && (!tEntry || ex.id !== tEntry.id))
+        .sort((a, b) => libNameOf(a).localeCompare(libNameOf(b)));
+      const label = list.length ? libField(list[0], 'grupo_muscular') : g;
+      return `<div class="swap-sec-title">${esc(label)}</div>` +
+        (list.length ? list.map(ex => swapCardHTML(ex)).join('') : `<p class="progress-hint">${esc(t('train.swap.noResults'))}</p>`);
+    }
+    const list = swapNameSearch(q).filter(ex => !tEntry || ex.id !== tEntry.id);
+    return `<div class="swap-sec-title">${esc(t('train.swap.resultsTitle'))}</div>` +
+      (list.length ? list.map(ex => swapCardHTML(ex)).join('') : `<p class="progress-hint">${esc(t('train.swap.noResults'))}</p>`);
+  }
+  if (TRAIN_PICK && TRAIN_PICK.kind === 'swap' && tEntry) {
+    const sec = swapSectionsFor(tEntry);
+    let h = '';
+    if (sec.variants.length) {
+      h += `<div class="swap-sec-title">${esc(t('train.swap.variantsTitle'))}</div>` +
+        sec.variants.map(x => swapVariantCardHTML(tEntry, x.v)).join('') +
+        `<p class="swap-note">${esc(t('train.swap.variantNote'))}</p>`;
+    }
+    if (sec.direct.length) {
+      h += `<div class="swap-sec-title">${esc(t('train.swap.directTitle'))}</div>` +
+        sec.direct.map(d => swapCardHTML(d.ex, { tagKey: d.tag })).join('');
+    }
+    if (sec.group.length) {
+      const gLabel = libField(tEntry, 'grupo_muscular');
+      h += `<div class="swap-sec-title">${esc(gLabel ? t('train.swap.alsoGroup', { group: gLabel }) : t('train.swap.moreTitle'))}</div>` +
+        sec.group.map(ex => swapCardHTML(ex)).join('');
+    }
+    return h || `<p class="progress-hint">${esc(t('train.swap.noResults'))}</p>`;
+  }
+  /* Sin ficha (texto libre) o modo «agregar»: la biblioteca por grupos. */
+  return libSections(LIB).map(sec => {
+    const items = sec.items.filter(ex => !tEntry || ex.id !== tEntry.id);
+    return items.length ? `<div class="swap-sec-title">${esc(sec.label)}</div>` + items.map(ex => swapCardHTML(ex)).join('') : '';
+  }).join('');
+}
+function swapSheetApply(plan, di, entry) {
+  /* La MISMA escritura del selector anterior: edición de sesión. */
+  const ed = trainEditsRead(plan.id) || { swaps: {}, added: [] };
+  if (TRAIN_PICK.kind === 'swap') {
+    const it2 = trainEffectiveList(plan, di)[TRAIN_PICK.idx];
+    if (it2 && it2.slot >= 0) ed.swaps[String(it2.slot)] = { exerciseId: entry.id, name: libNameOf(entry) };
+  } else {
+    ed.added.push({ exerciseId: entry.id, name: libNameOf(entry), sets: '', reps: '' });
+  }
+  trainEditsWrite(plan.id, ed);
+  TRAIN_PICK = null;
+  SWAP_QUERY = '';
+  loadMyTraining();
+}
+function swapSheetSync(plan, di) {
+  const old = document.getElementById('swap-sheet');
+  if (!plan || !TRAIN_PICK) {
+    if (old) old.remove();
+    document.body.classList.remove('swap-sheet-open');
+    return;
+  }
+  const eff = trainEffectiveList(plan, di);
+  const target = TRAIN_PICK.kind === 'swap' ? eff[TRAIN_PICK.idx] : null;
+  const tEntry = target && target.ex && target.ex.exerciseId ? (LIB_BY_ID[target.ex.exerciseId] || null) : null;
+  const stdForm = tEntry ? (tEntry.variantes || []).find(v => v && v.es_estandar) : null;
+  const shownName = target ? (trainExName(target.ex) || target.ex.name || '') : '';
+  const headSpec = target && target.ex ? [target.ex.sets ? target.ex.sets + ' × ' + (target.ex.reps || '') : '', libField(tEntry, 'equipo')].filter(Boolean).join(' · ') : '';
+  const title = TRAIN_PICK.kind === 'swap' ? t('train.custom.pickSwap', { name: shownName }) : t('train.custom.pickAdd');
+  let sheet = old;
+  if (!sheet) {
+    sheet = document.createElement('div');
+    sheet.id = 'swap-sheet';
+    sheet.className = 'swap-sheet';
+    document.body.appendChild(sheet);
+  }
+  document.body.classList.add('swap-sheet-open');
+  sheet.innerHTML = `
+    <div class="swap-sheet-head">
+      <span class="swap-sheet-title">${esc(title)}</span>
+      <button type="button" class="swap-sheet-x" data-swap-close="1" aria-label="✕">✕</button>
+    </div>
+    ${TRAIN_PICK.kind === 'swap' && target ? `<div class="swap-drop">
+      ${tEntry && tEntry.foto_url ? `<img class="swap-drop-img" src="${esc(tEntry.foto_url)}" alt="">` : '<span class="swap-drop-img swap-card-noimg" aria-hidden="true"></span>'}
+      <span class="swap-drop-main"><span class="swap-drop-lab">${esc(t('train.swap.dropTitle'))}</span>
+      <span class="swap-drop-name">${esc(shownName)}${stdForm ? ` <span class="swap-drop-form">(${esc(libField(stdForm, 'nombre'))})</span>` : ''}</span>
+      ${headSpec ? `<span class="swap-drop-sub">${esc(headSpec)}</span>` : ''}</span>
+    </div>` : ''}
+    <div class="swap-search-row"><input type="text" id="swap-search" placeholder="${esc(t('train.prop.searchPh'))}" autocomplete="off" value="${esc(SWAP_QUERY)}"></div>
+    <div id="swap-results">${swapSheetResultsHTML(plan, di)}</div>`;
+  sheet.querySelectorAll('[data-swap-close]').forEach(b => b.onclick = () => { TRAIN_PICK = null; SWAP_QUERY = ''; loadMyTraining(); });
+  const wirePicks = () => sheet.querySelectorAll('[data-swap-pick]').forEach(pb => pb.onclick = () => {
+    const entry = LIB_BY_ID[pb.dataset.swapPick];
+    if (entry && TRAIN_PICK) swapSheetApply(plan, di, entry);
+  });
+  wirePicks();
+  const search = sheet.querySelector('#swap-search');
+  if (search) search.oninput = () => {
+    SWAP_QUERY = search.value;
+    const box = sheet.querySelector('#swap-results');
+    if (box) { box.innerHTML = swapSheetResultsHTML(plan, di); wirePicks(); }
+  };
 }
 
 /* --- PUENTE ENTRENAMIENTO→LLAMITA: CRONÓMETRO DE SESIÓN (Anexo 2
@@ -23523,7 +23732,7 @@ document.addEventListener('keydown', e => { if (e.key === 'Escape') shareClose()
  *  - El SW (sw.js) solo cachea la cáscara del mismo origen en modo
  *    RED PRIMERO: Auth/Firestore/Worker jamás pasan por la caché.
  * ================================================================ */
-const PWA_SW_VERSION = '20261030-puerta-business';
+const PWA_SW_VERSION = '20261030-selector-cambio';
 let pwaDeferredPrompt = null;
 function pwaIsStandalone() {
   try {
