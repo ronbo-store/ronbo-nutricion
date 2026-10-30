@@ -2127,13 +2127,13 @@ en: {
   'fdcam.join': 'Count me in',
   'fdcam.later': 'Not now',
   'fdcam.saved': 'Done — you are on the Camera Coach list.',
-  'tabs.track': '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 20V10"/><path d="M10 20V4"/><path d="M16 20v-8"/><path d="M21 20H3"/></svg> My log',
+  'tabs.track': '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="5" y="4" width="14" height="17" rx="2"/><path d="M9 4.5V3h6v1.5"/><path d="M9 10h6M9 14h4"/></svg> My log',
   'tabs.profile': '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="8" r="3.6"/><path d="M5 20c.8-3.4 3.6-5 7-5s6.2 1.6 7 5"/></svg> My profile',
   'tabs.clients': '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="9" cy="8.4" r="3.2"/><path d="M3.4 19.4c.7-3 2.9-4.5 5.6-4.5s4.9 1.5 5.6 4.5"/><path d="M15.6 5.6a3.2 3.2 0 0 1 0 5.9"/><path d="M17.8 15.3c1.7.7 2.7 2 3.1 4.1"/></svg> My clients',
-  'tabs.access': '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="5" y="10.4" width="14" height="9.6" rx="2"/><path d="M8 10.4V7.6a4 4 0 0 1 8 0v2.8"/><circle cx="12" cy="15.2" r="1.4"/></svg> Access',
-  'tabs.trainers': '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="10" cy="7.6" r="3.2"/><path d="M4.2 19.6c.6-3.1 2.8-4.7 5.8-4.7 1 0 1.9.2 2.7.6"/><path d="M15.5 16.2v3"/><path d="M13.4 17.7h4.2"/><path d="M17.9 15.4v4.6"/><path d="M20.4 16.2v3"/></svg> Trainers',
+  'tabs.access': '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="8.5" cy="14.5" r="4.5"/><path d="M11.8 11.2L20 3"/><path d="M16.5 6.5l3 3"/><path d="M14 9l2.4 2.4"/></svg> Access',
+  'tabs.trainers': '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6.5 6.5v11"/><path d="M3.5 9v6"/><path d="M17.5 6.5v11"/><path d="M20.5 9v6"/><path d="M6.5 12h11"/></svg> Trainers',
   'tabs.library': '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 4.6A1.6 1.6 0 0 1 6.6 3H19v15H6.6A1.6 1.6 0 0 0 5 19.4z"/><path d="M5 16.4A1.6 1.6 0 0 1 6.6 14.8H19V18"/><path d="M9 7h6"/></svg> Library',
-  'tabs.admin': '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94l-3.76 3.76z"/></svg> Administration',
+  'tabs.admin': '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="3.2"/><path d="M12 2.8v3"/><path d="M12 18.2v3"/><path d="M2.8 12h3"/><path d="M18.2 12h3"/><path d="M5.2 5.2l2.1 2.1"/><path d="M16.7 16.7l2.1 2.1"/><path d="M18.8 5.2l-2.1 2.1"/><path d="M7.3 16.7l-2.1 2.1"/></svg> Administration',
   'trainers.title': '👨‍🏫 Trainer administration',
   'trainers.hint': 'Everything about trainers in one place: role requests, memberships (levels and quotas), the two-step confirmations that start with a trainer, the trainer approval limit and the public directory.',
   'trainers.requests': 'Trainer role requests (',
@@ -4027,13 +4027,13 @@ es: {
   'fdcam.join': 'Quiero entrar',
   'fdcam.later': 'Ahora no',
   'fdcam.saved': 'Listo — ya estás en la lista de Entrena con cámara.',
-  'tabs.track': '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 20V10"/><path d="M10 20V4"/><path d="M16 20v-8"/><path d="M21 20H3"/></svg> Mi registro',
+  'tabs.track': '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="5" y="4" width="14" height="17" rx="2"/><path d="M9 4.5V3h6v1.5"/><path d="M9 10h6M9 14h4"/></svg> Mi registro',
   'tabs.profile': '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="8" r="3.6"/><path d="M5 20c.8-3.4 3.6-5 7-5s6.2 1.6 7 5"/></svg> Mi perfil',
   'tabs.clients': '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="9" cy="8.4" r="3.2"/><path d="M3.4 19.4c.7-3 2.9-4.5 5.6-4.5s4.9 1.5 5.6 4.5"/><path d="M15.6 5.6a3.2 3.2 0 0 1 0 5.9"/><path d="M17.8 15.3c1.7.7 2.7 2 3.1 4.1"/></svg> Mis clientes',
-  'tabs.access': '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="5" y="10.4" width="14" height="9.6" rx="2"/><path d="M8 10.4V7.6a4 4 0 0 1 8 0v2.8"/><circle cx="12" cy="15.2" r="1.4"/></svg> Accesos',
-  'tabs.trainers': '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="10" cy="7.6" r="3.2"/><path d="M4.2 19.6c.6-3.1 2.8-4.7 5.8-4.7 1 0 1.9.2 2.7.6"/><path d="M15.5 16.2v3"/><path d="M13.4 17.7h4.2"/><path d="M17.9 15.4v4.6"/><path d="M20.4 16.2v3"/></svg> Entrenadores',
+  'tabs.access': '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="8.5" cy="14.5" r="4.5"/><path d="M11.8 11.2L20 3"/><path d="M16.5 6.5l3 3"/><path d="M14 9l2.4 2.4"/></svg> Accesos',
+  'tabs.trainers': '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6.5 6.5v11"/><path d="M3.5 9v6"/><path d="M17.5 6.5v11"/><path d="M20.5 9v6"/><path d="M6.5 12h11"/></svg> Entrenadores',
   'tabs.library': '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 4.6A1.6 1.6 0 0 1 6.6 3H19v15H6.6A1.6 1.6 0 0 0 5 19.4z"/><path d="M5 16.4A1.6 1.6 0 0 1 6.6 14.8H19V18"/><path d="M9 7h6"/></svg> Biblioteca',
-  'tabs.admin': '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94l-3.76 3.76z"/></svg> Administración',
+  'tabs.admin': '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="3.2"/><path d="M12 2.8v3"/><path d="M12 18.2v3"/><path d="M2.8 12h3"/><path d="M18.2 12h3"/><path d="M5.2 5.2l2.1 2.1"/><path d="M16.7 16.7l2.1 2.1"/><path d="M18.8 5.2l-2.1 2.1"/><path d="M7.3 16.7l-2.1 2.1"/></svg> Administración',
   'trainers.title': '👨‍🏫 Administración de entrenadores',
   'trainers.hint': 'Todo lo de los entrenadores en un solo lugar: solicitudes de rol, membresías (niveles y cupos), las confirmaciones en dos pasos que empiezan con un entrenador, el límite de aprobaciones de entrenadores y el directorio público.',
   'trainers.requests': 'Solicitudes de rol de entrenador (',
@@ -22056,7 +22056,7 @@ document.addEventListener('keydown', e => { if (e.key === 'Escape') shareClose()
  *  - El SW (sw.js) solo cachea la cáscara del mismo origen en modo
  *    RED PRIMERO: Auth/Firestore/Worker jamás pasan por la caché.
  * ================================================================ */
-const PWA_SW_VERSION = '20261029-armonia-flotantes';
+const PWA_SW_VERSION = '20261029-pastillas-barra';
 let pwaDeferredPrompt = null;
 function pwaIsStandalone() {
   try {

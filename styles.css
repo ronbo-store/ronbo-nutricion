@@ -467,20 +467,43 @@ table.whist { min-width: 640px; }
 .photo-hint b { color: #0d9488; }
 
 /* ===== pestañas principales ===== */
-/* Navegación superior (corrección reprueba, 2026-10-24): con CINCO
-   píldoras (Mi registro · Mis clientes · Accesos · Entrenadores ·
-   Biblioteca) la fila se envuelve en filas CENTRADAS y equilibradas
-   — regla permanente de la casa: botones siempre centrados. Cada
-   fila se centra por sí misma (3+2 en administrador; las que vea
-   cada rol quedan centradas igual). */
-.main-tabs { display: flex; gap: 8px; margin: 14px 0 6px; flex-wrap: wrap; justify-content: center; }
-.main-tab { padding: 9px 18px; border-radius: 999px; border: 1px solid #d1d5db; background: #fff; font-size: 14px; cursor: pointer; color: #374151; display: inline-flex; align-items: center; gap: 8px; }
-.main-tab.active { background: #0d9488; border-color: #0d9488; color: #fff; font-weight: 600; }
-/* Armonía de píldoras (2026-10-26): una sola familia de iconos de
-   línea (mismo trazo que los tres iconos de marca) en las píldoras
-   de navegación — verde de marca en reposo, blanco en la activa. */
-.main-tab svg { width: 24px; height: 24px; flex: none; color: #0d9488; }
-.main-tab.active svg { color: #fff; }
+/* Barra superior (PASTILLAS PROPUESTA A, 2026-10-29; elección de
+   Ronald: «que parezca una app profesional y no de principiantes»,
+   ocupando la cabecera): las píldoras sueltas que se envolvían en
+   filas desparejas pasan a UNA barra de segmentos — contenedor
+   único gris-verdoso con esquinas redondeadas, cada sección con
+   su icono ARRIBA y su nombre COMPLETO debajo, y el segmento
+   activo como TARJETA BLANCA con sombra suave y texto teal. La
+   barra no se envuelve: si las secciones de un rol no caben
+   (administrador, 7), se desliza de lado con el scroll horizontal
+   sin barra visible; si caben (entrenador, 4), los segmentos se
+   reparten la barra a partes iguales (flex 1 1 0%); si un nombre
+   completo necesita más que su parte, toma su ancho natural
+   (min-width: min-content): el nombre nunca se recorta. El pintado por
+   rol y el comportamiento son los de siempre (app.js intacto).
+   El envoltorio existe solo para pintar el desvanecido del borde
+   derecho que anuncia el desplazamiento: no lleva márgenes
+   propios (los de la barra se conservan y lo atraviesan por
+   colapso, así su caja ES la caja de la barra) y con la barra
+   oculta (rol usuario) queda en altura cero y no pinta nada. */
+.main-tabs-wrap { position: relative; }
+.main-tabs-wrap::after { content: ""; position: absolute; top: 0; right: 0; bottom: 0; width: 28px;
+  background: linear-gradient(to right, rgba(232, 239, 238, 0), #e8efee);
+  border-radius: 0 16px 16px 0; pointer-events: none; }
+.main-tabs { display: flex; flex-wrap: nowrap; gap: 4px; margin: 14px 0 6px; padding: 5px;
+  background: #e8efee; border-radius: 16px; overflow-x: auto; scrollbar-width: none;
+  -webkit-overflow-scrolling: touch; }
+.main-tabs::-webkit-scrollbar { display: none; }
+.main-tab { flex: 1 1 0%; min-width: min-content; display: flex; flex-direction: column; align-items: center;
+  justify-content: center; gap: 3px; padding: 8px 10px; border: none; border-radius: 12px;
+  background: transparent; font-size: 12px; font-weight: 600; line-height: 1.15;
+  color: #47605c; cursor: pointer; white-space: nowrap; }
+.main-tab.active { background: #fff; color: #0d9488; box-shadow: 0 1px 4px rgba(0, 0, 0, .14); }
+/* Iconos de la barra (familia de trazo 1.8 de la casa): el glifo
+   vive en el propio valor i18n tabs.* y hereda el color del
+   segmento (currentColor): gris-verdoso en reposo, teal en el
+   activo — ya no se pinta en verde fijo ni en blanco. */
+.main-tab svg { width: 22px; height: 22px; flex: none; }
 
 /* ===== ayuda con comidas ===== */
 .mealhelp-panel { margin-top: 18px; }
