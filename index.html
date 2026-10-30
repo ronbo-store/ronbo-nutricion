@@ -21,7 +21,7 @@
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-title" content="RONBO FIT">
 <meta name="apple-mobile-web-app-status-bar-style" content="default">
-<link rel="stylesheet" href="styles.css?v=20261030-tarjeta-biblioteca">
+<link rel="stylesheet" href="styles.css?v=20261030-dia-accionable">
 <script defer src="https://cloud.umami.is/script.js" data-website-id="a29706d4-44a2-47cf-900a-5f74d74abfa8"></script>
 <script type="importmap">
 {
@@ -782,6 +782,22 @@
     <div id="train-ex-float-body"></div>
   </div>
 
+  <!-- HOJA DE ASIGNACIÓN (paquete Día accionable + Asignar,
+       2026-10-30): el botón «Asignar» de la tarjeta de la Biblioteca
+       abre esta hoja y elige, por pasos, rutina (la propia o la de
+       un cliente, solo entrenador/administrador), destino (hoy, un
+       día del plan o una plantilla), la pregunta «¿Para hoy o para
+       siempre?» cuando el destino es la rutina propia de hoy, y la
+       prescripción de «para siempre». El cuerpo lo pinta app.js
+       (libAssignRender); la hoja no escribe nada por sí misma. -->
+  <div class="act-float act-sheet" id="lib-assign-float" style="display:none" role="dialog">
+    <div class="pend-head">
+      <h2 id="lib-assign-title"></h2>
+      <button type="button" class="pend-close" id="btn-lib-assign-close" aria-label="Close" data-i18n-aria="client.close">✕</button>
+    </div>
+    <div id="lib-assign-body"></div>
+  </div>
+
   <!-- ============ VISTA: MI PERFIL (perfil-visible, 2026-10-24) ============
        Superficie propia y ÚNICA del perfil: tarjeta básica del usuario
        con sesión (#profile-card-box, la pinta renderProfileView) y, solo
@@ -1297,6 +1313,6 @@
 <div id="toast" class="toast"></div>
 <div id="print-card" aria-hidden="true"></div>
 
-<script type="module" src="app.js?v=20261030-tarjeta-biblioteca"></script>
+<script type="module" src="app.js?v=20261030-dia-accionable"></script>
 </body>
 </html>

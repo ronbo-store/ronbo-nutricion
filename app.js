@@ -2796,6 +2796,24 @@ en: {
   'train.custom.pickSwap': 'Change "{name}" for…', 'train.custom.pickAdd': 'Add an exercise',
   'train.custom.restNote': 'Today is your rest day — there is no session to customize.',
   'train.custom.closedNote': 'Today\'s session is already logged. Undo it from the day card if you want to change it first.',
+  'train.bring.btn': 'Bring the next day', 'train.bring.note': 'Advanced session · from {date} — your plan does not change: that day stays pending on its own date.',
+  'train.free.btn': 'Create a free day', 'train.free.label': 'Free day',
+  'train.blank.hint': 'You can still train today: bring your next planned day, or build a free day with the exercises you choose.',
+  'lib.assign.btn': 'Assign', 'lib.assign.title': 'Assign exercise',
+  'lib.assign.whoQ': 'Whose routine?', 'lib.assign.mine': 'My routine', 'lib.assign.aClient': 'A client…', 'lib.assign.clientsEmpty': 'You have no clients yet.',
+  'lib.assign.destQ': 'Where to?', 'lib.assign.destToday': 'Today', 'lib.assign.destDay': 'A day of the plan', 'lib.assign.destTpl': 'A template',
+  'lib.assign.clientNote': 'Assignments for a client always land in their plan (for good): there is no “for today” on their phone from here.',
+  'lib.assign.noPlan': 'There is no active plan to assign to.', 'lib.assign.todayClosed': 'Today is already logged — undo it from the day card to change it.',
+  'lib.assign.whenQ': 'For today, or for good?', 'lib.assign.forToday': 'For today', 'lib.assign.forTodayNote': 'It joins today’s session only. Your plan does not change.',
+  'lib.assign.forGood': 'For good', 'lib.assign.forGoodNote': 'It is written into the plan day that falls today.',
+  'lib.assign.blankForever': 'Today is a blank day in the plan, so there is no plan day to write to. Pick the day instead:',
+  'lib.assign.trainerNote': 'Your trainer manages your plan: “for good” reaches them as a proposal, and they set the prescription when they apply it.',
+  'lib.assign.dayQ': 'Which day?', 'lib.assign.tplQ': 'Which template?', 'lib.assign.tplDayQ': 'Which day of the template?',
+  'lib.assign.rxTitle': 'Prescription', 'lib.assign.setsPh': 'Sets (e.g. 4)', 'lib.assign.repsPh': 'Repetitions (e.g. 8–12, 45 sec, 10 per leg)',
+  'lib.assign.rxFree': 'This text will be saved exactly as written.', 'lib.assign.rxParsed': 'Understood as: {txt}',
+  'lib.assign.rxReps': 'repetitions', 'lib.assign.rxSec': 'sec', 'lib.assign.noteLeg': 'per leg', 'lib.assign.noteSide': 'per side', 'lib.assign.noteStation': 'per station',
+  'lib.assign.confirm': 'Assign', 'lib.assign.back': 'Back', 'lib.assign.donePlan': 'Exercise added to the plan.', 'lib.assign.doneTpl': 'Exercise added to the template.',
+  'lib.assign.todayDone': 'Added to today’s session.', 'lib.assign.propDone': 'Proposal sent to your trainer.', 'lib.assign.noTpl': 'You have no template you can edit yet.',
   'train.today.weekSummary': 'This week: {x} of {y} sessions completed',
   'train.today.rotationNote': 'This plan follows a day order, not fixed weekdays — so no session is pinned to this date. The next sessions in the plan\'s order are:',
   'shareW.btn': 'Share this workout',
@@ -4747,6 +4765,24 @@ es: {
   'train.custom.pickSwap': 'Cambiar «{name}» por…', 'train.custom.pickAdd': 'Agregar un ejercicio',
   'train.custom.restNote': 'Hoy es tu día de descanso: no hay sesión que personalizar.',
   'train.custom.closedNote': 'La sesión de hoy ya está registrada. Deshazla desde la tarjeta del día si quieres cambiarla antes.',
+  'train.bring.btn': 'Traer el próximo día', 'train.bring.note': 'Sesión adelantada · del {date} — tu plan no cambia: ese día sigue pendiente en su fecha.',
+  'train.free.btn': 'Crear día libre', 'train.free.label': 'Día libre',
+  'train.blank.hint': 'Igual puedes entrenar hoy: trae tu próximo día programado o arma un día libre con los ejercicios que elijas.',
+  'lib.assign.btn': 'Asignar', 'lib.assign.title': 'Asignar ejercicio',
+  'lib.assign.whoQ': '¿Rutina de quién?', 'lib.assign.mine': 'Mi rutina', 'lib.assign.aClient': 'Un cliente…', 'lib.assign.clientsEmpty': 'Todavía no tienes clientes.',
+  'lib.assign.destQ': '¿A dónde?', 'lib.assign.destToday': 'Hoy', 'lib.assign.destDay': 'Un día del plan', 'lib.assign.destTpl': 'Una plantilla',
+  'lib.assign.clientNote': 'Las asignaciones a un cliente siempre quedan en su plan (para siempre): desde aquí no existe un «para hoy» en su teléfono.',
+  'lib.assign.noPlan': 'No hay un plan activo al que asignar.', 'lib.assign.todayClosed': 'Hoy ya está registrado: deshazlo desde la tarjeta del día si quieres cambiarlo.',
+  'lib.assign.whenQ': '¿Para hoy o para siempre?', 'lib.assign.forToday': 'Para hoy', 'lib.assign.forTodayNote': 'Se suma solo a la sesión de hoy. Tu plan no cambia.',
+  'lib.assign.forGood': 'Para siempre', 'lib.assign.forGoodNote': 'Se escribe en el día del plan que toca hoy.',
+  'lib.assign.blankForever': 'Hoy es un día en blanco en el plan, así que no hay día del plan al que escribir. Elige el día:',
+  'lib.assign.trainerNote': 'Tu plan lo gestiona tu entrenador: «para siempre» le llega como propuesta, y él pone la prescripción al aplicarla.',
+  'lib.assign.dayQ': '¿Qué día?', 'lib.assign.tplQ': '¿Qué plantilla?', 'lib.assign.tplDayQ': '¿Qué día de la plantilla?',
+  'lib.assign.rxTitle': 'Prescripción', 'lib.assign.setsPh': 'Series (p. ej. 4)', 'lib.assign.repsPh': 'Repeticiones (p. ej. 8–12, 45 seg, 10 por pierna)',
+  'lib.assign.rxFree': 'Este texto se guardará tal como está escrito.', 'lib.assign.rxParsed': 'Se entiende como: {txt}',
+  'lib.assign.rxReps': 'repeticiones', 'lib.assign.rxSec': 'seg', 'lib.assign.noteLeg': 'por pierna', 'lib.assign.noteSide': 'por lado', 'lib.assign.noteStation': 'por estación',
+  'lib.assign.confirm': 'Asignar', 'lib.assign.back': 'Atrás', 'lib.assign.donePlan': 'Ejercicio agregado al plan.', 'lib.assign.doneTpl': 'Ejercicio agregado a la plantilla.',
+  'lib.assign.todayDone': 'Agregado a la sesión de hoy.', 'lib.assign.propDone': 'Propuesta enviada a tu entrenador.', 'lib.assign.noTpl': 'Todavía no tienes ninguna plantilla que puedas editar.',
   'train.today.weekSummary': 'Esta semana: {x} de {y} sesiones completadas',
   'train.today.rotationNote': 'Este plan sigue un orden de días, no días de semana fijos — por eso no hay una sesión fijada a esta fecha. Las próximas sesiones en el orden del plan son:',
   'shareW.btn': 'Compartir este entrenamiento',
@@ -13538,6 +13574,48 @@ function trainEditsWrite(planId, ed) {
   } catch {}
 }
 function trainEditsClear(planId) { trainEditsWrite(planId, null); }
+/* DÍA ACCIONABLE (2026-10-30, decisiones D1/D4 de Ronald): BASE DE
+   SESIÓN de hoy — cuando el mapa no asigna día a hoy (descanso del
+   mapa), el alumno puede TRAER el próximo día mapeado o crear un
+   DÍA LIBRE. La base vive en localStorage con la fecha en la clave
+   (gemela de las de ediciones y marcas: nace y muere con su día,
+   jamás se limpia a mano) y NO escribe el plan ni el mapa: la
+   tarjeta del día y el desplegable resuelven hoy como
+   mapa ?? base. Formas: {kind:'brought', di, from} — el día di del
+   plan abre como sesión de hoy y su cierre escribe el registro en
+   HOY con ese dayIndex real (la fecha original conserva su rutina
+   pendiente); {kind:'free'} — sesión vacía bajo el índice virtual
+   di = -1: trainEffectiveList(plan, -1) es exactamente la lista
+   `added` de la capa de sesión y el cierre escribe dayIndex -1 con
+   las filas `added` de siempre. */
+function trainBaseKey(planId) {
+  const uid = auth.currentUser ? auth.currentUser.uid : '';
+  return 'ronbofit-session-base-' + uid + '|' + planId + '|' + todayISO();
+}
+function trainBaseRead(planId) {
+  try {
+    const v = JSON.parse(localStorage.getItem(trainBaseKey(planId)) || 'null');
+    if (!v || typeof v !== 'object') return null;
+    if (v.kind === 'brought' && Number.isInteger(v.di) && v.di >= 0) return { kind: 'brought', di: v.di, from: String(v.from || '') };
+    if (v.kind === 'free') return { kind: 'free' };
+  } catch {}
+  return null;
+}
+function trainBaseWrite(planId, v) {
+  try {
+    if (v) localStorage.setItem(trainBaseKey(planId), JSON.stringify(v));
+    else localStorage.removeItem(trainBaseKey(planId));
+  } catch {}
+}
+/* Día EFECTIVO de hoy para un plan ya resuelto por su mapa: el del
+   mapa si lo hay; si no, el de la base de sesión (traído o libre);
+   si tampoco, null (descanso de verdad). */
+function trainTodayDiEffective(plan, mappedDi) {
+  if (mappedDi != null) return mappedDi;
+  const base = trainBaseRead(plan.id);
+  if (!base) return null;
+  return base.kind === 'brought' ? base.di : -1;
+}
 /* Lista EFECTIVA de un día: el plan con los cambios (el elegido
    ocupa el lugar del original heredando sus series × reps) y los
    agregados al final. Cada item: { ex, kind:'plan'|'swap'|'add',
@@ -13813,7 +13891,7 @@ function trainCloseFormHTML(planId, di) {
 function trainEditTailHTML(planId, di) {
   const chrono = trainChronoHTML(planId, di);
   if (TRAIN_CLOSE_DI === di) return chrono + trainCloseFormHTML(planId, di);
-  return chrono + `<div style="margin-top:8px"><button class="btn-primary btn-sm" data-train-done="${di}">${t('train.markDone')}</button> <button class="btn-ghost btn-sm" data-train-skip="${di}">${t('train.d.skipDay')}</button></div>`;
+  return chrono + `<div style="margin-top:8px"><button class="btn-primary btn-sm" data-train-done="${di}">${t('train.markDone')}</button> <button class="btn-ghost btn-sm" data-train-skip="${di}">${t('train.d.skipDay')}</button> <button type="button" class="btn-ghost btn-sm" data-train-add-open="1">${t('train.custom.add')}</button></div>`;
 }
 /* El volcado de la sesión en el día de actividad: UNA sola entrada
    'entrenamiento_plan', reemplazada al re-cerrar y retirada al
@@ -15146,6 +15224,13 @@ async function loadMyTraining() {
      plancal (planCalDayIndex — la misma función pura que lee el
      motor de metas: visor y metas nunca divergen). */
   const diForDate = iso => tmap.pairs ? tmap.pairs[new Date(iso + 'T12:00:00').getDay()] : (isCal ? planCalDayIndex(plan, iso) : null);
+  /* DÍA ACCIONABLE (2026-10-30): la base de sesión solo existe en
+     los modos con mapa (pares/plancal); en rotación hoy nunca queda
+     en blanco. La resolución EFECTIVA de la fecha vista manda sobre
+     la tarjeta: mapa ?? base (solo para hoy). */
+  const baseOv = (tmap.pairs || isCal) ? trainBaseRead(plan.id) : null;
+  const broughtActive = !!(baseOv && baseOv.kind === 'brought' && diForDate(today) == null);
+  const effDiForDate = iso => { const m = diForDate(iso); if (m != null) return m; if (iso === today && baseOv) return baseOv.kind === 'brought' ? baseOv.di : -1; return null; };
   if (TRAIN_VIEW.planId !== plan.id || !TRAIN_VIEW.sel) TRAIN_VIEW = { planId: plan.id, sel: today };
   const sel = TRAIN_VIEW.sel;
   const dayLabelOf = di => { const d = (plan.days || [])[di] || {}; return d.label || ('Día ' + (di + 1)); };
@@ -15170,10 +15255,10 @@ async function loadMyTraining() {
   };
   let selCard = '';
   if (tmap.pairs || isCal) {
-    const selDi = diForDate(sel);
+    const selDi = effDiForDate(sel);
     if (selDi != null) {
-      const day = (plan.days || [])[selDi] || {};
-      if (sel === today) selCard = dressedTodayCard(day, selDi) + trainShareRowHTML(selDi, sel);
+      const day = selDi === -1 ? { label: t('train.free.label'), exercises: [] } : ((plan.days || [])[selDi] || {});
+      if (sel === today) selCard = dressedTodayCard(day, selDi) + (broughtActive && selDi === baseOv.di ? `<p class="progress-hint">${esc(t('train.bring.note', { date: dateName(baseOv.from || today) }))}</p>` : '') + trainShareRowHTML(selDi, sel);
       else if (sel < today) {
         const logSD = logs.find(l => l.date === sel && l.dayIndex === selDi) || null;
         const other = logs.filter(l => l.date === sel && l.dayIndex !== selDi);
@@ -15191,12 +15276,19 @@ async function loadMyTraining() {
       const extra = logsSel.map(l => dressedHistCard((plan.days || [])[l.dayIndex] || {}, l) + trainShareRowHTML(l.dayIndex, sel)).join('');
       if (sel === today) {
         let nextLine = '';
-        for (let k = 1; k <= 7; k++) {
+        let nextFound = null;
+        for (let k = 1; k <= 14; k++) {
           const nd = addDaysISO(today, k);
           const ndi = diForDate(nd);
-          if (ndi != null) { nextLine = k === 1 ? t('train.today.nextTomorrow', { label: dayLabelOf(ndi) }) : t('train.today.nextOn', { date: dateName(nd), label: dayLabelOf(ndi) }); break; }
+          if (ndi != null) { nextFound = { iso: nd, di: ndi }; nextLine = k === 1 ? t('train.today.nextTomorrow', { label: dayLabelOf(ndi) }) : t('train.today.nextOn', { date: dateName(nd), label: dayLabelOf(ndi) }); break; }
         }
-        selCard = `<div class="train-day train-rest"><h4>${t('train.today.restToday')}</h4>${nextLine ? `<p class="progress-hint">${esc(nextLine)}</p>` : ''}</div>` + extra;
+        /* DÍA ACCIONABLE (D1, 2026-10-30): bajo la tarjeta de
+           descanso, las DOS salidas del día en blanco. «Traer» solo
+           se ofrece si existe un próximo día mapeado (ventana de 14
+           días, la misma del hallazgo de la línea); sin próximo día,
+           queda solo el día libre — ausencia honesta. */
+        const blankActions = `<div class="train-blank-actions">${nextFound ? `<button type="button" class="btn-primary btn-sm" data-train-bring="${nextFound.di}" data-from="${nextFound.iso}">${t('train.bring.btn')}</button> ` : ''}<button type="button" class="btn-ghost btn-sm" data-train-free="1">${t('train.free.btn')}</button><p class="progress-hint">${t('train.blank.hint')}</p></div>`;
+        selCard = `<div class="train-day train-rest"><h4>${t('train.today.restToday')}</h4>${nextLine ? `<p class="progress-hint">${esc(nextLine)}</p>` : ''}</div>` + blankActions + extra;
       } else {
         selCard = `<div class="train-day train-rest"><h4>${t('train.today.restDay')}</h4></div>` + extra;
       }
@@ -15474,7 +15566,7 @@ async function loadMyTraining() {
     const sug = trainChronoSuggestion(plan.id);
     const rpes = doneList.map(e => e.rpe).filter(r => r != null);
     const rpeAvg = rpes.length ? Math.round(rpes.reduce((a, c) => a + c, 0) / rpes.length) : null;
-    const data = { clientUid: uid, planId: plan.id, date: today, dayIndex: di, dayLabel: day.label || '',
+    const data = { clientUid: uid, planId: plan.id, date: today, dayIndex: di, dayLabel: di === -1 ? t('train.free.label') : (day.label || ''),
       done: status === 'done', schemaVersion: 2, status, exercisesDone: doneList, updatedAt: serverTimestamp(),
       durationMin: durMin,
       warmupMin: durMin == null ? null : warmMin,
@@ -15504,7 +15596,7 @@ async function loadMyTraining() {
     if (!confirm(t('train.d.skipConfirm'))) return;
     /* MÓDULO D (D-3): saltar es EXPLÍCITO — queda quién y cuándo;
        done:false con status 'skipped' (invariante intacta). */
-    const data = { clientUid: uid, planId: plan.id, date: today, dayIndex: di, dayLabel: day.label || '',
+    const data = { clientUid: uid, planId: plan.id, date: today, dayIndex: di, dayLabel: di === -1 ? t('train.free.label') : (day.label || ''),
       done: false, schemaVersion: 2, status: 'skipped',
       skippedExplicit: { value: true, at: serverTimestamp(), by: uid }, updatedAt: serverTimestamp() };
     try {
@@ -15564,8 +15656,29 @@ async function loadMyTraining() {
      hoy dentro del desplegable — el día de hoy se resuelve con la
      misma semántica de la tarjeta (pares/plancal/rotación) y un
      día ya cerrado no se edita desde aquí. */
-  const tDiCustom = (tmap.pairs || isCal) ? diForDate(today) : trainRotationNext(plan, logs, today);
+  const tDiCustom = (tmap.pairs || isCal) ? trainTodayDiEffective(plan, diForDate(today)) : trainRotationNext(plan, logs, today);
   trainCustomRenderSession(plan, tDiCustom, tDiCustom != null ? !!logByDay[tDiCustom] : false);
+  /* DÍA ACCIONABLE (2026-10-30): los botones del día en blanco
+     fijan la base de sesión y re-pintan — toda la maquinaria de la
+     sesión (tarjeta, desplegable, cierre) resuelve hoy con esa
+     base. El «+ Agregar ejercicio» VISIBLE de la tarjeta se limita
+     a abrir el desplegable con el selector en modo agregar y a
+     llevar la vista hasta él: la escritura es la del selector de
+     siempre, sin lógica duplicada. */
+  box.querySelectorAll('[data-train-bring]').forEach(b => b.onclick = () => {
+    trainBaseWrite(plan.id, { kind: 'brought', di: Number(b.dataset.trainBring), from: b.dataset.from || '' });
+    loadMyTraining();
+  });
+  box.querySelectorAll('[data-train-free]').forEach(b => b.onclick = () => {
+    trainBaseWrite(plan.id, { kind: 'free' });
+    loadMyTraining();
+  });
+  box.querySelectorAll('[data-train-add-open]').forEach(b => b.onclick = () => {
+    TRAIN_CUSTOM_OPEN = true;
+    TRAIN_PICK = { kind: 'add' };
+    loadMyTraining();
+    setTimeout(() => { const tc = $('train-custom-tools'); if (tc) tc.scrollIntoView({ block: 'start' }); }, 80);
+  });
   trainAlignRender();
   /* Biblioteca (una sola lectura con caché por sesión de página): al
      llegar, se re-pinta UNA vez por plan/día para resolver nombres y
@@ -16519,7 +16632,7 @@ function libRenderMine() {
     <div class="user-row lib-ex-row">
       ${libCardMediaHTML(ex)}
       <div class="lib-card-main"><div><b>${esc(libNameOf(ex))}</b>${libStateBadge(ex)}<br><span class="muted">${esc(libField(ex, 'grupo_muscular'))}${(ex.equipo_es || ex.equipo_en) ? ' · ' + esc(libField(ex, 'equipo')) : ''}</span>${libByLineHTML(ex)}${note}</div>
-      ${editable && LIBADM_WRITE_ENABLED ? `<div class="user-actions"><button type="button" class="btn-ghost btn-sm" data-lib-mine-edit="${esc(ex.id)}">${esc(t('libadm.edit'))}</button><button type="button" class="btn-ghost btn-sm" data-lib-mine-del="${esc(ex.id)}">${esc(t('libcom.del'))}</button></div>` : ''}</div>
+      ${(editable && LIBADM_WRITE_ENABLED) || ex.estado === 'aprobado' ? `<div class="user-actions">${ex.estado === 'aprobado' ? `<button type="button" class="btn-ghost btn-sm" data-lib-assign="${esc(ex.id)}">${esc(t('lib.assign.btn'))}</button>` : ''}${editable && LIBADM_WRITE_ENABLED ? `<button type="button" class="btn-ghost btn-sm" data-lib-mine-edit="${esc(ex.id)}">${esc(t('libadm.edit'))}</button><button type="button" class="btn-ghost btn-sm" data-lib-mine-del="${esc(ex.id)}">${esc(t('libcom.del'))}</button>` : ''}</div>` : ''}</div>
     </div>`;
   }).join('') : `<div class="wempty">${esc(t('libcom.mineEmpty'))}</div>`);
   box.querySelectorAll('[data-lib-mine-edit]').forEach(b => b.onclick = () => libOpenEditor(b.dataset.libMineEdit, 'mine'));
@@ -16559,7 +16672,7 @@ function libAdminRowHTML(ex) {
     <div class="user-row lib-ex-row lib-card-row" data-lib-card="${esc(ex.id)}">
       ${libCardMediaHTML(ex)}
       <div class="lib-card-main"><div><b>${esc(libNameOf(ex))}</b> <span class="muted">${esc(ex.id)}</span><br><span class="muted">${esc(libField(ex, 'grupo_muscular'))}${(ex.equipo_es || ex.equipo_en) ? ' · ' + esc(libField(ex, 'equipo')) : ''}</span>${libByLineHTML(ex)}</div>
-      ${ROLE === 'administrador' && LIBADM_WRITE_ENABLED ? `<div class="user-actions"><button type="button" class="btn-ghost btn-sm" data-lib-edit="${esc(ex.id)}">${esc(t('libadm.edit'))}</button></div>` : ''}</div>
+      <div class="user-actions"><button type="button" class="btn-ghost btn-sm" data-lib-assign="${esc(ex.id)}">${esc(t('lib.assign.btn'))}</button>${ROLE === 'administrador' && LIBADM_WRITE_ENABLED ? `<button type="button" class="btn-ghost btn-sm" data-lib-edit="${esc(ex.id)}">${esc(t('libadm.edit'))}</button>` : ''}</div></div>
     </div>`;
 }
 function libAdminRenderList() {
@@ -16593,6 +16706,390 @@ function libAdminRenderList() {
     });
   }
 }
+/* ================= ASIGNAR DESDE LA BIBLIOTECA (2026-10-30) =================
+   Orden de Ronald (chat RONBO.NUTRI, 2026-10-30 07:31 CDT): la
+   tarjeta de la Biblioteca tiene no solo «Editar» sino también
+   «Asignar» — a la rutina de hoy, a la de cualquier día o a una
+   plantilla. Decisiones del mismo día: D3 el entrenador asigna
+   también a sus clientes (paso «¿rutina de quién?», que el alumno
+   nunca ve) · D4 al presionar, si el destino es la rutina PROPIA
+   de hoy, la hoja pregunta «¿Para hoy o para siempre?» (en
+   clientes NO existe «para hoy»: la hoja lo declara y todo va a su
+   plan) · D5 «para siempre» lleva la prescripción en el acto
+   (series + el campo único de repeticiones con criterio de D-R1).
+   Escrituras — TODAS formas ya vivas, sin delta de reglas
+   (preflight en NOTA-DISENO.md del paquete):
+   - «Para hoy»: la capa de sesión local de siempre (la misma
+     entrada que escribe el selector de agregar); si hoy está en
+     blanco, siembra además la base de sesión «free» para que la
+     vista del día la continúe (ver trainBaseRead).
+   - «Para siempre» en plan: la disciplina del editor — instantánea
+     de la versión anterior (§6.4) y setDoc fusionado con los días;
+     la entrada lleva la forma exacta del editor más, cuando el
+     criterio se interpreta, repsMin/repsMax/repsKind/repsNote.
+   - «Para siempre» en plantilla: la escritura de tplSaveAsTemplate
+     (days + updatedAt + updatedBy, autoría intacta) y la entrada
+     con la forma de plantilla {exerciseId, series, repeticiones}.
+   - Alumno CON entrenador que elige «para siempre»: su plan lo
+     escriben las reglas solo vía su entrenador — viaja por el
+     canal vivo de propuestas P7 (planProposal 'add', el documento
+     exacto de propSubmit; la prescripción la pone el entrenador al
+     aplicarla, como en P7). */
+let LASIGN = null;   // estado de la hoja: { exId, step, who, clients, plan, clientPlan, mappedDi, closedToday, hasTrainer, dest, dayIdx, tplId, tplDayIdx }
+/* El botón vive en las filas de la Biblioteca (catálogo y aportes
+   aprobados); UNA delegación de documento lo abre — sobrevive a
+   los re-pintados de las listas, como la delegación de la ficha. */
+document.addEventListener('click', e => {
+  const b = e.target && e.target.closest ? e.target.closest('[data-lib-assign]') : null;
+  if (b) libAssignOpen(b.dataset.libAssign);
+});
+/* D-R1 (diseño 2026-10-29 §2): el campo único de repeticiones se
+   interpreta AL GUARDAR en repsMin/repsMax/repsKind/repsNote y la
+   cadena visible se regenera en forma canónica. Gramática: número
+   o rango, marca de tiempo opcional y calificador opcional; topes
+   1–100 repeticiones y 5–600 s, mín ≤ máx. El vocabulario de la
+   nota es el cerrado del diseño («por pierna | por lado | por
+   estación»); se aceptan también las formas en inglés y se
+   normalizan a ese vocabulario. Lo que no se interpreta se guarda
+   TAL CUAL, sin estructura (la misma regla de D-R1). */
+function repsParseCriterion(raw) {
+  const s = String(raw == null ? '' : raw).trim();
+  if (!s) return null;
+  const m = s.match(/^(\d+)\s*(?:[-–]\s*(\d+))?\s*(seg|sec|s)?\s*(?:(por|per)\s+(pierna|leg|lado|side|estación|estacion|station))?$/i);
+  if (!m) return null;
+  const min = Number(m[1]);
+  const max = m[2] != null ? Number(m[2]) : min;
+  if (!(min >= 1) || max < min) return null;
+  const kind = m[3] ? 'time' : 'reps';
+  if (kind === 'time' && (min < 5 || max > 600)) return null;
+  if (kind === 'reps' && max > 100) return null;
+  let note = '';
+  if (m[5]) {
+    const q = m[5].toLowerCase();
+    note = (q === 'pierna' || q === 'leg') ? 'por pierna' : (q === 'lado' || q === 'side') ? 'por lado' : 'por estación';
+  }
+  const str = (min === max ? String(min) : min + '–' + max) + (kind === 'time' ? ' seg' : '') + (note ? ' ' + note : '');
+  return { min, max, kind, note, str };
+}
+function repsCriterionDescribe(p) {
+  if (!p) return '';
+  const core = (p.min === p.max ? String(p.min) : p.min + '–' + p.max) + ' ' + (p.kind === 'time' ? t('lib.assign.rxSec') : t('lib.assign.rxReps'));
+  const noteTxt = p.note === 'por pierna' ? t('lib.assign.noteLeg') : p.note === 'por lado' ? t('lib.assign.noteSide') : p.note === 'por estación' ? t('lib.assign.noteStation') : '';
+  return noteTxt ? core + ' · ' + noteTxt : core;
+}
+function libAssignClose() {
+  const fl = $('lib-assign-float');
+  LASIGN = null;
+  if (!fl) return;
+  fl.classList.add('is-closing');
+  setTimeout(() => { fl.style.display = 'none'; fl.classList.remove('is-closing'); fl.classList.remove('is-open'); }, 170);
+}
+/* El día que el mapa asigna a HOY en un plan — la MISMA resolución
+   de loadMyTraining (pares por configuración, plancal o rotación),
+   con la misma lectura de la configuración de pendientes. */
+async function libAssignMappedDi(plan, logs) {
+  let cfg = (typeof PEND_CFG !== 'undefined' && PEND_CFG && !PEND_CFG.__error) ? PEND_CFG : null;
+  if (!cfg) { try { const cs = await getDoc(pendCfgRef()); if (cs.exists()) cfg = Object.assign(pendDefaults(), cs.data()); } catch {} }
+  const tmap = trainDayMap(plan, cfg);
+  if (tmap.pairs) { const v = tmap.pairs[new Date(todayISO() + 'T12:00:00').getDay()]; return v == null ? null : v; }
+  if (tmap.mode === 'plancal') return planCalDayIndex(plan, todayISO());
+  return trainRotationNext(plan, logs, todayISO());
+}
+async function libAssignOpen(exId) {
+  if (!auth.currentUser) return;
+  try { await libEnsure(); } catch {}
+  const ex = LIB_BY_ID[exId];
+  if (!ex) return;
+  LASIGN = { exId, step: (ROLE === 'entrenador' || ROLE === 'administrador') ? 'who' : 'dest', who: 'me', clients: null, plan: null, clientPlan: null, mappedDi: null, closedToday: false, hasTrainer: false, dest: null, dayIdx: null, tplId: null, tplDayIdx: null };
+  const title = $('lib-assign-title'); if (title) title.textContent = t('lib.assign.title');
+  const fl = $('lib-assign-float');
+  if (!fl) return;
+  const closeBtn = $('btn-lib-assign-close');
+  if (closeBtn && !closeBtn.dataset.wired) { closeBtn.dataset.wired = '1'; closeBtn.onclick = () => libAssignClose(); }
+  fl.classList.remove('is-closing');
+  fl.classList.add('is-open');
+  fl.style.display = 'block';
+  libAssignRender();
+  /* Preparación: plan propio activo, su día de hoy, si hoy ya está
+     cerrado y si el alumno tiene entrenador (para la nota de D4). */
+  try {
+    const uid = auth.currentUser.uid;
+    const plans = await fetchPlans(uid);
+    if (!LASIGN) return;
+    LASIGN.plan = plans.find(p => p.active === true) || null;
+    if (LASIGN.plan) {
+      const logs = await fetchLogs(uid);
+      if (!LASIGN) return;
+      LASIGN.closedToday = logs.some(l => l.date === todayISO() && l.planId === LASIGN.plan.id);
+      LASIGN.mappedDi = await libAssignMappedDi(LASIGN.plan, logs);
+      LASIGN.hasTrainer = !!(((typeof MY_REL !== 'undefined' && MY_REL && MY_REL.status === 'activa' && MY_REL.trainerUid)) || (UDATA && UDATA.assignmentStatus === 'assigned' && UDATA.trainerUid));
+    }
+  } catch {}
+  if (LASIGN && LASIGN.step === 'dest') libAssignRender();
+}
+async function libAssignClients() {
+  if (LASIGN.clients) return LASIGN.clients;
+  const uid = auth.currentUser.uid;
+  let users = [];
+  try {
+    const snap = ROLE === 'entrenador'
+      ? await getDocs(query(collection(db, 'users'), where('trainerUid', '==', uid)))
+      : await getDocs(collection(db, 'users'));
+    snap.forEach(d => users.push({ id: d.id, ...d.data() }));
+  } catch { users = []; }
+  /* El MISMO alcance que «Mis clientes»: el entrenador solo a sus
+     asignados; el administrador a todos; nadie a sí mismo ni al
+     propietario en la lista (él es «la mía»). */
+  LASIGN.clients = users.filter(u => !u.isOwner && u.id !== uid && (ROLE === 'administrador' || u.trainerUid === uid));
+  return LASIGN.clients;
+}
+function libAssignHeadHTML() {
+  const ex = LIB_BY_ID[LASIGN.exId];
+  return `<div class="lasign-ex"><b>${esc(ex ? libNameOf(ex) : '')}</b> <span class="muted">${esc(LASIGN.exId)}</span></div>`;
+}
+function libAssignFootHTML(showBack) {
+  return `<div class="lasign-foot">${showBack ? `<button type="button" class="btn-ghost btn-sm" data-lasign-back="1">${esc(t('lib.assign.back'))}</button> ` : ''}<button type="button" class="btn-ghost btn-sm" data-lasign-cancel="1">${esc(t('form.cancel'))}</button></div>`;
+}
+function libAssignRender() {
+  const body = $('lib-assign-body');
+  if (!body || !LASIGN) return;
+  const ex = LIB_BY_ID[LASIGN.exId];
+  if (!ex) return;
+  const step = LASIGN.step;
+  let h = libAssignHeadHTML();
+  if (step === 'who') {
+    h += `<div class="lasign-q">${esc(t('lib.assign.whoQ'))}</div><div class="lasign-opts">
+      <button type="button" class="btn-primary" data-lasign-who="me">${esc(t('lib.assign.mine'))}</button>
+      <button type="button" class="btn-ghost" data-lasign-who="client">${esc(t('lib.assign.aClient'))}</button></div>`;
+  } else if (step === 'clients') {
+    const cs = LASIGN.clients;
+    h += `<div class="lasign-q">${esc(t('lib.assign.aClient'))}</div>`;
+    if (!cs) h += `<div class="wempty">${esc(t('access.loading'))}</div>`;
+    else if (!cs.length) h += `<div class="wempty">${esc(t('lib.assign.clientsEmpty'))}</div>`;
+    else h += `<div class="lasign-opts">${cs.map(u => `<button type="button" class="btn-ghost" data-lasign-client="${esc(u.id)}">${esc(u.name || u.email || u.id)}</button>`).join('')}</div>`;
+  } else if (step === 'dest') {
+    h += `<div class="lasign-q">${esc(t('lib.assign.destQ'))}</div><div class="lasign-opts">`;
+    if (LASIGN.plan && !LASIGN.closedToday) h += `<button type="button" class="btn-primary" data-lasign-dest="today">${esc(t('lib.assign.destToday'))}</button>`;
+    if (LASIGN.plan) h += `<button type="button" class="btn-ghost" data-lasign-dest="day">${esc(t('lib.assign.destDay'))}</button>`;
+    h += `<button type="button" class="btn-ghost" data-lasign-dest="tpl">${esc(t('lib.assign.destTpl'))}</button></div>`;
+    if (!LASIGN.plan) h += `<p class="progress-hint">${esc(t('lib.assign.noPlan'))}</p>`;
+    else if (LASIGN.closedToday) h += `<p class="progress-hint">${esc(t('lib.assign.todayClosed'))}</p>`;
+  } else if (step === 'when') {
+    h += `<div class="lasign-q">${esc(t('lib.assign.whenQ'))}</div><div class="lasign-opts">
+      <button type="button" class="btn-primary" data-lasign-when="today">${esc(t('lib.assign.forToday'))}</button>
+      <p class="progress-hint">${esc(t('lib.assign.forTodayNote'))}</p>`;
+    if (LASIGN.mappedDi != null) {
+      h += `<button type="button" class="btn-ghost" data-lasign-when="forever">${esc(t('lib.assign.forGood'))}</button>
+      <p class="progress-hint">${esc(LASIGN.hasTrainer ? t('lib.assign.trainerNote') : t('lib.assign.forGoodNote'))}</p>`;
+    } else {
+      h += `<p class="progress-hint">${esc(t('lib.assign.blankForever'))}</p>
+      <button type="button" class="btn-ghost" data-lasign-when="pickday">${esc(t('lib.assign.destDay'))}</button>`;
+    }
+    h += `</div>`;
+  } else if (step === 'day') {
+    const plan = LASIGN.who === 'me' ? LASIGN.plan : LASIGN.clientPlan;
+    h += `<div class="lasign-q">${esc(t('lib.assign.dayQ'))}</div>`;
+    if (LASIGN.who !== 'me') h += `<p class="progress-hint">${esc(t('lib.assign.clientNote'))}</p>`;
+    if (!plan) h += `<div class="wempty">${esc(t('lib.assign.noPlan'))}</div>`;
+    else h += `<div class="lasign-opts">${(plan.days || []).map((d, di) => `<button type="button" class="btn-ghost" data-lasign-day="${di}">${esc(d.label || ('Día ' + (di + 1)))} <span class="muted">· ${esc(t('train.exCount', { n: (d.exercises || []).length }))}</span></button>`).join('')}</div>`;
+  } else if (step === 'tpl') {
+    const tpls = (TPL || []).filter(x => tplCanEdit(x));
+    h += `<div class="lasign-q">${esc(t('lib.assign.tplQ'))}</div>`;
+    if (!tpls.length) h += `<div class="wempty">${esc(t('lib.assign.noTpl'))}</div>`;
+    else h += `<div class="lasign-opts">${tpls.map(x => `<button type="button" class="btn-ghost" data-lasign-tpl="${esc(x.id)}">${esc(tplField(x, 'nombre'))} <span class="muted">· ${esc(t('train.daysCount', { n: (x.days || []).length }))}</span></button>`).join('')}</div>`;
+  } else if (step === 'tplday') {
+    const tpl = (TPL || []).find(x => x.id === LASIGN.tplId);
+    h += `<div class="lasign-q">${esc(t('lib.assign.tplDayQ'))}</div>`;
+    if (!tpl) h += `<div class="wempty">${esc(t('lib.assign.noTpl'))}</div>`;
+    else h += `<div class="lasign-opts">${(tpl.days || []).map((d, di) => `<button type="button" class="btn-ghost" data-lasign-tplday="${di}">${esc((LANG === 'es' ? (d.dia_nombre_es || d.dia_nombre_en) : (d.dia_nombre_en || d.dia_nombre_es)) || ('Día ' + (di + 1)))} <span class="muted">· ${esc(t('train.exCount', { n: (d.exercises || []).length }))}</span></button>`).join('')}</div>`;
+  } else if (step === 'rx') {
+    h += `<div class="lasign-q">${esc(t('lib.assign.rxTitle'))}</div>
+      <label class="act-lab">${esc(t('train.f.setsPh'))}<input type="text" id="lasign-sets" placeholder="${esc(t('lib.assign.setsPh'))}" autocomplete="off"></label>
+      <label class="act-lab">${esc(t('train.f.repPh'))}<input type="text" id="lasign-reps" placeholder="${esc(t('lib.assign.repsPh'))}" autocomplete="off"></label>
+      <p class="progress-hint" id="lasign-rx-note"></p>
+      <div class="lasign-opts"><button type="button" class="btn-primary" data-lasign-confirm="1">${esc(t('lib.assign.confirm'))}</button></div>`;
+  }
+  h += libAssignFootHTML(step !== 'who' && step !== 'dest' || (step === 'dest' && (ROLE === 'entrenador' || ROLE === 'administrador')));
+  body.innerHTML = h;
+  libAssignWire(body);
+}
+function libAssignBack() {
+  if (!LASIGN) return;
+  const s = LASIGN.step;
+  if (s === 'rx') LASIGN.step = LASIGN.dest === 'tpl' ? ((LASIGN.tplDayIdx != null && ((TPL || []).find(x => x.id === LASIGN.tplId) || { days: [] }).days.length > 1) ? 'tplday' : 'tpl') : (LASIGN.dest === 'day' ? 'day' : 'when');
+  else if (s === 'tplday') LASIGN.step = 'tpl';
+  else if (s === 'tpl' || s === 'when') LASIGN.step = 'dest';
+  else if (s === 'day') LASIGN.step = LASIGN.who === 'me' ? 'dest' : 'clients';
+  else if (s === 'clients') LASIGN.step = 'who';
+  else if (s === 'dest') LASIGN.step = 'who';
+  libAssignRender();
+}
+function libAssignWire(body) {
+  body.querySelectorAll('[data-lasign-cancel]').forEach(b => b.onclick = () => libAssignClose());
+  body.querySelectorAll('[data-lasign-back]').forEach(b => b.onclick = () => libAssignBack());
+  body.querySelectorAll('[data-lasign-who]').forEach(b => b.onclick = async () => {
+    if (b.dataset.lasignWho === 'me') { LASIGN.who = 'me'; LASIGN.step = 'dest'; libAssignRender(); return; }
+    LASIGN.step = 'clients'; libAssignRender();
+    await libAssignClients();
+    if (LASIGN && LASIGN.step === 'clients') libAssignRender();
+  });
+  body.querySelectorAll('[data-lasign-client]').forEach(b => b.onclick = async () => {
+    const cid = b.dataset.lasignClient;
+    LASIGN.who = cid;
+    try { LASIGN.clientPlan = (await fetchPlans(cid)).find(p => p.active === true) || null; } catch { LASIGN.clientPlan = null; }
+    LASIGN.step = 'day';
+    libAssignRender();
+  });
+  body.querySelectorAll('[data-lasign-dest]').forEach(b => b.onclick = async () => {
+    const d = b.dataset.lasignDest;
+    if (d === 'today') { LASIGN.step = 'when'; libAssignRender(); return; }
+    if (d === 'day') { LASIGN.step = 'day'; libAssignRender(); return; }
+    LASIGN.step = 'tpl'; libAssignRender();
+    try { await tplEnsure(); } catch {}
+    if (LASIGN && LASIGN.step === 'tpl') libAssignRender();
+  });
+  body.querySelectorAll('[data-lasign-when]').forEach(b => b.onclick = async () => {
+    const w = b.dataset.lasignWhen;
+    if (w === 'pickday') { LASIGN.step = 'day'; libAssignRender(); return; }
+    if (w === 'today') { libAssignDoToday(); return; }
+    /* «Para siempre» sobre el día que mapea hoy: con entrenador,
+       propuesta P7; sin entrenador, prescripción y escritura. */
+    if (LASIGN.hasTrainer) { libAssignDoProposal(); return; }
+    LASIGN.dest = 'today';
+    LASIGN.dayIdx = LASIGN.mappedDi;
+    LASIGN.step = 'rx';
+    libAssignRender();
+  });
+  body.querySelectorAll('[data-lasign-day]').forEach(b => b.onclick = () => {
+    LASIGN.dest = 'day';
+    LASIGN.dayIdx = Number(b.dataset.lasignDay);
+    LASIGN.step = 'rx';
+    libAssignRender();
+  });
+  body.querySelectorAll('[data-lasign-tpl]').forEach(b => b.onclick = () => {
+    const tpl = (TPL || []).find(x => x.id === b.dataset.lasignTpl);
+    if (!tpl) return;
+    LASIGN.dest = 'tpl';
+    LASIGN.tplId = tpl.id;
+    if ((tpl.days || []).length > 1) { LASIGN.step = 'tplday'; }
+    else { LASIGN.tplDayIdx = 0; LASIGN.step = 'rx'; }
+    libAssignRender();
+  });
+  body.querySelectorAll('[data-lasign-tplday]').forEach(b => b.onclick = () => {
+    LASIGN.tplDayIdx = Number(b.dataset.lasignTplday);
+    LASIGN.step = 'rx';
+    libAssignRender();
+  });
+  const repsIn = body.querySelector('#lasign-reps');
+  if (repsIn) {
+    const note = body.querySelector('#lasign-rx-note');
+    const sync = () => {
+      const raw = repsIn.value.trim();
+      if (!raw) { note.textContent = ''; return; }
+      const p = repsParseCriterion(raw);
+      note.textContent = p ? t('lib.assign.rxParsed', { txt: repsCriterionDescribe(p) }) : t('lib.assign.rxFree');
+    };
+    repsIn.oninput = sync; sync();
+  }
+  body.querySelectorAll('[data-lasign-confirm]').forEach(b => b.onclick = () => libAssignDoConfirm(b));
+}
+/* «Para hoy»: la entrada de sesión EXACTA del selector de agregar;
+   si hoy está en blanco y no hay base, se siembra la base «free»
+   para que la vista del día continúe la sesión sin fricción. */
+function libAssignDoToday() {
+  if (!LASIGN || !LASIGN.plan) return;
+  const ex = LIB_BY_ID[LASIGN.exId];
+  if (!ex) return;
+  const plan = LASIGN.plan;
+  const ed = trainEditsRead(plan.id) || { swaps: {}, added: [] };
+  ed.added.push({ exerciseId: ex.id, name: libNameOf(ex), sets: '', reps: '' });
+  trainEditsWrite(plan.id, ed);
+  if (LASIGN.mappedDi == null && !trainBaseRead(plan.id)) trainBaseWrite(plan.id, { kind: 'free' });
+  libAssignClose();
+  toast(t('lib.assign.todayDone'));
+  loadMyTraining();
+}
+/* Alumno con entrenador, «para siempre»: la propuesta 'add' de P7
+   con el documento exacto de propSubmit (sin campos nuevos). */
+async function libAssignDoProposal() {
+  if (!LASIGN || !LASIGN.plan || LASIGN.mappedDi == null) return;
+  const ex = LIB_BY_ID[LASIGN.exId];
+  const uid = auth.currentUser.uid;
+  const plan = LASIGN.plan, di = LASIGN.mappedDi;
+  const day = (plan.days || [])[di] || {};
+  const data = {
+    kind: 'planProposal', ownerUid: uid, uid,
+    planId: plan.id, planTitle: plan.title || '',
+    type: 'add', dayIndex: di, dayLabel: day.label || '',
+    exerciseId: LASIGN.exId,
+    exerciseName_es: ex ? (ex.nombre_es || '') : '',
+    exerciseName_en: ex ? (ex.nombre_en || '') : '',
+    note: '', status: 'pending', createdAt: serverTimestamp(),
+  };
+  try {
+    await setDoc(doc(db, 'nutrition_progress', `${uid}_prop_${Date.now()}`), data);
+  } catch (e) { failToast(e); return; }
+  libAssignClose();
+  toast(t('lib.assign.propDone'));
+  if (typeof renderMyProposals === 'function') renderMyProposals();
+}
+async function libAssignDoConfirm(btn) {
+  if (!LASIGN) return;
+  const sets = (($('lasign-sets') || {}).value || '');
+  const reps = (($('lasign-reps') || {}).value || '');
+  const ex = LIB_BY_ID[LASIGN.exId];
+  if (!ex) return;
+  if (btn) btn.disabled = true;
+  try {
+    if (LASIGN.dest === 'tpl') {
+      const tpl = (TPL || []).find(x => x.id === LASIGN.tplId);
+      if (!tpl) throw new Error('tpl-not-found');
+      const ref = doc(db, 'routine_templates', tpl.id);
+      const snap = await getDoc(ref);
+      if (!snap.exists()) throw new Error('tpl-not-found');
+      const days = JSON.parse(JSON.stringify((snap.data() || {}).days || []));
+      const di = LASIGN.tplDayIdx || 0;
+      if (!days[di]) throw new Error('tpl-day-not-found');
+      const p = repsParseCriterion(reps);
+      days[di].exercises = [...(days[di].exercises || []), { exerciseId: ex.id, series: sets.trim(), repeticiones: p ? p.str : reps.trim() }];
+      await setDoc(ref, { days, updatedAt: serverTimestamp(), updatedBy: auth.currentUser.uid }, { merge: true });
+      TPL_STATE = 'idle'; TPL = null; TPL_BY_ID = {};
+      try { await tplEnsure(); tplRenderTplUI(); renderPropTemplates(); } catch {}
+      libAssignClose();
+      toast(t('lib.assign.doneTpl'));
+      return;
+    }
+    const plan = LASIGN.who === 'me' ? LASIGN.plan : LASIGN.clientPlan;
+    if (!plan) throw new Error('plan-not-found');
+    const di = LASIGN.dayIdx;
+    const entry = { name: libNameOf(ex), sets: sets.trim(), reps: '', note: '', exerciseId: ex.id };
+    const p = repsParseCriterion(reps);
+    entry.reps = p ? p.str : reps.trim();
+    if (ex.foto_url) entry.photoUrl = ex.foto_url;
+    if (ex.video_youtube_url) entry.videoUrl = ex.video_youtube_url;
+    if (p) { entry.repsMin = p.min; entry.repsMax = p.max; entry.repsKind = p.kind; if (p.note) entry.repsNote = p.note; }
+    /* La disciplina del editor de planes: re-lectura fresca,
+       instantánea de la versión anterior (§6.4) y la misma
+       escritura fusionada de los días. */
+    const ref = doc(db, 'training_plans', plan.id);
+    const snap = await getDoc(ref);
+    if (!snap.exists()) throw new Error('plan-not-found');
+    const prev = snap.data();
+    const days = JSON.parse(JSON.stringify(prev.days || []));
+    if (!days[di] || !Array.isArray(days[di].exercises)) throw new Error('day-not-found');
+    days[di].exercises = [...days[di].exercises, entry];
+    await addDoc(collection(db, 'training_plans'), { ...prev, isSnapshot: true, sourcePlanId: plan.id, snapshotAt: serverTimestamp(), active: false });
+    await setDoc(ref, { days, updatedAt: serverTimestamp() }, { merge: true });
+    const own = LASIGN.who === 'me';
+    libAssignClose();
+    toast(t('lib.assign.donePlan'));
+    if (own) loadMyTraining();
+  } catch (e) {
+    if (btn) btn.disabled = false;
+    failToast(e);
+  }
+}
+
 /* El formulario de la ficha es UNO para los dos roles (decisión
    2026-10-24: el alta del entrenador trae los mismos campos que la
    creación del administrador): nombres ES/EN, grupo muscular,
@@ -22766,7 +23263,7 @@ document.addEventListener('keydown', e => { if (e.key === 'Escape') shareClose()
  *  - El SW (sw.js) solo cachea la cáscara del mismo origen en modo
  *    RED PRIMERO: Auth/Firestore/Worker jamás pasan por la caché.
  * ================================================================ */
-const PWA_SW_VERSION = '20261030-tarjeta-biblioteca';
+const PWA_SW_VERSION = '20261030-dia-accionable';
 let pwaDeferredPrompt = null;
 function pwaIsStandalone() {
   try {

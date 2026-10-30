@@ -20,13 +20,13 @@
  * `activate` y el cliente termina en la versión nueva sin que nadie
  * borre la caché a mano (recarga única controlada desde app.js).
  */
-const SW_VERSION = '20261030-tarjeta-biblioteca';
+const SW_VERSION = '20261030-dia-accionable';
 const CACHE_NAME = 'ronbofit-shell-' + SW_VERSION;
 const SHELL_URLS = [
   './',
   './index.html',
-  './styles.css?v=20261030-tarjeta-biblioteca',
-  './app.js?v=20261030-tarjeta-biblioteca',
+  './styles.css?v=20261030-dia-accionable',
+  './app.js?v=20261030-dia-accionable',
   './manifest.json',
   './icons/icon-192.png',
   './icons/icon-512.png',
