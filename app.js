@@ -1109,6 +1109,26 @@ function dosEnrichMissing() {
   const noPlaces = mods.includes('presencial') && (!Array.isArray(p.places) || !p.places.length);
   return noCerts || noPlaces;
 }
+/* Título del aviso «esperando entrenador» CON NOMBRE (corrección
+   del reporte en vivo de Ronald, 2026-10-30 12:05 CDT: el aviso con
+   solo el conteo no decía QUIÉN espera). Los nombres salen de la
+   MISMA lectura que ya cuenta (escLoadAdminCounts): cero lecturas
+   nuevas. Presentación: 1 → «<Nombre> está esperando entrenador»;
+   2–3 → los nombres unidos («A, B y C») en plural; 4+ → los tres
+   primeros nombres + «y N más» con el total visible. Si los nombres
+   no cuadran con el conteo (estructura vieja), cae al título de
+   conteo de siempre: el aviso nunca desaparece por esta mejora. */
+function pendJoinNames(names) {
+  if (names.length < 2) return names.join('');
+  return names.slice(0, -1).join(', ') + ' ' + t('pend.role.andWord') + ' ' + names[names.length - 1];
+}
+function pendWaitingTitle(c) {
+  const names = Array.isArray(c.waitingNames) ? c.waitingNames.filter(Boolean) : [];
+  if (names.length === c.waiting && c.waiting === 1) return t('pend.role.adminWaitingOne', { name: names[0] });
+  if (names.length === c.waiting && c.waiting >= 2 && c.waiting <= 3) return t('pend.role.adminWaitingNames', { names: pendJoinNames(names) });
+  if (names.length === c.waiting && c.waiting > 3) return t('pend.role.adminWaitingMore', { names: names.slice(0, 3).join(', '), n: c.waiting - 3, total: c.waiting });
+  return t('pend.role.adminWaiting', { n: c.waiting });
+}
 function rolePendItems() {
   const items = [];
   const push = (id, route, title, detail, go) => items.push({ id, type: 'role', route, title, detail, go, date: null, overdue: false, age: 0 });
@@ -1152,7 +1172,7 @@ function rolePendItems() {
       if (c.accounts > 0) push('admin|accounts', 'admin-pending', t('pend.role.adminAccounts', { n: c.accounts }), '', t('pend.role.adminGo'));
       if (c.memberships > 0) push('admin|memberships', 'admin-membership', t('pend.role.adminMemberships', { n: c.memberships }), '', t('pend.role.adminGo'));
       if (c.meals > 0) push('admin|meals', 'admin-meals', t('pend.role.adminMeals', { n: c.meals }), '', t('pend.role.adminGo'));
-      if (c.waiting > 0) push('admin|waiting', 'admin-waiting', t('pend.role.adminWaiting', { n: c.waiting }), '', t('pend.role.adminGo'));
+      if (c.waiting > 0) push('admin|waiting', 'admin-waiting', pendWaitingTitle(c), '', t('pend.role.adminGo'));
     }
   } catch {}
   return items;
@@ -1223,8 +1243,8 @@ function renderRolePendCard() {
    por aprobar, comidas por confirmar y alumnos en espera. */
 async function escLoadAdminCounts() {
   if (!IS_OWNER) return;
-  const c = { accounts: 0, memberships: 0, meals: 0, waiting: 0 };
-  try { const s = await getDocs(collection(db, 'users')); s.forEach(d => { const u = d.data(); if (u.isOwner) return; if (u.approved !== true) c.accounts++; else if ((u.role || 'usuario') === 'usuario' && !u.trainerUid) c.waiting++; }); } catch {}
+  const c = { accounts: 0, memberships: 0, meals: 0, waiting: 0, waitingNames: [] };
+  try { const s = await getDocs(collection(db, 'users')); s.forEach(d => { const u = d.data(); if (u.isOwner) return; if (u.approved !== true) c.accounts++; else if ((u.role || 'usuario') === 'usuario' && !u.trainerUid) { c.waiting++; c.waitingNames.push(u.name || u.email || '—'); } }); } catch {}
   try { const s = await getDocs(collection(db, 'memberships')); s.forEach(d => { if (d.data().status === 'pendiente') c.memberships++; }); } catch {}
   try { const s = await getDocs(collection(db, 'meal_requests')); s.forEach(d => { if (d.data().status === 'pendiente_administrador') c.meals++; }); } catch {}
   ESC_ADMIN_COUNTS = c;
@@ -3499,6 +3519,10 @@ en: {
   'pend.role.adminMemberships': '{n} membership request(s) to approve',
   'pend.role.adminMeals': '{n} meal request(s) to confirm',
   'pend.role.adminWaiting': '{n} student(s) waiting for a trainer',
+  'pend.role.adminWaitingOne': '{name} is waiting for a trainer',
+  'pend.role.adminWaitingNames': '{names} are waiting for a trainer',
+  'pend.role.adminWaitingMore': '{names} and {n} more are waiting for a trainer ({total} in total)',
+  'pend.role.andWord': 'and',
   'pend.role.adminGo': 'Review',
   'pend.chkTitle': 'Your profile is {pct}% complete',
   'pend.chk.profile': 'Profile template (photo, headline, intro)',
@@ -5469,6 +5493,10 @@ es: {
   'pend.role.adminMemberships': '{n} solicitud(es) de membresía por aprobar',
   'pend.role.adminMeals': '{n} solicitud(es) de comidas por confirmar',
   'pend.role.adminWaiting': '{n} alumno(s) esperando entrenador',
+  'pend.role.adminWaitingOne': '{name} está esperando entrenador',
+  'pend.role.adminWaitingNames': '{names} están esperando entrenador',
+  'pend.role.adminWaitingMore': '{names} y {n} más están esperando entrenador ({total} en total)',
+  'pend.role.andWord': 'y',
   'pend.role.adminGo': 'Revisar',
   'pend.chkTitle': 'Tu perfil está {pct}% completo',
   'pend.chk.profile': 'Plantilla de perfil (foto, titular, reseña)',
@@ -23263,7 +23291,7 @@ document.addEventListener('keydown', e => { if (e.key === 'Escape') shareClose()
  *  - El SW (sw.js) solo cachea la cáscara del mismo origen en modo
  *    RED PRIMERO: Auth/Firestore/Worker jamás pasan por la caché.
  * ================================================================ */
-const PWA_SW_VERSION = '20261030-dia-accionable';
+const PWA_SW_VERSION = '20261030-aviso-esperando';
 let pwaDeferredPrompt = null;
 function pwaIsStandalone() {
   try {
