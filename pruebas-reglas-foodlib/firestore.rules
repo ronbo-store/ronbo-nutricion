@@ -1750,7 +1750,10 @@ service cloud.firestore {
               && request.resource.data.keys().hasOnly([
                    'kind', 'name', 'nameKey', 'qtyNum', 'qtyUnit',
                    'pieceGrams', 'kcal', 'prot', 'carb', 'sugar', 'fat',
-                   'flags', 'contributorUid', 'estado', 'createdAt'])
+                   'flags', 'contributorUid', 'contributorName', 'estado', 'createdAt'])
+              && (!('contributorName' in request.resource.data)
+                  || (request.resource.data.contributorName is string
+                      && request.resource.data.contributorName.size() <= 80))
               && request.resource.data.flags is list
               && request.resource.data.flags.size() <= 6
               && foodShapeOk(request.resource.data))
