@@ -16459,15 +16459,30 @@ async function renderLibrary() {
 /* BANDEJA DEL ADMINISTRADOR: los aportes en 'pendiente', con su
    conteo. Aprobar firma la decisión y el ejercicio entra en el
    catálogo de todos; rechazar se lo devuelve a su autor. */
+/* TARJETA DE BIBLIOTECA CON FOTO GRANDE (2026-10-30, orden directa
+   de Ronald con captura): la miniatura redonda pequeña da paso a un
+   CUADRADO grande (84×84) alineado a la IZQUIERDA de la tarjeta, con
+   el texto — y el botón donde la vista lo tenga — en la columna de
+   su derecha. Sin foto, el cuadrado se pinta como el bloque suave
+   de la ficha (AUTH-087): mismo tamaño y posición, con la marca de
+   video si la ficha lo tiene; la marca es SOLO visual (un span): el
+   toque de la tarjeta sigue haciendo lo que hacía en cada vista
+   (abrir la ficha en el catálogo; nada en bandeja y aportes, cuyos
+   botones viven dentro de la columna). */
+function libCardMediaHTML(ex) {
+  if (ex.foto_url) return `<img class="lib-thumb" src="${esc(ex.foto_url)}" alt="">`;
+  return `<div class="lib-thumb lib-thumb-soft" aria-hidden="true">${ex.video_youtube_url ? `<span class="lib-thumb-play">▶</span><span class="lib-thumb-lab">${esc(t('train.lib.video'))}</span>` : `<span class="lib-thumb-glyph">🏋️</span>`}</div>`;
+}
 function libRenderTray() {
   const box = $('lib-pending-box'); if (!box) return;
   if (ROLE !== 'administrador' || !LIB_PENDING || !LIB_PENDING.length) { box.style.display = 'none'; box.innerHTML = ''; return; }
   box.style.display = '';
   const rows = [...LIB_PENDING].sort((a, b) => String(a.id).localeCompare(String(b.id)));
   box.innerHTML = `<h3 class="history-title">${esc(t('libcom.trayTitle', { n: rows.length }))}</h3>` + rows.map(ex => `
-    <div class="user-row">
-      <div>${ex.foto_url ? `<img class="avatar sm" src="${esc(ex.foto_url)}" alt="">` : ''}<b>${esc(libNameOf(ex))}</b><br><span class="muted">${esc(libField(ex, 'grupo_muscular'))}${(ex.equipo_es || ex.equipo_en) ? ' · ' + esc(libField(ex, 'equipo')) : ''}</span>${libByLineHTML(ex)}</div>
-      <div class="user-actions"><button type="button" class="btn-primary btn-sm" data-lib-approve="${esc(ex.id)}">${esc(t('libcom.approve'))}</button><button type="button" class="btn-ghost btn-sm" data-lib-reject="${esc(ex.id)}">${esc(t('libcom.reject'))}</button></div>
+    <div class="user-row lib-ex-row">
+      ${libCardMediaHTML(ex)}
+      <div class="lib-card-main"><div><b>${esc(libNameOf(ex))}</b><br><span class="muted">${esc(libField(ex, 'grupo_muscular'))}${(ex.equipo_es || ex.equipo_en) ? ' · ' + esc(libField(ex, 'equipo')) : ''}</span>${libByLineHTML(ex)}</div>
+      <div class="user-actions"><button type="button" class="btn-primary btn-sm" data-lib-approve="${esc(ex.id)}">${esc(t('libcom.approve'))}</button><button type="button" class="btn-ghost btn-sm" data-lib-reject="${esc(ex.id)}">${esc(t('libcom.reject'))}</button></div></div>
     </div>`).join('');
   box.querySelectorAll('[data-lib-approve]').forEach(b => b.onclick = () => libDecide(b.dataset.libApprove, true));
   box.querySelectorAll('[data-lib-reject]').forEach(b => b.onclick = () => libDecide(b.dataset.libReject, false));
@@ -16501,9 +16516,10 @@ function libRenderMine() {
     const note = ex.estado === 'rechazado' ? `<br><span class="muted">${esc(t('libcom.rejectedNote'))}</span>`
       : ex.estado === 'pendiente' ? `<br><span class="muted">${esc(t('libcom.pendingNote'))}</span>` : '';
     return `
-    <div class="user-row">
-      <div>${ex.foto_url ? `<img class="avatar sm" src="${esc(ex.foto_url)}" alt="">` : ''}<b>${esc(libNameOf(ex))}</b>${libStateBadge(ex)}<br><span class="muted">${esc(libField(ex, 'grupo_muscular'))}${(ex.equipo_es || ex.equipo_en) ? ' · ' + esc(libField(ex, 'equipo')) : ''}</span>${libByLineHTML(ex)}${note}</div>
-      ${editable && LIBADM_WRITE_ENABLED ? `<div class="user-actions"><button type="button" class="btn-ghost btn-sm" data-lib-mine-edit="${esc(ex.id)}">${esc(t('libadm.edit'))}</button><button type="button" class="btn-ghost btn-sm" data-lib-mine-del="${esc(ex.id)}">${esc(t('libcom.del'))}</button></div>` : ''}
+    <div class="user-row lib-ex-row">
+      ${libCardMediaHTML(ex)}
+      <div class="lib-card-main"><div><b>${esc(libNameOf(ex))}</b>${libStateBadge(ex)}<br><span class="muted">${esc(libField(ex, 'grupo_muscular'))}${(ex.equipo_es || ex.equipo_en) ? ' · ' + esc(libField(ex, 'equipo')) : ''}</span>${libByLineHTML(ex)}${note}</div>
+      ${editable && LIBADM_WRITE_ENABLED ? `<div class="user-actions"><button type="button" class="btn-ghost btn-sm" data-lib-mine-edit="${esc(ex.id)}">${esc(t('libadm.edit'))}</button><button type="button" class="btn-ghost btn-sm" data-lib-mine-del="${esc(ex.id)}">${esc(t('libcom.del'))}</button></div>` : ''}</div>
     </div>`;
   }).join('') : `<div class="wempty">${esc(t('libcom.mineEmpty'))}</div>`);
   box.querySelectorAll('[data-lib-mine-edit]').forEach(b => b.onclick = () => libOpenEditor(b.dataset.libMineEdit, 'mine'));
@@ -16540,9 +16556,10 @@ function libAdminFaceted(ignore) {
 }
 function libAdminRowHTML(ex) {
   return `
-    <div class="user-row lib-card-row" data-lib-card="${esc(ex.id)}">
-      <div>${ex.foto_url ? `<img class="avatar sm" src="${esc(ex.foto_url)}" alt="">` : ''}<b>${esc(libNameOf(ex))}</b> <span class="muted">${esc(ex.id)}</span><br><span class="muted">${esc(libField(ex, 'grupo_muscular'))}${(ex.equipo_es || ex.equipo_en) ? ' · ' + esc(libField(ex, 'equipo')) : ''}</span>${libByLineHTML(ex)}</div>
-      ${ROLE === 'administrador' && LIBADM_WRITE_ENABLED ? `<div class="user-actions"><button type="button" class="btn-ghost btn-sm" data-lib-edit="${esc(ex.id)}">${esc(t('libadm.edit'))}</button></div>` : ''}
+    <div class="user-row lib-ex-row lib-card-row" data-lib-card="${esc(ex.id)}">
+      ${libCardMediaHTML(ex)}
+      <div class="lib-card-main"><div><b>${esc(libNameOf(ex))}</b> <span class="muted">${esc(ex.id)}</span><br><span class="muted">${esc(libField(ex, 'grupo_muscular'))}${(ex.equipo_es || ex.equipo_en) ? ' · ' + esc(libField(ex, 'equipo')) : ''}</span>${libByLineHTML(ex)}</div>
+      ${ROLE === 'administrador' && LIBADM_WRITE_ENABLED ? `<div class="user-actions"><button type="button" class="btn-ghost btn-sm" data-lib-edit="${esc(ex.id)}">${esc(t('libadm.edit'))}</button></div>` : ''}</div>
     </div>`;
 }
 function libAdminRenderList() {
@@ -22749,7 +22766,7 @@ document.addEventListener('keydown', e => { if (e.key === 'Escape') shareClose()
  *  - El SW (sw.js) solo cachea la cáscara del mismo origen en modo
  *    RED PRIMERO: Auth/Firestore/Worker jamás pasan por la caché.
  * ================================================================ */
-const PWA_SW_VERSION = '20261030-frente1-etapas';
+const PWA_SW_VERSION = '20261030-tarjeta-biblioteca';
 let pwaDeferredPrompt = null;
 function pwaIsStandalone() {
   try {

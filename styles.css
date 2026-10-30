@@ -1733,6 +1733,21 @@ body { padding: max(16px, env(safe-area-inset-top)) max(16px, env(safe-area-inse
 .excard-hist-line:last-child { border-bottom: none; }
 .excard-hist-line b { color: #0d9488; }
 .lib-card-row { cursor: pointer; }
+/* ============ TARJETA DE BIBLIOTECA CON FOTO GRANDE (2026-10-30) ============
+   La fila de ejercicio de la Biblioteca (catálogo, bandeja y «Mis
+   aportes»): foto CUADRADA grande a la izquierda y, a su derecha, la
+   columna con nombre/código, grupo · equipo y el botón de la vista.
+   Sin foto, el cuadrado es el bloque suave de la ficha (AUTH-087):
+   mismo tamaño y posición, con la marca de video — todas las
+   tarjetas miden y alinean igual. */
+.lib-ex-row { flex-wrap: nowrap; justify-content: flex-start; gap: 12px; }
+.lib-thumb { width: 84px; height: 84px; flex: none; align-self: center; display: block; border-radius: 12px; object-fit: cover; background: #e8efee; }
+.lib-thumb-soft { display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 5px; }
+.lib-thumb-play { width: 34px; height: 34px; border-radius: 50%; background: #0d9488; color: #fff; font-size: 13px; line-height: 1; display: flex; align-items: center; justify-content: center; padding-left: 2px; box-shadow: 0 3px 8px rgba(13, 148, 136, .45); }
+.lib-thumb-lab { font-weight: 600; color: #0f766e; font-size: 12px; }
+.lib-thumb-glyph { font-size: 26px; line-height: 1; opacity: .55; }
+.lib-card-main { flex: 1 1 auto; min-width: 0; display: flex; flex-direction: column; justify-content: center; gap: 2px; }
+.lib-card-main .user-actions { margin-top: 6px; }
 .train-float-spec { font-weight: 600; color: #1f2a44; }
 .train-float-sub { color: #777; font-size: 12.5px; margin-top: 2px; }
 /* TARJETA COMPACTA: la hoja flotante nunca excede el viewport y su
