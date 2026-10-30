@@ -2818,6 +2818,23 @@ en: {
   'train.repeat.oneDayTitle': '{day} — {date}',
   'train.repeat.cadenceKept': 'Weekly sessions stay at {n}, as before.',
   'train.repeat.logNote': 'Day rebuilt from the session of {date}; the per-set detail stays in the record.',
+  /* FICHA DEL EJERCICIO + HISTORIAL DE CARGAS (Etapa 1 del rediseño
+     visual, paquete 1 — 2026-10-30): etiquetas de la ficha con
+     pestañas y del bloque «Tus últimas veces». Las claves
+     train.histLoads.* son las del diseño aprobado
+     DISENO-HISTORIAL-CARGAS-2026-10-29 (§3.5) + repsPart para las
+     reps de la sesión más reciente (§3.2/D-H2). */
+  'train.card.tabInstructions': 'Instructions', 'train.card.tabMuscles': 'Muscles', 'train.card.tabHistory': 'History',
+  'train.card.howTitle': 'How to do it', 'train.card.avoidTitle': 'Mistakes to avoid',
+  'train.card.mainMuscle': 'Main muscle group', 'train.card.secondaryMuscles': 'Secondary muscles',
+  'train.card.noSheet': 'This exercise has no library sheet yet, so there are no instructions to show.',
+  'train.card.noMuscles': 'This sheet has no muscle information yet.',
+  'train.histLoads.title': 'Your last times',
+  'train.histLoads.line': '{date} · {n} sets · {loads} · max {max}',
+  'train.histLoads.repsPart': ' · {reps} reps',
+  'train.histLoads.bodyLine': '{date} · {n} sets · {reps} reps · no external load',
+  'train.histLoads.first': 'First time you log this exercise: your loads will stay here for next time.',
+  'train.histLoads.legacy': '{date} · logged before per-set detail',
   'train.repeat.reqWeekBtn': '🔁 Ask to repeat week',
   'train.repeat.reqDayBtn': '🔁 Ask to repeat this day',
   'train.repeat.propWeekLine': 'Asks to repeat the week of the plan “{plan}”',
@@ -4718,6 +4735,23 @@ es: {
   'train.repeat.oneDayTitle': '{day} — {date}',
   'train.repeat.cadenceKept': 'Las sesiones por semana se mantienen en {n}, como antes.',
   'train.repeat.logNote': 'Día reconstruido desde la sesión del {date}; el detalle por serie queda en el registro.',
+  /* FICHA DEL EJERCICIO + HISTORIAL DE CARGAS (Etapa 1 del rediseño
+     visual, paquete 1 — 2026-10-30): etiquetas de la ficha con
+     pestañas y del bloque «Tus últimas veces». Las claves
+     train.histLoads.* son las del diseño aprobado
+     DISENO-HISTORIAL-CARGAS-2026-10-29 (§3.5) + repsPart para las
+     reps de la sesión más reciente (§3.2/D-H2). */
+  'train.card.tabInstructions': 'Instrucciones', 'train.card.tabMuscles': 'Músculos', 'train.card.tabHistory': 'Historial',
+  'train.card.howTitle': 'Cómo se hace', 'train.card.avoidTitle': 'Errores a evitar',
+  'train.card.mainMuscle': 'Grupo muscular principal', 'train.card.secondaryMuscles': 'Músculos secundarios',
+  'train.card.noSheet': 'Este ejercicio aún no tiene ficha en la biblioteca, así que no hay instrucciones para mostrar.',
+  'train.card.noMuscles': 'Esta ficha aún no trae información de músculos.',
+  'train.histLoads.title': 'Tus últimas veces',
+  'train.histLoads.line': '{date} · {n} series · {loads} · máx {max}',
+  'train.histLoads.repsPart': ' · {reps} repeticiones',
+  'train.histLoads.bodyLine': '{date} · {n} series · {reps} repeticiones · sin carga externa',
+  'train.histLoads.first': 'Primera vez que registras este ejercicio: tus cargas quedarán aquí para la próxima.',
+  'train.histLoads.legacy': '{date} · registrado antes del detalle por series',
   'train.repeat.reqWeekBtn': '🔁 Pedir repetir la semana',
   'train.repeat.reqDayBtn': '🔁 Pedir repetir este día',
   'train.repeat.propWeekLine': 'Pide repetir la semana del plan «{plan}»',
@@ -14260,6 +14294,162 @@ function trainFloatWireSets(body, draft) {
   body.querySelectorAll('[data-tf-reps]').forEach(inp => inp.oninput = () => { const s = draft.sets[Number(inp.dataset.tfReps)]; if (s) s.repsDone = inp.value; });
   body.querySelectorAll('[data-tf-load]').forEach(inp => inp.oninput = () => { const s = draft.sets[Number(inp.dataset.tfLoad)]; if (s) s.loadVal = inp.value; });
 }
+/* ================================================================
+   FICHA DEL EJERCICIO (Etapa 1 del rediseño visual, paquete 1 —
+   2026-10-30; diseño en DISENO-PAQUETE-FICHA-HISTORIAL.md): la
+   flotante #train-ex-float ES la ficha del ejercicio — media
+   grande arriba, chip del grupo muscular, el bloque de sesión de
+   siempre (en la vista del día) y tres pestañas: Instrucciones ·
+   Músculos · Historial, con el Historial de cargas dentro de la
+   tercera. La misma ficha se abre desde la Biblioteca en solo
+   lectura (libCardOpen, decisión D6). INVARIANTE intacto: la
+   ficha no escribe NADA en Firestore; en edición sigue editando
+   el borrador TRAIN_CHECKS y la única escritura sigue siendo el
+   cierre del día en training_logs. Sin campos ni lecturas nuevas:
+   el historial se computa en el cliente desde la lectura que la
+   vista ya hace (fetchLogs), conservada sin filtrar en
+   MY_LOGS_ALL. */
+/* Fecha corta localizada del historial («28 oct» / «Oct 28») con
+   los arrays de meses de siempre. */
+function histShortDate(iso) {
+  const m = String(iso || '').match(/(\d{4})-(\d{2})-(\d{2})/);
+  if (!m) return String(iso || '');
+  const d = parseInt(m[3], 10), mi = parseInt(m[2], 10) - 1;
+  const mon = (LANG === 'es' ? MESES_ES : MESES_EN)[mi] || '';
+  return LANG === 'es' ? `${d} ${mon.slice(0, 3)}` : `${mon.slice(0, 3)} ${d}`;
+}
+/* HISTORIAL DE CARGAS (diseño aprobado DISENO-HISTORIAL-CARGAS-
+   2026-10-29; decisiones D-H1 todos los planes · D-H2 resumen por
+   sesión · D-H4 el historial sigue al ejercicio REALIZADO por su
+   id): escaneo puro sobre el arreglo que fetchLogs ya devuelve
+   (fecha descendente), solo sesiones hechas o parciales, y una
+   sesión cuenta solo si su entrada aporta ≥1 serie con dato
+   (carga o reps hechas); las entradas v1 (sin series) cuentan
+   como línea «legado» honesta, sin cifras. Parada en 3. Devuelve
+   filas {date, dateShort, legacy} o {date, dateShort, n, loadsStr,
+   maxStr, repsStr} — texto listo para pintar; NUNCA escribe ni
+   copia nada al día de hoy (es referencia, no plantilla). */
+function trainHistLoadsRows(ex, allLogs) {
+  const id = ex && ex.exerciseId ? String(ex.exerciseId) : null;
+  const name = ex && !id ? String(ex.name || '') : null;
+  if (!id && !name) return [];
+  const out = [];
+  const logs = Array.isArray(allLogs) ? allLogs : [];
+  for (const log of logs) {
+    if (out.length >= 3) break;
+    const st = trainLogStatus(log);
+    if (st !== 'done' && st !== 'partial') continue;
+    const list = Array.isArray(log.exercisesDone) ? log.exercisesDone : [];
+    for (const e of list) {
+      if (out.length >= 3) break;
+      if (!e || e.done === false) continue;
+      /* Identidad: por exerciseId del REALIZADO (un cambio cuenta
+         para el realizado — su entrada trae su id — y jamás para
+         el programado); por nombre exacto SOLO si ni el ejercicio
+         ni la entrada traen id (el precedente de trainHistRows). */
+      const match = id ? (e.exerciseId != null && String(e.exerciseId) === id)
+        : (e.exerciseId == null && e.name != null && String(e.name) === name);
+      if (!match) continue;
+      const sets = Array.isArray(e.sets) ? e.sets : null;
+      if (!sets) { out.push({ date: log.date, legacy: true }); continue; }
+      const withData = sets.filter(s => s && (typeof s.loadKg === 'number' || (s.repsDone != null && s.repsDone !== '')));
+      if (!withData.length) continue;
+      const loadsKg = [];
+      sets.forEach(s => { if (s && typeof s.loadKg === 'number' && s.loadKg > 0 && !loadsKg.includes(s.loadKg)) loadsKg.push(s.loadKg); });
+      const reps = [];
+      sets.forEach(s => { if (s && s.repsDone != null && s.repsDone !== '') reps.push(String(s.repsDone)); });
+      out.push({ date: log.date, legacy: false, n: withData.length, loadsKg, repsStr: reps.join('/') });
+    }
+  }
+  return out.map(r => r.legacy
+    ? { dateShort: histShortDate(r.date), legacy: true }
+    : { dateShort: histShortDate(r.date), legacy: false, n: r.n, repsStr: r.repsStr,
+        loadsStr: r.loadsKg.length ? r.loadsKg.map(fmtMassVal).join(' / ') + ' ' + UNIT_PREFS.mass : '',
+        maxStr: r.loadsKg.length ? fmtMass(Math.max(...r.loadsKg)) : '' });
+}
+function trainHistLoadsHTML(ex, allLogs) {
+  const rows = trainHistLoadsRows(ex, allLogs);
+  if (!rows.length) return `<div class="excard-hist"><div class="excard-hist-title">${t('train.histLoads.title')}</div><p class="excard-empty">${t('train.histLoads.first')}</p></div>`;
+  const lines = rows.map((r, i) => {
+    if (r.legacy) return `<div class="excard-hist-line muted">${t('train.histLoads.legacy', { date: r.dateShort })}</div>`;
+    if (r.loadsStr) return `<div class="excard-hist-line">${t('train.histLoads.line', { date: r.dateShort, n: r.n, loads: r.loadsStr, max: `<b>${r.maxStr}</b>` })}${i === 0 && r.repsStr ? t('train.histLoads.repsPart', { reps: r.repsStr }) : ''}</div>`;
+    return `<div class="excard-hist-line">${t('train.histLoads.bodyLine', { date: r.dateShort, n: r.n, reps: r.repsStr })}</div>`;
+  }).join('');
+  return `<div class="excard-hist"><div class="excard-hist-title">${t('train.histLoads.title')}</div>${lines}</div>`;
+}
+/* Instrucciones de la ficha con honestidad de forma: si el texto
+   YA trae pasos separados por líneas se pinta como lista numerada;
+   si es texto corrido se pinta corrido y limpio. (La numeración
+   del CONTENIDO de las 138 fichas es la vía D5, otro paquete; este
+   render soporta ambas formas sin romperse.) */
+function excardStepsHTML(text) {
+  const raw = String(text || '').trim();
+  if (!raw) return '';
+  const lines = raw.split(/\n+/).map(s => s.trim()).filter(Boolean);
+  if (lines.length >= 2) return `<ol class="excard-steps">${lines.map(l => `<li>${esc(l)}</li>`).join('')}</ol>`;
+  return `<p class="excard-text">${esc(raw)}</p>`;
+}
+/* Composición compartida de la ficha: media grande + identidad +
+   bloque de sesión (si lo hay) + las tres pestañas. Cablea SOLO
+   presentación (media y pestañas): ninguna ruta de aquí escribe. */
+function trainCardRender({ ex, mode, sessionHTML, allLogs }) {
+  const body = $('train-ex-float-body');
+  if (!body || !ex) return;
+  const entry = ex.exerciseId ? (LIB_BY_ID[ex.exerciseId] || null) : null;
+  const photo = trainExPhoto(ex), video = trainExVideo(ex);
+  /* Media grande: foto a todo ancho (su toque abre el lightbox de
+     siempre; si falla se retira sola y, sin video, el bloque
+     entero desaparece — nunca un hueco). Con video, botón de
+     reproducción que lo abre como hoy (YouTube fuera, sin
+     incrustar); sin foto pero con video (las fichas de espalda),
+     bloque suave con el botón grande: acceso sin hueco vacío. */
+  const media = photo
+    ? `<div class="excard-media"><img class="excard-img" src="${esc(photo)}" alt="" data-tf-photo="${esc(photo)}">${video ? `<button type="button" class="excard-play" data-excard-video="${esc(video)}" aria-label="${esc(t('train.lib.video'))}">▶</button>` : ''}</div>`
+    : (video ? `<div class="excard-media excard-media-soft"><button type="button" class="excard-play excard-play-big" data-excard-video="${esc(video)}" aria-label="${esc(t('train.lib.video'))}">▶</button><span class="excard-media-lab">${esc(t('train.lib.video'))}</span></div>` : '');
+  const group = entry ? libField(entry, 'grupo_muscular') : '';
+  let metaLine = '';
+  if (mode === 'card') {
+    const extra = [entry ? libField(entry, 'equipo') : '', entry ? libField(entry, 'nivel') : ''].filter(Boolean).join(' · ');
+    metaLine = extra ? `<div class="train-float-sub">${esc(extra)}</div>` : '';
+  } else {
+    const spec = [ex.sets, ex.reps].filter(Boolean).join(' × ');
+    const rest = LANG === 'es' ? (ex.rest || ex.rest_en || '') : (ex.rest_en || ex.rest || '');
+    const warm = LANG === 'es' ? (ex.warmup || ex.warmup_en || '') : (ex.warmup_en || ex.warmup || '');
+    const det = [];
+    if (warm) det.push(`${t('train.view.warmup')}: ${warm}`);
+    if (rest) det.push(`${t('train.view.rest')}: ${rest}`);
+    metaLine = `${spec || ex.note ? `<div class="train-float-spec">${esc(spec)}${ex.note ? ` <span class="muted">· ${esc(ex.note)}</span>` : ''}</div>` : ''}${det.length ? `<div class="train-float-sub">${esc(det.join(' · '))}</div>` : ''}`;
+  }
+  const how = entry ? libField(entry, 'como_se_hace') : '';
+  const avoid = entry ? libField(entry, 'errores_a_evitar') : '';
+  const insHTML = !entry
+    ? `<p class="excard-empty">${t('train.card.noSheet')}</p>`
+    : (`${how ? `<div class="excard-sec">${t('train.card.howTitle')}</div>${excardStepsHTML(how)}` : ''}${avoid ? `<div class="excard-sec">${t('train.card.avoidTitle')}</div>${excardStepsHTML(avoid)}` : ''}` || `<p class="excard-empty">${t('train.card.noSheet')}</p>`);
+  const secList = entry ? libField(entry, 'musculos_secundarios').split(/[;,]/).map(s => s.trim()).filter(s => s && !/^(ninguno|none)$/i.test(s)) : [];
+  const musHTML = !entry
+    ? `<p class="excard-empty">${t('train.card.noSheet')}</p>`
+    : (!group && !secList.length)
+      ? `<p class="excard-empty">${t('train.card.noMuscles')}</p>`
+      : `${group ? `<div class="excard-sec">${t('train.card.mainMuscle')}</div><div class="excard-chips"><span class="excard-chip excard-chip-main">${esc(group)}</span></div>` : ''}${secList.length ? `<div class="excard-sec">${t('train.card.secondaryMuscles')}</div><div class="excard-chips">${secList.map(s => `<span class="excard-chip excard-chip-sec">${esc(s)}</span>`).join('')}</div>` : ''}`;
+  body.innerHTML = `${media}
+    <div class="excard-head">${group ? `<div class="excard-chips"><span class="excard-chip excard-chip-main">${esc(group)}</span></div>` : ''}${metaLine}</div>
+    ${sessionHTML || ''}
+    <div class="excard-tabs" role="tablist">
+      <button type="button" class="excard-tab active" data-excard-tab="ins">${t('train.card.tabInstructions')}</button>
+      <button type="button" class="excard-tab" data-excard-tab="mus">${t('train.card.tabMuscles')}</button>
+      <button type="button" class="excard-tab" data-excard-tab="his">${t('train.card.tabHistory')}</button>
+    </div>
+    <div class="excard-pane" data-excard-pane="ins">${insHTML}</div>
+    <div class="excard-pane" data-excard-pane="mus" style="display:none">${musHTML}</div>
+    <div class="excard-pane" data-excard-pane="his" style="display:none">${trainHistLoadsHTML(ex, allLogs)}</div>`;
+  const ph = body.querySelector('[data-tf-photo]');
+  if (ph) { ph.onerror = () => { const m = ph.closest('.excard-media'); ph.remove(); if (!video && m) m.remove(); }; ph.onclick = () => showLightbox(ph.dataset.tfPhoto); }
+  body.querySelectorAll('[data-excard-video]').forEach(b => b.onclick = () => window.open(b.dataset.excardVideo, '_blank', 'noopener'));
+  body.querySelectorAll('[data-excard-tab]').forEach(b => b.onclick = () => {
+    body.querySelectorAll('[data-excard-tab]').forEach(x => x.classList.toggle('active', x === b));
+    body.querySelectorAll('[data-excard-pane]').forEach(p => { p.style.display = p.dataset.excardPane === b.dataset.excardTab ? '' : 'none'; });
+  });
+}
 function trainFloatOpen(plan, logs, di, ei, mode, iso) {
   const fl = $('train-ex-float');
   if (!fl || !plan) return;
@@ -14278,36 +14468,18 @@ function trainFloatOpen(plan, logs, di, ei, mode, iso) {
     histRow = trainHistRows(day, logR)[ei] || null;
     if (histRow) ex = histRow.ex;
   }
-  const body = $('train-ex-float-body');
   $('train-ex-float-title').textContent = trainExName(ex) || ex.name || '';
-  const photo = trainExPhoto(ex), video = trainExVideo(ex);
-  const spec = [ex.sets, ex.reps].filter(Boolean).join(' × ');
-  const rest = LANG === 'es' ? (ex.rest || ex.rest_en || '') : (ex.rest_en || ex.rest || '');
-  const warm = LANG === 'es' ? (ex.warmup || ex.warmup_en || '') : (ex.warmup_en || ex.warmup || '');
-  const det = [];
-  if (warm) det.push(`${t('train.view.warmup')}: ${warm}`);
-  if (rest) det.push(`${t('train.view.rest')}: ${rest}`);
-  /* Cabecera de la flotante (REPRUEBA-2, orden de Ronald 2026-10-26
-     12:15 CDT: «la imagen del ejercicio vaya a la izquierda»): con
-     foto, la cabecera va en DOS columnas — IZQUIERDA la foto (el
-     mismo img de siempre: su tap abre el mismo lightbox y su error
-     la retira sola) y DERECHA la meta (especificación, detalles y
-     enlace de video). Sin foto, la meta va sola a una columna, sin
-     hueco vacío. Debajo, a todo ancho, los controles de siempre
-     (editar / solo lectura / programado) sin ningún cambio. */
-  const metaHtml = `${spec || ex.note ? `<div class="train-float-spec">${esc(spec)}${ex.note ? ` <span class="muted">· ${esc(ex.note)}</span>` : ''}</div>` : ''}
-    ${det.length ? `<div class="train-float-sub">${esc(det.join(' · '))}</div>` : ''}
-    ${video ? `<a class="btn-ghost btn-sm train-ex-video" href="${esc(video)}" target="_blank" rel="noopener">▶ ${t('train.lib.video')}</a>` : ''}`;
-  let html = photo
-    ? `<div class="train-float-head"><img class="train-float-photo" src="${esc(photo)}" alt="" data-tf-photo="${esc(photo)}"><div class="train-float-meta">${metaHtml}</div></div>`
-    : metaHtml;
+  /* La FICHA (2026-10-30) compone media + identidad + pestañas
+     alrededor del bloque de sesión, que queda BYTE A BYTE como
+     estaba: mismos ids, mismo borrador, mismo Guardar. */
+  let sessionHTML = '';
   if (mode === 'edit') {
     const key = di + ':' + ei;
     const chk = TRAIN_CHECKS[key];
     const draft = { done: !!chk, rpe: chk ? chk.rpe : null,
       sets: chk && Array.isArray(chk.sets) ? chk.sets.map(s => ({ ...s })) : trainDefaultSets(ex) };
     TRAIN_FLOAT = { di, ei, mode, iso, draft };
-    html += `<label class="train-float-check"><input type="checkbox" id="tf-done" ${draft.done ? 'checked' : ''}> <span>${t('train.view.exDone')}</span></label>
+    sessionHTML = `<label class="train-float-check"><input type="checkbox" id="tf-done" ${draft.done ? 'checked' : ''}> <span>${t('train.view.exDone')}</span></label>
       <div id="tf-sets">${trainFloatSetsHTML(draft)}</div>
       <div><label class="prop-lab" for="tf-rpe">${t('train.view.rpe')}</label>
       <select class="train-ex-rpe" id="tf-rpe" ${draft.done ? '' : 'disabled'}>
@@ -14321,14 +14493,13 @@ function trainFloatOpen(plan, logs, di, ei, mode, iso) {
       const de = histRow ? histRow.de : null;
       const setsLine = de && Array.isArray(de.sets) && de.sets.length
         ? `<div class="train-set-hist">${t('train.d.setsLabel')}: ${de.sets.map((s, si) => `${t('train.d.set')} ${si + 1}: ${s.repsDone != null && s.repsDone !== '' ? esc(String(s.repsDone)) : '—'}${s.repsPlanned ? `/${esc(String(s.repsPlanned))}` : ''} ${t('train.d.repsPh')}${typeof s.loadKg === 'number' ? ` · ${esc(fmtMass(s.loadKg))}` : ''}`).join(' · ')}</div>` : '';
-      html += `<div style="margin-top:10px">${de ? `<span class="ok-badge">✓ ${t('train.view.exDone')}${de.rpe ? ` · ${t('train.view.rpe')} ${esc(String(de.rpe))}` : ''}</span>` : '<span class="muted">—</span>'}</div>${histRow ? trainMarkChipHTML(histRow.mark) : ''}${setsLine}`;
+      sessionHTML = `<div style="margin-top:10px">${de ? `<span class="ok-badge">✓ ${t('train.view.exDone')}${de.rpe ? ` · ${t('train.view.rpe')} ${esc(String(de.rpe))}` : ''}</span>` : '<span class="muted">—</span>'}</div>${histRow ? trainMarkChipHTML(histRow.mark) : ''}${setsLine}`;
     } else {
-      html += `<div style="margin-top:10px"><span class="train-status st-skipped">● ${t('train.today.scheduled')}</span></div>`;
+      sessionHTML = `<div style="margin-top:10px"><span class="train-status st-skipped">● ${t('train.today.scheduled')}</span></div>`;
     }
   }
-  body.innerHTML = html;
-  const ph = body.querySelector('[data-tf-photo]');
-  if (ph) { ph.onerror = () => ph.remove(); ph.onclick = () => showLightbox(ph.dataset.tfPhoto); }
+  trainCardRender({ ex, mode, sessionHTML, allLogs: MY_LOGS_ALL || logs });
+  const body = $('train-ex-float-body');
   if (mode === 'edit' && TRAIN_FLOAT) {
     const d = TRAIN_FLOAT.draft;
     const doneBox = body.querySelector('#tf-done');
@@ -14358,6 +14529,30 @@ function trainFloatOpen(plan, logs, di, ei, mode, iso) {
       loadMyTraining();
     };
   }
+  fl.classList.remove('is-closing');
+  fl.classList.add('is-open');
+  fl.style.display = 'block';
+}
+/* LA FICHA DESDE LA BIBLIOTECA (decisión D6 de Ronald, 2026-10-30):
+   la misma ficha, en SOLO LECTURA, para administrador y entrenador
+   (los únicos roles que ven el catálogo). Sin bloque de sesión =
+   sin ningún control de escritura. La pestaña Historial muestra el
+   historial PROPIO de quien abre: la misma computación sobre la
+   misma lectura de siempre (fetchLogs de su propio uid); si su
+   vista de entrenamiento ya la hizo, MY_LOGS_ALL la trae y no se
+   lee nada más. */
+async function libCardOpen(id) {
+  const fl = $('train-ex-float');
+  if (!fl) return;
+  try { await libEnsure(); } catch {}
+  const entry = LIB_BY_ID[id];
+  if (!entry) return;
+  const ex = { exerciseId: id, name: libNameOf(entry) };
+  $('train-ex-float-title').textContent = libNameOf(entry);
+  let all = MY_LOGS_ALL;
+  if (!all) { try { all = await fetchLogs(auth.currentUser.uid); MY_LOGS_ALL = all; } catch { all = []; } }
+  TRAIN_FLOAT = { di: -1, ei: -1, mode: 'card', iso: '', draft: null };
+  trainCardRender({ ex, mode: 'card', sessionHTML: '', allLogs: all });
   fl.classList.remove('is-closing');
   fl.classList.add('is-open');
   fl.style.display = 'block';
@@ -14454,8 +14649,10 @@ async function loadMyTraining() {
   const uid = auth.currentUser.uid;
   const plans = await fetchPlans(uid);
   const plan = plans.find(p => p.active === true) || null;
-  if (!plan) { MY_PLAN = null; MY_LOGS = []; box.innerHTML = `<div class="wempty compact" id="train-none-msg">${t('train.none')}</div>`; trainNoneNamedRender(box); trainCustomRenderSession(null, null, false); return; }
-  const logs = (await fetchLogs(uid)).filter(l => l.planId === plan.id);
+  if (!plan) { MY_PLAN = null; MY_LOGS = []; MY_LOGS_ALL = null; box.innerHTML = `<div class="wempty compact" id="train-none-msg">${t('train.none')}</div>`; trainNoneNamedRender(box); trainCustomRenderSession(null, null, false); return; }
+  const logsAll = await fetchLogs(uid);
+  const logs = logsAll.filter(l => l.planId === plan.id);
+  MY_LOGS_ALL = logsAll;
   MY_PLAN = plan; MY_LOGS = logs;
   try { const ds2 = $('dateSel'); if (ds2 && typeof render === 'function') render(ds2.value); } catch {}
   const today = todayISO();
@@ -15912,7 +16109,7 @@ function libAdminFaceted(ignore) {
 }
 function libAdminRowHTML(ex) {
   return `
-    <div class="user-row">
+    <div class="user-row lib-card-row" data-lib-card="${esc(ex.id)}">
       <div>${ex.foto_url ? `<img class="avatar sm" src="${esc(ex.foto_url)}" alt="">` : ''}<b>${esc(libNameOf(ex))}</b> <span class="muted">${esc(ex.id)}</span><br><span class="muted">${esc(libField(ex, 'grupo_muscular'))}${(ex.equipo_es || ex.equipo_en) ? ' · ' + esc(libField(ex, 'equipo')) : ''}</span>${libByLineHTML(ex)}</div>
       ${ROLE === 'administrador' && LIBADM_WRITE_ENABLED ? `<div class="user-actions"><button type="button" class="btn-ghost btn-sm" data-lib-edit="${esc(ex.id)}">${esc(t('libadm.edit'))}</button></div>` : ''}
     </div>`;
@@ -15934,6 +16131,19 @@ function libAdminRenderList() {
   const gateNote = LIBADM_WRITE_ENABLED ? '' : `<div class="wempty">${esc(t('libadm.readonlyNote'))}</div>`;
   box.innerHTML = gateNote + (rows.length ? libSections(rows).map(sec => `<div class="libcat-sec">${esc(sec.label)} <span class="libcat-sec-n">${sec.items.length}</span></div>` + sec.items.map(libAdminRowHTML).join('')).join('') : `<div class="wempty">${esc(t('libadm.empty'))}</div>`);
   box.querySelectorAll('[data-lib-edit]').forEach(b => b.onclick = () => libOpenEditor(b.dataset.libEdit, 'admin'));
+  /* LA FICHA DESDE LA BIBLIOTECA (D6, 2026-10-30): tocar el cuerpo
+     de una fila del catálogo (fuera de sus botones) abre la ficha
+     del ejercicio en solo lectura. Delegación ÚNICA sobre el
+     contenedor: sobrevive a los re-pintados de la lista (filtros,
+     «mostrar más») sin duplicar escuchas. */
+  if (!box.dataset.cardWired) {
+    box.dataset.cardWired = '1';
+    box.addEventListener('click', e => {
+      if (e.target.closest('button, a, input, select, textarea, label')) return;
+      const row = e.target.closest('[data-lib-card]');
+      if (row) libCardOpen(row.dataset.libCard);
+    });
+  }
 }
 /* El formulario de la ficha es UNO para los dos roles (decisión
    2026-10-24: el alta del entrenador trae los mismos campos que la
@@ -20441,7 +20651,7 @@ applyI18n();
 let PEND_CFG = null;            // null = aún no cargado; {activated:false} = sin activar
 let PEND_STATE = { marks: {} }; // marcas por ocasión (pospuesto/omitido/descartado)
 let PEND_UI = { configOpen: false, floatOpen: false };
-let MY_PLAN = null, MY_LOGS = [];   // los rellena loadMyTraining()
+let MY_PLAN = null, MY_LOGS = [], MY_LOGS_ALL = null;   // los rellena loadMyTraining(); MY_LOGS_ALL conserva la lectura COMPLETA (todos los planes) para el Historial de cargas de la ficha — es la misma única lectura de siempre, sin filtrar
 
 const PEND_MEAL_NAMES = ['Desayuno', 'Almuerzo', 'Cena', 'Merienda', 'Snack'];
 /* Comidas «principales» (instrucción de Ronald, 2026-10-21): las
@@ -22056,7 +22266,7 @@ document.addEventListener('keydown', e => { if (e.key === 'Escape') shareClose()
  *  - El SW (sw.js) solo cachea la cáscara del mismo origen en modo
  *    RED PRIMERO: Auth/Firestore/Worker jamás pasan por la caché.
  * ================================================================ */
-const PWA_SW_VERSION = '20261029-pastillas-barra';
+const PWA_SW_VERSION = '20261030-ficha-historial';
 let pwaDeferredPrompt = null;
 function pwaIsStandalone() {
   try {

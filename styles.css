@@ -1683,15 +1683,41 @@ body { padding: max(16px, env(safe-area-inset-top)) max(16px, env(safe-area-inse
 @keyframes trainFloatOut { from { opacity: 1; transform: translateX(-50%) translateY(0) scale(1); } to { opacity: 0; transform: translateX(-50%) translateY(14px) scale(.95); } }
 #train-ex-float.is-open { animation: trainFloatIn .18s ease-out; }
 #train-ex-float.is-closing { animation: trainFloatOut .17s ease-in forwards; }
-/* REPRUEBA-2 (2026-10-26): la foto de la flotante va a la IZQUIERDA
-   de la cabecera, en columna fija (~104–140px según el ancho de
-   pantalla, cuadrada como la foto del entrenador); a su derecha, la
-   meta (.train-float-meta: especificación, detalles, video). Sin
-   foto no hay cabecera y la meta ocupa una sola columna. Si la foto
-   no carga se retira sola y la meta ocupa todo el ancho. */
-.train-float-head { display: flex; gap: 12px; align-items: flex-start; margin-bottom: 8px; }
-.train-float-meta { flex: 1 1 auto; min-width: 0; }
-.train-float-photo { flex: none; width: clamp(104px, 32vw, 140px); height: clamp(104px, 32vw, 140px); object-fit: cover; border-radius: 12px; cursor: pointer; display: block; background: #eef1f3; }
+/* FICHA DEL EJERCICIO (Etapa 1 del rediseño visual, paquete 1 —
+   2026-10-30): la flotante pasa de la cabecera REPRUEBA-2 (foto
+   pequeña a la izquierda, 2026-10-26) a la ficha de la referencia
+   traducida a RONBO FIT — fondo blanco, aire, media GRANDE arriba
+   a todo el ancho, chip del grupo muscular, pestañas con
+   subrayado teal y un solo botón principal (el Guardar de la
+   sesión, con sus clases de siempre: .train-float-spec/-sub/
+   -check/-actions se conservan para el bloque de sesión). */
+.excard-media { position: relative; margin: -2px 0 10px; border-radius: 14px; overflow: hidden; background: #e8efee; }
+.excard-img { display: block; width: 100%; aspect-ratio: 16 / 10; object-fit: cover; cursor: pointer; }
+.excard-play { position: absolute; right: 10px; bottom: 10px; width: 46px; height: 46px; border-radius: 50%; border: none; background: #0d9488; color: #fff; font-size: 17px; line-height: 1; display: flex; align-items: center; justify-content: center; cursor: pointer; box-shadow: 0 4px 12px rgba(13, 148, 136, .45); padding: 0 0 0 3px; }
+.excard-media-soft { display: flex; align-items: center; gap: 10px; padding: 14px; }
+.excard-media-soft .excard-play { position: static; flex: none; }
+.excard-play-big { width: 52px; height: 52px; font-size: 19px; }
+.excard-media-lab { font-weight: 600; color: #0f766e; font-size: 14px; }
+.excard-head { margin-bottom: 2px; }
+.excard-chips { display: flex; flex-wrap: wrap; gap: 6px; margin: 2px 0 6px; }
+.excard-chip { display: inline-flex; align-items: center; padding: 4px 10px; border-radius: 999px; font-size: 12px; font-weight: 600; background: #e8efee; color: #47605c; }
+.excard-chip-main { background: #0d9488; color: #fff; }
+.excard-tabs { display: flex; gap: 2px; margin: 14px 0 10px; border-bottom: 2px solid #e8efee; }
+.excard-tab { flex: 1 1 0%; padding: 8px 4px; border: none; background: transparent; font-size: 13.5px; font-weight: 600; color: #47605c; cursor: pointer; border-bottom: 2.5px solid transparent; margin-bottom: -2px; }
+.excard-tab.active { color: #0d9488; border-bottom-color: #0d9488; }
+.excard-pane { min-height: 40px; }
+.excard-sec { font-size: 12px; font-weight: 700; letter-spacing: .04em; text-transform: uppercase; color: #0f766e; margin: 10px 0 6px; }
+.excard-sec:first-child { margin-top: 0; }
+.excard-steps { margin: 0; padding-left: 20px; }
+.excard-steps li { margin: 5px 0; line-height: 1.45; color: #1f2a44; font-size: 14px; }
+.excard-steps li::marker { color: #0d9488; font-weight: 700; }
+.excard-text { margin: 0; line-height: 1.5; color: #1f2a44; font-size: 14px; }
+.excard-empty { margin: 0; color: #777; font-size: 13.5px; line-height: 1.45; }
+.excard-hist-title { font-size: 12px; font-weight: 700; letter-spacing: .04em; text-transform: uppercase; color: #0f766e; margin-bottom: 6px; }
+.excard-hist-line { padding: 7px 0; border-bottom: 1px solid #eef1f3; font-size: 14px; color: #1f2a44; line-height: 1.45; }
+.excard-hist-line:last-child { border-bottom: none; }
+.excard-hist-line b { color: #0d9488; }
+.lib-card-row { cursor: pointer; }
 .train-float-spec { font-weight: 600; color: #1f2a44; }
 .train-float-sub { color: #777; font-size: 12.5px; margin-top: 2px; }
 /* TARJETA COMPACTA: la hoja flotante nunca excede el viewport y su
