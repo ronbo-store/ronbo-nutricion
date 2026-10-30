@@ -2147,6 +2147,13 @@ en: {
   'fdcam.join': 'Count me in',
   'fdcam.later': 'Not now',
   'fdcam.saved': 'Done — you are on the Camera Coach list.',
+  'fdbiz.tag': 'COMING SOON',
+  'fdbiz.title': 'RONBO.FIT Business',
+  'fdbiz.body': "A version of RONBO FIT for gyms and fitness chains is on its way: your members get premium training and food tools with your own coaching team — and each member's progress stays private, visible only to them and their own trainer.",
+  'fdbiz.gymPh': "Your gym's name (optional)",
+  'fdbiz.join': 'Count me in',
+  'fdbiz.done': "You're on the Business list ✓",
+  'fdbiz.saved': 'Done — your interest in RONBO.FIT Business is registered.',
   'tabs.track': '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="5" y="4" width="14" height="17" rx="2"/><path d="M9 4.5V3h6v1.5"/><path d="M9 10h6M9 14h4"/></svg> My log',
   'tabs.profile': '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="8" r="3.6"/><path d="M5 20c.8-3.4 3.6-5 7-5s6.2 1.6 7 5"/></svg> My profile',
   'tabs.clients': '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="9" cy="8.4" r="3.2"/><path d="M3.4 19.4c.7-3 2.9-4.5 5.6-4.5s4.9 1.5 5.6 4.5"/><path d="M15.6 5.6a3.2 3.2 0 0 1 0 5.9"/><path d="M17.8 15.3c1.7.7 2.7 2 3.1 4.1"/></svg> My clients',
@@ -4120,6 +4127,13 @@ es: {
   'fdcam.join': 'Quiero entrar',
   'fdcam.later': 'Ahora no',
   'fdcam.saved': 'Listo — ya estás en la lista de Entrena con cámara.',
+  'fdbiz.tag': 'MUY PRONTO',
+  'fdbiz.title': 'RONBO.FIT Business',
+  'fdbiz.body': 'Viene en camino una versión de RONBO FIT para gimnasios y cadenas fitness: tus miembros reciben herramientas premium de entrenamiento y alimentación con tu propio equipo de entrenadores — y el progreso de cada miembro se mantiene privado, visible solo para él y su propio entrenador.',
+  'fdbiz.gymPh': 'Nombre de tu gimnasio (opcional)',
+  'fdbiz.join': 'Quiero entrar',
+  'fdbiz.done': 'Ya estás en la lista de Business ✓',
+  'fdbiz.saved': 'Listo — tu interés en RONBO.FIT Business quedó registrado.',
   'tabs.track': '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="5" y="4" width="14" height="17" rx="2"/><path d="M9 4.5V3h6v1.5"/><path d="M9 10h6M9 14h4"/></svg> Mi registro',
   'tabs.profile': '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="8" r="3.6"/><path d="M5 20c.8-3.4 3.6-5 7-5s6.2 1.6 7 5"/></svg> Mi perfil',
   'tabs.clients': '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="9" cy="8.4" r="3.2"/><path d="M3.4 19.4c.7-3 2.9-4.5 5.6-4.5s4.9 1.5 5.6 4.5"/><path d="M15.6 5.6a3.2 3.2 0 0 1 0 5.9"/><path d="M17.8 15.3c1.7.7 2.7 2 3.1 4.1"/></svg> Mis clientes',
@@ -15308,10 +15322,77 @@ async function fdCamJoin() {
     toast(t('fdcam.saved'));
   } catch (e) { if (btn) btn.disabled = false; failToast(e); }
 }
+/* ================================================================
+ * PUERTA FALSA «RONBO.FIT Business» (construcción 2026-10-30;
+ * decisiones D1–D4 de Ronald del 2026-10-30, diseño en
+ * construccion-puerta-business-2026-10-30/NOTA-DISENO.md): la
+ * tarjeta vive junto a la de la cámara en #train-content y SOLO
+ * la ven entrenador/administrador (los alumnos jamás). Anuncia
+ * la línea Business que AÚN NO EXISTE (gimnasios y cadenas) con
+ * la promesa encabezada en el valor para los miembros y la línea
+ * de privacidad de Ronald: el gimnasio no chequea el progreso de
+ * nadie; el progreso es de cada persona y de su entrenador. La
+ * ÚNICA escritura es {fdBizAt: ISO[, fdBizGym]} en el PROPIO
+ * documento, espejo de fdCamJoin (AUTH-071), con el nombre del
+ * gimnasio como campo opcional recortado a 80.
+ * PREFLIGHT (skill de datos persistidos, contra el texto vivo
+ * 77736abe…): las reglas VIVAS aún NO admiten fdBizAt/fdBizGym
+ * en la rama de perfil inofensivo — la pieza exige el delta
+ * mínimo compuesto en la carpeta de construcción (espejo del de
+ * AUTH-071 para fdCamAt); sin ese delta publicado, el guardado
+ * de un entrenador falla y la pieza lo dice con failToast, sin
+ * fingir (el propietario sí pasa hoy por su rama general). El
+ * estado «registrado» se deriva del propio UDATA: cero lecturas
+ * nuevas. Medición: eventos Umami fdbiz-view/fdbiz-join SIN
+ * propiedades (patrón AUTH-073) y el conteo por lectura REST en
+ * la auditoría semanal, como fdCamAt. El umbral D4 (5 gimnasios
+ * con contacto en 60 días) se cuenta con los avisos que el
+ * formulario de la landing deja en ronbo.fit@gmail.com; el
+ * interés de entrenadores es señal de apoyo.
+ * ================================================================ */
+let fdbizViewSent = false;
+function fdBizRender() {
+  const box = $('fdbiz-box');
+  if (!box) return;
+  const show = (ROLE === 'entrenador' || ROLE === 'administrador') && !!UDATA;
+  if (!show) { box.style.display = 'none'; box.innerHTML = ''; return; }
+  box.style.display = 'block';
+  if (!fdbizViewSent) { fdbizViewSent = true; trackEvt('fdbiz-view'); }
+  const joined = typeof UDATA.fdBizAt === 'string' && UDATA.fdBizAt.length > 0;
+  box.innerHTML = `<div class="panel fdcam-card">
+    <span class="fdcam-tag">${esc(t('fdbiz.tag'))}</span>
+    <div class="fdcam-title">🏢 ${esc(t('fdbiz.title'))}</div>
+    <p class="fdcam-body">${esc(t('fdbiz.body'))}</p>
+    ${joined
+      ? `<div class="fdcam-done">${esc(t('fdbiz.done'))}</div>`
+      : `<input type="text" class="fdbiz-gym" id="fdbiz-gym" maxlength="80" placeholder="${esc(t('fdbiz.gymPh'))}">
+    <button type="button" class="btn-primary" id="fdbiz-join">${esc(t('fdbiz.join'))}</button>`}
+  </div>`;
+  const b = $('fdbiz-join');
+  if (b) b.addEventListener('click', fdBizJoin);
+}
+async function fdBizJoin() {
+  if (!auth.currentUser) return;
+  const btn = $('fdbiz-join');
+  if (btn) btn.disabled = true;
+  try {
+    const v = new Date().toISOString();
+    const data = { fdBizAt: v };
+    const gymEl = $('fdbiz-gym');
+    const gym = gymEl ? String(gymEl.value || '').trim().slice(0, 80) : '';
+    if (gym) data.fdBizGym = gym;
+    await setDoc(doc(db, 'users', auth.currentUser.uid), data, { merge: true });
+    UDATA = { ...UDATA, ...data };
+    fdBizRender();
+    trackEvt('fdbiz-join');
+    toast(t('fdbiz.saved'));
+  } catch (e) { if (btn) btn.disabled = false; failToast(e); }
+}
 async function loadMyTraining() {
   const box = $('my-training');
   if (!box || !auth.currentUser) return;
   fdCamRender();
+  fdBizRender();
   const uid = auth.currentUser.uid;
   const plans = await fetchPlans(uid);
   const plan = plans.find(p => p.active === true) || null;
@@ -23442,7 +23523,7 @@ document.addEventListener('keydown', e => { if (e.key === 'Escape') shareClose()
  *  - El SW (sw.js) solo cachea la cáscara del mismo origen en modo
  *    RED PRIMERO: Auth/Firestore/Worker jamás pasan por la caché.
  * ================================================================ */
-const PWA_SW_VERSION = '20261030-rueda-carga-lb';
+const PWA_SW_VERSION = '20261030-puerta-business';
 let pwaDeferredPrompt = null;
 function pwaIsStandalone() {
   try {

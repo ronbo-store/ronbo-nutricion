@@ -2077,6 +2077,10 @@ div.cgrid-cell { cursor: default; }
 .fdcam-title { font-size: 17px; font-weight: 800; color: #14201f; }
 .fdcam-body { font-size: 13.5px; line-height: 1.5; color: #4b5563; margin: 8px 0 12px; }
 .fdcam-done { font-size: 14px; font-weight: 700; color: #0d9488; padding: 6px 0 2px; }
+/* PUERTA FALSA «RONBO.FIT Business» (construcción 2026-10-30):
+   la tarjeta reutiliza las clases .fdcam- de AUTH-071; lo único
+   nuevo es el campo opcional del nombre del gimnasio. */
+.fdbiz-gym { display: block; width: 100%; box-sizing: border-box; font: inherit; font-size: 14px; padding: 9px 12px; margin: 0 0 10px; border: 1px solid #cbd5e1; border-radius: 10px; background: #fff; color: #14201f; }
 /* ORGANIZACIÓN DE ADMINISTRACIÓN (2026-10-28): secciones
    desplegables de la zona «Administración» — SOLO clases .admsec-
    más las dos notas de frescura de datos de «Consumo de IA»
