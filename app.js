@@ -2897,6 +2897,13 @@ en: {
   'train.start.warmupRemove': 'Remove warm-up set',
   'train.start.noLoad': 'No load', 'train.start.wheelDone': 'Done',
   'train.start.yes': 'Yes', 'train.start.no': 'No',
+  'train.sets.add': '+ Add set', 'train.sets.remove': 'Remove set',
+  'train.sets.suggested': 'Suggested',
+  'train.custom.removeToday': 'Remove from today', 'train.custom.removedTag': 'Removed today',
+  'train.custom.restore': 'Restore',
+  'train.remove.today': 'Remove from today\'s session',
+  'train.remove.confirm': '{name} will leave today\'s session. The sets you already recorded today for it will NOT be saved in today\'s log. Your plan and your previous days are not touched. Remove it?',
+  'train.remove.done': 'Removed from today\'s session.',
   'train.repeat.reqWeekBtn': '🔁 Ask to repeat week',
   'train.repeat.reqDayBtn': '🔁 Ask to repeat this day',
   'train.repeat.propWeekLine': 'Asks to repeat the week of the plan “{plan}”',
@@ -4885,6 +4892,13 @@ es: {
   'train.start.warmupRemove': 'Quitar serie de aproximación',
   'train.start.noLoad': 'Sin carga', 'train.start.wheelDone': 'Listo',
   'train.start.yes': 'Sí', 'train.start.no': 'No',
+  'train.sets.add': '+ Añadir serie', 'train.sets.remove': 'Quitar serie',
+  'train.sets.suggested': 'Sugerida',
+  'train.custom.removeToday': 'Quitar de hoy', 'train.custom.removedTag': 'Quitado hoy',
+  'train.custom.restore': 'Restaurar',
+  'train.remove.today': 'Quitar de la sesión de hoy',
+  'train.remove.confirm': '«{name}» saldrá de tu sesión de hoy. Las series que ya registraste hoy de este ejercicio NO se guardarán en el registro de hoy. Tu plan y tus días anteriores no se tocan. ¿Quitarlo?',
+  'train.remove.done': 'Quitado de la sesión de hoy.',
   'train.repeat.reqWeekBtn': '🔁 Pedir repetir la semana',
   'train.repeat.reqDayBtn': '🔁 Pedir repetir este día',
   'train.repeat.propWeekLine': 'Pide repetir la semana del plan «{plan}»',
@@ -13555,7 +13569,14 @@ function trainChecksRead(planId) {
         sets: Array.isArray(c.sets) ? c.sets.filter(s => s && typeof s === 'object').map(s => ({
           repsPlanned: String(s.repsPlanned == null ? '' : s.repsPlanned),
           repsDone: String(s.repsDone == null ? '' : s.repsDone),
-          loadVal: String(s.loadVal == null ? '' : s.loadVal) })) : [] };
+          loadVal: String(s.loadVal == null ? '' : s.loadVal),
+          /* SERIE AÑADIDA PENDIENTE (encargo 2026-10-30): la marca
+             `pend` SÍ sobrevive a la restauración del borrador —
+             sin ella, una serie añadida y aún no realizada se
+             contaría como realizada al cerrar tras recargar. Las
+             marcas de AUTH-097 (sug/clr) conservan su saneado de
+             siempre (no viajan en la restauración). */
+          ...(s.pend === true ? { pend: true } : {}) })) : [] };
       /* APROXIMACIÓN (paquete Iniciar ejercicio, 2026-10-30): el
          bloque de aproximación en curso viaja en el MISMO borrador
          local, saneado con la misma disciplina; sin la clave, la
@@ -13620,13 +13641,19 @@ function trainEditsRead(planId) {
     if (!v || typeof v !== 'object') return null;
     const swaps = (v.swaps && typeof v.swaps === 'object' && !Array.isArray(v.swaps)) ? v.swaps : {};
     const added = Array.isArray(v.added) ? v.added.filter(a => a && typeof a === 'object') : [];
-    if (!Object.keys(swaps).length && !added.length) return null;
-    return { swaps, added };
+    /* QUITADOS DE HOY (encargo por correo de Ronald, 2026-10-30):
+       slots del día del plan retirados SOLO de la sesión de hoy —
+       el plan no se toca y el historial de días anteriores tampoco.
+       Sin la clave (borradores anteriores), el comportamiento es
+       byte a byte el de siempre. */
+    const removed = Array.isArray(v.removed) ? [...new Set(v.removed.filter(n => Number.isInteger(n) && n >= 0))] : [];
+    if (!Object.keys(swaps).length && !added.length && !removed.length) return null;
+    return { swaps, added, removed };
   } catch { return null; }
 }
 function trainEditsWrite(planId, ed) {
   try {
-    if (ed && ((ed.swaps && Object.keys(ed.swaps).length) || (ed.added && ed.added.length)))
+    if (ed && ((ed.swaps && Object.keys(ed.swaps).length) || (ed.added && ed.added.length) || (ed.removed && ed.removed.length)))
       localStorage.setItem(trainEditsKey(planId), JSON.stringify(ed));
     else localStorage.removeItem(trainEditsKey(planId));
   } catch {}
@@ -13684,6 +13711,7 @@ function trainEffectiveList(plan, di) {
   const base = (day.exercises || []).map((ex, ei) => ({ ex, kind: 'plan', slot: ei }));
   const ed = plan ? trainEditsRead(plan.id) : null;
   if (!ed) return base;
+  const remSet = new Set(Array.isArray(ed.removed) ? ed.removed : []);
   const out = base.map(item => {
     const sw = ed.swaps[String(item.slot)];
     if (!sw) return item;
@@ -13693,7 +13721,7 @@ function trainEffectiveList(plan, di) {
     const ex = { exerciseId: sw.exerciseId || null, name: sw.name || '', sets: item.ex.sets, reps: item.ex.reps };
     if (Number.isInteger(sw.variantIndex)) ex.variantIndex = sw.variantIndex;
     return { ex, kind: 'swap', slot: item.slot, from: item.ex };
-  });
+  }).filter(item => !remSet.has(item.slot));   /* QUITADOS DE HOY: el slot retirado no entra en la lista efectiva (su swap, si lo hay, queda guardado en la edición y vuelve al restaurar) */
   ed.added.forEach(a => {
     const ex = { exerciseId: a.exerciseId || null, name: a.name || '', sets: a.sets || '', reps: a.reps || '' };
     if (Number.isInteger(a.variantIndex)) ex.variantIndex = a.variantIndex;
@@ -13810,12 +13838,26 @@ function trainCustomRenderSession(plan, todayDi, closed) {
     inner += `<div class="tcu-list">${eff.map((it, idx) => {
       const spec = [it.ex.sets, it.ex.reps].filter(Boolean).join(' × ');
       let ctl = '';
-      if (it.kind === 'swap') ctl = `<span class="train-mark">⇄ ${esc(t('train.custom.swappedFor', { name: trainExName(it.from) || it.from.name || '' }))}</span><button type="button" class="btn-ghost btn-sm" data-tcu-undo-swap="${it.slot}">${t('train.custom.undoSwap')}</button>`;
+      if (it.kind === 'swap') ctl = `<span class="train-mark">⇄ ${esc(t('train.custom.swappedFor', { name: trainExName(it.from) || it.from.name || '' }))}</span><button type="button" class="btn-ghost btn-sm" data-tcu-undo-swap="${it.slot}">${t('train.custom.undoSwap')}</button><button type="button" class="btn-ghost btn-sm" data-tcu-remove="${idx}">${t('train.custom.removeToday')}</button>`;
       else if (it.kind === 'add') ctl = `<span class="train-mark">＋ ${esc(t('train.custom.addedMark'))}</span><button type="button" class="btn-ghost btn-sm" data-tcu-unadd="${idx}">${t('train.custom.removeAdded')}</button>`;
-      else ctl = `<button type="button" class="btn-ghost btn-sm" data-tcu-swap="${idx}">${t('train.custom.swap')}</button>`;
+      else ctl = `<button type="button" class="btn-ghost btn-sm" data-tcu-swap="${idx}">${t('train.custom.swap')}</button><button type="button" class="btn-ghost btn-sm" data-tcu-remove="${idx}">${t('train.custom.removeToday')}</button>`;
       return `<div class="tcu-row"><span class="tcu-name">${esc(trainExName(it.ex) || it.ex.name || '')}${spec ? ` <span class="tcu-spec">${esc(spec)}</span>` : ''}</span>${ctl}</div>`;
-    }).join('')}</div>
-    <div style="margin-top:8px"><button type="button" class="btn-secondary btn-sm" data-tcu-add="1">${t('train.custom.add')}</button></div>`;
+    }).join('')}</div>`;
+    /* QUITADOS DE HOY (2026-10-30): los retirados se listan al
+       pie, tachados, con su «Restaurar» — el nombre que se muestra
+       es el que la fila tenía al quitarla (el del cambio, si lo
+       había, porque el cambio se conserva en la edición). */
+    const edNow = trainEditsRead(plan.id);
+    const remSlots = edNow && Array.isArray(edNow.removed) ? edNow.removed : [];
+    if (remSlots.length) {
+      const dayExs = (plan.days || [])[di] && Array.isArray(plan.days[di].exercises) ? plan.days[di].exercises : [];
+      inner += `<div class="tcu-list">${remSlots.map(slot => {
+        const sw = edNow.swaps ? edNow.swaps[String(slot)] : null;
+        const shown = sw ? (trainExName({ exerciseId: sw.exerciseId || null, name: sw.name || '', variantIndex: sw.variantIndex }) || sw.name || '') : (trainExName(dayExs[slot]) || (dayExs[slot] && dayExs[slot].name) || '');
+        return `<div class="tcu-row is-removed"><span class="tcu-name">${esc(shown)}</span><span class="train-mark">${esc(t('train.custom.removedTag'))}</span><button type="button" class="btn-ghost btn-sm" data-tcu-restore="${slot}">${t('train.custom.restore')}</button></div>`;
+      }).join('')}</div>`;
+    }
+    inner += `<div style="margin-top:8px"><button type="button" class="btn-secondary btn-sm" data-tcu-add="1">${t('train.custom.add')}</button></div>`;
   }
   tools.innerHTML = inner;
   trainCustomWire(plan, di);
@@ -13856,6 +13898,99 @@ function trainCustomWire(plan, di) {
     if (TRAIN_FLOAT) trainFloatClose();
     loadMyTraining();
   });
+  tools.querySelectorAll('[data-tcu-remove]').forEach(b => b.onclick = () => {
+    trainSessionRemoveAt(plan, di, Number(b.dataset.tcuRemove));
+  });
+  tools.querySelectorAll('[data-tcu-restore]').forEach(b => b.onclick = () => {
+    trainSessionRestoreSlot(plan, di, Number(b.dataset.tcuRestore));
+  });
+}
+/* QUITAR UN EJERCICIO SOLO DE LA SESIÓN DE HOY (encargo por correo
+   de Ronald, 2026-10-30; mecánica declarada en la nota de diseño
+   ANTES de construir): el plan NO se toca, las sesiones futuras
+   quedan intactas y el historial de días anteriores tampoco — lo
+   único que cambia es la lista efectiva de HOY. Antes del cierre,
+   lo «registrado hoy» vive solo en el borrador local TRAIN_CHECKS
+   (el registro del día aún no existe), así que:
+   - si el ejercicio tiene marcas de hoy, se pide CONFIRMACIÓN que
+     explica la consecuencia exacta (esas series NO se guardarán
+     en el registro de hoy); al confirmar, su marca se descarta y
+     las de los ejercicios siguientes bajan un índice — el mismo
+     remapeo probado del «Quitar» de agregados — conservando
+     entero lo escrito en los demás;
+   - sin marcas, se quita sin confirmación (nada que perder);
+   - un CAMBIO (swap) no se destruye: queda guardado en la edición
+     y vuelve tal cual si el ejercicio se restaura. Restaurar trae
+     el ejercicio SIN marcas (lo descartado no resucita: por eso la
+     confirmación lo dice antes).
+   Para un AGREGADO se reutiliza la ruta existente (splice +
+   remapeo), sin duplicarla. Solo sesión PROPIA: estos controles
+   viven en la vista propia (loadMyTraining); la vista del
+   entrenador sobre un cliente no los abre. */
+function trainChecksDropShift(plan, di, effIdx) {
+  const shifted = {};
+  Object.keys(TRAIN_CHECKS).forEach(k => {
+    const [dS, eS] = k.split(':');
+    if (Number(dS) !== di) { shifted[k] = TRAIN_CHECKS[k]; return; }
+    const n = Number(eS);
+    if (n < effIdx) shifted[k] = TRAIN_CHECKS[k];
+    else if (n > effIdx) shifted[dS + ':' + (n - 1)] = TRAIN_CHECKS[k];
+    /* n === effIdx: la marca del ejercicio quitado se descarta */
+  });
+  TRAIN_CHECKS = shifted;
+  trainChecksPersist(plan.id);
+}
+function trainChecksShiftUp(plan, di, effIdx) {
+  const shifted = {};
+  Object.keys(TRAIN_CHECKS).forEach(k => {
+    const [dS, eS] = k.split(':');
+    if (Number(dS) !== di) { shifted[k] = TRAIN_CHECKS[k]; return; }
+    const n = Number(eS);
+    shifted[dS + ':' + (n >= effIdx ? n + 1 : n)] = TRAIN_CHECKS[k];
+  });
+  TRAIN_CHECKS = shifted;
+  trainChecksPersist(plan.id);
+}
+function trainSessionRemoveAt(plan, di, effIdx) {
+  if (!plan) return;
+  const eff = trainEffectiveList(plan, di);
+  const it = eff[effIdx];
+  if (!it) return;
+  const name = trainExName(it.ex) || it.ex.name || '';
+  if (it.kind === 'add') {
+    /* La ruta de siempre para agregados: splice de `added` +
+       remapeo de marcas (la misma mecánica que data-tcu-unadd). */
+    const addPos = eff.slice(0, effIdx).filter(x => x.kind === 'add').length;
+    const ed = trainEditsRead(plan.id) || { swaps: {}, added: [], removed: [] };
+    ed.added.splice(addPos, 1);
+    trainEditsWrite(plan.id, ed);
+    trainChecksDropShift(plan, di, effIdx);
+  } else {
+    if (TRAIN_CHECKS[di + ':' + effIdx] && !confirm(t('train.remove.confirm', { name }))) return;
+    const ed = trainEditsRead(plan.id) || { swaps: {}, added: [], removed: [] };
+    if (!Array.isArray(ed.removed)) ed.removed = [];
+    if (!ed.removed.includes(it.slot)) ed.removed.push(it.slot);
+    trainEditsWrite(plan.id, ed);
+    trainChecksDropShift(plan, di, effIdx);
+  }
+  TRAIN_PICK = null;
+  if (TRAIN_FLOAT) trainFloatClose();
+  toast(t('train.remove.done'));
+  loadMyTraining();
+}
+function trainSessionRestoreSlot(plan, di, slot) {
+  if (!plan) return;
+  const ed = trainEditsRead(plan.id);
+  if (!ed || !Array.isArray(ed.removed) || !ed.removed.includes(slot)) return;
+  const remAfter = new Set(ed.removed.filter(s => s !== slot));
+  const dayEx = (plan.days || [])[di] && Array.isArray(plan.days[di].exercises) ? plan.days[di].exercises : [];
+  /* Su índice efectivo nuevo: los ejercicios del día con slot
+     menor que NO siguen quitados (los agregados van detrás). */
+  const effIdx = dayEx.map((_, i) => i).filter(i => i < slot && !remAfter.has(i)).length;
+  ed.removed = ed.removed.filter(s => s !== slot);
+  trainEditsWrite(plan.id, ed);
+  trainChecksShiftUp(plan, di, effIdx);
+  loadMyTraining();
 }
 
 /* === SELECTOR «CAMBIAR EJERCICIO» (paquete 2026-10-30; diseño
@@ -14310,7 +14445,7 @@ function trainExCardHTML(ex, di, ei) {
      original con su unidad. Sin marcar, no hay filas de series. */
   const sets = chk && Array.isArray(chk.sets) ? chk.sets : null;
   const setsHtml = sets ? `<div class="train-sets-unit"><span class="train-sets-unit-lab">${esc(t('units.mass'))}</span>${trainUnitSelHTML()}</div><div class="train-sets">${sets.map((s, si) => `
-      <div class="train-set-row"><span class="train-set-n">${t('train.d.set')} ${si + 1}${s.repsPlanned ? ` · ${esc(s.repsPlanned)}` : ''}</span>
+      <div class="train-set-row${s.pend === true ? ' is-sug' : ''}"><span class="train-set-n">${t('train.d.set')} ${si + 1}${s.repsPlanned ? ` · ${esc(s.repsPlanned)}` : ''}${s.pend === true ? ` <span class="tf-sug-tag">${esc(t('train.sets.suggested'))}</span>` : ''}</span>
         <input type="number" inputmode="decimal" min="0" class="train-set-in" data-train-set-reps="${key}:${si}" placeholder="${t('train.d.repsPh')}" value="${esc(s.repsDone)}" aria-label="${t('train.d.repsPh')}">
         <input type="number" inputmode="decimal" min="0" step="any" class="train-set-in" data-train-set-load="${key}:${si}" placeholder="${t('train.d.loadPh')}" value="${esc(s.loadVal)}" aria-label="${t('train.d.loadPh')}">
         <span class="train-set-unit">${esc(UNIT_PREFS.mass)}</span></div>`).join('')}
@@ -15003,6 +15138,18 @@ function tfSuggestRefresh(body) {
   });
   tfWireChips(body);
 }
+/* Repintado del bloque de series tras añadir/quitar una (encargo
+   2026-10-30): la misma disciplina del refresco de aproximación —
+   se repinta #tf-sets, el espejo ya volcó el borrador y se
+   recablea la sesión entera. */
+function tfSetsRefresh(body) {
+  const F = TRAIN_FLOAT;
+  if (!F || !F.draft) return;
+  const host = body.querySelector('#tf-sets');
+  if (host) host.innerHTML = trainFloatSetsHTML(F.draft);
+  trainFloatWireSession(body);
+  trainWireUnitSels(body);
+}
 function tfEquivText(loadVal) {
   const kg = tfKgOf(loadVal);
   if (kg == null) return '';
@@ -15019,9 +15166,16 @@ function tfChipsHTML(ctx, idx, s) {
 function trainFloatSetsHTML(draft) {
   if (!draft || !draft.done) return '';
   const sets = Array.isArray(draft.sets) ? draft.sets : [];
+  /* «+ AÑADIR SERIE» + QUITAR SERIE (encargo por correo de Ronald,
+     2026-10-30): bajo las series de trabajo, el botón gemelo del
+     de aproximación; cada fila con su ✕ (el mismo control visual
+     de aproximación) cuando hay ≥2 — quitar una intermedia
+     conserva las demás y lo ya escrito. La serie AÑADIDA nace
+     PENDIENTE: pastilla «Sugerida» y chips atenuados (is-sug)
+     hasta que él la trabaja; la aproximación no cambia. */
   return `<div class="train-sets-unit"><span class="train-sets-unit-lab">${esc(t('units.mass'))}</span>${trainUnitSelHTML()}</div><div class="train-sets">${sets.map((s, si) => `
-    <div class="train-set-row"><span class="train-set-n">${t('train.d.set')} ${si + 1}${s.repsPlanned ? ` · ${esc(s.repsPlanned)}` : ''}</span>
-      <span class="tf-chips" data-tf-chips="set:${si}">${tfChipsHTML('set', si, s)}</span></div>`).join('')}</div>`;
+    <div class="train-set-row${s.pend === true ? ' is-sug' : ''}"><span class="train-set-n">${t('train.d.set')} ${si + 1}${s.repsPlanned ? ` · ${esc(s.repsPlanned)}` : ''}${s.pend === true ? ` <span class="tf-sug-tag">${esc(t('train.sets.suggested'))}</span>` : ''}</span>
+      <span class="tf-chips" data-tf-chips="set:${si}">${tfChipsHTML('set', si, s)}</span>${sets.length > 1 ? `<button type="button" class="tf-set-del" data-tf-set-del="${si}" aria-label="${t('train.sets.remove')}">✕</button>` : ''}</div>`).join('')}</div>${sets.length < 12 ? `<button type="button" class="btn-ghost btn-sm" id="tf-sets-add">${t('train.sets.add')}</button>` : ''}`;
 }
 function trainFloatWarmHTML(draft) {
   const w = (draft && draft.warmup && typeof draft.warmup === 'object') ? draft.warmup : { on: false, sets: [] };
@@ -15043,8 +15197,13 @@ function trainFloatWheelHTML() {
     </div></div></div>`;
 }
 function trainFloatSessionHTML(draft) {
+  /* QUITAR DE HOY (encargo 2026-10-30): la fila discreta al pie
+     del bloque de sesión, en AMBOS estados (antes de iniciar y en
+     curso) — sale solo de la sesión de hoy (mecánica en
+     trainSessionRemoveAt). */
+  const removeRow = `<div class="tf-remove-row"><button type="button" class="btn-ghost btn-sm tf-remove-btn" id="tf-remove-today">${esc(t('train.remove.today'))}</button></div>`;
   if (!draft || !draft.done)
-    return `<div class="tf-start-box"><button type="button" class="btn-primary tf-start-btn" id="tf-start">${t('train.start.btn')}</button></div>`;
+    return `<div class="tf-start-box"><button type="button" class="btn-primary tf-start-btn" id="tf-start">${t('train.start.btn')}</button></div>${removeRow}`;
   return `<div class="tf-warm" id="tf-warm">${trainFloatWarmHTML(draft)}</div>
     <div id="tf-sets">${trainFloatSetsHTML(draft)}</div>
     <div><label class="prop-lab" for="tf-rpe">${t('train.view.rpe')}</label>
@@ -15052,7 +15211,7 @@ function trainFloatSessionHTML(draft) {
       <option value="">${t('train.view.rpeNone')}</option>
       ${[1, 2, 3, 4, 5, 6, 7, 8, 9, 10].map(n => `<option value="${n}" ${draft.rpe === n ? 'selected' : ''}>${t('train.view.rpe')} ${n}</option>`).join('')}
     </select></div>
-    <div class="train-float-actions"><button type="button" class="btn-primary" id="tf-save">✓ ${t('train.view.exDone')}</button></div>`;
+    <div class="train-float-actions"><button type="button" class="btn-primary" id="tf-save">✓ ${t('train.view.exDone')}</button></div>${removeRow}`;
 }
 function tfWarmSnap(w) {
   const o = (w && typeof w === 'object' && !Array.isArray(w)) ? w : {};
@@ -15127,6 +15286,16 @@ function tfWheelPick(body, kind, wv) {
     const lvS = String(row.loadVal == null ? '' : row.loadVal), rpS = String(row.repsDone == null ? '' : row.repsDone);
     if (lvS === '' && (rpS === '' || rpS === '0')) { row.repsDone = ''; row.sug = false; row.clr = true; }
     else { row.sug = false; row.clr = false; }
+    /* SERIE AÑADIDA (encargo 2026-10-30): la fila nacida con
+       «+ Añadir serie» es PENDIENTE (pend) y no cuenta como
+       realizada hasta que él la trabaja: un toque de rueda que
+       deja un valor la adopta como suya (pend fuera); vaciarla
+       del todo la devuelve a pendiente vacía — la marca pend
+       manda sobre clr para que el cierre nunca la cuente. */
+    if (row.pend === true) {
+      if (lvS === '' && (rpS === '' || rpS === '0')) { row.clr = false; }
+      else row.pend = false;
+    }
     tfSuggestApply();
     trainFloatMirror(false);
     tfSuggestRefresh(body);
@@ -15258,6 +15427,35 @@ function trainFloatWireSession(body) {
     d.warmup.sets.splice(Number(btn.dataset.tfWarmDel), 1);
     tfWarmRefresh();
   }; });
+  /* AÑADIR / QUITAR SERIE DE TRABAJO (encargo 2026-10-30): la
+     añadida nace PENDIENTE (pend) con la precarga sugerida de
+     AUTH-097 como valores de referencia — distinguible y nunca
+     contada como realizada hasta que él la trabaja. Quitar una
+     conserva las demás y lo ya escrito (splice + espejo +
+     repintado, la disciplina de aproximación). */
+  const setsAdd = body.querySelector('#tf-sets-add');
+  if (setsAdd) setsAdd.onclick = () => {
+    if (!Array.isArray(d.sets)) d.sets = [];
+    if (d.sets.length >= 12) return;
+    d.sets.push({ repsPlanned: '', repsDone: '', loadVal: '', pend: true });
+    tfSuggestApply();
+    trainFloatMirror(false);
+    tfSetsRefresh(body);
+  };
+  body.querySelectorAll('[data-tf-set-del]').forEach(btn => { btn.onclick = () => {
+    if (!Array.isArray(d.sets) || d.sets.length <= 1) return;
+    d.sets.splice(Number(btn.dataset.tfSetDel), 1);
+    tfSuggestApply();
+    trainFloatMirror(false);
+    tfSetsRefresh(body);
+  }; });
+  /* QUITAR EL EJERCICIO DE LA SESIÓN DE HOY desde la ficha
+     (encargo 2026-10-30): la acción vive en trainSessionRemoveAt
+     (confirmación con explicación si ya hay series de hoy). */
+  const rmToday = body.querySelector('#tf-remove-today');
+  if (rmToday) rmToday.onclick = () => {
+    if (MY_PLAN && MY_PLAN.id === F.planId) trainSessionRemoveAt(MY_PLAN, F.di, F.ei);
+  };
   const wDone = document.getElementById('tf-wheel-done');
   if (wDone) wDone.onclick = () => { const p = document.getElementById('tf-wheel'); if (p) p.style.display = 'none'; };
   const saveBtn = body.querySelector('#tf-save');
@@ -15993,14 +16191,14 @@ async function loadMyTraining() {
   box.querySelectorAll('[data-train-set-reps]').forEach(inp => inp.oninput = () => {
     const [di, ei, si] = inp.dataset.trainSetReps.split(':');
     const c = TRAIN_CHECKS[di + ':' + ei];
-    if (c && Array.isArray(c.sets) && c.sets[Number(si)]) { c.sets[Number(si)].repsDone = inp.value; trainChecksPersist(plan.id); }
+    if (c && Array.isArray(c.sets) && c.sets[Number(si)]) { c.sets[Number(si)].repsDone = inp.value; if (c.sets[Number(si)].pend) { delete c.sets[Number(si)].pend; c.sets[Number(si)].sug = false; } trainChecksPersist(plan.id); }
   });
   trainWireUnitSels(box);
   trainExtrasWire(box);
   box.querySelectorAll('[data-train-set-load]').forEach(inp => inp.oninput = () => {
     const [di, ei, si] = inp.dataset.trainSetLoad.split(':');
     const c = TRAIN_CHECKS[di + ':' + ei];
-    if (c && Array.isArray(c.sets) && c.sets[Number(si)]) { c.sets[Number(si)].loadVal = inp.value; trainChecksPersist(plan.id); }
+    if (c && Array.isArray(c.sets) && c.sets[Number(si)]) { c.sets[Number(si)].loadVal = inp.value; if (c.sets[Number(si)].pend) { delete c.sets[Number(si)].pend; c.sets[Number(si)].sug = false; } trainChecksPersist(plan.id); }
   });
   box.querySelectorAll('[data-train-done]').forEach(b => b.onclick = () => {
     const di = Number(b.dataset.trainDone);
@@ -16050,8 +16248,15 @@ async function loadMyTraining() {
          Las reglas vivas no validan el interior de exercisesDone. */
       if (Number.isInteger(ex.variantIndex)) e.variantIndex = ex.variantIndex;
       if (c.rpe) e.rpe = c.rpe;
-      if (Array.isArray(c.sets) && c.sets.length) {
-        e.sets = c.sets.map(s => {
+      /* SERIES AÑADIDAS PENDIENTES (encargo 2026-10-30): una serie
+         nacida con «+ Añadir serie» que él nunca trabajó sigue
+         `pend` al cerrar — se EXCLUYE del registro: jamás cuenta
+         como realizada ni deja fila fantasma en el historial. Las
+         prescritas por el plan y las añadidas ya trabajadas
+         viajan con la forma de siempre. */
+      const wsets = Array.isArray(c.sets) ? c.sets.filter(s => !(s && s.pend === true)) : [];
+      if (wsets.length) {
+        e.sets = wsets.map(s => {
           const out = { repsPlanned: String(s.repsPlanned || '') };
           const rd = num(s.repsDone);
           if (s.repsDone !== '' && s.repsDone != null && !isNaN(rd)) out.repsDone = rd;
@@ -23850,7 +24055,7 @@ document.addEventListener('keydown', e => { if (e.key === 'Escape') shareClose()
  *  - El SW (sw.js) solo cachea la cáscara del mismo origen en modo
  *    RED PRIMERO: Auth/Firestore/Worker jamás pasan por la caché.
  * ================================================================ */
-const PWA_SW_VERSION = '20261030-revisar-bandeja';
+const PWA_SW_VERSION = '20261030-series-sesion';
 let pwaDeferredPrompt = null;
 function pwaIsStandalone() {
   try {
