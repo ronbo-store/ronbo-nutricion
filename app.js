@@ -2835,6 +2835,15 @@ en: {
   'train.histLoads.bodyLine': '{date} · {n} sets · {reps} reps · no external load',
   'train.histLoads.first': 'First time you log this exercise: your loads will stay here for next time.',
   'train.histLoads.legacy': '{date} · logged before per-set detail',
+  /* INICIAR EJERCICIO + RUEDAS + APROXIMACIÓN (complemento de la
+     ficha — 2026-10-30; maqueta v2 aprobada por Ronald): el botón
+     de inicio, las ruedas de scroll (sin teclado) y el bloque de
+     series de aproximación de la ficha en curso. */
+  'train.start.btn': 'Start exercise',
+  'train.start.warmupTitle': 'Warm-up sets', 'train.start.warmupAdd': '+ Add warm-up set',
+  'train.start.warmupRemove': 'Remove warm-up set',
+  'train.start.noLoad': 'No load', 'train.start.wheelDone': 'Done',
+  'train.start.yes': 'Yes', 'train.start.no': 'No',
   'train.repeat.reqWeekBtn': '🔁 Ask to repeat week',
   'train.repeat.reqDayBtn': '🔁 Ask to repeat this day',
   'train.repeat.propWeekLine': 'Asks to repeat the week of the plan “{plan}”',
@@ -4752,6 +4761,15 @@ es: {
   'train.histLoads.bodyLine': '{date} · {n} series · {reps} repeticiones · sin carga externa',
   'train.histLoads.first': 'Primera vez que registras este ejercicio: tus cargas quedarán aquí para la próxima.',
   'train.histLoads.legacy': '{date} · registrado antes del detalle por series',
+  /* INICIAR EJERCICIO + RUEDAS + APROXIMACIÓN (complemento de la
+     ficha — 2026-10-30; maqueta v2 aprobada por Ronald): el botón
+     de inicio, las ruedas de scroll (sin teclado) y el bloque de
+     series de aproximación de la ficha en curso. */
+  'train.start.btn': 'Iniciar ejercicio',
+  'train.start.warmupTitle': 'Series de aproximación', 'train.start.warmupAdd': '+ Añadir serie de aproximación',
+  'train.start.warmupRemove': 'Quitar serie de aproximación',
+  'train.start.noLoad': 'Sin carga', 'train.start.wheelDone': 'Listo',
+  'train.start.yes': 'Sí', 'train.start.no': 'No',
   'train.repeat.reqWeekBtn': '🔁 Pedir repetir la semana',
   'train.repeat.reqDayBtn': '🔁 Pedir repetir este día',
   'train.repeat.propWeekLine': 'Pide repetir la semana del plan «{plan}»',
@@ -13294,6 +13312,16 @@ function trainChecksRead(planId) {
           repsPlanned: String(s.repsPlanned == null ? '' : s.repsPlanned),
           repsDone: String(s.repsDone == null ? '' : s.repsDone),
           loadVal: String(s.loadVal == null ? '' : s.loadVal) })) : [] };
+      /* APROXIMACIÓN (paquete Iniciar ejercicio, 2026-10-30): el
+         bloque de aproximación en curso viaja en el MISMO borrador
+         local, saneado con la misma disciplina; sin la clave, la
+         marca queda como la de siempre. */
+      if (c.warmup && typeof c.warmup === 'object' && !Array.isArray(c.warmup)) {
+        out[k].warmup = { on: c.warmup.on === true,
+          sets: Array.isArray(c.warmup.sets) ? c.warmup.sets.filter(s => s && typeof s === 'object').map(s => ({
+            repsDone: String(s.repsDone == null ? '' : s.repsDone),
+            loadVal: String(s.loadVal == null ? '' : s.loadVal) })) : [] };
+      }
     });
     return out;
   } catch { return {}; }
@@ -14275,7 +14303,10 @@ async function trainSetMassUnit(newUnit) {
        borrador de la flotante y el estado de la tarjeta del día. */
     if (TRAIN_FLOAT && TRAIN_FLOAT.draft && Array.isArray(TRAIN_FLOAT.draft.sets))
       TRAIN_FLOAT.draft.sets.forEach(s => { s.loadVal = convLoadDisplay(s.loadVal, old, newUnit); });
+    if (TRAIN_FLOAT && TRAIN_FLOAT.draft && TRAIN_FLOAT.draft.warmup && Array.isArray(TRAIN_FLOAT.draft.warmup.sets))
+      TRAIN_FLOAT.draft.warmup.sets.forEach(s => { s.loadVal = convLoadDisplay(s.loadVal, old, newUnit); });
     Object.values(TRAIN_CHECKS).forEach(c => { if (c && Array.isArray(c.sets)) c.sets.forEach(s => { s.loadVal = convLoadDisplay(s.loadVal, old, newUnit); }); });
+    Object.values(TRAIN_CHECKS).forEach(c => { if (c && c.warmup && Array.isArray(c.warmup.sets)) c.warmup.sets.forEach(s => { s.loadVal = convLoadDisplay(s.loadVal, old, newUnit); }); });
     trainChecksPersist(MY_PLAN ? MY_PLAN.id : null);   /* MARCAS QUE SOBREVIVEN: las cargas convertidas también se guardan en el borrador */
   }
   /* Éxito o denegación: repintar con la preferencia REAL resultante
@@ -14285,24 +14316,271 @@ async function trainSetMassUnit(newUnit) {
   if (TRAIN_FLOAT && TRAIN_FLOAT.mode === 'edit') {
     const b = $('train-ex-float-body');
     const boxS = b ? b.querySelector('#tf-sets') : null;
-    if (boxS) { boxS.innerHTML = trainFloatSetsHTML(TRAIN_FLOAT.draft); trainFloatWireSets(b, TRAIN_FLOAT.draft); trainWireUnitSels(b); }
+    const boxW = b ? b.querySelector('#tf-warm') : null;
+    if (boxW) boxW.innerHTML = trainFloatWarmHTML(TRAIN_FLOAT.draft);
+    if (boxS) boxS.innerHTML = trainFloatSetsHTML(TRAIN_FLOAT.draft);
+    if (boxS || boxW) { trainFloatWireSession(b); trainWireUnitSels(b); }
   }
 }
 function trainWireUnitSels(scope) {
   (scope || document).querySelectorAll('[data-train-unit-sel]').forEach(sel => { sel.onchange = () => trainSetMassUnit(sel.value); });
+}
+/* ================================================================
+   INICIAR EJERCICIO + RUEDAS + APROXIMACIÓN (complemento de la
+   ficha — 2026-10-30; maqueta v2 aprobada por Ronald a las 02:18
+   CDT; diseño en DISENO-PAQUETE-INICIAR-EJERCICIO.md):
+   – La ficha en la sesión de hoy nace con el botón principal
+     «Iniciar ejercicio»; al tocarlo pasa a modo EN CURSO allí
+     mismo (la sesión no sale de la ficha).
+   – Entrada SIN TECLADO: pastillas de valor + un panel de ruedas
+     de scroll (reps 0–100 paso 1 · carga en escala kg: «Sin
+     carga» + 0…200 paso 2,5), con el equivalente en libras
+     siempre visible. loadVal sigue viviendo en la unidad del
+     visor (módulo H): la rueda trabaja en kg y convierte en la
+     frontera con convLoadDisplay.
+   – BLOQUE DE APROXIMACIÓN arriba del área de trabajo (Sí/No,
+     filas propias con las mismas ruedas): en curso viaja como
+     warmup dentro de la MISMA marca TRAIN_CHECKS y del MISMO
+     borrador local; al cierre del día se escribe como warmupSets
+     MARCADO y APARTE dentro de la entrada del ejercicio (las
+     reglas vivas no validan el interior de exercisesDone —
+     preflight en el diseño). El Historial lee SOLO sets: la
+     aproximación nunca cuenta ni como máxima ni como serie.
+   – ESPEJO CONTINUO: todo cambio en curso se vuelca al acto a
+     TRAIN_CHECKS + borrador local (trainFloatMirror), como las
+     marcas de la tarjeta del día — cerrar la ficha con el ✕ (o
+     con Escape) en curso NO pierde nada, y al reabrir la ficha
+     nace en curso con ruedas y aproximación restauradas.
+   – La ficha de Biblioteca (card) y la de día cerrado (read) no
+     ganan botón ni controles (D6 intacta). La tarjeta del día
+     conserva sus inputs tecleados (resto declarado).
+   ================================================================ */
+const TF_LOAD_STEPS = [];
+for (let _tfv = 0; _tfv <= 200.001; _tfv += 2.5) TF_LOAD_STEPS.push(Math.round(_tfv * 10) / 10);
+let TF_WHEEL = null;   /* { ctx:'set'|'warm', idx } — fila a la que apunta el panel de ruedas */
+function tfKgOf(loadVal) {
+  const s = String(loadVal == null ? '' : loadVal).trim();
+  if (!s) return null;
+  const kg = parseFloat(convLoadDisplay(s, UNIT_PREFS.mass, 'kg'));
+  return isFinite(kg) ? kg : null;
+}
+function tfEquivText(loadVal) {
+  const kg = tfKgOf(loadVal);
+  if (kg == null) return '';
+  return UNIT_PREFS.mass === 'kg' ? '≈ ' + Math.round(kg / UNIT_LB_KG) + ' lb' : '≈ ' + uRound1(kg) + ' kg';
+}
+function tfChipsHTML(ctx, idx, s) {
+  const reps = s && String(s.repsDone == null ? '' : s.repsDone) !== '' ? esc(String(s.repsDone)) : '—';
+  const lv = s ? String(s.loadVal == null ? '' : s.loadVal) : '';
+  const loadMain = lv === '' ? esc(t('train.start.noLoad')) : esc(lv);
+  const eq = tfEquivText(lv);
+  return `<button type="button" class="tf-chip" data-tf-chip="${ctx}:${idx}:reps" aria-label="${t('train.d.repsPh')}"><span class="tf-chip-lab">${t('train.d.repsPh')}</span><span class="tf-chip-v">${reps}</span></button>` +
+    `<button type="button" class="tf-chip" data-tf-chip="${ctx}:${idx}:load" aria-label="${t('train.d.loadPh')}"><span class="tf-chip-lab">${t('train.d.loadPh')}</span><span class="tf-chip-v">${loadMain}${lv !== '' ? ` <span class="tf-chip-u">${esc(UNIT_PREFS.mass)}</span>` : ''}</span>${eq ? `<span class="tf-chip-eq">${esc(eq)}</span>` : ''}</button>`;
 }
 function trainFloatSetsHTML(draft) {
   if (!draft || !draft.done) return '';
   const sets = Array.isArray(draft.sets) ? draft.sets : [];
   return `<div class="train-sets-unit"><span class="train-sets-unit-lab">${esc(t('units.mass'))}</span>${trainUnitSelHTML()}</div><div class="train-sets">${sets.map((s, si) => `
     <div class="train-set-row"><span class="train-set-n">${t('train.d.set')} ${si + 1}${s.repsPlanned ? ` · ${esc(s.repsPlanned)}` : ''}</span>
-      <input type="number" inputmode="decimal" min="0" class="train-set-in" data-tf-reps="${si}" placeholder="${t('train.d.repsPh')}" value="${esc(s.repsDone)}" aria-label="${t('train.d.repsPh')}">
-      <input type="number" inputmode="decimal" min="0" step="any" class="train-set-in" data-tf-load="${si}" placeholder="${t('train.d.loadPh')}" value="${esc(s.loadVal)}" aria-label="${t('train.d.loadPh')}">
-      <span class="train-set-unit">${esc(UNIT_PREFS.mass)}</span></div>`).join('')}</div>`;
+      <span class="tf-chips" data-tf-chips="set:${si}">${tfChipsHTML('set', si, s)}</span></div>`).join('')}</div>`;
 }
-function trainFloatWireSets(body, draft) {
-  body.querySelectorAll('[data-tf-reps]').forEach(inp => inp.oninput = () => { const s = draft.sets[Number(inp.dataset.tfReps)]; if (s) s.repsDone = inp.value; });
-  body.querySelectorAll('[data-tf-load]').forEach(inp => inp.oninput = () => { const s = draft.sets[Number(inp.dataset.tfLoad)]; if (s) s.loadVal = inp.value; });
+function trainFloatWarmHTML(draft) {
+  const w = (draft && draft.warmup && typeof draft.warmup === 'object') ? draft.warmup : { on: false, sets: [] };
+  const rows = w.on ? `<div class="tf-warm-rows">${(Array.isArray(w.sets) ? w.sets : []).map((s, wi) => `
+    <div class="train-set-row"><span class="train-set-n">A${wi + 1}</span>
+      <span class="tf-chips" data-tf-chips="warm:${wi}">${tfChipsHTML('warm', wi, s)}</span>
+      <button type="button" class="tf-warm-del" data-tf-warm-del="${wi}" aria-label="${t('train.start.warmupRemove')}">✕</button></div>`).join('')}</div>
+    <button type="button" class="btn-ghost btn-sm" id="tf-warm-add">${t('train.start.warmupAdd')}</button>` : '';
+  return `<div class="tf-warm-head"><span class="tf-warm-title">${t('train.start.warmupTitle')}</span>
+    <button type="button" class="tf-warm-tog${w.on ? ' is-on' : ''}" id="tf-warm-on" aria-pressed="${w.on ? 'true' : 'false'}">${w.on ? t('train.start.yes') : t('train.start.no')}</button></div>${rows}`;
+}
+function trainFloatWheelHTML() {
+  return `<div class="tf-wheel" id="tf-wheel" style="display:none">
+    <div class="tf-wheel-head"><span class="tf-wheel-title" id="tf-wheel-title"></span><button type="button" class="btn-primary btn-sm" id="tf-wheel-done">${t('train.start.wheelDone')}</button></div>
+    <div class="tf-wheel-cols">
+      <div class="tf-wheel-col"><div class="tf-wheel-lab">${t('train.d.repsPh')}</div><div class="tf-wheel-list" id="tf-wheel-reps"></div></div>
+      <div class="tf-wheel-col"><div class="tf-wheel-lab">${t('train.d.loadPh')}</div><div class="tf-wheel-list" id="tf-wheel-load"></div></div>
+    </div></div>`;
+}
+function trainFloatSessionHTML(draft) {
+  if (!draft || !draft.done)
+    return `<div class="tf-start-box"><button type="button" class="btn-primary tf-start-btn" id="tf-start">${t('train.start.btn')}</button></div>`;
+  return `<div class="tf-warm" id="tf-warm">${trainFloatWarmHTML(draft)}</div>
+    <div id="tf-sets">${trainFloatSetsHTML(draft)}</div>
+    ${trainFloatWheelHTML()}
+    <div><label class="prop-lab" for="tf-rpe">${t('train.view.rpe')}</label>
+    <select class="train-ex-rpe" id="tf-rpe">
+      <option value="">${t('train.view.rpeNone')}</option>
+      ${[1, 2, 3, 4, 5, 6, 7, 8, 9, 10].map(n => `<option value="${n}" ${draft.rpe === n ? 'selected' : ''}>${t('train.view.rpe')} ${n}</option>`).join('')}
+    </select></div>
+    <div class="train-float-actions"><button type="button" class="btn-primary" id="tf-save">✓ ${t('train.view.exDone')}</button></div>`;
+}
+function tfWarmSnap(w) {
+  const o = (w && typeof w === 'object' && !Array.isArray(w)) ? w : {};
+  return { on: o.on === true, sets: (Array.isArray(o.sets) ? o.sets : []).map(s => ({
+    repsDone: String(s && s.repsDone != null ? s.repsDone : ''),
+    loadVal: String(s && s.loadVal != null ? s.loadVal : '') })) };
+}
+/* EL ESPEJO CONTINUO: vuelca el borrador en curso a TRAIN_CHECKS
+   y al borrador local (misma disciplina «confirmar al acto» de
+   las marcas de la tarjeta del día) — cerrar la ficha en curso
+   no pierde nada. Con chrono=true toca el cronómetro, como hace
+   el Guardar de siempre al confirmar una marca. */
+function trainFloatMirror(chrono) {
+  const F = TRAIN_FLOAT;
+  if (!F || F.mode !== 'edit' || !F.draft) return;
+  const key = F.di + ':' + F.ei, d = F.draft;
+  if (d.done) {
+    TRAIN_CHECKS[key] = { rpe: d.rpe, sets: (Array.isArray(d.sets) ? d.sets : []).map(s => ({ ...s })), warmup: tfWarmSnap(d.warmup) };
+    if (chrono) trainChronoTouch(F.planId);
+  } else delete TRAIN_CHECKS[key];
+  trainChecksPersist(F.planId);
+}
+function tfWheelRow() {
+  const F = TRAIN_FLOAT;
+  if (!F || !F.draft || !TF_WHEEL) return null;
+  return TF_WHEEL.ctx === 'warm'
+    ? (F.draft.warmup && Array.isArray(F.draft.warmup.sets) ? F.draft.warmup.sets[TF_WHEEL.idx] : null)
+    : (Array.isArray(F.draft.sets) ? F.draft.sets[TF_WHEEL.idx] : null);
+}
+function tfWireChips(body, scope) {
+  (scope || body).querySelectorAll('[data-tf-chip]').forEach(ch => { ch.onclick = () => {
+    const p = String(ch.dataset.tfChip).split(':');
+    tfWheelOpen(body, p[0], Number(p[1]));
+  }; });
+}
+function tfChipRefresh(body) {
+  if (!TF_WHEEL) return;
+  const host = body.querySelector(`[data-tf-chips="${TF_WHEEL.ctx}:${TF_WHEEL.idx}"]`);
+  const row = tfWheelRow();
+  if (host && row) { host.innerHTML = tfChipsHTML(TF_WHEEL.ctx, TF_WHEEL.idx, row); tfWireChips(body, host); }
+}
+function tfWheelMarkSel(list, kind) {
+  const row = tfWheelRow();
+  if (!row || !list) return;
+  let cur;
+  if (kind === 'reps') cur = String(row.repsDone == null ? '' : row.repsDone);
+  else { const kg = tfKgOf(row.loadVal); cur = kg == null ? '' : String(kg); }
+  list.querySelectorAll('.tf-wheel-it').forEach(it => it.classList.toggle('sel',
+    String(it.dataset.wv) === cur || (kind === 'reps' && cur === '' && it.dataset.wv === '0')));
+}
+function tfWheelCenter(list, wv) {
+  if (!list) return;
+  const it = list.querySelector(`[data-wv="${wv}"]`) || list.querySelector('.tf-wheel-it');
+  if (!it) return;
+  list.scrollTop = Math.max(0, it.offsetTop - (list.clientHeight - it.clientHeight) / 2);
+}
+function tfWheelPick(body, kind, wv) {
+  const row = tfWheelRow();
+  if (!row) return;
+  if (kind === 'reps') row.repsDone = String(wv);
+  else row.loadVal = wv === '' ? '' : convLoadDisplay(String(wv), 'kg', UNIT_PREFS.mass);
+  trainFloatMirror(false);
+  tfChipRefresh(body);
+  tfWheelMarkSel(body.querySelector('#tf-wheel-reps'), 'reps');
+  tfWheelMarkSel(body.querySelector('#tf-wheel-load'), 'load');
+}
+function tfWheelScrollHandler(body, list, kind) {
+  let tm = null;
+  return () => {
+    if (tm) clearTimeout(tm);
+    tm = setTimeout(() => {
+      if (!TF_WHEEL) return;
+      const mid = list.scrollTop + list.clientHeight / 2;
+      let best = null, bd = Infinity;
+      list.querySelectorAll('.tf-wheel-it').forEach(it => { const c = it.offsetTop + it.clientHeight / 2; const dd = Math.abs(c - mid); if (dd < bd) { bd = dd; best = it; } });
+      if (best) tfWheelPick(body, kind, best.dataset.wv);
+    }, 140);
+  };
+}
+function tfWheelOpen(body, ctx, idx) {
+  const F = TRAIN_FLOAT;
+  if (!F || !F.draft) return;
+  TF_WHEEL = { ctx, idx };
+  const panel = body.querySelector('#tf-wheel');
+  const row = tfWheelRow();
+  if (!panel || !row) return;
+  const title = body.querySelector('#tf-wheel-title');
+  if (title) title.textContent = ctx === 'warm' ? `${t('train.start.warmupTitle')} ${idx + 1}` : `${t('train.d.set')} ${idx + 1}`;
+  const repsList = body.querySelector('#tf-wheel-reps');
+  const loadList = body.querySelector('#tf-wheel-load');
+  if (repsList) {
+    let h = '';
+    for (let n = 0; n <= 100; n++) h += `<button type="button" class="tf-wheel-it" data-wv="${n}">${n}</button>`;
+    repsList.innerHTML = h;
+    repsList.querySelectorAll('.tf-wheel-it').forEach(it => { it.onclick = () => { tfWheelPick(body, 'reps', it.dataset.wv); tfWheelCenter(repsList, it.dataset.wv); }; });
+    repsList.onscroll = tfWheelScrollHandler(body, repsList, 'reps');
+  }
+  if (loadList) {
+    let h = `<button type="button" class="tf-wheel-it" data-wv="">${esc(t('train.start.noLoad'))}</button>`;
+    TF_LOAD_STEPS.forEach(kg => { h += `<button type="button" class="tf-wheel-it" data-wv="${kg}">${kg} kg<small>≈ ${Math.round(kg / UNIT_LB_KG)} lb</small></button>`; });
+    loadList.innerHTML = h;
+    loadList.querySelectorAll('.tf-wheel-it').forEach(it => { it.onclick = () => { tfWheelPick(body, 'load', it.dataset.wv); tfWheelCenter(loadList, it.dataset.wv); }; });
+    loadList.onscroll = tfWheelScrollHandler(body, loadList, 'load');
+  }
+  panel.style.display = 'block';
+  tfWheelMarkSel(repsList, 'reps');
+  tfWheelMarkSel(loadList, 'load');
+  const rCur = String(row.repsDone == null || row.repsDone === '' ? 0 : row.repsDone);
+  const kg = tfKgOf(row.loadVal);
+  let lCur = '';
+  if (kg != null) { let best = TF_LOAD_STEPS[0], bd = Infinity; TF_LOAD_STEPS.forEach(st => { const dd = Math.abs(st - kg); if (dd < bd) { bd = dd; best = st; } }); lCur = String(best); }
+  setTimeout(() => { tfWheelCenter(repsList, rCur); tfWheelCenter(loadList, lCur); }, 30);
+}
+function trainFloatWireSession(body) {
+  const F = TRAIN_FLOAT;
+  if (!F || F.mode !== 'edit' || !F.draft) return;
+  const d = F.draft;
+  const startBtn = body.querySelector('#tf-start');
+  if (startBtn) startBtn.onclick = () => {
+    /* INICIAR: la ficha pasa a modo en curso ALLÍ MISMO — el área
+       de trabajo sustituye al botón sin salir de la hoja, y el
+       estado se espeja al acto (espejo continuo). */
+    d.done = true;
+    if (!Array.isArray(d.sets) || !d.sets.length) d.sets = trainDefaultSets(F.ex);
+    const host = body.querySelector('#tf-session');
+    if (host) host.innerHTML = trainFloatSessionHTML(d);
+    trainFloatMirror(true);
+    trainFloatWireSession(body);
+    trainWireUnitSels(body);
+  };
+  tfWireChips(body);
+  const rpeSel = body.querySelector('#tf-rpe');
+  if (rpeSel) rpeSel.onchange = () => { d.rpe = rpeSel.value ? Number(rpeSel.value) : null; trainFloatMirror(false); };
+  const tfWarmRefresh = () => {
+    const host = body.querySelector('#tf-warm');
+    if (host) host.innerHTML = trainFloatWarmHTML(d);
+    trainFloatMirror(false);
+    trainFloatWireSession(body);
+    trainWireUnitSels(body);
+  };
+  const wTog = body.querySelector('#tf-warm-on');
+  if (wTog) wTog.onclick = () => {
+    d.warmup = tfWarmSnap(d.warmup);
+    d.warmup.on = !d.warmup.on;
+    if (d.warmup.on && !d.warmup.sets.length) d.warmup.sets.push({ repsDone: '', loadVal: '' });
+    tfWarmRefresh();
+  };
+  const wAdd = body.querySelector('#tf-warm-add');
+  if (wAdd) wAdd.onclick = () => { d.warmup = tfWarmSnap(d.warmup); d.warmup.sets.push({ repsDone: '', loadVal: '' }); tfWarmRefresh(); };
+  body.querySelectorAll('[data-tf-warm-del]').forEach(btn => { btn.onclick = () => {
+    d.warmup = tfWarmSnap(d.warmup);
+    d.warmup.sets.splice(Number(btn.dataset.tfWarmDel), 1);
+    tfWarmRefresh();
+  }; });
+  const wDone = body.querySelector('#tf-wheel-done');
+  if (wDone) wDone.onclick = () => { const p = body.querySelector('#tf-wheel'); if (p) p.style.display = 'none'; };
+  const saveBtn = body.querySelector('#tf-save');
+  if (saveBtn) saveBtn.onclick = () => {
+    /* «✓ Hecho» = la confirmación de siempre, con el espejo ya
+       aplicado: la marca vive en TRAIN_CHECKS (con su warmup) y
+       la flotante no escribe nada en Firestore (eso sigue siendo
+       solo el cierre del día). La hoja se recoge y la tarjeta se
+       re-pinta con el estado nuevo al instante. */
+    trainFloatMirror(true);
+    trainFloatClose();
+    loadMyTraining();
+  };
 }
 /* ================================================================
    FICHA DEL EJERCICIO (Etapa 1 del rediseño visual, paquete 1 —
@@ -14480,23 +14758,19 @@ function trainFloatOpen(plan, logs, di, ei, mode, iso) {
   }
   $('train-ex-float-title').textContent = trainExName(ex) || ex.name || '';
   /* La FICHA (2026-10-30) compone media + identidad + pestañas
-     alrededor del bloque de sesión, que queda BYTE A BYTE como
-     estaba: mismos ids, mismo borrador, mismo Guardar. */
+     alrededor del bloque de sesión. El paquete INICIAR EJERCICIO
+     (2026-10-30) renueva ESE bloque: botón «Iniciar ejercicio»,
+     ruedas sin teclado, aproximación y espejo continuo — el
+     modelo TRAIN_CHECKS y el cierre del día no cambian. */
   let sessionHTML = '';
   if (mode === 'edit') {
     const key = di + ':' + ei;
     const chk = TRAIN_CHECKS[key];
     const draft = { done: !!chk, rpe: chk ? chk.rpe : null,
-      sets: chk && Array.isArray(chk.sets) ? chk.sets.map(s => ({ ...s })) : trainDefaultSets(ex) };
-    TRAIN_FLOAT = { di, ei, mode, iso, draft };
-    sessionHTML = `<label class="train-float-check"><input type="checkbox" id="tf-done" ${draft.done ? 'checked' : ''}> <span>${t('train.view.exDone')}</span></label>
-      <div id="tf-sets">${trainFloatSetsHTML(draft)}</div>
-      <div><label class="prop-lab" for="tf-rpe">${t('train.view.rpe')}</label>
-      <select class="train-ex-rpe" id="tf-rpe" ${draft.done ? '' : 'disabled'}>
-        <option value="">${t('train.view.rpeNone')}</option>
-        ${[1, 2, 3, 4, 5, 6, 7, 8, 9, 10].map(n => `<option value="${n}" ${draft.rpe === n ? 'selected' : ''}>${t('train.view.rpe')} ${n}</option>`).join('')}
-      </select></div>
-      <div class="train-float-actions"><button type="button" class="btn-main btn-sm" id="tf-save">${t('form.save')}</button></div>`;
+      sets: chk && Array.isArray(chk.sets) && chk.sets.length ? chk.sets.map(s => ({ ...s })) : trainDefaultSets(ex),
+      warmup: chk && chk.warmup ? tfWarmSnap(chk.warmup) : { on: false, sets: [] } };
+    TRAIN_FLOAT = { di, ei, mode, iso, draft, planId: plan.id, ex };
+    sessionHTML = `<div id="tf-session">${trainFloatSessionHTML(draft)}</div>`;
   } else {
     TRAIN_FLOAT = { di, ei, mode, iso, draft: null };
     if (mode === 'read') {
@@ -14511,33 +14785,8 @@ function trainFloatOpen(plan, logs, di, ei, mode, iso) {
   trainCardRender({ ex, mode, sessionHTML, allLogs: MY_LOGS_ALL || logs });
   const body = $('train-ex-float-body');
   if (mode === 'edit' && TRAIN_FLOAT) {
-    const d = TRAIN_FLOAT.draft;
-    const doneBox = body.querySelector('#tf-done');
-    const rpeSel = body.querySelector('#tf-rpe');
-    doneBox.onchange = () => {
-      d.done = doneBox.checked;
-      if (d.done && (!Array.isArray(d.sets) || !d.sets.length)) d.sets = trainDefaultSets(ex);
-      body.querySelector('#tf-sets').innerHTML = trainFloatSetsHTML(d);
-      rpeSel.disabled = !d.done;
-      trainFloatWireSets(body, d);
-      trainWireUnitSels(body);
-    };
-    rpeSel.onchange = () => { d.rpe = rpeSel.value ? Number(rpeSel.value) : null; };
-    trainFloatWireSets(body, d);
+    trainFloatWireSession(body);
     trainWireUnitSels(body);
-    body.querySelector('#tf-save').onclick = () => {
-      /* Guardar = la MISMA confirmación que hace la fila: la marca
-         vive en TRAIN_CHECKS con la misma forma {rpe, sets}; la
-         flotante no escribe nada en Firestore (eso sigue siendo
-         solo el cierre del día). Después la hoja se recoge y la
-         tarjeta se re-pinta con el estado nuevo al instante. */
-      const key = di + ':' + ei;
-      if (d.done) { TRAIN_CHECKS[key] = { rpe: d.rpe, sets: d.sets.map(s => ({ ...s })) }; trainChronoTouch(plan.id); }
-      else delete TRAIN_CHECKS[key];
-      trainChecksPersist(plan.id);   /* MARCAS QUE SOBREVIVEN: la marca confirmada en la flotante entra en el borrador local */
-      trainFloatClose();
-      loadMyTraining();
-    };
   }
   fl.classList.remove('is-closing');
   fl.classList.add('is-open');
@@ -15016,6 +15265,28 @@ async function loadMyTraining() {
       if (Array.isArray(c.sets) && c.sets.length) {
         e.sets = c.sets.map(s => {
           const out = { repsPlanned: String(s.repsPlanned || '') };
+          const rd = num(s.repsDone);
+          if (s.repsDone !== '' && s.repsDone != null && !isNaN(rd)) out.repsDone = rd;
+          const lv = parseFloat(s.loadVal);
+          if (s.loadVal !== '' && s.loadVal != null && isFinite(lv) && lv >= 0) {
+            out.loadKg = massToCanonical(lv);        /* canónico kg (módulo H) */
+            out.loadOriginal = lv;
+            out.loadUnitOriginal = UNIT_PREFS.mass;
+          }
+          return out;
+        });
+      }
+      /* APROXIMACIÓN (paquete Iniciar ejercicio, 2026-10-30): las
+         series de aproximación viajan MARCADAS y APARTE
+         (warmupSets), con la MISMA conversión que las de trabajo
+         y SIN repsPlanned; solo si el bloque estaba encendido y
+         hay al menos una fila con dato. El Historial lee SOLO
+         sets — la aproximación nunca cuenta. Sin aproximación,
+         la entrada es byte a byte la de siempre. */
+      if (c.warmup && c.warmup.on === true && Array.isArray(c.warmup.sets)) {
+        const wsrc = c.warmup.sets.filter(s => s && (String(s.repsDone == null ? '' : s.repsDone) !== '' || String(s.loadVal == null ? '' : s.loadVal) !== ''));
+        if (wsrc.length) e.warmupSets = wsrc.map(s => {
+          const out = {};
           const rd = num(s.repsDone);
           if (s.repsDone !== '' && s.repsDone != null && !isNaN(rd)) out.repsDone = rd;
           const lv = parseFloat(s.loadVal);
@@ -22328,7 +22599,7 @@ document.addEventListener('keydown', e => { if (e.key === 'Escape') shareClose()
  *  - El SW (sw.js) solo cachea la cáscara del mismo origen en modo
  *    RED PRIMERO: Auth/Firestore/Worker jamás pasan por la caché.
  * ================================================================ */
-const PWA_SW_VERSION = '20261030-metas-solo-inicio';
+const PWA_SW_VERSION = '20261030-iniciar-ejercicio';
 let pwaDeferredPrompt = null;
 function pwaIsStandalone() {
   try {
