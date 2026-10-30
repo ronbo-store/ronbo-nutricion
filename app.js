@@ -14614,11 +14614,99 @@ function trainWireUnitSels(scope) {
 const TF_LOAD_STEPS = [];
 for (let _tfv = 0; _tfv <= 200.001; _tfv += 2.5) TF_LOAD_STEPS.push(Math.round(_tfv * 10) / 10);
 let TF_WHEEL = null;   /* { ctx:'set'|'warm', idx } — fila a la que apunta el panel de ruedas */
+/* RUEDA DE CARGA SEGÚN LA UNIDAD DEL VISOR (corrección rueda de
+   carga en lb, 2026-10-30 — reporte en vivo de Ronald 12:23 CDT
+   y su decisión «Ambos» de las 12:31 CDT): la escala de la rueda
+   de carga es la de la unidad DEL VISOR. En kg, la de siempre
+   (TF_LOAD_STEPS). En lb, una escala NATIVA sobre rejilla de
+   2,5 lb (0–441): TODAS las paradas de 5 en 5 existen — las de
+   las mancuernas y los discos de EE. UU. — y también los medios
+   pasos, con las de 5 destacadas en la lista; el 75 lb que la
+   escala de kg hacía inalcanzable (saltaba de 71,7 a 77,2) es
+   una parada más. El guardado NO cambia de forma: el valor
+   viaja en la unidad del visor y al cierre se convierte al
+   canónico kg + el original con su unidad, con ida y vuelta
+   EXACTA (75 lb → loadKg 34.01942775 → se re-muestra 75 lb). */
+let TF_LOAD_SCALE = null;   /* { unit, steps } de la apertura en curso */
+function tfLoadScale() {
+  if (UNIT_PREFS.mass === 'lb') {
+    const steps = [];
+    for (let v = 0; v <= 441.001; v += 2.5) steps.push(Math.round(v * 10) / 10);
+    return { unit: 'lb', steps };
+  }
+  return { unit: 'kg', steps: TF_LOAD_STEPS };
+}
+/* El valor de una fila expresado en la unidad de la escala. */
+function tfScaleValOf(loadVal, unit) {
+  const s = String(loadVal == null ? '' : loadVal).trim();
+  if (!s) return null;
+  const v = parseFloat(convLoadDisplay(s, UNIT_PREFS.mass, unit));
+  return isFinite(v) ? v : null;
+}
+/* GUARDIA ANTI-SOBRESCRITURA (la misma corrección): si el valor
+   de la fila NO es una parada exacta de la escala activa (p. ej.
+   un 73 tecleado en la tarjeta del día), abrir la rueda no puede
+   sobrescribirlo por el asentamiento de un simple roce — el
+   diagnóstico lo demostró: bastaba que la lista se asentara en
+   el peldaño centrado para que el 75 tecleado se volviera 77,2
+   sin que nadie lo eligiera. La guardia registra el scrollTop
+   tras el centrado inicial y el asentamiento no aplica nada
+   mientras el desplazamiento no alcance UN peldaño entero
+   (38 px); desplazarse de verdad (≥38 px) o tocar un ítem la
+   desarma para esa apertura. Con valores en escala no se arma:
+   el asentamiento re-aplica el mismo valor, como siempre. */
+let TF_WHEEL_GUARD = null;   /* { top0, moved } | null */
 function tfKgOf(loadVal) {
   const s = String(loadVal == null ? '' : loadVal).trim();
   if (!s) return null;
   const kg = parseFloat(convLoadDisplay(s, UNIT_PREFS.mass, 'kg'));
   return isFinite(kg) ? kg : null;
+}
+/* PRECARGA SUGERIDA DE SERIES (la misma corrección — palabra de
+   Ronald, 2026-10-30 12:42 CDT): en el área de trabajo de la
+   ficha, una serie VACÍA se pre-rellena con los valores (reps
+   hechas + carga) de la serie anterior MÁS CERCANA que tenga
+   datos — en una sesión intacta, la Serie 1: «cargo solo la
+   primera serie y las demás se colocan iguales; las cambio solo
+   si cambia el peso o las repeticiones». Lo pre-rellenado se ve
+   TAL CUAL, con el mismo aspecto que un dato cargado (al cerrar
+   el día se guarda exactamente lo que se ve: no hay datos
+   fantasma), se edita con las mismas ruedas y se borra con
+   ellas: reps a 0 y carga «Sin carga» = vacío verdadero, con
+   marca de borrado (clr) para que la sugerencia no lo resucite.
+   La sugerencia vive en el MISMO borrador local de la sesión
+   (marcas sug/clr por serie, que el espejo continuo ya vuelca a
+   TRAIN_CHECKS; el escritor del cierre arma cada serie campo a
+   campo y NO copia las marcas al registro). SOLO series de
+   trabajo: las de aproximación jamás se pre-rellenan ni sirven
+   de fuente — su lógica es otra y la A1 no tiene anterior. */
+function tfSetHasData(s) {
+  return !!s && (String(s.repsDone == null ? '' : s.repsDone) !== '' || String(s.loadVal == null ? '' : s.loadVal) !== '');
+}
+function tfSuggestApply() {
+  const F = TRAIN_FLOAT;
+  if (!F || !F.draft || !Array.isArray(F.draft.sets)) return;
+  let src = null;
+  F.draft.sets.forEach(s => {
+    if (!s) return;
+    if (s.sug) {
+      if (src) { s.repsDone = src.repsDone; s.loadVal = src.loadVal; }
+      else { s.repsDone = ''; s.loadVal = ''; s.sug = false; }
+    } else if (tfSetHasData(s)) {
+      src = { repsDone: String(s.repsDone == null ? '' : s.repsDone), loadVal: String(s.loadVal == null ? '' : s.loadVal) };
+    } else if (!s.clr && src) {
+      s.repsDone = src.repsDone; s.loadVal = src.loadVal; s.sug = true;
+    }
+  });
+}
+function tfSuggestRefresh(body) {
+  const F = TRAIN_FLOAT;
+  if (!F || !F.draft || !Array.isArray(F.draft.sets)) return;
+  F.draft.sets.forEach((s, j) => {
+    const host = body.querySelector(`[data-tf-chips="set:${j}"]`);
+    if (host && s) host.innerHTML = tfChipsHTML('set', j, s);
+  });
+  tfWireChips(body);
 }
 function tfEquivText(loadVal) {
   const kg = tfKgOf(loadVal);
@@ -14652,18 +14740,18 @@ function trainFloatWarmHTML(draft) {
 }
 function trainFloatWheelHTML() {
   return `<div class="tf-wheel" id="tf-wheel" style="display:none">
+    <div class="tf-wheel-card">
     <div class="tf-wheel-head"><span class="tf-wheel-title" id="tf-wheel-title"></span><button type="button" class="btn-primary btn-sm" id="tf-wheel-done">${t('train.start.wheelDone')}</button></div>
     <div class="tf-wheel-cols">
       <div class="tf-wheel-col"><div class="tf-wheel-lab">${t('train.d.repsPh')}</div><div class="tf-wheel-list" id="tf-wheel-reps"></div></div>
       <div class="tf-wheel-col"><div class="tf-wheel-lab">${t('train.d.loadPh')}</div><div class="tf-wheel-list" id="tf-wheel-load"></div></div>
-    </div></div>`;
+    </div></div></div>`;
 }
 function trainFloatSessionHTML(draft) {
   if (!draft || !draft.done)
     return `<div class="tf-start-box"><button type="button" class="btn-primary tf-start-btn" id="tf-start">${t('train.start.btn')}</button></div>`;
   return `<div class="tf-warm" id="tf-warm">${trainFloatWarmHTML(draft)}</div>
     <div id="tf-sets">${trainFloatSetsHTML(draft)}</div>
-    ${trainFloatWheelHTML()}
     <div><label class="prop-lab" for="tf-rpe">${t('train.view.rpe')}</label>
     <select class="train-ex-rpe" id="tf-rpe">
       <option value="">${t('train.view.rpeNone')}</option>
@@ -14716,7 +14804,7 @@ function tfWheelMarkSel(list, kind) {
   if (!row || !list) return;
   let cur;
   if (kind === 'reps') cur = String(row.repsDone == null ? '' : row.repsDone);
-  else { const kg = tfKgOf(row.loadVal); cur = kg == null ? '' : String(kg); }
+  else { const sc = TF_LOAD_SCALE || tfLoadScale(); const v = tfScaleValOf(row.loadVal, sc.unit); cur = v == null ? '' : String(v); }
   list.querySelectorAll('.tf-wheel-it').forEach(it => it.classList.toggle('sel',
     String(it.dataset.wv) === cur || (kind === 'reps' && cur === '' && it.dataset.wv === '0')));
 }
@@ -14730,18 +14818,36 @@ function tfWheelPick(body, kind, wv) {
   const row = tfWheelRow();
   if (!row) return;
   if (kind === 'reps') row.repsDone = String(wv);
-  else row.loadVal = wv === '' ? '' : convLoadDisplay(String(wv), 'kg', UNIT_PREFS.mass);
+  else { TF_WHEEL_GUARD = null; const sc = TF_LOAD_SCALE || tfLoadScale(); row.loadVal = wv === '' ? '' : convLoadDisplay(String(wv), sc.unit, UNIT_PREFS.mass); }
   trainFloatMirror(false);
   tfChipRefresh(body);
-  tfWheelMarkSel(body.querySelector('#tf-wheel-reps'), 'reps');
-  tfWheelMarkSel(body.querySelector('#tf-wheel-load'), 'load');
+  if (TF_WHEEL && TF_WHEEL.ctx === 'set') {
+    /* PRECARGA SUGERIDA (2026-10-30 12:42 CDT): la fila tocada
+       queda como dato real de su autor — salvo que la dejaron
+       vacía del todo (reps 0 y «Sin carga»), que es BORRARLA:
+       el 0 se normaliza a vacío verdadero y la fila queda
+       marcada como borrada para que la sugerencia no la
+       resucite. Después, las series vacías que la siguen toman
+       los valores de la anterior con datos como sugerencia. */
+    const lvS = String(row.loadVal == null ? '' : row.loadVal), rpS = String(row.repsDone == null ? '' : row.repsDone);
+    if (lvS === '' && (rpS === '' || rpS === '0')) { row.repsDone = ''; row.sug = false; row.clr = true; }
+    else { row.sug = false; row.clr = false; }
+    tfSuggestApply();
+    trainFloatMirror(false);
+    tfSuggestRefresh(body);
+  }
+  tfWheelMarkSel(document.getElementById('tf-wheel-reps'), 'reps');
+  tfWheelMarkSel(document.getElementById('tf-wheel-load'), 'load');
 }
 function tfWheelScrollHandler(body, list, kind) {
   let tm = null;
   return () => {
+    if (kind === 'load' && TF_WHEEL_GUARD && TF_WHEEL_GUARD.top0 != null
+      && Math.abs(list.scrollTop - TF_WHEEL_GUARD.top0) >= 38) TF_WHEEL_GUARD.moved = true;
     if (tm) clearTimeout(tm);
     tm = setTimeout(() => {
       if (!TF_WHEEL) return;
+      if (kind === 'load' && TF_WHEEL_GUARD && !TF_WHEEL_GUARD.moved) return;
       const mid = list.scrollTop + list.clientHeight / 2;
       let best = null, bd = Infinity;
       list.querySelectorAll('.tf-wheel-it').forEach(it => { const c = it.offsetTop + it.clientHeight / 2; const dd = Math.abs(c - mid); if (dd < bd) { bd = dd; best = it; } });
@@ -14753,13 +14859,37 @@ function tfWheelOpen(body, ctx, idx) {
   const F = TRAIN_FLOAT;
   if (!F || !F.draft) return;
   TF_WHEEL = { ctx, idx };
-  const panel = body.querySelector('#tf-wheel');
+  TF_LOAD_SCALE = tfLoadScale();
+  TF_WHEEL_GUARD = null;
   const row = tfWheelRow();
-  if (!panel || !row) return;
-  const title = body.querySelector('#tf-wheel-title');
+  if (!row) return;
+  /* VENTANA FLOTANTE (palabra de Ronald, 2026-10-30 12:43 CDT,
+     que SUPERSEDE al anclaje bajo la fila invocante de las
+     12:32): «se carga muy abajo porque no es como una ventana
+     flotante; se elige, se dice ok y listo». El selector vive
+     FUERA de la hoja, como un nodo ÚNICO a nivel de documento
+     creado la primera vez que se abre: la hoja (.act-float)
+     lleva transform y su propio scroll, y un panel en su flujo
+     siempre quedaba lejos de la fila o rodaba con ella. Como
+     ventana fija sobre la ficha se abre siempre visible, sin
+     importar el scroll de la hoja ni la fila invocante; se
+     eligen reps y carga, se pulsa «Listo» y se cierra volviendo
+     a la hoja exactamente en la posición en que estaba — la
+     contención del gesto queda resuelta de raíz: la lista rueda
+     dentro de la ventana. */
+  let panel = document.getElementById('tf-wheel');
+  if (!panel) {
+    const tmp = document.createElement('div');
+    tmp.innerHTML = trainFloatWheelHTML();
+    panel = tmp.firstElementChild;
+    document.body.appendChild(panel);
+    const dn0 = panel.querySelector('#tf-wheel-done');
+    if (dn0) dn0.onclick = () => { panel.style.display = 'none'; };
+  }
+  const title = panel.querySelector('#tf-wheel-title');
   if (title) title.textContent = ctx === 'warm' ? `${t('train.start.warmupTitle')} ${idx + 1}` : `${t('train.d.set')} ${idx + 1}`;
-  const repsList = body.querySelector('#tf-wheel-reps');
-  const loadList = body.querySelector('#tf-wheel-load');
+  const repsList = panel.querySelector('#tf-wheel-reps');
+  const loadList = panel.querySelector('#tf-wheel-load');
   if (repsList) {
     let h = '';
     for (let n = 0; n <= 100; n++) h += `<button type="button" class="tf-wheel-it" data-wv="${n}">${n}</button>`;
@@ -14768,8 +14898,13 @@ function tfWheelOpen(body, ctx, idx) {
     repsList.onscroll = tfWheelScrollHandler(body, repsList, 'reps');
   }
   if (loadList) {
+    const sc = TF_LOAD_SCALE;
     let h = `<button type="button" class="tf-wheel-it" data-wv="">${esc(t('train.start.noLoad'))}</button>`;
-    TF_LOAD_STEPS.forEach(kg => { h += `<button type="button" class="tf-wheel-it" data-wv="${kg}">${kg} kg<small>≈ ${Math.round(kg / UNIT_LB_KG)} lb</small></button>`; });
+    sc.steps.forEach(v => {
+      const eq = sc.unit === 'kg' ? `≈ ${Math.round(v / UNIT_LB_KG)} lb` : `≈ ${uRound1(v * UNIT_LB_KG)} kg`;
+      const big = sc.unit === 'lb' && v > 0 && v % 5 === 0 ? ' tf-wheel-it-5' : '';
+      h += `<button type="button" class="tf-wheel-it${big}" data-wv="${v}">${v} ${sc.unit}<small>${eq}</small></button>`;
+    });
     loadList.innerHTML = h;
     loadList.querySelectorAll('.tf-wheel-it').forEach(it => { it.onclick = () => { tfWheelPick(body, 'load', it.dataset.wv); tfWheelCenter(loadList, it.dataset.wv); }; });
     loadList.onscroll = tfWheelScrollHandler(body, loadList, 'load');
@@ -14778,10 +14913,14 @@ function tfWheelOpen(body, ctx, idx) {
   tfWheelMarkSel(repsList, 'reps');
   tfWheelMarkSel(loadList, 'load');
   const rCur = String(row.repsDone == null || row.repsDone === '' ? 0 : row.repsDone);
-  const kg = tfKgOf(row.loadVal);
+  const sv = tfScaleValOf(row.loadVal, TF_LOAD_SCALE.unit);
   let lCur = '';
-  if (kg != null) { let best = TF_LOAD_STEPS[0], bd = Infinity; TF_LOAD_STEPS.forEach(st => { const dd = Math.abs(st - kg); if (dd < bd) { bd = dd; best = st; } }); lCur = String(best); }
-  setTimeout(() => { tfWheelCenter(repsList, rCur); tfWheelCenter(loadList, lCur); }, 30);
+  if (sv != null) { let best = TF_LOAD_SCALE.steps[0], bd = Infinity; TF_LOAD_SCALE.steps.forEach(st => { const dd = Math.abs(st - sv); if (dd < bd) { bd = dd; best = st; } }); lCur = String(best); }
+  /* La guardia se arma SOLO si el valor de la fila no es una
+     parada exacta de la escala activa (o no es un número). */
+  TF_WHEEL_GUARD = (String(row.loadVal == null ? '' : row.loadVal).trim() !== '' && (sv == null || !TF_LOAD_SCALE.steps.includes(sv)))
+    ? { top0: null, moved: false } : null;
+  setTimeout(() => { tfWheelCenter(repsList, rCur); tfWheelCenter(loadList, lCur); if (TF_WHEEL_GUARD && loadList) TF_WHEEL_GUARD.top0 = loadList.scrollTop; }, 30);
 }
 function trainFloatWireSession(body) {
   const F = TRAIN_FLOAT;
@@ -14824,8 +14963,8 @@ function trainFloatWireSession(body) {
     d.warmup.sets.splice(Number(btn.dataset.tfWarmDel), 1);
     tfWarmRefresh();
   }; });
-  const wDone = body.querySelector('#tf-wheel-done');
-  if (wDone) wDone.onclick = () => { const p = body.querySelector('#tf-wheel'); if (p) p.style.display = 'none'; };
+  const wDone = document.getElementById('tf-wheel-done');
+  if (wDone) wDone.onclick = () => { const p = document.getElementById('tf-wheel'); if (p) p.style.display = 'none'; };
   const saveBtn = body.querySelector('#tf-save');
   if (saveBtn) saveBtn.onclick = () => {
     /* «✓ Hecho» = la confirmación de siempre, con el espejo ya
@@ -15026,6 +15165,11 @@ function trainFloatOpen(plan, logs, di, ei, mode, iso) {
       sets: chk && Array.isArray(chk.sets) && chk.sets.length ? chk.sets.map(s => ({ ...s })) : trainDefaultSets(ex),
       warmup: chk && chk.warmup ? tfWarmSnap(chk.warmup) : { on: false, sets: [] } };
     TRAIN_FLOAT = { di, ei, mode, iso, draft, planId: plan.id, ex };
+    /* PRECARGA SUGERIDA al abrir (2026-10-30 12:42 CDT): si el
+       borrador restaurado ya trae una serie con datos y vacías
+       tras ella (p. ej. tecleado en la tarjeta del día), las
+       vacías nacen con la sugerencia puesta. */
+    if (draft.done) tfSuggestApply();
     sessionHTML = `<div id="tf-session">${trainFloatSessionHTML(draft)}</div>`;
   } else {
     TRAIN_FLOAT = { di, ei, mode, iso, draft: null };
@@ -15075,6 +15219,13 @@ async function libCardOpen(id) {
 function trainFloatClose() {
   const fl = $('train-ex-float');
   if (!fl) return;
+  /* La ventana de ruedas vive FUERA de la hoja (a nivel de
+     documento): si la ficha se cierra con ella abierta, la
+     ventana se recoge también. */
+  const wp = document.getElementById('tf-wheel');
+  if (wp) wp.style.display = 'none';
+  TF_WHEEL = null;
+  TF_WHEEL_GUARD = null;
   TRAIN_FLOAT = null;
   fl.classList.add('is-closing');
   setTimeout(() => { fl.style.display = 'none'; fl.classList.remove('is-closing'); fl.classList.remove('is-open'); }, 170);
@@ -23291,7 +23442,7 @@ document.addEventListener('keydown', e => { if (e.key === 'Escape') shareClose()
  *  - El SW (sw.js) solo cachea la cáscara del mismo origen en modo
  *    RED PRIMERO: Auth/Firestore/Worker jamás pasan por la caché.
  * ================================================================ */
-const PWA_SW_VERSION = '20261030-aviso-esperando';
+const PWA_SW_VERSION = '20261030-rueda-carga-lb';
 let pwaDeferredPrompt = null;
 function pwaIsStandalone() {
   try {
