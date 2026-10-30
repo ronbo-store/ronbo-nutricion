@@ -2824,7 +2824,6 @@ en: {
   'train.swap.dropTitle': 'You are swapping out',
   'train.swap.variantsTitle': 'Variants of this exercise',
   'train.swap.variantTag': 'Variant of this exercise',
-  'train.swap.variantNote': 'Variants are shown here, but choosing one cannot be saved yet: it needs one extra saved field for the chosen variant, pending approval.',
   'train.swap.directTitle': 'Direct replacements',
   'train.swap.sameEquipment': 'Same equipment', 'train.swap.sameCategory': 'Same category',
   'train.swap.alsoGroup': 'Also work {group}', 'train.swap.moreTitle': 'All exercises',
@@ -4813,7 +4812,6 @@ es: {
   'train.swap.dropTitle': 'Ya no quieres este',
   'train.swap.variantsTitle': 'Variantes de este ejercicio',
   'train.swap.variantTag': 'Variante de este ejercicio',
-  'train.swap.variantNote': 'Las variantes se muestran aquí, pero elegir una aún no se puede guardar: necesita un campo guardado nuevo para la variante elegida, pendiente de aprobación.',
   'train.swap.directTitle': 'Reemplazos directos',
   'train.swap.sameEquipment': 'Mismo equipo', 'train.swap.sameCategory': 'Misma categoría',
   'train.swap.alsoGroup': 'También trabajan {group}', 'train.swap.moreTitle': 'Todos los ejercicios',
@@ -13689,10 +13687,18 @@ function trainEffectiveList(plan, di) {
   const out = base.map(item => {
     const sw = ed.swaps[String(item.slot)];
     if (!sw) return item;
-    return { ex: { exerciseId: sw.exerciseId || null, name: sw.name || '', sets: item.ex.sets, reps: item.ex.reps },
-      kind: 'swap', slot: item.slot, from: item.ex };
+    /* variantIndex (variante elegida en el selector, 2026-10-30):
+       viaja SOLO si la edición lo trae como entero; sin él, el
+       objeto producido es idéntico al de siempre. */
+    const ex = { exerciseId: sw.exerciseId || null, name: sw.name || '', sets: item.ex.sets, reps: item.ex.reps };
+    if (Number.isInteger(sw.variantIndex)) ex.variantIndex = sw.variantIndex;
+    return { ex, kind: 'swap', slot: item.slot, from: item.ex };
   });
-  ed.added.forEach(a => out.push({ ex: { exerciseId: a.exerciseId || null, name: a.name || '', sets: a.sets || '', reps: a.reps || '' }, kind: 'add', slot: -1 }));
+  ed.added.forEach(a => {
+    const ex = { exerciseId: a.exerciseId || null, name: a.name || '', sets: a.sets || '', reps: a.reps || '' };
+    if (Number.isInteger(a.variantIndex)) ex.variantIndex = a.variantIndex;
+    out.push({ ex, kind: 'add', slot: -1 });
+  });
   return out;
 }
 /* Filas del HISTORIAL de un día cerrado: empareja el registro con
@@ -13724,16 +13730,25 @@ function trainHistRows(day, log) {
       if (de) mark = { type: 'swap', from: de.swappedFrom || ex.name || '' };
     }
     if (de && de.swappedFrom && !mark) mark = { type: 'swap', from: de.swappedFrom };
-    const pex = (de && mark && mark.type === 'swap')
+    let pex = (de && mark && mark.type === 'swap')
       ? { exerciseId: de.exerciseId || null, name: de.name || '', sets: ex.sets, reps: ex.reps, note: '' }
       : ex;
+    /* variantIndex del registro (2026-10-30): la fila pinta el nombre
+       compuesto vía trainExName; si la fila ES el ejercicio del plan
+       se trabaja sobre una copia — el plan jamás se muta. */
+    if (de && Number.isInteger(de.variantIndex)) {
+      if (pex === ex) pex = Object.assign({}, ex);
+      pex.variantIndex = de.variantIndex;
+    }
     return { ex: pex, de, mark };
   });
   doneList.forEach((e, i) => {
     if (used.has(i) || !e) return;
     if (e.added === true || e.swappedFrom) {
       const sets = Array.isArray(e.sets) ? e.sets : [];
-      rows.push({ ex: { exerciseId: e.exerciseId || null, name: e.name || '', sets: sets.length ? String(sets.length) : '', reps: sets.length ? String(sets[0].repsPlanned || '') : '', note: '' },
+      const rex = { exerciseId: e.exerciseId || null, name: e.name || '', sets: sets.length ? String(sets.length) : '', reps: sets.length ? String(sets[0].repsPlanned || '') : '', note: '' };
+      if (Number.isInteger(e.variantIndex)) rex.variantIndex = e.variantIndex;
+      rows.push({ ex: rex,
         de: e, mark: e.added === true ? { type: 'add' } : { type: 'swap', from: e.swappedFrom } });
     }
   });
@@ -13875,22 +13890,28 @@ function trainCustomWire(plan, di) {
    busca SOLO por nombre (nombre_es/nombre_en), nunca por
    grupo/equipo/nivel — así «Pecho» ya no trae «Jalón al pecho»
    (Espalda), el fallo de la captura de Ronald.
-   ESCRITURA: elegir una tarjeta escribe EXACTAMENTE lo mismo que el
-   selector anterior (edición de sesión en localStorage:
+   ESCRITURA: elegir una tarjeta de ejercicio escribe EXACTAMENTE lo
+   mismo que el selector anterior (edición de sesión en localStorage:
    swaps[slot] = {exerciseId, name}; added.push({exerciseId, name,
-   sets:'', reps:''})). Sin campos persistidos nuevos y sin delta de
-   reglas.
-   BLOQUEO DECLARADO — ELEGIR UNA VARIANTE NO SE PUEDE GUARDAR con la
-   representación actual: la variante no tiene id propio; si su nombre
-   se guardara en `name`, trainExName() lo ignora cuando hay
-   exerciseId (resuelve el nombre DESDE la biblioteca) y el cierre del
-   día omite `name` cuando hay exerciseId — la variante elegida
-   desaparecería de la pantalla y del registro. Haría falta UN campo
-   nuevo (p. ej. variantIndex) en la edición de sesión y en
-   exercisesDone; desbloquearlo es decisión de Ronald. Por eso las
-   variantes se MUESTRAN primero (con su nota honesta) pero no son
-   elegibles: SWAP_VARIANT_PICK = false. === */
-const SWAP_VARIANT_PICK = false;
+   sets:'', reps:''})).
+   VARIANTES ELEGIBLES (continuación 2026-10-30; decisión de Ronald
+   13:28 CDT: «que las variantes se puedan elegir y guardar»): elegir
+   una variante escribe swaps[slot] = {exerciseId, name, variantIndex}
+   — UN campo nuevo y mínimo, el índice de la variante dentro de
+   variantes[] de la ficha (la variante no tiene id propio). Vive SOLO
+   en dos sitios: la edición de sesión (localStorage) y, al cerrar el
+   día, la entrada de exercisesDone. trainVariantOf() lo resuelve
+   contra la ficha y trainExName() compone el nombre visible («nombre
+   de la ficha (forma)») en la sesión y en todo lector de
+   exercisesDone. La forma estándar (es_estandar) nunca se guarda:
+   elegirla — o elegir la tarjeta normal del ejercicio — deja la
+   entrada SIN el campo, y deshacer el cambio retira la entrada
+   entera. Sin el campo, todo se comporta byte a byte como antes. Las
+   reglas vivas (9cbf987a) no validan el interior de las entradas de
+   exercisesDone (en training_logs solo miran campos de la raíz y,
+   para el cierre parcial, que exercisesDone sea lista no vacía), así
+   que el campo no requiere delta de reglas. === */
+const SWAP_VARIANT_PICK = true;
 let SWAP_QUERY = '';
 const SWAP_GROUP_SYNONYMS = {
   'Pecho': ['pecho', 'pectoral', 'pectorales', 'chest', 'pecs'],
@@ -13951,11 +13972,16 @@ function swapCardHTML(ex, opts) {
     ${ex.foto_url ? `<img class="swap-card-img" src="${esc(ex.foto_url)}" alt="" loading="lazy">` : '<span class="swap-card-img swap-card-noimg" aria-hidden="true"></span>'}
     <span class="swap-card-main"><span class="swap-card-name">${esc(libNameOf(ex))}</span>${sub ? `<span class="swap-card-sub">${esc(sub)}</span>` : ''}${tag}</span><span class="swap-card-btn">${esc(btn)}</span></button>`;
 }
-function swapVariantCardHTML(entry, v) {
+function swapVariantCardHTML(entry, v, vi) {
   const sub = [libField(v, 'cambio'), libField(v, 'enfasis')].filter(Boolean).join(' · ');
-  return `<div class="swap-card swap-card-variant">
+  const inner = `
     ${entry.foto_url ? `<img class="swap-card-img" src="${esc(entry.foto_url)}" alt="" loading="lazy">` : '<span class="swap-card-img swap-card-noimg" aria-hidden="true"></span>'}
-    <span class="swap-card-main"><span class="swap-card-name">${esc(libNameOf(entry))} — ${esc(libField(v, 'nombre'))}</span>${sub ? `<span class="swap-card-sub">${esc(sub)}</span>` : ''}<span class="swap-card-tag">${esc(t('train.swap.variantTag'))}</span></span></div>`;
+    <span class="swap-card-main"><span class="swap-card-name">${esc(libNameOf(entry))} — ${esc(libField(v, 'nombre'))}</span>${sub ? `<span class="swap-card-sub">${esc(sub)}</span>` : ''}<span class="swap-card-tag">${esc(t('train.swap.variantTag'))}</span></span>`;
+  /* Elegible (decisión de Ronald 2026-10-30): la tarjeta ES el botón
+     y lleva el índice de la variante en data-swap-variant. */
+  if (SWAP_VARIANT_PICK && Number.isInteger(vi))
+    return `<button type="button" class="swap-card swap-card-variant" data-swap-variant="${vi}">${inner}<span class="swap-card-btn">${esc(t('train.custom.swap'))}</span></button>`;
+  return `<div class="swap-card swap-card-variant">${inner}</div>`;
 }
 function swapSheetResultsHTML(plan, di) {
   if (!LIB.length) return `<p class="progress-hint">${esc(t('train.lib.unavailable'))}</p>`;
@@ -13981,8 +14007,7 @@ function swapSheetResultsHTML(plan, di) {
     let h = '';
     if (sec.variants.length) {
       h += `<div class="swap-sec-title">${esc(t('train.swap.variantsTitle'))}</div>` +
-        sec.variants.map(x => swapVariantCardHTML(tEntry, x.v)).join('') +
-        `<p class="swap-note">${esc(t('train.swap.variantNote'))}</p>`;
+        sec.variants.map(x => swapVariantCardHTML(tEntry, x.v, x.vi)).join('');
     }
     if (sec.direct.length) {
       h += `<div class="swap-sec-title">${esc(t('train.swap.directTitle'))}</div>` +
@@ -14015,6 +14040,28 @@ function swapSheetApply(plan, di, entry) {
   SWAP_QUERY = '';
   loadMyTraining();
 }
+function swapSheetApplyVariant(plan, di, entry, vi) {
+  /* Elegir una VARIANTE del ejercicio del slot (decisión de Ronald
+     2026-10-30): la edición de sesión guarda el exerciseId de siempre
+     MÁS variantIndex (el índice en variantes[] de la ficha). La
+     forma estándar NO se guarda: si vi apunta a ella (o no resuelve),
+     la entrada queda sin el campo — volver a la forma de siempre
+     nunca deja basura. Elegir después la tarjeta normal de otro
+     ejercicio sobrescribe la entrada sin el campo, igual que
+     deshacer el cambio la retira entera. */
+  if (!TRAIN_PICK || TRAIN_PICK.kind !== 'swap' || !entry) return;
+  const ed = trainEditsRead(plan.id) || { swaps: {}, added: [] };
+  const it2 = trainEffectiveList(plan, di)[TRAIN_PICK.idx];
+  if (!it2 || it2.slot < 0) return;
+  const v = Array.isArray(entry.variantes) ? entry.variantes[vi] : null;
+  const rec = { exerciseId: entry.id, name: libNameOf(entry) };
+  if (v && !v.es_estandar && Number.isInteger(vi)) rec.variantIndex = vi;
+  ed.swaps[String(it2.slot)] = rec;
+  trainEditsWrite(plan.id, ed);
+  TRAIN_PICK = null;
+  SWAP_QUERY = '';
+  loadMyTraining();
+}
 function swapSheetSync(plan, di) {
   const old = document.getElementById('swap-sheet');
   if (!plan || !TRAIN_PICK) {
@@ -14026,6 +14073,9 @@ function swapSheetSync(plan, di) {
   const target = TRAIN_PICK.kind === 'swap' ? eff[TRAIN_PICK.idx] : null;
   const tEntry = target && target.ex && target.ex.exerciseId ? (LIB_BY_ID[target.ex.exerciseId] || null) : null;
   const stdForm = tEntry ? (tEntry.variantes || []).find(v => v && v.es_estandar) : null;
+  /* Si ya hay una variante elegida, trainExName la trae compuesta en
+     el nombre («… (Con cuerda)») y la forma estándar no se repite. */
+  const dropForm = (target && target.ex && trainVariantOf(target.ex)) ? null : stdForm;
   const shownName = target ? (trainExName(target.ex) || target.ex.name || '') : '';
   const headSpec = target && target.ex ? [target.ex.sets ? target.ex.sets + ' × ' + (target.ex.reps || '') : '', libField(tEntry, 'equipo')].filter(Boolean).join(' · ') : '';
   const title = TRAIN_PICK.kind === 'swap' ? t('train.custom.pickSwap', { name: shownName }) : t('train.custom.pickAdd');
@@ -14045,16 +14095,21 @@ function swapSheetSync(plan, di) {
     ${TRAIN_PICK.kind === 'swap' && target ? `<div class="swap-drop">
       ${tEntry && tEntry.foto_url ? `<img class="swap-drop-img" src="${esc(tEntry.foto_url)}" alt="">` : '<span class="swap-drop-img swap-card-noimg" aria-hidden="true"></span>'}
       <span class="swap-drop-main"><span class="swap-drop-lab">${esc(t('train.swap.dropTitle'))}</span>
-      <span class="swap-drop-name">${esc(shownName)}${stdForm ? ` <span class="swap-drop-form">(${esc(libField(stdForm, 'nombre'))})</span>` : ''}</span>
+      <span class="swap-drop-name">${esc(shownName)}${dropForm ? ` <span class="swap-drop-form">(${esc(libField(dropForm, 'nombre'))})</span>` : ''}</span>
       ${headSpec ? `<span class="swap-drop-sub">${esc(headSpec)}</span>` : ''}</span>
     </div>` : ''}
     <div class="swap-search-row"><input type="text" id="swap-search" placeholder="${esc(t('train.prop.searchPh'))}" autocomplete="off" value="${esc(SWAP_QUERY)}"></div>
     <div id="swap-results">${swapSheetResultsHTML(plan, di)}</div>`;
   sheet.querySelectorAll('[data-swap-close]').forEach(b => b.onclick = () => { TRAIN_PICK = null; SWAP_QUERY = ''; loadMyTraining(); });
-  const wirePicks = () => sheet.querySelectorAll('[data-swap-pick]').forEach(pb => pb.onclick = () => {
-    const entry = LIB_BY_ID[pb.dataset.swapPick];
-    if (entry && TRAIN_PICK) swapSheetApply(plan, di, entry);
-  });
+  const wirePicks = () => {
+    sheet.querySelectorAll('[data-swap-pick]').forEach(pb => pb.onclick = () => {
+      const entry = LIB_BY_ID[pb.dataset.swapPick];
+      if (entry && TRAIN_PICK) swapSheetApply(plan, di, entry);
+    });
+    sheet.querySelectorAll('[data-swap-variant]').forEach(vb => vb.onclick = () => {
+      if (tEntry && TRAIN_PICK) swapSheetApplyVariant(plan, di, tEntry, Number(vb.dataset.swapVariant));
+    });
+  };
   wirePicks();
   const search = sheet.querySelector('#swap-search');
   if (search) search.oninput = () => {
@@ -14197,9 +14252,26 @@ function trainDefaultSets(ex) {
 let TRAIN_LIB_CTX = '';        // ctx ya re-pintado tras cargar la biblioteca
 let TRAIN_ALIGN_DISMISSED = false;  // el aviso no insiste en la misma sesión
 
+/* Variante ELEGIDA de un ejercicio (selector «Cambiar ejercicio»,
+   continuación 2026-10-30): el campo variantIndex (índice en
+   variantes[] de la ficha) vive en la edición de sesión y en las
+   entradas de exercisesDone. Devuelve el subdocumento de la variante
+   o null: sin campo, sin ficha, índice fuera de rango o la forma
+   estándar (es_estandar ES la forma base, no una variante visible)
+   → null, y todo se comporta exactamente como antes del campo. */
+function trainVariantOf(ex) {
+  if (!ex || !ex.exerciseId || !Number.isInteger(ex.variantIndex)) return null;
+  const entry = LIB_BY_ID[ex.exerciseId];
+  if (!entry || !Array.isArray(entry.variantes)) return null;
+  const v = entry.variantes[ex.variantIndex];
+  return (v && !v.es_estandar && libField(v, 'nombre')) ? v : null;
+}
 function trainExName(ex) {
   const entry = ex && ex.exerciseId ? LIB_BY_ID[ex.exerciseId] : null;
-  return entry ? libNameOf(entry) : ((ex && ex.name) || '');
+  if (!entry) return (ex && ex.name) || '';
+  const base = libNameOf(entry);
+  const v = trainVariantOf(ex);
+  return v ? base + ' (' + libField(v, 'nombre') + ')' : base;
 }
 function trainExPhoto(ex) {
   if (!ex) return '';
@@ -15972,6 +16044,11 @@ async function loadMyTraining() {
         if (it.from.exerciseId) e.swappedFromId = it.from.exerciseId;
       }
       if (it.kind === 'add') e.added = true;
+      /* variantIndex (selector, continuación 2026-10-30): la variante
+         elegida viaja al registro tal cual la trae la lista efectiva;
+         sin variante elegida, la entrada es idéntica a la de siempre.
+         Las reglas vivas no validan el interior de exercisesDone. */
+      if (Number.isInteger(ex.variantIndex)) e.variantIndex = ex.variantIndex;
       if (c.rpe) e.rpe = c.rpe;
       if (Array.isArray(c.sets) && c.sets.length) {
         e.sets = c.sets.map(s => {
@@ -16519,8 +16596,8 @@ async function loadClientTraining(uid) {
     const parts = [];
     (Array.isArray(l.exercisesDone) ? l.exercisesDone : []).forEach(e => {
       if (!e) return;
-      if (e.swappedFrom) parts.push(`⇄ ${esc(e.name || '')} · ${esc(t('train.custom.swappedFor', { name: e.swappedFrom }))}`);
-      if (e.added) parts.push(`＋ ${esc(e.name || '')} · ${esc(t('train.custom.addedMark'))}`);
+      if (e.swappedFrom) parts.push(`⇄ ${esc(trainExName(e) || e.name || '')} · ${esc(t('train.custom.swappedFor', { name: e.swappedFrom }))}`);
+      if (e.added) parts.push(`＋ ${esc(trainExName(e) || e.name || '')} · ${esc(t('train.custom.addedMark'))}`);
     });
     return parts.length ? `<br><span class="muted">${parts.join(' · ')}</span>` : '';
   };
