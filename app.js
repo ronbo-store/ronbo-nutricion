@@ -22767,6 +22767,47 @@ function pendReadForm() {
     cutoff: v('pc-cutoff') || '04:00'
   };
 }
+/* «Revisar» del aviso «esperando entrenador» → DIRECTO a la bandeja
+   de espera (corrección ordenada por Ronald, chat RONBO.NUTRI
+   2026-10-30 15:28 CDT: «que caiga directo en la bandeja de espera»).
+   La bandeja (#waiting-box, «⏳ En espera de asignación») vive en la
+   pestaña de CLIENTES y la pinta loadClients() de forma asíncrona al
+   cambiar de pestaña; la ruta anterior caía en la lista general de
+   Accesos, lejos de la acción (asignar el entrenador). Mecánica
+   declarada: se cambia a la pestaña de clientes y se espera el
+   pintado de la bandeja con un sondeo acotado (cada 120 ms, ~6 s como
+   máximo; se considera pintada cuando el cajón es visible y ya trae
+   su título). Al llegar se desplaza hasta ella — con una repetición
+   del desplazamiento a los 800 ms, porque la lista de clientes, que
+   va encima, termina de pintarse después y puede empujarla — y la
+   bandeja recibe un realce breve y sobrio (anillo teal suave con
+   estilos en línea, sin CSS nuevo) que se retira solo en ~2,3 s. Si
+   la bandeja nunca se pinta (p. ej. el rol no es administrador y
+   permanece oculta), la caída honesta es la cabecera de la sección
+   de clientes. Ninguna otra ruta de Pendientes cambia. */
+function pendGoWaitingTray() {
+  switchTab('clients');
+  const box = $('waiting-box');
+  let tries = 0;
+  const arrive = () => {
+    if (!box) return;
+    const go = () => { try { box.scrollIntoView({ behavior: 'smooth', block: 'start' }); } catch {} };
+    go(); setTimeout(go, 800);
+    const prevShadow = box.style.boxShadow, prevRadius = box.style.borderRadius, prevTrans = box.style.transition;
+    box.style.transition = 'box-shadow .45s ease';
+    box.style.borderRadius = '14px';
+    box.style.boxShadow = '0 0 0 3px rgba(13,148,136,.45)';
+    setTimeout(() => { box.style.boxShadow = '0 0 0 0 rgba(13,148,136,0)'; }, 1700);
+    setTimeout(() => { box.style.boxShadow = prevShadow; box.style.borderRadius = prevRadius; box.style.transition = prevTrans; }, 2300);
+  };
+  const tick = () => {
+    const painted = !!box && box.style.display !== 'none' && !!box.querySelector('h3');
+    if (painted) { arrive(); return; }
+    if (++tries >= 50) { const sec = $('clients-section'); if (sec) { try { sec.scrollIntoView({ behavior: 'smooth', block: 'start' }); } catch {} } return; }
+    setTimeout(tick, 120);
+  };
+  tick();
+}
 { const b = document.getElementById('btn-pend-config');
   if (b) b.onclick = () => { PEND_UI.configOpen = !PEND_UI.configOpen; renderPendings(); }; }
 { const b = document.getElementById('btn-toggle-pend');
@@ -22891,7 +22932,7 @@ setInterval(() => { try { pendDockTick(); } catch {} }, 60000);
           else if (route === 'admin-pending') { switchTab('access'); scroll('pending-list'); }
           else if (route === 'admin-membership') { switchTab('trainers'); scroll('membership-admin-box'); }
           else if (route === 'admin-meals') { switchTab('trainers'); scroll('meal-admin-box'); }
-          else if (route === 'admin-waiting') { switchTab('access'); scroll('users-list'); }
+          else if (route === 'admin-waiting') { pendGoWaitingTray(); }
         }
       }
     });
@@ -23809,7 +23850,7 @@ document.addEventListener('keydown', e => { if (e.key === 'Escape') shareClose()
  *  - El SW (sw.js) solo cachea la cáscara del mismo origen en modo
  *    RED PRIMERO: Auth/Firestore/Worker jamás pasan por la caché.
  * ================================================================ */
-const PWA_SW_VERSION = '20261030-selector-cambio';
+const PWA_SW_VERSION = '20261030-revisar-bandeja';
 let pwaDeferredPrompt = null;
 function pwaIsStandalone() {
   try {
