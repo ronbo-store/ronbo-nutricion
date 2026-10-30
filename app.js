@@ -22012,6 +22012,11 @@ function shareRelang() { const f = $('share-float'); if (f && f.style.display !=
     if (f && f.style.display !== 'none') shareClose();
     else { if (SHARE.type === 'workout') SHARE.type = 'day'; shareOpen(); }
   }); }
+{ const b = $('btn-share-fab'); if (b) b.addEventListener('click', () => {
+    const f = $('share-float');
+    if (f && f.style.display !== 'none') shareClose();
+    else { if (SHARE.type === 'workout') SHARE.type = 'day'; shareOpen(); }
+  }); }
 { const b = $('btn-share-close'); if (b) b.addEventListener('click', shareClose); }
 { const b = $('btn-train-ex-close'); if (b) b.addEventListener('click', trainFloatClose); }
 { const b = $('btn-fdcam-close'); if (b) b.addEventListener('click', fdCamClose); }
@@ -22044,7 +22049,7 @@ document.addEventListener('keydown', e => { if (e.key === 'Escape') shareClose()
  *  - El SW (sw.js) solo cachea la cáscara del mismo origen en modo
  *    RED PRIMERO: Auth/Firestore/Worker jamás pasan por la caché.
  * ================================================================ */
-const PWA_SW_VERSION = '20261029-aprobacion-desacoplada';
+const PWA_SW_VERSION = '20261029-boton-compartir';
 let pwaDeferredPrompt = null;
 function pwaIsStandalone() {
   try {
@@ -23087,7 +23092,7 @@ function renderFaqPanel() {
 }
 function faqOpenPanel() { FAQ_IS_OPEN = true; renderFaqPanel(); const bd = $('faq-backdrop'); if (bd) bd.style.display = ''; const p = $('faq-panel'); if (p) p.style.display = ''; }
 function faqClosePanel() { FAQ_IS_OPEN = false; const bd = $('faq-backdrop'); if (bd) bd.style.display = 'none'; const p = $('faq-panel'); if (p) p.style.display = 'none'; }
-function helpFabSync(tabName) { const f = $('btn-help'); if (f) f.style.display = (tabName === 'track') ? '' : 'none'; }
+function helpFabSync(tabName) { const f = $('btn-help'); if (f) f.style.display = (tabName === 'track') ? '' : 'none'; const s = $('btn-share-fab'); if (s) s.style.display = (tabName === 'track') ? '' : 'none'; }
 /* Cronómetro SOLO en Inicio (decisión de Ronald, correo
    2026-10-28 22:11 CDT): el botón flotante se muestra únicamente
    con la pestaña «Mi registro» (Inicio) activa, para todo usuario

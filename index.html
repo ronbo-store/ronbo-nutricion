@@ -21,7 +21,7 @@
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-title" content="RONBO FIT">
 <meta name="apple-mobile-web-app-status-bar-style" content="default">
-<link rel="stylesheet" href="styles.css?v=20261029-aprobacion-desacoplada">
+<link rel="stylesheet" href="styles.css?v=20261029-boton-compartir">
 <script defer src="https://cloud.umami.is/script.js" data-website-id="a29706d4-44a2-47cf-900a-5f74d74abfa8"></script>
 <script type="importmap">
 {
@@ -214,6 +214,13 @@
        muestra únicamente con la pestaña «Mi registro» activa.
        Abre el panel de ayuda #faq-panel. -->
   <button type="button" class="help-fab" id="btn-help" style="display:none" aria-label="Help" data-i18n-aria="faq.open">?</button>
+  <!-- Botón redondo flotante de COMPARTIR (paquete 2026-10-29):
+       ENCIMA de la «?» en la pila de la derecha (cima de la pila,
+       mismo paso +72); SOLO en la pantalla principal — helpFabSync
+       lo muestra únicamente con la pestaña «Mi registro» activa,
+       en espejo de la «?». Abre la MISMA hoja #share-float que el
+       botón de Progreso (#btn-share-open), sin tocar su lógica. -->
+  <button type="button" class="share-fab" id="btn-share-fab" style="display:none" aria-label="Share your progress" data-i18n-aria="share.title"><svg class="share-fab-ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 15V3.8"/><path d="M7.2 8.2L12 3.4l4.8 4.8"/><path d="M5 13.5v5A1.5 1.5 0 0 0 6.5 20h11A1.5 1.5 0 0 0 19 18.5v-5"/></svg></button>
 
   <nav class="main-tabs" id="main-tabs" style="display:none">
     <button type="button" class="main-tab active" data-tab="track" data-i18n="tabs.track"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 20V10"/><path d="M10 20V4"/><path d="M16 20v-8"/><path d="M21 20H3"/></svg> My log</button>
@@ -1250,6 +1257,6 @@
 <div id="toast" class="toast"></div>
 <div id="print-card" aria-hidden="true"></div>
 
-<script type="module" src="app.js?v=20261029-aprobacion-desacoplada"></script>
+<script type="module" src="app.js?v=20261029-boton-compartir"></script>
 </body>
 </html>

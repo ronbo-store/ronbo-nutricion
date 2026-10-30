@@ -1769,6 +1769,14 @@ body { padding: max(16px, env(safe-area-inset-top)) max(16px, env(safe-area-inse
    122+70+28) con el mismo paso de la pila: 58px de botón + 14px
    de aire = +72. Panel inferior según la maqueta aprobada. */
 .help-fab { position: fixed; right: 14px; bottom: calc(env(safe-area-inset-bottom, 0px) + 122px + 70px + 28px + 72px); z-index: 44; width: 58px; height: 58px; border-radius: 50%; border: 3px solid #fff; background: #0d9488; color: #fff; box-shadow: 0 8px 22px rgba(15,23,42,.25); font-family: inherit; font-size: 30px; font-weight: 800; line-height: 1; display: flex; align-items: center; justify-content: center; cursor: pointer; padding: 0; }
+/* ===== COMPARTIR FLOTANTE (paquete 2026-10-29) =====
+   El botón de compartir se apila ENCIMA de la «?» (.help-fab,
+   bottom 122+70+28+72) con el mismo paso de la pila: 58px de
+   botón + 14px de aire = +72 → 122+70+28+72+72. Disco BLANCO de
+   la familia del cronómetro (.sw-fab): queda pegado a la «?»
+   verde sólida y un segundo disco verde se confundiría con ella. */
+.share-fab { position: fixed; right: 14px; bottom: calc(env(safe-area-inset-bottom, 0px) + 122px + 70px + 28px + 72px + 72px); z-index: 44; width: 58px; height: 58px; border-radius: 50%; border: 1.5px solid rgba(13,148,136,.55); background: rgba(255,255,255,.97); box-shadow: 0 8px 22px rgba(15,23,42,.20); display: flex; align-items: center; justify-content: center; cursor: pointer; font-family: inherit; color: #0f766e; padding: 0; }
+.share-fab-ico { width: 27px; height: 27px; display: block; }
 .faq-panel { position: fixed; left: 0; right: 0; bottom: 0; top: 64px; z-index: 47; background: #f6fbfb; border-radius: 26px 26px 0 0; box-shadow: 0 -12px 34px rgba(15,23,42,.25); padding: 12px 18px 28px; overflow-y: auto; box-sizing: border-box; }
 .faq-grip { width: 44px; height: 5px; border-radius: 3px; background: #c8dcd8; margin: 0 auto 12px; }
 .faq-head { display: flex; align-items: center; justify-content: space-between; gap: 10px; }
