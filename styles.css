@@ -316,6 +316,17 @@ table.whist { min-width: 640px; }
 .health-grid input { width: auto; }
 .health-box textarea { width: 100%; margin-top: 4px; padding: 9px 11px; border: 1px solid #d1d5db; border-radius: 8px; font-size: 14px; font-family: inherit; resize: vertical; }
 .health-alert { background: #fef2f2; border: 1px solid #fca5a5; color: #991b1b; border-radius: 10px; padding: 10px 14px; font-size: 13px; margin-bottom: 12px; }
+
+/* ============ FRENTE 1 — ETAPAS DE VIDA (2026-10-30) ============
+   Grupo de etapas en el formulario de la declaración, tarjetas de
+   trato de la alumna (guías: tono suave teal, no alerta) y franja
+   de etapa en la ficha del cliente. */
+.health-stages-h { font-size: 13px; font-weight: 700; color: #0f766e; margin: 12px 0 2px; }
+.stage-card { background: #f0fdfa; border: 1px solid #99f6e4; color: #134e4a; border-radius: 10px; padding: 10px 14px; font-size: 13px; margin-bottom: 12px; text-align: left; }
+.stage-sx-q { margin: 10px 0 6px; font-weight: 600; }
+.stage-sx-opts { display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 6px; }
+.stage-sx-yes { margin-top: 8px; }
+.stage-strip { text-align: left; }
 .gfocus-note { background: #f0fdfa; border: 1px solid #99f6e4; color: #115e59; border-radius: 10px; padding: 10px 14px; font-size: 13px; margin-bottom: 12px; }
 
 /* ===== puerta PAR-Q (§4.5): indicador de estado en el editor de planes =====

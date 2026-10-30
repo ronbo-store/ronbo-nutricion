@@ -6,7 +6,7 @@ import {
 } from "firebase/auth";
 import {
   getFirestore, doc, getDoc, getDocFromServer, collection, getDocs, getDocsFromServer, addDoc,
-  setDoc, deleteDoc, serverTimestamp, query, where, limit, writeBatch, onSnapshot,
+  setDoc, deleteDoc, deleteField, serverTimestamp, query, where, limit, writeBatch, onSnapshot,
 } from "firebase/firestore";
 import {
   getStorage, ref as sRef, uploadBytes, getDownloadURL, deleteObject,
@@ -3576,7 +3576,32 @@ en: {
   'cond.Lesiones articulares o musculares': 'Joint or muscle injuries',
   'cond.Cirugía reciente': 'Recent surgery',
   'cond.Embarazo': 'Pregnancy',
+  'cond.Posparto': 'Postpartum (after giving birth)',
+  'cond.Lactancia': 'Lactation (breastfeeding)',
+  'cond.Menopausia': 'Menopause',
   'cond.Ninguna de las anteriores': 'None of the above',
+  /* FRENTE 1 — ETAPAS DE VIDA (2026-10-30): intro del grupo de la
+     declaración, tarjetas de trato, pregunta de síntomas del
+     posparto (su respuesta se persiste como ppSymptoms, N-2) y
+     franja de etapa en la ficha del cliente. */
+  'health.stagesTitle': 'Life stages',
+  'health.stagesHint': 'Life stages — These four questions are voluntary. Pregnancy, postpartum, lactation and menopause change what is safe and sensible in training and food, so if one of them is your stage right now, marking it lets the app guide you and lets your trainer adapt your plan. Unmarked simply means not declared — nothing is assumed about you. Like the rest of this declaration, a marked stage is visible to your trainer under your specific consent, and you can change or remove it at any time by editing this declaration.',
+  'stage.lact': 'You declared: lactation — Producing milk costs energy. The reference most used by health professionals (Institute of Medicine, Dietary Reference Intakes, 2005) puts the cost of making milk at about 500 kcal a day in the first months, and recommends eating about **330 kcal a day more during the first six months** and about **400 kcal a day more from month seven to twelve**, because part of the cost is covered by the body\'s own reserves. **RONBO FIT does not add this to your goals automatically**: your goals keep being calculated exactly as usual, and this is a founded recommendation for you to see. If you and your trainer decide to raise your food goal — or, if you have no trainer, through the same agreement path your goal changes already use — this range is the founded place to start.',
+  'stage.lactGoalLine': 'Lactation declared: founded reference +330 to +400 kcal/day (Institute of Medicine, 2005) — shown as a recommendation only; your goals were calculated as usual, with nothing added automatically.',
+  'stage.preg': 'You declared: pregnancy — Staying active in pregnancy is recommended for most women when there are no complications (ACOG, Committee Opinion No. 804, 2020). A few things do change: avoid anything with a risk of a blow to the belly or a fall, scuba diving, and exercising in strong heat (such as hot yoga). From the second trimester, avoid spending long stretches lying flat on your back. In this app, exercises that do not fit pregnancy carry a visible mark on their card, so you and your trainer can adapt your plan together. Your goal numbers stay in your trainer\'s hands while you are pregnant — that is the safety rule of your health declaration. Always follow your own doctor\'s guidance first: it comes before anything written here.',
+  'stage.meno': 'You declared: menopause — Around menopause, bone is lost faster (in the SWAN study, most of the loss happened in the years right around the last period). Three things protect your bones, and all three are already part of training well: **strength training** (in the LIFTMOR trial, progressive resistance training improved bone density in postmenopausal women), **calcium** — the reference intake for women over 50 is 1,200 mg a day, ideally from food — and **vitamin D** — 600 IU a day up to age 70 and 800 IU after (Institute of Medicine / National Academy of Medicine references). **This changes no number in your goals**: there is no founded constant to adjust, so your calculation stays exactly as it is. Your trainer can see this stage and can give strength work the priority it deserves in your plan.',
+  'stage.post': 'You declared: postpartum — After giving birth, the return to exercise is gradual: you can resume as soon as it is medically safe for you, and how fast depends on how your delivery and recovery go (ACOG, Committee Opinion No. 804, 2020). There is no single date that fits everyone. Gentle movement and pelvic floor exercises can usually begin early; heavier loads and impact come back step by step, guided by how you feel and by your check-ups. Your trainer can see this stage and will pace your plan with it. If anything hurts, bleeds or feels wrong, stop and check with your health professional first.',
+  'stage.postSxQ': 'One gentle question, only for you: since your delivery, do you ever leak a little urine when you make an effort — lifting something heavy, coughing, sneezing, laughing hard, jumping or running?',
+  'stage.postSxYes': 'Thank you for saying it — it is very common after childbirth, and it is not something you simply have to put up with. It also does not get fixed by training harder on your own: the recommended first step is an assessment by a physiotherapist who works with the pelvic floor. Supervised pelvic floor muscle training is the first-line treatment in clinical guidance (NICE guideline NG210), and an assessment can tell what your body needs right now. Consider mentioning it at your next check-up, or booking that assessment directly. Nothing you answered here is a diagnosis. Your answer is saved in your own health record and is not shown to your trainer, so you can come back to it whenever you want.',
+  'stage.postSxOptYes': 'Yes, it happens',
+  'stage.postSxOptNo': 'No',
+  'stage.postSxOptSkip': 'I\'d rather not answer',
+  'stage.postSxNote': 'Your answer is saved in your own health record. It is not shown to your trainer.',
+  'stage.postSxSaved': 'Answer saved — it stays in your own health record.',
+  'stage.stripPreg': 'Life stage declared: Pregnancy · updated {date} — Her goals are held for health review (see the held goals card).',
+  'stage.stripLact': 'Life stage declared: Lactation · updated {date} — The founded recommendation (+330 to +400 kcal/day, Institute of Medicine, 2005) is shown to her; her goals calculate as usual.',
+  'stage.stripPost': 'Life stage declared: Postpartum · updated {date} — Gradual return; pace her plan with her recovery.',
+  'stage.stripMeno': 'Life stage declared: Menopause · updated {date} — Bone-health priority: strength, calcium, vitamin D (see her guide).',
   /* Registro de actividad (desarrollo 2026-10-24): claves act.* —
      paridad exacta EN=ES verificada por batería. */
   'act.title': '🔥 Activity',
@@ -5503,7 +5528,32 @@ es: {
   'cond.Lesiones articulares o musculares': 'Lesiones articulares o musculares',
   'cond.Cirugía reciente': 'Cirugía reciente',
   'cond.Embarazo': 'Embarazo',
+  'cond.Posparto': 'Posparto',
+  'cond.Lactancia': 'Lactancia',
+  'cond.Menopausia': 'Menopausia',
   'cond.Ninguna de las anteriores': 'Ninguna de las anteriores',
+  /* FRENTE 1 — ETAPAS DE VIDA (2026-10-30): intro del grupo de la
+     declaración, tarjetas de trato, pregunta de síntomas del
+     posparto (su respuesta se persiste como ppSymptoms, N-2) y
+     franja de etapa en la ficha del cliente. */
+  'health.stagesTitle': 'Etapas de vida',
+  'health.stagesHint': 'Etapas de vida — Estas cuatro preguntas son voluntarias. El embarazo, el posparto, la lactancia y la menopausia cambian lo que es seguro y sensato al entrenar y al comer, así que si una de ellas es tu etapa actual, marcarla permite que la app te guíe y que tu entrenador adapte tu plan. Sin marcar significa simplemente no declarado: no se asume nada de ti. Como el resto de esta declaración, una etapa marcada es visible para tu entrenador bajo tu consentimiento específico, y puedes cambiarla o quitarla cuando quieras editando esta declaración.',
+  'stage.lact': 'Declaraste: lactancia — Producir leche cuesta energía. La referencia más usada por los profesionales de salud (Institute of Medicine, Dietary Reference Intakes, 2005) sitúa el costo de producir leche en unas 500 kcal al día en los primeros meses, y recomienda comer unas **330 kcal al día más durante los primeros seis meses** y unas **400 kcal al día más del mes siete al doce**, porque parte del costo lo cubren las reservas del propio cuerpo. **RONBO FIT no suma esto a tus metas automáticamente**: tus metas se siguen calculando exactamente como siempre, y esto es una recomendación fundada para que la veas. Si tú y tu entrenador deciden subir tu meta de comidas — o, si no tienes entrenador, por la misma vía de acuerdo que ya usan tus cambios de metas —, este rango es el punto de partida con fundamento.',
+  'stage.lactGoalLine': 'Lactancia declarada: referencia fundada +330 a +400 kcal/día (Institute of Medicine, 2005) — se muestra solo como recomendación; tus metas se calcularon como siempre, sin sumar nada automáticamente.',
+  'stage.preg': 'Declaraste: embarazo — Mantenerse activa en el embarazo se recomienda para la mayoría de las mujeres cuando no hay complicaciones (ACOG, Opinión de Comité n.º 804, 2020). Algunas cosas sí cambian: evita todo lo que tenga riesgo de golpe en el abdomen o de caída, el buceo y ejercitarte con calor fuerte (como el yoga con calor). Desde el segundo trimestre, evita pasar ratos largos acostada completamente boca arriba. En esta app, los ejercicios que no encajan con el embarazo llevan una marca visible en su ficha, para que tú y tu entrenador adapten tu plan juntos. Tus números de metas quedan en manos de tu entrenador mientras estés embarazada: es la regla de seguridad de tu declaración de salud. Sigue siempre primero la indicación de tu propio médico: va antes que cualquier cosa escrita aquí.',
+  'stage.meno': 'Declaraste: menopausia — Alrededor de la menopausia, el hueso se pierde más rápido (en el estudio SWAN, la mayor parte de la pérdida ocurrió en los años cercanos a la última menstruación). Tres cosas protegen tus huesos, y las tres ya forman parte de entrenar bien: el **trabajo de fuerza** (en el ensayo LIFTMOR, el entrenamiento de resistencia progresivo mejoró la densidad ósea en mujeres posmenopáusicas), el **calcio** — la ingesta de referencia para mujeres de más de 50 años es 1.200 mg al día, idealmente desde los alimentos — y la **vitamina D** — 600 UI al día hasta los 70 años y 800 UI después (referencias del Institute of Medicine / National Academy of Medicine). **Esto no cambia ningún número de tus metas**: no existe una constante fundada que ajustar, así que tu cálculo queda exactamente como está. Tu entrenador puede ver esta etapa y dar al trabajo de fuerza la prioridad que merece en tu plan.',
+  'stage.post': 'Declaraste: posparto — Después de dar a luz, la vuelta al ejercicio es gradual: puedes retomarlo en cuanto sea médicamente seguro para ti, y la rapidez depende de cómo vayan tu parto y tu recuperación (ACOG, Opinión de Comité n.º 804, 2020). No hay una sola fecha que sirva para todas. El movimiento suave y los ejercicios de suelo pélvico suelen poder empezar pronto; las cargas pesadas y el impacto vuelven paso a paso, guiados por cómo te sientes y por tus controles. Tu entrenador puede ver esta etapa y ajustará el ritmo de tu plan con ella. Si algo duele, sangra o se siente mal, detente y consúltalo primero con tu profesional de salud.',
+  'stage.postSxQ': 'Una pregunta suave, solo para ti: desde tu parto, ¿alguna vez se te escapa un poco de orina al hacer un esfuerzo — cargar algo pesado, toser, estornudar, reír fuerte, saltar o correr?',
+  'stage.postSxYes': 'Gracias por decirlo: es muy común después del parto, y no es algo con lo que simplemente tengas que conformarte. Tampoco se arregla entrenando más fuerte por tu cuenta: el primer paso recomendado es una valoración con un fisioterapeuta que trabaje el suelo pélvico. El entrenamiento supervisado de los músculos del suelo pélvico es el tratamiento de primera línea en las guías clínicas (guía NICE NG210), y una valoración puede decir qué necesita tu cuerpo ahora. Considera mencionarlo en tu próximo control, o reservar directamente esa valoración. Nada de lo que respondiste aquí es un diagnóstico. Tu respuesta queda guardada en tu propio registro de salud y no se muestra a tu entrenador, para que puedas volver a ella cuando quieras.',
+  'stage.postSxOptYes': 'Sí, me pasa',
+  'stage.postSxOptNo': 'No',
+  'stage.postSxOptSkip': 'Prefiero no responder',
+  'stage.postSxNote': 'Tu respuesta se guarda en tu propio registro de salud. No se muestra a tu entrenador.',
+  'stage.postSxSaved': 'Respuesta guardada: queda en tu propio registro de salud.',
+  'stage.stripPreg': 'Etapa de vida declarada: Embarazo · actualizada el {date} — Sus metas están retenidas por revisión de salud (ver la tarjeta de metas retenidas).',
+  'stage.stripLact': 'Etapa de vida declarada: Lactancia · actualizada el {date} — Se le muestra la recomendación fundada (+330 a +400 kcal/día, Institute of Medicine, 2005); sus metas calculan como siempre.',
+  'stage.stripPost': 'Etapa de vida declarada: Posparto · actualizada el {date} — Retorno gradual; ajusta el ritmo de su plan a su recuperación.',
+  'stage.stripMeno': 'Etapa de vida declarada: Menopausia · actualizada el {date} — Prioridad de salud ósea: fuerza, calcio, vitamina D (ver su guía).',
   /* Registro de actividad (desarrollo 2026-10-24): claves act.* —
      paridad exacta EN=ES verificada por batería. */
   'act.title': '🔥 Actividad',
@@ -8126,6 +8176,9 @@ async function openClient(uid) {
   const healthAlert = clientHealth.decl
     ? declSummaryHTML(clientHealth.decl)
     : `<div class="health-alert">🏥 ${t('health.trainerNoAccess')}</div>`;
+  /* Frente 1 (Canal 3 del diseño): franja de etapa derivada de la
+     misma declaración ya cargada — cero lecturas nuevas. */
+  const stageStrip = clientHealth.decl ? stageStripHTML(clientHealth.decl) : '';
   let foodItems = [];
   try {
     const fs = await getDocs(query(collection(db, 'meal_help'), where('ownerUid', '==', uid), where('status', '==', 'pending')));
@@ -8141,6 +8194,7 @@ async function openClient(uid) {
   box.innerHTML = `
     <h3 class="history-title">${t('client.weightLog', { name: esc(uname) })}</h3>
     ${healthAlert}
+    ${stageStrip}
     <div id="client-rings"></div>
     <div id="client-alerts" data-uid="${uid}"></div>
     ${foodItems.length ? `<h3 class="history-title">${t('client.foodReview', { n: foodItems.length })}</h3>${foodBlock}` : ''}
@@ -8697,7 +8751,7 @@ async function trainerAlertsRender() {
    anillos y en la fila de metas (ver goalsDayGoalsFor / goalOfDay y
    los reemplazos de cableado), nunca a lo guardado.
    §E MANDA POR ENCIMA: diabetes retiene carbos → con carb retenido NO
-   hay variación del día (carb/gras del día = base); embarazo/lactancia/
+   hay variación del día (carb/gras del día = base); embarazo/
    trastorno alimentario retiene TODO (también gras); renal retiene
    proteína → sin proteína no se puede repartir el resto, así que carb
    y gras quedan retenidos también (en heldParams, con la misma
@@ -8718,8 +8772,12 @@ function goalsNorm(s) { return String(s || '').toLowerCase().normalize('NFD').re
    parámetros retenidos. La lista estructurada actual solo expone
    Diabetes, Hipertensión, Problemas del corazón y Embarazo; el mapa
    también reconoce por texto normalizado renal/prediabetes/
-   hipoglucemia/insulina/lactancia/trastorno alimentario por si la
-   declaración los incorpora. El texto libre NUNCA se interpreta. */
+   hipoglucemia/insulina/trastorno alimentario por si la
+   declaración los incorpora. El texto libre NUNCA se interpreta.
+   N-1 (Frente 1, 2026-10-30): la LACTANCIA ya NO retiene — Ronald
+   levantó expresamente esa fila §E solo para ella: sus metas
+   calculan normal y el rango fundado del IOM se le muestra como
+   recomendación visible (stage.lactGoalLine). */
 function goalsHealthMap(conds) {
   const held = new Set(), details = [], info = [];
   const add = (param, cond) => { held.add(param); if (!details.some(d => d.param === param)) details.push({ param, cond }); };
@@ -8727,7 +8785,7 @@ function goalsHealthMap(conds) {
     const n = goalsNorm(c);
     if (/diabetes|prediabet|hipogluc|insulin/.test(n)) { add('azuc', c); add('carb', c); add('deficit', c); }
     if (/renal|kidney|rinon/.test(n)) add('prot', c);
-    if (/embarazo|pregnan|lactan|breastfeed/.test(n)) { add('kcal', c); add('prot', c); add('azuc', c); add('carb', c); add('gras', c); }
+    if (/embarazo|pregnan/.test(n)) { add('kcal', c); add('prot', c); add('azuc', c); add('carb', c); add('gras', c); }
     if (/trastorno|eating disorder|anorex|bulim/.test(n)) { add('kcal', c); add('prot', c); add('azuc', c); add('carb', c); add('gras', c); }
     if (/hipertens|corazon|heart|cardiovas/.test(n)) { if (!info.includes('cardiovascular')) info.push('cardiovascular'); }
   }
@@ -9530,6 +9588,12 @@ function renderGoalsEngine() {
       html += `<div class="health-alert" id="gm-held"><b>${esc(t('gm.heldTitle'))}</b><br>` + prov.heldParams.map(p => esc(t('gm.heldItem', { param: t('gm.param.' + p), cond: condName(det[p] || '') }))).join('<br>') + `<br>${esc(t(gmHasTrainer() ? 'gm.heldTrainer' : 'gm.heldNoTrainer'))}</div>`;
     }
     if (Array.isArray(prov.infoAlerts) && prov.infoAlerts.length) html += `<p class="progress-hint">${esc(t('gm.infoTrainer'))}</p>`;
+    /* Frente 1 (N-1, 2026-10-30): la lactancia ya NO retiene — sus
+       metas calculan normal — y el rango fundado del IOM se muestra
+       como RECOMENDACIÓN VISIBLE en esta misma tarjeta, leyendo la
+       misma declaración vigente que alimenta al motor. */
+    try { const adL = (typeof activeDecl === 'function' && typeof declLoadState !== 'undefined' && declLoadState === 'ok') ? activeDecl() : null;
+      if (adL && (adL.conditions || []).includes('Lactancia')) html += `<p class="progress-hint" id="gm-lact">${esc(t('stage.lactGoalLine'))}</p>`; } catch {}
   }
   if (fx.source === 'competition-phase') {
     /* En competencia el ritmo no se sugiere ni se auto-acepta: lo
@@ -12608,7 +12672,16 @@ $('btn-delete-account') && $('btn-delete-account').addEventListener('click', asy
 const SPEC_VERSION = 'v1-2026-10-16';
 const HEALTH_CONDITIONS = ['Hipertensión', 'Diabetes', 'Problemas del corazón',
   'Dolor de pecho al ejercitarse', 'Mareos o desmayos', 'Asma / problemas respiratorios',
-  'Lesiones articulares o musculares', 'Cirugía reciente', 'Embarazo', 'Ninguna de las anteriores'];
+  'Lesiones articulares o musculares', 'Cirugía reciente', 'Embarazo', 'Posparto', 'Lactancia',
+  'Menopausia', 'Ninguna de las anteriores'];
+/* Frente 1 — ETAPAS DE VIDA (2026-10-30, D1): las cuatro etapas se
+   pintan AGRUPADAS al final de la rejilla de la declaración, bajo su
+   propio encabezado; el orden de esta lista es también el de
+   APILADO de las tarjetas de trato y de las franjas del entrenador
+   (embarazo → posparto → lactancia → menopausia). La posición en
+   HEALTH_CONDITIONS es solo de pintado: el dato guardado es el
+   mismo valor canónico de siempre («Embarazo» ya existía). */
+const STAGE_CONDS = ['Embarazo', 'Posparto', 'Lactancia', 'Menopausia'];
 let MY_DECLS = [];
 /* Estado de la carga de declaraciones: 'loading' | 'ok' | 'error'.
    Distingue «cargado, sin declaraciones» de «no se pudo cargar»:
@@ -12658,6 +12731,50 @@ function declSummaryHTML(d) {
   else body = esc(t('health.declNoConds'));
   return `<div class="health-alert">🏥 <b>${t('client.healthDecl')}</b> ${body}${d.details ? '<br>' + esc(d.details) : ''}</div>`;
 }
+/* ================= FRENTE 1 — ETAPAS DE VIDA (2026-10-30) =================
+   Trato por etapa declarada (D1–D5 + N-1/N-2): tarjetas para la
+   alumna bajo el resumen de SU declaración vigente, pregunta suave
+   de síntomas del posparto cuya respuesta se persiste en el campo
+   ppSymptoms de su propia declaración (jamás se pinta al
+   entrenador: declSummaryHTML no lo conoce y estas tarjetas solo
+   viven en el panel de la propia alumna), y franja derivada en la
+   ficha del cliente para el entrenador (Canal 3 del diseño).
+   El énfasis **…** de los textos se convierte a <b> tras escapar. */
+function stageRich(s) { return esc(s).replace(/\*\*([^*]+)\*\*/g, '<b>$1</b>'); }
+function stageSxHTML(d) {
+  const cur = d.ppSymptoms || '';
+  const opt = (val, key) => `<button type="button" class="btn-ghost btn-sm stage-sx-opt" data-val="${val}"${cur === val ? ' style="border-color:#0d9488;font-weight:700"' : ''}>${esc(t(key))}</button>`;
+  let html = `<p class="stage-sx-q">${esc(t('stage.postSxQ'))}</p><div class="stage-sx-opts">${opt('si', 'stage.postSxOptYes')}${opt('no', 'stage.postSxOptNo')}${opt('omitida', 'stage.postSxOptSkip')}</div><p class="progress-hint">${esc(t('stage.postSxNote'))}</p>`;
+  if (cur === 'si') html += `<p class="stage-sx-yes">${stageRich(t('stage.postSxYes'))}</p>`;
+  return html;
+}
+function stageCardsHTML(d) {
+  const conds = (d && d.conditions) || [];
+  let html = '';
+  for (const st of STAGE_CONDS) {
+    if (!conds.includes(st)) continue;
+    if (st === 'Embarazo') html += `<div class="stage-card">${stageRich(t('stage.preg'))}</div>`;
+    else if (st === 'Posparto') html += `<div class="stage-card">${stageRich(t('stage.post'))}${stageSxHTML(d)}</div>`;
+    else if (st === 'Lactancia') html += `<div class="stage-card">${stageRich(t('stage.lact'))}</div>`;
+    else if (st === 'Menopausia') html += `<div class="stage-card">${stageRich(t('stage.meno'))}</div>`;
+  }
+  return html;
+}
+/* Franja de etapa en la ficha del cliente (Canal 3): se deriva de
+   la misma declaración que openClient ya carga — cero lecturas
+   nuevas — y nombra la etapa y su consecuencia operativa; para
+   embarazo remite a la tarjeta de retenidos §E y para lactancia
+   (N-1) anuncia la recomendación SIN pendiente de retención.
+   La fecha es el updatedAt de la declaración, dicho con honestidad. */
+function stageStripHTML(d) {
+  const conds = (d && d.conditions) || [];
+  let date = '';
+  try { const ts = d.updatedAt; const dt = ts && ts.toDate ? ts.toDate() : (ts ? new Date(ts) : null); if (dt && !isNaN(dt)) date = dt.toLocaleDateString(LANG === 'es' ? 'es-MX' : 'en-US'); } catch {}
+  const key = { 'Embarazo': 'stage.stripPreg', 'Posparto': 'stage.stripPost', 'Lactancia': 'stage.stripLact', 'Menopausia': 'stage.stripMeno' };
+  let html = '';
+  for (const st of STAGE_CONDS) if (conds.includes(st)) html += `<div class="health-alert stage-strip">${esc(t(key[st], { date: esc(date) }))}</div>`;
+  return html;
+}
 function declFormHTML(d) {
   const sel = new Set((d && d.conditions) || []);
   /* Ajuste UX 2026-10-23 (punto 2 del correo de Ronald): cada casilla
@@ -12665,10 +12782,17 @@ function declFormHTML(d) {
      qué significa marcarla. Las líneas son AYUDA VISUAL auxiliar:
      no forman parte del texto legal, no lo sustituyen y no cambian
      su alcance (ver INFORME-AJUSTES-UX-PLANTILLAS-DEV-2026-10-23). */
-  const grid = HEALTH_CONDITIONS.map(v =>
-    `<label><input type="checkbox" class="h-cond" value="${esc(v)}"${sel.has(v) ? ' checked' : ''}> ${esc(condName(v))}<small class="consent-help" data-help-key="health.condHelp">${t('health.condHelp')}</small></label>`).join('');
+  const condBox = v =>
+    `<label><input type="checkbox" class="h-cond" value="${esc(v)}"${sel.has(v) ? ' checked' : ''}> ${esc(condName(v))}<small class="consent-help" data-help-key="health.condHelp">${t('health.condHelp')}</small></label>`;
+  const grid = HEALTH_CONDITIONS.filter(v => !STAGE_CONDS.includes(v)).map(condBox).join('');
+  /* Frente 1 (D1): las cuatro etapas, agrupadas al final de la
+     rejilla bajo su encabezado y su intro de voluntariedad. */
+  const stageGrid = STAGE_CONDS.map(condBox).join('');
   return `<p class="health-hint">${t('health.hint')}</p>
     <div class="health-grid">${grid}</div>
+    <h4 class="health-stages-h">${esc(t('health.stagesTitle'))}</h4>
+    <p class="health-hint">${t('health.stagesHint')}</p>
+    <div class="health-grid">${stageGrid}</div>
     <label><span>${t('health.details')}</span>
       <textarea id="h-details" rows="2" placeholder="${esc(t('health.detailsPh'))}">${esc((d && d.details) || '')}</textarea></label>
     <label class="consent-check"><input type="checkbox" id="h-truth"> <span>${t('health.ok')}<small class="consent-help" data-help-key="health.truthHelp">${t('health.truthHelp')}</small></span></label>
@@ -12746,7 +12870,7 @@ function renderHealthPanel() {
       fourActionsInList = true;
     } else if (act && !healthEditing) {
       html += healthManageListHTML(
-        statusP + `<h3 class="history-title">${t('health.currentTitle')}</h3>${declSummaryHTML(act)}`,
+        statusP + `<h3 class="history-title">${t('health.currentTitle')}</h3>${declSummaryHTML(act)}${stageCardsHTML(act)}`,
         `<button type="button" class="manage-item" id="btn-decl-edit"><span class="menu-num"></span><span class="manage-label">${t('health.editDecl')}</span><span class="manage-go">›</span></button>`
         + fourActionsItemHTML()
         + withdrawItem,
@@ -12810,6 +12934,9 @@ function renderHealthPanel() {
   wire('btn-spec-withdraw', withdrawSpec);
   wire('btn-decl-edit', () => { healthEditing = true; renderHealthPanel(); });
   wire('btn-decl-save', saveDeclaration);
+  /* Frente 1 (N-2): las opciones de la pregunta de síntomas del
+     posparto guardan su respuesta en la propia declaración. */
+  document.querySelectorAll('.stage-sx-opt').forEach(b => { b.onclick = () => savePpSymptoms(b.dataset.val); });
   wire('btn-grant-reveal', () => {
     const s = $('spec-legal'); if (!s) return;
     s.style.display = '';
@@ -13161,7 +13288,13 @@ async function saveDeclaration() {
   try {
     const act = activeDecl();
     if (act) {
-      await setDoc(doc(declCol(uid), act.id), { conditions, details, updatedAt: serverTimestamp() }, { merge: true });
+      const patch = { conditions, details, updatedAt: serverTimestamp() };
+      /* Frente 1 (N-2): la respuesta de síntomas pertenece a la
+         etapa Posparto; si la etapa se desmarca al guardar, la
+         respuesta se retira en la MISMA escritura — no queda un
+         dato íntimo huérfano en el documento. */
+      if (act.ppSymptoms && !conditions.includes('Posparto')) patch.ppSymptoms = deleteField();
+      await setDoc(doc(declCol(uid), act.id), patch, { merge: true });
     } else {
       const n = MY_DECLS.reduce((m, d) => Math.max(m, d.version || 0), 0) + 1;
       await setDoc(doc(declCol(uid), 'v' + n), {
@@ -13175,6 +13308,23 @@ async function saveDeclaration() {
     toast(t('health.declSaved'));
     renderHealthPanel();
     try { await goalsEngineRun('health'); } catch {}
+  } catch (e) { failToast(e); }
+}
+/* Frente 1 (D5 + N-2): la respuesta a la pregunta suave de síntomas
+   del posparto se PERSISTE en la declaración vigente de la propia
+   alumna (campo ppSymptoms: 'si' | 'no' | 'omitida'), en la misma
+   escritura merge de siempre con su updatedAt. Solo ella la
+   escribe; la app jamás la pinta a su entrenador. */
+async function savePpSymptoms(val) {
+  if (!auth.currentUser || !specIsActive(UDATA)) return;
+  if (!['si', 'no', 'omitida'].includes(val)) return;
+  const act = activeDecl();
+  if (!act || !(act.conditions || []).includes('Posparto')) return;
+  try {
+    await setDoc(doc(declCol(auth.currentUser.uid), act.id), { ppSymptoms: val, updatedAt: serverTimestamp() }, { merge: true });
+    MY_DECLS = await fetchDeclarations(auth.currentUser.uid);
+    toast(t('stage.postSxSaved'));
+    renderHealthPanel();
   } catch (e) { failToast(e); }
 }
 async function loadMyHealth() {
@@ -22599,7 +22749,7 @@ document.addEventListener('keydown', e => { if (e.key === 'Escape') shareClose()
  *  - El SW (sw.js) solo cachea la cáscara del mismo origen en modo
  *    RED PRIMERO: Auth/Firestore/Worker jamás pasan por la caché.
  * ================================================================ */
-const PWA_SW_VERSION = '20261030-iniciar-ejercicio';
+const PWA_SW_VERSION = '20261030-frente1-etapas';
 let pwaDeferredPrompt = null;
 function pwaIsStandalone() {
   try {
