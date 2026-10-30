@@ -11404,6 +11404,9 @@ function aiContinueManual() {
      sin registro parcial creado por el error. */
   const foods = aiKnownFoods();
   aiClearDraft();
+  /* Esta salida rellena nombre y cantidad SIN par de métricas: ninguna
+     densidad de un episodio anterior puede sobrevivirle (2026-10-30). */
+  mealScaleClear();
   $('m-date').value = $('dateSel').value || todayISO();
   if (foods.length) {
     /* Misma fuente única de nombre y cantidad que el resultado. */
@@ -12026,6 +12029,13 @@ function aiUseDraft(r1, r2) {
        las notas — ese detalle vive en la pantalla de resultado. El campo
        queda LIMPIO para lo que la persona quiera escribir a mano. */
     set('m-notes', '');
+    /* El borrador también trae un PAR (cantidad ↔ totales): arma el
+       reescalado del formulario con los valores que efectivamente
+       quedaron escritos — incluidos los ajustes que la persona hizo
+       en el panel — para que cambiar la Cantidad aquí reescale como
+       en cualquier par traído (2026-10-30, defecto D-3). */
+    mealScaleWire();
+    mealScaleArm(aiQtyString(), { kcal: mval('kcal'), prot: mval('prot'), carb: mval('carb'), sugar: mval('sugar'), fat: mval('fat') });
     /* El desglose por alimento viaja como CANDIDATO en el borrador:
        el guardado del formulario lo valida contra los totales
        FINALES (itemsIfSquare) antes de persistirlo. */
@@ -20172,7 +20182,7 @@ if (btnMealManual) btnMealManual.onclick = () => {
        bloque ai, sin source:'ai' y sin llamada nueva al proveedor;
        el banner del formulario declara la procedencia («Copia de una
        estimación de IA…» / «Copia de otro registro…»). */
-let repeatCtx = null; // {kind, fromId, fromDate, qtyText, scaledTo, base:{num,unit,kcal,prot,carb,sugar,fat}, items} — solo memoria
+let repeatCtx = null; // {kind, fromId, fromDate, qtyText, items} — solo memoria; la densidad del reescalado vive en mealScaleCtx (motor único del formulario, 2026-10-30)
 function repeatParseQty(q) {
   const m = String(q || '').trim().replace(',', '.').match(/^(\d+(?:\.\d+)?)\s*(.*)$/);
   if (!m) return null;
@@ -20187,35 +20197,81 @@ function repeatSetBanner() {
   b.textContent = (!p || p.pieces) ? t('repeat.bannerPieces')
     : (repeatCtx.kind === 'repeat-ai' ? t('repeat.bannerAi') : t('repeat.bannerQty'));
 }
-function repeatAttachScaling() {
-  const q = $('m-qty'); if (!q || q.dataset.repWired) return;
-  q.dataset.repWired = '1';
+/* ============ REESCALADO POR CANTIDAD DEL FORMULARIO (paquete
+   2026-10-30 — defecto D-3, zanjado por Ronald EN VIVO el 2026-10-30:
+   la comida manual traía del historial el par 160 g ↔ 214 kcal y al
+   cambiar la Cantidad a 101 el Kcal se quedaba en 214; diseño en
+   construccion-reescalado-cantidad-2026-10-30/DISENO-PAQUETE-REESCALADO.md).
+   UN solo motor para los tres pares que el formulario puede traer —
+   autocompletado del historial (acApply), borrador de IA (aiUseDraft)
+   y «Repetir» (openRepeatMeal) —: al cambiar la Cantidad, kcal y los
+   cuatro macros se reescalan en proporción DESDE la densidad del
+   registro de origen (siempre desde el original, nunca desde el valor
+   ya reescalado), con el redondeo de siempre. Sustituye al motor
+   privado de «Repetir» (repeatAttachScaling, 2026-10-19), cuyo disparo
+   y redondeo conserva; repeatCtx queda para procedencia/items/banner.
+   REGLA DE CAMPOS TOCADOS (Ronald, 2026-10-30): si la persona edita A
+   MANO kcal o un macro, su valor manda — ese campo deja de
+   reescalarse; los demás, no tocados, siguen reescalando. El contexto
+   vive SOLO en memoria y muere con el episodio del formulario
+   (repeatClear lo limpia, como al contexto de «Repetir»). */
+let mealScaleCtx = null; // {baseNum, baseUnit, base:{kcal,prot,carb,sugar,fat}, scaledTo, touched:Set}
+function mealScaleArm(qtyText, vals) {
+  const p = repeatParseQty(qtyText);
+  /* Sin densidad no hay reescalado: cantidad de origen sin número,
+     por piezas o ≤ 0 → el formulario se comporta como siempre. */
+  if (!p || p.pieces || !(p.num > 0)) { mealScaleCtx = null; return; }
+  mealScaleCtx = {
+    baseNum: p.num, baseUnit: p.unit, scaledTo: p.num, touched: new Set(),
+    base: { kcal: num(vals && vals.kcal), prot: num(vals && vals.prot), carb: num(vals && vals.carb), sugar: num(vals && vals.sugar), fat: num(vals && vals.fat) }
+  };
+}
+function mealScaleClear() { mealScaleCtx = null; }
+function mealScaleWire() {
+  const q = $('m-qty'); if (!q || q.dataset.qtyScaleWired) return;
+  q.dataset.qtyScaleWired = '1';
   q.addEventListener('change', () => {
-    if (!repeatCtx) return;
+    if (repeatCtx) repeatSetBanner();
+    const ctx = mealScaleCtx; if (!ctx) return;
     const pNew = repeatParseQty(q.value);
-    if (!pNew || pNew.pieces || !(pNew.num > 0)) { repeatSetBanner(); return; }
-    const b0 = repeatCtx.base;
-    if (!b0 || !(b0.num > 0) || b0.pieces) { repeatSetBanner(); return; }
-    if (pNew.unit !== b0.unit) { repeatSetBanner(); return; }
-    /* Solo se reescala cuando la cantidad CAMBIA de verdad respecto a
-       la última cantidad ya reescalada (scaledTo, que arranca en la
-       del original): un 'change' sin cambio numérico (p. ej. salir y
-       volver al campo) NO debe pisar las métricas que la persona
-       editó a mano tras el reescalado. */
-    const last = (repeatCtx.scaledTo != null) ? repeatCtx.scaledTo : b0.num;
-    if (pNew.num === last) { repeatSetBanner(); return; }
-    const f = pNew.num / b0.num;
+    /* Cantidad nueva vacía, sin número, por piezas o ≤ 0: no se toca
+       nada — sin NaN y sin borrar lo que la persona tenga. */
+    if (!pNew || pNew.pieces || !(pNew.num > 0)) return;
+    /* Unidades: dos unidades EXPLÍCITAS distintas no se convierten en
+       silencio; un número pelado hereda la unidad del par traído (el
+       gesto exacto de Ronald: «101» escrito sobre «160 g»). */
+    if (pNew.unit && ctx.baseUnit && pNew.unit !== ctx.baseUnit) return;
+    /* Un 'change' sin cambio numérico respecto a lo último ya
+       reescalado NO vuelve a escribir nada (paridad con el motor de
+       2026-10-19): lo editado a mano tras el reescalado sobrevive. */
+    if (pNew.num === ctx.scaledTo) return;
+    const f = pNew.num / ctx.baseNum, b0 = ctx.base;
+    const put = (id, k, v) => { if (!ctx.touched.has(k)) $(id).value = v; };
     /* El texto de la cantidad se conserva tal como lo escribió la
-       persona; solo cambian las métricas, siempre desde el ORIGINAL. */
-    $('m-kcal').value = Math.round(b0.kcal * f);
-    $('m-prot').value = Math.round(b0.prot * f * 10) / 10;
-    $('m-carb').value = Math.round(b0.carb * f * 10) / 10;
-    $('m-sugar').value = Math.round(b0.sugar * f * 10) / 10;
-    $('m-fat').value = Math.round(b0.fat * f * 10) / 10;
-    repeatCtx.scaledTo = pNew.num;
+       persona; solo cambian las métricas NO tocadas a mano, siempre
+       desde el ORIGINAL. */
+    put('m-kcal', 'kcal', Math.round(b0.kcal * f));
+    put('m-prot', 'prot', Math.round(b0.prot * f * 10) / 10);
+    put('m-carb', 'carb', Math.round(b0.carb * f * 10) / 10);
+    put('m-sugar', 'sugar', Math.round(b0.sugar * f * 10) / 10);
+    put('m-fat', 'fat', Math.round(b0.fat * f * 10) / 10);
+    ctx.scaledTo = pNew.num;
+    /* El espejo de borrador sin guardar (vía manual) refleja los
+       valores YA reescalados: sin esto guardaría la cantidad nueva
+       con las métricas viejas — el mismo par rancio en miniatura.
+       pendDraftSave es no-op si el espejo no está armado (Repetir y
+       el borrador de IA no lo arman). */
+    try { pendDraftSave(); } catch {}
     toast(t('repeat.scaled'));
-    repeatSetBanner();
   });
+  /* Campos tocados a mano: el evento 'input' sobre estas cajas SOLO
+     lo produce la persona — las escrituras programáticas (.value =)
+     no lo disparan, así que ni el relleno ni el propio reescalado
+     marcan campos; y los 'input' sintéticos que acApply despacha al
+     rellenar ocurren ANTES de armar y caen en el contexto descartado
+     (cada armado nace con el conjunto vacío). */
+  [['m-kcal', 'kcal'], ['m-prot', 'prot'], ['m-carb', 'carb'], ['m-sugar', 'sugar'], ['m-fat', 'fat']]
+    .forEach(([id, k]) => { const el = $(id); if (el) el.addEventListener('input', () => { if (mealScaleCtx) mealScaleCtx.touched.add(k); }); });
 }
 function openRepeatMeal(rec, viewDate) {
   aiClearDraft();
@@ -20242,13 +20298,10 @@ function openRepeatMeal(rec, viewDate) {
      (foto) o 'ai-text' (descripción), o si ya era una copia de una
      estimación (origin.kind 'repeat-ai'). */
   const aiOrigin = rec.source === 'ai' || rec.source === 'ai-text' || rec.source === 'ai-audio' || (rec.origin && rec.origin.kind === 'repeat-ai');
-  const pq = repeatParseQty(rec.qty);
   repeatCtx = {
     kind: aiOrigin ? 'repeat-ai' : 'repeat-manual',
     fromId: rec.id || '', fromDate: rec.date || viewDate || '',
     qtyText: rec.qty || '',
-    scaledTo: pq ? pq.num : null,
-    base: pq ? { num: pq.num, unit: pq.unit, pieces: pq.pieces, kcal: num(rec.kcal), prot: num(rec.prot), carb: num(rec.carb), sugar: num(rec.sugar), fat: num(rec.fat) } : null,
     /* El desglose del original viaja TAL CUAL como candidato: la
        copia lo persiste solo si los totales finales siguen
        cuadrando con él (misma regla de honestidad del análisis:
@@ -20256,12 +20309,18 @@ function openRepeatMeal(rec, viewDate) {
        sin tocar ya no cuadra — la copia nace sin él). */
     items: (Array.isArray(rec.items) && rec.items.length) ? rec.items.map(it => ({ ...it })) : null
   };
-  repeatAttachScaling();
+  /* El par de «Repetir» arma el MISMO motor de reescalado del
+     formulario (2026-10-30): la densidad vive en mealScaleCtx y la
+     excepción de piezas/sin-número la aplica el armado (sin densidad
+     no hay reescalado; el banner de arriba sigue avisando). */
+  mealScaleWire();
+  mealScaleArm(rec.qty, rec);
   repeatSetBanner();
   aiOpenMealModal();
 }
 function repeatClear() {
   repeatCtx = null;
+  mealScaleClear(); // el contexto de reescalado muere con el episodio del formulario
   const b = $('m-rep-banner'); if (b) { b.style.display = 'none'; b.textContent = ''; }
 }
 $('meal-cancel').onclick = () => { $('meal-modal').style.display = 'none'; aiClearDraft(); repeatClear(); try { pendDraftDisarm(); } catch {} };
@@ -20357,6 +20416,14 @@ function acApply(input, e, mode) {
     set('m-qty', e.qty);
     set('m-kcal', e.kcal); set('m-prot', e.prot); set('m-carb', e.carb);
     set('m-sugar', e.sugar); set('m-fat', e.fat);
+    /* El par traído del historial ARMA el reescalado (2026-10-30,
+       defecto D-3): desde aquí, cambiar la Cantidad reescala kcal y
+       macros desde la densidad de ESTE registro. Se arma AL FINAL:
+       los 'input' sintéticos de los set() de arriba caen en el
+       contexto anterior (descartado) y el conjunto de campos tocados
+       nace vacío. */
+    mealScaleWire();
+    mealScaleArm(e.qty, e);
   } else {
     input.value = e.name;
     input.dispatchEvent(new Event('input', { bubbles: true }));
@@ -22260,7 +22327,7 @@ document.addEventListener('keydown', e => { if (e.key === 'Escape') shareClose()
  *  - El SW (sw.js) solo cachea la cáscara del mismo origen en modo
  *    RED PRIMERO: Auth/Firestore/Worker jamás pasan por la caché.
  * ================================================================ */
-const PWA_SW_VERSION = '20261030-barra-metas';
+const PWA_SW_VERSION = '20261030-reescalado-cantidad';
 let pwaDeferredPrompt = null;
 function pwaIsStandalone() {
   try {
