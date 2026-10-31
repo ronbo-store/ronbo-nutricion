@@ -2865,9 +2865,22 @@ en: {
   'students.act.weight': 'View weigh-in',
   'students.act.eval': 'View evaluation',
   'students.act.mealReq': 'View request',
-  'students.act.food': 'View meal',
+  'students.act.food': 'Review photo',
   'students.act.req': 'Open record',
-  'students.act.body': 'Open record',
+  'students.act.body': 'View analysis',
+  'students.act.reqEval': 'View calculation',
+  'students.act.reqGoals': 'Review proposals',
+  'students.act.reqTrainer': 'Assign trainer',
+  'students.pend.byStudent': 'Pending on the student',
+  'students.req.trainer': 'No trainer assigned yet',
+  'students.req.eval': 'Their initial evaluation is missing',
+  'students.req.consent': 'Their specific consent is missing',
+  'students.req.parq': 'Their health declaration is missing',
+  'students.req.goals': 'They have not set their goals yet',
+  'students.req.meals': 'They have not activated meals yet',
+  'students.req.mealsSub': 'They have not requested meals yet',
+  'students.adminStep': 'Meal request waiting on your decision as administrator',
+  'students.adminStepGo': 'Review request',
   'students.pend.body': 'Body-type analysis (with photos)',
   'students.pend.bodyNoConsent': 'Their specific consent for this analysis is missing',
   'students.pend.bodyNoAnalysis': 'No body-type analysis on record yet',
@@ -4978,9 +4991,22 @@ es: {
   'students.act.weight': 'Ver pesaje',
   'students.act.eval': 'Ver evaluación',
   'students.act.mealReq': 'Ver solicitud',
-  'students.act.food': 'Ver comida',
+  'students.act.food': 'Revisar foto',
   'students.act.req': 'Abrir ficha',
-  'students.act.body': 'Abrir ficha',
+  'students.act.body': 'Ver análisis',
+  'students.act.reqEval': 'Ver cálculo',
+  'students.act.reqGoals': 'Revisar propuestas',
+  'students.act.reqTrainer': 'Asignar entrenador',
+  'students.pend.byStudent': 'Pendiente del alumno',
+  'students.req.trainer': 'Aún no tiene entrenador asignado',
+  'students.req.eval': 'Falta su evaluación inicial',
+  'students.req.consent': 'Falta su consentimiento específico',
+  'students.req.parq': 'Falta su declaración de salud',
+  'students.req.goals': 'Aún no define sus metas',
+  'students.req.meals': 'Aún no activa sus comidas',
+  'students.req.mealsSub': 'Aún no solicita comidas',
+  'students.adminStep': 'Solicitud de comidas esperando tu decisión como administrador',
+  'students.adminStepGo': 'Revisar solicitud',
   'students.pend.body': 'Análisis de tipo corporal (con fotos)',
   'students.pend.bodyNoConsent': 'Falta su consentimiento específico para este análisis',
   'students.pend.bodyNoAnalysis': 'Aún no tiene un análisis de tipo corporal registrado',
@@ -7429,10 +7455,15 @@ async function clientProfileChecklist(u, latestMealReq) {
 function clientChecklistHTML(chk) {
   if (!chk) return '';
   if (chk.complete) return `<div class="client-chk" style="margin-top:4px"><span class="ok-badge">✅ ${esc(t('clients.chkComplete'))}</span></div>`;
-  const missing = chk.rows.filter(r => r.done === false).map(r => r.label);
   const hidden = chk.rows.filter(r => r.done === null).map(r => r.label);
   let h = `<div class="client-chk" style="margin-top:4px"><b>${esc(t('clients.chkTitle', { pct: chk.pct }))}</b>`;
-  if (missing.length) h += `<br><span class="muted">${esc(t('clients.chkMissing'))}: ${missing.map(x => esc(x)).join(' · ')}</span>`;
+  /* AUTH-117 (R1): la línea de texto «Falta: …» desaparece de la
+     ficha — cada falta es ahora una FILA del bloque con su título
+     en voz del entrenador y su botón (o su «Pendiente del
+     alumno»), pintada por fichaPendBlockHTML con el mismo
+     studentsPendItemHTML del detalle. La fila 🔒 (done === null:
+     hoy solo la declaración) se queda: su texto por causa llega
+     con R3. */
   hidden.forEach(l => { h += `<br><span class="muted">🔒 ${esc(l)} — ${esc(t('clients.chkHidden'))}</span>`; });
   return h + '</div>';
 }
@@ -7456,16 +7487,15 @@ function fichaPendBlockHTML(uid) {
   if (f.err) return `<div class="client-chk" style="margin-bottom:10px"><span class="stu-err-tx">${esc(t('students.pendLoadError'))}</span></div>`;
   const items = f.t.items || [];
   let h = clientChecklistHTML(f.chk || null);
-  const prog = items.filter(x => x.kind !== 'req');
-  if (prog.length) h += prog.map(it => {
-    const [bg, emoji] = STU_ITEM_ICON[it.kind] || ['#f1f5f9', '•'];
-    const sub = esc(studentsItemSub(it));
-    return `<div class="stu-pend-item">
-      <span class="stu-pend-ico" style="background:${bg}">${emoji}</span>
-      <span class="stu-pend-main"><span class="stu-pend-title">${esc(studentsItemTitle(it))}<span class="st-chip ${STU_CHIP[it.state] || 'st-pendiente'}">${esc(t('students.chip.' + it.state))}</span></span>
-      ${sub ? `<span class="stu-pend-sub">${sub}</span>` : ''}</span>
-    </div>`;
-  }).join('');
+  /* AUTH-117 (R1): TODOS los ítems de la unión — también los de
+     datos (req) — se pintan como filas con el MISMO resolver que
+     el detalle de «Mis alumnos» (studentsPendItemHTML): botón con
+     verbo y destino enfocado, o «Pendiente del alumno» sin botón.
+     El viaje es idéntico entrando desde Alumnos o desde Clientes.
+     La fila del paso del administrador (solo propietario) va
+     fuera de la unión y de su total, como en el detalle. */
+  if (items.length) h += items.map(it => studentsPendItemHTML(uid, it, false)).join('');
+  h += stuAdminStepRowHTML(uid);
   if (items.length) h += `<div class="client-chk"><b>${esc(t('students.pendToResolve', { n: items.length }))}</b></div>`;
   return h ? `<div style="margin-bottom:10px">${h}</div>` : '';
 }
@@ -7786,7 +7816,7 @@ async function loadClients() {
      conmutador, sin re-derivar nada al cambiar de vista. */
   const planByUid = {};
   clients.forEach(u => { const c = TALERTS_CACHE[u.id]; planByUid[u.id] = !!(c && c.hasPlan); });
-  CLIENTS_LAST = { clients, chkByUid, alertsByUid, planByUid, lastByUid, lastWByUid, pendingFood, tpendByUid, tpendErrByUid };
+  CLIENTS_LAST = { clients, chkByUid, alertsByUid, planByUid, lastByUid, lastWByUid, pendingFood, tpendByUid, tpendErrByUid, reqByUid: latestReqByUid };
   renderClientsViewbar();
   renderClientsBody();
   $('client-detail').style.display = 'none'; $('client-detail').innerHTML = '';
@@ -8068,7 +8098,16 @@ function studentsPendCompute(src, now) {
 function trainerPendUnion(chk, pend, bodyItem) {
   const items = [];
   if (chk && chk.rows) for (const r of chk.rows) {
-    if (r.done === false) items.push({ kind: 'req', reqKey: r.key || '', label: r.label, state: 'pendiente', date: null });
+    if (r.done === false) {
+      /* AUTH-117 (R1, recorrido de pendientes): el ítem lleva
+         ADEMÁS su título en voz del entrenador («Falta su…»,
+         students.req.*) — la coincidencia Alumnos↔Clientes de
+         AUTH-110 es por reqKey y total, no por la cadena literal:
+         cada audiencia lee su propia voz sobre el MISMO ítem. */
+      const rk = r.key || '';
+      const tl = ['trainer', 'eval', 'consent', 'parq', 'goals', 'meals'].includes(rk) ? t('students.req.' + rk) : r.label;
+      items.push({ kind: 'req', reqKey: rk, label: r.label, tlabel: tl, state: 'pendiente', date: null });
+    }
   }
   const prog = (pend && pend.items) || [];
   const kept = prog.some(x => x.kind === 'mealreq') ? items.filter(x => x.reqKey !== 'meals') : items;
@@ -8094,7 +8133,7 @@ function studentsBodyItem(u, estCount) {
 
 /* ---------- textos de ítems ---------- */
 function studentsItemTitle(it) {
-  if (it.kind === 'req') return it.label || '';
+  if (it.kind === 'req') return it.tlabel || it.label || '';
   if (it.kind === 'body') return t('students.pend.body');
   if (it.kind === 'weight') return it.freq === 7 ? t('students.item.weightWeekly') : t('students.item.weightEvery', { d: it.freq });
   if (it.kind === 'eval') return t('students.item.eval');
@@ -8124,20 +8163,74 @@ function studentsItemSub(it) {
   }
   if (it.kind === 'food') return it.date ? t('students.pend.foodOn', { date: dateName(it.date) }) : '';
   if (it.kind === 'body') return t(it.miss === 'consent' ? 'students.pend.bodyNoConsent' : 'students.pend.bodyNoAnalysis');
+  if (it.kind === 'req' && it.reqKey === 'meals') return t('students.req.mealsSub');
   return '';
 }
 const STU_ITEM_ICON = { weight: ['#e0f2f1', '⚖️'], eval: ['#ede9fe', '📸'], mealreq: ['#fef3c7', '🍽️'], food: ['#fef3c7', '🍽️'], req: ['#fef3c7', '📋'], body: ['#ede9fe', '🧍'] };
 const STU_CHIP = { vencido: 'st-vencido', pendiente: 'st-pendiente', pospuesto: 'st-pospuesto', omitido: 'st-omitido', completado: 'st-completado' };
+/* AUTH-117 (R1, recorrido de pendientes — mapa aprobado por Ronald,
+   chat 2026-10-31 14:19 CDT): RESOLVER ÚNICO de la acción de un ítem
+   de la unión. El botón deja de salir del kind a secas: sale de
+   kind + reqKey. Lo que el entrenador NO puede resolver — el
+   consentimiento específico del alumno, unas comidas nunca
+   solicitadas, el análisis corporal sin consentimiento — NO lleva
+   botón: se declara «Pendiente del alumno». Lo demás lleva a la
+   ficha en modo ficha con FOCO determinista en su bloque
+   (fichaFocusSet/fichaFocusApply), o conserva su superficie exacta
+   (mealreq → la caja de AUTH-109; req/trainer → la bandeja de
+   espera por la ruta de AUTH-100). Lo consumen el detalle de
+   «Mis alumnos» y el bloque de pendientes de la ficha: el viaje es
+   el mismo entrando desde cualquiera de las dos secciones. */
+function studentsActFor(it) {
+  if (!it) return { btn: null };
+  switch (it.kind) {
+    case 'mealreq': return { btn: 'students.act.mealReq', surf: 'meal' };
+    case 'weight': return { btn: 'students.act.weight', surf: 'ficha', focus: 'weight' };
+    case 'eval': return { btn: 'students.act.eval', surf: 'ficha', focus: 'evals' };
+    case 'food': return { btn: 'students.act.food', surf: 'ficha', focus: 'food' };
+    case 'body': return it.miss === 'consent' ? { btn: null } : { btn: 'students.act.body', surf: 'ficha', focus: 'body' };
+    case 'req':
+      if (it.reqKey === 'eval') return { btn: 'students.act.reqEval', surf: 'ficha', focus: 'energy' };
+      if (it.reqKey === 'goals') return { btn: 'students.act.reqGoals', surf: 'ficha', focus: 'goals' };
+      if (it.reqKey === 'trainer') return { btn: 'students.act.reqTrainer', surf: 'waiting' };
+      return { btn: null };
+  }
+  return { btn: null };
+}
 function studentsPendItemHTML(uid, it, isTrace) {
   const [bg, emoji] = STU_ITEM_ICON[it.kind] || ['#f1f5f9', '•'];
-  const act = it.kind === 'weight' ? t('students.act.weight') : it.kind === 'eval' ? t('students.act.eval') : it.kind === 'mealreq' ? t('students.act.mealReq') : it.kind === 'food' ? t('students.act.food') : t('students.act.' + it.kind);
+  const act = isTrace ? null : studentsActFor(it);
   const sub = isTrace ? (it.date ? esc(dateName(it.date)) : '') : esc(studentsItemSub(it));
   return `<div class="stu-pend-item${isTrace ? ' trace' : ''}">
     <span class="stu-pend-ico" style="background:${bg}">${emoji}</span>
     <span class="stu-pend-main"><span class="stu-pend-title">${esc(studentsItemTitle(it))}<span class="st-chip ${STU_CHIP[it.state] || 'st-pendiente'}">${esc(t('students.chip.' + it.state))}</span></span>
     ${sub ? `<span class="stu-pend-sub">${sub}</span>` : ''}</span>
-    ${isTrace ? '' : `<button type="button" class="btn-primary btn-sm" data-stu-act="${it.kind}" data-stu-uid="${uid}">${esc(act)}</button>`}
+    ${isTrace ? '' : act.btn ? `<button type="button" class="btn-primary btn-sm" data-stu-act="${it.kind}" data-stu-req="${it.reqKey || ''}" data-stu-uid="${uid}">${esc(t(act.btn))}</button>` : `<span class="stu-pend-whose">${esc(t('students.pend.byStudent'))}</span>`}
   </div>`;
+}
+/* AUTH-117 (R1): la solicitud de comidas en el paso del
+   ADMINISTRADOR no es un pendiente del entrenador (la definición
+   de AUTH-110 no cambia: no entra en la unión ni en el total) —
+   pero si quien mira es el PROPIETARIO, el detalle y la ficha le
+   ofrecen el enlace a SU caja de Administración (ruta admin-meals
+   de siempre). Solo presentación y ruta, sobre el dato ya cargado
+   en la pasada (reqByUid): cero lecturas nuevas. */
+function stuAdminStepRowHTML(uid) {
+  if (typeof IS_OWNER === 'undefined' || !IS_OWNER) return '';
+  const L = (CLIENTS_LAST && CLIENTS_LAST.reqByUid) ? CLIENTS_LAST : (STUDENTS_LAST && STUDENTS_LAST.reqByUid) ? STUDENTS_LAST : null;
+  const r = L ? L.reqByUid[uid] : null;
+  if (!r || r.status !== 'pendiente_administrador') return '';
+  return `<div class="stu-pend-item">
+    <span class="stu-pend-ico" style="background:#fef3c7">🍽️</span>
+    <span class="stu-pend-main"><span class="stu-pend-title">${esc(t('students.adminStep'))}</span></span>
+    <button type="button" class="btn-ghost btn-sm" data-stu-admin-meals="${uid}">${esc(t('students.adminStepGo'))}</button>
+  </div>`;
+}
+function stuGoAdminMeals() {
+  if (typeof FICHA_MODE !== 'undefined' && FICHA_MODE) fichaClose();
+  switchTab('trainers');
+  const b = $('meal-admin-box');
+  if (b) { try { b.scrollIntoView({ behavior: 'smooth', block: 'start' }); } catch {} }
 }
 
 /* ---------- filas, rejilla, filtros y detalle ---------- */
@@ -8222,6 +8315,7 @@ function studentsDetailHTML(u) {
     h += `<div class="stu-err">${esc(t('students.loadError'))}<br><button type="button" class="btn-ghost btn-sm" data-stu-retry="${u.id}" style="margin-top:8px">${esc(t('students.retry'))}</button></div>`;
   } else {
     h += pend.items.map(it => studentsPendItemHTML(u.id, it, false)).join('');
+    h += stuAdminStepRowHTML(u.id);
     if (!pend.items.length && !pend.traces.length) h += `<p class="pend-none">${esc(t('students.detailClear'))}</p>`;
     if (pend.traces.length) h += `<div class="stu-traces-h">${esc(t('students.resolvedTitle'))}</div>` + pend.traces.map(it => studentsPendItemHTML(u.id, it, true)).join('');
   }
@@ -8252,7 +8346,8 @@ function renderStudentsBody() {
   const back = $('stu-back');
   if (back) back.onclick = studentsCloseDetail;
   el.querySelectorAll('[data-stu-ficha]').forEach(b => b.onclick = () => studentsGoFicha(b.dataset.stuFicha));
-  el.querySelectorAll('[data-stu-act]').forEach(b => b.onclick = () => studentsOpenRecord(b.dataset.stuUid, b.dataset.stuAct));
+  el.querySelectorAll('[data-stu-act]').forEach(b => b.onclick = () => studentsOpenRecord(b.dataset.stuUid, b.dataset.stuAct, b.dataset.stuReq || ''));
+  el.querySelectorAll('[data-stu-admin-meals]').forEach(b => b.onclick = () => stuGoAdminMeals());
   el.querySelectorAll('[data-stu-retry]').forEach(b => b.onclick = () => { STUDENTS_RESTORE = true; loadStudents(); });
 }
 /* Barra de la vista: buscador + conmutador Lista/Rejilla en una
@@ -8384,8 +8479,80 @@ function studentsGoFicha(uid) {
    arriba, fotos de comida por revisar, evaluaciones); se abre la
    superficie única y se enfoca el bloque del ítem. La solicitud
    de comidas se decide en su caja (#meal-trainer-box), que en
-   este camino es la superficie única visible. */
-function studentsOpenRecord(uid, kind) {
+   este camino es la superficie única visible.
+   AUTH-117 (R1): el destino sale del RESOLVER studentsActFor
+   (kind + reqKey): cada pendiente abre su superficie ENFOCADA
+   — bloque de peso, bloque de evaluaciones, lista de fotos,
+   tarjeta de cálculo energético, tarjetas de ritmo/propuestas,
+   tarjeta de tipo corporal — con un mecanismo de foco
+   DETERMINISTA: studentsOpenRecord deja el encargo en
+   FICHA_FOCUS y openClient lo aplica tras pintar (y de nuevo
+   cuando resuelven las tarjetas asíncronas), en vez del sondeo
+   con setInterval que este camino usaba. Degradación honesta:
+   si el bloque no existe para ese alumno, la ficha abre SIN
+   foco y el encargo caduca tras unos pocos intentos. */
+let FICHA_FOCUS = null; // { uid, target, tries }
+function fichaFocusSet(uid, target) { FICHA_FOCUS = target ? { uid, target, tries: 0 } : null; }
+function fichaFocusTo(box, target) {
+  box.querySelectorAll('.ficha-focus-hl').forEach(e => e.classList.remove('ficha-focus-hl'));
+  const hl = el => { if (!el) return false; el.classList.add('ficha-focus-hl'); try { el.scrollIntoView({ behavior: 'smooth', block: 'center' }); } catch {} return true; };
+  if (target === 'weight') return hl($('client-weight-block'));
+  if (target === 'energy') {
+    const c = box.querySelector('.fa-card'); if (!c) return false;
+    if (typeof FICHA_FOLD_OPEN !== 'undefined' && !FICHA_FOLD_OPEN.base) { const b = $('ffold-btn-base'); if (b) b.click(); }
+    return hl(c);
+  }
+  if (target === 'goals') {
+    const pa = $('pace-card'), pc = $('proposal-card');
+    const ready = (pa && pa.firstElementChild) || (pc && pc.firstElementChild);
+    if (!ready) return false;
+    if (typeof FICHA_FOLD_OPEN !== 'undefined' && !FICHA_FOLD_OPEN.pace) { const b2 = $('ffold-btn-pace'); if (b2) b2.click(); }
+    [pa, pc].forEach(x => { if (x && x.firstElementChild) x.firstElementChild.classList.add('ficha-focus-hl'); });
+    try { (pa || pc).scrollIntoView({ behavior: 'smooth', block: 'start' }); } catch {}
+    return true;
+  }
+  if (target === 'evals') {
+    const body = $('client-evals-body');
+    if (body && body.style.display === 'none') { const b = $('btn-client-evals'); if (b) b.click(); }
+    return hl($('client-evals'));
+  }
+  if (target === 'food') return hl(box.querySelector('.mealhelp-list'));
+  if (target === 'body') { const bc = $('bt-card'); return !!(bc && bc.firstElementChild) && hl(bc); }
+  return false;
+}
+function fichaFocusApply(uid) {
+  const F = FICHA_FOCUS;
+  if (!F || F.uid !== uid) return;
+  const box = $('client-detail');
+  if (!box) return;
+  F.tries++;
+  let done = false;
+  try { done = fichaFocusTo(box, F.target); } catch {}
+  if (done || F.tries >= 4) FICHA_FOCUS = null;
+}
+/* Acción de un ítem pulsado DENTRO del bloque de pendientes de
+   la propia ficha (AUTH-117): mismo resolver que en «Mis
+   alumnos». La solicitud de comidas cambia la superficie a su
+   caja exacta conservando el origen del modo ficha; el resto
+   enfoca su bloque sin salir de la ficha. */
+function fichaPendAct(uid, kind, reqKey) {
+  if (kind === 'mealreq') {
+    const origin = (typeof FICHA_MODE !== 'undefined' && FICHA_MODE && FICHA_MODE.origin) || 'clients';
+    fichaSetMode(origin, 'meal');
+    try { renderMealTrainerBox(); } catch {}
+    let tries = 0;
+    const iv = setInterval(() => {
+      tries++;
+      const mb = $('meal-trainer-box');
+      if ((mb && mb.innerHTML) || tries >= 50) { if (mb && mb.innerHTML) { try { mb.scrollIntoView({ block: 'start' }); } catch {} } clearInterval(iv); }
+    }, 120);
+    return;
+  }
+  if (kind === 'req' && reqKey === 'trainer') { pendGoWaitingTray(); return; }
+  const a = studentsActFor({ kind, reqKey: reqKey || '', miss: 'analysis' });
+  if (a && a.focus) { fichaFocusSet(uid, a.focus); fichaFocusApply(uid); setTimeout(() => fichaFocusApply(uid), 350); }
+}
+function studentsOpenRecord(uid, kind, reqKey) {
   STUDENTS_RESTORE = true;
   STUDENTS_SCROLL = window.scrollY || 0;
   if (kind === 'mealreq') {
@@ -8399,24 +8566,11 @@ function studentsOpenRecord(uid, kind) {
     }, 120);
     return;
   }
+  if (kind === 'req' && reqKey === 'trainer') { pendGoWaitingTray(); return; }
+  const a = studentsActFor({ kind, reqKey: reqKey || '', miss: 'analysis' });
   fichaSetMode('students', 'ficha');
+  fichaFocusSet(uid, a && a.focus ? a.focus : null);
   openStudent(uid);
-  if (kind === 'weight') return;
-  let tries = 0;
-  const iv = setInterval(() => {
-    tries++;
-    let done = false;
-    try {
-      if (kind === 'eval') {
-        const b = $('btn-client-evals');
-        if (b) { const body = $('client-evals-body'); if (body && body.style.display === 'none') b.click(); const ce = $('client-evals'); if (ce) ce.scrollIntoView({ behavior: 'smooth', block: 'start' }); done = true; }
-      } else if (kind === 'food') {
-        const fh = document.querySelector('#client-detail .mealhelp-list');
-        if (fh) { fh.scrollIntoView({ behavior: 'smooth', block: 'center' }); done = true; }
-      }
-    } catch {}
-    if (done || tries >= 60) clearInterval(iv);
-  }, 120);
 }
 
 async function loadStudents() {
@@ -8550,7 +8704,7 @@ async function loadStudents() {
   }));
   const planByUid = {};
   students.forEach(u => { const c = TALERTS_CACHE[u.id]; planByUid[u.id] = !!(c && c.hasPlan); });
-  STUDENTS_LAST = { clients: students, chkByUid, alertsByUid, planByUid, lastByUid, lastWByUid, pendingFood, pendByUid, pendErrByUid };
+  STUDENTS_LAST = { clients: students, chkByUid, alertsByUid, planByUid, lastByUid, lastWByUid, pendingFood, pendByUid, pendErrByUid, reqByUid: latestReqByUid };
   renderStudentsViewbar();
   renderStudentsBody();
   if (restoreY != null) requestAnimationFrame(() => { try { window.scrollTo(0, restoreY); } catch {} });
@@ -9482,7 +9636,7 @@ async function openClient(uid) {
       </div>`).join('')}</div>`
     : '';
   box.innerHTML = `
-    <h3 class="history-title">${t('client.weightLog', { name: esc(uname) })}</h3>
+    <h3 class="history-title" id="client-weight-block">${t('client.weightLog', { name: esc(uname) })}</h3>
     ${healthAlert}
     ${stageStrip}
     ${fichaPendBlockHTML(uid)}
@@ -9528,8 +9682,9 @@ async function openClient(uid) {
   compAccLoadTrainer(uid);
   loadClientRings(uid, udata);
   loadClientAlerts(uid, udata);
-  try { goalsTrainerCardLoad(uid, udata, { conditions: (clientHealth && clientHealth.decl && clientHealth.decl.conditions) || [], weights: data }); } catch {}
-  btLoadTrainerCard(uid, udata);
+  try { const pg = goalsTrainerCardLoad(uid, udata, { conditions: (clientHealth && clientHealth.decl && clientHealth.decl.conditions) || [], weights: data }); if (pg && pg.then) pg.then(() => fichaFocusApply(uid), () => {}); } catch {}
+  const pb = btLoadTrainerCard(uid, udata);
+  if (pb && pb.then) pb.then(() => fichaFocusApply(uid), () => {});
   box.querySelectorAll('[data-c-edit]').forEach(b => b.onclick = () => {
     const rec = data.find(w => w.id === b.dataset.cEdit);
     if (rec) openWeightModal({ uid, docId: rec.id, rec });
@@ -9541,10 +9696,21 @@ async function openClient(uid) {
     toast(t('msg.foodReviewed'));
     openClient(uid);
   });
+  /* AUTH-117 (R1): los botones del bloque de pendientes de ESTA
+     ficha usan el mismo resolver que el detalle de «Mis alumnos»
+     (fichaPendAct con kind + reqKey), incluida la fila del paso
+     del administrador. */
+  box.querySelectorAll('[data-stu-act]').forEach(b => b.onclick = () => fichaPendAct(b.dataset.stuUid, b.dataset.stuAct, b.dataset.stuReq || ''));
+  box.querySelectorAll('[data-stu-admin-meals]').forEach(b => b.onclick = () => stuGoAdminMeals());
   loadClientTraining(uid);
   const evBtn = $('btn-client-evals');
   if (evBtn) evBtn.onclick = () => tevalToggle(uid, data);
   box.scrollIntoView({ behavior: 'smooth', block: 'start' });
+  /* AUTH-117 (R1): foco determinista tras pintar — el encargo lo
+     deja studentsOpenRecord en FICHA_FOCUS (las tarjetas
+     asíncronas re-aplican al resolver, arriba). Sin encargo, la
+     ficha abre como siempre. */
+  fichaFocusApply(uid);
 }
 
 /* ============ INTERRUPTOR DE COMPOSICIÓN (vista del entrenador) ============
@@ -26432,7 +26598,7 @@ document.addEventListener('keydown', e => { if (e.key === 'Escape') shareClose()
  *  - El SW (sw.js) solo cachea la cáscara del mismo origen en modo
  *    RED PRIMERO: Auth/Firestore/Worker jamás pasan por la caché.
  * ================================================================ */
-const PWA_SW_VERSION = '20261031-aviso-y-reactivacion';
+const PWA_SW_VERSION = '20261031-recorrido-r1';
 let pwaDeferredPrompt = null;
 function pwaIsStandalone() {
   try {
