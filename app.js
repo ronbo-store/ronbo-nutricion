@@ -2928,6 +2928,17 @@ en: {
   'lib.assign.rxReps': 'repetitions', 'lib.assign.rxSec': 'sec', 'lib.assign.noteLeg': 'per leg', 'lib.assign.noteSide': 'per side', 'lib.assign.noteStation': 'per station',
   'lib.assign.confirm': 'Assign', 'lib.assign.back': 'Back', 'lib.assign.donePlan': 'Exercise added to the plan.', 'lib.assign.doneTpl': 'Exercise added to the template.',
   'lib.assign.todayDone': 'Added to today’s session.', 'lib.assign.propDone': 'Proposal sent to your trainer.', 'lib.assign.noTpl': 'You have no template you can edit yet.',
+  'libv.title': 'Variants', 'libv.hint': 'Each variant is a way to perform this same exercise (foot placement, grip…).',
+  'libv.add': '+ Add variant', 'libv.standard': 'Standard form',
+  'libv.nameEs': 'Variant name (Spanish)', 'libv.nameEn': 'Variant name (English)',
+  'libv.changeEs': 'What changes (Spanish)', 'libv.changeEn': 'What changes (English)',
+  'libv.emphEs': 'Emphasis (Spanish)', 'libv.emphEn': 'Emphasis (English)',
+  'libv.noteEs': 'Note (Spanish)', 'libv.noteEn': 'Note (English)',
+  'libv.photo': 'Variant photo URL (image or GIF)', 'libv.video': 'Variant YouTube video URL',
+  'libv.errName': 'A variant has no name: give it a name in Spanish or English, or remove it.',
+  'libv.errStd': 'Mark exactly one variant as the standard form.',
+  'libv.lockedNote': 'Saved variants cannot be removed or reordered (they protect the recorded history). You can edit their texts and media, and add new variants at the end.',
+  'train.tabVariants': 'Variants', 'train.variantLabel': 'Variant', 'plan.variantStd': 'Standard form',
   'train.today.weekSummary': 'This week: {x} of {y} sessions completed',
   'train.today.rotationNote': 'This plan follows a day order, not fixed weekdays — so no session is pinned to this date. The next sessions in the plan\'s order are:',
   'shareW.btn': 'Share this workout',
@@ -5002,6 +5013,17 @@ es: {
   'lib.assign.rxReps': 'repeticiones', 'lib.assign.rxSec': 'seg', 'lib.assign.noteLeg': 'por pierna', 'lib.assign.noteSide': 'por lado', 'lib.assign.noteStation': 'por estación',
   'lib.assign.confirm': 'Asignar', 'lib.assign.back': 'Atrás', 'lib.assign.donePlan': 'Ejercicio agregado al plan.', 'lib.assign.doneTpl': 'Ejercicio agregado a la plantilla.',
   'lib.assign.todayDone': 'Agregado a la sesión de hoy.', 'lib.assign.propDone': 'Propuesta enviada a tu entrenador.', 'lib.assign.noTpl': 'Todavía no tienes ninguna plantilla que puedas editar.',
+  'libv.title': 'Variantes', 'libv.hint': 'Cada variante es una forma de hacer este mismo ejercicio (colocación de los pies, agarre…).',
+  'libv.add': '+ Añadir variante', 'libv.standard': 'Forma estándar',
+  'libv.nameEs': 'Nombre de la variante (español)', 'libv.nameEn': 'Nombre de la variante (inglés)',
+  'libv.changeEs': 'Qué cambia (español)', 'libv.changeEn': 'Qué cambia (inglés)',
+  'libv.emphEs': 'Énfasis (español)', 'libv.emphEn': 'Énfasis (inglés)',
+  'libv.noteEs': 'Nota (español)', 'libv.noteEn': 'Nota (inglés)',
+  'libv.photo': 'URL de la foto de la variante (imagen o GIF)', 'libv.video': 'URL del video de YouTube de la variante',
+  'libv.errName': 'Una variante no tiene nombre: ponle un nombre en español o en inglés, o quítala.',
+  'libv.errStd': 'Marca exactamente una variante como forma estándar.',
+  'libv.lockedNote': 'Las variantes ya guardadas no se pueden quitar ni reordenar (protegen el historial registrado). Sí puedes editar sus textos y medios, y añadir variantes nuevas al final.',
+  'train.tabVariants': 'Variantes', 'train.variantLabel': 'Variante', 'plan.variantStd': 'Forma estándar',
   'train.today.weekSummary': 'Esta semana: {x} de {y} sesiones completadas',
   'train.today.rotationNote': 'Este plan sigue un orden de días, no días de semana fijos — por eso no hay una sesión fijada a esta fecha. Las próximas sesiones en el orden del plan son:',
   'shareW.btn': 'Compartir este entrenamiento',
@@ -14597,8 +14619,9 @@ function swapCardHTML(ex, opts) {
 }
 function swapVariantCardHTML(entry, v, vi) {
   const sub = [libField(v, 'cambio'), libField(v, 'enfasis')].filter(Boolean).join(' · ');
+  const vPhoto = (v && v.foto_url) || entry.foto_url || '';
   const inner = `
-    ${entry.foto_url ? `<img class="swap-card-img" src="${esc(entry.foto_url)}" alt="" loading="lazy">` : '<span class="swap-card-img swap-card-noimg" aria-hidden="true"></span>'}
+    ${vPhoto ? `<img class="swap-card-img" src="${esc(vPhoto)}" alt="" loading="lazy">` : '<span class="swap-card-img swap-card-noimg" aria-hidden="true"></span>'}
     <span class="swap-card-main"><span class="swap-card-name">${esc(libNameOf(entry))} — ${esc(libField(v, 'nombre'))}</span>${sub ? `<span class="swap-card-sub">${esc(sub)}</span>` : ''}<span class="swap-card-tag">${esc(t('train.swap.variantTag'))}</span></span>`;
   /* Elegible (decisión de Ronald 2026-10-30): la tarjeta ES el botón
      y lleva el índice de la variante en data-swap-variant. */
@@ -14899,12 +14922,22 @@ function trainExName(ex) {
 function trainExPhoto(ex) {
   if (!ex) return '';
   if (ex.photoUrl) return ex.photoUrl;
+  /* FUNCIÓN DE VARIANTES (2026-10-30): con variante elegida, su
+     foto manda; sin foto propia, la de la base (misma máquina). */
+  const v = trainVariantOf(ex);
+  if (v && v.foto_url) return v.foto_url;
   const entry = ex.exerciseId ? LIB_BY_ID[ex.exerciseId] : null;
   return entry ? (entry.foto_url || '') : '';
 }
 function trainExVideo(ex) {
   if (!ex) return '';
   if (ex.videoUrl) return ex.videoUrl;
+  /* FUNCIÓN DE VARIANTES (2026-10-30): con variante elegida, SOLO
+     su video propio; sin video propio NO se ofrece el de la base
+     (mostraría otra colocación de pies/manos). Sin variante, el de
+     la base como siempre. */
+  const v = trainVariantOf(ex);
+  if (v) return v.video_youtube_url || '';
   const entry = ex.exerciseId ? LIB_BY_ID[ex.exerciseId] : null;
   return entry ? (entry.video_youtube_url || '') : '';
 }
@@ -15997,6 +16030,17 @@ function trainHistLoadsRows(ex, allLogs) {
   const id = ex && ex.exerciseId ? String(ex.exerciseId) : null;
   const name = ex && !id ? String(ex.name || '') : null;
   if (!id && !name) return [];
+  /* FUNCIÓN DE VARIANTES (2026-10-30): el historial de cargas se
+     filtra por variante cuando la ficha tiene variantes: la vista
+     de una variante NO estándar solo trae sus propias sesiones; la
+     vista base/estándar solo trae las sesiones sin variantIndex o
+     con el índice de la variante estándar. Sin variantes en la
+     ficha (o sin ficha), no hay filtro: idéntico a antes. */
+  const entryH = id ? (LIB_BY_ID[id] || null) : null;
+  const varsH = entryH && Array.isArray(entryH.variantes) && entryH.variantes.length ? entryH.variantes : null;
+  const stdIdx = varsH ? varsH.findIndex(v => v && v.es_estandar) : -1;
+  const viEx = ex && Number.isInteger(ex.variantIndex) ? ex.variantIndex : null;
+  const viActive = !!(varsH && viEx != null && varsH[viEx] && !varsH[viEx].es_estandar);
   const out = [];
   const logs = Array.isArray(allLogs) ? allLogs : [];
   for (const log of logs) {
@@ -16014,6 +16058,11 @@ function trainHistLoadsRows(ex, allLogs) {
       const match = id ? (e.exerciseId != null && String(e.exerciseId) === id)
         : (e.exerciseId == null && e.name != null && String(e.name) === name);
       if (!match) continue;
+      if (varsH) {
+        const ev = Number.isInteger(e.variantIndex) ? e.variantIndex : null;
+        if (viActive) { if (ev !== viEx) continue; }
+        else if (ev !== null && ev !== stdIdx) continue;
+      }
       const sets = Array.isArray(e.sets) ? e.sets : null;
       if (!sets) { out.push({ date: log.date, legacy: true }); continue; }
       const withData = sets.filter(s => s && (typeof s.loadKg === 'number' || (s.repsDone != null && s.repsDone !== '')));
@@ -16056,6 +16105,32 @@ function excardStepsHTML(text) {
 /* Composición compartida de la ficha: media grande + identidad +
    bloque de sesión (si lo hay) + las tres pestañas. Cablea SOLO
    presentación (media y pestañas): ninguna ruta de aquí escribe. */
+/* FUNCIÓN DE VARIANTES (2026-10-30): pestaña «Variantes» de la
+   ficha — filas con miniatura (foto propia de la variante o la de
+   la base), nombre, énfasis e insignia en la estándar; tocar una
+   fila despliega en línea su detalle (imagen grande, cambio, nota
+   y botón de video SOLO si la variante tiene video propio). El
+   detalle abierto vive en TF_VAR_OPEN y se reinicia en cada
+   pintado de la ficha. */
+let TF_VAR_OPEN = null;
+function trainVarListHTML(entry, list) {
+  const basePhoto = entry.foto_url || '';
+  return list.map((v, vi) => {
+    const photo = v.foto_url || basePhoto;
+    const open = TF_VAR_OPEN === vi;
+    const detail = open ? `<div class="excard-var-detail">
+      ${photo ? `<img class="excard-img" src="${esc(photo)}" alt="">` : ''}
+      ${libField(v, 'cambio') ? excardStepsHTML(libField(v, 'cambio')) : ''}
+      ${libField(v, 'nota') ? `<p class="excard-text muted">${esc(libField(v, 'nota'))}</p>` : ''}
+      ${v.video_youtube_url ? `<button type="button" class="btn-ghost btn-sm" data-tf-var-video="${esc(v.video_youtube_url)}">▶ ${esc(t('train.lib.video'))}</button>` : ''}
+    </div>` : '';
+    return `<div class="excard-var">
+      <button type="button" class="excard-var-row" data-tf-var="${vi}">
+        ${photo ? `<img class="excard-var-thumb" src="${esc(photo)}" alt="" loading="lazy">` : '<span class="excard-var-thumb excard-var-noimg" aria-hidden="true"></span>'}
+        <span class="excard-var-main"><span class="excard-var-name">${esc(libField(v, 'nombre'))}${v.es_estandar ? ` <span class="excard-chip excard-chip-main">${esc(t('libv.standard'))}</span>` : ''}</span>${libField(v, 'enfasis') ? `<span class="excard-var-sub">${esc(libField(v, 'enfasis'))}</span>` : ''}</span>
+      </button>${detail}</div>`;
+  }).join('');
+}
 function trainCardRender({ ex, mode, sessionHTML, allLogs }) {
   const body = $('train-ex-float-body');
   if (!body || !ex) return;
@@ -16084,12 +16159,17 @@ function trainCardRender({ ex, mode, sessionHTML, allLogs }) {
     if (rest) det.push(`${t('train.view.rest')}: ${rest}`);
     metaLine = `${spec || ex.note ? `<div class="train-float-spec">${esc(spec)}${ex.note ? ` <span class="muted">· ${esc(ex.note)}</span>` : ''}</div>` : ''}${det.length ? `<div class="train-float-sub">${esc(det.join(' · '))}</div>` : ''}`;
   }
+  TF_VAR_OPEN = null;
+  const vChosen = trainVariantOf(ex);
+  const vBlock = vChosen ? `<div class="excard-sec">${esc(t('train.variantLabel'))}: ${esc(libField(vChosen, 'nombre'))}</div>${libField(vChosen, 'cambio') ? excardStepsHTML(libField(vChosen, 'cambio')) : ''}${libField(vChosen, 'nota') ? `<p class="excard-text">${esc(libField(vChosen, 'nota'))}</p>` : ''}` : '';
   const how = entry ? libField(entry, 'como_se_hace') : '';
   const avoid = entry ? libField(entry, 'errores_a_evitar') : '';
   const insHTML = !entry
     ? `<p class="excard-empty">${t('train.card.noSheet')}</p>`
     : (`${how ? `<div class="excard-sec">${t('train.card.howTitle')}</div>${excardStepsHTML(how)}` : ''}${avoid ? `<div class="excard-sec">${t('train.card.avoidTitle')}</div>${excardStepsHTML(avoid)}` : ''}` || `<p class="excard-empty">${t('train.card.noSheet')}</p>`);
   const secList = entry ? libField(entry, 'musculos_secundarios').split(/[;,]/).map(s => s.trim()).filter(s => s && !/^(ninguno|none)$/i.test(s)) : [];
+  const insPaneHTML = vBlock ? (vBlock + ((how || avoid) ? insHTML : '')) : insHTML;
+  const varList = entry && Array.isArray(entry.variantes) ? entry.variantes.filter(v => v && libField(v, 'nombre')) : [];
   const musHTML = !entry
     ? `<p class="excard-empty">${t('train.card.noSheet')}</p>`
     : (!group && !secList.length)
@@ -16101,10 +16181,12 @@ function trainCardRender({ ex, mode, sessionHTML, allLogs }) {
     <div class="excard-tabs" role="tablist">
       <button type="button" class="excard-tab active" data-excard-tab="ins">${t('train.card.tabInstructions')}</button>
       <button type="button" class="excard-tab" data-excard-tab="mus">${t('train.card.tabMuscles')}</button>
+      ${varList.length ? `<button type="button" class="excard-tab" data-excard-tab="var">${t('train.tabVariants')}</button>` : ''}
       <button type="button" class="excard-tab" data-excard-tab="his">${t('train.card.tabHistory')}</button>
     </div>
-    <div class="excard-pane" data-excard-pane="ins">${insHTML}</div>
+    <div class="excard-pane" data-excard-pane="ins">${insPaneHTML}</div>
     <div class="excard-pane" data-excard-pane="mus" style="display:none">${musHTML}</div>
+    ${varList.length ? `<div class="excard-pane" data-excard-pane="var" style="display:none">${trainVarListHTML(entry, entry.variantes)}</div>` : ''}
     <div class="excard-pane" data-excard-pane="his" style="display:none">${trainHistLoadsHTML(ex, allLogs)}</div>`;
   const ph = body.querySelector('[data-tf-photo]');
   if (ph) { ph.onerror = () => { const m = ph.closest('.excard-media'); ph.remove(); if (!video && m) m.remove(); }; ph.onclick = () => showLightbox(ph.dataset.tfPhoto); }
@@ -16113,6 +16195,22 @@ function trainCardRender({ ex, mode, sessionHTML, allLogs }) {
     body.querySelectorAll('[data-excard-tab]').forEach(x => x.classList.toggle('active', x === b));
     body.querySelectorAll('[data-excard-pane]').forEach(p => { p.style.display = p.dataset.excardPane === b.dataset.excardTab ? '' : 'none'; });
   });
+  body.querySelectorAll('[data-tf-var]').forEach(b => b.onclick = () => {
+    const vi = Number(b.dataset.tfVar);
+    TF_VAR_OPEN = TF_VAR_OPEN === vi ? null : vi;
+    const pane = body.querySelector('[data-excard-pane="var"]');
+    if (pane && entry) { pane.innerHTML = trainVarListHTML(entry, entry.variantes); wireVarPane(); }
+  });
+  function wireVarPane() {
+    body.querySelectorAll('[data-tf-var]').forEach(b => b.onclick = () => {
+      const vi = Number(b.dataset.tfVar);
+      TF_VAR_OPEN = TF_VAR_OPEN === vi ? null : vi;
+      const pane = body.querySelector('[data-excard-pane="var"]');
+      if (pane && entry) { pane.innerHTML = trainVarListHTML(entry, entry.variantes); wireVarPane(); }
+    });
+    body.querySelectorAll('[data-tf-var-video]').forEach(b => b.onclick = () => window.open(b.dataset.tfVarVideo, '_blank', 'noopener'));
+  }
+  wireVarPane();
 }
 function trainFloatOpen(plan, logs, di, ei, mode, iso) {
   const fl = $('train-ex-float');
@@ -17809,6 +17907,12 @@ function libRowThumb(row, url) {
    como estaban. Las reglas del paquete son la barrera real; la
    interfaz solo ofrece lo que cada rol puede hacer. */
 let LIB_EDIT = null; // { id: string|null, ctx: 'admin'|'mine' } | null
+/* FUNCIÓN DE VARIANTES (2026-10-30): estado de trabajo de la
+   sección «Variantes» del editor de la ficha. LIB_EDIT_VARS_LOCKED
+   = cuántas variantes vienen del documento al abrir (protección
+   V-2: esas no se borran ni se reordenan; 0 al crear). */
+let LIB_EDIT_VARS = [];
+let LIB_EDIT_VARS_LOCKED = 0;
 const LIBADM_F = { group: '', cat: '', level: '' }; // facetas de la vista (paquete de categorías): grupo (chip) + categoría + nivel
 /* PUERTA DE COMPOSICIÓN (despliegue reprueba, 2026-10-24): las reglas
    VIVAS (ruleset 3c3790d8) dicen de exercise_library «allow write:
@@ -18400,6 +18504,8 @@ function libOpenEditor(id, ctx) {
   if (ctx === 'admin' && ROLE !== 'administrador') return;
   LIB_EDIT = { id: id || null, ctx };
   const ex = id ? (LIB_BY_ID[id] || {}) : {};
+  LIB_EDIT_VARS = id && Array.isArray(ex.variantes) ? JSON.parse(JSON.stringify(ex.variantes)) : [];
+  LIB_EDIT_VARS_LOCKED = id ? LIB_EDIT_VARS.length : 0;
   const F = ([key, label, kind]) => kind === 'ta'
     ? `<div class="eval-field"><label for="la-${key}">${esc(t(label))}</label><textarea id="la-${key}" rows="3">${esc(ex[key] || '')}</textarea></div>`
     : `<div class="eval-field"><label for="la-${key}">${esc(t(label))}</label><input type="text" id="la-${key}" value="${esc(ex[key] || '')}"></div>`;
@@ -18407,12 +18513,97 @@ function libOpenEditor(id, ctx) {
     <div class="eval-form">
     ${LIB_FIELDS.map(F).join('')}
     </div>
+    <div id="la-vars">${libVarsSectionHTML()}</div>
     <div class="eval-actions"><button type="button" class="btn-primary btn-sm" id="la-save">${esc(t('libadm.save'))}</button>
     <button type="button" class="btn-ghost btn-sm" id="la-cancel">${esc(t('libadm.cancel'))}</button></div></div>`;
   ed.style.display = '';
   try { ed.scrollIntoView({ behavior: 'smooth', block: 'start' }); } catch {}
-  $('la-cancel').onclick = () => { LIB_EDIT = null; ed.style.display = 'none'; ed.innerHTML = ''; };
+  libVarsWire();
+  $('la-cancel').onclick = () => { LIB_EDIT = null; LIB_EDIT_VARS = []; LIB_EDIT_VARS_LOCKED = 0; ed.style.display = 'none'; ed.innerHTML = ''; };
   $('la-save').onclick = libSaveEditor;
+}
+/* FUNCIÓN DE VARIANTES (2026-10-30): la sección «Variantes» del
+   editor. Los valores viven en el DOM de la sección y se cosechan
+   al guardar (y antes de cualquier re-pintado por añadir/quitar/
+   mover), así un solo armado sirve a los 4 caminos de guardado.
+   URLs vacías = clave ausente en el objeto guardado. */
+function libVarRowHTML(v, i) {
+  const locked = i < LIB_EDIT_VARS_LOCKED;
+  const ctrls = locked ? '' : (LIB_EDIT_VARS_LOCKED === 0
+    ? `<button type="button" class="btn-ghost btn-sm" data-lv-up="${i}" title="↑">↑</button><button type="button" class="btn-ghost btn-sm" data-lv-down="${i}" title="↓">↓</button><button type="button" class="btn-ghost btn-sm" data-lv-del="${i}" title="×">🗑</button>`
+    : `<button type="button" class="btn-ghost btn-sm" data-lv-del="${i}" title="×">🗑</button>`);
+  const fld = (key, label, val, ta) => ta
+    ? `<div class="eval-field"><label>${esc(t(label))}</label><textarea data-lv="${key}" rows="2">${esc(val || '')}</textarea></div>`
+    : `<div class="eval-field"><label>${esc(t(label))}</label><input type="text" data-lv="${key}" value="${esc(val || '')}"></div>`;
+  return `<div class="eval-block libv-row" data-lv-row="${i}">
+    <div class="frow"><b>${esc(libField(v, 'nombre') || ('#' + (i + 1)))}</b><span style="flex:1"></span>${ctrls}</div>
+    ${fld('nombre_es', 'libv.nameEs', v.nombre_es)}${fld('nombre_en', 'libv.nameEn', v.nombre_en)}
+    <div class="eval-field"><label><input type="radio" name="la-v-std" data-lv="std"${v.es_estandar ? ' checked' : ''}> ${esc(t('libv.standard'))}</label></div>
+    ${fld('cambio_es', 'libv.changeEs', v.cambio_es, 1)}${fld('cambio_en', 'libv.changeEn', v.cambio_en, 1)}
+    ${fld('enfasis_es', 'libv.emphEs', v.enfasis_es)}${fld('enfasis_en', 'libv.emphEn', v.enfasis_en)}
+    ${fld('nota_es', 'libv.noteEs', v.nota_es, 1)}${fld('nota_en', 'libv.noteEn', v.nota_en, 1)}
+    ${fld('foto_url', 'libv.photo', v.foto_url)}${fld('video_youtube_url', 'libv.video', v.video_youtube_url)}
+  </div>`;
+}
+function libVarsSectionHTML() {
+  return `<div class="eval-field"><label>${esc(t('libv.title'))}</label>
+    <p class="muted">${esc(t('libv.hint'))}</p>
+    ${LIB_EDIT_VARS_LOCKED ? `<p class="muted">${esc(t('libv.lockedNote'))}</p>` : ''}
+    <div id="la-vars-list">${LIB_EDIT_VARS.map((v, i) => libVarRowHTML(v, i)).join('')}</div>
+    <button type="button" class="btn-ghost btn-sm" id="la-v-add">${esc(t('libv.add'))}</button></div>`;
+}
+function libVarsHarvest() {
+  const list = $('la-vars-list');
+  if (!list) return LIB_EDIT_VARS;
+  const out = [];
+  list.querySelectorAll('[data-lv-row]').forEach(row => {
+    const g = k => { const el = row.querySelector(`[data-lv="${k}"]`); return el ? String(el.value || '').trim() : ''; };
+    const v = {
+      nombre_es: g('nombre_es'), nombre_en: g('nombre_en'),
+      cambio_es: g('cambio_es'), cambio_en: g('cambio_en'),
+      enfasis_es: g('enfasis_es'), enfasis_en: g('enfasis_en'),
+      nota_es: g('nota_es'), nota_en: g('nota_en'),
+      es_estandar: !!(row.querySelector('[data-lv="std"]') || {}).checked,
+    };
+    const fu = g('foto_url'); if (fu) v.foto_url = fu;
+    const vu = g('video_youtube_url'); if (vu) v.video_youtube_url = vu;
+    out.push(v);
+  });
+  LIB_EDIT_VARS = out;
+  return out;
+}
+function libVarsRerender() {
+  const sec = $('la-vars'); if (!sec) return;
+  sec.innerHTML = libVarsSectionHTML();
+  libVarsWire();
+}
+function libVarsWire() {
+  const add = $('la-v-add');
+  if (add) add.onclick = () => {
+    libVarsHarvest();
+    LIB_EDIT_VARS.push({ nombre_es: '', nombre_en: '', cambio_es: '', cambio_en: '', enfasis_es: '', enfasis_en: '', nota_es: '', nota_en: '', es_estandar: LIB_EDIT_VARS.length === 0 });
+    libVarsRerender();
+  };
+  const list = $('la-vars-list'); if (!list) return;
+  list.querySelectorAll('[data-lv-del]').forEach(b => b.onclick = () => {
+    const i = Number(b.dataset.lvDel);
+    if (i < LIB_EDIT_VARS_LOCKED) return; // V-2: las guardadas no se borran
+    libVarsHarvest(); LIB_EDIT_VARS.splice(i, 1); libVarsRerender();
+  });
+  list.querySelectorAll('[data-lv-up]').forEach(b => b.onclick = () => {
+    const i = Number(b.dataset.lvUp);
+    if (i <= 0 || LIB_EDIT_VARS_LOCKED > 0) return;
+    libVarsHarvest();
+    const tmp = LIB_EDIT_VARS[i - 1]; LIB_EDIT_VARS[i - 1] = LIB_EDIT_VARS[i]; LIB_EDIT_VARS[i] = tmp;
+    libVarsRerender();
+  });
+  list.querySelectorAll('[data-lv-down]').forEach(b => b.onclick = () => {
+    const i = Number(b.dataset.lvDown);
+    if (i >= LIB_EDIT_VARS.length - 1 || LIB_EDIT_VARS_LOCKED > 0) return;
+    libVarsHarvest();
+    const tmp = LIB_EDIT_VARS[i + 1]; LIB_EDIT_VARS[i + 1] = LIB_EDIT_VARS[i]; LIB_EDIT_VARS[i] = tmp;
+    libVarsRerender();
+  });
 }
 async function libSaveEditor() {
   if (!LIB_EDIT) return;
@@ -18423,7 +18614,16 @@ async function libSaveEditor() {
   const data = {};
   LIB_FIELDS.forEach(([key]) => { data[key] = (($('la-' + key) || {}).value || '').trim(); });
   if (!data.nombre_es && !data.nombre_en) { toast(t('libcom.needName')); return; }
-  const closeEditor = () => { LIB_EDIT = null; const ed = $('lib-admin-editor'); if (ed) { ed.style.display = 'none'; ed.innerHTML = ''; } };
+  /* FUNCIÓN DE VARIANTES (2026-10-30): un solo armado del arreglo
+     para los 4 caminos — entra en el MISMO objeto data de hoy, sin
+     escrituras adicionales. Validación honesta: variante sin
+     ningún nombre no guarda; con variantes, exactamente una es la
+     forma estándar. */
+  const varsSave = libVarsHarvest();
+  for (const v of varsSave) { if (!v.nombre_es && !v.nombre_en) { toast(t('libv.errName')); return; } }
+  if (varsSave.length && varsSave.filter(v => v.es_estandar).length !== 1) { toast(t('libv.errStd')); return; }
+  data.variantes = varsSave;
+  const closeEditor = () => { LIB_EDIT = null; LIB_EDIT_VARS = []; LIB_EDIT_VARS_LOCKED = 0; const ed = $('lib-admin-editor'); if (ed) { ed.style.display = 'none'; ed.innerHTML = ''; } };
   try {
     if (ctx === 'admin' && !id) {
       /* Alta del administrador: siguiente E### libre sobre TODO lo
@@ -18510,7 +18710,9 @@ function wirePlanExMedia(scope) {
 }
 function libCloseSug(row) { const sug = row.querySelector('.pl-ex-sug'); if (sug) sug.innerHTML = ''; }
 function libUnlinkRow(row) {
+  if (row._extra) delete row._extra.variantIndex; // FUNCIÓN DE VARIANTES: sin vínculo no hay variante recetada
   row.removeAttribute('data-exid');
+  planVariantSyncRow(row);
   row.removeAttribute('data-saved-name');
   row.removeAttribute('data-photo');
   row.removeAttribute('data-video');
@@ -18537,6 +18739,10 @@ function libLinkRow(row, ex) {
   const wrap = row.querySelector('.pl-ex-links-wrap');
   if (wrap) { wrap.innerHTML = libLinksHTML({ exerciseId: ex.id, photoUrl: ex.foto_url, videoUrl: ex.video_youtube_url }); wireLibLinks(row); }
   libCloseSug(row);
+  /* FUNCIÓN DE VARIANTES (V-4): un vínculo nuevo nace en forma
+     estándar; el selector de la fila se repinta con la ficha. */
+  if (row._extra) delete row._extra.variantIndex;
+  planVariantSyncRow(row);
 }
 function wireLibRow(row) {
   if (row.dataset.libWired) return;
@@ -18653,6 +18859,7 @@ function wirePlanExDrag(scope) {
   });
 }
 function wirePlanExRows(scope) {
+  wirePlanVariantGlobal();
   wirePlanExDel(scope);
   wirePlanExDrag(scope);
   wirePlanExMedia(scope);
@@ -19560,6 +19767,42 @@ let planCtx = null;
 const PLAN_EX_KNOWN = ['name', 'sets', 'reps', 'note', 'exerciseId', 'photoUrl', 'videoUrl', 'rest', 'rest_en', 'warmup', 'warmup_en'];
 const PLAN_DAY_KNOWN = ['label', 'exercises', 'sessionBlocks'];
 function wirePlanExDel(scope) { scope.querySelectorAll('.pl-ex-del').forEach(b => b.onclick = () => b.closest('.pl-ex-row').remove()); }
+/* FUNCIÓN DE VARIANTES · RECETA EN EL PLAN (V-4, 2026-10-30): la
+   fila vinculada a una ficha con variantes gana un selector de
+   variante. La elección viaja en row._extra (variantIndex NO está
+   en PLAN_EX_KNOWN: el guardado y Repetir lo restituyen con su
+   copia genérica de siempre — sin listas nuevas ni delta de
+   reglas, training_plans no tiene lista cerrada). Forma estándar
+   = campo ausente, igual que en la sesión. */
+function planVariantSelectHTML(ex) {
+  const entry = ex && ex.exerciseId ? LIB_BY_ID[ex.exerciseId] : null;
+  const vars = entry && Array.isArray(entry.variantes) ? entry.variantes : [];
+  if (!vars.length) return '';
+  const stdIdx = vars.findIndex(v => v && v.es_estandar);
+  let cur = ex && Number.isInteger(ex.variantIndex) ? ex.variantIndex : -1;
+  if (cur === stdIdx || cur < 0 || cur >= vars.length || !vars[cur]) cur = -1;
+  const opts = vars.map((v, vi) => vi === stdIdx ? '' : `<option value="${vi}"${vi === cur ? ' selected' : ''}>${esc(libField(v, 'nombre') || ('#' + (vi + 1)))}</option>`).join('');
+  return `<label class="pl-ex-variant-wrap">${esc(t('train.variantLabel'))} <select class="pl-ex-variant"><option value=""${cur === -1 ? ' selected' : ''}>${esc(t('plan.variantStd'))}</option>${opts}</select></label>`;
+}
+function planVariantSyncRow(row) {
+  const slot = row && row.querySelector('.pl-ex-variant-slot');
+  if (!slot) return;
+  const exid = row.dataset.exid;
+  const cur = row._extra && Number.isInteger(row._extra.variantIndex) ? row._extra.variantIndex : null;
+  slot.innerHTML = exid ? planVariantSelectHTML({ exerciseId: exid, variantIndex: cur }) : '';
+}
+let PLAN_VAR_WIRED = false;
+function wirePlanVariantGlobal() {
+  if (PLAN_VAR_WIRED) return; PLAN_VAR_WIRED = true;
+  document.addEventListener('change', e => {
+    const sel = e.target && e.target.closest ? e.target.closest('.pl-ex-variant') : null;
+    if (!sel) return;
+    const row = sel.closest('.pl-ex-row'); if (!row) return;
+    row._extra = row._extra || {};
+    if (sel.value === '') delete row._extra.variantIndex;
+    else row._extra.variantIndex = parseInt(sel.value, 10);
+  });
+}
 function planExRow(ex) {
   ex = ex || {};
   /* Fila vinculada (§4.1): si la biblioteca ya está cargada y la
@@ -19613,6 +19856,7 @@ function planExRow(ex) {
       <div class="pl-ex-tools">
         <button type="button" class="btn-ghost btn-sm pl-ex-subst">⇄ ${t('train.sub.btn')}</button>
         <button type="button" class="btn-ghost btn-sm pl-ex-btr">🧍 ${t('train.btr.btn')}</button>
+        <span class="pl-ex-variant-slot">${planVariantSelectHTML(ex)}</span>
       </div>
     </div>
     <div class="pl-ex-subst-box"></div>
@@ -25072,7 +25316,7 @@ document.addEventListener('keydown', e => { if (e.key === 'Escape') shareClose()
  *  - El SW (sw.js) solo cachea la cáscara del mismo origen en modo
  *    RED PRIMERO: Auth/Firestore/Worker jamás pasan por la caché.
  * ================================================================ */
-const PWA_SW_VERSION = '20261030-mis-alumnos';
+const PWA_SW_VERSION = '20261031-funcion-variantes';
 let pwaDeferredPrompt = null;
 function pwaIsStandalone() {
   try {
