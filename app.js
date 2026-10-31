@@ -2890,6 +2890,7 @@ en: {
   'students.req.mealsSub': 'They have not requested meals yet',
   'students.adminStep': 'Meal request waiting on your decision as administrator',
   'students.adminStepGo': 'Review request',
+  'students.pend.noWeightYet': 'They have not logged their weight yet',
   'consult.help.energy': 'Here you review and save the base data (birth year, height, activity) behind this student’s energy calculation. When you save, this window closes and you return to their pendings.',
   'consult.help.goals': 'Here you decide this student’s pace and review their goal proposals. When you decide, this window closes and you return to their pendings.',
   'consult.help.weight': 'This student’s weight log. Weight is always entered by the student; when you are with them in person, you can add a weigh-in from the record itself.',
@@ -5031,6 +5032,7 @@ es: {
   'students.req.mealsSub': 'Aún no solicita comidas',
   'students.adminStep': 'Solicitud de comidas esperando tu decisión como administrador',
   'students.adminStepGo': 'Revisar solicitud',
+  'students.pend.noWeightYet': 'Aún no registra su peso',
   'consult.help.energy': 'Aquí revisas y guardas los datos base (año de nacimiento, talla y actividad) con los que se hace el cálculo energético de este alumno. Al guardar, esta ventana se cierra y vuelves a sus pendientes.',
   'consult.help.goals': 'Aquí decides el ritmo de este alumno y revisas sus propuestas de metas. Al decidir, esta ventana se cierra y vuelves a sus pendientes.',
   'consult.help.weight': 'El registro de peso de este alumno. El peso lo ingresa siempre el propio alumno; si estás con él en persona, puedes agregar un pesaje desde el propio registro.',
@@ -8074,6 +8076,13 @@ function spEvalNextDue(D, wdates) {
 function studentsPendCompute(src, now) {
   const items = [], traces = [];
   const cfg = src.cfg;
+  /* AUTH-122 (R5): ¿el alumno NUNCA ha registrado un peso? La
+     condición es del alumno, no de su configuración: sin ningún
+     pesaje en su historial (wdates vacío en la pasada — la misma
+     fuente en Alumnos y en Clientes). Su ítem se emite abajo y
+     SUSTITUYE al ítem programado del ciclo mientras no exista el
+     primer peso (ver la enmienda a la definición de AUTH-110). */
+  const neverWeighed = !(src.wdates || []).length;
   if (cfg && cfg.activated) {
     const regDay = pendRegDay(now, cfg.cutoff);
     const marks = src.marks || {};
@@ -8097,9 +8106,14 @@ function studentsPendCompute(src, now) {
       while (due <= regDay && guard++ < 400) {
         const c = classify(`weight|${due}`);
         if (c.st === 'omitted') { lastOmitted = due; due = addDaysISO(due, freq); continue; }
-        if (c.st === 'snoozed') items.push({ kind: 'weight', state: 'pospuesto', date: due, until: c.mk.until || null, freq, lastWeigh });
+        /* AUTH-122 (R5): sin primer peso NO nace el ítem del ciclo
+           (diría «vencido» de un pesaje que nunca existió y le
+           daría al entrenador un botón sobre algo que solo el
+           alumno puede hacer): lo sustituye el ítem never de
+           abajo. Las trazas (omitido) se siguen registrando. */
+        if (c.st === 'snoozed') { if (!neverWeighed) items.push({ kind: 'weight', state: 'pospuesto', date: due, until: c.mk.until || null, freq, lastWeigh }); }
         else if (c.st === 'discarded') traces.push({ kind: 'weight', state: 'omitido', date: due, freq });
-        else items.push({ kind: 'weight', state: due < regDay ? 'vencido' : 'pendiente', date: due, freq, lastWeigh });
+        else if (!neverWeighed) items.push({ kind: 'weight', state: due < regDay ? 'vencido' : 'pendiente', date: due, freq, lastWeigh });
         lastOmitted = null;
         break;
       }
@@ -8119,6 +8133,23 @@ function studentsPendCompute(src, now) {
       }
     }
   }
+  /* AUTH-122 (R5 · «Aún no registra su peso»): si el alumno nunca
+     ha registrado un peso, ese hecho ES un pendiente de la lista
+     — decisión de Ronald (correo 590, 2026-10-31 15:07 CDT:
+     «Agregalo de acuerdo con tu sugerencia», sobre la propuesta
+     de la vigilancia de las 15:03) —: aparece igual en «Mis
+     alumnos» y en «Mis clientes» (esta misma función alimenta
+     ambas pasadas: la coherencia de AUTH-110 se conserva), se
+     marca «Pendiente del alumno» SIN botón resolutorio (el peso
+     lo ingresa siempre el propio alumno; studentsActFor lo
+     declara), el entrenador conserva su vía en persona de
+     «Agregar pesaje» en Alertas (intacta) y el administrador solo
+     hace seguimiento. En cuanto el alumno registre su primer
+     peso, este ítem desaparece solo y aplica la regla normal del
+     ciclo. Su botón «✉ Avisar» llegará con la pieza del botón por
+     pendiente cuando esta se construya (así lo aprobó la
+     propuesta: el botón es de esa pieza, no de este paquete). */
+  if (neverWeighed) items.push({ kind: 'weight', state: 'pendiente', never: true, date: null, freq: (cfg && Number(cfg.weightFreq)) || 7, lastWeigh: null });
   /* Solicitud de comidas esperando al ENTRENADOR (§8.4): solo el
      paso pendiente_entrenador es espera suya; el paso del
      administrador no se le cuenta como atraso. */
@@ -8160,6 +8191,14 @@ function studentsPendCompute(src, now) {
    programado weight, y el nunca-pesado sin activar lo cubre la
    evaluación inicial. Evaluación inicial y ciclo de evaluación son
    registros distintos y coexisten.
+   ENMIENDA AUTH-2026-10-31-122 (decisión de Ronald, correo 590,
+   2026-10-31 15:07 CDT, sobre la propuesta de la vigilancia):
+   el NUNCA-pesado SÍ es ítem — «Aún no registra su peso»,
+   pendiente del alumno sin botón resolutorio — y sustituye al
+   ítem programado del ciclo mientras no exista el primer peso;
+   con el primer peso registrado, el ítem desaparece y rige la
+   regla anterior. La coherencia de esta definición no cambia:
+   ambas vistas consumen solo esta unión y el total coincide.
    AMBAS vistas («Mis alumnos» y «Mis clientes») consumen SOLO
    esta unión: mismos ítems, mismo total, «al día» ⇔ unión vacía.
    CATÁLOGO REUTILIZABLE (nota de coordinación, Ronald 2026-10-31):
@@ -8209,7 +8248,7 @@ function studentsBodyItem(u, estCount) {
 function studentsItemTitle(it) {
   if (it.kind === 'req') return it.tlabel || it.label || '';
   if (it.kind === 'body') return t('students.pend.body');
-  if (it.kind === 'weight') return it.freq === 7 ? t('students.item.weightWeekly') : t('students.item.weightEvery', { d: it.freq });
+  if (it.kind === 'weight') return it.never ? t('students.pend.noWeightYet') : it.freq === 7 ? t('students.item.weightWeekly') : t('students.item.weightEvery', { d: it.freq });
   if (it.kind === 'eval') return t('students.item.eval');
   if (it.kind === 'mealreq') return t('students.item.mealReq');
   return t('students.item.food');
@@ -8221,6 +8260,7 @@ function studentsDueText(it) {
 }
 function studentsItemSub(it) {
   if (it.kind === 'weight') {
+    if (it.never) return '';
     const wk = t('students.pend.weekOf', { a: shortDate(addDaysISO(it.date, -6)), b: shortDate(it.date) });
     const due = studentsDueText(it);
     return due ? wk + ' · ' + due : wk;
@@ -8259,7 +8299,10 @@ function studentsActFor(it) {
   if (!it) return { btn: null };
   switch (it.kind) {
     case 'mealreq': return { btn: 'students.act.mealReq', surf: 'meal' };
-    case 'weight': return { btn: 'students.act.weight', surf: 'ficha', focus: 'weight' };
+    /* AUTH-122 (R5): el «Aún no registra su peso» (never) es del
+       alumno — el peso lo ingresa él —: SIN botón resolutorio. El
+       pesaje del ciclo conserva su «Ver pesaje» de siempre. */
+    case 'weight': return it.never ? { btn: null } : { btn: 'students.act.weight', surf: 'ficha', focus: 'weight' };
     case 'eval': return { btn: 'students.act.eval', surf: 'ficha', focus: 'evals' };
     case 'food': return { btn: 'students.act.food', surf: 'ficha', focus: 'food' };
     case 'body': return it.miss === 'consent' ? { btn: null } : { btn: 'students.act.body', surf: 'ficha', focus: 'body' };
@@ -26862,7 +26905,7 @@ document.addEventListener('keydown', e => { if (e.key === 'Escape') shareClose()
  *  - El SW (sw.js) solo cachea la cáscara del mismo origen en modo
  *    RED PRIMERO: Auth/Firestore/Worker jamás pasan por la caché.
  * ================================================================ */
-const PWA_SW_VERSION = '20261031-recorrido-r4';
+const PWA_SW_VERSION = '20261031-recorrido-r5';
 let pwaDeferredPrompt = null;
 function pwaIsStandalone() {
   try {
