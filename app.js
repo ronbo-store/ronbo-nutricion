@@ -3375,6 +3375,8 @@ en: {
   'clients.viewGrid': '▦ Grid',
   'clients.viewList': '☰ List',
   'clients.catFilter': 'Category',
+  'clients.moreFilters': 'More filters',
+  'clients.searchPh': 'Search a client…',
   'clients.catAll': 'All',
   'clients.cat.pendiente': 'Pending approval',
   'clients.cat.alertas': 'With alerts',
@@ -5503,6 +5505,8 @@ es: {
   'clients.viewGrid': '▦ Rejilla',
   'clients.viewList': '☰ Lista',
   'clients.catFilter': 'Categoría',
+  'clients.moreFilters': 'Más filtros',
+  'clients.searchPh': 'Buscar un cliente…',
   'clients.catAll': 'Todas',
   'clients.cat.pendiente': 'Pendiente de aprobación',
   'clients.cat.alertas': 'Con alertas',
@@ -7375,15 +7379,22 @@ async function saveLimit(btn) {
    clientes», % de perfil completo y lo que le falta a cada alumno). */
 async function clientProfileChecklist(u, latestMealReq) {
   const rows = [];
+  /* AUTH-2026-10-31-109 (velocidad): las lecturas de los puntos 1,
+     2 y 4 son independientes entre sí (sus condiciones se conocen
+     de antemano desde u) — salen EN PARALELO; las filas se empujan
+     en el mismo orden y con la misma semántica de error de antes. */
+  const pRel = (async () => { try { const s = await getDoc(doc(db, 'trainer_relations', u.id)); return s.exists() ? s.data() : null; } catch { return null; } })();
+  const pEval = (async () => { try { const s = await getDoc(doc(db, 'users', u.id, 'assessment', 'current')); return s.exists() && faHasResult(s.data()); } catch { return false; } })();
+  const pParq = (IS_OWNER && specIsActive(u) && u.acceptedTerms === true)
+    ? (async () => { try { const s = await getDocs(query(declCol(u.id), where('state', '==', 'active'))); return !s.empty; } catch { return null; } })()
+    : Promise.resolve(null);
   /* 1) Entrenador y modalidad: la relación; sin documento, la misma
      derivación perezosa desde el espejo que hace loadRolesX. */
-  let rel = null;
-  try { const s = await getDoc(doc(db, 'trainer_relations', u.id)); if (s.exists()) rel = s.data(); } catch {}
+  const rel = await pRel;
   rows.push({ label: t('pend.chk.trainer'), done: rel ? !!rel.trainerUid : !!u.trainerUid });
   /* 2) Evaluación inicial iniciada: users/{uid}/assessment/current
      con resultado vigente (faHasResult, el mismo test). */
-  let evalDone = false;
-  try { const s = await getDoc(doc(db, 'users', u.id, 'assessment', 'current')); evalDone = s.exists() && faHasResult(s.data()); } catch {}
+  const evalDone = await pEval;
   rows.push({ label: t('pend.chk.eval'), done: evalDone });
   /* 3) Consentimiento específico de salud: specIsActive sobre su
      propio users (el mismo test que su checklist). */
@@ -7392,10 +7403,7 @@ async function clientProfileChecklist(u, latestMealReq) {
      exactas de las reglas (propietario + consentimiento aceptado +
      términos aceptados, y solo la declaración activa). Fuera de
      ellas: null (no verificable), nunca un falso «falta». */
-  let parqDone = null;
-  if (IS_OWNER && specIsActive(u) && u.acceptedTerms === true) {
-    try { const s = await getDocs(query(declCol(u.id), where('state', '==', 'active'))); parqDone = !s.empty; } catch { parqDone = null; }
-  }
+  const parqDone = await pParq;
   rows.push({ label: t('pend.chk.parq'), done: parqDone });
   /* 5) Metas definidas: el test de hasAnyGoal aplicado a su
      users.goals (alguna métrica con valor numérico > 0). */
@@ -7421,21 +7429,30 @@ function clientChecklistHTML(chk) {
   return h + '</div>';
 }
 /* ================================================================
-   ORGANIZAR CLIENTES — rejilla de avatares con categorías
-   automáticas en «Mis clientes» (AUTH-2026-10-28-066; diseño
-   cerrado DISENO-ORGANIZAR-CLIENTES-2026-10-28 + ajuste de Ronald
-   por correo 2026-10-28 01:13/01:21 CDT: selección MÚLTIPLE — cada
-   cliente aparece en TODAS las categorías que cumple — y filtro
-   que nace en «Todas»).
+   ORGANIZAR CLIENTES — categorías automáticas en «Mis clientes».
+   Nació como rejilla de grupos APILADOS con selección múltiple
+   (AUTH-2026-10-28-066: cada cliente en TODAS las categorías que
+   cumple). AUTH-2026-10-31-109, por decisión B-A2 de Ronald (chat
+   2026-10-31 03:54 CDT: «Sí, limpia también "Mis clientes"»)
+   SUSTITUYE ese modelo por el modelo limpio de «Mis alumnos»:
+   entrada plana con cada cliente UNA sola vez; las 7 categorías
+   son FILTROS que sustituyen el contenido (pastillas «Todas» ·
+   «Con alertas» · «Más filtros» + buscador, en Lista y en
+   Rejilla); filas/tarjetas con la capa visual limpia (avatar,
+   nombre, una línea de resumen, contador discreto); y la ficha
+   se abre como superficie única que sustituye la lista (modo
+   ficha, en el bloque de «Mis alumnos») con regreso que restaura
+   filtro y posición. Las bandejas (espera, aprobaciones) y las
+   cajas de la sección NO se tocan.
    Presentación derivada en el cliente sobre la MISMA pasada de
    loadClients: cero lecturas nuevas, cero escrituras, cero delta
-   de reglas y de Worker. El conmutador Rejilla/Lista y el filtro
-   viven SOLO en memoria (el patrón de TALERT_GROUPS_OPEN /
-   MT_CARD_OPEN): la rejilla nace por defecto en cada carga y
-   cambiar de vista NO re-deriva ni re-lee nada — ambas vistas se
-   pintan desde CLIENTS_LAST, la foto de la última pasada. */
-let CLIENTS_VIEW = 'grid';        // 'grid' | 'list' (nace en rejilla)
+   de reglas y de Worker. Vista, filtro y buscador viven SOLO en
+   memoria y ambas vistas se pintan desde CLIENTS_LAST. */
+let CLIENTS_VIEW = 'list';        // 'list' | 'grid' (nace en Lista, como Alumnos)
 let CLIENTS_CAT_FILTER = 'all';   // 'all' = «Todas» + las 7 claves
+let CLIENTS_QUERY = '';           // buscador de la vista (AUTH-109)
+let CLIENTS_FILTERS_OPEN = false; // panel «Más filtros» abierto (AUTH-109)
+let CLIENTS_SCROLL = 0;           // posición guardada al abrir la ficha (AUTH-109)
 let CLIENTS_LAST = null;          // última pasada de loadClients
 const CLIENT_CATS = [
   { key: 'pendiente', color: '#d97706' },
@@ -7472,133 +7489,132 @@ function clientCategories(u, d) {
   if (!cats.length) cats.push('aldia');
   return cats;
 }
-function clientAlertSubs(alerts) {
-  const subs = [];
-  if (alerts.some(a => a.kind === 'A1' || a.kind === 'A2' || a.kind === 'A3' || a.kind === 'A3L')) subs.push(t('clients.catSubMeals'));
-  if (alerts.some(a => a.kind === 'A4')) subs.push(t('clients.catSubTraining'));
-  if (alerts.some(a => a.kind === 'A5')) subs.push(t('clients.catSubUnmarked'));
-  return subs;
-}
-/* UNA línea de detalle por celda: la más accionable de la
-   categoría del grupo donde la celda aparece. */
-function clientCellDetail(key, u, d) {
-  if (key === 'pendiente') return esc(u.email || '');
-  if (key === 'alertas') {
-    const subs = clientAlertSubs(d.alerts);
-    return esc(t('talert.count', { n: d.alerts.length })) + (subs.length ? ' · ' + esc(subs.join(' · ')) : '');
-  }
-  if (key === 'incompleto') {
-    if (!d.chk) return '';
-    const miss = d.chk.rows.filter(r => r.done === false);
-    return esc(t('clients.chkTitle', { pct: d.chk.pct })) + (miss.length ? ' · ' + esc(t('clients.chkMissing')) + ': ' + esc(miss[0].label) : '');
-  }
-  if (key === 'sinplan') {
-    if (d.chk && d.chk.complete) return '✓ ' + esc(t('clients.chkComplete'));
-    return d.chk ? esc(t('clients.chkTitle', { pct: d.chk.pct })) : '';
-  }
-  if (key === 'sinpesaje') {
-    const da = clientsDaysAgo(d.lastDate);
-    return da === null ? esc(t('clients.noWeighins')) : esc(t('clients.daysAgo', { d: da })) + (d.lastW ? ' · ' + esc(String(d.lastW)) + ' kg' : '');
-  }
-  if (key === 'sinsenal') return '';
-  if (key === 'aldia') {
-    if (u.appInstall && u.appInstall.everInstalled === true) {
-      const dt = appInstallDateStr(u.appInstall.lastStandaloneAt);
-      return '📲 ' + esc(t('appinst.installed')) + (dt ? ' · ' + esc(dt) : '');
-    }
-    return '';
-  }
-  return '';
-}
 function clientInitials(u) {
   const nm = (u.name || '').trim();
   if (!nm) return '👤';
   const w = nm.split(/\s+/);
   return ((((w[0] || '')[0] || '') + ((w[1] || '')[0] || '')).toUpperCase()) || '👤';
 }
-/* Celda de la rejilla: máximo 3 señales (anillo de la categoría,
-   insignia ⚠n solo si hay alertas, micro-etiqueta + UNA línea de
-   detalle). Avatar de 64 px con el patrón de AUTH-046: la foto va
-   SOBRE el disco de iniciales y desaparece si no carga. Las
-   celdas pendientes NO son tocables (paridad con la lista: su
-   gestión vive en Accesos); el resto abre openClient(uid). */
-function clientGridCell(key, u, d) {
-  const cat = CLIENT_CATS.find(c => c.key === key);
-  const badge = d.alerts && d.alerts.length ? `<span class="cgrid-badge">⚠ ${d.alerts.length}</span>` : '';
-  const detail = clientCellDetail(key, u, d);
-  const inner = `<span class="cgrid-ava" style="border-color:${cat.color}${key === 'sinsenal' ? ';border-style:dashed' : ''}"><span class="cgrid-thumb"><span class="mt-thumb-initials">${esc(clientInitials(u))}</span>${u.photoURL ? `<img class="mt-thumb-img" src="${esc(u.photoURL)}" alt="" onerror="this.remove()">` : ''}</span>${badge}</span>`
-    + `<span class="cgrid-name">${esc(u.name || '—')}</span>`
-    + `<span class="cgrid-cat" style="color:${cat.color}">${esc(clientCatLabel(key))}</span>`
-    + (detail ? `<span class="cgrid-detail">${detail}</span>` : '');
+/* ============ MODELO LIMPIO (AUTH-2026-10-31-109, B-A2) ============
+   Datos derivados de UN cliente en la pasada vigente (la misma
+   forma que consumía la rejilla de grupos). */
+function clientsDataOf(L, u) {
+  return { chk: L.chkByUid[u.id] || null, alerts: L.alertsByUid[u.id] || [], hasPlan: !!L.planByUid[u.id], lastDate: L.lastByUid[u.id] || null, lastW: L.lastWByUid[u.id] || null };
+}
+/* La lista VISIBLE: filtro de categoría (sustituye, no apila) +
+   buscador, ordenada por nombre. Cada cliente, UNA vez. */
+function clientsFiltered() {
+  const L = CLIENTS_LAST; if (!L) return [];
+  let list = L.clients.slice();
+  if (CLIENTS_CAT_FILTER !== 'all') list = list.filter(u => clientCategories(u, clientsDataOf(L, u)).includes(CLIENTS_CAT_FILTER));
+  const q = acNorm(CLIENTS_QUERY || '');
+  if (q) list = list.filter(u => acNorm(u.name || '').includes(q) || acNorm(u.email || '').includes(q));
+  return list.sort((a, b) => String(a.name || '').localeCompare(String(b.name || '')));
+}
+function clientsCatCount(key) {
+  const L = CLIENTS_LAST; if (!L) return 0;
+  return L.clients.filter(u => clientCategories(u, clientsDataOf(L, u)).includes(key)).length;
+}
+/* UNA línea de resumen por cliente (la derivación accionable,
+   en este orden: alertas → checklist → último pesaje). */
+function clientsRowSummary(u, d) {
+  if (u.approved !== true) return esc(u.email || '');
+  if (d.alerts.length) return esc(talertText(d.alerts[0]));
+  if (d.chk && d.chk.rows.some(r => r.done === false)) {
+    const miss = d.chk.rows.filter(r => r.done === false);
+    return esc(t('clients.chkTitle', { pct: d.chk.pct })) + (miss.length ? ' · ' + esc(miss[0].label) : '');
+  }
+  const da = clientsDaysAgo(d.lastDate);
+  if (da === null) return esc(t('clients.noWeighins'));
+  return esc(t('clients.daysAgoShort', { d: da })) + (d.lastW ? ' · ' + esc(String(d.lastW)) + ' kg' : '');
+}
+/* Contador DISCRETO de la fila/celda (espejo de Alumnos): disco
+   ámbar con el nº de alertas; si no hay alertas, con el nº de
+   categorías con atención; ✓ teal si está «al día». */
+function clientsRowBadge(u, d, cats) {
+  if (d.alerts.length) return `<span class="pend-n">${d.alerts.length}</span>`;
+  const probs = (cats || []).filter(c => c !== 'aldia');
+  if (!probs.length) return '<span class="ok-disc">✓</span>';
+  return `<span class="pend-n">${probs.length}</span>`;
+}
+function clientsRowHTML(u) {
+  const L = CLIENTS_LAST; const d = clientsDataOf(L, u); const cats = clientCategories(u, d);
+  const inner = `${stuAvatarHTML(u, u.name || '')}<span class="srow-main"><span class="srow-name">${esc(u.name || '—')}</span><span class="srow-sum">${clientsRowSummary(u, d)}</span></span>${clientsRowBadge(u, d, cats)}<span class="srow-go">›</span>`;
   return u.approved === true
-    ? `<button type="button" class="cgrid-cell" data-client="${u.id}">${inner}</button>`
-    : `<div class="cgrid-cell cgrid-notap">${inner}</div>`;
+    ? `<button type="button" class="srow" data-client="${u.id}">${inner}</button>`
+    : `<div class="srow srow-static">${inner}</div>`;
+}
+function clientsCellHTML(u) {
+  const L = CLIENTS_LAST; const d = clientsDataOf(L, u); const cats = clientCategories(u, d);
+  const ring = d.alerts.length ? 'cell-ring-red' : ((cats.length === 1 && cats[0] === 'aldia') ? 'cell-ring-teal' : 'cell-ring-amber');
+  const badge = d.alerts.length ? `<span class="cell-pend">${d.alerts.length}</span>` : ((cats.length === 1 && cats[0] === 'aldia') ? '' : `<span class="cell-pend">${cats.filter(c => c !== 'aldia').length}</span>`);
+  const thumb = u.photoURL
+    ? `<span class="cell-thumb"><img src="${esc(u.photoURL)}" alt=""></span>`
+    : `<span class="cell-thumb" style="background:${stuTint(u.id)}">${esc(clientInitials(u).toUpperCase() || '·')}</span>`;
+  const inner = `${thumb}${badge}<span class="cell-name">${esc(u.name || '—')}</span><span class="cell-sub">${clientsRowSummary(u, d)}</span>`;
+  return u.approved === true
+    ? `<div class="cgrid-cell2 ${ring}" data-client="${u.id}" role="button" tabindex="0">${inner}</div>`
+    : `<div class="cgrid-cell2 ${ring}">${inner}</div>`;
 }
 function clientsGridHTML(L, catFilter, emptyKey) {
   L = L || CLIENTS_LAST;
   if (!L) return '';
-  catFilter = catFilter === undefined ? CLIENTS_CAT_FILTER : catFilter;
   emptyKey = emptyKey || 'clients.empty';
   if (!L.clients.length) return `<div class="wempty">${t(emptyKey)}</div>`;
-  const dataOf = u => ({ chk: L.chkByUid[u.id] || null, alerts: L.alertsByUid[u.id] || [], hasPlan: !!L.planByUid[u.id], lastDate: L.lastByUid[u.id] || null, lastW: L.lastWByUid[u.id] || null });
-  const byUid = {};
-  L.clients.forEach(u => { const d = dataOf(u); byUid[u.id] = { d, cats: clientCategories(u, d) }; });
-  const byName = (a, b) => String(a.name || '').localeCompare(String(b.name || ''));
-  let h = '';
-  CLIENT_CATS.forEach(cat => {
-    if (catFilter !== 'all' && catFilter !== cat.key) return;
-    const members = L.clients.filter(u => byUid[u.id].cats.includes(cat.key));
-    if (cat.key === 'alertas') members.sort((a, b) => (byUid[b.id].d.alerts.length - byUid[a.id].d.alerts.length) || byName(a, b));
-    else if (cat.key === 'incompleto') members.sort((a, b) => ((byUid[a.id].d.chk ? byUid[a.id].d.chk.pct : 0) - (byUid[b.id].d.chk ? byUid[b.id].d.chk.pct : 0)) || byName(a, b));
-    else members.sort(byName);
-    if (!members.length) return;
-    h += `<div class="cgrid-group"><div class="cgrid-ghead"><span class="cgrid-dot" style="background:${cat.color}"></span><b>${esc(clientCatLabel(cat.key))}</b><span class="cgrid-count">${members.length}</span></div><div class="cgrid">${members.map(u => clientGridCell(cat.key, u, byUid[u.id].d)).join('')}</div></div>`;
-  });
-  return h || `<div class="wempty">${t('clients.catEmpty')}</div>`;
+  const list = clientsFiltered();
+  if (!list.length) return `<div class="wempty">${t('clients.catEmpty')}</div>`;
+  return `<div class="cgrid2">${list.map(clientsCellHTML).join('')}</div>`;
 }
-/* La vista de LISTA de siempre, intacta: se mudó tal cual desde
-   loadClients y se pinta desde la misma pasada (CLIENTS_LAST). */
 function clientsListHTML(L, emptyKey) {
   L = L || CLIENTS_LAST;
   if (!L) return '';
   emptyKey = emptyKey || 'clients.empty';
-  const { clients, chkByUid, alertsByUid, lastByUid, lastWByUid, pendingFood } = L;
-  return clients.length ? clients.map(u => {
-    const d = clientsDaysAgo(lastByUid[u.id]);
-    const hasHealth = false; // la salud ya no vive en users/{uid}: la insignia no puede saberlo desde el listado
-    const badge = u.approved === true
-      ? (d === null ? `<span class="warn-badge">${t('clients.noWeighins')}</span>`
-        : d > 7 ? `<span class="warn-badge">${t('clients.daysAgo', { d })}</span>` : `<span class="ok-badge">${t('clients.daysAgoShort', { d })}</span>`)
-      : `<span class="warn-badge">${t('clients.pending')}</span>`;
-    const healthBadge = hasHealth ? ` <span class="warn-badge" title="${t('clients.healthTitle')}">🏥 ${t('clients.healthBadge')}</span>` : '';
-    const foodBadge = pendingFood[u.id] ? ` <span class="warn-badge" title="${t('clients.foodTitle')}">📷 ${pendingFood[u.id]}</span>` : '';
-    const lastW = lastWByUid[u.id] ? ` · <b>${lastWByUid[u.id]} kg</b>` : '';
-    return `<div class="user-row">
-      <div>${u.photoURL ? `<img class="avatar sm" src="${esc(u.photoURL)}" alt="">` : ''}<b>${esc(u.name || '—')}</b> ${badge}${healthBadge}${foodBadge}${appInstallMarkHtml(u)}<br><span class="muted">${esc(u.email || '')}${u.phone ? ' · ' + esc(u.phone) : ''}${lastW}${appInstallNoteHtml(u)}</span>${clientChecklistHTML(chkByUid[u.id])}${talertClientHTML(alertsByUid[u.id], false, u.id)}</div>
-      <div class="user-actions">${u.approved === true ? `<button class="btn-primary btn-sm" data-client="${u.id}">${t('clients.view')}</button>` : ''}</div>
-    </div>`;
-  }).join('') : `<div class="wempty">${t(emptyKey)}</div>`;
+  if (!L.clients.length) return `<div class="wempty">${t(emptyKey)}</div>`;
+  const list = clientsFiltered();
+  if (!list.length) return `<div class="wempty">${t('clients.catEmpty')}</div>`;
+  return list.map(clientsRowHTML).join('');
+}
+/* Panel «Más filtros»: las 7 categorías con su conteo (concordante:
+   filtrar por una muestra exactamente a sus miembros, una vez). */
+function clientsFiltersPanelHTML() {
+  return `<div class="back-row" id="cq-filters-back" role="button" tabindex="0">‹ ${esc(t('clients.title'))}</div>`
+    + `<div class="cat-list">${CLIENT_CATS.map(c => { const n = clientsCatCount(c.key); return `<button type="button" class="cat-row${n === 0 ? ' cat-off' : ''}" data-ccat="${c.key}"><span class="cat-name">${esc(clientCatLabel(c.key))}</span><span class="cat-n">${n}</span><span class="cat-go">›</span></button>`; }).join('')}</div>`;
 }
 function renderClientsBody() {
   const el = $('clients-list');
   if (!el || !CLIENTS_LAST) return;
+  if (CLIENTS_FILTERS_OPEN) {
+    el.innerHTML = clientsFiltersPanelHTML();
+    el.querySelectorAll('[data-ccat]').forEach(b => b.onclick = () => { CLIENTS_CAT_FILTER = b.dataset.ccat; CLIENTS_FILTERS_OPEN = false; renderClientsViewbar(); renderClientsBody(); });
+    const bk = $('cq-filters-back');
+    if (bk) bk.onclick = () => { CLIENTS_FILTERS_OPEN = false; renderClientsBody(); };
+    return;
+  }
   el.innerHTML = CLIENTS_VIEW === 'grid' ? clientsGridHTML() : clientsListHTML();
-  document.querySelectorAll('[data-client]').forEach(b => b.onclick = () => openClient(b.dataset.client));
+  el.querySelectorAll('[data-client]').forEach(b => b.onclick = () => openFichaFromClients(b.dataset.client));
 }
-/* Barra de la vista: conmutador segmentado Rejilla/Lista (la
-   rejilla nace por defecto) + filtro por categoría que nace en
-   «Todas» (solo aplica a la rejilla; la lista siempre es íntegra). */
+/* Barra de la vista (espejo de la de Alumnos): buscador +
+   conmutador Lista/Rejilla + pastillas «Todas» · «Con alertas» ·
+   «Más filtros». El filtro SUSTITUYE el contenido en ambas
+   vistas; cambiar de filtro o de vista no re-lee nada. */
 function renderClientsViewbar() {
   const bar = $('clients-viewbar');
   if (!bar) return;
-  bar.innerHTML = `<div class="clients-viewbar">`
-    + `<span class="cview-seg" role="group"><button type="button" id="cv-grid" class="${CLIENTS_VIEW === 'grid' ? 'on' : ''}">${esc(t('clients.viewGrid'))}</button><button type="button" id="cv-list" class="${CLIENTS_VIEW === 'list' ? 'on' : ''}">${esc(t('clients.viewList'))}</button></span>`
-    + (CLIENTS_VIEW === 'grid' ? `<label class="cview-filter"><span>${esc(t('clients.catFilter'))}</span><select id="cv-filter"><option value="all"${CLIENTS_CAT_FILTER === 'all' ? ' selected' : ''}>${esc(t('clients.catAll'))}</option>${CLIENT_CATS.map(c => `<option value="${c.key}"${CLIENTS_CAT_FILTER === c.key ? ' selected' : ''}>${esc(clientCatLabel(c.key))}</option>`).join('')}</select></label>` : '')
-    + `</div>`;
-  $('cv-grid').onclick = () => { if (CLIENTS_VIEW !== 'grid') { CLIENTS_VIEW = 'grid'; renderClientsViewbar(); renderClientsBody(); } };
-  $('cv-list').onclick = () => { if (CLIENTS_VIEW !== 'list') { CLIENTS_VIEW = 'list'; renderClientsViewbar(); renderClientsBody(); } };
-  const sel = $('cv-filter');
-  if (sel) sel.onchange = () => { CLIENTS_CAT_FILTER = sel.value; renderClientsBody(); };
+  const total = CLIENTS_LAST ? CLIENTS_LAST.clients.length : 0;
+  const nAlerts = CLIENTS_LAST ? CLIENTS_LAST.clients.filter(u => (CLIENTS_LAST.alertsByUid[u.id] || []).length > 0).length : 0;
+  const filtersOn = CLIENTS_FILTERS_OPEN || (CLIENTS_CAT_FILTER !== 'all' && CLIENTS_CAT_FILTER !== 'alertas');
+  bar.innerHTML = `<div class="search-row"><input type="search" id="cq-q" placeholder="${esc(t('clients.searchPh'))}" value="${esc(CLIENTS_QUERY)}"><span class="search-seg" role="group"><button type="button" id="cv-list" class="${CLIENTS_VIEW === 'list' ? 'on' : ''}">${esc(t('clients.viewList'))}</button><button type="button" id="cv-grid" class="${CLIENTS_VIEW === 'grid' ? 'on' : ''}">${esc(t('clients.viewGrid'))}</button></span></div>`
+    + `<div class="libcat-chips"><button type="button" class="libcat-chip${CLIENTS_CAT_FILTER === 'all' && !CLIENTS_FILTERS_OPEN ? ' on' : ''}" data-csel="all">${esc(t('clients.catAll'))} · ${total}</button><button type="button" class="libcat-chip${CLIENTS_CAT_FILTER === 'alertas' && !CLIENTS_FILTERS_OPEN ? ' on' : ''}" data-csel="alertas">${esc(clientCatLabel('alertas'))} · ${nAlerts}</button><button type="button" class="libcat-chip${filtersOn ? ' on' : ''}" data-csel="filtros">${esc(t('clients.moreFilters'))}</button></div>`;
+  const q = $('cq-q');
+  if (q) q.addEventListener('input', () => { CLIENTS_QUERY = q.value; CLIENTS_FILTERS_OPEN = false; renderClientsBody(); });
+  $('cv-grid').onclick = () => { if (CLIENTS_VIEW !== 'grid') { CLIENTS_VIEW = 'grid'; CLIENTS_FILTERS_OPEN = false; renderClientsViewbar(); renderClientsBody(); } };
+  $('cv-list').onclick = () => { if (CLIENTS_VIEW !== 'list') { CLIENTS_VIEW = 'list'; CLIENTS_FILTERS_OPEN = false; renderClientsViewbar(); renderClientsBody(); } };
+  bar.querySelectorAll('[data-csel]').forEach(b => b.onclick = () => {
+    const p = b.dataset.csel;
+    if (p === 'filtros') { CLIENTS_FILTERS_OPEN = !CLIENTS_FILTERS_OPEN; }
+    else { CLIENTS_CAT_FILTER = p; CLIENTS_FILTERS_OPEN = false; }
+    renderClientsViewbar(); renderClientsBody();
+  });
 }
 async function loadClients() {
   const sec = $('clients-section');
@@ -7754,7 +7770,27 @@ async function loadClients() {
    (loadClientRings / trainerAlertsFetch: allow get por
    isAssignedTrainerOf) y la consulta nutrition_progress por
    ownerUid (tevalLoad en la ficha: allow list por
-   isAssignedTrainerOf). El resto de lecturas son las de AUTH-105. */
+   isAssignedTrainerOf). El resto de lecturas son las de AUTH-105.
+
+   CORRECCIÓN (AUTH-2026-10-31-109; defecto confirmado por Ronald
+   en su iPhone y en el chat 2026-10-31 03:51 CDT: al tocar un
+   alumno «su vista no se abre bien — vuelve a como estaba y está
+   mal desprendido»: el toque caía en la rejilla apilada de «Mis
+   clientes» y la ficha se pintaba al fondo de esa sección):
+     · studentsRowTap abre SIEMPRE la vista del alumno DENTRO de
+       Alumnos (el detalle), tenga o no pendientes.
+     · La ficha completa se abre en MODO FICHA: superficie única
+       sobre #clients-section (clase ficha-solo / ficha-solo-meal
+       que oculta todo lo demás de la sección, rejilla incluida,
+       desde ANTES del cambio de pestaña) con barra de regreso a
+       Alumnos; el snapshot STUDENTS_RESTORE restaura filtro,
+       buscador, detalle y scroll al volver. La misma superficie
+       sirve al origen «Mis clientes» (B-A2).
+     · Velocidad de la pasada: lecturas compartidas en paralelo,
+       por alumno checklist+alertas+pendientes a la vez, y
+       pendconfig/pendstate leídos UNA vez y compartidos entre
+       alertas y pendientes (diagnóstico: 59 ops / 15 rondas en
+       serie → 49 ops / ~3 rondas). */
 let STUDENTS_VIEW = 'list';            // A-A6: nace en LISTA; 'grid' es la alternativa
 let STUDENTS_SEL = 'asignados';        // 'asignados' | 'pendientes' | <clave de CLIENT_CATS>
 let STUDENTS_FILTERS = false;          // panel «Más filtros» abierto
@@ -8093,17 +8129,21 @@ function renderStudentsViewbar() {
 }
 
 /* ---------- navegación interna y salto a la ficha ---------- */
+/* AUTH-109: tocar un alumno abre SIEMPRE su vista DENTRO de
+   Alumnos — el detalle (con pendientes o «al día») — desde
+   cualquier filtro y vista. Antes, un alumno sin pendientes
+   saltaba directo a la ficha en «Clientes» y el entrenador caía
+   sobre la rejilla apilada de siempre (el defecto que Ronald
+   filmó: «toque a un usuario para ver sus pendiente y me
+   aparezca todo esto»). */
 function studentsRowTap(uid) {
-  const L = STUDENTS_LAST; if (!L) return;
-  const pend = L.pendByUid[uid];
-  if (L.pendErrByUid[uid] || (pend && pend.items.length)) {
-    STUDENTS_DETAIL = uid;
-    STUDENTS_DETAIL_FROM = STUDENTS_FILTERS ? 'filtros' : STUDENTS_SEL;
-    STUDENTS_SCROLL = window.scrollY || 0;
-    renderStudentsBody();
-    const sec = $('students-section');
-    if (sec) sec.scrollIntoView({ block: 'start' });
-  } else studentsGoFicha(uid);
+  if (!STUDENTS_LAST) return;
+  STUDENTS_DETAIL = uid;
+  STUDENTS_DETAIL_FROM = STUDENTS_FILTERS ? 'filtros' : STUDENTS_SEL;
+  STUDENTS_SCROLL = window.scrollY || 0;
+  renderStudentsBody();
+  const sec = $('students-section');
+  if (sec) sec.scrollIntoView({ block: 'start' });
 }
 function studentsCloseDetail() {
   STUDENTS_DETAIL = null;
@@ -8111,22 +8151,95 @@ function studentsCloseDetail() {
   const y = STUDENTS_SCROLL;
   requestAnimationFrame(() => { try { window.scrollTo(0, y); } catch {} });
 }
-/* Salto a la ficha (vive en «Clientes») con snapshot: al volver a
-   la pestaña, la pasada consume STUDENTS_RESTORE y restaura
-   selección, buscador, detalle y posición en vez de nacer de cero. */
+/* ---------- superficie ÚNICA de la ficha (AUTH-2026-10-31-109) ----------
+   La ficha completa vive en «Clientes» (#client-detail), pero en
+   los caminos que NACEN en «Alumnos» (y, por B-A2, al tocar un
+   cliente en la lista de «Mis clientes») la sección entra en
+   MODO FICHA *antes* de mostrarse: la clase ficha-solo oculta
+   TODOS los hijos de #clients-section salvo la barra de regreso
+   y la propia ficha (display:none !important, inmune a los
+   repintados de loadClients) — la rejilla/lista de «Mis clientes»
+   NO aparece ni un instante, ni encima ni debajo ni durante la
+   espera (la ficha nace con su «Cargando…»). La variante
+   ficha-solo-meal deja visible solo #meal-trainer-box (el
+   registro de decisión de la solicitud de comidas: no se duplica
+   superficie de escritura). El regreso restaura el origen:
+   Alumnos consume STUDENTS_RESTORE; Clientes repinta su lista
+   con el filtro vigente y su posición guardada. */
+let FICHA_MODE = null;   // { origin: 'students'|'clients', surface: 'ficha'|'meal' }
+function fichaSetMode(origin, surface) {
+  const sec = $('clients-section'); if (!sec) return;
+  FICHA_MODE = { origin, surface };
+  sec.classList.remove('ficha-solo', 'ficha-solo-meal');
+  sec.classList.add(surface === 'meal' ? 'ficha-solo-meal' : 'ficha-solo');
+  const bk = $('ficha-back');
+  if (bk) { bk.textContent = '‹ ' + t(origin === 'students' ? 'students.title' : 'clients.title'); bk.onclick = () => fichaClose(); }
+  if (surface === 'ficha') {
+    const box = $('client-detail');
+    if (box) { box.style.display = ''; box.innerHTML = `<div class="wempty">${esc(t('access.loading'))}</div>`; }
+  }
+}
+function fichaClearMode() {
+  const sec = $('clients-section');
+  if (sec) sec.classList.remove('ficha-solo', 'ficha-solo-meal');
+  FICHA_MODE = null;
+}
+function fichaClose() {
+  const mode = FICHA_MODE;
+  fichaClearMode();
+  const box = $('client-detail');
+  if (box) { box.style.display = 'none'; box.innerHTML = ''; }
+  if (!mode) return;
+  if (mode.origin === 'students') { switchTab('students'); return; }
+  renderClientsBody();
+  const y = CLIENTS_SCROLL;
+  requestAnimationFrame(() => { try { window.scrollTo(0, y); } catch {} });
+}
+/* El «Cerrar» propio de la ficha, mientras el modo ficha está
+   activo, EQUIVALE al regreso al origen (interceptado en captura,
+   antes de su handler propio, que solo la ocultaría dejando la
+   superficie vacía). Fuera del modo ficha no se toca nada. */
+document.addEventListener('click', e => {
+  if (FICHA_MODE && e.target && e.target.id === 'btn-client-close') { e.preventDefault(); e.stopPropagation(); fichaClose(); }
+}, true);
+/* Apertura desde la lista de «Mis clientes» (B-A2): la ficha
+   sustituye a la lista como vista única; el regreso restaura. */
+function openFichaFromClients(uid) {
+  CLIENTS_SCROLL = window.scrollY || 0;
+  fichaSetMode('clients', 'ficha');
+  openClient(uid);
+}
+/* Salto a la ficha desde Alumnos, con snapshot: la ficha se abre
+   como superficie única (modo ficha) y al volver, la pasada de
+   Alumnos consume STUDENTS_RESTORE y restaura selección,
+   buscador, detalle y posición en vez de nacer de cero. */
 function studentsGoFicha(uid) {
   STUDENTS_RESTORE = true;
   STUDENTS_SCROLL = window.scrollY || 0;
+  fichaSetMode('students', 'ficha');
   openStudent(uid);
 }
 /* Acceso al REGISTRO correspondiente de un ítem (A-A3): la ficha
    del cliente ya contiene cada registro (historial de pesajes
-   arriba, fotos de comida por revisar, evaluaciones); se salta
-   con snapshot y se enfoca el bloque del ítem. La solicitud de
-   comidas se decide en su caja de «Clientes» (#meal-trainer-box). */
+   arriba, fotos de comida por revisar, evaluaciones); se abre la
+   superficie única y se enfoca el bloque del ítem. La solicitud
+   de comidas se decide en su caja (#meal-trainer-box), que en
+   este camino es la superficie única visible. */
 function studentsOpenRecord(uid, kind) {
   STUDENTS_RESTORE = true;
   STUDENTS_SCROLL = window.scrollY || 0;
+  if (kind === 'mealreq') {
+    fichaSetMode('students', 'meal');
+    openStudent(uid);
+    let mtries = 0;
+    const miv = setInterval(() => {
+      mtries++;
+      const mb = $('meal-trainer-box');
+      if ((mb && mb.innerHTML) || mtries >= 60) { if (mb && mb.innerHTML) { try { mb.scrollIntoView({ block: 'start' }); } catch {} } clearInterval(miv); }
+    }, 120);
+    return;
+  }
+  fichaSetMode('students', 'ficha');
   openStudent(uid);
   if (kind === 'weight') return;
   let tries = 0;
@@ -8140,9 +8253,6 @@ function studentsOpenRecord(uid, kind) {
       } else if (kind === 'food') {
         const fh = document.querySelector('#client-detail .mealhelp-list');
         if (fh) { fh.scrollIntoView({ behavior: 'smooth', block: 'center' }); done = true; }
-      } else if (kind === 'mealreq') {
-        const mb = $('meal-trainer-box');
-        if (mb && mb.style.display !== 'none' && mb.innerHTML) { mb.scrollIntoView({ behavior: 'smooth', block: 'start' }); done = true; }
       }
     } catch {}
     if (done || tries >= 60) clearInterval(iv);
@@ -8160,6 +8270,14 @@ async function loadStudents() {
   if (STUDENTS_RESTORE) { STUDENTS_RESTORE = false; restoreY = STUDENTS_SCROLL; }
   else { STUDENTS_SEL = 'asignados'; STUDENTS_QUERY = ''; STUDENTS_FILTERS = false; STUDENTS_DETAIL = null; }
   const myUid = auth.currentUser.uid;
+  /* AUTH-109 (velocidad; diagnóstico de carga 2026-10-31): la
+     consulta de solicitudes solo necesita mi uid — sale EN
+     PARALELO con la de usuarios en vez de esperar tres fases.
+     Su resultado viaja como {ok, all} sin lanzar: reqOk conserva
+     su papel en sharedOk (A-A5) exactamente igual que antes. */
+  const pReqs = getDocs(query(collection(db, 'meal_requests'), where('trainerUid', '==', myUid)))
+    .then(mq => { const all = []; mq.forEach(d => all.push({ id: d.id, ...d.data() })); return { ok: true, all }; },
+          () => ({ ok: false, all: [] }));
   let users = [];
   try {
     /* SOLO mis alumnos, desde la consulta: la lista acotada por
@@ -8175,72 +8293,89 @@ async function loadStudents() {
      es «Clientes» y sus bandejas) y nada se rompe por su ausencia. */
   const students = users.filter(u => !u.isOwner && u.trainerUid === myUid && u.approved === true && u.assignmentStatus === 'assigned');
   const ids = students.map(u => u.id);
-  let weights = [], weightsOk = true;
-  try {
-    if (ids.length) {
-      const ws = await getDocs(query(collection(db, 'nutrition_weight'), where('ownerUid', 'in', ids.slice(0, 30))));
-      ws.forEach(d => { const v = d.data();
-        if (v.ownerUid && num(v.weight) > 0) weights.push({ uid: v.ownerUid, date: v.date, weight: num(v.weight) }); });
-    }
-  } catch { weightsOk = false; }
+  /* Las dos lecturas compartidas restantes salen EN PARALELO
+     (antes: dos fases en serie). Mismos contenidos y mismos
+     flags de error (weightsOk / foodOk) que alimentan sharedOk. */
+  const pWeights = (async () => {
+    const out = []; let ok = true;
+    try {
+      if (ids.length) {
+        const ws = await getDocs(query(collection(db, 'nutrition_weight'), where('ownerUid', 'in', ids.slice(0, 30))));
+        ws.forEach(d => { const v = d.data();
+          if (v.ownerUid && num(v.weight) > 0) out.push({ uid: v.ownerUid, date: v.date, weight: num(v.weight) }); });
+      }
+    } catch { ok = false; }
+    return { ok, out };
+  })();
+  const pFood = (async () => {
+    const pending = {}, items = {}; let ok = true;
+    try {
+      if (ids.length) {
+        const fs = await getDocs(query(collection(db, 'meal_help'), where('ownerUid', 'in', ids.slice(0, 30))));
+        fs.forEach(d => { const v = d.data();
+          if (v.status === 'pending' && v.ownerUid) {
+            pending[v.ownerUid] = (pending[v.ownerUid] || 0) + 1;
+            (items[v.ownerUid] = items[v.ownerUid] || []).push({ id: d.id, createdAt: v.createdAt || null });
+          } });
+      }
+    } catch { ok = false; }
+    return { ok, pending, items };
+  })();
+  const [wRes, fRes, rRes] = await Promise.all([pWeights, pFood, pReqs]);
+  const weights = wRes.out, weightsOk = wRes.ok;
+  const pendingFood = fRes.pending, foodItemsByUid = fRes.items, foodOk = fRes.ok;
+  const mealReqsAll = rRes.all, reqOk = rRes.ok;
   const lastByUid = {}, lastWByUid = {}, weightDatesByUid = {};
   weights.forEach(w => {
     if (!lastByUid[w.uid] || w.date > lastByUid[w.uid]) { lastByUid[w.uid] = w.date; lastWByUid[w.uid] = w.weight; }
     (weightDatesByUid[w.uid] = weightDatesByUid[w.uid] || []).push({ date: w.date, weight: w.weight });
   });
   Object.values(weightDatesByUid).forEach(a => a.sort((x, y) => x.date < y.date ? -1 : 1));
-  let pendingFood = {}, foodItemsByUid = {}, foodOk = true;
-  try {
-    if (ids.length) {
-      const fs = await getDocs(query(collection(db, 'meal_help'), where('ownerUid', 'in', ids.slice(0, 30))));
-      fs.forEach(d => { const v = d.data();
-        if (v.status === 'pending' && v.ownerUid) {
-          pendingFood[v.ownerUid] = (pendingFood[v.ownerUid] || 0) + 1;
-          (foodItemsByUid[v.ownerUid] = foodItemsByUid[v.ownerUid] || []).push({ id: d.id, createdAt: v.createdAt || null });
-        } });
-    }
-  } catch { foodOk = false; }
   /* La última solicitud de comidas por alumno alimenta el checklist,
-     como en loadClients; la consulta va acotada por trainerUid. */
-  let mealReqsAll = [], reqOk = true;
-  try {
-    const mq = await getDocs(query(collection(db, 'meal_requests'), where('trainerUid', '==', myUid)));
-    mq.forEach(d => mealReqsAll.push({ id: d.id, ...d.data() }));
-  } catch { reqOk = false; }
+     como en loadClients. */
   const reqMs = x => (x && x.requestedAt && x.requestedAt.toMillis) ? x.requestedAt.toMillis() : 0;
   const latestReqByUid = {};
   mealReqsAll.forEach(r => { if (r.alumnoUid && (!latestReqByUid[r.alumnoUid] || reqMs(r) >= reqMs(latestReqByUid[r.alumnoUid]))) latestReqByUid[r.alumnoUid] = r; });
-  const chkByUid = {};
-  await Promise.all(students.map(async u => { try { chkByUid[u.id] = await clientProfileChecklist(u, latestReqByUid[u.id] || null); } catch {} }));
-  const alertsByUid = {};
-  await Promise.all(students.map(async u => { try { alertsByUid[u.id] = await trainerAlertsFor(u.id, u); } catch {} }));
+  /* Por alumno (AUTH-109): checklist, alertas y pendientes corren
+     A LA VEZ (antes: tres fases globales en serie). pendconfig y
+     pendstate se leen UNA SOLA VEZ por alumno — promesas CRUDAS
+     lanzadas aquí y compartidas entre las alertas (que degradan
+     un rechazo a cfg=null / marcas={} vía «pre») y la rama de
+     pendientes (que conserva su semántica A-A5: un rechazo marca
+     SOLO a ese alumno en ERROR; un fallo compartido los marca a
+     todos). Los catches mudos evitan rechazos sin consumidor
+     cuando una rama no llega a leerlas (p. ej. caché de alertas
+     caliente): el consumidor real sigue viendo el rechazo en su
+     propio await/then. */
+  const sharedOk = weightsOk && foodOk && reqOk;
+  const chkByUid = {}, alertsByUid = {}, pendByUid = {}, pendErrByUid = {};
+  await Promise.all(students.map(async u => {
+    const cfgP = getDoc(doc(db, 'nutrition_progress', u.id + '_pendconfig'));
+    const stP = getDoc(doc(db, 'nutrition_progress', u.id + '_pendstate'));
+    cfgP.catch(() => {}); stP.catch(() => {});
+    const pChk = (async () => { try { chkByUid[u.id] = await clientProfileChecklist(u, latestReqByUid[u.id] || null); } catch {} })();
+    const pAlerts = trainerAlertsFor(u.id, u, { cfgP, stP }).then(a => { alertsByUid[u.id] = a; }, () => {});
+    const pPend = (async () => {
+      if (!sharedOk) { pendErrByUid[u.id] = true; return; }
+      try {
+        const cs = await cfgP;
+        const cfg = cs.exists() ? Object.assign(pendDefaults(), cs.data()) : null;
+        const ss = await stP;
+        const marks = ss.exists() ? ((ss.data() && ss.data().marks) || {}) : {};
+        const ps = await getDocs(query(collection(db, 'nutrition_progress'), where('ownerUid', '==', u.id)));
+        pendByUid[u.id] = studentsPendCompute({
+          cfg, marks,
+          wdates: weightDatesByUid[u.id] || [],
+          prog: spProgParse(ps),
+          reqLatest: latestReqByUid[u.id] || null,
+          foodItems: foodItemsByUid[u.id] || []
+        }, new Date());
+      } catch { pendErrByUid[u.id] = true; }
+    })();
+    await Promise.all([pChk, pAlerts, pPend]);
+  }));
   const planByUid = {};
   students.forEach(u => { const c = TALERTS_CACHE[u.id]; planByUid[u.id] = !!(c && c.hasPlan); });
-  /* Pasada de pendientes por alumno (A-A3/A-A5): lee su
-     configuración y sus marcas de Pendientes y su progreso
-     (formas vivas del entrenador asignado) y calcula con el
-     espejo. Si alguna lectura compartida falló, o la suya propia
-     falla, el alumno queda marcado en ERROR — jamás «al día». */
-  const sharedOk = weightsOk && foodOk && reqOk;
-  const pendByUid = {}, pendErrByUid = {};
-  await Promise.all(students.map(async u => {
-    if (!sharedOk) { pendErrByUid[u.id] = true; return; }
-    try {
-      let cfg = null, marks = {};
-      const cs = await getDoc(doc(db, 'nutrition_progress', u.id + '_pendconfig'));
-      if (cs.exists()) cfg = Object.assign(pendDefaults(), cs.data());
-      const ss = await getDoc(doc(db, 'nutrition_progress', u.id + '_pendstate'));
-      if (ss.exists()) marks = (ss.data() && ss.data().marks) || {};
-      const ps = await getDocs(query(collection(db, 'nutrition_progress'), where('ownerUid', '==', u.id)));
-      pendByUid[u.id] = studentsPendCompute({
-        cfg, marks,
-        wdates: weightDatesByUid[u.id] || [],
-        prog: spProgParse(ps),
-        reqLatest: latestReqByUid[u.id] || null,
-        foodItems: foodItemsByUid[u.id] || []
-      }, new Date());
-    } catch { pendErrByUid[u.id] = true; }
-  }));
   STUDENTS_LAST = { clients: students, chkByUid, alertsByUid, planByUid, lastByUid, lastWByUid, pendingFood, pendByUid, pendErrByUid };
   renderStudentsViewbar();
   renderStudentsBody();
@@ -9536,11 +9671,20 @@ function trainerAlertsCompute(ctx, data) {
 }
 /* Lectura de los datos de UN alumno (las mismas fuentes que la
    ficha y el motor del alumno) y su cómputo. SOLO LECTURA. */
-async function trainerAlertsFetch(uid, udata) {
+async function trainerAlertsFetch(uid, udata, pre) {
   const ctx = { goals: (udata && udata.goals) || {}, prov: (udata && udata.goalsProvenance) || null,
     overrides: (udata && udata.goalsDayOverrides) || null, plan: null, cfg: null };
   const totals = {}, mealsByDate = {};
-  try {
+  /* AUTH-2026-10-31-109 (velocidad): las cinco lecturas son
+     independientes — salen EN PARALELO y se espera al conjunto.
+     Cada rama conserva EXACTA su semántica de error de antes
+     (comidas/plan/logs fallidos degradan a vacío; cfg fallido a
+     null; marcas fallidas a {}). «pre» (opcional) trae las
+     promesas CRUDAS de pendconfig/pendstate ya lanzadas por el
+     llamante para compartirlas con otro consumidor (la pasada de
+     pendientes de «Mis alumnos»): un rechazo degrada aquí igual
+     que degradaba el catch propio. */
+  const pMeals = (async () => { try {
     const ms = await getDocs(query(collection(db, 'nutrition_meals'), where('ownerUid', '==', uid)));
     ms.forEach(d => { const v = d.data();
       if (!/^\d{4}-\d{2}-\d{2}$/.test(v.date || '')) return;
@@ -9548,27 +9692,32 @@ async function trainerAlertsFetch(uid, udata) {
       tt.kcal += num(v.kcal); tt.prot += num(v.prot); tt.carb += num(v.carb); tt.azuc += num(v.sugar); tt.gras += num(v.fat);
       (mealsByDate[v.date] = mealsByDate[v.date] || []).push(v.meal);
     });
-  } catch {}
-  try { const plans = await fetchPlans(uid); ctx.plan = plans.find(p => p.active === true) || null; } catch {}
+  } catch {} })();
   /* ORGANIZAR CLIENTES (AUTH-2026-10-28-066): el booleano «tiene
      plan activo» sale de ESTA misma lectura (cero consultas nuevas)
      y viaja con el resultado para que la rejilla de «Mis clientes»
      derive su categoría «sin plan» sin volver a leer nada. */
-  try {
-    const cs = await getDoc(doc(db, 'nutrition_progress', uid + '_pendconfig'));
-    ctx.cfg = cs.exists() ? Object.assign(pendDefaults(), cs.data()) : { activated: false };
-  } catch { ctx.cfg = null; }
+  const pPlan = (async () => { try { const plans = await fetchPlans(uid); ctx.plan = plans.find(p => p.active === true) || null; } catch {} })();
+  const pCfg = (pre && pre.cfgP)
+    ? pre.cfgP.then(cs => { ctx.cfg = cs.exists() ? Object.assign(pendDefaults(), cs.data()) : { activated: false }; }, () => { ctx.cfg = null; })
+    : (async () => { try {
+        const cs = await getDoc(doc(db, 'nutrition_progress', uid + '_pendconfig'));
+        ctx.cfg = cs.exists() ? Object.assign(pendDefaults(), cs.data()) : { activated: false };
+      } catch { ctx.cfg = null; } })();
   let marks = {};
-  try { const ss = await getDoc(doc(db, 'nutrition_progress', uid + '_pendstate')); if (ss.exists()) marks = (ss.data() && ss.data().marks) || {}; } catch {}
+  const pMarks = (pre && pre.stP)
+    ? pre.stP.then(ss => { if (ss.exists()) marks = (ss.data() && ss.data().marks) || {}; }, () => {})
+    : (async () => { try { const ss = await getDoc(doc(db, 'nutrition_progress', uid + '_pendstate')); if (ss.exists()) marks = (ss.data() && ss.data().marks) || {}; } catch {} })();
   const logDates = new Set();
-  try { const logs = await fetchLogs(uid); logs.forEach(l => { if (l.date) logDates.add(l.date); }); } catch {}
+  const pLogs = (async () => { try { const logs = await fetchLogs(uid); logs.forEach(l => { if (l.date) logDates.add(l.date); }); } catch {} })();
+  await Promise.all([pMeals, pPlan, pCfg, pMarks, pLogs]);
   return { alerts: trainerAlertsCompute(ctx, { totals, mealsByDate, marks, logDates }), hasPlan: !!ctx.plan };
 }
-async function trainerAlertsFor(uid, udata) {
+async function trainerAlertsFor(uid, udata, pre) {
   const c = TALERTS_CACHE[uid];
   if (c && (Date.now() - c.at) < TALERT_TTL_MS) return c.alerts;
   let alerts = []; let hasPlan = false;
-  try { const r = await trainerAlertsFetch(uid, udata); alerts = r.alerts; hasPlan = r.hasPlan; } catch {}
+  try { const r = await trainerAlertsFetch(uid, udata, pre); alerts = r.alerts; hasPlan = r.hasPlan; } catch {}
   TALERTS_CACHE[uid] = { at: Date.now(), alerts, hasPlan };
   return alerts;
 }
@@ -21295,6 +21444,10 @@ function switchTab(name) {
      cierra al cambiar de área — y la posición de scroll de cada
      área se recuerda en memoria para volver a donde estaba. */
   if (NAV_TAB && NAV_TAB !== name) NAV_PILL_SCROLL[NAV_TAB] = window.scrollY || 0;
+  /* AUTH-109: salir de «Clientes» por cualquier pastilla apaga el
+     modo ficha (la sección nunca queda secuestrada en superficie
+     única al volver a ella por la vía normal). */
+  if (name !== 'clients' && typeof fichaClearMode === 'function') fichaClearMode();
   NAV_TAB = name;
   if (name !== 'track' && NAV_PAGE) navClosePagesForce();
   document.querySelectorAll('.main-tab').forEach(b => b.classList.toggle('active', b.dataset.tab === name));
@@ -26091,7 +26244,7 @@ document.addEventListener('keydown', e => { if (e.key === 'Escape') shareClose()
  *  - El SW (sw.js) solo cachea la cáscara del mismo origen en modo
  *    RED PRIMERO: Auth/Firestore/Worker jamás pasan por la caché.
  * ================================================================ */
-const PWA_SW_VERSION = '20261031-alumnos-detalle';
+const PWA_SW_VERSION = '20261031-alumnos-apertura';
 let pwaDeferredPrompt = null;
 function pwaIsStandalone() {
   try {

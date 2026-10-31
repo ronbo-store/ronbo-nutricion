@@ -2260,3 +2260,21 @@ body.nav-lock .sw-fab, body.nav-lock .help-fab, body.nav-lock .share-fab, body.n
 #students-viewbar .libcat-chips { align-items: center; }
 #students-viewbar .libcat-chip { display: inline-flex; align-items: center; gap: 5px; }
 #students-viewbar .libcat-chip svg { width: 14px; height: 14px; flex: none; }
+
+/* ===== AUTH-2026-10-31-109: superficie única de la ficha (modo ficha) =====
+   En los caminos que nacen en «Alumnos» (y al tocar un cliente en
+   «Mis clientes», B-A2) la ficha se abre como ÚNICO contenido
+   visible de su sección: las clases ficha-solo / ficha-solo-meal
+   ocultan todos los demás hijos de #clients-section — rejilla,
+   lista, bandejas y cajas — con !important, de modo que ningún
+   repintado de loadClients pueda mostrarlos ni un instante. La
+   barra de regreso (#ficha-backbar) es el único acompañante. */
+#clients-section.ficha-solo > *:not(#ficha-backbar):not(#client-detail),
+#clients-section.ficha-solo-meal > *:not(#ficha-backbar):not(#meal-trainer-box) { display: none !important; }
+#clients-section.ficha-solo #ficha-backbar,
+#clients-section.ficha-solo-meal #ficha-backbar { display: block !important; }
+#ficha-backbar { margin-bottom: 4px; }
+.srow-static { cursor: default; }
+#clients-viewbar .libcat-chips { align-items: center; }
+#clients-viewbar .libcat-chip { display: inline-flex; align-items: center; gap: 5px; }
+#clients-list .cat-list { margin-top: 2px; }
