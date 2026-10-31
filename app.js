@@ -2954,6 +2954,11 @@ en: {
   'profile.notesPh': 'What you fill in during the first interview…',
   'profile.save': 'Save profile',
   'chart.note': '% of the daily goal per day. The dotted line is 100%. For sugar, the ideal is to stay below it.',
+  'chart.trainLegend': 'Training (% of the session)',
+  'chart.restLegend': 'Rest / no session',
+  'chart.todayLegend': 'Today: scheduled, not logged',
+  'chart.noteTrain': 'The runner marks the % of the training session completed that day.',
+  'chart.trainTitle': 'Training: {p}%',
   'err.name': 'Enter your full name.',
   'err.phone': 'Enter your phone number.',
   'err.gender': 'Select your sex / gender.',
@@ -5096,6 +5101,11 @@ es: {
   'profile.notesPh': 'Lo que completes en la primera entrevista…',
   'profile.save': 'Guardar perfil',
   'chart.note': '% de la meta diaria por día. La línea punteada es el 100%. En azúcares, lo ideal es mantenerse por debajo.',
+  'chart.trainLegend': 'Entrenamiento (% de la sesión)',
+  'chart.restLegend': 'Descanso / sin sesión',
+  'chart.todayLegend': 'Hoy: programado, sin registrar',
+  'chart.noteTrain': 'El corredor marca el % de la sesión de entrenamiento hecha ese día.',
+  'chart.trainTitle': 'Entrenamiento: {p}%',
   'err.name': 'Escribe tu nombre y apellido.',
   'err.phone': 'Escribe tu número de teléfono.',
   'err.gender': 'Selecciona tu sexo / género.',
@@ -11976,6 +11986,81 @@ function weekDates(iso) {
   }
   return out;
 }
+/* ENTRENAMIENTO EN LA GRÁFICA SEMANAL (decisión de Ronald,
+   chat 2026-10-31 07:41 CDT: iconos de persona corriendo, NO una
+   línea como las de comida; maqueta mq6 aprobada por Ronald en
+   el chat, 2026-10-31 18:24 CDT: «Aprobada»): el estado de
+   entrenamiento de cada fecha de la semana pintada, calculado
+   SOLO de lo que la app ya guarda — el plan activo (MY_PLAN) con
+   su mapa fecha→día de siempre (trainDayMap: pares por día de
+   semana, configuración o plan-calendario; la MISMA resolución
+   que usa la vista de la sesión, para que gráfica y sesión
+   nunca diverjan) y los registros del plan (MY_LOGS). Sin plan
+   activo no hay serie (null) y la gráfica queda como siempre.
+   Estados por fecha:
+     · {k:'frac', p} — hubo sesión (o tocaba y quedó en p): el
+       corredor se pinta a la altura p = hecho/programado. La
+       fracción sale del registro con la semántica de la casa:
+       estado 'done' → 1; 'skipped' → 0; si no, ejercicios
+       hechos/programados vía trainHistRows (la misma cuenta
+       del modelo de compartir). Un registro en una fecha SIN
+       rutina programada cuenta como sesión hecha (p = 1): el
+       hecho manda sobre el mapa.
+     · {k:'rest'} — fecha dentro de la ventana del plan sin
+       rutina programada y sin registro: marcador de descanso
+       en la base; NO es un cero (no «no entrené»: «no tocaba»).
+     · {k:'today'} — hoy con sesión programada y aún sin
+       registro cerrado: corredor atenuado en círculo punteado.
+       Las marcas en curso de hoy NO son un registro (la casa
+       solo afirma lo hecho desde training_logs).
+     · null — futuro (sin dato ≠ 0%, como las líneas de
+       comida), fuera de la ventana del plan-calendario, o en
+       modo rotación un día pasado sin registro (la rotación no
+       fija sesiones a fechas: ausencia honesta, ni descanso
+       inventado ni cero). En rotación, hoy siempre tiene una
+       sesión siguiente → 'today' si no hay registro. */
+function weekTrainStates(days) {
+  try {
+    const plan = (typeof MY_PLAN !== 'undefined') ? MY_PLAN : null;
+    if (!plan || !Array.isArray(plan.days) || !plan.days.length) return null;
+    const logs = (typeof MY_LOGS !== 'undefined' && Array.isArray(MY_LOGS)) ? MY_LOGS : [];
+    const cfg = (typeof PEND_CFG !== 'undefined' && PEND_CFG && !PEND_CFG.__error) ? PEND_CFG : null;
+    const tmap = trainDayMap(plan, cfg);
+    const today = todayISO();
+    const diFor = iso => {
+      if (tmap.pairs) { const v = tmap.pairs[new Date(iso + 'T12:00:00').getDay()]; return v == null ? null : v; }
+      if (tmap.mode === 'plancal') return planCalDayIndex(plan, iso);
+      return null;
+    };
+    const inCalRange = iso => {
+      if (tmap.mode !== 'plancal') return true;
+      const s = String(plan.startsAt || '').slice(0, 10);
+      if (!/^\d{4}-\d{2}-\d{2}$/.test(s) || iso < s) return false;
+      const e = plan.endsAt ? String(plan.endsAt).slice(0, 10) : null;
+      return !(e && /^\d{4}-\d{2}-\d{2}$/.test(e) && iso > e);
+    };
+    const fracOf = log => {
+      const st = trainLogStatus(log);
+      if (st === 'done') return 1;
+      if (st === 'skipped') return 0;
+      const rows = trainHistRows((plan.days || [])[log.dayIndex] || {}, log);
+      if (!rows.length) return log.done === true ? 1 : 0;
+      return Math.min(1, rows.filter(r => r.de).length / rows.length);
+    };
+    return days.map(iso => {
+      if (iso > today) return null;
+      const dl = logs.filter(l => l.date === iso);
+      const di = diFor(iso);
+      const own = di != null ? dl.find(l => l.dayIndex === di) : null;
+      if (own) return { k: 'frac', p: fracOf(own) };
+      if (dl.length) return { k: 'frac', p: 1 };
+      if (di != null) return iso === today ? { k: 'today' } : { k: 'frac', p: 0 };
+      if (tmap.mode === 'rotation') return iso === today ? { k: 'today' } : null;
+      if (!inCalRange(iso)) return null;
+      return { k: 'rest' };
+    });
+  } catch { return null; }
+}
 function renderWeekChart(date) {
   const el = $('weekChart');
   if (!hasAnyGoal()) { // sin metas no hay cumplimiento que graficar: aviso explícito, ningún % fantasma
@@ -12037,8 +12122,30 @@ function renderWeekChart(date) {
      <text x="${X(i)}" y="${H - 4}" text-anchor="middle" font-size="9" fill="#cbd5e1">${shortDate(d)}</text>`).join('');
   const legend = series.map((s, i) =>
     `<circle cx="${P.l + i * 128}" cy="8" r="4" fill="${s.color}"/><text x="${P.l + i * 128 + 8}" y="12" font-size="10" fill="#4b5563">${s.name}</text>`).join('');
-  el.innerHTML = `<div class="chart-wrap"><svg viewBox="0 0 ${W} ${H}" style="width:100%;height:auto;display:block">${legend}${grid}${highlight}${lines}${labels}</svg></div>
-    <p class="chart-note">${t('chart.note')}</p>`;
+  /* El entrenamiento entra SIN línea: corredores sueltos a la
+     altura de su % (sobre las series de comida, que no se tocan
+     ni en geometría), marcador de descanso en la base y el
+     corredor atenuado de hoy dentro de su círculo punteado. */
+  const train = weekTrainStates(days);
+  const trainMarks = !train ? '' : train.map((s, i) => {
+    if (!s) return '';
+    const cx = X(i).toFixed(1);
+    if (s.k === 'rest')
+      return `<g class="wk-rest"><title>${t('chart.restLegend')}</title><circle cx="${cx}" cy="${(Y(0) - 9).toFixed(1)}" r="8" fill="none" stroke="#9ca3af" stroke-width="1.6" stroke-dasharray="3 3"/></g>`;
+    if (s.k === 'today')
+      return `<g class="wk-today"><title>${t('chart.todayLegend')}</title><circle cx="${cx}" cy="${(Y(0) - 11).toFixed(1)}" r="12" fill="#0d9488" fill-opacity="0.06" stroke="#0d9488" stroke-width="1.6" stroke-dasharray="4 3"/><text x="${cx}" y="${(Y(0) - 4).toFixed(1)}" text-anchor="middle" font-size="13" opacity="0.45">🏃</text></g>`;
+    const p = Math.max(0, Math.min(1, s.p));
+    const lbl = p < 1
+      ? `<text x="${(X(i) + 13).toFixed(1)}" y="${(p === 0 ? Y(0) - 15 : Y(p) + 4).toFixed(1)}" font-size="11" font-weight="600" fill="#0d9488">${Math.round(p * 100)}%</text>` : '';
+    return `<g class="wk-run"><title>${t('chart.trainTitle', { p: Math.round(p * 100) })}</title><text x="${cx}" y="${(Y(p) + 7).toFixed(1)}" text-anchor="middle" font-size="19">🏃</text>${lbl}</g>`;
+  }).join('');
+  const trainLegend = !train ? '' : `<div class="chart-train-legend">
+    <span class="ctl-item">🏃 ${t('chart.trainLegend')}</span>
+    <span class="ctl-item"><svg width="16" height="16" viewBox="0 0 16 16" aria-hidden="true"><circle cx="8" cy="8" r="6.5" fill="none" stroke="#9ca3af" stroke-width="1.6" stroke-dasharray="3 3"/></svg> ${t('chart.restLegend')}</span>
+    <span class="ctl-item"><span class="ctl-today"><span>🏃</span></span> ${t('chart.todayLegend')}</span>
+  </div>`;
+  el.innerHTML = `${trainLegend}<div class="chart-wrap"><svg viewBox="0 0 ${W} ${H}" style="width:100%;height:auto;display:block">${legend}${grid}${highlight}${lines}${trainMarks}${labels}</svg></div>
+    <p class="chart-note">${t('chart.note')}${train ? ' ' + t('chart.noteTrain') : ''}</p>`;
 }
 
 /* ================= AYUDA CON COMIDAS (foto para análisis, sin Storage) ================= */
@@ -26988,7 +27095,7 @@ document.addEventListener('keydown', e => { if (e.key === 'Escape') shareClose()
  *  - El SW (sw.js) solo cachea la cáscara del mismo origen en modo
  *    RED PRIMERO: Auth/Firestore/Worker jamás pasan por la caché.
  * ================================================================ */
-const PWA_SW_VERSION = '20261031-recorrido-r6';
+const PWA_SW_VERSION = '20261031-grafica-corredores';
 let pwaDeferredPrompt = null;
 function pwaIsStandalone() {
   try {

@@ -2318,3 +2318,14 @@ body.nav-lock .sw-fab, body.nav-lock .help-fab, body.nav-lock .share-fab, body.n
 #prog-g-fotos.cmp-open .history-title,
 #prog-g-fotos.cmp-open #progress-history { display: none !important; }
 .cmp-openbar { margin-bottom: 8px; }
+
+/* ===== Gráfica semanal con corredores (2026-10-31) =====
+   La leyenda del entrenamiento vive FUERA del SVG (HTML sobre la
+   gráfica) para no tocar ni la geometría ni las series de comida:
+   corredor = % de la sesión hecha; círculo gris punteado =
+   descanso / sin sesión; corredor atenuado en círculo teal
+   punteado = hoy programado, sin registrar. */
+.chart-train-legend { display: flex; flex-wrap: wrap; gap: 6px 16px; align-items: center; font-size: 12px; color: #4b5563; margin: 2px 0 8px; }
+.ctl-item { display: inline-flex; align-items: center; gap: 5px; }
+.ctl-today { display: inline-flex; align-items: center; justify-content: center; width: 20px; height: 20px; border: 1.6px dashed #0d9488; border-radius: 50%; background: rgba(13, 148, 136, 0.06); }
+.ctl-today span { opacity: 0.45; font-size: 11px; line-height: 1; }
