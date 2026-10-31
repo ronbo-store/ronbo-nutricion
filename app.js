@@ -2520,6 +2520,7 @@ en: {
   'progress.replace': 'Replace',
   'progress.delete': 'Delete',
   'progress.delConfirm': 'Delete this photo? This cannot be undone.',
+  'progress.dupConfirm': 'This exact photo is already saved on {date}. Save another copy for this date anyway?',
   'progress.loading': 'Loading photos…',
   'progress.complete': '✅ Evaluation complete.',
   'progress.missingOne': 'You\'re missing one photo this week.',
@@ -2551,6 +2552,8 @@ en: {
   'cmp.first': 'First date',
   'cmp.second': 'Second date',
   'cmp.needTwo': 'You need at least two complete evaluations to compare them.',
+  'cmp.open': 'Open comparator',
+  'cmp.close': 'Close comparator',
   'cmp.planCtx': 'Plan: {title}',
   'cmp.planRoutine': 'Source routine: {id}',
   'cmp.noAnchor': 'No plan anchor (before the integration)',
@@ -4654,6 +4657,7 @@ es: {
   'progress.replace': 'Reemplazar',
   'progress.delete': 'Eliminar',
   'progress.delConfirm': '¿Eliminar esta foto? No se puede deshacer.',
+  'progress.dupConfirm': 'Esta foto exacta ya está guardada el {date}. ¿Guardar otra copia para esta fecha de todos modos?',
   'progress.loading': 'Cargando fotos…',
   'progress.complete': '✅ Evaluación completa.',
   'progress.missingOne': 'Te falta una foto esta semana.',
@@ -4685,6 +4689,8 @@ es: {
   'cmp.first': 'Primera fecha',
   'cmp.second': 'Segunda fecha',
   'cmp.needTwo': 'Necesitas al menos dos evaluaciones completas para compararlas.',
+  'cmp.open': 'Abrir comparador',
+  'cmp.close': 'Cerrar comparador',
   'cmp.planCtx': 'Plan: {title}',
   'cmp.planRoutine': 'Rutina de origen: {id}',
   'cmp.noAnchor': 'Sin anclaje de plan (anterior a la integración)',
@@ -22880,6 +22886,14 @@ async function uploadProgressPhoto(which, file) {
   try {
     const url = await compressProgressPhoto(file);
     if (url.length > 950000) { toast(t('msg.tooBig'), true); return; }
+    /* Guarda anti-copia (2026-10-31): si esta MISMA foto (bytes
+       idénticos) ya está guardada en OTRA fecha para el mismo
+       ángulo, se avisa y se pide confirmación antes de crear una
+       segunda copia en la base de datos. Re-subir el mismo ángulo
+       el MISMO día sigue reemplazando el documento, como siempre
+       (id determinista). */
+    const dupDate = progressDates().find(d => d !== date && PROG[d] && PROG[d][which] && PROG[d][which].photo === url);
+    if (dupDate && !confirm(t('progress.dupConfirm', { date: dateName(dupDate) }))) return;
     const uid = auth.currentUser.uid;
     await setDoc(doc(db, 'nutrition_progress', `${uid}_${date}_${which}`), {
       uid, ownerUid: uid, date, slot: which, photo: url, updatedAt: serverTimestamp()
@@ -23569,10 +23583,36 @@ function cmpWire(root, P, sel, prefix, rerender) {
 }
 /* ---------- El comparador del cliente (sus propias evaluaciones) ---------- */
 let CMP_SEL = { a: null, b: null };
+/* Fotos de progreso sin repeticiones (2026-10-31): el comparador
+   nace RECOGIDO — al entrar en Progreso no pinta ninguna foto. Antes
+   repetía los dos juegos ya visibles (juego actual + historial +
+   comparador), así que la misma fotografía se veía hasta 4 veces.
+   Se abre con su botón y, mientras está abierto, #prog-g-fotos
+   lleva la clase cmp-open, que oculta el juego actual y el
+   historial (superficie única): en cualquier estado de la vista,
+   cada foto aparece como mucho UNA vez. El comparador sigue
+   usando dos fechas DISTINTAS (cmpHTML ya lo fuerza). */
+let CMP_OPEN = false;
+function cmpToggleWire(root) {
+  const b = root && root.querySelector('[data-cmp-toggle]');
+  if (b) b.onclick = () => { CMP_OPEN = !CMP_OPEN; renderCmpClient(); };
+}
 function renderCmpClient() {
   const root = $('cmp-root'); if (!root) return;
-  root.innerHTML = cmpHTML(PROG, EVALS, WEIGHTS, EVAL_CFG, EVAL_CYCLE, CMP_SEL, 'cmp', 'ro');
-  cmpWire(root, PROG, CMP_SEL, 'cmp', renderCmpClient);
+  const g = $('prog-g-fotos'); if (g) g.classList.toggle('cmp-open', CMP_OPEN);
+  const dates = cmpCompleteDates(PROG, EVALS, EVAL_CFG, WEIGHTS, EVAL_CYCLE);
+  if (CMP_OPEN || dates.length < 2) {
+    root.innerHTML = (CMP_OPEN
+      ? `<div class="cmp-block cmp-openbar"><div class="eval-actions"><button type="button" class="btn-ghost btn-sm" data-cmp-toggle="1">${esc(t('cmp.close'))}</button></div></div>`
+      : '')
+      + cmpHTML(PROG, EVALS, WEIGHTS, EVAL_CFG, EVAL_CYCLE, CMP_SEL, 'cmp', 'ro');
+    cmpWire(root, PROG, CMP_SEL, 'cmp', renderCmpClient);
+    cmpToggleWire(root);
+    return;
+  }
+  root.innerHTML = `<div class="cmp-block"><p class="eval-ficha-title">${esc(t('cmp.title'))}</p>`
+    + `<div class="eval-actions"><button type="button" class="btn-ghost btn-sm" data-cmp-toggle="1">${esc(t('cmp.open'))}</button></div></div>`;
+  cmpToggleWire(root);
 }
 /* ---------- La vista del entrenador sobre un cliente (con ND-2) ---------- */
 let CEV = null;   // { uid, prog, evals, cfg, cycle, weights, cmp }
@@ -26421,7 +26461,7 @@ document.addEventListener('keydown', e => { if (e.key === 'Escape') shareClose()
  *  - El SW (sw.js) solo cachea la cáscara del mismo origen en modo
  *    RED PRIMERO: Auth/Firestore/Worker jamás pasan por la caché.
  * ================================================================ */
-const PWA_SW_VERSION = '20261031-pendientes-unificados';
+const PWA_SW_VERSION = '20261031-fotos-progreso';
 let pwaDeferredPrompt = null;
 function pwaIsStandalone() {
   try {

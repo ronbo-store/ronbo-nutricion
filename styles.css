@@ -2278,3 +2278,19 @@ body.nav-lock .sw-fab, body.nav-lock .help-fab, body.nav-lock .share-fab, body.n
 #clients-viewbar .libcat-chips { align-items: center; }
 #clients-viewbar .libcat-chip { display: inline-flex; align-items: center; gap: 5px; }
 #clients-list .cat-list { margin-top: 2px; }
+
+/* ===== Fotos de progreso sin repeticiones (2026-10-31) =====
+   Historial como TIRA COMPACTA de miniaturas por fecha (antes:
+   tarjetas con fotos de 130 px de alto a ancho completo — una pared
+   larga). El toque sigue abriendo el visor grande (data-hist-zoom). */
+.hist-imgs { display: flex; flex-wrap: wrap; gap: 6px; }
+.hist-imgs img { width: 60px; height: 60px; }
+.hist-week { padding: 8px 10px; margin-bottom: 8px; }
+.hist-label { margin-bottom: 6px; }
+/* Comparador recogido: mientras está abierto es la ÚNICA superficie
+   de fotos de la subpestaña — el juego actual y el historial se
+   ocultan y vuelven al cerrarlo. Cada foto, como mucho una vez. */
+#prog-g-fotos.cmp-open .progress-current,
+#prog-g-fotos.cmp-open .history-title,
+#prog-g-fotos.cmp-open #progress-history { display: none !important; }
+.cmp-openbar { margin-bottom: 8px; }
