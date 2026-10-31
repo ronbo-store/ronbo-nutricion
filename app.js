@@ -2485,6 +2485,12 @@ en: {
   'appr.error': 'It could not be completed. Please try again.',
   'appr.approving': 'Approving…',
   'progress.title': '📸 My progress',
+  'progress.tabPhotos': 'Photos',
+  'progress.tabMeasures': 'Measures',
+  'nav.unsavedTitle': 'Unsaved meal',
+  'nav.unsavedMeal': 'You have an analyzed meal that has not been saved yet. What do you want to do?',
+  'nav.keepEditing': 'Keep editing',
+  'nav.leaveUnsaved': 'Leave without saving',
   'progress.sub': '· photos every 15 days: front, side and back',
   'progress.hint': 'Your progress photos (front, side and back). Who can see them: only you, your assigned trainer and the program\'s administrator — they are never public. Take a new evaluation every 15 days, and compare two of your evaluations yourself in the comparator in this same section.',
   'progress.week': 'This week',
@@ -4548,6 +4554,12 @@ es: {
   'appr.error': 'No se pudo completar. Inténtalo de nuevo.',
   'appr.approving': 'Aprobando…',
   'progress.title': '📸 Mi progreso',
+  'progress.tabPhotos': 'Fotos',
+  'progress.tabMeasures': 'Medidas',
+  'nav.unsavedTitle': 'Comida sin guardar',
+  'nav.unsavedMeal': 'Tienes una comida analizada que aún no has guardado. ¿Qué quieres hacer?',
+  'nav.keepEditing': 'Seguir editando',
+  'nav.leaveUnsaved': 'Salir sin guardar',
   'progress.sub': '· fotos cada 15 días: frente, costado y espalda',
   'progress.hint': 'Tus fotos de progreso (frente, costado y espalda). Quién puede verlas: solo tú, tu entrenador asignado y el administrador del programa; nunca son públicas. Haz una nueva evaluación cada 15 días, y compara dos de tus evaluaciones tú mismo en el comparador de esta misma sección.',
   'progress.week': 'Esta semana',
@@ -8163,6 +8175,13 @@ async function faSaveConfig(uid) {
 function renderEnergyPanel() {
   const box = $('energy-panel-body');
   if (!box || !auth.currentUser) return;
+  /* Espejo de edición (2026-10-30): lo tecleado sin guardar en el
+     panel (formularios de ingreso, de propuestas, «Editar sexo»)
+     se captura y se restaura en el mismo repintado. La única
+     excepción es un render PROVOCADO por borrar el sexo:
+     deleteMySex marca ENERGY_MIRROR_SKIP para que el formulario
+     recién cerrado no resucite. */
+  const __emCap = ENERGY_MIRROR_SKIP ? null : mirrorCapture(box); ENERGY_MIRROR_SKIP = false;
   if (MY_ENERGY.state === 'loading') { box.innerHTML = `<div class="wempty">${t('train.loading')}</div>`; return; }
   if (MY_ENERGY.state === 'error') { box.innerHTML = `<div class="wempty">${t('fa.loadError')}</div>`; return; }
   const sex = MY_ENERGY.sex;
@@ -8219,6 +8238,7 @@ function renderEnergyPanel() {
   const dl = $('fa-sex-del'); if (dl) dl.onclick = deleteMySex;
   const as = $('fa-athlete-save'); if (as) as.onclick = saveMyAthleteDeclaration;
   try { goalsFoundationWire(); } catch {}
+  mirrorRestore(box, __emCap);
 }
 /* La declaración de atleta se escribe en assessment/current con la
    sesión del PROPIO cliente (el delta de reglas del módulo A la
@@ -8355,6 +8375,7 @@ async function deleteMySex() {
     await deleteDoc(doc(db, 'users', uid, 'energyPrivate', 'sex'));
     MY_ENERGY = { state: 'ok', sex: null };
     toast(t('fa.deleted'));
+    ENERGY_MIRROR_SKIP = true;
     renderEnergyPanel();
     await faSyncSignal(uid);
   } catch (e) { failToast(e); }
@@ -12032,6 +12053,10 @@ const foodDockLabel = $('btn-round-food');
 if (foodDockLabel) foodDockLabel.addEventListener('click', e => {
   if (e.target && e.target.id === 'ai-file') return;
   e.preventDefault();
+  /* D1 CERRADA CON SU PALABRA (Ronald, 2026-10-30 21:17 CDT):
+     COMIDA SIGUE COMO ACCIÓN — el toque abre la hoja flotante
+     #food-float (foto de la IA y sus vías), como siempre; no hay
+     página de Comida y el diario permanece en Inicio. */
   dockHome($('food-float'));
   if (foodIsOpen('food-float')) foodCloseAll(); else foodOpenFloat();
 });
@@ -12739,8 +12764,8 @@ function wireCardToggle(btnId, contentId, chevId, opts = {}) {
     if (open && opts.scroll) { try { c.scrollIntoView({ behavior: 'smooth', block: 'start' }); } catch {} }
   });
 }
-wireCardToggle('btn-toggle-progress', 'progress-content', 'chev-progress', { scroll: true });
-wireCardToggle('btn-toggle-train', 'train-content', 'chev-train', { scroll: true });
+{ const bp = $('btn-toggle-progress'); if (bp) bp.addEventListener('click', () => navTogglePage('progress')); }
+{ const bt = $('btn-toggle-train'); if (bt) bt.addEventListener('click', () => navTogglePage('train')); }
 /* Botón INICIO del dock y «Volver» de «Mi perfil» (paquete
    NAVEGACIÓN, 2026-10-26 — consulta de Ronald: con la tarjeta de
    metas desplegada no encontraba cómo volver a Home). La vista
@@ -12755,6 +12780,7 @@ wireCardToggle('btn-toggle-train', 'train-content', 'chev-train', { scroll: true
    editor de planes), como manda la casa. */
 function navGoHome() {
   try { foodCloseAll(); } catch {}
+  navClosePagesForce();
   try { actCloseAll(); } catch {}
   try { pendSetFloat(false); } catch {}
   try { const fl = $('train-ex-float'); if (fl && fl.style.display !== 'none') trainFloatClose(); } catch {}
@@ -12764,6 +12790,173 @@ function navGoHome() {
   try { window.scrollTo({ top: 0, behavior: 'smooth' }); } catch {}
 }
 { const hb = $('btn-nav-home'); if (hb) hb.addEventListener('click', navGoHome); }
+
+/* ============ NAVEGACIÓN FLOTANTE — páginas del dock (2026-10-30) ============
+   Modelo aprobado por Ronald (mq7a/mq7b, variante A refinada; D2 y
+   D3 con su palabra, correo 2026-10-30 20:03 CDT): el dock es de
+   discos flotantes sueltos SIEMPRE visibles y cada botón hace
+   SURGIR LA PÁGINA de su sección como superficie única sobre un
+   velo — fuera el apilado de #progress-content/#train-content
+   dentro de #tab-track: la página es el MISMO nodo elevado in situ
+   (clase .nav-page-on), sin moverlo del DOM, y su estado sigue
+   siendo su display, como leen las rutas de siempre. D2 (su
+   palabra): EL ÚLTIMO TOQUE MANDA — una sola capa visible: tocar
+   una pastilla cierra las páginas; tocar el dock desde otra área
+   vuelve a «Mi registro» (≡ Inicio) y abre su página. Regla de
+   oro: OCULTAR NUNCA DESTRUYE — cambiar de vista solo alterna
+   visibilidad; los borradores (sesión, avisos, cronómetro) viven
+   donde vivían. El scroll de cada página y de cada pastilla se
+   recuerda en memoria durante la sesión. CERO escrituras nuevas:
+   todo es DOM/memoria. D1 (su palabra, 2026-10-30 21:17 CDT):
+   COMIDA NO es página — sigue como ACCIÓN (abre la foto de la IA
+   en su hoja flotante) y el diario permanece en Inicio; las
+   páginas son solo Progreso y Entrenamiento, y Actividad y
+   Pendientes conservan sus hojas flotantes de siempre. */
+let NAV_PAGE = null; // 'progress' | 'train' | null
+let NAV_TAB = 'track';
+let PROG_SUB = 'fotos';
+const NAV_SHEET_SCROLL = { progress: 0, train: 0 };
+const NAV_PILL_SCROLL = {};
+let ENERGY_MIRROR_SKIP = false;
+let HEALTH_MIRROR = null;
+
+function navPageEl(page) { return page === 'progress' ? $('progress-content') : $('train-content'); }
+function navPageBtn(page) { return page === 'progress' ? $('btn-toggle-progress') : $('btn-toggle-train'); }
+
+function navRender() {
+  for (const p of ['progress', 'train']) {
+    const el = navPageEl(p); if (!el) continue;
+    const open = NAV_PAGE === p;
+    el.classList.toggle('nav-page-on', open);
+    el.style.display = open ? '' : 'none';
+    const btn = navPageBtn(p);
+    if (btn) btn.setAttribute('aria-expanded', open ? 'true' : 'false');
+  }
+  const chP = $('chev-progress'); if (chP) chP.textContent = NAV_PAGE === 'progress' ? '▴' : '▾';
+  const chT = $('chev-train'); if (chT) chT.textContent = NAV_PAGE === 'train' ? '▴' : '▾';
+  const veil = $('nav-veil'); if (veil) veil.style.display = NAV_PAGE ? '' : 'none';
+  document.body.classList.toggle('nav-lock', !!NAV_PAGE);
+  const hb = $('btn-nav-home'); if (hb) hb.classList.toggle('nav-on', !NAV_PAGE && NAV_TAB === 'track');
+}
+function navSaveScroll() { if (NAV_PAGE) { const el = navPageEl(NAV_PAGE); if (el) NAV_SHEET_SCROLL[NAV_PAGE] = el.scrollTop; } }
+function navRestoreScroll(page) {
+  const el = navPageEl(page); if (!el) return;
+  const y = NAV_SHEET_SCROLL[page] || 0;
+  try { requestAnimationFrame(() => { el.scrollTop = y; }); } catch { el.scrollTop = y; }
+}
+function navOpenPage(page) {
+  if (NAV_TAB !== 'track') switchTab('track');
+  if (NAV_PAGE === page) { navRestoreScroll(page); return; }
+  navSaveScroll();
+  NAV_PAGE = page;
+  navRender();
+  navRestoreScroll(page);
+}
+function navClosePagesForce() {
+  navSaveScroll();
+  NAV_PAGE = null;
+  try { foodCloseAll(); } catch {}
+  navRender();
+}
+function navTogglePage(page) {
+  if (NAV_PAGE === page) { navGuarded(navClosePagesForce); return; }
+  /* Abrir una página también abandona la superficie del borrador
+     (que vive en flujo en Inicio): el gesto pasa por la guarda D3
+     igual que cambiar de pastilla. */
+  navGuarded(() => navOpenPage(page));
+}
+
+/* Sub-pestañas de Progreso (Fotos | Medidas): un solo sub-panel
+   visible; el estado vive en memoria, como ADM_SEC_OPEN. */
+function progSetSub(name) {
+  PROG_SUB = name;
+  const f = $('prog-g-fotos'), m = $('prog-g-medidas');
+  if (f) f.style.display = name === 'fotos' ? '' : 'none';
+  if (m) m.style.display = name === 'medidas' ? '' : 'none';
+  const bf = $('prog-tab-fotos'), bm = $('prog-tab-medidas');
+  if (bf) { bf.classList.toggle('active', name === 'fotos'); bf.setAttribute('aria-selected', name === 'fotos' ? 'true' : 'false'); }
+  if (bm) { bm.classList.toggle('active', name === 'medidas'); bm.setAttribute('aria-selected', name === 'medidas' ? 'true' : 'false'); }
+}
+{ const bf = $('prog-tab-fotos'); if (bf) bf.onclick = () => progSetSub('fotos'); }
+{ const bm = $('prog-tab-medidas'); if (bm) bm.onclick = () => progSetSub('medidas'); }
+{ const v = $('nav-veil'); if (v) v.addEventListener('click', () => navGuarded(navClosePagesForce)); }
+
+/* ============ D3 — aviso SOLO en el resto no guardable (su palabra) ============
+   Todo lo demás se conserva solo (borradores y espejos). El único
+   resto: la comida YA ANALIZADA y sin guardar (el borrador del
+   panel de IA con su botón Guardar, #ai-save), que vive EN FLUJO
+   en Inicio (D1: Comida sigue como acción, sin página propia)
+   cuando un gesto del usuario — abrir una página del dock o
+   cambiar de pastilla — abandona su superficie. Aviso corto con
+   las tres salidas que él fijó: Guardar (pulsa el Guardar PROPIO
+   del borrador y completa el gesto cuando el guardado termina) /
+   Seguir editando (el gesto no ocurre) / Salir sin guardar (el
+   gesto ocurre SIN borrar nada: el borrador sigue vivo en Inicio,
+   como manda la regla de oro, y al volver está esperando). */
+function navUnsavedPending() {
+  if (!aiState) return false;
+  const p = $('ai-panel'); if (!p || p.style.display === 'none') return false;
+  if (!$('ai-save')) return false;
+  return NAV_PAGE === null && NAV_TAB === 'track';
+}
+let NAV_UNSAVED_ACTION = null;
+function navCheckUnsaved(action) {
+  if (!navUnsavedPending()) return false;
+  NAV_UNSAVED_ACTION = action;
+  const m = $('nav-unsaved'); if (m) m.style.display = '';
+  return true;
+}
+function navGuarded(action) { if (navCheckUnsaved(action)) return; action(); }
+function navUnsavedClose() { const m = $('nav-unsaved'); if (m) m.style.display = 'none'; NAV_UNSAVED_ACTION = null; }
+{ const b = $('nav-unsaved-keep'); if (b) b.onclick = () => {
+    navUnsavedClose();
+    const p = $('ai-panel'); if (p) { try { p.scrollIntoView({ behavior: 'smooth', block: 'start' }); } catch {} }
+  }; }
+{ const b = $('nav-unsaved-leave'); if (b) b.onclick = () => { const a = NAV_UNSAVED_ACTION; navUnsavedClose(); if (a) a(); }; }
+{ const b = $('nav-unsaved-save'); if (b) b.onclick = () => {
+    const sv = $('ai-save'); if (sv) sv.click();
+    let n = 0;
+    const iv = setInterval(() => {
+      n++;
+      if (!aiState || n > 40) {
+        clearInterval(iv);
+        const a = !aiState ? NAV_UNSAVED_ACTION : null;
+        navUnsavedClose();
+        if (a) a();
+      }
+    }, 150);
+  }; }
+
+/* ============ Espejos de edición (§3.2 del diseño) ============
+   La declaración de salud en edición y el panel de energía se
+   REPINTAN en eventos de datos/idioma y lo tecleado sin guardar
+   vive solo en el DOM: captura de valores antes del repintado y
+   restauración después, dentro del MISMO repintado — lo que el
+   usuario escribió manda sobre lo guardado hasta que él guarda.
+   Los archivos no se capturan (no son restaurables ni tecleado). */
+function mirrorCapture(root) {
+  if (!root) return null;
+  const m = {};
+  root.querySelectorAll('input, select, textarea').forEach((el, i) => {
+    if (el.type === 'file') return;
+    const k = el.id || (el.name ? el.name + '::' + ((el.type === 'radio' || el.type === 'checkbox') ? el.value : '') : '#' + i);
+    m[k] = (el.type === 'checkbox' || el.type === 'radio') ? el.checked : el.value;
+  });
+  return m;
+}
+function mirrorRestore(root, m) {
+  if (!root || !m) return;
+  root.querySelectorAll('input, select, textarea').forEach((el, i) => {
+    if (el.type === 'file') return;
+    const k = el.id || (el.name ? el.name + '::' + ((el.type === 'radio' || el.type === 'checkbox') ? el.value : '') : '#' + i);
+    if (!(k in m)) return;
+    if (el.type === 'checkbox' || el.type === 'radio') el.checked = !!m[k];
+    else { try { el.value = m[k]; } catch {} }
+  });
+}
+
+progSetSub('fotos');
+navRender();
 /* «Comida» es una etiqueta sobre #ai-file: el selector de foto se
    abre igual desde cualquier área, pero el flujo del análisis vive
    en «Mi registro» — al tocarla desde otra área se vuelve allí
@@ -13091,6 +13284,20 @@ function specLegalHTML(grantBtnId, grantLabel) {
 function renderHealthPanel() {
   const box = $('health-panel-body');
   if (!box || !auth.currentUser) return;
+  /* Espejo de edición (2026-10-30): lo tecleado sin guardar en el
+     formulario de la declaración (al EDITAR la guardada o al
+     CREAR la primera: ambos pintan el mismo formulario) se captura
+     antes de repintar y se restaura al final — un repintado por
+     datos o por idioma ya no puede tragarse el texto. La captura
+     se ACUMULA en HEALTH_MIRROR: una recarga completa (el cambio
+     de idioma termina en refreshDynamic → loadAll) repinta estados
+     intermedios SIN el formulario, y un espejo de un solo repintado
+     perdería lo tecleado en ese hueco; la bolsa conserva el último
+     valor visto de cada campo y se descarta cuando se pinta la
+     vista comprometida (la lista de gestión, sin formulario). */
+  const __hFormIn = !!box.querySelector('#btn-decl-save');
+  if (healthEditing || __hFormIn) { const __hc = mirrorCapture(box); if (__hc) HEALTH_MIRROR = Object.assign(HEALTH_MIRROR || {}, __hc); }
+  const __hmCap = HEALTH_MIRROR;
   const fmtD = ts => { try { return ts && ts.toDate ? ts.toDate().toLocaleDateString(LANG === 'es' ? 'es-MX' : 'en-US') : ''; } catch { return ''; } };
   const spec = specOf(UDATA);
   const act = activeDecl();
@@ -13191,6 +13398,8 @@ function renderHealthPanel() {
      de tipo corporal vive en el mismo panel único y se repinta
      con él (también al cambiar de idioma). */
   try { renderBtPanel(); } catch {}
+  if (__hmCap) mirrorRestore(box, __hmCap);
+  if (!healthEditing && !box.querySelector('#btn-decl-save') && box.querySelector('#health-manage-list')) HEALTH_MIRROR = null;
 }
 async function grantSpec(isRenew) {
   if (!auth.currentUser) return;
@@ -19902,6 +20111,13 @@ async function repeatProposalSend(type, extra) {
 
 /* ================= PESTAÑAS PRINCIPALES ================= */
 function switchTab(name) {
+  /* NAVEGACIÓN FLOTANTE (2026-10-30) · D2 «el último toque manda»:
+     la pastilla es la capa visible — cualquier página del dock se
+     cierra al cambiar de área — y la posición de scroll de cada
+     área se recuerda en memoria para volver a donde estaba. */
+  if (NAV_TAB && NAV_TAB !== name) NAV_PILL_SCROLL[NAV_TAB] = window.scrollY || 0;
+  NAV_TAB = name;
+  if (name !== 'track' && NAV_PAGE) navClosePagesForce();
   document.querySelectorAll('.main-tab').forEach(b => b.classList.toggle('active', b.dataset.tab === name));
   document.querySelectorAll('.tab-pane').forEach(p => { p.style.display = (p.id === 'tab-' + name) ? '' : 'none'; });
   if (IS_OWNER && (name === 'access' || name === 'trainers')) loadAdmin();
@@ -19916,8 +20132,16 @@ function switchTab(name) {
   try { helpFabSync(name); } catch {}
   try { swFabSync(name); } catch {}
   try { goalsCardSync(name); } catch {}
+  const __navY = NAV_PILL_SCROLL[name];
+  if (typeof __navY === 'number' && __navY > 0) { try { window.scrollTo(0, __navY); } catch {} }
+  try { navRender(); } catch {}
 }
-document.querySelectorAll('.main-tab').forEach(b => b.addEventListener('click', () => switchTab(b.dataset.tab)));
+document.querySelectorAll('.main-tab').forEach(b => b.addEventListener('click', () => {
+  /* D3: solo abandonar «Mi registro» pasa por la guarda; volver a
+     él nunca abandona la superficie del borrador. */
+  if (b.dataset.tab !== 'track') navGuarded(() => switchTab(b.dataset.tab));
+  else switchTab(b.dataset.tab);
+}));
 
 /* Lightbox simple para ampliar fotos */
 function showLightbox(url) {
@@ -20549,7 +20773,7 @@ function renderActEntry(type) {
   const wb = $('actf-btn-weight');
   if (wb) wb.onclick = () => {
     actCloseAll();
-    const p = $('btn-toggle-progress'); if (p) p.click();
+    navOpenPage('progress'); progSetSub('medidas');
     const aw = $('btn-add-weight'); if (aw) aw.click();
   };
   const form = $('actf-form');
@@ -20707,7 +20931,7 @@ function renderActDay(date) {
   const wBtn = $('actd-btn-weight');
   if (wBtn) wBtn.onclick = () => {
     actCloseAll();
-    const p = $('btn-toggle-progress'); if (p) p.click();
+    navOpenPage('progress'); progSetSub('medidas');
     const aw = $('btn-add-weight'); if (aw) aw.click();
   };
 }
@@ -23700,12 +23924,10 @@ setInterval(() => { try { pendDockTick(); } catch {} }, 60000);
           openWeightModal(null);
           $('w-date').value = date;
         } else if (type === 'training') {
-          const c = $('train-content');
-          if (c && c.style.display === 'none') { const tb = $('btn-toggle-train'); if (tb) tb.click(); }
-          else if (c) { try { c.scrollIntoView({ behavior: 'smooth', block: 'start' }); } catch {} }
+          navOpenPage('train');
+          const mt = $('my-training'); if (mt) { try { mt.scrollIntoView({ behavior: 'smooth', block: 'start' }); } catch {} }
         } else if (type === 'eval') {
-          const c = $('progress-content');
-          if (c && c.style.display === 'none') { const pb = $('btn-toggle-progress'); if (pb) pb.click(); }
+          navOpenPage('progress'); progSetSub('fotos');
           const r = $('eval-root'); if (r) { try { r.scrollIntoView({ behavior: 'smooth', block: 'start' }); } catch {} }
         } else if (type === 'energy') {
           if (b.dataset.ekind === 'base-weight') {
@@ -23735,7 +23957,7 @@ setInterval(() => { try { pendDockTick(); } catch {} }, 60000);
           if (route === 'dossier-editor') { switchTab('profile'); scroll('dossier-editor-box'); }
           else if (route === 'membership') { switchTab('clients'); scroll('membership-box'); }
           else if (route === 'mytrainer') { switchTab('track'); scroll('my-trainer-box'); }
-          else if (route === 'eval') { const c = $('progress-content'); if (c && c.style.display === 'none') { const pb = $('btn-toggle-progress'); if (pb) pb.click(); } scroll('eval-root'); }
+          else if (route === 'eval') { navOpenPage('progress'); progSetSub('fotos'); scroll('eval-root'); }
           else if (route === 'perms') { const pb = $('btn-perms'); if (pb && !permsOpen) pb.click(); scroll('health-section'); }
           else if (route === 'goals') { switchTab('track'); scroll('rings'); }
           else if (route === 'goals-setup') { switchTab('track'); scroll('goals-engine'); const pb2 = $('btn-perms'); if (pb2 && !permsOpen) pb2.click(); scroll('energy-section'); }
@@ -24661,7 +24883,7 @@ document.addEventListener('keydown', e => { if (e.key === 'Escape') shareClose()
  *  - El SW (sw.js) solo cachea la cáscara del mismo origen en modo
  *    RED PRIMERO: Auth/Firestore/Worker jamás pasan por la caché.
  * ================================================================ */
-const PWA_SW_VERSION = '20261030-biblioteca-alimentos';
+const PWA_SW_VERSION = '20261030-navegacion-flotante';
 let pwaDeferredPrompt = null;
 function pwaIsStandalone() {
   try {

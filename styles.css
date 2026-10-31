@@ -761,19 +761,22 @@ table.whist { min-width: 640px; }
    ni hay desborde horizontal. Colores, halo y lógica intactos; el
    anclaje de .pend-float se ajusta a la nueva altura de la pastilla
    (~92 px frente a ~111 px). */
-.actions-dock { position: fixed; left: 50%; transform: translateX(-50%); bottom: calc(env(safe-area-inset-bottom, 0px) + 12px); z-index: 40; width: fit-content; max-width: calc(100vw - 24px); box-sizing: border-box; background: rgba(255, 255, 255, .96); border: 1px solid rgba(15, 23, 42, .06); border-radius: 999px; box-shadow: 0 8px 24px rgba(15, 23, 42, .18); padding: 8px 16px; }
+.actions-dock { position: fixed; left: 50%; transform: translateX(-50%); bottom: calc(env(safe-area-inset-bottom, 0px) + 12px); z-index: 40; width: fit-content; max-width: calc(100vw - 24px); box-sizing: border-box; background: none; border: none; box-shadow: none; padding: 0 2px; }
 /* El pie reserva siempre el alto del dock: antes el margen era solo
    con #tab-track visible (el dock vivía allí); con el dock global
    (2026-10-24) el final de CUALQUIER área necesita la misma reserva
    para que la pastilla no tape el pie al llegar al fondo. */
 #app-view .foot { margin-bottom: 132px; }
-.rounds-row { display: flex; justify-content: center; align-items: flex-start; gap: 6px; }
+.rounds-row { display: flex; justify-content: center; align-items: flex-start; gap: 11px; }
 .round-action { flex: 0 1 auto; display: flex; flex-direction: column; align-items: center; gap: 5px; background: none; border: none; padding: 2px 0 0; cursor: pointer; font-family: inherit; text-decoration: none; }
-.round-circle { width: 56px; height: 56px; border-radius: 50%; background: #00aca1; color: #fff; display: flex; align-items: center; justify-content: center; }
-.round-circle svg { display: block; width: 30px; height: 30px; }
+.round-circle { width: 48px; height: 48px; border-radius: 50%; background: #00aca1; color: #fff; display: flex; align-items: center; justify-content: center; box-shadow: 0 10px 20px rgba(13, 60, 56, .27), 0 2px 5px rgba(13, 60, 56, .16), inset 0 1px 0 rgba(255, 255, 255, .28); }
+.round-circle svg { display: block; width: 25px; height: 25px; }
 .round-action:active .round-circle { background: #00857c; }
-.round-action[aria-expanded="true"] .round-circle { background: #00857c; box-shadow: 0 0 0 3px #fff, 0 0 0 6px #00aca1; }
-.round-label { font-size: 11.5px; font-weight: 600; color: #1f2a44; text-align: center; line-height: 1.15; text-transform: uppercase; white-space: nowrap; }
+.round-action[aria-expanded="true"] { transform: translateY(-3px); }
+.round-action[aria-expanded="true"] .round-circle { background: #00857c; box-shadow: 0 0 0 2.5px #fff, 0 0 0 5px #00aca1, 0 13px 22px rgba(13, 60, 56, .30), 0 2px 5px rgba(13, 60, 56, .16); }
+.round-action.nav-on { transform: translateY(-3px); }
+.round-action.nav-on .round-circle { background: #00857c; box-shadow: 0 0 0 2.5px #fff, 0 0 0 5px #00aca1, 0 13px 22px rgba(13, 60, 56, .30), 0 2px 5px rgba(13, 60, 56, .16); }
+.round-label { font-size: 11.5px; font-weight: 600; color: #134e4a; text-align: center; line-height: 1.15; text-transform: uppercase; white-space: nowrap; text-shadow: 0 1px 2px #fff, 0 0 6px rgba(255, 255, 255, .95), 0 0 11px rgba(255, 255, 255, .85); }
 .round-chev { font-size: 10px; color: #00aca1; }
 /* El encabezado fijo .mealhelp-head y el margen propio de
    #mealhelp-content desaparecen con el bloque «Ayuda con
@@ -1318,7 +1321,7 @@ div > .btn-ghost:only-child, div > .btn-main:only-child {
 @keyframes act-flick { 0%, 100% { transform: scale(1) rotate(-2deg); opacity: 1; } 50% { transform: scale(1.16) rotate(2.5deg); opacity: .85; } }
 @media (prefers-reduced-motion: reduce) { .act-flame-ico { animation: none; } }
 @media (max-width: 480px) {
-  .actions-dock { padding: 8px 8px; }
+  .actions-dock { padding: 0 2px; }
   /* Corrección reprueba (2026-10-24): a 390 px las etiquetas ES del
      dock (ENTRENAMIENTO, PENDIENTES…) se tocaban entre sí — la fila
      se encogía y los rótulos, en nowrap, se derramaban unos sobre
@@ -1333,13 +1336,13 @@ div > .btn-ghost:only-child, div > .btn-main:only-child {
      mínimo en esta misma franja — círculos de 50, hueco de 3 y
      rótulo de 8.5 con tracking más cerrado — y la fila vuelve a
      caber entera dentro de la pastilla sin tocar el diseño. */
-  .rounds-row { gap: 3px; }
-  .round-circle { width: 50px; height: 50px; }
+  .rounds-row { gap: 5px; }
+  .round-circle { width: 46px; height: 46px; }
   .round-label { font-size: 8.5px; letter-spacing: -.3px; }
 }
 @media (max-width: 380px) {
-  .round-circle { width: 48px; height: 48px; }
-  .round-circle svg { width: 26px; height: 26px; }
+  .round-circle { width: 44px; height: 44px; }
+  .round-circle svg { width: 23px; height: 23px; }
   /* NAVEGACIÓN (2026-10-26): a ≤380 la fila de seis aún se salía
      (~366 contra tope de 336); rótulo de 8 y hueco de 2 la dejan
      dentro de la pastilla también en pantallas estrechas. */
@@ -2163,3 +2166,21 @@ div.cgrid-cell { cursor: default; }
 .fl-state-rechazado{background:#fee2e2;color:#991b1b}
 .fl-state-pendiente{background:#fef9c3;color:#854d0e}
 .foodlib-tray-row .frow3{margin-top:6px}
+
+/* NAVEGACIÓN FLOTANTE (2026-10-30) — variante A REFINADA aprobada
+   por Ronald (mq7a/mq7b): el velo de las páginas del dock, el
+   degradado al pie que hace legibles las etiquetas sobre el
+   contenido, y la PÁGINA QUE SURGE: el contenido de la sección se
+   eleva in situ (sin mover nodos) a hoja fija con scroll propio
+   sobre el velo, con el dock flotando encima (z 40). Ocultar nunca
+   destruye: la hoja solo alterna visibilidad y clase. */
+.dock-scrim { position: fixed; left: 0; right: 0; bottom: 0; height: 118px; z-index: 39; background: linear-gradient(to top, rgba(241, 245, 249, .94), rgba(241, 245, 249, 0)); pointer-events: none; }
+.nav-veil { position: fixed; inset: 0; background: rgba(15, 23, 42, .45); z-index: 37; }
+#progress-content.nav-page-on, #train-content.nav-page-on { position: fixed; left: 0; right: 0; top: 96px; bottom: 0; z-index: 38; background: #f1f5f9; border-radius: 24px 24px 0 0; box-shadow: 0 -10px 30px rgba(15, 23, 42, .35); padding: 18px 12px 128px; overflow-y: auto; overscroll-behavior: contain; margin: 0; box-sizing: border-box; }
+body.nav-lock { overflow: hidden; }
+body.nav-lock .sw-fab, body.nav-lock .help-fab, body.nav-lock .share-fab, body.nav-lock #act-flame { visibility: hidden; }
+.nav-page-title { font-size: 17px; font-weight: 800; color: #1f2a44; margin: 0 0 12px; }
+.prog-subtabs { display: flex; background: #e4e9f0; border-radius: 999px; padding: 4px; margin: 12px 0 14px; }
+.prog-subtab { flex: 1; border: none; background: transparent; padding: 9px 0; border-radius: 999px; font-size: 13.5px; font-weight: 700; color: #64748b; font-family: inherit; cursor: pointer; }
+.prog-subtab.active { background: #fff; color: #0d9488; box-shadow: 0 1px 4px rgba(0, 0, 0, .14); }
+#prog-g-fotos, #prog-g-medidas { background: #fff; border-radius: 12px; padding: 14px 16px; box-shadow: 0 1px 3px rgba(0, 0, 0, .08); }

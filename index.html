@@ -21,7 +21,7 @@
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-title" content="RONBO FIT">
 <meta name="apple-mobile-web-app-status-bar-style" content="default">
-<link rel="stylesheet" href="styles.css?v=20261030-biblioteca-alimentos">
+<link rel="stylesheet" href="styles.css?v=20261030-navegacion-flotante">
 <script defer src="https://cloud.umami.is/script.js" data-website-id="a29706d4-44a2-47cf-900a-5f74d74abfa8"></script>
 <script type="importmap">
 {
@@ -346,13 +346,21 @@
 
   <div class="panel main-actions">
     <div id="progress-content" style="display:none">
+    <h2 class="nav-page-title" data-i18n="progress.title">📸 My progress</h2>
     <button type="button" class="btn-primary" id="btn-share-open" data-i18n="share.button">📣 Share your progress</button>
+    <div class="prog-subtabs" role="tablist">
+      <button type="button" class="prog-subtab active" id="prog-tab-fotos" role="tab" aria-selected="true" data-i18n="progress.tabPhotos">Photos</button>
+      <button type="button" class="prog-subtab" id="prog-tab-medidas" role="tab" aria-selected="false" data-i18n="progress.tabMeasures">Measures</button>
+    </div>
+    <div id="prog-g-medidas" style="display:none">
     <div class="block-head">
       <h3 class="block-title"><span data-i18n="weight.title">⚖️ Weight progress</span> <span class="h2-sub" data-i18n="weight.sub">· weekly weigh-in</span></h3>
       <button id="btn-add-weight" class="btn-ghost btn-sm" data-i18n="weight.add">＋ Log weigh-in</button>
     </div>
     <div id="compacc-notice" class="compacc-notice" style="display:none"></div>
     <div id="weightBody"><div class="wempty" data-i18n="weight.loading">Loading weigh-ins…</div></div>
+    </div>
+    <div id="prog-g-fotos">
     <p class="progress-hint" data-i18n="progress.hint">They're private: only you can see them. Take a new evaluation every 15 days: front, side and back. Whenever you want, ask your assistant to compare two evaluations and tell you what change it notices.</p>
     <div class="progress-current">
       <div class="progress-week" id="progress-week-label">This week</div>
@@ -395,6 +403,7 @@
     <div id="progress-history" class="progress-history"><div class="wempty" data-i18n="progress.loading">Loading photos…</div></div>
     <div id="eval-root"></div>
     </div>
+    </div>
     <!-- «Ayuda con comidas» FUERA de esta vista (Ronald, 2026-10-22:
          «Eso de ayuda de comida no me gusta»): desaparecen el
          encabezado, el aviso «La foto no se almacena.» y la lista de
@@ -405,6 +414,7 @@
          privacidad», sección «Privacidad y datos» (perm.photoNote).
          Nada más de esta vista cambia. -->
     <div id="train-content" style="display:none">
+      <h2 class="nav-page-title" data-i18n="train.title">🏋️ My training plan</h2>
       <!-- PUERTA FALSA «Camera Coach» (AUTH-2026-10-28-071, diseño
            aprobado por Ronald el 2026-10-28): contenedor vacío que
            app.js rellena SOLO para alumnos aprobados (fdCamRender).
@@ -985,6 +995,13 @@
   </div>
   <!-- /tab-admin -->
 
+  <!-- NAVEGACIÓN FLOTANTE (2026-10-30): el velo sobre el que surge
+       la página de cada sección del dock y el degradado al pie que
+       mantiene legibles las etiquetas de los discos sobre el
+       contenido (variante A refinada, mq7a/mq7b). -->
+  <div class="nav-veil" id="nav-veil" style="display:none"></div>
+  <div class="dock-scrim" id="dock-scrim" aria-hidden="true"></div>
+
   <!-- Dock flotante GLOBAL (corrección reprueba, 2026-10-24): la fila
        de redondos vive FUERA de las pestañas, como hija directa de
        #app-view, y se pinta fija abajo con .actions-dock
@@ -1079,6 +1096,22 @@
         <button type="submit" class="btn-primary" data-i18n="form.save">Save</button>
       </div>
     </form>
+  </div>
+</div>
+
+<!-- ============ NAV UNSAVED MODAL (D3, 2026-10-30): aviso corto
+     SOLO ante la comida analizada sin guardar; Guardar pulsa el
+     Guardar propio del borrador. ============ -->
+<div class="modal-backdrop" id="nav-unsaved" style="display:none">
+  <div class="modal-card">
+    <h2 data-i18n="nav.unsavedTitle">Unsaved meal</h2>
+    <p class="photo-hint" data-i18n="nav.unsavedMeal">You have an analyzed meal that has not been saved yet. What do you want to do?</p>
+    <div class="modal-foot">
+      <button type="button" class="btn-danger" id="nav-unsaved-leave" data-i18n="nav.leaveUnsaved">Leave without saving</button>
+      <span class="mf-spacer"></span>
+      <button type="button" class="btn-ghost" id="nav-unsaved-keep" data-i18n="nav.keepEditing">Keep editing</button>
+      <button type="button" class="btn-primary" id="nav-unsaved-save" data-i18n="form.save">Save</button>
+    </div>
   </div>
 </div>
 
@@ -1382,6 +1415,6 @@
 <div id="toast" class="toast"></div>
 <div id="print-card" aria-hidden="true"></div>
 
-<script type="module" src="app.js?v=20261030-biblioteca-alimentos"></script>
+<script type="module" src="app.js?v=20261030-navegacion-flotante"></script>
 </body>
 </html>
