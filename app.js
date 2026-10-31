@@ -8729,6 +8729,23 @@ function pendConsultApply(uid) {
   if (hosts && hosts.length) { const target = W.target; PEND_CONSULT_WANT = null; pendConsultOpen(uid, target, hosts); return; }
   if (W.tries >= 6) { const target = W.target; PEND_CONSULT_WANT = null; fichaFocusSet(uid, target); fichaFocusApply(uid); }
 }
+/* CORRECCIÓN AUTH-2026-10-31-123 (reprueba de Ronald, correo 590
+   2026-10-31 16:15 CDT: «abre pero cuando intento interactuar con
+   el la venta se cierra sola»). Causa, reproducida y medida con
+   ficticios: el observador de AUTH-121 cerraba la ventana ante
+   CUALQUIER repintado de la ficha, pero dentro de la propia
+   ventana hay pasos que guardan al instante y repintan — el
+   selector de ecuación del cálculo ([data-fa-eq] → faSetEquation
+   guarda el assessment y repinta la ficha) es el primero que el
+   entrenador toca en esa tarjeta — así que interactuar cerraba la
+   consulta a mitad de trabajo. Contrato nuevo: la ventana SOLO se
+   cierra con su ✕ o cuando se completa un GUARDADO PRINCIPAL de
+   la superficie; esos controles «arman» el retorno al pulsarse
+   (clic en captura: #fa-save, las decisiones de ritmo/propuesta,
+   el «revisada» de la foto, la nota de la evaluación y el Guardar
+   del modal de peso, que vive fuera de la hoja). Cualquier otro
+   repintado NO cierra: la ventana se re-aloja con el bloque fresco
+   de la ficha repintada (pendConsultRehost) y la consulta sigue. */
 function pendConsultOpen(uid, target, hosts) {
   const sheet = $('pend-consult-float'), body = $('pend-consult-body');
   if (!sheet || !body) { fichaFocusSet(uid, target); fichaFocusApply(uid); return; }
@@ -8736,19 +8753,85 @@ function pendConsultOpen(uid, target, hosts) {
   if (title) title.textContent = pendConsultTitleFor(uid, target);
   if (help) help.textContent = t('consult.help.' + target);
   const nodes = hosts.map(el => { const anchor = document.createElement('div'); anchor.className = 'pend-consult-anchor'; el.parentNode.insertBefore(anchor, el); body.appendChild(el); return { el, anchor }; });
-  PEND_CONSULT = { uid, target, nodes, scrollY: window.scrollY || 0, obs: null, returning: false };
+  PEND_CONSULT = { uid, target, nodes, scrollY: window.scrollY || 0, obs: null, returning: false, rehosting: false, armed: false, armedAt: 0, armClick: null, armSubmit: null };
+  const C = PEND_CONSULT;
+  C.armClick = e => {
+    if (PEND_CONSULT !== C) return;
+    const s = e.target && e.target.closest && e.target.closest('#fa-save, #gm-tp-approve, #gm-tp-set, #gm-prop-approve, #gm-prop-reject, [data-food-ok], [data-note-save], #form-weight [type="submit"]');
+    if (s) { C.armed = true; C.armedAt = Date.now(); }
+  };
+  C.armSubmit = e => { if (PEND_CONSULT === C && e.target && e.target.id === 'form-weight') { C.armed = true; C.armedAt = Date.now(); } };
+  document.addEventListener('click', C.armClick, true);
+  document.addEventListener('submit', C.armSubmit, true);
   const x = $('pend-consult-x'); if (x) x.onclick = () => pendConsultCloseX();
   sheet.style.display = '';
   try { sheet.scrollTop = 0; } catch {}
   const box = $('client-detail');
   if (box && typeof MutationObserver !== 'undefined') {
-    PEND_CONSULT.obs = new MutationObserver(() => { pendConsultSaveReturn(); });
+    PEND_CONSULT.obs = new MutationObserver(() => {
+      const P = PEND_CONSULT;
+      if (!P || P.returning || P.rehosting) return;
+      if (P.armed && Date.now() - P.armedAt < 15000) pendConsultSaveReturn();
+      else pendConsultRehost();
+    });
     PEND_CONSULT.obs.observe(box, { childList: true });
   }
 }
+function pendConsultDisarm(C) {
+  if (!C) return;
+  if (C.obs) { try { C.obs.disconnect(); } catch {} }
+  if (C.armClick) { try { document.removeEventListener('click', C.armClick, true); } catch {} }
+  if (C.armSubmit) { try { document.removeEventListener('submit', C.armSubmit, true); } catch {} }
+}
+/* Repintado SIN guardado principal (AUTH-123): la ventana NO se
+   cierra — descarta la copia vieja de los bloques y aloja los
+   frescos de la ficha ya repintada, con sus anclas nuevas. Si el
+   destino ya no se puede alojar pero la hoja conserva contenido
+   vivo, la consulta sigue con él; si no queda nada, se aterriza
+   en los pendientes como en el retorno tras guardar. */
+/* Segunda cara de la misma causa (AUTH-123): openClient conecta
+   algunos controles de la ficha por id global ($('fa-save'),
+   $('btn-client-add'), $('fa-pal')) — con la ventana abierta hay
+   DOS elementos con ese id (la copia alojada y la fresca de la
+   ficha) y la conexión puede caer en la copia que el re-alojado
+   descarta, dejando el bloque fresco sin conectar (medido con
+   ficticios: tras cambiar la ecuación, el Guardar de la tarjeta
+   fresca no respondía). Tras re-alojar, se reponen SOLO las
+   conexiones que falten en el bloque alojado; si openClient ya
+   conectó el fresco, no se toca nada. */
+function pendConsultRewire(body, uid) {
+  if (!body) return;
+  const sv = body.querySelector('#fa-save');
+  if (sv && !sv.onclick) sv.onclick = () => faSaveConfig(uid);
+  const add = body.querySelector('#btn-client-add');
+  if (add && !add.onclick) add.onclick = () => openWeightModal({ uid, docId: null, rec: null });
+  const pal = body.querySelector('#fa-pal');
+  if (pal && !pal.dataset.pendWire) { pal.dataset.pendWire = '1'; pal.addEventListener('input', faPalSync); }
+}
+function pendConsultRehost() {
+  const C = PEND_CONSULT;
+  if (!C || C.returning || C.rehosting) return;
+  C.rehosting = true;
+  if (C.obs) { try { C.obs.disconnect(); } catch {} }
+  const box = $('client-detail');
+  let hosts = null;
+  try { hosts = box ? pendConsultHosts(box, C.target) : null; } catch {}
+  const body = $('pend-consult-body');
+  if (hosts && hosts.length && body) {
+    body.innerHTML = '';
+    C.nodes = hosts.map(el => { const anchor = document.createElement('div'); anchor.className = 'pend-consult-anchor'; el.parentNode.insertBefore(anchor, el); body.appendChild(el); return { el, anchor }; });
+    pendConsultRewire(body, C.uid);
+  } else if (!(body && body.children.length)) {
+    C.rehosting = false;
+    pendConsultSaveReturn();
+    return;
+  }
+  if (box && C.obs) { try { C.obs.observe(box, { childList: true }); } catch {} }
+  C.rehosting = false;
+}
 function pendConsultTeardown() {
   const C = PEND_CONSULT; if (!C) return;
-  if (C.obs) { try { C.obs.disconnect(); } catch {} }
+  pendConsultDisarm(C);
   PEND_CONSULT = null;
   const sheet = $('pend-consult-float'), body = $('pend-consult-body');
   if (body) body.innerHTML = '';
@@ -8756,11 +8839,11 @@ function pendConsultTeardown() {
 }
 function pendConsultCloseX() {
   const C = PEND_CONSULT; if (!C) return;
-  if (C.obs) { try { C.obs.disconnect(); } catch {} }
+  pendConsultDisarm(C);
   const box = $('client-detail');
   C.nodes.forEach(({ el, anchor }) => {
     if (anchor && anchor.isConnected) { anchor.parentNode.insertBefore(el, anchor); anchor.remove(); }
-    else if (box) box.appendChild(el);
+    else { try { el.remove(); } catch {} }   // AUTH-123: ancla muerta tras un repintado — la ficha ya trae el bloque fresco; devolver la copia vieja lo duplicaría
   });
   PEND_CONSULT = null;
   const sheet = $('pend-consult-float'); if (sheet) sheet.style.display = 'none';
@@ -26905,7 +26988,7 @@ document.addEventListener('keydown', e => { if (e.key === 'Escape') shareClose()
  *  - El SW (sw.js) solo cachea la cáscara del mismo origen en modo
  *    RED PRIMERO: Auth/Firestore/Worker jamás pasan por la caché.
  * ================================================================ */
-const PWA_SW_VERSION = '20261031-recorrido-r5';
+const PWA_SW_VERSION = '20261031-recorrido-r6';
 let pwaDeferredPrompt = null;
 function pwaIsStandalone() {
   try {
