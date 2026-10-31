@@ -2183,6 +2183,17 @@ body.nav-lock .sw-fab, body.nav-lock .help-fab, body.nav-lock .share-fab, body.n
 .prog-subtabs { display: flex; background: #e4e9f0; border-radius: 999px; padding: 4px; margin: 12px 0 14px; }
 .prog-subtab { flex: 1; border: none; background: transparent; padding: 9px 0; border-radius: 999px; font-size: 13.5px; font-weight: 700; color: #64748b; font-family: inherit; cursor: pointer; }
 .prog-subtab.active { background: #fff; color: #0d9488; box-shadow: 0 1px 4px rgba(0, 0, 0, .14); }
+/* Apartado único de Comida (AUTH-2026-10-31-115): selector interno
+   Resumen / Consumido de la ventana #food-float — misma receta
+   visual que las sub-pestañas de Progreso — y ajustes de los
+   bloques mudados desde «Mi registro»: la fecha respira bajo los
+   chips de registro y el diario pasa a UNA columna dentro de la
+   ventana (su rejilla de dos columnas era de la vista ancha). */
+.food-subtabs { display: flex; background: #e4e9f0; border-radius: 999px; padding: 4px; margin: 12px 0 12px; }
+.food-subtab { flex: 1; border: none; background: transparent; padding: 9px 0; border-radius: 999px; font-size: 13.5px; font-weight: 700; color: #64748b; font-family: inherit; cursor: pointer; }
+.food-subtab.active { background: #fff; color: #0d9488; box-shadow: 0 1px 4px rgba(0, 0, 0, .14); }
+#food-float .date-row { margin: 12px 0 0; }
+#food-float .bottom { grid-template-columns: 1fr; }
 #prog-g-fotos, #prog-g-medidas { background: #fff; border-radius: 12px; padding: 14px 16px; box-shadow: 0 1px 3px rgba(0, 0, 0, .08); }
 
 /* FUNCIÓN DE VARIANTES (2026-10-30): filas y detalle de la pestaña

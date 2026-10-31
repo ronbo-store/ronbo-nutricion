@@ -2889,6 +2889,8 @@ en: {
   'food.voice': 'Voice',
   'food.manual': 'Manual',
   'food.help': 'Help',
+  'food.tabSummary': 'Summary',
+  'food.tabLogged': 'Logged',
   'form.date': 'Date',
   'form.moment': 'Meal',
   'form.food': 'Food',
@@ -5000,6 +5002,8 @@ es: {
   'food.voice': 'Voz',
   'food.manual': 'Manual',
   'food.help': 'Ayuda',
+  'food.tabSummary': 'Resumen',
+  'food.tabLogged': 'Consumido',
   'form.date': 'Fecha',
   'form.moment': 'Momento',
   'form.food': 'Alimento',
@@ -13105,6 +13109,27 @@ function foodOpenFloat() { foodShowOnly('float'); }
 function foodOpenText() { foodShowOnly('text'); const ta = $('food-text-desc'); if (ta) { try { ta.focus(); } catch {} } }
 function foodOpenHelp() { foodShowOnly('help'); }
 function foodOpenVoice() { foodShowOnly('voice'); }
+
+/* Sub-vistas de la ventana de Comida (AUTH-2026-10-31-115,
+   apartado único): Resumen (los anillos) y Consumido (el diario),
+   mudados desde «Mi registro» a esta ventana. Un solo sub-panel
+   visible; el estado vive en memoria, espejo de las sub-pestañas
+   de Progreso (progSetSub). La fecha NO se duplica: ambas vistas
+   leen la ÚNICA fecha del #dateSel que ahora vive en esta misma
+   ventana — cambiarla repinta anillos y diario a la vez porque
+   render() ya pinta los dos. */
+let FOOD_SUB = 'resumen';
+function foodSetSub(name) {
+  FOOD_SUB = name;
+  const r = $('food-view-resumen'), c = $('food-view-consumido');
+  if (r) r.style.display = name === 'resumen' ? '' : 'none';
+  if (c) c.style.display = name === 'consumido' ? '' : 'none';
+  const br = $('food-tab-resumen'), bc = $('food-tab-consumido');
+  if (br) { br.classList.toggle('active', name === 'resumen'); br.setAttribute('aria-selected', name === 'resumen' ? 'true' : 'false'); }
+  if (bc) { bc.classList.toggle('active', name === 'consumido'); bc.setAttribute('aria-selected', name === 'consumido' ? 'true' : 'false'); }
+}
+{ const br = $('food-tab-resumen'); if (br) br.onclick = () => foodSetSub('resumen'); }
+{ const bc = $('food-tab-consumido'); if (bc) bc.onclick = () => foodSetSub('consumido'); }
 
 /* El botón redondo «Comida» del dock es un <label> que envuelve el
    input de archivo: sin interceptar, tocarlo abriría la
@@ -26407,7 +26432,7 @@ document.addEventListener('keydown', e => { if (e.key === 'Escape') shareClose()
  *  - El SW (sw.js) solo cachea la cáscara del mismo origen en modo
  *    RED PRIMERO: Auth/Firestore/Worker jamás pasan por la caché.
  * ================================================================ */
-const PWA_SW_VERSION = '20261031-captacion-suspendida';
+const PWA_SW_VERSION = '20261031-comida-unica';
 let pwaDeferredPrompt = null;
 function pwaIsStandalone() {
   try {

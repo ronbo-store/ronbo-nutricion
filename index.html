@@ -21,7 +21,7 @@
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-title" content="RONBO FIT">
 <meta name="apple-mobile-web-app-status-bar-style" content="default">
-<link rel="stylesheet" href="styles.css?v=20261031-captacion-suspendida">
+<link rel="stylesheet" href="styles.css?v=20261031-comida-unica">
 <script defer src="https://cloud.umami.is/script.js" data-website-id="a29706d4-44a2-47cf-900a-5f74d74abfa8"></script>
 <script type="importmap">
 {
@@ -268,10 +268,11 @@
        pantalla principal al entrar; se pinta desde renderRolePendCard()
        y solo aparece si hay pendientes de procedimiento. -->
   <div id="role-pend-card" style="display:none"></div>
-  <div class="date-row">
-    <label for="dateSel" data-i18n="track.date">📅 Date:</label>
-    <select id="dateSel"></select>
-  </div>
+  <!-- FECHA ÚNICA DE COMIDA (AUTH-2026-10-31-115): el selector de
+       fecha (#dateSel) se MUDÓ a la ventana flotante de Comida
+       (#food-float), junto a los anillos y el diario que gobierna:
+       una sola fecha para Resumen y Consumido. buildDateSelector y
+       render() lo siguen gobernando por id, sin cambios. -->
 
   <!-- Pendientes (REC-D, fase 1): desde 2026-10-21 (pedido de Ronald)
        ya NO viven en una sección de «Mi registro»: se alojan SOLO en
@@ -280,8 +281,12 @@
 
   <div id="err"></div>
   <div id="my-trainer-box" style="display:none"></div>
-  <div class="rings" id="rings"></div>
-  <p class="rings-first-note" id="rings-note" style="display:none"></p>
+  <!-- ANILLOS Y DIARIO EN LA VENTANA DE COMIDA (AUTH-2026-10-31-115):
+       #rings, #rings-note y el panel del diario (#detailBody) se
+       MUDARON a la ventana flotante de Comida (#food-float), como
+       sus vistas Resumen y Consumido. Aquí no queda copia alguna:
+       render() los sigue pintando por id en su nuevo sitio. La
+       gráfica semanal se queda en esta vista. -->
 
   <!-- Registro de actividad — REDISEÑO FLOTANTE (desarrollo
        2026-10-24, orden de Ronald por correo 13:54): la tira
@@ -295,21 +300,6 @@
   <div class="panel week-panel">
     <h2 data-i18n="track.weekTitle">📈 Weekly goal compliance</h2>
     <div id="weekChart"></div>
-  </div>
-
-  <div class="bottom">
-    <div class="panel">
-      <h2 data-i18n="track.detail">Food diary</h2>
-      <div class="table-scroll">
-      <table class="detail">
-        <thead><tr>
-          <th data-i18n="th.moment">Meal</th><th data-i18n="th.food">Food</th><th data-i18n="th.amount">Amount</th>
-          <th class="num" data-i18n="th.cal">Cal</th><th class="num" data-i18n="th.prot">Prot (g)</th><th class="num" data-i18n="th.carb">Carb (g)</th><th class="num" data-i18n="th.sugar">Sugar (g)</th><th class="num" data-i18n="th.fat">Fat (g)</th><th></th>
-        </tr></thead>
-        <tbody id="detailBody"></tbody>
-      </table>
-      </div>
-    </div>
   </div>
 
   </div>
@@ -661,6 +651,45 @@
         <span class="act-chip-ico" aria-hidden="true">✋</span>
         <span class="act-chip-lab" data-i18n="food.manual">Manual</span>
       </button>
+    </div>
+    <!-- APARTADO ÚNICO DE COMIDA (AUTH-2026-10-31-115; diseño
+         aprobado por Ronald, correo 590, 2026-10-31 ~13:41 CDT):
+         esta ventana es ahora TODO el apartado de Comida — las
+         vías de registro de arriba y, aquí debajo, lo consumido:
+         selector interno Resumen / Consumido, UNA fecha común
+         (#dateSel, el de siempre, mudado desde «Mi registro») y
+         los anillos y el diario MUDADOS desde «Mi registro», sin
+         copias fuera. Resumen = #rings + su nota; Consumido = el
+         panel del diario con #detailBody. render() los sigue
+         pintando por id. El selector lo gobierna foodSetSub en
+         app.js, espejo de las sub-pestañas de Progreso. -->
+    <div class="date-row">
+      <label for="dateSel" data-i18n="track.date">📅 Date:</label>
+      <select id="dateSel"></select>
+    </div>
+    <div class="food-subtabs" role="tablist">
+      <button type="button" class="food-subtab active" id="food-tab-resumen" role="tab" aria-selected="true" data-i18n="food.tabSummary">Summary</button>
+      <button type="button" class="food-subtab" id="food-tab-consumido" role="tab" aria-selected="false" data-i18n="food.tabLogged">Logged</button>
+    </div>
+    <div id="food-view-resumen">
+      <div class="rings" id="rings"></div>
+      <p class="rings-first-note" id="rings-note" style="display:none"></p>
+    </div>
+    <div id="food-view-consumido" style="display:none">
+      <div class="bottom">
+        <div class="panel">
+          <h2 data-i18n="track.detail">Food diary</h2>
+          <div class="table-scroll">
+          <table class="detail">
+            <thead><tr>
+              <th data-i18n="th.moment">Meal</th><th data-i18n="th.food">Food</th><th data-i18n="th.amount">Amount</th>
+              <th class="num" data-i18n="th.cal">Cal</th><th class="num" data-i18n="th.prot">Prot (g)</th><th class="num" data-i18n="th.carb">Carb (g)</th><th class="num" data-i18n="th.sugar">Sugar (g)</th><th class="num" data-i18n="th.fat">Fat (g)</th><th></th>
+            </tr></thead>
+            <tbody id="detailBody"></tbody>
+          </table>
+          </div>
+        </div>
+      </div>
     </div>
   </div>
   <div class="act-float act-sheet" id="food-text" style="display:none" role="dialog" aria-label="Describe your meal" data-i18n-aria="aiText.label">
@@ -1367,6 +1396,6 @@
 <div id="toast" class="toast"></div>
 <div id="print-card" aria-hidden="true"></div>
 
-<script type="module" src="app.js?v=20261031-captacion-suspendida"></script>
+<script type="module" src="app.js?v=20261031-comida-unica"></script>
 </body>
 </html>
