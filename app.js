@@ -277,8 +277,6 @@ function applyFeatureGates() {
      o la IA se apagan, las hojas flotantes de comida abiertas se
      cierran — la puerta manda sobre la superficie, como el dock. */
   if (!featureOn('meals') || aiOff) { for (const id of ['food-float', 'food-text', 'food-help']) { const el = document.getElementById(id); if (el) el.style.display = 'none'; } }
-  const manual = document.getElementById('btn-add-meal-manual');
-  if (manual) manual.style.display = featureOn('meals') ? '' : 'none';
   if (!featureOn('activity')) {
     const dockAct = document.getElementById('btn-toggle-activity'); if (dockAct) dockAct.style.display = 'none';
     const fl = document.getElementById('act-float'); if (fl) fl.style.display = 'none';
@@ -1755,6 +1753,7 @@ function admuseNameOf(uid) {
    registrando aquí sus entradas — misma base, misma zona. */
 const ADMIN_SECTIONS = [
   { id: 'aiusage', sub: 'tech', titleKey: 'admuse.aiTitle', mount: admSecMountAiUsage, refresh: admUsageRefresh },
+  { id: 'foodlib', sub: 'tech', titleKey: 'foodlib.adminTitle', mount: admSecMountFoodlib, refresh: admSecRefreshFoodlib },
   { id: 'flags', sub: 'tech', titleKey: 'esc.flagsTitle', mount: admSecMountFlags },
   { id: 'accesslog', sub: 'system', titleKey: 'nd2.title', mount: admSecMountAccessLog, refresh: admSecRefreshAccessLog },
 ];
@@ -1819,6 +1818,42 @@ async function renderAdminZone() {
       if (body) { try { s.mount(body); } catch {} }
     } else ADM_SEC_MOUNTED[s.id] = false;
   });
+}
+/* ---------- Sección «Biblioteca de alimentos» (Tech) ----------
+   LA CURADURÍA VIVE AQUÍ (corrección de Ronald, 2026-10-31): la
+   bandeja de aprobación de los candidatos que genera CADA guardado
+   de comida (foodlibAutoCandidate) y la administración del catálogo
+   publicado (corregir / retirar fichas). La zona de Administración
+   entera solo se pinta con ROLE 'administrador' (renderAdminZone)
+   y las reglas exigen lo mismo (isCuratorUser = isAdminUser desde
+   este paquete): para un entrenador o un alumno esta superficie
+   NO EXISTE — ni botón, ni bandeja, ni lecturas de la antesala. El
+   montaje fija los anfitriones DOM (FL_TRAY_EL / FL_LIST_EL /
+   FL_MORE_EL) que consumen foodlibLoadTray y foodlibLoadList. */
+function admSecMountFoodlib(body) {
+  body.innerHTML = `<p class="progress-hint">${esc(t('foodlib.adminHint'))}</p>`
+    + `<div id="fl-adm-tray"></div>`
+    + `<h4 class="admuse-aititle">${esc(t('foodlib.adminLibTitle'))}</h4>`
+    + `<label class="ac-wrap"><input type="text" id="fl-adm-q" placeholder="${esc(t('foodlib.searchPh'))}"></label>`
+    + `<div id="fl-adm-list"></div>`
+    + `<button type="button" class="btn-ghost btn-sm" id="fl-adm-more" style="display:none">${esc(t('foodlib.more'))}</button>`;
+  FL_TRAY_EL = body.querySelector('#fl-adm-tray');
+  FL_LIST_EL = body.querySelector('#fl-adm-list');
+  FL_MORE_EL = body.querySelector('#fl-adm-more');
+  const q = body.querySelector('#fl-adm-q');
+  if (q) q.addEventListener('input', () => {
+    clearTimeout(q._flT);
+    q._flT = setTimeout(() => { foodlibQuery = acNorm(q.value); foodlibLoadList(true); }, 300);
+  });
+  if (FL_MORE_EL) FL_MORE_EL.onclick = () => foodlibLoadList(false);
+  foodlibIsOpen = true;
+  foodlibLoadTray();
+  foodlibLoadList(true);
+}
+function admSecRefreshFoodlib() {
+  if (!FL_TRAY_EL) return;
+  foodlibLoadTray();
+  foodlibLoadList(true);
 }
 /* ---------- Sección «Consumo de IA» (Tech) ----------
    El consumo llega SOLO por el Worker (GET /admin/usage), como
@@ -2657,7 +2692,6 @@ en: {
   'units.heightHintFtin': 'You can write 5\'10", 5 ft 10 in or 5.83 ft.',
   'units.errHeightParse': 'Height not understood. Use e.g. 5\'10".',
   'eval.cfgSave': 'Save settings',
-  'mealhelp.addManual': 'Add food manually',
   'mealhelp.upload': '📷 Upload food photo',
   'mealhelp.takePhoto': '📷 Take a photo',
   'mealhelp.uploaded': 'Photo sent. Let me know in the chat so I can analyze it.',
@@ -2728,9 +2762,6 @@ en: {
   'ac.title': 'From your history',
   'ac.values': '{kcal} kcal · protein {prot} g · carbs {carb} g · sugar {sugar} g · fat {fat} g',
   'ac.community': 'From the community',
-  'foodlib.title': '🥗 Community foods',
-  'foodlib.open': 'Browse',
-  'foodlib.hint': 'Foods shared by people in the community and reviewed before they appear. No names and no dates: just the food and its values.',
   'foodlib.searchPh': 'Search a food…',
   'foodlib.more': 'Show more',
   'foodlib.empty': 'No foods here yet. The first shared foods will appear in this list.',
@@ -2745,55 +2776,32 @@ en: {
   'foodlib.reason.nombre': 'Name not publishable',
   'foodlib.reason.otro': 'Other',
   'foodlib.reason.nounico': 'Not a single food',
-  'foodlib.shareBtn': 'Share a food',
-  'foodlib.shareShort': 'Share',
-  'foodlib.mineBtn': 'My contributions',
   'foodlib.trayBtn': 'Review tray',
-  'foodlib.shareTitle': 'Share this food',
-  'foodlib.shareExplain': 'Only the name and its values are shared — never your name, never the date, never the meal where you logged it. A reviewer checks every food before it appears for everyone.',
-  'foodlib.shareSend': 'Share anonymously',
-  'foodlib.shareOk': 'Sent ✓ — it will appear for everyone once a reviewer approves it',
-  'foodlib.alreadyLib': 'That food is already in the community library.',
-  'foodlib.alreadyPending': 'You already have this food awaiting review.',
-  'foodlib.offerQ': 'Share “{name}” with the community?',
-  'foodlib.offerNo': 'Not now',
   'foodlib.f.unit': 'Unit',
   'foodlib.f.piece': 'g per unit',
   'foodlib.unit.g': 'grams (g)',
   'foodlib.unit.ml': 'milliliters (ml)',
   'foodlib.unit.unidad': 'units',
   'foodlib.errHard': 'Check the values before sharing: the amount, the sugars within the carbs, or a density no real food has does not add up.',
-  'foodlib.errName': 'The name looks like it carries personal data (an email, a phone, a link). Use just the food’s name.',
-  'foodlib.softNote': 'Heads-up for the reviewer: {flags}',
   'foodlib.flag.atwater': 'the calories do not match the macros (protein, carbs and fat add up to a different energy)',
   'foodlib.flag.densityHigh': 'very high energy density for its amount',
   'foodlib.flag.compound': 'the name sounds like several foods in one',
   'foodlib.flag.dupDiverge': 'a library food with this name differs a lot in calories',
-  'foodlib.state.pendiente': 'Pending review',
-  'foodlib.state.aprobado': 'Approved',
-  'foodlib.state.rechazado': 'Rejected',
-  'foodlib.state.retirado': 'Withdrawn',
   'foodlib.state.resuelto': 'Resolved',
-  'foodlib.mineEmpty': 'You have not shared any food yet.',
-  'foodlib.mineApprovedNote': 'It is in the library, available to everyone.',
-  'foodlib.rejectReasonNote': 'Reason: {reason}',
-  'foodlib.withdraw': 'Withdraw',
-  'foodlib.withdrawn': 'Contribution withdrawn',
-  'foodlib.delete': 'Delete',
-  'foodlib.deleted': 'Contribution deleted',
   'foodlib.trayEmpty': 'Nothing awaiting review. 🎉',
   'foodlib.trayBy': 'Shared by {name}',
   'foodlib.publishedToast': 'Published ✓ — it is now in the community library',
   'foodlib.rejectedToast': 'Contribution rejected',
   'foodlib.resolvedToast': 'Report marked as resolved',
   'foodlib.reportOf': 'Report on “{name}”',
+  'foodlib.adminTitle': '🥗 Food library — review tray',
+  'foodlib.adminHint': 'Every food anyone logs becomes a candidate here automatically. Only what you approve enters the shared catalog people find in search; the catalog never shows who logged a food or when.',
+  'foodlib.adminLibTitle': 'In the catalog',
   'foodlib.editSave': 'Save correction',
   'foodlib.correctionSaved': 'Correction saved ✓',
   'foodlib.removeLib': 'Remove from library',
   'foodlib.removeConfirm': 'Remove this food from the community library? Copies already adopted stay in each person’s diary.',
   'foodlib.removedLib': 'Food removed from the library',
-  'foodlib.pickTitle': 'Your foods — pick one to share it',
-  'foodlib.pickEmpty': 'You have no logged foods yet. Log a meal first and you can share it from here.',
   'foodlib.communityTag': 'Community',
   'aiText.notFound': "AI couldn't identify any food this time. Try again, or log the meal manually.",
   'aiText.banner': 'Draft from your description: check and edit the values before saving.',
@@ -4795,7 +4803,6 @@ es: {
   'units.heightHintFtin': 'Puedes escribir 5\'10", 5 ft 10 in o 5,83 ft.',
   'units.errHeightParse': 'Estatura no reconocida. Usa p. ej. 5\'10".',
   'eval.cfgSave': 'Guardar configuración',
-  'mealhelp.addManual': 'Añadir comida manualmente',
   'mealhelp.upload': '📷 Subir foto de comida',
   'mealhelp.takePhoto': '📷 Tomar una foto',
   'mealhelp.uploaded': 'Foto enviada. Avísame por el chat para analizarla.',
@@ -4866,9 +4873,6 @@ es: {
   'ac.title': 'De tu historial',
   'ac.values': '{kcal} kcal · proteína {prot} g · carbos {carb} g · azúcares {sugar} g · grasas {fat} g',
   'ac.community': 'De la comunidad',
-  'foodlib.title': '🥗 Alimentos de la comunidad',
-  'foodlib.open': 'Explorar',
-  'foodlib.hint': 'Alimentos compartidos por personas de la comunidad y revisados antes de aparecer. Sin nombres y sin fechas: solo el alimento y sus valores.',
   'foodlib.searchPh': 'Busca un alimento…',
   'foodlib.more': 'Mostrar más',
   'foodlib.empty': 'Todavía no hay alimentos aquí. Los primeros alimentos compartidos aparecerán en esta lista.',
@@ -4883,55 +4887,32 @@ es: {
   'foodlib.reason.nombre': 'Nombre no publicable',
   'foodlib.reason.otro': 'Otro',
   'foodlib.reason.nounico': 'No es un alimento único',
-  'foodlib.shareBtn': 'Compartir un alimento',
-  'foodlib.shareShort': 'Compartir',
-  'foodlib.mineBtn': 'Mis aportes',
   'foodlib.trayBtn': 'Bandeja de revisión',
-  'foodlib.shareTitle': 'Compartir este alimento',
-  'foodlib.shareExplain': 'Solo se comparten el nombre y sus valores — nunca tu nombre, nunca la fecha, nunca la comida en la que lo registraste. Un revisor comprueba cada alimento antes de que aparezca para todos.',
-  'foodlib.shareSend': 'Compartir anónimamente',
-  'foodlib.shareOk': 'Enviado ✓ — aparecerá para todos cuando un revisor lo apruebe',
-  'foodlib.alreadyLib': 'Ese alimento ya está en la biblioteca de la comunidad.',
-  'foodlib.alreadyPending': 'Ya tienes este alimento en espera de revisión.',
-  'foodlib.offerQ': '¿Compartir «{name}» con la comunidad?',
-  'foodlib.offerNo': 'Ahora no',
   'foodlib.f.unit': 'Unidad',
   'foodlib.f.piece': 'g por unidad',
   'foodlib.unit.g': 'gramos (g)',
   'foodlib.unit.ml': 'mililitros (ml)',
   'foodlib.unit.unidad': 'unidades',
   'foodlib.errHard': 'Revisa los valores antes de compartir: la cantidad, los azúcares dentro de los carbos o una densidad que ningún alimento real tiene no cuadran.',
-  'foodlib.errName': 'El nombre parece llevar datos personales (un correo, un teléfono, un enlace). Usa solo el nombre del alimento.',
-  'foodlib.softNote': 'Aviso para el revisor: {flags}',
   'foodlib.flag.atwater': 'las calorías no cuadran con los macros (proteína, carbos y grasa suman otra energía)',
   'foodlib.flag.densityHigh': 'densidad de energía muy alta para su cantidad',
   'foodlib.flag.compound': 'el nombre suena a varios alimentos en uno',
   'foodlib.flag.dupDiverge': 'un alimento de la biblioteca con este nombre difiere mucho en calorías',
-  'foodlib.state.pendiente': 'En espera de revisión',
-  'foodlib.state.aprobado': 'Aprobado',
-  'foodlib.state.rechazado': 'Rechazado',
-  'foodlib.state.retirado': 'Retirado',
   'foodlib.state.resuelto': 'Resuelto',
-  'foodlib.mineEmpty': 'Todavía no has compartido ningún alimento.',
-  'foodlib.mineApprovedNote': 'Ya está en la biblioteca, disponible para todos.',
-  'foodlib.rejectReasonNote': 'Motivo: {reason}',
-  'foodlib.withdraw': 'Retirar',
-  'foodlib.withdrawn': 'Aporte retirado',
-  'foodlib.delete': 'Borrar',
-  'foodlib.deleted': 'Aporte borrado',
   'foodlib.trayEmpty': 'Nada en espera de revisión. 🎉',
   'foodlib.trayBy': 'Compartido por {name}',
   'foodlib.publishedToast': 'Publicado ✓ — ya está en la biblioteca de la comunidad',
   'foodlib.rejectedToast': 'Aporte rechazado',
   'foodlib.resolvedToast': 'Reporte marcado como resuelto',
   'foodlib.reportOf': 'Reporte sobre «{name}»',
+  'foodlib.adminTitle': '🥗 Biblioteca de alimentos — bandeja de revisión',
+  'foodlib.adminHint': 'Cada alimento que alguien registra llega aquí solo, como candidato. Solo entra al catálogo compartido — el que la gente encuentra al buscar — lo que tú apruebes; el catálogo nunca muestra quién registró un alimento ni cuándo.',
+  'foodlib.adminLibTitle': 'En el catálogo',
   'foodlib.editSave': 'Guardar corrección',
   'foodlib.correctionSaved': 'Corrección guardada ✓',
   'foodlib.removeLib': 'Quitar de la biblioteca',
   'foodlib.removeConfirm': '¿Quitar este alimento de la biblioteca de la comunidad? Las copias ya adoptadas se quedan en el diario de cada persona.',
   'foodlib.removedLib': 'Alimento quitado de la biblioteca',
-  'foodlib.pickTitle': 'Tus alimentos — elige uno para compartirlo',
-  'foodlib.pickEmpty': 'Todavía no tienes alimentos registrados. Registra primero una comida y podrás compartirla desde aquí.',
   'foodlib.communityTag': 'Comunidad',
   'aiText.notFound': 'La IA no pudo identificar ningún alimento esta vez. Inténtalo de nuevo o registra la comida manualmente.',
   'aiText.banner': 'Borrador de tu descripción: revisa y edita los valores antes de guardar.',
@@ -13153,13 +13134,15 @@ if (foodDockLabel) foodDockLabel.addEventListener('click', e => {
 { const b = $('btn-food-text'); if (b) b.onclick = () => foodOpenText(); }
 { const b = $('btn-food-voice'); if (b) b.onclick = () => foodOpenVoice(); }
 { const b = $('btn-food-manual');
-  /* El chip delega en el botón vigente «Añadir comida manualmente»:
-     SU handler es el que prepara el formulario (fecha del día
-     elegido, comida por defecto, espejo de borrador) y llama a
-     aiOpenMealModal — aiOpenMealModal a secas NO prepara nada, y un
-     formulario sin fecha ni siquiera se puede enviar. Una sola
-     fuente para la vía manual, como con la foto y el texto. */
-  if (b) b.onclick = () => { foodCloseAll(); const m = $('btn-add-meal-manual'); if (m) m.click(); else aiOpenMealModal(); }; }
+  /* La preparación de la vía manual vive en mealManualOpen()
+     (fecha del día elegido, comida por defecto, espejo de
+     borrador) y termina en aiOpenMealModal — aiOpenMealModal a
+     secas NO prepara nada, y un formulario sin fecha ni siquiera
+     se puede enviar. Una sola fuente para la vía manual, como
+     con la foto y el texto. (Hasta AUTH-110 este chip delegaba
+     en el botón «Añadir comida manualmente» de Inicio, retirado
+     por orden de Ronald por duplicar ESTA entrada.) */
+  if (b) b.onclick = () => { foodCloseAll(); mealManualOpen(); }; }
 { const b = $('btn-food-help'); if (b) b.onclick = () => foodOpenHelp(); }
 { const c = $('btn-food-close'); if (c) c.onclick = () => foodCloseAll(); }
 { const c = $('btn-food-text-close'); if (c) c.onclick = () => foodOpenFloat(); }
@@ -13555,6 +13538,9 @@ async function aiSaveDirect() {
     else await addDoc(collection(db, 'nutrition_meals'), data);
     aiDiscard();
     await loadAllKeepDate(data.date);
+    /* Candidato automático a la antesala (corrección de P1): en
+       segundo plano y en silencio; jamás bloquea este guardado. */
+    try { foodlibAutoCandidate(data); } catch {}
     const dayTotal = (MEALS[data.date] || []).reduce((s, x) => s + (Number(x.kcal) || 0), 0);
     /* Corrección de Ronald (2026-10-24 20:39 CDT): SOLO si el
        registro viene de una FOTO (source 'ai'), la MISMA
@@ -22544,7 +22530,6 @@ document.addEventListener('keydown', e => { if (e.key === 'Escape') actCloseAll(
 
 function render(date) {
   $('dateTitle').textContent = dateName(date);
-  try { if (typeof foodlibOfferData !== 'undefined' && foodlibOfferData && foodlibOfferData.date !== date) foodlibOfferClear(); } catch {}
   try { if (typeof goalsSetView === 'function') goalsSetView(date); } catch {}
   /* PAQUETE BARRA-SUSTITUYE-METAS (2026-10-30, orden de Ronald):
      la fila de metas en texto (#goals-row, el bloque «Tus metas
@@ -22590,7 +22575,7 @@ function render(date) {
     `<tr><td>${esc(mealName(m.meal))}${m.createdAtMs ? ` <span class="meal-time">${mealTimeStr(m.createdAtMs)}</span>` : ''}</td><td>${esc(m.food)}${m.photoURL ? ` <a href="${esc(m.photoURL)}" target="_blank" rel="noopener" title="${t('track.viewPhoto')}">📷</a>` : ''}</td><td>${esc(m.qty)}</td>` +
     `<td class="num">${fmt(m.kcal)}</td><td class="num">${fmt(m.prot)}</td><td class="num">${fmt(m.carb)}</td>` +
     `<td class="num">${fmt(m.sugar)}</td><td class="num">${fmt(m.fat)}</td>` +
-    `<td class="meal-actions"><button class="rep-btn" data-repeat-meal="${m.id}" title="${t('track.repeat')}">↻ ${t('track.repeat')}</button><button class="rep-btn" data-share-meal="${m.id}" title="${t('foodlib.shareBtn')}">↗ ${t('foodlib.shareShort')}</button><button class="del-btn" data-del-meal="${m.id}" title="${t('track.delete')}">×</button></td></tr>`
+    `<td class="meal-actions"><button class="rep-btn" data-repeat-meal="${m.id}" title="${t('track.repeat')}">↻ ${t('track.repeat')}</button><button class="del-btn" data-del-meal="${m.id}" title="${t('track.delete')}">×</button></td></tr>`
   ).join('');
   if (rows.length) html += `<tr class="total"><td colspan="3">TOTAL</td><td class="num" style="color:#16A34A">${fmt(tot.kcal)}</td><td class="num" style="color:#2563EB">${fmt(tot.prot)}</td><td class="num" style="color:#D97706">${fmt(tot.carb)}</td><td class="num" style="color:#9333EA">${fmt(tot.azuc)}</td><td class="num" style="color:#DC2626">${fmt(tot.gras)}</td><td></td></tr>`;
   $('detailBody').innerHTML = html || `<tr><td colspan="9" class="wempty">${t('track.emptyDay')}</td></tr>`;
@@ -22610,6 +22595,11 @@ function render(date) {
      forma parte de la tabla —es la única entrada manual de la vista—
      y por instrucción anterior de Ronald vive en esta fila; no se
      toca. */
+  /* CORRECCIÓN 2026-10-31 (AUTH-110): el botón «Añadir comida
+     manualmente» que el comentario de arriba dejaba en este panel
+     TAMBIÉN salió de Inicio por orden de Ronald — duplicaba la
+     entrada manual de la hoja de Comida (el dock). El panel del
+     diario ya no lleva ningún botón. */
   /* SIN BLOQUE «NOTAS» EN LA VISTA PRINCIPAL (Ronald, 2026-10-21:
      «Por ahora tampoco quiero esto en mi vista principal»): el bloque
      «📝 Notas» ya NO se emite en esta vista — ni el contenedor en
@@ -22633,14 +22623,6 @@ function render(date) {
       if (row && row.photoPath) { try { await deleteObject(sRef(storage, row.photoPath)); } catch {} }
       toast(t('msg.mealDeleted'));
       await loadAllKeepDate(date);
-    });
-  /* Compartir ESTE registro con la comunidad (opt-in por alimento,
-     diseño §2.1 punto 2): abre la hoja de aporte con sus valores tal
-     como quedaron guardados. El registro no se toca. */
-  document.querySelectorAll('[data-share-meal]').forEach(b =>
-    b.onclick = () => {
-      const row = rows.find(r => r.id === b.dataset.shareMeal);
-      if (row) foodlibOpenShare(foodlibFromMeal(row));
     });
   renderActivity(date);
 }
@@ -23781,8 +23763,11 @@ async function loadAccessLog() {
    es la del DÍA EN PANTALLA (la que resume esa tarjeta, vía
    #dateSel — el mismo patrón que ya usan otras rutas del
    formulario), no siempre hoy. */
-const btnMealManual = $('btn-add-meal-manual');
-if (btnMealManual) btnMealManual.onclick = () => {
+/* CORRECCIÓN 2026-10-31 (AUTH-110): el botón físico de Inicio
+   (#btn-add-meal-manual) se retiró; su preparación — la ÚNICA de
+   la vía manual — vive ahora en esta función, invocada por el
+   chip «manual» de la hoja de Comida del dock. */
+function mealManualOpen() {
   aiClearDraft();
   const form = $('form-meal');
   if (form) form.reset();
@@ -23795,7 +23780,7 @@ if (btnMealManual) btnMealManual.onclick = () => {
      en vez de abrir en blanco. */
   try { pendDraftArm(); pendDraftRestore(); } catch {}
   aiOpenMealModal();
-};
+}
 /* «Repetir una comida anterior» (tercera pieza del trío de registro:
    foto / escribir / repetir; candidato bcfe957 integrado sobre
    bb2be02). Cada registro de la lista del día lleva su acción
@@ -24162,13 +24147,30 @@ acWire($('food-text-desc'), $('ac-sug-text'), 'desc');
    una ficha rellena el formulario por acApply (con su reescalado
    AUTH-089) y al guardar escribe un nutrition_meals propio y normal
    por la cláusula de siempre: la biblioteca es el arranque y el
-   historial personal toma el relevo. */
+   historial personal toma el relevo.
+   CORRECCIÓN DE RONALD (2026-10-31, AUTH-110) — dos decisiones de
+   arriba quedan corregidas por su palabra de hoy: P1 (entrada solo
+   por opt-in expreso) queda SIN EFECTO: «Todo pasa a mi bandeja de
+   aprobación» — cada alimento guardado genera AUTOMÁTICAMENTE su
+   candidato en la antesala, sin pregunta ni toque de compartir; y
+   P3 (curan administrador y entrenadores) queda corregida a
+   curaduría SOLO del administrador: la bandeja y la administración
+   del catálogo viven en Administración (sección desplegable
+   «foodlib» de ADMIN_SECTIONS), y la ventana «Alimentos de la
+   comunidad» de Inicio y el botón manual duplicado bajo el diario
+   desaparecen de la vista de las personas. La búsqueda sigue
+   mezclando el catálogo aprobado (sin marca de «comunidad» en
+   Inicio) y food_library sigue anónima por estructura. */
 const foodlibSugCache = new Map(); // prefijo normalizado -> filas públicas de la sesión
 const foodlibRows = new Map();     // id -> ficha pública pintada en la ventana
 let foodlibLastKey = null, foodlibQuery = '', foodlibIsOpen = false;
-let foodlibOfferData = null, flShareBase = null;
+let FL_TRAY_EL = null, FL_LIST_EL = null, FL_MORE_EL = null; // anfitriones DOM en Administración
 
-function foodlibCurator() { return ROLE === 'administrador' || ROLE === 'entrenador'; }
+/* CORRECCIÓN DE P3 (Ronald, 2026-10-31): curador = SOLO el
+   administrador («solamente yo, nadie más»). Los entrenadores ya no
+   curan: ni en la UI (esta puerta) ni en las reglas (isCuratorUser
+   pasó a isAdminUser en el mismo paquete). */
+function foodlibCurator() { return ROLE === 'administrador'; }
 function foodlibQtyText(f) {
   return f.qtyUnit === 'unidad'
     ? `${acNum(f.qtyNum)} unidad (${acNum(num(f.qtyNum) * num(f.pieceGrams))} g)`
@@ -24244,73 +24246,38 @@ function foodlibFromMeal(m) {
   }
   return v;
 }
-/* ---------- Hoja de aporte (consentimiento expreso por alimento) ---------- */
-function foodlibOpenShare(v) {
-  const set = (id, val) => { const el = $(id); if (el) el.value = val; };
-  set('fl-name', v.name || '');
-  set('fl-qty', Number.isFinite(v.qtyNum) ? v.qtyNum : '');
-  set('fl-unit', v.qtyUnit || 'g');
-  set('fl-piece', Number.isFinite(v.pieceGrams) ? v.pieceGrams : '');
-  set('fl-kcal', v.kcal); set('fl-prot', v.prot); set('fl-carb', v.carb); set('fl-sugar', v.sugar); set('fl-fat', v.fat);
-  flShareBase = { grams: foodlibBaseOf(v) || 0, kcal: num(v.kcal), prot: num(v.prot), carb: num(v.carb), sugar: num(v.sugar), fat: num(v.fat) };
-  foodlibShareSync();
-  const m = $('foodlib-share-modal'); if (m) m.style.display = '';
-}
-function foodlibShareVals() {
-  return { name: $('fl-name').value.trim(), qtyNum: num($('fl-qty').value), qtyUnit: $('fl-unit').value,
-    pieceGrams: num($('fl-piece').value), kcal: num($('fl-kcal').value), prot: num($('fl-prot').value),
-    carb: num($('fl-carb').value), sugar: num($('fl-sugar').value), fat: num($('fl-fat').value) };
-}
-function foodlibShareSync() {
-  const wrap = $('fl-piece-wrap'); if (wrap) wrap.style.display = $('fl-unit').value === 'unidad' ? '' : 'none';
-  const box = $('foodlib-share-flags'); if (!box) return;
-  const errs = foodlibValidate(foodlibShareVals());
-  box.innerHTML = errs.soft.length ? `<p class="photo-hint">⚠️ ${esc(t('foodlib.softNote', { flags: foodlibFlagsText(errs.soft) }))}</p>` : '';
-}
-/* Si la cantidad de referencia cambia en la hoja, las métricas se
-   reescalan en proporción desde el par original. El registro
-   guardado jamás se toca: esto es solo la ficha que se comparte. */
-function foodlibShareRescale() {
-  if (!flShareBase || !(flShareBase.grams > 0)) return;
-  const v = foodlibShareVals();
-  const g = foodlibBaseOf(v);
-  if (!(g > 0) || g === flShareBase.grams) { foodlibShareSync(); return; }
-  const f = g / flShareBase.grams, r1 = x => Math.round(x * 10) / 10;
-  $('fl-kcal').value = Math.round(flShareBase.kcal * f);
-  $('fl-prot').value = r1(flShareBase.prot * f);
-  $('fl-carb').value = r1(flShareBase.carb * f);
-  $('fl-sugar').value = r1(flShareBase.sugar * f);
-  $('fl-fat').value = r1(flShareBase.fat * f);
-  flShareBase = { grams: g, kcal: num($('fl-kcal').value), prot: num($('fl-prot').value), carb: num($('fl-carb').value), sugar: num($('fl-sugar').value), fat: num($('fl-fat').value) };
-  foodlibShareSync();
-}
-async function foodlibSubmitShare(ev) {
-  ev.preventDefault();
-  const v = foodlibShareVals();
-  const errs = foodlibValidate(v);
-  if (errs.hard.includes('personal')) { toast(t('foodlib.errName'), true); return; }
-  if (errs.hard.length) { toast(t('foodlib.errHard'), true); return; }
-  v.nameKey = acNorm(v.name);
-  const flags = [...errs.soft];
-  const btn = ev.target.querySelector('button[type="submit"]');
-  if (btn) btn.disabled = true;
+/* ---------- CANDIDATO AUTOMÁTICO (corrección de P1) ----------
+   Ronald, 2026-10-31: «Todo pasa a mi bandeja de aprobación». Cada
+   alimento que la persona guarda (manual o nacido de IA, P4) genera
+   AUTOMÁTICAMENTE su candidato en la antesala food_contrib — sin
+   pregunta, sin botón de compartir, sin superficie alguna para la
+   persona. Los motores de siempre apoyan la aprobación: validación
+   dura (lo imposible o con pinta de dato personal NO sale nunca),
+   anti-duplicados (si ya está en la biblioteca con la misma unidad
+   y valores cercanos, no se duplica la bandeja; si un pendiente
+   propio con la misma clave ya espera, tampoco) y señales blandas
+   como flags. Es SILENCIOSO y jamás bloquea el guardado: cualquier
+   fallo se traga. Solo corre para el propio registro del dueño
+   (ownerUid == yo); lo que un entrenador anota por un alumno no
+   genera candidato en este paquete. La ficha pública que nazca de
+   su aprobación sigue anónima por estructura (P2/P5 intactos). */
+async function foodlibAutoCandidate(m) {
   try {
-    /* MOTOR ACTIVO ANTI-DUPLICADOS (diseño §2.3): contra la
-       biblioteca pública (misma clave y unidad: dentro de ±10 % en
-       kcal ya está; divergencia > 25 % pasa señalada) y contra la
-       propia antesala (un pendiente con la misma clave no se
-       duplica: se muestra su estado). */
+    if (!auth.currentUser || !m || m.ownerUid !== auth.currentUser.uid) return;
+    const v = foodlibFromMeal(m);
+    const errs = foodlibValidate(v);
+    if (errs.hard.length) return; // incluye 'personal': ese nombre jamás sale
+    v.nameKey = acNorm(v.name);
+    const flags = [...errs.soft];
     const dupSnap = await getDocs(query(collection(db, 'food_library'), where('nameKey', '==', v.nameKey), limit(5)));
     for (const d of dupSnap.docs) {
       const f = d.data();
       if (num(f.kcal) > 0 && Math.abs(num(f.kcal) - v.kcal) > 0.25 * num(f.kcal)) flags.push('dupDiverge');
-      else if (f.qtyUnit === v.qtyUnit) { toast(t('foodlib.alreadyLib'), true); return; }
+      else if (f.qtyUnit === v.qtyUnit) return; // ya vive en la biblioteca
     }
     const uid = auth.currentUser.uid;
     const mineSnap = await getDocs(query(collection(db, 'food_contrib'), where('contributorUid', '==', uid)));
-    if (mineSnap.docs.some(d => { const a = d.data(); return a.kind === 'aporte' && a.estado === 'pendiente' && a.nameKey === v.nameKey; })) {
-      toast(t('foodlib.alreadyPending'), true); return;
-    }
+    if (mineSnap.docs.some(d => { const a = d.data(); return a.kind === 'aporte' && a.estado === 'pendiente' && a.nameKey === v.nameKey; })) return;
     const data = { kind: 'aporte', name: v.name, nameKey: v.nameKey, qtyNum: v.qtyNum, qtyUnit: v.qtyUnit,
       kcal: v.kcal, prot: v.prot, carb: v.carb, sugar: v.sugar, fat: v.fat,
       flags: [...new Set(flags)], contributorUid: uid,
@@ -24318,26 +24285,14 @@ async function foodlibSubmitShare(ev) {
       estado: 'pendiente', createdAt: serverTimestamp() };
     if (v.qtyUnit === 'unidad') data.pieceGrams = v.pieceGrams;
     await addDoc(collection(db, 'food_contrib'), data);
-    $('foodlib-share-modal').style.display = 'none';
-    toast(t('foodlib.shareOk'));
-  } catch (e) { toast(t('foodlib.errHard'), true); }
-  finally { if (btn) btn.disabled = false; }
+  } catch {}
 }
-/* ---------- Oferta tras guardar (punto de entrada 1) ---------- */
-function foodlibOffer(data) {
-  foodlibOfferData = data;
-  const box = $('foodlib-offer'); if (!box) return;
-  box.innerHTML = `<span>${esc(t('foodlib.offerQ', { name: data.food }))}</span><span class="foodlib-offer-btns"><button type="button" class="btn-primary btn-sm" id="foodlib-offer-yes">${esc(t('foodlib.shareShort'))}</button><button type="button" class="btn-ghost btn-sm" id="foodlib-offer-no">${esc(t('foodlib.offerNo'))}</button></span>`;
-  box.style.display = '';
-  $('foodlib-offer-yes').onclick = () => { const d = foodlibOfferData; foodlibOfferClear(); if (d) foodlibOpenShare(foodlibFromMeal(d)); };
-  $('foodlib-offer-no').onclick = () => foodlibOfferClear();
-}
-function foodlibOfferClear() {
-  const box = $('foodlib-offer');
-  if (box) { box.style.display = 'none'; box.innerHTML = ''; }
-  foodlibOfferData = null;
-}
-/* ---------- Ventana «Alimentos de la comunidad» (descubrir) ---------- */
+/* ---------- Catálogo publicado: filas de Administración ----------
+   La lista de fichas vivas (con su corrección y su retirada, solo
+   curador) se pinta SOLO dentro de la sección de Administración;
+   foodlibRowHTML/foodlibWireRows no conocen otro anfitrión. El
+   «Usar» de cada fila sigue adoptando la ficha en el formulario
+   (es el arranque de búsqueda, intacto). */
 function foodlibRowHTML(f) {
   const e = foodlibEntry(f);
   return `<div class="foodlib-row" data-fl-row="${f.id}">
@@ -24369,7 +24324,7 @@ function foodlibWireRows(scope) {
   });
 }
 async function foodlibLoadList(reset) {
-  const list = $('foodlib-list'); if (!list) return;
+  const list = FL_LIST_EL; if (!list) return;
   if (reset) { foodlibLastKey = null; list.innerHTML = ''; foodlibRows.clear(); }
   const conds = [];
   if (foodlibQuery) { conds.push(where('nameKey', '>=', foodlibQuery), where('nameKey', '<', foodlibQuery + '\uf8ff')); }
@@ -24383,7 +24338,7 @@ async function foodlibLoadList(reset) {
   } catch { if (reset) list.innerHTML = `<p class="wempty">${esc(t('foodlib.empty'))}</p>`; return; }
   const page = docs.slice(0, 50);
   if (docs.length) foodlibLastKey = docs[Math.min(49, docs.length - 1)].nameKey;
-  const more = $('foodlib-more'); if (more) more.style.display = docs.length > 50 ? '' : 'none';
+  const more = FL_MORE_EL; if (more) more.style.display = docs.length > 50 ? '' : 'none';
   if (reset && !page.length) { list.innerHTML = `<p class="wempty">${esc(t('foodlib.empty'))}</p>`; return; }
   for (const f of page) foodlibRows.set(f.id, f);
   list.insertAdjacentHTML('beforeend', page.map(f => foodlibRowHTML(f)).join(''));
@@ -24452,41 +24407,9 @@ function foodlibEditOpen(id) {
     } catch { toast(t('foodlib.errHard'), true); }
   };
 }
-/* ---------- Compartir desde el propio historial (punto de entrada 3) ---------- */
-function foodlibPick() {
-  const sub = $('foodlib-sub'); if (!sub) return;
-  const idx = acIndex();
-  if (!idx.length) { sub.innerHTML = `<h4>${esc(t('foodlib.pickTitle'))}</h4><p class="wempty">${esc(t('foodlib.pickEmpty'))}</p>`; return; }
-  sub.innerHTML = `<h4>${esc(t('foodlib.pickTitle'))}</h4>` + idx.map((e, i) => `<div class="foodlib-row"><div class="foodlib-row-main"><span class="sg-name">${esc(e.name)}</span><span class="sg-meta">${esc(acMeta(e))}</span></div><div class="foodlib-row-btns"><button type="button" class="btn-primary btn-sm" data-fl-pick="${i}">${esc(t('foodlib.shareShort'))}</button></div></div>`).join('');
-  sub.querySelectorAll('[data-fl-pick]').forEach(b => b.onclick = () => {
-    const e = idx[Number(b.dataset.flPick)];
-    foodlibOpenShare(foodlibFromMeal({ food: e.name, qty: e.qty, kcal: e.kcal, prot: e.prot, carb: e.carb, sugar: e.sugar, fat: e.fat }));
-  });
-}
-/* ---------- Mis aportes (su propio dato, en la antesala) ---------- */
-async function foodlibLoadMine() {
-  const sub = $('foodlib-sub'); if (!sub) return;
-  const uid = auth.currentUser.uid;
-  let mine = [];
-  try {
-    const snap = await getDocs(query(collection(db, 'food_contrib'), where('contributorUid', '==', uid)));
-    mine = snap.docs.map(d => ({ id: d.id, ...d.data() })).filter(a => a.kind === 'aporte')
-      .sort((a, b) => String(a.name).localeCompare(String(b.name)));
-  } catch {}
-  if (!mine.length) { sub.innerHTML = `<h4>${esc(t('foodlib.mineBtn'))}</h4><p class="wempty">${esc(t('foodlib.mineEmpty'))}</p>`; return; }
-  sub.innerHTML = `<h4>${esc(t('foodlib.mineBtn'))}</h4>` + mine.map(a => `<div class="foodlib-row"><div class="foodlib-row-main"><span class="sg-name">${esc(a.name)}</span><span class="sg-meta">${esc(acMeta(foodlibEntry(a)))}</span><span class="fl-state fl-state-${esc(a.estado)}">${esc(t('foodlib.state.' + a.estado))}</span>${a.estado === 'aprobado' ? `<span class="sg-meta">${esc(t('foodlib.mineApprovedNote'))}</span>` : ''}${a.estado === 'rechazado' && a.rejectReason ? `<span class="sg-meta">${esc(t('foodlib.rejectReasonNote', { reason: foodlibReasonText(a.rejectReason) }))}</span>` : ''}</div><div class="foodlib-row-btns">${a.estado === 'pendiente' ? `<button type="button" class="btn-ghost btn-sm" data-fl-withdraw="${a.id}">${esc(t('foodlib.withdraw'))}</button>` : ''}${(a.estado === 'rechazado' || a.estado === 'retirado') ? `<button type="button" class="btn-ghost btn-sm" data-fl-mdel="${a.id}">${esc(t('foodlib.delete'))}</button>` : ''}</div></div>`).join('');
-  sub.querySelectorAll('[data-fl-withdraw]').forEach(b => b.onclick = async () => {
-    try { await setDoc(doc(db, 'food_contrib', b.dataset.flWithdraw), { estado: 'retirado' }, { merge: true }); toast(t('foodlib.withdrawn')); foodlibLoadMine(); }
-    catch { toast(t('foodlib.errHard'), true); }
-  });
-  sub.querySelectorAll('[data-fl-mdel]').forEach(b => b.onclick = async () => {
-    try { await deleteDoc(doc(db, 'food_contrib', b.dataset.flMdel)); toast(t('foodlib.deleted')); foodlibLoadMine(); }
-    catch { toast(t('foodlib.errHard'), true); }
-  });
-}
-/* ---------- Bandeja de curaduría (administrador y entrenadores) ---------- */
+/* ---------- Bandeja de aprobación (SOLO el administrador) ---------- */
 async function foodlibLoadTray() {
-  const sub = $('foodlib-sub'); if (!sub) return;
+  const sub = FL_TRAY_EL; if (!sub) return;
   let docs = [];
   try {
     const snap = await getDocs(query(collection(db, 'food_contrib'), where('estado', '==', 'pendiente')));
@@ -24541,37 +24464,6 @@ async function foodlibLoadTray() {
     } catch { toast(t('foodlib.errHard'), true); }
   });
 }
-/* ---------- Cableado de la ventana y de la hoja ---------- */
-{
-  const toggle = $('foodlib-toggle');
-  if (toggle) toggle.onclick = () => {
-    const body = $('foodlib-body'); if (!body) return;
-    const open = body.style.display === 'none';
-    body.style.display = open ? '' : 'none';
-    foodlibIsOpen = open;
-    if (open) {
-      const tb = $('foodlib-tray-open'); if (tb) tb.style.display = foodlibCurator() ? '' : 'none';
-      foodlibLoadList(true);
-    }
-  };
-  const q = $('foodlib-q');
-  if (q) q.addEventListener('input', () => {
-    clearTimeout(q._flT);
-    q._flT = setTimeout(() => { foodlibQuery = acNorm(q.value); foodlibLoadList(true); }, 300);
-  });
-  const more = $('foodlib-more'); if (more) more.onclick = () => foodlibLoadList(false);
-  const shareOpen = $('foodlib-share-open'); if (shareOpen) shareOpen.onclick = () => foodlibPick();
-  const mineOpen = $('foodlib-mine-open'); if (mineOpen) mineOpen.onclick = () => foodlibLoadMine();
-  const trayOpen = $('foodlib-tray-open'); if (trayOpen) trayOpen.onclick = () => foodlibLoadTray();
-  const form = $('form-foodlib-share'); if (form) form.addEventListener('submit', foodlibSubmitShare);
-  const cancel = $('foodlib-share-cancel'); if (cancel) cancel.onclick = () => { $('foodlib-share-modal').style.display = 'none'; };
-  const x = $('foodlib-share-x'); if (x) x.onclick = () => { $('foodlib-share-modal').style.display = 'none'; };
-  const modal = $('foodlib-share-modal');
-  if (modal) modal.addEventListener('click', e => { if (e.target.id === 'foodlib-share-modal') modal.style.display = 'none'; });
-  for (const id of ['fl-qty', 'fl-unit', 'fl-piece']) { const el = $(id); if (el) el.addEventListener('change', foodlibShareRescale); }
-  for (const id of ['fl-name', 'fl-kcal', 'fl-prot', 'fl-carb', 'fl-sugar', 'fl-fat']) { const el = $(id); if (el) el.addEventListener('input', foodlibShareSync); }
-}
-
 $('m-photo').addEventListener('change', e => {
   const f = e.target.files[0];
   const prev = $('m-photo-preview');
@@ -24679,10 +24571,11 @@ $('form-meal').addEventListener('submit', async e => {
     } else {
       toast(t('msg.mealSaved'));
     }
-    /* Oferta de compartir lo recién guardado (opt-in por alimento,
-       diseño §2.1 punto 1): aviso con botón en el panel del diario;
-       «Ahora no» o cambiar de fecha lo retira. */
-    try { foodlibOffer(data); } catch {}
+    /* Candidato automático a la antesala (corrección de P1,
+       2026-10-31): sin oferta ni pregunta — el alimento guardado
+       pasa solo a la bandeja de aprobación de Administración. En
+       segundo plano y en silencio; jamás bloquea este guardado. */
+    try { foodlibAutoCandidate(data); } catch {}
   } finally {
     mealSaving = false;
     if (saveBtn) saveBtn.disabled = false;
@@ -26504,7 +26397,7 @@ document.addEventListener('keydown', e => { if (e.key === 'Escape') shareClose()
  *  - El SW (sw.js) solo cachea la cáscara del mismo origen en modo
  *    RED PRIMERO: Auth/Firestore/Worker jamás pasan por la caché.
  * ================================================================ */
-const PWA_SW_VERSION = '20261031-business-perfil';
+const PWA_SW_VERSION = '20261031-curaduria-solo-ronald';
 let pwaDeferredPrompt = null;
 function pwaIsStandalone() {
   try {
