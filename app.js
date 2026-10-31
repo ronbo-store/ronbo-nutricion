@@ -2157,6 +2157,7 @@ en: {
   'tabs.track': '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="5" y="4" width="14" height="17" rx="2"/><path d="M9 4.5V3h6v1.5"/><path d="M9 10h6M9 14h4"/></svg> My log',
   'tabs.profile': '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="8" r="3.6"/><path d="M5 20c.8-3.4 3.6-5 7-5s6.2 1.6 7 5"/></svg> My profile',
   'tabs.clients': '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="9" cy="8.4" r="3.2"/><path d="M3.4 19.4c.7-3 2.9-4.5 5.6-4.5s4.9 1.5 5.6 4.5"/><path d="M15.6 5.6a3.2 3.2 0 0 1 0 5.9"/><path d="M17.8 15.3c1.7.7 2.7 2 3.1 4.1"/></svg> My clients',
+  'tabs.students': '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M2.5 9L12 4l9.5 5L12 14z"/><path d="M6.5 11.5V16c0 1.6 2.5 3 5.5 3s5.5-1.4 5.5-3v-4.5"/><path d="M21.5 9v5"/></svg> My students',
   'tabs.access': '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="8.5" cy="14.5" r="4.5"/><path d="M11.8 11.2L20 3"/><path d="M16.5 6.5l3 3"/><path d="M14 9l2.4 2.4"/></svg> Access',
   'tabs.trainers': '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6.5 6.5v11"/><path d="M3.5 9v6"/><path d="M17.5 6.5v11"/><path d="M20.5 9v6"/><path d="M6.5 12h11"/></svg> Trainers',
   'tabs.library': '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 4.6A1.6 1.6 0 0 1 6.6 3H19v15H6.6A1.6 1.6 0 0 0 5 19.4z"/><path d="M5 16.4A1.6 1.6 0 0 1 6.6 14.8H19V18"/><path d="M9 7h6"/></svg> Library',
@@ -2794,6 +2795,10 @@ en: {
   'access.pending': 'Pending approval (',
   'access.users': 'Users with access',
   'access.loading': 'Loading…',
+  'students.title': '🎓 My students',
+  'students.sub': '· my trainer view',
+  'students.hint': 'Only the students assigned to you as their trainer — your trainer hat. Everyone stays under \"My clients\" for administration; your own training and meals stay in \"My log\".',
+  'students.empty': 'You have no assigned students yet. When a student is assigned to you, they will appear here.',
   'clients.title': '👥 My clients',
   'clients.sub': '· trainer management',
   'clients.hint': 'Each client must upload their weight every week. Select one to see their full history, edit their weigh-ins, or add new ones. You set their goals under "Access management".',
@@ -4226,6 +4231,7 @@ es: {
   'tabs.track': '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="5" y="4" width="14" height="17" rx="2"/><path d="M9 4.5V3h6v1.5"/><path d="M9 10h6M9 14h4"/></svg> Mi registro',
   'tabs.profile': '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="8" r="3.6"/><path d="M5 20c.8-3.4 3.6-5 7-5s6.2 1.6 7 5"/></svg> Mi perfil',
   'tabs.clients': '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="9" cy="8.4" r="3.2"/><path d="M3.4 19.4c.7-3 2.9-4.5 5.6-4.5s4.9 1.5 5.6 4.5"/><path d="M15.6 5.6a3.2 3.2 0 0 1 0 5.9"/><path d="M17.8 15.3c1.7.7 2.7 2 3.1 4.1"/></svg> Mis clientes',
+  'tabs.students': '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M2.5 9L12 4l9.5 5L12 14z"/><path d="M6.5 11.5V16c0 1.6 2.5 3 5.5 3s5.5-1.4 5.5-3v-4.5"/><path d="M21.5 9v5"/></svg> Mis alumnos',
   'tabs.access': '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="8.5" cy="14.5" r="4.5"/><path d="M11.8 11.2L20 3"/><path d="M16.5 6.5l3 3"/><path d="M14 9l2.4 2.4"/></svg> Accesos',
   'tabs.trainers': '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6.5 6.5v11"/><path d="M3.5 9v6"/><path d="M17.5 6.5v11"/><path d="M20.5 9v6"/><path d="M6.5 12h11"/></svg> Entrenadores',
   'tabs.library': '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 4.6A1.6 1.6 0 0 1 6.6 3H19v15H6.6A1.6 1.6 0 0 0 5 19.4z"/><path d="M5 16.4A1.6 1.6 0 0 1 6.6 14.8H19V18"/><path d="M9 7h6"/></svg> Biblioteca',
@@ -4863,6 +4869,10 @@ es: {
   'access.pending': 'Pendientes de aprobación (',
   'access.users': 'Usuarios con acceso',
   'access.loading': 'Cargando…',
+  'students.title': '🎓 Mis alumnos',
+  'students.sub': '· mi vista de entrenador',
+  'students.hint': 'Solo los alumnos que tienes asignados como entrenador: tu sombrero de entrenador. Todas las personas siguen en «Mis clientes» para administrar; tu propio entrenamiento y tus comidas siguen en «Mi registro».',
+  'students.empty': 'Todavía no tienes alumnos asignados. Cuando se te asigne un alumno, aparecerá aquí.',
   'clients.title': '👥 Mis clientes',
   'clients.sub': '· gestión de entrenador',
   'clients.hint': 'Cada cliente debe subir su peso cada semana. Selecciona uno para ver su historial completo, editar sus pesajes o agregar nuevos. Sus metas las estableces en "Administración de accesos".',
@@ -6714,6 +6724,11 @@ onAuthStateChanged(auth, async user => {
      Entrenadores; entrenador y alumno ni la ven. */
   const admTabBtn = document.querySelector('.main-tab[data-tab="admin"]');
   if (admTabBtn) admTabBtn.style.display = ROLE === 'administrador' ? '' : 'none';
+  /* «Mis alumnos» (AUTH-2026-10-30-105): la pastilla propia del
+     entrenador — la ven el administrador y el entrenador (quien
+     tenga alumnos asignados); el alumno ni la ve. */
+  const stuTabBtn = document.querySelector('.main-tab[data-tab="students"]');
+  if (stuTabBtn) stuTabBtn.style.display = (ROLE === 'administrador' || ROLE === 'entrenador') ? '' : 'none';
   /* «← Volver» de «Mi perfil» (paquete NAVEGACIÓN, 2026-10-26):
      solo el alumno lo necesita — no tiene barra de pestañas y entra
      al perfil por su foto; el personal conserva sus píldoras. */
@@ -7396,17 +7411,19 @@ function clientGridCell(key, u, d) {
     ? `<button type="button" class="cgrid-cell" data-client="${u.id}">${inner}</button>`
     : `<div class="cgrid-cell cgrid-notap">${inner}</div>`;
 }
-function clientsGridHTML() {
-  const L = CLIENTS_LAST;
+function clientsGridHTML(L, catFilter, emptyKey) {
+  L = L || CLIENTS_LAST;
   if (!L) return '';
-  if (!L.clients.length) return `<div class="wempty">${t('clients.empty')}</div>`;
+  catFilter = catFilter === undefined ? CLIENTS_CAT_FILTER : catFilter;
+  emptyKey = emptyKey || 'clients.empty';
+  if (!L.clients.length) return `<div class="wempty">${t(emptyKey)}</div>`;
   const dataOf = u => ({ chk: L.chkByUid[u.id] || null, alerts: L.alertsByUid[u.id] || [], hasPlan: !!L.planByUid[u.id], lastDate: L.lastByUid[u.id] || null, lastW: L.lastWByUid[u.id] || null });
   const byUid = {};
   L.clients.forEach(u => { const d = dataOf(u); byUid[u.id] = { d, cats: clientCategories(u, d) }; });
   const byName = (a, b) => String(a.name || '').localeCompare(String(b.name || ''));
   let h = '';
   CLIENT_CATS.forEach(cat => {
-    if (CLIENTS_CAT_FILTER !== 'all' && CLIENTS_CAT_FILTER !== cat.key) return;
+    if (catFilter !== 'all' && catFilter !== cat.key) return;
     const members = L.clients.filter(u => byUid[u.id].cats.includes(cat.key));
     if (cat.key === 'alertas') members.sort((a, b) => (byUid[b.id].d.alerts.length - byUid[a.id].d.alerts.length) || byName(a, b));
     else if (cat.key === 'incompleto') members.sort((a, b) => ((byUid[a.id].d.chk ? byUid[a.id].d.chk.pct : 0) - (byUid[b.id].d.chk ? byUid[b.id].d.chk.pct : 0)) || byName(a, b));
@@ -7418,9 +7435,10 @@ function clientsGridHTML() {
 }
 /* La vista de LISTA de siempre, intacta: se mudó tal cual desde
    loadClients y se pinta desde la misma pasada (CLIENTS_LAST). */
-function clientsListHTML() {
-  const L = CLIENTS_LAST;
+function clientsListHTML(L, emptyKey) {
+  L = L || CLIENTS_LAST;
   if (!L) return '';
+  emptyKey = emptyKey || 'clients.empty';
   const { clients, chkByUid, alertsByUid, lastByUid, lastWByUid, pendingFood } = L;
   return clients.length ? clients.map(u => {
     const d = clientsDaysAgo(lastByUid[u.id]);
@@ -7436,7 +7454,7 @@ function clientsListHTML() {
       <div>${u.photoURL ? `<img class="avatar sm" src="${esc(u.photoURL)}" alt="">` : ''}<b>${esc(u.name || '—')}</b> ${badge}${healthBadge}${foodBadge}${appInstallMarkHtml(u)}<br><span class="muted">${esc(u.email || '')}${u.phone ? ' · ' + esc(u.phone) : ''}${lastW}${appInstallNoteHtml(u)}</span>${clientChecklistHTML(chkByUid[u.id])}${talertClientHTML(alertsByUid[u.id], false, u.id)}</div>
       <div class="user-actions">${u.approved === true ? `<button class="btn-primary btn-sm" data-client="${u.id}">${t('clients.view')}</button>` : ''}</div>
     </div>`;
-  }).join('') : `<div class="wempty">${t('clients.empty')}</div>`;
+  }).join('') : `<div class="wempty">${t(emptyKey)}</div>`;
 }
 function renderClientsBody() {
   const el = $('clients-list');
@@ -7545,6 +7563,118 @@ async function loadClients() {
   /* El editor del dossier YA NO vive en esta pestaña (perfil-visible,
      2026-10-24): se mudó a «Mi perfil» y lo pinta renderProfileView.
      MY_DOSSIER para los pendientes se carga en loadRolesX, no aquí. */
+}
+/* ================= MIS ALUMNOS (AUTH-2026-10-30-105) =================
+   Apartado PROPIO del entrenador (Propuesta 1 de Ronald, aprobada
+   2026-10-30, ajustada a su triple papel): una pastilla propia que
+   lista SOLO los alumnos asignados al entrenador en sesión, con la
+   MISMA tarjeta de «Mis clientes» (el mismo motor de rejilla/lista,
+   parametrizado). «Clientes» queda intacta: el administrador sigue
+   viendo a todas las personas y su bandeja de espera; aquí solo
+   entra quien cumple asignación + estado (trainerUid == mi uid,
+   approved y assignmentStatus 'assigned'). Cero escrituras y cero
+   formas de lectura nuevas: cada consulta replica una que
+   loadClients ya corre en vivo para el entrenador (preflight
+   contra las reglas vigentes: delta CERO). */
+let STUDENTS_VIEW = 'grid';        // 'grid' | 'list' (nace en rejilla, como Clientes)
+let STUDENTS_CAT_FILTER = 'all';   // filtro de categoría propio de esta vista
+let STUDENTS_LAST = null;          // última pasada de loadStudents
+function renderStudentsBody() {
+  const el = $('students-list');
+  if (!el || !STUDENTS_LAST) return;
+  el.innerHTML = STUDENTS_VIEW === 'grid'
+    ? clientsGridHTML(STUDENTS_LAST, STUDENTS_CAT_FILTER, 'students.empty')
+    : clientsListHTML(STUDENTS_LAST, 'students.empty');
+  el.querySelectorAll('[data-client]').forEach(b => b.onclick = () => openStudent(b.dataset.client));
+}
+/* Barra de la vista de «Mis alumnos»: el mismo conmutador
+   Rejilla/Lista y el mismo filtro por categoría que «Clientes»,
+   con su propio estado (sv-*), sin tocar el de la otra vista. */
+function renderStudentsViewbar() {
+  const bar = $('students-viewbar');
+  if (!bar) return;
+  bar.innerHTML = `<div class="clients-viewbar">`
+    + `<span class="cview-seg" role="group"><button type="button" id="sv-grid" class="${STUDENTS_VIEW === 'grid' ? 'on' : ''}">${esc(t('clients.viewGrid'))}</button><button type="button" id="sv-list" class="${STUDENTS_VIEW === 'list' ? 'on' : ''}">${esc(t('clients.viewList'))}</button></span>`
+    + (STUDENTS_VIEW === 'grid' ? `<label class="cview-filter"><span>${esc(t('clients.catFilter'))}</span><select id="sv-filter"><option value="all"${STUDENTS_CAT_FILTER === 'all' ? ' selected' : ''}>${esc(t('clients.catAll'))}</option>${CLIENT_CATS.map(c => `<option value="${c.key}"${STUDENTS_CAT_FILTER === c.key ? ' selected' : ''}>${esc(clientCatLabel(c.key))}</option>`).join('')}</select></label>` : '')
+    + `</div>`;
+  $('sv-grid').onclick = () => { if (STUDENTS_VIEW !== 'grid') { STUDENTS_VIEW = 'grid'; renderStudentsViewbar(); renderStudentsBody(); } };
+  $('sv-list').onclick = () => { if (STUDENTS_VIEW !== 'list') { STUDENTS_VIEW = 'list'; renderStudentsViewbar(); renderStudentsBody(); } };
+  const sel = $('sv-filter');
+  if (sel) sel.onchange = () => { STUDENTS_CAT_FILTER = sel.value; renderStudentsBody(); };
+}
+async function loadStudents() {
+  const sec = $('students-section');
+  if (!sec) return;
+  if (ROLE !== 'administrador' && ROLE !== 'entrenador') { sec.style.display = 'none'; return; }
+  sec.style.display = '';
+  const myUid = auth.currentUser.uid;
+  let users = [];
+  try {
+    /* SOLO mis alumnos, desde la consulta: la lista acotada por
+       trainerUid (las reglas la permiten al entrenador y al
+       propietario; un listado sin acotar de otro entrenador se
+       denegaría entero, igual que en loadClients). */
+    const snap = await getDocs(query(collection(db, 'users'), where('trainerUid', '==', myUid)));
+    snap.forEach(d => users.push({ id: d.id, ...d.data() }));
+  } catch { users = []; }
+  /* Asignación + estado: aprobados y con la asignación activa. Un
+     asignado desactivado o sin aprobar NO aparece aquí (su sitio
+     es «Clientes» y sus bandejas) y nada se rompe por su ausencia. */
+  const students = users.filter(u => !u.isOwner && u.trainerUid === myUid && u.approved === true && u.assignmentStatus === 'assigned');
+  const ids = students.map(u => u.id);
+  let weights = [];
+  try {
+    if (ids.length) {
+      const ws = await getDocs(query(collection(db, 'nutrition_weight'), where('ownerUid', 'in', ids.slice(0, 30))));
+      ws.forEach(d => { const v = d.data();
+        if (v.ownerUid && num(v.weight) > 0) weights.push({ uid: v.ownerUid, date: v.date, weight: num(v.weight) }); });
+    }
+  } catch {}
+  const lastByUid = {}, lastWByUid = {};
+  weights.forEach(w => { if (!lastByUid[w.uid] || w.date > lastByUid[w.uid]) { lastByUid[w.uid] = w.date; lastWByUid[w.uid] = w.weight; } });
+  let pendingFood = {};
+  try {
+    if (ids.length) {
+      const fs = await getDocs(query(collection(db, 'meal_help'), where('ownerUid', 'in', ids.slice(0, 30))));
+      fs.forEach(d => { const v = d.data();
+        if (v.status === 'pending' && v.ownerUid) pendingFood[v.ownerUid] = (pendingFood[v.ownerUid] || 0) + 1; });
+    }
+  } catch {}
+  /* La última solicitud de comidas por alumno alimenta el checklist,
+     como en loadClients; la consulta va acotada por trainerUid. */
+  let mealReqsAll = [];
+  try {
+    const mq = await getDocs(query(collection(db, 'meal_requests'), where('trainerUid', '==', myUid)));
+    mq.forEach(d => mealReqsAll.push({ id: d.id, ...d.data() }));
+  } catch {}
+  const reqMs = x => (x && x.requestedAt && x.requestedAt.toMillis) ? x.requestedAt.toMillis() : 0;
+  const latestReqByUid = {};
+  mealReqsAll.forEach(r => { if (r.alumnoUid && (!latestReqByUid[r.alumnoUid] || reqMs(r) >= reqMs(latestReqByUid[r.alumnoUid]))) latestReqByUid[r.alumnoUid] = r; });
+  const chkByUid = {};
+  await Promise.all(students.map(async u => { try { chkByUid[u.id] = await clientProfileChecklist(u, latestReqByUid[u.id] || null); } catch {} }));
+  const alertsByUid = {};
+  await Promise.all(students.map(async u => { try { alertsByUid[u.id] = await trainerAlertsFor(u.id, u); } catch {} }));
+  const planByUid = {};
+  students.forEach(u => { const c = TALERTS_CACHE[u.id]; planByUid[u.id] = !!(c && c.hasPlan); });
+  STUDENTS_LAST = { clients: students, chkByUid, alertsByUid, planByUid, lastByUid, lastWByUid, pendingFood };
+  renderStudentsViewbar();
+  renderStudentsBody();
+}
+/* La ficha del cliente vive en «Clientes» (#client-detail y sus
+   ids únicos de documento): desde «Mis alumnos» se salta a esa
+   pestaña y la ficha se abre allí, esperando a que la pasada
+   fresca de loadClients asiente — CLIENTS_LAST cambia de objeto
+   al final de cada pasada y el vaciado de la ficha ocurre en el
+   mismo pulso (patrón de espera acotada de AUTH-100). */
+function openStudent(uid) {
+  if (NAV_TAB === 'clients') { openClient(uid); return; }
+  const beforePass = CLIENTS_LAST;
+  switchTab('clients');
+  let tries = 0;
+  const iv = setInterval(() => {
+    tries++;
+    if (CLIENTS_LAST !== beforePass || tries >= 50) { clearInterval(iv); openClient(uid); }
+  }, 100);
 }
 /* Bandeja de espera (SOLO administrador): clientes aprobados con
    assignmentStatus 'waiting'. Asignar escribe trainerUid +
@@ -20180,6 +20310,7 @@ function switchTab(name) {
   document.querySelectorAll('.tab-pane').forEach(p => { p.style.display = (p.id === 'tab-' + name) ? '' : 'none'; });
   if (IS_OWNER && (name === 'access' || name === 'trainers')) loadAdmin();
   if (ROLE !== 'usuario' && name === 'clients') loadClients();
+  if ((ROLE === 'administrador' || ROLE === 'entrenador') && name === 'students') loadStudents();
   if ((ROLE === 'administrador' || ROLE === 'entrenador') && name === 'library') renderLibrary();
   if (name === 'profile') renderProfileView();
   /* «Administración» (AUTH-2026-10-28-069): la zona se pinta al
@@ -24941,7 +25072,7 @@ document.addEventListener('keydown', e => { if (e.key === 'Escape') shareClose()
  *  - El SW (sw.js) solo cachea la cáscara del mismo origen en modo
  *    RED PRIMERO: Auth/Firestore/Worker jamás pasan por la caché.
  * ================================================================ */
-const PWA_SW_VERSION = '20261030-quitados-cierre';
+const PWA_SW_VERSION = '20261030-mis-alumnos';
 let pwaDeferredPrompt = null;
 function pwaIsStandalone() {
   try {

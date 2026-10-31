@@ -21,7 +21,7 @@
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-title" content="RONBO FIT">
 <meta name="apple-mobile-web-app-status-bar-style" content="default">
-<link rel="stylesheet" href="styles.css?v=20261030-quitados-cierre">
+<link rel="stylesheet" href="styles.css?v=20261030-mis-alumnos">
 <script defer src="https://cloud.umami.is/script.js" data-website-id="a29706d4-44a2-47cf-900a-5f74d74abfa8"></script>
 <script type="importmap">
 {
@@ -206,6 +206,7 @@
     <button type="button" class="main-tab active" data-tab="track" data-i18n="tabs.track"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="5" y="4" width="14" height="17" rx="2"/><path d="M9 4.5V3h6v1.5"/><path d="M9 10h6M9 14h4"/></svg> My log</button>
     <button type="button" class="main-tab" data-tab="profile" data-i18n="tabs.profile"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="8" r="3.6"/><path d="M5 20c.8-3.4 3.6-5 7-5s6.2 1.6 7 5"/></svg> My profile</button>
     <button type="button" class="main-tab" data-tab="clients" data-i18n="tabs.clients"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="9" cy="8.4" r="3.2"/><path d="M3.4 19.4c.7-3 2.9-4.5 5.6-4.5s4.9 1.5 5.6 4.5"/><path d="M15.6 5.6a3.2 3.2 0 0 1 0 5.9"/><path d="M17.8 15.3c1.7.7 2.7 2 3.1 4.1"/></svg> My clients</button>
+    <button type="button" class="main-tab" data-tab="students" data-i18n="tabs.students"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M2.5 9L12 4l9.5 5L12 14z"/><path d="M6.5 11.5V16c0 1.6 2.5 3 5.5 3s5.5-1.4 5.5-3v-4.5"/><path d="M21.5 9v5"/></svg> My students</button>
     <button type="button" class="main-tab" data-tab="access" data-i18n="tabs.access"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="8.5" cy="14.5" r="4.5"/><path d="M11.8 11.2L20 3"/><path d="M16.5 6.5l3 3"/><path d="M14 9l2.4 2.4"/></svg> Access</button>
     <button type="button" class="main-tab" data-tab="trainers" data-i18n="tabs.trainers"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6.5 6.5v11"/><path d="M3.5 9v6"/><path d="M17.5 6.5v11"/><path d="M20.5 9v6"/><path d="M6.5 12h11"/></svg> Trainers</button>
     <button type="button" class="main-tab" data-tab="library" data-i18n="tabs.library"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 4.6A1.6 1.6 0 0 1 6.6 3H19v15H6.6A1.6 1.6 0 0 0 5 19.4z"/><path d="M5 16.4A1.6 1.6 0 0 1 6.6 14.8H19V18"/><path d="M9 7h6"/></svg> Library</button>
@@ -977,6 +978,14 @@
     <div id="client-detail" style="display:none"></div>
   </div>
   </div><!-- /tab-clients -->
+  <div class="tab-pane" id="tab-students" style="display:none">
+  <div class="admin-section" id="students-section" style="display:none">
+    <h2><span data-i18n="students.title">🎓 My students</span> <span class="h2-sub" data-i18n="students.sub">· my trainer view</span></h2>
+    <p class="progress-hint" data-i18n="students.hint">Only the students assigned to you as their trainer — your trainer hat. Everyone stays under "My clients" for administration; your own training and meals stay in "My log".</p>
+    <div id="students-viewbar"></div>
+    <div id="students-list"><div class="wempty" data-i18n="access.loading">Loading…</div></div>
+  </div>
+  </div><!-- /tab-students -->
 
   <!-- ============ VISTA: ADMINISTRACIÓN (AUTH-2026-10-28-069) ============
        Vista PROPIA en el panel principal, solo del administrador: la
@@ -1415,6 +1424,6 @@
 <div id="toast" class="toast"></div>
 <div id="print-card" aria-hidden="true"></div>
 
-<script type="module" src="app.js?v=20261030-quitados-cierre"></script>
+<script type="module" src="app.js?v=20261030-mis-alumnos"></script>
 </body>
 </html>
