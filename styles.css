@@ -992,6 +992,17 @@ table.whist { min-width: 640px; }
    interno — la página principal no crece. */
 .pend-float { position: fixed; left: 50%; transform: translateX(-50%); bottom: calc(env(safe-area-inset-bottom, 0px) + 120px); z-index: 45; width: min(430px, calc(100vw - 24px)); box-sizing: border-box; background: #fff; border: 1px solid rgba(15, 23, 42, .08); border-radius: 18px; box-shadow: 0 14px 34px rgba(15, 23, 42, .22); padding: 14px 16px; max-height: calc(100dvh - 152px); overflow-y: auto; }
 .pend-close { margin-left: auto; flex: none; width: 30px; height: 30px; border-radius: 50%; border: 1px solid #e5e7eb; background: #fff; color: #374151; font-size: 14px; line-height: 1; cursor: pointer; font-family: inherit; }
+/* AUTH-121 (R4): la hoja de consulta de un pendiente reutiliza
+   .pend-float y sube un punto de z-index (los modales de la casa,
+   z-index 50, quedan por encima). La ayuda del punto va bajo el
+   título; el «Cerrar» propio de la ficha no se duplica dentro de
+   la ventana (su salida es la ✕ de la hoja); el ancla que marca el
+   sitio original del bloque en la ficha no se ve. */
+.pend-consult { z-index: 47; }
+.pend-consult-help { margin: 2px 0 10px; font-size: 13px; color: #475569; line-height: 1.45; }
+.pend-consult-anchor { display: none; }
+#pend-consult-body #btn-client-close { display: none; }
+.ficha-pend-block { scroll-margin-top: 12px; }
 /* Botón PENDIENTES en alerta: el círculo se pinta con el rojo de
    peligro de la casa — el fondo del toast de error (.toast.err,
    #7f1d1d) — SOLO cuando hay ≥1 pendiente vigente; mismo glifo y

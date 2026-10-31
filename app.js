@@ -2890,6 +2890,12 @@ en: {
   'students.req.mealsSub': 'They have not requested meals yet',
   'students.adminStep': 'Meal request waiting on your decision as administrator',
   'students.adminStepGo': 'Review request',
+  'consult.help.energy': 'Here you review and save the base data (birth year, height, activity) behind this student’s energy calculation. When you save, this window closes and you return to their pendings.',
+  'consult.help.goals': 'Here you decide this student’s pace and review their goal proposals. When you decide, this window closes and you return to their pendings.',
+  'consult.help.weight': 'This student’s weight log. Weight is always entered by the student; when you are with them in person, you can add a weigh-in from the record itself.',
+  'consult.help.evals': 'This student’s progress evaluations: the photos and measurements of each cycle.',
+  'consult.help.food': 'Meal photos this student asked you to review. When you mark one as reviewed, this window closes and you return to their pendings.',
+  'consult.help.body': 'This student’s body type analysis. It is only visible with their specific consent active.',
   'students.pend.body': 'Body-type analysis (with photos)',
   'students.pend.bodyNoConsent': 'Their specific consent for this analysis is missing',
   'students.pend.bodyNoAnalysis': 'No body-type analysis on record yet',
@@ -5025,6 +5031,12 @@ es: {
   'students.req.mealsSub': 'Aún no solicita comidas',
   'students.adminStep': 'Solicitud de comidas esperando tu decisión como administrador',
   'students.adminStepGo': 'Revisar solicitud',
+  'consult.help.energy': 'Aquí revisas y guardas los datos base (año de nacimiento, talla y actividad) con los que se hace el cálculo energético de este alumno. Al guardar, esta ventana se cierra y vuelves a sus pendientes.',
+  'consult.help.goals': 'Aquí decides el ritmo de este alumno y revisas sus propuestas de metas. Al decidir, esta ventana se cierra y vuelves a sus pendientes.',
+  'consult.help.weight': 'El registro de peso de este alumno. El peso lo ingresa siempre el propio alumno; si estás con él en persona, puedes agregar un pesaje desde el propio registro.',
+  'consult.help.evals': 'Las evaluaciones de progreso de este alumno: las fotos y medidas de cada ciclo.',
+  'consult.help.food': 'Fotos de comida que este alumno te pidió revisar. Al marcar una como revisada, esta ventana se cierra y vuelves a sus pendientes.',
+  'consult.help.body': 'El análisis de tipo corporal de este alumno. Solo es visible con su consentimiento específico activo.',
   'students.pend.body': 'Análisis de tipo corporal (con fotos)',
   'students.pend.bodyNoConsent': 'Falta su consentimiento específico para este análisis',
   'students.pend.bodyNoAnalysis': 'Aún no tiene un análisis de tipo corporal registrado',
@@ -7557,7 +7569,9 @@ function fichaPendBlockHTML(uid) {
   if (items.length) h += items.map(it => studentsPendItemHTML(uid, it, false)).join('');
   h += stuAdminStepRowHTML(uid);
   if (items.length) h += `<div class="client-chk"><b>${esc(t('students.pendToResolve', { n: items.length }))}</b></div>`;
-  return h ? `<div style="margin-bottom:10px">${h}</div>` : '';
+  /* AUTH-121 (R4): la clase ficha-pend-block da al retorno tras
+     guardar su punto exacto de aterrizaje en la ficha. */
+  return h ? `<div class="ficha-pend-block" style="margin-bottom:10px">${h}</div>` : '';
 }
 /* ================================================================
    ORGANIZAR CLIENTES — categorías automáticas en «Mis clientes».
@@ -8590,6 +8604,154 @@ function fichaFocusApply(uid) {
   try { done = fichaFocusTo(box, F.target); } catch {}
   if (done || F.tries >= 4) FICHA_FOCUS = null;
 }
+/* AUTH-121 (R4 · VENTANA FLOTANTE de consulta + RETORNO exacto —
+   decisiones de Ronald por correo 590: su reprueba de AUTH-117,
+   2026-10-31 15:00 CDT («tras Guardar, la vuelta a la ficha de
+   pendientes falla») y su instrucción de diseño, 15:08 CDT («cada
+   pendiente consultado salga en una ventana flotante, con su
+   respectiva ayuda y su X para salir y volver a los pendientes
+   del alumno»). La consulta de un pendiente con destino enfocado
+   (studentsActFor) ya NO desplaza la ficha hasta el bloque
+   incrustado: el bloque VIAJA a la hoja #pend-consult-float (el
+   patrón .pend-float de la casa), con el título del pendiente,
+   la ayuda de ese punto (consult.help.*) y su ✕. La ficha queda
+   intacta detrás: ni scroll ni repintado.
+   EL RETORNO TRAS GUARDAR (el fallo corregido, reproducido con
+   ficticios antes de construir): todo guardado del entrenador en
+   la ficha termina en openClient(uid), que repinta #client-detail
+   y — sin recargar la pasada — el bloque de pendientes se pinta
+   de la caché (fichaTpendOf), así que el pendiente recién
+   resuelto SEGUÍA listado al volver. Con la ventana abierta, un
+   MutationObserver sobre la caja detecta ese repintado: la
+   consulta terminó → la ventana se cierra, se recarga la pasada
+   del origen y la ficha se repinta con su bloque de pendientes
+   a la vista y resaltado: la misma ficha, el pendiente resuelto
+   fuera de la lista, el contexto restaurado.
+   Con la ✕ (sin guardado): los nodos vuelven a su ancla y se
+   restaura el scroll registrado: el punto exacto.
+   Degradación honesta: si el bloque no aparece tras varios
+   intentos, se cae al foco dentro de la ficha de AUTH-117. */
+let PEND_CONSULT_WANT = null;   // { uid, target, tries }
+let PEND_CONSULT = null;        // { uid, target, nodes:[{el,anchor}], scrollY, obs, returning }
+function pendConsultWantSet(uid, target) { PEND_CONSULT_WANT = target ? { uid, target, tries: 0 } : null; }
+function pendConsultHosts(box, target) {
+  if (!box) return null;
+  if (target === 'energy') {
+    const c = box.querySelector('.fa-card'); if (!c) return null;
+    if (typeof FICHA_FOLD_OPEN !== 'undefined' && !FICHA_FOLD_OPEN.base) { const b = $('ffold-btn-base'); if (b) b.click(); }
+    return [c];
+  }
+  if (target === 'goals') {
+    const slots = ['pace-card', 'held-card', 'proposal-card', 'focus-card'].map(id => $(id)).filter(Boolean);
+    const ready = slots.some(s => (s.id === 'pace-card' || s.id === 'proposal-card') && s.firstElementChild);
+    return (ready && slots.length) ? slots : null;
+  }
+  if (target === 'weight') {
+    const h3 = $('client-weight-block'); if (!h3) return null;
+    const add = $('btn-client-add'); const row = add ? add.closest('div') : null;
+    let chart = null, table = null;
+    [...box.children].forEach(e => { if (e.tagName === 'SVG' || (e.classList && e.classList.contains('wempty'))) chart = chart || e; if (e.classList && e.classList.contains('table-scroll')) table = e; });
+    const hosts = [h3, row, chart, table].filter(Boolean);
+    return (chart || table) ? hosts : null;
+  }
+  if (target === 'evals') {
+    const ev = $('client-evals'); if (!ev) return null;
+    const body = $('client-evals-body');
+    if (body && body.style.display === 'none') { const b = $('btn-client-evals'); if (b) b.click(); }
+    return [ev];
+  }
+  if (target === 'food') {
+    const list = box.querySelector('.mealhelp-list'); if (!list) return null;
+    const prev = list.previousElementSibling;
+    return (prev && prev.tagName === 'H3') ? [prev, list] : [list];
+  }
+  if (target === 'body') { const bc = $('bt-card'); return (bc && bc.firstElementChild) ? [bc] : null; }
+  return null;
+}
+function pendConsultTitleFor(uid, target) {
+  const match = it => !!it && ((target === 'energy' && it.kind === 'req' && it.reqKey === 'eval') || (target === 'goals' && it.kind === 'req' && it.reqKey === 'goals') || (target === 'weight' && it.kind === 'weight') || (target === 'evals' && it.kind === 'eval') || (target === 'food' && it.kind === 'food') || (target === 'body' && it.kind === 'body'));
+  const pools = [];
+  if (typeof STUDENTS_LAST !== 'undefined' && STUDENTS_LAST && STUDENTS_LAST.pendByUid) pools.push(STUDENTS_LAST.pendByUid[uid]);
+  if (typeof CLIENTS_LAST !== 'undefined' && CLIENTS_LAST && CLIENTS_LAST.tpendByUid) pools.push(CLIENTS_LAST.tpendByUid[uid]);
+  for (const p of pools) { const it = ((p && p.items) || []).find(match); if (it) return studentsItemTitle(it); }
+  return t({ energy: 'students.req.eval', goals: 'students.req.goals', weight: 'students.item.weightWeekly', evals: 'students.item.eval', food: 'students.item.food', body: 'students.pend.body' }[target] || 'students.req.eval');
+}
+function pendConsultApply(uid) {
+  const W = PEND_CONSULT_WANT;
+  if (!W || W.uid !== uid || PEND_CONSULT) return;
+  const box = $('client-detail'); if (!box) return;
+  W.tries++;
+  let hosts = null;
+  try { hosts = pendConsultHosts(box, W.target); } catch {}
+  if (hosts && hosts.length) { const target = W.target; PEND_CONSULT_WANT = null; pendConsultOpen(uid, target, hosts); return; }
+  if (W.tries >= 6) { const target = W.target; PEND_CONSULT_WANT = null; fichaFocusSet(uid, target); fichaFocusApply(uid); }
+}
+function pendConsultOpen(uid, target, hosts) {
+  const sheet = $('pend-consult-float'), body = $('pend-consult-body');
+  if (!sheet || !body) { fichaFocusSet(uid, target); fichaFocusApply(uid); return; }
+  const title = $('pend-consult-title'), help = $('pend-consult-help');
+  if (title) title.textContent = pendConsultTitleFor(uid, target);
+  if (help) help.textContent = t('consult.help.' + target);
+  const nodes = hosts.map(el => { const anchor = document.createElement('div'); anchor.className = 'pend-consult-anchor'; el.parentNode.insertBefore(anchor, el); body.appendChild(el); return { el, anchor }; });
+  PEND_CONSULT = { uid, target, nodes, scrollY: window.scrollY || 0, obs: null, returning: false };
+  const x = $('pend-consult-x'); if (x) x.onclick = () => pendConsultCloseX();
+  sheet.style.display = '';
+  try { sheet.scrollTop = 0; } catch {}
+  const box = $('client-detail');
+  if (box && typeof MutationObserver !== 'undefined') {
+    PEND_CONSULT.obs = new MutationObserver(() => { pendConsultSaveReturn(); });
+    PEND_CONSULT.obs.observe(box, { childList: true });
+  }
+}
+function pendConsultTeardown() {
+  const C = PEND_CONSULT; if (!C) return;
+  if (C.obs) { try { C.obs.disconnect(); } catch {} }
+  PEND_CONSULT = null;
+  const sheet = $('pend-consult-float'), body = $('pend-consult-body');
+  if (body) body.innerHTML = '';
+  if (sheet) sheet.style.display = 'none';
+}
+function pendConsultCloseX() {
+  const C = PEND_CONSULT; if (!C) return;
+  if (C.obs) { try { C.obs.disconnect(); } catch {} }
+  const box = $('client-detail');
+  C.nodes.forEach(({ el, anchor }) => {
+    if (anchor && anchor.isConnected) { anchor.parentNode.insertBefore(el, anchor); anchor.remove(); }
+    else if (box) box.appendChild(el);
+  });
+  PEND_CONSULT = null;
+  const sheet = $('pend-consult-float'); if (sheet) sheet.style.display = 'none';
+  /* El punto exacto de vuelta son los pendientes del alumno: el
+     bloque no se movió de la ficha en todo el viaje (los bloques
+     consultados viven debajo de él), así que se aterriza en él;
+     sin bloque, se restaura el scroll registrado al abrir. */
+  const blk = box ? box.querySelector('.ficha-pend-block') : null;
+  if (blk) { try { blk.scrollIntoView({ behavior: 'smooth', block: 'center' }); } catch {} }
+  else { try { window.scrollTo(0, C.scrollY); } catch {} }
+}
+async function pendConsultSaveReturn() {
+  const C = PEND_CONSULT;
+  if (!C || C.returning) return;
+  C.returning = true;
+  if (C.obs) { try { C.obs.disconnect(); } catch {} }
+  const uid = C.uid;
+  pendConsultTeardown();
+  if (typeof FICHA_MODE === 'undefined' || !FICHA_MODE) return;   // la ficha se cerró por otro camino: nada que restaurar
+  await new Promise(r => setTimeout(r, 500));                     // que el openClient del guardado termine de pintar
+  if (typeof FICHA_MODE === 'undefined' || !FICHA_MODE) return;
+  /* La ficha lee su bloque de la PRIMERA pasada disponible
+     (fichaTpendOf prefiere la de Clientes si existe): se recargan
+     la pasada del origen y cualquier otra que tenga a este
+     alumno, para que el bloque repintado sea la verdad recién
+     guardada en todas las lecturas posibles. */
+  try { if (FICHA_MODE.origin === 'students') await loadStudents(); else await loadClients(); } catch {}
+  try { if (FICHA_MODE.origin !== 'clients' && typeof CLIENTS_LAST !== 'undefined' && CLIENTS_LAST && CLIENTS_LAST.tpendByUid && CLIENTS_LAST.tpendByUid[uid]) await loadClients(); } catch {}
+  try { if (FICHA_MODE.origin !== 'students' && typeof STUDENTS_LAST !== 'undefined' && STUDENTS_LAST && STUDENTS_LAST.pendByUid && STUDENTS_LAST.pendByUid[uid]) await loadStudents(); } catch {}
+  try { await openClient(uid); } catch {}
+  const box = $('client-detail');
+  const blk = box ? box.querySelector('.ficha-pend-block') : null;
+  if (blk) { blk.classList.add('ficha-focus-hl'); try { blk.scrollIntoView({ behavior: 'smooth', block: 'center' }); } catch {} }
+}
 /* Acción de un ítem pulsado DENTRO del bloque de pendientes de
    la propia ficha (AUTH-117): mismo resolver que en «Mis
    alumnos». La solicitud de comidas cambia la superficie a su
@@ -8610,7 +8772,9 @@ function fichaPendAct(uid, kind, reqKey) {
   }
   if (kind === 'req' && reqKey === 'trainer') { pendGoWaitingTray(); return; }
   const a = studentsActFor({ kind, reqKey: reqKey || '', miss: 'analysis' });
-  if (a && a.focus) { fichaFocusSet(uid, a.focus); fichaFocusApply(uid); setTimeout(() => fichaFocusApply(uid), 350); }
+  /* AUTH-121 (R4): la consulta abre la VENTANA flotante; el foco
+     dentro de la ficha de AUTH-117 queda solo como degradación. */
+  if (a && a.focus) { if (PEND_CONSULT) pendConsultCloseX(); pendConsultWantSet(uid, a.focus); pendConsultApply(uid); setTimeout(() => pendConsultApply(uid), 350); setTimeout(() => pendConsultApply(uid), 1000); }
 }
 function studentsOpenRecord(uid, kind, reqKey) {
   STUDENTS_RESTORE = true;
@@ -8628,9 +8792,15 @@ function studentsOpenRecord(uid, kind, reqKey) {
   }
   if (kind === 'req' && reqKey === 'trainer') { pendGoWaitingTray(); return; }
   const a = studentsActFor({ kind, reqKey: reqKey || '', miss: 'analysis' });
+  /* AUTH-121 (R4): si hubiera una consulta abierta de otro alumno,
+     se descarta antes de repintar la ficha (sus nodos ya no tienen
+     ancla válida); la consulta nueva abre su ventana al pintar. */
+  pendConsultTeardown();
   fichaSetMode('students', 'ficha');
-  fichaFocusSet(uid, a && a.focus ? a.focus : null);
+  pendConsultWantSet(uid, a && a.focus ? a.focus : null);
   openStudent(uid);
+  setTimeout(() => pendConsultApply(uid), 500);
+  setTimeout(() => pendConsultApply(uid), 1200);
 }
 
 async function loadStudents() {
@@ -9742,9 +9912,9 @@ async function openClient(uid) {
   compAccLoadTrainer(uid);
   loadClientRings(uid, udata);
   loadClientAlerts(uid, udata);
-  try { const pg = goalsTrainerCardLoad(uid, udata, { conditions: (clientHealth && clientHealth.decl && clientHealth.decl.conditions) || [], weights: data }); if (pg && pg.then) pg.then(() => fichaFocusApply(uid), () => {}); } catch {}
+  try { const pg = goalsTrainerCardLoad(uid, udata, { conditions: (clientHealth && clientHealth.decl && clientHealth.decl.conditions) || [], weights: data }); if (pg && pg.then) pg.then(() => { fichaFocusApply(uid); pendConsultApply(uid); }, () => {}); } catch {}
   const pb = btLoadTrainerCard(uid, udata);
-  if (pb && pb.then) pb.then(() => fichaFocusApply(uid), () => {});
+  if (pb && pb.then) pb.then(() => { fichaFocusApply(uid); pendConsultApply(uid); }, () => {});
   box.querySelectorAll('[data-c-edit]').forEach(b => b.onclick = () => {
     const rec = data.find(w => w.id === b.dataset.cEdit);
     if (rec) openWeightModal({ uid, docId: rec.id, rec });
@@ -9771,6 +9941,7 @@ async function openClient(uid) {
      asíncronas re-aplican al resolver, arriba). Sin encargo, la
      ficha abre como siempre. */
   fichaFocusApply(uid);
+  pendConsultApply(uid);
 }
 
 /* ============ INTERRUPTOR DE COMPOSICIÓN (vista del entrenador) ============
@@ -26691,7 +26862,7 @@ document.addEventListener('keydown', e => { if (e.key === 'Escape') shareClose()
  *  - El SW (sw.js) solo cachea la cáscara del mismo origen en modo
  *    RED PRIMERO: Auth/Firestore/Worker jamás pasan por la caché.
  * ================================================================ */
-const PWA_SW_VERSION = '20261031-recorrido-r2';
+const PWA_SW_VERSION = '20261031-recorrido-r4';
 let pwaDeferredPrompt = null;
 function pwaIsStandalone() {
   try {

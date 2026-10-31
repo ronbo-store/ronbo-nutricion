@@ -21,7 +21,7 @@
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-title" content="RONBO FIT">
 <meta name="apple-mobile-web-app-status-bar-style" content="default">
-<link rel="stylesheet" href="styles.css?v=20261031-recorrido-r2">
+<link rel="stylesheet" href="styles.css?v=20261031-recorrido-r4">
 <script defer src="https://cloud.umami.is/script.js" data-website-id="a29706d4-44a2-47cf-900a-5f74d74abfa8"></script>
 <script type="importmap">
 {
@@ -506,6 +506,22 @@
     </div>
     <div id="pend-body"><div class="wempty" data-i18n="train.loading">Loading…</div></div>
     <div id="trainer-alerts"></div>
+  </div>
+
+  <!-- AUTH-121 (R4): hoja flotante de CONSULTA de un pendiente — el
+       patrón .pend-float de la casa. Al tocar un pendiente con
+       destino, su bloque viaja aquí: título del pendiente, la ayuda
+       de ese punto y su ✕ para volver a los pendientes del alumno.
+       Si dentro se GUARDA, la ventana se cierra sola y el retorno
+       restaura la ficha en su bloque de pendientes (app.js,
+       pendConsultSaveReturn). -->
+  <div class="pend-float pend-consult" id="pend-consult-float" style="display:none" role="dialog">
+    <div class="pend-head">
+      <h2 id="pend-consult-title"></h2>
+      <button type="button" class="pend-close" id="pend-consult-x" aria-label="Close" data-i18n-aria="client.close">✕</button>
+    </div>
+    <p class="pend-consult-help" id="pend-consult-help"></p>
+    <div id="pend-consult-body"></div>
   </div>
   <!-- Ventana flotante de detalle de anillo (Ronald, 2026-10-21): al
        tocar un anillo pequeño de la fila se abre con el anillo GRANDE
@@ -1396,6 +1412,6 @@
 <div id="toast" class="toast"></div>
 <div id="print-card" aria-hidden="true"></div>
 
-<script type="module" src="app.js?v=20261031-recorrido-r2"></script>
+<script type="module" src="app.js?v=20261031-recorrido-r4"></script>
 </body>
 </html>
