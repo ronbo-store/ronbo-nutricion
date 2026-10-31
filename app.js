@@ -1669,6 +1669,11 @@ async function renderProfileView() {
      propia puerta (ROLE entrenador o dueño) decide la visibilidad;
      para el alumno la caja queda oculta y sin contenido. */
   renderDossierEditor();
+  /* Panel «Novedades · Muy pronto» (2026-10-31): fdBizRender
+     gobierna su visibilidad con la misma guarda de rol de esta
+     vista (ROLE/UDATA ya resueltos aquí); para el alumno el
+     panel ni se muestra ni pinta contenido. */
+  fdBizRender();
   /* La zona «Administración» YA NO vive en «Mi perfil»
      (AUTH-2026-10-28-069): se mudó a su vista propia del panel
      principal y se pinta al abrirla (gancho en switchTab). El
@@ -2171,6 +2176,7 @@ en: {
   'fdbiz.join': 'Count me in',
   'fdbiz.done': "You're on the Business list ✓",
   'fdbiz.saved': 'Done — your interest in RONBO.FIT Business is registered.',
+  'whatsnew.title': "What's new · Coming soon",
   'tabs.track': '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="5" y="4" width="14" height="17" rx="2"/><path d="M9 4.5V3h6v1.5"/><path d="M9 10h6M9 14h4"/></svg> My log',
   'tabs.profile': '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="8" r="3.6"/><path d="M5 20c.8-3.4 3.6-5 7-5s6.2 1.6 7 5"/></svg> My profile',
   'tabs.clients': '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="9" cy="8.4" r="3.2"/><path d="M3.4 19.4c.7-3 2.9-4.5 5.6-4.5s4.9 1.5 5.6 4.5"/><path d="M15.6 5.6a3.2 3.2 0 0 1 0 5.9"/><path d="M17.8 15.3c1.7.7 2.7 2 3.1 4.1"/></svg> My clients',
@@ -4308,6 +4314,7 @@ es: {
   'fdbiz.join': 'Quiero entrar',
   'fdbiz.done': 'Ya estás en la lista de Business ✓',
   'fdbiz.saved': 'Listo — tu interés en RONBO.FIT Business quedó registrado.',
+  'whatsnew.title': 'Novedades · Muy pronto',
   'tabs.track': '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="5" y="4" width="14" height="17" rx="2"/><path d="M9 4.5V3h6v1.5"/><path d="M9 10h6M9 14h4"/></svg> Mi registro',
   'tabs.profile': '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="8" r="3.6"/><path d="M5 20c.8-3.4 3.6-5 7-5s6.2 1.6 7 5"/></svg> Mi perfil',
   'tabs.clients': '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="9" cy="8.4" r="3.2"/><path d="M3.4 19.4c.7-3 2.9-4.5 5.6-4.5s4.9 1.5 5.6 4.5"/><path d="M15.6 5.6a3.2 3.2 0 0 1 0 5.9"/><path d="M17.8 15.3c1.7.7 2.7 2 3.1 4.1"/></svg> Mis clientes',
@@ -17469,8 +17476,7 @@ async function fdCamJoin() {
 /* ================================================================
  * PUERTA FALSA «RONBO.FIT Business» (construcción 2026-10-30;
  * decisiones D1–D4 de Ronald del 2026-10-30, diseño en
- * construccion-puerta-business-2026-10-30/NOTA-DISENO.md): la
- * tarjeta vive junto a la de la cámara en #train-content y SOLO
+ * construccion-puerta-business-2026-10-30/NOTA-DISENO.md): SOLO
  * la ven entrenador/administrador (los alumnos jamás). Anuncia
  * la línea Business que AÚN NO EXISTE (gimnasios y cadenas) con
  * la promesa encabezada en el valor para los miembros y la línea
@@ -17493,13 +17499,51 @@ async function fdCamJoin() {
  * con contacto en 60 días) se cuenta con los avisos que el
  * formulario de la landing deja en ronbo.fit@gmail.com; el
  * interés de entrenadores es señal de apoyo.
+ * MUDANZA A PERFIL (2026-10-31, decisión expresa de Ronald
+ * 07:33–07:50 CDT: la tarjeta NO va en Entrenamiento — «eso no
+ * va allí» —; va a «Mi perfil» dentro del panel recogido
+ * «Novedades · Muy pronto» #whatsnew-panel, al patrón de la
+ * casa de #perms-panel): fdBizRender gobierna ahora EL PANEL —
+ * lo muestra, recogido, solo a entrenador/administrador al
+ * pintarse «Mi perfil» (renderProfileView); para el alumno el
+ * panel queda oculto y el cuerpo vacío. La tarjeta se pinta
+ * PEREZOSAMENTE (fdBizPaintCard) solo cuando el usuario ABRE
+ * el panel, y el evento fdbiz-view se emite UNA vez por sesión
+ * en ese momento — cuando la tarjeta se hace visible de
+ * verdad —, no al pintar Perfil con el panel recogido. El
+ * sello (fdBizJoin) no cambia en nada.
  * ================================================================ */
 let fdbizViewSent = false;
+let whatsnewOpen = false;
+let whatsnewBound = false;
 function fdBizRender() {
+  const panel = $('whatsnew-panel');
+  const box = $('fdbiz-box');
+  if (!panel || !box) return;
+  const show = (ROLE === 'entrenador' || ROLE === 'administrador') && !!UDATA;
+  if (!show) { panel.style.display = 'none'; box.style.display = 'none'; box.innerHTML = ''; return; }
+  panel.style.display = '';
+  if (!whatsnewBound) {
+    whatsnewBound = true;
+    const btn = $('btn-whatsnew');
+    if (btn) btn.addEventListener('click', () => { whatsnewOpen = !whatsnewOpen; syncWhatsnewPanel(); });
+  }
+  syncWhatsnewPanel();
+}
+/* Espejo de syncPermsPanel: abrir/cerrar solo cambia la
+   presentación; al ABRIR, la tarjeta se pinta (perezosa) y con
+   ella se emite la vista. whatsnewOpen recuerda el estado
+   entre re-pintados de la vista, como permsOpen. */
+function syncWhatsnewPanel() {
+  const body = $('whatsnew-body'); if (!body) return;
+  body.style.display = whatsnewOpen ? '' : 'none';
+  const btn = $('btn-whatsnew'); if (btn) btn.setAttribute('aria-expanded', whatsnewOpen ? 'true' : 'false');
+  const chev = $('whatsnew-chev'); if (chev) chev.textContent = whatsnewOpen ? '▴' : '▾';
+  if (whatsnewOpen) fdBizPaintCard();
+}
+function fdBizPaintCard() {
   const box = $('fdbiz-box');
   if (!box) return;
-  const show = (ROLE === 'entrenador' || ROLE === 'administrador') && !!UDATA;
-  if (!show) { box.style.display = 'none'; box.innerHTML = ''; return; }
   box.style.display = 'block';
   if (!fdbizViewSent) { fdbizViewSent = true; trackEvt('fdbiz-view'); }
   const joined = typeof UDATA.fdBizAt === 'string' && UDATA.fdBizAt.length > 0;
@@ -17536,7 +17580,6 @@ async function loadMyTraining() {
   const box = $('my-training');
   if (!box || !auth.currentUser) return;
   fdCamRender();
-  fdBizRender();
   const uid = auth.currentUser.uid;
   const plans = await fetchPlans(uid);
   const plan = plans.find(p => p.active === true) || null;
@@ -26461,7 +26504,7 @@ document.addEventListener('keydown', e => { if (e.key === 'Escape') shareClose()
  *  - El SW (sw.js) solo cachea la cáscara del mismo origen en modo
  *    RED PRIMERO: Auth/Firestore/Worker jamás pasan por la caché.
  * ================================================================ */
-const PWA_SW_VERSION = '20261031-fotos-progreso';
+const PWA_SW_VERSION = '20261031-business-perfil';
 let pwaDeferredPrompt = null;
 function pwaIsStandalone() {
   try {

@@ -21,7 +21,7 @@
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-title" content="RONBO FIT">
 <meta name="apple-mobile-web-app-status-bar-style" content="default">
-<link rel="stylesheet" href="styles.css?v=20261031-fotos-progreso">
+<link rel="stylesheet" href="styles.css?v=20261031-business-perfil">
 <script defer src="https://cloud.umami.is/script.js" data-website-id="a29706d4-44a2-47cf-900a-5f74d74abfa8"></script>
 <script type="importmap">
 {
@@ -424,12 +424,6 @@
            hoja con la explicación es #fdcam-float. Sin plan o sin
            vista de entrenamiento, el contenedor queda vacío. -->
       <div id="fdcam-box" style="display:none"></div>
-      <!-- PUERTA FALSA «RONBO.FIT Business» (construcción
-           2026-10-30): contenedor vacío que app.js rellena SOLO
-           para entrenador/administrador (fdBizRender). Anuncia la
-           línea de gimnasios que AÚN NO EXISTE y recoge el
-           interés en fdBizAt/fdBizGym del propio documento. -->
-      <div id="fdbiz-box" style="display:none"></div>
       <div id="my-training"><div class="wempty" data-i18n="train.loading">Loading your plan…</div></div>
       <!-- PERSONALIZA TUS ASIGNACIONES DE HOY (pedido de Ronald,
            2026-10-27 12:50 CDT): UN solo botón desplegable, nacido
@@ -869,6 +863,22 @@
       <span id="pwa-profile-installed" class="pwa-installed" style="display:none" data-i18n="pwa.installed">✓ App installed</span>
     </div>
     <div id="dossier-editor-box" style="display:none"></div>
+    <!-- NOVEDADES · MUY PRONTO (2026-10-31): panel recogido de
+         «Mi perfil» al patrón de la casa (#perms-panel): cabecera
+         tocable con chevron y cuerpo oculto al nacer. Lo muestra
+         fdBizRender() SOLO para entrenador/administrador; para el
+         alumno el panel queda oculto y su cuerpo vacío. Aloja,
+         en su primera entrega, la tarjeta «RONBO.FIT Business»
+         MUDADA aquí desde «Mi plan de entrenamiento» por decisión
+         expresa de Ronald (2026-10-31 07:33–07:50 CDT: «eso no va
+         allí… en novedades o pronto»): Entrenamiento es para
+         entrenar; los anuncios de lo que viene viven en Perfil. -->
+    <div class="panel perms-panel" id="whatsnew-panel" style="display:none">
+      <button type="button" class="btn-secondary manage-toggle perms-toggle" id="btn-whatsnew" aria-expanded="false"><span data-i18n="whatsnew.title">What's new · Coming soon</span><span class="manage-chev" id="whatsnew-chev">▾</span></button>
+      <div id="whatsnew-body" style="display:none">
+        <div id="fdbiz-box" style="display:none"></div>
+      </div>
+    </div>
   </div>
   <!-- /tab-profile -->
 
@@ -1425,6 +1435,6 @@
 <div id="toast" class="toast"></div>
 <div id="print-card" aria-hidden="true"></div>
 
-<script type="module" src="app.js?v=20261031-fotos-progreso"></script>
+<script type="module" src="app.js?v=20261031-business-perfil"></script>
 </body>
 </html>
