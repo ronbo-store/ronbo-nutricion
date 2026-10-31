@@ -2795,7 +2795,7 @@ en: {
   'foodlib.resolvedToast': 'Report marked as resolved',
   'foodlib.reportOf': 'Report on “{name}”',
   'foodlib.adminTitle': '🥗 Food library — review tray',
-  'foodlib.adminHint': 'Automatic capture is suspended: foods people log are not arriving here for now, until a privacy notice for users is approved. The candidates already here stay as they are and can still be reviewed — only what you approve enters the shared catalog people find in search; the catalog never shows who logged a food or when.',
+  'foodlib.adminHint': 'Every food anyone logs becomes a candidate here automatically. Only what you approve enters the shared catalog people find in search; the catalog never shows who logged a food or when. The privacy notice about this anonymous review is published on the privacy page.',
   'foodlib.adminLibTitle': 'In the catalog',
   'foodlib.editSave': 'Save correction',
   'foodlib.correctionSaved': 'Correction saved ✓',
@@ -4908,7 +4908,7 @@ es: {
   'foodlib.resolvedToast': 'Reporte marcado como resuelto',
   'foodlib.reportOf': 'Reporte sobre «{name}»',
   'foodlib.adminTitle': '🥗 Biblioteca de alimentos — bandeja de revisión',
-  'foodlib.adminHint': 'La captación automática está suspendida: los alimentos que la gente registra no están llegando aquí por ahora, hasta que se apruebe un aviso de privacidad para las personas. Los candidatos que ya están aquí se quedan tal cual y se pueden seguir revisando — solo entra al catálogo compartido, el que la gente encuentra al buscar, lo que tú apruebes; el catálogo nunca muestra quién registró un alimento ni cuándo.',
+  'foodlib.adminHint': 'Cada alimento que alguien registra llega aquí solo, como candidato. Solo entra al catálogo compartido — el que la gente encuentra al buscar — lo que tú apruebes; el catálogo nunca muestra quién registró un alimento ni cuándo. El aviso de privacidad sobre esta revisión anónima está publicado en la página de privacidad.',
   'foodlib.adminLibTitle': 'En el catálogo',
   'foodlib.editSave': 'Guardar corrección',
   'foodlib.correctionSaved': 'Corrección guardada ✓',
@@ -13563,9 +13563,9 @@ async function aiSaveDirect() {
     else await addDoc(collection(db, 'nutrition_meals'), data);
     aiDiscard();
     await loadAllKeepDate(data.date);
-    /* Captación automática SUSPENDIDA (AUTH-114, 2026-10-31): este
-       guardado ya no genera candidato en la antesala — ver
-       foodlibAutoCandidate (FOODLIB_CAPTURE_SUSPENDED). */
+    /* Candidato automático a la antesala (corrección de P1): en
+       segundo plano y en silencio; jamás bloquea este guardado. */
+    try { foodlibAutoCandidate(data); } catch {}
     const dayTotal = (MEALS[data.date] || []).reduce((s, x) => s + (Number(x.kcal) || 0), 0);
     /* Corrección de Ronald (2026-10-24 20:39 CDT): SOLO si el
        registro viene de una FOTO (source 'ai'), la MISMA
@@ -24286,19 +24286,17 @@ function foodlibFromMeal(m) {
    (ownerUid == yo); lo que un entrenador anota por un alumno no
    genera candidato en este paquete. La ficha pública que nazca de
    su aprobación sigue anónima por estructura (P2/P5 intactos).
-   SUSPENSIÓN (AUTH-2026-10-31-114; correo de Ronald, 590, 2026-10-31
-   13:21 CDT: «privacidad de alimentos prioridad 1 con suspensión de
-   captación automática hasta resolver aviso al usuario»): la
-   captación queda APAGADA hasta que Ronald apruebe el aviso al
-   usuario — los dos ganchos de guardado ya no llaman a esta función
-   y la función misma devuelve al instante por
-   FOODLIB_CAPTURE_SUSPENDED, sin leer ni escribir la antesala. La
-   bandeja conserva los candidatos ya existentes y sigue operando
-   (aprobar / rechazar / resolver). La reactivación será un paquete
-   posterior a su aprobación. */
-const FOODLIB_CAPTURE_SUSPENDED = true;
+   REACTIVACIÓN (AUTH-2026-10-31-116): la captación estuvo
+   SUSPENDIDA por AUTH-114 (correo de Ronald, 590, 2026-10-31
+   13:21 CDT: «privacidad de alimentos prioridad 1 con suspensión
+   de captación automática hasta resolver aviso al usuario») hasta
+   que Ronald aprobara el aviso al usuario. El aviso quedó APROBADO
+   por Ronald (chat, 2026-10-31 14:19 CDT: «Apruebo el aviso») y
+   PUBLICADO en la página de privacidad en este mismo paquete; la
+   guarda FOODLIB_CAPTURE_SUSPENDED se retira y los dos ganchos de
+   guardado vuelven a llamar a esta función — el comportamiento es
+   el verificado de AUTH-113. */
 async function foodlibAutoCandidate(m) {
-  if (FOODLIB_CAPTURE_SUSPENDED) return; // AUTH-114: captación suspendida — ni lectura ni escritura de la antesala
   try {
     if (!auth.currentUser || !m || m.ownerUid !== auth.currentUser.uid) return;
     const v = foodlibFromMeal(m);
@@ -24608,9 +24606,11 @@ $('form-meal').addEventListener('submit', async e => {
     } else {
       toast(t('msg.mealSaved'));
     }
-    /* Captación automática SUSPENDIDA (AUTH-114, 2026-10-31): este
-       guardado ya no genera candidato en la antesala — ver
-       foodlibAutoCandidate (FOODLIB_CAPTURE_SUSPENDED). */
+    /* Candidato automático a la antesala (corrección de P1,
+       2026-10-31): sin oferta ni pregunta — el alimento guardado
+       pasa solo a la bandeja de aprobación de Administración. En
+       segundo plano y en silencio; jamás bloquea este guardado. */
+    try { foodlibAutoCandidate(data); } catch {}
   } finally {
     mealSaving = false;
     if (saveBtn) saveBtn.disabled = false;
@@ -26432,7 +26432,7 @@ document.addEventListener('keydown', e => { if (e.key === 'Escape') shareClose()
  *  - El SW (sw.js) solo cachea la cáscara del mismo origen en modo
  *    RED PRIMERO: Auth/Firestore/Worker jamás pasan por la caché.
  * ================================================================ */
-const PWA_SW_VERSION = '20261031-comida-unica';
+const PWA_SW_VERSION = '20261031-aviso-y-reactivacion';
 let pwaDeferredPrompt = null;
 function pwaIsStandalone() {
   try {
