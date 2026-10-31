@@ -14084,6 +14084,14 @@ function trainEffectiveList(plan, di) {
    Cada fila: { ex, de, mark: null | {type:'swap', from} | {type:'add'} }. */
 function trainHistRows(day, log) {
   const doneList = (log && Array.isArray(log.exercisesDone)) ? log.exercisesDone : [];
+  /* QUITADOS AL CERRAR (2026-10-30): los slots del día que la
+     sesión quitó y el cierre guardó en el registro
+     (exercisesRemoved) — una fila del plan no hecha cuyo slot
+     esté aquí se pinta «Quitado hoy», distinta del simple no
+     hecho. Sin el campo (registros anteriores), el conjunto
+     queda vacío y todo se pinta como siempre. */
+  const removedSlots = new Set((log && Array.isArray(log.exercisesRemoved) ? log.exercisesRemoved : [])
+    .map(r => r && r.slot).filter(n => Number.isInteger(n) && n >= 0));
   const used = new Set();
   const findDe = pred => {
     for (let i = 0; i < doneList.length; i++) {
@@ -14093,7 +14101,7 @@ function trainHistRows(day, log) {
     }
     return null;
   };
-  const rows = (day.exercises || []).map(ex => {
+  const rows = (day.exercises || []).map((ex, slot) => {
     let de = findDe(e => ex.exerciseId && e.exerciseId === ex.exerciseId)
       || findDe(e => !e.exerciseId && ex.name && e.name === ex.name);
     let mark = null;
@@ -14113,6 +14121,10 @@ function trainHistRows(day, log) {
       if (pex === ex) pex = Object.assign({}, ex);
       pex.variantIndex = de.variantIndex;
     }
+    /* QUITADOS AL CERRAR: sin hecho y con su slot quitado en el
+       registro, la fila lleva la marca de quitado (si hubiera
+       hecho, manda el hecho: no deben coexistir). */
+    if (!de && removedSlots.has(slot)) mark = { type: 'removed' };
     return { ex: pex, de, mark };
   });
   doneList.forEach((e, i) => {
@@ -14131,6 +14143,7 @@ function trainMarkChipHTML(mark) {
   if (!mark) return '';
   if (mark.type === 'swap') return `<div class="train-mark">⇄ ${esc(t('train.custom.swappedFor', { name: mark.from }))}</div>`;
   if (mark.type === 'add') return `<div class="train-mark">＋ ${esc(t('train.custom.addedMark'))}</div>`;
+  if (mark.type === 'removed') return `<div class="train-mark">✕ ${esc(t('train.custom.removedTag'))}</div>`;
   return '';
 }
 function trainRowWithMark(html, mark) {
@@ -16662,6 +16675,33 @@ async function loadMyTraining() {
     const sug = trainChronoSuggestion(plan.id);
     const rpes = doneList.map(e => e.rpe).filter(r => r != null);
     const rpeAvg = rpes.length ? Math.round(rpes.reduce((a, c) => a + c, 0) / rpes.length) : null;
+    /* QUITADOS AL CERRAR (2026-10-30): los ejercicios quitados
+       de la sesión de hoy (la edición local que trainEditsClear
+       está a punto de retirar) viajan TAMBIÉN al registro, con
+       la identidad de lo que se quitó: si el slot traía un
+       cambio, lo quitado es el ejercicio realizado (el del
+       cambio, con su variante); si no, el del plan en ese slot.
+       Sin quitados, la carga queda byte a byte la de siempre
+       (el campo solo nace cuando hay entradas). */
+    const edClose = trainEditsRead(plan.id);
+    const removedEntries = [];
+    if (edClose && Array.isArray(edClose.removed)) {
+      edClose.removed.forEach(slot => {
+        const sw = edClose.swaps ? edClose.swaps[String(slot)] : null;
+        const entry = { slot };
+        if (sw) {
+          if (sw.exerciseId) entry.exerciseId = sw.exerciseId;
+          const nm = trainExName({ exerciseId: sw.exerciseId || null, name: sw.name || '', variantIndex: sw.variantIndex }) || sw.name || '';
+          if (nm) entry.name = nm;
+          if (Number.isInteger(sw.variantIndex)) entry.variantIndex = sw.variantIndex;
+        } else {
+          const pex2 = (day.exercises || [])[slot] || {};
+          if (pex2.exerciseId) entry.exerciseId = pex2.exerciseId;
+          else if (pex2.name) entry.name = pex2.name;
+        }
+        removedEntries.push(entry);
+      });
+    }
     const data = { clientUid: uid, planId: plan.id, date: today, dayIndex: di, dayLabel: di === -1 ? t('train.free.label') : (day.label || ''),
       done: status === 'done', schemaVersion: 2, status, exercisesDone: doneList, updatedAt: serverTimestamp(),
       durationMin: durMin,
@@ -16671,6 +16711,7 @@ async function loadMyTraining() {
       sessionKcal,
       weightKgUsed: sessionKcal == null ? null : w.weight,
       metUsed: sessionKcal == null ? null : ACT_MET.entrenamiento_plan[inten] };
+    if (removedEntries.length) data.exercisesRemoved = removedEntries;
     try {
       await setDoc(doc(db, 'training_logs', `${uid}_${plan.id}_${today}_${di}`), data);
     } catch (e) { failToast(e); return; }
@@ -16733,7 +16774,24 @@ async function loadMyTraining() {
        saltado no tenía marcas: nada que restaurar. */
     if (prevUndo && trainLogStatus(prevUndo) !== 'skipped') {
       const dayU = (plan.days || [])[diU] || {};
-      trainHistRows(dayU, prevUndo).forEach((row, ei) => {
+      /* QUITADOS AL CERRAR (2026-10-30): el cierre guardó los
+         quitados en el registro; al deshacer vuelven a la
+         edición de sesión — que el cierre había limpiado — y
+         la reconstrucción de marcas cuenta índices EFECTIVOS,
+         saltando las filas quitadas, que es donde las marcas
+         vivían al cerrar. Sin el campo (registros anteriores),
+         el contador coincide con el índice de fila de siempre.
+         Los swaps/added NO se reconstruyen como edición
+         (limitación de siempre, fuera de este paquete). */
+      const remU = Array.isArray(prevUndo.exercisesRemoved) ? prevUndo.exercisesRemoved : [];
+      if (remU.length) {
+        const slotsU = [...new Set(remU.map(r => r && r.slot).filter(n => Number.isInteger(n) && n >= 0))];
+        if (slotsU.length) trainEditsWrite(plan.id, { swaps: {}, added: [], removed: slotsU });
+      }
+      let effIdx = 0;
+      trainHistRows(dayU, prevUndo).forEach((row) => {
+        if (row.mark && row.mark.type === 'removed') return;
+        const ei = effIdx++;
         const de = row.de;
         if (!de) return;
         const sets = (Array.isArray(de.sets) && de.sets.length) ? de.sets.map(s => ({
@@ -24883,7 +24941,7 @@ document.addEventListener('keydown', e => { if (e.key === 'Escape') shareClose()
  *  - El SW (sw.js) solo cachea la cáscara del mismo origen en modo
  *    RED PRIMERO: Auth/Firestore/Worker jamás pasan por la caché.
  * ================================================================ */
-const PWA_SW_VERSION = '20261030-navegacion-flotante';
+const PWA_SW_VERSION = '20261030-quitados-cierre';
 let pwaDeferredPrompt = null;
 function pwaIsStandalone() {
   try {
