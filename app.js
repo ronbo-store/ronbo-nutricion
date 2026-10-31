@@ -1775,6 +1775,23 @@ function admSecToggle(id) {
   const chev = btn.querySelector('.admsec-chev');
   if (chev) chev.textContent = open ? '▾' : '▸';
   if (!open) return;
+  /* A-N1 (revisión «una sola sección visible», 2026-10-31): un solo
+     panel activo por nivel dentro de Administración — al abrir una
+     sub-vista, las demás se RECOGEN (hoy «Consumo de IA» y
+     «Banderas» podían quedar abiertas y apiladas a la vez). Las
+     demás siguen montadas: recogerlas no pierde nada de lo suyo. */
+  for (const o of ADMIN_SECTIONS) {
+    if (o.id === id || !ADM_SEC_OPEN[o.id]) continue;
+    ADM_SEC_OPEN[o.id] = false;
+    const ob = document.querySelector(`[data-admsec-body="${o.id}"]`);
+    if (ob) ob.style.display = 'none';
+    const obtn = document.querySelector(`[data-admsec-btn="${o.id}"]`);
+    if (obtn) {
+      obtn.setAttribute('aria-expanded', 'false');
+      const ochev = obtn.querySelector('.admsec-chev');
+      if (ochev) ochev.textContent = '▸';
+    }
+  }
   /* Abrir = solo presentación: montar la primera vez (lecturas
      propias de la sección) y refrescar al reabrir. Jamás una
      escritura por abrir o cerrar. */
@@ -2880,6 +2897,7 @@ en: {
   'msg.foodReviewed': 'Photo marked as reviewed.',
   'msg.goalsSaved': 'Goals updated.',
   'msg.profileSaved': 'Profile updated.',
+  'msg.saving': 'Saving…',
   'msg.storageSoon': 'Progress photos will be enabled soon.',
   'msg.uploading': 'Uploading photo…',
   'msg.uploadFail': 'The photo could not be uploaded.',
@@ -4965,6 +4983,7 @@ es: {
   'msg.foodReviewed': 'Foto marcada como revisada.',
   'msg.goalsSaved': 'Metas actualizadas.',
   'msg.profileSaved': 'Perfil actualizado.',
+  'msg.saving': 'Guardando…',
   'msg.storageSoon': 'Las fotos de progreso se activarán próximamente.',
   'msg.uploading': 'Subiendo foto…',
   'msg.uploadFail': 'No se pudo subir la foto.',
@@ -10339,7 +10358,22 @@ $('form-goals').addEventListener('submit', async e => {
   if (!goalsUid) return;
   const goals = { kcal: Math.max(0, num($('g-kcal').value)), prot: Math.max(0, num($('g-prot').value)), carb: Math.max(0, num($('g-carb').value)),
     azuc: Math.max(0, num($('g-azuc').value)), gras: Math.max(0, num($('g-gras').value)) };
-  await setDoc(doc(db, 'users', goalsUid), { goals }, { merge: true });
+  /* A-G3 (revisión «una sola sección visible», 2026-10-31): estado
+     «guardando» y catch con aviso — antes el await iba desnudo: un
+     fallo no mostraba nada ni confirmaba nada. Si la escritura
+     falla, el modal queda abierto con lo tecleado y el botón se
+     restaura para reintentar; «guardado» solo tras el éxito real. */
+  const btn = e.target.querySelector('button[type="submit"]');
+  const btnLabel = btn ? btn.textContent : '';
+  if (btn) { btn.disabled = true; btn.textContent = t('msg.saving'); }
+  try {
+    await setDoc(doc(db, 'users', goalsUid), { goals }, { merge: true });
+  } catch (err) {
+    failToast(err);
+    if (btn) { btn.disabled = false; btn.textContent = btnLabel; }
+    return;
+  }
+  if (btn) { btn.disabled = false; btn.textContent = btnLabel; }
   const mine = goalsUid === auth.currentUser.uid;
   goalsUid = null;
   $('goals-modal').style.display = 'none';
@@ -10386,11 +10420,24 @@ $('form-profile').addEventListener('submit', async e => {
   if (!profileUid) return;
   /* Escritura separada: este formulario guarda perfil y notas del
      entrenador; NUNCA respuestas de salud (pertenecen al cliente). */
-  await setDoc(doc(db, 'users', profileUid), {
-    name: $('p-name').value.trim(), phone: $('p-phone').value.trim(),
-    gender: $('p-gender').value, social: $('p-social').value.trim(),
-    trainerNotes: $('p-notes').value.trim()
-  }, { merge: true });
+  /* A-G3 (revisión «una sola sección visible», 2026-10-31): estado
+     «guardando» y catch con aviso, como en #form-goals: si la
+     escritura falla, el modal queda abierto con lo tecleado. */
+  const btn = e.target.querySelector('button[type="submit"]');
+  const btnLabel = btn ? btn.textContent : '';
+  if (btn) { btn.disabled = true; btn.textContent = t('msg.saving'); }
+  try {
+    await setDoc(doc(db, 'users', profileUid), {
+      name: $('p-name').value.trim(), phone: $('p-phone').value.trim(),
+      gender: $('p-gender').value, social: $('p-social').value.trim(),
+      trainerNotes: $('p-notes').value.trim()
+    }, { merge: true });
+  } catch (err) {
+    failToast(err);
+    if (btn) { btn.disabled = false; btn.textContent = btnLabel; }
+    return;
+  }
+  if (btn) { btn.disabled = false; btn.textContent = btnLabel; }
   profileUid = null;
   $('profile-modal').style.display = 'none';
   toast(t('msg.profileSaved'));
@@ -12186,6 +12233,7 @@ const foodIsOpen = id => { const el = $(id); return !!el && el.style.display !==
 function foodShowOnly(which) {
   const map = { float: 'food-float', text: 'food-text', help: 'food-help', voice: 'food-voice' };
   for (const [k, id] of Object.entries(map)) { const el = $(id); if (el) el.style.display = (k === which) ? '' : 'none'; }
+  try { coverSync(); } catch {} // A-N2
 }
 function foodCloseAll() { foodShowOnly(null); }
 function foodOpenFloat() { foodShowOnly('float'); }
@@ -12943,6 +12991,159 @@ function navGoHome() {
 }
 { const hb = $('btn-nav-home'); if (hb) hb.addEventListener('click', navGoHome); }
 
+/* ============ CONTENCIÓN DE FOCO DE TECLADO (A-N2, 2026-10-31) ============
+   Revisión «una sola sección visible», requisito de foco: con una
+   superficie CUBRIENDO la vista (página surgida de Progreso o
+   Entrenamiento, lámina o modal), el tabulador NO debe recorrer los
+   controles de la vista tapada (la revisión midió 13 controles del
+   Inicio alcanzables con Progreso surgida; no existía `inert`).
+   Mecanismo: se detecta la tapa vigente (la última visible en el
+   DOM entre las superficies que cubren) y todo lo demás queda
+   `inert`, caminando el árbol sin inertar jamás la tapa ni el
+   camino que la contiene. Excepción diseñada del modelo AUTH-103:
+   bajo una PÁGINA o una LÁMINA el dock de navegación sigue vivo —
+   es la vía de entrada/salida de esa superficie, no parte de la
+   vista tapada; bajo un MODAL (que también cubre al dock) el dock
+   queda inerte como todo lo demás. Al desaparecer la tapa se
+   retiran los inert y el foco vuelve a donde estaba al abrirse.
+   Un MutationObserver vigila aperturas/cierres por cualquier ruta
+   (los modales se abren por decenas de caminos que solo tocan
+   style.display) y las rutas de navegación llaman a coverSync()
+   en el acto. Si el navegador no soporta `inert`, se degrada a
+   tabindex=-1 sobre los controles del fondo, guardando el valor
+   original de cada uno para restaurarlo al cerrar. */
+const COVER_SEL = '.modal-backdrop, .dos-backdrop, .install-overlay, #sw-overlay, .lightbox, .swap-sheet, .tf-wheel, .ex-media-pop, [role="dialog"], #progress-content.nav-page-on, #train-content.nav-page-on';
+const COVER_INERT_OK = typeof HTMLElement !== 'undefined' && 'inert' in HTMLElement.prototype;
+let COVER_NOW = null;         // la tapa vigente (o null)
+let COVER_INERTS = new Set(); // raíces inertadas por este sistema
+let COVER_TABS = [];          // degradado sin inert: [el, tabindex original]
+/* Pila de tapas: cada capa guarda el foco que había al abrirse, para
+   devolverlo al destaparse (un modal sobre una página devuelve el
+   foco a la página; la página, al botón del dock que la abrió). El
+   foco se re-resuelve por id al restaurar: el dock se re-pinta y el
+   nodo guardado puede haber sido reemplazado por otro con el mismo
+   id. Y la guarda de guardado NO exige que no hubiera tapa previa:
+   la superposición de arranque (la tarjeta de instalación) no debe
+   comerse el guardado de la tapa siguiente. */
+let COVER_STACK = [];         // [{cover, focus, focusId}]
+function coverVisibleEl(el) {
+  if (!el || !el.isConnected) return false;
+  /* getClientRects vacío = algún ancestro está en display:none y la
+     apaga (p. ej. #dossier-content, un role="dialog" dentro de su
+     fondo oculto: su display PROPIO es block y sin esta guarda se
+     creería una tapa permanente). */
+  if (el.getClientRects().length === 0) return false;
+  const cs = getComputedStyle(el);
+  return cs.display !== 'none' && cs.visibility !== 'hidden';
+}
+function coverFind() {
+  let found = null;
+  for (const el of document.querySelectorAll(COVER_SEL)) if (coverVisibleEl(el)) found = el;
+  return found; // gana la última en el DOM: la que pinta encima
+}
+function coverIsSoft(cover) { // página o lámina: el dock sigue vivo
+  return !!cover && (cover.id === 'progress-content' || cover.id === 'train-content' || cover.getAttribute('role') === 'dialog');
+}
+function coverSetInert(root, on) {
+  if (COVER_INERT_OK) {
+    try { root.inert = on; } catch {}
+    if (on) COVER_INERTS.add(root); else COVER_INERTS.delete(root);
+    return;
+  }
+  /* Degradado: sin inert, los controles enfocables del fondo salen
+     del orden de tabulación y vuelven al cerrar. */
+  if (on) {
+    root.querySelectorAll('a[href], button, input, select, textarea, [tabindex]').forEach(el => {
+      COVER_TABS.push([el, el.getAttribute('tabindex')]);
+      el.setAttribute('tabindex', '-1');
+    });
+    COVER_INERTS.add(root);
+  }
+}
+function coverClearInerts() {
+  if (COVER_INERT_OK) { for (const el of COVER_INERTS) { try { el.inert = false; } catch {} } }
+  else { for (const [el, orig] of COVER_TABS) { try { if (orig == null) el.removeAttribute('tabindex'); else el.setAttribute('tabindex', orig); } catch {} } COVER_TABS = []; }
+  COVER_INERTS = new Set();
+}
+function coverWalk(root, cover, dockEl) {
+  for (const c of [...root.children]) {
+    const tag = c.tagName;
+    if (tag === 'SCRIPT' || tag === 'STYLE' || tag === 'TEMPLATE' || tag === 'LINK' || tag === 'NOSCRIPT') continue;
+    if (c === cover) continue;                 // la tapa misma: viva
+    if (dockEl && c === dockEl) continue;      // el dock, cuando queda vivo
+    if (c.contains(cover) || (dockEl && c.contains(dockEl))) { coverWalk(c, cover, dockEl); continue; }
+    coverSetInert(c, true);
+  }
+}
+function coverFocusableIn(root) {
+  return [...root.querySelectorAll('a[href], button:not([disabled]), input:not([disabled]), select:not([disabled]), textarea:not([disabled]), [tabindex]')]
+    .filter(el => el.tabIndex >= 0 && el.getClientRects().length > 0);
+}
+function coverFocusHome(cover) { // ¿el foco actual ya es válido bajo esta tapa?
+  const a = document.activeElement;
+  if (!a || a === document.body || !a.isConnected) return false;
+  if (cover.contains(a)) return true;
+  if (coverIsSoft(cover) && a.closest && a.closest('.actions-dock')) return true;
+  return false;
+}
+function coverEnsureFocus(cover) {
+  if (coverFocusHome(cover)) return;
+  const first = coverFocusableIn(cover)[0];
+  if (first) { try { first.focus({ preventScroll: true }); } catch {} return; }
+  if (!cover.hasAttribute('tabindex')) cover.setAttribute('tabindex', '-1');
+  try { cover.focus({ preventScroll: true }); } catch {}
+}
+function coverRestoreFocus(entry) {
+  if (!entry) return;
+  let s = entry.focusId ? document.getElementById(entry.focusId) : null;
+  if (!s && entry.focus && entry.focus.isConnected) s = entry.focus;
+  try { if (s && coverVisibleEl(s)) s.focus({ preventScroll: true }); } catch {}
+}
+function coverApply(cover) { // (re)aplica los inert para la tapa dada
+  coverClearInerts();
+  COVER_NOW = cover;
+  if (!cover) return;
+  const dock = document.querySelector('.actions-dock');
+  coverWalk(document.body, cover, coverIsSoft(cover) ? dock : null);
+}
+function coverSync() {
+  const cover = coverFind();
+  const top = COVER_STACK.length ? COVER_STACK[COVER_STACK.length - 1].cover : null;
+  if (cover === top) { if (cover) coverEnsureFocus(cover); return; }
+  if (cover && COVER_STACK.some(e => e.cover === cover)) {
+    /* Se destapó una capa y reaparece una anterior: desapilar hasta
+       ella y devolver el foco que guardaba la capa destapada. */
+    let restore = null;
+    while (COVER_STACK.length && COVER_STACK[COVER_STACK.length - 1].cover !== cover) { const e = COVER_STACK.pop(); if (!restore) restore = e; }
+    coverApply(cover);
+    if (restore && !coverFocusHome(cover)) coverRestoreFocus(restore);
+    coverEnsureFocus(cover);
+    return;
+  }
+  if (!cover) {
+    let restore = null;
+    while (COVER_STACK.length) { const e = COVER_STACK.pop(); if (!restore) restore = e; }
+    coverApply(null);
+    if (restore) coverRestoreFocus(restore);
+    return;
+  }
+  /* Tapa nueva: se apila guardando el foco actual si está fuera de
+     ella y vivo (vale también si ya había otra tapa debajo). */
+  const a = document.activeElement;
+  const entry = { cover, focus: null, focusId: '' };
+  if (a && a !== document.body && a.isConnected && !cover.contains(a)) { entry.focus = a; entry.focusId = a.id || ''; }
+  COVER_STACK.push(entry);
+  coverApply(cover);
+  coverEnsureFocus(cover);
+}
+try {
+  let coverT = null;
+  new MutationObserver(() => {
+    if (coverT) return;
+    coverT = setTimeout(() => { coverT = null; try { coverSync(); } catch {} }, 60);
+  }).observe(document.body, { subtree: true, childList: true, attributes: true, attributeFilter: ['style', 'class'] });
+} catch {}
+
 /* ============ NAVEGACIÓN FLOTANTE — páginas del dock (2026-10-30) ============
    Modelo aprobado por Ronald (mq7a/mq7b, variante A refinada; D2 y
    D3 con su palabra, correo 2026-10-30 20:03 CDT): el dock es de
@@ -12989,6 +13190,7 @@ function navRender() {
   const veil = $('nav-veil'); if (veil) veil.style.display = NAV_PAGE ? '' : 'none';
   document.body.classList.toggle('nav-lock', !!NAV_PAGE);
   const hb = $('btn-nav-home'); if (hb) hb.classList.toggle('nav-on', !NAV_PAGE && NAV_TAB === 'track');
+  try { coverSync(); } catch {} // A-N2: la contención de foco sigue a la página en el acto
 }
 function navSaveScroll() { if (NAV_PAGE) { const el = navPageEl(NAV_PAGE); if (el) NAV_SHEET_SCROLL[NAV_PAGE] = el.scrollTop; } }
 function navRestoreScroll(page) {
@@ -20797,7 +20999,7 @@ function setAvatar(url) {
    SOLO por aquí). Cambiar la foto se hace dentro de la tarjeta de
    perfil, por el MISMO camino de siempre (#avatar-file, justo
    debajo): esta entrada ya no abre el selector de archivos. */
-{ const ab = $('avatar-btn'); if (ab) ab.addEventListener('click', () => switchTab('profile')); }
+{ const ab = $('avatar-btn'); if (ab) ab.addEventListener('click', () => navGuarded(() => switchTab('profile'))); } /* A-N3 (2026-10-31): el avatar también pasa por la guarda D3 — antes saltaba directo a «profile» y abandonaba el borrador de comida sin el aviso acotado de AUTH-103. */
 { const pb = $('btn-profile-back'); if (pb) pb.addEventListener('click', navGoHome); }
 $('avatar-file').addEventListener('change', async e => {
   const f = e.target.files[0];
@@ -21110,6 +21312,7 @@ function actShowOnly(which) {
     b.setAttribute('aria-expanded', open ? 'true' : 'false');
     const ch = $('chev-activity'); if (ch) ch.textContent = open ? '▴' : '▾';
   }
+  try { coverSync(); } catch {} // A-N2
 }
 function actCloseAll() { actShowOnly(null); }
 function actOpenFloat() { renderActHobbies(); actShowOnly('float'); }
@@ -23419,6 +23622,11 @@ $('m-photo').addEventListener('change', e => {
 });
 
 let mealSaving = false; // guardia anti-duplicado del guardado de comidas (M8, 2026-10-17)
+/* A-G2 (2026-10-31): identidad pendiente de la vía manual — el id de
+   documento generado en el cliente para la comida que se está
+   intentando guardar y la huella de sus datos; vive solo en memoria
+   y se consume al primer guardado con éxito. */
+let mealManualPending = null;
 $('form-meal').addEventListener('submit', async e => {
   e.preventDefault();
   if (mealSaving) return; // ya hay un guardado en curso: el segundo envío se ignora
@@ -23467,8 +23675,29 @@ $('form-meal').addEventListener('submit', async e => {
        duplicado, 2026-10-23): si el formulario viene de una revisión
        de análisis, escribe el MISMO documento que el guardado directo
        de esa revisión — nunca un segundo registro del mismo plato. */
-    if (aiDraft && aiDraft.saveId) await setDoc(doc(db, 'nutrition_meals', aiDraft.saveId), data);
-    else await addDoc(collection(db, 'nutrition_meals'), data);
+    /* A-G1 + A-G2 (revisión «una sola sección visible», 2026-10-31):
+       la escritura va envuelta: si FALLA, se avisa con su causa
+       (failToast, el patrón honesto de la casa) y el formulario
+       queda abierto con todo lo escrito para reintentar — antes el
+       try/finally sin catch dejaba el fallo en silencio. Y la vía
+       manual deja de usar addDoc (no idempotente: un reintento tras
+       una respuesta perdida DUPLICABA la comida): la ficha nace con
+       un id generado en el cliente, del mismo formato «meal_…» del
+       saveId de la vía IA, y ese id se REUTILIZA mientras la huella
+       de los datos sea la misma — reintentar la misma comida
+       reescribe el mismo documento en vez de crear otro; teclear
+       otra cosa genera un id nuevo. El documento guardado no cambia:
+       mismas claves y valores que con addDoc; solo cambia quién
+       genera el id, como ya hacía la vía IA desde 2026-10-23. */
+    try {
+      if (aiDraft && aiDraft.saveId) await setDoc(doc(db, 'nutrition_meals', aiDraft.saveId), data);
+      else {
+        const huella = [data.ownerUid, data.date, data.meal, data.food, data.qty, data.kcal, data.prot, data.carb, data.sugar, data.fat].join('|');
+        if (!mealManualPending || mealManualPending.huella !== huella) mealManualPending = { huella, id: aiNewSaveId() };
+        await setDoc(doc(db, 'nutrition_meals', mealManualPending.id), data);
+        mealManualPending = null;
+      }
+    } catch (err) { failToast(err); return; }
     aiClearDraft();
     repeatClear();
     /* El registro YA se guardó: el espejo de borrador (D3) se
@@ -24017,6 +24246,7 @@ function pendSetFloat(open) {
   if (open && !document.getElementById('pc-cutoff')) renderPendings();
   if (open) { try { trainerAlertsRender(); } catch {} }
   pendSyncDock();
+  try { coverSync(); } catch {} // A-N2
 }
 /* Recálculo sin recargar (al volver a primer plano y cada 60 s):
    pinta el botón a la hora en punto de un pendiente y refresca la
@@ -25316,7 +25546,7 @@ document.addEventListener('keydown', e => { if (e.key === 'Escape') shareClose()
  *  - El SW (sw.js) solo cachea la cáscara del mismo origen en modo
  *    RED PRIMERO: Auth/Firestore/Worker jamás pasan por la caché.
  * ================================================================ */
-const PWA_SW_VERSION = '20261031-funcion-variantes';
+const PWA_SW_VERSION = '20261031-correcciones-navegacion';
 let pwaDeferredPrompt = null;
 function pwaIsStandalone() {
   try {
