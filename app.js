@@ -3409,6 +3409,15 @@ en: {
   'clients.chkComplete': 'Profile complete',
   'clients.chkMissing': 'Missing',
   'clients.chkHidden': 'not visible to your role',
+  'clients.chkHiddenConsent': 'their specific consent is not active',
+  'clients.chkHiddenWithdrawn': 'they withdrew their specific consent',
+  'clients.chkHiddenTerms': 'the current terms have not been accepted',
+  'clients.chkHiddenUnknown': 'it could not be checked',
+  'client.healthNoConsent': 'Pending on the student: they have not given their specific consent to share their health declaration.',
+  'client.healthWithdrawn': 'The student withdrew their specific consent, so their health declaration is not visible.',
+  'client.healthNoDecl': 'Their consent is active; they have not completed their health declaration yet.',
+  'client.healthTerms': 'The current terms have not been accepted, so their health declaration cannot be shown.',
+  'client.healthUnknown': 'Their health declaration could not be checked.',
   'clients.viewGrid': '▦ Grid',
   'clients.viewList': '☰ List',
   'clients.catFilter': 'Category',
@@ -5536,6 +5545,15 @@ es: {
   'clients.chkComplete': 'Perfil completo',
   'clients.chkMissing': 'Falta',
   'clients.chkHidden': 'no visible para tu rol',
+  'clients.chkHiddenConsent': 'su consentimiento específico no está activo',
+  'clients.chkHiddenWithdrawn': 'retiró su consentimiento específico',
+  'clients.chkHiddenTerms': 'faltan los términos vigentes aceptados',
+  'clients.chkHiddenUnknown': 'no se pudo comprobar',
+  'client.healthNoConsent': 'Pendiente del alumno: falta su consentimiento específico para compartir su declaración.',
+  'client.healthWithdrawn': 'El alumno retiró su consentimiento específico: su declaración de salud no es visible.',
+  'client.healthNoDecl': 'Tiene su consentimiento activo; aún no completa su declaración de salud.',
+  'client.healthTerms': 'Faltan los términos vigentes aceptados: su declaración de salud no se puede mostrar.',
+  'client.healthUnknown': 'No se pudo comprobar su declaración de salud.',
   'clients.viewGrid': '▦ Rejilla',
   'clients.viewList': '☰ Lista',
   'clients.catFilter': 'Categoría',
@@ -7419,9 +7437,14 @@ async function clientProfileChecklist(u, latestMealReq) {
      en el mismo orden y con la misma semántica de error de antes. */
   const pRel = (async () => { try { const s = await getDoc(doc(db, 'trainer_relations', u.id)); return s.exists() ? s.data() : null; } catch { return null; } })();
   const pEval = (async () => { try { const s = await getDoc(doc(db, 'users', u.id, 'assessment', 'current')); return s.exists() && faHasResult(s.data()); } catch { return false; } })();
+  /* AUTH-118 (R3): si la lectura de la declaración FALLA, la fila
+     sigue sin contar (done = null, la semántica de AUTH-110 no
+     cambia), pero el error queda marcado en parqErr para que la
+     fila 🔒 de la ficha diga «no se pudo comprobar» en vez de
+     fingir una causa equivocada. */
   const pParq = (IS_OWNER && specIsActive(u) && u.acceptedTerms === true)
-    ? (async () => { try { const s = await getDocs(query(declCol(u.id), where('state', '==', 'active'))); return !s.empty; } catch { return null; } })()
-    : Promise.resolve(null);
+    ? (async () => { try { const s = await getDocs(query(declCol(u.id), where('state', '==', 'active'))); return { v: !s.empty, err: false }; } catch { return { v: null, err: true }; } })()
+    : Promise.resolve({ v: null, err: false });
   /* 1) Entrenador y modalidad: la relación; sin documento, la misma
      derivación perezosa desde el espejo que hace loadRolesX. */
   const rel = await pRel;
@@ -7437,8 +7460,8 @@ async function clientProfileChecklist(u, latestMealReq) {
      exactas de las reglas (propietario + consentimiento aceptado +
      términos aceptados, y solo la declaración activa). Fuera de
      ellas: null (no verificable), nunca un falso «falta». */
-  const parqDone = await pParq;
-  rows.push({ key: 'parq', label: t('pend.chk.parq'), done: parqDone });
+  const parqRes = await pParq;
+  rows.push({ key: 'parq', label: t('pend.chk.parq'), done: parqRes.v });
   /* 5) Metas definidas: el test de hasAnyGoal aplicado a su
      users.goals (alguna métrica con valor numérico > 0). */
   const g = u.goals || {};
@@ -7450,9 +7473,9 @@ async function clientProfileChecklist(u, latestMealReq) {
   rows.push({ key: 'meals', label: t('pend.chk.meals'), done: featuresOf(u).meals === true || reqDone });
   const known = rows.filter(r => r.done !== null);
   const done = known.filter(r => r.done).length;
-  return { pct: known.length ? Math.round(done / known.length * 100) : 0, rows, complete: rows.length > 0 && rows.every(r => r.done === true) };
+  return { pct: known.length ? Math.round(done / known.length * 100) : 0, rows, complete: rows.length > 0 && rows.every(r => r.done === true), parqErr: !!parqRes.err };
 }
-function clientChecklistHTML(chk) {
+function clientChecklistHTML(chk, hiddenCause) {
   if (!chk) return '';
   if (chk.complete) return `<div class="client-chk" style="margin-top:4px"><span class="ok-badge">✅ ${esc(t('clients.chkComplete'))}</span></div>`;
   const hidden = chk.rows.filter(r => r.done === null).map(r => r.label);
@@ -7462,10 +7485,38 @@ function clientChecklistHTML(chk) {
      en voz del entrenador y su botón (o su «Pendiente del
      alumno»), pintada por fichaPendBlockHTML con el mismo
      studentsPendItemHTML del detalle. La fila 🔒 (done === null:
-     hoy solo la declaración) se queda: su texto por causa llega
-     con R3. */
-  hidden.forEach(l => { h += `<br><span class="muted">🔒 ${esc(l)} — ${esc(t('clients.chkHidden'))}</span>`; });
+     hoy solo la declaración) se queda.
+     AUTH-118 (R3): su texto sale de la CAUSA (hiddenCause, que
+     calcula fichaHiddenCause desde datos ya cargados): «no
+     visible para tu rol» SOLO cuando la causa es de verdad el
+     rol; si es el consentimiento, los términos o un error de
+     lectura, la fila lo dice por su nombre. */
+  const hiddenTxt = hiddenCause === 'never' ? t('clients.chkHiddenConsent')
+    : hiddenCause === 'withdrawn' ? t('clients.chkHiddenWithdrawn')
+    : hiddenCause === 'terms' ? t('clients.chkHiddenTerms')
+    : hiddenCause === 'error' ? t('clients.chkHiddenUnknown')
+    : t('clients.chkHidden');
+  hidden.forEach(l => { h += `<br><span class="muted">🔒 ${esc(l)} — ${esc(hiddenTxt)}</span>`; });
   return h + '</div>';
+}
+/* AUTH-118 (R3): la causa de la fila 🔒 de la ficha, derivada SIN
+   lecturas nuevas: primero el error de lectura que el propio
+   checklist marcó (parqErr); después, del documento del usuario
+   de la última pasada — consentimiento nunca dado o retirado —;
+   después los términos sin aceptar (solo propietario); y solo
+   si ninguna aplica, el rol. */
+function fichaHiddenCause(uid, chk) {
+  if (chk && chk.parqErr) return 'error';
+  const fromC = (typeof CLIENTS_LAST !== 'undefined' && CLIENTS_LAST) ? CLIENTS_LAST.clients : null;
+  const fromS = (typeof STUDENTS_LAST !== 'undefined' && STUDENTS_LAST) ? STUDENTS_LAST.clients : null;
+  const u = (fromC && fromC.find(x => x.id === uid)) || (fromS && fromS.find(x => x.id === uid)) || null;
+  if (!u) return null;
+  if (!specIsActive(u)) {
+    const s = specOf(u);
+    return (s && (s.status === 'withdrawn' || s.withdrawnAt)) ? 'withdrawn' : 'never';
+  }
+  if (typeof IS_OWNER !== 'undefined' && IS_OWNER && u.acceptedTerms !== true) return 'terms';
+  return 'role';
 }
 /* AUTH-110: LA FICHA MUESTRA LA UNIÓN ÚNICA — el checklist de
    siempre (su % y sus faltas) + los programados de la unión con su
@@ -7486,7 +7537,7 @@ function fichaPendBlockHTML(uid) {
   if (!f || (!f.t && !f.err)) return '';
   if (f.err) return `<div class="client-chk" style="margin-bottom:10px"><span class="stu-err-tx">${esc(t('students.pendLoadError'))}</span></div>`;
   const items = f.t.items || [];
-  let h = clientChecklistHTML(f.chk || null);
+  let h = clientChecklistHTML(f.chk || null, fichaHiddenCause(uid, f.chk));
   /* AUTH-117 (R1): TODOS los ítems de la unión — también los de
      datos (req) — se pintan como filas con el MISMO resolver que
      el detalle de «Mis alumnos» (studentsPendItemHTML): botón con
@@ -9619,7 +9670,7 @@ async function openClient(uid) {
   box.style.display = '';
   const healthAlert = clientHealth.decl
     ? declSummaryHTML(clientHealth.decl)
-    : `<div class="health-alert">🏥 ${t('health.trainerNoAccess')}</div>`;
+    : `<div class="health-alert">🏥 ${esc(clientHealthCauseText(clientHealth))}</div>`;
   /* Frente 1 (Canal 3 del diseño): franja de etapa derivada de la
      misma declaración ya cargada — cero lecturas nuevas. */
   const stageStrip = clientHealth.decl ? stageStripHTML(clientHealth.decl) : '';
@@ -11443,7 +11494,7 @@ async function openProfile(uid) {
   if (body) {
     body.innerHTML = `<p class="health-hint">${t('train.loading')}</p>`;
     const ch = await fetchClientHealth(uid, u);
-    body.innerHTML = (ch.decl ? declSummaryHTML(ch.decl) : `<p class="health-hint">${t('health.trainerNoAccess')}</p>`)
+    body.innerHTML = (ch.decl ? declSummaryHTML(ch.decl) : `<p class="health-hint">${esc(clientHealthCauseText(ch))}</p>`)
       + `<p class="health-hint">${t('health.trainerViewNote')}</p>`;
   }
   $('profile-modal').style.display = '';
@@ -14555,14 +14606,47 @@ async function fetchDeclarations(uid) {
 }
 async function fetchClientHealth(uid, userData) {
   /* Consulta condicionada del entrenador: solo la declaración vigente
-     y solo si el consentimiento específico del cliente está activo. */
-  if (!userData || !specIsActive(userData)) return { available: false, decl: null };
+     y solo si el consentimiento específico del cliente está activo.
+     AUTH-118 (R3, mensajes de salud precisos): el resultado lleva
+     además la CAUSA cuando no hay declaración visible — derivada
+     del documento del usuario YA cargado y del resultado de ESTA
+     consulta (cero lecturas nuevas): 'never' (nunca dio su
+     consentimiento específico), 'withdrawn' (lo retiró), 'terms'
+     (consentimiento activo pero términos vigentes sin aceptar —
+     solo propietario, el mismo criterio que la fila PAR-Q del
+     checklist), 'nodecl' (consentimiento activo y aún sin
+     declaración) y 'error' (la lectura falló: un estado de ERROR
+     declarado, jamás una ausencia fingida — precedente
+     declLoadState del panel del propio alumno). Sin causa (null)
+     cuando la declaración sí se leyó o no hay datos del usuario. */
+  if (!userData) return { available: false, decl: null, cause: null };
+  if (!specIsActive(userData)) {
+    const s = specOf(userData);
+    return { available: false, decl: null, cause: (s && (s.status === 'withdrawn' || s.withdrawnAt)) ? 'withdrawn' : 'never' };
+  }
+  if (typeof IS_OWNER !== 'undefined' && IS_OWNER && userData.acceptedTerms !== true)
+    return { available: false, decl: null, cause: 'terms' };
   try {
     const snap = await getDocs(query(declCol(uid), where('state', '==', 'active')));
     let decl = null;
     snap.forEach(d => { decl = { id: d.id, ...d.data() }; });
-    return { available: !!decl, decl };
-  } catch { return { available: false, decl: null }; }
+    return { available: !!decl, decl, cause: decl ? null : 'nodecl' };
+  } catch { return { available: false, decl: null, cause: 'error' }; }
+}
+/* AUTH-118 (R3): el texto del aviso de salud de la ficha y del
+   perfil sale de la CAUSA, no de un rótulo genérico único. Sin
+   causa conocida se conserva el texto genérico de siempre. Ningún
+   texto expone dato protegido alguno: hablan del estado del
+   consentimiento y de la declaración, nunca de su contenido. */
+function clientHealthCauseText(ch) {
+  switch (ch && ch.cause) {
+    case 'never': return t('client.healthNoConsent');
+    case 'withdrawn': return t('client.healthWithdrawn');
+    case 'nodecl': return t('client.healthNoDecl');
+    case 'terms': return t('client.healthTerms');
+    case 'error': return t('client.healthUnknown');
+  }
+  return t('health.trainerNoAccess');
 }
 /* Resumen veraz de una declaración (corrección 2026-10-18): el «—»
    anterior mezclaba casos distintos. Diagnóstico: (a) declaración
@@ -26598,7 +26682,7 @@ document.addEventListener('keydown', e => { if (e.key === 'Escape') shareClose()
  *  - El SW (sw.js) solo cachea la cáscara del mismo origen en modo
  *    RED PRIMERO: Auth/Firestore/Worker jamás pasan por la caché.
  * ================================================================ */
-const PWA_SW_VERSION = '20261031-recorrido-r1';
+const PWA_SW_VERSION = '20261031-recorrido-r3';
 let pwaDeferredPrompt = null;
 function pwaIsStandalone() {
   try {
