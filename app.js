@@ -2301,6 +2301,11 @@ en: {
   'track.summary': 'Summary vs. goals',
   'track.notes': '📝 Notes',
   'track.emptyDay': 'No entries this day. Add a meal with the FOOD button (photo) or from "Meal help" (manual).',
+  'track.totalDay': 'Day total',
+  'th.protShort': 'P',
+  'th.carbShort': 'C',
+  'th.sugarShort': 'Sug',
+  'th.fatShort': 'F',
   'track.viewPhoto': 'View photo',
   'track.delete': 'Delete',
   'track.repeat': 'Repeat',
@@ -4448,6 +4453,11 @@ es: {
   'track.summary': 'Resumen vs. metas',
   'track.notes': '📝 Notas',
   'track.emptyDay': 'Sin registros este día. Añade una comida con el botón COMIDA (foto) o desde «Ayuda con comidas» (manual).',
+  'track.totalDay': 'Total del día',
+  'th.protShort': 'P',
+  'th.carbShort': 'C',
+  'th.sugarShort': 'Az',
+  'th.fatShort': 'G',
   'track.viewPhoto': 'Ver foto',
   'track.delete': 'Borrar',
   'track.repeat': 'Repetir',
@@ -23259,14 +23269,23 @@ function render(date) {
      demás consumidores (anillos, pendientes, totales). Una fila sin
      createdAt conocido (0) va al final y no muestra hora inventada. */
   const rows = (MEALS[date] || []).slice().sort((a, b) => (b.createdAtMs || 0) - (a.createdAtMs || 0));
+  /* VARIANTE A (AUTH-125): el detalle se pinta como FILAS al 100% del
+     ancho de la ventana — momento (+ hora de registro) y kcal / alimento
+     (+ enlace 📷 si la comida trae foto) / cantidad + macros en línea /
+     Repetir-Borrar — en vez de la tabla de 9 columnas con scroll lateral
+     que cortaba todo lo que pasaba de «Cal» en el teléfono. Mismos
+     datos, mismo orden descendente y los mismos botones con los mismos
+     data-* (el cableado de Repetir/Borrar de abajo no cambia). La fila
+     de total conserva TODOS los totales: kcal en grande y los macros
+     con los colores de siempre en una segunda línea. */
   let html = rows.map(m =>
-    `<tr><td>${esc(mealName(m.meal))}${m.createdAtMs ? ` <span class="meal-time">${mealTimeStr(m.createdAtMs)}</span>` : ''}</td><td>${esc(m.food)}${m.photoURL ? ` <a href="${esc(m.photoURL)}" target="_blank" rel="noopener" title="${t('track.viewPhoto')}">📷</a>` : ''}</td><td>${esc(m.qty)}</td>` +
-    `<td class="num">${fmt(m.kcal)}</td><td class="num">${fmt(m.prot)}</td><td class="num">${fmt(m.carb)}</td>` +
-    `<td class="num">${fmt(m.sugar)}</td><td class="num">${fmt(m.fat)}</td>` +
-    `<td class="meal-actions"><button class="rep-btn" data-repeat-meal="${m.id}" title="${t('track.repeat')}">↻ ${t('track.repeat')}</button><button class="del-btn" data-del-meal="${m.id}" title="${t('track.delete')}">×</button></td></tr>`
+    `<div class="meal-row"><div class="meal-row-top"><span class="meal-row-when">${esc(mealName(m.meal))}${m.createdAtMs ? ` <span class="meal-time">${mealTimeStr(m.createdAtMs)}</span>` : ''}</span><span class="meal-row-kcal">${fmt(m.kcal)} kcal</span></div>` +
+    `<div class="meal-row-food">${esc(m.food)}${m.photoURL ? ` <a href="${esc(m.photoURL)}" target="_blank" rel="noopener" title="${t('track.viewPhoto')}">📷</a>` : ''}</div>` +
+    `<div class="meal-row-meta"><span class="meal-row-qty">${esc(m.qty)}</span><span class="meal-row-macros">${t('th.protShort')} ${fmt(m.prot)} g · ${t('th.carbShort')} ${fmt(m.carb)} g · ${t('th.sugarShort')} ${fmt(m.sugar)} g · ${t('th.fatShort')} ${fmt(m.fat)} g</span></div>` +
+    `<div class="meal-actions"><button class="rep-btn" data-repeat-meal="${m.id}" title="${t('track.repeat')}">↻ ${t('track.repeat')}</button><button class="del-btn" data-del-meal="${m.id}" title="${t('track.delete')}">×</button></div></div>`
   ).join('');
-  if (rows.length) html += `<tr class="total"><td colspan="3">TOTAL</td><td class="num" style="color:#16A34A">${fmt(tot.kcal)}</td><td class="num" style="color:#2563EB">${fmt(tot.prot)}</td><td class="num" style="color:#D97706">${fmt(tot.carb)}</td><td class="num" style="color:#9333EA">${fmt(tot.azuc)}</td><td class="num" style="color:#DC2626">${fmt(tot.gras)}</td><td></td></tr>`;
-  $('detailBody').innerHTML = html || `<tr><td colspan="9" class="wempty">${t('track.emptyDay')}</td></tr>`;
+  if (rows.length) html += `<div class="meal-row meal-row-total"><div class="meal-row-top"><span class="meal-row-when">${t('track.totalDay')}</span><span class="meal-row-kcal">${fmt(tot.kcal)} kcal</span></div><div class="meal-row-total-macros"><span style="color:#2563EB">${t('th.protShort')} ${fmt(tot.prot)} g</span> · <span style="color:#D97706">${t('th.carbShort')} ${fmt(tot.carb)} g</span> · <span style="color:#9333EA">${t('th.sugarShort')} ${fmt(tot.azuc)} g</span> · <span style="color:#DC2626">${t('th.fatShort')} ${fmt(tot.gras)} g</span></div></div>`;
+  $('detailBody').innerHTML = html || `<div class="wempty">${t('track.emptyDay')}</div>`;
   /* SIN TABLA «RESUMEN VS. METAS» EN LA VISTA PRINCIPAL (Ronald,
      2026-10-21 20:47: «Quiero ocultar esto mientras tanto también»,
      sobre la captura de la tabla): la tabla (Indicador / Consumo /
@@ -27095,7 +27114,7 @@ document.addEventListener('keydown', e => { if (e.key === 'Escape') shareClose()
  *  - El SW (sw.js) solo cachea la cáscara del mismo origen en modo
  *    RED PRIMERO: Auth/Firestore/Worker jamás pasan por la caché.
  * ================================================================ */
-const PWA_SW_VERSION = '20261031-grafica-corredores';
+const PWA_SW_VERSION = '20261031-comida-variante-a';
 let pwaDeferredPrompt = null;
 function pwaIsStandalone() {
   try {

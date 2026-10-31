@@ -21,7 +21,7 @@
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-title" content="RONBO FIT">
 <meta name="apple-mobile-web-app-status-bar-style" content="default">
-<link rel="stylesheet" href="styles.css?v=20261031-grafica-corredores">
+<link rel="stylesheet" href="styles.css?v=20261031-comida-variante-a">
 <script defer src="https://cloud.umami.is/script.js" data-website-id="a29706d4-44a2-47cf-900a-5f74d74abfa8"></script>
 <script type="importmap">
 {
@@ -642,7 +642,10 @@
       <button type="button" class="btn-secondary meal-manual-pill" id="btn-food-help" aria-label="Help" data-i18n-aria="food.help">❓</button>
       <button type="button" class="pend-close" id="btn-food-close" aria-label="Close" data-i18n-aria="client.close">✕</button>
     </div>
-    <div class="food-chip-row">
+    <!-- VARIANTE A (AUTH-125): los 4 botones en rejilla 2×2 de tarjetas
+         iguales con objetivos táctiles generosos (clase .meal-chips);
+         los ids y el cableado de cada chip no cambian. -->
+    <div class="food-chip-row meal-chips">
       <button type="button" class="act-chip" id="btn-food-photo">
         <span class="act-chip-ico" aria-hidden="true">📷</span>
         <span class="act-chip-lab" data-i18n="food.photo">Photo</span>
@@ -695,15 +698,12 @@
       <div class="bottom">
         <div class="panel">
           <h2 data-i18n="track.detail">Food diary</h2>
-          <div class="table-scroll">
-          <table class="detail">
-            <thead><tr>
-              <th data-i18n="th.moment">Meal</th><th data-i18n="th.food">Food</th><th data-i18n="th.amount">Amount</th>
-              <th class="num" data-i18n="th.cal">Cal</th><th class="num" data-i18n="th.prot">Prot (g)</th><th class="num" data-i18n="th.carb">Carb (g)</th><th class="num" data-i18n="th.sugar">Sugar (g)</th><th class="num" data-i18n="th.fat">Fat (g)</th><th></th>
-            </tr></thead>
-            <tbody id="detailBody"></tbody>
-          </table>
-          </div>
+          <!-- VARIANTE A (AUTH-125): filas al 100% del ancho en vez de
+               la tabla de 9 columnas con scroll lateral que cortaba
+               todo lo que pasaba de «Cal» en el teléfono. #detailBody
+               pasa a ser el contenedor de filas; lo sigue pintando
+               render() y existe una sola vez en el documento. -->
+          <div id="detailBody" class="meal-rows"></div>
         </div>
       </div>
     </div>
@@ -1412,6 +1412,6 @@
 <div id="toast" class="toast"></div>
 <div id="print-card" aria-hidden="true"></div>
 
-<script type="module" src="app.js?v=20261031-grafica-corredores"></script>
+<script type="module" src="app.js?v=20261031-comida-variante-a"></script>
 </body>
 </html>

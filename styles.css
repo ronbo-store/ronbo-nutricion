@@ -2329,3 +2329,28 @@ body.nav-lock .sw-fab, body.nav-lock .help-fab, body.nav-lock .share-fab, body.n
 .ctl-item { display: inline-flex; align-items: center; gap: 5px; }
 .ctl-today { display: inline-flex; align-items: center; justify-content: center; width: 20px; height: 20px; border: 1.6px dashed #0d9488; border-radius: 50%; background: rgba(13, 148, 136, 0.06); }
 .ctl-today span { opacity: 0.45; font-size: 11px; line-height: 1; }
+/* ===== VARIANTE A DE COMIDA (AUTH-2026-10-31-125): rejilla 2×2 de
+   tarjetas iguales para Foto/Texto/Voz/Manual con objetivos táctiles
+   generosos, fecha a todo el ancho y «Detalle de lo consumido» como
+   filas al 100% del ancho (sin tabla ancha ni scroll lateral). Solo
+   presentación: ni ids ni funciones cambian. La regla de la rejilla
+   va acotada a .meal-chips para no tocar la otra .food-chip-row
+   (las opciones de compartir, que conservan sus 2 columnas). ===== */
+#food-float .food-chip-row.meal-chips { grid-template-columns: repeat(2, 1fr); gap: 10px; }
+#food-float .food-chip-row.meal-chips .act-chip { min-height: 92px; padding: 16px 8px 14px; justify-content: center; gap: 6px; }
+#food-float .food-chip-row.meal-chips .act-chip-ico { font-size: 30px; }
+#food-float .food-chip-row.meal-chips .act-chip-lab { font-size: 14px; }
+#food-float .date-row label { white-space: nowrap; }
+#food-float .date-row select { flex: 1 1 auto; min-width: 0; min-height: 44px; }
+#food-float .meal-row { padding: 10px 2px 12px; border-bottom: 1px solid #e5e7eb; }
+#food-float .meal-row:last-child { border-bottom: none; }
+#food-float .meal-row-top { display: flex; justify-content: space-between; align-items: baseline; gap: 10px; }
+#food-float .meal-row-when { font-weight: 700; font-size: 15px; color: #111827; }
+#food-float .meal-row-kcal { font-weight: 800; font-size: 15px; color: #0d9488; white-space: nowrap; }
+#food-float .meal-row-food { margin-top: 2px; font-size: 14.5px; color: #1f2937; overflow-wrap: anywhere; }
+#food-float .meal-row-meta { margin-top: 3px; display: flex; flex-wrap: wrap; gap: 4px 12px; font-size: 13px; color: #6b7280; }
+#food-float .meal-row-macros { font-variant-numeric: tabular-nums; }
+#food-float .meal-row .meal-actions { margin-top: 8px; display: flex; gap: 8px; }
+#food-float .meal-row .rep-btn, #food-float .meal-row .del-btn { min-height: 44px; padding: 8px 16px; font-size: 13.5px; }
+#food-float .meal-row-total-macros { margin-top: 3px; font-size: 13px; font-weight: 600; font-variant-numeric: tabular-nums; }
+#food-float .meal-rows .wempty { text-align: left; }
