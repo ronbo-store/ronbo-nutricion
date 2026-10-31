@@ -1153,7 +1153,16 @@ function rolePendItems() {
       if (!rel || !rel.trainerUid)
         push('alumno|trainer', 'mytrainer', t('pend.role.trainerTitle'), t('pend.role.trainerDetail'), t('pend.role.trainerGo'));
       if (typeof MY_ASMT !== 'undefined' && MY_ASMT && MY_ASMT.state === 'ok' && !faHasResult(MY_ASMT.doc))
-        push('alumno|eval', 'eval', t('pend.role.evalTitle'), t('pend.role.evalDetail'), t('pend.role.evalGo'));
+        /* AUTH-119 (R2, la vía del alumno): la tarjeta «Completa tu
+           evaluación inicial» va a la superficie de DATOS BASE
+           (goals-setup: motor de metas + sección de energía, donde
+           ese pendiente se resuelve), NO a la evaluación periódica
+           de fotos y medidas — la ruta 'eval' queda solo para la
+           evaluación de progreso, que es su destino correcto. La
+           colisión de nombres queda resuelta: «evaluación inicial»
+           = datos base; «evaluación de progreso» = fotos y medidas
+           (así se llama ya la periódica en todos sus textos). */
+        push('alumno|eval', 'goals-setup', t('pend.role.evalTitle'), t('pend.role.evalDetail'), t('pend.role.evalGo'));
       const consent = (typeof specIsActive === 'function') ? specIsActive(UDATA) : false;
       if (!consent)
         push('alumno|consent', 'perms', t('pend.role.consentTitle'), t('pend.role.consentDetail'), t('pend.role.consentGo'));
@@ -26682,7 +26691,7 @@ document.addEventListener('keydown', e => { if (e.key === 'Escape') shareClose()
  *  - El SW (sw.js) solo cachea la cáscara del mismo origen en modo
  *    RED PRIMERO: Auth/Firestore/Worker jamás pasan por la caché.
  * ================================================================ */
-const PWA_SW_VERSION = '20261031-recorrido-r3';
+const PWA_SW_VERSION = '20261031-recorrido-r2';
 let pwaDeferredPrompt = null;
 function pwaIsStandalone() {
   try {
