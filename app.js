@@ -2849,6 +2849,11 @@ en: {
   'students.act.eval': 'View evaluation',
   'students.act.mealReq': 'View request',
   'students.act.food': 'View meal',
+  'students.act.req': 'Open record',
+  'students.act.body': 'Open record',
+  'students.pend.body': 'Body-type analysis (with photos)',
+  'students.pend.bodyNoConsent': 'Their specific consent for this analysis is missing',
+  'students.pend.bodyNoAnalysis': 'No body-type analysis on record yet',
   'students.viewFull': 'View full record',
   'students.resolvedTitle': 'Resolved',
   'students.detailClear': 'This student has nothing pending.',
@@ -4978,6 +4983,11 @@ es: {
   'students.act.eval': 'Ver evaluación',
   'students.act.mealReq': 'Ver solicitud',
   'students.act.food': 'Ver comida',
+  'students.act.req': 'Abrir ficha',
+  'students.act.body': 'Abrir ficha',
+  'students.pend.body': 'Análisis de tipo corporal (con fotos)',
+  'students.pend.bodyNoConsent': 'Falta su consentimiento específico para este análisis',
+  'students.pend.bodyNoAnalysis': 'Aún no tiene un análisis de tipo corporal registrado',
   'students.viewFull': 'Ver ficha completa',
   'students.resolvedTitle': 'Resueltos',
   'students.detailClear': 'Este alumno no tiene nada pendiente.',
@@ -7391,29 +7401,29 @@ async function clientProfileChecklist(u, latestMealReq) {
   /* 1) Entrenador y modalidad: la relación; sin documento, la misma
      derivación perezosa desde el espejo que hace loadRolesX. */
   const rel = await pRel;
-  rows.push({ label: t('pend.chk.trainer'), done: rel ? !!rel.trainerUid : !!u.trainerUid });
+  rows.push({ key: 'trainer', label: t('pend.chk.trainer'), done: rel ? !!rel.trainerUid : !!u.trainerUid });
   /* 2) Evaluación inicial iniciada: users/{uid}/assessment/current
      con resultado vigente (faHasResult, el mismo test). */
   const evalDone = await pEval;
-  rows.push({ label: t('pend.chk.eval'), done: evalDone });
+  rows.push({ key: 'eval', label: t('pend.chk.eval'), done: evalDone });
   /* 3) Consentimiento específico de salud: specIsActive sobre su
      propio users (el mismo test que su checklist). */
-  rows.push({ label: t('pend.chk.consent'), done: specIsActive(u) });
+  rows.push({ key: 'consent', label: t('pend.chk.consent'), done: specIsActive(u) });
   /* 4) Declaración de salud (PAR-Q): legible SOLO en las condiciones
      exactas de las reglas (propietario + consentimiento aceptado +
      términos aceptados, y solo la declaración activa). Fuera de
      ellas: null (no verificable), nunca un falso «falta». */
   const parqDone = await pParq;
-  rows.push({ label: t('pend.chk.parq'), done: parqDone });
+  rows.push({ key: 'parq', label: t('pend.chk.parq'), done: parqDone });
   /* 5) Metas definidas: el test de hasAnyGoal aplicado a su
      users.goals (alguna métrica con valor numérico > 0). */
   const g = u.goals || {};
-  rows.push({ label: t('pend.chk.goals'), done: METRICS.some(m => { const v = Number(g[m.key]); return isFinite(v) && v > 0; }) });
+  rows.push({ key: 'goals', label: t('pend.chk.goals'), done: METRICS.some(m => { const v = Number(g[m.key]); return isFinite(v) && v > 0; }) });
   /* 6) Comidas activas o solicitadas: features.meals, o su ÚLTIMA
      solicitud de comidas en estado pendiente (el mismo criterio de
      MY_MEAL_REQ en su checklist). */
   const reqDone = !!(latestMealReq && (latestMealReq.status === 'pendiente_entrenador' || latestMealReq.status === 'pendiente_administrador'));
-  rows.push({ label: t('pend.chk.meals'), done: featuresOf(u).meals === true || reqDone });
+  rows.push({ key: 'meals', label: t('pend.chk.meals'), done: featuresOf(u).meals === true || reqDone });
   const known = rows.filter(r => r.done !== null);
   const done = known.filter(r => r.done).length;
   return { pct: known.length ? Math.round(done / known.length * 100) : 0, rows, complete: rows.length > 0 && rows.every(r => r.done === true) };
@@ -7427,6 +7437,39 @@ function clientChecklistHTML(chk) {
   if (missing.length) h += `<br><span class="muted">${esc(t('clients.chkMissing'))}: ${missing.map(x => esc(x)).join(' · ')}</span>`;
   hidden.forEach(l => { h += `<br><span class="muted">🔒 ${esc(l)} — ${esc(t('clients.chkHidden'))}</span>`; });
   return h + '</div>';
+}
+/* AUTH-110: LA FICHA MUESTRA LA UNIÓN ÚNICA — el checklist de
+   siempre (su % y sus faltas) + los programados de la unión con su
+   estado + el total «{n} pendientes por resolver», ítem a ítem el
+   mismo que el detalle de «Mis alumnos». Lee la última pasada
+   disponible (la de Clientes o la de Alumnos: la ficha siempre se
+   abre tras una de las dos). Sin pasada no pinta nada: no afirma
+   ni «al día» ni pendientes que no ha calculado. */
+function fichaTpendOf(uid) {
+  if (CLIENTS_LAST && CLIENTS_LAST.tpendByUid && (CLIENTS_LAST.tpendByUid[uid] || (CLIENTS_LAST.tpendErrByUid && CLIENTS_LAST.tpendErrByUid[uid])))
+    return { t: CLIENTS_LAST.tpendByUid[uid] || null, err: !!(CLIENTS_LAST.tpendErrByUid && CLIENTS_LAST.tpendErrByUid[uid]), chk: CLIENTS_LAST.chkByUid[uid] || null };
+  if (STUDENTS_LAST && STUDENTS_LAST.pendByUid && (STUDENTS_LAST.pendByUid[uid] || (STUDENTS_LAST.pendErrByUid && STUDENTS_LAST.pendErrByUid[uid])))
+    return { t: STUDENTS_LAST.pendByUid[uid] || null, err: !!(STUDENTS_LAST.pendErrByUid && STUDENTS_LAST.pendErrByUid[uid]), chk: STUDENTS_LAST.chkByUid[uid] || null };
+  return null;
+}
+function fichaPendBlockHTML(uid) {
+  const f = fichaTpendOf(uid);
+  if (!f || (!f.t && !f.err)) return '';
+  if (f.err) return `<div class="client-chk" style="margin-bottom:10px"><span class="stu-err-tx">${esc(t('students.pendLoadError'))}</span></div>`;
+  const items = f.t.items || [];
+  let h = clientChecklistHTML(f.chk || null);
+  const prog = items.filter(x => x.kind !== 'req');
+  if (prog.length) h += prog.map(it => {
+    const [bg, emoji] = STU_ITEM_ICON[it.kind] || ['#f1f5f9', '•'];
+    const sub = esc(studentsItemSub(it));
+    return `<div class="stu-pend-item">
+      <span class="stu-pend-ico" style="background:${bg}">${emoji}</span>
+      <span class="stu-pend-main"><span class="stu-pend-title">${esc(studentsItemTitle(it))}<span class="st-chip ${STU_CHIP[it.state] || 'st-pendiente'}">${esc(t('students.chip.' + it.state))}</span></span>
+      ${sub ? `<span class="stu-pend-sub">${sub}</span>` : ''}</span>
+    </div>`;
+  }).join('');
+  if (items.length) h += `<div class="client-chk"><b>${esc(t('students.pendToResolve', { n: items.length }))}</b></div>`;
+  return h ? `<div style="margin-bottom:10px">${h}</div>` : '';
 }
 /* ================================================================
    ORGANIZAR CLIENTES — categorías automáticas en «Mis clientes».
@@ -7499,7 +7542,9 @@ function clientInitials(u) {
    Datos derivados de UN cliente en la pasada vigente (la misma
    forma que consumía la rejilla de grupos). */
 function clientsDataOf(L, u) {
-  return { chk: L.chkByUid[u.id] || null, alerts: L.alertsByUid[u.id] || [], hasPlan: !!L.planByUid[u.id], lastDate: L.lastByUid[u.id] || null, lastW: L.lastWByUid[u.id] || null };
+  return { chk: L.chkByUid[u.id] || null, alerts: L.alertsByUid[u.id] || [], hasPlan: !!L.planByUid[u.id], lastDate: L.lastByUid[u.id] || null, lastW: L.lastWByUid[u.id] || null,
+    /* AUTH-110: la unión única de pendientes (la misma de Alumnos). */
+    tpend: L.tpendByUid ? (L.tpendByUid[u.id] || null) : null, tpendErr: !!(L.tpendErrByUid && L.tpendErrByUid[u.id]) };
 }
 /* La lista VISIBLE: filtro de categoría (sustituye, no apila) +
    buscador, ordenada por nombre. Cada cliente, UNA vez. */
@@ -7524,15 +7569,29 @@ function clientsRowSummary(u, d) {
     const miss = d.chk.rows.filter(r => r.done === false);
     return esc(t('clients.chkTitle', { pct: d.chk.pct })) + (miss.length ? ' · ' + esc(miss[0].label) : '');
   }
+  /* AUTH-110: sin faltas del checklist pero con programados en la
+     unión, el resumen muestra el primer ítem de la unión — el mismo
+     que encabeza el detalle de «Mis alumnos». */
+  if (d.tpend && d.tpend.items.length) {
+    const f = d.tpend.items[0];
+    return esc(studentsItemTitle(f))
+      + (f.state === 'vencido' ? ' · ' + esc(t('students.stWord.vencido')) : f.state === 'pospuesto' ? ' · ' + esc(t('students.stWord.pospuesto')) : '');
+  }
   const da = clientsDaysAgo(d.lastDate);
   if (da === null) return esc(t('clients.noWeighins'));
   return esc(t('clients.daysAgoShort', { d: da })) + (d.lastW ? ' · ' + esc(String(d.lastW)) + ' kg' : '');
 }
-/* Contador DISCRETO de la fila/celda (espejo de Alumnos): disco
-   ámbar con el nº de alertas; si no hay alertas, con el nº de
-   categorías con atención; ✓ teal si está «al día». */
+/* Contador DISCRETO de la fila (espejo de Alumnos). AUTH-110: el
+   número ES el total de la unión única de pendientes — el mismo
+   que muestra «Mis alumnos» para la misma persona (decisión B-A1
+   de Ronald: coincidencia ítem a ítem y en total). Las alertas
+   conservan su precedencia visual de siempre; un fallo de carga
+   se marca «!» (nunca ✓ falso). Las categorías siguen contándose
+   en su panel de filtros, que no cambia. */
 function clientsRowBadge(u, d, cats) {
+  if (d.tpendErr) return '<span class="pend-n pend-n-err">!</span>';
   if (d.alerts.length) return `<span class="pend-n">${d.alerts.length}</span>`;
+  if (d.tpend) return d.tpend.items.length ? `<span class="pend-n">${d.tpend.items.length}</span>` : '<span class="ok-disc">✓</span>';
   const probs = (cats || []).filter(c => c !== 'aldia');
   if (!probs.length) return '<span class="ok-disc">✓</span>';
   return `<span class="pend-n">${probs.length}</span>`;
@@ -7546,8 +7605,15 @@ function clientsRowHTML(u) {
 }
 function clientsCellHTML(u) {
   const L = CLIENTS_LAST; const d = clientsDataOf(L, u); const cats = clientCategories(u, d);
-  const ring = d.alerts.length ? 'cell-ring-red' : ((cats.length === 1 && cats[0] === 'aldia') ? 'cell-ring-teal' : 'cell-ring-amber');
-  const badge = d.alerts.length ? `<span class="cell-pend">${d.alerts.length}</span>` : ((cats.length === 1 && cats[0] === 'aldia') ? '' : `<span class="cell-pend">${cats.filter(c => c !== 'aldia').length}</span>`);
+  /* AUTH-110: el distintivo de la celda cuenta la UNIÓN (como la
+     fila y como Alumnos); el anillo teal exige unión vacía además
+     de su categoría «al día» de siempre. */
+  const unionN = d.tpend ? d.tpend.items.length : null;
+  const alDia = !d.tpendErr && unionN === 0 && cats.length === 1 && cats[0] === 'aldia';
+  const ring = d.alerts.length ? 'cell-ring-red' : (alDia ? 'cell-ring-teal' : 'cell-ring-amber');
+  const badge = d.alerts.length ? `<span class="cell-pend">${d.alerts.length}</span>`
+    : d.tpendErr ? '<span class="cell-pend">!</span>'
+    : (unionN ? `<span class="cell-pend">${unionN}</span>` : '');
   const thumb = u.photoURL
     ? `<span class="cell-thumb"><img src="${esc(u.photoURL)}" alt=""></span>`
     : `<span class="cell-thumb" style="background:${stuTint(u.id)}">${esc(clientInitials(u).toUpperCase() || '·')}</span>`;
@@ -7637,7 +7703,7 @@ async function loadClients() {
   const clients = users.filter(u => !u.isOwner && (ROLE === 'administrador' || u.trainerUid === auth.currentUser.uid));
   renderWaitingTray(users);
   renderApprovalsTray(users);
-  let weights = [];
+  let weights = []; let weightsOkC = true;
   try {
     const clientIds = clients.map(u => u.id);
     const ws = (ROLE === 'entrenador' && clientIds.length)
@@ -7645,31 +7711,32 @@ async function loadClients() {
       : await getDocs(collection(db, 'nutrition_weight'));
     ws.forEach(d => { const v = d.data();
       if (v.ownerUid && num(v.weight) > 0) weights.push({ uid: v.ownerUid, date: v.date, weight: num(v.weight) }); });
-  } catch {}
-  const lastByUid = {}, lastWByUid = {};
-  weights.forEach(w => { if (!lastByUid[w.uid] || w.date > lastByUid[w.uid]) { lastByUid[w.uid] = w.date; lastWByUid[w.uid] = w.weight; } });
-  let pendingFood = {};
+  } catch { weightsOkC = false; }
+  const lastByUid = {}, lastWByUid = {}, weightDatesByUid = {};
+  weights.forEach(w => { if (!lastByUid[w.uid] || w.date > lastByUid[w.uid]) { lastByUid[w.uid] = w.date; lastWByUid[w.uid] = w.weight; } (weightDatesByUid[w.uid] = weightDatesByUid[w.uid] || []).push({ date: w.date, weight: w.weight }); });
+  Object.values(weightDatesByUid).forEach(a => a.sort((x, y) => x.date < y.date ? -1 : 1));
+  let pendingFood = {}; const foodItemsByUid = {}; let foodOkC = true;
   try {
     const clientIds2 = clients.map(u => u.id);
     const fs = (ROLE === 'entrenador' && clientIds2.length)
       ? await getDocs(query(collection(db, 'meal_help'), where('ownerUid', 'in', clientIds2.slice(0, 30))))
       : await getDocs(collection(db, 'meal_help'));
     fs.forEach(d => { const v = d.data();
-      if (v.status === 'pending' && v.ownerUid) pendingFood[v.ownerUid] = (pendingFood[v.ownerUid] || 0) + 1; });
-  } catch {}
+      if (v.status === 'pending' && v.ownerUid) { pendingFood[v.ownerUid] = (pendingFood[v.ownerUid] || 0) + 1; (foodItemsByUid[v.ownerUid] = foodItemsByUid[v.ownerUid] || []).push({ id: d.id, createdAt: v.createdAt || null }); } });
+  } catch { foodOkC = false; }
   /* Completitud de perfil por cliente (decisión de Ronald,
      2026-10-27): el % y lo que falta, derivados por
      clientProfileChecklist de las mismas fuentes que el checklist
      del alumno. Las solicitudes de comidas se leen UNA vez y
      acotadas: el administrador las lista todas; el entrenador,
      solo las dirigidas a él (la consulta que las reglas prueban). */
-  let mealReqsAll = [];
+  let mealReqsAll = []; let reqOkC = true;
   try {
     const mq = ROLE === 'entrenador'
       ? await getDocs(query(collection(db, 'meal_requests'), where('trainerUid', '==', auth.currentUser.uid)))
       : await getDocs(collection(db, 'meal_requests'));
     mq.forEach(d => mealReqsAll.push({ id: d.id, ...d.data() }));
-  } catch {}
+  } catch { reqOkC = false; }
   const reqMs = x => (x && x.requestedAt && x.requestedAt.toMillis) ? x.requestedAt.toMillis() : 0;
   const latestReqByUid = {};
   mealReqsAll.forEach(r => { if (r.alumnoUid && (!latestReqByUid[r.alumnoUid] || reqMs(r) >= reqMs(latestReqByUid[r.alumnoUid]))) latestReqByUid[r.alumnoUid] = r; });
@@ -7680,6 +7747,39 @@ async function loadClients() {
      la ficha — la tarjeta las muestra bajo la completitud. */
   const alertsByUid = {};
   await Promise.all(clients.map(async u => { try { alertsByUid[u.id] = await trainerAlertsFor(u.id, u); } catch {} }));
+  /* AUTH-110: LA UNIÓN ÚNICA también en esta pasada (trainerPendUnion,
+     la misma función que consume «Mis alumnos»): pendientes del
+     entrenador idénticos ítem a ítem en ambas vistas. Las lecturas
+     por cliente (pendconfig, pendstate, su nutrition_progress) son
+     las formas ya vivas de la pasada de Alumnos y de la ficha; las
+     reglas vivas las permiten al propietario y al entrenador
+     asignado (preflight contra 15e87534: delta CERO). Un fallo de
+     lectura compartida o del propio cliente marca SOLO a ese
+     cliente en error — jamás un «al día» falso. */
+  const tpendByUid = {}, tpendErrByUid = {};
+  const sharedOkC = weightsOkC && foodOkC && reqOkC;
+  await Promise.all(clients.map(async u => {
+    if (!sharedOkC || !chkByUid[u.id]) { tpendErrByUid[u.id] = true; return; }
+    try {
+      const cs = await getDoc(doc(db, 'nutrition_progress', u.id + '_pendconfig'));
+      const cfg = cs.exists() ? Object.assign(pendDefaults(), cs.data()) : null;
+      const ss = await getDoc(doc(db, 'nutrition_progress', u.id + '_pendstate'));
+      const marks = ss.exists() ? ((ss.data() && ss.data().marks) || {}) : {};
+      const ps = await getDocs(query(collection(db, 'nutrition_progress'), where('ownerUid', '==', u.id)));
+      let bodyItem = studentsBodyItem(u, null);
+      if (btPilot(u.id) && btIsActive(u)) {
+        const bs = await getDocs(query(collection(db, 'body_type_estimates'), where('clientUid', '==', u.id)));
+        bodyItem = studentsBodyItem(u, bs.size);
+      }
+      tpendByUid[u.id] = trainerPendUnion(chkByUid[u.id], studentsPendCompute({
+        cfg, marks,
+        wdates: weightDatesByUid[u.id] || [],
+        prog: spProgParse(ps),
+        reqLatest: latestReqByUid[u.id] || null,
+        foodItems: foodItemsByUid[u.id] || []
+      }, new Date()), bodyItem);
+    } catch { tpendErrByUid[u.id] = true; }
+  }));
   /* ORGANIZAR CLIENTES (AUTH-2026-10-28-066): «tiene plan activo»
      por cliente, propagado de la MISMA lectura que ya hizo
      trainerAlertsFetch dentro de trainerAlertsFor (su caché de
@@ -7688,7 +7788,7 @@ async function loadClients() {
      conmutador, sin re-derivar nada al cambiar de vista. */
   const planByUid = {};
   clients.forEach(u => { const c = TALERTS_CACHE[u.id]; planByUid[u.id] = !!(c && c.hasPlan); });
-  CLIENTS_LAST = { clients, chkByUid, alertsByUid, planByUid, lastByUid, lastWByUid, pendingFood };
+  CLIENTS_LAST = { clients, chkByUid, alertsByUid, planByUid, lastByUid, lastWByUid, pendingFood, tpendByUid, tpendErrByUid };
   renderClientsViewbar();
   renderClientsBody();
   $('client-detail').style.display = 'none'; $('client-detail').innerHTML = '';
@@ -7935,8 +8035,69 @@ function studentsPendCompute(src, now) {
   return { items, traces };
 }
 
+/* ---------- LA DEFINICIÓN ÚNICA DE PENDIENTES DEL ENTRENADOR ----------
+   AUTH-2026-10-31-110. Decisión B-A1 de Ronald (chat 2026-10-31
+   07:08 CDT: «debe coincidir lo que dice Mis clientes con lo que
+   dice Mis alumnos») con su taxonomía oficial (07:18 CDT) y el
+   ajuste de las 07:20 CDT (el análisis de tipo corporal es el
+   Importante 13):
+     pendiente del alumno (vista del entrenador) =
+       INDISPENSABLES que faltan  = filas del checklist de la ficha
+         (clientProfileChecklist) con done === false — misma lógica
+         y mismos textos; el PAR-Q no verificable (null) NO cuenta
+       ∪ IMPORTANTES vencidos o faltantes según su ciclo = los
+         ítems abiertos de studentsPendCompute (pesaje, evaluación
+         periódica, solicitud de comidas §8.4, fotos sin revisar)
+       ∪ el análisis de tipo corporal ausente (studentsBodyItem),
+         donde el módulo está habilitado para ese alumno.
+     Los COMPLEMENTARIOS (taxonomía 14–21) nunca generan ítems.
+   DEDUPLICACIÓN: si la espera accionable es la solicitud en el paso
+   del entrenador (mealreq), el ítem «meals» del checklist no se
+   suma (por construcción ya son excluyentes; candado expreso).
+   «Sin peso» no es ítem: el pesaje debido lo expresa el ítem
+   programado weight, y el nunca-pesado sin activar lo cubre la
+   evaluación inicial. Evaluación inicial y ciclo de evaluación son
+   registros distintos y coexisten.
+   AMBAS vistas («Mis alumnos» y «Mis clientes») consumen SOLO
+   esta unión: mismos ítems, mismo total, «al día» ⇔ unión vacía.
+   CATÁLOGO REUTILIZABLE (nota de coordinación, Ronald 2026-10-31):
+   los ítems de esta unión son un catálogo estable — los de datos
+   llevan su reqKey (la misma clave del checklist: trainer, eval,
+   consent, parq, goals, meals) y los programados su kind + estado
+   + fecha — pensado para que la futura vista de pendientes del
+   PROPIO usuario consuma los mismos ítems, con las mismas claves
+   y esta misma deduplicación, sin redefinir nada. */
+function trainerPendUnion(chk, pend, bodyItem) {
+  const items = [];
+  if (chk && chk.rows) for (const r of chk.rows) {
+    if (r.done === false) items.push({ kind: 'req', reqKey: r.key || '', label: r.label, state: 'pendiente', date: null });
+  }
+  const prog = (pend && pend.items) || [];
+  const kept = prog.some(x => x.kind === 'mealreq') ? items.filter(x => x.reqKey !== 'meals') : items;
+  return { items: kept.concat(prog, bodyItem ? [bodyItem] : []), traces: (pend && pend.traces) || [] };
+}
+/* Importante 13 (ajuste de Ronald, 2026-10-31 07:20 CDT): el
+   análisis de tipo corporal ausente cuenta como faltante — sin su
+   consentimiento específico o sin estimación registrada. Aplica
+   SOLO donde el módulo está habilitado para ese alumno (btPilot):
+   fuera del piloto, el alumno ni siquiera ve el panel de
+   consentimiento (la tarjeta del entrenador tampoco se pinta), y
+   marcarle la falta sería un pendiente imposible de resolver. El
+   ítem dice QUÉ falta; jamás muestra la estimación ni dato alguno.
+   estCount = nº de estimaciones (solo se consulta cuando el
+   consentimiento está activo: es la forma viva de btFetchEstimates
+   y la que las reglas permiten al staff). */
+function studentsBodyItem(u, estCount) {
+  if (!u || !btPilot(u.id)) return null;
+  if (!btIsActive(u)) return { kind: 'body', miss: 'consent', state: 'pendiente', date: null };
+  if (estCount != null && estCount === 0) return { kind: 'body', miss: 'analysis', state: 'pendiente', date: null };
+  return null;
+}
+
 /* ---------- textos de ítems ---------- */
 function studentsItemTitle(it) {
+  if (it.kind === 'req') return it.label || '';
+  if (it.kind === 'body') return t('students.pend.body');
   if (it.kind === 'weight') return it.freq === 7 ? t('students.item.weightWeekly') : t('students.item.weightEvery', { d: it.freq });
   if (it.kind === 'eval') return t('students.item.eval');
   if (it.kind === 'mealreq') return t('students.item.mealReq');
@@ -7964,13 +8125,14 @@ function studentsItemSub(it) {
     return [on, it.delayed ? t('students.pend.reqDelayed') : ''].filter(Boolean).join(' · ');
   }
   if (it.kind === 'food') return it.date ? t('students.pend.foodOn', { date: dateName(it.date) }) : '';
+  if (it.kind === 'body') return t(it.miss === 'consent' ? 'students.pend.bodyNoConsent' : 'students.pend.bodyNoAnalysis');
   return '';
 }
-const STU_ITEM_ICON = { weight: ['#e0f2f1', '⚖️'], eval: ['#ede9fe', '📸'], mealreq: ['#fef3c7', '🍽️'], food: ['#fef3c7', '🍽️'] };
+const STU_ITEM_ICON = { weight: ['#e0f2f1', '⚖️'], eval: ['#ede9fe', '📸'], mealreq: ['#fef3c7', '🍽️'], food: ['#fef3c7', '🍽️'], req: ['#fef3c7', '📋'], body: ['#ede9fe', '🧍'] };
 const STU_CHIP = { vencido: 'st-vencido', pendiente: 'st-pendiente', pospuesto: 'st-pospuesto', omitido: 'st-omitido', completado: 'st-completado' };
 function studentsPendItemHTML(uid, it, isTrace) {
   const [bg, emoji] = STU_ITEM_ICON[it.kind] || ['#f1f5f9', '•'];
-  const act = it.kind === 'weight' ? t('students.act.weight') : it.kind === 'eval' ? t('students.act.eval') : it.kind === 'mealreq' ? t('students.act.mealReq') : t('students.act.food');
+  const act = it.kind === 'weight' ? t('students.act.weight') : it.kind === 'eval' ? t('students.act.eval') : it.kind === 'mealreq' ? t('students.act.mealReq') : it.kind === 'food' ? t('students.act.food') : t('students.act.' + it.kind);
   const sub = isTrace ? (it.date ? esc(dateName(it.date)) : '') : esc(studentsItemSub(it));
   return `<div class="stu-pend-item${isTrace ? ' trace' : ''}">
     <span class="stu-pend-ico" style="background:${bg}">${emoji}</span>
@@ -8363,13 +8525,27 @@ async function loadStudents() {
         const ss = await stP;
         const marks = ss.exists() ? ((ss.data() && ss.data().marks) || {}) : {};
         const ps = await getDocs(query(collection(db, 'nutrition_progress'), where('ownerUid', '==', u.id)));
-        pendByUid[u.id] = studentsPendCompute({
+        const prog = studentsPendCompute({
           cfg, marks,
           wdates: weightDatesByUid[u.id] || [],
           prog: spProgParse(ps),
           reqLatest: latestReqByUid[u.id] || null,
           foodItems: foodItemsByUid[u.id] || []
         }, new Date());
+        /* AUTH-110: la fila de pendientes ES la unión única
+           (trainerPendUnion). Sin checklist no hay unión honesta:
+           si la pasada del checklist no produjo el suyo, este
+           alumno queda en ERROR (A-A5), nunca «al día» falso. El
+           ítem corporal solo consulta estimaciones con el
+           consentimiento activo (forma viva de btFetchEstimates). */
+        await pChk;
+        if (!chkByUid[u.id]) throw new Error('sin-checklist');
+        let bodyItem = studentsBodyItem(u, null);
+        if (btPilot(u.id) && btIsActive(u)) {
+          const bs = await getDocs(query(collection(db, 'body_type_estimates'), where('clientUid', '==', u.id)));
+          bodyItem = studentsBodyItem(u, bs.size);
+        }
+        pendByUid[u.id] = trainerPendUnion(chkByUid[u.id], prog, bodyItem);
       } catch { pendErrByUid[u.id] = true; }
     })();
     await Promise.all([pChk, pAlerts, pPend]);
@@ -9311,6 +9487,7 @@ async function openClient(uid) {
     <h3 class="history-title">${t('client.weightLog', { name: esc(uname) })}</h3>
     ${healthAlert}
     ${stageStrip}
+    ${fichaPendBlockHTML(uid)}
     <div id="client-rings"></div>
     <div id="client-alerts" data-uid="${uid}"></div>
     ${foodItems.length ? `<h3 class="history-title">${t('client.foodReview', { n: foodItems.length })}</h3>${foodBlock}` : ''}
@@ -26244,7 +26421,7 @@ document.addEventListener('keydown', e => { if (e.key === 'Escape') shareClose()
  *  - El SW (sw.js) solo cachea la cáscara del mismo origen en modo
  *    RED PRIMERO: Auth/Firestore/Worker jamás pasan por la caché.
  * ================================================================ */
-const PWA_SW_VERSION = '20261031-alumnos-apertura';
+const PWA_SW_VERSION = '20261031-pendientes-unificados';
 let pwaDeferredPrompt = null;
 function pwaIsStandalone() {
   try {
