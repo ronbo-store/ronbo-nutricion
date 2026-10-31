@@ -2816,6 +2816,47 @@ en: {
   'students.sub': '· my trainer view',
   'students.hint': 'Only the students assigned to you as their trainer — your trainer hat. Everyone stays under \"My clients\" for administration; your own training and meals stay in \"My log\".',
   'students.empty': 'You have no assigned students yet. When a student is assigned to you, they will appear here.',
+  'students.searchPh': 'Search a student…',
+  'students.pillAssigned': 'Assigned',
+  'students.pillPending': 'With pendings',
+  'students.moreFilters': 'More filters',
+  'students.filtersNote': 'The usual categories, as a list with counts. Tapping one shows only that group — and here each person appears just once too.',
+  'students.upToDate': 'Up to date',
+  'students.weighAgo': 'weigh-in {d} d ago',
+  'students.moreN': '+{n} more',
+  'students.pendToResolve': '{n} pending to resolve',
+  'students.item.weightWeekly': 'Weekly weigh-in',
+  'students.item.weightEvery': 'Weigh-in · every {d} days',
+  'students.item.eval': 'Biweekly evaluation',
+  'students.item.mealReq': 'Meal request',
+  'students.item.food': 'Meal photo',
+  'students.stWord.vencido': 'overdue',
+  'students.stWord.pospuesto': 'postponed',
+  'students.chip.pendiente': 'PENDING',
+  'students.chip.vencido': 'OVERDUE',
+  'students.chip.pospuesto': 'POSTPONED',
+  'students.chip.omitido': 'SKIPPED',
+  'students.chip.completado': 'DONE',
+  'students.pend.weekOf': 'Week of {a} – {b}',
+  'students.pend.dueOn': 'due {date}',
+  'students.pend.duePast': 'was due {date}',
+  'students.pend.snoozedUntil': 'postponed until {date}',
+  'students.pend.missing': 'Missing: {list}',
+  'students.pend.reqOn': 'Requested on {date}',
+  'students.pend.reqDelayed': 'delayed · 72 h+ without a reply',
+  'students.pend.foodOn': 'Sent on {date}',
+  'students.act.weight': 'View weigh-in',
+  'students.act.eval': 'View evaluation',
+  'students.act.mealReq': 'View request',
+  'students.act.food': 'View meal',
+  'students.viewFull': 'View full record',
+  'students.resolvedTitle': 'Resolved',
+  'students.detailClear': 'This student has nothing pending.',
+  'students.nonePending': 'No student has anything pending.',
+  'students.noResults': 'No student matches your search.',
+  'students.loadError': 'The student list could not be loaded. Check your connection and try again.',
+  'students.pendLoadError': 'Their pendings could not be loaded',
+  'students.retry': 'Retry',
   'clients.title': '👥 My clients',
   'clients.sub': '· trainer management',
   'clients.hint': 'Each client must upload their weight every week. Select one to see their full history, edit their weigh-ins, or add new ones. You set their goals under "Access management".',
@@ -4902,6 +4943,47 @@ es: {
   'students.sub': '· mi vista de entrenador',
   'students.hint': 'Solo los alumnos que tienes asignados como entrenador: tu sombrero de entrenador. Todas las personas siguen en «Mis clientes» para administrar; tu propio entrenamiento y tus comidas siguen en «Mi registro».',
   'students.empty': 'Todavía no tienes alumnos asignados. Cuando se te asigne un alumno, aparecerá aquí.',
+  'students.searchPh': 'Buscar un alumno…',
+  'students.pillAssigned': 'Asignados',
+  'students.pillPending': 'Con pendientes',
+  'students.moreFilters': 'Más filtros',
+  'students.filtersNote': 'Las categorías de siempre, en lista y con conteos. Al tocar una ves solo ese grupo — y aquí cada persona aparece una sola vez también.',
+  'students.upToDate': 'Al día',
+  'students.weighAgo': 'pesaje hace {d} días',
+  'students.moreN': '+{n} más',
+  'students.pendToResolve': '{n} pendientes por resolver',
+  'students.item.weightWeekly': 'Pesaje semanal',
+  'students.item.weightEvery': 'Pesaje · cada {d} días',
+  'students.item.eval': 'Evaluación quincenal',
+  'students.item.mealReq': 'Solicitud de comidas',
+  'students.item.food': 'Foto de comida',
+  'students.stWord.vencido': 'vencido',
+  'students.stWord.pospuesto': 'pospuesto',
+  'students.chip.pendiente': 'PENDIENTE',
+  'students.chip.vencido': 'VENCIDO',
+  'students.chip.pospuesto': 'POSPUESTO',
+  'students.chip.omitido': 'OMITIDO',
+  'students.chip.completado': 'COMPLETADO',
+  'students.pend.weekOf': 'Semana del {a} al {b}',
+  'students.pend.dueOn': 'vence el {date}',
+  'students.pend.duePast': 'venció el {date}',
+  'students.pend.snoozedUntil': 'pospuesta hasta el {date}',
+  'students.pend.missing': 'Falta: {list}',
+  'students.pend.reqOn': 'Solicitada el {date}',
+  'students.pend.reqDelayed': 'demorada · más de 72 h sin respuesta',
+  'students.pend.foodOn': 'Enviada el {date}',
+  'students.act.weight': 'Ver pesaje',
+  'students.act.eval': 'Ver evaluación',
+  'students.act.mealReq': 'Ver solicitud',
+  'students.act.food': 'Ver comida',
+  'students.viewFull': 'Ver ficha completa',
+  'students.resolvedTitle': 'Resueltos',
+  'students.detailClear': 'Este alumno no tiene nada pendiente.',
+  'students.nonePending': 'Ningún alumno tiene pendientes.',
+  'students.noResults': 'Ningún alumno coincide con tu búsqueda.',
+  'students.loadError': 'No se pudo cargar la lista de alumnos. Revisa tu conexión e inténtalo de nuevo.',
+  'students.pendLoadError': 'No se pudieron cargar sus pendientes',
+  'students.retry': 'Reintentar',
   'clients.title': '👥 Mis clientes',
   'clients.sub': '· gestión de entrenador',
   'clients.hint': 'Cada cliente debe subir su peso cada semana. Selecciona uno para ver su historial completo, editar sus pesajes o agregar nuevos. Sus metas las estableces en "Administración de accesos".',
@@ -7605,49 +7687,478 @@ async function loadClients() {
      2026-10-24): se mudó a «Mi perfil» y lo pinta renderProfileView.
      MY_DOSSIER para los pendientes se carga en loadRolesX, no aquí. */
 }
-/* ================= MIS ALUMNOS (AUTH-2026-10-30-105) =================
-   Apartado PROPIO del entrenador (Propuesta 1 de Ronald, aprobada
-   2026-10-30, ajustada a su triple papel): una pastilla propia que
-   lista SOLO los alumnos asignados al entrenador en sesión, con la
-   MISMA tarjeta de «Mis clientes» (el mismo motor de rejilla/lista,
-   parametrizado). «Clientes» queda intacta: el administrador sigue
-   viendo a todas las personas y su bandeja de espera; aquí solo
-   entra quien cumple asignación + estado (trainerUid == mi uid,
-   approved y assignmentStatus 'assigned'). Cero escrituras y cero
-   formas de lectura nuevas: cada consulta replica una que
-   loadClients ya corre en vivo para el entrenador (preflight
-   contra las reglas vigentes: delta CERO). */
-let STUDENTS_VIEW = 'grid';        // 'grid' | 'list' (nace en rejilla, como Clientes)
-let STUDENTS_CAT_FILTER = 'all';   // filtro de categoría propio de esta vista
-let STUDENTS_LAST = null;          // última pasada de loadStudents
+/* ================= MIS ALUMNOS (AUTH-2026-10-30-105) + REDISEÑO «ALUMNOS» (AUTH-2026-10-31-108) =================
+   Apartado PROPIO del entrenador: pastilla propia que lista SOLO
+   los alumnos asignados al entrenador en sesión (trainerUid == mi
+   uid, approved y assignmentStatus 'assigned'). «Mis clientes» NO
+   se toca: sigue con su motor de grupos por categoría.
+
+   REDISEÑO (especificación de Ronald, correos 2026-10-31 00:13
+   CDT + maqueta mqA1–mqA6 APROBADA en el chat 2026-10-31 00:54
+   CDT; correcciones A-A1..A-A6 de la revisión de navegación):
+     A-A1 la entrada por defecto es «Asignados» y cada persona
+       aparece UNA vez (lista plana propia; se acaba el apilado de
+       grupos de categorías con repetidos de clientsGridHTML). El
+       filtro NO queda pegado entre visitas: cada entrada a la
+       pestaña sin snapshot de regreso nace en «Asignados», sin
+       buscador, sin detalle y sin panel de filtros.
+     A-A2 pastillas «Asignados» · «Con pendientes» · «Más filtros»
+       (las .libcat-chip de la Biblioteca) + buscador, presentes en
+       Lista y en Rejilla.
+     A-A3 detalle de pendientes DENTRO de Alumnos: tocar una
+       persona con pendientes abre SU detalle concreto sin salir
+       de la pestaña. Los ítems se calculan con la SEMÁNTICA del
+       sistema de Pendientes del propio alumno (espejo parametrizado
+       de pendCompute: mismo día de registro por corte, misma
+       ocasión única de pesaje con avance al omitir, mismas marcas
+       omitido/descartado/pospuesto, mismo ciclo de evaluación de
+       15 días con su lista de faltantes) + la solicitud de comidas
+       en el paso del entrenador (§8.4) + las fotos de comida sin
+       revisar. SOLO lo programado o requerido genera pendiente:
+       sin activación confirmada no hay ocasiones; los campos
+       opcionales nunca crean atrasos. Las comidas del día y el
+       entrenamiento viven en la familia de alertas del entrenador
+       (clientCategories / trainerAlertsFor), no aquí; la energía
+       es SOLO del alumno (pendCompute lo dice: el entrenador
+       nunca la ve); perfil/rol son de procedimiento, no registros
+       del alumno. Interpretación declarada: una ocasión POSPUESTA
+       en vigor se presenta como pendiente abierto con estado
+       «pospuesto» (sigue debiéndose; la clasificación de marcas
+       es la de pendCompute, solo cambia el grupo de presentación).
+     A-A4 contador discreto por persona (disco ámbar con el número
+       de ítems abiertos o ✓ teal al día; sin grandes avisos). Los
+       conteos de las pastillas cuentan PERSONAS y concuerdan con
+       el detalle; la pasada se recalcula en cada entrada, así que
+       al resolverse un pendiente los conteos se actualizan solos.
+     A-A5 un fallo de carga se muestra COMO FALLO: si la consulta
+       principal falla, la vista entera muestra el error con
+       reintento (nunca una lista vacía disfrazada); si falla la
+       lectura de pendientes de UN alumno, ese alumno muestra el
+       error en su fila y en su detalle — nunca un ✓ falso.
+     A-A6 capa visual de la maqueta aprobada: avatar pequeño con
+       iniciales (o foto), nombre, resumen de una línea, contador
+       discreto; defecto = LISTA, Rejilla como alternativa; una
+       sola vista activa, sin contenido acumulado.
+   «Ver ficha completa» sigue abriendo la ficha donde vive
+   (Clientes), pero el REGRESO restaura el contexto de Alumnos
+   (selección, buscador, detalle abierto y posición) vía snapshot:
+   studentsGoFicha/studentsOpenRecord levantan STUDENTS_RESTORE y
+   la siguiente pasada de loadStudents lo consume en vez de nacer
+   de cero. El detalle de pendientes nunca abandona Alumnos.
+
+   PREFLIGHT (skill persisted_data_rules_preflight, contra el
+   texto vivo f02566d7…, ruleset 15e87534): CERO escrituras nuevas
+   y CERO delta de reglas. Las lecturas nuevas replican formas que
+   la app ya ejecuta en vivo para el entrenador asignado:
+   getDoc nutrition_progress/{uid}_pendconfig y {uid}_pendstate
+   (loadClientRings / trainerAlertsFetch: allow get por
+   isAssignedTrainerOf) y la consulta nutrition_progress por
+   ownerUid (tevalLoad en la ficha: allow list por
+   isAssignedTrainerOf). El resto de lecturas son las de AUTH-105. */
+let STUDENTS_VIEW = 'list';            // A-A6: nace en LISTA; 'grid' es la alternativa
+let STUDENTS_SEL = 'asignados';        // 'asignados' | 'pendientes' | <clave de CLIENT_CATS>
+let STUDENTS_FILTERS = false;          // panel «Más filtros» abierto
+let STUDENTS_QUERY = '';               // buscador (A-A2)
+let STUDENTS_DETAIL = null;            // uid con el detalle de pendientes abierto (A-A3)
+let STUDENTS_DETAIL_FROM = 'pendientes';
+let STUDENTS_SCROLL = 0;               // posición guardada al abrir detalle / saltar a la ficha
+let STUDENTS_RESTORE = false;          // snapshot válido al volver de la ficha
+let STUDENTS_LOAD_ERROR = false;       // A-A5: la pasada principal falló (≠ lista vacía)
+let STUDENTS_LAST = null;              // última pasada de loadStudents
+
+/* ---------- utilidades de la vista ---------- */
+const STU_TINTS = ['#c7ecec', '#fde9c8', '#e3f2d8', '#fde3ec', '#e0e7ff', '#fef3c7'];
+function stuTint(uid) { let h = 0; const s = String(uid || ''); for (let i = 0; i < s.length; i++) h = (h + s.charCodeAt(i)) % 997; return STU_TINTS[h % STU_TINTS.length]; }
+function stuInitials(name) { const w = String(name || '').trim().split(/\s+/).filter(Boolean); return ((w[0] || '')[0] || '') + ((w[1] || '')[0] || ''); }
+function stuAvatarHTML(u, name) {
+  return u.photoURL
+    ? `<span class="srow-ava"><img src="${esc(u.photoURL)}" alt=""></span>`
+    : `<span class="srow-ava" style="background:${stuTint(u.id)}">${esc(stuInitials(name).toUpperCase() || '·')}</span>`;
+}
+function stuName(u) { return u.name || u.email || t('client.fallbackName'); }
+
+/* ---------- espejo parametrizado del ciclo de evaluación ----------
+   Las MISMAS reglas de evalMeasureValue / evalMissingItems /
+   evalHasData / evalSetComplete / evalCompleteDates / evalNextDue,
+   pero sobre los datos de OTRO alumno (D = su progreso ya leído,
+   parseado como lo parsea tevalLoad en la ficha; wdates = sus
+   pesajes [{date, weight}] ordenados). Nada se reimplementa con
+   otra semántica: es el mismo cálculo con otros datos. */
+function spProgParse(snap) {
+  const D = { prog: {}, evals: {}, cfg: { requiredMeasures: [], units: 'metric' }, cycle: { omitted: [], closedSets: [] } };
+  if (snap) snap.forEach(d => { const v = d.data(); if (!v) return;
+    if (v.slot && v.photo && v.date) { (D.prog[v.date] = D.prog[v.date] || {})[v.slot] = { id: d.id, photo: v.photo }; }
+    else if (v.kind === 'evaluation' && v.date) D.evals[v.date] = { measures: v.measures || {}, comp: v.comp || null, completedAt: v.completedAt || null };
+    else if (v.kind === 'evalCycle') D.cycle = { omitted: Array.isArray(v.omitted) ? v.omitted : [], closedSets: Array.isArray(v.closedSets) ? v.closedSets : [] };
+    else if (v.kind === 'evalConfig') D.cfg = { requiredMeasures: Array.isArray(v.requiredMeasures) ? v.requiredMeasures : [], units: v.units === 'imperial' ? 'imperial' : 'metric' };
+  });
+  return D;
+}
+function spEvalMeasureValue(D, wdates, date, id) {
+  if (id === 'peso') { const w = (wdates || []).find(x => x.date === date); return w ? w.weight : null; }
+  const e = D.evals[date];
+  return (e && e.measures && e.measures[id] != null) ? e.measures[id] : null;
+}
+function spEvalMissingItems(D, wdates, date) {
+  const items = [];
+  PROGRESS_SLOTS.forEach(s => { if (!((D.prog[date] || {})[s])) items.push({ kind: 'photo', id: s }); });
+  (D.cfg.requiredMeasures || []).forEach(m => { if (spEvalMeasureValue(D, wdates, date, m) == null) items.push({ kind: 'measure', id: m }); });
+  return items;
+}
+function spEvalHasData(D, wdates, date) {
+  const e = D.evals[date] || {};
+  if (e.comp && (e.comp.fat || e.comp.muscle)) return true;
+  return EVAL_MEASURES.some(m => spEvalMeasureValue(D, wdates, date, m.id) != null);
+}
+function spEvalSetComplete(D, wdates, date) {
+  if (!date || (D.cycle.closedSets || []).includes(date)) return false;
+  if (!D.prog[date] && !D.evals[date]) return false;
+  return spEvalMissingItems(D, wdates, date).length === 0 && spEvalHasData(D, wdates, date);
+}
+function spEvalCompleteDates(D, wdates) {
+  const ds = new Set([...Object.keys(D.prog), ...Object.keys(D.evals)]);
+  return [...ds].filter(d => spEvalSetComplete(D, wdates, d)).sort();
+}
+function spEvalNextDue(D, wdates) {
+  const ev = spEvalCompleteDates(D, wdates).map(d => (D.evals[d] && D.evals[d].completedAt) || d).concat(D.cycle.omitted || []);
+  if (!ev.length) return null;
+  ev.sort();
+  return addDaysISO(ev[ev.length - 1], 15);
+}
+
+/* ---------- cálculo de pendientes de UN alumno (A-A3) ----------
+   Espejo de las ramas de REGISTRO de pendCompute (pesaje y
+   evaluación) sobre los datos del alumno + las dos esperas del
+   entrenador (solicitud de comidas en su paso y fotos de comida
+   sin revisar). Devuelve { items, traces }: items = abiertos
+   (pendiente / vencido / pospuesto en vigor); traces = resueltos
+   visibles en el detalle SIN contar (omitido / completado). */
+function studentsPendCompute(src, now) {
+  const items = [], traces = [];
+  const cfg = src.cfg;
+  if (cfg && cfg.activated) {
+    const regDay = pendRegDay(now, cfg.cutoff);
+    const marks = src.marks || {};
+    const classify = id => {
+      const mk = marks[id];
+      if (!mk) return { st: 'active' };
+      if (mk.st === 'omitted') return { st: 'omitted', mk };
+      if (mk.st === 'discarded') return { st: 'discarded', mk };
+      if (mk.st === 'snoozed') return (mk.until && new Date(mk.until) > now) ? { st: 'snoozed', mk } : { st: 'active', mk };
+      return { st: 'active', mk };
+    };
+    /* Pesaje — la misma ocasión única viva de pendCompute: la
+       frecuencia corre desde el último pesaje (o la activación);
+       omitir avanza a la siguiente fecha sin desactivarla. */
+    if (cfg.weightOn) {
+      const freq = Number(cfg.weightFreq) || 7;
+      const weighDates = (src.wdates || []).map(w => w.date).filter(d => d && d <= regDay).sort();
+      const lastWeigh = weighDates.length ? weighDates[weighDates.length - 1] : null;
+      let due = addDaysISO(lastWeigh || String(cfg.activatedAt || '').slice(0, 10) || regDay, freq);
+      let guard = 0, lastOmitted = null;
+      while (due <= regDay && guard++ < 400) {
+        const c = classify(`weight|${due}`);
+        if (c.st === 'omitted') { lastOmitted = due; due = addDaysISO(due, freq); continue; }
+        if (c.st === 'snoozed') items.push({ kind: 'weight', state: 'pospuesto', date: due, until: c.mk.until || null, freq, lastWeigh });
+        else if (c.st === 'discarded') traces.push({ kind: 'weight', state: 'omitido', date: due, freq });
+        else items.push({ kind: 'weight', state: due < regDay ? 'vencido' : 'pendiente', date: due, freq, lastWeigh });
+        lastOmitted = null;
+        break;
+      }
+      if (lastOmitted) traces.push({ kind: 'weight', state: 'omitido', date: lastOmitted, freq });
+      if (weighDates.includes(regDay)) traces.push({ kind: 'weight', state: 'completado', date: regDay, freq });
+    }
+    /* Evaluación — reflejo del ciclo: fecha prevista alcanzada y
+       set requerido incompleto (la misma lista de faltantes). */
+    if (src.prog) {
+      const due = spEvalNextDue(src.prog, src.wdates || []);
+      if (due && due <= regDay) {
+        if ((src.prog.cycle.omitted || []).includes(due)) traces.push({ kind: 'eval', state: 'omitido', date: due });
+        else {
+          const missing = spEvalMissingItems(src.prog, src.wdates || [], due);
+          if (missing.length) items.push({ kind: 'eval', state: due < regDay ? 'vencido' : 'pendiente', date: due, missing });
+        }
+      }
+    }
+  }
+  /* Solicitud de comidas esperando al ENTRENADOR (§8.4): solo el
+     paso pendiente_entrenador es espera suya; el paso del
+     administrador no se le cuenta como atraso. */
+  const r = src.reqLatest;
+  if (r && r.status === 'pendiente_entrenador') {
+    const ms = dosMs(r.requestedAt);
+    items.push({ kind: 'mealreq', state: 'pendiente', date: ms ? pendISOof(new Date(ms)) : null, reqId: r.id, delayed: escMealDelayed(r) });
+  }
+  /* Fotos de comida sin revisar (meal_help en 'pending'). */
+  (src.foodItems || []).forEach(f => {
+    const ms = dosMs(f.createdAt);
+    items.push({ kind: 'food', state: 'pendiente', date: ms ? pendISOof(new Date(ms)) : null, foodId: f.id });
+  });
+  const ord = { weight: 0, eval: 1, mealreq: 2, food: 3 };
+  items.sort((a, b) => ((a.date || '9999') < (b.date || '9999') ? -1 : (a.date || '9999') > (b.date || '9999') ? 1 : (ord[a.kind] || 9) - (ord[b.kind] || 9)));
+  return { items, traces };
+}
+
+/* ---------- textos de ítems ---------- */
+function studentsItemTitle(it) {
+  if (it.kind === 'weight') return it.freq === 7 ? t('students.item.weightWeekly') : t('students.item.weightEvery', { d: it.freq });
+  if (it.kind === 'eval') return t('students.item.eval');
+  if (it.kind === 'mealreq') return t('students.item.mealReq');
+  return t('students.item.food');
+}
+function studentsDueText(it) {
+  if (it.state === 'pospuesto' && it.until) return t('students.pend.snoozedUntil', { date: dateName(String(it.until).slice(0, 10)) });
+  if (!it.date) return '';
+  return it.state === 'vencido' ? t('students.pend.duePast', { date: dateName(it.date) }) : t('students.pend.dueOn', { date: dateName(it.date) });
+}
+function studentsItemSub(it) {
+  if (it.kind === 'weight') {
+    const wk = t('students.pend.weekOf', { a: shortDate(addDaysISO(it.date, -6)), b: shortDate(it.date) });
+    const due = studentsDueText(it);
+    return due ? wk + ' · ' + due : wk;
+  }
+  if (it.kind === 'eval') {
+    const names = (it.missing || []).map(m => m.kind === 'photo' ? t('progress.' + m.id) : t('eval.measure.' + m.id)).join(', ');
+    const miss = names ? t('students.pend.missing', { list: names }) : '';
+    const due = studentsDueText(it);
+    return [miss, due].filter(Boolean).join(' · ');
+  }
+  if (it.kind === 'mealreq') {
+    const on = it.date ? t('students.pend.reqOn', { date: dateName(it.date) }) : '';
+    return [on, it.delayed ? t('students.pend.reqDelayed') : ''].filter(Boolean).join(' · ');
+  }
+  if (it.kind === 'food') return it.date ? t('students.pend.foodOn', { date: dateName(it.date) }) : '';
+  return '';
+}
+const STU_ITEM_ICON = { weight: ['#e0f2f1', '⚖️'], eval: ['#ede9fe', '📸'], mealreq: ['#fef3c7', '🍽️'], food: ['#fef3c7', '🍽️'] };
+const STU_CHIP = { vencido: 'st-vencido', pendiente: 'st-pendiente', pospuesto: 'st-pospuesto', omitido: 'st-omitido', completado: 'st-completado' };
+function studentsPendItemHTML(uid, it, isTrace) {
+  const [bg, emoji] = STU_ITEM_ICON[it.kind] || ['#f1f5f9', '•'];
+  const act = it.kind === 'weight' ? t('students.act.weight') : it.kind === 'eval' ? t('students.act.eval') : it.kind === 'mealreq' ? t('students.act.mealReq') : t('students.act.food');
+  const sub = isTrace ? (it.date ? esc(dateName(it.date)) : '') : esc(studentsItemSub(it));
+  return `<div class="stu-pend-item${isTrace ? ' trace' : ''}">
+    <span class="stu-pend-ico" style="background:${bg}">${emoji}</span>
+    <span class="stu-pend-main"><span class="stu-pend-title">${esc(studentsItemTitle(it))}<span class="st-chip ${STU_CHIP[it.state] || 'st-pendiente'}">${esc(t('students.chip.' + it.state))}</span></span>
+    ${sub ? `<span class="stu-pend-sub">${sub}</span>` : ''}</span>
+    ${isTrace ? '' : `<button type="button" class="btn-primary btn-sm" data-stu-act="${it.kind}" data-stu-uid="${uid}">${esc(act)}</button>`}
+  </div>`;
+}
+
+/* ---------- filas, rejilla, filtros y detalle ---------- */
+function studentsSummary(u) {
+  const L = STUDENTS_LAST;
+  if (L.pendErrByUid[u.id]) return `<span class="stu-err-tx">${esc(t('students.pendLoadError'))}</span>`;
+  const pend = L.pendByUid[u.id] || { items: [] };
+  const n = pend.items.length;
+  if (n) {
+    const f = pend.items[0];
+    return esc(studentsItemTitle(f))
+      + (f.state === 'vencido' ? ' · ' + esc(t('students.stWord.vencido')) : f.state === 'pospuesto' ? ' · ' + esc(t('students.stWord.pospuesto')) : '')
+      + (n > 1 ? ' · ' + esc(t('students.moreN', { n: n - 1 })) : '');
+  }
+  const last = L.lastByUid[u.id];
+  return esc(t('students.upToDate')) + (last ? ' · ' + esc(t('students.weighAgo', { d: Math.max(0, pendDaysBetween(last, pendISOof(new Date()))) })) : '');
+}
+function studentsBadge(u) {
+  const L = STUDENTS_LAST;
+  if (L.pendErrByUid[u.id]) return `<span class="pend-n pend-n-err">!</span>`;
+  const n = (L.pendByUid[u.id] || { items: [] }).items.length;
+  return n ? `<span class="pend-n">${n}</span>` : `<span class="ok-disc">✓</span>`;
+}
+function studentsRowHTML(u) {
+  const name = stuName(u);
+  return `<button type="button" class="srow" data-stu="${u.id}">${stuAvatarHTML(u, name)}<span class="srow-main"><span class="srow-name">${esc(name)}</span><span class="srow-sub">${studentsSummary(u)}</span></span>${studentsBadge(u)}<span class="srow-chev">›</span></button>`;
+}
+function studentsGridCellHTML(u) {
+  const name = stuName(u);
+  const L = STUDENTS_LAST;
+  const err = !!L.pendErrByUid[u.id];
+  const n = (L.pendByUid[u.id] || { items: [] }).items.length;
+  const ring = err ? '#dc2626' : n ? '#f59e0b' : '#0d9488';
+  return `<button type="button" class="cgrid-cell" data-stu="${u.id}">
+    <span class="cgrid-thumb">${u.photoURL ? `<img src="${esc(u.photoURL)}" alt="">` : `<span class="mt-initials" style="background:${stuTint(u.id)};color:#134e4a">${esc(stuInitials(name).toUpperCase() || '·')}</span>`}<span class="cgrid-ring" style="border-color:${ring}"></span></span>
+    <span class="cgrid-name">${esc(name)}</span>
+    <span class="cgrid-cat" style="color:#6b7280">${studentsSummary(u)}</span>
+  </button>`;
+}
+function studentsFiltered() {
+  const L = STUDENTS_LAST;
+  let list = L.clients.slice();
+  if (STUDENTS_SEL === 'pendientes') list = list.filter(u => ((L.pendByUid[u.id] || {}).items || []).length > 0);
+  else if (STUDENTS_SEL !== 'asignados') list = list.filter(u => clientCategories(u, L).includes(STUDENTS_SEL));
+  const q = STUDENTS_QUERY.trim().toLowerCase();
+  if (q) list = list.filter(u => (u.name || '').toLowerCase().includes(q) || (u.email || '').toLowerCase().includes(q));
+  return list;
+}
+function studentsListSectionHTML() {
+  const L = STUDENTS_LAST;
+  if (STUDENTS_FILTERS) {
+    const rows = CLIENT_CATS.map(c => {
+      const n = L.clients.filter(u => clientCategories(u, L).includes(c.key)).length;
+      return `<button type="button" class="cat-row${n ? '' : ' off'}" data-stu-cat="${c.key}"><span class="cat-dot" style="background:${c.color}"></span><span class="cat-label">${esc(clientCatLabel(c.key))}</span><span class="cat-n">${n}</span><span class="srow-chev">›</span></button>`;
+    }).join('');
+    return `<p class="mf-note">${esc(t('students.filtersNote'))}</p><div class="cat-list">${rows}</div>`;
+  }
+  const list = studentsFiltered();
+  if (!list.length) {
+    const msg = STUDENTS_QUERY.trim() ? t('students.noResults')
+      : STUDENTS_SEL === 'pendientes' ? t('students.nonePending')
+      : STUDENTS_SEL === 'asignados' ? t('students.empty') : t('clients.catEmpty');
+    return `<div class="wempty">${esc(msg)}</div>`;
+  }
+  return STUDENTS_VIEW === 'grid'
+    ? `<div class="cgrid">${list.map(studentsGridCellHTML).join('')}</div>`
+    : `<div class="students-rows">${list.map(studentsRowHTML).join('')}</div>`;
+}
+function studentsDetailHTML(u) {
+  const L = STUDENTS_LAST;
+  const name = stuName(u);
+  const err = !!L.pendErrByUid[u.id];
+  const pend = L.pendByUid[u.id] || { items: [], traces: [] };
+  const fromLabel = STUDENTS_DETAIL_FROM === 'pendientes' ? t('students.pillPending')
+    : STUDENTS_DETAIL_FROM === 'asignados' ? t('students.pillAssigned')
+    : STUDENTS_DETAIL_FROM === 'filtros' ? t('students.moreFilters')
+    : clientCatLabel(STUDENTS_DETAIL_FROM);
+  let h = `<button type="button" class="back-row" id="stu-back">‹ ${esc(fromLabel)}</button>
+  <div class="detail-card">
+    <div class="detail-head">${stuAvatarHTML(u, name)}<span class="detail-main"><span class="detail-name">${esc(name)}</span><span class="detail-sub">${err ? esc(t('students.pendLoadError')) : pend.items.length ? esc(t('students.pendToResolve', { n: pend.items.length })) : esc(t('students.upToDate'))}</span></span></div>`;
+  if (err) {
+    h += `<div class="stu-err">${esc(t('students.loadError'))}<br><button type="button" class="btn-ghost btn-sm" data-stu-retry="${u.id}" style="margin-top:8px">${esc(t('students.retry'))}</button></div>`;
+  } else {
+    h += pend.items.map(it => studentsPendItemHTML(u.id, it, false)).join('');
+    if (!pend.items.length && !pend.traces.length) h += `<p class="pend-none">${esc(t('students.detailClear'))}</p>`;
+    if (pend.traces.length) h += `<div class="stu-traces-h">${esc(t('students.resolvedTitle'))}</div>` + pend.traces.map(it => studentsPendItemHTML(u.id, it, true)).join('');
+  }
+  h += `<button type="button" class="btn-ficha" data-stu-ficha="${u.id}"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><path d="M14 2v6h6"/></svg>${esc(t('students.viewFull'))}</button>
+  </div>`;
+  return h;
+}
 function renderStudentsBody() {
   const el = $('students-list');
-  if (!el || !STUDENTS_LAST) return;
-  el.innerHTML = STUDENTS_VIEW === 'grid'
-    ? clientsGridHTML(STUDENTS_LAST, STUDENTS_CAT_FILTER, 'students.empty')
-    : clientsListHTML(STUDENTS_LAST, 'students.empty');
-  el.querySelectorAll('[data-client]').forEach(b => b.onclick = () => openStudent(b.dataset.client));
+  if (!el) return;
+  if (STUDENTS_LOAD_ERROR) {
+    el.innerHTML = `<div class="stu-err">${esc(t('students.loadError'))}<br><button type="button" class="btn-primary btn-sm" id="stu-retry" style="margin-top:8px">${esc(t('students.retry'))}</button></div>`;
+    $('stu-retry').onclick = () => loadStudents();
+    return;
+  }
+  if (!STUDENTS_LAST) return;
+  const du = STUDENTS_DETAIL ? STUDENTS_LAST.clients.find(u => u.id === STUDENTS_DETAIL) : null;
+  if (STUDENTS_DETAIL && !du) STUDENTS_DETAIL = null;
+  el.innerHTML = du
+    ? `<div class="students-split"><div class="students-col-list">${studentsListSectionHTML()}</div><div class="students-col-detail">${studentsDetailHTML(du)}</div></div>`
+    : studentsListSectionHTML();
+  el.querySelectorAll('[data-stu]').forEach(b => b.onclick = () => studentsRowTap(b.dataset.stu));
+  el.querySelectorAll('[data-stu-cat]').forEach(b => b.onclick = () => {
+    if (b.classList.contains('off')) return;
+    STUDENTS_SEL = b.dataset.stuCat; STUDENTS_FILTERS = false; STUDENTS_DETAIL = null;
+    renderStudentsViewbar(); renderStudentsBody();
+  });
+  const back = $('stu-back');
+  if (back) back.onclick = studentsCloseDetail;
+  el.querySelectorAll('[data-stu-ficha]').forEach(b => b.onclick = () => studentsGoFicha(b.dataset.stuFicha));
+  el.querySelectorAll('[data-stu-act]').forEach(b => b.onclick = () => studentsOpenRecord(b.dataset.stuUid, b.dataset.stuAct));
+  el.querySelectorAll('[data-stu-retry]').forEach(b => b.onclick = () => { STUDENTS_RESTORE = true; loadStudents(); });
 }
-/* Barra de la vista de «Mis alumnos»: el mismo conmutador
-   Rejilla/Lista y el mismo filtro por categoría que «Clientes»,
-   con su propio estado (sv-*), sin tocar el de la otra vista. */
+/* Barra de la vista: buscador + conmutador Lista/Rejilla en una
+   fila y las tres pastillas debajo (A-A2), con el estado PROPIO
+   de esta vista. El buscador no se re-pinta al escribir (perdería
+   el foco): solo se re-pinta el cuerpo. */
 function renderStudentsViewbar() {
   const bar = $('students-viewbar');
   if (!bar) return;
-  bar.innerHTML = `<div class="clients-viewbar">`
-    + `<span class="cview-seg" role="group"><button type="button" id="sv-grid" class="${STUDENTS_VIEW === 'grid' ? 'on' : ''}">${esc(t('clients.viewGrid'))}</button><button type="button" id="sv-list" class="${STUDENTS_VIEW === 'list' ? 'on' : ''}">${esc(t('clients.viewList'))}</button></span>`
-    + (STUDENTS_VIEW === 'grid' ? `<label class="cview-filter"><span>${esc(t('clients.catFilter'))}</span><select id="sv-filter"><option value="all"${STUDENTS_CAT_FILTER === 'all' ? ' selected' : ''}>${esc(t('clients.catAll'))}</option>${CLIENT_CATS.map(c => `<option value="${c.key}"${STUDENTS_CAT_FILTER === c.key ? ' selected' : ''}>${esc(clientCatLabel(c.key))}</option>`).join('')}</select></label>` : '')
-    + `</div>`;
+  const L = STUDENTS_LAST;
+  const total = L ? L.clients.length : 0;
+  const withPend = L ? L.clients.filter(u => ((L.pendByUid[u.id] || {}).items || []).length > 0).length : 0;
+  const filtersOn = STUDENTS_FILTERS || (STUDENTS_SEL !== 'asignados' && STUDENTS_SEL !== 'pendientes');
+  bar.innerHTML = `<div class="search-row">
+      <label class="search-box"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="11" cy="11" r="7"/><path d="M21 21l-4.3-4.3"/></svg><input type="search" id="sv-q" placeholder="${esc(t('students.searchPh'))}" value="${esc(STUDENTS_QUERY)}" autocomplete="off"></label>
+      <span class="cview-seg" role="group"><button type="button" id="sv-list" class="${STUDENTS_VIEW === 'list' ? 'on' : ''}">${esc(t('clients.viewList'))}</button><button type="button" id="sv-grid" class="${STUDENTS_VIEW === 'grid' ? 'on' : ''}">${esc(t('clients.viewGrid'))}</button></span>
+    </div>`
+    + (L ? `<div class="libcat-chips" role="group">
+      <button type="button" class="libcat-chip${STUDENTS_SEL === 'asignados' && !STUDENTS_FILTERS ? ' on' : ''}" data-stu-pill="asignados">${esc(t('students.pillAssigned'))}<span class="libcat-n">${total}</span></button>
+      <button type="button" class="libcat-chip${STUDENTS_SEL === 'pendientes' && !STUDENTS_FILTERS ? ' on' : ''}" data-stu-pill="pendientes">${esc(t('students.pillPending'))}<span class="libcat-n">${withPend}</span></button>
+      <button type="button" class="libcat-chip${filtersOn ? ' on' : ''}" data-stu-pill="filtros"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 3H2l8 9.5V19l4 2v-8.5z"/></svg>${esc(t('students.moreFilters'))}</button>
+    </div>` : '');
+  const q = $('sv-q');
+  if (q) q.oninput = () => { STUDENTS_QUERY = q.value; if (STUDENTS_DETAIL) STUDENTS_DETAIL = null; renderStudentsBody(); };
   $('sv-grid').onclick = () => { if (STUDENTS_VIEW !== 'grid') { STUDENTS_VIEW = 'grid'; renderStudentsViewbar(); renderStudentsBody(); } };
   $('sv-list').onclick = () => { if (STUDENTS_VIEW !== 'list') { STUDENTS_VIEW = 'list'; renderStudentsViewbar(); renderStudentsBody(); } };
-  const sel = $('sv-filter');
-  if (sel) sel.onchange = () => { STUDENTS_CAT_FILTER = sel.value; renderStudentsBody(); };
+  bar.querySelectorAll('[data-stu-pill]').forEach(b => b.onclick = () => {
+    const p = b.dataset.stuPill;
+    STUDENTS_DETAIL = null;
+    if (p === 'filtros') STUDENTS_FILTERS = !STUDENTS_FILTERS;
+    else { STUDENTS_SEL = p; STUDENTS_FILTERS = false; }
+    renderStudentsViewbar(); renderStudentsBody();
+  });
 }
+
+/* ---------- navegación interna y salto a la ficha ---------- */
+function studentsRowTap(uid) {
+  const L = STUDENTS_LAST; if (!L) return;
+  const pend = L.pendByUid[uid];
+  if (L.pendErrByUid[uid] || (pend && pend.items.length)) {
+    STUDENTS_DETAIL = uid;
+    STUDENTS_DETAIL_FROM = STUDENTS_FILTERS ? 'filtros' : STUDENTS_SEL;
+    STUDENTS_SCROLL = window.scrollY || 0;
+    renderStudentsBody();
+    const sec = $('students-section');
+    if (sec) sec.scrollIntoView({ block: 'start' });
+  } else studentsGoFicha(uid);
+}
+function studentsCloseDetail() {
+  STUDENTS_DETAIL = null;
+  renderStudentsBody();
+  const y = STUDENTS_SCROLL;
+  requestAnimationFrame(() => { try { window.scrollTo(0, y); } catch {} });
+}
+/* Salto a la ficha (vive en «Clientes») con snapshot: al volver a
+   la pestaña, la pasada consume STUDENTS_RESTORE y restaura
+   selección, buscador, detalle y posición en vez de nacer de cero. */
+function studentsGoFicha(uid) {
+  STUDENTS_RESTORE = true;
+  STUDENTS_SCROLL = window.scrollY || 0;
+  openStudent(uid);
+}
+/* Acceso al REGISTRO correspondiente de un ítem (A-A3): la ficha
+   del cliente ya contiene cada registro (historial de pesajes
+   arriba, fotos de comida por revisar, evaluaciones); se salta
+   con snapshot y se enfoca el bloque del ítem. La solicitud de
+   comidas se decide en su caja de «Clientes» (#meal-trainer-box). */
+function studentsOpenRecord(uid, kind) {
+  STUDENTS_RESTORE = true;
+  STUDENTS_SCROLL = window.scrollY || 0;
+  openStudent(uid);
+  if (kind === 'weight') return;
+  let tries = 0;
+  const iv = setInterval(() => {
+    tries++;
+    let done = false;
+    try {
+      if (kind === 'eval') {
+        const b = $('btn-client-evals');
+        if (b) { const body = $('client-evals-body'); if (body && body.style.display === 'none') b.click(); const ce = $('client-evals'); if (ce) ce.scrollIntoView({ behavior: 'smooth', block: 'start' }); done = true; }
+      } else if (kind === 'food') {
+        const fh = document.querySelector('#client-detail .mealhelp-list');
+        if (fh) { fh.scrollIntoView({ behavior: 'smooth', block: 'center' }); done = true; }
+      } else if (kind === 'mealreq') {
+        const mb = $('meal-trainer-box');
+        if (mb && mb.style.display !== 'none' && mb.innerHTML) { mb.scrollIntoView({ behavior: 'smooth', block: 'start' }); done = true; }
+      }
+    } catch {}
+    if (done || tries >= 60) clearInterval(iv);
+  }, 120);
+}
+
 async function loadStudents() {
   const sec = $('students-section');
   if (!sec) return;
   if (ROLE !== 'administrador' && ROLE !== 'entrenador') { sec.style.display = 'none'; return; }
   sec.style.display = '';
+  /* A-A1: la entrada nace en «Asignados» — salvo que haya un
+     snapshot de regreso de la ficha, que se consume aquí. */
+  let restoreY = null;
+  if (STUDENTS_RESTORE) { STUDENTS_RESTORE = false; restoreY = STUDENTS_SCROLL; }
+  else { STUDENTS_SEL = 'asignados'; STUDENTS_QUERY = ''; STUDENTS_FILTERS = false; STUDENTS_DETAIL = null; }
   const myUid = auth.currentUser.uid;
   let users = [];
   try {
@@ -7657,37 +8168,45 @@ async function loadStudents() {
        denegaría entero, igual que en loadClients). */
     const snap = await getDocs(query(collection(db, 'users'), where('trainerUid', '==', myUid)));
     snap.forEach(d => users.push({ id: d.id, ...d.data() }));
-  } catch { users = []; }
+  } catch { STUDENTS_LOAD_ERROR = true; STUDENTS_LAST = null; renderStudentsViewbar(); renderStudentsBody(); return; }
+  STUDENTS_LOAD_ERROR = false;
   /* Asignación + estado: aprobados y con la asignación activa. Un
      asignado desactivado o sin aprobar NO aparece aquí (su sitio
      es «Clientes» y sus bandejas) y nada se rompe por su ausencia. */
   const students = users.filter(u => !u.isOwner && u.trainerUid === myUid && u.approved === true && u.assignmentStatus === 'assigned');
   const ids = students.map(u => u.id);
-  let weights = [];
+  let weights = [], weightsOk = true;
   try {
     if (ids.length) {
       const ws = await getDocs(query(collection(db, 'nutrition_weight'), where('ownerUid', 'in', ids.slice(0, 30))));
       ws.forEach(d => { const v = d.data();
         if (v.ownerUid && num(v.weight) > 0) weights.push({ uid: v.ownerUid, date: v.date, weight: num(v.weight) }); });
     }
-  } catch {}
-  const lastByUid = {}, lastWByUid = {};
-  weights.forEach(w => { if (!lastByUid[w.uid] || w.date > lastByUid[w.uid]) { lastByUid[w.uid] = w.date; lastWByUid[w.uid] = w.weight; } });
-  let pendingFood = {};
+  } catch { weightsOk = false; }
+  const lastByUid = {}, lastWByUid = {}, weightDatesByUid = {};
+  weights.forEach(w => {
+    if (!lastByUid[w.uid] || w.date > lastByUid[w.uid]) { lastByUid[w.uid] = w.date; lastWByUid[w.uid] = w.weight; }
+    (weightDatesByUid[w.uid] = weightDatesByUid[w.uid] || []).push({ date: w.date, weight: w.weight });
+  });
+  Object.values(weightDatesByUid).forEach(a => a.sort((x, y) => x.date < y.date ? -1 : 1));
+  let pendingFood = {}, foodItemsByUid = {}, foodOk = true;
   try {
     if (ids.length) {
       const fs = await getDocs(query(collection(db, 'meal_help'), where('ownerUid', 'in', ids.slice(0, 30))));
       fs.forEach(d => { const v = d.data();
-        if (v.status === 'pending' && v.ownerUid) pendingFood[v.ownerUid] = (pendingFood[v.ownerUid] || 0) + 1; });
+        if (v.status === 'pending' && v.ownerUid) {
+          pendingFood[v.ownerUid] = (pendingFood[v.ownerUid] || 0) + 1;
+          (foodItemsByUid[v.ownerUid] = foodItemsByUid[v.ownerUid] || []).push({ id: d.id, createdAt: v.createdAt || null });
+        } });
     }
-  } catch {}
+  } catch { foodOk = false; }
   /* La última solicitud de comidas por alumno alimenta el checklist,
      como en loadClients; la consulta va acotada por trainerUid. */
-  let mealReqsAll = [];
+  let mealReqsAll = [], reqOk = true;
   try {
     const mq = await getDocs(query(collection(db, 'meal_requests'), where('trainerUid', '==', myUid)));
     mq.forEach(d => mealReqsAll.push({ id: d.id, ...d.data() }));
-  } catch {}
+  } catch { reqOk = false; }
   const reqMs = x => (x && x.requestedAt && x.requestedAt.toMillis) ? x.requestedAt.toMillis() : 0;
   const latestReqByUid = {};
   mealReqsAll.forEach(r => { if (r.alumnoUid && (!latestReqByUid[r.alumnoUid] || reqMs(r) >= reqMs(latestReqByUid[r.alumnoUid]))) latestReqByUid[r.alumnoUid] = r; });
@@ -7697,9 +8216,35 @@ async function loadStudents() {
   await Promise.all(students.map(async u => { try { alertsByUid[u.id] = await trainerAlertsFor(u.id, u); } catch {} }));
   const planByUid = {};
   students.forEach(u => { const c = TALERTS_CACHE[u.id]; planByUid[u.id] = !!(c && c.hasPlan); });
-  STUDENTS_LAST = { clients: students, chkByUid, alertsByUid, planByUid, lastByUid, lastWByUid, pendingFood };
+  /* Pasada de pendientes por alumno (A-A3/A-A5): lee su
+     configuración y sus marcas de Pendientes y su progreso
+     (formas vivas del entrenador asignado) y calcula con el
+     espejo. Si alguna lectura compartida falló, o la suya propia
+     falla, el alumno queda marcado en ERROR — jamás «al día». */
+  const sharedOk = weightsOk && foodOk && reqOk;
+  const pendByUid = {}, pendErrByUid = {};
+  await Promise.all(students.map(async u => {
+    if (!sharedOk) { pendErrByUid[u.id] = true; return; }
+    try {
+      let cfg = null, marks = {};
+      const cs = await getDoc(doc(db, 'nutrition_progress', u.id + '_pendconfig'));
+      if (cs.exists()) cfg = Object.assign(pendDefaults(), cs.data());
+      const ss = await getDoc(doc(db, 'nutrition_progress', u.id + '_pendstate'));
+      if (ss.exists()) marks = (ss.data() && ss.data().marks) || {};
+      const ps = await getDocs(query(collection(db, 'nutrition_progress'), where('ownerUid', '==', u.id)));
+      pendByUid[u.id] = studentsPendCompute({
+        cfg, marks,
+        wdates: weightDatesByUid[u.id] || [],
+        prog: spProgParse(ps),
+        reqLatest: latestReqByUid[u.id] || null,
+        foodItems: foodItemsByUid[u.id] || []
+      }, new Date());
+    } catch { pendErrByUid[u.id] = true; }
+  }));
+  STUDENTS_LAST = { clients: students, chkByUid, alertsByUid, planByUid, lastByUid, lastWByUid, pendingFood, pendByUid, pendErrByUid };
   renderStudentsViewbar();
   renderStudentsBody();
+  if (restoreY != null) requestAnimationFrame(() => { try { window.scrollTo(0, restoreY); } catch {} });
 }
 /* La ficha del cliente vive en «Clientes» (#client-detail y sus
    ids únicos de documento): desde «Mis alumnos» se salta a esa
@@ -25546,7 +26091,7 @@ document.addEventListener('keydown', e => { if (e.key === 'Escape') shareClose()
  *  - El SW (sw.js) solo cachea la cáscara del mismo origen en modo
  *    RED PRIMERO: Auth/Firestore/Worker jamás pasan por la caché.
  * ================================================================ */
-const PWA_SW_VERSION = '20261031-correcciones-navegacion';
+const PWA_SW_VERSION = '20261031-alumnos-detalle';
 let pwaDeferredPrompt = null;
 function pwaIsStandalone() {
   try {

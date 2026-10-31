@@ -2196,3 +2196,67 @@ body.nav-lock .sw-fab, body.nav-lock .help-fab, body.nav-lock .share-fab, body.n
 .excard-var-detail { padding: 8px 0 4px; }
 .pl-ex-variant-wrap { font-size: .85em; color: #475569; }
 .libv-row { margin-top: 10px; }
+
+/* ===== Alumnos · rediseño AUTH-2026-10-31-108 (maqueta mqA1–mqA6 aprobada) ===== */
+.search-row { display: flex; align-items: center; gap: 8px; margin-bottom: 4px; }
+.search-box { flex: 1 1 auto; min-width: 0; display: flex; align-items: center; gap: 8px; background: #fff; border: 1.5px solid #cbd5e1; border-radius: 12px; padding: 0 12px; }
+.search-box svg { width: 18px; height: 18px; color: #64748b; flex: none; }
+.search-box input { flex: 1; min-width: 0; border: none; outline: none; font: inherit; font-size: 15px; padding: 11px 0; background: transparent; color: #1f2937; }
+.search-box input::placeholder { color: #94a3b8; }
+.srow { display: flex; align-items: center; gap: 12px; background: #fff; border: 1px solid #e5e7eb; border-radius: 12px; padding: 9px 14px; margin-bottom: 7px; width: 100%; text-align: left; font-family: inherit; cursor: pointer; }
+.srow-ava { width: 42px; height: 42px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 15px; font-weight: 700; color: #134e4a; flex: none; overflow: hidden; }
+.srow-ava img { width: 100%; height: 100%; object-fit: cover; border-radius: 50%; }
+.srow-main { flex: 1 1 auto; min-width: 0; }
+.srow-name { display: block; font-size: 15px; font-weight: 700; color: #1f2a44; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.srow-sub { display: block; font-size: 12.5px; color: #6b7280; margin-top: 2px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.pend-n { min-width: 26px; height: 26px; border-radius: 50%; background: #fef3c7; color: #b45309; font-weight: 700; font-size: 13px; display: flex; align-items: center; justify-content: center; flex: none; padding: 0 4px; }
+.pend-n-err { background: #fee2e2; color: #b91c1c; }
+.ok-disc { width: 26px; height: 26px; border-radius: 50%; background: #ccfbf1; color: #0d9488; font-weight: 800; font-size: 14px; display: flex; align-items: center; justify-content: center; flex: none; }
+.srow-chev { color: #9ca3af; font-size: 20px; font-weight: 600; flex: none; line-height: 1; }
+.stu-err { background: #fef2f2; border: 1px solid #fecaca; color: #991b1b; border-radius: 12px; padding: 14px; text-align: center; font-size: 14px; }
+.stu-err-tx { color: #b91c1c; font-weight: 600; }
+.back-row { display: flex; align-items: center; gap: 6px; color: #0d9488; font-weight: 700; font-size: 14.5px; margin-bottom: 12px; background: none; border: none; cursor: pointer; font-family: inherit; padding: 0; }
+.detail-card { background: #fff; border: 1px solid #e5e7eb; border-radius: 14px; padding: 16px; }
+.detail-head { display: flex; align-items: center; gap: 12px; padding-bottom: 12px; border-bottom: 1px solid #eef2f5; margin-bottom: 6px; }
+.detail-head .srow-ava { width: 52px; height: 52px; font-size: 17px; }
+.detail-main { min-width: 0; }
+.detail-name { display: block; font-size: 17px; font-weight: 700; color: #1f2a44; }
+.detail-sub { display: block; font-size: 12.5px; color: #6b7280; margin-top: 2px; }
+.stu-pend-item { display: flex; align-items: center; gap: 12px; padding: 10px 0; border-bottom: 1px solid #eef2f5; }
+.stu-pend-item:last-of-type { border-bottom: none; }
+.stu-pend-item.trace { opacity: .72; }
+.stu-pend-ico { width: 42px; height: 42px; border-radius: 12px; display: flex; align-items: center; justify-content: center; flex: none; font-size: 21px; }
+.stu-pend-main { flex: 1 1 auto; min-width: 0; }
+.stu-pend-title { font-size: 14.5px; font-weight: 700; color: #1f2a44; display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
+.stu-pend-sub { display: block; font-size: 12.5px; color: #6b7280; margin-top: 2px; line-height: 1.4; }
+.st-chip { font-size: 10.5px; font-weight: 700; padding: 3px 8px; border-radius: 999px; letter-spacing: .02em; }
+.st-vencido { background: #fee2e2; color: #b91c1c; }
+.st-pendiente { background: #fef3c7; color: #b45309; }
+.st-pospuesto { background: #e2e8f0; color: #475569; }
+.st-omitido { background: #f1f5f9; color: #64748b; }
+.st-completado { background: #ccfbf1; color: #0f766e; }
+.stu-pend-item .btn-primary { font-size: 12.5px; padding: 8px 10px; }
+.btn-ficha { display: flex; align-items: center; justify-content: center; gap: 8px; width: 100%; margin-top: 14px; background: #fff; color: #0d9488; border: 1.5px solid #0d9488; border-radius: 10px; padding: 12px 16px; font-size: 14.5px; font-weight: 700; cursor: pointer; font-family: inherit; }
+.btn-ficha svg { width: 18px; height: 18px; }
+.stu-traces-h { font-size: 12px; font-weight: 700; color: #64748b; text-transform: uppercase; letter-spacing: .04em; margin: 12px 0 2px; }
+.cat-list { background: #fff; border: 1px solid #e5e7eb; border-radius: 14px; padding: 6px 16px; }
+.cat-row { display: flex; align-items: center; gap: 11px; padding: 13px 0; border: none; border-bottom: 1px solid #eef2f5; width: 100%; background: none; font-family: inherit; cursor: pointer; text-align: left; }
+.cat-row:last-child { border-bottom: none; }
+.cat-row.off { opacity: .45; cursor: default; }
+.cat-dot { width: 11px; height: 11px; border-radius: 50%; flex: none; }
+.cat-label { flex: 1; font-size: 14.5px; font-weight: 600; color: #1f2a44; }
+.cat-n { font-size: 12.5px; font-weight: 700; color: #64748b; background: #f1f5f9; border-radius: 999px; padding: 3px 10px; }
+.mf-note { font-size: 12.5px; color: #6b7280; margin: 2px 0 10px; line-height: 1.45; }
+@media (min-width: 900px) {
+  .students-rows { display: grid; grid-template-columns: 1fr 1fr; column-gap: 14px; }
+  .students-split { display: flex; gap: 18px; align-items: flex-start; }
+  .students-split .students-col-list { flex: 1 1 0; min-width: 0; }
+  .students-split .students-col-detail { flex: 1 1 0; min-width: 0; }
+  .students-split .students-rows { display: block; }
+}
+@media (max-width: 899px) {
+  .students-split .students-col-list { display: none; }
+}
+#students-viewbar .libcat-chips { align-items: center; }
+#students-viewbar .libcat-chip { display: inline-flex; align-items: center; gap: 5px; }
+#students-viewbar .libcat-chip svg { width: 14px; height: 14px; flex: none; }
