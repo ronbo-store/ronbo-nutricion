@@ -29,16 +29,17 @@ const STUDENT_W = 'studentNudgeW'; // asignado a TRAINER y aprobado POR TRAINER 
 const STUDENT_O = 'studentNudgeO'; // asignado a TRAINER2
 const STUDENT_NA = 'studentNudgeNA'; // NO aprobado, asignado a TRAINER
 
+/* Patrón probado de la casa (AUTH-132): initializeTestEnvironment
+   SIN la clave rules — el emulador sirve el texto que el workflow
+   haya copiado a firestore.rules (firebase.json), y la suite solo
+   ejerce escrituras contra él. */
 const testEnv = await initializeTestEnvironment({
   projectId: 'ronbo-nutri-test',
-  firestore: { rules, host: '127.0.0.1', port: 8080 }
+  firestore: { host: '127.0.0.1', port: 8080 }
 });
 
 function dbFor(uid) {
   const ctx = uid ? testEnv.authenticatedContext(uid) : testEnv.unauthenticatedContext();
-  const app = initializeApp({ projectId: 'ronbo-nutri-test' }, 'nudge-' + (uid || 'anon') + '-' + Math.random());
-  const db = getFirestore(app);
-  connectFirestoreEmulator(db, '127.0.0.1', 8080);
   return ctx.firestore();
 }
 
