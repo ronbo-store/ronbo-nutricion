@@ -2643,6 +2643,7 @@ body.prog-page #progress-content.nav-page-on { padding-right: 88px; }
 .wk5-detail { display: flex; align-items: center; justify-content: space-between; gap: 8px; width: 100%; margin-top: 10px; padding: 10px 12px; background: #e6f7f2; border: 1px solid #bfe6d9; border-radius: 12px; font: inherit; font-size: 13.5px; font-weight: 600; color: #134e3e; text-align: left; cursor: pointer; }
 .wk5-chev { font-size: 18px; line-height: 1; color: #0d9488; }
 
+
 /* ============ BOTÓN ✕ EN LAS PÁGINAS DEL DOCK (2026-11-01) ============
    Corrección del reporte de Ronald en su iPhone (captura 2026-11-01
    16:05 CST): la página de Progreso no tenía botón ✕ de cierre, y la
@@ -2662,6 +2663,7 @@ body.prog-page #progress-content.nav-page-on { padding-right: 88px; }
 .nav-page-x { position: relative; }
 .nav-page-x::after { content: ''; position: absolute; inset: -8px; border-radius: 50%; }
 
+
 /* ═══ COMUNICACIONES (AUTH-2026-11-01-146) ═══ */
 .comms-row { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; margin: 10px 0; }
 .comms-row select { flex: 1; min-width: 220px; }
@@ -2679,6 +2681,7 @@ body.prog-page #progress-content.nav-page-on { padding-right: 88px; }
 .comms-sweep-group { border-top: 1px solid #e3ece8; padding: 10px 0; }
 .comms-oneperson { margin-top: 10px; display: flex; gap: 8px; align-items: center; flex-wrap: wrap; }
 
+
 /* PENDIENTES POR CATEGORÍA (AUTH-2026-11-01-148): encabezados de
    grupo 🔴🟠🟢 de la ventana del alumno y del panel del
    entrenador, y el sello de responsable dentro de cada ítem del
@@ -2691,3 +2694,13 @@ body.prog-page #progress-content.nav-page-on { padding-right: 88px; }
 .pend-dep-you { background: #ccfbf1; color: #0f766e; }
 .pend-dep-trainer { background: #fef3c7; color: #92400e; }
 .pend-dep-admin { background: #e2e8f0; color: #475569; }
+/* CLAVES DE ACCESO — PASSKEYS (piloto DEC-PK-2): botón de entrada
+   bajo el formulario (área táctil generosa), sección «Seguridad»
+   del perfil y filas de la lista de claves. */
+.btn-pk-signin { width: 100%; min-height: 48px; margin-top: 10px; }
+.pk-sub { font-size: 15px; margin: 2px 0 6px; color: #14312e; }
+.btn-pk-add { min-height: 48px; padding: 10px 20px; }
+.pk-key-row { display: flex; align-items: center; justify-content: space-between; gap: 10px; padding: 10px 0; border-bottom: 1px solid #e3e7ee; }
+.pk-key-info { min-width: 0; }
+.pk-key-actions { display: flex; gap: 6px; flex-shrink: 0; }
+.pk-key-actions button { min-height: 44px; }

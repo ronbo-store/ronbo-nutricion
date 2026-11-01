@@ -2,6 +2,7 @@
 import { initializeApp } from "firebase/app";
 import {
   getAuth, signInWithEmailAndPassword, createUserWithEmailAndPassword,
+  signInWithCustomToken,
   signOut, onAuthStateChanged, sendPasswordResetEmail, deleteUser,
 } from "firebase/auth";
 import {
@@ -3499,6 +3500,38 @@ en: {
   'priv.manage': 'Manage privacy and data',
   'perm.title': 'Permissions & privacy',
   'perm.intro': 'Here you manage your permissions: your health declaration and your privacy & data — what you accept, what you share, and what you can withdraw or delete.',
+  'pk.signIn': '🔑 Sign in with a passkey',
+  'pk.section': 'Security',
+  'pk.title': 'Access keys',
+  'pk.help': 'Use your face, fingerprint or device PIN instead of typing your password.',
+  'pk.unsupported': 'Passkeys aren\'t available in this browser. Open RONBO FIT in Safari or Chrome, or sign in with your password.',
+  'pk.add': 'Add an access key',
+  'pk.addLabelPrompt': 'Name for this access key (optional):',
+  'pk.defaultLabel': 'My access key',
+  'pk.created': 'Created {date}',
+  'pk.lastUsed': 'Last used: {date}',
+  'pk.neverUsed': 'Not used yet',
+  'pk.none': 'You have no access keys yet.',
+  'pk.rename': 'Rename',
+  'pk.renamePrompt': 'New name for this access key:',
+  'pk.delete': 'Delete',
+  'pk.deleteConfirm': 'Delete this access key? It will stop working for sign-in. Your password will keep working.',
+  'pk.deleted': 'Access key deleted.',
+  'pk.renamed': 'Access key renamed.',
+  'pk.added': 'Access key added.',
+  'pk.loadFailed': 'We couldn\'t load your access keys. Try again in a moment.',
+  'pk.err.cancelled': 'You cancelled the access key. You can sign in with your password instead.',
+  'pk.err.noKey': 'No access key was found for this account. Sign in with your password instead.',
+  'pk.err.expired': 'That took too long and the request expired. Try again, or sign in with your password.',
+  'pk.err.tooMany': 'Too many attempts. Wait a moment and try again, or sign in with your password.',
+  'pk.err.generic': 'Something went wrong with the access key. Sign in with your password instead.',
+  'pk.err.excluded': 'This device already has an access key for your account. You can sign in with your password.',
+  'pk.err.pilotOnly': 'Access keys are not available for your account yet. Sign in with your password.',
+  'pk.revoke': 'Revoke access keys',
+  'pk.revokeConfirm': 'All access keys of {name} will be revoked. They will still be able to sign in with their password.',
+  'pk.revoked': 'Access keys revoked: {n}.',
+  'pk.revokedNone': 'That user had no access keys.',
+  'pk.revokeFailed': 'The access keys couldn\'t be revoked. Try again.',
   'perm.photoNote': 'The food photo you send for analysis is not stored.',
   'priv.sectionTitle': 'Privacy & data',
   'priv.statusAccepted': 'Consent accepted · version {v} · {date}',
@@ -5910,6 +5943,38 @@ es: {
   'priv.manage': 'Gestionar privacidad y datos',
   'perm.title': 'Permisos y privacidad',
   'perm.intro': 'Aquí gestionas tus permisos: tu declaración de salud y tu privacidad y datos — qué aceptas, qué compartes y qué puedes retirar o eliminar.',
+  'pk.signIn': '🔑 Entrar con clave de acceso',
+  'pk.section': 'Seguridad',
+  'pk.title': 'Claves de acceso',
+  'pk.help': 'Usa tu rostro, tu huella o el PIN de tu dispositivo en lugar de escribir la contraseña.',
+  'pk.unsupported': 'Las claves de acceso no están disponibles en este navegador. Abre RONBO FIT en Safari o Chrome, o entra con tu contraseña.',
+  'pk.add': 'Añadir una clave de acceso',
+  'pk.addLabelPrompt': 'Nombre para esta clave de acceso (opcional):',
+  'pk.defaultLabel': 'Mi clave de acceso',
+  'pk.created': 'Creada el {date}',
+  'pk.lastUsed': 'Último uso: {date}',
+  'pk.neverUsed': 'Sin usar aún',
+  'pk.none': 'Aún no tienes claves de acceso.',
+  'pk.rename': 'Renombrar',
+  'pk.renamePrompt': 'Nuevo nombre para esta clave de acceso:',
+  'pk.delete': 'Borrar',
+  'pk.deleteConfirm': '¿Borrar esta clave de acceso? Dejará de servir para entrar. Tu contraseña seguirá funcionando.',
+  'pk.deleted': 'Clave de acceso borrada.',
+  'pk.renamed': 'Clave de acceso renombrada.',
+  'pk.added': 'Clave de acceso añadida.',
+  'pk.loadFailed': 'No pudimos cargar tus claves de acceso. Inténtalo de nuevo en un momento.',
+  'pk.err.cancelled': 'Cancelaste la clave de acceso. Puedes entrar con tu contraseña.',
+  'pk.err.noKey': 'No se encontró ninguna clave de acceso para esta cuenta. Entra con tu contraseña.',
+  'pk.err.expired': 'Tardó demasiado y la solicitud caducó. Inténtalo de nuevo, o entra con tu contraseña.',
+  'pk.err.tooMany': 'Demasiados intentos. Espera un momento e inténtalo de nuevo, o entra con tu contraseña.',
+  'pk.err.generic': 'Algo salió mal con la clave de acceso. Entra con tu contraseña.',
+  'pk.err.excluded': 'Este dispositivo ya tiene una clave de acceso para tu cuenta. Puedes entrar con tu contraseña.',
+  'pk.err.pilotOnly': 'Las claves de acceso aún no están disponibles para tu cuenta. Entra con tu contraseña.',
+  'pk.revoke': 'Revocar claves de acceso',
+  'pk.revokeConfirm': 'Se revocarán TODAS las claves de acceso de {name}. Podrá seguir entrando con su contraseña.',
+  'pk.revoked': 'Claves de acceso revocadas: {n}.',
+  'pk.revokedNone': 'Ese usuario no tenía claves de acceso.',
+  'pk.revokeFailed': 'No se pudieron revocar las claves de acceso. Inténtalo de nuevo.',
   'perm.photoNote': 'La foto de la comida que envías para el análisis no se almacena.',
   'priv.sectionTitle': 'Privacidad y datos',
   'priv.statusAccepted': 'Consentimiento aceptado · versión {v} · {date}',
@@ -7828,6 +7893,11 @@ $('form-login').addEventListener('submit', async e => {
     showAuthError(t('err.badCreds'));
   }
 });
+/* Claves de acceso: el botón de entrada se pinta bajo el formulario
+   SOLO con soporte WebAuthn y en el origen bueno; la llamada a
+   pkPaintLoginButton() vive al final del módulo de claves (tras sus
+   constantes: llamarla desde aquí caería en la zona muerta temporal
+   de `const PK_ORIGIN` y la puerta de origen devolvería false). */
 $('btn-logout').addEventListener('click', e => { e.preventDefault(); signOut(auth); });
 $('link-forgot').addEventListener('click', async e => {
   e.preventDefault();
@@ -8226,6 +8296,7 @@ async function loadAdmin() {
           : `<button class="btn-primary btn-sm" data-approve="${u.id}">${t('admin.approve')}</button>`}
         <button class="btn-ghost btn-sm" data-reject="${u.id}">${t('admin.reject')}</button>
         ${BT_PILOT_UIDS.includes(u.id) ? '' : `<button class="btn-ghost btn-sm btn-delete-user" data-delete-user="${u.id}">${t('admin.deleteUser')}</button>`}
+        <button class="btn-ghost btn-sm" data-pk-revoke="${u.id}">${t('pk.revoke')}</button>
       </div>
     </div>`;
   $('pending-count').textContent = pending.length;
@@ -8249,6 +8320,7 @@ async function loadAdmin() {
         <button class="btn-ghost btn-sm" data-mail-resend="${u.id}" title="${t('mail.resendBtn')}" aria-label="${t('mail.resendBtn')}">📧</button>
         <button class="btn-ghost btn-sm" data-revoke="${u.id}">${t('admin.revoke')}</button>
         ${BT_PILOT_UIDS.includes(u.id) ? '' : `<button class="btn-ghost btn-sm btn-delete-user" data-delete-user="${u.id}">${t('admin.deleteUser')}</button>`}
+        <button class="btn-ghost btn-sm" data-pk-revoke="${u.id}">${t('pk.revoke')}</button>
       </div>
     </div>${u.role === 'entrenador' ? `<div class="dos-mail-box" id="dos-mail-${u.id}" style="display:none"></div>` : ''}`).join('') : `<div class="wempty">${t('admin.noUsers')}</div>`);
   /* Roles: SOLO el administrador asigna o cambia el campo role
@@ -8445,6 +8517,11 @@ async function loadAdmin() {
      real vive en el Worker (ver deleteUserFlow). El piloto
      archivado ni siquiera pinta el botón (BT_PILOT_UIDS). */
   document.querySelectorAll('[data-delete-user]').forEach(b => b.onclick = () => deleteUserFlow(b));
+  /* Claves de acceso (DEC-PK-4): revocar todas las de un usuario;
+     la fila del propio propietario no pinta el botón (las filas de
+     esta superficie ya excluyen al propietario) y la puerta real
+     vive en el Worker (ver pkRevokeFlow). */
+  document.querySelectorAll('[data-pk-revoke]').forEach(b => b.onclick = () => pkRevokeFlow(b));
   /* Roles+Escalabilidad: cajas del administrador (membresías,
      confirmaciones de comidas y banderas de funciones). */
   renderEscAdminBoxes();
@@ -8499,6 +8576,284 @@ async function deleteUserFlow(btn) {
     toast(t('msg.deleteFailed'));
   }
 }
+
+/* ============ CLAVES DE ACCESO — PASSKEYS / WebAuthn (piloto) ============
+   Diseño: DISENO-PASSKEYS-WEBAUTHN-2026-10-29.md §5.9 y decisiones
+   DEC-PK-1…5 (2026-11-01). La app SOLO habla con el Worker
+   (POST /passkeys/*, mismo endpoint que /mail/send y
+   /admin/delete-user): la lista de claves NO vive en Firestore y
+   esta sección no añade NINGUNA operación Firestore. La llave
+   privada de cada clave nunca sale del dispositivo del usuario; el
+   Worker guarda solo llaves públicas en su KV y, tras verificar una
+   entrada, acuña un token personalizado que la app canjea con
+   signInWithCustomToken() — la sesión resultante es la sesión
+   Firebase normal, con el mismo UID (onAuthStateChanged manda).
+   Puerta de piloto (DEC-PK-2): la sección «Seguridad» solo se
+   pinta para el propietario o para el piloto de pruebas; el Worker
+   impone la misma puerta (401/403 {error:'pilot-only'}). La
+   contraseña convive siempre (DEC-PK-3): cada error honesto ofrece
+   seguir con ella. */
+const PK_PILOT_UID = 'p08nUuFPXkMMcKg3FalMKYs979p2';
+const PK_ORIGIN = 'https://fit.ronbo.store';
+function pkSupported() {
+  try {
+    return typeof window !== 'undefined' && !!window.PublicKeyCredential &&
+      !!(navigator.credentials && navigator.credentials.create && navigator.credentials.get);
+  } catch { return false; }
+}
+function pkOriginOk() {
+  try { return location.origin === PK_ORIGIN; } catch { return false; }
+}
+function pkCanManage() {
+  return !!(IS_OWNER || (auth.currentUser && auth.currentUser.uid === PK_PILOT_UID));
+}
+/* base64url ⇄ ArrayBuffer: el contrato con el Worker viaja en
+   base64url, como produce el navegador tras la conversión. */
+function pkB64uToBuf(s) {
+  const str = String(s || '').replace(/-/g, '+').replace(/_/g, '/');
+  const pad = str.length % 4 ? '='.repeat(4 - (str.length % 4)) : '';
+  const bin = atob(str + pad);
+  const u = new Uint8Array(bin.length);
+  for (let i = 0; i < bin.length; i++) u[i] = bin.charCodeAt(i);
+  return u.buffer;
+}
+function pkBufToB64u(buf) {
+  if (buf == null) return null;
+  const u = buf instanceof Uint8Array ? buf : new Uint8Array(buf);
+  let s = '';
+  u.forEach(c => { s += String.fromCharCode(c); });
+  return btoa(s).replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/, '');
+}
+/* Códigos del Worker → clave de error honesta (pk.err.*). */
+function pkErrKey(code, status) {
+  const c = String(code || '');
+  if (c === 'pilot-only') return 'pilotOnly';
+  if (status === 429 || c.includes('too-many') || c.includes('rate')) return 'tooMany';
+  if (c.includes('expired') || c.includes('challenge')) return 'expired';
+  if (c.includes('excluded') || c.includes('duplicate') || c.includes('already')) return 'excluded';
+  if (c.includes('unknown') || c.includes('not-found') || c.includes('no-credential') || c.includes('credential-missing')) return 'noKey';
+  return 'generic';
+}
+function pkErr(codeKey) { const e = new Error('pk-' + codeKey); e.pkCode = codeKey; return e; }
+async function pkCall(path, body) {
+  const ep = aiEndpoint();
+  if (!ep) throw pkErr('generic');
+  const r = await fetch(ep + path, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body || {}) });
+  const j = await r.json().catch(() => null);
+  if (!r.ok || !j) throw pkErr(pkErrKey(j && j.error, r.status));
+  return j;
+}
+async function pkSessionCall(path, extra) {
+  if (!auth.currentUser) throw pkErr('generic');
+  const idToken = await auth.currentUser.getIdToken();
+  return pkCall(path, { ...(extra || {}), idToken });
+}
+function pkCeremonyErrKey(e) {
+  const n = (e && e.name) || '';
+  if (n === 'NotAllowedError') return 'cancelled';
+  if (n === 'InvalidStateError') return 'excluded';
+  return 'generic';
+}
+/* ---------- ENTRADA con clave de acceso (pantalla de acceso) ----------
+   El botón se pinta SOLO si el navegador soporta WebAuthn y el
+   origen es el bueno; sin soporte, silencio (sin ruido). Al entrar,
+   no se fuerza navegación: onAuthStateChanged sigue su curso. */
+function pkPaintLoginButton() {
+  if (!pkSupported() || !pkOriginOk()) return;
+  const form = $('form-login');
+  if (!form || $('btn-pk-signin')) return;
+  const b = document.createElement('button');
+  b.type = 'button';
+  b.id = 'btn-pk-signin';
+  b.className = 'btn-secondary btn-pk-signin';
+  b.setAttribute('data-i18n', 'pk.signIn');
+  b.textContent = t('pk.signIn');
+  b.addEventListener('click', () => pkSignInFlow(b));
+  form.appendChild(b);
+}
+async function pkSignInFlow(btn) {
+  showAuthError('');
+  $('auth-error').classList.remove('show');
+  if (btn) btn.disabled = true;
+  try {
+    const j1 = await pkCall('/passkeys/auth/options', {});
+    const pk = j1.publicKey || {};
+    const getOpts = { publicKey: {
+      ...pk,
+      challenge: pkB64uToBuf(pk.challenge),
+      allowCredentials: (pk.allowCredentials || []).map(c => ({ ...c, id: pkB64uToBuf(c.id) })),
+    } };
+    let assertion;
+    try { assertion = await navigator.credentials.get(getOpts); }
+    catch (e) { throw pkErr(pkCeremonyErrKey(e)); }
+    if (!assertion) throw pkErr('generic');
+    const cred = {
+      id: assertion.id,
+      rawId: pkBufToB64u(assertion.rawId),
+      type: assertion.type,
+      response: {
+        clientDataJSON: pkBufToB64u(assertion.response.clientDataJSON),
+        authenticatorData: pkBufToB64u(assertion.response.authenticatorData),
+        signature: pkBufToB64u(assertion.response.signature),
+        userHandle: assertion.response.userHandle ? pkBufToB64u(assertion.response.userHandle) : null,
+      },
+    };
+    const j2 = await pkCall('/passkeys/auth/verify', { challengeId: j1.challengeId, credential: cred });
+    if (!j2.token) throw pkErr('generic');
+    await signInWithCustomToken(auth, j2.token);
+  } catch (e) {
+    showAuthError(t('pk.err.' + ((e && e.pkCode) || 'generic')));
+  } finally {
+    if (btn) btn.disabled = false;
+  }
+}
+/* ---------- SECCIÓN «Seguridad» en el panel de perfil ----------
+   Vive junto a «Permisos y privacidad» (mismo panel, patrón de las
+   secciones hermanas bt/units). Sin soporte WebAuthn en sesión, la
+   sección muestra el aviso honesto del diseño §5.9 en vez de los
+   botones. La lista se pide al Worker en cada pintado. */
+let PK_KEYS = null;
+function pkFmtDate(v) {
+  if (v == null || v === '') return '';
+  let d = new Date(v);
+  if (isNaN(d.getTime()) && !isNaN(Number(v))) d = new Date(Number(v));
+  if (isNaN(d.getTime())) return '';
+  try { return d.toLocaleDateString(LANG === 'es' ? 'es-MX' : 'en-US'); } catch { return ''; }
+}
+function renderPkPanel() {
+  const sec = $('pk-section'); const box = $('pk-panel-body');
+  if (!sec || !box) return;
+  if (!auth.currentUser || !pkCanManage()) { sec.style.display = 'none'; box.innerHTML = ''; PK_KEYS = null; return; }
+  sec.style.display = '';
+  if (!pkSupported()) {
+    box.innerHTML = `<p class="progress-hint">${esc(t('pk.unsupported'))}</p>`;
+    return;
+  }
+  box.innerHTML = `<div id="pk-list"><div class="wempty">${esc(t('train.loading'))}</div></div>
+    <div class="privacy-btns"><button type="button" class="btn-primary btn-pk-add" id="btn-pk-add">${esc(t('pk.add'))}</button></div>`;
+  const add = $('btn-pk-add');
+  if (add) add.onclick = () => pkAddFlow(add);
+  pkLoadList();
+}
+async function pkLoadList() {
+  const list = $('pk-list');
+  if (!list) return;
+  try {
+    const j = await pkSessionCall('/passkeys/list', {});
+    PK_KEYS = Array.isArray(j.keys) ? j.keys : [];
+    pkPaintList();
+  } catch (e) {
+    PK_KEYS = null;
+    list.innerHTML = `<p class="progress-hint">${esc(t((e && e.pkCode === 'pilotOnly') ? 'pk.err.pilotOnly' : 'pk.loadFailed'))}</p>`;
+  }
+}
+function pkPaintList() {
+  const list = $('pk-list');
+  if (!list || !PK_KEYS) return;
+  if (!PK_KEYS.length) { list.innerHTML = `<p class="progress-hint">${esc(t('pk.none'))}</p>`; return; }
+  list.innerHTML = PK_KEYS.map(k => {
+    const created = pkFmtDate(k.createdAt);
+    const used = k.lastUsedAt ? pkFmtDate(k.lastUsedAt) : '';
+    return `<div class="pk-key-row">
+      <div class="pk-key-info"><b>${esc(k.label || t('pk.defaultLabel'))}</b><br>
+      <span class="muted">${created ? esc(t('pk.created', { date: created })) : ''}</span><br>
+      <span class="muted">${used ? esc(t('pk.lastUsed', { date: used })) : esc(t('pk.neverUsed'))}</span></div>
+      <div class="pk-key-actions">
+        <button type="button" class="btn-ghost btn-sm" data-pk-rename="${esc(k.credentialId)}">${esc(t('pk.rename'))}</button>
+        <button type="button" class="btn-ghost btn-sm" data-pk-delete="${esc(k.credentialId)}">${esc(t('pk.delete'))}</button>
+      </div>
+    </div>`;
+  }).join('');
+  list.querySelectorAll('[data-pk-rename]').forEach(b => b.onclick = () => pkRenameFlow(b.dataset.pkRename));
+  list.querySelectorAll('[data-pk-delete]').forEach(b => b.onclick = () => pkDeleteFlow(b.dataset.pkDelete));
+}
+async function pkAddFlow(btn) {
+  const typed = prompt(t('pk.addLabelPrompt'), t('pk.defaultLabel'));
+  if (typed === null) return;
+  const label = String(typed || '').trim() || t('pk.defaultLabel');
+  if (btn) btn.disabled = true;
+  try {
+    const j1 = await pkSessionCall('/passkeys/register/options', {});
+    const pk = j1.publicKey || {};
+    const createOpts = { publicKey: {
+      ...pk,
+      challenge: pkB64uToBuf(pk.challenge),
+      user: pk.user ? { ...pk.user, id: pkB64uToBuf(pk.user.id) } : pk.user,
+      excludeCredentials: (pk.excludeCredentials || []).map(c => ({ ...c, id: pkB64uToBuf(c.id) })),
+    } };
+    let cred;
+    try { cred = await navigator.credentials.create(createOpts); }
+    catch (e) { throw pkErr(pkCeremonyErrKey(e)); }
+    if (!cred) throw pkErr('generic');
+    const credential = {
+      id: cred.id,
+      rawId: pkBufToB64u(cred.rawId),
+      type: cred.type,
+      response: {
+        clientDataJSON: pkBufToB64u(cred.response.clientDataJSON),
+        attestationObject: pkBufToB64u(cred.response.attestationObject),
+      },
+    };
+    await pkSessionCall('/passkeys/register/verify', { challengeId: j1.challengeId, credential, label });
+    toast(t('pk.added'), false);
+    await pkLoadList();
+  } catch (e) {
+    toast(t('pk.err.' + ((e && e.pkCode) || 'generic')), true);
+  } finally {
+    if (btn) btn.disabled = false;
+  }
+}
+async function pkRenameFlow(credentialId) {
+  const k = (PK_KEYS || []).find(x => x.credentialId === credentialId);
+  const typed = prompt(t('pk.renamePrompt'), k ? (k.label || '') : '');
+  if (typed === null) return;
+  const label = String(typed || '').trim();
+  if (!label) return;
+  try {
+    await pkSessionCall('/passkeys/rename', { credentialId, label });
+    toast(t('pk.renamed'), false);
+    await pkLoadList();
+  } catch (e) {
+    toast(t('pk.err.' + ((e && e.pkCode) || 'generic')), true);
+  }
+}
+async function pkDeleteFlow(credentialId) {
+  if (!confirm(t('pk.deleteConfirm'))) return;
+  try {
+    await pkSessionCall('/passkeys/delete', { credentialId });
+    toast(t('pk.deleted'), false);
+    await pkLoadList();
+  } catch (e) {
+    toast(t('pk.err.' + ((e && e.pkCode) || 'generic')), true);
+  }
+}
+/* ---------- ADMIN: revocar TODAS las claves de un usuario (DEC-PK-4) ----------
+   Botón secundario en cada fila de Accesos EXCEPTO la del propio
+   propietario; la puerta real (solo propietario) vive en el Worker. */
+async function pkRevokeFlow(btn) {
+  if (!IS_OWNER || ROLE !== 'administrador') return;
+  const targetUid = btn.dataset.pkRevoke;
+  const u = ADMIN_USERS.find(x => x.id === targetUid);
+  if (!u) return;
+  const label = u.name || u.email || targetUid;
+  if (!confirm(t('pk.revokeConfirm', { name: label }))) return;
+  const prev = btn.textContent;
+  btn.disabled = true;
+  try {
+    const j = await pkSessionCall('/passkeys/admin/revoke', { targetUid });
+    const n = (j && typeof j.removed === 'number') ? j.removed : 0;
+    toast(n > 0 ? t('pk.revoked', { n }) : t('pk.revokedNone'), false);
+  } catch {
+    toast(t('pk.revokeFailed'), true);
+  } finally {
+    btn.disabled = false; btn.textContent = prev;
+  }
+}
+/* Pintado del botón de entrada con clave de acceso: AQUÍ, al final
+   del módulo y con las constantes ya inicializadas (ver la nota
+   junto al cableado del formulario de acceso). El módulo se evalúa
+   con el DOM ya parseado (script diferido): el formulario existe. */
+pkPaintLoginButton();
 
 /* ============ LÍMITES DE ANÁLISIS (solo dueño; Worker /admin/limits) ============
    Etapa 2026-10-19 (decisión de Ronald): SOLO el administrador fija los
@@ -17611,6 +17966,9 @@ function renderHealthPanel() {
      de tipo corporal vive en el mismo panel único y se repinta
      con él (también al cambiar de idioma). */
   try { renderBtPanel(); } catch {}
+  /* Claves de acceso: la sección «Seguridad» vive en el mismo panel
+     único y se repinta con él (también al cambiar de idioma). */
+  try { renderPkPanel(); } catch {}
   if (__hmCap) mirrorRestore(box, __hmCap);
   if (!healthEditing && !box.querySelector('#btn-decl-save') && box.querySelector('#health-manage-list')) HEALTH_MIRROR = null;
 }
@@ -29849,7 +30207,7 @@ document.addEventListener('keydown', e => { if (e.key === 'Escape') shareClose()
  *  - El SW (sw.js) solo cachea la cáscara del mismo origen en modo
  *    RED PRIMERO: Auth/Firestore/Worker jamás pasan por la caché.
  * ================================================================ */
-const PWA_SW_VERSION = '20261101-pend-categoria';
+const PWA_SW_VERSION = '20261101-claves-acceso';
 let pwaDeferredPrompt = null;
 function pwaIsStandalone() {
   try {

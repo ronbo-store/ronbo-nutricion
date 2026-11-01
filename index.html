@@ -21,7 +21,7 @@
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-title" content="RONBO FIT">
 <meta name="apple-mobile-web-app-status-bar-style" content="default">
-<link rel="stylesheet" href="styles.css?v=20261101-pend-categoria">
+<link rel="stylesheet" href="styles.css?v=20261101-claves-acceso">
 <script defer src="https://cloud.umami.is/script.js" data-website-id="a29706d4-44a2-47cf-900a-5f74d74abfa8"></script>
 <script type="importmap">
 {
@@ -558,6 +558,19 @@
         </div>
         <div id="privacy-notice" class="consent-text" style="display:none"></div>
         <button type="button" class="btn-primary btn-sm" id="btn-renew-accept" style="display:none" data-i18n="priv.renewAccept">I accept the privacy notice</button>
+      </div>
+      <!-- CLAVES DE ACCESO (passkeys/WebAuthn, piloto DEC-PK-2):
+           sección «Seguridad» junto a «Permisos y privacidad», con
+           el mismo patrón de las secciones hermanas (bt/units):
+           nace oculta y solo la muestra renderPkPanel() para el
+           propietario o el piloto de pruebas. Todo el contenido
+           dinámico (lista de claves, botones) lo pinta app.js
+           desde STR (pk.*); aquí solo vive la cáscara. -->
+      <div class="perms-section" id="pk-section" style="display:none">
+        <h3 class="perms-section-title" data-i18n="pk.section">Security</h3>
+        <h4 class="pk-sub" data-i18n="pk.title">Access keys</h4>
+        <p class="progress-hint" data-i18n="pk.help">Use your face, fingerprint or device PIN instead of typing your password.</p>
+        <div id="pk-panel-body"></div>
       </div>
     </div>
   </div>
@@ -1537,6 +1550,6 @@
 <div id="toast" class="toast"></div>
 <div id="print-card" aria-hidden="true"></div>
 
-<script type="module" src="app.js?v=20261101-pend-categoria"></script>
+<script type="module" src="app.js?v=20261101-claves-acceso"></script>
 </body>
 </html>
