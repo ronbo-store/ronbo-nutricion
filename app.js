@@ -16360,16 +16360,32 @@ function swapGroupOfQuery(q) {
   }
   return null;
 }
-function swapNameSearch(q) {
-  const terms = libNorm(q).split(/\s+/).filter(Boolean);
-  if (!terms.length) return [];
-  return LIB.filter(ex => {
-    const name = libNorm((ex.nombre_es || '') + ' ' + (ex.nombre_en || ''));
-    return terms.every(tm => name.includes(tm));
-  }).map(ex => ({ ex, rank: libNorm(libNameOf(ex)).startsWith(terms[0]) ? 0 : 1 }))
-    .sort((a, b) => a.rank - b.rank || libNameOf(a.ex).localeCompare(libNameOf(b.ex)))
-    .slice(0, 12).map(r => r.ex);
+function swapNameSearchDetailed(q) {
+  /* Ámbito de NOMBRES, como siempre en esta hoja — desde 2026-11-01
+     el nombre incluye los de las variantes[] de la ficha y las
+     frases sinónimas valen por su concepto (mismo núcleo que
+     libSearch). vi = la variante que explica el acierto, si la hay. */
+  const nq = libNorm(q).trim();
+  if (nq.length < 2) return [];
+  const toks = libCanonQuery(nq);
+  if (!toks.length) return [];
+  const first = nq.split(/\s+/)[0];
+  const out = [];
+  for (const ex of LIB) {
+    const byName = toks.every(tok => libNameHay(ex).includes(tok));
+    let vi = null;
+    if (!byName) {
+      const vars = Array.isArray(ex.variantes) ? ex.variantes : [];
+      for (let i = 0; i < vars.length; i++) {
+        if (vars[i] && toks.every(tok => libVariantHay(ex, vars[i]).includes(tok))) { vi = i; break; }
+      }
+      if (vi === null) continue;
+    }
+    out.push({ ex, vi, rank: byName ? (libNorm(libNameOf(ex)).startsWith(first) ? 0 : 1) : 2 });
+  }
+  return out.sort((a, b) => a.rank - b.rank || libNameOf(a.ex).localeCompare(libNameOf(b.ex))).slice(0, 12);
 }
+function swapNameSearch(q) { return swapNameSearchDetailed(q).map(h => h.ex); }
 function swapSectionsFor(entry) {
   const out = { variants: [], direct: [], group: [] };
   if (!entry) return out;
@@ -16395,7 +16411,7 @@ function swapCardHTML(ex, opts) {
   const btn = TRAIN_PICK && TRAIN_PICK.kind === 'add' ? t('train.swap.addBtn') : t('train.custom.swap');
   return `<button type="button" class="swap-card" data-swap-pick="${esc(ex.id)}">
     ${ex.foto_url ? `<img class="swap-card-img" src="${esc(ex.foto_url)}" alt="" loading="lazy">` : '<span class="swap-card-img swap-card-noimg" aria-hidden="true"></span>'}
-    <span class="swap-card-main"><span class="swap-card-name">${esc(libNameOf(ex))}</span>${sub ? `<span class="swap-card-sub">${esc(sub)}</span>` : ''}${tag}</span><span class="swap-card-btn">${esc(btn)}</span></button>`;
+    <span class="swap-card-main"><span class="swap-card-name">${esc(opts.nameOverride || libNameOf(ex))}</span>${sub ? `<span class="swap-card-sub">${esc(sub)}</span>` : ''}${tag}</span><span class="swap-card-btn">${esc(btn)}</span></button>`;
 }
 function swapVariantCardHTML(entry, v, vi) {
   const sub = [libField(v, 'cambio'), libField(v, 'enfasis')].filter(Boolean).join(' · ');
@@ -16424,9 +16440,22 @@ function swapSheetResultsHTML(plan, di) {
       return `<div class="swap-sec-title">${esc(label)}</div>` +
         (list.length ? list.map(ex => swapCardHTML(ex)).join('') : `<p class="progress-hint">${esc(t('train.swap.noResults'))}</p>`);
     }
-    const list = swapNameSearch(q).filter(ex => !tEntry || ex.id !== tEntry.id);
+    const hits = swapNameSearchDetailed(q);
+    const cards = [];
+    for (const hit of hits) {
+      if (tEntry && hit.ex.id === tEntry.id) {
+        /* La variante DEL PROPIO ejercicio buscada por su nombre: se
+           presenta como tarjeta de variante y se elige como tal
+           (AUTH-099). La ficha misma sigue excluida, como siempre. */
+        if (hit.vi != null && TRAIN_PICK && TRAIN_PICK.kind === 'swap') cards.push(swapVariantCardHTML(tEntry, (tEntry.variantes || [])[hit.vi], hit.vi));
+        continue;
+      }
+      cards.push(hit.vi != null
+        ? swapCardHTML(hit.ex, { nameOverride: libNameOf(hit.ex) + ' — ' + libField((hit.ex.variantes || [])[hit.vi], 'nombre'), tagKey: 'train.swap.variantTag' })
+        : swapCardHTML(hit.ex));
+    }
     return `<div class="swap-sec-title">${esc(t('train.swap.resultsTitle'))}</div>` +
-      (list.length ? list.map(ex => swapCardHTML(ex)).join('') : `<p class="progress-hint">${esc(t('train.swap.noResults'))}</p>`);
+      (cards.length ? cards.join('') : `<p class="progress-hint">${esc(t('train.swap.noResults'))}</p>`);
   }
   if (TRAIN_PICK && TRAIN_PICK.kind === 'swap' && tEntry) {
     const sec = swapSectionsFor(tEntry);
@@ -19587,6 +19616,131 @@ const libNorm = s => String(s == null ? '' : s).toLowerCase().normalize('NFD').r
 function libField(ex, base) { return ex ? (ex[base + '_' + LANG] || ex[base + '_es'] || ex[base + '_en'] || '') : ''; }
 function libNameOf(ex) { return libField(ex, 'nombre') || (ex ? ex.id : ''); }
 
+/* ============ BUSCADOR: SINÓNIMOS EN/ES Y VARIANTES (2026-11-01) ====
+   Recomendación 3 de la auditoría semanal, aprobada por Ronald
+   (2026-11-01): el buscador de la biblioteca deja de ser literal.
+   1) SINÓNIMOS: mapa curado de conceptos (ES↔EN y términos de uso
+      común). Cada frase del mapa se detecta por palabra completa en
+      el texto de la ficha y se anota como una ficha de concepto
+      («§n§») AÑADIDA al pajar — el texto original nunca se sustituye,
+      así la búsqueda literal y parcial de siempre queda intacta. En
+      la consulta, la frase sinónima SÍ se sustituye por su ficha de
+      concepto: buscar «pushdown», «extensión en polea» o «empuje en
+      polea» pide el mismo concepto y encuentra las mismas fichas.
+   2) MÚSCULO EXACTO: si la consulta entera es un músculo o su
+      sinónimo, manda la semántica del selector (AUTH-099): solo ese
+      grupo — buscar «pecho» NUNCA trae Espalda («Jalón al pecho»).
+   3) VARIANTES: los nombres (ES/EN) de las variantes[] de cada ficha
+      base entran en el pajar; el acierto que solo se explica por una
+      variante se presenta como tal («Ficha — Variante», en la línea
+      de la AUTH-099) y lleva a la ficha base. Las variantes con ficha
+      propia (E129–E139) se siguen encontrando como siempre.
+   Sin datos nuevos: todo se deriva de campos que la ficha ya trae. */
+const LIB_SYNONYMS = [
+  { es: ['extension en polea', 'extension de triceps en polea', 'extension con polea', 'empuje en polea'], en: ['pushdown', 'push down', 'cable pushdown', 'tricep pushdown', 'triceps pushdown'] },
+  { es: ['remo'], en: ['row', 'rows', 'rowing'] },
+  { es: ['sentadilla', 'sentadillas'], en: ['squat', 'squats'] },
+  { es: ['peso muerto'], en: ['deadlift', 'dead lift', 'deadlifts'] },
+  { es: ['fondos', 'fondo'], en: ['dips', 'dip'] },
+  { es: ['dominadas', 'dominada'], en: ['pull-up', 'pull up', 'pull-ups', 'pullup', 'pullups', 'chin-up', 'chin up', 'chin-ups', 'chinup', 'chinups'] },
+  { es: ['jalon al pecho', 'jalon en polea alta', 'jalon en polea', 'jalon'], en: ['lat pulldown', 'lat pulldowns', 'pulldown', 'pulldowns'] },
+  { es: ['zancadas', 'zancada', 'desplantes', 'desplante'], en: ['lunges', 'lunge'] },
+  { es: ['empuje de cadera', 'empuje de caderas'], en: ['hip thrust', 'hip thrusts'] },
+  { es: ['curl de biceps', 'flexion de biceps', 'curl'], en: ['curl', 'curls', 'bicep curl', 'biceps curl'] },
+  { es: ['press de banca', 'press en banca'], en: ['bench press'] },
+  { es: ['press militar', 'press de hombros'], en: ['overhead press', 'military press', 'shoulder press'] },
+  { es: ['elevacion lateral', 'elevaciones laterales'], en: ['lateral raise', 'lateral raises', 'side raise', 'side raises'] },
+  { es: ['aperturas', 'cruce en polea'], en: ['fly', 'flyes', 'flies', 'cable fly', 'dumbbell fly', 'chest fly', 'cable crossover', 'crossover'] }
+];
+const LIB_SYN_TOKEN = i => '\u0001' + i + '\u0001';
+const LIB_SYN_PHRASES = (() => {
+  const m = new Map();
+  LIB_SYNONYMS.forEach((c, i) => { for (const p of [...c.es, ...c.en]) { const n = libNorm(p).trim(); if (n && !m.has(n)) m.set(n, i); } });
+  return [...m.entries()].map(([phrase, ci]) => ({ phrase, ci }))
+    .sort((a, b) => b.phrase.length - a.phrase.length);
+})();
+const libSynRegex = phrase => new RegExp('(^|[^a-z0-9])(' + phrase.replace(/[.*+?^${}()|[\]\\]/g, '\\$&') + ')(?=$|[^a-z0-9])', 'g');
+/* Texto normalizado + fichas de concepto detectadas en él. */
+function libCanonText(normText) {
+  let out = ' ' + String(normText || '') + ' ';
+  for (const { phrase, ci } of LIB_SYN_PHRASES) {
+    if (libSynRegex(phrase).test(out)) out += ' ' + LIB_SYN_TOKEN(ci);
+  }
+  return out;
+}
+/* Consulta normalizada → términos: las frases sinónimas se sustituyen
+   por su ficha de concepto; el resto queda literal como siempre. */
+function libCanonQuery(nq) {
+  let s = ' ' + String(nq || '') + ' ';
+  for (const { phrase, ci } of LIB_SYN_PHRASES) {
+    s = s.replace(libSynRegex(phrase), (m, pre) => pre + ' ' + LIB_SYN_TOKEN(ci) + ' ');
+  }
+  return s.split(/\s+/).filter(Boolean);
+}
+const LIB_HAY_CACHE = new WeakMap();
+function libHay(ex, withCat) {
+  let c = LIB_HAY_CACHE.get(ex);
+  if (!c) { c = {}; LIB_HAY_CACHE.set(ex, c); }
+  const key = withCat ? 'fullCat' : 'full';
+  if (c[key] == null) {
+    const fields = [ex.nombre_es, ex.nombre_en, ex.grupo_muscular_es, ex.grupo_muscular_en, ex.equipo_es, ex.equipo_en, ex.nivel_es, ex.nivel_en];
+    if (withCat) fields.push(ex.categoria_es, ex.categoria_en);
+    for (const v of (Array.isArray(ex.variantes) ? ex.variantes : [])) { if (v) fields.push(v.nombre_es, v.nombre_en); }
+    c[key] = libCanonText(libNorm(fields.join(' ')));
+  }
+  return c[key];
+}
+function libNameHay(ex) {
+  let c = LIB_HAY_CACHE.get(ex);
+  if (!c) { c = {}; LIB_HAY_CACHE.set(ex, c); }
+  if (c.name == null) c.name = libCanonText(libNorm([ex.nombre_es, ex.nombre_en].join(' ')));
+  return c.name;
+}
+function libVariantHay(ex, v) {
+  let c = LIB_HAY_CACHE.get(ex);
+  if (!c) { c = {}; LIB_HAY_CACHE.set(ex, c); }
+  if (!c.vars) c.vars = new Map();
+  if (!c.vars.has(v)) c.vars.set(v, libCanonText(libNorm([ex.nombre_es, ex.nombre_en, v && v.nombre_es, v && v.nombre_en].join(' '))));
+  return c.vars.get(v);
+}
+/* Núcleo común de coincidencia: devuelve { rank, vi } o null.
+   vi = índice de la variante que explica el acierto (la primera cuyo
+   nombre, sumado al de la ficha, hace coincidir la consulta cuando el
+   nombre de la ficha solo no basta); null si acierta la ficha misma. */
+function libMatchDetailed(ex, q, withCat) {
+  if (!ex) return null;
+  const nq = libNorm(q).trim();
+  if (nq.length < 2) return null;
+  const g = swapGroupOfQuery(q);
+  if (g && libGroupKey(ex) !== g) return null;
+  const toks = libCanonQuery(nq);
+  if (!toks.length) return null;
+  if (!toks.every(tok => libHay(ex, withCat).includes(tok))) return null;
+  const nA = libNorm(LANG === 'es' ? ex.nombre_es : ex.nombre_en);
+  const nO = libNorm(LANG === 'es' ? ex.nombre_en : ex.nombre_es);
+  let rank = 3;
+  if (nA.startsWith(nq)) rank = 0; else if (nA.includes(nq)) rank = 1; else if (nO.includes(nq)) rank = 2;
+  else if (toks.every(tok => libNameHay(ex).includes(tok))) rank = 2;
+  let vi = null;
+  if (!toks.every(tok => libNameHay(ex).includes(tok))) {
+    const vars = Array.isArray(ex.variantes) ? ex.variantes : [];
+    for (let i = 0; i < vars.length; i++) {
+      if (vars[i] && toks.every(tok => libVariantHay(ex, vars[i]).includes(tok))) { vi = i; break; }
+    }
+  }
+  return { rank, vi };
+}
+function libSearchDetailed(q) {
+  if (LIB_STATE !== 'ok' || !LIB) return [];
+  const scored = [];
+  for (const ex of LIB) {
+    const m = libMatchDetailed(ex, q, false);
+    if (m) scored.push([m.rank, ex, m.vi]);
+  }
+  scored.sort((a, b) => a[0] - b[0] || libNameOf(a[1]).localeCompare(libNameOf(b[1])));
+  return scored.slice(0, 8).map(x => ({ ex: x[1], vi: x[2] }));
+}
+
 /* ================= AGRUPACIÓN POR CATEGORÍAS (2026-10-24) ============
    Pedido de Ronald: la biblioteca (vista del administrador) y el
    navegador visual del editor de planes dejan de ser UNA lista larga:
@@ -19649,24 +19803,7 @@ function libFillFacet(sel, base, order, allLabel, current) {
   sel.innerHTML = `<option value="">${esc(allLabel)}</option>` + libFacetOptions(base, order).map(o => `<option value="${esc(o.key)}"${o.key === current ? ' selected' : ''}>${esc(o.label)}</option>`).join('');
   sel.value = current || '';
 }
-function libSearch(q) {
-  if (LIB_STATE !== 'ok' || !LIB) return [];
-  const nq = libNorm(q).trim();
-  if (nq.length < 2) return [];
-  const terms = nq.split(/\s+/);
-  const scored = [];
-  for (const ex of LIB) {
-    const hay = libNorm([ex.nombre_es, ex.nombre_en, ex.grupo_muscular_es, ex.grupo_muscular_en, ex.equipo_es, ex.equipo_en, ex.nivel_es, ex.nivel_en].join(' '));
-    if (!terms.every(tm => hay.includes(tm))) continue;
-    const nA = libNorm(LANG === 'es' ? ex.nombre_es : ex.nombre_en);
-    const nO = libNorm(LANG === 'es' ? ex.nombre_en : ex.nombre_es);
-    let rank = 3;
-    if (nA.startsWith(nq)) rank = 0; else if (nA.includes(nq)) rank = 1; else if (nO.includes(nq)) rank = 2;
-    scored.push([rank, ex]);
-  }
-  scored.sort((a, b) => a[0] - b[0] || libNameOf(a[1]).localeCompare(libNameOf(b[1])));
-  return scored.slice(0, 8).map(x => x[1]);
-}
+function libSearch(q) { return libSearchDetailed(q).map(h => h.ex); }
 function libLinksHTML(ex) {
   /* Enlaces foto/video de una fila vinculada: salen de lo COPIADO en
      la fila al asignar (photoUrl/videoUrl) y, si falta, de la ficha
@@ -20577,7 +20714,7 @@ function wireLibRow(row) {
       if (!entry || (v !== (entry.nombre_es || '') && v !== (entry.nombre_en || ''))) libUnlinkRow(row);
     }
     if (LIB_STATE !== 'ok') { sug.innerHTML = ''; return; }
-    const hits = libSearch(nameIn.value);
+    const hits = libSearchDetailed(nameIn.value);
     /* IMÁGENES EN EL DESPLEGABLE (2026-10-26, instrucción de Ronald):
        cada sugerencia lleva la miniatura de la biblioteca (la foto_url
        ya cargada en memoria — sin lecturas nuevas; el navegador las
@@ -20585,7 +20722,7 @@ function wireLibRow(row) {
        o con la foto caída, la opción se compone SIN la imagen (se
        auto-retira con onerror, el patrón honesto de la casa) y sin
        hueco roto. */
-    sug.innerHTML = hits.map(ex => `<button type="button" class="pl-sug-item" data-lib-id="${esc(ex.id)}">${ex.foto_url ? `<img class="sg-thumb" src="${esc(ex.foto_url)}" alt="" loading="lazy" decoding="async" onerror="this.remove()">` : ''}<span class="sg-text"><span class="sg-name">${esc(libNameOf(ex))}</span><span class="sg-meta">${esc([libField(ex, 'grupo_muscular'), libField(ex, 'equipo'), libField(ex, 'nivel')].filter(Boolean).join(' · '))}</span></span></button>`).join('');
+    sug.innerHTML = hits.map(h => { const ex = h.ex; const vName = h.vi != null ? libField((ex.variantes || [])[h.vi], 'nombre') : ''; return `<button type="button" class="pl-sug-item" data-lib-id="${esc(ex.id)}">${ex.foto_url ? `<img class="sg-thumb" src="${esc(ex.foto_url)}" alt="" loading="lazy" decoding="async" onerror="this.remove()">` : ''}<span class="sg-text"><span class="sg-name">${esc(libNameOf(ex))}${vName ? ' — ' + esc(vName) : ''}</span><span class="sg-meta">${esc([libField(ex, 'grupo_muscular'), libField(ex, 'equipo'), libField(ex, 'nivel')].filter(Boolean).join(' · '))}</span></span></button>`; }).join('');
     sug.querySelectorAll('.pl-sug-item').forEach(b => b.addEventListener('mousedown', ev => {
       ev.preventDefault();
       const ex = LIB_BY_ID[b.dataset.libId];
@@ -21466,18 +21603,15 @@ function vizFiltered(ignore) {
   if (ignore !== 'cat' && VIZ_F.cat) pool = pool.filter(ex => libFacetKey(ex, 'categoria') === VIZ_F.cat);
   if (ignore !== 'level' && VIZ_F.level) pool = pool.filter(ex => libFacetKey(ex, 'nivel') === VIZ_F.level);
   if (ignore !== 'group' && VIZ_F.group) pool = pool.filter(ex => libGroupKey(ex) === VIZ_F.group);
-  const q = libNorm((($('pl-viz-q') || {}).value || '')).trim();
+  const qRaw = (($('pl-viz-q') || {}).value || '');
+  const q = libNorm(qRaw).trim();
   if (q.length < 2) return [...pool].sort((a, b) => libNameOf(a).localeCompare(libNameOf(b)));
-  const terms = q.split(/\s+/);
+  /* Mismo núcleo que libSearch (sinónimos y variantes, 2026-11-01),
+     con la categoría sumada al pajar, como ya hacía esta rejilla. */
   const scored = [];
   for (const ex of pool) {
-    const hay = libNorm([ex.nombre_es, ex.nombre_en, ex.grupo_muscular_es, ex.grupo_muscular_en, ex.categoria_es, ex.categoria_en, ex.equipo_es, ex.equipo_en, ex.nivel_es, ex.nivel_en].join(' '));
-    if (!terms.every(tm => hay.includes(tm))) continue;
-    const nA = libNorm(LANG === 'es' ? ex.nombre_es : ex.nombre_en);
-    const nO = libNorm(LANG === 'es' ? ex.nombre_en : ex.nombre_es);
-    let rank = 3;
-    if (nA.startsWith(q)) rank = 0; else if (nA.includes(q)) rank = 1; else if (nO.includes(q)) rank = 2;
-    scored.push([rank, ex]);
+    const m = libMatchDetailed(ex, qRaw, true);
+    if (m) scored.push([m.rank, ex]);
   }
   scored.sort((a, b) => a[0] - b[0] || libNameOf(a[1]).localeCompare(libNameOf(b[1])));
   return scored.map(x => x[1]);
@@ -27129,7 +27263,7 @@ document.addEventListener('keydown', e => { if (e.key === 'Escape') shareClose()
  *  - El SW (sw.js) solo cachea la cáscara del mismo origen en modo
  *    RED PRIMERO: Auth/Firestore/Worker jamás pasan por la caché.
  * ================================================================ */
-const PWA_SW_VERSION = '20261031-cabecera-fecha';
+const PWA_SW_VERSION = '20261101-buscador-sinonimos';
 let pwaDeferredPrompt = null;
 function pwaIsStandalone() {
   try {
