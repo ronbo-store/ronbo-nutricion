@@ -73,8 +73,8 @@ await T('PROPOSITO P2 purpose «administrador» (la opción no elegible): denega
   selfSet('propA', { purpose: 'administrador' }), false);
 await T('PROPOSITO P3 purposeUse fuera de su lista («todo»): denegada en ambos textos',
   selfSet('propA', { purposeUse: 'todo' }), false);
-await T('PROPOSITO P4 propósito mezclado con approved:true (privilegio colado): denegada en ambos textos',
-  selfSet('propA', { purpose: 'cuenta', approved: true }), false);
+await T('PROPOSITO P4 propósito mezclado con approved (privilegio colado; se VOLTEA el valor para que la clave quede AFECTADA — la semilla ya trae approved:true): denegada en ambos textos',
+  selfSet('propA', { purpose: 'cuenta', approved: false }), false);
 await T('PROPOSITO P5 purposeMembership fuera de su lista («oro»): denegada en ambos textos',
   selfSet('propA', { purposeMembership: 'oro' }), false);
 await T('PROPOSITO P6 purposeSuggest no booleano («si»): denegada en ambos textos',
