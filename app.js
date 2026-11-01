@@ -3387,6 +3387,11 @@ en: {
   'priv.renewed': 'Consent renewed.',
   'priv.statusHistory': 'Previously withdrawn on {d} · renewed on {d2}',
   'gate.renewIntro': 'Your account is pending administrator approval, and your consent is currently withdrawn. If you wish, you can renew it now: read the privacy notice and accept it. Your renewal is recorded with its date and the notice version; your previous withdrawal stays on record.',
+  'gate.bannerConsent': 'Your consent is not currently active. Renew it below to continue.',
+  'gate.introWithdrawn': 'Your consent is currently withdrawn.',
+  'gate.introNoConsent': 'Your consent is not currently active.',
+  'gate.introRenewHist': 'If you wish, you can renew it now: read the privacy notice and accept it. Your renewal is recorded with its date and the notice version; your previous withdrawal stays on record.',
+  'gate.introRenewPlain': 'If you wish, you can renew it now: read the privacy notice and accept it. Your renewal is recorded with its date and the notice version.',
   'priv.recentLogin': 'Your data was deleted, but Google needs a recent sign-in to delete the account itself: sign out, sign back in, and repeat the deletion. If you get stuck, ask your trainer.',
   'priv.working': 'Working…',
   'msg.photoSaved': 'Photo saved.',
@@ -5601,6 +5606,11 @@ es: {
   'priv.renewed': 'Consentimiento renovado.',
   'priv.statusHistory': 'Retirado el {d} · renovado el {d2}',
   'gate.renewIntro': 'Tu cuenta está pendiente de aprobación del administrador y tu consentimiento consta como retirado. Si lo deseas, puedes renovarlo ahora: lee el aviso de privacidad y acéptalo. La renovación queda registrada con su fecha y la versión del aviso; tu retirada anterior se conserva en el registro.',
+  'gate.bannerConsent': 'Tu consentimiento no está vigente. Renuévalo abajo para continuar.',
+  'gate.introWithdrawn': 'Tu consentimiento consta como retirado.',
+  'gate.introNoConsent': 'Tu consentimiento no está vigente.',
+  'gate.introRenewHist': 'Si lo deseas, puedes renovarlo ahora: lee el aviso de privacidad y acéptalo. La renovación queda registrada con su fecha y la versión del aviso; tu retirada anterior se conserva en el registro.',
+  'gate.introRenewPlain': 'Si lo deseas, puedes renovarlo ahora: lee el aviso de privacidad y acéptalo. La renovación queda registrada con su fecha y la versión del aviso.',
   'priv.recentLogin': 'Tus datos se eliminaron, pero Google necesita un inicio de sesión reciente para borrar la cuenta en sí: cierra sesión, vuelve a entrar y repite la eliminación. Si te atascas, pide ayuda a tu entrenador.',
   'priv.working': 'Procesando…',
   'msg.photoSaved': 'Foto guardada.',
@@ -6704,17 +6714,99 @@ async function pendingApprovalMsg() {
   } catch {}
   return t('err.pending');
 }
-/* Puerta con consentimiento retirado: la sesión se mantiene SOLO en la
-   vista de acceso para ofrecer la renovación (las reglas siguen
-   denegando todo dato a cuentas no aprobadas). Tras renovar — o si el
-   consentimiento ya está vigente — se aplica la salida habitual. */
+/* === AUTH-2026-11-01-141: LA PUERTA CONFIRMA Y DICE LA VERDAD ===
+   Diagnóstico (2026-11-01, verificado contra el servidor): una
+   alumna aprobada (approved=true) y con el consentimiento vigente
+   en el servidor (acceptedTerms=true, sin consentWithdrawnAt y sin
+   ningún recibo de retirada en todo el sistema) fue expulsada a la
+   puerta de renovación, porque la decisión se tomó sobre la vista
+   LOCAL (caché) de su documento — y la pantalla, una sola para dos
+   estados, le afirmó dos cosas falsas a la vez: «pendiente de
+   aprobación» (showRenewalGate pintaba err.pending siempre) y
+   «consentimiento retirado» (el bloque era un texto fijo que
+   afirmaba ambos estados). La evaluación del consentimiento
+   (consentIsActive) es correcta y NO cambia; cambian los DATOS con
+   los que se evalúa — confirmados contra el servidor antes de
+   expulsar (la misma disciplina FromServer de las operaciones de
+   consentimiento) — y lo que la pantalla DICE: aprobación y
+   consentimiento se comprueban por separado y cada estado muestra
+   solo su verdad. */
+/* ¿Es la retirada la que manda ahora mismo? (hubo retirada y la
+   aceptación no la ha superado: la misma comparación que resuelve
+   consentIsActive, expuesta para componer textos verdaderos). */
+function consentWithdrawnNow(u) {
+  if (!u) return false;
+  const w = tsMs(u.consentWithdrawnAt);
+  if (!w) return false;
+  return tsMs(u.termsAcceptedAt) < w;
+}
+/* Decisión de acceso sobre un estado DADO: el vocabulario de la
+   puerta para la misma clasificación que sessionAccessClass. El
+   propietario deriva su acceso de isOwner y nunca es expulsado ni
+   por aprobación ni por consentimiento. */
+function accessDecision(u) {
+  if (!u) return 'nodoc';
+  if (u.isOwner === true) return 'enter';
+  if (u.approved !== true) return consentIsActive(u) ? 'pending' : 'gate';
+  return consentIsActive(u) ? 'enter' : 'gate';
+}
+/* Confirmación contra el servidor del propio documento del
+   usuario. ok:false = no se pudo confirmar (sin conexión u otro
+   error): con eso NO se expulsa a nadie. */
+async function confirmUserDocFromServer(uid) {
+  try {
+    const s = await getDocFromServer(doc(db, 'users', uid));
+    return { ok: true, data: s.exists() ? s.data() : null };
+  } catch (e) { return { ok: false, data: null }; }
+}
+/* Núcleo de la puerta: con el resultado de la confirmación y la
+   vista local, elige los datos de evaluación y si el estado quedó
+   confirmado. Sin confirmación, un estado expulsable no se
+   presenta como verdad (doorAction responde 'noconnection'). */
+function doorDataPick(conf, cached) {
+  if (conf && conf.ok) return { data: conf.data, confirmed: true };
+  return { data: cached, confirmed: false };
+}
+function doorAction(u, confirmed) {
+  const d = accessDecision(u);
+  if (d === 'enter' || d === 'nodoc') return d;
+  return confirmed ? d : 'noconnection';
+}
+/* Los textos de la puerta, compuestos del estado REAL del usuario:
+   al aprobado solo se le habla de su consentimiento; la aprobación
+   solo se menciona si falta de verdad; «retirado» solo si la
+   retirada manda hoy (si no, «no está vigente», sin inventar una
+   retirada que no consta). */
+function renewalGateTexts(u) {
+  const approved = !!u && u.approved === true;
+  const withdrawn = consentWithdrawnNow(u);
+  return {
+    bannerKey: approved ? 'gate.bannerConsent' : 'err.pending',
+    introKeys: [
+      ...(approved ? [] : ['err.pending']),
+      withdrawn ? 'gate.introWithdrawn' : 'gate.introNoConsent',
+      withdrawn ? 'gate.introRenewHist' : 'gate.introRenewPlain'
+    ]
+  };
+}
+/* Puerta de renovación del consentimiento: la sesión se mantiene
+   SOLO en la vista de acceso para ofrecer la renovación (las reglas
+   siguen denegando todo dato a cuentas no aprobadas). Se llega aquí
+   SOLO con el estado confirmado contra el servidor, y la pantalla
+   dice únicamente lo que es verdad de ese estado. */
 function showRenewalGate() {
-  showAuthError(t('err.pending'));
+  const gt = renewalGateTexts(UDATA);
+  showAuthError(t(gt.bannerKey));
   /* DEFECTOS-072 (b): si la cuenta está sin aprobar y eligió
      entrenador, el aviso pasa a nombrarlo en cuanto el directorio
      lo resuelve (mejora progresiva: si no se resuelve, queda el
-     texto genérico ya pintado). */
-  pendingApprovalMsg().then(m => { if (m !== t('err.pending')) showAuthError(m); });
+     texto genérico ya pintado). SOLO para cuentas sin aprobar: la
+     cuenta aprobada ve únicamente su aviso de consentimiento. */
+  if (!(UDATA && UDATA.approved === true)) {
+    pendingApprovalMsg().then(m => { if (m !== t('err.pending')) showAuthError(m); });
+  }
+  const intro = $('renew-intro');
+  if (intro) intro.textContent = gt.introKeys.map(k => t(k)).join(' ');
   const box = $('renew-box'); if (!box) return;
   box.style.display = '';
   const n = $('renew-notice'); if (n) { n.style.display = 'none'; n.innerHTML = ''; }
@@ -6995,8 +7087,21 @@ onAuthStateChanged(auth, async user => {
   UDATA = {};
   IS_OWNER = false;
   try {
-    const snap = await getDoc(doc(db, 'users', user.uid));
-    if (!snap.exists()) {
+    /* AUTH-141: la puerta evalúa aprobación y consentimiento SOLO
+       sobre el estado confirmado contra el servidor
+       (getDocFromServer). La vista local solo se usa si el servidor
+       no responde, y en ese caso un estado expulsable no se
+       presenta como verdad (doorAction → 'noconnection'): una
+       vista local vieja ya no puede expulsar a quien en el
+       servidor está al día. */
+    const conf = await confirmUserDocFromServer(user.uid);
+    let cached = null;
+    if (!conf.ok) {
+      const snap = await getDoc(doc(db, 'users', user.uid));
+      cached = snap.exists() ? snap.data() : null;
+    }
+    const pick = doorDataPick(conf, cached);
+    if (!pick.data) {
       /* Cierre veraz (A2): si existe el recibo de cierre, los
          datos ya se eliminaron en un intento anterior y solo
          falta borrar la identidad de Auth — se ofrece completar
@@ -7018,13 +7123,24 @@ onAuthStateChanged(auth, async user => {
       showAuthError(t('err.noAccess'));
       return;
     }
-    UDATA = snap.data();
+    UDATA = pick.data;
     IS_OWNER = UDATA.isOwner === true;
     ROLE = deriveRole(UDATA, IS_OWNER);
     /* AUTH-068: enlaces de registro (confirmación y respaldo de aviso). */
     const doorRes = await signupLinkDoor(user);
-    if (!IS_OWNER && UDATA.approved !== true) {
-      if (!consentIsActive(UDATA)) { showRenewalGate(); return; }
+    const action = doorAction(UDATA, pick.confirmed);
+    if (action === 'noconnection') {
+      /* Sin confirmación del servidor no se expulsa con la vista
+         local: se dice la única verdad disponible — no se pudo
+         verificar — y no se presenta ni la puerta de renovación
+         ni la espera de aprobación como si fueran el estado real.
+         Con conexión, la entrada se reevalúa contra el servidor. */
+      await signOut(auth);
+      showAuthError(t('err.noConnection'));
+      return;
+    }
+    if (action === 'gate') { showRenewalGate(); return; }
+    if (action === 'pending') {
       /* DEFECTOS-072 (b): el texto de espera se resuelve ANTES de
          cerrar la sesión (la lectura del directorio usa la sesión
          viva) y nombra al entrenador elegido cuando lo hay. */
@@ -7127,7 +7243,13 @@ onAuthStateChanged(auth, async user => {
    revocado que llamara a la API directamente, fuera de esta
    interfaz, conservaría sobre sus propios datos la capacidad que
    las reglas le den; eso forma parte del diseño aprobado de las
-   reglas y NO se presenta como eliminado por esta corrección. */
+   reglas y NO se presenta como eliminado por esta corrección.
+   AUTH-141: la reacción ante una clase PEOR ('gate'/'unapproved')
+   ya no se decide con el snapshot local: primero se confirma la
+   clase contra el servidor (confirmUserDocFromServer) y solo la
+   clase confirmada expulsa. Sin confirmación (sin conexión), se
+   conserva el acceso actual y la siguiente evaluación reintenta —
+   el SDK entrega un snapshot del servidor al reconectar. */
 let userWatchUnsub = null;
 let userWatchClass = null;
 function sessionAccessClass(u) {
@@ -7139,27 +7261,64 @@ function sessionAccessClass(u) {
 function startUserDocWatch(uid) {
   stopUserDocWatch();
   userWatchClass = sessionAccessClass(UDATA);
-  userWatchUnsub = onSnapshot(doc(db, 'users', uid), snap => {
+  let watchConfirming = false;
+  userWatchUnsub = onSnapshot(doc(db, 'users', uid), async snap => {
     if (!snap.exists()) return;
     const fresh = snap.data();
     const newClass = sessionAccessClass(fresh);
-    UDATA = fresh;
-    IS_OWNER = fresh.isOwner === true;
-    if (newClass === userWatchClass) { renderPrivacy(); return; }
-    userWatchClass = newClass;
-    if (newClass === 'owner' || newClass === 'client') { renderPrivacy(); return; }
-    /* La sesión pierde su clase de acceso: reacciona igual que
-       en la puerta de entrada. */
-    stopUserDocWatch();
-    if (newClass === 'gate') {
-      $('app-view').style.display = 'none';
-      $('auth-view').style.display = '';
-      showRenewalGate();
-    } else { /* 'unapproved': aprobación retirada, consentimiento vigente */
-      /* DEFECTOS-072 (b): el mismo texto de espera resuelto
-         (nombra al entrenador elegido cuando lo hay). */
-      pendingApprovalMsg().then(m => { signOut(auth); showAuthError(m); });
+    if (newClass === userWatchClass) {
+      UDATA = fresh;
+      IS_OWNER = fresh.isOwner === true;
+      renderPrivacy();
+      return;
     }
+    if (newClass === 'owner' || newClass === 'client') {
+      /* La clase mejora o se recupera: se acepta del snapshot. */
+      UDATA = fresh;
+      IS_OWNER = fresh.isOwner === true;
+      userWatchClass = newClass;
+      renderPrivacy();
+      return;
+    }
+    /* La vista local dice que la sesión pierde su clase de acceso
+       ('gate' o 'unapproved'). AUTH-141: antes de expulsar, la
+       clase se confirma contra el servidor — una vista local vieja
+       no puede expulsar a quien en el servidor está al día (el
+       caso verificado hoy: aprobada y con consentimiento vigente,
+       expulsada a mitad de sesión por un snapshot local). */
+    if (watchConfirming) return;
+    watchConfirming = true;
+    try {
+      const conf = await confirmUserDocFromServer(uid);
+      if (!conf.ok || !conf.data) {
+        /* Sin confirmación del servidor: se CONSERVA el acceso
+           según el último estado confirmado (la clase vigente no
+           cambia) y la próxima evaluación reintenta — al
+           reconectar, el SDK entrega el snapshot del servidor. */
+        UDATA = fresh;
+        IS_OWNER = fresh.isOwner === true;
+        renderPrivacy();
+        return;
+      }
+      const serverClass = sessionAccessClass(conf.data);
+      UDATA = conf.data;
+      IS_OWNER = conf.data.isOwner === true;
+      if (serverClass === userWatchClass) { renderPrivacy(); return; }
+      userWatchClass = serverClass;
+      if (serverClass === 'owner' || serverClass === 'client') { renderPrivacy(); return; }
+      /* Confirmado en el servidor: la sesión pierde su clase de
+         acceso y reacciona igual que en la puerta de entrada. */
+      stopUserDocWatch();
+      if (serverClass === 'gate') {
+        $('app-view').style.display = 'none';
+        $('auth-view').style.display = '';
+        showRenewalGate();
+      } else { /* 'unapproved': aprobación retirada, consentimiento vigente */
+        /* DEFECTOS-072 (b): el mismo texto de espera resuelto
+           (nombra al entrenador elegido cuando lo hay). */
+        pendingApprovalMsg().then(m => { signOut(auth); showAuthError(m); });
+      }
+    } finally { watchConfirming = false; }
   }, () => {});
 }
 function stopUserDocWatch() {
@@ -15678,13 +15837,14 @@ $('btn-gate-renew-accept') && $('btn-gate-renew-accept').addEventListener('click
   if (!auth.currentUser) return;
   try {
     if (!await doRenewConsent()) return;
-    toast(t('priv.renewed'));
-    const box = $('renew-box'); if (box) box.style.display = 'none';
-    /* DEFECTOS-072 (b): el texto de espera resuelto antes de
-       cerrar la sesión (nombra al entrenador elegido). */
-    const pendMsg = await pendingApprovalMsg();
-    await signOut(auth);
-    showAuthError(pendMsg);
+    /* AUTH-141: tras renovar, la entrada se reevalúa sobre el
+       estado REAL: la recarga repite la puerta de entrada, que ya
+       confirma contra el servidor — el APROBADO entra a la app y
+       el NO aprobado ve su espera de aprobación verdadera. Antes
+       este flujo cerraba la sesión y mostraba «pendiente de
+       aprobación» a todos: falso para un aprobado, que acababa de
+       renovar y volvía a leer que su cuenta no estaba aprobada. */
+    location.reload();
   } catch (e) { failToast(e); }
 });
 $('btn-my-data') && $('btn-my-data').addEventListener('click', async () => {
@@ -28171,7 +28331,7 @@ document.addEventListener('keydown', e => { if (e.key === 'Escape') shareClose()
  *  - El SW (sw.js) solo cachea la cáscara del mismo origen en modo
  *    RED PRIMERO: Auth/Firestore/Worker jamás pasan por la caché.
  * ================================================================ */
-const PWA_SW_VERSION = '20261101-pendientes-avisar';
+const PWA_SW_VERSION = '20261101-puerta-consentimiento';
 let pwaDeferredPrompt = null;
 function pwaIsStandalone() {
   try {
