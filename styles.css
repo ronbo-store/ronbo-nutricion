@@ -2545,3 +2545,39 @@ body.prog-page #progress-content.nav-page-on { padding-right: 88px; }
 .btn-delete-user { color: #b91c1c; border-color: #fca5a5; }
 .btn-delete-user:hover { background: #fef2f2; }
 .btn-delete-user:disabled { opacity: .55; cursor: wait; }
+
+/* ================================================================
+ * ESTA SEMANA · MQ5 (AUTH-2026-11-01-139): tarjeta ordenada del
+ * bloque «Esta semana» — resumen en su propia línea como tres
+ * mini-etiquetas, fila de 7 celdas-día iguales y línea de detalle
+ * que lleva a la sesión del día. Hoy con borde teal y fondo claro;
+ * el descanso en gris suave; el futuro atenuado.
+ * ================================================================ */
+.wk5 { background: #fff; border: 1px solid #e9ecef; border-radius: 16px; padding: 12px 10px; margin: 10px 0; box-shadow: 0 1px 3px rgba(16,24,40,.05); }
+.wk5-head { display: flex; align-items: baseline; justify-content: space-between; gap: 8px; }
+.wk5-title { font-size: 15px; font-weight: 800; color: #1f2a44; }
+.wk5-range { font-size: 12px; font-weight: 600; color: #8a94a6; white-space: nowrap; }
+.wk5-tags { display: flex; flex-wrap: wrap; gap: 6px; margin: 8px 0 10px; }
+.wk5-tag { display: inline-block; padding: 3px 10px; border-radius: 999px; font-size: 12px; font-weight: 700; border: 1px solid transparent; }
+.wk5-tag.st-done { background: #e7f6ee; color: #157347; border-color: #bfe6cf; }
+.wk5-tag.st-partial { background: #fff4e0; color: #9a6200; border-color: #ffe1a8; }
+.wk5-tag.st-skipped { background: #eef0f3; color: #5b6470; border-color: #d8dde3; }
+.wk5-row { display: grid; grid-template-columns: repeat(7, 1fr); gap: 4px; }
+.wk5-cell { min-width: 0; display: flex; flex-direction: column; align-items: center; gap: 1px; padding: 7px 1px 6px; background: #fff; border: 1.5px solid #e3e7ee; border-radius: 12px; font: inherit; cursor: pointer; color: #1f2a44; }
+.wk5-cell .wk5-wd { font-size: 9.5px; font-weight: 700; letter-spacing: .04em; text-transform: uppercase; color: #8a94a6; text-align: center; line-height: 1.15; }
+.wk5-cell .wk5-n { font-size: 17px; font-weight: 800; line-height: 1.1; }
+.wk5-cell .wk5-d { font-size: 9px; font-weight: 600; color: #374151; white-space: nowrap; max-width: 100%; overflow: hidden; text-overflow: ellipsis; }
+.wk5-cell .wk5-f { font-size: 8.5px; font-weight: 700; letter-spacing: 0; text-transform: uppercase; color: #8a94a6; white-space: nowrap; max-width: 100%; overflow: hidden; text-overflow: ellipsis; }
+.wk5-cell .wk5-i { font-size: 12px; line-height: 1.2; min-height: 15px; margin-top: auto; }
+.wk5-cell.st-done .wk5-i { color: #157347; }
+.wk5-cell.st-partial .wk5-i { color: #9a6200; }
+.wk5-cell.st-skipped .wk5-i { color: #5b6470; }
+.wk5-cell.is-rest { background: #f8fafc; color: #9aa3b2; }
+.wk5-cell.is-rest .wk5-d { font-size: 8.5px; }
+.wk5-cell.is-rest .wk5-n, .wk5-cell.is-rest .wk5-d { color: #9aa3b2; }
+.wk5-cell.is-future { opacity: .55; }
+.wk5-cell.is-pend .wk5-i { color: #0d9488; font-size: 9px; }
+.wk5-cell.is-today { border-color: #0d9488; background: #eefaf7; }
+.wk5-cell.is-sel { border-color: #0d9488; box-shadow: inset 0 0 0 1px #0d9488; }
+.wk5-detail { display: flex; align-items: center; justify-content: space-between; gap: 8px; width: 100%; margin-top: 10px; padding: 10px 12px; background: #e6f7f2; border: 1px solid #bfe6d9; border-radius: 12px; font: inherit; font-size: 13.5px; font-weight: 600; color: #134e3e; text-align: left; cursor: pointer; }
+.wk5-chev { font-size: 18px; line-height: 1; color: #0d9488; }

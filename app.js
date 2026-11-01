@@ -3201,6 +3201,8 @@ en: {
   'train.d.skipConfirm': 'Mark this day as skipped? It will be recorded as skipped (you can undo it afterwards).',
   'train.d.needCheck': 'Check at least one exercise as done, or use “Skip this day”. Nothing was saved.',
   'train.d.weekTitle': 'This week', 'train.d.weekSummary': 'Done {d} · Partial {p} · Skipped {s}',
+  'train.d.dayN': 'Day {n}', 'train.d.cntDone': 'Done', 'train.d.cntPartial': 'Partial', 'train.d.cntSkipped': 'Skipped',
+  'train.d.restWord': 'Rest', 'train.d.notYet': 'Not logged yet',
   'train.d.setsLabel': 'Sets', 'train.d.skippedNote': 'You marked this day as skipped.',
   'train.view.rest': 'Rest', 'train.view.warmup': 'Warm-up', 'train.view.session': 'Session',
   'train.view.rpe': 'RPE', 'train.view.rpeNone': 'No RPE', 'train.view.exDone': 'Done',
@@ -5419,6 +5421,8 @@ es: {
   'train.d.skipConfirm': '¿Marcar este día como saltado? Quedará registrado como saltado (podrás deshacerlo después).',
   'train.d.needCheck': 'Marca al menos un ejercicio como hecho, o usa «Saltar este día». No se guardó nada.',
   'train.d.weekTitle': 'Esta semana', 'train.d.weekSummary': 'Hechos {d} · Parciales {p} · Saltados {s}',
+  'train.d.dayN': 'Día {n}', 'train.d.cntDone': 'Hechos', 'train.d.cntPartial': 'Parciales', 'train.d.cntSkipped': 'Saltados',
+  'train.d.restWord': 'Descanso', 'train.d.notYet': 'Aún sin registrar',
   'train.d.setsLabel': 'Series', 'train.d.skippedNote': 'Marcaste este día como saltado.',
   'train.view.rest': 'Descanso', 'train.view.warmup': 'Aproximación', 'train.view.session': 'Sesión',
   'train.view.rpe': 'RPE', 'train.view.rpeNone': 'Sin RPE', 'train.view.exDone': 'Hecho',
@@ -17640,6 +17644,139 @@ function trainLogStatus(log) {
 function trainStatusBadge(status) {
   return `<span class="train-status st-${status}">${TRAIN_STATUS_ICON[status] || '—'} ${t('train.d.status' + status[0].toUpperCase() + status.slice(1))}</span>`;
 }
+/* ================================================================
+ * ESTA SEMANA · MQ5 (AUTH-2026-11-01-139): el bloque «Esta semana»
+ * de la vista de entrenamiento deja la lista de pastillas de largos
+ * desiguales y se ordena como la maqueta mq5 aprobada por Ronald
+ * (2026-11-01 15:42 CST, «Aprobada así»): titular con el rango de
+ * la semana a la derecha; el resumen en su PROPIA línea como tres
+ * mini-etiquetas con los colores de estado de siempre (los MISMOS
+ * conteos por estado que ya calculaba loadMyTraining sobre los
+ * registros de la semana hasta hoy); una fila de 7 celdas-día
+ * iguales (lunes a domingo) con la letra del día, la fecha, el día
+ * del plan, el grupo muscular en corto y el icono de estado; y una
+ * línea de detalle bajo la fila que describe la celda tocada y
+ * lleva a su sesión (fija TRAIN_VIEW.sel, la misma navegación de
+ * la tira semanal). Los datos son los de siempre: lo programado se
+ * resuelve con la resolución fecha→día de ESTA vista (effDiForDate:
+ * mapa de pares o plan-calendario, con el día traído y el día libre
+ * de hoy) y el estado sale de training_logs con trainLogStatus —
+ * el hecho manda sobre el mapa (un registro en un día sin rutina
+ * manda sobre ese día, como en la gráfica de AUTH-124). El descanso
+ * (fecha sin día en un plan CON mapa) va en gris suave con «—»:
+ * nunca un cero. En rotación (sin mapa fecha→día) las celdas solo
+ * afirman lo registrado y la sesión que la propia vista muestra
+ * para hoy (trainRotationNext); ningún día futuro inventa ancla.
+ * La gráfica semanal de Inicio (AUTH-124) NO se toca.
+ * ================================================================ */
+let WEEK5_SEL = null;    /* fecha seleccionada en el bloque (su línea de detalle) */
+let WEEK5_CTX = null;    /* { plan, logs, today, counts, mapped, effDiForDate } del último pintado */
+const WEEK5_ICON = { done: '✓', partial: '◐', skipped: '↷' };
+/* De la etiqueta guardada de un día («(Día 1) PECHO Y TRÍCEPS»,
+   «Día 5 — Piernas cuádriceps») separa el «Día N» del foco: el foco
+   completo alimenta la línea de detalle y su primera palabra, la
+   celda. La etiqueta es dato del plan: se respeta tal cual. */
+function week5Focus(label, di) {
+  const dayWord = t('train.d.dayN', { n: di + 1 });
+  let focus = String(label || '').trim();
+  focus = focus.replace(/^\(\s*(?:día|dia|day)\s*\d+\s*\)\s*/i, '');
+  focus = focus.replace(/^(?:día|dia|day)\s*\d+\s*/i, '');
+  focus = focus.replace(/^[·—\-:]\s*/, '');
+  if (focus === dayWord) focus = '';
+  return { dayWord, focus, short: focus ? focus.split(/\s+/)[0] : '' };
+}
+function week5Model() {
+  const ctx = WEEK5_CTX; if (!ctx) return null;
+  const mon = mondayISO(ctx.today);
+  const days = [];
+  for (let k = 0; k < 7; k++) {
+    const iso = addDaysISO(mon, k);
+    const dayLogs = ctx.logs.filter(l => l.date === iso).slice().sort((a, b) => a.dayIndex - b.dayIndex);
+    let st = null;
+    if (dayLogs.length) {
+      const sts = dayLogs.map(trainLogStatus);
+      st = sts.includes('done') ? 'done' : sts.includes('partial') ? 'partial' : 'skipped';
+    }
+    let di = ctx.mapped ? ctx.effDiForDate(iso) : null;
+    const prim = (di != null ? dayLogs.find(l => l.dayIndex === di) : null) || dayLogs[0] || null;
+    if (prim) di = prim.dayIndex;
+    else if (!ctx.mapped && iso === ctx.today && (ctx.plan.days || []).length) di = trainRotationNext(ctx.plan, ctx.logs, ctx.today);
+    const isFree = di === -1;
+    const label = prim ? (prim.dayLabel || '') : (isFree ? t('train.free.label') : (di != null ? ((ctx.plan.days || [])[di] || {}).label || '' : ''));
+    const fc = (!isFree && di != null) ? week5Focus(label, di) : { dayWord: '', focus: '', short: '' };
+    let state, icon;
+    if (st) { state = st; icon = WEEK5_ICON[st]; }
+    else if (isFree) { state = 'rest'; icon = '—'; }
+    else if (ctx.mapped && di == null) { state = 'rest'; icon = '—'; }
+    else if (iso === ctx.today && di != null) { state = 'pend'; icon = '●'; }
+    else if (iso > ctx.today) { state = 'future'; icon = '·'; }
+    else if (iso < ctx.today && di != null) { state = 'missed'; icon = '–'; }
+    else { state = 'none'; icon = '–'; }
+    days.push({ iso, di, st, prim, isFree, label, ...fc, state, icon, isToday: iso === ctx.today, isFuture: iso > ctx.today });
+  }
+  return { mon, sun: addDaysISO(mon, 6), days };
+}
+function week5DetailText(m) {
+  const head = m.isToday ? t('train.today.todayWord') : `${weekdayName(m.iso)} ${new Date(m.iso + 'T12:00:00').getDate()}`;
+  let mid = '';
+  if (m.state === 'rest' && !m.isFree) mid = t('train.today.restDay');
+  else if (m.isFree) mid = t('train.free.label');
+  else if (m.di != null) mid = m.focus ? `${m.dayWord} — ${m.focus}` : m.dayWord;
+  let tail = '';
+  if (m.st) tail = t('train.d.status' + m.st[0].toUpperCase() + m.st.slice(1));
+  else if (m.state === 'pend') tail = t('train.d.notYet');
+  else if (m.state === 'future') tail = t('train.today.scheduled');
+  else if (m.state === 'missed' || m.state === 'none') tail = t('train.d.statusNone');
+  return (m.isToday ? '📌 ' : '') + head + (mid ? ` · ${mid}` : '') + (tail ? ` · ${tail}` : '');
+}
+function renderWeek5Block() {
+  const ctx = WEEK5_CTX; if (!ctx) return '';
+  const w = week5Model(); if (!w) return '';
+  const monD = new Date(w.mon + 'T12:00:00'), sunD = new Date(w.sun + 'T12:00:00');
+  const monFmt = d => { try { return new Intl.DateTimeFormat(LANG === 'es' ? 'es' : 'en', { month: 'short' }).format(d).replace(/\.$/, ''); } catch { return ''; } };
+  const range = `${monD.getDate()} ${monFmt(monD)} – ${sunD.getDate()} ${monFmt(sunD)}`;
+  const sel = (WEEK5_SEL && WEEK5_SEL >= w.mon && WEEK5_SEL <= w.sun) ? WEEK5_SEL : ctx.today;
+  const tag = st => `<span class="wk5-tag st-${st}">${WEEK5_ICON[st]} ${ctx.counts[st]} ${esc(t('train.d.cnt' + st[0].toUpperCase() + st.slice(1)))}</span>`;
+  const cells = w.days.map(m => {
+    const dt = new Date(m.iso + 'T12:00:00');
+    let wd = ''; try { wd = new Intl.DateTimeFormat(LANG === 'es' ? 'es' : 'en', { weekday: 'short' }).format(dt).replace(/\.$/, ''); } catch {}
+    const dLine = m.state === 'rest' && !m.isFree ? esc(t('train.d.restWord')) : (m.isFree ? esc(t('train.free.label')) : (m.di != null ? esc(m.dayWord) : ''));
+    const fLine = m.state === 'rest' ? '—' : (m.di != null && !m.isFree ? esc(m.short) : '');
+    return `<button type="button" class="wk5-cell st-${m.state}${m.state === 'rest' ? ' is-rest' : ''}${m.isToday ? ' is-today' : ''}${m.iso === sel ? ' is-sel' : ''}${m.isFuture ? ' is-future' : ''}" data-wk5-day="${m.iso}"><span class="wk5-wd">${esc(wd)}${m.isToday ? ' · ' + esc(t('train.today.todayWord')) : ''}</span><span class="wk5-n">${dt.getDate()}</span><span class="wk5-d">${dLine}</span><span class="wk5-f">${fLine}</span><span class="wk5-i">${m.icon}</span></button>`;
+  }).join('');
+  const selM = w.days.find(m => m.iso === sel) || w.days.find(m => m.isToday);
+  return `<div class="wk5"><div class="wk5-head"><span class="wk5-title">${esc(t('train.d.weekTitle'))}</span><span class="wk5-range">${esc(range)}</span></div>`
+    + `<div class="wk5-tags">${tag('done')}${tag('partial')}${tag('skipped')}</div>`
+    + `<div class="wk5-row">${cells}</div>`
+    + `<button type="button" class="wk5-detail" data-wk5-go="${selM.iso}"><span class="wk5-detail-t">${esc(week5DetailText(selM))}</span><span class="wk5-chev" aria-hidden="true">›</span></button></div>`;
+}
+/* Conexiones del bloque: tocar una celda selecciona su día (la
+   línea de detalle se repinta en el sitio, sin recargar la vista);
+   tocar la línea de detalle lleva a la sesión de ese día con la
+   misma navegación de la tira semanal (TRAIN_VIEW.sel + repintar)
+   y deja la tarjeta del día a la vista. */
+function week5Wire(box) {
+  if (!box) return;
+  box.querySelectorAll('[data-wk5-day]').forEach(b => b.onclick = () => {
+    WEEK5_SEL = b.dataset.wk5Day;
+    const card = box.querySelector('.wk5');
+    if (card && WEEK5_CTX) {
+      const tmp = document.createElement('div');
+      tmp.innerHTML = renderWeek5Block();
+      const nc = tmp.firstElementChild;
+      if (nc) { card.replaceWith(nc); week5Wire(box); }
+    }
+  });
+  const go = box.querySelector('[data-wk5-go]');
+  if (go) go.onclick = () => {
+    const iso = go.dataset.wk5Go;
+    WEEK5_SEL = iso; TRAIN_VIEW.sel = iso;
+    loadMyTraining().then(() => {
+      const el = document.querySelector('#my-training .train-today');
+      if (el) { try { el.scrollIntoView({ block: 'start' }); } catch {} }
+    });
+  };
+}
 function trainPlannedSets(ex) {
   const m = String((ex && ex.sets) || '').match(/\d+/);
   const n = m ? parseInt(m[0], 10) : 1;
@@ -19267,9 +19404,6 @@ async function loadMyTraining() {
   const weekByStatus = { done: 0, partial: 0, skipped: 0 };
   weekLogs.forEach(l => { const s = trainLogStatus(l); if (weekByStatus[s] != null) weekByStatus[s]++; });
   const weekCount = weekByStatus.done + weekByStatus.partial;
-  const weekHtml = `<div class="train-week"><span class="train-week-title">${t('train.d.weekTitle')}</span>
-    ${weekLogs.map(l => `<span class="train-chip st-${trainLogStatus(l)}">${esc(String(l.date).slice(5))} · ${esc(l.dayLabel || '')} · ${TRAIN_STATUS_ICON[trainLogStatus(l)]} ${t('train.d.status' + trainLogStatus(l)[0].toUpperCase() + trainLogStatus(l).slice(1))}</span>`).join('')}
-    <span class="train-week-sum">${t('train.d.weekSummary', { d: weekByStatus.done, p: weekByStatus.partial, s: weekByStatus.skipped })}</span></div>`;
   const ctx = plan.id + '|' + today;
   if (TRAIN_CHECKS_CTX !== ctx) {
     /* MARCAS QUE SOBREVIVEN: al entrar en un contexto nuevo (el
@@ -19481,6 +19615,12 @@ async function loadMyTraining() {
     <div class="train-strip-actions"><button type="button" class="btn-ghost btn-sm" data-train-today="1">${t('train.today.btnToday')}</button><span class="train-week-sum">${t('train.today.weekSummary', { x: wkDone, y: (plan.days || []).length })}</span></div>
     <div class="train-sel-head"><b>${esc(dateName(sel))}</b>${sel === today ? ` <span class="ok-badge">${t('train.today.todayWord')}</span>` : ''}</div>
     ${selCard}</div>`;
+  /* ESTA SEMANA · MQ5: el contexto del bloque se fija con la
+     resolución fecha→día de ESTA vista (effDiForDate) y los conteos
+     de siempre (weekByStatus); el bloque se pinta sobre los mismos
+     datos, sin lecturas nuevas. */
+  WEEK5_CTX = { plan, logs, today, counts: weekByStatus, mapped: !!(tmap.pairs || isCal), effDiForDate };
+  const weekHtml = renderWeek5Block();
   box.innerHTML = `
     <h3 class="history-title">${esc(plan.title || '')}</h3>
     ${plan.notes ? `<p class="progress-hint">${esc(plan.notes)}</p>` : ''}
@@ -19518,6 +19658,7 @@ async function loadMyTraining() {
   box.querySelectorAll('[data-train-day]').forEach(b => b.onclick = () => { TRAIN_VIEW.sel = b.dataset.trainDay; loadMyTraining(); });
   box.querySelectorAll('[data-train-week]').forEach(b => b.onclick = () => { TRAIN_VIEW.sel = addDaysISO(TRAIN_VIEW.sel || today, 7 * Number(b.dataset.trainWeek)); loadMyTraining(); });
   box.querySelectorAll('[data-train-today]').forEach(b => b.onclick = () => { TRAIN_VIEW.sel = today; loadMyTraining(); });
+  week5Wire(box);
   box.querySelectorAll('[data-train-share]').forEach(b => b.onclick = () => {
     const [diS, iso] = b.dataset.trainShare.split('|');
     trainShareOpen(trainShareModel(plan, logs, Number(diS), iso));
@@ -28331,7 +28472,7 @@ document.addEventListener('keydown', e => { if (e.key === 'Escape') shareClose()
  *  - El SW (sw.js) solo cachea la cáscara del mismo origen en modo
  *    RED PRIMERO: Auth/Firestore/Worker jamás pasan por la caché.
  * ================================================================ */
-const PWA_SW_VERSION = '20261101-puerta-consentimiento';
+const PWA_SW_VERSION = '20261101-esta-semana-mq5';
 let pwaDeferredPrompt = null;
 function pwaIsStandalone() {
   try {
