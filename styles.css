@@ -2643,22 +2643,6 @@ body.prog-page #progress-content.nav-page-on { padding-right: 88px; }
 .wk5-detail { display: flex; align-items: center; justify-content: space-between; gap: 8px; width: 100%; margin-top: 10px; padding: 10px 12px; background: #e6f7f2; border: 1px solid #bfe6d9; border-radius: 12px; font: inherit; font-size: 13.5px; font-weight: 600; color: #134e3e; text-align: left; cursor: pointer; }
 .wk5-chev { font-size: 18px; line-height: 1; color: #0d9488; }
 
-/* TARJETA RESUMEN DE TU RUTA EN INICIO (RESUMEN-RUTA, 2026-11-01):
-   tarjeta permanente de Inicio, espejo visual de .weight-card, con
-   los tres conteos del sistema de conteo del propio usuario en su
-   orden — 🔴 Indispensables · 🟠 Importantes · 🟢 Complementarios.
-   La tarjeta entera es el botón que abre su ventana de Pendientes. */
-.rcard-box { background: #fff; border-radius: 12px; padding: 14px 20px; margin-bottom: 14px; box-shadow: 0 1px 3px rgba(0,0,0,.08); cursor: pointer; }
-.rcard-box.rc-complete { border: 1.5px solid #0d9488; }
-.rc-title { font-size: 17px; font-weight: 800; margin-bottom: 4px; }
-.rc-row { display: flex; align-items: center; gap: 8px; padding: 3px 0; font-size: 15px; }
-.rc-name { flex: 1; }
-.rc-num { background: #f1f5f9; border-radius: 999px; padding: 1px 10px; font-weight: 800; font-size: 14px; }
-.rc-done .rc-name { color: #0f766e; }
-.rc-ok { color: #0d9488; font-weight: 800; }
-.rc-open { font-size: 12.5px; color: #64748b; margin-top: 6px; }
-.rc-alldone { font-size: 13.5px; color: #0f766e; font-weight: 700; margin-top: 6px; }
-
 /* ============ BOTÓN ✕ EN LAS PÁGINAS DEL DOCK (2026-11-01) ============
    Corrección del reporte de Ronald en su iPhone (captura 2026-11-01
    16:05 CST): la página de Progreso no tenía botón ✕ de cierre, y la
@@ -2694,3 +2678,16 @@ body.prog-page #progress-content.nav-page-on { padding-right: 88px; }
 .comms-run-line { padding: 2px 0; font-size: .92em; }
 .comms-sweep-group { border-top: 1px solid #e3ece8; padding: 10px 0; }
 .comms-oneperson { margin-top: 10px; display: flex; gap: 8px; align-items: center; flex-wrap: wrap; }
+
+/* PENDIENTES POR CATEGORÍA (AUTH-2026-11-01-148): encabezados de
+   grupo 🔴🟠🟢 de la ventana del alumno y del panel del
+   entrenador, y el sello de responsable dentro de cada ítem del
+   alumno (los colores de las bandas AUTH-133 de siempre). */
+.pend-cat { display: flex; align-items: center; justify-content: space-between; gap: 8px; margin: 16px 0 6px; padding: 6px 10px; border-radius: 8px; background: #f1f5f9; }
+.pend-cat-name { font-size: 12.5px; font-weight: 800; letter-spacing: .04em; color: #1f2a44; }
+.pend-cat-n { background: #fff; border-radius: 999px; padding: 1px 10px; font-weight: 800; font-size: 12.5px; color: #b45309; }
+.pend-cat-ok { font-size: 12.5px; font-weight: 700; color: #0f766e; }
+.pend-dep { display: inline-block; margin-top: 5px; font-size: 10.5px; font-weight: 800; letter-spacing: .06em; text-transform: uppercase; padding: 2px 8px; border-radius: 999px; }
+.pend-dep-you { background: #ccfbf1; color: #0f766e; }
+.pend-dep-trainer { background: #fef3c7; color: #92400e; }
+.pend-dep-admin { background: #e2e8f0; color: #475569; }

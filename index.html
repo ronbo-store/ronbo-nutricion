@@ -21,7 +21,7 @@
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-title" content="RONBO FIT">
 <meta name="apple-mobile-web-app-status-bar-style" content="default">
-<link rel="stylesheet" href="styles.css?v=20261101-registro-proposito">
+<link rel="stylesheet" href="styles.css?v=20261101-pend-categoria">
 <script defer src="https://cloud.umami.is/script.js" data-website-id="a29706d4-44a2-47cf-900a-5f74d74abfa8"></script>
 <script type="importmap">
 {
@@ -286,25 +286,6 @@
        pinta desde renderWeightCard, llamada por renderWeight. -->
   <div class="weight-card" id="weight-card" style="display:none">
     <div id="weight-card-body"></div>
-  </div>
-
-  <!-- Tarjeta resumen de TU RUTA en Inicio (RESUMEN-RUTA, 2026-11-01;
-       decisión de Ronald en el chat, 2026-11-01 15:42 CST: «En ambos
-       sitios: resumen en Inicio y detalle en Pendientes»): tarjeta
-       permanente justo DEBAJO de «Tu peso», visible SOLO en Inicio —
-       nace oculta y routeCardSync (app.js, gancho en switchTab,
-       espejo de weightCardSync) la muestra únicamente con la
-       pestaña «Mi registro» activa y solo en el papel de alumno
-       (usuario o el propietario como alumno de sí mismo). Muestra
-       SOLO los tres conteos del sistema de conteo del propio
-       usuario — 🔴 Indispensables · 🟠 Importantes · 🟢
-       Complementarios, siempre en ese orden — calculados de las
-       mismas computaciones compartidas que alimentan su ventana
-       de Pendientes; la tarjeta entera abre esa ventana
-       (pendSetFloat). Se pinta desde renderRouteCard, llamada por
-       pendSyncDock y al cargar los roles. -->
-  <div class="rcard-box" id="route-card" style="display:none" role="button" tabindex="0">
-    <div id="route-card-body"></div>
   </div>
 
   <!-- Botón redondo flotante del cronómetro deportivo (arriba a la
@@ -1556,6 +1537,6 @@
 <div id="toast" class="toast"></div>
 <div id="print-card" aria-hidden="true"></div>
 
-<script type="module" src="app.js?v=20261101-registro-proposito"></script>
+<script type="module" src="app.js?v=20261101-pend-categoria"></script>
 </body>
 </html>

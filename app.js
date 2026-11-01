@@ -295,7 +295,6 @@ async function loadRolesX() {
   applyFeatureGates();
   renderMyTrainerBox();
   try { renderRolePendCard(); } catch {}
-  try { renderRouteCard(); } catch {}
 }
 function applyFeatureGates() {
   if (ROLE !== 'usuario') return;
@@ -1226,11 +1225,10 @@ function rolePendItems() {
    personal que «terminar» — documentado en el diseño §10. */
 function roleChecklist(forRole) {
   try {
-    /* El papel sale de ROLE salvo que se pida otro expresamente:
-       la tarjeta resumen de la ruta (RESUMEN-RUTA, 2026-11-01) le
-       pide la rama «usuario» para el propietario, que también es
+    /* El papel sale de ROLE salvo que se pida otro expresamente
+       (la rama «usuario» sirve al propietario, que también es
        alumno de sí mismo y cuyo deriveRole nunca devuelve
-       «usuario». Sin argumento, el comportamiento es el de siempre. */
+       «usuario»). Sin argumento, el comportamiento es el de siempre. */
     const R = forRole || ROLE;
     if (R === 'entrenador') {
       if (typeof MY_DOSSIER === 'undefined') return null;
@@ -1372,131 +1370,6 @@ function renderRolePendCard() {
      al botón de pendientes y no aparece absolutamente nada». */
   if (b) b.onclick = e => { if (e && e.stopPropagation) e.stopPropagation(); pendSetFloat(true); };
 }
-/* ============ TARJETA RESUMEN DE TU RUTA EN INICIO (RESUMEN-RUTA, 2026-11-01) ============
-   Decisión de Ronald en el chat RONBO.NUTRI, 2026-11-01 15:42 CST:
-   «En ambos sitios: resumen en Inicio y detalle en Pendientes».
-   La tarjeta muestra SOLO los tres conteos del sistema de conteo
-   del propio usuario, SIEMPRE en su orden — 🔴 Indispensables ·
-   🟠 Importantes · 🟢 Complementarios — y al tocarla abre la
-   ventana de Pendientes (pendSetFloat), donde vive el detalle,
-   sea cual sea su contenido vigente. UNA SOLA FUENTE por
-   categoría, la misma computación compartida que alimenta el
-   detalle (la tarjeta y el detalle nunca pueden contradecirse):
-   · Indispensables = filas sin hacer del checklist propio
-     (roleChecklist, rama «usuario»: las mismas 6 filas y los
-     mismos tests que clientProfileChecklist aplica desde el
-     entrenador; la unión AUTH-110 las define como los
-     Indispensables del alumno). Dos alineaciones de lectura,
-     sin tocar ningún test: la fila del entrenador de
-     roleChecklist gana el repliegue al espejo UDATA.trainerUid
-     que clientProfileChecklist ya documenta («sin documento, la
-     misma derivación perezosa desde el espejo») — para el papel
-     «usuario» en sesión MY_REL ya viene derivado de ese espejo
-     por loadRolesX, así que su conducta no cambia; el repliegue
-     solo opera donde MY_REL no se carga (el propietario), y el
-     ítem corporal se evalúa con el uid de la sesión
-     (auth.currentUser.uid, el mismo valor que la pasada del
-     entrenador pasa como u.id: el documento propio en sesión no
-     trae campo id).
-   · Importantes = los ítems propios vencidos o debidos de
-     pendCompute() — registros del día a día debidos (comidas y
-     entrenamientos, uno por ocasión), el pesaje del ciclo (una
-     sola ocasión viva) y la evaluación periódica debida — más el
-     análisis de tipo corporal ausente (studentsBodyItem, el
-     Importante 13 de AUTH-110, con su misma regla de no afirmar
-     lo que no se puede saber: estCount null no afirma «falta el
-     análisis», solo el consentimiento específico ausente). El
-     «aún no registra su peso» (AUTH-122) cuenta aquí igual que en
-     la unión: sin ningún pesaje el pesaje debido existe aunque
-     los recordatorios no estén activados, y nunca se duplica con
-     el del ciclo (en la unión el ítem «never» lo SUSTITUYE). Los
-     ítems «energy» de pendCompute NO se cuentan aparte: son las
-     causas del hueco de evaluación/datos base del checklist ya
-     contado en Indispensables — contarlos duplicaría contra el
-     detalle. Los ítems «role»/«profile» tampoco: son la forma de
-     procedimiento de esos mismos huecos (o de otros papeles).
-   · Complementarios = 0 por la definición compartida vigente:
-     AUTH-110 establece que los Complementarios (taxonomía 14–21)
-     NUNCA generan ítems, ninguna computación compartida los
-     cuenta como pendientes y su tratamiento dentro del sistema
-     de conteo quedó reservado por Ronald a una conversación de
-     diseño posterior — la tarjeta no inventa una segunda lógica.
-     La fila se muestra como conteo informativo, nunca bloqueo.
-   La tarjeta es permanente (también con todo completo, en verde:
-   la permanencia da confianza — patrón de la tarjeta «Tu peso»,
-   AUTH-134), se ve SOLO en Inicio (routeCardSync, espejo de
-   weightCardSync) y SOLO en el papel de alumno: ROLE «usuario» o
-   el propietario, que también es alumno de sí mismo (su
-   deriveRole nunca devuelve «usuario»: roleChecklist acepta el
-   papel pedido sin cambiar su comportamiento por defecto).
-   Sin lecturas nuevas: todo sale de lo que la sesión ya cargó. */
-function routeCardApplicable() {
-  try { return !!auth.currentUser && (ROLE === 'usuario' || (typeof IS_OWNER !== 'undefined' && !!IS_OWNER)); } catch { return false; }
-}
-function routeCountsMine() {
-  if (!routeCardApplicable()) return null;
-  /* Sin la configuración de pendientes cargada (o con su carga en
-     error) los Importantes no son computables: la tarjeta no
-     afirma un «al día» que no pudo comprobar — queda oculta hasta
-     que el cómputo sea posible (pendSyncDock la repinta entonces
-     y el pintado válido la vuelve a mostrar, ver renderRouteCard). */
-  if (typeof PEND_CFG === 'undefined' || !PEND_CFG || PEND_CFG.__error) return null;
-  let chk = null;
-  try { chk = roleChecklist(ROLE === 'usuario' ? undefined : 'usuario'); } catch {}
-  if (!chk || !chk.rows) return null;
-  const ind = chk.rows.filter(r => r.done === false).length;
-  let imp = 0, hasWeight = false, hasEval = false;
-  try {
-    const pc = pendCompute();
-    for (const it of (pc && pc.items) || []) {
-      if (it.type === 'meal' || it.type === 'training') imp++;
-      else if (it.type === 'weight') hasWeight = true;
-      else if (it.type === 'eval') hasEval = true;
-    }
-  } catch {}
-  if (hasWeight) imp++;
-  if (hasEval) imp++;
-  if (!hasWeight && typeof WEIGHTS !== 'undefined' && !(WEIGHTS || []).length) imp++;
-  try { if (typeof studentsBodyItem === 'function' && studentsBodyItem({ ...(UDATA || {}), id: (auth.currentUser && auth.currentUser.uid) || (UDATA && UDATA.id) || '' }, null)) imp++; } catch {}
-  return { ind, imp, comp: 0 };
-}
-function routeCardSync(tabName) {
-  const c = $('route-card'); if (!c) return;
-  c.style.display = (tabName === 'track' && routeCardApplicable()) ? '' : 'none';
-}
-function renderRouteCard() {
-  const body = $('route-card-body'); if (!body) return;
-  const card = $('route-card');
-  const counts = routeCountsMine();
-  if (!counts) { if (card) card.style.display = 'none'; return; }
-  const row = (dot, name, n) => n > 0
-    ? `<div class="rc-row"><span class="rc-dot">${dot}</span><span class="rc-name">${esc(name)}</span><span class="rc-num">${n}</span></div>`
-    : `<div class="rc-row rc-done"><span class="rc-dot">${dot}</span><span class="rc-name">${esc(name)}</span><span class="rc-ok">✓</span></div>`;
-  const allDone = counts.ind === 0 && counts.imp === 0 && counts.comp === 0;
-  body.innerHTML = `
-    <div class="rc-title">${esc(t('rcard.title'))}</div>
-    ${row('🔴', t('rcard.ind'), counts.ind)}
-    ${row('🟠', t('rcard.imp'), counts.imp)}
-    ${row('🟢', t('rcard.comp'), counts.comp)}
-    ${allDone ? `<div class="rc-alldone">${esc(t('rcard.allDone'))}</div>` : `<div class="rc-open">${esc(t('rcard.open'))}</div>`}`;
-  if (card) {
-    card.classList.toggle('rc-complete', allDone);
-    /* El toque abre la MISMA ventana de Pendientes de siempre. El
-       stopPropagation es obligatorio: el cierre por clic-fuera del
-       documento la cerraría al instante (la trampa documentada en
-       renderRolePendCard). */
-    card.onclick = e => { if (e && e.stopPropagation) e.stopPropagation(); pendSetFloat(true); };
-    card.onkeydown = e => { if (e && (e.key === 'Enter' || e.key === ' ')) { e.preventDefault(); e.stopPropagation(); pendSetFloat(true); } };
-  }
-  /* La visibilidad la decide SOLO routeCardSync según la pestaña
-     vigente — y este pintado válido la reaplica: si un pintado
-     anterior ocultó la tarjeta por no ser computable aún (la
-     configuración de pendientes todavía estaba cargando cuando
-     cambió la pestaña), la tarjeta reaparece en Inicio con este
-     pintado, sin esperar a que el usuario cambie de pestaña. */
-  try { routeCardSync(typeof NAV_TAB !== 'undefined' ? NAV_TAB : 'track'); } catch {}
-}
-
 /* Conteos de la bandeja del administrador, cargados al entrar (y
    refrescados en su superficie): cuentas por aprobar, membresías
    por aprobar, comidas por confirmar y alumnos en espera. */
@@ -2599,12 +2472,6 @@ en: {
   'wcard.none': 'You have not logged your weight yet',
   'wcard.noneWhy': 'Your weight is the base for your energy and goal calculations.',
   'wcard.log': 'Log my weight',
-  'rcard.title': '🗺️ Your route',
-  'rcard.ind': 'Indispensables',
-  'rcard.imp': 'Importantes',
-  'rcard.comp': 'Complementarios',
-  'rcard.allDone': "You're all set — nothing pending",
-  'rcard.open': 'Tap to see the detail',
   'compacc.notice': '🔒 Your trainer logs your body composition (weight, body fat, muscle, water and visceral fat). You can view it here, but you cannot change it.',
   'compacc.noticeShort': 'Your trainer logs your body composition.',
   'compacc.title': 'Body composition entry',
@@ -3189,6 +3056,13 @@ en: {
   'pend.grp.you': 'Up to you',
   'pend.grp.trainer': 'Up to your trainer',
   'pend.grp.admin': 'Up to the administrator',
+  'pend.cat.ind': 'Indispensables',
+  'pend.cat.imp': 'Importantes',
+  'pend.cat.comp': 'Complementarios',
+  'pend.cat.n1': '1 pending',
+  'pend.cat.nN': '{n} pending',
+  'pend.cat.done': 'Complete ✓',
+  'pend.cat.none': 'Nothing pending ✓',
   'pend.wait.trainerT': 'Meals requested',
   'pend.wait.trainerD': 'Waiting for your trainer’s decision',
   'pend.wait.adminT': 'Meals requested',
@@ -5008,12 +4882,6 @@ es: {
   'wcard.none': 'Aún no registras tu peso',
   'wcard.noneWhy': 'Tu peso es la base del cálculo de tu energía y de tus metas.',
   'wcard.log': 'Registrar mi peso',
-  'rcard.title': '🗺️ Tu ruta',
-  'rcard.ind': 'Indispensables',
-  'rcard.imp': 'Importantes',
-  'rcard.comp': 'Complementarios',
-  'rcard.allDone': 'Estás al día — no tienes pendientes',
-  'rcard.open': 'Toca para ver el detalle',
   'compacc.notice': '🔒 Tu entrenador registra tu composición corporal (peso, grasa corporal, masa muscular, agua y grasa visceral). Puedes verla aquí, pero no cambiarla.',
   'compacc.noticeShort': 'Tu entrenador registra tu composición corporal.',
   'compacc.title': 'Ingreso de composición corporal',
@@ -5598,6 +5466,13 @@ es: {
   'pend.grp.you': 'Depende de ti',
   'pend.grp.trainer': 'Depende de tu entrenador',
   'pend.grp.admin': 'Depende del administrador',
+  'pend.cat.ind': 'Indispensables',
+  'pend.cat.imp': 'Importantes',
+  'pend.cat.comp': 'Complementarios',
+  'pend.cat.n1': '1 pendiente',
+  'pend.cat.nN': '{n} pendientes',
+  'pend.cat.done': 'Completo ✓',
+  'pend.cat.none': 'Sin pendientes ✓',
   'pend.wait.trainerT': 'Comidas solicitadas',
   'pend.wait.trainerD': 'Esperando la decisión de tu entrenador',
   'pend.wait.adminT': 'Comidas solicitadas',
@@ -8874,7 +8749,7 @@ function fichaPendBlockHTML(uid) {
      El viaje es idéntico entrando desde Alumnos o desde Clientes.
      La fila del paso del administrador (solo propietario) va
      fuera de la unión y de su total, como en el detalle. */
-  if (items.length) h += items.map(it => studentsPendItemHTML(uid, it, false)).join('');
+  if (items.length) h += studentsPendGroupedHTML(uid, items);
   h += stuAdminStepRowHTML(uid);
   if (items.length) h += `<div class="client-chk"><b>${esc(t('students.pendToResolve', { n: items.length }))}</b></div>`;
   /* AUTH-121 (R4): la clase ficha-pend-block da al retorno tras
@@ -10041,6 +9916,34 @@ function studentsPendItemHTML(uid, it, isTrace) {
     ${right}
   </div>`;
 }
+/* AUTH-2026-11-01-148: el panel del ENTRENADOR adopta la MISMA
+   agrupación por categoría que la ventana del alumno (orden
+   expresa de Ronald, 2026-11-01 16:57 CST): las filas de la
+   unión AUTH-110 se reparten 🔴 Indispensables (kind «req»,
+   las filas del checklist) → 🟠 Importantes (los programados
+   y el análisis corporal) → 🟢 Complementarios (la unión nunca
+   los genera: el grupo se pinta con su estado en verde, como
+   en la ventana del alumno). SOLO se añaden los encabezados:
+   cada fila sale del MISMO studentsPendItemHTML de siempre,
+   byte a byte — sellos «DEPENDE DE TI / DEL ALUMNO», botón
+   «✉ Avisar», tope de 7 días y registro notices.nudge
+   intactos (AUTH-133/139) — y el orden relativo de las filas
+   no cambia (la unión ya nace con los Indispensables primero).
+   Las TRAZAS no pasan por aquí: conservan su título
+   «Resueltos» y sus chips, como siempre. */
+function studentsPendCatOf(it) {
+  return it && it.kind === 'req' ? 'ind' : 'imp';
+}
+function studentsPendGroupedHTML(uid, items) {
+  const groups = { ind: [], imp: [], comp: [] };
+  for (const it of items || []) groups[studentsPendCatOf(it)].push(it);
+  let h = '';
+  for (const cat of ['ind', 'imp', 'comp']) {
+    h += pendCatHeadHTML(cat, groups[cat].length);
+    for (const it of groups[cat]) h += studentsPendItemHTML(uid, it, false);
+  }
+  return h;
+}
 /* AUTH-117 (R1): la solicitud de comidas en el paso del
    ADMINISTRADOR no es un pendiente del entrenador (la definición
    de AUTH-110 no cambia: no entra en la unión ni en el total) —
@@ -10147,7 +10050,7 @@ function studentsDetailHTML(u) {
   if (err) {
     h += `<div class="stu-err">${esc(t('students.loadError'))}<br><button type="button" class="btn-ghost btn-sm" data-stu-retry="${u.id}" style="margin-top:8px">${esc(t('students.retry'))}</button></div>`;
   } else {
-    h += pend.items.map(it => studentsPendItemHTML(u.id, it, false)).join('');
+    h += studentsPendGroupedHTML(u.id, pend.items);
     h += stuAdminStepRowHTML(u.id);
     if (!pend.items.length && !pend.traces.length) h += `<p class="pend-none">${esc(t('students.detailClear'))}</p>`;
     if (pend.traces.length) h += `<div class="stu-traces-h">${esc(t('students.resolvedTitle'))}</div>` + pend.traces.map(it => studentsPendItemHTML(u.id, it, true)).join('');
@@ -25042,7 +24945,6 @@ function switchTab(name) {
   try { swFabSync(name); } catch {}
   try { goalsCardSync(name); } catch {}
   try { weightCardSync(name); } catch {}
-  try { routeCardSync(name); } catch {}
   const __navY = NAV_PILL_SCROLL[name];
   if (typeof __navY === 'number' && __navY > 0) { try { window.scrollTo(0, __navY); } catch {} }
   try { navRender(); } catch {}
@@ -28525,9 +28427,6 @@ function pendSyncDock() {
   /* La tarjeta-resumen de la pantalla principal refleja el mismo
      cómputo de procedimiento en cada sincronización. */
   try { if (typeof renderRolePendCard === 'function') renderRolePendCard(); } catch {}
-  /* La tarjeta resumen de la ruta (RESUMEN-RUTA, 2026-11-01)
-     refleja el mismo sistema de conteo en cada sincronización. */
-  try { if (typeof renderRouteCard === 'function') renderRouteCard(); } catch {}
 }
 /* Corrección «pendientes que no se actualizan al guardar»
    (2026-11-01): tras un guardado que resuelve un pendiente, las
@@ -28573,7 +28472,7 @@ function pendDockTick() {
 
 /* ---------- render del panel ---------- */
 function pendMealLabel(name) { return t('pend.mealName.' + name); }
-function pendItemHTML(it, regDay) {
+function pendItemHTML(it, regDay, resp) {
   /* Tarjeta VENCIDA (su fecha es anterior al día de registro): el
      título lleva la fecha en pasado (rama de cada tipo) y la línea
      secundaria ya no añade el sufijo «· ayer» / «· <fecha>» — la
@@ -28638,8 +28537,14 @@ function pendItemHTML(it, regDay) {
   const snooze = (it.type === 'eval' || it.type === 'energy' || it.type === 'profile' || it.type === 'role') ? '' : `<label class="pend-snooze"><span>${esc(t('pend.snooze'))}</span><select data-pend-snooze="${esc(it.id)}"><option value="">—</option>${opts}</select></label>`;
   const omit = (it.type === 'eval' || it.type === 'energy' || it.type === 'profile' || it.type === 'role') ? '' : `<button type="button" class="btn-ghost btn-sm" data-pend-act="omit" data-id="${esc(it.id)}">${esc(t(it.overdue ? 'pend.omitOccasionPast' : 'pend.omitOccasion'))}</button>`;
   const discard = it.canDiscard ? `<button type="button" class="btn-ghost btn-sm pend-danger" data-pend-act="discard" data-id="${esc(it.id)}">${esc(t('pend.discard'))}</button>` : '';
+  /* AUTH-2026-11-01-148: el sello de responsable (AUTH-133/139)
+     viaja como dato del ítem SOLO cuando lo pide la lista
+     agrupada del alumno (resp = you|trainer|admin, la salida de
+     pendItemGroupOf); sin resp, la tarjeta es la de siempre,
+     byte a byte. */
+  const dep = resp ? `<br><span class="pend-dep pend-dep-${resp}">${esc(t('pend.grp.' + resp))}</span>` : '';
   return `<div class="pend-item${it.overdue ? ' pend-overdue' : ''}" data-pend-item="${esc(it.id)}">
-    <p class="pend-text"><b>${esc(title)}</b><br><span class="pend-detail">${detail}</span></p>
+    <p class="pend-text"><b>${esc(title)}</b><br><span class="pend-detail">${detail}</span>${dep}</p>
     <div class="pend-actions">${go}${snooze}${omit}${discard}</div>
   </div>`;
 }
@@ -28674,17 +28579,26 @@ function pendCfgFormHTML(cfg, first) {
     </div>
   </div>`;
 }
-/* AUTH-2026-11-01-133: la ventana «Pendientes» del ALUMNO se
-   agrupa por responsable, como en la maqueta aprobada por Ronald
-   (2026-11-01): «Depende de ti» primero y destacado, «Depende de
-   tu entrenador», «Depende del administrador». El % del checklist
-   NO se toca (pendChecklistHTML va encima, intacto) y los ítems
+/* LA VENTANA «PENDIENTES» DEL ALUMNO — su historia de orden:
+   AUTH-2026-11-01-133 la agrupó por RESPONSABLE (bandas «Depende
+   de ti / de tu entrenador / del administrador», maqueta aprobada
+   por Ronald 2026-11-01) y AUTH-2026-11-01-148 la REAGRUPA por
+   CATEGORÍA, a orden expresa de Ronald (chat RONBO.NUTRI,
+   2026-11-01 16:57 CST: «Quita la tarjeta de Inicio y organiza
+   Pendientes por las 3 categorías»): 🔴 Indispensables →
+   🟠 Importantes → 🟢 Complementarios, en ese orden fijo, cada
+   grupo con su conteo (o su estado en verde si está cerrado).
+   El responsable NO se pierde: queda como sello dentro de cada
+   ítem (pendItemGroupOf sigue siendo su única fuente y el texto
+   es el de las bandas, pend.grp.*). La RUTA (AUTH-143) va
+   encima, intacta; el % del checklist no se toca; los ítems
    conservan su HTML y su recorrido de siempre (pendItemHTML,
-   AUTH-117…123): esto SOLO ordena la lista en bandas. Las filas
-   de ESPERA (la solicitud de comidas ya enviada) no son ítems de
-   pendCompute — viven en el estado de MY_MEAL_REQ —: se pintan
-   como filas informativas sin botón dentro de su banda. Para
-   cualquier otro rol, la lista queda plana como hasta hoy. */
+   AUTH-117…123) y su texto de causa (AUTH-118/137). Las filas
+   de ESPERA (la solicitud de comidas ya enviada; la cuenta por
+   aprobar) no son ítems de pendCompute — viven en MY_MEAL_REQ
+   y en UDATA —: se pintan como filas informativas sin botón
+   dentro de su grupo (son pasos de la BASE: Indispensables).
+   Para cualquier otro rol, la lista queda plana como hasta hoy. */
 function pendItemGroupOf(it) {
   if (it && it.type === 'role' && it.id && String(it.id).indexOf('alumno|') === 0) {
     return String(it.id).split('|')[1] === 'trainer' ? 'trainer' : 'you';
@@ -28696,23 +28610,45 @@ function pendWaitRowHTML(kind) {
   const dd = kind === 'admin' ? 'pend.wait.adminD' : kind === 'account' ? 'pend.wait.accountD' : 'pend.wait.trainerD';
   return `<div class="pend-item pend-item-wait"><p class="pend-text"><b>⌛ ${esc(t(tt))}</b><br><span class="pend-detail">${esc(t(dd))}</span></p></div>`;
 }
+/* Categoría de un pendiente del ALUMNO (la taxonomía de
+   Ronald, AUTH-110): los ítems de procedimiento de la base
+   (type «role», las filas del checklist) y los huecos de datos
+   base (type «energy» — las causas del hueco de evaluación y
+   datos base del checklist, como ya contó AUTH-144) son
+   INDISPENSABLES; los registros del día a día y los ciclos
+   (comidas, pesaje, entrenamiento, evaluación periódica) son
+   IMPORTANTES. Los COMPLEMENTARIOS nunca generan ítems
+   (AUTH-110): su grupo se pinta siempre, con su estado en
+   verde. Sin segunda lógica: la clasificación reparte los
+   ítems que pendCompute YA emitió, en su mismo orden. */
+function pendItemCatOf(it) {
+  if (!it) return 'imp';
+  if (it.type === 'role' || it.type === 'energy') return 'ind';
+  return 'imp';
+}
+function pendCatHeadHTML(cat, n) {
+  const dot = cat === 'ind' ? '🔴' : cat === 'imp' ? '🟠' : '🟢';
+  const state = n > 0
+    ? `<span class="pend-cat-n">${esc(n === 1 ? t('pend.cat.n1') : t('pend.cat.nN', { n }))}</span>`
+    : `<span class="pend-cat-ok">${esc(cat === 'comp' ? t('pend.cat.none') : t('pend.cat.done'))}</span>`;
+  return `<div class="pend-cat pend-cat-${cat}"><span class="pend-cat-name">${dot} ${esc(t('pend.cat.' + cat))}</span>${state}</div>`;
+}
 function pendItemsGroupedHTML(items, regDay) {
   if (typeof ROLE === 'undefined' || ROLE !== 'usuario') return items.map(it => pendItemHTML(it, regDay)).join('');
-  const groups = { you: [], trainer: [], admin: [] };
-  for (const it of items) groups[pendItemGroupOf(it)].push(it);
+  const groups = { ind: [], imp: [], comp: [] };
+  for (const it of items) groups[pendItemCatOf(it)].push(it);
   const req = (typeof MY_MEAL_REQ !== 'undefined' && MY_MEAL_REQ) || null;
-  if (req && req.status === 'pendiente_entrenador') groups.trainer.push('WAIT_TRAINER');
-  if (req && req.status === 'pendiente_administrador') groups.admin.push('WAIT_ADMIN');
-  if (typeof UDATA !== 'undefined' && UDATA && UDATA.approved !== true) groups.admin.push('WAIT_ACCOUNT');
+  if (req && req.status === 'pendiente_entrenador') groups.ind.push('WAIT_TRAINER');
+  if (req && req.status === 'pendiente_administrador') groups.ind.push('WAIT_ADMIN');
+  if (typeof UDATA !== 'undefined' && UDATA && UDATA.approved !== true) groups.ind.push('WAIT_ACCOUNT');
   let h = '';
-  for (const g of ['you', 'trainer', 'admin']) {
-    if (!groups[g].length) continue;
-    h += `<div class="pend-grp pend-grp-${g}">${esc(t('pend.grp.' + g))}</div>`;
-    for (const it of groups[g]) {
+  for (const cat of ['ind', 'imp', 'comp']) {
+    h += pendCatHeadHTML(cat, groups[cat].length);
+    for (const it of groups[cat]) {
       if (it === 'WAIT_TRAINER') h += pendWaitRowHTML('trainer');
       else if (it === 'WAIT_ADMIN') h += pendWaitRowHTML('admin');
       else if (it === 'WAIT_ACCOUNT') h += pendWaitRowHTML('account');
-      else h += pendItemHTML(it, regDay);
+      else h += pendItemHTML(it, regDay, pendItemGroupOf(it));
     }
   }
   return h;
@@ -29913,7 +29849,7 @@ document.addEventListener('keydown', e => { if (e.key === 'Escape') shareClose()
  *  - El SW (sw.js) solo cachea la cáscara del mismo origen en modo
  *    RED PRIMERO: Auth/Firestore/Worker jamás pasan por la caché.
  * ================================================================ */
-const PWA_SW_VERSION = '20261101-registro-proposito';
+const PWA_SW_VERSION = '20261101-pend-categoria';
 let pwaDeferredPrompt = null;
 function pwaIsStandalone() {
   try {
