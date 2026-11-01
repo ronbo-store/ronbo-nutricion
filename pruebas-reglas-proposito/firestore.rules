@@ -839,7 +839,7 @@ service cloud.firestore {
       // (las fechas ISO que escribe la app, patrón fdCamAt).
       // Ninguna otra rama se toca: la creación no necesita delta
       // (su cláusula no cierra la lista de claves del documento).
-             .hasOnly(['name', 'phone', 'gender', 'social', 'photoURL', 'mailLang', 'emailConfirmedAt', 'fdCamAt', 'fdBizAt', 'fdBizGym'], 'purpose', 'purposeAt', 'purposeUse', 'purposeSuggest', 'purposeTrainerChoice', 'purposeMembership', 'purposeAskedAt'])
+             .hasOnly(['name', 'phone', 'gender', 'social', 'photoURL', 'mailLang', 'emailConfirmedAt', 'fdCamAt', 'fdBizAt', 'fdBizGym', 'purpose', 'purposeAt', 'purposeUse', 'purposeSuggest', 'purposeTrainerChoice', 'purposeMembership', 'purposeAskedAt'])
         && (!request.resource.data.diff(resource.data).affectedKeys().hasAny(['mailLang'])
             || request.resource.data.mailLang in ['en', 'es'])
         && (!request.resource.data.diff(resource.data).affectedKeys().hasAny(['emailConfirmedAt'])

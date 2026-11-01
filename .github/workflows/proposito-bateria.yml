@@ -6,7 +6,7 @@
 # siete claves de declaración de propósito con guardas de valor en
 # la rama de perfil inofensivo de users/{uid}, y el nivel «prueba»
 # en la lista de requestedLevel de la solicitud propia de
-# memberships; candidata SHA-256 0389442d…) y la MISMA suite contra
+# memberships; candidata SHA-256 e3d36602…) y la MISMA suite contra
 # el texto VIVO con las expectativas del delta invertidas (P1, P9
 # y P15 denegados allí).
 # Todo contra el emulador oficial de Firestore (proyecto ficticio

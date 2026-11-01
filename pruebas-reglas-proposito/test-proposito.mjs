@@ -5,7 +5,7 @@
 // producción.
 //
 // El delta, sobre el texto vivo (ruleset 2ad00641, SHA-256
-// 5525d2f2…; candidata SHA-256 0389442d…), toca SOLO dos cosas:
+// 5525d2f2…; candidata SHA-256 e3d36602…), toca SOLO dos cosas:
 // (1) la rama de perfil inofensivo de users/{uid} admite SIETE
 // claves nuevas de declaración de propósito (purpose, purposeAt,
 // purposeUse, purposeSuggest, purposeTrainerChoice,
