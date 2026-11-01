@@ -61,6 +61,12 @@ jobs:
             echo '## Serie PROPÓSITO (15 casos) contra el CANDIDATO — resultado'
             grep -E 'PROPOSITO-CANDIDATO:' resultado-bateria.txt || true
           } >> "$GITHUB_STEP_SUMMARY"
+      - name: Emitir los fallos como anotaciones (legibles por API)
+        if: always()
+        shell: bash
+        run: |
+          grep -E '^FAIL' resultado-bateria.txt | while IFS= read -r l; do echo "::error title=CASO-FAIL::$l"; done || true
+          grep -E 'PROPOSITO-[A-Z]+:' resultado-bateria.txt | while IFS= read -r l; do echo "::notice title=TOTAL::$l"; done || true
       - name: Publicar el detalle como estado del commit (legible por API)
         if: always()
         shell: bash
@@ -110,6 +116,12 @@ jobs:
             echo '## Serie PROPÓSITO (15 casos) contra el texto VIVO — resultado'
             grep -E 'PROPOSITO-VIVO:' resultado-bateria.txt || true
           } >> "$GITHUB_STEP_SUMMARY"
+      - name: Emitir los fallos como anotaciones (legibles por API)
+        if: always()
+        shell: bash
+        run: |
+          grep -E '^FAIL' resultado-bateria.txt | while IFS= read -r l; do echo "::error title=CASO-FAIL::$l"; done || true
+          grep -E 'PROPOSITO-[A-Z]+:' resultado-bateria.txt | while IFS= read -r l; do echo "::notice title=TOTAL::$l"; done || true
       - name: Publicar el detalle como estado del commit (legible por API)
         if: always()
         shell: bash
