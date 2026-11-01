@@ -21,7 +21,7 @@
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-title" content="RONBO FIT">
 <meta name="apple-mobile-web-app-status-bar-style" content="default">
-<link rel="stylesheet" href="styles.css?v=20261101-boton-x-ventanas">
+<link rel="stylesheet" href="styles.css?v=20261101-comunicaciones">
 <script defer src="https://cloud.umami.is/script.js" data-website-id="a29706d4-44a2-47cf-900a-5f74d74abfa8"></script>
 <script type="importmap">
 {
@@ -241,6 +241,7 @@
     <button type="button" class="main-tab" data-tab="trainers" data-i18n="tabs.trainers"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6.5 6.5v11"/><path d="M3.5 9v6"/><path d="M17.5 6.5v11"/><path d="M20.5 9v6"/><path d="M6.5 12h11"/></svg> Trainers</button>
     <button type="button" class="main-tab" data-tab="library" data-i18n="tabs.library"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 4.6A1.6 1.6 0 0 1 6.6 3H19v15H6.6A1.6 1.6 0 0 0 5 19.4z"/><path d="M5 16.4A1.6 1.6 0 0 1 6.6 14.8H19V18"/><path d="M9 7h6"/></svg> Library</button>
     <button type="button" class="main-tab" data-tab="admin" data-i18n="tabs.admin"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="3.2"/><path d="M12 2.8v3"/><path d="M12 18.2v3"/><path d="M2.8 12h3"/><path d="M18.2 12h3"/><path d="M5.2 5.2l2.1 2.1"/><path d="M16.7 16.7l2.1 2.1"/><path d="M18.8 5.2l-2.1 2.1"/><path d="M7.3 16.7l-2.1 2.1"/></svg> Administration</button>
+    <button type="button" class="main-tab" data-tab="comms" data-i18n="tabs.comms"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="5.5" width="18" height="13" rx="2"/><path d="M3.5 7l8.5 6 8.5-6"/></svg> Communications</button>
   </nav>
   </div>
 
@@ -998,7 +999,6 @@
     <div id="pending-list"><div class="wempty" data-i18n="admin.noPending">No pending requests.</div></div>
     <h3 class="history-title" data-i18n="access.users">Users with access</h3>
     <div id="users-list"><div class="wempty" data-i18n="access.loading">Loading…</div></div>
-    <div id="mail-texts-box"></div>
     <h3 class="history-title" data-i18n="limits.title">🤖 Analysis limits</h3>
     <p class="progress-hint" data-i18n="limits.hint">Daily photo-analysis limits, set only by you. Each account uses its own limit if it has one, otherwise its trainer's, otherwise the global one. No limit set means unlimited.</p>
     <p class="progress-hint" data-i18n="limits.countNote">The counter measures requests to the service; a full analysis normally uses two.</p>
@@ -1121,6 +1121,32 @@
     <div id="admin-zone-box" style="display:none"></div>
   </div>
   <!-- /tab-admin -->
+
+  <!-- COMUNICACIONES (AUTH-2026-11-01-146): la sección de correo del
+       propietario — plantillas editables (fuente única en
+       app_settings/mail_templates), pools, barrido con previa y
+       envíos por la ruta del Worker. Solo administrador. -->
+  <div class="tab-pane" id="tab-comms" style="display:none">
+  <div class="admin-section" id="comms-section" style="display:none">
+    <h2><span data-i18n="comms.title">✉️ Communications</span> <span class="h2-sub" data-i18n="comms.sub">· owner only</span></h2>
+    <p class="progress-hint" data-i18n="comms.hint">Every email leaves from here. The texts live in one place and you edit them here; the server composes each message from them and never accepts text in a request. Nothing goes out without your tap: the sweep only detects, shows you a preview, and waits.</p>
+    <p class="progress-hint" id="comms-rev"></p>
+    <div id="comms-sweep"></div>
+    <h3 class="history-title" data-i18n="comms.tplTitle">Templates</h3>
+    <div class="comms-row">
+      <select id="comms-tpl-sel"></select>
+      <button type="button" class="btn-ghost btn-sm" id="comms-tpl-add" data-i18n="comms.addBtn">＋ Add template</button>
+    </div>
+    <div id="comms-tpl-card"></div>
+    <div id="comms-editor" style="display:none"></div>
+    <h3 class="history-title" data-i18n="comms.sendTitle">Send to a pool</h3>
+    <div class="comms-row">
+      <select id="comms-pool-sel"></select>
+      <button type="button" class="btn-primary btn-sm" id="comms-send-btn" data-i18n="comms.sendBtn">✉️ Send</button>
+    </div>
+    <div id="comms-send-box"></div>
+  </div>
+  </div><!-- /tab-comms -->
 
   <!-- NAVEGACIÓN FLOTANTE (2026-10-30): el velo sobre el que surge
        la página de cada sección del dock y el degradado al pie que
@@ -1505,6 +1531,6 @@
 <div id="toast" class="toast"></div>
 <div id="print-card" aria-hidden="true"></div>
 
-<script type="module" src="app.js?v=20261101-boton-x-ventanas"></script>
+<script type="module" src="app.js?v=20261101-comunicaciones"></script>
 </body>
 </html>

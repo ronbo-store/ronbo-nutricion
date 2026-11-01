@@ -2448,6 +2448,7 @@ en: {
   'tabs.trainers': '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6.5 6.5v11"/><path d="M3.5 9v6"/><path d="M17.5 6.5v11"/><path d="M20.5 9v6"/><path d="M6.5 12h11"/></svg> Trainers',
   'tabs.library': '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 4.6A1.6 1.6 0 0 1 6.6 3H19v15H6.6A1.6 1.6 0 0 0 5 19.4z"/><path d="M5 16.4A1.6 1.6 0 0 1 6.6 14.8H19V18"/><path d="M9 7h6"/></svg> Library',
   'tabs.admin': '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="3.2"/><path d="M12 2.8v3"/><path d="M12 18.2v3"/><path d="M2.8 12h3"/><path d="M18.2 12h3"/><path d="M5.2 5.2l2.1 2.1"/><path d="M16.7 16.7l2.1 2.1"/><path d="M18.8 5.2l-2.1 2.1"/><path d="M7.3 16.7l-2.1 2.1"/></svg> Administration',
+  'tabs.comms': '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="5.5" width="18" height="13" rx="2"/><path d="M3.5 7l8.5 6 8.5-6"/></svg> Communications',
   'trainers.title': '👨‍🏫 Trainer administration',
   'trainers.hint': 'Everything about trainers in one place: role requests, memberships (levels and quotas), the two-step confirmations that start with a trainer, the trainer approval limit and the public directory.',
   'trainers.requests': 'Trainer role requests (',
@@ -4009,9 +4010,6 @@ en: {
   'esc.mailBtn': '📧 Profile reminder text',
   'esc.mailComplete': 'This trainer already completed their profile template ✓',
   'esc.mailCopy': 'Copy text',
-  'esc.mail2.tplWelcome': 'New user: account approved (welcome)',
-  'esc.mail2.subjWelcome': 'Welcome to RONBO FIT — start today',
-  'esc.mail2.bodyWelcome': 'RONBO.FIT\nEat well. Train strong. Live present.\n\nWelcome to RONBO FIT. Your account is approved and you can start now.\n\nSTEP 1 — DO THIS TODAY: Complete your profile\nComplete your profile today — weight, health information, activity level, goal and focus — so your goals (calories, protein, carbs, sugars and fats) are calculated with a real foundation and appear as soon as possible. Without your data, there is no honest number.\n\nSTEP 2 — Choose a trainer (recommended, always optional)\nWith a trainer (recommended): they assign your routines and follow your progress.\nWithout a trainer (just as valid): build your plan yourself from the exercise library in the app.\nChoosing a trainer is recommended, never required to use the app.\n\nSTEP 3 — Log your meals\nLog what you eat each day so you can see your totals against your goals.\n\nSTEP 4 — Train and mark each session\nFollow your scheduled session and mark it when you finish.\n\nSTEP 5 — Track your progress\nKeep your weight and progress photos up to date so you and, if you have one, your trainer can see real change.\n\n[ Open RONBO FIT ] → https://fit.ronbo.store\n\nQuestions? Help & FAQ → https://fit.ronbo.store/ayuda\n\nEmail language: you can choose English or Spanish for these emails inside the app, in your profile. It starts with your app language and you can change it anytime.',
   'mail.sendBtn': '📧 Send via Gmail',
   'mail.recipient': 'Send to',
   'mail.sending': 'Sending…',
@@ -4024,6 +4022,110 @@ en: {
   'mail.reasonGeneric': 'sending error',
   'mail.retryBtn': 'Retry sending',
   'mail.sendFailed': 'The email did NOT go out: {reason}.',
+  'comms.title': '✉️ Communications',
+  'comms.sub': '· owner only',
+  'comms.hint': 'Every email leaves from here. The texts live in one place and you edit them here; the server composes each message from them and never accepts text in a request. Nothing goes out without your tap: the sweep only detects, shows you a preview, and waits.',
+  'comms.rev': 'Texts rev. {rev} · saved {date}',
+  'comms.revNone': 'The templates document does not exist yet — sends will fail closed (templates-unavailable) until it is created.',
+  'comms.loadError': 'Communications could not be fully loaded ({reason}). Affected pools show no count.',
+  'comms.sweepTitle': '🔍 Sweep — detections waiting',
+  'comms.sweepEmpty': 'The sweep found nothing pending.',
+  'comms.sweepInstall': 'Install the app',
+  'comms.sweepPlan': 'New plan loaded by their trainer',
+  'comms.sweepPitch': 'Trainer pitch (monthly)',
+  'comms.sweepAi': 'Food AI — 3 days of use',
+  'comms.sweepBenefits': 'Benefits not sent yet',
+  'comms.detected': '{n} detected',
+  'comms.tplTitle': 'Templates',
+  'comms.addBtn': '＋ Add template',
+  'comms.editBtn': 'Edit',
+  'comms.sendPoolBtn': 'Send to pool…',
+  'comms.tplOn': 'active',
+  'comms.tplOff': 'off',
+  'comms.tplCustom': 'Template {key}',
+  'comms.triggerManual': 'Manual',
+  'comms.triggerAsk': 'Sweep · asks for your tap first',
+  'comms.triggerAuto': 'Sweep · automatic',
+  'comms.editTitle': 'Edit template · {key}',
+  'comms.subjEn': 'Subject (EN)',
+  'comms.subjEs': 'Subject (ES)',
+  'comms.bodyEn': 'Body (EN)',
+  'comms.bodyEs': 'Body (ES)',
+  'comms.artLabel': 'Art URL (flyer image)',
+  'comms.mediaLabel': 'Media URL (second image or video)',
+  'comms.mediaKindLabel': 'Media type',
+  'comms.mediaKindNone': '— none —',
+  'comms.mediaKindImage': 'Image',
+  'comms.mediaKindVideo': 'Video',
+  'comms.videoLabel': 'Install-video URL (linked only for recipients with no install signal)',
+  'comms.triggerLabel': 'Trigger',
+  'comms.enabledLabel': 'Template active',
+  'comms.saveBtn': 'Save',
+  'comms.previewBtn': 'Preview',
+  'comms.cancelBtn': 'Cancel',
+  'comms.deleteBtn': 'Delete',
+  'comms.disableBtn': 'Disable',
+  'comms.savedOk': 'Template saved ✓ (rev. {rev})',
+  'comms.deletedOk': 'Template deleted ✓',
+  'comms.saveError': 'It could not be saved — check your connection and try again.',
+  'comms.errRequired': 'Subject and body are required in English AND in Spanish.',
+  'comms.errBanned': 'A text contains a word that is banned from public RONBO FIT surfaces. Use “food / meals” or “alimentación / comidas” instead.',
+  'comms.errUrl': 'URLs must start with https:// (or be left empty).',
+  'comms.errKey': 'The key must start with a letter and use only letters and numbers (max 32).',
+  'comms.keyPrompt': 'Key for the new template (letters and numbers, e.g. reminder2):',
+  'comms.keyExists': 'That key already exists.',
+  'comms.confirmDelete': 'Delete the template “{key}” for good?',
+  'comms.confirmDisable': 'Disable the template “{key}”? It will stop sending; its text stays saved.',
+  'comms.sendTitle': 'Send to a pool',
+  'comms.sendBtn': '✉️ Send',
+  'comms.sendTheseBtn': 'Send to these {n}',
+  'comms.recipients': '{n} recipients',
+  'comms.noRecipients': 'This pool is empty right now.',
+  'comms.previewFor': 'Preview — as the first recipient will get it: {name}',
+  'comms.progress': 'Sending {done} of {total}…',
+  'comms.paused': 'paused',
+  'comms.pauseBtn': 'Pause',
+  'comms.resumeBtn': 'Resume',
+  'comms.stopBtn': 'Stop',
+  'comms.doneOk': 'finished: {sent} sent, {failed} failed',
+  'comms.capStop': 'daily safety stop at {n} of {cap} — resume tomorrow; sent users are annotated, so nobody gets a one-time email twice',
+  'comms.todayCount': 'Sent today from this device: {n} of {cap}',
+  'comms.reasonTemplates': 'the templates document could not be read (templates-unavailable)',
+  'comms.reasonPlan': 'the plan context could not be verified on the server (plan-context)',
+  'comms.planBy': 'Plan “{title}” · by {trainer}',
+  'comms.onePersonLabel': 'Deliberate resend to one person:',
+  'comms.onePersonBtn': 'Send to this person',
+  'comms.tpl.welcome': 'Welcome (account approved)',
+  'comms.tpl.trainer': 'Choose your trainer',
+  'comms.tpl.eval': 'Initial evaluation',
+  'comms.tpl.meals': 'How meal logging is activated',
+  'comms.tpl.membership': 'Trainer membership',
+  'comms.tpl.dossier': 'Complete your trainer profile',
+  'comms.tpl.install': 'Install the app',
+  'comms.tpl.planLoaded': 'Your plan is ready',
+  'comms.tpl.metrics': 'Missing data for your analyses',
+  'comms.tpl.benefits': 'Benefits of your account (one-time)',
+  'comms.tpl.bodyImages': 'How we use and protect your body photos',
+  'comms.tpl.trainerPitch': 'A trainer changes what happens next',
+  'comms.tpl.aiDay3': 'Three days with the food scanner',
+  'comms.pool.trainers': 'Trainers only',
+  'comms.pool.noTrainer': 'No trainer',
+  'comms.pool.withTrainer': 'With trainer',
+  'comms.pool.withTrainerActive': 'With trainer · active relation',
+  'comms.pool.withTrainerWaiting': 'With trainer · waiting relation',
+  'comms.pool.mealsOnly': 'Food access only',
+  'comms.pool.trainingOnly': 'Training plan access only',
+  'comms.pool.allApproved': 'All approved',
+  'comms.pool.pendingApproval': 'Pending approval',
+  'comms.pool.noInstall': 'No install signal',
+  'comms.pool.installSignal': 'With install signal',
+  'comms.pool.activePlan': 'With active plan',
+  'comms.pool.trainerNoPlan': 'With trainer, no active plan',
+  'comms.pool.checklist': 'Incomplete checklist',
+  'comms.pool.benefitsPending': 'Benefits not sent',
+  'comms.pool.trainersNoMembership': 'Trainers without active membership',
+  'comms.pool.aiDay3': 'Food AI use ≥ 3 days',
+  'comms.pool.planNoticePending': 'Plan notice pending for current plan',
   'esc.mailCopied': 'Text copied',
   'esc.mailSubject': 'RONBO FIT — Complete your trainer profile to continue',
   'esc.mailBody': 'Hi {name},\n\nYour RONBO FIT trainer account has been approved. To continue the process, please complete your profile template (your dossier) in the app: featured photo, headline and your personal introduction — plus your experience, certifications, specialties and the places where you train in person, if that applies to you.\n\nStudents see this template when choosing a trainer, so a complete profile helps them choose you. When you sign in, the app shows you a pending item, "Complete your profile template to continue", which takes you straight to your dossier; it disappears on its own once your template is complete.\n\nThank you,\nRONBO FIT',
@@ -4112,19 +4214,6 @@ en: {
   'pend.cardTitle': 'You have pending steps',
   'pend.cardBody': '{n} procedure pending item(s) — they are not daily logs.',
   'pend.cardBtn': 'View pending items',
-  'esc.mail2.boxTitle': 'Ready-to-send email texts (manual sending)',
-  'esc.mail2.tplTrainer': 'Student: choose your trainer',
-  'esc.mail2.tplEval': 'Student: initial evaluation and consent',
-  'esc.mail2.tplMeals': 'Student: how meal logging is activated',
-  'esc.mail2.tplMembership': 'Trainer: request your membership',
-  'esc.mail2.subjTrainer': 'RONBO FIT — Choose your trainer',
-  'esc.mail2.bodyTrainer': 'Hi,\n\nYour RONBO FIT account is approved. Your next step is to choose your trainer and modality: sign in and open "My trainer" on your main screen — you can review each trainer\'s profile before choosing. If you prefer, you can stay waiting and the administrator will assign you one.\n\nThank you,\nRONBO FIT',
-  'esc.mail2.subjEval': 'RONBO FIT — Complete your initial evaluation',
-  'esc.mail2.bodyEval': 'Hi,\n\nTo finish setting up your RONBO FIT account, complete your initial evaluation (Level 1 data). In the app you will find a pending item that takes you there. It includes your specific health consent — the checkbox that lets your trainer see your health declaration — and the optional health declaration (PAR-Q) itself.\n\nThank you,\nRONBO FIT',
-  'esc.mail2.subjMeals': 'RONBO FIT — How meal logging is activated',
-  'esc.mail2.bodyMeals': 'Hi,\n\nIn RONBO FIT, meal logging is activated only on request: ask for it from "My trainer" in the app, your trainer approves it, and the administrator confirms it. Once both steps are done, the food button appears in your app.\n\nThank you,\nRONBO FIT',
-  'esc.mail2.subjMembership': 'RONBO FIT — Request your trainer membership',
-  'esc.mail2.bodyMembership': 'Hi,\n\nYour trainer account is approved, and your membership is still without a level — your student quota depends on it (Basic 5 · Premium 10 · Elite 30). Request your level from your panel in the app ("My clients" tab) and the administrator will approve it.\n\nThank you,\nRONBO FIT',
   'pend.evalMissing': 'Still missing (required): {items}',
   'pend.goEval': 'Go to My progress',
   'pend.snooze': 'Snooze',
@@ -4713,6 +4802,7 @@ es: {
   'tabs.trainers': '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6.5 6.5v11"/><path d="M3.5 9v6"/><path d="M17.5 6.5v11"/><path d="M20.5 9v6"/><path d="M6.5 12h11"/></svg> Entrenadores',
   'tabs.library': '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 4.6A1.6 1.6 0 0 1 6.6 3H19v15H6.6A1.6 1.6 0 0 0 5 19.4z"/><path d="M5 16.4A1.6 1.6 0 0 1 6.6 14.8H19V18"/><path d="M9 7h6"/></svg> Biblioteca',
   'tabs.admin': '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="3.2"/><path d="M12 2.8v3"/><path d="M12 18.2v3"/><path d="M2.8 12h3"/><path d="M18.2 12h3"/><path d="M5.2 5.2l2.1 2.1"/><path d="M16.7 16.7l2.1 2.1"/><path d="M18.8 5.2l-2.1 2.1"/><path d="M7.3 16.7l-2.1 2.1"/></svg> Administración',
+  'tabs.comms': '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="5.5" width="18" height="13" rx="2"/><path d="M3.5 7l8.5 6 8.5-6"/></svg> Comunicaciones',
   'trainers.title': '👨‍🏫 Administración de entrenadores',
   'trainers.hint': 'Todo lo de los entrenadores en un solo lugar: solicitudes de rol, membresías (niveles y cupos), las confirmaciones en dos pasos que empiezan con un entrenador, el límite de aprobaciones de entrenadores y el directorio público.',
   'trainers.requests': 'Solicitudes de rol de entrenador (',
@@ -6275,9 +6365,6 @@ es: {
   'esc.mailBtn': '📧 Texto de recordatorio de perfil',
   'esc.mailComplete': 'Este entrenador ya completó su plantilla de perfil ✓',
   'esc.mailCopy': 'Copiar texto',
-  'esc.mail2.tplWelcome': 'Usuario nuevo: cuenta aprobada (bienvenida)',
-  'esc.mail2.subjWelcome': 'Bienvenido a RONBO FIT — empieza hoy',
-  'esc.mail2.bodyWelcome': 'RONBO.FIT\nCome bien. Entrena fuerte. Vive el presente.\n\nBienvenido a RONBO FIT. Tu cuenta está aprobada y ya puedes empezar.\n\nPASO 1 — HAZLO HOY: Completa tu perfil\nCompleta tu perfil hoy — peso, datos de salud, nivel de actividad, objetivo y enfoque — para que tus metas (calorías, proteína, carbos, azúcares y grasas) se calculen con fundamento real y aparezcan lo antes posible. Sin tus datos, no hay un número honesto.\n\nPASO 2 — Elige un entrenador (recomendado, siempre opcional)\nCon entrenador (lo recomendado): te asigna tus rutinas y sigue tu progreso.\nSin entrenador (igual de válido): construye tu plan tú mismo desde la biblioteca de ejercicios de la app.\nElegir entrenador es una recomendación, nunca un requisito para usar la app.\n\nPASO 3 — Registra tus comidas\nRegistra lo que comes cada día para ver tus totales frente a tus metas.\n\nPASO 4 — Entrena y marca cada sesión\nSigue tu sesión programada y márcala al terminar.\n\nPASO 5 — Sigue tu progreso\nMantén al día tu peso y tus fotos de progreso para que tú y, si lo tienes, tu entrenador vean el cambio real.\n\n[ Abrir RONBO FIT ] → https://fit.ronbo.store\n\n¿Dudas? Ayuda y preguntas frecuentes → https://fit.ronbo.store/ayuda\n\nIdioma del correo: puedes elegir inglés o español para estos correos dentro de la app, en tu perfil. Nace con el idioma de tu app y lo puedes cambiar cuando quieras.',
   'mail.sendBtn': '📧 Enviar por Gmail',
   'mail.recipient': 'Enviar a',
   'mail.sending': 'Enviando…',
@@ -6290,6 +6377,110 @@ es: {
   'mail.reasonGeneric': 'error de envío',
   'mail.retryBtn': 'Reintentar el envío',
   'mail.sendFailed': 'El correo NO salió: {reason}.',
+  'comms.title': '✉️ Comunicaciones',
+  'comms.sub': '· solo el propietario',
+  'comms.hint': 'Todo correo sale desde aquí. Los textos viven en un solo lugar y los editas aquí; el servidor compone cada mensaje desde ellos y nunca acepta texto en una petición. Nada sale sin tu toque: el barrido solo detecta, te muestra una previa y espera.',
+  'comms.rev': 'Textos rev. {rev} · guardados {date}',
+  'comms.revNone': 'El documento de plantillas aún no existe — los envíos fallarán cerrados (templates-unavailable) hasta crearlo.',
+  'comms.loadError': 'Comunicaciones no pudo cargarse por completo ({reason}). Los pools afectados no muestran conteo.',
+  'comms.sweepTitle': '🔍 Barrido — detecciones en espera',
+  'comms.sweepEmpty': 'El barrido no encontró nada pendiente.',
+  'comms.sweepInstall': 'Instala la app',
+  'comms.sweepPlan': 'Plan nuevo cargado por su entrenador',
+  'comms.sweepPitch': 'Entrenador (mensual)',
+  'comms.sweepAi': 'IA de comidas — 3 días de uso',
+  'comms.sweepBenefits': 'Beneficios aún no enviados',
+  'comms.detected': '{n} detectados',
+  'comms.tplTitle': 'Plantillas',
+  'comms.addBtn': '＋ Agregar plantilla',
+  'comms.editBtn': 'Editar',
+  'comms.sendPoolBtn': 'Enviar al pool…',
+  'comms.tplOn': 'activa',
+  'comms.tplOff': 'apagada',
+  'comms.tplCustom': 'Plantilla {key}',
+  'comms.triggerManual': 'Manual',
+  'comms.triggerAsk': 'Barrido · pide tu toque primero',
+  'comms.triggerAuto': 'Barrido · automático',
+  'comms.editTitle': 'Editar plantilla · {key}',
+  'comms.subjEn': 'Asunto (EN)',
+  'comms.subjEs': 'Asunto (ES)',
+  'comms.bodyEn': 'Cuerpo (EN)',
+  'comms.bodyEs': 'Cuerpo (ES)',
+  'comms.artLabel': 'URL del arte (imagen del flyer)',
+  'comms.mediaLabel': 'URL de medio (segunda imagen o video)',
+  'comms.mediaKindLabel': 'Tipo de medio',
+  'comms.mediaKindNone': '— ninguno —',
+  'comms.mediaKindImage': 'Imagen',
+  'comms.mediaKindVideo': 'Video',
+  'comms.videoLabel': 'URL del video de instalación (se enlaza solo a destinatarios sin señal de instalación)',
+  'comms.triggerLabel': 'Disparo',
+  'comms.enabledLabel': 'Plantilla activa',
+  'comms.saveBtn': 'Guardar',
+  'comms.previewBtn': 'Vista previa',
+  'comms.cancelBtn': 'Cancelar',
+  'comms.deleteBtn': 'Eliminar',
+  'comms.disableBtn': 'Desactivar',
+  'comms.savedOk': 'Plantilla guardada ✓ (rev. {rev})',
+  'comms.deletedOk': 'Plantilla eliminada ✓',
+  'comms.saveError': 'No se pudo guardar — revisa tu conexión e inténtalo de nuevo.',
+  'comms.errRequired': 'El asunto y el cuerpo son obligatorios en inglés Y en español.',
+  'comms.errBanned': 'Un texto contiene una palabra prohibida en las superficies públicas de RONBO FIT. Usa en su lugar “alimentación / comidas” o “food / meals”.',
+  'comms.errUrl': 'Las URL deben empezar por https:// (o ir vacías).',
+  'comms.errKey': 'La clave debe empezar con una letra y usar solo letras y números (máx. 32).',
+  'comms.keyPrompt': 'Clave de la plantilla nueva (letras y números, ej. recordatorio2):',
+  'comms.keyExists': 'Esa clave ya existe.',
+  'comms.confirmDelete': '¿Eliminar la plantilla «{key}» para siempre?',
+  'comms.confirmDisable': '¿Desactivar la plantilla «{key}»? Dejará de enviarse; su texto queda guardado.',
+  'comms.sendTitle': 'Enviar a un pool',
+  'comms.sendBtn': '✉️ Enviar',
+  'comms.sendTheseBtn': 'Enviar a estos {n}',
+  'comms.recipients': '{n} destinatarios',
+  'comms.noRecipients': 'Este pool está vacío ahora mismo.',
+  'comms.previewFor': 'Vista previa — tal como la recibirá el primer destinatario: {name}',
+  'comms.progress': 'Enviando {done} de {total}…',
+  'comms.paused': 'en pausa',
+  'comms.pauseBtn': 'Pausar',
+  'comms.resumeBtn': 'Reanudar',
+  'comms.stopBtn': 'Detener',
+  'comms.doneOk': 'terminado: {sent} enviados, {failed} fallidos',
+  'comms.capStop': 'parada diaria de seguridad en {n} de {cap} — reanuda mañana; los ya enviados quedan anotados, así nadie recibe dos veces un correo de un solo uso',
+  'comms.todayCount': 'Enviados hoy desde este dispositivo: {n} de {cap}',
+  'comms.reasonTemplates': 'no se pudo leer el documento de plantillas (templates-unavailable)',
+  'comms.reasonPlan': 'no se pudo comprobar el contexto del plan en el servidor (plan-context)',
+  'comms.planBy': 'Plan «{title}» · de {trainer}',
+  'comms.onePersonLabel': 'Reenvío deliberado a una persona:',
+  'comms.onePersonBtn': 'Enviar a esta persona',
+  'comms.tpl.welcome': 'Bienvenida (cuenta aprobada)',
+  'comms.tpl.trainer': 'Elige a tu entrenador',
+  'comms.tpl.eval': 'Evaluación inicial',
+  'comms.tpl.meals': 'Cómo se activa el registro de comidas',
+  'comms.tpl.membership': 'Membresía de entrenador',
+  'comms.tpl.dossier': 'Completa tu perfil de entrenador',
+  'comms.tpl.install': 'Instala la app',
+  'comms.tpl.planLoaded': 'Tu plan está listo',
+  'comms.tpl.metrics': 'Datos que faltan para tus análisis',
+  'comms.tpl.benefits': 'Beneficios de tu cuenta (una sola vez)',
+  'comms.tpl.bodyImages': 'Cómo usamos y protegemos tus fotos del cuerpo',
+  'comms.tpl.trainerPitch': 'Un entrenador cambia lo que sigue',
+  'comms.tpl.aiDay3': 'Tres días con el escáner de comidas',
+  'comms.pool.trainers': 'Solo entrenadores',
+  'comms.pool.noTrainer': 'Sin entrenador',
+  'comms.pool.withTrainer': 'Con entrenador',
+  'comms.pool.withTrainerActive': 'Con entrenador · relación activa',
+  'comms.pool.withTrainerWaiting': 'Con entrenador · relación en espera',
+  'comms.pool.mealsOnly': 'Solo acceso a alimentación',
+  'comms.pool.trainingOnly': 'Solo acceso a plan de entrenamiento',
+  'comms.pool.allApproved': 'Todos los aprobados',
+  'comms.pool.pendingApproval': 'Pendientes de aprobación',
+  'comms.pool.noInstall': 'Sin señal de instalación',
+  'comms.pool.installSignal': 'Con señal de instalación',
+  'comms.pool.activePlan': 'Con plan activo',
+  'comms.pool.trainerNoPlan': 'Con entrenador y sin plan activo',
+  'comms.pool.checklist': 'Checklist incompleto',
+  'comms.pool.benefitsPending': 'Beneficios sin enviar',
+  'comms.pool.trainersNoMembership': 'Entrenadores sin membresía activa',
+  'comms.pool.aiDay3': 'Uso de IA de comidas ≥ 3 días',
+  'comms.pool.planNoticePending': 'Aviso de plan pendiente para el plan actual',
   'esc.mailCopied': 'Texto copiado',
   'esc.mailSubject': 'RONBO FIT — Completa tu plantilla de perfil para continuar',
   'esc.mailBody': 'Hola {name}:\n\nTu cuenta de entrenador en RONBO FIT ha sido aprobada. Para continuar con el procedimiento, completa tu plantilla de perfil (tu dossier) en la app: foto destacada, titular y tu reseña personal — además de tu experiencia, certificaciones, especialidades y los lugares donde atiendes presencialmente, si aplica en tu caso.\n\nLos alumnos ven esta plantilla al elegir entrenador, así que un perfil completo les ayuda a elegirte. Al entrar, la app te mostrará un pendiente, «Completa tu plantilla de perfil para continuar», que te lleva directo a tu dossier; desaparece solo cuando tu plantilla queda completa.\n\nGracias,\nRONBO FIT',
@@ -6378,19 +6569,6 @@ es: {
   'pend.cardTitle': 'Tienes pasos pendientes',
   'pend.cardBody': '{n} pendiente(s) de procedimiento — no son registros diarios.',
   'pend.cardBtn': 'Ver pendientes',
-  'esc.mail2.boxTitle': 'Textos de correo listos (envío manual)',
-  'esc.mail2.tplTrainer': 'Alumno: elige a tu entrenador',
-  'esc.mail2.tplEval': 'Alumno: evaluación inicial y consentimiento',
-  'esc.mail2.tplMeals': 'Alumno: cómo se activan las comidas',
-  'esc.mail2.tplMembership': 'Entrenador: solicita tu membresía',
-  'esc.mail2.subjTrainer': 'RONBO FIT — Elige a tu entrenador',
-  'esc.mail2.bodyTrainer': 'Hola:\n\nTu cuenta de RONBO FIT está aprobada. Tu siguiente paso es elegir a tu entrenador y tu modalidad: entra y abre «Mi entrenador» en tu pantalla principal — puedes revisar el perfil de cada entrenador antes de elegir. Si lo prefieres, puedes quedarte en espera y el administrador te asignará uno.\n\nGracias,\nRONBO FIT',
-  'esc.mail2.subjEval': 'RONBO FIT — Completa tu evaluación inicial',
-  'esc.mail2.bodyEval': 'Hola:\n\nPara terminar de preparar tu cuenta de RONBO FIT, completa tu evaluación inicial (datos de Nivel 1). En la app encontrarás un pendiente que te lleva hasta allí. Incluye tu consentimiento específico de salud — la casilla que permite a tu entrenador ver tu declaración de salud — y la propia declaración de salud (PAR-Q), que es opcional.\n\nGracias,\nRONBO FIT',
-  'esc.mail2.subjMeals': 'RONBO FIT — Cómo se activa el registro de comidas',
-  'esc.mail2.bodyMeals': 'Hola:\n\nEn RONBO FIT, el registro de comidas se activa solo a petición: pídelo desde «Mi entrenador» en la app, tu entrenador lo aprueba y el administrador lo confirma. Cuando ambos pasos están, el botón de comida aparece en tu app.\n\nGracias,\nRONBO FIT',
-  'esc.mail2.subjMembership': 'RONBO FIT — Solicita tu membresía de entrenador',
-  'esc.mail2.bodyMembership': 'Hola:\n\nTu cuenta de entrenador está aprobada y tu membresía sigue sin nivel — de ella depende tu cupo de alumnos (Básico 5 · Premium 10 · Élite 30). Solicita tu nivel desde tu panel en la app (pestaña «Mis clientes») y el administrador lo aprobará.\n\nGracias,\nRONBO FIT',
   'pend.evalMissing': 'Falta (requerido): {items}',
   'pend.goEval': 'Ir a Mi progreso',
   'pend.snooze': 'Posponer',
@@ -7507,6 +7685,12 @@ onAuthStateChanged(auth, async user => {
      Entrenadores; entrenador y alumno ni la ven. */
   const admTabBtn = document.querySelector('.main-tab[data-tab="admin"]');
   if (admTabBtn) admTabBtn.style.display = ROLE === 'administrador' ? '' : 'none';
+  /* «Comunicaciones» (AUTH-2026-11-01-146): la pastilla de correo
+     es SOLO del administrador, como Accesos — el entrenador ni la
+     ve (las plantillas son solo de administración, decisión de
+     Ronald 2026-10-28). */
+  const commsTabBtn = document.querySelector('.main-tab[data-tab="comms"]');
+  if (commsTabBtn) commsTabBtn.style.display = ROLE === 'administrador' ? '' : 'none';
   /* «Mis alumnos» (AUTH-2026-10-30-105): la pastilla propia del
      entrenador — la ven el administrador y el entrenador (quien
      tenga alumnos asignados); el alumno ni la ve. */
@@ -7526,6 +7710,11 @@ onAuthStateChanged(auth, async user => {
      app ya visible (junto a las demás sincronizaciones de sesión);
      la función se auto-protege por rol y corre en silencio. */
   trainerNotifySync();
+  /* AUTH-2026-11-01-146: barrido de Comunicaciones al abrir la app
+     del administrador (detección silenciosa; solo envía solo las
+     plantillas en modo automático — el modo aprobado por Ronald
+     es «según tu toque, con previa»). Se auto-protege por rol. */
+  commsWarm();
   /* AUTH-068: reanudar un enlace de aprobación si lo hay. */
   signupApproveResume();
 });
@@ -7899,49 +8088,12 @@ async function loadAdmin() {
       };
     })();
   }
-  /* Mapa por rol (extensión 2026-10-24): TEXTOS DE CORREO LISTOS
-     para los demás tipos de pendiente — bilingües según la
-     interfaz, copiables, envío MANUAL del administrador. Sin
-     envíos automáticos ni marcas de envío (eso es fase backend). */
-  const mailBox = $('mail-texts-box');
-  if (mailBox) {
-    const TPLS = [
-      ['welcome', 'esc.mail2.subjWelcome', 'esc.mail2.bodyWelcome', 'esc.mail2.tplWelcome'],
-      ['trainer', 'esc.mail2.subjTrainer', 'esc.mail2.bodyTrainer', 'esc.mail2.tplTrainer'],
-      ['eval', 'esc.mail2.subjEval', 'esc.mail2.bodyEval', 'esc.mail2.tplEval'],
-      ['meals', 'esc.mail2.subjMeals', 'esc.mail2.bodyMeals', 'esc.mail2.tplMeals'],
-      ['membership', 'esc.mail2.subjMembership', 'esc.mail2.bodyMembership', 'esc.mail2.tplMembership'],
-    ];
-    mailBox.innerHTML = `<div class="user-row"><div><b>${esc(t('esc.mail2.boxTitle'))}</b><br>
-      <select id="mail-tpl-sel">${TPLS.map(([k, , , lk]) => `<option value="${k}">${esc(t(lk))}</option>`).join('')}</select></div></div>
-      <textarea class="dos-mail-text" id="mail-tpl-text" rows="10" readonly></textarea>
-      <div class="eval-actions"><button type="button" class="btn-ghost btn-sm" id="mail-tpl-copy">${esc(t('esc.mailCopy'))}</button>
-      <label class="muted">${esc(t('mail.recipient'))} <select id="mail-tpl-user">${ADMIN_USERS.filter(u => !u.isOwner).map(u => `<option value="${u.id}">${esc(u.name || u.email || u.id)} (${esc(u.email || '')})</option>`).join('')}</select></label>
-      <button type="button" class="btn-primary btn-sm" id="mail-tpl-send">${esc(t('mail.sendBtn'))}</button></div>
-      <p class="progress-hint" id="mail-tpl-status"></p>`;
-    const fill = () => { const k = ($('mail-tpl-sel') || {}).value || 'trainer'; const tp = TPLS.find(x => x[0] === k); const ta = $('mail-tpl-text'); if (ta && tp) ta.value = `${t(tp[1])}\n\n${t(tp[2])}`; };
-    fill();
-    const selEl = $('mail-tpl-sel'); if (selEl) selEl.onchange = fill;
-    const cpBtn = $('mail-tpl-copy'); if (cpBtn) cpBtn.onclick = async () => {
-      const ta = $('mail-tpl-text');
-      try { await navigator.clipboard.writeText(ta.value); }
-      catch { if (ta) { ta.select(); try { document.execCommand('copy'); } catch {} } }
-      toast(t('esc.mailCopied'));
-    };
-    /* CORREO AUTOMÁTICO: enviar la plantilla elegida al usuario
-       elegido, por Gmail (el Worker compone y envía; aquí solo se
-       pide y se anuncia el resultado, sin silencio). */
-    const sendBtn = $('mail-tpl-send'); if (sendBtn) sendBtn.onclick = async () => {
-      const uid = ($('mail-tpl-user') || {}).value || '';
-      const st = $('mail-tpl-status');
-      if (!uid) return;
-      sendBtn.disabled = true;
-      if (st) st.textContent = t('mail.sending');
-      const res = await mailDeliver(uid, ($('mail-tpl-sel') || {}).value || 'welcome');
-      sendBtn.disabled = false;
-      if (st) st.textContent = res.ok ? t('mail.sentOk', { email: res.to }) : t('mail.sendFailed', { reason: mailReasonText(res) });
-    };
-  }
+  /* COMUNICACIONES (AUTH-2026-11-01-146): la caja «Textos de
+     correo» de Accesos se RETIRA — las plantillas viven ahora en la
+     sección «Comunicaciones», con su fuente única editable
+     (app_settings/mail_templates). Nada queda duplicado en dos
+     secciones: los envíos por usuario (aprobación, 📧 y dossier)
+     siguen llamando a /mail/send por clave, como siempre. */
   renderAiControlBox();
   renderFaqEditorBox();
   document.querySelectorAll('[data-goals]').forEach(b => b.onclick = () => {
@@ -13639,11 +13791,13 @@ async function mailSend(uid, template) {
       signal: ctl.signal
     });
     let j = null; try { j = await r.json(); } catch {}
-    return { ok: r.ok && !!(j && j.ok), status: r.status, error: (j && j.error) || '', to: (j && j.to) || '' };
+    return { ok: r.ok && !!(j && j.ok), status: r.status, error: (j && j.error) || '', to: (j && j.to) || '', planId: (j && j.planId) || '' };
   } catch { return { ok: false, status: 0, error: 'network' }; }
   finally { clearTimeout(timer); }
 }
 function mailReasonText(res) {
+  if (res.error === 'templates-unavailable') return t('comms.reasonTemplates');
+  if (res.error === 'plan-context') return t('comms.reasonPlan');
   if (res.status === 503 || res.error === 'mail-not-connected') return t('mail.reasonNotConnected');
   if (res.error === 'mail-off') return t('mail.reasonOff');
   if (res.status === 403) return t('mail.reasonForbidden');
@@ -13681,6 +13835,520 @@ async function mailAutoWelcome(uid, name) {
     else mailShowNotice(uid, name, mailReasonText(res));
     return res;
   } catch { mailShowNotice(uid, name, t('mail.reasonGeneric')); return { ok: false, status: 0, error: 'exception' }; }
+}
+
+
+/* ═══════════ COMUNICACIONES (AUTH-2026-11-01-141) ═══════════
+   La sección de correo del propietario (diseño aprobado
+   DISENO-COMUNICACIONES-2026-10-28 + decisiones de Ronald del
+   2026-10-28: arquitectura A, pools y plantillas como LISTAS
+   DESPLEGABLES, barrido SEGÚN SU TOQUE Y CON PREVIA, plantillas
+   solo de administración). Los textos viven en UNA fuente:
+   app_settings/mail_templates (solo el propietario lo lee/escribe
+   por reglas); el Worker compone cada correo desde ese documento
+   y jamás acepta texto en la petición. La app solo pide envíos
+   {uid, template} por la ruta de AUTH-061 y anota notices.* al
+   éxito, como siempre. Sin proceso servidor nuevo: el «barrido»
+   detecta al abrir la app del administrador o al entrar aquí.
+   La puerta del entrenador para planLoaded (automática e
+   invisible) quedó aprobada COMO FASE 2: no vive en este paquete;
+   aquí planLoaded sale por el barrido diferido del administrador. */
+const COMMS_SYSTEM_KEYS = ['welcome', 'trainer', 'eval', 'meals', 'membership', 'dossier',
+  'install', 'planLoaded', 'metrics', 'benefits', 'bodyImages', 'trainerPitch', 'aiDay3'];
+const COMMS_CAP = 450; /* tope prudente bajo el límite ~500/día del buzón (§4.6) */
+let COMMS = null;
+
+function commsMonth() { const d = new Date(); return d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0'); }
+function commsTodayKey() { const d = new Date(); return 'ronbofit-comms-sent-' + d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0') + '-' + String(d.getDate()).padStart(2, '0'); }
+function commsTodayCount() { try { return parseInt(localStorage.getItem(commsTodayKey()) || '0', 10) || 0; } catch { return 0; } }
+function commsBumpToday() { try { localStorage.setItem(commsTodayKey(), String(commsTodayCount() + 1)); } catch {} }
+function commsBanned(s) { return /nutrici|nutrition/i.test(String(s || '')); }
+
+async function commsLoadData() {
+  if (!IS_OWNER) return null;
+  const c = { users: [], rels: {}, membs: {}, plans: [], profiles: {}, aiDays: {}, latestReq: {}, checks: {}, err: {}, templates: null, rev: 0 };
+  try { const s = await getDoc(doc(db, 'app_settings', 'mail_templates')); if (s.exists()) { const d = s.data(); c.templates = d.templates || {}; c.rev = d.rev || 0; c.updatedAt = d.updatedAt || null; } } catch { c.err.templates = true; }
+  try { const s = await getDocs(collection(db, 'users')); s.forEach(d => c.users.push({ id: d.id, ...d.data() })); } catch { c.err.users = true; }
+  try { const s = await getDocs(collection(db, 'trainer_relations')); s.forEach(d => { c.rels[d.id] = d.data(); }); } catch { c.err.rels = true; }
+  try { const s = await getDocs(collection(db, 'memberships')); s.forEach(d => { c.membs[d.id] = d.data(); }); } catch { c.err.membs = true; }
+  try { const s = await getDocs(collection(db, 'training_plans')); s.forEach(d => c.plans.push({ id: d.id, ...d.data() })); } catch { c.err.plans = true; }
+  try { const s = await getDocs(collection(db, 'trainer_profiles')); s.forEach(d => { c.profiles[d.id] = d.data(); }); } catch { c.err.profiles = true; }
+  try {
+    const s = await getDocs(collection(db, 'nutrition_meals'));
+    const days = {};
+    s.forEach(d => { const m = d.data(); if (m && m.ownerUid && m.date && (m.source === 'ai' || m.source === 'ai-text' || m.source === 'ai-audio')) { (days[m.ownerUid] = days[m.ownerUid] || new Set()).add(m.date); } });
+    for (const k of Object.keys(days)) c.aiDays[k] = days[k].size;
+  } catch { c.err.meals = true; }
+  try {
+    const s = await getDocs(collection(db, 'meal_requests'));
+    const reqMs = x => (x && x.requestedAt && x.requestedAt.toMillis) ? x.requestedAt.toMillis() : 0;
+    s.forEach(d => { const r = { id: d.id, ...d.data() }; if (r.alumnoUid && (!c.latestReq[r.alumnoUid] || reqMs(r) >= reqMs(c.latestReq[r.alumnoUid]))) c.latestReq[r.alumnoUid] = r; });
+  } catch { c.err.reqs = true; }
+  COMMS = c;
+  return c;
+}
+
+/* Relación efectiva: la canónica (trainer_relations) primero y los
+   campos espejo del usuario como caída — la misma precedencia de
+   la app; los pools no inventan una tercera verdad (diseño §2). */
+function commsEffRel(u) {
+  const r = COMMS.rels[u.id];
+  if (r && typeof r === 'object' && ('trainerUid' in r)) {
+    return { trainerUid: r.trainerUid || null, active: r.status === 'activa' };
+  }
+  return { trainerUid: u.trainerUid || null, active: u.assignmentStatus === 'assigned' };
+}
+function commsActivePlan(uid) {
+  let best = null;
+  for (const p of COMMS.plans) {
+    if (p.clientUid !== uid || p.active !== true || p.isSnapshot === true) continue;
+    const ms = (p.createdAt && p.createdAt.toMillis) ? p.createdAt.toMillis() : 0;
+    if (!best || ms >= best.ms) best = { plan: p, ms };
+  }
+  return best ? best.plan : null;
+}
+function commsPlanByTrainer(u) {
+  const rel = commsEffRel(u);
+  if (!rel.trainerUid) return null;
+  let best = null;
+  for (const p of COMMS.plans) {
+    if (p.clientUid !== u.id || p.active !== true || p.isSnapshot === true || p.createdBy !== rel.trainerUid) continue;
+    const ms = (p.createdAt && p.createdAt.toMillis) ? p.createdAt.toMillis() : 0;
+    if (!best || ms >= best.ms) best = { plan: p, ms };
+  }
+  return best ? best.plan : null;
+}
+function commsTrainerName(tuid) {
+  const prof = COMMS.profiles[tuid];
+  if (prof && prof.displayName) return prof.displayName;
+  const tu = COMMS.users.find(x => x.id === tuid);
+  return (tu && (tu.name || tu.email)) || 'RONBO FIT';
+}
+function commsTrainerPct(u) {
+  const prof = COMMS.profiles[u.id] || null;
+  const base = dosProfileComplete(prof);
+  const memb = COMMS.membs[u.id];
+  const noCerts = !prof || !Array.isArray(prof.certifications) || !prof.certifications.length;
+  const mods = prof && Array.isArray(prof.modalities) && prof.modalities.length ? prof.modalities : ESC_MODALITIES;
+  const noPlaces = !!prof && mods.includes('presencial') && (!Array.isArray(prof.places) || !prof.places.length);
+  const rows = [
+    { done: base },
+    { done: !!(memb && (memb.status === 'pendiente' || memb.status === 'activa')) },
+    { done: base && !(noCerts || noPlaces) },
+  ];
+  const done = rows.filter(r => r.done).length;
+  return Math.round(done / rows.length * 100);
+}
+
+const COMMS_POOLS = [
+  { id: 'trainers', needs: [], fn: u => u.role === 'entrenador' },
+  { id: 'noTrainer', needs: ['rels'], fn: u => u.role !== 'entrenador' && (u.role || 'usuario') === 'usuario' && u.approved === true && !commsEffRel(u).trainerUid },
+  { id: 'withTrainer', needs: ['rels'], fn: u => (u.role || 'usuario') === 'usuario' && u.approved === true && !!commsEffRel(u).trainerUid },
+  { id: 'withTrainerActive', needs: ['rels'], fn: u => (u.role || 'usuario') === 'usuario' && u.approved === true && !!commsEffRel(u).trainerUid && commsEffRel(u).active },
+  { id: 'withTrainerWaiting', needs: ['rels'], fn: u => (u.role || 'usuario') === 'usuario' && u.approved === true && !!commsEffRel(u).trainerUid && !commsEffRel(u).active },
+  { id: 'mealsOnly', needs: [], fn: u => { const f = (u.features && typeof u.features === 'object') ? u.features : null; return !!f && f.meals === true && f.training !== true; } },
+  { id: 'trainingOnly', needs: [], fn: u => { const f = (u.features && typeof u.features === 'object') ? u.features : null; return !!f && f.training === true && f.meals !== true; } },
+  { id: 'allApproved', needs: [], fn: u => u.approved === true },
+  { id: 'pendingApproval', needs: [], fn: u => u.approved !== true },
+  { id: 'noInstall', needs: [], fn: u => u.approved === true && !(u.appInstall && u.appInstall.everInstalled === true) },
+  { id: 'installSignal', needs: [], fn: u => !!(u.appInstall && u.appInstall.everInstalled === true) },
+  { id: 'activePlan', needs: ['plans'], fn: u => !!commsActivePlan(u.id) },
+  { id: 'trainerNoPlan', needs: ['rels', 'plans'], fn: u => (u.role || 'usuario') === 'usuario' && u.approved === true && !!commsEffRel(u).trainerUid && !commsActivePlan(u.id) },
+  { id: 'checklist', needs: ['checks'], fn: u => { const p = COMMS.checks[u.id]; return typeof p === 'number' && p < 100; } },
+  { id: 'benefitsPending', needs: [], fn: u => u.approved === true && !(u.notices && u.notices.benefits) },
+  { id: 'trainersNoMembership', needs: ['membs'], fn: u => u.role === 'entrenador' && !(COMMS.membs[u.id] && COMMS.membs[u.id].status === 'activa') },
+  { id: 'aiDay3', needs: ['meals'], fn: u => (COMMS.aiDays[u.id] || 0) >= 3 && !(u.notices && u.notices.aiDay3) },
+  { id: 'planNoticePending', needs: ['rels', 'plans'], fn: u => { const p = commsPlanByTrainer(u); return !!p && !(u.notices && u.notices.planLoaded && u.notices.planLoaded.planId === p.id); } },
+];
+function commsPoolReady(p) { return !p.needs.some(n => COMMS.err[n]); }
+function commsPoolMembers(id) {
+  const p = COMMS_POOLS.find(x => x.id === id);
+  if (!p || !commsPoolReady(p)) return [];
+  return COMMS.users.filter(u => !u.isOwner && u.email && p.fn(u));
+}
+
+/* Detecciones del barrido (diseño §4.4): T1, T2, T6, T7 y la oferta
+   de T4. Cada grupo nace de su pool y de su anotación: lo ya
+   avisado no se detecta dos veces. */
+function commsSweepGroups() {
+  if (!COMMS || !COMMS.templates) return [];
+  const g = [];
+  const add = (tplKey, labelKey, members) => { const tpl = COMMS.templates[tplKey]; if (tpl && tpl.enabled !== false && members.length) g.push({ tplKey, labelKey, members, trigger: tpl.trigger || 'manual' }); };
+  add('install', 'comms.sweepInstall', commsPoolMembers('noInstall').filter(u => !(u.notices && u.notices.install)).map(u => ({ u })));
+  add('planLoaded', 'comms.sweepPlan', commsPoolMembers('planNoticePending').map(u => ({ u, plan: commsPlanByTrainer(u) })));
+  add('trainerPitch', 'comms.sweepPitch', commsPoolMembers('noTrainer').filter(u => !(u.notices && u.notices.trainerPitch && u.notices.trainerPitch.month === commsMonth())).map(u => ({ u })));
+  add('aiDay3', 'comms.sweepAi', commsPoolMembers('aiDay3').map(u => ({ u })));
+  add('benefits', 'comms.sweepBenefits', commsPoolMembers('benefitsPending').map(u => ({ u })));
+  return g;
+}
+
+async function commsAnnotate(uid, tplKey, res) {
+  try {
+    if (tplKey === 'planLoaded') {
+      const u = COMMS.users.find(x => x.id === uid);
+      const p = u ? commsPlanByTrainer(u) : null;
+      const pid = (res && res.planId) || (p && p.id) || '';
+      await setDoc(doc(db, 'users', uid), { notices: { planLoaded: { at: serverTimestamp(), by: auth.currentUser.uid, template: 'planLoaded', planId: pid } } }, { merge: true });
+      if (u) { u.notices = u.notices || {}; u.notices.planLoaded = { planId: pid }; }
+    } else if (tplKey === 'trainerPitch') {
+      await setDoc(doc(db, 'users', uid), { notices: { trainerPitch: { at: serverTimestamp(), by: auth.currentUser.uid, template: 'trainerPitch', month: commsMonth() } } }, { merge: true });
+      const u = COMMS.users.find(x => x.id === uid); if (u) { u.notices = u.notices || {}; u.notices.trainerPitch = { month: commsMonth() }; }
+    } else {
+      await mailRecordNotice(uid, tplKey);
+      const u = COMMS.users.find(x => x.id === uid); if (u) { u.notices = u.notices || {}; u.notices[tplKey] = { template: tplKey }; }
+    }
+  } catch {}
+}
+
+/* Cola secuencial 1 a 1 (diseño §4.6): progreso visible, pausa y
+   reanudación; el contador del día detiene la corrida al acercarse
+   al tope del buzón y las anotaciones hacen el resto (nadie recibe
+   dos veces lo de un solo uso). */
+async function commsRunQueue(tplKey, members, ui) {
+  const run = { tplKey, total: members.length, done: 0, sent: 0, failed: 0, paused: false, stopped: false, capped: false };
+  COMMS.run = run;
+  ui.onProgress(run, null);
+  for (const m of members) {
+    if (run.stopped) break;
+    while (run.paused && !run.stopped) { await new Promise(r => setTimeout(r, 250)); }
+    if (run.stopped) break;
+    if (commsTodayCount() >= COMMS_CAP) { run.capped = true; break; }
+    const res = await mailSend(m.u.id, tplKey);
+    run.done++;
+    if (res.ok) { run.sent++; commsBumpToday(); await commsAnnotate(m.u.id, tplKey, res); }
+    else run.failed++;
+    ui.onProgress(run, { u: m.u, res });
+  }
+  run.finished = true;
+  ui.onProgress(run, null);
+  return run;
+}
+function commsReasonText(res) {
+  if (res && res.error === 'templates-unavailable') return t('comms.reasonTemplates');
+  if (res && res.error === 'plan-context') return t('comms.reasonPlan');
+  return mailReasonText(res);
+}
+function commsQueueUI(box) {
+  return {
+    onProgress(run, item) {
+      if (!box) return;
+      const head = box.querySelector('.comms-run-head');
+      if (head) head.innerHTML = `<b>${esc(t('comms.progress', { done: run.done, total: run.total }))}</b>
+        ${run.paused ? ` · ${esc(t('comms.paused'))}` : ''}${run.capped ? ` · ${esc(t('comms.capStop', { n: commsTodayCount(), cap: COMMS_CAP }))}` : ''}
+        ${run.finished ? ` · ${esc(t('comms.doneOk', { sent: run.sent, failed: run.failed }))}` : ''}`;
+      const list = box.querySelector('.comms-run-list');
+      if (list && item) {
+        const line = document.createElement('div');
+        line.className = 'comms-run-line';
+        line.textContent = item.res.ok
+          ? `✓ ${item.u.name || item.u.email} → ${item.res.to || item.u.email}`
+          : `✗ ${item.u.name || item.u.email} — ${commsReasonText(item.res)}`;
+        list.appendChild(line);
+      }
+      const pb = box.querySelector('[data-run-pause]'); if (pb) pb.textContent = run.paused ? t('comms.resumeBtn') : t('comms.pauseBtn');
+      const sb = box.querySelector('[data-run-stop]'); if (sb) sb.disabled = !!run.finished;
+      if (pb) pb.disabled = !!run.finished;
+    }
+  };
+}
+function commsRunControlsHTML() {
+  return `<div class="eval-actions"><button type="button" class="btn-ghost btn-sm" data-run-pause>${esc(t('comms.pauseBtn'))}</button>
+    <button type="button" class="btn-ghost btn-sm" data-run-stop>${esc(t('comms.stopBtn'))}</button></div>`;
+}
+function commsWireRunControls(box) {
+  const pb = box.querySelector('[data-run-pause]');
+  if (pb) pb.onclick = () => { if (COMMS.run) { COMMS.run.paused = !COMMS.run.paused; commsQueueUI(box).onProgress(COMMS.run, null); } };
+  const sb = box.querySelector('[data-run-stop]');
+  if (sb) sb.onclick = () => { if (COMMS.run) COMMS.run.stopped = true; };
+}
+
+function commsTplTitle(key) {
+  const k = 'comms.tpl.' + key;
+  const v = t(k);
+  return v !== k ? v : t('comms.tplCustom', { key });
+}
+function commsTriggerLabel(tr) {
+  return tr === 'sweep-auto' ? t('comms.triggerAuto') : tr === 'sweep-ask' ? t('comms.triggerAsk') : t('comms.triggerManual');
+}
+function commsFillPreview(tpl, lang, u, plan) {
+  const name = (u && (u.name || (u.email || '').split('@')[0])) || '';
+  let s = tpl.body[lang] || '';
+  let subj = tpl.subject[lang] || '';
+  const rel = u ? commsEffRel(u) : { trainerUid: null };
+  const tn = rel.trainerUid ? commsTrainerName(rel.trainerUid) : 'RONBO FIT';
+  const pt = plan ? (plan.title || '') : '';
+  const fill = x => x.split('{name}').join(name).split('{trainerName}').join(tn).split('{trainer}').join(tn).split('{planTitle}').join(pt);
+  return { subject: fill(subj), body: fill(s) };
+}
+
+async function renderComms() {
+  const sec = $('comms-section');
+  if (!sec) return;
+  if (!IS_OWNER) { sec.style.display = 'none'; return; }
+  sec.style.display = '';
+  if (!COMMS) await commsLoadData();
+  if (!COMMS) return;
+  /* El % del checklist por persona (pool T3): alumnos con la misma
+     clientProfileChecklist de la casa; entrenadores con sus 3
+     filas. Se calcula una vez por carga de la sección. */
+  if (!COMMS.err.users) {
+    for (const u of COMMS.users) {
+      if (u.isOwner || COMMS.checks[u.id] !== undefined) continue;
+      if (u.role === 'entrenador') COMMS.checks[u.id] = commsTrainerPct(u);
+      else {
+        try { const chk = await clientProfileChecklist(u, COMMS.latestReq[u.id] || null); COMMS.checks[u.id] = chk ? chk.pct : null; }
+        catch { COMMS.checks[u.id] = null; }
+      }
+    }
+  }
+  const revEl = $('comms-rev');
+  if (revEl) {
+    revEl.textContent = COMMS.err.templates
+      ? t('comms.loadError', { reason: 'templates' })
+      : (COMMS.templates ? t('comms.rev', { rev: COMMS.rev, date: COMMS.updatedAt && COMMS.updatedAt.toDate ? COMMS.updatedAt.toDate().toLocaleDateString() : '' }) : t('comms.revNone'));
+  }
+  commsRenderTplSelect();
+  commsRenderSweep();
+  commsRenderSendPanel();
+}
+
+function commsRenderTplSelect() {
+  const sel = $('comms-tpl-sel');
+  if (!sel || !COMMS.templates) return;
+  const keys = Object.keys(COMMS.templates).sort((a, b) => {
+    const ia = COMMS_SYSTEM_KEYS.indexOf(a), ib = COMMS_SYSTEM_KEYS.indexOf(b);
+    return (ia === -1 ? 99 : ia) - (ib === -1 ? 99 : ib) || a.localeCompare(b);
+  });
+  const cur = COMMS.selTpl && COMMS.templates[COMMS.selTpl] ? COMMS.selTpl : (keys[0] || '');
+  COMMS.selTpl = cur;
+  sel.innerHTML = keys.map(k => `<option value="${esc(k)}"${k === cur ? ' selected' : ''}>${esc(commsTplTitle(k))} (${esc(k)})${COMMS.templates[k].enabled === false ? ' — ' + esc(t('comms.tplOff')) : ''}</option>`).join('');
+  sel.onchange = () => { COMMS.selTpl = sel.value; commsRenderTplCard(); commsRenderSendPanel(); };
+  const add = $('comms-tpl-add');
+  if (add) add.onclick = () => {
+    const key = (prompt(t('comms.keyPrompt')) || '').trim();
+    if (!key) return;
+    if (!/^[a-z][a-zA-Z0-9]{0,31}$/.test(key)) { toast(t('comms.errKey')); return; }
+    if (COMMS.templates[key]) { toast(t('comms.keyExists')); return; }
+    COMMS.templates[key] = { subject: { en: '', es: '' }, body: { en: '', es: '' }, artUrl: '', mediaUrl: '', mediaKind: '', videoUrl: '', trigger: 'manual', enabled: true };
+    COMMS.selTpl = key;
+    commsRenderTplSelect();
+    commsOpenEditor(key);
+  };
+  commsRenderTplCard();
+}
+
+function commsRenderTplCard() {
+  const box = $('comms-tpl-card');
+  if (!box || !COMMS.templates) return;
+  const key = COMMS.selTpl;
+  const tpl = COMMS.templates[key];
+  if (!tpl) { box.innerHTML = ''; return; }
+  const onePerson = key === 'benefits' ? `
+    <div class="comms-oneperson">
+      <label class="muted">${esc(t('comms.onePersonLabel'))} <select id="comms-one-user">${COMMS.users.filter(u => !u.isOwner && u.email && u.approved === true).map(u => `<option value="${esc(u.id)}">${esc(u.name || u.email)} (${esc(u.email)})</option>`).join('')}</select></label>
+      <button type="button" class="btn-ghost btn-sm" id="comms-one-send">${esc(t('comms.onePersonBtn'))}</button>
+      <span class="muted" id="comms-one-status"></span>
+    </div>` : '';
+  box.innerHTML = `<div class="panel comms-card">
+    <div class="comms-card-head">
+      ${tpl.artUrl ? `<img class="comms-thumb" src="${esc(tpl.artUrl)}" alt="">` : `<div class="comms-thumb comms-thumb-none">✉️</div>`}
+      <div><b>${esc(commsTplTitle(key))}</b> <span class="muted">(${esc(key)})</span><br>
+      <span class="muted">${esc(commsTriggerLabel(tpl.trigger))} · ${tpl.enabled === false ? esc(t('comms.tplOff')) : esc(t('comms.tplOn'))}</span></div>
+    </div>
+    <div class="eval-actions">
+      <button type="button" class="btn-primary btn-sm" id="comms-tpl-edit">${esc(t('comms.editBtn'))}</button>
+      <button type="button" class="btn-ghost btn-sm" id="comms-tpl-sendpool">${esc(t('comms.sendPoolBtn'))}</button>
+    </div>${onePerson}
+  </div>`;
+  const ed = $('comms-tpl-edit'); if (ed) ed.onclick = () => commsOpenEditor(key);
+  const sp = $('comms-tpl-sendpool'); if (sp) sp.onclick = () => { const p = $('comms-pool-sel'); if (p) p.focus(); const b = $('comms-send-box'); if (b) b.scrollIntoView({ behavior: 'smooth', block: 'center' }); };
+  const os = $('comms-one-send');
+  if (os) os.onclick = async () => {
+    const uid = ($('comms-one-user') || {}).value || '';
+    const st = $('comms-one-status');
+    if (!uid) return;
+    os.disabled = true;
+    const res = await mailSend(uid, key);
+    if (res.ok) { commsBumpToday(); await commsAnnotate(uid, key, res); if (st) st.textContent = t('mail.sentOk', { email: res.to }); }
+    else if (st) st.textContent = t('mail.sendFailed', { reason: commsReasonText(res) });
+    os.disabled = false;
+  };
+}
+
+function commsOpenEditor(key) {
+  const box = $('comms-editor');
+  if (!box || !COMMS.templates) return;
+  const tpl = COMMS.templates[key] || { subject: { en: '', es: '' }, body: { en: '', es: '' }, artUrl: '', mediaUrl: '', mediaKind: '', videoUrl: '', trigger: 'manual', enabled: true };
+  const isSystem = COMMS_SYSTEM_KEYS.includes(key);
+  box.style.display = '';
+  box.innerHTML = `<div class="panel comms-editor">
+    <h3 class="history-title">${esc(t('comms.editTitle', { key }))}</h3>
+    <label>${esc(t('comms.subjEn'))}<input type="text" id="ce-subj-en" value="${esc(tpl.subject.en || '')}"></label>
+    <label>${esc(t('comms.subjEs'))}<input type="text" id="ce-subj-es" value="${esc(tpl.subject.es || '')}"></label>
+    <label>${esc(t('comms.bodyEn'))}<textarea id="ce-body-en" rows="9">${esc(tpl.body.en || '')}</textarea></label>
+    <label>${esc(t('comms.bodyEs'))}<textarea id="ce-body-es" rows="9">${esc(tpl.body.es || '')}</textarea></label>
+    <label>${esc(t('comms.artLabel'))}<input type="text" id="ce-art" value="${esc(tpl.artUrl || '')}" placeholder="https://"></label>
+    <label>${esc(t('comms.mediaLabel'))}<input type="text" id="ce-media" value="${esc(tpl.mediaUrl || '')}" placeholder="https://"></label>
+    <label>${esc(t('comms.mediaKindLabel'))}<select id="ce-mkind">
+      <option value=""${!tpl.mediaKind ? ' selected' : ''}>${esc(t('comms.mediaKindNone'))}</option>
+      <option value="image"${tpl.mediaKind === 'image' ? ' selected' : ''}>${esc(t('comms.mediaKindImage'))}</option>
+      <option value="video"${tpl.mediaKind === 'video' ? ' selected' : ''}>${esc(t('comms.mediaKindVideo'))}</option></select></label>
+    <label>${esc(t('comms.videoLabel'))}<input type="text" id="ce-video" value="${esc(tpl.videoUrl || '')}" placeholder="https://"></label>
+    <label>${esc(t('comms.triggerLabel'))}<select id="ce-trigger">
+      <option value="manual"${tpl.trigger === 'manual' ? ' selected' : ''}>${esc(t('comms.triggerManual'))}</option>
+      <option value="sweep-ask"${tpl.trigger === 'sweep-ask' ? ' selected' : ''}>${esc(t('comms.triggerAsk'))}</option>
+      <option value="sweep-auto"${tpl.trigger === 'sweep-auto' ? ' selected' : ''}>${esc(t('comms.triggerAuto'))}</option></select></label>
+    <label class="comms-check"><input type="checkbox" id="ce-enabled"${tpl.enabled !== false ? ' checked' : ''}> ${esc(t('comms.enabledLabel'))}</label>
+    <p class="progress-hint" id="ce-error" style="display:none"></p>
+    <div class="eval-actions">
+      <button type="button" class="btn-primary btn-sm" id="ce-save">${esc(t('comms.saveBtn'))}</button>
+      <button type="button" class="btn-ghost btn-sm" id="ce-preview">${esc(t('comms.previewBtn'))}</button>
+      <button type="button" class="btn-ghost btn-sm" id="ce-cancel">${esc(t('comms.cancelBtn'))}</button>
+      <button type="button" class="btn-ghost btn-sm" id="ce-delete">${esc(isSystem ? t('comms.disableBtn') : t('comms.deleteBtn'))}</button>
+    </div>
+    <div id="ce-preview-box" style="display:none"></div>
+  </div>`;
+  const err = (msg) => { const e = $('ce-error'); if (e) { e.textContent = msg; e.style.display = ''; } };
+  const read = () => ({
+    subject: { en: ($('ce-subj-en').value || '').trim(), es: ($('ce-subj-es').value || '').trim() },
+    body: { en: $('ce-body-en').value || '', es: $('ce-body-es').value || '' },
+    artUrl: ($('ce-art').value || '').trim(), mediaUrl: ($('ce-media').value || '').trim(),
+    mediaKind: $('ce-mkind').value || '', videoUrl: ($('ce-video').value || '').trim(),
+    trigger: $('ce-trigger').value || 'manual', enabled: $('ce-enabled').checked,
+  });
+  $('ce-preview').onclick = () => {
+    const v = read();
+    const pv = $('ce-preview-box');
+    const u = COMMS.users.find(x => !x.isOwner && x.email) || null;
+    const en = commsFillPreview(v, 'en', u, null);
+    pv.style.display = '';
+    pv.innerHTML = `<div class="comms-preview"><b>${esc(en.subject)}</b><pre>${esc(en.body)}</pre></div>`;
+  };
+  $('ce-cancel').onclick = () => { box.style.display = 'none'; box.innerHTML = ''; };
+  $('ce-delete').onclick = async () => {
+    if (isSystem) {
+      if (!confirm(t('comms.confirmDisable', { key }))) return;
+      await commsSaveTpl(key, { ...tpl, enabled: false });
+    } else {
+      if (!confirm(t('comms.confirmDelete', { key }))) return;
+      try {
+        await setDoc(doc(db, 'app_settings', 'mail_templates'), { templates: { [key]: deleteField() }, rev: (COMMS.rev || 0) + 1, updatedAt: serverTimestamp(), updatedBy: auth.currentUser.uid }, { merge: true });
+        delete COMMS.templates[key]; COMMS.rev = (COMMS.rev || 0) + 1; COMMS.selTpl = 'welcome';
+        toast(t('comms.deletedOk'));
+      } catch { toast(t('comms.saveError')); return; }
+    }
+    box.style.display = 'none'; box.innerHTML = '';
+    renderComms();
+  };
+  $('ce-save').onclick = async () => {
+    const v = read();
+    if (!v.subject.en || !v.subject.es || !v.body.en.trim() || !v.body.es.trim()) { err(t('comms.errRequired')); return; }
+    if ([v.subject.en, v.subject.es, v.body.en, v.body.es].some(commsBanned)) { err(t('comms.errBanned')); return; }
+    for (const url of [v.artUrl, v.mediaUrl, v.videoUrl]) { if (url && !url.startsWith('https://')) { err(t('comms.errUrl')); return; } }
+    const ok = await commsSaveTpl(key, v);
+    if (ok) { box.style.display = 'none'; box.innerHTML = ''; renderComms(); }
+    else err(t('comms.saveError'));
+  };
+}
+async function commsSaveTpl(key, tpl) {
+  try {
+    await setDoc(doc(db, 'app_settings', 'mail_templates'),
+      { templates: { [key]: tpl }, rev: (COMMS.rev || 0) + 1, updatedAt: serverTimestamp(), updatedBy: auth.currentUser.uid }, { merge: true });
+    COMMS.templates[key] = tpl;
+    COMMS.rev = (COMMS.rev || 0) + 1;
+    toast(t('comms.savedOk', { rev: COMMS.rev }));
+    return true;
+  } catch { return false; }
+}
+
+function commsRenderSweep() {
+  const box = $('comms-sweep');
+  if (!box || !COMMS.templates) return;
+  const groups = commsSweepGroups();
+  if (!groups.length) { box.innerHTML = `<div class="panel"><b>${esc(t('comms.sweepTitle'))}</b><p class="progress-hint">${esc(t('comms.sweepEmpty'))}</p></div>`; return; }
+  box.innerHTML = `<div class="panel"><b>${esc(t('comms.sweepTitle'))}</b>
+    <p class="progress-hint">${esc(t('comms.todayCount', { n: commsTodayCount(), cap: COMMS_CAP }))}</p>
+    ${groups.map((g, gi) => `<div class="comms-sweep-group" data-sweep="${gi}">
+      <span><b>${esc(t(g.labelKey))}</b> — ${esc(t('comms.detected', { n: g.members.length }))} · ${esc(commsTriggerLabel(g.trigger))}</span>
+      <div class="eval-actions">
+        <button type="button" class="btn-ghost btn-sm" data-sweep-preview="${gi}">${esc(t('comms.previewBtn'))}</button>
+        ${g.trigger === 'sweep-auto' ? '' : `<button type="button" class="btn-primary btn-sm" data-sweep-send="${gi}">${esc(t('comms.sendTheseBtn', { n: g.members.length }))}</button>`}
+      </div>
+      <div class="comms-preview-list" data-sweep-list="${gi}" style="display:none"></div>
+      <div class="comms-run" data-sweep-run="${gi}" style="display:none"><div class="comms-run-head"></div>${commsRunControlsHTML()}<div class="comms-run-list"></div></div>
+    </div>`).join('')}
+  </div>`;
+  groups.forEach((g, gi) => {
+    const pv = box.querySelector(`[data-sweep-preview="${gi}"]`);
+    if (pv) pv.onclick = () => {
+      const list = box.querySelector(`[data-sweep-list="${gi}"]`);
+      if (!list) return;
+      if (list.style.display !== 'none') { list.style.display = 'none'; return; }
+      list.innerHTML = g.members.map(m => `<div class="comms-run-line">${esc(m.u.name || m.u.email)} (${esc(m.u.email)})${m.plan ? ' · ' + esc(t('comms.planBy', { title: m.plan.title || m.plan.id, trainer: commsTrainerName(commsEffRel(m.u).trainerUid) })) : ''}</div>`).join('');
+      list.style.display = '';
+    };
+    const sd = box.querySelector(`[data-sweep-send="${gi}"]`);
+    if (sd) sd.onclick = async () => {
+      const runBox = box.querySelector(`[data-sweep-run="${gi}"]`);
+      if (runBox) { runBox.style.display = ''; commsWireRunControls(runBox); }
+      sd.disabled = true;
+      await commsRunQueue(g.tplKey, g.members, commsQueueUI(runBox));
+      commsRenderSweep();
+      commsRenderSendPanel();
+    };
+  });
+}
+
+function commsRenderSendPanel() {
+  const sel = $('comms-pool-sel');
+  const box = $('comms-send-box');
+  if (!sel || !box || !COMMS.templates) return;
+  const cur = COMMS.selPool && COMMS_POOLS.some(p => p.id === COMMS.selPool) ? COMMS.selPool : 'allApproved';
+  COMMS.selPool = cur;
+  sel.innerHTML = COMMS_POOLS.map(p => {
+    const ready = commsPoolReady(p);
+    const n = ready ? commsPoolMembers(p.id).length : '—';
+    return `<option value="${p.id}"${p.id === cur ? ' selected' : ''}>${esc(t('comms.pool.' + p.id))} (${n})</option>`;
+  }).join('');
+  sel.onchange = () => { COMMS.selPool = sel.value; commsRenderSendPanel(); };
+  const sendBtn = $('comms-send-btn');
+  const members = commsPoolMembers(cur).map(u => ({ u, plan: commsPlanByTrainer(u) }));
+  const tpl = COMMS.templates[COMMS.selTpl];
+  if (!tpl) { box.innerHTML = ''; return; }
+  const first = members[0];
+  const pv = first ? commsFillPreview(tpl, LANG, first.u, first.plan) : null;
+  box.innerHTML = `<p class="progress-hint">${esc(t('comms.recipients', { n: members.length }))} · ${esc(commsTplTitle(COMMS.selTpl))} · ${esc(t('comms.todayCount', { n: commsTodayCount(), cap: COMMS_CAP }))}</p>
+    ${first ? `<div class="comms-preview"><div class="muted">${esc(t('comms.previewFor', { name: first.u.name || first.u.email }))}</div><b>${esc(pv.subject)}</b><pre>${esc(pv.body)}</pre></div>
+    <div class="comms-preview-list">${members.map(m => `<div class="comms-run-line">${esc(m.u.name || m.u.email)} (${esc(m.u.email)})</div>`).join('')}</div>`
+    : `<p class="progress-hint">${esc(t('comms.noRecipients'))}</p>`}
+    <div class="comms-run" id="comms-send-run" style="display:none"><div class="comms-run-head"></div>${commsRunControlsHTML()}<div class="comms-run-list"></div></div>`;
+  if (sendBtn) {
+    sendBtn.disabled = !members.length || tpl.enabled === false;
+    sendBtn.onclick = async () => {
+      const runBox = $('comms-send-run');
+      if (runBox) { runBox.style.display = ''; commsWireRunControls(runBox); }
+      sendBtn.disabled = true;
+      await commsRunQueue(COMMS.selTpl, members, commsQueueUI(runBox));
+      commsRenderSendPanel();
+      commsRenderSweep();
+    };
+  }
+}
+
+/* Barrido al abrir la app del administrador (diseño §4.4): detecta
+   en silencio y, SOLO para las plantillas en modo automático, envía
+   y deja el resultado en la bandeja. En modo «pide tu toque» (el
+   aprobado por Ronald) nada sale sin su toque con previa. */
+async function commsWarm() {
+  if (!IS_OWNER) return;
+  try {
+    if (!COMMS) await commsLoadData();
+    if (!COMMS || !COMMS.templates) return;
+    const groups = commsSweepGroups().filter(g => g.trigger === 'sweep-auto');
+    for (const g of groups) {
+      await commsRunQueue(g.tplKey, g.members, { onProgress() {} });
+    }
+  } catch {}
 }
 
 /* ═══════════ REGISTRO Y APROBACIÓN EN UN CLIC (AUTH-2026-10-28-068) ═══════════
@@ -23917,6 +24585,10 @@ function switchTab(name) {
      una llamada a /admin/usage por apertura y ninguna antes. Su
      propia puerta de rol vive dentro de renderAdminZone. */
   if (name === 'admin') { try { renderAdminZone().catch(() => {}); } catch {} }
+  /* «Comunicaciones» (AUTH-2026-11-01-146): su vista se pinta al
+     abrirla, como Administración; su puerta de rol vive dentro de
+     renderComms (solo el propietario). */
+  if (name === 'comms') { try { renderComms().catch(() => {}); } catch {} }
   try { helpFabSync(name); } catch {}
   try { swFabSync(name); } catch {}
   try { goalsCardSync(name); } catch {}
@@ -28792,7 +29464,7 @@ document.addEventListener('keydown', e => { if (e.key === 'Escape') shareClose()
  *  - El SW (sw.js) solo cachea la cáscara del mismo origen en modo
  *    RED PRIMERO: Auth/Firestore/Worker jamás pasan por la caché.
  * ================================================================ */
-const PWA_SW_VERSION = '20261101-boton-x-ventanas';
+const PWA_SW_VERSION = '20261101-comunicaciones';
 let pwaDeferredPrompt = null;
 function pwaIsStandalone() {
   try {

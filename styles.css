@@ -2649,3 +2649,20 @@ body.prog-page #progress-content.nav-page-on { padding-right: 88px; }
 .nav-page-head .nav-page-title { flex: 1 1 auto; min-width: 0; }
 .nav-page-x { position: relative; }
 .nav-page-x::after { content: ''; position: absolute; inset: -8px; border-radius: 50%; }
+
+/* ═══ COMUNICACIONES (AUTH-2026-11-01-146) ═══ */
+.comms-row { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; margin: 10px 0; }
+.comms-row select { flex: 1; min-width: 220px; }
+.comms-card-head { display: flex; gap: 12px; align-items: center; }
+.comms-thumb { width: 84px; height: 64px; object-fit: cover; border-radius: 8px; }
+.comms-thumb-none { display: flex; align-items: center; justify-content: center; background: #eef4f2; font-size: 28px; }
+.comms-editor label { display: block; margin: 8px 0; }
+.comms-editor input[type="text"], .comms-editor textarea, .comms-editor select { width: 100%; margin-top: 4px; }
+.comms-editor .comms-check { display: flex; gap: 8px; align-items: center; }
+.comms-editor .comms-check input { width: auto; margin: 0; }
+.comms-preview { background: #f6faf8; border: 1px solid #d7e5e0; border-radius: 10px; padding: 12px; margin: 10px 0; }
+.comms-preview pre { white-space: pre-wrap; font-family: inherit; margin: 8px 0 0; }
+.comms-preview-list { max-height: 180px; overflow: auto; margin: 8px 0; }
+.comms-run-line { padding: 2px 0; font-size: .92em; }
+.comms-sweep-group { border-top: 1px solid #e3ece8; padding: 10px 0; }
+.comms-oneperson { margin-top: 10px; display: flex; gap: 8px; align-items: center; flex-wrap: wrap; }
