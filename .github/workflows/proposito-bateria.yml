@@ -29,7 +29,11 @@ permissions:
 
 jobs:
   proposito-candidato:
-    name: Serie PROPÓSITO (15 casos) contra el CANDIDATO
+    name: CASO ${{ matrix.caso }} contra el CANDIDATO
+    strategy:
+      fail-fast: false
+      matrix:
+        caso: [P1, P2, P3, P4, P5, P6, P7, P8, P9, P10, P11, P12, P13, P14, P15]
     runs-on: ubuntu-24.04
     timeout-minutes: 20
     defaults:
@@ -49,6 +53,8 @@ jobs:
       - name: Instalar Firebase CLI (versión fijada)
         run: npm install -g firebase-tools@15.34.0
       - name: Ejecutar la batería contra el emulador oficial
+        env:
+          TEST_ONLY: ${{ matrix.caso }}
         shell: bash
         run: |
           set -o pipefail
