@@ -1,0 +1,82 @@
+# RONBO FIT — Batería de reglas del delta «registro del aviso por
+# pendiente» (AUTH-2026-11-01-133; diseño aprobado 2026-10-31 +
+# decisiones D1–D4 de Ronald 2026-11-01: solo correo, tope 1 por
+# pendiente cada 7 días, con registro, banco fijo). La suite NUDGE
+# (16 casos) corre contra el CANDIDATO de reglas (texto vivo ruleset
+# 873cb76c…, SHA-256 718f411f…, + SOLO la rama nueva «nudge» de la
+# cláusula de notices en users/{uid}: el entrenador ASIGNADO anota
+# el aviso en notices.nudge con sus 8 subclaves cerradas {at, by};
+# candidata SHA-256 5525d2f2…) y la MISMA suite contra el texto VIVO
+# con la expectativa de N1 invertida (el contraste: hoy un
+# entrenador NO puede anotar avisos).
+# Todo contra el emulador oficial de Firestore (proyecto ficticio
+# ronbo-nutri-test). Este workflow SOLO valida el texto; NO publica
+# reglas ni despliega nada. Sin secretos, sin credenciales de
+# producción, sin despliegue: solo lectura de código.
+name: nudge-bateria
+
+on:
+  push:
+    branches: [ci/nudge-bateria]
+    paths:
+      - 'pruebas-reglas-nudge/**'
+      - '.github/workflows/nudge-bateria.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: nudge-bateria
+  cancel-in-progress: false
+
+jobs:
+  candidata:
+    name: Suite NUDGE contra la CANDIDATA (rama nudge permitida)
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - uses: actions/setup-java@v4
+        with:
+          distribution: 'temurin'
+          java-version: '21'
+      - name: Instalar dependencias de la suite
+        working-directory: pruebas-reglas-nudge
+        run: npm ci --no-audit --no-fund
+      - name: La CANDIDATA es el texto bajo prueba
+        working-directory: pruebas-reglas-nudge
+        run: cp candidata.rules firestore.rules
+      - name: Correr la suite (espera la rama nudge PERMITIDA)
+        working-directory: pruebas-reglas-nudge
+        env:
+          NUDGE_MODE: candidata
+        run: npx firebase emulators:exec --only firestore --project ronbo-nutri-test "node test-nudge.mjs"
+
+  contraste-vivo:
+    name: La MISMA suite contra el texto VIVO (N1 invertido)
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - uses: actions/setup-java@v4
+        with:
+          distribution: 'temurin'
+          java-version: '21'
+      - name: Instalar dependencias de la suite
+        working-directory: pruebas-reglas-nudge
+        run: npm ci --no-audit --no-fund
+      - name: El texto VIVO es el texto bajo prueba
+        working-directory: pruebas-reglas-nudge
+        run: cp vivas-antes.rules firestore.rules
+      - name: Correr la suite (N1 debe FALLAR con el texto vivo)
+        working-directory: pruebas-reglas-nudge
+        env:
+          NUDGE_MODE: vivo
+        run: npx firebase emulators:exec --only firestore --project ronbo-nutri-test "node test-nudge.mjs"
