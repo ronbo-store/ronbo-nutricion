@@ -854,7 +854,7 @@ service cloud.firestore {
             || request.resource.data.fdBizAt is string)
         && (!request.resource.data.diff(resource.data).affectedKeys().hasAny(['fdBizGym'])
             || (request.resource.data.fdBizGym is string
-                && request.resource.data.fdBizGym.size() <= 80));
+                && request.resource.data.fdBizGym.size() <= 80))
         && (!request.resource.data.diff(resource.data).affectedKeys().hasAny(['purpose'])
             || request.resource.data.purpose in ['cuenta', 'con_entrenador', 'entrenador', 'business'])
         && (!request.resource.data.diff(resource.data).affectedKeys().hasAny(['purposeUse'])

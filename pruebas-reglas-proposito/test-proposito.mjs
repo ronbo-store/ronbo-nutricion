@@ -5,7 +5,7 @@
 // producción.
 //
 // El delta, sobre el texto vivo (ruleset 2ad00641, SHA-256
-// 5525d2f2…; candidata SHA-256 e3d36602…), toca SOLO dos cosas:
+// 5525d2f2…; candidata SHA-256 06aba677…), toca SOLO dos cosas:
 // (1) la rama de perfil inofensivo de users/{uid} admite SIETE
 // claves nuevas de declaración de propósito (purpose, purposeAt,
 // purposeUse, purposeSuggest, purposeTrainerChoice,
@@ -32,10 +32,7 @@ const testEnv = await initializeTestEnvironment({
 });
 
 let pass = 0, fail = 0; const failures = [];
-const ONLY = process.env.TEST_ONLY || '';
-function onlyWanted(name) { return !ONLY || name.startsWith('PROPOSITO ' + ONLY + ' '); }
 async function T(name, promise, shouldSucceed) {
-  if (!onlyWanted(name)) { promise.catch(() => {}); return; }
   try {
     if (shouldSucceed) await assertSucceeds(promise); else await assertFails(promise);
     pass++; console.log('PASS — ' + name);
