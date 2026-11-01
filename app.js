@@ -2895,6 +2895,47 @@ en: {
   'students.act.reqGoals': 'Review proposals',
   'students.act.reqTrainer': 'Assign trainer',
   'students.pend.byStudent': 'Pending on the student',
+  /* AUTH-2026-11-01-133: pendientes clasificados por responsable
+     + botón «✉ Avisar» (maquetas aprobadas por Ronald 2026-11-01;
+     D1 solo correo · D2 tope 1 aviso por pendiente cada 7 días ·
+     D3 registro «✉ Avisado el {fecha}» · D4 banco fijo). */
+  'students.dep.you': 'UP TO YOU',
+  'students.dep.student': 'UP TO THE STUDENT',
+  'nudge.btn': '✉ Remind',
+  'nudge.titleFor': 'Nudge {name}',
+  'nudge.ctxTemplate': 'Template',
+  'nudge.sendNote': 'It will be sent in {langName} to {email} from ronbo.fit@gmail.com',
+  'nudge.lang.en': 'English',
+  'nudge.lang.es': 'Spanish',
+  'nudge.tpl.eval': 'Starting information',
+  'nudge.tpl.cns': 'Health consent',
+  'nudge.tpl.parq': 'Health declaration',
+  'nudge.tpl.goal': 'Goals',
+  'nudge.tpl.meal': 'Meals',
+  'nudge.tpl.pes': 'Weigh-in',
+  'nudge.tpl.per': 'Progress evaluation',
+  'nudge.tpl.bod': 'Body-type analysis',
+  'nudge.nudgedOn': '✉ Nudged on {d}',
+  'nudge.kicker': 'EMAIL NUDGE',
+  'nudge.title': 'Nudge about a pending item',
+  'nudge.ctxStudent': 'Student',
+  'nudge.ctxPending': 'About',
+  'nudge.previewNote': 'This is the exact email the student will receive, in their language:',
+  'nudge.send': 'Send nudge',
+  'nudge.sending': 'Sending…',
+  'nudge.sentOk': 'Done — the email provider accepted the email. It should arrive within a few minutes.',
+  'nudge.gone': 'That pending item was just resolved — there is no need to nudge it.',
+  'nudge.capped': 'This pending item was already nudged less than 7 days ago.',
+  'nudge.err': 'The nudge could not be sent. Please try again.',
+  'pend.grp.you': 'Up to you',
+  'pend.grp.trainer': 'Up to your trainer',
+  'pend.grp.admin': 'Up to the administrator',
+  'pend.wait.trainerT': 'Meals requested',
+  'pend.wait.trainerD': 'Waiting for your trainer’s decision',
+  'pend.wait.adminT': 'Meals requested',
+  'pend.wait.adminD': 'Approved by your trainer — waiting for the administrator’s confirmation',
+  'pend.wait.accountT': 'Account confirmation',
+  'pend.wait.accountD': 'Your account is under review by the administrator',
   'students.req.trainer': 'No trainer assigned yet',
   'students.req.eval': 'Their initial evaluation is missing',
   'students.req.consent': 'Their specific consent is missing',
@@ -5067,6 +5108,47 @@ es: {
   'students.act.reqGoals': 'Revisar propuestas',
   'students.act.reqTrainer': 'Asignar entrenador',
   'students.pend.byStudent': 'Pendiente del alumno',
+  /* AUTH-2026-11-01-133: pendientes clasificados por responsable
+     + botón «✉ Avisar» (maquetas aprobadas por Ronald 2026-11-01;
+     D1 solo correo · D2 tope 1 aviso por pendiente cada 7 días ·
+     D3 registro «✉ Avisado el {fecha}» · D4 banco fijo). */
+  'students.dep.you': 'DEPENDE DE TI',
+  'students.dep.student': 'DEPENDE DEL ALUMNO',
+  'nudge.btn': '✉ Avisar',
+  'nudge.titleFor': 'Avisar a {name}',
+  'nudge.ctxTemplate': 'Plantilla',
+  'nudge.sendNote': 'Se enviará en {langName} a {email} desde ronbo.fit@gmail.com',
+  'nudge.lang.en': 'inglés',
+  'nudge.lang.es': 'español',
+  'nudge.tpl.eval': 'Información inicial',
+  'nudge.tpl.cns': 'Consentimiento de salud',
+  'nudge.tpl.parq': 'Declaración de salud',
+  'nudge.tpl.goal': 'Metas',
+  'nudge.tpl.meal': 'Comidas',
+  'nudge.tpl.pes': 'Pesaje',
+  'nudge.tpl.per': 'Evaluación de progreso',
+  'nudge.tpl.bod': 'Análisis de tipo corporal',
+  'nudge.nudgedOn': '✉ Avisado el {d}',
+  'nudge.kicker': 'AVISO POR CORREO',
+  'nudge.title': 'Avisar de un pendiente',
+  'nudge.ctxStudent': 'Alumno',
+  'nudge.ctxPending': 'Sobre',
+  'nudge.previewNote': 'Este es el correo exacto que recibirá el alumno, en su idioma:',
+  'nudge.send': 'Enviar aviso',
+  'nudge.sending': 'Enviando…',
+  'nudge.sentOk': 'Listo — el proveedor de correo aceptó el correo. Debe llegar en unos minutos.',
+  'nudge.gone': 'Ese pendiente se acaba de resolver — ya no hace falta avisarlo.',
+  'nudge.capped': 'Ese pendiente ya se avisó hace menos de 7 días.',
+  'nudge.err': 'No se pudo enviar el aviso. Inténtalo de nuevo.',
+  'pend.grp.you': 'Depende de ti',
+  'pend.grp.trainer': 'Depende de tu entrenador',
+  'pend.grp.admin': 'Depende del administrador',
+  'pend.wait.trainerT': 'Comidas solicitadas',
+  'pend.wait.trainerD': 'Esperando la decisión de tu entrenador',
+  'pend.wait.adminT': 'Comidas solicitadas',
+  'pend.wait.adminD': 'Aprobado por tu entrenador — esperando la confirmación del administrador',
+  'pend.wait.accountT': 'Confirmación de tu cuenta',
+  'pend.wait.accountD': 'Tu cuenta está en revisión del administrador',
   'students.req.trainer': 'Aún no tiene entrenador asignado',
   'students.req.eval': 'Falta su evaluación inicial',
   'students.req.consent': 'Falta su consentimiento específico',
@@ -8540,15 +8622,352 @@ function studentsActFor(it) {
   }
   return { btn: null };
 }
+
+/* ================================================================
+   AUTH-2026-11-01-133 · BOTÓN «✉ Avisar» — el aviso por correo de
+   un pendiente concreto (diseño aprobado 2026-10-31; maquetas del
+   panel y del alumno aprobadas por Ronald 2026-11-01 con D1–D4:
+   D1 solo correo en v1 · D2 máximo 1 aviso por pendiente cada 7
+   días · D3 registro «✉ Avisado el {fecha}» · D4 banco FIJO de 8
+   plantillas, sin texto libre ni editor).
+   El mapa ítem→plantilla cubre EXACTAMENTE los pendientes que
+   dependen del alumno y tienen plantilla; los que dependen del
+   entrenador jamás llevan botón (llevan su acción), y los del
+   alumno SIN plantilla (solicitud de comidas en curso, registro
+   de comida, análisis sin hacer, elegir entrenador) tampoco: el
+   banco es cerrado y no se improvisa texto.
+   El envío va por la ruta de plantillas fijas del Worker
+   (mailSend, AUTH-061/072): el Worker exige entrenador aprobado +
+   alumno asignado + tope de 7 días leído del registro, y envía
+   como ronbo.fit@gmail.com. Tras la aceptación del proveedor, la
+   app anota el aviso en notices.nudge.<subclave> = {at, by} (la
+   rama cerrada de reglas de este mismo paquete). El lenguaje es
+   el honesto de la casa: «el proveedor lo aceptó», nunca
+   «entregado» ni «leído». ================================================================ */
+const NUDGE_TPL_BY_SUB = { eval: 'nudgeeval', cns: 'nudgecns', parq: 'nudgeparq', goal: 'nudgegoal', meal: 'nudgemeal', pes: 'nudgepes', per: 'nudgeper', bod: 'nudgebod' };
+/* Subclaves cuyo pendiente vive en el checklist de datos (REQ):
+   su re-verificación previa al envío relee el documento del
+   alumno y recalcula su checklist; las demás (pesaje, evaluación
+   periódica, análisis corporal) se re-verifican contra la unión
+   viva de la última pasada (fichaTpendOf). */
+const NUDGE_REQ_KEY = { eval: 'eval', cns: 'consent', parq: 'parq', goal: 'goals', meal: 'meals' };
+function nudgeSubFor(it) {
+  if (!it) return null;
+  if (it.kind === 'req') {
+    if (it.reqKey === 'eval') return 'eval';
+    if (it.reqKey === 'consent') return 'cns';
+    if (it.reqKey === 'parq') return 'parq';
+    if (it.reqKey === 'goals') return 'goal';
+    if (it.reqKey === 'meals') return 'meal';
+    return null;
+  }
+  if (it.kind === 'weight') return 'pes';
+  if (it.kind === 'eval') return 'per';
+  if (it.kind === 'body' && it.miss === 'consent') return 'bod';
+  return null;
+}
+function nudgeStudentDoc(uid) {
+  const fromC = (typeof CLIENTS_LAST !== 'undefined' && CLIENTS_LAST && CLIENTS_LAST.clients) || null;
+  const fromS = (typeof STUDENTS_LAST !== 'undefined' && STUDENTS_LAST && STUDENTS_LAST.clients) || null;
+  return (fromC && fromC.find(x => x.id === uid)) || (fromS && fromS.find(x => x.id === uid)) || null;
+}
+function nudgeFreshMs(uid, sub) {
+  const u = nudgeStudentDoc(uid);
+  const rec = (u && u.notices && u.notices.nudge) || null;
+  const ms = rec ? dosMs(rec[sub] && rec[sub].at) : null;
+  return (ms && (Date.now() - ms) < 7 * 864e5) ? ms : 0;
+}
+/* Quién puede avisar desde esta fila: el propietario, o el
+   entrenador ASIGNADO a ese alumno. La puerta real vive en el
+   Worker y en las reglas; esto solo decide si el botón se pinta. */
+function nudgeViewerCan(uid) {
+  if (typeof IS_OWNER !== 'undefined' && IS_OWNER) return true;
+  const u = nudgeStudentDoc(uid);
+  const me = (typeof auth !== 'undefined' && auth.currentUser) ? auth.currentUser.uid : null;
+  return !!(u && me && u.trainerUid === me);
+}
+/* Vista previa EXACTA del correo: los mismos textos del banco que
+   envía el Worker (extraídos del diseño aprobado), en el idioma
+   del alumno (su cadena mailLang → lang, la misma del Worker) y
+   con las mismas sustituciones {name} y {trainer}. El nombre del
+   entrenador se resuelve igual que en la casa: si quien mira ES
+   el entrenador asignado, su displayName de dossier o su nombre
+   de cuenta; el correo real lo resuelve el Worker contra los
+   documentos (perfil del entrenador → su users), así que el
+   enviado siempre lleva el nombre verdadero. */
+const NUDGE_PREVIEW = {
+  "eval": {
+    "en": {
+      "subject": "RONBO FIT — One step left: your starting information",
+      "body": "Hi {name},\n\nYour trainer {trainer} is ready to prepare your plan, and one thing is still missing: your starting information — weight, height, birth year, activity level and biological sex. It takes about a minute, and it is the base your daily energy and food targets are calculated from.\n\nIn the app: open \"Pendientes\" (Pending) and tap the starting-evaluation pending — it takes you straight to the form.\n\n[ Open RONBO FIT ] → https://fit.ronbo.store\n\nThank you,\nRONBO FIT"
+    },
+    "es": {
+      "subject": "RONBO FIT — Te falta un paso: tu información inicial",
+      "body": "Hola {name}:\n\nTu entrenador {trainer} ya está listo para preparar tu plan y solo falta una cosa: tu información inicial — peso, talla, año de nacimiento, nivel de actividad y sexo biológico. Toma un minuto, y es la base desde la que se calculan tu energía y tus metas de comidas de cada día.\n\nEn la app: abre «Pendientes» y toca el pendiente de la evaluación inicial — te lleva directo al formulario.\n\n[ Abre RONBO FIT ] → https://fit.ronbo.store\n\nGracias,\nRONBO FIT"
+    }
+  },
+  "cns": {
+    "en": {
+      "subject": "RONBO FIT — Your health consent is your decision",
+      "body": "Hi {name},\n\nYour trainer {trainer} can look after you better if they can see your health declaration — and that only happens if you allow it. The decision is entirely yours: you can give your consent, change it or withdraw it at any time, and nobody can do it for you.\n\nIn the app: open \"Mi perfil\" (My profile) → \"Permisos y privacidad\" (Permissions & privacy) and review the health consent there.\n\n[ Open RONBO FIT ] → https://fit.ronbo.store\n\nThank you,\nRONBO FIT"
+    },
+    "es": {
+      "subject": "RONBO FIT — Tu consentimiento de salud lo decides tú",
+      "body": "Hola {name}:\n\nTu entrenador {trainer} puede cuidarte mejor si puede ver tu declaración de salud — y eso solo pasa si tú lo permites. La decisión es solo tuya: puedes dar tu consentimiento, cambiarlo o retirarlo cuando quieras, y nadie puede hacerlo por ti.\n\nEn la app: abre «Mi perfil» → «Permisos y privacidad» y revisa allí el consentimiento de salud.\n\n[ Abre RONBO FIT ] → https://fit.ronbo.store\n\nGracias,\nRONBO FIT"
+    }
+  },
+  "parq": {
+    "en": {
+      "subject": "RONBO FIT — Finish your health declaration",
+      "body": "Hi {name},\n\nYou already gave your consent — thank you. Your health declaration is still unfinished, and completing it helps your trainer {trainer} adapt your training and your meals to you, safely.\n\nIn the app: open \"Mi perfil\" (My profile) → your health declaration, and answer the questions that are left.\n\n[ Open RONBO FIT ] → https://fit.ronbo.store\n\nThank you,\nRONBO FIT"
+    },
+    "es": {
+      "subject": "RONBO FIT — Completa tu declaración de salud",
+      "body": "Hola {name}:\n\nYa diste tu consentimiento — gracias. Tu declaración de salud aún no está completa, y terminarla ayuda a tu entrenador {trainer} a adaptar tu entrenamiento y tus comidas a ti, con seguridad.\n\nEn la app: abre «Mi perfil» → tu declaración de salud, y responde las preguntas que faltan.\n\n[ Abre RONBO FIT ] → https://fit.ronbo.store\n\nGracias,\nRONBO FIT"
+    }
+  },
+  "goal": {
+    "en": {
+      "subject": "RONBO FIT — Set your goals to unlock your daily targets",
+      "body": "Hi {name},\n\nYour goals are not set yet in RONBO FIT. Once you choose your objective (maintain, gain or lose) and your focus, the app can calculate your daily energy and food targets — and your trainer {trainer} can guide you with real numbers.\n\nIn the app: open \"Pendientes\" (Pending) and tap the goals pending — it opens your goals editor.\n\n[ Open RONBO FIT ] → https://fit.ronbo.store\n\nThank you,\nRONBO FIT"
+    },
+    "es": {
+      "subject": "RONBO FIT — Define tus metas y activa tus objetivos diarios",
+      "body": "Hola {name}:\n\nTus metas aún no están definidas en RONBO FIT. Cuando elijas tu objetivo (mantener, ganar o bajar) y tu enfoque, la app podrá calcular tu energía y tus metas de comidas de cada día — y tu entrenador {trainer} podrá guiarte con números reales.\n\nEn la app: abre «Pendientes» y toca el pendiente de metas — se abre tu editor de metas.\n\n[ Abre RONBO FIT ] → https://fit.ronbo.store\n\nGracias,\nRONBO FIT"
+    }
+  },
+  "meal": {
+    "en": {
+      "subject": "RONBO FIT — Start logging your meals",
+      "body": "Hi {name},\n\nYou are not logging your meals in RONBO FIT yet. Send your request and, once your trainer {trainer} approves it and it is confirmed, your food section opens and your trainer can follow your meals day by day.\n\nIn the app: open \"Pendientes\" (Pending) and tap the meals pending to send your request — it takes one tap.\n\n[ Open RONBO FIT ] → https://fit.ronbo.store\n\nThank you,\nRONBO FIT"
+    },
+    "es": {
+      "subject": "RONBO FIT — Empieza a registrar tus comidas",
+      "body": "Hola {name}:\n\nAún no registras tus comidas en RONBO FIT. Envía tu solicitud y, cuando tu entrenador {trainer} la apruebe y se confirme, se abrirá tu apartado de comida y tu entrenador podrá acompañar tus comidas día a día.\n\nEn la app: abre «Pendientes» y toca el pendiente de comidas para enviar tu solicitud — es un solo toque.\n\n[ Abre RONBO FIT ] → https://fit.ronbo.store\n\nGracias,\nRONBO FIT"
+    }
+  },
+  "pes": {
+    "en": {
+      "subject": "RONBO FIT — Your weekly weigh-in is due",
+      "body": "Hi {name},\n\nYour weigh-in for this week is due. Weigh yourself — ideally in the morning, before breakfast — and log the number in the app: that is how your trainer {trainer} follows your real trend, beyond the day-to-day ups and downs.\n\nIn the app: open \"Pendientes\" (Pending) and tap the weigh-in pending — the weight form opens with today's date ready.\n\n[ Open RONBO FIT ] → https://fit.ronbo.store\n\nThank you,\nRONBO FIT"
+    },
+    "es": {
+      "subject": "RONBO FIT — Toca tu pesaje de esta semana",
+      "body": "Hola {name}:\n\nToca tu pesaje de esta semana. Pésate — idealmente en la mañana, antes de desayunar — y registra el número en la app: así tu entrenador {trainer} sigue tu tendencia real, más allá de las subidas y bajadas de cada día.\n\nEn la app: abre «Pendientes» y toca el pendiente de pesaje — se abre el formulario de peso con la fecha de hoy lista.\n\n[ Abre RONBO FIT ] → https://fit.ronbo.store\n\nGracias,\nRONBO FIT"
+    }
+  },
+  "per": {
+    "en": {
+      "subject": "RONBO FIT — Your progress evaluation is due",
+      "body": "Hi {name},\n\nYour periodic evaluation is due: your progress photos (front, side and back) and your measurements. They show changes the scale cannot see, and they help your trainer {trainer} adjust your plan with evidence.\n\nIn the app: open \"Progreso\" (Progress) → \"Fotos\" (Photos) to upload your photos, and \"Medidas\" (Measures) for your measurements.\n\n[ Open RONBO FIT ] → https://fit.ronbo.store\n\nThank you,\nRONBO FIT"
+    },
+    "es": {
+      "subject": "RONBO FIT — Toca tu evaluación de progreso",
+      "body": "Hola {name}:\n\nToca tu evaluación periódica: tus fotos de progreso (frente, lado y espalda) y tus medidas. Muestran cambios que la báscula no ve, y ayudan a tu entrenador {trainer} a ajustar tu plan con evidencia.\n\nEn la app: abre «Progreso» → «Fotos» para subir tus fotos, y «Medidas» para tus medidas.\n\n[ Abre RONBO FIT ] → https://fit.ronbo.store\n\nGracias,\nRONBO FIT"
+    }
+  },
+  "bod": {
+    "en": {
+      "subject": "RONBO FIT — Your body-type analysis needs your OK",
+      "body": "Hi {name},\n\nYour trainer {trainer} would like to run your body-type analysis from your progress photos. It only happens with your specific consent: the decision is yours alone, and you can withdraw it whenever you want.\n\nIn the app: open \"Mi perfil\" (My profile) → \"Permisos y privacidad\" (Permissions & privacy) and review the body-type analysis consent there.\n\n[ Open RONBO FIT ] → https://fit.ronbo.store\n\nThank you,\nRONBO FIT"
+    },
+    "es": {
+      "subject": "RONBO FIT — Tu análisis de tipo corporal necesita tu aprobación",
+      "body": "Hola {name}:\n\nTu entrenador {trainer} quiere hacer tu análisis de tipo corporal a partir de tus fotos de progreso. Solo se hace con tu consentimiento específico: la decisión es solo tuya, y puedes retirarlo cuando quieras.\n\nEn la app: abre «Mi perfil» → «Permisos y privacidad» y revisa allí el consentimiento del análisis de tipo corporal.\n\n[ Abre RONBO FIT ] → https://fit.ronbo.store\n\nGracias,\nRONBO FIT"
+    }
+  }
+};
+function nudgeMailLangOf(u) {
+  if (u && (u.mailLang === 'en' || u.mailLang === 'es')) return u.mailLang;
+  if (u && (u.lang === 'en' || u.lang === 'es')) return u.lang;
+  return 'en';
+}
+function nudgeTrainerNameFor(u) {
+  const me = (typeof auth !== 'undefined' && auth.currentUser) ? auth.currentUser.uid : null;
+  if (u && me && u.trainerUid === me) {
+    if (typeof TRAINER_PROFILE !== 'undefined' && TRAINER_PROFILE && TRAINER_PROFILE.displayName) return TRAINER_PROFILE.displayName;
+    if (typeof UDATA !== 'undefined' && UDATA && UDATA.name) return UDATA.name;
+  }
+  return 'RONBO FIT';
+}
+let NUDGE_CTX = null;
+/* La hoja del diseño §1.3: «Avisar a {nombre}», línea «Sobre:
+   {pendiente}», SELECTOR de plantilla con la de ese pendiente
+   preseleccionada (se puede empujar otro pendiente del banco en
+   el mismo correo — una sola, sin mezclar textos), la vista
+   previa exacta en el idioma del alumno y la nota de envío
+   («Se enviará en {idioma} a {correo} desde ronbo.fit@gmail.com»).
+   Nada sale sin el segundo toque en «Enviar aviso». */
+function nudgeOpen(uid, sub, titleText) {
+  if (!NUDGE_TPL_BY_SUB[sub]) return;
+  const u = nudgeStudentDoc(uid) || { id: uid };
+  NUDGE_CTX = { uid, sub, tpl: NUDGE_TPL_BY_SUB[sub], sending: false };
+  const fl = $('nudge-float'), bd = $('nudge-body');
+  if (!fl || !bd) return;
+  const tt = $('nudge-title'); if (tt) tt.textContent = t('nudge.titleFor', { name: u.name || u.email || '' });
+  const lang = nudgeMailLangOf(u);
+  const opts = Object.keys(NUDGE_TPL_BY_SUB).map(s2 => `<option value="${s2}"${s2 === sub ? ' selected' : ''}>${esc(t('nudge.tpl.' + s2))}</option>`).join('');
+  bd.innerHTML = `
+    <p class="nudge-ctx"><span class="nudge-ctx-k">${esc(t('nudge.ctxStudent'))}</span> <b>${esc(u.name || u.email || '')}</b></p>
+    <p class="nudge-ctx"><span class="nudge-ctx-k">${esc(t('nudge.ctxPending'))}</span> ${esc(titleText || '')}</p>
+    <p class="nudge-ctx"><span class="nudge-ctx-k">${esc(t('nudge.ctxTemplate'))}</span> <select id="nudge-sel" class="nudge-sel">${opts}</select></p>
+    <p class="progress-hint">${esc(t('nudge.previewNote'))}</p>
+    <div class="nudge-preview" id="nudge-preview-box"></div>
+    <p class="progress-hint">${esc(t('nudge.sendNote', { langName: t('nudge.lang.' + lang), email: u.email || '' }))}</p>
+    <p class="nudge-msg" id="nudge-msg" hidden></p>
+    <div class="pend-actions"><button type="button" class="btn-primary" id="nudge-send">${esc(t('nudge.send'))}</button> <button type="button" class="btn-ghost" id="nudge-cancel">${esc(t('pend.cancel'))}</button></div>`;
+  fl.style.display = '';
+  const x = $('nudge-x'); if (x) x.onclick = () => nudgeClose();
+  const cx = $('nudge-cancel'); if (cx) cx.onclick = () => nudgeClose();
+  const sel = $('nudge-sel');
+  if (sel) sel.onchange = () => {
+    if (!NUDGE_CTX) return;
+    NUDGE_CTX.sub = sel.value;
+    NUDGE_CTX.tpl = NUDGE_TPL_BY_SUB[sel.value];
+    const m = $('nudge-msg'); if (m) { m.hidden = true; m.textContent = ''; }
+    const sb = $('nudge-send'); if (sb) { sb.style.display = ''; sb.disabled = false; sb.textContent = t('nudge.send'); }
+    nudgeRenderPreview();
+  };
+  const sb = $('nudge-send'); if (sb) sb.onclick = () => nudgeSend();
+  nudgeRenderPreview();
+}
+/* La vista previa se repinta al cambiar la plantilla elegida:
+   siempre los textos del banco, en el idioma del ALUMNO y con
+   sus variables sustituidas — el correo exacto que saldría. */
+function nudgeRenderPreview() {
+  const ctx = NUDGE_CTX; if (!ctx) return;
+  const box = $('nudge-preview-box'); if (!box) return;
+  const u = nudgeStudentDoc(ctx.uid) || { id: ctx.uid };
+  const lang = nudgeMailLangOf(u);
+  const P = (NUDGE_PREVIEW[ctx.sub] || {})[lang] || (NUDGE_PREVIEW[ctx.sub] || {}).en;
+  if (!P) { box.innerHTML = ''; return; }
+  const nm = u.name || (u.email ? String(u.email).split('@')[0] : '');
+  const tr = nudgeTrainerNameFor(u);
+  const subject = P.subject.split('{name}').join(nm).split('{trainer}').join(tr);
+  const bodyTxt = P.body.split('{name}').join(nm).split('{trainer}').join(tr);
+  box.innerHTML = `<p class="nudge-subj">${esc(subject)}</p><p class="nudge-body">${esc(bodyTxt)}</p>`;
+}
+function nudgeClose() {
+  const fl = $('nudge-float'); if (fl) fl.style.display = 'none';
+  NUDGE_CTX = null;
+}
+function nudgeMsg(txt) { const m = $('nudge-msg'); if (m) { m.textContent = txt; m.hidden = false; } }
+/* Re-verificación (diseño §4.2): entre abrir la hoja y enviar, el
+   pendiente pudo resolverse. Si la evidencia fresca dice que ya
+   no está, NO se envía. Ante un error de lectura no se bloquea:
+   la unión viva lo mostraba abierto y el Worker aplica su tope. */
+async function nudgeStillPending(uid, sub) {
+  try {
+    if (NUDGE_REQ_KEY[sub]) {
+      const snap = await getDoc(doc(db, 'users', uid));
+      if (!snap.exists()) return false;
+      const ud = { id: uid, ...snap.data() };
+      const L = (typeof CLIENTS_LAST !== 'undefined' && CLIENTS_LAST && CLIENTS_LAST.reqByUid) ? CLIENTS_LAST
+        : (typeof STUDENTS_LAST !== 'undefined' && STUDENTS_LAST && STUDENTS_LAST.reqByUid) ? STUDENTS_LAST : null;
+      const chk = await clientProfileChecklist(ud, L ? (L.reqByUid[uid] || null) : null);
+      const row = (chk.rows || []).find(r => r.key === NUDGE_REQ_KEY[sub]);
+      return !row || row.done !== true;
+    }
+    const f = (typeof fichaTpendOf === 'function') ? fichaTpendOf(uid) : null;
+    const items = (f && f.t && f.t.items) || [];
+    return items.some(x => nudgeSubFor(x) === sub);
+  } catch { return true; }
+}
+/* La anotación del aviso (reglas AUTH-133: solo la llave nudge,
+   subclave cerrada, exactamente {at, by}). Al anotar, la copia en
+   memoria del alumno se actualiza para que su fila repinte al
+   momento con «✉ Avisado el {fecha}» (la pasada la releerá). */
+async function mailRecordNudge(uid, sub) {
+  let ok = false;
+  try {
+    await setDoc(doc(db, 'users', uid), { notices: { nudge: { [sub]: { at: serverTimestamp(), by: auth.currentUser.uid } } } }, { merge: true });
+    ok = true;
+  } catch {}
+  if (ok) {
+    const u = nudgeStudentDoc(uid);
+    if (u) {
+      u.notices = u.notices || {};
+      u.notices.nudge = u.notices.nudge || {};
+      u.notices.nudge[sub] = { at: Date.now(), by: auth.currentUser.uid };
+    }
+  }
+  return ok;
+}
+async function nudgeSend() {
+  const ctx = NUDGE_CTX; if (!ctx || ctx.sending) return;
+  ctx.sending = true;
+  const sb = $('nudge-send'); if (sb) { sb.disabled = true; sb.textContent = t('nudge.sending'); }
+  const still = await nudgeStillPending(ctx.uid, ctx.sub);
+  if (!still) {
+    nudgeMsg(t('nudge.gone'));
+    if (sb) sb.style.display = 'none';
+    ctx.sending = false;
+    return;
+  }
+  const res = await mailSend(ctx.uid, ctx.tpl);
+  if (res.ok) {
+    await mailRecordNudge(ctx.uid, ctx.sub);
+    nudgeMsg(t('nudge.sentOk'));
+    if (sb) sb.style.display = 'none';
+    /* Repintado suave de la superficie que quede detrás: la
+       pasada en memoria ya trae el registro (mailRecordNudge). */
+    try { if (typeof renderStudentsBody === 'function' && typeof STUDENTS_LAST !== 'undefined' && STUDENTS_LAST) renderStudentsBody(); } catch {}
+    try { if (typeof FICHA_MODE !== 'undefined' && FICHA_MODE && typeof fichaRenderBody === 'function') fichaRenderBody(); } catch {}
+  } else if (res.status === 429 || res.error === 'nudge-capped') {
+    nudgeMsg(t('nudge.capped'));
+    if (sb) sb.style.display = 'none';
+  } else {
+    nudgeMsg(t('nudge.err'));
+    if (sb) { sb.disabled = false; sb.textContent = t('nudge.send'); }
+  }
+  ctx.sending = false;
+}
+
 function studentsPendItemHTML(uid, it, isTrace) {
   const [bg, emoji] = STU_ITEM_ICON[it.kind] || ['#f1f5f9', '•'];
   const act = isTrace ? null : studentsActFor(it);
   const sub = isTrace ? (it.date ? esc(dateName(it.date)) : '') : esc(studentsItemSub(it));
+  /* AUTH-2026-11-01-133: en las filas VIVAS el chip de estado lo
+     sustituye el SELLO DE RESPONSABLE de la maqueta aprobada
+     (2026-11-01): «DEPENDE DE TI» (teal) cuando la acción es del
+     entrenador que mira, «DEPENDE DEL ALUMNO» (ámbar) cuando la
+     pelota es del alumno. Las TRAZAS conservan sus chips (son
+     historial, no una pelota viva). El botón «✉ Avisar» del
+     diseño va JUNTO al botón de acción de la fila en los 8
+     pendientes del banco — también cuando la fila conserva su
+     acción («Ver cálculo», «Ver pesaje»…): la pelota de esos 8
+     es del alumno aunque el entrenador tenga su vía de revisión.
+     Si el aviso de ese pendiente aún no cumple el tope de 7
+     días, en el lugar del botón va el registro «✉ Avisado el
+     {fecha}» (D2/D3). Fuera del banco no hay aviso: solicitud de
+     comidas, foto sin revisar, análisis sin hacer y elegir
+     entrenador conservan solo su acción (o su texto de siempre). */
+  let seal = '', right = '';
+  if (isTrace) {
+    seal = `<span class="st-chip ${STU_CHIP[it.state] || 'st-pendiente'}">${esc(t('students.chip.' + it.state))}</span>`;
+  } else {
+    const sub2 = nudgeSubFor(it);
+    seal = sub2
+      ? `<span class="stu-dep stu-dep-student">${esc(t('students.dep.student'))}</span>`
+      : act.btn
+        ? `<span class="stu-dep stu-dep-you">${esc(t('students.dep.you'))}</span>`
+        : `<span class="stu-dep stu-dep-student">${esc(t('students.dep.student'))}</span>`;
+    const parts = [];
+    if (act.btn) parts.push(`<button type="button" class="btn-primary btn-sm" data-stu-act="${it.kind}" data-stu-req="${it.reqKey || ''}" data-stu-uid="${uid}">${esc(t(act.btn))}</button>`);
+    if (sub2 && nudgeViewerCan(uid)) {
+      const freshMs = nudgeFreshMs(uid, sub2);
+      parts.push(freshMs
+        ? `<span class="stu-nudged">${esc(t('nudge.nudgedOn', { d: dateName(pendISOof(new Date(freshMs))) }))}</span>`
+        : `<button type="button" class="btn-nudge" data-stu-nudge="${sub2}" data-stu-uid="${uid}">${esc(t('nudge.btn'))}</button>`);
+    }
+    if (!parts.length) parts.push(`<span class="stu-pend-whose">${esc(t('students.pend.byStudent'))}</span>`);
+    right = parts.length > 1 ? `<span class="stu-pend-btns">${parts.join('')}</span>` : parts[0];
+  }
   return `<div class="stu-pend-item${isTrace ? ' trace' : ''}">
     <span class="stu-pend-ico" style="background:${bg}">${emoji}</span>
-    <span class="stu-pend-main"><span class="stu-pend-title">${esc(studentsItemTitle(it))}<span class="st-chip ${STU_CHIP[it.state] || 'st-pendiente'}">${esc(t('students.chip.' + it.state))}</span></span>
+    <span class="stu-pend-main"><span class="stu-pend-title">${esc(studentsItemTitle(it))}${seal}</span>
     ${sub ? `<span class="stu-pend-sub">${sub}</span>` : ''}</span>
-    ${isTrace ? '' : act.btn ? `<button type="button" class="btn-primary btn-sm" data-stu-act="${it.kind}" data-stu-req="${it.reqKey || ''}" data-stu-uid="${uid}">${esc(t(act.btn))}</button>` : `<span class="stu-pend-whose">${esc(t('students.pend.byStudent'))}</span>`}
+    ${right}
   </div>`;
 }
 /* AUTH-117 (R1): la solicitud de comidas en el paso del
@@ -8690,6 +9109,14 @@ function renderStudentsBody() {
   if (back) back.onclick = studentsCloseDetail;
   el.querySelectorAll('[data-stu-ficha]').forEach(b => b.onclick = () => studentsGoFicha(b.dataset.stuFicha));
   el.querySelectorAll('[data-stu-act]').forEach(b => b.onclick = () => studentsOpenRecord(b.dataset.stuUid, b.dataset.stuAct, b.dataset.stuReq || ''));
+  /* AUTH-2026-11-01-133: el botón «✉ Avisar» de las filas del
+     detalle abre la hoja del aviso con el título de SU fila. */
+  el.querySelectorAll('[data-stu-nudge]').forEach(b => b.onclick = () => {
+    const row = b.closest('.stu-pend-item');
+    const tt = row ? row.querySelector('.stu-pend-title') : null;
+    const title = tt && tt.childNodes[0] ? tt.childNodes[0].textContent.trim() : '';
+    nudgeOpen(b.dataset.stuUid, b.dataset.stuNudge, title);
+  });
   el.querySelectorAll('[data-stu-admin-meals]').forEach(b => b.onclick = () => stuGoAdminMeals());
   el.querySelectorAll('[data-stu-retry]').forEach(b => b.onclick = () => { STUDENTS_RESTORE = true; loadStudents(); });
 }
@@ -10389,6 +10816,14 @@ async function openClient(uid) {
      (fichaPendAct con kind + reqKey), incluida la fila del paso
      del administrador. */
   box.querySelectorAll('[data-stu-act]').forEach(b => b.onclick = () => fichaPendAct(b.dataset.stuUid, b.dataset.stuAct, b.dataset.stuReq || ''));
+  /* AUTH-2026-11-01-133: el botón «✉ Avisar» del bloque de
+     pendientes de la ficha abre la misma hoja del aviso. */
+  box.querySelectorAll('[data-stu-nudge]').forEach(b => b.onclick = () => {
+    const row = b.closest('.stu-pend-item');
+    const tt = row ? row.querySelector('.stu-pend-title') : null;
+    const title = tt && tt.childNodes[0] ? tt.childNodes[0].textContent.trim() : '';
+    nudgeOpen(b.dataset.stuUid, b.dataset.stuNudge, title);
+  });
   box.querySelectorAll('[data-stu-admin-meals]').forEach(b => b.onclick = () => stuGoAdminMeals());
   loadClientTraining(uid);
   const evBtn = $('btn-client-evals');
@@ -26497,6 +26932,49 @@ function pendCfgFormHTML(cfg, first) {
     </div>
   </div>`;
 }
+/* AUTH-2026-11-01-133: la ventana «Pendientes» del ALUMNO se
+   agrupa por responsable, como en la maqueta aprobada por Ronald
+   (2026-11-01): «Depende de ti» primero y destacado, «Depende de
+   tu entrenador», «Depende del administrador». El % del checklist
+   NO se toca (pendChecklistHTML va encima, intacto) y los ítems
+   conservan su HTML y su recorrido de siempre (pendItemHTML,
+   AUTH-117…123): esto SOLO ordena la lista en bandas. Las filas
+   de ESPERA (la solicitud de comidas ya enviada) no son ítems de
+   pendCompute — viven en el estado de MY_MEAL_REQ —: se pintan
+   como filas informativas sin botón dentro de su banda. Para
+   cualquier otro rol, la lista queda plana como hasta hoy. */
+function pendItemGroupOf(it) {
+  if (it && it.type === 'role' && it.id && String(it.id).indexOf('alumno|') === 0) {
+    return String(it.id).split('|')[1] === 'trainer' ? 'trainer' : 'you';
+  }
+  return 'you';
+}
+function pendWaitRowHTML(kind) {
+  const tt = kind === 'admin' ? 'pend.wait.adminT' : kind === 'account' ? 'pend.wait.accountT' : 'pend.wait.trainerT';
+  const dd = kind === 'admin' ? 'pend.wait.adminD' : kind === 'account' ? 'pend.wait.accountD' : 'pend.wait.trainerD';
+  return `<div class="pend-item pend-item-wait"><p class="pend-text"><b>⌛ ${esc(t(tt))}</b><br><span class="pend-detail">${esc(t(dd))}</span></p></div>`;
+}
+function pendItemsGroupedHTML(items, regDay) {
+  if (typeof ROLE === 'undefined' || ROLE !== 'usuario') return items.map(it => pendItemHTML(it, regDay)).join('');
+  const groups = { you: [], trainer: [], admin: [] };
+  for (const it of items) groups[pendItemGroupOf(it)].push(it);
+  const req = (typeof MY_MEAL_REQ !== 'undefined' && MY_MEAL_REQ) || null;
+  if (req && req.status === 'pendiente_entrenador') groups.trainer.push('WAIT_TRAINER');
+  if (req && req.status === 'pendiente_administrador') groups.admin.push('WAIT_ADMIN');
+  if (typeof UDATA !== 'undefined' && UDATA && UDATA.approved !== true) groups.admin.push('WAIT_ACCOUNT');
+  let h = '';
+  for (const g of ['you', 'trainer', 'admin']) {
+    if (!groups[g].length) continue;
+    h += `<div class="pend-grp pend-grp-${g}">${esc(t('pend.grp.' + g))}</div>`;
+    for (const it of groups[g]) {
+      if (it === 'WAIT_TRAINER') h += pendWaitRowHTML('trainer');
+      else if (it === 'WAIT_ADMIN') h += pendWaitRowHTML('admin');
+      else if (it === 'WAIT_ACCOUNT') h += pendWaitRowHTML('account');
+      else h += pendItemHTML(it, regDay);
+    }
+  }
+  return h;
+}
 function renderPendings() {
   const body = $('pend-body'); if (!body) return;
   /* Todo render reconstruye el formulario de configuración desde la
@@ -26517,9 +26995,13 @@ function renderPendings() {
     let pre = '';
     try { pre += (typeof pendChecklistHTML === 'function') ? pendChecklistHTML() : ''; } catch {}
     try {
+      /* AUTH-2026-11-01-133: también antes de activar, los ítems de
+         procedimiento del alumno salen en sus bandas. */
+      const preItems = [];
       const pit = (typeof dosProfilePendItem === 'function') ? dosProfilePendItem() : null;
-      if (pit) { pit.date = pendRegDay(new Date(), cfg.cutoff || '04:00'); pre += pendItemHTML(pit, pit.date); }
-      if (typeof rolePendItems === 'function') for (const rit of rolePendItems()) { rit.date = pendRegDay(new Date(), cfg.cutoff || '04:00'); pre += pendItemHTML(rit, rit.date); }
+      if (pit) { pit.date = pendRegDay(new Date(), cfg.cutoff || '04:00'); preItems.push(pit); }
+      if (typeof rolePendItems === 'function') for (const rit of rolePendItems()) { rit.date = pendRegDay(new Date(), cfg.cutoff || '04:00'); preItems.push(rit); }
+      pre += pendItemsGroupedHTML(preItems, pendRegDay(new Date(), cfg.cutoff || '04:00'));
     } catch {}
     body.innerHTML = pre + pendCfgFormHTML(cfg.meals ? cfg : pendDefaults(), true);
     pendSyncDock();
@@ -26549,7 +27031,9 @@ function renderPendings() {
       </div></div>`;
   }
   if (!items.length && !draft) html += `<p class="pend-none">${esc(t('pend.none'))}</p>`;
-  html += items.map(it => pendItemHTML(it, regDay)).join('');
+  /* AUTH-2026-11-01-133: bandas por responsable (solo rol usuario;
+     para los demás roles, la misma lista plana de siempre). */
+  html += pendItemsGroupedHTML(items, regDay);
   html += pendMealsChecklistHTML(regDay, new Date());
   body.innerHTML = html;
   pendSyncDock();
@@ -27687,7 +28171,7 @@ document.addEventListener('keydown', e => { if (e.key === 'Escape') shareClose()
  *  - El SW (sw.js) solo cachea la cáscara del mismo origen en modo
  *    RED PRIMERO: Auth/Firestore/Worker jamás pasan por la caché.
  * ================================================================ */
-const PWA_SW_VERSION = '20261101-palbasal-automatico';
+const PWA_SW_VERSION = '20261101-pendientes-avisar';
 let pwaDeferredPrompt = null;
 function pwaIsStandalone() {
   try {

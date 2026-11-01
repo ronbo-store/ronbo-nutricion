@@ -21,7 +21,7 @@
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-title" content="RONBO FIT">
 <meta name="apple-mobile-web-app-status-bar-style" content="default">
-<link rel="stylesheet" href="styles.css?v=20261101-palbasal-automatico">
+<link rel="stylesheet" href="styles.css?v=20261101-pendientes-avisar">
 <script defer src="https://cloud.umami.is/script.js" data-website-id="a29706d4-44a2-47cf-900a-5f74d74abfa8"></script>
 <script type="importmap">
 {
@@ -576,6 +576,19 @@
     </div>
     <p class="pend-consult-help" id="pend-consult-help"></p>
     <div id="pend-consult-body"></div>
+  </div>
+  <!-- AUTH-2026-11-01-133: hoja flotante del AVISO por pendiente
+       (botón «✉ Avisar» del panel del entrenador y de la ficha):
+       contexto (alumno + pendiente), la vista previa EXACTA del
+       correo del banco fijo en el idioma del alumno y el envío por
+       la ruta de plantillas del Worker. El contenido lo pinta
+       nudgeOpen (app.js); la ✕ vuelve a la lista de pendientes. -->
+  <div class="pend-float pend-consult" id="nudge-float" style="display:none" role="dialog">
+    <div class="pend-head">
+      <h2><span class="nudge-kicker" data-i18n="nudge.kicker">EMAIL NUDGE</span><br><span id="nudge-title" data-i18n="nudge.title">Nudge about a pending item</span></h2>
+      <button type="button" class="pend-close" id="nudge-x" aria-label="Close" data-i18n-aria="client.close">✕</button>
+    </div>
+    <div id="nudge-body"></div>
   </div>
   <!-- Ventana flotante de detalle de anillo (Ronald, 2026-10-21): al
        tocar un anillo pequeño de la fila se abre con el anillo GRANDE
@@ -1466,6 +1479,6 @@
 <div id="toast" class="toast"></div>
 <div id="print-card" aria-hidden="true"></div>
 
-<script type="module" src="app.js?v=20261101-palbasal-automatico"></script>
+<script type="module" src="app.js?v=20261101-pendientes-avisar"></script>
 </body>
 </html>
