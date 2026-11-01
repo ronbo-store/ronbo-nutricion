@@ -1000,6 +1000,34 @@ table.whist { min-width: 640px; }
    sitio original del bloque en la ficha no se ve. */
 .pend-consult { z-index: 47; }
 .pend-consult-help { margin: 2px 0 10px; font-size: 13px; color: #475569; line-height: 1.45; }
+/* REGISTRO CON PROPÓSITO (AUTH-2026-11-01-147; maquetas mq1–mq5
+   aprobadas por Ronald 2026-11-01): la ventana del propósito
+   reutiliza .pend-float; dentro, tarjetas de opción de ~76 px con
+   círculo de icono, anillo verde al elegir y la tarjeta de
+   Administrador atenuada y no seleccionable. Los botones de
+   acción conservan el área táctil generosa de la casa. */
+.purpose-body { padding-top: 2px; }
+.purpose-kicker { margin: 0; font-size: 11px; font-weight: 800; letter-spacing: .14em; color: #0d9488; }
+.purpose-sub { margin: 4px 0 12px; font-size: 13px; color: #475569; line-height: 1.45; }
+.purpose-chip { display: inline-block; margin-left: 8px; padding: 2px 8px; border-radius: 999px; background: #fef3c7; color: #92400e; font-size: 10.5px; font-weight: 800; letter-spacing: .06em; vertical-align: 2px; }
+.purpose-chip-teal { background: #ccfbf1; color: #0f766e; }
+.purpose-chip-new { background: #0d9488; color: #fff; }
+.purpose-opts { display: flex; flex-direction: column; gap: 9px; margin-bottom: 12px; }
+.purpose-opt { display: flex; align-items: center; gap: 12px; width: 100%; box-sizing: border-box; text-align: left; font: inherit; background: #fbfdfd; border: 1.5px solid #e2e8f0; border-radius: 14px; padding: 11px 13px; cursor: pointer; color: #14201f; }
+.purpose-opt.sel { border-color: #0d9488; box-shadow: 0 0 0 2px rgba(13, 148, 136, .28); background: #f0fdfa; }
+.purpose-opt.disabled { opacity: .55; cursor: not-allowed; background: #f8fafc; }
+.purpose-ico { flex: none; width: 44px; height: 44px; border-radius: 50%; background: #e6f4f1; display: flex; align-items: center; justify-content: center; font-size: 21px; }
+.purpose-opt-main { flex: 1; min-width: 0; }
+.purpose-opt-title { display: block; font-size: 15px; font-weight: 700; line-height: 1.25; }
+.purpose-opt-sub { display: block; font-size: 12.5px; color: #64748b; line-height: 1.35; margin-top: 1px; }
+.purpose-check { flex: none; width: 24px; height: 24px; border-radius: 50%; border: 2px solid #cbd5e1; color: transparent; display: flex; align-items: center; justify-content: center; font-size: 13px; font-weight: 900; }
+.purpose-opt.sel .purpose-check { background: #0d9488; border-color: #0d9488; color: #fff; }
+.purpose-lock { flex: none; font-size: 16px; }
+.purpose-foot { display: flex; gap: 9px; }
+.purpose-cta { flex: 1; min-height: 45px; }
+.purpose-cta[disabled] { opacity: .45; cursor: not-allowed; }
+.purpose-back { min-height: 45px; }
+.purpose-profile-opts { display: flex; flex-direction: column; gap: 9px; margin-top: 10px; }
 .pend-consult-anchor { display: none; }
 #pend-consult-body #btn-client-close { display: none; }
 .ficha-pend-block { scroll-margin-top: 12px; }

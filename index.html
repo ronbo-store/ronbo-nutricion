@@ -21,7 +21,7 @@
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-title" content="RONBO FIT">
 <meta name="apple-mobile-web-app-status-bar-style" content="default">
-<link rel="stylesheet" href="styles.css?v=20261101-comunicaciones">
+<link rel="stylesheet" href="styles.css?v=20261101-registro-proposito">
 <script defer src="https://cloud.umami.is/script.js" data-website-id="a29706d4-44a2-47cf-900a-5f74d74abfa8"></script>
 <script type="importmap">
 {
@@ -178,6 +178,17 @@
     </div>
   </div>
 </div>
+
+<!-- REGISTRO CON PROPÓSITO (AUTH-2026-11-01-147; diseño de
+     Ronald 2026-11-01 14:22 CST y sus cuatro decisiones del
+     mismo día): ventana flotante del paso obligatorio de
+     propósito. Vive FUERA de #app-view para servir a los dos
+     momentos con la MISMA ventana: el registro (antes de crear
+     la cuenta) y la declaración única de quien ya estaba
+     registrado. El sistema de coberturas (AUTH-107) la detecta
+     sola por role="dialog". El cuerpo lo pinta app.js
+     (purposeRender). -->
+<div class="pend-float" id="purpose-float" style="display:none" role="dialog" aria-modal="true"></div>
 
 <!-- ============ APP VIEW ============ -->
 <div id="app-view" class="wrap" style="display:none">
@@ -958,6 +969,12 @@
          Lo muestra solo el rol usuario (app.js, al entrar). -->
     <button type="button" class="btn-ghost btn-sm" id="btn-profile-back" style="display:none">← <span data-i18n="nav.back">Back</span></button>
     <div id="profile-card-box"></div>
+    <!-- REGISTRO CON PROPÓSITO (AUTH-2026-11-01-147): panel «Mi
+         propósito» — solo se pinta para quien eligió «Entreno
+         por mi cuenta»; su uso (comidas / entrenamiento / ambos)
+         se cambia libremente desde aquí (decisión (d) de Ronald,
+         2026-11-01). Lo pinta renderPurposeProfileBox. -->
+    <div id="purpose-profile-box"></div>
     <!-- INSTALABLE PWA (2026-10-25): fila de instalación/estado en
          «Mi perfil» (aditiva; la pinta pwaPaintInstall en app.js):
          botón propio con beforeinstallprompt, guía corta en iOS y
@@ -1040,6 +1057,14 @@
     <h3 class="history-title" data-i18n="esc.membershipAdminTitle">🎟️ Trainer memberships</h3>
     <p class="progress-hint" data-i18n="esc.membershipAdminHint">A membership sets how many active students a trainer may have (Basic 5 · Premium 10 · Elite 30). Trainers request a level; only you approve it. This is separate from the account-approval limit above.</p>
     <div id="membership-admin-box"></div>
+    <!-- REGISTRO CON PROPÓSITO (AUTH-2026-11-01-147): editor de
+         los parámetros de la membresía de prueba (días y alumnos).
+         Decisión (a) de Ronald (2026-11-01): 14 días y 3 alumnos
+         son solo los valores POR DEFECTO — viven en
+         app_settings/membership_catalog y el propietario los
+         cambia aquí, sin tocar código. Lo pinta
+         renderTrialConfigBox dentro de renderEscAdminBoxes. -->
+    <div id="trial-config-box"></div>
     <h3 class="history-title" data-i18n="esc.mealAdminTitle">🍽️ Meal access confirmations</h3>
     <p class="progress-hint" data-i18n="esc.mealAdminHint">Meal logging is off for new students until requested. The trainer approves first; you confirm. Confirming turns meal logging on for that student.</p>
     <div id="meal-admin-box"></div>
@@ -1531,6 +1556,6 @@
 <div id="toast" class="toast"></div>
 <div id="print-card" aria-hidden="true"></div>
 
-<script type="module" src="app.js?v=20261101-comunicaciones"></script>
+<script type="module" src="app.js?v=20261101-registro-proposito"></script>
 </body>
 </html>

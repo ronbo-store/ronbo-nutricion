@@ -119,7 +119,30 @@ function membershipQuotaOf(level) {
   if (!level) return 0;
   const c = MEMBERSHIP_CATALOG && MEMBERSHIP_CATALOG.levels && MEMBERSHIP_CATALOG.levels[level];
   if (c && isFinite(Number(c.quota))) return Number(c.quota);
+  if (level === 'prueba') return TRIAL_DEFAULTS.maxStudents;
   return ESC_QUOTA[level] || 0;
+}
+/* Membresía de PRUEBA (AUTH-2026-11-01-147; decisión (a) de
+   Ronald, 2026-11-01 15:20 CST): 14 días y hasta 3 alumnos son
+   SOLO los valores por defecto — los parámetros viven en
+   app_settings/membership_catalog (levels.prueba = {quota,
+   trialDays}, el mismo documento que ya alimenta los cupos) y el
+   propietario los edita en Administración (renderTrialConfigBox);
+   en el código queda únicamente este respaldo, patrón de
+   ESC_QUOTA. La ventana de la prueba corre desde que el
+   propietario ACTIVA la membresía: el documento de membresía
+   guarda startedAt y currentPeriodEnd (la forma viva); vencida,
+   el entrenador queda sin cupo por la vía de siempre
+   (escTrainerStanding) — sin segundo sistema de cupos. */
+const TRIAL_DEFAULTS = { days: 14, maxStudents: 3 };
+function trialDaysOf() {
+  const c = MEMBERSHIP_CATALOG && MEMBERSHIP_CATALOG.levels && MEMBERSHIP_CATALOG.levels.prueba;
+  const d = c && Number(c.trialDays);
+  return (isFinite(d) && d > 0) ? Math.floor(d) : TRIAL_DEFAULTS.days;
+}
+function trialPeriodEnd(days, nowMs) {
+  const d = (isFinite(days) && days > 0) ? days : TRIAL_DEFAULTS.days;
+  return nowMs + d * 24 * 60 * 60 * 1000;
 }
 /* Cambio de nivel (§8.3 RESUELTA por Ronald, chat RONBO.NUTRI
    2026-10-24 17:48 CDT: «simplemente no puede bajar a básico por la
@@ -154,7 +177,12 @@ async function escTrainerStanding(trainerUid, isOwnerTrainer) {
   let prof = null, memb = null;
   try { const s = await getDoc(doc(db, 'trainer_profiles', trainerUid)); if (s.exists()) prof = s.data(); } catch {}
   try { const s = await getDoc(doc(db, 'memberships', trainerUid)); if (s.exists()) memb = s.data(); } catch {}
-  const level = memb && memb.status === 'activa' ? memb.level : null;
+  let level = memb && memb.status === 'activa' ? memb.level : null;
+  /* Prueba vencida (AUTH-2026-11-01-147): el nivel «prueba» solo
+     da cupo dentro de su ventana (currentPeriodEnd, escrita al
+     activarla); fuera de ella el entrenador queda sin nivel a
+     efectos de cupo — el documento no se toca. */
+  if (level === 'prueba' && memb && memb.currentPeriodEnd && dosMs(memb.currentPeriodEnd) != null && dosMs(memb.currentPeriodEnd) < Date.now()) level = null;
   const total = isOwnerTrainer ? Infinity : membershipQuotaOf(level);
   const used = prof ? (Number(prof.activeStudents) || 0) : 0;
   return { prof, memb, level, total, used, free: total - used };
@@ -657,8 +685,9 @@ async function renderMembershipBox() {
     ${st.level ? `<p class="progress-hint">${esc(t('esc.quotaOf', { used: st.used, total: st.total === Infinity ? '∞' : st.total }))}</p>
     <p class="progress-hint">${esc(t('esc.aiByLevel', { n: ESC_AI_BY_LEVEL[st.level] || 10 }))}</p>`
       : `<p class="progress-hint">${esc(t('esc.quotaNone'))}</p>`}
-    ${status !== 'pendiente' ? `<div class="eval-actions">${['basico', 'premium', 'elite'].map(l => `<button type="button" class="btn-ghost btn-sm" data-membership-request="${l}"${escLevelFits(l, st.used) ? '' : ' disabled'}>${esc(t('esc.requestLevel'))} ${esc(escLevelLabel(l))} (${membershipQuotaOf(l)})</button>`).join('')}</div>
-    ${['basico', 'premium', 'elite'].some(l => !escLevelFits(l, st.used)) ? `<p class="progress-hint">⚠️ ${esc(t('esc.levelHint', { used: st.used }))}</p>` : ''}` : ''}
+    ${m.level === 'prueba' && status === 'activa' && m.currentPeriodEnd && dosMs(m.currentPeriodEnd) != null ? `<p class="progress-hint">🧪 ${esc(t(dosMs(m.currentPeriodEnd) >= Date.now() ? 'purpose.trialEndsLine' : 'purpose.trialExpiredLine', { date: new Date(dosMs(m.currentPeriodEnd)).toLocaleDateString() }))}</p>` : ''}
+    ${status !== 'pendiente' ? `<div class="eval-actions">${['basico', 'premium', 'elite', 'prueba'].map(l => `<button type="button" class="btn-ghost btn-sm" data-membership-request="${l}"${escLevelFits(l, st.used) ? '' : ' disabled'}>${esc(t('esc.requestLevel'))} ${esc(escLevelLabel(l))} (${membershipQuotaOf(l)})</button>`).join('')}</div>
+    ${['basico', 'premium', 'elite', 'prueba'].some(l => !escLevelFits(l, st.used)) ? `<p class="progress-hint">⚠️ ${esc(t('esc.levelHint', { used: st.used }))}</p>` : ''}` : ''}
     <label class="muted">${esc(t('esc.bioLabel'))} <input type="text" id="prof-bio" value="${esc(prof.bio || '')}" placeholder="${esc(t('esc.bioPh'))}"></label>
     <label class="muted"><input type="checkbox" id="prof-available" ${prof.available === false ? '' : 'checked'}> ${esc(t('esc.availableLabel'))}</label>
     <p class="progress-hint">${esc(t('esc.modalitiesLabel'))}: ${mods.map(x => esc(escModLabel(x))).join(' · ')}</p>
@@ -794,6 +823,7 @@ async function renderModalityTrainerBox() {
 /* ---------- Administrador: membresías, confirmaciones y banderas ---------- */
 async function renderEscAdminBoxes() {
   if (!IS_OWNER) return;
+  try { renderTrialConfigBox(); } catch {}
   /* --- Membresías: solicitudes + concesión directa + modalidades --- */
   const mbox = $('membership-admin-box');
   if (mbox) {
@@ -822,7 +852,7 @@ async function renderEscAdminBoxes() {
         ${ESC_MODALITIES.map(md => `<label class="muted"><input type="checkbox" data-mod-for="${u.id}" value="${md}" ${mods.includes(md) ? 'checked' : ''}> ${esc(escModLabel(md))}</label>`).join(' ')}
         </div>
         <div class="user-actions">
-          <label class="muted">${esc(t('esc.grantLevel'))} <select data-grant-for="${u.id}">${['', 'basico', 'premium', 'elite'].map(l => `<option value="${l}"${(m.level || '') === l && m.status === 'activa' ? ' selected' : ''}>${l ? esc(escLevelLabel(l)) : '—'}</option>`).join('')}</select></label>
+          <label class="muted">${esc(t('esc.grantLevel'))} <select data-grant-for="${u.id}">${['', 'basico', 'premium', 'elite', 'prueba'].map(l => `<option value="${l}"${(m.level || '') === l && m.status === 'activa' ? ' selected' : ''}>${l ? esc(escLevelLabel(l)) : '—'}</option>`).join('')}</select></label>
         </div>
       </div>`; }).join('')}`;
     document.querySelectorAll('[data-membership-approve]').forEach(b => b.onclick = async () => {
@@ -838,7 +868,10 @@ async function renderEscAdminBoxes() {
       }
       await setDoc(doc(db, 'memberships', uid), {
         level: m.requestedLevel || 'basico', status: 'activa', source: 'gratis',
-        decidedBy: auth.currentUser.uid, decidedAt: serverTimestamp(), startedAt: serverTimestamp(), currentPeriodEnd: null
+        decidedBy: auth.currentUser.uid, decidedAt: serverTimestamp(), startedAt: serverTimestamp(),
+        /* Prueba (AUTH-2026-11-01-147): su ventana nace AQUÍ, al
+           activarla — los días salen de la configuración viva. */
+        currentPeriodEnd: m.requestedLevel === 'prueba' ? Timestamp.fromMillis(trialPeriodEnd(trialDaysOf(), Date.now())) : null
       }, { merge: true });
       await auditLog('membership', 'membership.approved', uid, m.requestedLevel || '');
       toast(t('esc.mealApprovedOk')); loadAdmin();
@@ -863,7 +896,7 @@ async function renderEscAdminBoxes() {
         try { const s = await getDoc(doc(db, 'trainer_profiles', uid)); if (s.exists()) usedG = Number(s.data().activeStudents) || 0; } catch {}
         if (!escLevelFits(lvl, usedG)) { toast(t('esc.levelBlocked', { level: escLevelLabel(lvl), quota: membershipQuotaOf(lvl), used: usedG }), true); loadAdmin(); return; }
       }
-      if (lvl) await setDoc(doc(db, 'memberships', uid), { level: lvl, status: 'activa', source: 'gratis', decidedBy: auth.currentUser.uid, decidedAt: serverTimestamp(), startedAt: serverTimestamp(), currentPeriodEnd: null }, { merge: true });
+      if (lvl) await setDoc(doc(db, 'memberships', uid), { level: lvl, status: 'activa', source: 'gratis', decidedBy: auth.currentUser.uid, decidedAt: serverTimestamp(), startedAt: serverTimestamp(), currentPeriodEnd: lvl === 'prueba' ? Timestamp.fromMillis(trialPeriodEnd(trialDaysOf(), Date.now())) : null }, { merge: true });
       else await setDoc(doc(db, 'memberships', uid), { level: null, status: 'sin_membresia', decidedBy: auth.currentUser.uid, decidedAt: serverTimestamp() }, { merge: true });
       await auditLog('membership', 'membership.granted', uid, lvl || 'none');
       toast(t('esc.modSaved')); loadAdmin();
@@ -1807,6 +1840,7 @@ function dosCollectPlaces() {
    foto conserva su camino de siempre (#avatar-file). */
 async function renderProfileView() {
   const box = $('profile-card-box'); if (!box) return;
+  try { renderPurposeProfileBox(); } catch {}
   const u = UDATA || {};
   const me = auth.currentUser;
   const name = u.name || (me && me.email) || '—';
@@ -2670,6 +2704,7 @@ en: {
   'esc.level.basico': 'Basic',
   'esc.level.premium': 'Premium',
   'esc.level.elite': 'Elite',
+  'esc.level.prueba': 'Trial',
 
   'esc.status.sin_membresia': 'No membership',
   'esc.status.pendiente': 'Requested — waiting for the administrator',
@@ -3711,6 +3746,60 @@ en: {
   'signup.closeBtn': 'Close',
   'signup.quotaLine': 'You have used {used} of {limit} trainer approvals.',
   'signup.quotaFull': 'Your trainer approval quota is full ({limit}). The administrator can still approve this student.',
+  'purpose.kicker': 'BEFORE YOU START',
+  'purpose.title': 'What brings you to RONBO FIT?',
+  'purpose.requiredChip': 'REQUIRED',
+  'purpose.pickHint': 'Pick one option to continue. You can change your mind later from your profile.',
+  'purpose.continueBtn': 'Continue →',
+  'purpose.createBtn': 'Create my account',
+  'purpose.saveBtn': 'Save my purpose',
+  'purpose.backBtn': '← Back',
+  'purpose.admin': 'Administrator',
+  'purpose.adminSub': 'I run the platform.',
+  'purpose.adminLocked': 'This role is not open for sign-up.',
+  'purpose.own': 'I train on my own',
+  'purpose.ownSub': 'No trainer: I follow my own plan.',
+  'purpose.withTrainer': 'I train with a trainer',
+  'purpose.withTrainerSub': 'A trainer guides me.',
+  'purpose.trainer': 'I am a trainer',
+  'purpose.trainerSub': 'I coach my own students.',
+  'purpose.business': 'Business',
+  'purpose.businessSub': 'A gym or a business.',
+  'purpose.useTitle': 'What will you use?',
+  'purpose.useMeals': 'Meals only',
+  'purpose.useMealsSub': 'Log your meals and hit your daily goals.',
+  'purpose.useTraining': 'Training only',
+  'purpose.useTrainingSub': 'Follow your routines and log your progress.',
+  'purpose.useBoth': 'Meals and training',
+  'purpose.useBothSub': 'The full RONBO FIT experience.',
+  'purpose.useFullChip': 'FULL',
+  'purpose.trainerTitle': 'Choose your trainer',
+  'purpose.chooseBtn': 'Choose',
+  'purpose.suggestTitle': 'Let RONBO FIT suggest one for me',
+  'purpose.suggestSub': 'We suggest a trainer based on your goals.',
+  'purpose.suggestBtn': 'Suggest one for me',
+  'purpose.noTrainers': 'No trainers are listed right now — pick the suggestion option and we will place you.',
+  'purpose.membTitle': 'Pick your membership',
+  'purpose.noChargeChip': 'NO CHARGE TODAY',
+  'purpose.upTo': 'Up to {n} students',
+  'purpose.trialDesc': '{days} days · up to {n} students',
+  'purpose.newChip': 'NEW',
+  'purpose.bizBody': 'RONBO FIT Business is on its way for gyms and businesses. Sign up and we will let you know as soon as it opens — no commitment.',
+  'purpose.bizConfirm': 'Count me in ✓',
+  'purpose.creatingBtn': 'Creating…',
+  'purpose.savedOk': 'Purpose saved ✓',
+  'purpose.declareNote': 'We ask this once so RONBO FIT fits how you train. It changes nothing about your account.',
+  'purpose.declareTrainerNote': 'Choosing here only records your purpose — your current trainer and assignment do not change.',
+  'purpose.profileTitle': '🎯 My purpose',
+  'purpose.profileUseLabel': 'What I use RONBO FIT for',
+  'purpose.trialAdminTitle': '🧪 Trial membership',
+  'purpose.trialAdminHint': 'The trial a new trainer can pick at sign-up. These are starting values: change them here and they apply to trials activated from then on (the student limit also applies right away).',
+  'purpose.trialDaysLabel': 'Trial days',
+  'purpose.trialStudentsLabel': 'Students allowed',
+  'purpose.cfgSaved': 'Trial settings saved ✓',
+  'purpose.cfgInvalid': 'Check the values: days 1–60, students 1–30.',
+  'purpose.trialEndsLine': 'Your trial membership runs until {date}.',
+  'purpose.trialExpiredLine': 'Your trial membership ended on {date}.',
   'admin.mailConfirmed': '✉ confirmed',
   'admin.mailUnconfirmed': '✉ not confirmed',
   'clients.empty': 'No clients registered yet.',
@@ -5024,6 +5113,7 @@ es: {
   'esc.level.basico': 'Básico',
   'esc.level.premium': 'Premium',
   'esc.level.elite': 'Élite',
+  'esc.level.prueba': 'Prueba',
 
   'esc.status.sin_membresia': 'Sin membresía',
   'esc.status.pendiente': 'Solicitada: esperando al administrador',
@@ -6066,6 +6156,60 @@ es: {
   'signup.closeBtn': 'Cerrar',
   'signup.quotaLine': 'Llevas {used} de {limit} aprobaciones de entrenador.',
   'signup.quotaFull': 'Tu cupo de aprobaciones de entrenador está lleno ({limit}). El administrador aún puede aprobar a este alumno.',
+  'purpose.kicker': 'ANTES DE EMPEZAR',
+  'purpose.title': '¿Con qué propósito llegas a RONBO FIT?',
+  'purpose.requiredChip': 'OBLIGATORIO',
+  'purpose.pickHint': 'Elige una opción para continuar. Podrás cambiar de idea luego desde tu perfil.',
+  'purpose.continueBtn': 'Continuar →',
+  'purpose.createBtn': 'Crear mi cuenta',
+  'purpose.saveBtn': 'Guardar mi propósito',
+  'purpose.backBtn': '← Volver',
+  'purpose.admin': 'Administrador',
+  'purpose.adminSub': 'Gestiono la plataforma.',
+  'purpose.adminLocked': 'Este papel no está abierto al registro.',
+  'purpose.own': 'Entreno por mi cuenta',
+  'purpose.ownSub': 'Sin entrenador: sigo mi propio plan.',
+  'purpose.withTrainer': 'Entreno con entrenador',
+  'purpose.withTrainerSub': 'Un entrenador me acompaña.',
+  'purpose.trainer': 'Soy entrenador',
+  'purpose.trainerSub': 'Acompaño a mis propios alumnos.',
+  'purpose.business': 'Business',
+  'purpose.businessSub': 'Un gimnasio o un negocio.',
+  'purpose.useTitle': '¿Qué vas a usar?',
+  'purpose.useMeals': 'Solo comidas',
+  'purpose.useMealsSub': 'Registra tus comidas y cumple tus metas del día.',
+  'purpose.useTraining': 'Solo entrenamiento',
+  'purpose.useTrainingSub': 'Sigue tus rutinas y registra tu progreso.',
+  'purpose.useBoth': 'Comidas y entrenamiento',
+  'purpose.useBothSub': 'La experiencia completa de RONBO FIT.',
+  'purpose.useFullChip': 'COMPLETA',
+  'purpose.trainerTitle': 'Elige a tu entrenador',
+  'purpose.chooseBtn': 'Elegir',
+  'purpose.suggestTitle': 'Que RONBO FIT me sugiera uno',
+  'purpose.suggestSub': 'Te sugerimos uno de acuerdo a tus metas.',
+  'purpose.suggestBtn': 'Sugerirme uno',
+  'purpose.noTrainers': 'Ahora mismo no hay entrenadores en la lista — elige la opción de sugerencia y te ubicamos.',
+  'purpose.membTitle': 'Elige tu membresía',
+  'purpose.noChargeChip': 'SIN COBRO HOY',
+  'purpose.upTo': 'Hasta {n} alumnos',
+  'purpose.trialDesc': '{days} días · hasta {n} alumnos',
+  'purpose.newChip': 'NUEVA',
+  'purpose.bizBody': 'RONBO FIT Business viene en camino para gimnasios y negocios. Regístrate y te avisamos en cuanto abra — sin compromiso.',
+  'purpose.bizConfirm': 'Contad conmigo ✓',
+  'purpose.creatingBtn': 'Creando…',
+  'purpose.savedOk': 'Propósito guardado ✓',
+  'purpose.declareNote': 'Te lo pedimos una sola vez para que RONBO FIT se ajuste a cómo entrenas. No cambia nada de tu cuenta.',
+  'purpose.declareTrainerNote': 'Elegir aquí solo registra tu propósito — tu entrenador y tu asignación actuales no cambian.',
+  'purpose.profileTitle': '🎯 Mi propósito',
+  'purpose.profileUseLabel': 'Para qué uso RONBO FIT',
+  'purpose.trialAdminTitle': '🧪 Membresía de prueba',
+  'purpose.trialAdminHint': 'La prueba que un entrenador nuevo puede elegir al registrarse. Estos son los valores de partida: cámbialos aquí y aplican a las pruebas que se activen desde entonces (el tope de alumnos aplica también al momento).',
+  'purpose.trialDaysLabel': 'Días de prueba',
+  'purpose.trialStudentsLabel': 'Alumnos permitidos',
+  'purpose.cfgSaved': 'Ajuste de la prueba guardado ✓',
+  'purpose.cfgInvalid': 'Revisa los valores: días 1–60, alumnos 1–30.',
+  'purpose.trialEndsLine': 'Tu membresía de prueba corre hasta el {date}.',
+  'purpose.trialExpiredLine': 'Tu membresía de prueba terminó el {date}.',
   'admin.mailConfirmed': '✉ confirmado',
   'admin.mailUnconfirmed': '✉ sin confirmar',
   'clients.empty': 'Aún no hay clientes registrados.',
@@ -7415,54 +7559,280 @@ function showRegError(msg) {
   el.textContent = msg || '';
   el.classList.toggle('show', !!msg);
 }
-$('form-register').addEventListener('submit', async e => {
-  e.preventDefault();
+/* ============ REGISTRO CON PROPÓSITO (AUTH-2026-11-01-147) ============
+   Diseño de Ronald (2026-11-01 14:22 CST) y sus cuatro decisiones
+   del mismo día: (a) la membresía de prueba vale 14 días y 3
+   alumnos POR DEFECTO, editables por él en Administración;
+   (b) «Administrador» aparece pero NO se puede seleccionar;
+   (c) a quien ya estaba registrado se le pide UNA sola vez al
+   entrar, sin bloquear ni tocar sus papeles — queda como
+   declaración; (d) el uso «por mi cuenta» se cambia libremente
+   desde el perfil y cambiar de modo no rompe en silencio la
+   relación con el entrenador.
+   La MISMA ventana flotante (#purpose-float) sirve al registro
+   (obligatoria: sin propósito no se crea la cuenta) y a la
+   declaración única. La elección viaja en el lote de nacimiento
+   (purpose, purposeAt y, según el caso, purposeUse /
+   purposeSuggest / purposeMembership) y los efectos con
+   maquinaria vigente se ejecutan con las piezas de siempre:
+   entrenador elegido o bandeja de espera (relación), solicitud
+   de membresía del andamiaje, y el registro de interés Business
+   de la puerta falsa (fdBizAt/fdBizGym). Los controles legados
+   del formulario (tipo/modalidad/entrenador) quedan ocultos: la
+   ventana es la única puerta; los controladores programáticos
+   que los usan (dossier del directorio) no se tocan. */
+const PURPOSE = { mode: 'signup', step: 1, purpose: '', use: '', trainerUid: '', suggest: false, membership: '', gym: '', form: null, busy: false };
+const PURPOSE_ASKED_LS = 'purposeAsked:';
+function purposeFloatEl() { return $('purpose-float'); }
+function purposeEsc() { const f = purposeFloatEl(); if (f) f.style.display = 'none'; }
+function purposeFeaturesForUse(use) {
+  if (use === 'meals') return { training: false, activity: false, photos: false, metrics: false, meals: true, somatotype: false };
+  if (use === 'training') return { training: true, activity: true, photos: true, metrics: true, meals: false, somatotype: true };
+  return { ...ESC_FEATURE_DEFAULTS };
+}
+function purposeOptCard(kind, icon, titleKey, subHtml, opts) {
+  const o = opts || {};
+  const sel = o.selected ? ' sel' : '';
+  const dis = o.disabled ? ' disabled' : '';
+  const title = o.rawTitle != null ? esc(o.rawTitle) : esc(t(titleKey));
+  const sub = o.rawSub != null ? esc(o.rawSub) : subHtml;
+  return `<button type="button" class="purpose-opt${sel}${dis}" data-purpose-${kind}="${esc(o.value || '')}"${o.disabled ? ' disabled aria-disabled="true"' : ''}>
+    <span class="purpose-ico">${icon}</span>
+    <span class="purpose-opt-main"><span class="purpose-opt-title">${title}${o.chip ? ` <span class="purpose-chip ${o.chipCls || ''}">${esc(t(o.chip))}</span>` : ''}</span>
+    <span class="purpose-opt-sub">${sub}</span></span>
+    ${o.disabled ? '<span class="purpose-lock">🔒</span>' : '<span class="purpose-check">✓</span>'}
+  </button>`;
+}
+function purposeRender() {
+  const f = purposeFloatEl();
+  if (!f) return;
+  const P = PURPOSE;
+  const head = `
+  <div class="pend-head">
+    <div><p class="purpose-kicker">${esc(t('purpose.kicker'))}</p>
+    <h3 class="pend-title">${esc(t('purpose.title'))}</h3></div>
+    <button type="button" class="pend-close" id="purpose-x" aria-label="✕">✕</button>
+  </div>`;
+  let body = '';
+  if (P.step === 1) {
+    body = `<p class="purpose-sub">${esc(t(P.mode === 'declare' ? 'purpose.declareNote' : 'purpose.pickHint'))}${P.mode === 'signup' ? `<span class="purpose-chip">${esc(t('purpose.requiredChip'))}</span>` : ''}</p>
+    <div class="purpose-opts">
+      ${purposeOptCard('pick', '🛡️', 'purpose.admin', `${esc(t('purpose.adminSub'))}<br>${esc(t('purpose.adminLocked'))}`, { value: 'admin', disabled: true })}
+      ${purposeOptCard('pick', '🏃', 'purpose.own', esc(t('purpose.ownSub')), { value: 'cuenta', selected: P.purpose === 'cuenta' })}
+      ${purposeOptCard('pick', '🤝', 'purpose.withTrainer', esc(t('purpose.withTrainerSub')), { value: 'con_entrenador', selected: P.purpose === 'con_entrenador' })}
+      ${purposeOptCard('pick', '💪', 'purpose.trainer', esc(t('purpose.trainerSub')), { value: 'entrenador', selected: P.purpose === 'entrenador' })}
+      ${purposeOptCard('pick', '🏢', 'purpose.business', esc(t('purpose.businessSub')), { value: 'business', selected: P.purpose === 'business' })}
+    </div>
+    <div class="purpose-foot"><button type="button" class="btn-primary purpose-cta" id="purpose-next" ${P.purpose ? '' : 'disabled'}>${esc(t('purpose.continueBtn'))}</button></div>`;
+  } else if (P.purpose === 'cuenta') {
+    body = `<p class="purpose-sub"><b>${esc(t('purpose.useTitle'))}</b></p>
+    <div class="purpose-opts">
+      ${purposeOptCard('use', '🍽️', 'purpose.useMeals', esc(t('purpose.useMealsSub')), { value: 'meals', selected: P.use === 'meals' })}
+      ${purposeOptCard('use', '🏋️', 'purpose.useTraining', esc(t('purpose.useTrainingSub')), { value: 'training', selected: P.use === 'training' })}
+      ${purposeOptCard('use', '⭐', 'purpose.useBoth', esc(t('purpose.useBothSub')), { value: 'both', selected: P.use === 'both', chip: 'purpose.useFullChip', chipCls: 'purpose-chip-teal' })}
+    </div>
+    <div class="purpose-foot"><button type="button" class="btn-ghost purpose-back" id="purpose-back">${esc(t('purpose.backBtn'))}</button><button type="button" class="btn-primary purpose-cta" id="purpose-done" ${P.use ? '' : 'disabled'}>${esc(t(P.mode === 'declare' ? 'purpose.saveBtn' : 'purpose.createBtn'))}</button></div>`;
+  } else if (P.purpose === 'con_entrenador') {
+    const modality = P.modality || (($('reg-modality') && $('reg-modality').value) || 'virtual');
+    P.modality = modality;
+    const opts = REG_DIRECTORY.filter(tr => {
+      if (tr.available === false) return false;
+      if (Array.isArray(tr.modalities) && modality && !tr.modalities.includes(modality)) return false;
+      return true;
+    });
+    const cards = opts.map(tr => {
+      const full = tr.quotaTotal != null && isFinite(Number(tr.quotaTotal)) && (Number(tr.quotaUsed) || 0) >= Number(tr.quotaTotal);
+      return purposeOptCard('trainer', '👤', '', '', { value: tr.uid, selected: P.trainerUid === tr.uid, disabled: full, rawTitle: tr.name || t('esc.currentTrainer'), rawSub: full ? t('esc.poolFull') : '' });
+    }).join('');
+    body = `<p class="purpose-sub"><b>${esc(t('purpose.trainerTitle'))}</b></p>
+    ${P.mode === 'declare' ? `<p class="purpose-sub">${esc(t('purpose.declareTrainerNote'))}</p>` : ''}
+    <label class="muted">${esc(t('esc.modality'))} <select id="purpose-modality">${ESC_MODALITIES.map(m => `<option value="${m}"${m === modality ? ' selected' : ''}>${esc(escModLabel(m))}</option>`).join('')}</select></label>
+    <div class="purpose-opts" style="margin-top:10px">
+      ${cards || `<p class="purpose-sub">${esc(t('purpose.noTrainers'))}</p>`}
+      ${purposeOptCard('suggest', '✨', 'purpose.suggestTitle', esc(t('purpose.suggestSub')), { value: 'suggest', selected: P.suggest })}
+    </div>
+    <div class="purpose-foot"><button type="button" class="btn-ghost purpose-back" id="purpose-back">${esc(t('purpose.backBtn'))}</button><button type="button" class="btn-primary purpose-cta" id="purpose-done" ${(P.trainerUid || P.suggest) ? '' : 'disabled'}>${esc(t(P.mode === 'declare' ? 'purpose.saveBtn' : 'purpose.createBtn'))}</button></div>`;
+  } else if (P.purpose === 'entrenador') {
+    const membCard = (lvl, icon, chipKey) => purposeOptCard('memb', icon, 'esc.level.' + lvl,
+      lvl === 'prueba' ? esc(t('purpose.trialDesc', { days: trialDaysOf(), n: membershipQuotaOf('prueba') })) : esc(t('purpose.upTo', { n: membershipQuotaOf(lvl) })),
+      { value: lvl, selected: P.membership === lvl, chip: chipKey, chipCls: chipKey === 'purpose.newChip' ? 'purpose-chip-new' : '' });
+    body = `<p class="purpose-sub"><b>${esc(t('purpose.membTitle'))}</b><span class="purpose-chip">${esc(t('purpose.noChargeChip'))}</span></p>
+    <div class="purpose-opts">
+      ${membCard('basico', '🥉')}
+      ${membCard('premium', '🥈')}
+      ${membCard('elite', '🥇')}
+      ${membCard('prueba', '🧪', 'purpose.newChip')}
+    </div>
+    <div class="purpose-foot"><button type="button" class="btn-ghost purpose-back" id="purpose-back">${esc(t('purpose.backBtn'))}</button><button type="button" class="btn-primary purpose-cta" id="purpose-done" ${P.membership ? '' : 'disabled'}>${esc(t(P.mode === 'declare' ? 'purpose.saveBtn' : 'purpose.createBtn'))}</button></div>`;
+  } else if (P.purpose === 'business') {
+    body = `<p class="purpose-sub">${esc(t('purpose.bizBody'))}</p>
+    <input type="text" id="purpose-gym" class="fdbiz-gym" maxlength="80" placeholder="${esc(t('fdbiz.gymPh'))}" value="${esc(P.gym || '')}">
+    <div class="purpose-foot"><button type="button" class="btn-ghost purpose-back" id="purpose-back">${esc(t('purpose.backBtn'))}</button><button type="button" class="btn-primary purpose-cta" id="purpose-done">${esc(t(P.mode === 'declare' ? 'purpose.saveBtn' : 'purpose.bizConfirm'))}</button></div>`;
+  }
+  f.innerHTML = head + `<div class="purpose-body">${body}</div>`;
+  f.style.display = '';
+  const x = $('purpose-x'); if (x) x.onclick = () => purposeClose();
+  f.querySelectorAll('[data-purpose-pick]').forEach(b => b.onclick = () => { if (b.disabled) return; PURPOSE.purpose = b.dataset.purposePick; purposeRender(); });
+  f.querySelectorAll('[data-purpose-use]').forEach(b => b.onclick = () => { PURPOSE.use = b.dataset.purposeUse; purposeRender(); });
+  f.querySelectorAll('[data-purpose-trainer]').forEach(b => b.onclick = () => { if (b.disabled) return; PURPOSE.trainerUid = b.dataset.purposeTrainer; PURPOSE.suggest = false; purposeRender(); });
+  f.querySelectorAll('[data-purpose-suggest]').forEach(b => b.onclick = () => { PURPOSE.suggest = true; PURPOSE.trainerUid = ''; purposeRender(); });
+  f.querySelectorAll('[data-purpose-memb]').forEach(b => b.onclick = () => { PURPOSE.membership = b.dataset.purposeMemb; purposeRender(); });
+  const pm = $('purpose-modality'); if (pm) pm.onchange = () => { PURPOSE.modality = pm.value; PURPOSE.trainerUid = ''; PURPOSE.suggest = false; purposeRender(); };
+  const bk = $('purpose-back'); if (bk) bk.onclick = () => { PURPOSE.step = 1; purposeRender(); };
+  const nx = $('purpose-next'); if (nx) nx.onclick = () => { PURPOSE.step = 2; purposeRender(); };
+  const dn = $('purpose-done'); if (dn) dn.onclick = () => purposeFinish();
+}
+function purposeOpenSignup(form) {
+  PURPOSE.mode = 'signup'; PURPOSE.step = 1; PURPOSE.purpose = ''; PURPOSE.use = '';
+  PURPOSE.trainerUid = ''; PURPOSE.suggest = false; PURPOSE.membership = ''; PURPOSE.gym = '';
+  PURPOSE.modality = ''; PURPOSE.form = form; PURPOSE.busy = false;
+  purposeRender();
+}
+function purposeOpenDeclare() {
+  PURPOSE.mode = 'declare'; PURPOSE.step = 1; PURPOSE.purpose = ''; PURPOSE.use = '';
+  PURPOSE.trainerUid = ''; PURPOSE.suggest = false; PURPOSE.membership = ''; PURPOSE.gym = '';
+  PURPOSE.modality = ''; PURPOSE.form = null; PURPOSE.busy = false;
+  purposeRender();
+}
+async function purposeClose() {
+  if (PURPOSE.mode === 'declare' && auth.currentUser) {
+    /* Pedida una sola vez (decisión (c)): cerrar sin responder
+       también cuenta como pedida — se anota purposeAskedAt una
+       única vez y la marca local impide repetirla en este
+       dispositivo aunque la escritura tarde. Nada más se toca. */
+    try { localStorage.setItem(PURPOSE_ASKED_LS + auth.currentUser.uid, '1'); } catch {}
+    try { await setDoc(doc(db, 'users', auth.currentUser.uid), { purposeAskedAt: new Date().toISOString() }, { merge: true }); if (UDATA) UDATA.purposeAskedAt = new Date().toISOString(); } catch {}
+  }
+  purposeEsc();
+}
+async function purposeFinish() {
+  if (PURPOSE.busy) return;
+  const P = PURPOSE;
+  if (P.mode === 'declare') {
+    const me = auth.currentUser && auth.currentUser.uid;
+    if (!me) { purposeEsc(); return; }
+    P.busy = true;
+    const data = { purpose: P.purpose, purposeAt: new Date().toISOString(), purposeAskedAt: new Date().toISOString() };
+    if (P.purpose === 'cuenta') data.purposeUse = P.use;
+    if (P.purpose === 'con_entrenador') { if (P.suggest) data.purposeSuggest = true; else if (P.trainerUid) data.purposeTrainerChoice = P.trainerUid; }
+    if (P.purpose === 'entrenador') data.purposeMembership = P.membership;
+    try {
+      await setDoc(doc(db, 'users', me), data, { merge: true });
+      if (UDATA) Object.assign(UDATA, data);
+      if (P.purpose === 'business') {
+        const biz = { fdBizAt: new Date().toISOString() };
+        const g = ($('purpose-gym') && $('purpose-gym').value || '').trim().slice(0, 80);
+        if (g) biz.fdBizGym = g;
+        try { await setDoc(doc(db, 'users', me), biz, { merge: true }); if (UDATA) Object.assign(UDATA, biz); } catch {}
+      }
+      try { localStorage.setItem(PURPOSE_ASKED_LS + me, '1'); } catch {}
+      toast(t('purpose.savedOk'));
+    } catch { toast(t('err.createFail'), true); }
+    P.busy = false;
+    purposeEsc();
+    return;
+  }
+  /* Registro: la cuenta se crea SOLO desde aquí, con el
+     propósito ya elegido (paso obligatorio). */
+  P.busy = true;
+  const dn = $('purpose-done'); if (dn) { dn.disabled = true; dn.textContent = t('purpose.creatingBtn'); }
+  const pd = {
+    purpose: P.purpose, use: P.use, trainerUid: P.trainerUid, suggest: P.suggest,
+    membership: P.membership, modality: P.modality,
+    gym: (($('purpose-gym') && $('purpose-gym').value) || '').trim().slice(0, 80)
+  };
+  try {
+    await regCreateAccount(pd);
+    purposeEsc();
+  } catch { /* regCreateAccount ya mostró el error en el formulario */ P.busy = false; purposeRender(); }
+}
+/* Declaración única (decisión (c)): al entrar, si la cuenta no
+   tiene propósito ni consta que se le pidió, se le pide UNA vez
+   en la misma ventana — sin bloquear la app (la ventana flota y
+   se puede cerrar) y sin tocar papeles ni relaciones. */
+function purposeMaybeAsk() {
+  try {
+    if (!auth.currentUser || !UDATA) return;
+    if (UDATA.purpose || UDATA.purposeAskedAt) return;
+    let asked = false;
+    try { asked = !!localStorage.getItem(PURPOSE_ASKED_LS + auth.currentUser.uid); } catch {}
+    if (asked) return;
+    try { localStorage.setItem(PURPOSE_ASKED_LS + auth.currentUser.uid, '1'); } catch {}
+    purposeOpenDeclare();
+  } catch {}
+}
+/* «Mi propósito» en el perfil (decisión (d)): quien entrena por
+   su cuenta cambia su uso libremente desde aquí — una escritura
+   de declaración por la rama de perfil inofensivo, sin tocar
+   papeles ni la relación con ningún entrenador. */
+function renderPurposeProfileBox() {
+  const box = $('purpose-profile-box');
+  if (!box) return;
+  if (!UDATA || UDATA.purpose !== 'cuenta') { box.innerHTML = ''; return; }
+  const cur = UDATA.purposeUse || 'both';
+  box.innerHTML = `
+  <div class="panel">
+    <h3 class="history-title">${esc(t('purpose.profileTitle'))}</h3>
+    <p class="progress-hint">${esc(t('purpose.own'))} · ${esc(t('purpose.profileUseLabel'))}</p>
+    <div class="purpose-profile-opts">
+      ${purposeOptCard('profuse', '🍽️', 'purpose.useMeals', esc(t('purpose.useMealsSub')), { value: 'meals', selected: cur === 'meals' })}
+      ${purposeOptCard('profuse', '🏋️', 'purpose.useTraining', esc(t('purpose.useTrainingSub')), { value: 'training', selected: cur === 'training' })}
+      ${purposeOptCard('profuse', '⭐', 'purpose.useBoth', esc(t('purpose.useBothSub')), { value: 'both', selected: cur === 'both', chip: 'purpose.useFullChip', chipCls: 'purpose-chip-teal' })}
+    </div>
+  </div>`;
+  box.querySelectorAll('[data-purpose-profuse]').forEach(b => b.onclick = async () => {
+    const v = b.dataset.purposeProfuse;
+    if (!v || v === (UDATA.purposeUse || 'both')) return;
+    /* Solo la declaración (purposeUse): los interruptores
+       features son la maquinaria de acceso vigente (las comidas
+       se encienden por la solicitud en dos pasos) y ninguna rama
+       de reglas deja al usuario reescribirlos — cambiar el uso
+       aquí no concede ni retira accesos en silencio. */
+    try {
+      await setDoc(doc(db, 'users', auth.currentUser.uid), { purposeUse: v }, { merge: true });
+      UDATA.purposeUse = v;
+      toast(t('purpose.savedOk'));
+      renderPurposeProfileBox();
+    } catch { toast(t('err.createFail'), true); }
+  });
+}
+/* Los controles legados del formulario dejan de verse: la
+   ventana de propósito es la única puerta de elección. */
+{ const rtEl = $('reg-type'); if (rtEl && rtEl.closest('label')) rtEl.closest('label').style.display = 'none';
+  for (const id of ['reg-modality-wrap', 'reg-trainer-wrap', 'reg-dossier-wrap', 'reg-dossier-links', 'reg-trainer-hint']) { const el = $(id); if (el) el.style.display = 'none'; } }
+
+async function regCreateAccount(pd) {
+  const { name, email, pw, phone, gender, social } = PURPOSE.form;
   showRegError('');
-  const name = $('reg-name').value.trim(), email = $('reg-email').value.trim(),
-        pw = $('reg-password').value, pw2 = $('reg-password2').value;
-  const phone = $('reg-phone').value.trim(), gender = $('reg-gender').value, social = $('reg-social').value.trim();
-  if (!name) { showRegError(t('err.name')); return; }
-  if (!phone) { showRegError(t('err.phone')); return; }
-  if (!gender) { showRegError(t('err.gender')); return; }
-  if (pw !== pw2) { showRegError(t('err.pwmatch')); return; }
-  if (!$('reg-consent').checked) { showRegError(t('err.consent')); return; }
-  const age = ageOn($('reg-dob').value, todayISO());
-  if (!(age >= 18 && age <= 120)) { showRegError(t('err.underage')); return; }
-  /* La declaración de salud NO se recoge en el registro (Decisión 1:
-     es voluntaria y vive en el perfil, con su consentimiento
-     específico independiente — usuarios/{uid}/healthDeclarations). */
   try {
     suppressAuthCheck = true;
     const cred = await createUserWithEmailAndPassword(auth, email, pw);
     /* A2: el registro es el primer acto de consentimiento — el
        documento nace en un lote con su recibo 'registered'
        (consentSeq = 1), como exigen las reglas r3. */
-    /* Tres roles (2026-10-23): el registro nace 'usuario' y con la
-       elección del formulario: entrenador elegido (assigned) o
-       espera de asignación (waiting, bajo el administrador). El
-       candidato de reglas del paquete valida estos campos al
-       crear; con las reglas vivas el lote se denegaría (role
-       'user'), así que app y candidato se despliegan juntos o no
-       se despliega — orden: reglas primero (checkpoint aparte). */
-    /* Roles+Escalabilidad (2026-10-24): el registro elige TIPO de
-       cuenta. Entrenador: nace 'usuario' sin aprobar y con
-       roleRequest 'entrenador' — el administrador lo aprueba y SOLO
-       entonces recibe el rol (pedido 2). Alumno: elige modalidad y
-       entrenador del pool (o ninguno → espera) y nace con sus
-       features por defecto: todo menos comidas (pedidos 3 y 6). */
-    const accountType = ($('reg-type') && $('reg-type').value) === 'entrenador' ? 'entrenador' : 'alumno';
+    /* AUTH-147: el tipo de cuenta nace del PROPÓSITO elegido en
+       la ventana — entrenador con su roleRequest de siempre;
+       alumno con modalidad y entrenador elegido o en espera de
+       asignación (la sugerencia según metas deja al alumno en la
+       misma bandeja de espera vigente). */
+    const accountType = pd.purpose === 'entrenador' ? 'entrenador' : 'alumno';
     const isTrainerReg = accountType === 'entrenador';
-    const modality = isTrainerReg ? null : (($('reg-modality') && $('reg-modality').value) || 'virtual');
-    const trainerChoice = isTrainerReg ? '' : (($('reg-trainer') && $('reg-trainer').value) || '');
+    const modality = isTrainerReg ? null : (pd.purpose === 'con_entrenador' ? (pd.modality || 'virtual') : (($('reg-modality') && $('reg-modality').value) || 'virtual'));
+    const trainerChoice = (!isTrainerReg && pd.purpose === 'con_entrenador' && !pd.suggest) ? (pd.trainerUid || '') : '';
+    const purposeData = { purpose: pd.purpose, purposeAt: new Date().toISOString() };
+    if (pd.purpose === 'cuenta') purposeData.purposeUse = pd.use;
+    if (pd.purpose === 'con_entrenador' && pd.suggest) purposeData.purposeSuggest = true;
+    if (isTrainerReg) purposeData.purposeMembership = pd.membership;
     const regBatch = writeBatch(db);
     regBatch.set(doc(db, 'users', cred.user.uid), {
       name, email, phone, gender, social: social || '',
       role: 'usuario', isOwner: false, approved: false,
       accountType,
       ...(isTrainerReg ? { roleRequest: 'entrenador' } : {}),
-      ...(isTrainerReg ? {} : { modality, features: { ...ESC_FEATURE_DEFAULTS } }),
+      ...(isTrainerReg ? {} : { modality, features: pd.purpose === 'cuenta' ? purposeFeaturesForUse(pd.use) : { ...ESC_FEATURE_DEFAULTS } }),
       trainerUid: trainerChoice || null,
       assignmentStatus: trainerChoice ? 'assigned' : 'waiting',
+      ...purposeData,
       /* Sin goals al nacer (decisión de Ronald, 2026-10-20): las metas
          las fija el entrenador; la cuenta nueva no trae ninguna. */
       acceptedTerms: true, termsVersion: TERMS_VERSION, termsAcceptedAt: serverTimestamp(),
@@ -7484,31 +7854,46 @@ $('form-register').addEventListener('submit', async e => {
         });
       } catch {}
     }
+    if (isTrainerReg && pd.membership) {
+      /* La membresía elegida entra por la maquinaria vigente: el
+         documento nace con la forma del andamiaje y la elección
+         queda como SOLICITUD pendiente de la aprobación del
+         propietario (con la prueba, su ventana corre desde esa
+         activación). Nunca bloquea el registro. */
+      try {
+        await setDoc(doc(db, 'memberships', cred.user.uid), {
+          level: null, status: 'sin_membresia', source: 'gratis', requestedLevel: null,
+          requestedAt: null, decidedBy: null, decidedAt: null, startedAt: null,
+          currentPeriodEnd: null, priceSnapshot: null
+        });
+        await setDoc(doc(db, 'memberships', cred.user.uid), {
+          status: 'pendiente', requestedLevel: pd.membership, requestedAt: serverTimestamp(),
+          level: null, source: 'gratis'
+        }, { merge: true });
+      } catch {}
+    }
+    if (pd.purpose === 'business') {
+      /* Business: el interés se anota en el registro vivo de la
+         puerta falsa (AUTH-098) sobre el propio documento. */
+      try {
+        const biz = { fdBizAt: new Date().toISOString() };
+        if (pd.gym) biz.fdBizGym = pd.gym;
+        await setDoc(doc(db, 'users', cred.user.uid), biz, { merge: true });
+      } catch {}
+    }
     /* AUTH-068: aviso de registro (nunca bloquea el registro).
-       AUTH-070 (corrección tras la prueba real §8): tope de 25 s y
-       UN reintento inmediato si el primer intento no entrega; si
-       ambos fallan el registro termina igual y el respaldo de la
-       puerta lo reintenta cuando la cuenta entre. */
+       AUTH-070: tope de 25 s y UN reintento inmediato. */
     let notifyRes = null;
     try { notifyRes = await signupNotifyCall(25000); } catch {}
     if (!notifyRes || !notifyRes.ok) { try { await signupNotifyCall(25000); } catch {} }
     await signOut(auth);
     suppressAuthCheck = false;
     showRegError('');
-    /* UX10-2 (piloto, 2026-10-23): expectativas de aprobación EN LA
-       PANTALLA, no solo el toast — qué pasa ahora, quién aprueba (el
-       entrenador elegido o el administrador si quedó en espera), qué
-       puede hacer mientras tanto (entrar en cuanto lo aprueben, sin
-       ningún paso más) y NINGÚN plazo prometido: el texto dice
-       expresamente que no se puede prometer un tiempo exacto. La
-       tarjeta vive fuera de los formularios y sigue visible tras
-       pasar a la pestaña de entrar. */
     const rw = $('reg-waiting');
     if (rw) {
-      const selT = $('reg-trainer');
-      const tName = (selT && selT.selectedIndex >= 0) ? (selT.options[selT.selectedIndex].textContent || '').trim() : '';
+      const tEnt = REG_DIRECTORY.find(tr => tr.uid === trainerChoice);
       rw.innerHTML = `<b>${esc(t('reg.waitTitle'))}</b>` +
-        (trainerChoice ? esc(t('reg.waitTrainer', { name: tName || t('roles.chooseTrainer') })) : esc(t('reg.waitAdmin')));
+        (trainerChoice ? esc(t('reg.waitTrainer', { name: (tEnt && tEnt.name) || t('roles.chooseTrainer') })) : esc(t('reg.waitAdmin')));
       rw.style.display = '';
       try { rw.scrollIntoView({ behavior: 'smooth', block: 'center' }); } catch {}
     }
@@ -7518,19 +7903,45 @@ $('form-register').addEventListener('submit', async e => {
     suppressAuthCheck = false;
     const code = err.code || '';
     if (code.includes('permission-denied')) {
-      /* Ventana de transición D→E: con las reglas anteriores el lote
-         de registro se deniega atómicamente (no nace ningún dato).
-         Se elimina la identidad recién creada para no dejar cuentas
-         huérfanas y se informa del mantenimiento. */
       try { if (auth.currentUser) await deleteUser(auth.currentUser); } catch {}
       showRegError(t('sys.maintenance'));
-      return;
+      throw err;
     }
     showRegError(code.includes('email-already-in-use') ? t('err.emailInUse')
       : code.includes('weak-password') ? t('err.weakPw')
       : code.includes('invalid-email') ? t('err.badEmail')
       : t('err.createFail'));
+    throw err;
   }
+}
+
+$('form-register').addEventListener('submit', async e => {
+  e.preventDefault();
+  showRegError('');
+  const name = $('reg-name').value.trim(), email = $('reg-email').value.trim(),
+        pw = $('reg-password').value, pw2 = $('reg-password2').value;
+  const phone = $('reg-phone').value.trim(), gender = $('reg-gender').value, social = $('reg-social').value.trim();
+  if (!name) { showRegError(t('err.name')); return; }
+  if (!phone) { showRegError(t('err.phone')); return; }
+  if (!gender) { showRegError(t('err.gender')); return; }
+  if (pw !== pw2) { showRegError(t('err.pwmatch')); return; }
+  if (!$('reg-consent').checked) { showRegError(t('err.consent')); return; }
+  const age = ageOn($('reg-dob').value, todayISO());
+  if (!(age >= 18 && age <= 120)) { showRegError(t('err.underage')); return; }
+  /* La declaración de salud NO se recoge en el registro (Decisión 1:
+     es voluntaria y vive en el perfil, con su consentimiento
+     específico independiente — usuarios/{uid}/healthDeclarations). */
+  /* AUTH-147: validado el formulario, el registro sigue en la
+     ventana flotante de propósito — paso OBLIGATORIO: la cuenta
+     solo se crea desde su botón final (regCreateAccount), con el
+     propósito ya elegido. Cerrar la ventana no crea nada y el
+     formulario queda como estaba. */
+  await loadTrainerDirectory();
+  /* Sin sesión el catálogo de membresías no se puede leer (las
+     reglas lo reservan a sesiones): la tarjeta de la prueba
+     muestra entonces los valores por defecto, y la configuración
+     real del propietario gobierna al ACTIVAR la membresía. */
+  purposeOpenSignup({ name, email, pw, phone, gender, social });
 });
 $('form-login').addEventListener('submit', async e => {
   e.preventDefault();
@@ -7717,6 +8128,9 @@ onAuthStateChanged(auth, async user => {
   commsWarm();
   /* AUTH-068: reanudar un enlace de aprobación si lo hay. */
   signupApproveResume();
+  /* AUTH-147: a quien ya estaba registrado y aún no declaró su
+     propósito se le pide UNA sola vez al entrar (sin bloquear). */
+  try { purposeMaybeAsk(); } catch {}
 });
 
 /* ================= REACCIÓN EN VIVO DE LA SESIÓN (H-C2) =================
@@ -7842,6 +8256,41 @@ let ADMIN_USERS = [];
    con la sección montada, la repinta con el estado vigente. El
    cambio de estado se confirma SOLO tras el setDoc (el toast de
    guardado sale después del await, como siempre). */
+/* Editor de la membresía de prueba (AUTH-2026-11-01-147;
+   decisión (a) de Ronald): días y alumnos de la prueba viven en
+   app_settings/membership_catalog (levels.prueba) — el mismo
+   documento de los cupos — y SOLO el propietario los edita aquí.
+   Guardar reescribe el objeto levels completo conservando los
+   demás niveles, y actualiza la copia en memoria: el cupo nuevo
+   aplica al momento y los días a las pruebas que se activen
+   desde entonces. */
+function renderTrialConfigBox() {
+  const box = $('trial-config-box');
+  if (!box) return;
+  if (!IS_OWNER) { box.innerHTML = ''; return; }
+  const days = trialDaysOf(), students = membershipQuotaOf('prueba');
+  box.innerHTML = `
+  <div class="panel">
+    <h3 class="history-title">${esc(t('purpose.trialAdminTitle'))}</h3>
+    <p class="progress-hint">${esc(t('purpose.trialAdminHint'))}</p>
+    <label class="muted">${esc(t('purpose.trialDaysLabel'))} <input type="number" id="trial-days" min="1" max="60" step="1" value="${days}" style="width:80px"></label>
+    <label class="muted">${esc(t('purpose.trialStudentsLabel'))} <input type="number" id="trial-students" min="1" max="30" step="1" value="${students}" style="width:80px"></label>
+    <div class="eval-actions"><button type="button" class="btn-primary btn-sm" id="trial-cfg-save">${esc(t('form.save'))}</button></div>
+  </div>`;
+  const btn = $('trial-cfg-save');
+  if (btn) btn.onclick = async () => {
+    const d = Math.floor(Number(($('trial-days') || {}).value));
+    const n = Math.floor(Number(($('trial-students') || {}).value));
+    if (!(d >= 1 && d <= 60) || !(n >= 1 && n <= 30)) { toast(t('purpose.cfgInvalid'), true); return; }
+    let levels = {};
+    try { const s = await getDoc(doc(db, 'app_settings', 'membership_catalog')); if (s.exists() && s.data().levels) levels = { ...s.data().levels }; } catch {}
+    levels.prueba = { quota: n, trialDays: d };
+    await setDoc(doc(db, 'app_settings', 'membership_catalog'), { levels }, { merge: true });
+    MEMBERSHIP_CATALOG = { ...(MEMBERSHIP_CATALOG || {}), levels };
+    toast(t('purpose.cfgSaved'));
+    loadAdmin();
+  };
+}
 async function renderAiControlBox() {
   const box = document.getElementById('adm-aictl-box');
   if (!box) return;
@@ -29464,7 +29913,7 @@ document.addEventListener('keydown', e => { if (e.key === 'Escape') shareClose()
  *  - El SW (sw.js) solo cachea la cáscara del mismo origen en modo
  *    RED PRIMERO: Auth/Firestore/Worker jamás pasan por la caché.
  * ================================================================ */
-const PWA_SW_VERSION = '20261101-comunicaciones';
+const PWA_SW_VERSION = '20261101-registro-proposito';
 let pwaDeferredPrompt = null;
 function pwaIsStandalone() {
   try {
