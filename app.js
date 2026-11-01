@@ -7134,6 +7134,7 @@ async function loadAdmin() {
       <div>${u.photoURL ? `<img class="avatar sm" src="${esc(u.photoURL)}" alt="">` : ''}<b>${esc(u.name || '—')}</b>${appInstallMarkHtml(u)}<br><span class="muted">${esc(u.email || '')}${appInstallNoteHtml(u)}</span>${emailConfirmMarkHtml(u)}</div>
       <div class="user-actions">
         <label class="muted">${t('roles.roleLabel')} <select data-role-for="${u.id}">${['usuario', 'entrenador'].map(r => `<option value="${r}"${(u.role === 'entrenador' ? 'entrenador' : 'usuario') === r ? ' selected' : ''}>${t('roles.' + r)}</option>`).join('')}</select></label>
+        ${u.role === 'entrenador' ? '' : `<label class="muted">${t('esc.flags.meals')} <input type="checkbox" data-meals-for="${u.id}"${featuresOf(u).meals === true ? ' checked' : ''}></label>`}
         <button class="btn-ghost btn-sm" data-profile="${u.id}">${t('admin.profile')}</button>
         <button class="btn-ghost btn-sm" data-goals="${u.id}">${t('admin.goals')}</button>
         ${u.role === 'entrenador' ? `<button class="btn-ghost btn-sm" data-dos-mail="${u.id}">${t('esc.mailBtn')}</button>` : ''}
@@ -7156,6 +7157,31 @@ async function loadAdmin() {
     }
     toast(t('roles.roleSaved'));
     await loadAdmin();
+  });
+  /* Interruptor de Comida por cuenta VISIBLE y accionable en Accesos
+     (decisión de Ronald, 2026-11-01: «De acuerdo con tu
+     recomendación»): la fila de cada Alumno muestra el estado
+     EFECTIVO de features.meals (el mismo featuresOf que alimenta la
+     puerta del botón Comida) y el administrador lo enciende o apaga
+     con un toque. La escritura fusiona sobre las funciones vigentes
+     del alumno — el mismo mapa y la misma vía que ya usa la
+     confirmación de comidas del administrador (las reglas vivas
+     permiten al propietario actualizar users, salvo los campos de
+     consentimiento, que aquí no se tocan) — y queda en auditLog. */
+  document.querySelectorAll('[data-meals-for]').forEach(cb => cb.onchange = async () => {
+    if (ROLE !== 'administrador') return;
+    const uid = cb.dataset.mealsFor;
+    cb.disabled = true;
+    try {
+      let cur = {};
+      try { const s = await getDoc(doc(db, 'users', uid)); if (s.exists() && s.data().features) cur = s.data().features; } catch {}
+      const feats = { ...ESC_FEATURE_DEFAULTS, ...cur, meals: cb.checked };
+      await setDoc(doc(db, 'users', uid), { features: feats }, { merge: true });
+      const u = ADMIN_USERS.find(x => x.id === uid); if (u) u.features = feats;
+      await auditLog('meals', 'meals.adminToggled', uid, 'meals=' + cb.checked);
+      toast(t('esc.flagsSaved'));
+    } catch (e) { failToast(e); cb.checked = !cb.checked; }
+    cb.disabled = false;
   });
   /* Roles+Escalabilidad: aprobar una SOLICITUD DE ENTRENADOR asigna
      el rol y crea el andamiaje en el mismo gesto (pedido 2). */
@@ -27274,7 +27300,7 @@ document.addEventListener('keydown', e => { if (e.key === 'Escape') shareClose()
  *  - El SW (sw.js) solo cachea la cáscara del mismo origen en modo
  *    RED PRIMERO: Auth/Firestore/Worker jamás pasan por la caché.
  * ================================================================ */
-const PWA_SW_VERSION = '20261101-progreso-discos';
+const PWA_SW_VERSION = '20261101-interruptor-comida';
 let pwaDeferredPrompt = null;
 function pwaIsStandalone() {
   try {
