@@ -21,7 +21,7 @@
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-title" content="RONBO FIT">
 <meta name="apple-mobile-web-app-status-bar-style" content="default">
-<link rel="stylesheet" href="styles.css?v=20261101-buscador-sinonimos">
+<link rel="stylesheet" href="styles.css?v=20261101-progreso-discos">
 <script defer src="https://cloud.umami.is/script.js" data-website-id="a29706d4-44a2-47cf-900a-5f74d74abfa8"></script>
 <script type="importmap">
 {
@@ -286,6 +286,10 @@
        lo muestra únicamente con la pestaña «Mi registro» activa,
        en espejo de la «?». Abre la MISMA hoja #share-float que el
        botón de Progreso (#btn-share-open), sin tocar su lógica.
+       AUTH-2026-11-01-129: el botón grande de Progreso se retiró y
+       ESTE disco es ahora la vía de compartir también desde esa
+       página: con Progreso abierto, la pila entera (los 4 discos)
+       se ve y vive sobre la página (ver la nota en #progress-content).
        ARMONÍA (2026-10-29): el glifo es el símbolo universal de
        compartir — tres nodos unidos por dos trazos — en la familia
        de trazo 1.8 de la casa (antes: flecha saliendo de una
@@ -336,7 +340,13 @@
   <div class="panel main-actions">
     <div id="progress-content" style="display:none">
     <h2 class="nav-page-title" data-i18n="progress.title">📸 My progress</h2>
-    <button type="button" class="btn-primary" id="btn-share-open" data-i18n="share.button">📣 Share your progress</button>
+    <!-- AUTH-2026-11-01-129: el botón grande «📣 Comparte tus logros»
+         (#btn-share-open) SE RETIRA de esta página: su función pasa
+         al primer disco de la pila flotante de 4 discos (la misma de
+         Inicio, AUTH-085), que con Progreso abierto también se ve y
+         vive sobre la página (navRender + coverApply en app.js y el
+         bloque final de styles.css). La hoja #share-float, su lógica
+         y la clave share.button del diccionario no se tocan. -->
     <div class="prog-subtabs" role="tablist">
       <button type="button" class="prog-subtab active" id="prog-tab-fotos" role="tab" aria-selected="true" data-i18n="progress.tabPhotos">Photos</button>
       <button type="button" class="prog-subtab" id="prog-tab-medidas" role="tab" aria-selected="false" data-i18n="progress.tabMeasures">Measures</button>
@@ -1441,6 +1451,6 @@
 <div id="toast" class="toast"></div>
 <div id="print-card" aria-hidden="true"></div>
 
-<script type="module" src="app.js?v=20261101-buscador-sinonimos"></script>
+<script type="module" src="app.js?v=20261101-progreso-discos"></script>
 </body>
 </html>

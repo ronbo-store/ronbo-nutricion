@@ -2453,3 +2453,20 @@ body.nav-lock .sw-fab, body.nav-lock .help-fab, body.nav-lock .share-fab, body.n
 @media (max-width: 370px) {
   .hdr-main { column-gap: 7px; row-gap: 2px; }
 }
+
+/* ============ PROGRESO CON LA PILA DE 4 DISCOS (AUTH-2026-11-01-129) ============
+   Con la página de Progreso abierta (body.prog-page, que pone
+   navRender en app.js), la regla de nav-lock que esconde los
+   flotantes NO aplica a los 4 discos de la pila de Inicio
+   (compartir · ayuda «?» · cronómetro · llamita): se ven sobre la
+   página en sus posiciones y tamaños de siempre (58×58, right:14,
+   paso de 72). Con Entrenamiento abierta o sin página alguna, el
+   comportamiento de nav-lock queda intacto. Que los discos además
+   queden VIVOS (no inertes) bajo esta página lo gobierna el
+   sistema de tapas en app.js (coverApply/coverWalk, COVER_ALIVE);
+   el botón grande «Comparte tus logros» ya no existe en la página:
+   su función vive en el primer disco (compartir). */
+body.nav-lock.prog-page .share-fab,
+body.nav-lock.prog-page .help-fab,
+body.nav-lock.prog-page .sw-fab,
+body.nav-lock.prog-page #act-flame { visibility: visible; }

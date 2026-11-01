@@ -14561,6 +14561,7 @@ const COVER_SEL = '.modal-backdrop, .dos-backdrop, .install-overlay, #sw-overlay
 const COVER_INERT_OK = typeof HTMLElement !== 'undefined' && 'inert' in HTMLElement.prototype;
 let COVER_NOW = null;         // la tapa vigente (o null)
 let COVER_INERTS = new Set(); // raíces inertadas por este sistema
+let COVER_ALIVE = new Set();  // AUTH-129: raíces vivas extra bajo la tapa (los 4 discos bajo Progreso)
 let COVER_TABS = [];          // degradado sin inert: [el, tabindex original]
 /* Pila de tapas: cada capa guarda el foco que había al abrirse, para
    devolverlo al destaparse (un modal sobre una página devuelve el
@@ -14616,7 +14617,8 @@ function coverWalk(root, cover, dockEl) {
     if (tag === 'SCRIPT' || tag === 'STYLE' || tag === 'TEMPLATE' || tag === 'LINK' || tag === 'NOSCRIPT') continue;
     if (c === cover) continue;                 // la tapa misma: viva
     if (dockEl && c === dockEl) continue;      // el dock, cuando queda vivo
-    if (c.contains(cover) || (dockEl && c.contains(dockEl))) { coverWalk(c, cover, dockEl); continue; }
+    if (COVER_ALIVE.has(c)) continue;          // AUTH-129: un disco vivo bajo Progreso
+    if (c.contains(cover) || (dockEl && c.contains(dockEl)) || [...COVER_ALIVE].some(a => c.contains(a))) { coverWalk(c, cover, dockEl); continue; }
     coverSetInert(c, true);
   }
 }
@@ -14629,6 +14631,7 @@ function coverFocusHome(cover) { // ¿el foco actual ya es válido bajo esta tap
   if (!a || a === document.body || !a.isConnected) return false;
   if (cover.contains(a)) return true;
   if (coverIsSoft(cover) && a.closest && a.closest('.actions-dock')) return true;
+  if (cover.id === 'progress-content' && COVER_ALIVE.has(a)) return true; // AUTH-129: el foco en un disco vivo también es «casa»
   return false;
 }
 function coverEnsureFocus(cover) {
@@ -14647,7 +14650,15 @@ function coverRestoreFocus(entry) {
 function coverApply(cover) { // (re)aplica los inert para la tapa dada
   coverClearInerts();
   COVER_NOW = cover;
+  COVER_ALIVE = new Set();
   if (!cover) return;
+  /* AUTH-2026-11-01-129: bajo la página de Progreso — y solo bajo
+     ella — la pila de 4 discos flotantes de Inicio también sigue
+     viva, con el mismo criterio con que el dock sigue vivo bajo
+     página o lámina: es la vía de compartir / ayuda / cronómetro /
+     llamita de esa página. Bajo cualquier otra tapa (Entrenamiento,
+     láminas, modales) los discos quedan inertes, como hasta hoy. */
+  if (cover.id === 'progress-content') for (const id of ['btn-share-fab', 'btn-help', 'btn-stopwatch', 'act-flame']) { const el = document.getElementById(id); if (el) COVER_ALIVE.add(el); }
   const dock = document.querySelector('.actions-dock');
   coverWalk(document.body, cover, coverIsSoft(cover) ? dock : null);
 }
@@ -14734,6 +14745,11 @@ function navRender() {
   const chT = $('chev-train'); if (chT) chT.textContent = NAV_PAGE === 'train' ? '▴' : '▾';
   const veil = $('nav-veil'); if (veil) veil.style.display = NAV_PAGE ? '' : 'none';
   document.body.classList.toggle('nav-lock', !!NAV_PAGE);
+  /* AUTH-2026-11-01-129: con Progreso abierta, su marca en el body
+     es lo que mantiene visible la pila de 4 discos sobre la página
+     (bloque final de styles.css); con Entrenamiento, nav-lock los
+     sigue escondiendo como siempre. */
+  document.body.classList.toggle('prog-page', NAV_PAGE === 'progress');
   const hb = $('btn-nav-home'); if (hb) hb.classList.toggle('nav-on', !NAV_PAGE && NAV_TAB === 'track');
   try { coverSync(); } catch {} // A-N2: la contención de foco sigue a la página en el acto
 }
@@ -27221,11 +27237,6 @@ function shareSetFormat(fmt) {
   shareRender();
 }
 function shareRelang() { const f = $('share-float'); if (f && f.style.display !== 'none') shareRender(); }
-{ const b = $('btn-share-open'); if (b) b.addEventListener('click', () => {
-    const f = $('share-float');
-    if (f && f.style.display !== 'none') shareClose();
-    else { if (SHARE.type === 'workout') SHARE.type = 'day'; shareOpen(); }
-  }); }
 { const b = $('btn-share-fab'); if (b) b.addEventListener('click', () => {
     const f = $('share-float');
     if (f && f.style.display !== 'none') shareClose();
@@ -27263,7 +27274,7 @@ document.addEventListener('keydown', e => { if (e.key === 'Escape') shareClose()
  *  - El SW (sw.js) solo cachea la cáscara del mismo origen en modo
  *    RED PRIMERO: Auth/Firestore/Worker jamás pasan por la caché.
  * ================================================================ */
-const PWA_SW_VERSION = '20261101-buscador-sinonimos';
+const PWA_SW_VERSION = '20261101-progreso-discos';
 let pwaDeferredPrompt = null;
 function pwaIsStandalone() {
   try {
