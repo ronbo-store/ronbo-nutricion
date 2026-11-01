@@ -13,6 +13,11 @@
 # ronbo-nutri-test). Este workflow SOLO valida el texto; NO publica
 # reglas ni despliega nada. Sin secretos, sin credenciales de
 # producción, sin despliegue: solo lectura de código.
+# Patrón probado de la casa (AUTH-132): dependencias con npm ci y
+# el CLI de Firebase GLOBAL fijado (npm install -g
+# firebase-tools@15.34.0); cada job sale con código 1 ante
+# cualquier fallo y corre con pipefail: job verde == suite
+# completa.
 name: nudge-bateria
 
 on:
@@ -35,6 +40,9 @@ jobs:
     name: Suite NUDGE contra la CANDIDATA (rama nudge permitida)
     runs-on: ubuntu-latest
     timeout-minutes: 20
+    defaults:
+      run:
+        working-directory: pruebas-reglas-nudge
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
@@ -45,21 +53,34 @@ jobs:
           distribution: 'temurin'
           java-version: '21'
       - name: Instalar dependencias de la suite
-        working-directory: pruebas-reglas-nudge
         run: npm ci --no-audit --no-fund
+      - name: Instalar Firebase CLI (versión fijada)
+        run: npm install -g firebase-tools@15.34.0
       - name: La CANDIDATA es el texto bajo prueba
-        working-directory: pruebas-reglas-nudge
         run: cp candidata.rules firestore.rules
       - name: Correr la suite (espera la rama nudge PERMITIDA)
-        working-directory: pruebas-reglas-nudge
+        shell: bash
         env:
           NUDGE_MODE: candidata
-        run: npx firebase emulators:exec --only firestore --project ronbo-nutri-test "node test-nudge.mjs"
+        run: |
+          set -o pipefail
+          firebase emulators:exec --only firestore --project ronbo-nutri-test "node test-nudge.mjs" 2>&1 | tee resultado-bateria.txt
+      - name: Publicar el resultado en el resumen del job
+        if: always()
+        shell: bash
+        run: |
+          {
+            echo '## Suite NUDGE contra la CANDIDATA — resultado'
+            grep -E '^MODO=' resultado-bateria.txt || true
+          } >> "$GITHUB_STEP_SUMMARY"
 
   contraste-vivo:
     name: La MISMA suite contra el texto VIVO (N1 invertido)
     runs-on: ubuntu-latest
     timeout-minutes: 20
+    defaults:
+      run:
+        working-directory: pruebas-reglas-nudge
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
@@ -70,13 +91,23 @@ jobs:
           distribution: 'temurin'
           java-version: '21'
       - name: Instalar dependencias de la suite
-        working-directory: pruebas-reglas-nudge
         run: npm ci --no-audit --no-fund
+      - name: Instalar Firebase CLI (versión fijada)
+        run: npm install -g firebase-tools@15.34.0
       - name: El texto VIVO es el texto bajo prueba
-        working-directory: pruebas-reglas-nudge
         run: cp vivas-antes.rules firestore.rules
       - name: Correr la suite (N1 debe FALLAR con el texto vivo)
-        working-directory: pruebas-reglas-nudge
+        shell: bash
         env:
           NUDGE_MODE: vivo
-        run: npx firebase emulators:exec --only firestore --project ronbo-nutri-test "node test-nudge.mjs"
+        run: |
+          set -o pipefail
+          firebase emulators:exec --only firestore --project ronbo-nutri-test "node test-nudge.mjs" 2>&1 | tee resultado-bateria.txt
+      - name: Publicar el resultado en el resumen del job
+        if: always()
+        shell: bash
+        run: |
+          {
+            echo '## Suite NUDGE contra el texto VIVO — resultado'
+            grep -E '^MODO=' resultado-bateria.txt || true
+          } >> "$GITHUB_STEP_SUMMARY"
