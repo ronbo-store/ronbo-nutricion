@@ -61,6 +61,21 @@ jobs:
             echo '## Serie PROPÓSITO (15 casos) contra el CANDIDATO — resultado'
             grep -E 'PROPOSITO-CANDIDATO:' resultado-bateria.txt || true
           } >> "$GITHUB_STEP_SUMMARY"
+      - name: Publicar el detalle como estado del commit (legible por API)
+        if: always()
+        shell: bash
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          CTX: bateria-proposito/candidato
+        run: |
+          TOTAL=$(grep -E 'PROPOSITO-CANDIDATO:' resultado-bateria.txt | tail -1 || true)
+          CODES=$(grep -E '^FAIL' resultado-bateria.txt | grep -oE 'PROPOSITO P[0-9]+' | sort -u | tr '\n' ' ' || true)
+          DESC="$TOTAL | FAIL: ${CODES:-ninguno}"
+          DESC=$(printf '%s' "$DESC" | cut -c1-140)
+          if grep -qE 'PROPOSITO-CANDIDATO: [0-9]+/[0-9]+ PASS' resultado-bateria.txt && ! grep -qE '^FAIL' resultado-bateria.txt; then ST=success; else ST=failure; fi
+          curl -s -X POST -H "Authorization: Bearer $GH_TOKEN" -H 'Content-Type: application/json' \
+            "https://api.github.com/repos/${{ github.repository }}/statuses/${{ github.sha }}" \
+            -d "{\"state\":\"$ST\",\"context\":\"$CTX\",\"description\":\"$DESC\"}" > /dev/null || true
 
   proposito-vivo:
     name: Serie PROPÓSITO (15 casos) contra el texto VIVO (contraste)
@@ -95,3 +110,19 @@ jobs:
             echo '## Serie PROPÓSITO (15 casos) contra el texto VIVO — resultado'
             grep -E 'PROPOSITO-VIVO:' resultado-bateria.txt || true
           } >> "$GITHUB_STEP_SUMMARY"
+      - name: Publicar el detalle como estado del commit (legible por API)
+        if: always()
+        shell: bash
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          CTX: bateria-proposito/vivo
+        run: |
+          TOTAL=$(grep -E 'PROPOSITO-VIVO:' resultado-bateria.txt | tail -1 || true)
+          CODES=$(grep -E '^FAIL' resultado-bateria.txt | grep -oE 'PROPOSITO P[0-9]+' | sort -u | tr '\n' ' ' || true)
+          DESC="$TOTAL | FAIL: ${CODES:-ninguno}"
+          DESC=$(printf '%s' "$DESC" | cut -c1-140)
+          if grep -qE 'PROPOSITO-VIVO: [0-9]+/[0-9]+ PASS' resultado-bateria.txt && ! grep -qE '^FAIL' resultado-bateria.txt; then ST=success; else ST=failure; fi
+          curl -s -X POST -H "Authorization: Bearer $GH_TOKEN" -H 'Content-Type: application/json' \
+            "https://api.github.com/repos/${{ github.repository }}/statuses/${{ github.sha }}" \
+            -d "{\"state\":\"$ST\",\"context\":\"$CTX\",\"description\":\"$DESC\"}" > /dev/null || true
+
