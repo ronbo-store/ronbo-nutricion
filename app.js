@@ -2905,6 +2905,9 @@ en: {
   'students.adminStep': 'Meal request waiting on your decision as administrator',
   'students.adminStepGo': 'Review request',
   'students.pend.noWeightYet': 'They have not logged their weight yet',
+  'students.pend.goalsBlockWeight': 'blocked by: they have not logged their weight yet',
+  'students.pend.goalsBlockPal': 'blocked by: the activity multiplier is missing',
+  'students.pend.goalsBlockBoth': 'blocked by: they have not logged their weight yet · the activity multiplier is missing',
   'consult.help.energy': 'Here you review and save the base data (birth year, height, activity) behind this student’s energy calculation. When you save, this window closes and you return to their pendings.',
   'consult.help.goals': 'Here you decide this student’s pace and review their goal proposals. When you decide, this window closes and you return to their pendings.',
   'consult.help.weight': 'This student’s weight log. Weight is always entered by the student; when you are with them in person, you can add a weigh-in from the record itself.',
@@ -4235,6 +4238,8 @@ en: {
   'gm.trainerPaceNone': 'This client has not suggested a pace.',
   'gm.trainerPaceSuggested': 'Client suggestion: −{n} kcal/day · {date} · status: {status}',
   'gm.trainerPaceCurrent': 'Decided pace: −{n} kcal/day by {by} · {date}',
+  'gm.causeNoWeight': 'Pace already decided: −{n} kcal/day. Goals will be calculated as soon as the student logs their first weight: without that weight, no calculation is possible.',
+  'gm.causeNoPal': 'The activity multiplier (palBasal) is still missing from the assessment: without that number, there is no energy calculation and no goals.',
   'gm.trainerPaceApprove': 'Approve suggested',
   'gm.trainerPaceSet': 'Set pace',
   'gm.paceDecided': 'Pace saved for this client.',
@@ -5071,6 +5076,9 @@ es: {
   'students.adminStep': 'Solicitud de comidas esperando tu decisión como administrador',
   'students.adminStepGo': 'Revisar solicitud',
   'students.pend.noWeightYet': 'Aún no registra su peso',
+  'students.pend.goalsBlockWeight': 'bloqueado por: aún no registra su peso',
+  'students.pend.goalsBlockPal': 'bloqueado por: falta el multiplicador de actividad',
+  'students.pend.goalsBlockBoth': 'bloqueado por: aún no registra su peso · falta el multiplicador de actividad',
   'consult.help.energy': 'Aquí revisas y guardas los datos base (año de nacimiento, talla y actividad) con los que se hace el cálculo energético de este alumno. Al guardar, esta ventana se cierra y vuelves a sus pendientes.',
   'consult.help.goals': 'Aquí decides el ritmo de este alumno y revisas sus propuestas de metas. Al decidir, esta ventana se cierra y vuelves a sus pendientes.',
   'consult.help.weight': 'El registro de peso de este alumno. El peso lo ingresa siempre el propio alumno; si estás con él en persona, puedes agregar un pesaje desde el propio registro.',
@@ -6402,6 +6410,8 @@ es: {
   'gm.trainerPaceNone': 'Este cliente no ha sugerido un ritmo.',
   'gm.trainerPaceSuggested': 'Sugerencia del cliente: −{n} kcal/día · {date} · estado: {status}',
   'gm.trainerPaceCurrent': 'Ritmo decidido: −{n} kcal/día por {by} · {date}',
+  'gm.causeNoWeight': 'Ritmo ya decidido: −{n} kcal/día. Las metas se calcularán en cuanto la alumna registre su primer peso: sin ese peso no hay cálculo posible.',
+  'gm.causeNoPal': 'Aún falta el multiplicador de actividad (palBasal) en su evaluación: sin ese número no hay cálculo de energía ni metas.',
   'gm.trainerPaceApprove': 'Aprobar el sugerido',
   'gm.trainerPaceSet': 'Fijar ritmo',
   'gm.paceDecided': 'Ritmo guardado para este cliente.',
@@ -7593,7 +7603,13 @@ async function clientProfileChecklist(u, latestMealReq) {
      de antemano desde u) — salen EN PARALELO; las filas se empujan
      en el mismo orden y con la misma semántica de error de antes. */
   const pRel = (async () => { try { const s = await getDoc(doc(db, 'trainer_relations', u.id)); return s.exists() ? s.data() : null; } catch { return null; } })();
-  const pEval = (async () => { try { const s = await getDoc(doc(db, 'users', u.id, 'assessment', 'current')); return s.exists() && faHasResult(s.data()); } catch { return false; } })();
+  /* AUTH-137: la MISMA lectura captura además si falta el
+     multiplicador palBasal numérico (el test de faCalcCheck:
+     número finito entre 1.20 y 2.00) — sin documento, falta;
+     con error de lectura, null: no se afirma una causa que no
+     se pudo comprobar. Lo consume la nota de causa del
+     pendiente de metas (goalsBlockCause), nada más. */
+  const pEval = (async () => { try { const s = await getDoc(doc(db, 'users', u.id, 'assessment', 'current')); if (!s.exists()) return { has: false, palMissing: true }; const d = s.data(); const p = num(d.palBasal); return { has: faHasResult(d), palMissing: !(isFinite(p) && p >= 1.20 && p <= 2.00) }; } catch { return { has: false, palMissing: null }; } })();
   /* AUTH-118 (R3): si la lectura de la declaración FALLA, la fila
      sigue sin contar (done = null, la semántica de AUTH-110 no
      cambia), pero el error queda marcado en parqErr para que la
@@ -7608,7 +7624,8 @@ async function clientProfileChecklist(u, latestMealReq) {
   rows.push({ key: 'trainer', label: t('pend.chk.trainer'), done: rel ? !!rel.trainerUid : !!u.trainerUid });
   /* 2) Evaluación inicial iniciada: users/{uid}/assessment/current
      con resultado vigente (faHasResult, el mismo test). */
-  const evalDone = await pEval;
+  const evalRes = await pEval;
+  const evalDone = evalRes.has;
   rows.push({ key: 'eval', label: t('pend.chk.eval'), done: evalDone });
   /* 3) Consentimiento específico de salud: specIsActive sobre su
      propio users (el mismo test que su checklist). */
@@ -7630,7 +7647,7 @@ async function clientProfileChecklist(u, latestMealReq) {
   rows.push({ key: 'meals', label: t('pend.chk.meals'), done: featuresOf(u).meals === true || reqDone });
   const known = rows.filter(r => r.done !== null);
   const done = known.filter(r => r.done).length;
-  return { pct: known.length ? Math.round(done / known.length * 100) : 0, rows, complete: rows.length > 0 && rows.every(r => r.done === true), parqErr: !!parqRes.err };
+  return { pct: known.length ? Math.round(done / known.length * 100) : 0, rows, complete: rows.length > 0 && rows.every(r => r.done === true), parqErr: !!parqRes.err, palMissing: evalRes.palMissing };
 }
 function clientChecklistHTML(chk, hiddenCause) {
   if (!chk) return '';
@@ -8015,7 +8032,7 @@ async function loadClients() {
         prog: spProgParse(ps),
         reqLatest: latestReqByUid[u.id] || null,
         foodItems: foodItemsByUid[u.id] || []
-      }, new Date()), bodyItem);
+      }, new Date()), bodyItem, u);
     } catch { tpendErrByUid[u.id] = true; }
   }));
   /* ORGANIZAR CLIENTES (AUTH-2026-10-28-066): «tiene plan activo»
@@ -8342,7 +8359,56 @@ function studentsPendCompute(src, now) {
    + fecha — pensado para que la futura vista de pendientes del
    PROPIO usuario consuma los mismos ítems, con las mismas claves
    y esta misma deduplicación, sin redefinir nada. */
-function trainerPendUnion(chk, pend, bodyItem) {
+/* AUTH-137 — LA CAUSA VERIFICADA DE UNAS METAS SIN ESCRIBIR.
+   Diagnóstico de Ronald sobre una alumna real (2026-11-01): el
+   ritmo puede estar decidido y `users.goals` seguir en null, y
+   ni la ventana de metas ni el pendiente decían por qué. Hay DOS
+   causas del mismo patrón, ambas comprobables en los datos:
+   (a) la alumna no tiene NINGÚN pesaje — sin peso no hay TDEE
+   (faCalcCheck exige último peso > 0 y goalsEngineRun corre en
+   la sesión de la alumna con resultado de energía vivo); y
+   (b) el campo numérico palBasal de assessment/current está
+   ausente o fuera de 1.20–2.00 — la categoría de actividad
+   elegida NO lo alimenta, y faCalcCheck lo exige: sin ese
+   número no hay cálculo de energía ni metas.
+   El ritmo «decidido» es el test del propio motor
+   (goalsCoreCompute: status approved/replaced con
+   decidedPaceKcal > 0). Si la retención es de salud (§E:
+   heldDetails con kcal/deficit en goalsProvenance) NO se nombra
+   ninguna de estas causas — esa retención ya tiene su tarjeta
+   (held-card). Sin causa verificada: null, y ninguna superficie
+   pinta nada. Devuelve null o { pace, kind } con kind =
+   'weight' | 'pal' | 'both' (el peso primero, siempre). */
+function goalsBlockCause(ps, prov, noWeight, noPal) {
+  if (!(ps && (ps.status === 'approved' || ps.status === 'replaced') && Number(ps.decidedPaceKcal) > 0)) return null;
+  if (prov && (prov.heldDetails || []).some(d => d.param === 'kcal' || d.param === 'deficit')) return null;
+  if (!noWeight && !noPal) return null;
+  return { pace: Number(ps.decidedPaceKcal), kind: noWeight && noPal ? 'both' : noWeight ? 'weight' : 'pal' };
+}
+/* La misma causa vista desde la ventana de metas de la ficha:
+   las metas «sin escribir» son el test del checklist (ninguna
+   métrica de users.goals con valor numérico > 0); el peso y el
+   assessment son los que openClient ya cargó y pasa en extra
+   (extra.asmt ausente como CLAVE = no comprobado: no se afirma;
+   extra.asmt en null = el documento no existe: palBasal falta). */
+function goalsWindowCause(u, extra) {
+  const g = (u && u.goals) || {};
+  if (METRICS.some(m => { const v = Number(g[m.key]); return isFinite(v) && v > 0; })) return null;
+  const asmtX = extra && ('asmt' in extra) ? extra.asmt : undefined;
+  const palX = asmtX ? num(asmtX.palBasal) : NaN;
+  return goalsBlockCause((u && u.paceSuggestion) || null, (u && u.goalsProvenance) || null,
+    !(extra && (extra.weights || []).length),
+    asmtX !== undefined && !(isFinite(palX) && palX >= 1.20 && palX <= 2.00));
+}
+/* El texto de la línea de causa (ventana): peso primero; el
+   fragmento del peso lleva el valor real del ritmo decidido. */
+function goalsCauseLineText(blk) {
+  const parts = [];
+  if (blk.kind === 'weight' || blk.kind === 'both') parts.push(t('gm.causeNoWeight', { n: blk.pace }));
+  if (blk.kind === 'pal' || blk.kind === 'both') parts.push(t('gm.causeNoPal'));
+  return parts.join(' ');
+}
+function trainerPendUnion(chk, pend, bodyItem, u) {
   const items = [];
   if (chk && chk.rows) for (const r of chk.rows) {
     if (r.done === false) {
@@ -8353,7 +8419,23 @@ function trainerPendUnion(chk, pend, bodyItem) {
          cada audiencia lee su propia voz sobre el MISMO ítem. */
       const rk = r.key || '';
       const tl = ['trainer', 'eval', 'consent', 'parq', 'goals', 'meals'].includes(rk) ? t('students.req.' + rk) : r.label;
-      items.push({ kind: 'req', reqKey: rk, label: r.label, tlabel: tl, state: 'pendiente', date: null });
+      const it = { kind: 'req', reqKey: rk, label: r.label, tlabel: tl, state: 'pendiente', date: null };
+      /* AUTH-137: el pendiente de metas — que solo existe si la
+         fila goals del checklist no está hecha, el mismo test de
+         «metas sin escribir» — nombra su causa verificada cuando
+         el ritmo ya está decidido (goalsBlockCause): el «aún no
+         registra su peso» sale del MISMO ítem never de
+         studentsPendCompute (wdates vacío en esta pasada) y el
+         palBasal, de la lectura de assessment que el checklist
+         ya hizo (chk.palMissing). SOLO la nota (it.block): el
+         conteo y la unión no cambian en nada. */
+      if (rk === 'goals' && u) {
+        const blk = goalsBlockCause(u.paceSuggestion || null, u.goalsProvenance || null,
+          ((((pend || {}).items) || []).some(x => x.kind === 'weight' && x.never === true)),
+          !!(chk && chk.palMissing === true));
+        if (blk) it.block = blk.kind;
+      }
+      items.push(it);
     }
   }
   const prog = (pend && pend.items) || [];
@@ -8412,6 +8494,14 @@ function studentsItemSub(it) {
   if (it.kind === 'food') return it.date ? t('students.pend.foodOn', { date: dateName(it.date) }) : '';
   if (it.kind === 'body') return t(it.miss === 'consent' ? 'students.pend.bodyNoConsent' : 'students.pend.bodyNoAnalysis');
   if (it.kind === 'req' && it.reqKey === 'meals') return t('students.req.mealsSub');
+  /* AUTH-137: la nota de causa del pendiente de metas — la marca
+     it.block la pone trainerPendUnion solo con la causa
+     verificada en los datos (peso y/o palBasal; peso primero). */
+  if (it.kind === 'req' && it.reqKey === 'goals' && it.block) {
+    if (it.block === 'weight') return t('students.pend.goalsBlockWeight');
+    if (it.block === 'pal') return t('students.pend.goalsBlockPal');
+    if (it.block === 'both') return t('students.pend.goalsBlockBoth');
+  }
   return '';
 }
 const STU_ITEM_ICON = { weight: ['#e0f2f1', '⚖️'], eval: ['#ede9fe', '📸'], mealreq: ['#fef3c7', '🍽️'], food: ['#fef3c7', '🍽️'], req: ['#fef3c7', '📋'], body: ['#ede9fe', '🧍'] };
@@ -9187,7 +9277,7 @@ async function loadStudents() {
           const bs = await getDocs(query(collection(db, 'body_type_estimates'), where('clientUid', '==', u.id)));
           bodyItem = studentsBodyItem(u, bs.size);
         }
-        pendByUid[u.id] = trainerPendUnion(chkByUid[u.id], prog, bodyItem);
+        pendByUid[u.id] = trainerPendUnion(chkByUid[u.id], prog, bodyItem, u);
       } catch { pendErrByUid[u.id] = true; }
     })();
     await Promise.all([pChk, pAlerts, pPend]);
@@ -10187,7 +10277,7 @@ async function openClient(uid) {
   compAccLoadTrainer(uid);
   loadClientRings(uid, udata);
   loadClientAlerts(uid, udata);
-  try { const pg = goalsTrainerCardLoad(uid, udata, { conditions: (clientHealth && clientHealth.decl && clientHealth.decl.conditions) || [], weights: data }); if (pg && pg.then) pg.then(() => { fichaFocusApply(uid); pendConsultApply(uid); }, () => {}); } catch {}
+  try { const pg = goalsTrainerCardLoad(uid, udata, { conditions: (clientHealth && clientHealth.decl && clientHealth.decl.conditions) || [], weights: data, asmt: asmtDoc }); if (pg && pg.then) pg.then(() => { fichaFocusApply(uid); pendConsultApply(uid); }, () => {}); } catch {}
   const pb = btLoadTrainerCard(uid, udata);
   if (pb && pb.then) pb.then(() => { fichaFocusApply(uid); pendConsultApply(uid); }, () => {});
   box.querySelectorAll('[data-c-edit]').forEach(b => b.onclick = () => {
@@ -11680,6 +11770,14 @@ async function goalsTrainerCardLoad(uid, udata, extra) {
       h += `<p class="progress-hint">${esc(t('gm.trainerPaceSuggested', { n: ps.paceKcal || '—', date: String(ps.suggestedAt || '').slice(0, 10), status: t('gm.status.' + (ps.status || 'pending')) }))}</p>`;
       if (ps.decidedPaceKcal) h += `<p class="progress-hint">${esc(t('gm.trainerPaceCurrent', { n: ps.decidedPaceKcal, by: esc(ps.decidedBy || '—'), date: String(ps.decidedAt || '').slice(0, 10) }))}</p>`;
     } else h += `<p class="progress-hint">${esc(t('gm.trainerPaceNone'))}</p>`;
+    /* AUTH-137: con el ritmo decidido y las metas aún sin
+       escribir, la tarjeta nombra la causa verificada en los
+       datos que la ficha ya cargó (pesos y assessment vía
+       extra): sin primer peso y/o sin palBasal numérico no hay
+       TDEE y las metas no se pueden calcular. Sin causa
+       verificada no se pinta nada. */
+    const blkW = goalsWindowCause(u, extra);
+    if (blkW) h += `<p class="progress-hint">${esc(goalsCauseLineText(blkW))}</p>`;
     h += `<div class="eval-actions" style="justify-content:flex-start;gap:8px;flex-wrap:wrap"><select id="gm-tp-sel"><option value="500">−500</option><option value="750">−750</option><option value="1000">−1000</option></select>${ps && ps.paceKcal ? `<button type="button" class="btn-primary btn-sm" id="gm-tp-approve">${esc(t('gm.trainerPaceApprove'))}</button>` : ''}<button type="button" class="btn-ghost btn-sm" id="gm-tp-set">${esc(t('gm.trainerPaceSet'))}</button></div></div></div>`;
     pc.innerHTML = h;
     fichaFoldWire('pace');
@@ -27477,7 +27575,7 @@ document.addEventListener('keydown', e => { if (e.key === 'Escape') shareClose()
  *  - El SW (sw.js) solo cachea la cáscara del mismo origen en modo
  *    RED PRIMERO: Auth/Firestore/Worker jamás pasan por la caché.
  * ================================================================ */
-const PWA_SW_VERSION = '20261101-pendientes-unidades';
+const PWA_SW_VERSION = '20261101-metas-causa';
 let pwaDeferredPrompt = null;
 function pwaIsStandalone() {
   try {
