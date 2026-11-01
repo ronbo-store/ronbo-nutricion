@@ -1,0 +1,95 @@
+# RONBO FIT — Batería de reglas del delta «las cuentas nuevas nacen
+# con Comida encendida» (AUTH-2026-11-01-132; decisión expresa de
+# Ronald 2026-11-01 14:32 CST). La suite NACER (10 casos) contra el
+# CANDIDATO de reglas (texto vivo ruleset ff21ca3a, SHA-256
+# 7b26c0cf…, + SOLO la guardia de nacimiento de features.meals en
+# la cláusula de creación de users/{uid}: de «== false» a guardia de
+# tipo «is bool», con su comentario de política; candidata SHA-256
+# 718f411f…) y la MISMA suite contra el texto VIVO con la
+# expectativa de N1 invertida (el contraste).
+# Todo contra el emulador oficial de Firestore (proyecto ficticio
+# ronbo-nutri-test). Este workflow SOLO valida el texto; NO publica
+# reglas ni despliega nada. Sin secretos, sin credenciales de
+# producción.
+#
+# Colocación: este archivo va en .github/workflows/ del repo y las
+# suites en pruebas-reglas-nacer/ y pruebas-reglas-nacer-vivo/ en la
+# raíz del mismo repo, en la rama ci/nacer-comida-bateria.
+name: Batería Nacer Comida (emulador oficial)
+
+on:
+  workflow_dispatch:
+  push:
+    branches: [ci/nacer-comida-bateria]
+
+permissions:
+  contents: read
+
+jobs:
+  nacer-candidato:
+    name: Serie NACER (10 casos) contra el CANDIDATO
+    runs-on: ubuntu-24.04
+    timeout-minutes: 20
+    defaults:
+      run:
+        working-directory: pruebas-reglas-nacer
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: 21
+      - name: Instalar dependencias de la batería (versiones fijadas)
+        run: npm ci
+      - name: Instalar Firebase CLI (versión fijada)
+        run: npm install -g firebase-tools@15.34.0
+      - name: Ejecutar la batería contra el emulador oficial
+        shell: bash
+        run: |
+          set -o pipefail
+          firebase emulators:exec --only firestore --project ronbo-nutri-test "node test-nacer.mjs" 2>&1 | tee resultado-bateria.txt
+      - name: Publicar el resultado en el resumen del job
+        if: always()
+        shell: bash
+        run: |
+          {
+            echo '## Serie NACER (10 casos) contra el CANDIDATO — resultado'
+            grep -E 'NACER-CANDIDATO:' resultado-bateria.txt || true
+          } >> "$GITHUB_STEP_SUMMARY"
+
+  nacer-vivo:
+    name: Serie NACER (10 casos) contra el texto VIVO (contraste)
+    runs-on: ubuntu-24.04
+    timeout-minutes: 20
+    defaults:
+      run:
+        working-directory: pruebas-reglas-nacer-vivo
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: 21
+      - name: Instalar dependencias de la batería (versiones fijadas)
+        run: npm ci
+      - name: Instalar Firebase CLI (versión fijada)
+        run: npm install -g firebase-tools@15.34.0
+      - name: Ejecutar la batería contra el emulador oficial
+        shell: bash
+        run: |
+          set -o pipefail
+          firebase emulators:exec --only firestore --project ronbo-nutri-test "node test-nacer.mjs" 2>&1 | tee resultado-bateria.txt
+      - name: Publicar el resultado en el resumen del job
+        if: always()
+        shell: bash
+        run: |
+          {
+            echo '## Serie NACER (10 casos) contra el texto VIVO — resultado'
+            grep -E 'NACER-VIVO:' resultado-bateria.txt || true
+          } >> "$GITHUB_STEP_SUMMARY"
