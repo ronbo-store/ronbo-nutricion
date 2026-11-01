@@ -3004,6 +3004,10 @@ en: {
   'msg.resetSent': 'Reset email sent. It contains a link (not a code): tap the link and set your new password on the page that opens. Check your spam folder too.',
   'msg.approved': 'User approved.',
   'msg.revoked': 'Access removed.',
+  'msg.deleting': 'Deleting…',
+  'msg.deleted': 'User deleted completely.',
+  'msg.deleteFailed': 'The deletion could not be completed. Check the user and try again.',
+  'msg.deleteNameMismatch': 'The text does not match — deletion cancelled.',
   'msg.rejected': 'Request deleted.',
   'msg.foodReviewed': 'Photo marked as reviewed.',
   'msg.goalsSaved': 'Goals updated.',
@@ -3347,6 +3351,8 @@ en: {
   'msg.weightSaved': 'Weigh-in logged.',
   'msg.weightDeleted': 'Weigh-in deleted.',
   'confirm.revoke': 'Remove this user\'s access? They won\'t be able to sign in again.',
+  'confirm.deleteUser1': 'Permanently delete {name}? ALL their data and their sign-in account will be removed, and the email will be free to register again. This cannot be undone.',
+  'confirm.deleteUser2': 'To confirm the permanent deletion, type the name or the email of {name} exactly:',
   'confirm.reject': 'Reject and delete this request?',
   'confirm.delPhoto': 'Delete this photo?',
   'confirm.delMeal': 'Delete this entry?',
@@ -3358,6 +3364,7 @@ en: {
   'admin.profile': 'Profile',
   'admin.goals': 'Goals',
   'admin.revoke': 'Remove access',
+  'admin.deleteUser': 'Delete user',
   'admin.owner': 'admin',
   'limits.title': '🤖 Analysis limits',
   'limits.hint': 'Daily photo-analysis limits, set only by you. Each account uses its own limit if it has one, otherwise its trainer\'s, otherwise the global one; if none is set anywhere, a default of 10 requests per day applies (five complete meals).',
@@ -5163,6 +5170,10 @@ es: {
   'msg.resetSent': 'Correo enviado. Contiene un enlace (no un código): toca el enlace y escribe tu nueva contraseña en la página que se abre. Revisa también tu carpeta de spam.',
   'msg.approved': 'Usuario aprobado.',
   'msg.revoked': 'Acceso retirado.',
+  'msg.deleting': 'Eliminando…',
+  'msg.deleted': 'Usuario eliminado por completo.',
+  'msg.deleteFailed': 'La eliminación no pudo completarse. Revisa el usuario e inténtalo de nuevo.',
+  'msg.deleteNameMismatch': 'El texto no coincide — eliminación cancelada.',
   'msg.rejected': 'Solicitud eliminada.',
   'msg.foodReviewed': 'Foto marcada como revisada.',
   'msg.goalsSaved': 'Metas actualizadas.',
@@ -5507,6 +5518,8 @@ es: {
   'msg.weightSaved': 'Pesaje registrado.',
   'msg.weightDeleted': 'Pesaje borrado.',
   'confirm.revoke': '¿Quitar el acceso a este usuario? No podrá volver a entrar.',
+  'confirm.deleteUser1': '¿Eliminar por completo a {name}? Se borrarán TODOS sus datos y su cuenta de acceso, y el correo quedará libre para registrarse de nuevo. Esto no se puede deshacer.',
+  'confirm.deleteUser2': 'Para confirmar el borrado definitivo, escribe exactamente el nombre o el correo de {name}:',
   'confirm.reject': '¿Rechazar y eliminar esta solicitud?',
   'confirm.delPhoto': '¿Eliminar esta foto?',
   'confirm.delMeal': '¿Borrar este registro?',
@@ -5518,6 +5531,7 @@ es: {
   'admin.profile': 'Perfil',
   'admin.goals': 'Metas',
   'admin.revoke': 'Quitar acceso',
+  'admin.deleteUser': 'Eliminar usuario',
   'admin.owner': 'administrador',
   'limits.title': '🤖 Límites de análisis',
   'limits.hint': 'Límites diarios de análisis de fotos, fijados solo por ti. Cada cuenta usa su propio límite si lo tiene; si no, el de su entrenador; si no, el global; si no hay ninguno fijado en ningún nivel, aplica el límite por defecto de 10 peticiones al día (las cinco comidas completas).',
@@ -7132,6 +7146,7 @@ async function loadAdmin() {
           ? `<button class="btn-primary btn-sm" data-approve-trainer="${u.id}">${t('esc.approveTrainer')}</button>`
           : `<button class="btn-primary btn-sm" data-approve="${u.id}">${t('admin.approve')}</button>`}
         <button class="btn-ghost btn-sm" data-reject="${u.id}">${t('admin.reject')}</button>
+        ${BT_PILOT_UIDS.includes(u.id) ? '' : `<button class="btn-ghost btn-sm btn-delete-user" data-delete-user="${u.id}">${t('admin.deleteUser')}</button>`}
       </div>
     </div>`;
   $('pending-count').textContent = pending.length;
@@ -7154,6 +7169,7 @@ async function loadAdmin() {
         ${u.role === 'entrenador' ? `<button class="btn-ghost btn-sm" data-dos-mail="${u.id}">${t('esc.mailBtn')}</button>` : ''}
         <button class="btn-ghost btn-sm" data-mail-resend="${u.id}" title="${t('mail.resendBtn')}" aria-label="${t('mail.resendBtn')}">📧</button>
         <button class="btn-ghost btn-sm" data-revoke="${u.id}">${t('admin.revoke')}</button>
+        ${BT_PILOT_UIDS.includes(u.id) ? '' : `<button class="btn-ghost btn-sm btn-delete-user" data-delete-user="${u.id}">${t('admin.deleteUser')}</button>`}
       </div>
     </div>${u.role === 'entrenador' ? `<div class="dos-mail-box" id="dos-mail-${u.id}" style="display:none"></div>` : ''}`).join('') : `<div class="wempty">${t('admin.noUsers')}</div>`);
   /* Roles: SOLO el administrador asigna o cambia el campo role
@@ -7382,6 +7398,11 @@ async function loadAdmin() {
     if (u && u.approved === true && u.trainerUid) await escAdjustQuota(u.trainerUid, -1);
     toast(t('msg.rejected')); await loadAdmin();
   });
+  /* Eliminar usuario (borrado completo): solo se cablea en esta
+     superficie, que ya es exclusiva del administrador; la puerta
+     real vive en el Worker (ver deleteUserFlow). El piloto
+     archivado ni siquiera pinta el botón (BT_PILOT_UIDS). */
+  document.querySelectorAll('[data-delete-user]').forEach(b => b.onclick = () => deleteUserFlow(b));
   /* Roles+Escalabilidad: cajas del administrador (membresías,
      confirmaciones de comidas y banderas de funciones). */
   renderEscAdminBoxes();
@@ -7394,6 +7415,47 @@ async function loadAdmin() {
      (y la refresca en cada reapertura). Organización 2026-10-28. */
   const tabAccess = $('tab-access');
   if (tabAccess && tabAccess.style.display !== 'none') { loadLimits(); }
+}
+
+/* ============ ELIMINAR USUARIO — BORRADO COMPLETO (solo dueño) ============
+   Flujo de la fila de Accesos (botón rojo «Eliminar usuario», junto
+   a «Quitar acceso» pero separado: revocar apaga, eliminar borra).
+   DOBLE CONFIRMACIÓN sin atajos: (1) confirmación clara de lo que
+   va a pasar; (2) escribir el nombre o el correo del usuario,
+   exactos, para ejecutar. La ejecución la hace el Worker en
+   POST /admin/delete-user (puerta: token válido + UID del
+   propietario; la cuenta de servicio del proyecto borra la cuenta
+   de Auth y todos los datos en Firestore, y el correo queda
+   libre). La app no borra nada directamente: si el Worker no
+   confirma {ok:true}, no hay éxito que enseñar. Cada eliminación
+   confirmada deja su recibo en la bitácora (auditLog). */
+async function deleteUserFlow(btn) {
+  if (!IS_OWNER || ROLE !== 'administrador') return;
+  const uid = btn.dataset.deleteUser;
+  const u = ADMIN_USERS.find(x => x.id === uid);
+  if (!u) return;
+  const label = u.name || u.email || uid;
+  if (!confirm(t('confirm.deleteUser1', { name: label }))) return;
+  const typed = prompt(t('confirm.deleteUser2', { name: label }), '');
+  if (typed === null) return;
+  const norm = s => String(s || '').trim().toLowerCase();
+  if (norm(typed) !== norm(u.name) && norm(typed) !== norm(u.email)) { toast(t('msg.deleteNameMismatch')); return; }
+  const prev = btn.textContent;
+  btn.disabled = true; btn.textContent = t('msg.deleting');
+  try {
+    const ep = aiEndpoint();
+    if (!ep) throw new Error('ai-off');
+    const idToken = await auth.currentUser.getIdToken();
+    const r = await fetch(ep + '/admin/delete-user', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ targetUid: uid, idToken }) });
+    const j = await r.json().catch(() => null);
+    if (!r.ok || !j || !j.ok) throw new Error('delete-' + r.status);
+    await auditLog('user', 'user.deleted', uid, (label + ' · ' + (u.email || '')).trim());
+    toast(t('msg.deleted'));
+    await loadAdmin();
+  } catch {
+    btn.disabled = false; btn.textContent = prev;
+    toast(t('msg.deleteFailed'));
+  }
 }
 
 /* ============ LÍMITES DE ANÁLISIS (solo dueño; Worker /admin/limits) ============
@@ -27365,7 +27427,7 @@ document.addEventListener('keydown', e => { if (e.key === 'Escape') shareClose()
  *  - El SW (sw.js) solo cachea la cáscara del mismo origen en modo
  *    RED PRIMERO: Auth/Firestore/Worker jamás pasan por la caché.
  * ================================================================ */
-const PWA_SW_VERSION = '20261101-peso-visible';
+const PWA_SW_VERSION = '20261101-eliminar-usuarios';
 let pwaDeferredPrompt = null;
 function pwaIsStandalone() {
   try {

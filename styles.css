@@ -2512,3 +2512,12 @@ body.prog-page #progress-content.nav-page-on { padding-right: 88px; }
 .wc-none { font-size: 16.5px; font-weight: 700; margin: 4px 0 2px; }
 .wc-why { font-size: 13.5px; color: #475569; margin: 0 0 10px; }
 .wc-btn { width: 100%; min-height: 48px; font-size: 15.5px; }
+
+/* ELIMINAR USUARIO — BORRADO COMPLETO (AUTH-2026-11-01-NNN): el botón
+   de borrado en Accesos va en ROJO y separado de «Quitar acceso»
+   (revocar apaga la cuenta; eliminar la borra con todos sus datos).
+   Solo lo pinta la superficie del administrador y solo para cuentas
+   que no sean la del propietario ni la del piloto archivado. */
+.btn-delete-user { color: #b91c1c; border-color: #fca5a5; }
+.btn-delete-user:hover { background: #fef2f2; }
+.btn-delete-user:disabled { opacity: .55; cursor: wait; }
