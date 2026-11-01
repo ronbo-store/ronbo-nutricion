@@ -35,8 +35,7 @@ let pass = 0, fail = 0; const failures = [];
 const ONLY = process.env.TEST_ONLY || '';
 function onlyWanted(name) { return !ONLY || name.startsWith('PROPOSITO ' + ONLY + ' '); }
 async function T(name, promise, shouldSucceed) {
-  if (!onlyWanted(name)) return;
-  promise = promise();
+  if (!onlyWanted(name)) { promise.catch(() => {}); return; }
   try {
     if (shouldSucceed) await assertSucceeds(promise); else await assertFails(promise);
     pass++; console.log('PASS — ' + name);
