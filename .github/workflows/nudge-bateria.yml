@@ -77,7 +77,8 @@ jobs:
         if: always()
         shell: bash
         run: |
-          grep -E '^(PASS|FAIL|MODO)' resultado-bateria.txt | head -25 | while IFS= read -r l; do echo "::notice::$l"; done || true
+          grep -E '^(PASS|FAIL|MODO)' resultado-bateria.txt | head -10 | while IFS= read -r l; do echo "::notice::$l"; done || true
+          grep -E '^(PASS|FAIL|MODO)' resultado-bateria.txt | tail -n +11 | head -10 | while IFS= read -r l; do echo "::notice::$l"; done || true
 
   contraste-vivo:
     name: La MISMA suite contra el texto VIVO (N1 invertido)
@@ -120,4 +121,5 @@ jobs:
         if: always()
         shell: bash
         run: |
-          grep -E '^(PASS|FAIL|MODO)' resultado-bateria.txt | head -25 | while IFS= read -r l; do echo "::notice::$l"; done || true
+          grep -E '^(PASS|FAIL|MODO)' resultado-bateria.txt | head -10 | while IFS= read -r l; do echo "::notice::$l"; done || true
+          grep -E '^(PASS|FAIL|MODO)' resultado-bateria.txt | tail -n +11 | head -10 | while IFS= read -r l; do echo "::notice::$l"; done || true

@@ -62,6 +62,10 @@ async function check(name, promise, shouldSucceed) {
 // Siembra con las reglas desactivadas.
 await testEnv.withSecurityRulesDisabled(async (ctx) => {
   const db = ctx.firestore();
+  /* El documento PROPIO del propietario: isOwnerUser() de las
+     reglas lo exige (uid + su users con isOwner == true) para la
+     rama general del dueño que ejercita N15. */
+  await setDoc(doc(db, 'users', OWNER), { role: 'administrador', isOwner: true, approved: false, name: 'Owner Nudge', email: 'owner@ficticio.test' });
   await setDoc(doc(db, 'users', TRAINER), { role: 'entrenador', approved: true, name: 'Trainer Nudge', email: 't@ficticio.test' });
   await setDoc(doc(db, 'users', TRAINER2), { role: 'entrenador', approved: true, name: 'Trainer Otro', email: 'z@ficticio.test' });
   await setDoc(doc(db, 'users', STUDENT), { role: 'usuario', approved: true, trainerUid: TRAINER, approvedBy: OWNER, name: 'Alumna Nudge', email: 's@ficticio.test' });
