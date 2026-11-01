@@ -6,7 +6,7 @@ import {
 } from "firebase/auth";
 import {
   getFirestore, doc, getDoc, getDocFromServer, collection, getDocs, getDocsFromServer, addDoc,
-  setDoc, deleteDoc, deleteField, serverTimestamp, query, where, limit, writeBatch, onSnapshot,
+  setDoc, deleteDoc, deleteField, serverTimestamp, Timestamp, query, where, limit, writeBatch, onSnapshot,
 } from "firebase/firestore";
 import {
   getStorage, ref as sRef, uploadBytes, getDownloadURL, deleteObject,
@@ -473,6 +473,7 @@ async function renderMyTrainerBox() {
     MY_MEAL_REQ = { ...data, id: 'local' };
     toast(t('esc.mealsRequested'));
     renderMyTrainerBox();
+    pendRefreshAfterSave();
   };
   const modBtn = $('btn-mod-request');
   if (modBtn) modBtn.onclick = async () => {
@@ -634,6 +635,7 @@ async function escChangeTrainer(newTrainerUid) {
   if (UDATA) { UDATA.trainerUid = newTrainerUid; UDATA.assignmentStatus = newTrainerUid ? 'assigned' : 'waiting'; }
   toast(t('esc.changedOk'));
   await renderMyTrainerBox();
+  pendRefreshAfterSave();
 }
 /* ---------- Entrenador: mi membresía + solicitudes de comidas ---------- */
 async function renderMembershipBox() {
@@ -9583,6 +9585,14 @@ async function saveMyUnits(next) {
   toast(t('units.saved'));
   renderUnitsPanel();
   try { renderWeight(); } catch {}
+  /* Corrección «unidades que no se ven aplicadas» (2026-11-01): el
+     guardado también repinta las demás superficies ya pintadas que
+     dependen de las unidades — el panel de energía de la misma
+     vista (renderEnergyPanel conserva lo tecleado sin guardar por
+     su espejo de edición) y la vista de actividad — para que el
+     cambio se vea aplicado en el acto en toda la app, sin recargar. */
+  try { renderEnergyPanel(); } catch {}
+  try { renderActivity(actSelDate()); } catch {}
 }
 
 /* ================= F-A1/F-A2 · CÁLCULO ENERGÉTICO (Etapa 2, desarrollo) =================
@@ -10015,8 +10025,14 @@ async function faComputeMine(uid) {
   try {
     await setDoc(doc(db, 'users', uid, 'assessment', 'current'), result, { merge: true });
     await setDoc(doc(db, 'users', uid, 'assessment', 'hist_' + Date.now()), result);
+    /* La fusión local incluye computedAt/computedBy/nota con el
+       mismo valor que va al servidor: sin computedAt, faHasResult()
+       seguía en falso EN LA SESIÓN y la evaluación constaba como
+       pendiente hasta recargar la app, aunque el cálculo ya estaba
+       guardado (corrección «pendientes al guardar», 2026-11-01). */
     MY_ASMT.doc = { ...cfg, rmrKcal: result.rmrKcal, tdeeKcal: result.tdeeKcal, equationUsed: result.equationUsed,
-      equationVersion: result.equationVersion, inputsSnapshot: snap, sexConstantApplied: true };
+      equationVersion: result.equationVersion, inputsSnapshot: snap, sexConstantApplied: true,
+      computedAt: Timestamp.now(), computedBy: uid, uncertaintyNote: result.uncertaintyNote };
     renderEnergyPanel();
   } catch {}
 }
@@ -10033,6 +10049,7 @@ async function saveMySex() {
     renderEnergyPanel();
     await faSyncSignal(uid);
     await faComputeMine(uid);
+    pendRefreshAfterSave();
   } catch (e) { failToast(e); }
 }
 async function deleteMySex() {
@@ -11649,6 +11666,7 @@ async function gmSaveFoundation() {
     await faComputeMine(auth.currentUser.uid);
     renderEnergyPanel();
     await goalsEngineRun('foundation');
+    pendRefreshAfterSave();
   } catch (e) { failToast(e); }
 }
 /* ---------- Ficha del cliente: aprobación del ritmo (§F) + alertas (§E) ---------- */
@@ -15480,6 +15498,7 @@ async function grantSpec(isRenew) {
     healthEditing = true; // tras otorgar/renovar, se muestra el formulario de la declaración (nueva)
     toast(isRenew ? t('health.renewedSpec') : t('health.specGranted'));
     renderHealthPanel();
+    pendRefreshAfterSave();
   } catch (e) { failToast(e); }
 }
 async function withdrawSpec() {
@@ -15504,6 +15523,7 @@ async function withdrawSpec() {
     healthEditing = false;
     toast(t('health.withdrawnSpec'));
     renderHealthPanel();
+    pendRefreshAfterSave();
   } catch (e) { failToast(e); }
 }
 /* ================= ESTIMACIÓN VISUAL DE TIPO CORPORAL (Nivel 2 — SOLO DESARROLLO) =================
@@ -15811,6 +15831,7 @@ async function saveDeclaration() {
     toast(t('health.declSaved'));
     renderHealthPanel();
     try { await goalsEngineRun('health'); } catch {}
+    pendRefreshAfterSave();
   } catch (e) { failToast(e); }
 }
 /* Frente 1 (D5 + N-2): la respuesta a la pregunta suave de síntomas
@@ -25776,7 +25797,7 @@ applyI18n();
    ================================================================== */
 let PEND_CFG = null;            // null = aún no cargado; {activated:false} = sin activar
 let PEND_STATE = { marks: {} }; // marcas por ocasión (pospuesto/omitido/descartado)
-let PEND_UI = { configOpen: false, floatOpen: false };
+let PEND_UI = { configOpen: false, floatOpen: false, cfgDirty: false };
 let MY_PLAN = null, MY_LOGS = [], MY_LOGS_ALL = null;   // los rellena loadMyTraining(); MY_LOGS_ALL conserva la lectura COMPLETA (todos los planes) para el Historial de cargas de la ficha — es la misma única lectura de siempre, sin filtrar
 
 const PEND_MEAL_NAMES = ['Desayuno', 'Almuerzo', 'Cena', 'Merienda', 'Snack'];
@@ -26121,15 +26142,34 @@ function pendSyncDock() {
      cómputo de procedimiento en cada sincronización. */
   try { if (typeof renderRolePendCard === 'function') renderRolePendCard(); } catch {}
 }
+/* Corrección «pendientes que no se actualizan al guardar»
+   (2026-11-01): tras un guardado que resuelve un pendiente, las
+   superficies de pendientes se repintan EN EL ACTO — el botón del
+   dock y la tarjeta-resumen de Inicio vía pendSyncDock, y el
+   flotante si está abierto — para que la casilla se marque, la
+   tarjeta salga y el % suba sin cerrar ni recargar. El flotante NO
+   se re-renderiza si el formulario de configuración tiene edición
+   sin guardar (cfgDirty): esa es la única protección que la antigua
+   guarda de #pc-cutoff debía dar, y daba de más — congelaba la
+   lista entera para todo usuario sin recordatorios activados,
+   porque el propio render pinta ese formulario en el cuerpo. */
+function pendRefreshAfterSave() {
+  try { pendSyncDock(); } catch {}
+  try { if (PEND_UI.floatOpen && !PEND_UI.cfgDirty) renderPendings(); } catch {}
+}
 function pendSetFloat(open) {
   PEND_UI.floatOpen = !!open;
   const f = $('pend-float'), b = $('btn-toggle-pend');
   if (f) f.style.display = open ? '' : 'none';
   if (b) b.setAttribute('aria-expanded', String(!!open));
-  /* Al abrir se refresca el contenido, salvo si hay un formulario
-     de pendientes en pantalla (activación o configuración): un
-     re-render lo reiniciaría y perdería lo tecleado sin guardar. */
-  if (open && !document.getElementById('pc-cutoff')) renderPendings();
+  /* Al abrir se refresca el contenido; la única excepción es un
+     formulario de configuración con edición sin guardar (cfgDirty):
+     un re-render perdería lo tecleado. La guarda anterior (bastaba
+     que #pc-cutoff existiera) congelaba la lista para siempre en
+     las cuentas sin recordatorios activados — el formulario nace
+     pintado en el cuerpo — y la ventana mostraba la foto del primer
+     render aunque el pendiente ya estuviera guardado. */
+  if (open && (!document.getElementById('pc-cutoff') || !PEND_UI.cfgDirty)) renderPendings();
   if (open) { try { trainerAlertsRender(); } catch {} }
   pendSyncDock();
   try { coverSync(); } catch {} // A-N2
@@ -26140,7 +26180,7 @@ function pendSetFloat(open) {
    cómputo local: ninguna lectura de red nueva. */
 function pendDockTick() {
   if (!auth.currentUser || !PEND_CFG) return;
-  if (PEND_UI.floatOpen && !document.getElementById('pc-cutoff')) renderPendings();
+  if (PEND_UI.floatOpen && (!document.getElementById('pc-cutoff') || !PEND_UI.cfgDirty)) renderPendings();
   pendSyncDock();
 }
 
@@ -26249,6 +26289,9 @@ function pendCfgFormHTML(cfg, first) {
 }
 function renderPendings() {
   const body = $('pend-body'); if (!body) return;
+  /* Todo render reconstruye el formulario de configuración desde la
+     configuración guardada: nace limpio, sin edición pendiente. */
+  PEND_UI.cfgDirty = false;
   const count = $('pend-count'), cfgBtn = $('btn-pend-config');
   const cfg = PEND_CFG;
   if (!cfg) { body.innerHTML = `<div class="wempty">${esc(t('train.loading'))}</div>`; pendSyncDock(); return; }
@@ -26398,6 +26441,13 @@ function pendGoWaitingTray() {
   if (b) b.onclick = () => { dockHome($('pend-float')); pendSetFloat(!PEND_UI.floatOpen); }; }
 { const c = document.getElementById('btn-pend-close');
   if (c) c.onclick = () => pendSetFloat(false); }
+/* Edición sin guardar SOLO dentro del formulario de configuración
+   (.pend-cfg): marca cfgDirty para que las guardas de refresco lo
+   protejan; cualquier otro control del flotante (posponer, omitir,
+   botones de ir) no marca nada y no congela la lista. */
+{ const pb = document.getElementById('pend-body');
+  if (pb) { const mark = e => { if (e.target && e.target.closest && e.target.closest('.pend-cfg')) PEND_UI.cfgDirty = true; };
+    pb.addEventListener('input', mark); pb.addEventListener('change', mark); } }
 /* Cierre tocando fuera de la tarjeta (el botón del dock se excluye:
    su propio onclick ya alterna). */
 document.addEventListener('click', e => {
@@ -27427,7 +27477,7 @@ document.addEventListener('keydown', e => { if (e.key === 'Escape') shareClose()
  *  - El SW (sw.js) solo cachea la cáscara del mismo origen en modo
  *    RED PRIMERO: Auth/Firestore/Worker jamás pasan por la caché.
  * ================================================================ */
-const PWA_SW_VERSION = '20261101-eliminar-usuarios';
+const PWA_SW_VERSION = '20261101-pendientes-unidades';
 let pwaDeferredPrompt = null;
 function pwaIsStandalone() {
   try {
