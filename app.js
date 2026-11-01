@@ -3623,7 +3623,8 @@ en: {
   'fa.act6': 'Sustained heavy physical work',
   'fa.palLabel': 'Activity multiplier (palBasal)',
   'fa.palRules': 'Normal range: 1.40–2.00 · Exception band: 1.20–1.39 (with express confirmation) · Below 1.20: not allowed.',
-  'fa.palGuide': '<b>Guidance — what this multiplier covers</b><br>For reference only, to support your judgement: you type the value; nothing is filled in or pre-selected.<br>The multiplier covers rest, daily life and habitual movement, including the thermic effect of food and unstructured activity. It does NOT include structured exercise, and no per-category number is assigned: the descriptive activity level above is context only and carries no number.',
+  'fa.palGuide': '<b>Guidance — what this multiplier covers</b><br>The activity level above suggests a founded default for this field — the FAO/WHO/UNU PAL bands (2004): sedentary or light life 1.40–1.69 · active life 1.70–1.99 · vigorous life 2.00–2.40; near-total rest sits at 1.20. The suggested value appears in the field and you can adjust it: a value you type yourself is never overwritten.<br>The multiplier covers rest, daily life and habitual movement, including the thermic effect of food and unstructured activity. It does NOT include structured exercise.',
+  'fa.palAutoNote': 'Auto-suggested from the activity level (FAO/WHO/UNU PAL). You can adjust it.',
   'fa.palPlaceholder': 'E.g. 1.55',
   'fa.palWarn': '⚠ This value is outside the usual physiological range.',
   'fa.palWarnBody': 'It is in the exception band (1.20–1.39): to save it you must confirm it expressly.',
@@ -5795,7 +5796,8 @@ es: {
   'fa.act6': 'Trabajo físico pesado sostenido',
   'fa.palLabel': 'Multiplicador de actividad (palBasal)',
   'fa.palRules': 'Rango normal: 1,40–2,00 · Banda de excepción: 1,20–1,39 (con confirmación expresa) · Menos de 1,20: no admitido.',
-  'fa.palGuide': '<b>Guía orientativa — qué cubre este multiplicador</b><br>Solo como referencia para tu criterio: el valor lo escribes tú; nada se rellena ni se preselecciona.<br>El multiplicador cubre el reposo, la vida diaria y el movimiento habitual, incluido el efecto térmico de los alimentos y la actividad no estructurada. NO incluye el ejercicio estructurado, y no se asigna ningún número por categoría: el nivel de actividad descriptivo de arriba es solo contexto y no lleva ningún número.',
+  'fa.palGuide': '<b>Guía orientativa — qué cubre este multiplicador</b><br>El nivel de actividad de arriba sugiere un valor por defecto con fundamento para este campo — las bandas PAL de FAO/OMS/UNU (2004): vida sedentaria o ligera 1,40–1,69 · vida activa 1,70–1,99 · vida vigorosa 2,00–2,40; el reposo casi total queda en 1,20. El valor sugerido aparece en el campo y puedes ajustarlo: un valor que escribas tú nunca se sobrescribe.<br>El multiplicador cubre el reposo, la vida diaria y el movimiento habitual, incluido el efecto térmico de los alimentos y la actividad no estructurada. NO incluye el ejercicio estructurado.',
+  'fa.palAutoNote': 'Sugerido automáticamente según el nivel de actividad (PAL de FAO/OMS/UNU). Puedes ajustarlo.',
   'fa.palPlaceholder': 'Ej.: 1,55',
   'fa.palWarn': '⚠ Este valor está fuera del rango fisiológico habitual.',
   'fa.palWarnBody': 'Está en la banda de excepción (1,20–1,39): para guardarlo necesitas confirmarlo expresamente.',
@@ -9031,6 +9033,8 @@ function pendConsultRewire(body, uid) {
   if (add && !add.onclick) add.onclick = () => openWeightModal({ uid, docId: null, rec: null });
   const pal = body.querySelector('#fa-pal');
   if (pal && !pal.dataset.pendWire) { pal.dataset.pendWire = '1'; pal.addEventListener('input', faPalSync); }
+  const act = body.querySelector('#fa-act');
+  if (act && pal && !act.dataset.pendWire) { act.dataset.pendWire = '1'; act.addEventListener('change', () => { if (faPalAutoApply(act, pal)) faPalSync(); }); }
 }
 function pendConsultRehost() {
   const C = PEND_CONSULT;
@@ -9720,6 +9724,17 @@ async function saveMyUnits(next) {
      corrección C-2 de la revisión Santi: asignaba por categoría
      los factores clásicos, que sí incluyen ejercicio, y por
      tanto contradecía el criterio A-3/palBasal aprobado.)
+   - ACTUALIZACIÓN 2026-11-01 (AUTH-2026-11-01-137; decisión
+     expresa de Ronald en el chat RONBO.NUTRI, 15:23 CST: «Sí:
+     valor automático según la categoría, ajustable a mano»):
+     la categoría SÍ propone ahora un valor por defecto FUNDADO
+     (FA_PAL_DEFAULTS: las bandas PAL de FAO/OMS/UNU 2004
+     aplicadas a los 6 niveles descriptivos), visible en el
+     campo y editable; un valor tecleado a mano NUNCA se pisa.
+     Sustituye la parte de C-2 que prohibía todo número por
+     categoría; el criterio A-3 no cambia (los niveles describen
+     la vida diaria y el trabajo, no el ejercicio estructurado,
+     que sigue fuera del multiplicador).
    - CORRECCIONES C-1…C-7 (revisión Santi 2026-10-20, desarrollo
      SIN publicar; matriz en MATRIZ-C1-C7-2026-10-20.md): el
      resultado se nombra «gasto estimado sin ejercicio
@@ -9746,6 +9761,63 @@ const FA_EQUATION_VERSION = 'mifflin-st-jeor@1.0'; // cadena fijada en la Etapa 
    entrenador por cliente. Versiones por ecuación: */
 const FA_EQ_VERSIONS = { 'mifflin-st-jeor': 'mifflin-st-jeor@1.0', 'ten-haaf': 'ten-haaf@1.0' };
 const FA_EQ_ENABLED = ['mifflin-st-jeor', 'ten-haaf'];
+/* AUTH-2026-11-01-137 — Valor palBasal POR DEFECTO según la
+   categoría descriptiva de actividad (decisión de Ronald,
+   2026-11-01: automático según la categoría, ajustable a mano).
+   FUNDAMENTO: FAO/WHO/UNU, «Human energy requirements: report
+   of a Joint FAO/WHO/UNU Expert Consultation», FAO Food and
+   Nutrition Technical Report Series 1, Roma, 2004 — bandas PAL
+   (gasto total diario ÷ gasto basal): vida sedentaria o de
+   actividad ligera 1,40–1,69 · vida activa o moderadamente
+   activa 1,70–1,99 · vida vigorosa 2,00–2,40. Los 6 niveles de
+   la app reparten esas bandas: 2 y 3 dentro de la sedentaria/
+   ligera, 4 y 5 dentro de la activa, 6 en el arranque de la
+   vigorosa (la app topa en 2,00 por A-3). El nivel 1 (reposo
+   casi total / movilidad muy reducida) queda POR DEBAJO de la
+   banda sedentaria: PAL mínimo de un estilo de vida sostenible
+   1,1–1,2 (Westerterp KR, «Physical activity and physical
+   activity induced energy expenditure in humans», Front
+   Physiol 2013;4:90, DOI 10.3389/fphys.2013.00090) → 1,20, en
+   la banda de excepción: su guardado exige la confirmación
+   expresa de siempre, presentada en el mismo flujo. */
+const FA_PAL_DEFAULTS = { 1: 1.20, 2: 1.45, 3: 1.60, 4: 1.75, 5: 1.90, 6: 2.00 };
+function faPalDefaultFor(cat) {
+  const v = FA_PAL_DEFAULTS[parseInt(cat, 10)];
+  return typeof v === 'number' ? v : null;
+}
+/* Mantiene en dataset.palAutoCat la categoría cuyo defecto
+   coincide EXACTAMENTE con el contenido actual del campo: esa
+   es la señal de «el valor sigue siendo el automático». Si la
+   persona teclea otra cosa, la señal se retira y su valor
+   queda protegido (nunca se pisa). */
+function faPalTrack(inp, actEl) {
+  if (!inp || !actEl) return;
+  const raw = inp.value.trim();
+  const v = raw ? num(raw) : null;
+  const selDef = faPalDefaultFor(actEl.value);
+  if (v != null && selDef != null && v === selDef) inp.dataset.palAutoCat = String(parseInt(actEl.value, 10));
+  else if (inp.dataset.palAutoCat && v !== faPalDefaultFor(inp.dataset.palAutoCat)) inp.dataset.palAutoCat = '';
+}
+/* Al elegir o cambiar la categoría: si el campo está vacío o
+   su valor es exactamente el defecto de la categoría que lo
+   propuso, se (re)propone el defecto de la categoría elegida
+   — visible en el campo, editable. Un valor manual distinto
+   no se toca jamás. Devuelve true si escribió en el campo. */
+function faPalAutoApply(actEl, palInp) {
+  if (!actEl || !palInp) return false;
+  const newDef = faPalDefaultFor(actEl.value);
+  if (newDef == null) { palInp.dataset.palAutoCat = ''; return false; }
+  const raw = palInp.value.trim();
+  const cur = raw ? num(raw) : null;
+  const prevDef = faPalDefaultFor(palInp.dataset.palAutoCat || '');
+  if (cur == null || (prevDef != null && cur === prevDef)) {
+    palInp.value = String(newDef);
+    palInp.dataset.palAutoCat = String(parseInt(actEl.value, 10));
+    return true;
+  }
+  palInp.dataset.palAutoCat = '';
+  return false;
+}
 const FA_PURPOSE_VERSION = 'v1-2026-10-20';
 const FA_UNCERTAINTY = {
   es: 'La incertidumbre es propia del método de estimación; no es una garantía individual.',
@@ -9800,12 +9872,22 @@ function faCardHTML(uid, a, weights) {
     ${thReady ? '' : `<p class="progress-hint">${esc(t('fa.thNeedsAthlete'))}</p>`}`;
   const actOpts = [1, 2, 3, 4, 5, 6].map(n =>
     `<option value="${n}"${a && a.activityCategoryId === n ? ' selected' : ''}>${n}. ${t('fa.act' + n)}</option>`).join('');
-  const palVal = a && a.palBasal != null ? String(a.palBasal) : '';
+  const palSaved = a && a.palBasal != null ? String(a.palBasal) : '';
+  /* AUTH-137: con categoría elegida y sin multiplicador guardado,
+     el campo nace con el defecto fundado de la categoría (visible
+     y editable) — la evaluación ya no puede quedar «completa en
+     apariencia» sin el número. Si el valor guardado ES el defecto
+     de su categoría, queda marcado como automático (dataset). */
+  const palDef = faPalDefaultFor(a && a.activityCategoryId);
+  let palVal = palSaved, palAutoCat = '';
+  if (!palSaved && palDef != null) { palVal = String(palDef); palAutoCat = String(parseInt(a.activityCategoryId, 10)); }
+  else if (palSaved && palDef != null && num(palSaved) === palDef) palAutoCat = String(parseInt(a.activityCategoryId, 10));
   const palBlock = `
     <label class="fa-flabel">${t('fa.palLabel')}</label>
     <p class="fa-rules">${t('fa.palRules')}</p>
     <div class="fa-palguide" id="fa-pal-guide">${t('fa.palGuide')}</div>
-    <input type="text" inputmode="decimal" class="fa-pal-input" id="fa-pal" value="${esc(palVal)}" placeholder="${t('fa.palPlaceholder')}">
+    <input type="text" inputmode="decimal" class="fa-pal-input" id="fa-pal" data-pal-auto-cat="${palAutoCat}" value="${esc(palVal)}" placeholder="${t('fa.palPlaceholder')}">
+    <p class="fa-rules">${t('fa.palAutoNote')}</p>
     <div class="fa-warn" id="fa-pal-warn" style="display:none"><b>${t('fa.palWarn')}</b><br>${t('fa.palWarnBody')}
       <label class="fa-confirm"><input type="checkbox" id="fa-pal-confirm"${a && a.palExceptionConfirmed === true ? ' checked' : ''}> <span>${t('fa.palConfirm')}</span></label></div>
     <div class="fa-errbox" id="fa-pal-err" style="display:none">${t('fa.palError')}</div>`;
@@ -9870,6 +9952,7 @@ function faPalSync() {
   const inp = $('fa-pal'); if (!inp) return;
   const warn = $('fa-pal-warn'), err = $('fa-pal-err'), save = $('fa-save');
   const raw = inp.value.trim(); const v = num(raw);
+  faPalTrack(inp, $('fa-act'));
   let state = 'normal';
   if (!raw) state = 'empty';
   else if (!(v >= 1.20 && v <= 2.00)) state = 'invalid';
@@ -9889,6 +9972,14 @@ function faPalSync() {
     const a = FA_CARD.asmt;
     if (!(a && a.palExceptionConfirmed === true && num(a.palBasal) === v)) conf.checked = false;
   }
+}
+/* AUTH-137: al elegir o cambiar la categoría en la tarjeta del
+   entrenador, el multiplicador se (re)propone según la regla de
+   faPalAutoApply y la fila se re-sincroniza (aviso de banda de
+   excepción y confirmación quedan al día en el mismo flujo). */
+function faActSync() {
+  const act = $('fa-act'), inp = $('fa-pal'); if (!act || !inp) return;
+  if (faPalAutoApply(act, inp)) faPalSync();
 }
 async function faSetEquation(uid, eq) {
   const equation = FA_EQ_ENABLED.includes(eq) ? eq : 'mifflin-st-jeor';
@@ -10273,6 +10364,8 @@ async function openClient(uid) {
   if (faSv) faSv.onclick = () => faSaveConfig(uid);
   const faPal = $('fa-pal');
   if (faPal) { faPal.addEventListener('input', faPalSync); faPalSync(); }
+  const faAct = $('fa-act');
+  if (faAct) faAct.addEventListener('change', faActSync);
   $('btn-client-add').onclick = () => openWeightModal({ uid, docId: null, rec: null });
   compAccLoadTrainer(uid);
   loadClientRings(uid, udata);
@@ -11726,19 +11819,38 @@ async function gmAcceptTerms() {
    La ecuación la sigue eligiendo el entrenador. */
 function goalsFoundationHTML() {
   const d = (typeof MY_ASMT !== 'undefined' && MY_ASMT) ? (MY_ASMT.doc || {}) : {};
+  /* AUTH-137: misma regla que en la tarjeta del entrenador — con
+     categoría y sin multiplicador guardado, el campo nace con el
+     defecto fundado de la categoría (visible y editable); si el
+     valor guardado ES el defecto de su categoría, queda marcado
+     como automático. */
+  const dPalDef = faPalDefaultFor(d.activityCategoryId);
+  let dPalVal = d.palBasal != null && d.palBasal !== '' ? String(d.palBasal) : '';
+  let dPalAuto = '';
+  if (!dPalVal && dPalDef != null) { dPalVal = String(dPalDef); dPalAuto = String(parseInt(d.activityCategoryId, 10)); }
+  else if (dPalVal && dPalDef != null && num(dPalVal) === dPalDef) dPalAuto = String(parseInt(d.activityCategoryId, 10));
   const actOpts = ['', '1', '2', '3', '4', '5', '6'].map(v => `<option value="${v}"${String(d.activityCategoryId || '') === v ? ' selected' : ''}>${esc(v === '' ? t('fa.actNone') : t('fa.act' + v))}</option>`).join('');
   return `<div class="fa-athlete" id="gm-foundation"><h4 class="fa-athtitle">${esc(t('gm.foundation'))}</h4>
     <p class="fa-sextext">${esc(t('gm.foundationHint'))}</p>
     <label><span>${esc(t('fa.birthYear'))}</span><input type="number" id="gm-by" value="${esc(d.birthYear || '')}" min="1900" max="${new Date().getFullYear() - 18}"></label>
     <label><span>${esc(t('fa.height'))}</span><input type="number" id="gm-h" value="${esc(d.heightCm || '')}" min="50" max="250"></label>
     <label><span>${esc(t('fa.actLabel'))}</span><select id="gm-act">${actOpts}</select></label>
-    <label><span>${esc(t('fa.palLabel'))}</span><input type="number" id="gm-pal" step="0.01" value="${esc(d.palBasal || '')}" placeholder="${esc(t('fa.palPlaceholder'))}"></label>
+    <label><span>${esc(t('fa.palLabel'))}</span><input type="number" id="gm-pal" step="0.01" data-pal-auto-cat="${dPalAuto}" value="${esc(dPalVal)}" placeholder="${esc(t('fa.palPlaceholder'))}"></label>
+    <p class="fa-sextext">${esc(t('fa.palAutoNote'))}</p>
     <p class="fa-sextext">${esc(t('fa.palRules'))}</p>
     <label class="fa-opt2"><input type="checkbox" id="gm-pal-confirm"> <span>${esc(t('fa.palConfirm'))}</span></label>
     <div class="fa-btnrow"><button type="button" class="btn-primary btn-sm" id="gm-foundation-save">${esc(t('gm.saveFoundation'))}</button></div></div>`;
 }
 function goalsFoundationWire() {
   const b = $('gm-foundation-save'); if (b) b.onclick = gmSaveFoundation;
+  /* AUTH-137: la categoría (re)propone el multiplicador en el
+     formulario del propio alumno, con la misma regla de la
+     tarjeta del entrenador — lo tecleado a mano no se pisa. */
+  const act = $('gm-act'), pal = $('gm-pal');
+  if (act && pal) {
+    act.addEventListener('change', () => faPalAutoApply(act, pal));
+    pal.addEventListener('input', () => faPalTrack(pal, act));
+  }
 }
 async function gmSaveFoundation() {
   if (!auth.currentUser) return;
@@ -27575,7 +27687,7 @@ document.addEventListener('keydown', e => { if (e.key === 'Escape') shareClose()
  *  - El SW (sw.js) solo cachea la cáscara del mismo origen en modo
  *    RED PRIMERO: Auth/Firestore/Worker jamás pasan por la caché.
  * ================================================================ */
-const PWA_SW_VERSION = '20261101-metas-causa';
+const PWA_SW_VERSION = '20261101-palbasal-automatico';
 let pwaDeferredPrompt = null;
 function pwaIsStandalone() {
   try {
