@@ -2630,3 +2630,22 @@ body.prog-page #progress-content.nav-page-on { padding-right: 88px; }
 .rc-ok { color: #0d9488; font-weight: 800; }
 .rc-open { font-size: 12.5px; color: #64748b; margin-top: 6px; }
 .rc-alldone { font-size: 13.5px; color: #0f766e; font-weight: 700; margin-top: 6px; }
+
+/* ============ BOTÓN ✕ EN LAS PÁGINAS DEL DOCK (2026-11-01) ============
+   Corrección del reporte de Ronald en su iPhone (captura 2026-11-01
+   16:05 CST): la página de Progreso no tenía botón ✕ de cierre, y la
+   de Entrenamiento tampoco — eran las dos únicas superficies de la
+   app sin ✕ (auditoría completa en el informe del paquete). La
+   cabecera de cada página pasa a una fila (.nav-page-head): el título
+   de siempre y, a su derecha, la ✕ de la casa (.pend-close: círculo
+   de 30 px) con el área de toque ampliada a 46 px por su ::after
+   transparente — el principio de Ronald: lo accesible se mide por el
+   área de toque (como el «Salir» de 39 visibles / 45 de toque). La ✕
+   no mueve nada más: en Progreso, el resguardo derecho de AUTH-131
+   (88 px) deja la cabecera — y su ✕ — fuera de la banda de la pila
+   de discos; en Entrenamiento la pila está oculta e inerte
+   (body.nav-lock), así que no hay colisión posible. */
+.nav-page-head { display: flex; align-items: flex-start; gap: 10px; }
+.nav-page-head .nav-page-title { flex: 1 1 auto; min-width: 0; }
+.nav-page-x { position: relative; }
+.nav-page-x::after { content: ''; position: absolute; inset: -8px; border-radius: 50%; }

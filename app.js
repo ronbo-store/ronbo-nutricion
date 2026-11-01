@@ -16030,6 +16030,15 @@ function progSetSub(name) {
 { const bf = $('prog-tab-fotos'); if (bf) bf.onclick = () => progSetSub('fotos'); }
 { const bm = $('prog-tab-medidas'); if (bm) bm.onclick = () => progSetSub('medidas'); }
 { const v = $('nav-veil'); if (v) v.addEventListener('click', () => navGuarded(navClosePagesForce)); }
+/* BOTÓN ✕ DE LAS PÁGINAS DEL DOCK (corrección 2026-11-01): las
+   páginas Progreso y Entrenamiento no tenían ✕ en su cabecera —
+   Ronald lo reportó en su iPhone sobre Progreso («no hay botón
+   de x») y ordenó revisar todas las ventanas. La ✕ cierra por la
+   MISMA vía custodiada que el toque en el velo o el segundo toque
+   al disco (navGuarded → navClosePagesForce): cerrar nunca
+   destruye borradores y la guarda D3 sigue mandando. */
+{ const b = $('btn-prog-x'); if (b) b.onclick = () => navGuarded(navClosePagesForce); }
+{ const b = $('btn-train-x'); if (b) b.onclick = () => navGuarded(navClosePagesForce); }
 
 /* ============ D3 — aviso SOLO en el resto no guardable (su palabra) ============
    Todo lo demás se conserva solo (borradores y espejos). El único
@@ -28783,7 +28792,7 @@ document.addEventListener('keydown', e => { if (e.key === 'Escape') shareClose()
  *  - El SW (sw.js) solo cachea la cáscara del mismo origen en modo
  *    RED PRIMERO: Auth/Firestore/Worker jamás pasan por la caché.
  * ================================================================ */
-const PWA_SW_VERSION = '20261101-resumen-ruta';
+const PWA_SW_VERSION = '20261101-boton-x-ventanas';
 let pwaDeferredPrompt = null;
 function pwaIsStandalone() {
   try {
