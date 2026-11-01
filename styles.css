@@ -2414,3 +2414,42 @@ body.nav-lock .sw-fab, body.nav-lock .help-fab, body.nav-lock .share-fab, body.n
   .hdr-date { font-size: 10px; letter-spacing: .01em; }
   .btn-out { font-size: 12.5px; padding: 0 9px; }
 }
+
+/* ===== AUTH-2026-10-31-127 · CORRECCIÓN DE LA CABECERA V4: LA FECHA
+   NUNCA BAJO EL BOTÓN =====
+   Defecto (reprueba de Ronald en su iPhone, 2026-10-31 21:55 CDT, con
+   captura): «No me gusta que chocan las letras con el botón» — el
+   final de «sábado · 31 de octubre de 2026» se pintaba DEBAJO del
+   botón «Salir». CAUSA: la línea .hdr-date era `nowrap` SIN recorte
+   dentro de la columna flex .hdr-who (con min-width:0, encogible):
+   cuando el ancho intrínseco de la fecha supera el hueco que queda
+   junto al botón, la columna se encoge pero los glifos NO se
+   recortan — se pintan desbordados hacia la derecha, por debajo del
+   botón (cuyo fondo es translúcido). La batería de AUTH-126 medía la
+   CAJA del elemento (en un flex, la caja nunca cruza el botón) en
+   vez de los glifos pintados: falso negativo.
+   CORRECCIÓN (sin cambiar el diseño aprobado, Variante A v4): la
+   fila .hdr-main pasa a ser una REJILLA de dos filas — avatar
+   (ambas filas) · nombre · botón «Salir» en la fila 1, y la FECHA
+   en su PROPIA fila ocupando el ancho bajo la persona (columnas
+   2 a 3). Estructuralmente: la columna de texto respeta siempre la
+   del botón (filas distintas: intersección imposible) y la fecha
+   dispone del ancho casi completo de la tarjeta, así que se sigue
+   viendo COMPLETA en una línea, sin truncar ni partir, en ES y EN.
+   El botón conserva su tamaño aprobado (39 px visibles / 45 px de
+   toque, bloque AUTH-126 intacto); solo se le retira el
+   margin-left:auto, que en la rejilla no hace falta. La cabecera
+   crece ~6 px de alto: es el coste declarado de darle a la fecha
+   su fila. Las adaptaciones ≤400/≤370 del bloque AUTH-126 se
+   conservan (aquí solo se reexpresa el hueco entre columnas). */
+.hdr-main { display: grid; grid-template-columns: auto minmax(0, 1fr) auto; grid-template-areas: "avatar who out" "avatar date date"; align-items: center; column-gap: 13px; row-gap: 2px; }
+.hdr-v4 .avatar-btn { grid-area: avatar; }
+.hdr-who { grid-area: who; display: block; }
+.hdr-date { grid-area: date; }
+.btn-out { grid-area: out; margin-left: 0; }
+@media (max-width: 400px) {
+  .hdr-main { column-gap: 8px; row-gap: 2px; }
+}
+@media (max-width: 370px) {
+  .hdr-main { column-gap: 7px; row-gap: 2px; }
+}

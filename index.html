@@ -21,7 +21,7 @@
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-title" content="RONBO FIT">
 <meta name="apple-mobile-web-app-status-bar-style" content="default">
-<link rel="stylesheet" href="styles.css?v=20261031-cabecera-v4">
+<link rel="stylesheet" href="styles.css?v=20261031-cabecera-fecha">
 <script defer src="https://cloud.umami.is/script.js" data-website-id="a29706d4-44a2-47cf-900a-5f74d74abfa8"></script>
 <script type="importmap">
 {
@@ -193,7 +193,16 @@
          BOTÓN de verdad (.btn-out: 39 px visibles, área de toque de
          45 px con relleno transparente) — principio de Ronald: los
          botones se miden por su área de toque. Mismos ids y mismas
-         funciones: cerrar sesión y cambiar de idioma, intactos. -->
+         funciones: cerrar sesión y cambiar de idioma, intactos.
+         CORRECCIÓN AUTH-2026-10-31-127 (defecto de la reprueba de
+         Ronald en su iPhone, 2026-10-31 21:55 CDT: «las letras de la
+         fecha chocan con el botón»): la línea .hdr-date SALE de la
+         columna .hdr-who y pasa a ser hija directa de .hdr-main,
+         que ahora es una REJILLA (bloque CSS al final de styles.css):
+         el botón se alinea solo con la línea del nombre y la fecha
+         ocupa su propia fila a todo el ancho bajo la persona — el
+         texto ya no puede pintarse jamás bajo el botón y la fecha
+         se sigue viendo COMPLETA, sin truncar ni partir. -->
     <div class="title-card hdr-v4">
       <div class="hdr-brand">
         <span class="hdr-wordmark">RONBO<b>.FIT</b></span>
@@ -201,7 +210,8 @@
       </div>
       <div class="hdr-main">
         <button type="button" id="avatar-btn" class="avatar-btn" data-i18n-aria="myprof.open" aria-label="Open my profile" data-i18n-title="myprof.open" title="Open my profile"><img id="avatar" class="avatar" data-i18n-alt="app.myPhoto" alt="My photo"><span class="live-dot"></span></button>
-        <span class="hdr-who"><span id="who">—</span><span class="hdr-date"><span id="dateWeekday"></span> · <span id="dateTitle">Loading…</span></span></span>
+        <span class="hdr-who"><span id="who">—</span></span>
+        <span class="hdr-date"><span id="dateWeekday"></span> · <span id="dateTitle">Loading…</span></span>
         <button type="button" id="btn-logout" class="btn-out"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#5eead4" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><path d="M16 17l5-5-5-5"/><path d="M21 12H9"/></svg><span data-i18n="app.logout">log out</span></button>
       </div>
       <input type="file" id="avatar-file" accept="image/*" style="display:none">
@@ -1431,6 +1441,6 @@
 <div id="toast" class="toast"></div>
 <div id="print-card" aria-hidden="true"></div>
 
-<script type="module" src="app.js?v=20261031-cabecera-v4"></script>
+<script type="module" src="app.js?v=20261031-cabecera-fecha"></script>
 </body>
 </html>
