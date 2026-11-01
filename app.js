@@ -267,6 +267,7 @@ async function loadRolesX() {
   applyFeatureGates();
   renderMyTrainerBox();
   try { renderRolePendCard(); } catch {}
+  try { renderRouteCard(); } catch {}
 }
 function applyFeatureGates() {
   if (ROLE !== 'usuario') return;
@@ -1190,9 +1191,15 @@ function rolePendItems() {
    el % es hechos/total del universo aplicable. El administrador no
    tiene %: su lista es una bandeja viva de trabajo, no un alta
    personal que «terminar» — documentado en el diseño §10. */
-function roleChecklist() {
+function roleChecklist(forRole) {
   try {
-    if (ROLE === 'entrenador') {
+    /* El papel sale de ROLE salvo que se pida otro expresamente:
+       la tarjeta resumen de la ruta (RESUMEN-RUTA, 2026-11-01) le
+       pide la rama «usuario» para el propietario, que también es
+       alumno de sí mismo y cuyo deriveRole nunca devuelve
+       «usuario». Sin argumento, el comportamiento es el de siempre. */
+    const R = forRole || ROLE;
+    if (R === 'entrenador') {
       if (typeof MY_DOSSIER === 'undefined') return null;
       const rows = [
         { label: t('pend.chk.profile'), done: dosProfileComplete(MY_DOSSIER) },
@@ -1202,10 +1209,10 @@ function roleChecklist() {
       const done = rows.filter(r => r.done).length;
       return { pct: Math.round(done / rows.length * 100), rows };
     }
-    if (ROLE === 'usuario') {
+    if (R === 'usuario') {
       const rel = (typeof MY_REL !== 'undefined' && MY_REL) || null;
       const rows = [
-        { label: t('pend.chk.trainer'), done: !!(rel && rel.trainerUid) },
+        { label: t('pend.chk.trainer'), done: !!(rel ? rel.trainerUid : (typeof UDATA !== 'undefined' && UDATA && UDATA.trainerUid)) },
         { label: t('pend.chk.eval'), done: (typeof MY_ASMT !== 'undefined' && !!MY_ASMT && faHasResult(MY_ASMT.doc)) },
         { label: t('pend.chk.consent'), done: (typeof specIsActive === 'function') && specIsActive(UDATA) },
         { label: t('pend.chk.parq'), done: !!((typeof activeDecl === 'function') && activeDecl()) },
@@ -1332,6 +1339,131 @@ function renderRolePendCard() {
      al botón de pendientes y no aparece absolutamente nada». */
   if (b) b.onclick = e => { if (e && e.stopPropagation) e.stopPropagation(); pendSetFloat(true); };
 }
+/* ============ TARJETA RESUMEN DE TU RUTA EN INICIO (RESUMEN-RUTA, 2026-11-01) ============
+   Decisión de Ronald en el chat RONBO.NUTRI, 2026-11-01 15:42 CST:
+   «En ambos sitios: resumen en Inicio y detalle en Pendientes».
+   La tarjeta muestra SOLO los tres conteos del sistema de conteo
+   del propio usuario, SIEMPRE en su orden — 🔴 Indispensables ·
+   🟠 Importantes · 🟢 Complementarios — y al tocarla abre la
+   ventana de Pendientes (pendSetFloat), donde vive el detalle,
+   sea cual sea su contenido vigente. UNA SOLA FUENTE por
+   categoría, la misma computación compartida que alimenta el
+   detalle (la tarjeta y el detalle nunca pueden contradecirse):
+   · Indispensables = filas sin hacer del checklist propio
+     (roleChecklist, rama «usuario»: las mismas 6 filas y los
+     mismos tests que clientProfileChecklist aplica desde el
+     entrenador; la unión AUTH-110 las define como los
+     Indispensables del alumno). Dos alineaciones de lectura,
+     sin tocar ningún test: la fila del entrenador de
+     roleChecklist gana el repliegue al espejo UDATA.trainerUid
+     que clientProfileChecklist ya documenta («sin documento, la
+     misma derivación perezosa desde el espejo») — para el papel
+     «usuario» en sesión MY_REL ya viene derivado de ese espejo
+     por loadRolesX, así que su conducta no cambia; el repliegue
+     solo opera donde MY_REL no se carga (el propietario), y el
+     ítem corporal se evalúa con el uid de la sesión
+     (auth.currentUser.uid, el mismo valor que la pasada del
+     entrenador pasa como u.id: el documento propio en sesión no
+     trae campo id).
+   · Importantes = los ítems propios vencidos o debidos de
+     pendCompute() — registros del día a día debidos (comidas y
+     entrenamientos, uno por ocasión), el pesaje del ciclo (una
+     sola ocasión viva) y la evaluación periódica debida — más el
+     análisis de tipo corporal ausente (studentsBodyItem, el
+     Importante 13 de AUTH-110, con su misma regla de no afirmar
+     lo que no se puede saber: estCount null no afirma «falta el
+     análisis», solo el consentimiento específico ausente). El
+     «aún no registra su peso» (AUTH-122) cuenta aquí igual que en
+     la unión: sin ningún pesaje el pesaje debido existe aunque
+     los recordatorios no estén activados, y nunca se duplica con
+     el del ciclo (en la unión el ítem «never» lo SUSTITUYE). Los
+     ítems «energy» de pendCompute NO se cuentan aparte: son las
+     causas del hueco de evaluación/datos base del checklist ya
+     contado en Indispensables — contarlos duplicaría contra el
+     detalle. Los ítems «role»/«profile» tampoco: son la forma de
+     procedimiento de esos mismos huecos (o de otros papeles).
+   · Complementarios = 0 por la definición compartida vigente:
+     AUTH-110 establece que los Complementarios (taxonomía 14–21)
+     NUNCA generan ítems, ninguna computación compartida los
+     cuenta como pendientes y su tratamiento dentro del sistema
+     de conteo quedó reservado por Ronald a una conversación de
+     diseño posterior — la tarjeta no inventa una segunda lógica.
+     La fila se muestra como conteo informativo, nunca bloqueo.
+   La tarjeta es permanente (también con todo completo, en verde:
+   la permanencia da confianza — patrón de la tarjeta «Tu peso»,
+   AUTH-134), se ve SOLO en Inicio (routeCardSync, espejo de
+   weightCardSync) y SOLO en el papel de alumno: ROLE «usuario» o
+   el propietario, que también es alumno de sí mismo (su
+   deriveRole nunca devuelve «usuario»: roleChecklist acepta el
+   papel pedido sin cambiar su comportamiento por defecto).
+   Sin lecturas nuevas: todo sale de lo que la sesión ya cargó. */
+function routeCardApplicable() {
+  try { return !!auth.currentUser && (ROLE === 'usuario' || (typeof IS_OWNER !== 'undefined' && !!IS_OWNER)); } catch { return false; }
+}
+function routeCountsMine() {
+  if (!routeCardApplicable()) return null;
+  /* Sin la configuración de pendientes cargada (o con su carga en
+     error) los Importantes no son computables: la tarjeta no
+     afirma un «al día» que no pudo comprobar — queda oculta hasta
+     que el cómputo sea posible (pendSyncDock la repinta entonces
+     y el pintado válido la vuelve a mostrar, ver renderRouteCard). */
+  if (typeof PEND_CFG === 'undefined' || !PEND_CFG || PEND_CFG.__error) return null;
+  let chk = null;
+  try { chk = roleChecklist(ROLE === 'usuario' ? undefined : 'usuario'); } catch {}
+  if (!chk || !chk.rows) return null;
+  const ind = chk.rows.filter(r => r.done === false).length;
+  let imp = 0, hasWeight = false, hasEval = false;
+  try {
+    const pc = pendCompute();
+    for (const it of (pc && pc.items) || []) {
+      if (it.type === 'meal' || it.type === 'training') imp++;
+      else if (it.type === 'weight') hasWeight = true;
+      else if (it.type === 'eval') hasEval = true;
+    }
+  } catch {}
+  if (hasWeight) imp++;
+  if (hasEval) imp++;
+  if (!hasWeight && typeof WEIGHTS !== 'undefined' && !(WEIGHTS || []).length) imp++;
+  try { if (typeof studentsBodyItem === 'function' && studentsBodyItem({ ...(UDATA || {}), id: (auth.currentUser && auth.currentUser.uid) || (UDATA && UDATA.id) || '' }, null)) imp++; } catch {}
+  return { ind, imp, comp: 0 };
+}
+function routeCardSync(tabName) {
+  const c = $('route-card'); if (!c) return;
+  c.style.display = (tabName === 'track' && routeCardApplicable()) ? '' : 'none';
+}
+function renderRouteCard() {
+  const body = $('route-card-body'); if (!body) return;
+  const card = $('route-card');
+  const counts = routeCountsMine();
+  if (!counts) { if (card) card.style.display = 'none'; return; }
+  const row = (dot, name, n) => n > 0
+    ? `<div class="rc-row"><span class="rc-dot">${dot}</span><span class="rc-name">${esc(name)}</span><span class="rc-num">${n}</span></div>`
+    : `<div class="rc-row rc-done"><span class="rc-dot">${dot}</span><span class="rc-name">${esc(name)}</span><span class="rc-ok">✓</span></div>`;
+  const allDone = counts.ind === 0 && counts.imp === 0 && counts.comp === 0;
+  body.innerHTML = `
+    <div class="rc-title">${esc(t('rcard.title'))}</div>
+    ${row('🔴', t('rcard.ind'), counts.ind)}
+    ${row('🟠', t('rcard.imp'), counts.imp)}
+    ${row('🟢', t('rcard.comp'), counts.comp)}
+    ${allDone ? `<div class="rc-alldone">${esc(t('rcard.allDone'))}</div>` : `<div class="rc-open">${esc(t('rcard.open'))}</div>`}`;
+  if (card) {
+    card.classList.toggle('rc-complete', allDone);
+    /* El toque abre la MISMA ventana de Pendientes de siempre. El
+       stopPropagation es obligatorio: el cierre por clic-fuera del
+       documento la cerraría al instante (la trampa documentada en
+       renderRolePendCard). */
+    card.onclick = e => { if (e && e.stopPropagation) e.stopPropagation(); pendSetFloat(true); };
+    card.onkeydown = e => { if (e && (e.key === 'Enter' || e.key === ' ')) { e.preventDefault(); e.stopPropagation(); pendSetFloat(true); } };
+  }
+  /* La visibilidad la decide SOLO routeCardSync según la pestaña
+     vigente — y este pintado válido la reaplica: si un pintado
+     anterior ocultó la tarjeta por no ser computable aún (la
+     configuración de pendientes todavía estaba cargando cuando
+     cambió la pestaña), la tarjeta reaparece en Inicio con este
+     pintado, sin esperar a que el usuario cambie de pestaña. */
+  try { routeCardSync(typeof NAV_TAB !== 'undefined' ? NAV_TAB : 'track'); } catch {}
+}
+
 /* Conteos de la bandeja del administrador, cargados al entrar (y
    refrescados en su superficie): cuentas por aprobar, membresías
    por aprobar, comidas por confirmar y alumnos en espera. */
@@ -2432,6 +2564,12 @@ en: {
   'wcard.none': 'You have not logged your weight yet',
   'wcard.noneWhy': 'Your weight is the base for your energy and goal calculations.',
   'wcard.log': 'Log my weight',
+  'rcard.title': '🗺️ Your route',
+  'rcard.ind': 'Indispensables',
+  'rcard.imp': 'Importantes',
+  'rcard.comp': 'Complementarios',
+  'rcard.allDone': "You're all set — nothing pending",
+  'rcard.open': 'Tap to see the detail',
   'compacc.notice': '🔒 Your trainer logs your body composition (weight, body fat, muscle, water and visceral fat). You can view it here, but you cannot change it.',
   'compacc.noticeShort': 'Your trainer logs your body composition.',
   'compacc.title': 'Body composition entry',
@@ -4691,6 +4829,12 @@ es: {
   'wcard.none': 'Aún no registras tu peso',
   'wcard.noneWhy': 'Tu peso es la base del cálculo de tu energía y de tus metas.',
   'wcard.log': 'Registrar mi peso',
+  'rcard.title': '🗺️ Tu ruta',
+  'rcard.ind': 'Indispensables',
+  'rcard.imp': 'Importantes',
+  'rcard.comp': 'Complementarios',
+  'rcard.allDone': 'Estás al día — no tienes pendientes',
+  'rcard.open': 'Toca para ver el detalle',
   'compacc.notice': '🔒 Tu entrenador registra tu composición corporal (peso, grasa corporal, masa muscular, agua y grasa visceral). Puedes verla aquí, pero no cambiarla.',
   'compacc.noticeShort': 'Tu entrenador registra tu composición corporal.',
   'compacc.title': 'Ingreso de composición corporal',
@@ -23768,6 +23912,7 @@ function switchTab(name) {
   try { swFabSync(name); } catch {}
   try { goalsCardSync(name); } catch {}
   try { weightCardSync(name); } catch {}
+  try { routeCardSync(name); } catch {}
   const __navY = NAV_PILL_SCROLL[name];
   if (typeof __navY === 'number' && __navY > 0) { try { window.scrollTo(0, __navY); } catch {} }
   try { navRender(); } catch {}
@@ -27250,6 +27395,9 @@ function pendSyncDock() {
   /* La tarjeta-resumen de la pantalla principal refleja el mismo
      cómputo de procedimiento en cada sincronización. */
   try { if (typeof renderRolePendCard === 'function') renderRolePendCard(); } catch {}
+  /* La tarjeta resumen de la ruta (RESUMEN-RUTA, 2026-11-01)
+     refleja el mismo sistema de conteo en cada sincronización. */
+  try { if (typeof renderRouteCard === 'function') renderRouteCard(); } catch {}
 }
 /* Corrección «pendientes que no se actualizan al guardar»
    (2026-11-01): tras un guardado que resuelve un pendiente, las
@@ -28635,7 +28783,7 @@ document.addEventListener('keydown', e => { if (e.key === 'Escape') shareClose()
  *  - El SW (sw.js) solo cachea la cáscara del mismo origen en modo
  *    RED PRIMERO: Auth/Firestore/Worker jamás pasan por la caché.
  * ================================================================ */
-const PWA_SW_VERSION = '20261101-ruta-usuario';
+const PWA_SW_VERSION = '20261101-resumen-ruta';
 let pwaDeferredPrompt = null;
 function pwaIsStandalone() {
   try {
