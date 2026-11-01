@@ -824,7 +824,7 @@ service cloud.firestore {
       // ser una cadena (la fecha ISO que escribe la app).
       allow update: if isSelf(uid)
         && request.resource.data.diff(resource.data).affectedKeys()
-      // PROPÓSITO AL REGISTRARSE (AUTH-2026-11-01-145; diseño de
+      // PROPÓSITO AL REGISTRARSE (AUTH-2026-11-01-147; diseño de
       // Ronald 2026-11-01 y su decisión (c) del mismo día): la
       // declaración de propósito del propio usuario — elegida en
       // la ventana obligatoria del registro y pedida UNA vez a
@@ -2346,6 +2346,19 @@ service cloud.firestore {
         || (signedIn() && docId in ['approvals', 'ai_control', 'feature_flags', 'membership_catalog', 'faq']);
       allow list: if false;
       allow create, update, delete: if isOwnerUser() && docId in ['approvals', 'ai_control', 'feature_flags', 'membership_catalog', 'faq', 'faq_public'];
+    }
+
+    // COMUNICACIONES (AUTH-2026-11-01-145): los textos de correo
+    // viven en app_settings/mail_templates (arquitectura A aprobada
+    // por Ronald 2026-10-28). SOLO el propietario lee y escribe ese
+    // documento: ni alumnos ni entrenadores pueden leer los textos,
+    // y la cláusula general de arriba NO lo cubre (su docId no está
+    // en la lista). El documento no se borra jamás: las plantillas
+    // se desactivan (enabled:false). El Worker lo lee en cada envío
+    // con el token del propietario y falla cerrado si no puede.
+    match /app_settings/mail_templates {
+      allow get, create, update: if isOwnerUser();
+      allow delete: if false;
     }
 
     // ---------- Trainer directory (candidato roles, NO publicado) ----------

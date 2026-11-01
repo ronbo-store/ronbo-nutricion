@@ -4,8 +4,8 @@
 // 15:20–15:26 CST). Usuarios FICTICIOS, emulador LOCAL. Nunca toca
 // producción.
 //
-// El delta, sobre el texto vivo (ruleset 2ad00641, SHA-256
-// 5525d2f2…; candidata SHA-256 06aba677…), toca SOLO dos cosas:
+// El delta, sobre el texto vivo (ruleset 5ced4a46, SHA-256
+// 69c447cf…; candidata SHA-256 6f7b482c…), toca SOLO dos cosas:
 // (1) la rama de perfil inofensivo de users/{uid} admite SIETE
 // claves nuevas de declaración de propósito (purpose, purposeAt,
 // purposeUse, purposeSuggest, purposeTrainerChoice,
