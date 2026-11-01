@@ -2492,3 +2492,23 @@ body.nav-lock.prog-page #act-flame { visibility: visible; }
    Entrenamiento, el padding de siempre (12 px) manda intacto;
    Inicio no cambia. */
 body.prog-page #progress-content.nav-page-on { padding-right: 88px; }
+/* ============ TARJETA «TU PESO» EN INICIO (PESO-VISIBLE, AUTH-2026-11-01-134) ============
+   Tarjeta permanente bajo «Metas de hoy», la misma tarjeta
+   blanca de la casa (.goals-card). Su botón es el primario teal
+   a todo el ancho con 48 px de alto (principio de Ronald: la app
+   es para gente entrenando, los botones tienen que estar
+   accesibles). Solo presentación: la lógica vive en app.js. */
+.weight-card { background: #fff; border-radius: 12px; padding: 14px 20px; margin-bottom: 14px; box-shadow: 0 1px 3px rgba(0,0,0,.08); }
+.wc-head { display: flex; justify-content: space-between; align-items: baseline; gap: 10px; }
+.wc-title { font-size: 17px; font-weight: 800; }
+.wc-last { font-size: 12.5px; color: #64748b; white-space: nowrap; }
+.wc-big { display: flex; align-items: baseline; gap: 12px; flex-wrap: wrap; margin: 6px 0 10px; }
+.wc-kg { font-size: 34px; font-weight: 800; }
+.wc-kg small { font-size: 17px; font-weight: 700; }
+.wc-delta { font-size: 14px; font-weight: 700; }
+.wc-delta.down { color: #0d9488; }
+.wc-delta.up { color: #d97706; }
+.wc-delta.flat { color: #64748b; }
+.wc-none { font-size: 16.5px; font-weight: 700; margin: 4px 0 2px; }
+.wc-why { font-size: 13.5px; color: #475569; margin: 0 0 10px; }
+.wc-btn { width: 100%; min-height: 48px; font-size: 15.5px; }

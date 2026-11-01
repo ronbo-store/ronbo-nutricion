@@ -21,7 +21,7 @@
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-title" content="RONBO FIT">
 <meta name="apple-mobile-web-app-status-bar-style" content="default">
-<link rel="stylesheet" href="styles.css?v=20261101-nacer-comida">
+<link rel="stylesheet" href="styles.css?v=20261101-peso-visible">
 <script defer src="https://cloud.umami.is/script.js" data-website-id="a29706d4-44a2-47cf-900a-5f74d74abfa8"></script>
 <script type="importmap">
 {
@@ -258,6 +258,21 @@
        pestaña activa y la oculta en todas las demás. -->
   <div class="goals-card">
     <div id="goals-engine"></div>
+  </div>
+
+  <!-- Tarjeta «Tu peso» en Inicio (PESO-VISIBLE, 2026-11-01;
+       aprobación de Ronald en el chat, 2026-11-01 14:49 CST,
+       sobre la maqueta mq-peso-visible): tarjeta permanente
+       justo DEBAJO de «Metas de hoy» (que no se toca), visible
+       SOLO en Inicio — nace oculta y weightCardSync (app.js,
+       gancho en switchTab, espejo de goalsCardSync) la muestra
+       únicamente con la pestaña «Mi registro» activa. Muestra
+       el último pesaje propio (o el estado del primer día) y su
+       botón abre EL MISMO modal de pesaje de siempre
+       (openWeightModal): ninguna ruta nueva de guardado. Se
+       pinta desde renderWeightCard, llamada por renderWeight. -->
+  <div class="weight-card" id="weight-card" style="display:none">
+    <div id="weight-card-body"></div>
   </div>
 
   <!-- Botón redondo flotante del cronómetro deportivo (arriba a la
@@ -1451,6 +1466,6 @@
 <div id="toast" class="toast"></div>
 <div id="print-card" aria-hidden="true"></div>
 
-<script type="module" src="app.js?v=20261101-nacer-comida"></script>
+<script type="module" src="app.js?v=20261101-peso-visible"></script>
 </body>
 </html>

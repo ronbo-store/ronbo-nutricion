@@ -2338,6 +2338,13 @@ en: {
   'weight.chartWeight': 'Weight (kg)',
   'weight.chartFat': 'Fat (%)',
   'weight.title2': 'Log weigh-in',
+  'wcard.title': '⚖️ Your weight',
+  'wcard.lastToday': 'Last log: today',
+  'wcard.last': 'Last log: {date}',
+  'wcard.weekDelta': '{v} this week',
+  'wcard.none': 'You have not logged your weight yet',
+  'wcard.noneWhy': 'Your weight is the base for your energy and goal calculations.',
+  'wcard.log': 'Log my weight',
   'compacc.notice': '🔒 Your trainer logs your body composition (weight, body fat, muscle, water and visceral fat). You can view it here, but you cannot change it.',
   'compacc.noticeShort': 'Your trainer logs your body composition.',
   'compacc.title': 'Body composition entry',
@@ -4490,6 +4497,13 @@ es: {
   'weight.chartWeight': 'Peso (kg)',
   'weight.chartFat': 'Grasa (%)',
   'weight.title2': 'Registrar pesaje',
+  'wcard.title': '⚖️ Tu peso',
+  'wcard.lastToday': 'Último registro: hoy',
+  'wcard.last': 'Último registro: {date}',
+  'wcard.weekDelta': '{v} esta semana',
+  'wcard.none': 'Aún no registras tu peso',
+  'wcard.noneWhy': 'Tu peso es la base del cálculo de tu energía y de tus metas.',
+  'wcard.log': 'Registrar mi peso',
   'compacc.notice': '🔒 Tu entrenador registra tu composición corporal (peso, grasa corporal, masa muscular, agua y grasa visceral). Puedes verla aquí, pero no cambiarla.',
   'compacc.noticeShort': 'Tu entrenador registra tu composición corporal.',
   'compacc.title': 'Ingreso de composición corporal',
@@ -22561,6 +22575,7 @@ function switchTab(name) {
   try { helpFabSync(name); } catch {}
   try { swFabSync(name); } catch {}
   try { goalsCardSync(name); } catch {}
+  try { weightCardSync(name); } catch {}
   const __navY = NAV_PILL_SCROLL[name];
   if (typeof __navY === 'number' && __navY > 0) { try { window.scrollTo(0, __navY); } catch {} }
   try { navRender(); } catch {}
@@ -23568,7 +23583,57 @@ function weightChartSVG(data) {
     <polyline points="${pts}" fill="none" stroke="#0d9488" stroke-width="3" stroke-linecap="round"/>${grasaLine}${grasaDots}${dots}</svg></div>`;
 }
 
+/* ============ TARJETA «TU PESO» EN INICIO (PESO-VISIBLE, 2026-11-01) ============
+   Acceso VISIBLE al pesaje desde Inicio. El formulario de peso ya
+   existía (openWeightModal: el del pendiente de pesaje y el de
+   «Agregar pesaje» en Progreso), pero navegando no se encontraba
+   — Ronald, 2026-11-01: «yo busco en la app y no lo consigo;
+   imagínate un usuario nuevo, es casi imposible» —. Esta tarjeta
+   NO crea lógica nueva: pinta el último pesaje de WEIGHTS (los
+   propios, ya cargados por loadAll) y su botón abre EL MISMO
+   modal, con la misma ruta de guardado a nutrition_weight y la
+   fecha de hoy lista. Se repinta desde renderWeight (a la que
+   loadAll y el propio guardado ya llaman, así que tras guardar la
+   tarjeta muestra el peso nuevo sin tocar nada más) y se ve SOLO
+   en Inicio vía weightCardSync (espejo de goalsCardSync). */
+function weightCardSync(tabName) { const c = $('weight-card'); if (c) c.style.display = (tabName === 'track') ? '' : 'none'; }
+function renderWeightCard() {
+  const body = $('weight-card-body');
+  if (!body || typeof WEIGHTS === 'undefined') return;
+  const data = WEIGHTS;
+  const btn = `<button type="button" class="btn-primary wc-btn" id="wc-log-btn">${t('wcard.log')}</button>`;
+  if (!data.length) {
+    body.innerHTML = `
+      <div class="wc-title">${t('wcard.title')}</div>
+      <div class="wc-none">${t('wcard.none')}</div>
+      <p class="wc-why">${t('wcard.noneWhy')}</p>
+      ${btn}`;
+  } else {
+    const last = data[data.length - 1];
+    /* Variación «de la semana»: contra el pesaje más reciente que
+       sea al menos 5 días anterior al último. Sin esa base NO se
+       pinta variación alguna: nunca se inventa una cifra. */
+    let deltaHtml = '';
+    const corte = new Date(last.date + 'T12:00:00').getTime() - 5 * 864e5;
+    const base = [...data].reverse().find(w => new Date(w.date + 'T12:00:00').getTime() <= corte);
+    if (base) {
+      const dv = last.weight - base.weight;
+      const cls = dv < 0 ? 'down' : dv > 0 ? 'up' : 'flat';
+      const vTxt = `${dv > 0 ? '+' : ''}${uRound1(massToDisplay(dv))} ${UNIT_PREFS.mass}`;
+      deltaHtml = `<span class="wc-delta ${cls}">${t('wcard.weekDelta', { v: vTxt })}</span>`;
+    }
+    const lastTxt = last.date === todayISO() ? t('wcard.lastToday') : t('wcard.last', { date: dateName(last.date) });
+    body.innerHTML = `
+      <div class="wc-head"><span class="wc-title">${t('wcard.title')}</span><span class="wc-last">${esc(lastTxt)}</span></div>
+      <div class="wc-big"><span class="wc-kg">${fmtMassVal(last.weight)}<small> ${UNIT_PREFS.mass}</small></span>${deltaHtml}</div>
+      ${btn}`;
+  }
+  const b = $('wc-log-btn');
+  if (b) b.onclick = () => openWeightModal(null);
+}
+
 function renderWeight() {
+  renderWeightCard();
   const body = $('weightBody');
   const data = WEIGHTS;
   if (!data.length) {
@@ -27300,7 +27365,7 @@ document.addEventListener('keydown', e => { if (e.key === 'Escape') shareClose()
  *  - El SW (sw.js) solo cachea la cáscara del mismo origen en modo
  *    RED PRIMERO: Auth/Firestore/Worker jamás pasan por la caché.
  * ================================================================ */
-const PWA_SW_VERSION = '20261101-nacer-comida';
+const PWA_SW_VERSION = '20261101-peso-visible';
 let pwaDeferredPrompt = null;
 function pwaIsStandalone() {
   try {
