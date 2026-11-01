@@ -1489,6 +1489,39 @@ div > .btn-ghost:only-child, div > .btn-main:only-child {
 .pend-check-title{font-weight:700;color:#065f46;margin:0 0 4px}
 .pend-check ul{list-style:none;margin:0;padding:0;font-size:13px;color:#374151}
 .pend-check li{margin:2px 0}
+/* LA RUTA DEL USUARIO (maqueta aprobada 2026-11-01): camino vertical
+   de pasos en la ventana de pendientes del alumno. */
+.route-card{background:#fff;border:1px solid #E7E1D3;border-radius:14px;padding:12px;margin:0 0 10px}
+.route-head{font-size:17px;font-weight:800;color:#1F2A44;margin:0 0 2px}
+.route-prog{margin:0 0 6px;color:#374151;font-size:13.5px}
+.route-prog b{color:#0F766E}
+.route-bar{height:7px;background:#E8EDF3;border-radius:99px;overflow:hidden;margin:0 0 6px}
+.route-bar i{display:block;height:100%;background:#0D9488;border-radius:99px}
+.route-pct{font-size:13px;margin:0 0 4px}
+.route-gtitle{font-weight:800;letter-spacing:.06em;color:#0F766E;font-size:12.5px;margin:10px 0 0}
+.route-gsub{color:#64748B;font-size:12.5px;margin:0 0 6px}
+.route-steps{list-style:none;margin:0;padding:0;position:relative}
+.route-steps::before{content:'';position:absolute;left:21px;top:16px;bottom:16px;width:3px;background:#E2E8F0;border-radius:2px}
+.route-steps::after{content:'';position:absolute;left:21px;top:16px;width:3px;height:calc((100% - 32px) * var(--rl,0));background:#0D9488;border-radius:2px}
+.route-step{display:flex;gap:10px;align-items:flex-start;position:relative;padding:7px 6px;border-radius:12px}
+.route-step.current{background:#F0FAF7}
+.route-node{flex:none;width:32px;height:32px;border-radius:50%;background:#fff;border:2px solid #CBD5E1;color:#64748B;font-weight:800;font-size:14px;display:flex;align-items:center;justify-content:center;position:relative;z-index:1}
+.route-step.done .route-node{background:#22C55E;border-color:#22C55E;color:#fff}
+.route-step.current .route-node{background:#0D9488;border-color:#0D9488;color:#fff;box-shadow:0 0 0 3px #fff,0 0 0 5px rgba(13,148,136,.55)}
+.route-txt{flex:1;min-width:0}
+.route-txt b{display:block;color:#1F2A44;font-size:14.5px}
+.route-txt>span{color:#64748B;font-size:12.5px;line-height:1.35;display:block}
+.route-txt .route-wait{color:#92400E;font-weight:600}
+.route-done-tag{color:#16A34A;font-weight:700;font-size:13px;white-space:nowrap;padding-top:6px}
+.route-btn{flex:none;border:1.6px solid #0D9488;background:#fff;color:#0F766E;font-weight:700;font-size:13.5px;border-radius:12px;padding:9px 14px;min-height:45px;cursor:pointer}
+.route-btn.cur{background:#0D9488;color:#fff}
+.route-viva{border-top:1px solid #EEF2F5;margin-top:8px}
+.route-soft{list-style:none;margin:0;padding:0}
+.route-soft li{display:flex;gap:10px;align-items:flex-start;padding:5px 6px}
+.route-ico{flex:none;width:32px;height:32px;border-radius:50%;background:#F1F5F9;display:flex;align-items:center;justify-content:center;font-size:15px}
+.route-soft b{display:block;color:#475569;font-size:13.5px}
+.route-soft span{color:#64748B;font-size:12.5px;line-height:1.35;display:block}
+.route-foot{color:#64748B;font-size:12.5px;margin:10px 0 0}
 #role-pend-card .pend-card{border-left:4px solid #0d9488}
 =======
 /* MÓDULO H — selector de unidades (P4-3 Etapa 1, desarrollo) */

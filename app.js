@@ -1223,6 +1223,91 @@ function pendChecklistHTML() {
   if (!chk) return '';
   return `<div class="pend-check"><p class="pend-check-title">${esc(t('pend.chkTitle', { pct: chk.pct }))}</p><ul>${chk.rows.map(r => `<li>${r.done ? '✅' : '⬜'} ${esc(r.label)}</li>`).join('')}</ul></div>`;
 }
+/* LA RUTA DEL USUARIO (aprobada por Ronald 2026-11-01, maqueta
+   mq-ruta-usuario): la ventana de Pendientes del ALUMNO presenta el
+   mismo checklist compartido como un camino de 7 pasos de base —
+   la cuenta aprobada abre la ruta y las 6 filas de roleChecklist()
+   son los pasos 2–7, SIN una segunda lógica: cada estado sale de la
+   misma fuente que alimenta el checklist y el contador AUTH-110.
+   Paso ACTUAL = primer paso accionable por el alumno; un paso cuya
+   pelota es del entrenador o del administrador NO lleva botón: lleva
+   su marca de espera (clasificación aprobada el mismo día). Cada
+   botón usa el mismo data-pend de las tarjetas de rol (AUTH-117):
+   cierra el flotante y abre la superficie propia del paso. */
+function pendRouteSteps() {
+  if (ROLE !== 'usuario') return null;
+  const chk = roleChecklist();
+  if (!chk) return null;
+  const rows = chk.rows || [];
+  const done = i => !!(rows[i] && rows[i].done);
+  const approved = !(typeof UDATA !== 'undefined' && UDATA && UDATA.approved === false);
+  const req = (typeof MY_MEAL_REQ !== 'undefined' && MY_MEAL_REQ) || null;
+  const reqStatus = req && (req.status === 'pendiente_entrenador' || req.status === 'pendiente_administrador') ? req.status : null;
+  /* Paso 7: «hecho» solo con las comidas ACTIVAS (featuresOf, la misma
+     fuente de la fila compartida). Una solicitud viva NO es un hecho:
+     es la pelota del entrenador o del administrador (clasificación
+     aprobada) y el paso se presenta en espera, sin botón. El avance
+     «N de 7» cuenta pasos cerrados; el porcentaje de la cabecera sigue
+     siendo el del checklist compartido, intacto. */
+  const mealsOn = (typeof featuresOf === 'function') && featuresOf(UDATA).meals === true;
+  const steps = [
+    { n: 1, key: 'account', title: t('route.s1t'), desc: approved ? t('route.s1d') : t('route.s1wait'), state: approved ? 'done' : 'wait-admin' },
+    { n: 2, key: 'trainer', title: t('route.s2t'), desc: t('route.s2d'), state: done(0) ? 'done' : 'todo', route: 'mytrainer', btn: t('route.chooseTrainer') },
+    { n: 3, key: 'eval', title: t('route.s3t'), desc: t('route.s3d'), state: done(1) ? 'done' : 'todo', route: 'goals-setup', btn: t('route.edit') },
+    { n: 4, key: 'consent', title: t('route.s4t'), desc: t('route.s4d'), state: done(2) ? 'done' : 'todo', route: 'perms', btn: t('route.approve') },
+    { n: 5, key: 'parq', title: t('route.s5t'), desc: t('route.s5d'), state: done(3) ? 'done' : 'todo', route: 'perms', btn: t('route.edit') },
+    { n: 6, key: 'goals', title: t('route.s6t'), desc: t('route.s6d'), state: done(4) ? 'done' : 'todo', route: 'goals-setup', btn: t('route.edit') },
+    { n: 7, key: 'meals', title: t('route.s7t'), desc: t('route.s7d'), state: mealsOn ? 'done' : (reqStatus ? (reqStatus === 'pendiente_entrenador' ? 'wait-trainer' : 'wait-admin') : 'todo'), route: 'mytrainer', btn: t('route.request') },
+  ];
+  if (steps[6].state === 'wait-trainer') steps[6].desc = t('route.s7waitT');
+  if (steps[6].state === 'wait-admin') steps[6].desc = t('route.s7waitA');
+  const cur = steps.find(s => s.state === 'todo');
+  if (cur) cur.state = 'current';
+  return { steps, nDone: steps.filter(s => s.state === 'done').length, pct: chk.pct };
+}
+function pendRouteHTML() {
+  const R = pendRouteSteps();
+  if (!R) return '';
+  const total = R.steps.length;
+  let lastLit = -1;
+  R.steps.forEach((s, i) => { if (s.state === 'done' || s.state === 'current') lastLit = i; });
+  const lineFrac = total > 1 && lastLit > 0 ? (lastLit / (total - 1)).toFixed(3) : '0';
+  const stepHTML = s => {
+    const node = s.state === 'done' ? '✓' : String(s.n);
+    let right = '';
+    if (s.state === 'done') right = `<span class="route-done-tag">✓ ${esc(t('route.doneTag'))}</span>`;
+    else if (s.state === 'todo' || s.state === 'current') right = `<button type="button" class="route-btn${s.state === 'current' ? ' cur' : ''}" data-pend-act="go" data-type="role" data-route="${esc(s.route)}">${esc(s.btn)}</button>`;
+    const wait = s.state === 'wait-trainer' ? `<span class="route-wait">⏳ ${esc(t('route.waitTrainer'))}</span>`
+      : s.state === 'wait-admin' ? `<span class="route-wait">⏳ ${esc(t('route.waitAdmin'))}</span>` : '';
+    return `<li class="route-step ${s.state}"><span class="route-node">${node}</span><div class="route-txt"><b>${esc(s.title)}</b><span>${esc(s.desc)}</span>${wait}</div>${right}</li>`;
+  };
+  const soft = [
+    ['⚖️', 'route.v1t', 'route.v1d'],
+    ['📸', 'route.v2t', 'route.v2d'],
+    ['📝', 'route.v3t', 'route.v3d'],
+  ].map(([ico, tk, dk]) => `<li><span class="route-ico">${ico}</span><div><b>${esc(t(tk))}</b><span>${esc(t(dk))}</span></div></li>`).join('');
+  return `<div class="route-card">
+    <p class="route-head">🗺️ ${esc(t('route.title'))}</p>
+    <p class="route-prog">${esc(t('route.progressPre'))} <b>${R.nDone} ${esc(t('route.progressMid'))}</b> ${esc(t('route.progressPost'))}</p>
+    <div class="route-bar"><i style="width:${Math.round(R.nDone / total * 100)}%"></i></div>
+    <p class="pend-check-title route-pct">${esc(t('pend.chkTitle', { pct: R.pct }))}</p>
+    <p class="route-gtitle">${esc(t('route.baseT'))}</p>
+    <p class="route-gsub">${esc(t('route.baseSub'))}</p>
+    <ol class="route-steps" style="--rl:${lineFrac}">${R.steps.map(stepHTML).join('')}</ol>
+    <div class="route-viva">
+      <p class="route-gtitle">${esc(t('route.vivaT'))}</p>
+      <p class="route-gsub">${esc(t('route.vivaSub'))}</p>
+      <ul class="route-soft">${soft}</ul>
+    </div>
+    <p class="route-foot">${esc(t('route.foot'))}</p>
+  </div>`;
+}
+/* Tarjeta superior de la ventana de pendientes: para el ALUMNO es
+   LA RUTA; para entrenador/administrador, el checklist de siempre. */
+function pendTopCardHTML() {
+  if (ROLE === 'usuario') { const r = pendRouteHTML(); if (r) return r; }
+  return (typeof pendChecklistHTML === 'function') ? pendChecklistHTML() : '';
+}
 /* Tarjeta-resumen en la pantalla principal al entrar (forma de
    aviso 2 del mapa): aparece SOLO si hay pendientes de
    procedimiento; su botón abre el flotante de pendientes. */
@@ -3847,6 +3932,45 @@ en: {
   'pend.chk.parq': 'Health declaration (PAR-Q)',
   'pend.chk.goals': 'Goals set',
   'pend.chk.meals': 'Meals active or requested',
+  'route.title': 'Your route in RONBO FIT',
+  'route.progressPre': 'Your route:',
+  'route.progressMid': 'of 7 steps',
+  'route.progressPost': 'of the basics',
+  'route.baseT': 'THE BASICS',
+  'route.baseSub': 'Without this, the app cannot calculate anything.',
+  'route.s1t': 'Your account and your choice',
+  'route.s1d': 'You already registered your account and chose what you use the app for.',
+  'route.s1wait': 'Account confirmation — under review by the administrator.',
+  'route.s2t': 'Trainer and modality',
+  'route.s2d': 'Who supports you and how: in person, virtual or hybrid.',
+  'route.s3t': 'Initial evaluation',
+  'route.s3d': 'Weight · height · birth year · biological sex · activity level. This is where your calculation is born.',
+  'route.s4t': 'Health consent',
+  'route.s4d': 'You decide whether your trainer can see your health declaration.',
+  'route.s5t': 'Health declaration (PAR-Q)',
+  'route.s5d': 'Your answers to train and eat safely.',
+  'route.s6t': 'Objective and focus',
+  'route.s6d': 'Lose, maintain or gain. When you save, the app calculates your daily goals.',
+  'route.s7t': 'Meals active or requested',
+  'route.s7d': 'Ask your trainer to activate your meal log.',
+  'route.s7waitT': 'Meals requested — waiting for your trainer\'s decision.',
+  'route.s7waitA': 'Meals requested — waiting for the administrator\'s confirmation.',
+  'route.doneTag': 'Done',
+  'route.edit': 'Edit',
+  'route.approve': 'Approve',
+  'route.request': 'Request',
+  'route.chooseTrainer': 'Choose trainer',
+  'route.waitTrainer': 'Depends on your trainer',
+  'route.waitAdmin': 'Depends on the administrator',
+  'route.vivaT': 'TO KEEP IT ALIVE',
+  'route.vivaSub': 'The weekly and the daily things.',
+  'route.v1t': 'Weekly weigh-in',
+  'route.v1d': 'That is how your real trend shows.',
+  'route.v2t': 'Evaluation every 15 days',
+  'route.v2d': 'Front, side and back photos, and your measurements.',
+  'route.v3t': 'Your day-to-day logs',
+  'route.v3d': 'Your meals and your workouts, as they happen.',
+  'route.foot': 'Each step is filled in its own window, and that window closes only when you save.',
   'pend.cardTitle': 'You have pending steps',
   'pend.cardBody': '{n} procedure pending item(s) — they are not daily logs.',
   'pend.cardBtn': 'View pending items',
@@ -6068,6 +6192,45 @@ es: {
   'pend.chk.parq': 'Declaración de salud (PAR-Q)',
   'pend.chk.goals': 'Metas definidas',
   'pend.chk.meals': 'Comidas activas o solicitadas',
+  'route.title': 'Tu ruta en RONBO FIT',
+  'route.progressPre': 'Tu ruta:',
+  'route.progressMid': 'de 7 pasos',
+  'route.progressPost': 'de la base',
+  'route.baseT': 'LA BASE',
+  'route.baseSub': 'Sin esto, la app no puede calcular nada.',
+  'route.s1t': 'Tu cuenta y tu elección',
+  'route.s1d': 'Ya registraste tu cuenta y elegiste para qué usas la app.',
+  'route.s1wait': 'Confirmación de tu cuenta — en revisión del administrador.',
+  'route.s2t': 'Entrenador y modalidad',
+  'route.s2d': 'Quién te acompaña y cómo: presencial, virtual o híbrida.',
+  'route.s3t': 'Evaluación inicial',
+  'route.s3d': 'Peso · estatura · año de nacimiento · sexo biológico · nivel de actividad. Con esto nace tu cálculo.',
+  'route.s4t': 'Consentimiento de salud',
+  'route.s4d': 'Tú decides si tu entrenador puede ver tu declaración de salud.',
+  'route.s5t': 'Declaración de salud (PAR-Q)',
+  'route.s5d': 'Tus respuestas para entrenar y comer con seguridad.',
+  'route.s6t': 'Objetivo y enfoque',
+  'route.s6d': 'Bajar, mantener o ganar. Al guardar, la app calcula tus metas de cada día.',
+  'route.s7t': 'Comidas activas o solicitadas',
+  'route.s7d': 'Pide a tu entrenador que te active el registro de comidas.',
+  'route.s7waitT': 'Comidas solicitadas — esperando la decisión de tu entrenador.',
+  'route.s7waitA': 'Comidas solicitadas — esperando la confirmación del administrador.',
+  'route.doneTag': 'Hecho',
+  'route.edit': 'Editar',
+  'route.approve': 'Aprobar',
+  'route.request': 'Solicitar',
+  'route.chooseTrainer': 'Elegir entrenador',
+  'route.waitTrainer': 'Depende de tu entrenador',
+  'route.waitAdmin': 'Depende del administrador',
+  'route.vivaT': 'PARA MANTENERLA VIVA',
+  'route.vivaSub': 'Lo de cada semana y cada día.',
+  'route.v1t': 'Pesaje de cada semana',
+  'route.v1d': 'Así se ve tu tendencia real.',
+  'route.v2t': 'Evaluación cada 15 días',
+  'route.v2d': 'Fotos de frente, lado y espalda, y tus medidas.',
+  'route.v3t': 'Tus registros del día a día',
+  'route.v3d': 'Tus comidas y tus entrenamientos, cuando pasan.',
+  'route.foot': 'Cada paso se llena en su propia ventana, y esa ventana se cierra solo cuando guardas.',
   'pend.cardTitle': 'Tienes pasos pendientes',
   'pend.cardBody': '{n} pendiente(s) de procedimiento — no son registros diarios.',
   'pend.cardBtn': 'Ver pendientes',
@@ -27294,7 +27457,7 @@ function renderPendings() {
        entrenador (procedimiento) se muestra AUNQUE los recordatorios
        no estén activados: va encima del formulario de activación. */
     let pre = '';
-    try { pre += (typeof pendChecklistHTML === 'function') ? pendChecklistHTML() : ''; } catch {}
+    try { pre += (typeof pendTopCardHTML === 'function') ? pendTopCardHTML() : ''; } catch {}
     try {
       /* AUTH-2026-11-01-133: también antes de activar, los ítems de
          procedimiento del alumno salen en sus bandas. */
@@ -27321,7 +27484,7 @@ function renderPendings() {
     else count.style.display = 'none';
   }
   let html = `<p class="progress-hint">${esc(t('pend.intro'))}</p>`;
-  try { html += (typeof pendChecklistHTML === 'function') ? pendChecklistHTML() : ''; } catch {}
+  try { html += (typeof pendTopCardHTML === 'function') ? pendTopCardHTML() : ''; } catch {}
   const draft = pendDraftGet();
   if (draft) {
     html += `<div class="pend-item pend-draft">
@@ -28472,7 +28635,7 @@ document.addEventListener('keydown', e => { if (e.key === 'Escape') shareClose()
  *  - El SW (sw.js) solo cachea la cáscara del mismo origen en modo
  *    RED PRIMERO: Auth/Firestore/Worker jamás pasan por la caché.
  * ================================================================ */
-const PWA_SW_VERSION = '20261101-esta-semana-mq5';
+const PWA_SW_VERSION = '20261101-ruta-usuario';
 let pwaDeferredPrompt = null;
 function pwaIsStandalone() {
   try {
