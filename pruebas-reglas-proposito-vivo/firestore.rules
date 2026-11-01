@@ -708,6 +708,60 @@ service cloud.firestore {
         && request.resource.data.notices.welcome.at == request.time
         && request.resource.data.notices.welcome.by == request.auth.uid
         && request.resource.data.notices.welcome.template == 'welcome';
+      // AUTH-2026-11-01-133: el entrenador ASIGNADO anota el aviso
+      // por pendiente que acaba de enviar (botón «✉ Avisar»; diseño
+      // 2026-10-31 + decisiones D1-D4 de Ronald 2026-11-01: solo
+      // correo, tope 1 por pendiente cada 7 días, con registro,
+      // banco fijo). La anotación vive en notices.nudge: UN mapa
+      // con las 8 subclaves cerradas del banco (eval, cns, parq,
+      // goal, meal, pes, per, bod), cada una exactamente {at, by}
+      // con la hora del servidor y la firma del propio entrenador.
+      // Esta rama SOLO puede tocar la subclave nudge dentro de
+      // notices: cualquier otra clave del mapa (incluida welcome)
+      // debe quedar intacta, y ningún otro campo del documento
+      // puede cambiar. A diferencia de la rama welcome de AUTH-072
+      // (que exige haber aprobado él al alumno), aquí la relación
+      // operante es la ASIGNACIÓN (trainerUid == él), la misma
+      // puerta que exige el Worker para enviar el aviso: un alumno
+      // asignado por el administrador también puede recibir avisos
+      // de su entrenador. El propietario anota por su rama general.
+      function nudgeSubOk133(newN, oldN, sub) {
+        return !(newN.diff(oldN).affectedKeys().hasAny([sub]))
+          || (newN[sub] is map
+              && newN[sub].keys().hasOnly(['at', 'by'])
+              && newN[sub].at == request.time
+              && newN[sub].by == request.auth.uid);
+      }
+      allow update: if isTrainerUser()
+        && resource.data.get('approved', false) == true
+        && resource.data.get('trainerUid', '') == request.auth.uid
+        && request.resource.data.diff(resource.data).affectedKeys()
+             .hasOnly(['notices'])
+        && request.resource.data.notices is map
+        && request.resource.data.notices.keys()
+             .hasOnly(['welcome', 'trainer', 'eval', 'meals', 'membership', 'dossier', 'nudge'])
+        && request.resource.data.notices.diff(resource.data.get('notices', {}))
+             .affectedKeys().hasOnly(['nudge'])
+        && request.resource.data.notices.get('nudge', {}) is map
+        && 'nudge' in request.resource.data.notices
+        && request.resource.data.notices.nudge.keys()
+             .hasOnly(['eval', 'cns', 'parq', 'goal', 'meal', 'pes', 'per', 'bod'])
+        && nudgeSubOk133(request.resource.data.notices.nudge,
+                         resource.data.get('notices', {}).get('nudge', {}), 'eval')
+        && nudgeSubOk133(request.resource.data.notices.nudge,
+                         resource.data.get('notices', {}).get('nudge', {}), 'cns')
+        && nudgeSubOk133(request.resource.data.notices.nudge,
+                         resource.data.get('notices', {}).get('nudge', {}), 'parq')
+        && nudgeSubOk133(request.resource.data.notices.nudge,
+                         resource.data.get('notices', {}).get('nudge', {}), 'goal')
+        && nudgeSubOk133(request.resource.data.notices.nudge,
+                         resource.data.get('notices', {}).get('nudge', {}), 'meal')
+        && nudgeSubOk133(request.resource.data.notices.nudge,
+                         resource.data.get('notices', {}).get('nudge', {}), 'pes')
+        && nudgeSubOk133(request.resource.data.notices.nudge,
+                         resource.data.get('notices', {}).get('nudge', {}), 'per')
+        && nudgeSubOk133(request.resource.data.notices.nudge,
+                         resource.data.get('notices', {}).get('nudge', {}), 'bod');
       // Roles+Escalabilidad — RECHAZO (decisión §8.2 de Ronald,
       // 2026-10-24): el entrenador devuelve a la espera al alumno
       // que lo eligió y sigue SIN aprobar. Espejo inverso de la

@@ -1,11 +1,11 @@
 // RONBO FIT — Batería CI del delta «Elección obligatoria de
-// propósito al registrarse» (AUTH-2026-11-01-138; diseño de Ronald
+// propósito al registrarse» (AUTH-2026-11-01-141; diseño de Ronald
 // 2026-11-01 14:22 CST y sus cuatro decisiones del mismo día
 // 15:20–15:26 CST). Usuarios FICTICIOS, emulador LOCAL. Nunca toca
 // producción.
 //
-// El delta, sobre el texto vivo (ruleset 873cb76c, SHA-256
-// 718f411f…; candidata SHA-256 5e03d897…), toca SOLO dos cosas:
+// El delta, sobre el texto vivo (ruleset 2ad00641, SHA-256
+// 5525d2f2…; candidata SHA-256 ec78cabf…), toca SOLO dos cosas:
 // (1) la rama de perfil inofensivo de users/{uid} admite SIETE
 // claves nuevas de declaración de propósito (purpose, purposeAt,
 // purposeUse, purposeSuggest, purposeTrainerChoice,

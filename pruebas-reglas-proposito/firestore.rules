@@ -708,6 +708,60 @@ service cloud.firestore {
         && request.resource.data.notices.welcome.at == request.time
         && request.resource.data.notices.welcome.by == request.auth.uid
         && request.resource.data.notices.welcome.template == 'welcome';
+      // AUTH-2026-11-01-133: el entrenador ASIGNADO anota el aviso
+      // por pendiente que acaba de enviar (botón «✉ Avisar»; diseño
+      // 2026-10-31 + decisiones D1-D4 de Ronald 2026-11-01: solo
+      // correo, tope 1 por pendiente cada 7 días, con registro,
+      // banco fijo). La anotación vive en notices.nudge: UN mapa
+      // con las 8 subclaves cerradas del banco (eval, cns, parq,
+      // goal, meal, pes, per, bod), cada una exactamente {at, by}
+      // con la hora del servidor y la firma del propio entrenador.
+      // Esta rama SOLO puede tocar la subclave nudge dentro de
+      // notices: cualquier otra clave del mapa (incluida welcome)
+      // debe quedar intacta, y ningún otro campo del documento
+      // puede cambiar. A diferencia de la rama welcome de AUTH-072
+      // (que exige haber aprobado él al alumno), aquí la relación
+      // operante es la ASIGNACIÓN (trainerUid == él), la misma
+      // puerta que exige el Worker para enviar el aviso: un alumno
+      // asignado por el administrador también puede recibir avisos
+      // de su entrenador. El propietario anota por su rama general.
+      function nudgeSubOk133(newN, oldN, sub) {
+        return !(newN.diff(oldN).affectedKeys().hasAny([sub]))
+          || (newN[sub] is map
+              && newN[sub].keys().hasOnly(['at', 'by'])
+              && newN[sub].at == request.time
+              && newN[sub].by == request.auth.uid);
+      }
+      allow update: if isTrainerUser()
+        && resource.data.get('approved', false) == true
+        && resource.data.get('trainerUid', '') == request.auth.uid
+        && request.resource.data.diff(resource.data).affectedKeys()
+             .hasOnly(['notices'])
+        && request.resource.data.notices is map
+        && request.resource.data.notices.keys()
+             .hasOnly(['welcome', 'trainer', 'eval', 'meals', 'membership', 'dossier', 'nudge'])
+        && request.resource.data.notices.diff(resource.data.get('notices', {}))
+             .affectedKeys().hasOnly(['nudge'])
+        && request.resource.data.notices.get('nudge', {}) is map
+        && 'nudge' in request.resource.data.notices
+        && request.resource.data.notices.nudge.keys()
+             .hasOnly(['eval', 'cns', 'parq', 'goal', 'meal', 'pes', 'per', 'bod'])
+        && nudgeSubOk133(request.resource.data.notices.nudge,
+                         resource.data.get('notices', {}).get('nudge', {}), 'eval')
+        && nudgeSubOk133(request.resource.data.notices.nudge,
+                         resource.data.get('notices', {}).get('nudge', {}), 'cns')
+        && nudgeSubOk133(request.resource.data.notices.nudge,
+                         resource.data.get('notices', {}).get('nudge', {}), 'parq')
+        && nudgeSubOk133(request.resource.data.notices.nudge,
+                         resource.data.get('notices', {}).get('nudge', {}), 'goal')
+        && nudgeSubOk133(request.resource.data.notices.nudge,
+                         resource.data.get('notices', {}).get('nudge', {}), 'meal')
+        && nudgeSubOk133(request.resource.data.notices.nudge,
+                         resource.data.get('notices', {}).get('nudge', {}), 'pes')
+        && nudgeSubOk133(request.resource.data.notices.nudge,
+                         resource.data.get('notices', {}).get('nudge', {}), 'per')
+        && nudgeSubOk133(request.resource.data.notices.nudge,
+                         resource.data.get('notices', {}).get('nudge', {}), 'bod');
       // Roles+Escalabilidad — RECHAZO (decisión §8.2 de Ronald,
       // 2026-10-24): el entrenador devuelve a la espera al alumno
       // que lo eligió y sigue SIN aprobar. Espejo inverso de la
@@ -770,7 +824,22 @@ service cloud.firestore {
       // ser una cadena (la fecha ISO que escribe la app).
       allow update: if isSelf(uid)
         && request.resource.data.diff(resource.data).affectedKeys()
-             .hasOnly(['name', 'phone', 'gender', 'social', 'photoURL', 'mailLang', 'emailConfirmedAt', 'fdCamAt', 'fdBizAt', 'fdBizGym', 'purpose', 'purposeAt', 'purposeUse', 'purposeSuggest', 'purposeTrainerChoice', 'purposeMembership', 'purposeAskedAt'])
+      // PROPÓSITO AL REGISTRARSE (AUTH-2026-11-01-141; diseño de
+      // Ronald 2026-11-01 y su decisión (c) del mismo día): la
+      // declaración de propósito del propio usuario — elegida en
+      // la ventana obligatoria del registro y pedida UNA vez a
+      // quien ya estaba registrado — vive en su documento con
+      // valores CERRADOS: purpose jamás puede valer
+      // 'administrador' (esa opción se muestra pero no se puede
+      // seleccionar), purposeUse y purposeMembership quedan en
+      // sus listas, purposeSuggest es booleano,
+      // purposeTrainerChoice es una cadena acotada (el uid del
+      // entrenador elegido al declarar; la declaración NO crea ni
+      // mueve relaciones) y purposeAt/purposeAskedAt son cadenas
+      // (las fechas ISO que escribe la app, patrón fdCamAt).
+      // Ninguna otra rama se toca: la creación no necesita delta
+      // (su cláusula no cierra la lista de claves del documento).
+             .hasOnly(['name', 'phone', 'gender', 'social', 'photoURL', 'mailLang', 'emailConfirmedAt', 'fdCamAt', 'fdBizAt', 'fdBizGym'], 'purpose', 'purposeAt', 'purposeUse', 'purposeSuggest', 'purposeTrainerChoice', 'purposeMembership', 'purposeAskedAt'])
         && (!request.resource.data.diff(resource.data).affectedKeys().hasAny(['mailLang'])
             || request.resource.data.mailLang in ['en', 'es'])
         && (!request.resource.data.diff(resource.data).affectedKeys().hasAny(['emailConfirmedAt'])
@@ -785,23 +854,9 @@ service cloud.firestore {
             || request.resource.data.fdBizAt is string)
         && (!request.resource.data.diff(resource.data).affectedKeys().hasAny(['fdBizGym'])
             || (request.resource.data.fdBizGym is string
-                && request.resource.data.fdBizGym.size() <= 80))
-        // PROPÓSITO AL REGISTRARSE (AUTH-2026-11-01-138): la
-        // declaración de propósito del propio usuario — la elección
-        // obligatoria del registro y la declaración única de las
-        // cuentas que ya existían. Valores CERRADOS: el propósito en
-        // su lista de cuatro (administrador NUNCA es un valor
-        // escribible: la opción se muestra pero no se puede elegir),
-        // el uso de «por mi cuenta» en su lista de tres, la membresía
-        // declarada en la lista de niveles, la marca de sugerencia
-        // booleana y las cadenas (fecha ISO, entrenador declarado)
-        // con tamaño acotado. Ninguna de estas claves toca rol,
-        // aprobación, asignación ni consentimientos: esas ramas
-        // quedan como estaban.
+                && request.resource.data.fdBizGym.size() <= 80));
         && (!request.resource.data.diff(resource.data).affectedKeys().hasAny(['purpose'])
             || request.resource.data.purpose in ['cuenta', 'con_entrenador', 'entrenador', 'business'])
-        && (!request.resource.data.diff(resource.data).affectedKeys().hasAny(['purposeAt'])
-            || request.resource.data.purposeAt is string)
         && (!request.resource.data.diff(resource.data).affectedKeys().hasAny(['purposeUse'])
             || request.resource.data.purposeUse in ['meals', 'training', 'both'])
         && (!request.resource.data.diff(resource.data).affectedKeys().hasAny(['purposeSuggest'])
@@ -811,6 +866,8 @@ service cloud.firestore {
                 && request.resource.data.purposeTrainerChoice.size() <= 128))
         && (!request.resource.data.diff(resource.data).affectedKeys().hasAny(['purposeMembership'])
             || request.resource.data.purposeMembership in ['basico', 'premium', 'elite', 'prueba'])
+        && (!request.resource.data.diff(resource.data).affectedKeys().hasAny(['purposeAt'])
+            || request.resource.data.purposeAt is string)
         && (!request.resource.data.diff(resource.data).affectedKeys().hasAny(['purposeAskedAt'])
             || request.resource.data.purposeAskedAt is string);
       // Metas con fundamento (2026-10-26, diseño §§C–I): el DUEÑO

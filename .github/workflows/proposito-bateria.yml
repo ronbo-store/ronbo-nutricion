@@ -1,12 +1,12 @@
 # RONBO FIT — Batería de reglas del delta «Elección obligatoria de
-# propósito al registrarse» (AUTH-2026-11-01-138; diseño de Ronald
+# propósito al registrarse» (AUTH-2026-11-01-141; diseño de Ronald
 # 2026-11-01 y sus cuatro decisiones del mismo día). La suite
 # PROPÓSITO (15 casos) contra el CANDIDATO de reglas (texto vivo
-# ruleset 873cb76c, SHA-256 718f411f…, + SOLO dos deltas cerrados:
+# ruleset 2ad00641, SHA-256 5525d2f2…, + SOLO dos deltas cerrados:
 # siete claves de declaración de propósito con guardas de valor en
 # la rama de perfil inofensivo de users/{uid}, y el nivel «prueba»
 # en la lista de requestedLevel de la solicitud propia de
-# memberships; candidata SHA-256 5e03d897…) y la MISMA suite contra
+# memberships; candidata SHA-256 ec78cabf…) y la MISMA suite contra
 # el texto VIVO con las expectativas del delta invertidas (P1, P9
 # y P15 denegados allí).
 # Todo contra el emulador oficial de Firestore (proyecto ficticio
