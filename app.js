@@ -6602,6 +6602,16 @@ function dateName(iso) {
   const d = parseInt(m[3], 10), mi = parseInt(m[2], 10) - 1, y = m[1];
   return LANG === 'es' ? `${d} de ${MESES_ES[mi]} de ${y}` : `${MESES_EN[mi]} ${d}, ${y}`;
 }
+function weekdayName(iso) {
+  /* CABECERA V4 (AUTH-2026-10-31-126): el día de la semana de la
+     MISMA fecha que pinta dateName(), con el nombre largo en el
+     idioma activo — el mismo patrón Intl de trainWeekdayName. La
+     fecha se construye por partes (sin desfase de zona horaria). */
+  const m = String(iso).match(/(\d{4})-(\d{2})-(\d{2})/);
+  if (!m) return '';
+  const d = new Date(parseInt(m[1], 10), parseInt(m[2], 10) - 1, parseInt(m[3], 10));
+  try { return new Intl.DateTimeFormat(LANG === 'es' ? 'es' : 'en', { weekday: 'long' }).format(d); } catch { return ''; }
+}
 function shortDate(iso) {
   const m = String(iso).match(/(\d{4})-(\d{2})-(\d{2})/);
   return m ? `${parseInt(m[3],10)}/${parseInt(m[2],10)}` : iso;
@@ -23228,6 +23238,11 @@ document.addEventListener('keydown', e => { if (e.key === 'Escape') actCloseAll(
 
 function render(date) {
   $('dateTitle').textContent = dateName(date);
+  /* CABECERA V4 (AUTH-2026-10-31-126): la línea pequeña de la
+     cabecera lleva el día de la semana atenuado junto a la fecha de
+     siempre; se repinta en este mismo render (también al cambiar de
+     idioma, que llega aquí vía refreshDynamic). */
+  const wdEl = $('dateWeekday'); if (wdEl) wdEl.textContent = weekdayName(date);
   try { if (typeof goalsSetView === 'function') goalsSetView(date); } catch {}
   /* PAQUETE BARRA-SUSTITUYE-METAS (2026-10-30, orden de Ronald):
      la fila de metas en texto (#goals-row, el bloque «Tus metas
@@ -27114,7 +27129,7 @@ document.addEventListener('keydown', e => { if (e.key === 'Escape') shareClose()
  *  - El SW (sw.js) solo cachea la cáscara del mismo origen en modo
  *    RED PRIMERO: Auth/Firestore/Worker jamás pasan por la caché.
  * ================================================================ */
-const PWA_SW_VERSION = '20261031-comida-variante-a';
+const PWA_SW_VERSION = '20261031-cabecera-v4';
 let pwaDeferredPrompt = null;
 function pwaIsStandalone() {
   try {

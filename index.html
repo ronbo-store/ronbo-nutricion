@@ -21,7 +21,7 @@
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-title" content="RONBO FIT">
 <meta name="apple-mobile-web-app-status-bar-style" content="default">
-<link rel="stylesheet" href="styles.css?v=20261031-comida-variante-a">
+<link rel="stylesheet" href="styles.css?v=20261031-cabecera-v4">
 <script defer src="https://cloud.umami.is/script.js" data-website-id="a29706d4-44a2-47cf-900a-5f74d74abfa8"></script>
 <script type="importmap">
 {
@@ -182,9 +182,28 @@
 <div id="app-view" class="wrap" style="display:none">
     <!-- AUTH-2026-10-28-068: tarjeta flotante de los enlaces de registro (confirmación de correo / aprobación en un toque); la pinta app.js (bloque signup) --><div id="signup-card" class="signup-card" style="display:none"></div>
   <div class="topbar">
-    <div class="title-card">
-      <h1 id="dateTitle">Loading…</h1>
-      <p class="who-row"><span class="live-dot"></span><button type="button" id="avatar-btn" class="avatar-btn" data-i18n-aria="myprof.open" aria-label="Open my profile" data-i18n-title="myprof.open" title="Open my profile"><img id="avatar" class="avatar" data-i18n-alt="app.myPhoto" alt="My photo"></button><span id="who">—</span> · <a href="#" id="btn-logout" class="logout-link" data-i18n="app.logout">log out</a> · <span class="lang-toggle"><button type="button" data-lang="en" class="active">EN</button><button type="button" data-lang="es">ES</button></span></p>
+    <!-- CABECERA V4 · VARIANTE A (AUTH-2026-10-31-126, diseño aprobado
+         por Ronald 2026-10-31, maqueta mq3d + NOTA-CABECERA-V4): solo
+         el ACABADO de la cabecera. Franja de marca con el wordmark y
+         el selector EN/ES pulido; fila de la persona con avatar de
+         50 px, aro teal y el punto de presencia como insignia; la
+         fecha baja a una línea pequeña bajo el nombre (día de la
+         semana atenuado + la fecha de siempre, id dateTitle intacto);
+         filete teal al pie. El «salir» pasa de enlace de texto a
+         BOTÓN de verdad (.btn-out: 39 px visibles, área de toque de
+         45 px con relleno transparente) — principio de Ronald: los
+         botones se miden por su área de toque. Mismos ids y mismas
+         funciones: cerrar sesión y cambiar de idioma, intactos. -->
+    <div class="title-card hdr-v4">
+      <div class="hdr-brand">
+        <span class="hdr-wordmark">RONBO<b>.FIT</b></span>
+        <span class="lang-toggle"><button type="button" data-lang="en" class="active">EN</button><button type="button" data-lang="es">ES</button></span>
+      </div>
+      <div class="hdr-main">
+        <button type="button" id="avatar-btn" class="avatar-btn" data-i18n-aria="myprof.open" aria-label="Open my profile" data-i18n-title="myprof.open" title="Open my profile"><img id="avatar" class="avatar" data-i18n-alt="app.myPhoto" alt="My photo"><span class="live-dot"></span></button>
+        <span class="hdr-who"><span id="who">—</span><span class="hdr-date"><span id="dateWeekday"></span> · <span id="dateTitle">Loading…</span></span></span>
+        <button type="button" id="btn-logout" class="btn-out"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#5eead4" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><path d="M16 17l5-5-5-5"/><path d="M21 12H9"/></svg><span data-i18n="app.logout">log out</span></button>
+      </div>
       <input type="file" id="avatar-file" accept="image/*" style="display:none">
     </div>
   </div>
@@ -1412,6 +1431,6 @@
 <div id="toast" class="toast"></div>
 <div id="print-card" aria-hidden="true"></div>
 
-<script type="module" src="app.js?v=20261031-comida-variante-a"></script>
+<script type="module" src="app.js?v=20261031-cabecera-v4"></script>
 </body>
 </html>

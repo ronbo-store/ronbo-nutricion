@@ -2354,3 +2354,63 @@ body.nav-lock .sw-fab, body.nav-lock .help-fab, body.nav-lock .share-fab, body.n
 #food-float .meal-row .rep-btn, #food-float .meal-row .del-btn { min-height: 44px; padding: 8px 16px; font-size: 13.5px; }
 #food-float .meal-row-total-macros { margin-top: 3px; font-size: 13px; font-weight: 600; font-variant-numeric: tabular-nums; }
 #food-float .meal-rows .wempty { text-align: left; }
+
+/* ===== CABECERA V4 · VARIANTE A (AUTH-2026-10-31-126; diseño
+   aprobado por Ronald 2026-10-31: maqueta mq3d-cabecera-v4 +
+   NOTA-CABECERA-V4). Solo el ACABADO de la cabecera: franja de
+   marca con el wordmark «RONBO.FIT» (el «.FIT» en teal) y el
+   selector EN/ES pulido (pastilla blanca, la opción activa como
+   pastilla teal dentro); fila de la persona con avatar de 50 px,
+   aro teal tenue y el punto de presencia como insignia; nombre en
+   blanco fuerte y debajo la fecha en línea pequeña (día de la
+   semana atenuado + la fecha de siempre); filete teal discreto al
+   pie; degradado azul muy sutil y sombra suave. El «salir» pasa de
+   enlace de texto a BOTÓN de verdad (.btn-out): pastilla visible
+   de 39 px de alto y área de toque de 45 px mediante relleno
+   transparente (::before) — principio de Ronald: en esta app los
+   botones se miden por su ÁREA DE TOQUE (gente entrenando), no
+   por el tamaño visible. Mismos ids y mismas funciones; cero
+   textos nuevos (la etiqueta sale de app.logout, con la inicial
+   en mayúscula solo por CSS). ===== */
+.hdr-v4 { background: linear-gradient(135deg, #25344f 0%, #1b2740 70%); border-radius: 20px; padding: 14px 20px 17px; box-shadow: 0 10px 24px rgba(15,23,42,.20), 0 2px 6px rgba(15,23,42,.16); position: relative; overflow: hidden; }
+.hdr-v4::after { content: ""; position: absolute; left: 20px; right: 20px; bottom: 0; height: 2px; border-radius: 2px; background: linear-gradient(90deg, #0d9488, rgba(13,148,136,0)); }
+.hdr-brand { display: flex; justify-content: space-between; align-items: center; padding-bottom: 11px; border-bottom: 1px solid rgba(255,255,255,.08); }
+.hdr-wordmark { font-size: 12px; font-weight: 800; letter-spacing: .16em; color: #fff; white-space: nowrap; }
+.hdr-wordmark b { color: #2dd4bf; font-weight: 800; }
+.hdr-v4 .lang-toggle { background: #fff; border: none; border-radius: 999px; padding: 3px; overflow: visible; box-shadow: 0 1px 4px rgba(0,0,0,.25), inset 0 0 0 1px rgba(15,23,42,.06); }
+.hdr-v4 .lang-toggle button { padding: 4px 12px; font-size: 11.5px; line-height: 1.15; border-radius: 999px; color: #64748b; }
+.hdr-v4 .lang-toggle button.active { background: #0d9488; color: #fff; box-shadow: 0 1px 3px rgba(13,148,136,.45); }
+.hdr-main { display: flex; align-items: center; gap: 13px; padding-top: 13px; }
+.hdr-v4 .avatar-btn { position: relative; }
+.hdr-v4 .avatar { width: 50px; height: 50px; box-shadow: 0 0 0 3px rgba(13,148,136,.18); }
+.hdr-v4 .live-dot { position: absolute; right: -1px; bottom: -1px; width: 13px; height: 13px; border-radius: 50%; margin: 0; border: 2.5px solid #1f2a44; z-index: 1; }
+.hdr-who { display: flex; flex-direction: column; gap: 2px; min-width: 0; }
+.hdr-v4 #who { font-size: 17.5px; font-weight: 700; letter-spacing: -.01em; color: #fff; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.hdr-date { font-size: 11.5px; font-weight: 600; letter-spacing: .03em; color: rgba(255,255,255,.62); white-space: nowrap; }
+.hdr-date #dateTitle { color: rgba(255,255,255,.9); font-weight: 700; }
+.btn-out { position: relative; display: inline-flex; align-items: center; gap: 7px; height: 39px; padding: 0 13px; margin-left: auto; border-radius: 999px; background: rgba(255,255,255,.08); border: 1px solid rgba(255,255,255,.38); color: #fff; font-family: inherit; font-size: 13.5px; font-weight: 700; letter-spacing: .01em; white-space: nowrap; flex: none; cursor: pointer; box-shadow: 0 2px 6px rgba(0,0,0,.28), inset 0 1px 0 rgba(255,255,255,.08); }
+.btn-out::before { content: ""; position: absolute; left: -5px; right: -5px; top: -4px; bottom: -4px; }
+.btn-out > span { text-transform: capitalize; }
+.btn-out svg { flex: none; }
+.btn-out:focus-visible { outline: 2px solid #2dd4bf; outline-offset: 2px; }
+/* Pantallas estrechas: el acabado se aprieta sin cortar nada —
+   la fecha completa cabe en su línea junto al botón también en
+   el caso más largo del año («miércoles · 31 de octubre» o
+   «Wednesday · September 30», con el botón EN más ancho). A
+   ≤400 px se estrechan rellenos y huecos (la fecha sigue a
+   11.5 px); a ≤370 px bajan además el avatar (44 px), la fecha
+   (10 px) y la letra del botón (12.5 px). */
+@media (max-width: 400px) {
+  .hdr-v4 { padding-left: 17px; padding-right: 17px; }
+  .hdr-v4::after { left: 17px; right: 17px; }
+  .hdr-main { gap: 8px; }
+  .btn-out { padding: 0 11px; }
+}
+@media (max-width: 370px) {
+  .hdr-v4 { padding-left: 12px; padding-right: 12px; }
+  .hdr-v4::after { left: 12px; right: 12px; }
+  .hdr-main { gap: 7px; }
+  .hdr-v4 .avatar { width: 44px; height: 44px; }
+  .hdr-date { font-size: 10px; letter-spacing: .01em; }
+  .btn-out { font-size: 12.5px; padding: 0 9px; }
+}
