@@ -2470,3 +2470,25 @@ body.nav-lock.prog-page .share-fab,
 body.nav-lock.prog-page .help-fab,
 body.nav-lock.prog-page .sw-fab,
 body.nav-lock.prog-page #act-flame { visibility: visible; }
+
+/* ============ RESGUARDO DERECHO DE PROGRESO BAJO LA PILA (AUTH-2026-11-01-131) ============
+   Corrección del defecto de la reprueba de Ronald (2026-11-01
+   13:56 CST, captura de su iPhone; su orden «Corrígelo», 14:14
+   CST): con Progreso abierto, la pila de 4 discos (AUTH-129:
+   fixed, right:14, 58 px de ancho) quedaba ENCIMA del contenido
+   de la página — el disco de compartir se montaba sobre la
+   esquina superior derecha de la tarjeta de la foto «Espalda» y
+   el de la llamita tapaba parte de su texto «Eliminar» — porque
+   la página (#progress-content.nav-page-on, fixed con padding
+   derecho de 12 px) deja llegar las tarjetas hasta el borde
+   derecho, justo donde vive la pila.
+   Los discos NO se mueven ni cambian: el contenido de Progreso
+   gana un resguardo derecho de 88 px (la banda de la pila:
+   14 + 58 = 72, más 16 de respiro) SOLO mientras la página está
+   abierta (body.prog-page, la marca de navRender), así ninguna
+   tarjeta, foto ni texto accionable («Reemplazar», «Eliminar»,
+   historial, comparador, subvista de Medidas) pasa por debajo
+   de la pila a ningún scroll. Sin la página abierta, o con
+   Entrenamiento, el padding de siempre (12 px) manda intacto;
+   Inicio no cambia. */
+body.prog-page #progress-content.nav-page-on { padding-right: 88px; }
