@@ -73,6 +73,11 @@ jobs:
             echo '## Suite NUDGE contra la CANDIDATA — resultado'
             grep -E '^MODO=' resultado-bateria.txt || true
           } >> "$GITHUB_STEP_SUMMARY"
+      - name: Publicar las líneas de la suite como anotaciones
+        if: always()
+        shell: bash
+        run: |
+          grep -E '^(PASS|FAIL|MODO)' resultado-bateria.txt | head -25 | while IFS= read -r l; do echo "::notice::$l"; done || true
 
   contraste-vivo:
     name: La MISMA suite contra el texto VIVO (N1 invertido)
@@ -111,3 +116,8 @@ jobs:
             echo '## Suite NUDGE contra el texto VIVO — resultado'
             grep -E '^MODO=' resultado-bateria.txt || true
           } >> "$GITHUB_STEP_SUMMARY"
+      - name: Publicar las líneas de la suite como anotaciones
+        if: always()
+        shell: bash
+        run: |
+          grep -E '^(PASS|FAIL|MODO)' resultado-bateria.txt | head -25 | while IFS= read -r l; do echo "::notice::$l"; done || true
