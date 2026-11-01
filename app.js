@@ -93,7 +93,7 @@ let suppressAuthCheck = false; // evita el chequeo durante el registro (el doc a
 const ESC_MODALITIES = ['presencial', 'hibrido', 'virtual'];
 const ESC_QUOTA = { basico: 5, premium: 10, elite: 30 };
 const ESC_AI_BY_LEVEL = { basico: 10, premium: 20, elite: 50 };
-const ESC_FEATURE_DEFAULTS = { training: true, activity: true, photos: true, metrics: true, meals: false, somatotype: true };
+const ESC_FEATURE_DEFAULTS = { training: true, activity: true, photos: true, metrics: true, meals: true, somatotype: true };
 const ESC_FLAG_KEYS = ['meals', 'activity', 'training', 'photos', 'metrics', 'somatotype'];
 let FEATURE_FLAGS = null;        // app_settings/feature_flags { flags }
 let MEMBERSHIP_CATALOG = null;   // app_settings/membership_catalog { levels }
@@ -2429,7 +2429,7 @@ en: {
   'esc.membershipAdminTitle': '🎟️ Trainer memberships',
   'esc.membershipAdminHint': 'A membership sets how many active students a trainer may have (Basic 5 · Premium 10 · Elite 30). Trainers request a level; only you approve it. This is separate from the account-approval limit above.',
   'esc.mealAdminTitle': '🍽️ Meal access confirmations',
-  'esc.mealAdminHint': 'Meal logging is off for new students until requested. The trainer approves first; you confirm. Confirming turns meal logging on for that student.',
+  'esc.mealAdminHint': 'Meal logging starts on for new students; you can turn it off per account in Access. A student with logging off can still request it: the trainer approves first; you confirm. Confirming turns meal logging on for that student.',
   'esc.flagsTitle': '🚩 Feature flags',
   'esc.flagOn': 'ON',
   'esc.flagsHint': 'Turn whole modules off or on for every student without deploying anything. Trainers and you are not blocked by these flags.',
@@ -4581,7 +4581,7 @@ es: {
   'esc.membershipAdminTitle': '🎟️ Membresías de entrenadores',
   'esc.membershipAdminHint': 'La membresía fija cuántos alumnos activos puede tener un entrenador (Básico 5 · Premium 10 · Élite 30). El entrenador solicita el nivel; solo tú lo apruebas. Es distinto del límite de aprobaciones de cuentas de arriba.',
   'esc.mealAdminTitle': '🍽️ Confirmaciones de comidas',
-  'esc.mealAdminHint': 'Las comidas nacen apagadas para los alumnos nuevos y se activan por solicitud: primero aprueba el entrenador y confirmas tú. Al confirmar, se enciende el registro de comidas de ese alumno.',
+  'esc.mealAdminHint': 'Las comidas nacen encendidas para los alumnos nuevos; puedes apagarlas por cuenta en Accesos. Un alumno con el registro apagado puede solicitarlo: primero aprueba el entrenador y confirmas tú. Al confirmar, se enciende el registro de comidas de ese alumno.',
   'esc.flagsTitle': '🚩 Banderas de funciones',
   'esc.flagOn': 'ACTIVADO',
   'esc.flagsHint': 'Apaga o enciende módulos enteros para todos los alumnos sin desplegar nada. Los entrenadores y tú no quedan bloqueados por estas banderas.',
@@ -27300,7 +27300,7 @@ document.addEventListener('keydown', e => { if (e.key === 'Escape') shareClose()
  *  - El SW (sw.js) solo cachea la cáscara del mismo origen en modo
  *    RED PRIMERO: Auth/Firestore/Worker jamás pasan por la caché.
  * ================================================================ */
-const PWA_SW_VERSION = '20261101-progreso-resguardo';
+const PWA_SW_VERSION = '20261101-nacer-comida';
 let pwaDeferredPrompt = null;
 function pwaIsStandalone() {
   try {
