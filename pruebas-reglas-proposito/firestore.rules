@@ -824,7 +824,7 @@ service cloud.firestore {
       // ser una cadena (la fecha ISO que escribe la app).
       allow update: if isSelf(uid)
         && request.resource.data.diff(resource.data).affectedKeys()
-      // PROPÓSITO AL REGISTRARSE (AUTH-2026-11-01-141; diseño de
+      // PROPÓSITO AL REGISTRARSE (AUTH-2026-11-01-145; diseño de
       // Ronald 2026-11-01 y su decisión (c) del mismo día): la
       // declaración de propósito del propio usuario — elegida en
       // la ventana obligatoria del registro y pedida UNA vez a
