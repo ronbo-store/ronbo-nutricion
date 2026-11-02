@@ -2994,3 +2994,29 @@ body.sess-on #pend-back-chip { bottom: calc(env(safe-area-inset-bottom, 0px) + 1
 .sess-send:disabled { opacity: .45; }
 .sess-skip { display: block; margin: 8px auto 0; background: none; border: none; font-family: inherit; font-size: 15px; font-weight: 600; color: #64748b; cursor: pointer; min-height: 44px; padding: 10px 18px; }
 /* == FIN CRONÓMETRO DE SESIÓN + ENCUESTA == */
+
+/* ===== AUTH-178 — FILA DEL DÍA CERRADA: EL SELLO DE HECHO BAJA A SU
+   PROPIA LÍNEA (2026-11-02; reporte en vivo de Ronald 13:06 CST: la
+   vista del día «se ve desordenada») =====
+   Causa medida sobre el código servido (AUTH-177): el bloque de
+   récords de AUTH-161 (~115 px, flex:none) y el sello «✓ Hecho ·
+   RPE n» (~107 px, flex:none) comparten la única línea de la fila
+   con la foto (32 px) y el nombre (flex:1, min-width:0): a 390 px la
+   columna del nombre queda en ~45 px en producción y a 360 px en
+   ~15 px — las palabras se parten letra a letra por el resguardo
+   overflow-wrap:anywhere de AUTH-165 (que midió el modo edición,
+   cuyo check ocupa ~58 px, nunca el sello) y la fila crece hasta
+   162 px con los récords flotando a mitad de fila. Arreglo contenido
+   en la fila: a ≤480 px, SOLO en filas compactas con sello de hecho,
+   la fila envuelve; el nombre conserva un suelo de 118 px junto a la
+   foto y los récords en la primera línea (a 360 px la columna queda
+   en ~125 px en producción, el ancho sano del modo edición) y el
+   sello baja solo a una segunda línea, alineado a la derecha bajo
+   los récords. Sin sello — o sin compatibilidad con :has — la fila
+   queda como estaba. */
+@media (max-width: 480px) {
+  .train-ex-compact:has(> .train-ex-side .ok-badge) { flex-wrap: wrap; row-gap: 4px; }
+  .train-ex-compact:has(> .train-ex-side .ok-badge) .train-ex-info { min-width: 118px; }
+  .train-ex-compact:has(> .train-ex-side .ok-badge) .train-ex-side { margin-left: auto; }
+}
+/* == FIN AUTH-178 == */
