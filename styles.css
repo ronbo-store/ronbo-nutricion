@@ -2833,3 +2833,42 @@ body.prog-page #progress-content.nav-page-on { padding-right: 88px; }
    privacidad) pasa por debajo de la pila a ningún scroll. Ni el
    dock ni la pila se mueven: sus reglas quedan byte a byte. ═══ */
 #perms-panel { padding-right: 88px; }
+
+/* == COLISIÓN HISTORIAL FILA (AUTH-165) == */
+/* Corrección del paquete AUTH-161 (reporte de Ronald con captura,
+   2026-11-02 09:18 CST): en la fila compacta del día, los hermanos
+   fijos (miniatura 44 + bloque de récords ~150 + check ~64 + huecos
+   y rellenos) dejan la columna del nombre en ~32 px a 360 px (y en
+   ~0 px dentro de una hoja flotante); como el nombre no tenía
+   envoltura forzada, sus palabras largas se pintaban FUERA de su
+   caja, encima del bloque SERIES · REPS MÁX · PESO MÁX. Las cajas
+   de los elementos nunca se cruzan — por eso la batería de
+   AUTH-161, que medía cajas, dio verde —; lo que se cruza es el
+   TEXTO pintado. Arreglo solo de layout, sin tocar el diseño en
+   anchos normales ni el cálculo de récords:
+   1) Resguardo a todo ancho: el nombre y la prescripción de la
+      fila compacta envuelven dentro de su columna aunque una
+      palabra supere su ancho (los glifos jamás salen de la caja).
+   2) En anchos estrechos (≤480 px, acotado a la fila compacta):
+      se reparte el espacio — rellenos y huecos menores, miniatura
+      44→32 px, rótulos del bloque 8→7 px y valores 14→12.5 px,
+      columnas sin mínimo, y el check un punto menor — para que la
+      columna del nombre respire. La tira de acciones de AUTH-161
+      no se toca. */
+.train-ex-compact .train-ex-name, .train-ex-compact .train-ex-spec { overflow-wrap: anywhere; }
+@media (max-width: 480px) {
+  .train-day.train-day-dressed { padding: 10px 8px 12px; }
+  .train-ex-compact { gap: 6px; padding: 8px 6px; }
+  .train-day-dressed .train-ex-compact { padding: 8px 6px; }
+  .train-day-dressed .train-ex-compact .train-ex-photo { width: 32px; height: 32px; }
+  .train-ex-compact .train-ex-hist { padding-left: 3px; }
+  .train-ex-compact .train-ex-hist-cols { gap: 4px; }
+  .train-ex-compact .train-ex-hist-col { min-width: 0; }
+  .train-ex-compact .train-ex-hist-lab { font-size: 7px; letter-spacing: .2px; }
+  .train-ex-compact .train-ex-hist-val { font-size: 12.5px; }
+  .train-ex-compact .train-ex-side { gap: 4px; }
+  .train-ex-compact .train-ex-check { font-size: 11.5px; }
+  .train-ex-compact .train-ex-side input { width: 18px; height: 18px; }
+  .train-ex-compact .train-ex-name { font-size: 14.5px; }
+}
+/* == FIN AUTH-165 == */
