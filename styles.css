@@ -3017,6 +3017,6 @@ body.sess-on #pend-back-chip { bottom: calc(env(safe-area-inset-bottom, 0px) + 1
 @media (max-width: 480px) {
   .train-ex-compact:has(> .train-ex-side .ok-badge) { flex-wrap: wrap; row-gap: 4px; }
   .train-ex-compact:has(> .train-ex-side .ok-badge) .train-ex-info { min-width: 118px; }
-  .train-ex-compact:has(> .train-ex-side .ok-badge) .train-ex-side { margin-left: auto; }
+  .train-ex-compact:has(> .train-ex-side .ok-badge) .train-ex-side { flex-basis: 100%; align-items: flex-end; }
 }
 /* == FIN AUTH-178 == */
