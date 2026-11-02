@@ -1201,7 +1201,7 @@ function rolePendItems() {
         push('alumno|eval', 'goals-setup', t('pend.role.evalTitle'), t('pend.role.evalDetail'), t('pend.role.evalGo'));
       const consent = (typeof specIsActive === 'function') ? specIsActive(UDATA) : false;
       if (!consent)
-        push('alumno|consent', 'perms', t('pend.role.consentTitle'), t('pend.role.consentDetail'), t('pend.role.consentGo'));
+        push('alumno|consent', 'perms-spec', t('pend.role.consentTitle'), t('pend.role.consentDetail'), t('pend.role.consentGo'));
       else if (typeof activeDecl === 'function' && typeof declLoadState !== 'undefined' && declLoadState === 'ok' && !activeDecl())
         push('alumno|parq', 'perms', t('pend.role.parqTitle'), t('pend.role.parqDetail'), t('pend.role.parqGo'));
       if (typeof hasAnyGoal === 'function' && !hasAnyGoal())
@@ -1210,6 +1210,30 @@ function rolePendItems() {
       const reqLive = !!((typeof MY_MEAL_REQ !== 'undefined' && MY_MEAL_REQ) && (MY_MEAL_REQ.status === 'pendiente_entrenador' || MY_MEAL_REQ.status === 'pendiente_administrador'));
       if (!mealsOn2 && !reqLive)
         push('alumno|meals', 'mytrainer', t('pend.role.mealsTitle'), t('pend.role.mealsDetail'), t('pend.role.mealsGo'));
+      /* AUTH-2026-11-02-163 (punto 65 de la cola; regla de Ronald
+         2026-11-02 00:35 CST: todo directo): el permiso de análisis
+         de tipo corporal TAMBIÉN es pendiente de la PROPIA persona
+         cuando el módulo le es visible (cuentas piloto, btPilot):
+         COMPLEMENTARIO y opcional — nunca bloquea y nunca cuenta
+         como Indispensable/Importante; su categoría viaja declarada
+         en el propio ítem (cat:'comp') y pendItemCatOf, el
+         clasificador único, la lee. Desaparece solo cuando el
+         consentimiento está dado y vigente (btIsActive: la misma
+         señal del panel de Permisos y del ítem del entrenador,
+         studentsBodyItem). Sin módulo visible o con el permiso
+         vigente no hay ítem. Su ruta (perms-bt) abre el panel y
+         deja la sección con la casilla desplegada y el botón
+         «Dar mi consentimiento específico (fotos corporales)» a la
+         vista. La lógica del consentimiento no cambia: ni
+         btIsActive, ni BT_VERSION, ni el guardado. */
+      try {
+        if (typeof btPilot === 'function' && typeof btIsActive === 'function'
+            && auth.currentUser && btPilot(auth.currentUser.uid) && !btIsActive(UDATA)) {
+          push('alumno|body', 'perms-bt', t('pend.role.bodyTitle'), t('pend.role.bodyDetail'), t('pend.role.bodyGo'));
+          const bit = items[items.length - 1];
+          if (bit && bit.id === 'alumno|body') bit.cat = 'comp';
+        }
+      } catch {}
     } else if (ROLE === 'administrador' && ESC_ADMIN_COUNTS) {
       const c = ESC_ADMIN_COUNTS;
       if (c.accounts > 0) push('admin|accounts', 'admin-pending', t('pend.role.adminAccounts', { n: c.accounts }), '', t('pend.role.adminGo'));
@@ -1293,7 +1317,7 @@ function pendRouteSteps() {
     { n: 1, key: 'account', title: t('route.s1t'), desc: approved ? t('route.s1d') : t('route.s1wait'), state: approved ? 'done' : 'wait-admin' },
     { n: 2, key: 'trainer', title: t('route.s2t'), desc: t('route.s2d'), state: done(0) ? 'done' : 'todo', route: 'mytrainer', btn: t('route.chooseTrainer') },
     { n: 3, key: 'eval', title: t('route.s3t'), desc: t('route.s3d'), state: done(1) ? 'done' : 'todo', route: 'goals-setup', btn: t('route.edit') },
-    { n: 4, key: 'consent', title: t('route.s4t'), desc: t('route.s4d'), state: done(2) ? 'done' : 'todo', route: 'perms', btn: t('route.approve') },
+    { n: 4, key: 'consent', title: t('route.s4t'), desc: t('route.s4d'), state: done(2) ? 'done' : 'todo', route: 'perms-spec', btn: t('route.approve') },
     { n: 5, key: 'parq', title: t('route.s5t'), desc: t('route.s5d'), state: done(3) ? 'done' : 'todo', route: 'perms', btn: t('route.edit') },
     { n: 6, key: 'goals', title: t('route.s6t'), desc: t('route.s6d'), state: done(4) ? 'done' : 'todo', route: 'goals-setup', btn: t('route.edit') },
     { n: 7, key: 'meals', title: t('route.s7t'), desc: t('route.s7d'), state: mealsOn ? 'done' : (reqStatus ? (reqStatus === 'pendiente_entrenador' ? 'wait-trainer' : 'wait-admin') : 'todo'), route: 'mytrainer', btn: t('route.request') },
@@ -4266,6 +4290,9 @@ en: {
   'pend.role.consentTitle': 'Give your specific health consent',
   'pend.role.consentDetail': 'The checkbox that lets your trainer see your health declaration and adapt your program. Without it, no health data is collected.',
   'pend.role.consentGo': 'Review and give consent',
+  'pend.role.bodyTitle': 'Body-type analysis permission — optional',
+  'pend.role.bodyDetail': 'Optional, and only if you want it: with your specific consent, your progress photos can be used to estimate your body type. You alone decide; it never blocks anything.',
+  'pend.role.bodyGo': 'Review the permission',
   'pend.role.parqTitle': 'Fill in your health declaration (PAR-Q) — optional',
   'pend.role.parqDetail': 'Optional, and it helps your trainer take precautions. It lives behind your specific consent, in Permissions & privacy.',
   'pend.role.parqGo': 'Fill in declaration',
@@ -6735,6 +6762,9 @@ es: {
   'pend.role.consentTitle': 'Da tu consentimiento específico de salud',
   'pend.role.consentDetail': 'La casilla que permite a tu entrenador ver tu declaración de salud y adaptar tu programa. Sin ella, no se recoge ningún dato de salud.',
   'pend.role.consentGo': 'Revisar y dar el consentimiento',
+  'pend.role.bodyTitle': 'Permiso de análisis de tipo corporal — opcional',
+  'pend.role.bodyDetail': 'Opcional, y solo si tú quieres: con tu consentimiento específico, tus fotos de progreso pueden usarse para estimar tu tipo corporal. Lo decides solo tú; nunca bloquea nada.',
+  'pend.role.bodyGo': 'Revisar el permiso',
   'pend.role.parqTitle': 'Rellena tu declaración de salud (PAR-Q) — opcional',
   'pend.role.parqDetail': 'Opcional, y ayuda a tu entrenador a tomar precauciones. Vive tras tu consentimiento específico, en Permisos y privacidad.',
   'pend.role.parqGo': 'Rellenar declaración',
@@ -18171,15 +18201,23 @@ function healthManageListHTML(infoHTML, itemsHTML, extraHTML = '') {
   return `<div class="manage-list" id="health-manage-list"${permsOpen ? '' : ' style="display:none"'}>${infoHTML ? `<div class="manage-info">${infoHTML}</div>` : ''}${itemsHTML}${extraHTML}</div>`;
 }
 /* La sección legal del otorgamiento (texto completo + casilla +
-   botón principal) es EXACTAMENTE la de siempre; en los estados
-   sin otorgar nace oculta y la revela el ítem de otorgar de la
-   lista, sin cambiar su estructura ni su comportamiento (E1). */
+   botón principal): los textos son EXACTAMENTE los de siempre,
+   palabra por palabra (health.specFullTitle como encabezado,
+   health.specText junto a la casilla, health.specHelp de ayuda),
+   y en los estados sin otorgar nace oculta y la revela el ítem de
+   otorgar de la lista.
+   TODO DIRECTO (AUTH-2026-11-02-163, punto 72 de la cola; regla de
+   Ronald 2026-11-02 00:35 CST): la casilla y el botón quedan
+   DIRECTOS al revelar la sección — el texto completo ya NO vive
+   dentro de un despliegue (<details>) que haya que abrir antes de
+   poder actuar; se lee en su sitio, encima de la casilla, sin ser
+   una puerta. El guardado no cambia: grantSpec sigue exigiendo la
+   casilla marcada (su antigua compuerta de despliegue queda
+   inerte: ya no existe #spec-details que consultar). */
 function specLegalHTML(grantBtnId, grantLabel) {
   return `<div id="spec-legal" style="display:none">
-      <details class="spec-details" id="spec-details">
-        <summary>${t('health.specFullTitle')}</summary>
-        <label class="consent-check"><input type="checkbox" id="spec-ok"> <span>${t('health.specText')}<small class="consent-help" data-help-key="health.specHelp">${t('health.specHelp')}</small></span></label>
-      </details>
+      <h3 class="history-title">${t('health.specFullTitle')}</h3>
+      <label class="consent-check"><input type="checkbox" id="spec-ok"> <span>${t('health.specText')}<small class="consent-help" data-help-key="health.specHelp">${t('health.specHelp')}</small></span></label>
       <button type="button" class="btn-primary btn-sm" id="${grantBtnId}">${grantLabel}</button>
     </div>`;
 }
@@ -18293,7 +18331,10 @@ function renderHealthPanel() {
   wire('btn-grant-reveal', () => {
     const s = $('spec-legal'); if (!s) return;
     s.style.display = '';
-    const det = $('spec-details'); if (det) det.scrollIntoView({ block: 'nearest' });
+    /* AUTH-2026-11-02-163: ya no hay despliegue que enfocar — la
+       propia sección revelada (casilla + botón directos) es el
+       destino del desplazamiento. */
+    s.scrollIntoView({ block: 'nearest' });
   });
   renumberManageItems($('health-manage-list'));
   /* Módulo Nivel 2 (desarrollo): la sección de estimación visual
@@ -29593,6 +29634,11 @@ function pendWaitRowHTML(kind) {
    ítems que pendCompute YA emitió, en su mismo orden. */
 function pendItemCatOf(it) {
   if (!it) return 'imp';
+  /* AUTH-2026-11-02-163: un ítem puede DECLARAR su categoría al
+     nacer (hoy solo el permiso corporal personal, Complementario
+     por decisión de Ronald — punto 65); el clasificador sigue
+     siendo único: lee la declaración antes que sus reglas. */
+  if (it.cat === 'ind' || it.cat === 'imp' || it.cat === 'comp') return it.cat;
   if (it.type === 'role' || it.type === 'energy') return 'ind';
   return 'imp';
 }
@@ -29736,6 +29782,27 @@ function pendReadForm() {
     cutoff: v('pc-cutoff') || '04:00'
   };
 }
+/* TODO DIRECTO (AUTH-2026-11-02-163, punto 71 de la cola; regla de
+   Ronald 2026-11-02 00:35 CST: «que sea todo más diligente y más
+   directo»): el pendiente del consentimiento específico de salud,
+   al tocarlo, deja la superficie del consentimiento LISTA — se
+   ejecuta el mismo gesto que hoy exige adivinar el ítem «Dar mi
+   consentimiento específico y empezar mi declaración» de la lista
+   (revelar #spec-legal, donde la casilla y el botón ya viven
+   directos, punto 72) y el botón de otorgar queda centrado en
+   pantalla: desde Pendientes, UN toque y el botón está listo para
+   pulsarse. No se otorga nada desde aquí: la casilla la marca la
+   persona y el botón lo pulsa la persona. Si el consentimiento ya
+   está vigente no hay ítem, ni botón de revelar, ni botón de
+   otorgar: la función no hace nada y la ruta cae en la sección de
+   salud, como la ruta 'perms' de siempre. */
+function pendRevealSpecDirect() {
+  const rv = $('btn-grant-reveal');
+  if (rv) { try { rv.click(); } catch {} }
+  const gb = $('btn-spec-start') || $('btn-spec-renew');
+  if (gb) { try { gb.scrollIntoView({ behavior: 'smooth', block: 'center' }); } catch {} }
+}
+
 /* «Revisar» del aviso «esperando entrenador» → DIRECTO a la bandeja
    de espera (corrección ordenada por Ronald, chat RONBO.NUTRI
    2026-10-30 15:28 CDT: «que caiga directo en la bandeja de espera»).
@@ -29901,6 +29968,8 @@ setInterval(() => { try { pendDockTick(); } catch {} }, 60000);
           else if (route === 'mytrainer') { switchTab('track'); scroll('my-trainer-box'); }
           else if (route === 'eval') { navOpenPage('progress'); progSetSub('fotos'); scroll('eval-root'); }
           else if (route === 'perms') { const pb = $('btn-perms'); if (pb && !permsOpen) pb.click(); scroll('health-section'); }
+          else if (route === 'perms-spec') { const pb = $('btn-perms'); if (pb && !permsOpen) pb.click(); scroll('health-section'); pendRevealSpecDirect(); }
+          else if (route === 'perms-bt') { const pb = $('btn-perms'); if (pb && !permsOpen) pb.click(); const bd = $('bt-details'); if (bd) bd.open = true; const gb = $('btn-bt-grant'); if (gb) { try { gb.scrollIntoView({ behavior: 'smooth', block: 'center' }); } catch {} } else scroll('bt-section'); }
           else if (route === 'goals') { switchTab('track'); scroll('rings'); }
           else if (route === 'goals-setup') { switchTab('track'); scroll('goals-engine'); const pb2 = $('btn-perms'); if (pb2 && !permsOpen) pb2.click(); scroll('energy-section'); }
           else if (route === 'clients') { switchTab('clients'); }
@@ -30824,7 +30893,7 @@ document.addEventListener('keydown', e => { if (e.key === 'Escape') shareClose()
  *  - El SW (sw.js) solo cachea la cáscara del mismo origen en modo
  *    RED PRIMERO: Auth/Firestore/Worker jamás pasan por la caché.
  * ================================================================ */
-const PWA_SW_VERSION = '20261102-limites';
+const PWA_SW_VERSION = '20261102-todo-directo';
 let pwaDeferredPrompt = null;
 function pwaIsStandalone() {
   try {

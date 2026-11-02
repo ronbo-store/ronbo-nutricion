@@ -2803,3 +2803,21 @@ body.prog-page #progress-content.nav-page-on { padding-right: 88px; }
 .nav-page-back { flex: none; min-height: 45px; padding: 10px 14px; white-space: nowrap; }
 .modal-back { min-height: 45px; padding: 10px 14px; margin: 0 0 8px; white-space: nowrap; }
 #pend-back-chip { position: fixed; left: 12px; bottom: calc(env(safe-area-inset-bottom, 0px) + 128px); z-index: 44; min-height: 45px; padding: 10px 16px; border: none; border-radius: 999px; background: #0d9488; color: #fff; font-family: inherit; font-size: 14.5px; font-weight: 700; box-shadow: 0 8px 22px rgba(15, 23, 42, .20); cursor: pointer; white-space: nowrap; }
+
+/* ════════════════════════════════════════════════════════════════
+   TODO DIRECTO — RESGUARDO DERECHO DE «PERMISOS Y PRIVACIDAD»
+   (AUTH-2026-11-02-163, punto 72 de la cola; regla de Ronald
+   2026-11-02 00:35 CST: todo directo, sin que nada tape la acción).
+   Diagnóstico medido sobre lo servido: la pila flotante de 4 discos
+   (compartir · «?» · cronómetro · llamita: fixed, right:14, 58 px,
+   z 44) cae sobre la banda derecha del panel de Permisos — en la
+   captura de Ronald el disco del cronómetro tapaba el propio botón
+   de otorgar el consentimiento específico — porque #perms-panel no
+   tenía el resguardo que Progreso ganó en AUTH-131 y que AUTH-151
+   aplicó a las bandejas de Clientes y al editor de Accesos.
+   La guarda es la de la casa: 88 px de relleno derecho (la banda de
+   la pila: 14 + 58 = 72, más 16 de respiro) sobre el panel entero,
+   así ningún botón de acción del panel (otorgar, renovar, retirar,
+   privacidad) pasa por debajo de la pila a ningún scroll. Ni el
+   dock ni la pila se mueven: sus reglas quedan byte a byte. ═══ */
+#perms-panel { padding-right: 88px; }
