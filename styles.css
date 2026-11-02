@@ -2727,3 +2727,29 @@ body.prog-page #progress-content.nav-page-on { padding-right: 88px; }
 .students-row-block > .srow { border: none; border-radius: 0; margin-bottom: 0; background: transparent; width: 100%; }
 .students-row-pend { border-top: 1px solid #eef2f5; padding: 2px 14px 8px; }
 .students-row-pend .pend-cat { margin: 10px 0 4px; }
+/* ═══ CHOQUE DEL DOCK Y LA PILA (corrección 2026-11-01): la auditoría de las
+   vistas principales midió en el DOM vivo que la reserva final histórica
+   «#app-view .foot { margin-bottom: 132px }» NUNCA se aplicaba — el pie es
+   hijo directo de body, fuera de #app-view, así que el selector no casa y la
+   reserva tras el pie era 0 px — y el último contenido de cada vista de
+   documento quedaba bajo la pastilla del dock (el botón «Asignar» de la
+   bandeja de espera de Clientes, la última fila de Mis alumnos — en el
+   entrenador ni hay scroll que la libere —, el botón «Novedades» de Mi
+   perfil, Aprobar/Rechazar del entrenador). (1) RESERVA FINAL REAL: la
+   reserva pasa a PADDING del propio pie — el relleno no colapsa ni depende
+   del padre — con la cifra de la casa (132 = alto del dock + su margen +
+   respiro), y el margen histórico queda anulado para que jamás se duplique
+   si el pie volviera dentro de #app-view. En páginas cortas el pie no se
+   mueve (el relleno va bajo su texto) y solo aparece scroll cuando el
+   contenido ya quedaba a menos de la reserva del borde inferior — justo
+   cuando la reserva hace falta. (2) RESGUARDO DERECHO de 88 px (precedente
+   AUTH-131) SOLO donde la auditoría probó texto o acciones atrapados al
+   final de la vista bajo la pila flotante, sin posición de scroll que los
+   libere: las dos bandejas de fin de Clientes (#waiting-box y
+   #approvals-box — su párrafo queda tapado por la llamita en la captura de
+   Ronald) y el editor de preguntas de Accesos (#faq-editor-box, cuya última
+   caja de texto queda bajo la llamita a scroll máximo). Ni el dock ni la
+   pila se mueven: sus reglas quedan byte a byte. ═══ */
+#app-view .foot { margin-bottom: 0; }
+.foot { padding-bottom: 132px; }
+#waiting-box, #approvals-box, #faq-editor-box { padding-right: 88px; }
