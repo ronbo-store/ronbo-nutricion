@@ -21,7 +21,7 @@
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-title" content="RONBO FIT">
 <meta name="apple-mobile-web-app-status-bar-style" content="default">
-<link rel="stylesheet" href="styles.css?v=20261102-resumen-diario-ab">
+<link rel="stylesheet" href="styles.css?v=20261102-cronometro-sesion">
 <script defer src="https://cloud.umami.is/script.js" data-website-id="a29706d4-44a2-47cf-900a-5f74d74abfa8"></script>
 <script type="importmap">
 {
@@ -660,6 +660,32 @@
       <button type="button" class="pend-close nav-page-x" id="appr-float-x" aria-label="Close" data-i18n-aria="client.close">✕</button>
     </div>
     <div id="appr-float-list"><div class="wempty" data-i18n="access.loading">Loading…</div></div>
+  </div>
+  <!-- CRONÓMETRO DE SESIÓN (punto 88 de la cola; diseño cerrado de
+       Ronald 2026-11-02, maqueta aprobada tal cual): la PASTILLA
+       fina y fija sobre el dock, visible en todas las pantallas
+       mientras la sesión viva — punto verde pulsante, tiempo
+       HH:MM:SS y el foco del día; tocarla lleva a Entrenamiento.
+       Nace oculta: la enciende y la apaga sessPillTick (app.js)
+       desde el sello local del cronómetro. Y la ENCUESTA breve al
+       finalizar: una pregunta, cinco caritas, saltable siempre —
+       su respuesta viaja en el training_logs del propio cierre. -->
+  <button type="button" id="sess-pill" style="display:none">
+    <span class="sess-pill-row"><span class="sess-pill-dot" aria-hidden="true"></span><span class="sess-pill-time" id="sess-pill-time">00:00:00</span><span class="sess-pill-label" id="sess-pill-label"></span></span>
+    <span class="sess-pill-sub" data-i18n="sess.pillSub">It only stops when you finish, in Training</span>
+  </button>
+  <div id="sess-survey" style="display:none" role="dialog" aria-modal="true">
+    <div class="sess-survey-veil" data-sess-skip="1"></div>
+    <div class="sess-survey-card">
+      <button type="button" class="sess-survey-x" data-sess-skip="1" aria-label="Close" data-i18n-aria="client.close">✕</button>
+      <p class="sess-survey-kicker" data-i18n="sess.kicker">QUICK SURVEY</p>
+      <h2 class="sess-survey-title" data-i18n="sess.title">Workout finished!</h2>
+      <p class="sess-survey-dur"><span aria-hidden="true">⏱</span> <span id="sess-survey-dur"></span></p>
+      <p class="sess-survey-q" data-i18n="sess.q">How was your workout?</p>
+      <div class="sess-faces" id="sess-faces"></div>
+      <button type="button" class="btn-primary sess-send" id="sess-send" disabled data-i18n="sess.send">Send</button>
+      <button type="button" class="sess-skip" data-sess-skip="1" data-i18n="sess.skip">Not now</button>
+    </div>
   </div>
   <!-- Ventana flotante de detalle de anillo (Ronald, 2026-10-21): al
        tocar un anillo pequeño de la fila se abre con el anillo GRANDE
@@ -1606,6 +1632,6 @@
 <div id="toast" class="toast"></div>
 <div id="print-card" aria-hidden="true"></div>
 
-<script type="module" src="app.js?v=20261102-resumen-diario-ab"></script>
+<script type="module" src="app.js?v=20261102-cronometro-sesion"></script>
 </body>
 </html>

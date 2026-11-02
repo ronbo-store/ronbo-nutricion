@@ -3540,6 +3540,16 @@ en: {
   'train.strip.doneToday': 'Done today', 'train.strip.skip': 'Skip', 'train.strip.add': '+ Add',
   'train.strip.cardio': 'Cardio', 'train.strip.core': 'Core', 'train.strip.stretch': 'Stretch',
   'train.chronoRunning': '⏱ Session in progress: {min} min',
+  /* CRONÓMETRO DE SESIÓN FIJO + ENCUESTA (punto 88 de la cola,
+     decisiones de Ronald 2026-11-02 11:54/11:57/12:06/12:07 CST):
+     la pastilla sobre el dock y la encuesta de una pregunta. */
+  'sess.pillLabel': 'Training · {label}', 'sess.pillPlain': 'Training',
+  'sess.pillSub': 'It only stops when you finish, in Training',
+  'sess.kicker': 'QUICK SURVEY', 'sess.title': 'Workout finished!',
+  'sess.dur': 'Duration: {d}', 'sess.durMin': '{m} min', 'sess.durHM': '{h} h {m} min',
+  'sess.q': 'How was your workout?',
+  'sess.face.1': 'Very bad', 'sess.face.2': 'Bad', 'sess.face.3': 'OK', 'sess.face.4': 'Good', 'sess.face.5': 'Excellent!',
+  'sess.send': 'Send', 'sess.skip': 'Not now',
   'train.durLabel': 'Session duration (minutes)',
   'train.durAutoNote': 'Filled from your session timer — correct it if it does not match.',
   'train.durCapped': 'The timer passed 4 h, so the suggestion is capped at 240 min — correct it to your real time.',
@@ -6025,6 +6035,16 @@ es: {
   'train.strip.doneToday': 'Hecho hoy', 'train.strip.skip': 'Saltar', 'train.strip.add': '+ Agregar',
   'train.strip.cardio': 'Cardio', 'train.strip.core': 'Core', 'train.strip.stretch': 'Estirar',
   'train.chronoRunning': '⏱ Sesión en curso: {min} min',
+  /* CRONÓMETRO DE SESIÓN FIJO + ENCUESTA (punto 88 de la cola,
+     decisiones de Ronald 2026-11-02 11:54/11:57/12:06/12:07 CST):
+     la pastilla sobre el dock y la encuesta de una pregunta. */
+  'sess.pillLabel': 'Entrenando · {label}', 'sess.pillPlain': 'Entrenando',
+  'sess.pillSub': 'Solo se detiene al finalizar, en Entrenamiento',
+  'sess.kicker': 'ENCUESTA RÁPIDA', 'sess.title': '¡Entrenamiento finalizado!',
+  'sess.dur': 'Duración: {d}', 'sess.durMin': '{m} min', 'sess.durHM': '{h} h {m} min',
+  'sess.q': '¿Qué tal tu entrenamiento?',
+  'sess.face.1': 'Muy mal', 'sess.face.2': 'Mal', 'sess.face.3': 'Normal', 'sess.face.4': 'Bien', 'sess.face.5': '¡Excelente!',
+  'sess.send': 'Enviar', 'sess.skip': 'Ahora no',
   'train.durLabel': 'Duración de la sesión (minutos)',
   'train.durAutoNote': 'Rellenado con el cronómetro de tu sesión — corrígelo si no coincide.',
   'train.durCapped': 'El cronómetro pasó de 4 h, así que la sugerencia se limita a 240 min — corrígela a tu tiempo real.',
@@ -20170,17 +20190,42 @@ function trainChronoWrite(planId, v) {
   try { if (v) localStorage.setItem(trainChronoKey(planId), JSON.stringify(v));
     else localStorage.removeItem(trainChronoKey(planId)); } catch {}
 }
-function trainChronoStart(planId) {
-  const now = Date.now();
-  const c = trainChronoRead(planId);
-  if (c) { c.last = now; trainChronoWrite(planId, c); }
-  else trainChronoWrite(planId, { start: now, last: now });
+/* CRONÓMETRO DE SESIÓN (punto 88 de la cola, 2026-11-02): UNA sola
+   sesión corriendo a la vez. Si ya hay un reloj de HOY para OTRO
+   plan, ni Iniciar ni una marca crean el segundo: la sesión que
+   corre es la que vale y solo se detiene al finalizarla. La
+   etiqueta del día (el foco que muestra la pastilla) se sella al
+   NACER el reloj y no cambia con los toques. */
+function trainChronoAnyToday(exceptPlanId) {
+  const uid = auth.currentUser ? auth.currentUser.uid : '';
+  if (!uid) return null;
+  const pre = 'ronbofit-chrono-' + uid + '|', suf = '|' + todayISO();
+  try {
+    for (let i = 0; i < localStorage.length; i++) {
+      const k = localStorage.key(i);
+      if (!k || !k.startsWith(pre) || !k.endsWith(suf)) continue;
+      const pid = k.slice(pre.length, k.length - suf.length);
+      if (pid === exceptPlanId) continue;
+      const v = JSON.parse(localStorage.getItem(k) || 'null');
+      if (v && typeof v.start === 'number') return { planId: pid, start: v.start };
+    }
+  } catch {}
+  return null;
 }
-function trainChronoTouch(planId) {
+function trainDayLabelOf(plan, di) {
+  return di === -1 ? t('train.free.label') : ((((plan || {}).days) || [])[di] || {}).label || '';
+}
+function trainChronoStart(planId, label) {
   const now = Date.now();
   const c = trainChronoRead(planId);
   if (c) { c.last = now; trainChronoWrite(planId, c); }
-  else trainChronoWrite(planId, { start: now, last: now });
+  else if (!trainChronoAnyToday(planId)) trainChronoWrite(planId, { start: now, last: now, label: label || '' });
+}
+function trainChronoTouch(planId, label) {
+  const now = Date.now();
+  const c = trainChronoRead(planId);
+  if (c) { c.last = now; trainChronoWrite(planId, c); }
+  else if (!trainChronoAnyToday(planId)) trainChronoWrite(planId, { start: now, last: now, label: label || '' });
 }
 /* Minutos sugeridos al cerrar: última marca − inicio (D1 híbrida +
    Anexo 2). Más de 240 se recorta a 240 y se avisa (capped). */
@@ -20202,6 +20247,116 @@ function trainChronoHTML(planId, di) {
   const run = c ? `<span class="train-chrono-run">${t('train.chronoRunning', { min: Math.max(0, Math.round((Date.now() - c.start) / 60000)) })}</span>` : '';
   return `<div class="train-chrono-pair"><button type="button" class="btn-chrono-finish" data-train-done="${di}">${t('train.chronoFinishBtn')}</button>${run}<button type="button" class="btn-chrono-start3d" data-train-start="${di}">${t('train.chronoStartBtn')}</button></div>`;
 }
+/* ═══ CRONÓMETRO DE SESIÓN FIJO + ENCUESTA (punto 88 de la cola;
+   diseño cerrado de Ronald 2026-11-02: propuesta suya 11:54 CST,
+   lectura confirmada 11:57, maqueta aprobada tal cual 12:06 y
+   visibilidad decidida 12:07 — la respuesta la ven el alumno y su
+   entrenador). LA PASTILLA: fina, fija SOBRE el dock, visible en
+   todas las pantallas mientras la sesión viva — se auto-resuelve
+   cada segundo desde el MISMO sello local del cronómetro (por
+   usuario|plan|hoy), así que sobrevive a cerrar y reabrir la app
+   con el tiempo contado desde el arranque guardado, sin parada
+   automática. Tocarla lleva a Entrenamiento, a la sesión que
+   corre (hoy). LA ENCUESTA: la abre el confirmar del cierre
+   cuando hay reloj corriendo; su respuesta (1–5) o su salto
+   (null) viajan EN el training_logs del propio cierre — una sola
+   escritura, la de siempre, con dos campos más (elapsedSec y
+   satisfaction) que solo nacen cuando hubo cronómetro. ═══ */
+const SESS_FACES = ['😖', '😕', '🙂', '😄', '🤩'];
+function sessRunning() {
+  const uid = auth.currentUser ? auth.currentUser.uid : '';
+  if (!uid) return null;
+  const pre = 'ronbofit-chrono-' + uid + '|', suf = '|' + todayISO();
+  let best = null;
+  try {
+    for (let i = 0; i < localStorage.length; i++) {
+      const k = localStorage.key(i);
+      if (!k || !k.startsWith(pre) || !k.endsWith(suf)) continue;
+      const v = JSON.parse(localStorage.getItem(k) || 'null');
+      if (v && typeof v.start === 'number' && (!best || v.start < best.start))
+        best = { planId: k.slice(pre.length, k.length - suf.length), start: v.start, label: typeof v.label === 'string' ? v.label : '' };
+    }
+  } catch {}
+  return best;
+}
+function sessFmtClock(ms) {
+  const s = Math.max(0, Math.floor(ms / 1000)), p2 = n => String(n).padStart(2, '0');
+  return p2(Math.floor(s / 3600)) + ':' + p2(Math.floor((s % 3600) / 60)) + ':' + p2(s % 60);
+}
+function sessDurText(sec) {
+  const m = Math.round(Math.max(0, sec) / 60);
+  if (m < 60) return t('sess.durMin', { m: Math.max(1, m) });
+  return t('sess.durHM', { h: Math.floor(m / 60), m: m % 60 });
+}
+/* La línea del registro cerrado: duración REAL del cronómetro y,
+   si la hubo, la carita con su palabra. La pintan el detalle del
+   día del alumno y el detalle del día para su entrenador — las
+   reglas de training_logs ya limitan la lectura al dueño, al
+   entrenador asignado y al propietario: nadie más la ve. */
+function trainLogMetaHTML(log) {
+  if (!log || typeof log.elapsedSec !== 'number' || !isFinite(log.elapsedSec)) return '';
+  const parts = ['⏱ ' + sessDurText(log.elapsedSec)];
+  if (Number.isInteger(log.satisfaction) && log.satisfaction >= 1 && log.satisfaction <= 5)
+    parts.push(SESS_FACES[log.satisfaction - 1] + ' ' + t('sess.face.' + log.satisfaction));
+  return ` <span class="muted train-log-meta">${parts.join(' · ')}</span>`;
+}
+let SESS_PILL_TIMER = null;
+function sessPillTick() {
+  const pill = $('sess-pill'); if (!pill) return;
+  const run = sessRunning();
+  if (!run) { pill.style.display = 'none'; document.body.classList.remove('sess-on'); return; }
+  pill.style.display = '';
+  document.body.classList.add('sess-on');
+  const timeEl = $('sess-pill-time');
+  if (timeEl) timeEl.textContent = sessFmtClock(Date.now() - run.start);
+  const labEl = $('sess-pill-label');
+  if (labEl) {
+    const txt = run.label ? t('sess.pillLabel', { label: run.label }) : t('sess.pillPlain');
+    if (labEl.textContent !== txt) labEl.textContent = txt;
+  }
+}
+function sessPillInit() {
+  const pill = $('sess-pill'); if (!pill) return;
+  pill.onclick = () => {
+    const run = sessRunning(); if (!run) return;
+    try { TRAIN_VIEW = { planId: run.planId, sel: todayISO() }; } catch {}
+    navOpenPage('train');
+    try { loadMyTraining(); } catch {}
+    sessPillTick();
+  };
+  if (SESS_PILL_TIMER) clearInterval(SESS_PILL_TIMER);
+  SESS_PILL_TIMER = setInterval(sessPillTick, 1000);
+  sessPillTick();
+}
+let SESS_SURVEY = null;
+function sessSurveyOpen(elapsedSec, done) {
+  const ov = $('sess-survey');
+  if (!ov) { done(null); return; }
+  SESS_SURVEY = { sel: 0, done, finished: false };
+  const durEl = $('sess-survey-dur');
+  if (durEl) durEl.textContent = t('sess.dur', { d: sessDurText(elapsedSec) });
+  const faces = $('sess-faces');
+  if (faces) {
+    faces.innerHTML = SESS_FACES.map((f, i) => `<button type="button" class="sess-face" data-sess-face="${i + 1}" aria-label="${esc(t('sess.face.' + (i + 1)))}"><span class="sess-face-em">${f}</span><span class="sess-face-lab">${esc(t('sess.face.' + (i + 1)))}</span></button>`).join('');
+    faces.querySelectorAll('[data-sess-face]').forEach(b => b.onclick = () => {
+      if (!SESS_SURVEY) return;
+      SESS_SURVEY.sel = Number(b.dataset.sessFace);
+      faces.querySelectorAll('.sess-face').forEach(x => x.classList.toggle('is-sel', Number(x.dataset.sessFace) === SESS_SURVEY.sel));
+      const send = $('sess-send'); if (send) send.disabled = SESS_SURVEY.sel < 1;
+    });
+  }
+  const send = $('sess-send');
+  if (send) { send.disabled = true; send.onclick = () => sessSurveyFinish(SESS_SURVEY && SESS_SURVEY.sel >= 1 ? SESS_SURVEY.sel : null); }
+  ov.querySelectorAll('[data-sess-skip]').forEach(b => b.onclick = () => sessSurveyFinish(null));
+  ov.style.display = '';
+}
+function sessSurveyFinish(satisfaction) {
+  const s = SESS_SURVEY; if (!s || s.finished) return;
+  s.finished = true; SESS_SURVEY = null;
+  const ov = $('sess-survey'); if (ov) ov.style.display = 'none';
+  s.done(satisfaction);
+}
+(function sessInit() { sessPillInit(); })();
 /* Panel de cierre (D1/D2/D4): duración corregible (pre-rellenada
    con la sugerencia del cronómetro), intensidad declarada
    (moderada por defecto; el RPE NO entra en el cálculo) y minutos
@@ -21308,7 +21463,7 @@ function trainFloatMirror(chrono) {
   const key = F.di + ':' + F.ei, d = F.draft;
   if (d.done) {
     TRAIN_CHECKS[key] = { rpe: d.rpe, sets: (Array.isArray(d.sets) ? d.sets : []).map(s => ({ ...s })), warmup: tfWarmSnap(d.warmup) };
-    if (chrono) trainChronoTouch(F.planId);
+    if (chrono) trainChronoTouch(F.planId, (typeof MY_PLAN !== 'undefined' && MY_PLAN && MY_PLAN.id === F.planId) ? trainDayLabelOf(MY_PLAN, F.di) : undefined);
   } else delete TRAIN_CHECKS[key];
   trainChecksPersist(F.planId);
 }
@@ -22204,7 +22359,7 @@ async function loadMyTraining() {
     let tail = tailHTML;
     if (tail == null) {
       if (mode === 'edit') tail = trainEditTailHTML(plan.id, di);
-      else if (mode === 'done') { const status = trainLogStatus(log); tail = `<div style="margin-top:8px">${trainStatusBadge(status)}${status === 'skipped' ? ` <span class="muted">${t('train.d.skippedNote')}</span>` : ''} <button class="btn-ghost btn-sm" data-train-undo="${di}">${t('train.undo')}</button></div>`; }
+      else if (mode === 'done') { const status = trainLogStatus(log); tail = `<div style="margin-top:8px">${trainStatusBadge(status)}${status === 'skipped' ? ` <span class="muted">${t('train.d.skippedNote')}</span>` : ''} <button class="btn-ghost btn-sm" data-train-undo="${di}">${t('train.undo')}</button>${trainLogMetaHTML(log)}</div>`; }
       else tail = '';
     }
     return `<h4>${esc(label)}</h4>${exHtml}${trainSessionHTML(day)}${tail}${trainExtrasZoneHTML()}`;
@@ -22254,7 +22409,7 @@ async function loadMyTraining() {
   };
   const dressedHistCard = (day, log) => {
     const inner = `<h4>${esc(log.dayLabel || day.label || '')}</h4>` + dressExRows(trainDayCompactHistHTML(day, log, log.dayIndex), log.dayIndex, 'read') + trainSessionHTML(day)
-      + `<div style="margin-top:8px">${trainStatusBadge(trainLogStatus(log))}</div>`;
+      + `<div style="margin-top:8px">${trainStatusBadge(trainLogStatus(log))}${trainLogMetaHTML(log)}</div>`;
     return trainDressedCardHTML(plan, logs, log.dayIndex, sel, inner, 'is-readonly');
   };
   let selCard = '';
@@ -22269,7 +22424,7 @@ async function loadMyTraining() {
         const stLine = logSD ? trainStatusBadge(trainLogStatus(logSD))
           : (other.length ? `${trainStatusBadge(trainLogStatus(other[0]))} <span class="muted">${esc(t('train.today.loggedOther', { label: other[0].dayLabel || dayLabelOf(other[0].dayIndex) }))}</span>`
             : trainStatusBadge('none'));
-        const innerP = `<h4>${esc(dayLabelOf(selDi))}</h4>` + dressExRows(trainDayCompactHistHTML(day, logSD, selDi), selDi, 'read') + trainSessionHTML(day) + `<div style="margin-top:8px">${stLine}</div>`;
+        const innerP = `<h4>${esc(dayLabelOf(selDi))}</h4>` + dressExRows(trainDayCompactHistHTML(day, logSD, selDi), selDi, 'read') + trainSessionHTML(day) + `<div style="margin-top:8px">${stLine}${logSD ? trainLogMetaHTML(logSD) : ''}</div>`;
         selCard = trainDressedCardHTML(plan, logs, selDi, sel, innerP, 'is-readonly') + trainShareRowHTML(selDi, sel);
       } else {
         const innerF = `<h4>${esc(dayLabelOf(selDi))}</h4>` + dressExRows((day.exercises || []).map((ex, ei) => trainExCompactHTML(ex, selDi, ei, 'ficha', null)).join(''), selDi, 'ficha') + trainSessionHTML(day) + `<div style="margin-top:8px"><span class="train-status st-skipped">● ${t('train.today.scheduled')}</span></div>`;
@@ -22447,7 +22602,7 @@ async function loadMyTraining() {
          se re-pinta para mostrarlas (todo input confirma al acto
          en TRAIN_CHECKS, así que re-pintar no pierde nada). */
       TRAIN_CHECKS[key] = { rpe: sel && sel.value ? Number(sel.value) : null, sets: trainDefaultSets(ex) };
-      trainChronoTouch(plan.id);   /* PUENTE: la marca alimenta el cronómetro (y lo arranca si no se pulsó INICIAR) */
+      trainChronoTouch(plan.id, trainDayLabelOf(plan, Number(diS)));   /* PUENTE: la marca alimenta el cronómetro (y lo arranca si no se pulsó INICIAR) */
       trainChecksPersist(plan.id);   /* MARCAS QUE SOBREVIVEN */
       loadMyTraining();
     } else {
@@ -22485,7 +22640,8 @@ async function loadMyTraining() {
     loadMyTraining();
   });
   box.querySelectorAll('[data-train-start]').forEach(b => b.onclick = () => {
-    trainChronoStart(plan.id);
+    trainChronoStart(plan.id, trainDayLabelOf(plan, Number(b.dataset.trainStart)));
+    sessPillTick();
     loadMyTraining();
   });
   box.querySelectorAll('[data-train-close-cancel]').forEach(b => b.onclick = () => {
@@ -22626,20 +22782,39 @@ async function loadMyTraining() {
       weightKgUsed: sessionKcal == null ? null : w.weight,
       metUsed: sessionKcal == null ? null : ACT_MET.entrenamiento_plan[inten] };
     if (removedEntries.length) data.exercisesRemoved = removedEntries;
-    try {
-      await setDoc(doc(db, 'training_logs', `${uid}_${plan.id}_${today}_${di}`), data);
-    } catch (e) { failToast(e); return; }
-    /* El volcado: la sesión entra en el día de actividad (o sale,
-       si el cierre quedó sin estimación) en la misma operación
-       lógica — una sola entrada, idempotente al re-cerrar. */
-    await trainDumpSession(today, sessionKcal == null ? null
-      : { type: 'entrenamiento_plan', typeCustom: '', durationMin: effMin, intensity: inten, rpe: rpeAvg, notes: '' });
-    trainChronoWrite(plan.id, null);
-    TRAIN_CLOSE_DI = null;
-    trainEditsClear(plan.id);   /* PERSONALIZA: los cambios de hoy ya viven en el registro; el borrador local se retira */
-    Object.keys(TRAIN_CHECKS).forEach(k => { if (k.split(':')[0] === String(di)) delete TRAIN_CHECKS[k]; });
-    trainChecksPersist(plan.id);   /* MARCAS QUE SOBREVIVEN: cerrado el día, el borrador de marcas se retira con él */
-    loadMyTraining();
+    /* CRONÓMETRO DE SESIÓN + ENCUESTA (punto 88 de la cola): si el
+       reloj de esta sesión corre, el confirmar lo DETIENE aquí —
+       la duración real se mide en este instante — y la encuesta
+       breve se interpone ANTES de la escritura: Enviar guarda la
+       respuesta (1–5) y «Ahora no»/✕ la dejan en null, pero en
+       ambos casos el cierre sigue con LA MISMA única escritura de
+       siempre, con elapsedSec y satisfaction añadidos al propio
+       registro. Si la escritura falla, el aviso es el de siempre y
+       nada se apaga: el reloj sigue corriendo y el panel de cierre
+       sigue abierto para reintentar. Sin reloj, el cierre es byte
+       a byte el de siempre, sin campos nuevos. */
+    const chronoC = trainChronoRead(plan.id);
+    const elapsedSec = chronoC ? Math.max(0, Math.round((Date.now() - chronoC.start) / 1000)) : null;
+    const finishClose = async satisfaction => {
+      if (chronoC) { data.elapsedSec = elapsedSec; data.satisfaction = satisfaction; }
+      try {
+        await setDoc(doc(db, 'training_logs', `${uid}_${plan.id}_${today}_${di}`), data);
+      } catch (e) { failToast(e); return; }
+      /* El volcado: la sesión entra en el día de actividad (o sale,
+         si el cierre quedó sin estimación) en la misma operación
+         lógica — una sola entrada, idempotente al re-cerrar. */
+      await trainDumpSession(today, sessionKcal == null ? null
+        : { type: 'entrenamiento_plan', typeCustom: '', durationMin: effMin, intensity: inten, rpe: rpeAvg, notes: '' });
+      trainChronoWrite(plan.id, null);
+      TRAIN_CLOSE_DI = null;
+      trainEditsClear(plan.id);   /* PERSONALIZA: los cambios de hoy ya viven en el registro; el borrador local se retira */
+      Object.keys(TRAIN_CHECKS).forEach(k => { if (k.split(':')[0] === String(di)) delete TRAIN_CHECKS[k]; });
+      trainChecksPersist(plan.id);   /* MARCAS QUE SOBREVIVEN: cerrado el día, el borrador de marcas se retira con él */
+      sessPillTick();
+      loadMyTraining();
+    };
+    if (chronoC) { sessSurveyOpen(elapsedSec, finishClose); return; }
+    await finishClose(null);
   });
   box.querySelectorAll('[data-train-skip]').forEach(b => b.onclick = async () => {
     const di = Number(b.dataset.trainSkip);
@@ -23178,7 +23353,7 @@ async function loadClientTraining(uid) {
     }
     return `<br><span class="act-flame-ico" aria-hidden="true">🔥</span> <span class="act-flame-num">${fmt(total)} ${t('act.kcalUnit')}</span>${parts}`;
   };
-  const logRows = logs.slice(0, 8).map(l => `<div class="train-ex"><span>${esc(l.dayLabel || '')}${logMarks(l)}${logBurn(l)}</span><span class="sx">${dateName(l.date)} ✓</span><button class="btn-ghost btn-sm" data-log-repeat="${l.id}">${t('train.repeat.fromHistory')}</button></div>`).join('');
+  const logRows = logs.slice(0, 8).map(l => `<div class="train-ex"><span>${esc(l.dayLabel || '')}${logMarks(l)}${logBurn(l)}${trainLogMetaHTML(l)}</span><span class="sx">${dateName(l.date)} ✓</span><button class="btn-ghost btn-sm" data-log-repeat="${l.id}">${t('train.repeat.fromHistory')}</button></div>`).join('');
   box.innerHTML = `
     <h3 class="history-title">${t('train.section')}</h3>
     <div style="margin-bottom:10px"><button class="btn-primary btn-sm" id="btn-plan-new">${t('train.new')}</button></div>
@@ -31462,7 +31637,7 @@ document.addEventListener('keydown', e => { if (e.key === 'Escape') shareClose()
  *  - El SW (sw.js) solo cachea la cáscara del mismo origen en modo
  *    RED PRIMERO: Auth/Firestore/Worker jamás pasan por la caché.
  * ================================================================ */
-const PWA_SW_VERSION = '20261102-resumen-diario-ab';
+const PWA_SW_VERSION = '20261102-cronometro-sesion';
 let pwaDeferredPrompt = null;
 function pwaIsStandalone() {
   try {
