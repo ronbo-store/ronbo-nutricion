@@ -3665,7 +3665,7 @@ en: {
   'purpose.adminSub': 'I run the platform.',
   'purpose.adminLocked': 'This role is not open for sign-up.',
   'purpose.own': 'I train on my own',
-  'purpose.ownSub': 'No trainer: I follow my own plan.',
+  'purpose.ownSub': 'No trainer: I follow my own plan, with weight tracking, food and autonomous training plans.',
   'purpose.withTrainer': 'I train with a trainer',
   'purpose.withTrainerSub': 'A trainer guides me.',
   'purpose.trainer': 'I am a trainer',
@@ -6108,7 +6108,7 @@ es: {
   'purpose.adminSub': 'Gestiono la plataforma.',
   'purpose.adminLocked': 'Este papel no está abierto al registro.',
   'purpose.own': 'Entreno por mi cuenta',
-  'purpose.ownSub': 'Sin entrenador: sigo mi propio plan.',
+  'purpose.ownSub': 'Sin entrenador: sigo mi propio plan, con seguimiento de peso, alimentación y planes de entrenamiento autónomo.',
   'purpose.withTrainer': 'Entreno con entrenador',
   'purpose.withTrainerSub': 'Un entrenador me acompaña.',
   'purpose.trainer': 'Soy entrenador',
@@ -30380,7 +30380,7 @@ document.addEventListener('keydown', e => { if (e.key === 'Escape') shareClose()
  *  - El SW (sw.js) solo cachea la cáscara del mismo origen en modo
  *    RED PRIMERO: Auth/Firestore/Worker jamás pasan por la caché.
  * ================================================================ */
-const PWA_SW_VERSION = '20261102-cancel-clave';
+const PWA_SW_VERSION = '20261102-texto-por-mi-cuenta';
 let pwaDeferredPrompt = null;
 function pwaIsStandalone() {
   try {
