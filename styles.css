@@ -3020,3 +3020,49 @@ body.sess-on #pend-back-chip { bottom: calc(env(safe-area-inset-bottom, 0px) + 1
   .train-ex-compact:has(> .train-ex-side .ok-badge) .train-ex-side { flex-basis: 100%; align-items: flex-end; }
 }
 /* == FIN AUTH-178 == */
+
+/* ===== INICIO AUTH-181 · Resumen diario: controles de la casa (punto 99) =====
+   Maqueta aprobada por Ronald el 2026-11-02 15:32 CST: el bloque
+   del resumen diario deja la casilla del sistema y el selector
+   nativo de AUTH-175 y pasa a un sub-panel propio (tinte verde
+   encendido / gris apagado), con la fila entera como botón — el
+   interruptor grande de la casa (56×32) y la palabra del estado
+   debajo — y la hora como botón grande que abre la ventana
+   flotante de horas (.ds-float/.ds-sheet: velo de la casa, hoja
+   inferior, rejilla de 48 botones con scroll interno). En el
+   mismo paquete, «Cambiar foto» sube a la fila de la foto del
+   perfil (.myprof-head), con toque de 44 px. */
+.ds-panel { border: 1px solid #bfe3d8; background: #edf7f3; border-radius: 20px; padding: 16px; margin-top: 14px; }
+.ds-panel.is-off { background: #f2f5f7; border-color: #dde4ea; }
+.ds-row { display: flex; align-items: center; gap: 12px; width: 100%; box-sizing: border-box; background: none; border: none; padding: 0; margin: 0; font: inherit; text-align: left; cursor: pointer; color: inherit; appearance: none; -webkit-appearance: none; }
+.ds-row-label { flex: 1 1 auto; min-width: 0; font-size: 18px; font-weight: 700; color: #1f2a44; line-height: 1.25; }
+.ds-row-side { flex: none; display: flex; flex-direction: column; align-items: flex-end; gap: 4px; }
+.ds-switch { width: 56px; height: 32px; border-radius: 999px; background: #0d9488; display: flex; align-items: center; padding: 4px; box-sizing: border-box; transition: background .15s ease; }
+.ds-panel.is-off .ds-switch { background: #c3cedb; }
+.ds-knob { width: 24px; height: 24px; border-radius: 50%; background: #fff; color: #0d9488; font-size: 13px; font-weight: 800; display: flex; align-items: center; justify-content: center; box-shadow: 0 1px 3px rgba(15, 23, 42, .25); margin-left: auto; line-height: 1; }
+.ds-panel.is-off .ds-knob { margin-left: 0; color: #8494a7; }
+.ds-state { font-size: 15px; font-weight: 700; color: #0d9488; }
+.ds-panel.is-off .ds-state { color: #8494a7; }
+.ds-time-row { display: flex; align-items: center; gap: 12px; margin-top: 14px; }
+.ds-time-label { flex: none; font-size: 16px; font-weight: 700; color: #1f2a44; }
+.ds-time-btn { flex: 1 1 auto; min-width: 0; height: 56px; background: #fff; border: 2px solid #0d9488; border-radius: 16px; display: flex; align-items: center; gap: 10px; padding: 0 16px; font: inherit; cursor: pointer; box-sizing: border-box; }
+.ds-time-btn:disabled { cursor: default; border-color: #aecfc6; }
+.ds-clock { font-size: 22px; line-height: 1; }
+.ds-time-val { font-size: 24px; font-weight: 800; color: #1f2a44; }
+.ds-panel.is-off .ds-time-val { color: #98a2ad; }
+.ds-chev { margin-left: auto; color: #0d9488; font-size: 15px; }
+.ds-panel.is-off .ds-chev { color: #aecfc6; }
+.myprof-head #myprof-photo-btn { margin-left: auto; flex: none; min-height: 44px; display: inline-flex; align-items: center; }
+.ds-float { position: fixed; inset: 0; background: rgba(15, 23, 42, .5); z-index: 60; display: flex; align-items: flex-end; justify-content: center; }
+.ds-sheet { background: #fff; width: min(430px, 100%); max-height: 82dvh; display: flex; flex-direction: column; border-radius: 24px 24px 0 0; padding: 18px 16px calc(14px + env(safe-area-inset-bottom)); box-sizing: border-box; box-shadow: 0 -12px 34px rgba(15, 23, 42, .25); }
+.ds-sheet-head { display: flex; align-items: flex-start; gap: 10px; }
+.ds-sheet-titles { flex: 1 1 auto; min-width: 0; }
+.ds-kicker { font-size: 12.5px; font-weight: 800; letter-spacing: .14em; color: #0d9488; text-transform: uppercase; }
+.ds-sheet-title { font-size: 26px; font-weight: 800; color: #1f2a44; margin-top: 2px; }
+.ds-sheet-sub { font-size: 14px; color: #6b7280; margin-top: 2px; }
+.ds-x { flex: none; width: 46px; height: 46px; border-radius: 50%; border: 1.5px solid #d7e3e1; background: #fff; color: #33475b; font: inherit; font-size: 17px; cursor: pointer; }
+.ds-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px; overflow-y: auto; margin-top: 16px; padding: 2px; }
+.ds-hour { min-height: 52px; border: 1.5px solid #e2e8f0; background: #f7fafc; border-radius: 14px; font: inherit; font-size: 16.5px; font-weight: 700; color: #33475b; cursor: pointer; }
+.ds-hour.sel { background: #0d9488; border-color: #0d9488; color: #fff; }
+.ds-note { text-align: center; color: #0d9488; font-weight: 600; font-size: 15px; margin: 14px 0 0; }
+/* == FIN AUTH-181 == */

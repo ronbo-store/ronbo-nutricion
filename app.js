@@ -1764,10 +1764,6 @@ async function renderProfileView() {
   const dsTimeOk = v => /^([01][0-9]|2[0-3]):(00|30)$/.test(v || '');
   const dsEffOn = dsSaved && typeof dsSaved.on === 'boolean' ? dsSaved.on : !!(typeof MY_PLAN !== 'undefined' && MY_PLAN);
   const dsEffTime = dsSaved && dsTimeOk(dsSaved.time) ? dsSaved.time : '05:00';
-  const dsTimeOpts = Array.from({ length: 48 }, (_, i) => {
-    const v = String(Math.floor(i / 2)).padStart(2, '0') + (i % 2 ? ':30' : ':00');
-    return `<option value="${v}"${v === dsEffTime ? ' selected' : ''}>${v}</option>`;
-  }).join('');
   if (ROLE === 'usuario') {
     const rel = MY_REL || {};
     const modality = rel.modality || u.modality || null;
@@ -1781,15 +1777,23 @@ async function renderProfileView() {
     <div class="myprof-head">
       <img class="myprof-photo" src="${esc(photo || initial)}" alt="">
       <div class="myprof-id"><b>${esc(name)}</b>${email ? `<br><span class="muted">${esc(email)}</span>` : ''}</div>
+      <button type="button" class="btn-ghost" id="myprof-photo-btn">${esc(t('myprof.changePhoto'))}</button>
     </div>
     ${rows}
     <p class="myprof-row"><span class="myprof-k">${esc(t('myprof.mailLang'))}</span><span class="myprof-v"><select id="myprof-maillang" aria-label="${esc(t('myprof.mailLang'))}"><option value="en">English</option><option value="es">Español</option></select></span></p>
     <p class="progress-hint">${esc(t('myprof.mailLangHint'))}</p>
-    <p class="myprof-row"><span class="myprof-k">${esc(t('myprof.dsTitle'))}</span><span class="myprof-v"><label class="check-row"><input type="checkbox" id="myprof-ds-on" aria-label="${esc(t('myprof.dsTitle'))}"></label></span></p>
-    <p class="myprof-row"><span class="myprof-k">${esc(t('myprof.dsTime'))}</span><span class="myprof-v"><select id="myprof-ds-time" aria-label="${esc(t('myprof.dsTime'))}">${dsTimeOpts}</select></span></p>
+    <div class="ds-panel${dsEffOn ? ' is-on' : ' is-off'}" id="myprof-ds-panel">
+      <button type="button" class="ds-row" id="myprof-ds-toggle" aria-pressed="${dsEffOn ? 'true' : 'false'}">
+        <span class="ds-row-label">${esc(t('myprof.dsTitle'))}</span>
+        <span class="ds-row-side"><span class="ds-switch" aria-hidden="true"><span class="ds-knob">${dsEffOn ? '✓' : '✕'}</span></span><span class="ds-state" id="myprof-ds-state">${esc(t(dsEffOn ? 'myprof.dsStateOn' : 'myprof.dsStateOff'))}</span></span>
+      </button>
+      <div class="ds-time-row">
+        <span class="ds-time-label">${esc(t('myprof.dsTime'))}</span>
+        <button type="button" class="ds-time-btn" id="myprof-ds-timebtn"${dsEffOn ? '' : ' disabled'}><span class="ds-clock" aria-hidden="true">🕐</span><span class="ds-time-val" id="myprof-ds-timeval">${esc(dsEffTime)}</span><span class="ds-chev" aria-hidden="true">▼</span></button>
+      </div>
+    </div>
     <p class="progress-hint">${esc(t('myprof.dsTz', { tz: dsTz || '—' }))}</p>
     <p class="progress-hint">${esc(t('myprof.dsHint'))}</p>
-    <div class="eval-actions"><button type="button" class="btn-ghost btn-sm" id="myprof-photo-btn">${esc(t('myprof.changePhoto'))}</button></div>
   </div>`;
   const pb = $('myprof-photo-btn');
   if (pb) pb.addEventListener('click', () => { const f = $('avatar-file'); if (f) f.click(); });
@@ -1833,28 +1837,77 @@ async function renderProfileView() {
      La zona horaria, además, se guarda sola al abrir el perfil
      cuando difiere de la guardada — solo {tz}, en merge parcial,
      en silencio como trainerNotifySync: si falla, la próxima
-     apertura lo reintenta; el despertador la lee de aquí. */
-  const dOn = $('myprof-ds-on'), dTime = $('myprof-ds-time');
-  if (dOn && dTime) {
-    dOn.checked = dsEffOn;
-    dTime.disabled = !dsEffOn;
+     apertura lo reintenta; el despertador la lee de aquí.
+     CONTROLES DE LA CASA (AUTH-2026-11-02-181, punto 99 de la
+     cola; maqueta aprobada por Ronald hoy 15:32 CST): la casilla
+     del sistema y el selector nativo de hora de AUTH-175 se
+     retiran — la fila entera del ajuste es ahora un botón con el
+     interruptor grande de la casa y la palabra del estado, y la
+     hora es un botón grande que abre la ventana flotante de
+     horas (rejilla de 48 botones; tocar una guarda al momento y
+     cierra). La semántica de guardado no cambia ni en una coma:
+     mismo mapa cerrado {on, time, tz}, mismo patrón de reversa
+     ante el fallo, misma zona que se guarda sola al abrir. */
+  const dPanel = $('myprof-ds-panel'), dTgl = $('myprof-ds-toggle'), dTimeBtn = $('myprof-ds-timebtn');
+  if (dPanel && dTgl && dTimeBtn) {
+    let dsOn = dsEffOn, dsTime = dsEffTime, dsFloat = null;
+    const dsPaint = () => {
+      dPanel.classList.toggle('is-on', dsOn);
+      dPanel.classList.toggle('is-off', !dsOn);
+      dTgl.setAttribute('aria-pressed', dsOn ? 'true' : 'false');
+      const kb = dTgl.querySelector('.ds-knob'); if (kb) kb.textContent = dsOn ? '✓' : '✕';
+      const st = $('myprof-ds-state'); if (st) st.textContent = t(dsOn ? 'myprof.dsStateOn' : 'myprof.dsStateOff');
+      const tv = $('myprof-ds-timeval'); if (tv) tv.textContent = dsTime;
+      dTimeBtn.disabled = !dsOn;
+    };
     const dsRevert = () => {
       const sv = (UDATA.daySummary && typeof UDATA.daySummary === 'object') ? UDATA.daySummary : null;
-      dOn.checked = sv && typeof sv.on === 'boolean' ? sv.on : !!(typeof MY_PLAN !== 'undefined' && MY_PLAN);
-      dTime.value = sv && dsTimeOk(sv.time) ? sv.time : '05:00';
-      dTime.disabled = !dOn.checked;
+      dsOn = sv && typeof sv.on === 'boolean' ? sv.on : !!(typeof MY_PLAN !== 'undefined' && MY_PLAN);
+      dsTime = sv && dsTimeOk(sv.time) ? sv.time : '05:00';
+      dsPaint();
     };
     const dsSave = async () => {
-      const val = { on: !!dOn.checked, time: dsTimeOk(dTime.value) ? dTime.value : '05:00', tz: dsTz };
-      dTime.disabled = !val.on;
+      const val = { on: dsOn, time: dsTime, tz: dsTz };
       try {
         await setDoc(doc(db, 'users', me.uid), { daySummary: val }, { merge: true });
         UDATA = { ...UDATA, daySummary: val };
         toast(t('msg.dsSaved'));
-      } catch (e) { dsRevert(); failToast(e); }
+        return true;
+      } catch (e) { dsRevert(); failToast(e); return false; }
     };
-    dOn.addEventListener('change', dsSave);
-    dTime.addEventListener('change', dsSave);
+    dTgl.addEventListener('click', () => { dsOn = !dsOn; dsPaint(); dsSave(); });
+    const dsCloseFloat = () => { if (dsFloat) { dsFloat.remove(); dsFloat = null; } };
+    const dsOpenFloat = () => {
+      dsCloseFloat();
+      const opts = Array.from({ length: 48 }, (_, i) => {
+        const v = String(Math.floor(i / 2)).padStart(2, '0') + (i % 2 ? ':30' : ':00');
+        return `<button type="button" class="ds-hour${v === dsTime ? ' sel' : ''}" data-ds-hour="${v}">${v}</button>`;
+      }).join('');
+      dsFloat = document.createElement('div');
+      dsFloat.className = 'ds-float';
+      dsFloat.id = 'myprof-ds-float';
+      dsFloat.innerHTML = `<div class="ds-sheet" role="dialog" aria-modal="true" aria-label="${esc(t('myprof.dsPickTitle'))}">
+        <div class="ds-sheet-head"><div class="ds-sheet-titles"><div class="ds-kicker">${esc(t('myprof.dsPickKicker'))}</div><div class="ds-sheet-title">${esc(t('myprof.dsPickTitle'))}</div><div class="ds-sheet-sub">${esc(t('myprof.dsPickSub'))}</div></div><button type="button" class="ds-x" data-ds-close="1" aria-label="✕">✕</button></div>
+        <div class="ds-grid">${opts}</div>
+        <p class="ds-note">${esc(t('myprof.dsPickNote'))}</p>
+      </div>`;
+      document.body.appendChild(dsFloat);
+      dsFloat.addEventListener('click', e => { if (e.target === dsFloat) dsCloseFloat(); });
+      const xb = dsFloat.querySelector('[data-ds-close]');
+      if (xb) xb.addEventListener('click', dsCloseFloat);
+      dsFloat.querySelectorAll('[data-ds-hour]').forEach(b => b.addEventListener('click', async () => {
+        const v = b.getAttribute('data-ds-hour');
+        if (!dsTimeOk(v)) return;
+        if (v === dsTime) { dsCloseFloat(); return; }
+        dsTime = v; dsPaint();
+        dsFloat.querySelectorAll('[data-ds-hour]').forEach(x => x.classList.toggle('sel', x.getAttribute('data-ds-hour') === v));
+        if (await dsSave()) dsCloseFloat();
+        else if (dsFloat) dsFloat.querySelectorAll('[data-ds-hour]').forEach(x => x.classList.toggle('sel', x.getAttribute('data-ds-hour') === dsTime));
+      }));
+      const selB = dsFloat.querySelector('.ds-hour.sel');
+      if (selB) selB.scrollIntoView({ block: 'center' });
+    };
+    dTimeBtn.addEventListener('click', () => { if (dsOn) dsOpenFloat(); });
     if (me && dsTz && (!dsSaved || dsSaved.tz !== dsTz)) {
       try {
         await setDoc(doc(db, 'users', me.uid), { daySummary: { tz: dsTz } }, { merge: true });
@@ -2523,6 +2576,12 @@ en: {
   'myprof.dsTime': 'Time',
   'myprof.dsTz': 'Your time zone: {tz} — read from your device and kept up to date when you open your profile.',
   'myprof.dsHint': 'On training days, one email with that day\'s session and a direct link to open it in the app. Rest days send nothing, and a day you already trained is skipped.',
+  'myprof.dsStateOn': 'On',
+  'myprof.dsStateOff': 'Off',
+  'myprof.dsPickKicker': 'DAILY SUMMARY',
+  'myprof.dsPickTitle': 'Pick your time',
+  'myprof.dsPickSub': 'In 30-minute steps',
+  'myprof.dsPickNote': 'Tap a time and it saves right away.',
   'msg.dsSaved': 'Daily summary setting saved.',
   'fdcam.tag': 'COMING SOON',
   'fdcam.title': 'Camera Coach',
@@ -5021,6 +5080,12 @@ es: {
   'myprof.dsTime': 'Hora',
   'myprof.dsTz': 'Tu zona horaria: {tz} — se lee de tu aparato y se actualiza al abrir tu perfil.',
   'myprof.dsHint': 'Los días de entreno, un correo con la sesión de ese día y un enlace directo para abrirla en la app. Los días de descanso no se envía nada, y un día que ya entrenaste se salta.',
+  'myprof.dsStateOn': 'Activado',
+  'myprof.dsStateOff': 'Desactivado',
+  'myprof.dsPickKicker': 'RESUMEN DIARIO',
+  'myprof.dsPickTitle': 'Elige tu hora',
+  'myprof.dsPickSub': 'En pasos de 30 min',
+  'myprof.dsPickNote': 'Toca una hora y se guarda al momento.',
   'msg.dsSaved': 'Ajuste del resumen guardado.',
   'fdcam.tag': 'MUY PRONTO',
   'fdcam.title': 'Entrena con cámara',
@@ -31825,7 +31890,7 @@ document.addEventListener('keydown', e => { if (e.key === 'Escape') shareClose()
  *  - El SW (sw.js) solo cachea la cáscara del mismo origen en modo
  *    RED PRIMERO: Auth/Firestore/Worker jamás pasan por la caché.
  * ================================================================ */
-const PWA_SW_VERSION = '20261102-quitado-oculto';
+const PWA_SW_VERSION = '20261102-resumen-controles';
 let pwaDeferredPrompt = null;
 function pwaIsStandalone() {
   try {
