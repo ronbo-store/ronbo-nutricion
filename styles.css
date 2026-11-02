@@ -2704,3 +2704,26 @@ body.prog-page #progress-content.nav-page-on { padding-right: 88px; }
 .pk-key-info { min-width: 0; }
 .pk-key-actions { display: flex; gap: 6px; flex-shrink: 0; }
 .pk-key-actions button { min-height: 44px; }
+
+/* VISIBILIDAD DE PENDIENTES POR CATEGORÍA (AUTH-2026-11-02-150):
+   el chip de categoría DENTRO de cada tarjeta del alumno
+   (.pend-cat-chip, junto al sello .pend-dep) y de cada fila viva
+   del entrenador (.stu-cat-chip, junto al sello .stu-dep), con los
+   colores de su grupo (🔴 Indispensables · 🟠 Importantes ·
+   🟢 Complementarios); y el bloque de la fila de «Mis alumnos»
+   (.students-row-block) que lleva bajo la fila sus pendientes
+   agrupados (.students-row-pend) con los encabezados .pend-cat de
+   siempre. La fila conserva su aspecto: la tarjeta es el bloque y
+   el botón de dentro va sin borde propio. */
+.pend-cat-chip { display: inline-block; margin-top: 5px; font-size: 10.5px; font-weight: 800; letter-spacing: .06em; text-transform: uppercase; padding: 2px 8px; border-radius: 999px; }
+.pend-cat-chip-ind { background: #fee2e2; color: #b91c1c; }
+.pend-cat-chip-imp { background: #fef3c7; color: #92400e; }
+.pend-cat-chip-comp { background: #ccfbf1; color: #0f766e; }
+.stu-cat-chip { font-size: 10.5px; font-weight: 800; padding: 3px 8px; border-radius: 999px; letter-spacing: .04em; white-space: nowrap; }
+.stu-cat-chip-ind { background: #fee2e2; color: #b91c1c; }
+.stu-cat-chip-imp { background: #fef3c7; color: #92400e; }
+.stu-cat-chip-comp { background: #ccfbf1; color: #0f766e; }
+.students-row-block { background: #fff; border: 1px solid #e5e7eb; border-radius: 12px; margin-bottom: 7px; overflow: hidden; }
+.students-row-block > .srow { border: none; border-radius: 0; margin-bottom: 0; background: transparent; width: 100%; }
+.students-row-pend { border-top: 1px solid #eef2f5; padding: 2px 14px 8px; }
+.students-row-pend .pend-cat { margin: 10px 0 4px; }

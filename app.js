@@ -10264,9 +10264,20 @@ function studentsPendItemHTML(uid, it, isTrace) {
     if (!parts.length) parts.push(`<span class="stu-pend-whose">${esc(t('students.pend.byStudent'))}</span>`);
     right = parts.length > 1 ? `<span class="stu-pend-btns">${parts.join('')}</span>` : parts[0];
   }
+  /* AUTH-2026-11-02-150: la fila VIVA lleva además su CHIP DE
+     CATEGORÍA (el nombre de su grupo, de pend.cat.*), derivado del
+     MISMO clasificador del agrupador (studentsPendCatOf): la fila
+     dice su categoría sin abrir nada y el conteo de chips por
+     categoría cuadra con el encabezado de su grupo. Las TRAZAS no
+     llevan chip (son historial, no una categoría viva). */
+  const catChip = isTrace ? '' : (() => {
+    const cat = studentsPendCatOf(it);
+    const dot = cat === 'ind' ? '🔴' : cat === 'imp' ? '🟠' : '🟢';
+    return `<span class="stu-cat-chip stu-cat-chip-${cat}">${dot} ${esc(t('pend.cat.' + cat))}</span>`;
+  })();
   return `<div class="stu-pend-item${isTrace ? ' trace' : ''}">
     <span class="stu-pend-ico" style="background:${bg}">${emoji}</span>
-    <span class="stu-pend-main"><span class="stu-pend-title">${esc(studentsItemTitle(it))}${seal}</span>
+    <span class="stu-pend-main"><span class="stu-pend-title">${esc(studentsItemTitle(it))}${seal}${catChip}</span>
     ${sub ? `<span class="stu-pend-sub">${sub}</span>` : ''}</span>
     ${right}
   </div>`;
@@ -10285,7 +10296,12 @@ function studentsPendItemHTML(uid, it, isTrace) {
    intactos (AUTH-133/139) — y el orden relativo de las filas
    no cambia (la unión ya nace con los Indispensables primero).
    Las TRAZAS no pasan por aquí: conservan su título
-   «Resueltos» y sus chips, como siempre. */
+   «Resueltos» y sus chips, como siempre.
+   AUTH-2026-11-02-150: cada fila VIVA lleva además su chip de
+   categoría (dentro de studentsPendItemHTML, del mismo
+   studentsPendCatOf) y ESTE agrupador pinta también la lista de
+   «Mis alumnos» bajo cada fila (studentsRowHTML): lista y
+   detalle comparten agrupador, clasificador y pasada. */
 function studentsPendCatOf(it) {
   return it && it.kind === 'req' ? 'ind' : 'imp';
 }
@@ -10347,7 +10363,22 @@ function studentsBadge(u) {
 }
 function studentsRowHTML(u) {
   const name = stuName(u);
-  return `<button type="button" class="srow" data-stu="${u.id}">${stuAvatarHTML(u, name)}<span class="srow-main"><span class="srow-name">${esc(name)}</span><span class="srow-sub">${studentsSummary(u)}</span></span>${studentsBadge(u)}<span class="srow-chev">›</span></button>`;
+  /* AUTH-2026-11-02-150: la LISTA de «Mis alumnos» muestra también
+     los pendientes del alumno AGRUPADOS POR CATEGORÍA, sin abrir
+     el detalle: el MISMO agrupador del detalle
+     (studentsPendGroupedHTML, con sus encabezados y las filas de
+     studentsPendItemHTML con su chip) se pinta bajo la fila. El
+     bloque va FUERA del <button> de la fila (las filas de
+     pendientes llevan sus propios botones: nada de botones
+     anidados) y hereda el cableado de siempre de renderStudentsBody
+     (data-stu-act / data-stu-nudge). Sin pendientes (o con error
+     de carga) la fila queda como siempre: resumen y sello. Los
+     conteos por categoría de la lista salen de la misma pasada y
+     del mismo agrupador que el detalle: no pueden contradecirse. */
+  const L = STUDENTS_LAST;
+  const items = (!L || L.pendErrByUid[u.id]) ? [] : ((L.pendByUid[u.id] || {}).items || []);
+  const pendBlock = items.length ? `<div class="students-row-pend">${studentsPendGroupedHTML(u.id, items)}</div>` : '';
+  return `<div class="students-row-block"><button type="button" class="srow" data-stu="${u.id}">${stuAvatarHTML(u, name)}<span class="srow-main"><span class="srow-name">${esc(name)}</span><span class="srow-sub">${studentsSummary(u)}</span></span>${studentsBadge(u)}<span class="srow-chev">›</span></button>${pendBlock}</div>`;
 }
 function studentsGridCellHTML(u) {
   const name = stuName(u);
@@ -28830,7 +28861,7 @@ function pendDockTick() {
 
 /* ---------- render del panel ---------- */
 function pendMealLabel(name) { return t('pend.mealName.' + name); }
-function pendItemHTML(it, regDay, resp) {
+function pendItemHTML(it, regDay, resp, cat) {
   /* Tarjeta VENCIDA (su fecha es anterior al día de registro): el
      título lleva la fecha en pasado (rama de cada tipo) y la línea
      secundaria ya no añade el sufijo «· ayer» / «· <fecha>» — la
@@ -28901,8 +28932,15 @@ function pendItemHTML(it, regDay, resp) {
      pendItemGroupOf); sin resp, la tarjeta es la de siempre,
      byte a byte. */
   const dep = resp ? `<br><span class="pend-dep pend-dep-${resp}">${esc(t('pend.grp.' + resp))}</span>` : '';
+  /* AUTH-2026-11-02-150: el CHIP DE CATEGORÍA de la tarjeta viaja
+     SOLO cuando lo pide la lista agrupada del alumno (cat = la
+     salida de pendItemCatOf para ESE ítem: ind|imp|comp, con el
+     nombre de pend.cat.*): cada tarjeta dice su categoría y el
+     conteo de chips por categoría cuadra con el encabezado de su
+     grupo. Sin cat, la tarjeta es la de siempre, byte a byte. */
+  const catChip = cat ? `<br><span class="pend-cat-chip pend-cat-chip-${cat}">${cat === 'ind' ? '🔴' : cat === 'imp' ? '🟠' : '🟢'} ${esc(t('pend.cat.' + cat))}</span>` : '';
   return `<div class="pend-item${it.overdue ? ' pend-overdue' : ''}" data-pend-item="${esc(it.id)}">
-    <p class="pend-text"><b>${esc(title)}</b><br><span class="pend-detail">${detail}</span>${dep}</p>
+    <p class="pend-text"><b>${esc(title)}</b><br><span class="pend-detail">${detail}</span>${dep}${catChip}</p>
     <div class="pend-actions">${go}${snooze}${omit}${discard}</div>
   </div>`;
 }
@@ -28966,7 +29004,11 @@ function pendItemGroupOf(it) {
 function pendWaitRowHTML(kind) {
   const tt = kind === 'admin' ? 'pend.wait.adminT' : kind === 'account' ? 'pend.wait.accountT' : 'pend.wait.trainerT';
   const dd = kind === 'admin' ? 'pend.wait.adminD' : kind === 'account' ? 'pend.wait.accountD' : 'pend.wait.trainerD';
-  return `<div class="pend-item pend-item-wait"><p class="pend-text"><b>⌛ ${esc(t(tt))}</b><br><span class="pend-detail">${esc(t(dd))}</span></p></div>`;
+  /* AUTH-2026-11-02-150: la fila de espera vive en el grupo
+     Indispensables y CUENTA en su encabezado: lleva el mismo chip
+     de categoría que las tarjetas, para que el conteo de chips del
+     grupo cuadre con su encabezado también cuando hay esperas. */
+  return `<div class="pend-item pend-item-wait"><p class="pend-text"><b>⌛ ${esc(t(tt))}</b><br><span class="pend-detail">${esc(t(dd))}</span><br><span class="pend-cat-chip pend-cat-chip-ind">🔴 ${esc(t('pend.cat.ind'))}</span></p></div>`;
 }
 /* Categoría de un pendiente del ALUMNO (la taxonomía de
    Ronald, AUTH-110): los ítems de procedimiento de la base
@@ -29006,7 +29048,7 @@ function pendItemsGroupedHTML(items, regDay) {
       if (it === 'WAIT_TRAINER') h += pendWaitRowHTML('trainer');
       else if (it === 'WAIT_ADMIN') h += pendWaitRowHTML('admin');
       else if (it === 'WAIT_ACCOUNT') h += pendWaitRowHTML('account');
-      else h += pendItemHTML(it, regDay, pendItemGroupOf(it));
+      else h += pendItemHTML(it, regDay, pendItemGroupOf(it), pendItemCatOf(it));
     }
   }
   return h;
@@ -30207,7 +30249,7 @@ document.addEventListener('keydown', e => { if (e.key === 'Escape') shareClose()
  *  - El SW (sw.js) solo cachea la cáscara del mismo origen en modo
  *    RED PRIMERO: Auth/Firestore/Worker jamás pasan por la caché.
  * ================================================================ */
-const PWA_SW_VERSION = '20261101-claves-acceso';
+const PWA_SW_VERSION = '20261102-visibilidad-pendientes';
 let pwaDeferredPrompt = null;
 function pwaIsStandalone() {
   try {
