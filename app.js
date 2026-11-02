@@ -1746,6 +1746,28 @@ async function renderProfileView() {
   const photo = u.photoURL || '';
   const initial = 'data:image/svg+xml;utf8,' + encodeURIComponent(`<svg xmlns="http://www.w3.org/2000/svg" width="96" height="96"><circle cx="48" cy="48" r="48" fill="#0d9488"/><text x="48" y="62" font-size="40" text-anchor="middle" fill="#ffffff" font-family="sans-serif">${esc(String(name).trim().charAt(0).toUpperCase() || 'R')}</text></svg>`);
   let rows = `<p class="myprof-row"><span class="myprof-k">${esc(t('roles.roleLabel'))}</span><span class="myprof-v">${esc(t('roles.' + ROLE))}</span></p>`;
+  /* RESUMEN DIARIO (AUTH-2026-11-02-175, piezas A+B del punto 18;
+     decisiones de Ronald del 2026-11-02: nace encendido con plan
+     activo — 11:00 CST — y hora por defecto 05:00 — 11:28 CST):
+     el ajuste vive en el campo daySummary del PROPIO documento,
+     con la forma cerrada que el delta de reglas de este paquete
+     admite (mapa de claves on/time/tz). Sin el campo guardado,
+     el valor EFECTIVO que se muestra es el defecto: encendido
+     solo si la cuenta tiene plan activo (MY_PLAN, ya cargado al
+     llegar a Mi perfil) — la pantalla muestra el efectivo y NO se
+     escribe nada por mostrar. La zona horaria se lee del aparato
+     y se guarda sola (solo ella, en merge parcial) cuando difiere
+     de la guardada: es el dato que el despertador necesita para
+     saber qué hora es en casa de cada persona. */
+  const dsSaved = (u.daySummary && typeof u.daySummary === 'object') ? u.daySummary : null;
+  const dsTz = (() => { try { return Intl.DateTimeFormat().resolvedOptions().timeZone || ''; } catch { return ''; } })();
+  const dsTimeOk = v => /^([01][0-9]|2[0-3]):(00|30)$/.test(v || '');
+  const dsEffOn = dsSaved && typeof dsSaved.on === 'boolean' ? dsSaved.on : !!(typeof MY_PLAN !== 'undefined' && MY_PLAN);
+  const dsEffTime = dsSaved && dsTimeOk(dsSaved.time) ? dsSaved.time : '05:00';
+  const dsTimeOpts = Array.from({ length: 48 }, (_, i) => {
+    const v = String(Math.floor(i / 2)).padStart(2, '0') + (i % 2 ? ':30' : ':00');
+    return `<option value="${v}"${v === dsEffTime ? ' selected' : ''}>${v}</option>`;
+  }).join('');
   if (ROLE === 'usuario') {
     const rel = MY_REL || {};
     const modality = rel.modality || u.modality || null;
@@ -1763,6 +1785,10 @@ async function renderProfileView() {
     ${rows}
     <p class="myprof-row"><span class="myprof-k">${esc(t('myprof.mailLang'))}</span><span class="myprof-v"><select id="myprof-maillang" aria-label="${esc(t('myprof.mailLang'))}"><option value="en">English</option><option value="es">Español</option></select></span></p>
     <p class="progress-hint">${esc(t('myprof.mailLangHint'))}</p>
+    <p class="myprof-row"><span class="myprof-k">${esc(t('myprof.dsTitle'))}</span><span class="myprof-v"><label class="check-row"><input type="checkbox" id="myprof-ds-on" aria-label="${esc(t('myprof.dsTitle'))}"></label></span></p>
+    <p class="myprof-row"><span class="myprof-k">${esc(t('myprof.dsTime'))}</span><span class="myprof-v"><select id="myprof-ds-time" aria-label="${esc(t('myprof.dsTime'))}">${dsTimeOpts}</select></span></p>
+    <p class="progress-hint">${esc(t('myprof.dsTz', { tz: dsTz || '—' }))}</p>
+    <p class="progress-hint">${esc(t('myprof.dsHint'))}</p>
     <div class="eval-actions"><button type="button" class="btn-ghost btn-sm" id="myprof-photo-btn">${esc(t('myprof.changePhoto'))}</button></div>
   </div>`;
   const pb = $('myprof-photo-btn');
@@ -1794,6 +1820,47 @@ async function renderProfileView() {
         trainerNotifySync();
       } catch (e) { ms.value = prev; failToast(e); }
     });
+  }
+  /* Ajuste del resumen diario (AUTH-2026-11-02-175): el patrón
+     del selector de idioma de aquí encima — nace mostrando el
+     valor efectivo (el guardado, o el defecto de las decisiones
+     de Ronald: encendido con plan activo, 05:00), no se escribe
+     nada hasta que la persona lo cambia, y si el guardado falla
+     el control vuelve a su valor y el error se dice con
+     failToast: jamás un guardado fingido. Apagar o encender y
+     cambiar la hora guardan el mapa COMPLETO {on, time, tz} en
+     merge (la forma cerrada del delta de reglas del paquete).
+     La zona horaria, además, se guarda sola al abrir el perfil
+     cuando difiere de la guardada — solo {tz}, en merge parcial,
+     en silencio como trainerNotifySync: si falla, la próxima
+     apertura lo reintenta; el despertador la lee de aquí. */
+  const dOn = $('myprof-ds-on'), dTime = $('myprof-ds-time');
+  if (dOn && dTime) {
+    dOn.checked = dsEffOn;
+    dTime.disabled = !dsEffOn;
+    const dsRevert = () => {
+      const sv = (UDATA.daySummary && typeof UDATA.daySummary === 'object') ? UDATA.daySummary : null;
+      dOn.checked = sv && typeof sv.on === 'boolean' ? sv.on : !!(typeof MY_PLAN !== 'undefined' && MY_PLAN);
+      dTime.value = sv && dsTimeOk(sv.time) ? sv.time : '05:00';
+      dTime.disabled = !dOn.checked;
+    };
+    const dsSave = async () => {
+      const val = { on: !!dOn.checked, time: dsTimeOk(dTime.value) ? dTime.value : '05:00', tz: dsTz };
+      dTime.disabled = !val.on;
+      try {
+        await setDoc(doc(db, 'users', me.uid), { daySummary: val }, { merge: true });
+        UDATA = { ...UDATA, daySummary: val };
+        toast(t('msg.dsSaved'));
+      } catch (e) { dsRevert(); failToast(e); }
+    };
+    dOn.addEventListener('change', dsSave);
+    dTime.addEventListener('change', dsSave);
+    if (me && dsTz && (!dsSaved || dsSaved.tz !== dsTz)) {
+      try {
+        await setDoc(doc(db, 'users', me.uid), { daySummary: { tz: dsTz } }, { merge: true });
+        UDATA = { ...UDATA, daySummary: { ...((UDATA.daySummary && typeof UDATA.daySummary === 'object') ? UDATA.daySummary : {}), tz: dsTz } };
+      } catch {}
+    }
   }
   /* Nombre del entrenador del alumno (pieza B del paquete «App
      instalada visible», 2026-10-26): se resuelve SIEMPRE con la
@@ -2452,6 +2519,11 @@ en: {
   'myprof.mailLang': 'Email language',
   'myprof.mailLangHint': 'The language of the emails we send you (your welcome and your notices). It starts with your app language; change it here anytime.',
   'msg.mailLangSaved': 'Email language saved.',
+  'myprof.dsTitle': 'Daily training summary',
+  'myprof.dsTime': 'Time',
+  'myprof.dsTz': 'Your time zone: {tz} — read from your device and kept up to date when you open your profile.',
+  'myprof.dsHint': 'On training days, one email with that day\'s session and a direct link to open it in the app. Rest days send nothing, and a day you already trained is skipped.',
+  'msg.dsSaved': 'Daily summary setting saved.',
   'fdcam.tag': 'COMING SOON',
   'fdcam.title': 'Camera Coach',
   'fdcam.body': 'Your phone counts your reps and watches your form while you train — and the set is logged for you.',
@@ -4932,6 +5004,11 @@ es: {
   'myprof.mailLang': 'Idioma de los correos',
   'myprof.mailLangHint': 'El idioma de los correos que te enviamos (tu bienvenida y tus avisos). Empieza con el idioma de tu app; cámbialo aquí cuando quieras.',
   'msg.mailLangSaved': 'Idioma de correo guardado.',
+  'myprof.dsTitle': 'Resumen diario de mi entreno',
+  'myprof.dsTime': 'Hora',
+  'myprof.dsTz': 'Tu zona horaria: {tz} — se lee de tu aparato y se actualiza al abrir tu perfil.',
+  'myprof.dsHint': 'Los días de entreno, un correo con la sesión de ese día y un enlace directo para abrirla en la app. Los días de descanso no se envía nada, y un día que ya entrenaste se salta.',
+  'msg.dsSaved': 'Ajuste del resumen guardado.',
   'fdcam.tag': 'MUY PRONTO',
   'fdcam.title': 'Entrena con cámara',
   'fdcam.body': 'Tu móvil cuenta tus repeticiones y mira tu técnica mientras entrenas — y la serie queda registrada sola.',
@@ -31385,7 +31462,7 @@ document.addEventListener('keydown', e => { if (e.key === 'Escape') shareClose()
  *  - El SW (sw.js) solo cachea la cáscara del mismo origen en modo
  *    RED PRIMERO: Auth/Firestore/Worker jamás pasan por la caché.
  * ================================================================ */
-const PWA_SW_VERSION = '20261102-hoja-ia-cierre';
+const PWA_SW_VERSION = '20261102-resumen-diario-ab';
 let pwaDeferredPrompt = null;
 function pwaIsStandalone() {
   try {
