@@ -21,7 +21,7 @@
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-title" content="RONBO FIT">
 <meta name="apple-mobile-web-app-status-bar-style" content="default">
-<link rel="stylesheet" href="styles.css?v=20261102-sugerencia-pregunta">
+<link rel="stylesheet" href="styles.css?v=20261102-aprobaciones-pendientes">
 <script defer src="https://cloud.umami.is/script.js" data-website-id="a29706d4-44a2-47cf-900a-5f74d74abfa8"></script>
 <script type="importmap">
 {
@@ -628,6 +628,22 @@
       <button type="button" class="pend-close" id="nudge-x" aria-label="Close" data-i18n-aria="client.close">✕</button>
     </div>
     <div id="nudge-body"></div>
+  </div>
+
+  <!-- ============ PENDIENTES DE APROBACIÓN → VENTANA FLOTANTE ============
+       Punto 10 de la cola (decisión de Ronald, 2026-11-01 18:12 CST):
+       la REVISIÓN de aprobaciones vive en esta ventana, con SOLO las
+       tarjetas pendientes y sus acciones de siempre (aprobar ·
+       aprobar entrenador · rechazar · eliminar usuario · revocar
+       claves). La lista completa de usuarios sigue en Accesos,
+       intacta. El contenido lo pinta loadAdmin (app.js) con la
+       misma fila y el mismo cableado de Accesos. -->
+  <div class="pend-float pend-consult" id="appr-float" style="display:none" role="dialog">
+    <div class="pend-head">
+      <h2><span data-i18n="appr.floatTitle">🆕 Pending approvals</span> <span class="pend-count" id="appr-float-count" style="display:none"></span></h2>
+      <button type="button" class="pend-close nav-page-x" id="appr-float-x" aria-label="Close" data-i18n-aria="client.close">✕</button>
+    </div>
+    <div id="appr-float-list"><div class="wempty" data-i18n="access.loading">Loading…</div></div>
   </div>
   <!-- Ventana flotante de detalle de anillo (Ronald, 2026-10-21): al
        tocar un anillo pequeño de la fila se abre con el anillo GRANDE
@@ -1560,6 +1576,6 @@
 <div id="toast" class="toast"></div>
 <div id="print-card" aria-hidden="true"></div>
 
-<script type="module" src="app.js?v=20261102-sugerencia-pregunta"></script>
+<script type="module" src="app.js?v=20261102-aprobaciones-pendientes"></script>
 </body>
 </html>

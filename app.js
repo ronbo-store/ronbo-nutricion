@@ -2692,6 +2692,8 @@ en: {
   'appr.done': 'Account approved — the client is now assigned to you.',
   'appr.error': 'It could not be completed. Please try again.',
   'appr.approving': 'Approving…',
+  'appr.floatTitle': '🆕 Pending approvals',
+  'appr.floatEmpty': 'No accounts are waiting for approval right now.',
   'progress.title': '📸 My progress',
   'progress.tabPhotos': 'Photos',
   'progress.tabMeasures': 'Measures',
@@ -5134,6 +5136,8 @@ es: {
   'appr.done': 'Cuenta aprobada: el cliente queda asignado a ti.',
   'appr.error': 'No se pudo completar. Inténtalo de nuevo.',
   'appr.approving': 'Aprobando…',
+  'appr.floatTitle': '🆕 Pendientes de aprobación',
+  'appr.floatEmpty': 'Ahora mismo no hay cuentas esperando aprobación.',
   'progress.title': '📸 Mi progreso',
   'progress.tabPhotos': 'Fotos',
   'progress.tabMeasures': 'Medidas',
@@ -8323,6 +8327,21 @@ async function loadAdmin() {
   const trc = $('trainer-req-count'); if (trc) trc.textContent = pendingTrainer.length;
   const trl = $('trainer-requests-list');
   if (trl) trl.innerHTML = pendingTrainer.length ? pendingTrainer.map(pendRow).join('') : `<div class="wempty">${t('admin.noPending')}</div>`;
+  /* Punto 10 de la cola (decisión de Ronald, 2026-11-01 18:12 CST):
+     la ventana flotante «Pendientes de aprobación» se pinta EN ESTA
+     MISMA pasada, con la MISMA fuente (pendingAll — todas las
+     cuentas sin aprobar, el conjunto que cuenta el pendiente
+     «cuentas esperando aprobación» del administrador) y la MISMA
+     fila (pendRow) que Accesos y Entrenadores; el cableado de sus
+     botones es el de siempre, a nivel de documento, más abajo en
+     esta función. Sin lecturas nuevas: es la lectura de users que
+     loadAdmin ya hace. La lista completa de Accesos no se toca. */
+  const apprFloatList = $('appr-float-list');
+  if (apprFloatList) {
+    apprFloatList.innerHTML = pendingAll.length ? pendingAll.map(pendRow).join('') : `<div class="wempty">${t('appr.floatEmpty')}</div>`;
+    const afc = $('appr-float-count');
+    if (afc) { afc.textContent = pendingAll.length; afc.style.display = pendingAll.length ? '' : 'none'; }
+  }
   $('users-list').innerHTML =
     owners.map(u => `
     <div class="user-row"><div>${u.photoURL ? `<img class="avatar sm" src="${esc(u.photoURL)}" alt="">` : ''}<b>${esc(u.name || '—')}</b> <span class="owner-badge">${t('admin.owner')}</span><br><span class="muted">${esc(u.email || '')}</span></div>
@@ -8554,6 +8573,40 @@ async function loadAdmin() {
   const tabAccess = $('tab-access');
   if (tabAccess && tabAccess.style.display !== 'none') { loadLimits(); }
 }
+
+/* ============ PENDIENTES DE APROBACIÓN — VENTANA FLOTANTE (solo dueño) ============
+   Punto 10 de la cola (decisión de Ronald, 2026-11-01 18:12 CST):
+   al ir a REVISAR las aprobaciones (el «Ir a…» del pendiente
+   «cuentas esperando aprobación» de la ventana de Pendientes), la
+   revisión se abre en ESTA ventana flotante con SOLO las tarjetas
+   pendientes — ya no cae en la vista completa de Accesos, donde la
+   lista entera de usuarios quedaba mezclada con la revisión. La
+   lista completa sigue existiendo en Accesos, intacta. La ventana
+   no tiene lógica propia: su contenido lo pinta loadAdmin con la
+   misma pendRow y el mismo cableado de siempre (aprobar, aprobar
+   entrenador, rechazar, eliminar usuario, revocar claves) — aprobar
+   aquí ES aprobar en Accesos, y la fila sale de la ventana en el
+   mismo repintado de siempre. */
+function apprFloatOpen() {
+  if (!IS_OWNER || ROLE !== 'administrador') return;
+  const f = $('appr-float'); if (!f) return;
+  f.style.display = '';
+  /* La pastilla «← Volver a Pendientes» (z 44) no se pinta bajo
+     esta ventana (z 47): backSync lo tiene en cuenta. La deuda de
+     regreso sigue armada; al cerrar la ventana, la pastilla vuelve,
+     como con la ✕ de las páginas (AUTH-152). */
+  try { backSync(); } catch {}
+  /* Frescura: la ventana nunca enseña una lista vieja — se pinta
+     con la misma carga de siempre (la lectura de users que
+     loadAdmin ya hace al entrar en la app y al abrir Accesos). */
+  loadAdmin();
+}
+function apprFloatClose() {
+  const f = $('appr-float'); if (f) f.style.display = 'none';
+  try { backSync(); } catch {}
+}
+{ const x = document.getElementById('appr-float-x');
+  if (x) x.onclick = () => apprFloatClose(); }
 
 /* ============ ELIMINAR USUARIO — BORRADO COMPLETO (solo dueño) ============
    Flujo de la fila de Accesos (botón rojo «Eliminar usuario», junto
@@ -17560,7 +17613,12 @@ function backSync() {
   }
   const chip = $('pend-back-chip');
   if (chip) {
-    const show = o === 'pend' && !PEND_UI.floatOpen;
+    /* Con la ventana de aprobaciones abierta (punto 10 de la cola),
+       la pastilla queda BAJO ella (z 44 < 47): no se pinta mientras
+       la ventana vive; al cerrarla, la deuda de regreso sigue
+       armada y la pastilla vuelve, como con la ✕ de las páginas. */
+    const af = $('appr-float');
+    const show = o === 'pend' && !PEND_UI.floatOpen && !(af && af.style.display !== 'none');
     chip.style.display = show ? '' : 'none';
     if (show) chip.textContent = '← ' + t('nav.backToPend');
   }
@@ -29470,7 +29528,7 @@ setInterval(() => { try { pendDockTick(); } catch {} }, 60000);
           else if (route === 'goals') { switchTab('track'); scroll('rings'); }
           else if (route === 'goals-setup') { switchTab('track'); scroll('goals-engine'); const pb2 = $('btn-perms'); if (pb2 && !permsOpen) pb2.click(); scroll('energy-section'); }
           else if (route === 'clients') { switchTab('clients'); }
-          else if (route === 'admin-pending') { switchTab('access'); scroll('pending-list'); }
+          else if (route === 'admin-pending') { apprFloatOpen(); }
           else if (route === 'admin-membership') { switchTab('trainers'); scroll('membership-admin-box'); }
           else if (route === 'admin-meals') { switchTab('trainers'); scroll('meal-admin-box'); }
           else if (route === 'admin-waiting') { pendGoWaitingTray(); }
@@ -30390,7 +30448,7 @@ document.addEventListener('keydown', e => { if (e.key === 'Escape') shareClose()
  *  - El SW (sw.js) solo cachea la cáscara del mismo origen en modo
  *    RED PRIMERO: Auth/Firestore/Worker jamás pasan por la caché.
  * ================================================================ */
-const PWA_SW_VERSION = '20261102-sugerencia-pregunta';
+const PWA_SW_VERSION = '20261102-aprobaciones-pendientes';
 let pwaDeferredPrompt = null;
 function pwaIsStandalone() {
   try {
