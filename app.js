@@ -2595,6 +2595,7 @@ en: {
   'wcard.none': 'You have not logged your weight yet',
   'wcard.noneWhy': 'Your weight is the base for your energy and goal calculations.',
   'wcard.log': 'Log my weight',
+  'wcard.histGo': 'See full weight history',
   'compacc.notice': '🔒 Your trainer logs your body composition (weight, body fat, muscle, water and visceral fat). You can view it here, but you cannot change it.',
   'compacc.noticeShort': 'Your trainer logs your body composition.',
   'compacc.title': 'Body composition entry',
@@ -5069,6 +5070,7 @@ es: {
   'wcard.none': 'Aún no registras tu peso',
   'wcard.noneWhy': 'Tu peso es la base del cálculo de tu energía y de tus metas.',
   'wcard.log': 'Registrar mi peso',
+  'wcard.histGo': 'Ver el historial completo de peso',
   'compacc.notice': '🔒 Tu entrenador registra tu composición corporal (peso, grasa corporal, masa muscular, agua y grasa visceral). Puedes verla aquí, pero no cambiarla.',
   'compacc.noticeShort': 'Tu entrenador registra tu composición corporal.',
   'compacc.title': 'Ingreso de composición corporal',
@@ -26962,6 +26964,17 @@ function weightChartSVG(data) {
    tarjeta muestra el peso nuevo sin tocar nada más) y se ve SOLO
    en Inicio vía weightCardSync (espejo de goalsCardSync). */
 function weightCardSync(tabName) { const c = $('weight-card'); if (c) c.style.display = (tabName === 'track') ? '' : 'none'; }
+/* Fecha corta localizada para la tira del histórico de la tarjeta
+   (punto 79 de la cola): «27 oct» / «Oct 27» — el mismo patrón Intl
+   de la casa (el monFmt del gráfico semanal), con la fecha
+   construida por partes para no desfasar el día por zona horaria. */
+function wcShortDate(iso) {
+  const m = String(iso).match(/(\d{4})-(\d{2})-(\d{2})/);
+  if (!m) return shortDate(iso);
+  const d = new Date(parseInt(m[1], 10), parseInt(m[2], 10) - 1, parseInt(m[3], 10));
+  try { return new Intl.DateTimeFormat(LANG === 'es' ? 'es' : 'en', { day: 'numeric', month: 'short' }).format(d).replace(/\.$/, ''); }
+  catch { return shortDate(iso); }
+}
 function renderWeightCard() {
   const body = $('weight-card-body');
   if (!body || typeof WEIGHTS === 'undefined') return;
@@ -26988,13 +27001,34 @@ function renderWeightCard() {
       deltaHtml = `<span class="wc-delta ${cls}">${t('wcard.weekDelta', { v: vTxt })}</span>`;
     }
     const lastTxt = last.date === todayISO() ? t('wcard.lastToday') : t('wcard.last', { date: dateName(last.date) });
+    /* HISTÓRICO EN LA MISMA LÍNEA (punto 79 de la cola; decisión de
+       Ronald 2026-11-02 09:53 CST, con captura de esta tarjeta):
+       los pesajes ANTERIORES al actual — hasta 4, del más viejo al
+       más nuevo, en compacto «valor · fecha corta» — viajan EN la
+       banda del peso grande (.wc-big), para leer la trayectoria de
+       un vistazo sin salir de Inicio. WEIGHTS ya trae TODO el
+       historial en memoria (la misma carga con la que se calcula el
+       delta semanal): ninguna lectura nueva. Con un solo registro
+       no hay tira y la tarjeta queda como siempre. La tira es un
+       botón (≥44 px de toque) que lleva DIRECTO a Progreso →
+       Medidas, donde vive el historial completo (regla «todo
+       directo»). */
+    let histHtml = '';
+    if (data.length > 1) {
+      const items = data.slice(-5, -1).map(w =>
+        `<span class="wc-hist-it"><b>${fmtMassVal(w.weight)}</b> · ${wcShortDate(w.date)}</span>`
+      ).join('<span class="wc-hist-sep" aria-hidden="true">→</span>');
+      histHtml = `<button type="button" class="wc-hist" id="wc-hist-btn" aria-label="${t('wcard.histGo')}">${items}<span class="wc-hist-chev" aria-hidden="true">›</span></button>`;
+    }
     body.innerHTML = `
       <div class="wc-head"><span class="wc-title">${t('wcard.title')}</span><span class="wc-last">${esc(lastTxt)}</span></div>
-      <div class="wc-big"><span class="wc-kg">${fmtMassVal(last.weight)}<small> ${UNIT_PREFS.mass}</small></span>${deltaHtml}</div>
+      <div class="wc-big"><span class="wc-kg">${fmtMassVal(last.weight)}<small> ${UNIT_PREFS.mass}</small></span>${deltaHtml}${histHtml}</div>
       ${btn}`;
   }
   const b = $('wc-log-btn');
   if (b) b.onclick = () => openWeightModal(null);
+  const hb = $('wc-hist-btn');
+  if (hb) hb.onclick = () => { navOpenPage('progress'); progSetSub('medidas'); };
 }
 
 function renderWeight() {
@@ -30949,7 +30983,7 @@ document.addEventListener('keydown', e => { if (e.key === 'Escape') shareClose()
  *  - El SW (sw.js) solo cachea la cáscara del mismo origen en modo
  *    RED PRIMERO: Auth/Firestore/Worker jamás pasan por la caché.
  * ================================================================ */
-const PWA_SW_VERSION = '20261102-fotos-nueva-evaluacion';
+const PWA_SW_VERSION = '20261102-peso-historico';
 let pwaDeferredPrompt = null;
 function pwaIsStandalone() {
   try {

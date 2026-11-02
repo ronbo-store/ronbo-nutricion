@@ -2882,3 +2882,17 @@ body.prog-page #progress-content.nav-page-on { padding-right: 88px; }
 .progress-closed-note { font-size: 13.5px; line-height: 1.45; color: #374151; margin: 0 0 8px; }
 .progress-new-eval { min-height: 48px; padding: 12px 20px; }
 /* == FIN AUTH-166 == */
+
+/* == HISTÓRICO DE PESO EN LA LÍNEA — AUTH-2026-11-02-167 (punto 79) ==
+   La tira de pesajes anteriores vive EN la banda del peso grande de
+   la tarjeta «⚖️ Tu peso» de Inicio (.wc-big, que ya envuelve con
+   flex-wrap): junto al peso y al delta si el ancho da; si no, baja
+   DENTRO de la misma banda — nunca como sección nueva ni tarjeta
+   aparte. La tira es un botón de texto con ≥44 px de alto táctil
+   que lleva a Progreso → Medidas (el historial completo). */
+.wc-hist { display: inline-flex; align-items: center; flex-wrap: wrap; gap: 2px 7px; min-height: 44px; padding: 4px 2px; margin: 0; background: none; border: 0; cursor: pointer; font: inherit; text-align: left; }
+.wc-hist-it { font-size: 12.5px; color: #64748b; white-space: nowrap; }
+.wc-hist-it b { font-weight: 700; color: #334155; }
+.wc-hist-sep { font-size: 11px; color: #94a3b8; }
+.wc-hist-chev { font-size: 16px; font-weight: 700; color: #0d9488; line-height: 1; }
+/* == FIN HISTÓRICO DE PESO EN LA LÍNEA == */
