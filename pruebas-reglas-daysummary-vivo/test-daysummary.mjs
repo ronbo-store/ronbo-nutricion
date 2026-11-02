@@ -89,8 +89,8 @@ await T('DS9 tz de 65 caracteres: denegado en ambos textos',
   wDS(dbOf('alu'), 'alu', { on: true, time: '05:00', tz: 'A'.repeat(65) }), false);
 await T('DS10 daySummary que NO es mapa (cadena): denegado en ambos textos',
   setDoc(udoc(dbOf('alu'), 'alu'), { daySummary: 'si' }, { merge: true }), false);
-await T('DS14 daySummary válido JUNTO a approved (campo privilegiado): denegado en ambos textos',
-  setDoc(udoc(dbOf('alu'), 'alu'), { daySummary: DS_OK, approved: true }, { merge: true }), false);
+await T('DS14 daySummary válido JUNTO a role "administrador" (campo privilegiado, cambia de verdad): denegado en ambos textos',
+  setDoc(udoc(dbOf('alu'), 'alu'), { daySummary: DS_OK, role: 'administrador' }, { merge: true }), false);
 
 // ---- Nadie escribe el daySummary AJENO ----
 await T('DS11 OTRA usuaria escribe el daySummary de alu (forma válida): denegado en ambos textos',
