@@ -2489,6 +2489,7 @@ en: {
   'compacc.saved': 'Body-composition entry updated.',
   'compacc.blocked': 'Your trainer logs your body composition — this entry is read-only for you.',
   'compacc.pctNote': '🔒 Percentages and notes are recorded by your trainer.',
+  'compacc.yourWeight': '💪 Your weight is always yours to log: type it in and tap Save.',
   'frame.title': 'Framing guide',
   'frame.pick': 'Choose photo',
   'frame.camera': 'Use camera',
@@ -3169,6 +3170,7 @@ en: {
   'err.pendingTrainer': 'Your account is pending approval by {name}, the trainer you chose.',
   'err.verifyFail': 'Couldn\'t verify access.',
   'err.noPermission': 'Your account doesn\'t have permission to do this. If you think this is a mistake, let your trainer know.',
+  'err.weightSaveDenied': 'Your weight couldn\'t be saved right now. What you typed stays in place — please try again in a moment.',
   'err.noConnection': 'No connection, or the service isn\'t available right now. Check your connection and try again.',
   'err.genericFail': 'Something went wrong. Please try again.',
   'err.badCreds': 'Incorrect credentials.',
@@ -4931,6 +4933,7 @@ es: {
   'compacc.saved': 'Ingreso de composición corporal actualizado.',
   'compacc.blocked': 'Tu entrenador registra tu composición corporal: este ingreso es de solo lectura para ti.',
   'compacc.pctNote': '🔒 Los porcentajes y las notas los registra tu entrenador.',
+  'compacc.yourWeight': '💪 Tu peso lo guardas siempre tú: tecléalo y pulsa Guardar.',
   'frame.title': 'Guía de encuadre',
   'frame.pick': 'Elegir foto',
   'frame.camera': 'Usar la cámara',
@@ -5611,6 +5614,7 @@ es: {
   'err.pendingTrainer': 'Tu cuenta está pendiente de aprobación por {name}, el entrenador que elegiste.',
   'err.verifyFail': 'No se pudo verificar el acceso.',
   'err.noPermission': 'Tu cuenta no tiene permiso para hacer esto. Si crees que es un error, avísale a tu entrenador.',
+  'err.weightSaveDenied': 'Tu peso no se pudo guardar en este momento. Lo que tecleaste queda en su sitio: inténtalo de nuevo en un momento.',
   'err.noConnection': 'Sin conexión, o el servicio no está disponible ahora. Revisa tu conexión e inténtalo de nuevo.',
   'err.genericFail': 'Algo salió mal. Inténtalo de nuevo.',
   'err.badCreds': 'Credenciales incorrectas.',
@@ -28412,6 +28416,10 @@ function openWeightModal(ctx) {
   const pctLocked = (!ctx || ctx.uid === auth.currentUser.uid) && !compClientCanEdit();
   ['w-fat', 'w-muscle', 'w-water', 'w-visceral', 'w-notes'].forEach(idF => { const el = $(idF); if (el) el.disabled = pctLocked; });
   const pn = $('w-pct-note'); if (pn) { pn.style.display = pctLocked ? '' : 'none'; pn.textContent = t('compacc.pctNote'); }
+  /* AUTH-153 (punto 13, parte 2): con el candado puesto, junto a la
+     nota va su línea POSITIVA — el peso lo guarda siempre la propia
+     alumna; el candado es solo de la composición. */
+  const pp = $('w-pct-pos'); if (pp) { pp.style.display = pctLocked ? '' : 'none'; pp.textContent = t('compacc.yourWeight'); }
   $('weight-modal').style.display = '';
 }
 $('btn-add-weight').onclick = () => openWeightModal(null);
@@ -28451,7 +28459,16 @@ $('form-weight').addEventListener('submit', async e => {
   try {
     await setDoc(doc(db, 'nutrition_weight', docId), data);
   } catch (err) {
-    failToast(err);
+    /* AUTH-153 (punto 13, parte 2): un guardado de SOLO-PESO propio
+       (pctLocked: la carga conserva la composición, no la cambia)
+       jamás despacha el texto genérico de permiso — ese texto fue
+       el síntoma visible del defecto de reglas. Si aun así rebota
+       por permiso, el aviso nombra el peso y pide reintentar, sin
+       culpar a la cuenta ni mandar a avisar al entrenador. */
+    if (pctLocked && ((err && err.code) || '').includes('permission-denied')) {
+      try { console.warn('[ronbo] guardado de solo-peso denegado:', err.code); } catch {}
+      toast(t('err.weightSaveDenied'), true);
+    } else failToast(err);
     return;
   }
   $('weight-modal').style.display = 'none';
@@ -28461,7 +28478,24 @@ $('form-weight').addEventListener('submit', async e => {
   const clientUid = weightCtx && weightCtx.uid;
   weightCtx = null;
   toast(t('msg.weightSaved'));
-  if (wasClient) await openClient(clientUid); else { await loadAll(); try { await evalReconcile(date); } catch {} }
+  if (wasClient) await openClient(clientUid); else {
+    try { await loadAll(); }
+    catch (loadErr) {
+      /* AUTH-153 (punto 13, parte 3): el guardado YA ocurrió; si la
+         recarga falla (p. ej. lecturas en 429), el registro se
+         fusiona en memoria y se repinta el pesaje — un guardado
+         bueno nunca debe parecer no guardado (WEIGHTS viejo). */
+      try { console.warn('[ronbo] recarga tras guardar el peso falló; fusión en memoria:', (loadErr && loadErr.code) || String(loadErr)); } catch {}
+      const recW = { id: docId, date, weight: data.weight,
+        fat: data.fat, muscle: data.muscle, water: data.water, visceral: data.visceral, notes: data.notes,
+        weightOriginal: data.weightOriginal, weightUnitOriginal: data.weightUnitOriginal };
+      const ixW = WEIGHTS.findIndex(w => w.id === docId);
+      if (ixW >= 0) WEIGHTS[ixW] = recW; else { WEIGHTS.push(recW); WEIGHTS.sort((a, b) => a.date < b.date ? -1 : 1); }
+      try { renderWeight(); } catch {}
+      try { Promise.resolve(refreshDynamic()).catch(() => {}); } catch {}
+    }
+    try { await evalReconcile(date); } catch {}
+  }
 });
 
 /* Mostrar/ocultar la contraseña (ojito discreto junto al campo) */
@@ -30333,7 +30367,7 @@ document.addEventListener('keydown', e => { if (e.key === 'Escape') shareClose()
  *  - El SW (sw.js) solo cachea la cáscara del mismo origen en modo
  *    RED PRIMERO: Auth/Firestore/Worker jamás pasan por la caché.
  * ================================================================ */
-const PWA_SW_VERSION = '20261102-boton-atras';
+const PWA_SW_VERSION = '20261102-peso-propio';
 let pwaDeferredPrompt = null;
 function pwaIsStandalone() {
   try {
