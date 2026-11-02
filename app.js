@@ -1892,6 +1892,7 @@ const ADMIN_SECTIONS = [
   { id: 'foodlib', sub: 'tech', titleKey: 'foodlib.adminTitle', mount: admSecMountFoodlib, refresh: admSecRefreshFoodlib },
   { id: 'flags', sub: 'tech', titleKey: 'esc.flagsTitle', mount: admSecMountFlags },
   { id: 'accesslog', sub: 'system', titleKey: 'nd2.title', mount: admSecMountAccessLog, refresh: admSecRefreshAccessLog },
+  { id: 'limits', sub: 'system', titleKey: 'limreg.title', mount: admSecMountLimits, refresh: admSecRefreshLimits },
 ];
 const ADM_SEC_OPEN = {};     // id → abierta (solo presentación)
 const ADM_SEC_MOUNTED = {};  // id → contenido ya montado
@@ -2071,6 +2072,105 @@ function admSecMountAccessLog(body) {
   loadAccessLog();
 }
 function admSecRefreshAccessLog() { loadAccessLog(); }
+/* ---------- Sección «Límites y cuotas» (SISTEMA) ----------
+   Punto 12 de la cola (pedido de Ronald 2026-11-01 18:42 CST):
+   el registro EDITABLE del administrador con los topes de cada
+   servicio (servicio · qué se mide · tope · periodo · notas).
+   Es SOLO un registro de consulta y gobierno: editarlo NO cambia
+   ningún límite real de ningún servicio — el aviso va visible en
+   la cabecera de la sección (limreg.hint). Vive en
+   app_settings/limits, documento SOLO del propietario por su
+   propio bloque de reglas (delta aprobado por Ronald 2026-11-02,
+   réplica del precedente mail_templates de AUTH-146); el
+   documento no se borra jamás: las filas se editan o se retiran
+   de la lista. Sin documento, la primera apertura del
+   administrador lo SIEMBRA desde la app con las filas verificadas
+   cifra a cifra el 2026-11-02 (una escritura del propietario,
+   declarada). Guardar confirma SOLO tras el await (la disciplina
+   de renderAiControlBox): en error, aviso de error y la vista
+   vuelve a los valores guardados. */
+const LIMREG_SEED_ROWS = [
+  { service: 'Firestore (plan Spark)', measure: 'Lecturas de documentos', cap: '50.000', period: 'día', notes: 'Cuota publicada del plan Spark; el proyecto está en Spark $0.' },
+  { service: 'Firestore (plan Spark)', measure: 'Escrituras de documentos', cap: '20.000', period: 'día', notes: 'Cuota publicada del plan Spark.' },
+  { service: 'Firestore (plan Spark)', measure: 'Borrados de documentos', cap: '20.000', period: 'día', notes: 'Cuota publicada del plan Spark.' },
+  { service: 'Firestore (plan Spark)', measure: 'Almacenamiento', cap: '1 GiB', period: 'total', notes: 'Cuota publicada del plan Spark.' },
+  { service: 'Gemini (vía Worker)', measure: 'Gasto en IA de comidas y análisis', cap: '$250', period: 'mes', notes: 'Prepago, Nivel 1; recarga automática APAGADA. El saldo vive en Google AI Studio.' },
+  { service: 'Umami (plan Hobby)', measure: 'Eventos de analítica', cap: '100.000', period: 'mes', notes: 'Eventos incluidos en el plan Umami Cloud Hobby.' },
+  { service: 'IA por usuario', measure: 'Análisis por usuario', cap: '10 por defecto · Ronald 30 · piloto y David: sin límite', period: 'día', notes: 'Del KV M8_TOPES del Worker, verificado en vivo el 2026-11-02.' },
+  { service: 'Aprobaciones por entrenador', measure: 'Cuentas nuevas que un entrenador puede aprobar', cap: '1', period: 'por entrenador', notes: 'Valor VIVO en app_settings/approvals (2026-11-02). El valor de diseño registrado era 5: su decisión sigue pendiente.' },
+  { service: 'Membresías (cupo de alumnos)', measure: 'Alumnos por entrenador según nivel', cap: 'Básico 5 · Premium 10 · Élite 30', period: 'por entrenador', notes: 'Cifra de diseño: el catálogo no existe en producción y la facturación sigue apagada.' },
+  { service: 'Correo automático (Comunicaciones)', measure: 'Correos enviados por la app', cap: '450', period: 'día', notes: 'Tope en la propia app (COMMS_CAP), por debajo del límite del buzón.' },
+];
+let LIMREG_ROWS = null;   // null = aún no leído en esta sesión
+function admSecMountLimits(body) {
+  body.innerHTML = `<p class="progress-hint">${esc(t('limreg.hint'))}</p><div id="limreg-box"><div class="wempty">${esc(t('limreg.loading'))}</div></div>`;
+  limregLoad();
+}
+function admSecRefreshLimits() { if (document.getElementById('limreg-box')) limregLoad(); }
+async function limregLoad() {
+  const box = document.getElementById('limreg-box');
+  if (!box) return;
+  if (!(IS_OWNER && ROLE === 'administrador')) { box.innerHTML = ''; return; }
+  try {
+    const s = await getDoc(doc(db, 'app_settings', 'limits'));
+    if (s.exists() && Array.isArray(s.data().rows)) {
+      LIMREG_ROWS = s.data().rows;
+    } else {
+      LIMREG_ROWS = LIMREG_SEED_ROWS.map(r => ({ ...r }));
+      await setDoc(doc(db, 'app_settings', 'limits'), { rows: LIMREG_ROWS, updatedAt: serverTimestamp(), updatedBy: auth.currentUser.uid });
+    }
+  } catch {
+    toast(t('limreg.error'), true);
+    if (!LIMREG_ROWS) { box.innerHTML = `<div class="wempty">${esc(t('limreg.error'))}</div>`; return; }
+  }
+  limregPaint();
+}
+function limregRowHTML(r) {
+  const f = (k, ph) => `<label class="limreg-field"><span class="muted">${esc(t('limreg.' + k))}</span><input type="text" data-limreg="${k}" value="${esc(r[k.replace('col', '').toLowerCase()] || '')}" placeholder="${esc(ph || '')}"></label>`;
+  return `<div class="limreg-row">`
+    + f('colService') + f('colMeasure') + f('colCap') + f('colPeriod') + f('colNotes')
+    + `<div class="limreg-actions"><button type="button" class="btn-primary btn-sm" data-limreg-save>${esc(t('limreg.save'))}</button><button type="button" class="btn-ghost btn-sm" data-limreg-del>${esc(t('limreg.removeRow'))}</button></div></div>`;
+}
+function limregPaint() {
+  const box = document.getElementById('limreg-box');
+  if (!box || !LIMREG_ROWS) return;
+  box.innerHTML = LIMREG_ROWS.map(limregRowHTML).join('')
+    + `<div class="eval-actions"><button type="button" class="btn-ghost btn-sm" id="limreg-add">${esc(t('limreg.addRow'))}</button></div>`;
+  box.querySelectorAll('[data-limreg-save]').forEach(b => b.addEventListener('click', () => limregSaveAll()));
+  box.querySelectorAll('[data-limreg-del]').forEach(b => b.addEventListener('click', () => { const row = b.closest('.limreg-row'); if (row) row.remove(); limregSaveAll(); }));
+  const add = document.getElementById('limreg-add');
+  if (add) add.addEventListener('click', () => {
+    add.closest('.eval-actions').insertAdjacentHTML('beforebegin', limregRowHTML({}));
+    const rows = box.querySelectorAll('.limreg-row');
+    const last = rows[rows.length - 1];
+    if (last) {
+      last.querySelector('[data-limreg-save]').addEventListener('click', () => limregSaveAll());
+      last.querySelector('[data-limreg-del]').addEventListener('click', () => { last.remove(); limregSaveAll(); });
+      const inp = last.querySelector('input'); if (inp) inp.focus();
+    }
+  });
+}
+function limregCollect() {
+  const box = document.getElementById('limreg-box');
+  if (!box) return [];
+  const keys = ['service', 'measure', 'cap', 'period', 'notes'];
+  return [...box.querySelectorAll('.limreg-row')].map(row => {
+    const r = {};
+    keys.forEach(k => { const inp = row.querySelector(`[data-limreg="col${k[0].toUpperCase() + k.slice(1)}"]`); r[k] = inp ? inp.value.trim() : ''; });
+    return r;
+  }).filter(r => keys.some(k => r[k] !== ''));
+}
+async function limregSaveAll() {
+  const rows = limregCollect();
+  try {
+    await setDoc(doc(db, 'app_settings', 'limits'), { rows, updatedAt: serverTimestamp(), updatedBy: auth.currentUser.uid }, { merge: true });
+    LIMREG_ROWS = rows;
+    toast(t('limreg.saved'));
+  } catch {
+    toast(t('limreg.error'), true);
+  }
+  limregPaint();
+}
 
 let DOS_PAINT_SEQ = 0;
 async function renderDossierEditor() {
@@ -3638,6 +3738,19 @@ en: {
   'admuse.stale': '⚠️ The refresh failed — showing the previous data from {when}; it is not current.',
   'admuse.refresh': 'Refresh',
   'admuse.unknownUser': 'Unnamed user',
+  'limreg.title': '📏 Limits & quotas',
+  'limreg.hint': 'Your registry of the caps of each service. It is a reference and governance record only: editing a row here does NOT change the real limit of any service — the real caps live in each service (the Firebase plan, the Worker, Umami…).',
+  'limreg.colService': 'Service',
+  'limreg.colMeasure': 'What is measured',
+  'limreg.colCap': 'Cap',
+  'limreg.colPeriod': 'Period',
+  'limreg.colNotes': 'Notes',
+  'limreg.save': 'Save',
+  'limreg.saved': 'Registry saved.',
+  'limreg.error': 'The registry could not be loaded or saved. Try again.',
+  'limreg.addRow': '+ Add row',
+  'limreg.removeRow': 'Remove',
+  'limreg.loading': 'Loading…',
   'signup.confirmDone': '✓ Email confirmed',
   'signup.confirmAlready': 'Your email is already confirmed.',
   'signup.confirmWrong': 'This confirmation link belongs to a different account.',
@@ -6094,6 +6207,19 @@ es: {
   'admuse.stale': '⚠️ La actualización falló — se muestran los datos anteriores de {when}; no son los actuales.',
   'admuse.refresh': 'Actualizar',
   'admuse.unknownUser': 'Usuario sin nombre',
+  'limreg.title': '📏 Límites y cuotas',
+  'limreg.hint': 'Tu registro de los topes de cada servicio. Es solo un registro de consulta y gobierno: editar una fila aquí NO cambia el límite real de ningún servicio — los topes reales viven en cada servicio (el plan de Firebase, el Worker, Umami…).',
+  'limreg.colService': 'Servicio',
+  'limreg.colMeasure': 'Qué se mide',
+  'limreg.colCap': 'Tope',
+  'limreg.colPeriod': 'Periodo',
+  'limreg.colNotes': 'Notas',
+  'limreg.save': 'Guardar',
+  'limreg.saved': 'Registro guardado.',
+  'limreg.error': 'No se pudo cargar ni guardar el registro. Inténtalo de nuevo.',
+  'limreg.addRow': '+ Añadir fila',
+  'limreg.removeRow': 'Quitar',
+  'limreg.loading': 'Cargando…',
   'signup.confirmDone': '✓ Correo confirmado',
   'signup.confirmAlready': 'Tu correo ya está confirmado.',
   'signup.confirmWrong': 'Este enlace de confirmación es de otra cuenta.',
@@ -30698,7 +30824,7 @@ document.addEventListener('keydown', e => { if (e.key === 'Escape') shareClose()
  *  - El SW (sw.js) solo cachea la cáscara del mismo origen en modo
  *    RED PRIMERO: Auth/Firestore/Worker jamás pasan por la caché.
  * ================================================================ */
-const PWA_SW_VERSION = '20261102-historial-fila';
+const PWA_SW_VERSION = '20261102-limites';
 let pwaDeferredPrompt = null;
 function pwaIsStandalone() {
   try {

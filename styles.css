@@ -1380,6 +1380,12 @@ div > .btn-ghost:only-child, div > .btn-main:only-child {
 .train-actions-run { margin-top: 4px; text-align: center; font-size: 12px; font-weight: 700; color: #0d9488; }
 .train-day-dressed .train-actions-run { color: #d9ffe9; }
 /* == FIN AUTH-161 == */
+/* == LÍMITES Y CUOTAS (AUTH-162 · punto 12) == */
+.limreg-row { display: flex; flex-wrap: wrap; gap: 6px; align-items: flex-end; padding: 8px 0; border-bottom: 1px solid #e5e7eb; }
+.limreg-field { display: flex; flex-direction: column; gap: 2px; font-size: 11px; flex: 1 1 104px; min-width: 0; }
+.limreg-field input { width: 100%; box-sizing: border-box; }
+.limreg-actions { display: flex; gap: 6px; flex: none; }
+/* == FIN AUTH-162 == */
 .train-close-form { margin-top: 10px; padding: 10px; border: 1px solid #e2e8f0; border-radius: 12px; background: #f8fafc; }
 .train-close-form .act-lab { display: block; margin-bottom: 8px; }
 @keyframes act-flick { 0%, 100% { transform: scale(1) rotate(-2deg); opacity: 1; } 50% { transform: scale(1.16) rotate(2.5deg); opacity: .85; } }
