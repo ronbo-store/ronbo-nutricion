@@ -1,0 +1,138 @@
+# RONBO FIT — Batería de reglas del delta «La alumna guarda su
+# propio peso» (AUTH-2026-11-02-153; punto 13 de la cola de
+# despliegue 2026-11-01). La suite PESO (21 casos) contra el
+# CANDIDATO de reglas (texto vivo ruleset 4e0c88e1, SHA-256
+# 6f7b482c…, + SOLO el delta cerrado de nutrition_weight: función
+# weightCreateNoComp y la rama de auto-escritura partida en
+# solo-peso vs. composición; candidata SHA-256 6df936f1…) y la
+# MISMA suite contra el texto VIVO con las expectativas del delta
+# invertidas (W1, W2, W6, W10 y W18a denegados allí).
+# Todo contra el emulador oficial de Firestore (proyecto ficticio
+# ronbo-nutri-test). Este workflow SOLO valida el texto; NO publica
+# reglas ni despliega nada. Sin secretos, sin credenciales de
+# producción.
+#
+# Colocación: este archivo va en .github/workflows/ del repo y las
+# suites en pruebas-reglas-peso/ y pruebas-reglas-peso-vivo/ en la
+# raíz del mismo repo, en la rama ci/peso-bateria.
+name: Batería Peso Propio (emulador oficial)
+
+on:
+  workflow_dispatch:
+  push:
+    branches: [ci/peso-bateria]
+
+permissions:
+  contents: read
+  statuses: write
+
+jobs:
+  peso-candidato:
+    name: Serie PESO (21 casos) contra el CANDIDATO
+    runs-on: ubuntu-24.04
+    timeout-minutes: 20
+    defaults:
+      run:
+        working-directory: pruebas-reglas-peso
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: 21
+      - name: Instalar dependencias de la batería (versiones fijadas)
+        run: npm ci
+      - name: Instalar Firebase CLI (versión fijada)
+        run: npm install -g firebase-tools@15.34.0
+      - name: Ejecutar la batería contra el emulador oficial
+        shell: bash
+        run: |
+          set -o pipefail
+          firebase emulators:exec --only firestore --project ronbo-nutri-test "node test-peso.mjs" 2>&1 | tee resultado-bateria.txt
+      - name: Publicar el resultado en el resumen del job
+        if: always()
+        shell: bash
+        run: |
+          {
+            echo '## Serie PESO (21 casos) contra el CANDIDATO — resultado'
+            grep -E 'PESO-CANDIDATO:' resultado-bateria.txt || true
+          } >> "$GITHUB_STEP_SUMMARY"
+      - name: Emitir los fallos como anotaciones (legibles por API)
+        if: always()
+        shell: bash
+        run: |
+          grep -E '^FAIL' resultado-bateria.txt | while IFS= read -r l; do echo "::error title=CASO-FAIL::$l"; done || true
+          grep -E 'PESO-[A-Z]+:' resultado-bateria.txt | while IFS= read -r l; do echo "::notice title=TOTAL::$l"; done || true
+      - name: Publicar el detalle como estado del commit (legible por API)
+        if: always()
+        shell: bash
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          CTX: bateria-peso/candidato
+        run: |
+          TOTAL=$(grep -E 'PESO-CANDIDATO:' resultado-bateria.txt | tail -1 || true)
+          CODES=$(grep -E '^FAIL' resultado-bateria.txt | grep -oE 'PESO W[0-9]+[a-z]?' | sort -u | tr '\n' ' ' || true)
+          DESC="$TOTAL | FAIL: ${CODES:-ninguno}"
+          DESC=$(printf '%s' "$DESC" | cut -c1-140)
+          if grep -qE 'PESO-CANDIDATO: [0-9]+/[0-9]+ PASS' resultado-bateria.txt && ! grep -qE '^FAIL' resultado-bateria.txt; then ST=success; else ST=failure; fi
+          curl -s -X POST -H "Authorization: Bearer $GH_TOKEN" -H 'Content-Type: application/json' \
+            "https://api.github.com/repos/${{ github.repository }}/statuses/${{ github.sha }}" \
+            -d "{\"state\":\"$ST\",\"context\":\"$CTX\",\"description\":\"$DESC\"}" > /dev/null || true
+
+  peso-vivo:
+    name: Serie PESO (21 casos) contra el texto VIVO (contraste)
+    runs-on: ubuntu-24.04
+    timeout-minutes: 20
+    defaults:
+      run:
+        working-directory: pruebas-reglas-peso-vivo
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: 21
+      - name: Instalar dependencias de la batería (versiones fijadas)
+        run: npm ci
+      - name: Instalar Firebase CLI (versión fijada)
+        run: npm install -g firebase-tools@15.34.0
+      - name: Ejecutar la batería contra el emulador oficial
+        shell: bash
+        run: |
+          set -o pipefail
+          firebase emulators:exec --only firestore --project ronbo-nutri-test "node test-peso.mjs" 2>&1 | tee resultado-bateria.txt
+      - name: Publicar el resultado en el resumen del job
+        if: always()
+        shell: bash
+        run: |
+          {
+            echo '## Serie PESO (21 casos) contra el texto VIVO — resultado'
+            grep -E 'PESO-VIVO:' resultado-bateria.txt || true
+          } >> "$GITHUB_STEP_SUMMARY"
+      - name: Emitir los fallos como anotaciones (legibles por API)
+        if: always()
+        shell: bash
+        run: |
+          grep -E '^FAIL' resultado-bateria.txt | while IFS= read -r l; do echo "::error title=CASO-FAIL::$l"; done || true
+          grep -E 'PESO-[A-Z]+:' resultado-bateria.txt | while IFS= read -r l; do echo "::notice title=TOTAL::$l"; done || true
+      - name: Publicar el detalle como estado del commit (legible por API)
+        if: always()
+        shell: bash
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          CTX: bateria-peso/vivo
+        run: |
+          TOTAL=$(grep -E 'PESO-VIVO:' resultado-bateria.txt | tail -1 || true)
+          CODES=$(grep -E '^FAIL' resultado-bateria.txt | grep -oE 'PESO W[0-9]+[a-z]?' | sort -u | tr '\n' ' ' || true)
+          DESC="$TOTAL | FAIL: ${CODES:-ninguno}"
+          DESC=$(printf '%s' "$DESC" | cut -c1-140)
+          if grep -qE 'PESO-VIVO: [0-9]+/[0-9]+ PASS' resultado-bateria.txt && ! grep -qE '^FAIL' resultado-bateria.txt; then ST=success; else ST=failure; fi
+          curl -s -X POST -H "Authorization: Bearer $GH_TOKEN" -H 'Content-Type: application/json' \
+            "https://api.github.com/repos/${{ github.repository }}/statuses/${{ github.sha }}" \
+            -d "{\"state\":\"$ST\",\"context\":\"$CTX\",\"description\":\"$DESC\"}" > /dev/null || true
