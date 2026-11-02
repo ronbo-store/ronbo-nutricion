@@ -2264,7 +2264,6 @@ en: {
   'form.passwordHint': 'This is your ronbo.fit account password, not your social media one.',
   'form.password2': 'Confirm password',
   'form.optional': 'optional',
-  'health.title': '🏥 Health declaration',
   'health.hint': 'Check any conditions you have. It\'s for your safety: your trainer must know them before assigning an exercise or nutrition plan.',
   'health.details': 'Details / medications',
   'health.detailsPh': 'E.g. Takes metformin; left knee injury in 2023…',
@@ -2272,7 +2271,6 @@ en: {
   'health.truthHelp': 'In plain words: you confirm that the answers above are true and complete. Your trainer trusts them to avoid exercises or foods that could hurt you — if something changes, tell him and update your declaration.',
   'health.condHelp': 'Marking a box tells your trainer: “this applies to me”. He will see it and keep it in mind. Leave a box empty if it does not apply to you.',
   'health.clientTitle': '🏥 Client health declaration',
-  'health.regNote': 'You can complete your health declaration later, in your profile, with its own specific consent. It is not required to create your account.',
   'card.toggle': 'Show or hide section',
   'main.progress': 'Progress', 'main.food': 'Food', 'main.training': 'Training', 'main.pendings': 'Pendings', 'main.activity': 'Activity',
   'nav.home': 'Home', 'nav.back': 'Back', 'nav.backToPend': 'Back to Pending', 'nav.backToFood': 'Back to Food', 'nav.goalsSummary': '{obj} · {kcal} kcal',
@@ -4708,7 +4706,6 @@ es: {
   'form.passwordHint': 'Es la contraseña de tu cuenta en ronbo.fit, no la de tus redes sociales.',
   'form.password2': 'Confirmar contraseña',
   'form.optional': 'opcional',
-  'health.title': '🏥 Declaración de salud',
   'health.hint': 'Marca las condiciones que tengas. Es por tu seguridad: tu entrenador debe conocerlas antes de asignarte un plan de ejercicio o nutrición.',
   'health.details': 'Detalles / medicamentos',
   'health.detailsPh': 'Ej. Toma metformina; lesión de rodilla izquierda en 2023…',
@@ -4716,7 +4713,6 @@ es: {
   'health.truthHelp': 'En palabras simples: confirmas que las respuestas de arriba son verdaderas y completas. Tu entrenador confía en ellas para evitar ejercicios o alimentos que puedan dañarte; si algo cambia, avísale y actualiza tu declaración.',
   'health.condHelp': 'Marcar una casilla le dice a tu entrenador: «esto me aplica». Él lo verá y lo tendrá en cuenta. Déjala vacía si no te aplica.',
   'health.clientTitle': '🏥 Declaración de salud del cliente',
-  'health.regNote': 'Puedes completar tu declaración de salud más tarde, en tu perfil, con su propio consentimiento específico. No es necesaria para crear tu cuenta.',
   'card.toggle': 'Mostrar u ocultar la sección',
   'main.progress': 'Progreso', 'main.food': 'Comida', 'main.training': 'Entrenamiento', 'main.pendings': 'Pendientes', 'main.activity': 'Actividad',
   'nav.home': 'Inicio', 'nav.back': 'Volver', 'nav.backToPend': 'Volver a Pendientes', 'nav.backToFood': 'Volver a Comida', 'nav.goalsSummary': '{obj} · {kcal} kcal',
@@ -30367,7 +30363,7 @@ document.addEventListener('keydown', e => { if (e.key === 'Escape') shareClose()
  *  - El SW (sw.js) solo cachea la cáscara del mismo origen en modo
  *    RED PRIMERO: Auth/Firestore/Worker jamás pasan por la caché.
  * ================================================================ */
-const PWA_SW_VERSION = '20261102-peso-propio';
+const PWA_SW_VERSION = '20261102-sin-caja-salud';
 let pwaDeferredPrompt = null;
 function pwaIsStandalone() {
   try {
