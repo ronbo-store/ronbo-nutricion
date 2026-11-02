@@ -2275,7 +2275,7 @@ en: {
   'health.regNote': 'You can complete your health declaration later, in your profile, with its own specific consent. It is not required to create your account.',
   'card.toggle': 'Show or hide section',
   'main.progress': 'Progress', 'main.food': 'Food', 'main.training': 'Training', 'main.pendings': 'Pendings', 'main.activity': 'Activity',
-  'nav.home': 'Home', 'nav.back': 'Back', 'nav.goalsSummary': '{obj} · {kcal} kcal',
+  'nav.home': 'Home', 'nav.back': 'Back', 'nav.backToPend': 'Back to Pending', 'nav.backToFood': 'Back to Food', 'nav.goalsSummary': '{obj} · {kcal} kcal',
   'sw.open': 'Stopwatch', 'sw.title': 'STOPWATCH', 'sw.close': 'Close stopwatch',
   'sw.running': '● RUNNING', 'sw.paused': '❚❚ PAUSED',
   'sw.start': 'Start', 'sw.pause': 'Pause', 'sw.resume': 'Resume',
@@ -4717,7 +4717,7 @@ es: {
   'health.regNote': 'Puedes completar tu declaración de salud más tarde, en tu perfil, con su propio consentimiento específico. No es necesaria para crear tu cuenta.',
   'card.toggle': 'Mostrar u ocultar la sección',
   'main.progress': 'Progreso', 'main.food': 'Comida', 'main.training': 'Entrenamiento', 'main.pendings': 'Pendientes', 'main.activity': 'Actividad',
-  'nav.home': 'Inicio', 'nav.back': 'Volver', 'nav.goalsSummary': '{obj} · {kcal} kcal',
+  'nav.home': 'Inicio', 'nav.back': 'Volver', 'nav.backToPend': 'Volver a Pendientes', 'nav.backToFood': 'Volver a Comida', 'nav.goalsSummary': '{obj} · {kcal} kcal',
   'sw.open': 'Cronómetro', 'sw.title': 'CRONÓMETRO', 'sw.close': 'Cerrar el cronómetro',
   'sw.running': '● EN CURSO', 'sw.paused': '❚❚ EN PAUSA',
   'sw.start': 'Iniciar', 'sw.pause': 'Pausar', 'sw.resume': 'Seguir',
@@ -16458,7 +16458,7 @@ if (foodDockLabel) foodDockLabel.addEventListener('click', e => {
      con la foto y el texto. (Hasta AUTH-110 este chip delegaba
      en el botón «Añadir comida manualmente» de Inicio, retirado
      por orden de Ronald por duplicar ESTA entrada.) */
-  if (b) b.onclick = () => { foodCloseAll(); mealManualOpen(); }; }
+  if (b) b.onclick = () => { foodCloseAll(); mealManualOpen(); backSet('food'); }; }
 { const b = $('btn-food-help'); if (b) b.onclick = () => foodOpenHelp(); }
 { const c = $('btn-food-close'); if (c) c.onclick = () => foodCloseAll(); }
 { const c = $('btn-food-text-close'); if (c) c.onclick = () => foodOpenFloat(); }
@@ -17401,6 +17401,7 @@ function navRestoreScroll(page) {
   try { requestAnimationFrame(() => { el.scrollTop = y; }); } catch { el.scrollTop = y; }
 }
 function navOpenPage(page) {
+  backClear();
   if (NAV_TAB !== 'track') switchTab('track');
   if (NAV_PAGE === page) { navRestoreScroll(page); return; }
   navSaveScroll();
@@ -17491,6 +17492,75 @@ function navUnsavedClose() { const m = $('nav-unsaved'); if (m) m.style.display 
       }
     }, 150);
   }; }
+
+/* ============ BOTÓN «← ATRÁS» — MEMORIA DE ORIGEN (corrección 2026-11-01) ============
+   Orden de Ronald (chat RONBO.NUTRI, 2026-11-01 17:13 CST): «crear
+   botones para ir atrás en todas las ventanas que sea necesario».
+   La auditoría de navegación apilada
+   (construccion-boton-atras-2026-11-01/AUDITORIA-NAVEGACION-APILADA-2026-11-01.md)
+   encontró DOS orígenes sin vuelta: (1) los destinos «Ir a…» de
+   Pendientes (AUTH-117/143) — el flotante se cierra al navegar y el
+   destino caía en Inicio o en una sección sin señal de regreso — y
+   (2) el modal de comida abierto desde «Manual» de la ventana de
+   Comida — el abridor cierra la ventana y el modal caía en Inicio,
+   a diferencia de Texto/Voz/Ayuda, que sí vuelven a la ventana.
+   BACK_ORIGIN guarda UN paso de origen ('pend' | 'food'): se fija
+   AL FINAL del gesto que abandona la superficie de origen (así la
+   navegación del propio gesto no lo liquida) y se consume al volver
+   (backReturn) o al navegar deliberadamente a otra parte (switchTab
+   y navOpenPage lo liquidan vía backClear; abrir Pendientes también,
+   dentro de pendSetFloat). Controles: el botón en la cabecera de los
+   modales de comida y peso y de las páginas del dock (junto a la ✕
+   de AUTH-145) y la pastilla flotante #pend-back-chip para los
+   destinos que son secciones en flujo. Toda salida de un modal con
+   origen vivo vuelve al origen: el botón pulsa el Cancelar propio
+   del modal (su descarte queda intacto) y el retorno automático
+   tras GUARDAR espeja el retorno de AUTH-121. La ventana de
+   consulta de pendientes (AUTH-121/123) NO se toca. CERO
+   escrituras nuevas: todo es DOM/memoria, como manda AUTH-103. */
+let BACK_ORIGIN = null; // null | 'pend' | 'food'
+function backSet(origin) { BACK_ORIGIN = origin; try { backSync(); } catch {} }
+function backClear() { if (BACK_ORIGIN) { BACK_ORIGIN = null; try { backSync(); } catch {} } }
+function backSync() {
+  const o = BACK_ORIGIN;
+  const mb = $('btn-meal-back');
+  if (mb) { mb.style.display = o ? '' : 'none'; if (o) mb.textContent = '← ' + t(o === 'food' ? 'nav.backToFood' : 'nav.backToPend'); }
+  const wb = $('btn-weight-back');
+  if (wb) { wb.style.display = o === 'pend' ? '' : 'none'; if (o === 'pend') wb.textContent = '← ' + t('nav.backToPend'); }
+  for (const id of ['btn-prog-back', 'btn-train-back']) {
+    const b = $(id);
+    if (b) { b.style.display = o === 'pend' ? '' : 'none'; if (o === 'pend') b.textContent = '← ' + t('nav.backToPend'); }
+  }
+  const chip = $('pend-back-chip');
+  if (chip) {
+    const show = o === 'pend' && !PEND_UI.floatOpen;
+    chip.style.display = show ? '' : 'none';
+    if (show) chip.textContent = '← ' + t('nav.backToPend');
+  }
+}
+function backReturn(saved) {
+  const o = BACK_ORIGIN; if (!o) return;
+  BACK_ORIGIN = null;
+  try { backSync(); } catch {}
+  /* La reapertura se difiere al final del gesto en curso: las
+     vueltas nacidas de una cadena de clics (el botón «← atrás» o la
+     ✕ pulsan el Cancelar del modal) reabrirían la superficie DENTRO
+     del mismo evento, y los vigilantes de «clic fuera» de
+     Pendientes y de la familia Comida — que escuchan en el
+     documento — la cerrarían al seguir burbujeando ese mismo clic,
+     cuyo blanco vive dentro del modal. Diferida, la vuelta se
+     completa al terminar el gesto; un clic fuera POSTERIOR sigue
+     cerrando la superficie como siempre. */
+  setTimeout(() => {
+    if (o === 'pend') { pendSetFloat(true); return; }
+    if (o === 'food') { if (saved) { try { foodSetSub('consumido'); } catch {} } foodOpenFloat(); }
+  }, 0);
+}
+{ const b = $('btn-meal-back'); if (b) b.onclick = () => { const c = $('meal-cancel'); if (c) c.click(); }; }
+{ const b = $('btn-weight-back'); if (b) b.onclick = () => { const c = $('weight-cancel'); if (c) c.click(); }; }
+{ const b = $('btn-prog-back'); if (b) b.onclick = () => navGuarded(() => { navClosePagesForce(); backReturn(); }); }
+{ const b = $('btn-train-back'); if (b) b.onclick = () => navGuarded(() => { navClosePagesForce(); backReturn(); }); }
+{ const b = $('pend-back-chip'); if (b) b.onclick = () => backReturn(); }
 
 /* ============ Espejos de edición (§3.2 del diseño) ============
    La declaración de salud en edición y el panel de energía se
@@ -25303,6 +25373,7 @@ async function repeatProposalSend(type, extra) {
 
 /* ================= PESTAÑAS PRINCIPALES ================= */
 function switchTab(name) {
+  backClear();
   /* NAVEGACIÓN FLOTANTE (2026-10-30) · D2 «el último toque manda»:
      la pastilla es la capa visible — cualquier página del dock se
      cierra al cambiar de área — y la posición de scroll de cada
@@ -27679,8 +27750,8 @@ function repeatClear() {
   mealScaleClear(); // el contexto de reescalado muere con el episodio del formulario
   const b = $('m-rep-banner'); if (b) { b.style.display = 'none'; b.textContent = ''; }
 }
-$('meal-cancel').onclick = () => { $('meal-modal').style.display = 'none'; aiClearDraft(); repeatClear(); try { pendDraftDisarm(); } catch {} };
-$('meal-modal').addEventListener('click', e => { if (e.target.id === 'meal-modal') { e.target.style.display = 'none'; repeatClear(); } });
+$('meal-cancel').onclick = () => { $('meal-modal').style.display = 'none'; aiClearDraft(); repeatClear(); try { pendDraftDisarm(); } catch {} backReturn(); };
+$('meal-modal').addEventListener('click', e => { if (e.target.id === 'meal-modal') { e.target.style.display = 'none'; repeatClear(); backReturn(); } });
 
 /* ============ AUTOCOMPLETADO DESDE EL HISTORIAL (Ronald, 2026-10-25) ============
    «Quiero que el registro de la comida tenga esa posibilidad de
@@ -28286,6 +28357,7 @@ $('form-meal').addEventListener('submit', async e => {
        ni escribirse dos veces. */
     try { pendDraftClear(); pendDraftDisarm(); } catch {}
     $('meal-modal').style.display = 'none';
+    backReturn(true);
     e.target.reset();
     $('m-photo-preview').style.display = 'none'; $('m-photo-preview').src = '';
     await loadAllKeepDate(data.date);
@@ -28343,8 +28415,8 @@ function openWeightModal(ctx) {
   $('weight-modal').style.display = '';
 }
 $('btn-add-weight').onclick = () => openWeightModal(null);
-$('weight-cancel').onclick = () => { $('weight-modal').style.display = 'none'; weightCtx = null; };
-$('weight-modal').addEventListener('click', e => { if (e.target.id === 'weight-modal') { e.target.style.display = 'none'; weightCtx = null; } });
+$('weight-cancel').onclick = () => { $('weight-modal').style.display = 'none'; weightCtx = null; backReturn(); };
+$('weight-modal').addEventListener('click', e => { if (e.target.id === 'weight-modal') { e.target.style.display = 'none'; weightCtx = null; backReturn(); } });
 
 $('form-weight').addEventListener('submit', async e => {
   e.preventDefault();
@@ -28383,6 +28455,7 @@ $('form-weight').addEventListener('submit', async e => {
     return;
   }
   $('weight-modal').style.display = 'none';
+  backReturn(true);
   e.target.reset();
   const wasClient = weightCtx && weightCtx.uid !== auth.currentUser.uid;
   const clientUid = weightCtx && weightCtx.uid;
@@ -28848,6 +28921,12 @@ function pendSetFloat(open) {
   if (open) { try { trainerAlertsRender(); } catch {} }
   pendSyncDock();
   try { coverSync(); } catch {} // A-N2
+  /* Botón «← atrás»: llegar a Pendientes por cualquier vía liquida
+     el origen pendiente de devolución, y el pintado de los
+     controles de regreso sigue al flotante (la pastilla se oculta
+     mientras el flotante está abierto). */
+  if (open) BACK_ORIGIN = null;
+  try { backSync(); } catch {}
 }
 /* Recálculo sin recargar (al volver a primer plano y cada 60 s):
    pinta el botón a la hora en punto de un pendiente y refresca la
@@ -29274,6 +29353,7 @@ setInterval(() => { try { pendDockTick(); } catch {} }, 60000);
         const form = $('form-meal'); if (form) form.reset();
         pendDraftArm(); pendDraftRestore();
         aiOpenMealModal();
+        backSet('pend');
       } else if (act === 'go') {
         /* «Ir a…» navega fuera de la tarjeta: se cierra para dejar
            ver el destino (modal de comida/peso o sección expandida). */
@@ -29338,6 +29418,10 @@ setInterval(() => { try { pendDockTick(); } catch {} }, 60000);
           else if (route === 'admin-meals') { switchTab('trainers'); scroll('meal-admin-box'); }
           else if (route === 'admin-waiting') { pendGoWaitingTray(); }
         }
+        /* El destino hereda la deuda de regreso: el flotante se
+           cerró al navegar, y el botón «← Volver a Pendientes» (o la
+           pastilla, si el destino es una sección) es la vuelta. */
+        backSet('pend');
       }
     });
   }
@@ -30249,7 +30333,7 @@ document.addEventListener('keydown', e => { if (e.key === 'Escape') shareClose()
  *  - El SW (sw.js) solo cachea la cáscara del mismo origen en modo
  *    RED PRIMERO: Auth/Firestore/Worker jamás pasan por la caché.
  * ================================================================ */
-const PWA_SW_VERSION = '20261102-choque-dock';
+const PWA_SW_VERSION = '20261102-boton-atras';
 let pwaDeferredPrompt = null;
 function pwaIsStandalone() {
   try {

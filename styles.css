@@ -2753,3 +2753,22 @@ body.prog-page #progress-content.nav-page-on { padding-right: 88px; }
 #app-view .foot { margin-bottom: 0; }
 .foot { padding-bottom: 132px; }
 #waiting-box, #approvals-box, #faq-editor-box { padding-right: 88px; }
+
+/* ════════════════════════════════════════════════════════════════
+   BOTÓN «← ATRÁS» — MEMORIA DE ORIGEN (corrección 2026-11-01):
+   los controles de regreso a la superficie de origen (Pendientes o
+   la ventana de Comida) que pinta backSync en app.js. Área de toque
+   ≥45 px en los tres (principio de Ronald: lo accesible se mide
+   por el área de toque, como la ✕ de AUTH-145): el botón de la
+   cabecera de las páginas del dock (.nav-page-back, a la izquierda
+   del título, junto a la ✕), el botón de la cabecera de los
+   modales de comida y peso (.modal-back, sobre el título) y la
+   pastilla flotante #pend-back-chip para los destinos «Ir a…» que
+   son secciones en flujo — abajo a la izquierda, sobre el dock
+   (z 44: sobre el contenido y el dock, bajo el flotante de
+   Pendientes y los modales), en el verde de marca como botón
+   primario. Los tres nacen ocultos (display:none en el HTML) y
+   solo viven mientras hay un origen por devolver. */
+.nav-page-back { flex: none; min-height: 45px; padding: 10px 14px; white-space: nowrap; }
+.modal-back { min-height: 45px; padding: 10px 14px; margin: 0 0 8px; white-space: nowrap; }
+#pend-back-chip { position: fixed; left: 12px; bottom: calc(env(safe-area-inset-bottom, 0px) + 128px); z-index: 44; min-height: 45px; padding: 10px 16px; border: none; border-radius: 999px; background: #0d9488; color: #fff; font-family: inherit; font-size: 14.5px; font-weight: 700; box-shadow: 0 8px 22px rgba(15, 23, 42, .20); cursor: pointer; white-space: nowrap; }
