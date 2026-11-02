@@ -2912,3 +2912,17 @@ body.prog-page #progress-content.nav-page-on { padding-right: 88px; }
 .wc-hist-sep { font-size: 14px; }
 .wc-hist-chev { font-size: 14px; }
 /* == FIN MISMO TAMAÑO EN LA LÍNEA DE PESO == */
+
+/* ===== COMIDA IA EN VENTANA FLOTANTE (puntos 19–20 de la cola) =====
+   La revisión del análisis vive dentro de #food-ai (hoja hermana de
+   la familia de Comida): el panel pierde su marco de tarjeta —la
+   hoja ya trae el suyo— y conserva su contenido tal cual. Insignia
+   del disco COMIDA (D2) y aviso al abrir la app con un borrador de
+   análisis esperando guardarse (D2). */
+#food-ai .ai-panel { margin-top: 0; border: none; border-radius: 0; padding: 0; position: static; }
+#btn-round-food { position: relative; }
+.dock-badge { position: absolute; top: -4px; left: 50%; margin-left: 12px; min-width: 20px; height: 20px; padding: 0 5px; border-radius: 999px; background: #dc2626; color: #fff; font-size: 11px; font-weight: 700; line-height: 20px; text-align: center; box-shadow: 0 0 0 2px #fff; z-index: 3; pointer-events: none; }
+.ai-draft-notice { display: flex; align-items: center; gap: 10px; background: #f0fdfa; border: 1px solid #ccfbf1; border-left: 4px solid #0d9488; border-radius: 12px; padding: 10px 12px; margin: 0 0 12px; }
+.ai-draft-notice-txt { flex: 1; font-size: 14px; color: #134e4a; line-height: 1.35; }
+.ai-draft-notice .pend-close { flex: none; }
+/* == FIN COMIDA IA EN VENTANA FLOTANTE == */

@@ -305,7 +305,7 @@ function applyFeatureGates() {
   /* Rediseño comida flotante (2026-10-24): si la función de comidas
      o la IA se apagan, las hojas flotantes de comida abiertas se
      cierran — la puerta manda sobre la superficie, como el dock. */
-  if (!featureOn('meals') || aiOff) { for (const id of ['food-float', 'food-text', 'food-help']) { const el = document.getElementById(id); if (el) el.style.display = 'none'; } }
+  if (!featureOn('meals') || aiOff) { for (const id of ['food-float', 'food-text', 'food-help', 'food-ai']) { const el = document.getElementById(id); if (el) el.style.display = 'none'; } }
   if (!featureOn('activity')) {
     const dockAct = document.getElementById('btn-toggle-activity'); if (dockAct) dockAct.style.display = 'none';
     const fl = document.getElementById('act-float'); if (fl) fl.style.display = 'none';
@@ -2982,6 +2982,10 @@ en: {
   'mealhelp.tapZoom': 'Tap to enlarge',
   'mealhelp.zoomed': 'Enlarged photo',
   'ai.analyze': 'Analyze the food',
+  'aiDraft.noticeToday': 'You have a meal that was analyzed today and is still waiting to be saved.',
+  'aiDraft.noticeDate': 'You have a meal that was analyzed on {date} and is still waiting to be saved.',
+  'aiDraft.review': 'Review it',
+  'aiDraft.fromDate': 'Analyzed on {date}.',
   'ai.introTitle': 'Analyze a meal from a photo',
   'ai.introTake': '📷 Take or choose the photo',
   'ai.photoNotSaved': '📷 Before you take the photo: food photos are NOT saved. A photo is used only for this analysis, in this moment — the app keeps the meal record (the foods and their values), never the picture. If you want to keep the photo, keep it in your phone\'s gallery as well.',
@@ -5457,6 +5461,10 @@ es: {
   'mealhelp.tapZoom': 'Toca para ampliar',
   'mealhelp.zoomed': 'Foto ampliada',
   'ai.analyze': 'Analiza la comida',
+  'aiDraft.noticeToday': 'Tienes una comida analizada hoy que aún espera ser guardada.',
+  'aiDraft.noticeDate': 'Tienes una comida analizada el {date} que aún espera ser guardada.',
+  'aiDraft.review': 'Revisarla',
+  'aiDraft.fromDate': 'Analizada el {date}.',
   'ai.introTitle': 'Analizar una comida desde una foto',
   'ai.introTake': '📷 Tomar o elegir la foto',
   'ai.photoNotSaved': '📷 Antes de tomar la foto: las fotos de comida NO se guardan. Una foto se usa solo para este análisis, en este momento: la app conserva el registro de la comida (los alimentos y sus valores), nunca la imagen. Si quieres conservar la foto, guárdala también en la galería de tu teléfono.',
@@ -8296,6 +8304,9 @@ onAuthStateChanged(auth, async user => {
   if (profBackBtn) profBackBtn.style.display = ROLE === 'usuario' ? '' : 'none';
   switchTab('track');
   await loadAll();
+  /* D1/D2 (puntos 19–20): un borrador de análisis en texto que quedó
+     esperando se restaura y se ofrece — sin llamar a la IA otra vez. */
+  try { aiDraftRestore(); } catch {}
   startUserDocWatch(user.uid);
   appInstallSignal();
   /* AUTH-072: sincronización perezosa de trainer_notify — ancla:
@@ -15792,9 +15803,29 @@ function aiShapeR2(r2) {
   if (!r2 || typeof r2 !== 'object' || !r2.totals || typeof r2.totals !== 'object') return null;
   return r2;
 }
-function aiShow(html) { const p = $('ai-panel'); if (!p) return; const wasHidden = p.style.display === 'none'; p.style.display = ''; /* ✕ compartida (ampliación 2026-10-24): TODA tarjeta del panel de análisis lleva su salida en la esquina superior derecha, conectada al camino de descarte propio de cada paso — con la preparación de fotos abierta descarta la preparación (aiStageDiscard, su propio Cancelar); con un análisis en curso lo descarta (aiDiscard, su Descartar); sin ninguno, cierra el panel. Sin semánticas nuevas. */ p.innerHTML = `<button type="button" class="pend-close ai-x" id="ai-x" aria-label="${esc(t('client.close'))}">✕</button>` + html; const ax = $('ai-x'); if (ax) ax.onclick = () => { if (aiStage) aiStageDiscard(); else if (aiState) aiDiscard(); else aiClosePanel(); }; /* v4.2: el flujo arranca desde el dock flotante, lejos del panel: al MOSTRARSE (transición oculto→visible) se desplaza hasta él; los re-pintados con el panel ya visible no mueven la página. */ if (wasHidden) { try { p.scrollIntoView({ behavior: 'smooth', block: 'start' }); } catch {} } }
+function aiShow(html) { const p = $('ai-panel'); if (!p) return; p.style.display = ''; /* La hoja #food-ai lleva SU ✕ de la casa en la cabecera (puntos 19–20): la tarjeta del panel ya NO pinta una segunda ✕ — la de la hoja cierra y espera, sin descartar nada; el descarte vive en los botones «Descartar» de cada paso. */ p.innerHTML = html; /* Borrador restaurado de OTRO día (D1): la revisión dice su fecha de origen cuando no coincide con el día que muestra la ventana — el guardado cae en el día visible, como en todo registro. */ if (aiState && aiState.restored && aiState.draftDate && (aiState.step === 'questions' || aiState.step === 'draft') && (!$('dateSel') || $('dateSel').value !== aiState.draftDate)) { const note = document.createElement('p'); note.className = 'progress-hint'; note.textContent = t('aiDraft.fromDate', { date: dateName(aiState.draftDate) }); p.insertBefore(note, p.firstChild); } /* D1: cada pintado de la revisión re-sincroniza el borrador en texto y la insignia (aiDraftSync no persiste pasos sin resultado). */ try { aiDraftSync(); } catch {} }
 function aiClosePanel() { aiProgHide(); const p = $('ai-panel'); if (p) { p.style.display = 'none'; p.innerHTML = ''; } }
-function aiDiscard() { aiState = null; aiClosePanel(); }
+function aiDiscard() { aiState = null; aiDraftClear(); aiClosePanel(); aiBadgeSync(); }
+/* DESCARTE DEL USUARIO (puntos 19–20, P3): el aviso de «sin guardar»
+   deja de cuidar la NAVEGACIÓN (cerrar la ventana, cambiar de
+   pantalla o de pestaña ya no pierde nada — la revisión espera en
+   su hoja y persiste en texto) y pasa a cuidar el DESCARTE: tocar
+   «Descartar» con un resultado calculado es lo único que se pierde
+   de verdad, y solo ahí se pregunta antes. La ventana de aviso es
+   la de la casa (#nav-unsaved), reutilizada con su acción apuntada
+   al descarte; en el paso de preguntas no hay «Guardar» que pulsar,
+   así que ese botón se oculta. Sin resultado calculado (nada que
+   perder), el descarte es directo. */
+function aiDiscardGuarded() {
+  if (aiState && aiState.r1 && (aiState.step === 'questions' || aiState.step === 'draft' || (aiState.step === 'error' && aiState.errStage === 'calculate'))) {
+    NAV_UNSAVED_ACTION = () => { aiDiscard(); if (foodIsOpen('food-ai')) foodShowOnly('float'); };
+    const sv = $('nav-unsaved-save'); if (sv) sv.style.display = $('ai-save') ? '' : 'none';
+    const m = $('nav-unsaved'); if (m) m.style.display = '';
+    return;
+  }
+  aiDiscard();
+  if (foodIsOpen('food-ai')) foodShowOnly('float');
+}
 /* Indicador flotante de análisis (Ronald, 2026-10-21): el anillo de
    #ai-progress se completa POR ETAPAS reales del flujo M8, sin
    porcentajes ni temporizadores de progreso y sin llamadas extra —
@@ -15811,6 +15842,118 @@ function aiDiscard() { aiState = null; aiClosePanel(); }
 const AI_PROG_C = 188.5; // 2π·30: circunferencia del anillo SVG
 let aiProgOn = false, aiProgTimer = null;
 function aiProgSet(frac) { const r = $('ai-progress-ring'); if (r) r.style.strokeDashoffset = String(AI_PROG_C * (1 - Math.max(0, Math.min(1, frac)))); }
+/* ===== BORRADOR DEL ANÁLISIS EN TEXTO (D1 — puntos 19–20 de la
+   cola, decisión de Ronald 2026-11-01) =====
+   Al llegar un resultado (pasos questions/draft), la revisión se
+   guarda EN TEXTO en el dispositivo, con la clave por usuario de la
+   casa (mismo patrón que trainChecksKey / PURPOSE_ASKED_LS): nombre
+   del plato, alimentos y cantidades, respuestas, la comida destino
+   y las métricas — y NUNCA la foto, el audio ni un solo byte de
+   imagen: los medios viven solo en memoria (postura M8) y el objeto
+   persistido se construye campo a campo, sin dataUrl/photos/
+   audioDataUrl por construcción. Si la app se cierra y se reabre, el
+   borrador se ofrece tal cual, SIN llamar a la IA otra vez (la
+   restauración no toca el Worker). Guardar la comida lo consume
+   (aiDiscard); descartarlo lo borra. Sin caducidad inventada: un
+   borrador de otro día se ofrece con su fecha visible (aviso D2 y
+   línea de fecha en la revisión). */
+const AI_DRAFT_LS = 'ronbofit-ai-meal-draft-';
+let aiDraftNoticeShown = false;
+let aiDraftNoticeDismissed = false;
+function aiDraftKey() { const u = auth.currentUser; return u ? AI_DRAFT_LS + u.uid : null; }
+function aiDraftPersistable() { return !!aiState && (aiState.step === 'questions' || aiState.step === 'draft' || aiState.step === 'warn'); }
+function aiDraftSync() {
+  try {
+    if (aiDraftPersistable()) {
+      const k = aiDraftKey();
+      if (k) {
+        const st = aiState;
+        const d = { v: 1, uid: auth.currentUser.uid, savedAt: Date.now(),
+          date: ($('dateSel') && $('dateSel').value) || todayISO(),
+          mode: st.mode, step: st.step === 'warn' ? 'draft' : st.step,
+          r1: st.r1, answers: st.answers || {}, other: st.other || {}, foods: st.foods,
+          r2: st.r2 || null, meal: st.meal, metrics: st.metrics || null,
+          metricsEdited: !!st.metricsEdited, name: st.name != null ? st.name : null,
+          nameEdited: !!st.nameEdited, saveId: st.saveId || null,
+          descText: st.mode === 'text' ? (st.descText || '') : '' };
+        localStorage.setItem(k, JSON.stringify(d));
+      }
+    }
+  } catch {}
+  aiBadgeSync();
+}
+/* Lectura VALIDADA del borrador (forma estricta; cualquier resto
+   corrupto o ajeno se ignora y se retira en la restauración). */
+function aiDraftRead() {
+  try {
+    const k = aiDraftKey(); if (!k) return null;
+    const raw = localStorage.getItem(k); if (!raw) return null;
+    const d = JSON.parse(raw);
+    if (!d || d.v !== 1 || !auth.currentUser || d.uid !== auth.currentUser.uid) return null;
+    if (d.step !== 'questions' && d.step !== 'draft') return null;
+    if (!d.r1 || !Array.isArray(d.r1.foods) || !Array.isArray(d.foods) || !d.foods.length) return null;
+    if (d.step === 'draft' && (!d.r2 || !d.r2.totals)) return null;
+    return d;
+  } catch { return null; }
+}
+function aiDraftClear() {
+  try { const k = aiDraftKey(); if (k) localStorage.removeItem(k); } catch {}
+  aiDraftNoticeShown = false;
+  aiDraftNoticeSync();
+}
+/* ¿Hay trabajo de IA esperando? (preparación, análisis o revisión —
+   en memoria o persistido): manda la insignia y el disco directo. */
+function aiWaiting() { return !!aiStage || !!aiState || !!aiDraftRead(); }
+function aiBadgeSync() {
+  const b = $('food-ai-badge'); if (!b) return;
+  let on = !!aiStage || !!aiState;
+  if (!on) { try { on = !!aiDraftRead(); } catch {} }
+  b.style.display = on ? '' : 'none';
+}
+/* RESTAURACIÓN al abrir la app (tras loadAll, con la sesión ya
+   cargada): reconstruye la revisión SOLO desde el texto guardado —
+   cero llamadas a la IA; los medios quedan vacíos a propósito (sin
+   foto no hay «Reintentar» de identificación: las tarjetas de error
+   solo ofrecen reintento cuando aiHasInput(), veraz). No abre la
+   ventana sola: enciende la insignia y el aviso (D2). */
+function aiDraftRestore() {
+  if (aiState || aiStage) return;
+  if (typeof AI_CTRL !== 'undefined' && AI_CTRL.known && !AI_CTRL.enabled) { aiBadgeSync(); return; }
+  if (typeof mealsGateOff === 'function' && mealsGateOff()) { aiBadgeSync(); return; }
+  const d = aiDraftRead();
+  if (!d) { try { const k = aiDraftKey(); if (k && localStorage.getItem(k)) localStorage.removeItem(k); } catch {} aiBadgeSync(); return; }
+  const st = aiFreshState(d.mode === 'text' || d.mode === 'audio' ? d.mode : 'photo');
+  st.step = d.step; st.r1 = d.r1; st.answers = d.answers || {}; st.other = d.other || {};
+  st.foods = d.foods; st.r2 = d.r2 || null; st.meal = d.meal || st.meal;
+  st.metrics = d.metrics || null; st.metricsEdited = !!d.metricsEdited;
+  st.name = d.name != null ? d.name : null; st.nameEdited = !!d.nameEdited;
+  st.saveId = d.saveId || st.saveId; st.descText = d.descText || '';
+  st.dataUrl = null; st.photos = null; st.audioDataUrl = null;
+  st.restored = true; st.draftDate = d.date || null;
+  aiState = st;
+  aiDraftNoticeShown = true; aiDraftNoticeDismissed = false;
+  try { aiRender(); } catch {}
+  aiBadgeSync();
+  aiDraftNoticeSync();
+}
+/* AVISO AL ABRIR (D2): tarjeta discreta del patrón de la casa en
+   Inicio; solo para un borrador RESTAURADO en esta sesión y aún
+   esperando. Tocar «Revisarla» abre Comida con la hoja de la
+   revisión puesta; la ✕ lo retira por esta sesión (el borrador y
+   la insignia siguen). */
+function aiDraftNoticeSync() {
+  const box = $('ai-draft-notice'); if (!box) return;
+  const show = aiDraftNoticeShown && !aiDraftNoticeDismissed && !!aiState && aiState.restored === true
+    && (aiState.step === 'questions' || aiState.step === 'draft');
+  if (!show) { box.style.display = 'none'; box.innerHTML = ''; return; }
+  const dISO = aiState.draftDate || null;
+  const when = dISO && dISO !== todayISO() ? t('aiDraft.noticeDate', { date: dateName(dISO) }) : t('aiDraft.noticeToday');
+  box.innerHTML = `<span class="ai-draft-notice-txt">${esc(when)}</span><button type="button" class="btn-main btn-sm" id="ai-draft-notice-open">${esc(t('aiDraft.review'))}</button><button type="button" class="pend-close" id="ai-draft-notice-x" aria-label="${esc(t('client.close'))}">✕</button>`;
+  box.style.display = '';
+  const op = $('ai-draft-notice-open'); if (op) op.onclick = () => { dockHome($('food-float')); foodOpenAi(); };
+  const xx = $('ai-draft-notice-x'); if (xx) xx.onclick = () => { aiDraftNoticeDismissed = true; aiDraftNoticeSync(); };
+}
+
 function aiProgShow() {
   const el = $('ai-progress'); if (!el) return;
   if (aiProgTimer) { clearTimeout(aiProgTimer); aiProgTimer = null; }
@@ -15838,6 +15981,7 @@ function aiCaptureAnswers() {
     const oth = document.querySelector(`.ai-other[data-qi="${i}"]`);
     if (oth) { if (!aiState.other) aiState.other = {}; aiState.other[q.id] = oth.value; }
   });
+  aiDraftSync();
 }
 /* Alimentos EDITABLES (corrección del piloto, Ronald 2026-10-17):
    aiState.foods = [{src, name, grams}] — src es el objeto identificado
@@ -15886,6 +16030,7 @@ function aiCaptureFoods() {
     out.push(base);
   });
   aiState.foods = out;
+  aiDraftSync();
 }
 function aiFoodRemove(i) {
   if (!aiState || !aiState.foods) return;
@@ -16010,10 +16155,11 @@ function aiCaptureMeal() {
   if (!aiState) return;
   const sel = $('ai-meal');
   if (sel && sel.value) aiState.meal = sel.value;
+  aiDraftSync();
 }
 function aiWireMeal() {
   const sel = $('ai-meal');
-  if (sel) sel.addEventListener('change', () => { if (aiState) aiState.meal = sel.value; });
+  if (sel) sel.addEventListener('change', () => { if (aiState) aiState.meal = sel.value; aiDraftSync(); });
 }
 /* Métricas EDITABLES en el propio resultado (PAQUETE 2): aiState.metrics
    guarda los cinco valores tal como la persona los deja en el panel;
@@ -16028,11 +16174,13 @@ function aiCaptureMetrics() {
   const m = { ...(aiState.metrics || {}) };
   inputs.forEach(inp => { m[inp.dataset.k] = inp.value; });
   aiState.metrics = m;
+  aiDraftSync();
 }
 function aiMarkMetricsEdited() {
   if (!aiState) return;
   aiCaptureMetrics();
   aiState.metricsEdited = true;
+  aiDraftSync();
 }
 /* NOMBRE DEL REGISTRO — FUENTE ÚNICA (Ronald, 2026-10-19: «que el nombre
    y todos los datos que salen cuando se le da continuar aparezcan de una
@@ -16050,6 +16198,7 @@ function aiCaptureName() {
   if (!aiState) return;
   const inp = $('ai-name');
   if (inp) aiState.name = inp.value;
+  aiDraftSync();
 }
 function aiSuggestedName() {
   return aiKnownFoods().map(f => f.name).join(', ').slice(0, 120);
@@ -16091,6 +16240,7 @@ function aiOnLangChange() {
   /* Al cambiar ES/EN con el panel abierto: conserva las respuestas
      marcadas, los textos libres y los alimentos editados, y re-pinta
      el panel en el idioma nuevo desde aiState. */
+  try { aiDraftNoticeSync(); } catch {}
   if (!aiState) return;
   aiCaptureAnswers();
   aiCaptureFoods();
@@ -16146,6 +16296,9 @@ function aiStartPhotos(urls) {
   aiState = aiFreshState('photo');
   aiState.photos = urls.slice();
   aiState.dataUrl = urls[0] || null;
+  /* Todo el flujo de la IA ocurre en su hoja (puntos 19–20): al
+     arrancar cualquier vía, la hoja es la superficie. */
+  try { foodShowOnly('ai'); } catch {}
   aiRunIdentify();
 }
 function aiIdentifyBody() {
@@ -16184,6 +16337,7 @@ function aiMergeScaledDuplicates(foods) {
 async function aiStartText(desc) {
   aiState = aiFreshState('text');
   aiState.descText = desc;
+  try { foodShowOnly('ai'); } catch {}
   aiRunIdentify();
 }
 /* BOTÓN DE VOZ (Ronald, 2026-10-26): la nota de voz dictada hace de
@@ -16197,6 +16351,7 @@ async function aiStartText(desc) {
 async function aiStartAudio(dataUrl) {
   aiState = aiFreshState('audio');
   aiState.audioDataUrl = dataUrl;
+  try { foodShowOnly('ai'); } catch {}
   aiRunIdentify();
 }
 async function aiRunIdentify() {
@@ -16351,7 +16506,7 @@ function aiErrorCardHTML() {
 function aiWireErrorCard(extras) {
   const r = $('ai-retry'); if (r) r.onclick = aiRetry;
   const m = $('ai-manual'); if (m) m.onclick = aiContinueManual;
-  const c = $('ai-cancel'); if (c) c.onclick = aiDiscard;
+  const c = $('ai-cancel'); if (c) c.onclick = aiDiscardGuarded;
   if (extras) aiWireFailExtras();
 }
 function aiRetry() {
@@ -16425,6 +16580,8 @@ function aiContinueManual() {
     $('m-food').value = aiState.descText.slice(0, 120);
   }
   aiDiscard();
+  /* La superficie pasa a ser el formulario: las hojas de Comida se cierran (puntos 19–20) — al cerrar el modal no queda una hoja vacía detrás. */
+  foodCloseAll();
   aiOpenMealModal();
 }
 /* aiRender queda ENVUELTO (Parte B, 2026-10-22): el cuerpo real vive
@@ -16486,7 +16643,7 @@ function aiRenderInner() {
     aiShow(`<p class="progress-hint">${t('aiText.notFound')}</p><div class="ai-actions">${retryBtn}<button type="button" class="${canRetry ? 'btn-ghost' : 'btn-main'} btn-sm" id="ai-manual">${t('ai.continueManual')}</button><button type="button" class="btn-ghost btn-sm" id="ai-cancel">${t('ai.discard')}</button></div>${aiFailExtrasHTML(!canRetry)}`);
     if (canRetry) $('ai-retry').onclick = aiRetry;
     $('ai-manual').onclick = aiContinueManual;
-    $('ai-cancel').onclick = aiDiscard;
+    $('ai-cancel').onclick = aiDiscardGuarded;
     aiWireFailExtras();
     return;
   }
@@ -16533,7 +16690,7 @@ function aiRenderInner() {
     p.querySelectorAll('.ai-food-unit').forEach(r => r.addEventListener('change', () => { aiCaptureFoods(); aiCaptureAnswers(); aiRender(); }));
     p.querySelectorAll('.ai-food-del').forEach(b => b.onclick = () => aiFoodRemove(+b.dataset.fi));
     $('ai-addfood').onclick = aiFoodAdd;
-    $('ai-cancel').onclick = aiDiscard;
+    $('ai-cancel').onclick = aiDiscardGuarded;
     $('ai-continue').onclick = aiCalculate;
     return;
   }
@@ -16566,7 +16723,7 @@ function aiRenderInner() {
     const nameInp = $('ai-name');
     if (nameInp) nameInp.addEventListener('input', () => { aiCaptureName(); if (aiState) aiState.nameEdited = true; });
     p.querySelectorAll('.ai-m').forEach(inp => inp.addEventListener('input', aiMarkMetricsEdited));
-    $('ai-cancel2').onclick = aiDiscard;
+    $('ai-cancel2').onclick = aiDiscardGuarded;
     $('ai-save').onclick = aiSaveDirect;
     $('ai-foods').onclick = () => { aiCaptureMetrics(); aiCaptureMeal(); aiState.step = 'questions'; aiRender(); };
     $('ai-use').onclick = () => {
@@ -16597,11 +16754,15 @@ async function aiCompressChecked(f) {
 }
 function aiStageDiscard() {
   aiStage = null; aiStageReplace = -1;
-  aiClosePanel();
+  aiClosePanel(); aiBadgeSync();
+  if (foodIsOpen('food-ai')) foodShowOnly('float');
 }
 function aiStageShow() {
   const p = $('ai-panel');
   if (!p || !aiStage) return;
+  /* La preparación también vive en la hoja (puntos 19–20): al
+     mostrarla, la hoja es la superficie — esté donde esté el panel. */
+  try { foodShowOnly('ai'); } catch {}
   const photos = aiStage.photos;
   const thumbs = photos.map((u, i) => `<div class="ai-thumb"><img src="${u}" alt="" data-stage-view="${i}"><button type="button" class="ai-thumb-x" data-stage-del="${i}" title="${t('aiMulti.remove')}">✕</button></div>`).join('');
   const full = photos.length >= AI_MAX_PHOTOS;
@@ -16691,7 +16852,11 @@ if (aiFile) {
    tope, no la puerta de entrada. */
 const foodIsOpen = id => { const el = $(id); return !!el && el.style.display !== 'none'; };
 function foodShowOnly(which) {
-  const map = { float: 'food-float', text: 'food-text', help: 'food-help', voice: 'food-voice' };
+  /* Hoja 'ai' (puntos 19–20 de la cola): la revisión del análisis con
+     IA es HERMANA de la familia — mismo velo, mismo cierre, misma
+     gramática; funnels de entrada en aiStartPhotos/aiStartText/
+     aiStartAudio/aiStageShow y en el disco/aviso (aiWaiting). */
+  const map = { float: 'food-float', text: 'food-text', help: 'food-help', voice: 'food-voice', ai: 'food-ai' };
   for (const [k, id] of Object.entries(map)) { const el = $(id); if (el) el.style.display = (k === which) ? '' : 'none'; }
   try { coverSync(); } catch {} // A-N2
 }
@@ -16700,6 +16865,7 @@ function foodOpenFloat() { foodShowOnly('float'); }
 function foodOpenText() { foodShowOnly('text'); const ta = $('food-text-desc'); if (ta) { try { ta.focus(); } catch {} } }
 function foodOpenHelp() { foodShowOnly('help'); }
 function foodOpenVoice() { foodShowOnly('voice'); }
+function foodOpenAi() { foodShowOnly('ai'); }
 
 /* Sub-vistas de la ventana de Comida (AUTH-2026-10-31-115,
    apartado único): Resumen (los anillos) y Consumido (el diario),
@@ -16739,7 +16905,12 @@ if (foodDockLabel) foodDockLabel.addEventListener('click', e => {
      #food-float (foto de la IA y sus vías), como siempre; no hay
      página de Comida y el diario permanece en Inicio. */
   dockHome($('food-float'));
-  if (foodIsOpen('food-float')) foodCloseAll(); else foodOpenFloat();
+  /* D2 (puntos 19–20): con trabajo de IA esperando (preparación,
+     análisis en curso o revisión/borrador sin guardar), el disco
+     abre DIRECTO la hoja de la revisión — es el mismo sitio que el
+     aviso al abrir la app y que la insignia anuncia. */
+  if (aiWaiting()) { if (foodIsOpen('food-ai')) foodCloseAll(); else foodOpenAi(); }
+  else if (foodIsOpen('food-float')) foodCloseAll(); else foodOpenFloat();
 });
 { const b = $('btn-food-photo');
   if (b) b.onclick = () => {
@@ -16763,6 +16934,11 @@ if (foodDockLabel) foodDockLabel.addEventListener('click', e => {
 { const c = $('btn-food-close'); if (c) c.onclick = () => foodCloseAll(); }
 { const c = $('btn-food-text-close'); if (c) c.onclick = () => foodOpenFloat(); }
 { const c = $('btn-food-help-close'); if (c) c.onclick = () => foodOpenFloat(); }
+/* ✕ de la hoja de IA = CERRAR Y ESPERAR (puntos 19–20, P3): cierra la
+   ventana sin tocar aiStage/aiState — un análisis en curso sigue y
+   la revisión abierta queda intacta; el descarte vive en los
+   botones «Descartar» de cada paso (con su aviso, aiDiscardGuarded). */
+{ const c = $('btn-food-ai-close'); if (c) c.onclick = () => foodCloseAll(); }
 { const c = $('btn-food-voice-close'); if (c) c.onclick = () => foodOpenFloat(); }
 /* «Analizar la descripción con IA» desde la hoja de texto: la
    MISMA validación honesta del botón del formulario manual
@@ -16780,9 +16956,25 @@ if (foodDockLabel) foodDockLabel.addEventListener('click', e => {
 /* Cierre tocando fuera (el label COMIDA del dock se excluye: su
    propio handler ya alterna) y con Escape — espejo de actividad. */
 document.addEventListener('click', e => {
-  if (!['food-float', 'food-text', 'food-help', 'food-voice'].some(foodIsOpen)) return;
-  for (const id of ['food-float', 'food-text', 'food-help', 'food-voice']) { const el = $(id); if (el && el.contains(e.target)) return; }
+  /* Un toque cuyo objetivo quedó DESCONECTADO por un repintado
+     síncrono del propio gesto (p. ej. «Analizar» de la preparación:
+     aiRunIdentify repinta el panel y el botón tocado deja de estar
+     en el documento antes de que el clic burbujee hasta aquí) NO es
+     un clic de fuera — sin esta guarda, la hoja se cerraba con el
+     mismo toque que arrancaba el análisis (puntos 19–20). */
+  if (e.target && e.target.isConnected === false) return;
+  if (!['food-float', 'food-text', 'food-help', 'food-voice', 'food-ai'].some(foodIsOpen)) return;
+  for (const id of ['food-float', 'food-text', 'food-help', 'food-voice', 'food-ai']) { const el = $(id); if (el && el.contains(e.target)) return; }
   const l = $('btn-round-food'); if (l && l.contains(e.target)) return;
+  /* Superficies cuyos botones ABREN una hoja de Comida (puntos
+     19–20): el aviso del borrador (#ai-draft-notice: «Revisarla») y
+     el aviso de descarte (#nav-unsaved: «Seguir editando» vuelve a
+     la revisión; la acción de salida abre la hoja principal). Sin
+     esta exclusión, el MISMO clic que abre la hoja burbujea hasta
+     aquí y la cierra en el acto — la hoja se abría y se cerraba
+     con el mismo toque. */
+  const nz = $('ai-draft-notice'); if (nz && nz.contains(e.target)) return;
+  const nm = $('nav-unsaved'); if (nm && nm.contains(e.target)) return;
   foodCloseAll();
 });
 document.addEventListener('keydown', e => { if (e.key === 'Escape') foodCloseAll(); });
@@ -17091,6 +17283,8 @@ function aiUseDraft(r1, r2) {
     } catch { failed = true; }
   } catch { failed = true; }
   aiDiscard();
+  /* La superficie pasa a ser el formulario: las hojas de Comida se cierran (puntos 19–20) — al cerrar el modal no queda una hoja vacía detrás. */
+  foodCloseAll();
   aiOpenMealModal();
   if (failed) toast(t('ai.draftError'), true);
 }
@@ -17154,6 +17348,10 @@ async function aiSaveDirect() {
     else await addDoc(collection(db, 'nutrition_meals'), data);
     aiDiscard();
     await loadAllKeepDate(data.date);
+    /* X4 (puntos 19–20): guardada la comida, la ventana de Comida
+       cae en «Consumido» con la comida ya en el diario — la persona
+       ve su registro hecho, no una hoja vacía. */
+    try { foodOpenFloat(); foodSetSub('consumido'); } catch {}
     /* Candidato automático a la antesala (corrección de P1): en
        segundo plano y en silencio; jamás bloquea este guardado. */
     try { foodlibAutoCandidate(data); } catch {}
@@ -17662,6 +17860,14 @@ try {
    en su hoja flotante) y el diario permanece en Inicio; las
    páginas son solo Progreso y Entrenamiento, y Actividad y
    Pendientes conservan sus hojas flotantes de siempre. */
+/* La acción pendiente del aviso #nav-unsaved: NUNCA estuvo
+   declarada — en un módulo (modo estricto) asignarla o leerla
+   lanzaba ReferenceError, así que los botones del aviso nacieron
+   rotos en la base (defecto latente: la ruta casi no se pisaba).
+   Se declara aquí (puntos 19–20): el aviso reutilizado por
+   aiDiscardGuarded y los caminos vivos del modal ya funcionan
+   como fueron diseñados. */
+let NAV_UNSAVED_ACTION = null;
 let NAV_PAGE = null; // 'progress' | 'train' | null
 let NAV_TAB = 'track';
 let PROG_SUB = 'fotos';
@@ -17760,12 +17966,15 @@ function progSetSub(name) {
    gesto ocurre SIN borrar nada: el borrador sigue vivo en Inicio,
    como manda la regla de oro, y al volver está esperando). */
 function navUnsavedPending() {
-  if (!aiState) return false;
-  const p = $('ai-panel'); if (!p || p.style.display === 'none') return false;
-  if (!$('ai-save')) return false;
-  return NAV_PAGE === null && NAV_TAB === 'track';
+  /* RE-APUNTADA (puntos 19–20, P3 del diseño aprobado): la revisión
+     ya no se pierde navegando — vive en su hoja flotante, cerrar la
+     ventana la deja esperando (insignia en el disco) y el resultado
+     persiste en texto (D1). La navegación, el velo y los ciÃ©rres de
+     pÃ¡gina ya no necesitan aviso: el aviso #nav-unsaved queda
+     reservado para lo Ãºnico que sÃ­ se pierde, el DESCARTE
+     explÃ­cito (aiDiscardGuarded). */
+  return false;
 }
-let NAV_UNSAVED_ACTION = null;
 function navCheckUnsaved(action) {
   if (!navUnsavedPending()) return false;
   NAV_UNSAVED_ACTION = action;
@@ -17776,7 +17985,9 @@ function navGuarded(action) { if (navCheckUnsaved(action)) return; action(); }
 function navUnsavedClose() { const m = $('nav-unsaved'); if (m) m.style.display = 'none'; NAV_UNSAVED_ACTION = null; }
 { const b = $('nav-unsaved-keep'); if (b) b.onclick = () => {
     navUnsavedClose();
-    const p = $('ai-panel'); if (p) { try { p.scrollIntoView({ behavior: 'smooth', block: 'start' }); } catch {} }
+    /* «Seguir editando» vuelve a la revisiÃ³n en su hoja (puntos
+       19â20): ya no hay pÃ¡gina a la que desplazarse. */
+    try { dockHome($('food-float')); foodShowOnly('ai'); } catch {}
   }; }
 { const b = $('nav-unsaved-leave'); if (b) b.onclick = () => { const a = NAV_UNSAVED_ACTION; navUnsavedClose(); if (a) a(); }; }
 { const b = $('nav-unsaved-save'); if (b) b.onclick = () => {
@@ -30989,7 +31200,7 @@ document.addEventListener('keydown', e => { if (e.key === 'Escape') shareClose()
  *  - El SW (sw.js) solo cachea la cáscara del mismo origen en modo
  *    RED PRIMERO: Auth/Firestore/Worker jamás pasan por la caché.
  * ================================================================ */
-const PWA_SW_VERSION = '20261102-aviso-propietario';
+const PWA_SW_VERSION = '20261102-comida-ia-flotante';
 let pwaDeferredPrompt = null;
 function pwaIsStandalone() {
   try {

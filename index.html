@@ -21,7 +21,7 @@
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-title" content="RONBO FIT">
 <meta name="apple-mobile-web-app-status-bar-style" content="default">
-<link rel="stylesheet" href="styles.css?v=20261102-aviso-propietario">
+<link rel="stylesheet" href="styles.css?v=20261102-comida-ia-flotante">
 <script defer src="https://cloud.umami.is/script.js" data-website-id="a29706d4-44a2-47cf-900a-5f74d74abfa8"></script>
 <script type="importmap">
 {
@@ -325,6 +325,11 @@
        pantalla principal al entrar; se pinta desde renderRolePendCard()
        y solo aparece si hay pendientes de procedimiento. -->
   <div id="role-pend-card" style="display:none"></div>
+  <!-- D2 (puntos 19–20, Ronald 2026-11-01): aviso discreto al ABRIR
+       la app cuando un borrador de análisis con IA quedó esperando
+       guardarse; lo pinta aiDraftNoticeSync (texto por i18n
+       aiDraft.*) y su botón abre el borrador en su hoja. -->
+  <div id="ai-draft-notice" class="ai-draft-notice" style="display:none"></div>
   <!-- FECHA ÚNICA DE COMIDA (AUTH-2026-10-31-115): el selector de
        fecha (#dateSel) se MUDÓ a la ventana flotante de Comida
        (#food-float), junto a los anillos y el diario que gobierna:
@@ -482,7 +487,14 @@
       </div>
     </div>
     <div id="ai-off-note" class="progress-hint" style="display:none" data-i18n="ai.disabledByAdmin">AI analysis is turned off by the administrator right now. You can keep logging your meals manually; AI analysis will be back when it is turned on again.</div>
-    <div id="ai-panel" class="ai-panel" style="display:none"></div>
+    <!-- COMIDA IA EN FLOTANTE (puntos 19–20 de la cola, decisiones
+         D1/D2 de Ronald 2026-11-01): la revisión del análisis vive
+         DENTRO de la ventana de Comida, como hoja hermana de la
+         familia — el nodo #ai-panel se MUDÓ aquí (una sola casa, sin
+         copias fuera); aiShow/aiRender lo pintan por id, viva el nodo
+         donde viva. La ✕ de la hoja es «cerrar y esperar»: cerrar
+         nunca descarta — el descarte queda en los botones explícitos
+         de cada paso. -->
   </div>
   <!-- Botón único «PERMISOS Y PRIVACIDAD» (decisión de Ronald,
        2026-10-19 15:45): UN solo botón discreto y fino sustituye
@@ -866,6 +878,20 @@
     <p class="progress-hint" data-i18n="ai.photoNotSaved">📷 Before you take the photo: food photos are NOT saved. A photo is used only for this analysis, in this moment — the app keeps the meal record (the foods and their values), never the picture. If you want to keep the photo, keep it in your phone's gallery as well.</p>
     <p class="progress-hint" data-i18n="ai.limitNote">Daily analysis limit: photo and text analyses share a daily counter (a complete analysis usually takes 2 requests: identify + calculate). If your account has a daily limit set and you reach it, photo and text analysis pause until the counter resets the next day — you can still log every meal by hand. If no limit is set for your account, a default of 10 requests per day applies — enough for five complete meals (2 requests each).</p>
   </div>
+  <!-- Hoja de la revisión del análisis con IA (puntos 19–20 de la
+       cola; D1/D2, Ronald 2026-11-01): HERMANA de la familia de
+       Comida — comparte velo, alturas y gramática; foodShowOnly('ai')
+       la trae. Su ✕ (btn-food-ai-close) cierra y ESPERA: un análisis
+       en curso sigue y la revisión abierta queda intacta; el
+       descarte vive en los botones explícitos de cada paso. El nodo
+       #ai-panel vive aquí dentro: aiShow/aiRender lo pintan por id. -->
+  <div class="act-float act-sheet" id="food-ai" style="display:none" role="dialog" aria-label="Analyze the food" data-i18n-aria="ai.analyze">
+    <div class="pend-head">
+      <h2 data-i18n="meal.title">Log meal</h2>
+      <button type="button" class="pend-close" id="btn-food-ai-close" aria-label="Close" data-i18n-aria="client.close">✕</button>
+    </div>
+    <div id="ai-panel" class="ai-panel" style="display:none"></div>
+  </div>
   <!-- «Comparte tus logros» (Ronald, 2026-10-25): hoja flotante con
        las DOS tarjetas (meta del día / logros de la semana). La imagen
        se genera en el propio teléfono con Canvas desde los datos ya
@@ -1217,7 +1243,7 @@
     <div class="rounds-row">
       <button type="button" class="round-action" id="btn-nav-home" aria-label="Home" data-i18n-aria="nav.home"><span class="round-circle" aria-hidden="true"><svg width="36" height="36" viewBox="0 0 48 48" fill="none" stroke="#fff" stroke-width="4.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="M7 25 L24 9 L41 25"/><path d="M13.5 21.5 V39 H34.5 V21.5"/><path d="M20.5 39 V29.5 H27.5 V39"/></svg></span><span class="round-label" data-i18n="nav.home">Home</span></button>
       <button type="button" class="round-action" id="btn-toggle-progress" aria-expanded="false" aria-label="My progress" data-i18n-aria="progress.title"><span class="round-circle" aria-hidden="true"><svg width="36" height="36" viewBox="0 0 48 48" fill="#fff" aria-hidden="true" focusable="false"><rect x="9" y="32" width="6" height="7" rx="1.5"/><rect x="17.5" y="27" width="6" height="12" rx="1.5"/><rect x="26" y="22" width="6" height="17" rx="1.5"/><rect x="28.5" y="15" width="13" height="4.6" rx="2.3" transform="rotate(-45 35 17.3)"/><polygon points="31.5,6.8 44,6.8 44,19.3"/></svg></span><span class="round-label"><span data-i18n="main.progress">Progress</span> <span class="round-chev" id="chev-progress" aria-hidden="true">▾</span></span></button>
-      <label class="round-action" id="btn-round-food" aria-label="Analyze the food" data-i18n-aria="ai.analyze"><span class="round-circle" aria-hidden="true"><svg width="36" height="36" viewBox="0 0 48 48" fill="#fff" aria-hidden="true" focusable="false"><circle cx="24" cy="18.8" r="2.8"/><path d="M9 36 A15 15 0 0 1 39 36 Z"/><rect x="5.5" y="37.6" width="37" height="3.6" rx="1.8"/></svg></span><span class="round-label" data-i18n="main.food">Food</span><input type="file" id="ai-file" accept="image/*" multiple style="display:none"></label>
+      <label class="round-action" id="btn-round-food" aria-label="Analyze the food" data-i18n-aria="ai.analyze"><span class="round-circle" aria-hidden="true"><svg width="36" height="36" viewBox="0 0 48 48" fill="#fff" aria-hidden="true" focusable="false"><circle cx="24" cy="18.8" r="2.8"/><path d="M9 36 A15 15 0 0 1 39 36 Z"/><rect x="5.5" y="37.6" width="37" height="3.6" rx="1.8"/></svg></span><span class="round-label" data-i18n="main.food">Food</span><span class="dock-badge" id="food-ai-badge" style="display:none" aria-hidden="true">1</span><input type="file" id="ai-file" accept="image/*" multiple style="display:none"></label>
       <button type="button" class="round-action" id="btn-toggle-train" aria-expanded="false" aria-label="My training plan" data-i18n-aria="train.title"><span class="round-circle" aria-hidden="true"><svg width="36" height="36" viewBox="0 0 48 48" fill="#fff" aria-hidden="true" focusable="false"><rect x="6" y="22.2" width="36" height="3.6" rx="1.8"/><rect x="9.5" y="17.5" width="4.6" height="13" rx="2"/><rect x="16.4" y="13.5" width="5" height="21" rx="2.2"/><rect x="26.6" y="13.5" width="5" height="21" rx="2.2"/><rect x="33.9" y="17.5" width="4.6" height="13" rx="2"/></svg></span><span class="round-label"><span data-i18n="main.training">Training</span> <span class="round-chev" id="chev-train" aria-hidden="true">▾</span></span></button>
       <button type="button" class="round-action" id="btn-toggle-activity" aria-expanded="false" aria-label="Activity" data-i18n-aria="main.activity"><span class="round-circle" aria-hidden="true"><svg width="36" height="36" viewBox="0 0 48 48" fill="none" stroke="#fff" stroke-width="4.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><polyline points="5,24 15,24 20,11 27,37 32,24 43,24"/></svg></span><span class="round-label"><span data-i18n="main.activity">Activity</span> <span class="round-chev" id="chev-activity" aria-hidden="true">▾</span></span></button>
       <button type="button" class="round-action" id="btn-toggle-pend" aria-expanded="false" aria-label="Pendings" data-i18n-aria="main.pendings"><span class="round-circle" aria-hidden="true"><svg width="36" height="36" viewBox="0 0 48 48" fill="#fff" aria-hidden="true" focusable="false"><circle cx="24" cy="7.5" r="2.7"/><path d="M24 11.5c-6.4 0-10.8 4.7-10.8 11.2 0 4.9-1 7.2-2.6 9.4-.5.7-.1 1.7.8 1.7h25.2c.9 0 1.3-1 .8-1.7-1.6-2.2-2.6-4.5-2.6-9.4 0-6.5-4.4-11.2-10.8-11.2z"/><rect x="8.5" y="35.6" width="31" height="3.6" rx="1.8"/><circle cx="24" cy="42.6" r="3"/></svg></span><span class="round-label" data-i18n="main.pendings">Pendings</span></button>
@@ -1580,6 +1606,6 @@
 <div id="toast" class="toast"></div>
 <div id="print-card" aria-hidden="true"></div>
 
-<script type="module" src="app.js?v=20261102-aviso-propietario"></script>
+<script type="module" src="app.js?v=20261102-comida-ia-flotante"></script>
 </body>
 </html>
