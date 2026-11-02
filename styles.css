@@ -2896,3 +2896,19 @@ body.prog-page #progress-content.nav-page-on { padding-right: 88px; }
 .wc-hist-sep { font-size: 11px; color: #94a3b8; }
 .wc-hist-chev { font-size: 16px; font-weight: 700; color: #0d9488; line-height: 1; }
 /* == FIN HISTÓRICO DE PESO EN LA LÍNEA == */
+
+/* == MISMO TAMAÑO EN LA LÍNEA DE PESO — AUTH-2026-11-02-168 (punto 80) ==
+   Veredicto de Ronald en su reprueba en vivo (2026-11-02 10:32 CST,
+   con su captura real): «Que tengan el mismo tamaño». En la banda
+   del peso de la tarjeta «⚖️ Tu peso», el delta semanal y TODAS las
+   piezas del histórico comparten UNA sola medida de letra: la del
+   delta, 14 px (el elemento de referencia de la línea). Antes:
+   delta 14 px · valores y fechas del histórico 12.5 px · flecha
+   «→» 11 px · chevrones «›» 16 px. Colores y pesos intactos
+   (naranja del delta, negrita y oscuro de los valores, gris de las
+   fechas); el peso grande NO cambia; la tira sigue llevando a
+   Progreso → Medidas con sus 44 px de alto táctil. */
+.wc-hist-it { font-size: 14px; }
+.wc-hist-sep { font-size: 14px; }
+.wc-hist-chev { font-size: 14px; }
+/* == FIN MISMO TAMAÑO EN LA LÍNEA DE PESO == */
