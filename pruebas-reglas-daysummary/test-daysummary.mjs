@@ -117,6 +117,7 @@ await T('R8 OTRA usuaria lee el documento de alu: denegado en ambos textos',
   getDoc(udoc(dbOf('otra'), 'alu')), false);
 
 console.log('== ' + NOMBRE + ': ' + pass + ' PASS · ' + fail + ' FAIL ==');
+console.log(NOMBRE + ': ' + pass + '/' + (pass + fail) + ' PASS');
 if (failures.length) console.log('FALLOS: ' + failures.join(' | '));
 await testEnv.cleanup();
 process.exit(fail ? 1 : 0);
