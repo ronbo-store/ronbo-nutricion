@@ -1356,6 +1356,30 @@ div > .btn-ghost:only-child, div > .btn-main:only-child {
 .btn-chrono-start3d:active { transform: translateY(3px); box-shadow: 0 1px 0 #15803d, 0 3px 6px rgba(21, 128, 61, .30); }
 .btn-chrono-finish { background: linear-gradient(180deg, #ef4444, #dc2626); box-shadow: 0 4px 0 #991b1b, 0 8px 14px rgba(153, 27, 27, .30); }
 .btn-chrono-finish:active { transform: translateY(3px); box-shadow: 0 1px 0 #991b1b, 0 3px 6px rgba(153, 27, 27, .28); }
+
+/* == HISTORIAL POR FILA + TIRA EN UNA LÍNEA (AUTH-161 · puntos 67–75) ==
+   El bloque de récords va a la derecha de la fila del ejercicio, sin
+   estorbar el check: tres mini-columnas, título arriba y número
+   abajo. La tira de acciones de la tarjeta vive en UNA sola línea:
+   fuente 7,6 px y pastillas de 26 px, lo medido en la NOTA de la
+   maqueta aprobada y aceptado por Ronald (2026-11-02 01:15 CST). */
+.train-ex-hist { flex: none; margin-left: auto; padding-left: 8px; color: #1f2a44; }
+.train-ex-hist-cols { display: flex; gap: 9px; justify-content: flex-end; }
+.train-ex-hist-col { display: flex; flex-direction: column; align-items: center; min-width: 26px; }
+.train-ex-hist-lab { font-size: 8px; font-weight: 700; letter-spacing: .4px; text-transform: uppercase; opacity: .72; white-space: nowrap; }
+.train-ex-hist-val { font-size: 14px; font-weight: 800; white-space: nowrap; line-height: 1.25; }
+.train-ex-hist-none { font-size: 9px; opacity: .72; text-align: right; margin-top: 1px; white-space: nowrap; }
+.train-day-dressed .train-ex-hist { color: #fff; }
+.train-actions-strip { display: flex; align-items: center; gap: 3px; margin-top: 8px; }
+.train-actions-btn, .train-actions-chip { flex: 1 1 0; min-width: 0; height: 26px; padding: 0 2px; border: 1px solid rgba(15, 61, 56, .18); border-radius: 999px; background: rgba(15, 61, 56, .08); color: #0f3d38; font-size: 7.6px; font-weight: 700; line-height: 1; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; cursor: pointer; }
+.train-day-dressed .train-actions-btn, .train-day-dressed .train-actions-chip { background: rgba(255, 255, 255, .16); border-color: rgba(255, 255, 255, .35); color: #fff; }
+.train-actions-btn.is-finish { background: linear-gradient(180deg, #ef4444, #dc2626); border-color: transparent; color: #fff; }
+.train-actions-btn.is-start { background: linear-gradient(180deg, #22c55e, #16a34a); border-color: transparent; color: #fff; }
+.train-actions-btn.is-dim { background: rgba(15, 61, 56, .04); color: rgba(15, 61, 56, .55); }
+.train-day-dressed .train-actions-btn.is-dim { background: rgba(255, 255, 255, .08); color: rgba(255, 255, 255, .55); }
+.train-actions-run { margin-top: 4px; text-align: center; font-size: 12px; font-weight: 700; color: #0d9488; }
+.train-day-dressed .train-actions-run { color: #d9ffe9; }
+/* == FIN AUTH-161 == */
 .train-close-form { margin-top: 10px; padding: 10px; border: 1px solid #e2e8f0; border-radius: 12px; background: #f8fafc; }
 .train-close-form .act-lab { display: block; margin-bottom: 8px; }
 @keyframes act-flick { 0%, 100% { transform: scale(1) rotate(-2deg); opacity: 1; } 50% { transform: scale(1.16) rotate(2.5deg); opacity: .85; } }

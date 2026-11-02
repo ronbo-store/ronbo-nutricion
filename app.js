@@ -3224,6 +3224,7 @@ en: {
   'train.swap.sameEquipment': 'Same equipment', 'train.swap.sameCategory': 'Same category',
   'train.swap.alsoGroup': 'Also work {group}', 'train.swap.moreTitle': 'All exercises',
   'train.swap.resultsTitle': 'Results', 'train.swap.noResults': 'No exercises match that search.',
+  'train.swap.presetEmpty': 'There are no exercises of this type in the library yet.',
   'train.swap.addBtn': 'Add',
   'train.custom.restNote': 'Today is your rest day — there is no session to customize.',
   'train.custom.closedNote': 'Today\'s session is already logged. Undo it from the day card if you want to change it first.',
@@ -3297,6 +3298,8 @@ en: {
   'train.histLoads.bodyLine': '{date} · {n} sets · {reps} reps · no external load',
   'train.histLoads.first': 'First time you log this exercise: your loads will stay here for next time.',
   'train.histLoads.legacy': '{date} · logged before per-set detail',
+  'train.histRec.sets': 'Sets', 'train.histRec.repsMax': 'Max reps',
+  'train.histRec.loadMax': 'Max weight', 'train.histRec.none': 'No history',
   /* INICIAR EJERCICIO + RUEDAS + APROXIMACIÓN (complemento de la
      ficha — 2026-10-30; maqueta v2 aprobada por Ronald): el botón
      de inicio, las ruedas de scroll (sin teclado) y el bloque de
@@ -3330,6 +3333,8 @@ en: {
   'train.chronoStart': '▶ Start workout',
   'train.chronoStartBtn': '▶ Start',
   'train.chronoFinishBtn': 'Finished',
+  'train.strip.doneToday': 'Done today', 'train.strip.skip': 'Skip', 'train.strip.add': '+ Add',
+  'train.strip.cardio': 'Cardio', 'train.strip.core': 'Core', 'train.strip.stretch': 'Stretch',
   'train.chronoRunning': '⏱ Session in progress: {min} min',
   'train.durLabel': 'Session duration (minutes)',
   'train.durAutoNote': 'Filled from your session timer — correct it if it does not match.',
@@ -5674,6 +5679,7 @@ es: {
   'train.swap.sameEquipment': 'Mismo equipo', 'train.swap.sameCategory': 'Misma categoría',
   'train.swap.alsoGroup': 'También trabajan {group}', 'train.swap.moreTitle': 'Todos los ejercicios',
   'train.swap.resultsTitle': 'Resultados', 'train.swap.noResults': 'Ningún ejercicio coincide con esa búsqueda.',
+  'train.swap.presetEmpty': 'Todavía no hay ejercicios de este tipo en la biblioteca.',
   'train.swap.addBtn': 'Agregar',
   'train.custom.restNote': 'Hoy es tu día de descanso: no hay sesión que personalizar.',
   'train.custom.closedNote': 'La sesión de hoy ya está registrada. Deshazla desde la tarjeta del día si quieres cambiarla antes.',
@@ -5747,6 +5753,8 @@ es: {
   'train.histLoads.bodyLine': '{date} · {n} series · {reps} repeticiones · sin carga externa',
   'train.histLoads.first': 'Primera vez que registras este ejercicio: tus cargas quedarán aquí para la próxima.',
   'train.histLoads.legacy': '{date} · registrado antes del detalle por series',
+  'train.histRec.sets': 'Series', 'train.histRec.repsMax': 'Reps máx',
+  'train.histRec.loadMax': 'Peso máx', 'train.histRec.none': 'Sin historial',
   /* INICIAR EJERCICIO + RUEDAS + APROXIMACIÓN (complemento de la
      ficha — 2026-10-30; maqueta v2 aprobada por Ronald): el botón
      de inicio, las ruedas de scroll (sin teclado) y el bloque de
@@ -5780,6 +5788,8 @@ es: {
   'train.chronoStart': '▶ Iniciar entrenamiento',
   'train.chronoStartBtn': '▶ Iniciar',
   'train.chronoFinishBtn': 'Finalizado',
+  'train.strip.doneToday': 'Hecho hoy', 'train.strip.skip': 'Saltar', 'train.strip.add': '+ Agregar',
+  'train.strip.cardio': 'Cardio', 'train.strip.core': 'Core', 'train.strip.stretch': 'Estirar',
   'train.chronoRunning': '⏱ Sesión en curso: {min} min',
   'train.durLabel': 'Duración de la sesión (minutos)',
   'train.durAutoNote': 'Rellenado con el cronómetro de tu sesión — corrígelo si no coincide.',
@@ -19056,7 +19066,7 @@ function trainCustomWire(plan, di, iso) {
   const tools = $('train-custom-tools');
   if (!tools || !plan) return;
   tools.querySelectorAll('[data-tcu-swap]').forEach(b => b.onclick = () => { TRAIN_PICK = { kind: 'swap', idx: Number(b.dataset.tcuSwap) }; SWAP_QUERY = ''; loadMyTraining(); });
-  tools.querySelectorAll('[data-tcu-add]').forEach(b => b.onclick = () => { TRAIN_PICK = { kind: 'add' }; SWAP_QUERY = ''; loadMyTraining(); });
+  tools.querySelectorAll('[data-tcu-add]').forEach(b => b.onclick = () => { TRAIN_PICK = { kind: 'add' }; SWAP_QUERY = ''; SWAP_PRESET_GROUP = null; loadMyTraining(); });
   tools.querySelectorAll('[data-tcu-undo-swap]').forEach(b => b.onclick = () => {
     const ed = trainEditsRead(plan.id, viewIso) || { swaps: {}, added: [] };
     delete ed.swaps[String(b.dataset.tcuUndoSwap)];
@@ -19248,6 +19258,15 @@ function trainSessionRestoreSlot(plan, di, slot, iso) {
    que el campo no requiere delta de reglas. === */
 const SWAP_VARIANT_PICK = true;
 let SWAP_QUERY = '';
+/* Grupo preseleccionado del selector al abrirlo desde un chip de la
+   tira de la tarjeta (Cardio · Core · Estirar — puntos 67–75 de la
+   cola): la clave canónica de grupo de la biblioteca (libGroupKey).
+   Vive solo mientras el selector está abierto en modo «agregar»
+   desde un chip; cualquier otra apertura (el «+ Agregar» de siempre
+   o el del desplegable), el cierre de la hoja o una elección lo
+   limpian. Si la biblioteca no tiene ejercicios de ese grupo, la
+   hoja lo dice con honestidad (train.swap.presetEmpty). */
+let SWAP_PRESET_GROUP = null;
 const SWAP_GROUP_SYNONYMS = {
   'Pecho': ['pecho', 'pectoral', 'pectorales', 'chest', 'pecs'],
   'Espalda': ['espalda', 'back', 'dorsales', 'lats'],
@@ -19386,12 +19405,18 @@ function swapSheetResultsHTML(plan, di, iso) {
     return h || `<p class="progress-hint">${esc(t('train.swap.noResults'))}</p>`;
   }
   /* Sin ficha (texto libre) o modo «agregar»: la biblioteca por grupos. */
+  if (TRAIN_PICK && TRAIN_PICK.kind === 'add' && SWAP_PRESET_GROUP) {
+    const secs = libSections(LIB).filter(sec => sec.key === SWAP_PRESET_GROUP);
+    if (!secs.length) return `<p class="progress-hint">${esc(t('train.swap.presetEmpty'))}</p>`;
+    return secs.map(sec => `<div class="swap-sec-title">${esc(sec.label)}</div>` + sec.items.map(ex => swapCardHTML(ex)).join('')).join('');
+  }
   return libSections(LIB).map(sec => {
     const items = sec.items.filter(ex => !tEntry || ex.id !== tEntry.id);
     return items.length ? `<div class="swap-sec-title">${esc(sec.label)}</div>` + items.map(ex => swapCardHTML(ex)).join('') : '';
   }).join('');
 }
 function swapSheetApply(plan, di, entry, iso) {
+  SWAP_PRESET_GROUP = null;
   /* La MISMA escritura del selector anterior: edición de sesión
      — de la FECHA VISTA si el selector viene del desplegable con
      otra fecha (iso la pasa la cadena del desplegable; sin iso,
@@ -19409,6 +19434,7 @@ function swapSheetApply(plan, di, entry, iso) {
   loadMyTraining();
 }
 function swapSheetApplyVariant(plan, di, entry, vi, iso) {
+  SWAP_PRESET_GROUP = null;
   /* Elegir una VARIANTE del ejercicio del slot (decisión de Ronald
      2026-10-30): la edición de sesión guarda el exerciseId de siempre
      MÁS variantIndex (el índice en variantes[] de la ficha). La
@@ -19433,6 +19459,7 @@ function swapSheetApplyVariant(plan, di, entry, vi, iso) {
 function swapSheetSync(plan, di, iso) {
   const old = document.getElementById('swap-sheet');
   if (!plan || !TRAIN_PICK) {
+    SWAP_PRESET_GROUP = null;
     if (old) old.remove();
     document.body.classList.remove('swap-sheet-open');
     return;
@@ -19560,12 +19587,34 @@ function trainCloseFormHTML(planId, di) {
     <div style="margin-top:8px"><button type="button" class="btn-primary btn-sm" data-train-close-confirm="${di}">${t('train.markDone')}</button> <button type="button" class="btn-ghost btn-sm" data-train-close-cancel="${di}">${t('form.cancel')}</button></div>
   </div>`;
 }
-/* Cola de la tarjeta en modo edición: cronómetro + (botones de
-   siempre | panel de cierre si está abierto para este día). */
+/* Cola de la tarjeta en modo edición: con el panel de cierre
+   abierto, la pareja del cronómetro + el panel, como siempre; en
+   reposo, la TIRA EN UNA SOLA LÍNEA (puntos 67–75 de la cola;
+   decisión de Ronald 2026-11-02 01:15 CST sobre la maqueta
+   aprobada): Finalizado · Hecho hoy (atenuado, acción secundaria,
+   como en la maqueta) · Saltar · + Agregar · chips Cardio · Core ·
+   Estirar (sin «+») · ▶ Iniciar al extremo derecho — todo en la
+   misma línea aunque salga pequeña (fuente 7,6 px, pastillas de
+   26 px: lo medido en la NOTA de la maqueta y aceptado por él).
+   Los data-* son los de siempre (el cableado existente no cambia);
+   los chips abren el agregado con su grupo preseleccionado
+   (SWAP_PRESET_GROUP, la clasificación de la biblioteca). Con el
+   cronómetro en curso, el tiempo transcurrido baja a su propia
+   línea bajo la tira. */
 function trainEditTailHTML(planId, di) {
-  const chrono = trainChronoHTML(planId, di);
-  if (TRAIN_CLOSE_DI === di) return chrono + trainCloseFormHTML(planId, di);
-  return chrono + `<div style="margin-top:8px"><button class="btn-primary btn-sm" data-train-done="${di}">${t('train.markDone')}</button> <button class="btn-ghost btn-sm" data-train-skip="${di}">${t('train.d.skipDay')}</button> <button type="button" class="btn-ghost btn-sm" data-train-add-open="1">${t('train.custom.add')}</button></div>`;
+  if (TRAIN_CLOSE_DI === di) return trainChronoHTML(planId, di) + trainCloseFormHTML(planId, di);
+  const c = trainChronoRead(planId);
+  const run = c ? `<div class="train-actions-run">${t('train.chronoRunning', { min: Math.max(0, Math.round((Date.now() - c.start) / 60000)) })}</div>` : '';
+  return `<div class="train-actions-strip">`
+    + `<button type="button" class="train-actions-btn is-finish" data-train-done="${di}">${t('train.chronoFinishBtn')}</button>`
+    + `<button type="button" class="train-actions-btn is-dim" data-train-done="${di}">${t('train.strip.doneToday')}</button>`
+    + `<button type="button" class="train-actions-btn" data-train-skip="${di}">${t('train.strip.skip')}</button>`
+    + `<button type="button" class="train-actions-btn" data-train-add-open="1">${t('train.strip.add')}</button>`
+    + `<button type="button" class="train-actions-chip" data-train-add-preset="Cardio">${t('train.strip.cardio')}</button>`
+    + `<button type="button" class="train-actions-chip" data-train-add-preset="Core">${t('train.strip.core')}</button>`
+    + `<button type="button" class="train-actions-chip" data-train-add-preset="Estiramientos">${t('train.strip.stretch')}</button>`
+    + `<button type="button" class="train-actions-btn is-start" data-train-start="${di}">${t('train.chronoStartBtn')}</button>`
+    + `</div>` + run;
 }
 /* El volcado de la sesión en el día de actividad: UNA sola entrada
    'entrenamiento_plan', reemplazada al re-cerrar y retirada al
@@ -19875,6 +19924,7 @@ function trainExCompactHTML(ex, di, ei, mode, de) {
       <div class="train-ex-name">${esc(trainExName(ex))}</div>
       ${spec || ex.note ? `<div class="train-ex-spec">${esc(spec)}${ex.note ? `${spec ? ' · ' : ''}${esc(ex.note)}` : ''}</div>` : ''}
     </div>
+    ${trainHistBlockHTML(ex)}
     <div class="train-ex-side">${mode === 'edit'
       ? `<label class="train-ex-check"><input type="checkbox" data-train-check="${key}" ${chk ? 'checked' : ''}> <span>${t('train.view.exDone')}</span></label>`
       : mode === 'read'
@@ -20881,6 +20931,89 @@ function histShortDate(iso) {
    filas {date, dateShort, legacy} o {date, dateShort, n, loadsStr,
    maxStr, repsStr} — texto listo para pintar; NUNCA escribe ni
    copia nada al día de hoy (es referencia, no plantilla). */
+/* RÉCORDS POR EJERCICIO EN LA FILA (puntos 67–75 de la cola;
+   decisión de Ronald 2026-11-02 00:57–01:13 CST sobre la maqueta
+   aprobada): los tres récords de TODO el historial del ejercicio —
+   series MÁXIMAS hechas en UNA sola sesión (no la suma), repeticio-
+   nes máximas y peso máximo — leídos de la MISMA única lectura de
+   registros de siempre (MY_LOGS_ALL, todos los planes), sin ninguna
+   lectura nueva. La semántica de emparejado es la del lector de
+   cargas de la ficha (trainHistLoadsRows): identidad por el
+   exerciseId REALIZADO (un cambio cuenta para el realizado), por
+   nombre exacto solo si ninguna de las dos partes trae id; solo
+   sesiones done/partial; entradas con done===false fuera; las
+   series de aproximación (warmupSets) NUNCA cuentan; una entrada
+   legada sin sets prueba que el ejercicio se hizo (any) pero no
+   aporta cifras; una serie trabajada cuenta para el récord de
+   series aunque no lleve números tecleados, y solo aporta a los
+   máximos de repeticiones/peso si los trae. Con variantes en la
+   ficha, el filtro es el mismo de la ficha: la vista de una
+   variante no estándar solo cuenta sus sesiones; la estándar, las
+   sesiones sin variantIndex o con el índice estándar. El resultado
+   se memoriza por (identidad, vista de variante) mientras no cambie
+   la referencia de MY_LOGS_ALL: una pasada por fila y día pintado,
+   jamás por serie. */
+let TRAIN_REC_CACHE = { src: null, map: new Map() };
+function trainHistRecords(ex) {
+  const logs = MY_LOGS_ALL;
+  if (!Array.isArray(logs)) return null;
+  if (TRAIN_REC_CACHE.src !== logs) TRAIN_REC_CACHE = { src: logs, map: new Map() };
+  const id = ex && ex.exerciseId ? String(ex.exerciseId) : null;
+  const name = ex && !id ? String(ex.name || '') : null;
+  if (!id && !name) return null;
+  const entryH = id ? (LIB_BY_ID[id] || null) : null;
+  const varsH = entryH && Array.isArray(entryH.variantes) && entryH.variantes.length ? entryH.variantes : null;
+  const stdIdx = varsH ? varsH.findIndex(v => v && v.es_estandar) : -1;
+  const viEx = ex && Number.isInteger(ex.variantIndex) ? ex.variantIndex : null;
+  const viActive = !!(varsH && viEx != null && varsH[viEx] && !varsH[viEx].es_estandar);
+  const key = (id || 'n:' + name) + '|v' + (varsH ? (viActive ? String(viEx) : 'std') : '-');
+  if (TRAIN_REC_CACHE.map.has(key)) return TRAIN_REC_CACHE.map.get(key);
+  let any = false, maxSets = null, maxReps = null, maxLoad = null;
+  for (const log of logs) {
+    const st = trainLogStatus(log);
+    if (st !== 'done' && st !== 'partial') continue;
+    const list = Array.isArray(log.exercisesDone) ? log.exercisesDone : [];
+    for (const e of list) {
+      if (!e || e.done === false) continue;
+      const match = id ? (e.exerciseId != null && String(e.exerciseId) === id)
+        : (e.exerciseId == null && e.name != null && String(e.name) === name);
+      if (!match) continue;
+      if (varsH) {
+        const ev = Number.isInteger(e.variantIndex) ? e.variantIndex : null;
+        if (viActive) { if (ev !== viEx) continue; }
+        else if (ev !== null && ev !== stdIdx) continue;
+      }
+      any = true;
+      const sets = Array.isArray(e.sets) ? e.sets : null;
+      if (!sets) continue;   /* legado: hecho, sin cifras */
+      if (sets.length && (maxSets == null || sets.length > maxSets)) maxSets = sets.length;
+      for (const s of sets) {
+        if (!s) continue;
+        const r = (s.repsDone != null && s.repsDone !== '') ? Number(s.repsDone) : NaN;
+        if (isFinite(r) && (maxReps == null || r > maxReps)) maxReps = r;
+        const l = typeof s.loadKg === 'number' ? s.loadKg : NaN;
+        if (isFinite(l) && l > 0 && (maxLoad == null || l > maxLoad)) maxLoad = l;
+      }
+    }
+  }
+  const rec = { any, maxSets, maxReps, maxLoad };
+  TRAIN_REC_CACHE.map.set(key, rec);
+  return rec;
+}
+/* El bloque compacto de la fila: tres mini-columnas (título arriba,
+   número abajo) a la DERECHA de la fila, sin estorbar el check.
+   Sin historial: «—» en las tres y la nota «Sin historial» debajo;
+   con historial legado sin cifras: «—» sin la nota (sí se hizo). */
+function trainHistBlockHTML(ex) {
+  const rec = trainHistRecords(ex);
+  if (!rec) return '';
+  const dash = '—';
+  return `<div class="train-ex-hist"><div class="train-ex-hist-cols">`
+    + `<div class="train-ex-hist-col"><span class="train-ex-hist-lab">${t('train.histRec.sets')}</span><span class="train-ex-hist-val">${rec.maxSets != null ? rec.maxSets : dash}</span></div>`
+    + `<div class="train-ex-hist-col"><span class="train-ex-hist-lab">${t('train.histRec.repsMax')}</span><span class="train-ex-hist-val">${rec.maxReps != null ? rec.maxReps : dash}</span></div>`
+    + `<div class="train-ex-hist-col"><span class="train-ex-hist-lab">${t('train.histRec.loadMax')}</span><span class="train-ex-hist-val">${rec.maxLoad != null ? fmtMass(rec.maxLoad) : dash}</span></div>`
+    + `</div>${rec.any ? '' : `<div class="train-ex-hist-none">${t('train.histRec.none')}</div>`}</div>`;
+}
 function trainHistLoadsRows(ex, allLogs) {
   const id = ex && ex.exerciseId ? String(ex.exerciseId) : null;
   const name = ex && !id ? String(ex.name || '') : null;
@@ -21973,6 +22106,16 @@ async function loadMyTraining() {
     loadMyTraining();
   });
   box.querySelectorAll('[data-train-add-open]').forEach(b => b.onclick = () => {
+    TRAIN_CUSTOM_OPEN = true;
+    TRAIN_PICK = { kind: 'add' };
+    SWAP_PRESET_GROUP = null;
+    loadMyTraining();
+    setTimeout(() => { const tc = $('train-custom-tools'); if (tc) tc.scrollIntoView({ block: 'start' }); }, 80);
+  });
+  /* Chips de complementarios de la tira (puntos 67–75): el MISMO
+     flujo de agregar de siempre, con el grupo preseleccionado. */
+  box.querySelectorAll('[data-train-add-preset]').forEach(b => b.onclick = () => {
+    SWAP_PRESET_GROUP = b.dataset.trainAddPreset || null;
     TRAIN_CUSTOM_OPEN = true;
     TRAIN_PICK = { kind: 'add' };
     loadMyTraining();
@@ -30555,7 +30698,7 @@ document.addEventListener('keydown', e => { if (e.key === 'Escape') shareClose()
  *  - El SW (sw.js) solo cachea la cáscara del mismo origen en modo
  *    RED PRIMERO: Auth/Firestore/Worker jamás pasan por la caché.
  * ================================================================ */
-const PWA_SW_VERSION = '20261102-fecha-vista';
+const PWA_SW_VERSION = '20261102-historial-fila';
 let pwaDeferredPrompt = null;
 function pwaIsStandalone() {
   try {
