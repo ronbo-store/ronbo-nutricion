@@ -2834,6 +2834,9 @@ en: {
   'progress.back': 'Back',
   'progress.upload': '＋ Upload photo',
   'progress.replace': 'Replace',
+  'progress.addToday': 'Add today\'s',
+  'progress.closedNote': 'This evaluation is closed and stays untouched. New photos are saved in a new evaluation dated today.',
+  'progress.newEvalBtn': '+ New evaluation for today',
   'progress.delete': 'Delete',
   'progress.delConfirm': 'Delete this photo? This cannot be undone.',
   'progress.dupConfirm': 'This exact photo is already saved on {date}. Save another copy for this date anyway?',
@@ -5305,6 +5308,9 @@ es: {
   'progress.back': 'Espalda',
   'progress.upload': '＋ Subir foto',
   'progress.replace': 'Reemplazar',
+  'progress.addToday': 'Añadir de hoy',
+  'progress.closedNote': 'Esta evaluación ya está cerrada y no se toca. Las fotos nuevas se guardan en una evaluación nueva, con la fecha de hoy.',
+  'progress.newEvalBtn': '+ Nueva evaluación de hoy',
   'progress.delete': 'Eliminar',
   'progress.delConfirm': '¿Eliminar esta foto? No se puede deshacer.',
   'progress.dupConfirm': 'Esta foto exacta ya está guardada el {date}. ¿Guardar otra copia para esta fecha de todos modos?',
@@ -27191,6 +27197,23 @@ function renderProgress() {
   label.textContent = target === todayISO()
     ? t('progress.evalLabel', { date: dateName(target) }) + t('date.today')
     : t('progress.lastLabel', { date: dateName(target) });
+  /* AUTH-166 (punto 78 de la cola; decisión de Ronald 2026-11-02
+     09:45 CST): si el set mostrado está COMPLETO y no es de hoy,
+     esa evaluación está CERRADA y no se toca — las subidas ya van
+     a la evaluación de hoy (progressUploadDate, que NO se toca).
+     La vista lo dice con claridad: aviso + botón principal que
+     abre el encuadre para empezar la evaluación de hoy, y la
+     acción de cada foto pasa a «Añadir de hoy» en vez del
+     engañoso «Reemplazar». En cualquier otro estado (evaluación
+     de hoy, o set incompleto de otra fecha) todo queda como
+     siempre: «Subir foto»/«Reemplazar» con su significado real. */
+  const closedPast = target !== todayISO() && progressSetComplete(set);
+  const closedBox = $('progress-closed');
+  if (closedBox) closedBox.style.display = closedPast ? '' : 'none';
+  PROGRESS_SLOTS.forEach(s => {
+    const lbl = document.querySelector('#actions-' + s + ' label.slot-link');
+    if (lbl) { const k = closedPast ? 'progress.addToday' : 'progress.replace'; lbl.setAttribute('data-i18n', k); lbl.textContent = t(k); }
+  });
   PROGRESS_SLOTS.forEach(s => setSlot(s, set[s] ? set[s].photo : null));
   const missing = PROGRESS_SLOTS.filter(s => !set[s]);
   $('progress-status').textContent = missing.length === 0 ? t('progress.complete')
@@ -27365,6 +27388,11 @@ $('frame-pick').onclick = () => { const inp = $('photo-' + FRAME.slot); if (inp)
 $('frame-cam').onclick = frameStartCamera;
 $('frame-capture').onclick = frameCapture;
 $('frame-save').onclick = () => { const f = FRAME.file, s = FRAME.slot; closeFrameModal(); if (f && s) uploadProgressPhoto(s, f); };
+/* AUTH-166: el botón «+ Nueva evaluación de hoy» (visible solo con
+   una evaluación pasada completa en pantalla) abre el mismo paso
+   de encuadre para el primer ángulo; al guardar, la foto cae en el
+   documento de hoy por la ruta de siempre (uploadProgressPhoto). */
+{ const bne = $('btn-new-eval'); if (bne) bne.onclick = () => openFrameModal('front'); }
 
 /* ================= EVALUACIÓN DE PROGRESO (ciclo quincenal) =================
    Lleva a la app real el sistema del prototipo aprobado por Ronald
@@ -30921,7 +30949,7 @@ document.addEventListener('keydown', e => { if (e.key === 'Escape') shareClose()
  *  - El SW (sw.js) solo cachea la cáscara del mismo origen en modo
  *    RED PRIMERO: Auth/Firestore/Worker jamás pasan por la caché.
  * ================================================================ */
-const PWA_SW_VERSION = '20261102-colision-historial';
+const PWA_SW_VERSION = '20261102-fotos-nueva-evaluacion';
 let pwaDeferredPrompt = null;
 function pwaIsStandalone() {
   try {
