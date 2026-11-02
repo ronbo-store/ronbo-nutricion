@@ -3682,7 +3682,7 @@ en: {
   'purpose.useFullChip': 'FULL',
   'purpose.trainerTitle': 'Choose your trainer',
   'purpose.chooseBtn': 'Choose',
-  'purpose.suggestTitle': 'Let RONBO FIT suggest one for me',
+  'purpose.suggestTitle': 'Would you like me to suggest a trainer?',
   'purpose.suggestSub': 'We suggest a trainer based on your goals.',
   'purpose.suggestBtn': 'Suggest one for me',
   'purpose.noTrainers': 'No trainers are listed right now — pick the suggestion option and we will place you.',
@@ -6125,7 +6125,7 @@ es: {
   'purpose.useFullChip': 'COMPLETA',
   'purpose.trainerTitle': 'Elige a tu entrenador',
   'purpose.chooseBtn': 'Elegir',
-  'purpose.suggestTitle': 'Que RONBO FIT me sugiera uno',
+  'purpose.suggestTitle': '¿Quieres que te sugiera un entrenador?',
   'purpose.suggestSub': 'Te sugerimos uno de acuerdo a tus metas.',
   'purpose.suggestBtn': 'Sugerirme uno',
   'purpose.noTrainers': 'Ahora mismo no hay entrenadores en la lista — elige la opción de sugerencia y te ubicamos.',
@@ -30390,7 +30390,7 @@ document.addEventListener('keydown', e => { if (e.key === 'Escape') shareClose()
  *  - El SW (sw.js) solo cachea la cáscara del mismo origen en modo
  *    RED PRIMERO: Auth/Firestore/Worker jamás pasan por la caché.
  * ================================================================ */
-const PWA_SW_VERSION = '20261102-foto-entrenador';
+const PWA_SW_VERSION = '20261102-sugerencia-pregunta';
 let pwaDeferredPrompt = null;
 function pwaIsStandalone() {
   try {
