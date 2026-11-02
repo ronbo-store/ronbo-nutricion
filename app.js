@@ -7774,24 +7774,39 @@ function purposeRender() {
     </div>
     <div class="purpose-foot"><button type="button" class="btn-ghost purpose-back" id="purpose-back">${esc(t('purpose.backBtn'))}</button><button type="button" class="btn-primary purpose-cta" id="purpose-done" ${P.use ? '' : 'disabled'}>${esc(t(P.mode === 'declare' ? 'purpose.saveBtn' : 'purpose.createBtn'))}</button></div>`;
   } else if (P.purpose === 'con_entrenador') {
-    const modality = P.modality || (($('reg-modality') && $('reg-modality').value) || 'virtual');
-    P.modality = modality;
-    const opts = REG_DIRECTORY.filter(tr => {
-      if (tr.available === false) return false;
-      if (Array.isArray(tr.modalities) && modality && !tr.modalities.includes(modality)) return false;
-      return true;
-    });
-    const cards = opts.map(tr => {
-      const full = tr.quotaTotal != null && isFinite(Number(tr.quotaTotal)) && (Number(tr.quotaUsed) || 0) >= Number(tr.quotaTotal);
-      return purposeOptCard('trainer', '👤', '', '', { value: tr.uid, selected: P.trainerUid === tr.uid, disabled: full, photo: tr.photoUrl || '', rawTitle: tr.name || t('esc.currentTrainer'), rawSub: full ? t('esc.poolFull') : '' });
-    }).join('');
-    body = `<p class="purpose-sub"><b>${esc(t('purpose.trainerTitle'))}</b></p>
-    ${P.mode === 'declare' ? `<p class="purpose-sub">${esc(t('purpose.declareTrainerNote'))}</p>` : ''}
-    <label class="muted">${esc(t('esc.modality'))} <select id="purpose-modality">${ESC_MODALITIES.map(m => `<option value="${m}"${m === modality ? ' selected' : ''}>${esc(escModLabel(m))}</option>`).join('')}</select></label>
-    <div class="purpose-opts" style="margin-top:10px">
+    /* Modalidad (puntos 8 y 9 de la cola 2026-11-01; veredicto de
+       Ronald 2026-11-02 09:03 CST: VARIANTE A): fila de tarjetas
+       compactas de la casa en vez del <select> nativo, SIN
+       preselección — mientras no se elige vía, el espacio de la
+       lista queda en blanco (ni entrenadores ni sugerencia) y el
+       botón de crear queda apagado. Al elegir, la lista muestra
+       SOLO a los entrenadores que atienden por esa vía (el campo
+       modalities del directorio; las entradas legadas sin ese
+       campo atienden por todas, como en el pool del registro). */
+    const modality = P.modality || '';
+    const modIcons = { presencial: '📍', hibrido: '🔀', virtual: '💻' };
+    const modRow = `<p class="muted purpose-mod-cap">${esc(t('esc.modality'))}</p>
+    <div class="purpose-mod-row">${ESC_MODALITIES.map(m => `<button type="button" class="purpose-mod${m === modality ? ' sel' : ''}" data-purpose-mod="${m}" aria-pressed="${m === modality ? 'true' : 'false'}"><span class="purpose-ico">${modIcons[m]}</span><span class="purpose-mod-label">${esc(escModLabel(m))}</span><span class="purpose-mod-badge">✓</span></button>`).join('')}</div>`;
+    let listHtml = '';
+    if (modality) {
+      const opts = REG_DIRECTORY.filter(tr => {
+        if (tr.available === false) return false;
+        if (Array.isArray(tr.modalities) && !tr.modalities.includes(modality)) return false;
+        return true;
+      });
+      const cards = opts.map(tr => {
+        const full = tr.quotaTotal != null && isFinite(Number(tr.quotaTotal)) && (Number(tr.quotaUsed) || 0) >= Number(tr.quotaTotal);
+        return purposeOptCard('trainer', '👤', '', '', { value: tr.uid, selected: P.trainerUid === tr.uid, disabled: full, photo: tr.photoUrl || '', rawTitle: tr.name || t('esc.currentTrainer'), rawSub: full ? t('esc.poolFull') : '' });
+      }).join('');
+      listHtml = `<div class="purpose-opts" style="margin-top:10px">
       ${cards || `<p class="purpose-sub">${esc(t('purpose.noTrainers'))}</p>`}
       ${purposeOptCard('suggest', '✨', 'purpose.suggestTitle', esc(t('purpose.suggestSub')), { value: 'suggest', selected: P.suggest })}
-    </div>
+    </div>`;
+    }
+    body = `<p class="purpose-sub"><b>${esc(t('purpose.trainerTitle'))}</b></p>
+    ${P.mode === 'declare' ? `<p class="purpose-sub">${esc(t('purpose.declareTrainerNote'))}</p>` : ''}
+    ${modRow}
+    ${listHtml}
     <div class="purpose-foot"><button type="button" class="btn-ghost purpose-back" id="purpose-back">${esc(t('purpose.backBtn'))}</button><button type="button" class="btn-primary purpose-cta" id="purpose-done" ${(P.trainerUid || P.suggest) ? '' : 'disabled'}>${esc(t(P.mode === 'declare' ? 'purpose.saveBtn' : 'purpose.createBtn'))}</button></div>`;
   } else if (P.purpose === 'entrenador') {
     const membCard = (lvl, icon, chipKey) => purposeOptCard('memb', icon, 'esc.level.' + lvl,
@@ -7818,7 +7833,20 @@ function purposeRender() {
   f.querySelectorAll('[data-purpose-trainer]').forEach(b => b.onclick = () => { if (b.disabled) return; PURPOSE.trainerUid = b.dataset.purposeTrainer; PURPOSE.suggest = false; purposeRender(); });
   f.querySelectorAll('[data-purpose-suggest]').forEach(b => b.onclick = () => { PURPOSE.suggest = true; PURPOSE.trainerUid = ''; purposeRender(); });
   f.querySelectorAll('[data-purpose-memb]').forEach(b => b.onclick = () => { PURPOSE.membership = b.dataset.purposeMemb; purposeRender(); });
-  const pm = $('purpose-modality'); if (pm) pm.onchange = () => { PURPOSE.modality = pm.value; PURPOSE.trainerUid = ''; PURPOSE.suggest = false; purposeRender(); };
+  f.querySelectorAll('[data-purpose-mod]').forEach(b => b.onclick = () => {
+    const m = b.dataset.purposeMod;
+    if (m === PURPOSE.modality) return;
+    PURPOSE.modality = m;
+    /* Cambiar de vía re-filtra la lista al momento: la elección de
+       entrenador solo se conserva si ese entrenador atiende por la
+       vía nueva y sigue elegible; si no, se limpia (punto 9). */
+    if (PURPOSE.trainerUid) {
+      const tr = REG_DIRECTORY.find(x => x.uid === PURPOSE.trainerUid);
+      const full = !!tr && tr.quotaTotal != null && isFinite(Number(tr.quotaTotal)) && (Number(tr.quotaUsed) || 0) >= Number(tr.quotaTotal);
+      if (!tr || tr.available === false || (Array.isArray(tr.modalities) && !tr.modalities.includes(m)) || full) PURPOSE.trainerUid = '';
+    }
+    purposeRender();
+  });
   const bk = $('purpose-back'); if (bk) bk.onclick = () => { PURPOSE.step = 1; purposeRender(); };
   const nx = $('purpose-next'); if (nx) nx.onclick = () => { PURPOSE.step = 2; purposeRender(); };
   const dn = $('purpose-done'); if (dn) dn.onclick = () => purposeFinish();
@@ -30893,7 +30921,7 @@ document.addEventListener('keydown', e => { if (e.key === 'Escape') shareClose()
  *  - El SW (sw.js) solo cachea la cáscara del mismo origen en modo
  *    RED PRIMERO: Auth/Firestore/Worker jamás pasan por la caché.
  * ================================================================ */
-const PWA_SW_VERSION = '20261102-todo-directo';
+const PWA_SW_VERSION = '20261102-modalidad-casa';
 let pwaDeferredPrompt = null;
 function pwaIsStandalone() {
   try {
