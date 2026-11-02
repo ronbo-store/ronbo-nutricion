@@ -3598,6 +3598,9 @@ en: {
   'train.gate.savedWithWarning': 'Plan saved. Note: this client still has no valid health declaration on file.',
   'train.lib.unavailable': '📚 The exercise library is unavailable right now (it may be empty or could not be loaded). You can keep typing exercises as free text — plans save normally.',
   'train.lib.photo': 'Photo', 'train.lib.video': 'Video',
+  'train.video.noembed': 'This video can’t be played inside the app.',
+  'train.video.loadfail': 'The player couldn’t load.',
+  'train.video.openYt': 'Open on YouTube',
   'train.f.sePh': 'SE', 'train.f.repPh': 'REP', 'train.f.more': 'More options',
   'train.f.drag': 'Drag to reorder',
   'train.lib.media': 'Exercise media',
@@ -6093,6 +6096,9 @@ es: {
   'train.gate.savedWithWarning': 'Plan guardado. Nota: este cliente sigue sin una declaración de salud vigente registrada.',
   'train.lib.unavailable': '📚 La biblioteca de ejercicios no está disponible ahora (puede estar vacía o no pudo cargarse). Puedes seguir escribiendo los ejercicios como texto libre: los planes se guardan con normalidad.',
   'train.lib.photo': 'Foto', 'train.lib.video': 'Video',
+  'train.video.noembed': 'Este video no se puede reproducir dentro de la app.',
+  'train.video.loadfail': 'No se pudo cargar el reproductor.',
+  'train.video.openYt': 'Abrir en YouTube',
   'train.f.sePh': 'SE', 'train.f.repPh': 'REP', 'train.f.more': 'Más opciones',
   'train.f.drag': 'Arrastrar para reordenar',
   'train.lib.media': 'Multimedia del ejercicio',
@@ -19991,15 +19997,17 @@ function swapCardHTML(ex, opts) {
   const sub = [libField(ex, 'equipo'), libField(ex, 'nivel')].filter(Boolean).join(' · ');
   const tag = opts.tagKey ? `<span class="swap-card-tag">${esc(t(opts.tagKey))}</span>` : '';
   const btn = TRAIN_PICK && TRAIN_PICK.kind === 'add' ? t('train.swap.addBtn') : t('train.custom.swap');
+  const th = !ex.foto_url ? ytThumbOf(ex.video_youtube_url) : '';
   return `<button type="button" class="swap-card" data-swap-pick="${esc(ex.id)}">
-    ${ex.foto_url ? `<img class="swap-card-img" src="${esc(ex.foto_url)}" alt="" loading="lazy">` : '<span class="swap-card-img swap-card-noimg" aria-hidden="true"></span>'}
+    ${ex.foto_url ? `<img class="swap-card-img" src="${esc(ex.foto_url)}" alt="" loading="lazy">` : (th ? `<img class="swap-card-img" src="${esc(th)}" alt="" loading="lazy" data-yt-fb="swap" onerror="ytThumbErr(this)">` : '<span class="swap-card-img swap-card-noimg" aria-hidden="true"></span>')}
     <span class="swap-card-main"><span class="swap-card-name">${esc(opts.nameOverride || libNameOf(ex))}</span>${sub ? `<span class="swap-card-sub">${esc(sub)}</span>` : ''}${tag}</span><span class="swap-card-btn">${esc(btn)}</span></button>`;
 }
 function swapVariantCardHTML(entry, v, vi) {
   const sub = [libField(v, 'cambio'), libField(v, 'enfasis')].filter(Boolean).join(' · ');
   const vPhoto = (v && v.foto_url) || entry.foto_url || '';
+  const vTh = !vPhoto ? ytThumbOf((v && v.video_youtube_url) || entry.video_youtube_url) : '';
   const inner = `
-    ${vPhoto ? `<img class="swap-card-img" src="${esc(vPhoto)}" alt="" loading="lazy">` : '<span class="swap-card-img swap-card-noimg" aria-hidden="true"></span>'}
+    ${vPhoto ? `<img class="swap-card-img" src="${esc(vPhoto)}" alt="" loading="lazy">` : (vTh ? `<img class="swap-card-img" src="${esc(vTh)}" alt="" loading="lazy" data-yt-fb="swap" onerror="ytThumbErr(this)">` : '<span class="swap-card-img swap-card-noimg" aria-hidden="true"></span>')}
     <span class="swap-card-main"><span class="swap-card-name">${esc(libNameOf(entry))} — ${esc(libField(v, 'nombre'))}</span>${sub ? `<span class="swap-card-sub">${esc(sub)}</span>` : ''}<span class="swap-card-tag">${esc(t('train.swap.variantTag'))}</span></span>`;
   /* Elegible (decisión de Ronald 2026-10-30): la tarjeta ES el botón
      y lleva el índice de la variante en data-swap-variant. */
@@ -20633,20 +20641,156 @@ function trainExVideo(ex) {
   const entry = ex.exerciseId ? LIB_BY_ID[ex.exerciseId] : null;
   return entry ? (entry.video_youtube_url || '') : '';
 }
+/* ============ VIDEO DE YOUTUBE DENTRO DE LA APP (puntos 94/95 de la
+   cola 2026-11-01; orden de Ronald 2026-11-02 12:17 CST) ============
+   1) REPRODUCTOR DENTRO: tocar «Video» ya no saca a YouTube — abre
+   la ventana flotante #yt-float con el reproductor oficial
+   incrustado (dominio youtube-nocookie, playsinline, idioma de la
+   interfaz). Al cerrarla (✕ o velo) el iframe SALE del DOM: la
+   reproducción se detiene de verdad, sin audio fantasma. La
+   detección de «incrustación desactivada» usa la API de iframe de
+   YouTube envolviendo el iframe propio: sus errores 101/150 (y el
+   100, video no disponible) enseñan el aviso de la casa con su
+   botón «Abrir en YouTube»; si la API no llega a cargar, el mismo
+   aviso en su versión de carga. Si la URL guardada no da un
+   identificador extraíble, ni se abre la ventana: comportamiento
+   de hoy (abrir fuera).
+   2) MINIATURA TEMPORAL: de la misma URL se deriva, AL PINTAR (sin
+   descargar ni guardar nada — la sirve el propio YouTube), la
+   miniatura i.ytimg.com/vi/{id}/hqdefault.jpg. Hace de portada de
+   la banda de video del detalle y de foto temporal en las
+   superficies que pintaban el marcador sin foto. La foto propia
+   (foto_url) manda siempre: la miniatura solo aparece sin ella.
+   Si la miniatura falla al cargar, ytThumbErr devuelve a cada
+   superficie su marcador de hoy, sin romper nada. */
+function ytIdOf(url) {
+  const u = String(url || '').trim();
+  if (!u) return '';
+  let m = u.match(/[?&]v=([A-Za-z0-9_-]{6,20})(?![A-Za-z0-9_-])/);
+  if (m && /youtube\.com\//.test(u)) return m[1];
+  m = u.match(/(?:youtu\.be\/|youtube\.com\/(?:shorts|live|embed|v)\/|youtube-nocookie\.com\/embed\/)([A-Za-z0-9_-]{6,20})(?![A-Za-z0-9_-])/);
+  return m ? m[1] : '';
+}
+function ytThumbOf(url) {
+  const id = ytIdOf(url);
+  return id ? `https://i.ytimg.com/vi/${id}/hqdefault.jpg` : '';
+}
+/* Caída de la miniatura temporal (la llama el onerror en línea de
+   cada imagen pintada con data-yt-fb): cada superficie recupera su
+   marcador de hoy — o retira la imagen donde hoy no se pinta
+   nada ('gone') — sin tocar el resto de la tarjeta. */
+window.ytThumbErr = function (el) {
+  if (!el) return;
+  const fb = el.dataset ? el.dataset.ytFb : '';
+  if (fb === 'lib') {
+    const d = document.createElement('div');
+    d.className = 'lib-thumb lib-thumb-soft'; d.setAttribute('aria-hidden', 'true');
+    const p = document.createElement('span'); p.className = 'lib-thumb-play'; p.textContent = '▶';
+    const l = document.createElement('span'); l.className = 'lib-thumb-lab'; l.textContent = t('train.lib.video');
+    d.appendChild(p); d.appendChild(l); el.replaceWith(d);
+  } else if (fb === 'viz') {
+    const d = document.createElement('div'); d.className = 'pl-viz-img pl-viz-noimg'; d.textContent = '🏋️'; el.replaceWith(d);
+  } else if (fb === 'swap') {
+    const s = document.createElement('span'); s.className = 'swap-card-img swap-card-noimg'; s.setAttribute('aria-hidden', 'true'); el.replaceWith(s);
+  } else if (fb === 'varthumb') {
+    const s = document.createElement('span'); s.className = 'excard-var-thumb excard-var-noimg'; s.setAttribute('aria-hidden', 'true'); el.replaceWith(s);
+  } else if (fb === 'band') {
+    const m = el.closest('.excard-media');
+    el.remove();
+    if (m) {
+      m.classList.add('excard-media-soft');
+      const b = m.querySelector('.excard-play'); if (b) b.classList.add('excard-play-big');
+      if (!m.querySelector('.excard-media-lab')) { const l = document.createElement('span'); l.className = 'excard-media-lab'; l.textContent = t('train.lib.video'); m.appendChild(l); }
+    }
+  } else el.remove();
+};
+let YT_API_P = null;   // promesa de carga de la API de iframe de YouTube
+let YT_OPEN_SEQ = 0;   // sello de la apertura vigente del reproductor
+function ytApiReady() {
+  if (window.YT && window.YT.Player) return Promise.resolve(true);
+  if (!YT_API_P) {
+    YT_API_P = new Promise(res => {
+      let done = false;
+      const fin = ok => { if (!done) { done = true; res(ok); } };
+      const prev = window.onYouTubeIframeAPIReady;
+      window.onYouTubeIframeAPIReady = () => { try { if (prev) prev(); } catch {} fin(true); };
+      const s = document.createElement('script');
+      s.src = 'https://www.youtube.com/iframe_api';
+      s.onerror = () => fin(false);
+      document.head.appendChild(s);
+      setTimeout(() => fin(!!(window.YT && window.YT.Player)), 8000);
+    });
+  }
+  return YT_API_P;
+}
+function ytOpenPlayer(url, title) {
+  const id = ytIdOf(url);
+  const fl = $('yt-float');
+  if (!id || !fl) { window.open(url, '_blank', 'noopener'); return; }
+  const seq = ++YT_OPEN_SEQ;
+  $('yt-float-title').textContent = title || t('train.lib.video');
+  const fb = $('yt-float-fallback'); if (fb) fb.style.display = 'none';
+  const stage = $('yt-float-stage');
+  stage.style.display = '';
+  stage.innerHTML = '';
+  const ifr = document.createElement('iframe');
+  ifr.id = 'yt-frame';
+  ifr.className = 'yt-frame';
+  ifr.src = 'https://www.youtube-nocookie.com/embed/' + id
+    + '?playsinline=1&rel=0&modestbranding=1&hl=' + (LANG === 'en' ? 'en' : 'es')
+    + '&enablejsapi=1&origin=' + encodeURIComponent(location.origin);
+  ifr.title = title || t('train.lib.video');
+  ifr.setAttribute('allow', 'accelerometer; autoplay; encrypted-media; picture-in-picture');
+  ifr.setAttribute('allowfullscreen', '');
+  ifr.setAttribute('referrerpolicy', 'strict-origin-when-cross-origin');
+  stage.appendChild(ifr);
+  fl.style.display = 'flex';
+  ytApiReady().then(ok => {
+    if (seq !== YT_OPEN_SEQ || !ifr.isConnected) return; // cerrada o reabierta: esta apertura ya no manda
+    if (!ok) { ytShowFallback(url, 'loadfail'); return; }
+    try {
+      new YT.Player('yt-frame', { events: {
+        onReady: e => { try { e.target.playVideo(); } catch {} },
+        onError: e => {
+          if (seq !== YT_OPEN_SEQ) return;
+          const c = e && e.data;
+          ytShowFallback(url, (c === 101 || c === 150 || c === 100) ? 'noembed' : 'loadfail');
+        },
+      } });
+    } catch { ytShowFallback(url, 'loadfail'); }
+  });
+}
+function ytShowFallback(url, kind) {
+  const stage = $('yt-float-stage');
+  if (stage) { stage.innerHTML = ''; stage.style.display = 'none'; }
+  const fb = $('yt-float-fallback'); if (!fb) return;
+  $('yt-float-fb-text').textContent = t(kind === 'noembed' ? 'train.video.noembed' : 'train.video.loadfail');
+  const a = $('yt-float-ext');
+  a.href = url;
+  a.textContent = '▶ ' + t('train.video.openYt');
+  fb.style.display = '';
+}
+function ytClosePlayer() {
+  YT_OPEN_SEQ++;
+  const fl = $('yt-float'); if (fl) fl.style.display = 'none';
+  const stage = $('yt-float-stage'); if (stage) stage.innerHTML = ''; // el iframe sale del DOM: la reproducción se detiene de verdad
+  const fb = $('yt-float-fallback'); if (fb) fb.style.display = 'none';
+}
 function trainExInfoHTML(ex) {
   const photo = trainExPhoto(ex), video = trainExVideo(ex);
+  const thumb = !photo ? ytThumbOf(video) : '';
   const spec = [ex.sets, ex.reps].filter(Boolean).join(' × ');
   const rest = LANG === 'es' ? (ex.rest || ex.rest_en || '') : (ex.rest_en || ex.rest || '');
   const warm = LANG === 'es' ? (ex.warmup || ex.warmup_en || '') : (ex.warmup_en || ex.warmup || '');
   const det = [];
   if (warm) det.push(`${t('train.view.warmup')}: ${warm}`);
   if (rest) det.push(`${t('train.view.rest')}: ${rest}`);
-  return `${photo ? `<img class="train-ex-photo" src="${esc(photo)}" alt="" loading="lazy" data-train-photo="${esc(photo)}">` : ''}
+  return `${photo ? `<img class="train-ex-photo" src="${esc(photo)}" alt="" loading="lazy" data-train-photo="${esc(photo)}">` : (thumb ? `<img class="train-ex-photo" src="${esc(thumb)}" alt="" loading="lazy" data-yt-fb="gone" onerror="ytThumbErr(this)">` : '')}
     <div class="train-ex-info">
       <div class="train-ex-name">${esc(trainExName(ex))}${ex.note ? ` <span class="muted">· ${esc(ex.note)}</span>` : ''}</div>
       ${spec ? `<div class="train-ex-spec">${esc(spec)}</div>` : ''}
       ${det.length ? `<div class="train-ex-sub">${esc(det.join(' · '))}</div>` : ''}
-      ${video ? `<a class="btn-ghost btn-sm train-ex-video" href="${esc(video)}" target="_blank" rel="noopener">▶ ${t('train.lib.video')}</a>` : ''}
+      ${video ? `<button type="button" class="btn-ghost btn-sm train-ex-video" data-train-video="${esc(video)}">▶ ${t('train.lib.video')}</button>` : ''}
     </div>`;
 }
 function trainExCardHTML(ex, di, ei) {
@@ -20707,7 +20851,8 @@ function trainExCompactHTML(ex, di, ei, mode, de) {
   const chk = mode === 'edit' ? TRAIN_CHECKS[key] : null;
   const spec = [ex.sets, ex.reps].filter(Boolean).join(' × ');
   const photo = trainExPhoto(ex);
-  return `<div class="train-ex-card train-ex-compact${chk || de ? ' is-done' : ''}">${photo ? `<img class="train-ex-photo" src="${esc(photo)}" alt="" loading="lazy" data-train-photo="${esc(photo)}">` : ''}
+  const thumb = !photo ? ytThumbOf(trainExVideo(ex)) : '';
+  return `<div class="train-ex-card train-ex-compact${chk || de ? ' is-done' : ''}">${photo ? `<img class="train-ex-photo" src="${esc(photo)}" alt="" loading="lazy" data-train-photo="${esc(photo)}">` : (thumb ? `<img class="train-ex-photo" src="${esc(thumb)}" alt="" loading="lazy" data-yt-fb="gone" onerror="ytThumbErr(this)">` : '')}
     <div class="train-ex-info">
       <div class="train-ex-name">${esc(trainExName(ex))}</div>
       ${spec || ex.note ? `<div class="train-ex-spec">${esc(spec)}${ex.note ? `${spec ? ' · ' : ''}${esc(ex.note)}` : ''}</div>` : ''}
@@ -21912,16 +22057,17 @@ function trainVarListHTML(entry, list) {
   const basePhoto = entry.foto_url || '';
   return list.map((v, vi) => {
     const photo = v.foto_url || basePhoto;
+    const vThumb = !photo ? ytThumbOf(v.video_youtube_url) : '';
     const open = TF_VAR_OPEN === vi;
     const detail = open ? `<div class="excard-var-detail">
-      ${photo ? `<img class="excard-img" src="${esc(photo)}" alt="">` : ''}
+      ${photo ? `<img class="excard-img" src="${esc(photo)}" alt="">` : (vThumb ? `<img class="excard-img" src="${esc(vThumb)}" alt="" data-yt-fb="gone" onerror="ytThumbErr(this)">` : '')}
       ${libField(v, 'cambio') ? excardStepsHTML(libField(v, 'cambio')) : ''}
       ${libField(v, 'nota') ? `<p class="excard-text muted">${esc(libField(v, 'nota'))}</p>` : ''}
       ${v.video_youtube_url ? `<button type="button" class="btn-ghost btn-sm" data-tf-var-video="${esc(v.video_youtube_url)}">▶ ${esc(t('train.lib.video'))}</button>` : ''}
     </div>` : '';
     return `<div class="excard-var">
       <button type="button" class="excard-var-row" data-tf-var="${vi}">
-        ${photo ? `<img class="excard-var-thumb" src="${esc(photo)}" alt="" loading="lazy">` : '<span class="excard-var-thumb excard-var-noimg" aria-hidden="true"></span>'}
+        ${photo ? `<img class="excard-var-thumb" src="${esc(photo)}" alt="" loading="lazy">` : (vThumb ? `<img class="excard-var-thumb" src="${esc(vThumb)}" alt="" loading="lazy" data-yt-fb="varthumb" onerror="ytThumbErr(this)">` : '<span class="excard-var-thumb excard-var-noimg" aria-hidden="true"></span>')}
         <span class="excard-var-main"><span class="excard-var-name">${esc(libField(v, 'nombre'))}${v.es_estandar ? ` <span class="excard-chip excard-chip-main">${esc(t('libv.standard'))}</span>` : ''}</span>${libField(v, 'enfasis') ? `<span class="excard-var-sub">${esc(libField(v, 'enfasis'))}</span>` : ''}</span>
       </button>${detail}</div>`;
   }).join('');
@@ -21933,13 +22079,19 @@ function trainCardRender({ ex, mode, sessionHTML, allLogs }) {
   const photo = trainExPhoto(ex), video = trainExVideo(ex);
   /* Media grande: foto a todo ancho (su toque abre el lightbox de
      siempre; si falla se retira sola y, sin video, el bloque
-     entero desaparece — nunca un hueco). Con video, botón de
-     reproducción que lo abre como hoy (YouTube fuera, sin
-     incrustar); sin foto pero con video (las fichas de espalda),
-     bloque suave con el botón grande: acceso sin hueco vacío. */
+     entero desaparece — nunca un hueco). Con video, el botón de
+     reproducción abre el reproductor DENTRO de la app (puntos
+     94/95: #yt-float); sin foto pero con video (las fichas de
+     espalda), la banda lleva la MINIATURA del propio video como
+     portada — y si la miniatura no carga o la URL no da
+     identificador, vuelve el bloque suave con el botón grande:
+     acceso sin hueco vacío. */
+  const vThumb = !photo ? ytThumbOf(video) : '';
   const media = photo
     ? `<div class="excard-media"><img class="excard-img" src="${esc(photo)}" alt="" data-tf-photo="${esc(photo)}">${video ? `<button type="button" class="excard-play" data-excard-video="${esc(video)}" aria-label="${esc(t('train.lib.video'))}">▶</button>` : ''}</div>`
-    : (video ? `<div class="excard-media excard-media-soft"><button type="button" class="excard-play excard-play-big" data-excard-video="${esc(video)}" aria-label="${esc(t('train.lib.video'))}">▶</button><span class="excard-media-lab">${esc(t('train.lib.video'))}</span></div>` : '');
+    : (video ? (vThumb
+      ? `<div class="excard-media"><img class="excard-img" src="${esc(vThumb)}" alt="" data-yt-fb="band" onerror="ytThumbErr(this)"><button type="button" class="excard-play" data-excard-video="${esc(video)}" aria-label="${esc(t('train.lib.video'))}">▶</button></div>`
+      : `<div class="excard-media excard-media-soft"><button type="button" class="excard-play excard-play-big" data-excard-video="${esc(video)}" aria-label="${esc(t('train.lib.video'))}">▶</button><span class="excard-media-lab">${esc(t('train.lib.video'))}</span></div>`) : '');
   const group = entry ? libField(entry, 'grupo_muscular') : '';
   let metaLine = '';
   if (mode === 'card') {
@@ -21985,7 +22137,7 @@ function trainCardRender({ ex, mode, sessionHTML, allLogs }) {
     <div class="excard-pane" data-excard-pane="his" style="display:none">${trainHistLoadsHTML(ex, allLogs)}</div>`;
   const ph = body.querySelector('[data-tf-photo]');
   if (ph) { ph.onerror = () => { const m = ph.closest('.excard-media'); ph.remove(); if (!video && m) m.remove(); }; ph.onclick = () => showLightbox(ph.dataset.tfPhoto); }
-  body.querySelectorAll('[data-excard-video]').forEach(b => b.onclick = () => window.open(b.dataset.excardVideo, '_blank', 'noopener'));
+  body.querySelectorAll('[data-excard-video]').forEach(b => b.onclick = () => ytOpenPlayer(b.dataset.excardVideo, trainExName(ex)));
   body.querySelectorAll('[data-excard-tab]').forEach(b => b.onclick = () => {
     body.querySelectorAll('[data-excard-tab]').forEach(x => x.classList.toggle('active', x === b));
     body.querySelectorAll('[data-excard-pane]').forEach(p => { p.style.display = p.dataset.excardPane === b.dataset.excardTab ? '' : 'none'; });
@@ -22003,7 +22155,7 @@ function trainCardRender({ ex, mode, sessionHTML, allLogs }) {
       const pane = body.querySelector('[data-excard-pane="var"]');
       if (pane && entry) { pane.innerHTML = trainVarListHTML(entry, entry.variantes); wireVarPane(); }
     });
-    body.querySelectorAll('[data-tf-var-video]').forEach(b => b.onclick = () => window.open(b.dataset.tfVarVideo, '_blank', 'noopener'));
+    body.querySelectorAll('[data-tf-var-video]').forEach(b => b.onclick = () => ytOpenPlayer(b.dataset.tfVarVideo));
   }
   wireVarPane();
 }
@@ -22574,14 +22726,17 @@ async function loadMyTraining() {
     const [diS, iso] = b.dataset.trainShare.split('|');
     trainShareOpen(trainShareModel(plan, logs, Number(diS), iso));
   });
-  box.querySelectorAll('img.train-ex-photo').forEach(img => {
+  box.querySelectorAll('img.train-ex-photo[data-train-photo]').forEach(img => {
     img.onerror = () => img.remove();
     /* CHECKLIST FLOTANTE: dentro de una fila tocable de la tarjeta
        vestida, la foto abre la flotante del ejercicio (y desde ahí
        el lightbox); en el resto de tarjetas sigue abriendo el
-       lightbox como siempre. */
+       lightbox como siempre. La miniatura temporal de YouTube
+       (puntos 94/95) NO lleva data-train-photo: no abre el
+       lightbox y su caída la resuelve su propio onerror. */
     img.onclick = () => { if (!img.closest('[data-train-row]')) showLightbox(img.dataset.trainPhoto); };
   });
+  box.querySelectorAll('[data-train-video]').forEach(b => b.onclick = () => ytOpenPlayer(b.dataset.trainVideo));
   /* CHECKLIST FLOTANTE: tocar el cuerpo de una fila vestida (fuera
      de sus controles: check, select, inputs, botones, enlaces)
      abre la ventana flotante del ejercicio en su modo. */
@@ -23861,10 +24016,11 @@ function libLinksHTML(ex) {
   const photo = ex.photoUrl || (entry ? entry.foto_url : '') || '';
   const video = ex.videoUrl || (entry ? entry.video_youtube_url : '') || '';
   if (!photo && !video) return '';
-  return `<div class="pl-ex-links">${photo ? `<button type="button" class="btn-ghost btn-sm pl-ex-photo" data-url="${esc(photo)}">📷 ${t('train.lib.photo')}</button>` : ''}${video ? `<a class="btn-ghost btn-sm pl-ex-video" href="${esc(video)}" target="_blank" rel="noopener">▶ ${t('train.lib.video')}</a>` : ''}</div>`;
+  return `<div class="pl-ex-links">${photo ? `<button type="button" class="btn-ghost btn-sm pl-ex-photo" data-url="${esc(photo)}">📷 ${t('train.lib.photo')}</button>` : ''}${video ? `<button type="button" class="btn-ghost btn-sm pl-ex-video" data-video="${esc(video)}">▶ ${t('train.lib.video')}</button>` : ''}</div>`;
 }
 function wireLibLinks(scope) {
   scope.querySelectorAll('.pl-ex-photo').forEach(b => { if (!b.dataset.wired) { b.dataset.wired = '1'; b.onclick = () => showLightbox(b.dataset.url); } });
+  scope.querySelectorAll('.pl-ex-video').forEach(b => { if (!b.dataset.wired) { b.dataset.wired = '1'; b.onclick = () => ytOpenPlayer(b.dataset.video); } });
 }
 /* CONSTRUCTOR VISUAL (§5.1): la fila vinculada muestra la MINIATURA
    de la foto de la ficha (la misma URL copiada en photoUrl): se ve
@@ -23965,7 +24121,10 @@ async function renderLibrary() {
    de Ronald con captura): la miniatura redonda pequeña da paso a un
    CUADRADO grande (84×84) alineado a la IZQUIERDA de la tarjeta, con
    el texto — y el botón donde la vista lo tenga — en la columna de
-   su derecha. Sin foto, el cuadrado se pinta como el bloque suave
+   su derecha. Sin foto, el cuadrado lleva la MINIATURA TEMPORAL
+   del video de la ficha (puntos 94/95: la sirve el propio YouTube
+   y solo aparece sin foto propia; si no carga, ytThumbErr la
+   devuelve a este bloque); sin video utilizable, el bloque suave
    de la ficha (AUTH-087): mismo tamaño y posición, con la marca de
    video si la ficha lo tiene; la marca es SOLO visual (un span): el
    toque de la tarjeta sigue haciendo lo que hacía en cada vista
@@ -23973,6 +24132,8 @@ async function renderLibrary() {
    botones viven dentro de la columna). */
 function libCardMediaHTML(ex) {
   if (ex.foto_url) return `<img class="lib-thumb" src="${esc(ex.foto_url)}" alt="">`;
+  const th = ytThumbOf(ex.video_youtube_url);
+  if (th) return `<img class="lib-thumb" src="${esc(th)}" alt="" loading="lazy" data-yt-fb="lib" onerror="ytThumbErr(this)">`;
   return `<div class="lib-thumb lib-thumb-soft" aria-hidden="true">${ex.video_youtube_url ? `<span class="lib-thumb-play">▶</span><span class="lib-thumb-lab">${esc(t('train.lib.video'))}</span>` : `<span class="lib-thumb-glyph">🏋️</span>`}</div>`;
 }
 function libRenderTray() {
@@ -24692,10 +24853,13 @@ function exMediaOpen(row) {
   const pop = $('ex-media-pop'); if (!pop || !row) return;
   const m = exMediaForRow(row);
   $('ex-media-name').textContent = m.name || t('train.lib.media');
+  const thumb = !m.photo ? ytThumbOf(m.video) : '';
   $('ex-media-body').innerHTML =
-    (m.photo ? `<img class="ex-media-img" src="${esc(m.photo)}" alt="">` : '')
-    + (m.video ? `<a class="btn-primary ex-media-video" href="${esc(m.video)}" target="_blank" rel="noopener">▶ ${t('train.lib.video')}</a>` : '')
+    (m.photo ? `<img class="ex-media-img" src="${esc(m.photo)}" alt="">` : (thumb ? `<img class="ex-media-img" src="${esc(thumb)}" alt="" data-yt-fb="gone" onerror="ytThumbErr(this)">` : ''))
+    + (m.video ? `<button type="button" class="btn-primary ex-media-video" id="ex-media-video-btn">▶ ${t('train.lib.video')}</button>` : '')
     + (!m.photo && !m.video ? `<p class="muted">${t('train.lib.noMedia')}</p>` : '');
+  const vb = $('ex-media-video-btn');
+  if (vb) vb.onclick = () => ytOpenPlayer(m.video, m.name);
   pop.style.display = '';
 }
 function exMediaClose() { const pop = $('ex-media-pop'); if (pop) pop.style.display = 'none'; }
@@ -25678,8 +25842,9 @@ function vizRenderFacets() {
 }
 function vizCardHTML(ex) {
   const meta = [libField(ex, 'grupo_muscular'), libField(ex, 'equipo'), libField(ex, 'nivel')].filter(Boolean).join(' · ');
+  const th = !ex.foto_url ? ytThumbOf(ex.video_youtube_url) : '';
   return `<div class="pl-viz-card">
-      ${ex.foto_url ? `<img class="pl-viz-img" src="${esc(ex.foto_url)}" alt="${esc(libNameOf(ex))}" loading="lazy">` : `<div class="pl-viz-img pl-viz-noimg">🏋️</div>`}
+      ${ex.foto_url ? `<img class="pl-viz-img" src="${esc(ex.foto_url)}" alt="${esc(libNameOf(ex))}" loading="lazy">` : (th ? `<img class="pl-viz-img" src="${esc(th)}" alt="${esc(libNameOf(ex))}" loading="lazy" data-yt-fb="viz" onerror="ytThumbErr(this)">` : `<div class="pl-viz-img pl-viz-noimg">🏋️</div>`)}
       <div class="pl-viz-name">${esc(libNameOf(ex))}</div>
       <div class="pl-viz-meta">${esc(meta)}</div>
       <button type="button" class="btn-primary btn-sm pl-viz-add" data-viz-id="${esc(ex.id)}">${t('train.viz.add')}</button>
@@ -26091,6 +26256,8 @@ $('plan-cancel').onclick = () => planRequestClose();
 { const fp = $('form-plan'); if (fp) fp.addEventListener('input', () => { planTouched = true; const n = $('pl-saved-note'); if (n) n.style.display = 'none'; }); }
 if ($('ex-media-x')) $('ex-media-x').onclick = exMediaClose;
 if ($('ex-media-pop')) $('ex-media-pop').addEventListener('click', e => { if (e.target.id === 'ex-media-pop') exMediaClose(); });
+if ($('yt-float-x')) $('yt-float-x').onclick = ytClosePlayer;
+if ($('yt-float')) $('yt-float').addEventListener('click', e => { if (e.target.id === 'yt-float') ytClosePlayer(); });
 document.addEventListener('keydown', e => { if (e.key === 'Escape') exMediaClose(); });
 /* GUARDAR SIN CERRAR (2026-10-26): el editor de planes YA NO se
    cierra tocando el fondo del modal — por instrucción de Ronald, el
@@ -31612,6 +31779,7 @@ function shareRelang() { const f = $('share-float'); if (f && f.style.display !=
 { const b = $('fdcam-join'); if (b) b.addEventListener('click', fdCamJoin); }
 document.addEventListener('keydown', e => { if (e.key === 'Escape') { const f = $('fdcam-float'); if (f && f.style.display !== 'none') fdCamClose(); } });
 document.addEventListener('keydown', e => { if (e.key === 'Escape') { const f = $('train-ex-float'); if (f && f.style.display !== 'none') trainFloatClose(); } });
+document.addEventListener('keydown', e => { if (e.key === 'Escape') { const f = $('yt-float'); if (f && f.style.display !== 'none') ytClosePlayer(); } });
 { const b = $('btn-share-day'); if (b) b.addEventListener('click', () => shareSetType('day')); }
 { const b = $('btn-share-week'); if (b) b.addEventListener('click', () => shareSetType('week')); }
 { const b = $('btn-share-f916'); if (b) b.addEventListener('click', () => shareSetFormat('916')); }
@@ -31637,7 +31805,7 @@ document.addEventListener('keydown', e => { if (e.key === 'Escape') shareClose()
  *  - El SW (sw.js) solo cachea la cáscara del mismo origen en modo
  *    RED PRIMERO: Auth/Firestore/Worker jamás pasan por la caché.
  * ================================================================ */
-const PWA_SW_VERSION = '20261102-cronometro-sesion';
+const PWA_SW_VERSION = '20261102-video-dentro';
 let pwaDeferredPrompt = null;
 function pwaIsStandalone() {
   try {

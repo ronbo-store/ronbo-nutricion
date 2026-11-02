@@ -21,7 +21,7 @@
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-title" content="RONBO FIT">
 <meta name="apple-mobile-web-app-status-bar-style" content="default">
-<link rel="stylesheet" href="styles.css?v=20261102-cronometro-sesion">
+<link rel="stylesheet" href="styles.css?v=20261102-video-dentro">
 <script defer src="https://cloud.umami.is/script.js" data-website-id="a29706d4-44a2-47cf-900a-5f74d74abfa8"></script>
 <script type="importmap">
 {
@@ -1629,9 +1629,31 @@
   </div>
 </div>
 
+<!-- ============ REPRODUCTOR DE VIDEO DENTRO DE LA APP (puntos
+     94/95, 2026-11-02): ventana flotante de la casa para el video
+     de YouTube del ejercicio — el reproductor oficial incrustado
+     toca aquí sin salir de la app. El iframe lo crea y lo retira
+     app.js (ytOpenPlayer/ytClosePlayer): al cerrar, el iframe
+     sale del DOM y la reproducción se detiene de verdad. Si el
+     video no admite incrustación, la misma ventana enseña el
+     aviso con su botón «Abrir en YouTube». ============ -->
+<div id="yt-float" class="yt-float" style="display:none" role="dialog" aria-modal="true">
+  <div class="yt-card">
+    <div class="pend-head">
+      <h2 id="yt-float-title"></h2>
+      <button type="button" class="pend-close" id="yt-float-x" aria-label="Close" data-i18n-aria="client.close">✕</button>
+    </div>
+    <div id="yt-float-stage" class="yt-stage"></div>
+    <div id="yt-float-fallback" class="yt-fallback" style="display:none">
+      <p id="yt-float-fb-text" class="muted"></p>
+      <a class="btn-primary" id="yt-float-ext" href="#" target="_blank" rel="noopener"></a>
+    </div>
+  </div>
+</div>
+
 <div id="toast" class="toast"></div>
 <div id="print-card" aria-hidden="true"></div>
 
-<script type="module" src="app.js?v=20261102-cronometro-sesion"></script>
+<script type="module" src="app.js?v=20261102-video-dentro"></script>
 </body>
 </html>
