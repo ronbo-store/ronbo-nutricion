@@ -4262,6 +4262,7 @@ en: {
   'comms.tpl.bodyImages': 'How we use and protect your body photos',
   'comms.tpl.trainerPitch': 'A trainer changes what happens next',
   'comms.tpl.aiDay3': 'Three days with the food scanner',
+  'comms.tpl.daySummary': 'Daily training summary',
   'comms.pool.trainers': 'Trainers only',
   'comms.pool.noTrainer': 'No trainer',
   'comms.pool.withTrainer': 'With trainer',
@@ -6742,6 +6743,7 @@ es: {
   'comms.tpl.bodyImages': 'Cómo usamos y protegemos tus fotos del cuerpo',
   'comms.tpl.trainerPitch': 'Un entrenador cambia lo que sigue',
   'comms.tpl.aiDay3': 'Tres días con el escáner de comidas',
+  'comms.tpl.daySummary': 'Resumen diario de entreno',
   'comms.pool.trainers': 'Solo entrenadores',
   'comms.pool.noTrainer': 'Sin entrenador',
   'comms.pool.withTrainer': 'Con entrenador',
@@ -8321,6 +8323,9 @@ onAuthStateChanged(auth, async user => {
   commsWarm();
   /* AUTH-068: reanudar un enlace de aprobación si lo hay. */
   signupApproveResume();
+  /* AUTH-2026-11-02-172: si el enlace ?dia= fijó la fecha de la
+     vista al cargar, se abre Entrenamiento en esa fecha. */
+  try { if (DAY_LINK_USED) { DAY_LINK_USED = false; navOpenPage('train'); } } catch {}
   /* AUTH-147: a quien ya estaba registrado y aún no declaró su
      propósito se le pide UNA sola vez al entrar (sin bloquear). */
   try { purposeMaybeAsk(); } catch {}
@@ -14923,7 +14928,12 @@ async function mailAutoWelcome(uid, name) {
    invisible) quedó aprobada COMO FASE 2: no vive en este paquete;
    aquí planLoaded sale por el barrido diferido del administrador. */
 const COMMS_SYSTEM_KEYS = ['welcome', 'trainer', 'eval', 'meals', 'membership', 'dossier',
-  'install', 'planLoaded', 'metrics', 'benefits', 'bodyImages', 'trainerPitch', 'aiDay3'];
+  'install', 'planLoaded', 'metrics', 'benefits', 'bodyImages', 'trainerPitch', 'aiDay3',
+  /* AUTH-2026-11-02-172 (punto 18): la plantilla del resumen diario
+     de entreno — fija del sistema (desactivar sí, borrar no), con
+     sus textos editables aquí como las demás; su envío lo hará el
+     despertador del Worker cuando el paquete completo se apruebe. */
+  'daySummary'];
 const COMMS_CAP = 450; /* tope prudente bajo el límite ~500/día del buzón (§4.6) */
 let COMMS = null;
 
@@ -15153,6 +15163,20 @@ const COMMS_PLAN_SUMMARY_SAMPLE = {
   es: 'Tu plan en resumen\n3 días por semana.\nLunes: Pecho y tríceps · Miércoles: Piernas · Viernes: Espalda y bíceps.\nRige desde el lunes 9 de noviembre de 2026.',
   en: 'Your plan at a glance\n3 days a week.\nMonday: Chest and triceps · Wednesday: Legs · Friday: Back and biceps.\nIt starts on Monday, November 9, 2026.'
 };
+/* AUTH-2026-11-02-172 (punto 18): las marcas propias del resumen
+   diario ({dayLabel}, {dayDate}, {exercises}, {link}) en la VISTA
+   PREVIA de Comunicaciones — el ejemplo aprobado en la propuesta
+   (PROPUESTA-RESUMEN-DIARIO-ENTRENO-2026-11-02), para que el
+   propietario vea la plantilla tal cual saldrá. El correo real lo
+   compondrá el despertador del Worker con la sesión de ese día. */
+const COMMS_DAY_SUMMARY_SAMPLE = {
+  es: { dayLabel: 'Piernas', dayDate: 'miércoles 11 de noviembre de 2026',
+    exercises: 'Sentadilla — 4 × 8-10\nPrensa de piernas — 3 × 12\nPeso muerto rumano — 3 × 10\nElevación de talones — 4 × 15',
+    link: 'https://fit.ronbo.store/?dia=2026-11-11' },
+  en: { dayLabel: 'Legs', dayDate: 'Wednesday, November 11, 2026',
+    exercises: 'Squat — 4 × 8-10\nLeg press — 3 × 12\nRomanian deadlift — 3 × 10\nCalf raises — 4 × 15',
+    link: 'https://fit.ronbo.store/?dia=2026-11-11' }
+};
 const PS_WD_SHOW = {
   es: ['Domingo', 'Lunes', 'Martes', 'Miércoles', 'Jueves', 'Viernes', 'Sábado'],
   en: ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday']
@@ -15218,7 +15242,9 @@ function commsFillPreview(tpl, lang, u, plan) {
   const tn = rel.trainerUid ? commsTrainerName(rel.trainerUid) : 'RONBO FIT';
   const pt = plan ? (plan.title || '') : '';
   const ps = plan ? commsPlanSummary(plan, lang) : (COMMS_PLAN_SUMMARY_SAMPLE[lang] || '');
-  const fill = x => x.split('{name}').join(name).split('{trainerName}').join(tn).split('{trainer}').join(tn).split('{planTitle}').join(pt).split('{planSummary}').join(ps);
+  const ds = COMMS_DAY_SUMMARY_SAMPLE[lang] || COMMS_DAY_SUMMARY_SAMPLE.en;
+  const fill = x => x.split('{name}').join(name).split('{trainerName}').join(tn).split('{trainer}').join(tn).split('{planTitle}').join(pt).split('{planSummary}').join(ps)
+    .split('{dayLabel}').join(ds.dayLabel).split('{dayDate}').join(ds.dayDate).split('{exercises}').join(ds.exercises).split('{link}').join(ds.link);
   return { subject: fill(subj), body: fill(s) };
 }
 
@@ -15565,6 +15591,14 @@ function captureSignupLinks() {
        (uid del entrenador destinatario); se guarda con el enlace.
        Los enlaces sin tr se comportan exactamente como hoy. */
     if (au) { try { sessionStorage.setItem('rf-link-approve', JSON.stringify({ uid: au, t: ct || '', tr: q.get('tr') || '' })); } catch {} captured = true; }
+    /* AUTH-2026-11-02-172 (punto 18): el enlace del resumen diario
+       de entreno (?dia=AAAA-MM-DD) se captura con el MISMO patrón:
+       sobrevive al inicio de sesión en sessionStorage y la vista de
+       Entrenamiento lo consume UNA vez (dayLinkTake, junto a
+       TRAIN_VIEW). Solo se acepta la forma ISO exacta; la fecha se
+       valida como real al consumirla. */
+    const dia = q.get('dia');
+    if (dia && /^\d{4}-\d{2}-\d{2}$/.test(dia)) { try { sessionStorage.setItem('rf-link-dia', dia); } catch {} captured = true; }
     if (captured) { try { history.replaceState(null, '', location.pathname); } catch {} }
   } catch {}
 }
@@ -20588,6 +20622,25 @@ function printCardRender(plan) {
    «rotation» queda como último recurso, intacto. TPL_WEEK_OFFSETS
    sigue siendo una ayuda de etiquetado del editor, no un horario. */
 let TRAIN_VIEW = { planId: null, sel: null };   // sel: fecha ISO mostrada en la tarjeta del día
+/* AUTH-2026-11-02-172 (punto 18): enlace ?dia= del resumen diario.
+   dayLinkTake consume UNA vez la fecha capturada al arrancar
+   (captureSignupLinks) y la valida como fecha real; la vista la
+   aplica en su costura de siempre y dayLinkApply (tras loadAll)
+   abre Entrenamiento si el enlace fijó la fecha. Sin enlace, la
+   vista se comporta byte a byte como siempre. */
+let DAY_LINK_USED = false;
+function dayLinkTake() {
+  try {
+    const raw = sessionStorage.getItem('rf-link-dia');
+    if (!raw) return null;
+    sessionStorage.removeItem('rf-link-dia');
+    if (!/^\d{4}-\d{2}-\d{2}$/.test(raw)) return null;
+    const p = raw.split('-').map(Number);
+    const d = new Date(p[0], p[1] - 1, p[2]);
+    if (d.getFullYear() !== p[0] || d.getMonth() !== p[1] - 1 || d.getDate() !== p[2]) return null;
+    return raw;
+  } catch { return null; }
+}
 function trainWeekdayPairs(days) {
   const pairs = {};
   for (let di = 0; di < (days || []).length; di++) {
@@ -22090,7 +22143,13 @@ async function loadMyTraining() {
   const baseOv = (tmap.pairs || isCal) ? trainBaseRead(plan.id) : null;
   const broughtActive = !!(baseOv && baseOv.kind === 'brought' && diForDate(today) == null);
   const effDiForDate = iso => { const m = diForDate(iso); if (m != null) return m; if (iso === today && baseOv) return baseOv.kind === 'brought' ? baseOv.di : -1; return null; };
-  if (TRAIN_VIEW.planId !== plan.id || !TRAIN_VIEW.sel) TRAIN_VIEW = { planId: plan.id, sel: today };
+  /* AUTH-2026-11-02-172: si el enlace ?dia= trajo una fecha, ESTA
+     vista nace en ella (una sola vez); si ese día ya no tiene
+     sesión, la tarjeta lo muestra como siempre: en blanco, con su
+     nota — la resolución fecha→día de arriba no cambia. */
+  const dlIso = dayLinkTake();
+  if (dlIso) { TRAIN_VIEW = { planId: plan.id, sel: dlIso }; DAY_LINK_USED = true; }
+  else if (TRAIN_VIEW.planId !== plan.id || !TRAIN_VIEW.sel) TRAIN_VIEW = { planId: plan.id, sel: today };
   const sel = TRAIN_VIEW.sel;
   const dayLabelOf = di => { const d = (plan.days || [])[di] || {}; return d.label || ('Día ' + (di + 1)); };
   const histCardHTML = (day, log) => `<div class="train-day is-readonly"><h4>${esc(log.dayLabel || day.label || '')}</h4>${trainDayHistHTML(day, log)}${trainSessionHTML(day)}<div style="margin-top:8px">${trainStatusBadge(trainLogStatus(log))}</div></div>`;
@@ -31317,7 +31376,7 @@ document.addEventListener('keydown', e => { if (e.key === 'Escape') shareClose()
  *  - El SW (sw.js) solo cachea la cáscara del mismo origen en modo
  *    RED PRIMERO: Auth/Firestore/Worker jamás pasan por la caché.
  * ================================================================ */
-const PWA_SW_VERSION = '20261102-comida-manual-sin-ia';
+const PWA_SW_VERSION = '20261102-resumen-diario';
 let pwaDeferredPrompt = null;
 function pwaIsStandalone() {
   try {
