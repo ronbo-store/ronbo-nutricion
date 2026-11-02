@@ -7539,6 +7539,16 @@ function purposeFeaturesForUse(use) {
   if (use === 'training') return { training: true, activity: true, photos: true, metrics: true, meals: false, somatotype: true };
   return { ...ESC_FEATURE_DEFAULTS };
 }
+/* Tarjeta de opción de la ventana de propósito. Con o.photo (solo
+   las tarjetas de entrenador del paso «con entrenador»), el círculo
+   pinta la FOTO del directorio público (trainer_directory/current:
+   el photoUrl que la actualización del directorio escribe desde
+   trainer_profiles.photoUrl con respaldo en users.photoURL — la
+   misma foto del dossier). La foto va SOBRE el glifo: si no hay
+   foto, o si la foto no carga (la img se retira a sí misma con
+   onerror), queda el glifo — en las de entrenador, la silueta 👤.
+   Punto 6 de la cola 2026-11-01: antes el glifo era literal y la
+   foto del directorio jamás se leía en estas tarjetas. */
 function purposeOptCard(kind, icon, titleKey, subHtml, opts) {
   const o = opts || {};
   const sel = o.selected ? ' sel' : '';
@@ -7546,7 +7556,7 @@ function purposeOptCard(kind, icon, titleKey, subHtml, opts) {
   const title = o.rawTitle != null ? esc(o.rawTitle) : esc(t(titleKey));
   const sub = o.rawSub != null ? esc(o.rawSub) : subHtml;
   return `<button type="button" class="purpose-opt${sel}${dis}" data-purpose-${kind}="${esc(o.value || '')}"${o.disabled ? ' disabled aria-disabled="true"' : ''}>
-    <span class="purpose-ico">${icon}</span>
+    <span class="purpose-ico">${o.photo ? `<img class="purpose-ico-img" src="${esc(o.photo)}" alt="" onerror="this.remove()">` : ''}${icon}</span>
     <span class="purpose-opt-main"><span class="purpose-opt-title">${title}${o.chip ? ` <span class="purpose-chip ${o.chipCls || ''}">${esc(t(o.chip))}</span>` : ''}</span>
     <span class="purpose-opt-sub">${sub}</span></span>
     ${o.disabled ? '<span class="purpose-lock">🔒</span>' : '<span class="purpose-check">✓</span>'}
@@ -7591,7 +7601,7 @@ function purposeRender() {
     });
     const cards = opts.map(tr => {
       const full = tr.quotaTotal != null && isFinite(Number(tr.quotaTotal)) && (Number(tr.quotaUsed) || 0) >= Number(tr.quotaTotal);
-      return purposeOptCard('trainer', '👤', '', '', { value: tr.uid, selected: P.trainerUid === tr.uid, disabled: full, rawTitle: tr.name || t('esc.currentTrainer'), rawSub: full ? t('esc.poolFull') : '' });
+      return purposeOptCard('trainer', '👤', '', '', { value: tr.uid, selected: P.trainerUid === tr.uid, disabled: full, photo: tr.photoUrl || '', rawTitle: tr.name || t('esc.currentTrainer'), rawSub: full ? t('esc.poolFull') : '' });
     }).join('');
     body = `<p class="purpose-sub"><b>${esc(t('purpose.trainerTitle'))}</b></p>
     ${P.mode === 'declare' ? `<p class="purpose-sub">${esc(t('purpose.declareTrainerNote'))}</p>` : ''}
@@ -30380,7 +30390,7 @@ document.addEventListener('keydown', e => { if (e.key === 'Escape') shareClose()
  *  - El SW (sw.js) solo cachea la cáscara del mismo origen en modo
  *    RED PRIMERO: Auth/Firestore/Worker jamás pasan por la caché.
  * ================================================================ */
-const PWA_SW_VERSION = '20261102-texto-por-mi-cuenta';
+const PWA_SW_VERSION = '20261102-foto-entrenador';
 let pwaDeferredPrompt = null;
 function pwaIsStandalone() {
   try {
