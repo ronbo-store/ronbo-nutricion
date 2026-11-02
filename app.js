@@ -17136,8 +17136,17 @@ if (mAiTextBtn) mAiTextBtn.addEventListener('click', () => {
   const chosenMeal = mealSel && mealSel.value ? mealSel.value : null;
   try { pendDraftDisarm(); } catch {}
   const mm = $('meal-modal'); if (mm) mm.style.display = 'none';
-  aiStartText(desc);
-  if (chosenMeal && aiState) aiState.meal = chosenMeal;
+  /* La apertura de la hoja se DIFIERE al final del gesto, como la
+     vuelta de backReturn y el guardado de este mismo formulario:
+     aiStartText abre #food-ai DENTRO del gesto y el vigilante de
+     clic fuera de la familia Comida — que escucha en el documento —
+     la cerraba al seguir burbujeando ESTE clic, cuyo blanco vive
+     en este modal (medido en el punto 87 de la cola: abierta tras
+     el handler del botón, cerrada al llegar la burbuja al
+     documento). Diferida, la hoja abre al terminar el gesto y
+     queda abierta con su resultado; un clic fuera POSTERIOR la
+     sigue cerrando como siempre. */
+  setTimeout(() => { aiStartText(desc); if (chosenMeal && aiState) aiState.meal = chosenMeal; }, 0);
 });
 /* ===== BOTÓN DE VOZ «ONDAS» (Ronald, 2026-10-26) =====
    Diseño elegido por Ronald: «ondas tipo ChatGPT» en colores de
@@ -31376,7 +31385,7 @@ document.addEventListener('keydown', e => { if (e.key === 'Escape') shareClose()
  *  - El SW (sw.js) solo cachea la cáscara del mismo origen en modo
  *    RED PRIMERO: Auth/Firestore/Worker jamás pasan por la caché.
  * ================================================================ */
-const PWA_SW_VERSION = '20261102-resumen-diario';
+const PWA_SW_VERSION = '20261102-hoja-ia-cierre';
 let pwaDeferredPrompt = null;
 function pwaIsStandalone() {
   try {
