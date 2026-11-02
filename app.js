@@ -3520,7 +3520,7 @@ en: {
   'pk.renamed': 'Access key renamed.',
   'pk.added': 'Access key added.',
   'pk.loadFailed': 'We couldn\'t load your access keys. Try again in a moment.',
-  'pk.err.cancelled': 'You cancelled the access key. You can sign in with your password instead.',
+  'pk.err.cancelled': 'You didn\'t sign in with your access key. You can sign in with your password whenever you like.',
   'pk.err.noKey': 'No access key was found for this account. Sign in with your password instead.',
   'pk.err.expired': 'That took too long and the request expired. Try again, or sign in with your password.',
   'pk.err.tooMany': 'Too many attempts. Wait a moment and try again, or sign in with your password.',
@@ -5963,7 +5963,7 @@ es: {
   'pk.renamed': 'Clave de acceso renombrada.',
   'pk.added': 'Clave de acceso añadida.',
   'pk.loadFailed': 'No pudimos cargar tus claves de acceso. Inténtalo de nuevo en un momento.',
-  'pk.err.cancelled': 'Cancelaste la clave de acceso. Puedes entrar con tu contraseña.',
+  'pk.err.cancelled': 'No entraste con la clave de acceso. Puedes entrar con tu contraseña cuando quieras.',
   'pk.err.noKey': 'No se encontró ninguna clave de acceso para esta cuenta. Entra con tu contraseña.',
   'pk.err.expired': 'Tardó demasiado y la solicitud caducó. Inténtalo de nuevo, o entra con tu contraseña.',
   'pk.err.tooMany': 'Demasiados intentos. Espera un momento e inténtalo de nuevo, o entra con tu contraseña.',
@@ -7264,6 +7264,15 @@ function showAuthError(msg) {
   el.textContent = msg;
   el.classList.remove('ok');
   el.classList.add('show');
+}
+/* Aviso NEUTRO en la misma banda de acceso, con su variante .ok
+   (la del «enlace de restablecimiento enviado»): para lo que NO es
+   un error — como cancelar la ceremonia de la clave de acceso
+   (punto 4 de la cola; decisión de Ronald, 2026-11-01 22:14 CST). */
+function showAuthInfo(msg) {
+  const el = $('auth-error');
+  el.textContent = msg;
+  el.classList.add('show', 'ok');
 }
 /* DEFECTOS-072 (b): la pantalla de espera nombra al entrenador
    elegido cuando lo hay — la misma verdad que ya dice la pantalla
@@ -8702,7 +8711,12 @@ async function pkSignInFlow(btn) {
     if (!j2.token) throw pkErr('generic');
     await signInWithCustomToken(auth, j2.token);
   } catch (e) {
-    showAuthError(t('pk.err.' + ((e && e.pkCode) || 'generic')));
+    const code = (e && e.pkCode) || 'generic';
+    /* Punto 4 de la cola (decisión de Ronald, 2026-11-01): cancelar
+       la ceremonia NO es un error — el aviso va en la banda NEUTRA
+       (.ok) y nunca en la roja; los demás errores conservan la roja. */
+    if (code === 'cancelled') showAuthInfo(t('pk.err.cancelled'));
+    else showAuthError(t('pk.err.' + code));
   } finally {
     if (btn) btn.disabled = false;
   }
@@ -8798,7 +8812,10 @@ async function pkAddFlow(btn) {
     toast(t('pk.added'), false);
     await pkLoadList();
   } catch (e) {
-    toast(t('pk.err.' + ((e && e.pkCode) || 'generic')), true);
+    const code = (e && e.pkCode) || 'generic';
+    /* Cancelar la creación tampoco es un error (punto 4 de la cola):
+       el mismo aviso de cancelación, sin el toast rojo. */
+    toast(t('pk.err.' + code), code !== 'cancelled');
   } finally {
     if (btn) btn.disabled = false;
   }
@@ -30363,7 +30380,7 @@ document.addEventListener('keydown', e => { if (e.key === 'Escape') shareClose()
  *  - El SW (sw.js) solo cachea la cáscara del mismo origen en modo
  *    RED PRIMERO: Auth/Firestore/Worker jamás pasan por la caché.
  * ================================================================ */
-const PWA_SW_VERSION = '20261102-sin-caja-salud';
+const PWA_SW_VERSION = '20261102-cancel-clave';
 let pwaDeferredPrompt = null;
 function pwaIsStandalone() {
   try {
