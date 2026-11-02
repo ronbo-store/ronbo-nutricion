@@ -19606,6 +19606,23 @@ function trainMarkChipHTML(mark) {
   if (mark.type === 'removed') return `<div class="train-mark">✕ ${esc(t('train.custom.removedTag'))}</div>`;
   return '';
 }
+/* QUITADO OCULTO DE LA LISTA DEL ALUMNO (decisión de Ronald
+   2026-11-02 13:44 CST, widget-9e22b506, que REVISITA la §3.2 de
+   AUTH-104): los pintores del PROPIO alumno de su día cerrado
+   (la tarjeta compacta vestida y la tarjeta completa) y la
+   flotante de lectura comparten ESTA lista visible — las filas
+   del historial SIN las marcadas como quitadas: la fila del
+   quitado ya no pinta en su lista, sin hueco. SOLO presentación:
+   trainHistRows sigue devolviendo TODAS las filas (el registro
+   exercisesRemoved, la adherencia, la tarjeta de compartir y la
+   reconstrucción del Deshacer leen de ahí, intactos), y las
+   superficies del entrenador no usan estos pintores. La flotante
+   usa la misma lista visible para que el índice de la fila
+   tocada (data-train-row, secuencial sobre lo pintado) siga
+   casando con su ejercicio. */
+function trainHistRowsVisible(day, log) {
+  return trainHistRows(day, log).filter(r => !(r.mark && r.mark.type === 'removed'));
+}
 function trainRowWithMark(html, mark) {
   if (!mark) return html;
   return String(html).replace(/<\/div>\s*$/, trainMarkChipHTML(mark) + '</div>');
@@ -20819,7 +20836,7 @@ function trainExCardHTML(ex, di, ei) {
   </div>`;
 }
 function trainDayHistHTML(day, log) {
-  return trainHistRows(day, log).map(({ ex, de, mark }) => {
+  return trainHistRowsVisible(day, log).map(({ ex, de, mark }) => {
     /* MÓDULO D (D-2): el detalle por serie del registro v2 se lee
        tal cual se guardó; la carga se muestra en la unidad del
        visor desde el canónico kg (módulo H). v1 no trae series. */
@@ -20866,7 +20883,7 @@ function trainExCompactHTML(ex, di, ei, mode, de) {
   </div>`;
 }
 function trainDayCompactHistHTML(day, log, di) {
-  return trainHistRows(day, log).map((row, ei) => trainRowWithMark(trainExCompactHTML(row.ex, di, ei, 'read', row.de), row.mark)).join('');
+  return trainHistRowsVisible(day, log).map((row, ei) => trainRowWithMark(trainExCompactHTML(row.ex, di, ei, 'read', row.de), row.mark)).join('');
 }
 function trainSessionHTML(day) {
   const blocks = Array.isArray(day.sessionBlocks) ? day.sessionBlocks : [];
@@ -22174,7 +22191,10 @@ function trainFloatOpen(plan, logs, di, ei, mode, iso) {
     if (eff[ei]) ex = eff[ei].ex;
   } else if (mode === 'read') {
     const logR = logs.find(l => l.date === iso && l.dayIndex === di) || null;
-    histRow = trainHistRows(day, logR)[ei] || null;
+    /* La flotante lee la lista VISIBLE del alumno (sin quitados),
+       la misma que pinta la tarjeta: el índice ei de la fila
+       tocada casa con su ejercicio aunque un quitado preceda. */
+    histRow = trainHistRowsVisible(day, logR)[ei] || null;
     if (histRow) ex = histRow.ex;
   }
   $('train-ex-float-title').textContent = trainExName(ex) || ex.name || '';
@@ -31805,7 +31825,7 @@ document.addEventListener('keydown', e => { if (e.key === 'Escape') shareClose()
  *  - El SW (sw.js) solo cachea la cáscara del mismo origen en modo
  *    RED PRIMERO: Auth/Firestore/Worker jamás pasan por la caché.
  * ================================================================ */
-const PWA_SW_VERSION = '20261102-fila-dia-sello';
+const PWA_SW_VERSION = '20261102-quitado-oculto';
 let pwaDeferredPrompt = null;
 function pwaIsStandalone() {
   try {
