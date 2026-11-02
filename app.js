@@ -15119,6 +15119,77 @@ function commsTplTitle(key) {
 function commsTriggerLabel(tr) {
   return tr === 'sweep-auto' ? t('comms.triggerAuto') : tr === 'sweep-ask' ? t('comms.triggerAsk') : t('comms.triggerManual');
 }
+/* AUTH-2026-11-02-170 — LA MARCA {planSummary} DE planLoaded (punto
+   17 de la cola; contenido aprobado por Ronald el 2026-11-02 10:56
+   CST): ESPEJO del armado del Worker (planSummaryText), que es quien
+   compone el correo real; esta copia solo pinta la VISTA PREVIA de
+   Comunicaciones con el plan que el barrido ya cargó. Sin plan (la
+   previa del editor), la marca se pinta con el bloque de EJEMPLO
+   aprobado en la propuesta, para que el propietario vea el bloque
+   tal cual saldrá. Degradación honesta, la aprobada: día sin
+   etiqueta → «Día N · X ejercicios»; sin fecha → «Tu plan ya está
+   activo». */
+const COMMS_PLAN_SUMMARY_SAMPLE = {
+  es: 'Tu plan en resumen\n3 días por semana.\nLunes: Pecho y tríceps · Miércoles: Piernas · Viernes: Espalda y bíceps.\nRige desde el lunes 9 de noviembre de 2026.',
+  en: 'Your plan at a glance\n3 days a week.\nMonday: Chest and triceps · Wednesday: Legs · Friday: Back and biceps.\nIt starts on Monday, November 9, 2026.'
+};
+const PS_WD_SHOW = {
+  es: ['Domingo', 'Lunes', 'Martes', 'Miércoles', 'Jueves', 'Viernes', 'Sábado'],
+  en: ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday']
+};
+function commsPsSplitWeekday(label) {
+  const raw = String(label || '').trim();
+  if (!raw) return { wd: -1, rest: '' };
+  const norm = libNorm(raw).trim();
+  for (let wd = 0; wd < 7; wd++) {
+    for (const key of [TRAIN_WD_EN[wd], TRAIN_WD_ES[wd]]) {
+      if (norm === key) return { wd, rest: '' };
+      if (norm.startsWith(key)) {
+        const next = norm.charAt(key.length);
+        if (next === ' ' || next === '—' || next === '-' || next === ':' || next === '|' || next === '·') {
+          return { wd, rest: raw.slice(key.length).replace(/^[\s—\-:|·]+/, '').trim() };
+        }
+      }
+    }
+  }
+  return { wd: -1, rest: raw };
+}
+function commsPlanSummary(plan, lang) {
+  const L = lang === 'es' ? 'es' : 'en';
+  const days = (plan && Array.isArray(plan.days)) ? plan.days : [];
+  const spwNum = plan ? Number(plan.sessionsPerWeek) : NaN;
+  const spw = (isFinite(spwNum) && spwNum > 0) ? Math.round(spwNum) : days.length;
+  const entry = (day, idx) => {
+    const label = String((day && day.label) || '').trim();
+    const count = (day && Array.isArray(day.exercises)) ? day.exercises.length : 0;
+    const exWord = L === 'es' ? (count === 1 ? 'ejercicio' : 'ejercicios') : (count === 1 ? 'exercise' : 'exercises');
+    const dayWord = L === 'es' ? 'Día' : 'Day';
+    const parts = commsPsSplitWeekday(label);
+    if (parts.wd >= 0 && parts.rest) return PS_WD_SHOW[L][parts.wd] + ': ' + parts.rest;
+    if (parts.wd >= 0) return PS_WD_SHOW[L][parts.wd] + ' · ' + count + ' ' + exWord;
+    if (label) return dayWord + ' ' + (idx + 1) + ': ' + label;
+    return dayWord + ' ' + (idx + 1) + ' · ' + count + ' ' + exWord;
+  };
+  const lines = [L === 'es' ? 'Tu plan en resumen' : 'Your plan at a glance'];
+  lines.push(L === 'es'
+    ? spw + ' ' + (spw === 1 ? 'día' : 'días') + ' por semana.'
+    : spw + ' ' + (spw === 1 ? 'day' : 'days') + ' a week.');
+  if (days.length) lines.push(days.map(entry).join(' · ') + '.');
+  const s = String((plan && plan.startsAt) || '').slice(0, 10);
+  if (/^\d{4}-\d{2}-\d{2}$/.test(s)) {
+    const d = new Date(s + 'T12:00:00');
+    if (L === 'es') {
+      const p = {};
+      for (const part of new Intl.DateTimeFormat('es', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' }).formatToParts(d)) p[part.type] = part.value;
+      lines.push('Rige desde el ' + p.weekday + ' ' + p.day + ' de ' + p.month + ' de ' + p.year + '.');
+    } else {
+      lines.push('It starts on ' + new Intl.DateTimeFormat('en-US', { weekday: 'long', month: 'long', day: 'numeric', year: 'numeric' }).format(d) + '.');
+    }
+  } else {
+    lines.push(L === 'es' ? 'Tu plan ya está activo.' : 'Your plan is already active.');
+  }
+  return lines.join('\n');
+}
 function commsFillPreview(tpl, lang, u, plan) {
   const name = (u && (u.name || (u.email || '').split('@')[0])) || '';
   let s = tpl.body[lang] || '';
@@ -15126,7 +15197,8 @@ function commsFillPreview(tpl, lang, u, plan) {
   const rel = u ? commsEffRel(u) : { trainerUid: null };
   const tn = rel.trainerUid ? commsTrainerName(rel.trainerUid) : 'RONBO FIT';
   const pt = plan ? (plan.title || '') : '';
-  const fill = x => x.split('{name}').join(name).split('{trainerName}').join(tn).split('{trainer}').join(tn).split('{planTitle}').join(pt);
+  const ps = plan ? commsPlanSummary(plan, lang) : (COMMS_PLAN_SUMMARY_SAMPLE[lang] || '');
+  const fill = x => x.split('{name}').join(name).split('{trainerName}').join(tn).split('{trainer}').join(tn).split('{planTitle}').join(pt).split('{planSummary}').join(ps);
   return { subject: fill(subj), body: fill(s) };
 }
 
@@ -31200,7 +31272,7 @@ document.addEventListener('keydown', e => { if (e.key === 'Escape') shareClose()
  *  - El SW (sw.js) solo cachea la cáscara del mismo origen en modo
  *    RED PRIMERO: Auth/Firestore/Worker jamás pasan por la caché.
  * ================================================================ */
-const PWA_SW_VERSION = '20261102-comida-ia-flotante';
+const PWA_SW_VERSION = '20261102-resumen-plan';
 let pwaDeferredPrompt = null;
 function pwaIsStandalone() {
   try {
