@@ -10499,7 +10499,13 @@ async function nudgeSend() {
     ctx.sending = false;
     return;
   }
-  const res = await mailSend(ctx.uid, ctx.tpl);
+  /* AUTH-2026-11-02-169: el aviso sale en el idioma DEL ALUMNO — el
+     de su vista previa — y no en el de la sesión que envía: sin el
+     override, un alumno sin mailLang/lang guardados recibía el
+     idioma de la interfaz de quien avisa, contra lo que la hoja
+     promete («el correo exacto que recibirá el alumno, en su
+     idioma»). Los demás envíos no pasan el override y no cambian. */
+  const res = await mailSend(ctx.uid, ctx.tpl, nudgeMailLangOf(nudgeStudentDoc(ctx.uid) || {}));
   if (res.ok) {
     await mailRecordNudge(ctx.uid, ctx.sub);
     nudgeMsg(t('nudge.sentOk'));
@@ -14809,7 +14815,7 @@ async function aiCall(path, body) {
 function promiseWithTimeout(p, ms) {
   return Promise.race([p, new Promise((_, reject) => setTimeout(() => reject(new Error('timeout')), ms))]);
 }
-async function mailSend(uid, template) {
+async function mailSend(uid, template, langOverride) {
   const ep = aiEndpoint();
   if (!ep) return { ok: false, status: 0, error: 'no-endpoint' };
   let idToken = '';
@@ -14819,7 +14825,7 @@ async function mailSend(uid, template) {
   try {
     const r = await fetch(ep + '/mail/send', {
       method: 'POST', headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ idToken, uid, template, lang: LANG }),
+      body: JSON.stringify({ idToken, uid, template, lang: (langOverride === 'en' || langOverride === 'es') ? langOverride : LANG }),
       signal: ctl.signal
     });
     let j = null; try { j = await r.json(); } catch {}
@@ -30983,7 +30989,7 @@ document.addEventListener('keydown', e => { if (e.key === 'Escape') shareClose()
  *  - El SW (sw.js) solo cachea la cáscara del mismo origen en modo
  *    RED PRIMERO: Auth/Firestore/Worker jamás pasan por la caché.
  * ================================================================ */
-const PWA_SW_VERSION = '20261102-peso-mismo-tamano';
+const PWA_SW_VERSION = '20261102-aviso-propietario';
 let pwaDeferredPrompt = null;
 function pwaIsStandalone() {
   try {
