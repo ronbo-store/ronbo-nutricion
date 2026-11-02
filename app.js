@@ -14710,6 +14710,22 @@ function aiEndpoint() {
    #adm-aictl-box; solo el dueño — antes vivía en Accesos y se
    mudó con la Organización de Administración, 2026-10-28). */
 let AI_CTRL = { known: false, enabled: true };
+/* ELECCIÓN MANUAL DEL CATÁLOGO (punto 84 de la cola; decisión de
+   Ronald 2026-11-02 11:29 CST): si el alimento del formulario
+   manual vino de una ELECCIÓN de las sugerencias (el historial o
+   la biblioteca, siempre vía acApply en modo 'food') y sus valores
+   quedaron cargados, la zona de IA del formulario (.m-ai-text:
+   describir, analizar con IA y dictar) deja de ofrecerse — ya no
+   hace falta — y el guardado de ESE alimento cae en Consumido,
+   como el de la revisión de IA. La elección muere al teclear un
+   texto que ya no es el elegido y con los resets del episodio
+   (aiClearDraft / repeatClear la limpian). Sin elección, o con la
+   IA apagada por el interruptor, manda el comportamiento de
+   siempre: applyAiControl esconde la zona por cualquiera de los
+   dos cortes. */
+let MEAL_PICK = null; // { name } de la elección vigente, o null
+function mealPickSet(name) { MEAL_PICK = name ? { name: String(name) } : null; try { applyAiControl(); } catch {} }
+function mealPickClear() { if (MEAL_PICK) { MEAL_PICK = null; try { applyAiControl(); } catch {} } }
 let aiCtrlUnsub = null;
 function aiCtrlSet(enabled, known) {
   AI_CTRL = { known: !!known, enabled: enabled !== false };
@@ -14731,7 +14747,11 @@ function applyAiControl() {
   if (note) note.style.display = off ? '' : 'none';
   const noteM = document.getElementById('ai-off-note-modal');
   if (noteM) noteM.style.display = off ? '' : 'none';
-  document.querySelectorAll('.m-ai-text').forEach(b => { b.style.display = off ? 'none' : ''; });
+  /* Punto 84: con una elección del catálogo vigente en el
+     formulario manual, la zona de IA tampoco se ofrece (ya no
+     hace falta); cualquiera de los dos cortes la esconde. */
+  const pickHide = !!MEAL_PICK;
+  document.querySelectorAll('.m-ai-text').forEach(b => { b.style.display = (off || pickHide) ? 'none' : ''; });
 }
 async function loadAiControl() {
   try {
@@ -17362,6 +17382,7 @@ function aiUseDraft(r1, r2) {
 }
 function aiClearDraft() {
   aiDraft = null;
+  mealPickClear(); // punto 84: el episodio del formulario se reinicia; la elección del catálogo muere con él
   const b = $('m-ai-banner');
   if (b) { b.style.display = 'none'; b.textContent = ''; }
 }
@@ -28628,6 +28649,7 @@ function openRepeatMeal(rec, viewDate) {
 }
 function repeatClear() {
   repeatCtx = null;
+  mealPickClear(); // punto 84: ídem aiClearDraft — ningún episodio nuevo hereda una elección anterior
   mealScaleClear(); // el contexto de reescalado muere con el episodio del formulario
   const b = $('m-rep-banner'); if (b) { b.style.display = 'none'; b.textContent = ''; }
 }
@@ -28732,6 +28754,12 @@ function acApply(input, e, mode) {
        nace vacío. */
     mealScaleWire();
     mealScaleArm(e.qty, e);
+    /* Punto 84: la elección quedó hecha y sus valores cargados —
+       desde aquí la zona de IA del formulario deja de ofrecerse.
+       Se marca AL FINAL, tras los 'input' sintéticos de los set()
+       de arriba, para que el vigilante de #m-food no la mate al
+       nacer. */
+    mealPickSet(e.name);
   } else {
     input.value = e.name;
     input.dispatchEvent(new Event('input', { bubbles: true }));
@@ -28802,6 +28830,12 @@ function acWireAltDesc() {
   acWire(ta, wrap ? wrap.querySelector('.ac-sug') : null, 'desc');
 }
 acWire($('m-food'), $('ac-sug-food'), 'food');
+/* Punto 84: si tras una elección del catálogo el texto del
+   alimento deja de ser el elegido (borrado o tecleado libre), la
+   elección muere y la zona de IA vuelve a ofrecerse, como hoy.
+   Los 'input' sintéticos de la propia elección no la matan:
+   acApply marca la elección DESPUÉS de fijar el nombre. */
+{ const mf = $('m-food'); if (mf) mf.addEventListener('input', () => { if (MEAL_PICK && mf.value.trim() !== MEAL_PICK.name) mealPickClear(); }); }
 acWire($('m-desc'), $('ac-sug-desc'), 'desc');
 acWire($('food-text-desc'), $('ac-sug-text'), 'desc');
 
@@ -29231,6 +29265,11 @@ $('form-meal').addEventListener('submit', async e => {
         mealManualPending = null;
       }
     } catch (err) { failToast(err); return; }
+    /* Punto 84: si este guardado es el de una elección del
+       catálogo, su aterrizaje es el de la revisión de IA (caer en
+       Consumido), no la vuelta al origen. Se lee ANTES de que los
+       resets de abajo limpien la elección. */
+    const wasPick = !!MEAL_PICK;
     aiClearDraft();
     repeatClear();
     /* El registro YA se guardó: el espejo de borrador (D3) se
@@ -29238,7 +29277,13 @@ $('form-meal').addEventListener('submit', async e => {
        ni escribirse dos veces. */
     try { pendDraftClear(); pendDraftDisarm(); } catch {}
     $('meal-modal').style.display = 'none';
-    backReturn(true);
+    if (wasPick) {
+      backClear();
+      /* Diferido como la vuelta de backReturn: reabrir la ventana
+         dentro del mismo gesto dejaría el clic a merced de los
+         vigilantes de clic fuera de la familia Comida. */
+      setTimeout(() => { try { foodOpenFloat(); foodSetSub('consumido'); } catch {} }, 0);
+    } else backReturn(true);
     e.target.reset();
     $('m-photo-preview').style.display = 'none'; $('m-photo-preview').src = '';
     await loadAllKeepDate(data.date);
@@ -31272,7 +31317,7 @@ document.addEventListener('keydown', e => { if (e.key === 'Escape') shareClose()
  *  - El SW (sw.js) solo cachea la cáscara del mismo origen en modo
  *    RED PRIMERO: Auth/Firestore/Worker jamás pasan por la caché.
  * ================================================================ */
-const PWA_SW_VERSION = '20261102-resumen-plan';
+const PWA_SW_VERSION = '20261102-comida-manual-sin-ia';
 let pwaDeferredPrompt = null;
 function pwaIsStandalone() {
   try {
