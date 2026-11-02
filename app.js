@@ -3210,7 +3210,9 @@ en: {
   'train.today.nextTomorrow': 'Tomorrow: {label}', 'train.today.nextOn': 'On {date}: {label}',
   'train.today.scheduled': 'Scheduled', 'train.today.loggedOther': 'That day you logged: {label}',
   'train.custom.title': 'Customize today\'s assignments',
+  'train.custom.titleDate': 'Customize the assignments for {date}',
   'train.custom.sessionTitle': 'Today\'s session',
+  'train.custom.sessionTitleDate': 'Session for {date}',
   'train.custom.swap': 'Change', 'train.custom.add': '+ Add exercise',
   'train.custom.undoSwap': 'Undo change', 'train.custom.removeAdded': 'Remove',
   'train.custom.swappedFor': 'Changed for "{name}"', 'train.custom.addedMark': 'Added',
@@ -3225,6 +3227,8 @@ en: {
   'train.swap.addBtn': 'Add',
   'train.custom.restNote': 'Today is your rest day — there is no session to customize.',
   'train.custom.closedNote': 'Today\'s session is already logged. Undo it from the day card if you want to change it first.',
+  'train.custom.noSessionDate': 'There is no session to customize for that day.',
+  'train.custom.pastLockedNote': 'This day is in the past. Only your trainer can adjust it.',
   'train.bring.btn': 'Bring the next day', 'train.bring.note': 'Advanced session · from {date} — your plan does not change: that day stays pending on its own date.',
   'train.free.btn': 'Create a free day', 'train.free.label': 'Free day',
   'train.blank.hint': 'You can still train today: bring your next planned day, or build a free day with the exercises you choose.',
@@ -3305,10 +3309,12 @@ en: {
   'train.sets.add': '+ Add set', 'train.sets.remove': 'Remove set',
   'train.sets.suggested': 'Suggested',
   'train.custom.removeToday': 'Remove from today', 'train.custom.removedTag': 'Removed today',
+  'train.custom.removeDay': 'Remove from that day', 'train.custom.removedTagDate': 'Removed that day',
   'train.custom.restore': 'Restore',
   'train.remove.today': 'Remove from today\'s session',
   'train.remove.confirm': '{name} will leave today\'s session. The sets you already recorded today for it will NOT be saved in today\'s log. Your plan and your previous days are not touched. Remove it?',
   'train.remove.done': 'Removed from today\'s session.',
+  'train.remove.doneDate': 'Removed from that day\'s session.',
   'train.repeat.reqWeekBtn': '🔁 Ask to repeat week',
   'train.repeat.reqDayBtn': '🔁 Ask to repeat this day',
   'train.repeat.propWeekLine': 'Asks to repeat the week of the plan “{plan}”',
@@ -5654,7 +5660,9 @@ es: {
   'train.today.nextTomorrow': 'Mañana: {label}', 'train.today.nextOn': 'El {date}: {label}',
   'train.today.scheduled': 'Programada', 'train.today.loggedOther': 'Ese día registraste: {label}',
   'train.custom.title': 'Personaliza tus asignaciones de hoy',
+  'train.custom.titleDate': 'Personaliza tus asignaciones del {date}',
   'train.custom.sessionTitle': 'Sesión de hoy',
+  'train.custom.sessionTitleDate': 'Sesión del {date}',
   'train.custom.swap': 'Cambiar', 'train.custom.add': '+ Agregar ejercicio',
   'train.custom.undoSwap': 'Deshacer cambio', 'train.custom.removeAdded': 'Quitar',
   'train.custom.swappedFor': 'Cambiado por «{name}»', 'train.custom.addedMark': 'Agregado',
@@ -5669,6 +5677,8 @@ es: {
   'train.swap.addBtn': 'Agregar',
   'train.custom.restNote': 'Hoy es tu día de descanso: no hay sesión que personalizar.',
   'train.custom.closedNote': 'La sesión de hoy ya está registrada. Deshazla desde la tarjeta del día si quieres cambiarla antes.',
+  'train.custom.noSessionDate': 'Ese día no hay sesión que personalizar.',
+  'train.custom.pastLockedNote': 'Este día ya pasó. Solo tu entrenador puede ajustarlo.',
   'train.bring.btn': 'Traer el próximo día', 'train.bring.note': 'Sesión adelantada · del {date} — tu plan no cambia: ese día sigue pendiente en su fecha.',
   'train.free.btn': 'Crear día libre', 'train.free.label': 'Día libre',
   'train.blank.hint': 'Igual puedes entrenar hoy: trae tu próximo día programado o arma un día libre con los ejercicios que elijas.',
@@ -5749,10 +5759,12 @@ es: {
   'train.sets.add': '+ Añadir serie', 'train.sets.remove': 'Quitar serie',
   'train.sets.suggested': 'Sugerida',
   'train.custom.removeToday': 'Quitar de hoy', 'train.custom.removedTag': 'Quitado hoy',
+  'train.custom.removeDay': 'Quitar de ese día', 'train.custom.removedTagDate': 'Quitado ese día',
   'train.custom.restore': 'Restaurar',
   'train.remove.today': 'Quitar de la sesión de hoy',
   'train.remove.confirm': '«{name}» saldrá de tu sesión de hoy. Las series que ya registraste hoy de este ejercicio NO se guardarán en el registro de hoy. Tu plan y tus días anteriores no se tocan. ¿Quitarlo?',
   'train.remove.done': 'Quitado de la sesión de hoy.',
+  'train.remove.doneDate': 'Quitado de la sesión de ese día.',
   'train.repeat.reqWeekBtn': '🔁 Pedir repetir la semana',
   'train.repeat.reqDayBtn': '🔁 Pedir repetir este día',
   'train.repeat.propWeekLine': 'Pide repetir la semana del plan «{plan}»',
@@ -18733,16 +18745,35 @@ function trainChecksPruneStale(planId) {
    nuevas en Firestore: el único documento que nace sigue siendo
    el cierre del día, con la misma forma y dos campos extra
    DENTRO de las entradas de exercisesDone (las reglas vivas
-   13c0a457 no validan el interior de esas entradas). */
+   13c0a457 no validan el interior de esas entradas).
+   FECHA VISTA (2026-11-01, decisión de Ronald que sustituye la
+   frontera «SOLO a la sesión de hoy» de 2026-10-27): el
+   desplegable personaliza la fecha que el usuario está viendo
+   (TRAIN_VIEW.sel): títulos y botones nombran esa fecha, sus
+   ediciones viven en la clave DE ESA FECHA y hoy no se toca
+   cuando se mira otro día. Las marcas y el cierre siguen atados
+   a hoy (actos del día en curso): un día futuro solo recibe
+   ediciones de su sesión y, cuando llega, se vive con ellas.
+   Los días pasados solo los ajustan el entrenador, el
+   administrador o el usuario autónomo (trainPastEditable). */
 let TRAIN_CUSTOM_OPEN = false;   // el desplegable nace recogido; solo memoria
 let TRAIN_PICK = null;           // { kind:'swap', idx } | { kind:'add' } — selector de biblioteca abierto dentro del desplegable
-function trainEditsKey(planId) {
+let TRAIN_CUSTOM_ISO = null;     // FECHA VISTA (2026-11-01): fecha que el desplegable está personalizando; si la vista cambia de fecha, el selector abierto se cierra (su índice pertenecía a la lista de otro día)
+/* FECHA VISTA (2026-11-01, decisión de Ronald): la clave admite
+   la fecha de la sesión editada; SIN el parámetro devuelve la de
+   hoy, byte a byte como siempre — todos los flujos del día en
+   curso (tarjeta, marcas, cierre, «para hoy» de la Biblioteca)
+   la llaman sin fecha y no cambian. Solo la cadena del desplegable
+   «Personaliza» pasa la fecha vista (TRAIN_VIEW.sel). Ningún
+   barrido poda los borradores de otras fechas: el de un día
+   futuro espera en su clave y manda cuando ese día llega. */
+function trainEditsKey(planId, iso) {
   const uid = auth.currentUser ? auth.currentUser.uid : '';
-  return 'ronbofit-session-edits-' + uid + '|' + planId + '|' + todayISO();
+  return 'ronbofit-session-edits-' + uid + '|' + planId + '|' + (iso || todayISO());
 }
-function trainEditsRead(planId) {
+function trainEditsRead(planId, iso) {
   try {
-    const v = JSON.parse(localStorage.getItem(trainEditsKey(planId)) || 'null');
+    const v = JSON.parse(localStorage.getItem(trainEditsKey(planId, iso)) || 'null');
     if (!v || typeof v !== 'object') return null;
     const swaps = (v.swaps && typeof v.swaps === 'object' && !Array.isArray(v.swaps)) ? v.swaps : {};
     const added = Array.isArray(v.added) ? v.added.filter(a => a && typeof a === 'object') : [];
@@ -18756,14 +18787,14 @@ function trainEditsRead(planId) {
     return { swaps, added, removed };
   } catch { return null; }
 }
-function trainEditsWrite(planId, ed) {
+function trainEditsWrite(planId, ed, iso) {
   try {
     if (ed && ((ed.swaps && Object.keys(ed.swaps).length) || (ed.added && ed.added.length) || (ed.removed && ed.removed.length)))
-      localStorage.setItem(trainEditsKey(planId), JSON.stringify(ed));
-    else localStorage.removeItem(trainEditsKey(planId));
+      localStorage.setItem(trainEditsKey(planId, iso), JSON.stringify(ed));
+    else localStorage.removeItem(trainEditsKey(planId, iso));
   } catch {}
 }
-function trainEditsClear(planId) { trainEditsWrite(planId, null); }
+function trainEditsClear(planId, iso) { trainEditsWrite(planId, null, iso); }
 /* DÍA ACCIONABLE (2026-10-30, decisiones D1/D4 de Ronald): BASE DE
    SESIÓN de hoy — cuando el mapa no asigna día a hoy (descanso del
    mapa), el alumno puede TRAER el próximo día mapeado o crear un
@@ -18811,10 +18842,10 @@ function trainTodayDiEffective(plan, mappedDi) {
    agregados al final. Cada item: { ex, kind:'plan'|'swap'|'add',
    slot (índice en el plan; -1 si agregado), from (el original,
    solo en 'swap') }. Sin cambios devuelve el plan tal cual. */
-function trainEffectiveList(plan, di) {
+function trainEffectiveList(plan, di, iso) {
   const day = (plan && plan.days || [])[di] || {};
   const base = (day.exercises || []).map((ex, ei) => ({ ex, kind: 'plan', slot: ei }));
-  const ed = plan ? trainEditsRead(plan.id) : null;
+  const ed = plan ? trainEditsRead(plan.id, iso) : null;
   if (!ed) return base;
   const remSet = new Set(Array.isArray(ed.removed) ? ed.removed : []);
   const out = base.map(item => {
@@ -18910,15 +18941,41 @@ function trainRowWithMark(html, mark) {
   if (!mark) return html;
   return String(html).replace(/<\/div>\s*$/, trainMarkChipHTML(mark) + '</div>');
 }
-/* Herramientas de la sesión de hoy DENTRO del desplegable
-   «Personaliza tus asignaciones de hoy» (el bloque #train-custom-
-   tools; las otras tres piezas del desplegable — plantillas,
-   rutinas propias y propuestas — se pintan en sus contenedores de
-   siempre, ahora dentro del mismo cuerpo). todayDi = día del plan
-   que toca hoy (la misma resolución de la tarjeta: pares/plancal/
-   rotación) o null si hoy es descanso; closed = la sesión de hoy
-   ya está registrada (sin edición: se deshace desde la tarjeta). */
-function trainCustomRenderSession(plan, todayDi, closed) {
+/* ¿Puede esta cuenta ajustar un día PASADO desde el desplegable?
+   (decisión de Ronald 2026-11-01): el entrenador y el
+   administrador por su rol derivado — la misma deriveRole de
+   siempre — y el usuario AUTÓNOMO: el que entrena por su cuenta,
+   sin relación activa con un entrenador, con la misma derivación
+   que la fila «Repetir» de esta vista (MY_REL activa, o el espejo
+   UDATA asignado). El alumno con entrenador activo: no. */
+function trainPastEditable() {
+  if (typeof ROLE !== 'undefined' && (ROLE === 'entrenador' || ROLE === 'administrador')) return true;
+  const relUid = (typeof MY_REL !== 'undefined' && MY_REL && MY_REL.status === 'activa' && MY_REL.trainerUid) ? MY_REL.trainerUid
+    : ((typeof UDATA !== 'undefined' && UDATA && UDATA.assignmentStatus === 'assigned' && UDATA.trainerUid) ? UDATA.trainerUid : '');
+  return !relUid;
+}
+/* Herramientas de la sesión DENTRO del desplegable «Personaliza»
+   (el bloque #train-custom-tools; las otras tres piezas del
+   desplegable — plantillas, rutinas propias y propuestas — se
+   pintan en sus contenedores de siempre, ahora dentro del mismo
+   cuerpo). di = día del plan de la FECHA VISTA (la misma
+   resolución de la tarjeta para ESA fecha: pares/plancal/
+   rotación) o null si esa fecha no tiene sesión; closed = la
+   sesión de HOY ya está registrada (sin edición: se deshace
+   desde la tarjeta) — solo se pasa true con la vista en hoy;
+   iso = la fecha vista (TRAIN_VIEW.sel). FECHA VISTA (decisión
+   de Ronald 2026-11-01, que sustituye la frontera de 2026-10-27
+   «solo la sesión de hoy»): el desplegable personaliza ESA
+   fecha — sus títulos la nombran y sus ediciones viven en la
+   clave de esa fecha; hoy no se toca cuando se mira otro día.
+   Las marcas de series y el cierre siguen atados a hoy: un día
+   futuro solo recibe ediciones de su sesión, sin checks ni
+   registros, y cuando llega, sus ediciones ya están en su clave. */
+function trainCustomRenderSession(plan, di, closed, iso) {
+  const viewIso = iso || todayISO();
+  const isTodayView = viewIso === todayISO();
+  if (TRAIN_CUSTOM_ISO !== viewIso) { TRAIN_PICK = null; TRAIN_CUSTOM_ISO = viewIso; }
+  const titleTxt = isTodayView ? t('train.custom.sessionTitle') : t('train.custom.sessionTitleDate', { date: dateName(viewIso) });
   const btn = $('btn-train-custom');
   if (btn && !btn.dataset.wired) {
     btn.dataset.wired = '1';
@@ -18936,91 +18993,109 @@ function trainCustomRenderSession(plan, todayDi, closed) {
   if (bodyEl) bodyEl.style.display = TRAIN_CUSTOM_OPEN ? '' : 'none';
   const chevEl = $('train-custom-chev');
   if (chevEl) chevEl.textContent = TRAIN_CUSTOM_OPEN ? '▴' : '▾';
+  /* El nombre del desplegable también sigue a la fecha vista:
+     «de hoy» solo si la vista es hoy (al cambiar de idioma el
+     data-i18n puede devolver su texto; el próximo pintado lo
+     corrige). */
+  if (btn) { const tSpan = btn.querySelector('[data-i18n="train.custom.title"]'); if (tSpan) tSpan.textContent = isTodayView ? t('train.custom.title') : t('train.custom.titleDate', { date: dateName(viewIso) }); }
   const tools = $('train-custom-tools');
   if (!tools) return;
   if (!plan) { tools.innerHTML = ''; swapSheetSync(null); return; }
-  if (todayDi == null) {
-    tools.innerHTML = `<h4 class="tcu-title">${t('train.custom.sessionTitle')}</h4><p class="progress-hint">${t('train.custom.restNote')}</p>`;
+  if (di == null) {
+    tools.innerHTML = `<h4 class="tcu-title">${titleTxt}</h4><p class="progress-hint">${t(isTodayView ? 'train.custom.restNote' : 'train.custom.noSessionDate')}</p>`;
     swapSheetSync(null);
     return;
   }
   if (closed) {
-    tools.innerHTML = `<h4 class="tcu-title">${t('train.custom.sessionTitle')}</h4><p class="progress-hint">${t('train.custom.closedNote')}</p>`;
+    tools.innerHTML = `<h4 class="tcu-title">${titleTxt}</h4><p class="progress-hint">${t('train.custom.closedNote')}</p>`;
     swapSheetSync(null);
     return;
   }
-  const di = todayDi;
-  const eff = trainEffectiveList(plan, di);
-  let inner = `<h4 class="tcu-title">${t('train.custom.sessionTitle')}</h4>`;
+  const eff = trainEffectiveList(plan, di, viewIso);
+  /* DÍAS PASADOS (decisión de Ronald 2026-11-01): un día pasado
+     solo lo ajustan su entrenador, el administrador o el usuario
+     autónomo; el alumno CON entrenador lo ve en solo lectura. */
+  const readOnly = !isTodayView && viewIso < todayISO() && !trainPastEditable();
+  const removeTxt = isTodayView ? t('train.custom.removeToday') : t('train.custom.removeDay');
+  let inner = `<h4 class="tcu-title">${titleTxt}</h4>`;
   {
     inner += `<div class="tcu-list">${eff.map((it, idx) => {
       const spec = [it.ex.sets, it.ex.reps].filter(Boolean).join(' × ');
       let ctl = '';
-      if (it.kind === 'swap') ctl = `<span class="train-mark">⇄ ${esc(t('train.custom.swappedFor', { name: trainExName(it.from) || it.from.name || '' }))}</span><button type="button" class="btn-ghost btn-sm" data-tcu-undo-swap="${it.slot}">${t('train.custom.undoSwap')}</button><button type="button" class="btn-ghost btn-sm" data-tcu-remove="${idx}">${t('train.custom.removeToday')}</button>`;
+      if (readOnly) ctl = it.kind === 'swap' ? `<span class="train-mark">⇄ ${esc(t('train.custom.swappedFor', { name: trainExName(it.from) || it.from.name || '' }))}</span>` : (it.kind === 'add' ? `<span class="train-mark">＋ ${esc(t('train.custom.addedMark'))}</span>` : '');
+      else if (it.kind === 'swap') ctl = `<span class="train-mark">⇄ ${esc(t('train.custom.swappedFor', { name: trainExName(it.from) || it.from.name || '' }))}</span><button type="button" class="btn-ghost btn-sm" data-tcu-undo-swap="${it.slot}">${t('train.custom.undoSwap')}</button><button type="button" class="btn-ghost btn-sm" data-tcu-remove="${idx}">${removeTxt}</button>`;
       else if (it.kind === 'add') ctl = `<span class="train-mark">＋ ${esc(t('train.custom.addedMark'))}</span><button type="button" class="btn-ghost btn-sm" data-tcu-unadd="${idx}">${t('train.custom.removeAdded')}</button>`;
-      else ctl = `<button type="button" class="btn-ghost btn-sm" data-tcu-swap="${idx}">${t('train.custom.swap')}</button><button type="button" class="btn-ghost btn-sm" data-tcu-remove="${idx}">${t('train.custom.removeToday')}</button>`;
+      else ctl = `<button type="button" class="btn-ghost btn-sm" data-tcu-swap="${idx}">${t('train.custom.swap')}</button><button type="button" class="btn-ghost btn-sm" data-tcu-remove="${idx}">${removeTxt}</button>`;
       return `<div class="tcu-row"><span class="tcu-name">${esc(trainExName(it.ex) || it.ex.name || '')}${spec ? ` <span class="tcu-spec">${esc(spec)}</span>` : ''}</span>${ctl}</div>`;
     }).join('')}</div>`;
     /* QUITADOS DE HOY (2026-10-30): los retirados se listan al
        pie, tachados, con su «Restaurar» — el nombre que se muestra
        es el que la fila tenía al quitarla (el del cambio, si lo
        había, porque el cambio se conserva en la edición). */
-    const edNow = trainEditsRead(plan.id);
+    const edNow = trainEditsRead(plan.id, viewIso);
     const remSlots = edNow && Array.isArray(edNow.removed) ? edNow.removed : [];
     if (remSlots.length) {
       const dayExs = (plan.days || [])[di] && Array.isArray(plan.days[di].exercises) ? plan.days[di].exercises : [];
       inner += `<div class="tcu-list">${remSlots.map(slot => {
         const sw = edNow.swaps ? edNow.swaps[String(slot)] : null;
         const shown = sw ? (trainExName({ exerciseId: sw.exerciseId || null, name: sw.name || '', variantIndex: sw.variantIndex }) || sw.name || '') : (trainExName(dayExs[slot]) || (dayExs[slot] && dayExs[slot].name) || '');
-        return `<div class="tcu-row is-removed"><span class="tcu-name">${esc(shown)}</span><span class="train-mark">${esc(t('train.custom.removedTag'))}</span><button type="button" class="btn-ghost btn-sm" data-tcu-restore="${slot}">${t('train.custom.restore')}</button></div>`;
+        return `<div class="tcu-row is-removed"><span class="tcu-name">${esc(shown)}</span><span class="train-mark">${esc(t(isTodayView ? 'train.custom.removedTag' : 'train.custom.removedTagDate'))}</span>${readOnly ? '' : `<button type="button" class="btn-ghost btn-sm" data-tcu-restore="${slot}">${t('train.custom.restore')}</button>`}</div>`;
       }).join('')}</div>`;
     }
-    inner += `<div style="margin-top:8px"><button type="button" class="btn-secondary btn-sm" data-tcu-add="1">${t('train.custom.add')}</button></div>`;
+    if (readOnly) inner += `<p class="progress-hint">${t('train.custom.pastLockedNote')}</p>`;
+    else inner += `<div style="margin-top:8px"><button type="button" class="btn-secondary btn-sm" data-tcu-add="1">${t('train.custom.add')}</button></div>`;
   }
   tools.innerHTML = inner;
-  trainCustomWire(plan, di);
-  swapSheetSync(plan, di);
+  if (readOnly) { swapSheetSync(null); return; }
+  trainCustomWire(plan, di, viewIso);
+  swapSheetSync(plan, di, viewIso);
 }
-function trainCustomWire(plan, di) {
+function trainCustomWire(plan, di, iso) {
+  const viewIso = iso || todayISO();
+  const isTodayView = viewIso === todayISO();
   const tools = $('train-custom-tools');
   if (!tools || !plan) return;
   tools.querySelectorAll('[data-tcu-swap]').forEach(b => b.onclick = () => { TRAIN_PICK = { kind: 'swap', idx: Number(b.dataset.tcuSwap) }; SWAP_QUERY = ''; loadMyTraining(); });
   tools.querySelectorAll('[data-tcu-add]').forEach(b => b.onclick = () => { TRAIN_PICK = { kind: 'add' }; SWAP_QUERY = ''; loadMyTraining(); });
   tools.querySelectorAll('[data-tcu-undo-swap]').forEach(b => b.onclick = () => {
-    const ed = trainEditsRead(plan.id) || { swaps: {}, added: [] };
+    const ed = trainEditsRead(plan.id, viewIso) || { swaps: {}, added: [] };
     delete ed.swaps[String(b.dataset.tcuUndoSwap)];
-    trainEditsWrite(plan.id, ed);
+    trainEditsWrite(plan.id, ed, viewIso);
     loadMyTraining();
   });
   tools.querySelectorAll('[data-tcu-unadd]').forEach(b => b.onclick = () => {
     const effIdx = Number(b.dataset.tcuUnadd);
-    const eff = trainEffectiveList(plan, di);
+    const eff = trainEffectiveList(plan, di, viewIso);
     const it = eff[effIdx];
     if (!it || it.kind !== 'add') return;
     const addPos = eff.slice(0, effIdx).filter(x => x.kind === 'add').length;
-    const ed = trainEditsRead(plan.id) || { swaps: {}, added: [] };
+    const ed = trainEditsRead(plan.id, viewIso) || { swaps: {}, added: [] };
     ed.added.splice(addPos, 1);
-    trainEditsWrite(plan.id, ed);
-    /* Las marcas TRAIN_CHECKS van por índice EFECTIVO: al quitar
-       un agregado, su marca se borra y las posteriores bajan uno. */
-    const shifted = {};
-    Object.keys(TRAIN_CHECKS).forEach(k => {
-      const [dS, eS] = k.split(':');
-      if (Number(dS) !== di) { shifted[k] = TRAIN_CHECKS[k]; return; }
-      const n = Number(eS);
-      if (n < effIdx) shifted[k] = TRAIN_CHECKS[k];
-      else if (n > effIdx) shifted[dS + ':' + (n - 1)] = TRAIN_CHECKS[k];
-    });
-    TRAIN_CHECKS = shifted;
-    trainChecksPersist(plan.id);   /* MARCAS QUE SOBREVIVEN: el remapeo también se guarda (las marcas restauradas caen en su índice efectivo nuevo) */
+    trainEditsWrite(plan.id, ed, viewIso);
+    /* Las marcas TRAIN_CHECKS van por índice EFECTIVO y SOLO
+       existen para hoy: el remapeo solo corre si la fecha editada
+       es hoy — editar otro día jamás toca las marcas de hoy, aunque
+       su di coincida con el de hoy. */
+    if (isTodayView) {
+      const shifted = {};
+      Object.keys(TRAIN_CHECKS).forEach(k => {
+        const [dS, eS] = k.split(':');
+        if (Number(dS) !== di) { shifted[k] = TRAIN_CHECKS[k]; return; }
+        const n = Number(eS);
+        if (n < effIdx) shifted[k] = TRAIN_CHECKS[k];
+        else if (n > effIdx) shifted[dS + ':' + (n - 1)] = TRAIN_CHECKS[k];
+      });
+      TRAIN_CHECKS = shifted;
+      trainChecksPersist(plan.id);   /* MARCAS QUE SOBREVIVEN: el remapeo también se guarda (las marcas restauradas caen en su índice efectivo nuevo) */
+    }
     if (TRAIN_FLOAT) trainFloatClose();
     loadMyTraining();
   });
   tools.querySelectorAll('[data-tcu-remove]').forEach(b => b.onclick = () => {
-    trainSessionRemoveAt(plan, di, Number(b.dataset.tcuRemove));
+    trainSessionRemoveAt(plan, di, Number(b.dataset.tcuRemove), viewIso);
   });
   tools.querySelectorAll('[data-tcu-restore]').forEach(b => b.onclick = () => {
-    trainSessionRestoreSlot(plan, di, Number(b.dataset.tcuRestore));
+    trainSessionRestoreSlot(plan, di, Number(b.dataset.tcuRestore), viewIso);
   });
 }
 /* QUITAR UN EJERCICIO SOLO DE LA SESIÓN DE HOY (encargo por correo
@@ -19069,36 +19144,41 @@ function trainChecksShiftUp(plan, di, effIdx) {
   TRAIN_CHECKS = shifted;
   trainChecksPersist(plan.id);
 }
-function trainSessionRemoveAt(plan, di, effIdx) {
+function trainSessionRemoveAt(plan, di, effIdx, iso) {
   if (!plan) return;
-  const eff = trainEffectiveList(plan, di);
+  const viewIso = iso || todayISO();
+  const isTodayView = viewIso === todayISO();
+  const eff = trainEffectiveList(plan, di, viewIso);
   const it = eff[effIdx];
   if (!it) return;
   const name = trainExName(it.ex) || it.ex.name || '';
   if (it.kind === 'add') {
     /* La ruta de siempre para agregados: splice de `added` +
-       remapeo de marcas (la misma mecánica que data-tcu-unadd). */
+       remapeo de marcas (la misma mecánica que data-tcu-unadd).
+       El remapeo de marcas SOLO corre para hoy: las marcas son
+       del día en curso y editar otro día no las toca. */
     const addPos = eff.slice(0, effIdx).filter(x => x.kind === 'add').length;
-    const ed = trainEditsRead(plan.id) || { swaps: {}, added: [], removed: [] };
+    const ed = trainEditsRead(plan.id, viewIso) || { swaps: {}, added: [], removed: [] };
     ed.added.splice(addPos, 1);
-    trainEditsWrite(plan.id, ed);
-    trainChecksDropShift(plan, di, effIdx);
+    trainEditsWrite(plan.id, ed, viewIso);
+    if (isTodayView) trainChecksDropShift(plan, di, effIdx);
   } else {
-    if (TRAIN_CHECKS[di + ':' + effIdx] && !confirm(t('train.remove.confirm', { name }))) return;
-    const ed = trainEditsRead(plan.id) || { swaps: {}, added: [], removed: [] };
+    if (isTodayView && TRAIN_CHECKS[di + ':' + effIdx] && !confirm(t('train.remove.confirm', { name }))) return;
+    const ed = trainEditsRead(plan.id, viewIso) || { swaps: {}, added: [], removed: [] };
     if (!Array.isArray(ed.removed)) ed.removed = [];
     if (!ed.removed.includes(it.slot)) ed.removed.push(it.slot);
-    trainEditsWrite(plan.id, ed);
-    trainChecksDropShift(plan, di, effIdx);
+    trainEditsWrite(plan.id, ed, viewIso);
+    if (isTodayView) trainChecksDropShift(plan, di, effIdx);
   }
   TRAIN_PICK = null;
   if (TRAIN_FLOAT) trainFloatClose();
-  toast(t('train.remove.done'));
+  toast(t(isTodayView ? 'train.remove.done' : 'train.remove.doneDate'));
   loadMyTraining();
 }
-function trainSessionRestoreSlot(plan, di, slot) {
+function trainSessionRestoreSlot(plan, di, slot, iso) {
   if (!plan) return;
-  const ed = trainEditsRead(plan.id);
+  const viewIso = iso || todayISO();
+  const ed = trainEditsRead(plan.id, viewIso);
   if (!ed || !Array.isArray(ed.removed) || !ed.removed.includes(slot)) return;
   const remAfter = new Set(ed.removed.filter(s => s !== slot));
   const dayEx = (plan.days || [])[di] && Array.isArray(plan.days[di].exercises) ? plan.days[di].exercises : [];
@@ -19106,8 +19186,10 @@ function trainSessionRestoreSlot(plan, di, slot) {
      menor que NO siguen quitados (los agregados van detrás). */
   const effIdx = dayEx.map((_, i) => i).filter(i => i < slot && !remAfter.has(i)).length;
   ed.removed = ed.removed.filter(s => s !== slot);
-  trainEditsWrite(plan.id, ed);
-  trainChecksShiftUp(plan, di, effIdx);
+  trainEditsWrite(plan.id, ed, viewIso);
+  /* Las marcas suben un índice solo si la fecha restaurada es
+     hoy: son del día en curso; otro día no tiene marcas. */
+  if (viewIso === todayISO()) trainChecksShiftUp(plan, di, effIdx);
   loadMyTraining();
 }
 
@@ -19253,9 +19335,9 @@ function swapVariantCardHTML(entry, v, vi) {
     return `<button type="button" class="swap-card swap-card-variant" data-swap-variant="${vi}">${inner}<span class="swap-card-btn">${esc(t('train.custom.swap'))}</span></button>`;
   return `<div class="swap-card swap-card-variant">${inner}</div>`;
 }
-function swapSheetResultsHTML(plan, di) {
+function swapSheetResultsHTML(plan, di, iso) {
   if (!LIB.length) return `<p class="progress-hint">${esc(t('train.lib.unavailable'))}</p>`;
-  const eff = trainEffectiveList(plan, di);
+  const eff = trainEffectiveList(plan, di, iso);
   const target = TRAIN_PICK && TRAIN_PICK.kind === 'swap' ? eff[TRAIN_PICK.idx] : null;
   const tEntry = target && target.ex && target.ex.exerciseId ? (LIB_BY_ID[target.ex.exerciseId] || null) : null;
   const q = SWAP_QUERY.trim();
@@ -19309,21 +19391,24 @@ function swapSheetResultsHTML(plan, di) {
     return items.length ? `<div class="swap-sec-title">${esc(sec.label)}</div>` + items.map(ex => swapCardHTML(ex)).join('') : '';
   }).join('');
 }
-function swapSheetApply(plan, di, entry) {
-  /* La MISMA escritura del selector anterior: edición de sesión. */
-  const ed = trainEditsRead(plan.id) || { swaps: {}, added: [] };
+function swapSheetApply(plan, di, entry, iso) {
+  /* La MISMA escritura del selector anterior: edición de sesión
+     — de la FECHA VISTA si el selector viene del desplegable con
+     otra fecha (iso la pasa la cadena del desplegable; sin iso,
+     la de hoy, como siempre). */
+  const ed = trainEditsRead(plan.id, iso) || { swaps: {}, added: [] };
   if (TRAIN_PICK.kind === 'swap') {
-    const it2 = trainEffectiveList(plan, di)[TRAIN_PICK.idx];
+    const it2 = trainEffectiveList(plan, di, iso)[TRAIN_PICK.idx];
     if (it2 && it2.slot >= 0) ed.swaps[String(it2.slot)] = { exerciseId: entry.id, name: libNameOf(entry) };
   } else {
     ed.added.push({ exerciseId: entry.id, name: libNameOf(entry), sets: '', reps: '' });
   }
-  trainEditsWrite(plan.id, ed);
+  trainEditsWrite(plan.id, ed, iso);
   TRAIN_PICK = null;
   SWAP_QUERY = '';
   loadMyTraining();
 }
-function swapSheetApplyVariant(plan, di, entry, vi) {
+function swapSheetApplyVariant(plan, di, entry, vi, iso) {
   /* Elegir una VARIANTE del ejercicio del slot (decisión de Ronald
      2026-10-30): la edición de sesión guarda el exerciseId de siempre
      MÁS variantIndex (el índice en variantes[] de la ficha). La
@@ -19333,26 +19418,26 @@ function swapSheetApplyVariant(plan, di, entry, vi) {
      ejercicio sobrescribe la entrada sin el campo, igual que
      deshacer el cambio la retira entera. */
   if (!TRAIN_PICK || TRAIN_PICK.kind !== 'swap' || !entry) return;
-  const ed = trainEditsRead(plan.id) || { swaps: {}, added: [] };
-  const it2 = trainEffectiveList(plan, di)[TRAIN_PICK.idx];
+  const ed = trainEditsRead(plan.id, iso) || { swaps: {}, added: [] };
+  const it2 = trainEffectiveList(plan, di, iso)[TRAIN_PICK.idx];
   if (!it2 || it2.slot < 0) return;
   const v = Array.isArray(entry.variantes) ? entry.variantes[vi] : null;
   const rec = { exerciseId: entry.id, name: libNameOf(entry) };
   if (v && !v.es_estandar && Number.isInteger(vi)) rec.variantIndex = vi;
   ed.swaps[String(it2.slot)] = rec;
-  trainEditsWrite(plan.id, ed);
+  trainEditsWrite(plan.id, ed, iso);
   TRAIN_PICK = null;
   SWAP_QUERY = '';
   loadMyTraining();
 }
-function swapSheetSync(plan, di) {
+function swapSheetSync(plan, di, iso) {
   const old = document.getElementById('swap-sheet');
   if (!plan || !TRAIN_PICK) {
     if (old) old.remove();
     document.body.classList.remove('swap-sheet-open');
     return;
   }
-  const eff = trainEffectiveList(plan, di);
+  const eff = trainEffectiveList(plan, di, iso);
   const target = TRAIN_PICK.kind === 'swap' ? eff[TRAIN_PICK.idx] : null;
   const tEntry = target && target.ex && target.ex.exerciseId ? (LIB_BY_ID[target.ex.exerciseId] || null) : null;
   const stdForm = tEntry ? (tEntry.variantes || []).find(v => v && v.es_estandar) : null;
@@ -19382,15 +19467,15 @@ function swapSheetSync(plan, di) {
       ${headSpec ? `<span class="swap-drop-sub">${esc(headSpec)}</span>` : ''}</span>
     </div>` : ''}
     <div class="swap-search-row"><input type="text" id="swap-search" placeholder="${esc(t('train.prop.searchPh'))}" autocomplete="off" value="${esc(SWAP_QUERY)}"></div>
-    <div id="swap-results">${swapSheetResultsHTML(plan, di)}</div>`;
+    <div id="swap-results">${swapSheetResultsHTML(plan, di, iso)}</div>`;
   sheet.querySelectorAll('[data-swap-close]').forEach(b => b.onclick = () => { TRAIN_PICK = null; SWAP_QUERY = ''; loadMyTraining(); });
   const wirePicks = () => {
     sheet.querySelectorAll('[data-swap-pick]').forEach(pb => pb.onclick = () => {
       const entry = LIB_BY_ID[pb.dataset.swapPick];
-      if (entry && TRAIN_PICK) swapSheetApply(plan, di, entry);
+      if (entry && TRAIN_PICK) swapSheetApply(plan, di, entry, iso);
     });
     sheet.querySelectorAll('[data-swap-variant]').forEach(vb => vb.onclick = () => {
-      if (tEntry && TRAIN_PICK) swapSheetApplyVariant(plan, di, tEntry, Number(vb.dataset.swapVariant));
+      if (tEntry && TRAIN_PICK) swapSheetApplyVariant(plan, di, tEntry, Number(vb.dataset.swapVariant), iso);
     });
   };
   wirePicks();
@@ -19398,7 +19483,7 @@ function swapSheetSync(plan, di) {
   if (search) search.oninput = () => {
     SWAP_QUERY = search.value;
     const box = sheet.querySelector('#swap-results');
-    if (box) { box.innerHTML = swapSheetResultsHTML(plan, di); wirePicks(); }
+    if (box) { box.innerHTML = swapSheetResultsHTML(plan, di, iso); wirePicks(); }
   };
 }
 
@@ -21849,7 +21934,29 @@ async function loadMyTraining() {
      misma semántica de la tarjeta (pares/plancal/rotación) y un
      día ya cerrado no se edita desde aquí. */
   const tDiCustom = (tmap.pairs || isCal) ? trainTodayDiEffective(plan, diForDate(today)) : trainRotationNext(plan, logs, today);
-  trainCustomRenderSession(plan, tDiCustom, tDiCustom != null ? !!logByDay[tDiCustom] : false);
+  /* FECHA VISTA (2026-11-01, decisión de Ronald): el desplegable
+     personaliza la fecha VISTA (sel), no siempre hoy. Con la vista
+     en hoy la resolución es exactamente la de siempre (tDiCustom,
+     cerrado si hay registro) y nada cambia; con otra fecha:
+     mapa → su día efectivo para esa fecha (la base de sesión solo
+     existe para hoy); rotación futura → la misma proyección que
+     la tarjeta ya declara ((hoy + desplazamiento) mód n);
+     rotación pasada → el dayIndex de su registro, si lo hay.
+     «Cerrado» solo aplica a hoy. */
+  let customDi = tDiCustom, customClosed = tDiCustom != null ? !!logByDay[tDiCustom] : false;
+  if (sel !== today) {
+    customClosed = false;
+    if (tmap.pairs || isCal) customDi = effDiForDate(sel);
+    else if (sel > today) {
+      const nDaysC = (plan.days || []).length;
+      const offC = Math.round((new Date(sel + 'T12:00:00') - new Date(today + 'T12:00:00')) / 86400000);
+      customDi = (tDiCustom != null && nDaysC > 0) ? (((tDiCustom + offC) % nDaysC) + nDaysC) % nDaysC : null;
+    } else {
+      const logP = logs.find(l => l.date === sel);
+      customDi = logP ? logP.dayIndex : null;
+    }
+  }
+  trainCustomRenderSession(plan, customDi, customClosed, sel);
   /* DÍA ACCIONABLE (2026-10-30): los botones del día en blanco
      fijan la base de sesión y re-pintan — toda la maquinaria de la
      sesión (tarjeta, desplegable, cierre) resuelve hoy con esa
@@ -30448,7 +30555,7 @@ document.addEventListener('keydown', e => { if (e.key === 'Escape') shareClose()
  *  - El SW (sw.js) solo cachea la cáscara del mismo origen en modo
  *    RED PRIMERO: Auth/Firestore/Worker jamás pasan por la caché.
  * ================================================================ */
-const PWA_SW_VERSION = '20261102-aprobaciones-pendientes';
+const PWA_SW_VERSION = '20261102-fecha-vista';
 let pwaDeferredPrompt = null;
 function pwaIsStandalone() {
   try {
