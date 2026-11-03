@@ -1227,14 +1227,14 @@ function rolePendItems() {
            colisión de nombres queda resuelta: «evaluación inicial»
            = datos base; «evaluación de progreso» = fotos y medidas
            (así se llama ya la periódica en todos sus textos). */
-        push('alumno|eval', 'goals-setup', t('pend.role.evalTitle'), t('pend.role.evalDetail'), t('pend.role.evalGo'));
+        push('alumno|eval', 'base-flow', t('pend.role.evalTitle'), t('pend.role.evalDetail'), t('pend.role.evalGo'));
       const consent = (typeof specIsActive === 'function') ? specIsActive(UDATA) : false;
       if (!consent)
         push('alumno|consent', 'perms-spec', t('pend.role.consentTitle'), t('pend.role.consentDetail'), t('pend.role.consentGo'));
       else if (typeof activeDecl === 'function' && typeof declLoadState !== 'undefined' && declLoadState === 'ok' && !activeDecl())
         push('alumno|parq', 'perms', t('pend.role.parqTitle'), t('pend.role.parqDetail'), t('pend.role.parqGo'));
       if (typeof hasAnyGoal === 'function' && !hasAnyGoal())
-        push('alumno|goals', 'goals-setup', t('pend.role.goalsTitle'), t('pend.role.goalsDetail2'), t('pend.role.goalsGo2'));
+        push('alumno|goals', 'base-flow', t('pend.role.goalsTitle'), t('pend.role.goalsDetail2'), t('pend.role.goalsGo2'));
       const mealsOn2 = (typeof featuresOf === 'function') ? featuresOf(UDATA).meals === true : true;
       const reqLive = !!((typeof MY_MEAL_REQ !== 'undefined' && MY_MEAL_REQ) && (MY_MEAL_REQ.status === 'pendiente_entrenador' || MY_MEAL_REQ.status === 'pendiente_administrador'));
       if (!mealsOn2 && !reqLive)
@@ -1335,27 +1335,59 @@ function pendRouteSteps() {
   const approved = !(typeof UDATA !== 'undefined' && UDATA && UDATA.approved === false);
   const req = (typeof MY_MEAL_REQ !== 'undefined' && MY_MEAL_REQ) || null;
   const reqStatus = req && (req.status === 'pendiente_entrenador' || req.status === 'pendiente_administrador') ? req.status : null;
-  /* Paso 7: «hecho» solo con las comidas ACTIVAS (featuresOf, la misma
+  /* Paso 6: «hecho» solo con las comidas ACTIVAS (featuresOf, la misma
      fuente de la fila compartida). Una solicitud viva NO es un hecho:
      es la pelota del entrenador o del administrador (clasificación
-     aprobada) y el paso se presenta en espera, sin botón. El avance
-     «N de 7» cuenta pasos cerrados; el porcentaje de la cabecera sigue
-     siendo el del checklist compartido, intacto. */
+     aprobada) y el paso se presenta en espera, sin botón. */
   const mealsOn = (typeof featuresOf === 'function') && featuresOf(UDATA).meals === true;
+  /* D2 (punto 106, maqueta 1 aprobada): la ruta pasa de 7 pasos a 6 —
+     la evaluación inicial y el objetivo se funden en el paso único
+     «Completa tu base», hecho solo cuando AMBAS filas del checklist
+     compartido están hechas (resultado + metas: la misma fuente de
+     siempre, sin segunda lógica). El avance «N de 6» y el porcentaje
+     de la ruta se recalculan sobre 6 pasos, como pintó la maqueta;
+     el % del checklist compartido (otras superficies) no cambia.
+     Cuando el paso de la base es el ACTUAL, su tarjeta se despliega
+     con las cinco líneas del viaje y su botón grande (routeHTML). */
+  const baseDone = done(1) && done(4);
   const steps = [
     { n: 1, key: 'account', title: t('route.s1t'), desc: approved ? t('route.s1d') : t('route.s1wait'), state: approved ? 'done' : 'wait-admin' },
     { n: 2, key: 'trainer', title: t('route.s2t'), desc: t('route.s2d'), state: done(0) ? 'done' : 'todo', route: 'mytrainer', btn: t('route.chooseTrainer') },
-    { n: 3, key: 'eval', title: t('route.s3t'), desc: t('route.s3d'), state: done(1) ? 'done' : 'todo', route: 'goals-setup', btn: t('route.edit') },
+    { n: 3, key: 'base', title: t('route.s3t'), desc: t('route.s3d'), state: baseDone ? 'done' : 'todo', route: 'base-flow', btn: t('route.baseGo'), base: true },
     { n: 4, key: 'consent', title: t('route.s4t'), desc: t('route.s4d'), state: done(2) ? 'done' : 'todo', route: 'perms-spec', btn: t('route.approve') },
     { n: 5, key: 'parq', title: t('route.s5t'), desc: t('route.s5d'), state: done(3) ? 'done' : 'todo', route: 'perms', btn: t('route.edit') },
-    { n: 6, key: 'goals', title: t('route.s6t'), desc: t('route.s6d'), state: done(4) ? 'done' : 'todo', route: 'goals-setup', btn: t('route.edit') },
-    { n: 7, key: 'meals', title: t('route.s7t'), desc: t('route.s7d'), state: mealsOn ? 'done' : (reqStatus ? (reqStatus === 'pendiente_entrenador' ? 'wait-trainer' : 'wait-admin') : 'todo'), route: 'mytrainer', btn: t('route.request') },
+    { n: 6, key: 'meals', title: t('route.s7t'), desc: t('route.s7d'), state: mealsOn ? 'done' : (reqStatus ? (reqStatus === 'pendiente_entrenador' ? 'wait-trainer' : 'wait-admin') : 'todo'), route: 'mytrainer', btn: t('route.request') },
   ];
-  if (steps[6].state === 'wait-trainer') steps[6].desc = t('route.s7waitT');
-  if (steps[6].state === 'wait-admin') steps[6].desc = t('route.s7waitA');
+  if (steps[5].state === 'wait-trainer') steps[5].desc = t('route.s7waitT');
+  if (steps[5].state === 'wait-admin') steps[5].desc = t('route.s7waitA');
   const cur = steps.find(s => s.state === 'todo');
   if (cur) cur.state = 'current';
-  return { steps, nDone: steps.filter(s => s.state === 'done').length, pct: chk.pct };
+  const nDone = steps.filter(s => s.state === 'done').length;
+  return { steps, nDone, pct: Math.round(nDone / steps.length * 100) };
+}
+/* Las cinco líneas del viaje único dentro de la tarjeta desplegada
+   del paso 3 (maqueta 1): cada línea dice su estado VERDADERO con
+   los datos vivos — el peso con su valor y su fecha, nunca tecleado
+   aquí; el dato privado como hecho, jamás su valor. */
+function routeBaseCardHTML() {
+  const last = (typeof WEIGHTS !== 'undefined' && WEIGHTS && WEIGHTS.length) ? WEIGHTS[WEIGHTS.length - 1] : null;
+  const d = (typeof MY_ASMT !== 'undefined' && MY_ASMT) ? (MY_ASMT.doc || {}) : {};
+  const today = (typeof todayISO === 'function') ? todayISO() : '';
+  const wLine = !last ? t('route.baseWeightNone')
+    : last.date === today ? t('route.baseWeightToday', { w: fmtMass(last.weight) })
+    : t('route.baseWeightDate', { w: fmtMass(last.weight), d: dateName(last.date) });
+  const dataOk = Number.isInteger(parseInt(d.birthYear, 10)) && num(d.heightCm) >= 50 && num(d.heightCm) <= 250 && num(d.palBasal) >= 1.20 && num(d.palBasal) <= 2.00;
+  const privOk = (typeof MY_ENERGY !== 'undefined' && MY_ENERGY) ? !!MY_ENERGY.sex : d.sexDataProvided === true;
+  const objOk = ['mantener', 'bajar', 'ganar'].includes((typeof UDATA !== 'undefined' && UDATA && UDATA.goalObjective) || '');
+  const line = (txt, chip) => `<li class="route-base-line"><span>${esc(txt)}</span>${chip ? `<span class="route-base-chip">${esc(chip)}</span>` : ''}</li>`;
+  return `<ul class="route-base-lines">
+    ${line(wLine, last ? t('base.weightFilled') : '')}
+    ${line(dataOk ? t('route.baseDataDone') : t('route.baseData'))}
+    ${line(privOk ? t('route.basePrivDone') : t('route.basePriv'))}
+    ${line(objOk ? t('route.baseObjDone') : t('route.baseObj'))}
+    ${line(t('route.baseCalc'))}
+  </ul>
+  <button type="button" class="route-btn cur route-base-go" data-pend-act="go" data-type="role" data-route="base-flow">${esc(t('route.baseGo'))}</button>`;
 }
 function pendRouteHTML() {
   const R = pendRouteSteps();
@@ -1366,12 +1398,16 @@ function pendRouteHTML() {
   const lineFrac = total > 1 && lastLit > 0 ? (lastLit / (total - 1)).toFixed(3) : '0';
   const stepHTML = s => {
     const node = s.state === 'done' ? '✓' : String(s.n);
+    /* D2 (punto 106): el paso de la base, cuando es el ACTUAL, se
+       despliega como la tarjeta de la maqueta 1 — sus cinco líneas
+       y el botón grande — en vez de la fila con botón pequeño. */
+    const expanded = s.base && s.state === 'current';
     let right = '';
     if (s.state === 'done') right = `<span class="route-done-tag">✓ ${esc(t('route.doneTag'))}</span>`;
-    else if (s.state === 'todo' || s.state === 'current') right = `<button type="button" class="route-btn${s.state === 'current' ? ' cur' : ''}" data-pend-act="go" data-type="role" data-route="${esc(s.route)}">${esc(s.btn)}</button>`;
+    else if ((s.state === 'todo' || s.state === 'current') && !expanded) right = `<button type="button" class="route-btn${s.state === 'current' ? ' cur' : ''}" data-pend-act="go" data-type="role" data-route="${esc(s.route)}">${esc(s.btn)}</button>`;
     const wait = s.state === 'wait-trainer' ? `<span class="route-wait">⏳ ${esc(t('route.waitTrainer'))}</span>`
       : s.state === 'wait-admin' ? `<span class="route-wait">⏳ ${esc(t('route.waitAdmin'))}</span>` : '';
-    return `<li class="route-step ${s.state}"><span class="route-node">${node}</span><div class="route-txt"><b>${esc(s.title)}</b><span>${esc(s.desc)}</span>${wait}</div>${right}</li>`;
+    return `<li class="route-step ${s.state}"><span class="route-node">${node}</span><div class="route-txt"><b>${esc(s.title)}</b><span>${esc(s.desc)}</span>${wait}${expanded ? routeBaseCardHTML() : ''}</div>${right}</li>`;
   };
   const soft = [
     ['⚖️', 'route.v1t', 'route.v1d'],
@@ -4468,9 +4504,9 @@ en: {
   'pend.role.trainerTitle': 'Choose your trainer and modality',
   'pend.role.trainerDetail': 'You are waiting: pick a trainer from the pool (or stay waiting for the administrator to assign you one).',
   'pend.role.trainerGo': 'Choose trainer',
-  'pend.role.evalTitle': 'Complete your initial evaluation',
-  'pend.role.evalDetail': 'Your Level 1 evaluation has not started yet: it is the base your trainer uses to set your plan and goals.',
-  'pend.role.evalGo': 'Go to my evaluation',
+  'pend.role.evalTitle': 'Complete your base',
+  'pend.role.evalDetail': 'Everything your calculation needs, in one single trip: your weight is already filled in, your data, your private datum and your objective.',
+  'pend.role.evalGo': 'Complete my base',
   'pend.role.consentTitle': 'Give your specific health consent',
   'pend.role.consentDetail': 'The checkbox that lets your trainer see your health declaration and adapt your program. Without it, no health data is collected.',
   'pend.role.consentGo': 'Review and give consent',
@@ -4507,8 +4543,8 @@ en: {
   'pend.chk.meals': 'Meals active or requested',
   'route.title': 'Your route in RONBO FIT',
   'route.progressPre': 'Your route:',
-  'route.progressMid': 'of 7 steps',
-  'route.progressPost': 'of the basics',
+  'route.progressMid': 'of 6 steps',
+  'route.progressPost': 'of the base',
   'route.baseT': 'THE BASICS',
   'route.baseSub': 'Without this, the app cannot calculate anything.',
   'route.s1t': 'Your account and your choice',
@@ -4516,16 +4552,16 @@ en: {
   'route.s1wait': 'Account confirmation — under review by the administrator.',
   'route.s2t': 'Trainer and modality',
   'route.s2d': 'Who supports you and how: in person, virtual or hybrid.',
-  'route.s3t': 'Initial evaluation',
-  'route.s3d': 'Weight · height · birth year · biological sex · activity level. This is where your calculation is born.',
+  'route.s3t': 'Complete your base',
+  'route.s3d': 'Everything your calculation needs, in one single trip:',
   'route.s4t': 'Health consent',
   'route.s4d': 'You decide whether your trainer can see your health declaration.',
   'route.s5t': 'Health declaration (PAR-Q)',
   'route.s5d': 'Your answers to train and eat safely.',
   'route.s6t': 'Objective and focus',
   'route.s6d': 'Lose, maintain or gain. When you save, the app calculates your daily goals.',
-  'route.s7t': 'Meals active or requested',
-  'route.s7d': 'Ask your trainer to activate your meal log.',
+  'route.s7t': 'Meals on or requested',
+  'route.s7d': 'Ask your trainer to turn on your meal log.',
   'route.s7waitT': 'Meals requested — waiting for your trainer\'s decision.',
   'route.s7waitA': 'Meals requested — waiting for the administrator\'s confirmation.',
   'route.doneTag': 'Done',
@@ -4544,6 +4580,162 @@ en: {
   'route.v3t': 'Your day-to-day logs',
   'route.v3d': 'Your meals and your workouts, as they happen.',
   'route.foot': 'Each step is filled in its own window, and that window closes only when you save.',
+  'route.baseGo': 'Complete my base ›',
+  'route.baseWeightToday': 'Your weight — {w}, from today’s weigh-in',
+  'route.baseWeightDate': 'Your weight — {w}, from your weigh-in on {d}',
+  'route.baseWeightNone': 'Your weight — log your first weigh-in',
+  'route.baseDataDone': 'Your calculation data: height, birth year and activity — already in',
+  'route.baseData': 'Your calculation data: height, birth year and activity',
+  'route.basePrivDone': 'Your private datum — already provided, only you can see it',
+  'route.basePriv': 'Your private datum — only you can see it',
+  'route.baseObjDone': 'Your goal and focus — already chosen',
+  'route.baseObj': 'Your goal and focus',
+  'route.baseCalc': '“Calculate and activate” — one single button at the end',
+  'base.kicker': 'COMPLETE YOUR BASE',
+  'base.step.weight': 'Weight',
+  'base.step.data': 'Data',
+  'base.step.priv': 'Private',
+  'base.step.obj': 'Goal',
+  'base.step.calc': 'Calculate',
+  'base.weightTitle': 'Your weight',
+  'base.weightCardToday': 'Your weight: {w} — from today’s weigh-in',
+  'base.weightCardDate': 'Your weight: {w} — from your weigh-in on {d}',
+  'base.weightFilled': 'ALREADY FILLED IN',
+  'base.weightNote': 'It is already filled in: you do not have to type it.',
+  'base.weightNew': 'Log a new weigh-in',
+  'base.weightNoneTitle': 'Log your first weigh-in',
+  'base.weightNoneBody': 'Your calculation starts from your real weight. Log it here — it is saved as your weigh-in, with today’s date.',
+  'base.weightField': 'YOUR WEIGHT ({u})',
+  'base.continue': 'Continue ›',
+  'base.back': '‹ Back',
+  'base.dataTitle': 'Your calculation data',
+  'base.heightField': 'YOUR HEIGHT',
+  'base.byField': 'YOUR BIRTH YEAR',
+  'base.actField': 'YOUR ACTIVITY LEVEL',
+  'base.act1': 'Seated almost all day',
+  'base.act2': 'Light: I walk a little each day',
+  'base.act3': 'Moderate: I train 1–3 days',
+  'base.act4': 'Active: I train 3–4 days',
+  'base.act5': 'Very active: I train 5–6 days',
+  'base.act6': 'Athlete: I train daily',
+  'base.multTitle': 'Multiplier proposed for your category: {v}',
+  'base.multNote': 'The app’s table proposes it from your category. It stays in sight and can be adjusted.',
+  'base.multField': 'ACTIVITY MULTIPLIER',
+  'base.privTitle': 'Your private datum',
+  'base.objTitle': 'Your goal and focus',
+  'base.objField': 'YOUR GOAL',
+  'base.obj.mantener': 'Keep my weight',
+  'base.obj.bajar': 'Lose weight',
+  'base.obj.ganar': 'Gain weight and muscle',
+  'base.objD.mantener': 'Eat what I spend, without going up or down.',
+  'base.objD.bajar': 'Eat a little less, to lose weight calmly.',
+  'base.objD.ganar': 'Eat a little more, to build muscle.',
+  'base.focusField': 'YOUR FOCUS',
+  'base.focusD.general': 'The usual focus: your goal, without phases.',
+  'base.focusD.recomposicion': 'Lose fat and gain muscle at the same time.',
+  'base.focusD.competencia': 'With phases; your trainer activates it with you.',
+  'base.already': 'YOU HAD ALREADY CHOSEN IT',
+  'base.eqBornTitle': 'Your equation is born on its own',
+  'base.eqBornBody': 'When you activate, the app uses its base formula for your first calculation. Your trainer can adjust it later if they see the need.',
+  'base.calcBtn': 'Calculate and activate',
+  'base.calcNote': 'One single tap: it calculates your energy and your goals in the same gesture.',
+  'base.readyTitle': 'Done! Your goals are already calculated',
+  'base.readySub': 'This is what the app calculated for you:',
+  'base.readyCard': 'YOUR DAILY GOALS',
+  'base.readyNote': 'They were born with the app’s base formula. Your trainer can adjust your equation when they review your file.',
+  'base.readyGo': 'Go to my goals',
+  'base.readyFoot': 'Goal: {obj} · Focus: {foc}',
+  'base.heldTitle': 'Your energy is already calculated',
+  'base.heldBody': 'Your goals are on hold for your health declaration: your trainer reviews them with you before they are activated.',
+  'base.close': 'Close',
+  'base.missTitle': 'Almost there: just one thing missing',
+  'base.missWeightT': 'Your weight',
+  'base.missWeightD': 'Your calculation starts from your real weight, and there is no weigh-in logged yet.',
+  'base.missWeightBtn': 'Go to my weight',
+  'base.missDataT': 'Your calculation data',
+  'base.missDataD': 'Your energy formula still needs: {list}.',
+  'base.missDataBtn': 'Go to my calculation data',
+  'base.missPrivT': 'Your private datum',
+  'base.missPrivD': 'The biological sex used in your calculation formula. It lives in your private space: your trainer only sees whether you have provided it, never the datum itself.',
+  'base.missPrivBtn': 'Go to my private datum',
+  'base.missObjT': 'Your goal',
+  'base.missObjD': 'Choose what you want — keep, lose or gain — and the app calculates your goals from your data.',
+  'base.missObjBtn': 'Go to my goal',
+  'base.missCalcT': 'Your calculation',
+  'base.missCalcBtn': 'Review my data',
+  'base.doneHead': 'Everything else is already saved:',
+  'base.doneWeightToday': 'Your weight — {w}, from today’s weigh-in',
+  'base.doneWeightDate': 'Your weight — {w}, from your weigh-in on {d}',
+  'base.doneHeight': 'Your height — {h}',
+  'base.doneBy': 'Your birth year — {y}',
+  'base.doneHeightBy': 'Your height and birth year — {h}, {y}',
+  'base.doneAct': 'Your activity level — {a}',
+  'base.donePriv': 'Your private datum — already provided',
+  'base.doneObj': 'Your goal — {o}',
+  'base.missNote': 'Once you save it, your goals are calculated in the same gesture. No more detours.',
+  'base.missNoteObj': 'Once you choose it, your goals are calculated in the same gesture. No more detours.',
+  'base.field.height': 'your height',
+  'base.field.by': 'your birth year',
+  'base.field.act': 'your activity level',
+  'fa.missAuto': 'Not calculated yet: everything of theirs is in — their calculation is born on its own when they open the app.',
+  'fa.autoNote': 'No equation chosen yet: the app’s base formula (Mifflin-St Jeor) is born on its own with their first calculation. You can adjust it here whenever you want.',
+  'students.dep.auto': 'ACTIVATES ON ITS OWN',
+  'students.cause.autoEval': 'Data complete — they already gave everything of theirs. Their calculation is born when they open the app.',
+  'students.cause.autoNote': 'You don’t need to do anything: when they open their app, the result is born on its own. That is why it no longer says “UP TO THE STUDENT” here.',
+  'students.cause.autoGoals': 'Their goals are born with that same calculation, as soon as they open the app.',
+  'students.cause.only': 'Only {piece} is missing. They already gave everything else.',
+  'students.cause.list': 'Still missing: {list}.',
+  'students.piece.peso': 'their weight',
+  'students.piece.estatura': 'their height',
+  'students.piece.anio': 'their birth year',
+  'students.piece.actividad': 'their activity level',
+  'students.piece.privado': 'their private datum',
+  'students.piece.objetivo': 'their goal',
+  'students.eq.title': 'Their equation',
+  'students.eq.auto': 'Automatic equation (base formula): it was born on its own with their first calculation.',
+  'students.eq.trainer': '{name}: chosen by their trainer.',
+  'students.act.eqAdjust': 'Adjust the equation',
+  'nudge.baseComplete': 'Their base is already complete — there is nothing to nudge: their calculation is born when they open the app.',
+  'base.mail.kicker': 'A note from your trainer',
+  'base.mail.hello': 'Hi, {name}:',
+  'base.mail.subjEval': 'RONBO FIT — One thing left to activate your goals',
+  'base.mail.subjGoal': 'RONBO FIT — One thing left to activate your goals',
+  'base.mail.oneHead': 'You are missing just one thing to activate your goals: {piece}.',
+  'base.mail.pieceName.peso': 'your weight',
+  'base.mail.pieceName.estatura': 'your height',
+  'base.mail.pieceName.anio': 'your birth year',
+  'base.mail.pieceName.actividad': 'your activity level',
+  'base.mail.pieceName.privado': 'your private datum, the one used in your calculation formula',
+  'base.mail.pieceName.objetivo': 'your goal',
+  'base.mail.privLine': 'It lives in your private space: nobody sees it, not even your trainer — they only see whether you have provided it.',
+  'base.mail.multiHead': 'A few things are missing to activate your goals:',
+  'base.mail.doneHead': 'Everything else is already complete:',
+  'base.mail.btnPeso': 'Go straight to log my weight',
+  'base.mail.btnDatos': 'Go straight to my calculation data',
+  'base.mail.btnPrivado': 'Go straight to my private datum',
+  'base.mail.btnObjetivo': 'Go straight to my goal',
+  'base.mail.sign': '— Your trainer',
+  'base.mail.donePesoToday': 'Your weight — {w}, from today’s weigh-in',
+  'base.mail.donePesoDate': 'Your weight — {w}, from your weigh-in on {d}',
+  'base.mail.doneHeightBy': 'Your height and birth year',
+  'base.mail.doneHeight': 'Your height — {h}',
+  'base.mail.doneBy': 'Your birth year — {y}',
+  'base.mail.doneAct': 'Your activity level',
+  'base.mail.donePriv': 'Your private datum — already provided',
+  'base.mail.doneObj': 'Your goal: {o}',
+  'base.g.kcal': 'Calories',
+  'base.g.prot': 'Protein',
+  'base.g.carb': 'Carbs',
+  'base.g.azuc': 'Sugars',
+  'base.g.gras': 'Fat',
+  'base.sugarVal': 'up to {n} g',
+  'base.actShort1': 'Seated',
+  'base.actShort2': 'Light',
+  'base.actShort3': 'Moderate',
+  'base.actShort4': 'Active',
+  'base.actShort5': 'Very active',
+  'base.actShort6': 'Athlete',
+  'base.pendBody': 'Your competition focus is activated by your trainer with you: as soon as they activate it, your goals are born from your calculation.',
   'pend.cardTitle': 'You have pending steps',
   'pend.cardBody': '{n} procedure pending item(s) — they are not daily logs.',
   'pend.cardBtn': 'View pending items',
@@ -4984,8 +5176,8 @@ en: {
   'gm.status.pending': 'pending',
   'gm.status.approved': 'approved',
   'gm.status.replaced': 'set by trainer',
-  'pend.role.goalsDetail2': 'You have no goals yet: complete your basis data and choose your goal — the app calculates them from your data.',
-  'pend.role.goalsGo2': 'Complete my data',
+  'pend.role.goalsDetail2': 'You have no goals yet: complete your base and choose your objective — the app calculates them from your data.',
+  'pend.role.goalsGo2': 'Complete my base',
   'pend.trainerHeldTitle': 'Goals held for health review',
   'pend.trainerHeldDetail': '{name}: {params} held back by their health declaration. Review it in their file.',
   'pend.trainerHeldGo': 'Open clients',
@@ -6978,9 +7170,9 @@ es: {
   'pend.role.trainerTitle': 'Elige a tu entrenador y tu modalidad',
   'pend.role.trainerDetail': 'Estás en espera: elige un entrenador del pool (o quédate en espera de que el administrador te asigne uno).',
   'pend.role.trainerGo': 'Elegir entrenador',
-  'pend.role.evalTitle': 'Completa tu evaluación inicial',
-  'pend.role.evalDetail': 'Tu evaluación de Nivel 1 aún no ha empezado: es la base con la que tu entrenador fija tu plan y tus metas.',
-  'pend.role.evalGo': 'Ir a mi evaluación',
+  'pend.role.evalTitle': 'Completa tu base',
+  'pend.role.evalDetail': 'Todo lo que tu cálculo necesita, en un solo viaje: tu peso ya viene puesto, tus datos, tu dato privado y tu objetivo.',
+  'pend.role.evalGo': 'Completar mi base',
   'pend.role.consentTitle': 'Da tu consentimiento específico de salud',
   'pend.role.consentDetail': 'La casilla que permite a tu entrenador ver tu declaración de salud y adaptar tu programa. Sin ella, no se recoge ningún dato de salud.',
   'pend.role.consentGo': 'Revisar y dar el consentimiento',
@@ -7017,7 +7209,7 @@ es: {
   'pend.chk.meals': 'Comidas activas o solicitadas',
   'route.title': 'Tu ruta en RONBO FIT',
   'route.progressPre': 'Tu ruta:',
-  'route.progressMid': 'de 7 pasos',
+  'route.progressMid': 'de 6 pasos',
   'route.progressPost': 'de la base',
   'route.baseT': 'LA BASE',
   'route.baseSub': 'Sin esto, la app no puede calcular nada.',
@@ -7026,8 +7218,8 @@ es: {
   'route.s1wait': 'Confirmación de tu cuenta — en revisión del administrador.',
   'route.s2t': 'Entrenador y modalidad',
   'route.s2d': 'Quién te acompaña y cómo: presencial, virtual o híbrida.',
-  'route.s3t': 'Evaluación inicial',
-  'route.s3d': 'Peso · estatura · año de nacimiento · sexo biológico · nivel de actividad. Con esto nace tu cálculo.',
+  'route.s3t': 'Completa tu base',
+  'route.s3d': 'Todo lo que tu cálculo necesita, en un solo viaje:',
   'route.s4t': 'Consentimiento de salud',
   'route.s4d': 'Tú decides si tu entrenador puede ver tu declaración de salud.',
   'route.s5t': 'Declaración de salud (PAR-Q)',
@@ -7054,6 +7246,162 @@ es: {
   'route.v3t': 'Tus registros del día a día',
   'route.v3d': 'Tus comidas y tus entrenamientos, cuando pasan.',
   'route.foot': 'Cada paso se llena en su propia ventana, y esa ventana se cierra solo cuando guardas.',
+  'route.baseGo': 'Completar mi base ›',
+  'route.baseWeightToday': 'Tu peso — {w}, de tu pesaje de hoy',
+  'route.baseWeightDate': 'Tu peso — {w}, de tu pesaje del {d}',
+  'route.baseWeightNone': 'Tu peso — registra tu primer pesaje',
+  'route.baseDataDone': 'Tus datos de cálculo: estatura, año y actividad — ya están',
+  'route.baseData': 'Tus datos de cálculo: estatura, año y actividad',
+  'route.basePrivDone': 'Tu dato privado — ya está dado, solo tú lo ves',
+  'route.basePriv': 'Tu dato privado — solo tú lo ves',
+  'route.baseObjDone': 'Tu objetivo y tu enfoque — ya elegidos',
+  'route.baseObj': 'Tu objetivo y tu enfoque',
+  'route.baseCalc': '«Calcular y activar» — un solo botón al final',
+  'base.kicker': 'COMPLETA TU BASE',
+  'base.step.weight': 'Peso',
+  'base.step.data': 'Datos',
+  'base.step.priv': 'Privado',
+  'base.step.obj': 'Objetivo',
+  'base.step.calc': 'Calcular',
+  'base.weightTitle': 'Tu peso',
+  'base.weightCardToday': 'Tu peso: {w} — de tu pesaje de hoy',
+  'base.weightCardDate': 'Tu peso: {w} — de tu pesaje del {d}',
+  'base.weightFilled': 'YA VIENE PUESTO',
+  'base.weightNote': 'Ya viene puesto: no tienes que teclearlo.',
+  'base.weightNew': 'Registrar un pesaje nuevo',
+  'base.weightNoneTitle': 'Registra tu primer pesaje',
+  'base.weightNoneBody': 'Tu cálculo parte de tu peso real. Regístralo aquí — queda guardado como tu pesaje, con la fecha de hoy.',
+  'base.weightField': 'TU PESO ({u})',
+  'base.continue': 'Continuar ›',
+  'base.back': '‹ Atrás',
+  'base.dataTitle': 'Tus datos de cálculo',
+  'base.heightField': 'TU ESTATURA',
+  'base.byField': 'TU AÑO DE NACIMIENTO',
+  'base.actField': 'TU NIVEL DE ACTIVIDAD',
+  'base.act1': 'Casi sentada todo el día',
+  'base.act2': 'Ligero: camino algo al día',
+  'base.act3': 'Moderado: entreno 1–3 días',
+  'base.act4': 'Activo: entreno 3–4 días',
+  'base.act5': 'Muy activo: entreno 5–6 días',
+  'base.act6': 'Atleta: entreno a diario',
+  'base.multTitle': 'Multiplicador propuesto para tu categoría: {v}',
+  'base.multNote': 'Lo propone la tabla de la app según tu categoría. Queda a la vista y se puede ajustar.',
+  'base.multField': 'MULTIPLICADOR DE ACTIVIDAD',
+  'base.privTitle': 'Tu dato privado',
+  'base.objTitle': 'Tu objetivo y tu enfoque',
+  'base.objField': 'TU OBJETIVO',
+  'base.obj.mantener': 'Mantener mi peso',
+  'base.obj.bajar': 'Bajar de peso',
+  'base.obj.ganar': 'Ganar peso y músculo',
+  'base.objD.mantener': 'Comer lo que gasto, sin subir ni bajar.',
+  'base.objD.bajar': 'Comer un poco menos, para bajar con calma.',
+  'base.objD.ganar': 'Comer un poco más, para construir músculo.',
+  'base.focusField': 'TU ENFOQUE',
+  'base.focusD.general': 'El enfoque de siempre: tu objetivo, sin fases.',
+  'base.focusD.recomposicion': 'Bajar grasa y ganar músculo a la vez.',
+  'base.focusD.competencia': 'Con fases; tu entrenador lo activa contigo.',
+  'base.already': 'YA LO HABÍAS ELEGIDO',
+  'base.eqBornTitle': 'Tu ecuación nace sola',
+  'base.eqBornBody': 'Al activar, la app usa su fórmula base para tu primer cálculo. Tu entrenador puede ajustarla después si lo ve necesario.',
+  'base.calcBtn': 'Calcular y activar',
+  'base.calcNote': 'Un solo toque: calcula tu energía y tus metas en el mismo gesto.',
+  'base.readyTitle': '¡Listo! Tus metas ya están calculadas',
+  'base.readySub': 'Esto es lo que la app calculó para ti:',
+  'base.readyCard': 'TUS METAS DE CADA DÍA',
+  'base.readyNote': 'Nacieron con la fórmula base de la app. Tu entrenador puede ajustar tu ecuación cuando revise tu ficha.',
+  'base.readyGo': 'Ir a mis metas',
+  'base.readyFoot': 'Objetivo: {obj} · Enfoque: {foc}',
+  'base.heldTitle': 'Tu energía ya está calculada',
+  'base.heldBody': 'Tus metas quedan en espera por tu declaración de salud: tu entrenador las revisa contigo antes de activarlas.',
+  'base.close': 'Cerrar',
+  'base.missTitle': 'Casi listo: te falta una sola cosa',
+  'base.missWeightT': 'Tu peso',
+  'base.missWeightD': 'Tu cálculo parte de tu peso real, y aún no hay ningún pesaje registrado.',
+  'base.missWeightBtn': 'Ir a mi peso',
+  'base.missDataT': 'Tus datos de cálculo',
+  'base.missDataD': 'A tu fórmula de energía aún le falta: {list}.',
+  'base.missDataBtn': 'Ir a mis datos de cálculo',
+  'base.missPrivT': 'Tu dato privado',
+  'base.missPrivD': 'El sexo biológico que entra en la fórmula de tu cálculo. Vive en tu espacio privado: tu entrenador solo ve si ya lo diste, nunca el dato.',
+  'base.missPrivBtn': 'Ir a mi dato privado',
+  'base.missObjT': 'Tu objetivo',
+  'base.missObjD': 'Elige lo que quieres — mantener, bajar o ganar — y la app calcula tus metas desde tus datos.',
+  'base.missObjBtn': 'Ir a mi objetivo',
+  'base.missCalcT': 'Tu cálculo',
+  'base.missCalcBtn': 'Revisar mis datos',
+  'base.doneHead': 'Todo lo demás ya está guardado:',
+  'base.doneWeightToday': 'Tu peso — {w}, de tu pesaje de hoy',
+  'base.doneWeightDate': 'Tu peso — {w}, de tu pesaje del {d}',
+  'base.doneHeight': 'Tu estatura — {h}',
+  'base.doneBy': 'Tu año de nacimiento — {y}',
+  'base.doneHeightBy': 'Tu estatura y tu año de nacimiento — {h}, {y}',
+  'base.doneAct': 'Tu nivel de actividad — {a}',
+  'base.donePriv': 'Tu dato privado — ya está dado',
+  'base.doneObj': 'Tu objetivo — {o}',
+  'base.missNote': 'Al guardarlo, tus metas se calculan en el mismo gesto. Sin más vueltas.',
+  'base.missNoteObj': 'Al elegirlo, tus metas se calculan en el mismo gesto. Sin más vueltas.',
+  'base.field.height': 'tu estatura',
+  'base.field.by': 'tu año de nacimiento',
+  'base.field.act': 'tu nivel de actividad',
+  'fa.missAuto': 'Todavía no se ha calculado: ya dio todo lo suyo — su cálculo nace solo cuando abra la app.',
+  'fa.autoNote': 'Sin ecuación elegida aún: la fórmula base de la app (Mifflin-St Jeor) nace sola con su primer cálculo. Puedes ajustarla aquí cuando quieras.',
+  'students.dep.auto': 'SE ACTIVA SOLA',
+  'students.cause.autoEval': 'Datos completos — ya dio todo lo suyo. Su cálculo nace cuando abra la app.',
+  'students.cause.autoNote': 'No tienes que hacer nada: al abrir su app, el resultado nace solo. Por eso aquí ya no dice «DEPENDE DEL ALUMNO».',
+  'students.cause.autoGoals': 'Sus metas nacen con ese mismo cálculo, en cuanto abra la app.',
+  'students.cause.only': 'Le falta solo {piece}. Todo lo demás ya lo dio.',
+  'students.cause.list': 'Le falta: {list}.',
+  'students.piece.peso': 'su peso',
+  'students.piece.estatura': 'su estatura',
+  'students.piece.anio': 'su año de nacimiento',
+  'students.piece.actividad': 'su nivel de actividad',
+  'students.piece.privado': 'el dato privado',
+  'students.piece.objetivo': 'su objetivo',
+  'students.eq.title': 'Su ecuación',
+  'students.eq.auto': 'Ecuación automática (fórmula base): nació sola con su primer cálculo.',
+  'students.eq.trainer': '{name}: elegida por su entrenador.',
+  'students.act.eqAdjust': 'Ajustar la ecuación',
+  'nudge.baseComplete': 'Su base ya está completa — no hay nada que avisar: su cálculo nace cuando abra la app.',
+  'base.mail.kicker': 'Aviso de tu entrenador',
+  'base.mail.hello': 'Hola, {name}:',
+  'base.mail.subjEval': 'RONBO FIT — Te falta una cosa para activar tus metas',
+  'base.mail.subjGoal': 'RONBO FIT — Te falta una cosa para activar tus metas',
+  'base.mail.oneHead': 'Te falta una sola cosa para activar tus metas: {piece}.',
+  'base.mail.pieceName.peso': 'tu peso',
+  'base.mail.pieceName.estatura': 'tu estatura',
+  'base.mail.pieceName.anio': 'tu año de nacimiento',
+  'base.mail.pieceName.actividad': 'tu nivel de actividad',
+  'base.mail.pieceName.privado': 'tu dato privado, el que entra en la fórmula de tu cálculo',
+  'base.mail.pieceName.objetivo': 'tu objetivo',
+  'base.mail.privLine': 'Vive en tu espacio privado: nadie lo ve, ni tu entrenador — él solo ve si ya lo diste.',
+  'base.mail.multiHead': 'Te faltan algunas cosas para activar tus metas:',
+  'base.mail.doneHead': 'Todo lo demás ya está completo:',
+  'base.mail.btnPeso': 'Ir directo a registrar mi peso',
+  'base.mail.btnDatos': 'Ir directo a mis datos de cálculo',
+  'base.mail.btnPrivado': 'Ir directo a mi dato privado',
+  'base.mail.btnObjetivo': 'Ir directo a mi objetivo',
+  'base.mail.sign': '— Tu entrenador',
+  'base.mail.donePesoToday': 'Tu peso — {w}, de tu pesaje de hoy',
+  'base.mail.donePesoDate': 'Tu peso — {w}, de tu pesaje del {d}',
+  'base.mail.doneHeightBy': 'Tu estatura y tu año de nacimiento',
+  'base.mail.doneHeight': 'Tu estatura — {h}',
+  'base.mail.doneBy': 'Tu año de nacimiento — {y}',
+  'base.mail.doneAct': 'Tu nivel de actividad',
+  'base.mail.donePriv': 'Tu dato privado — ya está dado',
+  'base.mail.doneObj': 'Tu objetivo: {o}',
+  'base.g.kcal': 'Calorías',
+  'base.g.prot': 'Proteína',
+  'base.g.carb': 'Carbohidratos',
+  'base.g.azuc': 'Azúcares',
+  'base.g.gras': 'Grasas',
+  'base.sugarVal': 'hasta {n} g',
+  'base.actShort1': 'Casi sentada',
+  'base.actShort2': 'Ligero',
+  'base.actShort3': 'Moderado',
+  'base.actShort4': 'Activo',
+  'base.actShort5': 'Muy activo',
+  'base.actShort6': 'Atleta',
+  'base.pendBody': 'Tu enfoque de competencia lo activa tu entrenador contigo: en cuanto lo active, tus metas nacen con tu cálculo.',
   'pend.cardTitle': 'Tienes pasos pendientes',
   'pend.cardBody': '{n} pendiente(s) de procedimiento — no son registros diarios.',
   'pend.cardBtn': 'Ver pendientes',
@@ -7494,8 +7842,8 @@ es: {
   'gm.status.pending': 'pendiente',
   'gm.status.approved': 'aprobado',
   'gm.status.replaced': 'fijado por el entrenador',
-  'pend.role.goalsDetail2': 'Aún no tienes metas: completa tus datos de fundamento y elige tu objetivo — la app las calcula desde tus datos.',
-  'pend.role.goalsGo2': 'Completar mis datos',
+  'pend.role.goalsDetail2': 'Aún no tienes metas: completa tu base y elige tu objetivo — la app las calcula desde tus datos.',
+  'pend.role.goalsGo2': 'Completar mi base',
   'pend.trainerHeldTitle': 'Metas retenidas por revisión de salud',
   'pend.trainerHeldDetail': '{name}: {params} retenido(s) por su declaración de salud. Revísalo en su ficha.',
   'pend.trainerHeldGo': 'Abrir clientes',
@@ -8541,6 +8889,9 @@ onAuthStateChanged(auth, async user => {
      fotos, aterriza igual en su sección de fotos, sin error. Sin
      enlace, esta costura no hace nada. */
   try { if (fotosLinkTake()) { navOpenPage('progress'); progSetSub('fotos'); const r = $('eval-root'); if (r) { try { r.scrollIntoView({ behavior: 'smooth', block: 'start' }); } catch {} } } } catch {}
+  /* D5 (punto 106): el enlace ?base= del aviso abre el flujo
+     «Completa tu base» en su paso exacto, una sola vez. */
+  try { baseLinkApply(); } catch {}
   /* AUTH-147: a quien ya estaba registrado y aún no declaró su
      propósito se le pide UNA sola vez al entrar (sin bloquear). */
   try { purposeMaybeAsk(); } catch {}
@@ -9519,7 +9870,21 @@ async function clientProfileChecklist(u, latestMealReq) {
      con error de lectura, null: no se afirma una causa que no
      se pudo comprobar. Lo consume la nota de causa del
      pendiente de metas (goalsBlockCause), nada más. */
-  const pEval = (async () => { try { const s = await getDoc(doc(db, 'users', u.id, 'assessment', 'current')); if (!s.exists()) return { has: false, palMissing: true }; const d = s.data(); const p = num(d.palBasal); return { has: faHasResult(d), palMissing: !(isFinite(p) && p >= 1.20 && p <= 2.00) }; } catch { return { has: false, palMissing: null }; } })();
+  const pEval = (async () => { try { const s = await getDoc(doc(db, 'users', u.id, 'assessment', 'current')); if (!s.exists()) return { has: false, palMissing: true, base: { byOk: false, hOk: false, palOk: false, sexOk: false, eq: null, eqOrigin: null, eqChosen: false, hasResult: false } }; const d = s.data(); const p = num(d.palBasal);
+    /* D4 (punto 106): la MISMA lectura captura el estado de la base
+       — qué piezas ya dio el alumno y el estado de su ecuación —
+       para que la unión nombre la causa verdadera (trainerPendUnion)
+       y la ficha pinte su fila de ecuación. Sin lecturas nuevas. */
+    const byY = parseInt(d.birthYear, 10);
+    const base = {
+      byOk: Number.isInteger(byY) && byY >= 1900 && byY <= new Date().getFullYear() - 18,
+      hOk: num(d.heightCm) >= 50 && num(d.heightCm) <= 250,
+      palOk: isFinite(p) && p >= 1.20 && p <= 2.00,
+      sexOk: d.sexDataProvided === true,
+      eq: d.equation || null, eqOrigin: d.equationOrigin || null,
+      eqChosen: !!d.equationChosenBy, hasResult: faHasResult(d)
+    };
+    return { has: base.hasResult, palMissing: !base.palOk, base }; } catch { return { has: false, palMissing: null, base: null }; } })();
   /* AUTH-118 (R3): si la lectura de la declaración FALLA, la fila
      sigue sin contar (done = null, la semántica de AUTH-110 no
      cambia), pero el error queda marcado en parqErr para que la
@@ -9557,7 +9922,7 @@ async function clientProfileChecklist(u, latestMealReq) {
   rows.push({ key: 'meals', label: t('pend.chk.meals'), done: featuresOf(u).meals === true || reqDone });
   const known = rows.filter(r => r.done !== null);
   const done = known.filter(r => r.done).length;
-  return { pct: known.length ? Math.round(done / known.length * 100) : 0, rows, complete: rows.length > 0 && rows.every(r => r.done === true), parqErr: !!parqRes.err, palMissing: evalRes.palMissing };
+  return { pct: known.length ? Math.round(done / known.length * 100) : 0, rows, complete: rows.length > 0 && rows.every(r => r.done === true), parqErr: !!parqRes.err, palMissing: evalRes.palMissing, base: evalRes.base };
 }
 function clientChecklistHTML(chk, hiddenCause) {
   if (!chk) return '';
@@ -9631,6 +9996,7 @@ function fichaPendBlockHTML(uid) {
      fuera de la unión y de su total, como en el detalle. */
   if (items.length) h += studentsPendGroupedHTML(uid, items);
   h += stuAdminStepRowHTML(uid);
+  h += studentsEqRowHTML(uid, f.chk);
   if (items.length) h += `<div class="client-chk"><b>${esc(t('students.pendToResolve', { n: items.length }))}</b></div>`;
   /* AUTH-121 (R4): la clase ficha-pend-block da al retorno tras
      guardar su punto exacto de aterrizaje en la ficha. */
@@ -10351,6 +10717,37 @@ function trainerPendUnion(chk, pend, bodyItem, u) {
       const rk = r.key || '';
       const tl = ['trainer', 'eval', 'consent', 'parq', 'goals', 'meals'].includes(rk) ? t('students.req.' + rk) : r.label;
       const it = { kind: 'req', reqKey: rk, label: r.label, tlabel: tl, state: 'pendiente', date: null };
+      /* D4 (punto 106, maqueta 5 aprobada): la causa VERDADERA de
+         la evaluación y de las metas. Con la base completa (chk.base
+         leído del propio assessment + el «nunca pesó» de ESTA pasada)
+         y sin resultado, nadie debe nada: el cálculo nace cuando el
+         alumno abra su app — el ítem lleva it.auto y el pintor lo
+         sella «SE ACTIVA SOLA», sin botón de aviso. Si falta alguna
+         pieza, la evaluación las nombra en el orden del flujo
+         (it.missBase). Con error de lectura (base null) no se
+         afirma causa alguna: la fila queda como siempre. El conteo
+         y la unión NO cambian: son las mismas filas de siempre. */
+      if ((rk === 'eval' || rk === 'goals') && chk && chk.base) {
+        const b = chk.base;
+        const neverW = (((pend || {}).items) || []).some(x => x.kind === 'weight' && x.never === true);
+        const miss = [];
+        if (neverW) miss.push('peso');
+        if (!b.hOk) miss.push('estatura');
+        if (!b.byOk) miss.push('anio');
+        if (!b.palOk) miss.push('actividad');
+        if (!b.sexOk) miss.push('privado');
+        if (rk === 'eval') {
+          if (!miss.length) it.auto = 'eval';
+          else it.missBase = miss;
+        } else {
+          /* Las metas necesitan ADEMÁS el objetivo (vive en su
+             users, ya cargado en esta pasada): sin objetivo no
+             nacen ni al abrir la app, y la fila lo nombra. */
+          const missG = ['mantener', 'bajar', 'ganar'].includes(u && u.goalObjective) ? miss : miss.concat('objetivo');
+          if (!missG.length) it.auto = 'goals';
+          else if (b.hasResult) it.missBase = missG;
+        }
+      }
       /* AUTH-137: el pendiente de metas — que solo existe si la
          fila goals del checklist no está hecha, el mismo test de
          «metas sin escribir» — nombra su causa verificada cuando
@@ -10424,6 +10821,15 @@ function studentsItemSub(it) {
   }
   if (it.kind === 'food') return it.date ? t('students.pend.foodOn', { date: dateName(it.date) }) : '';
   if (it.kind === 'body') return t(it.miss === 'consent' ? 'students.pend.bodyNoConsent' : 'students.pend.bodyNoAnalysis');
+  /* D4 (punto 106): la causa de la base en la fila de la evaluación
+     (y en la de metas cuando el resultado ya nació): automático
+     cuando nadie debe nada; si no, las piezas que faltan, en el
+     orden del flujo — una sola: «Le falta solo…»; varias: la lista. */
+  if (it.kind === 'req' && it.auto) return t(it.auto === 'eval' ? 'students.cause.autoEval' : 'students.cause.autoGoals');
+  if (it.kind === 'req' && (it.reqKey === 'eval' || it.reqKey === 'goals') && it.missBase && it.missBase.length) {
+    const names = it.missBase.map(p => t('students.piece.' + p));
+    return names.length === 1 ? t('students.cause.only', { piece: names[0] }) : t('students.cause.list', { list: names.join(', ') });
+  }
   if (it.kind === 'req' && it.reqKey === 'meals') return t('students.req.mealsSub');
   /* AUTH-137: la nota de causa del pendiente de metas — la marca
      it.block la pone trainerPendUnion solo con la causa
@@ -10461,6 +10867,11 @@ function studentsActFor(it) {
     case 'eval': return { btn: 'students.act.eval', surf: 'ficha', focus: 'evals' };
     case 'food': return { btn: 'students.act.food', surf: 'ficha', focus: 'food' };
     case 'body': return it.miss === 'consent' ? { btn: null } : { btn: 'students.act.body', surf: 'ficha', focus: 'body' };
+    /* D1/D4 (punto 106): la fila de INFORMACIÓN de la ecuación
+       (studentsEqRowHTML) — no es un pendiente: su botón lleva a
+       la tarjeta de cálculo de la ficha, donde el entrenador puede
+       ajustar la ecuación que nació sola. */
+    case 'eqrow': return { btn: 'students.act.eqAdjust', surf: 'ficha', focus: 'energy' };
     case 'req':
       if (it.reqKey === 'eval') return { btn: 'students.act.reqEval', surf: 'ficha', focus: 'energy' };
       if (it.reqKey === 'goals') return { btn: 'students.act.reqGoals', surf: 'ficha', focus: 'goals' };
@@ -10674,9 +11085,11 @@ function nudgeOpen(uid, sub, titleText) {
     const m = $('nudge-msg'); if (m) { m.hidden = true; m.textContent = ''; }
     const sb = $('nudge-send'); if (sb) { sb.style.display = ''; sb.disabled = false; sb.textContent = t('nudge.send'); }
     nudgeRenderPreview();
+    nudgeBasePrime();
   };
   const sb = $('nudge-send'); if (sb) sb.onclick = () => nudgeSend();
   nudgeRenderPreview();
+  nudgeBasePrime();
 }
 /* La vista previa se repinta al cambiar la plantilla elegida:
    siempre los textos del banco, en el idioma del ALUMNO y con
@@ -10686,13 +11099,42 @@ function nudgeRenderPreview() {
   const box = $('nudge-preview-box'); if (!box) return;
   const u = nudgeStudentDoc(ctx.uid) || { id: ctx.uid };
   const lang = nudgeMailLangOf(u);
-  const P = (NUDGE_PREVIEW[ctx.sub] || {})[lang] || (NUDGE_PREVIEW[ctx.sub] || {}).en;
-  if (!P) { box.innerHTML = ''; return; }
   const nm = u.name || (u.email ? String(u.email).split('@')[0] : '');
   const tr = nudgeTrainerNameFor(u);
+  /* D5 (punto 106): con el estado vivo de la base ya leído, la
+     vista previa de evaluación/metas ES el correo compuesto con
+     los datos de hoy (baseMailCompose — el mismo texto que el
+     Worker enviará con el payload). Sin estado (aún leyendo o
+     lectura imposible), la del banco fijo de siempre. */
+  if ((ctx.sub === 'eval' || ctx.sub === 'goal') && ctx.baseState) {
+    if (!ctx.baseState.missing.length) {
+      box.innerHTML = `<p class="nudge-body">${esc(t('nudge.baseComplete'))}</p>`;
+      const sb = $('nudge-send'); if (sb) sb.style.display = 'none';
+      return;
+    }
+    const c = baseMailCompose(ctx.sub, ctx.baseState, lang, nm, tr);
+    box.innerHTML = `<p class="nudge-subj">${esc(c.subject)}</p><p class="nudge-body">${esc(c.body)}</p>`;
+    return;
+  }
+  const P = (NUDGE_PREVIEW[ctx.sub] || {})[lang] || (NUDGE_PREVIEW[ctx.sub] || {}).en;
+  if (!P) { box.innerHTML = ''; return; }
   const subject = P.subject.split('{name}').join(nm).split('{trainer}').join(tr);
   const bodyTxt = P.body.split('{name}').join(nm).split('{trainer}').join(tr);
   box.innerHTML = `<p class="nudge-subj">${esc(subject)}</p><p class="nudge-body">${esc(bodyTxt)}</p>`;
+}
+/* D5: al abrir la hoja (o al cambiar a la plantilla de evaluación
+   o de metas) se lee el estado vivo de la base de ESE alumno; al
+   llegar, la vista previa se repinta con el correo real de hoy. */
+function nudgeBasePrime() {
+  const ctx = NUDGE_CTX; if (!ctx) return;
+  if (ctx.sub !== 'eval' && ctx.sub !== 'goal') return;
+  if (ctx.baseState !== undefined) { nudgeRenderPreview(); return; }
+  const uid = ctx.uid;
+  baseStateForStudent(uid).then(st => {
+    if (!NUDGE_CTX || NUDGE_CTX.uid !== uid) return;
+    NUDGE_CTX.baseState = st;
+    nudgeRenderPreview();
+  }).catch(() => {});
 }
 function nudgeClose() {
   const fl = $('nudge-float'); if (fl) fl.style.display = 'none';
@@ -10768,13 +11210,37 @@ async function nudgeSend() {
     ctx.sending = false;
     return;
   }
+  /* D5 (punto 106): para evaluación/metas, el estado de la base se
+     relee JUSTO ANTES de enviar — nunca más pedir un dato que el
+     alumno ya dio (el aviso a Gerwynth le pidió el peso registrado
+     esa misma mañana). Si ya no falta nada, NO se envía y la hoja
+     lo dice; si falta, el payload vivo viaja al Worker, que
+     compone el correo con esos datos revalidados. Sin lectura
+     posible se cae al banco fijo de siempre (sin inventar). */
+  let baseExtra = null;
+  if (ctx.sub === 'eval' || ctx.sub === 'goal') {
+    const fresh = await baseStateForStudent(ctx.uid).catch(() => null);
+    if (fresh && !fresh.missing.length) {
+      nudgeMsg(t('nudge.baseComplete'));
+      if (sb) sb.style.display = 'none';
+      ctx.sending = false;
+      return;
+    }
+    if (fresh) baseExtra = { base: baseMailPayload(fresh) };
+  }
   /* AUTH-2026-11-02-169: el aviso sale en el idioma DEL ALUMNO — el
      de su vista previa — y no en el de la sesión que envía: sin el
      override, un alumno sin mailLang/lang guardados recibía el
      idioma de la interfaz de quien avisa, contra lo que la hoja
      promete («el correo exacto que recibirá el alumno, en su
      idioma»). Los demás envíos no pasan el override y no cambian. */
-  const res = await mailSend(ctx.uid, ctx.tpl, nudgeMailLangOf(nudgeStudentDoc(ctx.uid) || {}));
+  const res = await mailSend(ctx.uid, ctx.tpl, nudgeMailLangOf(nudgeStudentDoc(ctx.uid) || {}), baseExtra);
+  if (!res.ok && res.error === 'base-complete') {
+    nudgeMsg(t('nudge.baseComplete'));
+    if (sb) sb.style.display = 'none';
+    ctx.sending = false;
+    return;
+  }
   if (res.ok) {
     await mailRecordNudge(ctx.uid, ctx.sub);
     nudgeMsg(t('nudge.sentOk'));
@@ -10819,6 +11285,16 @@ function studentsPendItemHTML(uid, it, isTrace) {
   let seal = '', right = '';
   if (isTrace) {
     seal = `<span class="st-chip ${STU_CHIP[it.state] || 'st-pendiente'}">${esc(t('students.chip.' + it.state))}</span>`;
+  } else if (it.auto) {
+    /* D4 (punto 106, maqueta 5): el estado AUTOMÁTICO — nadie debe
+       nada y el cálculo nace cuando el alumno abra su app. Sello
+       propio «SE ACTIVA SOLA», SIN botón «✉ Avisar» (no hay nada
+       que avisar) y, en la evaluación, su botón de siempre «Ver
+       cálculo»; las metas automáticas no llevan botón. */
+    seal = `<span class="stu-dep stu-dep-auto">${esc(t('students.dep.auto'))}</span>`;
+    right = (it.auto === 'eval' && act && act.btn)
+      ? `<button type="button" class="btn-primary btn-sm" data-stu-act="${it.kind}" data-stu-req="${it.reqKey || ''}" data-stu-uid="${uid}">${esc(t(act.btn))}</button>`
+      : '';
   } else {
     const sub2 = nudgeSubFor(it);
     seal = sub2
@@ -10863,8 +11339,29 @@ function studentsPendItemHTML(uid, it, isTrace) {
   return `<div class="stu-pend-item${isTrace ? ' trace' : ''}">
     <span class="stu-pend-ico" style="background:${bg}">${emoji}</span>
     <span class="stu-pend-main"><span class="stu-pend-title">${esc(studentsItemTitle(it))}</span><span class="stu-pend-tags">${seal}${catChip}</span>
-    ${sub ? `<span class="stu-pend-sub">${sub}</span>` : ''}</span>
+    ${sub ? `<span class="stu-pend-sub">${sub}</span>` : ''}${it.auto === 'eval' ? `<span class="stu-pend-sub stu-pend-note">${esc(t('students.cause.autoNote'))}</span>` : ''}</span>
     ${right}
+  </div>`;
+}
+/* D1/D4 (punto 106, maqueta 5b): la fila de INFORMACIÓN de la
+   ecuación — NO es un pendiente (no entra en la unión ni en los
+   conteos): dice cómo nació la ecuación del resultado vigente y
+   ofrece su ajuste. Solo se pinta con resultado nacido y origen
+   registrado: 'auto' (nació sola con su primer cálculo) o del
+   entrenador (su firma equationChosenBy o su sello 'trainer').
+   Un resultado heredado sin origen no afirma nada: no se pinta. */
+function studentsEqRowHTML(uid, chk) {
+  const b = chk && chk.base;
+  if (!b || !b.hasResult) return '';
+  let cause = '';
+  if (b.eqOrigin === 'auto') cause = t('students.eq.auto');
+  else if (b.eqOrigin === 'trainer' || b.eqChosen) cause = t('students.eq.trainer', { name: faEqName(b.eq) });
+  else return '';
+  return `<div class="stu-pend-item stu-eq-row">
+    <span class="stu-pend-ico" style="background:#e0f2f1">📐</span>
+    <span class="stu-pend-main"><span class="stu-pend-title">${esc(t('students.eq.title'))}</span><span class="stu-pend-tags"><span class="stu-dep stu-dep-you">${esc(t('students.dep.you'))}</span></span>
+    <span class="stu-pend-sub">${esc(cause)}</span></span>
+    <button type="button" class="btn-ghost btn-sm" data-stu-act="eqrow" data-stu-req="" data-stu-uid="${uid}">${esc(t('students.act.eqAdjust'))}</button>
   </div>`;
 }
 /* AUTH-2026-11-01-148: el panel del ENTRENADOR adopta la MISMA
@@ -11024,6 +11521,7 @@ function studentsDetailHTML(u) {
   } else {
     h += studentsPendGroupedHTML(u.id, pend.items);
     h += stuAdminStepRowHTML(u.id);
+    h += studentsEqRowHTML(u.id, (L.chkByUid || {})[u.id]);
     if (!pend.items.length && !pend.traces.length) h += `<p class="pend-none">${esc(t('students.detailClear'))}</p>`;
     if (pend.traces.length) h += `<div class="stu-traces-h">${esc(t('students.resolvedTitle'))}</div>` + pend.traces.map(it => studentsPendItemHTML(u.id, it, true)).join('');
   }
@@ -12314,9 +12812,14 @@ function faCardHTML(uid, a, weights) {
       ${a.uncertaintyNote ? `<div class="fa-tnote">${esc(a.uncertaintyNote)}</div>` : ''}
     </div>`;
   } else {
-    const reason = !eqSel ? t('fa.missEq')
-      : !signal ? t('fa.missSex')
+    /* D4 (punto 106): la causa sigue al dato REAL — primero lo del
+       alumno (su dato privado, sus datos), y solo cuando ya dio
+       todo lo suyo, la verdad de D1: el cálculo nace solo cuando
+       abra su app (fa.missAuto), sin culpar a nadie de una ecuación
+       que ya nadie tiene que elegir para el primer cálculo. */
+    const reason = !signal ? t('fa.missSex')
       : !(a && a.birthYear && num(a.heightCm) > 0 && num(a.palBasal) > 0 && last) ? t('fa.missData')
+      : !eqSel ? t('fa.missAuto')
       : t('fa.missPending');
     resultBlock = `<div class="fa-empty"><b>${t('fa.noResult')}</b><span>${reason}</span></div>`;
   }
@@ -12327,6 +12830,7 @@ function faCardHTML(uid, a, weights) {
     <div class="fa-signal">${t('fa.athleteSignal', { v: thReady ? t('fa.yes') : t('fa.no') })}</div>
     <label class="fa-flabel">${t('fa.equation')}</label>
     ${selbox}${opts}
+    ${eqSel ? '' : `<p class="fa-autonote">${t('fa.autoNote')}</p>`}
     <div class="fa-divider"></div>
     <div class="fa-frow">
       <div><label class="fa-flabel">${t('fa.birthYear')}</label><input type="text" inputmode="numeric" id="fa-by" value="${a && a.birthYear ? a.birthYear : ''}" placeholder="1996"></div>
@@ -12386,7 +12890,7 @@ async function faSetEquation(uid, eq) {
   if (equation === 'ten-haaf' && !(FA_CARD.asmt && FA_CARD.asmt.athleteDeclared === true)) { toast(t('fa.thNeedsAthlete'), true); return; }
   try {
     await setDoc(doc(db, 'users', uid, 'assessment', 'current'),
-      { equation, equationChosenBy: auth.currentUser.uid, equationChosenAt: serverTimestamp(), updatedAt: serverTimestamp(), updatedBy: auth.currentUser.uid }, { merge: true });
+      { equation, equationChosenBy: auth.currentUser.uid, equationChosenAt: serverTimestamp(), equationOrigin: 'trainer', updatedAt: serverTimestamp(), updatedBy: auth.currentUser.uid }, { merge: true });
     toast(t('fa.configSaved'));
     openClient(uid);
   } catch (e) { failToast(e); }
@@ -12455,7 +12959,9 @@ function renderEnergyPanel() {
       own = `<div class="fa-ownres">${t('fa.myResult', { rmr: fmt(faRound10(d.rmrKcal)), tdee: fmt(faRound10(d.tdeeKcal)), u: t('fa.kcalDay'), eq: faEqName(d.equationUsed) })}</div>`
         + (faResultStale(d, lastW) ? `<div class="fa-stale">${t('fa.staleBanner')}</div>` : '');
     }
-  } else if (FA_CALC_ERR && sex && d && FA_EQ_ENABLED.includes(d.equation)) {
+  } else if (FA_CALC_ERR && sex && d) {
+    /* D1: la causa de un cálculo inválido se muestra también sin
+       ecuación guardada — la efectiva es la fundada por defecto. */
     own = `<div class="fa-empty"><span>${t('fa.calcInvalid', { cause: t(FA_CALC_ERR.key, FA_CALC_ERR.params || {}) })}</span></div>`;
   }
   /* MÓDULO A: la declaración de perfil de atleta vive aquí, en el
@@ -12560,7 +13066,17 @@ function faCalcCheck(cfg, last) {
 async function faComputeMine(uid) {
   const cfg = MY_ASMT.doc; if (!cfg) return;
   const sex = MY_ENERGY.sex; if (!sex) return;
-  if (!FA_EQ_ENABLED.includes(cfg.equation)) return;
+  /* D1 (SIMPLIFICACIÓN DE LA BASE, punto 106; maqueta aprobada por
+     Ronald 2026-11-02): sin ecuación elegida por el entrenador, la
+     ecuación EFECTIVA es la fundada por defecto — Mifflin-St Jeor —
+     y el cálculo NACE SOLO en la sesión del alumno. Ten Haaf jamás
+     nace por defecto: sigue exigiendo la elección expresa y la
+     declaración de atleta del propio alumno (18–35). Al escribir el
+     resultado, la sesión estampa equation/equationOrigin 'auto' en
+     el MISMO documento (delta de reglas de este paquete: la rama
+     del alumno solo admite 'mifflin-st-jeor' con origen 'auto' y
+     solo si nadie la eligió antes — equationChosenBy ausente). */
+  const effEq = FA_EQ_ENABLED.includes(cfg.equation) ? cfg.equation : 'mifflin-st-jeor';
   const by = parseInt(cfg.birthYear, 10), h = num(cfg.heightCm), pal = num(cfg.palBasal);
   const last = WEIGHTS && WEIGHTS.length ? WEIGHTS[WEIGHTS.length - 1] : null;
   const bad = faCalcCheck(cfg, last);
@@ -12570,14 +13086,14 @@ async function faComputeMine(uid) {
      declaración del propio cliente no se calcula, y fuera de la
      población de la fuente (18–35 años) tampoco; la causa queda
      visible en el panel (mismo patrón honesto C-7). */
-  if (cfg.equation === 'ten-haaf') {
+  if (effEq === 'ten-haaf') {
     const gate = cfg.athleteDeclared !== true ? { key: 'fa.errAthlete', params: {} }
       : (age < 18 || age > 35) ? { key: 'fa.errAthleteAge', params: {} } : null;
     if (gate) { if (!FA_CALC_ERR || FA_CALC_ERR.key !== gate.key) { FA_CALC_ERR = gate; renderEnergyPanel(); } return; }
   }
   FA_CALC_ERR = null;
   let rmr;
-  if (cfg.equation === 'ten-haaf') {
+  if (effEq === 'ten-haaf') {
     /* Ten Haaf & Weijs 2014 (DOI 10.1371/journal.pone.0108460):
        REE en kJ/día con la talla en METROS (h viene en cm
        canónicos: se convierte SOLO dentro del cálculo) y sexo
@@ -12594,15 +13110,34 @@ async function faComputeMine(uid) {
      jamás guarda el valor del sexo, así que la igualdad del
      snapshot sola no basta (si el cliente corrige su dato con las
      mismas entradas, hay que recalcular: la constante cambia). */
-  if (cfg.equationUsed === cfg.equation && typeof cfg.rmrKcal === 'number'
+  const noChange = cfg.equationUsed === effEq && typeof cfg.rmrKcal === 'number'
       && Math.abs(cfg.rmrKcal - rmr) < 1e-9 && Math.abs(cfg.tdeeKcal - rmr * pal) < 1e-9
-      && cfg.inputsSnapshot && JSON.stringify(cfg.inputsSnapshot) === JSON.stringify(snap)) return;
-  const result = { rmrKcal: rmr, tdeeKcal: rmr * pal, equationUsed: cfg.equation, equationVersion: FA_EQ_VERSIONS[cfg.equation] || FA_EQUATION_VERSION,
+      && cfg.inputsSnapshot && JSON.stringify(cfg.inputsSnapshot) === JSON.stringify(snap);
+  /* D1: el sello de nacimiento — la ecuación efectiva aún no es la
+     guardada (nació por defecto o el documento es heredado sin el
+     campo): hay que estamparla aunque el resultado no cambie, para
+     que faResultStale no lo lea «anterior» para siempre. */
+  const needStamp = cfg.equation !== effEq;
+  if (noChange && !needStamp) return;
+  const result = { rmrKcal: rmr, tdeeKcal: rmr * pal, equationUsed: effEq, equationVersion: FA_EQ_VERSIONS[effEq] || FA_EQUATION_VERSION,
     inputsSnapshot: snap, sexConstantApplied: true, uncertaintyNote: FA_UNCERTAINTY[LANG] || FA_UNCERTAINTY.en,
     computedAt: serverTimestamp(), computedBy: uid };
+  if (needStamp) { result.equation = effEq; result.equationOrigin = 'auto'; }
   try {
-    await setDoc(doc(db, 'users', uid, 'assessment', 'current'), result, { merge: true });
-    await setDoc(doc(db, 'users', uid, 'assessment', 'hist_' + Date.now()), result);
+    try {
+      await setDoc(doc(db, 'users', uid, 'assessment', 'current'), result, { merge: true });
+    } catch (e1) {
+      /* Degradación declarada: si la escritura con el sello fuera
+         denegada (p. ej. reglas aún sin el delta), el resultado se
+         escribe SOLO, como siempre — el cálculo nace en la sesión
+         igualmente y el sello se reintenta en el próximo cálculo. */
+      if (!needStamp) throw e1;
+      const bare = { ...result }; delete bare.equation; delete bare.equationOrigin;
+      await setDoc(doc(db, 'users', uid, 'assessment', 'current'), bare, { merge: true });
+      result.equation = cfg.equation; result.equationOrigin = cfg.equationOrigin;
+    }
+    if (!noChange) await setDoc(doc(db, 'users', uid, 'assessment', 'hist_' + Date.now()),
+      (({ equation, equationOrigin, ...rest }) => rest)(result));
     /* La fusión local incluye computedAt/computedBy/nota con el
        mismo valor que va al servidor: sin computedAt, faHasResult()
        seguía en falso EN LA SESIÓN y la evaluación constaba como
@@ -12610,7 +13145,8 @@ async function faComputeMine(uid) {
        guardado (corrección «pendientes al guardar», 2026-11-01). */
     MY_ASMT.doc = { ...cfg, rmrKcal: result.rmrKcal, tdeeKcal: result.tdeeKcal, equationUsed: result.equationUsed,
       equationVersion: result.equationVersion, inputsSnapshot: snap, sexConstantApplied: true,
-      computedAt: Timestamp.now(), computedBy: uid, uncertaintyNote: result.uncertaintyNote };
+      computedAt: Timestamp.now(), computedBy: uid, uncertaintyNote: result.uncertaintyNote,
+      ...(needStamp && result.equation === effEq ? { equation: effEq, equationOrigin: 'auto' } : {}) };
     renderEnergyPanel();
   } catch {}
 }
@@ -12656,6 +13192,491 @@ async function loadMyEnergy() {
   renderEnergyPanel();
   renderActivity(actSelDate());
   if (MY_ENERGY.state === 'ok' && MY_ASMT.state === 'ok') { await faSyncSignal(uid); await faComputeMine(uid); renderActivity(actSelDate()); }
+}
+
+/* ================================================================
+   D2/D3 · EL FLUJO ÚNICO «COMPLETA TU BASE» (punto 106 de la cola;
+   maqueta aprobada por Ronald el 2026-11-02 — correo 19:12 CST
+   condicionado a verla + aprobación en el chat 21:17 CST).
+   Sustituye los dos viajes de «Editar» de la evaluación y de las
+   metas por UN solo viaje en ventana flotante de la casa:
+   Peso (precargado de sus pesajes; nunca se teclea dentro del
+   flujo — sin pesaje, se registra ahí y queda como pesaje) →
+   Datos de cálculo (estatura, año, categoría con el multiplicador
+   propuesto de AUTH-138, visible y ajustable, con la confirmación
+   de la banda <1,40 de siempre) → Dato privado (SU tarjeta
+   privada; jamás se infiere del campo «género» del registro: la
+   selección nace SOLO de energyPrivate) → Objetivo y enfoque →
+   «Calcular y activar»: un solo botón que corre el cálculo de
+   energía (faComputeMine, con la ecuación que nace sola de D1) y
+   el motor de metas en el mismo gesto, y muestra el resultado o
+   nombra LA ÚNICA pieza que falta con su botón directo.
+   Consentimientos y PAR-Q NO son parte de este viaje: siguen
+   siendo puertas previas, en su sitio de la ruta. ================================================================ */
+let BASE_FLOW = null;
+const BASE_STEP_KEY = { peso: 'weight', datos: 'data', privado: 'priv', objetivo: 'obj', calc: 'calc' };
+function baseLastWeight() { return (typeof WEIGHTS !== 'undefined' && WEIGHTS && WEIGHTS.length) ? WEIGHTS[WEIGHTS.length - 1] : null; }
+/* El estado VIVO de la base del PROPIO alumno, desde las mismas
+   fuentes de su sesión. missing sale en el orden del flujo;
+   done lleva los valores vivos para las listas de «ya está». */
+function baseMyState() {
+  const d = (typeof MY_ASMT !== 'undefined' && MY_ASMT && MY_ASMT.doc) || {};
+  const last = baseLastWeight();
+  const by = parseInt(d.birthYear, 10);
+  const missing = [], done = {};
+  if (!last || !(num(last.weight) > 0)) missing.push('peso'); else done.peso = { kg: num(last.weight), date: last.date };
+  if (!(num(d.heightCm) >= 50 && num(d.heightCm) <= 250)) missing.push('estatura'); else done.estatura = num(d.heightCm);
+  if (!(Number.isInteger(by) && by >= 1900 && by <= new Date().getFullYear() - 18)) missing.push('anio'); else done.anio = by;
+  const pal = num(d.palBasal);
+  if (!(pal >= 1.20 && pal <= 2.00)) missing.push('actividad'); else done.actividad = { cat: parseInt(d.activityCategoryId, 10) || null, pal };
+  if (!((typeof MY_ENERGY !== 'undefined' && MY_ENERGY) ? MY_ENERGY.sex : d.sexDataProvided === true)) missing.push('privado'); else done.privado = true;
+  const obj = (typeof UDATA !== 'undefined' && UDATA && UDATA.goalObjective) || '';
+  if (!['mantener', 'bajar', 'ganar'].includes(obj)) missing.push('objetivo'); else done.objetivo = obj;
+  return { missing, done };
+}
+function baseHeightText(cm) { return heightDisplayValue(cm) + (UNIT_PREFS.height === 'ft-in' ? '' : ' cm'); }
+function baseFlowOpen(step) {
+  if (!auth.currentUser) return;
+  const fl = $('base-float'); if (!fl) return;
+  const d = (typeof MY_ASMT !== 'undefined' && MY_ASMT && MY_ASMT.doc) || {};
+  const objAtOpen = (typeof UDATA !== 'undefined' && UDATA && UDATA.goalObjective) || '';
+  BASE_FLOW = {
+    step: ['peso', 'datos', 'privado', 'objetivo'].includes(step) ? step : 'peso',
+    act: parseInt(d.activityCategoryId, 10) || null,
+    selSex: (typeof MY_ENERGY !== 'undefined' && MY_ENERGY && MY_ENERGY.sex) || null,
+    selObj: objAtOpen, objAtOpen,
+    selFocus: (typeof gmFocusOf === 'function') ? gmFocusOf(UDATA).focus : 'general',
+    compDate: '', miss: null, held: false, pendingFocus: false, busy: false
+  };
+  fl.style.display = '';
+  const x = $('base-x'); if (x) x.onclick = () => baseFlowClose();
+  baseFlowRender();
+}
+function baseFlowClose() { const fl = $('base-float'); if (fl) fl.style.display = 'none'; BASE_FLOW = null; }
+/* D5: el enlace ?base= capturado al arrancar abre el flujo en su
+   paso exacto, una sola vez, ya con sesión (baseLinkApply se llama
+   tras la carga principal, como el ?dia= de AUTH-172). */
+function baseLinkApply() {
+  let step = null;
+  try { step = sessionStorage.getItem('rf-link-base'); sessionStorage.removeItem('rf-link-base'); } catch {}
+  if (!['peso', 'datos', 'privado', 'objetivo'].includes(step || '')) return;
+  if (!auth.currentUser) return;
+  baseFlowOpen(step);
+}
+function baseStepperHTML(cur) {
+  const order = ['peso', 'datos', 'privado', 'objetivo', 'calc'];
+  const ci = order.indexOf(cur);
+  return `<div class="base-steps">${order.map((k, i) => `<span class="base-step${i < ci ? ' done' : i === ci ? ' cur' : ''}">${i < ci ? '✓ ' : ''}${esc(t('base.step.' + BASE_STEP_KEY[k]))}</span>`).join('<span class="base-step-sep">·</span>')}</div>`;
+}
+function basePesoHTML() {
+  const last = baseLastWeight();
+  const today = todayISO();
+  if (last) {
+    const card = last.date === today ? t('base.weightCardToday', { w: fmtMass(last.weight) }) : t('base.weightCardDate', { w: fmtMass(last.weight), d: dateName(last.date) });
+    return `${baseStepperHTML('peso')}<h3 class="base-h">${esc(t('base.weightTitle'))}</h3>
+    <div class="base-okcard"><b>${esc(card)}</b><span class="base-chip">${esc(t('base.weightFilled'))}</span><span class="base-oknote">${esc(t('base.weightNote'))}</span></div>
+    <div class="pend-actions"><button type="button" class="btn-primary" id="base-next">${esc(t('base.continue'))}</button></div>
+    <button type="button" class="btn-ghost btn-sm base-ghost" id="base-new-weight">${esc(t('base.weightNew'))}</button>`;
+  }
+  return `${baseStepperHTML('peso')}<h3 class="base-h">${esc(t('base.weightNoneTitle'))}</h3>
+  <p class="base-body">${esc(t('base.weightNoneBody'))}</p>
+  <label class="base-flabel">${esc(t('base.weightField', { u: UNIT_PREFS.mass }))}</label>
+  <input type="text" inputmode="decimal" class="base-input" id="base-weight">
+  <div class="pend-actions"><button type="button" class="btn-primary" id="base-next">${esc(t('base.continue'))}</button></div>`;
+}
+function baseDatosHTML() {
+  const d = (typeof MY_ASMT !== 'undefined' && MY_ASMT && MY_ASMT.doc) || {};
+  const palDef = faPalDefaultFor(BASE_FLOW.act);
+  let palVal = d.palBasal != null && d.palBasal !== '' ? String(d.palBasal) : '';
+  if (!palVal && palDef != null) palVal = String(palDef);
+  const palAuto = palVal && palDef != null && num(palVal) === palDef ? String(BASE_FLOW.act) : '';
+  const rows = [1, 2, 3, 4, 5, 6].map(n => `<button type="button" class="base-act-row${BASE_FLOW.act === n ? ' sel' : ''}" data-base-act="${n}"><span>${esc(t('base.act' + n))}</span><b>${FA_PAL_DEFAULTS[n].toFixed(2)}</b></button>`).join('');
+  const palNum = num(palVal);
+  const lowBand = palVal !== '' && palNum >= 1.20 && palNum < 1.40;
+  return `${baseStepperHTML('datos')}<h3 class="base-h">${esc(t('base.dataTitle'))}</h3>
+  <label class="base-flabel">${esc(t('base.heightField'))}</label>
+  <input type="text" inputmode="decimal" class="base-input" id="base-h" value="${esc(d.heightCm ? heightDisplayValue(d.heightCm) : '')}" placeholder="${UNIT_PREFS.height === 'ft-in' ? '5\'9"' : '175'}">
+  <label class="base-flabel">${esc(t('base.byField'))}</label>
+  <input type="text" inputmode="numeric" class="base-input" id="base-by" value="${esc(d.birthYear || '')}" placeholder="1996">
+  <label class="base-flabel">${esc(t('base.actField'))}</label>
+  <div class="base-acts">${rows}</div>
+  <div class="base-mint" id="base-mint" style="${BASE_FLOW.act ? '' : 'display:none'}">
+    <b>${esc(t('base.multTitle', { v: palVal || '—' }))}</b>
+    <span>${esc(t('base.multNote'))}</span>
+    <label class="base-flabel">${esc(t('base.multField'))}</label>
+    <input type="text" inputmode="decimal" class="base-input" id="base-pal" data-pal-auto-cat="${esc(palAuto)}" value="${esc(palVal)}">
+    <label class="fa-opt2" id="base-pal-confirm-wrap" style="${lowBand ? '' : 'display:none'}"><input type="checkbox" id="base-pal-confirm"${d.palExceptionConfirmed === true && num(d.palBasal) === palNum ? ' checked' : ''}> <span>${esc(t('fa.palConfirm'))}</span></label>
+  </div>
+  <div class="pend-actions"><button type="button" class="btn-ghost" id="base-back">${esc(t('base.back'))}</button><button type="button" class="btn-primary" id="base-next">${esc(t('base.continue'))}</button></div>`;
+}
+/* La categoría (re)propone el multiplicador con la MISMA regla de
+   AUTH-138 (faPalAutoApply sobre un «select» mínimo): lo tecleado
+   a mano no se pisa jamás. La caja menta y la confirmación de la
+   banda baja se re-sincronizan en el mismo gesto. */
+function basePalSyncFlow() {
+  const pal = $('base-pal'); if (!pal) return;
+  const stub = { value: BASE_FLOW.act ? String(BASE_FLOW.act) : '' };
+  faPalAutoApply(stub, pal);
+  faPalTrack(pal, stub);
+  const mint = $('base-mint');
+  if (mint) {
+    const b = mint.querySelector('b');
+    if (b) b.textContent = t('base.multTitle', { v: pal.value.trim() || '—' });
+  }
+  const wrap = $('base-pal-confirm-wrap');
+  if (wrap) { const v = num(pal.value); wrap.style.display = (pal.value.trim() !== '' && v >= 1.20 && v < 1.40) ? '' : 'none'; }
+}
+function basePrivHTML() {
+  const cur = (typeof MY_ENERGY !== 'undefined' && MY_ENERGY && MY_ENERGY.sex)
+    ? `<div class="fa-current">${t('fa.current', { v: t(MY_ENERGY.sex === 'female' ? 'fa.female' : 'fa.male') })}</div>` : '';
+  const sel = BASE_FLOW.selSex;
+  return `${baseStepperHTML('privado')}<h3 class="base-h">${esc(t('base.privTitle'))}</h3>
+  <div class="fa-privcard base-privcard">
+    <p class="fa-sextext">${t('fa.sexBody')}</p>
+    ${cur}
+    <div class="base-opts">
+      <button type="button" class="base-opt-row${sel === 'female' ? ' sel' : ''}" data-base-sex="female">${esc(t('fa.female'))}</button>
+      <button type="button" class="base-opt-row${sel === 'male' ? ' sel' : ''}" data-base-sex="male">${esc(t('fa.male'))}</button>
+    </div>
+    <div class="fa-locknote">🔒 ${t('fa.lockNote')}</div>
+  </div>
+  <div class="pend-actions"><button type="button" class="btn-ghost" id="base-back">${esc(t('base.back'))}</button><button type="button" class="btn-primary" id="base-next">${esc(t('base.continue'))}</button></div>`;
+}
+function baseObjExtraHTML() {
+  const foc = BASE_FLOW.selFocus;
+  if (foc === 'recomposicion') return `<label class="fa-opt2 base-extra"><input type="checkbox" id="base-strength"> <span>${esc(t('gfocus.strengthLabel'))}</span></label>`;
+  if (foc === 'competencia' && gmFocusOf(UDATA).focus !== 'competencia')
+    return `<label class="base-flabel">${esc(t('gfocus.compDateLabel'))}</label><input type="date" class="base-input" id="base-comp-date" value="${esc(BASE_FLOW.compDate || '')}">`;
+  return '';
+}
+function baseObjHTML() {
+  const selObj = BASE_FLOW.selObj, selFocus = BASE_FLOW.selFocus;
+  const objRows = ['mantener', 'bajar', 'ganar'].map(o => `<button type="button" class="base-choice${selObj === o ? ' sel' : ''}" data-base-obj="${o}"><span class="base-choice-t">${esc(t('base.obj.' + o))}${BASE_FLOW.objAtOpen === o ? `<span class="base-chip amber">${esc(t('base.already'))}</span>` : ''}</span><span class="base-choice-d">${esc(t('base.objD.' + o))}</span></button>`).join('');
+  const focRows = ['general', 'recomposicion', 'competencia'].map(f => `<button type="button" class="base-choice${selFocus === f ? ' sel' : ''}" data-base-focus="${f}"><span class="base-choice-t">${esc(t('gfocus.opt.' + f))}</span><span class="base-choice-d">${esc(t('base.focusD.' + f))}</span></button>`).join('');
+  return `${baseStepperHTML('objetivo')}<h3 class="base-h">${esc(t('base.objTitle'))}</h3>
+  <label class="base-flabel">${esc(t('base.objField'))}</label>
+  <div class="base-choices">${objRows}</div>
+  <label class="base-flabel">${esc(t('base.focusField'))}</label>
+  <div class="base-choices">${focRows}</div>
+  <div id="base-obj-extra">${baseObjExtraHTML()}</div>
+  <div class="base-mint"><b>${esc(t('base.eqBornTitle'))}</b><span>${esc(t('base.eqBornBody'))}</span></div>
+  <div class="pend-actions"><button type="button" class="btn-ghost" id="base-back">${esc(t('base.back'))}</button><button type="button" class="btn-primary" id="base-activate">${esc(t('base.calcBtn'))}</button></div>
+  <p class="base-oknote center">${esc(t('base.calcNote'))}</p>`;
+}
+function baseDoneListHTML(st) {
+  const items = [];
+  const today = todayISO();
+  if (st.done.peso) items.push(st.done.peso.date === today ? t('base.doneWeightToday', { w: fmtMass(st.done.peso.kg) }) : t('base.doneWeightDate', { w: fmtMass(st.done.peso.kg), d: dateName(st.done.peso.date) }));
+  if (st.done.estatura) items.push(t('base.doneHeight', { h: baseHeightText(st.done.estatura) }));
+  if (st.done.anio) items.push(t('base.doneBy', { y: st.done.anio }));
+  if (st.done.actividad) items.push(t('base.doneAct', { a: st.done.actividad.cat ? t('base.actShort' + st.done.actividad.cat) : '—' }));
+  if (st.done.privado) items.push(t('base.donePriv'));
+  if (st.done.objetivo) items.push(t('base.doneObj', { o: t('gm.obj.' + st.done.objetivo) }));
+  if (!items.length) return '';
+  return `<p class="base-done-h">${esc(t('base.doneHead'))}</p><ul class="base-done">${items.map(i => `<li>✓ ${esc(i)}</li>`).join('')}</ul>`;
+}
+function baseFaltaHTML() {
+  const m = BASE_FLOW.miss || { piece: 'privado', fields: [] };
+  const st = baseMyState();
+  let title = '', desc = '', btn = '', step = 'datos';
+  if (m.piece === 'peso') { title = t('base.missWeightT'); desc = t('base.missWeightD'); btn = t('base.missWeightBtn'); step = 'peso'; }
+  else if (m.piece === 'datos') {
+    title = t('base.missDataT');
+    desc = m.calcErr && FA_CALC_ERR ? t('fa.calcInvalid', { cause: t(FA_CALC_ERR.key, FA_CALC_ERR.params || {}) })
+      : t('base.missDataD', { list: (m.fields || []).map(f => t('base.field.' + ({ estatura: 'height', anio: 'by', actividad: 'act' }[f] || f))).join(', ') });
+    btn = t('base.missDataBtn'); step = 'datos';
+  }
+  else if (m.piece === 'privado') { title = t('base.missPrivT'); desc = t('base.missPrivD'); btn = t('base.missPrivBtn'); step = 'privado'; }
+  else if (m.piece === 'objetivo') { title = t('base.missObjT'); desc = t('base.missObjD'); btn = t('base.missObjBtn'); step = 'objetivo'; }
+  else { title = t('base.missCalcT'); desc = t('fa.missPending'); btn = t('base.missCalcBtn'); step = 'datos'; }
+  return `${baseStepperHTML('calc')}<h3 class="base-h">${esc(t('base.missTitle'))}</h3>
+  <div class="base-misscard"><b>${esc(title)}</b><span>${esc(desc)}</span></div>
+  ${baseDoneListHTML(st)}
+  <div class="pend-actions"><button type="button" class="btn-primary" id="base-goto" data-step="${step}">${esc(btn)}</button></div>
+  <p class="base-oknote center">${esc(t(m.piece === 'objetivo' ? 'base.missNoteObj' : 'base.missNote'))}</p>`;
+}
+function baseListoHTML() {
+  if (BASE_FLOW.held || BASE_FLOW.pendingFocus) {
+    const a = (typeof MY_ASMT !== 'undefined' && MY_ASMT && MY_ASMT.doc) || {};
+    const res = typeof a.tdeeKcal === 'number' ? `<div class="base-okcard"><b>${esc(t('fa.myResult', { rmr: fmt(faRound10(a.rmrKcal)), tdee: fmt(faRound10(a.tdeeKcal)), u: t('fa.kcalDay'), eq: faEqName(a.equationUsed) }))}</b></div>` : '';
+    return `${baseStepperHTML('calc')}<h3 class="base-h">${esc(t('base.heldTitle'))}</h3>
+    ${res}
+    <p class="base-body">${esc(t(BASE_FLOW.pendingFocus ? 'base.pendBody' : 'base.heldBody'))}</p>
+    <div class="pend-actions"><button type="button" class="btn-primary" id="base-close2">${esc(t('base.close'))}</button></div>`;
+  }
+  const g = (typeof GOALS !== 'undefined' && GOALS) || {};
+  const row = (k, raw, txt) => raw != null && isFinite(Number(raw)) ? `<div class="base-grow"><span>${esc(t('base.g.' + k))}</span><b>${txt}</b></div>` : '';
+  const obj = (typeof UDATA !== 'undefined' && UDATA && UDATA.goalObjective) || '';
+  const foc = (typeof gmFocusOf === 'function') ? gmFocusOf(UDATA).focus : 'general';
+  const objPhrase = obj ? (p => p.charAt(0).toLowerCase() + p.slice(1))(t('gm.obj.' + obj)) : '';
+  return `${baseStepperHTML('calc')}<h3 class="base-h">${esc(t('base.readyTitle'))}</h3>
+  <p class="base-body">${esc(t('base.readySub'))}</p>
+  <div class="base-gcard"><p class="base-gtitle">${esc(t('base.readyCard'))}</p>
+    ${row('kcal', g.kcal, g.kcal != null ? fmt(g.kcal) + ' kcal' : '')}
+    ${row('prot', g.prot, g.prot != null ? fmt(g.prot) + ' g' : '')}
+    ${row('carb', g.carb, g.carb != null ? fmt(g.carb) + ' g' : '')}
+    ${row('azuc', g.azuc, g.azuc != null ? t('base.sugarVal', { n: fmt(g.azuc) }) : '')}
+    ${row('gras', g.gras, g.gras != null ? fmt(g.gras) + ' g' : '')}
+  </div>
+  <p class="base-oknote">${esc(t('base.readyFoot', { obj: objPhrase, foc: t('gfocus.opt.' + foc) }))}</p>
+  <p class="base-oknote">${esc(t('base.readyNote'))}</p>
+  ${((UDATA && UDATA.goalsProvenance && UDATA.goalsProvenance.heldParams) || []).length ? `<p class="base-oknote">${esc(t('base.heldBody'))}</p>` : ''}
+  <div class="pend-actions"><button type="button" class="btn-primary" id="base-goals">${esc(t('base.readyGo'))}</button></div>`;
+}
+function baseFlowRender() {
+  const bd = $('base-body'); if (!bd || !BASE_FLOW) return;
+  const st = BASE_FLOW.step;
+  bd.innerHTML = st === 'peso' ? basePesoHTML()
+    : st === 'datos' ? baseDatosHTML()
+    : st === 'privado' ? basePrivHTML()
+    : st === 'objetivo' ? baseObjHTML()
+    : st === 'falta' ? baseFaltaHTML()
+    : baseListoHTML();
+  bd.querySelectorAll('[data-base-act]').forEach(b => b.onclick = () => {
+    BASE_FLOW.act = parseInt(b.dataset.baseAct, 10);
+    bd.querySelectorAll('[data-base-act]').forEach(x => x.classList.toggle('sel', x === b));
+    const mint = $('base-mint'); if (mint) mint.style.display = '';
+    basePalSyncFlow();
+  });
+  const pal = $('base-pal');
+  if (pal) pal.addEventListener('input', () => basePalSyncFlow());
+  bd.querySelectorAll('[data-base-sex]').forEach(b => b.onclick = () => {
+    BASE_FLOW.selSex = b.dataset.baseSex;
+    bd.querySelectorAll('[data-base-sex]').forEach(x => x.classList.toggle('sel', x === b));
+  });
+  bd.querySelectorAll('[data-base-obj]').forEach(b => b.onclick = () => {
+    BASE_FLOW.selObj = b.dataset.baseObj;
+    bd.querySelectorAll('[data-base-obj]').forEach(x => x.classList.toggle('sel', x === b));
+  });
+  bd.querySelectorAll('[data-base-focus]').forEach(b => b.onclick = () => {
+    BASE_FLOW.selFocus = b.dataset.baseFocus;
+    bd.querySelectorAll('[data-base-focus]').forEach(x => x.classList.toggle('sel', x === b));
+    const ex = $('base-obj-extra'); if (ex) ex.innerHTML = baseObjExtraHTML();
+    const cd = $('base-comp-date'); if (cd) cd.onchange = () => { BASE_FLOW.compDate = cd.value; };
+  });
+  const cd0 = $('base-comp-date'); if (cd0) cd0.onchange = () => { BASE_FLOW.compDate = cd0.value; };
+  const nw = $('base-new-weight'); if (nw) nw.onclick = () => { baseFlowClose(); openWeightModal(null); };
+  const bk = $('base-back'); if (bk) bk.onclick = () => { BASE_FLOW.step = BASE_FLOW.step === 'objetivo' ? 'privado' : BASE_FLOW.step === 'privado' ? 'datos' : 'peso'; baseFlowRender(); };
+  const nx = $('base-next'); if (nx) nx.onclick = () => baseFlowNext();
+  const ac = $('base-activate'); if (ac) ac.onclick = () => baseActivate();
+  const gt = $('base-goto'); if (gt) gt.onclick = () => { BASE_FLOW.step = gt.dataset.step || 'datos'; baseFlowRender(); };
+  const gl = $('base-goals'); if (gl) gl.onclick = () => { baseFlowClose(); switchTab('track'); scroll('rings'); };
+  const cl = $('base-close2'); if (cl) cl.onclick = () => baseFlowClose();
+}
+async function baseFlowNext() {
+  if (!BASE_FLOW || BASE_FLOW.busy) return;
+  const uid = auth.currentUser.uid;
+  if (BASE_FLOW.step === 'peso') {
+    if (!baseLastWeight()) {
+      const inp = $('base-weight');
+      const wDisp = inp ? num(inp.value) : 0;
+      const wCanon = massToCanonical(wDisp);
+      if (!(wDisp > 0) || !(wCanon >= 20 && wCanon <= 400)) { toast(t('units.errWeightRange'), true); return; }
+      BASE_FLOW.busy = true;
+      try {
+        const date = todayISO();
+        const data = { ownerUid: uid, date, weight: wCanon, weightOriginal: wDisp, weightUnitOriginal: UNIT_PREFS.mass, fat: 0, muscle: 0, water: 0, visceral: 0, notes: '', updatedAt: serverTimestamp() };
+        await setDoc(doc(db, 'nutrition_weight', uid + '_' + date), data);
+        WEIGHTS.push({ id: uid + '_' + date, date, weight: wCanon, weightOriginal: wDisp, weightUnitOriginal: UNIT_PREFS.mass, fat: 0, muscle: 0, water: 0, visceral: 0, notes: '' });
+        WEIGHTS.sort((a, b) => a.date < b.date ? -1 : 1);
+        toast(t('msg.weightSaved'));
+      } catch (e) { failToast(e); BASE_FLOW.busy = false; return; }
+      BASE_FLOW.busy = false;
+    }
+    BASE_FLOW.step = 'datos'; baseFlowRender(); return;
+  }
+  if (BASE_FLOW.step === 'datos') {
+    const byRaw = ($('base-by') && $('base-by').value.trim()) || '', hRaw = ($('base-h') && $('base-h').value.trim()) || '', palRaw = ($('base-pal') && $('base-pal').value.trim()) || '';
+    const payload = { updatedAt: serverTimestamp(), updatedBy: uid };
+    if (byRaw) { const by = parseInt(byRaw, 10), maxY = new Date().getFullYear() - 18; if (!Number.isInteger(by) || by < 1900 || by > maxY) { toast(t('fa.errBy', { max: maxY }), true); return; } payload.birthYear = by; }
+    if (hRaw) { const h = parseHeightInput(hRaw); if (h == null) { toast(t('units.errHeightParse'), true); return; } if (!(h >= 50 && h <= 250)) { toast(t('fa.errH'), true); return; } payload.heightCm = h; payload.heightOriginal = UNIT_PREFS.height === 'ft-in' ? uRound1(h / UNIT_IN_CM) : h; payload.heightUnitOriginal = UNIT_PREFS.height === 'ft-in' ? 'ft-in' : 'cm'; }
+    if (BASE_FLOW.act) payload.activityCategoryId = BASE_FLOW.act;
+    if (palRaw) { const p = num(palRaw); if (!(p >= 1.20 && p <= 2.00)) { toast(t('fa.errPal'), true); return; } if (p < 1.40 && !($('base-pal-confirm') && $('base-pal-confirm').checked)) { toast(t('fa.errConfirm'), true); return; } payload.palBasal = p; payload.palExceptionConfirmed = p < 1.40; }
+    if (Object.keys(payload).length > 2) {
+      BASE_FLOW.busy = true;
+      try {
+        await setDoc(doc(db, 'users', uid, 'assessment', 'current'), payload, { merge: true });
+        MY_ASMT.doc = { ...((typeof MY_ASMT !== 'undefined' && MY_ASMT && MY_ASMT.doc) || {}), ...payload };
+      } catch (e) { failToast(e); BASE_FLOW.busy = false; return; }
+      BASE_FLOW.busy = false;
+    }
+    BASE_FLOW.step = 'privado'; baseFlowRender(); return;
+  }
+  if (BASE_FLOW.step === 'privado') {
+    const sel = BASE_FLOW.selSex;
+    if (sel && sel !== ((typeof MY_ENERGY !== 'undefined' && MY_ENERGY) ? MY_ENERGY.sex : null)) {
+      BASE_FLOW.busy = true;
+      try {
+        const data = { sexForCalc: sel, purposeVersion: FA_PURPOSE_VERSION, updatedAt: serverTimestamp() };
+        if (!MY_ENERGY.sex) data.providedAt = serverTimestamp();
+        await setDoc(doc(db, 'users', uid, 'energyPrivate', 'sex'), data, { merge: true });
+        MY_ENERGY = { state: 'ok', sex: sel };
+        await faSyncSignal(uid);
+      } catch (e) { failToast(e); BASE_FLOW.busy = false; return; }
+      BASE_FLOW.busy = false;
+    }
+    BASE_FLOW.step = 'objetivo'; baseFlowRender(); return;
+  }
+}
+async function baseActivate() {
+  if (!BASE_FLOW || BASE_FLOW.busy) return;
+  const uid = auth.currentUser.uid;
+  const obj = BASE_FLOW.selObj, foc = BASE_FLOW.selFocus;
+  /* Las puertas del enfoque, con las MISMAS reglas de gmFocusTap:
+     recomposición exige objetivo «bajar» y la confirmación expresa
+     de fuerza; competencia exige entrenador asignado y su fecha, y
+     nace pendiente del entrenador (nunca se activa sola). */
+  if (foc === 'recomposicion') {
+    if (obj !== 'bajar') { toast(t('gfocus.recompNeedBajar'), true); return; }
+    const ok = $('base-strength'); if (!ok || !ok.checked) { toast(t('gfocus.strengthNeed'), true); return; }
+  }
+  if (foc === 'competencia' && gmFocusOf(UDATA).focus !== 'competencia') {
+    if (!gmFocusAssigned(UDATA)) { toast(t('gfocus.compNeedTrainer'), true); return; }
+    const inp = $('base-comp-date'); const date = inp ? inp.value : '';
+    if (!/^\d{4}-\d{2}-\d{2}$/.test(date || '')) { toast(t('gfocus.compDateLabel'), true); return; }
+    BASE_FLOW.compDate = date;
+  }
+  BASE_FLOW.busy = true;
+  try {
+    if (obj && obj !== (UDATA.goalObjective || '')) {
+      await setDoc(doc(db, 'users', uid), { goalObjective: obj }, { merge: true });
+      UDATA.goalObjective = obj;
+    }
+    if (foc !== gmFocusOf(UDATA).focus) {
+      const prev = UDATA.goalFocus || null;
+      const keep = { decidedBy: prev ? (prev.decidedBy ?? null) : null, decidedAt: prev ? (prev.decidedAt ?? null) : null };
+      const gf = foc === 'general'
+        ? { focus: 'general', status: 'active', declaredAt: serverTimestamp(), strengthConfirmed: null, competition: null, ...keep, updatedAt: serverTimestamp() }
+        : foc === 'recomposicion'
+          ? { focus: 'recomposicion', status: 'active', declaredAt: serverTimestamp(), strengthConfirmed: true, competition: null, ...keep, updatedAt: serverTimestamp() }
+          : { focus: 'competencia', status: 'pending-trainer', declaredAt: serverTimestamp(), strengthConfirmed: null, competition: { date: BASE_FLOW.compDate, phase: null, phaseObjective: null, checkinEveryDays: null }, decidedBy: null, decidedAt: null, updatedAt: serverTimestamp() };
+      await gmFocusWrite(gf, { kind: 'focus', date: BASE_FLOW.compDate || null, foundedValue: prev ? prev.focus : 'general', chosenValue: foc, gate: foc === 'competencia' ? 'pending' : 'direct' });
+    }
+  } catch (e) { failToast(e); BASE_FLOW.busy = false; return; }
+  await baseFinish();
+  if (BASE_FLOW) BASE_FLOW.busy = false;
+}
+/* D3: el remate del viaje — con todo dado, el cálculo de energía y
+   el motor de metas corren en el mismo gesto; si falta una pieza,
+   la pantalla la nombra con su botón directo a ese paso. */
+async function baseFinish() {
+  const st = baseMyState();
+  if (st.missing.length) {
+    const first = st.missing[0];
+    BASE_FLOW.miss = first === 'peso' ? { piece: 'peso', fields: [] }
+      : first === 'privado' ? { piece: 'privado', fields: [] }
+      : first === 'objetivo' ? { piece: 'objetivo', fields: [] }
+      : { piece: 'datos', fields: st.missing.filter(x => ['estatura', 'anio', 'actividad'].includes(x)) };
+    BASE_FLOW.step = 'falta'; baseFlowRender(); return;
+  }
+  FA_CALC_ERR = null;
+  await faComputeMine(auth.currentUser.uid);
+  if (FA_CALC_ERR) { BASE_FLOW.miss = { piece: 'datos', fields: [], calcErr: true }; BASE_FLOW.step = 'falta'; baseFlowRender(); return; }
+  await goalsEngineRun('base');
+  const a = (typeof MY_ASMT !== 'undefined' && MY_ASMT && MY_ASMT.doc) || null;
+  if (a && faHasResult(a) && typeof hasAnyGoal === 'function' && hasAnyGoal()) {
+    BASE_FLOW.step = 'listo'; baseFlowRender();
+    try { pendRefreshAfterSave(); } catch {}
+    return;
+  }
+  if (a && faHasResult(a)) {
+    const fx = (typeof gmFocusEffective === 'function') ? gmFocusEffective(UDATA) : null;
+    const prov = (typeof UDATA !== 'undefined' && UDATA && UDATA.goalsProvenance) || null;
+    if (fx && fx.focus === 'competencia' && fx.status === 'pending-trainer') { BASE_FLOW.pendingFocus = true; BASE_FLOW.step = 'listo'; baseFlowRender(); return; }
+    if (prov && (prov.heldParams || []).length) { BASE_FLOW.held = true; BASE_FLOW.step = 'listo'; baseFlowRender(); return; }
+  }
+  BASE_FLOW.miss = { piece: 'calc', fields: [] };
+  BASE_FLOW.step = 'falta'; baseFlowRender();
+}
+
+/* ================================================================
+   D5 · EL AVISO QUE LEE EL DATO VIVO (punto 106; maqueta 6).
+   El estado de la base de UN alumno cualquiera, leído en vivo al
+   abrir la hoja y OTRA VEZ justo antes de enviar: assessment +
+   su último pesaje + su objetivo. El correo se compone SOLO con
+   fragmentos fijos de la casa (baseMailCompose — el Worker compone
+   el MISMO texto con los mismos fragmentos y el mismo payload
+   validado; la batería exige igualdad carácter a carácter entre
+   la vista previa y lo que el Worker envía). Si ya no falta nada,
+   NO se envía: la hoja lo dice («su cálculo nace cuando abra la
+   app»). Sin lectura posible, null: la hoja cae al banco fijo de
+   siempre, sin inventar causas. ================================================================ */
+async function baseStateForStudent(uid) {
+  try {
+    let d = null;
+    try { const s = await getDoc(doc(db, 'users', uid, 'assessment', 'current')); if (s.exists()) d = s.data(); } catch { return null; }
+    d = d || {};
+    let last = null;
+    try {
+      const ws = await getDocs(query(collection(db, 'nutrition_weight'), where('ownerUid', '==', uid)));
+      ws.forEach(x => { const v = x.data(); if (v.ownerUid === uid && num(v.weight) > 0 && v.date && (!last || v.date > last.date)) last = { kg: num(v.weight), date: v.date }; });
+    } catch { return null; }
+    const u = nudgeStudentDoc(uid) || {};
+    if (last) last = { kg: last.kg, date: last.date, today: last.date === todayISO() };
+    const by = parseInt(d.birthYear, 10);
+    const missing = [], done = {};
+    if (!last) missing.push('peso'); else done.peso = last;
+    if (!(num(d.heightCm) >= 50 && num(d.heightCm) <= 250)) missing.push('estatura'); else done.estatura = num(d.heightCm);
+    if (!(Number.isInteger(by) && by >= 1900 && by <= new Date().getFullYear() - 18)) missing.push('anio'); else done.anio = by;
+    const pal = num(d.palBasal);
+    if (!(pal >= 1.20 && pal <= 2.00)) missing.push('actividad'); else done.actividad = { cat: parseInt(d.activityCategoryId, 10) || null };
+    if (d.sexDataProvided !== true) missing.push('privado'); else done.privado = true;
+    if (!['mantener', 'bajar', 'ganar'].includes(u.goalObjective || '')) missing.push('objetivo'); else done.objetivo = u.goalObjective;
+    return { missing, done };
+  } catch { return null; }
+}
+/* El payload cerrado que viaja al Worker: solo piezas del conjunto
+   cerrado y valores ya validados por la app; el Worker REVALIDA
+   cada campo contra sus propios rangos antes de componer. */
+function baseMailPayload(st) {
+  if (!st) return null;
+  const p = { missing: st.missing.slice() };
+  if (st.done.peso) p.peso = { kg: Math.round(st.done.peso.kg * 10) / 10, date: st.done.peso.date, today: st.done.peso.today === true };
+  if (st.done.estatura) p.estatura = st.done.estatura;
+  if (st.done.anio) p.anio = st.done.anio;
+  if (st.done.actividad && st.done.actividad.cat) p.actividad = st.done.actividad.cat;
+  if (st.done.objetivo) p.objetivo = st.done.objetivo;
+  return p;
+}
+const BASE_MAIL_ORDER = ['peso', 'estatura', 'anio', 'actividad', 'privado', 'objetivo'];
+function baseMailBtnFor(first) {
+  return first === 'peso' ? ['base.mail.btnPeso', 'peso']
+    : first === 'privado' ? ['base.mail.btnPrivado', 'privado']
+    : first === 'objetivo' ? ['base.mail.btnObjetivo', 'objetivo']
+    : ['base.mail.btnDatos', 'datos'];
+}
+/* Compone {subject, body} con los fragmentos fijos (claves
+   base.mail.* del idioma DEL ALUMNO). Espejo exacto del Worker. */
+function baseMailCompose(sub, st, lang, name, trainer) {
+  const tt = (k, params) => { let d = (STR[lang] || {})[k]; if (d === undefined) d = (STR.en || {})[k]; if (d === undefined) d = k; if (params) for (const x in params) d = d.split('{' + x + '}').join(params[x]); return d; };
+  /* El correo viaja en unidades CANÓNICAS (kg y cm del payload):
+     el Worker no conoce las preferencias de unidad de nadie y la
+     vista previa debe ser carácter a carácter lo que él envía. */
+  const kgTxt = v => (Math.round(v * 10) / 10) + ' kg';
+  const missing = BASE_MAIL_ORDER.filter(x => (st.missing || []).includes(x));
+  const first = missing[0];
+  const lines = [tt('base.mail.hello', { name })];
+  if (missing.length === 1) {
+    lines.push(tt('base.mail.oneHead', { piece: tt('base.mail.pieceName.' + first) }));
+    if (first === 'privado') lines.push(tt('base.mail.privLine'));
+  } else {
+    lines.push(tt('base.mail.multiHead'));
+    for (const m of missing) lines.push('· ' + tt('base.mail.pieceName.' + m));
+    if (missing.includes('privado')) lines.push(tt('base.mail.privLine'));
+  }
+  const doneItems = [];
+  const dd = st.done || {};
+  if (dd.peso) doneItems.push(dd.peso.today ? tt('base.mail.donePesoToday', { w: kgTxt(dd.peso.kg) }) : tt('base.mail.donePesoDate', { w: kgTxt(dd.peso.kg), d: dateName(dd.peso.date) }));
+  if (dd.estatura && dd.anio) doneItems.push(tt('base.mail.doneHeightBy'));
+  else { if (dd.estatura) doneItems.push(tt('base.mail.doneHeight', { h: dd.estatura + ' cm' })); if (dd.anio) doneItems.push(tt('base.mail.doneBy', { y: dd.anio })); }
+  if (dd.actividad) doneItems.push(tt('base.mail.doneAct'));
+  if (dd.privado) doneItems.push(tt('base.mail.donePriv'));
+  if (dd.objetivo) { const on = tt('gm.obj.' + dd.objetivo); doneItems.push(tt('base.mail.doneObj', { o: on.charAt(0).toLowerCase() + on.slice(1) })); }
+  if (doneItems.length) { lines.push(tt('base.mail.doneHead')); for (const i of doneItems) lines.push('✓ ' + i); }
+  const [btnKey, step] = baseMailBtnFor(first);
+  lines.push('[ ' + tt(btnKey) + ' ] → https://fit.ronbo.store/?base=' + step);
+  lines.push(tt('base.mail.sign'));
+  return { subject: tt(sub === 'goal' ? 'base.mail.subjGoal' : 'base.mail.subjEval'), body: lines.join('\n\n') };
 }
 
 async function openClient(uid) {
@@ -15165,7 +16186,7 @@ async function aiCall(path, body) {
 function promiseWithTimeout(p, ms) {
   return Promise.race([p, new Promise((_, reject) => setTimeout(() => reject(new Error('timeout')), ms))]);
 }
-async function mailSend(uid, template, langOverride) {
+async function mailSend(uid, template, langOverride, extra) {
   const ep = aiEndpoint();
   if (!ep) return { ok: false, status: 0, error: 'no-endpoint' };
   let idToken = '';
@@ -15173,9 +16194,15 @@ async function mailSend(uid, template, langOverride) {
   const ctl = new AbortController();
   const timer = setTimeout(() => { try { ctl.abort(); } catch {} }, 30000);
   try {
+    /* D5 (punto 106): extra.base es el payload CERRADO del estado
+       vivo de la base (baseMailPayload); solo viaja en los avisos
+       de evaluación/metas y el Worker lo revalida entero antes de
+       componer — cualquier otro envío va byte a byte como siempre. */
+    const payload = { idToken, uid, template, lang: (langOverride === 'en' || langOverride === 'es') ? langOverride : LANG };
+    if (extra && extra.base) payload.base = extra.base;
     const r = await fetch(ep + '/mail/send', {
       method: 'POST', headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ idToken, uid, template, lang: (langOverride === 'en' || langOverride === 'es') ? langOverride : LANG }),
+      body: JSON.stringify(payload),
       signal: ctl.signal
     });
     let j = null; try { j = await r.json(); } catch {}
@@ -15921,6 +16948,13 @@ function captureSignupLinks() {
        sección donde sube sus fotos. Solo se acepta el valor exacto
        «1»; cualquier otro valor se ignora y no se captura nada. */
     if (q.get('fotos') === '1') { try { sessionStorage.setItem('rf-link-fotos', '1'); } catch {} captured = true; }
+    /* D5 (punto 106): el enlace del aviso de la base (?base=peso|
+       datos|privado|objetivo) se captura con el MISMO patrón: solo
+       el conjunto cerrado de pasos; sobrevive al inicio de sesión
+       y el flujo lo consume UNA vez (baseLinkApply, tras la carga)
+       abriendo «Completa tu base» en ese paso exacto. */
+    const base = q.get('base');
+    if (base && ['peso', 'datos', 'privado', 'objetivo'].includes(base)) { try { sessionStorage.setItem('rf-link-base', base); } catch {} captured = true; }
     if (captured) { try { history.replaceState(null, '', location.pathname); } catch {} }
   } catch {}
 }
@@ -31227,6 +32261,7 @@ setInterval(() => { try { pendDockTick(); } catch {} }, 60000);
           else if (route === 'perms-bt') { const pb = $('btn-perms'); if (pb && !permsOpen) pb.click(); const bd = $('bt-details'); if (bd) bd.open = true; const gb = $('btn-bt-grant'); if (gb) { try { gb.scrollIntoView({ behavior: 'smooth', block: 'center' }); } catch {} } else scroll('bt-section'); }
           else if (route === 'goals') { switchTab('track'); scroll('rings'); }
           else if (route === 'goals-setup') { switchTab('track'); scroll('goals-engine'); const pb2 = $('btn-perms'); if (pb2 && !permsOpen) pb2.click(); scroll('energy-section'); }
+          else if (route === 'base-flow') { baseFlowOpen(); }
           else if (route === 'clients') { switchTab('clients'); }
           else if (route === 'admin-pending') { apprFloatOpen(); }
           else if (route === 'admin-membership') { switchTab('trainers'); scroll('membership-admin-box'); }
@@ -32402,7 +33437,7 @@ document.addEventListener('keydown', e => { if (e.key === 'Escape') shareClose()
  *  - El SW (sw.js) solo cachea la cáscara del mismo origen en modo
  *    RED PRIMERO: Auth/Firestore/Worker jamás pasan por la caché.
  * ================================================================ */
-const PWA_SW_VERSION = '20261102-ficha-dia';
+const PWA_SW_VERSION = '20261102-simplificar-base';
 let pwaDeferredPrompt = null;
 function pwaIsStandalone() {
   try {

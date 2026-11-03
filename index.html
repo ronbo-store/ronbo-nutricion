@@ -21,7 +21,7 @@
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-title" content="RONBO FIT">
 <meta name="apple-mobile-web-app-status-bar-style" content="default">
-<link rel="stylesheet" href="styles.css?v=20261102-ficha-dia">
+<link rel="stylesheet" href="styles.css?v=20261102-simplificar-base">
 <script defer src="https://cloud.umami.is/script.js" data-website-id="a29706d4-44a2-47cf-900a-5f74d74abfa8"></script>
 <script type="importmap">
 {
@@ -644,6 +644,19 @@
       <button type="button" class="pend-close" id="nudge-x" aria-label="Close" data-i18n-aria="client.close">✕</button>
     </div>
     <div id="nudge-body"></div>
+  </div>
+
+  <!-- SIMPLIFICACIÓN DE LA BASE (punto 106, D2/D3): el flujo único
+       «Completa tu base» — ventana flotante de la casa con el viaje
+       Peso → Datos → Privado → Objetivo → Calcular. El contenido lo
+       pinta baseFlowRender (app.js); la ✕ cierra en cualquier paso
+       y reabrir relee el estado vivo. -->
+  <div class="pend-float pend-consult" id="base-float" style="display:none" role="dialog">
+    <div class="pend-head">
+      <h2><span class="nudge-kicker" data-i18n="base.kicker">COMPLETE YOUR BASE</span></h2>
+      <button type="button" class="pend-close" id="base-x" aria-label="Close" data-i18n-aria="client.close">✕</button>
+    </div>
+    <div id="base-body"></div>
   </div>
 
   <!-- ============ PENDIENTES DE APROBACIÓN → VENTANA FLOTANTE ============
@@ -1659,6 +1672,6 @@
 <div id="toast" class="toast"></div>
 <div id="print-card" aria-hidden="true"></div>
 
-<script type="module" src="app.js?v=20261102-ficha-dia"></script>
+<script type="module" src="app.js?v=20261102-simplificar-base"></script>
 </body>
 </html>

@@ -3319,3 +3319,52 @@ body.sess-on #pend-back-chip { bottom: calc(env(safe-area-inset-bottom, 0px) + 1
 .share-opts .act-chip { position: relative; }
 .act-chip-badge { position: absolute; top: -8px; right: 8px; background: #fef3c7; color: #b45309; font-size: 9px; font-weight: 800; letter-spacing: .4px; padding: 2px 7px; border-radius: 999px; box-shadow: 0 1px 4px rgba(0,0,0,.12); pointer-events: none; }
 /* == FIN AUTH-189 == */
+/* == SIMPLIFICACIÓN DE LA BASE (punto 106, D1–D5) ==
+   El flujo «Completa tu base», la tarjeta desplegada del paso 3 de
+   la ruta, el sello «SE ACTIVA SOLA», la nota de la ecuación
+   automática y la fila de información de la ecuación. Controles de
+   la casa: grandes, visibles y diferenciados (toque ≥44 px). */
+.stu-dep-auto { background: #7c3aed; color: #fff; }
+.fa-autonote { background: #ecfdf5; border: 1px solid #a7f3d0; color: #065f46; border-radius: 10px; padding: 8px 10px; font-size: 13px; margin: 8px 0; }
+.route-base-lines { list-style: none; margin: 10px 0; padding: 10px 12px; background: #f0fdfa; border: 1px solid #99f6e4; border-radius: 12px; display: grid; gap: 7px; }
+.route-base-line { display: flex; align-items: center; gap: 8px; font-size: 13.5px; color: #134e4a; flex-wrap: wrap; }
+.route-base-chip { background: #0d9488; color: #fff; font-size: 10.5px; font-weight: 800; letter-spacing: .04em; border-radius: 999px; padding: 2px 8px; white-space: nowrap; }
+.route-base-go { width: 100%; min-height: 48px; font-size: 15px; margin-top: 2px; }
+.base-steps { display: flex; flex-wrap: wrap; align-items: center; gap: 4px; margin: 2px 0 12px; font-size: 12px; }
+.base-step { color: #94a3b8; font-weight: 600; padding: 3px 7px; border-radius: 999px; white-space: nowrap; }
+.base-step.cur { background: #0d9488; color: #fff; font-weight: 800; }
+.base-step.done { color: #0d9488; }
+.base-step-sep { color: #cbd5e1; }
+.base-h { margin: 0 0 10px; font-size: 19px; }
+.base-body { font-size: 14px; color: #334155; margin: 0 0 10px; }
+.base-flabel { display: block; font-size: 11.5px; font-weight: 800; letter-spacing: .05em; color: #64748b; margin: 14px 0 6px; }
+.base-input { width: 100%; min-height: 48px; font-size: 16px; padding: 10px 12px; border: 1.5px solid #cbd5e1; border-radius: 12px; box-sizing: border-box; background: #fff; }
+.base-okcard { display: grid; gap: 5px; background: #ecfdf5; border: 1.5px solid #6ee7b7; color: #065f46; border-radius: 14px; padding: 13px 14px; font-size: 15px; margin-bottom: 12px; }
+.base-chip { justify-self: start; background: #0d9488; color: #fff; font-size: 10.5px; font-weight: 800; letter-spacing: .04em; border-radius: 999px; padding: 2px 8px; }
+.base-chip.amber { background: #f59e0b; margin-left: 8px; }
+.base-oknote { font-size: 13px; color: #64748b; }
+.base-oknote.center { text-align: center; }
+.base-ghost { margin-top: 10px; min-height: 44px; }
+.base-acts, .base-choices, .base-opts { display: grid; gap: 8px; }
+.base-act-row, .base-opt-row, .base-choice { display: flex; align-items: center; justify-content: space-between; gap: 10px; width: 100%; min-height: 48px; padding: 11px 14px; border: 1.5px solid #cbd5e1; border-radius: 12px; background: #fff; font-size: 14.5px; color: #0f172a; text-align: left; cursor: pointer; box-sizing: border-box; }
+.base-act-row b { color: #0d9488; font-size: 14px; }
+.base-act-row.sel, .base-opt-row.sel, .base-choice.sel { border-color: #0d9488; background: #f0fdfa; box-shadow: 0 0 0 1.5px #0d9488 inset; }
+.base-choice { flex-direction: column; align-items: stretch; gap: 3px; }
+.base-choice-t { font-weight: 700; display: flex; align-items: center; flex-wrap: wrap; }
+.base-choice-d { font-size: 13px; color: #64748b; }
+.base-mint { background: #ecfdf5; border: 1.5px solid #6ee7b7; border-radius: 14px; padding: 12px 14px; margin-top: 14px; display: grid; gap: 5px; font-size: 14px; color: #065f46; }
+.base-mint span { font-size: 13px; color: #047857; }
+.base-mint .base-flabel { margin-top: 6px; color: #047857; }
+.base-extra { margin-top: 12px; font-size: 14px; }
+.base-privcard { margin-bottom: 4px; }
+.base-misscard { display: grid; gap: 5px; background: #fffbeb; border: 1.5px solid #fcd34d; color: #92400e; border-radius: 14px; padding: 13px 14px; font-size: 14.5px; margin-bottom: 12px; }
+.base-misscard span { font-size: 13.5px; color: #78350f; }
+.base-done-h { font-weight: 700; font-size: 14px; margin: 4px 0 6px; }
+.base-done { list-style: none; margin: 0 0 12px; padding: 0; display: grid; gap: 5px; font-size: 14px; color: #334155; }
+.base-gcard { background: #f8fafc; border: 1.5px solid #e2e8f0; border-radius: 14px; padding: 12px 14px; margin-bottom: 12px; }
+.base-gtitle { font-size: 11.5px; font-weight: 800; letter-spacing: .06em; color: #64748b; margin: 0 0 8px; }
+.base-grow { display: flex; justify-content: space-between; align-items: baseline; padding: 6px 0; border-top: 1px solid #e2e8f0; font-size: 15px; }
+.base-grow:first-of-type { border-top: none; }
+.base-grow b { font-size: 16px; }
+.stu-eq-row { background: #f0fdfa; }
+/* == FIN SIMPLIFICACIÓN DE LA BASE == */
