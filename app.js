@@ -3135,6 +3135,8 @@ en: {
   'eval.compMethod': 'Method / source',
   'eval.compEstimate': 'It is an estimate',
   'eval.compRegister': 'Log',
+  'eval.compNewBtn': 'Register a new measurement',
+  'eval.compNewNote': 'New measurement — the previous one stays saved above.',
   'eval.compValuePh': 'Value',
   'eval.compEstTag': 'estimate',
   'eval.compNone': 'not logged',
@@ -5805,6 +5807,8 @@ es: {
   'eval.compMethod': 'Método / origen',
   'eval.compEstimate': 'Es una estimación',
   'eval.compRegister': 'Registrar',
+  'eval.compNewBtn': 'Registrar nueva medición',
+  'eval.compNewNote': 'Nueva medición — la anterior queda guardada arriba.',
   'eval.compValuePh': 'Valor',
   'eval.compEstTag': 'estimación',
   'eval.compNone': 'sin registrar',
@@ -29630,6 +29634,8 @@ const EVAL_MEASURES = [
   { id: 'pecho', kind: 'l' }
 ];
 let EVAL_OK_MSG = '';   // confirmación transitoria tras guardar
+let EVAL_COMP_OPEN = false;   // composición clara (2026-11-02): el formulario de nueva medición nace cerrado tras su botón
+let EVAL_COMP_OK = false;     // confirmación breve dentro del bloque de composición tras registrar
 
 function evalDocRef(date) { return doc(db, 'nutrition_progress', `${auth.currentUser.uid}_${date}_eval`); }
 function evalWeightOn(date) { const r = WEIGHTS.find(w => w.date === date); return r ? r.weight : null; }
@@ -29820,10 +29826,13 @@ function evalCompHTML(S) {
     + notes.map(n => `<p class="eval-detail eval-comp-note">⚠️ ${esc(n)}</p>`).join('')
     + `<p class="eval-detail">${esc(t('eval.compMuscleNote'))}</p>`
     + (compClientCanEdit() ? '' : `<p class="eval-detail">🔒 ${esc(t('compacc.notice'))}</p>`)
-    + (compClientCanEdit() ? `<div class="eval-comp-form">`
+    + (compClientCanEdit() ? `<button type="button" class="btn-primary eval-comp-open-btn" id="eval-comp-open-btn" aria-expanded="${EVAL_COMP_OPEN ? 'true' : 'false'}">${esc(t('eval.compNewBtn'))}</button>`
+    + (EVAL_COMP_OK ? `<p class="eval-ok eval-comp-ok">${esc(t('eval.savedOk'))}</p>` : '')
+    + (EVAL_COMP_OPEN ? `<div class="eval-comp-form">`
+    + `<p class="eval-comp-new-note">${esc(t('eval.compNewNote'))}</p>`
     + `<div class="eval-comp-row"><span class="eval-comp-name">${esc(t('eval.compFat'))} (%)</span><input type="number" id="eval-comp-fat-value" min="0" step="0.1" placeholder="${esc(t('eval.compValuePh'))}"><select id="eval-comp-fat-method" aria-label="${esc(t('eval.compMethod'))}">${methodOpts}</select><label class="eval-check"><input type="checkbox" id="eval-comp-fat-est"> ${esc(t('eval.compEstimate'))}</label><button type="button" class="btn-ghost btn-sm" id="eval-comp-fat-btn">${esc(t('eval.compRegister'))}</button></div>`
     + `<div class="eval-comp-row"><span class="eval-comp-name">${esc(t('eval.compMuscle'))}</span><input type="number" id="eval-comp-muscle-value" min="0" step="0.1" placeholder="${esc(t('eval.compValuePh'))}"><select id="eval-comp-muscle-unit" aria-label="kg / %"><option value="kg">kg</option><option value="%">%</option></select><select id="eval-comp-muscle-method" aria-label="${esc(t('eval.compMethod'))}">${methodOpts}</select><label class="eval-check"><input type="checkbox" id="eval-comp-muscle-est"> ${esc(t('eval.compEstimate'))}</label><button type="button" class="btn-ghost btn-sm" id="eval-comp-muscle-btn">${esc(t('eval.compRegister'))}</button></div>`
-    + `</div>` : '')
+    + `</div>` : '') : '')
     + `</div>`;
 }
 /* ---------- Tarjeta del ciclo + formulario + configuración ---------- */
@@ -29908,6 +29917,7 @@ function renderEval() {
   const omitBtn = $('eval-omit-btn'); if (omitBtn) omitBtn.onclick = evalOmitCycle;
   const saveBtn = $('eval-save-measures'); if (saveBtn) saveBtn.onclick = evalSaveMeasures;
   const cfgBtn = $('eval-save-config'); if (cfgBtn) cfgBtn.onclick = evalSaveConfig;
+  const compOpenBtn = $('eval-comp-open-btn'); if (compOpenBtn) compOpenBtn.onclick = () => { EVAL_COMP_OPEN = !EVAL_COMP_OPEN; renderEval(); const b = $('eval-comp-open-btn'); if (b) { try { b.scrollIntoView({ block: 'nearest' }); } catch {} } };
   const fatBtn = $('eval-comp-fat-btn'); if (fatBtn) fatBtn.onclick = () => evalRegisterComp('fat');
   const musBtn = $('eval-comp-muscle-btn'); if (musBtn) musBtn.onclick = () => evalRegisterComp('muscle');
   try { renderCmpClient(); } catch {}
@@ -29971,7 +29981,10 @@ async function evalRegisterComp(kind) {
     EVALS[S] = Object.assign({}, EVALS[S] || {}, { comp });
     if (ctxC) EVALS[S].planContext = ctxC;
     EVAL_OK_MSG = t('eval.savedOk');
+    EVAL_COMP_OPEN = false;
+    EVAL_COMP_OK = true;
     renderEval();
+    setTimeout(() => { EVAL_COMP_OK = false; const ok = document.querySelector('.eval-comp-ok'); if (ok) ok.remove(); }, 3000);
   } catch { toast(t('msg.uploadFail'), true); }
 }
 async function evalSaveConfig() {
@@ -33464,7 +33477,7 @@ document.addEventListener('keydown', e => { if (e.key === 'Escape') shareClose()
  *  - El SW (sw.js) solo cachea la cáscara del mismo origen en modo
  *    RED PRIMERO: Auth/Firestore/Worker jamás pasan por la caché.
  * ================================================================ */
-const PWA_SW_VERSION = '20261102-aviso-honesto';
+const PWA_SW_VERSION = '20261102-composicion-clara';
 let pwaDeferredPrompt = null;
 function pwaIsStandalone() {
   try {

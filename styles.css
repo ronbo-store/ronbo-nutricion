@@ -3368,3 +3368,8 @@ body.sess-on #pend-back-chip { bottom: calc(env(safe-area-inset-bottom, 0px) + 1
 .base-grow b { font-size: 16px; }
 .stu-eq-row { background: #f0fdfa; }
 /* == FIN SIMPLIFICACIÓN DE LA BASE == */
+/* ═══ COMPOSICIÓN CLARA (2026-11-02): la tabla de lo guardado queda sola y el formulario de nueva medición nace cerrado tras su botón grande ═══ */
+.eval-comp-open-btn{display:block;width:100%;min-height:48px;margin-top:12px;font-size:15px}
+.eval-comp-new-note{font-weight:700;color:#0f766e;margin:0 0 2px}
+.eval-comp-ok{margin:8px 0 0}
+/* == FIN COMPOSICIÓN CLARA == */
