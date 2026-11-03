@@ -2283,8 +2283,10 @@ function careCompute(tUid, X, nowMs, th) {
     }
     if (r.answeredMs != null && r.answeredMs >= nowMs - 30 * 86400000 && r.answeredMs <= nowMs) R.respAns30++;
   });
-  (X.approvals || []).forEach(a => { if (a.ms >= nowMs - 30 * 86400000 && a.ms <= nowMs) R.appr30++; });
-  if ((X.apprWaitsH || []).length) { const s = [...X.apprWaitsH].sort((a, b) => a - b); R.apprWaitH = Math.round(s[Math.floor(s.length / 2)] * 10) / 10; }
+  const apprWin = (X.approvals || []).filter(a => a.ms >= nowMs - 30 * 86400000 && a.ms <= nowMs);
+  R.appr30 = apprWin.length;
+  const apprWaits = apprWin.map(a => a.waitH).filter(x => x != null).sort((a, b) => a - b);
+  if (apprWaits.length) R.apprWaitH = Math.round(apprWaits[Math.floor(apprWaits.length / 2)] * 10) / 10;
   (X.notices || []).forEach(n => { if (n.by === tUid) { if (n.atMs >= nowMs - 7 * 86400000) R.not7++; if (n.atMs >= nowMs - 30 * 86400000) R.not30++; } });
   (X.plansTouched || []).forEach(p => { if (p.by === tUid) { if (p.atMs >= nowMs - 7 * 86400000) R.plans7++; if (p.atMs >= nowMs - 30 * 86400000) R.plans30++; } });
   (X.paces || []).forEach(p => { if (p.by === tUid && p.atMs >= nowMs - 30 * 86400000 && p.atMs <= nowMs) R.paces30++; });
@@ -2297,7 +2299,7 @@ function careCompute(tUid, X, nowMs, th) {
       let evalOpen = false;
       s.items.forEach(it => {
         per.pend++;
-        if (it.cat === 'indis') { per.indis++; R.pendIndis++; } else { per.imp++; R.pendImp++; }
+        if (it.kind === 'req') { per.indis++; R.pendIndis++; } else { per.imp++; R.pendImp++; }
         if (it.kind === 'mealreq' && it.delayed) per.delayed = true;
         if (it.kind === 'eval') evalOpen = true;
         if (it.date) { const age = careDaysBetween(it.date, today); if (age != null && age >= 0 && (R.pendOldestDays == null || age > R.pendOldestDays)) R.pendOldestDays = age; }
@@ -2469,7 +2471,7 @@ async function careGather(scopeUid) {
   /* Alumnos del ámbito y lecturas compartidas */
   const students = usersAll.filter(u => !u.isOwner && u.approved === true && u.assignmentStatus === 'assigned' && u.trainerUid);
   const studentIds = students.map(u => u.id);
-  const wdates = {}, wByUid = {}, foodItems = {}, mealDatesByUid = {}, logsByUid = {}, planByUid = {}, plansTouched = [];
+  const wdates = {}, wByUid = {}, foodItems = {}, mealDatesByUid = {}, logsByUid = {}, planByUid = {}, plansTouched = [], allPlans = [];
   const inChunks = async (coll, field, ids, fn) => {
     for (let i = 0; i < ids.length; i += 30) {
       const part = ids.slice(i, i + 30);
@@ -2479,14 +2481,14 @@ async function careGather(scopeUid) {
     }
   };
   if (scopeUid) {
-    await inChunks('nutrition_weight', 'ownerUid', studentIds, v => { if (v.ownerUid && num(v.weight) > 0 && v.date) { (wdates[v.ownerUid] = wdates[v.ownerUid] || []).push(v.date); (wByUid[v.ownerUid] = wByUid[v.ownerUid] || []).push(v.date); } });
+    await inChunks('nutrition_weight', 'ownerUid', studentIds, v => { if (v.ownerUid && num(v.weight) > 0 && v.date) { (wdates[v.ownerUid] = wdates[v.ownerUid] || []).push({ date: v.date, weight: num(v.weight) }); (wByUid[v.ownerUid] = wByUid[v.ownerUid] || []).push(v.date); } });
     await inChunks('meal_help', 'ownerUid', studentIds, v => { if (v.status === 'pending' && v.ownerUid) (foodItems[v.ownerUid] = foodItems[v.ownerUid] || []).push({ id: v.id, createdAt: v.createdAt || null }); });
     await inChunks('nutrition_meals', 'ownerUid', studentIds, v => { if (v.ownerUid && v.date) (mealDatesByUid[v.ownerUid] = mealDatesByUid[v.ownerUid] || []).push(v.date); });
     await inChunks('training_logs', 'clientUid', studentIds, v => { if (v.clientUid) (logsByUid[v.clientUid] = logsByUid[v.clientUid] || []).push({ date: v.date, done: v.done === true, satisfaction: v.satisfaction }); });
-    await inChunks('training_plans', 'clientUid', studentIds, v => { if (v.createdBy) plansTouched.push({ by: v.createdBy, atMs: careTsMs(v.updatedAt) || careTsMs(v.createdAt) || 0 }); if (v.clientUid && v.active === true) { const cur = planByUid[v.clientUid]; if (!cur || (careTsMs(v.updatedAt) || 0) >= (careTsMs(cur.updatedAt) || 0)) planByUid[v.clientUid] = v; } });
+    await inChunks('training_plans', 'clientUid', studentIds, v => { allPlans.push(v); });
   } else {
     const ws = await getDocs(collection(db, 'nutrition_weight'));
-    ws.forEach(d => { const v = d.data(); if (v.ownerUid && num(v.weight) > 0 && v.date) { (wdates[v.ownerUid] = wdates[v.ownerUid] || []).push(v.date); (wByUid[v.ownerUid] = wByUid[v.ownerUid] || []).push(v.date); } });
+    ws.forEach(d => { const v = d.data(); if (v.ownerUid && num(v.weight) > 0 && v.date) { (wdates[v.ownerUid] = wdates[v.ownerUid] || []).push({ date: v.date, weight: num(v.weight) }); (wByUid[v.ownerUid] = wByUid[v.ownerUid] || []).push(v.date); } });
     const fs2 = await getDocs(collection(db, 'meal_help'));
     fs2.forEach(d => { const v = d.data(); if (v.status === 'pending' && v.ownerUid) (foodItems[v.ownerUid] = foodItems[v.ownerUid] || []).push({ id: d.id, createdAt: v.createdAt || null }); });
     const ms2 = await getDocs(collection(db, 'nutrition_meals'));
@@ -2494,8 +2496,17 @@ async function careGather(scopeUid) {
     const ls = await getDocs(collection(db, 'training_logs'));
     ls.forEach(d => { const v = d.data(); if (v.clientUid) (logsByUid[v.clientUid] = logsByUid[v.clientUid] || []).push({ date: v.date, done: v.done === true, satisfaction: v.satisfaction }); });
     const pl = await getDocs(collection(db, 'training_plans'));
-    pl.forEach(d => { const v = { id: d.id, ...d.data() }; if (v.createdBy) plansTouched.push({ by: v.createdBy, atMs: careTsMs(v.updatedAt) || careTsMs(v.createdAt) || 0 }); if (v.clientUid && v.active === true) { const cur = planByUid[v.clientUid]; if (!cur || (careTsMs(v.updatedAt) || 0) >= (careTsMs(cur.updatedAt) || 0)) planByUid[v.clientUid] = v; } });
+    pl.forEach(d => { allPlans.push({ id: d.id, ...d.data() }); });
   }
+  /* El plan vigente de cada alumno: activo, que no sea copia
+     (isSnapshot) y el más reciente por creación — la misma regla
+     que aplica el Worker en sus despertadores (AUTH-175). */
+  allPlans.forEach(v => {
+    if (v.createdBy) plansTouched.push({ by: v.createdBy, atMs: careTsMs(v.updatedAt) || careTsMs(v.createdAt) || 0 });
+    if (!v.clientUid || v.active !== true || v.isSnapshot === true) return;
+    const cur = planByUid[v.clientUid];
+    if (!cur || (careTsMs(v.createdAt) || 0) >= (careTsMs(cur.createdAt) || 0)) planByUid[v.clientUid] = v;
+  });
   /* Actividad del entrenador: avisos (sellos con autor y fecha),
      planes tocados y ritmos decididos — de documentos que ya existen. */
   const notices = [], paces = [];
@@ -2534,8 +2545,7 @@ async function careGather(scopeUid) {
       }),
       waiting: usersAll.filter(u => !u.isOwner && u.approved !== true && u.trainerUid === tUid).map(u => ({ createdMs: careTsMs(u.createdAt) })),
       reqs: reqsCore,
-      approvals: usersAll.filter(u => u.approvedBy === tUid && u.approved === true).map(u => ({ ms: careTsMs(u.approvedAt) })).filter(a => a.ms != null),
-      apprWaitsH: usersAll.filter(u => u.approvedBy === tUid && u.approved === true).map(u => { const a = careTsMs(u.approvedAt), c = careTsMs(u.createdAt); return (a != null && c != null && a >= c) ? (a - c) / 3600000 : null; }).filter(x => x != null),
+      approvals: usersAll.filter(u => u.approvedBy === tUid && u.approved === true).map(u => { const a = careTsMs(u.approvedAt), c = careTsMs(u.createdAt); return { ms: a, waitH: (a != null && c != null && a >= c) ? (a - c) / 3600000 : null }; }).filter(a => a.ms != null),
       notices, plansTouched, paces
     };
     const R = careCompute(tUid, X, nowMs, th);
