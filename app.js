@@ -3385,6 +3385,11 @@ en: {
   'nudge.gone': 'That pending item was just resolved — there is no need to nudge it.',
   'nudge.capped': 'This pending item was already nudged less than 7 days ago.',
   'nudge.err': 'The nudge could not be sent. Please try again.',
+  'nudge.errOff': 'The nudge did NOT go out: email sending is turned off right now.',
+  'nudge.errNotConnected': 'The nudge did NOT go out: the app email is not connected yet.',
+  'nudge.errRecipient': 'The nudge did NOT go out: we could not find a valid email for this student.',
+  'nudge.errService': 'The nudge did NOT go out: the mail service did not answer. Wait a few minutes and try again.',
+  'nudge.errNetwork': 'The nudge did NOT go out: the connection from this device failed. Check your internet and try again.',
   'pend.grp.you': 'Up to you',
   'pend.grp.trainer': 'Up to your trainer',
   'pend.grp.admin': 'Up to the administrator',
@@ -6050,6 +6055,11 @@ es: {
   'nudge.gone': 'Ese pendiente se acaba de resolver — ya no hace falta avisarlo.',
   'nudge.capped': 'Ese pendiente ya se avisó hace menos de 7 días.',
   'nudge.err': 'No se pudo enviar el aviso. Inténtalo de nuevo.',
+  'nudge.errOff': 'El aviso NO salió: el envío de correo está apagado ahora mismo.',
+  'nudge.errNotConnected': 'El aviso NO salió: el correo de la app aún no está conectado.',
+  'nudge.errRecipient': 'El aviso NO salió: no encontramos un correo válido de este alumno.',
+  'nudge.errService': 'El aviso NO salió: el servicio de correo no respondió. Espera unos minutos e inténtalo de nuevo.',
+  'nudge.errNetwork': 'El aviso NO salió: falló la conexión desde este dispositivo. Revisa tu internet e inténtalo de nuevo.',
   'pend.grp.you': 'Depende de ti',
   'pend.grp.trainer': 'Depende de tu entrenador',
   'pend.grp.admin': 'Depende del administrador',
@@ -11199,6 +11209,23 @@ async function mailRecordNudge(uid, sub) {
   }
   return ok;
 }
+/* El texto del fallo de envío, según la causa que devolvió el
+   servicio (diagnóstico del aviso a Gerwynth, 2026-11-02): hasta
+   hoy TODA causa que no fuera el tope de 7 días caía en la misma
+   frase genérica, y quien avisaba no podía distinguir un corte
+   pasajero del servicio de correo de un problema de su conexión
+   o del correo del alumno. El tope (429) y el pendiente ya
+   resuelto conservan sus textos de siempre; esto solo nombra la
+   causa en la rama restante. */
+function nudgeErrText(res) {
+  if (!res) return t('nudge.err');
+  if (res.error === 'mail-off') return t('nudge.errOff');
+  if (res.error === 'mail-not-connected' || res.error === 'templates-unavailable' || res.status === 503) return t('nudge.errNotConnected');
+  if (res.error === 'recipient-no-email' || res.error === 'recipient-not-found') return t('nudge.errRecipient');
+  if (res.error === 'gmail-token' || res.error === 'gmail-send' || res.error === 'recipient-read' || res.status === 502) return t('nudge.errService');
+  if (res.status === 0 || res.error === 'network' || res.error === 'no-token' || res.error === 'no-endpoint') return t('nudge.errNetwork');
+  return t('nudge.err');
+}
 async function nudgeSend() {
   const ctx = NUDGE_CTX; if (!ctx || ctx.sending) return;
   ctx.sending = true;
@@ -11257,7 +11284,7 @@ async function nudgeSend() {
     nudgeMsg(t('nudge.capped'));
     if (sb) sb.style.display = 'none';
   } else {
-    nudgeMsg(t('nudge.err'));
+    nudgeMsg(nudgeErrText(res));
     if (sb) { sb.disabled = false; sb.textContent = t('nudge.send'); }
   }
   ctx.sending = false;
@@ -33437,7 +33464,7 @@ document.addEventListener('keydown', e => { if (e.key === 'Escape') shareClose()
  *  - El SW (sw.js) solo cachea la cáscara del mismo origen en modo
  *    RED PRIMERO: Auth/Firestore/Worker jamás pasan por la caché.
  * ================================================================ */
-const PWA_SW_VERSION = '20261102-simplificar-base';
+const PWA_SW_VERSION = '20261102-aviso-honesto';
 let pwaDeferredPrompt = null;
 function pwaIsStandalone() {
   try {
