@@ -8808,6 +8808,10 @@ function setLang(l) {
     try { shareRelang(); } catch {}
     try { swRelang(); } catch {}
     refreshDynamic();
+    /* AUTH-2026-11-03-198: al cambiar el idioma de interfaz con la
+       sesión abierta, la nueva configuración queda GUARDADA en el
+       propio documento (lang) — es la que el correo honra. */
+    langSync();
   }
 }
 
@@ -9723,6 +9727,10 @@ onAuthStateChanged(auth, async user => {
      app ya visible (junto a las demás sincronizaciones de sesión);
      la función se auto-protege por rol y corre en silencio. */
   trainerNotifySync();
+  /* AUTH-2026-11-03-198: el idioma de interfaz queda GUARDADO en
+     el propio documento (lang) — la configuración que el correo
+     del destinatario honra. En silencio, idempotente. */
+  langSync();
   /* AUTH-2026-11-01-146: barrido de Comunicaciones al abrir la app
      del administrador (detección silenciosa; solo envía solo las
      plantillas en modo automático — el modo aprobado por Ronald
@@ -17403,7 +17411,12 @@ async function commsRunQueue(tplKey, members, ui) {
     while (run.paused && !run.stopped) { await new Promise(r => setTimeout(r, 250)); }
     if (run.stopped) break;
     if (commsTodayCount() >= COMMS_CAP) { run.capped = true; break; }
-    const res = await mailSend(m.u.id, tplKey);
+    /* AUTH-2026-11-03-198: cada correo sale en el idioma GUARDADO
+       del destinatario (su mailLang → su lang), como ya hace el
+       «✉ Avisar» desde AUTH-169 — nunca en el de la sesión que
+       envía. El Worker repite la misma cadena sobre el documento
+       y la vista previa del panel pinta ese mismo idioma. */
+    const res = await mailSend(m.u.id, tplKey, nudgeMailLangOf(m.u));
     run.done++;
     if (res.ok) { run.sent++; commsBumpToday(); await commsAnnotate(m.u.id, tplKey, res); }
     else run.failed++;
@@ -17646,7 +17659,9 @@ function commsRenderTplCard() {
     const st = $('comms-one-status');
     if (!uid) return;
     os.disabled = true;
-    const res = await mailSend(uid, key);
+    /* AUTH-2026-11-03-198: también el envío a UNA persona sale en
+       el idioma guardado de ESA persona (mailLang → lang). */
+    const res = await mailSend(uid, key, nudgeMailLangOf((COMMS.users || []).find(x => x.id === uid) || {}));
     if (res.ok) { commsBumpToday(); await commsAnnotate(uid, key, res); if (st) st.textContent = t('mail.sentOk', { email: res.to }); }
     else if (st) st.textContent = t('mail.sendFailed', { reason: commsReasonText(res) });
     os.disabled = false;
@@ -17794,7 +17809,10 @@ function commsRenderSendPanel() {
   const tpl = COMMS.templates[COMMS.selTpl];
   if (!tpl) { box.innerHTML = ''; return; }
   const first = members[0];
-  const pv = first ? commsFillPreview(tpl, LANG, first.u, first.plan) : null;
+  /* AUTH-2026-11-03-198: la vista previa se pinta en el idioma
+     guardado del primer destinatario — el correo exacto que
+     recibirá — y no en el idioma de la sesión del propietario. */
+  const pv = first ? commsFillPreview(tpl, nudgeMailLangOf(first.u), first.u, first.plan) : null;
   box.innerHTML = `<p class="progress-hint">${esc(t('comms.recipients', { n: members.length }))} · ${esc(commsTplTitle(COMMS.selTpl))} · ${esc(t('comms.todayCount', { n: commsTodayCount(), cap: COMMS_CAP }))}</p>
     ${first ? `<div class="comms-preview"><div class="muted">${esc(t('comms.previewFor', { name: first.u.name || first.u.email }))}</div><b>${esc(pv.subject)}</b><pre>${esc(pv.body)}</pre></div>
     <div class="comms-preview-list">${members.map(m => `<div class="comms-run-line">${esc(m.u.name || m.u.email)} (${esc(m.u.email)})</div>`).join('')}</div>`
@@ -18194,6 +18212,31 @@ async function trainerApproveNow(uid, name) {
      nunca llamó a mailAutoWelcome.) */
   mailAutoWelcome(uid, name);
   return { ok: true, approved: true };
+}
+/* AUTH-2026-11-03-198 · el idioma GUARDADO del propio usuario
+   (orden de Ronald, 2026-11-03: el correo a un usuario sale en
+   SU última configuración de idioma guardada en la aplicación).
+   Hasta hoy el idioma de interfaz vivía solo en localStorage y
+   el documento de casi nadie traía lang ni mailLang, así que la
+   cadena del Worker (mailLang → lang → idioma de quien envía →
+   EN) caía siempre a sus últimos peldaños: en la práctica el
+   correo seguía el idioma de la sesión que enviaba. Esta
+   sincronización perezosa e idempotente — gemela de
+   trainerNotifySync, en silencio y sin UI — guarda lang = el
+   idioma de interfaz vigente en el PROPIO documento cuando
+   falta o difiere, y no escribe nada cuando ya coincide. Jamás
+   toca mailLang: la preferencia expresa de correo se guarda al
+   cambiar su selector y manda sobre lang en la cadena. La
+   escritura va por la rama de perfil inofensivo (delta de
+   reglas de este paquete: lang admitido, valor cerrado en/es). */
+async function langSync() {
+  try {
+    const me = auth.currentUser && auth.currentUser.uid;
+    if (!me) return;
+    if (UDATA && (UDATA.lang === 'es' || UDATA.lang === 'en') && UDATA.lang === LANG) return;
+    await setDoc(doc(db, 'users', me), { lang: LANG }, { merge: true });
+    if (UDATA) UDATA = { ...UDATA, lang: LANG };
+  } catch {}
 }
 /* AUTH-072 · trainer_notify/{me}: contacto mínimo del entrenador
    (correo de su cuenta + idioma de correo) para que el Worker
@@ -34422,7 +34465,7 @@ document.addEventListener('keydown', e => { if (e.key === 'Escape') shareClose()
  *  - El SW (sw.js) solo cachea la cáscara del mismo origen en modo
  *    RED PRIMERO: Auth/Firestore/Worker jamás pasan por la caché.
  * ================================================================ */
-const PWA_SW_VERSION = '20261103-admin-todos';
+const PWA_SW_VERSION = '20261103-correo-idioma';
 let pwaDeferredPrompt = null;
 function pwaIsStandalone() {
   try {
