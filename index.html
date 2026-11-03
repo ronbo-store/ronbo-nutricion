@@ -21,7 +21,7 @@
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-title" content="RONBO FIT">
 <meta name="apple-mobile-web-app-status-bar-style" content="default">
-<link rel="stylesheet" href="styles.css?v=20261103-chequeo-limites">
+<link rel="stylesheet" href="styles.css?v=20261103-acceso-un-boton">
 <script defer src="https://cloud.umami.is/script.js" data-website-id="a29706d4-44a2-47cf-900a-5f74d74abfa8"></script>
 <script type="importmap">
 {
@@ -50,7 +50,7 @@
     </div>
     <form id="form-login">
       <label><span data-i18n="form.email">Email</span>
-        <input type="email" id="login-email" autocomplete="username" required>
+        <input type="email" id="login-email" autocomplete="username webauthn" required>
       </label>
       <label><span data-i18n="form.password">Password</span>
         <span class="pw-wrap"><input type="password" id="login-password" autocomplete="current-password" required><button type="button" class="pw-eye" data-pw="login-password" data-i18n-title="pw.show" title="Show password" aria-label="Show password">👁</button></span>
@@ -1687,6 +1687,6 @@
 <div id="toast" class="toast"></div>
 <div id="print-card" aria-hidden="true"></div>
 
-<script type="module" src="app.js?v=20261103-chequeo-limites"></script>
+<script type="module" src="app.js?v=20261103-acceso-un-boton"></script>
 </body>
 </html>

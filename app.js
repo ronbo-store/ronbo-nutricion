@@ -9000,6 +9000,9 @@ function ageOn(dobISO, onISO) {
 $('tab-login').onclick = () => {
   $('tab-login').classList.add('active'); $('tab-register').classList.remove('active');
   $('form-login').style.display = ''; $('form-register').style.display = 'none';
+  /* Volver a la pestaña de entrar re-arma la entrada con clave con
+     un reto fresco (la función vive al final del módulo de claves). */
+  try { pkInitLoginAccess(); } catch {}
 };
 $('tab-register').onclick = () => {
   $('tab-register').classList.add('active'); $('tab-login').classList.remove('active');
@@ -9501,17 +9504,24 @@ $('form-register').addEventListener('submit', async e => {
 });
 $('form-login').addEventListener('submit', async e => {
   e.preventDefault();
+  /* Entrar con contraseña ABORTA la sugerencia automática de la
+     clave que pudiera estar esperando (mediación condicional): el
+     aborto es de la propia app y no pinta ningún aviso. */
+  pkAbortConditional();
   showAuthError('');
   $('auth-error').classList.remove('show');
   try {
     await signInWithEmailAndPassword(auth, $('login-email').value.trim(), $('login-password').value);
   } catch {
     showAuthError(t('err.badCreds'));
+    /* La contraseña falló y el formulario sigue en pantalla: la
+       sugerencia de la clave se re-arma con un reto fresco. */
+    pkArmConditional();
   }
 });
-/* Claves de acceso: el botón de entrada se pinta bajo el formulario
+/* Claves de acceso: la entrada con clave se arma bajo el formulario
    SOLO con soporte WebAuthn y en el origen bueno; la llamada a
-   pkPaintLoginButton() vive al final del módulo de claves (tras sus
+   pkInitLoginAccess() vive al final del módulo de claves (tras sus
    constantes: llamarla desde aquí caería en la zona muerta temporal
    de `const PK_ORIGIN` y la puerta de origen devolvería false). */
 $('btn-logout').addEventListener('click', e => { e.preventDefault(); signOut(auth); });
@@ -9542,6 +9552,10 @@ onAuthStateChanged(auth, async user => {
     try { captureSignupLinks(); signupPaintConfirmHint(); } catch {}
     $('auth-view').style.display = '';
     $('app-view').style.display = 'none';
+    /* La pantalla de acceso vuelve a mostrarse: la entrada con clave
+       se re-arma con un reto fresco (sugerencia automática o botón,
+       según el soporte real del navegador). */
+    try { pkInitLoginAccess(); } catch {}
     return;
   }
   if (suppressAuthCheck) return;
@@ -10337,9 +10351,19 @@ function pkCeremonyErrKey(e) {
   return 'generic';
 }
 /* ---------- ENTRADA con clave de acceso (pantalla de acceso) ----------
-   El botón se pinta SOLO si el navegador soporta WebAuthn y el
-   origen es el bueno; sin soporte, silencio (sin ruido). Al entrar,
-   no se fuerza navegación: onAuthStateChanged sigue su curso. */
+   DOS puertas según el soporte REAL del navegador (decisión de
+   Ronald del 2026-11-03: la pantalla se queda con UN SOLO botón
+   «Sign in»):
+   (a) CON mediación condicional de WebAuthn: NO se pinta botón de
+       clave; al mostrarse el formulario se abre la petición
+       condicional y el propio teléfono ofrece la clave como
+       sugerencia del teclado al tocar el campo del correo.
+   (b) SIN mediación condicional: se pinta el botón de siempre, bajo
+       el formulario, SOLO si el navegador soporta WebAuthn y el
+       origen es el bueno; sin soporte, silencio (sin ruido).
+   La compuerta del piloto NO cambia: la impone el Worker al
+   verificar, como hasta hoy. Al entrar, no se fuerza navegación:
+   onAuthStateChanged sigue su curso. */
 function pkPaintLoginButton() {
   if (!pkSupported() || !pkOriginOk()) return;
   const form = $('form-login');
@@ -10352,6 +10376,35 @@ function pkPaintLoginButton() {
   b.textContent = t('pk.signIn');
   b.addEventListener('click', () => pkSignInFlow(b));
   form.appendChild(b);
+}
+/* La mitad común de la entrada: con la ceremonia ya resuelta, se
+   compone la credencial en base64url, el Worker la verifica y su
+   token se canjea por la sesión Firebase de siempre. Lo usan el
+   botón (b) y la sugerencia automática (a). */
+async function pkCompleteSignIn(j1, assertion) {
+  const cred = {
+    id: assertion.id,
+    rawId: pkBufToB64u(assertion.rawId),
+    type: assertion.type,
+    response: {
+      clientDataJSON: pkBufToB64u(assertion.response.clientDataJSON),
+      authenticatorData: pkBufToB64u(assertion.response.authenticatorData),
+      signature: pkBufToB64u(assertion.response.signature),
+      userHandle: assertion.response.userHandle ? pkBufToB64u(assertion.response.userHandle) : null,
+    },
+  };
+  const j2 = await pkCall('/passkeys/auth/verify', { challengeId: j1.challengeId, credential: cred });
+  if (!j2.token) throw pkErr('generic');
+  await signInWithCustomToken(auth, j2.token);
+}
+/* El aviso de la entrada con clave, compartido por las dos puertas.
+   Punto 4 de la cola (decisión de Ronald, 2026-11-01): cancelar
+   la ceremonia NO es un error — el aviso va en la banda NEUTRA
+   (.ok) y nunca en la roja; los demás errores conservan la roja. */
+function pkPresentSignInError(e) {
+  const code = (e && e.pkCode) || 'generic';
+  if (code === 'cancelled') showAuthInfo(t('pk.err.cancelled'));
+  else showAuthError(t('pk.err.' + code));
 }
 async function pkSignInFlow(btn) {
   showAuthError('');
@@ -10369,30 +10422,85 @@ async function pkSignInFlow(btn) {
     try { assertion = await navigator.credentials.get(getOpts); }
     catch (e) { throw pkErr(pkCeremonyErrKey(e)); }
     if (!assertion) throw pkErr('generic');
-    const cred = {
-      id: assertion.id,
-      rawId: pkBufToB64u(assertion.rawId),
-      type: assertion.type,
-      response: {
-        clientDataJSON: pkBufToB64u(assertion.response.clientDataJSON),
-        authenticatorData: pkBufToB64u(assertion.response.authenticatorData),
-        signature: pkBufToB64u(assertion.response.signature),
-        userHandle: assertion.response.userHandle ? pkBufToB64u(assertion.response.userHandle) : null,
-      },
-    };
-    const j2 = await pkCall('/passkeys/auth/verify', { challengeId: j1.challengeId, credential: cred });
-    if (!j2.token) throw pkErr('generic');
-    await signInWithCustomToken(auth, j2.token);
+    await pkCompleteSignIn(j1, assertion);
   } catch (e) {
-    const code = (e && e.pkCode) || 'generic';
-    /* Punto 4 de la cola (decisión de Ronald, 2026-11-01): cancelar
-       la ceremonia NO es un error — el aviso va en la banda NEUTRA
-       (.ok) y nunca en la roja; los demás errores conservan la roja. */
-    if (code === 'cancelled') showAuthInfo(t('pk.err.cancelled'));
-    else showAuthError(t('pk.err.' + code));
+    pkPresentSignInError(e);
   } finally {
     if (btn) btn.disabled = false;
   }
+}
+/* ---------- SUGERENCIA AUTOMÁTICA de la clave (mediación condicional) ----------
+   La petición condicional queda abierta mientras la pantalla de
+   acceso se muestra, atada a un AbortController y a una generación:
+   solo la última petición armada manda, y todo aborto de la propia
+   app (entrar con contraseña, volver a armar) es silencioso. La
+   disponibilidad se comprueba DE VERDAD en cada arranque
+   (PublicKeyCredential.isConditionalMediationAvailable): el botón
+   solo desaparece donde la sugerencia funciona. */
+let pkCondMode = false;    // el navegador ofrece mediación condicional
+let pkCondCtrl = null;     // AbortController de la petición viva
+let pkCondGen = 0;         // generación: solo la última petición manda
+async function pkConditionalAvailable() {
+  try {
+    return !!(window.PublicKeyCredential &&
+      typeof PublicKeyCredential.isConditionalMediationAvailable === 'function' &&
+      await PublicKeyCredential.isConditionalMediationAvailable());
+  } catch { return false; }
+}
+function pkAbortConditional() {
+  pkCondGen++;
+  if (pkCondCtrl) { try { pkCondCtrl.abort(); } catch {} pkCondCtrl = null; }
+}
+async function pkArmConditional() {
+  if (!pkCondMode || !pkSupported() || !pkOriginOk()) return;
+  pkAbortConditional();
+  const gen = pkCondGen;
+  let j1;
+  /* Sin servicio de claves en este intento, la puerta vuelve a ser
+     el botón de siempre en vez de una sugerencia muda. */
+  try { j1 = await pkCall('/passkeys/auth/options', {}); }
+  catch { if (gen === pkCondGen) pkPaintLoginButton(); return; }
+  if (gen !== pkCondGen) return;
+  const pk = j1.publicKey || {};
+  const ctrl = new AbortController();
+  pkCondCtrl = ctrl;
+  const t0 = Date.now();
+  let assertion;
+  try {
+    assertion = await navigator.credentials.get({ publicKey: {
+      ...pk,
+      challenge: pkB64uToBuf(pk.challenge),
+      allowCredentials: (pk.allowCredentials || []).map(c => ({ ...c, id: pkB64uToBuf(c.id) })),
+    }, mediation: 'conditional', signal: ctrl.signal });
+  } catch (e) {
+    if (gen !== pkCondGen) return;
+    if (e && e.name === 'AbortError') return;
+    /* Rechazo instantáneo: en este navegador la sugerencia no
+       camina de verdad — vuelve el botón, que sí funciona. */
+    if (Date.now() - t0 < 250) { pkPaintLoginButton(); return; }
+    pkPresentSignInError(pkErr(pkCeremonyErrKey(e)));
+    setTimeout(() => { if (gen === pkCondGen) pkArmConditional(); }, 800);
+    return;
+  }
+  if (gen !== pkCondGen || !assertion) return;
+  try { await pkCompleteSignIn(j1, assertion); }
+  catch (e) {
+    if (gen !== pkCondGen) return;
+    pkPresentSignInError(e);
+    setTimeout(() => { if (gen === pkCondGen) pkArmConditional(); }, 800);
+  }
+}
+/* Arranque de la entrada con clave en la pantalla de acceso: con
+   mediación condicional real se arma la sugerencia y NO se pinta el
+   botón; sin ella, el botón de siempre. Se invoca al arrancar y cada
+   vez que la pantalla de acceso vuelve a mostrarse (al salir de la
+   sesión o al volver a la pestaña de entrar), para que el reto de la
+   petición sea siempre fresco. */
+async function pkInitLoginAccess() {
+  if (!pkSupported() || !pkOriginOk()) return;
+  pkCondMode = await pkConditionalAvailable();
+  if (pkCondMode) pkArmConditional();
+  else pkPaintLoginButton();
 }
 /* ---------- SECCIÓN «Seguridad» en el panel de perfil ----------
    Vive junto a «Permisos y privacidad» (mismo panel, patrón de las
@@ -10539,11 +10647,11 @@ async function pkRevokeFlow(btn) {
     btn.disabled = false; btn.textContent = prev;
   }
 }
-/* Pintado del botón de entrada con clave de acceso: AQUÍ, al final
-   del módulo y con las constantes ya inicializadas (ver la nota
-   junto al cableado del formulario de acceso). El módulo se evalúa
-   con el DOM ya parseado (script diferido): el formulario existe. */
-pkPaintLoginButton();
+/* Arranque de la entrada con clave de acceso: AQUÍ, al final del
+   módulo y con las constantes ya inicializadas (ver la nota junto
+   al cableado del formulario de acceso). El módulo se evalúa con el
+   DOM ya parseado (script diferido): el formulario existe. */
+pkInitLoginAccess();
 
 /* ============ LÍMITES DE ANÁLISIS (solo dueño; Worker /admin/limits) ============
    Etapa 2026-10-19 (decisión de Ronald): SOLO el administrador fija los
@@ -34280,7 +34388,7 @@ document.addEventListener('keydown', e => { if (e.key === 'Escape') shareClose()
  *  - El SW (sw.js) solo cachea la cáscara del mismo origen en modo
  *    RED PRIMERO: Auth/Firestore/Worker jamás pasan por la caché.
  * ================================================================ */
-const PWA_SW_VERSION = '20261103-chequeo-limites';
+const PWA_SW_VERSION = '20261103-acceso-un-boton';
 let pwaDeferredPrompt = null;
 function pwaIsStandalone() {
   try {
