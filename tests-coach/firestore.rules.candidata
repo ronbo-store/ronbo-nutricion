@@ -888,7 +888,14 @@ service cloud.firestore {
       // (las fechas ISO que escribe la app, patrón fdCamAt).
       // Ninguna otra rama se toca: la creación no necesita delta
       // (su cláusula no cierra la lista de claves del documento).
-             .hasOnly(['name', 'phone', 'gender', 'social', 'photoURL', 'mailLang', 'lang', 'emailConfirmedAt', 'fdCamAt', 'fdBizAt', 'fdBizGym', 'purpose', 'purposeAt', 'purposeUse', 'purposeSuggest', 'purposeTrainerChoice', 'purposeMembership', 'purposeAskedAt', 'daySummary'])
+      // Coach de alimentación (AUTH-2026-11-03-2NN): la declaración
+      // anota también la elección de coach (purposeNutriChoice = el
+      // uid elegido, cadena acotada; purposeNutriSuggest = booleano)
+      // y admite los propósitos 'con_nutricionista' y
+      // 'nutricionista', espejo de los de entrenador de AUTH-147.
+      // La declaración NO crea ni mueve relaciones del coach, como
+      // tampoco las del entrenador.
+             .hasOnly(['name', 'phone', 'gender', 'social', 'photoURL', 'mailLang', 'lang', 'emailConfirmedAt', 'fdCamAt', 'fdBizAt', 'fdBizGym', 'purpose', 'purposeAt', 'purposeUse', 'purposeSuggest', 'purposeTrainerChoice', 'purposeMembership', 'purposeAskedAt', 'daySummary', 'purposeNutriChoice', 'purposeNutriSuggest'])
         && (!request.resource.data.diff(resource.data).affectedKeys().hasAny(['mailLang'])
             || request.resource.data.mailLang in ['en', 'es'])
         && (!request.resource.data.diff(resource.data).affectedKeys().hasAny(['lang'])
@@ -907,7 +914,7 @@ service cloud.firestore {
             || (request.resource.data.fdBizGym is string
                 && request.resource.data.fdBizGym.size() <= 80))
         && (!request.resource.data.diff(resource.data).affectedKeys().hasAny(['purpose'])
-            || request.resource.data.purpose in ['cuenta', 'con_entrenador', 'entrenador', 'business'])
+            || request.resource.data.purpose in ['cuenta', 'con_entrenador', 'entrenador', 'business', 'con_nutricionista', 'nutricionista'])
         && (!request.resource.data.diff(resource.data).affectedKeys().hasAny(['purposeUse'])
             || request.resource.data.purposeUse in ['meals', 'training', 'both'])
         && (!request.resource.data.diff(resource.data).affectedKeys().hasAny(['purposeSuggest'])
@@ -915,6 +922,11 @@ service cloud.firestore {
         && (!request.resource.data.diff(resource.data).affectedKeys().hasAny(['purposeTrainerChoice'])
             || (request.resource.data.purposeTrainerChoice is string
                 && request.resource.data.purposeTrainerChoice.size() <= 128))
+        && (!request.resource.data.diff(resource.data).affectedKeys().hasAny(['purposeNutriChoice'])
+            || (request.resource.data.purposeNutriChoice is string
+                && request.resource.data.purposeNutriChoice.size() <= 128))
+        && (!request.resource.data.diff(resource.data).affectedKeys().hasAny(['purposeNutriSuggest'])
+            || request.resource.data.purposeNutriSuggest is bool)
         && (!request.resource.data.diff(resource.data).affectedKeys().hasAny(['purposeMembership'])
             || request.resource.data.purposeMembership in ['basico', 'premium', 'elite', 'prueba'])
         && (!request.resource.data.diff(resource.data).affectedKeys().hasAny(['purposeAt'])

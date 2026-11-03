@@ -208,6 +208,13 @@ await T('WT2b el coach NO escribe composición (AUTH-153 intacto)', setDoc(D('co
 await T('WT2c el coach NO registra peso para quien no es su alumno', setDoc(D('coach', 'nutrition_weight', 'intruso_2026-11-05'), { ownerUid: 'intruso', weight: 70, byUid: 'coach', byRole: 'nutricionista' }), false);
 await T('WT3 la alumna crea su peso solo-peso (vecino intacto)', setDoc(D('alumna', 'nutrition_weight', 'alumna_2026-11-06'), { ownerUid: 'alumna', kg: 79 }), true);
 
+/* ── U: anotaciones de propósito (rama inofensiva de users) ── */
+await T('U1 declarar con coach elegido anota purposeNutriChoice', updateDoc(D('alumna', 'users', 'alumna'), { purpose: 'con_nutricionista', purposeAt: '2026-11-03T00:00:00.000Z', purposeAskedAt: '2026-11-03T00:00:00.000Z', purposeNutriChoice: 'coach' }), N);
+await T('U2 declarar como coach anota su membresía pedida', updateDoc(D('alumna', 'users', 'alumna'), { purpose: 'nutricionista', purposeMembership: 'basico' }), N);
+await T('U3 propósito administrador sigue prohibido', updateDoc(D('alumna', 'users', 'alumna'), { purpose: 'administrador' }), false);
+await T('U4 sugerencia de coach combinada en cuenta propia', updateDoc(D('alumna', 'users', 'alumna'), { purpose: 'cuenta', purposeNutriSuggest: true }), N);
+await T('U5 vecino: la alumna edita su nombre (rama inofensiva)', updateDoc(D('alumna', 'users', 'alumna'), { name: 'Alumna Ficticia' }), true);
+
 /* ── V: vecinos intactos ── */
 await T('V1 propietario lee mail_templates', getDoc(D('dueno', 'app_settings', 'mail_templates')), true);
 await T('V2 sin sesión lee el directorio de entrenadores', getDoc(D(null, 'trainer_directory', 'current')), true);
