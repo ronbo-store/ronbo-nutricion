@@ -21,7 +21,7 @@
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-title" content="RONBO FIT">
 <meta name="apple-mobile-web-app-status-bar-style" content="default">
-<link rel="stylesheet" href="styles.css?v=20261103-resumen-foto">
+<link rel="stylesheet" href="styles.css?v=20261103-foto-hoy">
 <script defer src="https://cloud.umami.is/script.js" data-website-id="a29706d4-44a2-47cf-900a-5f74d74abfa8"></script>
 <script type="importmap">
 {
@@ -908,6 +908,21 @@
       <button type="button" class="btn-ghost btn-sm" id="btn-share-f916" aria-pressed="true" data-i18n="share.format916">Story 9:16</button>
       <button type="button" class="btn-ghost btn-sm" id="btn-share-f11" aria-pressed="false" data-i18n="share.format11">Post 1:1</button>
     </div>
+    <!-- FOTO DE HOY (AUTH-2026-11-03-206): el bloque solo se muestra
+         con «Mi resumen del día» elegida (lo sincroniza
+         shareDayPhotoSync en app.js). La foto queda SOLO en el
+         teléfono de cada quien, solo para esa tarjeta y ese día:
+         no toca su foto de perfil ni sube a ningún servidor. -->
+    <div class="share-dayphoto" id="share-dayphoto" style="display:none">
+      <p class="photo-hint"><span aria-hidden="true">📸</span> <span data-i18n="share.dayPhoto">Today's photo</span></p>
+      <div class="share-dayphoto-row">
+        <img class="share-dayphoto-thumb" id="share-dayphoto-thumb" alt="" style="display:none">
+        <button type="button" class="btn-main share-dayphoto-btn" id="btn-share-dayphoto">Take or choose a photo</button>
+        <button type="button" class="btn-ghost share-dayphoto-btn" id="btn-share-dayphoto-remove" style="display:none" data-i18n="share.dayPhotoRemove">Remove photo</button>
+      </div>
+      <p class="progress-hint" data-i18n="share.dayPhotoNote">Stays only on your phone, only for this card</p>
+      <input type="file" id="share-dayphoto-file" accept="image/*" style="display:none">
+    </div>
     <div class="share-preview"><canvas id="share-canvas" width="1080" height="1920" role="img"></canvas></div>
     <p class="progress-hint" data-i18n="share.privNote">Only your progress goes on the card: no weight, no measurements, no photos.</p>
     <p class="progress-hint" id="share-noshare" style="display:none" data-i18n="share.noShare">Direct sharing is not available on this device — use Download.</p>
@@ -1728,6 +1743,6 @@
 <div id="toast" class="toast"></div>
 <div id="print-card" aria-hidden="true"></div>
 
-<script type="module" src="app.js?v=20261103-resumen-foto"></script>
+<script type="module" src="app.js?v=20261103-foto-hoy"></script>
 </body>
 </html>

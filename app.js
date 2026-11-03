@@ -5864,6 +5864,11 @@ en: {
   'share.shortNoAct': 'No activity logged today',
   'share.shortActMin': '{n} min of activity today',
   'share.shortSteps': '{n} steps today',
+  'share.dayPhoto': "Today's photo",
+  'share.dayPhotoPick': 'Take or choose a photo',
+  'share.dayPhotoChange': 'Change photo',
+  'share.dayPhotoRemove': 'Remove photo',
+  'share.dayPhotoNote': 'Stays only on your phone, only for this card',
   'share.format916': 'Story 9:16',
   'share.format11': 'Post 1:1',
   'share.send': 'Share',
@@ -8757,6 +8762,11 @@ es: {
   'share.shortNoAct': 'Sin actividad registrada hoy',
   'share.shortActMin': '{n} min de actividad hoy',
   'share.shortSteps': '{n} pasos hoy',
+  'share.dayPhoto': 'Foto de hoy',
+  'share.dayPhotoPick': 'Tomar o elegir foto',
+  'share.dayPhotoChange': 'Cambiar foto',
+  'share.dayPhotoRemove': 'Quitar foto',
+  'share.dayPhotoNote': 'Queda solo en tu teléfono, solo para esta tarjeta',
   'share.format916': 'Historia 9:16',
   'share.format11': 'Publicación 1:1',
   'share.send': 'Compartir',
@@ -35023,7 +35033,10 @@ function shareDrawGoalsEmpty(ctx, W, H) {
 /* La línea de resumen de una sesión: las mismas tres cifras del
    bloque de la casa (train.histRec) con el peso en doble medición. */
 /* ---------- foto héroe de «Mi resumen del día» (dirección B) ----------
-   La foto de perfil del propio alumno (users.photoURL: el data URI
+   La fuente se resuelve con shareHeroUrl (AUTH-2026-11-03-206):
+   primero la FOTO DE HOY que el alumno guarda solo en su teléfono
+   (localStorage, ver shareDayPhoto* más abajo) y, si no hay, la
+   foto de perfil del propio alumno (users.photoURL: el data URI
    JPEG de ≤256 px que guarda compressAvatar). Se carga una vez por
    URL y se cachea en memoria, como la marca de agua y las fotos de
    ejercicio de la familia. Un data URI no contamina el lienzo; si
@@ -35078,7 +35091,7 @@ function shareHeroEnsure(url) {
    el círculo (0.70 del lado: sus esquinas quedan DENTRO del círculo)
    y el sangrado se calcula sobre ese cuadrado. */
 function shareHeroDraw(ctx, x, y, w, h) {
-  const url = (typeof UDATA !== 'undefined' && UDATA && UDATA.photoURL) || '';
+  const url = shareHeroUrl();
   if (!url) return false;
   shareHeroEnsure(url);
   if (SHARE_HERO.state !== 'ok' || !SHARE_HERO.img) return false;
@@ -35093,6 +35106,86 @@ function shareHeroDraw(ctx, x, y, w, h) {
   try { ctx.drawImage(im, sx, sy, sw, sh, x, y, w, h); } catch (e) { ctx.restore(); return false; }
   ctx.restore();
   return true;
+}
+/* ---------- foto de HOY de «Mi resumen del día» (AUTH-2026-11-03-206;
+   propuesta de Ronald, chat RONBO.NUTRI, 2026-11-03 14:31 CST:
+   «me tomo una foto en el gimnasio, la cargo allí y se genera mi
+   estadística») ----------
+   La foto que el alumno elige PARA HOY desde la propia hoja de
+   compartir. Vive SOLO en su dispositivo (localStorage), solo para
+   ese día y ese usuario — clave «ronbofit-dayphoto-<uid>|<fecha>»,
+   el patrón de las ediciones de sesión — reducida a 1080 px de
+   lado mayor en JPEG, con el mismo patrón canvas de
+   compressAvatar. NUNCA toca users.photoURL, NUNCA sube a
+   Firestore ni a ningún servidor, nadie más la ve. La héroe de la
+   tarjeta se resuelve en este orden (shareHeroUrl): 1) la foto de
+   hoy local → 2) la foto de perfil → 3) el fondo de marca (ese
+   tercer escalón ya lo pinta shareDrawShort cuando shareHeroDraw
+   devuelve false). PODA: al abrir la hoja de compartir
+   (shareOpen) y al guardar una foto nueva (shareDayPhotoSave) se
+   borran las fotos de días anteriores DE ESTE USUARIO — en el
+   teléfono solo vive la de hoy, nada se acumula. */
+function shareDayPhotoKey(iso) {
+  const uid = (typeof auth !== 'undefined' && auth && auth.currentUser) ? auth.currentUser.uid : '';
+  return 'ronbofit-dayphoto-' + uid + '|' + (iso || todayISO());
+}
+function shareDayPhotoRead() {
+  try {
+    const v = localStorage.getItem(shareDayPhotoKey());
+    return (typeof v === 'string' && v.indexOf('data:image/') === 0) ? v : '';
+  } catch (e) { return ''; }
+}
+function shareDayPhotoPrune() {
+  try {
+    const uid = (typeof auth !== 'undefined' && auth && auth.currentUser) ? auth.currentUser.uid : '';
+    const pre = 'ronbofit-dayphoto-' + uid + '|';
+    const keep = shareDayPhotoKey();
+    const drop = [];
+    for (let i = 0; i < localStorage.length; i++) {
+      const k = localStorage.key(i);
+      if (k && k.indexOf(pre) === 0 && k !== keep) drop.push(k);
+    }
+    drop.forEach(k => { try { localStorage.removeItem(k); } catch (e) {} });
+  } catch (e) {}
+}
+function shareDayPhotoSave(dataUrl) {
+  shareDayPhotoPrune();
+  try { localStorage.setItem(shareDayPhotoKey(), dataUrl); return true; } catch (e) { return false; }
+}
+function shareDayPhotoRemove() {
+  try { localStorage.removeItem(shareDayPhotoKey()); } catch (e) {}
+}
+async function shareDayPhotoCompress(file) {
+  const bmp = await createImageBitmap(file);
+  const maxDim = 1080;
+  const scale = Math.min(1, maxDim / Math.max(bmp.width, bmp.height));
+  const canvas = document.createElement('canvas');
+  canvas.width = Math.round(bmp.width * scale); canvas.height = Math.round(bmp.height * scale);
+  canvas.getContext('2d').drawImage(bmp, 0, 0, canvas.width, canvas.height);
+  return canvas.toDataURL('image/jpeg', 0.82);
+}
+/* LA FUENTE DE LA FOTO HÉROE, con la prioridad de la casa:
+   1) la foto de hoy (local) → 2) la foto de perfil (users.photoURL). */
+function shareHeroUrl() {
+  const day = shareDayPhotoRead();
+  if (day) return day;
+  return (typeof UDATA !== 'undefined' && UDATA && UDATA.photoURL) || '';
+}
+/* Sincroniza el bloque «Foto de hoy» de la hoja: solo se muestra
+   con la tarjeta del resumen elegida; la miniatura y el «Quitar»
+   solo con foto puesta; la etiqueta del botón principal cambia
+   (elegir ↔ cambiar). SOLO LEE: la poda vive en shareOpen y en el
+   guardado, declarados arriba. */
+function shareDayPhotoSync() {
+  const box = $('share-dayphoto'); if (!box) return;
+  const on = (typeof SHARE !== 'undefined' && SHARE && SHARE.type === 'short');
+  box.style.display = on ? '' : 'none';
+  if (!on) return;
+  const url = shareDayPhotoRead();
+  const th = $('share-dayphoto-thumb'), pick = $('btn-share-dayphoto'), rm = $('btn-share-dayphoto-remove');
+  if (th) { if (url) { th.src = url; th.style.display = ''; } else { th.removeAttribute('src'); th.style.display = 'none'; } }
+  if (pick) pick.textContent = t(url ? 'share.dayPhotoChange' : 'share.dayPhotoPick');
+  if (rm) rm.style.display = url ? '' : 'none';
 }
 function shareShortData() {
   const iso = todayISO();
@@ -35639,9 +35732,11 @@ function shareSyncTypeUI() {
   if (bw) bw.setAttribute('aria-pressed', SHARE.type === 'week' ? 'true' : 'false');
   if (bg) bg.setAttribute('aria-pressed', SHARE.type === 'goals' ? 'true' : 'false');
   if (bs) bs.setAttribute('aria-pressed', SHARE.type === 'short' ? 'true' : 'false');
+  shareDayPhotoSync();
 }
 function shareOpen() {
   const f = $('share-float'); if (!f) return;
+  shareDayPhotoPrune();
   dockHome(f);
   f.style.display = '';
   shareSyncTypeUI();
@@ -35660,7 +35755,7 @@ function shareSetFormat(fmt) {
   if (b1) b1.setAttribute('aria-pressed', fmt === '11' ? 'true' : 'false');
   shareRender();
 }
-function shareRelang() { const f = $('share-float'); if (f && f.style.display !== 'none') shareRender(); }
+function shareRelang() { const f = $('share-float'); if (f && f.style.display !== 'none') { shareDayPhotoSync(); shareRender(); } }
 { const b = $('btn-share-fab'); if (b) b.addEventListener('click', () => {
     const f = $('share-float');
     if (f && f.style.display !== 'none') shareClose();
@@ -35682,6 +35777,19 @@ document.addEventListener('keydown', e => { if (e.key === 'Escape') { const f = 
 { const b = $('btn-share-f11'); if (b) b.addEventListener('click', () => shareSetFormat('11')); }
 { const b = $('btn-share-send'); if (b) b.addEventListener('click', shareSend); }
 { const b = $('btn-share-download'); if (b) b.addEventListener('click', shareDownload); }
+{ const b = $('btn-share-dayphoto'); if (b) b.addEventListener('click', () => { const i = $('share-dayphoto-file'); if (i) i.click(); }); }
+{ const b = $('btn-share-dayphoto-remove'); if (b) b.addEventListener('click', () => { shareDayPhotoRemove(); shareDayPhotoSync(); shareRender(); }); }
+{ const i = $('share-dayphoto-file'); if (i) i.addEventListener('change', async e => {
+    const f = e.target.files && e.target.files[0];
+    e.target.value = '';
+    if (!f) return;
+    try {
+      const url = await shareDayPhotoCompress(f);
+      if (!shareDayPhotoSave(url)) { toast(t('msg.uploadFail'), true); return; }
+      shareDayPhotoSync();
+      shareRender();
+    } catch (err) { toast(t('msg.uploadFail'), true); }
+  }); }
 document.addEventListener('keydown', e => { if (e.key === 'Escape') shareClose(); });
 
 /* ================================================================
@@ -35701,7 +35809,7 @@ document.addEventListener('keydown', e => { if (e.key === 'Escape') shareClose()
  *  - El SW (sw.js) solo cachea la cáscara del mismo origen en modo
  *    RED PRIMERO: Auth/Firestore/Worker jamás pasan por la caché.
  * ================================================================ */
-const PWA_SW_VERSION = '20261103-resumen-foto';
+const PWA_SW_VERSION = '20261103-foto-hoy';
 let pwaDeferredPrompt = null;
 function pwaIsStandalone() {
   try {

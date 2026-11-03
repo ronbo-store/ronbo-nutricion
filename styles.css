@@ -3568,3 +3568,14 @@ body.sess-on #pend-back-chip { bottom: calc(env(safe-area-inset-bottom, 0px) + 1
 .train-ex-dragging { opacity: .55; }
 .tcu-move { display: inline-flex; gap: 6px; margin-left: 8px; vertical-align: middle; }
 .tcu-move .btn-ghost { min-width: 45px; min-height: 45px; font-size: 15px; }
+
+/* ── FOTO DE HOY de «Mi resumen del día» (AUTH-2026-11-03-206) ──
+   El bloque vive en la hoja de compartir y solo se muestra con
+   esa tarjeta elegida: miniatura, botón principal y «Quitar»,
+   todos con área táctil grande (≥48 px) — la app se usa
+   entrenando y la motricidad fina es complicada. */
+.share-dayphoto { margin-top: 12px; }
+.share-dayphoto-row { display: flex; align-items: stretch; gap: 10px; margin-top: 6px; }
+.share-dayphoto-thumb { width: 56px; height: 56px; min-width: 56px; border-radius: 12px; object-fit: cover; border: 2px solid #0d9488; background: #e2e8f0; }
+.share-dayphoto-btn { min-height: 48px; display: inline-flex; align-items: center; justify-content: center; }
+#btn-share-dayphoto { flex: 1 1 auto; }
