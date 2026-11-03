@@ -3442,6 +3442,7 @@ en: {
   'repeat.bannerQty': 'Copy of another entry: adjust the amount and the values are recalculated proportionally.',
   'repeat.bannerPieces': 'This entry is counted in units, not by weight: the macro values are NOT recalculated when the amount changes. Check them by hand.',
   'repeat.scaled': 'Values recalculated for the new amount (proportional to the original entry).',
+  'foodref.applied': 'Reference values applied (USDA) — you can edit them.',
   'vs.indicator': 'Metric', 'vs.intake': 'Intake', 'vs.goal': 'Goal', 'vs.progress': 'Progress',
   'metric.kcal': 'CALORIES', 'metric.prot': 'PROTEIN', 'metric.carb': 'CARBS', 'metric.azuc': 'SUGAR', 'metric.gras': 'FAT',
   'rings.title': 'Metric detail',
@@ -6176,6 +6177,7 @@ es: {
   'repeat.bannerQty': 'Copia de otro registro: ajusta la cantidad y los valores se recalculan en proporción.',
   'repeat.bannerPieces': 'Este registro se cuenta por unidades, no por peso: los valores NO se recalculan al cambiar la cantidad. Revísalos a mano.',
   'repeat.scaled': 'Valores recalculados para la cantidad nueva (proporcionales al registro original).',
+  'foodref.applied': 'Valores de referencia aplicados (USDA) — puedes editarlos.',
   'vs.indicator': 'Indicador', 'vs.intake': 'Consumo', 'vs.goal': 'Meta', 'vs.progress': 'Progreso',
   'metric.kcal': 'CALORÍAS', 'metric.prot': 'PROTEÍNA', 'metric.carb': 'CARBOHIDRATOS', 'metric.azuc': 'AZÚCARES', 'metric.gras': 'GRASAS',
   'rings.title': 'Detalle de la métrica',
@@ -18611,10 +18613,12 @@ function aiFoodAdd() {
    unidades: el selector solo ofrecía g/ml. Ahora la fila admite una
    tercera unidad, «unidad»: la cantidad es un CONTEO de piezas y los
    gramos se derivan de un peso por pieza VISIBLE y corregible en la
-   propia fila. Prioridad del peso por pieza: (1) el que devuelva la
-   propia identificación, (2) la tabla breve de referencias comunes,
-   (3) si no hay referencia, el campo queda VACÍO y el cálculo se
-   bloquea con aviso — nunca se inventa en silencio.
+   propia fila. Prioridad del peso por pieza: (1) la TABLA DE
+   REFERENCIA de la app si el alimento es uno de sus productos
+   (FOOD_REF, más abajo), (2) el que devuelva la propia
+   identificación o se derive de su total, (3) si no hay referencia,
+   el campo queda VACÍO y el cálculo se bloquea con aviso — nunca se
+   inventa en silencio.
    En aiState.foods, «grams» sigue siendo SIEMPRE los gramos efectivos
    (los que alimentan el cálculo, el desglose y los totales); la fila
    por piezas conserva además pieces y perPiece, y al guardar, el ítem
@@ -18624,19 +18628,103 @@ function aiFoodAdd() {
 const AI_PIECE_UNITS = ['unidad', 'unidades', 'unit', 'units', 'piece', 'pieces', 'pz', 'pza'];
 function aiIsPieceUnit(u) { return AI_PIECE_UNITS.includes(String(u || '').trim().toLowerCase()); }
 function aiNormName(s) { return String(s || '').toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, ''); }
-/* Tabla breve de referencias comunes (gramos por pieza). Son valores
-   de REFERENCIA, editables en la propia fila — no mediciones. */
-const AI_PIECE_TABLE = [
-  [/huevo|huevos|egg|eggs/, 50],
-  [/platano|banana/, 118],
-  [/manzana|apple/, 182],
-  [/naranja|orange/, 130],
-  [/tortilla/, 30],
-  [/rebanada|pan |bread|slice/, 30]
+/* ============ TABLA DE REFERENCIA DE ALIMENTOS (Ronald, 2026-11-03) ============
+   UNA sola referencia dentro de la app para los productos comunes:
+   valores por 100 g y equivalencias de medida en gramos, TODOS de
+   USDA FoodData Central (la ficha de cada producto viaja en `fdc`).
+   La consultan las DOS rutas de registro: la estimación por IA
+   (conversión de piezas a gramos) y el registro manual por medida
+   (motor foodRef más abajo, junto al formulario). Lo que no está en
+   la tabla no se inventa: sigue el camino de siempre. El orden
+   importa: lo específico (clara, yema) va antes que lo genérico
+   (huevo). Origen del paquete: el borrador de Ronald del 2026-11-03
+   contó «5 claras = 250 g» porque la conversión vieja aplicaba el
+   peso del huevo ENTERO (50 g) también a la clara (33 g). */
+const FOOD_REF = [
+  { id: 'clara', fdc: 172183, es: 'Clara de huevo', en: 'Egg white', re: /^(claras?( de huevo)?|claras?|egg whites?)$/, per100: { kcal: 52, prot: 10.9, carb: 0.7, sugar: 0.7, fat: 0.2 }, measures: { unidad: 33 } },
+  { id: 'yema', fdc: 172184, es: 'Yema de huevo', en: 'Egg yolk', re: /^(yemas?( de huevo)?|egg yolks?)$/, per100: { kcal: 322, prot: 15.9, carb: 3.6, sugar: 0.6, fat: 26.5 }, measures: { unidad: 17 } },
+  { id: 'huevo', fdc: 171287, es: 'Huevo entero', en: 'Whole egg', re: /^(huevos?( enteros?)?|eggs?|whole eggs?)$/, per100: { kcal: 143, prot: 12.6, carb: 0.7, sugar: 0.4, fat: 9.5 }, measures: { unidad: 50 } },
+  { id: 'leche', fdc: 171265, es: 'Leche entera', en: 'Whole milk', re: /^(leche( entera)?|whole milk|milk)$/, per100: { kcal: 61, prot: 3.2, carb: 4.8, sugar: 5.0, fat: 3.2 }, measures: { taza: 244, cucharada: 15 } },
+  { id: 'yogur-griego', fdc: 330137, es: 'Yogur griego natural', en: 'Greek yogurt, plain, nonfat', re: /^(yogur(t)?( griego)?( natural)?( sin grasa)?|greek yogurt( plain)?( nonfat)?)$/, per100: { kcal: 61, prot: 10.3, carb: 3.6, sugar: 3.3, fat: 0.4 }, measures: { unidad: 170 } },
+  { id: 'cheddar', fdc: 170899, es: 'Queso cheddar', en: 'Cheddar cheese', re: /^(queso cheddar|cheddar( cheese)?)$/, per100: { kcal: 410, prot: 24.2, carb: 2.1, sugar: 0.3, fat: 33.8 }, measures: { rebanada: 28 } },
+  { id: 'mozzarella', fdc: 170847, es: 'Queso mozzarella', en: 'Mozzarella cheese', re: /^(queso mozzarella|mozzarella( cheese)?)$/, per100: { kcal: 254, prot: 24.3, carb: 2.8, sugar: 1.1, fat: 15.9 }, measures: { rebanada: 28 } },
+  { id: 'mantequilla', fdc: 173410, es: 'Mantequilla', en: 'Butter', re: /^(mantequilla( con sal)?|butter)$/, per100: { kcal: 717, prot: 0.8, carb: 0.1, sugar: 0.1, fat: 81.1 }, measures: { cucharada: 14.2 } },
+  { id: 'pan-integral', fdc: 172688, es: 'Pan integral', en: 'Whole-wheat bread', re: /^(pan integral|whole ?wheat bread)$/, per100: { kcal: 252, prot: 12.4, carb: 42.7, sugar: 4.3, fat: 3.5 }, measures: { rebanada: 32 } },
+  { id: 'pan-blanco', fdc: 174924, es: 'Pan blanco', en: 'White bread', re: /^(pan( blanco| de molde)?|white bread)$/, per100: { kcal: 266, prot: 8.8, carb: 49.4, sugar: 5.7, fat: 3.3 }, measures: { rebanada: 25 } },
+  { id: 'tortilla-maiz', fdc: 175036, es: 'Tortilla de maíz', en: 'Corn tortilla', re: /^(tortillas? de maiz|corn tortillas?)$/, per100: { kcal: 218, prot: 5.7, carb: 44.6, sugar: 0.9, fat: 2.8 }, measures: { unidad: 24 } },
+  { id: 'tortilla-harina', fdc: 175037, es: 'Tortilla de harina', en: 'Flour tortilla', re: /^(tortillas? de harina|flour tortillas?)$/, per100: { kcal: 306, prot: 8.2, carb: 49.4, sugar: 3.7, fat: 8.0 }, measures: { unidad: 49 } },
+  { id: 'arroz-integral', fdc: 169704, es: 'Arroz integral cocido', en: 'Brown rice, cooked', re: /^(arroz integral|brown rice)$/, per100: { kcal: 123, prot: 2.7, carb: 25.6, sugar: 0.2, fat: 1.0 }, measures: { taza: 202 } },
+  { id: 'arroz', fdc: 168878, es: 'Arroz blanco cocido', en: 'White rice, cooked', re: /^(arroz( blanco)?|white rice)$/, per100: { kcal: 130, prot: 2.7, carb: 28.2, sugar: 0.0, fat: 0.3 }, measures: { taza: 158 } },
+  { id: 'avena', fdc: 173904, es: 'Avena en hojuelas (seca)', en: 'Oats, dry', re: /^(avena( en hojuelas)?( seca)?|oats?|oatmeal)$/, per100: { kcal: 379, prot: 13.2, carb: 67.7, sugar: 1.0, fat: 6.5 }, measures: { taza: 81 } },
+  { id: 'pasta', fdc: 169751, es: 'Pasta cocida', en: 'Pasta, cooked', re: /^(pasta|espaguetis?|spaghetti|fideos)$/, per100: { kcal: 157, prot: 5.8, carb: 30.6, sugar: 0.6, fat: 0.9 }, measures: { taza: 124 } },
+  { id: 'papa', fdc: 170438, es: 'Papa hervida', en: 'Potato, boiled', re: /^(papas?|potato(es)?)$/, per100: { kcal: 87, prot: 1.9, carb: 20.1, sugar: 0.9, fat: 0.1 }, measures: { unidad: 136, taza: 156 } },
+  { id: 'batata', fdc: 170134, es: 'Batata / camote', en: 'Sweet potato', re: /^(batata|camote|boniato|sweet potato)$/, per100: { kcal: 90, prot: 2.0, carb: 20.7, sugar: 6.5, fat: 0.2 }, measures: { unidad: 114 } },
+  { id: 'pechuga-pollo', fdc: 171477, es: 'Pechuga de pollo', en: 'Chicken breast', re: /^(pechuga de pollo|chicken breast)$/, per100: { kcal: 165, prot: 31.0, carb: 0.0, sugar: 0.0, fat: 3.6 }, measures: { pieza: 86 } },
+  { id: 'pierna-pollo', fdc: 173612, es: 'Pierna/muslo de pollo', en: 'Chicken drumstick', re: /^((muslo|pierna) de pollo|chicken (drumstick|leg))$/, per100: { kcal: 191, prot: 23.4, carb: 0.0, sugar: 0.0, fat: 10.2 }, measures: { pieza: 96 } },
+  { id: 'carne-molida', fdc: 174032, es: 'Carne molida de res 85 %', en: 'Ground beef 85 % lean', re: /^(carne molida( de res)?( 85 ?%)?|ground beef( 85 ?%)?)$/, per100: { kcal: 250, prot: 25.9, carb: 0.0, sugar: 0.0, fat: 15.4 }, measures: {  } },
+  { id: 'atun', fdc: 171986, es: 'Atún en agua (lata)', en: 'Tuna, canned in water', re: /^(atun( en agua)?( enlatado)?|tuna( canned)?( in water)?)$/, per100: { kcal: 116, prot: 25.5, carb: 0.0, sugar: 0.0, fat: 0.8 }, measures: { unidad: 165 } },
+  { id: 'salmon', fdc: 175168, es: 'Salmón cocido', en: 'Salmon, cooked', re: /^(salmon)$/, per100: { kcal: 206, prot: 22.1, carb: 0.0, sugar: 0.0, fat: 12.4 }, measures: {  } },
+  { id: 'pavo-rebanada', fdc: 172941, es: 'Pechuga de pavo en rebanadas', en: 'Turkey breast, sliced', re: /^(pechuga de pavo( en rebanadas?)?|jamon de pavo|turkey breast( sliced)?|sliced turkey)$/, per100: { kcal: 106, prot: 14.8, carb: 2.2, sugar: 0.9, fat: 3.8 }, measures: { rebanada: 16 } },
+  { id: 'frijoles-negros', fdc: 173735, es: 'Frijoles negros cocidos', en: 'Black beans, cooked', re: /^(frijoles negros|black beans)$/, per100: { kcal: 132, prot: 8.9, carb: 23.7, sugar: 0.3, fat: 0.5 }, measures: { taza: 172 } },
+  { id: 'lentejas', fdc: 172421, es: 'Lentejas cocidas', en: 'Lentils, cooked', re: /^(lentejas|lentils)$/, per100: { kcal: 116, prot: 9.0, carb: 20.1, sugar: 1.8, fat: 0.4 }, measures: { taza: 198 } },
+  { id: 'garbanzos', fdc: 173757, es: 'Garbanzos cocidos', en: 'Chickpeas, cooked', re: /^(garbanzos|chickpeas|garbanzo beans)$/, per100: { kcal: 164, prot: 8.9, carb: 27.4, sugar: 4.8, fat: 2.6 }, measures: { taza: 164 } },
+  { id: 'platano', fdc: 173944, es: 'Plátano / banana', en: 'Banana', re: /^(platano|guineo|banana|cambur)$/, per100: { kcal: 89, prot: 1.1, carb: 22.8, sugar: 12.2, fat: 0.3 }, measures: { unidad: 118 } },
+  { id: 'manzana', fdc: 171688, es: 'Manzana', en: 'Apple', re: /^(manzana|apple)$/, per100: { kcal: 52, prot: 0.3, carb: 13.8, sugar: 10.4, fat: 0.2 }, measures: { unidad: 182 } },
+  { id: 'naranja', fdc: 169097, es: 'Naranja', en: 'Orange', re: /^(naranja|orange)$/, per100: { kcal: 47, prot: 0.9, carb: 11.8, sugar: 9.4, fat: 0.1 }, measures: { unidad: 131 } },
+  { id: 'aguacate', fdc: 171706, es: 'Aguacate', en: 'Avocado', re: /^(aguacate|avocado)$/, per100: { kcal: 167, prot: 2.0, carb: 8.6, sugar: 0.3, fat: 15.4 }, measures: { unidad: 136, taza: 230 } },
+  { id: 'fresas', fdc: 167762, es: 'Fresas', en: 'Strawberries', re: /^(fresas?|strawberr(y|ies))$/, per100: { kcal: 32, prot: 0.7, carb: 7.7, sugar: 4.9, fat: 0.3 }, measures: { taza: 152, unidad: 12 } },
+  { id: 'uvas', fdc: 174683, es: 'Uvas', en: 'Grapes', re: /^(uvas?|grapes?)$/, per100: { kcal: 69, prot: 0.7, carb: 18.1, sugar: 15.5, fat: 0.2 }, measures: { taza: 151 } },
+  { id: 'mango', fdc: 169910, es: 'Mango', en: 'Mango', re: /^(mango)$/, per100: { kcal: 60, prot: 0.8, carb: 15.0, sugar: 13.7, fat: 0.4 }, measures: { unidad: 336, taza: 165 } },
+  { id: 'pina', fdc: 169124, es: 'Piña', en: 'Pineapple', re: /^(pina|pineapple)$/, per100: { kcal: 50, prot: 0.5, carb: 13.1, sugar: 9.8, fat: 0.1 }, measures: { taza: 165 } },
+  { id: 'sandia', fdc: 167765, es: 'Sandía', en: 'Watermelon', re: /^(sandia|watermelon|patilla)$/, per100: { kcal: 30, prot: 0.6, carb: 7.6, sugar: 6.2, fat: 0.2 }, measures: { taza: 152 } },
+  { id: 'brocoli', fdc: 169967, es: 'Brócoli cocido', en: 'Broccoli, cooked', re: /^(brocoli|broccoli)$/, per100: { kcal: 35, prot: 2.4, carb: 7.2, sugar: 1.4, fat: 0.4 }, measures: { taza: 156 } },
+  { id: 'zanahoria', fdc: 170393, es: 'Zanahoria', en: 'Carrot', re: /^(zanahorias?|carrots?)$/, per100: { kcal: 41, prot: 0.9, carb: 9.6, sugar: 4.7, fat: 0.2 }, measures: { unidad: 61, taza: 128 } },
+  { id: 'tomate', fdc: 170457, es: 'Tomate', en: 'Tomato', re: /^(tomate|tomato|jitomate)$/, per100: { kcal: 18, prot: 0.9, carb: 3.9, sugar: 2.6, fat: 0.2 }, measures: { unidad: 123 } },
+  { id: 'espinaca', fdc: 168462, es: 'Espinaca', en: 'Spinach', re: /^(espinacas?|spinach)$/, per100: { kcal: 23, prot: 2.9, carb: 3.6, sugar: 0.4, fat: 0.4 }, measures: { taza: 30 } },
+  { id: 'lechuga', fdc: 169249, es: 'Lechuga', en: 'Lettuce', re: /^(lechuga|lettuce)$/, per100: { kcal: 15, prot: 1.4, carb: 2.9, sugar: 0.8, fat: 0.2 }, measures: { taza: 36 } },
+  { id: 'cebolla', fdc: 170000, es: 'Cebolla', en: 'Onion', re: /^(cebollas?|onions?)$/, per100: { kcal: 40, prot: 1.1, carb: 9.3, sugar: 4.2, fat: 0.1 }, measures: { unidad: 110 } },
+  { id: 'aceite-oliva', fdc: 171413, es: 'Aceite de oliva', en: 'Olive oil', re: /^(aceite de oliva|olive oil)$/, per100: { kcal: 884, prot: 0.0, carb: 0.0, sugar: 0.0, fat: 100.0 }, measures: { cucharada: 13.5, cucharadita: 4.5, taza: 216 } },
+  { id: 'mantequilla-mani', fdc: 172470, es: 'Mantequilla de maní', en: 'Peanut butter', re: /^(mantequilla de mani|crema de cacahuate|peanut butter)$/, per100: { kcal: 598, prot: 22.2, carb: 22.3, sugar: 10.5, fat: 51.4 }, measures: { cucharada: 16 } },
+  { id: 'mayonesa', fdc: 171010, es: 'Mayonesa', en: 'Mayonnaise', re: /^(mayonesa|mayonnaise|mayo)$/, per100: { kcal: 717, prot: 1.1, carb: 2.7, sugar: 0.5, fat: 79.4 }, measures: { cucharada: 13.8 } },
+  { id: 'azucar', fdc: 169655, es: 'Azúcar', en: 'Sugar', re: /^(azucar|sugar)$/, per100: { kcal: 387, prot: 0.0, carb: 100.0, sugar: 99.8, fat: 0.0 }, measures: { cucharadita: 4.2, taza: 200 } },
+  { id: 'miel', fdc: 169640, es: 'Miel', en: 'Honey', re: /^(miel( de abeja)?|honey)$/, per100: { kcal: 304, prot: 0.3, carb: 82.4, sugar: 82.1, fat: 0.0 }, measures: { cucharada: 21 } },
+  { id: 'cafe', fdc: 171890, es: 'Café negro', en: 'Coffee, brewed', re: /^(cafe( negro| solo)?|coffee( black)?|espresso|americano)$/, per100: { kcal: 1, prot: 0.1, carb: 0.0, sugar: 0.0, fat: 0.0 }, measures: { taza: 237 } },
+  { id: 'almendras', fdc: 170567, es: 'Almendras', en: 'Almonds', re: /^(almendras?|almonds?)$/, per100: { kcal: 579, prot: 21.2, carb: 21.6, sugar: 4.4, fat: 49.9 }, measures: { unidad: 1.2, taza: 143 } },
+  { id: 'hummus', fdc: 174289, es: 'Hummus', en: 'Hummus', re: /^(hummus)$/, per100: { kcal: 237, prot: 7.8, carb: 15.0, sugar: 0.6, fat: 17.8 }, measures: { cucharada: 15, taza: 246 } },
+  { id: 'elote', fdc: 168525, es: 'Elote / maíz dulce cocido', en: 'Sweet corn, cooked', re: /^(elote|maiz( dulce)?|corn( on the cob)?|sweet corn|mazorca|choclo)$/, per100: { kcal: 96, prot: 3.4, carb: 21.0, sugar: 4.5, fat: 1.5 }, measures: { unidad: 89, taza: 149 } },
+  { id: 'pepino', fdc: 168409, es: 'Pepino', en: 'Cucumber', re: /^(pepino|cucumber)$/, per100: { kcal: 15, prot: 0.6, carb: 3.6, sugar: 1.7, fat: 0.1 }, measures: { unidad: 301 } },
 ];
+
+/* Limpieza previa a la coincidencia: quita la medida inicial
+   («tostada de…», «rebanada de…», «taza de…») y las palabras de
+   preparación (revuelto, cocido, frito…) para que la coincidencia
+   sea sobre el PRODUCTO, no sobre el plato: «arroz con pollo» o
+   «café con leche» NO coinciden con ningún producto de la tabla. */
+const FOOD_REF_PREP = ['revueltas', 'revuelta', 'revueltos', 'revuelto', 'cocidas', 'cocida', 'cocidos', 'cocido', 'hervidas', 'hervida', 'hervidos', 'hervido', 'asadas', 'asada', 'asados', 'asado', 'fritas', 'frita', 'fritos', 'frito', 'crudas', 'cruda', 'crudos', 'crudo', 'horneadas', 'horneada', 'horneados', 'horneado', 'tostadas', 'tostada', 'tostados', 'tostado', 'frescas', 'fresca', 'frescos', 'fresco', 'cooked', 'raw', 'boiled', 'roasted', 'baked', 'fried', 'scrambled', 'grilled', 'steamed'];
+function foodRefClean(name) {
+  let n = aiNormName(name).replace(/\s+/g, ' ').trim();
+  n = n.replace(/^(una? )?(rebanadas?|piezas?|tazas?|cucharadas?|cucharaditas?|unidades?|lonjas?|rodajas?|tostadas?) de /, '');
+  n = n.replace(/ a la plancha| al vapor| al horno/g, '');
+  return n.split(' ').filter(w => !FOOD_REF_PREP.includes(w)).join(' ').trim();
+}
+function foodRefMatch(name) {
+  const n = foodRefClean(name);
+  if (!n) return null;
+  for (const p of FOOD_REF) if (p.re.test(n)) return p;
+  return null;
+}
+function foodRefMeasure(name, measure) {
+  const p = foodRefMatch(name);
+  return (p && p.measures && p.measures[measure]) ? p.measures[measure] : null;
+}
+/* Compatibilidad con el cableado de la fila por piezas: el peso por
+   pieza de un producto de la tabla — su «unidad», su «pieza» o, en
+   su defecto, su «rebanada» (una rebanada contada es una pieza). */
 function aiTablePerPiece(name) {
-  const n = aiNormName(name);
-  for (const [re, g] of AI_PIECE_TABLE) if (re.test(n)) return g;
+  for (const m of ['unidad', 'pieza', 'rebanada']) {
+    const v = foodRefMeasure(name, m);
+    if (v !== null) return v;
+  }
   return null;
 }
 /* Peso por pieza declarado por la identificación, si alguna vez
@@ -18666,6 +18754,19 @@ function aiFoodFromIdentify(f) {
     if (!perPiece && pieces && total > 0) perPiece = Math.round(total / pieces * 10) / 10;
     if (!pieces && perPiece && total > 0) pieces = Math.max(1, Math.round(total / perPiece));
     if (!perPiece) perPiece = aiTablePerPiece(name) || '';
+    /* TABLA DE REFERENCIA (2026-11-03): si el alimento ES un producto
+       de la tabla, su peso por pieza MANDA sobre lo declarado o
+       derivado de la identificación — la estimación libre del modelo
+       no vuelve a contar una clara (33 g) como un huevo entero
+       (50 g). Única excepción: quantitySource 'scale' — lo pesado en
+       báscula es el dato real y no se toca. */
+    if (f.quantitySource !== 'scale') {
+      const refPP = aiTablePerPiece(name);
+      if (refPP) {
+        perPiece = refPP;
+        if (!pieces && total > 0) pieces = Math.max(1, Math.round(total / refPP));
+      }
+    }
     if (!pieces) pieces = 1;
     const grams = (pieces && perPiece) ? Math.round(pieces * perPiece * 10) / 10 : (total || '');
     return { src: f, name, grams, unit: 'unidad', pieces, perPiece };
@@ -31407,6 +31508,7 @@ function mealManualOpen() {
      si ya había un borrador sin guardar, el formulario lo restaura
      en vez de abrir en blanco. */
   try { pendDraftArm(); pendDraftRestore(); } catch {}
+  foodRefWire();
   aiOpenMealModal();
 }
 /* «Repetir una comida anterior» (tercera pieza del trío de registro:
@@ -31536,6 +31638,71 @@ function mealScaleWire() {
   [['m-kcal', 'kcal'], ['m-prot', 'prot'], ['m-carb', 'carb'], ['m-sugar', 'sugar'], ['m-fat', 'fat']]
     .forEach(([id, k]) => { const el = $(id); if (el) el.addEventListener('input', () => { if (mealScaleCtx) mealScaleCtx.touched.add(k); }); });
 }
+/* ============ MOTOR DE LA TABLA DE REFERENCIA EN EL FORMULARIO
+   MANUAL (2026-11-03) — la MISMA FOOD_REF que consulta la ruta de
+   IA: un solo sitio, el mismo cálculo en las dos rutas. Cuando la
+   persona escribe a mano un producto de la tabla y una cantidad con
+   medida (5 unidad · 1 taza · 2 cucharadas · 1 rebanada · 200 g),
+   las cinco métricas se calculan desde la referencia (valores por
+   100 g × gramos de la medida) y quedan EDITABLES en el formulario.
+   Convivencia: si el formulario ya trae densidad propia (elección
+   del historial o del catálogo, «Repetir» o borrador de IA —
+   mealScaleCtx / repeatCtx vivos), la referencia NO actúa; y si la
+   persona edita a mano cualquier métrica, la referencia suelta el
+   formulario y no vuelve a pisar sus cifras. */
+let foodRefCtx = null; // { id } del producto cuyos valores llenan hoy el formulario
+function foodRefParseQty(txt) {
+  const m = String(txt || '').trim().replace(',', '.').match(/^(\d+(?:\.\d+)?)\s*(.*)$/);
+  if (!m) return null;
+  const n = parseFloat(m[1]); if (!(n > 0)) return null;
+  const u = (m[2] || '').trim().toLowerCase();
+  if (!u || /^(g|gr|gramos?|ml)$/.test(u)) return { grams: n, measure: 'g' };
+  const MAP = [[/^(u|ud|uds|unidad|unidades|unit|units|piezas?|pz|pza)$/, 'unidad'],
+    [/^(tazas?|cups?)$/, 'taza'],
+    [/^(cucharadas?( soperas?)?|cdas?|tablespoons?|tbsp)$/, 'cucharada'],
+    [/^(cucharaditas?|cdtas?|teaspoons?|tsp)$/, 'cucharadita'],
+    [/^(rebanadas?|lonjas?|rodajas?|slices?)$/, 'rebanada']];
+  for (const [re, k] of MAP) if (re.test(u)) return { n, measure: k };
+  return null;
+}
+function foodRefApply() {
+  if (mealScaleCtx || repeatCtx) return;
+  const nameEl = $('m-food'), qEl = $('m-qty'); if (!nameEl || !qEl) return;
+  const prod = foodRefMatch(nameEl.value); if (!prod) return;
+  const q = foodRefParseQty(qEl.value); if (!q) return;
+  let grams = null;
+  if (q.measure === 'g') grams = q.grams;
+  else {
+    const per = prod.measures[q.measure] || (q.measure === 'unidad' ? prod.measures.pieza : null);
+    if (per) grams = q.n * per;
+  }
+  if (!(grams > 0)) return;
+  const ids = ['m-kcal', 'm-prot', 'm-carb', 'm-sugar', 'm-fat'];
+  const allEmpty = ids.every(id => { const el = $(id); return el && String(el.value).trim() === ''; });
+  if (!allEmpty && !foodRefCtx) return; // hay cifras de la persona o de otra vía: no se pisan
+  const p100 = prod.per100, f = grams / 100;
+  $('m-kcal').value = Math.round(p100.kcal * f);
+  $('m-prot').value = Math.round(p100.prot * f * 10) / 10;
+  $('m-carb').value = Math.round(p100.carb * f * 10) / 10;
+  $('m-sugar').value = Math.round(p100.sugar * f * 10) / 10;
+  $('m-fat').value = Math.round(p100.fat * f * 10) / 10;
+  const first = !foodRefCtx || foodRefCtx.id !== prod.id;
+  foodRefCtx = { id: prod.id };
+  try { pendDraftSave(); } catch {}
+  if (first) toast(t('foodref.applied'));
+}
+function foodRefClear() { foodRefCtx = null; }
+function foodRefWire() {
+  const food = $('m-food'), qty = $('m-qty');
+  if (!food || !qty || food.dataset.refWired) return;
+  food.dataset.refWired = '1';
+  food.addEventListener('change', foodRefApply);
+  qty.addEventListener('change', foodRefApply);
+  ['m-kcal', 'm-prot', 'm-carb', 'm-sugar', 'm-fat'].forEach(id => {
+    const el = $(id);
+    if (el) el.addEventListener('input', () => { foodRefCtx = null; });
+  });
+}
 function openRepeatMeal(rec, viewDate) {
   aiClearDraft();
   /* Repetir NO es la vía manual: el espejo de borrador (D3) se
@@ -31583,6 +31750,7 @@ function openRepeatMeal(rec, viewDate) {
 }
 function repeatClear() {
   repeatCtx = null;
+  foodRefClear(); // la referencia tampoco hereda episodios
   mealPickClear(); // punto 84: ídem aiClearDraft — ningún episodio nuevo hereda una elección anterior
   mealScaleClear(); // el contexto de reescalado muere con el episodio del formulario
   const b = $('m-rep-banner'); if (b) { b.style.display = 'none'; b.textContent = ''; }
@@ -31764,6 +31932,7 @@ function acWireAltDesc() {
   acWire(ta, wrap ? wrap.querySelector('.ac-sug') : null, 'desc');
 }
 acWire($('m-food'), $('ac-sug-food'), 'food');
+foodRefWire();
 /* Punto 84: si tras una elección del catálogo el texto del
    alimento deja de ser el elegido (borrado o tecleado libre), la
    elección muere y la zona de IA vuelve a ofrecerse, como hoy.
@@ -34528,7 +34697,7 @@ document.addEventListener('keydown', e => { if (e.key === 'Escape') shareClose()
  *  - El SW (sw.js) solo cachea la cáscara del mismo origen en modo
  *    RED PRIMERO: Auth/Firestore/Worker jamás pasan por la caché.
  * ================================================================ */
-const PWA_SW_VERSION = '20261103-puerta-fantasma';
+const PWA_SW_VERSION = '20261103-tabla-referencia';
 let pwaDeferredPrompt = null;
 function pwaIsStandalone() {
   try {
