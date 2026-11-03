@@ -13996,6 +13996,15 @@ function massToDisplay(kg) { return UNIT_PREFS.mass === 'lb' ? num(kg) / UNIT_LB
 function massToCanonical(v) { return UNIT_PREFS.mass === 'lb' ? num(v) * UNIT_LB_KG : num(v); }
 function fmtMassVal(kg) { return kg == null || !(num(kg) > 0) ? '—' : String(uRound1(massToDisplay(kg))); }
 function fmtMass(kg) { return kg == null || !(num(kg) > 0) ? '—' : fmtMassVal(kg) + ' ' + UNIT_PREFS.mass; }
+/* DOBLE MEDICIÓN EN LOS RESÚMENES (orden de Ronald, chat
+   2026-11-03 11:41 CST: «Que ponga en la vista resumida el valor en
+   las dos mediciones»): todo peso pintado A MODO DE RESUMEN sale en
+   la unidad del visor y, tras el «≈», en la otra — la misma regla
+   de equivalencia del detalle por serie (tfEquivText): en kg, las
+   libras redondas; en lb, los kg con un decimal. El dato guardado
+   no se toca: es solo la pintura, desde el kg canónico. */
+function massEqText(kg) { return UNIT_PREFS.mass === 'kg' ? '≈ ' + Math.round(num(kg) / UNIT_LB_KG) + ' lb' : '≈ ' + uRound1(num(kg)) + ' kg'; }
+function fmtMassDual(kg) { return kg == null || !(num(kg) > 0) ? '—' : fmtMass(kg) + ' ' + massEqText(kg); }
 function fmtHeight(cm) {
   const v = num(cm); if (!(v > 0)) return '—';
   if (UNIT_PREFS.height !== 'ft-in') return String(uRound1(v)) + ' cm';
@@ -23772,7 +23781,7 @@ function trainExCompactHTML(ex, di, ei, mode, de) {
       <div class="train-ex-name">${esc(trainExName(ex))}</div>
       ${spec || ex.note ? `<div class="train-ex-spec">${esc(spec)}${ex.note ? `${spec ? ' · ' : ''}${esc(ex.note)}` : ''}</div>` : ''}
     </div>
-    ${trainHistBlockHTML(ex)}
+    ${trainHistBlockHTML(mode === 'edit' ? trainSessionSummaryLive(chk) : (de ? trainSessionSummaryFromSets(de.sets) : null))}
     <div class="train-ex-side">${mode === 'edit'
       ? `<label class="train-ex-check"><input type="checkbox" data-train-check="${key}" ${chk ? 'checked' : ''}> <span>${t('train.view.exDone')}</span></label>`
       : mode === 'read'
@@ -24811,88 +24820,76 @@ function histShortDate(iso) {
    filas {date, dateShort, legacy} o {date, dateShort, n, loadsStr,
    maxStr, repsStr} — texto listo para pintar; NUNCA escribe ni
    copia nada al día de hoy (es referencia, no plantilla). */
-/* RÉCORDS POR EJERCICIO EN LA FILA (puntos 67–75 de la cola;
-   decisión de Ronald 2026-11-02 00:57–01:13 CST sobre la maqueta
-   aprobada): los tres récords de TODO el historial del ejercicio —
-   series MÁXIMAS hechas en UNA sola sesión (no la suma), repeticio-
-   nes máximas y peso máximo — leídos de la MISMA única lectura de
-   registros de siempre (MY_LOGS_ALL, todos los planes), sin ninguna
-   lectura nueva. La semántica de emparejado es la del lector de
-   cargas de la ficha (trainHistLoadsRows): identidad por el
-   exerciseId REALIZADO (un cambio cuenta para el realizado), por
-   nombre exacto solo si ninguna de las dos partes trae id; solo
-   sesiones done/partial; entradas con done===false fuera; las
-   series de aproximación (warmupSets) NUNCA cuentan; una entrada
-   legada sin sets prueba que el ejercicio se hizo (any) pero no
-   aporta cifras; una serie trabajada cuenta para el récord de
-   series aunque no lleve números tecleados, y solo aporta a los
-   máximos de repeticiones/peso si los trae. Con variantes en la
-   ficha, el filtro es el mismo de la ficha: la vista de una
-   variante no estándar solo cuenta sus sesiones; la estándar, las
-   sesiones sin variantIndex o con el índice estándar. El resultado
-   se memoriza por (identidad, vista de variante) mientras no cambie
-   la referencia de MY_LOGS_ALL: una pasada por fila y día pintado,
-   jamás por serie. */
-let TRAIN_REC_CACHE = { src: null, map: new Map() };
-function trainHistRecords(ex) {
-  const logs = MY_LOGS_ALL;
-  if (!Array.isArray(logs)) return null;
-  if (TRAIN_REC_CACHE.src !== logs) TRAIN_REC_CACHE = { src: logs, map: new Map() };
-  const id = ex && ex.exerciseId ? String(ex.exerciseId) : null;
-  const name = ex && !id ? String(ex.name || '') : null;
-  if (!id && !name) return null;
-  const entryH = id ? (LIB_BY_ID[id] || null) : null;
-  const varsH = entryH && Array.isArray(entryH.variantes) && entryH.variantes.length ? entryH.variantes : null;
-  const stdIdx = varsH ? varsH.findIndex(v => v && v.es_estandar) : -1;
-  const viEx = ex && Number.isInteger(ex.variantIndex) ? ex.variantIndex : null;
-  const viActive = !!(varsH && viEx != null && varsH[viEx] && !varsH[viEx].es_estandar);
-  const key = (id || 'n:' + name) + '|v' + (varsH ? (viActive ? String(viEx) : 'std') : '-');
-  if (TRAIN_REC_CACHE.map.has(key)) return TRAIN_REC_CACHE.map.get(key);
-  let any = false, maxSets = null, maxReps = null, maxLoad = null;
-  for (const log of logs) {
-    const st = trainLogStatus(log);
-    if (st !== 'done' && st !== 'partial') continue;
-    const list = Array.isArray(log.exercisesDone) ? log.exercisesDone : [];
-    for (const e of list) {
-      if (!e || e.done === false) continue;
-      const match = id ? (e.exerciseId != null && String(e.exerciseId) === id)
-        : (e.exerciseId == null && e.name != null && String(e.name) === name);
-      if (!match) continue;
-      if (varsH) {
-        const ev = Number.isInteger(e.variantIndex) ? e.variantIndex : null;
-        if (viActive) { if (ev !== viEx) continue; }
-        else if (ev !== null && ev !== stdIdx) continue;
-      }
-      any = true;
-      const sets = Array.isArray(e.sets) ? e.sets : null;
-      if (!sets) continue;   /* legado: hecho, sin cifras */
-      if (sets.length && (maxSets == null || sets.length > maxSets)) maxSets = sets.length;
-      for (const s of sets) {
-        if (!s) continue;
-        const r = (s.repsDone != null && s.repsDone !== '') ? Number(s.repsDone) : NaN;
-        if (isFinite(r) && (maxReps == null || r > maxReps)) maxReps = r;
-        const l = typeof s.loadKg === 'number' ? s.loadKg : NaN;
-        if (isFinite(l) && l > 0 && (maxLoad == null || l > maxLoad)) maxLoad = l;
-      }
-    }
+/* RESUMEN DE LA SESIÓN EN LA FILA (corrección 2026-11-03 —
+   reporte en vivo de Ronald, chat 11:40 CST: «Sospecho que la
+   vista resumida no está haciendo bien los cálculos», con sus dos
+   capturas de la «Abducción en máquina»: la ventana decía 4 series
+   de 10 reps a 85 kg y la fila resumida decía REPS MÁX 20 y PESO
+   MÁX 38.6 kg): el bloque SERIES / REPS MÁX / PESO MÁX resume las
+   series HECHAS de la sesión a la que la fila pertenece. Sustituye
+   a los «récords de todo el historial» de AUTH-161: el diagnóstico
+   con los datos reales (informe del paquete) probó que aquella
+   función NO calculaba mal ni convertía nada — el 20 y los 38.6 kg
+   son la sesión real del 2026-10-27 (20 reps por serie; 85 LIBRAS
+   guardadas como loadKg 38.55535145 con su loadOriginal «85» en
+   «lb») — pero respondía OTRA pregunta (el récord histórico de los
+   registros ya cerrados) y la sesión en curso no contaba hasta el
+   cierre del día, así que la fila contradecía la ventana del
+   propio ejercicio. Por la palabra de Ronald de hoy manda la
+   sesión:
+   – en EDICIÓN, la marca en curso (TRAIN_CHECKS) convertida con EL
+     MISMO espejo del escritor del cierre: fuera las series `pend`
+     (nacidas con «+ Añadir serie» y nunca trabajadas: el cierre
+     las excluye del registro) y la carga pasa por massToCanonical
+     desde la unidad del visor, tal cual se escribirá;
+   – en LECTURA, la entrada del registro de ESE día (de.sets: el
+     canónico loadKg tal cual se guardó).
+   Las series de aproximación NUNCA cuentan: en curso viven aparte
+   (chk.warmup) y en el registro aparte (warmupSets); aquí solo se
+   leen las series de trabajo. Sin sesión que resumir (fila de plan
+   en la ficha, ejercicio aún sin marcar, registro legado sin
+   series): las tres cifras nacen «—» y sin nota — el bloque ya no
+   habla del historial. */
+function trainSessionSummaryFromSets(sets) {
+  if (!Array.isArray(sets) || !sets.length) return null;
+  let maxReps = null, maxLoad = null;
+  for (const s of sets) {
+    if (!s) continue;
+    const r = (s.repsDone != null && s.repsDone !== '') ? Number(s.repsDone) : NaN;
+    if (isFinite(r) && (maxReps == null || r > maxReps)) maxReps = r;
+    const l = typeof s.loadKg === 'number' ? s.loadKg : NaN;
+    if (isFinite(l) && l > 0 && (maxLoad == null || l > maxLoad)) maxLoad = l;
   }
-  const rec = { any, maxSets, maxReps, maxLoad };
-  TRAIN_REC_CACHE.map.set(key, rec);
-  return rec;
+  return { nSets: sets.length, maxReps, maxLoad };
+}
+function trainSessionSummaryLive(chk) {
+  if (!chk || !Array.isArray(chk.sets)) return null;
+  const canon = [];
+  chk.sets.forEach(s => {
+    if (!s || s.pend === true) return;
+    const out = {};
+    const rd = num(s.repsDone);
+    if (s.repsDone !== '' && s.repsDone != null && !isNaN(rd)) out.repsDone = rd;
+    const lv = parseFloat(s.loadVal);
+    if (s.loadVal !== '' && s.loadVal != null && isFinite(lv) && lv >= 0) out.loadKg = massToCanonical(lv);
+    canon.push(out);
+  });
+  return trainSessionSummaryFromSets(canon);
 }
 /* El bloque compacto de la fila: tres mini-columnas (título arriba,
    número abajo) a la DERECHA de la fila, sin estorbar el check.
-   Sin historial: «—» en las tres y la nota «Sin historial» debajo;
-   con historial legado sin cifras: «—» sin la nota (sí se hizo). */
-function trainHistBlockHTML(ex) {
-  const rec = trainHistRecords(ex);
-  if (!rec) return '';
+   Recibe el resumen de la sesión (trainSessionSummary*): el PESO
+   MÁX va en las dos mediciones — la unidad del visor en grande y
+   la otra tras el «≈» en su propia línea (.train-ex-hist-eq), como
+   el detalle por serie pinta su equivalencia bajo la carga. Sin
+   resumen: «—» en las tres, sin nota. */
+function trainHistBlockHTML(sum) {
   const dash = '—';
   return `<div class="train-ex-hist"><div class="train-ex-hist-cols">`
-    + `<div class="train-ex-hist-col"><span class="train-ex-hist-lab">${t('train.histRec.sets')}</span><span class="train-ex-hist-val">${rec.maxSets != null ? rec.maxSets : dash}</span></div>`
-    + `<div class="train-ex-hist-col"><span class="train-ex-hist-lab">${t('train.histRec.repsMax')}</span><span class="train-ex-hist-val">${rec.maxReps != null ? rec.maxReps : dash}</span></div>`
-    + `<div class="train-ex-hist-col"><span class="train-ex-hist-lab">${t('train.histRec.loadMax')}</span><span class="train-ex-hist-val">${rec.maxLoad != null ? fmtMass(rec.maxLoad) : dash}</span></div>`
-    + `</div>${rec.any ? '' : `<div class="train-ex-hist-none">${t('train.histRec.none')}</div>`}</div>`;
+    + `<div class="train-ex-hist-col"><span class="train-ex-hist-lab">${t('train.histRec.sets')}</span><span class="train-ex-hist-val">${sum && sum.nSets != null ? sum.nSets : dash}</span></div>`
+    + `<div class="train-ex-hist-col"><span class="train-ex-hist-lab">${t('train.histRec.repsMax')}</span><span class="train-ex-hist-val">${sum && sum.maxReps != null ? sum.maxReps : dash}</span></div>`
+    + `<div class="train-ex-hist-col"><span class="train-ex-hist-lab">${t('train.histRec.loadMax')}</span><span class="train-ex-hist-val">${sum && sum.maxLoad != null ? `${fmtMass(sum.maxLoad)} <span class="train-ex-hist-eq">${esc(massEqText(sum.maxLoad))}</span>` : dash}</span></div>`
+    + `</div></div>`;
 }
 function trainHistLoadsRows(ex, allLogs) {
   const id = ex && ex.exerciseId ? String(ex.exerciseId) : null;
@@ -24946,7 +24943,7 @@ function trainHistLoadsRows(ex, allLogs) {
     ? { dateShort: histShortDate(r.date), legacy: true }
     : { dateShort: histShortDate(r.date), legacy: false, n: r.n, repsStr: r.repsStr,
         loadsStr: r.loadsKg.length ? r.loadsKg.map(fmtMassVal).join(' / ') + ' ' + UNIT_PREFS.mass : '',
-        maxStr: r.loadsKg.length ? fmtMass(Math.max(...r.loadsKg)) : '' });
+        maxStr: r.loadsKg.length ? fmtMassDual(Math.max(...r.loadsKg)) : '' });
 }
 function trainHistLoadsHTML(ex, allLogs) {
   const rows = trainHistLoadsRows(ex, allLogs);
@@ -35165,7 +35162,7 @@ document.addEventListener('keydown', e => { if (e.key === 'Escape') shareClose()
  *  - El SW (sw.js) solo cachea la cáscara del mismo origen en modo
  *    RED PRIMERO: Auth/Firestore/Worker jamás pasan por la caché.
  * ================================================================ */
-const PWA_SW_VERSION = '20261103-coach';
+const PWA_SW_VERSION = '20261103-resumen-sesion';
 let pwaDeferredPrompt = null;
 function pwaIsStandalone() {
   try {
