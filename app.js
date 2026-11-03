@@ -10890,22 +10890,23 @@ function studentsBadge(u) {
 }
 function studentsRowHTML(u) {
   const name = stuName(u);
-  /* AUTH-2026-11-02-150: la LISTA de «Mis alumnos» muestra también
-     los pendientes del alumno AGRUPADOS POR CATEGORÍA, sin abrir
-     el detalle: el MISMO agrupador del detalle
-     (studentsPendGroupedHTML, con sus encabezados y las filas de
-     studentsPendItemHTML con su chip) se pinta bajo la fila. El
-     bloque va FUERA del <button> de la fila (las filas de
-     pendientes llevan sus propios botones: nada de botones
-     anidados) y hereda el cableado de siempre de renderStudentsBody
-     (data-stu-act / data-stu-nudge). Sin pendientes (o con error
-     de carga) la fila queda como siempre: resumen y sello. Los
-     conteos por categoría de la lista salen de la misma pasada y
-     del mismo agrupador que el detalle: no pueden contradecirse. */
-  const L = STUDENTS_LAST;
-  const items = (!L || L.pendErrByUid[u.id]) ? [] : ((L.pendByUid[u.id] || {}).items || []);
-  const pendBlock = items.length ? `<div class="students-row-pend">${studentsPendGroupedHTML(u.id, items)}</div>` : '';
-  return `<div class="students-row-block"><button type="button" class="srow" data-stu="${u.id}">${stuAvatarHTML(u, name)}<span class="srow-main"><span class="srow-name">${esc(name)}</span><span class="srow-sub">${studentsSummary(u)}</span></span>${studentsBadge(u)}<span class="srow-chev">›</span></button>${pendBlock}</div>`;
+  /* AUTH-2026-11-02-184 (punto 107 de la cola; correo de Ronald
+     2026-11-02 19:13 CST: «cada usuario aparece abierto; quiero
+     que se despliegue solo cuando presiono en el usuario, así
+     estaba antes»): la fila de la LISTA vuelve a nacer CERRADA —
+     solo su cabecera (avatar, nombre, resumen de una línea, sello
+     de conteo y chevron), byte a byte la fila de antes de
+     AUTH-150 — y los pendientes agrupados por categoría viven
+     donde siempre vivieron: en el DETALLE que se abre al
+     presionar la fila (studentsDetailHTML, con el mismo
+     agrupador y las mismas filas de AUTH-148/150/182). Se retira
+     el bloque desplegado permanente que AUTH-2026-11-02-150
+     pintaba bajo cada fila (.students-row-pend): era lo que
+     hacía aparecer a cada alumno ABIERTO al entrar a la lista.
+     La memoria de regreso de la ficha (STUDENTS_RESTORE) no
+     cambia; una entrada fresca a la vista nace con todas las
+     fichas cerradas, como pide la restauración. */
+  return `<button type="button" class="srow" data-stu="${u.id}">${stuAvatarHTML(u, name)}<span class="srow-main"><span class="srow-name">${esc(name)}</span><span class="srow-sub">${studentsSummary(u)}</span></span>${studentsBadge(u)}<span class="srow-chev">›</span></button>`;
 }
 function studentsGridCellHTML(u) {
   const name = stuName(u);
@@ -11050,6 +11051,13 @@ function renderStudentsViewbar() {
    aparezca todo esto»). */
 function studentsRowTap(uid) {
   if (!STUDENTS_LAST) return;
+  /* AUTH-2026-11-02-184: presionar la fila del alumno cuyo
+     detalle ya está abierto lo CIERRA — la ficha se despliega
+     y se repliega con la misma presión sobre su cabecera
+     (donde la lista sigue visible junto al detalle). En móvil
+     la lista queda oculta tras el detalle y el cierre sigue
+     siendo su fila de regreso, como siempre. */
+  if (STUDENTS_DETAIL === uid) { studentsCloseDetail(); return; }
   STUDENTS_DETAIL = uid;
   STUDENTS_DETAIL_FROM = STUDENTS_FILTERS ? 'filtros' : STUDENTS_SEL;
   STUDENTS_SCROLL = window.scrollY || 0;
@@ -31951,7 +31959,7 @@ document.addEventListener('keydown', e => { if (e.key === 'Escape') shareClose()
  *  - El SW (sw.js) solo cachea la cáscara del mismo origen en modo
  *    RED PRIMERO: Auth/Firestore/Worker jamás pasan por la caché.
  * ================================================================ */
-const PWA_SW_VERSION = '20261102-d6-arreglos';
+const PWA_SW_VERSION = '20261102-fichas-cerradas';
 let pwaDeferredPrompt = null;
 function pwaIsStandalone() {
   try {
