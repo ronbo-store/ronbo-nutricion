@@ -2413,11 +2413,11 @@ async function careStudentPass(u, ctx) {
       const bs = await getDocs(query(collection(db, 'body_type_estimates'), where('clientUid', '==', u.id)));
       bodyItem = studentsBodyItem(u, bs.size);
     }
-    const items = trainerPendUnion(chk, studentsPendCompute({
+    const union = trainerPendUnion(chk, studentsPendCompute({
       cfg, marks, wdates: ctx.wdates[u.id] || [], prog: parsed,
       reqLatest: ctx.reqLatest[u.id] || null, foodItems: ctx.foodItems[u.id] || []
     }, new Date()), bodyItem, u);
-    return { items, cfg, evalDue: spEvalNextDue(parsed) };
+    return { items: union.items, cfg, evalDue: spEvalNextDue(parsed) };
   } catch { return { items: null, cfg: null, evalDue: null, err: true }; }
 }
 /* scopeUid = null → administrador (todos los entrenadores);
