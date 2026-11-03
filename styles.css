@@ -3066,3 +3066,70 @@ body.sess-on #pend-back-chip { bottom: calc(env(safe-area-inset-bottom, 0px) + 1
 .ds-hour.sel { background: #0d9488; border-color: #0d9488; color: #fff; }
 .ds-note { text-align: center; color: #0d9488; font-weight: 600; font-size: 15px; margin: 14px 0 0; }
 /* == FIN AUTH-181 == */
+
+/* ===== INICIO AUTH-182 · Filas de pendientes del entrenador ORDENADAS
+   (punto 102 de la cola; reporte EN VIVO de Ronald del 2026-11-02
+   18:37 CST con captura de su sesión real, y extensión de las 18:39
+   con la captura de la ficha de «Mis clientes») =====
+   Las filas .stu-pend-item — el MISMO pintor
+   (studentsPendItemHTML) sirve la lista y el detalle de «Mis
+   alumnos» y el bloque de pendientes de la ficha de «Mis clientes»
+   (fichaPendBlockHTML) — nacieron como UNA línea flex con piezas
+   rígidas: icono de 42 + columna del título + hasta dos botones
+   nowrap a la derecha (flex:none). En un teléfono la columna del
+   título quedaba en ~40–90 px: el título se aplastaba palabra a
+   palabra, la pastilla «DEPENDE DEL ALUMNO» (nowrap, dentro del
+   título flex) no cabía en la columna y se pintaba ENCIMA del
+   botón «Ver cálculo», y el sello «✉ Avisado el…» (nowrap) se
+   salía de la tarjeta por la derecha. Misma familia que
+   AUTH-178/179 (la fila del día cerrado).
+   EL ORDEN NUEVO (solo presentación; datos, conteos, sellos,
+   textos y el comportamiento de «✉ Avisar» intactos):
+   (1) El sello y el chip de categoría viven en su propia línea
+       (.stu-pend-tags, app.js): en escritorio quedan junto al
+       título, como hoy; a ≤480 px el título ocupa su línea
+       completa (bloque) y las pastillas van debajo, en su línea,
+       sin montarse jamás con nada.
+   (2) A ≤480 px la fila ENVUELVE: icono + columna en la primera
+       línea (el título entero, sin columna estrangulada) y las
+       acciones en su PROPIA línea a todo el ancho — botones
+       grandes de la casa (≥44 px de alto) que se reparten la
+       línea; el sello «✉ Avisado el…» pasa a su propia línea,
+       completo y dentro de la tarjeta (deja el nowrap); el texto
+       «Pendiente del alumno» (AUTH-117) ocupa su línea centrado.
+   (3) La fila de filtros de las dos vistas (pastillas
+       .libcat-chips dentro de #students-viewbar /
+       #clients-viewbar) ENVUELVE a la siguiente línea en vez de
+       cortarse a media palabra con scroll lateral escondido.
+   (4) AIRE INFERIOR PROPIO de las dos superficies (#students-list
+       y #client-detail, 26 px en flujo tras su última tarjeta),
+       que se suma a la reserva del pie de AUTH-151: la última
+       fila de la ficha desplegada — en cualquiera de las dos
+       vistas — queda completa por encima del dock.
+   Fuera de ≤480 px la fila conserva su geometría de una línea de
+   siempre (las pastillas, eso sí, en su línea .stu-pend-tags
+   junto al título). Sin :has ni dependencias nuevas: sin estas
+   reglas la fila queda como estaba, nunca peor. */
+.stu-pend-title { display: inline; }
+.stu-pend-tags { display: inline-flex; flex-wrap: wrap; gap: 6px; margin-left: 8px; vertical-align: middle; }
+#students-viewbar .libcat-chips, #clients-viewbar .libcat-chips { flex-wrap: wrap; overflow-x: visible; }
+#students-list { padding-bottom: 26px; }
+#client-detail { padding-bottom: 26px; }
+@media (max-width: 480px) {
+  .stu-pend-item { flex-wrap: wrap; align-items: flex-start; }
+  .stu-pend-main { flex: 1 1 0; min-width: 0; }
+  .stu-pend-title { display: block; }
+  .stu-pend-tags { display: flex; margin: 5px 0 0; }
+  .stu-pend-item > .stu-pend-btns { flex: 1 1 100%; display: flex; flex-wrap: wrap; gap: 8px; align-items: stretch; }
+  .stu-pend-item > .stu-pend-btns > .btn-primary,
+  .stu-pend-item > .stu-pend-btns > .btn-nudge { flex: 1 1 0; min-height: 44px; }
+  .stu-pend-item > .stu-pend-btns > .stu-nudged { flex: 1 1 100%; white-space: normal; padding-top: 2px; }
+  .stu-pend-item > .btn-primary,
+  .stu-pend-item > .btn-ghost,
+  .stu-pend-item > .btn-nudge { flex: 1 1 100%; min-height: 44px; }
+  .stu-pend-item .btn-primary { font-size: 13.5px; padding: 10px 12px; display: inline-flex; align-items: center; justify-content: center; }
+  .stu-pend-item .btn-nudge { font-size: 13.5px; padding: 10px 12px; display: inline-flex; align-items: center; justify-content: center; }
+  .stu-pend-item > .stu-pend-whose { flex: 1 1 100%; white-space: normal; text-align: center; padding: 8px 10px; }
+  .stu-pend-item > .stu-nudged { flex: 1 1 100%; white-space: normal; }
+}
+/* == FIN AUTH-182 == */

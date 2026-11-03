@@ -10759,9 +10759,21 @@ function studentsPendItemHTML(uid, it, isTrace) {
     const dot = cat === 'ind' ? '🔴' : cat === 'imp' ? '🟠' : '🟢';
     return `<span class="stu-cat-chip stu-cat-chip-${cat}">${dot} ${esc(t('pend.cat.' + cat))}</span>`;
   })();
+  /* AUTH-2026-11-02-182 (punto 102 de la cola): el sello de
+     responsable y el chip de categoría salen del TÍTULO y viven en
+     su propia línea (.stu-pend-tags, tras el título, dentro de la
+     misma columna principal): dentro del título (flex con wrap)
+     la pastilla — nowrap, con su ancho mínimo de contenido — no
+     cabía en la columna estrangulada por los botones rígidos de la
+     derecha y se pintaba ENCIMA de «Ver cálculo» (captura de
+     Ronald del 2026-11-02 18:37 CST). El título queda como texto
+     solo (su primer nodo sigue siendo el texto: el cableado de
+     «✉ Avisar» lee childNodes[0] de .stu-pend-title, intacto) y
+     las pastillas comparten su línea, envolviendo si no caben.
+     Contenido, sellos, botones y cableado: los de siempre. */
   return `<div class="stu-pend-item${isTrace ? ' trace' : ''}">
     <span class="stu-pend-ico" style="background:${bg}">${emoji}</span>
-    <span class="stu-pend-main"><span class="stu-pend-title">${esc(studentsItemTitle(it))}${seal}${catChip}</span>
+    <span class="stu-pend-main"><span class="stu-pend-title">${esc(studentsItemTitle(it))}</span><span class="stu-pend-tags">${seal}${catChip}</span>
     ${sub ? `<span class="stu-pend-sub">${sub}</span>` : ''}</span>
     ${right}
   </div>`;
@@ -31890,7 +31902,7 @@ document.addEventListener('keydown', e => { if (e.key === 'Escape') shareClose()
  *  - El SW (sw.js) solo cachea la cáscara del mismo origen en modo
  *    RED PRIMERO: Auth/Firestore/Worker jamás pasan por la caché.
  * ================================================================ */
-const PWA_SW_VERSION = '20261102-resumen-controles';
+const PWA_SW_VERSION = '20261102-alumnos-orden';
 let pwaDeferredPrompt = null;
 function pwaIsStandalone() {
   try {
