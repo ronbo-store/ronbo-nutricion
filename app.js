@@ -35022,13 +35022,77 @@ function shareDrawGoalsEmpty(ctx, W, H) {
    solo se re-presenta lo que la app ya calcula y guarda. */
 /* La línea de resumen de una sesión: las mismas tres cifras del
    bloque de la casa (train.histRec) con el peso en doble medición. */
-function shareShortSumLine(sum) {
-  if (!sum) return '';
-  const parts = [];
-  if (sum.nSets != null) parts.push(sum.nSets + ' ' + t('train.histRec.sets'));
-  if (sum.maxReps != null) parts.push(t('train.histRec.repsMax') + ' ' + sum.maxReps);
-  if (sum.maxLoad != null) parts.push(t('train.histRec.loadMax') + ' ' + fmtMassDual(sum.maxLoad));
-  return parts.join(' · ');
+/* ---------- foto héroe de «Mi resumen del día» (dirección B) ----------
+   La foto de perfil del propio alumno (users.photoURL: el data URI
+   JPEG de ≤256 px que guarda compressAvatar). Se carga una vez por
+   URL y se cachea en memoria, como la marca de agua y las fotos de
+   ejercicio de la familia. Un data URI no contamina el lienzo; si
+   alguna vez fuera una URL https, se pide con crossOrigin
+   'anonymous' (el patrón de sharePhotoEnsure): sin CORS falla la
+   CARGA — nunca el lienzo — y la tarjeta cae al fondo de marca. Al
+   terminar de cargar con la hoja abierta en esta tarjeta, se
+   re-pinta sola, como el resto de recursos de la familia. */
+const SHARE_HERO = { url: '', img: null, state: 'idle', circle: false };
+function shareHeroEnsure(url) {
+  if (!url) { SHARE_HERO.state = 'none'; return; }
+  if (SHARE_HERO.url === url && SHARE_HERO.state !== 'idle') return;
+  SHARE_HERO.url = url; SHARE_HERO.img = null; SHARE_HERO.state = 'loading'; SHARE_HERO.circle = false;
+  try {
+    const im = new Image();
+    if (!/^data:/i.test(url)) im.crossOrigin = 'anonymous';
+    im.onload = () => {
+      SHARE_HERO.img = im; SHARE_HERO.state = 'ok';
+      /* ¿Avatar circular «horneado» sobre fondo claro? (la foto de
+         perfil de Ronald: un círculo sobre blanco guardado como JPEG
+         cuadrado). Firma determinista: imagen casi cuadrada con las
+         cuatro esquinas casi blancas y el centro distinto. Solo
+         entonces el recorte usa el cuadrado inscrito en el círculo,
+         para que las esquinas claras no sangren en la tarjeta; una
+         foto normal jamás entra aquí y se recorta a sangrado
+         completo con ancla alta. */
+      try {
+        const iw = im.naturalWidth || im.width, ih = im.naturalHeight || im.height;
+        if (iw && ih && Math.abs(iw - ih) <= Math.max(iw, ih) * 0.04) {
+          const cv = document.createElement('canvas'); cv.width = 24; cv.height = 24;
+          const cx2 = cv.getContext('2d'); cx2.drawImage(im, 0, 0, 24, 24);
+          const px = cx2.getImageData(0, 0, 24, 24).data;
+          const at = (x, y) => { const i = (y * 24 + x) * 4; return [px[i], px[i + 1], px[i + 2]]; };
+          const corners = [at(0, 0), at(23, 0), at(0, 23), at(23, 23)];
+          const center = at(12, 12);
+          const whiteish = c => Math.min(c[0], c[1], c[2]) >= 238;
+          if (corners.every(whiteish) && !whiteish(center)) SHARE_HERO.circle = true;
+        }
+      } catch (e) { /* sin lectura de píxeles: recorte normal */ }
+      const f = $('share-float');
+      if (f && f.style.display !== 'none' && SHARE.type === 'short') shareRender();
+    };
+    im.onerror = () => { SHARE_HERO.state = 'fail'; };
+    im.src = url;
+  } catch (e) { SHARE_HERO.state = 'fail'; }
+}
+/* Pinta la foto héroe a sangrado completo en (x, y, w, h) con ANCLA
+   ALTA — la cara nunca fuera de cuadro — y devuelve true SOLO si la
+   pintó; si no está lista, dispara la carga y devuelve false: la
+   composición cae al fondo de marca, sin hueco roto. Con avatar
+   circular horneado, el «lienzo virtual» es el cuadrado inscrito en
+   el círculo (0.70 del lado: sus esquinas quedan DENTRO del círculo)
+   y el sangrado se calcula sobre ese cuadrado. */
+function shareHeroDraw(ctx, x, y, w, h) {
+  const url = (typeof UDATA !== 'undefined' && UDATA && UDATA.photoURL) || '';
+  if (!url) return false;
+  shareHeroEnsure(url);
+  if (SHARE_HERO.state !== 'ok' || !SHARE_HERO.img) return false;
+  const im = SHARE_HERO.img, iw = im.naturalWidth || im.width, ih = im.naturalHeight || im.height;
+  if (!iw || !ih) return false;
+  let vx = 0, vy = 0, vw = iw, vh = ih;
+  if (SHARE_HERO.circle) { const side = Math.min(iw, ih) * 0.70; vx = (iw - side) / 2; vy = (ih - side) / 2; vw = side; vh = side; }
+  const sc = Math.max(w / vw, h / vh), sw = w / sc, sh = h / sc;
+  const sx = vx + (vw - sw) / 2, sy = vy;
+  ctx.save();
+  try { ctx.imageSmoothingEnabled = true; ctx.imageSmoothingQuality = 'high'; } catch (e) {}
+  try { ctx.drawImage(im, sx, sy, sw, sh, x, y, w, h); } catch (e) { ctx.restore(); return false; }
+  ctx.restore();
+  return true;
 }
 function shareShortData() {
   const iso = todayISO();
@@ -35048,9 +35112,11 @@ function shareShortData() {
   const plan = (typeof MY_PLAN !== 'undefined') ? MY_PLAN : null;
   const logs = (typeof MY_LOGS !== 'undefined' && Array.isArray(MY_LOGS)) ? MY_LOGS : [];
   const loggedDis = new Set();
+  let mainDi = null, mainLabel = '';
   logs.filter(l => l && l.date === iso).forEach(log => {
     const di = Number(log.dayIndex);
     if (Number.isInteger(di)) loggedDis.add(di);
+    if (mainDi === null && Number.isInteger(di)) { mainDi = di; mainLabel = log.dayLabel || ''; }
     const day = (plan && Array.isArray(plan.days)) ? (plan.days[di] || {}) : {};
     (Array.isArray(log.exercisesDone) ? log.exercisesDone : []).forEach(e => {
       if (!e || e.done === false) return;
@@ -35067,6 +35133,7 @@ function shareShortData() {
     const liveDis = [...new Set(Object.keys(TRAIN_CHECKS).map(k => Number(k.split(':')[0])))]
       .filter(di => Number.isInteger(di) && !loggedDis.has(di)).sort((a, b) => a - b);
     liveDis.forEach(di => {
+      if (mainDi === null) mainDi = di;
       trainEffectiveList(plan, di, iso).forEach((it, ei) => {
         const chk = TRAIN_CHECKS[di + ':' + ei];
         if (!chk) return;
@@ -35097,121 +35164,190 @@ function shareShortData() {
      fundadas devuelve null y el bloque lo dice con las palabras de
      la app (gm.needData), como su tarjeta hermana. */
   const goals = shareGoalsData();
-  return { iso, exs, flame, goals };
-}
-function shareDrawShort(ctx, W, H, d) {
-  shareBg(ctx, W, H);
-  const square = H === W;
-  const u = W / 360;
-  shareBrand(ctx, W, square ? 50 : 60, 52);
-  sharePill(ctx, W / 2, (square ? 55 : 61) * u, t('share.shortChip'), 31.5, { ls: 2.7 });
-  const PX = 12, PW = 336, IX = 24, IW = 312;
-  const panelY = (square ? 74 : 84) * u;
-  const nameLine = ((UDATA && UDATA.name) || shareFirstName() || '') + ' · ' + shareDayLabel(d.iso);
-  const ink = '#1F2A44', sub = '#475569', tealDk = '#00705F', pale = '#EDF5F2';
-  const cap = square ? 4 : 6;
-  const shown = d.exs.slice(0, cap);
-  const more = d.exs.length - shown.length;
-  const g = d.goals;
-  /* Medida previa, como en «Mi día en metas»: componer con K=1 y,
-     en 1:1, escalar la composición entera para que quepa. */
-  const measure = (K) => {
-    const F = (css) => css * u * K;
-    let trainBodyH, noTrainL = [];
-    if (!shown.length) { noTrainL = sgWrap(ctx, t('share.shortNoTrain'), 400, F(11), F(IW - 24)); trainBodyH = noTrainL.length * 14; }
-    else trainBodyH = shown.length * 26 + (more > 0 ? 15 : 0);
-    const trainH = 30 + trainBodyH + 9;
-    const flameH = 32;
-    let foodBodyH, needL = [], line2L = [];
-    if (!g) { needL = sgWrap(ctx, t('gm.needData'), 400, F(10.5), F(IW - 24)); foodBodyH = needL.length * 13 + 2; }
-    else { line2L = sgWrap(ctx, g.line2, 700, F(11.5), F(196)); foodBodyH = 86 + (g.bars.length * 20 - 4); }
-    const foodH = 30 + foodBodyH + 9;
-    const total = 30 + trainH + 7 + flameH + 7 + foodH + 10;
-    return { K, trainH, flameH, foodH, noTrainL, needL, line2L, total };
-  };
-  let M = measure(1);
-  if (square) {
-    const avail = 360 - 74 - 30; /* panel desde 74 + pie y respiro */
-    if (M.total > avail) M = measure(Math.max(0.5, avail / M.total));
+  /* LA ETIQUETA DEL DÍA para el subtítulo de la dirección B («Día 2 ·
+     PIERNAS CUADRICES»): sale del día principal de hoy — el de su
+     registro si lo hay; si no, el de las marcas vivas — separando el
+     «Día N» del foco con el parser de la casa (week5Focus), que
+     respeta la etiqueta guardada tal cual. Sin entreno hoy no hay
+     etiqueta: el subtítulo queda en la fecha. */
+  let dayTag = '';
+  if (mainDi !== null && typeof week5Focus === 'function') {
+    if (!mainLabel && plan && Array.isArray(plan.days)) mainLabel = (plan.days[mainDi] || {}).label || '';
+    const fc = week5Focus(mainLabel, mainDi);
+    dayTag = fc.dayWord + (fc.focus ? ' · ' + fc.focus : '');
   }
-  const K = M.K, F = (css) => css * u * K;
-  sgPanelWhite(ctx, PX * u, panelY, PW * u, M.total * u * K, 16 * u);
-  const npx = shareFitPx(ctx, nameLine, 600, F(9.5), (IW - 16) * u * K);
-  sgText(ctx, nameLine, W / 2, panelY + F(17), 700, npx, sub, { align: 'center' });
-  let y = panelY + F(30);
-  /* --- los ejercicios de hoy --- */
-  sgBox(ctx, IX * u, y, IW * u, F(M.trainH), F(12), pale);
-  sgText(ctx, t('share.shortTrain').toUpperCase(), (IX + 11) * u, y + F(15), 700, F(9), tealDk, { ls: F(1.1) });
-  if (!shown.length) {
-    M.noTrainL.forEach((ln, i) => sgText(ctx, ln, (IX + 12) * u, y + F(38 + i * 14), 400, F(11), sub));
+  return { iso, exs, flame, goals, dayTag };
+}
+/* ---------- pintura de «Mi resumen del día» — DIRECCIÓN B «Foto
+   protagonista» (veredicto de Ronald, chat RONBO.NUTRI, 2026-11-03
+   14:29 CST, sobre las maquetas de diseno-ficha-resumen-bella-2026-
+   11-03: «La B»): la foto del alumno a toda pantalla, franja de
+   marca arriba y panel oscuro de datos abajo. Los DATOS son los de
+   AUTH-204 (shareShortData) sin un solo cálculo nuevo: ejercicios
+   en el orden entrenado, la llamita del kcalExtraTotal guardado y
+   la ruedita de shareGoalsData; los textos honestos de bloque vacío
+   son los mismos de AUTH-204 bajo la piel nueva. Las filas pintan
+   el peso en la unidad del alumno y en grande (fmtMass), como la
+   maqueta aprobada; la doble medición sigue viviendo en la vista
+   resumida de la app (AUTH-202). Geometría en píxeles del lienzo
+   (1080 de ancho fijo de la familia): franja 132 (9:16) / 108 (1:1);
+   foto entre la franja y el panel; panel desde 1240 / 690. */
+function shareDrawShort(ctx, W, H, d) {
+  const square = H === W;
+  const stripH = square ? 108 : 132;
+  const panelTop = square ? 690 : 1240;
+  const PAD = 64, RX = W - PAD;
+  const INK = '#FFFFFF', MUT = '#93A8B4', SOFT = '#C9D8DE', ACC = '#2ED3B7',
+    CHK = '#34D399', ORG = '#FF9E45', RED = '#F87171', PANEL = '#06232C';
+  /* base: el color del panel en todo el lienzo */
+  ctx.save(); ctx.fillStyle = PANEL; ctx.fillRect(0, 0, W, H); ctx.restore();
+  /* --- franja de marca --- */
+  ctx.save(); ctx.fillStyle = '#07949E'; ctx.fillRect(0, 0, W, stripH); ctx.restore();
+  const bPx = square ? 54 : 64;
+  sgText(ctx, 'RONBO', PAD - 8, stripH / 2, 900, bPx, INK, { ls: 2 });
+  const ronboW = shareTextW(ctx, 'RONBO', 900, bPx) + 8;
+  sgText(ctx, 'FIT', PAD - 8 + ronboW + 14, stripH / 2, 300, bPx, INK, { ls: 2 });
+  sgBox(ctx, PAD - 8, stripH / 2 + bPx * 0.36 + 9, ronboW, 7, 3.5, 'rgba(255,255,255,.92)');
+  sgText(ctx, 'fit.ronbo.store', RX + 8, stripH / 2, 500, square ? 32 : 38, 'rgba(255,255,255,.95)', { align: 'right' });
+  /* --- la foto héroe (o el fondo de marca) --- */
+  const phY = stripH, phH = panelTop - stripH;
+  const grd = ctx.createLinearGradient(0, phY, W, panelTop);
+  grd.addColorStop(0, '#0A9DB0'); grd.addColorStop(0.35, '#07949E'); grd.addColorStop(0.75, '#0B3542'); grd.addColorStop(1, PANEL);
+  ctx.save(); ctx.fillStyle = grd; ctx.fillRect(0, phY, W, phH); ctx.restore();
+  shareIconEnsure();
+  const hero = shareHeroDraw(ctx, 0, phY, W, phH);
+  if (!hero && SHARE_ICON.state === 'ok' && SHARE_ICON.img) {
+    ctx.save(); ctx.globalAlpha = 0.16;
+    const isz = square ? 240 : 320;
+    try { ctx.drawImage(SHARE_ICON.img, W / 2 - isz / 2, phY + phH / 2 - isz / 2, isz, isz); } catch (e) {}
+    ctx.restore();
+  }
+  /* velo inferior: el nombre se lee sobre cualquier foto */
+  const scrH = square ? 210 : 300;
+  const scr = ctx.createLinearGradient(0, panelTop - scrH, 0, panelTop);
+  scr.addColorStop(0, 'rgba(4,22,28,0)'); scr.addColorStop(1, 'rgba(4,22,28,.66)');
+  ctx.save(); ctx.fillStyle = scr; ctx.fillRect(0, panelTop - scrH, W, scrH); ctx.restore();
+  /* --- el panel oscuro de datos --- */
+  ctx.save(); ctx.fillStyle = PANEL; ctx.fillRect(0, panelTop, W, H - panelTop); ctx.restore();
+  /* nombre y fecha sobre la foto, abajo a la izquierda */
+  const fullName = ((typeof UDATA !== 'undefined' && UDATA && UDATA.name) || shareFirstName() || '').trim();
+  if (fullName) {
+    const nPx = shareFitPx(ctx, fullName, 800, square ? 64 : 82, W - PAD * 2);
+    shareTxt(ctx, fullName, PAD - 8, panelTop - (square ? 58 : 70), shareCtxFont(800, nPx), INK,
+      { align: 'left', shadowBlur: 18, shadowColor: 'rgba(0,20,26,.55)' });
+  }
+  const sub = shareDayLabel(d.iso) + (d.dayTag ? ' · ' + d.dayTag : '');
+  const sPx = shareFitPx(ctx, sub, 600, square ? 32 : 37, W - PAD * 2);
+  shareTxt(ctx, sub, PAD - 8, panelTop - (square ? 16 : 22), shareCtxFont(600, sPx), 'rgba(255,255,255,.94)',
+    { align: 'left', shadowBlur: 12, shadowColor: 'rgba(0,20,26,.5)' });
+  /* --- cabecera del panel: el título y la llamita --- */
+  const titleCy = panelTop + (square ? 50 : 64);
+  sgText(ctx, t('share.shortLab').toUpperCase(), PAD, titleCy, 800, square ? 38 : 45, ACC, { ls: 1 });
+  if (d.flame.kind === 'kcal') {
+    const big = fmt(d.flame.kcal) + ' kcal';
+    if (square) {
+      /* en 1:1 la maqueta lo trae en UNA línea: 🔥 625 kcal quemado hoy */
+      const lab = t('act.flameBurned');
+      const labW = shareTextW(ctx, lab, 600, 30);
+      sgText(ctx, lab, RX, titleCy, 600, 30, INK, { align: 'right' });
+      const bigW = shareTextW(ctx, big, 800, 46);
+      sgText(ctx, big, RX - labW - 12, titleCy, 800, 46, INK, { align: 'right' });
+      sgText(ctx, '🔥', RX - labW - 12 - bigW - 12, titleCy, 400, 50, INK, { align: 'right', emoji: true });
+    } else {
+      const bPx2 = shareFitPx(ctx, big, 800, 58, 430);
+      sgText(ctx, big, RX, titleCy - 12, 800, bPx2, INK, { align: 'right' });
+      sgText(ctx, t('act.flameBurned'), RX, titleCy + 32, 500, 32, MUT, { align: 'right' });
+      const bigW = shareTextW(ctx, big, 800, bPx2);
+      sgText(ctx, '🔥', RX - bigW - 14, titleCy - 2, 400, 62, INK, { align: 'right', emoji: true });
+    }
+  } else if (d.flame.kind === 'some') {
+    /* sin estimación guardada: lo que sí se sabe, sin inventar kcal */
+    const lines = [];
+    if (d.flame.mins > 0) lines.push('🔥 ' + t('share.shortActMin', { n: d.flame.mins }));
+    if (d.flame.steps > 0) lines.push('🚶 ' + t('share.shortSteps', { n: fmt(d.flame.steps) }));
+    lines.forEach((ln, i) => {
+      const cy = lines.length === 1 ? titleCy : titleCy - 20 + i * 40;
+      const px = shareFitPx(ctx, ln, 700, square ? 28 : 31, 470);
+      sgText(ctx, ln, RX, cy, 700, px, INK, { align: 'right' });
+    });
+  } else {
+    const none = '🔥 ' + t('share.shortNoAct');
+    const px = shareFitPx(ctx, none, 500, square ? 27 : 30, 480);
+    sgText(ctx, none, RX, titleCy, 500, px, MUT, { align: 'right' });
+  }
+  const div1Y = panelTop + (square ? 82 : 124);
+  sgBox(ctx, PAD, div1Y, W - PAD * 2, 2, 1, 'rgba(255,255,255,.16)');
+  /* --- los ejercicios de hoy, en el orden entrenado --- */
+  const rowsTop = div1Y + (square ? 26 : 36);
+  const pitch = square ? 44 : 68;
+  const maxSlots = 5;
+  let shown = d.exs.slice(0, maxSlots), more = 0;
+  if (d.exs.length > maxSlots) { shown = d.exs.slice(0, maxSlots - 1); more = d.exs.length - shown.length; }
+  const setsRight = square ? 700 : 735;
+  if (!d.exs.length) {
+    const nl = sgWrap(ctx, t('share.shortNoTrain'), 400, square ? 29 : 34, W - PAD - 118);
+    nl.slice(0, 3).forEach((ln, i) => sgText(ctx, ln, PAD + 54, rowsTop + 6 + i * (square ? 36 : 44), 400, square ? 29 : 34, SOFT));
   } else {
     shown.forEach((e, i) => {
-      const ry = y + F(30 + i * 26);
-      sgText(ctx, '✓', (IX + 12) * u, ry + F(7), 800, F(11.5), '#16A34A');
-      const nmPx = shareFitPx(ctx, e.name, 700, F(11.5), F(IW - 40));
-      sgText(ctx, e.name, (IX + 26) * u, ry + F(7), 700, nmPx, ink);
-      const sl = shareShortSumLine(e.sum);
-      if (sl) sgText(ctx, sl, (IX + 26) * u, ry + F(20), 400, F(9.5), sub);
+      const cy = rowsTop + i * pitch;
+      sgText(ctx, '✓', PAD, cy, 800, square ? 30 : 40, CHK);
+      const s = e.sum || {};
+      let mid = '';
+      if (s.nSets != null && s.maxReps != null) mid = s.nSets + ' × ' + s.maxReps;
+      else if (s.nSets != null) mid = s.nSets + ' ' + t('train.histRec.sets');
+      else if (s.maxReps != null) mid = t('train.histRec.repsMax') + ' ' + s.maxReps;
+      /* el nombre se ajusta al hueco REAL hasta donde empieza su
+         columna de series (medida, no supuesta): un nombre largo
+         («Zancadas con mancuernas») jamás se monta sobre el «2 × 12» */
+      const midPx = square ? 29 : 37;
+      const midW = mid ? shareTextW(ctx, mid, 600, midPx) : 0;
+      const nPx2 = shareFitPx(ctx, e.name, 700, square ? 33 : 41, setsRight - midW - 16 - (PAD + 54));
+      sgText(ctx, e.name, PAD + 54, cy, 700, nPx2, INK);
+      if (mid) sgText(ctx, mid, setsRight, cy, 600, midPx, MUT, { align: 'right' });
+      if (s.maxLoad != null) sgText(ctx, fmtMass(s.maxLoad), RX, cy, 800, square ? 35 : 45, INK, { align: 'right' });
     });
-    if (more > 0) sgText(ctx, t('share.shortMore', { n: more }), (IX + 26) * u, y + F(30 + shown.length * 26 + 7), 700, F(10.5), tealDk);
+    if (more > 0) sgText(ctx, t('share.shortMore', { n: more }), PAD + 54, rowsTop + shown.length * pitch, 700, square ? 27 : 30, ACC);
   }
-  y += F(M.trainH) + F(7);
-  /* --- la llamita --- */
-  sgBox(ctx, IX * u, y, IW * u, F(M.flameH), F(12), '#FFF7E8');
-  let flameTxt, flameW = 800, flamePx = F(12.5), flameColor = ink;
-  if (d.flame.kind === 'kcal') flameTxt = '🔥 ' + t('act.flameBurned') + ': ' + fmt(d.flame.kcal) + ' kcal';
-  else if (d.flame.kind === 'some') {
-    const parts = [];
-    if (d.flame.mins > 0) parts.push('🔥 ' + t('share.shortActMin', { n: d.flame.mins }));
-    if (d.flame.steps > 0) parts.push('🚶 ' + t('share.shortSteps', { n: fmt(d.flame.steps) }));
-    flameTxt = parts.join(' · ');
-  } else { flameTxt = '🔥 ' + t('share.shortNoAct'); flameW = 400; flamePx = F(11.5); flameColor = sub; }
-  const fPx = shareFitPx(ctx, flameTxt, flameW, flamePx, F(IW - 24));
-  /* Sin fuente de emojis para la línea entera: la familia pinta el
-     🔥 por caída de glifo sobre la fuente de texto (como la línea
-     de quemado de «Mi entrenamiento»); pedir la fuente emoji para
-     toda la línea la deformaba en algunos motores. */
-  sgText(ctx, flameTxt, W / 2, y + F(M.flameH) / 2, flameW, fPx, flameColor, { align: 'center' });
-  y += F(M.flameH) + F(7);
   /* --- la ruedita de alimentos --- */
-  sgBox(ctx, IX * u, y, IW * u, F(M.foodH), F(12), pale);
-  sgText(ctx, t('share.shortFood').toUpperCase(), (IX + 11) * u, y + F(15), 700, F(9), tealDk, { ls: F(1.1) });
-  if (!g) {
-    M.needL.forEach((ln, i) => sgText(ctx, ln, (IX + 12) * u, y + F(38 + i * 13), 400, F(10.5), sub));
-  } else {
-    const ringTop = y + F(30);
-    const rcx = (IX + 46) * u, rcy = ringTop + F(40), R = F(34), LW = F(8.5);
-    ctx.save();
-    ctx.lineWidth = LW; ctx.strokeStyle = '#E4EBE8';
-    ctx.beginPath(); ctx.arc(rcx, rcy, R, 0, Math.PI * 2); ctx.stroke();
-    if (g.pct > 0) {
-      ctx.strokeStyle = g.pct > 100 ? '#DC2626' : '#0D9488'; ctx.lineCap = 'round';
-      ctx.beginPath(); ctx.arc(rcx, rcy, R, -Math.PI / 2, -Math.PI / 2 + Math.min(g.pct, 100) / 100 * Math.PI * 2); ctx.stroke();
+  const g = d.goals;
+  if (!square) {
+    sgBox(ctx, PAD, 1716, W - PAD * 2, 2, 1, 'rgba(255,255,255,.16)');
+    const fCy = 1808;
+    if (!g) {
+      const nl = sgWrap(ctx, t('gm.needData'), 400, 30, W - PAD * 2 - 40);
+      nl.slice(0, 4).forEach((ln, i) => sgText(ctx, ln, PAD, fCy - 52 + i * 36, 400, 30, SOFT));
+      sgText(ctx, '#MiAvanceRonboFit', RX, fCy + 84, 800, 30, ORG, { align: 'right' });
+    } else {
+      const rcx = PAD + 48, R = 45;
+      ctx.save();
+      ctx.lineWidth = 13; ctx.strokeStyle = 'rgba(255,255,255,.14)';
+      ctx.beginPath(); ctx.arc(rcx, fCy, R, 0, Math.PI * 2); ctx.stroke();
+      if (g.pct > 0) {
+        ctx.strokeStyle = g.pct > 100 ? RED : ACC; ctx.lineCap = 'round';
+        ctx.beginPath(); ctx.arc(rcx, fCy, R, -Math.PI / 2, -Math.PI / 2 + Math.min(g.pct, 100) / 100 * Math.PI * 2); ctx.stroke();
+      }
+      ctx.restore();
+      sgText(ctx, g.pct + '%', rcx, fCy, 800, 29, INK, { align: 'center' });
+      const fx = rcx + R + 30;
+      sgText(ctx, t('share.shortFood') + ': ' + fmt(g.tot.kcal) + ' ' + (LANG === 'es' ? 'de' : 'of') + ' ' + fmt(g.goals.kcal) + ' kcal', fx, fCy - 24, 700, 37, INK);
+      sgText(ctx, g.line2, fx, fCy + 24, 600, 33, g.left < 0 ? RED : ACC);
+      sgText(ctx, '#MiAvanceRonboFit', RX, fCy + 24, 800, 33, ORG, { align: 'right' });
     }
-    ctx.restore();
-    sgText(ctx, g.pct + '%', rcx, rcy - F(6), 800, F(17), ink, { align: 'center' });
-    sgText(ctx, t('gmi.ofDay'), rcx, rcy + F(9), 400, F(8), sub, { align: 'center' });
-    const tx = (IX + 100) * u;
-    sgText(ctx, fmt(g.tot.kcal) + ' ' + (LANG === 'es' ? 'de' : 'of') + ' ' + fmt(g.goals.kcal) + ' kcal', tx, ringTop + F(16), 800, F(14), ink);
-    M.line2L.forEach((ln, i) => sgText(ctx, ln, tx, ringTop + F(33 + i * 14), 700, F(11.5), g.left < 0 ? '#DC2626' : tealDk));
-    let by = ringTop + F(86);
-    g.bars.forEach((b) => {
-      const cyDot = by + F(5.5);
-      ctx.save(); ctx.fillStyle = b.color; ctx.beginPath(); ctx.arc((IX + 4.5) * u, cyDot, F(3.5), 0, Math.PI * 2); ctx.fill(); ctx.restore();
-      sgText(ctx, b.name, (IX + 14) * u, by + F(6), 400, F(11), '#1F2937');
-      const pctStr = b.pct + '%';
-      const pctW = shareTextW(ctx, pctStr, 700, F(11));
-      sgText(ctx, pctStr, (IX + IW) * u, by + F(6), 700, F(11), b.color, { align: 'right' });
-      sgText(ctx, b.value, (IX + IW) * u - pctW - F(6), by + F(6), 400, F(11), '#374151', { align: 'right' });
-      sgBox(ctx, IX * u, by + F(11), IW * u, F(5.5), F(2.75), '#E9EEF3');
-      const fw = Math.max(0, Math.min(b.pct, 100)) / 100 * IW * u;
-      if (fw > 0) sgBox(ctx, IX * u, by + F(11), fw, F(5.5), Math.min(F(2.75), fw / 2), b.color);
-      by += F(20);
-    });
+  } else {
+    /* en 1:1 la maqueta trae la comida en dos líneas, sin anillo */
+    const l1Y = panelTop + 322, l2Y = panelTop + 354;
+    if (!g) {
+      const nl = sgWrap(ctx, t('gm.needData'), 400, 26, W - PAD * 2 - 40);
+      nl.slice(0, 2).forEach((ln, i) => sgText(ctx, ln, PAD, l1Y - 14 + i * 32, 400, 26, SOFT));
+      sgText(ctx, '#MiAvanceRonboFit', RX, l2Y, 800, 27, ORG, { align: 'right' });
+    } else {
+      sgText(ctx, t('share.shortFood') + ': ' + fmt(g.tot.kcal) + ' ' + (LANG === 'es' ? 'de' : 'of') + ' ' + fmt(g.goals.kcal) + ' kcal', PAD, l1Y, 700, 30, INK);
+      sgText(ctx, g.line2, PAD, l2Y, 600, 28, g.left < 0 ? RED : ACC);
+      sgText(ctx, '#MiAvanceRonboFit', RX, l2Y, 800, 28, ORG, { align: 'right' });
+    }
   }
-  shareTxt(ctx, 'RONBO FIT · fit.ronbo.store · #MiAvanceRonboFit', W / 2, H - (square ? 24 : 92),
-    shareCtxFont(700, square ? 22 : 28), 'rgba(255,255,255,.94)', { ls: square ? 2 : 3, shadowBlur: 14 });
 }
+
 /* Geometría FIJA de la tarjeta (la batería la verifica a nivel de
    píxel y de posiciones): margen X 72; la lista vive entre rowsTop
    y rowsLimit (sobre la divisoria del pie) — ver constantes en el
@@ -35565,7 +35701,7 @@ document.addEventListener('keydown', e => { if (e.key === 'Escape') shareClose()
  *  - El SW (sw.js) solo cachea la cáscara del mismo origen en modo
  *    RED PRIMERO: Auth/Firestore/Worker jamás pasan por la caché.
  * ================================================================ */
-const PWA_SW_VERSION = '20261103-resumen-dia';
+const PWA_SW_VERSION = '20261103-resumen-foto';
 let pwaDeferredPrompt = null;
 function pwaIsStandalone() {
   try {
