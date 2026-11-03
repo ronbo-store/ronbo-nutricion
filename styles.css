@@ -3133,3 +3133,68 @@ body.sess-on #pend-back-chip { bottom: calc(env(safe-area-inset-bottom, 0px) + 1
   .stu-pend-item > .stu-nudged { flex: 1 1 100%; white-space: normal; }
 }
 /* == FIN AUTH-182 == */
+
+/* ===== INICIO AUTH-185 · Desorden de letras, segunda ronda (punto
+   105 de la cola; correo de Ronald del 2026-11-02 19:03 CST con dos
+   capturas) =====
+   Las dos capturas nacieron en una ventana MÁS ANCHA que un teléfono
+   normal (su plegable abierto: la banda de ~481–720 px) — justo
+   donde las gramáticas de AUTH-178/179 y AUTH-182 NO viven, porque
+   ambas quedaron escritas solo dentro de @media (max-width:480px).
+   Por encima de 480 las filas vuelven a su línea única rígida:
+   CASO A (captura 1): la fila compacta del día cerrado — foto 44 +
+   bloque de récords ~148 (flex:none) + sello «✓ Hecho · RPE n»
+   ~107 (flex:none) — y, en las filas con marca, el chip «+
+   Agregado» (~85 px, hijo flex sin suelo) le roba al nombre lo que
+   le quedaba: medido en el arnés a 520 px, la fila de Mariposa
+   (agregada, RPE 7, récords 3/12/100) deja el nombre en 16.7 px —
+   22 líneas, «Mar/ipo/sa/en/má/qui/na/(pe/ck/dec/k)» letra a letra
+   por el resguardo overflow-wrap:anywhere de AUTH-165 — mientras
+   sus vecinas sin marca quedan en ~98 px. La tarjeta vestida
+   además fuerza flex-wrap:nowrap y centra la foto en vertical,
+   como se ve en la captura.
+   CASO B (captura 2): en la LISTA de «Mis alumnos», la fila de
+   metas de Celso («Aún no define sus metas») junta el botón ancho
+   «Revisar propuestas» con el sello «✉ Avisado el…» (nowrap,
+   flex:none): la zona derecha rígida mide ~390 px y la columna
+   del título cae a ~70–90 px — una palabra por línea — mientras
+   las filas 1 y 2, con botones compactos, sí cabían. Es la fila
+   que se escapó de AUTH-182 porque su arreglo también vive solo
+   en ≤480 px.
+   EL ARREGLO: la MISMA gramática probada de AUTH-178/179 (fila
+   compacta con sello) y de AUTH-182 (filas de pendientes), sin
+   tocar una coma, extendida a la banda 481–720 px. Por encima de
+   720 la línea única de siempre SÍ respira (medido: a 690 la fila
+   con marca conserva ~187 px de nombre) y el escritorio queda
+   byte a byte como estaba. Sin :has en el caso B y con el :has de
+   siempre en el A: sin compatibilidad, la fila queda como estaba,
+   nunca peor. */
+@media (min-width: 481px) and (max-width: 720px) {
+  /* — CASO A: la fila compacta con sello de hecho envuelve igual
+     que en AUTH-178/179: nombre con suelo junto a la foto y los
+     récords en la primera línea; el sello (y tras él la marca, si
+     la fila la lleva) baja a su propia línea. */
+  .train-ex-compact:has(> .train-ex-side .ok-badge) { flex-wrap: wrap; row-gap: 4px; }
+  .train-ex-compact:has(> .train-ex-side .ok-badge) .train-ex-info { min-width: 118px; }
+  .train-ex-compact:has(> .train-ex-side .ok-badge) .train-ex-side { flex-basis: 100%; align-items: flex-end; }
+  /* — CASO B: las filas de pendientes se ordenan por líneas igual
+     que en AUTH-182: título completo en su línea, pastillas en la
+     suya y las acciones — botones o el sello «Avisado» — en la
+     suya, a todo el ancho y grandes. */
+  .stu-pend-item { flex-wrap: wrap; align-items: flex-start; }
+  .stu-pend-main { flex: 1 1 0; min-width: 0; }
+  .stu-pend-title { display: block; }
+  .stu-pend-tags { display: flex; margin: 5px 0 0; }
+  .stu-pend-item > .stu-pend-btns { flex: 1 1 100%; display: flex; flex-wrap: wrap; gap: 8px; align-items: stretch; }
+  .stu-pend-item > .stu-pend-btns > .btn-primary,
+  .stu-pend-item > .stu-pend-btns > .btn-nudge { flex: 1 1 0; min-height: 44px; }
+  .stu-pend-item > .stu-pend-btns > .stu-nudged { flex: 1 1 100%; white-space: normal; padding-top: 2px; }
+  .stu-pend-item > .btn-primary,
+  .stu-pend-item > .btn-ghost,
+  .stu-pend-item > .btn-nudge { flex: 1 1 100%; min-height: 44px; }
+  .stu-pend-item .btn-primary { font-size: 13.5px; padding: 10px 12px; display: inline-flex; align-items: center; justify-content: center; }
+  .stu-pend-item .btn-nudge { font-size: 13.5px; padding: 10px 12px; display: inline-flex; align-items: center; justify-content: center; }
+  .stu-pend-item > .stu-pend-whose { flex: 1 1 100%; white-space: normal; text-align: center; padding: 8px 10px; }
+  .stu-pend-item > .stu-nudged { flex: 1 1 100%; white-space: normal; }
+}
+/* == FIN AUTH-185 == */
