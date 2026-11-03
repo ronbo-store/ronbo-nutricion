@@ -2102,6 +2102,7 @@ const ADMIN_SECTIONS = [
   { id: 'flags', sub: 'tech', titleKey: 'esc.flagsTitle', mount: admSecMountFlags },
   { id: 'accesslog', sub: 'system', titleKey: 'nd2.title', mount: admSecMountAccessLog, refresh: admSecRefreshAccessLog },
   { id: 'limits', sub: 'system', titleKey: 'limreg.title', mount: admSecMountLimits, refresh: admSecRefreshLimits },
+  { id: 'imglim', sub: 'system', titleKey: 'imglim.title', mount: admSecMountImgLim, refresh: admSecRefreshImgLim },
   { id: 'care', sub: 'system', titleKey: 'care.title', mount: admSecMountCare, refresh: admSecRefreshCare },
 ];
 const ADM_SEC_OPEN = {};     // id → abierta (solo presentación)
@@ -2979,6 +2980,81 @@ async function limregSaveAll() {
     toast(t('limreg.error'), true);
   }
   limregPaint();
+}
+
+/* ---------- Sección «Límites de imágenes» (SISTEMA) ----------
+   Punto 112 de la cola; orden de Ronald 2026-11-03 02:12 CST
+   («Ok anexa el chequeo y revisión automática de esos límites
+   en administración sistema»): el bloque pinta la ÚLTIMA
+   medición automática del repositorio de imágenes de la
+   Biblioteca (ronbo-store/ronbo-nutri-assets), guardada en
+   app_settings/assets_usage — documento SOLO del propietario
+   por su propio bloque de reglas —: tamaño contra el límite
+   del sitio (1 GB, el del informe del punto 112), conteo de
+   imágenes y fecha del chequeo, con su semáforo de criterios
+   de PRODUCTO (verde por debajo del 70 % · ámbar del 70 al
+   90 % · rojo por encima del 90 %). La medición corre FUERA de
+   la app (la línea automática semanal, con la credencial del
+   propietario): la app NO escribe este documento jamás, y sin
+   documento pinta «Aún sin mediciones» — nunca un cero falso.
+   El tráfico mensual de Pages no se puede medir de forma
+   directa; la línea honesta va visible en el bloque
+   (imglim.bandNote). */
+const IMGLIM_LIMIT_BYTES = 1000000000;   // el «1 GB» del sitio, como lo declaró el informe del punto 112
+let IMGLIM_DATA = null;   // null = aún no leído en esta sesión
+function imglimState(pct) { return pct > 90 ? 'bad' : pct >= 70 ? 'warn' : 'ok'; }
+function imglimFmt(bytes) {
+  const gb = bytes / 1000000000;
+  if (gb >= 1) return String(parseFloat(gb.toFixed(2))) + ' GB';
+  return (bytes / 1000000).toFixed(1) + ' MB';
+}
+function imglimDateOf(v) {
+  try {
+    if (!v) return null;
+    if (typeof v.toDate === 'function') return v.toDate();
+    if (typeof v.seconds === 'number') return new Date(v.seconds * 1000);
+    const d = new Date(v); return isNaN(d) ? null : d;
+  } catch { return null; }
+}
+function admSecMountImgLim(body) {
+  body.innerHTML = `<p class="progress-hint">${esc(t('imglim.hint'))}</p><div id="imglim-box"><div class="wempty">${esc(t('imglim.loading'))}</div></div>`;
+  imglimLoad();
+}
+function admSecRefreshImgLim() { if (document.getElementById('imglim-box')) imglimLoad(); }
+async function imglimLoad() {
+  const box = document.getElementById('imglim-box');
+  if (!box) return;
+  if (!(IS_OWNER && ROLE === 'administrador')) { box.innerHTML = ''; return; }
+  try {
+    const s = await getDoc(doc(db, 'app_settings', 'assets_usage'));
+    IMGLIM_DATA = s.exists() ? s.data() : null;
+  } catch {
+    toast(t('imglim.error'), true);
+    if (!IMGLIM_DATA) { box.innerHTML = `<div class="wempty">${esc(t('imglim.error'))}</div>`; return; }
+  }
+  imglimPaint();
+}
+function imglimPaint() {
+  const box = document.getElementById('imglim-box');
+  if (!box) return;
+  const d = IMGLIM_DATA;
+  if (!d || typeof d.repoBytes !== 'number') { box.innerHTML = `<div class="wempty">${esc(t('imglim.none'))}</div>`; return; }
+  const limit = typeof d.limitBytes === 'number' && d.limitBytes > 0 ? d.limitBytes : IMGLIM_LIMIT_BYTES;
+  const pct = Math.round(d.repoBytes / limit * 1000) / 10;
+  const st = imglimState(pct);
+  const when = imglimDateOf(d.checkedAt);
+  const loc = LANG === 'es' ? 'es' : 'en';
+  const whenTxt = when ? when.toLocaleDateString(loc, { day: 'numeric', month: 'short', year: 'numeric' }) + ' · ' + when.toLocaleTimeString(loc, { hour: '2-digit', minute: '2-digit' }) : '—';
+  box.innerHTML = `<div class="imglim-light imglim-${st}"><span class="imglim-dot" aria-hidden="true"></span><span>${esc(t('imglim.light.' + st))}</span><span class="imglim-pct">${pct} %</span></div>`
+    + `<div class="imglim-track"><div class="imglim-fill imglim-${st}" style="width:${Math.min(100, pct)}%"></div></div>`
+    + `<div class="imglim-rows">`
+    + `<div class="imglim-row"><span class="muted">${esc(t('imglim.usedLab'))}</span><strong>${esc(imglimFmt(d.repoBytes))}</strong></div>`
+    + `<div class="imglim-row"><span class="muted">${esc(t('imglim.limitLab'))}</span><strong>${esc(imglimFmt(limit))}</strong></div>`
+    + `<div class="imglim-row"><span class="muted">${esc(t('imglim.imagesLab'))}</span><strong>${typeof d.imageCount === 'number' ? d.imageCount : '—'}</strong></div>`
+    + `<div class="imglim-row"><span class="muted">${esc(t('imglim.checkedLab'))}</span><strong>${esc(whenTxt)}</strong></div>`
+    + `</div>`
+    + `<p class="progress-hint">${esc(t('imglim.thNote'))}</p>`
+    + `<p class="progress-hint">${esc(t('imglim.bandNote'))}</p>`;
 }
 
 let DOS_PAINT_SEQ = 0;
@@ -4649,6 +4725,20 @@ en: {
   'limreg.addRow': '+ Add row',
   'limreg.removeRow': 'Remove',
   'limreg.loading': 'Loading…',
+  'imglim.title': '🖼️ Image limits',
+  'imglim.hint': 'The automatic check of the Library image repository: how much it uses against the site limit. It measures itself every week — nobody has to touch anything.',
+  'imglim.loading': 'Loading…',
+  'imglim.none': 'No measurements yet. The automatic measurement is on its way; this panel never invents a figure.',
+  'imglim.error': 'The measurement could not be loaded. Try again.',
+  'imglim.usedLab': 'Repository size',
+  'imglim.limitLab': 'Site limit',
+  'imglim.imagesLab': 'Stored images',
+  'imglim.checkedLab': 'Last automatic check',
+  'imglim.light.ok': 'Within limits',
+  'imglim.light.warn': 'Keep an eye on it',
+  'imglim.light.bad': 'Near the limit',
+  'imglim.thNote': 'Traffic light with product criteria: green below 70% · amber from 70 to 90% · red above 90%.',
+  'imglim.bandNote': 'GitHub Pages monthly traffic (about 100 GB a month) cannot be measured directly from here; what is watched automatically is the size, the limit we do control — and the bandwidth has ample room, per the image mechanism report.',
   'signup.confirmDone': '✓ Email confirmed',
   'signup.confirmAlready': 'Your email is already confirmed.',
   'signup.confirmWrong': 'This confirmation link belongs to a different account.',
@@ -7370,6 +7460,20 @@ es: {
   'limreg.addRow': '+ Añadir fila',
   'limreg.removeRow': 'Quitar',
   'limreg.loading': 'Cargando…',
+  'imglim.title': '🖼️ Límites de imágenes',
+  'imglim.hint': 'El chequeo automático del repositorio de imágenes de la Biblioteca: cuánto ocupa contra el límite del sitio. Se mide solo, cada semana — nadie tiene que tocar nada.',
+  'imglim.loading': 'Cargando…',
+  'imglim.none': 'Aún sin mediciones. La medición automática está en camino; este panel nunca inventa una cifra.',
+  'imglim.error': 'No se pudo cargar la medición. Inténtalo de nuevo.',
+  'imglim.usedLab': 'Tamaño del repositorio',
+  'imglim.limitLab': 'Límite del sitio',
+  'imglim.imagesLab': 'Imágenes guardadas',
+  'imglim.checkedLab': 'Último chequeo automático',
+  'imglim.light.ok': 'En orden',
+  'imglim.light.warn': 'Vigilar',
+  'imglim.light.bad': 'Cerca del límite',
+  'imglim.thNote': 'Semáforo con criterios de producto: verde por debajo del 70 % · ámbar del 70 al 90 % · rojo por encima del 90 %.',
+  'imglim.bandNote': 'El tráfico mensual de GitHub Pages (unos 100 GB al mes) no se puede medir de forma directa desde aquí; lo que se vigila automáticamente es el tamaño, que es el límite que sí controlamos — y la banda va sobrada, según el informe del mecanismo de imágenes.',
   'signup.confirmDone': '✓ Correo confirmado',
   'signup.confirmAlready': 'Tu correo ya está confirmado.',
   'signup.confirmWrong': 'Este enlace de confirmación es de otra cuenta.',
@@ -34176,7 +34280,7 @@ document.addEventListener('keydown', e => { if (e.key === 'Escape') shareClose()
  *  - El SW (sw.js) solo cachea la cáscara del mismo origen en modo
  *    RED PRIMERO: Auth/Firestore/Worker jamás pasan por la caché.
  * ================================================================ */
-const PWA_SW_VERSION = '20261103-cabecera-franja';
+const PWA_SW_VERSION = '20261103-chequeo-limites';
 let pwaDeferredPrompt = null;
 function pwaIsStandalone() {
   try {

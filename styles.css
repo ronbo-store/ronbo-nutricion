@@ -3499,3 +3499,22 @@ body.sess-on #pend-back-chip { bottom: calc(env(safe-area-inset-bottom, 0px) + 1
   .hdr-v5 .hdr-date { font-size: 10px; letter-spacing: .01em; }
 }
 /* == FIN CABECERA EN FRANJA == */
+
+/* == LÍMITES DE IMÁGENES (punto 112 · chequeo automático) ==
+   El bloque de Administración → Sistema que pinta la última
+   medición automática del repositorio de imágenes: su semáforo,
+   su barra de uso y sus cifras. Solo presentación. */
+.imglim-light { display: flex; align-items: center; gap: 8px; font-weight: 700; font-size: 15px; color: #14201f; margin: 6px 0 8px; }
+.imglim-dot { width: 14px; height: 14px; border-radius: 50%; flex: none; }
+.imglim-light.imglim-ok .imglim-dot { background: #16a34a; }
+.imglim-light.imglim-warn .imglim-dot { background: #d97706; }
+.imglim-light.imglim-bad .imglim-dot { background: #dc2626; }
+.imglim-pct { margin-left: auto; font-size: 17px; }
+.imglim-track { height: 12px; border-radius: 999px; background: #e5e7eb; overflow: hidden; margin: 4px 0 10px; }
+.imglim-fill { height: 100%; border-radius: 999px; }
+.imglim-fill.imglim-ok { background: #16a34a; }
+.imglim-fill.imglim-warn { background: #d97706; }
+.imglim-fill.imglim-bad { background: #dc2626; }
+.imglim-rows { display: grid; gap: 6px; margin-bottom: 8px; }
+.imglim-row { display: flex; justify-content: space-between; gap: 12px; font-size: 14.5px; color: #14201f; }
+/* == FIN LÍMITES DE IMÁGENES == */
