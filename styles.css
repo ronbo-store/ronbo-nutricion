@@ -1547,7 +1547,11 @@ div > .btn-ghost:only-child, div > .btn-main:only-child {
 .myprof-id { font-size: 15px; line-height: 1.4; min-width: 0; overflow-wrap: break-word; }
 .myprof-id .muted { font-size: 13px; overflow-wrap: break-word; }
 .myprof-row { display: flex; gap: 10px; align-items: baseline; margin: 8px 0 0; font-size: 14px; }
-.myprof-k { color: #6b7280; flex: 0 0 42%; }
+/* PUNTO 108 · P8 (SOLO DESARROLLO, 2026-11-02): la etiqueta ya no
+   reserva una columna fija del 42 % — el valor («Administrator»,
+   el selector de idioma de correo…) queda junto a su etiqueta,
+   separado solo por el gap de la fila. */
+.myprof-k { color: #6b7280; flex: none; }
 .myprof-v { font-weight: 600; min-width: 0; overflow-wrap: anywhere; }
 
 /* ===== Formulario del dossier en filas limpias (perfil-visible,
@@ -2417,7 +2421,11 @@ body.nav-lock .sw-fab, body.nav-lock .help-fab, body.nav-lock .share-fab, body.n
 .cat-n { font-size: 12.5px; font-weight: 700; color: #64748b; background: #f1f5f9; border-radius: 999px; padding: 3px 10px; }
 .mf-note { font-size: 12.5px; color: #6b7280; margin: 2px 0 10px; line-height: 1.45; }
 @media (min-width: 900px) {
-  .students-rows { display: grid; grid-template-columns: 1fr 1fr; column-gap: 14px; }
+  /* PUNTO 108 · P3 (SOLO DESARROLLO, 2026-11-02): «List» en «Mis
+     alumnos» es una lista de UNA columna a todo ancho, como «Mis
+     clientes» — se retira la rejilla de 2 columnas que se pintaba
+     con List seleccionado. La vista dividida conserva su propio
+     display:block (regla siguiente). */
   .students-split { display: flex; gap: 18px; align-items: flex-start; }
   .students-split .students-col-list { flex: 1 1 0; min-width: 0; }
   .students-split .students-col-detail { flex: 1 1 0; min-width: 0; }
@@ -3255,3 +3263,44 @@ body.sess-on #pend-back-chip { bottom: calc(env(safe-area-inset-bottom, 0px) + 1
 #students-list .detail-head::after { content: '›'; margin-left: auto; flex: none; color: #94a3b8; font-size: 22px; font-weight: 700; line-height: 1; transform: rotate(90deg); }
 #client-detail #client-weight-block { cursor: pointer; }
 /* == FIN AUTH-186 == */
+
+/* ===== ARMONÍA VISUAL · PUNTO 108 (SOLO DESARROLLO, 2026-11-02) =====
+   Correcciones de diseño pedidas por Ronald (correo 2026-11-02
+   19:16 CST). Sin despliegue: esperan su revisión. */
+/* P1 (y la mitad flotante de P13): en escritorio ancho (≥1024 px)
+   las secciones de administración reservan a la derecha la banda
+   de la columna flotante (llama de kcal + compartir + ayuda +
+   cronómetro: discos de 58 px en right:14, con su sombra) — el
+   MISMO resguardo de 88 px ya usado por AUTH-131 (Progreso),
+   AUTH-151 (bandejas) y AUTH-163 (permisos). Ningún botón,
+   selector ni tarjeta llega a esa banda; la columna no se mueve
+   y en móvil todo queda como siempre. */
+@media (min-width: 1024px) {
+  #admin-section, #trainers-section, #clients-section, #students-section { padding-right: 88px; }
+}
+/* P13: la lista de «Mis clientes» gana el mismo aire inferior
+   (26 px) que AUTH-182 dio a #students-list y #client-detail: la
+   última tarjeta siempre puede desplazarse por encima de la
+   barra inferior de acciones. */
+#clients-list { padding-bottom: 26px; }
+/* P9: la celda de rejilla (la MISMA de «Mis alumnos») se vuelve el
+   ancla de su insignia de conteo — .cgrid-badge ya existía en la
+   hoja sin uso. position:relative no cambia la rejilla de
+   Alumnos: allí ningún hijo es absoluto. La insignia va en la
+   esquina de la tarjeta, nunca dentro de la foto (que recorta). */
+.cgrid-cell { position: relative; }
+.cgrid-cell > .cgrid-badge { top: 6px; right: 6px; }
+/* P9 (completar la estructura compartida): la foto dentro de
+   .cgrid-thumb no tenía regla de tamaño en toda la hoja — salía
+   a tamaño natural recortada por el círculo de 64 px. Con la
+   regla de portada, la tarjeta compartida pinta la foto bien en
+   AMBAS secciones (en Alumnos solo se notaba con foto real). */
+.cgrid-thumb img { width: 100%; height: 100%; object-fit: cover; display: block; }
+/* P12: el tono de los botones de acción de las filas de
+   pendientes queda fijado por regla — «Ver análisis», «Ver
+   cálculo» y «Revisar propuestas» salen del MISMO pintor
+   (studentsPendItemHTML) con la MISMA clase; esta regla deja la
+   igualdad estructural dentro de la fila. */
+.stu-pend-item .btn-primary { background: #0d9488; }
+.stu-pend-item .btn-primary:hover { background: #0f766e; }
+/* == FIN PUNTO 108 == */

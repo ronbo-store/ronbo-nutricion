@@ -9756,20 +9756,33 @@ function clientsCellHTML(u) {
   const L = CLIENTS_LAST; const d = clientsDataOf(L, u); const cats = clientCategories(u, d);
   /* AUTH-110: el distintivo de la celda cuenta la UNIÓN (como la
      fila y como Alumnos); el anillo teal exige unión vacía además
-     de su categoría «al día» de siempre. */
+     de su categoría «al día» de siempre.
+     PUNTO 108 · P9 (SOLO DESARROLLO, 2026-11-02): la celda usa la
+     MISMA estructura de tarjeta que «Mis alumnos» en rejilla
+     (.cgrid-cell / .cgrid-thumb / .cgrid-ring / .cgrid-name /
+     .cgrid-cat) — las clases propias anteriores (cgrid2,
+     cgrid-cell2, cell-thumb, cell-name, cell-sub, cell-pend,
+     cell-ring-*) no tenían NI UNA regla en la hoja de estilos y
+     la rejilla salía como texto apilado sin estilo, con la foto
+     a tamaño natural. El anillo lleva el color por estado con el
+     mismo código de Alumnos (alertas rojo, pendiente ámbar, al
+     día teal) y la cuenta viaja en la .cgrid-badge de la casa,
+     en la esquina de la tarjeta. Los datos y el comportamiento
+     no cambian: aprobado abre la ficha; sin aprobar, celda
+     estática. */
   const unionN = d.tpend ? d.tpend.items.length : null;
   const alDia = !d.tpendErr && unionN === 0 && cats.length === 1 && cats[0] === 'aldia';
-  const ring = d.alerts.length ? 'cell-ring-red' : (alDia ? 'cell-ring-teal' : 'cell-ring-amber');
-  const badge = d.alerts.length ? `<span class="cell-pend">${d.alerts.length}</span>`
-    : d.tpendErr ? '<span class="cell-pend">!</span>'
-    : (unionN ? `<span class="cell-pend">${unionN}</span>` : '');
+  const ring = d.alerts.length ? '#dc2626' : (alDia ? '#0d9488' : '#f59e0b');
+  const badge = d.alerts.length ? `<span class="cgrid-badge">${d.alerts.length}</span>`
+    : d.tpendErr ? '<span class="cgrid-badge">!</span>'
+    : (unionN ? `<span class="cgrid-badge">${unionN}</span>` : '');
   const thumb = u.photoURL
-    ? `<span class="cell-thumb"><img src="${esc(u.photoURL)}" alt=""></span>`
-    : `<span class="cell-thumb" style="background:${stuTint(u.id)}">${esc(clientInitials(u).toUpperCase() || '·')}</span>`;
-  const inner = `${thumb}${badge}<span class="cell-name">${esc(u.name || '—')}</span><span class="cell-sub">${clientsRowSummary(u, d)}</span>`;
+    ? `<img src="${esc(u.photoURL)}" alt="">`
+    : `<span class="mt-initials" style="background:${stuTint(u.id)};color:#134e4a">${esc(clientInitials(u).toUpperCase() || '·')}</span>`;
+  const inner = `<span class="cgrid-thumb">${thumb}<span class="cgrid-ring" style="border-color:${ring}"></span></span>${badge}<span class="cgrid-name">${esc(u.name || '—')}</span><span class="cgrid-cat" style="color:#6b7280">${clientsRowSummary(u, d)}</span>`;
   return u.approved === true
-    ? `<div class="cgrid-cell2 ${ring}" data-client="${u.id}" role="button" tabindex="0">${inner}</div>`
-    : `<div class="cgrid-cell2 ${ring}">${inner}</div>`;
+    ? `<button type="button" class="cgrid-cell" data-client="${u.id}">${inner}</button>`
+    : `<div class="cgrid-cell">${inner}</div>`;
 }
 function clientsGridHTML(L, catFilter, emptyKey) {
   L = L || CLIENTS_LAST;
@@ -9778,7 +9791,7 @@ function clientsGridHTML(L, catFilter, emptyKey) {
   if (!L.clients.length) return `<div class="wempty">${t(emptyKey)}</div>`;
   const list = clientsFiltered();
   if (!list.length) return `<div class="wempty">${t('clients.catEmpty')}</div>`;
-  return `<div class="cgrid2">${list.map(clientsCellHTML).join('')}</div>`;
+  return `<div class="cgrid">${list.map(clientsCellHTML).join('')}</div>`;
 }
 function clientsListHTML(L, emptyKey) {
   L = L || CLIENTS_LAST;
@@ -9818,7 +9831,15 @@ function renderClientsViewbar() {
   const total = CLIENTS_LAST ? CLIENTS_LAST.clients.length : 0;
   const nAlerts = CLIENTS_LAST ? CLIENTS_LAST.clients.filter(u => (CLIENTS_LAST.alertsByUid[u.id] || []).length > 0).length : 0;
   const filtersOn = CLIENTS_FILTERS_OPEN || (CLIENTS_CAT_FILTER !== 'all' && CLIENTS_CAT_FILTER !== 'alertas');
-  bar.innerHTML = `<div class="search-row"><input type="search" id="cq-q" placeholder="${esc(t('clients.searchPh'))}" value="${esc(CLIENTS_QUERY)}"><span class="search-seg" role="group"><button type="button" id="cv-list" class="${CLIENTS_VIEW === 'list' ? 'on' : ''}">${esc(t('clients.viewList'))}</button><button type="button" id="cv-grid" class="${CLIENTS_VIEW === 'grid' ? 'on' : ''}">${esc(t('clients.viewGrid'))}</button></span></div>`
+  /* PUNTO 108 · P10+P11 (SOLO DESARROLLO, 2026-11-02): la barra
+     usa EL MISMO buscador (.search-box con lupa, a todo el ancho
+     disponible) y EL MISMO conmutador Lista/Rejilla (.cview-seg,
+     el segmentado unido) que «Mis alumnos» — antes el buscador
+     era un input suelto sin caja y el conmutador usaba una clase
+     (.search-seg) sin ni una regla en la hoja de estilos, así que
+     salían dos botones sueltos con el estilo por defecto. Los
+     ids (cq-q, cv-list, cv-grid) y el cableado no cambian. */
+  bar.innerHTML = `<div class="search-row"><label class="search-box"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="11" cy="11" r="7"/><path d="M21 21l-4.3-4.3"/></svg><input type="search" id="cq-q" placeholder="${esc(t('clients.searchPh'))}" value="${esc(CLIENTS_QUERY)}" autocomplete="off"></label><span class="cview-seg" role="group"><button type="button" id="cv-list" class="${CLIENTS_VIEW === 'list' ? 'on' : ''}">${esc(t('clients.viewList'))}</button><button type="button" id="cv-grid" class="${CLIENTS_VIEW === 'grid' ? 'on' : ''}">${esc(t('clients.viewGrid'))}</button></span></div>`
     + `<div class="libcat-chips"><button type="button" class="libcat-chip${CLIENTS_CAT_FILTER === 'all' && !CLIENTS_FILTERS_OPEN ? ' on' : ''}" data-csel="all">${esc(t('clients.catAll'))} · ${total}</button><button type="button" class="libcat-chip${CLIENTS_CAT_FILTER === 'alertas' && !CLIENTS_FILTERS_OPEN ? ' on' : ''}" data-csel="alertas">${esc(clientCatLabel('alertas'))} · ${nAlerts}</button><button type="button" class="libcat-chip${filtersOn ? ' on' : ''}" data-csel="filtros">${esc(t('clients.moreFilters'))}</button></div>`;
   const q = $('cq-q');
   if (q) q.addEventListener('input', () => { CLIENTS_QUERY = q.value; CLIENTS_FILTERS_OPEN = false; renderClientsBody(); });
@@ -28219,10 +28240,32 @@ function renderProgress() {
     if (lbl) { const k = closedPast ? 'progress.addToday' : 'progress.replace'; lbl.setAttribute('data-i18n', k); lbl.textContent = t(k); }
   });
   PROGRESS_SLOTS.forEach(s => setSlot(s, set[s] ? set[s].photo : null));
-  const missing = PROGRESS_SLOTS.filter(s => !set[s]);
-  $('progress-status').textContent = missing.length === 0 ? t('progress.complete')
-    : missing.length === 3 ? t('progress.none')
-    : t('progress.missingList', { list: missing.map(s => t('progress.' + s)).join(', ') });
+  /* PUNTO 108 · P4 (SOLO DESARROLLO, 2026-11-02): la línea de
+     estado habla de la EVALUACIÓN ENTERA del set mostrado — el
+     MISMO criterio de la tarjeta de evaluación (evalMissingItems
+     + evalHasData: fotos Y medidas requeridas) — y no solo de las
+     fotos. Antes, con las 3 fotos subidas y una medida requerida
+     sin registrar, esta línea decía «Evaluación completa» a la
+     vez que la tarjeta de abajo decía incompleta con su aviso de
+     parcial: dos estados visibles a la vez. Ahora hay UN estado:
+     completa solo si la evaluación está completa; si no, la
+     lista de lo que falta (fotos y medidas, con los nombres de
+     la propia tarjeta); y «sin fotos aún» solo cuando el set no
+     tiene nada. Un set cerrado (AUTH-166) con todo registrado
+     lee completa: su aviso de cerrado es otra cosa y vive en su
+     propia caja (#progress-closed). */
+  const evalMissing108 = evalMissingItems(target);
+  const evalHas108 = evalHasData(target);
+  const evalComplete108 = evalMissing108.length === 0 && evalHas108;
+  const missNames108 = evalMissing108.map(m => m.kind === 'photo' ? t('progress.' + m.id) : t('eval.measure.' + m.id));
+  /* Sin NINGÚN dato de evaluación y sin medida requerida en la
+     lista (p. ej. fotos completas y nada más), lo que falta es el
+     primer dato — el peso del día es su nombre canónico: sin él
+     (o cualquier medida) la lista no puede quedar vacía. */
+  if (!evalComplete108 && !evalHas108 && !evalMissing108.some(m => m.kind === 'measure')) missNames108.push(t('eval.measure.peso'));
+  $('progress-status').textContent = evalComplete108 ? t('progress.complete')
+    : (!PROG[target] && !EVALS[target]) ? t('progress.none')
+    : t('progress.missingList', { list: missNames108.join(', ') });
   const dates = progressDates();
   const next = $('progress-next');
   if (next) next.textContent = dates.length ? t('progress.next', { date: dateName(addDaysISO(dates[dates.length - 1], 15)) }) : '';
@@ -30332,11 +30375,27 @@ function pendCompute() {
 
   /* Entrenamiento — días de semana configurados, con plan activo.
      La sesión se registra en «Mi entrenamiento»; el vencido puede
-     descartarse expresamente (queda la marca). */
+     descartarse expresamente (queda la marca).
+     PUNTO 108 · P2 (SOLO DESARROLLO, 2026-11-02): cuando el plan
+     manda por su propio calendario (modo «plancal» de
+     trainDayMap), la ocasión sale del MAPA del plan
+     (planCalDayIndex) y no de los días de semana configurados —
+     el MISMO criterio de la alerta A4 del entrenador («el plan
+     se basta solo», decisión de Ronald, 2026-10-27). Antes, un
+     día en blanco del calendario (descanso) dentro de una semana
+     ya completa generaba el aviso «sesión sin registrar» si la
+     configuración general marcaba ese día de semana (caso real
+     31-oct: aviso con 4/4 sesiones hechas). En los demás modos
+     la ocasión sigue siendo el día de semana configurado. La
+     fecha del aviso ya viaja siempre visible: el título del
+     vencido la nombra (pend.trainTitlePastDate/PastYday) y el
+     detalle de hoy es la fecha misma (pendItemHTML). */
   if (cfg.trainOn && MY_PLAN) {
+    const p108Cal = (() => { try { return typeof trainDayMap === 'function' && trainDayMap(MY_PLAN, cfg).mode === 'plancal'; } catch { return false; } })();
     for (let d = start; d <= regDay; d = addDaysISO(d, 1)) {
       const dow = new Date(d + 'T12:00:00').getDay();
-      if (!(cfg.trainDays || []).includes(dow)) continue;
+      const isOcc108 = p108Cal ? (planCalDayIndex(MY_PLAN, d) != null) : (cfg.trainDays || []).includes(dow);
+      if (!isOcc108) continue;
       const it = { id: `training|${d}`, type: 'training', date: d, overdue: d < regDay, age: pendDaysBetween(d, regDay), canDiscard: true };
       if (MY_LOGS.some(l => l.date === d)) {
         if (d === regDay) out.traces.push({ kind: 'done', item: it, label: labelOf(it) });
@@ -31385,14 +31444,24 @@ function shareDrawWeek(ctx, W, H, d) {
   const chipBottom = chipTop + chipPx + 34;
   shareTxt(ctx, shareWeekLabel(d.days), W / 2, chipBottom + (cp ? 44 : 60), shareCtxFont(600, cp ? 24 : 32), 'rgba(255,255,255,.92)', { shadowBlur: 12 });
   /* héroe: llama + racha */
-  const flameY = chipBottom + (cp ? 112 : 172);
+  /* PUNTO 108 · P5/P7 (SOLO DESARROLLO, 2026-11-02): la tarjeta
+     semanal gana aire en dos sitios — entre la fila de
+     estadísticas y la píldora «Best day» (P5: la píldora rozaba
+     la columna de comidas) y entre el título «MINUTES PER DAY» y
+     las etiquetas de días (P7). En Post 1:1 el alto es justo, así
+     que el aire nuevo se compensa en el héroe (llama y totales
+     un poco más juntos) y en los huecos de hitos/marca: el eje de
+     las barras queda donde estaba y la línea de marca gana
+     margen sobre la píldora de la frase. En Story 9:16 sobra
+     alto y no se compensa nada. */
+  const flameY = chipBottom + (cp ? 96 : 172);
   shareTxt(ctx, '🔥', W / 2, flameY, shareCtxFont(400, cp ? 46 : 64, true), '#ffffff', { shadowColor: 'rgba(255,150,30,.75)', shadowBlur: 26 });
   const numPx = cp ? 128 : 200, numY = flameY + (cp ? 122 : 208);
   shareTxt(ctx, String(d.streak), W / 2, numY, shareCtxFont(900, numPx), '#ffffff', { shadowBlur: 44, shadowColor: 'rgba(0,60,52,.42)', shadowY: 10 });
   shareTxt(ctx, t('share.streak'), W / 2, numY + (cp ? 46 : 68), shareCtxFont(900, cp ? 32 : 45), '#ffffff', { shadowBlur: 18 });
   /* tira de totales SIN caja: números sobre el fondo, filetes de luz */
   const stripW = 936, sx = (W - stripW) / 2, colW = stripW / 4;
-  const nY = numY + (cp ? 46 : 68) + (cp ? 64 : 96);
+  const nY = numY + (cp ? 46 : 68) + (cp ? 54 : 96);
   const stats = [ [String(d.activeDays) + '/7', t('share.daysActive')], [String(d.workoutsWeek), t('share.workouts')],
                   [fmt(d.minutesTotal), t('share.minActivity')], [String(d.mealsWeek), t('share.meals')] ];
   stats.forEach((s, i) => {
@@ -31402,7 +31471,10 @@ function shareDrawWeek(ctx, W, H, d) {
     if (i > 0) { ctx.save(); ctx.strokeStyle = 'rgba(255,255,255,.35)'; ctx.lineWidth = 2; ctx.beginPath(); ctx.moveTo(sx + colW * i, nY - (cp ? 44 : 58)); ctx.lineTo(sx + colW * i, nY + (cp ? 26 : 36)); ctx.stroke(); ctx.restore(); }
   });
   /* gráfica de barras SIN caja */
-  const headY = nY + (cp ? 28 : 38) + (cp ? 50 : 68);
+  /* P5: el salto desde las etiquetas de la fila de estadísticas
+     crece (Post 50→64, Story 68→90): la píldora «Best day», que
+     cuelga de esta misma línea, se separa de la fila. */
+  const headY = nY + (cp ? 28 : 38) + (cp ? 64 : 90);
   shareTxt(ctx, t('share.minPerDay'), sx + 4, headY, shareCtxFont(900, cp ? 23 : 29), 'rgba(255,255,255,.88)', { align: 'left', ls: 2, shadowBlur: 10 });
   if (d.bestIdx >= 0) {
     const tag = t('share.bestDay', { day: (SHARE_WD[LANG] || SHARE_WD.en)[d.bestIdx] });
@@ -31410,7 +31482,9 @@ function shareDrawWeek(ctx, W, H, d) {
     sharePill(ctx, sx + stripW - tagW / 2, headY - (cp ? 9 : 11), tag, tagPx, { bg: '#fff3df', color: '#b05f00', padX: 24, padY: cp ? 8 : 10, shadowBlur: 26, shadowY: 12 });
   }
   const maxMin = Math.max(...d.minutes, 1), maxBarH = cp ? 92 : 170;
-  const axisY = headY + (cp ? 34 : 44) + maxBarH;
+  /* P7: más aire entre el título y la gráfica (Post 34→46,
+     Story 44→62) — las etiquetas de días bajan con las barras. */
+  const axisY = headY + (cp ? 46 : 62) + maxBarH;
   const innerX = sx + 22, innerW = stripW - 44, gapB = 26;
   const colBW = (innerW - gapB * 6) / 7, barW = cp ? 62 : 76;
   const letters = SHARE_LETTERS[LANG] || SHARE_LETTERS.en;
@@ -31442,7 +31516,7 @@ function shareDrawWeek(ctx, W, H, d) {
     const rows = []; let row = [], rowW = 0;
     items.forEach(it => { const add = (row.length ? 16 : 0) + it.w; if (rowW + add > 936 && row.length) { rows.push(row); row = []; rowW = 0; } row.push(it); rowW += (row.length > 1 ? 16 : 0) + it.w; });
     if (row.length) rows.push(row);
-    let ry = flowBottom + (cp ? 26 : 34);
+    let ry = flowBottom + (cp ? 20 : 34);
     rows.forEach(rw => {
       const total = rw.reduce((s, it) => s + it.w, 0) + 16 * (rw.length - 1);
       let px = (W - total) / 2;
@@ -31463,7 +31537,7 @@ function shareDrawWeek(ctx, W, H, d) {
     flowBottom = ry - 16;
   }
   /* línea de marca «ronbo.fit» (decisión §10: nunca el entrenador) */
-  const blCy = flowBottom + (cp ? 38 : 56);
+  const blCy = flowBottom + (cp ? 28 : 56);
   const btPx = cp ? 27 : 36, bav = cp ? 48 : 64;
   const btW = shareTextW(ctx, 'ronbo.fit', 900, btPx);
   const gx = (W - (bav + 18 + btW)) / 2;
@@ -31978,7 +32052,7 @@ document.addEventListener('keydown', e => { if (e.key === 'Escape') shareClose()
  *  - El SW (sw.js) solo cachea la cáscara del mismo origen en modo
  *    RED PRIMERO: Auth/Firestore/Worker jamás pasan por la caché.
  * ================================================================ */
-const PWA_SW_VERSION = '20261102-plegar-metas';
+const PWA_SW_VERSION = '20261102-armonia-visual';
 let pwaDeferredPrompt = null;
 function pwaIsStandalone() {
   try {
