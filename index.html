@@ -21,7 +21,7 @@
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-title" content="RONBO FIT">
 <meta name="apple-mobile-web-app-status-bar-style" content="default">
-<link rel="stylesheet" href="styles.css?v=20261103-acceso-un-boton">
+<link rel="stylesheet" href="styles.css?v=20261103-admin-todos">
 <script defer src="https://cloud.umami.is/script.js" data-website-id="a29706d4-44a2-47cf-900a-5f74d74abfa8"></script>
 <script type="importmap">
 {
@@ -511,98 +511,11 @@
          nunca descarta — el descarte queda en los botones explícitos
          de cada paso. -->
   </div>
-  <!-- Botón único «PERMISOS Y PRIVACIDAD» (decisión de Ronald,
-       2026-10-19 15:45): UN solo botón discreto y fino sustituye
-       a los dos «Gestionar…» y a su fila horizontal. Vive donde
-       empezaba la primera de las dos tarjetas y, al desplegarse,
-       muestra UN panel con una coletilla informativa sencilla y
-       DOS secciones tituladas — «Declaración de salud» y
-       «Privacidad y datos» — que alojan, sin cambiarlos, los
-       contenidos de siempre de ambas tarjetas: en cada sección,
-       primero su estado y después sus opciones numeradas según
-       el estado real, con los actos principales (otorgamiento
-       del específico y «Acepto» de la renovación) intactos. La
-       etiqueta se muestra en MAYÚSCULAS por CSS, como las
-       leyendas del dock; los diccionarios guardan el texto
-       normal. Nada de este contenido se duplica fuera del
-       despliegue. -->
-  <div class="panel perms-panel" id="perms-panel">
-    <button type="button" class="btn-secondary manage-toggle perms-toggle" id="btn-perms" aria-expanded="false"><span data-i18n="perm.title">Permissions & privacy</span><span class="manage-chev" id="perms-chev">▾</span></button>
-    <div id="perms-body" style="display:none">
-      <p class="perms-intro" data-i18n="perm.intro">Here you manage your permissions: your health declaration and your privacy &amp; data — what you accept, what you share, and what you can withdraw or delete.</p>
-      <div class="perms-section health-panel" id="health-section">
-        <h3 class="perms-section-title" data-i18n="health.sectionTitle">Health declaration</h3>
-        <div id="health-panel-body"><div class="wempty" data-i18n="train.loading">Loading…</div></div>
-      </div>
-      <!-- F-A1 (Etapa 2, desarrollo): espacio privado del propio
-           cliente — la variable de sexo para el cálculo energético
-           vive en users/{uid}/energyPrivate y SOLO la ve su dueño.
-           El texto completo aprobado se renderiza desde STR (fa.*). -->
-      <div class="perms-section" id="energy-section">
-        <h3 class="perms-section-title" data-i18n="fa.zone">🔒 My private space</h3>
-        <p class="progress-hint" data-i18n="fa.zoneSub">Only you can see what you keep here.</p>
-        <div id="energy-panel-body"><div class="wempty" data-i18n="train.loading">Loading…</div></div>
-      </div>
-      <!-- MÓDULO NIVEL 2 (desplegado 2026-10-24): estimación
-           visual de tipo corporal. La sección nace oculta y solo
-           la muestra renderBtPanel() para las cuentas del piloto
-           (propietario + «Prueba Ronald»). Todo el texto se
-           renderiza desde STR (bt.*) con paridad ES/EN;
-           consentimiento específico propio con el texto final
-           aprobado por Ronald el 2026-10-24. -->
-      <div class="perms-section" id="bt-section" style="display:none">
-        <h3 class="perms-section-title" data-i18n="bt.title">Visual body type estimate</h3>
-        <div id="bt-panel-body"></div>
-      </div>
-      <!-- Corrección reprueba (2026-10-24): el </div> que cierra
-           #bt-section FALTABA desde el paquete de somatotipo: el
-           parser lo suplía cerrando #perms-panel con el cierre de
-           #tab-track, y #tab-track quedaba abierto tragándose
-           #tab-access, #tab-clients y el pie como hijos — al cambiar
-           de pestaña, «Mis clientes» y «Accesos» quedaban dentro del
-           panel oculto y NO se veían (comprobado sobre la base
-           85e58eb: checkVisibility = false). Con el cierre puesto, las
-           tres pestañas son hermanas y el dock global vive fuera. -->
-      <!-- MÓDULO H (P4-3 Etapa 1, desarrollo): preferencia de
-           unidades del propio usuario (users/{uid}/preferences/units).
-           El panel lo renderiza renderUnitsPanel() desde STR (units.*). -->
-      <div class="perms-section" id="units-section">
-        <h3 class="perms-section-title" data-i18n="units.title">Units</h3>
-        <div id="units-panel-body"><div class="wempty" data-i18n="train.loading">Loading…</div></div>
-      </div>
-      <div class="perms-section privacy-panel" id="privacy-section">
-        <h3 class="perms-section-title" data-i18n="priv.sectionTitle">Privacy &amp; data</h3>
-        <!-- Nota reubicada (Ronald, 2026-10-22): el aviso «la foto no
-             se almacena» del retirado bloque «Ayuda con comidas» vive
-             aquí, en su contexto de privacidad. Dentro de este panel
-             no existía ninguna mención equivalente: no se duplica. -->
-        <p class="progress-hint" data-i18n="perm.photoNote">The food photo you send for analysis is not stored.</p>
-        <div class="manage-list" id="privacy-manage-list" style="display:none">
-          <div id="privacy-status" class="manage-info"></div>
-          <button type="button" class="manage-item" id="btn-view-notice"><span class="menu-num"></span><span class="manage-label" data-i18n="priv.viewNotice">View the privacy notice</span><span class="manage-go">›</span></button>
-          <button type="button" class="manage-item" id="btn-renew" style="display:none"><span class="menu-num"></span><span class="manage-label" data-i18n="priv.renew">Renew my consent</span><span class="manage-go">›</span></button>
-          <button type="button" class="manage-item" id="btn-my-data"><span class="menu-num"></span><span class="manage-label" data-i18n="priv.download">Download my data (JSON)</span><span class="manage-go">›</span></button>
-          <button type="button" class="manage-item danger" id="btn-withdraw"><span class="menu-num"></span><span class="manage-label" data-i18n="priv.withdraw">Withdraw my consent</span><span class="manage-go">›</span></button>
-          <button type="button" class="manage-item danger" id="btn-delete-account"><span class="menu-num"></span><span class="manage-label" data-i18n="priv.delete">Delete my account and data</span><span class="manage-go">›</span></button>
-        </div>
-        <div id="privacy-notice" class="consent-text" style="display:none"></div>
-        <button type="button" class="btn-primary btn-sm" id="btn-renew-accept" style="display:none" data-i18n="priv.renewAccept">I accept the privacy notice</button>
-      </div>
-      <!-- CLAVES DE ACCESO (passkeys/WebAuthn, piloto DEC-PK-2):
-           sección «Seguridad» junto a «Permisos y privacidad», con
-           el mismo patrón de las secciones hermanas (bt/units):
-           nace oculta y solo la muestra renderPkPanel() para el
-           propietario o el piloto de pruebas. Todo el contenido
-           dinámico (lista de claves, botones) lo pinta app.js
-           desde STR (pk.*); aquí solo vive la cáscara. -->
-      <div class="perms-section" id="pk-section" style="display:none">
-        <h3 class="perms-section-title" data-i18n="pk.section">Security</h3>
-        <h4 class="pk-sub" data-i18n="pk.title">Access keys</h4>
-        <p class="progress-hint" data-i18n="pk.help">Use your face, fingerprint or device PIN instead of typing your password.</p>
-        <div id="pk-panel-body"></div>
-      </div>
-    </div>
-  </div>
+  <!-- ADMIN-TODOS (2026-11-03, decisión de Ronald): el panel
+       «Permisos y privacidad» — con su sección «Seguridad /
+       Claves de acceso» — se MUDÓ de aquí a la vista
+       «Administración» (#tab-admin), su nueva casa para todos
+       los roles. Aquí no queda ninguna copia. -->
   <!-- Tarjeta flotante de Pendientes (REC-D): vive junto al dock,
        dentro de #tab-track (al cambiar de pestaña no se renderiza),
        y FLOTA sobre la página justo encima de la pastilla — la
@@ -1249,6 +1162,109 @@
        La misma base recibirá «Plantillas de correo» y «Preguntas
        frecuentes» del paquete del editor, sin duplicar la zona. -->
   <div class="tab-pane" id="tab-admin" style="display:none">
+    <!-- ADMIN-TODOS (2026-11-03, decisión de Ronald): el panel
+         personal «Permisos y privacidad» — con su sección
+         «Seguridad / Claves de acceso» dentro — vive AHORA en
+         esta vista, para TODOS los roles: cada quien ve solo
+         lo suyo. Se mudó TAL CUAL desde el flujo común (los
+         mismos ids y los mismos renderizadores de siempre);
+         debajo, #admin-zone-box sigue trayendo SOLO las
+         secciones de sistema del administrador, tras su doble
+         puerta de siempre (renderAdminZone). -->
+      <!-- Botón único «PERMISOS Y PRIVACIDAD» (decisión de Ronald,
+           2026-10-19 15:45): UN solo botón discreto y fino sustituye
+           a los dos «Gestionar…» y a su fila horizontal. Vive donde
+           empezaba la primera de las dos tarjetas y, al desplegarse,
+           muestra UN panel con una coletilla informativa sencilla y
+           DOS secciones tituladas — «Declaración de salud» y
+           «Privacidad y datos» — que alojan, sin cambiarlos, los
+           contenidos de siempre de ambas tarjetas: en cada sección,
+           primero su estado y después sus opciones numeradas según
+           el estado real, con los actos principales (otorgamiento
+           del específico y «Acepto» de la renovación) intactos. La
+           etiqueta se muestra en MAYÚSCULAS por CSS, como las
+           leyendas del dock; los diccionarios guardan el texto
+           normal. Nada de este contenido se duplica fuera del
+           despliegue. -->
+      <div class="panel perms-panel" id="perms-panel">
+        <button type="button" class="btn-secondary manage-toggle perms-toggle" id="btn-perms" aria-expanded="false"><span data-i18n="perm.title">Permissions & privacy</span><span class="manage-chev" id="perms-chev">▾</span></button>
+        <div id="perms-body" style="display:none">
+          <p class="perms-intro" data-i18n="perm.intro">Here you manage your permissions: your health declaration and your privacy &amp; data — what you accept, what you share, and what you can withdraw or delete.</p>
+          <div class="perms-section health-panel" id="health-section">
+            <h3 class="perms-section-title" data-i18n="health.sectionTitle">Health declaration</h3>
+            <div id="health-panel-body"><div class="wempty" data-i18n="train.loading">Loading…</div></div>
+          </div>
+          <!-- F-A1 (Etapa 2, desarrollo): espacio privado del propio
+               cliente — la variable de sexo para el cálculo energético
+               vive en users/{uid}/energyPrivate y SOLO la ve su dueño.
+               El texto completo aprobado se renderiza desde STR (fa.*). -->
+          <div class="perms-section" id="energy-section">
+            <h3 class="perms-section-title" data-i18n="fa.zone">🔒 My private space</h3>
+            <p class="progress-hint" data-i18n="fa.zoneSub">Only you can see what you keep here.</p>
+            <div id="energy-panel-body"><div class="wempty" data-i18n="train.loading">Loading…</div></div>
+          </div>
+          <!-- MÓDULO NIVEL 2 (desplegado 2026-10-24): estimación
+               visual de tipo corporal. La sección nace oculta y solo
+               la muestra renderBtPanel() para las cuentas del piloto
+               (propietario + «Prueba Ronald»). Todo el texto se
+               renderiza desde STR (bt.*) con paridad ES/EN;
+               consentimiento específico propio con el texto final
+               aprobado por Ronald el 2026-10-24. -->
+          <div class="perms-section" id="bt-section" style="display:none">
+            <h3 class="perms-section-title" data-i18n="bt.title">Visual body type estimate</h3>
+            <div id="bt-panel-body"></div>
+          </div>
+          <!-- Corrección reprueba (2026-10-24): el </div> que cierra
+               #bt-section FALTABA desde el paquete de somatotipo: el
+               parser lo suplía cerrando #perms-panel con el cierre de
+               #tab-track, y #tab-track quedaba abierto tragándose
+               #tab-access, #tab-clients y el pie como hijos — al cambiar
+               de pestaña, «Mis clientes» y «Accesos» quedaban dentro del
+               panel oculto y NO se veían (comprobado sobre la base
+               85e58eb: checkVisibility = false). Con el cierre puesto, las
+               tres pestañas son hermanas y el dock global vive fuera. -->
+          <!-- MÓDULO H (P4-3 Etapa 1, desarrollo): preferencia de
+               unidades del propio usuario (users/{uid}/preferences/units).
+               El panel lo renderiza renderUnitsPanel() desde STR (units.*). -->
+          <div class="perms-section" id="units-section">
+            <h3 class="perms-section-title" data-i18n="units.title">Units</h3>
+            <div id="units-panel-body"><div class="wempty" data-i18n="train.loading">Loading…</div></div>
+          </div>
+          <div class="perms-section privacy-panel" id="privacy-section">
+            <h3 class="perms-section-title" data-i18n="priv.sectionTitle">Privacy &amp; data</h3>
+            <!-- Nota reubicada (Ronald, 2026-10-22): el aviso «la foto no
+                 se almacena» del retirado bloque «Ayuda con comidas» vive
+                 aquí, en su contexto de privacidad. Dentro de este panel
+                 no existía ninguna mención equivalente: no se duplica. -->
+            <p class="progress-hint" data-i18n="perm.photoNote">The food photo you send for analysis is not stored.</p>
+            <div class="manage-list" id="privacy-manage-list" style="display:none">
+              <div id="privacy-status" class="manage-info"></div>
+              <button type="button" class="manage-item" id="btn-view-notice"><span class="menu-num"></span><span class="manage-label" data-i18n="priv.viewNotice">View the privacy notice</span><span class="manage-go">›</span></button>
+              <button type="button" class="manage-item" id="btn-renew" style="display:none"><span class="menu-num"></span><span class="manage-label" data-i18n="priv.renew">Renew my consent</span><span class="manage-go">›</span></button>
+              <button type="button" class="manage-item" id="btn-my-data"><span class="menu-num"></span><span class="manage-label" data-i18n="priv.download">Download my data (JSON)</span><span class="manage-go">›</span></button>
+              <button type="button" class="manage-item danger" id="btn-withdraw"><span class="menu-num"></span><span class="manage-label" data-i18n="priv.withdraw">Withdraw my consent</span><span class="manage-go">›</span></button>
+              <button type="button" class="manage-item danger" id="btn-delete-account"><span class="menu-num"></span><span class="manage-label" data-i18n="priv.delete">Delete my account and data</span><span class="manage-go">›</span></button>
+            </div>
+            <div id="privacy-notice" class="consent-text" style="display:none"></div>
+            <button type="button" class="btn-primary btn-sm" id="btn-renew-accept" style="display:none" data-i18n="priv.renewAccept">I accept the privacy notice</button>
+          </div>
+          <!-- CLAVES DE ACCESO (passkeys/WebAuthn):
+               sección «Seguridad» junto a «Permisos y privacidad», con
+               el mismo patrón de las secciones hermanas (bt/units):
+               nace oculta y la muestra renderPkPanel() para cualquier
+               usuario con sesión (piloto DEC-PK-2 CERRADO por decisión
+           de Ronald, 2026-11-03: claves abiertas para todos). Todo el contenido
+               dinámico (lista de claves, botones) lo pinta app.js
+               desde STR (pk.*); aquí solo vive la cáscara. -->
+          <div class="perms-section" id="pk-section" style="display:none">
+            <h3 class="perms-section-title" data-i18n="pk.section">Security</h3>
+            <h4 class="pk-sub" data-i18n="pk.title">Access keys</h4>
+            <p class="progress-hint" data-i18n="pk.help">Use your face, fingerprint or device PIN instead of typing your password.</p>
+            <div id="pk-panel-body"></div>
+          </div>
+        </div>
+      </div>
+
     <div id="admin-zone-box" style="display:none"></div>
   </div>
   <!-- /tab-admin -->
@@ -1687,6 +1703,6 @@
 <div id="toast" class="toast"></div>
 <div id="print-card" aria-hidden="true"></div>
 
-<script type="module" src="app.js?v=20261103-acceso-un-boton"></script>
+<script type="module" src="app.js?v=20261103-admin-todos"></script>
 </body>
 </html>

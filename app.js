@@ -2153,6 +2153,13 @@ function admSecToggle(id) {
 async function renderAdminZone() {
   const box = $('admin-zone-box');
   if (!box) return;
+  /* ADMIN-TODOS (2026-11-03): esta puerta guarda SOLO las
+     secciones de SISTEMA (la caja admin-zone-box) — sigue siendo
+     doble y solo del administrador. El panel personal «Permisos y
+     privacidad» (con su «Seguridad») es un nodo HERMANO dentro de
+     #tab-admin, no vive en esta caja, y se pinta para cada rol con
+     sus propios renderizadores de siempre: esta función no lo
+     toca ni lo vacía. */
   if (ROLE !== 'administrador') { box.innerHTML = ''; box.style.display = 'none'; return; }
   box.style.display = '';
   box.innerHTML = admuseSkeleton();
@@ -9649,7 +9656,19 @@ onAuthStateChanged(auth, async user => {
   setTimeout(() => { try { installCardMaybeShow(); } catch (e) {} }, 400);
   $('auth-view').style.display = 'none';
   $('app-view').style.display = '';
-  $('main-tabs').style.display = ROLE === 'usuario' ? 'none' : '';
+  /* ADMIN-TODOS (2026-11-03, decisión de Ronald): la barra ya es
+     de TODOS los roles — también del alumno, que la estrena con
+     UNA sola pastilla («Administración», ver la regla de abajo). */
+  $('main-tabs').style.display = '';
+  /* Las dos pastillas sin regla propia de rol («Mi registro» y
+     «Mis clientes») se ocultan para el alumno: su barra trae solo
+     «Administración» por ahora. Las demás ya caen a 'none' para el
+     rol usuario por sus reglas de siempre (Accesos, Entrenadores,
+     Biblioteca, Mi perfil, Mis alumnos y Comunicaciones). */
+  const trackTabBtn = document.querySelector('.main-tab[data-tab="track"]');
+  if (trackTabBtn) trackTabBtn.style.display = ROLE === 'usuario' ? 'none' : '';
+  const cliTabBtn = document.querySelector('.main-tab[data-tab="clients"]');
+  if (cliTabBtn) cliTabBtn.style.display = ROLE === 'usuario' ? 'none' : '';
   const accTabBtn = document.querySelector('.main-tab[data-tab="access"]');
   if (accTabBtn) accTabBtn.style.display = ROLE === 'administrador' ? '' : 'none';
   /* Vistas dedicadas (corrección reprueba, 2026-10-24): Entrenadores
@@ -9663,14 +9682,18 @@ onAuthStateChanged(auth, async user => {
   if (libTabBtn) libTabBtn.style.display = (ROLE === 'administrador' || ROLE === 'entrenador') ? '' : 'none';
   /* «Mi perfil» (perfil-visible, 2026-10-24): la píldora junto a
      «Mi registro» es del entrenador y del administrador; el alumno
-     no tiene barra de pestañas y entra por su foto del encabezado. */
+     entra por su foto del encabezado (su barra, desde ADMIN-TODOS,
+     solo trae «Administración»). */
   const profTabBtn = document.querySelector('.main-tab[data-tab="profile"]');
   if (profTabBtn) profTabBtn.style.display = (ROLE === 'entrenador' || ROLE === 'administrador') ? '' : 'none';
-  /* «Administración» (AUTH-2026-10-28-069): la pastilla del panel
-     principal es SOLO del administrador, como Accesos y
-     Entrenadores; entrenador y alumno ni la ven. */
+  /* «Administración» (AUTH-2026-10-28-069 la hizo solo del
+     administrador; ADMIN-TODOS, decisión de Ronald 2026-11-03, la
+     abre a TODOS): cada rol la ve — dentro, cada quien ve solo lo
+     suyo (su panel «Permisos y privacidad» y su «Seguridad»); las
+     secciones de sistema siguen tras la doble puerta de
+     renderAdminZone, solo del administrador. */
   const admTabBtn = document.querySelector('.main-tab[data-tab="admin"]');
-  if (admTabBtn) admTabBtn.style.display = ROLE === 'administrador' ? '' : 'none';
+  if (admTabBtn) admTabBtn.style.display = '';
   /* «Comunicaciones» (AUTH-2026-11-01-146): la pastilla de correo
      es SOLO del administrador, como Accesos — el entrenador ni la
      ve (las plantillas son solo de administración, decisión de
@@ -9683,8 +9706,9 @@ onAuthStateChanged(auth, async user => {
   const stuTabBtn = document.querySelector('.main-tab[data-tab="students"]');
   if (stuTabBtn) stuTabBtn.style.display = (ROLE === 'administrador' || ROLE === 'entrenador') ? '' : 'none';
   /* «← Volver» de «Mi perfil» (paquete NAVEGACIÓN, 2026-10-26):
-     solo el alumno lo necesita — no tiene barra de pestañas y entra
-     al perfil por su foto; el personal conserva sus píldoras. */
+     solo el alumno lo necesita — entra al perfil por su foto y su
+     barra solo trae «Administración»; el personal conserva sus
+     píldoras. */
   const profBackBtn = $('btn-profile-back');
   if (profBackBtn) profBackBtn.style.display = ROLE === 'usuario' ? '' : 'none';
   switchTab('track');
@@ -10284,12 +10308,14 @@ async function deleteUserFlow(btn) {
    entrada, acuña un token personalizado que la app canjea con
    signInWithCustomToken() — la sesión resultante es la sesión
    Firebase normal, con el mismo UID (onAuthStateChanged manda).
-   Puerta de piloto (DEC-PK-2): la sección «Seguridad» solo se
-   pinta para el propietario o para el piloto de pruebas; el Worker
-   impone la misma puerta (401/403 {error:'pilot-only'}). La
-   contraseña convive siempre (DEC-PK-3): cada error honesto ofrece
-   seguir con ella. */
-const PK_PILOT_UID = 'p08nUuFPXkMMcKg3FalMKYs979p2';
+   Puerta de piloto (DEC-PK-2) — CERRADA por decisión de Ronald
+   (2026-11-03): las claves se ABREN PARA TODOS — cualquier usuario
+   con sesión puede crear y gestionar SUS claves (la sección vive
+   ahora en «Administración», ver ADMIN-TODOS junto a tab-admin);
+   el Worker levantó la misma puerta en este paquete. Cada quien
+   gestiona SOLO sus claves: la sesión ata cada operación a su
+   propio UID en el Worker. La contraseña convive siempre
+   (DEC-PK-3): cada error honesto ofrece seguir con ella. */
 const PK_ORIGIN = 'https://fit.ronbo.store';
 function pkSupported() {
   try {
@@ -10301,7 +10327,9 @@ function pkOriginOk() {
   try { return location.origin === PK_ORIGIN; } catch { return false; }
 }
 function pkCanManage() {
-  return !!(IS_OWNER || (auth.currentUser && auth.currentUser.uid === PK_PILOT_UID));
+  /* ADMIN-TODOS (2026-11-03): ya no hay piloto — con sesión basta;
+     el Worker ata cada clave a la cuenta de su dueño. */
+  return !!auth.currentUser;
 }
 /* base64url ⇄ ArrayBuffer: el contrato con el Worker viaja en
    base64url, como produce el navegador tras la conversión. */
@@ -33186,9 +33214,12 @@ setInterval(() => { try { pendDockTick(); } catch {} }, 60000);
             const wd = $('w-date'); if (wd) wd.value = date;
           } else {
             /* El dato privado y la declaración de atleta se aportan
-               en «Permisos y privacidad», sección de energía: se
-               abre el panel si está cerrado y se desplaza hasta la
-               tarjeta del propio cliente. */
+               en «Permisos y privacidad», sección de energía: la
+               ruta cae en «Administración» (donde el panel vive
+               desde ADMIN-TODOS, 2026-11-03), abre el panel si está
+               cerrado y se desplaza hasta la tarjeta del propio
+               cliente. */
+            switchTab('admin');
             const pb = $('btn-perms');
             if (pb && !permsOpen) pb.click();
             const r = $('energy-section'); if (r) { try { r.scrollIntoView({ behavior: 'smooth', block: 'start' }); } catch {} }
@@ -33207,11 +33238,14 @@ setInterval(() => { try { pendDockTick(); } catch {} }, 60000);
           else if (route === 'membership') { switchTab('clients'); scroll('membership-box'); }
           else if (route === 'mytrainer') { switchTab('track'); scroll('my-trainer-box'); }
           else if (route === 'eval') { navOpenPage('progress'); progSetSub('fotos'); scroll('eval-root'); }
-          else if (route === 'perms') { const pb = $('btn-perms'); if (pb && !permsOpen) pb.click(); scroll('health-section'); }
-          else if (route === 'perms-spec') { const pb = $('btn-perms'); if (pb && !permsOpen) pb.click(); scroll('health-section'); pendRevealSpecDirect(); }
-          else if (route === 'perms-bt') { const pb = $('btn-perms'); if (pb && !permsOpen) pb.click(); const bd = $('bt-details'); if (bd) bd.open = true; const gb = $('btn-bt-grant'); if (gb) { try { gb.scrollIntoView({ behavior: 'smooth', block: 'center' }); } catch {} } else scroll('bt-section'); }
+          /* ADMIN-TODOS (2026-11-03): las rutas al panel «Permisos
+             y privacidad» caen primero en su nueva casa, la vista
+             «Administración», y allí abren el panel como siempre. */
+          else if (route === 'perms') { switchTab('admin'); const pb = $('btn-perms'); if (pb && !permsOpen) pb.click(); scroll('health-section'); }
+          else if (route === 'perms-spec') { switchTab('admin'); const pb = $('btn-perms'); if (pb && !permsOpen) pb.click(); scroll('health-section'); pendRevealSpecDirect(); }
+          else if (route === 'perms-bt') { switchTab('admin'); const pb = $('btn-perms'); if (pb && !permsOpen) pb.click(); const bd = $('bt-details'); if (bd) bd.open = true; const gb = $('btn-bt-grant'); if (gb) { try { gb.scrollIntoView({ behavior: 'smooth', block: 'center' }); } catch {} } else scroll('bt-section'); }
           else if (route === 'goals') { switchTab('track'); scroll('rings'); }
-          else if (route === 'goals-setup') { switchTab('track'); scroll('goals-engine'); const pb2 = $('btn-perms'); if (pb2 && !permsOpen) pb2.click(); scroll('energy-section'); }
+          else if (route === 'goals-setup') { switchTab('admin'); const pb2 = $('btn-perms'); if (pb2 && !permsOpen) pb2.click(); scroll('energy-section'); }
           else if (route === 'base-flow') { baseFlowOpen(); }
           else if (route === 'clients') { switchTab('clients'); }
           else if (route === 'admin-pending') { apprFloatOpen(); }
@@ -34388,7 +34422,7 @@ document.addEventListener('keydown', e => { if (e.key === 'Escape') shareClose()
  *  - El SW (sw.js) solo cachea la cáscara del mismo origen en modo
  *    RED PRIMERO: Auth/Firestore/Worker jamás pasan por la caché.
  * ================================================================ */
-const PWA_SW_VERSION = '20261103-acceso-un-boton';
+const PWA_SW_VERSION = '20261103-admin-todos';
 let pwaDeferredPrompt = null;
 function pwaIsStandalone() {
   try {
