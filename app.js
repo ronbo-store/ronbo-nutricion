@@ -34176,7 +34176,7 @@ document.addEventListener('keydown', e => { if (e.key === 'Escape') shareClose()
  *  - El SW (sw.js) solo cachea la cáscara del mismo origen en modo
  *    RED PRIMERO: Auth/Firestore/Worker jamás pasan por la caché.
  * ================================================================ */
-const PWA_SW_VERSION = '20261103-informe-atencion';
+const PWA_SW_VERSION = '20261103-cabecera-franja';
 let pwaDeferredPrompt = null;
 function pwaIsStandalone() {
   try {

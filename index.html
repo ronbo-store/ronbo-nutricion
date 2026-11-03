@@ -21,7 +21,7 @@
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-title" content="RONBO FIT">
 <meta name="apple-mobile-web-app-status-bar-style" content="default">
-<link rel="stylesheet" href="styles.css?v=20261103-informe-atencion">
+<link rel="stylesheet" href="styles.css?v=20261103-cabecera-franja">
 <script defer src="https://cloud.umami.is/script.js" data-website-id="a29706d4-44a2-47cf-900a-5f74d74abfa8"></script>
 <script type="importmap">
 {
@@ -190,37 +190,52 @@
 <div id="app-view" class="wrap" style="display:none">
     <!-- AUTH-2026-10-28-068: tarjeta flotante de los enlaces de registro (confirmación de correo / aprobación en un toque); la pinta app.js (bloque signup) --><div id="signup-card" class="signup-card" style="display:none"></div>
   <div class="topbar">
-    <!-- CABECERA V4 · VARIANTE A (AUTH-2026-10-31-126, diseño aprobado
-         por Ronald 2026-10-31, maqueta mq3d + NOTA-CABECERA-V4): solo
-         el ACABADO de la cabecera. Franja de marca con el wordmark y
-         el selector EN/ES pulido; fila de la persona con avatar de
-         50 px, aro teal y el punto de presencia como insignia; la
-         fecha baja a una línea pequeña bajo el nombre (día de la
-         semana atenuado + la fecha de siempre, id dateTitle intacto);
-         filete teal al pie. El «salir» pasa de enlace de texto a
-         BOTÓN de verdad (.btn-out: 39 px visibles, área de toque de
-         45 px con relleno transparente) — principio de Ronald: los
-         botones se miden por su área de toque. Mismos ids y mismas
-         funciones: cerrar sesión y cambiar de idioma, intactos.
-         CORRECCIÓN AUTH-2026-10-31-127 (defecto de la reprueba de
-         Ronald en su iPhone, 2026-10-31 21:55 CDT: «las letras de la
-         fecha chocan con el botón»): la línea .hdr-date SALE de la
-         columna .hdr-who y pasa a ser hija directa de .hdr-main,
-         que ahora es una REJILLA (bloque CSS al final de styles.css):
-         el botón se alinea solo con la línea del nombre y la fecha
-         ocupa su propia fila a todo el ancho bajo la persona — el
-         texto ya no puede pintarse jamás bajo el botón y la fecha
-         se sigue viendo COMPLETA, sin truncar ni partir. -->
-    <div class="title-card hdr-v4">
-      <div class="hdr-brand">
-        <span class="hdr-wordmark">RONBO<b>.FIT</b></span>
-        <span class="lang-toggle"><button type="button" data-lang="en" class="active">EN</button><button type="button" data-lang="es">ES</button></span>
-      </div>
-      <div class="hdr-main">
-        <button type="button" id="avatar-btn" class="avatar-btn" data-i18n-aria="myprof.open" aria-label="Open my profile" data-i18n-title="myprof.open" title="Open my profile"><img id="avatar" class="avatar" data-i18n-alt="app.myPhoto" alt="My photo"><span class="live-dot"></span></button>
-        <span class="hdr-who"><span id="who">—</span></span>
-        <span class="hdr-date"><span id="dateWeekday"></span> · <span id="dateTitle">Loading…</span></span>
-        <button type="button" id="btn-logout" class="btn-out"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#5eead4" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><path d="M16 17l5-5-5-5"/><path d="M21 12H9"/></svg><span data-i18n="app.logout">log out</span></button>
+    <!-- CABECERA EN FRANJA (AUTH-2026-11-03-194 · punto 108/P15 de
+         la cola): la cabecera pasa a ser UNA SOLA FRANJA CONTINUA
+         (idea dictada por Ronald el 2026-11-03; él eligió la
+         variante 1 a las 01:37 CST — «Elijo la uno» —, pidió sus
+         dos refinamientos en el mismo mensaje y aprobó la maqueta
+         ronda 4 a las 01:59 CST: «Aprobado»; carpeta
+         diseno-cabecera-franja-2026-11-03, generador
+         html/gen_maquetas_r4.py). A la izquierda, pegado a los
+         bordes izquierdo, superior e inferior, el bloque del logo
+         RELLENO COMPLETO con la insignia aprobada
+         (icons/logo-franja.png, la misma ronbofit-perfil-instagram,
+         en su teal propio #07949e) a todo el alto de la franja, con
+         su MARCO cuadrado de línea blanca fina alrededor por
+         dentro de su teal, sin tocar las letras. Desde el bloque,
+         ese color se DIFUMINA en degradado suave hacia la derecha
+         hasta el azul oscuro de siempre en el extremo derecho
+         (fondo por capas en styles.css, bloque CABECERA EN FRANJA).
+         NO hay fila de letras: el nombre vive solo dentro del logo
+         (la fila «RONBO.FIT» de la v4, AUTH-126/127, desaparece de
+         la cabecera). Zona de la persona, a la derecha del bloque:
+         línea superior con la pareja de botones — idioma EN/ES y
+         «Salir» DEL MISMO TAMAÑO EXACTO (la misma caja) y ALINEADOS
+         en la misma línea, a la derecha —; fila del nombre solo con
+         el nombre; la fecha en su propia fila dentro de la columna,
+         COMPLETA y sin tocar ningún botón (la pareja vive en la
+         línea superior, con la zona de la persona de por medio:
+         el invariante de AUTH-127 se cumple por construcción). La
+         foto MÁS GRANDE (64 px · 56 px a ≤480), a la izquierda de
+         la zona de la persona — inmediatamente a la derecha del
+         bloque del logo — y CENTRADA en vertical con su columna
+         nombre+fecha; su aro teal y su punto de presencia se
+         conservan. Mismos ids y mismas funciones: cambiar de
+         idioma, salir, la foto como entrada a «Mi perfil» y el
+         selector de archivo, intactos; solo cambia la
+         presentación. -->
+    <div class="title-card hdr-v5">
+      <div class="hdr-logo" aria-hidden="true"><span class="hdr-logo-badge"><img src="icons/logo-franja.png" alt=""></span></div>
+      <div class="hdr-side">
+        <div class="hdr-toprow">
+          <span class="lang-toggle"><button type="button" data-lang="en" class="active">EN</button><button type="button" data-lang="es">ES</button></span>
+          <button type="button" id="btn-logout" class="btn-out"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#5eead4" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><path d="M16 17l5-5-5-5"/><path d="M21 12H9"/></svg><span data-i18n="app.logout">log out</span></button>
+        </div>
+        <div class="hdr-person">
+          <button type="button" id="avatar-btn" class="avatar-btn" data-i18n-aria="myprof.open" aria-label="Open my profile" data-i18n-title="myprof.open" title="Open my profile"><img id="avatar" class="avatar" data-i18n-alt="app.myPhoto" alt="My photo"><span class="live-dot"></span></button>
+          <span class="hdr-who"><span id="who">—</span><span class="hdr-date"><span id="dateWeekday"></span> · <span id="dateTitle">Loading…</span></span></span>
+        </div>
       </div>
       <input type="file" id="avatar-file" accept="image/*" style="display:none">
     </div>
@@ -1672,6 +1687,6 @@
 <div id="toast" class="toast"></div>
 <div id="print-card" aria-hidden="true"></div>
 
-<script type="module" src="app.js?v=20261103-informe-atencion"></script>
+<script type="module" src="app.js?v=20261103-cabecera-franja"></script>
 </body>
 </html>

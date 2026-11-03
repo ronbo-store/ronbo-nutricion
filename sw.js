@@ -20,18 +20,19 @@
  * `activate` y el cliente termina en la versión nueva sin que nadie
  * borre la caché a mano (recarga única controlada desde app.js).
  */
-const SW_VERSION = '20261103-informe-atencion';
+const SW_VERSION = '20261103-cabecera-franja';
 const CACHE_NAME = 'ronbofit-shell-' + SW_VERSION;
 const SHELL_URLS = [
   './',
   './index.html',
-  './styles.css?v=20261103-informe-atencion',
-  './app.js?v=20261103-informe-atencion',
+  './styles.css?v=20261103-cabecera-franja',
+  './app.js?v=20261103-cabecera-franja',
   './manifest.json',
   './icons/icon-192.png',
   './icons/icon-512.png',
   './icons/icon-maskable-512.png',
-  './icons/apple-touch-icon.png'
+  './icons/apple-touch-icon.png',
+  './icons/logo-franja.png'
 ];
 
 self.addEventListener('install', (event) => {
