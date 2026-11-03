@@ -8951,6 +8951,56 @@ function renewalGateTexts(u) {
     ]
   };
 }
+/* === LA PUERTA NO SE HEREDA (2026-11-03) ===
+   Diagnóstico (verificado en el código y en vivo): la pintura de
+   la puerta era de SOLO ESCRITURA — showRenewalGate la pinta y
+   ningún código la borraba jamás. Como la puerta mantiene la
+   sesión viva sobre la vista de acceso, una sola pintura quedaba
+   para siempre en esa vida de página: sobrevivía a la entrada
+   (la vista de acceso se oculta, la pintura no), a la salida (la
+   vista vuelve con la pintura puesta) y a la reanudación del DOM
+   que iOS/Chrome hacen al volver a una pestaña o a la app
+   instalada — y en una página reanudada la evaluación de la
+   puerta NO se repite (el estado de sesión no cambió:
+   onAuthStateChanged no se redispara, y reenviar el formulario
+   con el mismo usuario tampoco), así que la pantalla enseñaba
+   una evaluación vieja como si fuera la de hoy (al propietario,
+   con su consentimiento ya renovado en el servidor, le seguía
+   diciendo que su cuenta estaba pendiente de aprobación y su
+   consentimiento caducado). Regla desde hoy: la puerta SOLO la
+   pinta la evaluación confirmada contra el servidor de ESTA
+   carga (showRenewalGate, tras la puerta de AUTH-141), y todo
+   resto pintado se borra — al mostrarse la pantalla sin sesión,
+   ante cualquier decisión de esta carga que no sea la puerta, y
+   al reanudarse una página restaurada con la puerta pintada
+   (ahí se recarga una vez, con guarda anti-bucle: la carga
+   fresca repite la puerta de entrada confirmada, que decide
+   con los datos de hoy). */
+function doorGateErase() {
+  const box = $('renew-box'); if (box) box.style.display = 'none';
+  const n = $('renew-notice'); if (n) { n.style.display = 'none'; n.innerHTML = ''; }
+  const ra = $('btn-gate-renew-accept'); if (ra) ra.style.display = 'none';
+  const ae = $('auth-error'); if (ae) { ae.textContent = ''; ae.classList.remove('show', 'ok'); }
+}
+window.addEventListener('pageshow', e => {
+  if (!e.persisted) return;
+  const box = $('renew-box');
+  if (!box || box.style.display === 'none') return;
+  /* La página reanudada trae la puerta pintada de una vida
+     anterior: esa pintura no vale como evaluación de hoy. Si ya
+     se recargó por esto mismo hace menos de 15 s, no se insiste
+     (anti-bucle): se borra la pintura y la pantalla queda limpia
+     — cualquier recarga completa vuelve a pasar por la puerta
+     confirmada de siempre. */
+  let hot = false;
+  try {
+    const last = parseInt(sessionStorage.getItem('rf-gate-restore-ts') || '0', 10) || 0;
+    hot = Date.now() - last < 15000;
+    if (!hot) sessionStorage.setItem('rf-gate-restore-ts', String(Date.now()));
+  } catch {}
+  if (hot) { doorGateErase(); return; }
+  location.reload();
+});
 /* Puerta de renovación del consentimiento: la sesión se mantiene
    SOLO en la vista de acceso para ofrecer la renovación (las reglas
    siguen denegando todo dato a cuentas no aprobadas). Se llega aquí
@@ -9556,6 +9606,13 @@ $('link-forgot').addEventListener('click', async e => {
 
 onAuthStateChanged(auth, async user => {
   if (!user) {
+    /* LA PUERTA NO SE HEREDA: la pantalla sin sesión nace limpia
+       en ESTA carga — cualquier resto de la puerta pintado en una
+       vida anterior se borra aquí. Los avisos verdaderos de la
+       pantalla sin sesión (pendiente de aprobación, sin conexión,
+       sin acceso) se pintan DESPUÉS de esta rama, en su propio
+       flujo, y no se tocan. */
+    doorGateErase();
     stopUserDocWatch();
     /* AUTH-070: sin sesión también se capturan los enlaces de la
        URL y se pinta el aviso de confirmación pendiente, para que
@@ -9615,6 +9672,12 @@ onAuthStateChanged(auth, async user => {
     /* AUTH-068: enlaces de registro (confirmación y respaldo de aviso). */
     const doorRes = await signupLinkDoor(user);
     const action = doorAction(UDATA, pick.confirmed);
+    /* LA PUERTA NO SE HEREDA: solo la decisión 'gate' de ESTA
+       carga — confirmada contra el servidor — puede dejar la
+       puerta pintada; ante cualquier otra decisión, todo resto
+       pintado de una vida anterior se borra (en 'enter', antes
+       de mostrar la app: entrar y ver la puerta son incompatibles). */
+    if (action !== 'gate') doorGateErase();
     if (action === 'noconnection') {
       /* Sin confirmación del servidor no se expulsa con la vista
          local: se dice la única verdad disponible — no se pudo
@@ -34465,7 +34528,7 @@ document.addEventListener('keydown', e => { if (e.key === 'Escape') shareClose()
  *  - El SW (sw.js) solo cachea la cáscara del mismo origen en modo
  *    RED PRIMERO: Auth/Firestore/Worker jamás pasan por la caché.
  * ================================================================ */
-const PWA_SW_VERSION = '20261103-correo-idioma';
+const PWA_SW_VERSION = '20261103-puerta-fantasma';
 let pwaDeferredPrompt = null;
 function pwaIsStandalone() {
   try {
