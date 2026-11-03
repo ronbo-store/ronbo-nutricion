@@ -238,10 +238,37 @@ async function escPoolTrainersFromProfiles(modality) {
     if (p.available === false) continue;
     const mods = Array.isArray(p.modalities) ? p.modalities : ESC_MODALITIES;
     if (modality && !mods.includes(modality)) continue;
-    let name = String(p.displayName || '').trim();
-    if (!name) {
-      try { const us = await getDoc(doc(db, 'users', p.id)); if (us.exists()) name = String(us.data().name || '').trim(); } catch {}
+    /* AUTH-183 (D6): CONTRASTE DE ROL — un perfil público solo
+       entra al pool si su cuenta es de entrenador (o del
+       propietario) y está aprobada. La cuenta se lee UNA vez y
+       se reutiliza para el nombre. Cuando la lectura viene
+       DENEGADA (al alumno las reglas solo le dejan leer su
+       propia cuenta, la del propietario y la de SU entrenador),
+       el contraste se apoya en señales deterministas legibles
+       en su sesión: el sello quotaOpen del propietario (solo
+       una sesión del propietario lo escribe) o una membresía
+       ACTIVA (solo el flujo de membresías del administrador la
+       concede). Sin contraste ni señal: fuera (fail-closed).
+       Caso vivo que cierra: el perfil huérfano de un ALUMNO
+       (Celso Zúñiga, creado el 2026-11-01) se ofrecía como
+       entrenador elegible; su membresía «sin_membresia» no es
+       señal de entrenador. La cuenta del propietario conserva
+       approved=false por diseño: el sello isOwner la exime del
+       requisito de aprobación, como en el resto de la app. */
+    let uDoc = null;
+    try { const us = await getDoc(doc(db, 'users', p.id)); if (us.exists()) uDoc = us.data(); } catch {}
+    if (uDoc) {
+      const rolOk = uDoc.isOwner === true || uDoc.role === 'entrenador' || uDoc.role === 'administrador';
+      if (!rolOk || (uDoc.isOwner !== true && uDoc.approved !== true)) continue;
+    } else {
+      let membActiva = false;
+      if (p.quotaOpen !== true) {
+        try { const ms = await getDoc(doc(db, 'memberships', p.id)); membActiva = ms.exists() && ms.data().status === 'activa'; } catch {}
+      }
+      if (p.quotaOpen !== true && !membActiva) continue;
     }
+    let name = String(p.displayName || '').trim();
+    if (!name && uDoc) name = String(uDoc.name || '').trim();
     if (!name) continue;
     /* AUTH-042: cupo abierto SOLO con señal determinista — el
        sello quotaOpen del perfil (propietario) o la ausencia de
@@ -965,8 +992,10 @@ async function renderEscAdminBoxes() {
       const box = $('meal-delay-' + b.dataset.mealDelay);
       if (!req || !box) return;
       if (box.style.display !== 'none') { box.style.display = 'none'; return; }
-      const trainer = (ADMIN_USERS.find(u => u.id === req.trainerUid) || {}).name || req.trainerUid || '';
-      const alumno = (ADMIN_USERS.find(u => u.id === req.alumnoUid) || {}).name || req.alumnoUid || '';
+      /* AUTH-183 (D6): el texto NUNCA nombra a una persona por
+         su UID — sin nombre resoluble, el hueco queda vacío. */
+      const trainer = (ADMIN_USERS.find(u => u.id === req.trainerUid) || {}).name || '';
+      const alumno = (ADMIN_USERS.find(u => u.id === req.alumnoUid) || {}).name || '';
       const text = `${t('esc.mealDelaySubject')}\n\n${t('esc.mealDelayBody', { trainer, alumno, hours: escMealDelayHours(req) })}`;
       box.innerHTML = `<textarea class="dos-mail-text" id="meal-delay-text-${req.id}" rows="10" readonly>${esc(text)}</textarea>
       <div class="eval-actions"><button type="button" class="btn-ghost btn-sm" data-meal-delay-copy="${req.id}">${esc(t('esc.mailCopy'))}</button></div>`;
@@ -3204,6 +3233,7 @@ en: {
   'foodlib.state.resuelto': 'Resolved',
   'foodlib.trayEmpty': 'Nothing awaiting review. 🎉',
   'foodlib.trayBy': 'Shared by {name}',
+  'foodlib.anonUser': 'a user',
   'foodlib.publishedToast': 'Published ✓ — it is now in the community library',
   'foodlib.rejectedToast': 'Contribution rejected',
   'foodlib.resolvedToast': 'Report marked as resolved',
@@ -5708,6 +5738,7 @@ es: {
   'foodlib.state.resuelto': 'Resuelto',
   'foodlib.trayEmpty': 'Nada en espera de revisión. 🎉',
   'foodlib.trayBy': 'Compartido por {name}',
+  'foodlib.anonUser': 'un usuario',
   'foodlib.publishedToast': 'Publicado ✓ — ya está en la biblioteca de la comunidad',
   'foodlib.rejectedToast': 'Aporte rechazado',
   'foodlib.resolvedToast': 'Reporte marcado como resuelto',
@@ -11599,7 +11630,13 @@ function openStudent(uid) {
 function renderWaitingTray(users) {
   const box = $('waiting-box'); if (!box) return;
   if (ROLE !== 'administrador') { box.style.display = 'none'; box.innerHTML = ''; return; }
-  const waiting = (users || []).filter(u => !u.isOwner && u.approved === true && u.assignmentStatus === 'waiting');
+  /* AUTH-183 (D6): la bandeja es de ALUMNOS en espera — el
+     personal (rol entrenador o administrador) NUNCA aparece en
+     ella, aunque su cuenta conserve assignmentStatus 'waiting'
+     (caso vivo: el entrenador Marcos, confirmado en la revisión
+     urgente de «Mis alumnos» del 2026-11-02). El dato no se
+     toca: el arreglo vive en este filtro. */
+  const waiting = (users || []).filter(u => !u.isOwner && u.role !== 'entrenador' && u.role !== 'administrador' && u.approved === true && u.assignmentStatus === 'waiting');
   const trainers = (users || []).filter(u => u.isOwner || u.role === 'entrenador');
   box.style.display = '';
   box.innerHTML = `<h3 class="history-title">${t('roles.waitingTitle')} (${waiting.length})</h3>
@@ -11608,7 +11645,7 @@ function renderWaitingTray(users) {
     <div class="user-row">
       <div><b>${esc(u.name || '—')}</b><br><span class="muted">${esc(u.email || '')}</span></div>
       <div class="user-actions">
-        <select id="assign-sel-${u.id}">${trainers.map(tr => `<option value="${tr.id}">${esc(tr.name || tr.email || tr.id)}</option>`).join('')}</select>
+        <select id="assign-sel-${u.id}">${trainers.map(tr => `<option value="${tr.id}">${esc(tr.name || tr.email || '—')}</option>`).join('')}</select>
         <button class="btn-primary btn-sm" data-assign="${u.id}">${t('roles.assign')}</button>
       </div>
     </div>`).join('') : `<div class="wempty">${t('roles.noWaiting')}</div>`);
@@ -14168,10 +14205,22 @@ async function goalsTrainerCardLoad(uid, udata, extra) {
   const u = udata || {};
   const ps = u.paceSuggestion || null, prov = u.goalsProvenance || null;
   if (pc) {
+    /* AUTH-183 (D6): el nombre de quien decidió el ritmo se
+       resuelve por la cadena de nombre de la app (displayName del
+       dossier → nombre de la cuenta → «Tu entrenador»); el UID
+       crudo de decidedBy NUNCA se pinta como nombre (defecto
+       visto por Ronald el 2026-11-01 y confirmado vivo en la
+       revisión urgente de «Mis alumnos» del 2026-11-02). */
+    let paceByName = '';
+    if (ps && ps.decidedPaceKcal && ps.decidedBy) {
+      try { const p = await getDoc(doc(db, 'trainer_profiles', ps.decidedBy)); if (p.exists()) paceByName = String(p.data().displayName || '').trim(); } catch {}
+      if (!paceByName) { try { const us = await getDoc(doc(db, 'users', ps.decidedBy)); if (us.exists()) paceByName = String(us.data().name || '').trim(); } catch {} }
+      if (!paceByName || paceByName === ps.decidedBy) paceByName = t('esc.currentTrainer');
+    }
     let h = `<div class="fb3-card">${fichaFoldHead('pace', 'ffold.pace')}<div id="ffold-body-pace"${fichaFoldBodyAttr('pace')}>`;
     if (ps) {
       h += `<p class="progress-hint">${esc(t('gm.trainerPaceSuggested', { n: ps.paceKcal || '—', date: String(ps.suggestedAt || '').slice(0, 10), status: t('gm.status.' + (ps.status || 'pending')) }))}</p>`;
-      if (ps.decidedPaceKcal) h += `<p class="progress-hint">${esc(t('gm.trainerPaceCurrent', { n: ps.decidedPaceKcal, by: esc(ps.decidedBy || '—'), date: String(ps.decidedAt || '').slice(0, 10) }))}</p>`;
+      if (ps.decidedPaceKcal) h += `<p class="progress-hint">${esc(t('gm.trainerPaceCurrent', { n: ps.decidedPaceKcal, by: esc(paceByName || '—'), date: String(ps.decidedAt || '').slice(0, 10) }))}</p>`;
     } else h += `<p class="progress-hint">${esc(t('gm.trainerPaceNone'))}</p>`;
     /* AUTH-137: con el ritmo decidido y las metas aún sin
        escribir, la tarjeta nombra la causa verificada en los
@@ -24513,7 +24562,7 @@ function libAssignRender() {
     h += `<div class="lasign-q">${esc(t('lib.assign.aClient'))}</div>`;
     if (!cs) h += `<div class="wempty">${esc(t('access.loading'))}</div>`;
     else if (!cs.length) h += `<div class="wempty">${esc(t('lib.assign.clientsEmpty'))}</div>`;
-    else h += `<div class="lasign-opts">${cs.map(u => `<button type="button" class="btn-ghost" data-lasign-client="${esc(u.id)}">${esc(u.name || u.email || u.id)}</button>`).join('')}</div>`;
+    else h += `<div class="lasign-opts">${cs.map(u => `<button type="button" class="btn-ghost" data-lasign-client="${esc(u.id)}">${esc(u.name || u.email || '—')}</button>`).join('')}</div>`;
   } else if (step === 'dest') {
     h += `<div class="lasign-q">${esc(t('lib.assign.destQ'))}</div><div class="lasign-opts">`;
     if (LASIGN.plan && !LASIGN.closedToday) h += `<button type="button" class="btn-primary" data-lasign-dest="today">${esc(t('lib.assign.destToday'))}</button>`;
@@ -29721,7 +29770,7 @@ async function foodlibLoadTray() {
   if (!docs.length) { sub.innerHTML = `<h4>${esc(t('foodlib.trayBtn'))}</h4><p class="wempty">${esc(t('foodlib.trayEmpty'))}</p>`; return; }
   sub.innerHTML = `<h4>${esc(t('foodlib.trayBtn'))} (${docs.length})</h4>` +
     aportes.map(a => { const flags = foodlibFlagsText(a.flags); return `<div class="foodlib-row foodlib-tray-row" data-tray="${a.id}">
-      <div class="foodlib-row-main"><span class="sg-name">${esc(a.name)}</span><span class="sg-meta">${esc(t('foodlib.trayBy', { name: a.contributorName || a.contributorUid }))}</span>${flags ? `<span class="sg-meta">⚠️ ${esc(flags)}</span>` : ''}</div>
+      <div class="foodlib-row-main"><span class="sg-name">${esc(a.name)}</span><span class="sg-meta">${esc(t('foodlib.trayBy', { name: a.contributorName || t('foodlib.anonUser') }))}</span>${flags ? `<span class="sg-meta">⚠️ ${esc(flags)}</span>` : ''}</div>
       ${foodlibValFieldsHTML('tray', a)}
       <div class="foodlib-row-btns">
         <button type="button" class="btn-primary btn-sm" data-fl-approve="${a.id}">${esc(t('libcom.approve'))}</button>
@@ -31902,7 +31951,7 @@ document.addEventListener('keydown', e => { if (e.key === 'Escape') shareClose()
  *  - El SW (sw.js) solo cachea la cáscara del mismo origen en modo
  *    RED PRIMERO: Auth/Firestore/Worker jamás pasan por la caché.
  * ================================================================ */
-const PWA_SW_VERSION = '20261102-alumnos-orden';
+const PWA_SW_VERSION = '20261102-d6-arreglos';
 let pwaDeferredPrompt = null;
 function pwaIsStandalone() {
   try {
