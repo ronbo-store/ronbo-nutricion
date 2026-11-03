@@ -3304,3 +3304,14 @@ body.sess-on #pend-back-chip { bottom: calc(env(safe-area-inset-bottom, 0px) + 1
 .stu-pend-item .btn-primary { background: #0d9488; }
 .stu-pend-item .btn-primary:hover { background: #0f766e; }
 /* == FIN PUNTO 108 == */
+
+/* ═══ AUTH-2026-11-02-188 · «✉ Pedir sus fotos» en el área de
+   evaluaciones de la ficha (punto 111): el bloque va bajo el estado
+   de evaluaciones (o sobre el comparador cuando toca la de este
+   ciclo); el botón es el primario de la casa a ancho completo y con
+   toque grande (la app se usa entrenando), y el sello de avisado
+   ocupa su lugar centrado, con el texto envuelto si no cabe. ═══ */
+.teval-ask { margin-top: 10px; }
+.teval-ask-btn { width: 100%; min-height: 48px; font-size: 15px; }
+.teval-ask .stu-nudged { display: block; text-align: center; white-space: normal; padding: 6px 0; }
+/* == FIN AUTH-188 == */

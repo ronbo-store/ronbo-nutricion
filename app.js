@@ -3041,6 +3041,7 @@ en: {
   'teval.open': '📸 View evaluations & photos',
   'teval.close': 'Hide evaluations',
   'teval.empty': 'This client has no evaluations recorded yet.',
+  'teval.askPhotos': '✉ Ask for their photos',
   'teval.noteLabel': 'Phase note (visible to the client)',
   'teval.notePh': 'Write the note for this evaluation…',
   'teval.noteSave': 'Save note',
@@ -5546,6 +5547,7 @@ es: {
   'teval.open': '📸 Ver evaluaciones y fotos',
   'teval.close': 'Ocultar evaluaciones',
   'teval.empty': 'Este cliente aún no tiene evaluaciones registradas.',
+  'teval.askPhotos': '✉ Pedir sus fotos',
   'teval.noteLabel': 'Nota de fase (visible para el cliente)',
   'teval.notePh': 'Escribe la nota de esta evaluación…',
   'teval.noteSave': 'Guardar nota',
@@ -6520,7 +6522,7 @@ es: {
   'purpose.useFullChip': 'COMPLETA',
   'purpose.trainerTitle': 'Elige a tu entrenador',
   'purpose.chooseBtn': 'Elegir',
-  'purpose.suggestTitle': '¿Quieres que te sugiera un entrenador?',
+  'purpose.suggestTitle': '¿Quieres que te sugiera algún entrenador?',
   'purpose.suggestSub': 'Te sugerimos uno de acuerdo a tus metas.',
   'purpose.suggestBtn': 'Sugerirme uno',
   'purpose.noTrainers': 'Ahora mismo no hay entrenadores en la lista — elige la opción de sugerencia y te ubicamos.',
@@ -8525,6 +8527,14 @@ onAuthStateChanged(auth, async user => {
   /* AUTH-2026-11-02-172: si el enlace ?dia= fijó la fecha de la
      vista al cargar, se abre Entrenamiento en esa fecha. */
   try { if (DAY_LINK_USED) { DAY_LINK_USED = false; navOpenPage('train'); } } catch {}
+  /* AUTH-2026-11-02-188 (punto 111): si el enlace ?fotos= del aviso
+     de fotos fijó el destino, se abre Progreso en su pestaña de
+     Fotos y se desplaza hasta la sección de subida — la MISMA ruta
+     que usa el pendiente «eval» del propio alumno. Se consume una
+     sola vez; si entre el envío y el toque el alumno ya subió sus
+     fotos, aterriza igual en su sección de fotos, sin error. Sin
+     enlace, esta costura no hace nada. */
+  try { if (fotosLinkTake()) { navOpenPage('progress'); progSetSub('fotos'); const r = $('eval-root'); if (r) { try { r.scrollIntoView({ behavior: 'smooth', block: 'start' }); } catch {} } } } catch {}
   /* AUTH-147: a quien ya estaba registrado y aún no declaró su
      propósito se le pide UNA sola vez al entrar (sin bloquear). */
   try { purposeMaybeAsk(); } catch {}
@@ -10590,11 +10600,11 @@ const NUDGE_PREVIEW = {
   "per": {
     "en": {
       "subject": "RONBO FIT — Your progress evaluation is due",
-      "body": "Hi {name},\n\nYour periodic evaluation is due: your progress photos (front, side and back) and your measurements. They show changes the scale cannot see, and they help your trainer {trainer} adjust your plan with evidence.\n\nIn the app: open \"Progreso\" (Progress) → \"Fotos\" (Photos) to upload your photos, and \"Medidas\" (Measures) for your measurements.\n\n[ Open RONBO FIT ] → https://fit.ronbo.store\n\nThank you,\nRONBO FIT"
+      "body": "Hi {name},\n\nYour periodic evaluation is due: your progress photos (front, side and back) and your measurements. They show changes the scale cannot see, and they help your trainer {trainer} adjust your plan with evidence.\n\nIn the app: open \"Progreso\" (Progress) → \"Fotos\" (Photos) to upload your photos, and \"Medidas\" (Measures) for your measurements.\n\n[ Open RONBO FIT ] → https://fit.ronbo.store/?fotos=1\n\nThank you,\nRONBO FIT"
     },
     "es": {
       "subject": "RONBO FIT — Toca tu evaluación de progreso",
-      "body": "Hola {name}:\n\nToca tu evaluación periódica: tus fotos de progreso (frente, lado y espalda) y tus medidas. Muestran cambios que la báscula no ve, y ayudan a tu entrenador {trainer} a ajustar tu plan con evidencia.\n\nEn la app: abre «Progreso» → «Fotos» para subir tus fotos, y «Medidas» para tus medidas.\n\n[ Abre RONBO FIT ] → https://fit.ronbo.store\n\nGracias,\nRONBO FIT"
+      "body": "Hola {name}:\n\nToca tu evaluación periódica: tus fotos de progreso (frente, lado y espalda) y tus medidas. Muestran cambios que la báscula no ve, y ayudan a tu entrenador {trainer} a ajustar tu plan con evidencia.\n\nEn la app: abre «Progreso» → «Fotos» para subir tus fotos, y «Medidas» para tus medidas.\n\n[ Abre RONBO FIT ] → https://fit.ronbo.store/?fotos=1\n\nGracias,\nRONBO FIT"
     }
   },
   "bod": {
@@ -10701,7 +10711,24 @@ async function nudgeStillPending(uid, sub) {
     }
     const f = (typeof fichaTpendOf === 'function') ? fichaTpendOf(uid) : null;
     const items = (f && f.t && f.t.items) || [];
-    return items.some(x => nudgeSubFor(x) === sub);
+    if (items.some(x => nudgeSubFor(x) === sub)) return true;
+    /* AUTH-2026-11-02-188 (punto 111): para «per» la unión no puede
+       decir «nunca se ha evaluado» (su ciclo nace de la primera
+       evaluación completa, así que el alumno sin ninguna foto no
+       tiene ítem que la represente — y es justo el caso del botón
+       «✉ Pedir sus fotos» de la ficha). Ese hecho se re-verifica
+       contra la evidencia FRESCA de nutrition_progress: si el
+       alumno sigue sin ninguna foto ni evaluación, el aviso
+       procede; si ya subió algo entre abrir la hoja y enviar, el
+       pendiente se resolvió y no se envía. Con evaluaciones
+       previas manda el ítem de la unión, como siempre. */
+    if (sub === 'per') {
+      const ps = await getDocs(query(collection(db, 'nutrition_progress'), where('ownerUid', '==', uid)));
+      let any = false;
+      ps.forEach(d => { const v = d.data() || {}; if ((v.slot && v.photo) || v.kind === 'evaluation') any = true; });
+      return !any;
+    }
+    return false;
   } catch { return true; }
 }
 /* La anotación del aviso (reglas AUTH-133: solo la llave nudge,
@@ -10750,6 +10777,10 @@ async function nudgeSend() {
        pasada en memoria ya trae el registro (mailRecordNudge). */
     try { if (typeof renderStudentsBody === 'function' && typeof STUDENTS_LAST !== 'undefined' && STUDENTS_LAST) renderStudentsBody(); } catch {}
     try { if (typeof FICHA_MODE !== 'undefined' && FICHA_MODE && typeof fichaRenderBody === 'function') fichaRenderBody(); } catch {}
+    /* AUTH-2026-11-02-188: y el bloque «✉ Pedir sus fotos» del área
+       de evaluaciones de la ficha, si es la que está abierta, pasa
+       a mostrar el sello (su propio registro, el mismo). */
+    try { if (typeof tevalAskRefresh === 'function') tevalAskRefresh(ctx.uid); } catch {}
   } else if (res.status === 429 || res.error === 'nudge-capped') {
     nudgeMsg(t('nudge.capped'));
     if (sb) sb.style.display = 'none';
@@ -15876,6 +15907,14 @@ function captureSignupLinks() {
        valida como real al consumirla. */
     const dia = q.get('dia');
     if (dia && /^\d{4}-\d{2}-\d{2}$/.test(dia)) { try { sessionStorage.setItem('rf-link-dia', dia); } catch {} captured = true; }
+    /* AUTH-2026-11-02-188 (punto 111): el enlace del aviso de fotos
+       (?fotos=1, la plantilla nudgeper del banco «✉ Avisar») se
+       captura con el MISMO patrón: sobrevive al inicio de sesión en
+       sessionStorage y la sesión lo consume UNA vez tras loadAll
+       (fotosLinkTake), dejando al alumno en Progreso → Fotos, en la
+       sección donde sube sus fotos. Solo se acepta el valor exacto
+       «1»; cualquier otro valor se ignora y no se captura nada. */
+    if (q.get('fotos') === '1') { try { sessionStorage.setItem('rf-link-fotos', '1'); } catch {} captured = true; }
     if (captured) { try { history.replaceState(null, '', location.pathname); } catch {} }
   } catch {}
 }
@@ -21217,6 +21256,19 @@ function dayLinkTake() {
     if (d.getFullYear() !== p[0] || d.getMonth() !== p[1] - 1 || d.getDate() !== p[2]) return null;
     return raw;
   } catch { return null; }
+}
+/* AUTH-2026-11-02-188 (punto 111): enlace ?fotos= del aviso de
+   fotos. fotosLinkTake consume UNA vez el destino capturado al
+   arrancar (captureSignupLinks); la costura de sesión tras loadAll
+   lo aplica abriendo Progreso → Fotos. Sin captura, devuelve
+   false y la sesión se comporta byte a byte como siempre. */
+function fotosLinkTake() {
+  try {
+    const raw = sessionStorage.getItem('rf-link-fotos');
+    if (!raw) return false;
+    sessionStorage.removeItem('rf-link-fotos');
+    return raw === '1';
+  } catch { return false; }
 }
 function trainWeekdayPairs(days) {
   const pairs = {};
@@ -29088,13 +29140,67 @@ async function tevalLoad(uid, weightsData) {
   CEV = { uid, prog, evals, cfg, cycle, weights: (weightsData || []).map(w => ({ date: w.date, weight: w.weight })), cmp: { a: null, b: null } };
   renderCmpTrainer();
 }
+/* AUTH-2026-11-02-188 (punto 111 de la cola; correo de Ronald hoy
+   2026-11-02 20:11 CST): «✉ Pedir sus fotos» EN EL ÁREA DE
+   EVALUACIONES de la ficha. Hasta hoy, abrir las evaluaciones de
+   un cliente sin ninguna registrada solo decía «Este cliente aún
+   no tiene evaluaciones registradas», sin ninguna acción posible
+   en ese punto. El bloque se pinta cuando el cliente no tiene
+   NINGUNA evaluación (el caso de la captura de Ronald) o cuando
+   tiene viva la de este ciclo (el pendiente «eval» de la unión de
+   la ficha) — y SOLO para quien puede avisar (nudgeViewerCan: el
+   propietario o el entrenador ASIGNADO; un entrenador no asignado
+   no lo ve, igual que en las filas de pendientes).
+   LA CONDUCTA ES LA DE «✉ Avisar» (AUTH-139/169), sin sistema
+   nuevo: el botón abre la MISMA hoja con la plantilla del banco
+   «per» (nudgeper) preseleccionada; el envío va por la misma ruta
+   del Worker, con el mismo tope de 7 días leído del mismo registro
+   notices.nudge.per; dentro del tope, en el lugar del botón va el
+   mismo sello «✉ Avisado el {fecha}» de las filas — un solo
+   registro manda sobre las dos superficies, así que enviar desde
+   una sella la otra y ningún envío se duplica. Y el correo de esa
+   plantilla lleva desde este paquete el enlace directo ?fotos=1,
+   que deja al alumno en Progreso → Fotos, donde sube sus fotos. */
+function tevalAskBlockHTML(uid, hasAny) {
+  if (!nudgeViewerCan(uid)) return '';
+  if (hasAny) {
+    const f = (typeof fichaTpendOf === 'function') ? fichaTpendOf(uid) : null;
+    const due = !!(f && f.t && (f.t.items || []).some(x => x.kind === 'eval'));
+    if (!due) return '';
+  }
+  const freshMs = nudgeFreshMs(uid, 'per');
+  const inner = freshMs
+    ? `<span class="stu-nudged">${esc(t('nudge.nudgedOn', { d: dateName(pendISOof(new Date(freshMs))) }))}</span>`
+    : `<button type="button" class="btn-primary teval-ask-btn" data-teval-ask="${uid}">${esc(t('teval.askPhotos'))}</button>`;
+  return `<div class="teval-ask" id="teval-ask-box">${inner}</div>`;
+}
+function tevalAskWire(body) {
+  const b = body ? body.querySelector('[data-teval-ask]') : null;
+  if (b) b.onclick = () => nudgeOpen(b.getAttribute('data-teval-ask'), 'per', t('nudge.tpl.per'));
+}
+/* Tras un aviso aceptado, el bloque de pedir fotos de ESTA ficha
+   se repinta solo (el botón pasa a ser el sello), sin tocar el
+   comparador ni una nota de fase a medio escribir. Lo llama
+   nudgeSend tras anotar el registro. */
+function tevalAskRefresh(uid) {
+  try {
+    const box = $('teval-ask-box');
+    if (!box || typeof CEV === 'undefined' || !CEV || CEV.uid !== uid) return;
+    const hasAny = Object.keys(CEV.prog).length || Object.keys(CEV.evals).length;
+    const html = tevalAskBlockHTML(uid, hasAny);
+    if (!html) { box.remove(); return; }
+    box.outerHTML = html;
+    tevalAskWire($('client-evals-body'));
+  } catch {}
+}
 function renderCmpTrainer() {
   const body = $('client-evals-body'); if (!body || !CEV) return;
   const hasAny = Object.keys(CEV.prog).length || Object.keys(CEV.evals).length;
-  body.innerHTML = hasAny ? cmpHTML(CEV.prog, CEV.evals, CEV.weights, CEV.cfg, CEV.cycle, CEV.cmp, 'tcmp', 'edit')
-    : `<div class="wempty">${esc(t('teval.empty'))}</div>`;
+  body.innerHTML = hasAny ? tevalAskBlockHTML(CEV.uid, true) + cmpHTML(CEV.prog, CEV.evals, CEV.weights, CEV.cfg, CEV.cycle, CEV.cmp, 'tcmp', 'edit')
+    : `<div class="wempty">${esc(t('teval.empty'))}</div>` + tevalAskBlockHTML(CEV.uid, false);
   cmpWire(body, CEV.prog, CEV.cmp, 'tcmp', renderCmpTrainer);
   body.querySelectorAll('[data-note-save]').forEach(b => b.onclick = () => tevalSaveNote(b.getAttribute('data-note-save')));
+  tevalAskWire(body);
 }
 /* Nota de fase (Pregunta 9): vive DENTRO del documento de
    evaluación del cliente; el entrenador la escribe con un update
@@ -32052,7 +32158,7 @@ document.addEventListener('keydown', e => { if (e.key === 'Escape') shareClose()
  *  - El SW (sw.js) solo cachea la cáscara del mismo origen en modo
  *    RED PRIMERO: Auth/Firestore/Worker jamás pasan por la caché.
  * ================================================================ */
-const PWA_SW_VERSION = '20261102-armonia-visual';
+const PWA_SW_VERSION = '20261102-aviso-fotos';
 let pwaDeferredPrompt = null;
 function pwaIsStandalone() {
   try {
