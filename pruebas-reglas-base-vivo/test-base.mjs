@@ -96,11 +96,13 @@ await seedUser('alu2');
 await seedUser('alu3');
 await seedUser('alu4');
 await seedUser('alu5');
+await seedUser('alu6');
 await seedUser('otra');
 await seedUser('coach', { role: 'entrenador', trainerUid: null });
 await seedAsmt('alu', { ...SIN_ECUACION });
 await seedAsmt('alu4', { ...SIN_ECUACION, updatedBy: 'alu4' });
 await seedAsmt('otra', { ...CON_ELECCION });
+await seedAsmt('alu6', { ...SIN_ECUACION, updatedBy: 'alu6' });
 
 // ---- EL DELTA D1: la ecuación automática nace en la sesión del alumno ----
 await T('EQ1 la PROPIA escribe su RESULTADO + equation mifflin + equationOrigin "auto" (sin elección previa): ' + (ESPERA_DELTA_OK ? 'admitido (el delta)' : 'DENEGADO (texto vivo)'),
@@ -119,8 +121,8 @@ await T('EQ3 la PROPIA intenta REESCRIBIR como "auto" una ecuación que su entre
   wAsmt(dbOf('otra'), 'otra', { equation: 'mifflin-st-jeor', equationOrigin: 'auto' }), false);
 await T('EQ4 la PROPIA intenta escribir equationChosenBy: denegado en ambos textos',
   wAsmt(dbOf('alu4'), 'alu4', { equationChosenBy: 'alu4' }), false);
-await T('EQ5 la PROPIA intenta estampar equationOrigin "trainer": denegado en ambos textos',
-  wAsmt(dbOf('alu4'), 'alu4', { equationOrigin: 'trainer' }), false);
+await T('EQ5 la PROPIA intenta estampar equationOrigin "trainer" en una ficha SIN origen (cambio real, no un no-op): denegado en ambos textos',
+  wAsmt(dbOf('alu6'), 'alu6', { equationOrigin: 'trainer' }), false);
 await T('EQ7 el ENTRENADOR intenta estampar equationOrigin "auto": denegado en ambos textos',
   wAsmt(dbOf('coach'), 'alu4', { equationOrigin: 'auto' }), false);
 await T('EQ11 OTRA usuaria (no asignada) escribe la ecuación automática en la ficha de alu: denegado en ambos textos',
