@@ -314,7 +314,7 @@ service cloud.firestore {
     function selfAuthorNoTrainer() {
       return isApprovedUser() && myDoc().get('trainerUid', '') == '';
     }
-    // ---------- Coach de alimentación (AUTH-2026-11-03-2NN) ----------
+    // ---------- Coach de alimentación (AUTH-2026-11-03-201) ----------
     // El papel de coach de alimentación vive en su propio perfil
     // (nutritionist_profiles/{uid}); jamás sobrescribe users.role.
     function nutriProfileExists(uid) {
@@ -888,7 +888,7 @@ service cloud.firestore {
       // (las fechas ISO que escribe la app, patrón fdCamAt).
       // Ninguna otra rama se toca: la creación no necesita delta
       // (su cláusula no cierra la lista de claves del documento).
-      // Coach de alimentación (AUTH-2026-11-03-2NN): la declaración
+      // Coach de alimentación (AUTH-2026-11-03-201): la declaración
       // anota también la elección de coach (purposeNutriChoice = el
       // uid elegido, cadena acotada; purposeNutriSuggest = booleano)
       // y admite los propósitos 'con_nutricionista' y
@@ -1891,7 +1891,7 @@ service cloud.firestore {
     match /nutrition_meals/{docId} {
       // Corrección pesaje (P2, propuesta): crear para un cliente,
       // como el update vivo ya permite al propietario.
-      // Coach de alimentación (AUTH-2026-11-03-2NN): su coach ACTIVO
+      // Coach de alimentación (AUTH-2026-11-03-201): su coach ACTIVO
       // lee el diario y registra comidas EN NOMBRE del alumno con
       // autoría visible (byUid/byRole); update/delete no cambian.
       allow create: if isOwnerUser()
@@ -2033,7 +2033,7 @@ service cloud.firestore {
           && request.resource.data.get('byRole', '') == 'nutricionista'
           && isMyNutritionist(request.resource.data.ownerUid)
           && weightCreateNoComp(request.resource.data));
-      // Coach de alimentación (AUTH-2026-11-03-2NN): su coach ACTIVO
+      // Coach de alimentación (AUTH-2026-11-03-201): su coach ACTIVO
       // lee el peso y lo registra (SOLO peso, sin composición, con
       // autoría byUid/byRole — espejo de AUTH-153); la composición
       // sigue vedada para él como para cualquiera que no sea el
@@ -2920,7 +2920,7 @@ service cloud.firestore {
     }
 
     // ================================================================
-    // COACH DE ALIMENTACIÓN (AUTH-2026-11-03-2NN) — capítulo completo.
+    // COACH DE ALIMENTACIÓN (AUTH-2026-11-03-201) — capítulo completo.
     // Decisiones de Ronald: preámbulo 2026-11-02 (la puerta de comidas
     // NO existe: ninguna espera de este capítulo bloquea Comida) y
     // cierre 2026-11-03 10:59 CST (sucesión de metas por LECTURA —
