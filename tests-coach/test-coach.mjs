@@ -25,6 +25,15 @@ import {
   doc, getDoc, getDocs, collection, setDoc, updateDoc, deleteDoc,
   writeBatch
 } from 'firebase/firestore';
+import { appendFileSync } from 'node:fs';
+
+// Superficie de fallos: además de la consola, cada fallo se anota
+// en fallos.txt y el workflow lo republica como anotación visible.
+process.on('unhandledRejection', (e) => {
+  const msg = String(e && e.message || e).slice(0, 300).replace(/[\r\n]+/g, ' ');
+  try { appendFileSync('fallos.txt', 'ARRANQUE :: ' + msg + '\n'); } catch {}
+  console.log('::error title=ARRANQUE::' + msg);
+});
 
 const ESPERA_NUEVO = process.env.ESPERA_NUEVO !== 'false';
 const NOMBRE = ESPERA_NUEVO ? 'COACH-CANDIDATA' : 'COACH-VIVO';
@@ -42,8 +51,10 @@ async function T(name, promise, shouldSucceed) {
     pass++; console.log('PASS — ' + name);
   } catch (e) {
     fail++; failures.push(name);
-    console.log('FAIL — ' + name + ' :: ' + String(e && e.message || e).slice(0, 140));
-    console.log('::error title=' + name + '::' + String(e && e.message || e).slice(0, 200).replace(/[\r\n]+/g, ' '));
+    const msg = String(e && e.message || e).slice(0, 200).replace(/[\r\n]+/g, ' ');
+    console.log('FAIL — ' + name + ' :: ' + msg);
+    console.log('::error title=' + name + '::' + msg);
+    try { appendFileSync('fallos.txt', name + ' :: ' + msg + '\n'); } catch {}
   }
 }
 
@@ -76,6 +87,7 @@ await seedUser('intruso', {});
 await seed('nutritionist_profiles/coach', { status: 'aprobado', activeClients: 1, displayName: 'Coach Uno', bio: 'bio' });
 await seed('nutritionist_profiles/coach2', { status: 'aprobado', activeClients: 0, displayName: 'Coach Dos', bio: 'bio' });
 await seed('nutritionist_relations/alumna', { studentUid: 'alumna', nutritionistUid: 'coach', status: 'activa' });
+await seed('nutritionist_memberships/coach', { status: 'activa', level: 'premium' });
 await seed('nutritionist_directory/current', { coaches: [{ uid: 'coach' }] });
 await seed('trainer_directory/current', { trainers: [] });
 await seed('app_settings/mail_templates', { welcome: { en: 'x', es: 'x' } });
@@ -98,6 +110,7 @@ await T('M1 registrante crea su membresía pendiente', setDoc(D('coachPend', 'nu
 await T('M2 coach pide otro nivel (decisión congelada)', updateDoc(D('coachPend', 'nutritionist_memberships', 'coachPend'), { requestedLevel: 'premium', status: 'pendiente' }), N);
 await T('M3 coach NO se fija su propio nivel', updateDoc(D('coachPend', 'nutritionist_memberships', 'coachPend'), { level: 'premium', status: 'pendiente', requestedLevel: 'premium' }), false);
 await T('M4 administrador activa la membresía', updateDoc(D('dueno', 'nutritionist_memberships', 'coachPend'), { status: 'activa', level: 'premium', decidedBy: 'dueno' }), N);
+await T('M5 alumna aprobada lee la membresía del coach (pool)', getDoc(D('alumna', 'nutritionist_memberships', 'coach')), N);
 
 /* ── D: directorio ── */
 await T('D1 sin sesión lee el directorio publicado', getDoc(D(null, 'nutritionist_directory', 'current')), N);
@@ -106,13 +119,12 @@ await T('D3 coach NO escribe el directorio', setDoc(D('coach', 'nutritionist_dir
 await T('D4 administrador publica el directorio', setDoc(D('dueno', 'nutritionist_directory', 'current'), { coaches: [{ uid: 'coach' }, { uid: 'coach2' }] }), N);
 
 /* ── R: relaciones, historial y contador ── */
-{
-  const b = writeBatch(dbOf('alumnaNueva'));
-  b.set(doc(dbOf('alumnaNueva'), 'nutritionist_relations', 'alumnaNueva'), { studentUid: 'alumnaNueva', nutritionistUid: 'coach2', status: 'activa' });
-  b.set(doc(dbOf('alumnaNueva'), 'nutritionist_relations/alumnaNueva/history', 'ev1'), { by: 'alumnaNueva', type: 'assigned' });
-  b.update(doc(dbOf('alumnaNueva'), 'nutritionist_profiles', 'coach2'), { activeClients: 1 });
-  await T('R1 registro: relación + historial + contador en un lote', b.commit(), N);
-}
+// La app escribe la relación, el historial y el contador como
+// escrituras SUELTAS en ese orden (nutriAdjustQuota nunca va en
+// el lote de la relación): la suite espeja esa secuencia real.
+await T('R1 registro: la alumna crea su relación (suelta)', setDoc(D('alumnaNueva', 'nutritionist_relations', 'alumnaNueva'), { studentUid: 'alumnaNueva', nutritionistUid: 'coach2', status: 'activa' }), N);
+await T('R1b registro: evento de historial (suelto)', setDoc(doc(dbOf('alumnaNueva'), 'nutritionist_relations/alumnaNueva/history', 'ev1'), { by: 'alumnaNueva', type: 'assigned' }), N);
+await T('R1c registro: contador +1 suelto de la propia alumna', updateDoc(D('alumnaNueva', 'nutritionist_profiles', 'coach2'), { activeClients: 1 }), N);
 await T('R2 alumna NO crea relación para otra', setDoc(D('alumnaNueva', 'nutritionist_relations', 'intruso'), { studentUid: 'intruso', nutritionistUid: 'coach', status: 'activa' }), false);
 await T('R3 su coach lee la relación', getDoc(D('coach', 'nutritionist_relations', 'alumna')), N);
 await T('R4 un tercero NO lee la relación', getDoc(D('intruso', 'nutritionist_relations', 'alumna')), false);
@@ -169,6 +181,10 @@ await T('RC7 aprobada lee la general publicada', getDoc(D('alumna', 'recipes', '
 await T('RC8 la autora NO se autopublica', updateDoc(D('alumna', 'recipes', 'rAlumna'), { status: 'publicada' }), false);
 await T('RC9 el administrador publica la general', updateDoc(D('dueno', 'recipes', 'rAlumna'), { status: 'publicada' }), N);
 
+/* ── RV: reseñas ── */
+await T('RV1 alumna reseña a SU coach activo', setDoc(D('alumna', 'nutrition_reviews', 'rv1'), { studentUid: 'alumna', nutritionistUid: 'coach', stars: 5 }), N);
+await T('RV2 alumna NO reseña a un coach que no es el suyo', setDoc(D('alumna', 'nutrition_reviews', 'rv2'), { studentUid: 'alumna', nutritionistUid: 'coach2', stars: 5 }), false);
+
 /* ── F/A: favoritos y asignaciones ── */
 await T('F1 favorito con id que casa', setDoc(D('alumna', 'recipe_favorites', 'alumna_rec1'), { studentUid: 'alumna', recipeId: 'rec1' }), N);
 await T('F2 favorito con id que NO casa', setDoc(D('alumna', 'recipe_favorites', 'cualquiera'), { studentUid: 'alumna', recipeId: 'rec1' }), false);
@@ -187,7 +203,9 @@ await T('CM7 el entrenador no asignado NO lee el diario', getDoc(D('entrenador',
 
 /* ── WT: peso (edición del bloque vivo) ── */
 await T('WT1 su coach LEE el peso', getDoc(D('coach', 'nutrition_weight', 'alumna_2026-11-03')), N);
-await T('WT2 el coach NO escribe el peso (AUTH-153 intacto)', setDoc(D('coach', 'nutrition_weight', 'alumna_2026-11-05'), { ownerUid: 'alumna', kg: 79 }), false);
+await T('WT2 su coach registra SOLO peso con autoría', setDoc(D('coach', 'nutrition_weight', 'alumna_2026-11-05'), { ownerUid: 'alumna', date: '2026-11-05', weight: 79, byUid: 'coach', byRole: 'nutricionista' }), N);
+await T('WT2b el coach NO escribe composición (AUTH-153 intacto)', setDoc(D('coach', 'nutrition_weight', 'alumna_2026-11-07'), { ownerUid: 'alumna', weight: 79, fat: 20, byUid: 'coach', byRole: 'nutricionista' }), false);
+await T('WT2c el coach NO registra peso para quien no es su alumno', setDoc(D('coach', 'nutrition_weight', 'intruso_2026-11-05'), { ownerUid: 'intruso', weight: 70, byUid: 'coach', byRole: 'nutricionista' }), false);
 await T('WT3 la alumna crea su peso solo-peso (vecino intacto)', setDoc(D('alumna', 'nutrition_weight', 'alumna_2026-11-06'), { ownerUid: 'alumna', kg: 79 }), true);
 
 /* ── V: vecinos intactos ── */
@@ -198,6 +216,7 @@ await T('V4 alumna lee su propio users', getDoc(D('alumna', 'users', 'alumna')),
 await T('V5 entrenador NO lee el consentimiento', getDoc(D('entrenador', 'nutrition_consents', 'alumna')), false);
 
 console.log('== ' + NOMBRE + ': ' + pass + ' PASS · ' + fail + ' FAIL ==');
+try { appendFileSync('fallos.txt', 'RESUMEN ' + NOMBRE + ' pass=' + pass + ' fail=' + fail + '\n'); } catch {}
 if (failures.length) console.log('::error title=RESUMEN::' + failures.join(' | '));
 await testEnv.cleanup();
 process.exit(fail ? 1 : 0);

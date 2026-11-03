@@ -18,7 +18,7 @@ permissions:
 
 jobs:
   bateria:
-    name: 80 casos x2 (candidata y vivo) contra el emulador oficial
+    name: 87 casos x2 (candidata y vivo) contra el emulador oficial
     runs-on: ubuntu-24.04
     timeout-minutes: 20
     defaults:
@@ -41,7 +41,25 @@ jobs:
         run: |
           cp firestore.rules.candidata firestore.rules
           firebase emulators:exec --only firestore --project ronbo-nutri-test "ESPERA_NUEVO=true node test-coach.mjs"
+      - name: Fallos de la CANDIDATA (anotaciones)
+        if: always()
+        run: |
+          if [ -f fallos.txt ]; then
+            while IFS= read -r linea; do echo "::error title=FALLO-CAND::$linea"; done < fallos.txt
+            rm -f fallos.txt
+          else
+            echo "::notice title=CAND::sin archivo de fallos"
+          fi
       - name: Suite VIVO (el capítulo no existe; vecinos idénticos)
         run: |
           cp firestore.rules.viva firestore.rules
           firebase emulators:exec --only firestore --project ronbo-nutri-test "ESPERA_NUEVO=false node test-coach.mjs"
+      - name: Fallos del VIVO (anotaciones)
+        if: always()
+        run: |
+          if [ -f fallos.txt ]; then
+            while IFS= read -r linea; do echo "::error title=FALLO-VIVO::$linea"; done < fallos.txt
+            rm -f fallos.txt
+          else
+            echo "::notice title=VIVO::sin archivo de fallos"
+          fi

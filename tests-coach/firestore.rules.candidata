@@ -2016,9 +2016,16 @@ service cloud.firestore {
         || (isApprovedUser()
           && request.resource.data.ownerUid == request.auth.uid
           && (compModeIsClient(request.auth.uid)
-            || weightCreateNoComp(request.resource.data)));
+            || weightCreateNoComp(request.resource.data)))
+        || (request.resource.data.get('byUid', '') == request.auth.uid
+          && request.resource.data.get('byRole', '') == 'nutricionista'
+          && isMyNutritionist(request.resource.data.ownerUid)
+          && weightCreateNoComp(request.resource.data));
       // Coach de alimentación (AUTH-2026-11-03-2NN): su coach ACTIVO
-      // LEE el peso; la escritura sigue siendo del alumno (AUTH-153).
+      // lee el peso y lo registra (SOLO peso, sin composición, con
+      // autoría byUid/byRole — espejo de AUTH-153); la composición
+      // sigue vedada para él como para cualquiera que no sea el
+      // entrenador asignado o el propietario.
       allow get, list: if isOwnerUser()
         || (isApprovedUser() && resource.data.ownerUid == request.auth.uid)
         || isAssignedTrainerOf(resource.data.ownerUid)
@@ -2028,7 +2035,12 @@ service cloud.firestore {
         || (isApprovedUser() && resource.data.ownerUid == request.auth.uid
           && (compModeIsClient(request.auth.uid)
             || !request.resource.data.diff(resource.data).affectedKeys()
-                 .hasAny(['fat', 'muscle', 'water', 'visceral', 'notes'])));
+                 .hasAny(['fat', 'muscle', 'water', 'visceral', 'notes'])))
+        || (request.resource.data.get('byUid', '') == request.auth.uid
+          && request.resource.data.get('byRole', '') == 'nutricionista'
+          && isMyNutritionist(resource.data.ownerUid)
+          && !request.resource.data.diff(resource.data).affectedKeys()
+               .hasAny(['fat', 'muscle', 'water', 'visceral', 'notes']));
       allow delete: if isOwnerUser()
         || (signedIn() && resource.data.ownerUid == request.auth.uid);
     }
@@ -2911,8 +2923,10 @@ service cloud.firestore {
     // trainer_profiles). Nace 'pendiente' en el propio registro —
     // la cuenta aún no está aprobada, como en trainer_relations —
     // y SOLO el administrador pasa a 'aprobado' o 'suspendido'.
-    // activeClients es DATO (decisión: cupo libre): se mueve con la
-    // rama acoplada a la relación, nunca bloquea nada.
+    // activeClients es DATO (decisión: cupo libre): lo mueve +1 el
+    // propio alumno cuya relación activa nombra a este coach
+    // (escritura suelta de la app) y libremente el administrador;
+    // nunca bloquea nada.
     match /nutritionist_profiles/{uid} {
       allow get: if signedIn();
       allow list: if isApprovedUser();
@@ -2931,19 +2945,9 @@ service cloud.firestore {
                  .hasOnly(['activeClients', 'updatedAt'])
             && request.resource.data.activeClients
                  == resource.data.get('activeClients', 0) + 1
-            && !exists(/databases/$(database)/documents/nutritionist_relations/$(request.auth.uid))
-            && getAfter(/databases/$(database)/documents/nutritionist_relations/$(request.auth.uid)).data.get('nutritionistUid', '') == uid
-            && getAfter(/databases/$(database)/documents/nutritionist_relations/$(request.auth.uid)).data.get('status', '') == 'activa')
-        || (signedIn()
-            && request.resource.data.diff(resource.data).affectedKeys()
-                 .hasOnly(['activeClients', 'updatedAt'])
-            && exists(/databases/$(database)/documents/nutritionist_relations/$(request.auth.uid))
-            && ((request.resource.data.activeClients == resource.data.get('activeClients', 0) + 1
-                 && get(/databases/$(database)/documents/nutritionist_relations/$(request.auth.uid)).data.get('nutritionistUid', '') != uid
-                 && getAfter(/databases/$(database)/documents/nutritionist_relations/$(request.auth.uid)).data.get('nutritionistUid', '') == uid)
-              || (request.resource.data.activeClients == resource.data.get('activeClients', 0) - 1
-                 && get(/databases/$(database)/documents/nutritionist_relations/$(request.auth.uid)).data.get('nutritionistUid', '') == uid
-                 && getAfter(/databases/$(database)/documents/nutritionist_relations/$(request.auth.uid)).data.get('nutritionistUid', '') != uid)));
+            && nutriRelExists(request.auth.uid)
+            && nutriRel(request.auth.uid).get('nutritionistUid', '') == uid
+            && nutriRel(request.auth.uid).get('status', '') == 'activa');
       allow delete: if isOwnerUser();
     }
 
@@ -2952,7 +2956,7 @@ service cloud.firestore {
     // los campos de decisión son solo del administrador. Nace en el
     // registro, antes de la aprobación de la cuenta.
     match /nutritionist_memberships/{uid} {
-      allow get: if isOwnerUser() || isSelf(uid);
+      allow get: if isOwnerUser() || isSelf(uid) || isApprovedUser();
       allow list: if isOwnerUser();
       allow create: if isSelf(uid)
         && request.resource.data.get('status', '') in ['sin_membresia', 'pendiente'];
@@ -3131,9 +3135,10 @@ service cloud.firestore {
         || (signedIn() && resource.data.get('nutritionistUid', '') == request.auth.uid);
       allow create: if isApprovedUser()
         && request.resource.data.get('studentUid', '') == request.auth.uid
-        && isMyNutritionist(request.resource.data.get('studentUid', ''))
-        && request.resource.data.get('nutritionistUid', '')
-             == nutriRel(request.resource.data.get('studentUid', '')).get('nutritionistUid', '');
+        && nutriRelExists(request.auth.uid)
+        && nutriRel(request.auth.uid).get('status', '') == 'activa'
+        && nutriRel(request.auth.uid).get('nutritionistUid', '')
+             == request.resource.data.get('nutritionistUid', '');
       allow update: if isOwnerUser()
         || (isApprovedUser() && resource.data.get('studentUid', '') == request.auth.uid);
       allow delete: if isOwnerUser()
