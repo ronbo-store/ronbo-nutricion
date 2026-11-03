@@ -3554,3 +3554,17 @@ body.sess-on #pend-back-chip { bottom: calc(env(safe-area-inset-bottom, 0px) + 1
 .nutri-byline { color: #0d9488; font-size: 12px; font-weight: 600; }
 .nutri-h { margin: 6px 0; }
 /* == FIN MÓDULO NUTRICIONISTA == */
+
+/* ORDEN DEL DÍA (2026-11-03): franja de mover de la fila compacta —
+   asa + Subir/Bajar grandes (≥45 px), pensados para usar entrenando
+   (la motricidad fina es complicada); vive SOLO en la tarjeta de hoy
+   de quien puede reordenar su día. La fila vestida gana el wrap para
+   que la franja ocupe su propia línea sin tocar la línea de datos. */
+.train-day-dressed .train-ex-compact { flex-wrap: wrap; }
+.train-ex-move { flex-basis: 100%; display: flex; align-items: center; gap: 8px; margin-top: 8px; }
+.train-ex-grip { flex: 0 0 auto; width: 46px; height: 46px; padding: 0; border: 1px solid rgba(125, 211, 252, .45); border-radius: 10px; background: rgba(2, 6, 23, .35); color: #e0f2fe; font-size: 19px; line-height: 1; cursor: grab; touch-action: none; }
+.train-ex-move-btn { flex: 1 1 0; min-height: 46px; font-size: 14px; font-weight: 800; }
+.train-ex-move-btn:disabled { opacity: .35; }
+.train-ex-dragging { opacity: .55; }
+.tcu-move { display: inline-flex; gap: 6px; margin-left: 8px; vertical-align: middle; }
+.tcu-move .btn-ghost { min-width: 45px; min-height: 45px; font-size: 15px; }

@@ -4383,6 +4383,7 @@ en: {
   'train.custom.title': 'Customize today\'s assignments',
   'train.custom.titleDate': 'Customize the assignments for {date}',
   'train.custom.sessionTitle': 'Today\'s session',
+  'train.custom.move': 'Move', 'train.custom.moveUp': 'Move up', 'train.custom.moveDown': 'Move down',
   'train.custom.sessionTitleDate': 'Session for {date}',
   'train.custom.swap': 'Change', 'train.custom.add': '+ Add exercise',
   'train.custom.undoSwap': 'Undo change', 'train.custom.removeAdded': 'Remove',
@@ -7265,6 +7266,7 @@ es: {
   'train.custom.title': 'Personaliza tus asignaciones de hoy',
   'train.custom.titleDate': 'Personaliza tus asignaciones del {date}',
   'train.custom.sessionTitle': 'Sesión de hoy',
+  'train.custom.move': 'Mover', 'train.custom.moveUp': 'Subir', 'train.custom.moveDown': 'Bajar',
   'train.custom.sessionTitleDate': 'Sesión del {date}',
   'train.custom.swap': 'Cambiar', 'train.custom.add': '+ Agregar ejercicio',
   'train.custom.undoSwap': 'Deshacer cambio', 'train.custom.removeAdded': 'Quitar',
@@ -22359,13 +22361,22 @@ function trainEditsRead(planId, iso) {
        Sin la clave (borradores anteriores), el comportamiento es
        byte a byte el de siempre. */
     const removed = Array.isArray(v.removed) ? [...new Set(v.removed.filter(n => Number.isInteger(n) && n >= 0))] : [];
-    if (!Object.keys(swaps).length && !added.length && !removed.length) return null;
-    return { swaps, added, removed };
+    /* ORDEN DEL DÍA (pedido de Ronald, chat 2026-11-03 12:41 CST):
+       el orden en que la persona ordenó los ejercicios de ESTA
+       fecha — claves «s<slot>» (ejercicio del plan, cambiado o no)
+       y «a<posición>» (agregados), en el orden elegido. Vive SOLO
+       en esta edición de sesión: el plan no se toca, los demás
+       días conservan el orden del plan y, cuando el día llega, su
+       orden guardado manda. Sin la clave (borradores anteriores),
+       el día se pinta byte a byte como siempre. */
+    const order = Array.isArray(v.order) ? v.order.filter(x => typeof x === 'string' && /^[sa]\d+$/.test(x)) : [];
+    if (!Object.keys(swaps).length && !added.length && !removed.length && !order.length) return null;
+    return { swaps, added, removed, ...(order.length ? { order } : {}) };
   } catch { return null; }
 }
 function trainEditsWrite(planId, ed, iso) {
   try {
-    if (ed && ((ed.swaps && Object.keys(ed.swaps).length) || (ed.added && ed.added.length) || (ed.removed && ed.removed.length)))
+    if (ed && ((ed.swaps && Object.keys(ed.swaps).length) || (ed.added && ed.added.length) || (ed.removed && ed.removed.length) || (ed.order && ed.order.length)))
       localStorage.setItem(trainEditsKey(planId, iso), JSON.stringify(ed));
     else localStorage.removeItem(trainEditsKey(planId, iso));
   } catch {}
@@ -22439,8 +22450,121 @@ function trainEffectiveList(plan, di, iso) {
     if (Number.isInteger(a.variantIndex)) ex.variantIndex = a.variantIndex;
     out.push({ ex, kind: 'add', slot: -1 });
   });
+  /* ORDEN DEL DÍA: si la edición de la fecha trae orden, la lista
+     sale en ese orden. Las claves que ya no existen (un slot
+     quitado) se ignoran y todo ejercicio presente sin clave (uno
+     restaurado) entra al final — el orden guardado nunca rompe la
+     lista ni esconde un ejercicio. Sin orden, byte a byte igual. */
+  if (Array.isArray(ed.order) && ed.order.length) {
+    let addN = 0;
+    const keys = out.map(it => it.kind === 'add' ? 'a' + (addN++) : 's' + it.slot);
+    const byKey = new Map(out.map((it, i) => [keys[i], it]));
+    const seq = ed.order.filter(k => byKey.has(k));
+    keys.forEach(k => { if (!seq.includes(k)) seq.push(k); });
+    if (seq.length === out.length && seq.some((k, i) => k !== keys[i])) return seq.map(k => byKey.get(k));
+  }
   return out;
 }
+/* ¿Puede ESTA persona reordenar los ejercicios de su día desde su
+   pantalla? La frase de Ronald (chat, 2026-11-03 12:41 CST):
+   «Quisiera desde mi pantalla poder organizar el orden de los
+   ejercicios — para el resto de los usuarios los organizan según
+   se los organice el entrenador». Quien entrena con SU PROPIO plan
+   (el propietario, un entrenador en su propia cuenta, o el alumno
+   SIN entrenador asignado) reordena su día; el alumno CON
+   entrenador asignado entrena en el orden que su entrenador le
+   organizó y no ve el control. La derivación de «con entrenador»
+   es la misma de trainPastEditable (MY_REL activa, o el espejo
+   UDATA asignado). El entrenador organiza a los suyos en el editor
+   de planes, que ya ordena cada día arrastrando desde su asa (⠿)
+   desde 2026-10-27: ese orden del plan es el que el alumno ve. */
+function trainReorderAllowed() {
+  if (typeof ROLE !== 'undefined' && (ROLE === 'entrenador' || ROLE === 'administrador')) return true;
+  const relUid = (typeof MY_REL !== 'undefined' && MY_REL && MY_REL.status === 'activa' && MY_REL.trainerUid) ? MY_REL.trainerUid
+    : ((typeof UDATA !== 'undefined' && UDATA && UDATA.assignmentStatus === 'assigned' && UDATA.trainerUid) ? UDATA.trainerUid : '');
+  return !relUid;
+}
+/* Las claves de orden de la edición tras quitar el agregado de
+   posición addPos: la suya sale y las mayores bajan una posición
+   (los agregados se renumeran igual que en la lista efectiva). */
+function trainOrderAfterUnadd(ed, addPos) {
+  if (!ed || !Array.isArray(ed.order)) return;
+  ed.order = ed.order.filter(k => k !== 'a' + addPos)
+    .map(k => { const m = /^a(\d+)$/.exec(k); return m && Number(m[1]) > addPos ? 'a' + (Number(m[1]) - 1) : k; });
+  if (!ed.order.length) delete ed.order;
+}
+/* REORDENAR EL DÍA (pedido de Ronald, 2026-11-03): mueve el
+   ejercicio de la posición efectiva `from` a la `to` DENTRO de la
+   sesión de la fecha vista y lo guarda en su edición — el plan no
+   se toca y los demás días conservan su orden. Las marcas
+   TRAIN_CHECKS van por índice efectivo y SOLO existen para hoy:
+   cuando la fecha reordenada es hoy, se remapean con la MISMA
+   permutación y se guardan al acto — cada ejercicio conserva sus
+   series, sus cargas y su hecho; solo cambia su posición. Editar
+   otro día jamás toca las marcas de hoy (la misma frontera que el
+   remapeo al quitar un agregado). Devuelve true si movió. */
+function trainSessionReorder(plan, di, from, to, iso) {
+  if (!plan) return false;
+  const viewIso = iso || todayISO();
+  const eff = trainEffectiveList(plan, di, viewIso);
+  const n = eff.length;
+  if (!Number.isInteger(from) || !Number.isInteger(to) || from === to || from < 0 || to < 0 || from >= n || to >= n) return false;
+  let addN = 0;
+  const oldKeys = eff.map(it => it.kind === 'add' ? 'a' + (addN++) : 's' + it.slot);
+  const keys = oldKeys.slice();
+  const [mv] = keys.splice(from, 1); keys.splice(to, 0, mv);
+  const ed = trainEditsRead(plan.id, viewIso) || { swaps: {}, added: [], removed: [] };
+  const remSet = new Set(Array.isArray(ed.removed) ? ed.removed : []);
+  const dayExs = (plan.days || [])[di] && Array.isArray(plan.days[di].exercises) ? plan.days[di].exercises : [];
+  const natural = dayExs.map((_, slot) => slot).filter(s => !remSet.has(s)).map(s => 's' + s)
+    .concat((Array.isArray(ed.added) ? ed.added : []).map((_, i) => 'a' + i));
+  if (JSON.stringify(keys) === JSON.stringify(natural)) delete ed.order; else ed.order = keys;
+  trainEditsWrite(plan.id, ed, viewIso);
+  if (viewIso === todayISO()) {
+    const shifted = {};
+    Object.keys(TRAIN_CHECKS).forEach(k => {
+      const [dS, eS] = k.split(':');
+      if (Number(dS) !== di) { shifted[k] = TRAIN_CHECKS[k]; return; }
+      const oi = Number(eS);
+      const ni = oi >= 0 && oi < n ? keys.indexOf(oldKeys[oi]) : -1;
+      shifted[dS + ':' + (ni >= 0 ? ni : oi)] = TRAIN_CHECKS[k];
+    });
+    TRAIN_CHECKS = shifted;
+    trainChecksPersist(plan.id);   /* el remapeo también se guarda: al reabrir, las marcas restauradas caen en su ejercicio */
+  }
+  return true;
+}
+let TRAIN_ROW_DRAG = null;   // arrastre de una fila del día en curso (solo memoria)
+/* El arrastre de la fila vestida sigue el mismo algoritmo del
+   editor de planes (la fila se mueve EN VIVO entre sus hermanas);
+   al soltar, el orden nuevo entra por el mismo motor que los
+   botones (trainSessionReorder), que remapea las marcas. */
+document.addEventListener('pointermove', e => {
+  const d = TRAIN_ROW_DRAG; if (!d) return;
+  const y = e.clientY;
+  const rows = [...d.box.querySelectorAll(':scope > .train-ex-card')].filter(r => r !== d.row);
+  for (const r of rows) {
+    const rc = r.getBoundingClientRect();
+    if (y < rc.top + rc.height / 2) { if (r.previousElementSibling !== d.row) d.box.insertBefore(d.row, r); return; }
+  }
+  const last = rows[rows.length - 1];
+  if (last && y > last.getBoundingClientRect().bottom) {
+    const nx = last.nextElementSibling;
+    if (nx && nx !== d.row) d.box.insertBefore(d.row, nx);
+    else if (!nx && d.box.lastElementChild !== d.row) d.box.appendChild(d.row);
+  }
+});
+document.addEventListener('pointerup', () => {
+  const d = TRAIN_ROW_DRAG; if (!d) return;
+  TRAIN_ROW_DRAG = null;
+  d.row.classList.remove('train-ex-dragging');
+  const cards = [...d.box.querySelectorAll(':scope > .train-ex-card')];
+  const to = cards.indexOf(d.row);
+  if (to >= 0 && to !== d.from && trainSessionReorder(d.plan, d.di, d.from, to)) loadMyTraining();
+});
+document.addEventListener('pointercancel', () => {
+  if (TRAIN_ROW_DRAG) { TRAIN_ROW_DRAG.row.classList.remove('train-ex-dragging'); TRAIN_ROW_DRAG = null; }
+});
 /* Filas del HISTORIAL de un día cerrado: empareja el registro con
    los ejercicios del plan conservando la semántica de siempre
    (por exerciseId; por nombre solo si la entrada no trae id) y,
@@ -22609,6 +22733,8 @@ function trainCustomRenderSession(plan, di, closed, iso) {
      solo lo ajustan su entrenador, el administrador o el usuario
      autónomo; el alumno CON entrenador lo ve en solo lectura. */
   const readOnly = !isTodayView && viewIso < todayISO() && !trainPastEditable();
+  /* ORDEN DEL DÍA: subir/bajar vive en las mismas filas que cambiar/quitar, solo para quien puede reordenar su día y nunca en solo lectura. */
+  const canMove = !readOnly && trainReorderAllowed();
   const removeTxt = isTodayView ? t('train.custom.removeToday') : t('train.custom.removeDay');
   let inner = `<h4 class="tcu-title">${titleTxt}</h4>`;
   {
@@ -22619,6 +22745,7 @@ function trainCustomRenderSession(plan, di, closed, iso) {
       else if (it.kind === 'swap') ctl = `<span class="train-mark">⇄ ${esc(t('train.custom.swappedFor', { name: trainExName(it.from) || it.from.name || '' }))}</span><button type="button" class="btn-ghost btn-sm" data-tcu-undo-swap="${it.slot}">${t('train.custom.undoSwap')}</button><button type="button" class="btn-ghost btn-sm" data-tcu-remove="${idx}">${removeTxt}</button>`;
       else if (it.kind === 'add') ctl = `<span class="train-mark">＋ ${esc(t('train.custom.addedMark'))}</span><button type="button" class="btn-ghost btn-sm" data-tcu-unadd="${idx}">${t('train.custom.removeAdded')}</button>`;
       else ctl = `<button type="button" class="btn-ghost btn-sm" data-tcu-swap="${idx}">${t('train.custom.swap')}</button><button type="button" class="btn-ghost btn-sm" data-tcu-remove="${idx}">${removeTxt}</button>`;
+      if (canMove) ctl += `<span class="tcu-move"><button type="button" class="btn-ghost btn-sm" data-tcu-up="${idx}" ${idx === 0 ? 'disabled' : ''} aria-label="${esc(t('train.custom.moveUp'))}">▲</button><button type="button" class="btn-ghost btn-sm" data-tcu-down="${idx}" ${idx === eff.length - 1 ? 'disabled' : ''} aria-label="${esc(t('train.custom.moveDown'))}">▼</button></span>`;
       return `<div class="tcu-row"><span class="tcu-name">${esc(trainExName(it.ex) || it.ex.name || '')}${spec ? ` <span class="tcu-spec">${esc(spec)}</span>` : ''}</span>${ctl}</div>`;
     }).join('')}</div>`;
     /* QUITADOS DE HOY (2026-10-30): los retirados se listan al
@@ -22664,6 +22791,7 @@ function trainCustomWire(plan, di, iso) {
     const addPos = eff.slice(0, effIdx).filter(x => x.kind === 'add').length;
     const ed = trainEditsRead(plan.id, viewIso) || { swaps: {}, added: [] };
     ed.added.splice(addPos, 1);
+    trainOrderAfterUnadd(ed, addPos);
     trainEditsWrite(plan.id, ed, viewIso);
     /* Las marcas TRAIN_CHECKS van por índice EFECTIVO y SOLO
        existen para hoy: el remapeo solo corre si la fecha editada
@@ -22690,6 +22818,8 @@ function trainCustomWire(plan, di, iso) {
   tools.querySelectorAll('[data-tcu-restore]').forEach(b => b.onclick = () => {
     trainSessionRestoreSlot(plan, di, Number(b.dataset.tcuRestore), viewIso);
   });
+  tools.querySelectorAll('[data-tcu-up]').forEach(b => b.onclick = () => { const i = Number(b.dataset.tcuUp); if (trainSessionReorder(plan, di, i, i - 1, viewIso)) loadMyTraining(); });
+  tools.querySelectorAll('[data-tcu-down]').forEach(b => b.onclick = () => { const i = Number(b.dataset.tcuDown); if (trainSessionReorder(plan, di, i, i + 1, viewIso)) loadMyTraining(); });
 }
 /* QUITAR UN EJERCICIO SOLO DE LA SESIÓN DE HOY (encargo por correo
    de Ronald, 2026-10-30; mecánica declarada en la nota de diseño
@@ -22753,6 +22883,7 @@ function trainSessionRemoveAt(plan, di, effIdx, iso) {
     const addPos = eff.slice(0, effIdx).filter(x => x.kind === 'add').length;
     const ed = trainEditsRead(plan.id, viewIso) || { swaps: {}, added: [], removed: [] };
     ed.added.splice(addPos, 1);
+    trainOrderAfterUnadd(ed, addPos);
     trainEditsWrite(plan.id, ed, viewIso);
     if (isTodayView) trainChecksDropShift(plan, di, effIdx);
   } else {
@@ -22760,6 +22891,7 @@ function trainSessionRemoveAt(plan, di, effIdx, iso) {
     const ed = trainEditsRead(plan.id, viewIso) || { swaps: {}, added: [], removed: [] };
     if (!Array.isArray(ed.removed)) ed.removed = [];
     if (!ed.removed.includes(it.slot)) ed.removed.push(it.slot);
+    if (Array.isArray(ed.order)) ed.order = ed.order.filter(k => k !== 's' + it.slot);
     trainEditsWrite(plan.id, ed, viewIso);
     if (isTodayView) trainChecksDropShift(plan, di, effIdx);
   }
@@ -22779,6 +22911,15 @@ function trainSessionRestoreSlot(plan, di, slot, iso) {
      menor que NO siguen quitados (los agregados van detrás). */
   const effIdx = dayEx.map((_, i) => i).filter(i => i < slot && !remAfter.has(i)).length;
   ed.removed = ed.removed.filter(s => s !== slot);
+  /* Si el día trae orden propio, el restaurado vuelve a su puesto
+     del plan DENTRO de ese orden (su rango natural), no al final. */
+  if (Array.isArray(ed.order) && ed.order.length) {
+    const remSet2 = new Set(ed.removed);
+    const nat = dayEx.map((_, i) => i).filter(i => !remSet2.has(i)).map(i => 's' + i)
+      .concat((Array.isArray(ed.added) ? ed.added : []).map((_, i) => 'a' + i));
+    const rank = nat.indexOf('s' + slot);
+    if (rank >= 0 && !ed.order.includes('s' + slot)) ed.order.splice(Math.min(rank, ed.order.length), 0, 's' + slot);
+  }
   trainEditsWrite(plan.id, ed, viewIso);
   /* Las marcas suben un índice solo si la fecha restaurada es
      hoy: son del día en curso; otro día no tiene marcas. */
@@ -23770,7 +23911,7 @@ function trainDayHistHTML(day, log) {
    al cerrar el día. En modo read el estado es la insignia de
    siempre (✓ Hecho · RPE n / —), sin la línea de series (el
    detalle por serie también vive en la flotante). */
-function trainExCompactHTML(ex, di, ei, mode, de) {
+function trainExCompactHTML(ex, di, ei, mode, de, mv) {
   const key = di + ':' + ei;
   const chk = mode === 'edit' ? TRAIN_CHECKS[key] : null;
   const spec = [ex.sets, ex.reps].filter(Boolean).join(' × ');
@@ -23787,6 +23928,7 @@ function trainExCompactHTML(ex, di, ei, mode, de) {
       : mode === 'read'
         ? (de ? `<span class="ok-badge">✓ ${t('train.view.exDone')}${de.rpe ? ` · ${t('train.view.rpe')} ${esc(String(de.rpe))}` : ''}</span>` : '<span class="muted">—</span>')
         : ''}</div>
+    ${mode === 'edit' && mv ? `<div class="train-ex-move"><button type="button" class="train-ex-grip" data-train-grip="${ei}" aria-label="${esc(t('train.custom.move'))}">⠿</button><button type="button" class="btn-ghost train-ex-move-btn" data-train-move-up="${ei}" ${mv.first ? 'disabled' : ''}>▲ ${esc(t('train.custom.moveUp'))}</button><button type="button" class="btn-ghost train-ex-move-btn" data-train-move-down="${ei}" ${mv.last ? 'disabled' : ''}>▼ ${esc(t('train.custom.moveDown'))}</button></div>` : ''}
   </div>`;
 }
 function trainDayCompactHistHTML(day, log, di) {
@@ -25433,7 +25575,7 @@ async function loadMyTraining() {
   const dayCompactHTML = (day, di, mode, log, tailHTML) => {
     const label = day.label || ('Día ' + (di + 1));
     let exHtml;
-    if (mode === 'edit') exHtml = trainEffectiveList(plan, di).map((it, ei) => trainExCompactHTML(it.ex, di, ei, 'edit', null)).join('');
+    if (mode === 'edit') { const effL = trainEffectiveList(plan, di); const canMv = trainReorderAllowed(); exHtml = effL.map((it, ei) => trainExCompactHTML(it.ex, di, ei, 'edit', null, canMv && effL.length > 1 ? { first: ei === 0, last: ei === effL.length - 1 } : null)).join(''); }
     else if (mode === 'ficha') exHtml = (day.exercises || []).map((ex, ei) => trainExCompactHTML(ex, di, ei, 'ficha', null)).join('');
     else exHtml = trainDayCompactHistHTML(day, log, di);
     let tail = tailHTML;
@@ -25698,6 +25840,35 @@ async function loadMyTraining() {
     const key = s.dataset.trainRpe;
     if (TRAIN_CHECKS[key]) { TRAIN_CHECKS[key].rpe = s.value ? Number(s.value) : null; trainChecksPersist(plan.id); }
   });
+  /* ORDEN DEL DÍA (2026-11-03): subir/bajar de la fila y arrastre
+     desde su asa — las dos vías entran por el mismo motor de la
+     sesión (trainSessionReorder) y repintan por loadMyTraining,
+     como todo lo demás de esta tarjeta. */
+  box.querySelectorAll('[data-train-move-up]').forEach(b => b.onclick = () => {
+    const row = b.closest('[data-train-row]'); const diM = row ? Number(String(row.dataset.trainRow).split(':')[0]) : NaN;
+    const eiM = Number(b.dataset.trainMoveUp);
+    if (Number.isInteger(diM) && trainSessionReorder(plan, diM, eiM, eiM - 1)) loadMyTraining();
+  });
+  box.querySelectorAll('[data-train-move-down]').forEach(b => b.onclick = () => {
+    const row = b.closest('[data-train-row]'); const diM = row ? Number(String(row.dataset.trainRow).split(':')[0]) : NaN;
+    const eiM = Number(b.dataset.trainMoveDown);
+    if (Number.isInteger(diM) && trainSessionReorder(plan, diM, eiM, eiM + 1)) loadMyTraining();
+  });
+  box.querySelectorAll('[data-train-grip]').forEach(g => g.addEventListener('pointerdown', e => {
+    if (TRAIN_ROW_DRAG) return;
+    if (e.pointerType === 'mouse' && e.button !== 0) return;
+    const row = g.closest('.train-ex-card');
+    const cont = row ? row.closest('.train-dressed-content') : null;
+    if (!row || !cont) return;
+    const cards = [...cont.querySelectorAll(':scope > .train-ex-card')];
+    const from = cards.indexOf(row);
+    if (from < 0) return;
+    const diM = Number(String(row.dataset.trainRow || '').split(':')[0]);
+    if (!Number.isInteger(diM)) return;
+    e.preventDefault();
+    TRAIN_ROW_DRAG = { row, box: cont, from, plan, di: diM };
+    row.classList.add('train-ex-dragging');
+  }));
   box.querySelectorAll('[data-train-set-reps]').forEach(inp => inp.oninput = () => {
     const [di, ei, si] = inp.dataset.trainSetReps.split(':');
     const c = TRAIN_CHECKS[di + ':' + ei];
@@ -35162,7 +35333,7 @@ document.addEventListener('keydown', e => { if (e.key === 'Escape') shareClose()
  *  - El SW (sw.js) solo cachea la cáscara del mismo origen en modo
  *    RED PRIMERO: Auth/Firestore/Worker jamás pasan por la caché.
  * ================================================================ */
-const PWA_SW_VERSION = '20261103-resumen-sesion';
+const PWA_SW_VERSION = '20261103-reordenar-dia';
 let pwaDeferredPrompt = null;
 function pwaIsStandalone() {
   try {
