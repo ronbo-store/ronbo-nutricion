@@ -2565,7 +2565,7 @@ function careFmtWait(h) {
   return Math.round(h / 24) + ' d';
 }
 function careSignalsHTML(R) {
-  const pct = v => (v == null ? '—' : v + '%');
+  const pct = v => (v == null ? '—' : String(v));
   const L = [];
   L.push(`<li>${esc(t('care.plan', { n: R.withPlan, pct: pct(R.withPlanPct) }))}</li>`);
   if (R.pendErr) L.push(`<li class="care-warn">${esc(t('care.err'))}</li>`);
