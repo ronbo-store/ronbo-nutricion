@@ -4756,6 +4756,9 @@ en: {
   'share.weekLab': 'My week in review',
   'share.dayChip': '🎯 MY GOAL FOR TODAY',
   'share.weekChip': '🏆 MY WEEK IN REVIEW',
+  'share.goalsLab': 'My day in goals',
+  'share.goalsChip': '📊 MY DAY IN GOALS',
+  'share.newBadge': 'NEW',
   'share.format916': 'Story 9:16',
   'share.format11': 'Post 1:1',
   'share.send': 'Share',
@@ -7263,6 +7266,9 @@ es: {
   'share.weekLab': 'Mis logros de la semana',
   'share.dayChip': '🎯 MI META DEL DÍA',
   'share.weekChip': '🏆 MIS LOGROS DE LA SEMANA',
+  'share.goalsLab': 'Mi día en metas',
+  'share.goalsChip': '📊 MI DÍA EN METAS',
+  'share.newBadge': 'NUEVA',
   'share.format916': 'Historia 9:16',
   'share.format11': 'Publicación 1:1',
   'share.send': 'Compartir',
@@ -31333,6 +31339,57 @@ function shareWeekData() {
   return { days, minutes, activeDays: active.filter(Boolean).length, workoutsWeek, mealsWeek,
     minutesTotal, bestIdx, streak, milestones, phrase: hasActivity ? 'week' : 'start', name: shareFirstName() };
 }
+/* ---------- datos de la tarjeta «Mi día en metas» (punto 110 de la cola) ----------
+   La MISMA vista del día que pinta «Metas de hoy» (gmiDayData/gmiCombo/
+   gmiSummaryParts/gmiBarHTML), con la fecha FIJADA a hoy: la tarjeta es
+   del día del alumno, no del día que esté hojeando en la ventana de
+   metas. Devuelve null cuando aún no hay metas fundadas — la tarjeta lo
+   dice en simple (shareDrawGoalsEmpty), nunca inventa cifras. Los
+   colores de barra son los de la maqueta aprobada por Ronald el
+   2026-11-02: los de su propia captura de la vista del día. */
+const SHARE_GOALS_COLORS = { kcal: '#22C55E', prot: '#6C4DFF', carb: '#F59E0B', azuc: '#D500C8', gras: '#F43F5E' };
+function shareGoalsData() {
+  if (typeof UDATA === 'undefined' || !UDATA) return null;
+  if (!UDATA.goalsProvenance || !UDATA.goalsProvenance.computedAt) return null;
+  const iso = todayISO();
+  const view = goalsDayGoalsFor(iso);
+  const goals = view.goals;
+  if (!(goals && goals.kcal > 0)) return null;
+  const tot = (typeof totals === 'function') ? totals(iso) : { kcal: 0, prot: 0, carb: 0, azuc: 0, gras: 0 };
+  const pct = Math.round((tot.kcal / goals.kcal) * 100);
+  const left = goals.kcal - tot.kcal;
+  const combo = (typeof gmiCombo === 'function') ? gmiCombo() : null;
+  const d = { iso, goals, tot, pct, left, combo, summary: null, objParas: [], line2: '', guide: null };
+  if (combo) {
+    d.summary = gmiSummaryParts(d);
+    /* Párrafos del bloque del objetivo: la misma composición que
+       gmiObjBoxHTML (enfoque + línea de fase + aviso de pendiente). */
+    d.objParas.push(t('gfocus.title') + ': ' + t('gfocus.opt.' + combo.focus) + ' — ' + t('gfocus.expl.' + combo.focus));
+    if (combo.fx && combo.fx.source === 'competition-phase') d.objParas.push(t('gfocus.objFromPhase'));
+    if (combo.focus === 'competencia' && combo.fx && combo.fx.pending) d.objParas.push(t('gfocus.compPending'));
+  }
+  /* Línea de kcal restantes y guía: las mismas redacciones que la vista
+     del día (gmiLeftHTML) para los tres estados del día. */
+  if (left > 0) { d.line2 = t('gmi.leftToday', { n: fmt(left) }); d.guide = t('gmi.headOk'); }
+  else if (left === 0) { d.line2 = t('gmi.headExact'); }
+  else { d.line2 = t('gmi.headOver', { n: fmt(Math.abs(left)) }); }
+  /* Las cinco barras con la misma regla de gmiBarHTML: sin meta (>0) no
+     hay barra; el % es el redondeado que ve el alumno en su vista. */
+  d.bars = [];
+  for (const m of METRICS) {
+    const goal = goals[m.key];
+    if (!(goal > 0)) continue;
+    const val = tot[m.key] || 0;
+    const bpct = Math.round((val / goal) * 100);
+    const raw = t('metric.' + m.key);
+    d.bars.push({
+      key: m.key, color: SHARE_GOALS_COLORS[m.key] || m.color, pct: bpct,
+      name: raw.charAt(0).toUpperCase() + raw.slice(1).toLowerCase(),
+      value: fmt(val) + ' / ' + (m.key === 'azuc' ? '≤ ' + fmt(goal) : fmt(goal)) + ' ' + m.unit
+    });
+  }
+  return d;
+}
 function shareDayLabel(iso) {
   const p = iso.split('-').map(Number); const d = new Date(p[0], p[1] - 1, p[2]);
   const wd = (SHARE_WD[LANG] || SHARE_WD.en)[(d.getDay() + 6) % 7];
@@ -31831,6 +31888,178 @@ function sharePhotoDraw(ctx, url, x, y, s) {
   ctx.restore();
   return true;
 }
+/* ---------- pintura de «Mi día en metas» (maqueta aprobada, punto 110) ----------
+   Geometría de la maqueta (lienzo de 360 unidades CSS ×3): marca y chip
+   de la familia, panel blanco con la vista del día tal como la pinta la
+   app (anillo, objetivo, franja de ruta, cinco barras, pie científico) y
+   pie de marca sin pastilla de frase — en esta tarjeta la línea guía del
+   anillo hace ese papel, como en la maqueta. En 1:1 la composición se
+   reduce a lo esencial (anillo, objetivo, barras y el pie científico,
+   que va SIEMPRE) escalada para caber; la franja de ruta queda fuera. */
+function sgWrap(ctx, str, weight, px, maxW) {
+  ctx.save(); ctx.font = shareCtxFont(weight, px);
+  const words = String(str == null ? '' : str).split(/\s+/).filter(Boolean);
+  const lines = []; let cur = '';
+  for (const w of words) {
+    const test = cur ? cur + ' ' + w : w;
+    if (cur && ctx.measureText(test).width > maxW) { lines.push(cur); cur = w; }
+    else cur = test;
+  }
+  if (cur) lines.push(cur);
+  ctx.restore();
+  return lines;
+}
+function sgText(ctx, str, x, cy, weight, px, color, opt) {
+  ctx.save();
+  ctx.font = shareCtxFont(weight, px, !!(opt && opt.emoji));
+  ctx.fillStyle = color;
+  ctx.textAlign = (opt && opt.align) || 'left';
+  ctx.textBaseline = 'middle';
+  if (opt && opt.ls) { try { ctx.letterSpacing = opt.ls + 'px'; } catch (err) {} }
+  ctx.fillText(str, x, cy);
+  ctx.restore();
+}
+function sgBox(ctx, x, y, w, h, r, fill) {
+  ctx.save(); ctx.fillStyle = fill; shareRR(ctx, x, y, w, h, r); ctx.fill(); ctx.restore();
+}
+function sgPanelWhite(ctx, x, y, w, h, r) {
+  ctx.save();
+  ctx.shadowColor = 'rgba(0,42,36,.30)'; ctx.shadowBlur = 39; ctx.shadowOffsetY = 15;
+  ctx.fillStyle = '#FFFFFF'; shareRR(ctx, x, y, w, h, r); ctx.fill();
+  ctx.restore();
+}
+function shareDrawGoals(ctx, W, H, d) {
+  shareBg(ctx, W, H);
+  const square = H === W;
+  const u = W / 360;
+  shareBrand(ctx, W, square ? 50 : 60, 52);
+  sharePill(ctx, W / 2, (square ? 55 : 61) * u, t('share.goalsChip'), 31.5, { ls: 2.7 });
+  const PX = 12, PW = 336, IX = 24, IW = 312;
+  const panelY = (square ? 74 : 84) * u;
+  const nameLine = ((UDATA && UDATA.name) || shareFirstName() || '') + ' · ' + shareDayLabel(d.iso);
+  /* Medida previa: componer con K=1 y, en 1:1, escalar la composición
+     entera para que quepa (la franja de ruta queda fuera en 1:1). */
+  const measure = (K) => {
+    const F = (css) => css * u * K;
+    const line2L = sgWrap(ctx, d.line2, 700, F(12), F(192));
+    const guideL = d.guide ? sgWrap(ctx, d.guide, 400, F(10), F(192)) : [];
+    const ringTextBottom = Math.max(38 + (line2L.length - 1) * 15 + 7,
+      guideL.length ? 50.5 + (guideL.length - 1) * 12.5 + 6 : 0, 45);
+    const ringH = Math.max(92, ringTextBottom + 23);
+    let objH = 0, objLs = [];
+    if (d.combo) {
+      objLs = d.objParas.map(p => sgWrap(ctx, p, 400, F(10.5), F(IW - 22)));
+      const lines = objLs.reduce((s, a) => s + a.length, 0);
+      objH = 53 + lines * 13.5 + (objLs.length - 1) * 6;
+    }
+    let stripH = 0, stripL = [];
+    if (!square && d.summary) {
+      const st = d.summary.intent + ' ' + d.summary.route + (d.summary.lag ? ' ' + d.summary.lag : '');
+      stripL = sgWrap(ctx, st, 400, F(11), F(IW - 24));
+      stripH = 22 + stripL.length * 14.5;
+    }
+    const sciL = sgWrap(ctx, t('gmi.foundNote'), 400, F(9.5), F(IW - 20));
+    const sciH = 18 + sciL.length * 12;
+    const barsH = d.bars.length * 22 - 4;
+    let total = 30 + ringH;
+    if (d.combo) total += 7 + objH;
+    if (stripH) total += 7 + stripH;
+    total += 9 + barsH + 3 + sciH + 10;
+    return { K, line2L, guideL, ringH, objH, objLs, stripH, stripL, sciL, sciH, barsH, total };
+  };
+  let M = measure(1);
+  if (square) {
+    const avail = 360 - 74 - 30; /* panel desde 74 + pie y respiro */
+    if (M.total > avail) M = measure(Math.max(0.5, avail / M.total));
+  }
+  const K = M.K, F = (css) => css * u * K;
+  const panelH = M.total * u * K;
+  sgPanelWhite(ctx, PX * u, panelY, PW * u, panelH, 16 * u);
+  const ink = '#1F2A44', sub = '#475569', body = '#334155', tealDk = '#00705F', pale = '#EDF5F2';
+  const npx = shareFitPx(ctx, nameLine, 600, F(9.5), (IW - 16) * u * K);
+  sgText(ctx, nameLine, W / 2, panelY + F(17), 700, npx, sub, { align: 'center' });
+  let y = panelY + F(30);
+  /* --- anillo --- */
+  sgBox(ctx, IX * u, y, IW * u, F(M.ringH), F(12), pale);
+  const rcx = (IX + 50) * u, rcy = y + F(M.ringH) / 2, R = F(38), LW = F(9);
+  ctx.save();
+  ctx.lineWidth = LW; ctx.strokeStyle = '#E4EBE8';
+  ctx.beginPath(); ctx.arc(rcx, rcy, R, 0, Math.PI * 2); ctx.stroke();
+  if (d.pct > 0) {
+    ctx.strokeStyle = d.pct > 100 ? '#DC2626' : '#0D9488'; ctx.lineCap = 'round';
+    ctx.beginPath(); ctx.arc(rcx, rcy, R, -Math.PI / 2, -Math.PI / 2 + Math.min(d.pct, 100) / 100 * Math.PI * 2); ctx.stroke();
+  }
+  ctx.restore();
+  sgText(ctx, d.pct + '%', rcx, rcy - F(7), 800, F(19), ink, { align: 'center' });
+  sgText(ctx, t('gmi.ofDay'), rcx, rcy + F(10), 400, F(8.5), sub, { align: 'center' });
+  const tx = (IX + 106) * u;
+  sgText(ctx, fmt(d.tot.kcal) + ' ' + (LANG === 'es' ? 'de' : 'of') + ' ' + fmt(d.goals.kcal) + ' kcal', tx, y + F(21), 800, F(15), ink);
+  M.line2L.forEach((ln, i) => sgText(ctx, ln, tx, y + F(38 + i * 15), 700, F(12), d.left < 0 ? '#DC2626' : tealDk));
+  M.guideL.forEach((ln, i) => sgText(ctx, ln, tx, y + F(50.5 + i * 12.5), 400, F(10), sub));
+  y += F(M.ringH);
+  /* --- bloque del objetivo --- */
+  if (d.combo) {
+    y += F(7);
+    sgBox(ctx, IX * u, y, IW * u, F(M.objH), F(12), pale);
+    sgText(ctx, t('gmi.objBlockTitle'), (IX + 11) * u, y + F(15), 700, F(9), tealDk, { ls: F(1.1) });
+    sgText(ctx, t('gmi.objTitle.' + d.combo.obj + '.' + d.combo.focus), (IX + 11) * u, y + F(35), 800, F(14.5), ink);
+    let ly = y + F(54);
+    M.objLs.forEach((lines, pi) => {
+      if (pi > 0) ly += F(6);
+      lines.forEach(ln => { sgText(ctx, ln, (IX + 11) * u, ly, 400, F(10.5), body); ly += F(13.5); });
+    });
+    y += F(M.objH);
+  }
+  /* --- franja de ruta (solo 9:16) --- */
+  if (M.stripH) {
+    y += F(7);
+    sgBox(ctx, IX * u, y, IW * u, F(M.stripH), F(12), '#201F4B');
+    M.stripL.forEach((ln, i) => sgText(ctx, ln, (IX + 12) * u, y + F(18 + i * 14.5), 400, F(11), '#FFFFFF'));
+    y += F(M.stripH);
+  }
+  /* --- las cinco barras --- */
+  y += F(9);
+  d.bars.forEach((b) => {
+    const cyDot = y + F(6.5);
+    ctx.save(); ctx.fillStyle = b.color; ctx.beginPath(); ctx.arc((IX + 4.5) * u, cyDot, F(3.5), 0, Math.PI * 2); ctx.fill(); ctx.restore();
+    sgText(ctx, b.name, (IX + 14) * u, y + F(7), 400, F(11.5), '#1F2937');
+    const pctStr = b.pct + '%';
+    const pctW = shareTextW(ctx, pctStr, 700, F(11.5));
+    sgText(ctx, pctStr, (IX + IW) * u, y + F(7), 700, F(11.5), b.color, { align: 'right' });
+    sgText(ctx, b.value, (IX + IW) * u - pctW - F(6), y + F(7), 400, F(11.5), '#374151', { align: 'right' });
+    sgBox(ctx, IX * u, y + F(12), IW * u, F(6), F(3), '#E9EEF3');
+    const fw = Math.max(0, Math.min(b.pct, 100)) / 100 * IW * u;
+    if (fw > 0) sgBox(ctx, IX * u, y + F(12), fw, F(6), Math.min(F(3), fw / 2), b.color);
+    y += F(22);
+  });
+  y -= F(4);
+  /* --- pie científico: SIEMPRE --- */
+  y += F(3);
+  sgBox(ctx, IX * u, y, IW * u, F(M.sciH), F(12), pale);
+  M.sciL.forEach((ln, i) => sgText(ctx, ln, (IX + 10) * u, y + F(15 + i * 12), 400, F(9.5), sub));
+  shareTxt(ctx, 'RONBO FIT · fit.ronbo.store · #MiAvanceRonboFit', W / 2, H - (square ? 24 : 92),
+    shareCtxFont(700, square ? 22 : 28), 'rgba(255,255,255,.94)', { ls: square ? 2 : 3, shadowBlur: 14 });
+}
+/* Sin metas fundadas todavía: la tarjeta lo dice en simple, con las
+   mismas palabras de la app (gm.needData); no inventa ninguna cifra. */
+function shareDrawGoalsEmpty(ctx, W, H) {
+  shareBg(ctx, W, H);
+  const square = H === W;
+  const u = W / 360;
+  shareBrand(ctx, W, square ? 50 : 60, 52);
+  sharePill(ctx, W / 2, (square ? 55 : 61) * u, t('share.goalsChip'), 31.5, { ls: 2.7 });
+  const IX = 24, IW = 312, panelY = (square ? 74 : 84) * u;
+  const F = (css) => css * u;
+  const nameLine = ((UDATA && UDATA.name) || shareFirstName() || '') + ' · ' + shareDayLabel(todayISO());
+  const lines = sgWrap(ctx, t('gm.needData'), 400, F(11), F(IW - 24));
+  const panelH = F(30 + lines.length * 15 + 16);
+  sgPanelWhite(ctx, 12 * u, panelY, 336 * u, panelH, 16 * u);
+  const npx = shareFitPx(ctx, nameLine, 600, F(9.5), F(IW - 16));
+  sgText(ctx, nameLine, W / 2, panelY + F(17), 700, npx, '#475569', { align: 'center' });
+  lines.forEach((ln, i) => sgText(ctx, ln, (IX + 12) * u, panelY + F(42 + i * 15), 400, F(11), '#475569'));
+  shareTxt(ctx, 'RONBO FIT · fit.ronbo.store · #MiAvanceRonboFit', W / 2, H - (square ? 24 : 92),
+    shareCtxFont(700, square ? 22 : 28), 'rgba(255,255,255,.94)', { ls: square ? 2 : 3, shadowBlur: 14 });
+}
 /* Geometría FIJA de la tarjeta (la batería la verifica a nivel de
    píxel y de posiciones): margen X 72; la lista vive entre rowsTop
    y rowsLimit (sobre la divisoria del pie) — ver constantes en el
@@ -32042,6 +32271,18 @@ function shareRender() {
       (d.burnedKcal ? ' · 🔥 ' + t('act.flameBurned') + ': ' + fmt(d.burnedKcal) + ' kcal' : '') +
       (msg ? ' · ' + msg.icon + ' ' + msg.text : '') +
       ' · ronbo.fit #MiEntrenamientoRonboFit';
+  } else if (SHARE.type === 'goals') {
+    const d = shareGoalsData();
+    if (d) {
+      shareDrawGoals(ctx, W, H, d);
+      summary = t('share.goalsLab') + ' · ' + shareDayLabel(d.iso) + ' · ' + d.pct + '% ' + t('share.ofGoal') + ' · ' +
+        fmt(d.tot.kcal) + ' / ' + fmt(d.goals.kcal) + ' kcal' +
+        d.bars.map(b => ' · ' + b.name + ' ' + b.pct + '%').join('') +
+        ' · ronbo.fit #MiAvanceRonboFit';
+    } else {
+      shareDrawGoalsEmpty(ctx, W, H);
+      summary = t('share.goalsLab') + ' · ' + shareDayLabel(todayISO()) + ' · ' + t('gm.needData') + ' · ronbo.fit #MiAvanceRonboFit';
+    }
   } else if (SHARE.type === 'week') {
     const d = shareWeekData();
     shareDrawWeek(ctx, W, H, d);
@@ -32064,6 +32305,7 @@ function shareRender() {
   cv.setAttribute('aria-label', summary);
   SHARE.fileName = SHARE.type === 'workout' && SHARE.workout
     ? 'ronbo-fit-workout-' + SHARE.workout.dateISO + '.png'
+    : SHARE.type === 'goals' ? 'ronbo-fit-myday-' + todayISO() + '.png'
     : (SHARE.type === 'week' ? 'ronbo-fit-week-' : 'ronbo-fit-goal-') + todayISO() + '.png';
   SHARE.blob = null;
   shareRefreshShareBtn();
@@ -32095,9 +32337,10 @@ function shareDownload() {
 function shareSyncTypeUI() {
   const f = $('share-float'); if (!f) return;
   f.classList.toggle('share-workout-mode', SHARE.type === 'workout');
-  const bd = $('btn-share-day'), bw = $('btn-share-week');
+  const bd = $('btn-share-day'), bw = $('btn-share-week'), bg = $('btn-share-goals');
   if (bd) bd.setAttribute('aria-pressed', SHARE.type === 'day' ? 'true' : 'false');
   if (bw) bw.setAttribute('aria-pressed', SHARE.type === 'week' ? 'true' : 'false');
+  if (bg) bg.setAttribute('aria-pressed', SHARE.type === 'goals' ? 'true' : 'false');
 }
 function shareOpen() {
   const f = $('share-float'); if (!f) return;
@@ -32135,6 +32378,7 @@ document.addEventListener('keydown', e => { if (e.key === 'Escape') { const f = 
 document.addEventListener('keydown', e => { if (e.key === 'Escape') { const f = $('yt-float'); if (f && f.style.display !== 'none') ytClosePlayer(); } });
 { const b = $('btn-share-day'); if (b) b.addEventListener('click', () => shareSetType('day')); }
 { const b = $('btn-share-week'); if (b) b.addEventListener('click', () => shareSetType('week')); }
+{ const b = $('btn-share-goals'); if (b) b.addEventListener('click', () => shareSetType('goals')); }
 { const b = $('btn-share-f916'); if (b) b.addEventListener('click', () => shareSetFormat('916')); }
 { const b = $('btn-share-f11'); if (b) b.addEventListener('click', () => shareSetFormat('11')); }
 { const b = $('btn-share-send'); if (b) b.addEventListener('click', shareSend); }
@@ -32158,7 +32402,7 @@ document.addEventListener('keydown', e => { if (e.key === 'Escape') shareClose()
  *  - El SW (sw.js) solo cachea la cáscara del mismo origen en modo
  *    RED PRIMERO: Auth/Firestore/Worker jamás pasan por la caché.
  * ================================================================ */
-const PWA_SW_VERSION = '20261102-aviso-fotos';
+const PWA_SW_VERSION = '20261102-ficha-dia';
 let pwaDeferredPrompt = null;
 function pwaIsStandalone() {
   try {

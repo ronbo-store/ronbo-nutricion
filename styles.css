@@ -3315,3 +3315,7 @@ body.sess-on #pend-back-chip { bottom: calc(env(safe-area-inset-bottom, 0px) + 1
 .teval-ask-btn { width: 100%; min-height: 48px; font-size: 15px; }
 .teval-ask .stu-nudged { display: block; text-align: center; white-space: normal; padding: 6px 0; }
 /* == FIN AUTH-188 == */
+/* == AUTH-189 · ficha «Mi día en metas» (punto 110): distintivo de la opción nueva == */
+.share-opts .act-chip { position: relative; }
+.act-chip-badge { position: absolute; top: -8px; right: 8px; background: #fef3c7; color: #b45309; font-size: 9px; font-weight: 800; letter-spacing: .4px; padding: 2px 7px; border-radius: 999px; box-shadow: 0 1px 4px rgba(0,0,0,.12); pointer-events: none; }
+/* == FIN AUTH-189 == */
