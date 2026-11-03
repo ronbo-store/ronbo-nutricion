@@ -5855,6 +5855,15 @@ en: {
   'share.goalsLab': 'My day in goals',
   'share.goalsChip': '📊 MY DAY IN GOALS',
   'share.newBadge': 'NEW',
+  'share.shortLab': 'My day in short',
+  'share.shortChip': '📋 MY DAY IN SHORT',
+  'share.shortTrain': "Today's workout",
+  'share.shortFood': "Today's food",
+  'share.shortNoTrain': 'No workout yet today',
+  'share.shortMore': '+{n} more',
+  'share.shortNoAct': 'No activity logged today',
+  'share.shortActMin': '{n} min of activity today',
+  'share.shortSteps': '{n} steps today',
   'share.format916': 'Story 9:16',
   'share.format11': 'Post 1:1',
   'share.send': 'Share',
@@ -8739,6 +8748,15 @@ es: {
   'share.goalsLab': 'Mi día en metas',
   'share.goalsChip': '📊 MI DÍA EN METAS',
   'share.newBadge': 'NUEVA',
+  'share.shortLab': 'Mi resumen del día',
+  'share.shortChip': '📋 MI RESUMEN DEL DÍA',
+  'share.shortTrain': 'Entrenamiento de hoy',
+  'share.shortFood': 'Comida de hoy',
+  'share.shortNoTrain': 'Aún no hay entrenamiento hoy',
+  'share.shortMore': '+{n} más',
+  'share.shortNoAct': 'Sin actividad registrada hoy',
+  'share.shortActMin': '{n} min de actividad hoy',
+  'share.shortSteps': '{n} pasos hoy',
   'share.format916': 'Historia 9:16',
   'share.format11': 'Publicación 1:1',
   'share.send': 'Compartir',
@@ -34991,6 +35009,209 @@ function shareDrawGoalsEmpty(ctx, W, H) {
   shareTxt(ctx, 'RONBO FIT · fit.ronbo.store · #MiAvanceRonboFit', W / 2, H - (square ? 24 : 92),
     shareCtxFont(700, square ? 22 : 28), 'rgba(255,255,255,.94)', { ls: square ? 2 : 3, shadowBlur: 14 });
 }
+/* ---------- tarjeta «Mi resumen del día» (cuarta del selector,
+   pedido directo de Ronald, chat RONBO.NUTRI, 2026-11-03 13:21 CST) ----------
+   El resumen CORTITO del día, con los datos DEL MOMENTO (sin exigir
+   el día cerrado), en el mismo dialecto visual de «Mi día en metas»
+   (panel blanco, cajas pálidas): (1) los ejercicios HECHOS hoy con
+   el resumen de sesión de la casa (series · reps máx · peso máx en
+   doble medición, AUTH-202) y en el orden en que se entrenaron;
+   (2) la llamita con lo quemado hasta la hora; (3) la ruedita de
+   alimentos tal como la pinta «Mi día en metas». Cada bloque con su
+   estado vacío honesto: ninguna cifra sale de un cálculo nuevo —
+   solo se re-presenta lo que la app ya calcula y guarda. */
+/* La línea de resumen de una sesión: las mismas tres cifras del
+   bloque de la casa (train.histRec) con el peso en doble medición. */
+function shareShortSumLine(sum) {
+  if (!sum) return '';
+  const parts = [];
+  if (sum.nSets != null) parts.push(sum.nSets + ' ' + t('train.histRec.sets'));
+  if (sum.maxReps != null) parts.push(t('train.histRec.repsMax') + ' ' + sum.maxReps);
+  if (sum.maxLoad != null) parts.push(t('train.histRec.loadMax') + ' ' + fmtMassDual(sum.maxLoad));
+  return parts.join(' · ');
+}
+function shareShortData() {
+  const iso = todayISO();
+  /* EJERCICIOS DE HOY, en el orden entrenado. Día cerrado: manda el
+     registro — su exercisesDone YA está en el orden en que se
+     entrenó (el cierre lo escribe así) y el resumen de cada
+     ejercicio sale de sus series guardadas
+     (trainSessionSummaryFromSets, el mismo de AUTH-202). El nombre
+     se resuelve contra el día del plan por exerciseId, como hace
+     trainHistRows: las entradas del registro no siempre lo traen.
+     Día en curso: la lista efectiva de hoy (trainEffectiveList —
+     respeta el orden del día de AUTH-203) con las marcas vivas; el
+     resumen es el espejo en vivo del escritor del cierre
+     (trainSessionSummaryLive). Un día ya cerrado no se duplica con
+     sus marcas: el registro manda sobre su día. */
+  const exs = [];
+  const plan = (typeof MY_PLAN !== 'undefined') ? MY_PLAN : null;
+  const logs = (typeof MY_LOGS !== 'undefined' && Array.isArray(MY_LOGS)) ? MY_LOGS : [];
+  const loggedDis = new Set();
+  logs.filter(l => l && l.date === iso).forEach(log => {
+    const di = Number(log.dayIndex);
+    if (Number.isInteger(di)) loggedDis.add(di);
+    const day = (plan && Array.isArray(plan.days)) ? (plan.days[di] || {}) : {};
+    (Array.isArray(log.exercisesDone) ? log.exercisesDone : []).forEach(e => {
+      if (!e || e.done === false) return;
+      let name = e.name || '';
+      if (!name && e.exerciseId) {
+        const pex = (day.exercises || []).find(x => x && x.exerciseId === e.exerciseId);
+        if (pex) name = (Number.isInteger(e.variantIndex) ? trainExName(Object.assign({}, pex, { variantIndex: e.variantIndex })) : trainExName(pex)) || pex.name || '';
+      }
+      if (!name && e.swappedFrom) name = e.swappedFrom;
+      exs.push({ name, sum: trainSessionSummaryFromSets(e.sets) });
+    });
+  });
+  if (plan && typeof TRAIN_CHECKS !== 'undefined' && TRAIN_CHECKS) {
+    const liveDis = [...new Set(Object.keys(TRAIN_CHECKS).map(k => Number(k.split(':')[0])))]
+      .filter(di => Number.isInteger(di) && !loggedDis.has(di)).sort((a, b) => a - b);
+    liveDis.forEach(di => {
+      trainEffectiveList(plan, di, iso).forEach((it, ei) => {
+        const chk = TRAIN_CHECKS[di + ':' + ei];
+        if (!chk) return;
+        exs.push({ name: trainExName(it.ex) || it.ex.name || '', sum: trainSessionSummaryLive(chk) });
+      });
+    });
+  }
+  /* LA LLAMITA: la cifra que la propia llamita muestra —
+     actDayView(iso).extras, el kcalExtraTotal GUARDADO del día (la
+     estimación de la sesión al cerrar + las actividades con su
+     kcalEstimated, calculadas al guardar por el modelo de la casa).
+     Es la misma fuente de la tarjeta «Mi entrenamiento»
+     (trainShareModel). Si ese total es 0 pero hay minutos o pasos
+     registrados, la tarjeta los dice SIN inventar calorías; si no
+     hay nada, lo dice en simple. */
+  let flame = { kind: 'none', kcal: 0, mins: 0, steps: 0 };
+  if (typeof ACT_LOADED !== 'undefined' && ACT_LOADED && typeof actDayView === 'function') {
+    const v = actDayView(iso);
+    if (v && v.extras > 0) flame = { kind: 'kcal', kcal: Math.round(v.extras), mins: 0, steps: 0 };
+    else {
+      const mins = shareActMinutes(iso);
+      const steps = v ? v.steps : 0;
+      if (mins > 0 || steps > 0) flame = { kind: 'some', kcal: 0, mins, steps };
+    }
+  }
+  /* LA RUEDITA: la MISMA fuente de la tarjeta «Mi día en metas»
+     (shareGoalsData: metas fundadas y totales del día). Sin metas
+     fundadas devuelve null y el bloque lo dice con las palabras de
+     la app (gm.needData), como su tarjeta hermana. */
+  const goals = shareGoalsData();
+  return { iso, exs, flame, goals };
+}
+function shareDrawShort(ctx, W, H, d) {
+  shareBg(ctx, W, H);
+  const square = H === W;
+  const u = W / 360;
+  shareBrand(ctx, W, square ? 50 : 60, 52);
+  sharePill(ctx, W / 2, (square ? 55 : 61) * u, t('share.shortChip'), 31.5, { ls: 2.7 });
+  const PX = 12, PW = 336, IX = 24, IW = 312;
+  const panelY = (square ? 74 : 84) * u;
+  const nameLine = ((UDATA && UDATA.name) || shareFirstName() || '') + ' · ' + shareDayLabel(d.iso);
+  const ink = '#1F2A44', sub = '#475569', tealDk = '#00705F', pale = '#EDF5F2';
+  const cap = square ? 4 : 6;
+  const shown = d.exs.slice(0, cap);
+  const more = d.exs.length - shown.length;
+  const g = d.goals;
+  /* Medida previa, como en «Mi día en metas»: componer con K=1 y,
+     en 1:1, escalar la composición entera para que quepa. */
+  const measure = (K) => {
+    const F = (css) => css * u * K;
+    let trainBodyH, noTrainL = [];
+    if (!shown.length) { noTrainL = sgWrap(ctx, t('share.shortNoTrain'), 400, F(11), F(IW - 24)); trainBodyH = noTrainL.length * 14; }
+    else trainBodyH = shown.length * 26 + (more > 0 ? 15 : 0);
+    const trainH = 30 + trainBodyH + 9;
+    const flameH = 32;
+    let foodBodyH, needL = [], line2L = [];
+    if (!g) { needL = sgWrap(ctx, t('gm.needData'), 400, F(10.5), F(IW - 24)); foodBodyH = needL.length * 13 + 2; }
+    else { line2L = sgWrap(ctx, g.line2, 700, F(11.5), F(196)); foodBodyH = 86 + (g.bars.length * 20 - 4); }
+    const foodH = 30 + foodBodyH + 9;
+    const total = 30 + trainH + 7 + flameH + 7 + foodH + 10;
+    return { K, trainH, flameH, foodH, noTrainL, needL, line2L, total };
+  };
+  let M = measure(1);
+  if (square) {
+    const avail = 360 - 74 - 30; /* panel desde 74 + pie y respiro */
+    if (M.total > avail) M = measure(Math.max(0.5, avail / M.total));
+  }
+  const K = M.K, F = (css) => css * u * K;
+  sgPanelWhite(ctx, PX * u, panelY, PW * u, M.total * u * K, 16 * u);
+  const npx = shareFitPx(ctx, nameLine, 600, F(9.5), (IW - 16) * u * K);
+  sgText(ctx, nameLine, W / 2, panelY + F(17), 700, npx, sub, { align: 'center' });
+  let y = panelY + F(30);
+  /* --- los ejercicios de hoy --- */
+  sgBox(ctx, IX * u, y, IW * u, F(M.trainH), F(12), pale);
+  sgText(ctx, t('share.shortTrain').toUpperCase(), (IX + 11) * u, y + F(15), 700, F(9), tealDk, { ls: F(1.1) });
+  if (!shown.length) {
+    M.noTrainL.forEach((ln, i) => sgText(ctx, ln, (IX + 12) * u, y + F(38 + i * 14), 400, F(11), sub));
+  } else {
+    shown.forEach((e, i) => {
+      const ry = y + F(30 + i * 26);
+      sgText(ctx, '✓', (IX + 12) * u, ry + F(7), 800, F(11.5), '#16A34A');
+      const nmPx = shareFitPx(ctx, e.name, 700, F(11.5), F(IW - 40));
+      sgText(ctx, e.name, (IX + 26) * u, ry + F(7), 700, nmPx, ink);
+      const sl = shareShortSumLine(e.sum);
+      if (sl) sgText(ctx, sl, (IX + 26) * u, ry + F(20), 400, F(9.5), sub);
+    });
+    if (more > 0) sgText(ctx, t('share.shortMore', { n: more }), (IX + 26) * u, y + F(30 + shown.length * 26 + 7), 700, F(10.5), tealDk);
+  }
+  y += F(M.trainH) + F(7);
+  /* --- la llamita --- */
+  sgBox(ctx, IX * u, y, IW * u, F(M.flameH), F(12), '#FFF7E8');
+  let flameTxt, flameW = 800, flamePx = F(12.5), flameColor = ink;
+  if (d.flame.kind === 'kcal') flameTxt = '🔥 ' + t('act.flameBurned') + ': ' + fmt(d.flame.kcal) + ' kcal';
+  else if (d.flame.kind === 'some') {
+    const parts = [];
+    if (d.flame.mins > 0) parts.push('🔥 ' + t('share.shortActMin', { n: d.flame.mins }));
+    if (d.flame.steps > 0) parts.push('🚶 ' + t('share.shortSteps', { n: fmt(d.flame.steps) }));
+    flameTxt = parts.join(' · ');
+  } else { flameTxt = '🔥 ' + t('share.shortNoAct'); flameW = 400; flamePx = F(11.5); flameColor = sub; }
+  const fPx = shareFitPx(ctx, flameTxt, flameW, flamePx, F(IW - 24));
+  /* Sin fuente de emojis para la línea entera: la familia pinta el
+     🔥 por caída de glifo sobre la fuente de texto (como la línea
+     de quemado de «Mi entrenamiento»); pedir la fuente emoji para
+     toda la línea la deformaba en algunos motores. */
+  sgText(ctx, flameTxt, W / 2, y + F(M.flameH) / 2, flameW, fPx, flameColor, { align: 'center' });
+  y += F(M.flameH) + F(7);
+  /* --- la ruedita de alimentos --- */
+  sgBox(ctx, IX * u, y, IW * u, F(M.foodH), F(12), pale);
+  sgText(ctx, t('share.shortFood').toUpperCase(), (IX + 11) * u, y + F(15), 700, F(9), tealDk, { ls: F(1.1) });
+  if (!g) {
+    M.needL.forEach((ln, i) => sgText(ctx, ln, (IX + 12) * u, y + F(38 + i * 13), 400, F(10.5), sub));
+  } else {
+    const ringTop = y + F(30);
+    const rcx = (IX + 46) * u, rcy = ringTop + F(40), R = F(34), LW = F(8.5);
+    ctx.save();
+    ctx.lineWidth = LW; ctx.strokeStyle = '#E4EBE8';
+    ctx.beginPath(); ctx.arc(rcx, rcy, R, 0, Math.PI * 2); ctx.stroke();
+    if (g.pct > 0) {
+      ctx.strokeStyle = g.pct > 100 ? '#DC2626' : '#0D9488'; ctx.lineCap = 'round';
+      ctx.beginPath(); ctx.arc(rcx, rcy, R, -Math.PI / 2, -Math.PI / 2 + Math.min(g.pct, 100) / 100 * Math.PI * 2); ctx.stroke();
+    }
+    ctx.restore();
+    sgText(ctx, g.pct + '%', rcx, rcy - F(6), 800, F(17), ink, { align: 'center' });
+    sgText(ctx, t('gmi.ofDay'), rcx, rcy + F(9), 400, F(8), sub, { align: 'center' });
+    const tx = (IX + 100) * u;
+    sgText(ctx, fmt(g.tot.kcal) + ' ' + (LANG === 'es' ? 'de' : 'of') + ' ' + fmt(g.goals.kcal) + ' kcal', tx, ringTop + F(16), 800, F(14), ink);
+    M.line2L.forEach((ln, i) => sgText(ctx, ln, tx, ringTop + F(33 + i * 14), 700, F(11.5), g.left < 0 ? '#DC2626' : tealDk));
+    let by = ringTop + F(86);
+    g.bars.forEach((b) => {
+      const cyDot = by + F(5.5);
+      ctx.save(); ctx.fillStyle = b.color; ctx.beginPath(); ctx.arc((IX + 4.5) * u, cyDot, F(3.5), 0, Math.PI * 2); ctx.fill(); ctx.restore();
+      sgText(ctx, b.name, (IX + 14) * u, by + F(6), 400, F(11), '#1F2937');
+      const pctStr = b.pct + '%';
+      const pctW = shareTextW(ctx, pctStr, 700, F(11));
+      sgText(ctx, pctStr, (IX + IW) * u, by + F(6), 700, F(11), b.color, { align: 'right' });
+      sgText(ctx, b.value, (IX + IW) * u - pctW - F(6), by + F(6), 400, F(11), '#374151', { align: 'right' });
+      sgBox(ctx, IX * u, by + F(11), IW * u, F(5.5), F(2.75), '#E9EEF3');
+      const fw = Math.max(0, Math.min(b.pct, 100)) / 100 * IW * u;
+      if (fw > 0) sgBox(ctx, IX * u, by + F(11), fw, F(5.5), Math.min(F(2.75), fw / 2), b.color);
+      by += F(20);
+    });
+  }
+  shareTxt(ctx, 'RONBO FIT · fit.ronbo.store · #MiAvanceRonboFit', W / 2, H - (square ? 24 : 92),
+    shareCtxFont(700, square ? 22 : 28), 'rgba(255,255,255,.94)', { ls: square ? 2 : 3, shadowBlur: 14 });
+}
 /* Geometría FIJA de la tarjeta (la batería la verifica a nivel de
    píxel y de posiciones): margen X 72; la lista vive entre rowsTop
    y rowsLimit (sobre la divisoria del pie) — ver constantes en el
@@ -35224,6 +35445,14 @@ function shareRender() {
       (d.bestIdx >= 0 ? ' · ' + t('share.bestDay', { day: (SHARE_WD[LANG] || SHARE_WD.en)[d.bestIdx] }) : '') +
       (d.milestones.length ? ' · ' + d.milestones.join(' · ') : '') +
       ' · ' + (d.phrase === 'week' ? t('share.phraseWeek') : t('share.phraseStart')) + ' · ronbo.fit';
+  } else if (SHARE.type === 'short') {
+    const d = shareShortData();
+    shareDrawShort(ctx, W, H, d);
+    summary = t('share.shortLab') + ' · ' + shareDayLabel(d.iso) +
+      (d.exs.length ? ' · ' + d.exs.map(e => e.name).join(', ') : ' · ' + t('share.shortNoTrain')) +
+      (d.flame.kind === 'kcal' ? ' · 🔥 ' + t('act.flameBurned') + ': ' + fmt(d.flame.kcal) + ' kcal' : '') +
+      (d.goals ? ' · ' + d.goals.pct + '% ' + t('share.ofGoal') + ' · ' + fmt(d.goals.tot.kcal) + ' / ' + fmt(d.goals.goals.kcal) + ' kcal' : '') +
+      ' · ronbo.fit #MiAvanceRonboFit';
   } else {
     const d = shareDayData();
     shareDrawDay(ctx, W, H, d);
@@ -35237,6 +35466,7 @@ function shareRender() {
   SHARE.fileName = SHARE.type === 'workout' && SHARE.workout
     ? 'ronbo-fit-workout-' + SHARE.workout.dateISO + '.png'
     : SHARE.type === 'goals' ? 'ronbo-fit-myday-' + todayISO() + '.png'
+    : SHARE.type === 'short' ? 'ronbo-fit-dayshort-' + todayISO() + '.png'
     : (SHARE.type === 'week' ? 'ronbo-fit-week-' : 'ronbo-fit-goal-') + todayISO() + '.png';
   SHARE.blob = null;
   shareRefreshShareBtn();
@@ -35268,10 +35498,11 @@ function shareDownload() {
 function shareSyncTypeUI() {
   const f = $('share-float'); if (!f) return;
   f.classList.toggle('share-workout-mode', SHARE.type === 'workout');
-  const bd = $('btn-share-day'), bw = $('btn-share-week'), bg = $('btn-share-goals');
+  const bd = $('btn-share-day'), bw = $('btn-share-week'), bg = $('btn-share-goals'), bs = $('btn-share-short');
   if (bd) bd.setAttribute('aria-pressed', SHARE.type === 'day' ? 'true' : 'false');
   if (bw) bw.setAttribute('aria-pressed', SHARE.type === 'week' ? 'true' : 'false');
   if (bg) bg.setAttribute('aria-pressed', SHARE.type === 'goals' ? 'true' : 'false');
+  if (bs) bs.setAttribute('aria-pressed', SHARE.type === 'short' ? 'true' : 'false');
 }
 function shareOpen() {
   const f = $('share-float'); if (!f) return;
@@ -35310,6 +35541,7 @@ document.addEventListener('keydown', e => { if (e.key === 'Escape') { const f = 
 { const b = $('btn-share-day'); if (b) b.addEventListener('click', () => shareSetType('day')); }
 { const b = $('btn-share-week'); if (b) b.addEventListener('click', () => shareSetType('week')); }
 { const b = $('btn-share-goals'); if (b) b.addEventListener('click', () => shareSetType('goals')); }
+{ const b = $('btn-share-short'); if (b) b.addEventListener('click', () => shareSetType('short')); }
 { const b = $('btn-share-f916'); if (b) b.addEventListener('click', () => shareSetFormat('916')); }
 { const b = $('btn-share-f11'); if (b) b.addEventListener('click', () => shareSetFormat('11')); }
 { const b = $('btn-share-send'); if (b) b.addEventListener('click', shareSend); }
@@ -35333,7 +35565,7 @@ document.addEventListener('keydown', e => { if (e.key === 'Escape') shareClose()
  *  - El SW (sw.js) solo cachea la cáscara del mismo origen en modo
  *    RED PRIMERO: Auth/Firestore/Worker jamás pasan por la caché.
  * ================================================================ */
-const PWA_SW_VERSION = '20261103-reordenar-dia';
+const PWA_SW_VERSION = '20261103-resumen-dia';
 let pwaDeferredPrompt = null;
 function pwaIsStandalone() {
   try {
