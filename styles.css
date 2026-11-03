@@ -3373,3 +3373,40 @@ body.sess-on #pend-back-chip { bottom: calc(env(safe-area-inset-bottom, 0px) + 1
 .eval-comp-new-note{font-weight:700;color:#0f766e;margin:0 0 2px}
 .eval-comp-ok{margin:8px 0 0}
 /* == FIN COMPOSICIÓN CLARA == */
+
+/* ═══ INFORME DE ATENCIÓN DE ENTRENADORES (punto 93 · AUTH-193) ═══
+   Pastilla de Administración y tarjeta propia del entrenador.
+   Controles grandes de la casa (se usa entrenando). */
+.care-trainer { border: 1px solid #e2e8f0; border-radius: 14px; margin: 10px 0; background: #fff; overflow: hidden; }
+.care-thead { display: flex; align-items: center; gap: 10px; width: 100%; min-height: 56px; padding: 10px 14px; background: none; border: 0; cursor: pointer; text-align: left; font: inherit; }
+.care-dot { width: 14px; height: 14px; border-radius: 50%; flex: 0 0 auto; background: #94a3b8; }
+.care-dot.care-green { background: #16a34a; }
+.care-dot.care-amber { background: #f59e0b; }
+.care-dot.care-red { background: #dc2626; }
+.care-tmain { flex: 1; display: flex; flex-direction: column; min-width: 0; }
+.care-tsub { color: #64748b; font-size: .85em; }
+.care-tlight { font-weight: 700; }
+.care-tlight.care-green { color: #16a34a; }
+.care-tlight.care-amber { color: #b45309; }
+.care-tlight.care-red { color: #dc2626; }
+.care-tbody { padding: 4px 14px 14px; }
+.care-banner { display: flex; align-items: center; gap: 8px; padding: 8px 12px; border-radius: 10px; margin: 6px 0 10px; background: #f1f5f9; }
+.care-banner.care-amber { background: #fef3c7; }
+.care-banner.care-red { background: #fee2e2; }
+.care-sig { margin: 0 0 10px; padding-left: 20px; line-height: 1.55; }
+.care-sig .care-bad { color: #b91c1c; font-weight: 600; }
+.care-sig .care-warn { color: #92400e; font-weight: 600; }
+.care-per { display: flex; flex-direction: column; gap: 6px; }
+.care-per-row { display: flex; justify-content: space-between; gap: 10px; align-items: center; width: 100%; min-height: 48px; padding: 8px 12px; border: 1px solid #e2e8f0; border-radius: 10px; background: #f8fafc; cursor: pointer; font: inherit; text-align: left; }
+.care-per-name { font-weight: 600; }
+.care-per-tags { color: #475569; font-size: .88em; text-align: right; }
+.care-th { border: 1px dashed #cbd5e1; border-radius: 14px; padding: 12px 14px; margin: 10px 0; }
+.care-th-title { font-weight: 700; margin: 0 0 8px; }
+.care-th-row { display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 6px 0; }
+.care-th-label { flex: 1; }
+.care-th-ctl { display: flex; align-items: center; gap: 10px; }
+.care-step { width: 48px; height: 48px; border-radius: 12px; border: 1px solid #0d9488; background: #fff; color: #0d9488; font-size: 22px; cursor: pointer; }
+.care-th-val { min-width: 44px; text-align: center; font-weight: 700; font-size: 1.05em; }
+.care-mine { border: 1px solid #e2e8f0; border-radius: 14px; margin: 10px 0; background: #fff; overflow: hidden; }
+.care-mine-head { width: 100%; min-height: 52px; padding: 10px 14px; background: none; border: 0; font: inherit; font-weight: 700; text-align: left; cursor: pointer; }
+#care-mine-body { padding: 0 14px 14px; }

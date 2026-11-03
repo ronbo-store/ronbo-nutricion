@@ -2102,6 +2102,7 @@ const ADMIN_SECTIONS = [
   { id: 'flags', sub: 'tech', titleKey: 'esc.flagsTitle', mount: admSecMountFlags },
   { id: 'accesslog', sub: 'system', titleKey: 'nd2.title', mount: admSecMountAccessLog, refresh: admSecRefreshAccessLog },
   { id: 'limits', sub: 'system', titleKey: 'limreg.title', mount: admSecMountLimits, refresh: admSecRefreshLimits },
+  { id: 'care', sub: 'system', titleKey: 'care.title', mount: admSecMountCare, refresh: admSecRefreshCare },
 ];
 const ADM_SEC_OPEN = {};     // id → abierta (solo presentación)
 const ADM_SEC_MOUNTED = {};  // id → contenido ya montado
@@ -2165,6 +2166,595 @@ async function renderAdminZone() {
     } else ADM_SEC_MOUNTED[s.id] = false;
   });
 }
+/* ════════════════════════════════════════════════════════════════════
+   INFORME DE ATENCIÓN DE ENTRENADORES (punto 93 de la cola) — AUTH-193.
+   Decisiones de Ronald (propuesta del 2026-11-02, decisiones cerradas
+   el 2026-11-02/03): D1 correo semanal al administrador, lunes 07:00
+   America/Chicago, enviado por el Worker con la MISMA maquinaria de
+   correo del resumen diario — D2 cada entrenador ve SOLO sus propias
+   cifras (tarjeta «Mi atención» en «Mis alumnos»); el administrador
+   es el único que compara — D3 la marca «revisado por el entrenador»
+   NO va en v1 (queda para v2) — D4 umbrales de arranque = los de la
+   propuesta, criterios de PRODUCTO ajustables por el administrador
+   en app_settings/trainer_attention, nunca presentados como ciencia
+   — D5 la satisfacción del alumno (caritas de AUTH-176) SÍ entra.
+   SIN datos de salud en ninguna superficie del informe (ni aquí ni
+   en el correo): solo cifras del proceso de atención.
+   El núcleo CARE-CORE es PURO (sin lecturas ni DOM) y tiene su
+   gemelo TA-CORE en el Worker con la misma matemática; la batería
+   del paquete corre los mismos casos por ambos y exige igualdad.
+   Las ventanas «semana»/«mes» son los últimos 7/30 días.
+   ════════════════════════════════════════════════════════════════════ */
+
+/* === CARE-CORE-INI === */
+const CARE_DEFAULT_THRESHOLDS = { redDays: 14, weighPct: 80, satMin: 4, satMinN: 5, idleDays: 7 };
+const CARE_DELAY_MS = 72 * 3600 * 1000;   /* §8.4: solicitud DEMORADA */
+function careNormS(s) { return String(s == null ? '' : s).toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, ''); }
+function careISOofMs(ms) { const d = new Date(ms); return d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0') + '-' + String(d.getDate()).padStart(2, '0'); }
+function careAddDaysISO(iso, n) { const p = String(iso || '').split('-').map(Number); const d = new Date(p[0] || 1970, (p[1] || 1) - 1, p[2] || 1); d.setDate(d.getDate() + n); return careISOofMs(d.getTime()); }
+function careDaysBetween(aIso, bIso) { const a = new Date(String(aIso) + 'T12:00:00'), b = new Date(String(bIso) + 'T12:00:00'); if (isNaN(a) || isNaN(b)) return null; return Math.round((b - a) / 86400000); }
+const CARE_WD_EN = ['sunday', 'monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday'];
+const CARE_WD_ES = ['domingo', 'lunes', 'martes', 'miercoles', 'jueves', 'viernes', 'sabado'];
+function careWeekdayPairs(days) {
+  const pairs = {};
+  const list = Array.isArray(days) ? days : [];
+  for (let di = 0; di < list.length; di++) {
+    const lab = careNormS((list[di] && list[di].label) || '').trim();
+    let found = -1;
+    for (let wd = 0; wd < 7; wd++) {
+      if (lab === CARE_WD_EN[wd] || lab.indexOf(CARE_WD_EN[wd] + ' ') === 0 || lab === CARE_WD_ES[wd] || lab.indexOf(CARE_WD_ES[wd] + ' ') === 0) { found = wd; break; }
+    }
+    if (found < 0 || pairs[found] != null) return null;
+    pairs[found] = di;
+  }
+  return Object.keys(pairs).length ? pairs : null;
+}
+function carePlanCalWeekly(plan) {
+  const days = (plan && plan.days) || [];
+  const n = Math.floor(Number(plan && plan.sessionsPerWeek));
+  if (isFinite(n) && n >= 1) return Math.min(7, n);
+  return Math.min(7, days.length);
+}
+function carePlanCalApplies(plan) {
+  if (!plan || !Array.isArray(plan.days) || !plan.days.length) return false;
+  const s = String(plan.startsAt || '').slice(0, 10);
+  return /^\d{4}-\d{2}-\d{2}$/.test(s) && carePlanCalWeekly(plan) >= 1;
+}
+function carePlanCalDayIndex(plan, iso) {
+  if (!carePlanCalApplies(plan) || !/^\d{4}-\d{2}-\d{2}$/.test(iso || '')) return null;
+  const start = String(plan.startsAt).slice(0, 10);
+  if (iso < start) return null;
+  const end = plan.endsAt ? String(plan.endsAt).slice(0, 10) : null;
+  if (end && /^\d{4}-\d{2}-\d{2}$/.test(end) && iso > end) return null;
+  const n = carePlanCalWeekly(plan);
+  const diff = Math.round((new Date(iso + 'T12:00:00') - new Date(start + 'T12:00:00')) / 86400000);
+  const pos = diff % 7;
+  if (pos >= n) return null;
+  const ordinal = Math.floor(diff / 7) * n + pos;
+  return ordinal % plan.days.length;
+}
+/* Día del plan que toca en una fecha, con la precedencia de la casa
+   (trainDayMap: etiquetas de semana > configuración del alumno >
+   calendario del plan > rotación). idx null = ese día no hay sesión;
+   mode 'rotation' = el plan no tiene calendario derivable. */
+function careDayFor(plan, cfg, iso) {
+  const days = (plan && plan.days) || [];
+  if (!days.length) return { mode: 'rotation', idx: null };
+  const pairs = careWeekdayPairs(days);
+  if (pairs) { const wd = new Date(iso + 'T12:00:00').getDay(); return { mode: 'weekday', idx: (pairs[wd] != null ? pairs[wd] : null) }; }
+  if (cfg && cfg.activated && cfg.trainOn) {
+    const W = [...new Set((cfg.trainDays || []).map(Number))].sort((a, b) => a - b);
+    if (W.length === days.length) { const wd = new Date(iso + 'T12:00:00').getDay(); const k = W.indexOf(wd); return { mode: 'cfg', idx: k >= 0 ? k : null }; }
+  }
+  if (carePlanCalApplies(plan)) return { mode: 'plancal', idx: carePlanCalDayIndex(plan, iso) };
+  return { mode: 'rotation', idx: null };
+}
+/* Cómputo del informe de UN entrenador. X trae datos planos ya
+   leídos; la antigüedad sale SOLO de fechas que ya existen (la
+   unión de pendientes cuenta los indispensables SIN edad inventada,
+   como manda la propuesta). Sin ningún dato de salud. */
+function careCompute(tUid, X, nowMs, th) {
+  th = Object.assign({}, CARE_DEFAULT_THRESHOLDS, th || {});
+  const today = careISOofMs(nowMs);
+  const w7a = careAddDaysISO(today, -6), w30a = careAddDaysISO(today, -29);
+  const idleA = careAddDaysISO(today, -(th.idleDays - 1));
+  const stu = Array.isArray(X.students) ? X.students : [];
+  const R = {
+    uid: tUid, students: stu.length, quota: (X.quota == null ? null : X.quota), level: X.level || null,
+    withPlan: 0, withPlanPct: null, pendTotal: 0, pendIndis: 0, pendImp: 0, pendErr: false, pendOldestDays: null,
+    delayed: 0, waiting: (X.waiting || []).length, waitingOldestDays: null, waitingRed: false,
+    weigh7n: 0, weigh7pct: null, weigh30n: 0, weigh30pct: null, evalOkN: 0, evalDen: 0,
+    done7: 0, sched7: 0, sched7ok: true, done30: 0, sched30: 0, sched30ok: true, logsN30: 0,
+    idleN: 0, mealDaysAvg: null, respOpen: 0, respAns30: 0, appr30: 0, apprWaitH: null,
+    satMean7: null, satN7: 0, satMean30: null, satN30: 0, satRespPct30: null,
+    not7: 0, not30: 0, plans7: 0, plans30: 0, paces30: 0,
+    per: [], light: 'green', reasons: []
+  };
+  (X.waiting || []).forEach(w => {
+    const ageD = Math.max(0, Math.floor((nowMs - (w.createdMs || nowMs)) / 86400000));
+    if (R.waitingOldestDays == null || ageD > R.waitingOldestDays) R.waitingOldestDays = ageD;
+    if (ageD > th.redDays) R.waitingRed = true;
+  });
+  (X.reqs || []).forEach(r => {
+    if (r.trainerUid !== tUid) return;
+    if (r.status === 'pendiente_entrenador') {
+      R.respOpen++;
+      if (r.requestedMs != null && nowMs - r.requestedMs >= CARE_DELAY_MS) R.delayed++;
+    }
+    if (r.answeredMs != null && r.answeredMs >= nowMs - 30 * 86400000 && r.answeredMs <= nowMs) R.respAns30++;
+  });
+  (X.approvals || []).forEach(a => { if (a.ms >= nowMs - 30 * 86400000 && a.ms <= nowMs) R.appr30++; });
+  if ((X.apprWaitsH || []).length) { const s = [...X.apprWaitsH].sort((a, b) => a - b); R.apprWaitH = Math.round(s[Math.floor(s.length / 2)] * 10) / 10; }
+  (X.notices || []).forEach(n => { if (n.by === tUid) { if (n.atMs >= nowMs - 7 * 86400000) R.not7++; if (n.atMs >= nowMs - 30 * 86400000) R.not30++; } });
+  (X.plansTouched || []).forEach(p => { if (p.by === tUid) { if (p.atMs >= nowMs - 7 * 86400000) R.plans7++; if (p.atMs >= nowMs - 30 * 86400000) R.plans30++; } });
+  (X.paces || []).forEach(p => { if (p.by === tUid && p.atMs >= nowMs - 30 * 86400000 && p.atMs <= nowMs) R.paces30++; });
+  let mealDaysSum = 0, satSum7 = 0, satSum30 = 0;
+  stu.forEach(s => {
+    const per = { uid: s.uid, name: s.name || '', pend: 0, indis: 0, imp: 0, delayed: false, err: !!s.unionErr, hasPlan: !!s.plan, weighAgo: null, done7: 0 };
+    if (s.plan) R.withPlan++;
+    if (s.unionErr || !Array.isArray(s.items)) { R.pendErr = true; }
+    else {
+      let evalOpen = false;
+      s.items.forEach(it => {
+        per.pend++;
+        if (it.cat === 'indis') { per.indis++; R.pendIndis++; } else { per.imp++; R.pendImp++; }
+        if (it.kind === 'mealreq' && it.delayed) per.delayed = true;
+        if (it.kind === 'eval') evalOpen = true;
+        if (it.date) { const age = careDaysBetween(it.date, today); if (age != null && age >= 0 && (R.pendOldestDays == null || age > R.pendOldestDays)) R.pendOldestDays = age; }
+      });
+      R.pendTotal += per.pend;
+      if (s.evalDue != null || evalOpen) { R.evalDen++; if (!evalOpen) R.evalOkN++; }
+    }
+    const wdates = Array.isArray(s.weights) ? s.weights : [];
+    let lastW = null; wdates.forEach(d => { if (d && (!lastW || d > lastW)) lastW = d; });
+    if (lastW) per.weighAgo = careDaysBetween(lastW, today);
+    if (wdates.some(d => d >= w7a && d <= today)) R.weigh7n++;
+    if (wdates.some(d => d >= w30a && d <= today)) R.weigh30n++;
+    const logs = Array.isArray(s.logs) ? s.logs : [];
+    let doneIdle = 0;
+    logs.forEach(l => {
+      const v = Number(l.satisfaction);
+      if (v >= 1 && v <= 5) {
+        if (l.date >= w7a && l.date <= today) { satSum7 += v; R.satN7++; }
+        if (l.date >= w30a && l.date <= today) { satSum30 += v; R.satN30++; }
+      }
+      if (!l.done) return;
+      if (l.date >= w7a && l.date <= today) { R.done7++; per.done7++; }
+      if (l.date >= w30a && l.date <= today) { R.done30++; R.logsN30++; }
+      if (l.date >= idleA && l.date <= today) doneIdle++;
+    });
+    if (s.plan) {
+      let sc7 = 0, sc30 = 0, scIdle = 0, mode = 'rotation';
+      for (let i = 0; i < 30; i++) {
+        const iso = careAddDaysISO(today, -i);
+        const df = careDayFor(s.plan, s.cfg, iso);
+        mode = df.mode;
+        if (df.mode === 'rotation') { sc7 = -1; break; }
+        if (df.idx != null) { sc30++; if (i < 7) sc7++; if (i < th.idleDays) scIdle++; }
+      }
+      if (sc7 < 0) { R.sched7ok = false; R.sched30ok = false; if (doneIdle === 0) R.idleN++; }
+      else {
+        R.sched7 += sc7; R.sched30 += sc30;
+        if (doneIdle === 0 && scIdle > 0) R.idleN++;
+      }
+    }
+    const mdays = new Set((Array.isArray(s.mealDates) ? s.mealDates : []).filter(d => d >= w7a && d <= today));
+    mealDaysSum += mdays.size;
+    R.per.push(per);
+  });
+  R.withPlanPct = R.students ? Math.round(R.withPlan * 100 / R.students) : null;
+  R.weigh7pct = R.students ? Math.round(R.weigh7n * 100 / R.students) : null;
+  R.weigh30pct = R.students ? Math.round(R.weigh30n * 100 / R.students) : null;
+  R.mealDaysAvg = R.students ? Math.round(mealDaysSum * 10 / R.students) / 10 : null;
+  R.satMean7 = R.satN7 ? Math.round(satSum7 * 10 / R.satN7) / 10 : null;
+  R.satMean30 = R.satN30 ? Math.round(satSum30 * 10 / R.satN30) / 10 : null;
+  R.satRespPct30 = R.logsN30 ? Math.round(R.satN30 * 100 / R.logsN30) : null;
+  if (R.delayed > 0) R.reasons.push('delayed');
+  if (R.waitingRed) R.reasons.push('wait');
+  if (R.reasons.length) R.light = 'red';
+  else {
+    if (R.students > 0 && R.weigh7pct != null && R.weigh7pct < th.weighPct) R.reasons.push('weigh');
+    if (R.idleN > 0) R.reasons.push('idle');
+    if (R.satN30 >= th.satMinN && R.satMean30 != null && R.satMean30 < th.satMin) R.reasons.push('sat');
+    if (R.reasons.length) R.light = 'amber';
+  }
+  return R;
+}
+/* === CARE-CORE-FIN === */
+
+/* ---------- lectura y armado (app) ---------- */
+let CARE_TH = null;
+let CARE_REPORTS = null;
+let CARE_TH_EDIT = null;
+function careTsMs(v) {
+  if (v == null) return null;
+  if (typeof v === 'number') return isFinite(v) ? v : null;
+  if (typeof v.toMillis === 'function') { try { return v.toMillis(); } catch { return null; } }
+  if (typeof v.seconds === 'number') return v.seconds * 1000;
+  const ms = Date.parse(v);
+  return isNaN(ms) ? null : ms;
+}
+async function careThresholds() {
+  try {
+    const s = await getDoc(doc(db, 'app_settings', 'trainer_attention'));
+    if (s.exists()) return Object.assign({}, CARE_DEFAULT_THRESHOLDS, s.data() || {});
+  } catch {}
+  return { ...CARE_DEFAULT_THRESHOLDS };
+}
+function careQuotaOf(level, catalogLevels) {
+  const c = catalogLevels && catalogLevels[level];
+  if (c && isFinite(Number(c.quota))) return Number(c.quota);
+  if (level === 'prueba') return 3;
+  return ({ basico: 5, premium: 10, elite: 30 })[level] || null;
+}
+function careNameOf(uid, usersById, profiles) {
+  const p = profiles && profiles[uid];
+  if (p && p.displayName) return p.displayName;
+  const u = usersById && usersById[uid];
+  if (u && u.name) return u.name;
+  return t('admuse.unknownUser');
+}
+/* La MISMA pasada por alumno de «Mis clientes» (AUTH-110): checklist
+   + motor de programados + ítem corporal, unidos por trainerPendUnion.
+   Un fallo marca SOLO a ese alumno en error, jamás un «al día» falso. */
+async function careStudentPass(u, ctx) {
+  try {
+    const chk = await clientProfileChecklist(u, ctx.reqLatest[u.id] || null);
+    const cs = await getDoc(doc(db, 'nutrition_progress', u.id + '_pendconfig'));
+    const cfg = cs.exists() ? Object.assign(pendDefaults(), cs.data()) : null;
+    const ss = await getDoc(doc(db, 'nutrition_progress', u.id + '_pendstate'));
+    const marks = ss.exists() ? ((ss.data() && ss.data().marks) || {}) : {};
+    const ps = await getDocs(query(collection(db, 'nutrition_progress'), where('ownerUid', '==', u.id)));
+    const parsed = spProgParse(ps);
+    let bodyItem = studentsBodyItem(u, null);
+    if (btPilot(u.id) && btIsActive(u)) {
+      const bs = await getDocs(query(collection(db, 'body_type_estimates'), where('clientUid', '==', u.id)));
+      bodyItem = studentsBodyItem(u, bs.size);
+    }
+    const items = trainerPendUnion(chk, studentsPendCompute({
+      cfg, marks, wdates: ctx.wdates[u.id] || [], prog: parsed,
+      reqLatest: ctx.reqLatest[u.id] || null, foodItems: ctx.foodItems[u.id] || []
+    }, new Date()), bodyItem, u);
+    return { items, cfg, evalDue: spEvalNextDue(parsed) };
+  } catch { return { items: null, cfg: null, evalDue: null, err: true }; }
+}
+/* scopeUid = null → administrador (todos los entrenadores);
+   scopeUid = uid → SOLO ese entrenador (su vista propia, D2). */
+async function careGather(scopeUid) {
+  const th = CARE_TH || (CARE_TH = await careThresholds());
+  const usersById = {}, usersAll = [];
+  const addUser = d => { const u = { id: d.id, ...d.data() }; usersById[u.id] = u; usersAll.push(u); };
+  if (scopeUid) {
+    const s = await getDocs(query(collection(db, 'users'), where('trainerUid', '==', scopeUid)));
+    s.forEach(addUser);
+    const me = await getDoc(doc(db, 'users', scopeUid));
+    if (me.exists() && !usersById[scopeUid]) addUser({ id: me.id, data: () => me.data() });
+  } else {
+    const s = await getDocs(collection(db, 'users'));
+    s.forEach(addUser);
+  }
+  const profiles = {}, memberships = {};
+  if (scopeUid) {
+    const p = await getDoc(doc(db, 'trainer_profiles', scopeUid));
+    if (p.exists()) profiles[scopeUid] = p.data();
+    const m = await getDoc(doc(db, 'memberships', scopeUid));
+    if (m.exists()) memberships[scopeUid] = m.data();
+  } else {
+    const ps = await getDocs(collection(db, 'trainer_profiles'));
+    ps.forEach(d => { profiles[d.id] = d.data(); });
+    const ms = await getDocs(collection(db, 'memberships'));
+    ms.forEach(d => { memberships[d.id] = d.data(); });
+  }
+  let catalogLevels = null;
+  try { const c = await getDoc(doc(db, 'app_settings', 'membership_catalog')); if (c.exists()) catalogLevels = (c.data() || {}).levels || null; } catch {}
+  /* Solicitudes de comidas (todas las del ámbito) */
+  const reqsAll = [];
+  if (scopeUid) {
+    const s = await getDocs(query(collection(db, 'meal_requests'), where('trainerUid', '==', scopeUid)));
+    s.forEach(d => reqsAll.push({ id: d.id, ...d.data() }));
+  } else {
+    const s = await getDocs(collection(db, 'meal_requests'));
+    s.forEach(d => reqsAll.push({ id: d.id, ...d.data() }));
+  }
+  const reqLatest = {}, reqsCore = [];
+  reqsAll.forEach(r => {
+    const rms = careTsMs(r.requestedAt);
+    reqsCore.push({
+      trainerUid: r.trainerUid || null, status: r.status || '',
+      requestedMs: rms,
+      answeredMs: careTsMs(r.trainerDecisionAt)
+    });
+    if (r.alumnoUid && (!reqLatest[r.alumnoUid] || rms >= (careTsMs(reqLatest[r.alumnoUid].requestedAt) || 0))) reqLatest[r.alumnoUid] = r;
+  });
+  /* Alumnos del ámbito y lecturas compartidas */
+  const students = usersAll.filter(u => !u.isOwner && u.approved === true && u.assignmentStatus === 'assigned' && u.trainerUid);
+  const studentIds = students.map(u => u.id);
+  const wdates = {}, wByUid = {}, foodItems = {}, mealDatesByUid = {}, logsByUid = {}, planByUid = {}, plansTouched = [];
+  const inChunks = async (coll, field, ids, fn) => {
+    for (let i = 0; i < ids.length; i += 30) {
+      const part = ids.slice(i, i + 30);
+      if (!part.length) continue;
+      const s = await getDocs(query(collection(db, coll), where(field, 'in', part)));
+      s.forEach(d => fn({ id: d.id, ...d.data() }));
+    }
+  };
+  if (scopeUid) {
+    await inChunks('nutrition_weight', 'ownerUid', studentIds, v => { if (v.ownerUid && num(v.weight) > 0 && v.date) { (wdates[v.ownerUid] = wdates[v.ownerUid] || []).push(v.date); (wByUid[v.ownerUid] = wByUid[v.ownerUid] || []).push(v.date); } });
+    await inChunks('meal_help', 'ownerUid', studentIds, v => { if (v.status === 'pending' && v.ownerUid) (foodItems[v.ownerUid] = foodItems[v.ownerUid] || []).push({ id: v.id, createdAt: v.createdAt || null }); });
+    await inChunks('nutrition_meals', 'ownerUid', studentIds, v => { if (v.ownerUid && v.date) (mealDatesByUid[v.ownerUid] = mealDatesByUid[v.ownerUid] || []).push(v.date); });
+    await inChunks('training_logs', 'clientUid', studentIds, v => { if (v.clientUid) (logsByUid[v.clientUid] = logsByUid[v.clientUid] || []).push({ date: v.date, done: v.done === true, satisfaction: v.satisfaction }); });
+    await inChunks('training_plans', 'clientUid', studentIds, v => { if (v.createdBy) plansTouched.push({ by: v.createdBy, atMs: careTsMs(v.updatedAt) || careTsMs(v.createdAt) || 0 }); if (v.clientUid && v.active === true) { const cur = planByUid[v.clientUid]; if (!cur || (careTsMs(v.updatedAt) || 0) >= (careTsMs(cur.updatedAt) || 0)) planByUid[v.clientUid] = v; } });
+  } else {
+    const ws = await getDocs(collection(db, 'nutrition_weight'));
+    ws.forEach(d => { const v = d.data(); if (v.ownerUid && num(v.weight) > 0 && v.date) { (wdates[v.ownerUid] = wdates[v.ownerUid] || []).push(v.date); (wByUid[v.ownerUid] = wByUid[v.ownerUid] || []).push(v.date); } });
+    const fs2 = await getDocs(collection(db, 'meal_help'));
+    fs2.forEach(d => { const v = d.data(); if (v.status === 'pending' && v.ownerUid) (foodItems[v.ownerUid] = foodItems[v.ownerUid] || []).push({ id: d.id, createdAt: v.createdAt || null }); });
+    const ms2 = await getDocs(collection(db, 'nutrition_meals'));
+    ms2.forEach(d => { const v = d.data(); if (v.ownerUid && v.date) (mealDatesByUid[v.ownerUid] = mealDatesByUid[v.ownerUid] || []).push(v.date); });
+    const ls = await getDocs(collection(db, 'training_logs'));
+    ls.forEach(d => { const v = d.data(); if (v.clientUid) (logsByUid[v.clientUid] = logsByUid[v.clientUid] || []).push({ date: v.date, done: v.done === true, satisfaction: v.satisfaction }); });
+    const pl = await getDocs(collection(db, 'training_plans'));
+    pl.forEach(d => { const v = { id: d.id, ...d.data() }; if (v.createdBy) plansTouched.push({ by: v.createdBy, atMs: careTsMs(v.updatedAt) || careTsMs(v.createdAt) || 0 }); if (v.clientUid && v.active === true) { const cur = planByUid[v.clientUid]; if (!cur || (careTsMs(v.updatedAt) || 0) >= (careTsMs(cur.updatedAt) || 0)) planByUid[v.clientUid] = v; } });
+  }
+  /* Actividad del entrenador: avisos (sellos con autor y fecha),
+     planes tocados y ritmos decididos — de documentos que ya existen. */
+  const notices = [], paces = [];
+  usersAll.forEach(u => {
+    const nz = (u.notices && u.notices.nudge) || {};
+    Object.keys(nz).forEach(k => { const at = careTsMs(nz[k] && nz[k].at); if (at != null && nz[k].by) notices.push({ by: nz[k].by, atMs: at }); });
+    const ps2 = u.paceSuggestion;
+    if (ps2 && ps2.decidedBy && ps2.decidedAt) { const at = careTsMs(ps2.decidedAt); if (at != null) paces.push({ by: ps2.decidedBy, atMs: at }); }
+  });
+  /* Pasada por alumno (la unión única) */
+  const passByUid = {};
+  await Promise.all(students.map(async u => { passByUid[u.id] = await careStudentPass(u, { reqLatest, wdates, foodItems }); }));
+  /* Entrenadores del informe */
+  const trainerIds = new Set();
+  if (scopeUid) trainerIds.add(scopeUid);
+  else {
+    Object.keys(profiles).forEach(id => trainerIds.add(id));
+    students.forEach(u => trainerIds.add(u.trainerUid));
+    usersAll.forEach(u => { if (u.role === 'entrenador' && u.approved === true) trainerIds.add(u.id); });
+  }
+  const nowMs = Date.now();
+  const reports = [];
+  trainerIds.forEach(tUid => {
+    const myStudents = students.filter(u => u.trainerUid === tUid);
+    const X = {
+      quota: careQuotaOf(memberships[tUid] && memberships[tUid].level, catalogLevels),
+      level: (memberships[tUid] && memberships[tUid].level) || null,
+      students: myStudents.map(u => {
+        const pass = passByUid[u.id] || { items: null, cfg: null, evalDue: null, err: true };
+        return {
+          uid: u.id, name: u.name || u.email || '', items: pass.items, unionErr: !!pass.err,
+          cfg: pass.cfg, evalDue: pass.evalDue || null,
+          plan: planByUid[u.id] || null,
+          weights: wByUid[u.id] || [], mealDates: mealDatesByUid[u.id] || [], logs: logsByUid[u.id] || []
+        };
+      }),
+      waiting: usersAll.filter(u => !u.isOwner && u.approved !== true && u.trainerUid === tUid).map(u => ({ createdMs: careTsMs(u.createdAt) })),
+      reqs: reqsCore,
+      approvals: usersAll.filter(u => u.approvedBy === tUid && u.approved === true).map(u => ({ ms: careTsMs(u.approvedAt) })).filter(a => a.ms != null),
+      apprWaitsH: usersAll.filter(u => u.approvedBy === tUid && u.approved === true).map(u => { const a = careTsMs(u.approvedAt), c = careTsMs(u.createdAt); return (a != null && c != null && a >= c) ? (a - c) / 3600000 : null; }).filter(x => x != null),
+      notices, plansTouched, paces
+    };
+    const R = careCompute(tUid, X, nowMs, th);
+    R.name = careNameOf(tUid, usersById, profiles);
+    reports.push(R);
+  });
+  const rank = { red: 0, amber: 1, green: 2 };
+  reports.sort((a, b) => (rank[a.light] - rank[b.light]) || String(a.name).localeCompare(String(b.name)));
+  return reports;
+}
+
+/* ---------- pintado (pastilla del administrador y tarjeta propia) ---------- */
+function careFmtWait(h) {
+  if (h == null) return '';
+  if (h < 1) return Math.max(1, Math.round(h * 60)) + ' min';
+  if (h < 48) return (Math.round(h * 10) / 10) + ' h';
+  return Math.round(h / 24) + ' d';
+}
+function careSignalsHTML(R) {
+  const pct = v => (v == null ? '—' : v + '%');
+  const L = [];
+  L.push(`<li>${esc(t('care.plan', { n: R.withPlan, pct: pct(R.withPlanPct) }))}</li>`);
+  if (R.pendErr) L.push(`<li class="care-warn">${esc(t('care.err'))}</li>`);
+  else {
+    let pend = esc(t('care.pend', { n: R.pendTotal }));
+    if (R.pendIndis) pend += ' · ' + esc(t('care.pendIndis', { n: R.pendIndis }));
+    if (R.pendOldestDays != null) pend += ' · ' + esc(t('care.pendOldest', { d: R.pendOldestDays }));
+    L.push(`<li>${pend}</li>`);
+  }
+  if (R.delayed > 0) L.push(`<li class="care-bad">${esc(t('care.delayed', { n: R.delayed }))}</li>`);
+  if (R.waiting > 0) {
+    let w = esc(t('care.waiting', { n: R.waiting }));
+    if (R.waitingOldestDays != null) w += ' · ' + esc(t('care.waitingDays', { d: R.waitingOldestDays }));
+    L.push(`<li class="${R.waitingRed ? 'care-bad' : ''}">${w}</li>`);
+  }
+  if (R.students > 0) {
+    L.push(`<li>${esc(t('care.weigh7', { n: R.weigh7n, d: R.students, pct: pct(R.weigh7pct) }))}</li>`);
+    L.push(`<li>${esc(t('care.weigh30', { n: R.weigh30n, d: R.students, pct: pct(R.weigh30pct) }))}</li>`);
+  }
+  if (R.evalDen > 0) L.push(`<li>${esc(t('care.evalOk', { n: R.evalOkN, d: R.evalDen }))}</li>`);
+  if (R.sched7ok) {
+    L.push(`<li>${esc(t('care.sess7', { done: R.done7, sched: R.sched7 }))}</li>`);
+    L.push(`<li>${esc(t('care.sess30', { done: R.done30, sched: R.sched30 }))}</li>`);
+  } else {
+    L.push(`<li>${esc(t('care.sess7nc', { done: R.done7 }))}</li>`);
+  }
+  if (R.idleN > 0) L.push(`<li class="care-warn">${esc(t('care.idle', { n: R.idleN, d: (CARE_TH || CARE_DEFAULT_THRESHOLDS).idleDays }))}</li>`);
+  if (R.mealDaysAvg != null) L.push(`<li>${esc(t('care.mealsAvg', { x: R.mealDaysAvg }))}</li>`);
+  if (R.respOpen > 0) L.push(`<li>${esc(t('care.respOpen', { n: R.respOpen }))}</li>`);
+  L.push(`<li>${esc(t('care.respAns', { n: R.respAns30 }))}</li>`);
+  if (R.appr30 > 0) {
+    let a = esc(t('care.appr', { n: R.appr30 }));
+    if (R.apprWaitH != null) a += ' · ' + esc(t('care.apprWait', { h: careFmtWait(R.apprWaitH) }));
+    L.push(`<li>${a}</li>`);
+  }
+  if (R.satN7 > 0) L.push(`<li>${esc(t('care.sat', { x: R.satMean7, n: R.satN7 }))}</li>`);
+  if (R.satN30 > 0) L.push(`<li>${esc(t('care.satMonth', { x: R.satMean30, n: R.satN30 }))}</li>`);
+  if (R.satN7 === 0 && R.satN30 === 0) L.push(`<li>${esc(t('care.satNone'))}</li>`);
+  L.push(`<li>${esc(t('care.act7', { n: R.not7, p: R.plans7 }))}</li>`);
+  L.push(`<li>${esc(t('care.act30', { n: R.not30, p: R.plans30, r: R.paces30 }))}</li>`);
+  return `<ul class="care-sig">${L.join('')}</ul>`;
+}
+function carePerHTML(R, mine) {
+  if (!R.per.length) return '';
+  const rows = R.per.map(p => {
+    const tags = [];
+    if (p.err) tags.push(esc(t('care.perErr')));
+    else if (p.pend > 0) tags.push(esc(t('care.perPend', { n: p.pend })));
+    if (p.delayed) tags.push(esc(t('care.perDelayed')));
+    if (p.weighAgo == null) tags.push(esc(t('care.perNoWeigh')));
+    else if (p.weighAgo > 0) tags.push(esc(t('care.perWeighAgo', { d: p.weighAgo })));
+    if (!p.err && p.pend === 0 && !p.delayed) tags.push(esc(t('care.upToDate')));
+    return `<button type="button" class="care-per-row" data-care-open="${esc(p.uid)}" data-care-mine="${mine ? '1' : ''}"><span class="care-per-name">${esc(p.name || '')}</span><span class="care-per-tags">${tags.join(' · ')}</span></button>`;
+  }).join('');
+  return `<div class="care-per">${rows}</div>`;
+}
+function careReportHTML(R, mine) {
+  return `<div class="care-rep">
+    <div class="care-banner care-${R.light}"><span class="care-dot care-${R.light}"></span><b>${esc(t('care.light.' + R.light))}</b></div>
+    ${careSignalsHTML(R)}
+    ${carePerHTML(R, mine)}
+  </div>`;
+}
+function careWirePer(root, mine) {
+  if (!root) return;
+  root.querySelectorAll('[data-care-open]').forEach(b => b.addEventListener('click', () => {
+    const uid = b.getAttribute('data-care-open');
+    try { if (mine) openStudent(uid); else openClient(uid); } catch {}
+  }));
+}
+/* ---------- Administración: pastilla «Atención de entrenadores» ---------- */
+function admSecMountCare(body) {
+  body.innerHTML = `<p class="progress-hint">${esc(t('care.hint'))}</p><div id="care-th-box"></div><div id="care-box"><div class="wempty">${esc(t('access.loading'))}</div></div>`;
+  careAdminLoad();
+}
+function admSecRefreshCare() { if (document.getElementById('care-box')) careAdminLoad(); }
+async function careAdminLoad() {
+  const box = document.getElementById('care-box');
+  if (!box) return;
+  if (!(IS_OWNER && ROLE === 'administrador')) { box.innerHTML = ''; return; }
+  try {
+    CARE_TH = await careThresholds();
+    careThPaint();
+    CARE_REPORTS = await careGather(null);
+    careAdminPaint();
+  } catch {
+    box.innerHTML = `<div class="wempty">${esc(t('care.err'))}</div>`;
+  }
+}
+function careAdminPaint() {
+  const box = document.getElementById('care-box');
+  if (!box) return;
+  const reps = CARE_REPORTS || [];
+  if (!reps.length) { box.innerHTML = `<div class="wempty">${esc(t('care.empty'))}</div>`; return; }
+  box.innerHTML = reps.map(R => {
+    const sub = esc(t('care.students', { n: R.students, used: R.students, quota: (R.quota == null ? '—' : R.quota) }))
+      + (R.level ? ' · ' + esc(typeof escLevelLabel === 'function' ? escLevelLabel(R.level) : R.level) : '');
+    return `<div class="care-trainer">
+      <button type="button" class="care-thead" data-care-t="${esc(R.uid)}">
+        <span class="care-dot care-${R.light}"></span>
+        <span class="care-tmain"><b>${esc(R.name || '')}</b><span class="care-tsub">${sub}</span></span>
+        <span class="care-tlight care-${R.light}">${esc(t('care.light.' + R.light))}</span>
+      </button>
+      <div class="care-tbody" style="display:none">${careReportHTML(R, false)}</div>
+    </div>`;
+  }).join('');
+  box.querySelectorAll('[data-care-t]').forEach(b => b.addEventListener('click', () => {
+    const body = b.parentElement && b.parentElement.querySelector('.care-tbody');
+    if (body) body.style.display = body.style.display === 'none' ? '' : 'none';
+  }));
+  careWirePer(box, false);
+}
+/* Umbrales (D4): los de arranque son los propuestos; el administrador
+   los ajusta aquí y quedan en app_settings/trainer_attention. Son
+   criterios de producto, nunca ciencia. Controles grandes de la
+   casa (nada de selectores nativos pequeños: se usa entrenando). */
+const CARE_TH_FIELDS = [
+  { key: 'redDays', min: 1, max: 60, step: 1 },
+  { key: 'weighPct', min: 0, max: 100, step: 5 },
+  { key: 'satMin', min: 3, max: 5, step: 0.5 },
+  { key: 'satMinN', min: 1, max: 20, step: 1 },
+  { key: 'idleDays', min: 2, max: 30, step: 1 }
+];
+function careThPaint() {
+  const host = document.getElementById('care-th-box');
+  if (!host) return;
+  CARE_TH_EDIT = { ...(CARE_TH || CARE_DEFAULT_THRESHOLDS) };
+  const labelOf = k => ({ redDays: 'thRedDays', weighPct: 'thWeigh', satMin: 'thSat', satMinN: 'thSatN', idleDays: 'thIdle' })[k];
+  host.innerHTML = `<div class="care-th">
+    <p class="care-th-title">${esc(t('care.thTitle'))}</p>
+    ${CARE_TH_FIELDS.map(f => `<div class="care-th-row">
+      <span class="care-th-label">${esc(t('care.' + labelOf(f.key)))}</span>
+      <span class="care-th-ctl">
+        <button type="button" class="care-step" data-care-th="${f.key}" data-care-dir="-1" aria-label="−">−</button>
+        <span class="care-th-val" id="care-th-val-${f.key}"></span>
+        <button type="button" class="care-step" data-care-th="${f.key}" data-care-dir="1" aria-label="+">+</button>
+      </span>
+    </div>`).join('')}
+    <div class="eval-actions"><button type="button" class="btn-primary" id="care-th-save">${esc(t('care.thSave'))}</button></div>
+  </div>`;
+  const paintVals = () => CARE_TH_FIELDS.forEach(f => { const el = document.getElementById('care-th-val-' + f.key); if (el) el.textContent = String(CARE_TH_EDIT[f.key]); });
+  paintVals();
+  host.querySelectorAll('[data-care-th]').forEach(b => b.addEventListener('click', () => {
+    const f = CARE_TH_FIELDS.find(x => x.key === b.getAttribute('data-care-th'));
+    if (!f) return;
+    let v = Number(CARE_TH_EDIT[f.key]) + f.step * Number(b.getAttribute('data-care-dir'));
+    v = Math.min(f.max, Math.max(f.min, Math.round(v * 10) / 10));
+    CARE_TH_EDIT[f.key] = v;
+    paintVals();
+  }));
+  const save = document.getElementById('care-th-save');
+  if (save) save.addEventListener('click', async () => {
+    try {
+      await setDoc(doc(db, 'app_settings', 'trainer_attention'), { ...CARE_TH_EDIT, updatedAt: serverTimestamp(), updatedBy: auth.currentUser.uid }, { merge: true });
+      CARE_TH = { ...CARE_TH_EDIT };
+      toast(t('care.thSaved'));
+      careAdminLoad();
+    } catch { toast(t('care.err'), true); }
+  });
+}
+/* ---------- Tarjeta del entrenador: SOLO sus cifras (D2) ---------- */
+let CARE_MINE_DONE = false;
+function careMineMount() {
+  const sec = $('students-section');
+  if (!sec || ROLE !== 'entrenador') return;
+  let host = $('students-care');
+  if (!host) {
+    host = document.createElement('div');
+    host.id = 'students-care';
+    const vb = $('students-viewbar');
+    if (vb) sec.insertBefore(host, vb); else sec.appendChild(host);
+  }
+  if (CARE_MINE_DONE) return;
+  CARE_MINE_DONE = true;
+  host.innerHTML = `<div class="care-mine">
+    <button type="button" class="care-mine-head" id="care-mine-toggle">${esc(t('care.mineTitle'))} <span aria-hidden="true">▾</span></button>
+    <div id="care-mine-body" style="display:none"></div>
+  </div>`;
+  const tog = $('care-mine-toggle');
+  if (tog) tog.addEventListener('click', async () => {
+    const b = $('care-mine-body');
+    if (!b) return;
+    const open = b.style.display !== 'none';
+    b.style.display = open ? 'none' : '';
+    if (!open && !b.dataset.loaded) {
+      b.dataset.loaded = '1';
+      b.innerHTML = `<div class="wempty">${esc(t('access.loading'))}</div>`;
+      try {
+        CARE_TH = CARE_TH || await careThresholds();
+        const reps = await careGather(auth.currentUser.uid);
+        const R = reps && reps[0];
+        b.innerHTML = R ? `<p class="progress-hint">${esc(t('care.mineNote'))}</p>${careReportHTML(R, true)}` : `<div class="wempty">${esc(t('care.empty'))}</div>`;
+        careWirePer(b, true);
+      } catch { b.innerHTML = `<div class="wempty">${esc(t('care.err'))}</div>`; }
+    }
+  });
+}
+
+
 /* ---------- Sección «Biblioteca de alimentos» (Tech) ----------
    LA CURADURÍA VIVE AQUÍ (corrección de Ronald, 2026-10-31): la
    bandeja de aprobación de los candidatos que genera CADA guardado
@@ -3988,8 +4578,56 @@ en: {
   'admuse.stale': '⚠️ The refresh failed — showing the previous data from {when}; it is not current.',
   'admuse.refresh': 'Refresh',
   'admuse.unknownUser': 'Unnamed user',
+  'care.title': '🩺 Trainer attention',
+  'care.hint': 'How each trainer is looking after their students: coverage, the pending items waiting on the trainer, weekly rhythm, response times and student satisfaction. Process figures only — this report never shows health data.',
+  'care.empty': 'There are no trainers to report on yet.',
+  'care.students': '{n} students · quota {used} of {quota}',
+  'care.plan': 'with an active plan: {n} ({pct}%)',
+  'care.pend': 'Pending on the trainer: {n}',
+  'care.pendIndis': 'of them indispensable: {n}',
+  'care.pendOldest': 'the oldest dated one has waited {d} days',
+  'care.perErr': 'could not be loaded',
+  'care.delayed': 'Delayed meal requests (over 72 h unanswered): {n}',
+  'care.waiting': 'Accounts waiting for their approval: {n}',
+  'care.waitingDays': 'the oldest has waited {d} days',
+  'care.weigh7': 'Weighed in this week: {n} of {d} ({pct}%)',
+  'care.weigh30': 'Weighed in this month: {n} of {d} ({pct}%)',
+  'care.evalOk': 'Progress evaluations inside their 15-day cycle: {n} of {d}',
+  'care.sess7': 'Sessions this week: {done} done of {sched} scheduled',
+  'care.sess7nc': 'Sessions this week: {done} done (no fixed calendar)',
+  'care.sess30': 'Sessions this month: {done} done of {sched} scheduled',
+  'care.idle': 'With an active plan and no session in {d} days: {n}',
+  'care.mealsAvg': 'Meal-log days per student per week: {x}',
+  'care.respOpen': 'Meal requests open right now: {n}',
+  'care.respAns': 'Meal requests answered this month: {n}',
+  'care.appr': 'Approvals this month: {n}',
+  'care.apprWait': 'typical wait {h}',
+  'care.sat': 'Student satisfaction: {x} of 5 ({n} ratings)',
+  'care.satMonth': 'Student satisfaction this month: {x} of 5 ({n} ratings)',
+  'care.satNone': 'Student satisfaction: not enough ratings yet',
+  'care.act7': 'Their activity this week: {n} notices sent · {p} plans loaded or adjusted',
+  'care.act30': 'Their activity this month: {n} notices sent · {p} plans · {r} paces decided',
+  'care.light.green': 'Up to date',
+  'care.light.amber': 'Needs attention',
+  'care.light.red': 'Urgent',
+  'care.thTitle': 'Alert thresholds — product criteria, yours to adjust',
+  'care.thRedDays': 'An account waiting for the trainer turns urgent after this many days',
+  'care.thWeigh': 'Attention if this week\'s weigh-ins fall below this % of students',
+  'care.thSat': 'Attention if satisfaction falls below this mark (of 5)',
+  'care.thSatN': '…and only when there are at least this many ratings',
+  'care.thIdle': 'Attention if a student with a plan has no session in this many days',
+  'care.thSave': 'Save thresholds',
+  'care.thSaved': '✓ Thresholds saved',
+  'care.mineTitle': '📊 My attention',
+  'care.mineNote': 'Your own figures — exactly the same ones the admin sees for you.',
+  'care.err': 'Some figures could not be loaded, so they are not shown as zero. Reload to try again.',
+  'care.upToDate': '✓ Everything up to date',
+  'care.perPend': '{n} pending',
+  'care.perWeighAgo': 'last weigh-in {d} d ago',
+  'care.perNoWeigh': 'no weigh-in yet',
+  'care.perDelayed': 'delayed request',
   'limreg.title': '📏 Limits & quotas',
-  'limreg.hint': 'Your registry of the caps of each service. It is a reference and governance record only: editing a row here does NOT change the real limit of any service — the real caps live in each service (the Firebase plan, the Worker, Umami…).',
+  'limreg.hint': 'Your registry of the caps of each service. It is a reference and governance record only: editing a row here does NOT change the real limit of any service (the Firebase plan, the Worker, Umami…).',
   'limreg.colService': 'Service',
   'limreg.colMeasure': 'What is measured',
   'limreg.colCap': 'Cap',
@@ -6661,6 +7299,54 @@ es: {
   'admuse.stale': '⚠️ La actualización falló — se muestran los datos anteriores de {when}; no son los actuales.',
   'admuse.refresh': 'Actualizar',
   'admuse.unknownUser': 'Usuario sin nombre',
+  'care.title': '🩺 Atención de entrenadores',
+  'care.hint': 'Cómo está atendiendo cada entrenador a sus alumnos: cobertura, los pendientes que esperan por el entrenador, el ritmo semanal, los tiempos de respuesta y la satisfacción de los alumnos. Solo cifras del proceso — este informe nunca muestra datos de salud.',
+  'care.empty': 'Todavía no hay entrenadores sobre los que informar.',
+  'care.students': '{n} alumnos · cupo {used} de {quota}',
+  'care.plan': 'con plan de entrenamiento activo: {n} ({pct}%)',
+  'care.pend': 'Pendientes del lado del entrenador: {n}',
+  'care.pendIndis': 'de ellos indispensables: {n}',
+  'care.pendOldest': 'el que tiene fecha más antigua lleva {d} días',
+  'care.perErr': 'no se pudo cargar',
+  'care.delayed': 'Solicitudes de comidas DEMORADAS (más de 72 h sin responder): {n}',
+  'care.waiting': 'Cuentas esperando su aprobación: {n}',
+  'care.waitingDays': 'la más antigua lleva {d} días',
+  'care.weigh7': 'Se pesaron esta semana: {n} de {d} ({pct}%)',
+  'care.weigh30': 'Se pesaron este mes: {n} de {d} ({pct}%)',
+  'care.evalOk': 'Evaluaciones de progreso dentro de su ciclo de 15 días: {n} de {d}',
+  'care.sess7': 'Sesiones esta semana: {done} hechas de {sched} programadas',
+  'care.sess7nc': 'Sesiones esta semana: {done} hechas (sin calendario fijo)',
+  'care.sess30': 'Sesiones este mes: {done} hechas de {sched} programadas',
+  'care.idle': 'Con plan activo y sin sesión en {d} días: {n}',
+  'care.mealsAvg': 'Días con registro de comidas por alumno y semana: {x}',
+  'care.respOpen': 'Solicitudes de comidas abiertas ahora: {n}',
+  'care.respAns': 'Solicitudes de comidas respondidas este mes: {n}',
+  'care.appr': 'Aprobaciones este mes: {n}',
+  'care.apprWait': 'espera típica {h}',
+  'care.sat': 'Satisfacción de los alumnos: {x} de 5 ({n} valoraciones)',
+  'care.satMonth': 'Satisfacción de los alumnos este mes: {x} de 5 ({n} valoraciones)',
+  'care.satNone': 'Satisfacción de los alumnos: aún sin valoraciones suficientes',
+  'care.act7': 'Su actividad esta semana: {n} avisos enviados · {p} planes cargados o ajustados',
+  'care.act30': 'Su actividad este mes: {n} avisos enviados · {p} planes · {r} ritmos decididos',
+  'care.light.green': 'Al día',
+  'care.light.amber': 'Necesita atención',
+  'care.light.red': 'Urgente',
+  'care.thTitle': 'Umbrales de alerta — criterios de producto, ajustables por ti',
+  'care.thRedDays': 'Una cuenta esperando al entrenador pasa a urgente tras estos días',
+  'care.thWeigh': 'Atención si los pesajes de esta semana bajan de este % de alumnos',
+  'care.thSat': 'Atención si la satisfacción baja de esta nota (de 5)',
+  'care.thSatN': '…y solo cuando haya al menos estas valoraciones',
+  'care.thIdle': 'Atención si un alumno con plan no hace sesión en estos días',
+  'care.thSave': 'Guardar umbrales',
+  'care.thSaved': '✓ Umbrales guardados',
+  'care.mineTitle': '📊 Mi atención',
+  'care.mineNote': 'Tus propias cifras — exactamente las mismas que el administrador ve de ti.',
+  'care.err': 'Algunas cifras no se pudieron cargar, así que no se muestran como cero. Recarga para intentarlo de nuevo.',
+  'care.upToDate': '✓ Todo al día',
+  'care.perPend': '{n} pendientes',
+  'care.perWeighAgo': 'último pesaje hace {d} días',
+  'care.perNoWeigh': 'aún sin pesaje',
+  'care.perDelayed': 'solicitud demorada',
   'limreg.title': '📏 Límites y cuotas',
   'limreg.hint': 'Tu registro de los topes de cada servicio. Es solo un registro de consulta y gobierno: editar una fila aquí NO cambia el límite real de ningún servicio — los topes reales viven en cada servicio (el plan de Firebase, el Worker, Umami…).',
   'limreg.colService': 'Servicio',
@@ -12211,6 +12897,9 @@ async function loadStudents() {
   STUDENTS_LAST = { clients: students, chkByUid, alertsByUid, planByUid, lastByUid, lastWByUid, pendingFood, pendByUid, pendErrByUid, reqByUid: latestReqByUid };
   renderStudentsViewbar();
   renderStudentsBody();
+  /* Punto 93 (D2): la tarjeta «Mi atención» del entrenador vive al
+     frente de esta sección y muestra SOLO sus propias cifras. */
+  try { careMineMount(); } catch {}
   if (restoreY != null) requestAnimationFrame(() => { try { window.scrollTo(0, restoreY); } catch {} });
 }
 /* La ficha del cliente vive en «Clientes» (#client-detail y sus
@@ -33477,7 +34166,7 @@ document.addEventListener('keydown', e => { if (e.key === 'Escape') shareClose()
  *  - El SW (sw.js) solo cachea la cáscara del mismo origen en modo
  *    RED PRIMERO: Auth/Firestore/Worker jamás pasan por la caché.
  * ================================================================ */
-const PWA_SW_VERSION = '20261102-composicion-clara';
+const PWA_SW_VERSION = '20261103-informe-atencion';
 let pwaDeferredPrompt = null;
 function pwaIsStandalone() {
   try {
