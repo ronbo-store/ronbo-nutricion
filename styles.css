@@ -3198,3 +3198,60 @@ body.sess-on #pend-back-chip { bottom: calc(env(safe-area-inset-bottom, 0px) + 1
   .stu-pend-item > .stu-nudged { flex: 1 1 100%; white-space: normal; }
 }
 /* == FIN AUTH-185 == */
+
+/* ===== INICIO AUTH-186 · Plegar por la cabecera + la fila de metas
+   con su explicación en TODAS las bandas (punto 109 de la cola;
+   correo de Ronald del 2026-11-02 19:54 CST: acepta AUTH-184 y
+   pide (1) volver a plegar presionando la cabecera del usuario y
+   (2) arreglar la fila «Aún no define sus metas», que en su
+   captura sigue estrangulada con su texto de causa) =====
+   LA FILA CON CAUSA (AUTH-137): su columna principal
+   (.stu-pend-main) lleva TRES pisos — título, pastillas y el
+   texto de causa (.stu-pend-sub) — y a su derecha un bloque
+   rígido (el botón ancho «Revisar propuestas» + el sello «✉
+   Avisado el…» nowrap, flex:none). Las gramáticas anteriores la
+   ordenaban solo donde viven: AUTH-182 a ≤480 px y AUTH-185 en
+   la banda 481–720 (verificado también con la causa: título 390
+   px y causa en 2 líneas a 520). Pero por encima de 720 px la
+   fila volvía a su línea rígida de siempre, y el detalle de
+   «Mis alumnos» vive en una columna ESTRECHA POR CONSTRUCCIÓN
+   (la mitad de la pantalla en el partido de escritorio): medido
+   contra la base, en esa columna el título de metas caía a
+   71.7 px a 1200 px y a 42.7 px a 1024 px, la causa se envolvía
+   en 5 y 13 líneas y el chip de categoría se montaba sobre el
+   botón. EL ARREGLO: la MISMA gramática probada de AUTH-182, sin
+   tocar una coma, aplicada a las filas del DETALLE DE «MIS
+   ALUMNOS» POR ENCIMA DE 720 PX — el único territorio que
+   quedaba: a ≤480 manda AUTH-182 y en 481–720 manda AUTH-185
+   (ambas verificadas también con esta fila y su causa: título
+   entero y la causa como una frase), y allí este bloque no
+   pisa nada. Con la gramática, la causa queda en su línea a
+   ANCHO COMPLETO de la columna, como una frase. La lista, la ficha de «Mis clientes» a ancho
+   completo y el resto de superficies conservan la gramática de
+   su banda (182/185), sin tocar.
+   EL GESTO (app.js): la cabecera del detalle (.detail-head)
+   pliega al presionarla; aquí solo recibe su señal visual
+   (cursor y chevron de plegado), y la cabecera de la ficha de
+   «Mis clientes» su cursor. Sin estas reglas, todo queda como
+   estaba, nunca peor. */
+@media (min-width: 721px) {
+  .students-col-detail .stu-pend-item { flex-wrap: wrap; align-items: flex-start; }
+  .students-col-detail .stu-pend-main { flex: 1 1 0; min-width: 0; }
+  .students-col-detail .stu-pend-title { display: block; }
+  .students-col-detail .stu-pend-tags { display: flex; margin: 5px 0 0; }
+  .students-col-detail .stu-pend-item > .stu-pend-btns { flex: 1 1 100%; display: flex; flex-wrap: wrap; gap: 8px; align-items: stretch; }
+  .students-col-detail .stu-pend-item > .stu-pend-btns > .btn-primary,
+  .students-col-detail .stu-pend-item > .stu-pend-btns > .btn-nudge { flex: 1 1 0; min-height: 44px; }
+  .students-col-detail .stu-pend-item > .stu-pend-btns > .stu-nudged { flex: 1 1 100%; white-space: normal; padding-top: 2px; }
+  .students-col-detail .stu-pend-item > .btn-primary,
+  .students-col-detail .stu-pend-item > .btn-ghost,
+  .students-col-detail .stu-pend-item > .btn-nudge { flex: 1 1 100%; min-height: 44px; }
+  .students-col-detail .stu-pend-item .btn-primary { font-size: 13.5px; padding: 10px 12px; display: inline-flex; align-items: center; justify-content: center; }
+  .students-col-detail .stu-pend-item .btn-nudge { font-size: 13.5px; padding: 10px 12px; display: inline-flex; align-items: center; justify-content: center; }
+  .students-col-detail .stu-pend-item > .stu-pend-whose { flex: 1 1 100%; white-space: normal; text-align: center; padding: 8px 10px; }
+  .students-col-detail .stu-pend-item > .stu-nudged { flex: 1 1 100%; white-space: normal; }
+}
+#students-list .detail-head { cursor: pointer; }
+#students-list .detail-head::after { content: '›'; margin-left: auto; flex: none; color: #94a3b8; font-size: 22px; font-weight: 700; line-height: 1; transform: rotate(90deg); }
+#client-detail #client-weight-block { cursor: pointer; }
+/* == FIN AUTH-186 == */

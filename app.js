@@ -10995,6 +10995,17 @@ function renderStudentsBody() {
   });
   const back = $('stu-back');
   if (back) back.onclick = studentsCloseDetail;
+  /* AUTH-2026-11-02-186 (punto 109 de la cola; correo de Ronald
+     2026-11-02 19:54 CST, id 1a19f1de03974a9b): la CABECERA del
+     alumno en su detalle abierto TAMBIÉN pliega — «cuando
+     despliego para volver a plegar quiero volver a presionar en
+     la cabecera del usuario». AUTH-184 dejó el conmutador solo
+     en la fila de la lista, que en el teléfono queda oculta tras
+     el detalle; la cabecera (.detail-head) es la que sí se ve
+     con el detalle abierto, en todos los anchos. La fila de
+     regreso sigue cerrando igual. */
+  const dHead = el.querySelector('.students-col-detail .detail-head');
+  if (dHead) dHead.onclick = () => studentsCloseDetail();
   el.querySelectorAll('[data-stu-ficha]').forEach(b => b.onclick = () => studentsGoFicha(b.dataset.stuFicha));
   el.querySelectorAll('[data-stu-act]').forEach(b => b.onclick = () => studentsOpenRecord(b.dataset.stuUid, b.dataset.stuAct, b.dataset.stuReq || ''));
   /* AUTH-2026-11-01-133: el botón «✉ Avisar» de las filas del
@@ -12675,6 +12686,14 @@ async function openClient(uid) {
     <div id="client-training"></div>
     <div id="client-evals"><div class="eval-actions"><button type="button" class="btn-ghost btn-sm" id="btn-client-evals">${t('teval.open')}</button></div><div id="client-evals-body" style="display:none"></div></div>`;
   $('btn-client-close').onclick = () => { box.style.display = 'none'; box.innerHTML = ''; };
+  /* AUTH-2026-11-02-186 (punto 109 de la cola): fichaHeadClose —
+     la cabecera de la persona de la ficha («Registro de peso ·
+     {nombre}») gana el MISMO gesto que la cabecera del detalle
+     de «Mis alumnos»: presionarla cierra la ficha por el mismo
+     camino que su botón «Cerrar» (en modo ficha, el regreso al
+     origen; fuera de él, ocultar la ficha). */
+  const fichaHeadClose = $('client-weight-block');
+  if (fichaHeadClose) fichaHeadClose.onclick = () => { if (FICHA_MODE) fichaClose(); else { box.style.display = 'none'; box.innerHTML = ''; } };
   const fb3b = $('fb3-help-btn');
   if (fb3b) fb3b.onclick = () => { const p = $('fb3-help'); const open = p.style.display !== 'none'; p.style.display = open ? 'none' : ''; fb3b.setAttribute('aria-expanded', String(!open)); };
   const fb2b = $('fb2-help-btn');
@@ -31959,7 +31978,7 @@ document.addEventListener('keydown', e => { if (e.key === 'Escape') shareClose()
  *  - El SW (sw.js) solo cachea la cáscara del mismo origen en modo
  *    RED PRIMERO: Auth/Firestore/Worker jamás pasan por la caché.
  * ================================================================ */
-const PWA_SW_VERSION = '20261102-letras-sesion';
+const PWA_SW_VERSION = '20261102-plegar-metas';
 let pwaDeferredPrompt = null;
 function pwaIsStandalone() {
   try {
