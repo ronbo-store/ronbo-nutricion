@@ -3579,3 +3579,15 @@ body.sess-on #pend-back-chip { bottom: calc(env(safe-area-inset-bottom, 0px) + 1
 .share-dayphoto-thumb { width: 56px; height: 56px; min-width: 56px; border-radius: 12px; object-fit: cover; border: 2px solid #0d9488; background: #e2e8f0; }
 .share-dayphoto-btn { min-height: 48px; display: inline-flex; align-items: center; justify-content: center; }
 #btn-share-dayphoto { flex: 1 1 auto; }
+
+/* REPARTO EN DOS COMIDAS (2026-11-03): bloque «¿Lo repartiste?» de la
+   hoja del borrador estimado — dos botones grandes de la casa (≥48 px)
+   y, con «Mitad y mitad», los botones de la segunda comida y la línea
+   de resultado. El estado elegido lleva el teal de la casa (#0d9488),
+   como los segmentos .cview-seg. */
+.ai-split { margin: 12px 0 4px; }
+.ai-split-q { font-weight: 600; margin: 8px 0 6px; }
+.ai-split-opts { display: flex; gap: 8px; flex-wrap: wrap; }
+.ai-split-btn { flex: 1 1 30%; min-height: 48px; padding: 10px 12px; border: 1.5px solid #0d9488; border-radius: 12px; background: #fff; color: #0d9488; font: inherit; font-size: 15px; font-weight: 700; cursor: pointer; }
+.ai-split-btn.on { background: #0d9488; color: #fff; }
+.ai-split-result { margin: 8px 0 2px; font-weight: 700; color: #0d9488; }

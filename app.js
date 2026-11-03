@@ -4046,6 +4046,12 @@ en: {
   'ai.retry': 'Retry',
   'ai.continueManual': 'Continue manually',
   'ai.mealPrompt': 'Which meal is this?',
+  'ai.splitPrompt': 'Did you split it between two meals?',
+  'ai.splitAll': 'All in this meal',
+  'ai.splitHalf': 'Half and half',
+  'ai.splitSecond': 'And the other half?',
+  'ai.splitResult': 'Each meal will be: ≈{kcal} kcal · P {p} · C {c} · Sugars {s} · F {f}',
+  'ai.savedSplit': 'Saved: half in {a} and half in {b}',
   'ai.metricsTitle': 'Values for this meal — you can edit them before saving:',
   'ai.save': 'Save',
   'ai.backToFoods': 'Fix the foods',
@@ -6943,6 +6949,12 @@ es: {
   'ai.retry': 'Reintentar',
   'ai.continueManual': 'Continuar manualmente',
   'ai.mealPrompt': '¿A qué comida pertenece?',
+  'ai.splitPrompt': '¿Lo repartiste?',
+  'ai.splitAll': 'Todo en esta comida',
+  'ai.splitHalf': 'Mitad y mitad',
+  'ai.splitSecond': '¿Y la otra mitad?',
+  'ai.splitResult': 'Cada comida quedará en: ≈{kcal} kcal · P {p} · C {c} · Az {s} · G {f}',
+  'ai.savedSplit': 'Guardado: mitad en {a} y mitad en {b}',
   'ai.metricsTitle': 'Valores de esta comida — puedes editarlos antes de guardar:',
   'ai.save': 'Guardar',
   'ai.backToFoods': 'Corregir alimentos',
@@ -18941,7 +18953,7 @@ function aiDraftSync() {
           r1: st.r1, answers: st.answers || {}, other: st.other || {}, foods: st.foods,
           r2: st.r2 || null, meal: st.meal, metrics: st.metrics || null,
           metricsEdited: !!st.metricsEdited, name: st.name != null ? st.name : null,
-          nameEdited: !!st.nameEdited, saveId: st.saveId || null,
+          nameEdited: !!st.nameEdited, saveId: st.saveId || null, split: st.split || null,
           descText: st.mode === 'text' ? (st.descText || '') : '' };
         localStorage.setItem(k, JSON.stringify(d));
       }
@@ -18995,6 +19007,7 @@ function aiDraftRestore() {
   st.metrics = d.metrics || null; st.metricsEdited = !!d.metricsEdited;
   st.name = d.name != null ? d.name : null; st.nameEdited = !!d.nameEdited;
   st.saveId = d.saveId || st.saveId; st.descText = d.descText || '';
+  st.split = (d.split && AI_MEALS.includes(d.split.second) && d.split.second !== st.meal) ? { second: d.split.second } : null;
   st.dataUrl = null; st.photos = null; st.audioDataUrl = null;
   st.restored = true; st.draftDate = d.date || null;
   aiState = st;
@@ -19327,6 +19340,132 @@ function aiWireMeal() {
   const sel = $('ai-meal');
   if (sel) sel.addEventListener('change', () => { if (aiState) aiState.meal = sel.value; aiDraftSync(); });
 }
+/* REPARTO EN DOS COMIDAS (Ronald, 2026-11-03: «quiero que la aplicación
+   me lo facilite» — cocinó un plato, lo dividió mitad almuerzo / mitad
+   cena y la IA lo estimó entero para el almuerzo; tuvo que partir los
+   cinco valores a mano). El reparto vive en aiState.split: null = todo
+   en esta comida (el comportamiento de siempre) o {second} = la otra
+   mitad cae en ese momento. Vive SOLO en el paso de resultado de la
+   hoja del borrador estimado y actúa sobre el Guardar directo
+   (aiSaveDirect): «Usar como borrador» sigue llevando el plato
+   completo al formulario manual, como siempre. El reparto se calcula
+   sobre los valores QUE SE VEN en los campos (aiState.metrics o los
+   totales del cálculo), incluidos los editados a mano. */
+function aiSplitNextMeal(first) {
+  const i = AI_MEALS.indexOf(first);
+  if (i < 0) return 'Cena';
+  if (i < AI_MEALS.length - 1) return AI_MEALS[i + 1];
+  return AI_MEALS[i - 1];
+}
+/* La segunda comida VÁLIDA ahora mismo: la elegida si sigue siendo
+   otro momento; si no (la primera cambió y la alcanzó), la siguiente
+   comida natural tras la primera. */
+function aiSplitSecond() {
+  const first = (aiState && aiState.meal) || aiDefaultMeal();
+  const s = aiState && aiState.split && aiState.split.second;
+  return (s && AI_MEALS.includes(s) && s !== first) ? s : aiSplitNextMeal(first);
+}
+/* Totales que se guardarían SIN reparto: la misma lectura de campos
+   del guardado directo (métricas editadas o totales del cálculo). */
+function aiSplitTotals() {
+  const tot = (aiState && aiState.r2 && aiState.r2.totals) || {};
+  const m = (aiState && aiState.metrics) || {};
+  const val = k => Math.max(0, num((m[k] != null && m[k] !== '') ? m[k] : (tot[k] || 0)));
+  return { kcal: val('kcal'), prot: val('prot'), carb: val('carb'), sugar: val('sugar'), fat: val('fat') };
+}
+/* LAS DOS MITADES de unos totales, con el redondeo de la casa: kcal
+   entero (Math.round) y los macros a 1 decimal (la convención del
+   desglose por alimento). La primera mitad redondea; la segunda es el
+   RESTO exacto, así la suma de ambas reproduce el total confirmado
+   (629 → 315 + 314; cada campo puede diferir del «medio» teórico en
+   ≤0,5 por el redondeo, nunca más). */
+function aiSplitHalves(tot) {
+  const r1d = x => Math.round(x * 10) / 10;
+  const a = {}, b = {};
+  for (const k of ['kcal', 'prot', 'carb', 'sugar', 'fat']) {
+    const v = num(tot[k]);
+    a[k] = k === 'kcal' ? Math.round(v / 2) : r1d(v / 2);
+    b[k] = r1d(v - a[k]);
+    if (k === 'kcal') b[k] = v - a[k];
+  }
+  return [a, b];
+}
+/* LAS DOS MITADES del desglose por alimento: cada línea se parte con
+   SU convención (kcal entero, macros a 1 decimal; primera mitad
+   redondea, segunda = resto). Las piezas NO se parten en piezas: una
+   línea contada por unidades (3 claras de 33 g) pasa a su forma en
+   gramos y parte los gramos (99 g → 50 g + 49 g), sin unidades
+   fraccionadas en ningún registro. */
+function aiItemsHalved(items) {
+  if (!items || !items.length) return [null, null];
+  const r1d = x => Math.round(x * 10) / 10;
+  const A = [], B = [];
+  for (const it of items) {
+    const a = { name: it.name }, b = { name: it.name };
+    for (const k of ['kcal', 'prot', 'carb', 'sugar', 'fat']) {
+      const v = num(it[k]);
+      a[k] = k === 'kcal' ? Math.round(v / 2) : r1d(v / 2);
+      b[k] = k === 'kcal' ? v - a[k] : r1d(v - a[k]);
+    }
+    if (it.unit === 'unidad' || num(it.portion_g) > 0) {
+      const pg = Math.round(num(it.portion_g));
+      if (pg > 0) { a.portion_g = Math.round(pg / 2); b.portion_g = pg - a.portion_g; }
+    }
+    A.push(a); B.push(b);
+  }
+  return [A, B];
+}
+/* Cantidad del registro REPARTIDO: la mitad de los gramos totales,
+   expresada en gramos (o ml si todo era ml) — en un plato contado por
+   piezas la mitad se lee en gramos, nunca «1,5 unidad». */
+function aiQtyStringHalf() {
+  const foods = aiKnownFoods();
+  const grams = foods.reduce((s, f) => s + (f.grams || 0), 0);
+  if (!grams) return '';
+  const allMl = foods.length > 0 && foods.every(f => f.unit === 'ml');
+  return Math.round(grams / 2) + (allMl ? ' ml' : ' g');
+}
+function aiSplitResultText() {
+  const h = aiSplitHalves(aiSplitTotals())[0];
+  const r = v => String(Math.round(num(v)));
+  return t('ai.splitResult', { kcal: r(h.kcal), p: r(h.prot), c: r(h.carb), s: r(h.sugar), f: r(h.fat) });
+}
+function aiSplitHTML() {
+  const on = !!(aiState && aiState.split);
+  const first = (aiState && aiState.meal) || aiDefaultMeal();
+  const second = aiSplitSecond();
+  const others = AI_MEALS.filter(v => v !== first);
+  return `<div class="ai-split" id="ai-split"><p class="ai-split-q">${t('ai.splitPrompt')}</p><div class="ai-split-opts"><button type="button" class="ai-split-btn${on ? '' : ' on'}" id="ai-split-all">${t('ai.splitAll')}</button><button type="button" class="ai-split-btn${on ? ' on' : ''}" id="ai-split-half">${t('ai.splitHalf')}</button></div>${on ? `<p class="ai-split-q">${t('ai.splitSecond')}</p><div class="ai-split-opts">${others.map(v => `<button type="button" class="ai-split-btn${v === second ? ' on' : ''}" data-second="${v}">${esc(mealName(v))}</button>`).join('')}</div><p class="ai-split-result" id="ai-split-result">${esc(aiSplitResultText())}</p>` : ''}</div>`;
+}
+/* Repinta SOLO el bloque del reparto y lo vuelve a cablear: los
+   campos de valores no se tocan (ni foco ni contenido). */
+function aiSplitSync() {
+  const box = $('ai-split');
+  if (!box || !aiState || aiState.step !== 'draft') return;
+  const wrap = document.createElement('div');
+  wrap.innerHTML = aiSplitHTML();
+  const fresh = wrap.firstElementChild;
+  if (fresh) box.replaceWith(fresh);
+  aiWireSplit();
+}
+function aiWireSplit() {
+  const all = $('ai-split-all'), half = $('ai-split-half');
+  if (all) all.onclick = () => { aiCaptureMetrics(); aiCaptureMeal(); if (aiState) { aiState.split = null; aiDraftSync(); } aiSplitSync(); };
+  if (half) half.onclick = () => { aiCaptureMetrics(); aiCaptureMeal(); if (aiState) { aiState.split = { second: aiSplitSecond() }; aiDraftSync(); } aiSplitSync(); };
+  document.querySelectorAll('#ai-split [data-second]').forEach(b => { b.onclick = () => { aiCaptureMetrics(); aiCaptureMeal(); if (aiState) { aiState.split = { second: b.dataset.second }; aiDraftSync(); } aiSplitSync(); }; });
+  /* La línea de resultado sigue a los campos: editar un valor la
+     recalcula al momento (sin repintar el bloque entero). Los
+     escuchadores sobre elementos AJENOS al bloque se instalan una
+     sola vez por pintado de la hoja (marca en el propio elemento:
+     cada aiShow renueva el panel y las marcas nacen limpias) — el
+     bloque se re-sincroniza muchas veces sin apilar escuchadores. */
+  const p = $('ai-panel');
+  if (p) p.querySelectorAll('.ai-m').forEach(inp => { if (!inp.__splitWired) { inp.__splitWired = true; inp.addEventListener('input', () => { const r = $('ai-split-result'); if (r && aiState && aiState.split) r.textContent = aiSplitResultText(); }); } });
+  /* Si la PRIMERA comida cambia y alcanza a la segunda, el bloque se
+     re-sincroniza (la segunda salta a la siguiente natural). */
+  const sel = $('ai-meal');
+  if (sel && !sel.__splitWired) { sel.__splitWired = true; sel.addEventListener('change', () => { if (aiState && aiState.split) aiSplitSync(); }); }
+}
 /* Métricas EDITABLES en el propio resultado (PAQUETE 2): aiState.metrics
    guarda los cinco valores tal como la persona los deja en el panel;
    el guardado (directo o vía borrador) usa ESTOS valores. Tocar un
@@ -19433,7 +19572,7 @@ function aiNewSaveId() {
   return 'meal_' + Date.now().toString(36) + '_' + aiSaveSeq.toString(36) + '_' + Math.random().toString(36).slice(2, 8);
 }
 function aiFreshState(mode) {
-  return { mode, dataUrl: null, photos: null, descText: '', audioDataUrl: null, step: 'loading', r1: null, answers: {}, other: {}, foods: null, r2: null, errStage: 'identify', meal: aiDefaultMeal(), metrics: null, metricsEdited: false, name: null, nameEdited: false, cap: false, capLimit: null, disabled: false, btWindow: false, btRenews: null, saveError: false, saveId: aiNewSaveId() };
+  return { mode, dataUrl: null, photos: null, descText: '', audioDataUrl: null, step: 'loading', r1: null, answers: {}, other: {}, foods: null, r2: null, errStage: 'identify', meal: aiDefaultMeal(), metrics: null, metricsEdited: false, name: null, nameEdited: false, cap: false, capLimit: null, disabled: false, btWindow: false, btRenews: null, saveError: false, saveId: aiNewSaveId(), split: null };
 }
 /* Registra en el estado el tipo de corte que devolvió aiCall: tope
    diario (con el límite aplicable si el Worker lo dijo), interruptor
@@ -19884,8 +20023,9 @@ function aiRenderInner() {
     const mv = aiState.metrics || {};
     const mval = k => (mv[k] != null && mv[k] !== '') ? mv[k] : Math.round(tot[k] || 0);
     const mfield = (k, label) => `<label class="ai-metric"><span>${label}</span><input type="number" class="ai-m" data-k="${k}" value="${esc(String(mval(k)))}" min="0" step="any" inputmode="decimal"></label>`;
-    aiShow(`<h3>${t('ai.draftTitle')}</h3><label class="ai-metric ai-name"><span>${t('form.food')}</span><input type="text" id="ai-name" value="${esc(aiState.name != null ? aiState.name : aiSuggestedName())}" maxlength="120" placeholder="${t('form.foodPh')}"></label><ul class="ai-foods">${rows}</ul>${range ? `<p class="progress-hint">${t('ai.range').replace('{a}', Math.round(range[0])).replace('{b}', Math.round(range[1]))}</p>` : ''}${aiMealSelectHTML()}<p class="ai-metrics-title">${t('ai.metricsTitle')}</p><div class="ai-metrics">${mfield('kcal', t('form.kcal'))}${mfield('prot', t('form.protein'))}${mfield('carb', t('form.carbs'))}${mfield('sugar', t('form.sugar'))}${mfield('fat', t('form.fat'))}</div>${aiState.saveError ? `<p class="ai-err">${t('ai.saveError')}</p>` : ''}<div class="ai-actions"><button type="button" class="btn-main btn-sm" id="ai-save">${t('ai.save')}</button><button type="button" class="btn-ghost btn-sm" id="ai-use">${t('ai.useDraft')}</button><button type="button" class="btn-ghost btn-sm" id="ai-foods">${t('ai.backToFoods')}</button><button type="button" class="btn-ghost btn-sm" id="ai-cancel2">${t('ai.discard')}</button></div>`);
+    aiShow(`<h3>${t('ai.draftTitle')}</h3><label class="ai-metric ai-name"><span>${t('form.food')}</span><input type="text" id="ai-name" value="${esc(aiState.name != null ? aiState.name : aiSuggestedName())}" maxlength="120" placeholder="${t('form.foodPh')}"></label><ul class="ai-foods">${rows}</ul>${range ? `<p class="progress-hint">${t('ai.range').replace('{a}', Math.round(range[0])).replace('{b}', Math.round(range[1]))}</p>` : ''}${aiMealSelectHTML()}${aiSplitHTML()}<p class="ai-metrics-title">${t('ai.metricsTitle')}</p><div class="ai-metrics">${mfield('kcal', t('form.kcal'))}${mfield('prot', t('form.protein'))}${mfield('carb', t('form.carbs'))}${mfield('sugar', t('form.sugar'))}${mfield('fat', t('form.fat'))}</div>${aiState.saveError ? `<p class="ai-err">${t('ai.saveError')}</p>` : ''}<div class="ai-actions"><button type="button" class="btn-main btn-sm" id="ai-save">${t('ai.save')}</button><button type="button" class="btn-ghost btn-sm" id="ai-use">${t('ai.useDraft')}</button><button type="button" class="btn-ghost btn-sm" id="ai-foods">${t('ai.backToFoods')}</button><button type="button" class="btn-ghost btn-sm" id="ai-cancel2">${t('ai.discard')}</button></div>`);
     aiWireMeal();
+    aiWireSplit();
     const nameInp = $('ai-name');
     if (nameInp) nameInp.addEventListener('input', () => { aiCaptureName(); if (aiState) aiState.nameEdited = true; });
     p.querySelectorAll('.ai-m').forEach(inp => inp.addEventListener('input', aiMarkMetricsEdited));
@@ -20514,13 +20654,48 @@ async function aiSaveDirect() {
      guardan (regla de honestidad de aiItemsCandidate/itemsIfSquare). */
   const aiIts = itemsIfSquare(aiItemsCandidate(), data);
   if (aiIts) data.items = aiIts;
+  /* REPARTO EN DOS COMIDAS: con el reparto activo, el registro
+     completo de arriba NO se escribe — se escriben DOS registros
+     normales e independientes, uno por momento, cada uno con la
+     mitad de los totales confirmados, de la cantidad y del desglose
+     (cada mitad valida su propio desglose contra sus propios totales
+     con la misma regla de honestidad de siempre). La candidatura
+     automática a la biblioteca sigue alimentándose UNA vez con los
+     valores completos confirmados, como en el guardado sin reparto. */
+  const splitOn = !!aiState.split;
+  let dataA = null, dataB = null;
+  if (splitOn) {
+    if (!aiState.saveId) aiState.saveId = aiNewSaveId();
+    const hv = aiSplitHalves(data);
+    const itH = aiItemsHalved(aiItemsCandidate());
+    const rangeHalf = Array.isArray(data.ai.rangeKcal) ? [Math.round(data.ai.rangeKcal[0] / 2), Math.round(data.ai.rangeKcal[1] / 2)] : null;
+    const mkHalf = (meal, h, its) => {
+      const d = { ...data, meal, qty: aiQtyStringHalf(), kcal: h.kcal, prot: h.prot, carb: h.carb, sugar: h.sugar, fat: h.fat, ai: { model: data.ai.model, rangeKcal: rangeHalf } };
+      delete d.items;
+      const hi = itemsIfSquare(its, d);
+      if (hi) d.items = hi;
+      return d;
+    };
+    dataA = mkHalf(data.meal, hv[0], itH[0]);
+    dataB = mkHalf(aiSplitSecond(), hv[1], itH[1]);
+  }
   aiSaving = true; mealSaving = true;
   const btn = $('ai-save'); if (btn) btn.disabled = true;
   try {
     /* Idempotencia (corrección del duplicado, 2026-10-23): con el id
        estable de la revisión se escribe SIEMPRE el mismo documento;
        sin id (un estado heredado) se crea como antes. */
-    if (aiState.saveId) await setDoc(doc(db, 'nutrition_meals', aiState.saveId), data);
+    if (splitOn) {
+      /* El par nace JUNTO o no nace: un solo lote con los dos
+         documentos. Los ids son estables para esta revisión (el de
+         siempre y su par con sufijo), así que un reintento tras un
+         fallo reescribe LOS MISMOS dos documentos — jamás duplica. */
+      const batch = writeBatch(db);
+      batch.set(doc(db, 'nutrition_meals', aiState.saveId), dataA);
+      batch.set(doc(db, 'nutrition_meals', aiState.saveId + '-b'), dataB);
+      await batch.commit();
+    }
+    else if (aiState.saveId) await setDoc(doc(db, 'nutrition_meals', aiState.saveId), data);
     else await addDoc(collection(db, 'nutrition_meals'), data);
     aiDiscard();
     await loadAllKeepDate(data.date);
@@ -20538,7 +20713,9 @@ async function aiSaveDirect() {
        no se guardó — nunca en un aviso nuevo; por texto
        ('ai-text') no aparece, y si el guardado falla esta línea
        jamás se ejecuta (el fallo muestra ai.saveError). */
-    toast(t('ai.savedInfo', { kcal: Math.round(data.kcal), total: Math.round(dayTotal) }) + (data.source === 'ai' ? ' ' + t('ai.savedPhotoNote') : data.source === 'ai-audio' ? ' ' + t('aiVoice.savedNote') : ''));
+    const srcNote = data.source === 'ai' ? ' ' + t('ai.savedPhotoNote') : data.source === 'ai-audio' ? ' ' + t('aiVoice.savedNote') : '';
+    if (splitOn) toast(t('ai.savedSplit', { a: mealName(dataA.meal), b: mealName(dataB.meal) }) + srcNote);
+    else toast(t('ai.savedInfo', { kcal: Math.round(data.kcal), total: Math.round(dayTotal) }) + srcNote);
   } catch {
     if (aiState) { aiState.saveError = true; aiState.step = 'draft'; aiRender(); }
     toast(t('ai.saveError'), true);
@@ -35809,7 +35986,7 @@ document.addEventListener('keydown', e => { if (e.key === 'Escape') shareClose()
  *  - El SW (sw.js) solo cachea la cáscara del mismo origen en modo
  *    RED PRIMERO: Auth/Firestore/Worker jamás pasan por la caché.
  * ================================================================ */
-const PWA_SW_VERSION = '20261103-foto-hoy';
+const PWA_SW_VERSION = '20261103-repartir-comida';
 let pwaDeferredPrompt = null;
 function pwaIsStandalone() {
   try {
