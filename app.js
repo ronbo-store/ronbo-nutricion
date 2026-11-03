@@ -323,6 +323,7 @@ async function loadRolesX() {
   applyFeatureGates();
   renderMyTrainerBox();
   try { renderRolePendCard(); } catch {}
+  try { nutriBoot(); } catch {}
 }
 function applyFeatureGates() {
   if (ROLE !== 'usuario') return;
@@ -1804,6 +1805,7 @@ function dosCollectPlaces() {
 async function renderProfileView() {
   const box = $('profile-card-box'); if (!box) return;
   try { renderPurposeProfileBox(); } catch {}
+  try { renderNutriBoxes(); } catch {}
   const u = UDATA || {};
   const me = auth.currentUser;
   const name = u.name || (me && me.email) || '—';
@@ -2104,6 +2106,7 @@ const ADMIN_SECTIONS = [
   { id: 'limits', sub: 'system', titleKey: 'limreg.title', mount: admSecMountLimits, refresh: admSecRefreshLimits },
   { id: 'imglim', sub: 'system', titleKey: 'imglim.title', mount: admSecMountImgLim, refresh: admSecRefreshImgLim },
   { id: 'care', sub: 'system', titleKey: 'care.title', mount: admSecMountCare, refresh: admSecRefreshCare },
+  { id: 'nutri', sub: 'system', titleKey: 'admin.nutriTitle', mount: admSecMountNutri, refresh: admSecRefreshNutri },
 ];
 const ADM_SEC_OPEN = {};     // id → abierta (solo presentación)
 const ADM_SEC_MOUNTED = {};  // id → contenido ya montado
@@ -3331,6 +3334,153 @@ en: {
   'myprof.dsPickSub': 'In 30-minute steps',
   'myprof.dsPickNote': 'Tap a time and it saves right away.',
   'msg.dsSaved': 'Daily summary setting saved.',
+  'admin.nutriTitle': 'Food coaches',
+  'purpose.withNutri': 'With a food coach',
+  'purpose.withNutriSub': 'Choose a food coach for your meals — with a trainer too, if you want: they are independent.',
+  'purpose.nutritionist': 'I am a food coach',
+  'purpose.nutritionistSub': 'Register as a food coach. The Administrator reviews your training and approves your role.',
+  'purpose.nutriTitle': 'Choose your food coach',
+  'purpose.nutriOptional': 'Optional',
+  'purpose.nutriSkip': 'No food coach for now',
+  'purpose.nutriSkipSub': 'You can choose one later from your profile, in My food coach.',
+  'purpose.nutriProTitle': 'Your training and your membership',
+  'purpose.formationLabel': 'Your training (degrees, certifications) — the Administrator reviews it',
+  'purpose.formationPh': 'E.g. Registered dietitian, degree and license…',
+  'nutri.boxTitle': 'My food coach',
+  'nutri.proTitle': 'My food coaching practice',
+  'nutri.none': 'You do not have a food coach yet.',
+  'nutri.noneHint': 'Your meals stay yours; with a food coach you get a food plan, follow-up and recipes.',
+  'nutri.choose': 'Choose a food coach',
+  'nutri.waitingAdmin': 'You are waiting: the Administrator looks after your food care for now.',
+  'nutri.myNutri': 'Your food coach',
+  'nutri.change': 'Change food coach',
+  'nutri.changePendingNew': 'Change requested: waiting for the new food coach to accept.',
+  'nutri.changePendingAdmin': 'Change accepted: waiting for the Administrator to confirm.',
+  'nutri.followReq': 'Request follow-up',
+  'nutri.followPendingNutri': 'Follow-up requested: waiting for your food coach.',
+  'nutri.followPendingAdmin': 'Follow-up approved by your food coach: waiting for the Administrator to confirm.',
+  'nutri.followActive': 'Follow-up active',
+  'nutri.cadence': 'Review cadence',
+  'nutri.cad.weekly': 'Weekly',
+  'nutri.cad.fortnightly': 'Every two weeks',
+  'nutri.cad.monthly': 'Monthly',
+  'nutri.cad.bimonthly': 'Every two months',
+  'nutri.cad.quarterly': 'Quarterly',
+  'nutri.planTitle': 'My food plan',
+  'nutri.planNone': 'No active food plan yet.',
+  'nutri.planGoalsFrom': 'Your current goals come from your food plan.',
+  'nutri.until': 'until',
+  'nutri.adherence': 'Today',
+  'nutri.adh.none': 'Nothing logged',
+  'nutri.adh.missed': 'Not done',
+  'nutri.adh.partial': 'Partial',
+  'nutri.adh.done': 'Completed',
+  'nutri.water': 'Water today',
+  'nutri.waterAdd': 'Add water (ml)',
+  'nutri.save': 'Save',
+  'nutri.saved': 'Saved.',
+  'nutri.consentTitle': 'My food-care data',
+  'nutri.consentHint': 'Only with your specific consent, your food coach can see: allergies, intolerances, declared conditions, relevant medications, cultural or religious preferences and vegetarianism. No diagnoses are made in the app: with a condition, you get a referral, never a medical diet.',
+  'nutri.consentGive': 'Give my consent and save',
+  'nutri.consentWithdraw': 'Withdraw consent',
+  'nutri.consentOn': 'Consent active',
+  'nutri.f.allergies': 'Allergies',
+  'nutri.f.intolerances': 'Intolerances',
+  'nutri.f.conditions': 'Declared conditions',
+  'nutri.f.medications': 'Relevant medications',
+  'nutri.f.cultural': 'Cultural or religious preferences',
+  'nutri.f.vegetarian': 'Vegetarian',
+  'nutri.poolTitle': 'Available food coaches',
+  'nutri.poolEmpty': 'No food coach is available right now. You can stay waiting for the Administrator.',
+  'nutri.poolFull': 'Full',
+  'nutri.free': 'spots free',
+  'nutri.mod.virtual': 'Online',
+  'nutri.mod.presencial': 'In person',
+  'nutri.pick': 'Choose',
+  'nutri.waitOption': 'Stay waiting for the Administrator',
+  'nutri.pro.pending': 'Your application is waiting: the Administrator is reviewing your training.',
+  'nutri.pro.rejected': 'Your application was not approved. Talk to the Administrator.',
+  'nutri.pro.suspended': 'Your food coach role is suspended right now.',
+  'nutri.pro.active': 'Approved food coach',
+  'nutri.pro.clients': 'active clients',
+  'nutri.pro.openConsole': 'Open my practice',
+  'nutri.pro.editProfile': 'Edit my pool profile',
+  'nutri.pro.formation': 'Training',
+  'nutri.pro.bio': 'About you',
+  'nutri.pro.specialties': 'Specialties (comma separated)',
+  'nutri.pro.languages': 'Languages',
+  'nutri.pro.offerInPerson': 'I also offer in-person care',
+  'nutri.memb.none': 'No membership: request one to appear in the pool.',
+  'nutri.memb.pending': 'Membership requested: waiting for the Administrator.',
+  'nutri.memb.active': 'Membership',
+  'nutri.memb.request': 'Request',
+  'nutri.console.clients': 'Clients',
+  'nutri.console.requests': 'Requests',
+  'nutri.console.recipes': 'Recipes',
+  'nutri.console.close': 'Close',
+  'nutri.req.follow': 'Follow-up request',
+  'nutri.req.change': 'Wants to switch to you',
+  'nutri.approve': 'Approve',
+  'nutri.accept': 'Accept',
+  'nutri.reject': 'Reject',
+  'nutri.client.plan': 'Food plan',
+  'nutri.client.newPlan': 'New plan',
+  'nutri.client.computeDraft': 'Calculate goal draft',
+  'nutri.client.draftHint': 'The system calculates a draft with the founded engine. Nothing is saved until you review and approve it.',
+  'nutri.client.approveGoals': 'Approve goals and activate plan',
+  'nutri.client.held': 'Held back by the health declaration',
+  'nutri.client.notes': 'Plan notes',
+  'nutri.client.starts': 'Starts',
+  'nutri.client.suggest': 'Student suggestion',
+  'nutri.client.daily': 'Daily log (with authorship)',
+  'nutri.client.mealFood': 'Food',
+  'nutri.client.addMeal': 'Add meal for the client',
+  'nutri.client.addWeight': 'Add weight (kg)',
+  'nutri.client.review': 'Review note',
+  'nutri.client.reviewAdd': 'Save review',
+  'nutri.client.assignRecipe': 'Assign recipe',
+  'nutri.byNutri': 'Logged by your food coach',
+  'nutri.byYou': 'Logged by you',
+  'nutri.suggestGoals': 'Suggest a goal change',
+  'nutri.suggestSend': 'Send suggestion',
+  'nutri.suggestSent': 'Suggestion sent. Your food coach decides.',
+  'nutri.recipes': 'Recipes',
+  'nutri.recipe.new': 'New recipe',
+  'nutri.recipe.propose': 'Propose a recipe',
+  'nutri.recipe.mine': 'Propose / create',
+  'nutri.recipe.titleEs': 'Title (Spanish)',
+  'nutri.recipe.titleEn': 'Title (English)',
+  'nutri.recipe.ingEs': 'Ingredients, one per line: name | qty | unit (Spanish)',
+  'nutri.recipe.ingEn': 'Ingredients, one per line: name | qty | unit (English)',
+  'nutri.recipe.photo': 'Photo URL (required)',
+  'nutri.recipe.video': 'Video URL (optional)',
+  'nutri.recipe.servings': 'Servings',
+  'nutri.recipe.scope': 'Library',
+  'nutri.recipe.scopePrivate': 'Private (only my clients)',
+  'nutri.recipe.scopeGeneral': 'General (the Administrator approves it)',
+  'nutri.recipe.goals': 'Goals',
+  'nutri.recipe.allergens': 'Allergens it contains',
+  'nutri.recipe.restrictions': 'Restrictions it fits',
+  'nutri.recipe.perServing': 'per serving',
+  'nutri.recipe.estimate': 'estimate',
+  'nutri.recipe.fav': 'Favorite',
+  'nutri.recipe.assignments': 'Assigned to you',
+  'nutri.recipe.markDone': 'Mark done',
+  'nutri.recipe.done': 'Done',
+  'nutri.admin.proApps': 'Role applications (training review)',
+  'nutri.admin.membReqs': 'Membership requests',
+  'nutri.admin.followConf': 'Follow-ups to confirm',
+  'nutri.admin.changeConf': 'Food coach changes to confirm',
+  'nutri.admin.waiting': 'Students waiting for a food coach',
+  'nutri.admin.recipeProps': 'Recipe proposals',
+  'nutri.admin.pool': 'Approved food coaches',
+  'nutri.admin.publishDir': 'Publish the signup directory',
+  'nutri.admin.assign': 'Assign',
+  'nutri.admin.suspend': 'Suspend',
+  'nutri.admin.publish': 'Publish',
+  'nutri.admin.confirm': 'Confirm',
+  'nutri.admin.empty': 'Nothing pending here.',
+  'nutri.foundation': 'Foundation: Mifflin-St Jeor energy; protein per ISSN 2017 by goal; sugars WHO strict 5%; fats Helms et al. 2014 with a 15% floor.',
   'fdcam.tag': 'COMING SOON',
   'fdcam.title': 'Camera Coach',
   'fdcam.body': 'Your phone counts your reps and watches your form while you train — and the set is logged for you.',
@@ -6066,6 +6216,153 @@ es: {
   'myprof.dsPickSub': 'En pasos de 30 min',
   'myprof.dsPickNote': 'Toca una hora y se guarda al momento.',
   'msg.dsSaved': 'Ajuste del resumen guardado.',
+  'admin.nutriTitle': 'Coaches de alimentación',
+  'purpose.withNutri': 'Con coach de alimentación',
+  'purpose.withNutriSub': 'Elige coach de alimentación para tus comidas — también con entrenador, si quieres: son independientes.',
+  'purpose.nutritionist': 'Soy coach de alimentación',
+  'purpose.nutritionistSub': 'Regístrate como profesional de la alimentación. El Administrador revisa tu formación y aprueba tu rol.',
+  'purpose.nutriTitle': 'Elige tu coach de alimentación',
+  'purpose.nutriOptional': 'Opcional',
+  'purpose.nutriSkip': 'Sin coach por ahora',
+  'purpose.nutriSkipSub': 'Podrás elegir uno después desde tu perfil, en «Mi coach de alimentación».',
+  'purpose.nutriProTitle': 'Tu formación y tu membresía',
+  'purpose.formationLabel': 'Tu formación (títulos, certificaciones) — la revisa el Administrador',
+  'purpose.formationPh': 'Ej. Coach de alimentación, título y licencia…',
+  'nutri.boxTitle': 'Mi coach de alimentación',
+  'nutri.proTitle': 'Mi consulta de alimentación',
+  'nutri.none': 'Todavía no tienes coach de alimentación.',
+  'nutri.noneHint': 'Tus comidas siguen siendo tuyas; con coach de alimentación recibes plan de comidas, seguimiento y recetas.',
+  'nutri.choose': 'Elegir coach de alimentación',
+  'nutri.waitingAdmin': 'Estás en espera: el Administrador atiende tu alimentación por ahora.',
+  'nutri.myNutri': 'Tu coach de alimentación',
+  'nutri.change': 'Cambiar de coach de alimentación',
+  'nutri.changePendingNew': 'Cambio pedido: esperando que el coach de alimentación nuevo acepte.',
+  'nutri.changePendingAdmin': 'Cambio aceptado: esperando la confirmación del Administrador.',
+  'nutri.followReq': 'Solicitar seguimiento',
+  'nutri.followPendingNutri': 'Seguimiento solicitado: esperando a tu coach de alimentación.',
+  'nutri.followPendingAdmin': 'Seguimiento aprobado por tu coach de alimentación: esperando la confirmación del Administrador.',
+  'nutri.followActive': 'Seguimiento activo',
+  'nutri.cadence': 'Cadencia de revisión',
+  'nutri.cad.weekly': 'Semanal',
+  'nutri.cad.fortnightly': 'Quincenal',
+  'nutri.cad.monthly': 'Mensual',
+  'nutri.cad.bimonthly': 'Bimensual',
+  'nutri.cad.quarterly': 'Trimestral',
+  'nutri.planTitle': 'Mi plan de comidas',
+  'nutri.planNone': 'Aún no hay un plan de comidas activo.',
+  'nutri.planGoalsFrom': 'Tus metas actuales vienen de tu plan de comidas.',
+  'nutri.until': 'hasta el',
+  'nutri.adherence': 'Hoy',
+  'nutri.adh.none': 'Sin registrar',
+  'nutri.adh.missed': 'No hecho',
+  'nutri.adh.partial': 'Parcial',
+  'nutri.adh.done': 'Completado',
+  'nutri.water': 'Agua de hoy',
+  'nutri.waterAdd': 'Añadir agua (ml)',
+  'nutri.save': 'Guardar',
+  'nutri.saved': 'Guardado.',
+  'nutri.consentTitle': 'Mis datos de alimentación',
+  'nutri.consentHint': 'Solo con tu consentimiento específico, tu coach de alimentación puede ver: alergias, intolerancias, condiciones declaradas, medicamentos relevantes, preferencias culturales o religiosas y vegetarianismo. En la app no se hacen diagnósticos: ante una condición, recibes derivación, nunca una dieta médica.',
+  'nutri.consentGive': 'Dar mi consentimiento y guardar',
+  'nutri.consentWithdraw': 'Retirar el consentimiento',
+  'nutri.consentOn': 'Consentimiento activo',
+  'nutri.f.allergies': 'Alergias',
+  'nutri.f.intolerances': 'Intolerancias',
+  'nutri.f.conditions': 'Condiciones declaradas',
+  'nutri.f.medications': 'Medicamentos relevantes',
+  'nutri.f.cultural': 'Preferencias culturales o religiosas',
+  'nutri.f.vegetarian': 'Vegetariano',
+  'nutri.poolTitle': 'Coaches de alimentación disponibles',
+  'nutri.poolEmpty': 'Ahora mismo no hay ningún coach de alimentación disponible. Puedes quedar en espera del Administrador.',
+  'nutri.poolFull': 'Cupo lleno',
+  'nutri.free': 'lugares libres',
+  'nutri.mod.virtual': 'Virtual',
+  'nutri.mod.presencial': 'Presencial',
+  'nutri.pick': 'Elegir',
+  'nutri.waitOption': 'Quedar en espera del Administrador',
+  'nutri.pro.pending': 'Tu solicitud está en espera: el Administrador está revisando tu formación.',
+  'nutri.pro.rejected': 'Tu solicitud no fue aprobada. Habla con el Administrador.',
+  'nutri.pro.suspended': 'Tu rol de coach de alimentación está suspendido por ahora.',
+  'nutri.pro.active': 'Coach de alimentación aprobado',
+  'nutri.pro.clients': 'alumnos activos',
+  'nutri.pro.openConsole': 'Abrir mi consulta',
+  'nutri.pro.editProfile': 'Editar mi perfil del pool',
+  'nutri.pro.formation': 'Formación',
+  'nutri.pro.bio': 'Sobre ti',
+  'nutri.pro.specialties': 'Especialidades (separadas por comas)',
+  'nutri.pro.languages': 'Idiomas',
+  'nutri.pro.offerInPerson': 'También ofrezco atención presencial',
+  'nutri.memb.none': 'Sin membresía: pide una para aparecer en el pool.',
+  'nutri.memb.pending': 'Membresía solicitada: esperando al Administrador.',
+  'nutri.memb.active': 'Membresía',
+  'nutri.memb.request': 'Pedir',
+  'nutri.console.clients': 'Alumnos',
+  'nutri.console.requests': 'Solicitudes',
+  'nutri.console.recipes': 'Recetas',
+  'nutri.console.close': 'Cerrar',
+  'nutri.req.follow': 'Solicitud de seguimiento',
+  'nutri.req.change': 'Quiere cambiarse contigo',
+  'nutri.approve': 'Aprobar',
+  'nutri.accept': 'Aceptar',
+  'nutri.reject': 'Rechazar',
+  'nutri.client.plan': 'Plan de comidas',
+  'nutri.client.newPlan': 'Plan nuevo',
+  'nutri.client.computeDraft': 'Calcular borrador de metas',
+  'nutri.client.draftHint': 'El sistema calcula un borrador con el motor con fundamento. Nada se guarda hasta que lo revises y lo apruebes.',
+  'nutri.client.approveGoals': 'Aprobar metas y activar el plan',
+  'nutri.client.held': 'Retenido por la declaración de salud',
+  'nutri.client.notes': 'Notas del plan',
+  'nutri.client.starts': 'Inicio',
+  'nutri.client.suggest': 'Sugerencia del alumno',
+  'nutri.client.daily': 'Registro diario (con autoría)',
+  'nutri.client.mealFood': 'Comida',
+  'nutri.client.addMeal': 'Añadir comida al alumno',
+  'nutri.client.addWeight': 'Añadir peso (kg)',
+  'nutri.client.review': 'Nota de revisión',
+  'nutri.client.reviewAdd': 'Guardar revisión',
+  'nutri.client.assignRecipe': 'Asignar receta',
+  'nutri.byNutri': 'Registrado por tu coach de alimentación',
+  'nutri.byYou': 'Registrado por ti',
+  'nutri.suggestGoals': 'Sugerir un cambio de metas',
+  'nutri.suggestSend': 'Enviar sugerencia',
+  'nutri.suggestSent': 'Sugerencia enviada. Decide tu coach de alimentación.',
+  'nutri.recipes': 'Recetas',
+  'nutri.recipe.new': 'Receta nueva',
+  'nutri.recipe.propose': 'Proponer una receta',
+  'nutri.recipe.mine': 'Proponer / crear',
+  'nutri.recipe.titleEs': 'Título (español)',
+  'nutri.recipe.titleEn': 'Título (inglés)',
+  'nutri.recipe.ingEs': 'Ingredientes, uno por línea: nombre | cantidad | unidad (español)',
+  'nutri.recipe.ingEn': 'Ingredientes, uno por línea: nombre | cantidad | unidad (inglés)',
+  'nutri.recipe.photo': 'URL de la foto (obligatoria)',
+  'nutri.recipe.video': 'URL del video (opcional)',
+  'nutri.recipe.servings': 'Porciones',
+  'nutri.recipe.scope': 'Biblioteca',
+  'nutri.recipe.scopePrivate': 'Privada (solo mis alumnos)',
+  'nutri.recipe.scopeGeneral': 'General (la aprueba el Administrador)',
+  'nutri.recipe.goals': 'Objetivos',
+  'nutri.recipe.allergens': 'Alérgenos que contiene',
+  'nutri.recipe.restrictions': 'Restricciones que respeta',
+  'nutri.recipe.perServing': 'por porción',
+  'nutri.recipe.estimate': 'estimación',
+  'nutri.recipe.fav': 'Favorita',
+  'nutri.recipe.assignments': 'Asignadas a ti',
+  'nutri.recipe.markDone': 'Marcar hecha',
+  'nutri.recipe.done': 'Hecha',
+  'nutri.admin.proApps': 'Solicitudes de rol (revisión de formación)',
+  'nutri.admin.membReqs': 'Solicitudes de membresía',
+  'nutri.admin.followConf': 'Seguimientos por confirmar',
+  'nutri.admin.changeConf': 'Cambios de coach de alimentación por confirmar',
+  'nutri.admin.waiting': 'Alumnos en espera de coach de alimentación',
+  'nutri.admin.recipeProps': 'Propuestas de recetas',
+  'nutri.admin.pool': 'Coaches de alimentación aprobados',
+  'nutri.admin.publishDir': 'Publicar el directorio del registro',
+  'nutri.admin.assign': 'Asignar',
+  'nutri.admin.suspend': 'Suspender',
+  'nutri.admin.publish': 'Publicar',
+  'nutri.admin.confirm': 'Confirmar',
+  'nutri.admin.empty': 'Nada pendiente aquí.',
+  'nutri.foundation': 'Fundamento: energía Mifflin-St Jeor; proteína según ISSN 2017 por objetivo; azúcares OMS estricto 5%; grasas Helms et al. 2014 con piso del 15%.',
   'fdcam.tag': 'MUY PRONTO',
   'fdcam.title': 'Entrena con cámara',
   'fdcam.body': 'Tu móvil cuenta tus repeticiones y mira tu técnica mientras entrenas — y la serie queda registrada sola.',
@@ -9165,7 +9462,7 @@ function showRegError(msg) {
    del formulario (tipo/modalidad/entrenador) quedan ocultos: la
    ventana es la única puerta; los controladores programáticos
    que los usan (dossier del directorio) no se tocan. */
-const PURPOSE = { mode: 'signup', step: 1, purpose: '', use: '', trainerUid: '', suggest: false, membership: '', gym: '', form: null, busy: false };
+const PURPOSE = { mode: 'signup', step: 1, purpose: '', use: '', trainerUid: '', nutriUid: '', nutriChoice: '', formation: '', suggest: false, membership: '', gym: '', form: null, busy: false };
 const PURPOSE_ASKED_LS = 'purposeAsked:';
 function purposeFloatEl() { return $('purpose-float'); }
 function purposeEsc() { const f = purposeFloatEl(); if (f) f.style.display = 'none'; }
@@ -9197,6 +9494,28 @@ function purposeOptCard(kind, icon, titleKey, subHtml, opts) {
     ${o.disabled ? '<span class="purpose-lock">🔒</span>' : '<span class="purpose-check">✓</span>'}
   </button>`;
 }
+/* Elección COMBINADA de coach de alimentación en la misma pasada
+   del registro (decisión de Ronald 2026-11-03): para los propósitos
+   de alumno («cuenta» y «con_entrenador») la elección de coach es
+   OMISIBLE — elegir uno del directorio publicado (relación activa
+   al nacer la cuenta), «que me lo sugieran» (en_espera bajo el
+   Administrador) u omitir (sin relación; podrá elegir después desde
+   su caja «Mi coach de alimentación» en Mi perfil). Si el directorio
+   no está publicado o está vacío, solo se ofrece sugerir/omitir.
+   CUPO LIBRE (2026-11-03): ningún coach se oculta ni se deshabilita
+   por su conteo de alumnos. */
+function nutriChoiceSectionHTML() {
+  const P = PURPOSE;
+  const dir = (typeof NUTRI_REG_DIRECTORY !== 'undefined' ? NUTRI_REG_DIRECTORY : []).filter(x => x && x.uid);
+  const cards = dir.map(tr => purposeOptCard('nutri2', '👤', '', '', { value: tr.uid, selected: P.nutriChoice === 'pick' && P.nutriUid === tr.uid, photo: tr.photoUrl || '', rawTitle: tr.name || t('nutri.boxTitle'), rawSub: '' })).join('');
+  return `<div class="purpose-nutri-block"><p class="purpose-sub"><b>${esc(t('purpose.nutriTitle'))}</b><span class="purpose-chip">${esc(t('purpose.nutriOptional'))}</span></p>
+  ${cards ? '' : `<p class="purpose-sub">${esc(t('nutri.poolEmpty'))}</p>`}
+  <div class="purpose-opts">
+  ${cards}
+  ${purposeOptCard('nutrisuggest2', '✨', 'purpose.suggestTitle', esc(t('purpose.suggestSub')), { value: 'suggest', selected: P.nutriChoice === 'suggest' })}
+  ${purposeOptCard('nutriskip', '⏭️', 'purpose.nutriSkip', esc(t('purpose.nutriSkipSub')), { value: 'skip', selected: P.nutriChoice === 'skip' || !P.nutriChoice })}
+  </div></div>`;
+}
 function purposeRender() {
   const f = purposeFloatEl();
   if (!f) return;
@@ -9215,6 +9534,8 @@ function purposeRender() {
       ${purposeOptCard('pick', '🏃', 'purpose.own', esc(t('purpose.ownSub')), { value: 'cuenta', selected: P.purpose === 'cuenta' })}
       ${purposeOptCard('pick', '🤝', 'purpose.withTrainer', esc(t('purpose.withTrainerSub')), { value: 'con_entrenador', selected: P.purpose === 'con_entrenador' })}
       ${purposeOptCard('pick', '💪', 'purpose.trainer', esc(t('purpose.trainerSub')), { value: 'entrenador', selected: P.purpose === 'entrenador' })}
+      ${purposeOptCard('pick', '🥗', 'purpose.withNutri', esc(t('purpose.withNutriSub')), { value: 'con_nutricionista', selected: P.purpose === 'con_nutricionista' })}
+      ${purposeOptCard('pick', '🩺', 'purpose.nutritionist', esc(t('purpose.nutritionistSub')), { value: 'nutricionista', selected: P.purpose === 'nutricionista' })}
       ${purposeOptCard('pick', '🏢', 'purpose.business', esc(t('purpose.businessSub')), { value: 'business', selected: P.purpose === 'business' })}
     </div>
     <div class="purpose-foot"><button type="button" class="btn-primary purpose-cta" id="purpose-next" ${P.purpose ? '' : 'disabled'}>${esc(t('purpose.continueBtn'))}</button></div>`;
@@ -9225,6 +9546,7 @@ function purposeRender() {
       ${purposeOptCard('use', '🏋️', 'purpose.useTraining', esc(t('purpose.useTrainingSub')), { value: 'training', selected: P.use === 'training' })}
       ${purposeOptCard('use', '⭐', 'purpose.useBoth', esc(t('purpose.useBothSub')), { value: 'both', selected: P.use === 'both', chip: 'purpose.useFullChip', chipCls: 'purpose-chip-teal' })}
     </div>
+    ${nutriChoiceSectionHTML()}
     <div class="purpose-foot"><button type="button" class="btn-ghost purpose-back" id="purpose-back">${esc(t('purpose.backBtn'))}</button><button type="button" class="btn-primary purpose-cta" id="purpose-done" ${P.use ? '' : 'disabled'}>${esc(t(P.mode === 'declare' ? 'purpose.saveBtn' : 'purpose.createBtn'))}</button></div>`;
   } else if (P.purpose === 'con_entrenador') {
     /* Modalidad (puntos 8 y 9 de la cola 2026-11-01; veredicto de
@@ -9260,6 +9582,7 @@ function purposeRender() {
     ${P.mode === 'declare' ? `<p class="purpose-sub">${esc(t('purpose.declareTrainerNote'))}</p>` : ''}
     ${modRow}
     ${listHtml}
+    ${nutriChoiceSectionHTML()}
     <div class="purpose-foot"><button type="button" class="btn-ghost purpose-back" id="purpose-back">${esc(t('purpose.backBtn'))}</button><button type="button" class="btn-primary purpose-cta" id="purpose-done" ${(P.trainerUid || P.suggest) ? '' : 'disabled'}>${esc(t(P.mode === 'declare' ? 'purpose.saveBtn' : 'purpose.createBtn'))}</button></div>`;
   } else if (P.purpose === 'entrenador') {
     const membCard = (lvl, icon, chipKey) => purposeOptCard('memb', icon, 'esc.level.' + lvl,
@@ -9273,6 +9596,50 @@ function purposeRender() {
       ${membCard('prueba', '🧪', 'purpose.newChip')}
     </div>
     <div class="purpose-foot"><button type="button" class="btn-ghost purpose-back" id="purpose-back">${esc(t('purpose.backBtn'))}</button><button type="button" class="btn-primary purpose-cta" id="purpose-done" ${P.membership ? '' : 'disabled'}>${esc(t(P.mode === 'declare' ? 'purpose.saveBtn' : 'purpose.createBtn'))}</button></div>`;
+  } else if (P.purpose === 'con_nutricionista') {
+    /* MÓDULO NUTRICIONISTA (desarrollo 2026-11-02; preámbulo de
+       Ronald del 2026-11-02 18:19 CST): la elección de nutricionista
+       al registrarse — virtual por defecto; presencial solo si el
+       profesional la ofrece (su campo modalities del directorio).
+       La relación nace en nutritionist_relations, independiente de
+       la de entrenador. Sin elección: espera del Administrador. */
+    const modality = P.modality || '';
+    const modIconsN = { virtual: '💻', presencial: '📍' };
+    const modRowN = `<p class="muted purpose-mod-cap">${esc(t('esc.modality'))}</p>
+    <div class="purpose-mod-row">${['virtual', 'presencial'].map(m => `<button type="button" class="purpose-mod${m === modality ? ' sel' : ''}" data-purpose-mod="${m}" aria-pressed="${m === modality ? 'true' : 'false'}"><span class="purpose-ico">${modIconsN[m]}</span><span class="purpose-mod-label">${esc(t('nutri.mod.' + m))}</span><span class="purpose-mod-badge">✓</span></button>`).join('')}</div>`;
+    let listHtmlN = '';
+    if (modality) {
+      const optsN = (typeof NUTRI_REG_DIRECTORY !== 'undefined' ? NUTRI_REG_DIRECTORY : []).filter(tr => {
+        if (Array.isArray(tr.modalities) && !tr.modalities.includes(modality)) return false;
+        return true;
+      });
+      const cardsN = optsN.map(tr => purposeOptCard('nutri', '👤', '', '', { value: tr.uid, selected: P.nutriUid === tr.uid, photo: tr.photoUrl || '', rawTitle: tr.name || t('nutri.boxTitle'), rawSub: '' })).join('');
+      listHtmlN = `<div class="purpose-opts" style="margin-top:10px">
+      ${cardsN || `<p class="purpose-sub">${esc(t('nutri.poolEmpty'))}</p>`}
+      ${purposeOptCard('nutrisuggest', '✨', 'purpose.suggestTitle', esc(t('purpose.suggestSub')), { value: 'suggest', selected: P.suggest })}
+    </div>`;
+    }
+    body = `<p class="purpose-sub"><b>${esc(t('purpose.nutriTitle'))}</b></p>
+    ${modRowN}
+    ${listHtmlN}
+    <div class="purpose-foot"><button type="button" class="btn-ghost purpose-back" id="purpose-back">${esc(t('purpose.backBtn'))}</button><button type="button" class="btn-primary purpose-cta" id="purpose-done" ${(P.nutriUid || P.suggest) ? '' : 'disabled'}>${esc(t(P.mode === 'declare' ? 'purpose.saveBtn' : 'purpose.createBtn'))}</button></div>`;
+  } else if (P.purpose === 'nutricionista') {
+    /* El profesional se registra: su formación la revisa el
+       Administrador y solo entonces recibe el rol (perfil en
+       nutritionist_profiles con status 'pendiente'). La membresía
+       pedida nace como solicitud en nutritionist_memberships. */
+    const membCardN = (lvl, icon) => purposeOptCard('memb', icon, 'esc.level.' + lvl,
+      esc(t('purpose.upTo', { n: membershipQuotaOf(lvl) })),
+      { value: lvl, selected: P.membership === lvl });
+    body = `<p class="purpose-sub"><b>${esc(t('purpose.nutriProTitle'))}</b><span class="purpose-chip">${esc(t('purpose.noChargeChip'))}</span></p>
+    <p class="purpose-sub">${esc(t('purpose.formationLabel'))}</p>
+    <textarea id="purpose-formation" class="nutri-area" rows="3" maxlength="1200" placeholder="${esc(t('purpose.formationPh'))}">${esc(P.formation || '')}</textarea>
+    <div class="purpose-opts">
+      ${membCardN('basico', '🥉')}
+      ${membCardN('premium', '🥈')}
+      ${membCardN('elite', '🥇')}
+    </div>
+    <div class="purpose-foot"><button type="button" class="btn-ghost purpose-back" id="purpose-back">${esc(t('purpose.backBtn'))}</button><button type="button" class="btn-primary purpose-cta" id="purpose-done" ${P.membership ? '' : 'disabled'}>${esc(t(P.mode === 'declare' ? 'purpose.saveBtn' : 'purpose.createBtn'))}</button></div>`;
   } else if (P.purpose === 'business') {
     body = `<p class="purpose-sub">${esc(t('purpose.bizBody'))}</p>
     <input type="text" id="purpose-gym" class="fdbiz-gym" maxlength="80" placeholder="${esc(t('fdbiz.gymPh'))}" value="${esc(P.gym || '')}">
@@ -9284,6 +9651,11 @@ function purposeRender() {
   f.querySelectorAll('[data-purpose-pick]').forEach(b => b.onclick = () => { if (b.disabled) return; PURPOSE.purpose = b.dataset.purposePick; purposeRender(); });
   f.querySelectorAll('[data-purpose-use]').forEach(b => b.onclick = () => { PURPOSE.use = b.dataset.purposeUse; purposeRender(); });
   f.querySelectorAll('[data-purpose-trainer]').forEach(b => b.onclick = () => { if (b.disabled) return; PURPOSE.trainerUid = b.dataset.purposeTrainer; PURPOSE.suggest = false; purposeRender(); });
+  f.querySelectorAll('[data-purpose-nutri]').forEach(b => b.onclick = () => { if (b.disabled) return; PURPOSE.nutriUid = b.dataset.purposeNutri; PURPOSE.nutriChoice = 'pick'; PURPOSE.suggest = false; purposeRender(); });
+  f.querySelectorAll('[data-purpose-nutri2]').forEach(b => b.onclick = () => { if (b.disabled) return; PURPOSE.nutriUid = b.dataset.purposeNutri2; PURPOSE.nutriChoice = 'pick'; purposeRender(); });
+  f.querySelectorAll('[data-purpose-nutrisuggest2]').forEach(b => b.onclick = () => { PURPOSE.nutriChoice = 'suggest'; PURPOSE.nutriUid = ''; purposeRender(); });
+  f.querySelectorAll('[data-purpose-nutriskip]').forEach(b => b.onclick = () => { PURPOSE.nutriChoice = 'skip'; PURPOSE.nutriUid = ''; purposeRender(); });
+  f.querySelectorAll('[data-purpose-nutrisuggest]').forEach(b => b.onclick = () => { PURPOSE.suggest = true; PURPOSE.nutriChoice = 'suggest'; PURPOSE.nutriUid = ''; purposeRender(); });
   f.querySelectorAll('[data-purpose-suggest]').forEach(b => b.onclick = () => { PURPOSE.suggest = true; PURPOSE.trainerUid = ''; purposeRender(); });
   f.querySelectorAll('[data-purpose-memb]').forEach(b => b.onclick = () => { PURPOSE.membership = b.dataset.purposeMemb; purposeRender(); });
   f.querySelectorAll('[data-purpose-mod]').forEach(b => b.onclick = () => {
@@ -9303,16 +9675,20 @@ function purposeRender() {
   const bk = $('purpose-back'); if (bk) bk.onclick = () => { PURPOSE.step = 1; purposeRender(); };
   const nx = $('purpose-next'); if (nx) nx.onclick = () => { PURPOSE.step = 2; purposeRender(); };
   const dn = $('purpose-done'); if (dn) dn.onclick = () => purposeFinish();
+  /* MÓDULO NUTRICIONISTA (desarrollo 2026-11-02): la formación se
+     captura al teclear — elegir la membresía repinta la ventana y
+     el texto no debe perderse. */
+  const pf = $('purpose-formation'); if (pf) pf.oninput = () => { PURPOSE.formation = pf.value; };
 }
 function purposeOpenSignup(form) {
   PURPOSE.mode = 'signup'; PURPOSE.step = 1; PURPOSE.purpose = ''; PURPOSE.use = '';
-  PURPOSE.trainerUid = ''; PURPOSE.suggest = false; PURPOSE.membership = ''; PURPOSE.gym = '';
+  PURPOSE.trainerUid = ''; PURPOSE.nutriUid = ''; PURPOSE.nutriChoice = ''; PURPOSE.formation = ''; PURPOSE.suggest = false; PURPOSE.membership = ''; PURPOSE.gym = '';
   PURPOSE.modality = ''; PURPOSE.form = form; PURPOSE.busy = false;
   purposeRender();
 }
 function purposeOpenDeclare() {
   PURPOSE.mode = 'declare'; PURPOSE.step = 1; PURPOSE.purpose = ''; PURPOSE.use = '';
-  PURPOSE.trainerUid = ''; PURPOSE.suggest = false; PURPOSE.membership = ''; PURPOSE.gym = '';
+  PURPOSE.trainerUid = ''; PURPOSE.nutriUid = ''; PURPOSE.nutriChoice = ''; PURPOSE.formation = ''; PURPOSE.suggest = false; PURPOSE.membership = ''; PURPOSE.gym = '';
   PURPOSE.modality = ''; PURPOSE.form = null; PURPOSE.busy = false;
   purposeRender();
 }
@@ -9337,7 +9713,32 @@ async function purposeFinish() {
     const data = { purpose: P.purpose, purposeAt: new Date().toISOString(), purposeAskedAt: new Date().toISOString() };
     if (P.purpose === 'cuenta') data.purposeUse = P.use;
     if (P.purpose === 'con_entrenador') { if (P.suggest) data.purposeSuggest = true; else if (P.trainerUid) data.purposeTrainerChoice = P.trainerUid; }
+    if (P.purpose === 'con_nutricionista') { if (P.suggest) data.purposeSuggest = true; else if (P.nutriUid) data.purposeNutriChoice = P.nutriUid; }
+    if (P.purpose === 'cuenta' || P.purpose === 'con_entrenador') { if (P.nutriChoice === 'pick' && P.nutriUid) data.purposeNutriChoice = P.nutriUid; else if (P.nutriChoice === 'suggest') data.purposeNutriSuggest = true; }
     if (P.purpose === 'entrenador') data.purposeMembership = P.membership;
+    if (P.purpose === 'nutricionista') {
+      data.purposeMembership = P.membership;
+      /* Declaración de un ya registrado: su solicitud de rol nace
+         aquí (perfil pendiente + membresía solicitada); el
+         Administrador la revisa en su sección del módulo. */
+      const form = (($('purpose-formation') && $('purpose-formation').value) || '').trim().slice(0, 1200);
+      try {
+        const ex = await getDoc(doc(db, 'nutritionist_profiles', me));
+        if (!ex.exists()) {
+          await setDoc(doc(db, 'nutritionist_profiles', me), {
+            displayName: (UDATA && UDATA.name) || '', bio: '', specialties: [], languages: [],
+            modalities: ['virtual'], formation: form, status: 'pendiente', activeClients: 0,
+            createdAt: serverTimestamp(), updatedAt: serverTimestamp()
+          });
+          await setDoc(doc(db, 'nutritionist_memberships', me), {
+            level: null, status: 'pendiente', source: 'gratis', requestedLevel: P.membership || 'basico',
+            requestedAt: serverTimestamp(), decidedBy: null, decidedAt: null, startedAt: null,
+            currentPeriodEnd: null, priceSnapshot: null
+          });
+          await auditLog('nutrition', 'nutritionist.applied', me, 'rol=alumno; declaracion de proposito');
+        }
+      } catch {}
+    }
     try {
       await setDoc(doc(db, 'users', me), data, { merge: true });
       if (UDATA) Object.assign(UDATA, data);
@@ -9361,6 +9762,8 @@ async function purposeFinish() {
   const pd = {
     purpose: P.purpose, use: P.use, trainerUid: P.trainerUid, suggest: P.suggest,
     membership: P.membership, modality: P.modality,
+    nutriUid: P.nutriUid || '', nutriChoice: P.nutriChoice || '',
+    formation: (($('purpose-formation') && $('purpose-formation').value) || '').trim().slice(0, 1200),
     gym: (($('purpose-gym') && $('purpose-gym').value) || '').trim().slice(0, 80)
   };
   try {
@@ -9439,12 +9842,17 @@ async function regCreateAccount(pd) {
        misma bandeja de espera vigente). */
     const accountType = pd.purpose === 'entrenador' ? 'entrenador' : 'alumno';
     const isTrainerReg = accountType === 'entrenador';
+    const isNutriReg = pd.purpose === 'nutricionista';
     const modality = isTrainerReg ? null : (pd.purpose === 'con_entrenador' ? (pd.modality || 'virtual') : (($('reg-modality') && $('reg-modality').value) || 'virtual'));
     const trainerChoice = (!isTrainerReg && pd.purpose === 'con_entrenador' && !pd.suggest) ? (pd.trainerUid || '') : '';
     const purposeData = { purpose: pd.purpose, purposeAt: new Date().toISOString() };
     if (pd.purpose === 'cuenta') purposeData.purposeUse = pd.use;
     if (pd.purpose === 'con_entrenador' && pd.suggest) purposeData.purposeSuggest = true;
     if (isTrainerReg) purposeData.purposeMembership = pd.membership;
+    if (isNutriReg) purposeData.purposeMembership = pd.membership;
+    if (pd.purpose === 'con_nutricionista' && pd.suggest) purposeData.purposeSuggest = true;
+    if (pd.nutriChoice === 'pick' && pd.nutriUid) purposeData.purposeNutriChoice = pd.nutriUid;
+    if (pd.nutriChoice === 'suggest') purposeData.purposeNutriSuggest = true;
     const regBatch = writeBatch(db);
     regBatch.set(doc(db, 'users', cred.user.uid), {
       name, email, phone, gender, social: social || '',
@@ -9465,7 +9873,7 @@ async function regCreateAccount(pd) {
     regBatch.set(receiptRef(cred.user.uid + '_1'),
       { uid: cred.user.uid, email, type: 'registered', version: TERMS_VERSION, at: serverTimestamp() });
     await regBatch.commit();
-    if (!isTrainerReg) {
+    if (!isTrainerReg && !isNutriReg) {
       /* La relación nace con la cuenta (documento vigente; el cupo
          se consume al APROBAR la cuenta, no al registrarla). */
       try {
@@ -9492,6 +9900,56 @@ async function regCreateAccount(pd) {
           status: 'pendiente', requestedLevel: pd.membership, requestedAt: serverTimestamp(),
           level: null, source: 'gratis'
         }, { merge: true });
+      } catch {}
+    }
+    if (isNutriReg) {
+      /* MÓDULO NUTRICIONISTA (desarrollo 2026-11-02): el profesional
+         nace con su perfil PENDIENTE de la revisión de formación del
+         Administrador y su membresía como SOLICITUD — la misma
+         disciplina que el entrenador, en sus propias colecciones.
+         Nunca bloquea el registro. */
+      try {
+        await setDoc(doc(db, 'nutritionist_profiles', cred.user.uid), {
+          displayName: name, bio: '', specialties: [], languages: [],
+          modalities: ['virtual'], formation: pd.formation || '', status: 'pendiente',
+          activeClients: 0, createdAt: serverTimestamp(), updatedAt: serverTimestamp()
+        });
+        await setDoc(doc(db, 'nutritionist_memberships', cred.user.uid), {
+          level: null, status: 'sin_membresia', source: 'gratis', requestedLevel: null,
+          requestedAt: null, decidedBy: null, decidedAt: null, startedAt: null,
+          currentPeriodEnd: null, priceSnapshot: null
+        });
+        if (pd.membership) {
+          await setDoc(doc(db, 'nutritionist_memberships', cred.user.uid), {
+            status: 'pendiente', requestedLevel: pd.membership, requestedAt: serverTimestamp(),
+            level: null, source: 'gratis'
+          }, { merge: true });
+        }
+      } catch {}
+    }
+    if (pd.purpose === 'con_nutricionista' || pd.nutriChoice === 'pick' || pd.nutriChoice === 'suggest') {
+      /* La relación con el coach de alimentación nace con la cuenta,
+         independiente de la de entrenador (elección combinada en la
+         misma pasada, decisión 2026-11-03): elegida → activa (y el
+         contador del profesional se anota al nacer, como dato);
+         «que me lo sugieran» → en espera, responsabilidad del
+         Administrador; omitida → NO nace relación alguna. */
+      const nutriChoice = pd.nutriChoice === 'pick' ? (pd.nutriUid || '') : (pd.nutriChoice === 'suggest' ? '' : ((!pd.suggest && pd.nutriUid) ? pd.nutriUid : ''));
+      try {
+        await setDoc(doc(db, 'nutritionist_relations', cred.user.uid), {
+          studentUid: cred.user.uid, nutritionistUid: nutriChoice || null,
+          modality: pd.purpose === 'con_nutricionista' ? (pd.modality || 'virtual') : 'virtual', status: nutriChoice ? 'activa' : 'en_espera',
+          followUpCadence: null, pendingChange: null,
+          startedAt: serverTimestamp(), updatedAt: serverTimestamp()
+        });
+        if (nutriChoice) {
+          await setDoc(doc(db, 'nutritionist_relations', cred.user.uid, 'history', 'ev' + Date.now()), {
+            type: 'alta', by: cred.user.uid, byRole: 'alumno', at: serverTimestamp(),
+            detail: 'eleccion en el registro'
+          });
+          const ps = await getDoc(doc(db, 'nutritionist_profiles', nutriChoice));
+          if (ps.exists()) await setDoc(doc(db, 'nutritionist_profiles', nutriChoice), { activeClients: (Number(ps.data().activeClients) || 0) + 1, updatedAt: serverTimestamp() }, { merge: true });
+        }
       } catch {}
     }
     if (pd.purpose === 'business') {
@@ -9559,6 +10017,7 @@ $('form-register').addEventListener('submit', async e => {
      propósito ya elegido. Cerrar la ventana no crea nada y el
      formulario queda como estaba. */
   await loadTrainerDirectory();
+  try { await nutriLoadDirectory(); } catch {}
   /* Sin sesión el catálogo de membresías no se puede leer (las
      reglas lo reservan a sesiones): la tarjeta de la prueba
      muestra entonces los valores por defecto, y la configuración
@@ -9710,6 +10169,11 @@ onAuthStateChanged(auth, async user => {
       return;
     }
     GOALS = { ...(UDATA.goals || {}) }; // sin goals en el doc = sin metas (no hay repliegue a valores de la casa)
+    /* MÓDULO NUTRICIONISTA (desarrollo 2026-11-02): la sucesión de
+       metas se aplica DESPUÉS de esta asignación — si el plan
+       nutricional activo ya cargó, sus metas aprobadas mandan en la
+       lectura; si carga después, nutriBoot la aplica al llegar. */
+    try { nutriApplyPlanGoals(); } catch {}
   } catch (e) {
     await signOut(auth);
     showAuthError(t(errCauseKey(e)));
@@ -16726,7 +17190,11 @@ async function loadAll() {
          el detalle del día y mostrar la hora junto a la etiqueta. Es
          la hora de registro, NO una hora editable de la comida. */
       createdAtMs: (v.createdAt && v.createdAt.toMillis) ? v.createdAt.toMillis() : 0,
-      photoURL: v.photoURL || '', photoPath: v.photoPath || '' };
+      photoURL: v.photoURL || '', photoPath: v.photoPath || '',
+      /* MÓDULO NUTRICIONISTA (desarrollo 2026-11-02): autoría aditiva
+         del registro — los documentos viejos no la traen y se leen
+         como del propio alumno. */
+      byUid: v.byUid || '', byRole: v.byRole || '' };
     (freshMeals[v.date] = freshMeals[v.date] || []).push(m);
   });
   MEALS = freshMeals;
@@ -30113,7 +30581,7 @@ function render(date) {
      con los colores de siempre en una segunda línea. */
   let html = rows.map(m =>
     `<div class="meal-row"><div class="meal-row-top"><span class="meal-row-when">${esc(mealName(m.meal))}${m.createdAtMs ? ` <span class="meal-time">${mealTimeStr(m.createdAtMs)}</span>` : ''}</span><span class="meal-row-kcal">${fmt(m.kcal)} kcal</span></div>` +
-    `<div class="meal-row-food">${esc(m.food)}${m.photoURL ? ` <a href="${esc(m.photoURL)}" target="_blank" rel="noopener" title="${t('track.viewPhoto')}">📷</a>` : ''}</div>` +
+    `<div class="meal-row-food">${esc(m.food)}${m.photoURL ? ` <a href="${esc(m.photoURL)}" target="_blank" rel="noopener" title="${t('track.viewPhoto')}">📷</a>` : ''}${m.byRole === 'nutricionista' ? ` <span class="nutri-byline">🥗 ${esc(t('nutri.byNutri'))}</span>` : ''}</div>` +
     `<div class="meal-row-meta"><span class="meal-row-qty">${esc(m.qty)}</span><span class="meal-row-macros">${t('th.protShort')} ${fmt(m.prot)} g · ${t('th.carbShort')} ${fmt(m.carb)} g · ${t('th.sugarShort')} ${fmt(m.sugar)} g · ${t('th.fatShort')} ${fmt(m.fat)} g</span></div>` +
     `<div class="meal-actions"><button class="rep-btn" data-repeat-meal="${m.id}" title="${t('track.repeat')}">↻ ${t('track.repeat')}</button><button class="del-btn" data-del-meal="${m.id}" title="${t('track.delete')}">×</button></div></div>`
   ).join('');
@@ -34697,7 +35165,7 @@ document.addEventListener('keydown', e => { if (e.key === 'Escape') shareClose()
  *  - El SW (sw.js) solo cachea la cáscara del mismo origen en modo
  *    RED PRIMERO: Auth/Firestore/Worker jamás pasan por la caché.
  * ================================================================ */
-const PWA_SW_VERSION = '20261103-tabla-referencia';
+const PWA_SW_VERSION = '20261103-coach';
 let pwaDeferredPrompt = null;
 function pwaIsStandalone() {
   try {
@@ -35996,3 +36464,1186 @@ function swFabPaint() {
     setTimeout(installCardMaybeShow, 650);
   } catch (e) { /* el mensaje de instalación nunca rompe el acceso */ }
 })();
+
+/* ════════════════════════════════════════════════════════════════
+   MÓDULO NUTRICIONISTA — SOLO DESARROLLO (2026-11-02)
+   Autorización: correo de Ronald del 2026-11-02 18:19 CST
+   (preámbulo íntegro en PREAMBULO-MODULO-NUTRICIONISTA-2026-11-02.md).
+   Alcance de ESTE paquete: desarrollo completo en un solo paquete —
+   rol, relación, planes, seguimiento y recetas — SIN despliegue y
+   SIN reglas publicadas (las candidatas viven en el informe del
+   paquete). Diseño de datos: DISENO-DATOS.md del paquete.
+
+   Decisiones de forma (contra las costuras reales de la app):
+   · El rol NO sobrescribe users.role: vive en
+     nutritionist_profiles/{uid} (status pendiente|aprobado|
+     rechazado|suspendido) y su membresía en
+     nutritionist_memberships/{uid} — espejo de memberships/{} del
+     entrenador, mismo catálogo de cupos (membershipQuotaOf). Los
+     permisos efectivos son la SUMA de papeles.
+   · La relación es nutritionist_relations/{alumnoUid} + history,
+     espejo de trainer_relations e INDEPENDIENTE de ella.
+   · Las metas del plan usan la forma de la app
+     {kcal, prot, carb, azuc, gras} y el borrador lo calcula el
+     núcleo puro goalsCoreCompute — NUNCA se guarda una meta sin
+     aprobación del nutricionista; users.goals no se toca hasta que
+     el primer plan activo con metas aprobadas sucede en la LECTURA
+     (nutriApplyPlanGoals), sin borrar ni recalcular nada.
+   · La puerta de comidas del preámbulo (§4) quedó ELIMINADA por
+     decisión de Ronald del 2026-11-03 («No se bloquea nada»): la
+     sección de Comida nunca se bloquea por esperas del coach — ni
+     por una puerta del módulo ni por el Interruptor de Comida —
+     y su comportamiento es el de la base, sin mecanismo alguno
+     de bloqueo en este módulo.
+   · Toda acción del módulo pasa por auditLog con el papel usado
+     anotado al frente del detalle («rol=nutricionista; …»).
+   ════════════════════════════════════════════════════════════════ */
+let NUTRI_REG_DIRECTORY = [];
+let NUTRI_REG_LOADED = false;
+const NUTRI = {
+  booted: false,
+  myProfile: null,      // nutritionist_profiles/{yo} o null
+  myMembership: null,   // nutritionist_memberships/{yo} o null
+  myRel: null,          // nutritionist_relations/{yo} (como alumno)
+  myFollow: null,       // mi solicitud de seguimiento más reciente
+  myPlan: null,         // mi plan nutricional activo (como alumno)
+  myConsent: null,      // nutrition_consents/{yo}
+  names: {},            // uid → nombre (caché de la sesión)
+  view: 'mine',         // vista vigente de la ventana flotante
+  cadence: 'semanal',   // cadencia elegida en formularios
+  planPreset: 'monthly',
+  draft: null,          // borrador de metas en curso (consola)
+  draftClient: '',
+  recipeServings: {},   // recipeId → porciones pedidas (estimación)
+  filters: { goal: '', allergen: '', restriction: '' },
+};
+const NUTRI_CADENCES = ['semanal', 'quincenal', 'mensual'];
+const NUTRI_PLAN_PRESETS = ['weekly', 'fortnightly', 'monthly', 'bimonthly', 'quarterly'];
+const NUTRI_GOAL_TAGS = ['mantener', 'bajar', 'ganar'];
+const NUTRI_ALLERGENS = ['gluten', 'lactosa', 'huevo', 'soya', 'nueces', 'pescado', 'mariscos', 'mani'];
+const NUTRI_RESTRICTIONS = ['vegetariano', 'vegano', 'sin_gluten', 'sin_lactosa', 'bajo_en_azucar', 'sin_cerdo', 'halal', 'kosher'];
+const NUTRI_CONSENT_VERSION = 'v1-2026-11-02';
+
+function nutriAudit(action, targetUid, role, detail) {
+  try { auditLog('nutrition', action, targetUid, 'rol=' + role + (detail ? '; ' + detail : '')); } catch {}
+}
+async function nutriNameOf(uid) {
+  if (!uid) return '—';
+  if (typeof ADMIN_NAME_CACHE !== 'undefined' && ADMIN_NAME_CACHE[uid]) return ADMIN_NAME_CACHE[uid];
+  if (NUTRI.names[uid]) return NUTRI.names[uid];
+  try {
+    const s = await getDoc(doc(db, 'users', uid));
+    if (s.exists()) { const nm = s.data().name || s.data().email || uid; NUTRI.names[uid] = nm; return nm; }
+    const p = await getDoc(doc(db, 'nutritionist_profiles', uid));
+    if (p.exists() && p.data().displayName) { NUTRI.names[uid] = p.data().displayName; return p.data().displayName; }
+  } catch {}
+  return uid;
+}
+function nutriCadLabel(c) { return c ? t('nutri.cad.' + c) : '—'; }
+function nutriPresetLabel(p) {
+  return { weekly: t('nutri.cad.weekly'), fortnightly: t('nutri.cad.fortnightly'), monthly: t('nutri.cad.monthly'), bimonthly: t('nutri.cad.bimonthly'), quarterly: t('nutri.cad.quarterly') }[p] || p || '—';
+}
+function nutriModLabel(m) { return m === 'presencial' ? t('nutri.mod.presencial') : t('nutri.mod.virtual'); }
+async function nutriLoadDirectory() {
+  if (NUTRI_REG_LOADED) return;
+  NUTRI_REG_LOADED = true;
+  try {
+    const snap = await getDoc(doc(db, 'nutritionist_directory', 'current'));
+    if (!snap.exists()) return;
+    NUTRI_REG_DIRECTORY = (snap.data().nutritionists || []).filter(x => x && x.uid);
+  } catch {}
+}
+/* El POOL con sesión: perfiles aprobados con membresía activa.
+   CUPO LIBRE (decisión de Ronald 2026-11-03): el conteo de alumnos
+   (activeClients) es solo un DATO informativo — nadie se oculta ni
+   se bloquea por cantidad; la membresía existe como dato con sus
+   niveles (Básico 5 · Premium 10 · Élite 30) sin mandar en el pool. */
+async function nutriPool() {
+  const out = [];
+  try {
+    const snap = await getDocs(collection(db, 'nutritionist_profiles'));
+    const profs = [];
+    snap.forEach(d => profs.push({ uid: d.id, ...d.data() }));
+    for (const p of profs) {
+      if (p.status !== 'aprobado') continue;
+      let memb = null;
+      try { const ms = await getDoc(doc(db, 'nutritionist_memberships', p.uid)); if (ms.exists()) memb = ms.data(); } catch {}
+      if (!memb || memb.status !== 'activa' || !memb.level) continue;
+      const total = membershipQuotaOf(memb.level);
+      const used = Number(p.activeClients) || 0;
+      out.push({ ...p, quotaTotal: total, quotaUsed: used, free: Infinity });
+    }
+  } catch {}
+  return out;
+}
+async function nutriAdjustQuota(nutriUid, delta) {
+  if (!nutriUid || !delta) return;
+  try {
+    const s = await getDoc(doc(db, 'nutritionist_profiles', nutriUid));
+    if (s.exists()) await setDoc(doc(db, 'nutritionist_profiles', nutriUid), { activeClients: Math.max(0, (Number(s.data().activeClients) || 0) + delta), updatedAt: serverTimestamp() }, { merge: true });
+  } catch {}
+}
+async function nutriHist(studentUid, type, byRole, detail) {
+  try {
+    await setDoc(doc(db, 'nutritionist_relations', studentUid, 'history', 'ev' + Date.now() + Math.floor(Math.random() * 997)), {
+      type, by: auth.currentUser ? auth.currentUser.uid : null, byRole, at: serverTimestamp(), detail: detail || ''
+    });
+  } catch {}
+}
+/* Arranque del módulo (llamado desde loadRolesX, junto a las demás
+   cajas de papeles): carga lo propio — perfil de profesional,
+   membresía, relación y seguimiento como alumno, plan activo y
+   consentimiento — y pinta las cajas del perfil. Todo en try/catch:
+   el módulo nunca rompe el arranque de la app. */
+async function nutriBoot() {
+  if (!auth.currentUser || NUTRI.booted) return;
+  NUTRI.booted = true;
+  const me = auth.currentUser.uid;
+  try { const s = await getDoc(doc(db, 'nutritionist_profiles', me)); NUTRI.myProfile = s.exists() ? { uid: s.id, ...s.data() } : null; } catch {}
+  if (NUTRI.myProfile) {
+    try { const s = await getDoc(doc(db, 'nutritionist_memberships', me)); NUTRI.myMembership = s.exists() ? s.data() : null; } catch {}
+  }
+  try { const s = await getDoc(doc(db, 'nutritionist_relations', me)); NUTRI.myRel = s.exists() ? { uid: s.id, ...s.data() } : null; } catch {}
+  try {
+    const snap = await getDocs(query(collection(db, 'nutrition_followups'), where('studentUid', '==', me)));
+    let last = null;
+    snap.forEach(d => { const x = { id: d.id, ...d.data() }; if (!last || String(x.requestedAt || '') >= String(last.requestedAt || '')) last = x; });
+    NUTRI.myFollow = last;
+  } catch {}
+  try {
+    const snap = await getDocs(query(collection(db, 'nutrition_plans'), where('studentUid', '==', me)));
+    snap.forEach(d => { const x = { id: d.id, ...d.data() }; if (x.status === 'activo') NUTRI.myPlan = x; });
+  } catch {}
+  try { const s = await getDoc(doc(db, 'nutrition_consents', me)); NUTRI.myConsent = s.exists() ? s.data() : null; } catch {}
+  try { renderNutriBoxes(); } catch {}
+  try { nutriApplyPlanGoals(); } catch {}
+}
+/* Sucesión de metas (preámbulo §3): las metas del entrenador se
+   mantienen HASTA que el nutricionista pone las suyas. Con un plan
+   nutricional activo con metas APROBADAS, la lectura de metas de la
+   app (GOALS) pasa a ser la del plan — users.goals no se borra ni
+   se recalcula: solo cambia la fuente de lectura, y vuelve sola si
+   el plan se archiva. */
+function nutriApplyPlanGoals() {
+  const g = NUTRI.myPlan && NUTRI.myPlan.goals;
+  if (!g || !g.kcal) return;
+  try {
+    GOALS = { kcal: g.kcal, prot: g.prot || 0, carb: g.carb || 0, azuc: g.azuc || 0, gras: g.gras || 0 };
+    if (typeof render === 'function' && $('dateSel')) { try { render($('dateSel').value || todayISO()); } catch {} }
+  } catch {}
+}
+/* Adherencia del día — DERIVADA, nunca tecleada (preámbulo §4):
+   sin registrar (hoy, sin nada) · no hecho (día pasado, sin nada) ·
+   parcial (hay registro que no alcanza) · completado (el registro
+   alcanza ≥90% de las kcal de las metas aprobadas del plan activo).
+   El 90% es un criterio de producto del módulo, no una cifra
+   científica: queda anotado aquí y en el informe. */
+function nutriAdherenceState(meals, goals, dateStr) {
+  const has = Array.isArray(meals) && meals.length > 0;
+  if (!has) return dateStr < todayISO() ? 'missed' : 'none';
+  if (!goals || !goals.kcal) return 'partial';
+  const tot = meals.reduce((a, m) => a + (Number(m.kcal) || 0), 0);
+  return tot >= Number(goals.kcal) * 0.9 ? 'done' : 'partial';
+}
+function nutriAdhChip(state) {
+  const map = { none: '⚪', missed: '🔴', partial: '🟡', done: '🟢' };
+  return `${map[state] || '⚪'} ${esc(t('nutri.adh.' + state))}`;
+}
+
+/* ── Cajas del perfil ─────────────────────────────────────────── */
+function renderNutriBoxes() { renderNutriMyBox(); renderNutriProBox(); }
+function nutriGoalsChips(g) {
+  if (!g) return '';
+  const chip = (k, v, u) => `<span class="nutri-goal-chip"><b>${esc(k)}</b> ${v} ${u}</span>`;
+  return `<div class="nutri-goals">${chip('kcal', g.kcal || '—', '')}${chip(t('th.protShort'), g.prot || '—', 'g')}${chip(t('th.carbShort'), g.carb || '—', 'g')}${chip(t('th.sugarShort'), g.azuc || '—', 'g')}${chip(t('th.fatShort'), g.gras || '—', 'g')}</div>`;
+}
+async function renderNutriMyBox() {
+  const box = $('nutri-my-box'); if (!box) return;
+  const me = auth.currentUser && auth.currentUser.uid;
+  if (!me) { box.innerHTML = ''; return }
+  const show = (typeof ROLE !== 'undefined' && ROLE === 'usuario') || NUTRI.myRel || NUTRI.myFollow || NUTRI.myPlan || (typeof IS_OWNER !== 'undefined' && IS_OWNER);
+  if (!show) { box.innerHTML = ''; return; }
+  const rel = NUTRI.myRel, fol = NUTRI.myFollow, plan = NUTRI.myPlan;
+  let h = `<div class="panel nutri-panel"><h3 class="history-title">🥗 ${esc(t('nutri.boxTitle'))}</h3>`;
+  if (rel && rel.status === 'activa' && rel.nutritionistUid) {
+    const nm = await nutriNameOf(rel.nutritionistUid);
+    h += `<p class="myprof-row"><span class="myprof-k">${esc(t('nutri.myNutri'))}</span><span class="myprof-v">${esc(nm)}</span></p>`;
+    if (rel.followUpCadence) h += `<p class="myprof-row"><span class="myprof-k">${esc(t('nutri.cadence'))}</span><span class="myprof-v">${esc(nutriCadLabel(rel.followUpCadence))}</span></p>`;
+    if (rel.pendingChange) {
+      h += `<p class="progress-hint">${esc(t(rel.pendingChange.stage === 'espera_administrador' ? 'nutri.changePendingAdmin' : 'nutri.changePendingNew'))}</p>`;
+    } else {
+      h += `<div class="eval-actions"><button type="button" class="btn-ghost btn-sm" id="nutri-btn-change">${esc(t('nutri.change'))}</button></div>`;
+    }
+  } else if (rel && rel.status === 'en_espera') {
+    h += `<p class="progress-hint">${esc(t('nutri.waitingAdmin'))}</p>`;
+  } else {
+    h += `<p class="progress-hint"><b>${esc(t('nutri.none'))}</b><br>${esc(t('nutri.noneHint'))}</p>`;
+  }
+  if (fol && fol.status === 'pendiente_nutricionista') h += `<p class="progress-hint">⏳ ${esc(t('nutri.followPendingNutri'))}</p>`;
+  else if (fol && fol.status === 'pendiente_administrador') h += `<p class="progress-hint">⏳ ${esc(t('nutri.followPendingAdmin'))}</p>`;
+  else if (fol && fol.status === 'aprobada') h += `<p class="progress-hint">✅ ${esc(t('nutri.followActive'))}</p>`;
+  /* Plan activo y adherencia de hoy */
+  if (plan) {
+    h += `<div class="nutri-sub"><b>${esc(t('nutri.planTitle'))}</b> <span class="muted">${esc(plan.startsOn || '')} → ${esc(plan.endsOn || '')}</span></div>`;
+    if (plan.goals) { h += nutriGoalsChips(plan.goals); h += `<p class="progress-hint">${esc(t('nutri.planGoalsFrom'))}</p>`; }
+    const mealsToday = (typeof MEALS !== 'undefined' && MEALS[todayISO()]) || [];
+    h += `<p class="myprof-row"><span class="myprof-k">${esc(t('nutri.adherence'))}</span><span class="myprof-v">${nutriAdhChip(nutriAdherenceState(mealsToday, plan.goals, todayISO()))}</span></p>`;
+    h += `<div class="eval-actions"><button type="button" class="btn-ghost btn-sm" id="nutri-btn-suggest">${esc(t('nutri.suggestGoals'))}</button></div><div id="nutri-suggest-zone"></div>`;
+  } else {
+    h += `<p class="progress-hint">${esc(t('nutri.planNone'))}</p>`;
+  }
+  /* Agua de hoy */
+  let waterMl = 0;
+  try { const ws = await getDoc(doc(db, 'nutrition_water', me + '_' + todayISO())); if (ws.exists()) waterMl = Number(ws.data().ml) || 0; } catch {}
+  h += `<p class="myprof-row"><span class="myprof-k">${esc(t('nutri.water'))}</span><span class="myprof-v" id="nutri-water-ml">${waterMl} ml</span></p>
+  <div class="nutri-water-row"><input type="number" id="nutri-water-in" min="1" max="5000" step="50" placeholder="250" aria-label="${esc(t('nutri.waterAdd'))}"><button type="button" class="btn-ghost btn-sm" id="nutri-water-add">＋ ${esc(t('nutri.water'))}</button></div>`;
+  /* Consentimiento específico del módulo */
+  const cons = NUTRI.myConsent;
+  h += `<div class="nutri-sub"><b>${esc(t('nutri.consentTitle'))}</b>${cons && cons.acceptedAt && !cons.withdrawnAt ? ` <span class="nutri-ok">✅ ${esc(t('nutri.consentOn'))}</span>` : ''}</div>
+  <div class="eval-actions"><button type="button" class="btn-ghost btn-sm" id="nutri-btn-consent">${esc(t('nutri.consentTitle'))}</button>
+  <button type="button" class="btn-ghost btn-sm" id="nutri-btn-recipes">📖 ${esc(t('nutri.recipes'))}</button>
+  ${(!rel || rel.status !== 'activa') ? `<button type="button" class="btn-ghost btn-sm" id="nutri-btn-choose">${esc(t('nutri.choose'))}</button>` : ''}
+  ${(!fol || fol.status === 'rechazada') ? `<button type="button" class="btn-primary btn-sm" id="nutri-btn-follow">${esc(t('nutri.followReq'))}</button>` : ''}</div>`;
+  h += `</div>`;
+  box.innerHTML = h;
+  const on = (id, fn) => { const el = $(id); if (el) el.onclick = fn; };
+  on('nutri-btn-choose', () => nutriOpenFloat('pool'));
+  on('nutri-btn-change', () => nutriOpenFloat('pool'));
+  on('nutri-btn-follow', () => nutriOpenFloat('followup'));
+  on('nutri-btn-consent', () => nutriOpenFloat('consent'));
+  on('nutri-btn-recipes', () => nutriOpenFloat('recipes'));
+  on('nutri-btn-suggest', () => {
+    const z = $('nutri-suggest-zone'); if (!z) return;
+    z.innerHTML = `<textarea id="nutri-suggest-text" class="nutri-area" rows="2" maxlength="500" placeholder="${esc(t('nutri.suggestGoals'))}"></textarea><div class="eval-actions"><button type="button" class="btn-primary btn-sm" id="nutri-suggest-send">${esc(t('nutri.suggestSend'))}</button></div>`;
+    $('nutri-suggest-send').onclick = async () => {
+      const txt = ($('nutri-suggest-text').value || '').trim(); if (!txt) return;
+      try {
+        await addDoc(collection(db, 'nutrition_goal_suggestions'), {
+          studentUid: me, planId: plan ? plan.id : null, nutritionistUid: rel ? rel.nutritionistUid : null,
+          text: txt, status: 'pendiente', createdAt: serverTimestamp()
+        });
+        nutriAudit('nutrition.suggestion', rel ? rel.nutritionistUid : null, 'alumno', txt.slice(0, 80));
+        toast(t('nutri.suggestSent'));
+        z.innerHTML = '';
+      } catch { toast(t('err.createFail'), true); }
+    };
+  });
+  on('nutri-water-add', async () => {
+    const add = Math.max(0, Math.min(5000, Number(($('nutri-water-in') && $('nutri-water-in').value) || 0)));
+    if (!add) return;
+    try {
+      const ref = doc(db, 'nutrition_water', me + '_' + todayISO());
+      const cur = await getDoc(ref);
+      const total = (cur.exists() ? (Number(cur.data().ml) || 0) : 0) + add;
+      await setDoc(ref, { studentUid: me, date: todayISO(), ml: total, byUid: me, byRole: 'alumno', updatedAt: serverTimestamp() }, { merge: true });
+      const lab = $('nutri-water-ml'); if (lab) lab.textContent = total + ' ml';
+      toast(t('nutri.saved'));
+    } catch { toast(t('err.createFail'), true); }
+  });
+}
+async function renderNutriProBox() {
+  const box = $('nutri-pro-box'); if (!box) return;
+  const p = NUTRI.myProfile;
+  if (!p) { box.innerHTML = ''; return; }
+  const m = NUTRI.myMembership || {};
+  let statusTxt = t('nutri.pro.pending');
+  if (p.status === 'aprobado') statusTxt = t('nutri.pro.active');
+  else if (p.status === 'rechazado') statusTxt = t('nutri.pro.rejected');
+  else if (p.status === 'suspendido') statusTxt = t('nutri.pro.suspended');
+  let h = `<div class="panel nutri-panel"><h3 class="history-title">🩺 ${esc(t('nutri.proTitle'))}</h3>
+  <p class="myprof-row"><span class="myprof-k">${esc(t('roles.roleLabel'))}</span><span class="myprof-v">${esc(statusTxt)}</span></p>
+  <p class="myprof-row"><span class="myprof-k">${esc(t('nutri.pro.clients'))}</span><span class="myprof-v">${Number(p.activeClients) || 0}${m.level && m.status === 'activa' ? ' / ' + membershipQuotaOf(m.level) : ''}</span></p>`;
+  if (m.status === 'activa') h += `<p class="myprof-row"><span class="myprof-k">${esc(t('nutri.memb.active'))}</span><span class="myprof-v">${esc(escLevelLabel(m.level))}</span></p>`;
+  else if (m.status === 'pendiente') h += `<p class="progress-hint">⏳ ${esc(t('nutri.memb.pending'))}</p>`;
+  else h += `<p class="progress-hint">${esc(t('nutri.memb.none'))}</p><div class="eval-actions">${['basico', 'premium', 'elite'].map(l => `<button type="button" class="btn-ghost btn-sm" data-nutri-memb="${l}">${esc(t('nutri.memb.request'))} ${esc(escLevelLabel(l))} (${membershipQuotaOf(l)})</button>`).join('')}</div>`;
+  h += `<div class="eval-actions">
+  ${p.status === 'aprobado' ? `<button type="button" class="btn-primary btn-sm" id="nutri-btn-console">${esc(t('nutri.pro.openConsole'))}</button>` : ''}
+  <button type="button" class="btn-ghost btn-sm" id="nutri-btn-editprof">${esc(t('nutri.pro.editProfile'))}</button></div>
+  <div id="nutri-editprof-zone"></div></div>`;
+  box.innerHTML = h;
+  box.querySelectorAll('[data-nutri-memb]').forEach(b => b.onclick = async () => {
+    try {
+      await setDoc(doc(db, 'nutritionist_memberships', auth.currentUser.uid), {
+        status: 'pendiente', requestedLevel: b.dataset.nutriMemb, requestedAt: serverTimestamp(), level: (NUTRI.myMembership && NUTRI.myMembership.level) || null, source: 'gratis'
+      }, { merge: true });
+      nutriAudit('membership.requested', auth.currentUser.uid, 'nutricionista', b.dataset.nutriMemb);
+      toast(t('nutri.saved'));
+      await nutriBootRefresh();
+    } catch { toast(t('err.createFail'), true); }
+  });
+  const bc = $('nutri-btn-console'); if (bc) bc.onclick = () => nutriOpenFloat('console');
+  const be = $('nutri-btn-editprof'); if (be) be.onclick = () => nutriEditProfilePaint();
+}
+function nutriEditProfilePaint() {
+  const z = $('nutri-editprof-zone'); if (!z) return;
+  const p = NUTRI.myProfile || {};
+  z.innerHTML = `<div class="nutri-form">
+  <label>${esc(t('purpose.nutriTitle'))}<input type="text" id="np-name" maxlength="80" value="${esc(p.displayName || '')}"></label>
+  <label>${esc(t('nutri.pro.bio'))}<textarea id="np-bio" class="nutri-area" rows="2" maxlength="600">${esc(p.bio || '')}</textarea></label>
+  <label>${esc(t('nutri.pro.specialties'))}<input type="text" id="np-spec" maxlength="300" value="${esc((p.specialties || []).join(', '))}"></label>
+  <label>${esc(t('nutri.pro.languages'))}</label>
+  <div class="nutri-chips">${['es', 'en'].map(l => `<button type="button" class="nutri-chip${(p.languages || []).includes(l) ? ' sel' : ''}" data-np-lang="${l}">${l === 'es' ? 'Español' : 'English'}</button>`).join('')}</div>
+  <label class="nutri-check"><input type="checkbox" id="np-pres" ${(p.modalities || []).includes('presencial') ? 'checked' : ''}> ${esc(t('nutri.pro.offerInPerson'))}</label>
+  <label>${esc(t('nutri.pro.formation'))}<textarea id="np-form" class="nutri-area" rows="2" maxlength="1200">${esc(p.formation || '')}</textarea></label>
+  <div class="eval-actions"><button type="button" class="btn-primary btn-sm" id="np-save">${esc(t('nutri.save'))}</button></div></div>`;
+  const langs = new Set(p.languages || []);
+  z.querySelectorAll('[data-np-lang]').forEach(b => b.onclick = () => { const l = b.dataset.npLang; if (langs.has(l)) langs.delete(l); else langs.add(l); b.classList.toggle('sel'); });
+  $('np-save').onclick = async () => {
+    try {
+      const data = {
+        displayName: ($('np-name').value || '').trim().slice(0, 80),
+        bio: ($('np-bio').value || '').trim().slice(0, 600),
+        specialties: ($('np-spec').value || '').split(',').map(s => s.trim()).filter(Boolean).slice(0, 10),
+        languages: [...langs],
+        modalities: $('np-pres').checked ? ['virtual', 'presencial'] : ['virtual'],
+        formation: ($('np-form').value || '').trim().slice(0, 1200),
+        updatedAt: serverTimestamp()
+      };
+      await setDoc(doc(db, 'nutritionist_profiles', auth.currentUser.uid), data, { merge: true });
+      NUTRI.myProfile = { ...NUTRI.myProfile, ...data };
+      nutriAudit('nutritionist.profile', auth.currentUser.uid, 'nutricionista', '');
+      toast(t('nutri.saved'));
+      renderNutriProBox();
+    } catch { toast(t('err.createFail'), true); }
+  };
+}
+async function nutriBootRefresh() {
+  NUTRI.booted = false;
+  const me = auth.currentUser && auth.currentUser.uid;
+  if (!me) return;
+  try { const s = await getDoc(doc(db, 'nutritionist_profiles', me)); NUTRI.myProfile = s.exists() ? { uid: s.id, ...s.data() } : NUTRI.myProfile; } catch {}
+  try { const s = await getDoc(doc(db, 'nutritionist_memberships', me)); NUTRI.myMembership = s.exists() ? s.data() : NUTRI.myMembership; } catch {}
+  try { const s = await getDoc(doc(db, 'nutritionist_relations', me)); NUTRI.myRel = s.exists() ? { uid: s.id, ...s.data() } : null; } catch {}
+  try { renderNutriBoxes(); } catch {}
+}
+
+/* ── Ventana flotante del módulo ──────────────────────────────── */
+function nutriOpenFloat(view, arg) {
+  const f = $('nutri-float'); if (!f) return;
+  NUTRI.view = view; NUTRI.viewArg = arg || '';
+  f.style.display = '';
+  try { coverSync(); } catch {}
+  nutriRenderFloat();
+}
+function nutriCloseFloat() {
+  const f = $('nutri-float'); if (f) f.style.display = 'none';
+  try { coverSync(); } catch {}
+}
+async function nutriRenderFloat() {
+  const body = $('nutri-float-body'); if (!body) return;
+  const title = $('nutri-float-title');
+  const v = NUTRI.view;
+  if (title) title.textContent = v === 'pool' ? t('nutri.poolTitle')
+    : v === 'followup' ? t('nutri.followReq')
+    : v === 'consent' ? t('nutri.consentTitle')
+    : v === 'recipes' || v === 'recipeform' ? t('nutri.recipes')
+    : v === 'console' || v === 'client' ? t('nutri.proTitle')
+    : t('nutri.boxTitle');
+  body.innerHTML = `<div class="wempty">${esc(t('access.loading'))}</div>`;
+  try {
+    if (v === 'pool') await nutriViewPool(body);
+    else if (v === 'followup') await nutriViewFollowup(body);
+    else if (v === 'consent') await nutriViewConsent(body);
+    else if (v === 'recipes') await nutriViewRecipes(body);
+    else if (v === 'recipeform') await nutriViewRecipeForm(body);
+    else if (v === 'console') await nutriViewConsole(body);
+    else if (v === 'client') await nutriViewClient(body, NUTRI.viewArg);
+  } catch { body.innerHTML = `<div class="wempty">${esc(t('err.createFail'))}</div>`; }
+}
+/* POOL: elegir (primera vez → relación activa directa, como la
+   elección de entrenador al registrarse) o CAMBIAR (con relación
+   activa: la petición viaja en pendingChange — acepta el nuevo y
+   confirma el Administrador; nada se cierra hasta la confirmación). */
+async function nutriViewPool(body) {
+  const pool = await nutriPool();
+  const changing = !!(NUTRI.myRel && NUTRI.myRel.status === 'activa' && NUTRI.myRel.nutritionistUid);
+  let h = '';
+  if (!pool.length) h += `<p class="progress-hint">${esc(t('nutri.poolEmpty'))}</p>`;
+  h += pool.map(p => `<div class="nutri-card">
+    <b>${esc(p.displayName || '')}</b>
+    ${p.bio ? `<br><span class="muted">${esc(p.bio)}</span>` : ''}
+    ${(p.specialties || []).length ? `<br><span class="nutri-tags">${p.specialties.map(s => `<span class="nutri-tag">${esc(s)}</span>`).join(' ')}</span>` : ''}
+    <br><span class="muted">${(p.modalities || ['virtual']).map(m => esc(nutriModLabel(m))).join(' · ')} · ${(p.languages || []).join(', ')}</span>
+    <div class="eval-actions"><button type="button" class="btn-primary btn-sm" data-nutri-pick="${esc(p.uid)}" ${changing && NUTRI.myRel.nutritionistUid === p.uid ? 'disabled' : ''}>${esc(t('nutri.pick'))}</button></div>
+  </div>`).join('');
+  if (!changing) h += `<div class="eval-actions"><button type="button" class="btn-ghost btn-sm" id="nutri-pool-wait">${esc(t('nutri.waitOption'))}</button></div>`;
+  body.innerHTML = h;
+  body.querySelectorAll('[data-nutri-pick]').forEach(b => b.onclick = async () => {
+    const toUid = b.dataset.nutriPick, me = auth.currentUser.uid;
+    try {
+      if (changing) {
+        await setDoc(doc(db, 'nutritionist_relations', me), { pendingChange: { toUid, stage: 'espera_nutricionista', requestedAt: new Date().toISOString() }, updatedAt: serverTimestamp() }, { merge: true });
+        await nutriHist(me, 'change_requested', 'alumno', 'hacia ' + toUid);
+        nutriAudit('nutrition.changeRequested', toUid, 'alumno', '');
+      } else {
+        const batch = writeBatch(db);
+        batch.set(doc(db, 'nutritionist_relations', me), {
+          studentUid: me, nutritionistUid: toUid, modality: 'virtual', status: 'activa',
+          followUpCadence: (NUTRI.myRel && NUTRI.myRel.followUpCadence) || null, pendingChange: null,
+          startedAt: serverTimestamp(), updatedAt: serverTimestamp()
+        }, { merge: true });
+        await batch.commit();
+        await nutriAdjustQuota(toUid, +1);
+        await nutriHist(me, 'alta', 'alumno', 'eleccion desde el pool');
+        nutriAudit('nutrition.assigned', toUid, 'alumno', 'pool');
+      }
+      toast(t('nutri.saved'));
+      await nutriBootRefresh();
+      nutriCloseFloat();
+    } catch { toast(t('err.createFail'), true); }
+  });
+  const w = $('nutri-pool-wait');
+  if (w) w.onclick = async () => {
+    const me = auth.currentUser.uid;
+    try {
+      await setDoc(doc(db, 'nutritionist_relations', me), {
+        studentUid: me, nutritionistUid: null, modality: 'virtual', status: 'en_espera', pendingChange: null, updatedAt: serverTimestamp()
+      }, { merge: true });
+      await nutriHist(me, 'alta', 'alumno', 'queda en espera del administrador');
+      toast(t('nutri.saved'));
+      await nutriBootRefresh();
+      nutriCloseFloat();
+    } catch { toast(t('err.createFail'), true); }
+  };
+}
+/* SOLICITUD DE SEGUIMIENTO (preámbulo §4): la aprueba primero el
+   nutricionista y la confirma el Administrador; sin nutricionista
+   elegido, nace en espera del Administrador. */
+async function nutriViewFollowup(body) {
+  const rel = NUTRI.myRel;
+  const pool = rel && rel.nutritionistUid ? [] : await nutriPool();
+  let selNutri = rel && rel.nutritionistUid ? rel.nutritionistUid : '';
+  NUTRI.cadence = 'semanal';
+  const paint = () => {
+    body.innerHTML = `<div class="nutri-form">
+    ${rel && rel.nutritionistUid ? `<p class="progress-hint">${esc(t('nutri.myNutri'))}: <b>${esc(NUTRI.names[rel.nutritionistUid] || rel.nutritionistUid)}</b></p>`
+      : `<p class="progress-hint">${esc(t('nutri.poolTitle'))}</p><div class="nutri-chips">${pool.map(p => `<button type="button" class="nutri-chip${selNutri === p.uid ? ' sel' : ''}" data-fol-nutri="${esc(p.uid)}">${esc(p.displayName || '')}</button>`).join('')}<button type="button" class="nutri-chip${!selNutri ? ' sel' : ''}" data-fol-nutri="">${esc(t('nutri.waitOption'))}</button></div>`}
+    <p class="progress-hint">${esc(t('nutri.cadence'))}</p>
+    <div class="nutri-chips">${NUTRI_CADENCES.map(c => `<button type="button" class="nutri-chip${NUTRI.cadence === c ? ' sel' : ''}" data-fol-cad="${c}">${esc(nutriCadLabel(c))}</button>`).join('')}</div>
+    <div class="eval-actions"><button type="button" class="btn-primary" id="fol-send">${esc(t('nutri.followReq'))}</button></div></div>`;
+    body.querySelectorAll('[data-fol-nutri]').forEach(b => b.onclick = () => { selNutri = b.dataset.folNutri; paint(); });
+    body.querySelectorAll('[data-fol-cad]').forEach(b => b.onclick = () => { NUTRI.cadence = b.dataset.folCad; paint(); });
+    $('fol-send').onclick = async () => {
+      const me = auth.currentUser.uid;
+      try {
+        const ref = await addDoc(collection(db, 'nutrition_followups'), {
+          studentUid: me, nutritionistUid: selNutri || null,
+          status: selNutri ? 'pendiente_nutricionista' : 'pendiente_administrador',
+          cadence: NUTRI.cadence, requestedAt: serverTimestamp()
+        });
+        NUTRI.myFollow = { id: ref.id, studentUid: me, nutritionistUid: selNutri || null, status: selNutri ? 'pendiente_nutricionista' : 'pendiente_administrador', cadence: NUTRI.cadence };
+        await nutriHist(me, 'followup_requested', 'alumno', NUTRI.cadence);
+        nutriAudit('nutrition.followupRequested', selNutri || null, 'alumno', NUTRI.cadence);
+        toast(t('nutri.saved'));
+        try { renderNutriMyBox(); } catch {}
+        nutriCloseFloat();
+      } catch { toast(t('err.createFail'), true); }
+    };
+  };
+  paint();
+}
+/* CONSENTIMIENTO ESPECÍFICO del módulo (preámbulo §6): los datos
+   nuevos de salud solo existen con este consentimiento aceptado y
+   versionado; retirarlo borra los campos guardados. */
+async function nutriViewConsent(body) {
+  const me = auth.currentUser.uid;
+  const c = NUTRI.myConsent || {};
+  const f = (c.fields && !c.withdrawnAt) ? c.fields : {};
+  const list = v => (Array.isArray(v) ? v.join(', ') : (v || ''));
+  body.innerHTML = `<div class="nutri-form">
+  <p class="progress-hint">${esc(t('nutri.consentHint'))}</p>
+  <label>${esc(t('nutri.f.allergies'))}<input type="text" id="nc-allergies" maxlength="300" value="${esc(list(f.allergies))}"></label>
+  <label>${esc(t('nutri.f.intolerances'))}<input type="text" id="nc-intol" maxlength="300" value="${esc(list(f.intolerances))}"></label>
+  <label>${esc(t('nutri.f.conditions'))}<input type="text" id="nc-conds" maxlength="300" value="${esc(list(f.conditions))}"></label>
+  <label>${esc(t('nutri.f.medications'))}<input type="text" id="nc-meds" maxlength="300" value="${esc(list(f.medications))}"></label>
+  <label>${esc(t('nutri.f.cultural'))}<input type="text" id="nc-cult" maxlength="200" value="${esc(f.culturalReligious || '')}"></label>
+  <label class="nutri-check"><input type="checkbox" id="nc-veg" ${f.vegetarian ? 'checked' : ''}> ${esc(t('nutri.f.vegetarian'))}</label>
+  <div class="eval-actions"><button type="button" class="btn-primary btn-sm" id="nc-save">${esc(t('nutri.consentGive'))}</button>
+  ${c.acceptedAt && !c.withdrawnAt ? `<button type="button" class="btn-ghost btn-sm" id="nc-withdraw">${esc(t('nutri.consentWithdraw'))}</button>` : ''}</div></div>`;
+  const split = v => (v || '').split(',').map(s => s.trim()).filter(Boolean).slice(0, 20);
+  $('nc-save').onclick = async () => {
+    try {
+      const data = {
+        version: NUTRI_CONSENT_VERSION, acceptedAt: serverTimestamp(), withdrawnAt: null,
+        fields: {
+          allergies: split($('nc-allergies').value), intolerances: split($('nc-intol').value),
+          conditions: split($('nc-conds').value), medications: split($('nc-meds').value),
+          culturalReligious: ($('nc-cult').value || '').trim().slice(0, 200),
+          vegetarian: !!$('nc-veg').checked
+        }
+      };
+      await setDoc(doc(db, 'nutrition_consents', me), data, { merge: true });
+      NUTRI.myConsent = { ...data, acceptedAt: Date.now() };
+      nutriAudit('nutrition.consent', me, 'alumno', NUTRI_CONSENT_VERSION);
+      toast(t('nutri.saved'));
+      nutriCloseFloat();
+      try { renderNutriMyBox(); } catch {}
+    } catch { toast(t('err.createFail'), true); }
+  };
+  const wd = $('nc-withdraw');
+  if (wd) wd.onclick = async () => {
+    try {
+      await setDoc(doc(db, 'nutrition_consents', me), { withdrawnAt: serverTimestamp(), fields: { allergies: [], intolerances: [], conditions: [], medications: [], culturalReligious: '', vegetarian: false } }, { merge: true });
+      NUTRI.myConsent = { ...(NUTRI.myConsent || {}), withdrawnAt: Date.now(), fields: null };
+      nutriAudit('nutrition.consentWithdrawn', me, 'alumno', '');
+      toast(t('nutri.saved'));
+      nutriCloseFloat();
+      try { renderNutriMyBox(); } catch {}
+    } catch { toast(t('err.createFail'), true); }
+  };
+}
+
+/* ── Consola del nutricionista ────────────────────────────────── */
+async function nutriMyClients() {
+  const me = auth.currentUser.uid;
+  const out = [];
+  try {
+    const snap = await getDocs(query(collection(db, 'nutritionist_relations'), where('nutritionistUid', '==', me)));
+    snap.forEach(d => { const x = { uid: d.id, ...d.data() }; if (x.status === 'activa') out.push(x); });
+  } catch {}
+  return out;
+}
+async function nutriViewConsole(body) {
+  const me = auth.currentUser.uid;
+  const clients = await nutriMyClients();
+  let follows = [], changes = [];
+  try {
+    const snap = await getDocs(query(collection(db, 'nutrition_followups'), where('nutritionistUid', '==', me)));
+    snap.forEach(d => { const x = { id: d.id, ...d.data() }; if (x.status === 'pendiente_nutricionista') follows.push(x); });
+  } catch {}
+  try {
+    const snap = await getDocs(collection(db, 'nutritionist_relations'));
+    snap.forEach(d => { const x = { uid: d.id, ...d.data() }; if (x.pendingChange && x.pendingChange.toUid === me && x.pendingChange.stage === 'espera_nutricionista') changes.push(x); });
+  } catch {}
+  for (const c of clients) c._name = await nutriNameOf(c.studentUid || c.uid);
+  for (const f of follows) f._name = await nutriNameOf(f.studentUid);
+  for (const c of changes) c._name = await nutriNameOf(c.studentUid || c.uid);
+  body.innerHTML = `
+  <div class="nutri-tabs"><button type="button" class="nutri-tab sel">${esc(t('nutri.console.clients'))} (${clients.length})</button>
+  <button type="button" class="nutri-tab" id="nc-tab-req">${esc(t('nutri.console.requests'))} (${follows.length + changes.length})</button>
+  <button type="button" class="nutri-tab" id="nc-tab-rec">${esc(t('nutri.console.recipes'))}</button></div>
+  <div id="nc-pane">
+  ${clients.length ? clients.map(c => `<div class="nutri-card"><b>${esc(c._name)}</b> <span class="muted">· ${esc(nutriCadLabel(c.followUpCadence))}</span>
+    <div class="eval-actions"><button type="button" class="btn-primary btn-sm" data-nc-open="${esc(c.studentUid || c.uid)}">${esc(t('nutri.client.plan'))}</button></div></div>`).join('')
+    : `<p class="progress-hint">${esc(t('nutri.admin.empty'))}</p>`}
+  </div>`;
+  body.querySelectorAll('[data-nc-open]').forEach(b => b.onclick = () => nutriOpenFloat('client', b.dataset.ncOpen));
+  const pane = $('nc-pane');
+  $('nc-tab-req').onclick = () => {
+    body.querySelectorAll('.nutri-tab').forEach(x => x.classList.remove('sel')); $('nc-tab-req').classList.add('sel');
+    pane.innerHTML =
+      follows.map(f => `<div class="nutri-card"><b>${esc(t('nutri.req.follow'))}</b> · ${esc(f._name)} · ${esc(nutriCadLabel(f.cadence))}
+        <div class="eval-actions"><button type="button" class="btn-primary btn-sm" data-fol-ok="${esc(f.id)}">${esc(t('nutri.approve'))}</button>
+        <button type="button" class="btn-ghost btn-sm" data-fol-no="${esc(f.id)}">${esc(t('nutri.reject'))}</button></div></div>`).join('') +
+      changes.map(c => `<div class="nutri-card"><b>${esc(t('nutri.req.change'))}</b> · ${esc(c._name)}
+        <div class="eval-actions"><button type="button" class="btn-primary btn-sm" data-chg-ok="${esc(c.studentUid || c.uid)}">${esc(t('nutri.accept'))}</button>
+        <button type="button" class="btn-ghost btn-sm" data-chg-no="${esc(c.studentUid || c.uid)}">${esc(t('nutri.reject'))}</button></div></div>`).join('') ||
+      `<p class="progress-hint">${esc(t('nutri.admin.empty'))}</p>`;
+    pane.querySelectorAll('[data-fol-ok]').forEach(b => b.onclick = async () => {
+      try {
+        await setDoc(doc(db, 'nutrition_followups', b.dataset.folOk), { status: 'pendiente_administrador', nutritionistDecisionBy: me, nutritionistDecisionAt: serverTimestamp() }, { merge: true });
+        nutriAudit('nutrition.followupApproved', null, 'nutricionista', b.dataset.folOk);
+        toast(t('nutri.saved')); nutriRenderFloat();
+      } catch { toast(t('err.createFail'), true); }
+    });
+    pane.querySelectorAll('[data-fol-no]').forEach(b => b.onclick = async () => {
+      try {
+        await setDoc(doc(db, 'nutrition_followups', b.dataset.folNo), { status: 'rechazada', nutritionistDecisionBy: me, nutritionistDecisionAt: serverTimestamp() }, { merge: true });
+        nutriAudit('nutrition.followupRejected', null, 'nutricionista', b.dataset.folNo);
+        toast(t('nutri.saved')); nutriRenderFloat();
+      } catch { toast(t('err.createFail'), true); }
+    });
+    pane.querySelectorAll('[data-chg-ok]').forEach(b => b.onclick = async () => {
+      const sid = b.dataset.chgOk;
+      try {
+        const s = await getDoc(doc(db, 'nutritionist_relations', sid));
+        const pc = s.exists() ? s.data().pendingChange : null;
+        if (pc) await setDoc(doc(db, 'nutritionist_relations', sid), { pendingChange: { ...pc, stage: 'espera_administrador' }, updatedAt: serverTimestamp() }, { merge: true });
+        await nutriHist(sid, 'change_accepted', 'nutricionista', '');
+        nutriAudit('nutrition.changeAccepted', sid, 'nutricionista', '');
+        toast(t('nutri.saved')); nutriRenderFloat();
+      } catch { toast(t('err.createFail'), true); }
+    });
+    pane.querySelectorAll('[data-chg-no]').forEach(b => b.onclick = async () => {
+      const sid = b.dataset.chgNo;
+      try {
+        await setDoc(doc(db, 'nutritionist_relations', sid), { pendingChange: null, updatedAt: serverTimestamp() }, { merge: true });
+        await nutriHist(sid, 'change_rejected', 'nutricionista', '');
+        toast(t('nutri.saved')); nutriRenderFloat();
+      } catch { toast(t('err.createFail'), true); }
+    });
+  };
+  $('nc-tab-rec').onclick = () => nutriOpenFloat('recipes');
+}
+/* Ficha del alumno para su nutricionista: plan + borrador de metas
+   con el motor fundado, registro diario con autoría, revisiones,
+   sugerencias y asignación de recetas. Solo SU dominio: la ficha
+   nutricional (consentimiento del módulo) y lo que el módulo
+   registra; nada de la declaración del entrenador. */
+async function nutriViewClient(body, studentUid) {
+  const me = auth.currentUser.uid;
+  const name = await nutriNameOf(studentUid);
+  let userData = null;
+  try { const s = await getDoc(doc(db, 'users', studentUid)); if (s.exists()) userData = s.data(); } catch {}
+  let plan = null;
+  const plans = [];
+  try {
+    const snap = await getDocs(query(collection(db, 'nutrition_plans'), where('studentUid', '==', studentUid)));
+    snap.forEach(d => { const x = { id: d.id, ...d.data() }; plans.push(x); if (x.status === 'activo') plan = x; });
+  } catch {}
+  let consent = null;
+  try { const s = await getDoc(doc(db, 'nutrition_consents', studentUid)); if (s.exists()) consent = s.data(); } catch {}
+  let sugg = [];
+  try {
+    const snap = await getDocs(query(collection(db, 'nutrition_goal_suggestions'), where('studentUid', '==', studentUid)));
+    snap.forEach(d => { const x = { id: d.id, ...d.data() }; if (x.status === 'pendiente') sugg.push(x); });
+  } catch {}
+  let myRecipes = [];
+  try {
+    const snap = await getDocs(query(collection(db, 'recipes'), where('ownerUid', '==', me)));
+    snap.forEach(d => { const x = { id: d.id, ...d.data() }; if (x.status === 'publicada') myRecipes.push(x); });
+    const snap2 = await getDocs(query(collection(db, 'recipes'), where('scope', '==', 'general')));
+    snap2.forEach(d => { const x = { id: d.id, ...d.data() }; if (x.status === 'publicada' && !myRecipes.some(r => r.id === x.id)) myRecipes.push(x); });
+  } catch {}
+  /* Adherencia de los últimos 7 días, derivada de sus comidas */
+  let mealsByDate = {};
+  try {
+    const snap = await getDocs(query(collection(db, 'nutrition_meals'), where('ownerUid', '==', studentUid)));
+    snap.forEach(d => { const x = d.data(); (mealsByDate[x.date] = mealsByDate[x.date] || []).push(x); });
+  } catch {}
+  const days = [];
+  for (let i = 6; i >= 0; i--) { const d = new Date(); d.setDate(d.getDate() - i); days.push(d.toISOString().slice(0, 10)); }
+  const adhHtml = days.map(ds => `<span class="nutri-adh-day">${esc(ds.slice(5))}<br>${nutriAdhChip(nutriAdherenceState(mealsByDate[ds] || [], plan ? plan.goals : null, ds))}</span>`).join('');
+  const cf = (consent && consent.acceptedAt && !consent.withdrawnAt && consent.fields) ? consent.fields : null;
+  body.innerHTML = `
+  <div class="eval-actions"><button type="button" class="btn-ghost btn-sm" id="ncl-back">← ${esc(t('nutri.console.clients'))}</button></div>
+  <h4 class="nutri-h">${esc(name)}</h4>
+  ${cf ? `<div class="nutri-card"><b>${esc(t('nutri.consentTitle'))}</b>
+    ${cf.allergies && cf.allergies.length ? `<br>${esc(t('nutri.f.allergies'))}: ${esc(cf.allergies.join(', '))}` : ''}
+    ${cf.intolerances && cf.intolerances.length ? `<br>${esc(t('nutri.f.intolerances'))}: ${esc(cf.intolerances.join(', '))}` : ''}
+    ${cf.conditions && cf.conditions.length ? `<br>${esc(t('nutri.f.conditions'))}: ${esc(cf.conditions.join(', '))}` : ''}
+    ${cf.medications && cf.medications.length ? `<br>${esc(t('nutri.f.medications'))}: ${esc(cf.medications.join(', '))}` : ''}
+    ${cf.culturalReligious ? `<br>${esc(t('nutri.f.cultural'))}: ${esc(cf.culturalReligious)}` : ''}
+    ${cf.vegetarian ? `<br>${esc(t('nutri.f.vegetarian'))}: ✓` : ''}</div>` : ''}
+  <div class="nutri-sub"><b>${esc(t('nutri.client.plan'))}</b></div>
+  ${plan ? `<div class="nutri-card"><b>${esc(plan.startsOn || '')} → ${esc(plan.endsOn || '')}</b> · ${esc(nutriPresetLabel(plan.cadence))}
+    ${plan.goals ? nutriGoalsChips(plan.goals) : ''}${plan.notes ? `<br><span class="muted">${esc(plan.notes)}</span>` : ''}</div>`
+    : `<p class="progress-hint">${esc(t('nutri.planNone'))}</p>`}
+  <div class="nutri-adh-week">${adhHtml}</div>
+  ${sugg.map(s => `<div class="nutri-card">💡 <b>${esc(t('nutri.client.suggest'))}</b><br>${esc(s.text || '')}
+    <div class="eval-actions"><button type="button" class="btn-ghost btn-sm" data-sugg-ok="${esc(s.id)}">${esc(t('nutri.accept'))}</button>
+    <button type="button" class="btn-ghost btn-sm" data-sugg-no="${esc(s.id)}">${esc(t('nutri.reject'))}</button></div></div>`).join('')}
+  <div class="nutri-sub"><b>${esc(t('nutri.client.newPlan'))}</b></div>
+  <div class="nutri-form">
+    <p class="progress-hint">${esc(t('nutri.cadence'))} / vigencia</p>
+    <div class="nutri-chips">${NUTRI_PLAN_PRESETS.map(p => `<button type="button" class="nutri-chip${NUTRI.planPreset === p ? ' sel' : ''}" data-plan-preset="${p}">${esc(nutriPresetLabel(p))}</button>`).join('')}</div>
+    <label>${esc(t('nutri.client.starts'))}<input type="date" id="np-start" value="${todayISO()}"></label>
+    <label>${esc(t('nutri.client.notes'))}<textarea id="np-notes" class="nutri-area" rows="2" maxlength="600">${esc(plan ? (plan.notes || '') : '')}</textarea></label>
+    <p class="progress-hint">${esc(t('nutri.client.draftHint'))}<br>${esc(t('nutri.foundation'))}</p>
+    <div class="eval-actions"><button type="button" class="btn-ghost" id="np-compute">${esc(t('nutri.client.computeDraft'))}</button></div>
+    <div id="np-draft-zone"></div>
+  </div>
+  <div class="nutri-sub"><b>${esc(t('nutri.client.daily'))}</b></div>
+  <div class="nutri-form">
+    <label>${esc(t('nutri.client.mealFood'))}<input type="text" id="nd-food" maxlength="120"></label>
+    <div class="nutri-chips">${(typeof AI_MEALS !== 'undefined' ? AI_MEALS : ['Desayuno', 'Almuerzo', 'Cena']).map((m, i) => `<button type="button" class="nutri-chip${i === 1 ? ' sel' : ''}" data-nd-meal="${esc(m)}">${esc(m)}</button>`).join('')}</div>
+    <div class="nutri-numrow">
+      <label>kcal<input type="number" id="nd-kcal" min="0"></label><label>${esc(t('th.protShort'))}<input type="number" id="nd-prot" min="0"></label>
+      <label>${esc(t('th.carbShort'))}<input type="number" id="nd-carb" min="0"></label><label>${esc(t('th.sugarShort'))}<input type="number" id="nd-sugar" min="0"></label>
+      <label>${esc(t('th.fatShort'))}<input type="number" id="nd-fat" min="0"></label>
+    </div>
+    <div class="eval-actions"><button type="button" class="btn-ghost btn-sm" id="nd-meal-add">${esc(t('nutri.client.addMeal'))}</button></div>
+    <label>${esc(t('nutri.client.addWeight'))}<input type="number" id="nd-weight" min="20" max="400" step="0.1"></label>
+    <div class="eval-actions"><button type="button" class="btn-ghost btn-sm" id="nd-weight-add">${esc(t('nutri.client.addWeight'))}</button></div>
+    <label>${esc(t('nutri.client.review'))}<textarea id="nd-review" class="nutri-area" rows="2" maxlength="600"></textarea></label>
+    <div class="eval-actions"><button type="button" class="btn-ghost btn-sm" id="nd-review-add">${esc(t('nutri.client.reviewAdd'))}</button></div>
+  </div>
+  ${myRecipes.length ? `<div class="nutri-sub"><b>${esc(t('nutri.client.assignRecipe'))}</b></div>
+  <div class="nutri-form">
+    <div class="nutri-chips">${myRecipes.map(r => `<button type="button" class="nutri-chip" data-asg-recipe="${esc(r.id)}">${esc((r.title && (r.title.es || r.title.en)) || '')}</button>`).join('')}</div>
+    <label>${esc(t('nutri.recipe.servings'))}<input type="number" id="asg-serv" min="0.5" step="0.5" value="1"></label>
+    <div id="asg-zone"></div>
+  </div>` : ''}`;
+  $('ncl-back').onclick = () => nutriOpenFloat('console');
+  body.querySelectorAll('[data-sugg-ok]').forEach(b => b.onclick = async () => { try { await setDoc(doc(db, 'nutrition_goal_suggestions', b.dataset.suggOk), { status: 'aceptada', decidedBy: me, decidedAt: serverTimestamp() }, { merge: true }); toast(t('nutri.saved')); nutriRenderFloat(); } catch { toast(t('err.createFail'), true); } });
+  body.querySelectorAll('[data-sugg-no]').forEach(b => b.onclick = async () => { try { await setDoc(doc(db, 'nutrition_goal_suggestions', b.dataset.suggNo), { status: 'rechazada', decidedBy: me, decidedAt: serverTimestamp() }, { merge: true }); toast(t('nutri.saved')); nutriRenderFloat(); } catch { toast(t('err.createFail'), true); } });
+  body.querySelectorAll('[data-plan-preset]').forEach(b => b.onclick = () => { NUTRI.planPreset = b.dataset.planPreset; body.querySelectorAll('[data-plan-preset]').forEach(x => x.classList.toggle('sel', x === b)); });
+  let ndMeal = 'Almuerzo';
+  body.querySelectorAll('[data-nd-meal]').forEach(b => b.onclick = () => { ndMeal = b.dataset.ndMeal; body.querySelectorAll('[data-nd-meal]').forEach(x => x.classList.toggle('sel', x === b)); });
+  /* Borrador de metas: el núcleo puro del motor fundado, con los
+     insumos que el alumno ya declaró (su energía calculada, su
+     último peso, su objetivo/enfoque, su ritmo y su declaración de
+     salud visible para el profesional asignado). NO escribe nada:
+     el resultado vive en NUTRI.draft hasta la aprobación. */
+  $('np-compute').onclick = async () => {
+    const zone = $('np-draft-zone');
+    try {
+      let tdee = null, weightKg = null;
+      try { const s = await getDoc(doc(db, 'users', studentUid, 'assessment', 'current')); if (s.exists()) tdee = Number(s.data().tdeeKcal) || null; } catch {}
+      try {
+        const snap = await getDocs(query(collection(db, 'nutrition_weight'), where('ownerUid', '==', studentUid)));
+        snap.forEach(d => { const x = d.data(); if (!weightKg || String(x.date) >= String(weightKg.date)) weightKg = x; });
+        weightKg = weightKg ? Number(weightKg.weight) || null : null;
+      } catch {}
+      let conditions = [];
+      try { const ch = await fetchClientHealth(studentUid, userData); if (ch && ch.decl && Array.isArray(ch.decl.conditions)) conditions = ch.decl.conditions; } catch {}
+      const focus = userData ? gmFocusEffective(userData) : { objective: 'mantener' };
+      const objective = (focus && focus.objective) || (userData && userData.objective) || 'mantener';
+      if (!tdee || !weightKg) { zone.innerHTML = `<p class="progress-hint">${esc(t('nutri.client.draftHint'))} (sin energía o sin peso del alumno: no se puede calcular)</p>`; return; }
+      const draft = goalsCoreCompute({
+        objective, tdeeKcal: tdee, weightKg,
+        hasTrainer: !!(userData && (userData.trainerUid || userData.nutritionistUid)),
+        paceSuggestion: userData ? userData.paceSuggestion : null,
+        goalsTerms: userData ? userData.goalsTerms : null,
+        conditions
+      });
+      NUTRI.draft = draft; NUTRI.draftClient = studentUid;
+      const g = draft.goals || {};
+      const held = (draft.heldDetails || []).map(hd => `<span class="nutri-tag warn">${esc(hd.param)} — ${esc(hd.cond || '')}</span>`).join(' ');
+      zone.innerHTML = `<div class="nutri-card"><b>${esc(t('nutri.client.newPlan'))} — borrador</b>
+      ${held ? `<br>${esc(t('nutri.client.held'))}: ${held}` : ''}
+      <div class="nutri-numrow">
+        <label>kcal<input type="number" id="dg-kcal" value="${g.kcal != null ? g.kcal : ''}"></label>
+        <label>${esc(t('th.protShort'))}<input type="number" id="dg-prot" value="${g.prot != null ? g.prot : ''}"></label>
+        <label>${esc(t('th.carbShort'))}<input type="number" id="dg-carb" value="${g.carb != null ? g.carb : ''}"></label>
+        <label>${esc(t('th.sugarShort'))}<input type="number" id="dg-azuc" value="${g.azuc != null ? g.azuc : ''}"></label>
+        <label>${esc(t('th.fatShort'))}<input type="number" id="dg-gras" value="${g.gras != null ? g.gras : ''}"></label>
+      </div>
+      <div class="eval-actions"><button type="button" class="btn-primary" id="dg-approve" ${g.kcal != null ? '' : 'disabled'}>${esc(t('nutri.client.approveGoals'))}</button></div></div>`;
+      const ap = $('dg-approve');
+      if (ap) ap.onclick = async () => {
+        const goals = {
+          kcal: Math.max(0, Math.round(Number($('dg-kcal').value) || 0)),
+          prot: Math.max(0, Math.round(Number($('dg-prot').value) || 0)),
+          carb: Math.max(0, Math.round(Number($('dg-carb').value) || 0)),
+          azuc: Math.max(0, Math.round(Number($('dg-azuc').value) || 0)),
+          gras: Math.max(0, Math.round(Number($('dg-gras').value) || 0))
+        };
+        if (!goals.kcal) { toast(t('err.createFail'), true); return; }
+        try {
+          const startsOn = ($('np-start') && $('np-start').value) || todayISO();
+          const endsOn = (typeof planEndFromPreset === 'function') ? planEndFromPreset(startsOn, NUTRI.planPreset) : startsOn;
+          const batch = writeBatch(db);
+          for (const p of plans) if (p.status === 'activo') batch.set(doc(db, 'nutrition_plans', p.id), { status: 'archivado', updatedAt: serverTimestamp() }, { merge: true });
+          await batch.commit();
+          await addDoc(collection(db, 'nutrition_plans'), {
+            studentUid, nutritionistUid: me, status: 'activo',
+            startsOn, endsOn, cadence: NUTRI.planPreset, templateId: null,
+            goalsDraft: draft.goals || null, goals,
+            goalsApprovedBy: me, goalsApprovedAt: serverTimestamp(),
+            notes: ($('np-notes') && $('np-notes').value || '').trim().slice(0, 600),
+            createdAt: serverTimestamp(), updatedAt: serverTimestamp()
+          });
+          nutriAudit('nutrition.plan.activated', studentUid, 'nutricionista', 'kcal ' + goals.kcal);
+          toast(t('nutri.saved'));
+          NUTRI.draft = null;
+          nutriRenderFloat();
+        } catch { toast(t('err.createFail'), true); }
+      };
+    } catch { zone.innerHTML = `<p class="progress-hint">${esc(t('err.createFail'))}</p>`; }
+  };
+  $('nd-meal-add').onclick = async () => {
+    const food = ($('nd-food').value || '').trim(); if (!food) return;
+    try {
+      await addDoc(collection(db, 'nutrition_meals'), {
+        ownerUid: studentUid, date: todayISO(), meal: ndMeal, food, qty: '',
+        kcal: Math.max(0, Number($('nd-kcal').value) || 0), prot: Math.max(0, Number($('nd-prot').value) || 0),
+        carb: Math.max(0, Number($('nd-carb').value) || 0), sugar: Math.max(0, Number($('nd-sugar').value) || 0),
+        fat: Math.max(0, Number($('nd-fat').value) || 0), notes: '',
+        byUid: me, byRole: 'nutricionista', createdAt: serverTimestamp()
+      });
+      nutriAudit('nutrition.mealLogged', studentUid, 'nutricionista', food.slice(0, 60));
+      toast(t('nutri.saved'));
+    } catch { toast(t('err.createFail'), true); }
+  };
+  $('nd-weight-add').onclick = async () => {
+    const w = Number($('nd-weight').value) || 0; if (!w) return;
+    try {
+      await setDoc(doc(db, 'nutrition_weight', studentUid + '_' + todayISO()), {
+        ownerUid: studentUid, date: todayISO(), weight: w, byUid: me, byRole: 'nutricionista', updatedAt: serverTimestamp()
+      }, { merge: true });
+      nutriAudit('nutrition.weightLogged', studentUid, 'nutricionista', w + ' kg');
+      toast(t('nutri.saved'));
+    } catch { toast(t('err.createFail'), true); }
+  };
+  $('nd-review-add').onclick = async () => {
+    const note = ($('nd-review').value || '').trim(); if (!note) return;
+    try {
+      const rel = await getDoc(doc(db, 'nutritionist_relations', studentUid));
+      await addDoc(collection(db, 'nutrition_reviews'), {
+        studentUid, nutritionistUid: me, note,
+        cadence: rel.exists() ? (rel.data().followUpCadence || null) : null,
+        byRole: 'nutricionista', at: serverTimestamp()
+      });
+      nutriAudit('nutrition.review', studentUid, 'nutricionista', '');
+      toast(t('nutri.saved'));
+      $('nd-review').value = '';
+    } catch { toast(t('err.createFail'), true); }
+  };
+  body.querySelectorAll('[data-asg-recipe]').forEach(b => b.onclick = async () => {
+    const rid = b.dataset.asgRecipe;
+    try {
+      await addDoc(collection(db, 'recipe_assignments'), {
+        recipeId: rid, studentUid, nutritionistUid: me,
+        date: todayISO(), meal: 'Almuerzo', servings: Math.max(0.5, Number(($('asg-serv') || {}).value) || 1),
+        doneAt: null, createdAt: serverTimestamp()
+      });
+      nutriAudit('nutrition.recipeAssigned', studentUid, 'nutricionista', rid);
+      toast(t('nutri.saved'));
+    } catch { toast(t('err.createFail'), true); }
+  });
+}
+
+/* ── Recetas ──────────────────────────────────────────────────── */
+function nutriRecipeMacrosLine(r, servings) {
+  const m = r.macrosPerServing || {};
+  const f = (Number(servings) || 1) / (Number(r.servings) || 1);
+  const v = x => Math.round((Number(x) || 0) * f);
+  return `${v(m.kcal)} kcal · ${t('th.protShort')} ${v(m.prot)} g · ${t('th.carbShort')} ${v(m.carb)} g · ${t('th.sugarShort')} ${v(m.azuc)} g · ${t('th.fatShort')} ${v(m.gras)} g`;
+}
+async function nutriViewRecipes(body) {
+  const me = auth.currentUser.uid;
+  const lang = (typeof LANG !== 'undefined' && LANG) || 'es';
+  let recipes = [];
+  try {
+    const snap = await getDocs(collection(db, 'recipes'));
+    snap.forEach(d => { const x = { id: d.id, ...d.data() }; if (x.status === 'publicada') recipes.push(x); });
+  } catch {}
+  const myNutri = NUTRI.myRel && NUTRI.myRel.nutritionistUid;
+  recipes = recipes.filter(r => r.scope === 'general' || (myNutri && r.ownerUid === myNutri) || r.ownerUid === me);
+  let favs = new Set();
+  try {
+    const snap = await getDocs(query(collection(db, 'recipe_favorites'), where('studentUid', '==', me)));
+    snap.forEach(d => favs.add(d.data().recipeId));
+  } catch {}
+  let assignments = [];
+  try {
+    const snap = await getDocs(query(collection(db, 'recipe_assignments'), where('studentUid', '==', me)));
+    snap.forEach(d => assignments.push({ id: d.id, ...d.data() }));
+  } catch {}
+  const F = NUTRI.filters;
+  const visible = recipes.filter(r =>
+    (!F.goal || (r.goalTags || []).includes(F.goal)) &&
+    (!F.allergen || !(r.allergens || []).includes(F.allergen)) &&
+    (!F.restriction || (r.restrictions || []).includes(F.restriction)));
+  const chipRow = (key, values, labelFn) => `<div class="nutri-chips"><button type="button" class="nutri-chip${!F[key] ? ' sel' : ''}" data-rf="${key}|">${esc(t('purpose.useBoth'))}</button>${values.map(v => `<button type="button" class="nutri-chip${F[key] === v ? ' sel' : ''}" data-rf="${key}|${v}">${esc(labelFn(v))}</button>`).join('')}</div>`;
+  body.innerHTML = `
+  <p class="progress-hint">${esc(t('nutri.recipe.goals'))}</p>${chipRow('goal', NUTRI_GOAL_TAGS, v => v)}
+  <p class="progress-hint">${esc(t('nutri.recipe.allergens'))} (fuera)</p>${chipRow('allergen', NUTRI_ALLERGENS, v => v)}
+  <p class="progress-hint">${esc(t('nutri.recipe.restrictions'))}</p>${chipRow('restriction', NUTRI_RESTRICTIONS, v => v)}
+  <div class="eval-actions"><button type="button" class="btn-ghost btn-sm" id="rc-propose">${esc(NUTRI.myProfile && NUTRI.myProfile.status === 'aprobado' ? t('nutri.recipe.new') : t('nutri.recipe.propose'))}</button></div>
+  ${visible.map(r => {
+    const sv = NUTRI.recipeServings[r.id] || r.servings || 1;
+    const title = (r.title && (r.title[lang] || r.title.es || r.title.en)) || '';
+    const ings = (r.ingredients && (r.ingredients[lang] || r.ingredients.es) || []).map(i => `<li>${esc(i.name)} — ${esc(i.qty)} ${esc(i.unit)}</li>`).join('');
+    return `<div class="nutri-card">
+    ${r.photoUrl ? `<img class="nutri-recipe-photo" src="${esc(r.photoUrl)}" alt="">` : ''}
+    <b>${esc(title)}</b> <span class="muted">· ${esc(r.scope === 'general' ? t('nutri.recipe.scopeGeneral') : t('nutri.recipe.scopePrivate'))}</span>
+    <div class="nutri-recipe-macros">${esc(nutriRecipeMacrosLine(r, sv))} <span class="muted">(${esc(t('nutri.recipe.perServing'))}${sv !== (r.servings || 1) ? ' · ' + esc(t('nutri.recipe.estimate')) : ''})</span></div>
+    <label class="nutri-serv">${esc(t('nutri.recipe.servings'))} <input type="number" min="0.5" step="0.5" value="${sv}" data-rsv="${esc(r.id)}"></label>
+    <button type="button" class="btn-ghost btn-sm" data-rfav="${esc(r.id)}">${favs.has(r.id) ? '★' : '☆'} ${esc(t('nutri.recipe.fav'))}</button>
+    ${ings ? `<ul class="nutri-ings">${ings}</ul>` : ''}
+    ${r.videoUrl ? `<br><a href="${esc(r.videoUrl)}" target="_blank" rel="noopener">▶ video</a>` : ''}
+  </div>`; }).join('') || `<p class="progress-hint">${esc(t('nutri.admin.empty'))}</p>`}
+  ${assignments.length ? `<div class="nutri-sub"><b>${esc(t('nutri.recipe.assignments'))}</b></div>` + assignments.map(a => {
+    const r = recipes.find(x => x.id === a.recipeId);
+    const title = r ? ((r.title && (r.title[lang] || r.title.es)) || '') : a.recipeId;
+    return `<div class="nutri-card"><b>${esc(title)}</b> · ${esc(a.date || '')} · ${esc(a.meal || '')} · ${a.servings || 1} ${esc(t('nutri.recipe.servings'))}
+    ${a.doneAt ? `<br>✅ ${esc(t('nutri.recipe.done'))}` : `<div class="eval-actions"><button type="button" class="btn-primary btn-sm" data-asg-done="${esc(a.id)}">${esc(t('nutri.recipe.markDone'))}</button></div>`}</div>`;
+  }).join('') : ''}`;
+  body.querySelectorAll('[data-rf]').forEach(b => b.onclick = () => { const [k, v] = b.dataset.rf.split('|'); NUTRI.filters[k] = v; nutriRenderFloat(); });
+  body.querySelectorAll('[data-rsv]').forEach(inp => inp.onchange = () => { NUTRI.recipeServings[inp.dataset.rsv] = Math.max(0.5, Number(inp.value) || 1); nutriRenderFloat(); });
+  body.querySelectorAll('[data-rfav]').forEach(b => b.onclick = async () => {
+    const rid = b.dataset.rfav, fid = me + '_' + rid;
+    try {
+      if (favs.has(rid)) await deleteDoc(doc(db, 'recipe_favorites', fid));
+      else await setDoc(doc(db, 'recipe_favorites', fid), { studentUid: me, recipeId: rid, createdAt: serverTimestamp() });
+      nutriRenderFloat();
+    } catch { toast(t('err.createFail'), true); }
+  });
+  body.querySelectorAll('[data-asg-done]').forEach(b => b.onclick = async () => {
+    try {
+      await setDoc(doc(db, 'recipe_assignments', b.dataset.asgDone), { doneAt: serverTimestamp() }, { merge: true });
+      toast(t('nutri.saved')); nutriRenderFloat();
+    } catch { toast(t('err.createFail'), true); }
+  });
+  const pr = $('rc-propose'); if (pr) pr.onclick = () => nutriOpenFloat('recipeform');
+}
+/* Formulario de receta (profesional crea · alumno propone): foto
+   OBLIGATORIA; la general nace pendiente de aprobación del
+   Administrador; la privada del profesional nace publicada solo
+   para sus alumnos. Ingredientes bilingües, una línea por idioma:
+   nombre | cantidad | unidad. */
+async function nutriViewRecipeForm(body) {
+  const me = auth.currentUser.uid;
+  const isPro = !!(NUTRI.myProfile && NUTRI.myProfile.status === 'aprobado');
+  let scope = isPro ? 'privada' : 'general';
+  const chipRow = (key, values) => `<div class="nutri-chips">${values.map(v => `<button type="button" class="nutri-chip" data-rcf="${key}|${v}">${esc(v)}</button>`).join('')}</div>`;
+  const sel = { goalTags: new Set(), allergens: new Set(), restrictions: new Set() };
+  body.innerHTML = `<div class="nutri-form">
+  <label>${esc(t('nutri.recipe.titleEs'))}<input type="text" id="rc-tes" maxlength="90"></label>
+  <label>${esc(t('nutri.recipe.titleEn'))}<input type="text" id="rc-ten" maxlength="90"></label>
+  <label>${esc(t('nutri.recipe.ingEs'))}<textarea id="rc-ies" class="nutri-area" rows="4"></textarea></label>
+  <label>${esc(t('nutri.recipe.ingEn'))}<textarea id="rc-ien" class="nutri-area" rows="4"></textarea></label>
+  <label>${esc(t('nutri.recipe.photo'))}<input type="url" id="rc-photo" maxlength="500" placeholder="https://"></label>
+  <label>${esc(t('nutri.recipe.video'))}<input type="url" id="rc-video" maxlength="500" placeholder="https://"></label>
+  <label>${esc(t('nutri.recipe.servings'))}<input type="number" id="rc-serv" min="1" step="1" value="1"></label>
+  <div class="nutri-numrow">
+    <label>kcal<input type="number" id="rc-kcal" min="0"></label><label>${esc(t('th.protShort'))}<input type="number" id="rc-prot" min="0"></label>
+    <label>${esc(t('th.carbShort'))}<input type="number" id="rc-carb" min="0"></label><label>${esc(t('th.sugarShort'))}<input type="number" id="rc-azuc" min="0"></label>
+    <label>${esc(t('th.fatShort'))}<input type="number" id="rc-gras" min="0"></label>
+  </div>
+  <p class="progress-hint">${esc(t('nutri.recipe.goals'))}</p>${chipRow('goalTags', NUTRI_GOAL_TAGS)}
+  <p class="progress-hint">${esc(t('nutri.recipe.allergens'))}</p>${chipRow('allergens', NUTRI_ALLERGENS)}
+  <p class="progress-hint">${esc(t('nutri.recipe.restrictions'))}</p>${chipRow('restrictions', NUTRI_RESTRICTIONS)}
+  ${isPro ? `<p class="progress-hint">${esc(t('nutri.recipe.scope'))}</p><div class="nutri-chips"><button type="button" class="nutri-chip sel" data-rc-scope="privada">${esc(t('nutri.recipe.scopePrivate'))}</button><button type="button" class="nutri-chip" data-rc-scope="general">${esc(t('nutri.recipe.scopeGeneral'))}</button></div>` : ''}
+  <div class="eval-actions"><button type="button" class="btn-ghost btn-sm" id="rc-back">← ${esc(t('nutri.recipes'))}</button>
+  <button type="button" class="btn-primary" id="rc-save">${esc(t('nutri.save'))}</button></div></div>`;
+  body.querySelectorAll('[data-rcf]').forEach(b => b.onclick = () => { const [k, v] = b.dataset.rcf.split('|'); if (sel[k].has(v)) sel[k].delete(v); else sel[k].add(v); b.classList.toggle('sel'); });
+  body.querySelectorAll('[data-rc-scope]').forEach(b => b.onclick = () => { scope = b.dataset.rcScope; body.querySelectorAll('[data-rc-scope]').forEach(x => x.classList.toggle('sel', x === b)); });
+  $('rc-back').onclick = () => nutriOpenFloat('recipes');
+  $('rc-save').onclick = async () => {
+    const photo = ($('rc-photo').value || '').trim();
+    if (!photo) { toast(t('nutri.recipe.photo'), true); return; }
+    const parseIngs = txt => (txt || '').split('\n').map(l => l.trim()).filter(Boolean).map(l => { const [name, qty, unit] = l.split('|').map(s => (s || '').trim()); return { name: name || '', qty: qty || '', unit: unit || '' }; }).slice(0, 40);
+    try {
+      const ref = await addDoc(collection(db, 'recipes'), {
+        ownerUid: me, scope, status: scope === 'general' ? 'pendiente' : 'publicada',
+        title: { es: ($('rc-tes').value || '').trim().slice(0, 90), en: ($('rc-ten').value || '').trim().slice(0, 90) },
+        ingredients: { es: parseIngs($('rc-ies').value), en: parseIngs($('rc-ien').value) },
+        photoUrl: photo.slice(0, 500), videoUrl: ($('rc-video').value || '').trim().slice(0, 500) || null,
+        servings: Math.max(1, Number($('rc-serv').value) || 1),
+        macrosPerServing: { kcal: Math.max(0, Number($('rc-kcal').value) || 0), prot: Math.max(0, Number($('rc-prot').value) || 0), carb: Math.max(0, Number($('rc-carb').value) || 0), azuc: Math.max(0, Number($('rc-azuc').value) || 0), gras: Math.max(0, Number($('rc-gras').value) || 0) },
+        goalTags: [...sel.goalTags], allergens: [...sel.allergens], restrictions: [...sel.restrictions],
+        createdAt: serverTimestamp(), updatedAt: serverTimestamp()
+      });
+      nutriAudit('nutrition.recipeCreated', null, isPro ? 'nutricionista' : 'alumno', ref.id);
+      toast(t('nutri.saved'));
+      nutriOpenFloat('recipes');
+    } catch { toast(t('err.createFail'), true); }
+  };
+}
+/* ── Administración: la sección del módulo ────────────────────── */
+function admSecMountNutri(body) { nutriAdminPaint(body); }
+function admSecRefreshNutri(body) { nutriAdminPaint(body); }
+async function nutriAdminPaint(body) {
+  if (!body) return;
+  const me = auth.currentUser.uid;
+  body.innerHTML = `<div class="wempty">${esc(t('access.loading'))}</div>`;
+  let apps = [], membs = [], follows = [], changes = [], waiting = [], props = [], pros = [];
+  try {
+    const snap = await getDocs(collection(db, 'nutritionist_profiles'));
+    snap.forEach(d => { const x = { uid: d.id, ...d.data() }; if (x.status === 'pendiente') apps.push(x); else if (x.status === 'aprobado') pros.push(x); });
+  } catch {}
+  try {
+    const snap = await getDocs(collection(db, 'nutritionist_memberships'));
+    snap.forEach(d => { const x = { uid: d.id, ...d.data() }; if (x.status === 'pendiente') membs.push(x); });
+  } catch {}
+  try {
+    const snap = await getDocs(collection(db, 'nutrition_followups'));
+    snap.forEach(d => { const x = { id: d.id, ...d.data() }; if (x.status === 'pendiente_administrador') follows.push(x); });
+  } catch {}
+  try {
+    const snap = await getDocs(collection(db, 'nutritionist_relations'));
+    snap.forEach(d => { const x = { uid: d.id, ...d.data() };
+      if (x.status === 'en_espera') waiting.push(x);
+      if (x.pendingChange && x.pendingChange.stage === 'espera_administrador') changes.push(x); });
+  } catch {}
+  try {
+    const snap = await getDocs(collection(db, 'recipes'));
+    snap.forEach(d => { const x = { id: d.id, ...d.data() }; if (x.status === 'pendiente') props.push(x); });
+  } catch {}
+  for (const a of apps) a._name = await nutriNameOf(a.uid);
+  for (const f of follows) { f._name = await nutriNameOf(f.studentUid); f._nutri = f.nutritionistUid ? await nutriNameOf(f.nutritionistUid) : ''; }
+  for (const c of changes) { c._name = await nutriNameOf(c.studentUid || c.uid); c._to = await nutriNameOf(c.pendingChange.toUid); }
+  for (const w of waiting) w._name = await nutriNameOf(w.studentUid || w.uid);
+  const pool = await nutriPool();
+  const sec = (title, inner) => `<div class="nutri-sub"><b>${esc(title)}</b></div>${inner || `<p class="progress-hint">${esc(t('nutri.admin.empty'))}</p>`}`;
+  body.innerHTML =
+    sec(t('nutri.admin.proApps'), apps.map(a => `<div class="nutri-card"><b>${esc(a._name)}</b><br><span class="muted">${esc(t('nutri.pro.formation'))}: ${esc(a.formation || '—')}</span>
+      <div class="eval-actions"><button type="button" class="btn-primary btn-sm" data-na-approve="${esc(a.uid)}">${esc(t('nutri.approve'))}</button>
+      <button type="button" class="btn-ghost btn-sm" data-na-reject="${esc(a.uid)}">${esc(t('nutri.reject'))}</button></div></div>`).join('')) +
+    sec(t('nutri.admin.membReqs'), membs.map(m => `<div class="nutri-card"><b>${esc(NUTRI.names[m.uid] || m.uid)}</b> · ${esc(escLevelLabel(m.requestedLevel))} (${membershipQuotaOf(m.requestedLevel)})
+      <div class="eval-actions"><button type="button" class="btn-primary btn-sm" data-nm-approve="${esc(m.uid)}">${esc(t('nutri.approve'))}</button>
+      <button type="button" class="btn-ghost btn-sm" data-nm-reject="${esc(m.uid)}">${esc(t('nutri.reject'))}</button></div></div>`).join('')) +
+    sec(t('nutri.admin.followConf'), follows.map(f => `<div class="nutri-card"><b>${esc(f._name)}</b>${f._nutri ? ` · ${esc(f._nutri)}` : ''} · ${esc(nutriCadLabel(f.cadence))}
+      <div class="eval-actions"><button type="button" class="btn-primary btn-sm" data-nf-confirm="${esc(f.id)}">${esc(t('nutri.admin.confirm'))}</button>
+      <button type="button" class="btn-ghost btn-sm" data-nf-reject="${esc(f.id)}">${esc(t('nutri.reject'))}</button></div></div>`).join('')) +
+    sec(t('nutri.admin.changeConf'), changes.map(c => `<div class="nutri-card"><b>${esc(c._name)}</b> → ${esc(c._to)}
+      <div class="eval-actions"><button type="button" class="btn-primary btn-sm" data-nchg-confirm="${esc(c.studentUid || c.uid)}">${esc(t('nutri.admin.confirm'))}</button>
+      <button type="button" class="btn-ghost btn-sm" data-nchg-reject="${esc(c.studentUid || c.uid)}">${esc(t('nutri.reject'))}</button></div></div>`).join('')) +
+    sec(t('nutri.admin.waiting'), waiting.map(w => `<div class="nutri-card"><b>${esc(w._name)}</b>
+      <div class="eval-actions">${pool.map(p => `<button type="button" class="btn-ghost btn-sm" data-nw-assign="${esc(w.studentUid || w.uid)}|${esc(p.uid)}">${esc(t('nutri.admin.assign'))}: ${esc(p.displayName || '')}</button>`).join('')}</div></div>`).join('')) +
+    sec(t('nutri.admin.recipeProps'), props.map(r => `<div class="nutri-card"><b>${esc((r.title && r.title.es) || '')}</b> · ${esc(r.scope)}
+      <div class="eval-actions"><button type="button" class="btn-primary btn-sm" data-nr-publish="${esc(r.id)}">${esc(t('nutri.admin.publish'))}</button>
+      <button type="button" class="btn-ghost btn-sm" data-nr-reject="${esc(r.id)}">${esc(t('nutri.reject'))}</button></div></div>`).join('')) +
+    sec(t('nutri.admin.pool'), pros.map(p => `<div class="nutri-card"><b>${esc(p.displayName || p.uid)}</b> · ${Number(p.activeClients) || 0}
+      <div class="eval-actions"><button type="button" class="btn-ghost btn-sm" data-na-suspend="${esc(p.uid)}">${esc(t('nutri.admin.suspend'))}</button></div></div>`).join('')) +
+    `<div class="eval-actions"><button type="button" class="btn-ghost btn-sm" id="na-pubdir">${esc(t('nutri.admin.publishDir'))}</button></div>`;
+  const wire = (sel, fn) => body.querySelectorAll(sel).forEach(b => b.onclick = () => fn(b));
+  wire('[data-na-approve]', async b => {
+    try {
+      await setDoc(doc(db, 'nutritionist_profiles', b.dataset.naApprove), { status: 'aprobado', reviewedBy: me, reviewedAt: serverTimestamp(), updatedAt: serverTimestamp() }, { merge: true });
+      nutriAudit('nutritionist.approved', b.dataset.naApprove, 'administrador', '');
+      toast(t('nutri.saved')); nutriAdminPaint(body);
+    } catch { toast(t('err.createFail'), true); }
+  });
+  wire('[data-na-reject]', async b => {
+    try {
+      await setDoc(doc(db, 'nutritionist_profiles', b.dataset.naReject), { status: 'rechazado', reviewedBy: me, reviewedAt: serverTimestamp(), updatedAt: serverTimestamp() }, { merge: true });
+      nutriAudit('nutritionist.rejected', b.dataset.naReject, 'administrador', '');
+      toast(t('nutri.saved')); nutriAdminPaint(body);
+    } catch { toast(t('err.createFail'), true); }
+  });
+  wire('[data-na-suspend]', async b => {
+    const uid = b.dataset.naSuspend;
+    try {
+      await setDoc(doc(db, 'nutritionist_profiles', uid), { status: 'suspendido', updatedAt: serverTimestamp() }, { merge: true });
+      /* Sus alumnos quedan en espera del Administrador, con su
+         plan y su historial intactos (preámbulo §2). */
+      const snap = await getDocs(query(collection(db, 'nutritionist_relations'), where('nutritionistUid', '==', uid)));
+      const batch = writeBatch(db);
+      let n = 0;
+      snap.forEach(d => { const x = d.data(); if (x.status === 'activa') { batch.set(doc(db, 'nutritionist_relations', d.id), { nutritionistUid: null, status: 'en_espera', pendingChange: null, updatedAt: serverTimestamp() }, { merge: true }); n++; } });
+      if (n) { batch.set(doc(db, 'nutritionist_profiles', uid), { activeClients: 0, updatedAt: serverTimestamp() }, { merge: true }); await batch.commit(); }
+      nutriAudit('nutritionist.suspended', uid, 'administrador', n + ' alumnos a espera');
+      toast(t('nutri.saved')); nutriAdminPaint(body);
+    } catch { toast(t('err.createFail'), true); }
+  });
+  wire('[data-nm-approve]', async b => {
+    const uid = b.dataset.nmApprove;
+    try {
+      const s = await getDoc(doc(db, 'nutritionist_memberships', uid));
+      const req = s.exists() ? s.data().requestedLevel : null;
+      if (!req) { toast(t('err.createFail'), true); return; } /* CUPO LIBRE (2026-11-03): la aprobación de membresía del coach NO aplica la guarda de nivel≥alumnos activos (esa guarda de la casa sigue intacta para ENTRENADORES). El nivel queda como dato. */
+      await setDoc(doc(db, 'nutritionist_memberships', uid), { level: req, status: 'activa', decidedBy: me, decidedAt: serverTimestamp(), startedAt: serverTimestamp(), currentPeriodEnd: null, source: 'gratis' }, { merge: true });
+      nutriAudit('membership.approved', uid, 'administrador', 'nutricionista ' + req);
+      toast(t('nutri.saved')); nutriAdminPaint(body);
+    } catch { toast(t('err.createFail'), true); }
+  });
+  wire('[data-nm-reject]', async b => {
+    try {
+      await setDoc(doc(db, 'nutritionist_memberships', b.dataset.nmReject), { status: 'sin_membresia', requestedLevel: null, decidedBy: me, decidedAt: serverTimestamp() }, { merge: true });
+      nutriAudit('membership.rejected', b.dataset.nmReject, 'administrador', 'nutricionista');
+      toast(t('nutri.saved')); nutriAdminPaint(body);
+    } catch { toast(t('err.createFail'), true); }
+  });
+  wire('[data-nf-confirm]', async b => {
+    const fid = b.dataset.nfConfirm;
+    try {
+      const s = await getDoc(doc(db, 'nutrition_followups', fid));
+      if (!s.exists()) return;
+      const f = s.data();
+      await setDoc(doc(db, 'nutrition_followups', fid), { status: 'aprobada', adminDecisionBy: me, adminDecisionAt: serverTimestamp() }, { merge: true });
+      /* Confirmar el seguimiento asegura la relación activa con
+         ese nutricionista (si la hay): sin relación, el alumno
+         queda con el seguimiento aprobado en espera de asignación. */
+      if (f.nutritionistUid) {
+        const rs = await getDoc(doc(db, 'nutritionist_relations', f.studentUid));
+        const cur = rs.exists() ? rs.data() : null;
+        if (!cur || cur.nutritionistUid !== f.nutritionistUid || cur.status !== 'activa') {
+          await setDoc(doc(db, 'nutritionist_relations', f.studentUid), {
+            studentUid: f.studentUid, nutritionistUid: f.nutritionistUid, status: 'activa',
+            followUpCadence: f.cadence || null, pendingChange: null, startedAt: serverTimestamp(), updatedAt: serverTimestamp()
+          }, { merge: true });
+          if (!cur || cur.nutritionistUid !== f.nutritionistUid) await nutriAdjustQuota(f.nutritionistUid, +1);
+          await nutriHist(f.studentUid, 'followup_confirmed', 'administrador', f.cadence || '');
+        } else if (f.cadence) {
+          await setDoc(doc(db, 'nutritionist_relations', f.studentUid), { followUpCadence: f.cadence, updatedAt: serverTimestamp() }, { merge: true });
+        }
+      }
+      nutriAudit('nutrition.followupConfirmed', f.studentUid, 'administrador', fid);
+      toast(t('nutri.saved')); nutriAdminPaint(body);
+    } catch { toast(t('err.createFail'), true); }
+  });
+  wire('[data-nf-reject]', async b => {
+    try {
+      await setDoc(doc(db, 'nutrition_followups', b.dataset.nfReject), { status: 'rechazada', adminDecisionBy: me, adminDecisionAt: serverTimestamp() }, { merge: true });
+      toast(t('nutri.saved')); nutriAdminPaint(body);
+    } catch { toast(t('err.createFail'), true); }
+  });
+  wire('[data-nchg-confirm]', async b => {
+    const sid = b.dataset.nchgConfirm;
+    try {
+      const s = await getDoc(doc(db, 'nutritionist_relations', sid));
+      if (!s.exists() || !s.data().pendingChange) return;
+      const rel = s.data(), pc = rel.pendingChange;
+      const batch = writeBatch(db);
+      batch.set(doc(db, 'nutritionist_relations', sid), {
+        nutritionistUid: pc.toUid, status: 'activa', pendingChange: null,
+        startedAt: serverTimestamp(), updatedAt: serverTimestamp()
+      }, { merge: true });
+      await batch.commit();
+      if (rel.nutritionistUid && rel.nutritionistUid !== pc.toUid) await nutriAdjustQuota(rel.nutritionistUid, -1);
+      if (rel.nutritionistUid !== pc.toUid) await nutriAdjustQuota(pc.toUid, +1);
+      await nutriHist(sid, 'change_confirmed', 'administrador', (rel.nutritionistUid || '') + ' -> ' + pc.toUid);
+      nutriAudit('nutrition.changeConfirmed', sid, 'administrador', '');
+      toast(t('nutri.saved')); nutriAdminPaint(body);
+    } catch { toast(t('err.createFail'), true); }
+  });
+  wire('[data-nchg-reject]', async b => {
+    const sid = b.dataset.nchgReject;
+    try {
+      await setDoc(doc(db, 'nutritionist_relations', sid), { pendingChange: null, updatedAt: serverTimestamp() }, { merge: true });
+      await nutriHist(sid, 'change_rejected', 'administrador', '');
+      toast(t('nutri.saved')); nutriAdminPaint(body);
+    } catch { toast(t('err.createFail'), true); }
+  });
+  wire('[data-nw-assign]', async b => {
+    const [sid, toUid] = b.dataset.nwAssign.split('|');
+    try {
+      await setDoc(doc(db, 'nutritionist_relations', sid), { nutritionistUid: toUid, status: 'activa', startedAt: serverTimestamp(), updatedAt: serverTimestamp() }, { merge: true });
+      await nutriAdjustQuota(toUid, +1);
+      await nutriHist(sid, 'assigned', 'administrador', toUid);
+      nutriAudit('nutrition.assigned', sid, 'administrador', toUid);
+      toast(t('nutri.saved')); nutriAdminPaint(body);
+    } catch { toast(t('err.createFail'), true); }
+  });
+  wire('[data-nr-publish]', async b => {
+    try {
+      await setDoc(doc(db, 'recipes', b.dataset.nrPublish), { status: 'publicada', updatedAt: serverTimestamp() }, { merge: true });
+      nutriAudit('nutrition.recipePublished', null, 'administrador', b.dataset.nrPublish);
+      toast(t('nutri.saved')); nutriAdminPaint(body);
+    } catch { toast(t('err.createFail'), true); }
+  });
+  wire('[data-nr-reject]', async b => {
+    try {
+      await setDoc(doc(db, 'recipes', b.dataset.nrReject), { status: 'rechazada', updatedAt: serverTimestamp() }, { merge: true });
+      toast(t('nutri.saved')); nutriAdminPaint(body);
+    } catch { toast(t('err.createFail'), true); }
+  });
+  const pub = $('na-pubdir');
+  if (pub) pub.onclick = async () => {
+    try {
+      const snap = await getDocs(collection(db, 'nutritionist_profiles'));
+      const list = [];
+      for (const d of snap.docs || []) {
+        const p = { uid: d.id, ...d.data() };
+        if (p.status !== 'aprobado') continue;
+        let memb = null;
+        try { const ms = await getDoc(doc(db, 'nutritionist_memberships', p.uid)); if (ms.exists()) memb = ms.data(); } catch {}
+        if (!memb || memb.status !== 'activa' || !memb.level) continue;
+        list.push({
+          uid: p.uid, name: p.displayName || '', modalities: p.modalities || ['virtual'],
+          specialties: p.specialties || [], languages: p.languages || [],
+          quotaTotal: membershipQuotaOf(memb.level),
+          quotaUsed: Number(p.activeClients) || 0, available: true
+        });
+      }
+      await setDoc(doc(db, 'nutritionist_directory', 'current'), { nutritionists: list, updatedAt: serverTimestamp() });
+      nutriAudit('nutrition.directoryPublished', null, 'administrador', list.length + '');
+      toast(t('nutri.saved'));
+    } catch { toast(t('err.createFail'), true); }
+  };
+}
+/* Cableado de la ventana: ✕, clic fuera y Escape (idioma de la
+   familia Comida/Pendientes: cada familia lleva el suyo). */
+{ const x = $('nutri-float-x'); if (x) x.addEventListener('click', nutriCloseFloat);
+  document.addEventListener('click', e => {
+    const f = $('nutri-float'); if (!f || f.style.display === 'none') return;
+    if (f.contains(e.target)) return;
+    if (e.target.closest && e.target.closest('#nutri-my-box, #nutri-pro-box')) return;
+    nutriCloseFloat();
+  });
+  document.addEventListener('keydown', e => { if (e.key === 'Escape') { const f = $('nutri-float'); if (f && f.style.display !== 'none') nutriCloseFloat(); } });
+}

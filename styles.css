@@ -3518,3 +3518,38 @@ body.sess-on #pend-back-chip { bottom: calc(env(safe-area-inset-bottom, 0px) + 1
 .imglim-rows { display: grid; gap: 6px; margin-bottom: 8px; }
 .imglim-row { display: flex; justify-content: space-between; gap: 12px; font-size: 14.5px; color: #14201f; }
 /* == FIN LÍMITES DE IMÁGENES == */
+/* ===== INICIO MÓDULO NUTRICIONISTA (SOLO DESARROLLO 2026-11-02) ===== */
+.nutri-panel { margin-top: 14px; }
+.nutri-sub { margin: 14px 0 6px; font-size: 15px; }
+.nutri-ok { color: #0d9488; font-weight: 600; }
+.nutri-card { border: 1px solid #e2e8f0; border-radius: 14px; padding: 10px 12px; margin: 8px 0; background: #fff; font-size: 14px; }
+.nutri-goals { display: flex; flex-wrap: wrap; gap: 6px; margin: 6px 0; }
+.nutri-goal-chip { background: #edf7f3; border: 1px solid #99d5c7; color: #065f46; border-radius: 999px; padding: 4px 10px; font-size: 13px; }
+.nutri-tags { display: inline-flex; flex-wrap: wrap; gap: 4px; }
+.nutri-tag { background: #f1f5f9; border-radius: 999px; padding: 2px 8px; font-size: 12px; }
+.nutri-tag.warn { background: #fef3c7; border: 1px solid #f59e0b; }
+.nutri-chips { display: flex; flex-wrap: wrap; gap: 8px; margin: 6px 0 10px; }
+.nutri-chip { min-height: 48px; padding: 10px 16px; border-radius: 14px; border: 2px solid #cbd5e1; background: #fff; font-size: 15px; cursor: pointer; }
+.nutri-chip.sel { border-color: #0d9488; background: #edf7f3; color: #065f46; font-weight: 700; }
+.nutri-tabs { display: flex; gap: 6px; margin-bottom: 10px; }
+.nutri-tab { flex: 1; min-height: 48px; border-radius: 12px; border: 2px solid #cbd5e1; background: #fff; font-size: 14px; cursor: pointer; }
+.nutri-tab.sel { border-color: #0d9488; background: #edf7f3; font-weight: 700; }
+.nutri-form label { display: block; font-size: 13px; color: #475569; margin: 8px 0 4px; }
+.nutri-form input[type="text"], .nutri-form input[type="url"], .nutri-form input[type="number"], .nutri-form input[type="date"], .nutri-area {
+  width: 100%; box-sizing: border-box; min-height: 48px; border: 2px solid #cbd5e1; border-radius: 12px; padding: 10px 12px; font-size: 16px; background: #fff; }
+.nutri-area { min-height: 64px; resize: vertical; }
+.nutri-check { display: flex !important; align-items: center; gap: 10px; font-size: 15px !important; color: #0f172a !important; }
+.nutri-check input { width: 26px; height: 26px; accent-color: #0d9488; }
+.nutri-numrow { display: flex; flex-wrap: wrap; gap: 8px; }
+.nutri-numrow label { flex: 1 1 60px; }
+.nutri-water-row { display: flex; gap: 8px; align-items: center; margin: 4px 0 8px; }
+.nutri-water-row input { width: 110px; min-height: 48px; border: 2px solid #cbd5e1; border-radius: 12px; padding: 8px 10px; font-size: 16px; }
+.nutri-adh-week { display: flex; flex-wrap: wrap; gap: 6px; margin: 8px 0; }
+.nutri-adh-day { border: 1px solid #e2e8f0; border-radius: 10px; padding: 6px 8px; font-size: 12px; text-align: center; background: #f8fafc; }
+.nutri-recipe-photo { width: 100%; max-height: 180px; object-fit: cover; border-radius: 10px; margin-bottom: 8px; }
+.nutri-recipe-macros { font-size: 14px; margin: 4px 0; }
+.nutri-ings { margin: 6px 0 0 18px; font-size: 14px; }
+.nutri-serv input { width: 80px; min-height: 44px; border: 2px solid #cbd5e1; border-radius: 10px; padding: 6px 8px; font-size: 16px; }
+.nutri-byline { color: #0d9488; font-size: 12px; font-weight: 600; }
+.nutri-h { margin: 6px 0; }
+/* == FIN MÓDULO NUTRICIONISTA == */
