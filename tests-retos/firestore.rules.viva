@@ -1,4 +1,17 @@
 // ============================================================
+// «RETOS» — delta de colecciones NUEVAS challenges +
+// challenge_parts (AUTH-2026-11-04-235). Generada por
+// build-candidata.py desde el texto vivo verificado 84974ca6
+// (relectura por la API oficial el 2026-11-04; SHA-256 del
+// archivo base
+// d35be4040276045982a73aa0d158bcece2ae6b564580772f8c8f8746e4189619).
+// Delta MÍNIMO y cerrado: solo ayudantes nuevos y los dos
+// bloques match de las colecciones nuevas, insertados antes
+// del «Everything else: denied». Ninguna colección existente
+// cambia. Orden de Ronald 2026-11-04: módulo «Retos» con sus
+// tres formas + retos grupales diseñados con recompensa.
+// ============================================================
+// ============================================================
 // «ALERTA DE LA VÍSPERA DE UN DÍA EXIGENTE» — delta eveAlert
 // (AUTH-2026-11-04-227). Generada por build-candidata.py desde
 // el texto vivo verificado 9d70b6c9 (relectura por la API
@@ -321,6 +334,82 @@ service cloud.firestore {
         && exists(/databases/$(database)/documents/users/$(ownerUid))
         && get(/databases/$(database)/documents/users/$(ownerUid)).data.get('trainerUid', '') == request.auth.uid;
     }
+    // ---------- Retos (AUTH-2026-11-04-235) ----------
+    // Módulo «Retos»: dos colecciones NUEVAS (challenges y
+    // challenge_parts). El progreso de cada participante lo
+    // calcula y lo escribe su propio cliente desde sus datos
+    // —el mismo modelo de confianza de comidas, peso y
+    // sesiones, que ya son auto-registrados por su dueño—;
+    // las reglas cierran la forma: lista de claves cerrada,
+    // rangos, y completedAt solo nace una vez.
+    function chalKeysOk() {
+      return request.resource.data.keys().hasOnly(['kind', 'catalogId', 'metric', 'target',
+        'periodDays', 'startDate', 'endDate', 'createdBy', 'ownerUid', 'groupScope',
+        'title', 'rewardText', 'createdAt']);
+    }
+    function chalShapeOk() {
+      let d = request.resource.data;
+      return d.kind in ['individual', 'group', 'assigned']
+        && d.metric in ['train_days', 'meal_days', 'goal_days', 'weight_logs', 'streak_days']
+        && d.target is int && d.target >= 1 && d.target <= 100
+        && d.periodDays is int && d.periodDays >= 1 && d.periodDays <= 90
+        && d.startDate is string && d.startDate.matches('[0-9]{4}-[0-9]{2}-[0-9]{2}')
+        && d.endDate is string && d.endDate.matches('[0-9]{4}-[0-9]{2}-[0-9]{2}')
+        && d.endDate >= d.startDate
+        && d.catalogId is string && d.catalogId.size() <= 40
+        && d.title is string && d.title.size() <= 80
+        && d.rewardText is string && d.rewardText.size() <= 200
+        && d.ownerUid is string && d.ownerUid.size() <= 40
+        && d.groupScope is string && d.groupScope.size() <= 40
+        && d.createdBy == request.auth.uid
+        && d.createdAt == request.time
+        && (
+          (d.kind == 'individual' && d.ownerUid == request.auth.uid && d.groupScope == '')
+          || (d.kind == 'assigned' && d.ownerUid.size() > 0 && d.groupScope == ''
+              && (isAdminUser() || isAssignedTrainerOf(d.ownerUid)))
+          || (d.kind == 'group' && d.ownerUid == ''
+              && ((isTrainerUser() && d.groupScope == request.auth.uid)
+                  || (isAdminUser() && d.groupScope == 'all')))
+        );
+    }
+    // ¿Puede quien pide VER este reto de grupo? Administración
+    // («all») = cualquier usuario aprobado; entrenador = solo
+    // sus alumnos (su trainerUid apunta al dueño del grupo).
+    function chalGroupVisible(d) {
+      return d.kind == 'group'
+        && ((d.groupScope == 'all' && isApprovedUser())
+            || (d.groupScope != 'all' && d.groupScope != '' && myDocExists()
+                && myDoc().get('trainerUid', '') == d.groupScope));
+    }
+    function chalExists(cid) {
+      return exists(/databases/$(database)/documents/challenges/$(cid));
+    }
+    function chalDoc(cid) {
+      return get(/databases/$(database)/documents/challenges/$(cid)).data;
+    }
+    // ¿Puede quien pide PARTICIPAR en este reto? Dueño del
+    // reto (individual/asignado), su creador, o grupo visible.
+    function chalJoinable(cid) {
+      return chalExists(cid)
+        && (chalDoc(cid).createdBy == request.auth.uid
+            || chalDoc(cid).ownerUid == request.auth.uid
+            || chalGroupVisible(chalDoc(cid)));
+    }
+    function chalPartKeysOk() {
+      return request.resource.data.keys().hasOnly(['challengeId', 'uid', 'displayName',
+        'progressCount', 'progressPct', 'completedAt', 'joinedAt']);
+    }
+    function chalPartShapeOk(pid) {
+      let d = request.resource.data;
+      return d.uid is string && d.uid.size() > 0 && d.uid.size() <= 40
+        && d.challengeId is string && d.challengeId.size() > 0 && d.challengeId.size() <= 60
+        && pid == d.challengeId + '_' + d.uid
+        && d.displayName is string && d.displayName.size() <= 60
+        && d.progressCount is int && d.progressCount >= 0 && d.progressCount <= 100
+        && d.progressPct is int && d.progressPct >= 0 && d.progressPct <= 100
+        && d.joinedAt == request.time;
+    }
+
     // Delta candidato Repetir (2026-10-29): alumno SIN entrenador
     // asignado — el campo trainerUid de su propio documento de
     // usuario es la señal viva (vacío = sin entrenador).
@@ -3478,6 +3567,89 @@ service cloud.firestore {
             && request.resource.data.diff(resource.data).affectedKeys()
                  .hasOnly(['doneAt']));
       allow delete: if isOwnerUser();
+    }
+
+    // ---------- Retos: los retos (AUTH-2026-11-04-235) ----------
+    match /challenges/{cid} {
+      allow get: if isOwnerUser()
+        || (signedIn() && resource != null && resource.data.createdBy == request.auth.uid)
+        || (signedIn() && resource != null && resource.data.ownerUid == request.auth.uid)
+        || (signedIn() && resource != null && resource.data.ownerUid is string
+            && resource.data.ownerUid.size() > 0 && isAssignedTrainerOf(resource.data.ownerUid))
+        || (signedIn() && resource != null && chalGroupVisible(resource.data));
+      allow list: if isOwnerUser()
+        || resource.data.createdBy == request.auth.uid
+        || resource.data.ownerUid == request.auth.uid
+        || (resource.data.ownerUid is string && resource.data.ownerUid.size() > 0
+            && isAssignedTrainerOf(resource.data.ownerUid))
+        || chalGroupVisible(resource.data);
+      allow create: if isApprovedUser() && chalKeysOk() && chalShapeOk();
+      // El creador solo retoca nombre y recompensa (retos
+      // diseñados): medición, meta y fechas no se mueven.
+      allow update: if signedIn() && resource.data.createdBy == request.auth.uid
+        && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['title', 'rewardText'])
+        && request.resource.data.title is string && request.resource.data.title.size() <= 80
+        && request.resource.data.rewardText is string && request.resource.data.rewardText.size() <= 200;
+      allow delete: if isOwnerUser()
+        || (signedIn() && resource.data.createdBy == request.auth.uid);
+    }
+
+    // ---------- Retos: participaciones (AUTH-2026-11-04-235) ----------
+    // El documento SOLO lleva el dato del juego (nombre, avance
+    // «X de Y», porcentaje y cumplimiento): ningún dato de
+    // salud de nadie viaja aquí.
+    match /challenge_parts/{pid} {
+      allow get: if isOwnerUser()
+        || (signedIn() && resource != null && resource.data.uid == request.auth.uid)
+        || (signedIn() && resource != null && isAssignedTrainerOf(resource.data.uid))
+        || (signedIn() && resource != null && chalExists(resource.data.challengeId)
+            && chalDoc(resource.data.challengeId).createdBy == request.auth.uid)
+        || (signedIn() && resource != null
+            && exists(/databases/$(database)/documents/challenge_parts/$(resource.data.challengeId + '_' + request.auth.uid)));
+      allow list: if isOwnerUser()
+        || resource.data.uid == request.auth.uid
+        || isAssignedTrainerOf(resource.data.uid)
+        || (chalExists(resource.data.challengeId)
+            && chalDoc(resource.data.challengeId).createdBy == request.auth.uid)
+        || exists(/databases/$(database)/documents/challenge_parts/$(resource.data.challengeId + '_' + request.auth.uid));
+      allow create: if isApprovedUser() && chalPartKeysOk() && chalPartShapeOk(pid)
+        && request.resource.data.progressCount == 0
+        && request.resource.data.progressPct == 0
+        && request.resource.data.completedAt == null
+        && (
+          // Alta propia: me uno a un reto que puedo ver.
+          (request.resource.data.uid == request.auth.uid
+            && chalJoinable(request.resource.data.challengeId))
+          // Alta sembrada por el creador al asignar: el dueño
+          // del reto asignado, con todo a cero.
+          || (chalExists(request.resource.data.challengeId)
+              && chalDoc(request.resource.data.challengeId).createdBy == request.auth.uid
+              && chalDoc(request.resource.data.challengeId).ownerUid == request.resource.data.uid
+              && chalDoc(request.resource.data.challengeId).kind == 'assigned')
+        );
+      // Solo el participante mueve su avance; completedAt
+      // nace una sola vez (de null a la hora del servidor) y
+      // jamás se mueve ni se borra.
+      allow update: if signedIn() && resource.data.uid == request.auth.uid
+        && request.resource.data.diff(resource.data).affectedKeys()
+             .hasOnly(['progressCount', 'progressPct', 'completedAt', 'displayName'])
+        && request.resource.data.challengeId == resource.data.challengeId
+        && request.resource.data.uid == resource.data.uid
+        && request.resource.data.joinedAt == resource.data.joinedAt
+        && request.resource.data.progressCount is int
+        && request.resource.data.progressCount >= 0 && request.resource.data.progressCount <= 100
+        && request.resource.data.progressPct is int
+        && request.resource.data.progressPct >= 0 && request.resource.data.progressPct <= 100
+        && request.resource.data.displayName is string
+        && request.resource.data.displayName.size() <= 60
+        && (resource.data.completedAt == null
+            ? (request.resource.data.completedAt == null
+               || request.resource.data.completedAt == request.time)
+            : request.resource.data.completedAt == resource.data.completedAt);
+      allow delete: if isOwnerUser()
+        || (signedIn() && resource.data.uid == request.auth.uid)
+        || (signedIn() && chalExists(resource.data.challengeId)
+            && chalDoc(resource.data.challengeId).createdBy == request.auth.uid);
     }
 
     // ---------- Everything else: denied ----------

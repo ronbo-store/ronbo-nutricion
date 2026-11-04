@@ -124,6 +124,18 @@ await caso('P14 compañero de grupo lista la tabla (challengeId acotado)', getDo
 await caso('P15 ajeno al grupo lista su tabla', getDocs(query(collection(dbDe(AJENO), 'challenge_parts'), where('challengeId', '==', 'grp-t1'))), false);
 await caso('P16 creador del grupo lista su tabla', getDocs(query(collection(dbDe(ENT), 'challenge_parts'), where('challengeId', '==', 'grp-t1'))), ESPERA_NUEVO);
 await caso('P17 entrenador lee la participación de su alumna (ficha, uid acotado)', getDocs(query(collection(dbDe(ENT), 'challenge_parts'), where('uid', '==', ALU))), ESPERA_NUEVO);
+/* --- Descubrimiento y tabla (AUTH-2026-11-04-236) ---
+   Casos funcionales del descubrimiento de grupos y de la
+   lectura entre compañeros. Se esperan PERMITIDOS en ambas
+   suites del emulador (v1 y v2): el emulador NO reproduce la
+   implicación de consultas de producción — esa diferencia
+   (v1 denegaba la lista por alcance del entrenador en vivo)
+   se prueba con la sonda contra producción, no aquí. */
+await caso('D1 alumna DESCUBRE el grupo de su entrenador (lista kind+groupScope)', getDocs(query(collection(dbDe(ALU), 'challenges'), where('kind', '==', 'group'), where('groupScope', '==', ENT))), true);
+await caso('D2 alumna descubre los grupos «all» (lista kind+groupScope)', getDocs(query(collection(dbDe(ALU), 'challenges'), where('kind', '==', 'group'), where('groupScope', '==', 'all'))), true);
+await caso('D3 compañero ya unido lee la participación de otra (get, co-participación)', getDoc(doc(dbDe(ALU2), 'challenge_parts', 'grp-t1_' + ALU)), true);
+await caso('D4 ajeno NO descubre partes: get de participación sin ser del reto', getDoc(doc(dbDe(AJENO), 'challenge_parts', 'grp-t1_' + ALU)), false);
+
 await caso('P18 sin autenticar lee una participación', getDoc(doc(dbAnon(), 'challenge_parts', 'grp-t1_' + ALU)), false);
 await caso('P19 participante se retira (borra SU participación)', deleteDoc(doc(dbDe(ALU2), 'challenge_parts', 'grp-t1_' + ALU2)), ESPERA_NUEVO);
 

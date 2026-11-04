@@ -55,10 +55,10 @@ jobs:
           else
             echo "::notice title=CAND::sin archivo de fallos"
           fi
-      - name: Suite VIVO (Retos no existe; vecinos idénticos)
+      - name: Suite CONTROL v1 (AUTH-235: sin regresión; el emulador no distingue la implicación de producción)
         run: |
           cp firestore.rules.viva firestore.rules
-          firebase emulators:exec --only firestore --project ronbo-nutri-test "ESPERA_NUEVO=false node test-retos.mjs"
+          firebase emulators:exec --only firestore --project ronbo-nutri-test "ESPERA_NUEVO=true node test-retos.mjs"
       - name: Fallos del VIVO (anotaciones)
         if: always()
         run: |

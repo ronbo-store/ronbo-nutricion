@@ -3582,7 +3582,15 @@ service cloud.firestore {
         || resource.data.ownerUid == request.auth.uid
         || (resource.data.ownerUid is string && resource.data.ownerUid.size() > 0
             && isAssignedTrainerOf(resource.data.ownerUid))
-        || chalGroupVisible(resource.data);
+        || chalGroupVisible(resource.data)
+        // AUTH-2026-11-04-236: rama demostrable para DESCUBRIR
+        // los retos de grupo — la consulta de la app constriñe
+        // kind y groupScope; comparar groupScope con el
+        // trainerUid leído por get() no es demostrable en
+        // producción y la lista moría en silencio. La ficha de
+        // un reto de grupo no lleva datos personales ni de
+        // salud; las participaciones siguen cerradas.
+        || (isApprovedUser() && resource.data.kind == 'group');
       allow create: if isApprovedUser() && chalKeysOk() && chalShapeOk();
       // El creador solo retoca nombre y recompensa (retos
       // diseñados): medición, meta y fechas no se mueven.
