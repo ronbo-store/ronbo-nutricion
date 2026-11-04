@@ -4690,6 +4690,14 @@ en: {
   'train.swap.resultsTitle': 'Results', 'train.swap.noResults': 'No exercises match that search.',
   'train.swap.presetEmpty': 'There are no exercises of this type in the library yet.',
   'train.swap.addBtn': 'Add',
+  'train.variant.changeBtn': 'Switch to a variant',
+  'train.variant.title': 'Variants of {name}',
+  'train.variant.none': 'This exercise has no variants in the library.',
+  'train.variant.backToPlan': 'Back to the planned exercise',
+  'train.variant.current': 'Current',
+  'train.variant.workedNote': 'You already have sets logged today on this exercise: they stay recorded under it. Switching to a variant is for before you log the first set.',
+  'train.variant.applied': "Done: today's session uses the variant",
+  'train.variant.reverted': "Back to the planned exercise for today",
   'train.custom.restNote': 'Today is your rest day — there is no session to customize.',
   'train.custom.closedNote': 'Today\'s session is already logged. Undo it from the day card if you want to change it first.',
   'train.custom.noSessionDate': 'There is no session to customize for that day.',
@@ -7945,6 +7953,14 @@ es: {
   'train.swap.resultsTitle': 'Resultados', 'train.swap.noResults': 'Ningún ejercicio coincide con esa búsqueda.',
   'train.swap.presetEmpty': 'Todavía no hay ejercicios de este tipo en la biblioteca.',
   'train.swap.addBtn': 'Agregar',
+  'train.variant.changeBtn': 'Cambiar a variante',
+  'train.variant.title': 'Variantes de {name}',
+  'train.variant.none': 'Este ejercicio no tiene variantes en la biblioteca',
+  'train.variant.backToPlan': 'Volver al ejercicio del plan',
+  'train.variant.current': 'Actual',
+  'train.variant.workedNote': 'Ya tienes series registradas hoy en este ejercicio: quedan registradas como hechas en él. El cambio a variante es para antes de registrar la primera serie.',
+  'train.variant.applied': 'Listo: hoy haces la variante',
+  'train.variant.reverted': 'De vuelta al ejercicio del plan por hoy',
   'train.custom.restNote': 'Hoy es tu día de descanso: no hay sesión que personalizar.',
   'train.custom.closedNote': 'La sesión de hoy ya está registrada. Deshazla desde la tarjeta del día si quieres cambiarla antes.',
   'train.custom.noSessionDate': 'Ese día no hay sesión que personalizar.',
@@ -27056,7 +27072,22 @@ function trainFloatSetsHTML(draft) {
      hasta que él la trabaja; la aproximación no cambia. */
   return `<div class="train-sets-unit"><span class="train-sets-unit-lab">${esc(t('units.mass'))}</span>${trainUnitSelHTML()}</div><div class="train-sets">${sets.map((s, si) => `
     <div class="train-set-row${s.pend === true ? ' is-sug' : ''}"><span class="train-set-n">${t('train.d.set')} ${si + 1}${s.repsPlanned ? ` · ${esc(s.repsPlanned)}` : ''}${s.pend === true ? ` <span class="tf-sug-tag">${esc(t('train.sets.suggested'))}</span>` : ''}</span>
-      <span class="tf-chips" data-tf-chips="set:${si}">${tfChipsHTML('set', si, s)}</span>${sets.length > 1 ? `<button type="button" class="tf-set-del" data-tf-set-del="${si}" aria-label="${t('train.sets.remove')}">✕</button>` : ''}</div>`).join('')}</div>${sets.length < 12 ? `<button type="button" class="btn-ghost btn-sm" id="tf-sets-add">${t('train.sets.add')}</button>` : ''}`;
+      <span class="tf-chips" data-tf-chips="set:${si}">${tfChipsHTML('set', si, s)}</span>${sets.length > 1 ? `<button type="button" class="tf-set-del" data-tf-set-del="${si}" aria-label="${t('train.sets.remove')}">✕</button>` : ''}</div>`).join('')}</div><div class="tf-sets-actions">${sets.length < 12 ? `<button type="button" class="btn-ghost btn-sm" id="tf-sets-add">${t('train.sets.add')}</button>` : ''}${tfVarBtnHTML()}</div>`;
+}
+/* CAMBIAR A VARIANTE (pedido de Ronald, chat RONBO.NUTRI
+   2026-11-04 12:37 CST; alcance decidido por él a las 12:38: el
+   cambio vale SOLO POR HOY): el botón hermano de «+ Añadir serie»,
+   en su misma fila y con su mismo estilo. Sale solo si el ejercicio
+   abierto tiene ficha en la biblioteca (su exerciseId resuelve en
+   LIB_BY_ID): sin ficha no hay variantes que ofrecer, y con ficha
+   sin variantes la hoja lo dice en llano — el botón no promete lo
+   que la biblioteca no tiene. La hoja y la escritura viven en la
+   familia tfVar* junto a trainFloatClose. */
+function tfVarBtnHTML() {
+  const F = TRAIN_FLOAT;
+  if (!F || F.mode !== 'edit' || !F.ex || !F.ex.exerciseId) return '';
+  if (!LIB_BY_ID[F.ex.exerciseId]) return '';
+  return `<button type="button" class="btn-ghost btn-sm" id="tf-var-open">${t('train.variant.changeBtn')}</button>`;
 }
 function trainFloatWarmHTML(draft) {
   const w = (draft && draft.warmup && typeof draft.warmup === 'object') ? draft.warmup : { on: false, sets: [] };
@@ -27328,6 +27359,13 @@ function trainFloatWireSession(body) {
     trainFloatMirror(false);
     tfSetsRefresh(body);
   };
+  /* CAMBIAR A VARIANTE (2026-11-04): hermano de «+ Añadir serie»;
+     abre la hoja filtrada a las variantes del ejercicio abierto.
+     Sin espejo previo: la hoja no aplica nada hasta elegir, y la
+     guardia de series trabajadas lee el borrador vivo (d), que es
+     el mismo objeto que TRAIN_FLOAT.draft. */
+  const varOpen = body.querySelector('#tf-var-open');
+  if (varOpen) varOpen.onclick = () => tfVarSheetOpen();
   body.querySelectorAll('[data-tf-set-del]').forEach(btn => { btn.onclick = () => {
     if (!Array.isArray(d.sets) || d.sets.length <= 1) return;
     d.sets.splice(Number(btn.dataset.tfSetDel), 1);
@@ -27768,6 +27806,208 @@ function trainFloatClose() {
   TRAIN_FLOAT = null;
   fl.classList.add('is-closing');
   setTimeout(() => { fl.style.display = 'none'; fl.classList.remove('is-closing'); fl.classList.remove('is-open'); }, 170);
+}
+
+/* ─── CAMBIAR A VARIANTE DESDE LA VENTANA DEL EJERCICIO ───────
+   Pedido de Ronald (chat RONBO.NUTRI, 2026-11-04 12:37 CST, con
+   captura de su ventana en «Curl en polea baja»): junto a
+   «+ Añadir serie», un botón «Cambiar a variante» que abre la
+   biblioteca FILTRADA a solo las variantes del ejercicio abierto.
+   Alcance decidido por él (12:38): el cambio vale SOLO POR HOY —
+   es una edición de sesión del día (la maquinaria de AUTH-160,
+   localStorage por uid/plan/fecha); el plan NO se escribe, ni
+   ningún documento suyo. La variante hereda el esquema del día
+   (las series × repeticiones del ejercicio original), porque
+   trainEffectiveList aplica el swap conservando sets/reps de la
+   prescripción, exactamente como el cambio de ejercicio de
+   «Personaliza», cuya semántica de escritura se refleja aquí:
+   swaps[slot] = { exerciseId, name } + variantIndex SOLO si la
+   variante elegida no es la estándar (la forma estándar ES el
+   ejercicio base); elegir la prescripción misma del plan BORRA el
+   swap en vez de escribirlo; y una variante es una entrada de la
+   lista «variantes» de la MISMA ficha (AUTH-106), nunca otra
+   ficha: aquí exerciseId no cambia nunca.
+   VERDAD HISTÓRICA: lo ya registrado hoy del original queda bajo
+   el original. Para que eso valga sin condiciones, si el borrador
+   de hoy ya tiene alguna serie con datos (de trabajo o de
+   aproximación, el criterio de tfSetHasData), la hoja lo avisa
+   arriba en llano y las tarjetas no aplican: el cierre empareja
+   las marcas con la lista efectiva POR ÍNDICE, y cambiar el
+   ejercicio con series ya escritas re-atribuiría lo hecho. Sin
+   series trabajadas, la marca vacía de la fila se descarta y la
+   variante nace con el borrador limpio del esquema heredado.
+   REVERSIÓN: la hoja ofrece «Volver al ejercicio del plan» cuando
+   lo efectivo de hoy difiere de lo prescrito (borra el swap), y
+   la tarjeta de la forma base cuando hay una variante elegida.
+   Los ejercicios AÑADIDOS hoy (kind 'add') también pueden cambiar
+   de variante: su posición en ed.added se resuelve reconstruyendo
+   las claves de orden de trainEffectiveList (s<slot>/a<pos>), no
+   contando filas — con un orden personalizado, contar filas
+   escribiría sobre el agregado equivocado. Un agregado no tiene
+   «ejercicio del plan»: su reversión es la forma base. */
+let TFVAR_CTX = null;   // { plan, di, ei, iso } con la hoja abierta
+
+function tfVarWorkedSets(draft) {
+  if (!draft) return false;
+  const w = (draft.warmup && Array.isArray(draft.warmup.sets)) ? draft.warmup.sets : [];
+  const s = Array.isArray(draft.sets) ? draft.sets : [];
+  return w.concat(s).some(x => tfSetHasData(x));
+}
+function tfVarAddIndex(plan, di, iso, ei) {
+  const ed = trainEditsRead(plan.id, iso);
+  if (!ed) return -1;
+  const day = (plan.days || [])[di] || {};
+  const remSet = new Set(Array.isArray(ed.removed) ? ed.removed : []);
+  const keys = [];
+  (Array.isArray(day.exercises) ? day.exercises : []).forEach((_, si) => { if (!remSet.has(si)) keys.push('s' + si); });
+  (Array.isArray(ed.added) ? ed.added : []).forEach((_, ai) => keys.push('a' + ai));
+  let seq = keys;
+  if (Array.isArray(ed.order) && ed.order.length) {
+    const s2 = ed.order.filter(k => keys.includes(k));
+    keys.forEach(k => { if (!s2.includes(k)) s2.push(k); });
+    if (s2.length === keys.length && s2.some((k, i) => k !== keys[i])) seq = s2;
+  }
+  const key = seq[ei];
+  return (key && key.charAt(0) === 'a') ? Number(key.slice(1)) : -1;
+}
+function tfVarCardHTML(pick, name, sub, photo, state) {
+  /* state: 'pick' (botón que aplica) · 'current' (la forma de hoy,
+     con su pastilla «Actual») · 'locked' (hay series trabajadas:
+     se muestra pero no aplica — la nota de arriba lo explica). */
+  const pill = state === 'current' ? `<span class="swap-card-btn tfvar-current">${t('train.variant.current')}</span>`
+    : state === 'pick' ? `<span class="swap-card-btn">${t('train.custom.swap')}</span>` : '';
+  const inner = `${photo ? `<img src="${esc(photo)}" alt="" loading="lazy" onerror="this.remove()">` : '<span class="swap-card-ph"></span>'}<span class="swap-card-main"><span class="swap-card-name">${esc(name)}</span>${sub ? `<span class="swap-card-sub">${esc(sub)}</span>` : ''}</span>${pill}`;
+  return state === 'pick'
+    ? `<button type="button" class="swap-card tfvar-card" data-tfvar-pick="${esc(pick)}">${inner}</button>`
+    : `<div class="swap-card tfvar-card is-${state}">${inner}</div>`;
+}
+function tfVarSheetHTML(plan, entry) {
+  const F = TRAIN_FLOAT;
+  const eff = trainEffectiveList(plan, F.di, F.iso);
+  const it = eff[F.ei] || null;
+  const worked = tfVarWorkedSets(F.draft);
+  const curVi = Number.isInteger(F.ex.variantIndex) ? F.ex.variantIndex : null;
+  const basePhoto = entry.foto_url || ytThumbOf(entry.video_youtube_url);
+  const baseSub = [libField(entry, 'equipo'), libField(entry, 'nivel')].filter(Boolean).join(' · ');
+  let backRow = '';
+  if (it && it.kind !== 'add' && !worked) {
+    const planEx = ((plan.days || [])[F.di] || {}).exercises[it.slot] || {};
+    const planVi = Number.isInteger(planEx.variantIndex) ? planEx.variantIndex : null;
+    if (F.ex.exerciseId !== (planEx.exerciseId || null) || curVi !== planVi) {
+      const planName = trainExName(planEx) || planEx.name || '';
+      backRow = `<button type="button" class="tfvar-back" data-tfvar-pick="plan">↩ ${esc(t('train.variant.backToPlan'))}${planName ? `: ${esc(planName)}` : ''}</button>`;
+    }
+  }
+  const vars = (Array.isArray(entry.variantes) ? entry.variantes : [])
+    .map((v, vi) => ({ v, vi }))
+    .filter(x => libField(x.v, 'nombre') && !x.v.es_estandar);
+  let cards;
+  if (!vars.length) {
+    cards = `<p class="progress-hint">${t('train.variant.none')}</p>`;
+  } else {
+    const all = [{ pick: 'base', name: libNameOf(entry), sub: baseSub, photo: basePhoto, isCur: curVi === null }]
+      .concat(vars.map(x => ({
+        pick: String(x.vi), name: libField(x.v, 'nombre'),
+        sub: [libField(x.v, 'cambio'), libField(x.v, 'enfasis')].filter(Boolean).join(' · '),
+        photo: x.v.foto_url || basePhoto, isCur: curVi === x.vi
+      })));
+    cards = all.map(c => tfVarCardHTML(c.pick, c.name, c.sub, c.photo,
+      c.isCur ? 'current' : (worked ? 'locked' : 'pick'))).join('');
+  }
+  return `<div class="swap-sheet-head"><span class="swap-sheet-title">${esc(t('train.variant.title', { name: libNameOf(entry) }))}</span><button type="button" class="swap-sheet-x" data-tfvar-close aria-label="✕">✕</button></div>
+    ${backRow}
+    ${worked ? `<div class="tfvar-note">${esc(t('train.variant.workedNote'))}</div>` : ''}
+    ${cards}`;
+}
+function tfVarSheetOpen() {
+  const F = TRAIN_FLOAT;
+  if (!F || F.mode !== 'edit' || !F.ex || !F.ex.exerciseId) return;
+  const plan = (typeof MY_PLAN !== 'undefined') ? MY_PLAN : null;
+  if (!plan || plan.id !== F.planId) return;
+  const entry = LIB_BY_ID[F.ex.exerciseId];
+  if (!entry) return;
+  TFVAR_CTX = { plan, di: F.di, ei: F.ei, iso: F.iso };
+  let sheet = document.getElementById('tfvar-sheet');
+  if (!sheet) {
+    sheet = document.createElement('div');
+    sheet.id = 'tfvar-sheet';
+    sheet.className = 'swap-sheet tfvar-sheet';
+    document.body.appendChild(sheet);
+  }
+  sheet.innerHTML = tfVarSheetHTML(plan, entry);
+  document.body.classList.add('swap-sheet-open');
+  sheet.querySelectorAll('[data-tfvar-close]').forEach(b => { b.onclick = tfVarSheetClose; });
+  sheet.querySelectorAll('[data-tfvar-pick]').forEach(b => {
+    b.onclick = () => {
+      const p = b.dataset.tfvarPick;
+      if (p === 'plan') tfVarApply({ kind: 'plan' });
+      else if (p === 'base') tfVarApply({ kind: 'base' });
+      else tfVarApply({ kind: 'variant', vi: Number(p) });
+    };
+  });
+}
+function tfVarSheetClose() {
+  const sheet = document.getElementById('tfvar-sheet');
+  if (sheet) sheet.remove();
+  document.body.classList.remove('swap-sheet-open');
+  TFVAR_CTX = null;
+}
+function tfVarApply(pick) {
+  const F = TRAIN_FLOAT, ctx = TFVAR_CTX;
+  if (!F || !ctx) return;
+  const plan = ctx.plan;
+  if (!plan || plan.id !== F.planId) return;
+  const entry = LIB_BY_ID[F.ex.exerciseId];
+  if (!entry) return;
+  if (tfVarWorkedSets(F.draft)) return;   // la hoja ya lo avisa; cinturón y tirantes
+  const eff = trainEffectiveList(plan, F.di, F.iso);
+  const it = eff[F.ei];
+  if (!it) return;
+  const ed = trainEditsRead(plan.id, F.iso) || { swaps: {}, added: [] };
+  if (!ed.swaps || typeof ed.swaps !== 'object') ed.swaps = {};
+  if (!Array.isArray(ed.added)) ed.added = [];
+  const variantes = Array.isArray(entry.variantes) ? entry.variantes : [];
+  const vChosen = pick.kind === 'variant' ? variantes[pick.vi] : null;
+  const targetVi = (vChosen && !vChosen.es_estandar) ? pick.vi : null;
+  if (it.kind === 'add') {
+    if (pick.kind === 'plan') return;
+    const ai = tfVarAddIndex(plan, F.di, F.iso, F.ei);
+    const a = ai >= 0 ? ed.added[ai] : null;
+    if (!a) return;
+    a.exerciseId = entry.id;
+    a.name = libNameOf(entry);
+    if (targetVi != null) a.variantIndex = targetVi; else delete a.variantIndex;
+  } else {
+    const slot = String(it.slot);
+    if (pick.kind === 'plan') {
+      delete ed.swaps[slot];
+    } else {
+      const planEx = ((plan.days || [])[F.di] || {}).exercises[it.slot] || {};
+      const planVi = Number.isInteger(planEx.variantIndex) ? planEx.variantIndex : null;
+      if (entry.id === (planEx.exerciseId || null) && targetVi === planVi) {
+        delete ed.swaps[slot];
+      } else {
+        const rec = { exerciseId: entry.id, name: libNameOf(entry) };
+        if (targetVi != null) rec.variantIndex = targetVi;
+        ed.swaps[slot] = rec;
+      }
+    }
+  }
+  trainEditsWrite(plan.id, ed, F.iso);
+  /* Sin series trabajadas (garantizado arriba): la marca vacía de
+     la fila se descarta para que la variante nazca con el borrador
+     limpio del esquema heredado, como al quitar un ejercicio. */
+  delete TRAIN_CHECKS[F.di + ':' + F.ei];
+  trainChecksPersist(plan.id);
+  const di = F.di, ei = F.ei, iso = F.iso;
+  tfVarSheetClose();
+  loadMyTraining();
+  /* La ventana NO se cierra: se reabre en sitio sobre la variante
+     (trainFloatOpen repinta título, foto y esquema heredado);
+     cerrarla y reabrirla chocaría con su propio fundido de
+     salida de 170 ms. */
+  trainFloatOpen(plan, (typeof MY_LOGS_ALL !== 'undefined' && MY_LOGS_ALL) || [], di, ei, 'edit', iso);
+  toast(t(pick.kind === 'plan' ? 'train.variant.reverted' : 'train.variant.applied'));
 }
 /* ================================================================
  * PUERTA FALSA «Camera Coach» (AUTH-2026-10-28-071) — diseño
@@ -40096,7 +40336,7 @@ document.addEventListener('keydown', e => { if (e.key === 'Escape') shareClose()
  *  - El SW (sw.js) solo cachea la cáscara del mismo origen en modo
  *    RED PRIMERO: Auth/Firestore/Worker jamás pasan por la caché.
  * ================================================================ */
-const PWA_SW_VERSION = '20261104-adherencia-plegable';
+const PWA_SW_VERSION = '20261104-cambiar-variante';
 /* Sello de versión VISIBLE (2026-11-03): el pie de la tarjeta de
    acceso enseña qué copia corre este teléfono ('v ' + el sello),
    para comprobar de un vistazo si la versión nueva ya llegó.

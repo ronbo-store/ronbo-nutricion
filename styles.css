@@ -3862,3 +3862,20 @@ button.wkex-row:active { background: #eef7f5; }
 .chal-chip { min-height: 44px; padding: 8px 14px; border-radius: 999px; border: 1px solid #bbb; background: #fff; font-size: .95rem; cursor: pointer; }
 .chal-chip-on { background: #0d9488; color: #fff; border-color: #0d9488; font-weight: 700; }
 .chal-flabel { margin: 8px 0 0; }
+
+/* CAMBIAR A VARIANTE (2026-11-04, pedido de Ronald con captura;
+   alcance decidido por él: SOLO POR HOY): la fila de acciones de
+   las series — «+ Añadir serie» y «Cambiar a variante» en la misma
+   fila, mismo botón fantasma pequeño de la casa, con aire entre
+   ellos y salto de línea si el ancho no alcanza — y las piezas
+   propias de la hoja de variantes, que reutiliza .swap-sheet y
+   .swap-card enteras: la fila de vuelta al ejercicio del plan, el
+   aviso llano cuando ya hay series registradas hoy y la pastilla
+   atenuada de la forma actual. */
+.tf-sets-actions { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 6px; }
+.tf-sets-actions #tf-sets-add { margin-top: 0; }
+.tfvar-back { display: block; width: 100%; box-sizing: border-box; margin: 0 0 10px; padding: 11px 14px; background: #f0fdfa; color: #0f766e; border: 1px solid #99f6e4; border-radius: 10px; font-size: 14px; font-weight: 700; text-align: left; cursor: pointer; }
+.tfvar-note { background: #fffbeb; border: 1px solid #fde68a; color: #92400e; border-radius: 10px; padding: 10px 12px; font-size: 13.5px; line-height: 1.45; margin: 0 0 10px; }
+.tfvar-card.is-current { border-color: #5eead4; background: #f0fdfa; cursor: default; }
+.tfvar-card.is-locked { opacity: .75; cursor: default; }
+.tfvar-current { background: #ccfbf1; color: #0f766e; }
