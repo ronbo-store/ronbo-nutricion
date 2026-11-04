@@ -3659,3 +3659,18 @@ body.sess-on #pend-back-chip { bottom: calc(env(safe-area-inset-bottom, 0px) + 1
 .assign-opt:disabled { opacity: .55; cursor: default; }
 .assign-remove { color: #b91c1c; border-color: #fecaca; }
 .assign-note { margin: 8px 0; padding: 10px 12px; border: 1px solid #fde68a; border-radius: 12px; background: #fffbeb; color: #92400e; font-size: 13.5px; line-height: 1.45; }
+/* Integración de actividad P1 (2026-11-03): panel «Datos que
+   comparto» del alumno (interruptores grandes de la casa: la app
+   se usa entrenando y la motricidad fina es complicada) y
+   tarjeta «Adherencia» de la ficha del entrenador. */
+.acts-type { border: 1px solid #e5e7eb; border-radius: 12px; padding: 12px; margin: 10px 0; }
+.acts-head { display: flex; align-items: center; justify-content: space-between; gap: 10px; flex-wrap: wrap; }
+.acts-name { font-size: 16px; font-weight: 700; }
+.acts-state { font-size: 12.5px; font-weight: 700; padding: 4px 10px; border-radius: 999px; background: #eef2f2; color: #5b6b68; }
+.acts-state.on { background: #0d9488; color: #fff; }
+.acts-btn { width: 100%; min-height: 48px; margin-top: 10px; font-size: 16px; }
+.adh-week { border-top: 1px solid #e5e7eb; padding: 8px 0 4px; }
+.adh-week-head { font-weight: 700; font-size: 14px; margin-bottom: 4px; }
+.adh-row { display: flex; justify-content: space-between; gap: 10px; padding: 3px 0; }
+.adh-type { color: #374151; }
+.adh-val { font-weight: 600; text-align: right; }

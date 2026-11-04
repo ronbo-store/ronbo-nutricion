@@ -5158,6 +5158,56 @@ en: {
   'bt.consentSummary': 'Summary: a separate consent for analyzing your body photos and measurements to estimate your body type. The full text, which is the one shown for acceptance, appears next to the checkbox below.',
   'bt.fullTextTitle': 'Full consent text',
   'bt.versionMismatch': 'The recorded consent uses a different version, so it is treated as inactive.',
+  'actshare.title': 'Activity data I share',
+  'actshare.intro': 'Choose, type by type, what your assigned trainer can see in a weekly summary of your current week and the previous four weeks. Sharing never changes your own app: you always record your data yourself, whether you share it or not.',
+  'actshare.consentText': 'Version v1-2026-11-03. I authorize RONBO FIT to let my assigned trainer see the activity data I choose to share, type by type: my daily steps, my training sessions, my weight log and my sleep log. I give this consent separately for each type, and only the types I switch on are visible to my trainer, in a weekly summary of my current week and the previous four weeks, so they can follow my activity and my adherence to my plan. My steps, sessions and weight are read from the logs where I already keep them — nothing is copied. My sleep is the only new record: the hours I enter myself for each night. Sharing never changes my own use of the app: I can always record my steps, sessions, weight and sleep whether I share them or not, and only I can record them. I can withdraw any type at any time from this same screen. If I withdraw sleep, my stored sleep records are deleted and only the record of my withdrawal is kept. If I withdraw steps, sessions or weight, my trainer stops seeing them in the summary and only the record of my withdrawal is kept; my own logs are not deleted, because they are my own record and other parts of my app use them. This data is not a medical measurement and my trainer is not a medical professional.',
+  'actshare.consentCheck': 'I have read this text and I give my consent for this type.',
+  'actshare.fullTextTitle': 'Full consent text',
+  'actshare.type.steps': 'Steps',
+  'actshare.type.exercise': 'Training sessions',
+  'actshare.type.weight': 'Weight',
+  'actshare.type.sleep': 'Sleep',
+  'actshare.src.steps': 'Read from your daily activity log — nothing is copied.',
+  'actshare.src.exercise': 'Read from your training sessions — nothing is copied.',
+  'actshare.src.weight': 'Read from your weight log — nothing is copied.',
+  'actshare.src.sleep': 'The hours you log for each night — the only new record.',
+  'actshare.statusOn': 'Shared since {date}',
+  'actshare.statusOff': 'Not shared',
+  'actshare.statusWithdrawn': 'Withdrawn on {date}',
+  'actshare.share': 'Share',
+  'actshare.renew': 'Share again',
+  'actshare.stop': 'Stop sharing',
+  'actshare.needConsent': 'Open the full text, read it and tick the box first.',
+  'actshare.granted': 'Shared. Your trainer can now see it in your summary.',
+  'actshare.renewed': 'Shared again. Your trainer can see it in your summary.',
+  'actshare.withdrawnToast': 'You no longer share this type.',
+  'actshare.withdrawConfirmSleep': 'Stop sharing your sleep? Your saved sleep records will be DELETED and only the record of this withdrawal will be kept. You can keep logging your sleep for yourself.',
+  'actshare.withdrawConfirmOther': 'Stop sharing this type? Your trainer will stop seeing it in your summary. Your own records are NOT deleted — they are yours and other parts of your app use them. Only the record of this withdrawal is kept.',
+  'actshare.versionMismatch': 'The recorded consent uses a different version, so it is treated as not shared.',
+  'actsleep.title': 'Sleep',
+  'actsleep.hint': 'The night that ended this morning.',
+  'actsleep.hours': 'Hours',
+  'actsleep.min': 'Min',
+  'actsleep.save': 'Save',
+  'actsleep.del': 'Delete',
+  'actsleep.current': 'You logged {h} h {m} min.',
+  'actsleep.none': 'No sleep logged for this night yet.',
+  'actsleep.saved': 'Sleep saved.',
+  'actsleep.deleted': 'Sleep deleted.',
+  'actsleep.err': 'Enter a total between 1 minute and 24 hours.',
+  'adh.title': 'Adherence · activity',
+  'adh.intro': 'Week by week, only what this student shares. A type the student has not switched on is never queried.',
+  'adh.weekCurrent': 'This week',
+  'adh.notShared': 'Not shared',
+  'adh.empty': 'No records',
+  'adh.stepsVal': '{avg} steps/day · {days} days',
+  'adh.exerciseVal': '{done} of {planned} sessions',
+  'adh.exerciseNoPlan': '{done} sessions done',
+  'adh.rotationNote': 'Rotation plan: it has no fixed days, so only done sessions are counted.',
+  'adh.weightVal': '{n} weigh-ins · last {w}',
+  'adh.sleepVal': '{avg} avg · {nights} nights',
+  'adh.note': 'Weeks run Monday to Sunday. Done sessions are the closed sessions in the student’s log — the same count as the weekly attention report.',
+  'adh.loadError': 'Could not load this summary.',
   'fb2.title': '📚 Educational references (B)',
   'fb2.helpBtn': 'About these references',
   'fb2.help': '<b>What this card is</b><br>Educational reference ranges for the trainer, computed live from the assessment’s estimated expenditure (TDEE). They are references to plan with — never a prescription and never written anywhere.<br><b>Sources and nature</b><br>• Macronutrient bands: IOM AMDR (protein 10–35%, carbohydrates 45–65%, fat 20–35% of energy), shown as information only (decision N-02).<br>• Fat-loss band: the absolute educational framework decided in N-03 (ACSM/NIH: TDEE − 500…1000 kcal/day) with its limits, always visible below.<br>• Maintenance ±5% and surplus +5…15% are the working conventions of the P4-3 plan, labeled educational.<br>• The protein reference in g/kg lives in its own card (B-1) and is not duplicated here.<br><b>What it never does</b><br>It never assigns a deficit, a surplus or goals: the client’s goals are set manually by the trainer, as always.',
@@ -8143,6 +8193,56 @@ es: {
   'bt.consentSummary': 'Resumen: un consentimiento independiente para analizar tus fotos corporales y tus medidas para estimar tu tipo de cuerpo. El texto completo, que es el que se muestra para aceptarlo, aparece junto a la casilla, abajo.',
   'bt.fullTextTitle': 'Texto completo del consentimiento',
   'bt.versionMismatch': 'El consentimiento registrado usa otra versión, así que se trata como no activo.',
+  'actshare.title': 'Datos de actividad que comparto',
+  'actshare.intro': 'Elige, tipo por tipo, qué puede ver tu entrenador asignado en un resumen semanal de tu semana actual y las cuatro semanas anteriores. Compartir nunca cambia tu app: tú siempre registras tus datos, los compartas o no.',
+  'actshare.consentText': 'Versión v1-2026-11-03. Autorizo a RONBO FIT a permitir que mi entrenador asignado vea los datos de actividad que yo elija compartir, tipo por tipo: mis pasos diarios, mis sesiones de entrenamiento, mi registro de peso y mi registro de sueño. Doy este consentimiento por separado para cada tipo, y solo los tipos que yo active son visibles para mi entrenador, en un resumen semanal de mi semana actual y las cuatro semanas anteriores, para que pueda dar seguimiento a mi actividad y a mi cumplimiento del plan. Mis pasos, mis sesiones y mi peso se leen de los registros donde ya los guardo: no se copia nada. Mi sueño es el único registro nuevo: las horas que yo mismo anoto de cada noche. Compartir nunca cambia mi uso de la app: siempre puedo registrar mis pasos, mis sesiones, mi peso y mi sueño los comparta o no, y solo yo puedo registrarlos. Puedo retirar cualquier tipo en cualquier momento desde esta misma pantalla. Si retiro el sueño, mis registros de sueño guardados se borran y solo se conserva el registro de mi retirada. Si retiro los pasos, las sesiones o el peso, mi entrenador deja de verlos en el resumen y solo se conserva el registro de mi retirada; mis propios registros no se borran, porque son mi registro personal y otras partes de mi app los utilizan. Estos datos no son una medición médica y mi entrenador no es un profesional médico.',
+  'actshare.consentCheck': 'He leído este texto y doy mi consentimiento para este tipo.',
+  'actshare.fullTextTitle': 'Texto completo del consentimiento',
+  'actshare.type.steps': 'Pasos',
+  'actshare.type.exercise': 'Sesiones de entrenamiento',
+  'actshare.type.weight': 'Peso',
+  'actshare.type.sleep': 'Sueño',
+  'actshare.src.steps': 'Se lee de tu registro diario de actividad: no se copia nada.',
+  'actshare.src.exercise': 'Se lee de tus sesiones de entrenamiento: no se copia nada.',
+  'actshare.src.weight': 'Se lee de tu registro de peso: no se copia nada.',
+  'actshare.src.sleep': 'Las horas que anotas de cada noche: el único registro nuevo.',
+  'actshare.statusOn': 'Compartido desde el {date}',
+  'actshare.statusOff': 'No compartido',
+  'actshare.statusWithdrawn': 'Retirado el {date}',
+  'actshare.share': 'Compartir',
+  'actshare.renew': 'Volver a compartir',
+  'actshare.stop': 'Dejar de compartir',
+  'actshare.needConsent': 'Abre el texto completo, léelo y marca la casilla primero.',
+  'actshare.granted': 'Compartido. Tu entrenador ya puede verlo en tu resumen.',
+  'actshare.renewed': 'Compartido de nuevo. Tu entrenador puede verlo en tu resumen.',
+  'actshare.withdrawnToast': 'Ya no compartes este tipo.',
+  'actshare.withdrawConfirmSleep': '¿Dejar de compartir tu sueño? Tus registros de sueño guardados se BORRARÁN y solo se conservará el registro de esta retirada. Podrás seguir registrando tu sueño para ti.',
+  'actshare.withdrawConfirmOther': '¿Dejar de compartir este tipo? Tu entrenador dejará de verlo en tu resumen. Tus propios registros NO se borran: son tuyos y otras partes de tu app los utilizan. Solo se conserva el registro de esta retirada.',
+  'actshare.versionMismatch': 'El consentimiento registrado usa otra versión, así que se trata como no compartido.',
+  'actsleep.title': 'Sueño',
+  'actsleep.hint': 'La noche que terminó esta mañana.',
+  'actsleep.hours': 'Horas',
+  'actsleep.min': 'Min',
+  'actsleep.save': 'Guardar',
+  'actsleep.del': 'Borrar',
+  'actsleep.current': 'Registraste {h} h {m} min.',
+  'actsleep.none': 'Aún no registras el sueño de esta noche.',
+  'actsleep.saved': 'Sueño guardado.',
+  'actsleep.deleted': 'Sueño borrado.',
+  'actsleep.err': 'Escribe un total entre 1 minuto y 24 horas.',
+  'adh.title': 'Adherencia · actividad',
+  'adh.intro': 'Semana a semana, solo lo que este alumno comparte. Un tipo que el alumno no activó nunca se consulta.',
+  'adh.weekCurrent': 'Esta semana',
+  'adh.notShared': 'No compartido',
+  'adh.empty': 'Sin registros',
+  'adh.stepsVal': '{avg} pasos/día · {days} días',
+  'adh.exerciseVal': '{done} de {planned} sesiones',
+  'adh.exerciseNoPlan': '{done} sesiones hechas',
+  'adh.rotationNote': 'Plan de rotación: no tiene días fijos, así que solo se cuentan las sesiones hechas.',
+  'adh.weightVal': '{n} pesajes · último {w}',
+  'adh.sleepVal': 'promedio {avg} · {nights} noches',
+  'adh.note': 'Las semanas van de lunes a domingo. Las sesiones hechas son las sesiones cerradas del registro del alumno: la misma cuenta del informe semanal de atención.',
+  'adh.loadError': 'No se pudo cargar este resumen.',
   'fb2.title': '📚 Referencias educativas (B)',
   'fb2.helpBtn': 'Sobre estas referencias',
   'fb2.help': '<b>Qué es esta tarjeta</b><br>Rangos de referencia educativos para el entrenador, calculados en vivo desde el gasto estimado de la evaluación (TDEE). Son referencias para planificar — nunca una prescripción y nunca se escriben en ningún sitio.<br><b>Fuentes y naturaleza</b><br>• Bandas de macronutrientes: AMDR del IOM (proteína 10–35%, carbohidratos 45–65%, grasa 20–35% de la energía), solo como información (decisión N-02).<br>• Banda de pérdida de grasa: el marco educativo absoluto decidido en N-03 (ACSM/NIH: TDEE − 500…1000 kcal/día) con sus límites, siempre visibles debajo.<br>• Mantenimiento ±5% y superávit +5…15% son las convenciones de trabajo del plan P4-3, etiquetadas como educativas.<br>• La referencia de proteína en g/kg vive en su propia tarjeta (B-1) y no se duplica aquí.<br><b>Lo que nunca hace</b><br>Nunca asigna un déficit, un superávit ni metas: las metas del cliente las fija el entrenador a mano, como siempre.',
@@ -16150,6 +16250,7 @@ async function openClient(uid) {
     ${fb3ProteinHTML(data)}
     ${faCardHTML(uid, asmtDoc, data, udata ? udata.paceSuggestion || null : null)}
     <div id="bt-card"></div>
+    <div id="adh-card"></div>
     ${fb2CardHTML(asmtDoc, data)}
     <div id="pace-card"></div>
     <div id="held-card"></div>
@@ -16206,6 +16307,11 @@ async function openClient(uid) {
   try { const pg = goalsTrainerCardLoad(uid, udata, { conditions: (clientHealth && clientHealth.decl && clientHealth.decl.conditions) || [], weights: data, asmt: asmtDoc }); if (pg && pg.then) pg.then(() => { fichaFocusApply(uid); pendConsultApply(uid); }, () => {}); } catch {}
   const pb = btLoadTrainerCard(uid, udata);
   if (pb && pb.then) pb.then(() => { fichaFocusApply(uid); pendConsultApply(uid); }, () => {});
+  /* Integración de actividad P1: la tarjeta «Adherencia» lee los
+     consentimientos del propio documento del alumno (udata) y la
+     lista de pesos que esta ficha ya cargó (cero lecturas nuevas
+     para el peso). */
+  try { adhLoadTrainerCard(uid, udata, data); } catch {}
   box.querySelectorAll('[data-c-edit]').forEach(b => b.onclick = () => {
     const rec = data.find(w => w.id === b.dataset.cEdit);
     if (rec) openWeightModal({ uid, docId: rec.id, rec });
@@ -16247,6 +16353,110 @@ async function openClient(uid) {
      ficha abre como siempre. */
   fichaFocusApply(uid);
   pendConsultApply(uid);
+}
+
+/* ============ ADHERENCIA · ACTIVIDAD (ficha del entrenador, P1) ============
+   Resumen semanal (la semana actual + las 4 anteriores, lunes a
+   domingo) de lo que el alumno COMPARTE por tipo. La compuerta
+   es doble: la app ni siquiera consulta la colección de un tipo
+   no consentido, y las reglas cierran la lectura del sueño sin
+   consentimiento aceptado. Sin duplicar (decisión 6): pasos de
+   activity_logs, sesiones de training_logs + el plan vigente
+   resuelto por fecha con careDayFor (la precedencia de la casa;
+   «hechas» = done == true, la misma cuenta del informe semanal
+   de atención), peso de la lista que la ficha YA cargó de
+   nutrition_weight (cero lecturas nuevas) y sueño de
+   activity_data (el único almacén nuevo). */
+function adhWeeks() {
+  const out = [];
+  const today = todayISO();
+  const dow = (new Date(today + 'T12:00:00').getDay() + 6) % 7; // lunes = 0
+  const monday = planISOAddDays(today, -dow);
+  for (let i = 0; i < 5; i++) {
+    const start = planISOAddDays(monday, -7 * i);
+    out.push({ start, end: planISOAddDays(start, 6), current: i === 0 });
+  }
+  return out;
+}
+const fmtSleepMin = min => { const v = Math.max(0, Math.round(min)); return Math.floor(v / 60) + ' h ' + String(v % 60).padStart(2, '0') + ' min'; };
+async function adhLoadTrainerCard(uid, udata, weights) {
+  const box = $('adh-card'); if (!box) return;
+  const consents = (udata && udata.activityConsents) || {};
+  const on = tipo => { const s = consents[tipo]; return !!s && s.status === 'accepted' && s.version === ACT_CONSENT_VERSION; };
+  const weeks = adhWeeks();
+  const wStart = weeks[weeks.length - 1].start, wEnd = weeks[0].end;
+  const inWin = d => typeof d === 'string' && d >= wStart && d <= wEnd;
+  const head = `<div class="compacc-box"><h3 class="history-title">📈 ${esc(t('adh.title'))}</h3>
+    <p class="progress-hint">${esc(t('adh.intro'))}</p>`;
+  const perWeek = weeks.map(w => ({ w, cells: {} }));
+  let rotation = false;
+  try {
+    if (on('steps')) {
+      const snap = await getDocs(query(collection(db, 'activity_logs'), where('ownerUid', '==', uid)));
+      const byDate = {};
+      snap.forEach(d => { const v = d.data(); if (v && inWin(v.date) && num(v.steps) > 0) byDate[v.date] = num(v.steps); });
+      weeks.forEach((w, wi) => {
+        const ds = Object.keys(byDate).filter(d => d >= w.start && d <= w.end);
+        perWeek[wi].cells.steps = ds.length
+          ? t('adh.stepsVal', { avg: fmt(Math.round(ds.reduce((s, d) => s + byDate[d], 0) / ds.length)), days: ds.length })
+          : t('adh.empty');
+      });
+    }
+    if (on('exercise')) {
+      const [logsSnap, plansSnap, cfgSnap] = await Promise.all([
+        getDocs(query(collection(db, 'training_logs'), where('clientUid', '==', uid))),
+        getDocs(query(collection(db, 'training_plans'), where('clientUid', '==', uid))),
+        getDoc(doc(db, 'nutrition_progress', uid + '_pendconfig'))
+      ]);
+      const doneDates = new Set();
+      logsSnap.forEach(d => { const v = d.data(); if (v && v.done === true && inWin(v.date)) doneDates.add(v.date); });
+      let plan = null;
+      plansSnap.forEach(d => { const v = { id: d.id, ...d.data() };
+        if (v.active === true && v.isSnapshot !== true && (!plan || (tsMs(v.createdAt) || 0) >= (tsMs(plan.createdAt) || 0))) plan = v; });
+      const cfg = cfgSnap.exists() ? Object.assign(pendDefaults(), cfgSnap.data()) : null;
+      weeks.forEach((w, wi) => {
+        let done = 0, planned = 0;
+        for (let d = w.start; d <= w.end; d = planISOAddDays(d, 1)) {
+          if (doneDates.has(d)) done++;
+          if (plan) { const r = careDayFor(plan, cfg, d); if (r.mode === 'rotation') rotation = true; else if (r.idx != null) planned++; }
+        }
+        perWeek[wi].cells.exercise = !plan
+          ? (done ? t('adh.exerciseNoPlan', { done }) : t('adh.empty'))
+          : (rotation && planned === 0
+              ? (done ? t('adh.exerciseNoPlan', { done }) : t('adh.empty'))
+              : t('adh.exerciseVal', { done, planned }));
+      });
+    }
+    if (on('weight')) {
+      const ws = (weights || []).filter(x => inWin(x.date));
+      weeks.forEach((w, wi) => {
+        const inW = ws.filter(x => x.date >= w.start && x.date <= w.end);
+        perWeek[wi].cells.weight = inW.length
+          ? t('adh.weightVal', { n: inW.length, w: esc(fmtMassVal(inW[inW.length - 1].weight)) })
+          : t('adh.empty');
+      });
+    }
+    if (on('sleep')) {
+      const snap = await getDocs(query(collection(db, 'activity_data'),
+        where('clientUid', '==', uid), where('dataType', '==', 'sleep')));
+      const byDate = {};
+      snap.forEach(d => { const v = d.data(); if (v && inWin(v.date) && num(v.value) > 0) byDate[v.date] = num(v.value); });
+      weeks.forEach((w, wi) => {
+        const ds = Object.keys(byDate).filter(d => d >= w.start && d <= w.end);
+        perWeek[wi].cells.sleep = ds.length
+          ? t('adh.sleepVal', { avg: fmtSleepMin(ds.reduce((s, d) => s + byDate[d], 0) / ds.length), nights: ds.length })
+          : t('adh.empty');
+      });
+    }
+  } catch { box.innerHTML = head + `<div class="wempty">${esc(t('adh.loadError'))}</div></div>`; return; }
+  const rows = perWeek.map(({ w, cells }) => `
+    <div class="adh-week">
+      <div class="adh-week-head">${w.current ? esc(t('adh.weekCurrent')) + ' · ' : ''}${esc(dateName(w.start))} – ${esc(dateName(w.end))}</div>
+      ${ACT_SHARE_TYPES.map(tipo => `<div class="adh-row"><span class="adh-type">${ACT_SHARE_ICONS[tipo]} ${esc(t('actshare.type.' + tipo))}</span><span class="adh-val">${on(tipo) ? esc(cells[tipo] || t('adh.empty')) : esc(t('adh.notShared'))}</span></div>`).join('')}
+    </div>`).join('');
+  box.innerHTML = head + rows
+    + (rotation ? `<p class="progress-hint">${esc(t('adh.rotationNote'))}</p>` : '')
+    + `<p class="progress-hint">${esc(t('adh.note'))}</p></div>`;
 }
 
 /* ============ INTERRUPTOR DE COMPOSICIÓN (vista del entrenador) ============
@@ -21879,7 +22089,8 @@ function renderPrivacy() {
 const MY_DATA_COLLECTIONS = [
   ['nutrition_meals', 'ownerUid'], ['nutrition_weight', 'ownerUid'],
   ['nutrition_progress', 'ownerUid'], ['meal_help', 'ownerUid'],
-  ['training_plans', 'clientUid'], ['training_logs', 'clientUid']
+  ['training_plans', 'clientUid'], ['training_logs', 'clientUid'],
+  ['activity_data', 'clientUid']
 ];
 async function fetchMyDocs(uid) {
   const out = {};
@@ -22930,6 +23141,9 @@ function renderHealthPanel() {
      de tipo corporal vive en el mismo panel único y se repinta
      con él (también al cambiar de idioma). */
   try { renderBtPanel(); } catch {}
+  /* Integración de actividad P1: la sección «Datos que comparto»
+     vive en el mismo panel único y se repinta con él. */
+  try { renderActSharePanel(); } catch {}
   /* Claves de acceso: la sección «Seguridad» vive en el mismo panel
      único y se repinta con él (también al cambiar de idioma). */
   try { renderPkPanel(); } catch {}
@@ -23198,6 +23412,120 @@ async function withdrawBt() {
     BT_SHARED_CACHE = { uid, active: false, list: null };
     toast(t('bt.withdrawnToast'));
     renderBtPanel();
+  } catch (e) { failToast(e); }
+}
+/* ---------- Integración de actividad P1: consentimiento por tipo ----------
+   El alumno decide, tipo por tipo (pasos · ejercicio · peso ·
+   sueño), qué puede ver su entrenador asignado en el panel
+   «Adherencia» de su ficha. El estado vive en
+   users/{uid}.activityConsents (la misma forma que
+   healthConsent/bodyTypeConsent) y cada acto viaja acoplado a
+   su recibo (consentBatch), con los tipos derivados
+   activity-{tipo}-{granted|renewed|withdrawn} que las reglas
+   comprueban. El texto final (ACT_CONSENT_VERSION) cierra
+   D-06/D-14 para la actividad con la forma de la casa: texto
+   aprobado por el propietario + política de revocación decidida
+   y construida — al retirar el SUEÑO, sus documentos de
+   activity_data se BORRAN en el mismo acto (decisión 4); al
+   retirar los demás tipos se cierra la vista del entrenador y
+   el registro propio del alumno queda intacto, porque es suyo
+   y otras partes de su app lo usan (lectura declarada en
+   DESENO-PAQUETE1 §7, dicha en el panel antes de confirmar).
+   Compartir nunca manda sobre registrar: el alumno registra lo
+   suyo siempre, comparta o no (decisión 5). */
+const ACT_CONSENT_VERSION = 'v1-2026-11-03';
+const ACT_SHARE_TYPES = ['steps', 'exercise', 'weight', 'sleep'];
+const ACT_SHARE_ICONS = { steps: '🚶', exercise: '🏋️', weight: '⚖️', sleep: '🌙' };
+const actShareOf = (u, tipo) => (((u && u.activityConsents) || {})[tipo]) || null;
+const actShareActive = (u, tipo) => { const s = actShareOf(u, tipo); return !!s && s.status === 'accepted' && s.version === ACT_CONSENT_VERSION; };
+function renderActSharePanel() {
+  const box = $('actshare-panel-body');
+  if (!box || !auth.currentUser) return;
+  /* Barrido idempotente: si el sueño está retirado pero quedara
+     algún documento suyo (una tanda de borrado interrumpida), el
+     borrado se completa aquí — la retirada manda desde el acto y
+     la regla ya cerró la lectura del entrenador. */
+  const sl = actShareOf(UDATA, 'sleep');
+  if (sl && sl.status === 'withdrawn' && typeof ACT_SLEEP !== 'undefined'
+      && Object.keys(ACT_SLEEP).length && !window.__ACT_SLEEP_SWEPT) {
+    window.__ACT_SLEEP_SWEPT = true;
+    actSleepPurgeAll().then(() => { window.__ACT_SLEEP_SWEPT = false; }, () => { window.__ACT_SLEEP_SWEPT = false; });
+  }
+  let html = `<p class="progress-hint">${esc(t('actshare.intro'))}</p>`;
+  for (const tipo of ACT_SHARE_TYPES) {
+    const s = actShareOf(UDATA, tipo);
+    const active = actShareActive(UDATA, tipo);
+    const withdrawn = !!s && s.status === 'withdrawn';
+    const mismatch = !!s && s.status === 'accepted' && s.version !== ACT_CONSENT_VERSION;
+    html += `<div class="acts-type">
+      <div class="acts-head"><span class="acts-name">${ACT_SHARE_ICONS[tipo]} ${esc(t('actshare.type.' + tipo))}</span>
+      <span class="acts-state ${active ? 'on' : 'off'}">${active ? esc(t('actshare.statusOn', { date: esc(fmtBtDate(s.acceptedAt)) })) : withdrawn ? esc(t('actshare.statusWithdrawn', { date: esc(fmtBtDate(s.withdrawnAt)) })) : esc(t('actshare.statusOff'))}</span></div>
+      <p class="progress-hint">${esc(t('actshare.src.' + tipo))}</p>
+      ${mismatch ? `<p class="progress-hint">${esc(t('actshare.versionMismatch'))}</p>` : ''}
+      ${active
+        ? `<button type="button" class="btn-ghost danger acts-btn" data-acts-stop="${tipo}">${esc(t('actshare.stop'))}</button>`
+        : `<details class="spec-details" id="acts-details-${tipo}"><summary>${esc(t('actshare.fullTextTitle'))}</summary>
+             <label class="consent-check"><input type="checkbox" id="acts-ok-${tipo}"> <span>${esc(t('actshare.consentText'))} ${esc(t('actshare.consentCheck'))}</span></label>
+           </details>
+           <button type="button" class="btn-primary acts-btn" data-acts-grant="${tipo}">${esc(withdrawn || mismatch ? t('actshare.renew') : t('actshare.share'))}</button>`}
+    </div>`;
+  }
+  box.innerHTML = html;
+  box.querySelectorAll('[data-acts-grant]').forEach(b => b.onclick = () => grantActShare(b.dataset.actsGrant));
+  box.querySelectorAll('[data-acts-stop]').forEach(b => b.onclick = () => withdrawActShare(b.dataset.actsStop));
+}
+async function grantActShare(tipo) {
+  if (!auth.currentUser || !ACT_SHARE_TYPES.includes(tipo)) return;
+  const det = $('acts-details-' + tipo);
+  if (det && !det.open) { det.open = true; toast(t('actshare.needConsent'), true); return; }
+  const ok = $('acts-ok-' + tipo);
+  if (!ok || !ok.checked) { toast(t('actshare.needConsent'), true); return; }
+  if (!(await consentOpsAllowed())) return;
+  try {
+    const uid = auth.currentUser.uid;
+    const cur = await freshUserDoc(uid);
+    const prevMap = (cur && cur.activityConsents) || {};
+    const prev = prevMap[tipo] || {};
+    const isRenew = prev.status === 'withdrawn';
+    const sub = { status: 'accepted', version: ACT_CONSENT_VERSION, acceptedAt: serverTimestamp() };
+    if (prev.withdrawnAt) sub.withdrawnAt = prev.withdrawnAt;
+    const { batch, seq, rid } = consentBatch(uid, cur, { activityConsents: { ...prevMap, [tipo]: sub } },
+      'activity-' + tipo + (isRenew ? '-renewed' : '-granted'), ACT_CONSENT_VERSION);
+    await batch.commit();
+    UDATA.consentSeq = seq; UDATA.consentReceiptId = rid;
+    UDATA.activityConsents = { ...(UDATA.activityConsents || {}),
+      [tipo]: { status: 'accepted', version: ACT_CONSENT_VERSION, acceptedAt: new Date(),
+        ...(prev.withdrawnAt ? { withdrawnAt: prev.withdrawnAt } : {}) } };
+    toast(isRenew ? t('actshare.renewed') : t('actshare.granted'));
+    renderActSharePanel();
+  } catch (e) { failToast(e); }
+}
+async function withdrawActShare(tipo) {
+  if (!auth.currentUser || !ACT_SHARE_TYPES.includes(tipo)) return;
+  if (!confirm(t(tipo === 'sleep' ? 'actshare.withdrawConfirmSleep' : 'actshare.withdrawConfirmOther'))) return;
+  if (!(await consentOpsAllowed())) return;
+  try {
+    const uid = auth.currentUser.uid;
+    const cur = await freshUserDoc(uid);
+    const prevMap = (cur && cur.activityConsents) || {};
+    const prev = prevMap[tipo] || {};
+    const version = prev.version || ACT_CONSENT_VERSION;
+    const sub = { status: 'withdrawn', version, withdrawnAt: serverTimestamp() };
+    if (prev.acceptedAt) sub.acceptedAt = prev.acceptedAt;
+    const { batch, seq, rid } = consentBatch(uid, cur, { activityConsents: { ...prevMap, [tipo]: sub } },
+      'activity-' + tipo + '-withdrawn', version);
+    await batch.commit();
+    UDATA.consentSeq = seq; UDATA.consentReceiptId = rid;
+    UDATA.activityConsents = { ...(UDATA.activityConsents || {}),
+      [tipo]: { status: 'withdrawn', version, withdrawnAt: new Date(),
+        ...(prev.acceptedAt ? { acceptedAt: prev.acceptedAt } : {}) } };
+    /* Decisión 4: al retirar el sueño, lo guardado SE BORRA en
+       el mismo acto (por tandas); si una tanda fallara, el
+       barrido del panel lo completa — la vista del entrenador
+       ya quedó cerrada por la regla en este mismo lote. */
+    if (tipo === 'sleep') { try { await actSleepPurgeAll(); } catch {} }
+    toast(t('actshare.withdrawnToast'));
+    renderActSharePanel();
   } catch (e) { failToast(e); }
 }
 /* ---------- Tarjeta del entrenador (ficha del cliente) ---------- */
@@ -31438,7 +31766,69 @@ function actLastWeight() { return WEIGHTS.length ? WEIGHTS[WEIGHTS.length - 1] :
 let ACT_LOGS = {};      // fecha -> documento (construcción local + intercambio)
 let ACT_LOADED = false;
 let ACT_SAVING = false;
+/* Integración de actividad P1: el sueño vive en activity_data
+   (el único almacén nuevo; un documento por noche:
+   {uid}_{fecha}_sleep, value = minutos). ACT_SLEEP_CREATED
+   guarda el createdAt leído para editar sin romper la regla
+   (en la edición, createdAt viaja byte a byte). */
+let ACT_SLEEP = {};
+let ACT_SLEEP_CREATED = {};
 function actSelDate() { const s = $('dateSel'); return (s && s.value) || todayISO(); }
+
+/* Borrado completo del sueño del alumno (decisión 4: al retirar
+   el tipo sueño, lo guardado se borra). Por tandas de 400;
+   idempotente — el panel de consentimientos lo reintenta como
+   barrido si una tanda falló. */
+async function actSleepPurgeAll() {
+  if (!auth.currentUser) return;
+  const uid = auth.currentUser.uid;
+  const snap = await getDocs(query(collection(db, 'activity_data'), where('clientUid', '==', uid)));
+  const refs = [];
+  snap.forEach(d => refs.push(d.ref));
+  for (let i = 0; i < refs.length; i += 400) {
+    const b = writeBatch(db);
+    refs.slice(i, i + 400).forEach(r => b.delete(r));
+    await b.commit();
+  }
+  ACT_SLEEP = {};
+  ACT_SLEEP_CREATED = {};
+}
+
+/* Guardar (totalMin = minutos) o borrar (null) el sueño de una
+   fecha. La fecha es la mañana en que despierta: la noche que
+   terminó esa mañana. Registrar lo suyo NUNCA depende de
+   compartir (decisión 5): esta escritura es solo del alumno y
+   no mira ningún consentimiento. */
+async function actSaveSleep(date, totalMin) {
+  if (!auth.currentUser) return false;
+  if (date > todayISO()) { toast(t('act.errFuture'), true); return false; }
+  const uid = auth.currentUser.uid;
+  const ref = doc(db, 'activity_data', uid + '_' + date + '_sleep');
+  try {
+    if (totalMin == null) {
+      await deleteDoc(ref);
+      delete ACT_SLEEP[date];
+      delete ACT_SLEEP_CREATED[date];
+      toast(t('actsleep.deleted'));
+    } else {
+      let createdAt = ACT_SLEEP_CREATED[date] || null;
+      if (ACT_SLEEP[date] != null && !createdAt) {
+        /* Creado en esta misma sesión: se lee su createdAt real
+           antes de editar (la regla exige conservarlo exacto). */
+        try { const s = await getDoc(ref); if (s.exists()) createdAt = s.data().createdAt || null; } catch {}
+      }
+      const payload = { clientUid: uid, date, dataType: 'sleep', value: totalMin,
+        unit: 'min', source: 'manual', updatedAt: serverTimestamp(),
+        createdAt: createdAt || serverTimestamp() };
+      await setDoc(ref, payload);
+      ACT_SLEEP[date] = totalMin;
+      if (createdAt) ACT_SLEEP_CREATED[date] = createdAt;
+      toast(t('actsleep.saved'));
+    }
+    renderActivity(date);
+    return true;
+  } catch { toast(t('ai.saveError'), true); return false; }
+}
 
 async function loadActivityLogs() {
   if (!auth.currentUser) return;
@@ -31457,6 +31847,19 @@ async function loadActivityLogs() {
     ACT_LOGS = fresh;
     ACT_LOADED = true;
   } catch { /* la vista muestra su estado vacío; jamás rompe loadAll */ }
+  /* El sueño del alumno (activity_data): carga propia y
+     tolerante — si falla, la sección muestra su estado vacío. */
+  try {
+    const ss = await getDocs(query(collection(db, 'activity_data'), where('clientUid', '==', auth.currentUser.uid)));
+    const sl = {}, sc = {};
+    ss.forEach(d => { const v = d.data();
+      if (v && v.dataType === 'sleep' && /^\d{4}-\d{2}-\d{2}$/.test(v.date || '') && num(v.value) > 0) {
+        sl[v.date] = Math.floor(num(v.value));
+        sc[v.date] = v.createdAt || null;
+      } });
+    ACT_SLEEP = sl;
+    ACT_SLEEP_CREATED = sc;
+  } catch {}
   await loadActFavs();
   renderActivity(actSelDate());
 }
@@ -31810,6 +32213,23 @@ function renderActDay(date) {
       ${d && num(d.steps) > 0 ? `<div class="act-steps-info" id="actd-steps-info">${t('act.stepsInfo', { km: fmt(num(d.stepKm)), kcal: fmt(num(d.stepKcal)) })}</div>` : ''}
       <p class="act-note">${t('act.overlapNote')}</p>
     </div>`;
+  /* SUEÑO (P1): el único registro nuevo de la capa de actividad.
+     Vive en activity_data (no en el documento del día) y se
+     guarda por su propia vía (actSaveSleep): no depende del
+     peso ni del guardado del día. La fecha es la mañana en que
+     despierta — la noche que terminó esa mañana. */
+  const slMin = ACT_SLEEP[date] || 0;
+  const sleepSec = `<div class="act-sec">
+      <h4 class="act-sec-title">🌙 ${t('actsleep.title')}</h4>
+      <p class="act-note">${t('actsleep.hint')}</p>
+      ${slMin ? `<div class="act-steps-info">${t('actsleep.current', { h: Math.floor(slMin / 60), m: slMin % 60 })}</div>` : `<p class="act-note">${t('actsleep.none')}</p>`}
+      <div class="act-steps-row">
+        <input type="number" id="actd-sleep-h" min="0" max="24" step="1" inputmode="numeric" aria-label="${esc(t('actsleep.hours'))}" placeholder="${esc(t('actsleep.hours'))}" value="${slMin ? Math.floor(slMin / 60) : ''}">
+        <input type="number" id="actd-sleep-m" min="0" max="59" step="1" inputmode="numeric" aria-label="${esc(t('actsleep.min'))}" placeholder="${esc(t('actsleep.min'))}" value="${slMin ? slMin % 60 : ''}">
+        <button type="button" class="btn-secondary btn-sm" id="actd-sleep-save">${t('actsleep.save')}</button>
+        ${slMin ? `<button type="button" class="btn-ghost btn-sm" id="actd-sleep-del">${t('actsleep.del')}</button>` : ''}
+      </div>
+    </div>`;
   const listSec = `<div class="act-sec">
       <h4 class="act-sec-title">${t('act.listTitle')}</h4>
       ${actRows}
@@ -31847,7 +32267,7 @@ function renderActDay(date) {
       <p class="act-note">${t('act.burnedOverlapNote')}</p>` : ''}
       ${otherKcal > 0 ? `<div class="act-line"><span>${t('act.burnedActsLine', { kcal: fmt(otherKcal) })}</span></div>` : ''}
     </div>`;
-  const secsHtml = [burnedSec, daySec, habSec, stepsSec, listSec, sumsSec].join('\n    ');
+  const secsHtml = [burnedSec, daySec, habSec, stepsSec, sleepSec, listSec, sumsSec].join('\n    ');
   box.innerHTML = `
     <p class="act-note act-est-note">${t('act.estimateNote')}</p>
     ${!ACT_LOADED ? `<div class="wempty compact">${t('act.loading')}</div>` : `
@@ -31864,6 +32284,18 @@ function renderActDay(date) {
     await actSaveDay(date, dr => { dr.steps = steps; });
     sBtn.disabled = false;
   };
+  const slBtn = $('actd-sleep-save');
+  if (slBtn) slBtn.onclick = async () => {
+    const h = Number((($('actd-sleep-h') || {}).value || ''));
+    const m = Number((($('actd-sleep-m') || {}).value || ''));
+    const tot = (Number.isFinite(h) ? Math.floor(h) : 0) * 60 + (Number.isFinite(m) ? Math.floor(m) : 0);
+    if (!Number.isInteger(tot) || tot < 1 || tot > 1440) { toast(t('actsleep.err'), true); return; }
+    slBtn.disabled = true;
+    await actSaveSleep(date, tot);
+    slBtn.disabled = false;
+  };
+  const slDel = $('actd-sleep-del');
+  if (slDel) slDel.onclick = async () => { slDel.disabled = true; await actSaveSleep(date, null); };
   box.querySelectorAll('[data-actd-del]').forEach(b => b.onclick = async () => {
     const i = parseInt(b.dataset.actdDel, 10);
     b.disabled = true;
@@ -37739,7 +38171,7 @@ document.addEventListener('keydown', e => { if (e.key === 'Escape') shareClose()
  *  - El SW (sw.js) solo cachea la cáscara del mismo origen en modo
  *    RED PRIMERO: Auth/Firestore/Worker jamás pasan por la caché.
  * ================================================================ */
-const PWA_SW_VERSION = '20261103-coach-sitio';
+const PWA_SW_VERSION = '20261103-actividad-p1';
 /* Sello de versión VISIBLE (2026-11-03): el pie de la tarjeta de
    acceso enseña qué copia corre este teléfono ('v ' + el sello),
    para comprobar de un vistazo si la versión nueva ya llegó.

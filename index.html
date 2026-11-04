@@ -21,7 +21,7 @@
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-title" content="RONBO FIT">
 <meta name="apple-mobile-web-app-status-bar-style" content="default">
-<link rel="stylesheet" href="styles.css?v=20261103-coach-sitio">
+<link rel="stylesheet" href="styles.css?v=20261103-actividad-p1">
 <script defer src="https://cloud.umami.is/script.js" data-website-id="a29706d4-44a2-47cf-900a-5f74d74abfa8"></script>
 <script type="importmap">
 {
@@ -1322,6 +1322,17 @@
                panel oculto y NO se veían (comprobado sobre la base
                85e58eb: checkVisibility = false). Con el cierre puesto, las
                tres pestañas son hermanas y el dock global vive fuera. -->
+          <!-- Integración de actividad P1 (2026-11-03): los datos
+               de actividad que el alumno comparte por tipo con su
+               entrenador asignado (pasos · sesiones · peso ·
+               sueño), con su consentimiento específico propio
+               versionado y sus recibos. Todo el contenido lo
+               pinta renderActSharePanel() desde STR (actshare.*);
+               aquí solo vive la cáscara, visible para todos. -->
+          <div class="perms-section" id="actshare-section">
+            <h3 class="perms-section-title" data-i18n="actshare.title">Activity data I share</h3>
+            <div id="actshare-panel-body"></div>
+          </div>
           <!-- MÓDULO H (P4-3 Etapa 1, desarrollo): preferencia de
                unidades del propio usuario (users/{uid}/preferences/units).
                El panel lo renderiza renderUnitsPanel() desde STR (units.*). -->
@@ -1817,6 +1828,6 @@
 <div id="toast" class="toast"></div>
 <div id="print-card" aria-hidden="true"></div>
 
-<script type="module" src="app.js?v=20261103-coach-sitio"></script>
+<script type="module" src="app.js?v=20261103-actividad-p1"></script>
 </body>
 </html>
