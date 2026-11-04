@@ -642,48 +642,6 @@ service cloud.firestore {
             ? 'activity-' + t + (actStatus(before, t) == 'withdrawn' ? '-renewed' : '-granted')
             : (actStatus(after, t) == 'withdrawn' ? 'activity-' + t + '-withdrawn' : ''));
     }
-    function actVersionOf(d, tipo) {
-      return actConsents(d).get(tipo, {}).get('version', '');
-    }
-    // Forma de OTORGAR/RENOVAR un tipo: nace 'accepted' con la
-    // hora del servidor, versión de texto no vacía, la marca de
-    // retirada previa se conserva tal cual y las claves de la
-    // subclave son las cerradas.
-    function actGrantFor(before, after, tipo) {
-      return actStatus(after, tipo) == 'accepted'
-        && actStatus(before, tipo) != 'accepted'
-        && actConsents(after).get(tipo, {}).get('acceptedAt', null) == request.time
-        && actConsents(after).get(tipo, {}).get('version', '') is string
-        && actConsents(after).get(tipo, {}).get('version', '') != ''
-        && actConsents(after).get(tipo, {}).get('withdrawnAt', null)
-             == actConsents(before).get(tipo, {}).get('withdrawnAt', null)
-        && actConsents(after).get(tipo, {}).keys()
-             .hasOnly(['status', 'version', 'acceptedAt', 'withdrawnAt']);
-    }
-    // Forma de RETIRAR un tipo: de 'accepted' a 'withdrawn' con
-    // la hora del servidor; la marca de aceptación y la versión
-    // se conservan tal cual.
-    function actWithdrawFor(before, after, tipo) {
-      return actStatus(before, tipo) == 'accepted'
-        && actStatus(after, tipo) == 'withdrawn'
-        && actConsents(after).get(tipo, {}).get('withdrawnAt', null) == request.time
-        && actConsents(after).get(tipo, {}).get('acceptedAt', null)
-             == actConsents(before).get(tipo, {}).get('acceptedAt', null)
-        && actConsents(after).get(tipo, {}).get('version', '')
-             == actConsents(before).get(tipo, {}).get('version', '')
-        && actConsents(after).get(tipo, {}).keys()
-             .hasOnly(['status', 'version', 'acceptedAt', 'withdrawnAt']);
-    }
-    // La forma completa del acto: hay un tipo cambiado, es el
-    // ÚNICO tocado en el mapa y cumple su forma individual.
-    function actGrantShape(before, after) {
-      let t = actChangedType(before, after);
-      return t != '' && actOnlyTypeChanged(before, after, t) && actGrantFor(before, after, t);
-    }
-    function actWithdrawShape(before, after) {
-      let t = actChangedType(before, after);
-      return t != '' && actOnlyTypeChanged(before, after, t) && actWithdrawFor(before, after, t);
-    }
     // El acto completo en UN ayudante: la derivación del tipo se
     // calcula una sola vez (el presupuesto de expresiones por
     // petición es estrecho y receiptMatches volvería a derivar
@@ -694,18 +652,34 @@ service cloud.firestore {
     // acoplamiento es de doble cara, como en la casa).
     function actActOk(before, after, mode) {
       let t = actChangedType(before, after);
+      let subA = actConsents(after).get(t, {});
+      let subB = actConsents(before).get(t, {});
       let action = mode == 'grant'
-        ? (actStatus(before, t) == 'withdrawn' ? 'renewed' : 'granted')
+        ? (subB.get('status', '') == 'withdrawn' ? 'renewed' : 'granted')
         : 'withdrawn';
       let rid = after.get('consentReceiptId', '');
+      let r = getAfter(receiptPath(rid)).data;
       return t != ''
         && actOnlyTypeChanged(before, after, t)
-        && (mode == 'grant' ? actGrantFor(before, after, t) : actWithdrawFor(before, after, t))
+        && (mode == 'grant'
+            ? (subA.get('status', '') == 'accepted'
+               && subB.get('status', '') != 'accepted'
+               && subA.get('acceptedAt', null) == request.time
+               && subA.get('version', '') is string
+               && subA.get('version', '') != ''
+               && subA.get('withdrawnAt', null) == subB.get('withdrawnAt', null)
+               && subA.keys().hasOnly(['status', 'version', 'acceptedAt', 'withdrawnAt']))
+            : (subB.get('status', '') == 'accepted'
+               && subA.get('status', '') == 'withdrawn'
+               && subA.get('withdrawnAt', null) == request.time
+               && subA.get('acceptedAt', null) == subB.get('acceptedAt', null)
+               && subA.get('version', '') == subB.get('version', '')
+               && subA.keys().hasOnly(['status', 'version', 'acceptedAt', 'withdrawnAt'])))
         && existsAfter(receiptPath(rid))
-        && getAfter(receiptPath(rid)).data.uid == request.auth.uid
-        && getAfter(receiptPath(rid)).data.type == 'activity-' + t + '-' + action
-        && getAfter(receiptPath(rid)).data.version == actVersionOf(after, t)
-        && getAfter(receiptPath(rid)).data.at == request.time;
+        && r.uid == request.auth.uid
+        && r.type == 'activity-' + t + '-' + action
+        && r.version == subA.get('version', '')
+        && r.at == request.time;
     }
     function receiptType(before, after) {
       let bs = before.get('healthConsent', {}).get('status', 'none');
@@ -1630,6 +1604,35 @@ service cloud.firestore {
                           'specific-withdrawn',
                           request.resource.data.healthConsent.version);
 
+      // Integración de actividad P1 (2026-11-03): OTORGAR o
+      // RENOVAR el consentimiento de UN tipo de actividad
+      // (activityConsents): exactamente un tipo cambia a
+      // 'accepted' (actGrantShape: los otros tres quedan byte a
+      // byte iguales), hora del servidor, versión del texto; el
+      // recibo acoplado debe casar con la derivación
+      // (activity-{tipo}-granted|renewed) y con la versión del
+      // tipo cambiado; seq +1 exacto.
+      allow update: if isSelf(uid)
+        && request.resource.data.diff(resource.data).affectedKeys()
+              .hasOnly(['activityConsents', 'consentSeq', 'consentReceiptId'])
+        && request.resource.data.consentSeq == resource.data.get('consentSeq', 0) + 1
+        && request.resource.data.consentReceiptId == uid + '_' + string(request.resource.data.consentSeq)
+        && actActOk(resource.data, request.resource.data, 'grant');
+      // RETIRAR el consentimiento de UN tipo de actividad: de
+      // 'accepted' a 'withdrawn' (actWithdrawShape: exactamente un
+      // tipo, los demás intactos), hora del servidor, aceptación y
+      // versión conservadas; recibo 'activity-{tipo}-withdrawn'
+      // acoplado, seq +1 exacto. (El borrado de los datos del
+      // sueño viaja en el mismo acto de la app por la colección
+      // activity_data; la retirada ya cierra aquí la lectura del
+      // entrenador.)
+      allow update: if isSelf(uid)
+        && request.resource.data.diff(resource.data).affectedKeys()
+              .hasOnly(['activityConsents', 'consentSeq', 'consentReceiptId'])
+        && request.resource.data.consentSeq == resource.data.get('consentSeq', 0) + 1
+        && request.resource.data.consentReceiptId == uid + '_' + string(request.resource.data.consentSeq)
+        && actActOk(resource.data, request.resource.data, 'withdraw');
+
       // Body-photo consent (Nivel 2, metadata only — never photos).
       // Grant/renew: only the client, a NEW acceptance act: status
       // accepted, acceptance timestamp == server time, draft version
@@ -1670,35 +1673,6 @@ service cloud.firestore {
         && receiptMatches(request.resource.data.consentReceiptId, uid,
                           'bodytype-withdrawn',
                           request.resource.data.bodyTypeConsent.version);
-
-      // Integración de actividad P1 (2026-11-03): OTORGAR o
-      // RENOVAR el consentimiento de UN tipo de actividad
-      // (activityConsents): exactamente un tipo cambia a
-      // 'accepted' (actGrantShape: los otros tres quedan byte a
-      // byte iguales), hora del servidor, versión del texto; el
-      // recibo acoplado debe casar con la derivación
-      // (activity-{tipo}-granted|renewed) y con la versión del
-      // tipo cambiado; seq +1 exacto.
-      allow update: if isSelf(uid)
-        && request.resource.data.diff(resource.data).affectedKeys()
-              .hasOnly(['activityConsents', 'consentSeq', 'consentReceiptId'])
-        && request.resource.data.consentSeq == resource.data.get('consentSeq', 0) + 1
-        && request.resource.data.consentReceiptId == uid + '_' + string(request.resource.data.consentSeq)
-        && actActOk(resource.data, request.resource.data, 'grant');
-      // RETIRAR el consentimiento de UN tipo de actividad: de
-      // 'accepted' a 'withdrawn' (actWithdrawShape: exactamente un
-      // tipo, los demás intactos), hora del servidor, aceptación y
-      // versión conservadas; recibo 'activity-{tipo}-withdrawn'
-      // acoplado, seq +1 exacto. (El borrado de los datos del
-      // sueño viaja en el mismo acto de la app por la colección
-      // activity_data; la retirada ya cierra aquí la lectura del
-      // entrenador.)
-      allow update: if isSelf(uid)
-        && request.resource.data.diff(resource.data).affectedKeys()
-              .hasOnly(['activityConsents', 'consentSeq', 'consentReceiptId'])
-        && request.resource.data.consentSeq == resource.data.get('consentSeq', 0) + 1
-        && request.resource.data.consentReceiptId == uid + '_' + string(request.resource.data.consentSeq)
-        && actActOk(resource.data, request.resource.data, 'withdraw');
 
       // The trainer deletes user docs (reject flow).
       allow delete: if isOwnerUser();
