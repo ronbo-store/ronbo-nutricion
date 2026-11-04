@@ -632,33 +632,14 @@ service cloud.firestore {
     function actOnlyTypeChanged(before, after, tipo) {
       return actConsents(after).diff(actConsents(before)).affectedKeys().hasOnly([tipo]);
     }
-    // Tipo de recibo derivado de la transición de actividad: ''
-    // salvo que cambiara exactamente un tipo hacia un estado
-    // válido (la guarda fina de origen vive en las ramas).
-    function actDerivedType(before, after) {
-      let t = actChangedType(before, after);
-      return t == '' ? ''
-        : (actStatus(after, t) == 'accepted'
-            ? 'activity-' + t + (actStatus(before, t) == 'withdrawn' ? '-renewed' : '-granted')
-            : (actStatus(after, t) == 'withdrawn' ? 'activity-' + t + '-withdrawn' : ''));
-    }
-    // El acto completo en UN ayudante: la derivación del tipo se
-    // calcula una sola vez (el presupuesto de expresiones por
-    // petición es estrecho y receiptMatches volvería a derivar
-    // tipo y versión por la cadena general; aquí el recibo se
-    // comprueba directamente con el tipo y la versión del tipo
-    // cambiado, y la regla de creación de recibos lo vuelve a
-    // derivar por su lado con receiptType/receiptVersion: el
-    // acoplamiento es de doble cara, como en la casa).
-    function actActOk(before, after, mode) {
+    // La forma del acto (sin el recibo: el lote es atómico y
+    // la regla de creación de recibos valida el recibo contra
+    // esta misma transición — si el recibo no casa, el lote
+    // entero cae y esta rama nunca llega a valer sola).
+    function actActShapeOk(before, after, mode) {
       let t = actChangedType(before, after);
       let subA = actConsents(after).get(t, {});
       let subB = actConsents(before).get(t, {});
-      let action = mode == 'grant'
-        ? (subB.get('status', '') == 'withdrawn' ? 'renewed' : 'granted')
-        : 'withdrawn';
-      let rid = after.get('consentReceiptId', '');
-      let r = getAfter(receiptPath(rid)).data;
       return t != ''
         && actOnlyTypeChanged(before, after, t)
         && (mode == 'grant'
@@ -674,12 +655,30 @@ service cloud.firestore {
                && subA.get('withdrawnAt', null) == request.time
                && subA.get('acceptedAt', null) == subB.get('acceptedAt', null)
                && subA.get('version', '') == subB.get('version', '')
-               && subA.keys().hasOnly(['status', 'version', 'acceptedAt', 'withdrawnAt'])))
-        && existsAfter(receiptPath(rid))
-        && r.uid == request.auth.uid
-        && r.type == 'activity-' + t + '-' + action
-        && r.version == subA.get('version', '')
-        && r.at == request.time;
+               && subA.keys().hasOnly(['status', 'version', 'acceptedAt', 'withdrawnAt'])));
+    }
+    // La otra cara del acoplamiento, para la regla de creación
+    // de recibos: el recibo activity-{tipo}-{acción} solo vale
+    // si la transición del mapa en el mismo lote es exactamente
+    // esa (un tipo, la acción que su nombre declara, su
+    // versión).
+    function actReceiptTransitionOk(before, after, type, version) {
+      let tipo = type.split('-')[1];
+      let action = type.split('-')[2];
+      let subB = actConsents(before).get(tipo, {});
+      let subA = actConsents(after).get(tipo, {});
+      return actOnlyTypeChanged(before, after, tipo)
+        && subA.get('version', '') == version
+        && (action == 'granted'
+            ? (subA.get('status', '') == 'accepted'
+               && subB.get('status', '') != 'accepted'
+               && subB.get('status', '') != 'withdrawn')
+            : (action == 'renewed'
+                ? (subA.get('status', '') == 'accepted'
+                   && subB.get('status', '') == 'withdrawn')
+                : (action == 'withdrawn'
+                   && subA.get('status', '') == 'withdrawn'
+                   && subB.get('status', '') == 'accepted')));
     }
     function receiptType(before, after) {
       let bs = before.get('healthConsent', {}).get('status', 'none');
@@ -702,26 +701,14 @@ service cloud.firestore {
             : (after.get('acceptedTerms', false) == true
                 && before.get('termsAcceptedAt', timestamp.date(2000, 1, 1))
                      != after.get('termsAcceptedAt', timestamp.date(2000, 1, 1))
-                ? 'general-renewed'
-                // Integración de actividad P1 (2026-11-03): último
-                // recurso de la cadena. Solo se llega aquí si
-                // ningún otro consentimiento cambió; si el mapa
-                // de actividad cambió, el tipo se deriva de su
-                // transición. Los actos de siempre resuelven
-                // antes y no pagan esta rama (la evaluación es
-                // perezosa), y un acto mixto nunca casa su
-                // recibo en la rama de actividad: falla cerrado.
-                : (before.get('activityConsents', {}) != after.get('activityConsents', {})
-                    ? actDerivedType(before, after) : ''))));
+                ? 'general-renewed' : '')));
     }
     function receiptVersion(after, type) {
       return type == 'bodytype-granted' || type == 'bodytype-renewed' || type == 'bodytype-withdrawn'
         ? after.get('bodyTypeConsent', {}).get('version', '')
         : ((type == 'general-renewed' || type == 'general-withdrawn' || type == 'registered')
             ? after.get('termsVersion', '')
-            : (type.matches('activity-.*')
-                ? after.get('activityConsents', {}).get(type.split('-')[1], {}).get('version', '')
-                : after.get('healthConsent', {}).get('version', '')));
+            : after.get('healthConsent', {}).get('version', ''));
     }
     // The receipt that must exist AFTER the same batch: exact id,
     // owner uid, type, version and server timestamp of THIS request.
@@ -1518,7 +1505,7 @@ service cloud.firestore {
               .hasOnly(['activityConsents', 'consentSeq', 'consentReceiptId'])
         && request.resource.data.consentSeq == resource.data.get('consentSeq', 0) + 1
         && request.resource.data.consentReceiptId == uid + '_' + string(request.resource.data.consentSeq)
-        && actActOk(resource.data, request.resource.data, 'grant');
+        && actActShapeOk(resource.data, request.resource.data, 'grant');
       // RETIRAR el consentimiento de UN tipo de actividad: de
       // 'accepted' a 'withdrawn' (actWithdrawShape: exactamente un
       // tipo, los demás intactos), hora del servidor, aceptación y
@@ -1533,7 +1520,7 @@ service cloud.firestore {
               .hasOnly(['activityConsents', 'consentSeq', 'consentReceiptId'])
         && request.resource.data.consentSeq == resource.data.get('consentSeq', 0) + 1
         && request.resource.data.consentReceiptId == uid + '_' + string(request.resource.data.consentSeq)
-        && actActOk(resource.data, request.resource.data, 'withdraw');
+        && actActShapeOk(resource.data, request.resource.data, 'withdraw');
 
       // Consent withdrawal: a client may revoke THEMSELVES only —
       // acceptedTerms=false, approved=false, withdrawal timestamp —
@@ -2504,6 +2491,21 @@ service cloud.firestore {
             && getAfter(userPath(request.auth.uid)).data.consentReceiptId == rid
             && request.resource.data.version
                  == getAfter(userPath(request.auth.uid)).data.termsVersion )
+          ||
+          // Integración de actividad P1 (2026-11-03): evento de
+          // actividad — el recibo activity-{tipo}-{acción} casa
+          // con la transición real del mapa activityConsents en
+          // el mismo lote (antes/después, un solo tipo) y con
+          // los punteros del documento ya actualizado.
+          ( request.resource.data.type.matches('activity-(steps|exercise|weight|sleep)-(granted|renewed|withdrawn)')
+            && exists(userPath(request.auth.uid))
+            && existsAfter(userPath(request.auth.uid))
+            && getAfter(userPath(request.auth.uid)).data.consentReceiptId == rid
+            && rid == request.auth.uid + '_' + string(getAfter(userPath(request.auth.uid)).data.consentSeq)
+            && actReceiptTransitionOk(get(userPath(request.auth.uid)).data,
+                                      getAfter(userPath(request.auth.uid)).data,
+                                      request.resource.data.type,
+                                      request.resource.data.version) )
           ||
           // Consent transition event: the declared type and version
           // must equal the transition derived from before/after.
