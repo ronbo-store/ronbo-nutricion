@@ -4277,6 +4277,25 @@ en: {
   'pendlist.gone': 'Those pending steps were just resolved — there is nothing left to send.',
   'pendlist.capped': 'The pending list was already sent less than 7 days ago.',
   'pendlist.none': 'This student has no pending steps of their own.',
+  'assign.kicker': 'ASSIGNMENTS',
+  'assign.title': 'Trainer and food coach',
+  'assign.sheetTitle': 'Assignments · {name}',
+  'assign.lineTrainer': 'Trainer: {name}',
+  'assign.lineCoach': 'Food coach: {name}',
+  'assign.noneTrainer': 'No trainer',
+  'assign.noneCoach': 'No coach',
+  'assign.manage': 'Manage trainer and coach',
+  'assign.noCoaches': 'There are no food coaches available yet.',
+  'assign.noTrainers': 'There are no trainers available right now.',
+  'assign.modLive': 'This student has a modality change request in progress. While it is open, the trainer cannot be changed or removed — resolve it first in Administration.',
+  'assign.removeTrainer': 'Remove trainer',
+  'assign.removeCoach': 'Remove coach',
+  'assign.current': 'Current',
+  'assign.savedTrainer': 'Trainer updated: {name}',
+  'assign.savedNoTrainer': 'Trainer removed: the student is back in the waiting tray.',
+  'assign.savedCoach': 'Food coach updated: {name}',
+  'assign.savedNoCoach': 'Food coach removed.',
+  'assign.error': 'It could not be saved. Nothing was changed — try again.',
   'pend.grp.you': 'Up to you',
   'pend.grp.trainer': 'Up to your trainer',
   'pend.grp.admin': 'Up to the administrator',
@@ -7231,6 +7250,25 @@ es: {
   'pendlist.gone': 'Esos pendientes se acaban de resolver — ya no queda nada que enviar.',
   'pendlist.capped': 'La lista de pendientes ya se envió hace menos de 7 días.',
   'pendlist.none': 'Este alumno no tiene pendientes que dependan de él.',
+  'assign.kicker': 'ASIGNACIONES',
+  'assign.title': 'Entrenador y coach de alimentación',
+  'assign.sheetTitle': 'Asignaciones · {name}',
+  'assign.lineTrainer': 'Entrenador: {name}',
+  'assign.lineCoach': 'Coach de alimentación: {name}',
+  'assign.noneTrainer': 'Sin entrenador',
+  'assign.noneCoach': 'Sin coach',
+  'assign.manage': 'Gestionar entrenador y coach',
+  'assign.noCoaches': 'Aún no hay coaches de alimentación disponibles.',
+  'assign.noTrainers': 'No hay entrenadores disponibles ahora mismo.',
+  'assign.modLive': 'Este alumno tiene una solicitud de cambio de modalidad en curso. Mientras esté abierta, no se puede cambiar ni quitar el entrenador: resuélvela antes en Administración.',
+  'assign.removeTrainer': 'Quitar entrenador',
+  'assign.removeCoach': 'Quitar coach',
+  'assign.current': 'Actual',
+  'assign.savedTrainer': 'Entrenador actualizado: {name}',
+  'assign.savedNoTrainer': 'Entrenador quitado: el alumno volvió a la bandeja de espera.',
+  'assign.savedCoach': 'Coach de alimentación actualizado: {name}',
+  'assign.savedNoCoach': 'Coach de alimentación quitado.',
+  'assign.error': 'No se pudo guardar. No se cambió nada: inténtalo de nuevo.',
   'pend.grp.you': 'Depende de ti',
   'pend.grp.trainer': 'Depende de tu entrenador',
   'pend.grp.admin': 'Depende del administrador',
@@ -11768,7 +11806,7 @@ function clientsRowBadge(u, d, cats) {
 }
 function clientsRowHTML(u) {
   const L = CLIENTS_LAST; const d = clientsDataOf(L, u); const cats = clientCategories(u, d);
-  const inner = `${stuAvatarHTML(u, u.name || '')}<span class="srow-main"><span class="srow-name">${esc(u.name || '—')}</span><span class="srow-sum">${clientsRowSummary(u, d)}</span></span>${clientsRowBadge(u, d, cats)}<span class="srow-go">›</span>`;
+  const inner = `${stuAvatarHTML(u, u.name || '')}<span class="srow-main"><span class="srow-name">${esc(u.name || '—')}</span><span class="srow-sum">${clientsRowSummary(u, d)}</span><span class="srow-assign">${assignRowLine(u)}</span></span>${clientsRowBadge(u, d, cats)}<span class="srow-go">›</span>`;
   return u.approved === true
     ? `<button type="button" class="srow" data-client="${u.id}">${inner}</button>`
     : `<div class="srow srow-static">${inner}</div>`;
@@ -11800,7 +11838,7 @@ function clientsCellHTML(u) {
   const thumb = u.photoURL
     ? `<img src="${esc(u.photoURL)}" alt="">`
     : `<span class="mt-initials" style="background:${stuTint(u.id)};color:#134e4a">${esc(clientInitials(u).toUpperCase() || '·')}</span>`;
-  const inner = `<span class="cgrid-thumb">${thumb}<span class="cgrid-ring" style="border-color:${ring}"></span></span>${badge}<span class="cgrid-name">${esc(u.name || '—')}</span><span class="cgrid-cat" style="color:#6b7280">${clientsRowSummary(u, d)}</span>`;
+  const inner = `<span class="cgrid-thumb">${thumb}<span class="cgrid-ring" style="border-color:${ring}"></span></span>${badge}<span class="cgrid-name">${esc(u.name || '—')}</span><span class="cgrid-cat" style="color:#6b7280">${clientsRowSummary(u, d)}</span><span class="cgrid-assign">${assignRowLine(u)}</span>`;
   return u.approved === true
     ? `<button type="button" class="cgrid-cell" data-client="${u.id}">${inner}</button>`
     : `<div class="cgrid-cell">${inner}</div>`;
@@ -11979,7 +12017,32 @@ async function loadClients() {
      conmutador, sin re-derivar nada al cambiar de vista. */
   const planByUid = {};
   clients.forEach(u => { const c = TALERTS_CACHE[u.id]; planByUid[u.id] = !!(c && c.hasPlan); });
-  CLIENTS_LAST = { clients, chkByUid, alertsByUid, planByUid, lastByUid, lastWByUid, pendingFood, tpendByUid, tpendErrByUid, reqByUid: latestReqByUid };
+  /* ASIGNACIONES (este paquete): el coach vigente de cada cliente
+     (nutritionist_relations con status 'activa') para pintar la
+     línea «🏋️ entrenador · 🥗 coach» de cada fila. El administrador
+     lo lee en UNA pasada de colección (la misma que ya hace su
+     consola del módulo); el entrenador, por cliente y en silencio
+     si las reglas no se lo dan — sin lectura no hay línea de coach
+     (clave ausente = desconocido, jamás un «sin coach» falso). Los
+     nombres se siembran desde la propia lista de usuarios y lo que
+     falte lo resuelve assignResolveName una sola vez por uid. */
+  const coachByUid = {};
+  if (ROLE === 'administrador') {
+    try {
+      const ns = await getDocs(collection(db, 'nutritionist_relations'));
+      ns.forEach(d => { const v = d.data(); coachByUid[d.id] = (v.status === 'activa' && v.nutritionistUid) ? v.nutritionistUid : null; });
+      clients.forEach(u => { if (!(u.id in coachByUid)) coachByUid[u.id] = null; });
+    } catch { /* desconocido: sin claves */ }
+  } else {
+    await Promise.all(clients.map(async u => {
+      try { const s = await getDoc(doc(db, 'nutritionist_relations', u.id)); coachByUid[u.id] = (s.exists() && s.data().status === 'activa') ? (s.data().nutritionistUid || null) : null; } catch {}
+    }));
+  }
+  users.forEach(u => { if (u.name && !ASSIGN_NAMES[u.id]) ASSIGN_NAMES[u.id] = u.name; });
+  const namePend = new Set();
+  clients.forEach(u => { if (u.trainerUid) namePend.add(u.trainerUid); const cv = coachByUid[u.id]; if (cv) namePend.add(cv); });
+  await Promise.all([...namePend].map(uid => assignNameSync(uid) ? null : assignResolveName(uid)));
+  CLIENTS_LAST = { clients, chkByUid, alertsByUid, planByUid, lastByUid, lastWByUid, pendingFood, tpendByUid, tpendErrByUid, reqByUid: latestReqByUid, coachByUid, allUsers: users };
   renderClientsViewbar();
   renderClientsBody();
   $('client-detail').style.display = 'none'; $('client-detail').innerHTML = '';
@@ -13578,7 +13641,7 @@ function studentsRowHTML(u) {
      La memoria de regreso de la ficha (STUDENTS_RESTORE) no
      cambia; una entrada fresca a la vista nace con todas las
      fichas cerradas, como pide la restauración. */
-  return `<button type="button" class="srow" data-stu="${u.id}">${stuAvatarHTML(u, name)}<span class="srow-main"><span class="srow-name">${esc(name)}</span><span class="srow-sub">${studentsSummary(u)}</span></span>${studentsBadge(u)}<span class="srow-chev">›</span></button>`;
+  return `<button type="button" class="srow" data-stu="${u.id}">${stuAvatarHTML(u, name)}<span class="srow-main"><span class="srow-name">${esc(name)}</span><span class="srow-sub">${studentsSummary(u)}</span><span class="srow-assign">${assignRowLine(u)}</span></span>${studentsBadge(u)}<span class="srow-chev">›</span></button>`;
 }
 function studentsGridCellHTML(u) {
   const name = stuName(u);
@@ -13590,6 +13653,7 @@ function studentsGridCellHTML(u) {
     <span class="cgrid-thumb">${u.photoURL ? `<img src="${esc(u.photoURL)}" alt="">` : `<span class="mt-initials" style="background:${stuTint(u.id)};color:#134e4a">${esc(stuInitials(name).toUpperCase() || '·')}</span>`}<span class="cgrid-ring" style="border-color:${ring}"></span></span>
     <span class="cgrid-name">${esc(name)}</span>
     <span class="cgrid-cat" style="color:#6b7280">${studentsSummary(u)}</span>
+    <span class="cgrid-assign">${assignRowLine(u)}</span>
   </button>`;
 }
 function studentsFiltered() {
@@ -13642,6 +13706,9 @@ function studentsDetailHTML(u) {
     h += studentsPendListBarHTML(u.id, pend.items);
     h += stuAdminStepRowHTML(u.id);
     h += studentsEqRowHTML(u.id, (L.chkByUid || {})[u.id]);
+    /* ASIGNACIONES (este paquete): quién es su entrenador y su
+       coach, con la gestión completa para el administrador. */
+    h += assignBlockHTML(u.id, { trainerUid: u.trainerUid || null, coachUid: (L.coachByUid || {})[u.id] || null, coachKnown: !!(L.coachByUid && (u.id in L.coachByUid)) });
     if (!pend.items.length && !pend.traces.length) h += `<p class="pend-none">${esc(t('students.detailClear'))}</p>`;
     if (pend.traces.length) h += `<div class="stu-traces-h">${esc(t('students.resolvedTitle'))}</div>` + pend.traces.map(it => studentsPendItemHTML(u.id, it, true)).join('');
   }
@@ -13699,6 +13766,9 @@ function renderStudentsBody() {
   /* MENSAJE COMBINADO (este paquete): la barra del alumno abre
      la hoja del correo con TODOS sus pendientes. */
   el.querySelectorAll('[data-stu-pendlist]').forEach(b => b.onclick = () => pendListOpen(b.dataset.stuPendlist));
+  /* ASIGNACIONES (este paquete): el botón de gestión del detalle
+     abre la hoja de asignaciones (solo se pinta al administrador). */
+  el.querySelectorAll('[data-assign-open]').forEach(b => b.onclick = () => assignOpen(b.dataset.assignOpen, 'students'));
   el.querySelectorAll('[data-stu-admin-meals]').forEach(b => b.onclick = () => stuGoAdminMeals());
   el.querySelectorAll('[data-stu-retry]').forEach(b => b.onclick = () => { STUDENTS_RESTORE = true; loadStudents(); });
 }
@@ -14263,7 +14333,15 @@ async function loadStudents() {
      propio await/then. */
   const sharedOk = weightsOk && foodOk && reqOk;
   const chkByUid = {}, alertsByUid = {}, pendByUid = {}, pendErrByUid = {};
+  /* ASIGNACIONES (este paquete): el coach vigente de cada alumno,
+     leído en la misma pasada paralela; si la lectura falla, la
+     clave queda ausente (desconocido) y la línea de coach no se
+     pinta — nunca un «sin coach» sin comprobar. */
+  const coachByUid = {};
   await Promise.all(students.map(async u => {
+    const pCoach = (async () => {
+      try { const s = await getDoc(doc(db, 'nutritionist_relations', u.id)); coachByUid[u.id] = (s.exists() && s.data().status === 'activa') ? (s.data().nutritionistUid || null) : null; } catch {}
+    })();
     const cfgP = getDoc(doc(db, 'nutrition_progress', u.id + '_pendconfig'));
     const stP = getDoc(doc(db, 'nutrition_progress', u.id + '_pendstate'));
     cfgP.catch(() => {}); stP.catch(() => {});
@@ -14300,11 +14378,18 @@ async function loadStudents() {
         pendByUid[u.id] = trainerPendUnion(chkByUid[u.id], prog, bodyItem, u);
       } catch { pendErrByUid[u.id] = true; }
     })();
-    await Promise.all([pChk, pAlerts, pPend]);
+    await Promise.all([pChk, pAlerts, pPend, pCoach]);
   }));
   const planByUid = {};
   students.forEach(u => { const c = TALERTS_CACHE[u.id]; planByUid[u.id] = !!(c && c.hasPlan); });
-  STUDENTS_LAST = { clients: students, chkByUid, alertsByUid, planByUid, lastByUid, lastWByUid, pendingFood, pendByUid, pendErrByUid, reqByUid: latestReqByUid };
+  /* ASIGNACIONES: los nombres de los coaches presentes se resuelven
+     una sola vez por uid antes de pintar (el entrenador de la lista
+     es quien mira: su nombre sale de su propia cuenta). */
+  if (UDATA && UDATA.name && auth.currentUser) ASSIGN_NAMES[auth.currentUser.uid] = UDATA.name;
+  const stuNamePend = new Set();
+  students.forEach(u => { const cv = coachByUid[u.id]; if (cv) stuNamePend.add(cv); });
+  await Promise.all([...stuNamePend].map(uid => assignNameSync(uid) ? null : assignResolveName(uid)));
+  STUDENTS_LAST = { clients: students, chkByUid, alertsByUid, planByUid, lastByUid, lastWByUid, pendingFood, pendByUid, pendErrByUid, reqByUid: latestReqByUid, coachByUid };
   renderStudentsViewbar();
   renderStudentsBody();
   /* Punto 93 (D2): la tarjeta «Mi atención» del entrenador vive al
@@ -15911,6 +15996,18 @@ async function openClient(uid) {
   let asmtDoc = null;
   try { const as = await getDoc(doc(db, 'users', uid, 'assessment', 'current')); if (as.exists()) asmtDoc = as.data(); } catch {}
   FA_CARD = { uid, asmt: asmtDoc };
+  /* ASIGNACIONES (este paquete): el estado de asignación de ESTA
+     ficha — el entrenador sale del espejo del usuario ya leído y
+     el coach de su relación del módulo, leída aquí una sola vez.
+     Si la lectura del coach falla, coachKnown queda en falso y la
+     línea de coach no se pinta (nunca un «sin coach» sin saber). */
+  let fichaCoachUid = null, fichaCoachKnown = false;
+  try {
+    const cs = await getDoc(doc(db, 'nutritionist_relations', uid));
+    fichaCoachKnown = true;
+    fichaCoachUid = (cs.exists() && cs.data().status === 'activa') ? (cs.data().nutritionistUid || null) : null;
+  } catch {}
+  FICHA_ASSIGN = { uid, trainerUid: udata ? (udata.trainerUid || null) : null, coachUid: fichaCoachUid, coachKnown: fichaCoachKnown };
   const data = [];
   try {
     const ws = await getDocs(query(collection(db, 'nutrition_weight'), where('ownerUid', '==', uid)));
@@ -15953,6 +16050,7 @@ async function openClient(uid) {
     ${stageStrip}
     ${fichaPendBlockHTML(uid)}
     <div id="ficha-met-box" data-met-uid="${uid}">${fichaMetBlockHTML(uid)}</div>
+    <div id="ficha-assign-box">${assignBlockHTML(uid, FICHA_ASSIGN)}</div>
     <div id="client-rings"></div>
     <div id="client-alerts" data-uid="${uid}"></div>
     ${foodItems.length ? `<h3 class="history-title">${t('client.foodReview', { n: foodItems.length })}</h3>${foodBlock}` : ''}
@@ -15974,6 +16072,13 @@ async function openClient(uid) {
     <div id="client-training"></div>
     <div id="client-evals"><div class="eval-actions"><button type="button" class="btn-ghost btn-sm" id="btn-client-evals">${t('teval.open')}</button></div><div id="client-evals-body" style="display:none"></div></div>`;
   fichaMetWire(box);
+  fichaAssignWire(box);
+  /* ASIGNACIONES: si el nombre del entrenador o del coach no estaba
+     en ninguna caché al pintar, se resuelve una vez y la caja se
+     repinta con el nombre verdadero (jamás un uid como nombre). */
+  if (FICHA_ASSIGN && ((FICHA_ASSIGN.trainerUid && !assignNameSync(FICHA_ASSIGN.trainerUid)) || (FICHA_ASSIGN.coachUid && !assignNameSync(FICHA_ASSIGN.coachUid)))) {
+    Promise.all([assignResolveName(FICHA_ASSIGN.trainerUid), assignResolveName(FICHA_ASSIGN.coachUid)]).then(() => fichaAssignPaint(uid)).catch(() => {});
+  }
   $('btn-client-close').onclick = () => { box.style.display = 'none'; box.innerHTML = ''; };
   /* AUTH-2026-11-02-186 (punto 109 de la cola): fichaHeadClose —
      la cabecera de la persona de la ficha («Registro de peso ·
@@ -33013,6 +33118,347 @@ function fichaMetRefresh(uid) {
     fichaMetWire(box);
   } catch {}
 }
+
+/* ═══════════ ASIGNACIONES A LA VISTA Y GESTIONABLES (este paquete;
+   pedido de Ronald, chat RONBO.NUTRI, 2026-11-03 21:12 CST, con su
+   captura de «Mis clientes»: «Quiero ver en esta misma pantalla el
+   entrenador asignado. También dame la facilidad de quitar, cambiar,
+   asignar entrenador y coach de alimentos en ambas pantallas»).
+
+   LECTURA APLICADA: (1) cada persona de «Mis clientes» y de «Mis
+   alumnos» muestra su entrenador asignado y su coach de alimentación
+   asignado POR SU NOMBRE (jamás un uid), o «Sin entrenador» / «Sin
+   coach» cuando no tiene; (2) en el detalle de la persona (el detalle
+   de «Mis alumnos» y la ficha), sin salir de la pantalla, el
+   ADMINISTRADOR asigna, cambia o quita cada rol desde una hoja
+   flotante sobre velo, con confirmación visible y la fila repintada
+   al momento; (3) los demás entrenadores ven los nombres pero NO
+   los controles (v1).
+
+   MAQUINARIA REUTILIZADA, sin reinventar: el entrenador se mueve con
+   el mismo lote acoplado de la bandeja de espera y del cambio del
+   propio alumno (espejo de users + trainer_relations + contadores
+   de trainer_profiles solo si la cuenta está aprobada + evento de
+   historial 'alta'/'cambio' + auditoría) y al quitarlo el alumno
+   vuelve a la bandeja de espera (relación 'en_espera', espejo
+   'waiting'). La modalidad de la relación NUNCA se escribe al
+   actualizar (la rama del propietario en las reglas la exige
+   intacta); solo nace con ella si la relación no existe. El coach
+   se mueve con las mismas operaciones de la consola del módulo
+   (relación + nutriAdjustQuota + nutriHist + nutriAudit): asignar
+   exige coach APROBADO con membresía activa (el pool de nutriPool)
+   y sin ninguno disponible el control lo dice, sin inventar
+   asignaciones. Cambiar el coach NO reescribe users.goals: cambia
+   qué plan firmado manda al leer (la sucesión de AUTH-201).
+
+   GUARDAS VIVAS respetadas: el límite approvals.maxPerTrainer
+   gobierna APROBACIONES de cuentas nuevas, no estas asignaciones;
+   la creación de una relación con entrenador sí pasa por la regla
+   de cupo abierto del entrenador (membresía activa con hueco; el
+   propietario siempre abierto) y un rechazo se muestra como error
+   honesto. Si el alumno tiene una solicitud de modalidad VIVA, el
+   entrenador no se cambia ni se quita desde aquí (esa solicitud la
+   cierra su propio flujo; el administrador la resuelve en
+   Administración): la hoja lo explica y no pinta los botones. ═══ */
+const ASSIGN_NAMES = {};       // uid → nombre visible (entrenadores y coaches)
+let FICHA_ASSIGN = null;       // { uid, trainerUid, coachUid, coachKnown } de la ficha abierta
+let ASSIGN_CTX = null;         // contexto de la hoja de asignaciones
+
+/* Nombre visible SINCRÓNICO desde las cachés de la casa; null si
+   aún no consta en ninguna (nunca se devuelve un uid). */
+function assignNameSync(uid) {
+  if (!uid) return null;
+  if (ASSIGN_NAMES[uid]) return ASSIGN_NAMES[uid];
+  if (typeof ADMIN_NAME_CACHE !== 'undefined' && ADMIN_NAME_CACHE[uid]) return ADMIN_NAME_CACHE[uid];
+  if (typeof NUTRI !== 'undefined' && NUTRI.names && NUTRI.names[uid]) return NUTRI.names[uid];
+  const me = (typeof auth !== 'undefined' && auth.currentUser) ? auth.currentUser.uid : null;
+  if (me && uid === me && typeof UDATA !== 'undefined' && UDATA && (UDATA.name || UDATA.email)) return UDATA.name || UDATA.email;
+  const d = (typeof nudgeStudentDoc === 'function') ? nudgeStudentDoc(uid) : null;
+  if (d && (d.name || d.email)) return d.name || d.email;
+  return null;
+}
+/* Resolución asíncrona del nombre, una vez por uid, con la cadena
+   de la casa: displayName del perfil profesional → nombre de la
+   cuenta → su correo. El resultado queda en ASSIGN_NAMES. */
+async function assignResolveName(uid) {
+  if (!uid) return null;
+  const hit = assignNameSync(uid);
+  if (hit) { ASSIGN_NAMES[uid] = hit; return hit; }
+  let nm = null;
+  try { const p = await getDoc(doc(db, 'trainer_profiles', uid)); if (p.exists() && p.data().displayName) nm = p.data().displayName; } catch {}
+  if (!nm) { try { const s = await getDoc(doc(db, 'users', uid)); if (s.exists()) nm = s.data().name || s.data().email || null; } catch {} }
+  if (!nm) { try { const p = await getDoc(doc(db, 'nutritionist_profiles', uid)); if (p.exists() && p.data().displayName) nm = p.data().displayName; } catch {} }
+  if (nm) ASSIGN_NAMES[uid] = nm;
+  return nm;
+}
+/* Estado del coach de un alumno según las pasadas cargadas:
+   { known:false } cuando ninguna superficie lo ha leído todavía. */
+function assignCoachState(uid) {
+  if (FICHA_ASSIGN && FICHA_ASSIGN.uid === uid) return { known: FICHA_ASSIGN.coachKnown, uid: FICHA_ASSIGN.coachUid };
+  const C = (typeof CLIENTS_LAST !== 'undefined' && CLIENTS_LAST && CLIENTS_LAST.coachByUid) || null;
+  if (C && (uid in C)) return { known: true, uid: C[uid] };
+  const S = (typeof STUDENTS_LAST !== 'undefined' && STUDENTS_LAST && STUDENTS_LAST.coachByUid) || null;
+  if (S && (uid in S)) return { known: true, uid: S[uid] };
+  return { known: false, uid: null };
+}
+/* La línea compacta de las filas: «🏋️ nombre · 🥗 nombre», con el
+   tramo del coach solo cuando su estado consta. */
+function assignRowLine(u) {
+  const tr = u.trainerUid ? (assignNameSync(u.trainerUid) || '—') : t('assign.noneTrainer');
+  let h = `🏋️ ${esc(tr)}`;
+  const cs = assignCoachState(u.id);
+  if (cs.known) h += ` · 🥗 ${esc(cs.uid ? (assignNameSync(cs.uid) || '—') : t('assign.noneCoach'))}`;
+  return h;
+}
+/* El bloque del detalle y de la ficha: los dos nombres con su
+   rótulo completo y, SOLO para el administrador, el botón que abre
+   la hoja de gestión. */
+function assignBlockHTML(uid, st) {
+  let h = `<div class="assign-box">
+    <h3 class="history-title">🤝 ${esc(t('assign.title'))}</h3>
+    <p class="assign-line">🏋️ ${esc(t('assign.lineTrainer', { name: st.trainerUid ? (assignNameSync(st.trainerUid) || '—') : t('assign.noneTrainer') }))}</p>`;
+  if (st.coachKnown) h += `
+    <p class="assign-line">🥗 ${esc(t('assign.lineCoach', { name: st.coachUid ? (assignNameSync(st.coachUid) || '—') : t('assign.noneCoach') }))}</p>`;
+  if (ROLE === 'administrador') h += `
+    <div class="assign-actions"><button type="button" class="btn-primary assign-manage-btn" data-assign-open="${esc(uid)}">${esc(t('assign.manage'))}</button></div>`;
+  h += `
+  </div>`;
+  return h;
+}
+function fichaAssignWire(scope) {
+  const root = scope || document;
+  const b = root.querySelector ? root.querySelector('[data-assign-open]') : null;
+  if (b) b.addEventListener('click', () => assignOpen(b.getAttribute('data-assign-open'), 'ficha'));
+}
+function fichaAssignPaint(uid) {
+  const box = $('ficha-assign-box');
+  if (!box || !FICHA_ASSIGN || FICHA_ASSIGN.uid !== uid) return;
+  box.innerHTML = assignBlockHTML(uid, FICHA_ASSIGN);
+  fichaAssignWire(box);
+}
+/* El pool de entrenadores asignables: la misma derivación de la
+   bandeja de espera (el propietario o rol entrenador). */
+async function assignTrainerPool() {
+  const out = [];
+  try {
+    const snap = await getDocs(collection(db, 'users'));
+    snap.forEach(d => { const v = d.data(); if (v.isOwner || v.role === 'entrenador') out.push({ uid: d.id, name: v.name || v.email || '—' }); });
+  } catch {}
+  return out;
+}
+/* ── Escritura del ENTRENADOR (administrador): el lote acoplado de
+   la casa. Devuelve true, false o 'modlive'. ── */
+async function assignSetTrainer(studentUid, newTrainerUid) {
+  const me = auth.currentUser.uid;
+  let u = null;
+  try { const s = await getDoc(doc(db, 'users', studentUid)); if (s.exists()) u = s.data(); } catch {}
+  if (!u) return false;
+  const oldT = u.trainerUid || null;
+  if (oldT === newTrainerUid) return true;
+  /* Una solicitud de modalidad viva congela el entrenador: la
+     cierra su propio flujo, no este gesto (las reglas solo dejan
+     cancelarla al propio alumno). */
+  try {
+    const ms = await getDoc(doc(db, 'modality_requests', studentUid));
+    if (ms.exists() && String(ms.data().status || '').startsWith('pendiente_')) return 'modlive';
+  } catch {}
+  let rel = null;
+  try { const rs = await getDoc(doc(db, 'trainer_relations', studentUid)); if (rs.exists()) rel = rs.data(); } catch {}
+  const modality = (rel && rel.modality) || u.modality || 'virtual';
+  const approved = u.approved === true;
+  const batch = writeBatch(db);
+  batch.set(doc(db, 'users', studentUid), {
+    trainerUid: newTrainerUid,
+    assignmentStatus: newTrainerUid ? 'assigned' : 'waiting'
+  }, { merge: true });
+  /* Al ACTUALIZAR, la modalidad no viaja en el lote: el documento
+     resultante la conserva y la rama del propietario lo admite.
+     Solo si la relación NACE aquí lleva la modalidad (válida) y
+     pasa por la regla de cupo abierto del entrenador destino. */
+  const relPayload = {
+    alumnoUid: studentUid, trainerUid: newTrainerUid,
+    status: newTrainerUid ? 'activa' : 'en_espera',
+    startedAt: serverTimestamp(), updatedAt: serverTimestamp()
+  };
+  if (!rel) relPayload.modality = modality;
+  batch.set(doc(db, 'trainer_relations', studentUid), relPayload, { merge: true });
+  /* Contadores: solo si la cuenta está aprobada (como en el cambio
+     del propio alumno); un no aprobado aún no suma en ningún sitio. */
+  if (approved) {
+    for (const [tUid, delta] of [[oldT, -1], [newTrainerUid, +1]]) {
+      if (!tUid) continue;
+      try {
+        const ps = await getDoc(doc(db, 'trainer_profiles', tUid));
+        if (ps.exists()) batch.set(doc(db, 'trainer_profiles', tUid), { activeStudents: Math.max(0, (Number(ps.data().activeStudents) || 0) + delta), updatedAt: serverTimestamp() }, { merge: true });
+      } catch {}
+    }
+  }
+  try { await batch.commit(); } catch { return false; }
+  try {
+    await setDoc(doc(db, 'trainer_relations', studentUid, 'history', 'ev' + Date.now()), {
+      type: oldT ? 'cambio' : 'alta', fromTrainerUid: oldT, toTrainerUid: newTrainerUid,
+      modality, by: me, at: serverTimestamp()
+    });
+  } catch {}
+  await auditLog('relation', newTrainerUid && !oldT ? 'relation.assigned' : 'relation.changed', studentUid, (oldT || '—') + ' → ' + (newTrainerUid || '—'));
+  return true;
+}
+/* ── Escritura del COACH (administrador): las operaciones de la
+   consola del módulo (relación + contador-dato + historial +
+   auditoría). users.goals NO se toca: manda la lectura. ── */
+async function assignSetCoach(studentUid, newCoachUid) {
+  let rel = null;
+  try { const s = await getDoc(doc(db, 'nutritionist_relations', studentUid)); if (s.exists()) rel = s.data(); } catch {}
+  const oldC = (rel && rel.status === 'activa') ? (rel.nutritionistUid || null) : null;
+  if (oldC === newCoachUid) return true;
+  const payload = {
+    studentUid, nutritionistUid: newCoachUid,
+    status: newCoachUid ? 'activa' : 'en_espera',
+    pendingChange: null, updatedAt: serverTimestamp()
+  };
+  if (newCoachUid) payload.startedAt = serverTimestamp();
+  if (!rel) { payload.modality = 'virtual'; payload.followUpCadence = null; }
+  try { await setDoc(doc(db, 'nutritionist_relations', studentUid), payload, { merge: true }); } catch { return false; }
+  if (oldC && oldC !== newCoachUid) await nutriAdjustQuota(oldC, -1);
+  if (newCoachUid && oldC !== newCoachUid) await nutriAdjustQuota(newCoachUid, +1);
+  if (!newCoachUid) await nutriHist(studentUid, 'baja', 'administrador', oldC || '');
+  else if (oldC) await nutriHist(studentUid, 'change_confirmed', 'administrador', oldC + ' -> ' + newCoachUid);
+  else await nutriHist(studentUid, 'assigned', 'administrador', newCoachUid);
+  nutriAudit(newCoachUid ? 'nutrition.assigned' : 'nutrition.unassigned', studentUid, 'administrador', (oldC || '—') + ' → ' + (newCoachUid || '—'));
+  return true;
+}
+/* ── La hoja flotante de gestión ── */
+async function assignOpen(uid, from) {
+  if (ROLE !== 'administrador') return;
+  const fl = $('assign-float'); if (!fl) return;
+  const bd = $('assign-body'); if (!bd) return;
+  ASSIGN_CTX = { uid, from: from || 'ficha', busy: false, trainerUid: null, coachUid: null, coachKnown: false, modLive: false, trainers: [], coaches: [], studentName: '' };
+  const pre = nudgeStudentDoc(uid);
+  const tt = $('assign-title'); if (tt) tt.textContent = t('assign.sheetTitle', { name: (pre && (pre.name || pre.email)) || '' });
+  bd.innerHTML = `<p class="progress-hint">${esc(t('access.loading'))}</p>`;
+  fl.style.display = '';
+  const x = $('assign-x'); if (x) x.onclick = () => assignClose();
+  try {
+    const [uSnap, relSnap, modSnap, poolT, poolC] = await Promise.all([
+      getDoc(doc(db, 'users', uid)),
+      getDoc(doc(db, 'nutritionist_relations', uid)).catch(() => null),
+      getDoc(doc(db, 'modality_requests', uid)).catch(() => null),
+      assignTrainerPool(),
+      (typeof nutriPool === 'function' ? nutriPool() : Promise.resolve([]))
+    ]);
+    if (!ASSIGN_CTX || ASSIGN_CTX.uid !== uid) return;
+    const ud = uSnap.exists() ? uSnap.data() : {};
+    ASSIGN_CTX.studentName = ud.name || ud.email || '';
+    ASSIGN_CTX.trainerUid = ud.trainerUid || null;
+    if (relSnap && relSnap.exists()) { const rd = relSnap.data(); ASSIGN_CTX.coachKnown = true; ASSIGN_CTX.coachUid = (rd.status === 'activa') ? (rd.nutritionistUid || null) : null; }
+    else if (relSnap) { ASSIGN_CTX.coachKnown = true; ASSIGN_CTX.coachUid = null; }
+    const mod = (modSnap && modSnap.exists()) ? modSnap.data() : null;
+    ASSIGN_CTX.modLive = !!(mod && String(mod.status || '').startsWith('pendiente_'));
+    ASSIGN_CTX.trainers = (poolT || []).filter(p => p.uid !== uid);
+    ASSIGN_CTX.trainers.forEach(p => { if (p.name && p.name !== '—') ASSIGN_NAMES[p.uid] = p.name; });
+    ASSIGN_CTX.coaches = [];
+    for (const p of (poolC || [])) {
+      if (!p || p.uid === uid) continue;
+      const nm = p.displayName || (await assignResolveName(p.uid)) || '—';
+      ASSIGN_NAMES[p.uid] = nm;
+      ASSIGN_CTX.coaches.push({ uid: p.uid, name: nm });
+    }
+    if (tt) tt.textContent = t('assign.sheetTitle', { name: ASSIGN_CTX.studentName });
+    assignSheetPaint();
+  } catch { bd.innerHTML = `<p class="progress-hint">${esc(t('assign.error'))}</p>`; }
+}
+function assignClose() {
+  const fl = $('assign-float'); if (fl) fl.style.display = 'none';
+  ASSIGN_CTX = null;
+}
+function assignSheetPaint() {
+  const ctx = ASSIGN_CTX; if (!ctx) return;
+  const bd = $('assign-body'); if (!bd) return;
+  let h = `<p class="nudge-ctx"><span class="nudge-ctx-k">${esc(t('nudge.ctxStudent'))}</span> <b>${esc(ctx.studentName || '')}</b></p>`;
+  h += `<p class="assign-sec-t">🏋️ ${esc(t('assign.lineTrainer', { name: ctx.trainerUid ? (assignNameSync(ctx.trainerUid) || '—') : t('assign.noneTrainer') }))}</p>`;
+  if (ctx.modLive) h += `<p class="assign-note">${esc(t('assign.modLive'))}</p>`;
+  else if (!ctx.trainers.length) h += `<p class="progress-hint">${esc(t('assign.noTrainers'))}</p>`;
+  else {
+    h += ctx.trainers.map(p => {
+      const cur = p.uid === ctx.trainerUid;
+      return `<button type="button" class="assign-opt${cur ? ' on' : ''}" data-assign-trainer="${esc(p.uid)}"${cur ? ' disabled' : ''}>${esc(p.name)}${cur ? ' ✓ · ' + esc(t('assign.current')) : ''}</button>`;
+    }).join('');
+    if (ctx.trainerUid) h += `<button type="button" class="assign-opt assign-remove" data-assign-trainer="">${esc(t('assign.removeTrainer'))}</button>`;
+  }
+  h += `<p class="assign-sec-t">🥗 ${esc(t('assign.lineCoach', { name: ctx.coachUid ? (assignNameSync(ctx.coachUid) || '—') : t('assign.noneCoach') }))}</p>`;
+  if (!ctx.coaches.length && !ctx.coachUid) h += `<p class="progress-hint">${esc(t('assign.noCoaches'))}</p>`;
+  else {
+    h += ctx.coaches.map(p => {
+      const cur = p.uid === ctx.coachUid;
+      return `<button type="button" class="assign-opt${cur ? ' on' : ''}" data-assign-coach="${esc(p.uid)}"${cur ? ' disabled' : ''}>${esc(p.name)}${cur ? ' ✓ · ' + esc(t('assign.current')) : ''}</button>`;
+    }).join('');
+    if (ctx.coachUid) h += `<button type="button" class="assign-opt assign-remove" data-assign-coach="">${esc(t('assign.removeCoach'))}</button>`;
+  }
+  h += `<div class="pend-actions"><button type="button" class="btn-ghost" id="assign-cancel">${esc(t('pend.cancel'))}</button></div>`;
+  bd.innerHTML = h;
+  bd.querySelectorAll('[data-assign-trainer]').forEach(b => b.onclick = () => assignDoTrainer(b.dataset.assignTrainer || null));
+  bd.querySelectorAll('[data-assign-coach]').forEach(b => b.onclick = () => assignDoCoach(b.dataset.assignCoach || null));
+  const cx = $('assign-cancel'); if (cx) cx.onclick = () => assignClose();
+}
+async function assignDoTrainer(newUid) {
+  const ctx = ASSIGN_CTX; if (!ctx || ctx.busy) return;
+  if (newUid === ctx.trainerUid) return;
+  ctx.busy = true;
+  const bd = $('assign-body'); if (bd) bd.querySelectorAll('button').forEach(b => b.disabled = true);
+  const r = await assignSetTrainer(ctx.uid, newUid);
+  if (r === 'modlive') { ctx.busy = false; ctx.modLive = true; assignSheetPaint(); toast(t('assign.modLive'), true); return; }
+  if (!r) { ctx.busy = false; assignSheetPaint(); toast(t('assign.error'), true); return; }
+  const from = ctx.from, uid = ctx.uid;
+  assignClose();
+  toast(newUid ? t('assign.savedTrainer', { name: assignNameSync(newUid) || '—' }) : t('assign.savedNoTrainer'));
+  await assignAfterSave(uid, 'trainer', from);
+}
+async function assignDoCoach(newUid) {
+  const ctx = ASSIGN_CTX; if (!ctx || ctx.busy) return;
+  if (newUid === ctx.coachUid) return;
+  ctx.busy = true;
+  const bd = $('assign-body'); if (bd) bd.querySelectorAll('button').forEach(b => b.disabled = true);
+  const r = await assignSetCoach(ctx.uid, newUid);
+  if (!r) { ctx.busy = false; assignSheetPaint(); toast(t('assign.error'), true); return; }
+  const from = ctx.from, uid = ctx.uid;
+  assignClose();
+  toast(newUid ? t('assign.savedCoach', { name: assignNameSync(newUid) || '—' }) : t('assign.savedNoCoach'));
+  await assignAfterSave(uid, 'coach', from);
+}
+/* Tras guardar: el estado se RELEE de los documentos y todas las
+   superficies abiertas se repintan con el nombre nuevo — la fila
+   de «Mis clientes», el bloque de la ficha y el detalle de «Mis
+   alumnos» — sin salir de la pantalla. Si el alumno dejó de ser
+   del entrenador que mira en «Mis alumnos» (cambio o baja de
+   entrenador), la lista se recarga entera y su sitio pasa a ser
+   la bandeja de espera o el nuevo entrenador. */
+async function assignAfterSave(uid, kind, from) {
+  let trainerUid = null, assignStatus = null, coachUid = null, coachKnown = false;
+  try { const s = await getDoc(doc(db, 'users', uid)); if (s.exists()) { trainerUid = s.data().trainerUid || null; assignStatus = s.data().assignmentStatus || null; } } catch {}
+  try { const s = await getDoc(doc(db, 'nutritionist_relations', uid)); coachKnown = true; coachUid = (s.exists() && s.data().status === 'activa') ? (s.data().nutritionistUid || null) : null; } catch {}
+  const applyTo = L => {
+    if (!L) return;
+    const c = (L.clients || []).find(x => x.id === uid);
+    if (c) { c.trainerUid = trainerUid; if (assignStatus) c.assignmentStatus = assignStatus; }
+    const a = (L.allUsers || []).find(x => x.id === uid);
+    if (a) { a.trainerUid = trainerUid; if (assignStatus) a.assignmentStatus = assignStatus; }
+    if (coachKnown && L.coachByUid) L.coachByUid[uid] = coachUid;
+  };
+  if (typeof CLIENTS_LAST !== 'undefined') applyTo(CLIENTS_LAST);
+  if (typeof STUDENTS_LAST !== 'undefined') applyTo(STUDENTS_LAST);
+  if (FICHA_ASSIGN && FICHA_ASSIGN.uid === uid) {
+    FICHA_ASSIGN.trainerUid = trainerUid;
+    if (coachKnown) { FICHA_ASSIGN.coachUid = coachUid; FICHA_ASSIGN.coachKnown = true; }
+    fichaAssignPaint(uid);
+  }
+  if (typeof CLIENTS_LAST !== 'undefined' && CLIENTS_LAST) { try { renderClientsBody(); } catch {} }
+  /* La bandeja de espera vive en la misma pantalla: si el alumno
+     entró o salió de ella con este gesto, se repinta también. */
+  if (kind === 'trainer' && typeof CLIENTS_LAST !== 'undefined' && CLIENTS_LAST && CLIENTS_LAST.allUsers) { try { renderWaitingTray(CLIENTS_LAST.allUsers); } catch {} }
+  const me = (typeof auth !== 'undefined' && auth.currentUser) ? auth.currentUser.uid : null;
+  if (from === 'students' && kind === 'trainer' && trainerUid !== me) { STUDENTS_RESTORE = true; await loadStudents(); return; }
+  if (typeof STUDENTS_LAST !== 'undefined' && STUDENTS_LAST && typeof STUDENTS_DETAIL !== 'undefined' && STUDENTS_DETAIL === uid) { try { renderStudentsBody(); } catch {} }
+}
 function renderCmpTrainer() {
   const body = $('client-evals-body'); if (!body || !CEV) return;
   const hasAny = Object.keys(CEV.prog).length || Object.keys(CEV.evals).length;
@@ -36739,7 +37185,7 @@ document.addEventListener('keydown', e => { if (e.key === 'Escape') shareClose()
  *  - El SW (sw.js) solo cachea la cáscara del mismo origen en modo
  *    RED PRIMERO: Auth/Firestore/Worker jamás pasan por la caché.
  * ================================================================ */
-const PWA_SW_VERSION = '20261103-barrido-palabra';
+const PWA_SW_VERSION = '20261103-asignados';
 let pwaDeferredPrompt = null;
 function pwaIsStandalone() {
   try {

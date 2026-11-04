@@ -3629,3 +3629,22 @@ body.sess-on #pend-back-chip { bottom: calc(env(safe-area-inset-bottom, 0px) + 1
    reutiliza .stu-nudged de las filas, sin CSS nuevo. */
 .pendlist-bar { margin-top: 10px; }
 .btn-pendlist { width: 100%; min-height: 48px; font-size: 15px; }
+
+/* ===== ASIGNACIONES (pedido de Ronald, chat RONBO.NUTRI,
+   2026-11-03 21:12 CST): la línea «🏋️ entrenador · 🥗 coach» en
+   las filas y rejillas de «Mis alumnos» y «Mis clientes», el bloque
+   del detalle/ficha y la hoja flotante #assign-float. Botones de la
+   casa ≥48 px: la app se usa entrenando y la motricidad fina es
+   complicada. ===== */
+.srow-assign { display: block; font-size: 12px; color: #64748b; margin-top: 2px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.cgrid-assign { display: block; font-size: 11px; color: #64748b; text-align: center; margin-top: 2px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.assign-box { margin-top: 10px; padding: 12px 14px; border: 1px solid rgba(15, 23, 42, .08); border-radius: 14px; background: #f8fafc; }
+.assign-line { margin: 4px 0; font-size: 14px; color: #1f2937; }
+.assign-actions { margin-top: 10px; }
+.assign-manage-btn { width: 100%; min-height: 48px; font-size: 15px; }
+.assign-sec-t { display: block; margin: 14px 0 6px; font-size: 13px; font-weight: 800; letter-spacing: .04em; text-transform: uppercase; color: #0f766e; }
+.assign-opt { display: block; width: 100%; min-height: 48px; margin: 6px 0; padding: 10px 14px; box-sizing: border-box; border: 1px solid #d1d5db; border-radius: 12px; background: #fff; color: #111827; font-family: inherit; font-size: 15px; text-align: left; cursor: pointer; }
+.assign-opt.on { border-color: #0d9488; background: #f0fdfa; font-weight: 700; }
+.assign-opt:disabled { opacity: .55; cursor: default; }
+.assign-remove { color: #b91c1c; border-color: #fecaca; }
+.assign-note { margin: 8px 0; padding: 10px 12px; border: 1px solid #fde68a; border-radius: 12px; background: #fffbeb; color: #92400e; font-size: 13.5px; line-height: 1.45; }
