@@ -4432,6 +4432,7 @@ en: {
   'clients.hint': 'Each client must upload their weight every week. Select one to see their full history, edit their weigh-ins, or add new ones. You set their goals under "Access management".',
   'foot': '· private · only you can see your data',
   'meal.title': 'Log meal',
+  'meal.savingSlow': 'Still saving… check your connection',
   'food.photo': 'Photo',
   'food.text': 'Text',
   'food.voice': 'Voice',
@@ -7487,6 +7488,7 @@ es: {
   'clients.hint': 'Cada cliente debe subir su peso cada semana. Selecciona uno para ver su historial completo, editar sus pesajes o agregar nuevos. Sus metas las estableces en "Administración de accesos".',
   'foot': '· privado · tus datos solo los ves tú',
   'meal.title': 'Registrar comida',
+  'meal.savingSlow': 'Sigue guardando… revisa tu conexión',
   'food.photo': 'Foto',
   'food.text': 'Texto',
   'food.voice': 'Voz',
@@ -35364,7 +35366,20 @@ $('form-meal').addEventListener('submit', async e => {
   if (!data.date || !data.food) { toast(t('err.mealMissing'), true); return; }
   mealSaving = true;
   const saveBtn = e.target.querySelector('button[type="submit"]');
-  if (saveBtn) saveBtn.disabled = true;
+  /* El guardado SE VE desde el primer instante (corrección del
+     reporte «Guardar no hace nada», 2026-11-04): el botón dice
+     «Guardando…» mientras la escritura viaja — antes el único cambio
+     era el atributo disabled, invisible, y si la red tardaba el
+     formulario parecía muerto —; si a los 8 s sigue en curso, el
+     mismo botón avisa en lenguaje simple que sigue guardando y que
+     se revise la conexión. Nunca más un guardado en silencio. */
+  const saveBtnTxt = saveBtn ? saveBtn.textContent : '';
+  let saveSlowTimer = null;
+  if (saveBtn) {
+    saveBtn.disabled = true;
+    saveBtn.textContent = t('msg.saving');
+    saveSlowTimer = setTimeout(() => { if (mealSaving && saveBtn) saveBtn.textContent = t('meal.savingSlow'); }, 8000);
+  }
   try {
     const photoFile = $('m-photo').files[0];
     if (photoFile) {
@@ -35520,7 +35535,8 @@ $('form-meal').addEventListener('submit', async e => {
     try { foodlibAutoCandidate(data); } catch {}
   } finally {
     mealSaving = false;
-    if (saveBtn) saveBtn.disabled = false;
+    if (saveSlowTimer) clearTimeout(saveSlowTimer);
+    if (saveBtn) { saveBtn.disabled = false; saveBtn.textContent = saveBtnTxt; }
   }
 });
 
@@ -38539,7 +38555,7 @@ document.addEventListener('keydown', e => { if (e.key === 'Escape') shareClose()
  *  - El SW (sw.js) solo cachea la cáscara del mismo origen en modo
  *    RED PRIMERO: Auth/Firestore/Worker jamás pasan por la caché.
  * ================================================================ */
-const PWA_SW_VERSION = '20261104-tarjetas-48';
+const PWA_SW_VERSION = '20261104-guardar-visible';
 /* Sello de versión VISIBLE (2026-11-03): el pie de la tarjeta de
    acceso enseña qué copia corre este teléfono ('v ' + el sello),
    para comprobar de un vistazo si la versión nueva ya llegó.
@@ -38882,6 +38898,15 @@ function installCardMaybeShow() {
   try {
     if (installCardDismissed) return;
     if (pwaIsStandalone()) return;
+    /* Nunca sobre el formulario de comida abierto (corrección del
+       reporte «Guardar no hace nada», 2026-11-04): esta tarjeta
+       (z-index 1300) tapa el modal de comida (z-index 50) y se come
+       todos los toques, Guardar incluido, dejando el formulario
+       visible pero muerto. Si el formulario está abierto, la
+       tarjeta espera: se ofrecerá en la siguiente entrada, como
+       en cada inicio de sesión. */
+    const mealModalEl = document.getElementById('meal-modal');
+    if (mealModalEl && mealModalEl.style.display !== 'none') return;
     installCardPaintVariant();
     const ov = document.getElementById('install-card-overlay');
     if (!ov) return;
