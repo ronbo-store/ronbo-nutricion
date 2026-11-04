@@ -31,6 +31,8 @@ jobs:
       - name: Publicar sondas en la propia rama
         if: always()
         working-directory: ${{ github.workspace }}
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
           {
             echo "Sondas: ${{ github.run_id }} · ${{ github.sha }} · $(date -u +%FT%TZ)"
@@ -40,4 +42,4 @@ jobs:
           git config user.name "CI sondas actp1"
           git add tests-actp1/resultado-sondas.txt
           git commit -m "Sondas actp1 (corrida ${{ github.run_id }}) [skip ci]" || echo "sin cambios"
-          git push origin HEAD:ci/actp1-sondas
+          git push "https://x-access-token:${GH_TOKEN}@github.com/ronbo-store/ronbo-nutricion.git" HEAD:ci/actp1-sondas
