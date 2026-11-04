@@ -39337,7 +39337,7 @@ document.addEventListener('keydown', e => { if (e.key === 'Escape') shareClose()
  *  - El SW (sw.js) solo cachea la cáscara del mismo origen en modo
  *    RED PRIMERO: Auth/Firestore/Worker jamás pasan por la caché.
  * ================================================================ */
-const PWA_SW_VERSION = '20261104-retos';
+const PWA_SW_VERSION = '20261104-retos-v2';
 /* Sello de versión VISIBLE (2026-11-03): el pie de la tarjeta de
    acceso enseña qué copia corre este teléfono ('v ' + el sello),
    para comprobar de un vistazo si la versión nueva ya llegó.
@@ -42267,7 +42267,11 @@ function chalItemHTML(chal, part, opts = {}) {
     ${just ? `<p class="chal-celebrate">🎉 ${esc(t('chal.celebrate', { name: chalNameOf(chal) }))}</p>` : ''}
     <div class="chal-actions">`;
   if (opts.joinable) h += `<button type="button" class="btn-primary" data-chal-act="join" data-chal-id="${chal.id}">${esc(t('chal.join'))}</button>`;
-  if (chal.kind === 'group') h += `<button type="button" class="btn-ghost btn-sm" data-chal-act="table" data-chal-id="${chal.id}">${esc(t('chal.tableTitle'))}</button>`;
+  /* La tabla solo se ofrece a quien ya participa (o al
+     creador, en su sección de gestión): las reglas solo dejan
+     leer participaciones a los del propio reto
+     (AUTH-2026-11-04-236). */
+  if (chal.kind === 'group' && isMine) h += `<button type="button" class="btn-ghost btn-sm" data-chal-act="table" data-chal-id="${chal.id}">${esc(t('chal.tableTitle'))}</button>`;
   if (isMine && chal.kind === 'group' && !part.completedAt) h += `<button type="button" class="btn-ghost btn-sm" data-chal-act="leave" data-chal-id="${chal.id}">${esc(t('chal.leave'))}</button>`;
   if (isMine && chal.kind === 'individual') h += `<button type="button" class="btn-ghost btn-sm" data-chal-act="abandon" data-chal-id="${chal.id}">${esc(t('chal.abandon'))}</button>`;
   if (opts.manage) h += `<button type="button" class="btn-ghost btn-sm" data-chal-act="delcreated" data-chal-id="${chal.id}">${esc(t('chal.delete'))}</button>`;
