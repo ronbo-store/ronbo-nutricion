@@ -6,7 +6,8 @@ import {
   signOut, onAuthStateChanged, sendPasswordResetEmail, deleteUser,
 } from "firebase/auth";
 import {
-  getFirestore, doc, getDoc, getDocFromServer, collection, getDocs, getDocsFromServer, addDoc,
+  getFirestore, initializeFirestore, persistentLocalCache, persistentMultipleTabManager, CACHE_SIZE_UNLIMITED,
+  doc, getDoc, getDocFromServer, collection, getDocs, getDocsFromServer, addDoc,
   setDoc, deleteDoc, deleteField, serverTimestamp, Timestamp, query, where, limit, writeBatch, onSnapshot,
 } from "firebase/firestore";
 import {
@@ -26,7 +27,35 @@ const firebaseConfig = {
 
 const app = initializeApp(firebaseConfig);
 const auth = getAuth(app);
-const db = getFirestore(app);
+/* ARRANQUE RÁPIDO (AUTH-2026-11-04-238): Firestore con caché local
+   PERSISTENTE y tamaño SIN LÍMITE práctico — el valor exacto
+   configurado es CACHE_SIZE_UNLIMITED (la constante del SDK,
+   -1 bytes): las reaperturas sirven los datos desde el propio
+   dispositivo y solo sincronizan el delta, en vez de re-bajar toda
+   la historia en cada apertura (diagnóstico de velocidad del
+   2026-11-04: ~1,06 MB de datos por arranque para la cuenta más
+   cargada). Con ese valor, la limpieza automática por tamaño nunca
+   expulsa los datos del usuario (su volumen real es ~1 MB). La
+   PUERTA no se relaja: su decisión sigue saliendo de
+   getDocFromServer (lectura confirmada contra el servidor), nunca
+   de esta caché. Comportamiento sin conexión resultante: las
+   lecturas sirven el último estado conocido en el dispositivo y
+   las escrituras se encolan localmente y se sincronizan solas al
+   volver la red (comportamiento estándar de la caché persistente,
+   con gestor multitab). Si la inicialización con caché fallara en
+   un navegador concreto, se cae a getFirestore de siempre: la app
+   funciona igual, solo que sin caché persistente. */
+let db;
+try {
+  db = initializeFirestore(app, {
+    localCache: persistentLocalCache({
+      cacheSizeBytes: CACHE_SIZE_UNLIMITED,
+      tabManager: persistentMultipleTabManager(),
+    }),
+  });
+} catch (e) {
+  db = getFirestore(app);
+}
 const storage = getStorage(app);
 /* La foto de comida del formulario (#m-photo) requiere Firebase Storage
    (plan Blaze): STORAGE_READY = false la oculta; cuando el dueño active
@@ -15485,6 +15514,12 @@ async function saveMyUnits(next) {
      mismo patrón merge de siempre; si falla, la preferencia H ya
      quedó guardada y el selector de evaluaciones sigue operativo. */
   try {
+    /* ARRANQUE RÁPIDO (AUTH-2026-11-04-238): la sincronía escribe la
+       configuración de evaluaciones DESDE EVAL_CFG; si Progreso aún
+       no se abrió en esta sesión, su estado se carga primero para
+       no pisar las medidas requeridas reales con los valores de
+       fábrica en memoria (antes el arranque ya lo había cargado). */
+    await ensureProgressLoaded();
     const u = clean.mass === 'lb' ? 'imperial' : 'metric';
     if (EVAL_CFG.units !== u) {
       await setDoc(doc(db, 'nutrition_progress', `${uid}_evalconfig`), { kind: 'evalConfig', uid, ownerUid: uid, requiredMeasures: EVAL_CFG.requiredMeasures || [], units: u, updatedAt: serverTimestamp() }, { merge: true });
@@ -18939,75 +18974,94 @@ async function loadAll() {
   if (auth.currentUser && RULES_EPOCH === 'unknown') probeRulesEpoch(auth.currentUser.uid);
   loadAiControl();
   loadRolesX();
-  /* Diario personal: siempre filtrado por el uid autenticado, también
-     para el dueño (colQuery sin filtro dejaba ver las comidas de todos
-     los clientes como propias). La administración no usa estas listas.
-     CONSTRUCCIÓN LOCAL (corrección del duplicado, 2026-10-23): la lista
-     se arma en un objeto LOCAL y se intercambia de una vez cuando la
-     consulta vuelve. Antes se vaciaba y rellenaba el global MEALS a
-     través del await: dos recargas solapadas (p. ej. dos cambios de
-     idioma seguidos, o una recarga cruzada con el guardado) empujaban
-     los MISMOS documentos dos veces sobre el mismo objeto y el diario
-     pintaba cada comida duplicada hasta la siguiente recarga limpia
-     (probado en batería: escenario D6). */
-  const freshMeals = {};
-  const ms = await getDocs(query(collection(db, 'nutrition_meals'), where('ownerUid', '==', auth.currentUser.uid)));
-  ms.forEach(d => {
-    const v = d.data();
-    if (!/^\d{4}-\d{2}-\d{2}$/.test(v.date || '')) return;
-    const m = { id: d.id, meal: v.meal || '', food: v.food || '', qty: v.qty || '',
-      kcal: num(v.kcal), prot: num(v.prot), carb: num(v.carb),
-      sugar: num(v.sugar), fat: num(v.fat), notes: v.notes || '',
-      /* Procedencia (corrección «Repetir», 2026-10-19): loadAll conserva
-         source/origin del documento para que repetir sepa de dónde viene
-         el original; la renderización ordinaria no cambia. */
-      source: v.source || '', origin: v.origin || '',
-      /* Desglose por alimento (2026-10-21): viaja en el propio
-         documento (campo items) cuando el guardado desde el análisis
-         lo persistió; loadAll lo conserva tal cual — la ventana del
-         anillo lo lee de aquí, sin lecturas extra a Firestore. */
-      items: Array.isArray(v.items) ? v.items : null,
-      /* Hora de REGISTRO (paquete «orden descendente + hora»,
-         2026-10-23): el documento nace con createdAt (serverTimestamp)
-         en TODAS las rutas de guardado de comidas (IA foto, IA texto,
-         manual y repetir); se conserva en milisegundos para ordenar
-         el detalle del día y mostrar la hora junto a la etiqueta. Es
-         la hora de registro, NO una hora editable de la comida. */
-      createdAtMs: (v.createdAt && v.createdAt.toMillis) ? v.createdAt.toMillis() : 0,
-      photoURL: v.photoURL || '', photoPath: v.photoPath || '',
-      /* MÓDULO NUTRICIONISTA (desarrollo 2026-11-02): autoría aditiva
-         del registro — los documentos viejos no la traen y se leen
-         como del propio alumno. */
-      byUid: v.byUid || '', byRole: v.byRole || '' };
-    (freshMeals[v.date] = freshMeals[v.date] || []).push(m);
-  });
-  MEALS = freshMeals;
-  Object.values(MEALS).forEach(arr =>
-    arr.sort((a, b) => (MEAL_ORDER[a.meal] || 9) - (MEAL_ORDER[b.meal] || 9)));
-
-  WEIGHTS = [];
-  const ws = await getDocs(query(collection(db, 'nutrition_weight'), where('ownerUid', '==', auth.currentUser.uid)));
-  ws.forEach(d => {
-    const v = d.data();
-    if (num(v.weight) > 0) WEIGHTS.push({ id: d.id, date: v.date, weight: num(v.weight),
-      fat: num(v.fat), muscle: num(v.muscle), water: num(v.water),
-      visceral: num(v.visceral), notes: v.notes || '',
-      weightOriginal: v.weightOriginal != null ? num(v.weightOriginal) : null,
-      weightUnitOriginal: v.weightUnitOriginal || null });
-  });
-  WEIGHTS.sort((a, b) => a.date < b.date ? -1 : 1);
-
+  /* ARRANQUE RÁPIDO (AUTH-2026-11-04-238): el arranque deja de ser
+     una fila india. Antes, loadAll esperaba EN SERIE comidas,
+     pesajes, PROGRESO (con sus fotos: 818 KB de los ~1,06 MB de
+     datos del arranque de la cuenta más cargada), ayuda de comidas,
+     entrenamiento, actividad, pendientes, salud, energía, unidades,
+     administración y clientes, e Inicio no terminaba de pintarse
+     hasta el final de la cadena (diagnóstico de velocidad del
+     2026-11-04). Ahora:
+       1) Inicio se pinta en cuanto están comidas + pesajes, que se
+          piden EN PARALELO: selector de fecha, el día y el peso.
+       2) Los demás cargadores corren EN PARALELO desde el principio
+          y cada uno pinta su superficie al llegar, como ya hacían
+          los pintados progresivos; un fallo en uno no tumba a los
+          demás (cada promesa captura el suyo).
+       3) PROGRESO sale del arranque: nutrition_progress se carga
+          solo al abrir la página Progreso (ensureProgressLoaded,
+          junto a loadProgress). Si ya se cargó en esta sesión, una
+          recarga como la del cambio de idioma SÍ lo refresca al
+          final, como antes.
+       4) El motor de metas conserva EXACTAS sus entradas de siempre
+          (pesajes + energía + declaración de salud + plan para el
+          nivel del día + la configuración de pendientes): corre en
+          cuanto esas están, sin esperar al resto; y se conserva el
+          repintado de Pendientes con salud y energía ya cargadas
+          (corrección 2026-10-26). */
+  const mealsP = (async () => {
+    const freshMeals = {};
+    const ms = await getDocs(query(collection(db, 'nutrition_meals'), where('ownerUid', '==', auth.currentUser.uid)));
+    ms.forEach(d => {
+      const v = d.data();
+      if (!/^\d{4}-\d{2}-\d{2}$/.test(v.date || '')) return;
+      const m = { id: d.id, meal: v.meal || '', food: v.food || '', qty: v.qty || '',
+        kcal: num(v.kcal), prot: num(v.prot), carb: num(v.carb),
+        sugar: num(v.sugar), fat: num(v.fat), notes: v.notes || '',
+        /* Procedencia (corrección «Repetir», 2026-10-19): loadAll conserva
+           source/origin del documento para que repetir sepa de dónde viene
+           el original; la renderización ordinaria no cambia. */
+        source: v.source || '', origin: v.origin || '',
+        /* Desglose por alimento (2026-10-21): viaja en el propio
+           documento (campo items) cuando el guardado desde el análisis
+           lo persistió; loadAll lo conserva tal cual — la ventana del
+           anillo lo lee de aquí, sin lecturas extra a Firestore. */
+        items: Array.isArray(v.items) ? v.items : null,
+        /* Hora de REGISTRO (paquete «orden descendente + hora»,
+           2026-10-23): el documento nace con createdAt (serverTimestamp)
+           en TODAS las rutas de guardado de comidas (IA foto, IA texto,
+           manual y repetir); se conserva en milisegundos para ordenar
+           el detalle del día y mostrar la hora junto a la etiqueta. Es
+           la hora de registro, NO una hora editable de la comida. */
+        createdAtMs: (v.createdAt && v.createdAt.toMillis) ? v.createdAt.toMillis() : 0,
+        photoURL: v.photoURL || '', photoPath: v.photoPath || '',
+        /* MÓDULO NUTRICIONISTA (desarrollo 2026-11-02): autoría aditiva
+           del registro — los documentos viejos no la traen y se leen
+           como del propio alumno. */
+        byUid: v.byUid || '', byRole: v.byRole || '' };
+      (freshMeals[v.date] = freshMeals[v.date] || []).push(m);
+    });
+    MEALS = freshMeals;
+    Object.values(MEALS).forEach(arr =>
+      arr.sort((a, b) => (MEAL_ORDER[a.meal] || 9) - (MEAL_ORDER[b.meal] || 9)));
+  })();
+  const weightsP = (async () => {
+    WEIGHTS = [];
+    const ws = await getDocs(query(collection(db, 'nutrition_weight'), where('ownerUid', '==', auth.currentUser.uid)));
+    ws.forEach(d => {
+      const v = d.data();
+      if (num(v.weight) > 0) WEIGHTS.push({ id: d.id, date: v.date, weight: num(v.weight),
+        fat: num(v.fat), muscle: num(v.muscle), water: num(v.water),
+        visceral: num(v.visceral), notes: v.notes || '',
+        weightOriginal: v.weightOriginal != null ? num(v.weightOriginal) : null,
+        weightUnitOriginal: v.weightUnitOriginal || null });
+    });
+    WEIGHTS.sort((a, b) => a.date < b.date ? -1 : 1);
+  })();
+  const mealHelpP = loadMealHelp().catch(() => {});
+  const trainingP = loadMyTraining().catch(() => {});
+  const activityP = loadActivityLogs().catch(() => {});
+  const healthP = loadMyHealth().catch(() => {});
+  const energyP = loadMyEnergy().catch(() => {});
+  const unitsP = loadMyUnits().catch(() => {});
+  const adminP = loadAdmin().catch(() => {});
+  const clientsP = loadClients().catch(() => {});
+  loadPropClient();
+  await Promise.all([mealsP, weightsP]);
   buildDateSelector();
   renderWeight();
-  await loadProgress();
-  await loadMealHelp();
-  await loadMyTraining();
-  await loadActivityLogs();
-  loadPropClient();
-  await loadPendings();
-  renderPrivacy();
-  await loadMyHealth();
-  await loadMyEnergy();
+  const pendP = (async () => { await loadPendings(); renderPrivacy(); })().catch(() => {});
+  await Promise.all([healthP, energyP, trainingP, pendP]);
   /* El primer renderPendings() (dentro de loadPendings) corre ANTES
      de que carguen la declaración de salud y la evaluación: la
      tarjeta nace con la foto de ese instante (sin esos pendientes de
@@ -19017,9 +19071,11 @@ async function loadAll() {
      reales (corrección 2026-10-26, mismo reporte de Ronald). */
   try { renderPendings(); } catch {}
   try { await goalsEngineRun('load'); } catch {}
-  await loadMyUnits();
-  await loadAdmin();
-  await loadClients();
+  await Promise.all([mealHelpP, activityP, unitsP, adminP, clientsP]);
+  /* Recarga con Progreso ya visitado en esta sesión: se refresca
+     como antes. Si nunca se abrió, sigue sin cargarse: esa es la
+     ganancia del arranque. */
+  if (PROGRESS_LOADED) { try { await loadProgress(); } catch {} }
   applyStorageFlag();
 }
 
@@ -23118,6 +23174,10 @@ function navRestoreScroll(page) {
 }
 function navOpenPage(page) {
   backClear();
+  /* ARRANQUE RÁPIDO (AUTH-2026-11-04-238): Progreso se carga al
+     abrir su página, no en el arranque; cuando la carga llega,
+     loadProgress repinta la página ya abierta. */
+  if (page === 'progress') { try { ensureProgressLoaded(); } catch {} }
   if (NAV_TAB !== 'track') switchTab('track');
   if (NAV_PAGE === page) { navRestoreScroll(page); return; }
   navSaveScroll();
@@ -28732,7 +28792,15 @@ async function renderMyProposals() {
   const uid = auth.currentUser.uid;
   const mine = [];
   try {
-    const snap = await getDocs(query(collection(db, 'nutrition_progress'), where('ownerUid', '==', uid)));
+    /* ARRANQUE RÁPIDO (AUTH-2026-11-04-238): la consulta pide SOLO
+       las propuestas (kind 'planProposal', la forma con que nacen
+       todos esos documentos). Antes pedía la partición entera de
+       nutrition_progress y filtraba en el cliente: en cada arranque
+       descargaba también las fotos de progreso (el 77 % del peso de
+       datos de la cuenta más cargada) solo para pintar esta zona, y
+       lo hacía dos veces. El resultado pintado es el mismo: el
+       filtro de kind del cliente se conserva bajo la consulta. */
+    const snap = await getDocs(query(collection(db, 'nutrition_progress'), where('ownerUid', '==', uid), where('kind', '==', 'planProposal')));
     snap.forEach(d => { const v = d.data(); if (v && v.kind === 'planProposal') mine.push({ id: d.id, ...v }); });
   } catch {}
   mine.sort((a, b) => propTime(b) - propTime(a));
@@ -33406,6 +33474,23 @@ function renderWeight() {
    Privacidad: solo se leen los documentos del propio usuario; en
    esta etapa no hay vista de entrenador para estas fotos. */
 const PROGRESS_SLOTS = ['front', 'side', 'back'];
+/* ARRANQUE RÁPIDO (AUTH-2026-11-04-238): nutrition_progress ya no
+   se carga en el arranque (sus fotos son el 77 % del peso de datos
+   de la cuenta más cargada); se carga al abrir la página Progreso
+   por primera vez (navOpenPage) o cuando una escritura necesita su
+   estado real (evalReconcile, la sincronía de unidades de la
+   evaluación). PROGRESS_LOADED dice si el estado en memoria es el
+   real; loadProgress lo pone a true al completar, también en las
+   recargas tras subir o borrar una foto. */
+let PROGRESS_LOADED = false;
+let PROGRESS_LOADING = null;
+async function ensureProgressLoaded() {
+  if (PROGRESS_LOADED || !auth.currentUser) return;
+  if (!PROGRESS_LOADING) {
+    PROGRESS_LOADING = (async () => { try { await loadProgress(); } catch {} finally { PROGRESS_LOADING = null; } })();
+  }
+  await PROGRESS_LOADING;
+}
 let PROG = {};          // fecha -> { front: {id, photo}, side: {...}, back: {...} }
 let PROG_TARGET = null; // fecha del set mostrado en el área principal
 /* Estado de la EVALUACIÓN DE PROGRESO (bloque más abajo): se carga
@@ -33922,6 +34007,7 @@ async function loadProgress() {
   renderProgress();
   applyCompAccessUI();
   loadWeekCard();
+  PROGRESS_LOADED = true;
 }
 function setSlot(which, url) {
   const img = $('preview-' + which), empty = $('empty-' + which), act = $('actions-' + which);
@@ -34334,6 +34420,12 @@ async function evalFreshContext(date) {
    el render: abrir la vista no escribe nada. */
 async function evalReconcile(date) {
   if (!auth.currentUser || !date) return;
+  /* ARRANQUE RÁPIDO (AUTH-2026-11-04-238): reconciliar juzga sobre
+     el estado de la evaluación; si Progreso aún no se abrió en esta
+     sesión, su estado se carga primero — el mismo invariante que
+     antes daba el arranque (p. ej. al guardar un peso desde Inicio
+     sin haber abierto Progreso). */
+  if (!PROGRESS_LOADED) { try { await ensureProgressLoaded(); } catch {} }
   const complete = evalSetComplete(date);
   const e = EVALS[date];
   try {
@@ -39337,7 +39429,7 @@ document.addEventListener('keydown', e => { if (e.key === 'Escape') shareClose()
  *  - El SW (sw.js) solo cachea la cáscara del mismo origen en modo
  *    RED PRIMERO: Auth/Firestore/Worker jamás pasan por la caché.
  * ================================================================ */
-const PWA_SW_VERSION = '20261104-retos-v2';
+const PWA_SW_VERSION = '20261104-arranque-rapido';
 /* Sello de versión VISIBLE (2026-11-03): el pie de la tarjeta de
    acceso enseña qué copia corre este teléfono ('v ' + el sello),
    para comprobar de un vistazo si la versión nueva ya llegó.
