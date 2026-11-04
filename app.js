@@ -3259,7 +3259,7 @@ en: {
   'form.passwordHint': 'This is your ronbo.fit account password, not your social media one.',
   'form.password2': 'Confirm password',
   'form.optional': 'optional',
-  'health.hint': 'Check any conditions you have. It\'s for your safety: your trainer must know them before assigning an exercise or nutrition plan.',
+  'health.hint': 'Check any conditions you have. It\'s for your safety: your trainer must know them before assigning an exercise or food plan.',
   'health.details': 'Details / medications',
   'health.detailsPh': 'E.g. Takes metformin; left knee injury in 2023…',
   'health.ok': 'I declare that the health information provided is true.',
@@ -6213,7 +6213,7 @@ es: {
   'form.passwordHint': 'Es la contraseña de tu cuenta en ronbo.fit, no la de tus redes sociales.',
   'form.password2': 'Confirmar contraseña',
   'form.optional': 'opcional',
-  'health.hint': 'Marca las condiciones que tengas. Es por tu seguridad: tu entrenador debe conocerlas antes de asignarte un plan de ejercicio o nutrición.',
+  'health.hint': 'Marca las condiciones que tengas. Es por tu seguridad: tu entrenador debe conocerlas antes de asignarte un plan de ejercicio o alimentación.',
   'health.details': 'Detalles / medicamentos',
   'health.detailsPh': 'Ej. Toma metformina; lesión de rodilla izquierda en 2023…',
   'health.ok': 'Declaro que la información de salud indicada es verdadera.',
@@ -36739,7 +36739,7 @@ document.addEventListener('keydown', e => { if (e.key === 'Escape') shareClose()
  *  - El SW (sw.js) solo cachea la cáscara del mismo origen en modo
  *    RED PRIMERO: Auth/Firestore/Worker jamás pasan por la caché.
  * ================================================================ */
-const PWA_SW_VERSION = '20261103-acuerdo-v2';
+const PWA_SW_VERSION = '20261103-barrido-palabra';
 let pwaDeferredPrompt = null;
 function pwaIsStandalone() {
   try {
