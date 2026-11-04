@@ -3879,3 +3879,44 @@ button.wkex-row:active { background: #eef7f5; }
 .tfvar-card.is-current { border-color: #5eead4; background: #f0fdfa; cursor: default; }
 .tfvar-card.is-locked { opacity: .75; cursor: default; }
 .tfvar-current { background: #ccfbf1; color: #0f766e; }
+
+/* ═══ PETICIONES DEL ALUMNO A SU ENTRENADOR (AUTH-2026-11-04-237) ═══
+   Superficies de la casa: botón grande junto al plan, tarjetas
+   blancas con chip de estado (ámbar = enviada · teal = resuelta),
+   botones de tipo y pastillas de días grandes y táctiles (la app
+   se usa entrenando: nada por debajo de 44 px de toque). */
+#treq-box { margin: 12px 0; }
+.treq-open-btn { width: 100%; min-height: 52px; font-size: 16px; border-radius: 14px; }
+.treq-mine-t { margin: 16px 0 8px; font-size: 17px; }
+.treq-card { background: #fff; border: 1px solid rgba(15,23,42,.08); border-radius: 14px; padding: 12px 14px; margin-bottom: 10px; }
+.treq-chip { display: inline-block; padding: 3px 10px; border-radius: 999px; font-size: 12.5px; font-weight: 700; margin-bottom: 6px; }
+.treq-chip-sent { background: #fef3c7; color: #92400e; }
+.treq-chip-resolved { background: #ccfbf1; color: #0f766e; }
+.treq-card-t { font-weight: 700; font-size: 15.5px; color: #14201f; }
+.treq-card-msg { color: #475569; margin-top: 4px; }
+.treq-card-reply { margin-top: 8px; color: #14201f; }
+.treq-card-date { color: #94a3b8; font-size: 13px; margin-top: 6px; }
+.treq-choose { color: #475569; margin: 0 0 10px; }
+.treq-types { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 14px; }
+.treq-type { min-height: 52px; padding: 10px 12px; border-radius: 12px; border: 2px solid #0d9488; background: #fff; color: #14201f; font-size: 15.5px; font-weight: 600; text-align: left; cursor: pointer; }
+.treq-type.on { background: #0d9488; color: #fff; }
+.treq-days-q { font-weight: 700; margin: 0 0 8px; }
+.treq-days { display: flex; align-items: center; gap: 10px; margin-bottom: 14px; }
+.treq-day { width: 56px; height: 56px; border-radius: 12px; border: 2px solid #0d9488; background: #fff; font-size: 19px; font-weight: 700; color: #14201f; cursor: pointer; }
+.treq-day.on { background: #0d9488; color: #fff; }
+.treq-days-word { color: #475569; }
+.treq-msg-label { display: block; font-weight: 700; margin-bottom: 6px; }
+.treq-msg-wrap { position: relative; }
+.treq-msg-wrap textarea { width: 100%; box-sizing: border-box; border: 1.5px solid #cbd5e1; border-radius: 12px; padding: 10px 12px 22px; font: inherit; font-size: 15px; background: #f8fafc; resize: vertical; }
+.treq-count { position: absolute; right: 10px; bottom: 8px; font-size: 12px; color: #94a3b8; }
+.treq-note { background: #fef3c7; color: #92400e; border-radius: 10px; padding: 9px 12px; font-size: 14px; margin: 0 0 12px; }
+.treq-err { color: #b91c1c; font-size: 14px; margin: 10px 0 0; }
+.treq-send { width: 100%; min-height: 52px; font-size: 16px; border-radius: 14px; margin-top: 14px; }
+.treq-ficha-block { background: #fff; border: 2px solid #0d9488; border-radius: 14px; padding: 12px 14px; margin-bottom: 12px; }
+.treq-ficha-hist { background: #fff; border: 1px solid rgba(15,23,42,.08); border-radius: 14px; padding: 12px 14px; margin-bottom: 12px; }
+.treq-ficha-head { display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px; }
+.treq-ficha-head .treq-chip { margin-bottom: 0; }
+.treq-ficha-item { padding: 8px 0; border-top: 1px solid #f1f5f9; }
+.treq-ficha-item:first-of-type { border-top: none; }
+.treq-respond { width: 100%; min-height: 48px; border-radius: 12px; margin-top: 10px; }
+.treq-ctx { margin: 0 0 6px; }

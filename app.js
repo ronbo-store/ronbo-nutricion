@@ -8,7 +8,7 @@ import {
 import {
   getFirestore, initializeFirestore, persistentLocalCache, persistentMultipleTabManager, CACHE_SIZE_UNLIMITED,
   doc, getDoc, getDocFromServer, collection, getDocs, getDocsFromServer, addDoc,
-  setDoc, deleteDoc, deleteField, serverTimestamp, Timestamp, query, where, limit, writeBatch, onSnapshot,
+  setDoc, updateDoc, deleteDoc, deleteField, serverTimestamp, Timestamp, query, where, limit, writeBatch, onSnapshot,
 } from "firebase/firestore";
 import {
   getStorage, ref as sRef, uploadBytes, getDownloadURL, deleteObject,
@@ -4391,6 +4391,51 @@ en: {
   'students.item.eval': 'Biweekly evaluation',
   'students.item.mealReq': 'Meal request',
   'students.item.food': 'Meal photo',
+  'treq.btn': '✉ Ask my trainer for a change',
+  'treq.title': 'Ask my trainer for a change',
+  'treq.choose': 'Choose what you want to ask for:',
+  'treq.type.more_days': 'More days',
+  'treq.type.fewer_days': 'Fewer days',
+  'treq.type.change_exercise': 'Change an exercise',
+  'treq.type.pain_injury': 'Pain or injury',
+  'treq.type.question': 'A question',
+  'treq.type.other': 'Other',
+  'treq.daysQ': 'How many days a week do you want?',
+  'treq.daysWord': 'days',
+  'treq.fewerNone': 'You already train 1 day a week — there is no lower number to ask for.',
+  'treq.msgLabel': 'Short message for your trainer',
+  'treq.msgPh': 'Tell your trainer in a few words…',
+  'treq.send': 'Send request',
+  'treq.sending': 'Sending…',
+  'treq.sentOk': 'Request sent ✓',
+  'treq.mineTitle': 'My requests',
+  'treq.status.sent': 'Sent',
+  'treq.status.resolved': 'Resolved',
+  'treq.daysAWeek': '{n} days a week',
+  'treq.replyFrom': 'Your trainer replied:',
+  'treq.alreadyOpen': 'You already have a request of this type waiting for your trainer.',
+  'treq.msgRequired': 'Write a short message so your trainer knows what you need.',
+  'treq.pickType': 'Choose a type first.',
+  'treq.pickDays': 'Choose how many days.',
+  'treq.mailFail': 'Your request was saved, but the email to your trainer could not be sent.',
+  'treq.mailRetry': 'Retry the email',
+  'treq.blockTitle': 'Requests',
+  'treq.pendChip1': '1 pending',
+  'treq.pendChipN': '{n} pending',
+  'treq.respondBtn': 'Reply and resolve',
+  'treq.sentStatus': 'Sent {date} · Status: Sent',
+  'treq.resolvedStatus': 'Resolved on {date}',
+  'treq.replyTitle': 'Reply and resolve',
+  'treq.replyHelp': 'First make the change in the plan (days, exercise…). Then, if you like, leave a short reply and mark the request as resolved.',
+  'treq.replyLabel': 'Short reply for {name} (optional)',
+  'treq.resolveBtn': 'Mark as resolved',
+  'treq.resolving': 'Saving…',
+  'treq.resolvedOk': 'Request marked as resolved ✓',
+  'treq.historyTitle': 'Request history',
+  'treq.replyWas': 'Your reply:',
+  'treq.noReply': 'Resolved without a written reply.',
+  'treq.pendTitle': 'Request: {what}',
+  'treq.actBtn': 'Reply',
   'students.stWord.vencido': 'overdue',
   'students.stWord.pospuesto': 'postponed',
   'students.chip.pendiente': 'PENDING',
@@ -7654,6 +7699,51 @@ es: {
   'students.item.eval': 'Evaluación quincenal',
   'students.item.mealReq': 'Solicitud de comidas',
   'students.item.food': 'Foto de comida',
+  'treq.btn': '✉ Pedir un cambio a mi entrenador',
+  'treq.title': 'Pedir un cambio a mi entrenador',
+  'treq.choose': 'Elige qué quieres pedir:',
+  'treq.type.more_days': 'Más días',
+  'treq.type.fewer_days': 'Menos días',
+  'treq.type.change_exercise': 'Cambiar un ejercicio',
+  'treq.type.pain_injury': 'Molestia o lesión',
+  'treq.type.question': 'Una duda',
+  'treq.type.other': 'Otro',
+  'treq.daysQ': '¿Cuántos días por semana quieres?',
+  'treq.daysWord': 'días',
+  'treq.fewerNone': 'Ya entrenas 1 día por semana: no hay un número menor que pedir.',
+  'treq.msgLabel': 'Mensaje corto para tu entrenador',
+  'treq.msgPh': 'Cuéntale a tu entrenador en pocas palabras…',
+  'treq.send': 'Enviar petición',
+  'treq.sending': 'Enviando…',
+  'treq.sentOk': 'Petición enviada ✓',
+  'treq.mineTitle': 'Mis peticiones',
+  'treq.status.sent': 'Enviada',
+  'treq.status.resolved': 'Resuelta',
+  'treq.daysAWeek': '{n} días por semana',
+  'treq.replyFrom': 'Respuesta de tu entrenador:',
+  'treq.alreadyOpen': 'Ya tienes una petición de este tipo esperando a tu entrenador.',
+  'treq.msgRequired': 'Escribe un mensaje corto para que tu entrenador sepa qué necesitas.',
+  'treq.pickType': 'Primero elige un tipo.',
+  'treq.pickDays': 'Elige cuántos días.',
+  'treq.mailFail': 'Tu petición quedó guardada, pero el correo a tu entrenador no pudo salir.',
+  'treq.mailRetry': 'Reintentar el correo',
+  'treq.blockTitle': 'Peticiones',
+  'treq.pendChip1': '1 pendiente',
+  'treq.pendChipN': '{n} pendientes',
+  'treq.respondBtn': 'Responder y resolver',
+  'treq.sentStatus': 'Enviada {date} · Estado: Enviada',
+  'treq.resolvedStatus': 'Resuelta el {date}',
+  'treq.replyTitle': 'Responder y resolver',
+  'treq.replyHelp': 'Primero haz el cambio en el plan (días, ejercicio…). Después, si quieres, deja una respuesta corta y marca la petición como resuelta.',
+  'treq.replyLabel': 'Respuesta corta para {name} (opcional)',
+  'treq.resolveBtn': 'Marcar resuelta',
+  'treq.resolving': 'Guardando…',
+  'treq.resolvedOk': 'Petición marcada como resuelta ✓',
+  'treq.historyTitle': 'Historial de peticiones',
+  'treq.replyWas': 'Tu respuesta:',
+  'treq.noReply': 'Resuelta sin respuesta escrita.',
+  'treq.pendTitle': 'Petición: {what}',
+  'treq.actBtn': 'Responder',
   'students.stWord.vencido': 'vencido',
   'students.stWord.pospuesto': 'pospuesto',
   'students.chip.pendiente': 'PENDIENTE',
@@ -12803,6 +12893,18 @@ async function loadClients() {
       : await getDocs(collection(db, 'meal_requests'));
     mq.forEach(d => mealReqsAll.push({ id: d.id, ...d.data() }));
   } catch { reqOkC = false; }
+  /* PETICIONES (AUTH-2026-11-04-237): la misma lectura acotada
+     que las solicitudes de comidas (el entrenador, solo las
+     dirigidas a él; el administrador, todas); solo las ABIERTAS
+     alimentan la unión de pendientes. */
+  const treqOpenByUidC = {}; let treqOkC = true;
+  try {
+    const tq = ROLE === 'entrenador'
+      ? await getDocs(query(collection(db, 'trainer_requests'), where('trainerUid', '==', auth.currentUser.uid)))
+      : await getDocs(collection(db, 'trainer_requests'));
+    tq.forEach(d => { const v = d.data();
+      if (v && v.status === 'sent' && v.studentUid) (treqOpenByUidC[v.studentUid] = treqOpenByUidC[v.studentUid] || []).push({ id: d.id, type: v.type, days: (v.days != null ? v.days : null), createdISO: v.createdISO || null }); });
+  } catch { treqOkC = false; }
   const reqMs = x => (x && x.requestedAt && x.requestedAt.toMillis) ? x.requestedAt.toMillis() : 0;
   const latestReqByUid = {};
   mealReqsAll.forEach(r => { if (r.alumnoUid && (!latestReqByUid[r.alumnoUid] || reqMs(r) >= reqMs(latestReqByUid[r.alumnoUid]))) latestReqByUid[r.alumnoUid] = r; });
@@ -12823,7 +12925,7 @@ async function loadClients() {
      lectura compartida o del propio cliente marca SOLO a ese
      cliente en error — jamás un «al día» falso. */
   const tpendByUid = {}, tpendErrByUid = {};
-  const sharedOkC = weightsOkC && foodOkC && reqOkC;
+  const sharedOkC = weightsOkC && foodOkC && reqOkC && treqOkC;
   await Promise.all(clients.map(async u => {
     if (!sharedOkC || !chkByUid[u.id]) { tpendErrByUid[u.id] = true; return; }
     try {
@@ -12842,7 +12944,8 @@ async function loadClients() {
         wdates: weightDatesByUid[u.id] || [],
         prog: spProgParse(ps),
         reqLatest: latestReqByUid[u.id] || null,
-        foodItems: foodItemsByUid[u.id] || []
+        foodItems: foodItemsByUid[u.id] || [],
+        trainReqs: treqOpenByUidC[u.id] || []
       }, new Date()), bodyItem, u);
     } catch { tpendErrByUid[u.id] = true; }
   }));
@@ -13150,7 +13253,16 @@ function studentsPendCompute(src, now) {
     const ms = dosMs(f.createdAt);
     items.push({ kind: 'food', state: 'pendiente', date: ms ? pendISOof(new Date(ms)) : null, foodId: f.id });
   });
-  const ord = { weight: 0, eval: 1, mealreq: 2, food: 3 };
+  /* PETICIONES (AUTH-2026-11-04-237): cada petición ABIERTA del
+     alumno a su entrenador es un pendiente del entrenador hasta
+     resolverla (diseño D4, el mismo criterio que «Su ecuación»).
+     Solo las pasadas de Alumnos y Clientes alimentan src.trainReqs:
+     el informe semanal de atención (careStudentPass) no lo pasa y
+     por tanto no las recoge, como manda el diseño §6. */
+  (src.trainReqs || []).forEach(rq => {
+    items.push({ kind: 'trainreq', state: 'pendiente', date: rq.createdISO || null, reqId: rq.id, type: rq.type, days: (rq.days != null ? rq.days : null) });
+  });
+  const ord = { weight: 0, eval: 1, mealreq: 2, food: 3, trainreq: 4 };
   items.sort((a, b) => ((a.date || '9999') < (b.date || '9999') ? -1 : (a.date || '9999') > (b.date || '9999') ? 1 : (ord[a.kind] || 9) - (ord[b.kind] || 9)));
   return { items, traces };
 }
@@ -13334,6 +13446,7 @@ function studentsItemTitle(it) {
   if (it.kind === 'weight') return it.never ? t('students.pend.noWeightYet') : it.freq === 7 ? t('students.item.weightWeekly') : t('students.item.weightEvery', { d: it.freq });
   if (it.kind === 'eval') return t('students.item.eval');
   if (it.kind === 'mealreq') return t('students.item.mealReq');
+  if (it.kind === 'trainreq') return t('treq.pendTitle', { what: treqWhat(it) });
   return t('students.item.food');
 }
 function studentsDueText(it) {
@@ -13358,6 +13471,7 @@ function studentsItemSub(it) {
     const on = it.date ? t('students.pend.reqOn', { date: dateName(it.date) }) : '';
     return [on, it.delayed ? t('students.pend.reqDelayed') : ''].filter(Boolean).join(' · ');
   }
+  if (it.kind === 'trainreq') return it.date ? t('students.pend.reqOn', { date: dateName(it.date) }) : '';
   if (it.kind === 'food') return it.date ? t('students.pend.foodOn', { date: dateName(it.date) }) : '';
   if (it.kind === 'body') return t(it.miss === 'consent' ? 'students.pend.bodyNoConsent' : 'students.pend.bodyNoAnalysis');
   /* D4 (punto 106): la causa de la base en la fila de la evaluación
@@ -13380,7 +13494,7 @@ function studentsItemSub(it) {
   }
   return '';
 }
-const STU_ITEM_ICON = { weight: ['#e0f2f1', '⚖️'], eval: ['#ede9fe', '📸'], mealreq: ['#fef3c7', '🍽️'], food: ['#fef3c7', '🍽️'], req: ['#fef3c7', '📋'], body: ['#ede9fe', '🧍'] };
+const STU_ITEM_ICON = { weight: ['#e0f2f1', '⚖️'], eval: ['#ede9fe', '📸'], mealreq: ['#fef3c7', '🍽️'], food: ['#fef3c7', '🍽️'], req: ['#fef3c7', '📋'], body: ['#ede9fe', '🧍'], trainreq: ['#e0f2f1', '✉️'] };
 const STU_CHIP = { vencido: 'st-vencido', pendiente: 'st-pendiente', pospuesto: 'st-pospuesto', omitido: 'st-omitido', completado: 'st-completado' };
 /* AUTH-117 (R1, recorrido de pendientes — mapa aprobado por Ronald,
    chat 2026-10-31 14:19 CDT): RESOLVER ÚNICO de la acción de un ítem
@@ -13399,6 +13513,7 @@ function studentsActFor(it) {
   if (!it) return { btn: null };
   switch (it.kind) {
     case 'mealreq': return { btn: 'students.act.mealReq', surf: 'meal' };
+    case 'trainreq': return { btn: 'treq.actBtn', surf: 'ficha', focus: 'treq' };
     /* AUTH-122 (R5): el «Aún no registra su peso» (never) es del
        alumno — el peso lo ingresa él —: SIN botón resolutorio. El
        pesaje del ciclo conserva su «Ver pesaje» de siempre. */
@@ -15035,6 +15150,7 @@ async function pendConsultSaveReturn() {
    caja exacta conservando el origen del modo ficha; el resto
    enfoca su bloque sin salir de la ficha. */
 function fichaPendAct(uid, kind, reqKey) {
+  if (kind === 'trainreq') { treqFichaScroll(); return; }
   if (kind === 'mealreq') {
     const origin = (typeof FICHA_MODE !== 'undefined' && FICHA_MODE && FICHA_MODE.origin) || 'clients';
     fichaSetMode(origin, 'meal');
@@ -15055,6 +15171,13 @@ function fichaPendAct(uid, kind, reqKey) {
 }
 function studentsOpenRecord(uid, kind, reqKey) {
   STUDENTS_RESTORE = true;
+  if (kind === 'trainreq') {
+    pendConsultTeardown();
+    fichaSetMode('students', 'ficha');
+    openStudent(uid);
+    treqFichaScroll();
+    return;
+  }
   STUDENTS_SCROLL = window.scrollY || 0;
   if (kind === 'mealreq') {
     fichaSetMode('students', 'meal');
@@ -15099,6 +15222,15 @@ async function loadStudents() {
   const pReqs = getDocs(query(collection(db, 'meal_requests'), where('trainerUid', '==', myUid)))
     .then(mq => { const all = []; mq.forEach(d => all.push({ id: d.id, ...d.data() })); return { ok: true, all }; },
           () => ({ ok: false, all: [] }));
+  /* PETICIONES (AUTH-2026-11-04-237): las peticiones ABIERTAS
+     dirigidas a mí, en paralelo con las solicitudes de comidas y
+     con su misma disciplina de error (un fallo entra en sharedOk
+     y marca la pasada, jamás un «al día» falso). */
+  const pTreqs = getDocs(query(collection(db, 'trainer_requests'), where('trainerUid', '==', myUid)))
+    .then(mq => { const byUid = {}; mq.forEach(d => { const v = d.data();
+      if (v && v.status === 'sent' && v.studentUid) (byUid[v.studentUid] = byUid[v.studentUid] || []).push({ id: d.id, type: v.type, days: (v.days != null ? v.days : null), createdISO: v.createdISO || null }); });
+      return { ok: true, byUid }; },
+          () => ({ ok: false, byUid: {} }));
   let users = [];
   try {
     /* SOLO mis alumnos, desde la consulta: la lista acotada por
@@ -15142,10 +15274,11 @@ async function loadStudents() {
     } catch { ok = false; }
     return { ok, pending, items };
   })();
-  const [wRes, fRes, rRes] = await Promise.all([pWeights, pFood, pReqs]);
+  const [wRes, fRes, rRes, tRes] = await Promise.all([pWeights, pFood, pReqs, pTreqs]);
   const weights = wRes.out, weightsOk = wRes.ok;
   const pendingFood = fRes.pending, foodItemsByUid = fRes.items, foodOk = fRes.ok;
   const mealReqsAll = rRes.all, reqOk = rRes.ok;
+  const treqOpenByUid = tRes.byUid, treqOk = tRes.ok;
   const lastByUid = {}, lastWByUid = {}, weightDatesByUid = {};
   weights.forEach(w => {
     if (!lastByUid[w.uid] || w.date > lastByUid[w.uid]) { lastByUid[w.uid] = w.date; lastWByUid[w.uid] = w.weight; }
@@ -15168,7 +15301,7 @@ async function loadStudents() {
      cuando una rama no llega a leerlas (p. ej. caché de alertas
      caliente): el consumidor real sigue viendo el rechazo en su
      propio await/then. */
-  const sharedOk = weightsOk && foodOk && reqOk;
+  const sharedOk = weightsOk && foodOk && reqOk && treqOk;
   const chkByUid = {}, alertsByUid = {}, pendByUid = {}, pendErrByUid = {};
   /* ASIGNACIONES (este paquete): el coach vigente de cada alumno,
      leído en la misma pasada paralela; si la lectura falla, la
@@ -15197,7 +15330,8 @@ async function loadStudents() {
           wdates: weightDatesByUid[u.id] || [],
           prog: spProgParse(ps),
           reqLatest: latestReqByUid[u.id] || null,
-          foodItems: foodItemsByUid[u.id] || []
+          foodItems: foodItemsByUid[u.id] || [],
+          trainReqs: treqOpenByUid[u.id] || []
         }, new Date());
         /* AUTH-110: la fila de pendientes ES la unión única
            (trainerPendUnion). Sin checklist no hay unión honesta:
@@ -16892,6 +17026,7 @@ async function openClient(uid) {
     ${healthAlert}
     ${stageStrip}
     ${fichaPendBlockHTML(uid)}
+    <div id="client-treq"></div>
     <div id="ficha-met-box" data-met-uid="${uid}">${fichaMetBlockHTML(uid)}</div>
     <div id="ficha-assign-box">${assignBlockHTML(uid, FICHA_ASSIGN)}</div>
     <div id="client-rings"></div>
@@ -16971,6 +17106,7 @@ async function openClient(uid) {
      lista de pesos que esta ficha ya cargó (cero lecturas nuevas
      para el peso). */
   try { adhLoadTrainerCard(uid, udata, data); } catch {}
+  try { treqFichaLoad(uid); } catch {}
   try { chalFichaLoad(uid); } catch {}
   box.querySelectorAll('[data-c-edit]').forEach(b => b.onclick = () => {
     const rec = data.find(w => w.id === b.dataset.cEdit);
@@ -19750,6 +19886,330 @@ async function mailAutoWelcome(uid, name) {
   } catch { mailShowNotice(uid, name, t('mail.reasonGeneric')); return { ok: false, status: 0, error: 'exception' }; }
 }
 
+
+
+/* ═══════════ PETICIONES DEL ALUMNO A SU ENTRENADOR (AUTH-2026-11-04-237) ═══════════
+   Diseño cerrado DISENO-PETICIONES-ALUMNO-ENTRENADOR-2026-11-04
+   (decisiones D1–D4 de Ronald, 2026-11-04; maquetas aprobadas por
+   correo de Memphis el mismo día, «Aprobaron», id 1a1a8127a3083bfa):
+   el alumno pide con BOTONES de tipo cerrado + un mensaje corto;
+   el entrenador actúa y puede responder con un mensaje corto que
+   el alumno ve en la app; la petición CUENTA COMO PENDIENTE del
+   entrenador hasta resolverla (entra en studentsPendCompute vía
+   src.trainReqs, SOLO en las pasadas de Alumnos y Clientes — el
+   informe semanal de atención NO la recoge, diseño §6) y al
+   enviarse sale el correo inmediato al entrenador por la ruta
+   /mail/send con la plantilla fija «trainreq» del Worker.
+   Almacén: colección nueva trainer_requests (reglas del paquete).
+   Solo el alumno y SU entrenador asignado ven cada petición; el
+   administrador la ve en la ficha como ve todo, pero el pendiente,
+   el correo y la resolución son del entrenador que la recibió. */
+const TREQ_TYPES = ['more_days', 'fewer_days', 'change_exercise', 'pain_injury', 'question', 'other'];
+const TREQ_MSG_REQUIRED = ['change_exercise', 'pain_injury', 'other'];
+let TREQ_MINE = null;    /* mis peticiones (vista del alumno) o null si la lectura falló */
+let TREQ_SHEET = null;   /* estado de la hoja de envío */
+let TREQ_FICHA = null;   /* { uid, list } de la ficha abierta */
+let TREQ_REPLY = null;   /* { reqId, uid, name } de la hoja de respuesta */
+
+function treqWhat(r) {
+  const base = t('treq.type.' + (r && r.type));
+  const isDays = r && (r.type === 'more_days' || r.type === 'fewer_days') && r.days != null;
+  return isDays ? base + ' — ' + t('treq.daysAWeek', { n: r.days }) : base;
+}
+function treqMs(v) { const ms = (typeof snapMillis === 'function') ? snapMillis(v) : null; return ms || 0; }
+function treqDateText(r) {
+  const iso = (r && r.createdISO) || (treqMs(r && r.createdAt) ? pendISOof(new Date(treqMs(r.createdAt))) : '');
+  return iso ? dateName(iso) : '';
+}
+function treqMyTrainerUid() {
+  const rel = (typeof MY_REL !== 'undefined' && MY_REL) ? MY_REL : null;
+  return (rel && rel.trainerUid) || (UDATA && UDATA.trainerUid) || null;
+}
+
+/* ---------- el correo inmediato (ruta /mail/send, plantilla trainreq) ---------- */
+async function treqMailSend(trainerUid, reqId) {
+  const ep = (typeof aiEndpoint === 'function') ? aiEndpoint() : '';
+  if (!ep) return { ok: false, status: 0, error: 'no-endpoint' };
+  let idToken = '';
+  try { idToken = await promiseWithTimeout(auth.currentUser.getIdToken(), 10000); } catch { return { ok: false, status: 0, error: 'no-token' }; }
+  const ctl = new AbortController();
+  const timer = setTimeout(() => { try { ctl.abort(); } catch {} }, 30000);
+  try {
+    const r = await fetch(ep + '/mail/send', {
+      method: 'POST', headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ idToken, uid: trainerUid, template: 'trainreq', reqId, lang: LANG }),
+      signal: ctl.signal
+    });
+    let j = null; try { j = await r.json(); } catch {}
+    return { ok: r.ok && !!(j && j.ok), status: r.status, error: (j && j.error) || '', to: (j && j.to) || '' };
+  } catch { return { ok: false, status: 0, error: 'network' }; }
+  finally { clearTimeout(timer); }
+}
+function treqMailNotice(trainerUid, reqId) {
+  const box = $('mail-notice');
+  if (!box) return;
+  box.innerHTML = `<span>${esc(t('treq.mailFail'))}</span> <button type="button" class="btn-primary btn-sm" id="treq-mail-retry">${esc(t('treq.mailRetry'))}</button> <button type="button" class="btn-ghost btn-sm" id="treq-mail-close">✕</button>`;
+  box.style.display = '';
+  const rt = $('treq-mail-retry');
+  if (rt) rt.onclick = async () => {
+    rt.disabled = true;
+    const res = await treqMailSend(trainerUid, reqId);
+    if (res.ok) { box.style.display = 'none'; box.innerHTML = ''; toast(t('mail.sentOk', { email: res.to })); }
+    else treqMailNotice(trainerUid, reqId);
+  };
+  const cl = $('treq-mail-close');
+  if (cl) cl.onclick = () => { box.style.display = 'none'; box.innerHTML = ''; };
+}
+
+/* ---------- vista del alumno: botón + «Mis peticiones» junto a su plan ---------- */
+async function treqBoxSync() {
+  const box = $('treq-box');
+  if (!box || !auth.currentUser) return;
+  const trainerUid = treqMyTrainerUid();
+  if (!trainerUid || trainerUid === auth.currentUser.uid) { box.innerHTML = ''; return; }
+  let mine = null;
+  try {
+    const snap = await getDocs(query(collection(db, 'trainer_requests'), where('studentUid', '==', auth.currentUser.uid)));
+    mine = [];
+    snap.forEach(d => mine.push({ id: d.id, ...d.data() }));
+    mine.sort((a, b) => treqMs(b.createdAt) - treqMs(a.createdAt));
+  } catch { mine = null; }
+  TREQ_MINE = mine;
+  box.innerHTML = treqBoxHTML();
+  const b = $('treq-open-btn');
+  if (b) b.onclick = () => treqSheetOpen();
+}
+function treqCardHTML(r) {
+  const open = r.status === 'sent';
+  const chip = open
+    ? `<span class="treq-chip treq-chip-sent">● ${esc(t('treq.status.sent'))}</span>`
+    : `<span class="treq-chip treq-chip-resolved">✓ ${esc(t('treq.status.resolved'))}</span>`;
+  let h = `<div class="treq-card">${chip}<div class="treq-card-t">${esc(treqWhat(r))}</div>`;
+  if (r.message) h += `<div class="treq-card-msg">«${esc(r.message)}»</div>`;
+  if (!open && r.reply) h += `<div class="treq-card-reply"><b>${esc(t('treq.replyFrom'))}</b><br>«${esc(r.reply)}»</div>`;
+  const d = treqDateText(r);
+  if (d) h += `<div class="treq-card-date">${esc(d)}</div>`;
+  return h + '</div>';
+}
+function treqBoxHTML() {
+  let h = `<button type="button" class="btn-primary treq-open-btn" id="treq-open-btn">${esc(t('treq.btn'))}</button>`;
+  if (Array.isArray(TREQ_MINE) && TREQ_MINE.length) {
+    const open = TREQ_MINE.filter(r => r.status === 'sent');
+    const lastResolved = TREQ_MINE.find(r => r.status === 'resolved');
+    const show = lastResolved ? open.concat([lastResolved]) : open;
+    if (show.length) h += `<h3 class="treq-mine-t">${esc(t('treq.mineTitle'))}</h3>` + show.map(treqCardHTML).join('');
+  }
+  return h;
+}
+
+/* ---------- la hoja de envío (D1 + defaults del diseño §7) ---------- */
+function treqCurDays() {
+  return (typeof MY_PLAN !== 'undefined' && MY_PLAN && Array.isArray(MY_PLAN.days)) ? MY_PLAN.days.length : 0;
+}
+function treqDayOptions(type) {
+  if (type === 'more_days') return [4, 5, 6];
+  if (type === 'fewer_days') {
+    const cur = treqCurDays();
+    if (cur > 1) { const o = []; for (let n = 1; n < cur; n++) o.push(n); return o; }
+    if (cur === 1) return [];
+    return [1, 2, 3, 4, 5];
+  }
+  return [];
+}
+function treqSheetOpen() {
+  const fl = $('treq-float'); if (!fl) return;
+  TREQ_SHEET = { type: null, days: null, busy: false };
+  treqSheetPaint();
+  fl.style.display = '';
+  const x = $('treq-x'); if (x) x.onclick = () => treqSheetClose();
+}
+function treqSheetClose() {
+  const fl = $('treq-float'); if (fl) fl.style.display = 'none';
+  TREQ_SHEET = null;
+}
+function treqSheetPaint() {
+  const bd = $('treq-body'); if (!bd || !TREQ_SHEET) return;
+  const s = TREQ_SHEET;
+  const openTypes = Array.isArray(TREQ_MINE) ? TREQ_MINE.filter(r => r.status === 'sent').map(r => r.type) : [];
+  let h = `<p class="treq-choose">${esc(t('treq.choose'))}</p><div class="treq-types">`;
+  h += TREQ_TYPES.map(ty => `<button type="button" class="treq-type${s.type === ty ? ' on' : ''}" data-treq-type="${ty}">${esc(t('treq.type.' + ty))}${openTypes.includes(ty) ? ' ✓' : ''}</button>`).join('');
+  h += '</div>';
+  if (s.type === 'more_days' || s.type === 'fewer_days') {
+    const opts = treqDayOptions(s.type);
+    if (opts.length) {
+      h += `<p class="treq-days-q">${esc(t('treq.daysQ'))}</p><div class="treq-days">`
+        + opts.map(n => `<button type="button" class="treq-day${s.days === n ? ' on' : ''}" data-treq-day="${n}">${n}</button>`).join('')
+        + `<span class="treq-days-word">${esc(t('treq.daysWord'))}</span></div>`;
+    } else {
+      h += `<p class="treq-note">${esc(t('treq.fewerNone'))}</p>`;
+    }
+  }
+  if (s.type && openTypes.includes(s.type)) h += `<p class="treq-note">${esc(t('treq.alreadyOpen'))}</p>`;
+  h += `<label class="treq-msg-label" for="treq-msg">${esc(t('treq.msgLabel'))}</label>
+    <div class="treq-msg-wrap"><textarea id="treq-msg" rows="3" maxlength="280" placeholder="${esc(t('treq.msgPh'))}">${esc(s.msg || '')}</textarea><span class="treq-count" id="treq-count">${(s.msg || '').length} / 280</span></div>
+    <p class="treq-err" id="treq-err" style="display:none"></p>
+    <button type="button" class="btn-primary treq-send" id="treq-send" ${s.busy ? 'disabled' : ''}>${esc(s.busy ? t('treq.sending') : t('treq.send'))}</button>`;
+  bd.innerHTML = h;
+  bd.querySelectorAll('[data-treq-type]').forEach(b => b.onclick = () => { s.type = b.dataset.treqType; s.days = null; treqSheetPaintKeepMsg(); });
+  bd.querySelectorAll('[data-treq-day]').forEach(b => b.onclick = () => { s.days = Number(b.dataset.treqDay); treqSheetPaintKeepMsg(); });
+  const ta = $('treq-msg');
+  if (ta) ta.addEventListener('input', () => { s.msg = ta.value; const c = $('treq-count'); if (c) c.textContent = ta.value.length + ' / 280'; });
+  const sb = $('treq-send');
+  if (sb) sb.onclick = () => treqSheetSend();
+}
+function treqSheetPaintKeepMsg() {
+  const ta = $('treq-msg');
+  if (TREQ_SHEET && ta) TREQ_SHEET.msg = ta.value;
+  treqSheetPaint();
+}
+function treqSheetError(msg) {
+  const e = $('treq-err');
+  if (e) { e.textContent = msg; e.style.display = ''; }
+}
+async function treqSheetSend() {
+  const s = TREQ_SHEET; if (!s || s.busy) return;
+  const trainerUid = treqMyTrainerUid();
+  if (!trainerUid) { treqSheetClose(); return; }
+  if (!s.type) { treqSheetError(t('treq.pickType')); return; }
+  const isDays = s.type === 'more_days' || s.type === 'fewer_days';
+  if (isDays && !treqDayOptions(s.type).length) { treqSheetError(t('treq.fewerNone')); return; }
+  if (isDays && s.days == null) { treqSheetError(t('treq.pickDays')); return; }
+  if (Array.isArray(TREQ_MINE) && TREQ_MINE.some(r => r.status === 'sent' && r.type === s.type)) { treqSheetError(t('treq.alreadyOpen')); return; }
+  const msg = String((($('treq-msg') || {}).value || '')).trim().slice(0, 280);
+  if (TREQ_MSG_REQUIRED.includes(s.type) && !msg) { treqSheetError(t('treq.msgRequired')); return; }
+  s.busy = true; treqSheetPaintKeepMsgBusy();
+  try {
+    const ref = await addDoc(collection(db, 'trainer_requests'), {
+      studentUid: auth.currentUser.uid,
+      studentName: (UDATA && UDATA.name) || '',
+      trainerUid,
+      type: s.type,
+      days: isDays ? s.days : null,
+      message: msg,
+      status: 'sent',
+      createdAt: serverTimestamp(),
+      createdISO: todayISO(),
+      reply: null,
+      resolvedAt: null,
+      resolvedBy: null
+    });
+    treqSheetClose();
+    toast(t('treq.sentOk'));
+    try { await treqBoxSync(); } catch {}
+    const res = await treqMailSend(trainerUid, ref.id);
+    if (!res.ok) treqMailNotice(trainerUid, ref.id);
+  } catch (e) { if (TREQ_SHEET) { TREQ_SHEET.busy = false; treqSheetPaint(); } failToast(e); }
+}
+function treqSheetPaintKeepMsgBusy() {
+  const ta = $('treq-msg');
+  if (TREQ_SHEET && ta) TREQ_SHEET.msg = ta.value;
+  treqSheetPaint();
+}
+
+/* ---------- lado del entrenador: bloque «Peticiones» en la ficha ---------- */
+async function treqFichaLoad(uid) {
+  const host = $('client-treq');
+  if (!host || !auth.currentUser) return;
+  const me = auth.currentUser.uid;
+  let list = [];
+  try {
+    let snap;
+    if (typeof FICHA_ASSIGN !== 'undefined' && FICHA_ASSIGN && FICHA_ASSIGN.trainerUid === me) {
+      snap = await getDocs(query(collection(db, 'trainer_requests'), where('trainerUid', '==', me)));
+    } else {
+      snap = await getDocs(query(collection(db, 'trainer_requests'), where('studentUid', '==', uid)));
+    }
+    snap.forEach(d => { const v = d.data(); if (v && v.studentUid === uid) list.push({ id: d.id, ...v }); });
+  } catch { host.innerHTML = ''; return; }
+  list.sort((a, b) => treqMs(b.createdAt) - treqMs(a.createdAt));
+  TREQ_FICHA = { uid, list };
+  host.innerHTML = treqFichaHTML(uid);
+  treqFichaWire(host, uid);
+}
+function treqFichaHTML(uid) {
+  const me = auth.currentUser.uid;
+  const list = (TREQ_FICHA && TREQ_FICHA.uid === uid) ? TREQ_FICHA.list : [];
+  if (!list.length) return '';
+  const open = list.filter(r => r.status === 'sent');
+  const done = list.filter(r => r.status === 'resolved');
+  let h = '';
+  if (open.length) {
+    h += `<div class="treq-ficha-block"><div class="treq-ficha-head"><b>${esc(t('treq.blockTitle'))}</b><span class="treq-chip treq-chip-sent">${esc(open.length === 1 ? t('treq.pendChip1') : t('treq.pendChipN', { n: open.length }))}</span></div>`;
+    h += open.map(r => `<div class="treq-ficha-item"><div class="treq-card-t">${esc(treqWhat(r))}</div>
+      ${r.message ? `<div class="treq-card-msg">«${esc(r.message)}»</div>` : ''}
+      <div class="treq-card-date">${esc(t('treq.sentStatus', { date: treqDateText(r) }))}</div>
+      ${r.trainerUid === me ? `<button type="button" class="btn-primary treq-respond" data-treq-respond="${esc(r.id)}">${esc(t('treq.respondBtn'))}</button>` : ''}
+      </div>`).join('');
+    h += '</div>';
+  }
+  if (done.length) {
+    h += `<div class="treq-ficha-hist"><div class="treq-ficha-head"><b>${esc(t('treq.historyTitle'))}</b></div>`
+      + done.map(r => `<div class="treq-ficha-item"><div class="treq-card-t">${esc(treqWhat(r))}</div>
+        ${r.message ? `<div class="treq-card-msg">«${esc(r.message)}»</div>` : ''}
+        ${r.reply ? `<div class="treq-card-reply"><b>${esc(t('treq.replyWas'))}</b> «${esc(r.reply)}»</div>` : `<div class="treq-card-date">${esc(t('treq.noReply'))}</div>`}
+        <div class="treq-card-date">${esc(t('treq.resolvedStatus', { date: r.resolvedAt ? dateName(pendISOof(new Date(treqMs(r.resolvedAt)))) : treqDateText(r) }))}</div></div>`).join('')
+      + '</div>';
+  }
+  return h;
+}
+function treqFichaWire(host, uid) {
+  host.querySelectorAll('[data-treq-respond]').forEach(b => b.onclick = () => treqReplyOpen(b.dataset.treqRespond, uid));
+}
+function treqFichaScroll() {
+  let tries = 0;
+  const iv = setInterval(() => {
+    tries++;
+    const el = $('client-treq');
+    if ((el && el.innerHTML) || tries >= 50) { if (el && el.innerHTML) { try { el.scrollIntoView({ block: 'start' }); } catch {} } clearInterval(iv); }
+  }, 120);
+}
+
+/* ---------- la hoja de respuesta del entrenador (D2) ---------- */
+function treqReplyOpen(reqId, uid) {
+  const fl = $('treq-reply-float'); if (!fl) return;
+  const r = (TREQ_FICHA && TREQ_FICHA.list || []).find(x => x.id === reqId);
+  if (!r || r.trainerUid !== auth.currentUser.uid) return;
+  const name = (typeof FICHA_ASSIGN !== 'undefined' && FICHA_ASSIGN && FICHA_ASSIGN.name) || r.studentName || '';
+  TREQ_REPLY = { reqId, uid, name, busy: false };
+  const bd = $('treq-reply-body'); if (!bd) return;
+  bd.innerHTML = `<p class="treq-ctx"><b>${esc(name)}</b> — ${esc(treqWhat(r))}</p>
+    ${r.message ? `<p class="treq-card-msg">«${esc(r.message)}»</p>` : ''}
+    <p class="treq-choose">${esc(t('treq.replyHelp'))}</p>
+    <label class="treq-msg-label" for="treq-reply-text">${esc(t('treq.replyLabel', { name }))}</label>
+    <div class="treq-msg-wrap"><textarea id="treq-reply-text" rows="3" maxlength="280"></textarea><span class="treq-count" id="treq-reply-count">0 / 280</span></div>
+    <button type="button" class="btn-primary treq-send" id="treq-resolve">${esc(t('treq.resolveBtn'))}</button>`;
+  fl.style.display = '';
+  const x = $('treq-reply-x'); if (x) x.onclick = () => treqReplyClose();
+  const ta = $('treq-reply-text');
+  if (ta) ta.addEventListener('input', () => { const c = $('treq-reply-count'); if (c) c.textContent = ta.value.length + ' / 280'; });
+  const sb = $('treq-resolve');
+  if (sb) sb.onclick = () => treqReplyResolve();
+}
+function treqReplyClose() {
+  const fl = $('treq-reply-float'); if (fl) fl.style.display = 'none';
+  TREQ_REPLY = null;
+}
+async function treqReplyResolve() {
+  const ctx = TREQ_REPLY; if (!ctx || ctx.busy) return;
+  const ta = $('treq-reply-text');
+  const reply = String((ta && ta.value) || '').trim().slice(0, 280);
+  ctx.busy = true;
+  const sb = $('treq-resolve'); if (sb) { sb.disabled = true; sb.textContent = t('treq.resolving'); }
+  try {
+    await updateDoc(doc(db, 'trainer_requests', ctx.reqId), {
+      status: 'resolved',
+      reply: reply || null,
+      resolvedAt: serverTimestamp(),
+      resolvedBy: auth.currentUser.uid
+    });
+    const uid = ctx.uid;
+    treqReplyClose();
+    toast(t('treq.resolvedOk'));
+    const y = window.scrollY || 0;
+    try { await openClient(uid); } catch {}
+    try { window.scrollTo(0, y); } catch {}
+  } catch (e) { ctx.busy = false; if (sb) { sb.disabled = false; sb.textContent = t('treq.resolveBtn'); } failToast(e); }
+}
 
 /* ═══════════ COMUNICACIONES (AUTH-2026-11-01-141) ═══════════
    La sección de correo del propietario (diseño aprobado
@@ -28194,6 +28654,7 @@ async function loadMyTraining() {
   const box = $('my-training');
   if (!box || !auth.currentUser) return;
   fdCamRender();
+  try { treqBoxSync(); } catch {}
   const uid = auth.currentUser.uid;
   const plans = await fetchPlans(uid);
   const plan = plans.find(p => p.active === true) || null;
@@ -40336,7 +40797,7 @@ document.addEventListener('keydown', e => { if (e.key === 'Escape') shareClose()
  *  - El SW (sw.js) solo cachea la cáscara del mismo origen en modo
  *    RED PRIMERO: Auth/Firestore/Worker jamás pasan por la caché.
  * ================================================================ */
-const PWA_SW_VERSION = '20261104-cambiar-variante';
+const PWA_SW_VERSION = '20261104-peticiones';
 /* Sello de versión VISIBLE (2026-11-03): el pie de la tarjeta de
    acceso enseña qué copia corre este teléfono ('v ' + el sello),
    para comprobar de un vistazo si la versión nueva ya llegó.
