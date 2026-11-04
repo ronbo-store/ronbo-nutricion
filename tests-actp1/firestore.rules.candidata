@@ -656,25 +656,6 @@ service cloud.firestore {
         && r.version == subA.get('version', '')
         && r.at == request.time;
     }
-    function actReceiptTransitionOk(before, after, type, version) {
-      let tipo = type.split('-')[1];
-      let action = type.split('-')[2];
-      let subB = actConsents(before).get(tipo, {});
-      let subA = actConsents(after).get(tipo, {});
-      return actOnlyTypeChanged(before, after, tipo)
-        && subA.get('version', '') == version
-        && subA.keys().hasOnly(['status', 'version', 'acceptedAt', 'withdrawnAt'])
-        && (action == 'granted'
-            ? (subA.get('status', '') == 'accepted'
-               && subB.get('status', '') != 'accepted'
-               && subB.get('status', '') != 'withdrawn')
-            : (action == 'renewed'
-                ? (subA.get('status', '') == 'accepted'
-                   && subB.get('status', '') == 'withdrawn')
-                : (action == 'withdrawn'
-                   && subA.get('status', '') == 'withdrawn'
-                   && subB.get('status', '') == 'accepted')));
-    }
     function receiptType(before, after) {
       let bs = before.get('healthConsent', {}).get('status', 'none');
       let as2 = after.get('healthConsent', {}).get('status', 'none');
@@ -2474,20 +2455,6 @@ service cloud.firestore {
             && getAfter(userPath(request.auth.uid)).data.consentReceiptId == rid
             && request.resource.data.version
                  == getAfter(userPath(request.auth.uid)).data.termsVersion )
-          ||
-          // Integración de actividad P1 (2026-11-03): evento de
-          // actividad — el recibo activity-{tipo}-{acción} casa
-          // con la transición real del mapa activityConsents en
-          // el mismo lote (antes/después, un solo tipo) y con
-          // los punteros del documento ya actualizado.
-          ( request.resource.data.type.matches('activity-(steps|exercise|weight|sleep)-(granted|renewed|withdrawn)')
-            && exists(userPath(request.auth.uid))
-            && existsAfter(userPath(request.auth.uid))
-            && getAfter(userPath(request.auth.uid)).data.consentReceiptId == rid
-            && actReceiptTransitionOk(get(userPath(request.auth.uid)).data,
-                                      getAfter(userPath(request.auth.uid)).data,
-                                      request.resource.data.type,
-                                      request.resource.data.version) )
           ||
           // Consent transition event: the declared type and version
           // must equal the transition derived from before/after.
