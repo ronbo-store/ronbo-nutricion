@@ -1035,6 +1035,7 @@ table.whist { min-width: 640px; }
 .purpose-opt.disabled { opacity: .55; cursor: not-allowed; background: #f8fafc; }
 .purpose-ico { flex: none; width: 44px; height: 44px; border-radius: 50%; background: #e6f4f1; display: flex; align-items: center; justify-content: center; font-size: 21px; position: relative; overflow: hidden; }
 .purpose-ico-img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; border-radius: 50%; }
+.purpose-ico-img-top { object-position: 50% 0; }
 .purpose-opt-main { flex: 1; min-width: 0; }
 .purpose-opt-title { display: block; font-size: 15px; font-weight: 700; line-height: 1.25; }
 .purpose-opt-sub { display: block; font-size: 12.5px; color: #64748b; line-height: 1.35; margin-top: 1px; }
@@ -1493,8 +1494,18 @@ div > .btn-ghost:only-child, div > .btn-main:only-child {
    y sombra suave; mucho aire. */
 .dos-backdrop { position: fixed; inset: 0; background: rgba(9, 24, 21, .58); z-index: 1200; display: flex; justify-content: center; align-items: flex-start; overflow-y: auto; padding: 16px 10px 28px; }
 .dos-sheet { background: #FAF8F3; color: #22262B; width: min(680px, 100%); border-radius: 22px; overflow: hidden; box-shadow: 0 24px 60px rgba(0,0,0,.35); }
-.dos-cover { position: relative; display: flex; align-items: flex-end; min-height: 240px; background: linear-gradient(135deg, #0d9488 0%, #065f46 55%, #04211d 100%); }
-.dos-cover img.dos-photo { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; }
+.dos-cover { position: relative; display: flex; align-items: flex-end; min-height: 280px; background: linear-gradient(135deg, #0d9488 0%, #065f46 55%, #04211d 100%); }
+.dos-cover img.dos-photo { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; object-position: 50% 0; }
+/* Encuadre de la portada (decisión de Ronald 2026-11-03, punto 1A):
+   la foto de portada es vertical y la cara vive en su tercio superior
+   (1,5 %–38,5 % de la altura). Con «cover» centrado la franja enseñaba
+   un torso sin cabeza. Ahora la foto se ANCLA ARRIBA (object-position
+   50% 0 en cada superficie que la pinta) y la altura mínima de la
+   portada garantiza en las tres bandas que la franja visible cubre la
+   zona de la cara ENTERA: a 480 px de ventana (hoja de 460) hacen
+   falta ≥265 px de alto y a hoja plena de 680 hacen falta ≥391 px;
+   quedan 280 px hasta 480 y 410 px desde 481, con margen. */
+@media (min-width: 481px) { .dos-cover { min-height: 410px; } }
 .dos-cover-shade { position: absolute; inset: 0; background: linear-gradient(180deg, rgba(13,148,136,.16) 0%, rgba(5,43,38,.55) 55%, rgba(3,30,27,.92) 100%); }
 .dos-cover-body { position: relative; width: 100%; padding: 96px 22px 18px; color: #fff; }
 .dos-name { font-size: 30px; line-height: 1.12; font-weight: 800; margin: 0; letter-spacing: .01em; }
@@ -1538,7 +1549,7 @@ div > .btn-ghost:only-child, div > .btn-main:only-child {
 .dos-cert-row, .dos-place-row { display: flex; gap: 6px; flex-wrap: wrap; align-items: center; margin-bottom: 7px; }
 .dos-cert-row input, .dos-place-row input, .dos-place-row select { flex: 1 1 110px; min-width: 0; }
 .dos-cert-row input.yr, .dos-place-row input.yr { flex: 0 1 76px; }
-.dos-photo-prev { width: 100%; max-height: 170px; object-fit: cover; border-radius: 12px; margin: 6px 0; display: block; }
+.dos-photo-prev { width: 100%; aspect-ratio: 16 / 10; object-fit: cover; object-position: 50% 0; border-radius: 12px; margin: 6px 0; display: block; }
 
 /* ===== «Mi perfil» (perfil-visible, 2026-10-24) =====
    Tarjeta básica del usuario con sesión: foto grande, identidad y
@@ -1988,7 +1999,7 @@ body { padding: max(16px, env(safe-area-inset-top)) max(16px, env(safe-area-inse
 .mt-headline { font-size: 13px; color: #374151; font-style: italic; margin: 0 0 6px; }
 .mt-photo { position: relative; flex: none; width: 88px; height: 88px; border-radius: 20px; overflow: hidden; background: #0d9488; border: none; padding: 0; cursor: pointer; }
 .mt-initials { position: absolute; inset: 0; display: flex; align-items: center; justify-content: center; color: #fff; font-size: 30px; font-weight: 800; letter-spacing: .5px; }
-.mt-photo-img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; display: block; }
+.mt-photo-img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; object-position: 50% 0; display: block; }
 
 /* ===== Tarjeta de entrenador RECOGIDA (2026-10-27) =====
    La tarjeta «Mi entrenador» nace en UNA línea: miniatura redonda
@@ -2012,7 +2023,7 @@ body { padding: max(16px, env(safe-area-inset-top)) max(16px, env(safe-area-inse
 .mt-toggle[aria-expanded="true"] .mt-chev { transform: rotate(180deg); }
 .mt-thumb { position: relative; flex: none; width: 44px; height: 44px; border-radius: 50%; overflow: hidden; background: #0d9488; }
 .mt-thumb-initials { position: absolute; inset: 0; display: flex; align-items: center; justify-content: center; color: #fff; font-size: 16px; font-weight: 800; letter-spacing: .5px; }
-.mt-thumb-img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; display: block; }
+.mt-thumb-img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; object-position: 50% 0; display: block; }
 .mt-thumb-wait { background: #e6f4f2; }
 .mt-thumb-emoji { position: absolute; inset: 0; display: flex; align-items: center; justify-content: center; font-size: 22px; }
 .mt-toggle-text { flex: 1 1 auto; min-width: 0; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; font-size: 15px; }

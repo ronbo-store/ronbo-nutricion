@@ -9670,7 +9670,7 @@ function purposeOptCard(kind, icon, titleKey, subHtml, opts) {
   const title = o.rawTitle != null ? esc(o.rawTitle) : esc(t(titleKey));
   const sub = o.rawSub != null ? esc(o.rawSub) : subHtml;
   return `<button type="button" class="purpose-opt${sel}${dis}" data-purpose-${kind}="${esc(o.value || '')}"${o.disabled ? ' disabled aria-disabled="true"' : ''}>
-    <span class="purpose-ico">${o.photo ? `<img class="purpose-ico-img" src="${esc(o.photo)}" alt="" onerror="this.remove()">` : ''}${icon}</span>
+    <span class="purpose-ico">${o.photo ? `<img class="purpose-ico-img${o.imgTop ? ' purpose-ico-img-top' : ''}" src="${esc(o.photo)}" alt="" onerror="this.remove()">` : ''}${icon}</span>
     <span class="purpose-opt-main"><span class="purpose-opt-title">${title}${o.chip ? ` <span class="purpose-chip ${o.chipCls || ''}">${esc(t(o.chip))}</span>` : ''}</span>
     <span class="purpose-opt-sub">${sub}</span></span>
     ${o.disabled ? '<span class="purpose-lock">🔒</span>' : '<span class="purpose-check">✓</span>'}
@@ -9753,7 +9753,7 @@ function purposeRender() {
       });
       const cards = opts.map(tr => {
         const full = tr.quotaTotal != null && isFinite(Number(tr.quotaTotal)) && (Number(tr.quotaUsed) || 0) >= Number(tr.quotaTotal);
-        return purposeOptCard('trainer', '👤', '', '', { value: tr.uid, selected: P.trainerUid === tr.uid, disabled: full, photo: tr.photoUrl || '', rawTitle: tr.name || t('esc.currentTrainer'), rawSub: full ? t('esc.poolFull') : '' });
+        return purposeOptCard('trainer', '👤', '', '', { value: tr.uid, selected: P.trainerUid === tr.uid, disabled: full, photo: tr.photoUrl || '', imgTop: true, rawTitle: tr.name || t('esc.currentTrainer'), rawSub: full ? t('esc.poolFull') : '' });
       }).join('');
       listHtml = `<div class="purpose-opts" style="margin-top:10px">
       ${cards || `<p class="purpose-sub">${esc(t('purpose.noTrainers'))}</p>`}
@@ -37359,7 +37359,7 @@ document.addEventListener('keydown', e => { if (e.key === 'Escape') shareClose()
  *  - El SW (sw.js) solo cachea la cáscara del mismo origen en modo
  *    RED PRIMERO: Auth/Firestore/Worker jamás pasan por la caché.
  * ================================================================ */
-const PWA_SW_VERSION = '20261103-reparto-manual';
+const PWA_SW_VERSION = '20261103-recorte-portada';
 let pwaDeferredPrompt = null;
 function pwaIsStandalone() {
   try {
