@@ -1504,6 +1504,37 @@ service cloud.firestore {
                 == resource.data.get('goalFocus', {}).get('competition', {}).get('checkinEveryDays', null)))
         && (!request.resource.data.diff(resource.data).affectedKeys().hasAny(['goalsProvenance'])
             || request.resource.data.goalsProvenance is map);
+      // Integración de actividad P1 (2026-11-03): OTORGAR o
+      // RENOVAR el consentimiento de UN tipo de actividad
+      // (activityConsents): exactamente un tipo cambia a
+      // 'accepted' (actGrantShape: los otros tres quedan byte a
+      // byte iguales), hora del servidor, versión del texto; el
+      // recibo acoplado debe casar con la derivación
+      // (activity-{tipo}-granted|renewed) y con la versión del
+      // tipo cambiado; seq +1 exacto.
+      allow update: if isSelf(uid)
+        && request.resource.data.get('activityConsents', {}) != resource.data.get('activityConsents', {})
+        && request.resource.data.diff(resource.data).affectedKeys()
+              .hasOnly(['activityConsents', 'consentSeq', 'consentReceiptId'])
+        && request.resource.data.consentSeq == resource.data.get('consentSeq', 0) + 1
+        && request.resource.data.consentReceiptId == uid + '_' + string(request.resource.data.consentSeq)
+        && actActOk(resource.data, request.resource.data, 'grant');
+      // RETIRAR el consentimiento de UN tipo de actividad: de
+      // 'accepted' a 'withdrawn' (actWithdrawShape: exactamente un
+      // tipo, los demás intactos), hora del servidor, aceptación y
+      // versión conservadas; recibo 'activity-{tipo}-withdrawn'
+      // acoplado, seq +1 exacto. (El borrado de los datos del
+      // sueño viaja en el mismo acto de la app por la colección
+      // activity_data; la retirada ya cierra aquí la lectura del
+      // entrenador.)
+      allow update: if isSelf(uid)
+        && request.resource.data.get('activityConsents', {}) != resource.data.get('activityConsents', {})
+        && request.resource.data.diff(resource.data).affectedKeys()
+              .hasOnly(['activityConsents', 'consentSeq', 'consentReceiptId'])
+        && request.resource.data.consentSeq == resource.data.get('consentSeq', 0) + 1
+        && request.resource.data.consentReceiptId == uid + '_' + string(request.resource.data.consentSeq)
+        && actActOk(resource.data, request.resource.data, 'withdraw');
+
       // Consent withdrawal: a client may revoke THEMSELVES only —
       // acceptedTerms=false, approved=false, withdrawal timestamp —
       // and nothing else in the same write. At least one of the two
@@ -1603,35 +1634,6 @@ service cloud.firestore {
         && receiptMatches(request.resource.data.consentReceiptId, uid,
                           'specific-withdrawn',
                           request.resource.data.healthConsent.version);
-
-      // Integración de actividad P1 (2026-11-03): OTORGAR o
-      // RENOVAR el consentimiento de UN tipo de actividad
-      // (activityConsents): exactamente un tipo cambia a
-      // 'accepted' (actGrantShape: los otros tres quedan byte a
-      // byte iguales), hora del servidor, versión del texto; el
-      // recibo acoplado debe casar con la derivación
-      // (activity-{tipo}-granted|renewed) y con la versión del
-      // tipo cambiado; seq +1 exacto.
-      allow update: if isSelf(uid)
-        && request.resource.data.diff(resource.data).affectedKeys()
-              .hasOnly(['activityConsents', 'consentSeq', 'consentReceiptId'])
-        && request.resource.data.consentSeq == resource.data.get('consentSeq', 0) + 1
-        && request.resource.data.consentReceiptId == uid + '_' + string(request.resource.data.consentSeq)
-        && actActOk(resource.data, request.resource.data, 'grant');
-      // RETIRAR el consentimiento de UN tipo de actividad: de
-      // 'accepted' a 'withdrawn' (actWithdrawShape: exactamente un
-      // tipo, los demás intactos), hora del servidor, aceptación y
-      // versión conservadas; recibo 'activity-{tipo}-withdrawn'
-      // acoplado, seq +1 exacto. (El borrado de los datos del
-      // sueño viaja en el mismo acto de la app por la colección
-      // activity_data; la retirada ya cierra aquí la lectura del
-      // entrenador.)
-      allow update: if isSelf(uid)
-        && request.resource.data.diff(resource.data).affectedKeys()
-              .hasOnly(['activityConsents', 'consentSeq', 'consentReceiptId'])
-        && request.resource.data.consentSeq == resource.data.get('consentSeq', 0) + 1
-        && request.resource.data.consentReceiptId == uid + '_' + string(request.resource.data.consentSeq)
-        && actActOk(resource.data, request.resource.data, 'withdraw');
 
       // Body-photo consent (Nivel 2, metadata only — never photos).
       // Grant/renew: only the client, a NEW acceptance act: status
