@@ -21,7 +21,7 @@
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-title" content="RONBO FIT">
 <meta name="apple-mobile-web-app-status-bar-style" content="default">
-<link rel="stylesheet" href="styles.css?v=20261104-guardar-visible">
+<link rel="stylesheet" href="styles.css?v=20261104-semana">
 <script defer src="https://cloud.umami.is/script.js" data-website-id="a29706d4-44a2-47cf-900a-5f74d74abfa8"></script>
 <script type="importmap">
 {
@@ -398,6 +398,12 @@
          vive sobre la página (navRender + coverApply en app.js y el
          bloque final de styles.css). La hoja #share-float, su lógica
          y la clave share.button del diccionario no se tocan. -->
+    <!-- TARJETA SEMANAL «TU SEMANA» (diseño aprobado por Ronald
+         2026-11-04): la pinta loadWeekCard() en app.js desde los
+         registros del propio alumno; si no hay semana cerrada con
+         sesiones, la caja queda vacía y la página se ve como
+         siempre. -->
+    <div id="week-card-box"></div>
     <div class="prog-subtabs" role="tablist">
       <button type="button" class="prog-subtab active" id="prog-tab-fotos" role="tab" aria-selected="true" data-i18n="progress.tabPhotos">Photos</button>
       <button type="button" class="prog-subtab" id="prog-tab-medidas" role="tab" aria-selected="false" data-i18n="progress.tabMeasures">Measures</button>
@@ -1839,6 +1845,6 @@
 <div id="toast" class="toast"></div>
 <div id="print-card" aria-hidden="true"></div>
 
-<script type="module" src="app.js?v=20261104-guardar-visible"></script>
+<script type="module" src="app.js?v=20261104-semana"></script>
 </body>
 </html>

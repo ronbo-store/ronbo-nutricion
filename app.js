@@ -3408,6 +3408,65 @@ en: {
   'eve.foot': 'You will see this once, on the demanding day itself.',
   'eve.title': 'Demanding-day heads-up',
   'eve.help': 'A heads-up that same day, when the day is demanding',
+  /* TARJETA SEMANAL «TU SEMANA» (diseño aprobado por Ronald
+     2026-11-04): el relato del entrenador virtual se compone de
+     piezas con sus cifras en **negrita** (el renderizador las
+     convierte en <b>); cada pieza SOLO nace cuando el registro
+     de esa semana la sostiene — nada se estima ni se promete. */
+  'wk.title': 'YOUR WEEK',
+  'wk.sub': 'Your virtual trainer sums it up',
+  'wk.open1': 'What a week, {name}! You trained **once**',
+  'wk.openN': 'What a week, {name}! You trained **{n} times**',
+  'wk.open1nn': 'What a week! You trained **once**',
+  'wk.openNnn': 'What a week! You trained **{n} times**',
+  'wk.openTime': ', adding up **{time}** at the gym',
+  'wk.openKg': ', with **{kg} kg** moved in total',
+  'wk.timeHours': '{h} hours',
+  'wk.timeHourMin': '1 hour and {r} minutes',
+  'wk.timeHour': '1 hour',
+  'wk.timeMin': '{m} minutes',
+  'wk.moment': 'Your moment: **{name} — from {a} to {b}**{reps}',
+  'wk.momentReps': ', without losing a single rep',
+  'wk.effort': 'Your average effort was **{r} out of 10**',
+  'wk.and': 'and',
+  'wk.sat': 'in the sessions where you reported how you felt, you marked **{s} out of 5**',
+  'wk.satGood': ': you left feeling good',
+  'wk.satLow': ': you did not leave feeling your best',
+  'wk.injury1': 'You reported **a pain or injury** this week: your trainer already knows',
+  'wk.injuryN': 'You reported **{n} pains or injuries** this week: your trainer already knows',
+  'wk.cmpKgUp': 'Compared with the week before, you moved **{p}% more** weight',
+  'wk.cmpKgDown': 'Compared with the week before, you moved **{p}% less** weight',
+  'wk.cmpSesUp1': 'One more session than the week before',
+  'wk.cmpSesUpN': '**{n} more sessions** than the week before',
+  'wk.cmpSesDown1': 'One session fewer than the week before',
+  'wk.cmpSesDownN': '**{n} fewer sessions** than the week before',
+  'wk.constancy': 'You completed **{d} of your {p} planned days**',
+  'wk.streak': ', and you have now completed your full plan **{n} weeks** in a row',
+  'wk.rest': 'You rested an average of **{x}** between exercises',
+  'wk.restScope': ' (in the sessions with times recorded)',
+  'wk.chipSessions': 'SESSIONS',
+  'wk.chipTime': 'TIME',
+  'wk.chipTimeReg': 'TIME LOGGED',
+  'wk.chipKg': 'WEIGHT MOVED',
+  'wk.chipEffort': 'AVG EFFORT',
+  'wk.impLead': 'To improve:',
+  'wk.impStag': 'your {name} stayed at **{v}** on both its days this week — if it feels below your limit, try **{v2}** on the last set',
+  'wk.impStagN': 'your {name} stayed at **{v}** on its {k} days this week — if it feels below your limit, try **{v2}** on the last set',
+  'wk.impMissed1': 'you missed **1 day** of your plan this week; consistency is progress too',
+  'wk.impMissedN': 'you missed **{n} days** of your plan this week; consistency is progress too',
+  'wk.impShort': 'your session on {day} was short (**{m} min** against your average of {avg} min); when you can, give it its full time',
+  'wk.impNoFig': 'no figures were logged for {name}; jot down reps and load so its progress can be followed',
+  'wk.foot': 'Computed from your training logs for that week.',
+  'wk.exTitle': 'YOUR EXERCISES THIS WEEK',
+  'wk.exNone': 'no figures',
+  'wk.exSame': 'no change',
+  'wk.close.0': 'This week’s consistency is already progress.',
+  'wk.close.1': 'What you repeat every week becomes your level.',
+  'wk.close.2': 'Rest, eat and come back: that’s how it’s built.',
+  'wk.close.3': 'Your next week starts with the first session.',
+  'wk.close.4': 'It’s not about one perfect week, but about weeks that add up.',
+  'wk.close.5': 'Your body follows what you do every week, not what you do once.',
+  'wk.close.6': 'Log it, train, repeat: your log is your map.',
   'msg.eveSaved': 'Heads-up setting saved.',
   'myprof.dsStateOn': 'On',
   'myprof.dsStateOff': 'Off',
@@ -6464,6 +6523,62 @@ es: {
   'eve.foot': 'Te lo muestro una sola vez, el mismo día exigente.',
   'eve.title': 'Aviso de día exigente',
   'eve.help': 'Te aviso el mismo día, cuando el día es exigente',
+  /* TARJETA SEMANAL «TU SEMANA» (diseño aprobado por Ronald
+     2026-11-04): ver la nota gemela en el diccionario EN. */
+  'wk.title': 'TU SEMANA',
+  'wk.sub': 'Tu entrenador virtual te la resume',
+  'wk.open1': '¡Qué semana, {name}! Entrenaste **1 vez**',
+  'wk.openN': '¡Qué semana, {name}! Entrenaste **{n} veces**',
+  'wk.open1nn': '¡Qué semana! Entrenaste **1 vez**',
+  'wk.openNnn': '¡Qué semana! Entrenaste **{n} veces**',
+  'wk.openTime': ', y sumaste **{time}** de gimnasio',
+  'wk.openKg': ', con **{kg} kg** movidos en total',
+  'wk.timeHours': '{h} horas',
+  'wk.timeHourMin': '1 hora y {r} minutos',
+  'wk.timeHour': '1 hora',
+  'wk.timeMin': '{m} minutos',
+  'wk.moment': 'Tu momento: **{name} — de {a} a {b}**{reps}',
+  'wk.momentReps': ', sin perder ni una repetición',
+  'wk.effort': 'Tu esfuerzo medio fue de **{r} sobre 10**',
+  'wk.and': 'y',
+  'wk.sat': 'en las sesiones en que reportaste cómo te sentiste, marcaste **{s} de 5**',
+  'wk.satGood': ': te fuiste a gusto',
+  'wk.satLow': ': no te fuiste del todo a gusto',
+  'wk.injury1': 'Reportaste **una molestia o lesión** esta semana: tu entrenador ya lo sabe',
+  'wk.injuryN': 'Reportaste **{n} molestias o lesiones** esta semana: tu entrenador ya lo sabe',
+  'wk.cmpKgUp': 'Comparada con la semana anterior, moviste un **{p}% más** de peso',
+  'wk.cmpKgDown': 'Comparada con la semana anterior, moviste un **{p}% menos** de peso',
+  'wk.cmpSesUp1': 'Una sesión más que la semana anterior',
+  'wk.cmpSesUpN': '**{n} sesiones más** que la semana anterior',
+  'wk.cmpSesDown1': 'Una sesión menos que la semana anterior',
+  'wk.cmpSesDownN': '**{n} sesiones menos** que la semana anterior',
+  'wk.constancy': 'Cumpliste **{d} de tus {p} días** de plan',
+  'wk.streak': ', y llevas **{n} semanas** cumpliéndolo completo',
+  'wk.rest': 'Descansaste en promedio **{x}** entre ejercicios',
+  'wk.restScope': ' (en las sesiones con horas registradas)',
+  'wk.chipSessions': 'SESIONES',
+  'wk.chipTime': 'TIEMPO',
+  'wk.chipTimeReg': 'TIEMPO REGISTRADO',
+  'wk.chipKg': 'PESO MOVIDO',
+  'wk.chipEffort': 'ESFUERZO MEDIO',
+  'wk.impLead': 'A mejorar:',
+  'wk.impStag': 'tu {name} se quedó en **{v}** en sus dos días de esta semana. Si la sientes por debajo de tu límite, prueba **{v2}** en la última serie',
+  'wk.impStagN': 'tu {name} se quedó en **{v}** en sus {k} días de esta semana. Si la sientes por debajo de tu límite, prueba **{v2}** en la última serie',
+  'wk.impMissed1': 'te faltó **1 día** de tu plan esta semana; la constancia también es progreso',
+  'wk.impMissedN': 'te faltaron **{n} días** de tu plan esta semana; la constancia también es progreso',
+  'wk.impShort': 'tu sesión del {day} fue corta (**{m} min** frente a tu media de {avg} min); cuando puedas, dale su tiempo completo',
+  'wk.impNoFig': 'de {name} no quedaron cifras registradas; anota reps y carga para poder seguir su progreso',
+  'wk.foot': 'Calculada de tus registros de entrenamiento de esa semana.',
+  'wk.exTitle': 'TUS EJERCICIOS ESTA SEMANA',
+  'wk.exNone': 'sin cifras',
+  'wk.exSame': 'sin cambio',
+  'wk.close.0': 'La constancia de esta semana ya es progreso.',
+  'wk.close.1': 'Lo que repites cada semana se convierte en tu nivel.',
+  'wk.close.2': 'Descansa, come y vuelve: así se construye.',
+  'wk.close.3': 'Tu próxima semana empieza con la primera sesión.',
+  'wk.close.4': 'No se trata de una semana perfecta, sino de semanas que se suman.',
+  'wk.close.5': 'El cuerpo sigue a lo que haces cada semana, no a lo que haces una vez.',
+  'wk.close.6': 'Registra, entrena, repite: tu registro es tu mapa.',
   'msg.eveSaved': 'Ajuste del aviso guardado.',
   'myprof.dsStateOn': 'Activado',
   'myprof.dsStateOff': 'Desactivado',
@@ -16397,7 +16512,7 @@ async function openClient(uid) {
     fichaCoachKnown = true;
     fichaCoachUid = (cs.exists() && cs.data().status === 'activa') ? (cs.data().nutritionistUid || null) : null;
   } catch {}
-  FICHA_ASSIGN = { uid, trainerUid: udata ? (udata.trainerUid || null) : null, coachUid: fichaCoachUid, coachKnown: fichaCoachKnown };
+  FICHA_ASSIGN = { uid, name: uname, trainerUid: udata ? (udata.trainerUid || null) : null, coachUid: fichaCoachUid, coachKnown: fichaCoachKnown };
   const data = [];
   try {
     const ws = await getDocs(query(collection(db, 'nutrition_weight'), where('ownerUid', '==', uid)));
@@ -16460,6 +16575,7 @@ async function openClient(uid) {
     <div id="proposal-card"></div>
     <div id="focus-card"></div>
     <div id="compacc-box"><div class="wempty">${t('access.loading')}</div></div>
+    <div id="client-weekcard"></div>
     <div id="client-training"></div>
     <div id="client-evals"><div class="eval-actions"><button type="button" class="btn-ghost btn-sm" id="btn-client-evals">${t('teval.open')}</button></div><div id="client-evals-body" style="display:none"></div></div>`;
   fichaMetWire(box);
@@ -24122,6 +24238,28 @@ function trainChecksKey(planId) {
   const uid = auth.currentUser ? auth.currentUser.uid : '';
   return 'ronbofit-session-checks-' + uid + '|' + planId + '|' + todayISO();
 }
+/* HORA DE MARCA DE CADA SERIE (paquete TARJETA SEMANAL, diseño
+   aprobado por Ronald 2026-11-04: «Sí, medir los descansos»): al
+   marcar una serie con datos queda guardada su hora (epoch ms) en
+   el propio borrador de la sesión; al cerrar el día, la hora viaja
+   dentro del registro (training_logs) con el resto de datos de la
+   serie, y la tarjeta semanal calcula con ella los descansos
+   entre ejercicios (y entre series). Nada visible cambia al
+   entrenar. La serie vaciada del todo pierde su hora: sin datos
+   no hay marca. Las series SUGERIDAS (sug) no se sellan al nacer:
+   su hora nace solo si él las adopta con un toque o confirma el
+   ejercicio con «✓ Hecho» (que sella las que aún no la tienen,
+   como su fin declarado). */
+function trainSetHasData(s) {
+  return !!s && (String(s.repsDone == null ? '' : s.repsDone) !== ''
+    || String(s.loadVal == null ? '' : s.loadVal) !== '');
+}
+function trainSetStamp(s) {
+  if (!s) return;
+  if (trainSetHasData(s)) {
+    if (!(typeof s.markedAt === 'number' && isFinite(s.markedAt) && s.markedAt > 0)) s.markedAt = Date.now();
+  } else delete s.markedAt;
+}
 function trainChecksRead(planId) {
   try {
     const v = JSON.parse(localStorage.getItem(trainChecksKey(planId)) || 'null');
@@ -24141,7 +24279,13 @@ function trainChecksRead(planId) {
              contaría como realizada al cerrar tras recargar. Las
              marcas de AUTH-097 (sug/clr) conservan su saneado de
              siempre (no viajan en la restauración). */
-          ...(s.pend === true ? { pend: true } : {}) })) : [] };
+          ...(s.pend === true ? { pend: true } : {}),
+          /* HORA DE MARCA (paquete tarjeta semanal): la hora de
+             cada serie SÍ sobrevive a la restauración del
+             borrador, saneada como número positivo; sin ella los
+             descansos de esa semana no se podrían calcular tras
+             una recarga a mitad de sesión. */
+          ...(typeof s.markedAt === 'number' && isFinite(s.markedAt) && s.markedAt > 0 ? { markedAt: Math.floor(s.markedAt) } : {}) })) : [] };
       /* APROXIMACIÓN (paquete Iniciar ejercicio, 2026-10-30): el
          bloque de aproximación en curso viaja en el MISMO borrador
          local, saneado con la misma disciplina; sin la clave, la
@@ -26655,6 +26799,11 @@ function tfWheelPick(body, kind, wv) {
       if (lvS === '' && (rpS === '' || rpS === '0')) { row.clr = false; }
       else row.pend = false;
     }
+    /* HORA DE MARCA: el toque que deja datos en la fila sella su
+       hora (la primera vez); vaciarla del todo la retira. Las
+       filas que la sugerencia rellena a continuación NO se
+       sellan: su hora nacerá si él las adopta o al dar «Hecho». */
+    trainSetStamp(row);
     tfSuggestApply();
     trainFloatMirror(false);
     tfSuggestRefresh(body);
@@ -26824,6 +26973,11 @@ function trainFloatWireSession(body) {
        la flotante no escribe nada en Firestore (eso sigue siendo
        solo el cierre del día). La hoja se recoge y la tarjeta se
        re-pinta con el estado nuevo al instante. */
+    /* HORA DE MARCA: «✓ Hecho» es la confirmación del ejercicio —
+       toda serie con datos y sin hora la recibe AHORA (su fin
+       declarado), incluidas las precargadas como sugerencia que
+       él deja tal cual: cuentan como hechas a esta hora. */
+    if (Array.isArray(d.sets)) { const nowH = Date.now(); d.sets.forEach(s => { if (trainSetHasData(s) && !(typeof s.markedAt === 'number' && s.markedAt > 0)) s.markedAt = nowH; }); }
     trainFloatMirror(true);
     trainFloatClose();
     loadMyTraining();
@@ -27783,14 +27937,14 @@ async function loadMyTraining() {
   box.querySelectorAll('[data-train-set-reps]').forEach(inp => inp.oninput = () => {
     const [di, ei, si] = inp.dataset.trainSetReps.split(':');
     const c = TRAIN_CHECKS[di + ':' + ei];
-    if (c && Array.isArray(c.sets) && c.sets[Number(si)]) { c.sets[Number(si)].repsDone = inp.value; if (c.sets[Number(si)].pend) { delete c.sets[Number(si)].pend; c.sets[Number(si)].sug = false; } trainChecksPersist(plan.id); }
+    if (c && Array.isArray(c.sets) && c.sets[Number(si)]) { c.sets[Number(si)].repsDone = inp.value; if (c.sets[Number(si)].pend) { delete c.sets[Number(si)].pend; c.sets[Number(si)].sug = false; } trainSetStamp(c.sets[Number(si)]); trainChecksPersist(plan.id); }
   });
   trainWireUnitSels(box);
   trainExtrasWire(box);
   box.querySelectorAll('[data-train-set-load]').forEach(inp => inp.oninput = () => {
     const [di, ei, si] = inp.dataset.trainSetLoad.split(':');
     const c = TRAIN_CHECKS[di + ':' + ei];
-    if (c && Array.isArray(c.sets) && c.sets[Number(si)]) { c.sets[Number(si)].loadVal = inp.value; if (c.sets[Number(si)].pend) { delete c.sets[Number(si)].pend; c.sets[Number(si)].sug = false; } trainChecksPersist(plan.id); }
+    if (c && Array.isArray(c.sets) && c.sets[Number(si)]) { c.sets[Number(si)].loadVal = inp.value; if (c.sets[Number(si)].pend) { delete c.sets[Number(si)].pend; c.sets[Number(si)].sug = false; } trainSetStamp(c.sets[Number(si)]); trainChecksPersist(plan.id); }
   });
   box.querySelectorAll('[data-train-done]').forEach(b => b.onclick = () => {
     const di = Number(b.dataset.trainDone);
@@ -27859,6 +28013,12 @@ async function loadMyTraining() {
             out.loadOriginal = lv;
             out.loadUnitOriginal = UNIT_PREFS.mass;
           }
+          /* HORA DE MARCA (paquete tarjeta semanal): la hora de
+             la serie viaja al registro con el resto de sus datos;
+             las reglas vivas no validan el interior de
+             exercisesDone (verificado contra el ruleset vivo
+             84974ca6). Sin hora, la serie queda como siempre. */
+          if (typeof s.markedAt === 'number' && isFinite(s.markedAt) && s.markedAt > 0) out.markedAt = Math.floor(s.markedAt);
           return out;
         });
       }
@@ -28052,7 +28212,11 @@ async function loadMyTraining() {
           repsPlanned: String(s.repsPlanned == null ? '' : s.repsPlanned),
           repsDone: s.repsDone == null ? '' : String(s.repsDone),
           loadVal: s.loadOriginal != null ? convLoadDisplay(String(s.loadOriginal), s.loadUnitOriginal || UNIT_PREFS.mass, UNIT_PREFS.mass)
-            : (typeof s.loadKg === 'number' ? String(uRound1(massToDisplay(s.loadKg))) : '')
+            : (typeof s.loadKg === 'number' ? String(uRound1(massToDisplay(s.loadKg))) : ''),
+          /* HORA DE MARCA: al deshacer, la serie recupera también
+             su hora original — el día vuelve a editable tal como
+             quedó al cerrar. */
+          ...(typeof s.markedAt === 'number' && isFinite(s.markedAt) && s.markedAt > 0 ? { markedAt: Math.floor(s.markedAt) } : {})
         })) : trainDefaultSets(row.ex);
         TRAIN_CHECKS[diU + ':' + ei] = { rpe: (typeof de.rpe === 'number' && isFinite(de.rpe)) ? de.rpe : null, sets };
       });
@@ -28526,6 +28690,7 @@ async function loadClientTraining(uid) {
     <div id="client-proposals"></div>
     <h3 class="history-title">${t('train.recent')}</h3>
     ${logRows || `<div class="wempty">${t('train.noLogs')}</div>`}`;
+  paintClientWeekCard(uid, plans, logs);
   $('btn-plan-new').onclick = () => openPlanEditor(uid, null);
   box.querySelectorAll('[data-plan-edit]').forEach(b => b.onclick = () => { const p = plans.find(x => x.id === b.dataset.planEdit); if (p) openPlanEditor(uid, p); });
   /* REPETIR: semana desde la tarjeta del plan; día desde un
@@ -33118,6 +33283,427 @@ function progressUploadDate() {
   if (target !== todayISO() && progressSetComplete(PROG[target])) return todayISO();
   return target;
 }
+/* ================================================================
+   TARJETA SEMANAL «TU SEMANA» (diseño aprobado por Ronald,
+   2026-11-04, tras ver el ejemplo calculado con su semana real y
+   decir «Perfecto»; nota completa en
+   diseno-tarjeta-semanal-progreso-2026-11-04/): una tarjeta
+   SEMANAL en Progreso — y la misma, de solo lectura, en la ficha
+   del alumno para su entrenador — en la que un «entrenador
+   virtual» relata la semana CERRADA más reciente con sesiones:
+   sesiones, tiempo, peso movido, el momento de la semana,
+   esfuerzo y satisfacción con su alcance dicho, 1–2 puntos de
+   mejora SOLO cuando el dato los sostiene (regla suya), la
+   comparación con la semana anterior, la constancia (días de
+   plan cumplidos y racha) y — solo en semanas con horas de marca
+   guardadas — el descanso medio entre ejercicios. Frase de
+   cierre rotativa de un juego cerrado de 7, como el resumen
+   diario. Ninguna frase promete resultados ni da consejo
+   médico; ninguna cifra se estima: lo que el registro no trae,
+   la tarjeta no lo pinta.
+   REGLA DE UNIDADES (del ejemplo aprobado): una carga solo se
+   COMPARA entre dos apariciones cuando el loadUnitOriginal de
+   la serie más pesada coincide en ambas; el volumen suma
+   reps×kg canónicos de las series de trabajo (la aproximación
+   vive aparte, en warmupSets, y nunca cuenta).
+   LESIONES: solo desde una fuente real — las peticiones
+   «molestia o lesión» (trainer_requests, paquete de peticiones);
+   mientras esa colección no exista en producción la lectura
+   protegida devuelve vacío y la frase se OMITE (la ausencia de
+   reportes no se pinta como «ninguna lesión»: no afirmar desde
+   el silencio). La declaración de salud NO alimenta la frase.
+   ================================================================ */
+function wkIsClosed(l) {
+  if (!l || !Array.isArray(l.exercisesDone) || !l.exercisesDone.length) return false;
+  return l.status === 'done' || l.status === 'partial' || (l.status == null && l.done === true);
+}
+function wkSessionMinutes(l) {
+  if (typeof l.durationMin === 'number' && isFinite(l.durationMin) && l.durationMin > 0) return Math.round(l.durationMin);
+  if (typeof l.elapsedSec === 'number' && isFinite(l.elapsedSec) && l.elapsedSec > 0) return Math.round(l.elapsedSec / 60);
+  return null;
+}
+/* Una aparición de un ejercicio en una sesión, destilada: carga
+   máxima con la unidad de origen DE ESA serie, reps totales, si
+   dejó cifras, su volumen y las horas de marca de sus series. */
+function wkEntryApp(e, date) {
+  let maxLoad = null, maxUnit = null, totalReps = 0, hasFig = false, volKg = 0, volSets = 0;
+  const stamps = [];
+  (Array.isArray(e.sets) ? e.sets : []).forEach(s => {
+    if (!s) return;
+    const rd = (typeof s.repsDone === 'number' && isFinite(s.repsDone)) ? s.repsDone : null;
+    const lk = (typeof s.loadKg === 'number' && isFinite(s.loadKg)) ? s.loadKg : null;
+    if (rd != null || lk != null) hasFig = true;
+    if (rd != null) totalReps += rd;
+    if (rd != null && rd > 0 && lk != null && lk >= 0) { volKg += rd * lk; volSets++; }
+    if (lk != null && (maxLoad == null || lk > maxLoad)) { maxLoad = lk; maxUnit = (typeof s.loadUnitOriginal === 'string' && s.loadUnitOriginal) ? s.loadUnitOriginal : null; }
+    if (typeof s.markedAt === 'number' && isFinite(s.markedAt) && s.markedAt > 0) stamps.push(s.markedAt);
+  });
+  return { date, maxLoad, unit: maxUnit, totalReps, hasFig, volKg, volSets, stamps,
+    rpe: (typeof e.rpe === 'number' && isFinite(e.rpe) && e.rpe >= 1 && e.rpe <= 10) ? e.rpe : null };
+}
+function wkGroupKey(e) {
+  return (e.exerciseId ? 'id:' + e.exerciseId : 'nm:' + String(e.name || '')) + '|' + (Number.isInteger(e.variantIndex) ? e.variantIndex : -1);
+}
+/* Apariciones de cada ejercicio ANTES de la semana dada (para el
+   «cambio contra su aparición anterior comparable» de la sección
+   de ejercicios): mismas reglas de identidad que la semana. */
+function wkPrevApps(logs, monday) {
+  const out = new Map();
+  (Array.isArray(logs) ? logs : []).filter(l => wkIsClosed(l) && l.date < monday)
+    .slice().sort((a, b) => (a.date < b.date ? -1 : a.date > b.date ? 1 : 0))
+    .forEach(l => (l.exercisesDone || []).forEach(e => {
+      if (!e) return;
+      const key = wkGroupKey(e);
+      if (!out.has(key)) out.set(key, []);
+      out.get(key).push(wkEntryApp(e, l.date));
+    }));
+  return out;
+}
+function wkWeekMetrics(logs, monday, light) {
+  const sunday = addDaysISO(monday, 6);
+  const ls = (Array.isArray(logs) ? logs : []).filter(l => wkIsClosed(l) && l.date >= monday && l.date <= sunday)
+    .slice().sort((a, b) => (a.date < b.date ? -1 : a.date > b.date ? 1 : 0));
+  const met = { sessions: ls.length, dates: ls.map(l => l.date), minutes: 0, minutesKnown: 0,
+    minutesList: [], volumeKg: null, effortAvg: null, satAvg: null, satCount: 0,
+    groups: [], restAvgSec: null, restSessions: 0 };
+  let volume = 0, volumeSets = 0;
+  const efforts = [], sats = [], gaps = [];
+  const groups = new Map();
+  ls.forEach(l => {
+    const m = wkSessionMinutes(l);
+    if (m != null) { met.minutes += m; met.minutesKnown++; met.minutesList.push({ date: l.date, min: m }); }
+    if (typeof l.satisfaction === 'number' && isFinite(l.satisfaction) && l.satisfaction >= 1 && l.satisfaction <= 5) sats.push(l.satisfaction);
+    const stamped = [];
+    (l.exercisesDone || []).forEach(e => {
+      if (!e) return;
+      const ap = wkEntryApp(e, l.date);
+      if (ap.rpe != null) efforts.push(ap.rpe);
+      volume += ap.volKg; volumeSets += ap.volSets;
+      if (!light) {
+        const key = wkGroupKey(e);
+        if (!groups.has(key)) groups.set(key, { key, name: e._wkName || e.name || '', exerciseId: e.exerciseId || null, variantIndex: Number.isInteger(e.variantIndex) ? e.variantIndex : null, apps: [] });
+        groups.get(key).apps.push(ap);
+        if (ap.stamps.length) stamped.push({ first: Math.min.apply(null, ap.stamps), last: Math.max.apply(null, ap.stamps) });
+      }
+    });
+    if (!light && stamped.length >= 2) {
+      stamped.sort((a, b) => a.first - b.first);
+      let used = false;
+      for (let i = 1; i < stamped.length; i++) {
+        const g = (stamped[i].first - stamped[i - 1].last) / 1000;
+        if (g >= 0 && g <= 7200) { gaps.push(g); used = true; }
+      }
+      if (used) met.restSessions++;
+    }
+  });
+  if (volumeSets) met.volumeKg = Math.round(volume);
+  if (efforts.length) met.effortAvg = Math.round(efforts.reduce((a, c) => a + c, 0) / efforts.length);
+  if (sats.length) { met.satAvg = sats.reduce((a, c) => a + c, 0) / sats.length; met.satCount = sats.length; }
+  met.groups = [...groups.values()];
+  if (gaps.length) met.restAvgSec = gaps.reduce((a, c) => a + c, 0) / gaps.length;
+  return met;
+}
+/* Días planeados de una semana según los anclajes del plan, con
+   la precedencia de la casa (trainDayMap) reducida a lo que la
+   nota de diseño declara: etiquetas de día de semana
+   (trainWeekdayPairs) o calendario del plan (planCalDayIndex);
+   el ancla de configuración queda fuera (declarado) y un plan
+   de rotación pura no declara días. Un plan no reclama días
+   anteriores a su creación (_wkCreated lo pone el cargador). */
+function wkPlannedDates(plans, monday) {
+  const out = new Set();
+  for (let i = 0; i < 7; i++) {
+    const iso = addDaysISO(monday, i);
+    for (const p of (plans || [])) {
+      if (!p || p.isSnapshot === true) continue;
+      if (p._wkCreated && iso < p._wkCreated) continue;
+      let planned = false;
+      const pairs = trainWeekdayPairs(p.days);
+      if (pairs) planned = pairs[new Date(iso + 'T12:00:00').getDay()] != null;
+      else if (planCalApplies(p)) planned = planCalDayIndex(p, iso) != null;
+      if (planned) { out.add(iso); break; }
+    }
+  }
+  return out;
+}
+function weekCardCompute(logs, plans, todayIso, opts) {
+  logs = Array.isArray(logs) ? logs : [];
+  plans = Array.isArray(plans) ? plans : [];
+  const reqs = (opts && Array.isArray(opts.requests)) ? opts.requests : [];
+  const name = (opts && opts.name) || '';
+  const curMon = mondayISO(todayIso);
+  let target = null, targetMet = null;
+  for (let back = 1; back <= 30; back++) {
+    const mon = addDaysISO(curMon, -7 * back);
+    const met = wkWeekMetrics(logs, mon, false);
+    if (met.sessions > 0) { target = mon; targetMet = met; break; }
+  }
+  if (!target) return null;
+  const prevMet = wkWeekMetrics(logs, addDaysISO(target, -7), true);
+  const plannedSet = wkPlannedDates(plans, target);
+  const doneDates = new Set(targetMet.dates);
+  const donePlanned = [...plannedSet].filter(iso => doneDates.has(iso)).length;
+  let streak = 0;
+  if (plannedSet.size) {
+    for (let back = 0; back < 52; back++) {
+      const mon = addDaysISO(target, -7 * back);
+      const ps = back === 0 ? plannedSet : wkPlannedDates(plans, mon);
+      if (!ps.size) break;
+      const met = back === 0 ? targetMet : wkWeekMetrics(logs, mon, true);
+      const ds = new Set(met.dates);
+      if ([...ps].every(iso => ds.has(iso))) streak++; else break;
+    }
+  }
+  let moment = null, stag = null;
+  targetMet.groups.forEach(g => {
+    if (g.apps.length < 2) return;
+    const f = g.apps[0], l = g.apps[g.apps.length - 1];
+    if (f.maxLoad == null || l.maxLoad == null || !f.unit || !l.unit || f.unit !== l.unit) return;
+    const delta = l.maxLoad - f.maxLoad;
+    if (delta > 0 && (!moment || delta > moment.delta))
+      moment = { name: g.name, fromKg: f.maxLoad, toKg: l.maxLoad, delta, repsKept: l.totalReps >= f.totalReps };
+    /* Estancamiento: la carga máxima no se movió en la semana y
+       su última aparición NO llegó a esfuerzo máximo guardado
+       (RPE 9–10): solo entonces se sugiere +2,5 kg en la última
+       serie, condicionado a sentirla por debajo del límite. */
+    if (delta === 0 && !stag && !(typeof l.rpe === 'number' && l.rpe >= 9))
+      stag = { name: g.name, vKg: l.maxLoad, days: g.apps.length };
+  });
+  let cmp = null;
+  if (prevMet.sessions > 0) {
+    if (targetMet.volumeKg != null && prevMet.volumeKg != null && prevMet.volumeKg > 0) {
+      const pct = Math.round((targetMet.volumeKg - prevMet.volumeKg) / prevMet.volumeKg * 100);
+      if (Math.abs(pct) >= 1) cmp = { kind: 'kg', pct };
+    }
+    if (!cmp && targetMet.sessions !== prevMet.sessions) cmp = { kind: 'ses', diff: targetMet.sessions - prevMet.sessions };
+  }
+  const imps = [];
+  if (stag) imps.push({ kind: 'stag', name: stag.name, vKg: stag.vKg, days: stag.days });
+  const missed = plannedSet.size - donePlanned;
+  if (plannedSet.size && missed > 0) imps.push({ kind: 'missed', n: missed });
+  if (imps.length < 2 && targetMet.minutesList.length >= 2) {
+    const mins = targetMet.minutesList;
+    const avg = mins.reduce((a, c) => a + c.min, 0) / mins.length;
+    const sh = mins.reduce((a, c) => (c.min < a.min ? c : a), mins[0]);
+    if (sh.min < 0.6 * avg) imps.push({ kind: 'short', date: sh.date, min: sh.min, avg: Math.round(avg) });
+  }
+  if (imps.length < 2) {
+    const nf = targetMet.groups.find(g => g.apps.some(a => !a.hasFig));
+    if (nf) imps.push({ kind: 'nofig', name: nf.name });
+  }
+  const sunday = addDaysISO(target, 6);
+  const injuries = reqs.filter(r => r && r.createdISO >= target && r.createdISO <= sunday).length;
+  /* DETALLE POR EJERCICIO (ajuste de Ronald, 2026-11-04 13:01:
+     la vista lleva las DOS cosas — la tarjeta y, debajo, una
+     línea por ejercicio de la semana): peso máximo de la semana
+     y cambio contra su aparición anterior comparable — la
+     última aparición ANTES de esta semana cuya unidad de origen
+     coincide con la de la serie que logró el máximo semanal;
+     sin aparición comparable, la línea no inventa cambio. */
+  const prevMap = wkPrevApps(logs, target);
+  const exercises = targetMet.groups.map(g => {
+    let weekMax = null, weekUnit = null;
+    g.apps.forEach(a => { if (a.maxLoad != null && (weekMax == null || a.maxLoad > weekMax)) { weekMax = a.maxLoad; weekUnit = a.unit; } });
+    let delta = null;
+    if (weekMax != null && weekUnit) {
+      const prevs = (prevMap.get(g.key) || []).filter(a => a.maxLoad != null && a.unit === weekUnit);
+      if (prevs.length) { delta = weekMax - prevs[prevs.length - 1].maxLoad; if (Math.abs(delta) < 0.05) delta = 0; }
+    }
+    return { name: g.name, exerciseId: g.exerciseId, variantIndex: g.variantIndex, weekMaxKg: weekMax, deltaKg: delta };
+  });
+  const pp = target.split('-').map(Number);
+  const closeIdx = ((Math.floor(Date.UTC(pp[0], pp[1] - 1, pp[2]) / 604800000) % 7) + 7) % 7;
+  return {
+    monday: target, sunday, name,
+    sessions: targetMet.sessions,
+    minutes: targetMet.minutesKnown ? targetMet.minutes : null,
+    minutesPartial: targetMet.minutesKnown > 0 && targetMet.minutesKnown < targetMet.sessions,
+    volumeKg: targetMet.volumeKg, effortAvg: targetMet.effortAvg,
+    satAvg: targetMet.satAvg, satCount: targetMet.satCount,
+    moment, improvements: imps.slice(0, 2), cmp,
+    planned: plannedSet.size, donePlanned, streak,
+    restAvgSec: targetMet.restAvgSec, restSessions: targetMet.restSessions,
+    injuries, closeIdx, exercises
+  };
+}
+function wkB(s) { return String(s).replace(/\*\*(.+?)\*\*/g, '<b>$1</b>'); }
+function wkDispName(name) {
+  const s = String(name || '');
+  return (LANG === 'es' && s) ? s.charAt(0).toLowerCase() + s.slice(1) : s;
+}
+function wkTimeText(min) {
+  const h = Math.floor(min / 60), r = min % 60;
+  if (h >= 2) return t('wk.timeHours', { h });
+  if (h === 1) return r >= 15 ? t('wk.timeHourMin', { r }) : t('wk.timeHour');
+  return t('wk.timeMin', { m: min });
+}
+function wkChipTime(min) { const h = Math.floor(min / 60), r = min % 60; return h > 0 ? h + ' h ' + r + ' min' : min + ' min'; }
+function wkRestText(sec) {
+  const s = Math.max(0, Math.round(sec / 10) * 10);
+  if (s < 60) return s + ' s';
+  const m = Math.floor(s / 60), r = s % 60;
+  return r ? m + ' min ' + r + ' s' : m + ' min';
+}
+function wkRangeText(mon, sun) {
+  const p = iso => iso.split('-').map(Number);
+  const a = p(mon), b = p(sun);
+  if (LANG === 'es') return a[2] + ' de ' + MESES_ES[a[1] - 1] + (a[0] !== b[0] ? ' de ' + a[0] : '') + ' – ' + b[2] + ' de ' + MESES_ES[b[1] - 1] + ' de ' + b[0];
+  return MESES_EN[a[1] - 1] + ' ' + a[2] + (a[0] !== b[0] ? ', ' + a[0] : '') + ' – ' + MESES_EN[b[1] - 1] + ' ' + b[2] + ', ' + b[0];
+}
+function wkDayShort(iso) {
+  const d = new Date(iso + 'T12:00:00');
+  const wd = (d.getDay() + 6) % 7;
+  const names = LANG === 'es' ? TRAIN_WD_ES : TRAIN_WD_EN;
+  let w = (names && names[wd]) || '';
+  if (w && /^[^a-z]*$/.test(w)) w = w.toLowerCase();
+  else if (LANG === 'es' && w) w = w.charAt(0).toLowerCase() + w.slice(1);
+  return (w ? w + ' ' : '') + d.getDate();
+}
+/* Sección «Tus ejercicios esta semana» (ajuste de Ronald,
+   2026-11-04 13:01): una línea por ejercicio de la semana de la
+   tarjeta — nombre · peso máximo de la semana · cambio contra
+   su aparición anterior comparable (misma regla de unidades).
+   En la vista del alumno (links) cada línea con ficha en la
+   biblioteca es un botón que abre ESA ficha con su historia
+   («Tus últimas veces», libCardOpen — la superficie de siempre);
+   en la ficha del alumno para el entrenador las líneas son de
+   solo lectura, sin toque (su historia vive en las sesiones de
+   la propia ficha). */
+function wkExSectionHTML(m, links) {
+  const rows = (m.exercises || []).map(x => {
+    let fig;
+    if (x.weekMaxKg == null) fig = `<span class="wkex-none">${esc(t('wk.exNone'))}</span>`;
+    else {
+      let d = '';
+      if (x.deltaKg != null) {
+        if (x.deltaKg > 0) d = `<span class="wkex-delta wkex-up">+${esc(fmtMass(x.deltaKg))}</span>`;
+        else if (x.deltaKg < 0) d = `<span class="wkex-delta wkex-down">−${esc(fmtMass(-x.deltaKg))}</span>`;
+        else d = `<span class="wkex-delta wkex-same">${esc(t('wk.exSame'))}</span>`;
+      }
+      fig = `<b>${esc(fmtMass(x.weekMaxKg))}</b>${d}`;
+    }
+    const inner = `<span class="wkex-name">${esc(x.name)}</span><span class="wkex-fig">${fig}</span>`;
+    return (links && x.exerciseId)
+      ? `<button type="button" class="wkex-row" data-wkex-id="${esc(x.exerciseId)}">${inner}</button>`
+      : `<div class="wkex-row">${inner}</div>`;
+  }).join('');
+  if (!rows) return '';
+  return `<div class="wkex"><div class="wkex-title">${esc(t('wk.exTitle'))}</div>${rows}</div>`;
+}
+function weekCardHTML(m, links) {
+  if (!m) return '';
+  const S = [];
+  const first = String(m.name || '').trim().split(/\s+/)[0] || '';
+  let open = t(first ? (m.sessions === 1 ? 'wk.open1' : 'wk.openN') : (m.sessions === 1 ? 'wk.open1nn' : 'wk.openNnn'),
+    first ? { name: esc(first), n: m.sessions } : { n: m.sessions });
+  if (m.minutes != null && m.minutes > 0) open += t('wk.openTime', { time: wkTimeText(m.minutes) });
+  if (m.volumeKg != null) open += t('wk.openKg', { kg: fmt(m.volumeKg) });
+  S.push(open + '.');
+  if (m.moment) S.push(t('wk.moment', { name: esc(wkDispName(m.moment.name)), a: fmtMass(m.moment.fromKg), b: fmtMass(m.moment.toKg), reps: m.moment.repsKept ? t('wk.momentReps') : '' }) + '.');
+  const satTxt = m.satAvg == null ? null : (Number.isInteger(m.satAvg) ? String(m.satAvg) : fmt(m.satAvg));
+  const satTail = m.satAvg == null ? '' : (m.satAvg >= 4 ? t('wk.satGood') : (m.satAvg <= 2.5 ? t('wk.satLow') : ''));
+  if (m.effortAvg != null && m.satAvg != null) S.push(t('wk.effort', { r: m.effortAvg }) + ' ' + t('wk.and') + ' ' + t('wk.sat', { s: satTxt }) + satTail + '.');
+  else if (m.effortAvg != null) S.push(t('wk.effort', { r: m.effortAvg }) + '.');
+  else if (m.satAvg != null) { const s0 = t('wk.sat', { s: satTxt }); S.push(s0.charAt(0).toUpperCase() + s0.slice(1) + satTail + '.'); }
+  if (m.injuries > 0) S.push(t(m.injuries === 1 ? 'wk.injury1' : 'wk.injuryN', { n: m.injuries }) + '.');
+  if (m.cmp) {
+    if (m.cmp.kind === 'kg') S.push(t(m.cmp.pct > 0 ? 'wk.cmpKgUp' : 'wk.cmpKgDown', { p: Math.abs(m.cmp.pct) }) + '.');
+    else if (m.cmp.diff === 1) S.push(t('wk.cmpSesUp1') + '.');
+    else if (m.cmp.diff > 1) S.push(t('wk.cmpSesUpN', { n: m.cmp.diff }) + '.');
+    else if (m.cmp.diff === -1) S.push(t('wk.cmpSesDown1') + '.');
+    else S.push(t('wk.cmpSesDownN', { n: Math.abs(m.cmp.diff) }) + '.');
+  }
+  if (m.planned > 0) S.push(t('wk.constancy', { d: m.donePlanned, p: m.planned }) + (m.streak >= 2 ? t('wk.streak', { n: m.streak }) : '') + '.');
+  if (m.restAvgSec != null) S.push(t('wk.rest', { x: wkRestText(m.restAvgSec) }) + (m.restSessions < m.sessions ? t('wk.restScope') : '') + '.');
+  const chips = [{ v: String(m.sessions), l: t('wk.chipSessions') }];
+  if (m.minutes != null && m.minutes > 0) chips.push({ v: wkChipTime(m.minutes), l: t(m.minutesPartial ? 'wk.chipTimeReg' : 'wk.chipTime') });
+  if (m.volumeKg != null) chips.push({ v: fmt(m.volumeKg) + ' kg', l: t('wk.chipKg') });
+  if (m.effortAvg != null) chips.push({ v: m.effortAvg + ' / 10', l: t('wk.chipEffort') });
+  const imps = (m.improvements || []).map((im, ix) => {
+    let s = '';
+    if (im.kind === 'stag') s = t(im.days === 2 ? 'wk.impStag' : 'wk.impStagN', { name: esc(wkDispName(im.name)), v: fmtMass(im.vKg), v2: fmtMass(im.vKg + 2.5), k: im.days });
+    else if (im.kind === 'missed') s = t(im.n === 1 ? 'wk.impMissed1' : 'wk.impMissedN', { n: im.n });
+    else if (im.kind === 'short') s = t('wk.impShort', { day: esc(wkDayShort(im.date)), m: im.min, avg: im.avg });
+    else if (im.kind === 'nofig') s = t('wk.impNoFig', { name: esc(wkDispName(im.name)) });
+    return s ? `<p>${ix === 0 ? '<b>' + esc(t('wk.impLead')) + '</b> ' : ''}${wkB(s)}</p>` : '';
+  }).join('');
+  const q = LANG === 'es' ? ['«', '»'] : ['“', '”'];
+  return `<div class="wkcard">
+    <div class="wkcard-head"><div class="wkcard-ava" aria-hidden="true">🏋️</div><div class="wkcard-tt"><div class="wkcard-t1">${esc(t('wk.title'))}</div><div class="wkcard-t2">${esc(wkRangeText(m.monday, m.sunday))} · ${esc(t('wk.sub'))}</div></div></div>
+    <div class="wkcard-body">
+      <p class="wkcard-rel">${S.map(wkB).join(' ')}</p>
+      <div class="wkcard-chips">${chips.map(c => `<div class="wkcard-chip"><b>${esc(c.v)}</b><span>${esc(c.l)}</span></div>`).join('')}</div>
+      ${imps ? `<div class="wkcard-mej"><span class="wkcard-mej-ico" aria-hidden="true">🎯</span><div class="wkcard-mej-tx">${imps}</div></div>` : ''}
+      <p class="wkcard-close">${q[0]}${esc(t('wk.close.' + m.closeIdx))}${q[1]}</p>
+    </div>
+    <div class="wkcard-foot">${esc(t('wk.foot'))}</div>
+  </div>` + wkExSectionHTML(m, links);
+}
+/* Fuente de lesiones: las peticiones «molestia o lesión» del
+   alumno (trainer_requests). Lectura PROTEGIDA: si la colección
+   aún no existe en producción o las reglas la rechazan, vuelve
+   vacía y la frase de lesión simplemente no nace. */
+async function fetchWeekRequests(studentUid) {
+  try {
+    const snap = await getDocs(query(collection(db, 'trainer_requests'), where('studentUid', '==', studentUid), where('type', '==', 'pain_injury')));
+    const out = [];
+    snap.forEach(d => {
+      const v = d.data(); if (!v) return;
+      const ms = snapMillis(v.createdAt);
+      const iso = ms ? new Date(ms).toISOString().slice(0, 10) : String(v.createdISO || v.date || '');
+      if (/^\d{4}-\d{2}-\d{2}$/.test(iso)) out.push({ createdISO: iso });
+    });
+    return out;
+  } catch { return []; }
+}
+function wkPrepareLogs(logs) {
+  return (logs || []).map(l => ({ ...l, exercisesDone: (Array.isArray(l.exercisesDone) ? l.exercisesDone : []).map(e => e ? { ...e, _wkName: trainExName(e) || e.name || '' } : e) }));
+}
+function wkPreparePlans(plans) {
+  return (plans || []).map(p => {
+    const ms = p ? snapMillis(p.createdAt) : 0;
+    return ms ? { ...p, _wkCreated: new Date(ms).toISOString().slice(0, 10) } : p;
+  });
+}
+async function loadWeekCard() {
+  const box = $('week-card-box');
+  if (!box || !auth.currentUser) return;
+  try {
+    /* Los nombres de ejercicio se resuelven con la biblioteca
+       (trainExName): si Progreso es la primera superficie que
+       se abre, la biblioteca aún no cargó — se asegura aquí
+       (con su caché de siempre; si falla, quedan los nombres
+       guardados en el registro). */
+    try { await libEnsure(); } catch {}
+    if (!$('week-card-box')) return;
+    const uid = auth.currentUser.uid;
+    const [plans, logs, reqs] = await Promise.all([fetchPlans(uid), fetchLogs(uid), fetchWeekRequests(uid)]);
+    const model = weekCardCompute(wkPrepareLogs(logs), wkPreparePlans(plans), todayISO(),
+      { name: (typeof UDATA !== 'undefined' && UDATA && UDATA.name) || '', requests: reqs });
+    box.innerHTML = weekCardHTML(model, true);
+    /* Cada línea de ejercicio con ficha abre la ficha del
+       ejercicio con su historia (la superficie de siempre). */
+    box.querySelectorAll('[data-wkex-id]').forEach(b => { b.onclick = () => { libCardOpen(b.dataset.wkexId); }; });
+  } catch { try { box.innerHTML = ''; } catch {} }
+}
+/* La misma tarjeta, de solo lectura, en la ficha del alumno:
+   reutiliza los planes y registros que loadClientTraining ya
+   leyó (sin lecturas extra salvo la fuente de lesiones). */
+function paintClientWeekCard(uid, plans, logs) {
+  const host = $('client-weekcard');
+  if (!host) return;
+  (async () => {
+    try {
+      try { await libEnsure(); } catch {}
+      const reqs = await fetchWeekRequests(uid);
+      const nm = (typeof FICHA_ASSIGN !== 'undefined' && FICHA_ASSIGN && FICHA_ASSIGN.uid === uid && FICHA_ASSIGN.name)
+        || (typeof ADMIN_NAME_CACHE !== 'undefined' && ADMIN_NAME_CACHE[uid]) || '';
+      const model = weekCardCompute(wkPrepareLogs(logs), wkPreparePlans(plans), todayISO(), { name: nm, requests: reqs });
+      if ($('client-weekcard') === host) host.innerHTML = weekCardHTML(model, false);
+    } catch { try { host.innerHTML = ''; } catch {} }
+  })();
+}
+
 async function loadProgress() {
   PROG = {};
   EVALS = {}; EVAL_CYCLE = { omitted: [], closedSets: [] }; EVAL_CFG = { requiredMeasures: [], units: 'metric' }; EVAL_CTX_PLANS = null;
@@ -33141,6 +33727,7 @@ async function loadProgress() {
   await ensureCompAccess();
   renderProgress();
   applyCompAccessUI();
+  loadWeekCard();
 }
 function setSlot(which, url) {
   const img = $('preview-' + which), empty = $('empty-' + which), act = $('actions-' + which);
@@ -38555,7 +39142,7 @@ document.addEventListener('keydown', e => { if (e.key === 'Escape') shareClose()
  *  - El SW (sw.js) solo cachea la cáscara del mismo origen en modo
  *    RED PRIMERO: Auth/Firestore/Worker jamás pasan por la caché.
  * ================================================================ */
-const PWA_SW_VERSION = '20261104-guardar-visible';
+const PWA_SW_VERSION = '20261104-semana';
 /* Sello de versión VISIBLE (2026-11-03): el pie de la tarjeta de
    acceso enseña qué copia corre este teléfono ('v ' + el sello),
    para comprobar de un vistazo si la versión nueva ya llegó.
