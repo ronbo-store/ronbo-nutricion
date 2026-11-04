@@ -694,17 +694,7 @@ service cloud.firestore {
       // wins and the other branch's receipt check fails closed.
       let bb = before.get('bodyTypeConsent', {}).get('status', 'none');
       let ba = after.get('bodyTypeConsent', {}).get('status', 'none');
-      // Integración de actividad P1 (2026-11-03): una transición
-      // de actividad deriva su tipo SOLO si cambió algún tipo Y
-      // ningún otro consentimiento cambió en el mismo lote (la
-      // app nunca mezcla actos; si algo más cambió, mandan las
-      // derivaciones de siempre y la rama de actividad falla
-      // cerrada al no casar su recibo).
-      return before.get('activityConsents', {}) != after.get('activityConsents', {})
-        && actChangedType(before, after) != '' && bb == ba && bs == as2
-          && before.get('acceptedTerms', false) == after.get('acceptedTerms', false)
-        ? actDerivedType(before, after)
-        : (bb != ba
+      return bb != ba
         ? (ba == 'accepted' ? (bb == 'withdrawn' ? 'bodytype-renewed' : 'bodytype-granted')
                             : (ba == 'withdrawn' ? 'bodytype-withdrawn' : ''))
         : (bs != as2
@@ -715,22 +705,26 @@ service cloud.firestore {
             : (after.get('acceptedTerms', false) == true
                 && before.get('termsAcceptedAt', timestamp.date(2000, 1, 1))
                      != after.get('termsAcceptedAt', timestamp.date(2000, 1, 1))
-                ? 'general-renewed' : ''))));
+                ? 'general-renewed'
+                // Integración de actividad P1 (2026-11-03): último
+                // recurso de la cadena. Solo se llega aquí si
+                // ningún otro consentimiento cambió; si el mapa
+                // de actividad cambió, el tipo se deriva de su
+                // transición. Los actos de siempre resuelven
+                // antes y no pagan esta rama (la evaluación es
+                // perezosa), y un acto mixto nunca casa su
+                // recibo en la rama de actividad: falla cerrado.
+                : (before.get('activityConsents', {}) != after.get('activityConsents', {})
+                    ? actDerivedType(before, after) : ''))));
     }
     function receiptVersion(after, type) {
       return type == 'bodytype-granted' || type == 'bodytype-renewed' || type == 'bodytype-withdrawn'
         ? after.get('bodyTypeConsent', {}).get('version', '')
         : ((type == 'general-renewed' || type == 'general-withdrawn' || type == 'registered')
             ? after.get('termsVersion', '')
-            : (type in ['activity-steps-granted', 'activity-steps-renewed', 'activity-steps-withdrawn']
-                ? after.get('activityConsents', {}).get('steps', {}).get('version', '')
-                : (type in ['activity-exercise-granted', 'activity-exercise-renewed', 'activity-exercise-withdrawn']
-                    ? after.get('activityConsents', {}).get('exercise', {}).get('version', '')
-                    : (type in ['activity-weight-granted', 'activity-weight-renewed', 'activity-weight-withdrawn']
-                        ? after.get('activityConsents', {}).get('weight', {}).get('version', '')
-                        : (type in ['activity-sleep-granted', 'activity-sleep-renewed', 'activity-sleep-withdrawn']
-                            ? after.get('activityConsents', {}).get('sleep', {}).get('version', '')
-                            : after.get('healthConsent', {}).get('version', ''))))));
+            : (type.matches('activity-.*')
+                ? after.get('activityConsents', {}).get(type.split('-')[1], {}).get('version', '')
+                : after.get('healthConsent', {}).get('version', '')));
     }
     // The receipt that must exist AFTER the same batch: exact id,
     // owner uid, type, version and server timestamp of THIS request.

@@ -242,14 +242,17 @@ await T('G16 el alumno lee su recibo de actividad',
 
 // G17 (aislamiento) — SOLO la creación del recibo, con el
 // documento de la alumna ya en el estado posterior al acto
-// (sembrado sin reglas): aísla la evaluación de consent_receipts.
+// (sembrado sin reglas): en esta casa un recibo suelto, sin la
+// transición de su lote, NO se puede crear en NINGÚN texto —
+// la derivación exige el cambio en el mismo lote. Denegado
+// en ambos: es la prueba de que el recibo no se puede forjar.
 await seedUser('aluIso', { trainerUid: 'entrenadorT', assignmentStatus: 'assigned',
   consentSeq: 4, consentReceiptId: 'aluIso_4',
   activityConsents: { sleep: { status: 'accepted', version: V, acceptedAt: OLD_A } } });
-await T('G17 aislamiento: crear solo el recibo activity-sleep-granted',
+await T('G17 un recibo suelto de actividad, sin su lote, no se puede crear',
   setDoc(doc(dbOf('aluIso'), 'consent_receipts', 'aluIso_4'),
     { uid: 'aluIso', email: 'aluIso@test.local', type: 'activity-sleep-granted', version: V, at: serverTimestamp() }),
-  ESPERA_NUEVO);
+  false);
 // G18 (aislamiento) — SOLO la escritura en users, sin recibo:
 // denegada en ambos textos por el acoplamiento; el MOTIVO del
 // error impreso distingue «recibo ausente» de «desbordamiento».
