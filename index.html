@@ -21,7 +21,7 @@
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-title" content="RONBO FIT">
 <meta name="apple-mobile-web-app-status-bar-style" content="default">
-<link rel="stylesheet" href="styles.css?v=20261103-actividad-p1">
+<link rel="stylesheet" href="styles.css?v=20261103-editor-faq-admin">
 <script defer src="https://cloud.umami.is/script.js" data-website-id="a29706d4-44a2-47cf-900a-5f74d74abfa8"></script>
 <script type="importmap">
 {
@@ -1147,10 +1147,11 @@
          su sección de «Administración» (#nd2-box lo crea
          admSecMountAccessLog y lo sigue cargando loadAccessLog).
          MOVIDO, no duplicado: cada caja existe una sola vez en el
-         DOM, dentro de su sección. -->
-    <h3 class="history-title" data-i18n="faq.edTitle">❓ Help editor (FAQ)</h3>
-    <p class="progress-hint" data-i18n="faq.edHint">These questions and answers are what every user sees in Help (the floating ? on the main screen). Edit, add or delete entries: changes are saved to the app settings and reach everyone on their next visit.</p>
-    <div id="faq-editor-box"></div>
+         DOM, dentro de su sección. El editor de Ayuda (FAQ) se
+         MUDÓ también (2026-11-03, orden de Ronald): vive ahora en
+         la sección «Editor de ayuda (FAQ)» de «Administración»
+         (#faq-editor-box lo crea admSecMountFaqEd y lo sigue
+         pintando renderFaqEditorBox). MOVIDO, no duplicado. -->
   </div>
   </div><!-- /tab-access -->
 
@@ -1828,6 +1829,6 @@
 <div id="toast" class="toast"></div>
 <div id="print-card" aria-hidden="true"></div>
 
-<script type="module" src="app.js?v=20261103-actividad-p1"></script>
+<script type="module" src="app.js?v=20261103-editor-faq-admin"></script>
 </body>
 </html>

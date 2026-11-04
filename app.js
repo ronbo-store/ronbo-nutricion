@@ -2106,6 +2106,7 @@ const ADMIN_SECTIONS = [
   { id: 'limits', sub: 'system', titleKey: 'limreg.title', mount: admSecMountLimits, refresh: admSecRefreshLimits },
   { id: 'imglim', sub: 'system', titleKey: 'imglim.title', mount: admSecMountImgLim, refresh: admSecRefreshImgLim },
   { id: 'care', sub: 'system', titleKey: 'care.title', mount: admSecMountCare, refresh: admSecRefreshCare },
+  { id: 'faqed', sub: 'system', titleKey: 'faq.edTitle', mount: admSecMountFaqEd, refresh: renderFaqEditorBox },
 ];
 const ADM_SEC_OPEN = {};     // id → abierta (solo presentación)
 const ADM_SEC_MOUNTED = {};  // id → contenido ya montado
@@ -2884,6 +2885,20 @@ function admPaintUsage(data, stale) {
 function admSecMountFlags(body) {
   body.innerHTML = `<p class="progress-hint">${esc(t('esc.flagsHint'))}</p><div id="flags-box"></div>`;
   paintFlagsBox();
+}
+/* ---------- Sección «Editor de ayuda (FAQ)» (SISTEMA) ----------
+   Mudanza 2026-11-03 (orden de Ronald, chat RONBO.NUTRI 23:11 CST:
+   «Quiero que el editor de las preguntas esté en administración»):
+   el editor vivía al final de Accesos; vive ahora en esta sección
+   de Administración, al final del grupo SISTEMA. MOVIDO, no
+   duplicado (precedente AUTH-146): #faq-editor-box existe una sola
+   vez, dentro de esta sección, y lo sigue pintando
+   renderFaqEditorBox con su guarda de siempre (IS_OWNER &&
+   ROLE==='administrador'); el guardado no cambia (faqEdPersist
+   sigue escribiendo app_settings/faq). */
+function admSecMountFaqEd(body) {
+  body.innerHTML = `<p class="progress-hint">${esc(t('faq.edHint'))}</p><div id="faq-editor-box"></div>`;
+  renderFaqEditorBox();
 }
 /* ---------- Sección «Bitácora de accesos» (SISTEMA) ---------- */
 function admSecMountAccessLog(body) {
@@ -11088,7 +11103,12 @@ async function loadAdmin() {
      secciones: los envíos por usuario (aprobación, 📧 y dossier)
      siguen llamando a /mail/send por clave, como siempre. */
   renderAiControlBox();
-  renderFaqEditorBox();
+  /* EDITOR DE AYUDA (FAQ) (2026-11-03): la caja del editor de
+     Ayuda de Accesos se RETIRA — vive ahora en la sección
+     «Editor de ayuda (FAQ)» de Administración (admSecMountFaqEd).
+     Nada queda duplicado: #faq-editor-box existe una sola vez en
+     el DOM, dentro de esa sección, y lo sigue pintando
+     renderFaqEditorBox con su guarda de propietario intacta. */
   document.querySelectorAll('[data-goals]').forEach(b => b.onclick = () => {
     const u = ADMIN_USERS.find(x => x.id === b.dataset.goals);
     if (u) openGoals(u.id, u.name || u.email, u.goals);
@@ -38171,7 +38191,7 @@ document.addEventListener('keydown', e => { if (e.key === 'Escape') shareClose()
  *  - El SW (sw.js) solo cachea la cáscara del mismo origen en modo
  *    RED PRIMERO: Auth/Firestore/Worker jamás pasan por la caché.
  * ================================================================ */
-const PWA_SW_VERSION = '20261103-actividad-p1';
+const PWA_SW_VERSION = '20261103-editor-faq-admin';
 /* Sello de versión VISIBLE (2026-11-03): el pie de la tarjeta de
    acceso enseña qué copia corre este teléfono ('v ' + el sello),
    para comprobar de un vistazo si la versión nueva ya llegó.
@@ -38542,8 +38562,8 @@ function installCardMaybeShow() {
    Vista: botón «?» flotante ENCIMA del cronómetro en la pila de
    la derecha, SOLO en la pantalla principal (helpFabSync sigue a
    switchTab); panel inferior con los 7 bloques en acordeón.
-   Editor del administrador: en Accesos (renderFaqEditorBox, solo
-   propietario) — editar, añadir y borrar entradas bilingües.
+   Editor del administrador: en Administración (renderFaqEditorBox,
+   solo propietario) — editar, añadir y borrar entradas bilingües.
    ============================================================ */
 const FAQ_SEED = [
  {
@@ -39242,7 +39262,7 @@ function swFabSync(tabName) { const f = $('btn-stopwatch'); if (f) f.style.displ
    y el HTML interno se actualiza igual, así que al volver a Inicio
    el anillo trae el consumo al día sin recargar. */
 function goalsCardSync(tabName) { const c = document.querySelector('.goals-card'); if (c) c.style.display = (tabName === 'track') ? '' : 'none'; }
-/* ---------- Editor del administrador (Accesos, solo dueño) ---------- */
+/* ---------- Editor del administrador (Administración, solo dueño) ---------- */
 let FAQ_ED = null;   // borrador editable del editor
 async function renderFaqEditorBox() {
   const box = $('faq-editor-box'); if (!box) return;

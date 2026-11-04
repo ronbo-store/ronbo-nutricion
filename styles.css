@@ -2827,7 +2827,7 @@ body.prog-page #progress-content.nav-page-on { padding-right: 88px; }
    final de la vista bajo la pila flotante, sin posición de scroll que los
    libere: las dos bandejas de fin de Clientes (#waiting-box y
    #approvals-box — su párrafo queda tapado por la llamita en la captura de
-   Ronald) y el editor de preguntas de Accesos (#faq-editor-box, cuya última
+   Ronald) y el editor de preguntas de Administración (#faq-editor-box, cuya última
    caja de texto queda bajo la llamita a scroll máximo). Ni el dock ni la
    pila se mueven: sus reglas quedan byte a byte. ═══ */
 #app-view .foot { margin-bottom: 0; }
@@ -3674,3 +3674,10 @@ body.sess-on #pend-back-chip { bottom: calc(env(safe-area-inset-bottom, 0px) + 1
 .adh-row { display: flex; justify-content: space-between; gap: 10px; padding: 3px 0; }
 .adh-type { color: #374151; }
 .adh-val { font-weight: 600; text-align: right; }
+
+/* ═══ EDITOR DE AYUDA (FAQ) EN ADMINISTRACIÓN (mudanza 2026-11-03):
+   la cabecera de su sección garantiza el alto táctil mínimo de la
+   casa (44 px) — la cabecera común .admsec-head pinta 42 px y los
+   controles deben ser grandes y fáciles de tocar. Solo esta
+   sección: las demás cabeceras quedan como estaban. ═══ */
+[data-admsec="faqed"] .admsec-head { min-height: 44px; }
