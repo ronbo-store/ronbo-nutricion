@@ -20255,6 +20255,101 @@ function aiWireSplit() {
   const sel = $('ai-meal');
   if (sel && !sel.__splitWired) { sel.__splitWired = true; sel.addEventListener('change', () => { if (aiState && aiState.split) aiSplitSync(); }); }
 }
+/* ---------- ¿Lo repartiste? TAMBIÉN en el formulario manual ----------
+   La misma facilidad de la hoja de la IA vive en el formulario manual:
+   la pregunta, los dos botones de la casa, los botones del otro
+   momento y la línea de resultado siguen a los campos m-* del
+   formulario (los valores ACTUALES, editados a mano incluidos). El
+   estado vive en mealSplit (null = todo en esta comida; {second} = la
+   otra mitad va a ese momento). El redondeo con resto exacto y el
+   desglose por piezas se REUTILIZAN de la hoja (aiSplitHalves,
+   aiItemsHalved, aiSplitNextMeal) sin copiarlos; los textos y las
+   clases son los mismos de la hoja (cero claves i18n nuevas, cero CSS
+   nuevo). El guardado lo hace el propio submit del formulario: dos
+   asientos normales en UN lote atómico con ids estables.
+   La cantidad aquí es TEXTO LIBRE (en la hoja es un número): se parte
+   el número inicial con resto exacto y las piezas enteras se parten
+   en enteros (3 uds → «2 uds» + «1 uds», nunca «1,5 uds»); sin
+   número, el texto se conserva igual en las dos mitades. */
+let mealSplit = null;
+function mealSplitFirst() { return ($('m-meal') && $('m-meal').value) || 'Desayuno'; }
+function mealSplitSecond() {
+  const f = mealSplitFirst();
+  let s = (mealSplit && mealSplit.second) || aiSplitNextMeal(f);
+  if (!AI_MEALS.includes(s) || s === f) s = aiSplitNextMeal(f);
+  return s;
+}
+function mealSplitTotals() {
+  return {
+    kcal: Math.max(0, num($('m-kcal').value)), prot: Math.max(0, num($('m-prot').value)),
+    carb: Math.max(0, num($('m-carb').value)), sugar: Math.max(0, num($('m-sugar').value)),
+    fat: Math.max(0, num($('m-fat').value))
+  };
+}
+function mealSplitResultText() {
+  const h = aiSplitHalves(mealSplitTotals())[0];
+  const r = v => String(Math.round(num(v)));
+  return t('ai.splitResult', { kcal: r(h.kcal), p: r(h.prot), c: r(h.carb), s: r(h.sugar), f: r(h.fat) });
+}
+function mealSplitHTML() {
+  const on = !!mealSplit;
+  const f = mealSplitFirst(), s = mealSplitSecond();
+  const others = AI_MEALS.filter(v => v !== f);
+  return `<div class="ai-split" id="m-split"><p class="ai-split-q">${t('ai.splitPrompt')}</p><div class="ai-split-opts"><button type="button" class="ai-split-btn${on ? '' : ' on'}" data-msplit="all">${t('ai.splitAll')}</button><button type="button" class="ai-split-btn${on ? ' on' : ''}" data-msplit="half">${t('ai.splitHalf')}</button></div>${on ? `<p class="ai-split-q">${t('ai.splitSecond')}</p><div class="ai-split-opts">${others.map(v => `<button type="button" class="ai-split-btn${v === s ? ' on' : ''}" data-msecond="${v}">${esc(mealName(v))}</button>`).join('')}</div><p class="ai-split-result" id="m-split-result">${esc(mealSplitResultText())}</p>` : ''}</div>`;
+}
+function mealSplitQtyHalves() {
+  const q = String(($('m-qty') && $('m-qty').value) || '').trim();
+  const p = repeatParseQty(q);
+  /* Sin número inicial («una taza») no hay nada que partir: el
+     texto se conserva igual en las dos mitades. */
+  if (!p || !p.num) return { qa: q, qb: q };
+  const w = (n, unit) => (unit ? (fmt(n) + ' ' + unit) : fmt(n));
+  if (p.pieces) {
+    const a = Math.ceil(p.num / 2);
+    return { qa: w(a, p.unit), qb: w(p.num - a, p.unit) };
+  }
+  /* Cantidad entera: mitades enteras con resto exacto (835 g →
+     «418 g» + «417 g»); con decimales, a 1 decimal con el mismo
+     resto exacto. Las dos cantidades siempre suman la original. */
+  if (Number.isInteger(p.num)) {
+    const a = Math.round(p.num / 2);
+    return { qa: w(a, p.unit), qb: w(p.num - a, p.unit) };
+  }
+  const a = Math.round(p.num / 2 * 10) / 10;
+  return { qa: w(a, p.unit), qb: w(Math.round((p.num - a) * 10) / 10, p.unit) };
+}
+/* Repinta SOLO el bloque del reparto dentro del formulario y lo
+   vuelve a cablear: los campos del formulario no se tocan (ni foco ni
+   contenido). La caja vive en el formulario (#m-split-box) y se pinta
+   en CADA apertura (el embudo aiOpenMealModal la sincroniza). */
+function mealSplitSync() {
+  const box = document.getElementById('m-split-box');
+  if (!box) return;
+  box.innerHTML = mealSplitHTML();
+  mealSplitWire();
+}
+function mealSplitWire() {
+  const boxEl = document.getElementById('m-split-box');
+  if (!boxEl) return;
+  boxEl.querySelectorAll('[data-msplit]').forEach(b => { b.onclick = () => {
+    if (b.dataset.msplit === 'all') mealSplit = null; else mealSplit = { second: mealSplitSecond() };
+    mealSplitSync(); pendDraftSave();
+  }; });
+  boxEl.querySelectorAll('[data-msecond]').forEach(b => { b.onclick = () => { mealSplit = { second: b.dataset.msecond }; mealSplitSync(); pendDraftSave(); }; });
+  /* La línea de resultado sigue a los campos del formulario: editar
+     kcal, macros o cantidad la recalcula al momento (sin repintar el
+     bloque entero). Los escuchadores se marcan (__splitWired) para no
+     apilarlos: el formulario vive en el DOM y se abre muchas veces. */
+  ['m-kcal', 'm-prot', 'm-carb', 'm-sugar', 'm-fat', 'm-qty'].forEach(id => {
+    const inp = $(id);
+    if (inp && !inp.__splitWired) { inp.__splitWired = true; inp.addEventListener('input', () => { const r = document.getElementById('m-split-result'); if (r && mealSplit) r.textContent = mealSplitResultText(); }); }
+  });
+  /* Si la PRIMERA comida cambia y alcanza a la segunda, el estado se
+     normaliza y el bloque se re-sincroniza (la segunda salta a la
+     siguiente natural). */
+  const msel = $('m-meal');
+  if (msel && !msel.__splitWired) { msel.__splitWired = true; msel.addEventListener('change', () => { if (mealSplit) { mealSplit = { second: mealSplitSecond() }; mealSplitSync(); } }); }
+}
 /* Métricas EDITABLES en el propio resultado (PAQUETE 2): aiState.metrics
    guarda los cinco valores tal como la persona los deja en el panel;
    el guardado (directo o vía borrador) usa ESTOS valores. Tocar un
@@ -20674,6 +20769,8 @@ function aiContinueManual() {
     $('m-food').value = aiState.descText.slice(0, 120);
   }
   aiDiscard();
+  /* Salida manual ordinaria: el reparto de la hoja no viaja aquí. */
+  mealSplit = null;
   /* La superficie pasa a ser el formulario: las hojas de Comida se cierran (puntos 19–20) — al cerrar el modal no queda una hoja vacía detrás. */
   foodCloseAll();
   aiOpenMealModal();
@@ -21262,6 +21359,10 @@ function aiOpenMealModal() {
   }
   const f = $('m-food');
   if (f) { try { f.focus({ preventScroll: true }); } catch {} }
+  /* El bloque «¿Lo repartiste?» del formulario manual se pinta en
+     CADA apertura: cada abridor fija antes el estado (nulo, heredado
+     de la revisión de la IA o restaurado del espejo pendiente). */
+  mealSplitSync();
 }
 /* ============ DESGLOSE POR ALIMENTO (Ronald, 2026-10-21) ============
    «Que no coloque la comida completa sino que sepa separar qué
@@ -21378,6 +21479,12 @@ function aiUseDraft(r1, r2) {
        envío del formulario escribirá el MISMO documento que el
        guardado directo de esta revisión (ver aiNewSaveId). */
     aiDraft = { model: (r2 && r2.model) || 'gemini', rangeKcal: Array.isArray(tot.range_kcal) ? tot.range_kcal : null, items: aiItemsCandidate(), src: fromText ? 'ai-text' : fromAudio ? 'ai-audio' : 'ai', saveId: (typeof aiState !== 'undefined' && aiState && aiState.saveId) || null };
+    /* El reparto elegido en la revisión viaja al formulario: el
+       plato sigue llegando COMPLETO a los campos y el bloque nace
+       encendido con la misma segunda comida; al guardar, el submit
+       del formulario escribe las dos mitades con los ids del
+       borrador (el suyo y su par «-b»). */
+    mealSplit = (typeof aiState !== 'undefined' && aiState && aiState.split) ? { second: aiSplitSecond() } : null;
     try {
       const b = $('m-ai-banner');
       if (b) {
@@ -33540,6 +33647,9 @@ function mealManualOpen() {
   aiClearDraft();
   const form = $('form-meal');
   if (form) form.reset();
+  /* El reparto nace apagado; el espejo pendiente puede encenderlo
+     (restaura también la segunda comida elegida, ver pendDraftRestore). */
+  mealSplit = null;
   const prev = $('m-photo-preview');
   if (prev) { prev.style.display = 'none'; prev.src = ''; }
   $('m-date').value = ($('dateSel') && $('dateSel').value) || todayISO();
@@ -33751,6 +33861,8 @@ function openRepeatMeal(rec, viewDate) {
   try { pendDraftDisarm(); } catch {}
   const form = $('form-meal');
   if (form) form.reset();
+  /* Repetir crea un registro nuevo y entero: sin reparto. */
+  mealSplit = null;
   const prev = $('m-photo-preview');
   if (prev) { prev.style.display = 'none'; prev.src = ''; }
   $('m-date').value = viewDate || ($('dateSel') && $('dateSel').value) || todayISO();
@@ -34381,6 +34493,42 @@ $('form-meal').addEventListener('submit', async e => {
     const formIts = itemsIfSquare(candItems, data);
     if (formIts) data.items = formIts;
     const wasDraft = !!aiDraft;
+    /* ¿Lo repartiste? en el formulario manual: con el reparto
+       encendido el registro completo de arriba NO se escribe — se
+       escriben DOS asientos normales e independientes, uno por
+       momento, cada uno con la mitad de los totales del formulario
+       (aiSplitHalves: resto exacto, las dos mitades suman el original
+       al número), de la cantidad (texto libre partido con
+       mealSplitQtyHalves) y del desglose (aiItemsHalved, revalidado
+       contra los totales de CADA mitad con itemsIfSquare, la misma
+       regla de honestidad de la hoja). El rango de la estimación, si
+       lo hay, se parte como en la hoja (la misma mitad para ambos).
+       La candidatura a la biblioteca sigue UNA vez con el registro
+       completo (el foodlibAutoCandidate de abajo no cambia). */
+    const splitOn = !!mealSplit;
+    const splitSecond = splitOn ? mealSplitSecond() : null;
+    let dataA = null, dataB = null, idA = null;
+    if (splitOn) {
+      const hv = aiSplitHalves(data);
+      const itH = aiItemsHalved(data.items);
+      const qh = mealSplitQtyHalves();
+      const rangeHalf = (data.ai && Array.isArray(data.ai.rangeKcal)) ? [Math.round(data.ai.rangeKcal[0] / 2), Math.round(data.ai.rangeKcal[1] / 2)] : null;
+      const mkHalf = (meal, h, its, qty) => {
+        const d = Object.assign({}, data, { meal, qty }, h);
+        if (data.ai) d.ai = { model: data.ai.model, rangeKcal: rangeHalf };
+        delete d.items;
+        const hi = itemsIfSquare(its, d);
+        if (hi) d.items = hi;
+        return d;
+      };
+      dataA = mkHalf(data.meal, hv[0], itH[0], qh.qa);
+      dataB = mkHalf(splitSecond, hv[1], itH[1], qh.qb);
+      /* La foto queda SOLO en la primera mitad: hay un único objeto
+         en Storage y el borrado de un registro elimina el objeto de
+         su photoPath — compartirlo dejaría a la otra mitad sin foto
+         el día que se borre esta. */
+      delete dataB.photoURL; delete dataB.photoPath;
+    }
     /* Identidad de guardado del borrador de IA (corrección del
        duplicado, 2026-10-23): si el formulario viene de una revisión
        de análisis, escribe el MISMO documento que el guardado directo
@@ -34400,13 +34548,29 @@ $('form-meal').addEventListener('submit', async e => {
        mismas claves y valores que con addDoc; solo cambia quién
        genera el id, como ya hacía la vía IA desde 2026-10-23. */
     try {
-      if (aiDraft && aiDraft.saveId) await setDoc(doc(db, 'nutrition_meals', aiDraft.saveId), data);
+      if (aiDraft && aiDraft.saveId) idA = aiDraft.saveId;
       else {
-        const huella = [data.ownerUid, data.date, data.meal, data.food, data.qty, data.kcal, data.prot, data.carb, data.sugar, data.fat].join('|');
+        /* Con reparto, la huella se extiende con la segunda comida:
+           repartir el mismo plato a otro momento es OTRO guardado a
+           efectos de reintento. Sin reparto, la huella queda
+           carácter a carácter como siempre. */
+        const huella = [data.ownerUid, data.date, data.meal, data.food, data.qty, data.kcal, data.prot, data.carb, data.sugar, data.fat].join('|') + (splitOn ? '|mitad:' + splitSecond : '');
         if (!mealManualPending || mealManualPending.huella !== huella) mealManualPending = { huella, id: aiNewSaveId() };
-        await setDoc(doc(db, 'nutrition_meals', mealManualPending.id), data);
-        mealManualPending = null;
+        idA = mealManualPending.id;
       }
+      if (splitOn) {
+        /* El par nace JUNTO o no nace: un solo lote atómico con los
+           dos documentos y los ids estables de arriba (el del
+           guardado y su par «-b») — un reintento tras un fallo
+           reescribe LOS MISMOS dos documentos, jamás duplica. */
+        const batch = writeBatch(db);
+        batch.set(doc(db, 'nutrition_meals', idA), dataA);
+        batch.set(doc(db, 'nutrition_meals', idA + '-b'), dataB);
+        await batch.commit();
+      } else {
+        await setDoc(doc(db, 'nutrition_meals', idA), data);
+      }
+      if (!(aiDraft && aiDraft.saveId)) mealManualPending = null;
     } catch (err) { failToast(err); return; }
     /* Punto 84: si este guardado es el de una elección del
        catálogo, su aterrizaje es el de la revisión de IA (caer en
@@ -34415,6 +34579,7 @@ $('form-meal').addEventListener('submit', async e => {
     const wasPick = !!MEAL_PICK;
     aiClearDraft();
     repeatClear();
+    mealSplit = null;
     /* El registro YA se guardó: el espejo de borrador (D3) se
        limpia — lo escrito no debe seguir figurando como sin guardar
        ni escribirse dos veces. */
@@ -34430,7 +34595,12 @@ $('form-meal').addEventListener('submit', async e => {
     e.target.reset();
     $('m-photo-preview').style.display = 'none'; $('m-photo-preview').src = '';
     await loadAllKeepDate(data.date);
-    if (wasDraft) {
+    if (splitOn) {
+      /* La confirmación del reparto es la de la familia (la misma
+         de la hoja de la IA), con la línea breve de la foto o de la
+         voz cuando el registro viene de un análisis. */
+      toast(t('ai.savedSplit', { a: mealName(dataA.meal), b: mealName(dataB.meal) }) + (data.source === 'ai' ? ' ' + t('ai.savedPhotoNote') : data.source === 'ai-audio' ? ' ' + t('aiVoice.savedNote') : ''));
+    } else if (wasDraft) {
       /* Confirmación visible del borrador (H-2): las kcal guardadas y el
          total del día YA incluyéndolas — que «sí suma» sea evidente. */
       const dayTotal = (MEALS[data.date] || []).reduce((s, m) => s + (Number(m.kcal) || 0), 0);
@@ -34967,7 +35137,7 @@ function pendDraftGet() {
 function pendDraftSave() {
   if (!PEND_DRAFT_ARM) return;
   const v = id => { const el = $(id); return el ? el.value : ''; };
-  const d = { date: v('m-date'), meal: v('m-meal'), food: v('m-food'), qty: v('m-qty'), kcal: v('m-kcal'), prot: v('m-prot'), carb: v('m-carb'), sugar: v('m-sugar'), fat: v('m-fat'), notes: v('m-notes'), at: Date.now() };
+  const d = { date: v('m-date'), meal: v('m-meal'), food: v('m-food'), qty: v('m-qty'), kcal: v('m-kcal'), prot: v('m-prot'), carb: v('m-carb'), sugar: v('m-sugar'), fat: v('m-fat'), notes: v('m-notes'), split: mealSplit ? mealSplit.second : '', at: Date.now() };
   try {
     if (pendDraftLive(d)) localStorage.setItem(PEND_DRAFT_KEY, JSON.stringify(d));
     else localStorage.removeItem(PEND_DRAFT_KEY);
@@ -34980,6 +35150,9 @@ function pendDraftRestore() {
   const set = (id, val) => { const el = $(id); if (el && val !== undefined && val !== null) el.value = val; };
   set('m-date', d.date); set('m-meal', d.meal); set('m-food', d.food); set('m-qty', d.qty);
   set('m-kcal', d.kcal); set('m-prot', d.prot); set('m-carb', d.carb); set('m-sugar', d.sugar); set('m-fat', d.fat); set('m-notes', d.notes);
+  /* El reparto también es parte del borrador: se restaura validado
+     contra los momentos conocidos (un espejo viejo no lo trae). */
+  mealSplit = (d.split && AI_MEALS.includes(d.split)) ? { second: d.split } : null;
 }
 { const fm = document.getElementById('form-meal'); if (fm) fm.addEventListener('input', () => { try { pendDraftSave(); } catch {} }); }
 
@@ -35503,6 +35676,7 @@ setInterval(() => { try { pendDockTick(); } catch {} }, 60000);
         if (type === 'meal') {
           aiClearDraft(); repeatClear();
           const form = $('form-meal'); if (form) form.reset();
+          mealSplit = null;
           $('m-date').value = date;
           const sel = $('m-meal'); if (sel && [...sel.options].some(o => o.value === b.dataset.meal)) sel.value = b.dataset.meal;
           pendDraftArm();
@@ -37185,7 +37359,7 @@ document.addEventListener('keydown', e => { if (e.key === 'Escape') shareClose()
  *  - El SW (sw.js) solo cachea la cáscara del mismo origen en modo
  *    RED PRIMERO: Auth/Firestore/Worker jamás pasan por la caché.
  * ================================================================ */
-const PWA_SW_VERSION = '20261103-asignados';
+const PWA_SW_VERSION = '20261103-reparto-manual';
 let pwaDeferredPrompt = null;
 function pwaIsStandalone() {
   try {
