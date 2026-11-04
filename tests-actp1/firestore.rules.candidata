@@ -636,37 +636,35 @@ service cloud.firestore {
     // El modo se deriva del estado destino: 'accepted' es
     // otorgar/renovar; 'withdrawn' es retirar.
     function actActShapeOk(before, after) {
-      let t = actChangedType(before, after);
-      let subA = actConsents(after).get(t, {});
-      let subB = actConsents(before).get(t, {});
-      let grant = subA.get('status', '') == 'accepted';
-      let action = grant
-        ? (subB.get('status', '') == 'withdrawn' ? 'renewed' : 'granted')
-        : 'withdrawn';
-      let rid = after.get('consentReceiptId', '');
-      let r = getAfter(receiptPath(rid)).data;
-      return t != ''
-        && (grant
-            ? (subB.get('status', '') != 'accepted'
-               && subA.get('acceptedAt', null) == request.time
-               && subA.get('version', '') != ''
-               && subA.get('withdrawnAt', null) == subB.get('withdrawnAt', null))
-            : (subB.get('status', '') == 'accepted'
-               && subA.get('status', '') == 'withdrawn'
-               && subA.get('withdrawnAt', null) == request.time
-               && subA.get('acceptedAt', null) == subB.get('acceptedAt', null)
-               && subA.get('version', '') == subB.get('version', '')))
-        && existsAfter(receiptPath(rid))
+      let mB = before.get('activityConsents', {});
+      let mA = after.get('activityConsents', {});
+      let d1 = mB.get('steps', {}) != mA.get('steps', {});
+      let d2 = mB.get('exercise', {}) != mA.get('exercise', {});
+      let d3 = mB.get('weight', {}) != mA.get('weight', {});
+      let d4 = mB.get('sleep', {}) != mA.get('sleep', {});
+      let t = d1 ? 'steps' : d2 ? 'exercise' : d3 ? 'weight' : 'sleep';
+      let subB = mB.get(t, {});
+      let subA = mA.get(t, {});
+      let esOtorgar = subA.get('status', '') == 'accepted'
+        && subB.get('status', '') != 'accepted'
+        && subA.get('acceptedAt', null) == request.time
+        && subA.get('withdrawnAt', null) == subB.get('withdrawnAt', null);
+      let esRetirar = subA.get('status', '') == 'withdrawn'
+        && subB.get('status', '') == 'accepted'
+        && subA.get('withdrawnAt', null) == request.time
+        && subA.get('acceptedAt', null) == subB.get('acceptedAt', null)
+        && subA.get('version', '') == subB.get('version', '');
+      let r = getAfter(receiptPath(after.consentReceiptId)).data;
+      return (d1 && !d2 && !d3 && !d4 || !d1 && d2 && !d3 && !d4
+              || !d1 && !d2 && d3 && !d4 || !d1 && !d2 && !d3 && d4)
+        && (esOtorgar || esRetirar)
         && r.uid == request.auth.uid
-        && r.type == 'activity-' + t + '-' + action
+        && r.type == 'activity-' + t + '-'
+             + (esRetirar ? 'withdrawn'
+                : subB.get('status', '') == 'withdrawn' ? 'renewed' : 'granted')
         && r.version == subA.get('version', '')
         && r.at == request.time;
     }
-    // La otra cara del acoplamiento, para la regla de creación
-    // de recibos: el recibo activity-{tipo}-{acción} solo vale
-    // si la transición del mapa en el mismo lote es exactamente
-    // esa (un tipo, la acción que su nombre declara, su
-    // versión).
     function actReceiptTransitionOk(before, after, type, version) {
       let tipo = type.split('-')[1];
       let action = type.split('-')[2];
