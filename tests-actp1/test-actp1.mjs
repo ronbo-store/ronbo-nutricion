@@ -331,10 +331,17 @@ await T('S16 el alumno lista sus sueños',
 await T('S17 sin sesión no se lee el sueño',
   getDoc(doc(dbOf(null), 'activity_data', 'aluSleep_2026-11-02_sleep')),
   false);
-// S18 — el entrenador lista con consentimiento (la consulta del panel).
+// S18 — el entrenador lista con consentimiento (la consulta del
+// panel: un tipo cada vez — clientUid + dataType).
 await T('S18 el entrenador lista los sueños con consentimiento',
-  getDocs(query(collection(dbOf('entrenadorT'), 'activity_data'), where('clientUid', '==', 'aluSleep'))),
+  getDocs(query(collection(dbOf('entrenadorT'), 'activity_data'),
+    where('clientUid', '==', 'aluSleep'), where('dataType', '==', 'sleep'))),
   ESPERA_NUEVO);
+// S19 — la misma lista SIN acotar el tipo: la compuerta no puede
+// probar el tipo y se cierra (denegado en ambos textos).
+await T('S19 el entrenador lista sin acotar el tipo = denegado',
+  getDocs(query(collection(dbOf('entrenadorT'), 'activity_data'), where('clientUid', '==', 'aluSleep'))),
+  false);
 
 console.log(`\n${NOMBRE}: ${pass} PASS · ${fail} FAIL`);
 if (failures.length) console.log('FALLOS: ' + failures.join(' | '));

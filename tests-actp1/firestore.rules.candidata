@@ -609,17 +609,24 @@ service cloud.firestore {
     function actStatus(d, tipo) {
       return actConsents(d).get(tipo, {}).get('status', 'none');
     }
-    // Tipos cuyo estado cambió entre dos versiones del documento.
-    function actChangedTypes(before, after) {
-      return (actStatus(before, 'steps') != actStatus(after, 'steps') ? ['steps'] : [])
-        + (actStatus(before, 'exercise') != actStatus(after, 'exercise') ? ['exercise'] : [])
-        + (actStatus(before, 'weight') != actStatus(after, 'weight') ? ['weight'] : [])
-        + (actStatus(before, 'sleep') != actStatus(after, 'sleep') ? ['sleep'] : []);
-    }
-    // El tipo cambiado cuando cambió EXACTAMENTE uno; '' si no.
+    // El primer tipo cuyo estado cambió entre dos versiones del
+    // documento; '' si ninguno. (La exigencia de que cambie
+    // EXACTAMENTE uno vive en las ramas — actOnlyTypeChanged —;
+    // un acto con dos tipos cambiados no casa con ninguna rama y
+    // el lote se deniega aunque esta derivación nombre al primero.)
     function actChangedType(before, after) {
-      let ch = actChangedTypes(before, after);
-      return ch.size() == 1 ? ch[0] : '';
+      return actStatus(before, 'steps') != actStatus(after, 'steps') ? 'steps'
+        : actStatus(before, 'exercise') != actStatus(after, 'exercise') ? 'exercise'
+        : actStatus(before, 'weight') != actStatus(after, 'weight') ? 'weight'
+        : actStatus(before, 'sleep') != actStatus(after, 'sleep') ? 'sleep' : '';
+    }
+    // ¿El conjunto de subclaves que cambian en el mapa es SOLO la
+    // del tipo dado? (diff de mapas: cualquier otra subclave
+    // tocada — aunque no cambie de estado — hace falso el chequeo;
+    // combinado con el cambio de estado exigido por las formas,
+    // equivale a «cambió exactamente este tipo y nada más».)
+    function actOnlyTypeChanged(before, after, tipo) {
+      return actConsents(after).diff(actConsents(before)).affectedKeys().hasOnly([tipo]);
     }
     // Tipo de recibo derivado de la transición de actividad: ''
     // salvo que cambiara exactamente un tipo hacia un estado
@@ -633,11 +640,6 @@ service cloud.firestore {
     }
     function actVersionOf(d, tipo) {
       return actConsents(d).get(tipo, {}).get('version', '');
-    }
-    // La subclave de un tipo queda byte a byte igual entre dos
-    // versiones del documento.
-    function actSubEq(before, after, tipo) {
-      return actConsents(before).get(tipo, {}) == actConsents(after).get(tipo, {});
     }
     // Forma de OTORGAR/RENOVAR un tipo: nace 'accepted' con la
     // hora del servidor, versión de texto no vacía, la marca de
@@ -668,27 +670,15 @@ service cloud.firestore {
         && actConsents(after).get(tipo, {}).keys()
              .hasOnly(['status', 'version', 'acceptedAt', 'withdrawnAt']);
     }
-    // Exactamente UN tipo cumple la forma pedida y los otros
-    // tres quedan intactos.
+    // La forma completa del acto: hay un tipo cambiado, es el
+    // ÚNICO tocado en el mapa y cumple su forma individual.
     function actGrantShape(before, after) {
-      return (actGrantFor(before, after, 'steps')
-          && actSubEq(before, after, 'exercise') && actSubEq(before, after, 'weight') && actSubEq(before, after, 'sleep'))
-        || (actGrantFor(before, after, 'exercise')
-          && actSubEq(before, after, 'steps') && actSubEq(before, after, 'weight') && actSubEq(before, after, 'sleep'))
-        || (actGrantFor(before, after, 'weight')
-          && actSubEq(before, after, 'steps') && actSubEq(before, after, 'exercise') && actSubEq(before, after, 'sleep'))
-        || (actGrantFor(before, after, 'sleep')
-          && actSubEq(before, after, 'steps') && actSubEq(before, after, 'exercise') && actSubEq(before, after, 'weight'));
+      let t = actChangedType(before, after);
+      return t != '' && actOnlyTypeChanged(before, after, t) && actGrantFor(before, after, t);
     }
     function actWithdrawShape(before, after) {
-      return (actWithdrawFor(before, after, 'steps')
-          && actSubEq(before, after, 'exercise') && actSubEq(before, after, 'weight') && actSubEq(before, after, 'sleep'))
-        || (actWithdrawFor(before, after, 'exercise')
-          && actSubEq(before, after, 'steps') && actSubEq(before, after, 'weight') && actSubEq(before, after, 'sleep'))
-        || (actWithdrawFor(before, after, 'weight')
-          && actSubEq(before, after, 'steps') && actSubEq(before, after, 'exercise') && actSubEq(before, after, 'sleep'))
-        || (actWithdrawFor(before, after, 'sleep')
-          && actSubEq(before, after, 'steps') && actSubEq(before, after, 'exercise') && actSubEq(before, after, 'weight'));
+      let t = actChangedType(before, after);
+      return t != '' && actOnlyTypeChanged(before, after, t) && actWithdrawFor(before, after, t);
     }
     function receiptType(before, after) {
       let bs = before.get('healthConsent', {}).get('status', 'none');
@@ -701,12 +691,12 @@ service cloud.firestore {
       let bb = before.get('bodyTypeConsent', {}).get('status', 'none');
       let ba = after.get('bodyTypeConsent', {}).get('status', 'none');
       // Integración de actividad P1 (2026-11-03): una transición
-      // de actividad deriva su tipo SOLO si cambió exactamente un
-      // tipo Y ningún otro consentimiento cambió en el mismo lote
-      // (la app nunca mezcla actos; si algo más cambió, mandan las
+      // de actividad deriva su tipo SOLO si cambió algún tipo Y
+      // ningún otro consentimiento cambió en el mismo lote (la
+      // app nunca mezcla actos; si algo más cambió, mandan las
       // derivaciones de siempre y la rama de actividad falla
       // cerrada al no casar su recibo).
-      return actChangedTypes(before, after).size() == 1 && bb == ba && bs == as2
+      return actChangedType(before, after) != '' && bb == ba && bs == as2
           && before.get('acceptedTerms', false) == after.get('acceptedTerms', false)
         ? actDerivedType(before, after)
         : (bb != ba
@@ -2466,12 +2456,17 @@ service cloud.firestore {
     match /activity_data/{docId} {
       allow get: if (resource != null && resource.data.clientUid == request.auth.uid)
         || (resource != null && isAssignedTrainerOf(resource.data.clientUid)
-            && actConsentActive(resource.data.clientUid, resource.data.dataType))
+            && actConsentActive(resource.data.clientUid, resource.data.get('dataType', '')))
         || (resource == null && isApprovedUser()
             && docId.matches(request.auth.uid + '_[0-9]{4}-[0-9]{2}-[0-9]{2}_sleep'));
+      // En list, el tipo se lee con .get(): la evaluación de la
+      // consulta solo conoce los campos que la consulta acota —
+      // la del entrenador filtra también por dataType (un tipo
+      // cada vez, como manda el diseño), y sin esa cota la
+      // compuerta evalúa '' y se cierra.
       allow list: if (resource.data.clientUid == request.auth.uid)
         || (isAssignedTrainerOf(resource.data.clientUid)
-            && actConsentActive(resource.data.clientUid, resource.data.dataType));
+            && actConsentActive(resource.data.clientUid, resource.data.get('dataType', '')));
       allow create: if isApprovedUser()
         && actDataKeysOk() && actDataShapeOk(docId)
         && request.resource.data.createdAt == request.time

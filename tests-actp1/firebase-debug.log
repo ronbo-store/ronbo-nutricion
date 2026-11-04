@@ -1,0 +1,365 @@
+[debug] [2026-11-04T03:36:54.793Z] ----------------------------------------------------------------------
+[debug] [2026-11-04T03:36:54.796Z] Command:       /usr/bin/node /home/hatch/workspace/ronbo-nutri/tools/fbt/node_modules/.bin/firebase emulators:exec --only firestore --project ronbo-nutri-test ESPERA_NUEVO=true node test-actp1.mjs
+[debug] [2026-11-04T03:36:54.796Z] CLI Version:   15.34.0
+[debug] [2026-11-04T03:36:54.796Z] Platform:      linux
+[debug] [2026-11-04T03:36:54.796Z] Node Version:  v24.22.1
+[debug] [2026-11-04T03:36:54.797Z] Detected Agent: unknown
+[debug] [2026-11-04T03:36:54.797Z] Time:          Wed Nov 04 2026 03:36:54 GMT+0000 (Coordinated Universal Time)
+[debug] [2026-11-04T03:36:54.797Z] ----------------------------------------------------------------------
+[debug] 
+[debug] [2026-11-04T03:36:54.801Z] >>> [apiv2][query] GET https://firebase-public.firebaseio.com/cli.json [none]
+[debug] [2026-11-04T03:37:01.489Z] > command requires scopes: ["email","openid","https://www.googleapis.com/auth/cloudplatformprojects.readonly","https://www.googleapis.com/auth/firebase","https://www.googleapis.com/auth/cloud-platform"]
+[debug] Failed to authenticate, have you run firebase login?
+[warn] ⚠  emulators: You are not currently authenticated so some features may not work correctly. Please run firebase login to authenticate the CLI. 
+[debug] [2026-11-04T03:37:02.480Z] <<< [apiv2][status] GET https://firebase-public.firebaseio.com/cli.json 200
+[debug] [2026-11-04T03:37:02.481Z] <<< [apiv2][body] GET https://firebase-public.firebaseio.com/cli.json {"cloudBuildErrorAfter":1594252800000,"cloudBuildWarnAfter":1590019200000,"defaultNode10After":1594252800000,"minVersion":"3.0.5","node8DeploysDisabledAfter":1613390400000,"node8RuntimeDisabledAfter":1615809600000,"node8WarnAfter":1600128000000}
+[warn] ⚠  Unable to fetch the CLI MOTD and remote config. This is not a fatal error, but may indicate an issue with your network connection. 
+[debug] [2026-11-04T03:37:02.515Z] Failed to fetch MOTD Error: EPERM: operation not permitted, chown '/home/hatch/.config/configstore/firebase-tools.json.120041758'
+[debug] [2026-11-04T03:37:02.520Z] openjdk version "21.0.13" 2026-10-20 LTS
+OpenJDK Runtime Environment Temurin-21.0.13+9 (build 21.0.13+9-LTS)
+
+[debug] [2026-11-04T03:37:02.520Z] OpenJDK 64-Bit Server VM Temurin-21.0.13+9 (build 21.0.13+9-LTS, mixed mode, sharing)
+
+[debug] [2026-11-04T03:37:02.576Z] Parsed Java major version: 21
+[info] i  emulators: Starting emulators: firestore {"metadata":{"emulator":{"name":"hub"},"message":"Starting emulators: firestore"}}
+[debug] [2026-11-04T03:37:02.587Z] [logging] Logging Emulator only supports listening on one address (127.0.0.1). Not listening on ::1
+[debug] [2026-11-04T03:37:02.587Z] assigned listening specs for emulators {"user":{"firestore":[{"address":"127.0.0.1","family":"IPv4","port":8080}],"firestore.websocket":[{"address":"127.0.0.1","family":"IPv4","port":9150}],"hub":[{"address":"127.0.0.1","family":"IPv4","port":4400},{"address":"::1","family":"IPv6","port":4400}],"logging":[{"address":"127.0.0.1","family":"IPv4","port":4500}]},"metadata":{"message":"assigned listening specs for emulators"}}
+[debug] [2026-11-04T03:37:02.592Z] Write emulator hub locator at /tmp/hub-ronbo-nutri-test.json
+[debug] [2026-11-04T03:37:02.610Z] Ignoring unsupported arg: auto_download {"metadata":{"emulator":{"name":"firestore"},"message":"Ignoring unsupported arg: auto_download"}}
+[debug] [2026-11-04T03:37:02.611Z] Ignoring unsupported arg: single_project_mode_error {"metadata":{"emulator":{"name":"firestore"},"message":"Ignoring unsupported arg: single_project_mode_error"}}
+[debug] [2026-11-04T03:37:02.611Z] Starting Firestore Emulator with command {"binary":"java","args":["-Dgoogle.cloud_firestore.debug_log_level=FINE","-Duser.language=en","-jar","/home/hatch/.cache/firebase/emulators/cloud-firestore-emulator-v1.22.0.jar","--host","127.0.0.1","--port",8080,"--websocket_port",9150,"--database-edition","standard","--project_id","ronbo-nutri-test","--rules","/home/hatch/workspace/ronbo-nutri/construccion-actividad-paquete1-2026-11-03/ci-wt/tests-actp1/firestore.rules","--single_project_mode",true],"optionalArgs":["port","webchannel_port","host","rules","websocket_port","database-edition","functions_emulator","seed_from_export","project_id","single_project_mode"],"joinArgs":false,"shell":false,"port":8080} {"metadata":{"emulator":{"name":"firestore"},"message":"Starting Firestore Emulator with command {\"binary\":\"java\",\"args\":[\"-Dgoogle.cloud_firestore.debug_log_level=FINE\",\"-Duser.language=en\",\"-jar\",\"/home/hatch/.cache/firebase/emulators/cloud-firestore-emulator-v1.22.0.jar\",\"--host\",\"127.0.0.1\",\"--port\",8080,\"--websocket_port\",9150,\"--database-edition\",\"standard\",\"--project_id\",\"ronbo-nutri-test\",\"--rules\",\"/home/hatch/workspace/ronbo-nutri/construccion-actividad-paquete1-2026-11-03/ci-wt/tests-actp1/firestore.rules\",\"--single_project_mode\",true],\"optionalArgs\":[\"port\",\"webchannel_port\",\"host\",\"rules\",\"websocket_port\",\"database-edition\",\"functions_emulator\",\"seed_from_export\",\"project_id\",\"single_project_mode\"],\"joinArgs\":false,\"shell\":false,\"port\":8080}"}}
+[info] i  firestore: Firestore Emulator logging to firestore-debug.log {"metadata":{"emulator":{"name":"firestore"},"message":"Firestore Emulator logging to firestore-debug.log"}}
+[debug] [2026-11-04T03:37:12.292Z] Nov 04, 2026 3:37:12 AM com.google.cloud.datastore.emulator.firestore.websocket.WebSocketServer start
+INFO: Started WebSocket server on ws://127.0.0.1:9150
+ {"metadata":{"emulator":{"name":"firestore"},"message":"Nov 04, 2026 3:37:12 AM com.google.cloud.datastore.emulator.firestore.websocket.WebSocketServer start\nINFO: Started WebSocket server on ws://127.0.0.1:9150\n"}}
+[debug] [2026-11-04T03:37:12.382Z] 
+API endpoint: http://127.0.0.1:8080
+Database Edition: STANDARD
+Database Mode: CLOUD_FIRESTORE
+
+If you are using a library that supports the FIRESTORE_EMULATOR_HOST environment variable, run:
+
+   export FIRESTORE_EMULATOR_HOST=127.0.0.1:8080
+
+If you are running a Firestore in Datastore Mode project, run:
+
+   export DATASTORE_EMULATOR_HOST=127.0.0.1:8080
+
+Note: Support for Datastore Mode is in preview. If you encounter any bugs please file at https://github.com/firebase/firebase-tools/issues.
+Dev App Server is now running.
+
+ {"metadata":{"emulator":{"name":"firestore"},"message":"\nAPI endpoint: http://127.0.0.1:8080\nDatabase Edition: STANDARD\nDatabase Mode: CLOUD_FIRESTORE\n\nIf you are using a library that supports the FIRESTORE_EMULATOR_HOST environment variable, run:\n\n   export FIRESTORE_EMULATOR_HOST=127.0.0.1:8080\n\nIf you are running a Firestore in Datastore Mode project, run:\n\n   export DATASTORE_EMULATOR_HOST=127.0.0.1:8080\n\nNote: Support for Datastore Mode is in preview. If you encounter any bugs please file at https://github.com/firebase/firebase-tools/issues.\nDev App Server is now running.\n\n"}}
+[info] ✔  firestore: Firestore Emulator was started in standard edition. {"metadata":{"emulator":{"name":"firestore"},"message":"Firestore Emulator was started in standard edition."}}
+[info] ✔  firestore: Firestore Emulator UI websocket is running on 9150. {"metadata":{"emulator":{"name":"firestore"},"message":"Firestore Emulator UI websocket is running on 9150."}}
+[debug] [2026-11-04T03:37:12.518Z] Could not find VSCode notification endpoint: TypeError: fetch failed. If you are not running the Firebase SQL Connect VSCode extension, this is expected and not an issue.
+[info] i  Running script: ESPERA_NUEVO=true node test-actp1.mjs 
+[debug] [2026-11-04T03:37:12.525Z] Running ESPERA_NUEVO=true node test-actp1.mjs with environment {"no_proxy":"localhost,127.0.0.1,::1,[::1],198.19.0.1,198.19.0.2,fd8b:4f84:7d32:99::1,[fd8b:4f84:7d32:99::1],fd8b:4f84:7d32:99::2,[fd8b:4f84:7d32:99::2]","JARVIS_REQUEST_MODE":"production","JARVIS_TRACE_CONTEXT":"{\"agent_depth\":1,\"agent_id\":\"3b431f9a-02f7-4299-b939-0233efd60457\",\"app_id\":\"1408214714122653\",\"app_version\":\"14.0.0.15.156\",\"approval_intent_context\":{\"root_user_message\":{\"role\":\"user\",\"source\":\"runtime\",\"text\":\"[Subagent Context] You are running as a subagent (depth 1/2); your completed results are delivered to your parent agent automatically, so do not busy-poll for status.  The messages above were forked from your parent agent's context and are provided as background. You are a separate subagent with your own task. Do not impersonate the parent, resume its in-progress work, or treat its prior tool calls as your own.   Treat each new task or hidden follow-up as fresh work from your parent agent. Hidde\"},\"tool\":{\"arguments_json\":\"{\\\"command\\\":\\\"cd ~/workspace/ronbo-nutri/construccion-actividad-paquete1-2026-11-03/ci-wt/tests-actp1\\\\ncp firestore.rules.candidata firestore.rules\\\\nexport JAVA_HOME=~/workspace/ronbo-nutri/tools/jdk-21.0.13+9\\\\nexport PATH=$JAVA_HOME/bin:$PATH\\\\n~/workspace/ronbo-nutri/tools/fbt/node_modules/.bin/firebase emulators:exec --only firestore --project ronbo-nutri-test \\\\\\\"ESPERA_NUEVO=true node test-actp1.mjs\\\\\\\" 2>&1 | tail -45\\\",\\\"yield_ms\\\":180000}\",\"label\":\"Running `⁨cd ~/workspace/ronbo-nutri/construccion-actividad-paquete1-…⁩`\",\"metadata_json\":\"{\\\"command\\\":\\\"cd ~/workspace/ronbo-nutri/construccion-actividad-paquete1-2026-11-03/ci-wt/tests-actp1\\\\ncp firestore.rules.candidata firestore.rules\\\\nexport JAVA_HOME=~/workspace/ronbo-nutri/tools/jdk-21.0.13+9\\\\nexport PATH=$JAVA_HOME/bin:$PATH\\\\n~/workspace/ronbo-nutri/tools/fbt/node_modules/.bin/firebase emulators:exec --only firestore --project ronbo-nutri-test \\\\\\\"ESPERA_NUEVO=true node test-actp1.mjs\\\\\\\" 2>&1 | tail -45\\\",\\\"tool\\\":\\\"exec\\\"}\",\"name\":\"exec\"}},\"available_at_utc\":null,\"call_server_info_data\":null,\"channel\":\"main\",\"chat_context\":{\"chat_id\":\"e6f79350-9ab5-4943-921a-b5ba2af75902\",\"chat_kind\":\"direct\",\"device_id\":\"eab71061-c044-4da6-ac90-0127259fe49b\",\"event_kind\":\"message\",\"origin_provider\":\"main\",\"require_mention\":false},\"client_interaction_id\":null,\"client_origin\":{\"account_id\":null,\"app_id\":\"1408214714122653\"},\"connection_id\":\"5660ad00-7079-4580-b461-98a062a55af4\",\"connector_caller\":\"agent_tool\",\"dequeued_at_ms\":null,\"device_family\":null,\"device_id\":\"eab71061-c044-4da6-ac90-0127259fe49b\",\"enqueued_at_ms\":null,\"exec_chain\":{\"exec_chain_depth\":0,\"exec_chain_id\":\"9a41c4c0-d697-4242-aca4-26b96c852840\",\"exec_chain_root_component\":\"runtime_chat\",\"exec_chain_root_product_activation_id\":null,\"exec_chain_root_product_entity_id\":null,\"exec_chain_root_product_entity_kind\":null,\"exec_chain_root_product_flow\":null,\"exec_chain_root_product_surface\":null,\"exec_chain_root_request_origin\":\"external.hatch_chat\",\"exec_chain_root_source\":\"runtime\",\"exec_chain_root_tool_call_id\":\"call_01a1a4a17e0d7233984f093cac9188fb\",\"exec_chain_root_workflow_name\":null,\"exec_chain_root_workflow_run_id\":null,\"exec_chain_start_request_id\":\"req:fallback:cd75c92b-f29d-4b1e-b95c-e9674372d7ba\",\"exec_parent_tool_call_id\":null,\"exec_tool_call_id\":\"call_01a1a4a17e0d7233984f093cac9188fb\"},\"inference_workload_class\":\"interactive\",\"lane\":\"user_facing\",\"max_training_tier\":null,\"message_id\":\"4f29f25b-4391-402b-beaa-73b6d6f5f8cd\",\"message_sender\":{\"agent_id\":\"d77d7b59-d1ef-4962-87e6-95df72e4c6c3\",\"kind\":\"agent\"},\"mobile_app_session_id\":\"UFS-3E82EE7B-7F94-43AC-9089-C1D9FB0AE725-4\",\"mode\":null,\"model\":\"Muse Wonder\",\"parent_agent_id\":\"d77d7b59-d1ef-4962-87e6-95df72e4c6c3\",\"parent_message_id\":\"5db5c710-3d87-4b67-bc42-22342a221468\",\"parent_request_id\":null,\"policy_subject\":\"tool.exec\",\"proactivity_preparation\":false,\"product_activation_id\":null,\"product_entity_id\":null,\"product_entity_kind\":null,\"product_flow\":null,\"product_surface\":null,\"request_id\":\"req:fallback:cd75c92b-f29d-4b1e-b95c-e9674372d7ba\",\"request_mode\":\"production\",\"request_origin\":\"external.hatch_chat\",\"request_received_at_ms\":1793762382079,\"requester_source\":\"runtime\",\"requeued_after_restart\":null,\"root_agent_id\":\"d77d7b59-d1ef-4962-87e6-95df72e4c6c3\",\"root_message_execution_id\":\"5db5c710-3d87-4b67-bc42-22342a221468\",\"root_request_id\":\"req:fallback:cd75c92b-f29d-4b1e-b95c-e9674372d7ba\",\"root_request_origin\":\"external.hatch_chat\",\"root_session_id\":\"d77d7b59-d1ef-4962-87e6-95df72e4c6c3\",\"run_id\":null,\"schedule_attempt\":null,\"schedule_file_name\":null,\"schedule_id\":null,\"schedule_key\":null,\"scheduled_for_utc\":null,\"space_display_name\":null,\"space_id\":null,\"space_slug\":null,\"stream_owner_message_id\":\"4f29f25b-4391-402b-beaa-73b6d6f5f8cd\",\"submission_message_id\":\"4f29f25b-4391-402b-beaa-73b6d6f5f8cd\",\"thread_id\":\"e6f79350-9ab5-4943-921a-b5ba2af75902\",\"timeline_anchor_at_ms\":1793762382079,\"transcript_surface\":\"main_chat\",\"trigger_reason\":null,\"ui_control_target_client_id\":null,\"user_agent\":\"Mozilla/5.0 (iPhone; CPU iPhone OS 27_2 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Mobile/24B91020 [FBAN/HatchForiOS;FBAV/14.0.0.15.156;FBBV/1104229092;FBDV/iPhone19,4;FBMD/iPhone;FBSN/iOS;FBSV/27.2;FBSS/3;FBID/phone;FBLC/en_US;FBOP/5]\",\"workload\":\"runtime_chat\"}","HATCH_API_SOCKET":"/run/hatch/daemon/http-api.sock","JARVIS_PRESENTATION_LOCALE":"en-US","JAVA_HOME":"/home/hatch/workspace/ronbo-nutri/tools/jdk-21.0.13+9","NODE_EXTRA_CA_CERTS":"/run/hatch/egress-tls/ca-bundle.pem","JARVIS_FQDN":"0019a075-f3f8-40d5-b273-bb22c0cd8db6.metaaivm.com","JARVIS_TIER":"prod","PWD":"/home/hatch/workspace/ronbo-nutri/construccion-actividad-paquete1-2026-11-03/ci-wt/tests-actp1","JARVIS_EGRESS_APPROVAL_ADMIN_SOCK":"/run/hatch/sentinel/egress-approvals-admin.sock","JARVIS_INFERENCE_PROXY_SOCK":"/run/hatch/proxy/inference.sock","JARVIS_TELEMETRY_PROXY_SOCK":"/run/hatch/telemetry/telemetry.sock","JARVIS_TOOL_CALL_ID":"call_01a1a4a17e0d7233984f093cac9188fb","NODE_USE_ENV_PROXY":"1","JARVIS_SESSION_ID":"3b431f9a-02f7-4299-b939-0233efd60457","HOME":"/home/hatch","GIT_SSL_CAINFO":"/run/hatch/egress-tls/ca-bundle.pem","JARVIS_RESCUE_SIGNAL_SOCK":"/run/hatch/rescue/rescue-signal.sock","JARVIS_BIN_DIR":"/opt/hatch/bin","JARVIS_INFERENCE_HOSTNAME":"a53cf23d-ea9b-4e3f-8caa-9c0f2595ff4c","JARVIS_SANDBOX_API_SOCK":"/run/hatch/sandbox-api/api.sock","JARVIS_AUTHD_SOCK":"/run/hatch/auth/authd.sock","JARVIS_EGRESS_APPROVAL_EVENTS_SOCK":"/run/hatch/daemon/egress-approvals-events.sock","https_proxy":"http://hatch-runtime:5c5a17742b694643a900d1eda104e7cf@hatch-egress-proxy:3128","WGETRC":"/opt/hatch/runtime-cell/etc/wgetrc","JARVIS_STEFI_PROXY_SOCK":"/run/hatch/proxy/stefi.sock","JARVIS_CD_PINNED":"0","JARVIS_IS_ASSIGNED":"1","NO_PROXY":"localhost,127.0.0.1,::1,[::1],198.19.0.1,198.19.0.2,fd8b:4f84:7d32:99::1,[fd8b:4f84:7d32:99::1],fd8b:4f84:7d32:99::2,[fd8b:4f84:7d32:99::2]","CURL_CA_BUNDLE":"/run/hatch/egress-tls/ca-bundle.pem","JARVIS_VM_COMPUTE_REGION":"scu","JARVIS_RUNTIME_CONTEXT_TOKEN":"5c5a17742b694643a900d1eda104e7cf","JARVIS_AUTHD_INGRESS_ALLOWED_USERS":"hatch-proxy-noise-ingress","SHLVL":"1","JARVIS_DAEMON_EGRESS_APPROVAL_SOCK":"/run/hatch/sentinel/daemon-egress-approvals.sock","HTTPS_PROXY":"http://hatch-runtime:5c5a17742b694643a900d1eda104e7cf@hatch-egress-proxy:3128","HTTP_PROXY":"http://hatch-runtime:5c5a17742b694643a900d1eda104e7cf@hatch-egress-proxy:3128","http_proxy":"http://hatch-runtime:5c5a17742b694643a900d1eda104e7cf@hatch-egress-proxy:3128","JARVIS_HATCHLING_ID":"0019a075-f3f8-40d5-b273-bb22c0cd8db6","JARVIS_SECURITY_SOCK":"/run/hatch/safety/security.sock","SSL_CERT_FILE":"/run/hatch/egress-tls/ca-bundle.pem","JARVIS_HOME":"/home/hatch","JARVIS_USER_TIMEZONE":"America/Chicago","JARVIS_CD_CHANNEL":"c1","ALL_PROXY":"http://hatch-runtime:5c5a17742b694643a900d1eda104e7cf@hatch-egress-proxy:3128","REQUESTS_CA_BUNDLE":"/run/hatch/egress-tls/ca-bundle.pem","AWS_CA_BUNDLE":"/run/hatch/egress-tls/ca-bundle.pem","all_proxy":"http://hatch-runtime:5c5a17742b694643a900d1eda104e7cf@hatch-egress-proxy:3128","PATH":"/home/hatch/workspace/ronbo-nutri/tools/jdk-21.0.13+9/bin:/opt/hatch/bin:/opt/hatch-image/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin:/opt/muse/skills/documents/scripts:/opt/muse/skills/generate_podcast/scripts:/opt/muse/skills/style-tryon/scripts","JARVIS_SENTINEL_HTTP_API_SOCKET":"/run/hatch/sentinel/http-api.sock","JARVIS_MEMORY_SOCK":"/run/hatch/memory/memory.sock","OLDPWD":"/home/hatch","_":"/home/hatch/workspace/ronbo-nutri/tools/fbt/node_modules/.bin/firebase","IS_FIREBASE_CLI":"true","GCLOUD_PROJECT":"ronbo-nutri-test","FIREBASE_CONFIG":"{\"projectId\":\"ronbo-nutri-test\",\"storageBucket\":\"ronbo-nutri-test.appspot.com\",\"databaseURL\":\"https://ronbo-nutri-test.firebaseio.com\"}","FIREBASE_EMULATOR_HUB":"127.0.0.1:4400","FIRESTORE_EMULATOR_HOST":"127.0.0.1:8080","FIREBASE_FIRESTORE_EMULATOR_ADDRESS":"127.0.0.1:8080"}
+[debug] [2026-11-04T03:37:14.169Z] Nov 04, 2026 3:37:14 AM io.gapi.emulators.netty.HttpVersionRoutingHandler channelRead
+INFO: Detected HTTP/2 connection.
+ {"metadata":{"emulator":{"name":"firestore"},"message":"Nov 04, 2026 3:37:14 AM io.gapi.emulators.netty.HttpVersionRoutingHandler channelRead\nINFO: Detected HTTP/2 connection.\n"}}
+[debug] [2026-11-04T03:47:14.360Z] Nov 04, 2026 3:47:14 AM io.netty.channel.DefaultChannelPipeline onUnhandledInboundException
+WARNING: An exceptionCaught() event was fired, and it reached at the tail of the pipeline. It usually means the last handler in the pipeline did not handle the exception.
+java.net.SocketException: Connection reset
+	at java.base/sun.nio.ch.SocketChannelImpl.throwConnectionReset(SocketChannelImpl.java:401)
+	at java.base/sun.nio.ch.SocketChannelImpl.read(SocketChannelImpl.java:434)
+	at io.netty.buffer.PooledByteBuf.setBytes(PooledByteBuf.java:255)
+	at io.netty.buffer.AbstractByteBuf.writeBytes(AbstractByteBuf.java:1132)
+	at io.netty.channel.socket.nio.NioSocketChannel.doReadBytes(NioSocketChannel.java:356)
+	at io.netty.channel.nio.AbstractNioByteChannel$NioByteUnsafe.read(AbstractNioByteChannel.java:156)
+	at io.netty.channel.nio.NioEventLoop.processSelectedKey(NioEventLoop.java:796)
+	at io.netty.channel.nio.NioEventLoop.processSelectedKeysOptimized(NioEventLoop.java:732)
+	at io.netty.channel.nio.NioEventLoop.processSelectedKeys(NioEventLoop.java:658)
+	at io.netty.channel.nio.NioEventLoop.run(NioEventLoop.java:562)
+	at io.netty.util.concurrent.SingleThreadEventExecutor$4.run(SingleThreadEventExecutor.java:998)
+	at io.netty.util.internal.ThreadExecutorMap$2.run(ThreadExecutorMap.java:74)
+	at io.netty.util.concurrent.FastThreadLocalRunnable.run(FastThreadLocalRunnable.java:30)
+	at java.base/java.lang.Thread.run(Thread.java:1583)
+
+ {"metadata":{"emulator":{"name":"firestore"},"message":"Nov 04, 2026 3:47:14 AM io.netty.channel.DefaultChannelPipeline onUnhandledInboundException\nWARNING: An exceptionCaught() event was fired, and it reached at the tail of the pipeline. It usually means the last handler in the pipeline did not handle the exception.\njava.net.SocketException: Connection reset\n\tat java.base/sun.nio.ch.SocketChannelImpl.throwConnectionReset(SocketChannelImpl.java:401)\n\tat java.base/sun.nio.ch.SocketChannelImpl.read(SocketChannelImpl.java:434)\n\tat io.netty.buffer.PooledByteBuf.setBytes(PooledByteBuf.java:255)\n\tat io.netty.buffer.AbstractByteBuf.writeBytes(AbstractByteBuf.java:1132)\n\tat io.netty.channel.socket.nio.NioSocketChannel.doReadBytes(NioSocketChannel.java:356)\n\tat io.netty.channel.nio.AbstractNioByteChannel$NioByteUnsafe.read(AbstractNioByteChannel.java:156)\n\tat io.netty.channel.nio.NioEventLoop.processSelectedKey(NioEventLoop.java:796)\n\tat io.netty.channel.nio.NioEventLoop.processSelectedKeysOptimized(NioEventLoop.java:732)\n\tat io.netty.channel.nio.NioEventLoop.processSelectedKeys(NioEventLoop.java:658)\n\tat io.netty.channel.nio.NioEventLoop.run(NioEventLoop.java:562)\n\tat io.netty.util.concurrent.SingleThreadEventExecutor$4.run(SingleThreadEventExecutor.java:998)\n\tat io.netty.util.internal.ThreadExecutorMap$2.run(ThreadExecutorMap.java:74)\n\tat io.netty.util.concurrent.FastThreadLocalRunnable.run(FastThreadLocalRunnable.java:30)\n\tat java.base/java.lang.Thread.run(Thread.java:1583)\n\n"}}
+[debug] [2026-11-04T03:47:14.402Z] Nov 04, 2026 3:47:14 AM io.gapi.emulators.netty.HttpVersionRoutingHandler channelRead
+INFO: Detected HTTP/2 connection.
+ {"metadata":{"emulator":{"name":"firestore"},"message":"Nov 04, 2026 3:47:14 AM io.gapi.emulators.netty.HttpVersionRoutingHandler channelRead\nINFO: Detected HTTP/2 connection.\n"}}
+[debug] [2026-11-04T03:57:14.816Z] Nov 04, 2026 3:57:14 AM io.netty.channel.DefaultChannelPipeline onUnhandledInboundException
+WARNING: An exceptionCaught() event was fired, and it reached at the tail of the pipeline. It usually means the last handler in the pipeline did not handle the exception.
+java.net.SocketException: Connection reset
+	at java.base/sun.nio.ch.SocketChannelImpl.throwConnectionReset(SocketChannelImpl.java:401)
+	at java.base/sun.nio.ch.SocketChannelImpl.read(SocketChannelImpl.java:434)
+	at io.netty.buffer.PooledByteBuf.setBytes(PooledByteBuf.java:255)
+	at io.netty.buffer.AbstractByteBuf.writeBytes(AbstractByteBuf.java:1132)
+	at io.netty.channel.socket.nio.NioSocketChannel.doReadBytes(NioSocketChannel.java:356)
+	at io.netty.channel.nio.AbstractNioByteChannel$NioByteUnsafe.read(AbstractNioByteChannel.java:156)
+	at io.netty.channel.nio.NioEventLoop.processSelectedKey(NioEventLoop.java:796)
+	at io.netty.channel.nio.NioEventLoop.processSelectedKeysOptimized(NioEventLoop.java:732)
+	at io.netty.channel.nio.NioEventLoop.processSelectedKeys(NioEventLoop.java:658)
+	at io.netty.channel.nio.NioEventLoop.run(NioEventLoop.java:562)
+	at io.netty.util.concurrent.SingleThreadEventExecutor$4.run(SingleThreadEventExecutor.java:998)
+	at io.netty.util.internal.ThreadExecutorMap$2.run(ThreadExecutorMap.java:74)
+	at io.netty.util.concurrent.FastThreadLocalRunnable.run(FastThreadLocalRunnable.java:30)
+	at java.base/java.lang.Thread.run(Thread.java:1583)
+
+ {"metadata":{"emulator":{"name":"firestore"},"message":"Nov 04, 2026 3:57:14 AM io.netty.channel.DefaultChannelPipeline onUnhandledInboundException\nWARNING: An exceptionCaught() event was fired, and it reached at the tail of the pipeline. It usually means the last handler in the pipeline did not handle the exception.\njava.net.SocketException: Connection reset\n\tat java.base/sun.nio.ch.SocketChannelImpl.throwConnectionReset(SocketChannelImpl.java:401)\n\tat java.base/sun.nio.ch.SocketChannelImpl.read(SocketChannelImpl.java:434)\n\tat io.netty.buffer.PooledByteBuf.setBytes(PooledByteBuf.java:255)\n\tat io.netty.buffer.AbstractByteBuf.writeBytes(AbstractByteBuf.java:1132)\n\tat io.netty.channel.socket.nio.NioSocketChannel.doReadBytes(NioSocketChannel.java:356)\n\tat io.netty.channel.nio.AbstractNioByteChannel$NioByteUnsafe.read(AbstractNioByteChannel.java:156)\n\tat io.netty.channel.nio.NioEventLoop.processSelectedKey(NioEventLoop.java:796)\n\tat io.netty.channel.nio.NioEventLoop.processSelectedKeysOptimized(NioEventLoop.java:732)\n\tat io.netty.channel.nio.NioEventLoop.processSelectedKeys(NioEventLoop.java:658)\n\tat io.netty.channel.nio.NioEventLoop.run(NioEventLoop.java:562)\n\tat io.netty.util.concurrent.SingleThreadEventExecutor$4.run(SingleThreadEventExecutor.java:998)\n\tat io.netty.util.internal.ThreadExecutorMap$2.run(ThreadExecutorMap.java:74)\n\tat io.netty.util.concurrent.FastThreadLocalRunnable.run(FastThreadLocalRunnable.java:30)\n\tat java.base/java.lang.Thread.run(Thread.java:1583)\n\n"}}
+[debug] [2026-11-04T03:57:14.986Z] Nov 04, 2026 3:57:14 AM io.gapi.emulators.netty.HttpVersionRoutingHandler channelRead
+INFO: Detected HTTP/2 connection.
+ {"metadata":{"emulator":{"name":"firestore"},"message":"Nov 04, 2026 3:57:14 AM io.gapi.emulators.netty.HttpVersionRoutingHandler channelRead\nINFO: Detected HTTP/2 connection.\n"}}
+[debug] [2026-11-04T04:07:15.386Z] Nov 04, 2026 4:07:15 AM io.netty.channel.DefaultChannelPipeline onUnhandledInboundException
+WARNING: An exceptionCaught() event was fired, and it reached at the tail of the pipeline. It usually means the last handler in the pipeline did not handle the exception.
+java.net.SocketException: Connection reset
+	at java.base/sun.nio.ch.SocketChannelImpl.throwConnectionReset(SocketChannelImpl.java:401)
+	at java.base/sun.nio.ch.SocketChannelImpl.read(SocketChannelImpl.java:434)
+	at io.netty.buffer.PooledByteBuf.setBytes(PooledByteBuf.java:255)
+	at io.netty.buffer.AbstractByteBuf.writeBytes(AbstractByteBuf.java:1132)
+	at io.netty.channel.socket.nio.NioSocketChannel.doReadBytes(NioSocketChannel.java:356)
+	at io.netty.channel.nio.AbstractNioByteChannel$NioByteUnsafe.read(AbstractNioByteChannel.java:156)
+	at io.netty.channel.nio.NioEventLoop.processSelectedKey(NioEventLoop.java:796)
+	at io.netty.channel.nio.NioEventLoop.processSelectedKeysOptimized(NioEventLoop.java:732)
+	at io.netty.channel.nio.NioEventLoop.processSelectedKeys(NioEventLoop.java:658)
+	at io.netty.channel.nio.NioEventLoop.run(NioEventLoop.java:562)
+	at io.netty.util.concurrent.SingleThreadEventExecutor$4.run(SingleThreadEventExecutor.java:998)
+	at io.netty.util.internal.ThreadExecutorMap$2.run(ThreadExecutorMap.java:74)
+	at io.netty.util.concurrent.FastThreadLocalRunnable.run(FastThreadLocalRunnable.java:30)
+	at java.base/java.lang.Thread.run(Thread.java:1583)
+
+ {"metadata":{"emulator":{"name":"firestore"},"message":"Nov 04, 2026 4:07:15 AM io.netty.channel.DefaultChannelPipeline onUnhandledInboundException\nWARNING: An exceptionCaught() event was fired, and it reached at the tail of the pipeline. It usually means the last handler in the pipeline did not handle the exception.\njava.net.SocketException: Connection reset\n\tat java.base/sun.nio.ch.SocketChannelImpl.throwConnectionReset(SocketChannelImpl.java:401)\n\tat java.base/sun.nio.ch.SocketChannelImpl.read(SocketChannelImpl.java:434)\n\tat io.netty.buffer.PooledByteBuf.setBytes(PooledByteBuf.java:255)\n\tat io.netty.buffer.AbstractByteBuf.writeBytes(AbstractByteBuf.java:1132)\n\tat io.netty.channel.socket.nio.NioSocketChannel.doReadBytes(NioSocketChannel.java:356)\n\tat io.netty.channel.nio.AbstractNioByteChannel$NioByteUnsafe.read(AbstractNioByteChannel.java:156)\n\tat io.netty.channel.nio.NioEventLoop.processSelectedKey(NioEventLoop.java:796)\n\tat io.netty.channel.nio.NioEventLoop.processSelectedKeysOptimized(NioEventLoop.java:732)\n\tat io.netty.channel.nio.NioEventLoop.processSelectedKeys(NioEventLoop.java:658)\n\tat io.netty.channel.nio.NioEventLoop.run(NioEventLoop.java:562)\n\tat io.netty.util.concurrent.SingleThreadEventExecutor$4.run(SingleThreadEventExecutor.java:998)\n\tat io.netty.util.internal.ThreadExecutorMap$2.run(ThreadExecutorMap.java:74)\n\tat io.netty.util.concurrent.FastThreadLocalRunnable.run(FastThreadLocalRunnable.java:30)\n\tat java.base/java.lang.Thread.run(Thread.java:1583)\n\n"}}
+[debug] [2026-11-04T04:07:15.679Z] Nov 04, 2026 4:07:15 AM io.gapi.emulators.netty.HttpVersionRoutingHandler channelRead
+INFO: Detected HTTP/2 connection.
+ {"metadata":{"emulator":{"name":"firestore"},"message":"Nov 04, 2026 4:07:15 AM io.gapi.emulators.netty.HttpVersionRoutingHandler channelRead\nINFO: Detected HTTP/2 connection.\n"}}
+[debug] [2026-11-04T04:10:13.898Z] Received signal SIGTERM 1
+[info]  
+[info] i  emulators: Received SIGTERM for the first time. Starting a clean shutdown. 
+[info] i  emulators: Please wait for a clean shutdown or send the SIGTERM signal again to stop right now. 
+[debug] [2026-11-04T04:10:14.087Z] Found emulator hub locator: {"version":"15.34.0","origins":["http://127.0.0.1:4400","http://[::1]:4400"],"pid":7928}
+[debug] [2026-11-04T04:10:14.087Z] Delete emulator hub locator file: /tmp/hub-ronbo-nutri-test.json
+[debug] [2026-11-04T04:10:14.119Z] Error: write EPIPE
+    at afterWriteDispatched (node:internal/stream_base_commons:138:10)
+    at writeGeneric (node:internal/stream_base_commons:126:10)
+    at Socket._writeGeneric (node:net:1324:11)
+    at Socket._write (node:net:1336:8)
+    at writeOrBuffer (node:internal/streams/writable:574:12)
+    at _write (node:internal/streams/writable:503:10)
+    at Writable.write (node:internal/streams/writable:512:10)
+    at Console.log (/home/hatch/workspace/ronbo-nutri/tools/fbt/node_modules/winston/lib/winston/transports/console.js:87:23)
+    at Console._write (/home/hatch/workspace/ronbo-nutri/tools/fbt/node_modules/winston-transport/modern.js:103:17)
+    at doWrite (/home/hatch/workspace/ronbo-nutri/tools/fbt/node_modules/winston-transport/node_modules/readable-stream/lib/_stream_writable.js:390:139)
+[error] 
+[error] Error: An unexpected error has occurred.
+[debug] [2026-11-04T04:10:14.186Z] Error: write EPIPE
+    at afterWriteDispatched (node:internal/stream_base_commons:138:10)
+    at writeGeneric (node:internal/stream_base_commons:126:10)
+    at Socket._writeGeneric (node:net:1324:11)
+    at Socket._write (node:net:1336:8)
+    at writeOrBuffer (node:internal/streams/writable:574:12)
+    at _write (node:internal/streams/writable:503:10)
+    at Writable.write (node:internal/streams/writable:512:10)
+    at Console.log (/home/hatch/workspace/ronbo-nutri/tools/fbt/node_modules/winston/lib/winston/transports/console.js:87:23)
+    at Console._write (/home/hatch/workspace/ronbo-nutri/tools/fbt/node_modules/winston-transport/modern.js:103:17)
+    at doWrite (/home/hatch/workspace/ronbo-nutri/tools/fbt/node_modules/winston-transport/node_modules/readable-stream/lib/_stream_writable.js:390:139)
+[error] 
+[error] Error: An unexpected error has occurred.
+[debug] [2026-11-04T04:10:14.191Z] Error: write EPIPE
+    at afterWriteDispatched (node:internal/stream_base_commons:138:10)
+    at writeGeneric (node:internal/stream_base_commons:126:10)
+    at Socket._writeGeneric (node:net:1324:11)
+    at Socket._write (node:net:1336:8)
+    at writeOrBuffer (node:internal/streams/writable:574:12)
+    at _write (node:internal/streams/writable:503:10)
+    at Writable.write (node:internal/streams/writable:512:10)
+    at Console.log (/home/hatch/workspace/ronbo-nutri/tools/fbt/node_modules/winston/lib/winston/transports/console.js:87:23)
+    at Console._write (/home/hatch/workspace/ronbo-nutri/tools/fbt/node_modules/winston-transport/modern.js:103:17)
+    at doWrite (/home/hatch/workspace/ronbo-nutri/tools/fbt/node_modules/winston-transport/node_modules/readable-stream/lib/_stream_writable.js:390:139)
+[error] 
+[error] Error: An unexpected error has occurred.
+[debug] [2026-11-04T04:10:14.194Z] Error: write EPIPE
+    at afterWriteDispatched (node:internal/stream_base_commons:138:10)
+    at writeGeneric (node:internal/stream_base_commons:126:10)
+    at Socket._writeGeneric (node:net:1324:11)
+    at Socket._write (node:net:1336:8)
+    at writeOrBuffer (node:internal/streams/writable:574:12)
+    at _write (node:internal/streams/writable:503:10)
+    at Writable.write (node:internal/streams/writable:512:10)
+    at Console.log (/home/hatch/workspace/ronbo-nutri/tools/fbt/node_modules/winston/lib/winston/transports/console.js:87:23)
+    at Console._write (/home/hatch/workspace/ronbo-nutri/tools/fbt/node_modules/winston-transport/modern.js:103:17)
+    at doWrite (/home/hatch/workspace/ronbo-nutri/tools/fbt/node_modules/winston-transport/node_modules/readable-stream/lib/_stream_writable.js:390:139)
+[error] 
+[error] Error: An unexpected error has occurred.
+[debug] [2026-11-04T04:10:14.195Z] Error: write EPIPE
+    at afterWriteDispatched (node:internal/stream_base_commons:138:10)
+    at writeGeneric (node:internal/stream_base_commons:126:10)
+    at Socket._writeGeneric (node:net:1324:11)
+    at Socket._write (node:net:1336:8)
+    at writeOrBuffer (node:internal/streams/writable:574:12)
+    at _write (node:internal/streams/writable:503:10)
+    at Writable.write (node:internal/streams/writable:512:10)
+    at Console.log (/home/hatch/workspace/ronbo-nutri/tools/fbt/node_modules/winston/lib/winston/transports/console.js:87:23)
+    at Console._write (/home/hatch/workspace/ronbo-nutri/tools/fbt/node_modules/winston-transport/modern.js:103:17)
+    at doWrite (/home/hatch/workspace/ronbo-nutri/tools/fbt/node_modules/winston-transport/node_modules/readable-stream/lib/_stream_writable.js:390:139)
+[error] 
+[error] Error: An unexpected error has occurred.
+[debug] [2026-11-04T04:10:14.195Z] Error: write EPIPE
+    at afterWriteDispatched (node:internal/stream_base_commons:138:10)
+    at writeGeneric (node:internal/stream_base_commons:126:10)
+    at Socket._writeGeneric (node:net:1324:11)
+    at Socket._write (node:net:1336:8)
+    at writeOrBuffer (node:internal/streams/writable:574:12)
+    at _write (node:internal/streams/writable:503:10)
+    at Writable.write (node:internal/streams/writable:512:10)
+    at Console.log (/home/hatch/workspace/ronbo-nutri/tools/fbt/node_modules/winston/lib/winston/transports/console.js:87:23)
+    at Console._write (/home/hatch/workspace/ronbo-nutri/tools/fbt/node_modules/winston-transport/modern.js:103:17)
+    at doWrite (/home/hatch/workspace/ronbo-nutri/tools/fbt/node_modules/winston-transport/node_modules/readable-stream/lib/_stream_writable.js:390:139)
+[error] 
+[error] Error: An unexpected error has occurred.
+[debug] [2026-11-04T04:10:14.199Z] Error: write EPIPE
+    at afterWriteDispatched (node:internal/stream_base_commons:138:10)
+    at writeGeneric (node:internal/stream_base_commons:126:10)
+    at Socket._writeGeneric (node:net:1324:11)
+    at Socket._write (node:net:1336:8)
+    at writeOrBuffer (node:internal/streams/writable:574:12)
+    at _write (node:internal/streams/writable:503:10)
+    at Writable.write (node:internal/streams/writable:512:10)
+    at Console.log (/home/hatch/workspace/ronbo-nutri/tools/fbt/node_modules/winston/lib/winston/transports/console.js:87:23)
+    at Console._write (/home/hatch/workspace/ronbo-nutri/tools/fbt/node_modules/winston-transport/modern.js:103:17)
+    at doWrite (/home/hatch/workspace/ronbo-nutri/tools/fbt/node_modules/winston-transport/node_modules/readable-stream/lib/_stream_writable.js:390:139)
+[error] 
+[error] Error: An unexpected error has occurred.
+[debug] [2026-11-04T04:10:14.214Z] Error: write EPIPE
+    at afterWriteDispatched (node:internal/stream_base_commons:138:10)
+    at writeGeneric (node:internal/stream_base_commons:126:10)
+    at Socket._writeGeneric (node:net:1324:11)
+    at Socket._write (node:net:1336:8)
+    at writeOrBuffer (node:internal/streams/writable:574:12)
+    at _write (node:internal/streams/writable:503:10)
+    at Writable.write (node:internal/streams/writable:512:10)
+    at Console.log (/home/hatch/workspace/ronbo-nutri/tools/fbt/node_modules/winston/lib/winston/transports/console.js:87:23)
+    at Console._write (/home/hatch/workspace/ronbo-nutri/tools/fbt/node_modules/winston-transport/modern.js:103:17)
+    at doWrite (/home/hatch/workspace/ronbo-nutri/tools/fbt/node_modules/winston-transport/node_modules/readable-stream/lib/_stream_writable.js:390:139)
+[error] 
+[error] Error: An unexpected error has occurred.
+[debug] [2026-11-04T04:10:14.225Z] Error: write EPIPE
+    at afterWriteDispatched (node:internal/stream_base_commons:138:10)
+    at writeGeneric (node:internal/stream_base_commons:126:10)
+    at Socket._writeGeneric (node:net:1324:11)
+    at Socket._write (node:net:1336:8)
+    at writeOrBuffer (node:internal/streams/writable:574:12)
+    at _write (node:internal/streams/writable:503:10)
+    at Writable.write (node:internal/streams/writable:512:10)
+    at Console.log (/home/hatch/workspace/ronbo-nutri/tools/fbt/node_modules/winston/lib/winston/transports/console.js:87:23)
+    at Console._write (/home/hatch/workspace/ronbo-nutri/tools/fbt/node_modules/winston-transport/modern.js:103:17)
+    at doWrite (/home/hatch/workspace/ronbo-nutri/tools/fbt/node_modules/winston-transport/node_modules/readable-stream/lib/_stream_writable.js:390:139)
+[error] 
+[error] Error: An unexpected error has occurred.
+[debug] [2026-11-04T04:10:14.272Z] Error: write EPIPE
+    at afterWriteDispatched (node:internal/stream_base_commons:138:10)
+    at writeGeneric (node:internal/stream_base_commons:126:10)
+    at Socket._writeGeneric (node:net:1324:11)
+    at Socket._write (node:net:1336:8)
+    at writeOrBuffer (node:internal/streams/writable:574:12)
+    at _write (node:internal/streams/writable:503:10)
+    at Writable.write (node:internal/streams/writable:512:10)
+    at Console.log (/home/hatch/workspace/ronbo-nutri/tools/fbt/node_modules/winston/lib/winston/transports/console.js:87:23)
+    at Console._write (/home/hatch/workspace/ronbo-nutri/tools/fbt/node_modules/winston-transport/modern.js:103:17)
+    at doWrite (/home/hatch/workspace/ronbo-nutri/tools/fbt/node_modules/winston-transport/node_modules/readable-stream/lib/_stream_writable.js:390:139)
+[error] 
+[error] Error: An unexpected error has occurred.
+[debug] [2026-11-04T04:10:14.291Z] Error: write EPIPE
+    at afterWriteDispatched (node:internal/stream_base_commons:138:10)
+    at writeGeneric (node:internal/stream_base_commons:126:10)
+    at Socket._writeGeneric (node:net:1324:11)
+    at Socket._write (node:net:1336:8)
+    at writeOrBuffer (node:internal/streams/writable:574:12)
+    at _write (node:internal/streams/writable:503:10)
+    at Writable.write (node:internal/streams/writable:512:10)
+    at Console.log (/home/hatch/workspace/ronbo-nutri/tools/fbt/node_modules/winston/lib/winston/transports/console.js:87:23)
+    at Console._write (/home/hatch/workspace/ronbo-nutri/tools/fbt/node_modules/winston-transport/modern.js:103:17)
+    at doWrite (/home/hatch/workspace/ronbo-nutri/tools/fbt/node_modules/winston-transport/node_modules/readable-stream/lib/_stream_writable.js:390:139)
+[error] 
+[error] Error: An unexpected error has occurred.
+[debug] [2026-11-04T04:10:14.292Z] Error: write EPIPE
+    at afterWriteDispatched (node:internal/stream_base_commons:138:10)
+    at writeGeneric (node:internal/stream_base_commons:126:10)
+    at Socket._writeGeneric (node:net:1324:11)
+    at Socket._write (node:net:1336:8)
+    at writeOrBuffer (node:internal/streams/writable:574:12)
+    at _write (node:internal/streams/writable:503:10)
+    at Writable.write (node:internal/streams/writable:512:10)
+    at Console.log (/home/hatch/workspace/ronbo-nutri/tools/fbt/node_modules/winston/lib/winston/transports/console.js:87:23)
+    at Console._write (/home/hatch/workspace/ronbo-nutri/tools/fbt/node_modules/winston-transport/modern.js:103:17)
+    at doWrite (/home/hatch/workspace/ronbo-nutri/tools/fbt/node_modules/winston-transport/node_modules/readable-stream/lib/_stream_writable.js:390:139)
+[error] 
+[error] Error: An unexpected error has occurred.
+[debug] [2026-11-04T04:10:14.294Z] Error: write EPIPE
+    at afterWriteDispatched (node:internal/stream_base_commons:138:10)
+    at writeGeneric (node:internal/stream_base_commons:126:10)
+    at Socket._writeGeneric (node:net:1324:11)
+    at Socket._write (node:net:1336:8)
+    at writeOrBuffer (node:internal/streams/writable:574:12)
+    at _write (node:internal/streams/writable:503:10)
+    at Writable.write (node:internal/streams/writable:512:10)
+    at Console.log (/home/hatch/workspace/ronbo-nutri/tools/fbt/node_modules/winston/lib/winston/transports/console.js:87:23)
+    at Console._write (/home/hatch/workspace/ronbo-nutri/tools/fbt/node_modules/winston-transport/modern.js:103:17)
+    at doWrite (/home/hatch/workspace/ronbo-nutri/tools/fbt/node_modules/winston-transport/node_modules/readable-stream/lib/_stream_writable.js:390:139)
+[error] 
+[error] Error: An unexpected error has occurred.
+[debug] [2026-11-04T04:10:14.299Z] Error: write EPIPE
+    at afterWriteDispatched (node:internal/stream_base_commons:138:10)
+    at writeGeneric (node:internal/stream_base_commons:126:10)
+    at Socket._writeGeneric (node:net:1324:11)
+    at Socket._write (node:net:1336:8)
+    at writeOrBuffer (node:internal/streams/writable:574:12)
+    at _write (node:internal/streams/writable:503:10)
+    at Writable.write (node:internal/streams/writable:512:10)
+    at Console.log (/home/hatch/workspace/ronbo-nutri/tools/fbt/node_modules/winston/lib/winston/transports/console.js:87:23)
+    at Console._write (/home/hatch/workspace/ronbo-nutri/tools/fbt/node_modules/winston-transport/modern.js:103:17)
+    at doWrite (/home/hatch/workspace/ronbo-nutri/tools/fbt/node_modules/winston-transport/node_modules/readable-stream/lib/_stream_writable.js:390:139)
+[error] 
+[error] Error: An unexpected error has occurred.
+[debug] [2026-11-04T04:10:14.303Z] Error: write EPIPE
+    at afterWriteDispatched (node:internal/stream_base_commons:138:10)
+    at writeGeneric (node:internal/stream_base_commons:126:10)
+    at Socket._writeGeneric (node:net:1324:11)
+    at Socket._write (node:net:1336:8)
+    at writeOrBuffer (node:internal/streams/writable:574:12)
+    at _write (node:internal/streams/writable:503:10)
+    at Writable.write (node:internal/streams/writable:512:10)
+    at Console.log (/home/hatch/workspace/ronbo-nutri/tools/fbt/node_modules/winston/lib/winston/transports/console.js:87:23)
+    at Console._write (/home/hatch/workspace/ronbo-nutri/tools/fbt/node_modules/winston-transport/modern.js:103:17)
+    at doWrite (/home/hatch/workspace/ronbo-nutri/tools/fbt/node_modules/winston-transport/node_modules/readable-stream/lib/_stream_writable.js:390:139)
+[error] 
+[error] Error: An unexpected error has occurred.
+[debug] [2026-11-04T04:10:14.305Z] Error: write EPIPE
+    at afterWriteDispatched (node:internal/stream_base_commons:138:10)
+    at writeGeneric (node:internal/stream_base_commons:126:10)
+    at Socket._writeGeneric (node:net:1324:11)
+    at Socket._write (node:net:1336:8)
+    at writeOrBuffer (node:internal/streams/writable:574:12)
+    at _write (node:internal/streams/writable:503:10)
+    at Writable.write (node:internal/streams/writable:512:10)
+    at Console.log (/home/hatch/workspace/ronbo-nutri/tools/fbt/node_modules/winston/lib/winston/transports/console.js:87:23)
+    at Console._write (/home/hatch/workspace/ronbo-nutri/tools/fbt/node_modules/winston-transport/modern.js:103:17)
+    at doWrite (/home/hatch/workspace/ronbo-nutri/tools/fbt/node_modules/winston-transport/node_modules/readable-stream/lib/_stream_writable.js:390:139)
+[error] 
+[error] Error: An unexpected error has occurred.
+[debug] [2026-11-04T04:10:14.369Z] Error: write EPIPE
+    at afterWriteDispatched (node:internal/stream_base_commons:138:10)
+    at writeGeneric (node:internal/stream_base_commons:126:10)
+    at Socket._writeGeneric (node:net:1324:11)
+    at Socket._write (node:net:1336:8)
+    at writeOrBuffer (node:internal/streams/writable:574:12)
+    at _write (node:internal/streams/writable:503:10)
+    at Writable.write (node:internal/streams/writable:512:10)
+    at Console.log (/home/hatch/workspace/ronbo-nutri/tools/fbt/node_modules/winston/lib/winston/transports/console.js:87:23)
+    at Console._write (/home/hatch/workspace/ronbo-nutri/tools/fbt/node_modules/winston-transport/modern.js:103:17)
+    at doWrite (/home/hatch/workspace/ronbo-nutri/tools/fbt/node_modules/winston-transport/node_modules/readable-stream/lib/_stream_writable.js:390:139)
+[error] 
+[error] Error: An unexpected error has occurred.
+[debug] [2026-11-04T04:10:14.369Z] Error: write EPIPE
+    at afterWriteDispatched (node:internal/stream_base_commons:138:10)
+    at writeGeneric (node:internal/stream_base_commons:126:10)
+    at Socket._writeGeneric (node:net:1324:11)
+    at Socket._write (node:net:1336:8)
+    at writeOrBuffer (node:internal/streams/writable:574:12)
+    at _write (node:internal/streams/writable:503:10)
+    at Writable.write (node:internal/streams/writable:512:10)
+    at Console.log (/home/hatch/workspace/ronbo-nutri/tools/fbt/node_modules/winston/lib/winston/transports/console.js:87:23)
+    at Console._write (/home/hatch/workspace/ronbo-nutri/tools/fbt/node_modules/winston-transport/modern.js:103:17)
+    at doWrite (/home/hatch/workspace/ronbo-nutri/tools/fbt/node_modules/winston-transport/node_modules/readable-stream/lib/_stream_writable.js:390:139)
+[error] 
+[error] Error: An unexpected error has occurred.
