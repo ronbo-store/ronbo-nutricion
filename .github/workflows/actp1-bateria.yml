@@ -8,6 +8,12 @@
 # producción, sin despliegue: la publicación de reglas va por la
 # ruta probada (CLI con token, desde la carpeta del paquete),
 # nunca desde este workflow.
+# Nota de operación: el paso final publica la salida completa de
+# ambas suites en la rama ci/actp1-resultados (archivo
+# tests-actp1/resultado-ultima-corrida.txt) porque los registros
+# de Actions no son legibles desde la máquina de trabajo (la API
+# exige derechos de administración); esa rama no dispara este
+# workflow.
 name: Batería actp1 (emulador oficial)
 
 on:
@@ -16,7 +22,7 @@ on:
     branches: [ci/actp1-bateria]
 
 permissions:
-  contents: read
+  contents: write
 
 jobs:
   bateria:
@@ -42,8 +48,30 @@ jobs:
       - name: Suite CANDIDATA (el consentimiento por tipo y el sueño se comportan como se diseñó)
         run: |
           cp firestore.rules.candidata firestore.rules
-          firebase emulators:exec --only firestore --project ronbo-nutri-test "ESPERA_NUEVO=true node test-actp1.mjs"
+          set -o pipefail
+          firebase emulators:exec --only firestore --project ronbo-nutri-test "ESPERA_NUEVO=true node test-actp1.mjs" 2>&1 | tee /tmp/suite-candidata.log
       - name: Suite VIVO (sin ramas de actividad; activity_data no existe; vecinos idénticos)
+        if: always()
         run: |
           cp firestore.rules.viva firestore.rules
-          firebase emulators:exec --only firestore --project ronbo-nutri-test "ESPERA_NUEVO=false node test-actp1.mjs"
+          set -o pipefail
+          firebase emulators:exec --only firestore --project ronbo-nutri-test "ESPERA_NUEVO=false node test-actp1.mjs" 2>&1 | tee /tmp/suite-vivo.log
+      - name: Publicar resultados en la rama de resultados
+        if: always()
+        working-directory: ${{ github.workspace }}
+        run: |
+          git config user.email "ci@ronbo.local"
+          git config user.name "CI bateria actp1"
+          git fetch origin ci/actp1-resultados 2>/dev/null || true
+          git checkout -B ci/actp1-resultados origin/ci/actp1-resultados 2>/dev/null || git checkout -B ci/actp1-resultados
+          mkdir -p tests-actp1
+          {
+            echo "Corrida: ${{ github.run_id }} · ${{ github.sha }} · $(date -u +%FT%TZ)"
+            echo "══════════ SUITE CANDIDATA ══════════"
+            cat /tmp/suite-candidata.log 2>/dev/null || echo "(sin salida)"
+            echo "══════════ SUITE VIVO ══════════"
+            cat /tmp/suite-vivo.log 2>/dev/null || echo "(sin salida)"
+          } > tests-actp1/resultado-ultima-corrida.txt
+          git add tests-actp1/resultado-ultima-corrida.txt
+          git commit -m "Resultados batería actp1 (corrida ${{ github.run_id }}) [skip ci]" || echo "sin cambios"
+          git push origin ci/actp1-resultados
