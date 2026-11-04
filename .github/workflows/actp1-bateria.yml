@@ -62,8 +62,12 @@ jobs:
         run: |
           git config user.email "ci@ronbo.local"
           git config user.name "CI bateria actp1"
-          git fetch origin ci/actp1-resultados 2>/dev/null || true
-          git checkout -B ci/actp1-resultados origin/ci/actp1-resultados 2>/dev/null || git checkout -B ci/actp1-resultados
+          git fetch origin +refs/heads/ci/actp1-resultados:refs/remotes/origin/ci-res 2>/dev/null || true
+          if git show-ref --verify --quiet refs/remotes/origin/ci-res; then
+            git checkout -B ci/actp1-resultados refs/remotes/origin/ci-res
+          else
+            git checkout -B ci/actp1-resultados
+          fi
           mkdir -p tests-actp1
           {
             echo "Corrida: ${{ github.run_id }} · ${{ github.sha }} · $(date -u +%FT%TZ)"
@@ -74,4 +78,4 @@ jobs:
           } > tests-actp1/resultado-ultima-corrida.txt
           git add tests-actp1/resultado-ultima-corrida.txt
           git commit -m "Resultados batería actp1 (corrida ${{ github.run_id }}) [skip ci]" || echo "sin cambios"
-          git push origin ci/actp1-resultados
+          git push origin HEAD:ci/actp1-resultados
