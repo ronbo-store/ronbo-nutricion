@@ -5979,11 +5979,11 @@ en: {
   'gm.dayTypeDetected': 'For {date} your plan sets: {level}. You can set another type.',
   'gm.dayTypeApply': 'Set day type',
   'gm.agreeTitle': 'Agreement for this change',
-  'gm.agreementText': 'Version v1-2026-10-26. By accepting, I confirm that: (1) the app showed me the warning and the scientific basis for the founded value of the number I am changing, and the founded value and my chosen value are recorded with this acceptance, with the date; (2) the founded values are an educational reference, not medical advice; (3) I make this change strictly under my own responsibility and I release the platform and my trainer, if I have one, from responsibility for effects on my health that may result from this change; (4) I can return to the founded values at any time from this same screen.',
+  'gm.agreementText': 'Version v2-2026-11-03. By accepting, I confirm that: (1) the app showed me the warning and the scientific basis for the evidence-based value of the number I am changing, and the evidence-based value and my chosen value are recorded with this acceptance, with the date; (2) the evidence-based values are an educational reference, not medical advice; (3) I make this change strictly under my own responsibility and I release the platform and my trainer, if I have one, from responsibility for effects on my health that may result from this change; (4) I can return to the evidence-based values at any time from this same screen.',
   'gm.agreementDraftNotice': 'The agreement that would cover this change is still a draft pending approval, so the change cannot be applied yet. The evidence-based values stay in place.',
   'gm.agreeAccept': 'I accept the agreement and apply the change',
   'gm.agreeCancel': 'Cancel',
-  'gm.agreementApplied': 'Agreement recorded (v1-2026-10-26). Your change was applied under your responsibility.',
+  'gm.agreementApplied': 'Agreement recorded (v2-2026-11-03). Your change was applied under your responsibility.',
   'gm.proposalTitle': '🎯 Client proposals (pace and goals)',
   'gm.proposalNone': 'This client has no goal change waiting.',
   'gm.proposalItem': 'Change: {param} · evidence-based {founded} → chosen {chosen}{date} · status: {status}',
@@ -8934,11 +8934,11 @@ es: {
   'gm.dayTypeDetected': 'Para el {date} tu plan fundamenta: {level}. Puedes fijar otro tipo.',
   'gm.dayTypeApply': 'Fijar tipo de día',
   'gm.agreeTitle': 'Acuerdo para este cambio',
-  'gm.agreementText': 'Versión v1-2026-10-26. Al aceptar, confirmo que: (1) la app me mostró la advertencia y el fundamento científico del valor fundado del número que cambio, y que el valor fundado y el valor que elegí quedan registrados con esta aceptación, con la fecha; (2) los valores fundados son una referencia educativa, no consejo médico; (3) hago este cambio estrictamente bajo mi propia responsabilidad y libero a la plataforma y a mi entrenador, si lo tengo, de responsabilidad por los efectos en mi salud que puedan derivarse de este cambio; (4) puedo volver a los valores fundados en cualquier momento desde esta misma pantalla.',
+  'gm.agreementText': 'Versión v2-2026-11-03. Al aceptar, confirmo que: (1) la app me mostró la advertencia y el fundamento científico del valor fundado del número que cambio, y que el valor fundado y el valor que elegí quedan registrados con esta aceptación, con la fecha; (2) los valores fundados son una referencia educativa, no consejo médico; (3) hago este cambio estrictamente bajo mi propia responsabilidad y libero a la plataforma y a mi entrenador, si lo tengo, de responsabilidad por los efectos en mi salud que puedan derivarse de este cambio; (4) puedo volver a los valores fundados en cualquier momento desde esta misma pantalla.',
   'gm.agreementDraftNotice': 'El acuerdo que cubriría este cambio aún es un borrador pendiente de aprobación, así que el cambio aún no puede aplicarse. Quedan los valores fundados.',
   'gm.agreeAccept': 'Acepto el acuerdo y aplico el cambio',
   'gm.agreeCancel': 'Cancelar',
-  'gm.agreementApplied': 'Acuerdo registrado (v1-2026-10-26). Tu cambio se aplicó bajo tu responsabilidad.',
+  'gm.agreementApplied': 'Acuerdo registrado (v2-2026-11-03). Tu cambio se aplicó bajo tu responsabilidad.',
   'gm.proposalTitle': '🎯 Propuestas del cliente (ritmo y metas)',
   'gm.proposalNone': 'Este cliente no tiene cambios de metas esperando.',
   'gm.proposalItem': 'Cambio: {param} · fundado {founded} → elegido {chosen}{date} · estado: {status}',
@@ -16832,7 +16832,12 @@ function goalOfDay(key, iso) {
    sin tocar la forma de datos viva de paceSuggestion.
    TEXTO LEGAL: el acuerdo nació como borrador
    (draft-2026-10-26) y Ronald APROBÓ su redacción tal como está
-   el 2026-10-26: versión vigente v1-2026-10-26 y
+   el 2026-10-26: versión vigente v2-2026-11-03 (la v1-2026-10-26
+   rigió hasta el 2026-11-03; la v2 cambia SOLO «founded» por
+   «evidence-based» en el texto en inglés — decisión de Ronald del
+   2026-11-03; las aceptaciones v1 quedan intactas porque cada
+   registro guarda su propia agreementVersion y nada compara la
+   versión guardada con la vigente) y
    GOALS_AGREEMENT_ACTIVE = true — la vía sin entrenador muestra la
    advertencia + el acuerdo aprobado y, al aceptarlo, REGISTRA la
    aceptación y APLICA el cambio bajo su responsabilidad. La clave
@@ -16840,7 +16845,7 @@ function goalOfDay(key, iso) {
    inalcanzable: la compuerta ya está activa de forma permanente.
    El gancho window.__goalsAgreementTestAllow se conserva para
    pruebas. */
-const GOALS_AGREEMENT_VERSION = 'v1-2026-10-26';
+const GOALS_AGREEMENT_VERSION = 'v2-2026-11-03';
 const GOALS_AGREEMENT_ACTIVE = true;
 function goalsAgreementActive() { return GOALS_AGREEMENT_ACTIVE || (typeof window !== 'undefined' && window.__goalsAgreementTestAllow === true); }
 /* Bandas fundadas por parámetro (bordes y fuentes en el informe v3):
@@ -17636,7 +17641,7 @@ function gmEditSectionHTML(prov) {
       h += `<p class="pend-cfg-h">${esc(t('gm.dayTypeTitle'))}</p><p class="progress-hint">${esc(t('gm.dayTypeDetected', { date: viewIso, level: t('gm.day.' + det.dayLevel) }))}</p><label class="pend-sel"><span>${esc(viewIso)}</span><select id="gm-daytype-sel">${opts}</select></label> <button type="button" class="btn-ghost btn-sm" id="gm-daytype-apply">${esc(t('gm.dayTypeApply'))}</button>`;
     }
   } catch {}
-  /* Acuerdo (sin entrenador): ACTIVO — texto aprobado v1-2026-10-26 */
+  /* Acuerdo (sin entrenador): ACTIVO — texto aprobado v2-2026-11-03 (la v1-2026-10-26 rigió hasta el 2026-11-03) */
   if (GM3_PENDING) {
     h += `<div id="gm-agree"><p class="pend-cfg-h">${esc(t('gm.agreeTitle'))}</p><p class="progress-hint" id="gm-agree-text">${esc(t('gm.agreementText'))}</p>`;
     if (!goalsAgreementActive()) h += `<div class="health-alert" id="gm-agree-draft">⚠ ${esc(t('gm.agreementDraftNotice'))}</div>`;
@@ -36734,7 +36739,7 @@ document.addEventListener('keydown', e => { if (e.key === 'Escape') shareClose()
  *  - El SW (sw.js) solo cachea la cáscara del mismo origen en modo
  *    RED PRIMERO: Auth/Firestore/Worker jamás pasan por la caché.
  * ================================================================ */
-const PWA_SW_VERSION = '20261103-evidence-based';
+const PWA_SW_VERSION = '20261103-acuerdo-v2';
 let pwaDeferredPrompt = null;
 function pwaIsStandalone() {
   try {
