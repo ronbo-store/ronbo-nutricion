@@ -17023,6 +17023,32 @@ function adhWeeks() {
   return out;
 }
 const fmtSleepMin = min => { const v = Math.max(0, Math.round(min)); return Math.floor(v / 60) + ' h ' + String(v % 60).padStart(2, '0') + ' min'; };
+/* Pliegue de la sección (orden de Ronald, 2026-11-04 15:20 CST:
+   «Esto también despegable, solo dejar el último aporte a la
+   vista»): la sección nace con SOLO la semana más reciente a la
+   vista y las anteriores recogidas tras su cabecera, que entera
+   es el botón que las despliega y las pliega, con el patrón de
+   plegado de la casa (el de AUTH-239 y las tarjetas ffold:
+   botón con aria-expanded, cheurón ▾/▴ de la familia .gm-chev
+   y estado en memoria — cada carga nace plegada —). Solo
+   presentación: qué se consulta, qué se pinta y los valores de
+   cada semana no cambian en una coma; el pliegue solo recoge
+   lo ya pintado. */
+let ADH_CARD_OPEN = false;
+function adhCardWire(root) {
+  if (!root || typeof root.querySelector !== 'function') return;
+  const btn = root.querySelector('[data-adh-toggle]');
+  if (!btn || btn.dataset.wired) return;
+  btn.dataset.wired = '1';
+  btn.onclick = () => {
+    ADH_CARD_OPEN = !ADH_CARD_OPEN;
+    const fold = root.querySelector('.adh-fold');
+    if (fold) fold.style.display = ADH_CARD_OPEN ? '' : 'none';
+    btn.setAttribute('aria-expanded', ADH_CARD_OPEN ? 'true' : 'false');
+    const chev = btn.querySelector('.adh-chev');
+    if (chev) chev.textContent = ADH_CARD_OPEN ? '▴' : '▾';
+  };
+}
 async function adhLoadTrainerCard(uid, udata, weights) {
   const box = $('adh-card'); if (!box) return;
   const consents = (udata && udata.activityConsents) || {};
@@ -17030,8 +17056,8 @@ async function adhLoadTrainerCard(uid, udata, weights) {
   const weeks = adhWeeks();
   const wStart = weeks[weeks.length - 1].start, wEnd = weeks[0].end;
   const inWin = d => typeof d === 'string' && d >= wStart && d <= wEnd;
-  const head = `<div class="compacc-box"><h3 class="history-title">📈 ${esc(t('adh.title'))}</h3>
-    <p class="progress-hint">${esc(t('adh.intro'))}</p>`;
+  const adhOpen = ADH_CARD_OPEN === true;
+  const head = `<div class="compacc-box"><button type="button" class="adh-head" data-adh-toggle aria-expanded="${adhOpen ? 'true' : 'false'}"><span class="adh-head-tx"><span class="history-title adh-head-title">📈 ${esc(t('adh.title'))}</span><span class="progress-hint adh-head-intro">${esc(t('adh.intro'))}</span></span><span class="gm-chev adh-chev" aria-hidden="true">${adhOpen ? '▴' : '▾'}</span></button>`;
   const perWeek = weeks.map(w => ({ w, cells: {} }));
   let rotation = false;
   try {
@@ -17093,14 +17119,16 @@ async function adhLoadTrainerCard(uid, udata, weights) {
       });
     }
   } catch { box.innerHTML = head + `<div class="wempty">${esc(t('adh.loadError'))}</div></div>`; return; }
-  const rows = perWeek.map(({ w, cells }) => `
+  const weekRow = ({ w, cells }) => `
     <div class="adh-week">
       <div class="adh-week-head">${w.current ? esc(t('adh.weekCurrent')) + ' · ' : ''}${esc(dateName(w.start))} – ${esc(dateName(w.end))}</div>
       ${ACT_SHARE_TYPES.map(tipo => `<div class="adh-row"><span class="adh-type">${ACT_SHARE_ICONS[tipo]} ${esc(t('actshare.type.' + tipo))}</span><span class="adh-val">${on(tipo) ? esc(cells[tipo] || t('adh.empty')) : esc(t('adh.notShared'))}</span></div>`).join('')}
-    </div>`).join('');
-  box.innerHTML = head + rows
+    </div>`;
+  box.innerHTML = head + (perWeek.length ? weekRow(perWeek[0]) : '')
+    + `<div class="adh-fold"${adhOpen ? '' : ' style="display:none"'}>${perWeek.slice(1).map(weekRow).join('')}</div>`
     + (rotation ? `<p class="progress-hint">${esc(t('adh.rotationNote'))}</p>` : '')
     + `<p class="progress-hint">${esc(t('adh.note'))}</p></div>`;
+  adhCardWire(box);
 }
 
 /* ============ INTERRUPTOR DE COMPOSICIÓN (vista del entrenador) ============
@@ -40068,7 +40096,7 @@ document.addEventListener('keydown', e => { if (e.key === 'Escape') shareClose()
  *  - El SW (sw.js) solo cachea la cáscara del mismo origen en modo
  *    RED PRIMERO: Auth/Firestore/Worker jamás pasan por la caché.
  * ================================================================ */
-const PWA_SW_VERSION = '20261104-reconocimiento';
+const PWA_SW_VERSION = '20261104-adherencia-plegable';
 /* Sello de versión VISIBLE (2026-11-03): el pie de la tarjeta de
    acceso enseña qué copia corre este teléfono ('v ' + el sello),
    para comprobar de un vistazo si la versión nueva ya llegó.

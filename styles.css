@@ -3688,6 +3688,16 @@ body.sess-on #pend-back-chip { bottom: calc(env(safe-area-inset-bottom, 0px) + 1
 .adh-row { display: flex; justify-content: space-between; gap: 10px; padding: 3px 0; }
 .adh-type { color: #374151; }
 .adh-val { font-weight: 600; text-align: right; }
+/* Pliegue de la sección «Adherencia · actividad» (orden de
+   Ronald, 2026-11-04): la cabecera entera (título + explicación
+   breve) es el botón del pliegue, con el patrón de la casa
+   (.gm-head/.ffold y AUTH-239): solo la semana más reciente
+   queda a la vista y las anteriores viven bajo .adh-fold. */
+.adh-head { display: flex; align-items: center; gap: 10px; width: 100%; background: none; border: 0; padding: 0; margin: 0; cursor: pointer; text-align: left; color: inherit; font: inherit; -webkit-tap-highlight-color: transparent; }
+.adh-head-tx { flex: 1; min-width: 0; }
+.adh-head-title { display: block; }
+.adh-head-intro { display: block; }
+.adh-fold { animation: wkfoldIn .28s ease; }
 
 /* ═══ EDITOR DE AYUDA (FAQ) EN ADMINISTRACIÓN (mudanza 2026-11-03):
    la cabecera de su sección garantiza el alto táctil mínimo de la
