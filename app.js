@@ -9475,30 +9475,65 @@ function renewalGateTexts(u) {
    (ahí se recarga una vez, con guarda anti-bucle: la carga
    fresca repite la puerta de entrada confirmada, que decide
    con los datos de hoy). */
+/* LA PUERTA TAMPOCO SE HEREDA AL VOLVER (2026-11-03): marca de
+   nacimiento de la pintura de la puerta en ESTA vida de página.
+   showRenewalGate la activa al pintar (esa pintura nació de la
+   evaluación confirmada de ESTA carga: la puerta verdadera, que
+   no se toca jamás) y doorGateErase la limpia al borrar. Una
+   caja visible SIN la marca es una pintura HEREDADA de una vida
+   anterior (la página descongelada/restaurada del teléfono): es
+   la única que la cura de abajo puede tocar. */
+let doorGateBornHere = false;
 function doorGateErase() {
   const box = $('renew-box'); if (box) box.style.display = 'none';
   const n = $('renew-notice'); if (n) { n.style.display = 'none'; n.innerHTML = ''; }
   const ra = $('btn-gate-renew-accept'); if (ra) ra.style.display = 'none';
   const ae = $('auth-error'); if (ae) { ae.textContent = ''; ae.classList.remove('show', 'ok'); }
+  doorGateBornHere = false;
 }
-window.addEventListener('pageshow', e => {
-  if (!e.persisted) return;
+/* Cura de una pintura HEREDADA de la puerta (caja visible sin la
+   marca de nacimiento de esta carga). Reutiliza la MISMA guarda
+   anti-bucle de 15 s de AUTH-199 (la misma clave sessionStorage,
+   para que todos los disparadores compartan un solo
+   presupuesto):
+   - Sin sesión viva: se borra y listo — la pantalla sin sesión
+     nace limpia; los avisos verdaderos de esa pantalla se
+     pintan después, en su propio flujo.
+   - Con sesión viva y la guarda caliente: se borra la pintura
+     y no se insiste (anti-bucle).
+   - Con sesión viva y la guarda fría: se sella la guarda y se
+     recarga — la carga fresca pasa la puerta confirmada y
+     entra o repinta la verdad.
+   Devuelve qué hizo ('none' | 'erased-nosession' |
+   'erased-live' | 'reloaded') para que el submit de entrada
+   decida si debe detenerse. */
+function doorGateCureInherited() {
   const box = $('renew-box');
-  if (!box || box.style.display === 'none') return;
-  /* La página reanudada trae la puerta pintada de una vida
-     anterior: esa pintura no vale como evaluación de hoy. Si ya
-     se recargó por esto mismo hace menos de 15 s, no se insiste
-     (anti-bucle): se borra la pintura y la pantalla queda limpia
-     — cualquier recarga completa vuelve a pasar por la puerta
-     confirmada de siempre. */
+  if (!box || box.style.display === 'none' || doorGateBornHere) return 'none';
+  if (!auth.currentUser) { doorGateErase(); return 'erased-nosession'; }
   let hot = false;
   try {
     const last = parseInt(sessionStorage.getItem('rf-gate-restore-ts') || '0', 10) || 0;
     hot = Date.now() - last < 15000;
     if (!hot) sessionStorage.setItem('rf-gate-restore-ts', String(Date.now()));
   } catch {}
-  if (hot) { doorGateErase(); return; }
+  if (hot) { doorGateErase(); return 'erased-live'; }
   location.reload();
+  return 'reloaded';
+}
+/* LA PUERTA TAMPOCO SE HEREDA AL VOLVER: el listener de
+   AUTH-199 solo curaba la reanudación RESTAURADA (persisted);
+   la restauración por instantánea de iOS reanuda la misma vida
+   SIN persisted (o sin pageshow útil), y esa pintura heredada
+   no la tocaba nadie. Ahora pageshow cura en los dos casos (en
+   la carga fresca la caja nace oculta y la cura no actúa) y la
+   cura es la compartida de arriba: solo pinturas heredadas. */
+window.addEventListener('pageshow', () => { doorGateCureInherited(); });
+/* La otra reanudación que AUTH-199 no cubría: volver a la
+   pestaña o a la app (visibilitychange a visible) con la
+   pintura heredada puesta — la misma cura compartida. */
+document.addEventListener('visibilitychange', () => {
+  if (document.visibilityState === 'visible') doorGateCureInherited();
 });
 /* Puerta de renovación del consentimiento: la sesión se mantiene
    SOLO en la vista de acceso para ofrecer la renovación (las reglas
@@ -9506,6 +9541,7 @@ window.addEventListener('pageshow', e => {
    SOLO con el estado confirmado contra el servidor, y la pantalla
    dice únicamente lo que es verdad de ese estado. */
 function showRenewalGate() {
+  doorGateBornHere = true;
   const gt = renewalGateTexts(UDATA);
   showAuthError(t(gt.bannerKey));
   /* DEFECTOS-072 (b): si la cuenta está sin aprobar y eligió
@@ -10226,6 +10262,21 @@ $('form-register').addEventListener('submit', async e => {
 });
 $('form-login').addEventListener('submit', async e => {
   e.preventDefault();
+  /* LA PUERTA TAMPOCO SE HEREDA AL VOLVER: si la pantalla trae
+     una pintura HEREDADA de la puerta (no nacida en esta carga),
+     el toque en «Entrar» la cura ANTES de intentar la entrada:
+     con sesión viva se cura y el envío se DETIENE (la recarga
+     entra con la evaluación confirmada; con la guarda caliente
+     el borrado deja la pantalla limpia y la persona toca
+     «Entrar» de nuevo ya sin fantasma); sin sesión se borra la
+     pintura y el envío sigue normal. Si la pintura nació en
+     esta carga (la puerta verdadera, que mantiene la sesión
+     viva), este bloque no actúa y el envío sigue EXACTAMENTE
+     como siempre. */
+  {
+    const cure = doorGateCureInherited();
+    if (cure === 'reloaded' || cure === 'erased-live') { try { pkAbortConditional(); } catch {} return; }
+  }
   /* Entrar con contraseña ABORTA la sugerencia automática de la
      clave que pudiera estar esperando (mediación condicional): el
      aborto es de la propia app y no pinta ningún aviso. */
@@ -37657,7 +37708,12 @@ document.addEventListener('keydown', e => { if (e.key === 'Escape') shareClose()
  *  - El SW (sw.js) solo cachea la cáscara del mismo origen en modo
  *    RED PRIMERO: Auth/Firestore/Worker jamás pasan por la caché.
  * ================================================================ */
-const PWA_SW_VERSION = '20261103-entreno-social';
+const PWA_SW_VERSION = '20261103-puerta-sana';
+/* Sello de versión VISIBLE (2026-11-03): el pie de la tarjeta de
+   acceso enseña qué copia corre este teléfono ('v ' + el sello),
+   para comprobar de un vistazo si la versión nueva ya llegó.
+   Sin textos de diccionario: es un código de versión. */
+{ const av = $('app-version'); if (av) av.textContent = 'v ' + PWA_SW_VERSION; }
 let pwaDeferredPrompt = null;
 function pwaIsStandalone() {
   try {
