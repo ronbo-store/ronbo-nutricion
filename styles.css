@@ -3612,3 +3612,11 @@ body.sess-on #pend-back-chip { bottom: calc(env(safe-area-inset-bottom, 0px) + 1
 .stu-eq-row { cursor: pointer; }
 .stu-eq-chev { flex: none; font-size: 22px; line-height: 1; font-weight: 700; color: #0d9488; padding-left: 4px; }
 .stu-eq-row:focus-visible { outline: 2px solid #0d9488; outline-offset: 2px; border-radius: 8px; }
+/* Punto 130 de la cola: el bloque «✉ Recordarle sus métricas» de la
+   ficha (entre la tarjeta de pendientes y los anillos). La misma
+   gramática visual del bloque de fotos de AUTH-188 (.teval-ask):
+   botón primario a todo ancho, 48 px de alto táctil, y el sello o
+   la nota honesta centrados en su lugar. */
+.ficha-met { margin-top: 10px; }
+.ficha-met-btn { width: 100%; min-height: 48px; font-size: 15px; }
+.ficha-met .stu-nudged { display: block; text-align: center; white-space: normal; padding: 6px 0; }

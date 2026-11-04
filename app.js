@@ -4214,6 +4214,39 @@ en: {
   'nudge.tpl.meal': 'Meals',
   'nudge.tpl.pes': 'Weigh-in',
   'nudge.tpl.per': 'Progress evaluation',
+  'nudge.tpl.met': 'Metrics reminder (with the breakdown)',
+  'nudge.metBtn': '✉ Remind them of their metrics',
+  'nudge.metNone': 'This student doesn’t have founded targets yet — once their calculation is ready, you’ll be able to send them the metrics reminder with its breakdown from here.',
+  'nudge.metMissing': 'This student doesn’t have founded targets yet — no email was sent.',
+  'nudge.metPreviewAuto': '(The breakdown is composed from the student’s saved data when the email is sent.)',
+  'met.mail.head': 'Your daily targets:',
+  'met.mail.energy': 'Energy: {v} kcal per day',
+  'met.mail.prot': 'Protein',
+  'met.mail.carb': 'Carbohydrates',
+  'met.mail.azuc': 'Sugars: up to {v} g',
+  'met.mail.gras': 'Fats',
+  'met.mail.howHead': 'How they are built:',
+  'met.mail.tdeeA': 'Your estimated daily expenditure is {tdee} kcal.',
+  'met.mail.tdeeEq': 'It was calculated with the {eq} equation',
+  'met.mail.originTrainer': 'chosen by your trainer',
+  'met.mail.originAuto': 'automatic — the app’s base formula',
+  'met.mail.withWeight': 'using your weight of {w} kg',
+  'met.mail.withPal': 'your activity level (×{pal})',
+  'met.mail.and': 'and',
+  'met.mail.pace': 'From your expenditure, a pace of {pace} kcal per day is subtracted{who}: that is how your energy target lands at {kcal} kcal.',
+  'met.mail.paceTrainer': ', set by your trainer',
+  'met.mail.paceSelf': ', the pace you accepted in your goals agreement',
+  'met.mail.pacePending': 'Your goal is to lose weight and, for now, your energy target is your full expenditure: your trainer has not set the pace yet.',
+  'met.mail.maintain': 'Your goal is to maintain your weight: your energy target is your full expenditure, {kcal} kcal.',
+  'met.mail.gain': 'Your goal is to gain: your target adds 10% on top of your expenditure and lands at {kcal} kcal.',
+  'met.mail.protein': 'Your protein comes from {f} g for every kilo of your weight ({w} kg): {prot} g per day — the evidence-based reference for your goal of {obj}.',
+  'met.mail.objBajar': 'losing weight while protecting your muscle',
+  'met.mail.objMantener': 'keeping your muscle mass',
+  'met.mail.objGanar': 'gaining muscle mass',
+  'met.mail.fat': 'Your fats are {pct}% of your energy: {gras} g per day.',
+  'met.mail.carbs': 'Your carbohydrates are the remainder: the energy left after protein and fats, {carb} g per day.',
+  'met.mail.sugars': 'Your sugars are capped at {azuc} g: 5% of your energy, the prudent limit recommended by the WHO.',
+  'met.mail.dayVar': 'On top of this base, the app adjusts carbohydrates and fats by day type (demanding training day or rest day) — that is why your rings can show slightly different figures depending on the day.',
   'nudge.tpl.bod': 'Body-type analysis',
   'nudge.nudgedOn': '✉ Nudged on {d}',
   'nudge.kicker': 'EMAIL NUDGE',
@@ -7123,6 +7156,39 @@ es: {
   'nudge.tpl.meal': 'Comidas',
   'nudge.tpl.pes': 'Pesaje',
   'nudge.tpl.per': 'Evaluación de progreso',
+  'nudge.tpl.met': 'Recordatorio de métricas (con su composición)',
+  'nudge.metBtn': '✉ Recordarle sus métricas',
+  'nudge.metNone': 'Este alumno aún no tiene métricas fundadas — cuando su cálculo esté listo, desde aquí podrás enviarle el recordatorio de sus métricas con su composición.',
+  'nudge.metMissing': 'Este alumno aún no tiene métricas fundadas — no se envió ningún correo.',
+  'nudge.metPreviewAuto': '(La composición se arma desde los datos guardados del alumno al enviar el correo.)',
+  'met.mail.head': 'Tus métricas de cada día:',
+  'met.mail.energy': 'Energía: {v} kcal al día',
+  'met.mail.prot': 'Proteína',
+  'met.mail.carb': 'Carbohidratos',
+  'met.mail.azuc': 'Azúcares: máximo {v} g',
+  'met.mail.gras': 'Grasas',
+  'met.mail.howHead': 'Así se componen:',
+  'met.mail.tdeeA': 'Tu gasto diario estimado es de {tdee} kcal.',
+  'met.mail.tdeeEq': 'Se calculó con la ecuación {eq}',
+  'met.mail.originTrainer': 'elegida por tu entrenador',
+  'met.mail.originAuto': 'automática: la fórmula base de la app',
+  'met.mail.withWeight': 'con tu peso de {w} kg',
+  'met.mail.withPal': 'tu nivel de actividad (×{pal})',
+  'met.mail.and': 'y',
+  'met.mail.pace': 'A tu gasto se le resta un ritmo de {pace} kcal al día{who}: así queda tu meta de energía en {kcal} kcal.',
+  'met.mail.paceTrainer': ', fijado por tu entrenador',
+  'met.mail.paceSelf': ', el ritmo que aceptaste en tu acuerdo de metas',
+  'met.mail.pacePending': 'Tu objetivo es bajar de peso y, por ahora, tu meta de energía es tu gasto completo: tu entrenador aún no ha fijado el ritmo.',
+  'met.mail.maintain': 'Tu objetivo es mantener tu peso: tu meta de energía es tu gasto completo, {kcal} kcal.',
+  'met.mail.gain': 'Tu objetivo es ganar masa: tu meta suma un 10 % sobre tu gasto y queda en {kcal} kcal.',
+  'met.mail.protein': 'Tu proteína sale de multiplicar {f} g por cada kilo de tu peso ({w} kg): {prot} g al día — la referencia científica para tu objetivo de {obj}.',
+  'met.mail.objBajar': 'bajar cuidando tu masa muscular',
+  'met.mail.objMantener': 'mantener tu masa muscular',
+  'met.mail.objGanar': 'ganar masa muscular',
+  'met.mail.fat': 'Tus grasas son el {pct} % de tu energía: {gras} g al día.',
+  'met.mail.carbs': 'Tus carbohidratos son el resto: la energía que queda después de la proteína y las grasas, {carb} g al día.',
+  'met.mail.sugars': 'Tus azúcares tienen un techo de {azuc} g: el 5 % de tu energía, el límite prudente que recomienda la OMS.',
+  'met.mail.dayVar': 'Sobre esta base, la app ajusta los carbohidratos y las grasas según el tipo de día (entreno exigente o descanso): por eso en tus anillos puedes ver cifras algo distintas según el día.',
   'nudge.tpl.bod': 'Análisis de tipo corporal',
   'nudge.nudgedOn': '✉ Avisado el {d}',
   'nudge.kicker': 'AVISO POR CORREO',
@@ -12444,7 +12510,7 @@ function studentsActFor(it) {
    rama cerrada de reglas de este mismo paquete). El lenguaje es
    el honesto de la casa: «el proveedor lo aceptó», nunca
    «entregado» ni «leído». ================================================================ */
-const NUDGE_TPL_BY_SUB = { eval: 'nudgeeval', cns: 'nudgecns', parq: 'nudgeparq', goal: 'nudgegoal', meal: 'nudgemeal', pes: 'nudgepes', per: 'nudgeper', bod: 'nudgebod' };
+const NUDGE_TPL_BY_SUB = { eval: 'nudgeeval', cns: 'nudgecns', parq: 'nudgeparq', goal: 'nudgegoal', meal: 'nudgemeal', pes: 'nudgepes', per: 'nudgeper', bod: 'nudgebod', met: 'nudgemet' };
 /* Subclaves cuyo pendiente vive en el checklist de datos (REQ):
    su re-verificación previa al envío relee el documento del
    alumno y recalcula su checklist; las demás (pesaje, evaluación
@@ -12575,6 +12641,16 @@ const NUDGE_PREVIEW = {
       "subject": "RONBO FIT — Tu análisis de tipo corporal necesita tu aprobación",
       "body": "Hola {name}:\n\nTu entrenador {trainer} quiere hacer tu análisis de tipo corporal a partir de tus fotos de progreso. Solo se hace con tu consentimiento específico: la decisión es solo tuya, y puedes retirarlo cuando quieras.\n\nEn la app: abre «Mi perfil» → «Permisos y privacidad» y revisa allí el consentimiento del análisis de tipo corporal.\n\n[ Abre RONBO FIT ] → https://fit.ronbo.store\n\nGracias,\nRONBO FIT"
     }
+  },
+  "met": {
+    "en": {
+      "subject": "RONBO FIT — Your targets, explained: how each number is made up",
+      "body": "Hi {name},\n\nYour trainer {trainer} is sending you this reminder: your targets are ready in RONBO FIT, and here is how each number is made up — so you know where every figure comes from:\n\n{metrics}\n\nOne thing that really helps: log your meals in the app each day. With that record, your trainer can follow your progress properly and adjust what needs adjusting.\n\nIn the app: open \"Comida\" (Meals) and add what you eat — it takes less than a minute.\n\n[ Open RONBO FIT ] → https://fit.ronbo.store\n\nThank you,\nRONBO FIT"
+    },
+    "es": {
+      "subject": "RONBO FIT — Tus métricas, explicadas: así se compone cada número",
+      "body": "Hola {name}:\n\nTu entrenador {trainer} te envía este recordatorio: tus métricas ya están listas en RONBO FIT, y así se compone cada número — para que sepas de dónde sale cada cifra:\n\n{metrics}\n\nUna cosa que ayuda muchísimo: carga tus alimentos en la app cada día. Con ese registro, tu entrenador puede hacerte seguimiento de verdad y ajustar lo que haga falta.\n\nEn la app: abre «Comida» y registra lo que comas — toma menos de un minuto.\n\n[ Abre RONBO FIT ] → https://fit.ronbo.store\n\nGracias,\nRONBO FIT"
+    }
   }
 };
 function nudgeMailLangOf(u) {
@@ -12661,7 +12737,16 @@ function nudgeRenderPreview() {
   const P = (NUDGE_PREVIEW[ctx.sub] || {})[lang] || (NUDGE_PREVIEW[ctx.sub] || {}).en;
   if (!P) { box.innerHTML = ''; return; }
   const subject = P.subject.split('{name}').join(nm).split('{trainer}').join(tr);
-  const bodyTxt = P.body.split('{name}').join(nm).split('{trainer}').join(tr);
+  let bodyTxt = P.body.split('{name}').join(nm).split('{trainer}').join(tr);
+  /* «met» (punto 130): la marca {metrics} se sustituye por el
+     bloque compuesto desde los datos guardados del alumno
+     (metComposeBlockFor — el mismo texto que el Worker compondrá
+     al enviar). Si en esta superficie no se puede componer, la
+     línea honesta de reserva en el idioma de la vista previa. */
+  if (ctx.sub === 'met') {
+    const blk = metComposeBlockFor(ctx.uid, lang);
+    bodyTxt = bodyTxt.split('{metrics}').join(blk || ((STR[lang] || STR.en)['nudge.metPreviewAuto'] || ''));
+  }
   box.innerHTML = `<p class="nudge-subj">${esc(subject)}</p><p class="nudge-body">${esc(bodyTxt)}</p>`;
 }
 /* D5: al abrir la hoja (o al cambiar a la plantilla de evaluación
@@ -12678,6 +12763,118 @@ function nudgeBasePrime() {
     nudgeRenderPreview();
   }).catch(() => {});
 }
+/* ── «Recordarle sus métricas» (punto 130 de la cola): el bloque
+   {metrics} de la plantilla fija nudgemet. La app lo compone para
+   la vista previa EXACTA de la hoja y el Worker lo recompone al
+   enviar desde los documentos guardados del alumno (el patrón de
+   {planSummary} de AUTH-171 y del payload base de AUTH-190): las
+   cifras son las metas fundadas vigentes (users.goals) y cada
+   explicación sale de la foto de entradas que el motor guardó con
+   el resultado (users.goalsProvenance) y del origen de la ecuación
+   (assessment/current). Lo que no consta, se omite: jamás se
+   inventa una cifra ni una causa. Los fragmentos viven en las
+   claves met.mail.* de STR y el Worker guarda su espejo exacto
+   (MET_MAIL_FRAG): cualquier cambio de texto va en los dos. */
+const MET_EQ_NAMES = { 'mifflin-st-jeor': 'Mifflin-St Jeor', 'ten-haaf': 'Ten Haaf' };
+function metNum(v) { const n = Number(v); return (v === null || v === undefined || v === '' || !isFinite(n)) ? null : n; }
+function metFmtInt(v, lang) {
+  const n = Math.round(Number(v));
+  const s = String(Math.abs(n)).replace(/\B(?=(\d{3})+(?!\d))/g, lang === 'es' ? '.' : ',');
+  return (n < 0 ? '-' : '') + s;
+}
+function metFmtDec(v, lang) {
+  const s = String(Math.round(Number(v) * 100) / 100);
+  return lang === 'es' ? s.replace('.', ',') : s;
+}
+function metJoinList(parts, andWord) {
+  if (parts.length <= 1) return parts.join('');
+  return parts.slice(0, -1).join(', ') + ' ' + andWord + ' ' + parts[parts.length - 1];
+}
+/* doc = datos de users/{uid}; asmt = { equation, equationOrigin,
+   equationChosenBy, inputsSnapshot } (o null). Devuelve '' cuando
+   no hay métricas fundadas vigentes. */
+function metComposeBlock(doc, asmt, lang) {
+  const L = lang === 'es' ? 'es' : 'en';
+  const T = (k, v) => { let s = (STR[L][k] || STR.en[k] || k); if (v) for (const key of Object.keys(v)) s = s.split('{' + key + '}').join(String(v[key])); return s; };
+  const g = (doc && doc.goals) || {};
+  const p = (doc && doc.goalsProvenance) || null;
+  const kcal = metNum(g.kcal), tdee = p ? metNum(p.tdeeKcal) : null;
+  if (!(kcal > 0) || !p || !(tdee > 0)) return '';
+  const lines = [T('met.mail.head'), T('met.mail.energy', { v: metFmtInt(kcal, L) })];
+  const parts = [];
+  if (metNum(g.prot) !== null) parts.push(T('met.mail.prot') + ': ' + metFmtInt(g.prot, L) + ' g');
+  if (metNum(g.carb) !== null) parts.push(T('met.mail.carb') + ': ' + metFmtInt(g.carb, L) + ' g');
+  if (metNum(g.azuc) !== null) parts.push(T('met.mail.azuc', { v: metFmtInt(g.azuc, L) }));
+  if (metNum(g.gras) !== null) parts.push(T('met.mail.gras') + ': ' + metFmtInt(g.gras, L) + ' g');
+  if (parts.length) lines.push(parts.join(' · '));
+  lines.push('', T('met.mail.howHead'));
+  const bullets = [];
+  const eqId = p.equationUsed || (asmt && asmt.equation) || '';
+  const eqName = MET_EQ_NAMES[eqId] || '';
+  const origin = asmt && asmt.equationOrigin === 'auto' ? 'auto'
+    : (asmt && (asmt.equationChosenBy || asmt.equationOrigin === 'trainer')) ? 'trainer' : '';
+  const snap = (asmt && asmt.inputsSnapshot) || {};
+  const w = metNum(p.weightKg) !== null ? metNum(p.weightKg) : metNum(snap.weightKg);
+  const pal = metNum(p.palBasal) !== null ? metNum(p.palBasal) : metNum(snap.palBasal);
+  let s = T('met.mail.tdeeA', { tdee: metFmtInt(tdee, L) });
+  const clauses = [];
+  if (eqName) clauses.push(T('met.mail.tdeeEq', { eq: eqName }) + (origin === 'trainer' ? ' (' + T('met.mail.originTrainer') + ')' : origin === 'auto' ? ' (' + T('met.mail.originAuto') + ')' : ''));
+  if (w !== null) clauses.push(T('met.mail.withWeight', { w: metFmtDec(w, L) }));
+  if (pal !== null) clauses.push(T('met.mail.withPal', { pal: metFmtDec(pal, L) }));
+  if (clauses.length) s += ' ' + metJoinList(clauses, T('met.mail.and')) + '.';
+  bullets.push(s);
+  const obj = p.objective || (doc && (doc.goalObjective || doc.goalObjective)) || '';
+  const pace = metNum(p.paceKcal);
+  const paceOn = (p.paceState === 'approved' || p.paceState === 'self-accepted') && pace !== null && pace > 0;
+  if (obj === 'bajar' && paceOn) bullets.push(T('met.mail.pace', { pace: metFmtInt(pace, L), kcal: metFmtInt(kcal, L), who: p.paceState === 'approved' ? T('met.mail.paceTrainer') : T('met.mail.paceSelf') }));
+  else if (obj === 'bajar') bullets.push(T('met.mail.pacePending'));
+  else if (obj === 'mantener') bullets.push(T('met.mail.maintain', { kcal: metFmtInt(kcal, L) }));
+  else if (obj === 'ganar') bullets.push(T('met.mail.gain', { kcal: metFmtInt(kcal, L) }));
+  const pf = metNum(p.proteinFactor);
+  const objKey = { bajar: 'met.mail.objBajar', mantener: 'met.mail.objMantener', ganar: 'met.mail.objGanar' }[obj];
+  if (pf !== null && w !== null && metNum(g.prot) !== null && objKey) bullets.push(T('met.mail.protein', { f: metFmtDec(pf, L), w: metFmtDec(w, L), prot: metFmtInt(g.prot, L), obj: T(objKey) }));
+  const fp = metNum(p.fatPct);
+  if (fp !== null && metNum(g.gras) !== null) bullets.push(T('met.mail.fat', { pct: Math.round(fp * 100), gras: metFmtInt(g.gras, L) }));
+  if (metNum(g.carb) !== null) bullets.push(T('met.mail.carbs', { carb: metFmtInt(g.carb, L) }));
+  if (metNum(g.azuc) !== null) bullets.push(T('met.mail.sugars', { azuc: metFmtInt(g.azuc, L) }));
+  bullets.push(T('met.mail.dayVar'));
+  for (const b of bullets) lines.push('• ' + b);
+  return lines.join('\n');
+}
+/* El { equation, equationOrigin, equationChosenBy } del alumno:
+   la ficha abierta guarda la evaluación entera (FA_CARD); fuera de
+   ella, el checklist de la pasada (chk.base) trae ecuación y
+   origen. Sin ninguna de las dos vías, el origen se omite. */
+function metAsmtLikeFor(uid) {
+  if (typeof FA_CARD !== 'undefined' && FA_CARD && FA_CARD.uid === uid && FA_CARD.asmt) {
+    const a = FA_CARD.asmt;
+    return { equation: a.equation || '', equationOrigin: a.equationOrigin || null, equationChosenBy: a.equationChosenBy || null, inputsSnapshot: a.inputsSnapshot || null };
+  }
+  const chk = (typeof fichaTpendOf === 'function' ? (fichaTpendOf(uid) || {}).chk : null)
+    || ((typeof STUDENTS_LAST !== 'undefined' && STUDENTS_LAST && STUDENTS_LAST.chkByUid) ? STUDENTS_LAST.chkByUid[uid] : null);
+  const b = (chk && chk.base) || null;
+  if (!b) return null;
+  return { equation: b.eq || '', equationOrigin: b.eqOrigin || null, equationChosenBy: b.eqChosen ? 'trainer' : null, inputsSnapshot: null };
+}
+function metComposeBlockFor(uid, lang) {
+  const doc = nudgeStudentDoc(uid);
+  if (!doc) return '';
+  return metComposeBlock(doc, metAsmtLikeFor(uid), lang);
+}
+/* La re-verificación del envío de «met»: métricas fundadas
+   vigentes LEÍDAS del servidor en ese instante (metas + foto del
+   motor + resultado de energía vivo). true/false/null (null = no
+   se pudo leer: no se bloquea; el Worker guarda la puerta). */
+async function metHasMetrics(uid) {
+  let d = null, a = null, read = false;
+  try { const s = await getDoc(doc(db, 'users', uid)); if (s.exists()) { d = s.data(); read = true; } } catch {}
+  try { const s2 = await getDoc(doc(db, 'users', uid, 'assessment', 'current')); if (s2.exists()) a = s2.data(); } catch {}
+  if (!read) return null;
+  const founded = !!d && Number((d.goals || {}).kcal) > 0 && !!d.goalsProvenance && Number(d.goalsProvenance.tdeeKcal) > 0;
+  if (!founded) return false;
+  if (a) return faHasResult(a) ? true : false;
+  return null;
+}
 function nudgeClose() {
   const fl = $('nudge-float'); if (fl) fl.style.display = 'none';
   NUDGE_CTX = null;
@@ -12689,6 +12886,10 @@ function nudgeMsg(txt) { const m = $('nudge-msg'); if (m) { m.textContent = txt;
    la unión viva lo mostraba abierto y el Worker aplica su tope. */
 async function nudgeStillPending(uid, sub) {
   try {
+    /* «met» (punto 130) no es un pendiente: su puerta (métricas
+       fundadas vigentes) se re-verifica justo antes en nudgeSend
+       con su propio texto; aquí no se bloquea por esta vía. */
+    if (sub === 'met') return true;
     if (NUDGE_REQ_KEY[sub]) {
       const snap = await getDoc(doc(db, 'users', uid));
       if (!snap.exists()) return false;
@@ -12762,6 +12963,20 @@ async function nudgeSend() {
   const ctx = NUDGE_CTX; if (!ctx || ctx.sending) return;
   ctx.sending = true;
   const sb = $('nudge-send'); if (sb) { sb.disabled = true; sb.textContent = t('nudge.sending'); }
+  /* «met» (punto 130): sin métricas fundadas vigentes NO sale
+     ningún correo — la honestidad del 422 base-complete de
+     AUTH-190, con su propio texto. La evidencia se relee del
+     servidor en este instante; sin lectura posible no se bloquea
+     (el Worker guarda la misma puerta al componer). */
+  if (ctx.sub === 'met') {
+    const has = await metHasMetrics(ctx.uid);
+    if (has === false) {
+      nudgeMsg(t('nudge.metMissing'));
+      if (sb) sb.style.display = 'none';
+      ctx.sending = false;
+      return;
+    }
+  }
   const still = await nudgeStillPending(ctx.uid, ctx.sub);
   if (!still) {
     nudgeMsg(t('nudge.gone'));
@@ -12800,6 +13015,14 @@ async function nudgeSend() {
     ctx.sending = false;
     return;
   }
+  /* «met» (punto 130): el Worker no encontró métricas fundadas al
+     componer (422 metrics-missing) — el mismo texto honesto. */
+  if (!res.ok && res.error === 'metrics-missing') {
+    nudgeMsg(t('nudge.metMissing'));
+    if (sb) sb.style.display = 'none';
+    ctx.sending = false;
+    return;
+  }
   if (res.ok) {
     await mailRecordNudge(ctx.uid, ctx.sub);
     nudgeMsg(t('nudge.sentOk'));
@@ -12812,6 +13035,9 @@ async function nudgeSend() {
        de evaluaciones de la ficha, si es la que está abierta, pasa
        a mostrar el sello (su propio registro, el mismo). */
     try { if (typeof tevalAskRefresh === 'function') tevalAskRefresh(ctx.uid); } catch {}
+    /* Punto 130: y el bloque «✉ Recordarle sus métricas» de la
+       ficha, si es la que está abierta, pasa a mostrar su sello. */
+    try { if (typeof fichaMetRefresh === 'function') fichaMetRefresh(ctx.uid); } catch {}
   } else if (res.status === 429 || res.error === 'nudge-capped') {
     nudgeMsg(t('nudge.capped'));
     if (sb) sb.style.display = 'none';
@@ -15402,6 +15628,7 @@ async function openClient(uid) {
     ${healthAlert}
     ${stageStrip}
     ${fichaPendBlockHTML(uid)}
+    <div id="ficha-met-box" data-met-uid="${uid}">${fichaMetBlockHTML(uid)}</div>
     <div id="client-rings"></div>
     <div id="client-alerts" data-uid="${uid}"></div>
     ${foodItems.length ? `<h3 class="history-title">${t('client.foodReview', { n: foodItems.length })}</h3>${foodBlock}` : ''}
@@ -15422,6 +15649,7 @@ async function openClient(uid) {
     <div id="compacc-box"><div class="wempty">${t('access.loading')}</div></div>
     <div id="client-training"></div>
     <div id="client-evals"><div class="eval-actions"><button type="button" class="btn-ghost btn-sm" id="btn-client-evals">${t('teval.open')}</button></div><div id="client-evals-body" style="display:none"></div></div>`;
+  fichaMetWire(box);
   $('btn-client-close').onclick = () => { box.style.display = 'none'; box.innerHTML = ''; };
   /* AUTH-2026-11-02-186 (punto 109 de la cola): fichaHeadClose —
      la cabecera de la persona de la ficha («Registro de peso ·
@@ -32368,6 +32596,43 @@ function tevalAskRefresh(uid) {
     tevalAskWire($('client-evals-body'));
   } catch {}
 }
+/* ── Punto 129 de la cola: el botón «✉ Recordarle sus métricas» de
+   la ficha (la gramática del bloque de fotos de AUTH-188: misma
+   puerta — propietario o entrenador ASIGNADO, la de nudgeViewerCan
+   — y el mismo sello en el lugar del botón dentro del tope de 7
+   días, subclave propia «met»). Vive entre la tarjeta de
+   pendientes (con la fila «Su ecuación») y los anillos del alumno:
+   es el correo de esas mismas métricas, con su composición.
+   Sin métricas fundadas no hay botón que prometa un envío vacío:
+   la nota honesta ocupa su lugar. La evidencia es la de las
+   pasadas (el documento del alumno y el hasResult de su
+   checklist); el envío re-verifica contra el servidor y el
+   Worker guarda la puerta al componer. */
+function fichaMetBlockHTML(uid) {
+  if (typeof nudgeViewerCan !== 'function' || !nudgeViewerCan(uid)) return '';
+  const doc = nudgeStudentDoc(uid);
+  if (!doc) return '';
+  const prov = doc.goalsProvenance || null;
+  const chkB = ((typeof fichaTpendOf === 'function' ? (fichaTpendOf(uid) || {}).chk : null) || {}).base || null;
+  const founded = Number((doc.goals || {}).kcal) > 0 && !!prov && Number(prov.tdeeKcal) > 0 && (!chkB || chkB.hasResult !== false);
+  if (!founded) return `<div class="ficha-met"><span class="stu-nudged">${esc(t('nudge.metNone'))}</span></div>`;
+  const fresh = nudgeFreshMs(uid, 'met');
+  if (fresh) return `<div class="ficha-met"><span class="stu-nudged">${esc(t('nudge.nudgedOn', { d: dateName(pendISOof(new Date(fresh))) }))}</span></div>`;
+  return `<div class="ficha-met"><button type="button" class="btn-primary ficha-met-btn" data-ficha-met="${esc(uid)}">${esc(t('nudge.metBtn'))}</button></div>`;
+}
+function fichaMetWire(scope) {
+  const root = scope || document;
+  const b = root.querySelector ? root.querySelector('[data-ficha-met]') : null;
+  if (b) b.addEventListener('click', () => nudgeOpen(b.getAttribute('data-ficha-met'), 'met', t('nudge.tpl.met')));
+}
+function fichaMetRefresh(uid) {
+  try {
+    const box = $('ficha-met-box');
+    if (!box || box.getAttribute('data-met-uid') !== uid) return;
+    box.innerHTML = fichaMetBlockHTML(uid);
+    fichaMetWire(box);
+  } catch {}
+}
 function renderCmpTrainer() {
   const body = $('client-evals-body'); if (!body || !CEV) return;
   const hasAny = Object.keys(CEV.prog).length || Object.keys(CEV.evals).length;
@@ -36094,7 +36359,7 @@ document.addEventListener('keydown', e => { if (e.key === 'Escape') shareClose()
  *  - El SW (sw.js) solo cachea la cáscara del mismo origen en modo
  *    RED PRIMERO: Auth/Firestore/Worker jamás pasan por la caché.
  * ================================================================ */
-const PWA_SW_VERSION = '20261103-atleta-ritmo';
+const PWA_SW_VERSION = '20261103-recordatorio-metricas';
 let pwaDeferredPrompt = null;
 function pwaIsStandalone() {
   try {
