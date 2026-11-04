@@ -625,37 +625,6 @@ service cloud.firestore {
     // TransitionOk): acoplamiento de doble cara, como la casa.
     // El modo se deriva del estado destino: 'accepted' es
     // otorgar/renovar; 'withdrawn' es retirar.
-    function actActShapeOk(before, after) {
-      let mB = before.get('activityConsents', {});
-      let mA = after.get('activityConsents', {});
-      let t = mB.get('steps', {}) != mA.get('steps', {}) ? 'steps'
-            : mB.get('exercise', {}) != mA.get('exercise', {}) ? 'exercise'
-            : mB.get('weight', {}) != mA.get('weight', {}) ? 'weight' : 'sleep';
-      let subB = mB.get(t, {});
-      let subA = mA.get(t, {});
-      let esOtorgar = subA.get('status', '') == 'accepted'
-        && subB.get('status', '') != 'accepted'
-        && subA.get('acceptedAt', null) == request.time
-        && subA.get('withdrawnAt', null) == subB.get('withdrawnAt', null);
-      let esRetirar = subA.get('status', '') == 'withdrawn'
-        && subB.get('status', '') == 'accepted'
-        && subA.get('withdrawnAt', null) == request.time
-        && subA.get('acceptedAt', null) == subB.get('acceptedAt', null)
-        && subA.get('version', '') == subB.get('version', '');
-      let r = getAfter(receiptPath(after.consentReceiptId)).data;
-      return subB != subA
-        && (t == 'steps' || mB.get('steps', {}) == mA.get('steps', {}))
-        && (t == 'exercise' || mB.get('exercise', {}) == mA.get('exercise', {}))
-        && (t == 'weight' || mB.get('weight', {}) == mA.get('weight', {}))
-        && (t == 'sleep' || mB.get('sleep', {}) == mA.get('sleep', {}))
-        && (esOtorgar || esRetirar)
-        && r.uid == request.auth.uid
-        && r.type == 'activity-' + t + '-'
-             + (esRetirar ? 'withdrawn'
-                : subB.get('status', '') == 'withdrawn' ? 'renewed' : 'granted')
-        && r.version == subA.get('version', '')
-        && r.at == request.time;
-    }
     function actReceiptTransitionOk(before, after, type, version) {
       let tipo = type.split('-')[1];
       let action = type.split('-')[2];
@@ -673,7 +642,14 @@ service cloud.firestore {
                    && subB.get('status', '') == 'withdrawn')
                 : (action == 'withdrawn'
                    && subA.get('status', '') == 'withdrawn'
-                   && subB.get('status', '') == 'accepted')));
+                   && subB.get('status', '') == 'accepted')))
+        && (action == 'withdrawn'
+            ? (subA.get('withdrawnAt', null) == request.time
+               && subA.get('acceptedAt', null) == subB.get('acceptedAt', null)
+               && subB.get('version', '') == version)
+            : (subA.get('acceptedAt', null) == request.time
+               && subA.get('withdrawnAt', null) == subB.get('withdrawnAt', null)
+               && (action == 'granted' || subB.get('version', '') == version)));
     }
     function receiptType(before, after) {
       let bs = before.get('healthConsent', {}).get('status', 'none');
@@ -809,25 +785,6 @@ service cloud.firestore {
         && request.resource.data.consentReceiptId == uid + '_1'
         && receiptMatches(uid + '_1', uid, 'registered',
                           request.resource.data.termsVersion);
-
-      // Integración de actividad P1 (2026-11-03): OTORGAR,
-      // RENOVAR o RETIRAR el consentimiento de UN tipo de
-      // actividad (activityConsents): exactamente un tipo
-      // cambia (actActShapeOk deriva cuál y exige su forma y
-      // la hora del servidor), con el recibo acoplado
-      // activity-{tipo}-{granted|renewed|withdrawn} en el
-      // mismo lote y seq +1 exacto. Es UNA sola rama para
-      // los tres actos y va PRIMERA entre los allow update:
-      // el presupuesto de expresiones por petición no da
-      // para pagar la cadena entera de ramas ajenas.
-      allow update: if isSelf(uid)
-        && request.resource.data.get('activityConsents', {})
-             != resource.data.get('activityConsents', {})
-        && request.resource.data.diff(resource.data).affectedKeys()
-              .hasOnly(['activityConsents', 'consentSeq', 'consentReceiptId'])
-        && request.resource.data.consentSeq == resource.data.get('consentSeq', 0) + 1
-        && request.resource.data.consentReceiptId == uid + '_' + string(request.resource.data.consentSeq)
-        && actActShapeOk(resource.data, request.resource.data);
 
       // The trainer may update any user document (approval, goals,
       // profile, notes) — EXCEPT the client's specific-consent state
@@ -1645,6 +1602,23 @@ service cloud.firestore {
         && receiptMatches(request.resource.data.consentReceiptId, uid,
                           'bodytype-withdrawn',
                           request.resource.data.bodyTypeConsent.version);
+
+      // Integración de actividad P1 (2026-11-03): OTORGAR,
+      // RENOVAR o RETIRAR el consentimiento de UN tipo de
+      // actividad (activityConsents), con el recibo acoplado
+      // activity-{tipo}-{granted|renewed|withdrawn} en el
+      // mismo lote y seq +1 exacto. Rama deliberadamente
+      // mínima (ver la nota de la operación D7 en el
+      // constructor): la forma completa del acto la verifica
+      // el brazo de creación del recibo en el mismo lote.
+      allow update: if isSelf(uid)
+        && request.resource.data.get('activityConsents', {})
+             != resource.data.get('activityConsents', {})
+        && request.resource.data.diff(resource.data).affectedKeys()
+              .hasOnly(['activityConsents', 'consentSeq', 'consentReceiptId'])
+        && request.resource.data.consentSeq == resource.data.get('consentSeq', 0) + 1
+        && request.resource.data.consentReceiptId == uid + '_' + string(request.resource.data.consentSeq)
+        && existsAfter(receiptPath(request.resource.data.consentReceiptId));
 
       // The trainer deletes user docs (reject flow).
       allow delete: if isOwnerUser();
