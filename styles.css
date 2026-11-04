@@ -2505,6 +2505,20 @@ body.nav-lock .sw-fab, body.nav-lock .help-fab, body.nav-lock .share-fab, body.n
 #food-float .food-chip-row.meal-chips .act-chip { min-height: 92px; padding: 16px 8px 14px; justify-content: center; gap: 6px; }
 #food-float .food-chip-row.meal-chips .act-chip-ico { font-size: 30px; }
 #food-float .food-chip-row.meal-chips .act-chip-lab { font-size: 14px; }
+/* ===== TARJETAS DE «REGISTRAR COMIDA» AL MÍNIMO CÓMODO (AUTH-2026-11-04-231):
+   sobre la variante A de arriba, las cuatro tarjetas de modo
+   (Foto/Texto/Voz/Manual) bajan a 48 px de alto, iconos de 20 px,
+   círculo de voz de 24 px y rótulos de 13 px — maqueta ronda 3 de
+   `diseno-iconos-comida-compactos-2026-11-04/` aprobada por Ronald
+   («Construirla así», 2026-11-04). Solo presentación: ni ids, ni
+   funciones, ni textos cambian. ===== */
+#food-float .food-chip-row.meal-chips { gap: 8px; margin-top: 2px; }
+#food-float .food-chip-row.meal-chips .act-chip { min-height: 48px; padding: 4px 8px 2px; gap: 2px; }
+#food-float .food-chip-row.meal-chips .act-chip-ico { font-size: 20px; }
+#food-float .food-chip-row.meal-chips .act-chip-lab { font-size: 13px; }
+#food-float .voice-chip-ico { width: 24px; height: 24px; }
+#food-float .voice-chip-ico .voice-bars { height: 11px; gap: 2px; }
+#food-float .voice-chip-ico .voice-bars i { width: 2px; }
 #food-float .date-row label { white-space: nowrap; }
 #food-float .date-row select { flex: 1 1 auto; min-width: 0; min-height: 44px; }
 #food-float .meal-row { padding: 10px 2px 12px; border-bottom: 1px solid #e5e7eb; }
