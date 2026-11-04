@@ -2475,6 +2475,20 @@ service cloud.firestore {
             && request.resource.data.version
                  == getAfter(userPath(request.auth.uid)).data.termsVersion )
           ||
+          // Integración de actividad P1 (2026-11-03): evento de
+          // actividad — el recibo activity-{tipo}-{acción} casa
+          // con la transición real del mapa activityConsents en
+          // el mismo lote (antes/después, un solo tipo) y con
+          // los punteros del documento ya actualizado.
+          ( request.resource.data.type.matches('activity-(steps|exercise|weight|sleep)-(granted|renewed|withdrawn)')
+            && exists(userPath(request.auth.uid))
+            && existsAfter(userPath(request.auth.uid))
+            && getAfter(userPath(request.auth.uid)).data.consentReceiptId == rid
+            && actReceiptTransitionOk(get(userPath(request.auth.uid)).data,
+                                      getAfter(userPath(request.auth.uid)).data,
+                                      request.resource.data.type,
+                                      request.resource.data.version) )
+          ||
           // Consent transition event: the declared type and version
           // must equal the transition derived from before/after.
           ( exists(userPath(request.auth.uid))
