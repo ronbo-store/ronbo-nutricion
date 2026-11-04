@@ -73,6 +73,17 @@ jobs:
             firebase emulators:exec --only firestore --project ronbo-nutri-test "node test-variante.mjs" 2>&1 | grep -a "SONDA" >> /tmp/biseccion.log || true
           done
           cat /tmp/biseccion.log
+      - name: Sondas de coste P0 P1 P2
+        if: always()
+        run: |
+          python3 make-sondas.py
+          for v in sondaP0 sondaP1 sondaP2; do
+            cp firestore.rules.$v firestore.rules
+            echo "════ $v ════" >> /tmp/sondas.log
+            firebase emulators:exec --only firestore --project ronbo-nutri-test "node test-variante.mjs" 2>&1 | grep -a "SONDA" >> /tmp/sondas.log || true
+          done
+          cp firestore.rules.candidata firestore.rules
+          cat /tmp/sondas.log || true
       - name: Publicar resultados en la rama de resultados
         if: always()
         working-directory: ${{ github.workspace }}
@@ -93,6 +104,8 @@ jobs:
             cat /tmp/suite-vivo.log 2>/dev/null || echo "(sin salida)"
             echo "══════════ SONDA ══════════"
             grep -a "SONDA" /tmp/sonda.log 2>/dev/null || echo "(sin sonda)"
+            echo "══════════ SONDAS DE COSTE ══════════"
+            cat /tmp/sondas.log 2>/dev/null || echo "(sin sondas)"
             echo "══════════ BISECCIÓN ══════════"
             cat /tmp/biseccion.log 2>/dev/null || echo "(sin bisección)"
           } > tests-actp1/resultado-ultima-corrida.txt
