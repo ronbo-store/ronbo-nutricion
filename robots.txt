@@ -1,0 +1,3 @@
+User-agent: *
+Allow: /
+Sitemap: https://fit.ronbo.store/sitemap.xml
