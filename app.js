@@ -5932,6 +5932,15 @@ en: {
   'share.goalsChip': '📊 MY DAY IN GOALS',
   'share.newBadge': 'NEW',
   'share.shortLab': 'My day in short',
+  'share.todayLab': "Today's workout",
+  'share.todayPlan': 'from your plan "{name}"',
+  'share.todayLast': 'LAST TIME',
+  'share.todayDemanding': 'Today is a demanding day.',
+  'share.todayNormal': 'Today is a normal day.',
+  'share.todayRestDay': 'Today is a rest day.',
+  'share.todayCarbUp': 'Your carbs go up to {carb} g (a normal day: {base} g).',
+  'share.todayCarbDown': 'Your carbs ease down to {carb} g (a normal day: {base} g).',
+  'share.todayEmpty': 'No session in your plan today',
   'share.shortChip': '📋 MY DAY IN SHORT',
   'share.shortTrain': "Today's workout",
   'share.shortFood': "Today's food",
@@ -8906,6 +8915,15 @@ es: {
   'share.goalsChip': '📊 MI DÍA EN METAS',
   'share.newBadge': 'NUEVA',
   'share.shortLab': 'Mi resumen del día',
+  'share.todayLab': 'Mi entreno de hoy',
+  'share.todayPlan': 'de tu plan «{name}»',
+  'share.todayLast': 'ÚLTIMA VEZ',
+  'share.todayDemanding': 'Hoy es un día exigente.',
+  'share.todayNormal': 'Hoy es un día normal.',
+  'share.todayRestDay': 'Hoy es un día de descanso.',
+  'share.todayCarbUp': 'Tus carbohidratos suben a {carb} g (un día normal: {base} g).',
+  'share.todayCarbDown': 'Tus carbohidratos bajan a {carb} g (un día normal: {base} g).',
+  'share.todayEmpty': 'Hoy no hay sesión en tu plan',
   'share.shortChip': '📋 MI RESUMEN DEL DÍA',
   'share.shortTrain': 'Entrenamiento de hoy',
   'share.shortFood': 'Comida de hoy',
@@ -36253,6 +36271,276 @@ function shareDrawWeek(ctx, W, H, d) {
    el día, al siguiente el siguiente, y al agotar el banco vuelve
    el primero. VACÍO = franja oculta (el banco aprobado entra como
    micro-paquete de datos; jamás textos de relleno). */
+/* ============================================================
+   TARJETA SOCIAL «MI ENTRENO DE HOY» — la quinta tarjeta de
+   «Comparte tus logros» (veredicto de Ronald en el chat
+   RONBO.NUTRI, 2026-11-03 21:19 CST: «Construirla así» sobre la
+   maqueta aprobada de diseno-tarjeta-entreno-social-2026-11-03).
+   Compone el PLAN del día (no lo hecho): la etiqueta del día y
+   su plan, la caja del tipo de día con la nota de carbohidratos
+   del motor (la misma §K de «Metas de hoy»), una fila por
+   ejercicio con la foto de su ficha, la prescripción del plan
+   (series × repeticiones) y la «ÚLTIMA VEZ» — la carga mayor de
+   la sesión cerrada más reciente por ejercicio, en las dos
+   mediciones (AUTH-202); sin carga previa, la fila sale sin ese
+   bloque, honesta. Cierra con la frase de ánimo del juego
+   cerrado de 7 y el pie de la familia.
+   LA FRASE: el juego vive en el Worker (AUTH-211, DSB_MOTIV) y
+   la app guarda aquí su COPIA ESPEJO carácter a carácter, con
+   la misma rotación por día del año (doy % 7). Si el juego
+   cambia en el Worker, esta copia se actualiza en el mismo
+   paquete — declarada la deuda.
+   DATOS: todo se lee en el cliente de las fuentes de la casa
+   (MY_PLAN + trainEffectiveList + biblioteca + MY_LOGS +
+   goalsDayLevelForDate/goalsDayGoalsFor). Firestore delta cero.
+   ============================================================ */
+const SHARE_MOTIV = [
+  { es: 'Paso a paso, sesión a sesión: así se construye.', en: "Step by step, session by session: that's how it's built." },
+  { es: 'No busques el día perfecto; busca cumplir el de hoy.', en: "Don't chase the perfect day; chase getting today's done." },
+  { es: 'Tu yo de mañana te agradece el esfuerzo de hoy.', en: "Tomorrow's you thanks today's you for the effort." },
+  { es: 'El cuerpo sigue a la constancia, no al ánimo.', en: 'The body follows consistency, not mood.' },
+  { es: 'Una sesión más en el registro, una excusa menos.', en: 'One more session in the log, one excuse less.' },
+  { es: 'Entrena por la persona en la que te estás convirtiendo.', en: 'Train for the person you are becoming.' },
+  { es: 'Lo que hoy cuesta, mañana te sostiene.', en: 'What costs you today holds you up tomorrow.' },
+];
+function shareMotivFor(iso) {
+  const p = String(iso || '').split('-').map(Number);
+  if (!p[0] || !p[1] || !p[2]) return '';
+  const doy = Math.floor((Date.UTC(p[0], p[1] - 1, p[2]) - Date.UTC(p[0], 0, 0)) / 86400000);
+  const e = SHARE_MOTIV[((doy % 7) + 7) % 7] || {};
+  return LANG === 'es' ? (e.es || '') : (e.en || e.es || '');
+}
+/* La última carga por ejercicio — espejo en el cliente de la
+   noción del Worker (AUTH-211, dsbLastLoads): registros en orden
+   de fecha descendente, saltando los marcados «skipped» y las
+   fechas futuras o mal formadas; por ejercicio gana la MAYOR
+   carga de sus series y la sesión más reciente con carga manda. */
+function shareTodayLastLoads(iso) {
+  const logs = ((typeof MY_LOGS !== 'undefined' && Array.isArray(MY_LOGS)) ? MY_LOGS : []).slice()
+    .sort((a, b) => String((b && b.date) || '').localeCompare(String((a && a.date) || '')));
+  const byKey = {};
+  for (const lg of logs) {
+    if (!lg || lg.status === 'skipped') continue;
+    const dIso = String(lg.date || '');
+    if (!/^\d{4}-\d{2}-\d{2}$/.test(dIso) || dIso > iso) continue;
+    const done = Array.isArray(lg.exercisesDone) ? lg.exercisesDone : [];
+    for (const e of done) {
+      if (!e) continue;
+      let mx = null;
+      const sets = Array.isArray(e.sets) ? e.sets : [];
+      for (const s of sets) {
+        const v = s && typeof s.loadKg === 'number' ? s.loadKg : NaN;
+        if (isFinite(v) && v > 0 && (mx === null || v > mx)) mx = v;
+      }
+      if (mx === null) continue;
+      const keys = [];
+      if (e.exerciseId) keys.push('id:' + e.exerciseId);
+      if (e.name) keys.push('nm:' + goalsNorm(e.name));
+      for (const k of keys) if (!(k in byKey)) byKey[k] = mx;
+    }
+  }
+  return byKey;
+}
+function shareTodayData() {
+  const iso = todayISO();
+  const plan = (typeof MY_PLAN !== 'undefined') ? MY_PLAN : null;
+  const cfg = (typeof PEND_CFG !== 'undefined' && PEND_CFG && !PEND_CFG.__error) ? PEND_CFG : null;
+  const lib = (typeof LIB_BY_ID !== 'undefined' && LIB_BY_ID) ? LIB_BY_ID : {};
+  let det = { dayLevel: 'base', dayIndex: null, mode: 'none' };
+  if (plan) { try { det = goalsDayLevelForDate(iso, plan, cfg, lib) || det; } catch (e) {} }
+  let di = det.dayIndex;
+  if (di == null && det.mode === 'rotation' && plan && Array.isArray(plan.days) && plan.days.length) {
+    try { di = trainRotationNext(plan, (typeof MY_LOGS !== 'undefined' && Array.isArray(MY_LOGS)) ? MY_LOGS : [], iso); } catch (e) { di = null; }
+  }
+  const rows = [];
+  if (plan && di != null && Array.isArray(plan.days) && plan.days[di]) {
+    const loads = shareTodayLastLoads(iso);
+    trainEffectiveList(plan, di, iso).forEach(it => {
+      const ex = it && it.ex; if (!ex) return;
+      const name = trainExName(ex) || ex.name || '';
+      const key = ex.exerciseId ? 'id:' + ex.exerciseId : ('nm:' + goalsNorm(name));
+      rows.push({
+        name,
+        spec: [ex.sets, ex.reps].filter(v => v != null && String(v) !== '').join(' × '),
+        photo: trainExPhoto(ex) || '',
+        last: (key in loads) ? loads[key] : null,
+      });
+    });
+  }
+  let dayTag = '';
+  if (di != null && plan && Array.isArray(plan.days) && plan.days[di]) {
+    const fc = week5Focus(plan.days[di].label || '', di);
+    dayTag = (fc.dayWord || '') + (fc.focus ? ' · ' + fc.focus : '');
+  }
+  /* La caja del tipo de día: sin tipo (mode 'none') no se pinta,
+     como manda la regla del correo de AUTH-211; la nota de
+     carbohidratos solo cuando el motor ajusta la cifra del día
+     frente a la base fundado (§K). */
+  let box = null;
+  if (det.mode !== 'none') {
+    let carb = null, base = null;
+    if (det.dayLevel === 'exigente' || det.dayLevel === 'descanso') {
+      try {
+        const view = goalsDayGoalsFor(iso);
+        const g = (typeof GOALS !== 'undefined' && GOALS) || {};
+        if (view && view.goals && view.goals.carb > 0 && g.carb > 0 && view.goals.carb !== g.carb) { carb = view.goals.carb; base = g.carb; }
+      } catch (e) {}
+    }
+    box = { level: det.dayLevel || 'base', carb, base };
+  }
+  return {
+    iso, rows, dayTag,
+    planName: (plan && plan.title) ? String(plan.title) : '',
+    box, phrase: shareMotivFor(iso),
+  };
+}
+/* El bloque del logo de la franja (el mismo activo de la
+   cabecera, AUTH-194): se dibuja a recorte «cover» en su
+   cuadrado; si aún no cargó, el bloque queda en su teal sólido
+   y la tarjeta se repinta al llegar. */
+const SHARE_FRANJA = { img: null, state: 'idle' };
+function shareFranjaEnsure() {
+  if (SHARE_FRANJA.state !== 'idle') return;
+  SHARE_FRANJA.state = 'loading';
+  const im = new Image();
+  im.onload = () => { SHARE_FRANJA.img = im; SHARE_FRANJA.state = 'ok'; const fl = $('share-float'); if (fl && !fl.hidden && SHARE.type === 'today') shareRender(); };
+  im.onerror = () => { SHARE_FRANJA.state = 'fail'; };
+  im.src = 'icons/logo-franja.png';
+}
+function shareFranjaDraw(ctx, x, y, s) {
+  const im = SHARE_FRANJA.img;
+  if (!im || !im.naturalWidth) { shareFranjaEnsure(); return false; }
+  const sc = Math.max(s / im.naturalWidth, s / im.naturalHeight);
+  const dw = im.naturalWidth * sc, dh = im.naturalHeight * sc;
+  ctx.save(); ctx.beginPath(); ctx.rect(x, y, s, s); ctx.clip();
+  ctx.drawImage(im, x + (s - dw) / 2, y + (s - dh) / 2, dw, dh);
+  ctx.restore();
+  return true;
+}
+/* Ajuste de línea con dos pesos (la frase fuerte + la nota)
+   para la caja del tipo de día: devuelve las líneas ya medidas. */
+function shareTodayBoxLines(ctx, strong, note, maxW, px) {
+  const words = [];
+  String(strong || '').split(/\s+/).filter(Boolean).forEach(w => words.push({ w, b: true }));
+  String(note || '').split(/\s+/).filter(Boolean).forEach(w => words.push({ w, b: false }));
+  const spW = shareTextW(ctx, ' ', 400, px);
+  const lines = []; let cur = [], curW = 0;
+  words.forEach(it => {
+    const ww = shareTextW(ctx, it.w, it.b ? 800 : 400, px);
+    if (cur.length && curW + spW + ww > maxW) { lines.push({ parts: cur, w: curW }); cur = []; curW = 0; }
+    if (cur.length) curW += spW;
+    cur.push({ w: it.w, b: it.b, ww }); curW += ww;
+  });
+  if (cur.length) lines.push({ parts: cur, w: curW });
+  return lines;
+}
+function shareRRStroke(ctx, x, y, w, h, r, color, lw) {
+  ctx.beginPath();
+  ctx.moveTo(x + r, y);
+  ctx.arcTo(x + w, y, x + w, y + h, r); ctx.arcTo(x + w, y + h, x, y + h, r);
+  ctx.arcTo(x, y + h, x, y, r); ctx.arcTo(x, y, x + w, y, r);
+  ctx.closePath(); ctx.strokeStyle = color; ctx.lineWidth = lw; ctx.stroke();
+}
+function shareDrawToday(ctx, W, H, d) {
+  const square = H === W;
+  const INK = '#10333f', MUT = '#6b8290', ACC = '#0a7c86';
+  const M = square
+    ? { fh: 140, logo: 140, tT: 39, tD: 24, padX: 52, day: 40, plan: 23, boxF: 24, boxPV: 15, boxPH: 26, boxMt: 14, rowH: 106, photo: 90, name: 29, spec: 23, last: 16, kg: 33, lb: 21, frase: 27, esl: 25, pie: 58, marca: 24, tag: 22, bodyTop: 24, fraseGap: 14 }
+    : { fh: 196, logo: 196, tT: 53, tD: 30, padX: 52, day: 55, plan: 27, boxF: 30, boxPV: 22, boxPH: 26, boxMt: 28, rowH: 186, photo: 138, name: 36, spec: 28, last: 19, kg: 42, lb: 26, frase: 34, esl: 30, pie: 78, marca: 29, tag: 26, bodyTop: 46, fraseGap: 64 };
+  /* Fondo blanco y franja de marca con su bloque del logo */
+  sgBox(ctx, 0, 0, W, H, 0, '#ffffff');
+  const gr = ctx.createLinearGradient(0, 0, W, 0);
+  gr.addColorStop(0, '#07949e'); gr.addColorStop(0.34, '#07707c'); gr.addColorStop(1, '#062a33');
+  ctx.fillStyle = gr; ctx.fillRect(0, 0, W, M.fh);
+  sgBox(ctx, 0, 0, M.logo, M.fh, 0, '#07949e');
+  shareFranjaDraw(ctx, 0, 0, M.logo);
+  const txX = M.logo + 38;
+  sgText(ctx, t('share.todayLab').toUpperCase(), txX, M.fh / 2 - M.tD * 0.72, 800, M.tT, '#ffffff', { ls: 1 });
+  const yr = String(d.iso).slice(0, 4);
+  sgText(ctx, shareDayLabel(d.iso) + (LANG === 'es' ? ' de ' : ', ') + yr, txX, M.fh / 2 + M.tT * 0.68, 400, M.tD, 'rgba(255,255,255,0.78)');
+  const pieTop = H - M.pie;
+  /* Cabecera del cuerpo: etiqueta del día + línea del plan */
+  let cur = M.fh + M.bodyTop;
+  if (d.dayTag) {
+    let dp = M.day;
+    while (dp > 20 && shareTextW(ctx, d.dayTag, 800, dp) > W - 2 * M.padX) dp -= 2;
+    sgText(ctx, d.dayTag, M.padX, cur + dp * 0.55, 800, dp, INK);
+    cur += dp * 1.18;
+    if (d.planName) {
+      const pt = t('share.todayPlan', { name: d.planName });
+      let pp = M.plan;
+      while (pp > 14 && shareTextW(ctx, pt, 400, pp) > W - 2 * M.padX) pp -= 1;
+      sgText(ctx, pt, M.padX, cur + 7 + pp * 0.55, 400, pp, MUT);
+      cur += 7 + pp * 1.25;
+    }
+  }
+  /* La caja del tipo de día */
+  if (d.box) {
+    const strong = d.box.level === 'exigente' ? t('share.todayDemanding') : d.box.level === 'descanso' ? t('share.todayRestDay') : t('share.todayNormal');
+    const note = d.box.carb != null ? t(d.box.level === 'exigente' ? 'share.todayCarbUp' : 'share.todayCarbDown', { carb: d.box.carb, base: d.box.base }) : '';
+    const pal = d.box.level === 'exigente'
+      ? { bg: '#fdf6e0', bd: '#f0dfae', tx: '#7a5b12', st: '#6d520d' }
+      : { bg: '#eef6f5', bd: '#cfe6e2', tx: '#23403a', st: '#23403a' };
+    const lines = shareTodayBoxLines(ctx, strong, note, W - 2 * M.padX - 2 * M.boxPH, M.boxF);
+    const lh = M.boxF * 1.35;
+    const boxH = lines.length * lh + 2 * M.boxPV;
+    const boxY = cur + M.boxMt;
+    ctx.fillStyle = pal.bg; shareRR(ctx, M.padX, boxY, W - 2 * M.padX, boxH, 16); ctx.fill();
+    shareRRStroke(ctx, M.padX, boxY, W - 2 * M.padX, boxH, 16, pal.bd, 2);
+    const spW = shareTextW(ctx, ' ', 400, M.boxF);
+    lines.forEach((ln, i) => {
+      let x = M.padX + M.boxPH;
+      const cy = boxY + M.boxPV + lh * (i + 0.5);
+      ln.parts.forEach(pt => { sgText(ctx, pt.w, x, cy, pt.b ? 800 : 400, M.boxF, pt.b ? pal.st : pal.tx); x += pt.ww + spW; });
+    });
+    cur = boxY + boxH;
+  }
+  /* Frase y eslogan anclados sobre el pie; las filas viven entre
+     la cabecera y la frase. */
+  const eslCy = pieTop - M.esl * 0.95;
+  const fraseCy = eslCy - M.esl * 0.55 - (square ? 8 : 16) - M.frase * 0.55;
+  const rowsBottom = fraseCy - M.frase * 0.55 - M.fraseGap;
+  const rowsTop = cur + (square ? 8 : 16);
+  const cap = square ? 5 : 7;
+  const total = d.rows.length;
+  const more = Math.max(0, total - cap);
+  const shown = d.rows.slice(0, more > 0 ? cap - 1 : cap);
+  const slots = shown.length + (more > 0 ? 1 : 0);
+  if (slots) {
+    const rowH = Math.max(64, Math.min(M.rowH * (square ? 1.3 : 1.45), (rowsBottom - rowsTop) / slots));
+    const sf = Math.min(1, Math.max(0.78, rowH / M.rowH));
+    const photoS = Math.min(M.photo, rowH - 16);
+    shown.forEach((r, i) => {
+      const rTop = rowsTop + i * rowH, rCy = rTop + rowH / 2;
+      let nameX = M.padX;
+      if (r.photo && sharePhotoDraw(ctx, r.photo, M.padX, rCy - photoS / 2, photoS)) nameX = M.padX + photoS + 26;
+      else if (r.photo) sharePhotoEnsure(r.photo);
+      let limX = W - M.padX;
+      if (r.last != null) {
+        const lastT = t('share.todayLast'), kgT = fmtMass(r.last), lbT = massEqText(r.last);
+        sgText(ctx, lastT, limX, rCy - M.kg * sf * 0.95, 700, M.last * sf, '#9db3bd', { align: 'right', ls: 2.5 });
+        sgText(ctx, kgT, limX, rCy + M.kg * sf * 0.05, 800, M.kg * sf, ACC, { align: 'right' });
+        sgText(ctx, lbT, limX, rCy + M.kg * sf * 0.88, 400, M.lb * sf, MUT, { align: 'right' });
+        limX -= Math.max(shareTextW(ctx, lastT, 700, M.last * sf), shareTextW(ctx, kgT, 800, M.kg * sf), shareTextW(ctx, lbT, 400, M.lb * sf)) + 22;
+      }
+      let np = M.name * sf;
+      while (np > 15 && shareTextW(ctx, r.name, 700, np) > limX - nameX) np -= 1;
+      sgText(ctx, r.name, nameX, rCy - M.spec * sf * 0.55, 700, np, '#14343f');
+      if (r.spec) sgText(ctx, r.spec, nameX, rCy + M.name * sf * 0.6, 400, M.spec * sf, MUT);
+      if (i < shown.length - 1 || more > 0) sgBox(ctx, M.padX, rTop + rowH - 1, W - 2 * M.padX, 2, 0, '#e3ecef');
+    });
+    if (more > 0) sgText(ctx, t('share.shortMore', { n: more }), M.padX, rowsTop + shown.length * rowH + rowH / 2, 700, M.spec * sf + 2, ACC);
+  } else {
+    sgText(ctx, t('share.todayEmpty'), W / 2, (rowsTop + rowsBottom) / 2, 700, square ? 30 : 36, MUT, { align: 'center' });
+  }
+  if (d.phrase) sgText(ctx, '«' + d.phrase + '»', W / 2, fraseCy, 400, M.frase, ACC, { align: 'center', italic: true });
+  sgText(ctx, LANG === 'es' ? 'Come bien. Entrena fuerte. Vive el presente.' : 'Eat well. Train strong. Live present.', W / 2, eslCy, 800, M.esl, '#0b5563', { align: 'center' });
+  /* El pie oscuro de la familia */
+  sgBox(ctx, 0, pieTop, W, M.pie, 0, '#062a33');
+  sgText(ctx, 'RONBO.FIT', M.padX, pieTop + M.pie / 2, 800, M.marca, '#ffffff', { ls: 0.5 });
+  sgText(ctx, '#MiEntrenamientoRonboFit', W - M.padX, pieTop + M.pie / 2, 700, M.tag, '#FFD83D', { align: 'right' });
+}
+
 const SHARE_MSG_BANK = [
   { en: "Breathe in calm, breathe out hurry — your day starts here.", es: "Inhala calma, exhala prisa: tu día empieza aquí." },
   { en: "Show up today; your future self is watching and grateful.", es: "Preséntate hoy; tu yo del futuro te mira y te lo agradece." },
@@ -36374,7 +36662,7 @@ function sharePhotoEnsure(url) {
   try {
     const im = new Image();
     im.crossOrigin = 'anonymous';
-    im.onload = () => { rec.img = im; rec.state = 'ok'; const f = $('share-float'); if (f && f.style.display !== 'none' && SHARE.type === 'workout') shareRender(); };
+    im.onload = () => { rec.img = im; rec.state = 'ok'; const f = $('share-float'); if (f && f.style.display !== 'none' && (SHARE.type === 'workout' || SHARE.type === 'today')) shareRender(); };
     im.onerror = () => { rec.state = 'fail'; };
     im.src = url;
   } catch (e) { rec.state = 'fail'; }
@@ -37224,6 +37512,14 @@ function shareRender() {
       (d.bestIdx >= 0 ? ' · ' + t('share.bestDay', { day: (SHARE_WD[LANG] || SHARE_WD.en)[d.bestIdx] }) : '') +
       (d.milestones.length ? ' · ' + d.milestones.join(' · ') : '') +
       ' · ' + (d.phrase === 'week' ? t('share.phraseWeek') : t('share.phraseStart')) + ' · ronbo.fit';
+  } else if (SHARE.type === 'today') {
+    shareFranjaEnsure();
+    const d = shareTodayData();
+    shareDrawToday(ctx, W, H, d);
+    SHARE.fileName = `ronbo-fit-myworkout-${d.iso}.png`;
+    summary = t('share.todayLab') + ' · ' + shareDayLabel(d.iso)
+      + (d.rows.length ? ' · ' + d.rows.map(r => r.name + (r.last != null ? ' ' + fmtMassDual(r.last) : '')).join(', ') : ' · ' + t('share.todayEmpty'))
+      + (d.phrase ? ' · ' + d.phrase : '') + ' · ronbo.fit #MiEntrenamientoRonboFit';
   } else if (SHARE.type === 'short') {
     const d = shareShortData();
     shareDrawShort(ctx, W, H, d);
@@ -37277,11 +37573,12 @@ function shareDownload() {
 function shareSyncTypeUI() {
   const f = $('share-float'); if (!f) return;
   f.classList.toggle('share-workout-mode', SHARE.type === 'workout');
-  const bd = $('btn-share-day'), bw = $('btn-share-week'), bg = $('btn-share-goals'), bs = $('btn-share-short');
+  const bd = $('btn-share-day'), bw = $('btn-share-week'), bg = $('btn-share-goals'), bs = $('btn-share-short'), bt = $('btn-share-today');
   if (bd) bd.setAttribute('aria-pressed', SHARE.type === 'day' ? 'true' : 'false');
   if (bw) bw.setAttribute('aria-pressed', SHARE.type === 'week' ? 'true' : 'false');
   if (bg) bg.setAttribute('aria-pressed', SHARE.type === 'goals' ? 'true' : 'false');
   if (bs) bs.setAttribute('aria-pressed', SHARE.type === 'short' ? 'true' : 'false');
+  if (bt) bt.setAttribute('aria-pressed', SHARE.type === 'today' ? 'true' : 'false');
   shareDayPhotoSync();
 }
 function shareOpen() {
@@ -37323,6 +37620,7 @@ document.addEventListener('keydown', e => { if (e.key === 'Escape') { const f = 
 { const b = $('btn-share-week'); if (b) b.addEventListener('click', () => shareSetType('week')); }
 { const b = $('btn-share-goals'); if (b) b.addEventListener('click', () => shareSetType('goals')); }
 { const b = $('btn-share-short'); if (b) b.addEventListener('click', () => shareSetType('short')); }
+{ const b = $('btn-share-today'); if (b) b.addEventListener('click', () => shareSetType('today')); }
 { const b = $('btn-share-f916'); if (b) b.addEventListener('click', () => shareSetFormat('916')); }
 { const b = $('btn-share-f11'); if (b) b.addEventListener('click', () => shareSetFormat('11')); }
 { const b = $('btn-share-send'); if (b) b.addEventListener('click', shareSend); }
@@ -37359,7 +37657,7 @@ document.addEventListener('keydown', e => { if (e.key === 'Escape') shareClose()
  *  - El SW (sw.js) solo cachea la cáscara del mismo origen en modo
  *    RED PRIMERO: Auth/Firestore/Worker jamás pasan por la caché.
  * ================================================================ */
-const PWA_SW_VERSION = '20261103-recorte-portada';
+const PWA_SW_VERSION = '20261103-entreno-social';
 let pwaDeferredPrompt = null;
 function pwaIsStandalone() {
   try {
