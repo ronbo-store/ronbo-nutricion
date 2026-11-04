@@ -3728,7 +3728,10 @@ body.sess-on #pend-back-chip { bottom: calc(env(safe-area-inset-bottom, 0px) + 1
    relato del entrenador virtual en Progreso y en la ficha del
    alumno. ================================================================ */
 .wkcard { background: #fff; border: 1px solid #dce5ec; border-radius: 16px; overflow: hidden; margin: 0 0 14px; box-shadow: 0 1px 3px rgba(15, 40, 50, .05); }
-.wkcard-head { display: flex; gap: 12px; align-items: center; padding: 14px 16px; background: linear-gradient(120deg, #0b7a6e, #0d9488 60%, #11a893); color: #fff; }
+.wkcard-head { display: flex; gap: 12px; align-items: center; padding: 14px 16px; background: linear-gradient(120deg, #0b7a6e, #0d9488 60%, #11a893); color: #fff; width: 100%; border: 0; font: inherit; text-align: left; cursor: pointer; -webkit-tap-highlight-color: transparent; }
+.wkcard-chev { margin-left: auto; color: #fff; font-size: 17px; }
+.wkcard-fold { animation: wkfoldIn .28s ease; }
+@keyframes wkfoldIn { from { opacity: 0; transform: translateY(-4px); } to { opacity: 1; transform: none; } }
 .wkcard-ava { width: 46px; height: 46px; flex: 0 0 46px; border-radius: 50%; background: rgba(255, 255, 255, .18); display: flex; align-items: center; justify-content: center; font-size: 23px; }
 .wkcard-tt { min-width: 0; }
 .wkcard-t1 { font-weight: 800; letter-spacing: .06em; font-size: 17px; }

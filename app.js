@@ -33869,6 +33869,16 @@ function wkExSectionHTML(m, links) {
   if (!rows) return '';
   return `<div class="wkex"><div class="wkex-title">${esc(t('wk.exTitle'))}</div>${rows}</div>`;
 }
+/* Pliegue de la tarjeta (orden de Ronald, 2026-11-04 14:30 CST:
+   «Esto quiero que se despliegue cuando se presione en TU SEMANA!
+   Y se pliegue de la misma manera»): la tarjeta nace PLEGADA con
+   su cabecera visible, y la cabecera entera es el botón que la
+   despliega y la pliega, con el patrón de plegado de la casa (el
+   de las tarjetas ffold y la de metas: botón con aria-expanded,
+   cheurón ▾/▴ de la familia .gm-chev y estado en memoria — cada
+   carga nace plegada —). Solo presentación: el cálculo, los
+   textos y las cifras de la tarjeta no cambian en una coma. */
+let WK_CARD_OPEN = false;
 function weekCardHTML(m, links) {
   if (!m) return '';
   const S = [];
@@ -33907,8 +33917,10 @@ function weekCardHTML(m, links) {
     return s ? `<p>${ix === 0 ? '<b>' + esc(t('wk.impLead')) + '</b> ' : ''}${wkB(s)}</p>` : '';
   }).join('');
   const q = LANG === 'es' ? ['«', '»'] : ['“', '”'];
+  const wkOpen = WK_CARD_OPEN === true;
   return `<div class="wkcard">
-    <div class="wkcard-head"><div class="wkcard-ava" aria-hidden="true">🏋️</div><div class="wkcard-tt"><div class="wkcard-t1">${esc(t('wk.title'))}</div><div class="wkcard-t2">${esc(wkRangeText(m.monday, m.sunday))} · ${esc(t('wk.sub'))}</div></div></div>
+    <button type="button" class="wkcard-head" data-wk-toggle aria-expanded="${wkOpen ? 'true' : 'false'}"><div class="wkcard-ava" aria-hidden="true">🏋️</div><div class="wkcard-tt"><div class="wkcard-t1">${esc(t('wk.title'))}</div><div class="wkcard-t2">${esc(wkRangeText(m.monday, m.sunday))} · ${esc(t('wk.sub'))}</div></div><span class="gm-chev wkcard-chev" aria-hidden="true">${wkOpen ? '▴' : '▾'}</span></button>
+    <div class="wkcard-fold"${wkOpen ? '' : ' style="display:none"'}>
     <div class="wkcard-body">
       <p class="wkcard-rel">${S.map(wkB).join(' ')}</p>
       <div class="wkcard-chips">${chips.map(c => `<div class="wkcard-chip"><b>${esc(c.v)}</b><span>${esc(c.l)}</span></div>`).join('')}</div>
@@ -33916,7 +33928,23 @@ function weekCardHTML(m, links) {
       <p class="wkcard-close">${q[0]}${esc(t('wk.close.' + m.closeIdx))}${q[1]}</p>
     </div>
     <div class="wkcard-foot">${esc(t('wk.foot'))}</div>
+    </div>
   </div>` + wkExSectionHTML(m, links);
+}
+function wkCardWire(root) {
+  if (!root || typeof root.querySelector !== 'function') return;
+  const btn = root.querySelector('[data-wk-toggle]');
+  if (!btn || btn.dataset.wired) return;
+  btn.dataset.wired = '1';
+  btn.onclick = () => {
+    WK_CARD_OPEN = !WK_CARD_OPEN;
+    const card = typeof btn.closest === 'function' ? btn.closest('.wkcard') : null;
+    const fold = card ? card.querySelector('.wkcard-fold') : null;
+    if (fold) fold.style.display = WK_CARD_OPEN ? '' : 'none';
+    btn.setAttribute('aria-expanded', WK_CARD_OPEN ? 'true' : 'false');
+    const chev = btn.querySelector('.wkcard-chev');
+    if (chev) chev.textContent = WK_CARD_OPEN ? '▴' : '▾';
+  };
 }
 /* Fuente de lesiones: las peticiones «molestia o lesión» del
    alumno (trainer_requests). Lectura PROTEGIDA: si la colección
@@ -33963,6 +33991,7 @@ async function loadWeekCard() {
     /* Cada línea de ejercicio con ficha abre la ficha del
        ejercicio con su historia (la superficie de siempre). */
     box.querySelectorAll('[data-wkex-id]').forEach(b => { b.onclick = () => { libCardOpen(b.dataset.wkexId); }; });
+    wkCardWire(box);
   } catch { try { box.innerHTML = ''; } catch {} }
 }
 /* La misma tarjeta, de solo lectura, en la ficha del alumno:
@@ -33978,7 +34007,7 @@ function paintClientWeekCard(uid, plans, logs) {
       const nm = (typeof FICHA_ASSIGN !== 'undefined' && FICHA_ASSIGN && FICHA_ASSIGN.uid === uid && FICHA_ASSIGN.name)
         || (typeof ADMIN_NAME_CACHE !== 'undefined' && ADMIN_NAME_CACHE[uid]) || '';
       const model = weekCardCompute(wkPrepareLogs(logs), wkPreparePlans(plans), todayISO(), { name: nm, requests: reqs });
-      if ($('client-weekcard') === host) host.innerHTML = weekCardHTML(model, false);
+      if ($('client-weekcard') === host) { host.innerHTML = weekCardHTML(model, false); wkCardWire(host); }
     } catch { try { host.innerHTML = ''; } catch {} }
   })();
 }
@@ -39429,7 +39458,7 @@ document.addEventListener('keydown', e => { if (e.key === 'Escape') shareClose()
  *  - El SW (sw.js) solo cachea la cáscara del mismo origen en modo
  *    RED PRIMERO: Auth/Firestore/Worker jamás pasan por la caché.
  * ================================================================ */
-const PWA_SW_VERSION = '20261104-arranque-rapido';
+const PWA_SW_VERSION = '20261104-semana-plegable';
 /* Sello de versión VISIBLE (2026-11-03): el pie de la tarjeta de
    acceso enseña qué copia corre este teléfono ('v ' + el sello),
    para comprobar de un vistazo si la versión nueva ya llegó.
