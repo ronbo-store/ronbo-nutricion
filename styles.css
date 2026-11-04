@@ -3681,3 +3681,28 @@ body.sess-on #pend-back-chip { bottom: calc(env(safe-area-inset-bottom, 0px) + 1
    controles deben ser grandes y fáciles de tocar. Solo esta
    sección: las demás cabeceras quedan como estaban. ═══ */
 [data-admsec="faqed"] .admsec-head { min-height: 44px; }
+
+/* ---------- ALERTA DE LA VÍSPERA DE UN DÍA EXIGENTE (2026-11-03) ----------
+   Ventana flotante CENTRADA sobre velo atenuado (no es la hoja
+   inferior del resumen diario): tarjeta blanca de radio amplio,
+   chip ámbar de la familia de aviso, la cifra de carbohidratos en
+   teal grande, primario teal de la casa a todo el ancho (≥48 px;
+   52 px en teléfono, 56 px en plegable) y secundario fantasma.
+   La ✕ propia es un círculo de 46 px, como las de la casa. */
+.eve-float { position: fixed; inset: 0; z-index: 70; background: rgba(15,23,42,.5); display: flex; align-items: center; justify-content: center; padding: 16px; box-sizing: border-box; }
+.eve-sheet { position: relative; background: #fff; width: min(560px, 100%); max-height: 92dvh; overflow-y: auto; border-radius: 28px; padding: 26px 24px 20px; box-sizing: border-box; box-shadow: 0 24px 60px rgba(15,23,42,.35); }
+.eve-x { position: absolute; top: 14px; right: 14px; width: 46px; height: 46px; border-radius: 50%; border: none; background: #eef2f6; color: #33475b; font-size: 17px; line-height: 1; cursor: pointer; display: flex; align-items: center; justify-content: center; padding: 0; }
+.eve-kicker { color: #0d9488; font-weight: 800; font-size: 15px; letter-spacing: .02em; padding-right: 54px; }
+.eve-title { font-size: 30px; font-weight: 800; color: #1f2a44; line-height: 1.16; margin-top: 8px; overflow-wrap: break-word; }
+.eve-chip { display: inline-flex; align-items: center; gap: 8px; background: #fdf3d7; border: 1px solid #f0dfae; color: #8a6d1a; font-weight: 800; font-size: 15px; border-radius: 999px; padding: 9px 16px; margin-top: 14px; }
+.eve-numwrap { display: flex; align-items: center; gap: 14px; margin-top: 16px; }
+.eve-num { font-size: 64px; font-weight: 800; color: #0d9488; line-height: 1; white-space: nowrap; }
+.eve-numlab { display: flex; flex-direction: column; font-size: 19px; color: #33475b; line-height: 1.25; }
+.eve-numlab b { font-weight: 800; color: #1f2a44; }
+.eve-contrast { color: #64748b; font-size: 16px; margin: 12px 0 0; }
+.eve-contrast b { color: #0d9488; font-weight: 800; }
+.eve-sense { border-top: 1px solid #e5e9ee; margin: 14px 0 0; padding-top: 14px; font-size: 17px; color: #33475b; line-height: 1.45; }
+.eve-actions { display: flex; flex-direction: column; gap: 10px; margin-top: 18px; }
+.eve-btn { width: 100%; box-sizing: border-box; min-height: 52px; border-radius: 14px; font-size: 17px; }
+@media (min-width: 600px) { .eve-btn { min-height: 56px; } }
+.eve-foot { text-align: center; color: #94a3b8; font-size: 14px; margin: 12px 0 0; }

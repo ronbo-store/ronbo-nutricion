@@ -1841,6 +1841,13 @@ async function renderProfileView() {
   const dsTimeOk = v => /^([01][0-9]|2[0-3]):(00|30)$/.test(v || '');
   const dsEffOn = dsSaved && typeof dsSaved.on === 'boolean' ? dsSaved.on : !!(typeof MY_PLAN !== 'undefined' && MY_PLAN);
   const dsEffTime = dsSaved && dsTimeOk(dsSaved.time) ? dsSaved.time : '05:00';
+  /* AVISO DE DÍA EXIGENTE (diseño aprobado 2026-11-03): el
+     interruptor hermano del resumen diario, en su mismo bloque de
+     avisos y con el mismo control de la casa. Nace ENCENDIDO: sin
+     el campo eveAlert guardado, el valor efectivo es encendido y
+     no se escribe nada por mostrar. */
+  const eveSaved = (u.eveAlert && typeof u.eveAlert === 'object') ? u.eveAlert : null;
+  const eveEffOn = eveSaved && typeof eveSaved.on === 'boolean' ? eveSaved.on : true;
   if (ROLE === 'usuario') {
     const rel = MY_REL || {};
     const modality = rel.modality || u.modality || null;
@@ -1871,6 +1878,13 @@ async function renderProfileView() {
     </div>
     <p class="progress-hint">${esc(t('myprof.dsTz', { tz: dsTz || '—' }))}</p>
     <p class="progress-hint">${esc(t('myprof.dsHint'))}</p>
+    <div class="ds-panel${eveEffOn ? ' is-on' : ' is-off'}" id="myprof-eve-panel">
+      <button type="button" class="ds-row" id="myprof-eve-toggle" aria-pressed="${eveEffOn ? 'true' : 'false'}">
+        <span class="ds-row-label">${esc(t('eve.title'))}</span>
+        <span class="ds-row-side"><span class="ds-switch" aria-hidden="true"><span class="ds-knob">${eveEffOn ? '✓' : '✕'}</span></span><span class="ds-state" id="myprof-eve-state">${esc(t(eveEffOn ? 'myprof.dsStateOn' : 'myprof.dsStateOff'))}</span></span>
+      </button>
+      <p class="progress-hint">${esc(t('eve.help'))}</p>
+    </div>
   </div>`;
   const pb = $('myprof-photo-btn');
   if (pb) pb.addEventListener('click', () => { const f = $('avatar-file'); if (f) f.click(); });
@@ -1991,6 +2005,36 @@ async function renderProfileView() {
         UDATA = { ...UDATA, daySummary: { ...((UDATA.daySummary && typeof UDATA.daySummary === 'object') ? UDATA.daySummary : {}), tz: dsTz } };
       } catch {}
     }
+  }
+  /* Cableado del aviso de día exigente: el patrón del resumen
+     diario de aquí encima — conmutar guarda el mapa { on } en
+     merge en el propio documento (la forma cerrada del delta de
+     reglas del paquete); si el guardado falla, el control vuelve
+     a su valor y el error se dice con failToast. */
+  const ePanel = $('myprof-eve-panel'), eTgl = $('myprof-eve-toggle');
+  if (ePanel && eTgl) {
+    let eveOn = eveEffOn;
+    const evePaint = () => {
+      ePanel.classList.toggle('is-on', eveOn);
+      ePanel.classList.toggle('is-off', !eveOn);
+      eTgl.setAttribute('aria-pressed', eveOn ? 'true' : 'false');
+      const kb = eTgl.querySelector('.ds-knob'); if (kb) kb.textContent = eveOn ? '✓' : '✕';
+      const st = $('myprof-eve-state'); if (st) st.textContent = t(eveOn ? 'myprof.dsStateOn' : 'myprof.dsStateOff');
+    };
+    const eveRevert = () => {
+      const sv = (UDATA.eveAlert && typeof UDATA.eveAlert === 'object') ? UDATA.eveAlert : null;
+      eveOn = sv && typeof sv.on === 'boolean' ? sv.on : true;
+      evePaint();
+    };
+    eTgl.addEventListener('click', async () => {
+      eveOn = !eveOn; evePaint();
+      const val = { on: eveOn };
+      try {
+        await setDoc(doc(db, 'users', me.uid), { eveAlert: val }, { merge: true });
+        UDATA = { ...UDATA, eveAlert: val };
+        toast(t('msg.eveSaved'));
+      } catch (e) { eveRevert(); failToast(e); }
+    });
   }
   /* Nombre del entrenador del alumno (pieza B del paquete «App
      instalada visible», 2026-10-26): se resuelve SIEMPRE con la
@@ -3351,6 +3395,20 @@ en: {
   'myprof.dsTime': 'Time',
   'myprof.dsTz': 'Your time zone: {tz} — read from your device and kept up to date when you open your profile.',
   'myprof.dsHint': 'On training days, one email with that day\'s session and a direct link to open it in the app. Rest days send nothing, and a day you already trained is skipped.',
+  'eve.kicker': 'TOMORROW · {date}',
+  'eve.demanding': 'DEMANDING DAY',
+  'eve.ofCarbs': 'of carbs',
+  'eve.tomorrowWord': 'tomorrow',
+  'eve.contrastA': 'A normal day: {base} g',
+  'eve.contrastB': 'tomorrow is +{d} g more',
+  'eve.senseLegs': 'Tomorrow is leg day and your body will burn more energy: keep tomorrow\'s carbs within reach starting today.',
+  'eve.senseGeneric': 'Tomorrow\'s session is demanding and your body will burn more energy: keep tomorrow\'s carbs within reach starting today.',
+  'eve.seePlan': 'See tomorrow\'s plan',
+  'eve.gotIt': 'Got it',
+  'eve.foot': 'You will see this once, on the day before.',
+  'eve.title': 'Demanding-day heads-up',
+  'eve.help': 'A heads-up the day before a demanding day',
+  'msg.eveSaved': 'Heads-up setting saved.',
   'myprof.dsStateOn': 'On',
   'myprof.dsStateOff': 'Off',
   'myprof.dsPickKicker': 'DAILY SUMMARY',
@@ -6390,6 +6448,20 @@ es: {
   'myprof.dsTime': 'Hora',
   'myprof.dsTz': 'Tu zona horaria: {tz} — se lee de tu aparato y se actualiza al abrir tu perfil.',
   'myprof.dsHint': 'Los días de entreno, un correo con la sesión de ese día y un enlace directo para abrirla en la app. Los días de descanso no se envía nada, y un día que ya entrenaste se salta.',
+  'eve.kicker': 'MAÑANA · {date}',
+  'eve.demanding': 'DÍA EXIGENTE',
+  'eve.ofCarbs': 'de carbohidratos',
+  'eve.tomorrowWord': 'mañana',
+  'eve.contrastA': 'Un día normal: {base} g',
+  'eve.contrastB': 'mañana son +{d} g',
+  'eve.senseLegs': 'Mañana entrenas piernas y tu cuerpo va a gastar más energía: deja los carbohidratos de mañana a mano desde hoy.',
+  'eve.senseGeneric': 'Mañana el entrenamiento es exigente y tu cuerpo va a gastar más energía: deja los carbohidratos de mañana a mano desde hoy.',
+  'eve.seePlan': 'Ver el plan de mañana',
+  'eve.gotIt': 'Entendido',
+  'eve.foot': 'Te lo muestro una sola vez, el día de la víspera.',
+  'eve.title': 'Aviso de día exigente',
+  'eve.help': 'Te aviso la víspera cuando mañana sea un día exigente',
+  'msg.eveSaved': 'Ajuste del aviso guardado.',
   'myprof.dsStateOn': 'Activado',
   'myprof.dsStateOff': 'Desactivado',
   'myprof.dsPickKicker': 'RESUMEN DIARIO',
@@ -10699,6 +10771,10 @@ onAuthStateChanged(auth, async user => {
      su pendiente (permisos, consentimientos, su entrenador o el
      formulario de peso), una sola vez. */
   try { irLinkApply(); } catch {}
+  /* ALERTA DE LA VÍSPERA: con la sesión ya cargada (plan y metas en
+     memoria tras loadAll), la evaluación de la ventana de mañana
+     exigente corre UNA vez, sin lecturas nuevas. */
+  try { eveAlertMaybeShow(); } catch {}
   /* AUTH-147: a quien ya estaba registrado y aún no declaró su
      propósito se le pide UNA sola vez al entrar (sin bloquear). */
   try { purposeMaybeAsk(); } catch {}
@@ -17342,6 +17418,155 @@ function goalOfDay(key, iso) {
   const v = Number(r.goals ? r.goals[key] : undefined);
   return (isFinite(v) && v > 0) ? v : null;
 }
+
+
+/* ================= ALERTA DE LA VÍSPERA DE UN DÍA EXIGENTE =================
+   Diseño aprobado por Ronald (2026-11-03, «perfecto. apribado» sobre
+   diseno-alerta-dia-exigente-2026-11-03/NOTA-DISENO.md): al abrir la
+   app, en la primera pintura de Inicio de cada día local, si MAÑANA
+   es un día exigente según el motor §K, salta UNA ventana flotante
+   con la cifra de carbohidratos de mañana — la de goalsDayGoalsFor,
+   la misma que mañana pintará «Metas de hoy».
+   · CERO lecturas nuevas: la evaluación corre SOLO con lo que la
+     sesión ya tiene en memoria (MY_PLAN, GOALS, UDATA, PEND_CFG,
+     LIB_BY_ID); cero servidor.
+   · El sello es LOCAL (localStorage, por usuario y fecha de la
+     víspera) y se escribe SOLO cuando la ventana se muestra: una
+     sola vez por víspera; cualquier cierre (Entendido, ✕ de 46 px
+     o toque en el velo) cuenta como vista. Si hoy también es
+     exigente, la ventana habla SOLO de mañana.
+   · Audiencia (TODO, con los datos de la propia persona): plan
+     activo con ancla de fecha real (en modo «rotation» mañana no
+     es conocible: nunca); mañana resuelve a sesión exigente; metas
+     fundadas vigentes (goalsProvenance) con el ajuste §K aplicado
+     de verdad (carbos de mañana ≠ carbos base); con los carbos
+     retenidos por la declaración de salud (§E) NO hay ventana.
+   · El interruptor «Aviso de día exigente» vive en Mi perfil, en el
+     bloque de avisos del resumen diario: nace ENCENDIDO (campo
+     ausente = encendido) y se guarda con la cuenta como
+     users/{uid}.eveAlert = { on } (delta de reglas del paquete). */
+function eveAlertKey(uid, eveISO) { return 'ronbofit-eve-alert-' + uid + '|' + eveISO; }
+function eveDateLabel(iso) {
+  const m = String(iso).match(/(\d{4})-(\d{2})-(\d{2})/);
+  if (!m) return iso;
+  const d = parseInt(m[3], 10), mi = parseInt(m[2], 10) - 1;
+  const wd = (typeof weekdayName === 'function') ? weekdayName(iso) : '';
+  return LANG === 'es' ? `${wd} ${d} de ${MESES_ES[mi]}` : `${wd}, ${MESES_EN[mi]} ${d}`;
+}
+/* ¿La exigencia de ese día viene de las PIERNAS? Las MISMAS señales
+   de piernas del motor (grupos de la biblioteca + vocabulario de
+   piernas en etiquetas y nombres), SIN la marca expresa ni el
+   vocabulario genérico de exigencia: esas dos van a la variante
+   genérica de la línea de sentido. */
+function eveDayIsLegs(day, libById) {
+  if (!day) return false;
+  const lib = libById || {};
+  const texts = [day.label, day.name, day.note, day.notes];
+  for (const ex of day.exercises || []) {
+    if (!ex) continue;
+    texts.push(ex.name);
+    const entry = ex.exerciseId ? lib[ex.exerciseId] : null;
+    if (entry) {
+      const grp = goalsNorm(entry.grupo_muscular_es || entry.grupo_muscular_en || '');
+      if (GM_LEG_GROUPS.includes(grp)) return true;
+      texts.push(entry.nombre_es, entry.nombre_en);
+    }
+  }
+  return GM_LEG_TEXT.test(goalsNorm(texts.filter(Boolean).join(' ')));
+}
+/* Evaluación PURA sobre la memoria de la sesión: devuelve los datos
+   de la ventana o null. No lee Firestore ni la red: plan y metas ya
+   están cargados cuando Inicio pinta. */
+function eveAlertEvaluate() {
+  try {
+    const me = (typeof auth !== 'undefined' && auth) ? auth.currentUser : null;
+    if (!me) return null;
+    const u = (typeof UDATA !== 'undefined' && UDATA) ? UDATA : null;
+    if (!u) return null;
+    if (u.eveAlert && typeof u.eveAlert === 'object' && u.eveAlert.on === false) return null;
+    const plan = (typeof MY_PLAN !== 'undefined') ? MY_PLAN : null;
+    if (!plan || !Array.isArray(plan.days) || !plan.days.length) return null;
+    if (!u.goalsProvenance) return null; // sin metas fundadas vigentes, nunca
+    const base = (typeof GOALS !== 'undefined' && GOALS) || {};
+    if (!(base.carb > 0)) return null;
+    const today = todayISO();
+    let stamped = null;
+    try { stamped = localStorage.getItem(eveAlertKey(me.uid, today)); } catch {}
+    if (stamped) return null; // ya se mostró en esta víspera
+    const tomorrow = addDaysISO(today, 1);
+    const cfg = (typeof PEND_CFG !== 'undefined' && PEND_CFG && !PEND_CFG.__error) ? PEND_CFG : null;
+    const lib = (typeof LIB_BY_ID !== 'undefined' ? LIB_BY_ID : {});
+    const det = goalsDayLevelForDate(tomorrow, plan, cfg, lib);
+    if (!det || det.mode === 'rotation' || det.mode === 'none' || det.dayIndex == null) return null;
+    if (det.dayLevel !== 'exigente') return null;
+    const view = goalsDayGoalsFor(tomorrow);
+    if (!view || view.mode === 'held' || view.dayLevel !== 'exigente') return null;
+    const carb = view.goals ? Number(view.goals.carb) : NaN;
+    if (!(carb > 0) || carb === Number(base.carb)) return null; // §K no aplicado de verdad → sin ventana
+    const day = plan.days[det.dayIndex];
+    if (!day) return null;
+    const wf = (typeof week5Focus === 'function') ? week5Focus(day.label, det.dayIndex) : { dayWord: '', focus: '' };
+    const focus = String(wf.focus || '').replace(/\s+/g, ' ').trim();
+    const label = focus ? (wf.dayWord + ' · ' + focus) : (String(day.label || '').trim() || wf.dayWord);
+    return { tomorrowISO: tomorrow, dayIndex: det.dayIndex, label, legs: eveDayIsLegs(day, lib), carb, baseCarb: Number(base.carb) };
+  } catch { return null; }
+}
+let EVE_EVALUATED = false;   // la evaluación corre UNA vez por carga de la app
+let EVE_FLOAT = null;
+function eveAlertStamp() {
+  try { const me = auth.currentUser; if (me) localStorage.setItem(eveAlertKey(me.uid, todayISO()), '1'); } catch {}
+}
+function eveAlertClose(goPlan, d) {
+  if (EVE_FLOAT) { EVE_FLOAT.remove(); EVE_FLOAT = null; }
+  if (goPlan && d) {
+    /* «Ver el plan de mañana»: la MISMA maquinaria del enlace ?dia=
+       de AUTH-173, sin reinterpretar — la fecha viaja por el mismo
+       canal de sessionStorage ('rf-link-dia') que captureSignupLinks
+       deja al abrir el enlace del correo; loadMyTraining la consume
+       con dayLinkTake() y la vista de Entrenamiento nace en esa
+       fecha, igual que con el enlace. */
+    try {
+      sessionStorage.setItem('rf-link-dia', d.tomorrowISO);
+      Promise.resolve(loadMyTraining()).catch(() => {}).finally(() => { try { navOpenPage('train'); } catch {} });
+    } catch {}
+  }
+}
+function eveAlertShow(d) {
+  eveAlertStamp(); // el sello se escribe SOLO al mostrar, nunca al evaluar
+  eveAlertClose(false);
+  const el = document.createElement('div');
+  el.className = 'eve-float';
+  el.id = 'eve-float';
+  el.innerHTML = `<div class="eve-sheet" role="dialog" aria-modal="true" aria-label="${esc(t('eve.demanding'))}">
+    <button type="button" class="eve-x" data-eve-close aria-label="${esc(t('client.close'))}">✕</button>
+    <div class="eve-kicker">${esc(t('eve.kicker', { date: eveDateLabel(d.tomorrowISO) }).toUpperCase())}</div>
+    <div class="eve-title">${esc(d.label)}</div>
+    <div class="eve-chip"><span aria-hidden="true">🔥</span>${esc(t('eve.demanding'))}</div>
+    <div class="eve-numwrap"><span class="eve-num">${fmt(d.carb)} g</span><span class="eve-numlab"><b>${esc(t('eve.ofCarbs'))}</b><span>${esc(t('eve.tomorrowWord'))}</span></span></div>
+    <p class="eve-contrast">${esc(t('eve.contrastA', { base: fmt(d.baseCarb) }))} · <b>${esc(t('eve.contrastB', { d: fmt(d.carb - d.baseCarb) }))}</b></p>
+    <p class="eve-sense">${esc(t(d.legs ? 'eve.senseLegs' : 'eve.senseGeneric'))}</p>
+    <div class="eve-actions">
+      <button type="button" class="btn-primary eve-btn" data-eve-plan>${esc(t('eve.seePlan'))}</button>
+      <button type="button" class="btn-ghost eve-btn" data-eve-ok>${esc(t('eve.gotIt'))}</button>
+    </div>
+    <p class="eve-foot">${esc(t('eve.foot'))}</p>
+  </div>`;
+  document.body.appendChild(el);
+  EVE_FLOAT = el;
+  el.addEventListener('click', e => { if (e.target === el) eveAlertClose(false); });
+  const x = el.querySelector('[data-eve-close]'); if (x) x.onclick = () => eveAlertClose(false);
+  const ok = el.querySelector('[data-eve-ok]'); if (ok) ok.onclick = () => eveAlertClose(false);
+  const pl = el.querySelector('[data-eve-plan]'); if (pl) pl.onclick = () => eveAlertClose(true, d);
+}
+function eveAlertMaybeShow() {
+  if (EVE_EVALUATED) return false;
+  EVE_EVALUATED = true;
+  const d = eveAlertEvaluate();
+  if (!d) return false;
+  eveAlertShow(d);
+  return true;
+}
+try { window.__eveAlert = { evaluate: eveAlertEvaluate, maybeShow: eveAlertMaybeShow, show: eveAlertShow, reset: () => { EVE_EVALUATED = false; } }; } catch {}
 
 /* ================= §L — LIBERTAD DEL ALUMNO CON COMPUERTA (2026-10-26) =================
    Los valores fundados (§§D/G/K) son el cálculo por defecto y la
@@ -38299,7 +38524,7 @@ document.addEventListener('keydown', e => { if (e.key === 'Escape') shareClose()
  *  - El SW (sw.js) solo cachea la cáscara del mismo origen en modo
  *    RED PRIMERO: Auth/Firestore/Worker jamás pasan por la caché.
  * ================================================================ */
-const PWA_SW_VERSION = '20261104-topes-ia';
+const PWA_SW_VERSION = '20261103-alerta-vispera';
 /* Sello de versión VISIBLE (2026-11-03): el pie de la tarjeta de
    acceso enseña qué copia corre este teléfono ('v ' + el sello),
    para comprobar de un vistazo si la versión nueva ya llegó.
