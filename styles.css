@@ -3777,6 +3777,42 @@ button.wkex-row:active { background: #eef7f5; }
 .wkex-none { font-size: 13.5px; color: #8aa0ad; }
 #client-weekcard .wkex { margin-top: 0; }
 
+/* ===== RECONOCIMIENTO POR AVANCE (AUTH-2026-11-04-240) =====
+   Nivel 1: la banda dorada dentro de la tarjeta «Tu semana»
+   (sobre el relato, solo con avance real comprobado).
+   Niveles 2 y 3: las tarjetas «Tus hitos» y «Tu mes» en
+   Progreso (y los hitos, de solo lectura, en la ficha). */
+.wkcard-reco { background: linear-gradient(135deg, #fdf3d3, #fbeec0); border-radius: 14px; padding: 13px 15px; margin: 0 0 13px; }
+.wkcard-reco-t { font-size: 11.5px; font-weight: 800; letter-spacing: .09em; text-transform: uppercase; color: #8a6d1a; margin-bottom: 7px; }
+.wkcard-reco-l { margin: 0; font-size: 15px; line-height: 1.5; color: #54430d; }
+.wkcard-reco-l + .wkcard-reco-l { margin-top: 5px; }
+.wkcard-reco-l b { color: #6d5510; }
+.rcard { background: #fff; border: 1px solid #dcebe8; border-radius: 20px; overflow: hidden; margin: 0 0 14px; box-shadow: 0 1px 3px rgba(15, 40, 50, .05); }
+.rcard-head { display: flex; gap: 12px; align-items: center; padding: 15px 18px 4px; }
+.rcard-ico { width: 38px; height: 38px; flex: 0 0 38px; border-radius: 12px; background: #fdf3d3; display: flex; align-items: center; justify-content: center; font-size: 19px; }
+.rcard-t1 { font-size: 16.5px; font-weight: 800; color: #0b3b36; }
+.rcard-t2 { font-size: 12px; color: #5b7370; margin-top: 1px; }
+.rcard-body { padding: 8px 18px 14px; }
+.rcard-foot { padding: 9px 18px 11px; border-top: 1px dashed #e2e9ee; font-size: 11.5px; color: #8aa39e; }
+.ms-row { display: flex; gap: 11px; align-items: flex-start; padding: 10px 0; border-top: 1px solid #eef3f6; }
+.ms-row:first-child { border-top: 0; }
+.ms-medal { font-size: 22px; line-height: 1.25; flex: 0 0 auto; }
+.ms-tx { flex: 1; min-width: 0; }
+.ms-name { font-size: 15px; font-weight: 800; color: #0b3b36; }
+.ms-det { font-size: 14px; color: #33544f; margin-top: 1px; overflow-wrap: anywhere; }
+.ms-date { font-size: 11.5px; color: #8aa39e; margin-top: 2px; }
+.ms-share { flex: 0 0 auto; min-height: 48px; display: inline-flex; align-items: center; background: #0d9488; color: #fff; border: 0; border-radius: 999px; padding: 10px 14px; font: inherit; font-size: 13.5px; font-weight: 700; cursor: pointer; -webkit-tap-highlight-color: transparent; }
+.ms-share:active { background: #0b7a6e; }
+.ms-prox { background: #f4faf8; border-radius: 14px; padding: 12px 14px; margin-top: 12px; }
+.ms-prox-tx { margin: 0; font-size: 14.5px; line-height: 1.5; color: #22384a; }
+.ms-prox-tx b { color: #0b3b36; }
+.ms-bar { height: 9px; background: #dcebe8; border-radius: 99px; overflow: hidden; margin-top: 10px; }
+.ms-bar-fill { height: 100%; background: linear-gradient(90deg, #0d9488, #2dd4bf); border-radius: 99px; }
+.ms-prox-cap { margin: 7px 0 0; font-size: 13px; color: #46615a; }
+.mo-tx { margin: 4px 0 0; font-size: 15.5px; line-height: 1.55; color: #22384a; }
+.mo-tx b { color: #0b7a6e; }
+#client-milestones .rcard { margin-top: 14px; }
+
 /* ===== RETOS (AUTH-2026-11-04-235) ===== */
 .chal-inicio { display: flex; align-items: center; justify-content: space-between; gap: 12px; }
 .chal-inicio-txt { min-width: 0; }

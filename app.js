@@ -3497,6 +3497,53 @@ en: {
   'wk.close.4': 'It’s not about one perfect week, but about weeks that add up.',
   'wk.close.5': 'Your body follows what you do every week, not what you do once.',
   'wk.close.6': 'Log it, train, repeat: your log is your map.',
+  'reco.bandTitle': 'WEEKLY RECOGNITION',
+  'reco.constancy': '**Constancy:** you trained every day your plan asked for',
+  'reco.pr': '**New personal record:** {name}, **{kg}** (before {prev})',
+  'reco.progress': '**Real progress:** {name} — from **{a}** to **{b}**',
+  'reco.effort': '**Sustained effort:** average effort of **{r} out of 10**',
+  'reco.effortSat': ' and you left feeling good (**{s} out of 5**)',
+  'reco.effortSatOnly': '**Sustained effort:** you left feeling good in your sessions (**{s} out of 5**)',
+  'reco.msTitle': 'Your milestones',
+  'reco.msSub': 'Your achievement history — saved for good',
+  'reco.msFirstWeek': 'First full week',
+  'reco.msFirstWeekD': 'You trained every day your plan asked for.',
+  'reco.msStreak4': '4 weeks of constancy in a row',
+  'reco.msStreak4D': 'Four straight weeks completing your plan.',
+  'reco.msPr': 'New personal record',
+  'reco.msFood': 'Food goal day',
+  'reco.msFoodD': 'You reached 90% or more of your food goal.',
+  'reco.msShare': 'Share',
+  'reco.msNextFirst': '**Your first milestone:** complete a full week of your plan — train every day it asks for.',
+  'reco.msNextStreak': '**Next milestone:** 4 weeks of constancy in a row — train what your plan asks, every week.',
+  'reco.msNextCount': 'You have {x} of 4 weeks. {y} to go.',
+  'reco.msNextRestart': 'Complete a full week to start your streak toward 4 in a row.',
+  'reco.msFoot': 'Milestones are never lost or downgraded: what is earned, stays earned. Your trainer sees them in your file too.',
+  'reco.msFootFicha': 'Milestones are never lost or downgraded: what is earned, stays earned.',
+  'reco.moTitle': 'Your month',
+  'reco.moSub': 'Your monthly recognition — once a month',
+  'reco.moPending': 'When **{month}** closes, you will see your month here: your **weeks completed**, the **marks you improved** and your **biggest advance**. Compared with no one: only against **your own previous month**.',
+  'reco.moSessions1': 'You trained **once**.',
+  'reco.moSessions': 'You trained **{n} times**.',
+  'reco.moWeeks1': 'You completed **1 week** of your plan.',
+  'reco.moWeeks': 'You completed **{n} weeks** of your plan.',
+  'reco.moMarks1': '**One mark** improved.',
+  'reco.moMarks': '**{n} marks** improved.',
+  'reco.moBiggest': 'Your biggest advance: **{name} — from {a} to {b}**.',
+  'reco.moCmpUp1': 'One more session than in {month}.',
+  'reco.moCmpUpN': '**{n} more sessions** than in {month}.',
+  'reco.moCmpDown1': 'One session fewer than in {month}.',
+  'reco.moCmpDownN': '**{n} fewer sessions** than in {month}.',
+  'reco.moCmpSame': 'The same number of sessions as in {month}.',
+  'reco.moFoot': 'Computed from your training logs for that month.',
+  'reco.shTag': 'MILESTONE',
+  'reco.shWeekTag': 'MILESTONE OF THE WEEK',
+  'reco.shPr': 'New personal record!',
+  'reco.shFirstWeek': 'First full week!',
+  'reco.shStreak4': '4 weeks in a row!',
+  'reco.shFood': 'Food goal day!',
+  'reco.shWeekOf': 'Week of ',
+  'reco.shEmpty': 'Your next milestone will appear here',
   'msg.eveSaved': 'Heads-up setting saved.',
   'myprof.dsStateOn': 'On',
   'myprof.dsStateOff': 'Off',
@@ -6164,6 +6211,7 @@ en: {
   'share.newBadge': 'NEW',
   'share.shortLab': 'My day in short',
   'share.todayLab': "Today's workout",
+  'share.logroLab': 'My milestone',
   'share.todayPlan': 'from your plan "{name}"',
   'share.todayLast': 'LAST TIME',
   'share.todayDemanding': 'Today is a demanding day.',
@@ -6704,6 +6752,53 @@ es: {
   'wk.close.4': 'No se trata de una semana perfecta, sino de semanas que se suman.',
   'wk.close.5': 'El cuerpo sigue a lo que haces cada semana, no a lo que haces una vez.',
   'wk.close.6': 'Registra, entrena, repite: tu registro es tu mapa.',
+  'reco.bandTitle': 'RECONOCIMIENTO DE LA SEMANA',
+  'reco.constancy': '**Constancia:** entrenaste todos los días que tu plan pedía',
+  'reco.pr': '**Marca personal nueva:** {name}, **{kg}** (antes {prev})',
+  'reco.progress': '**Progreso real:** {name} — de **{a}** a **{b}**',
+  'reco.effort': '**Esfuerzo sostenido:** esfuerzo medio de **{r} sobre 10**',
+  'reco.effortSat': ' y te fuiste a gusto (**{s} de 5**)',
+  'reco.effortSatOnly': '**Esfuerzo sostenido:** te fuiste a gusto en tus sesiones (**{s} de 5**)',
+  'reco.msTitle': 'Tus hitos',
+  'reco.msSub': 'Tu historial de logros — se quedan guardados',
+  'reco.msFirstWeek': 'Primera semana completa',
+  'reco.msFirstWeekD': 'Entrenaste todos los días que tu plan pedía.',
+  'reco.msStreak4': '4 semanas seguidas de constancia',
+  'reco.msStreak4D': 'Cuatro semanas seguidas cumpliendo tu plan.',
+  'reco.msPr': 'Marca personal nueva',
+  'reco.msFood': 'Día de alimentación cumplido',
+  'reco.msFoodD': 'Llegaste al 90 % o más de tu meta de alimentación.',
+  'reco.msShare': 'Compartir',
+  'reco.msNextFirst': '**Tu primer hito:** completa una semana entera de tu plan — entrena todos los días que pide.',
+  'reco.msNextStreak': '**Próximo hito:** 4 semanas seguidas de constancia — entrenar cada semana lo que tu plan pide.',
+  'reco.msNextCount': 'Llevas {x} de 4 semanas. Te faltan {y}.',
+  'reco.msNextRestart': 'Completa una semana entera para empezar tu racha hacia las 4 seguidas.',
+  'reco.msFoot': 'Los hitos no se pierden ni bajan: lo ganado, ganado queda. Tu entrenador también los ve en tu ficha.',
+  'reco.msFootFicha': 'Los hitos no se pierden ni bajan: lo ganado, ganado queda.',
+  'reco.moTitle': 'Tu mes',
+  'reco.moSub': 'Tu reconocimiento del mes — una vez al mes',
+  'reco.moPending': 'Al cerrar **{month}** verás aquí el resumen de tu mes: tus **semanas cumplidas**, las **marcas que mejoraron** y tu **mayor avance**. Sin compararte con nadie: solo contra **tu propio mes anterior**.',
+  'reco.moSessions1': 'Entrenaste **una vez**.',
+  'reco.moSessions': 'Entrenaste **{n} veces**.',
+  'reco.moWeeks1': 'Cumpliste **1 semana** de tu plan.',
+  'reco.moWeeks': 'Cumpliste **{n} semanas** de tu plan.',
+  'reco.moMarks1': 'Mejoró **una marca**.',
+  'reco.moMarks': 'Mejoraron **{n} marcas**.',
+  'reco.moBiggest': 'Tu mayor avance: **{name} — de {a} a {b}**.',
+  'reco.moCmpUp1': 'Una sesión más que en {month}.',
+  'reco.moCmpUpN': '**{n} sesiones más** que en {month}.',
+  'reco.moCmpDown1': 'Una sesión menos que en {month}.',
+  'reco.moCmpDownN': '**{n} sesiones menos** que en {month}.',
+  'reco.moCmpSame': 'Las mismas sesiones que en {month}.',
+  'reco.moFoot': 'Calculado de tus registros de entrenamiento de ese mes.',
+  'reco.shTag': 'LOGRO',
+  'reco.shWeekTag': 'LOGRO DE LA SEMANA',
+  'reco.shPr': '¡Marca personal nueva!',
+  'reco.shFirstWeek': '¡Primera semana completa!',
+  'reco.shStreak4': '¡4 semanas seguidas!',
+  'reco.shFood': '¡Día de alimentación cumplido!',
+  'reco.shWeekOf': 'Semana del ',
+  'reco.shEmpty': 'Tu próximo logro aparecerá aquí',
   'msg.eveSaved': 'Ajuste del aviso guardado.',
   'myprof.dsStateOn': 'Activado',
   'myprof.dsStateOff': 'Desactivado',
@@ -9372,6 +9467,7 @@ es: {
   'share.newBadge': 'NUEVA',
   'share.shortLab': 'Mi resumen del día',
   'share.todayLab': 'Mi entreno de hoy',
+  'share.logroLab': 'Mi logro',
   'share.todayPlan': 'de tu plan «{name}»',
   'share.todayLast': 'ÚLTIMA VEZ',
   'share.todayDemanding': 'Hoy es un día exigente.',
@@ -16803,6 +16899,7 @@ async function openClient(uid) {
     <div id="focus-card"></div>
     <div id="compacc-box"><div class="wempty">${t('access.loading')}</div></div>
     <div id="client-weekcard"></div>
+    <div id="client-milestones"></div>
     <div id="client-training"></div>
     <div id="client-evals"><div class="eval-actions"><button type="button" class="btn-ghost btn-sm" id="btn-client-evals">${t('teval.open')}</button></div><div id="client-evals-body" style="display:none"></div></div>`;
   fichaMetWire(box);
@@ -33644,7 +33741,7 @@ function wkWeekMetrics(logs, monday, light) {
     .slice().sort((a, b) => (a.date < b.date ? -1 : a.date > b.date ? 1 : 0));
   const met = { sessions: ls.length, dates: ls.map(l => l.date), minutes: 0, minutesKnown: 0,
     minutesList: [], volumeKg: null, effortAvg: null, satAvg: null, satCount: 0,
-    groups: [], restAvgSec: null, restSessions: 0 };
+    groups: [], restAvgSec: null, restSessions: 0, effortCount: 0 };
   let volume = 0, volumeSets = 0;
   const efforts = [], sats = [], gaps = [];
   const groups = new Map();
@@ -33676,6 +33773,7 @@ function wkWeekMetrics(logs, monday, light) {
     }
   });
   if (volumeSets) met.volumeKg = Math.round(volume);
+  met.effortCount = efforts.length;
   if (efforts.length) met.effortAvg = Math.round(efforts.reduce((a, c) => a + c, 0) / efforts.length);
   if (sats.length) { met.satAvg = sats.reduce((a, c) => a + c, 0) / sats.length; met.satCount = sats.length; }
   met.groups = [...groups.values()];
@@ -33792,6 +33890,39 @@ function weekCardCompute(logs, plans, todayIso, opts) {
   });
   const pp = target.split('-').map(Number);
   const closeIdx = ((Math.floor(Date.UTC(pp[0], pp[1] - 1, pp[2]) / 604800000) % 7) + 7) % 7;
+  /* NIVEL 1 — RECONOCIMIENTO DE LA SEMANA (Plan de Reconocimiento
+     por Avance, aprobado por Ronald el 2026-11-04 con su «Me
+     encanta» a la maqueta, correo 1a1a80ffbb85e0c6; compartible
+     decidido el mismo día 13:39 CST): la banda dorada de la
+     tarjeta SOLO nace de avance real comprobado —
+       constancia: se cumplieron TODOS los días planeados;
+       marca personal nueva: el máximo semanal de un ejercicio
+         supera TODOS sus máximos anteriores EN LA MISMA UNIDAD
+         de origen (la regla de unidades de esta tarjeta, contra
+         las apariciones previas de prevMap); si no hay marca
+         nueva pero sí momento (subida dentro de la semana), la
+         línea es «Progreso real»;
+       esfuerzo sostenido: media de esfuerzo ≥ 7 con al menos 3
+         valores guardados, o satisfacción ≥ 4 reportada.
+     Sin avance, la banda no nace: nada se inventa. */
+  const reco = [];
+  if (plannedSet.size && donePlanned === plannedSet.size) reco.push({ kind: 'constancy' });
+  let prBest = null;
+  targetMet.groups.forEach(g => {
+    let wMax = null, wUnit = null;
+    g.apps.forEach(a => { if (a.maxLoad != null && (wMax == null || a.maxLoad > wMax)) { wMax = a.maxLoad; wUnit = a.unit; } });
+    if (wMax == null || !wUnit) return;
+    const prevs = (prevMap.get(g.key) || []).filter(a => a.maxLoad != null && a.unit === wUnit);
+    if (!prevs.length) return;
+    const pMax = Math.max.apply(null, prevs.map(a => a.maxLoad));
+    if (wMax > pMax && (!prBest || (wMax - pMax) > prBest.delta))
+      prBest = { name: g.name, kg: wMax, prevKg: pMax, delta: wMax - pMax };
+  });
+  if (prBest) reco.push({ kind: 'pr', name: prBest.name, kg: prBest.kg, prevKg: prBest.prevKg, delta: prBest.delta });
+  else if (moment) reco.push({ kind: 'progress', name: moment.name, fromKg: moment.fromKg, toKg: moment.toKg, delta: moment.delta });
+  if ((targetMet.effortCount >= 3 && targetMet.effortAvg != null && targetMet.effortAvg >= 7)
+      || (targetMet.satCount >= 1 && targetMet.satAvg != null && targetMet.satAvg >= 4))
+    reco.push({ kind: 'effort', effortAvg: targetMet.effortAvg, satAvg: targetMet.satAvg, satCount: targetMet.satCount });
   return {
     monday: target, sunday, name,
     sessions: targetMet.sessions,
@@ -33802,7 +33933,7 @@ function weekCardCompute(logs, plans, todayIso, opts) {
     moment, improvements: imps.slice(0, 2), cmp,
     planned: plannedSet.size, donePlanned, streak,
     restAvgSec: targetMet.restAvgSec, restSessions: targetMet.restSessions,
-    injuries, closeIdx, exercises
+    injuries, closeIdx, exercises, reco
   };
 }
 function wkB(s) { return String(s).replace(/\*\*(.+?)\*\*/g, '<b>$1</b>'); }
@@ -33891,6 +34022,30 @@ function wkExSectionHTML(m, links) {
    carga nace plegada —). Solo presentación: el cálculo, los
    textos y las cifras de la tarjeta no cambian en una coma. */
 let WK_CARD_OPEN = false;
+/* La banda dorada del Nivel 1: las líneas de reconocimiento que
+   weekCardCompute comprobó (m.reco). Sin líneas, no hay banda. */
+function wkRecoHTML(m) {
+  const lines = (m && Array.isArray(m.reco)) ? m.reco : [];
+  if (!lines.length) return '';
+  const ps = lines.map(r => {
+    let s = '';
+    if (r.kind === 'constancy') s = t('reco.constancy');
+    else if (r.kind === 'pr') s = t('reco.pr', { name: esc(wkDispName(r.name)), kg: fmtMass(r.kg), prev: fmtMass(r.prevKg) });
+    else if (r.kind === 'progress') s = t('reco.progress', { name: esc(wkDispName(r.name)), a: fmtMass(r.fromKg), b: fmtMass(r.toKg) });
+    else if (r.kind === 'effort') {
+      if (r.effortAvg != null) {
+        s = t('reco.effort', { r: r.effortAvg });
+        if (r.satAvg != null && r.satAvg >= 4)
+          s += t('reco.effortSat', { s: Number.isInteger(r.satAvg) ? String(r.satAvg) : fmt(r.satAvg) });
+      } else if (r.satAvg != null) {
+        s = t('reco.effortSatOnly', { s: Number.isInteger(r.satAvg) ? String(r.satAvg) : fmt(r.satAvg) });
+      }
+    }
+    return s ? `<p class="wkcard-reco-l">${wkB(s)}</p>` : '';
+  }).join('');
+  if (!ps) return '';
+  return `<div class="wkcard-reco"><div class="wkcard-reco-t"><span aria-hidden="true">🏅</span> ${esc(t('reco.bandTitle'))}</div>${ps}</div>`;
+}
 function weekCardHTML(m, links) {
   if (!m) return '';
   const S = [];
@@ -33934,6 +34089,7 @@ function weekCardHTML(m, links) {
     <button type="button" class="wkcard-head" data-wk-toggle aria-expanded="${wkOpen ? 'true' : 'false'}"><div class="wkcard-ava" aria-hidden="true">🏋️</div><div class="wkcard-tt"><div class="wkcard-t1">${esc(t('wk.title'))}</div><div class="wkcard-t2">${esc(wkRangeText(m.monday, m.sunday))} · ${esc(t('wk.sub'))}</div></div><span class="gm-chev wkcard-chev" aria-hidden="true">${wkOpen ? '▴' : '▾'}</span></button>
     <div class="wkcard-fold"${wkOpen ? '' : ' style="display:none"'}>
     <div class="wkcard-body">
+      ${wkRecoHTML(m)}
       <p class="wkcard-rel">${S.map(wkB).join(' ')}</p>
       <div class="wkcard-chips">${chips.map(c => `<div class="wkcard-chip"><b>${esc(c.v)}</b><span>${esc(c.l)}</span></div>`).join('')}</div>
       ${imps ? `<div class="wkcard-mej"><span class="wkcard-mej-ico" aria-hidden="true">🎯</span><div class="wkcard-mej-tx">${imps}</div></div>` : ''}
@@ -34020,6 +34176,11 @@ async function loadWeekCard() {
        ejercicio con su historia (la superficie de siempre). */
     box.querySelectorAll('[data-wkex-id]').forEach(b => { b.onclick = () => { libCardOpen(b.dataset.wkexId); }; });
     wkCardWire(box);
+    /* Niveles 2 y 3 del reconocimiento: hitos guardados y
+       tarjeta del mes, bajo la tarjeta semanal. Van en su
+       propia llamada protegida: si algo falla ahí, la tarjeta
+       semanal ya pintada no se toca. */
+    loadRecoCards(uid, logs, plans);
   } catch { try { box.innerHTML = ''; } catch {} }
 }
 /* La misma tarjeta, de solo lectura, en la ficha del alumno:
@@ -34036,8 +34197,328 @@ function paintClientWeekCard(uid, plans, logs) {
         || (typeof ADMIN_NAME_CACHE !== 'undefined' && ADMIN_NAME_CACHE[uid]) || '';
       const model = weekCardCompute(wkPrepareLogs(logs), wkPreparePlans(plans), todayISO(), { name: nm, requests: reqs });
       if ($('client-weekcard') === host) { host.innerHTML = weekCardHTML(model, false); wkCardWire(host); }
+      /* Los hitos guardados del alumno, de solo lectura, bajo
+         su tarjeta semanal (Nivel 2): se leen de su documento
+         de hitos; el entrenador jamás escribe ahí. */
+      try {
+        const mh = $('client-milestones');
+        if (mh) {
+          const items = await recoFetchStored(uid);
+          if (items && items.length && $('client-milestones') === mh)
+            mh.innerHTML = milestonesCardHTML(items, { mine: false });
+        }
+      } catch {}
     } catch { try { host.innerHTML = ''; } catch {} }
   })();
+}
+
+/* ================================================================
+   RECONOCIMIENTO POR AVANCE — NIVELES 2 Y 3 (plan aprobado por
+   Ronald el 2026-11-04: propuesta por correo 1a1a7f820c964031,
+   maqueta aprobada con su «Me encanta» 1a1a80ffbb85e0c6 y
+   decisión del mismo día 13:39 CST: privado en la app Y
+   compartible fuera).
+   NIVEL 2 — HITOS QUE SE QUEDAN: historial de logros con fecha
+   (primera semana completa · 4 semanas seguidas de constancia ·
+   marca personal nueva por ejercicio · día de alimentación
+   ≥ 90 %). Se calculan de los registros que ya existen
+   (training_logs, el plan según plancal, nutrition_meals con la
+   definición única de día cumplido de nutriAdherenceState) y se
+   GUARDAN en la colección milestones (un documento por hito,
+   forma cerrada en las reglas): una vez ganado, un hito no se
+   pierde ni baja — las reglas ni siquiera admiten editarlo.
+   Sin datos de salud en el hito: tipo, fecha y, en las marcas,
+   ejercicio y carga.
+   NIVEL 3 — TU MES: resumen del mes natural cerrado más
+   reciente con sesiones, en Progreso; cada quien solo contra
+   su propio mes anterior. Sin clasificaciones entre alumnos.
+   ================================================================ */
+/* Marcas personales nuevas de toda la historia: para cada
+   ejercicio y cada unidad de origen, una aparición es marca
+   nueva si su carga máxima supera TODAS las anteriores en esa
+   misma unidad (la primera aparición en una unidad es la base,
+   no una marca). El mismo criterio de unidades de la tarjeta
+   semanal. */
+function recoPrEvents(logs) {
+  const apps = [];
+  (Array.isArray(logs) ? logs : []).filter(wkIsClosed)
+    .slice().sort((a, b) => (a.date < b.date ? -1 : a.date > b.date ? 1 : 0))
+    .forEach(l => (l.exercisesDone || []).forEach(e => {
+      if (e) apps.push({ key: wkGroupKey(e), ap: wkEntryApp(e, l.date), name: e._wkName || e.name || '', exerciseId: e.exerciseId || null });
+    }));
+  const best = new Map();
+  const events = [];
+  apps.forEach(({ key, ap, name, exerciseId }) => {
+    if (ap.maxLoad == null || !ap.unit) return;
+    const bk = key + '|' + ap.unit;
+    const prev = best.has(bk) ? best.get(bk) : null;
+    if (prev != null && ap.maxLoad > prev)
+      events.push({ date: ap.date, key, exerciseId, name, kg: ap.maxLoad, prevKg: prev, unit: ap.unit });
+    if (prev == null || ap.maxLoad > prev) best.set(bk, ap.maxLoad);
+  });
+  return events;
+}
+/* Semanas completas de la historia (lunes–domingo con TODOS los
+   días planeados entrenados, el criterio de constancia de la
+   tarjeta semanal): primera semana completa, la semana en que
+   la racha llegó a 4 seguidas y la racha vigente al cierre de
+   la última semana terminada. Una semana sin días planeados no
+   suma y corta la racha, como en la tarjeta. */
+function recoWeeks(logs, plans, todayIso) {
+  const closed = (Array.isArray(logs) ? logs : []).filter(wkIsClosed);
+  const out = { complete: new Map(), firstWeek: null, streak4: null, streakNow: 0 };
+  if (!closed.length) return out;
+  const firstMon = mondayISO(closed.reduce((a, l) => (l.date < a ? l.date : a), closed[0].date));
+  const lastMon = addDaysISO(mondayISO(todayIso), -7);
+  for (let mon = firstMon; mon <= lastMon; mon = addDaysISO(mon, 7)) {
+    const ps = wkPlannedDates(plans, mon);
+    if (!ps.size) continue;
+    const ds = new Set(wkWeekMetrics(logs, mon, true).dates);
+    if ([...ps].every(iso => ds.has(iso))) out.complete.set(mon, [...ps].sort().pop());
+  }
+  let run = 0;
+  for (let mon = firstMon; mon <= lastMon; mon = addDaysISO(mon, 7)) {
+    if (out.complete.has(mon)) {
+      run++;
+      if (!out.firstWeek) out.firstWeek = { monday: mon, at: out.complete.get(mon) };
+      if (run === 4 && !out.streak4) out.streak4 = { monday: mon, at: out.complete.get(mon) };
+    } else run = 0;
+  }
+  for (let mon = lastMon; mon >= firstMon; mon = addDaysISO(mon, -7)) {
+    if (!wkPlannedDates(plans, mon).size) break;
+    if (out.complete.has(mon)) out.streakNow++; else break;
+  }
+  return out;
+}
+/* Primer día de alimentación ≥ 90 %: las comidas del día contra
+   las metas DE ESE DÍA según la función de la casa
+   (goalsDayGoalsFor) y la definición única de día cumplido
+   (nutriAdherenceState, la misma que usa el módulo de Retos). */
+function recoFoodDay(mealsByDate) {
+  const dates = Object.keys(mealsByDate || {}).sort();
+  for (const d of dates) {
+    let g = null;
+    try { g = goalsDayGoalsFor(d).goals; } catch {}
+    if (nutriAdherenceState(mealsByDate[d] || [], g, d) === 'done') return d;
+  }
+  return null;
+}
+/* Los hitos ganados según los registros: lista ordenada por
+   fecha con su identidad estable (slug). */
+function milestonesCompute(logs, plans, mealsByDate, todayIso) {
+  const items = [];
+  const wk = recoWeeks(logs, plans, todayIso);
+  if (wk.firstWeek) items.push({ slug: 'firstWeek', k: 'firstWeek', at: wk.firstWeek.at });
+  if (wk.streak4) items.push({ slug: 'streak4', k: 'streak4', at: wk.streak4.at });
+  recoPrEvents(logs).forEach(ev => items.push({
+    slug: 'pr:' + (ev.exerciseId || ev.key) + ':' + ev.unit + ':' + ev.kg,
+    k: 'pr', at: ev.date, ex: ev.exerciseId, name: ev.name, kg: ev.kg, prevKg: ev.prevKg, unit: ev.unit
+  }));
+  const fd = recoFoodDay(mealsByDate);
+  if (fd) items.push({ slug: 'foodDay', k: 'foodDay', at: fd });
+  items.sort((a, b) => (a.at < b.at ? -1 : a.at > b.at ? 1 : (a.slug < b.slug ? -1 : 1)));
+  return { items, streakNow: wk.streakNow, hasFirst: !!wk.firstWeek, hasStreak4: !!wk.streak4, weeks: wk };
+}
+/* La pista del «próximo hito» de la tarjeta (solo vista propia):
+   primero la semana completa; después, la racha hacia las 4. */
+function recoNextHint(comp) {
+  if (!comp || comp.hasStreak4) return null;
+  if (!comp.hasFirst) return { kind: 'first' };
+  if (comp.streakNow >= 1) return { kind: 'streak', x: Math.min(comp.streakNow, 3), y: 4 - Math.min(comp.streakNow, 3) };
+  return { kind: 'restart' };
+}
+function recoDateFull(iso) {
+  const p = String(iso || '').split('-').map(Number);
+  if (p.length !== 3 || !p[0]) return String(iso || '');
+  return LANG === 'es'
+    ? p[2] + ' de ' + MESES_ES[p[1] - 1] + ' de ' + p[0]
+    : MESES_EN[p[1] - 1] + ' ' + p[2] + ', ' + p[0];
+}
+function recoMonthName(ym) {
+  const p = String(ym || '').split('-').map(Number);
+  if (p.length !== 2 || !p[0]) return '';
+  const n = (LANG === 'es' ? MESES_ES : MESES_EN)[p[1] - 1] || '';
+  return LANG === 'es' ? n + ' de ' + p[0] : n + ' ' + p[0];
+}
+/* ---------- guardado de hitos (colección milestones) ---------- */
+function recoDocFor(uid, it) {
+  const d = { uid, slug: it.slug, k: it.k, at: it.at, createdAt: serverTimestamp() };
+  if (it.k === 'pr') { d.ex = it.ex || ''; d.name = it.name || ''; d.kg = it.kg; d.prevKg = it.prevKg; d.unit = it.unit; }
+  return d;
+}
+async function recoFetchStored(uid) {
+  try {
+    const snap = await getDocs(query(collection(db, 'milestones'), where('uid', '==', uid)));
+    const out = [];
+    snap.forEach(d => {
+      const v = d.data(); if (!v || !v.k || !v.slug) return;
+      out.push({ slug: v.slug, k: v.k, at: v.at || '',
+        ex: v.ex || null, name: v.name || '',
+        kg: (typeof v.kg === 'number') ? v.kg : null,
+        prevKg: (typeof v.prevKg === 'number') ? v.prevKg : null,
+        unit: v.unit || null });
+    });
+    out.sort((a, b) => (a.at < b.at ? -1 : a.at > b.at ? 1 : (a.slug < b.slug ? -1 : 1)));
+    return out;
+  } catch { return null; }
+}
+/* Sincronía del cliente PROPIO: lee lo guardado y crea SOLO los
+   hitos calculados que falten (las reglas no admiten editar ni
+   borrar hitos: lo ganado, ganado queda). Si la lectura falla,
+   no se escribe a ciegas: se pinta lo calculado. */
+async function recoSyncOwn(uid, computedItems) {
+  const stored = await recoFetchStored(uid);
+  if (stored == null) return computedItems;
+  const have = new Set(stored.map(i => i.slug));
+  const missing = computedItems.filter(i => !have.has(i.slug));
+  for (const it of missing) {
+    try { await setDoc(doc(db, 'milestones', uid + '_' + it.slug), recoDocFor(uid, it)); } catch {}
+  }
+  const all = [...stored, ...missing];
+  all.sort((a, b) => (a.at < b.at ? -1 : a.at > b.at ? 1 : (a.slug < b.slug ? -1 : 1)));
+  return all;
+}
+/* ---------- la tarjeta «Tus hitos» ---------- */
+function recoMsTitle(it) {
+  return it.k === 'pr' ? t('reco.msPr')
+    : it.k === 'firstWeek' ? t('reco.msFirstWeek')
+    : it.k === 'streak4' ? t('reco.msStreak4')
+    : t('reco.msFood');
+}
+function recoMsDetail(it) {
+  if (it.k === 'pr')
+    return `${esc(it.name || '')} — <b>${esc(fmtMass(it.kg))}</b> (${esc(LANG === 'es' ? 'antes' : 'before')} ${esc(fmtMass(it.prevKg))})`;
+  if (it.k === 'firstWeek') return esc(t('reco.msFirstWeekD'));
+  if (it.k === 'streak4') return esc(t('reco.msStreak4D'));
+  return esc(t('reco.msFoodD'));
+}
+function milestonesCardHTML(items, opts) {
+  const mine = !!(opts && opts.mine);
+  const next = (opts && opts.next) || null;
+  const list = Array.isArray(items) ? items : [];
+  if (!list.length && !next) return '';
+  const rows = list.slice().reverse().slice(0, 8).map(it => `
+      <div class="ms-row">
+        <span class="ms-medal" aria-hidden="true">${it.k === 'streak4' ? '🏆' : '🏅'}</span>
+        <div class="ms-tx">
+          <div class="ms-name">${esc(recoMsTitle(it))}</div>
+          <div class="ms-det">${recoMsDetail(it)}</div>
+          <div class="ms-date">${esc(recoDateFull(it.at))}</div>
+        </div>
+        ${mine ? `<button type="button" class="ms-share" data-ms-share="${esc(it.slug)}">${esc(t('reco.msShare'))} ›</button>` : ''}
+      </div>`).join('');
+  let prox = '';
+  if (mine && next) {
+    if (next.kind === 'first') prox = `<p class="ms-prox-tx">${wkB(t('reco.msNextFirst'))}</p>`;
+    else if (next.kind === 'streak') prox = `<p class="ms-prox-tx">${wkB(t('reco.msNextStreak'))}</p>
+        <div class="ms-bar"><div class="ms-bar-fill" style="width:${Math.round(next.x / 4 * 100)}%"></div></div>
+        <p class="ms-prox-cap">${esc(t('reco.msNextCount', { x: next.x, y: next.y }))}</p>`;
+    else if (next.kind === 'restart') prox = `<p class="ms-prox-tx">${wkB(t('reco.msNextStreak'))}</p><p class="ms-prox-cap">${esc(t('reco.msNextRestart'))}</p>`;
+    if (prox) prox = `<div class="ms-prox">${prox}</div>`;
+  }
+  return `<div class="rcard">
+    <div class="rcard-head"><div class="rcard-ico" aria-hidden="true">🏅</div><div><div class="rcard-t1">${esc(t('reco.msTitle'))}</div><div class="rcard-t2">${esc(t('reco.msSub'))}</div></div></div>
+    <div class="rcard-body">${rows}${prox}</div>
+    <div class="rcard-foot">${esc(t(mine ? 'reco.msFoot' : 'reco.msFootFicha'))}</div>
+  </div>`;
+}
+/* ---------- NIVEL 3: la tarjeta «Tu mes» ---------- */
+function monthCardCompute(logs, plans, todayIso) {
+  const closed = (Array.isArray(logs) ? logs : []).filter(wkIsClosed);
+  const curYm = String(todayIso).slice(0, 7);
+  if (!closed.length) return { pending: true, ym: curYm };
+  const months = [...new Set(closed.map(l => l.date.slice(0, 7)))].filter(m => m < curYm).sort();
+  if (!months.length) return { pending: true, ym: curYm };
+  const ym = months[months.length - 1];
+  const inMonth = closed.filter(l => l.date.slice(0, 7) === ym);
+  const prs = recoPrEvents(logs).filter(ev => ev.date.slice(0, 7) === ym);
+  const wk = recoWeeks(logs, plans, todayIso);
+  let weeksDone = 0;
+  wk.complete.forEach((at, mon) => { if (mon.slice(0, 7) === ym) weeksDone++; });
+  /* Mayor avance del mes: por ejercicio, de su primera a su
+     última aparición del mes, SOLO con la misma unidad. */
+  const groups = new Map();
+  inMonth.slice().sort((a, b) => (a.date < b.date ? -1 : 1)).forEach(l =>
+    (l.exercisesDone || []).forEach(e => {
+      if (!e) return;
+      const key = wkGroupKey(e);
+      if (!groups.has(key)) groups.set(key, { name: e._wkName || e.name || '', apps: [] });
+      groups.get(key).apps.push(wkEntryApp(e, l.date));
+    }));
+  let biggest = null;
+  groups.forEach(g => {
+    const withFig = g.apps.filter(a => a.maxLoad != null && a.unit);
+    if (withFig.length < 2) return;
+    const f = withFig[0], l = withFig[withFig.length - 1];
+    if (f.unit !== l.unit) return;
+    const delta = l.maxLoad - f.maxLoad;
+    if (delta > 0 && (!biggest || delta > biggest.delta))
+      biggest = { name: g.name, fromKg: f.maxLoad, toKg: l.maxLoad, delta };
+  });
+  const py = ym.split('-').map(Number);
+  const prevDate = new Date(Date.UTC(py[0], py[1] - 2, 1));
+  const prevYm = prevDate.getUTCFullYear() + '-' + String(prevDate.getUTCMonth() + 1).padStart(2, '0');
+  const prevSessions = closed.filter(l => l.date.slice(0, 7) === prevYm).length;
+  return { pending: false, ym, sessions: inMonth.length, weeksDone,
+    marks: prs.length, biggest,
+    cmp: prevSessions > 0 ? { diff: inMonth.length - prevSessions, prevYm } : null };
+}
+function monthCardHTML(m) {
+  if (!m) return '';
+  let body;
+  if (m.pending) {
+    body = `<p class="mo-tx">${wkB(t('reco.moPending', { month: esc(recoMonthName(m.ym)) }))}</p>`;
+  } else {
+    const S = [];
+    S.push(t(m.sessions === 1 ? 'reco.moSessions1' : 'reco.moSessions', { n: m.sessions }));
+    if (m.weeksDone > 0) S.push(t(m.weeksDone === 1 ? 'reco.moWeeks1' : 'reco.moWeeks', { n: m.weeksDone }));
+    if (m.marks > 0) S.push(t(m.marks === 1 ? 'reco.moMarks1' : 'reco.moMarks', { n: m.marks }));
+    if (m.biggest) S.push(t('reco.moBiggest', { name: esc(wkDispName(m.biggest.name)), a: fmtMass(m.biggest.fromKg), b: fmtMass(m.biggest.toKg) }));
+    if (m.cmp) {
+      const pm = esc(recoMonthName(m.cmp.prevYm));
+      if (m.cmp.diff === 1) S.push(t('reco.moCmpUp1', { month: pm }));
+      else if (m.cmp.diff > 1) S.push(t('reco.moCmpUpN', { n: m.cmp.diff, month: pm }));
+      else if (m.cmp.diff === -1) S.push(t('reco.moCmpDown1', { month: pm }));
+      else if (m.cmp.diff < -1) S.push(t('reco.moCmpDownN', { n: Math.abs(m.cmp.diff), month: pm }));
+      else S.push(t('reco.moCmpSame', { month: pm }));
+    }
+    body = `<p class="mo-tx">${S.map(wkB).join(' ')}</p>`;
+  }
+  return `<div class="rcard">
+    <div class="rcard-head"><div class="rcard-ico" aria-hidden="true">🏆</div><div><div class="rcard-t1">${esc(t('reco.moTitle'))}</div><div class="rcard-t2">${esc(t('reco.moSub'))}</div></div></div>
+    <div class="rcard-body">${body}</div>
+    ${m.pending ? '' : `<div class="rcard-foot">${esc(t('reco.moFoot'))}</div>`}
+  </div>`;
+}
+/* ---------- carga de las superficies propias (Progreso) ------- */
+let RECO_LATEST = null;
+async function loadRecoCards(uid, logs, plans) {
+  try {
+    const msBox = $('milestones-box'), moBox = $('month-card-box');
+    if (!msBox && !moBox) return;
+    const pLogs = wkPrepareLogs(logs), pPlans = wkPreparePlans(plans);
+    let mealsByDate = {};
+    try {
+      const ms = await getDocs(query(collection(db, 'nutrition_meals'), where('ownerUid', '==', uid)));
+      ms.forEach(d => {
+        const v = d.data();
+        if (v && v.date) (mealsByDate[v.date] = mealsByDate[v.date] || []).push(v);
+      });
+    } catch {}
+    const comp = milestonesCompute(pLogs, pPlans, mealsByDate, todayISO());
+    const items = await recoSyncOwn(uid, comp.items);
+    RECO_LATEST = items.length ? items[items.length - 1] : null;
+    if (msBox) {
+      msBox.innerHTML = milestonesCardHTML(items, { mine: true, next: recoNextHint(comp) });
+      msBox.querySelectorAll('[data-ms-share]').forEach(b => {
+        b.onclick = () => {
+          const it = items.find(x => x.slug === b.dataset.msShare);
+          if (it) shareOpenLogro(it);
+        };
+      });
+    }
+    if (moBox) moBox.innerHTML = monthCardHTML(monthCardCompute(pLogs, pPlans, todayISO()));
+  } catch {}
 }
 
 async function loadProgress() {
@@ -37615,7 +38096,7 @@ setInterval(() => { try { pendDockTick(); } catch {} }, 60000);
    1:1 (1080×1080: la misma composición adaptada — héroe + lo
    esencial, sin la línea de reto). Los emojis se dibujan con la
    fuente de emojis del propio dispositivo (fillText). */
-const SHARE = { type: 'day', format: '916', blob: null, fileName: '', workout: null };
+const SHARE = { type: 'day', format: '916', blob: null, fileName: '', workout: null, logro: null };
 const SHARE_WD = { en: ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'],
                    es: ['lunes', 'martes', 'miércoles', 'jueves', 'viernes', 'sábado', 'domingo'] };
 const SHARE_LETTERS = { en: ['M', 'T', 'W', 'T', 'F', 'S', 'S'], es: ['L', 'M', 'X', 'J', 'V', 'S', 'D'] };
@@ -39303,6 +39784,93 @@ function shareDrawWorkout(ctx, W, H, d) {
   shareTxt(ctx, 'ronbo.fit', MX + fR * 2 + 22, footCy + (cp ? 30 : 40) * 0.36, shareCtxFont(800, cp ? 32 : 42), '#ffffff', { align: 'left', shadowBlur: 12 });
   shareTxt(ctx, '#MiEntrenamientoRonboFit', W - MX, footCy + (cp ? 30 : 40) * 0.36, shareCtxFont(700, cp ? 25 : 32), '#FFD83D', { align: 'right' });
 }
+/* ---------- Tarjeta de LOGRO (sexto tipo de compartir) -------
+   Plan de Reconocimiento por Avance (Ronald, 2026-11-04): el
+   hito se puede compartir fuera con una tarjeta de esta familia.
+   La tarjeta lleva SOLO el logro (hito, marca y fecha): sin peso
+   corporal, sin medidas, sin datos de salud — la misma nota de
+   privacidad de la hoja. */
+function shareLogroData(it) {
+  if (!it) return null;
+  const d = {
+    kind: it.k, at: it.at,
+    name: ((typeof UDATA !== 'undefined' && UDATA && UDATA.name) || '').trim(),
+    head: it.k === 'pr' ? t('reco.shPr') : it.k === 'firstWeek' ? t('reco.shFirstWeek')
+      : it.k === 'streak4' ? t('reco.shStreak4') : t('reco.shFood'),
+    tag: it.k === 'pr' ? t('reco.shWeekTag') : t('reco.shTag'),
+    medal: it.k === 'streak4' ? '🏆' : '🏅'
+  };
+  if (it.k === 'pr') {
+    d.exName = it.name || '';
+    d.kgTxt = fmtMass(it.kg);
+    d.deltaTxt = (typeof it.kg === 'number' && typeof it.prevKg === 'number' && it.kg > it.prevKg)
+      ? '+' + fmtMass(it.kg - it.prevKg) : '';
+    const mon = mondayISO(it.at);
+    d.dateTxt = t('reco.shWeekOf') + wkRangeText(mon, addDaysISO(mon, 6));
+  } else {
+    d.detail = it.k === 'firstWeek' ? t('reco.msFirstWeekD')
+      : it.k === 'streak4' ? t('reco.msStreak4D') : t('reco.msFoodD');
+    d.dateTxt = recoDateFull(it.at);
+  }
+  return d;
+}
+function shareOpenLogro(it) {
+  SHARE.logro = shareLogroData(it);
+  if (!SHARE.logro) return;
+  SHARE.type = 'logro';
+  shareOpen();
+}
+function shareDrawLogroBase(ctx, W, H) {
+  const square = H === W;
+  const grd = ctx.createLinearGradient(0, 0, 0, H);
+  grd.addColorStop(0, '#0B4F45'); grd.addColorStop(1, '#06302A');
+  ctx.save(); ctx.fillStyle = grd; ctx.fillRect(0, 0, W, H); ctx.restore();
+  const cardX = 64, cardW = W - 128;
+  const cardY = square ? 70 : 290, cardH = square ? H - 140 : 1340;
+  sgPanelWhite(ctx, cardX, cardY, cardW, cardH, 36);
+  sgText(ctx, 'RONBO.FIT', cardX + 54, cardY + 66, 900, 44, '#0B7C72', { ls: 1 });
+  return { square, cardX, cardY, cardW, cardH, cx: W / 2 };
+}
+function shareDrawLogro(ctx, W, H, d) {
+  const B = shareDrawLogroBase(ctx, W, H);
+  const top = B.cardY + (B.square ? 108 : 132);
+  sgText(ctx, String(d.tag || '').toUpperCase(), B.cardX + B.cardW - 54, B.cardY + 66, 700, 25, '#8AA39E', { align: 'right', ls: 2 });
+  let y = top + (B.square ? 92 : 150);
+  sgText(ctx, d.medal, B.cx, y, 400, B.square ? 120 : 150, '#123', { align: 'center', emoji: true });
+  y += B.square ? 96 : 128;
+  const hPx = shareFitPx(ctx, d.head, 800, B.square ? 56 : 64, B.cardW - 110);
+  sgText(ctx, d.head, B.cx, y, 800, hPx, '#0B3B36', { align: 'center' });
+  if (d.kind === 'pr') {
+    if (d.exName) { y += B.square ? 62 : 84; const ePx = shareFitPx(ctx, d.exName, 600, B.square ? 38 : 44, B.cardW - 110); sgText(ctx, d.exName, B.cx, y, 600, ePx, '#33544F', { align: 'center' }); }
+    y += B.square ? 92 : 128;
+    const kPx = shareFitPx(ctx, d.kgTxt, 900, B.square ? 110 : 132, B.cardW - 110);
+    sgText(ctx, d.kgTxt, B.cx, y, 900, kPx, '#0B7C72', { align: 'center' });
+    if (d.deltaTxt) {
+      y += B.square ? 66 : 88;
+      const dW = shareTextW(ctx, d.deltaTxt, 700, 36) + 56;
+      sgBox(ctx, B.cx - dW / 2, y - 30, dW, 60, 30, '#E6F7F2');
+      sgText(ctx, d.deltaTxt, B.cx, y, 700, 36, '#0B7C72', { align: 'center' });
+    }
+  } else if (d.detail) {
+    y += B.square ? 66 : 92;
+    const dPx = shareFitPx(ctx, d.detail, 500, B.square ? 34 : 39, B.cardW - 130);
+    sgText(ctx, d.detail, B.cx, y, 500, dPx, '#33544F', { align: 'center' });
+  }
+  const footY = B.cardY + B.cardH - (B.square ? 150 : 190);
+  sgBox(ctx, B.cardX + 70, footY - 44, B.cardW - 140, 2, 1, '#DCEBE8');
+  if (d.name) sgText(ctx, d.name, B.cx, footY + 6, 800, B.square ? 38 : 44, '#12312C', { align: 'center' });
+  sgText(ctx, d.dateTxt || '', B.cx, footY + (B.square ? 52 : 64), 500, B.square ? 30 : 34, '#5B7370', { align: 'center' });
+  sgText(ctx, LANG === 'es' ? 'Come bien. Entrena fuerte. Vive el presente.' : 'Eat well. Train strong. Live present.',
+    B.cx, B.cardY + B.cardH - 52, 700, 27, '#0B7C72', { align: 'center', ls: 1 });
+}
+function shareDrawLogroEmpty(ctx, W, H) {
+  const B = shareDrawLogroBase(ctx, W, H);
+  sgText(ctx, '🏅', B.cx, B.cardY + B.cardH / 2 - 90, 400, 130, '#123', { align: 'center', emoji: true });
+  const ePx = shareFitPx(ctx, t('reco.shEmpty'), 700, 40, B.cardW - 110);
+  sgText(ctx, t('reco.shEmpty'), B.cx, B.cardY + B.cardH / 2 + 40, 700, ePx, '#33544F', { align: 'center' });
+  sgText(ctx, LANG === 'es' ? 'Come bien. Entrena fuerte. Vive el presente.' : 'Eat well. Train strong. Live present.',
+    B.cx, B.cardY + B.cardH - 52, 700, 27, '#0B7C72', { align: 'center', ls: 1 });
+}
 function shareRender() {
   const cv = $('share-canvas'); if (!cv) return;
   const W = 1080, H = SHARE.format === '11' ? 1080 : 1920;
@@ -39349,6 +39917,16 @@ function shareRender() {
     summary = t('share.todayLab') + ' · ' + shareDayLabel(d.iso)
       + (d.rows.length ? ' · ' + d.rows.map(r => r.name + (r.last != null ? ' ' + fmtMassDual(r.last) : '')).join(', ') : ' · ' + t('share.todayEmpty'))
       + (d.phrase ? ' · ' + d.phrase : '') + ' · ronbo.fit #MiEntrenamientoRonboFit';
+  } else if (SHARE.type === 'logro') {
+    const d = SHARE.logro || (typeof RECO_LATEST !== 'undefined' && RECO_LATEST ? shareLogroData(RECO_LATEST) : null);
+    if (d) {
+      shareDrawLogro(ctx, W, H, d);
+      SHARE.fileName = 'ronbo-fit-logro-' + (d.at || todayISO()) + '.png';
+      summary = t('share.logroLab') + ' · ' + d.head + (d.exName ? ' · ' + d.exName + ' ' + d.kgTxt : '') + ' · ' + (d.dateTxt || '') + ' · ronbo.fit';
+    } else {
+      shareDrawLogroEmpty(ctx, W, H);
+      summary = t('share.logroLab') + ' · ' + t('reco.shEmpty') + ' · ronbo.fit';
+    }
   } else if (SHARE.type === 'short') {
     const d = shareShortData();
     shareDrawShort(ctx, W, H, d);
@@ -39402,12 +39980,13 @@ function shareDownload() {
 function shareSyncTypeUI() {
   const f = $('share-float'); if (!f) return;
   f.classList.toggle('share-workout-mode', SHARE.type === 'workout');
-  const bd = $('btn-share-day'), bw = $('btn-share-week'), bg = $('btn-share-goals'), bs = $('btn-share-short'), bt = $('btn-share-today');
+  const bd = $('btn-share-day'), bw = $('btn-share-week'), bg = $('btn-share-goals'), bs = $('btn-share-short'), bt = $('btn-share-today'), bl = $('btn-share-logro');
   if (bd) bd.setAttribute('aria-pressed', SHARE.type === 'day' ? 'true' : 'false');
   if (bw) bw.setAttribute('aria-pressed', SHARE.type === 'week' ? 'true' : 'false');
   if (bg) bg.setAttribute('aria-pressed', SHARE.type === 'goals' ? 'true' : 'false');
   if (bs) bs.setAttribute('aria-pressed', SHARE.type === 'short' ? 'true' : 'false');
   if (bt) bt.setAttribute('aria-pressed', SHARE.type === 'today' ? 'true' : 'false');
+  if (bl) bl.setAttribute('aria-pressed', SHARE.type === 'logro' ? 'true' : 'false');
   shareDayPhotoSync();
 }
 function shareOpen() {
@@ -39420,6 +39999,8 @@ function shareOpen() {
 }
 function shareClose() { const f = $('share-float'); if (f) f.style.display = 'none'; }
 function shareSetType(type) {
+  if (type === 'logro' && !SHARE.logro && typeof RECO_LATEST !== 'undefined' && RECO_LATEST)
+    SHARE.logro = shareLogroData(RECO_LATEST);
   SHARE.type = type;
   shareSyncTypeUI();
   shareRender();
@@ -39450,6 +40031,7 @@ document.addEventListener('keydown', e => { if (e.key === 'Escape') { const f = 
 { const b = $('btn-share-goals'); if (b) b.addEventListener('click', () => shareSetType('goals')); }
 { const b = $('btn-share-short'); if (b) b.addEventListener('click', () => shareSetType('short')); }
 { const b = $('btn-share-today'); if (b) b.addEventListener('click', () => shareSetType('today')); }
+{ const b = $('btn-share-logro'); if (b) b.addEventListener('click', () => shareSetType('logro')); }
 { const b = $('btn-share-f916'); if (b) b.addEventListener('click', () => shareSetFormat('916')); }
 { const b = $('btn-share-f11'); if (b) b.addEventListener('click', () => shareSetFormat('11')); }
 { const b = $('btn-share-send'); if (b) b.addEventListener('click', shareSend); }
@@ -39486,7 +40068,7 @@ document.addEventListener('keydown', e => { if (e.key === 'Escape') shareClose()
  *  - El SW (sw.js) solo cachea la cáscara del mismo origen en modo
  *    RED PRIMERO: Auth/Firestore/Worker jamás pasan por la caché.
  * ================================================================ */
-const PWA_SW_VERSION = '20261104-ejercicios-plegable';
+const PWA_SW_VERSION = '20261104-reconocimiento';
 /* Sello de versión VISIBLE (2026-11-03): el pie de la tarjeta de
    acceso enseña qué copia corre este teléfono ('v ' + el sello),
    para comprobar de un vistazo si la versión nueva ya llegó.

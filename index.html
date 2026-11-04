@@ -21,7 +21,7 @@
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-title" content="RONBO FIT">
 <meta name="apple-mobile-web-app-status-bar-style" content="default">
-<link rel="stylesheet" href="styles.css?v=20261104-ejercicios-plegable">
+<link rel="stylesheet" href="styles.css?v=20261104-reconocimiento">
 <script defer src="https://cloud.umami.is/script.js" data-website-id="a29706d4-44a2-47cf-900a-5f74d74abfa8"></script>
 <script type="importmap">
 {
@@ -408,6 +408,15 @@
          sesiones, la caja queda vacía y la página se ve como
          siempre. -->
     <div id="week-card-box"></div>
+    <!-- RECONOCIMIENTO POR AVANCE (aprobado por Ronald el
+         2026-11-04): bajo la tarjeta semanal, la tarjeta «Tus
+         hitos» (logros con fecha que se quedan guardados) y la
+         tarjeta «Tu mes» (resumen del mes cerrado, solo contra
+         el propio mes anterior). Las pinta loadRecoCards() en
+         app.js desde los registros del propio alumno; sin
+         avance comprobado, las cajas quedan vacías. -->
+    <div id="milestones-box"></div>
+    <div id="month-card-box"></div>
     <div class="prog-subtabs" role="tablist">
       <button type="button" class="prog-subtab active" id="prog-tab-fotos" role="tab" aria-selected="true" data-i18n="progress.tabPhotos">Photos</button>
       <button type="button" class="prog-subtab" id="prog-tab-medidas" role="tab" aria-selected="false" data-i18n="progress.tabMeasures">Measures</button>
@@ -946,6 +955,11 @@
       <button type="button" class="act-chip" id="btn-share-today" aria-pressed="false">
         <span class="act-chip-ico" aria-hidden="true">🏋️</span>
         <span class="act-chip-lab" data-i18n="share.todayLab">Today's workout</span>
+        <span class="act-chip-badge" data-i18n="share.newBadge">NEW</span>
+      </button>
+      <button type="button" class="act-chip" id="btn-share-logro" aria-pressed="false">
+        <span class="act-chip-ico" aria-hidden="true">🏅</span>
+        <span class="act-chip-lab" data-i18n="share.logroLab">My milestone</span>
         <span class="act-chip-badge" data-i18n="share.newBadge">NEW</span>
       </button>
     </div>
@@ -1858,6 +1872,6 @@
 <div id="toast" class="toast"></div>
 <div id="print-card" aria-hidden="true"></div>
 
-<script type="module" src="app.js?v=20261104-ejercicios-plegable"></script>
+<script type="module" src="app.js?v=20261104-reconocimiento"></script>
 </body>
 </html>
