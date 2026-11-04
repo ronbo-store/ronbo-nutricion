@@ -656,6 +656,25 @@ service cloud.firestore {
         && r.version == subA.get('version', '')
         && r.at == request.time;
     }
+    function actReceiptTransitionOk(before, after, type, version) {
+      let tipo = type.split('-')[1];
+      let action = type.split('-')[2];
+      let subB = actConsents(before).get(tipo, {});
+      let subA = actConsents(after).get(tipo, {});
+      return actOnlyTypeChanged(before, after, tipo)
+        && subA.get('version', '') == version
+        && subA.keys().hasOnly(['status', 'version', 'acceptedAt', 'withdrawnAt'])
+        && (action == 'granted'
+            ? (subA.get('status', '') == 'accepted'
+               && subB.get('status', '') != 'accepted'
+               && subB.get('status', '') != 'withdrawn')
+            : (action == 'renewed'
+                ? (subA.get('status', '') == 'accepted'
+                   && subB.get('status', '') == 'withdrawn')
+                : (action == 'withdrawn'
+                   && subA.get('status', '') == 'withdrawn'
+                   && subB.get('status', '') == 'accepted')));
+    }
     function receiptType(before, after) {
       let bs = before.get('healthConsent', {}).get('status', 'none');
       let as2 = after.get('healthConsent', {}).get('status', 'none');

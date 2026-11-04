@@ -41,7 +41,7 @@ await seedUser('aluBt', { trainerUid: 'entrenadorT', assignmentStatus: 'assigned
   b.set(doc(db, 'consent_receipts', 'aluBt_3'),
     { uid: 'aluBt', email: 'aluBt@test.local', type: 'bodytype-granted', version: BT_V, at: serverTimestamp() });
   try { await assertSucceeds(b.commit()); console.log('SONDA G13: PASS'); }
-  catch (e) { const m = String(e.message || e); console.log('SONDA G13: FAIL · ¿tope? ' + m.includes('maximum of 1000') + ' :: ' + m.slice(0, 300)); }
+  catch (e) { const m = String(e.message || e).replace(/[\r\n]+/g, ' ⏎ '); console.log('SONDA G13: FAIL · ¿tope? ' + m.includes('maximum of 1000') + ' :: COLA :: ' + m.slice(-2500)); }
 }
 await testEnv.cleanup();
 process.exit(0);
