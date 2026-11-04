@@ -4627,6 +4627,8 @@ en: {
   'train.histLoads.legacy': '{date} · logged before per-set detail',
   'train.histRec.sets': 'Sets', 'train.histRec.repsMax': 'Max reps',
   'train.histRec.loadMax': 'Max weight', 'train.histRec.none': 'No history',
+  'train.histRec.setsToday': 'Sets today', 'train.histRec.repsToday': 'Reps today',
+  'train.histRec.loadToday': 'Weight today',
   /* INICIAR EJERCICIO + RUEDAS + APROXIMACIÓN (complemento de la
      ficha — 2026-10-30; maqueta v2 aprobada por Ronald): el botón
      de inicio, las ruedas de scroll (sin teclado) y el bloque de
@@ -7680,6 +7682,8 @@ es: {
   'train.histLoads.legacy': '{date} · registrado antes del detalle por series',
   'train.histRec.sets': 'Series', 'train.histRec.repsMax': 'Reps máx',
   'train.histRec.loadMax': 'Peso máx', 'train.histRec.none': 'Sin historial',
+  'train.histRec.setsToday': 'Series hoy', 'train.histRec.repsToday': 'Reps hoy',
+  'train.histRec.loadToday': 'Peso hoy',
   /* INICIAR EJERCICIO + RUEDAS + APROXIMACIÓN (complemento de la
      ficha — 2026-10-30; maqueta v2 aprobada por Ronald): el botón
      de inicio, las ruedas de scroll (sin teclado) y el bloque de
@@ -26917,16 +26921,25 @@ function trainSessionSummaryLive(chk) {
 /* El bloque compacto de la fila: tres mini-columnas (título arriba,
    número abajo) a la DERECHA de la fila, sin estorbar el check.
    Recibe el resumen de la sesión (trainSessionSummary*): el PESO
-   MÁX va en las dos mediciones — la unidad del visor en grande y
+   va en las dos mediciones — la unidad del visor en grande y
    la otra tras el «≈» en su propia línea (.train-ex-hist-eq), como
    el detalle por serie pinta su equivalencia bajo la carga. Sin
-   resumen: «—» en las tres, sin nota. */
+   resumen: «—» en las tres, sin nota.
+   RÓTULOS «DE HOY» (2026-11-04, elección de Ronald «Aclarar los
+   rótulos del bloque» tras su captura de la mañana): desde AUTH-202
+   el bloque resume la sesión del día, pero los rótulos heredados
+   de AUTH-161 («Reps máx · Peso máx») sonaban a récord histórico
+   y confundían; las tres columnas dicen ahora «hoy» (claves
+   train.histRec.*Today, propias de este bloque: las claves viejas
+   quedan intactas para la línea de la tarjeta de resumen, que es
+   otro texto). Solo textos: los valores salen del mismo resumen
+   de sesión de siempre. */
 function trainHistBlockHTML(sum) {
   const dash = '—';
   return `<div class="train-ex-hist"><div class="train-ex-hist-cols">`
-    + `<div class="train-ex-hist-col"><span class="train-ex-hist-lab">${t('train.histRec.sets')}</span><span class="train-ex-hist-val">${sum && sum.nSets != null ? sum.nSets : dash}</span></div>`
-    + `<div class="train-ex-hist-col"><span class="train-ex-hist-lab">${t('train.histRec.repsMax')}</span><span class="train-ex-hist-val">${sum && sum.maxReps != null ? sum.maxReps : dash}</span></div>`
-    + `<div class="train-ex-hist-col"><span class="train-ex-hist-lab">${t('train.histRec.loadMax')}</span><span class="train-ex-hist-val">${sum && sum.maxLoad != null ? `${fmtMass(sum.maxLoad)} <span class="train-ex-hist-eq">${esc(massEqText(sum.maxLoad))}</span>` : dash}</span></div>`
+    + `<div class="train-ex-hist-col"><span class="train-ex-hist-lab">${t('train.histRec.setsToday')}</span><span class="train-ex-hist-val">${sum && sum.nSets != null ? sum.nSets : dash}</span></div>`
+    + `<div class="train-ex-hist-col"><span class="train-ex-hist-lab">${t('train.histRec.repsToday')}</span><span class="train-ex-hist-val">${sum && sum.maxReps != null ? sum.maxReps : dash}</span></div>`
+    + `<div class="train-ex-hist-col"><span class="train-ex-hist-lab">${t('train.histRec.loadToday')}</span><span class="train-ex-hist-val">${sum && sum.maxLoad != null ? `${fmtMass(sum.maxLoad)} <span class="train-ex-hist-eq">${esc(massEqText(sum.maxLoad))}</span>` : dash}</span></div>`
     + `</div></div>`;
 }
 function trainHistLoadsRows(ex, allLogs) {
@@ -38526,7 +38539,7 @@ document.addEventListener('keydown', e => { if (e.key === 'Escape') shareClose()
  *  - El SW (sw.js) solo cachea la cáscara del mismo origen en modo
  *    RED PRIMERO: Auth/Firestore/Worker jamás pasan por la caché.
  * ================================================================ */
-const PWA_SW_VERSION = '20261104-alerta-mismo-dia';
+const PWA_SW_VERSION = '20261104-rotulos-hoy';
 /* Sello de versión VISIBLE (2026-11-03): el pie de la tarjeta de
    acceso enseña qué copia corre este teléfono ('v ' + el sello),
    para comprobar de un vistazo si la versión nueva ya llegó.
