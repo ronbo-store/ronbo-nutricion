@@ -232,6 +232,19 @@ await seedUser('aluHealth', { trainerUid: 'entrenadorT', assignmentStatus: 'assi
     { uid: 'aluHealth', email: 'aluHealth@test.local', type: 'specific-granted', version: 'hv-test-1', at: serverTimestamp() });
   await T('G19 vecino: otorgar consentimiento de salud con su recibo (ambos textos)', b.commit(), true);
 }
+// G20 — flujo vecino NO del paquete: el cierre propio de la
+// cuenta (recibo 'account-closed' con rid == uid + borrado del
+// documento en el mismo lote). Debe pasar en AMBOS textos: si
+// fallara solo en la candidata, el delta habría roto un flujo
+// de la casa que comparte la cadena de creación de recibos.
+await seedUser('aluCierre', { consentSeq: 1, consentReceiptId: 'aluCierre_1' });
+{
+  const db = dbOf('aluCierre'); const b = writeBatch(db);
+  b.set(doc(db, 'consent_receipts', 'aluCierre'),
+    { uid: 'aluCierre', email: 'aluCierre@test.local', type: 'account-closed', version: 'vX', at: serverTimestamp() });
+  b.delete(doc(db, 'users', 'aluCierre'));
+  await T('G20 vecino: cierre propio de la cuenta con su recibo (ambos textos)', b.commit(), true);
+}
 // G14 — segundo tipo con el primero intacto (mapa completo).
 {
   const cur = await readUser('aluSleep');
