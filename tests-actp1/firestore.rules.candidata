@@ -614,11 +614,15 @@ service cloud.firestore {
     // EXACTAMENTE uno vive en las ramas — actOnlyTypeChanged —;
     // un acto con dos tipos cambiados no casa con ninguna rama y
     // el lote se deniega aunque esta derivación nombre al primero.)
+    function actSubOf(data, tipo) {
+      return data.get('activityConsents', {}).get(tipo, {});
+    }
     function actChangedType(before, after) {
-      return actStatus(before, 'steps') != actStatus(after, 'steps') ? 'steps'
-        : actStatus(before, 'exercise') != actStatus(after, 'exercise') ? 'exercise'
-        : actStatus(before, 'weight') != actStatus(after, 'weight') ? 'weight'
-        : actStatus(before, 'sleep') != actStatus(after, 'sleep') ? 'sleep' : '';
+      return before.get('activityConsents', {}) == after.get('activityConsents', {}) ? ''
+        : actSubOf(before, 'steps') != actSubOf(after, 'steps') ? 'steps'
+        : actSubOf(before, 'exercise') != actSubOf(after, 'exercise') ? 'exercise'
+        : actSubOf(before, 'weight') != actSubOf(after, 'weight') ? 'weight'
+        : actSubOf(before, 'sleep') != actSubOf(after, 'sleep') ? 'sleep' : '';
     }
     // ¿El conjunto de subclaves que cambian en el mapa es SOLO la
     // del tipo dado? (diff de mapas: cualquier otra subclave
@@ -696,7 +700,8 @@ service cloud.firestore {
       // app nunca mezcla actos; si algo más cambió, mandan las
       // derivaciones de siempre y la rama de actividad falla
       // cerrada al no casar su recibo).
-      return actChangedType(before, after) != '' && bb == ba && bs == as2
+      return before.get('activityConsents', {}) != after.get('activityConsents', {})
+        && actChangedType(before, after) != '' && bb == ba && bs == as2
           && before.get('acceptedTerms', false) == after.get('acceptedTerms', false)
         ? actDerivedType(before, after)
         : (bb != ba
