@@ -18,8 +18,19 @@
 //      en 'mifflin-st-jeor', el atleta resultante en falso y SIN
 //      equationChosenBy en el documento resultante.
 // La rama del alumno NO se toca. El ritmo (paceSuggestion, en
-// users) NO forma parte del delta: su escritura del entrenador
-// ya es la viva y se prueba como vecino intacto.
+// users) NO forma parte del delta y se prueba como vecino.
+// HALLAZGO VERIFICADO al construir (queda fijado en casos): la
+// rama viva del ritmo para el entrenador asignado es ESTRECHA —
+// solo aprobar/rechazar una sugerencia 'pending', con las cinco
+// claves exactas y decidedAt == hora del servidor, SIN
+// 'decidedPaceKcal' — mientras el escritor de la app
+// (goalsTrainerDecidePace) escribe también decidedPaceKcal,
+// estado 'replaced' y decidedAt como texto ISO: esa forma solo
+// pasa hoy por la rama del PROPIETARIO (así se decidió el ritmo
+// de María, 500 → 750, el 2026-11-02). Desajuste PREEXISTENTE,
+// idéntico con y sin este delta; corregirlo no es de este
+// paquete (la orden fue no inventar delta para el ritmo) y los
+// casos de abajo fijan la verdad viva en los dos modos.
 //
 // La suite corre en DOS modos con la misma lista de casos:
 //   ESPERA_NUEVO=true  → reglas = CANDIDATA (el delta se
@@ -148,7 +159,7 @@ await T('sello de autor distinto de quien pide (athleteDeclaredBy = otro): deneg
   }), false);
 await T('sello de tiempo que no es el de la petición: denegado',
   updateDoc(ASMT('alumna', 'entrena'), {
-    athleteDeclared: false, athleteDeclaredAt: Timestamp.fromMillis(1761700000000),
+    athleteDeclared: false, athleteDeclaredAt: Timestamp.fromMillis(1761600000000),
     athleteDeclaredBy: 'entrena', updatedAt: ST(), updatedBy: 'entrena'
   }), false);
 await T('athleteDeclared que no es booleano: denegado',
@@ -168,10 +179,22 @@ await T('el entrenador sigue eligiendo la ecuación como hoy (origen trainer)',
     equationOrigin: 'trainer', updatedAt: ST(), updatedBy: 'entrena'
   }), true);
 await seed('users/alumna/assessment/current', ASMT_BASE);
-await T('el ritmo NO es del delta: el entrenador decide paceSuggestion en users como hoy',
+const PEND = { paceKcal: 500, suggestedAt: Timestamp.fromMillis(1761900000000), status: 'pending' };
+await seed('users/alumna', { name: 'Ficticia alumna', email: 'alumna@test.local', role: 'usuario', isOwner: false, approved: true, trainerUid: 'entrena', assignmentStatus: 'assigned', paceSuggestion: PEND });
+await T('el ritmo NO es del delta (1): la forma exacta del escritor de la app pasa por la rama del PROPIETARIO, como hoy',
+  setDoc(D('dueno', 'users', 'alumna'), {
+    paceSuggestion: { paceKcal: 500, suggestedAt: '2026-10-30T12:00:00Z', status: 'replaced', decidedPaceKcal: 750, decidedBy: 'dueno', decidedAt: '2026-11-03T12:00:00Z' }
+  }, { merge: true }), true);
+await seed('users/alumna', { name: 'Ficticia alumna', email: 'alumna@test.local', role: 'usuario', isOwner: false, approved: true, trainerUid: 'entrena', assignmentStatus: 'assigned', paceSuggestion: PEND });
+await T('el ritmo NO es del delta (2): el entrenador asignado aprueba la sugerencia pendiente en la forma estrecha de la rama viva',
+  updateDoc(D('entrena', 'users', 'alumna'), {
+    paceSuggestion: { paceKcal: 500, suggestedAt: Timestamp.fromMillis(1761900000000), status: 'approved', decidedBy: 'entrena', decidedAt: ST() }
+  }), true);
+await seed('users/alumna', { name: 'Ficticia alumna', email: 'alumna@test.local', role: 'usuario', isOwner: false, approved: true, trainerUid: 'entrena', assignmentStatus: 'assigned', paceSuggestion: PEND });
+await T('el ritmo NO es del delta (3): la forma del escritor de la app por un entrenador NO propietario queda denegada — desajuste preexistente, idéntico antes y después',
   setDoc(D('entrena', 'users', 'alumna'), {
     paceSuggestion: { paceKcal: 500, suggestedAt: '2026-10-30T12:00:00Z', status: 'replaced', decidedPaceKcal: 750, decidedBy: 'entrena', decidedAt: '2026-11-03T12:00:00Z' }
-  }, { merge: true }), true);
+  }, { merge: true }), false);
 await T('el propietario puede lo de siempre, también el atleta',
   updateDoc(ASMT('alumna', 'dueno'), { athleteDeclared: false, athleteDeclaredAt: ST(), athleteDeclaredBy: 'dueno', updatedAt: ST(), updatedBy: 'dueno' }), true);
 await T('sin sesión no se toca nada: denegado',
