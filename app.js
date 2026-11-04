@@ -4893,6 +4893,10 @@ en: {
   'limits.error': 'The limits could not be loaded or saved. Try again.',
   'limits.invalid': 'Enter a whole number of 0 or more, or choose "No limit".',
   'limits.countNote': 'The counter measures requests to the service; a full analysis normally uses two.',
+  'limits.notSet': 'Not set — inherits',
+  'limits.effNum': 'Effective: {n} / day',
+  'limits.effNoLimit': 'Effective: no limit',
+  'limits.defaultNum': 'Default: {n} / day',
   'admuse.title': '🛠 Administration',
   'admuse.sub': 'Administrator only · your management zone',
   'admuse.subTech': 'Tech',
@@ -7929,6 +7933,10 @@ es: {
   'limits.error': 'No se pudieron cargar ni guardar los límites. Inténtalo de nuevo.',
   'limits.invalid': 'Escribe un número entero de 0 o más, o elige «Sin límite».',
   'limits.countNote': 'El contador mide solicitudes al servicio; un análisis completo usa normalmente dos.',
+  'limits.notSet': 'Sin fijar — hereda',
+  'limits.effNum': 'Efectivo: {n} / día',
+  'limits.effNoLimit': 'Efectivo: sin límite',
+  'limits.defaultNum': 'Por defecto: {n} / día',
   'admuse.title': '🛠 Administración',
   'admuse.sub': 'Solo administrador · tu zona de gestión',
   'admuse.subTech': 'Tech',
@@ -11640,7 +11648,22 @@ pkInitLoginAccess();
    Resolución en el Worker: límite propio del usuario -> el de SU
    entrenador -> el global -> sin límite. Esta sección solo se pinta
    dentro de «Administración de accesos» (superficie ya exclusiva del
-   dueño) y solo se carga si IS_OWNER. */
+   dueño) y solo se carga si IS_OWNER.
+   ARREGLO 2026-11-04 (reporte de Ronald con dos capturas: «cuando
+   le doy guardar se habilitan todos»): esta sección confundía SIN
+   FIJAR con SIN LÍMITE en sus dos extremos — al pintar, la ausencia
+   de clave se leía con == null, igual que el null del «inf» fijado,
+   y casi todas las filas abrían como «Sin límite» cuando su tope
+   real era el defecto de 10; al guardar, el campo vacío caía a
+   limite=null y el Worker escribía «inf» en la fila tocada (caso
+   real de hoy: Gerwynth pasó de 10 a «inf» y dos alumnas sin clave
+   quedaron en «inf»; la tabla se restauró a la verificada en
+   AUTH-224 antes de este arreglo). Ahora la pintura distingue los
+   tres estados por la PRESENCIA de la clave (en el global, por
+   «globalSet») y muestra el efectivo de las filas sin fijar; el
+   guardado expresa los tres estados (número · null = «sin límite»
+   · 'clear' = sin fijar, borra SOLO la clave de la fila); y al
+   desmarcar «Sin límite» el campo recupera el número guardado. */
 let LIMITS_STATE = null;
 async function limitsCall(method, body) {
   const ep = aiEndpoint();
@@ -11687,19 +11710,56 @@ async function loadLimits() {
   } catch { box.innerHTML = `<div class="wempty">${t('limits.error')}</div>`; }
 }
 
+/* Pista del límite EFECTIVO de una fila de usuario SIN clave propia,
+   solo con lo que la lectura del Worker trae: si el servidor conoce
+   al usuario, manda su «effective» (número, o null = ilimitado); sin
+   mapeo y sin global fijado, lo que aplica es el defecto; con global
+   fijado, el propio global. Si nada permite afirmarlo, no hay pista. */
+function limEffHint(st, uid) {
+  const eff = (st.effective || {})[uid];
+  if (eff !== undefined) return eff;
+  if ((st.mappings || {})[uid]) return undefined;
+  if (st.globalSet) return st.global;
+  return st.defaultLimit != null ? st.defaultLimit : 10;
+}
+
 function limitRowHTML(nivel, uid, title, sub, isOwnerRow) {
   const st = LIMITS_STATE || {};
-  const cur = nivel === 'global' ? st.global
-    : nivel === 'entrenador' ? (st.trainers || {})[uid]
-    : (st.users || {})[uid];
+  const map = nivel === 'entrenador' ? (st.trainers || {}) : (st.users || {});
+  /* TRES estados que ya no se confunden (arreglo 2026-11-04): número
+     propio fijado · «sin límite» FIJADO (la clave existe y la lectura
+     la devuelve como null) · SIN FIJAR (la clave NO existe: la fila
+     hereda — entrenador, global o el defecto). La lectura distingue
+     el segundo estado del tercero por la PRESENCIA de la clave en
+     el mapa (y en el global, por «globalSet»); el código anterior
+     miraba solo el valor con == null y pintaba «sin fijar» como
+     «sin límite». */
+  const has = nivel === 'global' ? st.globalSet === true
+    : Object.prototype.hasOwnProperty.call(map, uid);
+  const cur = nivel === 'global' ? st.global : map[uid];
+  const isInf = has && cur == null;
+  const isNum = has && cur != null;
   const usage = uid ? (st.usage || {})[uid] : null;
   const key = nivel === 'global' ? 'global' : uid;
+  const eff = (nivel === 'usuario' && !has) ? limEffHint(st, uid) : undefined;
+  let stateTxt = '';
+  if (!has) {
+    stateTxt = t('limits.notSet');
+    if (eff !== undefined) stateTxt += ' · ' + (eff == null ? t('limits.effNoLimit') : t('limits.effNum', { n: eff }));
+    if (nivel === 'global') stateTxt += ' · ' + t('limits.defaultNum', { n: st.defaultLimit != null ? st.defaultLimit : 10 });
+  }
+  let ph = '∞';
+  if (!has) {
+    if (nivel === 'usuario') ph = (eff !== undefined && eff != null) ? String(eff) : '∞';
+    else if (nivel === 'global') ph = String(st.defaultLimit != null ? st.defaultLimit : 10);
+    else ph = '—';
+  }
   return `<div class="user-row">
-    <div><b>${esc(title)}</b>${isOwnerRow ? ` <span class="owner-badge">${t('admin.owner')}</span>` : ''}<br><span class="muted">${esc(sub || '')}</span>${usage != null ? `<br><span class="muted">${t('limits.usageToday', { n: usage })}</span>` : ''}</div>
+    <div><b>${esc(title)}</b>${isOwnerRow ? ` <span class="owner-badge">${t('admin.owner')}</span>` : ''}<br><span class="muted">${esc(sub || '')}</span>${usage != null ? `<br><span class="muted">${t('limits.usageToday', { n: usage })}</span>` : ''}${stateTxt ? `<br><span class="muted">${esc(stateTxt)}</span>` : ''}</div>
     <div class="user-actions limits-actions">
-      <input type="number" class="limits-input" id="lim-in-${key}" min="0" step="1" inputmode="numeric" value="${cur == null ? '' : cur}" placeholder="∞" ${cur == null ? 'disabled' : ''}>
+      <input type="number" class="limits-input" id="lim-in-${key}" min="0" step="1" inputmode="numeric" value="${isNum ? cur : ''}" placeholder="${ph}" ${isInf ? 'disabled' : ''}>
       <span class="muted">${t('limits.perDay')}</span>
-      <label class="limits-nolimit"><input type="checkbox" id="lim-nl-${key}" ${cur == null ? 'checked' : ''}> ${t('limits.noLimit')}</label>
+      <label class="limits-nolimit"><input type="checkbox" id="lim-nl-${key}" ${isInf ? 'checked' : ''}> ${t('limits.noLimit')}</label>
       <button class="btn-primary btn-sm" data-limsave="${nivel}" data-limuid="${uid || ''}">${t('limits.save')}</button>
     </div>
   </div>`;
@@ -11720,7 +11780,16 @@ function renderLimits() {
   box.querySelectorAll('.limits-nolimit input[type="checkbox"]').forEach(c => c.onchange = () => {
     const key = c.id.replace('lim-nl-', '');
     const inp = $('lim-in-' + key);
-    if (inp) { inp.disabled = c.checked; if (c.checked) inp.value = ''; }
+    if (!inp) return;
+    if (c.checked) { inp.disabled = true; inp.value = ''; return; }
+    inp.disabled = false;
+    /* Al desmarcar, el campo recupera el número PROPIO guardado de
+       la fila si lo hay (arreglo 2026-11-04: antes quedaba vacío, y
+       un Guardar posterior convertía ese vacío en «sin límite»). */
+    const st = LIMITS_STATE || {};
+    const cur = key === 'global' ? st.global
+      : (Object.prototype.hasOwnProperty.call(st.users || {}, key) ? (st.users || {})[key] : (st.trainers || {})[key]);
+    if (typeof cur === 'number') inp.value = cur;
   });
 }
 
@@ -11728,10 +11797,21 @@ async function saveLimit(btn) {
   const nivel = btn.dataset.limsave, uid = btn.dataset.limuid || '';
   const key = nivel === 'global' ? 'global' : uid;
   const nl = $('lim-nl-' + key), inp = $('lim-in-' + key);
-  let limite = null;
-  if (nl && !nl.checked) {
+  /* TRES salidas, una por estado pintado (arreglo 2026-11-04):
+     casilla marcada -> null (el Worker fija «sin límite» = «inf») ·
+     número escrito -> ese número · ni casilla ni número -> 'clear'
+     (SIN FIJAR: el Worker borra SOLO la clave de esta fila y la
+     fila vuelve a heredar). El código anterior caía a null con el
+     campo vacío AUNQUE la casilla estuviera desmarcada: cada
+     Guardar así dejaba la fila SIN LÍMITE — lo contrario de lo que
+     el administrador veía y quería — y ningún Guardar podía
+     expresar «sin fijar». */
+  let limite;
+  if (nl && nl.checked) limite = null;
+  else {
     const raw = (inp && inp.value || '').trim();
-    if (raw !== '') {
+    if (raw === '') limite = 'clear';
+    else {
       const n = Number(raw);
       if (!Number.isInteger(n) || n < 0) { toast(t('limits.invalid')); return; }
       limite = n;
@@ -38219,7 +38299,7 @@ document.addEventListener('keydown', e => { if (e.key === 'Escape') shareClose()
  *  - El SW (sw.js) solo cachea la cáscara del mismo origen en modo
  *    RED PRIMERO: Auth/Firestore/Worker jamás pasan por la caché.
  * ================================================================ */
-const PWA_SW_VERSION = '20261104-mi-entrenador';
+const PWA_SW_VERSION = '20261104-topes-ia';
 /* Sello de versión VISIBLE (2026-11-03): el pie de la tarjeta de
    acceso enseña qué copia corre este teléfono ('v ' + el sello),
    para comprobar de un vistazo si la versión nueva ya llegó.
