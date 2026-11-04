@@ -39142,7 +39142,7 @@ document.addEventListener('keydown', e => { if (e.key === 'Escape') shareClose()
  *  - El SW (sw.js) solo cachea la cáscara del mismo origen en modo
  *    RED PRIMERO: Auth/Firestore/Worker jamás pasan por la caché.
  * ================================================================ */
-const PWA_SW_VERSION = '20261104-semana';
+const PWA_SW_VERSION = '20261104-cronometro-persiste';
 /* Sello de versión VISIBLE (2026-11-03): el pie de la tarjeta de
    acceso enseña qué copia corre este teléfono ('v ' + el sello),
    para comprobar de un vistazo si la versión nueva ya llegó.
@@ -40313,16 +40313,44 @@ async function faqEdAdd() {
    CRONÓMETRO DEPORTIVO LIBRE (2026-10-27, diseño
    DISEÑO-CRONOMETRO-DEPORTIVO-2026-10-27, previa aprobada por
    Ronald tal cual). Herramienta a pantalla completa sobre el
-   papel tapiz de la marca. Es LIBRE: su estado vive SOLO en
-   memoria — no escribe Firestore, ni localStorage, ni toca el
-   cronómetro de la sesión del plan (trainChrono*), ni la
-   llamita, ni el motor de metas. La precisión sale del reloj
-   del sistema (performance.now()): el tiempo se CALCULA desde
-   marcas de tiempo en cada pintado, jamás se cuenta por ticks,
-   así que no hay deriva aunque el navegador estrangule frames.
+   papel tapiz de la marca. Es LIBRE: no escribe Firestore, ni
+   toca el cronómetro de la sesión del plan (trainChrono*), ni
+   la llamita, ni el motor de metas — no guarda ningún registro.
+   PERSISTENCIA EN EL DISPOSITIVO (corrección 2026-11-04, reporte
+   en vivo de Ronald: «activé el cronómetro, me salí de la app y
+   se perdió»): el estado en curso (instante de arranque del
+   tramo, acumulado y vueltas) se sella en localStorage en cada
+   cambio y se restaura al abrir la app, con el reloj de pared
+   (Date.now()): salir y volver ya no lo pierde y el tiempo que
+   pasa fuera SIGUE contando, porque el transcurrido se CALCULA
+   desde las marcas guardadas en cada pintado, jamás se cuenta
+   por ticks. Un sello de un día anterior se descarta al
+   restaurar: el cronómetro de ayer no resucita hoy. Al ponerlo
+   a cero, el sello se borra.
    ============================================================ */
 const STOPW = { open: false, running: false, startAt: 0, acc: 0, laps: [], raf: 0 };
-function swElapsed() { return STOPW.acc + (STOPW.running ? performance.now() - STOPW.startAt : 0); }
+const SW_LS_KEY = 'ronbofit-stopwatch-v1';
+function swSave() {
+  try {
+    if (!STOPW.running && STOPW.acc <= 0 && !STOPW.laps.length) { localStorage.removeItem(SW_LS_KEY); return; }
+    localStorage.setItem(SW_LS_KEY, JSON.stringify({
+      running: STOPW.running, startAt: STOPW.startAt, acc: STOPW.acc,
+      laps: STOPW.laps, day: todayISO() }));
+  } catch {}
+}
+function swRestore() {
+  try {
+    const raw = localStorage.getItem(SW_LS_KEY);
+    if (!raw) return;
+    const v = JSON.parse(raw);
+    if (!v || v.day !== todayISO() || typeof v.acc !== 'number') { localStorage.removeItem(SW_LS_KEY); return; }
+    STOPW.acc = v.acc;
+    STOPW.laps = Array.isArray(v.laps) ? v.laps.filter(l => l && typeof l.lapMs === 'number' && typeof l.totalMs === 'number') : [];
+    if (v.running && typeof v.startAt === 'number') { STOPW.running = true; STOPW.startAt = v.startAt; }
+    else { STOPW.running = false; STOPW.startAt = 0; }
+  } catch {}
+}
+function swElapsed() { return STOPW.acc + (STOPW.running ? Date.now() - STOPW.startAt : 0); }
 function swPad2(n) { return String(n).padStart(2, '0'); }
 function swFmtParts(ms) {
   const cs = Math.floor(ms / 10) % 100, s = Math.floor(ms / 1000) % 60, m = Math.floor(ms / 60000);
@@ -40384,18 +40412,21 @@ function swTick() {
 }
 function swKick() { if (STOPW.open && STOPW.running && !STOPW.raf) STOPW.raf = requestAnimationFrame(swTick); }
 function swMainAction() {
-  if (STOPW.running) { STOPW.acc += performance.now() - STOPW.startAt; STOPW.running = false; }
-  else { STOPW.startAt = performance.now(); STOPW.running = true; swKick(); }
+  if (STOPW.running) { STOPW.acc += Date.now() - STOPW.startAt; STOPW.running = false; }
+  else { STOPW.startAt = Date.now(); STOPW.running = true; swKick(); }
+  swSave();
   swPaint();
 }
 function swLapAction() {
   const el = swElapsed(); if (el <= 0) return;
   const prev = swLapBase();
   STOPW.laps.push({ lapMs: el - prev, totalMs: el });
+  swSave();
   swPaint();
 }
 function swResetAction() {
   STOPW.running = false; STOPW.acc = 0; STOPW.startAt = 0; STOPW.laps = [];
+  swSave();
   swPaint();
 }
 function swSideAction(side) {
@@ -40431,6 +40462,7 @@ function swFabPaint() {
   if (lab && SW_FAB_LAST !== txt) { lab.textContent = txt; SW_FAB_LAST = txt; }
 }
 (function swInit() {
+  swRestore();
   const fab = $('btn-stopwatch'); if (fab) fab.addEventListener('click', swOpenTool);
   swFabPaint();
   setInterval(() => { if (!STOPW.open) swFabPaint(); }, 250);
