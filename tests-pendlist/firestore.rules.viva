@@ -1645,15 +1645,29 @@ service cloud.firestore {
         // as 'pending verification'). 'sexDataProvided' is NOT in
         // the trainer's key lists: the provided-signal is the
         // client's declaration, never the trainer's to write.
+        // AUTH-208 (2026-11-03, punto 129; orden de Ronald: «quiero
+        // poder quitarle el perfil de atleta»): the athlete keys
+        // DO join the trainer's lists — adjusting the athlete
+        // profile of HIS OWN assigned client from the energy card
+        // is the trainer's act, stamped with who and when
+        // (athleteDeclaredBy/At); the client's own declaration
+        // branch below is untouched and can always re-declare.
         allow create: if (isOwnerUser() || isAssignedTrainerOf(uid)) && docId == 'current'
           && request.resource.data.keys().hasOnly([
                'birthYear', 'heightCm', 'heightOriginal', 'heightUnitOriginal',
                'goal', 'equation', 'equationChosenBy', 'equationChosenAt', 'equationOrigin',
+               'athleteDeclared', 'athleteDeclaredAt', 'athleteDeclaredBy',
                'palBasal', 'palNote', 'activityCategoryId', 'palExceptionConfirmed',
                'updatedAt', 'updatedBy'])
           && !('sexForCalc' in request.resource.data)
           && (!('equation' in request.resource.data)
               || request.resource.data.equation in ['mifflin-st-jeor', 'ten-haaf'])
+          && (!('athleteDeclared' in request.resource.data)
+              || request.resource.data.athleteDeclared is bool)
+          && (!('athleteDeclaredAt' in request.resource.data)
+              || request.resource.data.athleteDeclaredAt == request.time)
+          && (!('athleteDeclaredBy' in request.resource.data)
+              || request.resource.data.athleteDeclaredBy == request.auth.uid)
           && (!('equationOrigin' in request.resource.data)
               || request.resource.data.equationOrigin == 'trainer')
           && (!('birthYear' in request.resource.data)
@@ -1687,6 +1701,7 @@ service cloud.firestore {
           && request.resource.data.diff(resource.data).affectedKeys().hasOnly([
                'birthYear', 'heightCm', 'heightOriginal', 'heightUnitOriginal',
                'goal', 'equation', 'equationChosenBy', 'equationChosenAt', 'equationOrigin',
+               'athleteDeclared', 'athleteDeclaredAt', 'athleteDeclaredBy',
                'palBasal', 'palNote', 'activityCategoryId', 'palExceptionConfirmed',
                'updatedAt', 'updatedBy',
                'rmrKcal', 'tdeeKcal', 'equationUsed', 'equationVersion',
@@ -1701,7 +1716,29 @@ service cloud.firestore {
               || request.resource.data.equation in ['mifflin-st-jeor', 'ten-haaf'])
           && (!request.resource.data.diff(resource.data).affectedKeys()
                 .hasAny(['equationOrigin'])
-              || request.resource.data.equationOrigin == 'trainer')
+              || request.resource.data.equationOrigin == 'trainer'
+              // AUTH-208 (punto 129): ÚNICA otra forma admitida —
+              // la caída a la base automática al retirar el perfil
+              // de atleta con Ten Haaf elegida: origen 'auto' SOLO
+              // con la ecuación resultante en la base (Mifflin-St
+              // Jeor), el atleta resultante en falso y SIN firma
+              // del entrenador en el documento resultante — el
+              // estado exacto que la sesión del alumno estampa
+              // desde AUTH-190. Ninguna otra escritura del
+              // entrenador con origen 'auto' pasa por esta rama.
+              || (request.resource.data.equationOrigin == 'auto'
+                  && request.resource.data.equation == 'mifflin-st-jeor'
+                  && request.resource.data.get('athleteDeclared', true) == false
+                  && !('equationChosenBy' in request.resource.data)))
+          && (!request.resource.data.diff(resource.data).affectedKeys()
+                .hasAny(['athleteDeclared'])
+              || request.resource.data.athleteDeclared is bool)
+          && (!request.resource.data.diff(resource.data).affectedKeys()
+                .hasAny(['athleteDeclaredAt'])
+              || request.resource.data.athleteDeclaredAt == request.time)
+          && (!request.resource.data.diff(resource.data).affectedKeys()
+                .hasAny(['athleteDeclaredBy'])
+              || request.resource.data.athleteDeclaredBy == request.auth.uid)
           && (!request.resource.data.diff(resource.data).affectedKeys()
                 .hasAny(['birthYear'])
               || (request.resource.data.birthYear is int
