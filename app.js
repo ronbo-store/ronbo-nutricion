@@ -2106,7 +2106,6 @@ const ADMIN_SECTIONS = [
   { id: 'limits', sub: 'system', titleKey: 'limreg.title', mount: admSecMountLimits, refresh: admSecRefreshLimits },
   { id: 'imglim', sub: 'system', titleKey: 'imglim.title', mount: admSecMountImgLim, refresh: admSecRefreshImgLim },
   { id: 'care', sub: 'system', titleKey: 'care.title', mount: admSecMountCare, refresh: admSecRefreshCare },
-  { id: 'nutri', sub: 'system', titleKey: 'admin.nutriTitle', mount: admSecMountNutri, refresh: admSecRefreshNutri },
 ];
 const ADM_SEC_OPEN = {};     // id → abierta (solo presentación)
 const ADM_SEC_MOUNTED = {};  // id → contenido ya montado
@@ -3342,7 +3341,7 @@ en: {
   'purpose.nutriTitle': 'Choose your food coach',
   'purpose.nutriOptional': 'Optional',
   'purpose.nutriSkip': 'No food coach for now',
-  'purpose.nutriSkipSub': 'You can choose one later from your profile, in My food coach.',
+  'purpose.nutriSkipSub': 'You can choose one later in the “My food coach” tab.',
   'purpose.nutriProTitle': 'Your training and your membership',
   'purpose.formationLabel': 'Your training (degrees, certifications) — the Administrator reviews it',
   'purpose.formationPh': 'E.g. Registered dietitian, degree and license…',
@@ -3505,8 +3504,10 @@ en: {
   'tabs.students': '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M2.5 9L12 4l9.5 5L12 14z"/><path d="M6.5 11.5V16c0 1.6 2.5 3 5.5 3s5.5-1.4 5.5-3v-4.5"/><path d="M21.5 9v5"/></svg> My students',
   'tabs.access': '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="8.5" cy="14.5" r="4.5"/><path d="M11.8 11.2L20 3"/><path d="M16.5 6.5l3 3"/><path d="M14 9l2.4 2.4"/></svg> Access',
   'tabs.trainers': '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6.5 6.5v11"/><path d="M3.5 9v6"/><path d="M17.5 6.5v11"/><path d="M20.5 9v6"/><path d="M6.5 12h11"/></svg> Trainers',
+  'tabs.coaches': '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 7.5c-1.1-1.4-2.9-2.1-4.6-1.5C5 6.8 4.1 9.2 4.7 11.9c.5 2.5 2 6.4 3.8 6.4 1 0 1.7-.5 3.5-.5s2.5.5 3.5.5c1.8 0 3.3-3.9 3.8-6.4.6-2.7-.3-5.1-2.7-5.9-1.7-.6-3.5.1-4.6 1.5z"/><path d="M12 7.5c.1-2.1 1-3.6 2.7-4.3"/></svg> Food coaches',
   'tabs.library': '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 4.6A1.6 1.6 0 0 1 6.6 3H19v15H6.6A1.6 1.6 0 0 0 5 19.4z"/><path d="M5 16.4A1.6 1.6 0 0 1 6.6 14.8H19V18"/><path d="M9 7h6"/></svg> Library',
   'tabs.admin': '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="3.2"/><path d="M12 2.8v3"/><path d="M12 18.2v3"/><path d="M2.8 12h3"/><path d="M18.2 12h3"/><path d="M5.2 5.2l2.1 2.1"/><path d="M16.7 16.7l2.1 2.1"/><path d="M18.8 5.2l-2.1 2.1"/><path d="M7.3 16.7l-2.1 2.1"/></svg> Administration',
+  'tabs.mycoach': '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 7.5c-1.1-1.4-2.9-2.1-4.6-1.5C5 6.8 4.1 9.2 4.7 11.9c.5 2.5 2 6.4 3.8 6.4 1 0 1.7-.5 3.5-.5s2.5.5 3.5.5c1.8 0 3.3-3.9 3.8-6.4.6-2.7-.3-5.1-2.7-5.9-1.7-.6-3.5.1-4.6 1.5z"/><path d="M12 7.5c.1-2.1 1-3.6 2.7-4.3"/></svg> My food coach',
   'tabs.comms': '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="5.5" width="18" height="13" rx="2"/><path d="M3.5 7l8.5 6 8.5-6"/></svg> Communications',
   'trainers.title': '👨‍🏫 Trainer administration',
   'trainers.hint': 'Everything about trainers in one place: role requests, memberships (levels and quotas), the two-step confirmations that start with a trainer, the trainer approval limit and the public directory.',
@@ -6324,7 +6325,7 @@ es: {
   'purpose.nutriTitle': 'Elige tu coach de alimentación',
   'purpose.nutriOptional': 'Opcional',
   'purpose.nutriSkip': 'Sin coach por ahora',
-  'purpose.nutriSkipSub': 'Podrás elegir uno después desde tu perfil, en «Mi coach de alimentación».',
+  'purpose.nutriSkipSub': 'Podrás elegir uno después en la pestaña «Mi coach de alimentación».',
   'purpose.nutriProTitle': 'Tu formación y tu membresía',
   'purpose.formationLabel': 'Tu formación (títulos, certificaciones) — la revisa el Administrador',
   'purpose.formationPh': 'Ej. Coach de alimentación, título y licencia…',
@@ -6487,8 +6488,10 @@ es: {
   'tabs.students': '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M2.5 9L12 4l9.5 5L12 14z"/><path d="M6.5 11.5V16c0 1.6 2.5 3 5.5 3s5.5-1.4 5.5-3v-4.5"/><path d="M21.5 9v5"/></svg> Mis alumnos',
   'tabs.access': '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="8.5" cy="14.5" r="4.5"/><path d="M11.8 11.2L20 3"/><path d="M16.5 6.5l3 3"/><path d="M14 9l2.4 2.4"/></svg> Accesos',
   'tabs.trainers': '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6.5 6.5v11"/><path d="M3.5 9v6"/><path d="M17.5 6.5v11"/><path d="M20.5 9v6"/><path d="M6.5 12h11"/></svg> Entrenadores',
+  'tabs.coaches': '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 7.5c-1.1-1.4-2.9-2.1-4.6-1.5C5 6.8 4.1 9.2 4.7 11.9c.5 2.5 2 6.4 3.8 6.4 1 0 1.7-.5 3.5-.5s2.5.5 3.5.5c1.8 0 3.3-3.9 3.8-6.4.6-2.7-.3-5.1-2.7-5.9-1.7-.6-3.5.1-4.6 1.5z"/><path d="M12 7.5c.1-2.1 1-3.6 2.7-4.3"/></svg> Coaches de alimentación',
   'tabs.library': '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 4.6A1.6 1.6 0 0 1 6.6 3H19v15H6.6A1.6 1.6 0 0 0 5 19.4z"/><path d="M5 16.4A1.6 1.6 0 0 1 6.6 14.8H19V18"/><path d="M9 7h6"/></svg> Biblioteca',
   'tabs.admin': '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="3.2"/><path d="M12 2.8v3"/><path d="M12 18.2v3"/><path d="M2.8 12h3"/><path d="M18.2 12h3"/><path d="M5.2 5.2l2.1 2.1"/><path d="M16.7 16.7l2.1 2.1"/><path d="M18.8 5.2l-2.1 2.1"/><path d="M7.3 16.7l-2.1 2.1"/></svg> Administración',
+  'tabs.mycoach': '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 7.5c-1.1-1.4-2.9-2.1-4.6-1.5C5 6.8 4.1 9.2 4.7 11.9c.5 2.5 2 6.4 3.8 6.4 1 0 1.7-.5 3.5-.5s2.5.5 3.5.5c1.8 0 3.3-3.9 3.8-6.4.6-2.7-.3-5.1-2.7-5.9-1.7-.6-3.5.1-4.6 1.5z"/><path d="M12 7.5c.1-2.1 1-3.6 2.7-4.3"/></svg> Mi coach de alimentación',
   'tabs.comms': '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="5.5" width="18" height="13" rx="2"/><path d="M3.5 7l8.5 6 8.5-6"/></svg> Comunicaciones',
   'trainers.title': '👨‍🏫 Administración de entrenadores',
   'trainers.hint': 'Todo lo de los entrenadores en un solo lugar: solicitudes de rol, membresías (niveles y cupos), las confirmaciones en dos pasos que empiezan con un entrenador, el límite de aprobaciones de entrenadores y el directorio público.',
@@ -9736,7 +9739,7 @@ function purposeOptCard(kind, icon, titleKey, subHtml, opts) {
    OMISIBLE — elegir uno del directorio publicado (relación activa
    al nacer la cuenta), «que me lo sugieran» (en_espera bajo el
    Administrador) u omitir (sin relación; podrá elegir después desde
-   su caja «Mi coach de alimentación» en Mi perfil). Si el directorio
+   su caja «Mi coach de alimentación» en su pastilla). Si el directorio
    no está publicado o está vacío, solo se ofrece sugerir/omitir.
    CUPO LIBRE (2026-11-03): ningún coach se oculta ni se deshabilita
    por su conteo de alumnos. */
@@ -10489,6 +10492,21 @@ onAuthStateChanged(auth, async user => {
      tenga alumnos asignados); el alumno ni la ve. */
   const stuTabBtn = document.querySelector('.main-tab[data-tab="students"]');
   if (stuTabBtn) stuTabBtn.style.display = (ROLE === 'administrador' || ROLE === 'entrenador') ? '' : 'none';
+  /* «Coaches de alimentación» (decisión de Ronald, correo Memphis
+     2026-11-03 22:16 CST): pastilla principal SOLO del
+     administrador, al nivel de «Entrenadores» — la administración
+     del módulo salió de Administración → Sistema a su vista
+     propia (#tab-coaches). */
+  const coachesTabBtn = document.querySelector('.main-tab[data-tab="coaches"]');
+  if (coachesTabBtn) coachesTabBtn.style.display = ROLE === 'administrador' ? '' : 'none';
+  /* «Mi coach de alimentación» (misma decisión): la pastilla del
+     alumno, junto a «Administración» en su barra — también para
+     el alumno SIN entrenador. Regla INICIAL de la sesión: la ven
+     el rol usuario y el dueño; renderNutriMyBox la sincroniza
+     después con su mismo `show` (visible exactamente cuando la
+     caja tiene algo que pintar). */
+  const coachTabBtn = document.querySelector('.main-tab[data-tab="coach"]');
+  if (coachTabBtn) coachTabBtn.style.display = (ROLE === 'usuario' || IS_OWNER) ? '' : 'none';
   /* «← Volver» de «Mi perfil» (paquete NAVEGACIÓN, 2026-10-26):
      solo el alumno lo necesita — entra al perfil por su foto y su
      barra solo trae «Administración»; el personal conserva sus
@@ -31033,6 +31051,19 @@ function switchTab(name) {
      una llamada a /admin/usage por apertura y ninguna antes. Su
      propia puerta de rol vive dentro de renderAdminZone. */
   if (name === 'admin') { try { renderAdminZone().catch(() => {}); } catch {} }
+  /* «Coaches de alimentación» (decisión de Ronald, correo Memphis
+     2026-11-03 22:16 CST): su vista se pinta al ABRIR la pastilla
+     — perezosa y repintada en cada apertura, como el
+     mount+refresh de cuando era sección de Administración — con
+     la función de siempre, nutriAdminPaint, sobre su caja propia
+     #coaches-admin-box. Solo el administrador: la pastilla ni se
+     le pinta a otro rol, y esta puerta lo repite. */
+  if (name === 'coaches' && ROLE === 'administrador') { const cb = $('coaches-admin-box'); if (cb) { try { nutriAdminPaint(cb); } catch {} } }
+  /* «Mi coach de alimentación» (misma decisión): al abrir su
+     pastilla se repinta su caja, la de siempre — renderNutriMyBox,
+     que además sincroniza la visibilidad de la pastilla con su
+     `show`. */
+  if (name === 'coach') { try { renderNutriMyBox(); } catch {} }
   /* «Comunicaciones» (AUTH-2026-11-01-146): su vista se pinta al
      abrirla, como Administración; su puerta de rol vive dentro de
      renderComms (solo el propietario). */
@@ -37708,7 +37739,7 @@ document.addEventListener('keydown', e => { if (e.key === 'Escape') shareClose()
  *  - El SW (sw.js) solo cachea la cáscara del mismo origen en modo
  *    RED PRIMERO: Auth/Firestore/Worker jamás pasan por la caché.
  * ================================================================ */
-const PWA_SW_VERSION = '20261103-puerta-sana';
+const PWA_SW_VERSION = '20261103-coach-sitio';
 /* Sello de versión VISIBLE (2026-11-03): el pie de la tarjeta de
    acceso enseña qué copia corre este teléfono ('v ' + el sello),
    para comprobar de un vistazo si la versión nueva ya llegó.
@@ -39208,8 +39239,18 @@ function nutriGoalsChips(g) {
 async function renderNutriMyBox() {
   const box = $('nutri-my-box'); if (!box) return;
   const me = auth.currentUser && auth.currentUser.uid;
-  if (!me) { box.innerHTML = ''; return }
+  /* Pastilla «Mi coach de alimentación» (decisión de Ronald,
+     correo Memphis 2026-11-03 22:16 CST): la caja vive en su
+     panel propio #tab-coach y su pastilla se sincroniza con el
+     mismo `show` de la caja — visible exactamente cuando la
+     caja tiene algo que pintar (el alumno siempre, aunque aún
+     no tenga coach; el dueño siempre; y cualquier rol con
+     relación, seguimiento o plan de coach). Sin sesión, la
+     pastilla se oculta. */
+  const nutriCoachTabBtn = document.querySelector('.main-tab[data-tab="coach"]');
+  if (!me) { box.innerHTML = ''; if (nutriCoachTabBtn) nutriCoachTabBtn.style.display = 'none'; return }
   const show = (typeof ROLE !== 'undefined' && ROLE === 'usuario') || NUTRI.myRel || NUTRI.myFollow || NUTRI.myPlan || (typeof IS_OWNER !== 'undefined' && IS_OWNER);
+  if (nutriCoachTabBtn) nutriCoachTabBtn.style.display = show ? '' : 'none';
   if (!show) { box.innerHTML = ''; return; }
   const rel = NUTRI.myRel, fol = NUTRI.myFollow, plan = NUTRI.myPlan;
   let h = `<div class="panel nutri-panel"><h3 class="history-title">🥗 ${esc(t('nutri.boxTitle'))}</h3>`;
@@ -39971,9 +40012,17 @@ async function nutriViewRecipeForm(body) {
     } catch { toast(t('err.createFail'), true); }
   };
 }
-/* ── Administración: la sección del módulo ────────────────────── */
-function admSecMountNutri(body) { nutriAdminPaint(body); }
-function admSecRefreshNutri(body) { nutriAdminPaint(body); }
+/* ── Administración del módulo: su pastilla principal ───────────
+   El módulo de coach de alimentación vive desde esta decisión
+   (Ronald, correo Memphis 2026-11-03 22:16 CST) en su pastilla
+   principal #tab-coaches — campo principal del administrador, al
+   nivel de «Mis clientes» / «Mis alumnos» / «Entrenadores» — y ya
+   NO es una sección de Administración → Sistema: su entrada
+   salió de ADMIN_SECTIONS y los envoltorios admSecMountNutri /
+   admSecRefreshNutri se retiraron. nutriAdminPaint queda
+   intacta: la llama switchTab al abrir la pastilla, sobre
+   #coaches-admin-box — pintado perezoso al abrir y repintado en
+   cada apertura, como el mount+refresh de antes. */
 async function nutriAdminPaint(body) {
   if (!body) return;
   const me = auth.currentUser.uid;
