@@ -333,6 +333,7 @@ async function loadRolesX() {
   applyFeatureGates();
   renderMyTrainerBox();
   try { renderRolePendCard(); } catch {}
+  try { chalCardSync(); } catch {}
   try { nutriBoot(); } catch {}
 }
 function applyFeatureGates() {
@@ -6409,6 +6410,101 @@ en: {
   'faq.edSaved': 'Help updated ✓',
   'faq.edError': 'The change could not be saved. Please try again.',
   'faq.edConfirmDelete': 'Delete this question from Help?',
+  /* Retos (AUTH-2026-11-04-235) */
+  'chal.title': '🏆 Challenges',
+  'chal.cardLineNone': 'Start your first challenge and keep the streak alive.',
+  'chal.cardLine': '{active} active · {done} completed',
+  'chal.cardBtn': 'View challenges',
+  'chal.back': '← Back',
+  'chal.intro': 'Pick a challenge, show up day after day, and earn your medal. Consistency is what builds results — every challenge here measures just that.',
+  'chal.myTitle': 'My challenges',
+  'chal.myEmpty': 'You have no challenges yet. Start one from the catalog below.',
+  'chal.catalogTitle': 'Start a challenge',
+  'chal.groupTitle': 'Group challenges',
+  'chal.groupEmpty': 'No group challenges are open right now.',
+  'chal.manageTitle': 'Create & manage',
+  'chal.assignTitle': 'Assign a challenge to a student',
+  'chal.assignBtn': 'Assign challenge',
+  'chal.assignedOk': 'Challenge assigned ✓',
+  'chal.noStudents': 'You have no students to assign yet.',
+  'chal.studentLbl': 'Student',
+  'chal.challengeLbl': 'Challenge',
+  'chal.designTitle': 'Design a group challenge',
+  'chal.fName': 'Challenge name',
+  'chal.fNamePh': 'E.g. Firm week',
+  'chal.fMetric': 'What counts',
+  'chal.fTarget': 'Goal (how many)',
+  'chal.fDays': 'Duration (days)',
+  'chal.fReward': 'Reward for whoever completes it',
+  'chal.fRewardPh': 'E.g. A guided stretching session',
+  'chal.fRewardHint': 'You fulfill the reward outside the app; the app records who earned it.',
+  'chal.fFor': 'For',
+  'chal.forMine': 'My students',
+  'chal.forAll': 'All students',
+  'chal.createBtn': 'Create group challenge',
+  'chal.createdOk': 'Group challenge created ✓',
+  'chal.needName': 'Give the challenge a name.',
+  'chal.needTarget': 'Set a goal between 1 and 100.',
+  'chal.needDays': 'Set a duration between 1 and 90 days.',
+  'chal.myCreatedTitle': 'Challenges I created',
+  'chal.createdEmpty': 'You have not created any challenge yet.',
+  'chal.tableTitle': 'Standings',
+  'chal.tableEmpty': 'No participants yet.',
+  'chal.winners': 'Winners',
+  'chal.join': 'Join',
+  'chal.leave': 'Leave',
+  'chal.leaveConfirm': 'Leave this challenge? Your progress in it will be removed.',
+  'chal.abandon': 'Abandon',
+  'chal.abandonConfirm': 'Abandon this challenge? It will be deleted.',
+  'chal.delete': 'Delete',
+  'chal.deleteConfirm': 'Delete this challenge for everyone?',
+  'chal.startBtn': 'Start',
+  'chal.startedOk': 'Challenge started ✓',
+  'chal.tagIndividual': 'Individual',
+  'chal.tagGroup': 'Group',
+  'chal.tagAssigned': 'From your trainer',
+  'chal.tagDesigned': 'Designed',
+  'chal.stateActive': 'Active',
+  'chal.stateDone': 'Completed',
+  'chal.stateExpired': 'Finished',
+  'chal.of': '{x} of {y}',
+  'chal.targetLine': 'Goal: {y}',
+  'chal.periodDaysTxt': '{n} days',
+  'chal.daysLeft': '{n} days left',
+  'chal.lastDay': 'Last day',
+  'chal.celebrate': '🎉 Challenge completed: {name}!',
+  'chal.medalsTitle': 'My medals',
+  'chal.medalsEmpty': 'Completed challenges will shine here.',
+  'chal.medalDesigned': '🏆 Challenge medal',
+  'chal.rewardLbl': 'Reward',
+  'chal.endsOn': 'Ends {date}',
+  'chal.endedOn': 'Ended {date}',
+  'chal.completedOn': 'Completed {date}',
+  'chal.you': 'You',
+  'chal.loadError': 'Challenges could not be loaded. Please try again.',
+  'chal.saveError': 'It could not be saved. Please try again.',
+  'chal.fichaTitle': '🏆 Challenges',
+  'chal.fichaNone': 'No challenges yet.',
+  'chal.metric.train_days': 'Training days',
+  'chal.metric.meal_days': 'Meal-logging days',
+  'chal.metric.goal_days': 'Goal days (≥90% of the day’s calories)',
+  'chal.metric.weight_logs': 'Weigh-ins logged',
+  'chal.metric.streak_days': 'Streak days (train or log a meal)',
+  'chal.why.train_days': 'Why it works: regular weekly training is the base of every result — health guidelines recommend spreading activity across the week (ACSM). Showing up on more days beats one heroic day.',
+  'chal.why.meal_days': 'Why it works: self-monitoring is one of the strongest predictors of success — in a systematic review, people who logged consistently did better (Burke, Wang & Sevick, 2011).',
+  'chal.why.goal_days': 'Why it works: a “goal day” is a day you reach at least 90% of your calorie goal — the same rule your food coach uses. Stringing goal days together is adherence, and adherence is what moves the needle.',
+  'chal.why.weight_logs': 'Why it works: weighing in regularly keeps the trend visible and is linked with better long-term results (Zheng et al., 2015). This challenge counts logging it — never the number on the scale.',
+  'chal.why.streak_days': 'Why it works: a streak turns “I should” into “I don’t break the chain”. Any logged activity counts, so every day has a way to win.',
+  'chal.cat.train4-7.title': 'Train 4 days this week',
+  'chal.cat.train10-14.title': 'Train 10 days in 2 weeks',
+  'chal.cat.meal5-7.title': 'Log your meals 5 days this week',
+  'chal.cat.meal12-14.title': 'Log your meals 12 days in 2 weeks',
+  'chal.cat.goal3-7.title': 'Hit your goal 3 days this week',
+  'chal.cat.goal7-14.title': 'Hit your goal 7 days in 2 weeks',
+  'chal.cat.weight2-14.title': 'Weigh in twice in 2 weeks',
+  'chal.cat.weight4-30.title': 'Weigh in 4 times this month',
+  'chal.cat.streak7-7.title': '7-day streak',
+  'chal.cat.streak14-14.title': '14-day streak',
 },
 es: {
   'app.title': 'RONBO.FIT · Privado',
@@ -9522,6 +9618,101 @@ es: {
   'faq.edSaved': 'Ayuda actualizada ✓',
   'faq.edError': 'No se pudo guardar el cambio. Inténtalo de nuevo.',
   'faq.edConfirmDelete': '¿Borrar esta pregunta de la Ayuda?',
+  /* Retos (AUTH-2026-11-04-235) */
+  'chal.title': '🏆 Retos',
+  'chal.cardLineNone': 'Empieza tu primer reto y mantén viva la racha.',
+  'chal.cardLine': '{active} activos · {done} cumplidos',
+  'chal.cardBtn': 'Ver retos',
+  'chal.back': '← Volver',
+  'chal.intro': 'Elige un reto, aparece día tras día y gana tu medalla. La constancia es lo que construye resultados: cada reto aquí mide exactamente eso.',
+  'chal.myTitle': 'Mis retos',
+  'chal.myEmpty': 'Todavía no tienes retos. Empieza uno desde el catálogo de abajo.',
+  'chal.catalogTitle': 'Empezar un reto',
+  'chal.groupTitle': 'Retos de grupo',
+  'chal.groupEmpty': 'No hay retos de grupo abiertos ahora mismo.',
+  'chal.manageTitle': 'Crear y gestionar',
+  'chal.assignTitle': 'Asignar un reto a un alumno',
+  'chal.assignBtn': 'Asignar reto',
+  'chal.assignedOk': 'Reto asignado ✓',
+  'chal.noStudents': 'Todavía no tienes alumnos a quienes asignar.',
+  'chal.studentLbl': 'Alumno',
+  'chal.challengeLbl': 'Reto',
+  'chal.designTitle': 'Diseñar un reto de grupo',
+  'chal.fName': 'Nombre del reto',
+  'chal.fNamePh': 'Ej.: Semana firme',
+  'chal.fMetric': 'Qué se mide',
+  'chal.fTarget': 'Meta (cuántos)',
+  'chal.fDays': 'Duración (días)',
+  'chal.fReward': 'Recompensa para quien lo cumpla',
+  'chal.fRewardPh': 'Ej.: Una sesión guiada de estiramiento',
+  'chal.fRewardHint': 'La recompensa la cumples fuera de la app; la app registra quién se la ganó.',
+  'chal.fFor': 'Para',
+  'chal.forMine': 'Mis alumnos',
+  'chal.forAll': 'Todos los alumnos',
+  'chal.createBtn': 'Crear reto de grupo',
+  'chal.createdOk': 'Reto de grupo creado ✓',
+  'chal.needName': 'Ponle un nombre al reto.',
+  'chal.needTarget': 'Pon una meta entre 1 y 100.',
+  'chal.needDays': 'Pon una duración entre 1 y 90 días.',
+  'chal.myCreatedTitle': 'Retos que creé',
+  'chal.createdEmpty': 'Todavía no has creado ningún reto.',
+  'chal.tableTitle': 'Tabla del grupo',
+  'chal.tableEmpty': 'Todavía no hay participantes.',
+  'chal.winners': 'Ganadores',
+  'chal.join': 'Unirme',
+  'chal.leave': 'Salir',
+  'chal.leaveConfirm': '¿Salir de este reto? Tu avance en él se borrará.',
+  'chal.abandon': 'Abandonar',
+  'chal.abandonConfirm': '¿Abandonar este reto? Se borrará.',
+  'chal.delete': 'Borrar',
+  'chal.deleteConfirm': '¿Borrar este reto para todos?',
+  'chal.startBtn': 'Empezar',
+  'chal.startedOk': 'Reto empezado ✓',
+  'chal.tagIndividual': 'Individual',
+  'chal.tagGroup': 'Grupo',
+  'chal.tagAssigned': 'De tu entrenador',
+  'chal.tagDesigned': 'Diseñado',
+  'chal.stateActive': 'Activo',
+  'chal.stateDone': 'Cumplido',
+  'chal.stateExpired': 'Terminado',
+  'chal.of': '{x} de {y}',
+  'chal.targetLine': 'Meta: {y}',
+  'chal.periodDaysTxt': '{n} días',
+  'chal.daysLeft': 'Quedan {n} días',
+  'chal.lastDay': 'Último día',
+  'chal.celebrate': '🎉 ¡Reto cumplido: {name}!',
+  'chal.medalsTitle': 'Mis medallas',
+  'chal.medalsEmpty': 'Los retos cumplidos brillarán aquí.',
+  'chal.medalDesigned': '🏆 Medalla del reto',
+  'chal.rewardLbl': 'Recompensa',
+  'chal.endsOn': 'Termina el {date}',
+  'chal.endedOn': 'Terminó el {date}',
+  'chal.completedOn': 'Cumplido el {date}',
+  'chal.you': 'Tú',
+  'chal.loadError': 'Los retos no se pudieron cargar. Inténtalo de nuevo.',
+  'chal.saveError': 'No se pudo guardar. Inténtalo de nuevo.',
+  'chal.fichaTitle': '🏆 Retos',
+  'chal.fichaNone': 'Todavía no tiene retos.',
+  'chal.metric.train_days': 'Días de entreno',
+  'chal.metric.meal_days': 'Días registrando comidas',
+  'chal.metric.goal_days': 'Días de meta (≥90 % de las calorías del día)',
+  'chal.metric.weight_logs': 'Pesajes registrados',
+  'chal.metric.streak_days': 'Días de racha (entreno o registro de comida)',
+  'chal.why.train_days': 'Por qué funciona: entrenar con regularidad cada semana es la base de todo resultado — las guías de salud recomiendan repartir la actividad durante la semana (ACSM). Aparecer más días vale más que un solo día heroico.',
+  'chal.why.meal_days': 'Por qué funciona: el autorregistro es uno de los predictores más fuertes del éxito — en una revisión sistemática, quienes registraban con constancia obtuvieron mejores resultados (Burke, Wang y Sevick, 2011).',
+  'chal.why.goal_days': 'Por qué funciona: un «día de meta» es un día en que alcanzas al menos el 90 % de tu meta de calorías — la misma regla que usa tu coach de alimentación. Encadenar días de meta es adherencia, y la adherencia es lo que mueve la aguja.',
+  'chal.why.weight_logs': 'Por qué funciona: pesarse con regularidad mantiene visible la tendencia y se asocia con mejores resultados a largo plazo (Zheng y cols., 2015). Este reto cuenta el registro — nunca el número de la báscula.',
+  'chal.why.streak_days': 'Por qué funciona: una racha convierte el «debería» en «no rompo la cadena». Cuenta cualquier actividad registrada, así que cada día tiene una forma de ganar.',
+  'chal.cat.train4-7.title': 'Entrena 4 días esta semana',
+  'chal.cat.train10-14.title': 'Entrena 10 días en 2 semanas',
+  'chal.cat.meal5-7.title': 'Registra tus comidas 5 días esta semana',
+  'chal.cat.meal12-14.title': 'Registra tus comidas 12 días en 2 semanas',
+  'chal.cat.goal3-7.title': 'Cumple tu meta 3 días esta semana',
+  'chal.cat.goal7-14.title': 'Cumple tu meta 7 días en 2 semanas',
+  'chal.cat.weight2-14.title': 'Pésate dos veces en 2 semanas',
+  'chal.cat.weight4-30.title': 'Pésate 4 veces este mes',
+  'chal.cat.streak7-7.title': 'Racha de 7 días',
+  'chal.cat.streak14-14.title': 'Racha de 14 días',
 }
 };
 let LANG = 'en';
@@ -16569,6 +16760,7 @@ async function openClient(uid) {
     ${faCardHTML(uid, asmtDoc, data, udata ? udata.paceSuggestion || null : null)}
     <div id="bt-card"></div>
     <div id="adh-card"></div>
+    <div id="chal-ficha-card"></div>
     ${fb2CardHTML(asmtDoc, data)}
     <div id="pace-card"></div>
     <div id="held-card"></div>
@@ -16631,6 +16823,7 @@ async function openClient(uid) {
      lista de pesos que esta ficha ya cargó (cero lecturas nuevas
      para el peso). */
   try { adhLoadTrainerCard(uid, udata, data); } catch {}
+  try { chalFichaLoad(uid); } catch {}
   box.querySelectorAll('[data-c-edit]').forEach(b => b.onclick = () => {
     const rec = data.find(w => w.id === b.dataset.cEdit);
     if (rec) openWeightModal({ uid, docId: rec.id, rec });
@@ -31920,6 +32113,7 @@ function switchTab(name) {
      que además sincroniza la visibilidad de la pastilla con su
      `show`. */
   if (name === 'coach') { try { renderNutriMyBox(); } catch {} }
+  if (name === 'challenges') { try { chalRender(); } catch {} }
   /* «Mi entrenador» (orden de Ronald, chat RONBO.NUTRI 2026-11-04
      07:27 CST): al abrir su pastilla se repintan su caja de
      siempre (renderMyTrainerBox) y el bloque de elección del
@@ -36680,6 +36874,7 @@ function pendSyncDock() {
   /* La tarjeta-resumen de la pantalla principal refleja el mismo
      cómputo de procedimiento en cada sincronización. */
   try { if (typeof renderRolePendCard === 'function') renderRolePendCard(); } catch {}
+  try { if (typeof chalCardSync === 'function') chalCardSync(); } catch {}
 }
 /* Corrección «pendientes que no se actualizan al guardar»
    (2026-11-01): tras un guardado que resuelve un pendiente, las
@@ -39142,7 +39337,7 @@ document.addEventListener('keydown', e => { if (e.key === 'Escape') shareClose()
  *  - El SW (sw.js) solo cachea la cáscara del mismo origen en modo
  *    RED PRIMERO: Auth/Firestore/Worker jamás pasan por la caché.
  * ================================================================ */
-const PWA_SW_VERSION = '20261104-cronometro-persiste';
+const PWA_SW_VERSION = '20261104-retos';
 /* Sello de versión VISIBLE (2026-11-03): el pie de la tarjeta de
    acceso enseña qué copia corre este teléfono ('v ' + el sello),
    para comprobar de un vistazo si la versión nueva ya llegó.
@@ -41719,3 +41914,560 @@ async function nutriAdminPaint(body) {
   });
   document.addEventListener('keydown', e => { if (e.key === 'Escape') { const f = $('nutri-float'); if (f && f.style.display !== 'none') nutriCloseFloat(); } });
 }
+
+/* ================= RETOS (AUTH-2026-11-04-235) =================
+   Módulo propio «Retos», por orden de Ronald (2026-11-04):
+   retos individuales del catálogo, retos de grupo (del
+   catálogo o DISEÑADOS por la administración, con meta y
+   recompensa) y retos asignados por el entrenador. El
+   progreso se calcula de los datos que la app YA mide
+   (training_logs, nutrition_meals, nutrition_weight) con la
+   definición ÚNICA de «día cumplido» de la casa
+   (nutriAdherenceState: ≥90 % de las kcal de la meta del día,
+   la regla del Coach). La tabla de grupo solo muestra el
+   porcentaje de avance de cada quien hacia su propia meta:
+   ningún dato de salud viaja a challenge_parts. El avance lo
+   escribe el propio cliente del participante (el modelo de
+   confianza de toda la app) y las reglas cierran la forma. */
+const CHAL_CATALOG = [
+  { id: 'train4-7',    metric: 'train_days',  target: 4,  periodDays: 7 },
+  { id: 'train10-14',  metric: 'train_days',  target: 10, periodDays: 14 },
+  { id: 'meal5-7',     metric: 'meal_days',   target: 5,  periodDays: 7 },
+  { id: 'meal12-14',   metric: 'meal_days',   target: 12, periodDays: 14 },
+  { id: 'goal3-7',     metric: 'goal_days',   target: 3,  periodDays: 7 },
+  { id: 'goal7-14',    metric: 'goal_days',   target: 7,  periodDays: 14 },
+  { id: 'weight2-14',  metric: 'weight_logs', target: 2,  periodDays: 14 },
+  { id: 'weight4-30',  metric: 'weight_logs', target: 4,  periodDays: 30 },
+  { id: 'streak7-7',   metric: 'streak_days', target: 7,  periodDays: 7 },
+  { id: 'streak14-14', metric: 'streak_days', target: 14, periodDays: 14 },
+];
+const CHAL_METRICS = ['train_days', 'meal_days', 'goal_days', 'weight_logs', 'streak_days'];
+const CHAL = {
+  loaded: false, loading: false, loadError: false, lastSync: 0,
+  mine: [],            // [{chal, part}]
+  created: [],         // retos creados por mí (grupo + asignados)
+  groups: [],          // grupos a los que puedo unirme (no unido, no creados por mí)
+  partsByChal: {},     // cid -> [parts] (tablas, bajo demanda)
+  openTables: {},      // cid -> true
+  students: null,      // alumnos asignables (entrenador/admin)
+  justDone: [],        // retos completados en esta sesión (celebración)
+  designMetric: 'train_days',
+};
+const chalMe = () => (auth.currentUser ? auth.currentUser.uid : null);
+const chalCanManage = () => ROLE === 'entrenador' || ROLE === 'administrador' || (typeof IS_OWNER !== 'undefined' && IS_OWNER);
+function chalNameOf(chal) {
+  if (!chal) return '';
+  if (chal.title) return chal.title;
+  if (chal.catalogId) { const s = t('chal.cat.' + chal.catalogId + '.title'); if (s !== 'chal.cat.' + chal.catalogId + '.title') return s; }
+  return t('chal.metric.' + chal.metric);
+}
+function chalStateOf(chal, part) {
+  if (part && part.completedAt) return 'done';
+  if (chal && chal.endDate < todayISO()) return 'expired';
+  return 'active';
+}
+function chalDaysLeft(chal) {
+  const t0 = todayISO();
+  if (!chal || chal.endDate < t0) return 0;
+  let n = 0; for (let d = t0; d <= chal.endDate; d = addDaysISO(d, 1)) n++;
+  return n;
+}
+/* Datos crudos del propio usuario para el cómputo (una sola
+   pasada por las tres colecciones de siempre). */
+async function chalFetchOwnData(uid) {
+  const [ms, ls, ws] = await Promise.all([
+    getDocs(query(collection(db, 'nutrition_meals'), where('ownerUid', '==', uid))),
+    getDocs(query(collection(db, 'training_logs'), where('clientUid', '==', uid))),
+    getDocs(query(collection(db, 'nutrition_weight'), where('ownerUid', '==', uid))),
+  ]);
+  const mealsByDate = {}, trainDates = new Set(), weightDates = [];
+  ms.forEach(d => { const v = d.data(); if (v && v.date) (mealsByDate[v.date] = mealsByDate[v.date] || []).push(v); });
+  ls.forEach(d => { const v = d.data(); if (v && v.date && v.done === true) trainDates.add(v.date); });
+  ws.forEach(d => { const v = d.data(); if (v && v.date) weightDates.push(v.date); });
+  return { mealsByDate, trainDates, weightDates };
+}
+/* Cómputo PURO del avance (la batería lo ejerce tal cual):
+   cuenta dentro de [startDate, min(endDate, hoy)]. La racha
+   es la corrida consecutiva más larga dentro de la ventana. */
+function chalComputeCount(chal, data, today) {
+  const from = chal.startDate, last = chal.endDate < today ? chal.endDate : today;
+  if (!from || !last || last < from) return 0;
+  const inWin = d => d >= from && d <= last;
+  switch (chal.metric) {
+    case 'train_days': { let n = 0; data.trainDates.forEach(d => { if (inWin(d)) n++; }); return n; }
+    case 'meal_days': return Object.keys(data.mealsByDate).filter(inWin).length;
+    case 'goal_days': {
+      let n = 0;
+      for (let d = from; d <= last; d = addDaysISO(d, 1)) {
+        const g = goalsDayGoalsFor(d).goals;
+        if (nutriAdherenceState(data.mealsByDate[d] || [], g, d) === 'done') n++;
+      }
+      return n;
+    }
+    case 'weight_logs': return data.weightDates.filter(inWin).length;
+    case 'streak_days': {
+      let best = 0, run = 0;
+      for (let d = from; d <= last; d = addDaysISO(d, 1)) {
+        const act = data.trainDates.has(d) || (data.mealsByDate[d] && data.mealsByDate[d].length > 0);
+        if (act) { run++; if (run > best) best = run; } else run = 0;
+      }
+      return best;
+    }
+  }
+  return 0;
+}
+/* Sincroniza MIS participaciones con el cómputo: escribe solo
+   cuando algo cambió; al llegar a la meta, completedAt nace
+   (una sola vez: las reglas lo hacen irreversible) y se
+   celebra. */
+async function chalSyncMine(data) {
+  const today = todayISO();
+  for (const it of CHAL.mine) {
+    const chal = it.chal, part = it.part;
+    if (!chal || !part || part.completedAt) continue;
+    const count = Math.min(chalComputeCount(chal, data, today), chal.target);
+    const pct = Math.max(0, Math.min(100, Math.round(count / chal.target * 100)));
+    const done = count >= chal.target;
+    if (!done && count === (part.progressCount || 0) && pct === (part.progressPct || 0)) continue;
+    const patch = { progressCount: count, progressPct: pct };
+    if (done) patch.completedAt = serverTimestamp();
+    try {
+      await setDoc(doc(db, 'challenge_parts', chal.id + '_' + part.uid), patch, { merge: true });
+      part.progressCount = count; part.progressPct = pct;
+      if (done) {
+        part.completedAt = Timestamp.now();
+        CHAL.justDone.push(chal.id);
+        toast(t('chal.celebrate', { name: chalNameOf(chal) }));
+      }
+    } catch {}
+  }
+}
+async function chalJoin(chal, displayName) {
+  const me = chalMe(); if (!me) return null;
+  const data = {
+    challengeId: chal.id, uid: me,
+    displayName: String(displayName || (UDATA && (UDATA.name || UDATA.email)) || '').slice(0, 60),
+    progressCount: 0, progressPct: 0, completedAt: null, joinedAt: serverTimestamp(),
+  };
+  await setDoc(doc(db, 'challenge_parts', chal.id + '_' + me), data);
+  return { id: chal.id + '_' + me, ...data, joinedAt: Timestamp.now() };
+}
+async function chalLoad(force) {
+  const me = chalMe(); if (!me) return;
+  if (CHAL.loading) return;
+  if (CHAL.loaded && !force) return;
+  CHAL.loading = true;
+  try {
+    const partsSnap = await getDocs(query(collection(db, 'challenge_parts'), where('uid', '==', me)));
+    const parts = []; partsSnap.forEach(d => parts.push({ id: d.id, ...d.data() }));
+    const chalById = {};
+    await Promise.all(parts.map(async p => {
+      try { const s = await getDoc(doc(db, 'challenges', p.challengeId)); if (s.exists()) chalById[p.challengeId] = { id: s.id, ...s.data() }; } catch {}
+    }));
+    /* Auto-cura: un reto dirigido a mí sin participación
+       (p. ej. la siembra del asignado falló) nace aquí. */
+    try {
+      const os = await getDocs(query(collection(db, 'challenges'), where('ownerUid', '==', me)));
+      const extra = [];
+      os.forEach(d => { const c = { id: d.id, ...d.data() }; chalById[c.id] = c; if (!parts.some(p => p.challengeId === c.id)) extra.push(c); });
+      for (const c of extra) { try { const p = await chalJoin(c); if (p) parts.push(p); } catch {} }
+    } catch {}
+    CHAL.mine = parts.map(p => ({ part: p, chal: chalById[p.challengeId] || null })).filter(x => x.chal);
+    const cs = await getDocs(query(collection(db, 'challenges'), where('createdBy', '==', me)));
+    CHAL.created = []; cs.forEach(d => CHAL.created.push({ id: d.id, ...d.data() }));
+    const seen = new Set([...CHAL.mine.map(x => x.chal.id), ...CHAL.created.map(c => c.id)]);
+    const groups = [];
+    const qs = [query(collection(db, 'challenges'), where('kind', '==', 'group'), where('groupScope', '==', 'all'))];
+    const myTrainer = (typeof UDATA !== 'undefined' && UDATA && UDATA.trainerUid) || '';
+    if (myTrainer) qs.push(query(collection(db, 'challenges'), where('kind', '==', 'group'), where('groupScope', '==', myTrainer)));
+    for (const q of qs) {
+      try { const s = await getDocs(q); s.forEach(d => { const c = { id: d.id, ...d.data() }; if (!seen.has(c.id)) { seen.add(c.id); groups.push(c); } }); } catch {}
+    }
+    CHAL.groups = groups;
+    CHAL.loaded = true; CHAL.loadError = false; CHAL.lastSync = Date.now();
+    try { const data = await chalFetchOwnData(me); await chalSyncMine(data); } catch {}
+  } catch { CHAL.loadError = true; }
+  CHAL.loading = false;
+}
+async function chalLoadParts(cid) {
+  const snap = await getDocs(query(collection(db, 'challenge_parts'), where('challengeId', '==', cid)));
+  const rows = []; snap.forEach(d => rows.push({ id: d.id, ...d.data() }));
+  rows.sort((a, b) => {
+    const ad = a.completedAt ? 0 : 1, bd = b.completedAt ? 0 : 1;
+    if (ad !== bd) return ad - bd;
+    return (b.progressPct || 0) - (a.progressPct || 0);
+  });
+  CHAL.partsByChal[cid] = rows;
+  return rows;
+}
+async function chalLoadStudents() {
+  if (CHAL.students) return CHAL.students;
+  const me = chalMe(); const out = [];
+  try {
+    if (typeof IS_OWNER !== 'undefined' && IS_OWNER) {
+      const s = await getDocs(query(collection(db, 'users'), where('approved', '==', true)));
+      s.forEach(d => { const u = { id: d.id, ...d.data() }; if (!u.isOwner && u.role === 'usuario') out.push(u); });
+    } else {
+      const s = await getDocs(query(collection(db, 'users'), where('trainerUid', '==', me)));
+      s.forEach(d => { const u = { id: d.id, ...d.data() }; if (u.approved === true && u.role !== 'entrenador' && u.role !== 'administrador' && !u.isOwner) out.push(u); });
+    }
+  } catch {}
+  out.sort((a, b) => String(a.name || '').localeCompare(String(b.name || '')));
+  CHAL.students = out;
+  return out;
+}
+/* ---------- acciones ---------- */
+async function chalStart(catId) {
+  const cat = CHAL_CATALOG.find(c => c.id === catId); const me = chalMe();
+  if (!cat || !me) return;
+  const today = todayISO();
+  const docData = {
+    kind: 'individual', catalogId: cat.id, metric: cat.metric, target: cat.target,
+    periodDays: cat.periodDays, startDate: today, endDate: addDaysISO(today, cat.periodDays - 1),
+    createdBy: me, ownerUid: me, groupScope: '', title: '', rewardText: '', createdAt: serverTimestamp(),
+  };
+  try {
+    const ref = await addDoc(collection(db, 'challenges'), docData);
+    const chal = { id: ref.id, ...docData, createdAt: Timestamp.now() };
+    const part = await chalJoin(chal);
+    if (part) CHAL.mine.unshift({ chal, part });
+    try { const data = await chalFetchOwnData(me); await chalSyncMine(data); } catch {}
+    toast(t('chal.startedOk'));
+  } catch { toast(t('chal.saveError'), true); }
+  chalRenderPaint(); chalCardSyncPaint();
+}
+async function chalJoinGroup(cid) {
+  const chal = CHAL.groups.find(g => g.id === cid) || CHAL.created.find(g => g.id === cid);
+  if (!chal) return;
+  try {
+    const part = await chalJoin(chal);
+    if (part) {
+      CHAL.groups = CHAL.groups.filter(g => g.id !== cid);
+      CHAL.mine.unshift({ chal, part });
+      try { const data = await chalFetchOwnData(chalMe()); await chalSyncMine(data); } catch {}
+      toast(t('chal.startedOk'));
+    }
+  } catch { toast(t('chal.saveError'), true); }
+  chalRenderPaint(); chalCardSyncPaint();
+}
+async function chalLeave(cid) {
+  const me = chalMe(); if (!me) return;
+  if (!confirm(t('chal.leaveConfirm'))) return;
+  try { await deleteDoc(doc(db, 'challenge_parts', cid + '_' + me)); } catch { toast(t('chal.saveError'), true); return; }
+  CHAL.mine = CHAL.mine.filter(x => x.chal.id !== cid);
+  delete CHAL.partsByChal[cid];
+  chalLoad(true).then(() => { chalRenderPaint(); chalCardSyncPaint(); });
+  chalRenderPaint(); chalCardSyncPaint();
+}
+async function chalAbandon(cid) {
+  const me = chalMe(); if (!me) return;
+  if (!confirm(t('chal.abandonConfirm'))) return;
+  try {
+    await deleteDoc(doc(db, 'challenge_parts', cid + '_' + me));
+    await deleteDoc(doc(db, 'challenges', cid));
+  } catch { toast(t('chal.saveError'), true); return; }
+  CHAL.mine = CHAL.mine.filter(x => x.chal.id !== cid);
+  chalRenderPaint(); chalCardSyncPaint();
+}
+async function chalDeleteCreated(cid) {
+  if (!confirm(t('chal.deleteConfirm'))) return;
+  try { await deleteDoc(doc(db, 'challenges', cid)); } catch { toast(t('chal.saveError'), true); return; }
+  CHAL.created = CHAL.created.filter(c => c.id !== cid);
+  delete CHAL.partsByChal[cid];
+  chalRenderPaint();
+}
+async function chalAssign(studentUid, catId) {
+  const cat = CHAL_CATALOG.find(c => c.id === catId); const me = chalMe();
+  if (!cat || !me || !studentUid) return;
+  const today = todayISO();
+  const docData = {
+    kind: 'assigned', catalogId: cat.id, metric: cat.metric, target: cat.target,
+    periodDays: cat.periodDays, startDate: today, endDate: addDaysISO(today, cat.periodDays - 1),
+    createdBy: me, ownerUid: studentUid, groupScope: '', title: '', rewardText: '', createdAt: serverTimestamp(),
+  };
+  try {
+    const ref = await addDoc(collection(db, 'challenges'), docData);
+    const stu = (CHAL.students || []).find(s => s.id === studentUid) || {};
+    /* Siembra de la participación del alumno (las reglas la
+       admiten del creador del reto asignado, todo a cero). */
+    try {
+      await setDoc(doc(db, 'challenge_parts', ref.id + '_' + studentUid), {
+        challengeId: ref.id, uid: studentUid, displayName: String(stu.name || stu.email || '').slice(0, 60),
+        progressCount: 0, progressPct: 0, completedAt: null, joinedAt: serverTimestamp(),
+      });
+    } catch {}
+    CHAL.created.unshift({ id: ref.id, ...docData, createdAt: Timestamp.now() });
+    toast(t('chal.assignedOk'));
+  } catch { toast(t('chal.saveError'), true); }
+  chalRenderPaint();
+}
+async function chalCreateGroup(form) {
+  const me = chalMe(); if (!me) return;
+  const today = todayISO();
+  const scope = (typeof IS_OWNER !== 'undefined' && IS_OWNER) || ROLE === 'administrador' ? 'all' : me;
+  const docData = {
+    kind: 'group', catalogId: '', metric: form.metric, target: form.target,
+    periodDays: form.days, startDate: today, endDate: addDaysISO(today, form.days - 1),
+    createdBy: me, ownerUid: '', groupScope: scope,
+    title: form.title, rewardText: form.reward, createdAt: serverTimestamp(),
+  };
+  try {
+    const ref = await addDoc(collection(db, 'challenges'), docData);
+    CHAL.created.unshift({ id: ref.id, ...docData, createdAt: Timestamp.now() });
+    toast(t('chal.createdOk'));
+  } catch { toast(t('chal.saveError'), true); }
+  chalRenderPaint();
+}
+/* ---------- pintura ---------- */
+function chalBarHTML(part, chal) {
+  const pct = part ? (part.progressPct || 0) : 0;
+  const x = part ? (part.progressCount || 0) : 0;
+  return `<div class="chal-bar"><div class="chal-bar-fill${part && part.completedAt ? ' chal-bar-done' : ''}" style="width:${pct}%"></div></div>
+  <div class="chal-of">${esc(t('chal.of', { x, y: chal.target }))} · ${pct}%</div>`;
+}
+function chalTagHTML(chal) {
+  if (chal.kind === 'group') return `<span class="chal-tag">${esc(t('chal.tagGroup'))}${chal.title ? ' · ' + esc(t('chal.tagDesigned')) : ''}</span>`;
+  if (chal.kind === 'assigned') return `<span class="chal-tag">${esc(t('chal.tagAssigned'))}</span>`;
+  return `<span class="chal-tag">${esc(t('chal.tagIndividual'))}</span>`;
+}
+function chalDatesHTML(chal, part) {
+  const state = chalStateOf(chal, part);
+  if (state === 'done' && part && part.completedAt) {
+    const d = part.completedAt.toDate ? part.completedAt.toDate() : new Date(part.completedAt);
+    return `<span class="chal-state chal-state-done">✓ ${esc(t('chal.stateDone'))} · ${esc(t('chal.completedOn', { date: dateName(d.toISOString().slice(0, 10)) }))}</span>`;
+  }
+  if (state === 'expired') return `<span class="chal-state chal-state-exp">${esc(t('chal.stateExpired'))} · ${esc(t('chal.endedOn', { date: dateName(chal.endDate) }))}</span>`;
+  const left = chalDaysLeft(chal);
+  return `<span class="chal-state chal-state-act">${esc(t('chal.stateActive'))} · ${left <= 1 ? esc(t('chal.lastDay')) : esc(t('chal.daysLeft', { n: left }))} · ${esc(t('chal.endsOn', { date: dateName(chal.endDate) }))}</span>`;
+}
+function chalTableHTML(chal) {
+  const rows = CHAL.partsByChal[chal.id];
+  if (!rows) return `<div class="wempty">${esc(t('train.loading'))}</div>`;
+  if (!rows.length) return `<div class="wempty">${esc(t('chal.tableEmpty'))}</div>`;
+  const me = chalMe();
+  const winners = rows.filter(r => r.completedAt);
+  let h = '';
+  if (winners.length && chal.title) h += `<p class="chal-winners">🏆 ${esc(t('chal.winners'))}: ${winners.map(w => esc(w.displayName || '')).join(' · ')}</p>`;
+  h += rows.map(r => `<div class="chal-trow${r.uid === me ? ' chal-trow-me' : ''}">
+    <span class="chal-tname">${r.completedAt ? '🏆 ' : ''}${esc(r.displayName || '—')}${r.uid === me ? ` <span class="chal-tag">${esc(t('chal.you'))}</span>` : ''}</span>
+    <span class="chal-tpct">${r.progressPct || 0}%</span>
+    <span class="chal-tbar"><span class="chal-tbar-fill${r.completedAt ? ' chal-bar-done' : ''}" style="width:${r.progressPct || 0}%"></span></span>
+    <span class="chal-tof">${esc(t('chal.of', { x: r.progressCount || 0, y: chal.target }))}</span>
+  </div>`).join('');
+  return h;
+}
+function chalItemHTML(chal, part, opts = {}) {
+  const isMine = !!part;
+  const just = part && part.completedAt && CHAL.justDone.includes(chal.id);
+  let h = `<div class="chal-item${part && part.completedAt ? ' chal-item-done' : ''}">
+    <div class="chal-item-head"><b>${esc(chalNameOf(chal))}</b>${chalTagHTML(chal)}</div>
+    <p class="chal-metric">${esc(t('chal.metric.' + chal.metric))}</p>
+    ${chal.rewardText ? `<p class="chal-reward">🎁 ${esc(t('chal.rewardLbl'))}: <b>${esc(chal.rewardText)}</b></p>` : ''}
+    ${isMine ? chalBarHTML(part, chal) + `<div class="chal-dates">${chalDatesHTML(chal, part)}</div>` : `<div class="chal-dates">${chalDatesHTML(chal, null)}</div>`}
+    ${just ? `<p class="chal-celebrate">🎉 ${esc(t('chal.celebrate', { name: chalNameOf(chal) }))}</p>` : ''}
+    <div class="chal-actions">`;
+  if (opts.joinable) h += `<button type="button" class="btn-primary" data-chal-act="join" data-chal-id="${chal.id}">${esc(t('chal.join'))}</button>`;
+  if (chal.kind === 'group') h += `<button type="button" class="btn-ghost btn-sm" data-chal-act="table" data-chal-id="${chal.id}">${esc(t('chal.tableTitle'))}</button>`;
+  if (isMine && chal.kind === 'group' && !part.completedAt) h += `<button type="button" class="btn-ghost btn-sm" data-chal-act="leave" data-chal-id="${chal.id}">${esc(t('chal.leave'))}</button>`;
+  if (isMine && chal.kind === 'individual') h += `<button type="button" class="btn-ghost btn-sm" data-chal-act="abandon" data-chal-id="${chal.id}">${esc(t('chal.abandon'))}</button>`;
+  if (opts.manage) h += `<button type="button" class="btn-ghost btn-sm" data-chal-act="delcreated" data-chal-id="${chal.id}">${esc(t('chal.delete'))}</button>`;
+  h += `</div>`;
+  if (chal.kind === 'group' && CHAL.openTables[chal.id]) h += `<div class="chal-table">${chalTableHTML(chal)}</div>`;
+  h += `</div>`;
+  return h;
+}
+function chalMedalsHTML() {
+  const done = CHAL.mine.filter(x => x.part.completedAt);
+  if (!done.length) return `<div class="wempty">${esc(t('chal.medalsEmpty'))}</div>`;
+  return done.map(({ chal, part }) => {
+    const d = part.completedAt && part.completedAt.toDate ? part.completedAt.toDate() : null;
+    return `<div class="chal-medal">
+      <span class="chal-medal-ico">${chal.title ? '🏆' : '🏅'}</span>
+      <span class="chal-medal-txt"><b>${esc(chalNameOf(chal))}</b><br>
+      <span class="muted">${chal.title ? esc(t('chal.medalDesigned')) + ' · ' : ''}${d ? esc(t('chal.completedOn', { date: dateName(d.toISOString().slice(0, 10)) })) : ''}</span>
+      ${chal.rewardText ? `<br>🎁 ${esc(chal.rewardText)}` : ''}</span>
+    </div>`;
+  }).join('');
+}
+function chalRenderPaint() {
+  const body = $('chal-body'); if (!body) return;
+  if (!auth.currentUser) { body.innerHTML = ''; return; }
+  if (CHAL.loadError) { body.innerHTML = `<div class="wempty">${esc(t('chal.loadError'))}</div>`; return; }
+  if (!CHAL.loaded) { body.innerHTML = `<div class="wempty">${esc(t('train.loading'))}</div>`; return; }
+  const today = todayISO();
+  const active = CHAL.mine.filter(x => !x.part.completedAt && x.chal.endDate >= today);
+  const finished = CHAL.mine.filter(x => !(!x.part.completedAt && x.chal.endDate >= today));
+  let h = `<p class="progress-hint">${esc(t('chal.intro'))}</p>`;
+  h += `<h3 class="history-title">${esc(t('chal.myTitle'))}</h3>`;
+  h += active.length ? active.map(x => chalItemHTML(x.chal, x.part)).join('') : `<div class="wempty">${esc(t('chal.myEmpty'))}</div>`;
+  if (finished.length) h += finished.map(x => chalItemHTML(x.chal, x.part)).join('');
+  h += `<h3 class="history-title">${esc(t('chal.medalsTitle'))}</h3>` + chalMedalsHTML();
+  h += `<h3 class="history-title">${esc(t('chal.catalogTitle'))}</h3>`;
+  h += CHAL_CATALOG.map(c => `<div class="chal-item chal-cat">
+      <div class="chal-item-head"><b>${esc(t('chal.cat.' + c.id + '.title'))}</b><span class="chal-tag">${esc(t('chal.periodDaysTxt', { n: c.periodDays }))}</span></div>
+      <p class="chal-metric">${esc(t('chal.metric.' + c.metric))} · ${esc(t('chal.targetLine', { y: c.target }))}</p>
+      <p class="chal-why">${esc(t('chal.why.' + c.metric))}</p>
+      <div class="chal-actions"><button type="button" class="btn-primary" data-chal-act="start" data-chal-cat="${c.id}">${esc(t('chal.startBtn'))}</button></div>
+    </div>`).join('');
+  h += `<h3 class="history-title">${esc(t('chal.groupTitle'))}</h3>`;
+  h += CHAL.groups.length ? CHAL.groups.map(g => chalItemHTML(g, null, { joinable: true })).join('') : `<div class="wempty">${esc(t('chal.groupEmpty'))}</div>`;
+  if (chalCanManage()) h += chalManageHTML();
+  body.innerHTML = h;
+  chalWireForms();
+}
+function chalManageHTML() {
+  const me = chalMe();
+  const scopeTxt = (typeof IS_OWNER !== 'undefined' && IS_OWNER) || ROLE === 'administrador' ? t('chal.forAll') : t('chal.forMine');
+  let h = `<h3 class="history-title">${esc(t('chal.manageTitle'))}</h3>`;
+  /* Asignar del catálogo */
+  h += `<div class="chal-item"><div class="chal-item-head"><b>${esc(t('chal.assignTitle'))}</b></div>
+    ${CHAL.students && CHAL.students.length ? `
+    <label class="muted">${esc(t('chal.studentLbl'))}<select id="chal-asg-student" class="chal-input">${CHAL.students.map(s => `<option value="${s.id}">${esc(s.name || s.email || '')}</option>`).join('')}</select></label>
+    <label class="muted">${esc(t('chal.challengeLbl'))}<select id="chal-asg-cat" class="chal-input">${CHAL_CATALOG.map(c => `<option value="${c.id}">${esc(t('chal.cat.' + c.id + '.title'))}</option>`).join('')}</select></label>
+    <div class="chal-actions"><button type="button" class="btn-primary" id="chal-asg-btn">${esc(t('chal.assignBtn'))}</button></div>`
+    : `<div class="wempty">${esc(t('chal.noStudents'))}</div>`}
+  </div>`;
+  /* Diseñar grupo */
+  h += `<div class="chal-item"><div class="chal-item-head"><b>${esc(t('chal.designTitle'))}</b></div>
+    <label class="muted">${esc(t('chal.fName'))}<input type="text" id="chal-d-name" class="chal-input" maxlength="80" placeholder="${esc(t('chal.fNamePh'))}"></label>
+    <p class="muted chal-flabel">${esc(t('chal.fMetric'))}</p>
+    <div class="chal-chips">${CHAL_METRICS.map(m => `<button type="button" class="chal-chip${CHAL.designMetric === m ? ' chal-chip-on' : ''}" data-chal-metric="${m}">${esc(t('chal.metric.' + m))}</button>`).join('')}</div>
+    <div class="frow">
+      <label class="muted">${esc(t('chal.fTarget'))}<input type="number" id="chal-d-target" class="chal-input" min="1" max="100" step="1" value="5"></label>
+      <label class="muted">${esc(t('chal.fDays'))}<input type="number" id="chal-d-days" class="chal-input" min="1" max="90" step="1" value="7"></label>
+    </div>
+    <label class="muted">${esc(t('chal.fReward'))}<input type="text" id="chal-d-reward" class="chal-input" maxlength="200" placeholder="${esc(t('chal.fRewardPh'))}"></label>
+    <p class="progress-hint">🎁 ${esc(t('chal.fRewardHint'))}</p>
+    <p class="muted chal-flabel">${esc(t('chal.fFor'))}: <b>${esc(scopeTxt)}</b></p>
+    <div class="chal-actions"><button type="button" class="btn-primary" id="chal-d-btn">${esc(t('chal.createBtn'))}</button></div>
+  </div>`;
+  /* Creados por mí */
+  h += `<h3 class="history-title">${esc(t('chal.myCreatedTitle'))}</h3>`;
+  if (!CHAL.created.length) h += `<div class="wempty">${esc(t('chal.createdEmpty'))}</div>`;
+  else h += CHAL.created.map(c => {
+    let extra = '';
+    if (c.kind === 'assigned') {
+      const rows = CHAL.partsByChal[c.id];
+      const stu = (CHAL.students || []).find(s => s.id === c.ownerUid);
+      extra = `<p class="chal-metric">👤 ${esc(stu ? (stu.name || stu.email || '') : '')}</p>`;
+      if (rows && rows.length) extra += chalBarHTML(rows[0], c) + `<div class="chal-dates">${chalDatesHTML(c, rows[0])}</div>`;
+    }
+    return `<div class="chal-item"><div class="chal-item-head"><b>${esc(chalNameOf(c))}</b>${chalTagHTML(c)}</div>
+      <p class="chal-metric">${esc(t('chal.metric.' + c.metric))} · ${esc(t('chal.targetLine', { y: c.target }))}</p>
+      ${c.rewardText ? `<p class="chal-reward">🎁 ${esc(t('chal.rewardLbl'))}: <b>${esc(c.rewardText)}</b></p>` : ''}
+      ${extra}
+      ${c.kind === 'assigned' && CHAL.partsByChal[c.id] ? '' : `<div class="chal-dates">${chalDatesHTML(c, null)}</div>`}
+      <div class="chal-actions">
+        ${c.kind === 'group' ? `<button type="button" class="btn-ghost btn-sm" data-chal-act="table" data-chal-id="${c.id}">${esc(t('chal.tableTitle'))}</button>` : ''}
+        ${c.kind === 'assigned' ? `<button type="button" class="btn-ghost btn-sm" data-chal-act="table" data-chal-id="${c.id}">${esc(t('chal.tableTitle'))}</button>` : ''}
+        <button type="button" class="btn-ghost btn-sm" data-chal-act="delcreated" data-chal-id="${c.id}">${esc(t('chal.delete'))}</button>
+      </div>
+      ${CHAL.openTables[c.id] ? `<div class="chal-table">${chalTableHTML(c)}</div>` : ''}
+    </div>`;
+  }).join('');
+  return h;
+}
+function chalWireForms() {
+  const asgBtn = $('chal-asg-btn');
+  if (asgBtn) asgBtn.onclick = () => {
+    const stu = $('chal-asg-student'), cat = $('chal-asg-cat');
+    if (stu && cat && stu.value) chalAssign(stu.value, cat.value);
+  };
+  const dBtn = $('chal-d-btn');
+  if (dBtn) dBtn.onclick = () => {
+    const name = ($('chal-d-name') || {}).value || '';
+    const target = parseInt(($('chal-d-target') || {}).value, 10);
+    const days = parseInt(($('chal-d-days') || {}).value, 10);
+    const reward = ($('chal-d-reward') || {}).value || '';
+    if (!String(name).trim()) { toast(t('chal.needName'), true); return; }
+    if (!(target >= 1 && target <= 100)) { toast(t('chal.needTarget'), true); return; }
+    if (!(days >= 1 && days <= 90)) { toast(t('chal.needDays'), true); return; }
+    chalCreateGroup({ title: String(name).trim().slice(0, 80), metric: CHAL.designMetric, target, days, reward: String(reward).trim().slice(0, 200) });
+  };
+  document.querySelectorAll('#chal-body [data-chal-metric]').forEach(b => {
+    b.onclick = () => { CHAL.designMetric = b.dataset.chalMetric; chalRenderPaint(); };
+  });
+}
+/* Delegación de acciones de la pantalla (una sola vez). */
+{ const wire = () => {
+  const back = $('chal-back');
+  if (back && !back.dataset.wired) { back.dataset.wired = '1'; back.onclick = () => { try { switchTab('track'); } catch {} }; }
+  const body = $('chal-body');
+  if (!body || body.dataset.wired) return;
+  body.dataset.wired = '1';
+  body.addEventListener('click', e => {
+    const el = e.target.closest('[data-chal-act]');
+    if (!el) return;
+    const act = el.dataset.chalAct, id = el.dataset.chalId;
+    if (act === 'start') chalStart(el.dataset.chalCat);
+    else if (act === 'join') chalJoinGroup(id);
+    else if (act === 'leave') chalLeave(id);
+    else if (act === 'abandon') chalAbandon(id);
+    else if (act === 'delcreated') chalDeleteCreated(id);
+    else if (act === 'table') {
+      CHAL.openTables[id] = !CHAL.openTables[id];
+      if (CHAL.openTables[id] && !CHAL.partsByChal[id]) {
+        chalLoadParts(id).then(() => chalRenderPaint()).catch(() => chalRenderPaint());
+      }
+      chalRenderPaint();
+    }
+  });
+};
+if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', wire); else wire(); }
+
+/* Apertura de la pantalla (desde switchTab): carga y pinta. */
+async function chalRender() {
+  chalRenderPaint();
+  await chalLoad();
+  if (chalCanManage()) { await chalLoadStudents(); }
+  chalRenderPaint();
+  chalCardSyncPaint();
+}
+/* Tarjeta de Inicio: resumen vivo de mis retos. Se repinta
+   desde el ciclo de la casa (pendSyncDock / arranque) para
+   que el avance se refleje al guardar, sin recargar. */
+function chalCardSyncPaint() {
+  const card = $('chal-card'); if (!card) return;
+  if (!auth.currentUser) { card.style.display = 'none'; card.innerHTML = ''; return; }
+  const today = todayISO();
+  const active = CHAL.mine.filter(x => !x.part.completedAt && x.chal.endDate >= today).length;
+  const done = CHAL.mine.filter(x => x.part.completedAt).length;
+  card.style.display = '';
+  card.innerHTML = `<div class="panel chal-inicio">
+    <div class="chal-inicio-txt"><b>${esc(t('chal.title'))}</b><br>
+    <span class="muted">${CHAL.loaded ? (active || done ? esc(t('chal.cardLine', { active, done })) : esc(t('chal.cardLineNone'))) : esc(t('train.loading'))}</span></div>
+    <button type="button" class="btn-primary" id="chal-card-btn">${esc(t('chal.cardBtn'))}</button>
+  </div>`;
+  const b = $('chal-card-btn'); if (b) b.onclick = () => switchTab('challenges');
+}
+function chalCardSync() {
+  chalCardSyncPaint();
+  if (!auth.currentUser) return;
+  if (!CHAL.loaded) { chalLoad().then(() => { chalCardSyncPaint(); if (typeof NAV_TAB !== 'undefined' && NAV_TAB === 'challenges') chalRenderPaint(); }); return; }
+  if (Date.now() - (CHAL.lastSync || 0) > 30000) {
+    chalLoad(true).then(() => { chalCardSyncPaint(); if (typeof NAV_TAB !== 'undefined' && NAV_TAB === 'challenges') chalRenderPaint(); });
+  }
+}
+/* Caja «🏆 Retos» de la ficha del alumno (junto a Adherencia):
+   su entrenador ve sus retos y si los cumplió. Solo lee las
+   participaciones del alumno y los retos ligados. */
+async function chalFichaLoad(uid) {
+  const box = $('chal-ficha-card'); if (!box) return;
+  try {
+    const ps = await getDocs(query(collection(db, 'challenge_parts'), where('uid', '==', uid)));
+    const items = [];
+    for (const d of ps.docs) {
+      const p = { id: d.id, ...d.data() };
+      try { const cs = await getDoc(doc(db, 'challenges', p.challengeId)); if (cs.exists()) items.push({ part: p, chal: { id: cs.id, ...cs.data() } }); } catch {}
+    }
+    if (!items.length) {
+      box.innerHTML = `<div class="compacc-box"><h3 class="history-title">${esc(t('chal.fichaTitle'))}</h3><p class="progress-hint">${esc(t('chal.fichaNone'))}</p></div>`;
+      return;
+    }
+    items.sort((a, b) => (b.part.completedAt ? 1 : 0) - (a.part.completedAt ? 1 : 0));
+    box.innerHTML = `<div class="compacc-box"><h3 class="history-title">${esc(t('chal.fichaTitle'))}</h3>`
+      + items.map(({ chal, part }) => `<div class="adh-row"><span class="adh-type">${part.completedAt ? '🏆' : '🏁'} ${esc(chalNameOf(chal))}</span><span class="adh-val">${part.completedAt ? '✓ ' + esc(t('chal.stateDone')) : esc(t('chal.of', { x: part.progressCount || 0, y: chal.target })) + ' · ' + (part.progressPct || 0) + '%'}</span></div>`).join('')
+      + `</div>`;
+  } catch { box.innerHTML = ''; }
+}
+try { window.__chalCore = { compute: chalComputeCount, catalog: CHAL_CATALOG, nameOf: chalNameOf }; } catch {}

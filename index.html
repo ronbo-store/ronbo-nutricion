@@ -21,7 +21,7 @@
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-title" content="RONBO FIT">
 <meta name="apple-mobile-web-app-status-bar-style" content="default">
-<link rel="stylesheet" href="styles.css?v=20261104-cronometro-persiste">
+<link rel="stylesheet" href="styles.css?v=20261104-retos">
 <script defer src="https://cloud.umami.is/script.js" data-website-id="a29706d4-44a2-47cf-900a-5f74d74abfa8"></script>
 <script type="importmap">
 {
@@ -344,6 +344,10 @@
        pantalla principal al entrar; se pinta desde renderRolePendCard()
        y solo aparece si hay pendientes de procedimiento. -->
   <div id="role-pend-card" style="display:none"></div>
+  <!-- RETOS (AUTH-2026-11-04-235): entrada al módulo desde
+       Inicio; la pinta chalCardSync (app.js). El dock de
+       6 botones no se toca. -->
+  <div id="chal-card" style="display:none"></div>
   <!-- D2 (puntos 19–20, Ronald 2026-11-01): aviso discreto al ABRIR
        la app cuando un borrador de análisis con IA quedó esperando
        guardarse; lo pinta aiDraftNoticeSync (texto por i18n
@@ -1141,6 +1145,15 @@
   </div>
   <!-- /tab-coach -->
 
+  <!-- RETOS (AUTH-2026-11-04-235): pantalla completa del
+       módulo; su contenido lo pinta chalRender (app.js). -->
+  <div class="tab-pane" id="tab-challenges" style="display:none">
+    <button type="button" class="btn-ghost prog-back" id="chal-back" data-i18n="chal.back">← Back</button>
+    <h2 style="margin:6px 0 10px"><span data-i18n="chal.title">🏆 Challenges</span></h2>
+    <div id="chal-body"></div>
+  </div>
+  <!-- /tab-challenges -->
+
   <div class="tab-pane" id="tab-access" style="display:none">
   <div class="admin-section" id="admin-section" style="display:none">
     <h2><span data-i18n="access.title">🔐 Access management</span> <span class="h2-sub" data-i18n="access.sub">· owner only</span></h2>
@@ -1845,6 +1858,6 @@
 <div id="toast" class="toast"></div>
 <div id="print-card" aria-hidden="true"></div>
 
-<script type="module" src="app.js?v=20261104-cronometro-persiste"></script>
+<script type="module" src="app.js?v=20261104-retos"></script>
 </body>
 </html>
