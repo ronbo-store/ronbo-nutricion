@@ -810,6 +810,23 @@ service cloud.firestore {
         && receiptMatches(uid + '_1', uid, 'registered',
                           request.resource.data.termsVersion);
 
+      // Integración de actividad P1 (2026-11-03): OTORGAR,
+      // RENOVAR o RETIRAR el consentimiento de UN tipo de
+      // actividad (activityConsents): exactamente un tipo
+      // cambia (actActShapeOk deriva cuál y exige su forma y
+      // la hora del servidor), con el recibo acoplado
+      // activity-{tipo}-{granted|renewed|withdrawn} en el
+      // mismo lote y seq +1 exacto. Es UNA sola rama para
+      // los tres actos y va PRIMERA entre los allow update:
+      // el presupuesto de expresiones por petición no da
+      // para pagar la cadena entera de ramas ajenas.
+      allow update: if isSelf(uid)
+        && request.resource.data.diff(resource.data).affectedKeys()
+              .hasOnly(['activityConsents', 'consentSeq', 'consentReceiptId'])
+        && request.resource.data.consentSeq == resource.data.get('consentSeq', 0) + 1
+        && request.resource.data.consentReceiptId == uid + '_' + string(request.resource.data.consentSeq)
+        && actActShapeOk(resource.data, request.resource.data);
+
       // The trainer may update any user document (approval, goals,
       // profile, notes) — EXCEPT the client's specific-consent state
       // and the legacy health answers, which belong to the client
@@ -1626,22 +1643,6 @@ service cloud.firestore {
         && receiptMatches(request.resource.data.consentReceiptId, uid,
                           'bodytype-withdrawn',
                           request.resource.data.bodyTypeConsent.version);
-
-      // Integración de actividad P1 (2026-11-03): OTORGAR,
-      // RENOVAR o RETIRAR el consentimiento de UN tipo de
-      // actividad (activityConsents): exactamente un tipo
-      // cambia (actActShapeOk deriva cuál y exige su forma y
-      // la hora del servidor), con el recibo acoplado
-      // activity-{tipo}-{granted|renewed|withdrawn} en el
-      // mismo lote y seq +1 exacto. Es UNA sola rama para
-      // los tres actos: el presupuesto de expresiones por
-      // petición no da para dos preámbulos.
-      allow update: if isSelf(uid)
-        && request.resource.data.diff(resource.data).affectedKeys()
-              .hasOnly(['activityConsents', 'consentSeq', 'consentReceiptId'])
-        && request.resource.data.consentSeq == resource.data.get('consentSeq', 0) + 1
-        && request.resource.data.consentReceiptId == uid + '_' + string(request.resource.data.consentSeq)
-        && actActShapeOk(resource.data, request.resource.data);
 
       // The trainer deletes user docs (reject flow).
       allow delete: if isOwnerUser();
