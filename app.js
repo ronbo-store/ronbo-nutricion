@@ -28294,8 +28294,11 @@ function trainFloatClose() {
    arriba en llano y las tarjetas no aplican: el cierre empareja
    las marcas con la lista efectiva POR ÍNDICE, y cambiar el
    ejercicio con series ya escritas re-atribuiría lo hecho. Sin
-   series trabajadas, la marca vacía de la fila se descarta y la
-   variante nace con el borrador limpio del esquema heredado.
+   series trabajadas, la marca (vacía por fuerza: el botón solo
+   vive con la sesión empezada) se conserva y la ventana reabre
+   EN la sesión sobre la variante, con el esquema heredado —
+   corrección AUTH-2026-11-04-244 sobre la primera versión, que
+   la descartaba y devolvía la ventana al botón «Empezar» —.
    REVERSIÓN: la hoja ofrece «Volver al ejercicio del plan» cuando
    lo efectivo de hoy difiere de lo prescrito (borra el swap), y
    la tarjeta de la forma base cuando hay una variante elegida.
@@ -28454,11 +28457,14 @@ function tfVarApply(pick) {
     }
   }
   trainEditsWrite(plan.id, ed, F.iso);
-  /* Sin series trabajadas (garantizado arriba): la marca vacía de
-     la fila se descarta para que la variante nazca con el borrador
-     limpio del esquema heredado, como al quitar un ejercicio. */
-  delete TRAIN_CHECKS[F.di + ':' + F.ei];
-  trainChecksPersist(plan.id);
+  /* La marca de la fila SE CONSERVA (corrección del mismo día,
+     AUTH-2026-11-04-244): la guardia garantiza que no lleva ni una
+     serie con datos — son las filas vacías del esquema heredado,
+     idénticas a las que la variante pintaría al empezar — y
+     conservarla deja la ventana reabierta EN la sesión (con su
+     RPE y su aproximación tal cual estaban), no otra vez en el
+     botón «Empezar». La primera versión la descartaba y la
+     ventana reaparecía sin empezar: la E2E de AUTH-243 lo cazó. */
   const di = F.di, ei = F.ei, iso = F.iso;
   tfVarSheetClose();
   loadMyTraining();
@@ -40797,7 +40803,7 @@ document.addEventListener('keydown', e => { if (e.key === 'Escape') shareClose()
  *  - El SW (sw.js) solo cachea la cáscara del mismo origen en modo
  *    RED PRIMERO: Auth/Firestore/Worker jamás pasan por la caché.
  * ================================================================ */
-const PWA_SW_VERSION = '20261104-peticiones';
+const PWA_SW_VERSION = '20261104-variante-en-sesion';
 /* Sello de versión VISIBLE (2026-11-03): el pie de la tarjeta de
    acceso enseña qué copia corre este teléfono ('v ' + el sello),
    para comprobar de un vistazo si la versión nueva ya llegó.
