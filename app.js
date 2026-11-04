@@ -33848,6 +33848,17 @@ function wkDayShort(iso) {
    en la ficha del alumno para el entrenador las líneas son de
    solo lectura, sin toque (su historia vive en las sesiones de
    la propia ficha). */
+/* Pliegue de la sección (orden de Ronald, 2026-11-04 15:19 CST:
+   tras probar en su iPhone la tarjeta plegada pide «Los
+   ejercicios de la semana también desplegables»): la sección
+   nace PLEGADA con su cabecera visible, y la cabecera entera es
+   el botón que la despliega y la pliega, con EL MISMO patrón del
+   pliegue de la tarjeta (AUTH-239): botón con aria-expanded,
+   cheurón ▾/▴ de la familia .gm-chev y estado en memoria PROPIO
+   (WK_EX_OPEN), independiente del de la tarjeta — plegar una no
+   toca la otra —. Solo presentación: la lista, su orden, sus
+   pesos y su cálculo no cambian en una coma. */
+let WK_EX_OPEN = false;
 function wkExSectionHTML(m, links) {
   const rows = (m.exercises || []).map(x => {
     let fig;
@@ -33867,7 +33878,8 @@ function wkExSectionHTML(m, links) {
       : `<div class="wkex-row">${inner}</div>`;
   }).join('');
   if (!rows) return '';
-  return `<div class="wkex"><div class="wkex-title">${esc(t('wk.exTitle'))}</div>${rows}</div>`;
+  const exOpen = WK_EX_OPEN === true;
+  return `<div class="wkex"><button type="button" class="wkex-head" data-wkex-toggle aria-expanded="${exOpen ? 'true' : 'false'}"><span class="wkex-title">${esc(t('wk.exTitle'))}</span><span class="gm-chev wkex-chev" aria-hidden="true">${exOpen ? '▴' : '▾'}</span></button><div class="wkex-fold"${exOpen ? '' : ' style="display:none"'}>${rows}</div></div>`;
 }
 /* Pliegue de la tarjeta (orden de Ronald, 2026-11-04 14:30 CST:
    «Esto quiero que se despliegue cuando se presione en TU SEMANA!
@@ -33934,17 +33946,33 @@ function weekCardHTML(m, links) {
 function wkCardWire(root) {
   if (!root || typeof root.querySelector !== 'function') return;
   const btn = root.querySelector('[data-wk-toggle]');
-  if (!btn || btn.dataset.wired) return;
-  btn.dataset.wired = '1';
-  btn.onclick = () => {
-    WK_CARD_OPEN = !WK_CARD_OPEN;
-    const card = typeof btn.closest === 'function' ? btn.closest('.wkcard') : null;
-    const fold = card ? card.querySelector('.wkcard-fold') : null;
-    if (fold) fold.style.display = WK_CARD_OPEN ? '' : 'none';
-    btn.setAttribute('aria-expanded', WK_CARD_OPEN ? 'true' : 'false');
-    const chev = btn.querySelector('.wkcard-chev');
-    if (chev) chev.textContent = WK_CARD_OPEN ? '▴' : '▾';
-  };
+  if (btn && !btn.dataset.wired) {
+    btn.dataset.wired = '1';
+    btn.onclick = () => {
+      WK_CARD_OPEN = !WK_CARD_OPEN;
+      const card = typeof btn.closest === 'function' ? btn.closest('.wkcard') : null;
+      const fold = card ? card.querySelector('.wkcard-fold') : null;
+      if (fold) fold.style.display = WK_CARD_OPEN ? '' : 'none';
+      btn.setAttribute('aria-expanded', WK_CARD_OPEN ? 'true' : 'false');
+      const chev = btn.querySelector('.wkcard-chev');
+      if (chev) chev.textContent = WK_CARD_OPEN ? '▴' : '▾';
+    };
+  }
+  /* El pliegue de la sección de ejercicios se cablea aquí mismo,
+     con su propio estado: independiente del de la tarjeta. */
+  const exBtn = root.querySelector('[data-wkex-toggle]');
+  if (exBtn && !exBtn.dataset.wired) {
+    exBtn.dataset.wired = '1';
+    exBtn.onclick = () => {
+      WK_EX_OPEN = !WK_EX_OPEN;
+      const sec = typeof exBtn.closest === 'function' ? exBtn.closest('.wkex') : null;
+      const fold = sec ? sec.querySelector('.wkex-fold') : null;
+      if (fold) fold.style.display = WK_EX_OPEN ? '' : 'none';
+      exBtn.setAttribute('aria-expanded', WK_EX_OPEN ? 'true' : 'false');
+      const chev = exBtn.querySelector('.wkex-chev');
+      if (chev) chev.textContent = WK_EX_OPEN ? '▴' : '▾';
+    };
+  }
 }
 /* Fuente de lesiones: las peticiones «molestia o lesión» del
    alumno (trainer_requests). Lectura PROTEGIDA: si la colección
@@ -39458,7 +39486,7 @@ document.addEventListener('keydown', e => { if (e.key === 'Escape') shareClose()
  *  - El SW (sw.js) solo cachea la cáscara del mismo origen en modo
  *    RED PRIMERO: Auth/Firestore/Worker jamás pasan por la caché.
  * ================================================================ */
-const PWA_SW_VERSION = '20261104-semana-plegable';
+const PWA_SW_VERSION = '20261104-ejercicios-plegable';
 /* Sello de versión VISIBLE (2026-11-03): el pie de la tarjeta de
    acceso enseña qué copia corre este teléfono ('v ' + el sello),
    para comprobar de un vistazo si la versión nueva ya llegó.

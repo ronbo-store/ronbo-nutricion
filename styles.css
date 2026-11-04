@@ -3759,6 +3759,12 @@ body.sess-on #pend-back-chip { bottom: calc(env(safe-area-inset-bottom, 0px) + 1
    ficha del ejercicio con su historia. */
 .wkex { background: #fff; border: 1px solid #dce5ec; border-radius: 16px; overflow: hidden; margin: 0 0 14px; box-shadow: 0 1px 3px rgba(15, 40, 50, .05); }
 .wkex-title { padding: 12px 16px 10px; font-weight: 800; letter-spacing: .06em; font-size: 13.5px; color: #0b7a6e; }
+/* Pliegue de la sección de ejercicios (AUTH-240): la cabecera
+   entera es el botón del pliegue, como en la tarjeta semanal. */
+.wkex-head { display: flex; align-items: center; width: 100%; box-sizing: border-box; border: 0; background: #fff; font: inherit; text-align: left; cursor: pointer; padding: 0; -webkit-tap-highlight-color: transparent; }
+.wkex-head .wkex-title { flex: 1 1 auto; min-width: 0; }
+.wkex-chev { margin-right: 16px; font-size: 16px; }
+.wkex-fold { animation: wkfoldIn .28s ease; }
 .wkex-row { display: flex; align-items: center; justify-content: space-between; gap: 12px; width: 100%; box-sizing: border-box; min-height: 48px; padding: 9px 16px; border: 0; border-top: 1px solid #eef3f6; background: #fff; font: inherit; text-align: left; }
 button.wkex-row { cursor: pointer; }
 button.wkex-row:active { background: #eef7f5; }
