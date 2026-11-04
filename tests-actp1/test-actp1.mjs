@@ -49,7 +49,7 @@ async function T(name, promise, shouldSucceed) {
   } catch (e) {
     fail++; failures.push(name);
     console.log('FAIL — ' + name + ' :: ' + String(e && e.message || e).slice(0, 140));
-    console.log('::error title=' + name + '::' + String(e && e.message || e).slice(0, 200).replace(/[\r\n]+/g, ' '));
+    console.log('::error title=' + name + '::' + String(e && e.message || e).slice(0, 1500).replace(/[\r\n]+/g, ' '));
   }
 }
 
@@ -239,6 +239,26 @@ await T('G15 otorgar ejercicio perdiendo el sueño del mapa = denegado',
 await T('G16 el alumno lee su recibo de actividad',
   getDoc(doc(dbOf('aluGrant'), 'consent_receipts', 'aluGrant_4')),
   ESPERA_NUEVO);
+
+// G17 (aislamiento) — SOLO la creación del recibo, con el
+// documento de la alumna ya en el estado posterior al acto
+// (sembrado sin reglas): aísla la evaluación de consent_receipts.
+await seedUser('aluIso', { trainerUid: 'entrenadorT', assignmentStatus: 'assigned',
+  consentSeq: 4, consentReceiptId: 'aluIso_4',
+  activityConsents: { sleep: { status: 'accepted', version: V, acceptedAt: OLD_A } } });
+await T('G17 aislamiento: crear solo el recibo activity-sleep-granted',
+  setDoc(doc(dbOf('aluIso'), 'consent_receipts', 'aluIso_4'),
+    { uid: 'aluIso', email: 'aluIso@test.local', type: 'activity-sleep-granted', version: V, at: serverTimestamp() }),
+  ESPERA_NUEVO);
+// G18 (aislamiento) — SOLO la escritura en users, sin recibo:
+// denegada en ambos textos por el acoplamiento; el MOTIVO del
+// error impreso distingue «recibo ausente» de «desbordamiento».
+await seedUser('aluIso2', { trainerUid: 'entrenadorT', assignmentStatus: 'assigned' });
+await T('G18 aislamiento: escribir solo users sin recibo (denegado)',
+  setDoc(doc(dbOf('aluIso2'), 'users', 'aluIso2'),
+    { activityConsents: { sleep: { status: 'accepted', version: V, acceptedAt: serverTimestamp() } },
+      consentSeq: 4, consentReceiptId: 'aluIso2_4' }, { merge: true }),
+  false);
 
 /* ════════ activity_data (el hogar del sueño) ════════ */
 const sleepDoc = (uid, fecha, over) => Object.assign({
