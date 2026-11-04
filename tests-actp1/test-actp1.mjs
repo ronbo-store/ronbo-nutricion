@@ -219,6 +219,19 @@ await T('G12 el propietario escribe activityConsents ajeno',
     { uid: 'aluBt', email: 'aluBt@test.local', type: 'bodytype-granted', version: BT_V, at: serverTimestamp() });
   await T('G13 vecino: otorgar tipo corporal con su recibo (ambos textos)', b.commit(), true);
 }
+// G19 — vecino intacto: el otorgamiento del consentimiento
+// específico de salud con su recibo (la ruta de receiptVersion
+// que el delta roza: su rama cae DESPUÉS de la de actividad).
+await seedUser('aluHealth', { trainerUid: 'entrenadorT', assignmentStatus: 'assigned', consentSeq: 2, consentReceiptId: 'aluHealth_2' });
+{
+  const db = dbOf('aluHealth'); const b = writeBatch(db);
+  b.set(doc(db, 'users', 'aluHealth'),
+    { healthConsent: { status: 'accepted', version: 'hv-test-1', acceptedAt: serverTimestamp() },
+      consentSeq: 3, consentReceiptId: 'aluHealth_3' }, { merge: true });
+  b.set(doc(db, 'consent_receipts', 'aluHealth_3'),
+    { uid: 'aluHealth', email: 'aluHealth@test.local', type: 'specific-granted', version: 'hv-test-1', at: serverTimestamp() });
+  await T('G19 vecino: otorgar consentimiento de salud con su recibo (ambos textos)', b.commit(), true);
+}
 // G14 — segundo tipo con el primero intacto (mapa completo).
 {
   const cur = await readUser('aluSleep');

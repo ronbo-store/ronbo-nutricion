@@ -684,6 +684,29 @@ service cloud.firestore {
       let t = actChangedType(before, after);
       return t != '' && actOnlyTypeChanged(before, after, t) && actWithdrawFor(before, after, t);
     }
+    // El acto completo en UN ayudante: la derivación del tipo se
+    // calcula una sola vez (el presupuesto de expresiones por
+    // petición es estrecho y receiptMatches volvería a derivar
+    // tipo y versión por la cadena general; aquí el recibo se
+    // comprueba directamente con el tipo y la versión del tipo
+    // cambiado, y la regla de creación de recibos lo vuelve a
+    // derivar por su lado con receiptType/receiptVersion: el
+    // acoplamiento es de doble cara, como en la casa).
+    function actActOk(before, after, mode) {
+      let t = actChangedType(before, after);
+      let action = mode == 'grant'
+        ? (actStatus(before, t) == 'withdrawn' ? 'renewed' : 'granted')
+        : 'withdrawn';
+      let rid = after.get('consentReceiptId', '');
+      return t != ''
+        && actOnlyTypeChanged(before, after, t)
+        && (mode == 'grant' ? actGrantFor(before, after, t) : actWithdrawFor(before, after, t))
+        && existsAfter(receiptPath(rid))
+        && getAfter(receiptPath(rid)).data.uid == request.auth.uid
+        && getAfter(receiptPath(rid)).data.type == 'activity-' + t + '-' + action
+        && getAfter(receiptPath(rid)).data.version == actVersionOf(after, t)
+        && getAfter(receiptPath(rid)).data.at == request.time;
+    }
     function receiptType(before, after) {
       let bs = before.get('healthConsent', {}).get('status', 'none');
       let as2 = after.get('healthConsent', {}).get('status', 'none');
@@ -1659,13 +1682,9 @@ service cloud.firestore {
       allow update: if isSelf(uid)
         && request.resource.data.diff(resource.data).affectedKeys()
               .hasOnly(['activityConsents', 'consentSeq', 'consentReceiptId'])
-        && actGrantShape(resource.data, request.resource.data)
         && request.resource.data.consentSeq == resource.data.get('consentSeq', 0) + 1
         && request.resource.data.consentReceiptId == uid + '_' + string(request.resource.data.consentSeq)
-        && receiptMatches(request.resource.data.consentReceiptId, uid,
-                          receiptType(resource.data, request.resource.data),
-                          actVersionOf(request.resource.data,
-                                       actChangedType(resource.data, request.resource.data)));
+        && actActOk(resource.data, request.resource.data, 'grant');
       // RETIRAR el consentimiento de UN tipo de actividad: de
       // 'accepted' a 'withdrawn' (actWithdrawShape: exactamente un
       // tipo, los demás intactos), hora del servidor, aceptación y
@@ -1677,13 +1696,9 @@ service cloud.firestore {
       allow update: if isSelf(uid)
         && request.resource.data.diff(resource.data).affectedKeys()
               .hasOnly(['activityConsents', 'consentSeq', 'consentReceiptId'])
-        && actWithdrawShape(resource.data, request.resource.data)
         && request.resource.data.consentSeq == resource.data.get('consentSeq', 0) + 1
         && request.resource.data.consentReceiptId == uid + '_' + string(request.resource.data.consentSeq)
-        && receiptMatches(request.resource.data.consentReceiptId, uid,
-                          receiptType(resource.data, request.resource.data),
-                          actVersionOf(request.resource.data,
-                                       actChangedType(resource.data, request.resource.data)));
+        && actActOk(resource.data, request.resource.data, 'withdraw');
 
       // The trainer deletes user docs (reject flow).
       allow delete: if isOwnerUser();
