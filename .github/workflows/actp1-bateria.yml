@@ -56,6 +56,13 @@ jobs:
           cp firestore.rules.viva firestore.rules
           set -o pipefail
           firebase emulators:exec --only firestore --project ronbo-nutri-test "ESPERA_NUEVO=false node test-actp1.mjs" 2>&1 | tee /tmp/suite-vivo.log
+      - name: Sonda (variante sin derivación de actividad en receiptType)
+        if: always()
+        working-directory: tests-actp1
+        run: |
+          sed "s/? actDerivedType(before, after) : ''/? '' : ''/" firestore.rules.candidata > firestore.rules
+          grep -c "actDerivedType(before, after) : ''" firestore.rules || true
+          firebase emulators:exec --only firestore --project ronbo-nutri-test "node test-variante.mjs" 2>&1 | tee /tmp/sonda.log || true
       - name: Publicar resultados en la rama de resultados
         if: always()
         working-directory: ${{ github.workspace }}
@@ -74,6 +81,8 @@ jobs:
             cat /tmp/suite-candidata.log 2>/dev/null || echo "(sin salida)"
             echo "══════════ SUITE VIVO ══════════"
             cat /tmp/suite-vivo.log 2>/dev/null || echo "(sin salida)"
+            echo "══════════ SONDA ══════════"
+            grep -a "SONDA" /tmp/sonda.log 2>/dev/null || echo "(sin sonda)"
           } > tests-actp1/resultado-ultima-corrida.txt
           git config user.email "ci@ronbo.local"
           git config user.name "CI bateria actp1"
