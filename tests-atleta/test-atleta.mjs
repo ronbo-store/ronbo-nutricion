@@ -195,8 +195,8 @@ await T('el ritmo NO es del delta (3): la forma del escritor de la app por un en
   setDoc(D('entrena', 'users', 'alumna'), {
     paceSuggestion: { paceKcal: 500, suggestedAt: '2026-10-30T12:00:00Z', status: 'replaced', decidedPaceKcal: 750, decidedBy: 'entrena', decidedAt: '2026-11-03T12:00:00Z' }
   }, { merge: true }), false);
-await T('el propietario puede lo de siempre, también el atleta',
-  updateDoc(ASMT('alumna', 'dueno'), { athleteDeclared: false, athleteDeclaredAt: ST(), athleteDeclaredBy: 'dueno', updatedAt: ST(), updatedBy: 'dueno' }), true);
+await T('el propietario monta en la MISMA rama (isOwnerUser || entrenador asignado): el atleta también es delta para él',
+  updateDoc(ASMT('alumna', 'dueno'), { athleteDeclared: false, athleteDeclaredAt: ST(), athleteDeclaredBy: 'dueno', updatedAt: ST(), updatedBy: 'dueno' }), N);
 await T('sin sesión no se toca nada: denegado',
   updateDoc(ASMT('alumna', null), { athleteDeclared: false }), false);
 
