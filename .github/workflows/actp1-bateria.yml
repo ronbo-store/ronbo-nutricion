@@ -59,15 +59,14 @@ jobs:
       - name: Publicar resultados en la rama de resultados
         if: always()
         working-directory: ${{ github.workspace }}
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
-          git config user.email "ci@ronbo.local"
-          git config user.name "CI bateria actp1"
-          git fetch origin +refs/heads/ci/actp1-resultados:refs/remotes/origin/ci-res 2>/dev/null || true
-          if git show-ref --verify --quiet refs/remotes/origin/ci-res; then
-            git checkout -B ci/actp1-resultados refs/remotes/origin/ci-res
-          else
-            git checkout -B ci/actp1-resultados
-          fi
+          rm -rf /tmp/resrepo
+          git clone --depth 1 --branch ci/actp1-resultados "https://x-access-token:${GH_TOKEN}@github.com/ronbo-store/ronbo-nutricion.git" /tmp/resrepo 2>/dev/null \
+            || git clone --depth 1 "https://x-access-token:${GH_TOKEN}@github.com/ronbo-store/ronbo-nutricion.git" /tmp/resrepo
+          cd /tmp/resrepo
+          git checkout -B ci/actp1-resultados
           mkdir -p tests-actp1
           {
             echo "Corrida: ${{ github.run_id }} · ${{ github.sha }} · $(date -u +%FT%TZ)"
@@ -76,6 +75,8 @@ jobs:
             echo "══════════ SUITE VIVO ══════════"
             cat /tmp/suite-vivo.log 2>/dev/null || echo "(sin salida)"
           } > tests-actp1/resultado-ultima-corrida.txt
+          git config user.email "ci@ronbo.local"
+          git config user.name "CI bateria actp1"
           git add tests-actp1/resultado-ultima-corrida.txt
           git commit -m "Resultados batería actp1 (corrida ${{ github.run_id }}) [skip ci]" || echo "sin cambios"
           git push origin HEAD:ci/actp1-resultados
