@@ -60,8 +60,7 @@ jobs:
         if: always()
         working-directory: tests-actp1
         run: |
-          sed "s/? actDerivedType(before, after) : ''/? '' : ''/" firestore.rules.candidata > firestore.rules
-          grep -c "actDerivedType(before, after) : ''" firestore.rules || true
+          cp firestore.rules.candidata firestore.rules
           firebase emulators:exec --only firestore --project ronbo-nutri-test "node test-variante.mjs" 2>&1 | tee /tmp/sonda.log || true
       - name: Sondas de bisección (variantes A, B y C)
         if: always()

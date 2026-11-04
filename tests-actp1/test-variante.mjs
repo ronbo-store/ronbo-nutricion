@@ -30,7 +30,7 @@ await seedUser('aluBt', { trainerUid: 'entrenadorT', assignmentStatus: 'assigned
   b.set(doc(db, 'consent_receipts', 'aluGrant_4'),
     { uid: 'aluGrant', email: 'aluGrant@test.local', type: 'activity-sleep-granted', version: V, at: serverTimestamp() });
   try { await assertSucceeds(b.commit()); console.log('SONDA G1: PASS'); }
-  catch (e) { const m = String(e.message || e); console.log('SONDA G1: FAIL · ¿tope? ' + m.includes('maximum of 1000') + ' :: ' + m.slice(0, 400)); }
+  catch (e) { const m = String(e.message || e); console.log('SONDA G1: FAIL · ¿tope? ' + m.includes('maximum of 1000') + ' :: ' + m.slice(0, 8000)); }
 }
 {
   const db = testEnv.authenticatedContext('aluBt').firestore();
