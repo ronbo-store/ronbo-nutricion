@@ -3395,19 +3395,19 @@ en: {
   'myprof.dsTime': 'Time',
   'myprof.dsTz': 'Your time zone: {tz} — read from your device and kept up to date when you open your profile.',
   'myprof.dsHint': 'On training days, one email with that day\'s session and a direct link to open it in the app. Rest days send nothing, and a day you already trained is skipped.',
-  'eve.kicker': 'TOMORROW · {date}',
+  'eve.kicker': 'TODAY · {date}',
   'eve.demanding': 'DEMANDING DAY',
   'eve.ofCarbs': 'of carbs',
-  'eve.tomorrowWord': 'tomorrow',
+  'eve.todayWord': 'today',
   'eve.contrastA': 'A normal day: {base} g',
-  'eve.contrastB': 'tomorrow is +{d} g more',
-  'eve.senseLegs': 'Tomorrow is leg day and your body will burn more energy: keep tomorrow\'s carbs within reach starting today.',
-  'eve.senseGeneric': 'Tomorrow\'s session is demanding and your body will burn more energy: keep tomorrow\'s carbs within reach starting today.',
-  'eve.seePlan': 'See tomorrow\'s plan',
+  'eve.contrastB': 'today is +{d} g more',
+  'eve.senseLegs': 'Today is leg day and your body will burn more energy: keep today\'s carbs within reach.',
+  'eve.senseGeneric': 'Today\'s session is demanding and your body will burn more energy: keep today\'s carbs within reach.',
+  'eve.seePlan': 'See today\'s plan',
   'eve.gotIt': 'Got it',
-  'eve.foot': 'You will see this once, on the day before.',
+  'eve.foot': 'You will see this once, on the demanding day itself.',
   'eve.title': 'Demanding-day heads-up',
-  'eve.help': 'A heads-up the day before a demanding day',
+  'eve.help': 'A heads-up that same day, when the day is demanding',
   'msg.eveSaved': 'Heads-up setting saved.',
   'myprof.dsStateOn': 'On',
   'myprof.dsStateOff': 'Off',
@@ -6448,19 +6448,19 @@ es: {
   'myprof.dsTime': 'Hora',
   'myprof.dsTz': 'Tu zona horaria: {tz} — se lee de tu aparato y se actualiza al abrir tu perfil.',
   'myprof.dsHint': 'Los días de entreno, un correo con la sesión de ese día y un enlace directo para abrirla en la app. Los días de descanso no se envía nada, y un día que ya entrenaste se salta.',
-  'eve.kicker': 'MAÑANA · {date}',
+  'eve.kicker': 'HOY · {date}',
   'eve.demanding': 'DÍA EXIGENTE',
   'eve.ofCarbs': 'de carbohidratos',
-  'eve.tomorrowWord': 'mañana',
+  'eve.todayWord': 'hoy',
   'eve.contrastA': 'Un día normal: {base} g',
-  'eve.contrastB': 'mañana son +{d} g',
-  'eve.senseLegs': 'Mañana entrenas piernas y tu cuerpo va a gastar más energía: deja los carbohidratos de mañana a mano desde hoy.',
-  'eve.senseGeneric': 'Mañana el entrenamiento es exigente y tu cuerpo va a gastar más energía: deja los carbohidratos de mañana a mano desde hoy.',
-  'eve.seePlan': 'Ver el plan de mañana',
+  'eve.contrastB': 'hoy son +{d} g',
+  'eve.senseLegs': 'Hoy entrenas piernas y tu cuerpo va a gastar más energía: deja los carbohidratos de hoy a mano.',
+  'eve.senseGeneric': 'Hoy el entrenamiento es exigente y tu cuerpo va a gastar más energía: deja los carbohidratos de hoy a mano.',
+  'eve.seePlan': 'Ver el plan de hoy',
   'eve.gotIt': 'Entendido',
-  'eve.foot': 'Te lo muestro una sola vez, el día de la víspera.',
+  'eve.foot': 'Te lo muestro una sola vez, el mismo día exigente.',
   'eve.title': 'Aviso de día exigente',
-  'eve.help': 'Te aviso la víspera cuando mañana sea un día exigente',
+  'eve.help': 'Te aviso el mismo día, cuando el día es exigente',
   'msg.eveSaved': 'Ajuste del aviso guardado.',
   'myprof.dsStateOn': 'Activado',
   'myprof.dsStateOff': 'Desactivado',
@@ -17420,32 +17420,35 @@ function goalOfDay(key, iso) {
 }
 
 
-/* ================= ALERTA DE LA VÍSPERA DE UN DÍA EXIGENTE =================
+/* ================= ALERTA DEL MISMO DÍA EXIGENTE =================
    Diseño aprobado por Ronald (2026-11-03, «perfecto. apribado» sobre
-   diseno-alerta-dia-exigente-2026-11-03/NOTA-DISENO.md): al abrir la
-   app, en la primera pintura de Inicio de cada día local, si MAÑANA
-   es un día exigente según el motor §K, salta UNA ventana flotante
-   con la cifra de carbohidratos de mañana — la de goalsDayGoalsFor,
-   la misma que mañana pintará «Metas de hoy».
+   diseno-alerta-dia-exigente-2026-11-03/NOTA-DISENO.md) y CAMBIO DE
+   DECISIÓN suyo (correo desde su 590, 2026-11-04: «quiero que salga
+   en la primera apertura de la app el mismo dia que corresponda, no
+   un día antes»): al abrir la app, en la primera pintura de Inicio
+   de cada día local, si HOY es un día exigente según el motor §K,
+   salta UNA ventana flotante con la cifra de carbohidratos de hoy —
+   la de goalsDayGoalsFor, la misma que hoy pinta «Metas de hoy».
    · CERO lecturas nuevas: la evaluación corre SOLO con lo que la
      sesión ya tiene en memoria (MY_PLAN, GOALS, UDATA, PEND_CFG,
      LIB_BY_ID); cero servidor.
-   · El sello es LOCAL (localStorage, por usuario y fecha de la
-     víspera) y se escribe SOLO cuando la ventana se muestra: una
-     sola vez por víspera; cualquier cierre (Entendido, ✕ de 46 px
-     o toque en el velo) cuenta como vista. Si hoy también es
-     exigente, la ventana habla SOLO de mañana.
+   · El sello es LOCAL (localStorage, por usuario y fecha del día
+     exigente) y se escribe SOLO cuando la ventana se muestra: una
+     sola vez por día exigente; cualquier cierre (Entendido, ✕ de
+     46 px o toque en el velo) cuenta como vista.
    · Audiencia (TODO, con los datos de la propia persona): plan
-     activo con ancla de fecha real (en modo «rotation» mañana no
-     es conocible: nunca); mañana resuelve a sesión exigente; metas
+     activo con ancla de fecha real (en modo «rotation» el día no
+     es conocible: nunca); hoy resuelve a sesión exigente; metas
      fundadas vigentes (goalsProvenance) con el ajuste §K aplicado
-     de verdad (carbos de mañana ≠ carbos base); con los carbos
+     de verdad (carbos de hoy ≠ carbos base); con los carbos
      retenidos por la declaración de salud (§E) NO hay ventana.
    · El interruptor «Aviso de día exigente» vive en Mi perfil, en el
      bloque de avisos del resumen diario: nace ENCENDIDO (campo
      ausente = encendido) y se guarda con la cuenta como
-     users/{uid}.eveAlert = { on } (delta de reglas del paquete). */
-function eveAlertKey(uid, eveISO) { return 'ronbofit-eve-alert-' + uid + '|' + eveISO; }
+     users/{uid}.eveAlert = { on } (el nombre interno del campo y
+     su forma son los del paquete de la víspera, AUTH-227: no
+     cambian, y la cláusula de reglas publicada sigue valiendo). */
+function eveAlertKey(uid, dayISO) { return 'ronbofit-eve-alert-' + uid + '|' + dayISO; }
 function eveDateLabel(iso) {
   const m = String(iso).match(/(\d{4})-(\d{2})-(\d{2})/);
   if (!m) return iso;
@@ -17492,14 +17495,13 @@ function eveAlertEvaluate() {
     const today = todayISO();
     let stamped = null;
     try { stamped = localStorage.getItem(eveAlertKey(me.uid, today)); } catch {}
-    if (stamped) return null; // ya se mostró en esta víspera
-    const tomorrow = addDaysISO(today, 1);
+    if (stamped) return null; // ya se mostró en este día exigente
     const cfg = (typeof PEND_CFG !== 'undefined' && PEND_CFG && !PEND_CFG.__error) ? PEND_CFG : null;
     const lib = (typeof LIB_BY_ID !== 'undefined' ? LIB_BY_ID : {});
-    const det = goalsDayLevelForDate(tomorrow, plan, cfg, lib);
+    const det = goalsDayLevelForDate(today, plan, cfg, lib);
     if (!det || det.mode === 'rotation' || det.mode === 'none' || det.dayIndex == null) return null;
     if (det.dayLevel !== 'exigente') return null;
-    const view = goalsDayGoalsFor(tomorrow);
+    const view = goalsDayGoalsFor(today);
     if (!view || view.mode === 'held' || view.dayLevel !== 'exigente') return null;
     const carb = view.goals ? Number(view.goals.carb) : NaN;
     if (!(carb > 0) || carb === Number(base.carb)) return null; // §K no aplicado de verdad → sin ventana
@@ -17508,7 +17510,7 @@ function eveAlertEvaluate() {
     const wf = (typeof week5Focus === 'function') ? week5Focus(day.label, det.dayIndex) : { dayWord: '', focus: '' };
     const focus = String(wf.focus || '').replace(/\s+/g, ' ').trim();
     const label = focus ? (wf.dayWord + ' · ' + focus) : (String(day.label || '').trim() || wf.dayWord);
-    return { tomorrowISO: tomorrow, dayIndex: det.dayIndex, label, legs: eveDayIsLegs(day, lib), carb, baseCarb: Number(base.carb) };
+    return { dayISO: today, dayIndex: det.dayIndex, label, legs: eveDayIsLegs(day, lib), carb, baseCarb: Number(base.carb) };
   } catch { return null; }
 }
 let EVE_EVALUATED = false;   // la evaluación corre UNA vez por carga de la app
@@ -17519,14 +17521,14 @@ function eveAlertStamp() {
 function eveAlertClose(goPlan, d) {
   if (EVE_FLOAT) { EVE_FLOAT.remove(); EVE_FLOAT = null; }
   if (goPlan && d) {
-    /* «Ver el plan de mañana»: la MISMA maquinaria del enlace ?dia=
+    /* «Ver el plan de hoy»: la MISMA maquinaria del enlace ?dia=
        de AUTH-173, sin reinterpretar — la fecha viaja por el mismo
        canal de sessionStorage ('rf-link-dia') que captureSignupLinks
        deja al abrir el enlace del correo; loadMyTraining la consume
        con dayLinkTake() y la vista de Entrenamiento nace en esa
        fecha, igual que con el enlace. */
     try {
-      sessionStorage.setItem('rf-link-dia', d.tomorrowISO);
+      sessionStorage.setItem('rf-link-dia', d.dayISO);
       Promise.resolve(loadMyTraining()).catch(() => {}).finally(() => { try { navOpenPage('train'); } catch {} });
     } catch {}
   }
@@ -17539,10 +17541,10 @@ function eveAlertShow(d) {
   el.id = 'eve-float';
   el.innerHTML = `<div class="eve-sheet" role="dialog" aria-modal="true" aria-label="${esc(t('eve.demanding'))}">
     <button type="button" class="eve-x" data-eve-close aria-label="${esc(t('client.close'))}">✕</button>
-    <div class="eve-kicker">${esc(t('eve.kicker', { date: eveDateLabel(d.tomorrowISO) }).toUpperCase())}</div>
+    <div class="eve-kicker">${esc(t('eve.kicker', { date: eveDateLabel(d.dayISO) }).toUpperCase())}</div>
     <div class="eve-title">${esc(d.label)}</div>
     <div class="eve-chip"><span aria-hidden="true">🔥</span>${esc(t('eve.demanding'))}</div>
-    <div class="eve-numwrap"><span class="eve-num">${fmt(d.carb)} g</span><span class="eve-numlab"><b>${esc(t('eve.ofCarbs'))}</b><span>${esc(t('eve.tomorrowWord'))}</span></span></div>
+    <div class="eve-numwrap"><span class="eve-num">${fmt(d.carb)} g</span><span class="eve-numlab"><b>${esc(t('eve.ofCarbs'))}</b><span>${esc(t('eve.todayWord'))}</span></span></div>
     <p class="eve-contrast">${esc(t('eve.contrastA', { base: fmt(d.baseCarb) }))} · <b>${esc(t('eve.contrastB', { d: fmt(d.carb - d.baseCarb) }))}</b></p>
     <p class="eve-sense">${esc(t(d.legs ? 'eve.senseLegs' : 'eve.senseGeneric'))}</p>
     <div class="eve-actions">
@@ -38524,7 +38526,7 @@ document.addEventListener('keydown', e => { if (e.key === 'Escape') shareClose()
  *  - El SW (sw.js) solo cachea la cáscara del mismo origen en modo
  *    RED PRIMERO: Auth/Firestore/Worker jamás pasan por la caché.
  * ================================================================ */
-const PWA_SW_VERSION = '20261103-alerta-vispera';
+const PWA_SW_VERSION = '20261104-alerta-mismo-dia';
 /* Sello de versión VISIBLE (2026-11-03): el pie de la tarjeta de
    acceso enseña qué copia corre este teléfono ('v ' + el sello),
    para comprobar de un vistazo si la versión nueva ya llegó.
