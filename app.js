@@ -4265,6 +4265,18 @@ en: {
   'nudge.errRecipient': 'The nudge did NOT go out: we could not find a valid email for this student.',
   'nudge.errService': 'The nudge did NOT go out: the mail service did not answer. Wait a few minutes and try again.',
   'nudge.errNetwork': 'The nudge did NOT go out: the connection from this device failed. Check your internet and try again.',
+  'pendlist.kicker': 'PENDING STEPS EMAIL',
+  'pendlist.title': 'Send their pending steps',
+  'pendlist.titleFor': 'Pending steps for {name}',
+  'pendlist.btn': '✉ Send them their pending steps',
+  'pendlist.ctxList': 'The list',
+  'pendlist.ctxCount': '{n} pending steps',
+  'pendlist.sentOn': '✉ Pending list sent on {d}',
+  'pendlist.send': 'Send the list',
+  'pendlist.sentOk': 'Done — the email provider accepted the email with the pending list. It should arrive within a few minutes.',
+  'pendlist.gone': 'Those pending steps were just resolved — there is nothing left to send.',
+  'pendlist.capped': 'The pending list was already sent less than 7 days ago.',
+  'pendlist.none': 'This student has no pending steps of their own.',
   'pend.grp.you': 'Up to you',
   'pend.grp.trainer': 'Up to your trainer',
   'pend.grp.admin': 'Up to the administrator',
@@ -7207,6 +7219,18 @@ es: {
   'nudge.errRecipient': 'El aviso NO salió: no encontramos un correo válido de este alumno.',
   'nudge.errService': 'El aviso NO salió: el servicio de correo no respondió. Espera unos minutos e inténtalo de nuevo.',
   'nudge.errNetwork': 'El aviso NO salió: falló la conexión desde este dispositivo. Revisa tu internet e inténtalo de nuevo.',
+  'pendlist.kicker': 'CORREO DE PENDIENTES',
+  'pendlist.title': 'Enviarle sus pendientes',
+  'pendlist.titleFor': 'Pendientes de {name}',
+  'pendlist.btn': '✉ Enviarle sus pendientes',
+  'pendlist.ctxList': 'La lista',
+  'pendlist.ctxCount': '{n} pendientes',
+  'pendlist.sentOn': '✉ Lista de pendientes enviada el {d}',
+  'pendlist.send': 'Enviar la lista',
+  'pendlist.sentOk': 'Listo — el proveedor de correo aceptó el correo con la lista de pendientes. Debe llegar en unos minutos.',
+  'pendlist.gone': 'Esos pendientes se acaban de resolver — ya no queda nada que enviar.',
+  'pendlist.capped': 'La lista de pendientes ya se envió hace menos de 7 días.',
+  'pendlist.none': 'Este alumno no tiene pendientes que dependan de él.',
   'pend.grp.you': 'Depende de ti',
   'pend.grp.trainer': 'Depende de tu entrenador',
   'pend.grp.admin': 'Depende del administrador',
@@ -10401,6 +10425,11 @@ onAuthStateChanged(auth, async user => {
   /* D5 (punto 106): el enlace ?base= del aviso abre el flujo
      «Completa tu base» en su paso exacto, una sola vez. */
   try { baseLinkApply(); } catch {}
+  /* MENSAJE DE PENDIENTES (este paquete): el enlace ?ir= del
+     correo combinado deja al alumno en la superficie exacta de
+     su pendiente (permisos, consentimientos, su entrenador o el
+     formulario de peso), una sola vez. */
+  try { irLinkApply(); } catch {}
   /* AUTH-147: a quien ya estaba registrado y aún no declaró su
      propósito se le pide UNA sola vez al entrar (sin bloquear). */
   try { purposeMaybeAsk(); } catch {}
@@ -11602,6 +11631,9 @@ function fichaPendBlockHTML(uid) {
      La fila del paso del administrador (solo propietario) va
      fuera de la unión y de su total, como en el detalle. */
   if (items.length) h += studentsPendGroupedHTML(uid, items);
+  /* MENSAJE COMBINADO (este paquete): la barra «✉ Enviarle sus
+     pendientes» cierra la lista en la ficha, como en el detalle. */
+  if (items.length) h += studentsPendListBarHTML(uid, items);
   h += stuAdminStepRowHTML(uid);
   h += studentsEqRowHTML(uid, f.chk);
   if (items.length) h += `<div class="client-chk"><b>${esc(t('students.pendToResolve', { n: items.length }))}</b></div>`;
@@ -13048,6 +13080,292 @@ async function nudgeSend() {
   ctx.sending = false;
 }
 
+/* ================================================================
+   MENSAJE COMBINADO DE PENDIENTES (pedido directo de Ronald,
+   2026-11-03 18:35 CST, con su captura de David desplegado con
+   4 pendientes): UN solo correo con TODOS los pendientes que
+   dependen del ALUMNO, cada uno con su enlace directo — hermano
+   mayor de los «✉ Avisar» por pendiente (AUTH-133), que quedan
+   como están.
+   LA LISTA ES LA UNIÓN MISMA: los tipos salen de los ítems que
+   la vista del entrenador ya pinta (la unión AUTH-110/148) con
+   el MISMO clasificador del aviso (nudgeSubFor): un pendiente
+   entra si y solo si tiene plantilla de aviso — es decir, si
+   depende del alumno. Los «DEPENDE DE TI» (espera de aprobación,
+   solicitud de comidas por aprobar, análisis por correr, foto
+   por revisar) NO tienen plantilla y jamás se le listan al
+   alumno; los automáticos (it.auto, «SE ACTIVA SOLA») tampoco:
+   no hay nada que pedir, su cálculo nace cuando abra la app.
+   CARGA CERRADA (patrón AUTH-190): el cliente solo nombra TIPOS
+   del catálogo (las 8 claves de aviso); el Worker pinta las
+   etiquetas desde su banco fijo, en el idioma guardado del
+   alumno (AUTH-198), y construye cada enlace desde su propio
+   mapa de rutas. Ni texto libre ni URLs del cliente viajan.
+   TOPE PROPIO: la rama del entrenador lee notices.nudge.all —
+   una subclave más del mismo mapa de sellos: enviar el combinado
+   NO quema los «Avisar» individuales ni al revés. El propietario
+   envía sin tope, como en toda la familia. ================================================================ */
+const PENDLIST_MAIL = {
+  en: {
+    subject: 'RONBO FIT — Your pending steps, each with its direct link',
+    body: `Hi {name},
+
+Your trainer {trainer} is keeping track of how you are doing. These are the steps still pending in your RONBO FIT account — each one with the direct link that takes you straight to where it is done:
+
+{items}
+
+Finish one and it leaves your list on its own. Thank you for keeping your record up to date: it is how your trainer can look after you with real numbers.
+
+Thank you,
+RONBO FIT`,
+    items: {
+      eval: 'Your starting information (weight, height, birth year, activity level and your private datum)',
+      cns: 'Your health consent — the decision is yours alone',
+      parq: 'Finish your health declaration',
+      goal: 'Define your goals (objective and focus)',
+      meal: 'Start logging your meals — send your request',
+      pes: 'Log your weight',
+      per: 'Your progress evaluation (photos and measurements)',
+      bod: 'The consent for your body-type analysis'
+    }
+  },
+  es: {
+    subject: 'RONBO FIT — Tus pendientes, cada uno con su enlace directo',
+    body: `Hola {name}:
+
+Tu entrenador {trainer} está pendiente de tu avance. Estos son los pasos que aún tienes pendientes en tu cuenta de RONBO FIT — cada uno con el enlace directo que te lleva justo a donde se hace:
+
+{items}
+
+Termina uno y sale de tu lista solo. Gracias por mantener tu registro al día: así tu entrenador puede cuidarte con números reales.
+
+Gracias,
+RONBO FIT`,
+    items: {
+      eval: 'Tu información inicial (peso, talla, año de nacimiento, nivel de actividad y tu dato privado)',
+      cns: 'Tu consentimiento de salud — la decisión es solo tuya',
+      parq: 'Completa tu declaración de salud',
+      goal: 'Define tus metas (objetivo y enfoque)',
+      meal: 'Empieza a registrar tus comidas — envía tu solicitud',
+      pes: 'Registra tu peso',
+      per: 'Tu evaluación de progreso (fotos y medidas)',
+      bod: 'El consentimiento de tu análisis de tipo corporal'
+    }
+  }
+};
+/* El enlace de cada tipo, ESPEJO del mapa del Worker: evaluación
+   y metas viajan por la maquinaria que ya existía (?base= del
+   aviso D5, con el paso de la primera pieza que falta; ?fotos=1
+   de AUTH-188 para la evaluación de progreso); el resto estrena
+   la ruta cerrada ?ir= de este paquete, que aterriza en la MISMA
+   superficie que el «Ir a» del pendiente del propio alumno. */
+function pendListLinkFor(sub, step) {
+  const B = 'https://fit.ronbo.store';
+  if (sub === 'eval' || sub === 'goal') return step ? B + '/?base=' + step : B;
+  if (sub === 'cns') return B + '/?ir=perms-spec';
+  if (sub === 'parq') return B + '/?ir=perms';
+  if (sub === 'bod') return B + '/?ir=perms-bt';
+  if (sub === 'meal') return B + '/?ir=mytrainer';
+  if (sub === 'pes') return B + '/?ir=weight';
+  if (sub === 'per') return B + '/?fotos=1';
+  return B;
+}
+/* El paso de la base al que apunta el enlace de evaluación/
+   metas: el de la PRIMERA pieza que falta, con el mismo mapeo
+   de baseMailBtnFor que elige el botón del correo D5. */
+function pendListStepFor(st) {
+  if (!st || !Array.isArray(st.missing) || !st.missing.length) return null;
+  const first = BASE_MAIL_ORDER.filter(x => st.missing.includes(x))[0];
+  if (!first) return null;
+  return baseMailBtnFor(first)[1];
+}
+/* Compone {subject, body} EXACTAMENTE como el Worker (la batería
+   exige igualdad carácter a carácter entre esta vista previa y
+   el correo que el Worker compone con los mismos datos). */
+function pendListCompose(subs, lang, name, trainer, step) {
+  const P = PENDLIST_MAIL[lang] || PENDLIST_MAIL.en;
+  const items = subs.map(s => '• ' + ((P.items || {})[s] || s) + '\n' + pendListLinkFor(s, step)).join('\n\n');
+  return {
+    subject: P.subject.split('{name}').join(name).split('{trainer}').join(trainer),
+    body: P.body.split('{name}').join(name).split('{trainer}').join(trainer).split('{items}').join(items)
+  };
+}
+/* Los tipos combinables de una lista de ítems de la unión, en el
+   orden en que la vista los pinta y sin duplicar: los que tienen
+   plantilla de aviso y no son automáticos. */
+function pendListSubsOf(items) {
+  const out = [];
+  for (const it of items || []) {
+    if (!it || it.auto) continue;
+    const sub = nudgeSubFor(it);
+    if (sub && !out.includes(sub)) out.push(sub);
+  }
+  return out;
+}
+/* La barra del botón a nivel del alumno (detalle de «Mis
+   alumnos» y bloque de pendientes de la ficha): solo para quien
+   puede avisar (la puerta de la familia) y solo si el alumno
+   tiene pendientes PROPIOS que listar — sin pendientes suyos no
+   hay botón y no hay correo. Con el tope del combinado aún
+   fresco va el registro con su fecha, como en las filas. */
+function studentsPendListBarHTML(uid, items) {
+  if (!nudgeViewerCan(uid)) return '';
+  const subs = pendListSubsOf(items);
+  if (!subs.length) return '';
+  const freshMs = nudgeFreshMs(uid, 'all');
+  if (freshMs) return `<p class="stu-nudged" style="margin-top:10px">${esc(t('pendlist.sentOn', { d: dateName(pendISOof(new Date(freshMs))) }))}</p>`;
+  return `<div class="pendlist-bar"><button type="button" class="btn-primary btn-pendlist" data-stu-pendlist="${uid}">${esc(t('pendlist.btn'))}</button></div>`;
+}
+let PENDLIST_CTX = null;
+function pendListItemsOf(uid) {
+  if (typeof STUDENTS_LAST !== 'undefined' && STUDENTS_LAST && STUDENTS_LAST.pendByUid && STUDENTS_LAST.pendByUid[uid]) return STUDENTS_LAST.pendByUid[uid].items || [];
+  const f = (typeof fichaTpendOf === 'function') ? fichaTpendOf(uid) : null;
+  return (f && f.t && f.t.items) || [];
+}
+function pendListOpen(uid) {
+  if (!nudgeViewerCan(uid)) return;
+  const u = nudgeStudentDoc(uid) || { id: uid };
+  const subs = pendListSubsOf(pendListItemsOf(uid));
+  PENDLIST_CTX = { uid, subs, sending: false, baseState: undefined };
+  const fl = $('pendlist-float'); if (!fl) return;
+  const tt = $('pendlist-title'); if (tt) tt.textContent = t('pendlist.titleFor', { name: u.name || u.email || '' });
+  const lang = nudgeMailLangOf(u);
+  const bd = $('pendlist-body'); if (!bd) return;
+  bd.innerHTML = `
+    <p class="nudge-ctx"><span class="nudge-ctx-k">${esc(t('nudge.ctxStudent'))}</span> <b>${esc(u.name || u.email || '')}</b></p>
+    <p class="nudge-ctx"><span class="nudge-ctx-k">${esc(t('pendlist.ctxList'))}</span> ${esc(t('pendlist.ctxCount', { n: subs.length }))}</p>
+    <p class="progress-hint">${esc(t('nudge.previewNote'))}</p>
+    <div class="nudge-preview" id="pendlist-preview-box"></div>
+    <p class="progress-hint">${esc(t('nudge.sendNote', { langName: t('nudge.lang.' + lang), email: u.email || '' }))}</p>
+    <p class="nudge-msg" id="pendlist-msg" hidden></p>
+    <div class="pend-actions"><button type="button" class="btn-primary" id="pendlist-send">${esc(t('pendlist.send'))}</button> <button type="button" class="btn-ghost" id="pendlist-cancel">${esc(t('pend.cancel'))}</button></div>`;
+  fl.style.display = '';
+  const x = $('pendlist-x'); if (x) x.onclick = () => pendListClose();
+  const cx = $('pendlist-cancel'); if (cx) cx.onclick = () => pendListClose();
+  const sb = $('pendlist-send'); if (sb) sb.onclick = () => pendListSend();
+  pendListRenderPreview();
+  pendListBasePrime();
+}
+/* Con evaluación o metas en la lista, la vista previa lee el
+   estado vivo de la base (su enlace ?base= apunta a la primera
+   pieza que falta, como el correo D5): al abrir la hoja y otra
+   vez justo antes de enviar. */
+function pendListBasePrime() {
+  const ctx = PENDLIST_CTX; if (!ctx) return;
+  if (!ctx.subs.includes('eval') && !ctx.subs.includes('goal')) return;
+  if (ctx.baseState !== undefined) { pendListRenderPreview(); return; }
+  const uid = ctx.uid;
+  baseStateForStudent(uid).then(st => {
+    if (!PENDLIST_CTX || PENDLIST_CTX.uid !== uid) return;
+    PENDLIST_CTX.baseState = st;
+    pendListRenderPreview();
+  }).catch(() => {});
+}
+function pendListRenderPreview() {
+  const ctx = PENDLIST_CTX; if (!ctx) return;
+  const box = $('pendlist-preview-box'); if (!box) return;
+  const u = nudgeStudentDoc(ctx.uid) || { id: ctx.uid };
+  const lang = nudgeMailLangOf(u);
+  const nm = u.name || (u.email ? String(u.email).split('@')[0] : '');
+  const tr = nudgeTrainerNameFor(u);
+  const sb = $('pendlist-send');
+  if (!ctx.subs.length) {
+    box.innerHTML = `<p class="nudge-body">${esc(t('pendlist.none'))}</p>`;
+    if (sb) sb.style.display = 'none';
+    return;
+  }
+  /* Con el tope del combinado aún fresco, la hoja lo dice y no
+     ofrece enviar — la misma honestidad de las filas. */
+  if (nudgeFreshMs(ctx.uid, 'all')) {
+    box.innerHTML = `<p class="nudge-body">${esc(t('pendlist.capped'))}</p>`;
+    if (sb) sb.style.display = 'none';
+    return;
+  }
+  const step = pendListStepFor(ctx.baseState);
+  const c = pendListCompose(ctx.subs, lang, nm, tr, step);
+  box.innerHTML = `<p class="nudge-subj">${esc(c.subject)}</p><p class="nudge-body">${esc(c.body)}</p>`;
+}
+function pendListMsg(txt) { const m = $('pendlist-msg'); if (m) { m.textContent = txt; m.hidden = false; } }
+function pendListClose() {
+  const fl = $('pendlist-float'); if (fl) fl.style.display = 'none';
+  PENDLIST_CTX = null;
+}
+/* El sello del combinado: la subclave «all» del mismo mapa
+   notices.nudge (la rama de avisos de las reglas la admite como
+   las demás subclaves, exactamente {at, by}). No toca ningún
+   sello por pendiente, ni ellos a él: son subclaves hermanas. */
+async function mailRecordNudgeAll(uid) {
+  let ok = false;
+  try {
+    await setDoc(doc(db, 'users', uid), { notices: { nudge: { all: { at: serverTimestamp(), by: auth.currentUser.uid } } } }, { merge: true });
+    ok = true;
+  } catch {}
+  if (ok) {
+    const u = nudgeStudentDoc(uid);
+    if (u) {
+      u.notices = u.notices || {};
+      u.notices.nudge = u.notices.nudge || {};
+      u.notices.nudge.all = { at: Date.now(), by: auth.currentUser.uid };
+    }
+  }
+  return ok;
+}
+async function pendListSend() {
+  const ctx = PENDLIST_CTX; if (!ctx || ctx.sending) return;
+  ctx.sending = true;
+  const sb = $('pendlist-send'); if (sb) { sb.disabled = true; sb.textContent = t('nudge.sending'); }
+  /* Re-verificación al enviar, tipo a tipo, con el MISMO
+     verificador de la familia: lo que ya no está pendiente no
+     se le pide al alumno. */
+  const still = [];
+  for (const sub of ctx.subs) {
+    if (await nudgeStillPending(ctx.uid, sub)) still.push(sub);
+  }
+  /* D5: si la lista conserva evaluación o metas, el estado de la
+     base se relee JUSTO ANTES de enviar; si ya no falta nada,
+     esos dos salen de la lista (su cálculo nace cuando el alumno
+     abra la app, como dice el aviso individual) y el payload
+     vivo viaja para componer los enlaces. */
+  let baseExtra = null;
+  if (still.includes('eval') || still.includes('goal')) {
+    const fresh = await baseStateForStudent(ctx.uid).catch(() => null);
+    if (fresh && !fresh.missing.length) {
+      for (let i = still.length - 1; i >= 0; i--) if (still[i] === 'eval' || still[i] === 'goal') still.splice(i, 1);
+    } else if (fresh) baseExtra = { base: baseMailPayload(fresh) };
+  }
+  if (!still.length) {
+    pendListMsg(t('pendlist.gone'));
+    if (sb) sb.style.display = 'none';
+    ctx.sending = false;
+    return;
+  }
+  const extra = { pends: still };
+  if (baseExtra) extra.base = baseExtra.base;
+  /* El correo sale en el idioma guardado del alumno (AUTH-198),
+     como su vista previa y como toda la familia. */
+  const res = await mailSend(ctx.uid, 'pendinglist', nudgeMailLangOf(nudgeStudentDoc(ctx.uid) || {}), extra);
+  if (!res.ok && res.error === 'pends-resolved') {
+    pendListMsg(t('pendlist.gone'));
+    if (sb) sb.style.display = 'none';
+    ctx.sending = false;
+    return;
+  }
+  if (res.ok) {
+    await mailRecordNudgeAll(ctx.uid);
+    pendListMsg(t('pendlist.sentOk'));
+    if (sb) sb.style.display = 'none';
+    try { if (typeof renderStudentsBody === 'function' && typeof STUDENTS_LAST !== 'undefined' && STUDENTS_LAST) renderStudentsBody(); } catch {}
+    try { if (typeof FICHA_MODE !== 'undefined' && FICHA_MODE && typeof fichaRenderBody === 'function') fichaRenderBody(); } catch {}
+  } else if (res.status === 429 || res.error === 'nudge-capped') {
+    pendListMsg(t('pendlist.capped'));
+    if (sb) sb.style.display = 'none';
+  } else {
+    pendListMsg(nudgeErrText(res));
+    if (sb) { sb.disabled = false; sb.textContent = t('pendlist.send'); }
+  }
+  ctx.sending = false;
+}
+
 function studentsPendItemHTML(uid, it, isTrace) {
   const [bg, emoji] = STU_ITEM_ICON[it.kind] || ['#f1f5f9', '•'];
   const act = isTrace ? null : studentsActFor(it);
@@ -13319,6 +13637,9 @@ function studentsDetailHTML(u) {
     h += `<div class="stu-err">${esc(t('students.loadError'))}<br><button type="button" class="btn-ghost btn-sm" data-stu-retry="${u.id}" style="margin-top:8px">${esc(t('students.retry'))}</button></div>`;
   } else {
     h += studentsPendGroupedHTML(u.id, pend.items);
+    /* MENSAJE COMBINADO (este paquete): la barra «✉ Enviarle sus
+       pendientes» va a nivel del alumno, bajo su lista completa. */
+    h += studentsPendListBarHTML(u.id, pend.items);
     h += stuAdminStepRowHTML(u.id);
     h += studentsEqRowHTML(u.id, (L.chkByUid || {})[u.id]);
     if (!pend.items.length && !pend.traces.length) h += `<p class="pend-none">${esc(t('students.detailClear'))}</p>`;
@@ -13375,6 +13696,9 @@ function renderStudentsBody() {
     const title = tt && tt.childNodes[0] ? tt.childNodes[0].textContent.trim() : '';
     nudgeOpen(b.dataset.stuUid, b.dataset.stuNudge, title);
   });
+  /* MENSAJE COMBINADO (este paquete): la barra del alumno abre
+     la hoja del correo con TODOS sus pendientes. */
+  el.querySelectorAll('[data-stu-pendlist]').forEach(b => b.onclick = () => pendListOpen(b.dataset.stuPendlist));
   el.querySelectorAll('[data-stu-admin-meals]').forEach(b => b.onclick = () => stuGoAdminMeals());
   el.querySelectorAll('[data-stu-retry]').forEach(b => b.onclick = () => { STUDENTS_RESTORE = true; loadStudents(); });
 }
@@ -15717,6 +16041,9 @@ async function openClient(uid) {
     const title = tt && tt.childNodes[0] ? tt.childNodes[0].textContent.trim() : '';
     nudgeOpen(b.dataset.stuUid, b.dataset.stuNudge, title);
   });
+  /* MENSAJE COMBINADO (este paquete): la barra del bloque de
+     pendientes de la ficha abre la hoja del correo combinado. */
+  box.querySelectorAll('[data-stu-pendlist]').forEach(b => b.onclick = () => pendListOpen(b.dataset.stuPendlist));
   box.querySelectorAll('[data-stu-admin-meals]').forEach(b => b.onclick = () => stuGoAdminMeals());
   loadClientTraining(uid);
   const evBtn = $('btn-client-evals');
@@ -18098,6 +18425,12 @@ async function mailSend(uid, template, langOverride, extra) {
        componer — cualquier otro envío va byte a byte como siempre. */
     const payload = { idToken, uid, template, lang: (langOverride === 'en' || langOverride === 'es') ? langOverride : LANG };
     if (extra && extra.base) payload.base = extra.base;
+    /* MENSAJE DE PENDIENTES (este paquete): extra.pends es la
+       lista CERRADA de tipos de pendiente (solo claves del
+       catálogo de avisos); solo viaja en el correo combinado y
+       el Worker la revalida entera — un tipo fuera del catálogo
+       invalida el envío completo, sin texto libre ni URLs. */
+    if (extra && Array.isArray(extra.pends)) payload.pends = extra.pends;
     const r = await fetch(ep + '/mail/send', {
       method: 'POST', headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(payload),
@@ -18863,6 +19196,16 @@ function captureSignupLinks() {
        abriendo «Completa tu base» en ese paso exacto. */
     const base = q.get('base');
     if (base && ['peso', 'datos', 'privado', 'objetivo'].includes(base)) { try { sessionStorage.setItem('rf-link-base', base); } catch {} captured = true; }
+    /* MENSAJE DE PENDIENTES (este paquete): el enlace de destino
+       interno (?ir=perms|perms-spec|perms-bt|mytrainer|weight) de
+       los pendientes del correo combinado se captura con el MISMO
+       patrón: solo el conjunto cerrado de rutas; sobrevive al
+       inicio de sesión en sessionStorage y la sesión lo consume
+       UNA vez tras loadAll (irLinkApply), ejecutando la MISMA
+       ruta que el botón «Ir a» del pendiente del propio alumno.
+       Cualquier otro valor se ignora y no se captura nada. */
+    const ir = q.get('ir');
+    if (ir && ['perms', 'perms-spec', 'perms-bt', 'mytrainer', 'weight'].includes(ir)) { try { sessionStorage.setItem('rf-link-ir', ir); } catch {} captured = true; }
     if (captured) { try { history.replaceState(null, '', location.pathname); } catch {} }
   } catch {}
 }
@@ -24645,6 +24988,38 @@ function fotosLinkTake() {
     if (!raw) return false;
     sessionStorage.removeItem('rf-link-fotos');
     return raw === '1';
+  } catch { return false; }
+}
+/* MENSAJE DE PENDIENTES (este paquete): enlace ?ir= del correo
+   combinado de pendientes. irLinkTake consume UNA vez el destino
+   capturado al arrancar (captureSignupLinks; conjunto cerrado de
+   rutas) e irLinkApply lo ejecuta tras loadAll con EXACTAMENTE la
+   misma conducta que el botón «Ir a» del pendiente del PROPIO
+   alumno (el manejador data-pend-act="go" de tipo «role» y el
+   pendiente de peso): misma pestaña, mismo panel abierto, mismo
+   desplazamiento, mismo formulario. Sin captura, no hace nada y
+   la sesión se comporta byte a byte como siempre. Una ruta fuera
+   del conjunto cerrado jamás llega aquí: la captura la descarta. */
+function irLinkTake() {
+  try {
+    const raw = sessionStorage.getItem('rf-link-ir');
+    if (!raw) return null;
+    sessionStorage.removeItem('rf-link-ir');
+    return ['perms', 'perms-spec', 'perms-bt', 'mytrainer', 'weight'].includes(raw) ? raw : null;
+  } catch { return null; }
+}
+function irLinkApply() {
+  const route = irLinkTake();
+  if (!route) return false;
+  try {
+    const scroll = id2 => { const r = $(id2); if (r) { try { r.scrollIntoView({ behavior: 'smooth', block: 'start' }); } catch {} } };
+    if (route === 'mytrainer') { switchTab('track'); scroll('my-trainer-box'); }
+    else if (route === 'perms') { switchTab('admin'); const pb = $('btn-perms'); if (pb && !permsOpen) pb.click(); scroll('health-section'); }
+    else if (route === 'perms-spec') { switchTab('admin'); const pb = $('btn-perms'); if (pb && !permsOpen) pb.click(); scroll('health-section'); pendRevealSpecDirect(); }
+    else if (route === 'perms-bt') { switchTab('admin'); const pb = $('btn-perms'); if (pb && !permsOpen) pb.click(); const bd = $('bt-details'); if (bd) bd.open = true; const gb = $('btn-bt-grant'); if (gb) { try { gb.scrollIntoView({ behavior: 'smooth', block: 'center' }); } catch {} } else scroll('bt-section'); }
+    else if (route === 'weight') { openWeightModal(null); const wd = $('w-date'); if (wd) wd.value = todayISO(); }
+    else return false;
+    return true;
   } catch { return false; }
 }
 function trainWeekdayPairs(days) {
@@ -36359,7 +36734,7 @@ document.addEventListener('keydown', e => { if (e.key === 'Escape') shareClose()
  *  - El SW (sw.js) solo cachea la cáscara del mismo origen en modo
  *    RED PRIMERO: Auth/Firestore/Worker jamás pasan por la caché.
  * ================================================================ */
-const PWA_SW_VERSION = '20261103-recordatorio-metricas';
+const PWA_SW_VERSION = '20261103-pendientes-mensaje';
 let pwaDeferredPrompt = null;
 function pwaIsStandalone() {
   try {

@@ -21,7 +21,7 @@
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-title" content="RONBO FIT">
 <meta name="apple-mobile-web-app-status-bar-style" content="default">
-<link rel="stylesheet" href="styles.css?v=20261103-recordatorio-metricas">
+<link rel="stylesheet" href="styles.css?v=20261103-pendientes-mensaje">
 <script defer src="https://cloud.umami.is/script.js" data-website-id="a29706d4-44a2-47cf-900a-5f74d74abfa8"></script>
 <script type="importmap">
 {
@@ -572,6 +572,21 @@
       <button type="button" class="pend-close" id="nudge-x" aria-label="Close" data-i18n-aria="client.close">✕</button>
     </div>
     <div id="nudge-body"></div>
+  </div>
+
+  <!-- MENSAJE COMBINADO DE PENDIENTES (este paquete): hoja flotante
+       del botón «✉ Enviarle sus pendientes» del detalle de «Mis
+       alumnos» y de la ficha: contexto (alumno + cuántos), la vista
+       previa EXACTA del correo combinado del banco fijo en el
+       idioma del alumno y el envío por la ruta de plantillas del
+       Worker. El contenido lo pinta pendListOpen (app.js); la ✕
+       vuelve a la lista de pendientes. -->
+  <div class="pend-float pend-consult" id="pendlist-float" style="display:none" role="dialog">
+    <div class="pend-head">
+      <h2><span class="nudge-kicker" data-i18n="pendlist.kicker">PENDING STEPS EMAIL</span><br><span id="pendlist-title" data-i18n="pendlist.title">Send their pending steps</span></h2>
+      <button type="button" class="pend-close" id="pendlist-x" aria-label="Close" data-i18n-aria="client.close">✕</button>
+    </div>
+    <div id="pendlist-body"></div>
   </div>
 
   <!-- SIMPLIFICACIÓN DE LA BASE (punto 106, D2/D3): el flujo único
@@ -1743,6 +1758,6 @@
 <div id="toast" class="toast"></div>
 <div id="print-card" aria-hidden="true"></div>
 
-<script type="module" src="app.js?v=20261103-recordatorio-metricas"></script>
+<script type="module" src="app.js?v=20261103-pendientes-mensaje"></script>
 </body>
 </html>

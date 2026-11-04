@@ -3620,3 +3620,12 @@ body.sess-on #pend-back-chip { bottom: calc(env(safe-area-inset-bottom, 0px) + 1
 .ficha-met { margin-top: 10px; }
 .ficha-met-btn { width: 100%; min-height: 48px; font-size: 15px; }
 .ficha-met .stu-nudged { display: block; text-align: center; white-space: normal; padding: 6px 0; }
+
+/* MENSAJE COMBINADO DE PENDIENTES (2026-11-03): la barra del botón
+   «✉ Enviarle sus pendientes» a nivel del alumno (detalle de «Mis
+   alumnos» y ficha) — botón principal de la casa a todo el ancho
+   del bloque y ≥48 px de alto: la app se usa entrenando y la
+   motricidad fina es complicada. El registro con el tope fresco
+   reutiliza .stu-nudged de las filas, sin CSS nuevo. */
+.pendlist-bar { margin-top: 10px; }
+.btn-pendlist { width: 100%; min-height: 48px; font-size: 15px; }
