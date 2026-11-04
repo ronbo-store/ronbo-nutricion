@@ -21,7 +21,7 @@
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-title" content="RONBO FIT">
 <meta name="apple-mobile-web-app-status-bar-style" content="default">
-<link rel="stylesheet" href="styles.css?v=20261103-editor-faq-admin">
+<link rel="stylesheet" href="styles.css?v=20261104-mi-entrenador">
 <script defer src="https://cloud.umami.is/script.js" data-website-id="a29706d4-44a2-47cf-900a-5f74d74abfa8"></script>
 <script type="importmap">
 {
@@ -265,6 +265,7 @@
     <button type="button" class="main-tab" data-tab="coaches" data-i18n="tabs.coaches"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 7.5c-1.1-1.4-2.9-2.1-4.6-1.5C5 6.8 4.1 9.2 4.7 11.9c.5 2.5 2 6.4 3.8 6.4 1 0 1.7-.5 3.5-.5s2.5.5 3.5.5c1.8 0 3.3-3.9 3.8-6.4.6-2.7-.3-5.1-2.7-5.9-1.7-.6-3.5.1-4.6 1.5z"/><path d="M12 7.5c.1-2.1 1-3.6 2.7-4.3"/></svg> Food coaches</button>
     <button type="button" class="main-tab" data-tab="library" data-i18n="tabs.library"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 4.6A1.6 1.6 0 0 1 6.6 3H19v15H6.6A1.6 1.6 0 0 0 5 19.4z"/><path d="M5 16.4A1.6 1.6 0 0 1 6.6 14.8H19V18"/><path d="M9 7h6"/></svg> Library</button>
     <button type="button" class="main-tab" data-tab="admin" data-i18n="tabs.admin"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="3.2"/><path d="M12 2.8v3"/><path d="M12 18.2v3"/><path d="M2.8 12h3"/><path d="M18.2 12h3"/><path d="M5.2 5.2l2.1 2.1"/><path d="M16.7 16.7l2.1 2.1"/><path d="M18.8 5.2l-2.1 2.1"/><path d="M7.3 16.7l-2.1 2.1"/></svg> Administration</button>
+    <button type="button" class="main-tab" data-tab="trainer" data-i18n="tabs.mytrainer"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="5.4" r="2.3"/><path d="M2.5 11h19"/><path d="M5.2 8.8v4.4"/><path d="M18.8 8.8v4.4"/><path d="M12 11v3.6"/><path d="M8.6 20.4L12 14.6l3.4 5.8"/></svg> My trainer</button>
     <button type="button" class="main-tab" data-tab="coach" data-i18n="tabs.mycoach"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 7.5c-1.1-1.4-2.9-2.1-4.6-1.5C5 6.8 4.1 9.2 4.7 11.9c.5 2.5 2 6.4 3.8 6.4 1 0 1.7-.5 3.5-.5s2.5.5 3.5.5c1.8 0 3.3-3.9 3.8-6.4.6-2.7-.3-5.1-2.7-5.9-1.7-.6-3.5.1-4.6 1.5z"/><path d="M12 7.5c.1-2.1 1-3.6 2.7-4.3"/></svg> My food coach</button>
     <button type="button" class="main-tab" data-tab="comms" data-i18n="tabs.comms"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="5.5" width="18" height="13" rx="2"/><path d="M3.5 7l8.5 6 8.5-6"/></svg> Communications</button>
   </nav>
@@ -360,7 +361,6 @@
        (#pend-float, junto al dock, abajo). La página no crece. -->
 
   <div id="err"></div>
-  <div id="my-trainer-box" style="display:none"></div>
   <!-- ANILLOS Y DIARIO EN LA VENTANA DE COMIDA (AUTH-2026-10-31-115):
        #rings, #rings-note y el panel del diario (#detailBody) se
        MUDARON a la ventana flotante de Comida (#food-float), como
@@ -1104,6 +1104,24 @@
   </div>
   <!-- /tab-profile -->
 
+  <!-- MI ENTRENADOR DEL ALUMNO (orden de Ronald, chat RONBO.NUTRI
+       2026-11-04 07:27 CST; espejo de AUTH-220): la caja «Mi
+       entrenador» (#my-trainer-box, la pinta renderMyTrainerBox)
+       vive AHORA en su pastilla propia, entre «Administración» y
+       «Mi coach de alimentación» en la barra del alumno — MUDADA
+       desde «Mi registro», donde vivía desde su nacimiento:
+       MOVIDA, no duplicada, una sola instancia en el DOM. Aquí
+       vive también el bloque de elección para el alumno SIN
+       entrenador (#coach-pane-trainer, renderCoachPaneTrainer),
+       MUDADO desde la pastilla del coach (donde AUTH-220 lo había
+       puesto): pertenece a la pastilla del entrenador. La pastilla
+       del coach conserva solo la caja del coach (#nutri-my-box). -->
+  <div class="tab-pane" id="tab-trainer" style="display:none">
+    <div id="my-trainer-box" style="display:none"></div>
+    <div id="coach-pane-trainer"></div>
+  </div>
+  <!-- /tab-trainer -->
+
   <!-- COACH DE ALIMENTACIÓN DEL ALUMNO (decisión de Ronald, correo
        Memphis 2026-11-03 22:16 CST): la caja «Mi coach de
        alimentación» (#nutri-my-box, la pinta renderNutriMyBox) vive
@@ -1113,14 +1131,6 @@
        instancia en el DOM. La faceta de profesional
        (#nutri-pro-box) se queda en «Mi perfil», intacta. -->
   <div class="tab-pane" id="tab-coach" style="display:none">
-    <!-- ENTRENADOR DENTRO DE LA PASTILLA DEL COACH (confirmación
-         de Ronald, correo Memphis 2026-11-03 23:08 CST): bloque
-         del entrenador dentro de esta pastilla, SOLO para el
-         alumno SIN entrenador — lo pinta renderCoachPaneTrainer
-         reutilizando el selector y el cambio de siempre
-         (escPoolTrainersFromProfiles / escChangeTrainer), sin
-         caminos nuevos. Con entrenador, el bloque queda vacío. -->
-    <div id="coach-pane-trainer"></div>
     <div id="nutri-my-box"></div>
   </div>
   <!-- /tab-coach -->
@@ -1829,6 +1839,6 @@
 <div id="toast" class="toast"></div>
 <div id="print-card" aria-hidden="true"></div>
 
-<script type="module" src="app.js?v=20261103-editor-faq-admin"></script>
+<script type="module" src="app.js?v=20261104-mi-entrenador"></script>
 </body>
 </html>

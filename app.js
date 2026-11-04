@@ -299,6 +299,16 @@ async function loadRolesX() {
     }
     await loadMyModalityRequest();
   }
+  if (IS_OWNER && auth.currentUser && !MY_REL && UDATA) {
+    /* Faceta de alumno del dueño (modelo unificado): su relación
+       se deriva del espejo de su propio documento, con la misma
+       fórmula de la migración perezosa de arriba y SIN lectura
+       nueva — así su caja «Mi entrenador» pinta a su entrenador
+       real en su pastilla nueva. Ningún otro consumidor de
+       MY_REL corre para su rol sin pasar por el mismo espejo,
+       así que ninguna otra superficie cambia. */
+    MY_REL = { trainerUid: UDATA.trainerUid || null, modality: UDATA.modality || null, status: UDATA.assignmentStatus === 'assigned' ? 'activa' : 'en_espera', legacy: true };
+  }
   if (ROLE === 'entrenador' && auth.currentUser) {
     /* Su propio dossier alimenta el pendiente de plantilla
        (pendCompute es síncrono: lee este estado, no la red). */
@@ -382,7 +392,7 @@ let MT_CARD_OPEN = false;
 async function renderMyTrainerBox() {
   const box = $('my-trainer-box');
   if (!box) return;
-  if (ROLE !== 'usuario' || !auth.currentUser) { box.style.display = 'none'; return; }
+  if ((ROLE !== 'usuario' && !IS_OWNER) || !auth.currentUser) { box.style.display = 'none'; return; }
   box.style.display = '';
   if (MY_MEAL_REQ === undefined) await loadMyMealRequest();
   if (MY_MOD_REQ === undefined) await loadMyModalityRequest();
@@ -3523,6 +3533,7 @@ en: {
   'tabs.library': '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 4.6A1.6 1.6 0 0 1 6.6 3H19v15H6.6A1.6 1.6 0 0 0 5 19.4z"/><path d="M5 16.4A1.6 1.6 0 0 1 6.6 14.8H19V18"/><path d="M9 7h6"/></svg> Library',
   'tabs.admin': '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="3.2"/><path d="M12 2.8v3"/><path d="M12 18.2v3"/><path d="M2.8 12h3"/><path d="M18.2 12h3"/><path d="M5.2 5.2l2.1 2.1"/><path d="M16.7 16.7l2.1 2.1"/><path d="M18.8 5.2l-2.1 2.1"/><path d="M7.3 16.7l-2.1 2.1"/></svg> Administration',
   'tabs.mycoach': '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 7.5c-1.1-1.4-2.9-2.1-4.6-1.5C5 6.8 4.1 9.2 4.7 11.9c.5 2.5 2 6.4 3.8 6.4 1 0 1.7-.5 3.5-.5s2.5.5 3.5.5c1.8 0 3.3-3.9 3.8-6.4.6-2.7-.3-5.1-2.7-5.9-1.7-.6-3.5.1-4.6 1.5z"/><path d="M12 7.5c.1-2.1 1-3.6 2.7-4.3"/></svg> My food coach',
+  'tabs.mytrainer': '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="5.4" r="2.3"/><path d="M2.5 11h19"/><path d="M5.2 8.8v4.4"/><path d="M18.8 8.8v4.4"/><path d="M12 11v3.6"/><path d="M8.6 20.4L12 14.6l3.4 5.8"/></svg> My trainer',
   'tabs.comms': '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="5.5" width="18" height="13" rx="2"/><path d="M3.5 7l8.5 6 8.5-6"/></svg> Communications',
   'trainers.title': '👨‍🏫 Trainer administration',
   'trainers.hint': 'Everything about trainers in one place: role requests, memberships (levels and quotas), the two-step confirmations that start with a trainer, the trainer approval limit and the public directory.',
@@ -6557,6 +6568,7 @@ es: {
   'tabs.library': '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 4.6A1.6 1.6 0 0 1 6.6 3H19v15H6.6A1.6 1.6 0 0 0 5 19.4z"/><path d="M5 16.4A1.6 1.6 0 0 1 6.6 14.8H19V18"/><path d="M9 7h6"/></svg> Biblioteca',
   'tabs.admin': '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="3.2"/><path d="M12 2.8v3"/><path d="M12 18.2v3"/><path d="M2.8 12h3"/><path d="M18.2 12h3"/><path d="M5.2 5.2l2.1 2.1"/><path d="M16.7 16.7l2.1 2.1"/><path d="M18.8 5.2l-2.1 2.1"/><path d="M7.3 16.7l-2.1 2.1"/></svg> Administración',
   'tabs.mycoach': '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 7.5c-1.1-1.4-2.9-2.1-4.6-1.5C5 6.8 4.1 9.2 4.7 11.9c.5 2.5 2 6.4 3.8 6.4 1 0 1.7-.5 3.5-.5s2.5.5 3.5.5c1.8 0 3.3-3.9 3.8-6.4.6-2.7-.3-5.1-2.7-5.9-1.7-.6-3.5.1-4.6 1.5z"/><path d="M12 7.5c.1-2.1 1-3.6 2.7-4.3"/></svg> Mi coach de alimentación',
+  'tabs.mytrainer': '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="5.4" r="2.3"/><path d="M2.5 11h19"/><path d="M5.2 8.8v4.4"/><path d="M18.8 8.8v4.4"/><path d="M12 11v3.6"/><path d="M8.6 20.4L12 14.6l3.4 5.8"/></svg> Mi entrenador',
   'tabs.comms': '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="5.5" width="18" height="13" rx="2"/><path d="M3.5 7l8.5 6 8.5-6"/></svg> Comunicaciones',
   'trainers.title': '👨‍🏫 Administración de entrenadores',
   'trainers.hint': 'Todo lo de los entrenadores en un solo lugar: solicitudes de rol, membresías (niveles y cupos), las confirmaciones en dos pasos que empiezan con un entrenador, el límite de aprobaciones de entrenadores y el directorio público.',
@@ -10622,6 +10634,15 @@ onAuthStateChanged(auth, async user => {
      caja tiene algo que pintar). */
   const coachTabBtn = document.querySelector('.main-tab[data-tab="coach"]');
   if (coachTabBtn) coachTabBtn.style.display = (ROLE === 'usuario' || IS_OWNER) ? '' : 'none';
+  /* «Mi entrenador» (orden de Ronald, chat RONBO.NUTRI 2026-11-04
+     07:27 CST; espejo de la pastilla del coach de AUTH-220): la
+     pastilla del alumno, entre «Administración» y «Mi coach de
+     alimentación» en su barra. La ven el rol usuario y el dueño:
+     la faceta de alumno del dueño vive en su misma cuenta (modelo
+     unificado) y su entrenador asignado es real; el entrenador y
+     los demás roles, no. */
+  const trainerTabBtn = document.querySelector('.main-tab[data-tab="trainer"]');
+  if (trainerTabBtn) trainerTabBtn.style.display = (ROLE === 'usuario' || IS_OWNER) ? '' : 'none';
   /* «← Volver» de «Mi perfil» (paquete NAVEGACIÓN, 2026-10-26):
      solo el alumno lo necesita — entra al perfil por su foto y su
      barra solo trae «Administración»; el personal conserva sus
@@ -25665,7 +25686,7 @@ function irLinkApply() {
   if (!route) return false;
   try {
     const scroll = id2 => { const r = $(id2); if (r) { try { r.scrollIntoView({ behavior: 'smooth', block: 'start' }); } catch {} } };
-    if (route === 'mytrainer') { switchTab('track'); scroll('my-trainer-box'); }
+    if (route === 'mytrainer') { switchTab('trainer'); scroll('my-trainer-box'); }
     else if (route === 'perms') { switchTab('admin'); const pb = $('btn-perms'); if (pb && !permsOpen) pb.click(); scroll('health-section'); }
     else if (route === 'perms-spec') { switchTab('admin'); const pb = $('btn-perms'); if (pb && !permsOpen) pb.click(); scroll('health-section'); pendRevealSpecDirect(); }
     else if (route === 'perms-bt') { switchTab('admin'); const pb = $('btn-perms'); if (pb && !permsOpen) pb.click(); const bd = $('bt-details'); if (bd) bd.open = true; const gb = $('btn-bt-grant'); if (gb) { try { gb.scrollIntoView({ behavior: 'smooth', block: 'center' }); } catch {} } else scroll('bt-section'); }
@@ -31411,7 +31432,14 @@ function switchTab(name) {
      pastilla se repinta su caja, la de siempre — renderNutriMyBox,
      que además sincroniza la visibilidad de la pastilla con su
      `show`. */
-  if (name === 'coach') { try { renderNutriMyBox(); } catch {} try { renderCoachPaneTrainer(); } catch {} }
+  if (name === 'coach') { try { renderNutriMyBox(); } catch {} }
+  /* «Mi entrenador» (orden de Ronald, chat RONBO.NUTRI 2026-11-04
+     07:27 CST): al abrir su pastilla se repintan su caja de
+     siempre (renderMyTrainerBox) y el bloque de elección del
+     alumno sin entrenador (renderCoachPaneTrainer), MUDADO aquí
+     desde la pastilla del coach (AUTH-220): su sitio es esta
+     pastilla. */
+  if (name === 'trainer') { try { renderMyTrainerBox(); } catch {} try { renderCoachPaneTrainer(); } catch {} }
   /* «Comunicaciones» (AUTH-2026-11-01-146): su vista se pinta al
      abrirla, como Administración; su puerta de rol vive dentro de
      renderComms (solo el propietario). */
@@ -36277,7 +36305,7 @@ setInterval(() => { try { pendDockTick(); } catch {} }, 60000);
           const scroll = id2 => { const r = $(id2); if (r) { try { r.scrollIntoView({ behavior: 'smooth', block: 'start' }); } catch {} } };
           if (route === 'dossier-editor') { switchTab('profile'); scroll('dossier-editor-box'); }
           else if (route === 'membership') { switchTab('clients'); scroll('membership-box'); }
-          else if (route === 'mytrainer') { switchTab('track'); scroll('my-trainer-box'); }
+          else if (route === 'mytrainer') { switchTab('trainer'); scroll('my-trainer-box'); }
           else if (route === 'eval') { navOpenPage('progress'); progSetSub('fotos'); scroll('eval-root'); }
           /* ADMIN-TODOS (2026-11-03): las rutas al panel «Permisos
              y privacidad» caen primero en su nueva casa, la vista
@@ -38191,7 +38219,7 @@ document.addEventListener('keydown', e => { if (e.key === 'Escape') shareClose()
  *  - El SW (sw.js) solo cachea la cáscara del mismo origen en modo
  *    RED PRIMERO: Auth/Firestore/Worker jamás pasan por la caché.
  * ================================================================ */
-const PWA_SW_VERSION = '20261103-editor-faq-admin';
+const PWA_SW_VERSION = '20261104-mi-entrenador';
 /* Sello de versión VISIBLE (2026-11-03): el pie de la tarjeta de
    acceso enseña qué copia corre este teléfono ('v ' + el sello),
    para comprobar de un vistazo si la versión nueva ya llegó.
@@ -39682,11 +39710,13 @@ function nutriAdhChip(state) {
 }
 
 /* ── Cajas del perfil ─────────────────────────────────────────── */
-/* ENTRENADOR DENTRO DE LA PASTILLA DEL COACH (confirmación de
-   Ronald, correo Memphis 2026-11-03 23:08 CST): el alumno SIN
-   entrenador puede elegirlo desde la misma pastilla de su coach
-   de alimentación (#tab-coach, bloque #coach-pane-trainer, antes
-   de #nutri-my-box). Es SOLO pintar aquí el selector de siempre:
+/* ENTRENADOR DENTRO DE LA PASTILLA DEL ENTRENADOR (nació en la
+   del coach por la confirmación de Ronald, correo Memphis
+   2026-11-03 23:08 CST; MUDADO a #tab-trainer por su orden en el
+   chat RONBO.NUTRI, 2026-11-04 07:27 CST): el alumno SIN
+   entrenador puede elegirlo desde la pastilla de su entrenador
+   (#tab-trainer, bloque #coach-pane-trainer, tras #my-trainer-box).
+   Es SOLO pintar aquí el selector de siempre:
    el pool sale de escPoolTrainersFromProfiles y el cambio lo hace
    escChangeTrainer — el flujo propio del alumno que las reglas
    vivas ya admiten también sin entrenador —, sin escrituras ni
