@@ -63,6 +63,17 @@ jobs:
           sed "s/? actDerivedType(before, after) : ''/? '' : ''/" firestore.rules.candidata > firestore.rules
           grep -c "actDerivedType(before, after) : ''" firestore.rules || true
           firebase emulators:exec --only firestore --project ronbo-nutri-test "node test-variante.mjs" 2>&1 | tee /tmp/sonda.log || true
+      - name: Sondas de bisección (variantes A, B y C)
+        if: always()
+        working-directory: tests-actp1
+        run: |
+          python3 make-variantes.py
+          for v in A B C; do
+            cp firestore.rules.var$v firestore.rules
+            echo "════ VARIANTE $v ════" >> /tmp/biseccion.log
+            firebase emulators:exec --only firestore --project ronbo-nutri-test "node test-variante.mjs" 2>&1 | grep -a "SONDA" >> /tmp/biseccion.log || true
+          done
+          cat /tmp/biseccion.log
       - name: Publicar resultados en la rama de resultados
         if: always()
         working-directory: ${{ github.workspace }}
@@ -83,6 +94,8 @@ jobs:
             cat /tmp/suite-vivo.log 2>/dev/null || echo "(sin salida)"
             echo "══════════ SONDA ══════════"
             grep -a "SONDA" /tmp/sonda.log 2>/dev/null || echo "(sin sonda)"
+            echo "══════════ BISECCIÓN ══════════"
+            cat /tmp/biseccion.log 2>/dev/null || echo "(sin bisección)"
           } > tests-actp1/resultado-ultima-corrida.txt
           git config user.email "ci@ronbo.local"
           git config user.name "CI bateria actp1"
