@@ -1,6 +1,6 @@
 // ============================================================
 // «RETOS» — delta de colecciones NUEVAS challenges +
-// challenge_parts (AUTH-2026-11-04-234). Generada por
+// challenge_parts (AUTH-2026-11-04-235). Generada por
 // build-candidata.py desde el texto vivo verificado 84974ca6
 // (relectura por la API oficial el 2026-11-04; SHA-256 del
 // archivo base
@@ -334,7 +334,7 @@ service cloud.firestore {
         && exists(/databases/$(database)/documents/users/$(ownerUid))
         && get(/databases/$(database)/documents/users/$(ownerUid)).data.get('trainerUid', '') == request.auth.uid;
     }
-    // ---------- Retos (AUTH-2026-11-04-234) ----------
+    // ---------- Retos (AUTH-2026-11-04-235) ----------
     // Módulo «Retos»: dos colecciones NUEVAS (challenges y
     // challenge_parts). El progreso de cada participante lo
     // calcula y lo escribe su propio cliente desde sus datos
@@ -3569,7 +3569,7 @@ service cloud.firestore {
       allow delete: if isOwnerUser();
     }
 
-    // ---------- Retos: los retos (AUTH-2026-11-04-234) ----------
+    // ---------- Retos: los retos (AUTH-2026-11-04-235) ----------
     match /challenges/{cid} {
       allow get: if isOwnerUser()
         || (signedIn() && resource != null && resource.data.createdBy == request.auth.uid)
@@ -3594,7 +3594,7 @@ service cloud.firestore {
         || (signedIn() && resource.data.createdBy == request.auth.uid);
     }
 
-    // ---------- Retos: participaciones (AUTH-2026-11-04-234) ----------
+    // ---------- Retos: participaciones (AUTH-2026-11-04-235) ----------
     // El documento SOLO lleva el dato del juego (nombre, avance
     // «X de Y», porcentaje y cumplimiento): ningún dato de
     // salud de nadie viaja aquí.
