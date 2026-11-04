@@ -76,6 +76,8 @@ await seedUser('alumnoS5', { trainerUid: 'entrenadorT', assignmentStatus: 'assig
   notices: { nudge: { eval: { at: EVAL_AT, by: 'entrenadorT' } } } });
 await seedUser('alumnoS6', { trainerUid: 'entrenadorT', assignmentStatus: 'assigned',
   notices: { nudge: { eval: { at: EVAL_AT, by: 'entrenadorT' }, all: { at: EVAL_AT, by: 'entrenadorT' } } } });
+await seedUser('alumnoS7', { trainerUid: 'entrenadorT', assignmentStatus: 'assigned',
+  notices: { nudge: { eval: { at: EVAL_AT, by: 'entrenadorT' }, pes: { at: EVAL_AT, by: 'entrenadorT' } } } });
 
 const upd = (asUid, target, data) => updateDoc(doc(dbOf(asUid), 'users', target), data);
 const selloAll = by => ({ notices: { nudge: { all: { at: serverTimestamp(), by } } } });
@@ -105,8 +107,10 @@ await T('N14 sin sesión no se anota nada',
 /* — Vecinos: la familia se comporta igual en ambos textos — */
 await T('N8 el sello INDIVIDUAL de siempre (nudge.eval fresco sobre su sello viejo) sigue admitido',
   upd('entrenadorT', 'alumnoS5', { notices: { nudge: { eval: { at: serverTimestamp(), by: 'entrenadorT' } } } }), true);
-await T('N16 BORRAR un sello (escribir el mapa sin «all» cuando «all» existe) se deniega: los sellos solo nacen o se refrescan, nunca desaparecen por esta rama',
-  upd('entrenadorT', 'alumnoS6', { notices: { nudge: { eval: { at: EVAL_AT, by: 'entrenadorT' } } } }), false);
+await T('N16 BORRAR el sello «all» (escribir el mapa sin él cuando existe): la CANDIDATA lo deniega (los sellos solo nacen o se refrescan); en la VIVA la subclave no existe en ningún dato real y la rama no la ve — el hueco es vacío hoy y lo cierra este delta',
+  upd('entrenadorT', 'alumnoS6', { notices: { nudge: { eval: { at: EVAL_AT, by: 'entrenadorT' } } } }), !ESPERA_NUEVO);
+await T('N17 BORRAR un sello CONOCIDO (eval) se deniega en ambas: la protección antirremoción ya existía para las subclaves de la lista',
+  upd('entrenadorT', 'alumnoS7', { notices: { nudge: { pes: { at: EVAL_AT, by: 'entrenadorT' } } } }), false);
 await T('N9 una subclave desconocida (nudge.zzz) se deniega',
   upd('entrenadorT', 'alumnoS', { notices: { nudge: { zzz: { at: serverTimestamp(), by: 'entrenadorT' } } } }), false);
 await T('N10 el sello acompañado de otro campo cambiado (name) se deniega: la rama solo toca notices',
