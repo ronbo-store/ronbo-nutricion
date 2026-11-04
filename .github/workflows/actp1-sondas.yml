@@ -28,18 +28,10 @@ jobs:
             firebase emulators:exec --only firestore --project ronbo-nutri-test "node test-variante.mjs" 2>&1 | grep -a "SONDA" >> /tmp/sondas.log || true
           done
           cat /tmp/sondas.log
-      - name: Publicar sondas en la rama de resultados
+      - name: Publicar sondas en la propia rama
         if: always()
         working-directory: ${{ github.workspace }}
-        env:
-          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
-          rm -rf /tmp/resrepo
-          git clone --depth 1 --branch ci/actp1-resultados "https://x-access-token:${GH_TOKEN}@github.com/ronbo-store/ronbo-nutricion.git" /tmp/resrepo 2>/dev/null \
-            || git clone --depth 1 "https://x-access-token:${GH_TOKEN}@github.com/ronbo-store/ronbo-nutricion.git" /tmp/resrepo
-          cd /tmp/resrepo
-          git checkout -B ci/actp1-resultados
-          mkdir -p tests-actp1
           {
             echo "Sondas: ${{ github.run_id }} · ${{ github.sha }} · $(date -u +%FT%TZ)"
             cat /tmp/sondas.log 2>/dev/null || echo "(sin salida)"
@@ -48,4 +40,4 @@ jobs:
           git config user.name "CI sondas actp1"
           git add tests-actp1/resultado-sondas.txt
           git commit -m "Sondas actp1 (corrida ${{ github.run_id }}) [skip ci]" || echo "sin cambios"
-          git push origin HEAD:ci/actp1-resultados
+          git push origin HEAD:ci/actp1-sondas
