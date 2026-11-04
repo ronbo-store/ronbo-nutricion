@@ -787,7 +787,7 @@ service cloud.firestore {
         && request.resource.data.notices.get('nudge', {}) is map
         && 'nudge' in request.resource.data.notices
         && request.resource.data.notices.nudge.keys()
-             .hasOnly(['eval', 'cns', 'parq', 'goal', 'meal', 'pes', 'per', 'bod'])
+             .hasOnly(['eval', 'cns', 'parq', 'goal', 'meal', 'pes', 'per', 'bod', 'met'])
         && nudgeSubOk133(request.resource.data.notices.nudge,
                          resource.data.get('notices', {}).get('nudge', {}), 'eval')
         && nudgeSubOk133(request.resource.data.notices.nudge,
@@ -803,7 +803,9 @@ service cloud.firestore {
         && nudgeSubOk133(request.resource.data.notices.nudge,
                          resource.data.get('notices', {}).get('nudge', {}), 'per')
         && nudgeSubOk133(request.resource.data.notices.nudge,
-                         resource.data.get('notices', {}).get('nudge', {}), 'bod');
+                         resource.data.get('notices', {}).get('nudge', {}), 'bod')
+        && nudgeSubOk133(request.resource.data.notices.nudge,
+                         resource.data.get('notices', {}).get('nudge', {}), 'met');
       // Roles+Escalabilidad — RECHAZO (decisión §8.2 de Ronald,
       // 2026-10-24): el entrenador devuelve a la espera al alumno
       // que lo eligió y sigue SIN aprobar. Espejo inverso de la

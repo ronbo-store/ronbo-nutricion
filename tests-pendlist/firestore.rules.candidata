@@ -755,12 +755,13 @@ service cloud.firestore {
       // 2026-10-31 + decisiones D1-D4 de Ronald 2026-11-01: solo
       // correo, tope 1 por pendiente cada 7 días, con registro,
       // banco fijo). La anotación vive en notices.nudge: UN mapa
-      // con las 8 subclaves cerradas del banco (eval, cns, parq,
-      // goal, meal, pes, per, bod) MÁS la subclave 'all' del sello
-      // del MENSAJE COMBINADO de pendientes (paquete 2026-11-03:
-      // UN correo con todos los pendientes del alumno; su tope de
-      // 7 días es independiente de los sellos por pendiente en
-      // ambas direcciones), cada una exactamente {at, by}
+      // con las subclaves cerradas del banco (eval, cns, parq,
+      // goal, meal, pes, per, bod y met de AUTH-209) MÁS la
+      // subclave 'all' del sello del MENSAJE COMBINADO de
+      // pendientes (paquete 2026-11-03: UN correo con todos los
+      // pendientes del alumno; su tope de 7 días es independiente
+      // de los sellos por pendiente en ambas direcciones), cada
+      // una exactamente {at, by}
       // con la hora del servidor y la firma del propio entrenador.
       // Esta rama SOLO puede tocar la subclave nudge dentro de
       // notices: cualquier otra clave del mapa (incluida welcome)
@@ -791,7 +792,7 @@ service cloud.firestore {
         && request.resource.data.notices.get('nudge', {}) is map
         && 'nudge' in request.resource.data.notices
         && request.resource.data.notices.nudge.keys()
-             .hasOnly(['eval', 'cns', 'parq', 'goal', 'meal', 'pes', 'per', 'bod', 'all'])
+             .hasOnly(['eval', 'cns', 'parq', 'goal', 'meal', 'pes', 'per', 'bod', 'met', 'all'])
         && nudgeSubOk133(request.resource.data.notices.nudge,
                          resource.data.get('notices', {}).get('nudge', {}), 'eval')
         && nudgeSubOk133(request.resource.data.notices.nudge,
@@ -808,6 +809,8 @@ service cloud.firestore {
                          resource.data.get('notices', {}).get('nudge', {}), 'per')
         && nudgeSubOk133(request.resource.data.notices.nudge,
                          resource.data.get('notices', {}).get('nudge', {}), 'bod')
+        && nudgeSubOk133(request.resource.data.notices.nudge,
+                         resource.data.get('notices', {}).get('nudge', {}), 'met')
         && nudgeSubOk133(request.resource.data.notices.nudge,
                          resource.data.get('notices', {}).get('nudge', {}), 'all');
       // Roles+Escalabilidad — RECHAZO (decisión §8.2 de Ronald,
