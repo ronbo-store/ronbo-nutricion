@@ -1113,6 +1113,14 @@
        instancia en el DOM. La faceta de profesional
        (#nutri-pro-box) se queda en «Mi perfil», intacta. -->
   <div class="tab-pane" id="tab-coach" style="display:none">
+    <!-- ENTRENADOR DENTRO DE LA PASTILLA DEL COACH (confirmación
+         de Ronald, correo Memphis 2026-11-03 23:08 CST): bloque
+         del entrenador dentro de esta pastilla, SOLO para el
+         alumno SIN entrenador — lo pinta renderCoachPaneTrainer
+         reutilizando el selector y el cambio de siempre
+         (escPoolTrainersFromProfiles / escChangeTrainer), sin
+         caminos nuevos. Con entrenador, el bloque queda vacío. -->
+    <div id="coach-pane-trainer"></div>
     <div id="nutri-my-box"></div>
   </div>
   <!-- /tab-coach -->

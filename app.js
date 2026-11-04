@@ -31063,7 +31063,7 @@ function switchTab(name) {
      pastilla se repinta su caja, la de siempre — renderNutriMyBox,
      que además sincroniza la visibilidad de la pastilla con su
      `show`. */
-  if (name === 'coach') { try { renderNutriMyBox(); } catch {} }
+  if (name === 'coach') { try { renderNutriMyBox(); } catch {} try { renderCoachPaneTrainer(); } catch {} }
   /* «Comunicaciones» (AUTH-2026-11-01-146): su vista se pinta al
      abrirla, como Administración; su puerta de rol vive dentro de
      renderComms (solo el propietario). */
@@ -39230,6 +39230,35 @@ function nutriAdhChip(state) {
 }
 
 /* ── Cajas del perfil ─────────────────────────────────────────── */
+/* ENTRENADOR DENTRO DE LA PASTILLA DEL COACH (confirmación de
+   Ronald, correo Memphis 2026-11-03 23:08 CST): el alumno SIN
+   entrenador puede elegirlo desde la misma pastilla de su coach
+   de alimentación (#tab-coach, bloque #coach-pane-trainer, antes
+   de #nutri-my-box). Es SOLO pintar aquí el selector de siempre:
+   el pool sale de escPoolTrainersFromProfiles y el cambio lo hace
+   escChangeTrainer — el flujo propio del alumno que las reglas
+   vivas ya admiten también sin entrenador —, sin escrituras ni
+   caminos nuevos. Con entrenador, sin sesión o con otro rol, el
+   bloque queda vacío (su sitio sigue siendo «Mi entrenador»). */
+async function renderCoachPaneTrainer() {
+  const box = $('coach-pane-trainer'); if (!box) return;
+  if (!auth.currentUser || ROLE !== 'usuario' || (typeof MY_REL !== 'undefined' && MY_REL && MY_REL.trainerUid)) { box.innerHTML = ''; return; }
+  const pool = await escPoolTrainersFromProfiles((MY_REL && MY_REL.modality) || null);
+  let h = `<div class="panel"><h3 class="history-title">🧑‍🏫 ${esc(t('esc.myTrainerTitle'))}</h3><p class="progress-hint">${esc(t('esc.noTrainerYet'))}</p>`;
+  if (pool.length) {
+    h += `<label class="muted">${esc(t('roles.chooseTrainer'))}<select id="coach-pane-trainer-sel"><option value="">${esc(t('esc.waitOption'))}</option>${pool.map(p => `<option value="${esc(p.uid)}"${p.full ? ' disabled' : ''}>${esc(p.name)}${p.full ? esc(t('esc.poolFull')) : ''}</option>`).join('')}</select></label><div class="eval-actions"><button type="button" class="btn-primary btn-sm" id="btn-coach-pane-trainer">${esc(t('route.chooseTrainer'))}</button></div><div class="dos-pool-links">${pool.map(p => `<button type="button" class="slot-link" data-dossier-open="${esc(p.uid)}">👤 ${esc(p.name)}</button>`).join(' ')}</div>`;
+  }
+  h += `</div>`;
+  box.innerHTML = h;
+  const btn = $('btn-coach-pane-trainer');
+  if (btn) btn.onclick = async () => {
+    const sel = $('coach-pane-trainer-sel');
+    const uid = sel ? (sel.value || '') : '';
+    if (!uid) { toast(t('roles.chooseTrainer')); return; }
+    try { await escChangeTrainer(uid); } catch {}
+    try { renderCoachPaneTrainer(); } catch {}
+  };
+}
 function renderNutriBoxes() { renderNutriMyBox(); renderNutriProBox(); }
 function nutriGoalsChips(g) {
   if (!g) return '';
