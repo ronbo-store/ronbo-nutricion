@@ -5144,6 +5144,12 @@ en: {
   'fa.eqTenHaaf': 'Ten Haaf',
   'fa.athleteSignal': 'Declared athlete profile: {v}',
   'fa.athleteTitle': 'Athlete profile (for Ten Haaf)',
+  'fa.athCtlQ': 'Has an athlete profile?',
+  'fa.athSetOk': 'Athlete profile activated — it applies on recalculation',
+  'fa.athRemovedOk': 'Athlete profile removed — it applies on recalculation',
+  'fa.athThWarn': 'If you remove it, the equation returns to the automatic base (Mifflin-St Jeor), because Ten Haaf needs the athlete profile. The current result stays as the previous one until it is recalculated.',
+  'fa.paceCurrent': 'Decided pace: −{n} kcal/day',
+  'fa.paceSavedOk': 'Pace saved: −{n} kcal/day',
   'fa.athleteBody': 'The Ten Haaf equation was derived specifically for recreational athletes (aged 18–35) and can only be used if you declare an athlete profile here. Your declaration is visible to your trainer as a yes/no signal, next to the other assessment signals. Ten Haaf uses your height in meters and the same private sex datum as Mifflin-St Jeor; without that datum it cannot be calculated either.',
   'fa.athleteCheck': 'I declare that I am a recreational athlete (I train regularly)',
   'fa.athleteSaved': 'Athlete declaration saved',
@@ -8048,6 +8054,12 @@ es: {
   'fa.eqTenHaaf': 'Ten Haaf',
   'fa.athleteSignal': 'Perfil de atleta declarado: {v}',
   'fa.athleteTitle': 'Perfil de atleta (para Ten Haaf)',
+  'fa.athCtlQ': '¿Tiene perfil de atleta?',
+  'fa.athSetOk': 'Perfil de atleta activado — se aplica al recalcular',
+  'fa.athRemovedOk': 'Perfil de atleta retirado — se aplica al recalcular',
+  'fa.athThWarn': 'Si lo retiras, la ecuación vuelve a la base automática (Mifflin-St Jeor), porque Ten Haaf necesita el perfil de atleta. El resultado actual queda como anterior hasta que se recalcule.',
+  'fa.paceCurrent': 'Ritmo decidido: −{n} kcal/día',
+  'fa.paceSavedOk': 'Ritmo guardado: −{n} kcal/día',
   'fa.athleteBody': 'La ecuación de Ten Haaf se derivó específicamente para atletas recreativos (de 18 a 35 años) y solo puede usarse si declaras aquí un perfil de atleta. Tu declaración es visible para tu entrenador como una señal de sí/no, junto a las demás señales de la evaluación. Ten Haaf usa tu talla en metros y el mismo dato privado de sexo que Mifflin-St Jeor; sin ese dato tampoco puede calcularse.',
   'fa.athleteCheck': 'Declaro que soy atleta recreativo (entreno con regularidad)',
   'fa.athleteSaved': 'Declaración de atleta guardada',
@@ -12397,9 +12409,10 @@ function studentsActFor(it) {
     case 'food': return { btn: 'students.act.food', surf: 'ficha', focus: 'food' };
     case 'body': return it.miss === 'consent' ? { btn: null } : { btn: 'students.act.body', surf: 'ficha', focus: 'body' };
     /* D1/D4 (punto 106): la fila de INFORMACIÓN de la ecuación
-       (studentsEqRowHTML) — no es un pendiente: su botón lleva a
-       la tarjeta de cálculo de la ficha, donde el entrenador puede
-       ajustar la ecuación que nació sola. */
+       (studentsEqRowHTML) — no es un pendiente: la propia fila es
+       la puerta (AUTH-208 retiró su botón) que lleva a la tarjeta
+       de cálculo de la ficha, donde el entrenador puede ajustar
+       la ecuación que nació sola. */
     case 'eqrow': return { btn: 'students.act.eqAdjust', surf: 'ficha', focus: 'energy' };
     case 'req':
       if (it.reqKey === 'eval') return { btn: 'students.act.reqEval', surf: 'ficha', focus: 'energy' };
@@ -12895,7 +12908,21 @@ function studentsPendItemHTML(uid, it, isTrace) {
    ofrece su ajuste. Solo se pinta con resultado nacido y origen
    registrado: 'auto' (nació sola con su primer cálculo) o del
    entrenador (su firma equationChosenBy o su sello 'trainer').
-   Un resultado heredado sin origen no afirma nada: no se pinta. */
+   Un resultado heredado sin origen no afirma nada: no se pinta.
+   AUTH-208 (punto 129; orden de Ronald, 2026-11-03 18:31 CST):
+   con el perfil completo y la ecuación hecha, la fila es ESTADO
+   — el botón «Ajustar la ecuación» desaparece de la tarjeta
+   («solo debería aparecer PERFIL COMPLETADO, no usarme la opción
+   de volver a modificar… la opción debería estar pero no allí»)
+   — y la puerta de modificar es la PROPIA FILA: tocarla entera
+   abre la misma ventana del cálculo de siempre (el mismo
+   data-stu-act="eqrow" que llevaba el botón; los dos cableados
+   de la casa la recogen y el teclado entra por el keydown de los
+   elementos que no son botón). La pista es mínima — el chevron
+   de la casa y el cursor —: se ve tocable sin gritar tarea
+   pendiente sobre algo ya resuelto. Sin fila pintada (sin
+   resultado o sin origen) no se pierde ninguna puerta: el botón
+   vivía dentro de esta misma fila y tampoco existía. */
 function studentsEqRowHTML(uid, chk) {
   const b = chk && chk.base;
   if (!b || !b.hasResult) return '';
@@ -12903,11 +12930,11 @@ function studentsEqRowHTML(uid, chk) {
   if (b.eqOrigin === 'auto') cause = t('students.eq.auto');
   else if (b.eqOrigin === 'trainer' || b.eqChosen) cause = t('students.eq.trainer', { name: faEqName(b.eq) });
   else return '';
-  return `<div class="stu-pend-item stu-eq-row">
+  return `<div class="stu-pend-item stu-eq-row" data-stu-act="eqrow" data-stu-req="" data-stu-uid="${uid}" role="button" tabindex="0" title="${esc(t('students.act.eqAdjust'))}">
     <span class="stu-pend-ico" style="background:#e0f2f1">📐</span>
     <span class="stu-pend-main"><span class="stu-pend-title">${esc(t('students.eq.title'))}</span><span class="stu-pend-tags"><span class="stu-dep stu-dep-you">${esc(t('students.dep.you'))}</span></span>
     <span class="stu-pend-sub">${esc(cause)}</span></span>
-    <button type="button" class="btn-ghost btn-sm" data-stu-act="eqrow" data-stu-req="" data-stu-uid="${uid}">${esc(t('students.act.eqAdjust'))}</button>
+    <span class="stu-eq-chev" aria-hidden="true">›</span>
   </div>`;
 }
 /* AUTH-2026-11-01-148: el panel del ENTRENADOR adopta la MISMA
@@ -13110,6 +13137,10 @@ function renderStudentsBody() {
   if (dHead) dHead.onclick = () => studentsCloseDetail();
   el.querySelectorAll('[data-stu-ficha]').forEach(b => b.onclick = () => studentsGoFicha(b.dataset.stuFicha));
   el.querySelectorAll('[data-stu-act]').forEach(b => b.onclick = () => studentsOpenRecord(b.dataset.stuUid, b.dataset.stuAct, b.dataset.stuReq || ''));
+  /* AUTH-208 (punto 129): la fila «Su ecuación» es un DIV-puerta
+     (sin botón): el teclado entra por aquí — solo elementos que
+     NO son botón, para no duplicar el click nativo de los demás. */
+  el.querySelectorAll('[data-stu-act]:not(button)').forEach(b => b.onkeydown = e => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); studentsOpenRecord(b.dataset.stuUid, b.dataset.stuAct, b.dataset.stuReq || ''); } });
   /* AUTH-2026-11-01-133: el botón «✉ Avisar» de las filas del
      detalle abre la hoja del aviso con el título de SU fila. */
   el.querySelectorAll('[data-stu-nudge]').forEach(b => b.onclick = () => {
@@ -14280,6 +14311,7 @@ let MY_ENERGY = { state: 'loading', sex: null };  // energyPrivate propio (solo 
 let MY_ASMT = { state: 'loading', doc: null };     // assessment/current propio (config + resultado)
 let FA_CALC_ERR = null;                            // C-7: causa de «no calculado» por datos inválidos ({key, params} o null)
 let FA_CARD = { uid: null, asmt: null };           // estado de la ficha abierta (entrenador)
+let FA_FLASH = null;   // AUTH-208 (punto 129): confirmación visible que la tarjeta de cálculo pinta UNA vez tras guardar un ajuste del entrenador (atleta o ritmo) — la queja de Ronald del 2026-11-03: «no tengo ninguna confirmación de que realmente ya está resuelto»
 const faRound10 = n => Math.round(n / 10) * 10;    // mostrar a 10 kcal; precisión completa dentro (Doc. 2 §7)
 const faFmtTs = ts => { try { return ts && ts.toDate ? ts.toDate().toLocaleDateString(LANG === 'es' ? 'es-MX' : 'en-US', { day: 'numeric', month: 'long', year: 'numeric' }) : ''; } catch { return ''; } };
 const faEqName = id => id === 'mifflin-st-jeor' ? t('fa.eqMifflin') : id === 'ten-haaf' ? t('fa.eqTenHaaf') : (id || '—');
@@ -14304,8 +14336,20 @@ function faResultStale(a, last) {
   if (a.equationVersion && a.equationVersion !== (FA_EQ_VERSIONS[a.equationUsed] || FA_EQUATION_VERSION)) return true;
   return false;
 }
-function faCardHTML(uid, a, weights) {
+function faCardHTML(uid, a, weights, ps) {
   const last = weights && weights.length ? weights[weights.length - 1] : null;
+  /* AUTH-208 (punto 129): la confirmación visible del último ajuste
+     guardado desde ESTA tarjeta (atleta o ritmo) se pinta una sola
+     vez, al repintar tras el guardado, y solo si es de este alumno
+     y reciente — nunca una confirmación vieja de otra acción. */
+  const flash = (FA_FLASH && FA_FLASH.uid === uid && Date.now() - FA_FLASH.at < 20000) ? FA_FLASH.text : '';
+  if (flash) FA_FLASH = null;
+  /* El ritmo decidido/sugerido (users.paceSuggestion, la MISMA
+     fuente de la tarjeta de ritmo de la ficha): su línea actual. */
+  let paceLine = '';
+  if (ps && ps.decidedPaceKcal) paceLine = `<p class="progress-hint">${esc(t('fa.paceCurrent', { n: ps.decidedPaceKcal }))}</p>`;
+  else if (ps && ps.paceKcal) paceLine = `<p class="progress-hint">${esc(t('gm.trainerPaceSuggested', { n: ps.paceKcal, date: String(ps.suggestedAt || '').slice(0, 10), status: t('gm.status.' + (ps.status || 'pending')) }))}</p>`;
+  else paceLine = `<p class="progress-hint">${esc(t('gm.trainerPaceNone'))}</p>`;
   const head = `<div class="fb3-head"><h3 class="history-title" style="margin:0">${t('fa.title')}</h3>
     <button type="button" class="fb3-helpbtn" id="fa-help-btn" aria-expanded="false" title="${t('fa.helpBtn')}">?</button></div>`;
   const help = `<div class="fb3-pop" id="fa-help" style="display:none"><div class="fa-help-l1">${a && a.equation === 'ten-haaf' ? t('fa.helpTH') : t('fa.help')}</div><button type="button" class="fa-help-more" id="fa-help-more" aria-expanded="false">${t('fa.helpMore')}</button><div class="fa-help-detail" id="fa-help-detail" style="display:none">${a && a.equation === 'ten-haaf' ? t('fa.helpDetailTH') : t('fa.helpDetail')}</div></div>`;
@@ -14382,10 +14426,13 @@ function faCardHTML(uid, a, weights) {
     resultBlock = `<div class="fa-empty"><b>${t('fa.noResult')}</b><span>${reason}</span></div>`;
   }
   return `<div class="fb3-card fa-card">${head}${help}
+    ${flash ? `<div class="fa-flash">✓ ${esc(flash)}</div>` : ''}
     ${fichaFoldHead('base', 'ffold.base')}
     <div id="ffold-body-base"${fichaFoldBodyAttr('base')}>
     <div class="fa-signal">${t('fa.provided', { v: signal ? t('fa.yes') : t('fa.no') })}</div>
     <div class="fa-signal">${t('fa.athleteSignal', { v: thReady ? t('fa.yes') : t('fa.no') })}</div>
+    <div class="fa-athctl"><span class="fa-athctl-q">${t('fa.athCtlQ')}</span><span class="fa-athctl-btns"><button type="button" class="fa-athbtn${thReady ? ' sel' : ''}" data-fa-ath="1" aria-pressed="${thReady}">${t('fa.yes')}</button><button type="button" class="fa-athbtn${thReady ? '' : ' sel'}" data-fa-ath="0" aria-pressed="${!thReady}">${t('fa.no')}</button></span></div>
+    ${thReady && thSel ? `<p class="fa-athwarn">${t('fa.athThWarn')}</p>` : ''}
     <label class="fa-flabel">${t('fa.equation')}</label>
     ${selbox}${opts}
     ${eqSel ? '' : `<p class="fa-autonote">${t('fa.autoNote')}</p>`}
@@ -14397,6 +14444,10 @@ function faCardHTML(uid, a, weights) {
     ${UNIT_PREFS.height === 'ft-in' ? `<p class="progress-hint">${esc(t('units.heightHintFtin'))}</p>` : ''}
     <div class="basis">${last ? t('fa.weightBasis', { w: fmtMass(last.weight), date: dateName(last.date) }) : t('fa.noWeight')}</div>
     ${resultBlock}
+    <div class="fa-divider"></div>
+    <label class="fa-flabel">${t('gm.trainerPaceTitle')}</label>
+    ${paceLine}
+    <div class="fa-pacebtns">${[500, 750, 1000].map(n => `<button type="button" class="fa-pacebtn${ps && Number(ps.decidedPaceKcal) === n ? ' sel' : ''}" data-fa-pace="${n}">−${n}</button>`).join('')}</div>
     </div>
     ${fichaFoldHead('activity', 'ffold.activity')}
     <div id="ffold-body-activity"${fichaFoldBodyAttr('activity')}>
@@ -14452,6 +14503,55 @@ async function faSetEquation(uid, eq) {
     toast(t('fa.configSaved'));
     openClient(uid);
   } catch (e) { failToast(e); }
+}
+/* AUTH-208 (punto 129; pedido directo de Ronald, 2026-11-03 18:31
+   CST: «Quiero poder quitarle el perfil de atleta»): el entrenador
+   ajusta la declaración de atleta de SU alumno desde esta misma
+   tarjeta — la tarjeta dejaba de solo informarla («Perfil de
+   atleta declarado: Sí») como un hecho intocable. La escritura va
+   a assessment/current con el sello de procedencia de la casa
+   (athleteDeclaredBy/athleteDeclaredAt, como equationChosenBy/At)
+   y el delta cerrado de reglas la admite SOLO del entrenador
+   asignado o del propietario; el alumno conserva intacta su
+   propia declaración en su espacio privado (su rama no cambia:
+   puede volver a declararse, y el último sello dice quién fue).
+   Si se retira el atleta y la ecuación elegida es Ten Haaf, la
+   ecuación pierde su base (Ten Haaf exige elección expresa Y
+   declaración de atleta): vuelve a la base automática — Mifflin-
+   St Jeor con origen 'auto' y SIN firma, el estado exacto de
+   AUTH-190 — y el resultado vigente queda como anterior hasta
+   que el cálculo se rehaga en la sesión del alumno (la vigencia
+   la decide faResultStale, como en todo cambio de ecuación). */
+async function faTrainerSetAthlete(uid, declared) {
+  const a = (FA_CARD && FA_CARD.uid === uid && FA_CARD.asmt) || {};
+  if ((a.athleteDeclared === true) === declared) return;
+  const payload = { athleteDeclared: declared, athleteDeclaredAt: serverTimestamp(), athleteDeclaredBy: auth.currentUser.uid, updatedAt: serverTimestamp(), updatedBy: auth.currentUser.uid };
+  if (!declared && a.equation === 'ten-haaf') {
+    payload.equation = 'mifflin-st-jeor';
+    payload.equationOrigin = 'auto';
+    payload.equationChosenBy = deleteField();
+    payload.equationChosenAt = deleteField();
+  }
+  try {
+    await setDoc(doc(db, 'users', uid, 'assessment', 'current'), payload, { merge: true });
+    FA_FLASH = { uid, text: t(declared ? 'fa.athSetOk' : 'fa.athRemovedOk'), at: Date.now() };
+    toast(FA_FLASH.text);
+    openClient(uid);
+  } catch (e) { failToast(e); }
+}
+/* AUTH-208 (punto 129): el ritmo (−500/−750) fijable TAMBIÉN desde
+   esta tarjeta — la MISMA escritura de siempre (goalsTrainerDecidePace,
+   con su conjunto cerrado de valores 500/750/1000 y su forma de
+   paceSuggestion): una sola fuente de verdad, dos puertas. Aquí
+   solo se deja puesta la confirmación visible de la tarjeta antes
+   de delegar en esa escritura (que repinta la ficha con su
+   openClient de siempre y la confirmación se pinta en ese repintado);
+   si la escritura falla, su propio catch limpia la confirmación
+   (edición AUTH-208 en goalsTrainerDecidePace) y avisa con su error:
+   ninguna confirmación se pinta de un guardado que no ocurrió. */
+function faTrainerSetPace(uid, n) {
+  FA_FLASH = { uid, text: t('fa.paceSavedOk', { n }), at: Date.now() };
+  goalsTrainerDecidePace(uid, n);
 }
 async function faSaveConfig(uid) {
   const byRaw = $('fa-by').value.trim(), hRaw = $('fa-h').value.trim(), palRaw = $('fa-pal').value.trim();
@@ -15312,7 +15412,7 @@ async function openClient(uid) {
       <thead><tr><th>${t('form.date')}</th><th class="num">${esc(t('units.weightField', { u: UNIT_PREFS.mass }))}</th><th class="num">${t('form.bodyfat')}</th><th class="num">${t('form.muscle')}</th><th class="num">${t('form.water')}</th><th class="num">${t('form.visceral')}</th><th>${t('form.notes')}</th><th></th></tr></thead>
       <tbody>${rows}</tbody></table></div>` : ''}
     ${fb3ProteinHTML(data)}
-    ${faCardHTML(uid, asmtDoc, data)}
+    ${faCardHTML(uid, asmtDoc, data, udata ? udata.paceSuggestion || null : null)}
     <div id="bt-card"></div>
     ${fb2CardHTML(asmtDoc, data)}
     <div id="pace-card"></div>
@@ -15346,6 +15446,11 @@ async function openClient(uid) {
   });
   const faSv = $('fa-save');
   if (faSv) faSv.onclick = () => faSaveConfig(uid);
+  /* AUTH-208 (punto 129): los dos controles nuevos de la tarjeta
+     de cálculo — el Sí/No del perfil de atleta y los botones del
+     ritmo — se cablean aquí, con la tarjeta ya pintada. */
+  box.querySelectorAll('[data-fa-ath]').forEach(b => b.onclick = () => faTrainerSetAthlete(uid, b.dataset.faAth === '1'));
+  box.querySelectorAll('[data-fa-pace]').forEach(b => b.onclick = () => faTrainerSetPace(uid, Number(b.dataset.faPace)));
   const faPal = $('fa-pal');
   if (faPal) { faPal.addEventListener('input', faPalSync); faPalSync(); }
   const faAct = $('fa-act');
@@ -15373,6 +15478,9 @@ async function openClient(uid) {
      (fichaPendAct con kind + reqKey), incluida la fila del paso
      del administrador. */
   box.querySelectorAll('[data-stu-act]').forEach(b => b.onclick = () => fichaPendAct(b.dataset.stuUid, b.dataset.stuAct, b.dataset.stuReq || ''));
+  /* AUTH-208 (punto 129): el mismo acceso por teclado para la
+     fila-puerta «Su ecuación» dentro de la ficha (solo no-botones). */
+  box.querySelectorAll('[data-stu-act]:not(button)').forEach(b => b.onkeydown = e => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); fichaPendAct(b.dataset.stuUid, b.dataset.stuAct, b.dataset.stuReq || ''); } });
   /* AUTH-2026-11-01-133: el botón «✉ Avisar» del bloque de
      pendientes de la ficha abre la misma hoja del aviso. */
   box.querySelectorAll('[data-stu-nudge]').forEach(b => b.onclick = () => {
@@ -16931,7 +17039,7 @@ async function goalsTrainerDecidePace(uid, pace) {
   try { const s = await getDoc(doc(db, 'users', uid)); if (s.exists()) cur = s.data().paceSuggestion || {}; } catch {}
   const data = { paceKcal: cur.paceKcal || Number(pace), suggestedAt: cur.suggestedAt || null, status: Number(cur.paceKcal) === Number(pace) ? 'approved' : 'replaced', decidedPaceKcal: Number(pace), decidedBy: auth.currentUser.uid, decidedAt: new Date().toISOString() };
   try { await setDoc(doc(db, 'users', uid), { paceSuggestion: data }, { merge: true }); toast(t('gm.paceDecided')); await openClient(uid); }
-  catch (e) { failToast(e); }
+  catch (e) { FA_FLASH = null; failToast(e); }
 }
 
 /* ================= §L — Superficies del alumno y del entrenador ================= */
@@ -35986,7 +36094,7 @@ document.addEventListener('keydown', e => { if (e.key === 'Escape') shareClose()
  *  - El SW (sw.js) solo cachea la cáscara del mismo origen en modo
  *    RED PRIMERO: Auth/Firestore/Worker jamás pasan por la caché.
  * ================================================================ */
-const PWA_SW_VERSION = '20261103-repartir-comida';
+const PWA_SW_VERSION = '20261103-atleta-ritmo';
 let pwaDeferredPrompt = null;
 function pwaIsStandalone() {
   try {
