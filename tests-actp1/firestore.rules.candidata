@@ -821,6 +821,8 @@ service cloud.firestore {
       // el presupuesto de expresiones por petición no da
       // para pagar la cadena entera de ramas ajenas.
       allow update: if isSelf(uid)
+        && request.resource.data.get('activityConsents', {})
+             != resource.data.get('activityConsents', {})
         && request.resource.data.diff(resource.data).affectedKeys()
               .hasOnly(['activityConsents', 'consentSeq', 'consentReceiptId'])
         && request.resource.data.consentSeq == resource.data.get('consentSeq', 0) + 1
