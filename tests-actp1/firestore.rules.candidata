@@ -606,22 +606,12 @@ service cloud.firestore {
     function actConsents(d) {
       return d.get('activityConsents', {});
     }
-    function actStatus(d, tipo) {
-      return actConsents(d).get(tipo, {}).get('status', 'none');
-    }
     // El tipo cambiado, derivado de UN solo diff del mapa:
     // el conjunto de claves tocadas es exactamente {tipo}. Si
     // no cambió nada o cambiaron dos, ningún hasOnly de un
     // solo tipo casa y el resultado es '' (conjunto vacío:
     // hasOnly casa siempre, pero entonces la forma del acto
     // exige una transición de estado que no existe y deniega).
-    function actChangedType(before, after) {
-      let dk = actConsents(after).diff(actConsents(before)).affectedKeys();
-      return dk.hasOnly(['steps']) ? 'steps'
-        : dk.hasOnly(['exercise']) ? 'exercise'
-        : dk.hasOnly(['weight']) ? 'weight'
-        : dk.hasOnly(['sleep']) ? 'sleep' : '';
-    }
     // ¿El conjunto de subclaves que cambian en el mapa es SOLO
     // la del tipo dado? (Para la cara de creación de recibos.)
     function actOnlyTypeChanged(before, after, tipo) {
@@ -638,11 +628,9 @@ service cloud.firestore {
     function actActShapeOk(before, after) {
       let mB = before.get('activityConsents', {});
       let mA = after.get('activityConsents', {});
-      let d1 = mB.get('steps', {}) != mA.get('steps', {});
-      let d2 = mB.get('exercise', {}) != mA.get('exercise', {});
-      let d3 = mB.get('weight', {}) != mA.get('weight', {});
-      let d4 = mB.get('sleep', {}) != mA.get('sleep', {});
-      let t = d1 ? 'steps' : d2 ? 'exercise' : d3 ? 'weight' : 'sleep';
+      let t = mB.get('steps', {}) != mA.get('steps', {}) ? 'steps'
+            : mB.get('exercise', {}) != mA.get('exercise', {}) ? 'exercise'
+            : mB.get('weight', {}) != mA.get('weight', {}) ? 'weight' : 'sleep';
       let subB = mB.get(t, {});
       let subA = mA.get(t, {});
       let esOtorgar = subA.get('status', '') == 'accepted'
@@ -655,8 +643,11 @@ service cloud.firestore {
         && subA.get('acceptedAt', null) == subB.get('acceptedAt', null)
         && subA.get('version', '') == subB.get('version', '');
       let r = getAfter(receiptPath(after.consentReceiptId)).data;
-      return (d1 && !d2 && !d3 && !d4 || !d1 && d2 && !d3 && !d4
-              || !d1 && !d2 && d3 && !d4 || !d1 && !d2 && !d3 && d4)
+      return subB != subA
+        && (t == 'steps' || mB.get('steps', {}) == mA.get('steps', {}))
+        && (t == 'exercise' || mB.get('exercise', {}) == mA.get('exercise', {}))
+        && (t == 'weight' || mB.get('weight', {}) == mA.get('weight', {}))
+        && (t == 'sleep' || mB.get('sleep', {}) == mA.get('sleep', {}))
         && (esOtorgar || esRetirar)
         && r.uid == request.auth.uid
         && r.type == 'activity-' + t + '-'
