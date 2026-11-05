@@ -1411,7 +1411,8 @@ function rolePendItems() {
       /* AUTH-2026-11-02-163 (punto 65 de la cola; regla de Ronald
          2026-11-02 00:35 CST: todo directo): el permiso de análisis
          de tipo corporal TAMBIÉN es pendiente de la PROPIA persona
-         cuando el módulo le es visible (cuentas piloto, btPilot):
+         cuando el módulo le es visible (btModuleOn: cuenta aprobada
+         o propietaria — la misma puerta de la IA):
          COMPLEMENTARIO y opcional — nunca bloquea y nunca cuenta
          como Indispensable/Importante; su categoría viaja declarada
          en el propio ítem (cat:'comp') y pendItemCatOf, el
@@ -1425,8 +1426,8 @@ function rolePendItems() {
          vista. La lógica del consentimiento no cambia: ni
          btIsActive, ni BT_VERSION, ni el guardado. */
       try {
-        if (typeof btPilot === 'function' && typeof btIsActive === 'function'
-            && auth.currentUser && btPilot(auth.currentUser.uid) && !btIsActive(UDATA)) {
+        if (typeof btModuleOn === 'function' && typeof btIsActive === 'function'
+            && auth.currentUser && btModuleOn(UDATA) && !btIsActive(UDATA)) {
           push('alumno|body', 'perms-bt', t('pend.role.bodyTitle'), t('pend.role.bodyDetail'), t('pend.role.bodyGo'));
           const bit = items[items.length - 1];
           if (bit && bit.id === 'alumno|body') bit.cat = 'comp';
@@ -2633,7 +2634,7 @@ async function careStudentPass(u, ctx) {
     const ps = await getDocs(query(collection(db, 'nutrition_progress'), where('ownerUid', '==', u.id)));
     const parsed = spProgParse(ps);
     let bodyItem = studentsBodyItem(u, null);
-    if (btPilot(u.id) && btIsActive(u)) {
+    if (btModuleOn(u) && btIsActive(u)) {
       const bs = await getDocs(query(collection(db, 'body_type_estimates'), where('clientUid', '==', u.id)));
       bodyItem = studentsBodyItem(u, bs.size);
     }
@@ -5871,7 +5872,7 @@ en: {
   'client.edit': 'Edit',
   'client.reviewed': '✓ Reviewed',
   'bt.title': 'Visual body type estimate',
-  'bt.pilotNote': 'Pilot only: this feature is enabled only for the owner account and the “Prueba Ronald” test account until a separate launch decision.',
+  'bt.pilotNote': 'Available to every approved account. It requires your specific consent for body photos, and you can withdraw it at any time.',
   'bt.providerInfo': 'Provider (D-09, updated by the owner’s decision of October 24, 2026): the analysis provider is Google Gemini, the same paid service this app already uses for meal analysis, reached through the M8 worker. Google does not use paid-service prompts or files to improve its products, but it does log prompts and responses — including the photos sent — for a limited period of time, solely to detect policy violations and keep the service safe; Google does not publish an exact number of days. This is NOT zero retention: if you give this consent, your body photos will be sent to Google and temporarily logged there under those terms.',
   'bt.consentIntro': 'A separate, specific and revocable consent for analyzing photos of your body with artificial intelligence.',
   'bt.consentText': 'I authorize RONBO.NUTRI to analyze my progress body photos (front, side and back) and my recorded physical measurements using an artificial-intelligence system, solely to estimate my body type as a reference for my trainer when setting training and nutrition goals. I understand that: this is a visual estimate, not a medical diagnosis or clinical assessment, and it can place me in the wrong category; my body photos will be transmitted to Google Gemini, the paid analysis provider this app uses, through its M8 worker: Google does not use paid-service prompts or files to improve its products, but it does log prompts and responses — including my photos — for a limited period of time, solely to detect policy violations and keep the service safe; Google does not publish an exact number of days, so this is not zero retention and I accept that temporary logging; I may revoke this consent at any time in the app, and revoking it immediately blocks new analyses and all access to estimates already generated (their physical deletion or retention period is still pending legal validation D-06); my assigned trainer and the platform administrator can see the estimate while this consent is active; and I will see my own estimate only if my trainer shares it with me.',
@@ -9378,7 +9379,7 @@ es: {
   'client.edit': 'Editar',
   'client.reviewed': '✓ Revisada',
   'bt.title': 'Estimación visual de tipo corporal',
-  'bt.pilotNote': 'Solo piloto: esta función está habilitada únicamente para la cuenta del propietario y la cuenta de prueba «Prueba Ronald» hasta una decisión de lanzamiento separada.',
+  'bt.pilotNote': 'Disponible para todas las cuentas aprobadas. Requiere tu consentimiento específico para las fotos corporales, y puedes retirarlo cuando quieras.',
   'bt.providerInfo': 'Proveedor (D-09, actualizado por decisión del propietario del 24 de octubre de 2026): el proveedor de análisis es Google Gemini, el mismo servicio pagado que esta app ya usa para el análisis de comidas, a través del intermediario M8. Google no usa las instrucciones ni los archivos de los servicios pagados para mejorar sus productos, pero SÍ registra las instrucciones y las respuestas — incluidas las fotos enviadas — durante un periodo limitado, con el único fin de detectar infracciones de sus políticas y mantener la seguridad del servicio; Google no publica un número exacto de días. Esto NO es retención cero: si das este consentimiento, tus fotos corporales se enviarán a Google y quedarán registradas allí temporalmente bajo esos términos.',
   'bt.consentIntro': 'Un consentimiento específico, independiente y revocable para analizar fotos de tu cuerpo con inteligencia artificial.',
   'bt.consentText': 'Autorizo a RONBO.NUTRI a analizar mis fotografías corporales de progreso (frente, costado y espalda) y mis medidas físicas registradas, mediante un sistema de inteligencia artificial, con el único fin de estimar mi tipo de cuerpo como referencia para mi entrenador al establecer metas de entrenamiento y alimentación. Entiendo que: esta es una estimación visual, no un diagnóstico médico ni una evaluación clínica, y puede ubicarme en la categoría equivocada; mis fotos corporales se transmitirán a Google Gemini, el proveedor de análisis pagado que usa esta app, a través de su intermediario M8: Google no usa las instrucciones ni los archivos de los servicios pagados para mejorar sus productos, pero SÍ registra las instrucciones y las respuestas — incluidas mis fotos — durante un periodo limitado, con el único fin de detectar infracciones de sus políticas y mantener la seguridad del servicio; Google no publica un número exacto de días, así que esto no es retención cero y acepto ese registro temporal; puedo revocar este consentimiento en cualquier momento desde la app, y al revocarlo se bloquean de inmediato los nuevos análisis y todo acceso a las estimaciones ya generadas (su eliminación física o plazo de conservación sigue pendiente de la validación jurídica D-06); mi entrenador asignado y el administrador de la plataforma pueden ver la estimación mientras este consentimiento esté activo; y yo veré mi propia estimación solo si mi entrenador la comparte conmigo.',
@@ -12230,7 +12231,7 @@ async function loadAdmin() {
           ? `<button class="btn-primary btn-sm" data-approve-trainer="${u.id}">${t('esc.approveTrainer')}</button>`
           : `<button class="btn-primary btn-sm" data-approve="${u.id}">${t('admin.approve')}</button>`}
         <button class="btn-ghost btn-sm" data-reject="${u.id}">${t('admin.reject')}</button>
-        ${BT_PILOT_UIDS.includes(u.id) ? '' : `<button class="btn-ghost btn-sm btn-delete-user" data-delete-user="${u.id}">${t('admin.deleteUser')}</button>`}
+        ${PROTECTED_UIDS.includes(u.id) ? '' : `<button class="btn-ghost btn-sm btn-delete-user" data-delete-user="${u.id}">${t('admin.deleteUser')}</button>`}
         <button class="btn-ghost btn-sm" data-pk-revoke="${u.id}">${t('pk.revoke')}</button>
       </div>
     </div>`;
@@ -12269,7 +12270,7 @@ async function loadAdmin() {
         ${u.role === 'entrenador' ? `<button class="btn-ghost btn-sm" data-dos-mail="${u.id}">${t('esc.mailBtn')}</button>` : ''}
         <button class="btn-ghost btn-sm" data-mail-resend="${u.id}" title="${t('mail.resendBtn')}" aria-label="${t('mail.resendBtn')}">📧</button>
         <button class="btn-ghost btn-sm" data-revoke="${u.id}">${t('admin.revoke')}</button>
-        ${BT_PILOT_UIDS.includes(u.id) ? '' : `<button class="btn-ghost btn-sm btn-delete-user" data-delete-user="${u.id}">${t('admin.deleteUser')}</button>`}
+        ${PROTECTED_UIDS.includes(u.id) ? '' : `<button class="btn-ghost btn-sm btn-delete-user" data-delete-user="${u.id}">${t('admin.deleteUser')}</button>`}
         <button class="btn-ghost btn-sm" data-pk-revoke="${u.id}">${t('pk.revoke')}</button>
       </div>
     </div>${u.role === 'entrenador' ? `<div class="dos-mail-box" id="dos-mail-${u.id}" style="display:none"></div>` : ''}`).join('') : `<div class="wempty">${t('admin.noUsers')}</div>`);
@@ -12469,8 +12470,8 @@ async function loadAdmin() {
   });
   /* Eliminar usuario (borrado completo): solo se cablea en esta
      superficie, que ya es exclusiva del administrador; la puerta
-     real vive en el Worker (ver deleteUserFlow). El piloto
-     archivado ni siquiera pinta el botón (BT_PILOT_UIDS). */
+     real vive en el Worker (ver deleteUserFlow). Las cuentas
+     protegidas (PROTECTED_UIDS) ni siquiera pintan el botón. */
   document.querySelectorAll('[data-delete-user]').forEach(b => b.onclick = () => deleteUserFlow(b));
   /* Claves de acceso (DEC-PK-4): revocar todas las de un usuario;
      la fila del propio propietario no pinta el botón (las filas de
@@ -13624,7 +13625,7 @@ async function loadClients() {
       const marks = ss.exists() ? ((ss.data() && ss.data().marks) || {}) : {};
       const ps = await getDocs(query(collection(db, 'nutrition_progress'), where('ownerUid', '==', u.id)));
       let bodyItem = studentsBodyItem(u, null);
-      if (btPilot(u.id) && btIsActive(u)) {
+      if (btModuleOn(u) && btIsActive(u)) {
         const bs = await getDocs(query(collection(db, 'body_type_estimates'), where('clientUid', '==', u.id)));
         bodyItem = studentsBodyItem(u, bs.size);
       }
@@ -14113,8 +14114,10 @@ function trainerPendUnion(chk, pend, bodyItem, u) {
 /* Importante 13 (ajuste de Ronald, 2026-10-31 07:20 CDT): el
    análisis de tipo corporal ausente cuenta como faltante — sin su
    consentimiento específico o sin estimación registrada. Aplica
-   SOLO donde el módulo está habilitado para ese alumno (btPilot):
-   fuera del piloto, el alumno ni siquiera ve el panel de
+   SOLO donde el módulo está habilitado para ese alumno (btModuleOn:
+   cuenta aprobada o propietaria — la lista piloto de dos cuentas se
+   retiró con AUTH-2026-11-05-255, Resto 1 de la auditoría de
+   bloqueos): sin el módulo, el alumno ni siquiera ve el panel de
    consentimiento (la tarjeta del entrenador tampoco se pinta), y
    marcarle la falta sería un pendiente imposible de resolver. El
    ítem dice QUÉ falta; jamás muestra la estimación ni dato alguno.
@@ -14122,7 +14125,7 @@ function trainerPendUnion(chk, pend, bodyItem, u) {
    consentimiento está activo: es la forma viva de btFetchEstimates
    y la que las reglas permiten al staff). */
 function studentsBodyItem(u, estCount) {
-  if (!u || !btPilot(u.id)) return null;
+  if (!btModuleOn(u)) return null;
   if (!btIsActive(u)) return { kind: 'body', miss: 'consent', state: 'pendiente', date: null };
   if (estCount != null && estCount === 0) return { kind: 'body', miss: 'analysis', state: 'pendiente', date: null };
   return null;
@@ -16031,7 +16034,7 @@ async function loadStudents() {
         await pChk;
         if (!chkByUid[u.id]) throw new Error('sin-checklist');
         let bodyItem = studentsBodyItem(u, null);
-        if (btPilot(u.id) && btIsActive(u)) {
+        if (btModuleOn(u) && btIsActive(u)) {
           const bs = await getDocs(query(collection(db, 'body_type_estimates'), where('clientUid', '==', u.id)));
           bodyItem = studentsBodyItem(u, bs.size);
         }
@@ -25625,11 +25628,24 @@ async function withdrawSpec() {
    de siempre y no se guarda nada).
    Cadena CORTADA: la estimación jamás alimenta body_type_ratings,
    planes ni metas; es solo una referencia que lee el entrenador.
-   Piloto (P11): la función solo se habilita para la cuenta del
-   propietario y la cuenta de prueba «Prueba Ronald». */
+   Piloto (P11) RETIRADO por AUTH-2026-11-05-255 (Resto 1 de la
+   auditoría de bloqueos del 2026-11-04; decisión de Ronald
+   2026-11-05 «Rest 1 arréglalo»): el módulo sigue la misma regla
+   que el resto de la IA — puerta approved || isOwner (AUTH-224),
+   interruptor global y topes por cuenta (AUTH-226) — sin lista de
+   cuentas piloto en ningún sitio. El consentimiento específico
+   (bodyTypeConsent, versión v1-2026-10-24) NO cambia: sigue
+   siendo requisito del propio alumno. */
 const BT_VERSION = 'v1-2026-10-24';  /* Texto FINAL aprobado por Ronald el 2026-10-24 (el borrador era 'draft-2026-10-24': una aceptación bajo el borrador NO cuenta como aceptación del texto final — btIsActive exige esta versión exacta) */
-const BT_PILOT_UIDS = ['sWfllr4HvYRFUP1T8B1gFGLYU2t2', 'p08nUuFPXkMMcKg3FalMKYs979p2'];
-const btPilot = uid => BT_PILOT_UIDS.includes(uid || '');
+/* Cuentas protegidas contra el borrado desde la administración:
+   la del propietario y la de prueba «Prueba Ronald» no pintan el
+   botón de eliminar usuario. Es SOLO protección de cuentas — ya
+   no es la puerta de este módulo (esa es btModuleOn). */
+const PROTECTED_UIDS = ['sWfllr4HvYRFUP1T8B1gFGLYU2t2', 'p08nUuFPXkMMcKg3FalMKYs979p2'];
+/* Puerta del módulo: espejo de aiDoorApproved del Worker
+   (AUTH-224) — cuenta aprobada o propietaria. El consentimiento
+   específico sigue gobernando el análisis (btIsActive). */
+const btModuleOn = u => !!u && (u.isOwner === true || u.approved === true);
 const btOf = u => (u && u.bodyTypeConsent) || null;
 const btIsActive = u => { const s = btOf(u); return !!s && s.status === 'accepted' && s.version === BT_VERSION; };
 const btCol = () => collection(db, 'body_type_estimates');
@@ -25722,7 +25738,7 @@ function renderBtPanel() {
   const sec = $('bt-section'); const box = $('bt-panel-body');
   if (!sec || !box || !auth.currentUser) return;
   const me = auth.currentUser.uid;
-  if (!btPilot(me)) { sec.style.display = 'none'; box.innerHTML = ''; return; }
+  if (!btModuleOn(UDATA)) { sec.style.display = 'none'; box.innerHTML = ''; return; }
   sec.style.display = '';
   const s = btOf(UDATA);
   const active = btIsActive(UDATA);
@@ -25924,7 +25940,7 @@ async function withdrawActShare(tipo) {
 /* ---------- Tarjeta del entrenador (ficha del cliente) ---------- */
 async function btLoadTrainerCard(uid, udata) {
   const box = $('bt-card'); if (!box) return;
-  if (!btPilot(uid)) { box.innerHTML = ''; return; }
+  if (!btModuleOn(udata)) { box.innerHTML = ''; return; }
   const active = btIsActive(udata);
   let html = `<div class="compacc-box"><h3 class="history-title">🧍 ${esc(t('bt.trainerTitle'))}</h3>
     <p class="progress-hint">${esc(t('bt.consentSignal', { v: active ? t('bt.active') : t('bt.inactive') }))}</p>
@@ -41926,7 +41942,7 @@ document.addEventListener('keydown', e => { if (e.key === 'Escape') shareClose()
  *  - El SW (sw.js) solo cachea la cáscara del mismo origen en modo
  *    RED PRIMERO: Auth/Firestore/Worker jamás pasan por la caché.
  * ================================================================ */
-const PWA_SW_VERSION = '20261105-aviso-temporal';
+const PWA_SW_VERSION = '20261105-tipo-corporal';
 /* Sello de versión VISIBLE (2026-11-03): el pie de la tarjeta de
    acceso enseña qué copia corre este teléfono ('v ' + el sello),
    para comprobar de un vistazo si la versión nueva ya llegó.
