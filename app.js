@@ -17924,7 +17924,7 @@ async function adhLoadTrainerCard(uid, udata, weights) {
   let rotation = false;
   try {
     if (on('steps')) {
-      const snap = await getDocs(query(collection(db, 'activity_logs'), where('ownerUid', '==', uid)));
+      const snap = await getDocs(query(collection(db, 'activity_logs'), where('ownerUid', '==', uid), where('date', '>=', histCutoffISO())));
       const byDate = {};
       snap.forEach(d => { const v = d.data(); if (v && inWin(v.date) && num(v.steps) > 0) byDate[v.date] = num(v.steps); });
       weeks.forEach((w, wi) => {
@@ -17936,7 +17936,7 @@ async function adhLoadTrainerCard(uid, udata, weights) {
     }
     if (on('exercise')) {
       const [logsSnap, plansSnap, cfgSnap] = await Promise.all([
-        getDocs(query(collection(db, 'training_logs'), where('clientUid', '==', uid))),
+        getDocs(query(collection(db, 'training_logs'), where('clientUid', '==', uid), where('date', '>=', histCutoffISO()))),
         getDocs(query(collection(db, 'training_plans'), where('clientUid', '==', uid))),
         getDoc(doc(db, 'nutrition_progress', uid + '_pendconfig'))
       ]);
@@ -17970,7 +17970,7 @@ async function adhLoadTrainerCard(uid, udata, weights) {
     }
     if (on('sleep')) {
       const snap = await getDocs(query(collection(db, 'activity_data'),
-        where('clientUid', '==', uid), where('dataType', '==', 'sleep')));
+        where('clientUid', '==', uid), where('dataType', '==', 'sleep'), where('date', '>=', histCutoffISO())));
       const byDate = {};
       snap.forEach(d => { const v = d.data(); if (v && inWin(v.date) && num(v.value) > 0) byDate[v.date] = num(v.value); });
       weeks.forEach((w, wi) => {
@@ -18082,7 +18082,7 @@ async function loadClientRings(uid, udata) {
     overrides: (udata && udata.goalsDayOverrides) || null, plan: null, cfg: null };
   box.innerHTML = `<h3 class="history-title">${esc(t('client.ringsTitle'))}</h3><div class="wempty">${t('access.loading')}</div>`;
   try {
-    const ms = await getDocs(query(collection(db, 'nutrition_meals'), where('ownerUid', '==', uid)));
+    const ms = await getDocs(query(collection(db, 'nutrition_meals'), where('ownerUid', '==', uid), where('date', '>=', histCutoffISO())));
     const byDate = {};
     ms.forEach(d => { const v = d.data();
       if (!/^\d{4}-\d{2}-\d{2}$/.test(v.date || '')) return;
@@ -18306,7 +18306,7 @@ async function trainerAlertsFetch(uid, udata, pre) {
      pendientes de «Mis alumnos»): un rechazo degrada aquí igual
      que degradaba el catch propio. */
   const pMeals = (async () => { try {
-    const ms = await getDocs(query(collection(db, 'nutrition_meals'), where('ownerUid', '==', uid)));
+    const ms = await getDocs(query(collection(db, 'nutrition_meals'), where('ownerUid', '==', uid), where('date', '>=', histCutoffISO())));
     ms.forEach(d => { const v = d.data();
       if (!/^\d{4}-\d{2}-\d{2}$/.test(v.date || '')) return;
       const tt = totals[v.date] = totals[v.date] || { kcal: 0, prot: 0, carb: 0, azuc: 0, gras: 0 };
@@ -19989,7 +19989,7 @@ async function loadAll() {
           (corrección 2026-10-26). */
   const mealsP = ucWith('comida', (async () => {
     const freshMeals = {};
-    const ms = await getDocs(query(collection(db, 'nutrition_meals'), where('ownerUid', '==', auth.currentUser.uid)));
+    const ms = await getDocs(query(collection(db, 'nutrition_meals'), where('ownerUid', '==', auth.currentUser.uid), where('date', '>=', histCutoffISO())));
     ms.forEach(d => {
       const v = d.data();
       if (!/^\d{4}-\d{2}-\d{2}$/.test(v.date || '')) return;
@@ -20025,7 +20025,7 @@ async function loadAll() {
   })());
   const weightsP = ucWith('inicio', (async () => {
     WEIGHTS = [];
-    const ws = await getDocs(query(collection(db, 'nutrition_weight'), where('ownerUid', '==', auth.currentUser.uid)));
+    const ws = await getDocs(query(collection(db, 'nutrition_weight'), where('ownerUid', '==', auth.currentUser.uid), where('date', '>=', histCutoffISO())));
     ws.forEach(d => {
       const v = d.data();
       if (num(v.weight) > 0) WEIGHTS.push({ id: d.id, date: v.date, weight: num(v.weight),
@@ -26202,10 +26202,24 @@ async function fetchSnapshots(clientUid) {
   out.sort((a, b) => snapMillis(b.snapshotAt) - snapMillis(a.snapshotAt));
   return out;
 }
+/* VENTANA DE HISTORIAL (AUTH-2026-11-05-258): las cargas de
+   historial sin límite traen solo los últimos 12 meses. La
+   ventana es de CARGA, no de datos — nada se borra y lo viejo
+   sigue en Firestore —: lo que queda fuera es lo que ninguna
+   superficie viva mira (la semana actual y la anterior, la vez
+   pasada, los hitos y marcas del último año, la ficha reciente
+   del alumno). El corte es una fecha ISO (YYYY-MM-DD, el formato
+   del campo date de estas colecciones), calculada en hora local
+   como todayISO(). */
+function histCutoffISO() {
+  const p = todayISO().split('-').map(Number);
+  const d = new Date(p[0] - 1, p[1] - 1, p[2]);
+  return d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0') + '-' + String(d.getDate()).padStart(2, '0');
+}
 async function fetchLogs(clientUid) {
   const out = [];
   try {
-    const snap = await getDocs(query(collection(db, 'training_logs'), where('clientUid', '==', clientUid)));
+    const snap = await getDocs(query(collection(db, 'training_logs'), where('clientUid', '==', clientUid), where('date', '>=', histCutoffISO())));
     snap.forEach(d => out.push({ id: d.id, ...d.data() }));
   } catch {}
   out.sort((a, b) => (a.date < b.date ? 1 : -1));
@@ -26222,7 +26236,7 @@ async function fetchLogs(clientUid) {
 async function fetchClientActLogs(clientUid) {
   const out = {};
   try {
-    const snap = await getDocs(query(collection(db, 'activity_logs'), where('ownerUid', '==', clientUid)));
+    const snap = await getDocs(query(collection(db, 'activity_logs'), where('ownerUid', '==', clientUid), where('date', '>=', histCutoffISO())));
     snap.forEach(d => { const v = d.data(); if (v && /^\d{4}-\d{2}-\d{2}$/.test(v.date || '')) out[v.date] = { kcalExtraTotal: num(v.kcalExtraTotal) }; });
   } catch {}
   return out;
@@ -31189,6 +31203,7 @@ let LIB_BY_ID = {};        // id -> documento (catálogo + aportes propios + ban
 let LIB_OWN = [];          // aportes del usuario con sesión, en cualquier estado
 let LIB_PENDING = [];      // bandeja del administrador: aportes en 'pendiente'
 let LIB_STATE = 'idle';    // 'idle' | 'loading' | 'ok' | 'unavailable'
+let LIB_SRC = '';            // 'manifest' | 'probe': de dónde salió la fábrica en la última carga (AUTH-258)
 let LIB_PROMISE = null;
 function libEnsure() {
   if (LIB_STATE === 'ok') return Promise.resolve();
@@ -31272,7 +31287,11 @@ window.addEventListener('pageshow', () => { libRevalidate(); });
      altas futuras (del administrador o de la comunidad) nacen ya con
      'estado' y entran por las consultas, así que el sondeo cubre un
      espacio legado congelado; se exploran siempre al menos E001–E125
-     y se sigue mientras la tanda anterior haya traído documentos. */
+     y se sigue mientras la tanda anterior haya traído documentos.
+     Desde AUTH-2026-11-05-258 ese sondeo es solo el RESPALDO: la
+     vía normal es el manifiesto único app_settings/library_manifest,
+     que guarda el contenido íntegro de la fábrica y cuesta UNA
+     lectura (ver libFetchClassDocs). */
 async function libFetchClassDocs() {
   const colRef = collection(db, 'exercise_library');
   const uid = (auth.currentUser && auth.currentUser.uid) || '';
@@ -31280,15 +31299,44 @@ async function libFetchClassDocs() {
   const put = x => { if (x && x.id && !byId.has(x.id)) byId.set(x.id, x); };
   const s1 = await getDocs(query(colRef, where('estado', '==', 'aprobado')));
   s1.forEach(d => put({ id: d.id, ...d.data() }));
-  let n = 1;
-  while (n <= 400) {
-    const ids = [];
-    for (let i = 0; i < 25; i++) ids.push('E' + String(n + i).padStart(3, '0'));
-    const snaps = await Promise.all(ids.map(id => getDoc(doc(db, 'exercise_library', id)).catch(() => null)));
-    let hits = 0;
-    snaps.forEach((s, i) => { if (s && s.exists()) { hits++; put({ id: ids[i], ...s.data() }); } });
-    n += 25;
-    if (hits === 0 && n > 125) break;
+  /* LA FÁBRICA POR MANIFIESTO (AUTH-2026-11-05-258): el manifiesto
+     ocupa el lugar exacto del sondeo en la composición (después de
+     los aprobados, antes de los propios y la bandeja; put no pisa
+     lo ya puesto), así que qué fichas existen, sus fotos y la
+     relación de variantes se resuelven igual, y una ficha ausente
+     del manifiesto sigue ausente. Si el manifiesto falta o no se
+     puede leer, se cae al sondeo de siempre — degradación honesta,
+     nunca un catálogo vacío por su culpa — y su resultado, cuando
+     quien lee es el propietario, REGENERA el manifiesto
+     (autorreparación en libManifestWrite). El manifiesto también
+     se refresca al editar una ficha de fábrica en el editor del
+     administrador (libSaveEditor) y en las cargas versionadas por
+     script (refresh_manifest.py del paquete AUTH-258). */
+  let factoryDocs = null;
+  try {
+    const msnap = await getDoc(doc(db, 'app_settings', 'library_manifest'));
+    if (msnap.exists()) {
+      const mdocs = (msnap.data() || {}).docs;
+      if (mdocs && typeof mdocs === 'object' && !Array.isArray(mdocs))
+        factoryDocs = Object.keys(mdocs).map(id => ({ id, ...mdocs[id] }));
+    }
+  } catch {}
+  if (factoryDocs) {
+    LIB_SRC = 'manifest';
+    factoryDocs.forEach(put);
+  } else {
+    LIB_SRC = 'probe';
+    let n = 1;
+    while (n <= 400) {
+      const ids = [];
+      for (let i = 0; i < 25; i++) ids.push('E' + String(n + i).padStart(3, '0'));
+      const snaps = await Promise.all(ids.map(id => getDoc(doc(db, 'exercise_library', id)).catch(() => null)));
+      let hits = 0;
+      snaps.forEach((s, i) => { if (s && s.exists()) { hits++; put({ id: ids[i], ...s.data() }); } });
+      n += 25;
+      if (hits === 0 && n > 125) break;
+    }
+    try { if (typeof IS_OWNER !== 'undefined' && IS_OWNER) libManifestWrite([...byId.values()]); } catch {}
   }
   const own = [];
   if (uid) {
@@ -31305,6 +31353,30 @@ async function libFetchClassDocs() {
   LIB = [...byId.values()].filter(x => !x.estado || x.estado === 'aprobado');
   LIB_OWN = own;
   LIB_PENDING = pending;
+}
+/* Escribe el manifiesto de fábrica (AUTH-2026-11-05-258): el
+   contenido íntegro de los documentos SIN 'estado' del catálogo
+   dado, en un solo documento de app_settings. Solo el
+   propietario puede escribirlo (las reglas lo limitan a su
+   lista de documentos); cualquier fallo se traga — el
+   manifiesto jamás rompe una superficie — y la próxima carga
+   que caiga al sondeo lo reintenta. Los valores undefined se
+   omiten: Firestore los rechazaría y en un documento leído de
+   la colección nunca existen. */
+async function libManifestWrite(docs) {
+  try {
+    const map = {};
+    (docs || []).forEach(x => {
+      if (!x || !x.id || x.estado) return;
+      const clean = {};
+      Object.keys(x).forEach(k => { if (k !== 'id' && x[k] !== undefined) clean[k] = x[k]; });
+      map[x.id] = clean;
+    });
+    const ids = Object.keys(map);
+    if (!ids.length) return;
+    await setDoc(doc(db, 'app_settings', 'library_manifest'),
+      { v: 1, count: ids.length, generatedAt: serverTimestamp(), docs: map });
+  } catch {}
 }
 /* El estado de un documento de la biblioteca: sin campo = fábrica. */
 function libEstadoOf(ex) { return ex && ex.estado ? ex.estado : 'fabrica'; }
@@ -32331,9 +32403,16 @@ async function libSaveEditor() {
       closeEditor();
       toast(t('libadm.created'));
     } else if (ctx === 'admin') {
+      const wasFactory = !(LIB_BY_ID[id] || {}).estado;
       const patch = { ...data, updatedAt: serverTimestamp(), updatedBy: uid };
       await setDoc(doc(db, 'exercise_library', id), patch, { merge: true });
       libMemPut({ ...(LIB_BY_ID[id] || {}), ...data, id, updatedBy: uid });
+      /* Si la ficha editada es de FÁBRICA, el manifiesto se
+         refresca con el catálogo ya actualizado en memoria
+         (AUTH-2026-11-05-258): sin esto, la edición quedaría
+         invisible para la vía del manifiesto. Su fallo no
+         deshace el guardado (libManifestWrite se protege solo). */
+      if (wasFactory) libManifestWrite(Object.values(LIB_BY_ID));
       closeEditor();
       toast(t('libadm.saved'));
     } else if (!id) {
@@ -34728,7 +34807,7 @@ async function loadActivityLogs() {
   if (!auth.currentUser) return;
   try {
     const fresh = {};
-    const snap = await getDocs(query(collection(db, 'activity_logs'), where('ownerUid', '==', auth.currentUser.uid)));
+    const snap = await getDocs(query(collection(db, 'activity_logs'), where('ownerUid', '==', auth.currentUser.uid), where('date', '>=', histCutoffISO())));
     snap.forEach(d => {
       const v = d.data();
       if (!/^\d{4}-\d{2}-\d{2}$/.test(v.date || '')) return;
@@ -34744,7 +34823,7 @@ async function loadActivityLogs() {
   /* El sueño del alumno (activity_data): carga propia y
      tolerante — si falla, la sección muestra su estado vacío. */
   try {
-    const ss = await getDocs(query(collection(db, 'activity_data'), where('clientUid', '==', auth.currentUser.uid)));
+    const ss = await getDocs(query(collection(db, 'activity_data'), where('clientUid', '==', auth.currentUser.uid), where('date', '>=', histCutoffISO())));
     const sl = {}, sc = {};
     ss.forEach(d => { const v = d.data();
       if (v && v.dataType === 'sleep' && /^\d{4}-\d{2}-\d{2}$/.test(v.date || '') && num(v.value) > 0) {
@@ -36521,7 +36600,7 @@ async function loadRecoCards(uid, logs, plans) {
     if (!msBox && !moBox) return;
     let mealsByDate = {};
     try {
-      const ms = await getDocs(query(collection(db, 'nutrition_meals'), where('ownerUid', '==', uid)));
+      const ms = await getDocs(query(collection(db, 'nutrition_meals'), where('ownerUid', '==', uid), where('date', '>=', histCutoffISO())));
       ms.forEach(d => {
         const v = d.data();
         if (v && v.date) (mealsByDate[v.date] = mealsByDate[v.date] || []).push(v);
@@ -42113,7 +42192,7 @@ document.addEventListener('keydown', e => { if (e.key === 'Escape') shareClose()
  *  - El SW (sw.js) solo cachea la cáscara del mismo origen en modo
  *    RED PRIMERO: Auth/Firestore/Worker jamás pasan por la caché.
  * ================================================================ */
-const PWA_SW_VERSION = '20261105-vez-pasada';
+const PWA_SW_VERSION = '20261105-cupo-velocidad';
 /* Sello de versión VISIBLE (2026-11-03): el pie de la tarjeta de
    acceso enseña qué copia corre este teléfono ('v ' + el sello),
    para comprobar de un vistazo si la versión nueva ya llegó.
