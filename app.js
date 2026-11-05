@@ -3597,6 +3597,113 @@ en: {
   'nutri.waterAdd': 'Add water (ml)',
   'nutri.save': 'Save',
   'nutri.saved': 'Saved.',
+  'plan.title': 'My meal plan',
+  'plan.wishesCta': 'Tell your food coach what you like',
+  'plan.wishesCtaSub': 'Eight quick questions. Your coach builds your plan from your measures, your goal and your wishes — and nothing applies until you accept it.',
+  'plan.wishesDone': 'Your wishes are saved.',
+  'plan.wishesEdit': 'Edit my wishes',
+  'plan.wishesNote': 'Changing a wish does not change your current plan: it lets your coach build you a new one.',
+  'plan.proposalTitle': 'Your coach proposes this plan',
+  'plan.proposalSub': 'Nothing applies until you accept it.',
+  'plan.total': 'Total',
+  'plan.dayBase': 'Training day',
+  'plan.dayDemanding': 'Demanding day',
+  'plan.dayRest': 'Rest day',
+  'plan.dayLine': '{name}: {carb} g carbs · {gras} g fat',
+  'plan.whyTitle': 'Why this plan is for you',
+  'plan.whyGoal.bajar': 'Your goal: lose fat — a moderate deficit, with protein kept high to protect your muscle.',
+  'plan.whyGoal.mantener': 'Your goal: keep your weight — your plan matches your daily burn.',
+  'plan.whyGoal.ganar': 'Your goal: build muscle — a moderate surplus, with protein set for growth.',
+  'plan.whyActivity': 'Built on your estimated daily burn of {tdee} kcal, from your assessment and your activity level.',
+  'plan.whyAllergy': 'Your hard limit is respected: no {food} — ever.',
+  'plan.whyNoDislike': 'Nothing you dislike: no {food} in this plan.',
+  'plan.whyMeals': 'Split into {n} meals a day, as you asked.',
+  'plan.whyLikes': 'It makes room for what you like: {food}.',
+  'plan.accept': 'I accept this plan',
+  'plan.change': 'I want a change',
+  'plan.decline': 'I do not accept this plan',
+  'plan.changeTitle': 'What should change?',
+  'plan.change.food': 'A meal does not work for me',
+  'plan.change.count': 'I want a different number of meals',
+  'plan.change.other': 'Another reason',
+  'plan.changeTextPh': 'A few words for your coach…',
+  'plan.changeSend': 'Send to my coach',
+  'plan.changeSent': 'Change requested. Your coach will review it and propose again.',
+  'plan.accepted': 'Plan accepted — it is your plan now.',
+  'plan.declined': 'Proposal declined. Nothing was applied.',
+  'plan.currentTitle': 'Your current plan',
+  'plan.historyTitle': 'Past plans',
+  'plan.q.progress': 'Question {n} of 8',
+  'plan.q1': 'What do you want to achieve?',
+  'plan.goal.bajar': 'Lose fat',
+  'plan.goal.mantener': 'Keep my weight',
+  'plan.goal.ganar': 'Build muscle',
+  'plan.q2': 'How many meals a day do you prefer?',
+  'plan.mealsPerDay': '{n} meals a day',
+  'plan.q3': 'Which foods do you like?',
+  'plan.q4': 'Which foods do you NOT want in your plan?',
+  'plan.q5': 'Allergies, or foods you can never eat',
+  'plan.q5sub': 'This is a hard limit: a food marked here never appears in your plan, not even as a substitute.',
+  'plan.q5ph': 'Anything else? E.g. shrimp, kiwi…',
+  'plan.q6': 'How much time do you have to cook?',
+  'plan.cook.none': 'Almost none',
+  'plan.cook.30': 'About 30 minutes',
+  'plan.cook.love': 'I like cooking',
+  'plan.q7': 'How is your grocery budget?',
+  'plan.budget.low': 'Tight',
+  'plan.budget.mid': 'Normal',
+  'plan.budget.high': 'No practical limit',
+  'plan.q8': 'Anything else your coach should know?',
+  'plan.q8ph': 'Schedules, tastes, fasting, night shifts…',
+  'plan.back': 'Back',
+  'plan.next': 'Next',
+  'plan.finish': 'Save my wishes',
+  'plan.pickMany': 'Tap all that apply.',
+  'plan.fam.pollo': 'Chicken',
+  'plan.fam.carne': 'Beef',
+  'plan.fam.pescado': 'Fish',
+  'plan.fam.huevos': 'Eggs',
+  'plan.fam.cerdo': 'Pork',
+  'plan.fam.granos': 'Grains & beans',
+  'plan.fam.vegetales': 'Vegetables',
+  'plan.fam.frutas': 'Fruit',
+  'plan.fam.lacteos': 'Dairy',
+  'plan.alg.gluten': 'Gluten',
+  'plan.alg.lactosa': 'Lactose',
+  'plan.alg.huevo': 'Egg',
+  'plan.alg.soya': 'Soy',
+  'plan.alg.nueces': 'Nuts',
+  'plan.alg.pescado': 'Fish',
+  'plan.alg.mariscos': 'Shellfish',
+  'plan.alg.mani': 'Peanuts',
+  'plan.splitSum': 'The split must add up to 100%.',
+  'plan.coach.build': 'Build plan',
+  'plan.coach.wishesTitle': 'Their wishes',
+  'plan.coach.noWishes': 'This student has not answered the wishes questionnaire yet. You can still build a draft from their assessment.',
+  'plan.coach.allergyHard': 'HARD LIMIT — allergies / never eats',
+  'plan.coach.likes': 'Likes',
+  'plan.coach.dislikes': 'Does not want',
+  'plan.coach.cook': 'Cooking time',
+  'plan.coach.budget': 'Budget',
+  'plan.coach.note': 'Note for you',
+  'plan.coach.medical': 'This student declared health conditions. Consider referring them to a health professional before proposing a plan.',
+  'plan.coach.paceProposed': 'Moderate deficit proposed: −500 kcal. Confirm it or adjust the numbers below — what you propose is what counts.',
+  'plan.coach.splitTitle': 'Split of the day (% per meal)',
+  'plan.coach.saveDraft': 'Save draft',
+  'plan.coach.propose': 'Propose to the student',
+  'plan.coach.draftSaved': 'Draft saved. The student only sees it when you propose it.',
+  'plan.coach.proposed': 'Proposed. Waiting for the student’s answer.',
+  'plan.coach.proposedOn': 'Proposed — waiting for the student’s answer.',
+  'plan.coach.changeReq': 'The student asked for a change',
+  'plan.coach.adjust': 'Propose adjustment',
+  'plan.coach.weekOk': 'This week: {done} of 7 days completed',
+  'plan.coach.weightTrend': 'Weight {last} kg ({delta} kg)',
+  'plan.coach.stateBorrador': 'Draft in your review',
+  'plan.coach.statePropuesto': 'Proposal sent',
+  'plan.coach.stateActivo': 'Plan in place',
+  'plan.coach.discard': 'Discard draft',
+  'plan.coach.withdraw': 'Withdraw proposal',
+  'plan.coach.needTdee': 'No energy or no weight on file for this student: a founded plan cannot be calculated yet.',
   'nutri.consentTitle': 'My food-care data',
   'nutri.consentHint': 'Only with your specific consent, your food coach can see: allergies, intolerances, declared conditions, relevant medications, cultural or religious preferences and vegetarianism. No diagnoses are made in the app: with a condition, you get a referral, never a medical diet.',
   'nutri.consentGive': 'Give my consent and save',
@@ -6906,6 +7013,113 @@ es: {
   'nutri.waterAdd': 'Añadir agua (ml)',
   'nutri.save': 'Guardar',
   'nutri.saved': 'Guardado.',
+  'plan.title': 'Mi plan alimenticio',
+  'plan.wishesCta': 'Cuéntale a tu coach qué te gusta',
+  'plan.wishesCtaSub': 'Ocho preguntas rápidas. Tu coach construye tu plan desde tus medidas, tu objetivo y tus deseos — y nada entra en vigor hasta que tú lo aceptes.',
+  'plan.wishesDone': 'Tus deseos están guardados.',
+  'plan.wishesEdit': 'Editar mis deseos',
+  'plan.wishesNote': 'Cambiar un deseo no cambia tu plan vigente: le permite a tu coach construirte uno nuevo.',
+  'plan.proposalTitle': 'Tu coach te propone este plan',
+  'plan.proposalSub': 'Nada entra en vigor hasta que tú lo aceptes.',
+  'plan.total': 'Total',
+  'plan.dayBase': 'Día de entrenamiento',
+  'plan.dayDemanding': 'Día exigente',
+  'plan.dayRest': 'Día de descanso',
+  'plan.dayLine': '{name}: {carb} g de carbos · {gras} g de grasa',
+  'plan.whyTitle': 'Por qué este plan es para ti',
+  'plan.whyGoal.bajar': 'Tu objetivo: bajar grasa — un déficit moderado, con la proteína alta para cuidar tu músculo.',
+  'plan.whyGoal.mantener': 'Tu objetivo: mantener tu peso — tu plan calca tu gasto diario.',
+  'plan.whyGoal.ganar': 'Tu objetivo: subir músculo — un superávit moderado, con la proteína fijada para crecer.',
+  'plan.whyActivity': 'Construido sobre tu gasto diario estimado de {tdee} kcal, desde tu evaluación y tu nivel de actividad.',
+  'plan.whyAllergy': 'Tu límite duro se respeta: nada de {food} — nunca.',
+  'plan.whyNoDislike': 'Nada de lo que no te gusta: sin {food} en este plan.',
+  'plan.whyMeals': 'Repartido en {n} comidas al día, como pediste.',
+  'plan.whyLikes': 'Hace sitio a lo que te gusta: {food}.',
+  'plan.accept': 'Acepto este plan',
+  'plan.change': 'Quiero un cambio',
+  'plan.decline': 'No acepto este plan',
+  'plan.changeTitle': '¿Qué debería cambiar?',
+  'plan.change.food': 'Una comida no me funciona',
+  'plan.change.count': 'Quiero otra cantidad de comidas',
+  'plan.change.other': 'Otro motivo',
+  'plan.changeTextPh': 'Unas palabras para tu coach…',
+  'plan.changeSend': 'Enviar a mi coach',
+  'plan.changeSent': 'Cambio pedido. Tu coach lo revisará y te propondrá de nuevo.',
+  'plan.accepted': 'Plan aceptado — ya es tu plan.',
+  'plan.declined': 'Propuesta no aceptada. No se aplicó nada.',
+  'plan.currentTitle': 'Tu plan vigente',
+  'plan.historyTitle': 'Planes anteriores',
+  'plan.q.progress': 'Pregunta {n} de 8',
+  'plan.q1': '¿Qué quieres lograr?',
+  'plan.goal.bajar': 'Bajar grasa',
+  'plan.goal.mantener': 'Mantener mi peso',
+  'plan.goal.ganar': 'Subir músculo',
+  'plan.q2': '¿Cuántas comidas al día prefieres?',
+  'plan.mealsPerDay': '{n} comidas al día',
+  'plan.q3': '¿Qué comidas te gustan?',
+  'plan.q4': '¿Qué comidas NO quieres ver en tu plan?',
+  'plan.q5': 'Alergias, o alimentos que nunca puedes comer',
+  'plan.q5sub': 'Esto es un límite duro: un alimento marcado aquí jamás aparece en tu plan, ni como sustituto.',
+  'plan.q5ph': '¿Algo más? Ej.: camarones, kiwi…',
+  'plan.q6': '¿Cuánto tiempo tienes para cocinar?',
+  'plan.cook.none': 'Casi nada',
+  'plan.cook.30': 'Unos 30 minutos',
+  'plan.cook.love': 'Me gusta cocinar',
+  'plan.q7': '¿Cómo es tu presupuesto para la compra?',
+  'plan.budget.low': 'Económico',
+  'plan.budget.mid': 'Normal',
+  'plan.budget.high': 'Sin límite práctico',
+  'plan.q8': '¿Hay algo más que tu coach deba saber?',
+  'plan.q8ph': 'Horarios, gustos, ayuno, trabajo de noche…',
+  'plan.back': 'Atrás',
+  'plan.next': 'Siguiente',
+  'plan.finish': 'Guardar mis deseos',
+  'plan.pickMany': 'Toca todo lo que aplique.',
+  'plan.fam.pollo': 'Pollo',
+  'plan.fam.carne': 'Carne',
+  'plan.fam.pescado': 'Pescado',
+  'plan.fam.huevos': 'Huevos',
+  'plan.fam.cerdo': 'Cerdo',
+  'plan.fam.granos': 'Granos',
+  'plan.fam.vegetales': 'Vegetales',
+  'plan.fam.frutas': 'Frutas',
+  'plan.fam.lacteos': 'Lácteos',
+  'plan.alg.gluten': 'Gluten',
+  'plan.alg.lactosa': 'Lactosa',
+  'plan.alg.huevo': 'Huevo',
+  'plan.alg.soya': 'Soya',
+  'plan.alg.nueces': 'Nueces',
+  'plan.alg.pescado': 'Pescado',
+  'plan.alg.mariscos': 'Mariscos',
+  'plan.alg.mani': 'Maní',
+  'plan.splitSum': 'El reparto debe sumar 100 %.',
+  'plan.coach.build': 'Construir plan',
+  'plan.coach.wishesTitle': 'Sus deseos',
+  'plan.coach.noWishes': 'Este alumno aún no respondió el cuestionario de deseos. Puedes construir el borrador desde su evaluación.',
+  'plan.coach.allergyHard': 'LÍMITE DURO — alergias / nunca come',
+  'plan.coach.likes': 'Le gusta',
+  'plan.coach.dislikes': 'No quiere',
+  'plan.coach.cook': 'Tiempo para cocinar',
+  'plan.coach.budget': 'Presupuesto',
+  'plan.coach.note': 'Nota para ti',
+  'plan.coach.medical': 'Este alumno declaró condiciones de salud. Valora derivarlo a un profesional de salud antes de proponerle un plan.',
+  'plan.coach.paceProposed': 'Déficit moderado propuesto: −500 kcal. Confírmalo o ajusta las cifras de abajo — lo que propongas es lo que cuenta.',
+  'plan.coach.splitTitle': 'Reparto del día (% por comida)',
+  'plan.coach.saveDraft': 'Guardar borrador',
+  'plan.coach.propose': 'Proponer al alumno',
+  'plan.coach.draftSaved': 'Borrador guardado. El alumno solo lo ve cuando lo propongas.',
+  'plan.coach.proposed': 'Propuesto. Esperando la respuesta del alumno.',
+  'plan.coach.proposedOn': 'Propuesto — esperando la respuesta del alumno.',
+  'plan.coach.changeReq': 'El alumno pidió un cambio',
+  'plan.coach.adjust': 'Proponer ajuste',
+  'plan.coach.weekOk': 'Esta semana: {done} de 7 días completados',
+  'plan.coach.weightTrend': 'Peso {last} kg ({delta} kg)',
+  'plan.coach.stateBorrador': 'Borrador en tu revisión',
+  'plan.coach.statePropuesto': 'Propuesta enviada',
+  'plan.coach.stateActivo': 'Plan vigente',
+  'plan.coach.discard': 'Descartar borrador',
+  'plan.coach.withdraw': 'Retirar propuesta',
+  'plan.coach.needTdee': 'Sin energía o sin peso de este alumno: aún no se puede calcular un plan fundado.',
   'nutri.consentTitle': 'Mis datos de alimentación',
   'nutri.consentHint': 'Solo con tu consentimiento específico, tu coach de alimentación puede ver: alergias, intolerancias, condiciones declaradas, medicamentos relevantes, preferencias culturales o religiosas y vegetarianismo. En la app no se hacen diagnósticos: ante una condición, recibes derivación, nunca una dieta médica.',
   'nutri.consentGive': 'Dar mi consentimiento y guardar',
@@ -40816,7 +41030,7 @@ document.addEventListener('keydown', e => { if (e.key === 'Escape') shareClose()
  *  - El SW (sw.js) solo cachea la cáscara del mismo origen en modo
  *    RED PRIMERO: Auth/Firestore/Worker jamás pasan por la caché.
  * ================================================================ */
-const PWA_SW_VERSION = '20261104-retos-arriba';
+const PWA_SW_VERSION = '20261104-plan-coach-f1';
 /* Sello de versión VISIBLE (2026-11-03): el pie de la tarjeta de
    acceso enseña qué copia corre este teléfono ('v ' + el sello),
    para comprobar de un vistazo si la versión nueva ya llegó.
@@ -42205,6 +42419,11 @@ const NUTRI = {
   myFollow: null,       // mi solicitud de seguimiento más reciente
   myPlan: null,         // mi plan nutricional activo (como alumno)
   myConsent: null,      // nutrition_consents/{yo}
+  myWishes: null,       // nutrition_wishes/{yo} (Plan coach F1)
+  myProposed: null,     // mi propuesta de plan pendiente de decisión
+  myPlansAll: [],       // todos mis planes (historial visible)
+  wishStep: 0, wishDraft: null, chgReason: 'other',
+  draftBasis: null, draftWishes: null, draftMeals: 4, focusDraft: '',
   names: {},            // uid → nombre (caché de la sesión)
   view: 'mine',         // vista vigente de la ventana flotante
   cadence: 'semanal',   // cadencia elegida en formularios
@@ -42309,9 +42528,13 @@ async function nutriBoot() {
   } catch {}
   try {
     const snap = await getDocs(query(collection(db, 'nutrition_plans'), where('studentUid', '==', me)));
-    snap.forEach(d => { const x = { id: d.id, ...d.data() }; if (x.status === 'activo') NUTRI.myPlan = x; });
+    const allPlans = [];
+    snap.forEach(d => { const x = { id: d.id, ...d.data() }; allPlans.push(x); if (x.status === 'activo') NUTRI.myPlan = x; });
+    NUTRI.myPlansAll = allPlans;
+    NUTRI.myProposed = allPlans.filter(p => p.status === 'propuesto').sort((a, b) => ((b.proposedAt && b.proposedAt.seconds) || 0) - ((a.proposedAt && a.proposedAt.seconds) || 0))[0] || null;
   } catch {}
   try { const s = await getDoc(doc(db, 'nutrition_consents', me)); NUTRI.myConsent = s.exists() ? s.data() : null; } catch {}
+  try { const s = await getDoc(doc(db, 'nutrition_wishes', me)); NUTRI.myWishes = s.exists() ? s.data() : null; } catch {}
   try { renderNutriBoxes(); } catch {}
   try { nutriApplyPlanGoals(); } catch {}
 }
@@ -42430,6 +42653,7 @@ async function renderNutriMyBox() {
   } else {
     h += `<p class="progress-hint">${esc(t('nutri.planNone'))}</p>`;
   }
+  h += mealPlanStudentSection();
   /* Agua de hoy */
   let waterMl = 0;
   try { const ws = await getDoc(doc(db, 'nutrition_water', me + '_' + todayISO())); if (ws.exists()) waterMl = Number(ws.data().ml) || 0; } catch {}
@@ -42575,6 +42799,7 @@ async function nutriRenderFloat() {
     : v === 'followup' ? t('nutri.followReq')
     : v === 'consent' ? t('nutri.consentTitle')
     : v === 'recipes' || v === 'recipeform' ? t('nutri.recipes')
+    : v === 'wishes' ? t('plan.title')
     : v === 'console' || v === 'client' ? t('nutri.proTitle')
     : t('nutri.boxTitle');
   body.innerHTML = `<div class="wempty">${esc(t('access.loading'))}</div>`;
@@ -42585,6 +42810,7 @@ async function nutriRenderFloat() {
     else if (v === 'recipes') await nutriViewRecipes(body);
     else if (v === 'recipeform') await nutriViewRecipeForm(body);
     else if (v === 'console') await nutriViewConsole(body);
+    else if (v === 'wishes') await nutriViewWishes(body);
     else if (v === 'client') await nutriViewClient(body, NUTRI.viewArg);
   } catch { body.innerHTML = `<div class="wempty">${esc(t('err.createFail'))}</div>`; }
 }
@@ -42762,10 +42988,12 @@ async function nutriViewConsole(body) {
   <button type="button" class="nutri-tab" id="nc-tab-rec">${esc(t('nutri.console.recipes'))}</button></div>
   <div id="nc-pane">
   ${clients.length ? clients.map(c => `<div class="nutri-card"><b>${esc(c._name)}</b> <span class="muted">· ${esc(nutriCadLabel(c.followUpCadence))}</span>
+    <div data-mp-console="${esc(c.studentUid || c.uid)}"></div>
     <div class="eval-actions"><button type="button" class="btn-primary btn-sm" data-nc-open="${esc(c.studentUid || c.uid)}">${esc(t('nutri.client.plan'))}</button></div></div>`).join('')
     : `<p class="progress-hint">${esc(t('nutri.admin.empty'))}</p>`}
   </div>`;
   body.querySelectorAll('[data-nc-open]').forEach(b => b.onclick = () => nutriOpenFloat('client', b.dataset.ncOpen));
+  try { mealPlanConsoleFill(); } catch {}
   const pane = $('nc-pane');
   $('nc-tab-req').onclick = () => {
     body.querySelectorAll('.nutri-tab').forEach(x => x.classList.remove('sel')); $('nc-tab-req').classList.add('sel');
@@ -42831,6 +43059,8 @@ async function nutriViewClient(body, studentUid) {
   } catch {}
   let consent = null;
   try { const s = await getDoc(doc(db, 'nutrition_consents', studentUid)); if (s.exists()) consent = s.data(); } catch {}
+  let stuWishes = null;
+  try { const s = await getDoc(doc(db, 'nutrition_wishes', studentUid)); if (s.exists()) stuWishes = s.data(); } catch {}
   let sugg = [];
   try {
     const snap = await getDocs(query(collection(db, 'nutrition_goal_suggestions'), where('studentUid', '==', studentUid)));
@@ -42867,6 +43097,20 @@ async function nutriViewClient(body, studentUid) {
   ${plan ? `<div class="nutri-card"><b>${esc(plan.startsOn || '')} → ${esc(plan.endsOn || '')}</b> · ${esc(nutriPresetLabel(plan.cadence))}
     ${plan.goals ? nutriGoalsChips(plan.goals) : ''}${plan.notes ? `<br><span class="muted">${esc(plan.notes)}</span>` : ''}</div>`
     : `<p class="progress-hint">${esc(t('nutri.planNone'))}</p>`}
+  ${stuWishes ? `<div class="nutri-card"><b>🍽️ ${esc(t('plan.coach.wishesTitle'))}</b>
+    <br>${esc(stuWishes.goal ? t('plan.goal.' + stuWishes.goal) : '—')}${stuWishes.mealsPerDay ? ' · ' + esc(t('plan.mealsPerDay', { n: stuWishes.mealsPerDay })) : ''}
+    ${(stuWishes.likes || []).length ? `<br>${esc(t('plan.coach.likes'))}: ${esc(stuWishes.likes.map(f => t('plan.fam.' + f)).join(', '))}` : ''}
+    ${(stuWishes.dislikes || []).length ? `<br>${esc(t('plan.coach.dislikes'))}: ${esc(stuWishes.dislikes.map(f => t('plan.fam.' + f)).join(', '))}` : ''}
+    ${((stuWishes.allergies || []).length || (stuWishes.allergyText || '').trim()) ? `<br><span class="mp-medical">⚠️ ${esc(t('plan.coach.allergyHard'))}: ${esc([...(stuWishes.allergies || []).map(a => t('plan.alg.' + a)), (stuWishes.allergyText || '').trim()].filter(Boolean).join(', '))}</span>` : ''}
+    ${stuWishes.cookTime ? `<br>${esc(t('plan.coach.cook'))}: ${esc(t('plan.cook.' + stuWishes.cookTime))}` : ''}
+    ${stuWishes.budget ? `<br>${esc(t('plan.coach.budget'))}: ${esc(t('plan.budget.' + stuWishes.budget))}` : ''}
+    ${stuWishes.note ? `<br>${esc(t('plan.coach.note'))}: ${esc(stuWishes.note)}` : ''}</div>`
+  : `<p class="progress-hint">${esc(t('plan.coach.noWishes'))}</p>`}
+  ${plans.filter(p => p.status === 'borrador' || p.status === 'propuesto').map(p => p.status === 'propuesto'
+    ? `<div class="nutri-card"><b>📨 ${esc(t('plan.coach.statePropuesto'))}</b> <span class="muted">${esc(t('plan.coach.proposedOn'))}</span>
+      <div class="eval-actions"><button type="button" class="btn-ghost btn-sm" data-mp="np-withdraw" data-id="${esc(p.id)}">${esc(t('plan.coach.withdraw'))}</button></div></div>`
+    : `<div class="nutri-card"><b>✏️ ${esc(t('plan.coach.stateBorrador'))}</b>${p.changeRequest ? `<br><span class="mp-medical">💬 ${esc(t('plan.coach.changeReq'))}: ${esc(t('plan.change.' + (p.changeRequest.reason || 'other')))}${p.changeRequest.text ? ' — ' + esc(p.changeRequest.text) : ''}</span>` : ''}
+      <div class="eval-actions"><button type="button" class="btn-ghost btn-sm" data-mp="np-discard" data-id="${esc(p.id)}">${esc(t('plan.coach.discard'))}</button></div></div>`).join('')}
   <div class="nutri-adh-week">${adhHtml}</div>
   ${sugg.map(s => `<div class="nutri-card">💡 <b>${esc(t('nutri.client.suggest'))}</b><br>${esc(s.text || '')}
     <div class="eval-actions"><button type="button" class="btn-ghost btn-sm" data-sugg-ok="${esc(s.id)}">${esc(t('nutri.accept'))}</button>
@@ -42913,6 +43157,18 @@ async function nutriViewClient(body, studentUid) {
      último peso, su objetivo/enfoque, su ritmo y su declaración de
      salud visible para el profesional asignado). NO escribe nada:
      el resultado vive en NUTRI.draft hasta la aprobación. */
+  /* Borrador del plan (Fase 1, AUTH-247): el núcleo puro del motor
+     fundado, con los insumos del alumno (su energía calculada, su
+     último peso, su objetivo — el de sus deseos si respondió el
+     cuestionario; si no, el de su fundamento —, su ritmo y su
+     declaración de salud visible para el profesional asignado).
+     Al bajar sin ritmo decidido, el borrador nace con el déficit
+     moderado de 500 kcal como PROPUESTA VISIBLE del profesional
+     (basis.paceProposed), jamás como imposición silenciosa; las
+     retenciones de salud del motor (§E) mandan igual. NO activa
+     nada: el resultado vive en NUTRI.draft hasta que el coach lo
+     guarda como borrador o lo propone, y solo entra en vigor si
+     el alumno lo acepta (mealPlanSave / mealPlanDecide). */
   $('np-compute').onclick = async () => {
     const zone = $('np-draft-zone');
     try {
@@ -42926,60 +43182,29 @@ async function nutriViewClient(body, studentUid) {
       let conditions = [];
       try { const ch = await fetchClientHealth(studentUid, userData); if (ch && ch.decl && Array.isArray(ch.decl.conditions)) conditions = ch.decl.conditions; } catch {}
       const focus = userData ? gmFocusEffective(userData) : { objective: 'mantener' };
-      const objective = (focus && focus.objective) || (userData && userData.objective) || 'mantener';
-      if (!tdee || !weightKg) { zone.innerHTML = `<p class="progress-hint">${esc(t('nutri.client.draftHint'))} (sin energía o sin peso del alumno: no se puede calcular)</p>`; return; }
+      const objective = (stuWishes && stuWishes.goal) || (focus && focus.objective) || (userData && userData.objective) || 'mantener';
+      let paceSuggestion = userData ? userData.paceSuggestion : null;
+      let paceProposed = false;
+      if (objective === 'bajar' && !(paceSuggestion && (paceSuggestion.status === 'approved' || paceSuggestion.status === 'replaced') && Number(paceSuggestion.decidedPaceKcal) > 0)) {
+        paceSuggestion = { status: 'approved', decidedPaceKcal: 500 };
+        paceProposed = true;
+      }
+      if (!tdee || !weightKg) { zone.innerHTML = `<p class="progress-hint">${esc(t('plan.coach.needTdee'))}</p>`; return; }
       const draft = goalsCoreCompute({
         objective, tdeeKcal: tdee, weightKg,
         hasTrainer: !!(userData && (userData.trainerUid || userData.nutritionistUid)),
-        paceSuggestion: userData ? userData.paceSuggestion : null,
+        paceSuggestion,
         goalsTerms: userData ? userData.goalsTerms : null,
         conditions
       });
       NUTRI.draft = draft; NUTRI.draftClient = studentUid;
-      const g = draft.goals || {};
-      const held = (draft.heldDetails || []).map(hd => `<span class="nutri-tag warn">${esc(hd.param)} — ${esc(hd.cond || '')}</span>`).join(' ');
-      zone.innerHTML = `<div class="nutri-card"><b>${esc(t('nutri.client.newPlan'))} — borrador</b>
-      ${held ? `<br>${esc(t('nutri.client.held'))}: ${held}` : ''}
-      <div class="nutri-numrow">
-        <label>kcal<input type="number" id="dg-kcal" value="${g.kcal != null ? g.kcal : ''}"></label>
-        <label>${esc(t('th.protShort'))}<input type="number" id="dg-prot" value="${g.prot != null ? g.prot : ''}"></label>
-        <label>${esc(t('th.carbShort'))}<input type="number" id="dg-carb" value="${g.carb != null ? g.carb : ''}"></label>
-        <label>${esc(t('th.sugarShort'))}<input type="number" id="dg-azuc" value="${g.azuc != null ? g.azuc : ''}"></label>
-        <label>${esc(t('th.fatShort'))}<input type="number" id="dg-gras" value="${g.gras != null ? g.gras : ''}"></label>
-      </div>
-      <div class="eval-actions"><button type="button" class="btn-primary" id="dg-approve" ${g.kcal != null ? '' : 'disabled'}>${esc(t('nutri.client.approveGoals'))}</button></div></div>`;
-      const ap = $('dg-approve');
-      if (ap) ap.onclick = async () => {
-        const goals = {
-          kcal: Math.max(0, Math.round(Number($('dg-kcal').value) || 0)),
-          prot: Math.max(0, Math.round(Number($('dg-prot').value) || 0)),
-          carb: Math.max(0, Math.round(Number($('dg-carb').value) || 0)),
-          azuc: Math.max(0, Math.round(Number($('dg-azuc').value) || 0)),
-          gras: Math.max(0, Math.round(Number($('dg-gras').value) || 0))
-        };
-        if (!goals.kcal) { toast(t('err.createFail'), true); return; }
-        try {
-          const startsOn = ($('np-start') && $('np-start').value) || todayISO();
-          const endsOn = (typeof planEndFromPreset === 'function') ? planEndFromPreset(startsOn, NUTRI.planPreset) : startsOn;
-          const batch = writeBatch(db);
-          for (const p of plans) if (p.status === 'activo') batch.set(doc(db, 'nutrition_plans', p.id), { status: 'archivado', updatedAt: serverTimestamp() }, { merge: true });
-          await batch.commit();
-          await addDoc(collection(db, 'nutrition_plans'), {
-            studentUid, nutritionistUid: me, status: 'activo',
-            startsOn, endsOn, cadence: NUTRI.planPreset, templateId: null,
-            goalsDraft: draft.goals || null, goals,
-            goalsApprovedBy: me, goalsApprovedAt: serverTimestamp(),
-            notes: ($('np-notes') && $('np-notes').value || '').trim().slice(0, 600),
-            createdAt: serverTimestamp(), updatedAt: serverTimestamp()
-          });
-          nutriAudit('nutrition.plan.activated', studentUid, 'nutricionista', 'kcal ' + goals.kcal);
-          toast(t('nutri.saved'));
-          NUTRI.draft = null;
-          nutriRenderFloat();
-        } catch { toast(t('err.createFail'), true); }
-      };
+      NUTRI.draftBasis = { tdeeKcal: tdee, weightKg, objective, conditions, paceProposed };
+      NUTRI.draftWishes = stuWishes || null;
+      NUTRI.draftMeals = (stuWishes && stuWishes.mealsPerDay) || 4;
+      mealPlanPaintDraft(zone, stuWishes);
     } catch { zone.innerHTML = `<p class="progress-hint">${esc(t('err.createFail'))}</p>`; }
   };
+
   $('nd-meal-add').onclick = async () => {
     const food = ($('nd-food').value || '').trim(); if (!food) return;
     try {
@@ -43960,3 +44185,462 @@ async function chalFichaLoad(uid) {
   } catch { box.innerHTML = ''; }
 }
 try { window.__chalCore = { compute: chalComputeCount, catalog: CHAL_CATALOG, nameOf: chalNameOf }; } catch {}
+/* ════════════════════════════════════════════════════════════════
+   PLAN ALIMENTICIO DEL COACH — FASE 1 (AUTH-2026-11-04-247)
+   Diseño cerrado: DISENO-PLAN-ALIMENTICIO-COACH-2026-11-04.md
+   (aprobado por Ronald 2026-11-04 18:38 CST; construcción ordenada
+   por su correo del 2026-11-04 20:29 CST, id 1a1a98a9e055e88d).
+
+   El coach PROPONE y el alumno DECIDE: cuestionario de deseos del
+   alumno (nutrition_wishes/{alumno}), cálculo fundado (el MISMO
+   motor de metas de la casa: Mifflin-St Jeor vía la energía de su
+   evaluación; proteína ISSN 2017 por objetivo — mantener 1,6 ·
+   ganar 1,8 · bajar 2,2 g/kg —; grasas Helms et al. 2014 25/25/20 %
+   con piso del 15 %; azúcares OMS estricto 5 %; superávit moderado
+   +10 % al ganar; al bajar, el ritmo lo decide el profesional que
+   revisa: si no hay ritmo ya decidido, el borrador nace con el
+   déficit moderado de 500 kcal VISIBLE y editable, nunca escondido),
+   estructura del día (reparto por comida con sumas EXACTAS por resto
+   mayor; variantes de día exigente y de descanso con la variación
+   §K de la casa, goalsDayAdjust) y flujo de estados sin saltos:
+   borrador → propuesto → activo | borrador (cambios) | archivado.
+   Al aceptar, las metas que se leen son las del plan (la sucesión
+   de lectura de AUTH-201, nutriApplyPlanGoals): el documento de
+   metas del entrenador NO se escribe jamás desde este carril.
+   Las alergias del cuestionario son FILTRO DURO: viajan en la
+   instantánea del plan (wishesSnapshot) y mandan sobre cualquier
+   alimento presente o futuro del plan (los alimentos concretos
+   son la Fase 2). ═════════════════════════════════════════════════ */
+const PLAN_MEAL_SETS = {
+  3: ['Desayuno', 'Almuerzo', 'Cena'],
+  4: ['Desayuno', 'Almuerzo', 'Merienda', 'Cena'],
+  5: ['Desayuno', 'Almuerzo', 'Merienda', 'Cena', 'Snack'],
+};
+const PLAN_SPLIT_DEFAULTS = { 3: [30, 40, 30], 4: [25, 30, 15, 30], 5: [20, 30, 10, 30, 10] };
+const PLAN_FAMILIES = ['pollo', 'carne', 'pescado', 'huevos', 'cerdo', 'granos', 'vegetales', 'frutas', 'lacteos'];
+const PLAN_ALLERGENS = ['gluten', 'lactosa', 'huevo', 'soya', 'nueces', 'pescado', 'mariscos', 'mani'];
+/* Reparto de UN campo entre comidas: enteros que suman EXACTO el
+   total (resto mayor; la deriva se reparte empezando por la
+   fracción más grande, como verifica la batería con el ejemplo
+   del diseño §4: 1.900 kcal en 25/30/15/30 → 475/570/285/570). */
+function mealPlanSplitField(total, pcts) {
+  const T = Math.round(Number(total) || 0);
+  const raw = pcts.map(p => T * (Number(p) || 0) / 100);
+  const out = raw.map(x => Math.floor(x));
+  let rest = T - out.reduce((a, b) => a + b, 0);
+  const order = raw.map((x, i) => [x - Math.floor(x), i]).sort((a, b) => b[0] - a[0]);
+  for (let k = 0; k < order.length && rest > 0; k++, rest--) out[order[k][1]]++;
+  for (let k = order.length - 1; k >= 0 && rest < 0; k--, rest++) { if (out[order[k][1]] > 0) out[order[k][1]]--; }
+  return out;
+}
+function mealPlanMeals(goals, mealsPerDay, splitPct) {
+  const names = PLAN_MEAL_SETS[mealsPerDay] || PLAN_MEAL_SETS[4];
+  const pcts = (Array.isArray(splitPct) && splitPct.length === names.length) ? splitPct : (PLAN_SPLIT_DEFAULTS[mealsPerDay] || PLAN_SPLIT_DEFAULTS[4]);
+  const cols = {};
+  for (const f of ['kcal', 'prot', 'carb', 'azuc', 'gras']) cols[f] = mealPlanSplitField(goals ? goals[f] : 0, pcts);
+  return names.map((name, i) => ({ name, pct: pcts[i], kcal: cols.kcal[i], prot: cols.prot[i], carb: cols.carb[i], azuc: cols.azuc[i], gras: cols.gras[i] }));
+}
+function mealPlanStructure(goals, fatPct, mealsPerDay, splitPct) {
+  const g5 = g => ({ kcal: (g && g.kcal) || 0, prot: (g && g.prot) || 0, carb: (g && g.carb) || 0, azuc: (g && g.azuc) || 0, gras: (g && g.gras) || 0 });
+  const names = PLAN_MEAL_SETS[mealsPerDay] || PLAN_MEAL_SETS[4];
+  const pcts = (Array.isArray(splitPct) && splitPct.length === names.length) ? splitPct.slice() : (PLAN_SPLIT_DEFAULTS[mealsPerDay] || PLAN_SPLIT_DEFAULTS[4]).slice();
+  const mk = g => ({ goals: g5(g), meals: mealPlanMeals(g5(g), mealsPerDay, pcts) });
+  const base = g5(goals);
+  const ex = goalsDayAdjust({ goals: base, dayLevel: 'exigente', fatPct }).goals;
+  const de = goalsDayAdjust({ goals: base, dayLevel: 'descanso', fatPct }).goals;
+  return { mealsPerDay: PLAN_MEAL_SETS[mealsPerDay] ? mealsPerDay : 4, splitPct: pcts, days: { base: mk(base), exigente: mk(ex), descanso: mk(de) } };
+}
+/* «Por qué este plan es para ti»: tres razones cortas con los datos
+   del propio alumno (su objetivo, su gasto estimado y un deseo suyo
+   que el plan respeta — la alergia manda sobre el gusto). */
+function mealPlanWhy(plan) {
+  const out = [];
+  if (!plan) return out;
+  const w = plan.wishesSnapshot || {};
+  const obj = plan.objective || w.goal || '';
+  if (obj && t('plan.whyGoal.' + obj) !== 'plan.whyGoal.' + obj) out.push(t('plan.whyGoal.' + obj));
+  if (plan.basis && plan.basis.tdeeKcal) out.push(t('plan.whyActivity', { tdee: Math.round(plan.basis.tdeeKcal) }));
+  const algNames = (w.allergies || []).map(a => t('plan.alg.' + a)).filter(x => x && x.indexOf('plan.alg.') !== 0);
+  const algExtra = (w.allergyText || '').trim();
+  if (algNames.length || algExtra) out.push(t('plan.whyAllergy', { food: [...algNames, algExtra].filter(Boolean).join(', ') }));
+  else if ((w.dislikes || []).length) out.push(t('plan.whyNoDislike', { food: w.dislikes.map(f => t('plan.fam.' + f)).join(', ') }));
+  else if (plan.structure) out.push(t('plan.whyMeals', { n: plan.structure.mealsPerDay }));
+  if (out.length < 3 && plan.structure && (algNames.length || algExtra)) out.push(t('plan.whyMeals', { n: plan.structure.mealsPerDay }));
+  if (out.length < 3 && (w.likes || []).length) out.push(t('plan.whyLikes', { food: w.likes.slice(0, 3).map(f => t('plan.fam.' + f)).join(', ') }));
+  return out.slice(0, 3);
+}
+function mealPlanDayHTML(day, titleKey) {
+  if (!day || !day.meals) return '';
+  const rows = day.meals.map(m => `<div class="mp-mealrow"><span class="mp-meal-name">${esc(mealName(m.name))}</span><span class="mp-meal-kcal"><b>${m.kcal}</b> kcal</span><span class="mp-meal-prot">${esc(t('th.protShort'))} ${m.prot} g</span></div>`).join('');
+  const g = day.goals || {};
+  return `<div class="mp-day"><div class="mp-day-t">${esc(t(titleKey))}</div>${rows}
+  <div class="mp-mealrow mp-total"><span class="mp-meal-name">${esc(t('plan.total'))}</span><span class="mp-meal-kcal"><b>${g.kcal || 0}</b> kcal</span><span class="mp-meal-prot">${esc(t('th.protShort'))} ${g.prot || 0} g · ${esc(t('th.carbShort'))} ${g.carb || 0} g · ${esc(t('th.fatShort'))} ${g.gras || 0} g</span></div></div>`;
+}
+function mealPlanVariantsHTML(structure) {
+  if (!structure || !structure.days) return '';
+  const line = (key, d) => d && d.goals ? `<p class="progress-hint">${esc(t('plan.dayLine', { name: t(key), carb: d.goals.carb || 0, gras: d.goals.gras || 0 }))}</p>` : '';
+  return line('plan.dayDemanding', structure.days.exigente) + line('plan.dayRest', structure.days.descanso);
+}
+function mealPlanProposalHTML(plan) {
+  const why = mealPlanWhy(plan);
+  let h = `<div class="nutri-card mp-proposal"><b>🍽️ ${esc(t('plan.proposalTitle'))}</b>
+  <p class="progress-hint">${esc(t('plan.proposalSub'))}</p>`;
+  if (plan.structure) h += mealPlanDayHTML(plan.structure.days.base, 'plan.dayBase') + mealPlanVariantsHTML(plan.structure);
+  else if (plan.goals) h += nutriGoalsChips(plan.goals);
+  if (why.length) h += `<div class="mp-why"><b>${esc(t('plan.whyTitle'))}</b>${why.map(r => `<p class="mp-why-line">✓ ${esc(r)}</p>`).join('')}</div>`;
+  h += `<div class="eval-actions"><button type="button" class="btn-primary" data-mp="accept" data-id="${esc(plan.id)}">${esc(t('plan.accept'))}</button>
+  <button type="button" class="btn-ghost" data-mp="change-open">${esc(t('plan.change'))}</button></div>
+  <div id="mp-change-panel" style="display:none">
+    <div class="nutri-sub"><b>${esc(t('plan.changeTitle'))}</b></div>
+    <div class="nutri-chips">${['food', 'count', 'other'].map(r => `<button type="button" class="nutri-chip mp-chg${r === 'other' ? ' sel' : ''}" data-mp="chg-reason" data-r="${r}">${esc(t('plan.change.' + r))}</button>`).join('')}</div>
+    <textarea id="mp-change-text" class="nutri-area" rows="2" maxlength="500" placeholder="${esc(t('plan.changeTextPh'))}"></textarea>
+    <div class="eval-actions"><button type="button" class="btn-primary btn-sm" data-mp="change-send" data-id="${esc(plan.id)}">${esc(t('plan.changeSend'))}</button>
+    <button type="button" class="btn-ghost btn-sm" data-mp="decline" data-id="${esc(plan.id)}">${esc(t('plan.decline'))}</button></div>
+  </div></div>`;
+  return h;
+}
+/* Sección «Mi plan alimenticio» dentro de la caja del alumno:
+   propuesta pendiente, plan vigente con su estructura, deseos y
+   planes anteriores (archivados, visibles, nunca borrados). */
+function mealPlanStudentSection() {
+  let h = `<div class="nutri-sub"><b>🍽️ ${esc(t('plan.title'))}</b></div>`;
+  const prop = NUTRI.myProposed;
+  if (prop) h += mealPlanProposalHTML(prop);
+  const plan = NUTRI.myPlan;
+  if (plan && plan.structure && plan.structure.days) {
+    h += `<div class="mp-day-t">${esc(t('plan.currentTitle'))} · ${esc(plan.startsOn || '')}</div>` + mealPlanDayHTML(plan.structure.days.base, 'plan.dayBase') + mealPlanVariantsHTML(plan.structure);
+  }
+  const w = NUTRI.myWishes;
+  if (!w) {
+    h += `<div class="nutri-card"><b>${esc(t('plan.wishesCta'))}</b><p class="progress-hint">${esc(t('plan.wishesCtaSub'))}</p>
+    <div class="eval-actions"><button type="button" class="btn-primary btn-sm" data-mp="wishes-open">${esc(t('plan.wishesCta'))}</button></div></div>`;
+  } else {
+    const chips = [];
+    if (w.goal) chips.push(t('plan.goal.' + w.goal));
+    if (w.mealsPerDay) chips.push(t('plan.mealsPerDay', { n: w.mealsPerDay }));
+    if ((w.allergies || []).length) chips.push('⚠️ ' + w.allergies.map(a => t('plan.alg.' + a)).join(', '));
+    h += `<p class="progress-hint">✅ ${esc(t('plan.wishesDone'))}${chips.length ? ' · ' + esc(chips.join(' · ')) : ''}</p>
+    <div class="eval-actions"><button type="button" class="btn-ghost btn-sm" data-mp="wishes-open">${esc(t('plan.wishesEdit'))}</button></div>
+    <p class="progress-hint">${esc(t('plan.wishesNote'))}</p>`;
+  }
+  const hist = (NUTRI.myPlansAll || []).filter(p => p.status === 'archivado');
+  if (hist.length) {
+    h += `<div class="mp-day-t">${esc(t('plan.historyTitle'))}</div>` + hist.slice(0, 5).map(p => `<p class="progress-hint">🗂️ ${esc(p.startsOn || '')} → ${esc(p.endsOn || '')}${p.goals && p.goals.kcal ? ' · ' + p.goals.kcal + ' kcal' : ''}</p>`).join('');
+  }
+  return h;
+}
+/* Decisión del alumno sobre una propuesta. Las reglas solo le
+   dejan tocar estado y metadatos de decisión, con el contenido
+   (metas y estructura) fijado tal como lo propuso su coach. */
+async function mealPlanDecide(planId, kind, extra) {
+  const me = auth.currentUser && auth.currentUser.uid;
+  if (!me) return;
+  try {
+    if (kind === 'accept') {
+      const batch = writeBatch(db);
+      batch.set(doc(db, 'nutrition_plans', planId), { status: 'activo', acceptedAt: serverTimestamp(), changeRequest: null, updatedAt: serverTimestamp() }, { merge: true });
+      for (const p of (NUTRI.myPlansAll || [])) if (p.id !== planId && p.status === 'activo') batch.set(doc(db, 'nutrition_plans', p.id), { status: 'archivado', updatedAt: serverTimestamp() }, { merge: true });
+      await batch.commit();
+      const pl = (NUTRI.myPlansAll || []).find(p => p.id === planId);
+      if (pl) { pl.status = 'activo'; NUTRI.myPlan = pl; }
+      for (const p of (NUTRI.myPlansAll || [])) if (p.id !== planId && p.status === 'activo') p.status = 'archivado';
+      NUTRI.myProposed = null;
+      try { nutriApplyPlanGoals(); } catch {}
+      await nutriHist(me, 'plan_accepted', 'alumno', pl && pl.goals ? 'kcal ' + pl.goals.kcal : '');
+      toast(t('plan.accepted'));
+    } else if (kind === 'decline') {
+      await setDoc(doc(db, 'nutrition_plans', planId), { status: 'archivado', declinedAt: serverTimestamp(), declineReason: String(extra || '').slice(0, 200), updatedAt: serverTimestamp() }, { merge: true });
+      const pl = (NUTRI.myPlansAll || []).find(p => p.id === planId); if (pl) pl.status = 'archivado';
+      NUTRI.myProposed = null;
+      await nutriHist(me, 'plan_declined', 'alumno', '');
+      toast(t('plan.declined'));
+    } else if (kind === 'change') {
+      const ex = extra || {};
+      await setDoc(doc(db, 'nutrition_plans', planId), { status: 'borrador', changeRequest: { reason: ex.reason || 'other', text: String(ex.text || '').slice(0, 500), at: serverTimestamp() }, updatedAt: serverTimestamp() }, { merge: true });
+      const pl = (NUTRI.myPlansAll || []).find(p => p.id === planId);
+      if (pl) { pl.status = 'borrador'; pl.changeRequest = { reason: ex.reason || 'other', text: String(ex.text || '') }; }
+      NUTRI.myProposed = null;
+      await nutriHist(me, 'plan_change_requested', 'alumno', ex.reason || 'other');
+      toast(t('plan.changeSent'));
+    }
+    try { renderNutriMyBox(); } catch {}
+  } catch { toast(t('err.createFail'), true); }
+}
+/* ── Cuestionario de deseos: una pregunta por pantalla ────────── */
+function nutriWishInit() {
+  const w = NUTRI.myWishes || {};
+  NUTRI.wishDraft = {
+    goal: w.goal || '', meals: w.mealsPerDay || 4,
+    likes: [...(w.likes || [])], dislikes: [...(w.dislikes || [])],
+    allergies: [...(w.allergies || [])], allergyText: w.allergyText || '',
+    cookTime: w.cookTime || '', budget: w.budget || '', note: w.note || ''
+  };
+  NUTRI.wishStep = 0;
+}
+async function nutriViewWishes(body) {
+  if (!NUTRI.wishDraft) nutriWishInit();
+  nutriPaintWishStep(body);
+}
+function nutriWishCaptureText() {
+  const d = NUTRI.wishDraft; if (!d) return;
+  const at = $('wq-allergy-text'); if (at) d.allergyText = at.value;
+  const nt = $('wq-note'); if (nt) d.note = nt.value;
+}
+function nutriPaintWishStep(body) {
+  body = body || $('nutri-float-body'); if (!body) return;
+  const d = NUTRI.wishDraft, s = NUTRI.wishStep;
+  const opt = (f, v, lab) => `<button type="button" class="mp-opt${String(d[f]) === String(v) ? ' sel' : ''}" data-mp="wq-one" data-f="${f}" data-v="${esc(String(v))}">${esc(lab)}</button>`;
+  const chip = (f, v, lab) => `<button type="button" class="nutri-chip mp-bigchip${(d[f] || []).includes(v) ? ' sel' : ''}" data-mp="wq-multi" data-f="${f}" data-v="${esc(v)}">${esc(lab)}</button>`;
+  let q = '';
+  if (s === 0) q = `<div class="mp-q">${esc(t('plan.q1'))}</div>` + opt('goal', 'bajar', t('plan.goal.bajar')) + opt('goal', 'mantener', t('plan.goal.mantener')) + opt('goal', 'ganar', t('plan.goal.ganar'));
+  else if (s === 1) q = `<div class="mp-q">${esc(t('plan.q2'))}</div>` + [3, 4, 5].map(n => opt('meals', n, t('plan.mealsPerDay', { n }))).join('');
+  else if (s === 2) q = `<div class="mp-q">${esc(t('plan.q3'))}</div><p class="progress-hint">${esc(t('plan.pickMany'))}</p><div class="nutri-chips">${PLAN_FAMILIES.map(f => chip('likes', f, t('plan.fam.' + f))).join('')}</div>`;
+  else if (s === 3) q = `<div class="mp-q">${esc(t('plan.q4'))}</div><p class="progress-hint">${esc(t('plan.pickMany'))}</p><div class="nutri-chips">${PLAN_FAMILIES.map(f => chip('dislikes', f, t('plan.fam.' + f))).join('')}</div>`;
+  else if (s === 4) q = `<div class="mp-q">${esc(t('plan.q5'))}</div><p class="progress-hint">⚠️ ${esc(t('plan.q5sub'))}</p><div class="nutri-chips">${PLAN_ALLERGENS.map(a => chip('allergies', a, t('plan.alg.' + a))).join('')}</div><textarea id="wq-allergy-text" class="nutri-area" rows="2" maxlength="300" placeholder="${esc(t('plan.q5ph'))}">${esc(d.allergyText || '')}</textarea>`;
+  else if (s === 5) q = `<div class="mp-q">${esc(t('plan.q6'))}</div>` + opt('cookTime', 'none', t('plan.cook.none')) + opt('cookTime', '30', t('plan.cook.30')) + opt('cookTime', 'love', t('plan.cook.love'));
+  else if (s === 6) q = `<div class="mp-q">${esc(t('plan.q7'))}</div>` + opt('budget', 'low', t('plan.budget.low')) + opt('budget', 'mid', t('plan.budget.mid')) + opt('budget', 'high', t('plan.budget.high'));
+  else q = `<div class="mp-q">${esc(t('plan.q8'))}</div><textarea id="wq-note" class="nutri-area" rows="3" maxlength="600" placeholder="${esc(t('plan.q8ph'))}">${esc(d.note || '')}</textarea>`;
+  body.innerHTML = `<p class="progress-hint">${esc(t('plan.q.progress', { n: s + 1 }))}</p>${q}
+  <div class="eval-actions mp-nav">${s > 0 ? `<button type="button" class="btn-ghost" data-mp="wq-back">← ${esc(t('plan.back'))}</button>` : ''}
+  ${s < 7 ? `<button type="button" class="btn-primary" data-mp="wq-next">${esc(t('plan.next'))} →</button>` : `<button type="button" class="btn-primary" data-mp="wq-finish">${esc(t('plan.finish'))}</button>`}</div>`;
+}
+async function nutriWishSave() {
+  const me = auth.currentUser && auth.currentUser.uid;
+  if (!me || !NUTRI.wishDraft) return;
+  nutriWishCaptureText();
+  const d = NUTRI.wishDraft;
+  try {
+    await setDoc(doc(db, 'nutrition_wishes', me), {
+      studentUid: me, goal: d.goal || '', mealsPerDay: Number(d.meals) || 4,
+      likes: d.likes || [], dislikes: d.dislikes || [], allergies: d.allergies || [],
+      allergyText: String(d.allergyText || '').slice(0, 300), cookTime: d.cookTime || '',
+      budget: d.budget || '', note: String(d.note || '').slice(0, 600),
+      updatedAt: serverTimestamp()
+    }, { merge: true });
+    NUTRI.myWishes = { studentUid: me, goal: d.goal || '', mealsPerDay: Number(d.meals) || 4, likes: d.likes || [], dislikes: d.dislikes || [], allergies: d.allergies || [], allergyText: d.allergyText || '', cookTime: d.cookTime || '', budget: d.budget || '', note: d.note || '' };
+    await nutriHist(me, 'wishes_saved', 'alumno', d.goal || '');
+    NUTRI.wishDraft = null;
+    toast(t('nutri.saved'));
+    nutriCloseFloat();
+    try { renderNutriBoxes(); } catch {}
+  } catch { toast(t('err.createFail'), true); }
+}
+
+/* ── Lado del coach: borrador con estructura y guardado ───────── */
+/* Pinta el borrador calculado (NUTRI.draft) en la zona de la ficha:
+   cifras editables, reparto editable por comida y la estructura
+   resultante en vivo. Guardar = 'borrador' (solo lo ve el coach);
+   Proponer = 'propuesto' (recién ahí lo ve el alumno). */
+function mealPlanDraftGoalsFromDOM() {
+  const v = id => Math.max(0, Math.round(Number((($(id) || {}).value)) || 0));
+  return { kcal: v('dg-kcal'), prot: v('dg-prot'), carb: v('dg-carb'), azuc: v('dg-azuc'), gras: v('dg-gras') };
+}
+function mealPlanDraftPctsFromDOM() {
+  const ins = document.querySelectorAll('[data-dg-pct]');
+  if (!ins.length) return null;
+  return [...ins].map(i => Math.max(0, Math.round(Number(i.value) || 0)));
+}
+function mealPlanPaintDraftPreview() {
+  const z = $('dg-preview'); if (!z || !NUTRI.draft) return;
+  const goals = mealPlanDraftGoalsFromDOM();
+  const pcts = mealPlanDraftPctsFromDOM();
+  const st = mealPlanStructure(goals, NUTRI.draft.fatPct, NUTRI.draftMeals || 4, pcts);
+  z.innerHTML = mealPlanDayHTML(st.days.base, 'plan.dayBase') + mealPlanVariantsHTML(st);
+}
+function mealPlanPaintDraft(zone, wishes) {
+  const draft = NUTRI.draft, basis = NUTRI.draftBasis || {};
+  const g = draft.goals || {};
+  const held = (draft.heldDetails || []).map(hd => `<span class="nutri-tag warn">${esc(hd.param)} — ${esc(hd.cond || '')}</span>`).join(' ');
+  const meals = NUTRI.draftMeals || 4;
+  const pcts = PLAN_SPLIT_DEFAULTS[meals] || PLAN_SPLIT_DEFAULTS[4];
+  const names = PLAN_MEAL_SETS[meals] || PLAN_MEAL_SETS[4];
+  const alg = wishes && ((wishes.allergies || []).length || (wishes.allergyText || '').trim());
+  zone.innerHTML = `<div class="nutri-card"><b>${esc(t('nutri.client.newPlan'))} — borrador</b>
+  ${held ? `<br>${esc(t('nutri.client.held'))}: ${held}` : ''}
+  ${(basis.conditions && basis.conditions.length) ? `<p class="mp-medical">⚠️ ${esc(t('plan.coach.medical'))}</p>` : ''}
+  ${basis.paceProposed ? `<p class="progress-hint">🎯 ${esc(t('plan.coach.paceProposed'))}</p>` : ''}
+  ${alg ? `<p class="mp-medical">⚠️ ${esc(t('plan.coach.allergyHard'))}: ${esc([...(wishes.allergies || []).map(a => t('plan.alg.' + a)), (wishes.allergyText || '').trim()].filter(Boolean).join(', '))}</p>` : ''}
+  <div class="nutri-numrow">
+    <label>kcal<input type="number" id="dg-kcal" data-dg-goal value="${g.kcal != null ? g.kcal : ''}"></label>
+    <label>${esc(t('th.protShort'))}<input type="number" id="dg-prot" data-dg-goal value="${g.prot != null ? g.prot : ''}"></label>
+    <label>${esc(t('th.carbShort'))}<input type="number" id="dg-carb" data-dg-goal value="${g.carb != null ? g.carb : ''}"></label>
+    <label>${esc(t('th.sugarShort'))}<input type="number" id="dg-azuc" data-dg-goal value="${g.azuc != null ? g.azuc : ''}"></label>
+    <label>${esc(t('th.fatShort'))}<input type="number" id="dg-gras" data-dg-goal value="${g.gras != null ? g.gras : ''}"></label>
+  </div>
+  <div class="nutri-sub"><b>${esc(t('plan.coach.splitTitle'))}</b></div>
+  <div class="nutri-chips">${[3, 4, 5].map(n => `<button type="button" class="nutri-chip${meals === n ? ' sel' : ''}" data-mp="dg-meals" data-n="${n}">${esc(t('plan.mealsPerDay', { n }))}</button>`).join('')}</div>
+  <div class="nutri-numrow" id="dg-split">${names.map((nm, i) => `<label>${esc(mealName(nm))} %<input type="number" data-dg-pct min="0" max="100" value="${pcts[i]}"></label>`).join('')}</div>
+  <div id="dg-preview"></div>
+  <div class="eval-actions"><button type="button" class="btn-ghost" data-mp="dg-save" data-mode="borrador">${esc(t('plan.coach.saveDraft'))}</button>
+  <button type="button" class="btn-primary" data-mp="dg-save" data-mode="propuesto" ${g.kcal != null ? '' : 'disabled'}>${esc(t('plan.coach.propose'))}</button></div></div>`;
+  mealPlanPaintDraftPreview();
+}
+async function mealPlanSave(mode, studentUid) {
+  const me = auth.currentUser && auth.currentUser.uid;
+  if (!me || !NUTRI.draft || NUTRI.draftClient !== studentUid) return;
+  const goals = mealPlanDraftGoalsFromDOM();
+  if (!goals.kcal) { toast(t('err.createFail'), true); return; }
+  const pcts = mealPlanDraftPctsFromDOM();
+  if (!pcts || pcts.reduce((a, b) => a + b, 0) !== 100) { toast(t('plan.splitSum'), true); return; }
+  const draft = NUTRI.draft, basis = NUTRI.draftBasis || {};
+  try {
+    let existingId = null, otherProposed = null;
+    const snap = await getDocs(query(collection(db, 'nutrition_plans'), where('studentUid', '==', studentUid)));
+    snap.forEach(d => {
+      const x = d.data();
+      if (x.nutritionistUid !== me) return;
+      if (x.status === 'borrador') existingId = d.id;
+      if (x.status === 'propuesto' && d.id !== existingId) otherProposed = d.id;
+    });
+    if (mode === 'propuesto' && otherProposed) { toast(t('plan.coach.proposedOn'), true); return; }
+    let wishes = null;
+    try { const s = await getDoc(doc(db, 'nutrition_wishes', studentUid)); if (s.exists()) wishes = s.data(); } catch {}
+    const startsOn = ($('np-start') && $('np-start').value) || todayISO();
+    const endsOn = (typeof planEndFromPreset === 'function') ? planEndFromPreset(startsOn, NUTRI.planPreset) : startsOn;
+    const payload = {
+      studentUid, nutritionistUid: me, status: mode,
+      startsOn, endsOn, cadence: NUTRI.planPreset, templateId: null,
+      goalsDraft: draft.goals || null, goals,
+      goalsApprovedBy: me, goalsApprovedAt: serverTimestamp(),
+      notes: (($('np-notes') && $('np-notes').value) || '').trim().slice(0, 600),
+      structure: mealPlanStructure(goals, draft.fatPct, NUTRI.draftMeals || 4, pcts),
+      objective: basis.objective || null,
+      basis: {
+        tdeeKcal: basis.tdeeKcal || null, weightKg: basis.weightKg || null,
+        proteinFactor: draft.proteinFactor || null, fatPct: draft.fatPct || null,
+        paceKcal: draft.paceKcal || null, paceProposed: !!basis.paceProposed
+      },
+      wishesSnapshot: wishes ? {
+        goal: wishes.goal || '', mealsPerDay: wishes.mealsPerDay || null,
+        likes: wishes.likes || [], dislikes: wishes.dislikes || [],
+        allergies: wishes.allergies || [], allergyText: wishes.allergyText || '',
+        cookTime: wishes.cookTime || '', budget: wishes.budget || ''
+      } : null,
+      medicalFlag: !!((basis.conditions || []).length),
+      updatedAt: serverTimestamp()
+    };
+    if (mode === 'propuesto') payload.proposedAt = serverTimestamp();
+    if (existingId) {
+      payload.changeRequest = null;
+      await setDoc(doc(db, 'nutrition_plans', existingId), payload, { merge: true });
+    } else {
+      payload.createdAt = serverTimestamp();
+      payload.changeRequest = null;
+      await addDoc(collection(db, 'nutrition_plans'), payload);
+    }
+    nutriHist(studentUid, mode === 'propuesto' ? 'plan_proposed' : 'plan_draft_saved', 'nutricionista', 'kcal ' + goals.kcal);
+    nutriAudit(mode === 'propuesto' ? 'nutrition.plan.proposed' : 'nutrition.plan.draftSaved', studentUid, 'nutricionista', 'kcal ' + goals.kcal);
+    toast(mode === 'propuesto' ? t('plan.coach.proposed') : t('plan.coach.draftSaved'));
+    NUTRI.draft = null; NUTRI.draftBasis = null;
+    nutriRenderFloat();
+  } catch { toast(t('err.createFail'), true); }
+}
+/* Tarjeta de revisión semanal en la consola del coach: por alumno
+   con plan vigente, cumplimiento de la semana (días «completado»
+   ≥90 % contra SU plan, la regla de AUTH-201), tendencia de peso
+   (dos últimos pesajes) y el botón de proponer ajuste — que abre
+   la ficha en su constructor, donde el ajuste nace como borrador
+   y sigue el mismo flujo de propuesta y aceptación. */
+async function mealPlanConsoleFill() {
+  const cards = document.querySelectorAll('[data-mp-console]');
+  for (const el of cards) {
+    const sid = el.dataset.mpConsole;
+    try {
+      const snap = await getDocs(query(collection(db, 'nutrition_plans'), where('studentUid', '==', sid)));
+      let plan = null, prop = null, borr = null;
+      snap.forEach(d => { const x = { id: d.id, ...d.data() }; if (x.status === 'activo') plan = x; else if (x.status === 'propuesto') prop = x; else if (x.status === 'borrador' && !borr) borr = x; });
+      let h = '';
+      if (plan && plan.goals) {
+        let done = 0;
+        try {
+          const mealsByDate = {};
+          const ms = await getDocs(query(collection(db, 'nutrition_meals'), where('ownerUid', '==', sid)));
+          ms.forEach(d => { const x = d.data(); (mealsByDate[x.date] = mealsByDate[x.date] || []).push(x); });
+          for (let i = 0; i < 7; i++) { const dt = new Date(); dt.setDate(dt.getDate() - i); const ds = dt.toISOString().slice(0, 10); if (nutriAdherenceState(mealsByDate[ds] || [], plan.goals, ds) === 'done') done++; }
+        } catch {}
+        h += `<span class="nutri-tag">✓ ${esc(t('plan.coach.stateActivo'))}</span> <span class="progress-hint">${esc(t('plan.coach.weekOk', { done }))}</span>`;
+        try {
+          const ws = await getDocs(query(collection(db, 'nutrition_weight'), where('ownerUid', '==', sid)));
+          const arr = []; ws.forEach(d => arr.push(d.data()));
+          arr.sort((a, b) => String(a.date) < String(b.date) ? -1 : 1);
+          if (arr.length >= 2) {
+            const last = Number(arr[arr.length - 1].weight), prev = Number(arr[arr.length - 2].weight);
+            if (last > 0 && prev > 0) { const delta = Math.round((last - prev) * 10) / 10; h += `<br><span class="progress-hint">${esc(t('plan.coach.weightTrend', { last, delta: (delta > 0 ? '+' : '') + delta }))}</span>`; }
+          }
+        } catch {}
+        h += `<div class="eval-actions"><button type="button" class="btn-ghost btn-sm" data-mp="nc-adjust" data-uid="${esc(sid)}">${esc(t('plan.coach.adjust'))}</button></div>`;
+      } else if (prop) {
+        h += `<span class="nutri-tag">📨 ${esc(t('plan.coach.statePropuesto'))}</span>`;
+      } else if (borr) {
+        h += `<span class="nutri-tag">✏️ ${esc(t('plan.coach.stateBorrador'))}</span>${borr.changeRequest ? `<br><span class="progress-hint">💬 ${esc(t('plan.coach.changeReq'))}</span>` : ''}`;
+      }
+      el.innerHTML = h;
+    } catch {}
+  }
+}
+/* Delegación única de clics del paquete (sobrevive a los
+   repintados de las cajas y de la ventana flotante). */
+document.addEventListener('click', async e => {
+  const b = e.target && e.target.closest ? e.target.closest('[data-mp]') : null;
+  if (!b || b.disabled) return;
+  const act = b.dataset.mp;
+  if (act === 'wishes-open') { nutriWishInit(); nutriOpenFloat('wishes'); }
+  else if (act === 'wq-one') {
+    const d = NUTRI.wishDraft; if (!d) return;
+    nutriWishCaptureText();
+    d[b.dataset.f] = b.dataset.f === 'meals' ? Number(b.dataset.v) : b.dataset.v;
+    nutriPaintWishStep();
+  } else if (act === 'wq-multi') {
+    const d = NUTRI.wishDraft; if (!d) return;
+    const arr = d[b.dataset.f] || (d[b.dataset.f] = []);
+    const i = arr.indexOf(b.dataset.v);
+    if (i >= 0) arr.splice(i, 1); else arr.push(b.dataset.v);
+    b.classList.toggle('sel', i < 0);
+  } else if (act === 'wq-back') { nutriWishCaptureText(); NUTRI.wishStep = Math.max(0, NUTRI.wishStep - 1); nutriPaintWishStep(); }
+  else if (act === 'wq-next') {
+    nutriWishCaptureText();
+    if (NUTRI.wishStep === 0 && !(NUTRI.wishDraft || {}).goal) { toast(t('plan.q1'), true); return; }
+    NUTRI.wishStep = Math.min(7, NUTRI.wishStep + 1); nutriPaintWishStep();
+  } else if (act === 'wq-finish') { await nutriWishSave(); }
+  else if (act === 'accept') { await mealPlanDecide(b.dataset.id, 'accept'); }
+  else if (act === 'change-open') { const p = $('mp-change-panel'); if (p) p.style.display = p.style.display === 'none' ? '' : 'none'; }
+  else if (act === 'chg-reason') {
+    NUTRI.chgReason = b.dataset.r;
+    document.querySelectorAll('[data-mp="chg-reason"]').forEach(x => x.classList.toggle('sel', x === b));
+  } else if (act === 'change-send') {
+    const txt = ($('mp-change-text') && $('mp-change-text').value) || '';
+    await mealPlanDecide(b.dataset.id, 'change', { reason: NUTRI.chgReason || 'other', text: txt });
+  } else if (act === 'decline') {
+    const txt = ($('mp-change-text') && $('mp-change-text').value) || '';
+    await mealPlanDecide(b.dataset.id, 'decline', txt);
+  } else if (act === 'dg-meals') {
+    if (NUTRI.draft) { try { NUTRI.draft = { ...NUTRI.draft, goals: mealPlanDraftGoalsFromDOM() }; } catch {} }
+    NUTRI.draftMeals = Number(b.dataset.n) || 4;
+    const zone = $('np-draft-zone');
+    if (zone) mealPlanPaintDraft(zone, NUTRI.draftWishes || null);
+  } else if (act === 'dg-save') {
+    await mealPlanSave(b.dataset.mode, NUTRI.draftClient);
+  } else if (act === 'np-discard' || act === 'np-withdraw') {
+    const sid = NUTRI.viewArg;
+    try {
+      await setDoc(doc(db, 'nutrition_plans', b.dataset.id), { status: 'archivado', updatedAt: serverTimestamp() }, { merge: true });
+      nutriHist(sid, act === 'np-discard' ? 'plan_draft_discarded' : 'plan_proposal_withdrawn', 'nutricionista', '');
+      toast(t('nutri.saved'));
+      nutriRenderFloat();
+    } catch { toast(t('err.createFail'), true); }
+  } else if (act === 'nc-adjust') {
+    const uid = b.dataset.uid;
+    nutriOpenFloat('client', uid);
+    let tries = 0;
+    const iv = setInterval(() => {
+      const target = $('np-compute');
+      if (target) { target.scrollIntoView({ block: 'center', behavior: 'smooth' }); clearInterval(iv); }
+      else if (++tries > 30) clearInterval(iv);
+    }, 120);
+  }
+});
+document.addEventListener('input', e => {
+  const tg = e.target;
+  if (!tg || !(tg.matches && (tg.matches('[data-dg-pct]') || tg.matches('[data-dg-goal]')))) return;
+  try { mealPlanPaintDraftPreview(); } catch {}
+});

@@ -3920,3 +3920,22 @@ button.wkex-row:active { background: #eef7f5; }
 .treq-ficha-item:first-of-type { border-top: none; }
 .treq-respond { width: 100%; min-height: 48px; border-radius: 12px; margin-top: 10px; }
 .treq-ctx { margin: 0 0 6px; }
+
+/* Plan alimenticio del coach — Fase 1 (AUTH-2026-11-04-247):
+   controles grandes del estilo de la casa (se usa entrenando). */
+.mp-q { font-size: 1.15rem; font-weight: 700; margin: 10px 0; }
+.mp-opt { display: block; width: 100%; text-align: left; padding: 16px 14px; margin: 8px 0; border-radius: 14px; border: 2px solid #d7dee2; background: #fff; font: inherit; font-size: 1.05rem; cursor: pointer; }
+.mp-opt.sel { border-color: #0d9488; background: #e6f7f4; font-weight: 700; }
+.mp-bigchip { font-size: 1rem; padding: 12px 14px; min-height: 48px; }
+.mp-nav { margin-top: 14px; }
+.mp-mealrow { display: flex; justify-content: space-between; gap: 10px; padding: 7px 2px; border-bottom: 1px solid #eef2f3; }
+.mp-meal-name { font-weight: 600; }
+.mp-meal-kcal { white-space: nowrap; }
+.mp-meal-prot { color: #5b6b72; white-space: nowrap; }
+.mp-total { border-bottom: none; font-weight: 700; }
+.mp-day { margin: 8px 0; }
+.mp-day-t { font-weight: 700; margin: 10px 0 4px; }
+.mp-why { background: #f4faf9; border-radius: 12px; padding: 10px 12px; margin: 10px 0; }
+.mp-why-line { margin: 4px 0; }
+.mp-medical { color: #b3261e; font-weight: 600; }
+.mp-proposal { border: 2px solid #0d9488; }
