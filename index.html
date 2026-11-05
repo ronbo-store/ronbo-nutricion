@@ -21,7 +21,7 @@
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-title" content="RONBO FIT">
 <meta name="apple-mobile-web-app-status-bar-style" content="default">
-<link rel="stylesheet" href="styles.css?v=20261104-variante-en-sesion">
+<link rel="stylesheet" href="styles.css?v=20261104-retos-arriba">
 <script defer src="https://cloud.umami.is/script.js" data-website-id="a29706d4-44a2-47cf-900a-5f74d74abfa8"></script>
 <script type="importmap">
 {
@@ -267,6 +267,7 @@
     <button type="button" class="main-tab" data-tab="admin" data-i18n="tabs.admin"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="3.2"/><path d="M12 2.8v3"/><path d="M12 18.2v3"/><path d="M2.8 12h3"/><path d="M18.2 12h3"/><path d="M5.2 5.2l2.1 2.1"/><path d="M16.7 16.7l2.1 2.1"/><path d="M18.8 5.2l-2.1 2.1"/><path d="M7.3 16.7l-2.1 2.1"/></svg> Administration</button>
     <button type="button" class="main-tab" data-tab="trainer" data-i18n="tabs.mytrainer"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="5.4" r="2.3"/><path d="M2.5 11h19"/><path d="M5.2 8.8v4.4"/><path d="M18.8 8.8v4.4"/><path d="M12 11v3.6"/><path d="M8.6 20.4L12 14.6l3.4 5.8"/></svg> My trainer</button>
     <button type="button" class="main-tab" data-tab="coach" data-i18n="tabs.mycoach"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 7.5c-1.1-1.4-2.9-2.1-4.6-1.5C5 6.8 4.1 9.2 4.7 11.9c.5 2.5 2 6.4 3.8 6.4 1 0 1.7-.5 3.5-.5s2.5.5 3.5.5c1.8 0 3.3-3.9 3.8-6.4.6-2.7-.3-5.1-2.7-5.9-1.7-.6-3.5.1-4.6 1.5z"/><path d="M12 7.5c.1-2.1 1-3.6 2.7-4.3"/></svg> My food coach</button>
+    <button type="button" class="main-tab" data-tab="challenges" data-i18n="tabs.challenges"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M7 4h10v4.5a5 5 0 0 1-10 0z"/><path d="M7 5.5H4.2A2.8 2.8 0 0 0 7 9.7"/><path d="M17 5.5h2.8A2.8 2.8 0 0 1 17 9.7"/><path d="M12 13.5V17"/><path d="M9.8 20l.7-3h3l.7 3"/></svg> Challenges</button>
     <button type="button" class="main-tab" data-tab="comms" data-i18n="tabs.comms"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="5.5" width="18" height="13" rx="2"/><path d="M3.5 7l8.5 6 8.5-6"/></svg> Communications</button>
   </nav>
   </div>
@@ -344,10 +345,6 @@
        pantalla principal al entrar; se pinta desde renderRolePendCard()
        y solo aparece si hay pendientes de procedimiento. -->
   <div id="role-pend-card" style="display:none"></div>
-  <!-- RETOS (AUTH-2026-11-04-235): entrada al módulo desde
-       Inicio; la pinta chalCardSync (app.js). El dock de
-       6 botones no se toca. -->
-  <div id="chal-card" style="display:none"></div>
   <!-- D2 (puntos 19–20, Ronald 2026-11-01): aviso discreto al ABRIR
        la app cuando un borrador de análisis con IA quedó esperando
        guardarse; lo pinta aiDraftNoticeSync (texto por i18n
@@ -1894,6 +1891,6 @@
 <div id="toast" class="toast"></div>
 <div id="print-card" aria-hidden="true"></div>
 
-<script type="module" src="app.js?v=20261104-variante-en-sesion"></script>
+<script type="module" src="app.js?v=20261104-retos-arriba"></script>
 </body>
 </html>

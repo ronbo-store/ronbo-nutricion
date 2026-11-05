@@ -3728,6 +3728,7 @@ en: {
   'tabs.admin': '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="3.2"/><path d="M12 2.8v3"/><path d="M12 18.2v3"/><path d="M2.8 12h3"/><path d="M18.2 12h3"/><path d="M5.2 5.2l2.1 2.1"/><path d="M16.7 16.7l2.1 2.1"/><path d="M18.8 5.2l-2.1 2.1"/><path d="M7.3 16.7l-2.1 2.1"/></svg> Administration',
   'tabs.mycoach': '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 7.5c-1.1-1.4-2.9-2.1-4.6-1.5C5 6.8 4.1 9.2 4.7 11.9c.5 2.5 2 6.4 3.8 6.4 1 0 1.7-.5 3.5-.5s2.5.5 3.5.5c1.8 0 3.3-3.9 3.8-6.4.6-2.7-.3-5.1-2.7-5.9-1.7-.6-3.5.1-4.6 1.5z"/><path d="M12 7.5c.1-2.1 1-3.6 2.7-4.3"/></svg> My food coach',
   'tabs.mytrainer': '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="5.4" r="2.3"/><path d="M2.5 11h19"/><path d="M5.2 8.8v4.4"/><path d="M18.8 8.8v4.4"/><path d="M12 11v3.6"/><path d="M8.6 20.4L12 14.6l3.4 5.8"/></svg> My trainer',
+  'tabs.challenges': '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M7 4h10v4.5a5 5 0 0 1-10 0z"/><path d="M7 5.5H4.2A2.8 2.8 0 0 0 7 9.7"/><path d="M17 5.5h2.8A2.8 2.8 0 0 1 17 9.7"/><path d="M12 13.5V17"/><path d="M9.8 20l.7-3h3l.7 3"/></svg> Challenges',
   'tabs.comms': '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="5.5" width="18" height="13" rx="2"/><path d="M3.5 7l8.5 6 8.5-6"/></svg> Communications',
   'trainers.title': '👨‍🏫 Trainer administration',
   'trainers.hint': 'Everything about trainers in one place: role requests, memberships (levels and quotas), the two-step confirmations that start with a trainer, the trainer approval limit and the public directory.',
@@ -7036,6 +7037,7 @@ es: {
   'tabs.admin': '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="3.2"/><path d="M12 2.8v3"/><path d="M12 18.2v3"/><path d="M2.8 12h3"/><path d="M18.2 12h3"/><path d="M5.2 5.2l2.1 2.1"/><path d="M16.7 16.7l2.1 2.1"/><path d="M18.8 5.2l-2.1 2.1"/><path d="M7.3 16.7l-2.1 2.1"/></svg> Administración',
   'tabs.mycoach': '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 7.5c-1.1-1.4-2.9-2.1-4.6-1.5C5 6.8 4.1 9.2 4.7 11.9c.5 2.5 2 6.4 3.8 6.4 1 0 1.7-.5 3.5-.5s2.5.5 3.5.5c1.8 0 3.3-3.9 3.8-6.4.6-2.7-.3-5.1-2.7-5.9-1.7-.6-3.5.1-4.6 1.5z"/><path d="M12 7.5c.1-2.1 1-3.6 2.7-4.3"/></svg> Mi coach de alimentación',
   'tabs.mytrainer': '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="5.4" r="2.3"/><path d="M2.5 11h19"/><path d="M5.2 8.8v4.4"/><path d="M18.8 8.8v4.4"/><path d="M12 11v3.6"/><path d="M8.6 20.4L12 14.6l3.4 5.8"/></svg> Mi entrenador',
+  'tabs.challenges': '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M7 4h10v4.5a5 5 0 0 1-10 0z"/><path d="M7 5.5H4.2A2.8 2.8 0 0 0 7 9.7"/><path d="M17 5.5h2.8A2.8 2.8 0 0 1 17 9.7"/><path d="M12 13.5V17"/><path d="M9.8 20l.7-3h3l.7 3"/></svg> Retos',
   'tabs.comms': '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="5.5" width="18" height="13" rx="2"/><path d="M3.5 7l8.5 6 8.5-6"/></svg> Comunicaciones',
   'trainers.title': '👨‍🏫 Administración de entrenadores',
   'trainers.hint': 'Todo lo de los entrenadores en un solo lugar: solicitudes de rol, membresías (niveles y cupos), las confirmaciones en dos pasos que empiezan con un entrenador, el límite de aprobaciones de entrenadores y el directorio público.',
@@ -11266,6 +11268,17 @@ onAuthStateChanged(auth, async user => {
      los demás roles, no. */
   const trainerTabBtn = document.querySelector('.main-tab[data-tab="trainer"]');
   if (trainerTabBtn) trainerTabBtn.style.display = (ROLE === 'usuario' || IS_OWNER) ? '' : 'none';
+  /* «Retos» (decisión de Ronald, chat RONBO.NUTRI 2026-11-04
+     18:38/18:48 CST): la pastilla de arriba es de TODOS los
+     usuarios, al final de la fila (tras «Mi coach de
+     alimentación») — el alumno entra a ver y participar; crear,
+     diseñar y asignar sigue siendo gestión DENTRO del módulo
+     (puerta chalCanManage, que no cambia). La regla se escribe
+     en claro aunque sea «para todos», como la de
+     «Administración», para que ningún cambio futuro la oculte
+     por accidente. */
+  const chalTabBtn = document.querySelector('.main-tab[data-tab="challenges"]');
+  if (chalTabBtn) chalTabBtn.style.display = '';
   /* «← Volver» de «Mi perfil» (paquete NAVEGACIÓN, 2026-10-26):
      solo el alumno lo necesita — entra al perfil por su foto y su
      barra solo trae «Administración»; el personal conserva sus
@@ -40803,7 +40816,7 @@ document.addEventListener('keydown', e => { if (e.key === 'Escape') shareClose()
  *  - El SW (sw.js) solo cachea la cáscara del mismo origen en modo
  *    RED PRIMERO: Auth/Firestore/Worker jamás pasan por la caché.
  * ================================================================ */
-const PWA_SW_VERSION = '20261104-variante-en-sesion';
+const PWA_SW_VERSION = '20261104-retos-arriba';
 /* Sello de versión VISIBLE (2026-11-03): el pie de la tarjeta de
    acceso enseña qué copia corre este teléfono ('v ' + el sello),
    para comprobar de un vistazo si la versión nueva ya llegó.
@@ -43780,7 +43793,13 @@ function chalRenderPaint() {
       <div class="chal-actions"><button type="button" class="btn-primary" data-chal-act="start" data-chal-cat="${c.id}">${esc(t('chal.startBtn'))}</button></div>
     </div>`).join('');
   h += `<h3 class="history-title">${esc(t('chal.groupTitle'))}</h3>`;
-  h += CHAL.groups.length ? CHAL.groups.map(g => chalItemHTML(g, null, { joinable: true })).join('') : `<div class="wempty">${esc(t('chal.groupEmpty'))}</div>`;
+  /* Descubrimiento: SOLO retos activos (aclaración de Ronald,
+     2026-11-04 18:42 CST: el alumno ve solo retos activos). Un
+     reto de grupo ya vencido no se ofrece para unirse; quien
+     participa en él lo sigue viendo en «Mis retos» y en sus
+     medallas, que salen de CHAL.mine, no de esta lista. */
+  const groupsActive = CHAL.groups.filter(g => g.endDate >= today);
+  h += groupsActive.length ? groupsActive.map(g => chalItemHTML(g, null, { joinable: true })).join('') : `<div class="wempty">${esc(t('chal.groupEmpty'))}</div>`;
   if (chalCanManage()) h += chalManageHTML();
   body.innerHTML = h;
   chalWireForms();
