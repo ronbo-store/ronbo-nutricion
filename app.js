@@ -4368,6 +4368,7 @@ en: {
   'ai.discard': 'Discard',
   'ai.unavailable': 'Food analysis is not active yet.',
   'ai.failed': 'The analysis failed. You can log the meal manually.',
+  'ai.doorUnavailable': 'The AI service is temporarily unavailable. Try again in a little while — meanwhile you can log the meal manually.',
   'ai.banner': 'Draft from your photo: check and edit the values before saving.',
   'ai.draftError': 'Something went wrong while preparing the draft. Nothing was saved — please try again.',
   'ai.savedInfo': 'Meal saved: {kcal} kcal · Day total: {total} kcal',
@@ -7784,6 +7785,7 @@ es: {
   'ai.discard': 'Descartar',
   'ai.unavailable': 'El análisis de la comida aún no está activo.',
   'ai.failed': 'El análisis falló. Puedes registrar la comida manualmente.',
+  'ai.doorUnavailable': 'El servicio de IA no está disponible temporalmente. Inténtalo de nuevo en un rato; mientras tanto puedes registrar la comida manualmente.',
   'ai.banner': 'Borrador de tu foto: revisa y edita los valores antes de guardar.',
   'ai.draftError': 'Algo salió mal al preparar el borrador. No se guardó nada: inténtalo de nuevo.',
   'ai.savedInfo': 'Comida guardada: {kcal} kcal · Total del día: {total} kcal',
@@ -20004,6 +20006,17 @@ async function aiCall(path, body) {
     if (info && info.error === 'ai-disabled') { aiCtrlSet(false, true); throw new Error('ai-disabled'); }
     throw new Error('ai-403');
   }
+  if (r.status === 503) {
+    /* AUTH-2026-11-04-248: la puerta de IA no pudo LEER la cuenta
+       (fallo transitorio del servidor: cuota, 5xx, red) — no es un
+       «no aprobado» ni un fallo del análisis: error propio para
+       que las superficies pinten el aviso temporal honesto.
+       Cualquier otro 503 sigue el camino genérico de siempre. */
+    let info = null;
+    try { info = await r.json(); } catch {}
+    if (info && info.error === 'door-unavailable') throw new Error('ai-door-unavailable');
+    throw new Error('ai-503');
+  }
   if (!r.ok) throw new Error('ai-' + r.status);
   let j = null;
   try { j = await r.json(); } catch { throw new Error('ai-badjson'); }
@@ -22300,16 +22313,18 @@ function aiNewSaveId() {
   return 'meal_' + Date.now().toString(36) + '_' + aiSaveSeq.toString(36) + '_' + Math.random().toString(36).slice(2, 8);
 }
 function aiFreshState(mode) {
-  return { mode, dataUrl: null, photos: null, descText: '', audioDataUrl: null, step: 'loading', r1: null, answers: {}, other: {}, foods: null, r2: null, errStage: 'identify', meal: aiDefaultMeal(), metrics: null, metricsEdited: false, name: null, nameEdited: false, cap: false, capLimit: null, disabled: false, btWindow: false, btRenews: null, saveError: false, saveId: aiNewSaveId(), split: null };
+  return { mode, dataUrl: null, photos: null, descText: '', audioDataUrl: null, step: 'loading', r1: null, answers: {}, other: {}, foods: null, r2: null, errStage: 'identify', meal: aiDefaultMeal(), metrics: null, metricsEdited: false, name: null, nameEdited: false, cap: false, capLimit: null, disabled: false, doorDown: false, btWindow: false, btRenews: null, saveError: false, saveId: aiNewSaveId(), split: null };
 }
 /* Registra en el estado el tipo de corte que devolvió aiCall: tope
    diario (con el límite aplicable si el Worker lo dijo), interruptor
-   del administrador o ventana de 15 días de tipo corporal (con su
-   fecha de renovación). La tarjeta de error pinta según esto. */
+   del administrador, puerta sin lectura por fallo temporal
+   (AUTH-2026-11-04-248) o ventana de 15 días de tipo corporal (con
+   su fecha de renovación). La tarjeta de error pinta según esto. */
 function aiNoteError(e) {
   if (!aiState) return;
   aiState.cap = !!(e && e.message === 'ai-cap');
   aiState.disabled = !!(e && e.message === 'ai-disabled');
+  aiState.doorDown = !!(e && e.message === 'ai-door-unavailable');
   aiState.btWindow = !!(e && e.message === 'ai-bt-window');
   if (e && e.capLimit != null) aiState.capLimit = e.capLimit;
   if (e && e.renewsAt) aiState.btRenews = e.renewsAt;
@@ -22440,7 +22455,7 @@ async function aiCalculate() {
   /* Sin alimentos con nombre no hay nada que calcular: se avisa y el
      flujo se queda en las preguntas (visible), sin llamar al proveedor. */
   if (!foods.length) { toast(t('err.mealMissing'), true); return; }
-  aiState.step = 'loading'; aiState.errStage = 'calculate'; aiState.cap = false; aiState.disabled = false; aiState.btWindow = false;
+  aiState.step = 'loading'; aiState.errStage = 'calculate'; aiState.cap = false; aiState.disabled = false; aiState.doorDown = false; aiState.btWindow = false;
   aiRender();
   try {
     const raw2 = await aiCall('/calculate', { foods, answers: aiFinalAnswers(), lang: LANG });
@@ -22516,6 +22531,17 @@ function aiErrorCardHTML() {
      servidor negaría cada intento) y con la salida manual abierta. */
   if (aiState.disabled) {
     return { html: `<p class="progress-hint">${t('ai.disabledByAdmin')}</p><div class="ai-actions"><button type="button" class="btn-main btn-sm" id="ai-manual">${t('ai.continueManual')}</button><button type="button" class="btn-ghost btn-sm" id="ai-cancel">${t('ai.discard')}</button></div>`, extras: false };
+  }
+  /* AUTH-2026-11-04-248: la puerta no pudo LEER la cuenta por un
+     fallo temporal del servidor (cuota/red): aviso honesto de
+     indisponibilidad temporal, CON reintento (el fallo es pasajero
+     por definición) y la salida manual abierta; sin la sugerencia
+     de «foto más clara» ni la caja de texto, que aquí no aplican
+     (el texto pasaría por la misma puerta). */
+  if (aiState.doorDown) {
+    const canRetry = aiState.errStage !== 'identify' || aiHasInput();
+    const retryBtn = canRetry ? `<button type="button" class="btn-main btn-sm" id="ai-retry">${t('ai.retry')}</button>` : '';
+    return { html: `<p class="progress-hint">${t('ai.doorUnavailable')}</p><div class="ai-actions">${retryBtn}<button type="button" class="${canRetry ? 'btn-ghost' : 'btn-main'} btn-sm" id="ai-manual">${t('ai.continueManual')}</button><button type="button" class="btn-ghost btn-sm" id="ai-cancel">${t('ai.discard')}</button></div>`, extras: false };
   }
   /* Ventana de 15 días del análisis de tipo corporal: el aviso dice
      CUÁNDO se renueva (fecha real que devolvió el Worker). */
@@ -25143,7 +25169,13 @@ async function btRequestEstimate(uid, udata) {
     });
     toast(t('bt.saved'));
     await btLoadTrainerCard(uid, udata);
-  } catch (e) { failToast(e); }
+  } catch (e) {
+    /* AUTH-2026-11-04-248: puerta sin lectura por fallo temporal
+       del servidor → el aviso honesto de indisponibilidad
+       temporal, no el error genérico de guardado. */
+    if (e && e.message === 'ai-door-unavailable') toast(t('ai.doorUnavailable'), true);
+    else failToast(e);
+  }
   finally { const b = $('btn-bt-request'); if (b) { b.disabled = false; b.textContent = t('bt.request'); } }
 }
 
@@ -41030,7 +41062,7 @@ document.addEventListener('keydown', e => { if (e.key === 'Escape') shareClose()
  *  - El SW (sw.js) solo cachea la cáscara del mismo origen en modo
  *    RED PRIMERO: Auth/Firestore/Worker jamás pasan por la caché.
  * ================================================================ */
-const PWA_SW_VERSION = '20261104-plan-coach-f1';
+const PWA_SW_VERSION = '20261104-puerta-temporal';
 /* Sello de versión VISIBLE (2026-11-03): el pie de la tarjeta de
    acceso enseña qué copia corre este teléfono ('v ' + el sello),
    para comprobar de un vistazo si la versión nueva ya llegó.
