@@ -3513,6 +3513,7 @@ en: {
   'reco.msPr': 'New personal record',
   'reco.msFood': 'Food goal day',
   'reco.msFoodD': 'You reached 90% or more of your food goal.',
+  'reco.msPending': 'Pending save — it will save on its own',
   'reco.msShare': 'Share',
   'reco.msNextFirst': '**Your first milestone:** complete a full week of your plan — train every day it asks for.',
   'reco.msNextStreak': '**Next milestone:** 4 weeks of constancy in a row — train what your plan asks, every week.',
@@ -6930,6 +6931,7 @@ es: {
   'reco.msPr': 'Marca personal nueva',
   'reco.msFood': 'Día de alimentación cumplido',
   'reco.msFoodD': 'Llegaste al 90 % o más de tu meta de alimentación.',
+  'reco.msPending': 'Pendiente de guardar — se guardará solo',
   'reco.msShare': 'Compartir',
   'reco.msNextFirst': '**Tu primer hito:** completa una semana entera de tu plan — entrena todos los días que pide.',
   'reco.msNextStreak': '**Próximo hito:** 4 semanas seguidas de constancia — entrenar cada semana lo que tu plan pide.',
@@ -19578,6 +19580,12 @@ async function loadAll() {
   try { renderPendings(); } catch {}
   try { await goalsEngineRun('load'); } catch {}
   await Promise.all([mealHelpP, activityP, unitsP, adminP, clientsP]);
+  /* Reintento de hitos del arranque (AUTH-2026-11-05-250): con los
+     cargadores ya asentados, la sincronía de hitos corre también
+     aquí — no espera a que se abra Progreso. No se espera a
+     propósito: es un reintento en segundo plano y el arranque no
+     depende de él. */
+  try { recoStartupSync(); } catch {}
   /* Recarga con Progreso ya visitado en esta sesión: se refresca
      como antes. Si nunca se abrió, sigue sin cargarse: esa es la
      ganancia del arranque. */
@@ -28923,10 +28931,11 @@ async function loadMyTraining() {
   const uid = auth.currentUser.uid;
   const plans = await fetchPlans(uid);
   const plan = plans.find(p => p.active === true) || null;
-  if (!plan) { MY_PLAN = null; MY_LOGS = []; MY_LOGS_ALL = null; box.innerHTML = `<div class="wempty compact" id="train-none-msg">${t('train.none')}</div>`; trainNoneNamedRender(box); trainCustomRenderSession(null, null, false); return; }
+  if (!plan) { MY_PLAN = null; MY_LOGS = []; MY_LOGS_ALL = null; MY_PLANS_ALL = plans; box.innerHTML = `<div class="wempty compact" id="train-none-msg">${t('train.none')}</div>`; trainNoneNamedRender(box); trainCustomRenderSession(null, null, false); return; }
   const logsAll = await fetchLogs(uid);
   const logs = logsAll.filter(l => l.planId === plan.id);
   MY_LOGS_ALL = logsAll;
+  MY_PLANS_ALL = plans;
   MY_PLAN = plan; MY_LOGS = logs;
   try { const ds2 = $('dateSel'); if (ds2 && typeof render === 'function') render(ds2.value); } catch {}
   const today = todayISO();
@@ -35356,6 +35365,15 @@ async function recoFetchStored(uid) {
     return out;
   } catch { return null; }
 }
+/* Hitos calculados cuyo guardado AÚN no entró (AUTH-2026-11-05-250):
+   la sincronía de AUTH-241 tragaba el fallo de escritura en
+   silencio y un hito podía pasarse el día pintado en pantalla y
+   sin guardar (pasó el 2026-11-04 con la cuota de lecturas
+   agotada). Ahora cada intento deja constancia en esta lista de
+   sesión: el acierto quita la marca, el fallo la pone, y la
+   tarjeta propia pinta la señal discreta «pendiente de guardar»
+   en ese hito hasta que el guardado entra. */
+const RECO_PENDING = new Set();
 /* Sincronía del cliente PROPIO: lee lo guardado y crea SOLO los
    hitos calculados que falten (las reglas no admiten editar ni
    borrar hitos: lo ganado, ganado queda). Si la lectura falla,
@@ -35363,10 +35381,12 @@ async function recoFetchStored(uid) {
 async function recoSyncOwn(uid, computedItems) {
   const stored = await recoFetchStored(uid);
   if (stored == null) return computedItems;
+  stored.forEach(i => RECO_PENDING.delete(i.slug));
   const have = new Set(stored.map(i => i.slug));
   const missing = computedItems.filter(i => !have.has(i.slug));
   for (const it of missing) {
-    try { await setDoc(doc(db, 'milestones', uid + '_' + it.slug), recoDocFor(uid, it)); } catch {}
+    try { await setDoc(doc(db, 'milestones', uid + '_' + it.slug), recoDocFor(uid, it)); RECO_PENDING.delete(it.slug); }
+    catch { RECO_PENDING.add(it.slug); }
   }
   const all = [...stored, ...missing];
   all.sort((a, b) => (a.at < b.at ? -1 : a.at > b.at ? 1 : (a.slug < b.slug ? -1 : 1)));
@@ -35398,6 +35418,7 @@ function milestonesCardHTML(items, opts) {
           <div class="ms-name">${esc(recoMsTitle(it))}</div>
           <div class="ms-det">${recoMsDetail(it)}</div>
           <div class="ms-date">${esc(recoDateFull(it.at))}</div>
+          ${mine && RECO_PENDING.has(it.slug) ? `<div class="ms-pend">${esc(t('reco.msPending'))}</div>` : ''}
         </div>
         ${mine ? `<button type="button" class="ms-share" data-ms-share="${esc(it.slug)}">${esc(t('reco.msShare'))} ›</button>` : ''}
       </div>`).join('');
@@ -35486,11 +35507,21 @@ function monthCardHTML(m) {
 }
 /* ---------- carga de las superficies propias (Progreso) ------- */
 let RECO_LATEST = null;
+/* El cálculo + la sincronía de hitos del cliente PROPIO, sin
+   pintar: lo comparten la apertura de Progreso (loadRecoCards)
+   y el reintento del arranque de sesión (recoStartupSync). El
+   cálculo no cambia: mismos registros, mismos hitos. */
+async function recoComputeSync(uid, logs, plans, mealsByDate) {
+  const pLogs = wkPrepareLogs(logs), pPlans = wkPreparePlans(plans);
+  const comp = milestonesCompute(pLogs, pPlans, mealsByDate || {}, todayISO());
+  const items = await recoSyncOwn(uid, comp.items);
+  RECO_LATEST = items.length ? items[items.length - 1] : null;
+  return { items, comp, pLogs, pPlans };
+}
 async function loadRecoCards(uid, logs, plans) {
   try {
     const msBox = $('milestones-box'), moBox = $('month-card-box');
     if (!msBox && !moBox) return;
-    const pLogs = wkPrepareLogs(logs), pPlans = wkPreparePlans(plans);
     let mealsByDate = {};
     try {
       const ms = await getDocs(query(collection(db, 'nutrition_meals'), where('ownerUid', '==', uid)));
@@ -35499,9 +35530,7 @@ async function loadRecoCards(uid, logs, plans) {
         if (v && v.date) (mealsByDate[v.date] = mealsByDate[v.date] || []).push(v);
       });
     } catch {}
-    const comp = milestonesCompute(pLogs, pPlans, mealsByDate, todayISO());
-    const items = await recoSyncOwn(uid, comp.items);
-    RECO_LATEST = items.length ? items[items.length - 1] : null;
+    const { items, comp, pLogs, pPlans } = await recoComputeSync(uid, logs, plans, mealsByDate);
     if (msBox) {
       msBox.innerHTML = milestonesCardHTML(items, { mine: true, next: recoNextHint(comp) });
       msBox.querySelectorAll('[data-ms-share]').forEach(b => {
@@ -35513,6 +35542,30 @@ async function loadRecoCards(uid, logs, plans) {
     }
     if (moBox) moBox.innerHTML = monthCardHTML(monthCardCompute(pLogs, pPlans, todayISO()));
   } catch {}
+}
+/* REINTENTO AL ARRANCAR LA SESIÓN (AUTH-2026-11-05-250): la
+   sincronía de hitos ya no espera a que el alumno abra Progreso.
+   Al final del arranque, planes, registros y comidas ya están en
+   memoria de los cargadores de siempre (MY_PLANS_ALL, MY_LOGS_ALL
+   y MEALS), así que no se repite ninguna de esas lecturas: solo
+   se lee la propia colección de hitos y se crea lo que falte. Si
+   el guardado falla (cuota, red), el hito queda con su señal
+   «pendiente de guardar» y el próximo arranque o la apertura de
+   Progreso lo reintentan. Protegida de punta a punta: jamás
+   tumba el arranque ni espera por él. */
+let RECO_STARTUP_RUNNING = false;
+async function recoStartupSync() {
+  if (RECO_STARTUP_RUNNING) return;
+  RECO_STARTUP_RUNNING = true;
+  try {
+    if (!auth.currentUser) return;
+    const uid = auth.currentUser.uid;
+    try { await libEnsure(); } catch {}
+    const plans = MY_PLANS_ALL || await fetchPlans(uid);
+    const logs = MY_LOGS_ALL || await fetchLogs(uid);
+    await recoComputeSync(uid, logs, plans, (typeof MEALS !== 'undefined' && MEALS) || {});
+  } catch {}
+  finally { RECO_STARTUP_RUNNING = false; }
 }
 
 async function loadProgress() {
@@ -38137,6 +38190,7 @@ let PEND_CFG = null;            // null = aún no cargado; {activated:false} = s
 let PEND_STATE = { marks: {} }; // marcas por ocasión (pospuesto/omitido/descartado)
 let PEND_UI = { configOpen: false, floatOpen: false, cfgDirty: false };
 let MY_PLAN = null, MY_LOGS = [], MY_LOGS_ALL = null;   // los rellena loadMyTraining(); MY_LOGS_ALL conserva la lectura COMPLETA (todos los planes) para el Historial de cargas de la ficha — es la misma única lectura de siempre, sin filtrar
+let MY_PLANS_ALL = null;   // lo rellena loadMyTraining(): TODOS los planes del cliente (la misma lectura fetchPlans de siempre, sin repetirla), para el reintento de hitos del arranque (AUTH-2026-11-05-250)
 
 const PEND_MEAL_NAMES = ['Desayuno', 'Almuerzo', 'Cena', 'Merienda', 'Snack'];
 /* Comidas «principales» (instrucción de Ronald, 2026-10-21): las
@@ -41062,7 +41116,7 @@ document.addEventListener('keydown', e => { if (e.key === 'Escape') shareClose()
  *  - El SW (sw.js) solo cachea la cáscara del mismo origen en modo
  *    RED PRIMERO: Auth/Firestore/Worker jamás pasan por la caché.
  * ================================================================ */
-const PWA_SW_VERSION = '20261105-cabecera-alineada';
+const PWA_SW_VERSION = '20261105-hitos-guardado';
 /* Sello de versión VISIBLE (2026-11-03): el pie de la tarjeta de
    acceso enseña qué copia corre este teléfono ('v ' + el sello),
    para comprobar de un vistazo si la versión nueva ya llegó.
