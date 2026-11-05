@@ -3675,6 +3675,11 @@ en: {
   'health.renewSpecConfirm': 'Renew your SPECIFIC consent? This lets you make a NEW declaration. Your previous declarations stay blocked and are NOT reactivated.',
   'health.renewedSpec': 'Your specific consent is renewed. You can now make a new declaration.',
   'health.declSaved': 'Your declaration has been saved.',
+  'health.renewOnChangeTitle': 'Your declaration changed — one more step',
+  'health.renewOnChangeBody': 'You changed the content of your health declaration. Your specific consent covers the declaration as you accepted it, so a change only takes effect with a fresh act: renew your specific consent and your change is saved in the same step. If you do not renew, nothing is saved and your current declaration stays exactly as it is.',
+  'health.renewOnChangeBtn': 'Renew and save',
+  'health.renewOnChangeLater': 'Not now',
+  'health.renewedAndSaved': 'Specific consent renewed and your declaration has been saved.',
   'health.withdrawnSpec': 'Your specific consent has been withdrawn. Your declarations are now blocked.',
   'health.specGranted': 'Your specific consent is recorded. You can now complete your declaration.',
   'health.fourActions': 'Four different actions: withdrawing your GENERAL consent (in Privacy & Data), withdrawing your SPECIFIC health consent (here), deleting your health answers (a separate request: ask your trainer), and deleting your account and all its data (in Privacy & Data). Each has different effects.',
@@ -7184,6 +7189,11 @@ es: {
   'health.renewSpecConfirm': '¿Renovar tu consentimiento ESPECÍFICO? Esto te permite hacer una declaración NUEVA. Tus declaraciones anteriores seguirán bloqueadas y NO se reactivarán.',
   'health.renewedSpec': 'Tu consentimiento específico está renovado. Ya puedes hacer una nueva declaración.',
   'health.declSaved': 'Tu declaración se ha guardado.',
+  'health.renewOnChangeTitle': 'Tu declaración cambió — falta un paso',
+  'health.renewOnChangeBody': 'Cambiaste el contenido de tu declaración de salud. Tu consentimiento específico cubre la declaración tal como la aceptaste, así que un cambio solo entra en vigor con un acto nuevo: renueva tu consentimiento específico y tu cambio se guarda en el mismo paso. Si no lo renuevas, no se guarda nada y tu declaración actual queda exactamente como está.',
+  'health.renewOnChangeBtn': 'Renovar y guardar',
+  'health.renewOnChangeLater': 'Ahora no',
+  'health.renewedAndSaved': 'Consentimiento específico renovado y tu declaración se ha guardado.',
   'health.withdrawnSpec': 'Tu consentimiento específico se ha retirado. Tus declaraciones están ahora bloqueadas.',
   'health.specGranted': 'Tu consentimiento específico ha quedado registrado. Ya puedes completar tu declaración.',
   'health.fourActions': 'Cuatro acciones diferentes: retirar tu consentimiento GENERAL (en Privacidad y datos), retirar tu consentimiento ESPECÍFICO de salud (aquí), eliminar tus respuestas de salud (una solicitud separada: pídelo a tu entrenador) y eliminar tu cuenta y todos sus datos (en Privacidad y datos). Cada una tiene efectos distintos.',
@@ -26011,6 +26021,43 @@ async function btRequestEstimate(uid, udata) {
   finally { const b = $('btn-bt-request'); if (b) { b.disabled = false; b.textContent = t('bt.request'); } }
 }
 
+/* (D-3/S-1, auditoría de bloqueos 2026-11-04): ¿cambió de VERDAD el
+   contenido frente a la declaración vigente? Las condiciones se
+   comparan como CONJUNTO (reordenar no es cambiar) y los detalles
+   como texto ya recortado en el guardado. Un guardado sin cambios
+   no pide nada. */
+function declContentChanged(act, conditions, details) {
+  const a = new Set((act && act.conditions) || []);
+  const b = new Set(conditions || []);
+  if (a.size !== b.size) return true;
+  for (const v of b) if (!a.has(v)) return true;
+  return String((act && act.details) || '') !== String(details || '');
+}
+/* El bloque de renovación se INYECTA en el formulario abierto, sin
+   repintar: lo tecleado por la alumna queda intacto en su sitio. El
+   texto legal junto a la casilla es EXACTAMENTE el del otorgamiento
+   (health.specText + health.specHelp), palabra por palabra. */
+function showDeclRenewBlock() {
+  const prev = $('decl-renew-block');
+  if (prev) { prev.scrollIntoView({ block: 'center' }); return; }
+  const saveBtn = $('btn-decl-save');
+  if (!saveBtn) return;
+  const div = document.createElement('div');
+  div.id = 'decl-renew-block';
+  div.className = 'decl-renew';
+  div.innerHTML = `<h4 class="health-stages-h">${t('health.renewOnChangeTitle')}</h4>
+    <p class="health-hint">${t('health.renewOnChangeBody')}</p>
+    <h4 class="history-title">${t('health.specFullTitle')}</h4>
+    <label class="consent-check"><input type="checkbox" id="decl-renew-ok"> <span>${t('health.specText')}<small class="consent-help" data-help-key="health.specHelp">${t('health.specHelp')}</small></span></label>
+    <div class="decl-renew-btns">
+      <button type="button" class="btn-primary btn-sm" id="btn-decl-renew-save">${t('health.renewOnChangeBtn')}</button>
+      <button type="button" class="btn-ghost btn-sm" id="btn-decl-renew-later">${t('health.renewOnChangeLater')}</button>
+    </div>`;
+  saveBtn.insertAdjacentElement('afterend', div);
+  $('btn-decl-renew-save').addEventListener('click', () => saveDeclaration());
+  $('btn-decl-renew-later').addEventListener('click', () => { const b = $('decl-renew-block'); if (b) b.remove(); });
+  div.scrollIntoView({ block: 'center' });
+}
 async function saveDeclaration() {
   if (!auth.currentUser || !specIsActive(UDATA)) { toast(t('health.needSpec'), true); return; }
   if (!$('h-truth') || !$('h-truth').checked) { toast(t('err.health'), true); return; }
@@ -26020,6 +26067,40 @@ async function saveDeclaration() {
   const uid = auth.currentUser.uid;
   try {
     const act = activeDecl();
+    /* (D-3/S-1): con declaración vigente y cambio REAL de contenido,
+       el guardado exige renovar el consentimiento específico ANTES
+       de que el cambio exista: la renovación y el contenido viajan
+       en UN SOLO lote (el mismo patrón con el que la retirada acopla
+       el bloqueo de la declaración) y el motor de metas corre solo
+       tras el commit — sin renovación no se escribe nada y la
+       declaración vigente queda como está: ninguna ventana en la
+       que un cambio con efecto de cálculo (§E) esté activo sin su
+       consentimiento renovado. */
+    if (act && declContentChanged(act, conditions, details)) {
+      const okBox = $('decl-renew-ok');
+      if (!okBox) { showDeclRenewBlock(); return; }
+      if (!okBox.checked) { toast(t('health.needSpec'), true); return; }
+      if (!(await consentOpsAllowed())) return;
+      const cur = await freshUserDoc(uid);
+      const prev = specOf(cur) || {};
+      const next = { status: 'accepted', version: SPEC_VERSION, acceptedAt: serverTimestamp() };
+      if (prev.withdrawnAt) next.withdrawnAt = prev.withdrawnAt; // el historial de retirada se conserva
+      const { batch, seq, rid } = consentBatch(uid, cur, { healthConsent: next }, 'specific-renewed', SPEC_VERSION);
+      const rpatch = { conditions, details, updatedAt: serverTimestamp() };
+      if (act.ppSymptoms && !conditions.includes('Posparto')) rpatch.ppSymptoms = deleteField();
+      batch.set(doc(declCol(uid), act.id), rpatch, { merge: true });
+      await batch.commit();
+      UDATA.consentSeq = seq; UDATA.consentReceiptId = rid;
+      UDATA.healthConsent = { status: 'accepted', version: SPEC_VERSION, acceptedAt: new Date(), ...(prev.withdrawnAt ? { withdrawnAt: prev.withdrawnAt } : {}) };
+      MY_DECLS = await fetchDeclarations(uid);
+      declLoadState = 'ok';
+      healthEditing = false;
+      toast(t('health.renewedAndSaved'));
+      renderHealthPanel();
+      try { await goalsEngineRun('health'); } catch {}
+      pendRefreshAfterSave();
+      return;
+    }
     if (act) {
       const patch = { conditions, details, updatedAt: serverTimestamp() };
       /* Frente 1 (N-2): la respuesta de síntomas pertenece a la
@@ -41942,7 +42023,7 @@ document.addEventListener('keydown', e => { if (e.key === 'Escape') shareClose()
  *  - El SW (sw.js) solo cachea la cáscara del mismo origen en modo
  *    RED PRIMERO: Auth/Firestore/Worker jamás pasan por la caché.
  * ================================================================ */
-const PWA_SW_VERSION = '20261105-tipo-corporal';
+const PWA_SW_VERSION = '20261105-decl-renueva';
 /* Sello de versión VISIBLE (2026-11-03): el pie de la tarjeta de
    acceso enseña qué copia corre este teléfono ('v ' + el sello),
    para comprobar de un vistazo si la versión nueva ya llegó.

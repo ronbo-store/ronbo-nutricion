@@ -302,6 +302,13 @@ table.whist { min-width: 640px; }
    bajo cada casilla del flujo de declaración de salud. Es ayuda
    visual auxiliar: nunca sustituye al texto legal junto a la casilla. */
 .consent-help { display: block; font-size: 12px; font-weight: 400; color: #64748b; line-height: 1.45; margin-top: 4px; }
+/* (D-3/S-1): bloque de renovación del consentimiento específico al
+   editar el contenido de la declaración — tarjeta visible de la
+   casa, borde de marca, botones grandes de un toque. */
+.decl-renew { margin-top: 14px; border: 2px solid #0d9488; border-radius: 12px; padding: 12px 14px; background: #f0fdfa; }
+.decl-renew .health-stages-h { margin-top: 0; }
+.decl-renew-btns { display: flex; gap: 10px; flex-wrap: wrap; margin-top: 12px; }
+.decl-renew-btns .btn-primary, .decl-renew-btns .btn-ghost { min-height: 44px; }
 .health-grid label { flex-wrap: wrap; }
 .health-grid .consent-help { flex: 0 0 100%; margin-left: 24px; margin-top: 0; }
 .modal textarea { width: 100%; margin-top: 4px; padding: 9px 11px; border: 1px solid #d1d5db; border-radius: 8px; font-size: 14px; font-family: inherit; resize: vertical; }
