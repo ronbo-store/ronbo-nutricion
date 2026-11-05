@@ -4469,6 +4469,33 @@ en: {
   'aiVoice.tooShort': 'Nothing was heard. Try again, speaking close to the microphone.',
   'aiVoice.banner': 'Draft from your voice note: check and edit the values before saving.',
   'aiVoice.savedNote': 'Your voice note was not saved.',
+  /* AYUDANTE QUE HABLA (AUTH-2026-11-05-249): los textos de la hoja
+     del entrenador virtual, tal cual las maquetas aprobadas. */
+  'asst.title': 'Your virtual trainer',
+  'asst.subtitle': 'Ask me about your day, out loud',
+  'asst.open': 'Talk to your virtual trainer',
+  'asst.pill': 'Talk to your virtual trainer',
+  'asst.who': 'YOUR VIRTUAL TRAINER',
+  'asst.greet': "Hi, {name}! I'm your virtual trainer. Ask me how you're doing today, what's on for training, or how your week is going — I'll answer out loud.",
+  'asst.greetNoName': "Hi! I'm your virtual trainer. Ask me how you're doing today, what's on for training, or how your week is going — I'll answer out loud.",
+  'asst.chip1': 'How am I doing today?',
+  'asst.chip2': "What's on today?",
+  'asst.chip3': "How's my week going?",
+  'asst.talk': 'Talk',
+  'asst.talkHint': 'Tap the button and talk to me',
+  'asst.listening': '● Listening…',
+  'asst.recHint': 'Speak calmly — tap “Done” when you finish',
+  'asst.cancel': 'Cancel',
+  'asst.done': '✓ Done',
+  'asst.thinking': 'Thinking…',
+  'asst.speaking': 'Speaking…',
+  'asst.silence': 'Mute her voice',
+  'asst.unmute': 'Voice muted — tap to hear her',
+  'asst.textPh': 'Or type your question…',
+  'asst.send': 'Send',
+  'asst.foot': 'Each question uses 1 of your AI uses · The conversation is not saved',
+  'asst.errGeneric': "I couldn't answer just now. Try again in a moment.",
+  'asst.errCap': "You've used up today's AI uses, so I can't answer right now. We can talk again tomorrow.",
   'aiMulti.title': 'Photos of this meal',
   'aiMulti.hint': 'They are photos of ONE single meal: the dish as served and each item weighed on your scale. You can remove or replace any photo before analyzing.',
   'aiMulti.add': '＋ Add another photo',
@@ -7887,6 +7914,33 @@ es: {
   'aiVoice.tooShort': 'No se escuchó nada. Inténtalo de nuevo, hablando cerca del micrófono.',
   'aiVoice.banner': 'Borrador de tu nota de voz: revisa y edita los valores antes de guardar.',
   'aiVoice.savedNote': 'Tu nota de voz no se guardó.',
+  /* AYUDANTE QUE HABLA (AUTH-2026-11-05-249): los textos de la hoja
+     del entrenador virtual, tal cual las maquetas aprobadas. */
+  'asst.title': 'Tu entrenador virtual',
+  'asst.subtitle': 'Pregúntame de tu día, en voz alta',
+  'asst.open': 'Habla con tu entrenador virtual',
+  'asst.pill': 'Habla con tu entrenador virtual',
+  'asst.who': 'TU ENTRENADOR VIRTUAL',
+  'asst.greet': '¡Hola, {name}! Soy tu entrenador virtual. Pregúntame cómo vas hoy, qué te toca entrenar o cómo va tu semana — te respondo hablando.',
+  'asst.greetNoName': '¡Hola! Soy tu entrenador virtual. Pregúntame cómo vas hoy, qué te toca entrenar o cómo va tu semana — te respondo hablando.',
+  'asst.chip1': '¿Cómo voy hoy?',
+  'asst.chip2': '¿Qué toca hoy?',
+  'asst.chip3': '¿Cómo va mi semana?',
+  'asst.talk': 'Hablar',
+  'asst.talkHint': 'Toca el botón y háblame',
+  'asst.listening': '● Te escucho…',
+  'asst.recHint': 'Habla con calma — toca «Ya está» al terminar',
+  'asst.cancel': 'Cancelar',
+  'asst.done': '✓ Ya está',
+  'asst.thinking': 'Pensando…',
+  'asst.speaking': 'Hablando…',
+  'asst.silence': 'Silenciar su voz',
+  'asst.unmute': 'Voz silenciada — toca para escucharla',
+  'asst.textPh': 'O escribe tu pregunta…',
+  'asst.send': 'Enviar',
+  'asst.foot': 'Cada pregunta usa 1 uso de tu IA · La conversación no se guarda',
+  'asst.errGeneric': 'No pude responder justo ahora. Inténtalo de nuevo en un momento.',
+  'asst.errCap': 'Ya usaste los usos de IA de hoy, así que ahora no puedo responder. Mañana hablamos de nuevo.',
   'aiMulti.title': 'Fotos de esta comida',
   'aiMulti.hint': 'Son fotos de UNA misma comida: el plato servido y cada alimento pesado en tu báscula. Puedes quitar o reemplazar cualquier foto antes de analizar.',
   'aiMulti.add': '＋ Añadir otra foto',
@@ -19944,6 +19998,13 @@ function applyAiControl() {
      cortes lo esconde. */
   const gateOff = (typeof mealsGateOff === 'function') ? mealsGateOff() : false;
   if (dock) dock.style.display = (off || gateOff) ? 'none' : '';
+  /* AYUDANTE QUE HABLA (AUTH-2026-11-05-249): el mismo corte del
+     interruptor esconde sus dos puertas — la pastilla de Inicio
+     aquí mismo y el disco de la pila vía asstFabSync (que repinta
+     según la pestaña vigente al reactivarse). */
+  const aPill = document.getElementById('btn-asst-pill');
+  if (aPill) aPill.style.display = off ? 'none' : '';
+  try { asstFabSync(); } catch {}
   /* Rediseño comida flotante (2026-10-24): con la IA apagada o la
      función de comidas cortada, las hojas flotantes de comida se
      cierran si estaban abiertas — mismo corte que el dock. */
@@ -23224,6 +23285,341 @@ async function voiceToggle(fromModal) {
 { const b = $('m-voice-btn'); if (b) b.onclick = () => voiceToggle(true); }
 { const b = $('fv-voice-btn'); if (b) b.onclick = () => voiceToggle(false); }
 
+/* ════════════════ AYUDANTE QUE HABLA — «TU ENTRENADOR VIRTUAL» ════════════════
+   (AUTH-2026-11-05-249; diseño DISENO-AYUDANTE-VOZ-2026-11-05 y sus
+   maquetas A/B/C, aprobados por Ronald el 2026-11-05 con su «3 si».)
+   Las tres decisiones del §8 del diseño, aplicadas con la opción
+   RECOMENDADA del propio diseño:
+   · 8.1 ALCANCE: el ayudante habla de TU día y TU semana (cómo vas
+     hoy, qué te falta, qué toca hoy, cómo fue tu semana), explica
+     los ejercicios de tu sesión y deriva al registro por voz de
+     siempre. NO escribe datos, NO cambia planes ni metas; de salud
+     no opina: deriva a tu entrenador y a un profesional de salud.
+     (Lo hace cumplir el prompt del Worker, no esta hoja.)
+   · 8.2 COSTE: 1 uso por turno dentro del MISMO pool de la IA —
+     la ruta /assistant del Worker pasa por la puerta, el
+     interruptor y el contador diario de siempre: sin aprobación o
+     fuera de tope no hay turno, como con un análisis.
+   · 8.3 VOZ: la del teléfono (speechSynthesis), gratis e inmediata,
+     en el idioma de la app; el botón «Silenciar su voz» de la hoja
+     la apaga solo en esta sesión.
+   Privacidad (guarda del diseño §3): el contexto se construye SOLO
+   desde la memoria de la sesión del propio alumno — la lista
+   cerrada: metas de hoy y su tipo de día, comidas de hoy con sus
+   totales, la sesión de hoy resuelta con el mismo mapa de la vista
+   de Entrenamiento, la semana en curso y la anterior con la racha,
+   y el último pesaje. NUNCA la declaración de salud ni nada sensible,
+   NUNCA datos de otra persona (un entrenador pregunta por SU día),
+   NUNCA correo, nombre completo ni identificadores (el nombre de
+   pila solo pinta el saludo local, no viaja). El historial vive
+   solo en esta hoja y muere con la sesión de la app; el audio viaja
+   solo dentro de la petición, como el dictado de comidas, y no se
+   guarda en ningún sitio. La grabación reusa la maquinaria de la
+   casa (voiceSupported/voicePickMime/VOICE_MAX_MS y los textos
+   aiVoice.* de micrófono denegado / no soportado / nada oído) con
+   su propio controlador, sin tocar el del registro de comida. */
+const ASST = { busy: false, muted: false, speaking: false, history: [] };
+let ASST_DATA = { loaded: false, loading: null, plan: null, logs: [] };
+const ASST_AVATAR_MINI = '<svg viewBox="0 0 48 48" width="17" height="17" fill="none" aria-hidden="true"><circle cx="24" cy="19" r="8.5" fill="#fff" opacity=".95"/><path d="M10 40c1.5-7 7-10.5 14-10.5S36.5 33 38 40" fill="#fff" opacity=".95"/><path d="M12.5 20a11.5 11.5 0 0 1 23 0" stroke="#fff" stroke-width="3" stroke-linecap="round"/><rect x="8.5" y="19" width="5" height="9" rx="2.5" fill="#fff"/><rect x="34.5" y="19" width="5" height="9" rx="2.5" fill="#fff"/><path d="M36.5 28v3a5 5 0 0 1-5 5H27" stroke="#fff" stroke-width="3" stroke-linecap="round"/><circle cx="25" cy="36" r="2" fill="#fff"/></svg>';
+/* Visibilidad del disco: la misma regla de la ayuda y el compartir
+   (solo con Inicio activo) MÁS el corte del interruptor de IA. Sin
+   argumento, repinta según la pestaña vigente (NAV_TAB) — así lo
+   llama applyAiControl cuando el interruptor cambia. */
+function asstFabSync(tabName) {
+  const f = $('btn-asst-fab'); if (!f) return;
+  const tab = tabName || (typeof NAV_TAB !== 'undefined' ? NAV_TAB : null);
+  const off = (typeof AI_CTRL !== 'undefined') && AI_CTRL.known && !AI_CTRL.enabled;
+  f.style.display = (tab === 'track' && !off) ? '' : 'none';
+}
+/* El plan y los registros del alumno: si Entrenamiento ya cargó,
+   manda su memoria viva (MY_PLAN/MY_LOGS); si no, se cargan UNA vez
+   por sesión de app al abrir la hoja (las mismas dos consultas de
+   loadMyTraining, ningún bucle de escucha) y se quedan en caché. */
+function asstPlanLogs() {
+  if (typeof MY_PLAN !== 'undefined' && MY_PLAN) return { plan: MY_PLAN, logs: Array.isArray(MY_LOGS) ? MY_LOGS : [] };
+  if (ASST_DATA.loaded) return { plan: ASST_DATA.plan, logs: ASST_DATA.logs };
+  return { plan: null, logs: [] };
+}
+function asstEnsureData() {
+  if ((typeof MY_PLAN !== 'undefined' && MY_PLAN) || ASST_DATA.loaded || ASST_DATA.loading) return;
+  if (typeof auth === 'undefined' || !auth || !auth.currentUser) return;
+  const uid = auth.currentUser.uid;
+  ASST_DATA.loading = (async () => {
+    try {
+      const plans = await fetchPlans(uid);
+      const plan = (plans || []).find(p => p.active === true) || null;
+      let logs = [];
+      if (plan) { const all = await fetchLogs(uid); logs = (all || []).filter(l => l.planId === plan.id); }
+      ASST_DATA = { loaded: true, loading: null, plan, logs };
+    } catch { ASST_DATA = { loaded: true, loading: null, plan: null, logs: [] }; }
+  })();
+}
+/* EL CONTEXTO (lista cerrada del diseño): solo memoria de la sesión
+   del propio alumno; lo que no está cargado NO se manda (el
+   ayudante dirá que no lo tiene, jamás lo inventa). El Worker lo
+   vuelve a validar campo a campo antes de entrar al prompt. */
+function asstContextBuild() {
+  const today = todayISO();
+  const ctx = { date: today };
+  try {
+    const det = goalsDayGoalsFor(today);
+    if (det && det.goals && Number(det.goals.kcal) > 0) {
+      ctx.goals = { kcal: det.goals.kcal, prot: det.goals.prot, carb: det.goals.carb, sugar: det.goals.azuc, fat: det.goals.gras };
+      ctx.dayType = det.dayLevel === 'exigente' ? 'demanding' : det.dayLevel === 'descanso' ? 'rest' : 'base';
+    }
+  } catch {}
+  try {
+    const list = (typeof MEALS !== 'undefined' && MEALS && MEALS[today]) || [];
+    if (list.length) {
+      const tot = { kcal: 0, prot: 0, carb: 0, sugar: 0, fat: 0 };
+      const groups = new Map();
+      for (const e of list) {
+        tot.kcal += +e.kcal || 0; tot.prot += +e.prot || 0; tot.carb += +e.carb || 0; tot.sugar += +e.sugar || 0; tot.fat += +e.fat || 0;
+        const key = e.meal || '';
+        if (!groups.has(key)) groups.set(key, { moment: mealName(key), items: [], kcal: 0 });
+        const g = groups.get(key);
+        if (e.food && g.items.length < 10) g.items.push(String(e.food));
+        g.kcal += +e.kcal || 0;
+      }
+      ctx.eaten = tot;
+      ctx.meals = [...groups.values()].slice(0, 6).map(g => ({ moment: g.moment, items: g.items, kcal: Math.round(g.kcal) }));
+    }
+  } catch {}
+  try {
+    const { plan, logs } = asstPlanLogs();
+    ctx.training = null;
+    if (plan && Array.isArray(plan.days) && plan.days.length) {
+      const cfg = (typeof PEND_CFG !== 'undefined' && PEND_CFG && !PEND_CFG.__error) ? PEND_CFG : null;
+      const tmap = trainDayMap(plan, cfg);
+      const diFor = iso => tmap.pairs ? tmap.pairs[new Date(iso + 'T12:00:00').getDay()] : (tmap.mode === 'plancal' ? planCalDayIndex(plan, iso) : null);
+      let di = diFor(today);
+      if (di == null && (tmap.pairs || tmap.mode === 'plancal')) { try { const b = trainBaseRead(plan.id); if (b && b.kind === 'brought' && Number.isInteger(b.di)) di = b.di; } catch {} }
+      if (di == null && tmap.mode === 'rotation') { try { const det2 = goalsDayLevelForDate(today, plan, cfg, (typeof LIB_BY_ID !== 'undefined' ? LIB_BY_ID : {})); if (det2 && Number.isInteger(det2.dayIndex)) di = det2.dayIndex; } catch {} }
+      const day = di != null ? (plan.days[di] || null) : null;
+      if (day) {
+        let exs = Array.isArray(day.exercises) ? day.exercises : [];
+        try { const eff = trainEffectiveList(plan, di); if (Array.isArray(eff) && eff.length) exs = eff.map(it => (it && it.ex) || it); } catch {}
+        ctx.training = {
+          label: day.label || ((LANG === 'es' ? 'Día ' : 'Day ') + (di + 1)),
+          trainedToday: (logs || []).some(l => l && l.date === today && wkIsClosed(l)),
+          exercises: exs.slice(0, 14).map(ex => ({ name: String((ex && ex.name) || ''), scheme: [ex && ex.sets, ex && ex.reps].filter(Boolean).join(' × ') })).filter(x => x.name)
+        };
+      }
+      const curMon = mondayISO(today);
+      const prevMon = addDaysISO(curMon, -7);
+      const cur = wkWeekMetrics(logs || [], curMon, true);
+      const prev = wkWeekMetrics(logs || [], prevMon, true);
+      ctx.week = { sessions: cur.sessions, prevSessions: prev.sessions, prevPlanned: wkPlannedDates([plan], prevMon, addDaysISO(prevMon, 6), today).length };
+      if (cur.minutesKnown) ctx.week.minutes = cur.minutes;
+      if (cur.volumeKg != null) ctx.week.volumeKg = cur.volumeKg;
+      try { ctx.week.streak = recoWeeks(logs || [], [plan], today).streakNow || 0; } catch {}
+    }
+  } catch {}
+  try {
+    const ws = (typeof WEIGHTS !== 'undefined' && Array.isArray(WEIGHTS)) ? WEIGHTS.filter(w => w && w.date && Number(w.weight) > 0) : [];
+    if (ws.length) { const last = ws.slice().sort((a, b) => String(a.date).localeCompare(String(b.date))).pop(); ctx.weight = { kg: Number(last.weight), date: String(last.date) }; }
+  } catch {}
+  return ctx;
+}
+/* ── Pintado de la conversación ── */
+function asstBubble(who, text, isErr) {
+  const log = $('asst-log'); if (!log) return;
+  const row = document.createElement('div');
+  if (who === 'me') {
+    row.className = 'asst-row me';
+    row.innerHTML = '<span class="asst-bub me"></span>';
+  } else {
+    row.className = 'asst-row';
+    row.innerHTML = `<div class="asst-who"><span class="asst-who-av">${ASST_AVATAR_MINI}</span><span class="asst-who-tx">${esc(t('asst.who'))}</span></div><span class="asst-bub bot${isErr ? ' err' : ''}"></span>`;
+  }
+  row.querySelector('.asst-bub').textContent = String(text == null ? '' : text);
+  log.appendChild(row);
+  const body = $('asst-body'); if (body) body.scrollTop = body.scrollHeight;
+}
+function asstOpen() {
+  const sh = $('asst-float'); if (!sh) return;
+  if (sh.style.display !== 'none') { asstClose(); return; }
+  sh.style.display = '';
+  asstEnsureData();
+  const log = $('asst-log');
+  if (log && !log.children.length) {
+    const nm = (typeof UDATA !== 'undefined' && UDATA && UDATA.name) ? String(UDATA.name).trim().split(/\s+/)[0] : '';
+    asstBubble('bot', nm ? t('asst.greet', { name: nm }) : t('asst.greetNoName'));
+  }
+  /* La voz del teléfono solo arranca tras un gesto del usuario en
+     iOS: esta apertura ES el gesto (calienta la lista de voces). */
+  try { if ('speechSynthesis' in window) window.speechSynthesis.getVoices(); } catch {}
+  try { asstSpeakPaint(ASST.speaking); } catch {}
+}
+function asstClose() {
+  const sh = $('asst-float'); if (sh) sh.style.display = 'none';
+  if (ASST_REC.rec) asstRecFinish(false);
+  asstStopSpeak();
+}
+/* ── La voz del teléfono (fase 1) ── */
+function asstSpeakPaint(on) {
+  ASST.speaking = !!on;
+  const row = $('asst-speaking'); if (row) row.style.display = on ? '' : 'none';
+  const btn = $('asst-silence'); if (btn) btn.textContent = t(ASST.muted ? 'asst.unmute' : 'asst.silence');
+}
+function asstSpeak(text) {
+  if (ASST.muted || !text) return;
+  try {
+    if (!('speechSynthesis' in window)) return;
+    const syn = window.speechSynthesis;
+    syn.cancel();
+    const u = new SpeechSynthesisUtterance(String(text).slice(0, 1500));
+    const want = LANG === 'es' ? 'es' : 'en';
+    try { const vs = syn.getVoices() || []; const v = vs.find(x => (x.lang || '').toLowerCase().startsWith(want)); if (v) u.voice = v; } catch {}
+    u.lang = LANG === 'es' ? 'es-ES' : 'en-US';
+    u.onend = () => asstSpeakPaint(false);
+    u.onerror = () => asstSpeakPaint(false);
+    syn.speak(u);
+    asstSpeakPaint(true);
+  } catch { asstSpeakPaint(false); }
+}
+function asstStopSpeak() {
+  try { if ('speechSynthesis' in window) window.speechSynthesis.cancel(); } catch {}
+  asstSpeakPaint(false);
+}
+/* ── Grabación propia de la hoja (espejo del dictado de comidas) ── */
+const ASST_REC = { rec: null, stream: null, chunks: [], startedAt: 0, timer: null, tick: null, discard: false };
+function asstRecStopTracks() { if (ASST_REC.stream) { ASST_REC.stream.getTracks().forEach(tr => { try { tr.stop(); } catch {} }); ASST_REC.stream = null; } }
+function asstRecClearTimers() { if (ASST_REC.timer) { clearTimeout(ASST_REC.timer); ASST_REC.timer = null; } if (ASST_REC.tick) { clearInterval(ASST_REC.tick); ASST_REC.tick = null; } }
+function asstRecPaint(state) {
+  const btn = $('asst-talk'); if (!btn) return;
+  btn.classList.toggle('rec', state === 'rec');
+  btn.disabled = (state === 'busy');
+  const lbl = $('asst-talk-label'), hint = $('asst-talk-hint'), tim = $('asst-timer'), row = $('asst-rec-row');
+  if (state === 'rec') {
+    if (lbl) lbl.textContent = t('asst.listening');
+    if (hint) hint.textContent = t('asst.recHint');
+    if (tim) tim.style.display = '';
+    if (row) row.style.display = '';
+  } else if (state === 'busy') {
+    if (lbl) lbl.textContent = t('asst.thinking');
+    if (hint) hint.textContent = '';
+    if (tim) tim.style.display = 'none';
+    if (row) row.style.display = 'none';
+  } else {
+    if (lbl) lbl.textContent = t('asst.talk');
+    if (hint) hint.textContent = t('asst.talkHint');
+    if (tim) tim.style.display = 'none';
+    if (row) row.style.display = 'none';
+  }
+}
+function asstRecAnimate(stream) {
+  try {
+    const AC = window.AudioContext || window.webkitAudioContext; if (!AC || !stream) return;
+    const ac = new AC();
+    const an = ac.createAnalyser(); an.fftSize = 64;
+    ac.createMediaStreamSource(stream).connect(an);
+    const bars = document.querySelectorAll('#asst-float .asst-bars i');
+    const data = new Uint8Array(an.frequencyBinCount);
+    const loop = () => {
+      if (!ASST_REC.rec || ASST_REC.rec.state !== 'recording') { try { ac.close(); } catch {} return; }
+      an.getByteFrequencyData(data);
+      bars.forEach((b, i) => { const v = data[2 + i * 3] / 255; b.style.height = (8 + v * 34) + 'px'; });
+      requestAnimationFrame(loop);
+    };
+    loop();
+  } catch {}
+}
+async function asstTalkTap() {
+  if (ASST.busy) return;
+  if (ASST_REC.rec && ASST_REC.rec.state === 'recording') { asstRecFinish(true); return; }
+  if (!voiceSupported()) { toast(t('aiVoice.unsupported'), true); return; }
+  asstStopSpeak();
+  let stream;
+  try { stream = await navigator.mediaDevices.getUserMedia({ audio: true }); }
+  catch { toast(t('aiVoice.denied'), true); return; }
+  ASST_REC.stream = stream; ASST_REC.chunks = []; ASST_REC.discard = false;
+  const mt = voicePickMime();
+  let rec;
+  try { rec = mt ? new MediaRecorder(stream, { mimeType: mt }) : new MediaRecorder(stream); }
+  catch { asstRecStopTracks(); toast(t('aiVoice.unsupported'), true); return; }
+  ASST_REC.rec = rec;
+  rec.ondataavailable = e => { if (e.data && e.data.size) ASST_REC.chunks.push(e.data); };
+  rec.onstop = () => {
+    asstRecClearTimers(); asstRecStopTracks();
+    const wasDiscard = ASST_REC.discard; ASST_REC.rec = null;
+    if (wasDiscard) { asstRecPaint('idle'); return; }
+    const blob = new Blob(ASST_REC.chunks, { type: rec.mimeType || (ASST_REC.chunks[0] && ASST_REC.chunks[0].type) || 'audio/mp4' });
+    if (!blob.size || Date.now() - ASST_REC.startedAt < 500) { asstRecPaint('idle'); toast(t('aiVoice.tooShort'), true); return; }
+    const rd = new FileReader();
+    rd.onload = () => {
+      const dataUrl = String(rd.result || '');
+      if (!dataUrl.startsWith('data:')) { asstRecPaint('idle'); toast(t('aiVoice.unsupported'), true); return; }
+      asstSend({ audioDataUrl: dataUrl });
+    };
+    rd.onerror = () => { asstRecPaint('idle'); toast(t('aiVoice.unsupported'), true); };
+    rd.readAsDataURL(blob);
+  };
+  ASST_REC.startedAt = Date.now();
+  try { rec.start(250); } catch { asstRecStopTracks(); ASST_REC.rec = null; toast(t('aiVoice.unsupported'), true); return; }
+  asstRecPaint('rec');
+  asstRecAnimate(stream);
+  const tim = $('asst-timer'); if (tim) tim.textContent = '0:00';
+  ASST_REC.tick = setInterval(() => { const el = $('asst-timer'); if (el) { const s = Math.floor((Date.now() - ASST_REC.startedAt) / 1000); el.textContent = Math.floor(s / 60) + ':' + String(s % 60).padStart(2, '0'); } }, 250);
+  ASST_REC.timer = setTimeout(() => { if (ASST_REC.rec && ASST_REC.rec.state === 'recording') asstRecFinish(true); }, VOICE_MAX_MS);
+}
+function asstRecFinish(send) {
+  if (!ASST_REC.rec) return;
+  ASST_REC.discard = !send;
+  if (send) asstRecPaint('busy');
+  else asstRecPaint('idle');
+  try { ASST_REC.rec.stop(); } catch { asstRecClearTimers(); asstRecStopTracks(); ASST_REC.rec = null; asstRecPaint('idle'); }
+}
+/* ── El turno: un POST /assistant = 1 uso (la puerta y el contador
+   del Worker mandan; aiCall traduce sus errores a los de la casa) ── */
+async function asstSend(payload) {
+  if (ASST.busy) return;
+  if (!aiEndpoint()) { toast(t('ai.unavailable'), true); return; }
+  ASST.busy = true;
+  asstStopSpeak();
+  asstRecPaint('busy');
+  const chips = $('asst-chips'); if (chips) chips.style.display = 'none';
+  try {
+    const body = { lang: LANG, context: asstContextBuild(), history: ASST.history.slice(-8) };
+    if (payload.text) body.text = payload.text; else body.audioDataUrl = payload.audioDataUrl;
+    const out = await aiCall('/assistant', body);
+    const transcript = (typeof out.transcript === 'string' && out.transcript) ? out.transcript : (payload.text || '');
+    if (transcript) asstBubble('me', transcript);
+    asstBubble('bot', String(out.answer || ''));
+    if (transcript) ASST.history.push({ role: 'user', text: transcript.slice(0, 700) });
+    ASST.history.push({ role: 'assistant', text: String(out.answer || '').slice(0, 700) });
+    if (ASST.history.length > 16) ASST.history = ASST.history.slice(-16);
+    asstSpeak((typeof out.say === 'string' && out.say) ? out.say : String(out.answer || ''));
+  } catch (e) {
+    const msg = e && e.message;
+    if (payload.text) asstBubble('me', payload.text);
+    if (msg === 'ai-cap') asstBubble('bot', t('asst.errCap'), true);
+    else if (msg === 'ai-disabled') asstBubble('bot', t('ai.disabledByAdmin'), true);
+    else if (msg === 'ai-door-unavailable') asstBubble('bot', t('ai.doorUnavailable'), true);
+    else asstBubble('bot', t('asst.errGeneric'), true);
+  } finally {
+    ASST.busy = false;
+    if (!(ASST_REC.rec && ASST_REC.rec.state === 'recording')) asstRecPaint('idle');
+  }
+}
+function asstSendText() {
+  const inp = $('asst-text'); if (!inp) return;
+  const text = (inp.value || '').trim();
+  if (!text || ASST.busy) return;
+  inp.value = '';
+  asstSend({ text });
+}
+{ const b = $('btn-asst-fab'); if (b) b.onclick = () => asstOpen(); }
+{ const b = $('btn-asst-pill'); if (b) b.onclick = () => asstOpen(); }
+{ const b = $('asst-x'); if (b) b.onclick = () => asstClose(); }
+{ const b = $('asst-talk'); if (b) b.onclick = () => asstTalkTap(); }
+{ const b = $('asst-rec-done'); if (b) b.onclick = () => asstRecFinish(true); }
+{ const b = $('asst-rec-cancel'); if (b) b.onclick = () => asstRecFinish(false); }
+{ const b = $('asst-send'); if (b) b.onclick = () => asstSendText(); }
+{ const i = $('asst-text'); if (i) i.addEventListener('keydown', e => { if (e.key === 'Enter') { e.preventDefault(); asstSendText(); } }); }
+{ const b = $('asst-silence'); if (b) b.onclick = () => { ASST.muted = !ASST.muted; if (ASST.muted) asstStopSpeak(); asstSpeakPaint(ASST.speaking); }; }
+document.querySelectorAll('[data-asst-chip]').forEach(ch => { ch.onclick = () => { const k = 'asst.chip' + ch.getAttribute('data-asst-chip'); if (!ASST.busy) asstSend({ text: t(k) }); }; });
+
 /* Apertura del modal de comida con enfoque visible en el formulario. */
 function aiOpenMealModal() {
   /* Roles+Escalabilidad: sin la función de comidas activa (solicitud
@@ -23925,7 +24321,7 @@ function coverApply(cover) { // (re)aplica los inert para la tapa dada
      página o lámina: es la vía de compartir / ayuda / cronómetro /
      llamita de esa página. Bajo cualquier otra tapa (Entrenamiento,
      láminas, modales) los discos quedan inertes, como hasta hoy. */
-  if (cover.id === 'progress-content') for (const id of ['btn-share-fab', 'btn-help', 'btn-stopwatch', 'act-flame']) { const el = document.getElementById(id); if (el) COVER_ALIVE.add(el); }
+  if (cover.id === 'progress-content') for (const id of ['btn-share-fab', 'btn-help', 'btn-stopwatch', 'act-flame', 'btn-asst-fab']) { const el = document.getElementById(id); if (el) COVER_ALIVE.add(el); }
   const dock = document.querySelector('.actions-dock');
   coverWalk(document.body, cover, coverIsSoft(cover) ? dock : null);
 }
@@ -33295,6 +33691,7 @@ function switchTab(name) {
   if (name === 'comms') { try { renderComms().catch(() => {}); } catch {} }
   try { helpFabSync(name); } catch {}
   try { swFabSync(name); } catch {}
+  try { asstFabSync(name); } catch {}
   try { goalsCardSync(name); } catch {}
   try { weightCardSync(name); } catch {}
   const __navY = NAV_PILL_SCROLL[name];
@@ -41116,7 +41513,7 @@ document.addEventListener('keydown', e => { if (e.key === 'Escape') shareClose()
  *  - El SW (sw.js) solo cachea la cáscara del mismo origen en modo
  *    RED PRIMERO: Auth/Firestore/Worker jamás pasan por la caché.
  * ================================================================ */
-const PWA_SW_VERSION = '20261105-hitos-guardado';
+const PWA_SW_VERSION = '20261105-ayudante-voz';
 /* Sello de versión VISIBLE (2026-11-03): el pie de la tarjeta de
    acceso enseña qué copia corre este teléfono ('v ' + el sello),
    para comprobar de un vistazo si la versión nueva ya llegó.

@@ -21,7 +21,7 @@
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-title" content="RONBO FIT">
 <meta name="apple-mobile-web-app-status-bar-style" content="default">
-<link rel="stylesheet" href="styles.css?v=20261105-hitos-guardado">
+<link rel="stylesheet" href="styles.css?v=20261105-ayudante-voz">
 <script defer src="https://cloud.umami.is/script.js" data-website-id="a29706d4-44a2-47cf-900a-5f74d74abfa8"></script>
 <script type="importmap">
 {
@@ -339,6 +339,15 @@
        de trazo 1.8 de la casa (antes: flecha saliendo de una
        bandeja, que se leía «subir/exportar»). -->
   <button type="button" class="share-fab" id="btn-share-fab" style="display:none" aria-label="Share your progress" data-i18n-aria="share.title"><svg class="share-fab-ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/><path d="M8.59 13.51L15.42 17.49"/><path d="M15.41 6.51L8.59 10.49"/></svg></button>
+  <!-- Botón flotante del AYUDANTE QUE HABLA (AUTH-2026-11-05-249;
+       diseño aprobado por Ronald el 2026-11-05 «3 si»): disco gemelo
+       de la pila (58×58), el de MÁS ARRIBA (+288 sobre la base de la
+       llamita: cronómetro +72, ayuda +144, compartir +216). Abre la
+       hoja #asst-float del entrenador virtual. Su visibilidad la
+       manda asstFabSync con la misma regla de la pestaña Registro
+       que la ayuda y el compartir, y el corte del interruptor de IA
+       (applyAiControl). -->
+  <button type="button" class="asst-fab" id="btn-asst-fab" style="display:none" aria-label="Talk to your virtual trainer" data-i18n-aria="asst.open"><svg viewBox="0 0 48 48" width="32" height="32" fill="none" aria-hidden="true"><circle cx="24" cy="19" r="8.5" fill="#fff" opacity=".95"/><path d="M10 40c1.5-7 7-10.5 14-10.5S36.5 33 38 40" fill="#fff" opacity=".95"/><path d="M12.5 20a11.5 11.5 0 0 1 23 0" stroke="#fff" stroke-width="3" stroke-linecap="round"/><rect x="8.5" y="19" width="5" height="9" rx="2.5" fill="#fff"/><rect x="34.5" y="19" width="5" height="9" rx="2.5" fill="#fff"/><path d="M36.5 28v3a5 5 0 0 1-5 5H27" stroke="#fff" stroke-width="3" stroke-linecap="round"/><circle cx="25" cy="36" r="2" fill="#fff"/></svg></button>
 
   <div class="tab-pane" id="tab-track">
   <!-- Mapa de pendientes por rol (2026-10-24): tarjeta-resumen en la
@@ -350,6 +359,16 @@
        guardarse; lo pinta aiDraftNoticeSync (texto por i18n
        aiDraft.*) y su botón abre el borrador en su hoja. -->
   <div id="ai-draft-notice" class="ai-draft-notice" style="display:none"></div>
+  <!-- Pastilla ancha del AYUDANTE QUE HABLA en Inicio
+       (AUTH-2026-11-05-249): la segunda puerta de la hoja del
+       entrenador virtual, bien visible al abrir la app; el
+       interruptor de IA apagado la esconde (applyAiControl), como
+       el disco de la pila. -->
+  <button type="button" class="asst-pill" id="btn-asst-pill">
+    <span class="asst-pill-av" aria-hidden="true"><svg viewBox="0 0 48 48" width="30" height="30" fill="none"><circle cx="24" cy="19" r="8.5" fill="#fff" opacity=".95"/><path d="M10 40c1.5-7 7-10.5 14-10.5S36.5 33 38 40" fill="#fff" opacity=".95"/><path d="M12.5 20a11.5 11.5 0 0 1 23 0" stroke="#fff" stroke-width="3" stroke-linecap="round"/><rect x="8.5" y="19" width="5" height="9" rx="2.5" fill="#fff"/><rect x="34.5" y="19" width="5" height="9" rx="2.5" fill="#fff"/><path d="M36.5 28v3a5 5 0 0 1-5 5H27" stroke="#fff" stroke-width="3" stroke-linecap="round"/><circle cx="25" cy="36" r="2" fill="#fff"/></svg></span>
+    <span class="asst-pill-tx" data-i18n="asst.pill">Talk to your virtual trainer</span>
+    <span class="asst-pill-ch" aria-hidden="true">›</span>
+  </button>
   <!-- FECHA ÚNICA DE COMIDA (AUTH-2026-10-31-115): el selector de
        fecha (#dateSel) se MUDÓ a la ventana flotante de Comida
        (#food-float), junto a los anillos y el diario que gobierna:
@@ -743,6 +762,56 @@
       <button type="button" class="pend-close" id="btn-gmi-close" aria-label="Close" data-i18n-aria="client.close">✕</button>
     </div>
     <div id="gmi-body"></div>
+  </div>
+  <!-- Hoja flotante del AYUDANTE QUE HABLA (AUTH-2026-11-05-249;
+       maquetas aprobadas maqueta-a/b/c): la personita con su
+       conversación — saludo con su nombre, burbujas con lo que la IA
+       oyó escrito tal cual, botón GIGANTE de hablar (112 px, pensado
+       para usar entrenando), fila de texto como vía completa
+       alternativa y el pie honesto de coste y no-guardado. La lógica
+       vive en el módulo ASST de app.js; la conversación no sale del
+       teléfono (solo viaja por turno al Worker, ruta /assistant). -->
+  <div class="act-float act-sheet asst-sheet" id="asst-float" style="display:none" role="dialog" aria-label="Your virtual trainer" data-i18n-aria="asst.title">
+    <div class="asst-head">
+      <div class="asst-avatar" aria-hidden="true"><svg viewBox="0 0 48 48" width="34" height="34" fill="none"><circle cx="24" cy="19" r="8.5" fill="#fff" opacity=".95"/><path d="M10 40c1.5-7 7-10.5 14-10.5S36.5 33 38 40" fill="#fff" opacity=".95"/><path d="M12.5 20a11.5 11.5 0 0 1 23 0" stroke="#fff" stroke-width="3" stroke-linecap="round"/><rect x="8.5" y="19" width="5" height="9" rx="2.5" fill="#fff"/><rect x="34.5" y="19" width="5" height="9" rx="2.5" fill="#fff"/><path d="M36.5 28v3a5 5 0 0 1-5 5H27" stroke="#fff" stroke-width="3" stroke-linecap="round"/><circle cx="25" cy="36" r="2" fill="#fff"/></svg></div>
+      <div class="asst-head-tx">
+        <div class="asst-title" data-i18n="asst.title">Your virtual trainer</div>
+        <div class="asst-sub" data-i18n="asst.subtitle">Ask me about your day, out loud</div>
+      </div>
+      <button type="button" class="asst-x" id="asst-x" aria-label="Close" data-i18n-aria="client.close">✕</button>
+    </div>
+    <div class="asst-body" id="asst-body">
+      <div id="asst-log"></div>
+      <div class="asst-chips" id="asst-chips">
+        <button type="button" class="asst-chip" data-asst-chip="1" data-i18n="asst.chip1">How am I doing today?</button>
+        <button type="button" class="asst-chip" data-asst-chip="2" data-i18n="asst.chip2">What's on today?</button>
+        <button type="button" class="asst-chip" data-asst-chip="3" data-i18n="asst.chip3">How's my week going?</button>
+      </div>
+    </div>
+    <div class="asst-speaking" id="asst-speaking" style="display:none">
+      <span class="asst-eq" aria-hidden="true"><i></i><i></i><i></i><i></i><i></i></span>
+      <span class="asst-speaking-tx" data-i18n="asst.speaking">Speaking…</span>
+      <button type="button" class="asst-silence" id="asst-silence" data-i18n="asst.silence">Mute her voice</button>
+    </div>
+    <div class="asst-talk">
+      <button type="button" class="asst-bigtalk" id="asst-talk" aria-label="Talk" data-i18n-aria="asst.talk">
+        <span class="asst-ring" aria-hidden="true"></span><span class="asst-ring2" aria-hidden="true"></span>
+        <span class="asst-mic" aria-hidden="true"><svg viewBox="0 0 24 24" width="46" height="46" fill="none" stroke="#fff" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="2.5" width="6" height="11" rx="3" fill="#fff" stroke="none"/><path d="M5.5 11.5a6.5 6.5 0 0 0 13 0"/><path d="M12 18v3.2"/></svg></span>
+        <span class="asst-bars" aria-hidden="true"><i></i><i></i><i></i><i></i><i></i></span>
+      </button>
+      <div class="asst-timer" id="asst-timer" style="display:none">0:00</div>
+      <div class="asst-talklabel" id="asst-talk-label" data-i18n="asst.talk">Talk</div>
+      <div class="asst-talkhint" id="asst-talk-hint" data-i18n="asst.talkHint">Tap the button and talk to me</div>
+      <div class="asst-recrow" id="asst-rec-row" style="display:none">
+        <button type="button" class="asst-pillbtn ghost" id="asst-rec-cancel" data-i18n="asst.cancel">Cancel</button>
+        <button type="button" class="asst-pillbtn solid" id="asst-rec-done" data-i18n="asst.done">✓ Done</button>
+      </div>
+    </div>
+    <div class="asst-textrow">
+      <input type="text" id="asst-text" data-i18n-ph="asst.textPh" placeholder="Or type your question…" autocomplete="off" maxlength="600">
+      <button type="button" class="asst-send" id="asst-send" aria-label="Send" data-i18n-aria="asst.send"><svg viewBox="0 0 24 24" width="21" height="21" fill="none" aria-hidden="true"><path d="M4.5 19.5L20 12L4.5 4.5L7 10L13.5 12L7 14Z" fill="#fff"/></svg></button>
+    </div>
+    <div class="asst-foot" data-i18n="asst.foot">Each question uses 1 of your AI uses · The conversation is not saved</div>
   </div>
   <!-- Panel de AYUDA / FAQ (paquete 2026-10-28): hoja inferior con
        los 7 bloques plegables en acordeón; el contenido lo pinta
@@ -1891,6 +1960,6 @@
 <div id="toast" class="toast"></div>
 <div id="print-card" aria-hidden="true"></div>
 
-<script type="module" src="app.js?v=20261105-hitos-guardado"></script>
+<script type="module" src="app.js?v=20261105-ayudante-voz"></script>
 </body>
 </html>
