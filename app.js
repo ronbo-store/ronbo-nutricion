@@ -7,8 +7,8 @@ import {
 } from "firebase/auth";
 import {
   getFirestore, initializeFirestore, persistentLocalCache, persistentMultipleTabManager, CACHE_SIZE_UNLIMITED,
-  doc, getDoc, getDocFromServer, collection, getDocs, getDocsFromServer, addDoc,
-  setDoc, updateDoc, deleteDoc, deleteField, serverTimestamp, Timestamp, query, where, limit, writeBatch, onSnapshot,
+  doc, getDoc as _fsGetDoc, getDocFromServer as _fsGetDocFromServer, collection, getDocs as _fsGetDocs, getDocsFromServer as _fsGetDocsFromServer, addDoc,
+  setDoc, updateDoc, deleteDoc, deleteField, serverTimestamp, Timestamp, query, where, limit, writeBatch, onSnapshot as _fsOnSnapshot,
 } from "firebase/firestore";
 import {
   getStorage, ref as sRef, uploadBytes, getDownloadURL, deleteObject,
@@ -57,6 +57,134 @@ try {
   db = getFirestore(app);
 }
 const storage = getStorage(app);
+
+/* ════════════════════════════════════════════════════════════════════
+   BANDA C DEL PANEL DE CONSUMO (AUTH-2026-11-05-252, punto 164):
+   la app cuenta, POR SECCIÓN, los documentos que recibe — del
+   servidor (los que cuestan cupo) y de la caché local (coste cero,
+   el efecto visible de AUTH-238) — y los reporta al Worker
+   (POST /usage-report) como ESTIMACIÓN declarada: es la mejor
+   aproximación cliente del coste, nunca una cifra oficial.
+   Instrumentación SIN tocar los ~150 sitios de lectura: las
+   funciones de lectura de Firestore se importan con alias _fs* y
+   estos envoltorios con su nombre de siempre cuentan cada resultado
+   segun su origen (metadata.fromCache). La sección la fija ucWith()
+   alrededor de cada cargador (loadAll y los suyos); lo no envuelto
+   cae en «otros» y el arranque sin envolver en «arranque». Como los
+   cargadores del arranque corren en paralelo, una lectura tardía de
+   un cargador puede atribuirse a la sección de otro: ese margen es
+   parte de la estimación y va declarado.
+   El acumulado vive en memoria y en localStorage (sobrevive a un
+   cierre brusco) y se reporta COMO MUCHO 1 vez por sesión y 1 por
+   hora, al ocultarse/cerrar la app y al cambiar de pestaña con
+   acumulado pendiente. Coste: cero lecturas/escrituras de Firestore
+   (el reporte va a KV del Worker). ════════════════════════════════════ */
+const UC_SECTIONS = ['arranque', 'inicio', 'comida', 'entrenamiento', 'progreso', 'otros'];
+const UC_LS_KEY = 'ronbofit-uc-v1';
+let UC_SECTION = 'otros';
+let UC_DIRTY = false;
+let UC_LAST_REPORT = 0;
+function ucToday() {
+  const d = new Date();
+  return d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0') + '-' + String(d.getDate()).padStart(2, '0');
+}
+function ucAccBlank() {
+  const o = { date: ucToday(), uid: '', sections: {}, sessions: 0 };
+  for (const s of UC_SECTIONS) o.sections[s] = { server: 0, cache: 0 };
+  return o;
+}
+let UC_ACC = (() => {
+  try {
+    const j = JSON.parse(localStorage.getItem(UC_LS_KEY) || 'null');
+    if (j && j.date === ucToday() && j.sections) {
+      const b = ucAccBlank();
+      for (const s of UC_SECTIONS) { const v = j.sections[s] || {}; b.sections[s] = { server: +v.server || 0, cache: +v.cache || 0 }; }
+      b.sessions = +j.sessions || 0; b.uid = j.uid || '';
+      return b;
+    }
+  } catch {}
+  return ucAccBlank();
+})();
+function ucAccSave() { try { localStorage.setItem(UC_LS_KEY, JSON.stringify(UC_ACC)); } catch {} }
+function ucRollover() {
+  if (UC_ACC.date !== ucToday()) { UC_ACC = ucAccBlank(); UC_DIRTY = false; ucAccSave(); }
+  const uid = (auth.currentUser && auth.currentUser.uid) || '';
+  if (uid && UC_ACC.uid && UC_ACC.uid !== uid) { UC_ACC = ucAccBlank(); UC_DIRTY = false; }
+  if (uid) UC_ACC.uid = uid;
+}
+function ucCount(server, cache) {
+  if (!server && !cache) return;
+  ucRollover();
+  const s = UC_SECTIONS.includes(UC_SECTION) ? UC_SECTION : 'otros';
+  UC_ACC.sections[s].server += server || 0;
+  UC_ACC.sections[s].cache += cache || 0;
+  UC_DIRTY = true;
+  ucAccSave();
+}
+async function ucWith(section, promise) {
+  const prev = UC_SECTION;
+  UC_SECTION = section;
+  try { return await promise; } finally { UC_SECTION = prev; }
+}
+function ucSnapCount(snap) {
+  if (!snap) return;
+  const fromCache = !!(snap.metadata && snap.metadata.fromCache);
+  const n = typeof snap.size === 'number' ? snap.size : ((snap.exists && snap.exists()) ? 1 : 0);
+  if (fromCache) ucCount(0, n); else ucCount(n, 0);
+}
+function ucSnapChanges(snap) {
+  if (!snap || (snap.metadata && snap.metadata.fromCache)) return;
+  if (typeof snap.docChanges === 'function') {
+    ucCount(snap.docChanges().filter(c => c.type === 'added' || c.type === 'modified').length, 0);
+  } else if (snap.exists && snap.exists()) ucCount(1, 0);
+}
+const getDoc = (...a) => _fsGetDoc(...a).then(s => { ucSnapCount(s); return s; });
+const getDocFromServer = (...a) => _fsGetDocFromServer(...a).then(s => { ucCount(1, 0); return s; });
+const getDocs = (...a) => _fsGetDocs(...a).then(s => { ucSnapCount(s); return s; });
+const getDocsFromServer = (...a) => _fsGetDocsFromServer(...a).then(s => { ucCount(typeof s.size === 'number' ? s.size : 0, 0); return s; });
+const onSnapshot = (...a) => {
+  const lastI = a.length - 1;
+  if (typeof a[lastI] === 'function') {
+    const cb = a[lastI];
+    a[lastI] = (snap) => { try { ucSnapChanges(snap); } catch {} return cb(snap); };
+  } else if (a[1] && typeof a[1] === 'object' && typeof a[1].next === 'function') {
+    const ob = a[1]; const nx = ob.next.bind(ob);
+    a[1] = Object.assign({}, ob, { next: (snap) => { try { ucSnapChanges(snap); } catch {} return nx(snap); } });
+  }
+  return _fsOnSnapshot(...a);
+};
+async function ucMaybeReport() {
+  try {
+    ucRollover();
+    if (!UC_DIRTY) return;
+    const now = Date.now();
+    if (UC_LAST_REPORT && now - UC_LAST_REPORT < 3600 * 1000) return;
+    const u = auth.currentUser;
+    if (!u) return;
+    const ep = (typeof aiEndpoint === 'function') ? aiEndpoint() : '';
+    if (!ep) return;
+    const sent = JSON.parse(JSON.stringify(UC_ACC.sections));
+    const firstOfSession = !UC_LAST_REPORT;
+    const idToken = await u.getIdToken();
+    const r = await fetch(ep + '/usage-report', {
+      method: 'POST', keepalive: true,
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ idToken, sections: sent, sessions: firstOfSession ? 1 : 0 })
+    });
+    if (!r.ok) return;
+    UC_LAST_REPORT = now;
+    for (const s of UC_SECTIONS) {
+      UC_ACC.sections[s].server = Math.max(0, UC_ACC.sections[s].server - (sent[s] ? sent[s].server : 0));
+      UC_ACC.sections[s].cache = Math.max(0, UC_ACC.sections[s].cache - (sent[s] ? sent[s].cache : 0));
+    }
+    UC_DIRTY = UC_SECTIONS.some(s => UC_ACC.sections[s].server > 0 || UC_ACC.sections[s].cache > 0);
+    ucAccSave();
+  } catch {}
+}
+try {
+  document.addEventListener('visibilitychange', () => { if (document.visibilityState === 'hidden') ucMaybeReport(); });
+  window.addEventListener('pagehide', () => { ucMaybeReport(); });
+} catch {}
 /* La foto de comida del formulario (#m-photo) requiere Firebase Storage
    (plan Blaze): STORAGE_READY = false la oculta; cuando el dueño active
    Blaze, poner true y desplegar. Las fotos de PROGRESO no dependen de
@@ -2188,6 +2316,7 @@ const ADMIN_SECTIONS = [
   { id: 'flags', sub: 'tech', titleKey: 'esc.flagsTitle', mount: admSecMountFlags },
   { id: 'accesslog', sub: 'system', titleKey: 'nd2.title', mount: admSecMountAccessLog, refresh: admSecRefreshAccessLog },
   { id: 'limits', sub: 'system', titleKey: 'limreg.title', mount: admSecMountLimits, refresh: admSecRefreshLimits },
+  { id: 'quotas', sub: 'system', titleKey: 'admq.title', mount: admSecMountQuotas, refresh: admQuotaRefresh },
   { id: 'imglim', sub: 'system', titleKey: 'imglim.title', mount: admSecMountImgLim, refresh: admSecRefreshImgLim },
   { id: 'care', sub: 'system', titleKey: 'care.title', mount: admSecMountCare, refresh: admSecRefreshCare },
   { id: 'faqed', sub: 'system', titleKey: 'faq.edTitle', mount: admSecMountFaqEd, refresh: renderFaqEditorBox },
@@ -2990,6 +3119,160 @@ function admSecMountAccessLog(body) {
   loadAccessLog();
 }
 function admSecRefreshAccessLog() { loadAccessLog(); }
+
+/* ---------- Sección «Consumo y cuotas» (SISTEMA) ----------
+   AUTH-2026-11-05-252 (punto 164 de la cola; diseño
+   DISENO-CONSUMO-CUOTAS-2026-11-05.md, aprobado por Ronald el
+   2026-11-05 con su «2 si»): el panel de los TRES PISOS honestos,
+   que NUNCA se suman entre sí (la banda A ya incluye a las demás;
+   B y C la explican):
+   · BANDA A — el total oficial del proyecto según Google (Cloud
+     Monitoring) contra el cupo gratuito; el % es DERIVADO y va
+     marcado «≈ del cupo», porque Google no publica ningún contador
+     de cupo restante en el nivel gratuito, y Google NO desglosa el
+     total por sección ni por usuario en ninguna superficie.
+   · BANDA B — lo nuestro medido exacto: IA por alumno (los mismos
+     contadores de los límites), el servidor por fuente, y los
+     sellos del respaldo y de las herramientas.
+   · BANDA C — la estimación de la app por sección (la cuentan los
+     propios cargadores; su nota de estimación va SIEMPRE visible).
+   Solo administrador: la sección vive en el registro ADMIN_SECTIONS
+   (que solo pinta renderAdminZone con ROLE administrador) y la ruta
+   del Worker exige el token del propietario. Abrir el panel cuesta
+   CERO lecturas de Firestore: una llamada a la ruta (Google se
+   cachea 5 minutos en el Worker) y lecturas KV. */
+let ADM_QUOTA = null; /* última respuesta buena + su hora local */
+async function quotaCall() {
+  const ep = aiEndpoint();
+  if (!ep) throw new Error('ai-off');
+  const idToken = await auth.currentUser.getIdToken();
+  const r = await fetch(ep + '/admin/quota', { headers: { Authorization: 'Bearer ' + idToken } });
+  if (!r.ok) throw new Error('quota-' + r.status);
+  return r.json();
+}
+function admSecMountQuotas(body) {
+  body.innerHTML = `<p class="progress-hint">${esc(t('admq.hint'))}</p><div id="adm-quota-body"><p class="admuse-loading">${esc(t('admq.loading'))}</p></div>`;
+  admQuotaRefresh();
+}
+function admQuotaRefresh() {
+  const b = document.getElementById('adm-quota-body');
+  if (!b) return;
+  quotaCall().then(d => { ADM_QUOTA = { d, at: Date.now() }; admPaintQuota(false); })
+    .catch(() => {
+      if (ADM_QUOTA) admPaintQuota(true);
+      else { const bb = document.getElementById('adm-quota-body'); if (bb) bb.innerHTML = `<p class="admuse-unavailable">${esc(t('admq.unavailable'))}</p>`; }
+    });
+}
+function admqWhen() {
+  return ADM_QUOTA ? new Date(ADM_QUOTA.at).toLocaleTimeString(LANG === 'es' ? 'es' : 'en', { hour: '2-digit', minute: '2-digit' }) : '';
+}
+function admqNum(n) {
+  return (n == null || isNaN(n)) ? '—' : Number(n).toLocaleString(LANG === 'es' ? 'es' : 'en-US');
+}
+function admqBar(label, n, quota) {
+  const has = n != null && !isNaN(n);
+  const rawPct = has ? (Number(n) / quota) * 100 : null;
+  const cls = rawPct == null ? '' : (rawPct >= 90 ? 'crit' : (rawPct >= 70 ? 'warn' : 'ok'));
+  const wdt = rawPct == null ? 0 : Math.max(2, Math.min(100, rawPct));
+  const pctTxt = rawPct == null ? '' : (rawPct >= 10 ? String(Math.round(rawPct)) : rawPct.toFixed(1));
+  return `<div class="admq-bar"><div class="admq-barhead"><span>${esc(label)}</span><b>${admqNum(n)}</b></div>`
+    + `<div class="admq-track"><div class="admq-fill ${cls}" style="width:${wdt}%"></div></div>`
+    + `<div class="admq-barfoot">${rawPct == null ? esc(t('admq.noData')) : esc(t('admq.ofQuota', { pct: pctTxt, quota: admqNum(quota) }))}</div></div>`;
+}
+function admPaintQuota(stale) {
+  const b = document.getElementById('adm-quota-body');
+  if (!b || !ADM_QUOTA) return;
+  const d = ADM_QUOTA.d;
+  const A = d.bandA || {};
+  let h = stale
+    ? `<p class="admuse-stale">${esc(t('admq.stale', { when: admqWhen() }))}</p>`
+    : `<p class="admuse-fetched">${esc(t('admq.fetchedAt', { when: admqWhen() }))}${A.fromCache ? ' · ' + esc(t('admq.fromCache')) : ''}</p>`;
+  /* ── BANDA A: el total oficial de Google ── */
+  h += `<div class="admq-band"><h4 class="admuse-aititle">${esc(t('admq.bandA'))}</h4><p class="progress-hint">${esc(t('admq.bandASub'))}</p>`;
+  if (A.status === 'ok') {
+    h += admqBar(t('admq.reads'), A.reads, 50000) + admqBar(t('admq.writes'), A.writes, 20000) + admqBar(t('admq.deletes'), A.deletes, 20000);
+    if (A.quotaSeries && A.quotaSeries.found && A.quotaSeries.reads != null)
+      h += `<p class="admq-line">✓ ${esc(t('admq.quotaDirect', { n: admqNum(A.quotaSeries.reads) }))}</p>`;
+    if (A.rejects429 != null)
+      h += `<p class="admq-line">⚠️ ${esc(t('admq.rejects', { n: admqNum(A.rejects429) }))}</p>`;
+    const ageMin = A.fetchedAt ? Math.max(0, Math.round((Date.now() - Date.parse(A.fetchedAt)) / 60000)) : 0;
+    h += `<p class="admq-note">${esc(t('admq.bandAFoot', { min: ageMin }))}</p>`;
+  } else if (A.status === 'permission') {
+    h += `<p class="admq-alert">${esc(t('admq.bandAPermission'))}</p>`;
+  } else if (A.status === 'disabled') {
+    h += `<p class="admq-alert">${esc(t('admq.bandADisabled'))}</p>`;
+  } else {
+    h += `<p class="admq-alert">${esc(t('admq.bandAError', { detail: String(A.detail || '') }))}</p>`;
+  }
+  h += `</div>`;
+  /* ── BANDA B: lo nuestro, exacto ── */
+  const B = d.bandB || {};
+  const ia = B.ia || { users: [], total: 0 };
+  h += `<div class="admq-band"><h4 class="admuse-aititle">${esc(t('admq.bandB'))}</h4><p class="progress-hint">${esc(t('admq.bandBSub'))}</p>`;
+  h += `<div class="admq-card"><div class="admq-cardtitle">${esc(t('admq.iaTitle'))} · ${esc(t('admq.iaTotal', { n: admqNum(ia.total) }))}</div>`
+    + `<p class="admq-small">${esc(t('admq.iaDay', { day: String(ia.day || '') }))}</p>`;
+  if (Array.isArray(ia.users) && ia.users.length) {
+    h += ia.users.map(u => `<div class="admq-srcrow"><span>${esc(admuseNameOf(u.uid).name)}</span><b>${admqNum(u.n)}</b></div>`).join('');
+  } else {
+    h += `<p class="admq-small">${esc(t('admq.iaNone'))}</p>`;
+  }
+  h += `</div>`;
+  const SRC_LABEL = {
+    'puerta-ia': 'admq.srcPuerta', 'despertador-resumen': 'admq.srcDespertadorResumen',
+    'despertador-atencion': 'admq.srcDespertadorAtencion', 'despertador-semanal': 'admq.srcDespertadorSemanal',
+    'rutas-admin': 'admq.srcRutas', 'correo-y-registro': 'admq.srcCorreo', 'otros': 'admq.srcOtros'
+  };
+  const wk = B.worker || {};
+  const srcKeys = Object.keys(SRC_LABEL).filter(k => wk[k] && (wk[k].docs > 0 || wk[k].reqs > 0));
+  h += `<div class="admq-card"><div class="admq-cardtitle">${esc(t('admq.serverTitle'))}</div>`;
+  if (srcKeys.length) {
+    h += srcKeys.map(k => `<div class="admq-srcrow"><span>${esc(t(SRC_LABEL[k]))}</span><b>${esc(t('admq.docsReqs', { docs: admqNum(wk[k].docs), reqs: admqNum(wk[k].reqs) }))}</b></div>`).join('');
+  } else {
+    h += `<p class="admq-small">${esc(t('admq.serverNone'))}</p>`;
+  }
+  if (wk.cuota429 && wk.cuota429.total > 0)
+    h += `<p class="admq-line">⚠️ ${esc(t('admq.quota429', { first: String(wk.cuota429.first || ''), n: admqNum(wk.cuota429.total) }))}</p>`;
+  else
+    h += `<p class="admq-line">✓ ${esc(t('admq.quota429None'))}</p>`;
+  h += `</div>`;
+  const stamps = B.stamps || {};
+  const stampCard = (titleKey, lineKey, s) => `<div class="admq-card"><div class="admq-cardtitle">${esc(t(titleKey))}</div>`
+    + (s ? `<p class="admq-small">${esc(t(lineKey, { docs: admqNum(s.documentos), calls: admqNum(s.llamadas), when: admuseShortDate(String(s.at || '').slice(0, 10)) }))}</p>`
+         : `<p class="admq-small">${esc(t('admq.noStamp'))}</p>`) + `</div>`;
+  h += stampCard('admq.backupTitle', 'admq.backupLine', stamps.respaldo);
+  h += stampCard('admq.toolsTitle', 'admq.toolsLine', stamps.herramientas);
+  h += `</div>`;
+  /* ── BANDA C: la app, estimación por sección ── */
+  const C = d.bandC || { porSeccion: {}, sesiones: 0, usuarios: 0 };
+  const SEC_LABEL = { arranque: 'admq.secArranque', inicio: 'admq.secInicio', comida: 'admq.secComida', entrenamiento: 'admq.secEntrenamiento', progreso: 'admq.secProgreso', otros: 'admq.secOtros' };
+  h += `<div class="admq-band"><h4 class="admuse-aititle">${esc(t('admq.bandC'))}</h4><p class="admq-note">${esc(t('admq.bandCSub'))}</p>`;
+  if (C.usuarios > 0) {
+    h += `<p class="admq-small">${esc(t('admq.bandCSessions', { users: admqNum(C.usuarios), sessions: admqNum(C.sesiones) }))}</p>`;
+    h += Object.keys(SEC_LABEL).map(k => {
+      const v = (C.porSeccion && C.porSeccion[k]) || { server: 0, cache: 0 };
+      return `<div class="admq-srcrow"><span>${esc(t(SEC_LABEL[k]))}</span><b>${esc(t('admq.serverDocs', { n: admqNum(v.server) }))} · ${esc(t('admq.cacheDocs', { n: admqNum(v.cache) }))}</b></div>`;
+    }).join('');
+  } else {
+    h += `<p class="admq-small">${esc(t('admq.bandCNone'))}</p>`;
+  }
+  h += `</div>`;
+  /* ── Últimos 7 días ── */
+  const hist = Array.isArray(d.history) ? d.history : [];
+  if (hist.length) {
+    h += `<div class="admq-band"><h4 class="admuse-aititle">${esc(t('admq.histTitle'))}</h4>`;
+    h += hist.map(r => `<div class="admq-hrow"><b>${esc(admuseShortDate(r.fecha))}</b>`
+      + `<span>${esc(t('admq.hGoogle'))}: ${r.bandaA ? admqNum(r.bandaA.reads) : esc(t('admq.noData'))}</span>`
+      + `<span>${esc(t('admq.hIa'))}: ${r.iaTotal == null ? esc(t('admq.noData')) : admqNum(r.iaTotal)}</span>`
+      + `<span>${esc(t('admq.hServer'))}: ${r.workerDocs == null ? esc(t('admq.noData')) : admqNum(r.workerDocs)}</span>`
+      + `<span>${esc(t('admq.hBackup'))}: ${r.respaldoDocs == null ? esc(t('admq.noData')) : admqNum(r.respaldoDocs)}</span>`
+      + `<span>${esc(t('admq.hTools'))}: ${r.herramientasDocs == null ? esc(t('admq.noData')) : admqNum(r.herramientasDocs)}</span></div>`).join('');
+    h += `</div>`;
+  }
+  h += `<div class="eval-actions"><button type="button" class="btn-primary" id="adm-quota-refresh">${esc(t('admq.refresh'))}</button></div>`;
+  b.innerHTML = h;
+  const rb = document.getElementById('adm-quota-refresh');
+  if (rb) rb.addEventListener('click', () => admQuotaRefresh());
+}
 /* ---------- Sección «Límites y cuotas» (SISTEMA) ----------
    Punto 12 de la cola (pedido de Ronald 2026-11-01 18:42 CST):
    el registro EDITABLE del administrador con los topes de cada
@@ -5311,6 +5594,68 @@ en: {
   'admuse.stale': '⚠️ The refresh failed — showing the previous data from {when}; it is not current.',
   'admuse.refresh': 'Refresh',
   'admuse.unknownUser': 'Unnamed user',
+  'admq.title': '📊 Usage & quotas',
+  'admq.hint': 'What the whole project spends, in three honest layers — they are never added together: the first one already includes the other two.',
+  'admq.loading': 'Loading…',
+  'admq.unavailable': 'Usage data is unavailable right now. Try Refresh in a moment.',
+  'admq.refresh': 'Refresh',
+  'admq.fetchedAt': 'Data checked: {when}',
+  'admq.stale': '⚠️ The refresh failed — showing the previous data from {when}; it is not current.',
+  'admq.fromCache': 'Google data from the 5-minute cache',
+  'admq.bandA': "Google's official total",
+  'admq.bandASub': 'Everything the project read, wrote and deleted today (Pacific day, still in progress), as counted by Google itself.',
+  'admq.reads': 'Reads',
+  'admq.writes': 'Writes',
+  'admq.deletes': 'Deletes',
+  'admq.ofQuota': '≈ {pct}% of the {quota} daily quota',
+  'admq.bandAFoot': 'Google data, updated ~{min} min ago · the quota day ends at midnight Pacific time. Google never breaks this total down by section or by user — nobody can, in any panel.',
+  'admq.quotaDirect': 'Official quota series found: {n} reads counted by Google’s own quota system.',
+  'admq.rejects': 'Quota rejections today according to Google: {n}',
+  'admq.bandAPermission': 'Google is not letting the server read its own metrics yet (a read-only permission is missing). The rest of the panel works. Missing step: in the Google Cloud console, grant the project’s service account the “Monitoring Metric Reader” role — read-only, free, one minute.',
+  'admq.bandADisabled': 'The metrics API is not enabled in the project yet. The rest of the panel works. Missing step: enable the “Cloud Monitoring API” in the Google Cloud console — free, and it does not change the free plan.',
+  'admq.bandAError': 'Google did not answer this time ({detail}). The rest of the panel works; try Refresh.',
+  'admq.bandB': 'Where it comes from — our own exact counts',
+  'admq.bandBSub': 'Measured by our own counters and stamps, exactly. These figures explain the official total; they are never added to it.',
+  'admq.iaTitle': 'AI use today',
+  'admq.iaDay': 'counter day {day} (UTC) — the same counters that apply the daily limits',
+  'admq.iaTotal': '{n} requests',
+  'admq.iaNone': 'No AI use recorded today.',
+  'admq.serverTitle': 'Our server, by source',
+  'admq.docsReqs': '{docs} documents · {reqs} requests',
+  'admq.srcPuerta': 'AI door — one read per analysis',
+  'admq.srcDespertadorResumen': 'Daily-summary alarm clock',
+  'admq.srcDespertadorAtencion': 'Trainer-attention alarm clock (Mondays)',
+  'admq.srcDespertadorSemanal': 'Weekly-summary alarm clock',
+  'admq.srcRutas': 'Admin routes (limits, deletions, this panel)',
+  'admq.srcCorreo': 'Mail and sign-up flows',
+  'admq.srcOtros': 'Other server reads',
+  'admq.serverNone': 'The server has not read anything yet today.',
+  'admq.quota429': 'First quota rejection today: {first} · total seen by the server: {n} (server traffic only — the app’s direct reads are not seen here)',
+  'admq.quota429None': 'No quota rejections seen by the server today.',
+  'admq.backupTitle': 'Full backup',
+  'admq.backupLine': '{docs} documents in {calls} listing calls · {when}',
+  'admq.toolsTitle': 'Our tools (audits and verifications)',
+  'admq.toolsLine': '{docs} documents · {when}',
+  'admq.noStamp': 'No stamp today — if a tool ran without stamping, its cost does not appear here (the official total above still counts it).',
+  'admq.bandC': 'The app, by section — estimate',
+  'admq.bandCSub': 'App estimate: documents the app itself received, counted by the app. What is served from the phone’s cache costs no quota. It does not include what the server or the tools read, and it can differ from Google’s total.',
+  'admq.secArranque': 'Startup',
+  'admq.secInicio': 'Home',
+  'admq.secComida': 'Food',
+  'admq.secEntrenamiento': 'Training',
+  'admq.secProgreso': 'Progress',
+  'admq.secOtros': 'Other sections',
+  'admq.serverDocs': '≈ {n} from server',
+  'admq.cacheDocs': '{n} from cache (no quota cost)',
+  'admq.bandCNone': 'No app reports yet today — sessions that do not report show as “no data”, never as zero.',
+  'admq.bandCSessions': '{users} users · {sessions} sessions reported today',
+  'admq.histTitle': 'Last 7 days',
+  'admq.hGoogle': 'Google',
+  'admq.hIa': 'AI',
+  'admq.hServer': 'Server',
+  'admq.hBackup': 'Backup',
+  'admq.hTools': 'Tools',
+  'admq.noData': 'no data',
   'care.title': '🩺 Trainer attention',
   'care.hint': 'How each trainer is looking after their students: coverage, the pending items waiting on the trainer, weekly rhythm, response times and student satisfaction. Process figures only — this report never shows health data.',
   'care.empty': 'There are no trainers to report on yet.',
@@ -8757,6 +9102,68 @@ es: {
   'admuse.stale': '⚠️ La actualización falló — se muestran los datos anteriores de {when}; no son los actuales.',
   'admuse.refresh': 'Actualizar',
   'admuse.unknownUser': 'Usuario sin nombre',
+  'admq.title': '📊 Consumo y cuotas',
+  'admq.hint': 'Lo que gasta todo el proyecto, en tres pisos honestos — nunca se suman entre sí: el primero ya incluye a los otros dos.',
+  'admq.loading': 'Cargando…',
+  'admq.unavailable': 'Los datos de consumo no están disponibles ahora. Prueba «Actualizar» en un momento.',
+  'admq.refresh': 'Actualizar',
+  'admq.fetchedAt': 'Datos consultados: {when}',
+  'admq.stale': '⚠️ La actualización falló — se muestran los datos anteriores de {when}; no son los actuales.',
+  'admq.fromCache': 'Datos de Google de la caché de 5 minutos',
+  'admq.bandA': 'Total oficial de Google',
+  'admq.bandASub': 'Todo lo que el proyecto leyó, escribió y borró hoy (día del Pacífico, aún en curso), contado por el propio Google.',
+  'admq.reads': 'Lecturas',
+  'admq.writes': 'Escrituras',
+  'admq.deletes': 'Borrados',
+  'admq.ofQuota': '≈ {pct} % del cupo diario de {quota}',
+  'admq.bandAFoot': 'Datos de Google, actualizados hace ~{min} min · el día del cupo termina a medianoche hora del Pacífico. Google nunca desglosa este total por sección ni por usuario — nadie puede, en ningún panel.',
+  'admq.quotaDirect': 'Serie oficial de cuota encontrada: {n} lecturas contadas por el propio sistema de cuotas de Google.',
+  'admq.rejects': 'Rechazos por cuota hoy según Google: {n}',
+  'admq.bandAPermission': 'Google aún no deja que el servidor lea sus propias métricas (falta un permiso de solo lectura). El resto del panel funciona. Paso que falta: en la consola de Google Cloud, dar a la cuenta de servicio del proyecto el rol «Lector de métricas de Monitoring» — solo lectura, gratis, un minuto.',
+  'admq.bandADisabled': 'La API de métricas aún no está activada en el proyecto. El resto del panel funciona. Paso que falta: activar la «API de Cloud Monitoring» en la consola de Google Cloud — gratis, y no cambia el plan gratuito.',
+  'admq.bandAError': 'Google no respondió esta vez ({detail}). El resto del panel funciona; prueba «Actualizar».',
+  'admq.bandB': 'De dónde viene — nuestros conteos exactos',
+  'admq.bandBSub': 'Medido por nuestros propios contadores y sellos, con exactitud. Estas cifras explican el total oficial; nunca se suman a él.',
+  'admq.iaTitle': 'Uso de IA hoy',
+  'admq.iaDay': 'día del contador {day} (UTC) — los mismos contadores que aplican los límites diarios',
+  'admq.iaTotal': '{n} solicitudes',
+  'admq.iaNone': 'Hoy no se ha registrado uso de IA.',
+  'admq.serverTitle': 'Nuestro servidor, por fuente',
+  'admq.docsReqs': '{docs} documentos · {reqs} peticiones',
+  'admq.srcPuerta': 'Puerta de IA — una lectura por análisis',
+  'admq.srcDespertadorResumen': 'Despertador del resumen diario',
+  'admq.srcDespertadorAtencion': 'Despertador de atención a entrenadores (lunes)',
+  'admq.srcDespertadorSemanal': 'Despertador del resumen semanal',
+  'admq.srcRutas': 'Rutas de administración (límites, borrados, este panel)',
+  'admq.srcCorreo': 'Correo y registros',
+  'admq.srcOtros': 'Otras lecturas del servidor',
+  'admq.serverNone': 'El servidor aún no ha leído nada hoy.',
+  'admq.quota429': 'Primer rechazo por cuota hoy: {first} · total visto por el servidor: {n} (solo tráfico del servidor — las lecturas directas de la app no se ven aquí)',
+  'admq.quota429None': 'El servidor no ha visto rechazos por cuota hoy.',
+  'admq.backupTitle': 'Respaldo completo',
+  'admq.backupLine': '{docs} documentos en {calls} llamadas de listado · {when}',
+  'admq.toolsTitle': 'Nuestras herramientas (auditorías y verificaciones)',
+  'admq.toolsLine': '{docs} documentos · {when}',
+  'admq.noStamp': 'Sin sello hoy — si una herramienta corrió sin sellar, su coste no aparece aquí (el total oficial de arriba sí lo cuenta).',
+  'admq.bandC': 'La app, por sección — estimación',
+  'admq.bandCSub': 'Estimación de la app: documentos que la propia app recibió, contados por ella. Lo servido desde la caché del teléfono no gasta cupo. No incluye lo que leen el servidor ni las herramientas, y puede diferir del total de Google.',
+  'admq.secArranque': 'Arranque',
+  'admq.secInicio': 'Inicio',
+  'admq.secComida': 'Comida',
+  'admq.secEntrenamiento': 'Entrenamiento',
+  'admq.secProgreso': 'Progreso',
+  'admq.secOtros': 'Otras secciones',
+  'admq.serverDocs': '≈ {n} del servidor',
+  'admq.cacheDocs': '{n} de la caché (sin gasto de cupo)',
+  'admq.bandCNone': 'Hoy aún no hay reportes de la app — las sesiones que no reportan salen como «sin datos», nunca como cero.',
+  'admq.bandCSessions': '{users} usuarios · {sessions} sesiones reportadas hoy',
+  'admq.histTitle': 'Últimos 7 días',
+  'admq.hGoogle': 'Google',
+  'admq.hIa': 'IA',
+  'admq.hServer': 'Servidor',
+  'admq.hBackup': 'Respaldo',
+  'admq.hTools': 'Herramientas',
+  'admq.noData': 'sin datos',
   'care.title': '🩺 Atención de entrenadores',
   'care.hint': 'Cómo está atendiendo cada entrenador a sus alumnos: cobertura, los pendientes que esperan por el entrenador, el ritmo semanal, los tiempos de respuesta y la satisfacción de los alumnos. Solo cifras del proceso — este informe nunca muestra datos de salud.',
   'care.empty': 'Todavía no hay entrenadores sobre los que informar.',
@@ -19533,6 +19940,7 @@ $('form-profile').addEventListener('submit', async e => {
 
 /* ================= DATA ================= */
 async function loadAll() {
+  UC_SECTION = 'arranque';
   if (auth.currentUser && RULES_EPOCH === 'unknown') probeRulesEpoch(auth.currentUser.uid);
   loadAiControl();
   loadRolesX();
@@ -19561,7 +19969,7 @@ async function loadAll() {
           cuanto esas están, sin esperar al resto; y se conserva el
           repintado de Pendientes con salud y energía ya cargadas
           (corrección 2026-10-26). */
-  const mealsP = (async () => {
+  const mealsP = ucWith('comida', (async () => {
     const freshMeals = {};
     const ms = await getDocs(query(collection(db, 'nutrition_meals'), where('ownerUid', '==', auth.currentUser.uid)));
     ms.forEach(d => {
@@ -19596,8 +20004,8 @@ async function loadAll() {
     MEALS = freshMeals;
     Object.values(MEALS).forEach(arr =>
       arr.sort((a, b) => (MEAL_ORDER[a.meal] || 9) - (MEAL_ORDER[b.meal] || 9)));
-  })();
-  const weightsP = (async () => {
+  })());
+  const weightsP = ucWith('inicio', (async () => {
     WEIGHTS = [];
     const ws = await getDocs(query(collection(db, 'nutrition_weight'), where('ownerUid', '==', auth.currentUser.uid)));
     ws.forEach(d => {
@@ -19609,20 +20017,20 @@ async function loadAll() {
         weightUnitOriginal: v.weightUnitOriginal || null });
     });
     WEIGHTS.sort((a, b) => a.date < b.date ? -1 : 1);
-  })();
-  const mealHelpP = loadMealHelp().catch(() => {});
-  const trainingP = loadMyTraining().catch(() => {});
-  const activityP = loadActivityLogs().catch(() => {});
-  const healthP = loadMyHealth().catch(() => {});
-  const energyP = loadMyEnergy().catch(() => {});
-  const unitsP = loadMyUnits().catch(() => {});
-  const adminP = loadAdmin().catch(() => {});
-  const clientsP = loadClients().catch(() => {});
-  loadPropClient();
+  })());
+  const mealHelpP = ucWith('comida', loadMealHelp()).catch(() => {});
+  const trainingP = ucWith('entrenamiento', loadMyTraining()).catch(() => {});
+  const activityP = ucWith('otros', loadActivityLogs()).catch(() => {});
+  const healthP = ucWith('otros', loadMyHealth()).catch(() => {});
+  const energyP = ucWith('otros', loadMyEnergy()).catch(() => {});
+  const unitsP = ucWith('otros', loadMyUnits()).catch(() => {});
+  const adminP = ucWith('otros', loadAdmin()).catch(() => {});
+  const clientsP = ucWith('otros', loadClients()).catch(() => {});
+  ucWith('otros', loadPropClient());
   await Promise.all([mealsP, weightsP]);
   buildDateSelector();
   renderWeight();
-  const pendP = (async () => { await loadPendings(); renderPrivacy(); })().catch(() => {});
+  const pendP = ucWith('otros', (async () => { await loadPendings(); renderPrivacy(); })()).catch(() => {});
   await Promise.all([healthP, energyP, trainingP, pendP]);
   /* El primer renderPendings() (dentro de loadPendings) corre ANTES
      de que carguen la declaración de salud y la evaluación: la
@@ -19643,8 +20051,9 @@ async function loadAll() {
   /* Recarga con Progreso ya visitado en esta sesión: se refresca
      como antes. Si nunca se abrió, sigue sin cargarse: esa es la
      ganancia del arranque. */
-  if (PROGRESS_LOADED) { try { await loadProgress(); } catch {} }
+  if (PROGRESS_LOADED) { try { await ucWith('progreso', loadProgress()); } catch {} }
   applyStorageFlag();
+  UC_SECTION = 'otros';
 }
 
 /* Oculta la opción de foto del formulario de comidas mientras Storage
@@ -33651,6 +34060,7 @@ function switchTab(name) {
      única al volver a ella por la vía normal). */
   if (name !== 'clients' && typeof fichaClearMode === 'function') fichaClearMode();
   NAV_TAB = name;
+  try { ucMaybeReport(); } catch {}
   if (name !== 'track' && NAV_PAGE) navClosePagesForce();
   document.querySelectorAll('.main-tab').forEach(b => b.classList.toggle('active', b.dataset.tab === name));
   document.querySelectorAll('.tab-pane').forEach(p => { p.style.display = (p.id === 'tab-' + name) ? '' : 'none'; });
@@ -34984,7 +35394,7 @@ let PROGRESS_LOADING = null;
 async function ensureProgressLoaded() {
   if (PROGRESS_LOADED || !auth.currentUser) return;
   if (!PROGRESS_LOADING) {
-    PROGRESS_LOADING = (async () => { try { await loadProgress(); } catch {} finally { PROGRESS_LOADING = null; } })();
+    PROGRESS_LOADING = (async () => { try { await ucWith('progreso', loadProgress()); } catch {} finally { PROGRESS_LOADING = null; } })();
   }
   await PROGRESS_LOADING;
 }
@@ -41513,7 +41923,7 @@ document.addEventListener('keydown', e => { if (e.key === 'Escape') shareClose()
  *  - El SW (sw.js) solo cachea la cáscara del mismo origen en modo
  *    RED PRIMERO: Auth/Firestore/Worker jamás pasan por la caché.
  * ================================================================ */
-const PWA_SW_VERSION = '20261105-ayudante-voz';
+const PWA_SW_VERSION = '20261105-consumo';
 /* Sello de versión VISIBLE (2026-11-03): el pie de la tarjeta de
    acceso enseña qué copia corre este teléfono ('v ' + el sello),
    para comprobar de un vistazo si la versión nueva ya llegó.

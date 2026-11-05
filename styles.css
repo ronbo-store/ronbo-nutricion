@@ -4036,3 +4036,28 @@ body.swap-sheet-open .asst-fab { display: none !important; }
 .asst-send:active { transform: scale(.93); }
 .asst-send[disabled] { opacity: .5; }
 .asst-foot { text-align: center; font-size: 11.5px; color: #8aa39e; padding: 6px 14px 12px; flex: none; }
+
+/* ════════════════════════════════════════════════════════════════
+   PANEL DE CONSUMO Y CUOTAS (AUTH-2026-11-05-252) — Administración »
+   «Consumo y cuotas»: las tres bandas del diseño, con sus barras de
+   semáforo (verde <70 % · ámbar 70–90 % · rojo >90 % del cupo
+   derivado) y tarjetas grandes de la casa. ════════════════════════ */
+.admq-band { border: 1.5px solid #cfe3df; border-radius: 14px; padding: 12px 12px 6px; margin: 12px 0; background: #fbfdfd; }
+.admq-bar { margin: 10px 0 12px; }
+.admq-barhead { display: flex; justify-content: space-between; align-items: baseline; font-size: 15px; font-weight: 600; color: #14201f; }
+.admq-barhead b { font-size: 19px; font-weight: 800; }
+.admq-track { height: 16px; border-radius: 999px; background: #e3ecea; overflow: hidden; margin: 5px 0 4px; }
+.admq-fill { height: 100%; border-radius: 999px; background: #0d9488; }
+.admq-fill.warn { background: #d97706; }
+.admq-fill.crit { background: #dc2626; }
+.admq-barfoot { font-size: 13px; color: #4a5a58; }
+.admq-note { font-size: 13px; color: #4a5a58; line-height: 1.5; margin: 8px 0; }
+.admq-alert { font-size: 14.5px; line-height: 1.55; color: #7c2d12; background: #fdf1e7; border: 1.5px solid #f0c9a8; border-radius: 12px; padding: 12px; margin: 10px 0; }
+.admq-card { background: #eef6f4; border-radius: 12px; padding: 12px; margin: 10px 0; }
+.admq-cardtitle { font-size: 15.5px; font-weight: 700; color: #14201f; margin-bottom: 4px; }
+.admq-small { font-size: 13.5px; color: #4a5a58; line-height: 1.5; margin: 4px 0; }
+.admq-srcrow { display: flex; justify-content: space-between; align-items: baseline; gap: 12px; padding: 7px 0; border-top: 1px solid #d8e6e2; font-size: 14.5px; }
+.admq-srcrow b { font-weight: 700; text-align: right; }
+.admq-line { font-size: 14px; color: #33524e; margin: 8px 0; line-height: 1.5; }
+.admq-hrow { display: flex; flex-wrap: wrap; gap: 4px 14px; align-items: baseline; padding: 8px 0; border-top: 1px solid #d8e6e2; font-size: 13.5px; color: #33524e; }
+.admq-hrow b { font-size: 14.5px; color: #14201f; min-width: 64px; }
