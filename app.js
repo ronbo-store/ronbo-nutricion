@@ -5093,7 +5093,7 @@ en: {
   'err.forgotNoEmail': 'Type your email above so we can send you the link.',
   'err.resetFail': 'Couldn\'t send the email. Try again.',
   'err.noAccess': 'This account has no access.',
-  'sys.maintenance': 'Maintenance in progress: consent and account operations are briefly unavailable while we complete a system update. Please try again in a few minutes. Your data is safe.',
+  'sys.unavailable': 'This could not be completed right now: consent and account operations are temporarily unavailable. Please try again later. Nothing was changed and your data is safe.',
   'err.pending': 'Your account is pending administrator approval.',
   'err.pendingTrainer': 'Your account is pending approval by {name}, the trainer you chose.',
   'err.verifyFail': 'Couldn\'t verify access.',
@@ -8599,7 +8599,7 @@ es: {
   'err.forgotNoEmail': 'Escribe tu correo arriba para enviarte el enlace.',
   'err.resetFail': 'No se pudo enviar el correo. Intenta de nuevo.',
   'err.noAccess': 'Esta cuenta no tiene acceso.',
-  'sys.maintenance': 'Mantenimiento en curso: las operaciones de consentimiento y de cuenta no están disponibles durante unos minutos mientras completamos una actualización del sistema. Inténtalo de nuevo en unos minutos. Tus datos están a salvo.',
+  'sys.unavailable': 'Esto no se pudo completar ahora: las operaciones de consentimiento y de cuenta no están disponibles temporalmente. Inténtalo de nuevo más tarde. No se cambió nada y tus datos están a salvo.',
   'err.pending': 'Tu cuenta está pendiente de aprobación por el administrador.',
   'err.pendingTrainer': 'Tu cuenta está pendiente de aprobación por {name}, el entrenador que elegiste.',
   'err.verifyFail': 'No se pudo verificar el acceso.',
@@ -11652,7 +11652,7 @@ async function regCreateAccount(pd) {
     const code = err.code || '';
     if (code.includes('permission-denied')) {
       try { if (auth.currentUser) await deleteUser(auth.currentUser); } catch {}
-      showRegError(t('sys.maintenance'));
+      showRegError(t('sys.unavailable'));
       throw err;
     }
     showRegError(code.includes('email-already-in-use') ? t('err.emailInUse')
@@ -24341,12 +24341,18 @@ function consentBatch(uid, cur, cambios, type, version) {
    recibo en consent_receipts. Con las reglas H-C1 esa colección no
    existe y todo lote acoplado se deniega; con r3, leer los recibos
    propios está permitido. La sonda distingue la época con SOLO
-   LECTURAS: si la lectura se deniega, la app entra en mantenimiento
-   para las operaciones de consentimiento y de cuenta (registro,
+   LECTURAS: si la lectura se deniega o no puede confirmarse contra
+   el servidor (p. ej. cuota agotada o fallo de red), la app bloquea
+   las operaciones de consentimiento y de cuenta (registro,
    renovar/retirar el general, otorgar/renovar/retirar el
-   específico y cierre de cuenta) y las bloquea ANTES de cualquier
-   escritura — en particular antes del paso 1 del cierre, que borra
-   datos propios. Los datos ordinarios (comidas, peso, perfil) no se
+   específico, el de tipo corporal y los de actividad, y cierre de
+   cuenta) ANTES de cualquier escritura — en particular antes del
+   paso 1 del cierre, que borra datos propios — y lo dice con el
+   aviso honesto sys.unavailable: no se pudo completar ahora,
+   inténtalo más tarde (corrección del defecto D-2 de la auditoría
+   de bloqueos del 2026-11-04: antes ese bloqueo se disfrazaba de
+   «mantenimiento» por una supuesta actualización inexistente).
+   Los datos ordinarios (comidas, peso, perfil) no se
    bloquean: funcionan igual bajo ambas reglas. */
 let RULES_EPOCH = 'unknown';
 async function probeRulesEpoch(uid) {
@@ -24375,7 +24381,7 @@ async function consentOpsAllowed() {
   const uid = auth.currentUser && auth.currentUser.uid;
   if (!uid) return false;
   if (await probeRulesEpoch(uid)) return true;
-  toast(t('sys.maintenance'), true);
+  toast(t('sys.unavailable'), true);
   return false;
 }
 function consentIsActive(u) {
@@ -41920,7 +41926,7 @@ document.addEventListener('keydown', e => { if (e.key === 'Escape') shareClose()
  *  - El SW (sw.js) solo cachea la cáscara del mismo origen en modo
  *    RED PRIMERO: Auth/Firestore/Worker jamás pasan por la caché.
  * ================================================================ */
-const PWA_SW_VERSION = '20261105-textos-piloto';
+const PWA_SW_VERSION = '20261105-aviso-temporal';
 /* Sello de versión VISIBLE (2026-11-03): el pie de la tarjeta de
    acceso enseña qué copia corre este teléfono ('v ' + el sello),
    para comprobar de un vistazo si la versión nueva ya llegó.
