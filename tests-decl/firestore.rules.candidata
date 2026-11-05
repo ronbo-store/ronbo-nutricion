@@ -2663,6 +2663,24 @@ service cloud.firestore {
                                       request.resource.data.type,
                                       request.resource.data.version) )
           ||
+          // Content-change renewal of the specific consent (S-1
+          // fix): the receipt of the renewal act coupled to a
+          // content edit of the health declaration — before AND
+          // after accepted (a pair receiptType() derives no type
+          // for), a FRESH acceptance timestamp in the same batch,
+          // the version PINNED to the current consent text, and
+          // the batch pointers aimed at THIS receipt.
+          ( request.resource.data.type == 'specific-renewed'
+            && exists(userPath(request.auth.uid))
+            && existsAfter(userPath(request.auth.uid))
+            && getAfter(userPath(request.auth.uid)).data.consentReceiptId == rid
+            && get(userPath(request.auth.uid)).data.get('healthConsent', {}).get('status', '') == 'accepted'
+            && getAfter(userPath(request.auth.uid)).data.get('healthConsent', {}).get('status', '') == 'accepted'
+            && getAfter(userPath(request.auth.uid)).data.get('healthConsent', {}).get('acceptedAt', timestamp.date(2000, 1, 1)) == request.time
+            && getAfter(userPath(request.auth.uid)).data.get('healthConsent', {}).get('version', '') == 'v1-2026-10-16'
+            && request.resource.data.version
+                 == getAfter(userPath(request.auth.uid)).data.get('healthConsent', {}).get('version', '') )
+          ||
           // Consent transition event: the declared type and version
           // must equal the transition derived from before/after.
           ( exists(userPath(request.auth.uid))
