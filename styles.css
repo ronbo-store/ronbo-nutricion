@@ -1890,6 +1890,12 @@ body { padding: max(16px, env(safe-area-inset-top)) max(16px, env(safe-area-inse
 .excard-hist-line { padding: 7px 0; border-bottom: 1px solid #eef1f3; font-size: 14px; color: #1f2a44; line-height: 1.45; }
 .excard-hist-line:last-child { border-bottom: none; }
 .excard-hist-line b { color: #0d9488; }
+/* LA VEZ PASADA POR SERIE (AUTH-2026-11-05-257): bloque compacto
+   nacido visible sobre los campos de series de la ventana del
+   ejercicio — referencia de lectura, sin controles. */
+.excard-last { margin: 2px 0 12px; padding: 10px 12px 8px; background: #f0faf8; border: 1px solid #d3ebe6; border-radius: 12px; }
+.excard-last-title { font-size: 12px; font-weight: 700; letter-spacing: .04em; text-transform: uppercase; color: #0f766e; margin-bottom: 4px; }
+.excard-last-line { font-size: 14.5px; color: #1f2a44; line-height: 1.5; padding: 1px 0; }
 .lib-card-row { cursor: pointer; }
 /* ============ TARJETA DE BIBLIOTECA CON FOTO GRANDE (2026-10-30) ============
    La fila de ejercicio de la Biblioteca (catálogo, bandeja y «Mis

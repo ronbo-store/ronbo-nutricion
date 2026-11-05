@@ -5241,6 +5241,10 @@ en: {
   'train.histLoads.bodyLine': '{date} · {n} sets · {reps} reps · no external load',
   'train.histLoads.first': 'First time you log this exercise: your loads will stay here for next time.',
   'train.histLoads.legacy': '{date} · logged before per-set detail',
+  /* LA VEZ PASADA POR SERIE (AUTH-2026-11-05-257): el bloque
+     nacido visible sobre los campos de series de la ventana del
+     ejercicio, con la última sesión serie por serie. */
+  'train.lastTime.title': 'Last time', 'train.lastTime.set': 'Set', 'train.lastTime.reps': 'reps',
   'train.histRec.sets': 'Sets', 'train.histRec.repsMax': 'Max reps',
   'train.histRec.loadMax': 'Max weight', 'train.histRec.none': 'No history',
   'train.histRec.setsToday': 'Sets today', 'train.histRec.repsToday': 'Reps today',
@@ -8752,6 +8756,10 @@ es: {
   'train.histLoads.bodyLine': '{date} · {n} series · {reps} repeticiones · sin carga externa',
   'train.histLoads.first': 'Primera vez que registras este ejercicio: tus cargas quedarán aquí para la próxima.',
   'train.histLoads.legacy': '{date} · registrado antes del detalle por series',
+  /* LA VEZ PASADA POR SERIE (AUTH-2026-11-05-257): el bloque
+     nacido visible sobre los campos de series de la ventana del
+     ejercicio, con la última sesión serie por serie. */
+  'train.lastTime.title': 'La vez pasada', 'train.lastTime.set': 'Serie', 'train.lastTime.reps': 'reps',
   'train.histRec.sets': 'Series', 'train.histRec.repsMax': 'Reps máx',
   'train.histRec.loadMax': 'Peso máx', 'train.histRec.none': 'Sin historial',
   'train.histRec.setsToday': 'Series hoy', 'train.histRec.repsToday': 'Reps hoy',
@@ -29210,6 +29218,87 @@ function trainHistLoadsHTML(ex, allLogs) {
   }).join('');
   return `<div class="excard-hist"><div class="excard-hist-title">${t('train.histLoads.title')}</div>${lines}</div>`;
 }
+/* LA VEZ PASADA POR SERIE (AUTH-2026-11-05-257 — decisión de
+   Ronald del 2026-11-05, que revisita D-H2 SOLO para la última
+   sesión y SOLO como referencia visible entrenando): escaneo puro
+   sobre el MISMO arreglo que ya alimenta «Tus últimas veces»
+   (MY_LOGS_ALL, la lectura de siempre de la vista — CERO lecturas
+   y CERO escrituras nuevas), con la MISMA identidad del realizado
+   y el MISMO filtro de variantes de trainHistLoadsRows, pero
+   devolviendo la ÚLTIMA sesión con su detalle por serie. Una
+   entrada cuya sesión no trae series (legado v1) ES la vez pasada
+   y no tiene detalle que emparejar: el bloque no nace y manda la
+   línea honesta de «Tus últimas veces», que no se toca. Una
+   entrada con series pero sin ningún dato no cuenta como sesión
+   (el criterio del escaneo de siempre) y la búsqueda sigue. El
+   día propio de la ventana (excludeIso) no cuenta: su sesión aún
+   no es «la vez pasada». */
+function trainLastTimeSession(ex, allLogs, excludeIso) {
+  const id = ex && ex.exerciseId ? String(ex.exerciseId) : null;
+  const name = ex && !id ? String(ex.name || '') : null;
+  if (!id && !name) return null;
+  const entryH = id ? (LIB_BY_ID[id] || null) : null;
+  const varsH = entryH && Array.isArray(entryH.variantes) && entryH.variantes.length ? entryH.variantes : null;
+  const stdIdx = varsH ? varsH.findIndex(v => v && v.es_estandar) : -1;
+  const viEx = ex && Number.isInteger(ex.variantIndex) ? ex.variantIndex : null;
+  const viActive = !!(varsH && viEx != null && varsH[viEx] && !varsH[viEx].es_estandar);
+  const logs = Array.isArray(allLogs) ? allLogs : [];
+  for (const log of logs) {
+    if (!log || (excludeIso && log.date === excludeIso)) continue;
+    const st = trainLogStatus(log);
+    if (st !== 'done' && st !== 'partial') continue;
+    const list = Array.isArray(log.exercisesDone) ? log.exercisesDone : [];
+    for (const e of list) {
+      if (!e || e.done === false) continue;
+      const match = id ? (e.exerciseId != null && String(e.exerciseId) === id)
+        : (e.exerciseId == null && e.name != null && String(e.name) === name);
+      if (!match) continue;
+      if (varsH) {
+        const ev = Number.isInteger(e.variantIndex) ? e.variantIndex : null;
+        if (viActive) { if (ev !== viEx) continue; }
+        else if (ev !== null && ev !== stdIdx) continue;
+      }
+      const sets = Array.isArray(e.sets) ? e.sets : null;
+      if (!sets) return { legacy: true, date: log.date };
+      const withData = sets.filter(s => s && (typeof s.loadKg === 'number' || (s.repsDone != null && s.repsDone !== '')));
+      if (!withData.length) continue;
+      return { legacy: false, date: log.date, sets: withData };
+    }
+  }
+  return null;
+}
+/* La carga TAL COMO QUEDÓ REGISTRADA: lo tecleado con su unidad
+   verdadera (loadOriginal + loadUnitOriginal — el mismo par que
+   la tarjeta de compartir ya pinta); sin ese par (registros que
+   solo guardan el canónico), el canónico en la unidad del visor,
+   como el detalle por serie de la flotante de lectura. Nunca se
+   mezcla una unidad con otra ni se convierte en silencio. */
+function trainLastTimeLoadText(s) {
+  if (s.loadOriginal != null && s.loadOriginal !== '' && typeof s.loadUnitOriginal === 'string' && s.loadUnitOriginal) {
+    const v = Number(s.loadOriginal);
+    if (isFinite(v) && v > 0) return String(Math.round(v * 100) / 100) + ' ' + s.loadUnitOriginal;
+  }
+  if (typeof s.loadKg === 'number' && s.loadKg > 0) return fmtMass(s.loadKg);
+  return '';
+}
+/* El bloque nacido visible ENCIMA de los campos de series: solo
+   referencia — no precarga, no escribe, no toca la fila del día
+   (AUTH-202/230) ni «Tus últimas veces». Sin sesión previa con
+   detalle (o con la vez pasada legada): cadena vacía, sin textos
+   de relleno. */
+function trainLastTimeHTML(ex, allLogs, excludeIso) {
+  const ses = trainLastTimeSession(ex, allLogs, excludeIso);
+  if (!ses || ses.legacy) return '';
+  const lines = ses.sets.map((s, i) => {
+    const parts = [`${t('train.lastTime.set')} ${i + 1}`];
+    if (s.repsDone != null && s.repsDone !== '') parts.push(`${esc(String(s.repsDone))} ${t('train.lastTime.reps')}`);
+    const lt = trainLastTimeLoadText(s);
+    if (lt) parts.push(esc(lt));
+    return `<div class="excard-last-line">${parts.join(' · ')}</div>`;
+  }).join('');
+  if (!lines) return '';
+  return `<div class="excard-last"><div class="excard-last-title">${t('train.lastTime.title')} · ${histShortDate(ses.date)}</div>${lines}</div>`;
+}
 /* Instrucciones de la ficha con honestidad de forma: si el texto
    YA trae pasos separados por líneas se pinta como lista numerada;
    si es texto corrido se pinta corrido y limpio. (La numeración
@@ -29304,6 +29393,7 @@ function trainCardRender({ ex, mode, sessionHTML, allLogs }) {
       : `${group ? `<div class="excard-sec">${t('train.card.mainMuscle')}</div><div class="excard-chips"><span class="excard-chip excard-chip-main">${esc(group)}</span></div>` : ''}${secList.length ? `<div class="excard-sec">${t('train.card.secondaryMuscles')}</div><div class="excard-chips">${secList.map(s => `<span class="excard-chip excard-chip-sec">${esc(s)}</span>`).join('')}</div>` : ''}`;
   body.innerHTML = `${media}
     <div class="excard-head">${group ? `<div class="excard-chips"><span class="excard-chip excard-chip-main">${esc(group)}</span></div>` : ''}${metaLine}</div>
+    ${mode === 'edit' ? trainLastTimeHTML(ex, allLogs, (typeof TRAIN_FLOAT !== 'undefined' && TRAIN_FLOAT) ? TRAIN_FLOAT.iso : null) : ''}
     ${sessionHTML || ''}
     <div class="excard-tabs" role="tablist">
       <button type="button" class="excard-tab active" data-excard-tab="ins">${t('train.card.tabInstructions')}</button>
@@ -42023,7 +42113,7 @@ document.addEventListener('keydown', e => { if (e.key === 'Escape') shareClose()
  *  - El SW (sw.js) solo cachea la cáscara del mismo origen en modo
  *    RED PRIMERO: Auth/Firestore/Worker jamás pasan por la caché.
  * ================================================================ */
-const PWA_SW_VERSION = '20261105-decl-renueva';
+const PWA_SW_VERSION = '20261105-vez-pasada';
 /* Sello de versión VISIBLE (2026-11-03): el pie de la tarjeta de
    acceso enseña qué copia corre este teléfono ('v ' + el sello),
    para comprobar de un vistazo si la versión nueva ya llegó.
