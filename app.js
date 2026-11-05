@@ -4678,7 +4678,7 @@ en: {
   'ai.recalcWarn': 'You already adjusted the values by hand. Recalculating will replace those manual adjustments with the new calculation.',
   'ai.recalcYes': 'Yes, recalculate',
   'ai.saveError': 'It could not be saved. Your changes are still here: check your connection and tap Save to try again.',
-  'ai.capReached': 'You reached the pilot\u2019s daily analysis limit. Come back tomorrow to analyze another photo — meanwhile you can log the meal manually.',
+  'ai.capReached': 'You reached the daily analysis limit. Come back tomorrow to analyze another photo — meanwhile you can log the meal manually.',
   'ai.capReachedN': 'You reached today\u2019s limit of {n} AI requests. It renews tomorrow — meanwhile you can log the meal manually.',
   'ai.disabledByAdmin': 'AI analysis is turned off by the administrator right now. You can keep logging your meals manually; AI analysis will be back when it is turned on again.',
   'ai.btWindow': 'Body-type analysis is available once every 15 days. Your window renews on {date}; until then this analysis is paused.',
@@ -5491,7 +5491,6 @@ en: {
   'pk.err.tooMany': 'Too many attempts. Wait a moment and try again, or sign in with your password.',
   'pk.err.generic': 'Something went wrong with the access key. Sign in with your password instead.',
   'pk.err.excluded': 'This device already has an access key for your account. You can sign in with your password.',
-  'pk.err.pilotOnly': 'Access keys are not available for your account yet. Sign in with your password.',
   'pk.revoke': 'Revoke access keys',
   'pk.revokeConfirm': 'All access keys of {name} will be revoked. They will still be able to sign in with their password.',
   'pk.revoked': 'Access keys revoked: {n}.',
@@ -8185,7 +8184,7 @@ es: {
   'ai.recalcWarn': 'Ya ajustaste los valores a mano. Si se recalcula, esos ajustes manuales se reemplazan por el cálculo nuevo.',
   'ai.recalcYes': 'Sí, recalcular',
   'ai.saveError': 'No se pudo guardar. Tus cambios siguen aquí: revisa la conexión y toca Guardar para reintentar.',
-  'ai.capReached': 'Alcanzaste el límite diario de análisis del piloto. Vuelve mañana para analizar otra foto; mientras tanto puedes registrar la comida manualmente.',
+  'ai.capReached': 'Alcanzaste el límite diario de análisis. Vuelve mañana para analizar otra foto; mientras tanto puedes registrar la comida manualmente.',
   'ai.capReachedN': 'Alcanzaste el límite de hoy: {n} peticiones a la IA. Se renueva mañana; mientras tanto puedes registrar la comida manualmente.',
   'ai.disabledByAdmin': 'El análisis con IA está desactivado por el administrador en este momento. Puedes seguir registrando tus comidas manualmente; el análisis con IA volverá cuando se reactive.',
   'ai.btWindow': 'El análisis de tipo corporal está disponible una vez cada 15 días. Tu ventana se renueva el {date}; hasta entonces este análisis está en pausa.',
@@ -8999,7 +8998,6 @@ es: {
   'pk.err.tooMany': 'Demasiados intentos. Espera un momento e inténtalo de nuevo, o entra con tu contraseña.',
   'pk.err.generic': 'Algo salió mal con la clave de acceso. Entra con tu contraseña.',
   'pk.err.excluded': 'Este dispositivo ya tiene una clave de acceso para tu cuenta. Puedes entrar con tu contraseña.',
-  'pk.err.pilotOnly': 'Las claves de acceso aún no están disponibles para tu cuenta. Entra con tu contraseña.',
   'pk.revoke': 'Revocar claves de acceso',
   'pk.revokeConfirm': 'Se revocarán TODAS las claves de acceso de {name}. Podrá seguir entrando con su contraseña.',
   'pk.revoked': 'Claves de acceso revocadas: {n}.',
@@ -12622,7 +12620,6 @@ function pkBufToB64u(buf) {
 /* Códigos del Worker → clave de error honesta (pk.err.*). */
 function pkErrKey(code, status) {
   const c = String(code || '');
-  if (c === 'pilot-only') return 'pilotOnly';
   if (status === 429 || c.includes('too-many') || c.includes('rate')) return 'tooMany';
   if (c.includes('expired') || c.includes('challenge')) return 'expired';
   if (c.includes('excluded') || c.includes('duplicate') || c.includes('already')) return 'excluded';
@@ -12838,7 +12835,7 @@ async function pkLoadList() {
     pkPaintList();
   } catch (e) {
     PK_KEYS = null;
-    list.innerHTML = `<p class="progress-hint">${esc(t((e && e.pkCode === 'pilotOnly') ? 'pk.err.pilotOnly' : 'pk.loadFailed'))}</p>`;
+    list.innerHTML = `<p class="progress-hint">${esc(t('pk.loadFailed'))}</p>`;
   }
 }
 function pkPaintList() {
@@ -41923,7 +41920,7 @@ document.addEventListener('keydown', e => { if (e.key === 'Escape') shareClose()
  *  - El SW (sw.js) solo cachea la cáscara del mismo origen en modo
  *    RED PRIMERO: Auth/Firestore/Worker jamás pasan por la caché.
  * ================================================================ */
-const PWA_SW_VERSION = '20261105-consumo';
+const PWA_SW_VERSION = '20261105-textos-piloto';
 /* Sello de versión VISIBLE (2026-11-03): el pie de la tarjeta de
    acceso enseña qué copia corre este teléfono ('v ' + el sello),
    para comprobar de un vistazo si la versión nueva ya llegó.
