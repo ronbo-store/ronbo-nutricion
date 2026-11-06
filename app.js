@@ -5221,6 +5221,7 @@ en: {
   'train.swap.alsoGroup': 'Also work {group}', 'train.swap.moreTitle': 'All exercises',
   'train.swap.resultsTitle': 'Results', 'train.swap.noResults': 'No exercises match that search.',
   'train.swap.presetEmpty': 'There are no exercises of this type in the library yet.',
+  'train.swap.allGroups': 'See the whole library',
   'train.swap.addBtn': 'Add',
   'train.variant.changeBtn': 'Switch to a variant',
   'train.variant.title': 'Variants of {name}',
@@ -8823,6 +8824,7 @@ es: {
   'train.swap.alsoGroup': 'También trabajan {group}', 'train.swap.moreTitle': 'Todos los ejercicios',
   'train.swap.resultsTitle': 'Resultados', 'train.swap.noResults': 'Ningún ejercicio coincide con esa búsqueda.',
   'train.swap.presetEmpty': 'Todavía no hay ejercicios de este tipo en la biblioteca.',
+  'train.swap.allGroups': 'Ver toda la biblioteca',
   'train.swap.addBtn': 'Agregar',
   'train.variant.changeBtn': 'Cambiar a variante',
   'train.variant.title': 'Variantes de {name}',
@@ -28232,6 +28234,29 @@ function swapSheetApplyVariant(plan, di, entry, vi, iso) {
   SWAP_QUERY = '';
   loadMyTraining();
 }
+/* ATAJOS DEL SELECTOR (decisión de Ronald, chat RONBO.NUTRI
+   2026-11-06 12:16 CST): los chips Cardio · Core · Estirar salen
+   de la fila de acciones de la sesión y viven AQUÍ, dentro del
+   flujo de «+ Agregar»: tres botones grandes que preseleccionan
+   el grupo EXACTAMENTE como hacían los chips (SWAP_PRESET_GROUP,
+   la clasificación de la biblioteca — los mismos valores
+   canónicos 'Cardio'/'Core'/'Estiramientos'). Elegir una tarjeta
+   guarda por el camino de siempre (swapSheetApply, edición de
+   sesión); nada de lo que los chips hacían se pierde. Con un
+   grupo activo, su botón va marcado y la fila ofrece volver a
+   toda la biblioteca sin cerrar la hoja. Solo modo «agregar»:
+   en modo «cambiar» la fila no se pinta. Los grupos que la
+   biblioteca aún no tiene (hoy Cardio y Estiramientos) caen en
+   el aviso honesto de grupo vacío de siempre. */
+const SWAP_PRESET_KEYS = ['Cardio', 'Core', 'Estiramientos'];
+const SWAP_PRESET_LABEL = { 'Cardio': 'train.strip.cardio', 'Core': 'train.strip.core', 'Estiramientos': 'train.strip.stretch' };
+function swapPresetRowHTML() {
+  if (!TRAIN_PICK || TRAIN_PICK.kind !== 'add') return '';
+  const btns = SWAP_PRESET_KEYS.map(g =>
+    `<button type="button" class="swap-preset-btn${SWAP_PRESET_GROUP === g ? ' is-active' : ''}" data-swap-preset="${g}">${t(SWAP_PRESET_LABEL[g])}</button>`).join('');
+  const all = SWAP_PRESET_GROUP ? `<div class="swap-presets-all"><button type="button" class="swap-preset-all" data-swap-preset-clear="1">${t('train.swap.allGroups')}</button></div>` : '';
+  return `<div class="swap-presets">${btns}</div>${all}`;
+}
 function swapSheetSync(plan, di, iso) {
   const old = document.getElementById('swap-sheet');
   if (!plan || !TRAIN_PICK) {
@@ -28270,6 +28295,7 @@ function swapSheetSync(plan, di, iso) {
       ${headSpec ? `<span class="swap-drop-sub">${esc(headSpec)}</span>` : ''}</span>
     </div>` : ''}
     <div class="swap-search-row"><input type="text" id="swap-search" placeholder="${esc(t('train.prop.searchPh'))}" autocomplete="off" value="${esc(SWAP_QUERY)}"></div>
+    <div id="swap-presets-slot">${swapPresetRowHTML()}</div>
     <div id="swap-results">${swapSheetResultsHTML(plan, di, iso)}</div>`;
   sheet.querySelectorAll('[data-swap-close]').forEach(b => b.onclick = () => { TRAIN_PICK = null; SWAP_QUERY = ''; loadMyTraining(); });
   const wirePicks = () => {
@@ -28282,6 +28308,29 @@ function swapSheetSync(plan, di, iso) {
     });
   };
   wirePicks();
+  /* Los atajos dentro del flujo: tocar uno fija el grupo (y limpia
+     la búsqueda, como la apertura fresca de los antiguos chips) y
+     re-pinta resultados y la propia fila (marca activa y botón de
+     volver); «Ver toda la biblioteca» retira el grupo. */
+  const wirePresets = () => {
+    const repaint = () => {
+      const box = sheet.querySelector('#swap-results');
+      if (box) { box.innerHTML = swapSheetResultsHTML(plan, di, iso); wirePicks(); }
+      const slot = sheet.querySelector('#swap-presets-slot');
+      if (slot) { slot.innerHTML = swapPresetRowHTML(); wirePresets(); }
+    };
+    sheet.querySelectorAll('[data-swap-preset]').forEach(b => b.onclick = () => {
+      SWAP_PRESET_GROUP = b.dataset.swapPreset || null;
+      SWAP_QUERY = '';
+      const sI = sheet.querySelector('#swap-search'); if (sI) sI.value = '';
+      repaint();
+    });
+    sheet.querySelectorAll('[data-swap-preset-clear]').forEach(b => b.onclick = () => {
+      SWAP_PRESET_GROUP = null;
+      repaint();
+    });
+  };
+  wirePresets();
   const search = sheet.querySelector('#swap-search');
   if (search) search.oninput = () => {
     SWAP_QUERY = search.value;
@@ -28804,32 +28853,33 @@ function trainCloseFormHTML(planId, di) {
 }
 /* Cola de la tarjeta en modo edición: con el panel de cierre
    abierto, la pareja del cronómetro + el panel, como siempre; en
-   reposo, la TIRA EN UNA SOLA LÍNEA (puntos 67–75 de la cola;
-   decisión de Ronald 2026-11-02 01:15 CST sobre la maqueta
-   aprobada): Finalizado · Hecho hoy (atenuado, acción secundaria,
-   como en la maqueta) · Saltar · + Agregar · chips Cardio · Core ·
-   Estirar (sin «+») · ▶ Iniciar al extremo derecho — todo en la
-   misma línea aunque salga pequeña (fuente 7,6 px, pastillas de
-   26 px: lo medido en la NOTA de la maqueta y aceptado por él).
-   Los data-* son los de siempre (el cableado existente no cambia);
-   los chips abren el agregado con su grupo preseleccionado
-   (SWAP_PRESET_GROUP, la clasificación de la biblioteca). Con el
-   cronómetro en curso, el tiempo transcurrido baja a su propia
-   línea bajo la tira. */
+   reposo, la FILA DE TRES BOTONES GRANDES + la pareja del
+   cronómetro debajo (decisión de Ronald, chat RONBO.NUTRI
+   2026-11-06 12:16 CST, con captura: la tira anterior de OCHO
+   pastillas de 26 px con letra de 7,6 px — la de los puntos 67–75
+   de la cola, aprobada el 2026-11-02 — truncaba los rótulos
+   («Finali…», «Hech…», «+ Agr…», «Inic…») y repetía puertas).
+   En la fila quedan SOLO los tres que él nombró, con el texto
+   completo: Hecho hoy (atenuado, acción secundaria) · Saltar ·
+   + Agregar — los data-* de siempre, el cableado no cambia.
+   Finalizado y ▶ Iniciar viven SOLO en la pareja del cronómetro
+   (la de AUTH-036, a los laterales), que desde este paquete se
+   pinta SIEMPRE bajo la fila: antes la pareja solo aparecía al
+   abrir el panel de cierre, en el mismo hueco — verificado contra
+   el código servido, ningún otro estado la pintaba — así que
+   ningún estado puede quedarse sin Iniciar ni sin Finalizado.
+   El tiempo en curso lo lee el centro de la pareja (su span de
+   siempre); la línea duplicada bajo la tira se retira. Los chips
+   Cardio · Core · Estirar salen de la fila y viven dentro del
+   flujo de «+ Agregar» (swapPresetRowHTML, el mismo
+   SWAP_PRESET_GROUP de siempre). */
 function trainEditTailHTML(planId, di) {
   if (TRAIN_CLOSE_DI === di) return trainChronoHTML(planId, di) + trainCloseFormHTML(planId, di);
-  const c = trainChronoRead(planId);
-  const run = c ? `<div class="train-actions-run">${t('train.chronoRunning', { min: Math.max(0, Math.round((Date.now() - c.start) / 60000)) })}</div>` : '';
   return `<div class="train-actions-strip">`
-    + `<button type="button" class="train-actions-btn is-finish" data-train-done="${di}">${t('train.chronoFinishBtn')}</button>`
     + `<button type="button" class="train-actions-btn is-dim" data-train-done="${di}">${t('train.strip.doneToday')}</button>`
     + `<button type="button" class="train-actions-btn" data-train-skip="${di}">${t('train.strip.skip')}</button>`
     + `<button type="button" class="train-actions-btn" data-train-add-open="1">${t('train.strip.add')}</button>`
-    + `<button type="button" class="train-actions-chip" data-train-add-preset="Cardio">${t('train.strip.cardio')}</button>`
-    + `<button type="button" class="train-actions-chip" data-train-add-preset="Core">${t('train.strip.core')}</button>`
-    + `<button type="button" class="train-actions-chip" data-train-add-preset="Estiramientos">${t('train.strip.stretch')}</button>`
-    + `<button type="button" class="train-actions-btn is-start" data-train-start="${di}">${t('train.chronoStartBtn')}</button>`
-    + `</div>` + run;
+    + `</div>` + trainChronoHTML(planId, di);
 }
 /* El volcado de la sesión en el día de actividad: UNA sola entrada
    'entrenamiento_plan', reemplazada al re-cerrar y retirada al
@@ -31970,15 +32020,10 @@ async function loadMyTraining() {
     loadMyTraining();
     setTimeout(() => { const tc = $('train-custom-tools'); if (tc) tc.scrollIntoView({ block: 'start' }); }, 80);
   });
-  /* Chips de complementarios de la tira (puntos 67–75): el MISMO
-     flujo de agregar de siempre, con el grupo preseleccionado. */
-  box.querySelectorAll('[data-train-add-preset]').forEach(b => b.onclick = () => {
-    SWAP_PRESET_GROUP = b.dataset.trainAddPreset || null;
-    TRAIN_CUSTOM_OPEN = true;
-    TRAIN_PICK = { kind: 'add' };
-    loadMyTraining();
-    setTimeout(() => { const tc = $('train-custom-tools'); if (tc) tc.scrollIntoView({ block: 'start' }); }, 80);
-  });
+  /* Los antiguos chips Cardio · Core · Estirar de la tira ya no
+     se pintan ni se cablean aquí (decisión de Ronald 2026-11-06):
+     viven dentro del flujo de «+ Agregar» (swapPresetRowHTML en
+     la hoja del selector, el mismo SWAP_PRESET_GROUP). */
   trainAlignRender();
   /* Biblioteca (una sola lectura con caché por sesión de página): al
      llegar, se re-pinta UNA vez por plan/día para resolver nombres y
@@ -43724,7 +43769,7 @@ document.addEventListener('keydown', e => { if (e.key === 'Escape') shareClose()
  *  - El SW (sw.js) solo cachea la cáscara del mismo origen en modo
  *    RED PRIMERO: Auth/Firestore/Worker jamás pasan por la caché.
  * ================================================================ */
-const PWA_SW_VERSION = '20261106-entrenar-hoy';
+const PWA_SW_VERSION = '20261106-fila-tres';
 /* Sello de versión VISIBLE (2026-11-03): el pie de la tarjeta de
    acceso enseña qué copia corre este teléfono ('v ' + el sello),
    para comprobar de un vistazo si la versión nueva ya llegó.

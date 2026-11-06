@@ -1421,15 +1421,18 @@ div > .btn-ghost:only-child, div > .btn-main:only-child {
 .train-ex-hist-eq { display: block; font-size: 10px; font-weight: 700; white-space: nowrap; opacity: .78; }
 .train-ex-hist-none { font-size: 9px; opacity: .72; text-align: right; margin-top: 1px; white-space: nowrap; }
 .train-day-dressed .train-ex-hist { color: #fff; }
-.train-actions-strip { display: flex; align-items: center; gap: 3px; margin-top: 8px; }
-.train-actions-btn, .train-actions-chip { flex: 1 1 0; min-width: 0; height: 26px; padding: 0 2px; border: 1px solid rgba(15, 61, 56, .18); border-radius: 999px; background: rgba(15, 61, 56, .08); color: #0f3d38; font-size: 7.6px; font-weight: 700; line-height: 1; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; cursor: pointer; }
-.train-day-dressed .train-actions-btn, .train-day-dressed .train-actions-chip { background: rgba(255, 255, 255, .16); border-color: rgba(255, 255, 255, .35); color: #fff; }
-.train-actions-btn.is-finish { background: linear-gradient(180deg, #ef4444, #dc2626); border-color: transparent; color: #fff; }
-.train-actions-btn.is-start { background: linear-gradient(180deg, #22c55e, #16a34a); border-color: transparent; color: #fff; }
+/* FILA DE TRES BOTONES (decisión de Ronald 2026-11-06 12:16 CST,
+   con captura): la tira de la sesión deja las ocho pastillas de
+   26 px con letra de 7,6 px — que truncaban los rótulos — y quedan
+   SOLO Hecho hoy · Saltar · + Agregar, grandes (48 px) y con el
+   texto completo. Finalizado e ▶ Iniciar viven en la pareja del
+   cronómetro (.train-chrono-pair, bajo la fila); Cardio · Core ·
+   Estirar, dentro del flujo de «+ Agregar» (.swap-preset-btn). */
+.train-actions-strip { display: flex; align-items: stretch; gap: 6px; margin-top: 8px; }
+.train-actions-btn { flex: 1 1 0; min-width: 0; height: 48px; padding: 0 8px; border: 1px solid rgba(15, 61, 56, .18); border-radius: 999px; background: rgba(15, 61, 56, .08); color: #0f3d38; font-size: 15px; font-weight: 700; line-height: 1.1; white-space: nowrap; cursor: pointer; }
+.train-day-dressed .train-actions-btn { background: rgba(255, 255, 255, .16); border-color: rgba(255, 255, 255, .35); color: #fff; }
 .train-actions-btn.is-dim { background: rgba(15, 61, 56, .04); color: rgba(15, 61, 56, .55); }
 .train-day-dressed .train-actions-btn.is-dim { background: rgba(255, 255, 255, .08); color: rgba(255, 255, 255, .55); }
-.train-actions-run { margin-top: 4px; text-align: center; font-size: 12px; font-weight: 700; color: #0d9488; }
-.train-day-dressed .train-actions-run { color: #d9ffe9; }
 /* == FIN AUTH-161 == */
 /* == LÍMITES Y CUOTAS (AUTH-162 · punto 12) == */
 .limreg-row { display: flex; flex-wrap: wrap; gap: 6px; align-items: flex-end; padding: 8px 0; border-bottom: 1px solid #e5e7eb; }
@@ -2203,6 +2206,14 @@ body.swap-sheet-open .share-fab, body.swap-sheet-open .help-fab, body.swap-sheet
 .swap-drop-sub { font-size: 12.5px; color: #5b6b7a; }
 .swap-search-row { margin-bottom: 6px; }
 .swap-search-row input[type="text"] { width: 100%; box-sizing: border-box; padding: 11px 12px; font-size: 15px; border: 1.5px solid #cbd5e1; border-radius: 12px; }
+/* Atajos del selector (2026-11-06): Cardio · Core · Estirar dentro
+   del flujo de «+ Agregar» — botones grandes estilo casa, el grupo
+   activo en relleno de marca y la vuelta a toda la biblioteca. */
+.swap-presets { display: flex; gap: 8px; margin: 2px 0 4px; }
+.swap-preset-btn { flex: 1 1 0; min-width: 0; height: 48px; padding: 0 8px; border-radius: 999px; border: 1.5px solid #0d9488; background: #fff; color: #0f766e; font-size: 15px; font-weight: 800; line-height: 1.1; white-space: nowrap; cursor: pointer; }
+.swap-preset-btn.is-active { background: #0d9488; border-color: #0d9488; color: #fff; }
+.swap-presets-all { text-align: center; margin-bottom: 2px; }
+.swap-preset-all { border: none; background: none; color: #0f766e; font-size: 14px; font-weight: 700; text-decoration: underline; cursor: pointer; padding: 6px 8px; }
 .swap-sec-title { font-size: 12px; font-weight: 700; letter-spacing: .05em; text-transform: uppercase; color: #0f766e; margin: 16px 0 8px; }
 .swap-card { display: flex; align-items: center; gap: 12px; width: 100%; box-sizing: border-box; text-align: left; padding: 9px 10px; margin-bottom: 8px; border: 1px solid #d7e3e1; border-radius: 14px; background: #fff; font: inherit; cursor: pointer; }
 .swap-card:active { background: #f0fdfa; }
