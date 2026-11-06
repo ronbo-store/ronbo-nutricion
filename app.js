@@ -23974,6 +23974,18 @@ let ASST_DATA = { loaded: false, loading: null, plan: null, logs: [] };
 const ASST_AVATAR_URL = 'https://ronbo-store.github.io/ronbo-nutri-assets/coach-virtual-avatar-comico.webp';
 const ASST_AVATAR_SVG = '<svg viewBox="0 0 48 48" width="17" height="17" fill="none" aria-hidden="true"><circle cx="24" cy="19" r="8.5" fill="#fff" opacity=".95"/><path d="M10 40c1.5-7 7-10.5 14-10.5S36.5 33 38 40" fill="#fff" opacity=".95"/><path d="M12.5 20a11.5 11.5 0 0 1 23 0" stroke="#fff" stroke-width="3" stroke-linecap="round"/><rect x="8.5" y="19" width="5" height="9" rx="2.5" fill="#fff"/><rect x="34.5" y="19" width="5" height="9" rx="2.5" fill="#fff"/><path d="M36.5 28v3a5 5 0 0 1-5 5H27" stroke="#fff" stroke-width="3" stroke-linecap="round"/><circle cx="25" cy="36" r="2" fill="#fff"/></svg>';
 const ASST_AVATAR_MINI = `<img class="asst-av-img" src="${ASST_AVATAR_URL}" alt="" onerror="this.style.display='none';this.nextElementSibling.style.display=''"><span class="asst-av-fb" style="display:none">${ASST_AVATAR_SVG}</span>`;
+/* AUTH-2026-11-05-265 (propuesta 1 de la cola de la mascota): las
+   caras del MOMENTO del coach, servidas desde el repo de activos
+   (carpeta avatar-coach-virtual/web/, URLs nuevas porque la caché
+   de imágenes del SW guarda por URL). La cabecera de la hoja y los
+   mini de sus mensajes siguen con la principal (ASST_AVATAR_URL);
+   estas caras viven SOLO dentro de la burbuja del estado: la
+   expectante ANIMADA (bucle) mientras piensa la respuesta, el
+   guiño en el aviso de membresía y la frustración DEL COACH sobre
+   sí mismo cuando algo le falla a él — nunca hacia el alumno. */
+const ASST_FACE_THINKING = 'https://ronbo-store.github.io/ronbo-nutri-assets/avatar-coach-virtual/web/expectante-animada.webp';
+const ASST_FACE_MEMBERSHIP = 'https://ronbo-store.github.io/ronbo-nutri-assets/avatar-coach-virtual/web/guino.webp';
+const ASST_FACE_ERROR = 'https://ronbo-store.github.io/ronbo-nutri-assets/avatar-coach-virtual/web/frustracion.webp';
 /* Visibilidad del disco: la misma regla de la ayuda y el compartir
    (solo con Inicio activo) MÁS el corte del interruptor de IA. Sin
    argumento, repinta según la pestaña vigente (NAV_TAB) — así lo
@@ -24075,7 +24087,7 @@ function asstContextBuild() {
   return ctx;
 }
 /* ── Pintado de la conversación ── */
-function asstBubble(who, text, isErr) {
+function asstBubble(who, text, isErr, faceUrl) {
   const log = $('asst-log'); if (!log) return;
   const row = document.createElement('div');
   if (who === 'me') {
@@ -24083,9 +24095,26 @@ function asstBubble(who, text, isErr) {
     row.innerHTML = '<span class="asst-bub me"></span>';
   } else {
     row.className = 'asst-row';
-    row.innerHTML = `<div class="asst-who"><span class="asst-who-av">${ASST_AVATAR_MINI}</span><span class="asst-who-tx">${esc(t('asst.who'))}</span></div><span class="asst-bub bot${isErr ? ' err' : ''}"></span>`;
+    row.innerHTML = `<div class="asst-who"><span class="asst-who-av">${ASST_AVATAR_MINI}</span><span class="asst-who-tx">${esc(t('asst.who'))}</span></div><span class="asst-bub bot${isErr ? ' err' : ''}${faceUrl ? ' has-face' : ''}">${faceUrl ? `<img class="asst-bub-face" src="${faceUrl}" alt="" onerror="this.remove()"><span class="asst-bub-tx"></span>` : ''}</span>`;
   }
-  row.querySelector('.asst-bub').textContent = String(text == null ? '' : text);
+  const bub = row.querySelector('.asst-bub');
+  (bub.querySelector('.asst-bub-tx') || bub).textContent = String(text == null ? '' : text);
+  log.appendChild(row);
+  const body = $('asst-body'); if (body) body.scrollTop = body.scrollHeight;
+}
+/* La fila pasajera de «pensando»: la burbuja del estado con la cara
+   expectante ANIMADA junto al texto, visible solo mientras la
+   respuesta viaja; se retira antes de pintar la respuesta o el
+   error, así nunca convive con ellos. */
+function asstThinkingPaint(on) {
+  const log = $('asst-log'); if (!log) return;
+  const old = $('asst-thinking-row'); if (old) old.remove();
+  if (!on) return;
+  const row = document.createElement('div');
+  row.className = 'asst-row';
+  row.id = 'asst-thinking-row';
+  row.innerHTML = `<div class="asst-who"><span class="asst-who-av">${ASST_AVATAR_MINI}</span><span class="asst-who-tx">${esc(t('asst.who'))}</span></div><span class="asst-bub bot has-face"><img class="asst-bub-face" src="${ASST_FACE_THINKING}" alt="" onerror="this.remove()"><span class="asst-bub-tx"></span></span>`;
+  row.querySelector('.asst-bub-tx').textContent = t('asst.thinking');
   log.appendChild(row);
   const body = $('asst-body'); if (body) body.scrollTop = body.scrollHeight;
 }
@@ -24279,11 +24308,13 @@ async function asstSend(payload) {
   ASST.busy = true;
   asstStopSpeak();
   asstRecPaint('busy');
+  asstThinkingPaint(true);
   const chips = $('asst-chips'); if (chips) chips.style.display = 'none';
   try {
     const body = { lang: LANG, context: asstContextBuild(), history: ASST.history.slice(-8) };
     if (payload.text) body.text = payload.text; else body.audioDataUrl = payload.audioDataUrl;
     const out = await aiCall('/assistant', body);
+    asstThinkingPaint(false);
     const transcript = (typeof out.transcript === 'string' && out.transcript) ? out.transcript : (payload.text || '');
     if (transcript) asstBubble('me', transcript);
     asstBubble('bot', String(out.answer || ''));
@@ -24292,14 +24323,16 @@ async function asstSend(payload) {
     if (ASST.history.length > 16) ASST.history = ASST.history.slice(-16);
     asstSpeak((typeof out.say === 'string' && out.say) ? out.say : String(out.answer || ''));
   } catch (e) {
+    asstThinkingPaint(false);
     const msg = e && e.message;
     if (payload.text) asstBubble('me', payload.text);
     if (msg === 'ai-cap') asstBubble('bot', t('asst.errCap'), true);
-    else if (msg === 'ai-asst-membership') asstBubble('bot', t('asst.errMembership'), true);
+    else if (msg === 'ai-asst-membership') asstBubble('bot', t('asst.errMembership'), true, ASST_FACE_MEMBERSHIP);
     else if (msg === 'ai-disabled') asstBubble('bot', t('ai.disabledByAdmin'), true);
     else if (msg === 'ai-door-unavailable') asstBubble('bot', t('ai.doorUnavailable'), true);
-    else asstBubble('bot', t('asst.errGeneric'), true);
+    else asstBubble('bot', t('asst.errGeneric'), true, ASST_FACE_ERROR);
   } finally {
+    asstThinkingPaint(false);
     ASST.busy = false;
     if (!(ASST_REC.rec && ASST_REC.rec.state === 'recording')) asstRecPaint('idle');
   }
@@ -42481,7 +42514,7 @@ document.addEventListener('keydown', e => { if (e.key === 'Escape') shareClose()
  *  - El SW (sw.js) solo cachea la cáscara del mismo origen en modo
  *    RED PRIMERO: Auth/Firestore/Worker jamás pasan por la caché.
  * ================================================================ */
-const PWA_SW_VERSION = '20261105-fab-mascota';
+const PWA_SW_VERSION = '20261105-coach-caras';
 /* Sello de versión VISIBLE (2026-11-03): el pie de la tarjeta de
    acceso enseña qué copia corre este teléfono ('v ' + el sello),
    para comprobar de un vistazo si la versión nueva ya llegó.

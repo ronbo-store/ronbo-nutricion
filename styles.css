@@ -4024,6 +4024,12 @@ body.swap-sheet-open .asst-fab { display: none !important; }
 .asst-bub.bot { background: #f0f7f5; border: 1px solid #dcebe8; color: #173f3a; border-bottom-left-radius: 6px; }
 .asst-bub.me { background: linear-gradient(135deg, #0d9488, #0b7c72); color: #fff; border-bottom-right-radius: 6px; }
 .asst-bub.err { background: #fdf3f2; border: 1px solid #f2d5d2; color: #7c2d26; }
+/* AUTH-2026-11-05-265: la burbuja con cara del momento (pensando,
+   membresía, error del propio coach) lleva la expresión a 44 px
+   junto al texto; si la imagen no carga, se retira y la burbuja
+   queda como siempre. */
+.asst-bub.has-face { display: inline-flex; align-items: center; gap: 10px; }
+.asst-bub-face { width: 44px; height: 44px; border-radius: 50%; object-fit: cover; flex: none; display: block; }
 .asst-chips { display: flex; flex-wrap: wrap; gap: 8px; margin: 4px 0 10px; }
 .asst-chip { border: 1.5px solid #0d9488; color: #0b7c72; background: #f4fbfa; border-radius: 999px; padding: 9px 14px; font-size: 13.5px; font-weight: bold; cursor: pointer; min-height: 44px; }
 .asst-chip:active { background: #e2f2ef; }
