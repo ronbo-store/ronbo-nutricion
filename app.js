@@ -4821,6 +4821,9 @@ en: {
   'asst.chip1': 'How am I doing today?',
   'asst.chip2': "What's on today?",
   'asst.chip3': "How's my week going?",
+  'asst.dictDoor': '🎙 Do you want to add something to your workout?',
+  'asst.dictNoPlan': "You don't have a training plan yet — your trainer prepares it in Training.",
+  'asst.dictClosed': "Today's session is already closed, so nothing more can be added to it.",
   'asst.talk': 'Talk',
   'asst.talkHint': 'Tap the button and talk to me',
   'asst.listening': '● Listening…',
@@ -8407,6 +8410,9 @@ es: {
   'asst.chip1': '¿Cómo voy hoy?',
   'asst.chip2': '¿Qué toca hoy?',
   'asst.chip3': '¿Cómo va mi semana?',
+  'asst.dictDoor': '🎙 ¿Quieres añadir algo a tu entrenamiento?',
+  'asst.dictNoPlan': 'Aún no tienes un plan de entrenamiento: tu entrenador lo prepara en Entrenamiento.',
+  'asst.dictClosed': 'La sesión de hoy ya está cerrada: no se le puede añadir nada más.',
   'asst.talk': 'Hablar',
   'asst.talkHint': 'Toca el botón y háblame',
   'asst.listening': '● Te escucho…',
@@ -24296,6 +24302,47 @@ function asstClose() {
   if (ASST_REC.rec) asstRecFinish(false);
   asstStopSpeak();
 }
+/* PUERTA DEL COACH AL DICTADO (Paquete 2 del dictado sin IA,
+   2026-11-06; decisión D1 de Ronald, chat RONBO.NUTRI 2026-11-06
+   11:31 CST): la pregunta sugerida «¿Quieres añadir algo a tu
+   entrenamiento?» NO es una pregunta para la IA — es una PUERTA.
+   No llama a /assistant, no consume turno, no toca la puerta de
+   3 preguntas/día (AUTH-260) ni el contador general de IA: abre la
+   hoja de dictado del Paquete 1 (AUTH-279) para la sesión de HOY,
+   resuelta con las mismas piezas de la vista de Entrenamiento
+   (mapa del plan vía trainDayMap — pares/plancal/rotación — y el
+   día efectivo de trainTodayDiEffective, con la base traída o
+   libre). El coach sigue de SOLO LECTURA (AUTH-251): quien
+   escribe es el alumno, en la hoja de dictado y con su
+   confirmación de siempre.
+   Casos borde, honestos y sin inventar superficies:
+   - sin plan: aviso y nada más (el plan lo prepara su entrenador);
+   - hoy sin rutina en el mapa y sin base: se crea la base de DÍA
+     LIBRE de hoy — la misma que crea el botón de la vista del
+     día — y el dictado entra como su sesión;
+   - sesión de hoy ya cerrada: aviso y nada más (en la vista del
+     día el botón tampoco se ofrece con el día cerrado). */
+async function asstDictDoorOpen() {
+  try { if (typeof ASST_DATA !== 'undefined' && ASST_DATA && ASST_DATA.loading) await ASST_DATA.loading; } catch {}
+  const { plan, logs } = asstPlanLogs();
+  if (!plan || !Array.isArray(plan.days) || !plan.days.length) { toast(t('asst.dictNoPlan'), true); return; }
+  const today = todayISO();
+  const cfg = (typeof PEND_CFG !== 'undefined' && PEND_CFG && !PEND_CFG.__error) ? PEND_CFG : null;
+  const tmap = trainDayMap(plan, cfg);
+  let mapped = null;
+  if (tmap.pairs) { const v = tmap.pairs[new Date(today + 'T12:00:00').getDay()]; mapped = (v == null ? null : v); }
+  else if (tmap.mode === 'plancal') mapped = planCalDayIndex(plan, today);
+  else if (tmap.mode === 'rotation') {
+    try { const det = goalsDayLevelForDate(today, plan, cfg, (typeof LIB_BY_ID !== 'undefined' ? LIB_BY_ID : {})); if (det && Number.isInteger(det.dayIndex)) mapped = det.dayIndex; } catch {}
+  }
+  let di = trainTodayDiEffective(plan, mapped);
+  if (di == null) { trainBaseWrite(plan.id, { kind: 'free' }); di = -1; }
+  const closed = (logs || []).some(l => l && l.date === today && l.dayIndex === di && wkIsClosed(l));
+  if (closed) { toast(t('asst.dictClosed'), true); return; }
+  asstClose();
+  try { navOpenPage('train'); } catch {}
+  dictSheetOpen(plan, di, today);
+}
 /* ── La voz del teléfono (fase 1) ── */
 function asstUnlockSpeech() {
   /* DESBLOQUEO iOS (AUTH-2026-11-05-259; corregido por
@@ -24547,6 +24594,10 @@ function asstSendText() {
 { const i = $('asst-text'); if (i) i.addEventListener('keydown', e => { if (e.key === 'Enter') { e.preventDefault(); asstSendText(); } }); }
 { const b = $('asst-silence'); if (b) b.onclick = () => { ASST.muted = !ASST.muted; if (ASST.muted) asstStopSpeak(); asstSpeakPaint(ASST.speaking); }; }
 document.querySelectorAll('[data-asst-chip]').forEach(ch => { ch.onclick = () => { const k = 'asst.chip' + ch.getAttribute('data-asst-chip'); if (!ASST.busy) { asstUnlockSpeech(); asstSend({ text: t(k) }); } }; });
+/* La puerta al dictado NO es un chip de pregunta: lleva su propio
+   atributo y su propio cableado, fuera del camino de asstSend —
+   tocarla jamás gasta un turno de IA (Paquete 2, 2026-11-06). */
+document.querySelectorAll('[data-asst-dict]').forEach(b => { b.onclick = () => { asstDictDoorOpen(); }; });
 
 /* Apertura del modal de comida con enfoque visible en el formulario. */
 function aiOpenMealModal() {
@@ -43404,7 +43455,7 @@ document.addEventListener('keydown', e => { if (e.key === 'Escape') shareClose()
  *  - El SW (sw.js) solo cachea la cáscara del mismo origen en modo
  *    RED PRIMERO: Auth/Firestore/Worker jamás pasan por la caché.
  * ================================================================ */
-const PWA_SW_VERSION = '20261106-dictado';
+const PWA_SW_VERSION = '20261106-dictado-coach';
 /* Sello de versión VISIBLE (2026-11-03): el pie de la tarjeta de
    acceso enseña qué copia corre este teléfono ('v ' + el sello),
    para comprobar de un vistazo si la versión nueva ya llegó.
