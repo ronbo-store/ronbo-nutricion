@@ -3734,6 +3734,42 @@ body.sess-on #pend-back-chip { bottom: calc(env(safe-area-inset-bottom, 0px) + 1
 .acts-state { font-size: 12.5px; font-weight: 700; padding: 4px 10px; border-radius: 999px; background: #eef2f2; color: #5b6b68; }
 .acts-state.on { background: #0d9488; color: #fff; }
 .acts-btn { width: 100%; min-height: 48px; margin-top: 10px; font-size: 16px; }
+/* AUTH-2026-11-06-275 · Consentimiento de actividad más visual:
+   el panel es UN solo bloque (explicación breve + cuatro filas
+   con divisores) y la aceptación vive en una hoja con resumen
+   visual, notas clave y el texto legal completo en desplegable.
+   Solo presentación; la mecánica del consentimiento no cambia. */
+.acts-explain { background: #f0fdfa; border: 1px solid #ccfbf1; border-radius: 12px; padding: 10px 12px; font-size: 13.5px; line-height: 1.5; color: #134e4a; margin: 0 0 12px; }
+.acts-card { border: 1px solid #e2e8f0; border-radius: 14px; overflow: hidden; }
+.acts-row { padding: 12px; }
+.acts-row + .acts-row { border-top: 1px solid #eef2f5; }
+.acts-row .acts-btn { margin-top: 8px; }
+.acts-src { margin: 2px 0 0; }
+/* La hoja: columna flexible — cabecera y pie fijos, el cuerpo
+   hace scroll por dentro y el botón de aceptar nunca se tapa. */
+.act-float.acts-sheet { display: flex; flex-direction: column; overflow: hidden; padding: 0; }
+.acts-sheet .acts-head { padding: 14px 16px 10px; margin-bottom: 0; flex: none; }
+.acts-body { flex: 1 1 auto; min-height: 0; overflow-y: auto; padding: 2px 16px 12px; -webkit-overflow-scrolling: touch; }
+.acts-foot { flex: none; padding: 12px 16px 14px; border-top: 1px solid #eef2f5; background: #fff; }
+.acts-intro { margin: 4px 0 0; }
+.acts-sumcard { border: 1px solid #e2e8f0; border-radius: 14px; overflow: hidden; margin: 8px 0 12px; }
+.acts-sumrow { display: flex; gap: 10px; align-items: flex-start; padding: 10px 12px; }
+.acts-sumrow + .acts-sumrow { border-top: 1px solid #eef2f5; }
+.acts-sumrow.now { background: #f0fdfa; }
+.acts-ic { width: 36px; height: 36px; border-radius: 50%; background: #f0fdfa; border: 1px solid #ccfbf1; display: flex; align-items: center; justify-content: center; font-size: 18px; flex: none; }
+.acts-sumtx { flex: 1 1 auto; min-width: 0; font-size: 13.5px; line-height: 1.45; color: #1e293b; }
+.acts-sumstop { display: block; font-size: 12px; color: #64748b; margin-top: 2px; }
+.acts-sumstop.warn { color: #b45309; font-weight: 700; }
+.acts-accepting { flex: none; font-size: 10.5px; font-weight: 700; color: #0f766e; background: #ccfbf1; border-radius: 999px; padding: 3px 8px; }
+.acts-note { background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 12px; padding: 9px 11px; font-size: 13px; line-height: 1.45; color: #334155; margin: 0 0 8px; }
+.acts-sumnote { margin: 10px 0 8px; }
+.acts-legal-bar { display: flex; align-items: center; gap: 8px; width: 100%; min-height: 48px; padding: 10px 12px; border: 1.5px solid #0d9488; border-radius: 12px; background: #f4fbfa; color: #0b7c72; font: inherit; font-size: 14px; font-weight: 700; cursor: pointer; text-align: left; }
+.acts-ver { margin-left: auto; font-size: 11px; font-weight: 700; color: #0f766e; background: #ccfbf1; border-radius: 999px; padding: 2px 8px; white-space: nowrap; }
+.acts-chev { font-size: 15px; flex: none; }
+.acts-legal { border: 1px solid #e2e8f0; border-top: none; border-radius: 0 0 12px 12px; padding: 12px; max-height: 260px; overflow-y: auto; }
+.acts-legal p { margin: 0; font-size: 13px; line-height: 1.6; color: #334155; }
+.acts-checkrow { border: 1.5px solid #0d9488; border-radius: 12px; background: #f4fbfa; padding: 12px; margin: 0 0 10px; font-size: 14px; }
+.acts-go { width: 100%; min-height: 48px; font-size: 16px; }
 .adh-week { border-top: 1px solid #e5e7eb; padding: 8px 0 4px; }
 .adh-week-head { font-weight: 700; font-size: 14px; margin-bottom: 4px; }
 .adh-row { display: flex; justify-content: space-between; gap: 10px; padding: 3px 0; }

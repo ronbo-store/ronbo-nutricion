@@ -5981,6 +5981,20 @@ en: {
   'actshare.withdrawConfirmSleep': 'Stop sharing your sleep? Your saved sleep records will be DELETED and only the record of this withdrawal will be kept. You can keep logging your sleep for yourself.',
   'actshare.withdrawConfirmOther': 'Stop sharing this type? Your trainer will stop seeing it in your summary. Your own records are NOT deleted — they are yours and other parts of your app use them. Only the record of this withdrawal is kept.',
   'actshare.versionMismatch': 'The recorded consent uses a different version, so it is treated as not shared.',
+  'actshare.explain': 'You choose what your trainer sees. The data comes from your own logs — nothing is copied — and your trainer only sees a weekly summary.',
+  'actshare.sheetIntro': 'You are about to share one type of data. This is what each type means:',
+  'actshare.sum.steps': 'Your daily steps.',
+  'actshare.sum.exercise': 'Your training sessions.',
+  'actshare.sum.weight': 'Your weight log.',
+  'actshare.sum.sleep': 'The sleep hours you log.',
+  'actshare.sumStop.steps': 'If you stop: your trainer stops seeing it. Your log is NOT deleted.',
+  'actshare.sumStop.exercise': 'If you stop: your trainer stops seeing it. Your sessions are NOT deleted.',
+  'actshare.sumStop.weight': 'If you stop: your trainer stops seeing it. Your log is NOT deleted.',
+  'actshare.sumStop.sleep': 'If you stop: your saved sleep hours are DELETED.',
+  'actshare.accepting': 'You are accepting this one',
+  'actshare.noteSees': '👁️ What your trainer sees: only a weekly summary — your current week and the previous four.',
+  'actshare.noteSafe': '🛡️ Sharing never changes your use of the app, and it is not a medical measurement.',
+  'actshare.sumNote': 'This summary is a visual aid. The full text below is the one that governs, and your acceptance is recorded against it:',
   'actsleep.title': 'Sleep',
   'actsleep.hint': 'The night that ended this morning.',
   'actsleep.hours': 'Hours',
@@ -9523,6 +9537,20 @@ es: {
   'actshare.withdrawConfirmSleep': '¿Dejar de compartir tu sueño? Tus registros de sueño guardados se BORRARÁN y solo se conservará el registro de esta retirada. Podrás seguir registrando tu sueño para ti.',
   'actshare.withdrawConfirmOther': '¿Dejar de compartir este tipo? Tu entrenador dejará de verlo en tu resumen. Tus propios registros NO se borran: son tuyos y otras partes de tu app los utilizan. Solo se conserva el registro de esta retirada.',
   'actshare.versionMismatch': 'El consentimiento registrado usa otra versión, así que se trata como no compartido.',
+  'actshare.explain': 'Tú eliges qué ve tu entrenador. Los datos salen de tus propios registros — no se copia nada — y tu entrenador solo ve un resumen semanal.',
+  'actshare.sheetIntro': 'Vas a compartir un tipo de dato. Esto es lo que significa cada uno:',
+  'actshare.sum.steps': 'Tus pasos de cada día.',
+  'actshare.sum.exercise': 'Tus sesiones de entrenamiento.',
+  'actshare.sum.weight': 'Tu registro de peso.',
+  'actshare.sum.sleep': 'Las horas de sueño que anotas.',
+  'actshare.sumStop.steps': 'Si lo retiras: tu entrenador deja de verlo. Tu registro NO se borra.',
+  'actshare.sumStop.exercise': 'Si lo retiras: tu entrenador deja de verlo. Tus sesiones NO se borran.',
+  'actshare.sumStop.weight': 'Si lo retiras: tu entrenador deja de verlo. Tu registro NO se borra.',
+  'actshare.sumStop.sleep': 'Si lo retiras: tus horas de sueño guardadas SE BORRAN.',
+  'actshare.accepting': 'Estás aceptando este',
+  'actshare.noteSees': '👁️ Lo que ve tu entrenador: solo un resumen semanal — tu semana actual y las cuatro anteriores.',
+  'actshare.noteSafe': '🛡️ Compartir nunca cambia tu uso de la app, y no es una medición médica.',
+  'actshare.sumNote': 'Este resumen es una ayuda visual. El texto completo de abajo es el que manda, y tu aceptación queda registrada sobre él:',
   'actsleep.title': 'Sueño',
   'actsleep.hint': 'La noche que terminó esta mañana.',
   'actsleep.hours': 'Horas',
@@ -26269,34 +26297,46 @@ function renderActSharePanel() {
     window.__ACT_SLEEP_SWEPT = true;
     actSleepPurgeAll().then(() => { window.__ACT_SLEEP_SWEPT = false; }, () => { window.__ACT_SLEEP_SWEPT = false; });
   }
-  let html = `<p class="progress-hint">${esc(t('actshare.intro'))}</p>`;
+  /* AUTH-2026-11-06-275: el panel es UN solo bloque — explicación
+     breve arriba y las cuatro filas separadas por divisores; la
+     aceptación vive en su hoja (#acts-float). Solo presentación:
+     la mecánica del consentimiento no cambia. */
+  let html = `<div class="acts-explain">${esc(t('actshare.explain'))}</div><div class="acts-card">`;
   for (const tipo of ACT_SHARE_TYPES) {
     const s = actShareOf(UDATA, tipo);
     const active = actShareActive(UDATA, tipo);
     const withdrawn = !!s && s.status === 'withdrawn';
     const mismatch = !!s && s.status === 'accepted' && s.version !== ACT_CONSENT_VERSION;
-    html += `<div class="acts-type">
+    const st = actShareStateParts(tipo);
+    html += `<div class="acts-row">
       <div class="acts-head"><span class="acts-name">${ACT_SHARE_ICONS[tipo]} ${esc(t('actshare.type.' + tipo))}</span>
-      <span class="acts-state ${active ? 'on' : 'off'}">${active ? esc(t('actshare.statusOn', { date: esc(fmtBtDate(s.acceptedAt)) })) : withdrawn ? esc(t('actshare.statusWithdrawn', { date: esc(fmtBtDate(s.withdrawnAt)) })) : esc(t('actshare.statusOff'))}</span></div>
-      <p class="progress-hint">${esc(t('actshare.src.' + tipo))}</p>
+      <span class="acts-state ${st.cls}">${esc(st.txt)}</span></div>
+      <p class="progress-hint acts-src">${esc(t('actshare.src.' + tipo))}</p>
       ${mismatch ? `<p class="progress-hint">${esc(t('actshare.versionMismatch'))}</p>` : ''}
       ${active
         ? `<button type="button" class="btn-ghost danger acts-btn" data-acts-stop="${tipo}">${esc(t('actshare.stop'))}</button>`
-        : `<details class="spec-details" id="acts-details-${tipo}"><summary>${esc(t('actshare.fullTextTitle'))}</summary>
-             <label class="consent-check"><input type="checkbox" id="acts-ok-${tipo}"> <span>${esc(t('actshare.consentText'))} ${esc(t('actshare.consentCheck'))}</span></label>
-           </details>
-           <button type="button" class="btn-primary acts-btn" data-acts-grant="${tipo}">${esc(withdrawn || mismatch ? t('actshare.renew') : t('actshare.share'))}</button>`}
+        : `<button type="button" class="btn-primary acts-btn" data-acts-open="${tipo}">${esc(withdrawn || mismatch ? t('actshare.renew') : t('actshare.share'))}</button>`}
     </div>`;
   }
+  html += `</div>`;
   box.innerHTML = html;
-  box.querySelectorAll('[data-acts-grant]').forEach(b => b.onclick = () => grantActShare(b.dataset.actsGrant));
+  box.querySelectorAll('[data-acts-open]').forEach(b => b.onclick = () => openActShareSheet(b.dataset.actsOpen));
   box.querySelectorAll('[data-acts-stop]').forEach(b => b.onclick = () => withdrawActShare(b.dataset.actsStop));
+}
+function actShareStateParts(tipo) {
+  const s = actShareOf(UDATA, tipo);
+  if (actShareActive(UDATA, tipo)) return { cls: 'on', txt: t('actshare.statusOn', { date: fmtBtDate(s.acceptedAt) }) };
+  if (s && s.status === 'withdrawn') return { cls: 'off', txt: t('actshare.statusWithdrawn', { date: fmtBtDate(s.withdrawnAt) }) };
+  return { cls: 'off', txt: t('actshare.statusOff') };
 }
 async function grantActShare(tipo) {
   if (!auth.currentUser || !ACT_SHARE_TYPES.includes(tipo)) return;
-  const det = $('acts-details-' + tipo);
-  if (det && !det.open) { det.open = true; toast(t('actshare.needConsent'), true); return; }
-  const ok = $('acts-ok-' + tipo);
+  /* La aceptación vive en la hoja (AUTH-275): primero el texto
+     completo abierto, después la casilla — la misma exigencia de
+     siempre, con la presentación nueva. */
+  const legal = $('acts-legal');
+  if (legal && legal.style.display === 'none') { setActsLegal(true); toast(t('actshare.needConsent'), true); return; }
+  const ok = $('acts-sheet-ok');
   if (!ok || !ok.checked) { toast(t('actshare.needConsent'), true); return; }
   if (!(await consentOpsAllowed())) return;
   try {
@@ -26315,6 +26355,7 @@ async function grantActShare(tipo) {
       [tipo]: { status: 'accepted', version: ACT_CONSENT_VERSION, acceptedAt: new Date(),
         ...(prev.withdrawnAt ? { withdrawnAt: prev.withdrawnAt } : {}) } };
     toast(isRenew ? t('actshare.renewed') : t('actshare.granted'));
+    closeActShareSheet();
     renderActSharePanel();
   } catch (e) { failToast(e); }
 }
@@ -26346,6 +26387,72 @@ async function withdrawActShare(tipo) {
     renderActSharePanel();
   } catch (e) { failToast(e); }
 }
+/* ── Hoja de aceptación del consentimiento de actividad
+   (AUTH-2026-11-06-275; maqueta aprobada por Ronald 2026-11-06):
+   primero el resumen visual de los cuatro tipos, las dos notas
+   clave y el desplegable con el texto legal COMPLETO — que nace
+   CERRADO y es el texto que manda, byte a byte el servido —; la
+   casilla grande y el botón viven en el pie, siempre visibles
+   (el cuerpo de la hoja hace scroll por dentro). La mecánica es
+   la de siempre: grantActShare / withdrawActShare no cambian. */
+let ACTS_SHEET_TYPE = null;
+function setActsLegal(open) {
+  const legal = $('acts-legal'); if (!legal) return;
+  legal.style.display = open ? '' : 'none';
+  const bar = $('acts-legal-bar'); if (bar) bar.setAttribute('aria-expanded', open ? 'true' : 'false');
+  const chev = $('acts-legal-chev'); if (chev) chev.textContent = open ? '▾' : '▸';
+}
+function openActShareSheet(tipo) {
+  if (!ACT_SHARE_TYPES.includes(tipo) || !auth.currentUser) return;
+  const sh = $('acts-float'); if (!sh) return;
+  ACTS_SHEET_TYPE = tipo;
+  const s = actShareOf(UDATA, tipo);
+  const withdrawn = !!s && s.status === 'withdrawn';
+  const mismatch = !!s && s.status === 'accepted' && s.version !== ACT_CONSENT_VERSION;
+  const title = $('acts-float-title');
+  if (title) title.innerHTML = `${ACT_SHARE_ICONS[tipo]} ${esc(t('actshare.type.' + tipo))}`;
+  const st = actShareStateParts(tipo);
+  const state = $('acts-float-state');
+  if (state) state.innerHTML = `<span class="acts-state ${st.cls}">${esc(st.txt)}</span>`;
+  let rows = '';
+  for (const x of ACT_SHARE_TYPES) {
+    const now = x === tipo;
+    rows += `<div class="acts-sumrow${now ? ' now' : ''}">
+      <span class="acts-ic">${ACT_SHARE_ICONS[x]}</span>
+      <span class="acts-sumtx"><b>${esc(t('actshare.type.' + x))}</b> — ${esc(t('actshare.sum.' + x))}
+      <span class="acts-sumstop${x === 'sleep' ? ' warn' : ''}">${esc(t('actshare.sumStop.' + x))}</span></span>
+      ${now ? `<span class="acts-accepting">${esc(t('actshare.accepting'))}</span>` : ''}
+    </div>`;
+  }
+  const body = $('acts-float-body');
+  if (body) body.innerHTML = `
+    <p class="progress-hint acts-intro">${esc(t('actshare.sheetIntro'))}</p>
+    <div class="acts-sumcard">${rows}</div>
+    <div class="acts-note">${esc(t('actshare.noteSees'))}</div>
+    <div class="acts-note">${esc(t('actshare.noteSafe'))}</div>
+    <p class="progress-hint acts-sumnote">${esc(t('actshare.sumNote'))}</p>
+    <button type="button" class="acts-legal-bar" id="acts-legal-bar" aria-expanded="false">
+      <span>📄 ${esc(t('actshare.fullTextTitle'))}</span>
+      <span class="acts-ver">${esc(ACT_CONSENT_VERSION)}</span>
+      <span class="acts-chev" id="acts-legal-chev">▸</span>
+    </button>
+    <div class="acts-legal" id="acts-legal" style="display:none"><p>${esc(t('actshare.consentText'))}</p></div>`;
+  const foot = $('acts-float-foot');
+  if (foot) foot.innerHTML = `
+    <label class="consent-check acts-checkrow"><input type="checkbox" id="acts-sheet-ok"> <span>${esc(t('actshare.consentCheck'))}</span></label>
+    <button type="button" class="btn-primary acts-go" id="acts-sheet-go">${esc(withdrawn || mismatch ? t('actshare.renew') : t('actshare.share'))}</button>`;
+  const bar = $('acts-legal-bar');
+  if (bar) bar.onclick = () => { const l = $('acts-legal'); setActsLegal(!!l && l.style.display === 'none'); };
+  const go = $('acts-sheet-go');
+  if (go) go.onclick = () => grantActShare(tipo);
+  sh.style.display = '';
+}
+function closeActShareSheet() {
+  const sh = $('acts-float'); if (sh) sh.style.display = 'none';
+  ACTS_SHEET_TYPE = null;
+}
+{ const b = $('acts-float-x'); if (b) b.onclick = () => closeActShareSheet(); }
+document.addEventListener('keydown', e => { if (e.key === 'Escape') closeActShareSheet(); });
 /* ---------- Tarjeta del entrenador (ficha del cliente) ---------- */
 async function btLoadTrainerCard(uid, udata) {
   const box = $('bt-card'); if (!box) return;
@@ -42697,7 +42804,7 @@ document.addEventListener('keydown', e => { if (e.key === 'Escape') shareClose()
  *  - El SW (sw.js) solo cachea la cáscara del mismo origen en modo
  *    RED PRIMERO: Auth/Firestore/Worker jamás pasan por la caché.
  * ================================================================ */
-const PWA_SW_VERSION = '20261106-agua-zona';
+const PWA_SW_VERSION = '20261106-consentimiento-visual';
 /* Sello de versión VISIBLE (2026-11-03): el pie de la tarjeta de
    acceso enseña qué copia corre este teléfono ('v ' + el sello),
    para comprobar de un vistazo si la versión nueva ya llegó.

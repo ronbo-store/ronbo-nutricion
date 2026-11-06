@@ -21,7 +21,7 @@
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-title" content="RONBO FIT">
 <meta name="apple-mobile-web-app-status-bar-style" content="default">
-<link rel="stylesheet" href="styles.css?v=20261106-agua-zona">
+<link rel="stylesheet" href="styles.css?v=20261106-consentimiento-visual">
 <script defer src="https://cloud.umami.is/script.js" data-website-id="a29706d4-44a2-47cf-900a-5f74d74abfa8"></script>
 <script type="importmap">
 {
@@ -830,6 +830,21 @@
       <button type="button" class="asst-send" id="asst-send" aria-label="Send" data-i18n-aria="asst.send"><svg viewBox="0 0 24 24" width="21" height="21" fill="none" aria-hidden="true"><path d="M4.5 19.5L20 12L4.5 4.5L7 10L13.5 12L7 14Z" fill="#fff"/></svg></button>
     </div>
     <div class="asst-foot" data-i18n="asst.foot">Each question uses 1 of your AI uses · The conversation is not saved</div>
+  </div>
+  <!-- Hoja de aceptación del consentimiento de actividad
+       (AUTH-2026-11-06-275): resumen visual de los cuatro tipos,
+       notas clave y el texto legal completo en desplegable que
+       nace CERRADO; el pie (casilla grande + botón) queda siempre
+       visible porque el cuerpo hace scroll por dentro. El
+       contenido lo pinta openActShareSheet(); cierre: ✕ o Escape. -->
+  <div class="act-float act-sheet acts-sheet" id="acts-float" style="display:none" role="dialog" aria-modal="true">
+    <div class="pend-head acts-head">
+      <h2 id="acts-float-title"></h2>
+      <span id="acts-float-state"></span>
+      <button type="button" class="pend-close nav-page-x" id="acts-float-x" aria-label="Close" data-i18n-aria="client.close">✕</button>
+    </div>
+    <div class="acts-body" id="acts-float-body"></div>
+    <div class="acts-foot" id="acts-float-foot"></div>
   </div>
   <!-- Panel de AYUDA / FAQ (paquete 2026-10-28): hoja inferior con
        los 7 bloques plegables en acordeón; el contenido lo pinta
@@ -1991,6 +2006,6 @@
 <div id="toast" class="toast"></div>
 <div id="print-card" aria-hidden="true"></div>
 
-<script type="module" src="app.js?v=20261106-agua-zona"></script>
+<script type="module" src="app.js?v=20261106-consentimiento-visual"></script>
 </body>
 </html>
