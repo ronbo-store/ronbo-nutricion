@@ -3872,6 +3872,9 @@ en: {
   'nutri.cad.weekly': 'Weekly',
   'nutri.cad.fortnightly': 'Every two weeks',
   'nutri.cad.monthly': 'Monthly',
+  'nutri.cad.semanal': 'Weekly',
+  'nutri.cad.quincenal': 'Biweekly',
+  'nutri.cad.mensual': 'Monthly',
   'nutri.cad.bimonthly': 'Every two months',
   'nutri.cad.quarterly': 'Quarterly',
   'nutri.planTitle': 'My food plan',
@@ -7410,6 +7413,9 @@ es: {
   'nutri.cad.weekly': 'Semanal',
   'nutri.cad.fortnightly': 'Quincenal',
   'nutri.cad.monthly': 'Mensual',
+  'nutri.cad.semanal': 'Semanal',
+  'nutri.cad.quincenal': 'Quincenal',
+  'nutri.cad.mensual': 'Mensual',
   'nutri.cad.bimonthly': 'Bimensual',
   'nutri.cad.quarterly': 'Trimestral',
   'nutri.planTitle': 'Mi plan de comidas',
@@ -42691,7 +42697,7 @@ document.addEventListener('keydown', e => { if (e.key === 'Escape') shareClose()
  *  - El SW (sw.js) solo cachea la cáscara del mismo origen en modo
  *    RED PRIMERO: Auth/Firestore/Worker jamás pasan por la caché.
  * ================================================================ */
-const PWA_SW_VERSION = '20261105-recepcion';
+const PWA_SW_VERSION = '20261106-cadencia';
 /* Sello de versión VISIBLE (2026-11-03): el pie de la tarjeta de
    acceso enseña qué copia corre este teléfono ('v ' + el sello),
    para comprobar de un vistazo si la versión nueva ya llegó.
