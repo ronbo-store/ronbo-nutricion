@@ -3889,6 +3889,10 @@ button.wkex-row:active { background: #eef7f5; }
 .chal-actions { display: flex; flex-wrap: wrap; gap: 10px; margin-top: 10px; }
 .chal-actions .btn-primary, .chal-actions .btn-ghost { min-height: 48px; padding: 10px 18px; font-size: 1rem; }
 .chal-celebrate { font-weight: 700; color: #15803d; margin: 8px 0 0; }
+/* AUTH-2026-11-05-270: la cara de la tarjeta de reto (celebración
+   al cumplir, músculos en los activos), junto al nombre. */
+.chal-head-l { display: inline-flex; align-items: center; gap: 10px; min-width: 0; }
+.chal-face { width: 44px; height: 44px; border-radius: 50%; object-fit: cover; flex: none; display: block; }
 .chal-table { margin-top: 12px; border-top: 1px solid #eee; padding-top: 8px; }
 .chal-winners { font-weight: 700; color: #8a6d00; }
 .chal-trow { display: grid; grid-template-columns: 1fr auto; grid-template-areas: "name pct" "bar bar" "of of"; gap: 2px 10px; padding: 8px 0; border-bottom: 1px solid #f0f0f0; align-items: center; }

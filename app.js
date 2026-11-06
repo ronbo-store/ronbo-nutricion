@@ -42681,7 +42681,7 @@ document.addEventListener('keydown', e => { if (e.key === 'Escape') shareClose()
  *  - El SW (sw.js) solo cachea la cáscara del mismo origen en modo
  *    RED PRIMERO: Auth/Firestore/Worker jamás pasan por la caché.
  * ================================================================ */
-const PWA_SW_VERSION = '20261105-comida-caras';
+const PWA_SW_VERSION = '20261105-retos-caras';
 /* Sello de versión VISIBLE (2026-11-03): el pie de la tarjeta de
    acceso enseña qué copia corre este teléfono ('v ' + el sello),
    para comprobar de un vistazo si la versión nueva ya llegó.
@@ -45611,11 +45611,26 @@ function chalTableHTML(chal) {
   </div>`).join('');
   return h;
 }
+/* AUTH-2026-11-05-270 (propuesta 6 de la cola de la mascota): la
+   cara de los retos activos — la de músculos acompaña la tarjeta
+   mientras el reto está en marcha (participando o por unirse). La
+   del momento de cumplir es la celebración ANIMADA de siempre
+   (MASCOT_CELEB_URL, la del cierre del día). */
+const CHAL_FACE_MUSCLE = 'https://ronbo-store.github.io/ronbo-nutri-assets/avatar-coach-virtual/web/musculos.webp';
 function chalItemHTML(chal, part, opts = {}) {
   const isMine = !!part;
   const just = part && part.completedAt && CHAL.justDone.includes(chal.id);
+  /* La cara va en la cabecera de la tarjeta, junto al nombre: la
+     celebración animada en el momento de cumplir; la de músculos
+     en los retos activos (participando o por unirse). Un reto ya
+     cumplido hace tiempo no lleva cara aquí: su sitio es la lista
+     de medallas. Si la imagen no carga, se retira sola. */
+  const chalFace = just
+    ? `<img class="chal-face" src="${MASCOT_CELEB_URL}" alt="" onerror="this.remove()">`
+    : ((isMine && !part.completedAt) || opts.joinable
+      ? `<img class="chal-face" src="${CHAL_FACE_MUSCLE}" alt="" onerror="this.remove()">` : '');
   let h = `<div class="chal-item${part && part.completedAt ? ' chal-item-done' : ''}">
-    <div class="chal-item-head"><b>${esc(chalNameOf(chal))}</b>${chalTagHTML(chal)}</div>
+    <div class="chal-item-head"><span class="chal-head-l">${chalFace}<b>${esc(chalNameOf(chal))}</b></span>${chalTagHTML(chal)}</div>
     <p class="chal-metric">${esc(t('chal.metric.' + chal.metric))}</p>
     ${chal.rewardText ? `<p class="chal-reward">🎁 ${esc(t('chal.rewardLbl'))}: <b>${esc(chal.rewardText)}</b></p>` : ''}
     ${isMine ? chalBarHTML(part, chal) + `<div class="chal-dates">${chalDatesHTML(chal, part)}</div>` : `<div class="chal-dates">${chalDatesHTML(chal, null)}</div>`}
