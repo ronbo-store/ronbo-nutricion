@@ -28787,11 +28787,20 @@ function dressExRows(html, di, mode) {
   return String(html || '').replace(/<div class="train-ex-card[^"]*"/g, m =>
     `${m} data-train-row="${di}:${n}:${mode}" style="--stripe:${SHARE_W_PALETTE[n++ % SHARE_W_PALETTE.length]}"`);
 }
+/* AUTH-2026-11-05-266 (propuesta 2 de la cola de la mascota): la
+   celebración ANIMADA que acompaña al «¡Entrenamiento
+   completado!» en la cabecera vestida del día — solo cuando el
+   registro está cerrado de verdad (closedStatus 'done', la misma
+   condición honesta del texto). Vive en el repo de activos (URL
+   nueva: la caché de imágenes del SW guarda por URL) y si no
+   carga se retira sola. */
+const MASCOT_CELEB_URL = 'https://ronbo-store.github.io/ronbo-nutri-assets/avatar-coach-virtual/web/celebracion-animada.webp';
 function trainDressedHeadHTML(plan, logs, di, iso) {
   const m = trainShareModel(plan, logs, di, iso);
   const pct = m.total ? Math.round(100 * m.doneCount / m.total) : 0;
   const log = logs.find(l => l.date === iso && l.dayIndex === di) || null;
   const st = trainLogStatus(log);
+  const doneFace = (m.closedStatus === 'done') ? `<img class="train-done-face" src="${MASCOT_CELEB_URL}" alt="" onerror="this.remove()">` : '';
   let hook;
   if (log && st === 'skipped') hook = esc(t('train.d.statusSkipped'));
   else if (!log && iso < todayISO()) hook = esc(t('train.d.statusNone'));
@@ -28806,7 +28815,7 @@ function trainDressedHeadHTML(plan, logs, di, iso) {
   return `<div class="train-dressed-head">
     <div class="train-dressed-top"><span class="train-dressed-kicker">${esc(iso === todayISO() ? t('shareW.kickerToday') : t('shareW.kicker'))}</span>
     <span class="train-dressed-ring"><svg width="56" height="56" viewBox="0 0 56 56" aria-hidden="true"><circle cx="28" cy="28" r="24" fill="none" stroke="rgba(255,255,255,.25)" stroke-width="5"/><circle cx="28" cy="28" r="24" fill="none" stroke="#C6FF4A" stroke-width="5" stroke-linecap="round" stroke-dasharray="${C.toFixed(1)}" stroke-dashoffset="${(C * (1 - pct / 100)).toFixed(1)}" transform="rotate(-90 28 28)"/></svg><span class="train-dressed-pct">${pct}%</span></span></div>
-    <span class="train-dressed-tag">${hook}</span>
+    <span class="train-dressed-tag">${doneFace}${hook}</span>
     <div class="train-dressed-bar"><i style="width:${pct}%"></i></div>
     ${msg ? `<div class="train-dressed-msg">${esc(msg.icon)} ${esc(msg.text)}</div>` : ''}
   </div>`;
@@ -42514,7 +42523,7 @@ document.addEventListener('keydown', e => { if (e.key === 'Escape') shareClose()
  *  - El SW (sw.js) solo cachea la cáscara del mismo origen en modo
  *    RED PRIMERO: Auth/Firestore/Worker jamás pasan por la caché.
  * ================================================================ */
-const PWA_SW_VERSION = '20261105-coach-caras';
+const PWA_SW_VERSION = '20261105-cierre-celebracion';
 /* Sello de versión VISIBLE (2026-11-03): el pie de la tarjeta de
    acceso enseña qué copia corre este teléfono ('v ' + el sello),
    para comprobar de un vistazo si la versión nueva ya llegó.

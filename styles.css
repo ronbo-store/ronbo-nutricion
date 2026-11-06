@@ -1806,6 +1806,10 @@ body { padding: max(16px, env(safe-area-inset-top)) max(16px, env(safe-area-inse
 .train-dressed-ring svg { display: block; }
 .train-dressed-pct { position: absolute; inset: 0; display: flex; align-items: center; justify-content: center; font-size: 13px; font-weight: 800; color: #fff; }
 .train-dressed-tag { display: block; width: fit-content; max-width: 94%; margin: 8px auto 0; text-align: center; background: linear-gradient(90deg, #FF4D2E, #FF2E88); color: #fff; font-weight: 800; font-size: 14px; padding: 6px 16px; border-radius: 999px; box-shadow: 0 6px 16px rgba(255,46,136,.35); }
+/* AUTH-2026-11-05-266: la celebración de la mascota dentro de la
+   pastilla de completado (30 px, junto al texto); si la imagen no
+   carga, se retira y la pastilla queda como siempre. */
+.train-done-face { width: 30px; height: 30px; border-radius: 50%; object-fit: cover; vertical-align: -9px; margin-right: 8px; }
 .train-dressed-bar { height: 9px; border-radius: 99px; background: rgba(255,255,255,.22); overflow: hidden; margin-top: 10px; }
 .train-dressed-bar i { display: block; height: 100%; border-radius: 99px; background: linear-gradient(90deg, #FFB300, #C6FF4A); }
 .train-dressed-msg { margin-top: 10px; background: rgba(255,255,255,.10); border: 1px solid rgba(255,255,255,.28); border-radius: 12px; padding: 8px 12px; font-style: italic; font-size: 13.5px; text-align: center; }
