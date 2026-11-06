@@ -21,7 +21,7 @@
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-title" content="RONBO FIT">
 <meta name="apple-mobile-web-app-status-bar-style" content="default">
-<link rel="stylesheet" href="styles.css?v=20261106-cadencia">
+<link rel="stylesheet" href="styles.css?v=20261106-agua-zona">
 <script defer src="https://cloud.umami.is/script.js" data-website-id="a29706d4-44a2-47cf-900a-5f74d74abfa8"></script>
 <script type="importmap">
 {
@@ -969,6 +969,17 @@
       <div class="rings" id="rings"></div>
       <p class="rings-first-note" id="rings-note" style="display:none"></p>
       <p class="fiber-line" id="fiber-line" style="display:none"></p>
+      <!-- AGUA DE HOY EN «HOY» (AUTH-2026-11-06-274; maqueta
+           aprobada por Ronald el 2026-11-06): la tarjeta vive
+           aquí, bajo los anillos y la línea de fibra y sobre el
+           diario de comidas — salió de la zona del coach, donde
+           no pintaba nada. La pinta y la gobierna renderWaterCard
+           (app.js) con la misma puerta de visibilidad de siempre;
+           mismo dato y misma escritura (nutrition_water). -->
+      <div class="water-card" id="water-card" style="display:none">
+        <div class="water-head"><span class="water-t">💧 <span data-i18n="nutri.water">Water today</span></span><span class="water-v" id="nutri-water-ml">0 ml</span></div>
+        <div class="nutri-water-row"><input type="number" id="nutri-water-in" min="1" max="5000" step="50" placeholder="250" aria-label="Add water (ml)" data-i18n-aria="nutri.waterAdd"><button type="button" class="btn-ghost" id="nutri-water-add">＋ <span data-i18n="nutri.water">Water today</span></button></div>
+      </div>
     </div>
     <div id="food-view-consumido" style="display:none">
       <div class="bottom">
@@ -1980,6 +1991,6 @@
 <div id="toast" class="toast"></div>
 <div id="print-card" aria-hidden="true"></div>
 
-<script type="module" src="app.js?v=20261106-cadencia"></script>
+<script type="module" src="app.js?v=20261106-agua-zona"></script>
 </body>
 </html>

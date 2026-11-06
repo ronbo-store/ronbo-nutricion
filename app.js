@@ -42697,7 +42697,7 @@ document.addEventListener('keydown', e => { if (e.key === 'Escape') shareClose()
  *  - El SW (sw.js) solo cachea la cáscara del mismo origen en modo
  *    RED PRIMERO: Auth/Firestore/Worker jamás pasan por la caché.
  * ================================================================ */
-const PWA_SW_VERSION = '20261106-cadencia';
+const PWA_SW_VERSION = '20261106-agua-zona';
 /* Sello de versión VISIBLE (2026-11-03): el pie de la tarjeta de
    acceso enseña qué copia corre este teléfono ('v ' + el sello),
    para comprobar de un vistazo si la versión nueva ya llegó.
@@ -44269,7 +44269,7 @@ async function renderCoachPaneTrainer() {
     try { renderCoachPaneTrainer(); } catch {}
   };
 }
-function renderNutriBoxes() { renderNutriMyBox(); renderNutriProBox(); }
+function renderNutriBoxes() { renderNutriMyBox(); renderNutriProBox(); try { renderWaterCard(); } catch {} }
 function nutriGoalsChips(g) {
   if (!g) return '';
   const chip = (k, v, u) => `<span class="nutri-goal-chip"><b>${esc(k)}</b> ${v} ${u}</span>`;
@@ -44321,18 +44321,23 @@ async function renderNutriMyBox() {
     h += `<p class="progress-hint">${esc(t('nutri.planNone'))}</p>`;
   }
   h += mealPlanStudentSection();
-  /* Agua de hoy */
-  let waterMl = 0;
-  try { const ws = await getDoc(doc(db, 'nutrition_water', me + '_' + todayISO())); if (ws.exists()) waterMl = Number(ws.data().ml) || 0; } catch {}
-  h += `<p class="myprof-row"><span class="myprof-k">${esc(t('nutri.water'))}</span><span class="myprof-v" id="nutri-water-ml">${waterMl} ml</span></p>
-  <div class="nutri-water-row"><input type="number" id="nutri-water-in" min="1" max="5000" step="50" placeholder="250" aria-label="${esc(t('nutri.waterAdd'))}"><button type="button" class="btn-ghost btn-sm" id="nutri-water-add">＋ ${esc(t('nutri.water'))}</button></div>`;
-  /* Consentimiento específico del módulo */
+  /* Acciones de la zona, ORDENADAS (AUTH-2026-11-06-274; maqueta
+     aprobada por Ronald en el chat el 2026-11-06 01:53 CST): el
+     agua ya NO vive en esta zona — se mudó al panel «Hoy» de
+     Comida (renderWaterCard, con el mismo dato y la misma
+     escritura) — y el rótulo «Mis datos de alimentación» queda UNA
+     sola vez, como el botón que abre el consentimiento: la
+     cabecera que lo repetía (la misma clave nutri.consentTitle en
+     el subtítulo y en el botón) sale, y el estado ✅ del
+     consentimiento se conserva como línea de estado sin rótulo.
+     Botones uniformes de 48 px: datos y recetas en una fila
+     pareja; elegir coach y solicitar seguimiento a todo ancho. */
   const cons = NUTRI.myConsent;
-  h += `<div class="nutri-sub"><b>${esc(t('nutri.consentTitle'))}</b>${cons && cons.acceptedAt && !cons.withdrawnAt ? ` <span class="nutri-ok">✅ ${esc(t('nutri.consentOn'))}</span>` : ''}</div>
-  <div class="eval-actions"><button type="button" class="btn-ghost btn-sm" id="nutri-btn-consent">${esc(t('nutri.consentTitle'))}</button>
-  <button type="button" class="btn-ghost btn-sm" id="nutri-btn-recipes">📖 ${esc(t('nutri.recipes'))}</button>
-  ${(!rel || rel.status !== 'activa') ? `<button type="button" class="btn-ghost btn-sm" id="nutri-btn-choose">${esc(t('nutri.choose'))}</button>` : ''}
-  ${(!fol || fol.status === 'rechazada') ? `<button type="button" class="btn-primary btn-sm" id="nutri-btn-follow">${esc(t('nutri.followReq'))}</button>` : ''}</div>`;
+  if (cons && cons.acceptedAt && !cons.withdrawnAt) h += `<div class="nutri-sub"><span class="nutri-ok">✅ ${esc(t('nutri.consentOn'))}</span></div>`;
+  h += `<div class="nutri-zone-actions"><div class="nutri-zone-row"><button type="button" class="btn-ghost nutri-zone-btn" id="nutri-btn-consent">${esc(t('nutri.consentTitle'))}</button>
+  <button type="button" class="btn-ghost nutri-zone-btn" id="nutri-btn-recipes">📖 ${esc(t('nutri.recipes'))}</button></div>
+  ${(!rel || rel.status !== 'activa') ? `<button type="button" class="btn-ghost nutri-zone-btn" id="nutri-btn-choose">${esc(t('nutri.choose'))}</button>` : ''}
+  ${(!fol || fol.status === 'rechazada') ? `<button type="button" class="btn-primary nutri-zone-btn" id="nutri-btn-follow">${esc(t('nutri.followReq'))}</button>` : ''}</div>`;
   h += `</div>`;
   box.innerHTML = h;
   const on = (id, fn) => { const el = $(id); if (el) el.onclick = fn; };
@@ -44357,18 +44362,45 @@ async function renderNutriMyBox() {
       } catch { toast(t('err.createFail'), true); }
     };
   });
-  on('nutri-water-add', async () => {
-    const add = Math.max(0, Math.min(5000, Number(($('nutri-water-in') && $('nutri-water-in').value) || 0)));
-    if (!add) return;
-    try {
-      const ref = doc(db, 'nutrition_water', me + '_' + todayISO());
-      const cur = await getDoc(ref);
-      const total = (cur.exists() ? (Number(cur.data().ml) || 0) : 0) + add;
-      await setDoc(ref, { studentUid: me, date: todayISO(), ml: total, byUid: me, byRole: 'alumno', updatedAt: serverTimestamp() }, { merge: true });
-      const lab = $('nutri-water-ml'); if (lab) lab.textContent = total + ' ml';
-      toast(t('nutri.saved'));
-    } catch { toast(t('err.createFail'), true); }
-  });
+}
+/* AGUA DE HOY EN EL PANEL «HOY» DE COMIDA (AUTH-2026-11-06-274):
+   la tarjeta #water-card vive en index.html, en la vista Resumen
+   de Comida, bajo los anillos y la línea de fibra. Es el MISMO
+   dato y la MISMA escritura de siempre (nutrition_water/{uid}_
+   {hoy}, merge con el total sumado): solo cambia el sitio donde
+   se pinta. La puerta de visibilidad es la misma de la caja del
+   coach (alumno, dueño, o cuenta con relación, seguimiento o
+   plan): quien veía el agua la sigue viendo, ahora junto a sus
+   comidas del día. La tarjeta es siempre la de HOY — con otra
+   fecha elegida en Comida, los anillos y la fibra son de esa
+   fecha y el agua sigue siendo la de hoy, como cuando vivía en
+   la pastilla del coach. */
+async function renderWaterCard() {
+  const card = $('water-card'); if (!card) return;
+  const me = auth.currentUser && auth.currentUser.uid;
+  const show = !!me && ((typeof ROLE !== 'undefined' && ROLE === 'usuario') || NUTRI.myRel || NUTRI.myFollow || NUTRI.myPlan || (typeof IS_OWNER !== 'undefined' && IS_OWNER));
+  if (!show) { card.style.display = 'none'; return; }
+  card.style.display = '';
+  let waterMl = 0;
+  try { const ws = await getDoc(doc(db, 'nutrition_water', me + '_' + todayISO())); if (ws.exists()) waterMl = Number(ws.data().ml) || 0; } catch {}
+  const lab = $('nutri-water-ml'); if (lab) lab.textContent = waterMl + ' ml';
+  const btn = $('nutri-water-add');
+  if (btn && !btn.dataset.wired) {
+    btn.dataset.wired = '1';
+    btn.onclick = async () => {
+      const uid = auth.currentUser && auth.currentUser.uid; if (!uid) return;
+      const add = Math.max(0, Math.min(5000, Number(($('nutri-water-in') && $('nutri-water-in').value) || 0)));
+      if (!add) return;
+      try {
+        const ref = doc(db, 'nutrition_water', uid + '_' + todayISO());
+        const cur = await getDoc(ref);
+        const total = (cur.exists() ? (Number(cur.data().ml) || 0) : 0) + add;
+        await setDoc(ref, { studentUid: uid, date: todayISO(), ml: total, byUid: uid, byRole: 'alumno', updatedAt: serverTimestamp() }, { merge: true });
+        const lab2 = $('nutri-water-ml'); if (lab2) lab2.textContent = total + ' ml';
+        toast(t('nutri.saved'));
+      } catch { toast(t('err.createFail'), true); }
+    };
+  }
 }
 async function renderNutriProBox() {
   const box = $('nutri-pro-box'); if (!box) return;
