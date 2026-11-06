@@ -23750,13 +23750,18 @@ async function voiceToggle(fromModal) {
    su propio controlador, sin tocar el del registro de comida. */
 const ASST = { busy: false, muted: false, speaking: false, history: [] };
 let ASST_DATA = { loaded: false, loading: null, plan: null, logs: [] };
-/* AUTH-2026-11-05-260: el avatar del coach es la imagen estilo
-   cómic de Ronald (generada desde su foto de perfil del gym;
-   corrección suya del 2026-11-05), servida desde el repo de
-   activos. Si la foto no carga, el icono genérico de siempre
-   ocupa su sitio (el span de respaldo nace oculto y el onerror
-   de la imagen lo destapa: nunca un hueco roto). */
-const ASST_AVATAR_URL = 'https://ronbo-store.github.io/ronbo-nutri-assets/coach-virtual-avatar.webp';
+/* AUTH-2026-11-05-260: el avatar del coach es la imagen de
+   Ronald servida desde el repo de activos. Si la foto no carga,
+   el icono genérico de siempre ocupa su sitio (el span de
+   respaldo nace oculto y el onerror de la imagen lo destapa:
+   nunca un hueco roto).
+   AUTH-2026-11-05-262: la imagen es la mascota 3D suave
+   CÓMICA aprobada por Ronald (misma mascota de frente, sonrisa
+   enorme); vive en un activo NUEVO, no en la URL de AUTH-260,
+   porque la caché de imágenes del SW (AUTH-238) guarda por URL
+   y un reemplazo en la misma dirección no llegaría a los
+   teléfonos que ya guardaron la anterior. */
+const ASST_AVATAR_URL = 'https://ronbo-store.github.io/ronbo-nutri-assets/coach-virtual-avatar-comico.webp';
 const ASST_AVATAR_SVG = '<svg viewBox="0 0 48 48" width="17" height="17" fill="none" aria-hidden="true"><circle cx="24" cy="19" r="8.5" fill="#fff" opacity=".95"/><path d="M10 40c1.5-7 7-10.5 14-10.5S36.5 33 38 40" fill="#fff" opacity=".95"/><path d="M12.5 20a11.5 11.5 0 0 1 23 0" stroke="#fff" stroke-width="3" stroke-linecap="round"/><rect x="8.5" y="19" width="5" height="9" rx="2.5" fill="#fff"/><rect x="34.5" y="19" width="5" height="9" rx="2.5" fill="#fff"/><path d="M36.5 28v3a5 5 0 0 1-5 5H27" stroke="#fff" stroke-width="3" stroke-linecap="round"/><circle cx="25" cy="36" r="2" fill="#fff"/></svg>';
 const ASST_AVATAR_MINI = `<img class="asst-av-img" src="${ASST_AVATAR_URL}" alt="" onerror="this.style.display='none';this.nextElementSibling.style.display=''"><span class="asst-av-fb" style="display:none">${ASST_AVATAR_SVG}</span>`;
 /* Visibilidad del disco: la misma regla de la ayuda y el compartir
@@ -42266,7 +42271,7 @@ document.addEventListener('keydown', e => { if (e.key === 'Escape') shareClose()
  *  - El SW (sw.js) solo cachea la cáscara del mismo origen en modo
  *    RED PRIMERO: Auth/Firestore/Worker jamás pasan por la caché.
  * ================================================================ */
-const PWA_SW_VERSION = '20261105-fotos-tarjeta';
+const PWA_SW_VERSION = '20261105-avatar-comico';
 /* Sello de versión VISIBLE (2026-11-03): el pie de la tarjeta de
    acceso enseña qué copia corre este teléfono ('v ' + el sello),
    para comprobar de un vistazo si la versión nueva ya llegó.
