@@ -21,7 +21,7 @@
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-title" content="RONBO FIT">
 <meta name="apple-mobile-web-app-status-bar-style" content="default">
-<link rel="stylesheet" href="styles.css?v=20261105-vacios-mascota">
+<link rel="stylesheet" href="styles.css?v=20261105-fibra-fase1">
 <script defer src="https://cloud.umami.is/script.js" data-website-id="a29706d4-44a2-47cf-900a-5f74d74abfa8"></script>
 <script type="importmap">
 {
@@ -968,6 +968,7 @@
     <div id="food-view-resumen">
       <div class="rings" id="rings"></div>
       <p class="rings-first-note" id="rings-note" style="display:none"></p>
+      <p class="fiber-line" id="fiber-line" style="display:none"></p>
     </div>
     <div id="food-view-consumido" style="display:none">
       <div class="bottom">
@@ -1665,8 +1666,9 @@
       <div class="frow3">
         <label><span data-i18n="form.sugar">Sugars (g)</span> <input type="number" id="m-sugar" step="any" min="0" value="0"></label>
         <label><span data-i18n="form.fat">Fats (g)</span> <input type="number" id="m-fat" step="any" min="0" value="0"></label>
-        <label><span data-i18n="form.notes">Notes</span> <input type="text" id="m-notes" data-i18n-ph="form.optional" placeholder="optional"></label>
+        <label><span data-i18n="form.fiber">Fiber (g)</span> <input type="number" id="m-fiber" step="any" min="0" data-i18n-ph="form.optional" placeholder="optional"></label>
       </div>
+      <label><span data-i18n="form.notes">Notes</span> <input type="text" id="m-notes" data-i18n-ph="form.optional" placeholder="optional"></label>
       <div class="modal-foot">
         <button type="button" class="btn-ghost" id="meal-cancel" data-i18n="form.cancel">Cancel</button>
         <button type="submit" class="btn-primary" data-i18n="form.save">Save</button>
@@ -1978,6 +1980,6 @@
 <div id="toast" class="toast"></div>
 <div id="print-card" aria-hidden="true"></div>
 
-<script type="module" src="app.js?v=20261105-vacios-mascota"></script>
+<script type="module" src="app.js?v=20261105-fibra-fase1"></script>
 </body>
 </html>

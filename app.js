@@ -4204,6 +4204,7 @@ en: {
   'th.carbShort': 'C',
   'th.sugarShort': 'Sug',
   'th.fatShort': 'F',
+  'th.fiberShort': 'Fib',
   'track.viewPhoto': 'View photo',
   'track.delete': 'Delete',
   'track.repeat': 'Repeat',
@@ -4718,6 +4719,7 @@ en: {
   'aiText.tooShort': 'Describe the meal with a bit more detail first.',
   'ac.title': 'From your history',
   'ac.values': '{kcal} kcal · protein {prot} g · carbs {carb} g · sugar {sugar} g · fat {fat} g',
+  'ac.valuesFiber': '{kcal} kcal · protein {prot} g · carbs {carb} g · sugar {sugar} g · fat {fat} g · fiber {fiber} g',
   'ac.community': 'From the community',
   'foodlib.searchPh': 'Search a food…',
   'foodlib.more': 'Show more',
@@ -5076,6 +5078,11 @@ en: {
   'form.carbs': 'Carbs (g)',
   'form.sugar': 'Sugars (g)',
   'form.fat': 'Fats (g)',
+  'form.fiber': 'Fiber (g)',
+  'fiber.day': 'Fiber: {g} g · logged in {n} of {m} meals',
+  'fiber.none': 'Fiber: no data yet for this day',
+  'fiber.week1': 'Fiber: {g} g · 1 day with full logging this week',
+  'fiber.weekN': 'Fiber: average {g} g a day · {n} days with full logging this week',
   'form.notes': 'Notes',
   'form.cancel': 'Cancel',
   'form.save': 'Save',
@@ -7735,6 +7742,7 @@ es: {
   'th.carbShort': 'C',
   'th.sugarShort': 'Az',
   'th.fatShort': 'G',
+  'th.fiberShort': 'Fib',
   'track.viewPhoto': 'Ver foto',
   'track.delete': 'Borrar',
   'track.repeat': 'Repetir',
@@ -8249,6 +8257,7 @@ es: {
   'aiText.tooShort': 'Describe primero la comida con un poco más de detalle.',
   'ac.title': 'De tu historial',
   'ac.values': '{kcal} kcal · proteína {prot} g · carbos {carb} g · azúcares {sugar} g · grasas {fat} g',
+  'ac.valuesFiber': '{kcal} kcal · proteína {prot} g · carbos {carb} g · azúcares {sugar} g · grasas {fat} g · fibra {fiber} g',
   'ac.community': 'De la comunidad',
   'foodlib.searchPh': 'Busca un alimento…',
   'foodlib.more': 'Mostrar más',
@@ -8607,6 +8616,11 @@ es: {
   'form.carbs': 'Carbos (g)',
   'form.sugar': 'Azúcares (g)',
   'form.fat': 'Grasas (g)',
+  'form.fiber': 'Fibra (g)',
+  'fiber.day': 'Fibra: {g} g · registrada en {n} de {m} comidas',
+  'fiber.none': 'Fibra: aún no hay dato este día',
+  'fiber.week1': 'Fibra: {g} g · 1 día con registro completo esta semana',
+  'fiber.weekN': 'Fibra: media de {g} g al día · {n} días con registro completo esta semana',
   'form.notes': 'Notas',
   'form.cancel': 'Cancelar',
   'form.save': 'Guardar',
@@ -22743,6 +22757,13 @@ function aiSplitHalves(tot) {
     b[k] = r1d(v - a[k]);
     if (k === 'kcal') b[k] = v - a[k];
   }
+  /* FIBRA (Fase 1): se parte SOLO si el total la trae — sin dato en
+     el original, ninguna mitad la inventa. */
+  if (tot && fiberOf(tot) != null) {
+    const v = fiberOf(tot);
+    a.fiber = r1d(v / 2);
+    b.fiber = r1d(v - a.fiber);
+  }
   return [a, b];
 }
 /* LAS DOS MITADES del desglose por alimento: cada línea se parte con
@@ -22761,6 +22782,12 @@ function aiItemsHalved(items) {
       const v = num(it[k]);
       a[k] = k === 'kcal' ? Math.round(v / 2) : r1d(v / 2);
       b[k] = k === 'kcal' ? v - a[k] : r1d(v - a[k]);
+    }
+    /* FIBRA (Fase 1): la línea del desglose se parte solo si la trae. */
+    if (fiberOf(it) != null) {
+      const v = fiberOf(it);
+      a.fiber = r1d(v / 2);
+      b.fiber = r1d(v - a.fiber);
     }
     if (it.unit === 'unidad' || num(it.portion_g) > 0) {
       const pg = Math.round(num(it.portion_g));
@@ -23488,7 +23515,13 @@ function aiRenderInner() {
     const mv = aiState.metrics || {};
     const mval = k => (mv[k] != null && mv[k] !== '') ? mv[k] : Math.round(tot[k] || 0);
     const mfield = (k, label) => `<label class="ai-metric"><span>${label}</span><input type="number" class="ai-m" data-k="${k}" value="${esc(String(mval(k)))}" min="0" step="any" inputmode="decimal"></label>`;
-    aiShow(`<h3>${t('ai.draftTitle')}</h3><label class="ai-metric ai-name"><span>${t('form.food')}</span><input type="text" id="ai-name" value="${esc(aiState.name != null ? aiState.name : aiSuggestedName())}" maxlength="120" placeholder="${t('form.foodPh')}"></label><ul class="ai-foods">${rows}</ul>${range ? `<p class="progress-hint">${t('ai.range').replace('{a}', Math.round(range[0])).replace('{b}', Math.round(range[1]))}</p>` : ''}${aiMealSelectHTML()}${aiSplitHTML()}<p class="ai-metrics-title">${t('ai.metricsTitle')}</p><div class="ai-metrics">${mfield('kcal', t('form.kcal'))}${mfield('prot', t('form.protein'))}${mfield('carb', t('form.carbs'))}${mfield('sugar', t('form.sugar'))}${mfield('fat', t('form.fat'))}</div>${aiState.saveError ? `<p class="ai-err">${t('ai.saveError')}</p>` : ''}<div class="ai-actions"><button type="button" class="btn-main btn-sm" id="ai-save">${t('ai.save')}</button><button type="button" class="btn-ghost btn-sm" id="ai-use">${t('ai.useDraft')}</button><button type="button" class="btn-ghost btn-sm" id="ai-foods">${t('ai.backToFoods')}</button><button type="button" class="btn-ghost btn-sm" id="ai-cancel2">${t('ai.discard')}</button></div>`);
+    /* FIBRA (Fase 1): el sexto campo NO usa mval — sin dato en el
+       cálculo el campo nace VACÍO (con su marca «—»), nunca con un
+       0 que la persona no vio venir; con dato (ancla USDA o
+       estimación del modelo) nace con él, editable como los demás. */
+    const mfib = (mv.fiber != null && mv.fiber !== '') ? mv.fiber : (fiberOf(tot) != null ? Math.round(fiberOf(tot) * 10) / 10 : '');
+    const mfieldF = `<label class="ai-metric"><span>${t('form.fiber')}</span><input type="number" class="ai-m" data-k="fiber" value="${esc(String(mfib))}" min="0" step="any" inputmode="decimal" placeholder="—"></label>`;
+    aiShow(`<h3>${t('ai.draftTitle')}</h3><label class="ai-metric ai-name"><span>${t('form.food')}</span><input type="text" id="ai-name" value="${esc(aiState.name != null ? aiState.name : aiSuggestedName())}" maxlength="120" placeholder="${t('form.foodPh')}"></label><ul class="ai-foods">${rows}</ul>${range ? `<p class="progress-hint">${t('ai.range').replace('{a}', Math.round(range[0])).replace('{b}', Math.round(range[1]))}</p>` : ''}${aiMealSelectHTML()}${aiSplitHTML()}<p class="ai-metrics-title">${t('ai.metricsTitle')}</p><div class="ai-metrics">${mfield('kcal', t('form.kcal'))}${mfield('prot', t('form.protein'))}${mfield('carb', t('form.carbs'))}${mfield('sugar', t('form.sugar'))}${mfield('fat', t('form.fat'))}${mfieldF}</div>${aiState.saveError ? `<p class="ai-err">${t('ai.saveError')}</p>` : ''}<div class="ai-actions"><button type="button" class="btn-main btn-sm" id="ai-save">${t('ai.save')}</button><button type="button" class="btn-ghost btn-sm" id="ai-use">${t('ai.useDraft')}</button><button type="button" class="btn-ghost btn-sm" id="ai-foods">${t('ai.backToFoods')}</button><button type="button" class="btn-ghost btn-sm" id="ai-cancel2">${t('ai.discard')}</button></div>`);
     aiWireMeal();
     aiWireSplit();
     const nameInp = $('ai-name');
@@ -24407,6 +24440,12 @@ function aiItemsCandidate() {
     const name = (known[i].name || '').trim();
     if (!name) return null;
     const item = { name, kcal: Math.round(num(it.kcal)), prot: r1d(it.prot), carb: r1d(it.carb), sugar: r1d(it.sugar), fat: r1d(it.fat) };
+    /* FIBRA (Fase 1): el desglose la lleva solo si el cálculo la
+       trajo para ESTE alimento (el ancla USDA la tiene o el modelo
+       la estimó); sin ella, la línea queda sin fibra, como siempre.
+       itemsIfSquare no la mira: su regla de honestidad sigue siendo
+       la de las cinco métricas de siempre. */
+    if (fiberOf(it) != null) item.fiber = r1d(it.fiber);
     /* UNIDADES POR PIEZA: el ítem conserva la forma en que se contó
        (unit/pieces/gramsPerPiece) y los gramos derivados en
        portion_g: el desglose que alimenta los anillos queda cuadrado
@@ -24465,6 +24504,12 @@ function aiUseDraft(r1, r2) {
     set('m-carb', mval('carb'));
     set('m-sugar', mval('sugar'));
     set('m-fat', mval('fat'));
+    /* FIBRA (Fase 1): el borrador la trae solo si el panel la tenía
+       (del cálculo o editada); si no, el campo queda VACÍO — sin
+       dato, nunca un 0 que la persona no escribió. */
+    const fibDraft = (mvals.fiber != null && mvals.fiber !== '') ? Math.round(num(mvals.fiber) * 10) / 10
+      : (fiberOf(tot) != null ? Math.round(fiberOf(tot) * 10) / 10 : '');
+    set('m-fiber', fibDraft);
     /* SIN ECO EN NOTAS (Ronald, 2026-10-19: «Esta información está de
        más»): el borrador NO hereda el desglose «alimento: kcal · …» en
        las notas — ese detalle vive en la pantalla de resultado. El campo
@@ -24476,7 +24521,7 @@ function aiUseDraft(r1, r2) {
        en el panel — para que cambiar la Cantidad aquí reescale como
        en cualquier par traído (2026-10-30, defecto D-3). */
     mealScaleWire();
-    mealScaleArm(aiQtyString(), { kcal: mval('kcal'), prot: mval('prot'), carb: mval('carb'), sugar: mval('sugar'), fat: mval('fat') });
+    mealScaleArm(aiQtyString(), { kcal: mval('kcal'), prot: mval('prot'), carb: mval('carb'), sugar: mval('sugar'), fat: mval('fat'), fiber: fibDraft === '' ? null : fibDraft });
     /* El desglose por alimento viaja como CANDIDATO en el borrador:
        el guardado del formulario lo valida contra los totales
        FINALES (itemsIfSquare) antes de persistirlo. */
@@ -24556,6 +24601,11 @@ async function aiSaveDirect() {
     source: aiState.mode === 'text' ? 'ai-text' : aiState.mode === 'audio' ? 'ai-audio' : 'ai',
     ai: { model: (aiState.r2 && aiState.r2.model) || 'gemini', rangeKcal: Array.isArray(tot.range_kcal) ? tot.range_kcal : null }
   };
+  /* FIBRA (Fase 1): viaja solo si el panel la trae (la del cálculo
+     o la editada por la persona); sin valor, el registro nace SIN
+     el campo — sin dato, nunca 0 forzado. */
+  const fibV = (m.fiber != null && m.fiber !== '') ? num(m.fiber) : fiberOf(tot);
+  if (fibV != null) data.fiber = Math.round(Math.max(0, fibV) * 10) / 10;
   /* Desglose por alimento: solo si su suma iguala los totales que se
      guardan (regla de honestidad de aiItemsCandidate/itemsIfSquare). */
   const aiIts = itemsIfSquare(aiItemsCandidate(), data);
@@ -24577,6 +24627,7 @@ async function aiSaveDirect() {
     const rangeHalf = Array.isArray(data.ai.rangeKcal) ? [Math.round(data.ai.rangeKcal[0] / 2), Math.round(data.ai.rangeKcal[1] / 2)] : null;
     const mkHalf = (meal, h, its) => {
       const d = { ...data, meal, qty: aiQtyStringHalf(), kcal: h.kcal, prot: h.prot, carb: h.carb, sugar: h.sugar, fat: h.fat, ai: { model: data.ai.model, rangeKcal: rangeHalf } };
+      if (h.fiber != null) d.fiber = h.fiber;
       delete d.items;
       const hi = itemsIfSquare(its, d);
       if (hi) d.items = hi;
@@ -34730,6 +34781,38 @@ function totals(date) {
   (MEALS[date] || []).forEach(m => { t.kcal += m.kcal; t.prot += m.prot; t.carb += m.carb; t.azuc += m.sugar; t.gras += m.fat; });
   return t;
 }
+/* FIBRA (Fase 1, 2026-11-05; plan aprobado por Ronald ese día
+   23:07 CST): la fibra vive APARTE de totals() — los cinco
+   nutrientes de siempre quedan byte a byte, y la fibra jamás suma
+   un «sin dato» como 0: una comida solo aporta si trae el campo
+   con un número válido. fiberOf es LA lectura única del dato. */
+function fiberOf(m) {
+  if (!m || m.fiber == null || m.fiber === '') return null;
+  const n = parseFloat(String(m.fiber).replace(',', '.'));
+  return Number.isFinite(n) ? n : null;
+}
+/* El día: gramos sumados SOLO de las comidas con dato, y la
+   cobertura (cuántas de cuántas) que la línea del día declara. */
+function fiberDayStats(list) {
+  const ms = Array.isArray(list) ? list : [];
+  let grams = 0, withFiber = 0;
+  for (const m of ms) { const f = fiberOf(m); if (f != null) { grams += f; withFiber++; } }
+  return { meals: ms.length, withFiber, grams: Math.round(grams * 10) / 10 };
+}
+/* La semana de la tarjeta: media SOLO sobre días con registro
+   COMPLETO (todas las comidas del día traen fibra — el total de un
+   día parcial es una cota baja, no su fibra real) declarando
+   cuántos días cuentan; sin días completos no hay línea. */
+function fiberWeekStats(mealsByDate, mondayIso) {
+  let sum = 0, complete = 0;
+  for (let i = 0; i < 7; i++) {
+    const list = (mealsByDate && mealsByDate[addDaysISO(mondayIso, i)]) || [];
+    if (!list.length) continue;
+    const st = fiberDayStats(list);
+    if (st.withFiber === list.length) { complete++; sum += st.grams; }
+  }
+  return complete ? { avg: Math.round((sum / complete) * 10) / 10, days: complete } : null;
+}
 function ringSVG(m, val, goalOv) {
   const goal = goalOv !== undefined ? goalOv : goalOf(m.key);
   if (goal === null) {
@@ -35691,6 +35774,18 @@ function render(date) {
     rn.textContent = allZero ? t('rings.firstNote') : '';
     rn.style.display = allZero ? '' : 'none';
   }
+  /* FIBRA (Fase 1): la línea del día bajo los anillos, SIEMPRE con
+     su cobertura visible (acuerdo D4); un día con comidas pero sin
+     ninguna con fibra dice que aún no hay dato — jamás pinta 0 g —;
+     un día sin comidas no pinta línea (la nota de los anillos ya
+     explica el día vacío). Es una LÍNEA, no un sexto anillo (D5). */
+  const fl = $('fiber-line');
+  if (fl) {
+    const fs = fiberDayStats(MEALS[date]);
+    if (!fs.meals) { fl.textContent = ''; fl.style.display = 'none'; }
+    else if (!fs.withFiber) { fl.textContent = '🌾 ' + t('fiber.none'); fl.style.display = ''; }
+    else { fl.textContent = '🌾 ' + t('fiber.day', { g: fmt(fs.grams), n: fs.withFiber, m: fs.meals }); fl.style.display = ''; }
+  }
   renderWeekChart(date);
   /* ORDEN DESCENDENTE + HORA (Ronald, 2026-10-23): el «Detalle de lo
      consumido» se pinta de la comida registrada MÁS RECIENTE a la más
@@ -35711,7 +35806,7 @@ function render(date) {
   let html = rows.map(m =>
     `<div class="meal-row"><div class="meal-row-top"><span class="meal-row-when">${esc(mealName(m.meal))}${m.createdAtMs ? ` <span class="meal-time">${mealTimeStr(m.createdAtMs)}</span>` : ''}</span><span class="meal-row-kcal">${fmt(m.kcal)} kcal</span></div>` +
     `<div class="meal-row-food">${esc(m.food)}${m.photoURL ? ` <a href="${esc(m.photoURL)}" target="_blank" rel="noopener" title="${t('track.viewPhoto')}">📷</a>` : ''}${m.byRole === 'nutricionista' ? ` <span class="nutri-byline">🥗 ${esc(t('nutri.byNutri'))}</span>` : ''}</div>` +
-    `<div class="meal-row-meta"><span class="meal-row-qty">${esc(m.qty)}</span><span class="meal-row-macros">${t('th.protShort')} ${fmt(m.prot)} g · ${t('th.carbShort')} ${fmt(m.carb)} g · ${t('th.sugarShort')} ${fmt(m.sugar)} g · ${t('th.fatShort')} ${fmt(m.fat)} g</span></div>` +
+    `<div class="meal-row-meta"><span class="meal-row-qty">${esc(m.qty)}</span><span class="meal-row-macros">${t('th.protShort')} ${fmt(m.prot)} g · ${t('th.carbShort')} ${fmt(m.carb)} g · ${t('th.sugarShort')} ${fmt(m.sugar)} g · ${t('th.fatShort')} ${fmt(m.fat)} g${fiberOf(m) != null ? ' · ' + t('th.fiberShort') + ' ' + fmt(fiberOf(m)) + ' g' : ''}</span></div>` +
     `<div class="meal-actions"><button class="rep-btn" data-repeat-meal="${m.id}" title="${t('track.repeat')}">↻ ${t('track.repeat')}</button><button class="del-btn" data-del-meal="${m.id}" title="${t('track.delete')}">×</button></div></div>`
   ).join('');
   if (rows.length) html += `<div class="meal-row meal-row-total"><div class="meal-row-top"><span class="meal-row-when">${t('track.totalDay')}</span><span class="meal-row-kcal">${fmt(tot.kcal)} kcal</span></div><div class="meal-row-total-macros"><span style="color:#2563EB">${t('th.protShort')} ${fmt(tot.prot)} g</span> · <span style="color:#D97706">${t('th.carbShort')} ${fmt(tot.carb)} g</span> · <span style="color:#9333EA">${t('th.sugarShort')} ${fmt(tot.azuc)} g</span> · <span style="color:#DC2626">${t('th.fatShort')} ${fmt(tot.gras)} g</span></div></div>`;
@@ -36290,6 +36385,13 @@ function weekCardCompute(logs, plans, todayIso, opts) {
     }
     return { name: g.name, exerciseId: g.exerciseId, variantIndex: g.variantIndex, weekMaxKg: weekMax, deltaKg: delta };
   });
+  /* FIBRA (Fase 1): media de la semana SOLO sobre días con registro
+     completo, declarando cuántos días cuentan (fiberWeekStats).
+     Las comidas llegan por opts.mealsByDate: la vista propia pasa
+     su MEALS ya cargado, sin lecturas nuevas; la ficha del alumno
+     para el entrenador NO lo pasa en esta fase y la línea
+     simplemente no nace ahí. Sin días completos, tampoco nace. */
+  const fiber = (opts && opts.mealsByDate) ? fiberWeekStats(opts.mealsByDate, target) : null;
   const pp = target.split('-').map(Number);
   const closeIdx = ((Math.floor(Date.UTC(pp[0], pp[1] - 1, pp[2]) / 604800000) % 7) + 7) % 7;
   /* NIVEL 1 — RECONOCIMIENTO DE LA SEMANA (Plan de Reconocimiento
@@ -36334,7 +36436,7 @@ function weekCardCompute(logs, plans, todayIso, opts) {
     satAvg: targetMet.satAvg, satCount: targetMet.satCount,
     moment, improvements: imps.slice(0, 2), cmp,
     planned: plannedSet.size, donePlanned, streak,
-    restAvgSec: targetMet.restAvgSec, restSessions: targetMet.restSessions,
+    restAvgSec: targetMet.restAvgSec, restSessions: targetMet.restSessions, fiber,
     injuries, closeIdx, exercises, reco
   };
 }
@@ -36493,6 +36595,7 @@ function weekCardHTML(m, links) {
     <div class="wkcard-body">
       ${wkRecoHTML(m)}
       <p class="wkcard-rel">${S.map(wkB).join(' ')}</p>
+      ${m.fiber ? `<p class="wkcard-fiber">🌾 ${esc(t(m.fiber.days === 1 ? 'fiber.week1' : 'fiber.weekN', { g: fmt(m.fiber.avg), n: m.fiber.days }))}</p>` : ''}
       <div class="wkcard-chips">${chips.map(c => `<div class="wkcard-chip"><b>${esc(c.v)}</b><span>${esc(c.l)}</span></div>`).join('')}</div>
       ${imps ? `<div class="wkcard-mej"><span class="wkcard-mej-ico" aria-hidden="true">🎯</span><div class="wkcard-mej-tx">${imps}</div></div>` : ''}
       <p class="wkcard-close">${q[0]}${esc(t('wk.close.' + m.closeIdx))}${q[1]}</p>
@@ -36572,7 +36675,7 @@ async function loadWeekCard() {
     const uid = auth.currentUser.uid;
     const [plans, logs, reqs] = await Promise.all([fetchPlans(uid), fetchLogs(uid), fetchWeekRequests(uid)]);
     const model = weekCardCompute(wkPrepareLogs(logs), wkPreparePlans(plans), todayISO(),
-      { name: (typeof UDATA !== 'undefined' && UDATA && UDATA.name) || '', requests: reqs });
+      { name: (typeof UDATA !== 'undefined' && UDATA && UDATA.name) || '', requests: reqs, mealsByDate: (typeof MEALS !== 'undefined' ? MEALS : null) });
     box.innerHTML = weekCardHTML(model, true);
     /* Cada línea de ejercicio con ficha abre la ficha del
        ejercicio con su historia (la superficie de siempre). */
@@ -38497,7 +38600,7 @@ function mealScaleArm(qtyText, vals) {
   if (!p || p.pieces || !(p.num > 0)) { mealScaleCtx = null; return; }
   mealScaleCtx = {
     baseNum: p.num, baseUnit: p.unit, scaledTo: p.num, touched: new Set(),
-    base: { kcal: num(vals && vals.kcal), prot: num(vals && vals.prot), carb: num(vals && vals.carb), sugar: num(vals && vals.sugar), fat: num(vals && vals.fat) }
+    base: { kcal: num(vals && vals.kcal), prot: num(vals && vals.prot), carb: num(vals && vals.carb), sugar: num(vals && vals.sugar), fat: num(vals && vals.fat), fiber: vals ? fiberOf(vals) : null }
   };
 }
 function mealScaleClear() { mealScaleCtx = null; }
@@ -38529,6 +38632,8 @@ function mealScaleWire() {
     put('m-carb', 'carb', Math.round(b0.carb * f * 10) / 10);
     put('m-sugar', 'sugar', Math.round(b0.sugar * f * 10) / 10);
     put('m-fat', 'fat', Math.round(b0.fat * f * 10) / 10);
+    /* FIBRA (Fase 1): reescala solo si el par traído la tenía. */
+    if (b0.fiber != null) put('m-fiber', 'fiber', Math.round(b0.fiber * f * 10) / 10);
     ctx.scaledTo = pNew.num;
     /* El espejo de borrador sin guardar (vía manual) refleja los
        valores YA reescalados: sin esto guardaría la cantidad nueva
@@ -38544,7 +38649,7 @@ function mealScaleWire() {
      marcan campos; y los 'input' sintéticos que acApply despacha al
      rellenar ocurren ANTES de armar y caen en el contexto descartado
      (cada armado nace con el conjunto vacío). */
-  [['m-kcal', 'kcal'], ['m-prot', 'prot'], ['m-carb', 'carb'], ['m-sugar', 'sugar'], ['m-fat', 'fat']]
+  [['m-kcal', 'kcal'], ['m-prot', 'prot'], ['m-carb', 'carb'], ['m-sugar', 'sugar'], ['m-fat', 'fat'], ['m-fiber', 'fiber']]
     .forEach(([id, k]) => { const el = $(id); if (el) el.addEventListener('input', () => { if (mealScaleCtx) mealScaleCtx.touched.add(k); }); });
 }
 /* ============ MOTOR DE LA TABLA DE REFERENCIA EN EL FORMULARIO
@@ -38634,6 +38739,9 @@ function openRepeatMeal(rec, viewDate) {
   $('m-carb').value = rec.carb || 0;
   $('m-sugar').value = rec.sugar || 0;
   $('m-fat').value = rec.fat || 0;
+  /* FIBRA (Fase 1): la copia hereda el dato si el original lo
+     traía; si no, el campo nace vacío — sin dato, como el original. */
+  $('m-fiber').value = fiberOf(rec) != null ? fiberOf(rec) : '';
   $('m-notes').value = rec.notes || '';
   /* Procedencia: estimación de IA si el documento trae source:'ai'
      (foto) o 'ai-text' (descripción), o si ya era una copia de una
@@ -38726,11 +38834,11 @@ function acIndex() {
           ex.date = d; ex.ms = m.createdAtMs || 0;
           ex.name = name; ex.qty = m.qty || '';
           ex.kcal = num(m.kcal); ex.prot = num(m.prot); ex.carb = num(m.carb);
-          ex.sugar = num(m.sugar); ex.fat = num(m.fat);
+          ex.sugar = num(m.sugar); ex.fat = num(m.fat); ex.fiber = fiberOf(m);
         }
       } else {
         byKey.set(key, { key, name, qty: m.qty || '', kcal: num(m.kcal), prot: num(m.prot),
-          carb: num(m.carb), sugar: num(m.sugar), fat: num(m.fat),
+          carb: num(m.carb), sugar: num(m.sugar), fat: num(m.fat), fiber: fiberOf(m),
           date: d, ms: m.createdAtMs || 0, count: 1 });
       }
     }
@@ -38746,7 +38854,9 @@ function acSearch(q) {
   return acIndex().filter(e => e.key.includes(nq)).slice(0, 6);
 }
 function acMeta(e) {
-  const vals = t('ac.values', { kcal: acNum(e.kcal), prot: acNum(e.prot), carb: acNum(e.carb), sugar: acNum(e.sugar), fat: acNum(e.fat) });
+  const vals = e.fiber != null
+    ? t('ac.valuesFiber', { kcal: acNum(e.kcal), prot: acNum(e.prot), carb: acNum(e.carb), sugar: acNum(e.sugar), fat: acNum(e.fat), fiber: acNum(e.fiber) })
+    : t('ac.values', { kcal: acNum(e.kcal), prot: acNum(e.prot), carb: acNum(e.carb), sugar: acNum(e.sugar), fat: acNum(e.fat) });
   return e.qty ? (e.qty + ' · ' + vals) : vals;
 }
 function acApply(input, e, mode) {
@@ -38759,6 +38869,7 @@ function acApply(input, e, mode) {
     set('m-qty', e.qty);
     set('m-kcal', e.kcal); set('m-prot', e.prot); set('m-carb', e.carb);
     set('m-sugar', e.sugar); set('m-fat', e.fat);
+    set('m-fiber', e.fiber != null ? e.fiber : '');
     /* El par traído del historial ARMA el reescalado (2026-10-30,
        defecto D-3): desde aquí, cambiar la Cantidad reescala kcal y
        macros desde la densidad de ESTE registro. Se arma AL FINAL:
@@ -38899,7 +39010,7 @@ function foodlibQtyText(f) {
 }
 function foodlibEntry(f) {
   return { key: f.nameKey || acNorm(f.name), name: f.name, qty: foodlibQtyText(f),
-    kcal: num(f.kcal), prot: num(f.prot), carb: num(f.carb), sugar: num(f.sugar), fat: num(f.fat) };
+    kcal: num(f.kcal), prot: num(f.prot), carb: num(f.carb), sugar: num(f.sugar), fat: num(f.fat), fiber: fiberOf(f) };
 }
 function foodlibBaseOf(v) { return v.qtyUnit === 'unidad' ? num(v.qtyNum) * num(v.pieceGrams) : num(v.qtyNum); }
 function foodlibReasonText(code) { return t('foodlib.reason.' + (code === 'no-unico' ? 'nounico' : code)); }
@@ -38916,11 +39027,19 @@ function foodlibValidate(v) {
   if (!['g', 'ml', 'unidad'].includes(v.qtyUnit)) hard.push('unit');
   if (v.qtyUnit === 'unidad' && !(num(v.pieceGrams) >= 5 && num(v.pieceGrams) <= 500)) hard.push('piece');
   for (const k of ['kcal', 'prot', 'carb', 'sugar', 'fat']) if (!(num(v[k]) >= 0)) hard.push('neg');
+  /* FIBRA (Fase 1): opcional — ausente (null) no es error ni cero;
+     presente exige la guarda de no-negatividad de siempre. */
+  if (v.fiber != null && !(num(v.fiber) >= 0)) hard.push('neg');
   const base = foodlibBaseOf(v);
   if (base > 0) {
     if (num(v.kcal) * 100 > 950 * base) hard.push('density');
     for (const k of ['prot', 'carb', 'sugar', 'fat']) if (num(v[k]) * 100 > 100 * base) hard.push('density');
+    if (v.fiber != null && num(v.fiber) * 100 > 100 * base) hard.push('density');
     if (num(v.sugar) > num(v.carb) + 1) hard.push('sugar');
+    /* FIBRA (Fase 1): espejo de la guarda de las reglas — la fibra
+       es parte de los carbohidratos; más fibra que carbos (+1 de
+       tolerancia, como el azúcar) no entra. */
+    if (v.fiber != null && num(v.fiber) > num(v.carb) + 1) hard.push('fiber');
     const atw = 4 * num(v.prot) + 4 * num(v.carb) + 9 * num(v.fat);
     if (num(v.kcal) > 0 && Math.abs(atw - num(v.kcal)) > 0.30 * num(v.kcal)) soft.push('atwater');
     if (num(v.kcal) * 100 > 700 * base) soft.push('densityHigh');
@@ -38954,7 +39073,7 @@ async function foodlibSearch(q, n) {
    pide: el par cantidad<->valores nunca nace descuadrado. */
 function foodlibFromMeal(m) {
   const v = { name: String((m && m.food) || '').trim(), kcal: num(m && m.kcal), prot: num(m && m.prot),
-    carb: num(m && m.carb), sugar: num(m && m.sugar), fat: num(m && m.fat),
+    carb: num(m && m.carb), sugar: num(m && m.sugar), fat: num(m && m.fat), fiber: fiberOf(m),
     qtyNum: NaN, qtyUnit: 'g', pieceGrams: NaN };
   const p = repeatParseQty((m && m.qty) || '');
   if (p) {
@@ -39015,6 +39134,10 @@ async function foodlibAutoCandidate(m) {
       contributorName: (typeof UDATA !== 'undefined' && UDATA && (UDATA.name || UDATA.email)) || '',
       estado: 'pendiente', createdAt: serverTimestamp() };
     if (v.qtyUnit === 'unidad') data.pieceGrams = v.pieceGrams;
+    /* FIBRA (Fase 1): el candidato la lleva solo si el registro la
+       traía — la ficha pública que nazca de su aprobación la tendrá
+       o no la tendrá, como el registro de origen. */
+    if (v.fiber != null) data.fiber = v.fiber;
     await addDoc(collection(db, 'food_contrib'), data);
   } catch {}
 }
@@ -39102,17 +39225,23 @@ function foodlibValFieldsHTML(prefix, v) {
     <div class="frow3">
       <label>${esc(t('form.sugar'))} <input type="number" data-vf="sugar" step="any" value="${v.sugar != null ? v.sugar : ''}"></label>
       <label>${esc(t('form.fat'))} <input type="number" data-vf="fat" step="any" value="${v.fat != null ? v.fat : ''}"></label>
+      <label>${esc(t('form.fiber'))} <input type="number" data-vf="fiber" step="any" value="${v.fiber != null ? v.fiber : ''}"></label>
     </div>`;
 }
 function foodlibValsFrom(scope) {
   const g = k => { const el = scope.querySelector(`[data-vf="${k}"]`); return el ? el.value : ''; };
+  const fibRaw = g('fiber');
   return { name: String(g('name')).trim(), qtyNum: num(g('qtyNum')), qtyUnit: g('qtyUnit'),
     pieceGrams: num(g('pieceGrams')), kcal: num(g('kcal')), prot: num(g('prot')),
-    carb: num(g('carb')), sugar: num(g('sugar')), fat: num(g('fat')) };
+    carb: num(g('carb')), sugar: num(g('sugar')), fat: num(g('fat')),
+    /* FIBRA (Fase 1): campo vacío = la ficha queda SIN el dato
+       (null), nunca un 0 inventado. */
+    fiber: String(fibRaw).trim() === '' ? null : num(fibRaw) };
 }
 function foodlibCleanFicha(v) {
   const ficha = { name: v.name, nameKey: acNorm(v.name), qtyNum: v.qtyNum, qtyUnit: v.qtyUnit,
     kcal: v.kcal, prot: v.prot, carb: v.carb, sugar: v.sugar, fat: v.fat };
+  if (v.fiber != null) ficha.fiber = v.fiber;
   if (v.qtyUnit === 'unidad') ficha.pieceGrams = v.pieceGrams;
   return ficha;
 }
@@ -39130,6 +39259,9 @@ function foodlibEditOpen(id) {
     const ficha = foodlibCleanFicha(v);
     const upd = { ...ficha };
     if (ficha.qtyUnit !== 'unidad') upd.pieceGrams = deleteField();
+    /* FIBRA (Fase 1): si el curador la borra del campo, la ficha la
+       pierde de verdad (merge no borra claves ausentes). */
+    if (v.fiber == null) upd.fiber = deleteField();
     try {
       await setDoc(doc(db, 'food_library', id), upd, { merge: true });
       foodlibSugCache.clear();
@@ -39220,6 +39352,9 @@ $('form-meal').addEventListener('submit', async e => {
     fat: Math.max(0, num($('m-fat').value)), notes: $('m-notes').value.trim(),
     createdAt: serverTimestamp()
   };
+  /* FIBRA (Fase 1): campo opcional — vacío = el registro nace SIN
+     el dato (nunca 0 forzado); con valor, se guarda a 1 decimal. */
+  if ($('m-fiber').value.trim() !== '') data.fiber = Math.round(Math.max(0, num($('m-fiber').value)) * 10) / 10;
   if (!data.date || !data.food) { toast(t('err.mealMissing'), true); return; }
   mealSaving = true;
   const saveBtn = e.target.querySelector('button[type="submit"]');
@@ -39326,7 +39461,10 @@ $('form-meal').addEventListener('submit', async e => {
            repartir el mismo plato a otro momento es OTRO guardado a
            efectos de reintento. Sin reparto, la huella queda
            carácter a carácter como siempre. */
-        const huella = [data.ownerUid, data.date, data.meal, data.food, data.qty, data.kcal, data.prot, data.carb, data.sugar, data.fat].join('|') + (splitOn ? '|mitad:' + splitSecond : '');
+        /* La fibra entra en la huella SOLO cuando el registro la
+           trae: sin fibra, la huella queda carácter a carácter
+           como siempre (ningún reintento viejo cambia de id). */
+        const huella = [data.ownerUid, data.date, data.meal, data.food, data.qty, data.kcal, data.prot, data.carb, data.sugar, data.fat].join('|') + (data.fiber != null ? '|fib:' + data.fiber : '') + (splitOn ? '|mitad:' + splitSecond : '');
         if (!mealManualPending || mealManualPending.huella !== huella) mealManualPending = { huella, id: aiNewSaveId() };
         idA = mealManualPending.id;
       }
@@ -39911,7 +40049,7 @@ function pendDraftGet() {
 function pendDraftSave() {
   if (!PEND_DRAFT_ARM) return;
   const v = id => { const el = $(id); return el ? el.value : ''; };
-  const d = { date: v('m-date'), meal: v('m-meal'), food: v('m-food'), qty: v('m-qty'), kcal: v('m-kcal'), prot: v('m-prot'), carb: v('m-carb'), sugar: v('m-sugar'), fat: v('m-fat'), notes: v('m-notes'), split: mealSplit ? mealSplit.second : '', at: Date.now() };
+  const d = { date: v('m-date'), meal: v('m-meal'), food: v('m-food'), qty: v('m-qty'), kcal: v('m-kcal'), prot: v('m-prot'), carb: v('m-carb'), sugar: v('m-sugar'), fat: v('m-fat'), fiber: v('m-fiber'), notes: v('m-notes'), split: mealSplit ? mealSplit.second : '', at: Date.now() };
   try {
     if (pendDraftLive(d)) localStorage.setItem(PEND_DRAFT_KEY, JSON.stringify(d));
     else localStorage.removeItem(PEND_DRAFT_KEY);
@@ -39923,7 +40061,7 @@ function pendDraftRestore() {
   const d = pendDraftGet(); if (!d) return;
   const set = (id, val) => { const el = $(id); if (el && val !== undefined && val !== null) el.value = val; };
   set('m-date', d.date); set('m-meal', d.meal); set('m-food', d.food); set('m-qty', d.qty);
-  set('m-kcal', d.kcal); set('m-prot', d.prot); set('m-carb', d.carb); set('m-sugar', d.sugar); set('m-fat', d.fat); set('m-notes', d.notes);
+  set('m-kcal', d.kcal); set('m-prot', d.prot); set('m-carb', d.carb); set('m-sugar', d.sugar); set('m-fat', d.fat); set('m-fiber', d.fiber); set('m-notes', d.notes);
   /* El reparto también es parte del borrador: se restaura validado
      contra los momentos conocidos (un espejo viejo no lo trae). */
   mealSplit = (d.split && AI_MEALS.includes(d.split)) ? { second: d.split } : null;
@@ -42528,7 +42666,7 @@ document.addEventListener('keydown', e => { if (e.key === 'Escape') shareClose()
  *  - El SW (sw.js) solo cachea la cáscara del mismo origen en modo
  *    RED PRIMERO: Auth/Firestore/Worker jamás pasan por la caché.
  * ================================================================ */
-const PWA_SW_VERSION = '20261105-vacios-mascota';
+const PWA_SW_VERSION = '20261105-fibra-fase1';
 /* Sello de versión VISIBLE (2026-11-03): el pie de la tarjeta de
    acceso enseña qué copia corre este teléfono ('v ' + el sello),
    para comprobar de un vistazo si la versión nueva ya llegó.
