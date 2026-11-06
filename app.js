@@ -19811,7 +19811,10 @@ async function fusedWaterAdd() {
    de la hoja de Comida, con todas sus puertas de siempre. */
 function fusedWire(box) {
   if (!box) return;
-  box.querySelectorAll('[data-dg-meal]').forEach(b => b.onclick = () => glanceOpenFood());
+  /* AUTH-2026-11-06-291: el círculo pasa SU comida — si ya tiene
+     registros hoy, la ventana abre en «Consumido» sobre sus entradas
+     (ver lo comido y editarlo); si está pendiente, abre como siempre. */
+  box.querySelectorAll('[data-dg-meal]').forEach(b => b.onclick = () => glanceOpenFood(b.getAttribute('data-dg-meal')));
   const add = $('dg-water-add');
   if (add) add.onclick = () => fusedWaterAdd();
   const dgMap = { 'dg-btn-photo': 'btn-food-photo', 'dg-btn-voice': 'btn-food-voice', 'dg-btn-text': 'btn-food-text', 'dg-btn-manual': 'btn-food-manual' };
@@ -20445,6 +20448,10 @@ async function loadAll() {
            source/origin del documento para que repetir sepa de dónde viene
            el original; la renderización ordinaria no cambia. */
         source: v.source || '', origin: v.origin || '',
+        /* Bloque de estimación de IA (AUTH-2026-11-06-291): loadAll lo
+           conserva SOLO para que editar un registro de IA no pierda su
+           procedencia al regrabar el documento; nada lo pinta. */
+        ai: v.ai || null,
         /* Desglose por alimento (2026-10-21): viaja en el propio
            documento (campo items) cuando el guardado desde el análisis
            lo persistió; loadAll lo conserva tal cual — la ventana del
@@ -25121,6 +25128,7 @@ function aiUseDraft(r1, r2) {
 }
 function aiClearDraft() {
   aiDraft = null;
+  mealEditCtx = null; // AUTH-291: el contexto de edición muere con el episodio (espejo de repeatCtx en repeatClear)
   MEAL_FORM_MANUAL_NEW = false; // AUTH-287: el episodio manual-nuevo muere con el borrador (cancelar/guardar/reabrir)
   mealPickClear(); // punto 84: el episodio del formulario se reinicia; la elección del catálogo muere con él
   const b = $('m-ai-banner');
@@ -36215,14 +36223,35 @@ function glanceRingSVG(c) {
     <text x="75" y="100" text-anchor="middle" font-size="11" fill="#6b7280">${over ? t('glance.kcalOver') : t('glance.kcalLeft')}</text>
   </svg>`;
 }
-function glanceOpenFood() {
+function glanceOpenFood(mealName) {
   const today = todayISO();
   const sel = $('dateSel');
   if (sel && [...sel.options].some(o => o.value === today)) sel.value = today;
   try { render(today); } catch {}
   try { dockHome($('food-float')); } catch {}
   if (typeof foodOpenFloat === 'function') foodOpenFloat();
-  if (typeof foodSetSub === 'function') foodSetSub('resumen');
+  /* Círculos de comidas (AUTH-2026-11-06-291, pedido de Ronald): si la
+     comida tocada YA tiene registros hoy, la ventana abre en
+     «Consumido» posicionada en SUS entradas — lo que consumió y la
+     puerta de editarlo —, no en el resumen de registro; si la comida
+     está pendiente, abre en «resumen» como siempre. */
+  const has = !!mealName && (MEALS[today] || []).some(m => m.meal === mealName);
+  if (typeof foodSetSub === 'function') foodSetSub(has ? 'consumido' : 'resumen');
+  if (has) setTimeout(() => { try { glanceFocusMeal(mealName); } catch {} }, 0);
+}
+let GLANCE_FOCUS_TIMER = null;
+/* Posiciona el diario en las entradas de UNA comida y las marca un
+   instante (clase «dg-focus», ver styles.css): trae a la vista la
+   primera entrada de ese momento dentro de la hoja. */
+function glanceFocusMeal(mealName) {
+  const body = $('detailBody'); if (!body) return;
+  const rows = [...body.querySelectorAll('.meal-row[data-meal-moment]')]
+    .filter(r => r.getAttribute('data-meal-moment') === mealName);
+  if (!rows.length) return;
+  rows.forEach(r => r.classList.add('dg-focus'));
+  try { rows[0].scrollIntoView({ block: 'center' }); } catch {}
+  if (GLANCE_FOCUS_TIMER) clearTimeout(GLANCE_FOCUS_TIMER);
+  GLANCE_FOCUS_TIMER = setTimeout(() => rows.forEach(r => r.classList.remove('dg-focus')), 2200);
 }
 
 /* ================= RENDER (igual que la versión anterior) ================= */
@@ -37258,10 +37287,10 @@ function render(date) {
      de total conserva TODOS los totales: kcal en grande y los macros
      con los colores de siempre en una segunda línea. */
   let html = rows.map(m =>
-    `<div class="meal-row"><div class="meal-row-top"><span class="meal-row-when">${esc(mealName(m.meal))}${m.createdAtMs ? ` <span class="meal-time">${mealTimeStr(m.createdAtMs)}</span>` : ''}</span><span class="meal-row-kcal">${fmt(m.kcal)} kcal</span></div>` +
+    `<div class="meal-row" data-meal-moment="${esc(m.meal)}"><div class="meal-row-top"><span class="meal-row-when">${esc(mealName(m.meal))}${m.createdAtMs ? ` <span class="meal-time">${mealTimeStr(m.createdAtMs)}</span>` : ''}</span><span class="meal-row-kcal">${fmt(m.kcal)} kcal</span></div>` +
     `<div class="meal-row-food">${esc(m.food)}${m.photoURL ? ` <a href="${esc(m.photoURL)}" target="_blank" rel="noopener" title="${t('track.viewPhoto')}">📷</a>` : ''}${m.byRole === 'nutricionista' ? ` <span class="nutri-byline">🥗 ${esc(t('nutri.byNutri'))}</span>` : ''}</div>` +
     `<div class="meal-row-meta"><span class="meal-row-qty">${esc(m.qty)}</span><span class="meal-row-macros">${t('th.protShort')} ${fmt(m.prot)} g · ${t('th.carbShort')} ${fmt(m.carb)} g · ${t('th.sugarShort')} ${fmt(m.sugar)} g · ${t('th.fatShort')} ${fmt(m.fat)} g${fiberOf(m) != null ? ' · ' + t('th.fiberShort') + ' ' + fmt(fiberOf(m)) + ' g' : ''}</span></div>` +
-    `<div class="meal-actions"><button class="rep-btn" data-repeat-meal="${m.id}" title="${t('track.repeat')}">↻ ${t('track.repeat')}</button><button class="del-btn" data-del-meal="${m.id}" title="${t('track.delete')}">×</button></div></div>`
+    `<div class="meal-actions"><button class="rep-btn" data-edit-meal="${m.id}" title="${t('client.edit')}">✎ ${t('client.edit')}</button><button class="rep-btn" data-repeat-meal="${m.id}" title="${t('track.repeat')}">↻ ${t('track.repeat')}</button><button class="del-btn" data-del-meal="${m.id}" title="${t('track.delete')}">×</button></div></div>`
   ).join('');
   if (rows.length) html += `<div class="meal-row meal-row-total"><div class="meal-row-top"><span class="meal-row-when">${t('track.totalDay')}</span><span class="meal-row-kcal">${fmt(tot.kcal)} kcal</span></div><div class="meal-row-total-macros"><span style="color:#2563EB">${t('th.protShort')} ${fmt(tot.prot)} g</span> · <span style="color:#D97706">${t('th.carbShort')} ${fmt(tot.carb)} g</span> · <span style="color:#9333EA">${t('th.sugarShort')} ${fmt(tot.azuc)} g</span> · <span style="color:#DC2626">${t('th.fatShort')} ${fmt(tot.gras)} g</span></div></div>`;
   $('detailBody').innerHTML = html || `<div class="wempty">${t('track.emptyDay')}</div>`;
@@ -37296,6 +37325,14 @@ function render(date) {
      notas de cada comida siguen viviendo en su registro y en el
      formulario de la comida; no se borra ningún dato guardado. */
 
+  /* Puerta «Editar» (AUTH-2026-11-06-291): abre el MISMO formulario
+     precargado con el registro y el guardado actualiza ESE registro
+     (ver mealEditCtx y el envío de #form-meal). */
+  document.querySelectorAll('[data-edit-meal]').forEach(b =>
+    b.onclick = () => {
+      const row = rows.find(r => r.id === b.dataset.editMeal);
+      if (row) openEditMeal(row, date);
+    });
   document.querySelectorAll('[data-repeat-meal]').forEach(b =>
     b.onclick = () => {
       const row = rows.find(r => r.id === b.dataset.repeatMeal);
@@ -40232,10 +40269,49 @@ function openRepeatMeal(rec, viewDate) {
 }
 function repeatClear() {
   repeatCtx = null;
+  mealEditCtx = null; // AUTH-291: ningún cierre de episodio deja una edición viva
   foodRefClear(); // la referencia tampoco hereda episodios
   mealPickClear(); // punto 84: ídem aiClearDraft — ningún episodio nuevo hereda una elección anterior
   mealScaleClear(); // el contexto de reescalado muere con el episodio del formulario
   const b = $('m-rep-banner'); if (b) { b.style.display = 'none'; b.textContent = ''; }
+}
+/* ============ EDITAR UN REGISTRO GUARDADO (AUTH-2026-11-06-291) ====
+   Pedido de Ronald: lo ya registrado se ve y se EDITA — el círculo de
+   una comida marcada abre «Consumido» y cada fila trae «Editar».
+   Espejo del precedente de la casa (weightCtx): mealEditCtx es null
+   en un alta normal y {id, rec} al editar; el envío de #form-meal lo
+   lee para escribir sobre EL MISMO documento. La apertura es DIRECTA
+   (como «Repetir»): MEAL_FORM_MANUAL_NEW queda en falso y la zona de
+   IA del formulario se ofrece, la semántica de AUTH-288. El contexto
+   muere en los mismos cierres de episodio que repeatCtx (aiClearDraft
+   y repeatClear lo anulan; aquí se arma DESPUÉS de llamarlos). */
+let mealEditCtx = null; // {id, rec} — solo memoria
+function openEditMeal(rec, viewDate) {
+  aiClearDraft();
+  try { pendDraftDisarm(); } catch {}
+  repeatClear(); // limpia el episodio anterior (y mealEditCtx, que se arma justo después)
+  mealEditCtx = { id: rec.id, rec };
+  const form = $('form-meal'); if (form) form.reset();
+  mealSplit = null;
+  const prev = $('m-photo-preview');
+  if (prev) {
+    if (rec.photoURL) { prev.src = rec.photoURL; prev.style.display = 'block'; }
+    else { prev.removeAttribute('src'); prev.style.display = 'none'; }
+  }
+  $('m-date').value = viewDate || ($('dateSel') && $('dateSel').value) || todayISO();
+  const sel = $('m-meal'); if (sel && [...sel.options].some(o => o.value === rec.meal)) sel.value = rec.meal;
+  $('m-food').value = rec.food || '';
+  $('m-qty').value = rec.qty || '';
+  $('m-kcal').value = rec.kcal || 0;
+  $('m-prot').value = rec.prot || 0;
+  $('m-carb').value = rec.carb || 0;
+  $('m-sugar').value = rec.sugar || 0;
+  $('m-fat').value = rec.fat || 0;
+  $('m-fiber').value = fiberOf(rec) != null ? fiberOf(rec) : '';
+  $('m-notes').value = rec.notes || '';
+  mealScaleWire();
+  mealScaleArm(rec.qty, rec); // editar la cantidad reescala, como en Repetir
+  aiOpenMealModal();
 }
 $('meal-cancel').onclick = () => { $('meal-modal').style.display = 'none'; aiClearDraft(); repeatClear(); try { pendDraftDisarm(); } catch {} backReturn(); };
 $('meal-modal').addEventListener('click', e => { if (e.target.id === 'meal-modal') { e.target.style.display = 'none'; repeatClear(); backReturn(); } });
@@ -40860,9 +40936,35 @@ $('form-meal').addEventListener('submit', async e => {
        su suma sigue igualando los totales FINALES del formulario —
        cualquier edición que descuadre lo descarta en silencio y el
        registro queda en el modo por registro de siempre. */
-    const candItems = (aiDraft && aiDraft.items) || (repeatCtx && repeatCtx.items) || null;
+    const candItems = (aiDraft && aiDraft.items) || (repeatCtx && repeatCtx.items) || (mealEditCtx && !aiDraft && mealEditCtx.rec && mealEditCtx.rec.items) || null;
     const formIts = itemsIfSquare(candItems, data);
     if (formIts) data.items = formIts;
+    /* Edición de un registro guardado (AUTH-2026-11-06-291): el
+       guardado actualiza ESE registro — el documento se reescribe
+       entero, así que se conserva lo que el formulario no edita: su
+       hora de registro original, su foto si no se eligió otra, su
+       procedencia (source/origin/ai) y su autoría (byUid/byRole). El
+       desglose viaja como candidato por candItems y solo persiste si
+       sigue cuadrando, la regla de honestidad de siempre. Con un
+       borrador de IA vivo manda la vía de IA (guarda !aiDraft): los
+       dos episodios nunca conviven. Si se eligió foto nueva, la
+       anterior se retira de Storage tras escribir (abajo). */
+    let editReplacedPhoto = null;
+    if (mealEditCtx && !aiDraft) {
+      const rec = mealEditCtx.rec || {};
+      if (rec.createdAtMs) data.createdAt = Timestamp.fromMillis(rec.createdAtMs);
+      if (!photoFile) {
+        if (rec.photoURL) data.photoURL = rec.photoURL;
+        if (rec.photoPath) data.photoPath = rec.photoPath;
+      } else if (rec.photoPath && rec.photoPath !== data.photoPath) {
+        editReplacedPhoto = rec.photoPath;
+      }
+      if (rec.source) data.source = rec.source;
+      if (rec.origin) data.origin = rec.origin;
+      if (rec.ai) data.ai = rec.ai;
+      if (rec.byUid) data.byUid = rec.byUid;
+      if (rec.byRole) data.byRole = rec.byRole;
+    }
     const wasDraft = !!aiDraft;
     /* ¿Lo repartiste? en el formulario manual: con el reparto
        encendido el registro completo de arriba NO se escribe — se
@@ -40920,6 +41022,7 @@ $('form-meal').addEventListener('submit', async e => {
        genera el id, como ya hacía la vía IA desde 2026-10-23. */
     try {
       if (aiDraft && aiDraft.saveId) idA = aiDraft.saveId;
+      else if (mealEditCtx && !aiDraft) idA = mealEditCtx.id; // AUTH-291: editar escribe sobre el MISMO documento, sin huella ni id nuevo
       else {
         /* Con reparto, la huella se extiende con la segunda comida:
            repartir el mismo plato a otro momento es OTRO guardado a
@@ -40946,6 +41049,9 @@ $('form-meal').addEventListener('submit', async e => {
       }
       if (!(aiDraft && aiDraft.saveId)) mealManualPending = null;
     } catch (err) { failToast(err); return; }
+    /* AUTH-291: la escritura ya aterrizó — si la edición trajo foto
+       nueva, la foto anterior del registro se retira de Storage. */
+    if (editReplacedPhoto) { try { await deleteObject(sRef(storage, editReplacedPhoto)); } catch {} }
     /* Punto 84: si este guardado es el de una elección del
        catálogo, su aterrizaje es el de la revisión de IA (caer en
        Consumido), no la vuelta al origen. Se lee ANTES de que los
@@ -44127,7 +44233,7 @@ document.addEventListener('keydown', e => { if (e.key === 'Escape') shareClose()
  *  - El SW (sw.js) solo cachea la cáscara del mismo origen en modo
  *    RED PRIMERO: Auth/Firestore/Worker jamás pasan por la caché.
  * ================================================================ */
-const PWA_SW_VERSION = '20261106-atajo-inicio';
+const PWA_SW_VERSION = '20261106-circulos';
 /* Sello de versión VISIBLE (2026-11-03): el pie de la tarjeta de
    acceso enseña qué copia corre este teléfono ('v ' + el sello),
    para comprobar de un vistazo si la versión nueva ya llegó.
