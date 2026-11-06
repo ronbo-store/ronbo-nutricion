@@ -512,14 +512,22 @@ table.whist { min-width: 640px; }
 .main-tabs-wrap::after { content: ""; position: absolute; top: 0; right: 0; bottom: 0; width: 28px;
   background: linear-gradient(to right, rgba(232, 239, 238, 0), #e8efee);
   border-radius: 0 16px 16px 0; pointer-events: none; }
-.main-tabs { display: flex; flex-wrap: nowrap; gap: 4px; margin: 14px 0 6px; padding: 5px;
+.main-tabs { display: flex; flex-wrap: nowrap; gap: 3px; margin: 14px 0 6px; padding: 5px;
   background: #e8efee; border-radius: 16px; overflow-x: auto; scrollbar-width: none;
   -webkit-overflow-scrolling: touch; }
 .main-tabs::-webkit-scrollbar { display: none; }
+/* AUTH-2026-11-06-286 (orden de Ronald, 2026-11-06): el rótulo ya
+   NO se fuerza a una sola línea — envuelve DENTRO de su pastilla,
+   centrado, y la pastilla nunca baja de su palabra más larga
+   (min-width: min-content): ningún rótulo se corta a mitad de
+   palabra en ninguna banda. Con «Mi perfil» para todos, la barra
+   del alumno (5 pastillas) cabe entera sin desplazar en las tres
+   bandas; el relleno lateral baja a 4px para dar ese sitio sin
+   tocar el tamaño de la letra (12px, el de siempre). */
 .main-tab { flex: 1 1 0%; min-width: min-content; display: flex; flex-direction: column; align-items: center;
-  justify-content: center; gap: 3px; padding: 8px 10px; border: none; border-radius: 12px;
+  justify-content: center; gap: 3px; padding: 8px 4px; border: none; border-radius: 12px;
   background: transparent; font-size: 12px; font-weight: 600; line-height: 1.15;
-  color: #47605c; cursor: pointer; white-space: nowrap; }
+  color: #47605c; cursor: pointer; text-align: center; }
 .main-tab.active { background: #fff; color: #0d9488; box-shadow: 0 1px 4px rgba(0, 0, 0, .14); }
 /* Iconos de la barra (familia de trazo 1.8 de la casa): el glifo
    vive en el propio valor i18n tabs.* y hereda el color del
@@ -1649,7 +1657,6 @@ div > .btn-ghost:only-child, div > .btn-main:only-child {
 .route-soft b{display:block;color:#475569;font-size:13.5px}
 .route-soft span{color:#64748B;font-size:12.5px;line-height:1.35;display:block}
 .route-foot{color:#64748B;font-size:12.5px;margin:10px 0 0}
-#role-pend-card .pend-card{border-left:4px solid #0d9488}
 =======
 /* MÓDULO H — selector de unidades (P4-3 Etapa 1, desarrollo) */
 .units-group { display: flex; gap: 14px; align-items: center; flex-wrap: wrap; margin: 10px 0; }
@@ -4138,13 +4145,8 @@ button.wkex-row:active { background: #eef7f5; }
 body.nav-lock .asst-fab { visibility: hidden; opacity: 0; pointer-events: none; }
 body.nav-lock.prog-page .asst-fab { visibility: visible; opacity: 1; pointer-events: auto; }
 body.swap-sheet-open .asst-fab { display: none !important; }
-/* — La pastilla ancha de Inicio — */
-.asst-pill { display: flex; align-items: center; gap: 12px; width: 100%; margin: 0 0 14px; padding: 10px 16px 10px 10px; border: none; border-radius: 999px; cursor: pointer; text-align: left;
-  background: linear-gradient(100deg, #0d9488, #0b7c72); color: #fff; box-shadow: 0 8px 20px rgba(11,124,114,.30); -webkit-tap-highlight-color: transparent; }
-.asst-pill:active { transform: scale(.985); }
-.asst-pill-av { width: 44px; height: 44px; border-radius: 50%; background: rgba(255,255,255,.18); display: flex; align-items: center; justify-content: center; flex: none; }
-.asst-pill-tx { font-size: 16px; font-weight: bold; flex: 1; }
-.asst-pill-ch { font-size: 24px; font-weight: bold; opacity: .85; }
+/* — La pastilla ancha de Inicio se retiró con AUTH-2026-11-06-286:
+     el disco flotante con la mascota es la única puerta del coach. — */
 /* — La hoja — */
 .act-float.asst-sheet { display: flex; flex-direction: column; overflow: hidden; padding: 0; height: min(660px, calc(100dvh - 168px)); }
 .asst-head { background: linear-gradient(100deg, #0d9488, #0b7c72); padding: 14px 16px; display: flex; align-items: center; gap: 12px; flex: none; }

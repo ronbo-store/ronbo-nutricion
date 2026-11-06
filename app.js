@@ -489,7 +489,6 @@ async function loadRolesX() {
   }
   applyFeatureGates();
   renderMyTrainerBox();
-  try { renderRolePendCard(); } catch {}
   try { chalCardSync(); } catch {}
   try { nutriBoot(); } catch {}
 }
@@ -1606,30 +1605,15 @@ function pendTopCardHTML() {
   if (ROLE === 'usuario') { const r = pendRouteHTML(); if (r) return r; }
   return (typeof pendChecklistHTML === 'function') ? pendChecklistHTML() : '';
 }
-/* Tarjeta-resumen en la pantalla principal al entrar (forma de
-   aviso 2 del mapa): aparece SOLO si hay pendientes de
-   procedimiento; su botón abre el flotante de pendientes. */
-function renderRolePendCard() {
-  const card = document.getElementById('role-pend-card');
-  if (!card || !auth.currentUser) return;
-  let items = [];
-  try { items = rolePendItems(); const pit = dosProfilePendItem(); if (pit) items.unshift(pit); } catch {}
-  if (!items.length) { card.style.display = 'none'; card.innerHTML = ''; return; }
-  const chk = roleChecklist();
-  card.innerHTML = `<div class="panel pend-card"><h3 class="history-title">🔔 ${esc(t('pend.cardTitle'))}</h3>
-    ${chk ? `<p class="pend-check-title">${esc(t('pend.chkTitle', { pct: chk.pct }))}</p>` : ''}
-    <p class="progress-hint">${esc(t('pend.cardBody', { n: items.length }))}</p>
-    <div class="eval-actions"><button type="button" class="btn-primary btn-sm" id="btn-role-pend-open">${esc(t('pend.cardBtn'))}</button></div></div>`;
-  card.style.display = '';
-  const b = document.getElementById('btn-role-pend-open');
-  /* stopPropagation OBLIGATORIO: sin esto, el mismo toque que abre la
-     tarjeta la cierra al instante — el cierre por «toque fuera» escucha
-     en document y este botón vive fuera de la tarjeta (la misma trampa
-     que el botón de alineación de entrenamiento ya evita así).
-     Corrección del reporte de Ronald (2026-10-26 07:28 CDT): «le doy
-     al botón de pendientes y no aparece absolutamente nada». */
-  if (b) b.onclick = e => { if (e && e.stopPropagation) e.stopPropagation(); pendSetFloat(true); };
-}
+/* La tarjeta-resumen de pendientes que vivía aquí en Inicio se
+   RETIRÓ con AUTH-2026-11-06-286 (orden de Ronald, chat
+   RONBO.NUTRI 2026-11-06 13:09 CST): Pendientes ya tiene su
+   propio botón en el dock (con su contador) y la tarjeta repetía
+   su aviso en la pantalla principal. La completitud del perfil
+   NO se borra: sigue pintándose en su sitio propio, dentro de
+   la ventana de pendientes (pendTopCardHTML: la ruta del alumno
+   y el checklist del personal). El sistema de pendientes no se
+   toca: ni el disco, ni su contador, ni la ventana. */
 /* Conteos de la bandeja del administrador, cargados al entrar (y
    refrescados en su superficie): cuentas por aprobar, membresías
    por aprobar, comidas por confirmar y alumnos en espera. */
@@ -7742,7 +7726,7 @@ es: {
   'tabs.coaches': '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 7.5c-1.1-1.4-2.9-2.1-4.6-1.5C5 6.8 4.1 9.2 4.7 11.9c.5 2.5 2 6.4 3.8 6.4 1 0 1.7-.5 3.5-.5s2.5.5 3.5.5c1.8 0 3.3-3.9 3.8-6.4.6-2.7-.3-5.1-2.7-5.9-1.7-.6-3.5.1-4.6 1.5z"/><path d="M12 7.5c.1-2.1 1-3.6 2.7-4.3"/></svg> Coaches de alimentación',
   'tabs.library': '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 4.6A1.6 1.6 0 0 1 6.6 3H19v15H6.6A1.6 1.6 0 0 0 5 19.4z"/><path d="M5 16.4A1.6 1.6 0 0 1 6.6 14.8H19V18"/><path d="M9 7h6"/></svg> Biblioteca',
   'tabs.admin': '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="3.2"/><path d="M12 2.8v3"/><path d="M12 18.2v3"/><path d="M2.8 12h3"/><path d="M18.2 12h3"/><path d="M5.2 5.2l2.1 2.1"/><path d="M16.7 16.7l2.1 2.1"/><path d="M18.8 5.2l-2.1 2.1"/><path d="M7.3 16.7l-2.1 2.1"/></svg> Administración',
-  'tabs.mycoach': '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 7.5c-1.1-1.4-2.9-2.1-4.6-1.5C5 6.8 4.1 9.2 4.7 11.9c.5 2.5 2 6.4 3.8 6.4 1 0 1.7-.5 3.5-.5s2.5.5 3.5.5c1.8 0 3.3-3.9 3.8-6.4.6-2.7-.3-5.1-2.7-5.9-1.7-.6-3.5.1-4.6 1.5z"/><path d="M12 7.5c.1-2.1 1-3.6 2.7-4.3"/></svg> Mi coach de alimentación',
+  'tabs.mycoach': '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 7.5c-1.1-1.4-2.9-2.1-4.6-1.5C5 6.8 4.1 9.2 4.7 11.9c.5 2.5 2 6.4 3.8 6.4 1 0 1.7-.5 3.5-.5s2.5.5 3.5.5c1.8 0 3.3-3.9 3.8-6.4.6-2.7-.3-5.1-2.7-5.9-1.7-.6-3.5.1-4.6 1.5z"/><path d="M12 7.5c.1-2.1 1-3.6 2.7-4.3"/></svg> Coach de alimentación',
   'tabs.mytrainer': '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="5.4" r="2.3"/><path d="M2.5 11h19"/><path d="M5.2 8.8v4.4"/><path d="M18.8 8.8v4.4"/><path d="M12 11v3.6"/><path d="M8.6 20.4L12 14.6l3.4 5.8"/></svg> Mi entrenador',
   'tabs.challenges': '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M7 4h10v4.5a5 5 0 0 1-10 0z"/><path d="M7 5.5H4.2A2.8 2.8 0 0 0 7 9.7"/><path d="M17 5.5h2.8A2.8 2.8 0 0 1 17 9.7"/><path d="M12 13.5V17"/><path d="M9.8 20l.7-3h3l.7 3"/></svg> Retos',
   'tabs.comms': '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="5.5" width="18" height="13" rx="2"/><path d="M3.5 7l8.5 6 8.5-6"/></svg> Comunicaciones',
@@ -12100,10 +12084,11 @@ onAuthStateChanged(auth, async user => {
      UNA sola pastilla («Administración», ver la regla de abajo). */
   $('main-tabs').style.display = '';
   /* Las dos pastillas sin regla propia de rol («Mi registro» y
-     «Mis clientes») se ocultan para el alumno: su barra trae solo
-     «Administración» por ahora. Las demás ya caen a 'none' para el
-     rol usuario por sus reglas de siempre (Accesos, Entrenadores,
-     Biblioteca, Mi perfil, Mis alumnos y Comunicaciones). */
+     «Mis clientes») se ocultan para el alumno. Las demás caen a
+     'none' para el rol usuario por sus reglas de siempre
+     (Accesos, Entrenadores, Biblioteca, Mis alumnos y
+     Comunicaciones); «Mi perfil» tiene su regla propia abajo
+     (AUTH-2026-11-06-286: es de TODOS). */
   const trackTabBtn = document.querySelector('.main-tab[data-tab="track"]');
   if (trackTabBtn) trackTabBtn.style.display = ROLE === 'usuario' ? 'none' : '';
   const cliTabBtn = document.querySelector('.main-tab[data-tab="clients"]');
@@ -12119,12 +12104,19 @@ onAuthStateChanged(auth, async user => {
   if (trTabBtn) trTabBtn.style.display = ROLE === 'administrador' ? '' : 'none';
   const libTabBtn = document.querySelector('.main-tab[data-tab="library"]');
   if (libTabBtn) libTabBtn.style.display = (ROLE === 'administrador' || ROLE === 'entrenador') ? '' : 'none';
-  /* «Mi perfil» (perfil-visible, 2026-10-24): la píldora junto a
-     «Mi registro» es del entrenador y del administrador; el alumno
-     entra por su foto del encabezado (su barra, desde ADMIN-TODOS,
-     solo trae «Administración»). */
+  /* «Mi perfil» (AUTH-2026-11-06-286, orden de Ronald en el chat
+     RONBO.NUTRI 2026-11-06 13:08 CST: «Todos los usuarios tienen
+     que tener el botón de perfil»): la pastilla es de TODOS los
+     roles, como «Administración» y «Retos». Abre la vista propia
+     de siempre (switchTab('profile') → renderProfileView), la
+     misma a la que el alumno ya llegaba por su foto del
+     encabezado — esa puerta se conserva intacta. Permisos sin
+     tocar: la vista se pinta desde la sesión del propio usuario;
+     cada quien ve su perfil y solo lo suyo. La regla se escribe
+     en claro, como las demás «para todos», para que ningún
+     cambio futuro la oculte por accidente. */
   const profTabBtn = document.querySelector('.main-tab[data-tab="profile"]');
-  if (profTabBtn) profTabBtn.style.display = (ROLE === 'entrenador' || ROLE === 'administrador') ? '' : 'none';
+  if (profTabBtn) profTabBtn.style.display = '';
   /* «Administración» (AUTH-2026-10-28-069 la hizo solo del
      administrador; ADMIN-TODOS, decisión de Ronald 2026-11-03, la
      abre a TODOS): cada rol la ve — dentro, cada quien ve solo lo
@@ -12180,9 +12172,10 @@ onAuthStateChanged(auth, async user => {
   const chalTabBtn = document.querySelector('.main-tab[data-tab="challenges"]');
   if (chalTabBtn) chalTabBtn.style.display = '';
   /* «← Volver» de «Mi perfil» (paquete NAVEGACIÓN, 2026-10-26):
-     solo el alumno lo necesita — entra al perfil por su foto y su
-     barra solo trae «Administración»; el personal conserva sus
-     píldoras. */
+     solo el alumno lo necesita — es su vía de regreso desde los
+     saltos de su ruta de pendientes; el personal conserva sus
+     píldoras. (AUTH-286: la pastilla «Mi perfil» ya es de todos;
+     esta flecha sigue siendo solo del alumno.) */
   const profBackBtn = $('btn-profile-back');
   if (profBackBtn) profBackBtn.style.display = ROLE === 'usuario' ? '' : 'none';
   switchTab('track');
@@ -20843,12 +20836,11 @@ function applyAiControl() {
      cortes lo esconde. */
   const gateOff = (typeof mealsGateOff === 'function') ? mealsGateOff() : false;
   if (dock) dock.style.display = (off || gateOff) ? 'none' : '';
-  /* AYUDANTE QUE HABLA (AUTH-2026-11-05-249): el mismo corte del
-     interruptor esconde sus dos puertas — la pastilla de Inicio
-     aquí mismo y el disco de la pila vía asstFabSync (que repinta
-     según la pestaña vigente al reactivarse). */
-  const aPill = document.getElementById('btn-asst-pill');
-  if (aPill) aPill.style.display = off ? 'none' : '';
+  /* AYUDANTE QUE HABLA: el corte del interruptor esconde su
+     puerta — el disco de la pila con la mascota, vía asstFabSync
+     (que repinta según la pestaña vigente al reactivarse). La
+     pastilla ancha de Inicio se retiró con AUTH-2026-11-06-286
+     (repetía la misma puerta): el disco es su única entrada. */
   try { asstFabSync(); } catch {}
   /* Rediseño comida flotante (2026-10-24): con la IA apagada o la
      función de comidas cortada, las hojas flotantes de comida se
@@ -24839,7 +24831,6 @@ function asstSendText() {
   asstSend({ text });
 }
 { const b = $('btn-asst-fab'); if (b) b.onclick = () => asstOpen(); }
-{ const b = $('btn-asst-pill'); if (b) b.onclick = () => asstOpen(); }
 { const b = $('asst-x'); if (b) b.onclick = () => asstClose(); }
 { const b = $('asst-talk'); if (b) b.onclick = () => asstTalkTap(); }
 { const b = $('asst-rec-done'); if (b) b.onclick = () => asstRecFinish(true); }
@@ -41424,17 +41415,13 @@ function pendActiveCount() {
 function pendSyncDock() {
   const b = $('btn-toggle-pend'); if (!b) return;
   b.classList.toggle('pend-alert', pendActiveCount() > 0);
-  /* La tarjeta-resumen de la pantalla principal refleja el mismo
-     cómputo de procedimiento en cada sincronización. */
-  try { if (typeof renderRolePendCard === 'function') renderRolePendCard(); } catch {}
   try { if (typeof chalCardSync === 'function') chalCardSync(); } catch {}
 }
 /* Corrección «pendientes que no se actualizan al guardar»
    (2026-11-01): tras un guardado que resuelve un pendiente, las
    superficies de pendientes se repintan EN EL ACTO — el botón del
-   dock y la tarjeta-resumen de Inicio vía pendSyncDock, y el
-   flotante si está abierto — para que la casilla se marque, la
-   tarjeta salga y el % suba sin cerrar ni recargar. El flotante NO
+   dock vía pendSyncDock y el flotante si está abierto — para que
+   la casilla se marque y el % suba sin cerrar ni recargar. El flotante NO
    se re-renderiza si el formulario de configuración tiene edición
    sin guardar (cfgDirty): esa es la única protección que la antigua
    guarda de #pc-cutoff debía dar, y daba de más — congelaba la
@@ -44004,7 +43991,7 @@ document.addEventListener('keydown', e => { if (e.key === 'Escape') shareClose()
  *  - El SW (sw.js) solo cachea la cáscara del mismo origen en modo
  *    RED PRIMERO: Auth/Firestore/Worker jamás pasan por la caché.
  * ================================================================ */
-const PWA_SW_VERSION = '20261106-scroll-ventana';
+const PWA_SW_VERSION = '20261106-perfil-todos';
 /* Sello de versión VISIBLE (2026-11-03): el pie de la tarjeta de
    acceso enseña qué copia corre este teléfono ('v ' + el sello),
    para comprobar de un vistazo si la versión nueva ya llegó.

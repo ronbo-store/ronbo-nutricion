@@ -21,7 +21,7 @@
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-title" content="RONBO FIT">
 <meta name="apple-mobile-web-app-status-bar-style" content="default">
-<link rel="stylesheet" href="styles.css?v=20261106-scroll-ventana">
+<link rel="stylesheet" href="styles.css?v=20261106-perfil-todos">
 <script defer src="https://cloud.umami.is/script.js" data-website-id="a29706d4-44a2-47cf-900a-5f74d74abfa8"></script>
 <script type="importmap">
 {
@@ -356,25 +356,21 @@
   <button type="button" class="asst-fab" id="btn-asst-fab" style="display:none" aria-label="Talk to your virtual trainer" data-i18n-aria="asst.open"><img class="asst-fab-img" src="https://ronbo-store.github.io/ronbo-nutri-assets/coach-virtual-avatar-comico.webp" alt="" onerror="this.style.display='none';this.nextElementSibling.style.display=''"><span class="asst-av-fb" style="display:none"><svg viewBox="0 0 48 48" width="32" height="32" fill="none" aria-hidden="true"><circle cx="24" cy="19" r="8.5" fill="#fff" opacity=".95"/><path d="M10 40c1.5-7 7-10.5 14-10.5S36.5 33 38 40" fill="#fff" opacity=".95"/><path d="M12.5 20a11.5 11.5 0 0 1 23 0" stroke="#fff" stroke-width="3" stroke-linecap="round"/><rect x="8.5" y="19" width="5" height="9" rx="2.5" fill="#fff"/><rect x="34.5" y="19" width="5" height="9" rx="2.5" fill="#fff"/><path d="M36.5 28v3a5 5 0 0 1-5 5H27" stroke="#fff" stroke-width="3" stroke-linecap="round"/><circle cx="25" cy="36" r="2" fill="#fff"/></svg></span></button>
 
   <div class="tab-pane" id="tab-track">
-  <!-- Mapa de pendientes por rol (2026-10-24): tarjeta-resumen en la
-       pantalla principal al entrar; se pinta desde renderRolePendCard()
-       y solo aparece si hay pendientes de procedimiento. -->
-  <div id="role-pend-card" style="display:none"></div>
+  <!-- La tarjeta-resumen de pendientes que vivía aquí se RETIRÓ
+       con AUTH-2026-11-06-286 (orden de Ronald, chat RONBO.NUTRI
+       2026-11-06 13:09 CST): Pendientes ya tiene su botón en el
+       dock y la tarjeta repetía su aviso; la completitud del
+       perfil sigue dentro de la ventana de pendientes. -->
   <!-- D2 (puntos 19–20, Ronald 2026-11-01): aviso discreto al ABRIR
        la app cuando un borrador de análisis con IA quedó esperando
        guardarse; lo pinta aiDraftNoticeSync (texto por i18n
        aiDraft.*) y su botón abre el borrador en su hoja. -->
   <div id="ai-draft-notice" class="ai-draft-notice" style="display:none"></div>
-  <!-- Pastilla ancha del AYUDANTE QUE HABLA en Inicio
-       (AUTH-2026-11-05-249): la segunda puerta de la hoja del
-       entrenador virtual, bien visible al abrir la app; el
-       interruptor de IA apagado la esconde (applyAiControl), como
-       el disco de la pila. -->
-  <button type="button" class="asst-pill" id="btn-asst-pill">
-    <span class="asst-pill-av" aria-hidden="true"><svg viewBox="0 0 48 48" width="30" height="30" fill="none"><circle cx="24" cy="19" r="8.5" fill="#fff" opacity=".95"/><path d="M10 40c1.5-7 7-10.5 14-10.5S36.5 33 38 40" fill="#fff" opacity=".95"/><path d="M12.5 20a11.5 11.5 0 0 1 23 0" stroke="#fff" stroke-width="3" stroke-linecap="round"/><rect x="8.5" y="19" width="5" height="9" rx="2.5" fill="#fff"/><rect x="34.5" y="19" width="5" height="9" rx="2.5" fill="#fff"/><path d="M36.5 28v3a5 5 0 0 1-5 5H27" stroke="#fff" stroke-width="3" stroke-linecap="round"/><circle cx="25" cy="36" r="2" fill="#fff"/></svg></span>
-    <span class="asst-pill-tx" data-i18n="asst.pill">Talk to your RONBO COACH VIRTUAL</span>
-    <span class="asst-pill-ch" aria-hidden="true">›</span>
-  </button>
+  <!-- La pastilla ancha del AYUDANTE QUE HABLA que vivía aquí se
+       RETIRÓ con AUTH-2026-11-06-286 (orden de Ronald, chat
+       RONBO.NUTRI 2026-11-06 13:09 CST): repetía la puerta del
+       disco flotante con la mascota (#btn-asst-fab), que queda
+       como su única entrada; la hoja del coach no se toca. -->
   <!-- FECHA ÚNICA DE COMIDA (AUTH-2026-10-31-115): el selector de
        fecha (#dateSel) se MUDÓ a la ventana flotante de Comida
        (#food-float), junto a los anillos y el diario que gobierna:
@@ -2017,6 +2013,6 @@
 <div id="toast" class="toast"></div>
 <div id="print-card" aria-hidden="true"></div>
 
-<script type="module" src="app.js?v=20261106-scroll-ventana"></script>
+<script type="module" src="app.js?v=20261106-perfil-todos"></script>
 </body>
 </html>
