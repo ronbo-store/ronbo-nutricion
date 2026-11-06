@@ -4830,6 +4830,8 @@ en: {
   'asst.done': '✓ Done',
   'asst.thinking': 'Thinking…',
   'asst.speaking': 'Speaking…',
+  'asst.listen': '🔊 Hear her reply',
+  'asst.voiceFail': "Her voice didn't come through on this phone. Tap “Hear her reply” to play it right from your tap. If it still doesn't sound, check the iPhone silent switch (the small switch on the side) and the media volume.",
   'asst.silence': 'Mute her voice',
   'asst.unmute': 'Voice muted — tap to hear her',
   'asst.textPh': 'Or type your question…',
@@ -8446,6 +8448,8 @@ es: {
   'asst.done': '✓ Ya está',
   'asst.thinking': 'Pensando…',
   'asst.speaking': 'Hablando…',
+  'asst.listen': '🔊 Escuchar su respuesta',
+  'asst.voiceFail': 'Su voz no se oyó en este teléfono. Toca «Escuchar su respuesta» para reproducirla desde tu toque. Si aun así no suena, revisa el interruptor de silencio del iPhone (el botoncito del costado) y el volumen de medios.',
   'asst.silence': 'Silenciar su voz',
   'asst.unmute': 'Voz silenciada — toca para escucharla',
   'asst.textPh': 'O escribe tu pregunta…',
@@ -24539,6 +24543,8 @@ function asstOpen() {
      despierta el canal con la utterance silenciosa (getVoices solo
      NO desbloquea: sin el desbloqueo, iOS traga la respuesta en
      silencio cuando llega, segundos después del toque). */
+  ASST.voiceFailShown = false;
+  { const lr0 = $('asst-listen-row'); if (lr0) lr0.style.display = 'none'; }
   try { if ('speechSynthesis' in window) window.speechSynthesis.getVoices(); } catch {}
   asstUnlockSpeech();
   try { asstSpeakPaint(ASST.speaking); } catch {}
@@ -24619,10 +24625,17 @@ function asstUnlockSpeech() {
 function asstSpeakPaint(on) {
   ASST.speaking = !!on;
   const row = $('asst-speaking'); if (row) row.style.display = on ? '' : 'none';
+  /* AUTH-2026-11-06-287: si la voz SÍ arranca, la fila de «Escuchar»
+     (la salida del fallo) se recoge sola. */
+  if (on) { const lr = $('asst-listen-row'); if (lr) lr.style.display = 'none'; }
   const btn = $('asst-silence'); if (btn) btn.textContent = t(ASST.muted ? 'asst.unmute' : 'asst.silence');
 }
 function asstSpeak(text) {
   if (ASST.muted || !text) return;
+  /* AUTH-2026-11-06-287: la última respuesta queda guardada para el
+     botón «Escuchar su respuesta» (la salida cuando el motor del
+     teléfono no la hace sonar por la vía automática). */
+  ASST.lastSay = String(text).slice(0, 1500);
   try {
     if (!('speechSynthesis' in window)) return;
     const syn = window.speechSynthesis;
@@ -24636,16 +24649,39 @@ function asstSpeak(text) {
          primera del idioma, como antes. */
       try { const vs = syn.getVoices() || []; const v = vs.find(x => (x.lang || '').toLowerCase().startsWith(want) && x.localService) || vs.find(x => (x.lang || '').toLowerCase().startsWith(want)); if (v) u.voice = v; } catch {}
       u.lang = LANG === 'es' ? 'es-ES' : 'en-US';
-      u.onend = () => { ASST.speakAwait = false; asstSpeakPaint(false); };
-      u.onerror = () => { ASST.speakAwait = false; asstSpeakPaint(false); };
+      u.onend = () => { if (ASST.speakWatch) { clearTimeout(ASST.speakWatch); ASST.speakWatch = null; } ASST.speakAwait = false; asstSpeakPaint(false); };
+      u.onerror = () => { if (ASST.speakWatch) { clearTimeout(ASST.speakWatch); ASST.speakWatch = null; } ASST.speakAwait = false; asstSpeakPaint(false); };
       return u;
     };
     let started = false, retried = false;
+    /* AUTH-2026-11-06-287: EL VIGILANTE DE FIN DE FRASE. El reporte de
+       Ronald del 2026-11-06 13:22 CST (tras AUTH-276): la hoja dice
+       «Hablando…», se queda «como hablando», no se escucha nada y no
+       puede interactuar. En el código de AUTH-276, si la utterance
+       ARRANCA (onstart) pero el motor nunca dispara onend/onerror
+       — el motor de iOS en la PWA instalada se queda «hablando» sin
+       producir sonido — NO existía ningún vigilante para ese estado:
+       el rótulo y ASST.speaking quedaban encendidos para siempre.
+       Este vigilante estima la duración de la frase (tope 60 s) y,
+       si vence sin fin, cancela, apaga el rótulo y avisa con la
+       salida de «Escuchar» (asstVoiceFail). */
+    const armWatch = () => {
+      if (ASST.speakWatch) clearTimeout(ASST.speakWatch);
+      const est = Math.min(60000, Math.max(6000, String(text).length * 95 + 5000));
+      ASST.speakWatch = setTimeout(() => {
+        ASST.speakWatch = null;
+        if (ASST.speakGen !== gen || !ASST.speaking || ASST.muted) return;
+        try { syn.cancel(); } catch {}
+        ASST.speakAwait = false;
+        asstSpeakPaint(false);
+        asstVoiceFail();
+      }, est);
+    };
     const speakNow = () => {
       if (ASST.speakGen !== gen) return;
       try { syn.resume(); } catch {}
       const u = mk();
-      u.onstart = () => { started = true; asstSpeakPaint(true); };
+      u.onstart = () => { started = true; asstSpeakPaint(true); armWatch(); };
       ASST.speakAwait = true;
       syn.speak(u);
       /* AUTH-2026-11-06-276: «Hablando…» se pinta cuando la utterance
@@ -24662,11 +24698,11 @@ function asstSpeak(text) {
         retried = true;
         try { asstUnlockSpeech(); } catch {}
         const u2 = mk();
-        u2.onstart = () => { started = true; asstSpeakPaint(true); };
+        u2.onstart = () => { started = true; asstSpeakPaint(true); armWatch(); };
         ASST.speakAwait = true;
         syn.speak(u2);
         setTimeout(() => {
-          if (!started && !ASST.muted && ASST.speakGen === gen) { ASST.speakAwait = false; asstSpeakPaint(false); }
+          if (!started && !ASST.muted && ASST.speakGen === gen) { ASST.speakAwait = false; asstSpeakPaint(false); asstVoiceFail(); }
         }, 1500);
       }, 1500);
     };
@@ -24692,9 +24728,36 @@ function asstStopSpeak() {
      cancelar y la generación basta para invalidar lo diferido y lo
      reintentado. */
   const habia = !!(ASST.speaking || ASST.speakAwait);
+  /* AUTH-2026-11-06-287: parar la voz desarma también el vigilante
+     de fin de frase (cerrar la hoja o silenciar no avisa en falso). */
+  if (ASST.speakWatch) { clearTimeout(ASST.speakWatch); ASST.speakWatch = null; }
   ASST.speakAwait = false;
   if (habia) { try { if ('speechSynthesis' in window) window.speechSynthesis.cancel(); } catch {} }
   asstSpeakPaint(false);
+}
+/* ── La salida cuando la voz no suena (AUTH-2026-11-06-287) ──
+   Si el motor del teléfono traga la frase (nunca arranca) o se queda
+   «hablando» sin terminar y sin sonido (el vigilante de fin de
+   frase), la app lo dice con honestidad UNA vez por apertura y
+   ofrece el botón grande «Escuchar su respuesta»: al tocarlo, la
+   frase guardada se habla SINCRÓNICAMENTE dentro del toque — el
+   ancla de gesto más fuerte que iOS respeta, sin red ni esperas de
+   por medio —. Si ni desde el toque suena, el aviso ya nombró la
+   comprobación que solo Ronald puede hacer en su aparato: el
+   interruptor físico de silencio y el volumen de medios (la voz
+   del sistema puede ir por un canal que ese interruptor silencia,
+   distinto del de los demás sonidos). */
+function asstVoiceFail() {
+  const row = $('asst-listen-row'); if (row) row.style.display = '';
+  if (ASST.voiceFailShown) return;
+  ASST.voiceFailShown = true;
+  try { asstBubble('bot', t('asst.voiceFail'), true, ASST_FACE_ERROR); } catch {}
+}
+function asstListenTap() {
+  const txt = ASST.lastSay;
+  if (!txt || ASST.busy) return;
+  asstUnlockSpeech();
+  asstSpeak(txt);
 }
 /* ── Grabación propia de la hoja (espejo del dictado de comidas) ── */
 const ASST_REC = { rec: null, stream: null, chunks: [], startedAt: 0, timer: null, tick: null, discard: false };
@@ -24838,6 +24901,7 @@ function asstSendText() {
 { const b = $('asst-send'); if (b) b.onclick = () => asstSendText(); }
 { const i = $('asst-text'); if (i) i.addEventListener('keydown', e => { if (e.key === 'Enter') { e.preventDefault(); asstSendText(); } }); }
 { const b = $('asst-silence'); if (b) b.onclick = () => { ASST.muted = !ASST.muted; if (ASST.muted) asstStopSpeak(); asstSpeakPaint(ASST.speaking); }; }
+{ const b = $('asst-listen'); if (b) b.onclick = () => asstListenTap(); }
 document.querySelectorAll('[data-asst-chip]').forEach(ch => { ch.onclick = () => { const k = 'asst.chip' + ch.getAttribute('data-asst-chip'); if (!ASST.busy) { asstUnlockSpeech(); asstSend({ text: t(k) }); } }; });
 /* La puerta al dictado NO es un chip de pregunta: lleva su propio
    atributo y su propio cableado, fuera del camino de asstSend —
@@ -43991,7 +44055,7 @@ document.addEventListener('keydown', e => { if (e.key === 'Escape') shareClose()
  *  - El SW (sw.js) solo cachea la cáscara del mismo origen en modo
  *    RED PRIMERO: Auth/Firestore/Worker jamás pasan por la caché.
  * ================================================================ */
-const PWA_SW_VERSION = '20261106-perfil-todos';
+const PWA_SW_VERSION = '20261106-voz-escuchar';
 /* Sello de versión VISIBLE (2026-11-03): el pie de la tarjeta de
    acceso enseña qué copia corre este teléfono ('v ' + el sello),
    para comprobar de un vistazo si la versión nueva ya llegó.

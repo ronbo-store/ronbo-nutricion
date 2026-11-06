@@ -4193,6 +4193,8 @@ body.swap-sheet-open .asst-fab { display: none !important; }
 @keyframes asstEq { 0%, 100% { transform: scaleY(.55); } 50% { transform: scaleY(1.15); } }
 .asst-speaking-tx { flex: 1; }
 .asst-silence { background: #fdf6e9; border: 1.5px solid #f0e2bd; color: #7c5e10; border-radius: 999px; padding: 8px 13px; font-size: 13px; font-weight: bold; cursor: pointer; min-height: 40px; }
+.asst-listenrow { padding: 8px 16px 0; flex: none; }
+.asst-listen { width: 100%; min-height: 48px; border-radius: 999px; border: 1.5px solid #0b7c72; background: #0b7c72; color: #fff; font-size: 15px; font-weight: bold; cursor: pointer; }
 .asst-talk { text-align: center; padding: 10px 16px 2px; flex: none; }
 .asst-bigtalk { position: relative; width: 112px; height: 112px; border-radius: 50%; border: none; cursor: pointer; margin-top: 4px;
   background: linear-gradient(145deg, #12ab9c, #0b7c72); box-shadow: 0 12px 26px rgba(11,124,114,.40), inset 0 2px 0 rgba(255,255,255,.35);
