@@ -2344,6 +2344,17 @@ div.cgrid-cell { cursor: default; }
 /* Las dos salidas del día en blanco, bajo la tarjeta de descanso. */
 .train-blank-actions { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; margin: 10px 0 4px; }
 .train-blank-actions .progress-hint { flex: 1 1 100%; margin: 2px 0 0; }
+/* PUERTA DE «ENTRENAR HOY» (2026-11-06): la tarjeta del día en
+   blanco con sus dos botones grandes — la app se usa entrenando y
+   la motricidad fina es complicada: puerta principal a ≥48 px y
+   ancho completo, nunca un botón pequeño fantasma. */
+.train-blank-door { margin: 10px 0 4px; }
+.train-blank-door h4 { margin: 0 0 8px; color: #134e4a; font-size: 16px; }
+.train-door-btns { display: flex; flex-direction: column; gap: 8px; }
+.train-door-btn { min-height: 48px; width: 100%; box-sizing: border-box; font-size: 15px; font-weight: 700; }
+.train-blank-door .progress-hint { margin: 8px 0 0; }
+.train-end-note { background: #fff7ed; border: 1px solid #fed7aa; color: #7c2d12; border-radius: 10px; padding: 8px 10px; margin: 0 0 10px; font-size: 14px; line-height: 1.45; }
+.bring-list { display: flex; flex-direction: column; }
 /* La hoja de asignación: pasos con opciones de ancho completo. */
 .lasign-ex { font-size: 15px; margin: 2px 0 10px; }
 .lasign-q { font-size: 14.5px; font-weight: 700; color: #14201f; margin: 10px 0 8px; }

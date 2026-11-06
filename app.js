@@ -5237,6 +5237,16 @@ en: {
   'train.bring.btn': 'Bring the next day', 'train.bring.note': 'Advanced session · from {date} — your plan does not change: that day stays pending on its own date.',
   'train.free.btn': 'Create a free day', 'train.free.label': 'Free day',
   'train.blank.hint': 'You can still train today: bring your next planned day, or build a free day with the exercises you choose.',
+  'train.today.wantTitle': 'Want to train today?',
+  'train.bring.anyBtn': 'Bring a day from my plan', 'train.bring.pickTitle': 'Bring a day from my plan',
+  'train.bring.pickBtn': 'Bring it',
+  'train.bring.nextDate': 'Next: {date}', 'train.bring.noDate': 'No upcoming date left in this plan',
+  'train.bring.trainedOn': '✓ Trained on {date}',
+  'train.free.armBtn': 'Build my own day',
+  'train.blank.hintDoor': 'Bring a day from your plan to train it today, or build a free day with the exercises you choose.',
+  'train.blank.hintDoorNoDays': 'This plan has no days to bring: build a free day with the exercises you choose.',
+  'train.plan.endsSoon': 'Your plan ends on {date}. Your trainer already has the notice in their pendings.',
+  'train.plan.ended': 'Your plan ended on {date} and there is no next block yet. Your trainer already has the notice in their pendings.',
   'lib.assign.btn': 'Assign', 'lib.assign.title': 'Assign exercise',
   'lib.assign.whoQ': 'Whose routine?', 'lib.assign.mine': 'My routine', 'lib.assign.aClient': 'A client…', 'lib.assign.clientsEmpty': 'You have no clients yet.',
   'lib.assign.destQ': 'Where to?', 'lib.assign.destToday': 'Today', 'lib.assign.destDay': 'A day of the plan', 'lib.assign.destTpl': 'A template',
@@ -5932,6 +5942,8 @@ en: {
   'talert.excess': 'Over the goal: {detail}',
   'talert.training': '{n} scheduled sessions in a row unlogged',
   'talert.unmarked': 'Unmarked: {detail}',
+  'talert.planEnds': 'Their plan ends on {date}',
+  'talert.planEnded': 'Their plan ended on {date} — no next block yet',
   'talert.count': '{n} alerts',
   'client.weightLog': 'Weight log · {name}',
   'client.healthDecl': 'Health declaration:',
@@ -8827,6 +8839,16 @@ es: {
   'train.bring.btn': 'Traer el próximo día', 'train.bring.note': 'Sesión adelantada · del {date} — tu plan no cambia: ese día sigue pendiente en su fecha.',
   'train.free.btn': 'Crear día libre', 'train.free.label': 'Día libre',
   'train.blank.hint': 'Igual puedes entrenar hoy: trae tu próximo día programado o arma un día libre con los ejercicios que elijas.',
+  'train.today.wantTitle': '¿Quieres entrenar hoy?',
+  'train.bring.anyBtn': 'Traer un día de mi plan', 'train.bring.pickTitle': 'Traer un día de mi plan',
+  'train.bring.pickBtn': 'Traerlo',
+  'train.bring.nextDate': 'Siguiente: {date}', 'train.bring.noDate': 'Sin fecha próxima en este plan',
+  'train.bring.trainedOn': '✓ Entrenado el {date}',
+  'train.free.armBtn': 'Armar mi día',
+  'train.blank.hintDoor': 'Trae un día de tu plan para entrenarlo hoy, o arma un día libre con los ejercicios que elijas.',
+  'train.blank.hintDoorNoDays': 'Este plan no tiene días para traer: arma un día libre con los ejercicios que elijas.',
+  'train.plan.endsSoon': 'Tu plan termina el {date}. Tu entrenador ya tiene el aviso en sus pendientes.',
+  'train.plan.ended': 'Tu plan terminó el {date} y aún no hay siguiente bloque. Tu entrenador ya tiene el aviso en sus pendientes.',
   'lib.assign.btn': 'Asignar', 'lib.assign.title': 'Asignar ejercicio',
   'lib.assign.whoQ': '¿Rutina de quién?', 'lib.assign.mine': 'Mi rutina', 'lib.assign.aClient': 'Un cliente…', 'lib.assign.clientsEmpty': 'Todavía no tienes clientes.',
   'lib.assign.destQ': '¿A dónde?', 'lib.assign.destToday': 'Hoy', 'lib.assign.destDay': 'Un día del plan', 'lib.assign.destTpl': 'Una plantilla',
@@ -9523,6 +9545,8 @@ es: {
   'talert.excess': 'Por encima de la meta: {detail}',
   'talert.training': '{n} sesiones programadas seguidas sin registrar',
   'talert.unmarked': 'Sin marcar: {detail}',
+  'talert.planEnds': 'Su plan termina el {date}',
+  'talert.planEnded': 'Su plan terminó el {date} — sin siguiente bloque',
   'talert.count': '{n} alertas',
   'client.weightLog': 'Registro de peso · {name}',
   'client.healthDecl': 'Declaración de salud:',
@@ -18446,13 +18470,23 @@ function trainerAlertsCompute(ctx, data) {
     if (missedMeals.length)
       alerts.push({ kind: 'A5', date: d, meals: missedMeals });
   }
+  /* A6 — el plan del alumno termina en ≤7 días o ya terminó sin
+     siguiente bloque (planEndInfo: LA MISMA definición que pinta
+     el aviso en la tarjeta «¿Quieres entrenar hoy?» del alumno).
+     Los planes ya viajan en ctx desde trainerAlertsFetch (la
+     misma lectura de siempre, con su caché): cero lecturas
+     nuevas. Es el aviso que hace visible al entrenador, en sus
+     Pendientes y en la ficha, que toca preparar el siguiente
+     bloque de ese alumno. */
+  const endInfoA6 = ctx.plan ? planEndInfo(ctx.plan, ctx.plans || [], todayISO()) : null;
+  if (endInfoA6) alerts.push({ kind: 'A6', date: endInfoA6.endsAt, state: endInfoA6.state });
   return alerts;
 }
 /* Lectura de los datos de UN alumno (las mismas fuentes que la
    ficha y el motor del alumno) y su cómputo. SOLO LECTURA. */
 async function trainerAlertsFetch(uid, udata, pre) {
   const ctx = { goals: (udata && udata.goals) || {}, prov: (udata && udata.goalsProvenance) || null,
-    overrides: (udata && udata.goalsDayOverrides) || null, plan: null, cfg: null };
+    overrides: (udata && udata.goalsDayOverrides) || null, plan: null, plans: null, cfg: null };
   const totals = {}, mealsByDate = {};
   /* AUTH-2026-10-31-109 (velocidad): las cinco lecturas son
      independientes — salen EN PARALELO y se espera al conjunto.
@@ -18476,7 +18510,7 @@ async function trainerAlertsFetch(uid, udata, pre) {
      plan activo» sale de ESTA misma lectura (cero consultas nuevas)
      y viaja con el resultado para que la rejilla de «Mis clientes»
      derive su categoría «sin plan» sin volver a leer nada. */
-  const pPlan = (async () => { try { const plans = await fetchPlans(uid); ctx.plan = plans.find(p => p.active === true) || null; } catch {} })();
+  const pPlan = (async () => { try { const plans = await fetchPlans(uid); ctx.plan = plans.find(p => p.active === true) || null; ctx.plans = plans; } catch {} })();
   const pCfg = (pre && pre.cfgP)
     ? pre.cfgP.then(cs => { ctx.cfg = cs.exists() ? Object.assign(pendDefaults(), cs.data()) : { activated: false }; }, () => { ctx.cfg = null; })
     : (async () => { try {
@@ -18506,6 +18540,7 @@ function talertText(a) {
   if (a.kind === 'A3' || a.kind === 'A3L') return t('talert.excess', { detail: a.parts.map(p => `${t('metric.' + p.metric)} +${fmt(p.over)}${p.metric === 'kcal' ? '' : ' g'}`).join(' · ') });
   if (a.kind === 'A4') return t('talert.training', { n: a.n });
   if (a.kind === 'A5') return t('talert.unmarked', { detail: (a.meals || []).map(n => t('pend.mealName.' + n)).join(', ') });
+  if (a.kind === 'A6') return a.state === 'ended' ? t('talert.planEnded', { date: dateName(a.date) }) : t('talert.planEnds', { date: dateName(a.date) });
   return '';
 }
 function talertDateTag(iso) {
@@ -27326,6 +27361,113 @@ function trainTodayDiEffective(plan, mappedDi) {
   if (!base) return null;
   return base.kind === 'brought' ? base.di : -1;
 }
+/* PUERTA DE «ENTRENAR HOY» (2026-11-06; orden de Ronald en el chat
+   RONBO.NUTRI 12:14 CST, sobre el diagnóstico entregado minutos
+   antes): en un día en blanco la puerta deja de ser un botón
+   fantasma — la tarjeta «¿Quieres entrenar hoy?» trae dos botones
+   grandes y el selector de días de abajo. planEndInfo es LA
+   definición única del fin del plan: la comparten el aviso de esta
+   tarjeta (vista del alumno) y la alerta A6 del entrenador en sus
+   Pendientes (trainerAlertsCompute) — ninguna de las dos
+   superficies lee nada nuevo (los planes ya viajan cargados).
+   Definición: con endsAt válido, el plan «termina pronto» si le
+   quedan 0–7 días; «terminó» si endsAt quedó atrás Y ningún otro
+   plan del alumno empieza después de ese fin (sin sucesor). Un
+   plan sin endsAt nunca avisa. */
+function planEndInfo(plan, plans, today) {
+  if (!plan) return null;
+  const end = plan.endsAt ? String(plan.endsAt).slice(0, 10) : '';
+  if (!/^\d{4}-\d{2}-\d{2}$/.test(end)) return null;
+  const days = Math.round((new Date(end + 'T12:00:00') - new Date(today + 'T12:00:00')) / 86400000);
+  if (days >= 0) return days <= 7 ? { endsAt: end, state: 'ending', days } : null;
+  const hasSuccessor = (plans || []).some(p => p && p.id !== plan.id && p.startsAt && String(p.startsAt).slice(0, 10) > end);
+  return hasSuccessor ? null : { endsAt: end, state: 'ended', days };
+}
+/* La fecha del fin del plan como la nombra la casa: día de semana
+   + fecha larga («domingo 8 de noviembre de 2026»). */
+function planEndDateText(iso) { return weekdayName(iso) + ' ' + dateName(iso); }
+/* Metadatos de un día del plan para el selector de «Traer un día»:
+   su fecha propia más reciente (lastIso) y su próxima fecha
+   (nextIso) según el MISMO resolvedor fecha→día de la vista
+   (diForDate), y si ese día ya se entrenó en su fecha reciente
+   (registro cerrado hecho/parcial con su dayIndex en lastIso).
+   Ventana de ±42 días: cubre cualquier cadencia real sin lecturas
+   nuevas — los registros ya viajan cargados en la vista. */
+function bringDayMeta(diForDate, logs, di, today) {
+  let lastIso = null, nextIso = null;
+  for (let k = -42; k <= 42; k++) {
+    const iso = addDaysISO(today, k);
+    if (diForDate(iso) !== di) continue;
+    if (iso <= today) lastIso = iso;
+    if (iso >= today && nextIso == null) nextIso = iso;
+  }
+  const trained = !!(lastIso && (logs || []).some(l => {
+    if (!l || l.date !== lastIso || l.dayIndex !== di) return false;
+    const st = trainLogStatus(l);
+    return st === 'done' || st === 'partial';
+  }));
+  return { lastIso, nextIso, trained };
+}
+/* SELECTOR «TRAER UN DÍA DE MI PLAN»: hoja de la casa (.swap-sheet)
+   con TODOS los días del plan activo — traer ya no es solo el
+   próximo día mapeado. Cada fila nombra el día («Día 4 · Piernas
+   femorales – Hombros»), dice su próxima fecha propia (o que ya no
+   le queda ninguna en este plan) y marca si ya se entrenó en su
+   fecha. El toque escribe la base de sesión de siempre
+   ({kind:'brought', di, from}) — from = su próxima fecha propia, o
+   la reciente si ya no le queda próxima — y re-pinta la vista: la
+   fecha original conserva su rutina pendiente, como manda la base
+   (el plan no se escribe jamás desde aquí). */
+let TRAIN_BRING = null;   // { plan, diForDate, logs, today } — solo memoria
+function trainBringOpen(plan, diForDate, logs, today) {
+  TRAIN_BRING = { plan, diForDate, logs, today };
+  trainBringSync();
+}
+function trainBringClose() { TRAIN_BRING = null; trainBringSync(); }
+function trainBringTitle(plan, di) {
+  const day = (plan.days || [])[di] || {};
+  const num = (LANG === 'es' ? 'Día ' : 'Day ') + (di + 1);
+  const lab = String(day.label || '').trim();
+  if (!lab || lab === num) return num;
+  if (/^(día|day)\s*\d+/i.test(lab)) return lab;
+  return num + ' · ' + lab;
+}
+function trainBringSync() {
+  let sheet = document.getElementById('bring-sheet');
+  const B = TRAIN_BRING;
+  if (!B) {
+    if (sheet) sheet.remove();
+    document.body.classList.remove('swap-sheet-open');
+    return;
+  }
+  if (!sheet) {
+    sheet = document.createElement('div');
+    sheet.id = 'bring-sheet';
+    sheet.className = 'swap-sheet bring-sheet';
+    document.body.appendChild(sheet);
+  }
+  document.body.classList.add('swap-sheet-open');
+  const rows = (B.plan.days || []).map((day, di) => {
+    const meta = bringDayMeta(B.diForDate, B.logs, di, B.today);
+    const sub = meta.nextIso ? t('train.bring.nextDate', { date: dateName(meta.nextIso) }) : t('train.bring.noDate');
+    const tag = meta.trained && meta.lastIso ? `<span class="swap-card-tag">${esc(t('train.bring.trainedOn', { date: dateName(meta.lastIso) }))}</span>` : '';
+    return `<button type="button" class="swap-card" data-bring-pick="${di}">
+      <span class="swap-card-main"><span class="swap-card-name">${esc(trainBringTitle(B.plan, di))}</span>
+      <span class="swap-card-sub">${esc(sub)}</span>${tag}</span>
+      <span class="swap-card-btn">${esc(t('train.bring.pickBtn'))}</span>
+    </button>`;
+  }).join('');
+  sheet.innerHTML = `<div class="swap-sheet-head"><span class="swap-sheet-title">${esc(t('train.bring.pickTitle'))}</span><button type="button" class="swap-sheet-x" data-bring-close="1" aria-label="✕">✕</button></div><div class="bring-list">${rows}</div>`;
+  const cx = sheet.querySelector('[data-bring-close]');
+  if (cx) cx.onclick = () => trainBringClose();
+  sheet.querySelectorAll('[data-bring-pick]').forEach(b => b.onclick = () => {
+    const di = Number(b.dataset.bringPick);
+    const meta = bringDayMeta(B.diForDate, B.logs, di, B.today);
+    trainBaseWrite(B.plan.id, { kind: 'brought', di, from: meta.nextIso || meta.lastIso || '' });
+    trainBringClose();
+    loadMyTraining();
+  });
+}
 /* Lista EFECTIVA de un día: el plan con los cambios (el elegido
    ocupa el lugar del original heredando sus series × reps) y los
    agregados al final. Cada item: { ex, kind:'plan'|'swap'|'add',
@@ -31265,12 +31407,26 @@ async function loadMyTraining() {
           const ndi = diForDate(nd);
           if (ndi != null) { nextFound = { iso: nd, di: ndi }; nextLine = k === 1 ? t('train.today.nextTomorrow', { label: dayLabelOf(ndi) }) : t('train.today.nextOn', { date: dateName(nd), label: dayLabelOf(ndi) }); break; }
         }
-        /* DÍA ACCIONABLE (D1, 2026-10-30): bajo la tarjeta de
-           descanso, las DOS salidas del día en blanco. «Traer» solo
-           se ofrece si existe un próximo día mapeado (ventana de 14
-           días, la misma del hallazgo de la línea); sin próximo día,
-           queda solo el día libre — ausencia honesta. */
-        const blankActions = `<div class="train-blank-actions">${nextFound ? `<button type="button" class="btn-primary btn-sm" data-train-bring="${nextFound.di}" data-from="${nextFound.iso}">${t('train.bring.btn')}</button> ` : ''}<button type="button" class="btn-ghost btn-sm" data-train-free="1">${t('train.free.btn')}</button><p class="progress-hint">${t('train.blank.hint')}</p></div>`;
+        /* PUERTA DE «ENTRENAR HOY» (2026-11-06): bajo la tarjeta de
+           descanso, la puerta de verdad del día en blanco — DOS
+           botones grandes (≥48 px, nunca btn-sm): «Traer un día de
+           mi plan» abre el selector con TODOS los días del plan (no
+           solo el próximo mapeado) y solo se pinta si el plan tiene
+           días; «Armar mi día» es el día libre de siempre con su
+           nombre claro. Si el plan termina pronto o ya terminó sin
+           sucesor (planEndInfo, la definición única que también
+           alimenta la alerta A6 del entrenador), la tarjeta lo dice
+           con su fecha. La ayuda nombra SOLO las salidas pintadas —
+           jamás promete un botón ausente (el defecto del diagnóstico:
+           con el plan de Ronald sin próximo día, el botón ni salía y
+           el texto lo prometía igual). nextFound sigue alimentando
+           la línea informativa «Mañana: … / El {fecha}: …». */
+        const endInfo = planEndInfo(plan, plans, today);
+        const doorBtns = [];
+        if ((plan.days || []).length) doorBtns.push(`<button type="button" class="btn-primary train-door-btn" data-train-bring-open="1">${t('train.bring.anyBtn')}</button>`);
+        doorBtns.push(`<button type="button" class="btn-ghost train-door-btn" data-train-free="1">${t('train.free.armBtn')}</button>`);
+        const endLine = endInfo ? `<p class="train-end-note">${esc(endInfo.state === 'ending' ? t('train.plan.endsSoon', { date: planEndDateText(endInfo.endsAt) }) : t('train.plan.ended', { date: planEndDateText(endInfo.endsAt) }))}</p>` : '';
+        const blankActions = `<div class="train-blank-door"><h4>${t('train.today.wantTitle')}</h4>${endLine}<div class="train-door-btns">${doorBtns.join('')}</div><p class="progress-hint">${(plan.days || []).length ? t('train.blank.hintDoor') : t('train.blank.hintDoorNoDays')}</p></div>`;
         selCard = `<div class="train-day train-rest"><img class="train-rest-face" src="${PLAN_FACE_REST}" alt="" onerror="this.remove()"><h4>${t('train.today.restToday')}</h4>${nextLine ? `<p class="progress-hint">${esc(nextLine)}</p>` : ''}</div>` + blankActions + extra;
       } else {
         selCard = `<div class="train-day train-rest"><img class="train-rest-face" src="${PLAN_FACE_REST}" alt="" onerror="this.remove()"><h4>${t('train.today.restDay')}</h4></div>` + extra;
@@ -31796,9 +31952,12 @@ async function loadMyTraining() {
      a abrir el desplegable con el selector en modo agregar y a
      llevar la vista hasta él: la escritura es la del selector de
      siempre, sin lógica duplicada. */
-  box.querySelectorAll('[data-train-bring]').forEach(b => b.onclick = () => {
-    trainBaseWrite(plan.id, { kind: 'brought', di: Number(b.dataset.trainBring), from: b.dataset.from || '' });
-    loadMyTraining();
+  /* PUERTA DE «ENTRENAR HOY»: «Traer un día de mi plan» abre el
+     selector con todos los días (trainBringSync escribe la base al
+     elegir); el cableado directo de traer-el-próximo se retira con
+     su botón — ningún pintor lo emite ya. */
+  box.querySelectorAll('[data-train-bring-open]').forEach(b => b.onclick = () => {
+    trainBringOpen(plan, diForDate, logs, today);
   });
   box.querySelectorAll('[data-train-free]').forEach(b => b.onclick = () => {
     trainBaseWrite(plan.id, { kind: 'free' });
@@ -43565,7 +43724,7 @@ document.addEventListener('keydown', e => { if (e.key === 'Escape') shareClose()
  *  - El SW (sw.js) solo cachea la cáscara del mismo origen en modo
  *    RED PRIMERO: Auth/Firestore/Worker jamás pasan por la caché.
  * ================================================================ */
-const PWA_SW_VERSION = '20261106-fusion-portada';
+const PWA_SW_VERSION = '20261106-entrenar-hoy';
 /* Sello de versión VISIBLE (2026-11-03): el pie de la tarjeta de
    acceso enseña qué copia corre este teléfono ('v ' + el sello),
    para comprobar de un vistazo si la versión nueva ya llegó.
