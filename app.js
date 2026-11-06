@@ -4236,6 +4236,25 @@ en: {
   'glance.streak': '🔥 {n}-day streak',
   'glance.mealsTitle': "Today's meals",
   'glance.pending': 'pending',
+  'dict.open': '🎙 Add by dictating',
+  'dict.title': 'Add exercises by dictating',
+  'dict.hint': 'Dictate with your keyboard microphone or type the exercises for this day. Your phone matches them against the library — no AI is used, and nothing is saved until you confirm.',
+  'dict.ph': 'E.g.: leg press 4 for 10 with 180 and lateral raises',
+  'dict.review': 'Review',
+  'dict.confirmTitle': 'Check before adding',
+  'dict.sets': 'Sets',
+  'dict.reps': 'Reps',
+  'dict.load': 'Weight',
+  'dict.choose': 'Choose',
+  'dict.which': 'Which one did you mean?',
+  'dict.said': 'You said: «{text}»',
+  'dict.notInLib': 'This exercise is not in the library, so it cannot be added this way.',
+  'dict.pickFromLib': 'Choose from the library',
+  'dict.remove': 'Remove',
+  'dict.addToDay': 'Add to my day',
+  'dict.back': 'Back',
+  'dict.unresolved': 'Anything left unchosen is not added.',
+  'dict.pickTitle': 'Choose the exercise',
   'weight.title': '⚖️ Weight progress',
   'weight.sub': '· weekly weigh-in',
   'weight.add': '＋ Log weigh-in',
@@ -7803,6 +7822,25 @@ es: {
   'glance.streak': '🔥 Racha de {n} días',
   'glance.mealsTitle': 'Comidas de hoy',
   'glance.pending': 'pendiente',
+  'dict.open': '🎙 Añadir dictando',
+  'dict.title': 'Añadir ejercicios dictando',
+  'dict.hint': 'Dicta con el micrófono de tu teclado o escribe los ejercicios para este día. Tu teléfono los empareja con la biblioteca: no se usa IA y nada se guarda hasta que confirmes.',
+  'dict.ph': 'Ej.: prensa de piernas 4 por 10 con 180 y elevaciones laterales',
+  'dict.review': 'Revisar',
+  'dict.confirmTitle': 'Revisa antes de añadir',
+  'dict.sets': 'Series',
+  'dict.reps': 'Reps',
+  'dict.load': 'Peso',
+  'dict.choose': 'Elegir',
+  'dict.which': '¿Cuál de estos es el tuyo?',
+  'dict.said': 'Dijiste: «{text}»',
+  'dict.notInLib': 'Este ejercicio no está en la biblioteca: por esta vía no se puede añadir.',
+  'dict.pickFromLib': 'Elegir de la biblioteca',
+  'dict.remove': 'Quitar',
+  'dict.addToDay': 'Añadir a mi día',
+  'dict.back': 'Volver',
+  'dict.unresolved': 'Lo que quede sin elegir no se añade.',
+  'dict.pickTitle': 'Elige el ejercicio',
   'weight.title': '⚖️ Evolución de peso',
   'weight.sub': '· pesaje semanal',
   'weight.add': '＋ Registrar pesaje',
@@ -27070,6 +27108,9 @@ function trainEffectiveList(plan, di, iso) {
   ed.added.forEach(a => {
     const ex = { exerciseId: a.exerciseId || null, name: a.name || '', sets: a.sets || '', reps: a.reps || '' };
     if (Number.isInteger(a.variantIndex)) ex.variantIndex = a.variantIndex;
+    /* Peso del dictado (2026-11-06): pasa al ejercicio efectivo como
+       dictLoad para que trainDefaultSets precargue las series. */
+    if (typeof a.load === 'number' && a.load > 0) { ex.dictLoad = a.load; ex.dictLoadUnit = a.loadUnit === 'lb' ? 'lb' : 'kg'; }
     out.push({ ex, kind: 'add', slot: -1 });
   });
   /* ORDEN DEL DÍA: si la edición de la fecha trae orden, la lista
@@ -27385,7 +27426,7 @@ function trainCustomRenderSession(plan, di, closed, iso) {
       }).join('')}</div>`;
     }
     if (readOnly) inner += `<p class="progress-hint">${t('train.custom.pastLockedNote')}</p>`;
-    else inner += `<div style="margin-top:8px"><button type="button" class="btn-secondary btn-sm" data-tcu-add="1">${t('train.custom.add')}</button></div>`;
+    else inner += `<div style="margin-top:8px"><button type="button" class="btn-secondary btn-sm" data-tcu-add="1">${t('train.custom.add')}</button></div><div style="margin-top:8px"><button type="button" class="btn-primary dict-open-btn" data-tcu-dict="1">${t('dict.open')}</button></div>`;
   }
   tools.innerHTML = inner;
   if (readOnly) { swapSheetSync(null); return; }
@@ -27399,6 +27440,9 @@ function trainCustomWire(plan, di, iso) {
   if (!tools || !plan) return;
   tools.querySelectorAll('[data-tcu-swap]').forEach(b => b.onclick = () => { TRAIN_PICK = { kind: 'swap', idx: Number(b.dataset.tcuSwap) }; SWAP_QUERY = ''; loadMyTraining(); });
   tools.querySelectorAll('[data-tcu-add]').forEach(b => b.onclick = () => { TRAIN_PICK = { kind: 'add' }; SWAP_QUERY = ''; SWAP_PRESET_GROUP = null; loadMyTraining(); });
+  /* DICTADO SIN IA (2026-11-06): abre la hoja de dictado para el día
+     VISTO (mismas condiciones de visibilidad que «＋ Añadir»). */
+  tools.querySelectorAll('[data-tcu-dict]').forEach(b => b.onclick = () => dictSheetOpen(plan, di, viewIso));
   tools.querySelectorAll('[data-tcu-undo-swap]').forEach(b => b.onclick = () => {
     const ed = trainEditsRead(plan.id, viewIso) || { swaps: {}, added: [] };
     delete ed.swaps[String(b.dataset.tcuUndoSwap)];
@@ -27862,6 +27906,310 @@ function swapSheetSync(plan, di, iso) {
   };
 }
 
+/* ================================================================
+   DICTADO DE EJERCICIOS SIN IA (2026-11-06) — Paquete 1.
+   Decisiones de Ronald (chat RONBO.NUTRI, 2026-11-06 11:31 CST)
+   sobre PROPUESTA-DICTADO-EJERCICIOS-SIN-IA-2026-11-06:
+   D1 el dictado vive en Entrenamiento; D2 sinónimos con sus
+   nombres cortos ES/EN (grupos al final de LIB_SYNONYMS);
+   D3 SIN respaldo de IA: 100 % local.
+   Flujo: botón en las herramientas de la sesión → hoja con campo
+   grande (ahí dicta el micrófono del teclado del teléfono) →
+   lector LOCAL que divide la frase, empareja cada trozo contra
+   la biblioteca EN MEMORIA (libSearchDetailed, el emparejador de
+   la casa) y lee series, reps y peso → hoja de confirmación
+   (NADA se escribe antes de su toque) → «Añadir a mi día» escribe
+   por la vía de edición de sesión de siempre (added[] en
+   trainEditsKey); el plan NO se toca. CERO llamadas de red, CERO
+   IA, CERO lecturas nuevas de Firestore.
+   El peso confirmado viaja como load/loadUnit en la entrada
+   añadida y trainDefaultSets lo precarga en las series al abrir
+   el ejercicio (trainEffectiveList lo pasa como dictLoad). */
+let TRAIN_DICT = null;
+const DICT_ANCHORS = {
+  /* Nombres cortos con ficha decidida (D2): la clave ya va
+     normalizada (libNorm) y vale si la frase limpia ES la clave o
+     EMPIEZA por ella; el valor es el comienzo normalizado del
+     nombre ES o EN de la ficha elegida. Sin ancla, manda el
+     emparejador de la casa (y si empata, decide Ronald con fotos). */
+  'femoral': 'curl femoral sentado',
+  'femorales': 'curl femoral sentado',
+  'leg curl': 'seated leg curl',
+  'prensa': 'prensa de piernas',
+  'leg press': 'leg press'
+};
+function dictParseSegment(segRaw) {
+  const raw = String(segRaw || '').trim();
+  let s = ' ' + libNorm(raw) + ' ';
+  let sets = '', reps = '', load = null, loadUnit = UNIT_PREFS.mass;
+  const num = x => parseFloat(String(x).replace(',', '.'));
+  const rng = (a, b) => (b ? a + '-' + b : a);
+  let m;
+  /* 1) Peso CON unidad: «con 180 libras», «180 kg», «at 200 lb». */
+  s = s.replace(/(?:\bcon\b|\ba\b|\bat\b|\bwith\b)?\s*(\d{2,4}(?:[.,]\d{1,2})?)\s*(kilos?|kg|libras?|lbs?|pounds?|lb)\b/i, (mm, v, u) => {
+    load = num(v); loadUnit = /^k/.test(u.toLowerCase()) ? 'kg' : 'lb'; return ' ';
+  });
+  /* 2) Series × reps: «4 por 10», «4 for 10», «4 x 10», «4×10»,
+     «4 por 10 a 12». */
+  m = s.match(/\b(\d{1,2})\s*(?:por|for|x|×)\s*(\d{1,3})(?:\s*(?:-|a|to)\s*(\d{1,3}))?/);
+  if (m) { sets = m[1]; reps = rng(m[2], m[3]); s = s.replace(m[0], ' '); }
+  /* 3) «3 series de 12» / «3 sets of 12» (rango opcional) y, si no
+     trae reps, al menos las series: «3 series». */
+  if (!sets) {
+    m = s.match(/\b(\d{1,2})\s*(?:series|sets?)\b(?:\s*(?:de|of))?\s*(\d{1,3})(?:\s*(?:-|a|to)\s*(\d{1,3}))?/);
+    if (m) { sets = m[1]; reps = rng(m[2], m[3]); s = s.replace(m[0], ' '); }
+    else {
+      m = s.match(/\b(\d{1,2})\s*(?:series|sets?)\b/);
+      if (m) { sets = m[1]; s = s.replace(m[0], ' '); }
+    }
+  }
+  /* 4) Rango de reps suelto: «10 a 12», «10-12 reps». */
+  if (!reps) {
+    m = s.match(/\b(\d{1,3})\s*(?:-|a)\s*(\d{1,3})(?:\s*(?:reps?|repeticiones))?\b/);
+    if (m) { reps = rng(m[1], m[2]); s = s.replace(m[0], ' '); }
+  }
+  /* 5) Peso sin unidad tras «con»: «con 180» (unidad del visor). */
+  if (load == null) {
+    m = s.match(/\b(?:con|at|with)\s+(\d{2,4}(?:[.,]\d{1,2})?)\b/);
+    if (m) { load = num(m[1]); s = s.replace(m[0], ' '); }
+  }
+  /* 6) Reps con etiqueta: «12 reps», «12 repeticiones». */
+  if (!reps) {
+    m = s.match(/\b(\d{1,3})\s*(?:repeticiones|reps?)\b/);
+    if (m) { reps = m[1]; s = s.replace(m[0], ' '); }
+  }
+  /* 7) Número suelto que quede: chico (≤40) y entero = reps si
+     faltan; si no, peso en la unidad del visor. Lo que no encaje
+     queda fuera del nombre y EN BLANCO en la confirmación: el
+     lector nunca inventa un número. */
+  m = s.match(/\b(\d{1,4}(?:[.,]\d{1,2})?)\b/);
+  if (m) {
+    const v = num(m[1]);
+    if (!reps && Number.isInteger(v) && v <= 40) reps = String(v);
+    else if (load == null) load = v;
+    s = s.replace(m[0], ' ');
+  }
+  /* Nombre limpio: sin dígitos ni palabras de relleno. «de»/«en»
+     también salen: los nombres completos los llevan y el
+     emparejador exige que TODO token esté en la ficha; sin ellos
+     el emparejamiento es el mismo y más robusto. */
+  const FILL = new Set(['con', 'with', 'at', 'a', 'por', 'x', 'series', 'serie', 'sets', 'set', 'reps', 'rep', 'repeticiones', 'hoy', 'today', 'de', 'del', 'el', 'la', 'en', 'y', 'e', 'and', 'favor', 'please', 'agregame', 'agrega', 'agregar', 'anademe', 'anade', 'anadir', 'ponme', 'pon', 'quiero', 'incluye', 'add', 'adding', 'include', 'ejercicio', 'ejercicios', 'exercise', 'exercises']);
+  const name = s.replace(/[^a-z0-9 ]/g, ' ').split(/\s+/).filter(w => w && !FILL.has(w)).join(' ');
+  return { raw, name, sets, reps, load, loadUnit };
+}
+function dictMatchName(q) {
+  const nq = libNorm(q || '').trim();
+  if (nq.length < 2 || LIB_STATE !== 'ok' || !LIB || !LIB.length) return { status: 'none', entry: null, vi: null, candidates: [] };
+  const aKey = Object.keys(DICT_ANCHORS).find(k => nq === k || nq.startsWith(k + ' '));
+  if (aKey) {
+    const anchor = DICT_ANCHORS[aKey];
+    const hit = LIB.find(ex => libNorm(ex && ex.nombre_es).startsWith(anchor) || libNorm(ex && ex.nombre_en).startsWith(anchor));
+    if (hit) return { status: 'ok', entry: hit, vi: null, candidates: [{ ex: hit, vi: null }] };
+  }
+  const hits = libSearchDetailed(q);
+  if (!hits.length) return { status: 'none', entry: null, vi: null, candidates: [] };
+  if (hits.length === 1) return { status: 'ok', entry: hits[0].ex, vi: hits[0].vi, candidates: hits };
+  const r0 = libMatchDetailed(hits[0].ex, q, false), r1 = libMatchDetailed(hits[1].ex, q, false);
+  if (r0 && r1 && r0.rank < r1.rank) return { status: 'ok', entry: hits[0].ex, vi: hits[0].vi, candidates: hits.slice(0, 4) };
+  return { status: 'ambig', entry: null, vi: null, candidates: hits.slice(0, 4) };
+}
+function dictParseText(text) {
+  const raw = String(text || '').replace(/\s+/g, ' ').trim();
+  if (!raw) return [];
+  return raw.split(/\s*[,;]\s*|\s+y\s+|\s+and\s+/i).map(p => p.trim()).filter(Boolean).map(seg => {
+    const p = dictParseSegment(seg);
+    const mt = dictMatchName(p.name);
+    return { raw: p.raw, name: p.name, status: mt.status, entry: mt.entry || null, vi: mt.vi != null ? mt.vi : null, candidates: mt.candidates || [], sets: p.sets, reps: p.reps, load: p.load, loadUnit: p.loadUnit };
+  }).filter(r => r.raw);
+}
+function dictCardHTML(ex, vi, dataAttr) {
+  const v = vi != null && Array.isArray(ex.variantes) ? ex.variantes[vi] : null;
+  const name = v ? libNameOf(ex) + ' — ' + libField(v, 'nombre') : libNameOf(ex);
+  const sub = [libField(ex, 'equipo'), libField(ex, 'nivel')].filter(Boolean).join(' · ');
+  const photo = (v && v.foto_url) || ex.foto_url || '';
+  const th = !photo ? ytThumbOf((v && v.video_youtube_url) || ex.video_youtube_url) : '';
+  return `<button type="button" class="swap-card" ${dataAttr}>
+    ${photo ? `<img class="swap-card-img" src="${esc(photo)}" alt="" loading="lazy">` : (th ? `<img class="swap-card-img" src="${esc(th)}" alt="" loading="lazy" data-yt-fb="swap" onerror="ytThumbErr(this)">` : '<span class="swap-card-img swap-card-noimg" aria-hidden="true"></span>')}
+    <span class="swap-card-main"><span class="swap-card-name">${esc(name)}</span>${sub ? `<span class="swap-card-sub">${esc(sub)}</span>` : ''}${v ? `<span class="swap-card-tag">${esc(t('train.swap.variantTag'))}</span>` : ''}</span><span class="swap-card-btn">${esc(t('dict.choose'))}</span></button>`;
+}
+function dictConfirmHTML(D) {
+  let h = '';
+  D.rows.forEach((r, i) => {
+    if (r.status === 'ok' && r.entry) {
+      const v = r.vi != null && Array.isArray(r.entry.variantes) ? r.entry.variantes[r.vi] : null;
+      const name = v ? libNameOf(r.entry) + ' — ' + libField(v, 'nombre') : libNameOf(r.entry);
+      const sub = [libField(r.entry, 'equipo'), libField(r.entry, 'nivel')].filter(Boolean).join(' · ');
+      const photo = (v && v.foto_url) || r.entry.foto_url || '';
+      const th = !photo ? ytThumbOf((v && v.video_youtube_url) || r.entry.video_youtube_url) : '';
+      h += `<div class="dict-row">
+        <div class="dict-row-head">
+          ${photo ? `<img class="swap-card-img" src="${esc(photo)}" alt="" loading="lazy">` : (th ? `<img class="swap-card-img" src="${esc(th)}" alt="" loading="lazy">` : '<span class="swap-card-img swap-card-noimg" aria-hidden="true"></span>')}
+          <span class="swap-card-main"><span class="swap-card-name">${esc(name)}</span>${sub ? `<span class="swap-card-sub">${esc(sub)}</span>` : ''}</span>
+          <button type="button" class="dict-rm" data-dict-rm="${i}" aria-label="${esc(t('dict.remove'))}">✕</button>
+        </div>
+        <div class="dict-nums">
+          <span class="dict-num"><label>${esc(t('dict.sets'))}</label><input type="number" inputmode="numeric" min="0" max="30" data-dict-num="${i}:sets" value="${esc(r.sets)}"></span>
+          <span class="dict-num"><label>${esc(t('dict.reps'))}</label><input type="text" data-dict-num="${i}:reps" value="${esc(r.reps)}"></span>
+          <span class="dict-num"><label>${esc(t('dict.load'))}</label><input type="number" inputmode="decimal" min="0" step="any" data-dict-num="${i}:load" value="${r.load != null ? esc(String(r.load)) : ''}"></span>
+          <span class="dict-num dict-num-unit"><label>&nbsp;</label><select data-dict-unit="${i}"><option value="kg"${r.loadUnit === 'kg' ? ' selected' : ''}>kg</option><option value="lb"${r.loadUnit === 'lb' ? ' selected' : ''}>lb</option></select></span>
+        </div>
+      </div>`;
+    } else if (r.status === 'ambig') {
+      h += `<div class="dict-row dict-row-warn">
+        <div class="dict-said">${esc(t('dict.said', { text: r.raw }))}</div>
+        <div class="dict-which">${esc(t('dict.which'))}</div>
+        ${r.candidates.map((c, j) => dictCardHTML(c.ex, c.vi, `data-dict-cand="${i}:${j}"`)).join('')}
+        <button type="button" class="btn-ghost btn-sm" data-dict-rm="${i}">${esc(t('dict.remove'))}</button>
+      </div>`;
+    } else {
+      h += `<div class="dict-row dict-row-warn">
+        <div class="dict-said">${esc(t('dict.said', { text: r.raw }))}</div>
+        <div class="dict-which">⚠ ${esc(t('dict.notInLib'))}</div>
+        <div class="dict-row-btns"><button type="button" class="btn-secondary btn-sm" data-dict-pick="${i}">${esc(t('dict.pickFromLib'))}</button><button type="button" class="btn-ghost btn-sm" data-dict-rm="${i}">${esc(t('dict.remove'))}</button></div>
+      </div>`;
+    }
+  });
+  return h;
+}
+function dictPickResultsHTML(D) {
+  if (!LIB || !LIB.length) return `<p class="progress-hint">${esc(t('train.lib.unavailable'))}</p>`;
+  const q = (D.pickQuery || '').trim();
+  if (q.length >= 2) {
+    const hits = libSearchDetailed(q);
+    return `<div class="swap-sec-title">${esc(t('train.swap.resultsTitle'))}</div>` +
+      (hits.length ? hits.map(hit => dictCardHTML(hit.ex, hit.vi, `data-dict-libpick="${esc(hit.ex.id)}"`)).join('') : `<p class="progress-hint">${esc(t('train.swap.noResults'))}</p>`);
+  }
+  return libSections(LIB).map(sec => `<div class="swap-sec-title">${esc(sec.label)}</div>` + sec.items.map(ex => dictCardHTML(ex, null, `data-dict-libpick="${esc(ex.id)}"`)).join('')).join('');
+}
+function dictSheetOpen(plan, di, iso) {
+  TRAIN_DICT = { plan, di, iso: iso || todayISO(), step: 'input', text: '', rows: [], pickRow: -1, pickQuery: '' };
+  dictSheetSync();
+  const ta = document.querySelector('#dict-text');
+  if (ta) { try { ta.focus(); } catch {} }
+}
+function dictSheetClose() {
+  TRAIN_DICT = null;
+  dictSheetSync();
+}
+function wireDictLibPicks(sheet) {
+  const D = TRAIN_DICT;
+  if (!D) return;
+  sheet.querySelectorAll('[data-dict-libpick]').forEach(b => b.onclick = () => {
+    const ex = LIB_BY_ID[b.dataset.dictLibpick];
+    const row = D.rows[D.pickRow];
+    if (ex && row) { row.entry = ex; row.vi = null; row.status = 'ok'; }
+    D.step = 'confirm'; D.pickRow = -1; D.pickQuery = '';
+    dictSheetSync();
+  });
+}
+function dictSheetSync() {
+  let sheet = document.getElementById('dict-sheet');
+  const D = TRAIN_DICT;
+  if (!D) {
+    if (sheet) sheet.remove();
+    document.body.classList.remove('swap-sheet-open');
+    return;
+  }
+  if (!sheet) {
+    sheet = document.createElement('div');
+    sheet.id = 'dict-sheet';
+    sheet.className = 'swap-sheet dict-sheet';
+    document.body.appendChild(sheet);
+  }
+  document.body.classList.add('swap-sheet-open');
+  let body = '';
+  if (D.step === 'input') {
+    body = `<p class="progress-hint">${esc(t('dict.hint'))}</p>
+      <textarea id="dict-text" class="dict-textarea" rows="4" placeholder="${esc(t('dict.ph'))}">${esc(D.text)}</textarea>
+      <div class="dict-actions"><button type="button" class="btn-primary" data-dict-review="1">${esc(t('dict.review'))}</button></div>`;
+  } else if (D.step === 'pick') {
+    body = `<div class="swap-search-row"><input type="text" id="dict-pick-search" placeholder="${esc(t('train.prop.searchPh'))}" value="${esc(D.pickQuery || '')}"></div><div id="dict-pick-results">${dictPickResultsHTML(D)}</div>`;
+  } else {
+    body = dictConfirmHTML(D) +
+      `<p class="progress-hint">${esc(t('dict.unresolved'))}</p>
+       <div class="dict-actions"><button type="button" class="btn-ghost" data-dict-back="1">${esc(t('dict.back'))}</button><button type="button" class="btn-primary" data-dict-add="1"${D.rows.some(r => r.status === 'ok' && r.entry) ? '' : ' disabled'}>${esc(t('dict.addToDay'))}</button></div>`;
+  }
+  const title = D.step === 'pick' ? t('dict.pickTitle') : (D.step === 'confirm' ? t('dict.confirmTitle') : t('dict.title'));
+  sheet.innerHTML = `<div class="swap-sheet-head"><span class="swap-sheet-title">${esc(title)}</span><button type="button" class="swap-sheet-x" data-dict-close="1" aria-label="✕">✕</button></div>${body}`;
+  const closeBtn = sheet.querySelector('[data-dict-close]');
+  if (closeBtn) closeBtn.onclick = () => {
+    /* En el paso de elegir a mano, la ✕ vuelve a la confirmación:
+       no se pierde lo dictado por un toque de más. */
+    if (D.step === 'pick') { D.step = 'confirm'; D.pickRow = -1; D.pickQuery = ''; dictSheetSync(); }
+    else dictSheetClose();
+  };
+  const ta = sheet.querySelector('#dict-text');
+  if (ta) ta.oninput = () => { D.text = ta.value; };
+  const rev = sheet.querySelector('[data-dict-review]');
+  if (rev) rev.onclick = () => {
+    if (ta) D.text = ta.value;
+    D.rows = dictParseText(D.text);
+    if (!D.rows.length) return;
+    D.step = 'confirm';
+    dictSheetSync();
+  };
+  sheet.querySelectorAll('[data-dict-num]').forEach(inp => {
+    inp.onchange = () => {
+      const parts = inp.dataset.dictNum.split(':');
+      const row = D.rows[Number(parts[0])];
+      if (!row) return;
+      if (parts[1] === 'load') { const v = parseFloat(String(inp.value).replace(',', '.')); row.load = isFinite(v) && v > 0 ? v : null; }
+      else row[parts[1]] = inp.value.trim();
+    };
+  });
+  sheet.querySelectorAll('[data-dict-unit]').forEach(sel => {
+    sel.onchange = () => { const row = D.rows[Number(sel.dataset.dictUnit)]; if (row) row.loadUnit = sel.value === 'lb' ? 'lb' : 'kg'; };
+  });
+  sheet.querySelectorAll('[data-dict-cand]').forEach(b => b.onclick = () => {
+    const parts = b.dataset.dictCand.split(':').map(Number);
+    const row = D.rows[parts[0]];
+    if (!row) return;
+    const c = row.candidates[parts[1]];
+    if (!c) return;
+    row.entry = c.ex; row.vi = c.vi != null ? c.vi : null; row.status = 'ok';
+    dictSheetSync();
+  });
+  sheet.querySelectorAll('[data-dict-rm]').forEach(b => b.onclick = () => {
+    D.rows.splice(Number(b.dataset.dictRm), 1);
+    if (!D.rows.length) D.step = 'input';
+    dictSheetSync();
+  });
+  sheet.querySelectorAll('[data-dict-pick]').forEach(b => b.onclick = () => {
+    D.pickRow = Number(b.dataset.dictPick); D.pickQuery = ''; D.step = 'pick';
+    dictSheetSync();
+  });
+  const ps = sheet.querySelector('#dict-pick-search');
+  if (ps) ps.oninput = () => {
+    D.pickQuery = ps.value;
+    const box = sheet.querySelector('#dict-pick-results');
+    if (box) { box.innerHTML = dictPickResultsHTML(D); wireDictLibPicks(sheet); }
+  };
+  wireDictLibPicks(sheet);
+  const back = sheet.querySelector('[data-dict-back]');
+  if (back) back.onclick = () => { D.step = 'input'; dictSheetSync(); };
+  const add = sheet.querySelector('[data-dict-add]');
+  if (add) add.onclick = () => dictSheetApply();
+}
+function dictSheetApply() {
+  const D = TRAIN_DICT;
+  if (!D || !D.plan) return;
+  const okRows = D.rows.filter(r => r.status === 'ok' && r.entry);
+  if (!okRows.length) return;
+  const ed = trainEditsRead(D.plan.id, D.iso) || { swaps: {}, added: [] };
+  if (!ed.swaps || typeof ed.swaps !== 'object') ed.swaps = {};
+  if (!Array.isArray(ed.added)) ed.added = [];
+  for (const r of okRows) {
+    const rec = { exerciseId: r.entry.id, name: libNameOf(r.entry), sets: String(r.sets || ''), reps: String(r.reps || '') };
+    const v = r.vi != null && Array.isArray(r.entry.variantes) ? r.entry.variantes[r.vi] : null;
+    if (v && !v.es_estandar && Number.isInteger(r.vi)) rec.variantIndex = r.vi;
+    if (typeof r.load === 'number' && r.load > 0) { rec.load = r.load; rec.loadUnit = r.loadUnit === 'lb' ? 'lb' : 'kg'; }
+    ed.added.push(rec);
+  }
+  trainEditsWrite(D.plan.id, ed, D.iso);
+  dictSheetClose();
+  loadMyTraining();
+}
+
 /* --- PUENTE ENTRENAMIENTO→LLAMITA: CRONÓMETRO DE SESIÓN (Anexo 2
    del diseño, mecanismo de Ronald): INICIAR sella el comienzo de la
    sesión; cada marca de ejercicio actualiza la última marca;
@@ -28280,7 +28628,18 @@ function trainPlannedSets(ex) {
   return Math.min(12, Math.max(1, isNaN(n) ? 1 : n));
 }
 function trainDefaultSets(ex) {
-  return Array.from({ length: trainPlannedSets(ex) }, () => ({ repsPlanned: String((ex && ex.reps) || ''), repsDone: '', loadVal: '' }));
+  /* PESO DICTADO (2026-11-06): si el ejercicio entró por el dictado
+     con un peso confirmado, sus series nacen con esa carga ya puesta
+     (convertida a la unidad del visor; el cierre la pasa a kg como
+     siempre). El dato vive solo en la edición de sesión
+     (dictLoad/dictLoadUnit sobre el ejercicio EFECTIVO); sin él,
+     esta función devuelve exactamente lo de siempre. */
+  let lv = '';
+  if (ex && typeof ex.dictLoad === 'number' && ex.dictLoad > 0) {
+    const kg = ex.dictLoadUnit === 'lb' ? ex.dictLoad * UNIT_LB_KG : ex.dictLoad;
+    lv = String(uRound1(massToDisplay(kg)));
+  }
+  return Array.from({ length: trainPlannedSets(ex) }, () => ({ repsPlanned: String((ex && ex.reps) || ''), repsDone: '', loadVal: lv }));
 }
 let TRAIN_LIB_CTX = '';        // ctx ya re-pintado tras cargar la biblioteca
 let TRAIN_ALIGN_DISMISSED = false;  // el aviso no insiste en la misma sesión
@@ -32030,7 +32389,21 @@ const LIB_SYNONYMS = [
   { es: ['press de banca', 'press en banca'], en: ['bench press'] },
   { es: ['press militar', 'press de hombros'], en: ['overhead press', 'military press', 'shoulder press'] },
   { es: ['elevacion lateral', 'elevaciones laterales'], en: ['lateral raise', 'lateral raises', 'side raise', 'side raises'] },
-  { es: ['aperturas', 'cruce en polea'], en: ['fly', 'flyes', 'flies', 'cable fly', 'dumbbell fly', 'chest fly', 'cable crossover', 'crossover'] }
+  { es: ['aperturas', 'cruce en polea'], en: ['fly', 'flyes', 'flies', 'cable fly', 'dumbbell fly', 'chest fly', 'cable crossover', 'crossover'] },
+  /* NOMBRES CORTOS DE RONALD (2026-11-06, decisión D2 del dictado de
+     ejercicios sin IA): cómo dice ÉL los ejercicios al dictar, en
+     español e inglés. Los grupos se AÑADEN al final a propósito: el
+     token de concepto lleva el índice del grupo y los anteriores no
+     se mueven. «femoral» solo no decide entre tumbado/sentado/banda:
+     la ficha la fija DICT_ANCHORS (Curl femoral sentado, su corta
+     declarada); el token deja a las tres a un toque, con foto. */
+  { es: ['femoral', 'femorales'], en: ['leg curl', 'leg curls'] },
+  { es: ['prensa'], en: ['leg press'] },
+  { es: ['gemelos', 'gemelo'], en: ['calf raise', 'calf raises'] },
+  { es: ['sentadilla bulgara'], en: ['bulgarian split squat'] },
+  { es: ['peso muerto rumano'], en: ['romanian deadlift', 'rdl'] },
+  { es: ['curl martillo'], en: ['hammer curl'] },
+  { es: ['press frances'], en: ['skull crusher', 'skull crushers'] }
 ];
 const LIB_SYN_TOKEN = i => '\u0001' + i + '\u0001';
 const LIB_SYN_PHRASES = (() => {
@@ -43031,7 +43404,7 @@ document.addEventListener('keydown', e => { if (e.key === 'Escape') shareClose()
  *  - El SW (sw.js) solo cachea la cáscara del mismo origen en modo
  *    RED PRIMERO: Auth/Firestore/Worker jamás pasan por la caché.
  * ================================================================ */
-const PWA_SW_VERSION = '20261106-portada-vistazo';
+const PWA_SW_VERSION = '20261106-dictado';
 /* Sello de versión VISIBLE (2026-11-03): el pie de la tarjeta de
    acceso enseña qué copia corre este teléfono ('v ' + el sello),
    para comprobar de un vistazo si la versión nueva ya llegó.

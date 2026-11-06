@@ -2222,6 +2222,28 @@ div.swap-card { cursor: default; }
 .swap-card-sub { font-size: 12px; color: #5b6b7a; }
 .swap-card-tag { align-self: flex-start; margin-top: 3px; font-size: 10.5px; font-weight: 700; letter-spacing: .03em; color: #0f766e; background: #f0fdfa; border: 1px solid #99f6e4; border-radius: 999px; padding: 1px 8px; }
 .swap-card-btn { flex: none; font-size: 13px; font-weight: 700; color: #fff; background: #0d9488; border-radius: 999px; padding: 7px 14px; }
+
+/* DICTADO DE EJERCICIOS SIN IA (2026-11-06): la hoja vive sobre el
+   armazón .swap-sheet; controles grandes y claros porque la app se
+   usa entrenando (regla de la casa 2026-11-02). */
+.dict-open-btn { width: 100%; min-height: 48px; font-size: 15px; }
+.dict-textarea { width: 100%; box-sizing: border-box; min-height: 118px; padding: 12px; font: inherit; font-size: 16px; line-height: 1.45; border: 1.5px solid #cbd5e1; border-radius: 12px; resize: vertical; }
+.dict-actions { display: flex; gap: 8px; margin-top: 14px; }
+.dict-actions .btn-primary, .dict-actions .btn-ghost { flex: 1; min-height: 48px; font-size: 15px; }
+.dict-actions .btn-primary:disabled { opacity: .45; }
+.dict-row { border: 1px solid #d7e3e1; border-radius: 14px; padding: 10px; margin-bottom: 10px; }
+.dict-row-warn { border-color: #f59e0b; background: #fffbeb; }
+.dict-row-head { display: flex; align-items: center; gap: 12px; }
+.dict-said { font-size: 13px; color: #5b6b7a; margin-bottom: 4px; }
+.dict-which { font-size: 14px; font-weight: 600; color: #14201f; margin-bottom: 8px; }
+.dict-row-btns { display: flex; gap: 8px; flex-wrap: wrap; }
+.dict-row-btns .btn-secondary, .dict-row-btns .btn-ghost { min-height: 44px; }
+.dict-rm { flex: none; width: 36px; height: 36px; border-radius: 50%; border: 1px solid #d7e3e1; background: #f8fbfa; color: #33475b; font: inherit; font-size: 14px; cursor: pointer; }
+.dict-nums { display: flex; gap: 8px; flex-wrap: wrap; margin-top: 10px; }
+.dict-num { display: flex; flex-direction: column; gap: 3px; flex: 1 1 64px; min-width: 64px; }
+.dict-num-unit { flex: 0 0 76px; }
+.dict-num label { font-size: 11px; font-weight: 700; letter-spacing: .04em; text-transform: uppercase; color: #5b6b7a; }
+.dict-num input, .dict-num select { font: inherit; font-size: 15px; padding: 9px 8px; border: 1.5px solid #cbd5e1; border-radius: 10px; width: 100%; box-sizing: border-box; min-height: 44px; background: #fff; }
 .train-mark { font-size: 12px; color: #0d9488; font-weight: 600; margin-top: 2px; }
 
 /* BOTONES DESPLEGABLES DE LA FICHA — FUNDAMENTO EN 5 BOTONES
