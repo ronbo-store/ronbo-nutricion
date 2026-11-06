@@ -1374,11 +1374,11 @@ function rolePendItems() {
         for (const cu of ADMIN_USERS) {
           if (!cu || cu.isOwner || cu.trainerUid !== me2) continue;
           const hp = cu.goalsProvenance && Array.isArray(cu.goalsProvenance.heldParams) ? cu.goalsProvenance.heldParams : [];
-          if (hp.length) push('trainer|goals-held|' + cu.id, 'clients', t('pend.trainerHeldTitle'), t('pend.trainerHeldDetail', { name: cu.name || cu.email || '—', params: hp.map(p2 => t('gm.param.' + p2)).join(', ') }), t('pend.trainerHeldGo'));
+          if (hp.length) push('trainer|goals-held|' + cu.id, 'students', t('pend.trainerHeldTitle'), t('pend.trainerHeldDetail', { name: cu.name || cu.email || '—', params: hp.map(p2 => t('gm.param.' + p2)).join(', ') }), t('pend.trainerHeldGo'));
           const gp = cu.goalsProposal || null;
-          if (gp && gp.status === 'pending') push('trainer|goals-proposal|' + cu.id, 'clients', t('pend.trainerProposalTitle'), t('pend.trainerProposalDetail', { name: cu.name || cu.email || '—', param: gp.kind === 'daytype' ? t('gm.param.dayType') : t('gm.param.' + gp.param) }), t('pend.trainerProposalGo'));
+          if (gp && gp.status === 'pending') push('trainer|goals-proposal|' + cu.id, 'students', t('pend.trainerProposalTitle'), t('pend.trainerProposalDetail', { name: cu.name || cu.email || '—', param: gp.kind === 'daytype' ? t('gm.param.dayType') : t('gm.param.' + gp.param) }), t('pend.trainerProposalGo'));
           const gfoc = cu.goalFocus || null;
-          if (gfoc && gfoc.focus === 'competencia' && gfoc.status === 'pending-trainer') push('trainer|focus-activation|' + cu.id, 'clients', t('pend.trainerFocusTitle'), t('pend.trainerFocusDetail', { name: cu.name || cu.email || '—' }), t('pend.trainerFocusGo'));
+          if (gfoc && gfoc.focus === 'competencia' && gfoc.status === 'pending-trainer') push('trainer|focus-activation|' + cu.id, 'students', t('pend.trainerFocusTitle'), t('pend.trainerFocusDetail', { name: cu.name || cu.email || '—' }), t('pend.trainerFocusGo'));
         }
       }
     } else if (ROLE === 'usuario') {
@@ -4856,7 +4856,7 @@ en: {
   'access.loading': 'Loading…',
   'students.title': '🎓 My students',
   'students.sub': '· my trainer view',
-  'students.hint': 'Only the students assigned to you as their trainer — your trainer hat. Everyone stays under \"My clients\" for administration; your own training and meals stay in \"My log\".',
+  'students.hint': 'Only the students assigned to you as their trainer — your trainer hat, and your single work surface for them. Your own training and meals stay in \"My log\".',
   'students.empty': 'You have no assigned students yet. When a student is assigned to you, they will appear here.',
   'students.searchPh': 'Search a student…',
   'students.pillAssigned': 'Assigned',
@@ -5352,7 +5352,7 @@ en: {
   /* PUENTE ENTRENAMIENTO→LLAMITA (2026-10-27): cronómetro y cierre. */
   'train.chronoStart': '▶ Start workout',
   'train.chronoStartBtn': '▶ Start',
-  'train.chronoFinishBtn': 'Finished',
+
   'train.strip.doneToday': 'Done today', 'train.strip.skip': 'Skip', 'train.strip.add': '+ Add',
   'train.strip.cardio': 'Cardio', 'train.strip.core': 'Core', 'train.strip.stretch': 'Stretch',
   'train.chronoRunning': '⏱ Session in progress: {min} min',
@@ -6977,10 +6977,10 @@ en: {
   'gfocus.phaseChanged': 'Phase updated.',
   'pend.trainerProposalTitle': 'Goal change waiting for your decision',
   'pend.trainerProposalDetail': '{name}: a change outside the evidence-based range is waiting ({param}). The evidence-based values still apply.',
-  'pend.trainerProposalGo': 'Open clients',
+  'pend.trainerProposalGo': 'Open students',
   'pend.trainerFocusTitle': 'Competition focus waiting for activation',
   'pend.trainerFocusDetail': '{name} declared the Competition focus: activate it and set the first phase from their file.',
-  'pend.trainerFocusGo': 'Open clients',
+  'pend.trainerFocusGo': 'Open students',
   'gm.prov2': 'Fat share of your calorie goal: {fat}% · Day level of this calculation: {level}. Carbohydrates are what remains after protein and fats.',
   'gm.day.base': 'regular day',
   'gm.day.exigente': 'demanding day',
@@ -7012,8 +7012,8 @@ en: {
   'gmi.dayShort.base': 'normal',
   'gmi.dayShort.exigente': 'demanding',
   'gmi.dayShort.descanso': 'rest',
-  'gmi.dayNote.exigente': 'Heads up: today is a demanding day — your carbs go up to {carb} g (a normal day: {base} g).',
-  'gmi.dayNote.descanso': 'Today is a rest day — your carbs ease down to {carb} g (a normal day: {base} g).',
+  'gmi.dayNote.exigente': 'Heads up: today is a demanding day — more carbs today.',
+  'gmi.dayNote.descanso': 'Today is a rest day — fewer carbs today.',
   'gmi.objChip': 'Goal: {obj}',
   'gmi.objShort.mantener': 'maintain',
   'gmi.objShort.bajar': 'lose',
@@ -7093,7 +7093,7 @@ en: {
   'pend.role.goalsGo2': 'Complete my base',
   'pend.trainerHeldTitle': 'Goals held for health review',
   'pend.trainerHeldDetail': '{name}: {params} held back by their health declaration. Review it in their file.',
-  'pend.trainerHeldGo': 'Open clients',
+  'pend.trainerHeldGo': 'Open students',
   'faq.open': 'Help',
   'faq.title': 'Help',
   'faq.sub': 'Frequently asked questions — tap a block to open it.',
@@ -8474,7 +8474,7 @@ es: {
   'access.loading': 'Cargando…',
   'students.title': '🎓 Mis alumnos',
   'students.sub': '· mi vista de entrenador',
-  'students.hint': 'Solo los alumnos que tienes asignados como entrenador: tu sombrero de entrenador. Todas las personas siguen en «Mis clientes» para administrar; tu propio entrenamiento y tus comidas siguen en «Mi registro».',
+  'students.hint': 'Solo los alumnos que tienes asignados como entrenador: tu sombrero de entrenador y tu única superficie de trabajo con ellos. Tu propio entrenamiento y tus comidas siguen en «Mi registro».',
   'students.empty': 'Todavía no tienes alumnos asignados. Cuando se te asigne un alumno, aparecerá aquí.',
   'students.searchPh': 'Buscar un alumno…',
   'students.pillAssigned': 'Asignados',
@@ -8970,7 +8970,7 @@ es: {
   /* PUENTE ENTRENAMIENTO→LLAMITA (2026-10-27): cronómetro y cierre. */
   'train.chronoStart': '▶ Iniciar entrenamiento',
   'train.chronoStartBtn': '▶ Iniciar',
-  'train.chronoFinishBtn': 'Finalizado',
+
   'train.strip.doneToday': 'Hecho hoy', 'train.strip.skip': 'Saltar', 'train.strip.add': '+ Agregar',
   'train.strip.cardio': 'Cardio', 'train.strip.core': 'Core', 'train.strip.stretch': 'Estirar',
   'train.chronoRunning': '⏱ Sesión en curso: {min} min',
@@ -10596,10 +10596,10 @@ es: {
   'gfocus.phaseChanged': 'Fase actualizada.',
   'pend.trainerProposalTitle': 'Cambio de metas esperando tu decisión',
   'pend.trainerProposalDetail': '{name}: un cambio fuera de la banda fundada está esperando ({param}). Los valores fundados siguen vigentes.',
-  'pend.trainerProposalGo': 'Abrir clientes',
+  'pend.trainerProposalGo': 'Abrir alumnos',
   'pend.trainerFocusTitle': 'Enfoque de Competencia esperando activación',
   'pend.trainerFocusDetail': '{name} declaró el enfoque de Competencia: actívalo y fija la primera fase desde su ficha.',
-  'pend.trainerFocusGo': 'Abrir clientes',
+  'pend.trainerFocusGo': 'Abrir alumnos',
   'gm.prov2': 'Parte de grasas de tu meta de calorías: {fat}% · Nivel del día de este cálculo: {level}. Los carbohidratos son lo que queda tras la proteína y las grasas.',
   'gm.day.base': 'día normal',
   'gm.day.exigente': 'día exigente',
@@ -10631,8 +10631,8 @@ es: {
   'gmi.dayShort.base': 'normal',
   'gmi.dayShort.exigente': 'exigente',
   'gmi.dayShort.descanso': 'descanso',
-  'gmi.dayNote.exigente': 'Atención: hoy es un día exigente — tus carbohidratos suben a {carb} g (un día normal: {base} g).',
-  'gmi.dayNote.descanso': 'Hoy es un día de descanso — tus carbohidratos bajan a {carb} g (un día normal: {base} g).',
+  'gmi.dayNote.exigente': 'Atención: hoy es un día exigente — hoy tocan más carbohidratos.',
+  'gmi.dayNote.descanso': 'Hoy es un día de descanso — tocan menos carbohidratos.',
   'gmi.objChip': 'Objetivo: {obj}',
   'gmi.objShort.mantener': 'mantener',
   'gmi.objShort.bajar': 'bajar',
@@ -10712,7 +10712,7 @@ es: {
   'pend.role.goalsGo2': 'Completar mi base',
   'pend.trainerHeldTitle': 'Metas retenidas por revisión de salud',
   'pend.trainerHeldDetail': '{name}: {params} retenido(s) por su declaración de salud. Revísalo en su ficha.',
-  'pend.trainerHeldGo': 'Abrir clientes',
+  'pend.trainerHeldGo': 'Abrir alumnos',
   'faq.open': 'Ayuda',
   'faq.title': 'Ayuda',
   'faq.sub': 'Preguntas frecuentes — toca un bloque para abrirlo.',
@@ -12087,16 +12087,22 @@ onAuthStateChanged(auth, async user => {
      de TODOS los roles — también del alumno, que la estrena con
      UNA sola pastilla («Administración», ver la regla de abajo). */
   $('main-tabs').style.display = '';
-  /* Las dos pastillas sin regla propia de rol («Mi registro» y
-     «Mis clientes») se ocultan para el alumno. Las demás caen a
-     'none' para el rol usuario por sus reglas de siempre
-     (Accesos, Entrenadores, Biblioteca, Mis alumnos y
-     Comunicaciones); «Mi perfil» tiene su regla propia abajo
-     (AUTH-2026-11-06-286: es de TODOS). */
+  /* La pastilla sin regla propia de rol («Mi registro») se oculta
+     para el alumno. Las demás caen a 'none' para el rol usuario
+     por sus reglas de siempre (Accesos, Entrenadores, Biblioteca,
+     Mis alumnos y Comunicaciones); «Mi perfil» tiene su regla
+     propia abajo (AUTH-2026-11-06-286: es de TODOS).
+     DEDUPLICACIÓN (AUTH-2026-11-06-287, auditoría punto 4, orden
+     de Ronald «aplica todas»): «Mis clientes» queda SOLO para el
+     administrador, como directorio general de todas las personas.
+     El entrenador pierde la pastilla: su superficie de trabajo
+     única es «Mis alumnos» (las dos listaban a la misma gente y
+     abrían la misma ficha). Sus pendientes de rol que iban a
+     'clients' van ahora a 'students' (rolePendItems). */
   const trackTabBtn = document.querySelector('.main-tab[data-tab="track"]');
   if (trackTabBtn) trackTabBtn.style.display = ROLE === 'usuario' ? 'none' : '';
   const cliTabBtn = document.querySelector('.main-tab[data-tab="clients"]');
-  if (cliTabBtn) cliTabBtn.style.display = ROLE === 'usuario' ? 'none' : '';
+  if (cliTabBtn) cliTabBtn.style.display = ROLE === 'administrador' ? '' : 'none';
   const accTabBtn = document.querySelector('.main-tab[data-tab="access"]');
   if (accTabBtn) accTabBtn.style.display = ROLE === 'administrador' ? '' : 'none';
   /* Vistas dedicadas (corrección reprueba, 2026-10-24): Entrenadores
@@ -19769,22 +19775,35 @@ async function fusedWaterPaint() {
     lab.textContent = ml + ' ml';
   } catch {}
 }
-/* El +250 ml de la tarjeta fusionada escribe EXACTAMENTE como el
-   botón de la tarjeta de Comida (renderWaterCard): mismo documento
+/* EL GUARDADO DEL AGUA — UNA SOLA FUNCIÓN (AUTH-2026-11-06-287,
+   auditoría §3.1): hasta hoy el +250 de la portada fusionada y el
+   botón de la tarjeta de Comida guardaban con DOS implementaciones
+   copiadas del mismo guardado — mismo documento
    nutrition_water/{uid}_{hoy}, mismos campos y merge con el total
-   sumado; al guardar refresca las dos etiquetas del agua. */
-async function fusedWaterAdd() {
-  const uid = auth.currentUser && auth.currentUser.uid; if (!uid) return;
+   sumado, pero dos textos de código que podían divergir en
+   silencio (la clase de fallo que costó AUTH-277). Desde este
+   paquete hay UNA sola escritura, waterAddToday(ml): suma los ml
+   al total de hoy, escribe el documento de siempre y refresca la
+   caché y las dos etiquetas. Devuelve el total guardado, o null
+   si la escritura falló; el aviso (toast) lo pone cada llamante,
+   como siempre. La interfaz de las dos superficies no cambia. */
+async function waterAddToday(addMl) {
+  const uid = auth.currentUser && auth.currentUser.uid; if (!uid) return null;
   try {
     const ref = doc(db, 'nutrition_water', uid + '_' + todayISO());
     const cur = await getDoc(ref);
-    const total = (cur.exists() ? (Number(cur.data().ml) || 0) : 0) + 250;
+    const total = (cur.exists() ? (Number(cur.data().ml) || 0) : 0) + addMl;
     await setDoc(ref, { studentUid: uid, date: todayISO(), ml: total, byUid: uid, byRole: 'alumno', updatedAt: serverTimestamp() }, { merge: true });
     FUSED_WATER = { date: todayISO(), ml: total };
     const lab = $('dg-water-ml'); if (lab) lab.textContent = total + ' ml';
     const lab2 = $('nutri-water-ml'); if (lab2) lab2.textContent = total + ' ml';
-    toast(t('nutri.saved'));
-  } catch { toast(t('err.createFail'), true); }
+    return total;
+  } catch { return null; }
+}
+/* El +250 ml de la tarjeta fusionada: la función compartida. */
+async function fusedWaterAdd() {
+  const total = await waterAddToday(250);
+  toast(total == null ? t('err.createFail') : t('nutri.saved'), total == null);
 }
 /* El cableado de las secciones fusionadas, tras cada pintado de la
    tarjeta: los círculos abren la ventana de Comida en el día
@@ -20825,6 +20844,18 @@ let AI_CTRL = { known: false, enabled: true };
    siempre: applyAiControl esconde la zona por cualquiera de los
    dos cortes. */
 let MEAL_PICK = null; // { name } de la elección vigente, o null
+/* DEDUPLICACIÓN (AUTH-2026-11-06-287, auditoría punto 3): episodio
+   «alta nueva por la vía Manual» del formulario de comida. Cuando
+   el formulario se abre desde la baldosa Manual de la hoja de
+   Comida (mealManualOpen), la zona de IA INTERNA del formulario
+   (.m-ai-text: analizar la descripción + dictar por voz) NO se
+   ofrece: duplica a las baldosas Texto y Voz de la misma hoja,
+   que son las puertas dueñas. Cuando el formulario se abre
+   DIRECTO (borrador de un análisis, repetir una comida guardada,
+   «Usar» de la biblioteca de alimentos) la zona SÍ se ofrece —
+   ahí es la única puerta a esas vías. La visibilidad la aplica
+   applyAiControl, la dueña de siempre de .m-ai-text. */
+let MEAL_FORM_MANUAL_NEW = false;
 function mealPickSet(name) { MEAL_PICK = name ? { name: String(name) } : null; try { applyAiControl(); } catch {} }
 function mealPickClear() { if (MEAL_PICK) { MEAL_PICK = null; try { applyAiControl(); } catch {} } }
 let aiCtrlUnsub = null;
@@ -20856,9 +20887,12 @@ function applyAiControl() {
   if (noteM) noteM.style.display = off ? '' : 'none';
   /* Punto 84: con una elección del catálogo vigente en el
      formulario manual, la zona de IA tampoco se ofrece (ya no
-     hace falta); cualquiera de los dos cortes la esconde. */
+     hace falta); cualquiera de los dos cortes la esconde.
+     AUTH-287: el tercer corte es el episodio «alta nueva por la
+     vía Manual» (MEAL_FORM_MANUAL_NEW) — ahí las baldosas de la
+     hoja de Comida son las dueñas de Texto y Voz. */
   const pickHide = !!MEAL_PICK;
-  document.querySelectorAll('.m-ai-text').forEach(b => { b.style.display = (off || pickHide) ? 'none' : ''; });
+  document.querySelectorAll('.m-ai-text').forEach(b => { b.style.display = (off || pickHide || MEAL_FORM_MANUAL_NEW) ? 'none' : ''; });
 }
 async function loadAiControl() {
   try {
@@ -24996,6 +25030,7 @@ function itemsIfSquare(items, tot) {
    en vez de silencio. El diagnóstico en motor real (390×844, formas del
    caso real) no reprodujo el fallo — ver h2-diagnostico.mjs. */
 function aiUseDraft(r1, r2) {
+  MEAL_FORM_MANUAL_NEW = false; // AUTH-287: el formulario se abre directo desde la revisión — su zona de IA es la única puerta ahí
   let failed = false;
   const set = (id, val) => {
     try { const el = $(id); if (el) el.value = val; else failed = true; }
@@ -25075,6 +25110,7 @@ function aiUseDraft(r1, r2) {
 }
 function aiClearDraft() {
   aiDraft = null;
+  MEAL_FORM_MANUAL_NEW = false; // AUTH-287: el episodio manual-nuevo muere con el borrador (cancelar/guardar/reabrir)
   mealPickClear(); // punto 84: el episodio del formulario se reinicia; la elección del catálogo muere con él
   const b = $('m-ai-banner');
   if (b) { b.style.display = 'none'; b.textContent = ''; }
@@ -27946,7 +27982,13 @@ function trainCustomRenderSession(plan, di, closed, iso) {
       }).join('')}</div>`;
     }
     if (readOnly) inner += `<p class="progress-hint">${t('train.custom.pastLockedNote')}</p>`;
-    else inner += `<div style="margin-top:8px"><button type="button" class="btn-secondary btn-sm" data-tcu-add="1">${t('train.custom.add')}</button></div><div style="margin-top:8px"><button type="button" class="btn-primary dict-open-btn" data-tcu-dict="1">${t('dict.open')}</button></div>`;
+    /* DEDUPLICACIÓN (AUTH-2026-11-06-287, auditoría punto 2): el
+       botón interior «+ Agregar ejercicio» SALE — duplicaba al
+       «+ Agregar» de la fila de la tarjeta (los dos fijaban
+       TRAIN_PICK = add y abrían el mismo selector). La fila es la
+       puerta dueña: su handler fija el selector directamente.
+       Aquí quedan Cambiar/Quitar por ejercicio y el dictado. */
+    else inner += `<div style="margin-top:8px"><button type="button" class="btn-primary dict-open-btn" data-tcu-dict="1">${t('dict.open')}</button></div>`;
   }
   tools.innerHTML = inner;
   if (readOnly) { swapSheetSync(null); return; }
@@ -27959,7 +28001,6 @@ function trainCustomWire(plan, di, iso) {
   const tools = $('train-custom-tools');
   if (!tools || !plan) return;
   tools.querySelectorAll('[data-tcu-swap]').forEach(b => b.onclick = () => { TRAIN_PICK = { kind: 'swap', idx: Number(b.dataset.tcuSwap) }; SWAP_QUERY = ''; loadMyTraining(); });
-  tools.querySelectorAll('[data-tcu-add]').forEach(b => b.onclick = () => { TRAIN_PICK = { kind: 'add' }; SWAP_QUERY = ''; SWAP_PRESET_GROUP = null; loadMyTraining(); });
   /* DICTADO SIN IA (2026-11-06): abre la hoja de dictado para el día
      VISTO (mismas condiciones de visibilidad que «＋ Añadir»). */
   tools.querySelectorAll('[data-tcu-dict]').forEach(b => b.onclick = () => dictSheetOpen(plan, di, viewIso));
@@ -29003,15 +29044,20 @@ function trainChronoSuggestion(planId) {
 }
 /* BOTONES DEL CRONÓMETRO A LOS LATERALES (AUTH-036, 2026-10-27):
    SOLO presentación — la pareja vive pegada a los extremos de la
-   tarjeta: IZQUIERDA el botón ROJO «Finalizado» (el mismo
-   data-train-done de siempre: abre el panel de cierre) y DERECHA
-   el botón VERDE 3D de INICIAR (el mismo data-train-start de
-   siempre). En curso, el tiempo transcurrido se lee en el centro.
-   La lógica del cronómetro y del cierre no cambia en nada. */
+   tarjeta: DERECHA el botón VERDE 3D de INICIAR (el mismo
+   data-train-start de siempre). En curso, el tiempo transcurrido
+   se lee en el centro. La lógica del cronómetro no cambia.
+   DEDUPLICACIÓN (AUTH-2026-11-06-287, auditoría de duplicaciones
+   punto 1, orden de Ronald «aplica todas» 2026-11-06 13:21 CST):
+   el botón ROJO «Finalizado» de esta pareja SALE — llevaba el
+   mismo data-train-done que «Hecho hoy» de la fila de tres y los
+   dos abrían el mismo panel de cierre, uno bajo el otro en la
+   misma tarjeta. El cierre del día tiene UNA sola puerta:
+   «Hecho hoy». La pareja conserva «▶ Iniciar» y el tiempo. */
 function trainChronoHTML(planId, di) {
   const c = trainChronoRead(planId);
-  const run = c ? `<span class="train-chrono-run">${t('train.chronoRunning', { min: Math.max(0, Math.round((Date.now() - c.start) / 60000)) })}</span>` : '';
-  return `<div class="train-chrono-pair"><button type="button" class="btn-chrono-finish" data-train-done="${di}">${t('train.chronoFinishBtn')}</button>${run}<button type="button" class="btn-chrono-start3d" data-train-start="${di}">${t('train.chronoStartBtn')}</button></div>`;
+  const run = c ? `<span class="train-chrono-run">${t('train.chronoRunning', { min: Math.max(0, Math.round((Date.now() - c.start) / 60000)) })}</span>` : '<span class="train-chrono-run" aria-hidden="true"></span>';
+  return `<div class="train-chrono-pair">${run}<button type="button" class="btn-chrono-start3d" data-train-start="${di}">${t('train.chronoStartBtn')}</button></div>`;
 }
 /* ═══ CRONÓMETRO DE SESIÓN FIJO + ENCUESTA (punto 88 de la cola;
    diseño cerrado de Ronald 2026-11-02: propuesta suya 11:54 CST,
@@ -29152,12 +29198,14 @@ function trainCloseFormHTML(planId, di) {
    En la fila quedan SOLO los tres que él nombró, con el texto
    completo: Hecho hoy (atenuado, acción secundaria) · Saltar ·
    + Agregar — los data-* de siempre, el cableado no cambia.
-   Finalizado y ▶ Iniciar viven SOLO en la pareja del cronómetro
-   (la de AUTH-036, a los laterales), que desde este paquete se
-   pinta SIEMPRE bajo la fila: antes la pareja solo aparecía al
-   abrir el panel de cierre, en el mismo hueco — verificado contra
-   el código servido, ningún otro estado la pintaba — así que
-   ningún estado puede quedarse sin Iniciar ni sin Finalizado.
+   ▶ Iniciar vive SOLO en la pareja del cronómetro (la de
+   AUTH-036, a los laterales), que desde AUTH-283 se pinta
+   SIEMPRE bajo la fila: antes la pareja solo aparecía al abrir
+   el panel de cierre, en el mismo hueco — verificado contra el
+   código servido, ningún otro estado la pintaba — así que ningún
+   estado puede quedarse sin Iniciar. (AUTH-287: el «Finalizado»
+   que la pareja pintaba a la izquierda SALE por duplicar a
+   «Hecho hoy» — el cierre es solo de la fila.)
    El tiempo en curso lo lee el centro de la pareja (su span de
    siempre); la línea duplicada bajo la tira se retira. Los chips
    Cardio · Core · Estirar salen de la fila y viven dentro del
@@ -32288,10 +32336,12 @@ async function loadMyTraining() {
   /* DÍA ACCIONABLE (2026-10-30): los botones del día en blanco
      fijan la base de sesión y re-pintan — toda la maquinaria de la
      sesión (tarjeta, desplegable, cierre) resuelve hoy con esa
-     base. El «+ Agregar ejercicio» VISIBLE de la tarjeta se limita
-     a abrir el desplegable con el selector en modo agregar y a
-     llevar la vista hasta él: la escritura es la del selector de
-     siempre, sin lógica duplicada. */
+     base. El «+ Agregar» de la fila de la tarjeta abre el
+     desplegable con el selector en modo agregar y lleva la vista
+     hasta él: la escritura es la del selector de siempre, sin
+     lógica duplicada. (AUTH-287: ya no existe un segundo botón
+     «+ Agregar ejercicio» dentro del desplegable al que delegar —
+     la fila fija TRAIN_PICK directamente.) */
   /* PUERTA DE «ENTRENAR HOY»: «Traer un día de mi plan» abre el
      selector con todos los días (trainBringSync escribe la base al
      elegir); el cableado directo de traer-el-próximo se retira con
@@ -36392,15 +36442,19 @@ function setAvatar(url) {
       '<text x="32" y="43" font-size="28" text-anchor="middle" fill="#fff" font-family="sans-serif">' + initial + '</text></svg>');
   }
   img.style.display = '';
-  img.title = t('myprof.open');
+  img.title = (typeof UDATA !== 'undefined' && UDATA && UDATA.name) || '';
 }
-/* La foto del encabezado es la ENTRADA a «Mi perfil» (perfil-visible,
-   2026-10-24): el botón #avatar-btn que la envuelve abre la vista
-   desde cualquier pestaña y para todos los roles (el alumno entra
-   SOLO por aquí). Cambiar la foto se hace dentro de la tarjeta de
-   perfil, por el MISMO camino de siempre (#avatar-file, justo
-   debajo): esta entrada ya no abre el selector de archivos. */
-{ const ab = $('avatar-btn'); if (ab) ab.addEventListener('click', () => navGuarded(() => switchTab('profile'))); } /* A-N3 (2026-10-31): el avatar también pasa por la guarda D3 — antes saltaba directo a «profile» y abandonaba el borrador de comida sin el aviso acotado de AUTH-103. */
+/* La foto del encabezado es IDENTIDAD, ya no una puerta
+   (DEDUPLICACIÓN AUTH-2026-11-06-287, auditoría punto 6): fue la
+   entrada a «Mi perfil» desde 2026-10-24 (perfil-visible) y el
+   alumno entraba SOLO por aquí — por eso este retiro llega
+   DESPUÉS de AUTH-2026-11-06-286, que dio a TODOS los roles la
+   pastilla «Mi perfil» en la barra, verificada visible y clicable
+   por rol. Desde AUTH-287 la pastilla es la ÚNICA puerta al
+   perfil y la foto se queda como lo que es: tu foto. Sin clic,
+   sin cursor de botón, sin foco de teclado (tabindex -1 en
+   index.html). Cambiar la foto se hace dentro de la tarjeta de
+   perfil, por el MISMO camino de siempre (#avatar-file). */
 { const pb = $('btn-profile-back'); if (pb) pb.addEventListener('click', navGoHome); }
 $('avatar-file').addEventListener('change', async e => {
   const f = e.target.files[0];
@@ -39914,7 +39968,12 @@ function mealManualOpen() {
      en vez de abrir en blanco. */
   try { pendDraftArm(); pendDraftRestore(); } catch {}
   foodRefWire();
+  /* AUTH-287: esta apertura es el alta nueva por la vía Manual —
+     la zona de IA interna del formulario no se ofrece (las
+     baldosas Texto/Voz de la hoja son las dueñas). */
+  MEAL_FORM_MANUAL_NEW = true;
   aiOpenMealModal();
+  try { applyAiControl(); } catch {}
 }
 /* «Repetir una comida anterior» (tercera pieza del trío de registro:
    foto / escribir / repetir; candidato bcfe957 integrado sobre
@@ -40555,6 +40614,7 @@ function foodlibRowHTML(f) {
 function foodlibWireRows(scope) {
   scope.querySelectorAll('[data-fl-use]').forEach(b => b.onclick = () => {
     const f = foodlibRows.get(b.dataset.flUse); if (!f) return;
+    MEAL_FORM_MANUAL_NEW = false; // AUTH-287: apertura directa — la zona de IA del formulario es la única puerta ahí
     aiOpenMealModal();
     acApply($('m-food'), foodlibEntry(f), 'food');
   });
@@ -42039,6 +42099,7 @@ setInterval(() => { try { pendDockTick(); } catch {} }, 60000);
           else if (route === 'goals-setup') { switchTab('admin'); const pb2 = $('btn-perms'); if (pb2 && !permsOpen) pb2.click(); scroll('energy-section'); }
           else if (route === 'base-flow') { baseFlowOpen(); }
           else if (route === 'clients') { switchTab('clients'); }
+          else if (route === 'students') { switchTab('students'); }
           else if (route === 'admin-pending') { apprFloatOpen(); }
           else if (route === 'admin-membership') { switchTab('trainers'); scroll('membership-admin-box'); }
           else if (route === 'admin-meals') { switchTab('trainers'); scroll('meal-admin-box'); }
@@ -44055,7 +44116,7 @@ document.addEventListener('keydown', e => { if (e.key === 'Escape') shareClose()
  *  - El SW (sw.js) solo cachea la cáscara del mismo origen en modo
  *    RED PRIMERO: Auth/Firestore/Worker jamás pasan por la caché.
  * ================================================================ */
-const PWA_SW_VERSION = '20261106-voz-escuchar';
+const PWA_SW_VERSION = '20261106-dedup';
 /* Sello de versión VISIBLE (2026-11-03): el pie de la tarjeta de
    acceso enseña qué copia corre este teléfono ('v ' + el sello),
    para comprobar de un vistazo si la versión nueva ya llegó.
@@ -44730,12 +44791,12 @@ const FAQ_SEED = [
   "block": 4,
   "order": 3,
   "q": {
-   "en": "What are the “Start” and “Finished” buttons on the day card?",
-   "es": "¿Qué son los botones «Iniciar» y «Finalizado» de la tarjeta del día?"
+   "en": "What is the “Start” button on the day card, and how do I close the session?",
+   "es": "¿Qué es el botón «Iniciar» de la tarjeta del día y cómo cierro la sesión?"
   },
   "a": {
-   "en": "They run the session timer: **Start** (green, right side) begins timing your workout and **Finished** (red, left side) closes it. Closing the session calculates its estimated burn with the intensity you declare — moderate if you say nothing — and adds it to today's flame (4.4).",
-   "es": "Manejan el cronómetro de la sesión: **Iniciar** (verde, a la derecha) empieza a contar tu entrenamiento y **Finalizado** (rojo, a la izquierda) lo cierra. Al cerrar la sesión se calcula su quemado estimado con la intensidad que declares — moderada si no dices nada — y se suma a la llamita de hoy (4.4)."
+   "en": "**Start** (green, right side) begins timing your workout. To close the session use **Done today**, the button in the row above the timer: closing it calculates its estimated burn with the intensity you declare — moderate if you say nothing — and adds it to today's flame (4.4).",
+   "es": "**Iniciar** (verde, a la derecha) empieza a contar tu entrenamiento. Para cerrar la sesión usa **Hecho hoy**, el botón de la fila que está sobre el cronómetro: al cerrar se calcula su quemado estimado con la intensidad que declares — moderada si no dices nada — y se suma a la llamita de hoy (4.4)."
   }
  },
  {
@@ -45072,8 +45133,8 @@ const FAQ_SEED = [
    "es": "Entrené, pero mi llamita sigue en cero."
   },
   "a": {
-   "en": "The flame only counts **closed** sessions: if the session was never closed, its burn is never added. Go to today's card, mark the exercises you did and close the session with **Finished** — today's burn appears in the flame right away.",
-   "es": "La llamita solo cuenta sesiones **cerradas**: si la sesión nunca se cerró, su quemado nunca se suma. Ve a la tarjeta de hoy, marca los ejercicios que hiciste y cierra la sesión con **Finalizado** — el quemado de hoy aparece en la llamita al momento."
+   "en": "The flame only counts **closed** sessions: if the session was never closed, its burn is never added. Go to today's card, mark the exercises you did and close the session with **Done today** — today's burn appears in the flame right away.",
+   "es": "La llamita solo cuenta sesiones **cerradas**: si la sesión nunca se cerró, su quemado nunca se suma. Ve a la tarjeta de hoy, marca los ejercicios que hiciste y cierra la sesión con **Hecho hoy** — el quemado de hoy aparece en la llamita al momento."
   }
  }
 ];
@@ -45749,14 +45810,10 @@ async function renderWaterCard() {
       const uid = auth.currentUser && auth.currentUser.uid; if (!uid) return;
       const add = Math.max(0, Math.min(5000, Number(($('nutri-water-in') && $('nutri-water-in').value) || 0)));
       if (!add) return;
-      try {
-        const ref = doc(db, 'nutrition_water', uid + '_' + todayISO());
-        const cur = await getDoc(ref);
-        const total = (cur.exists() ? (Number(cur.data().ml) || 0) : 0) + add;
-        await setDoc(ref, { studentUid: uid, date: todayISO(), ml: total, byUid: uid, byRole: 'alumno', updatedAt: serverTimestamp() }, { merge: true });
-        const lab2 = $('nutri-water-ml'); if (lab2) lab2.textContent = total + ' ml';
-        toast(t('nutri.saved'));
-      } catch { toast(t('err.createFail'), true); }
+      /* AUTH-287: el guardado es el compartido (waterAddToday) —
+         el mismo que usa el +250 de la portada. */
+      const total = await waterAddToday(add);
+      toast(total == null ? t('err.createFail') : t('nutri.saved'), total == null);
     };
   }
 }

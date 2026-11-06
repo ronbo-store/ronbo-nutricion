@@ -287,8 +287,7 @@ table.whist { min-width: 640px; }
 /* Botón que envuelve la foto del encabezado (perfil-visible,
    2026-10-24): tocar la foto abre «Mi perfil». Sin fondo ni borde
    propios: la foto conserva exactamente su aspecto de siempre. */
-.avatar-btn { background: none; border: none; padding: 0; margin: 0; cursor: pointer; border-radius: 50%; display: inline-flex; flex-shrink: 0; }
-.avatar-btn:focus-visible { outline: 2px solid #0d9488; outline-offset: 2px; }
+.avatar-btn { background: none; border: none; padding: 0; margin: 0; cursor: default; border-radius: 50%; display: inline-flex; flex-shrink: 0; } /* AUTH-287: la foto es identidad, no botón — cursor neutro */
 
 /* ===== registro: consentimiento legal ===== */
 .opt { font-weight: 400; color: #9ca3af; font-size: 12px; }

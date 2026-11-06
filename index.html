@@ -21,7 +21,7 @@
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-title" content="RONBO FIT">
 <meta name="apple-mobile-web-app-status-bar-style" content="default">
-<link rel="stylesheet" href="styles.css?v=20261106-voz-escuchar">
+<link rel="stylesheet" href="styles.css?v=20261106-dedup">
 <script defer src="https://cloud.umami.is/script.js" data-website-id="a29706d4-44a2-47cf-900a-5f74d74abfa8"></script>
 <script type="importmap">
 {
@@ -234,7 +234,7 @@
           <button type="button" id="btn-logout" class="btn-out"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#5eead4" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><path d="M16 17l5-5-5-5"/><path d="M21 12H9"/></svg><span data-i18n="app.logout">log out</span></button>
         </div>
         <div class="hdr-person">
-          <button type="button" id="avatar-btn" class="avatar-btn" data-i18n-aria="myprof.open" aria-label="Open my profile" data-i18n-title="myprof.open" title="Open my profile"><img id="avatar" class="avatar" data-i18n-alt="app.myPhoto" alt="My photo"><span class="live-dot"></span></button>
+          <span id="avatar-btn" class="avatar-btn" aria-hidden="true"><img id="avatar" class="avatar" data-i18n-alt="app.myPhoto" alt="My photo"><span class="live-dot"></span></span>
           <span class="hdr-who"><span id="who">—</span><span class="hdr-date"><span id="dateWeekday"></span> · <span id="dateTitle">Loading…</span></span></span>
         </div>
       </div>
@@ -1429,7 +1429,7 @@
   <div class="tab-pane" id="tab-students" style="display:none">
   <div class="admin-section" id="students-section" style="display:none">
     <h2><span data-i18n="students.title">🎓 My students</span> <span class="h2-sub" data-i18n="students.sub">· my trainer view</span></h2>
-    <p class="progress-hint" data-i18n="students.hint">Only the students assigned to you as their trainer — your trainer hat. Everyone stays under "My clients" for administration; your own training and meals stay in "My log".</p>
+    <p class="progress-hint" data-i18n="students.hint">Only the students assigned to you as their trainer — your trainer hat, and your single work surface for them. Your own training and meals stay in "My log".</p>
     <div id="students-viewbar"></div>
     <div id="students-list"><div class="wempty" data-i18n="access.loading">Loading…</div></div>
   </div>
@@ -2016,6 +2016,6 @@
 <div id="toast" class="toast"></div>
 <div id="print-card" aria-hidden="true"></div>
 
-<script type="module" src="app.js?v=20261106-voz-escuchar"></script>
+<script type="module" src="app.js?v=20261106-dedup"></script>
 </body>
 </html>
