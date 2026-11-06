@@ -4236,6 +4236,7 @@ en: {
   'glance.streak': '🔥 {n}-day streak',
   'glance.mealsTitle': "Today's meals",
   'glance.pending': 'pending',
+  'fuse.atLine': 'You are at {pct}% · {n} consumed',
   'dict.open': '🎙 Add by dictating',
   'dict.title': 'Add exercises by dictating',
   'dict.hint': 'Dictate with your keyboard microphone or type the exercises for this day. Your phone matches them against the library — no AI is used, and nothing is saved until you confirm.',
@@ -7825,6 +7826,7 @@ es: {
   'glance.streak': '🔥 Racha de {n} días',
   'glance.mealsTitle': 'Comidas de hoy',
   'glance.pending': 'pendiente',
+  'fuse.atLine': 'Vas al {pct}% · {n} consumidas',
   'dict.open': '🎙 Añadir dictando',
   'dict.title': 'Añadir ejercicios dictando',
   'dict.hint': 'Dicta con el micrófono de tu teclado o escribe los ejercicios para este día. Tu teléfono los empareja con la biblioteca: no se usa IA y nada se guarda hasta que confirmes.',
@@ -19551,14 +19553,202 @@ function gmiObjBoxHTML(c, tag) {
   h += `</${tag}>`;
   return h;
 }
+/* ============ FUSIÓN DE LA PORTADA EN UNA SOLA TARJETA (2026-11-06) ============
+   Aprobada por Ronald en el chat RONBO.NUTRI el 2026-11-06 12:04 CST
+   («Aprobada, constrúyela así») sobre la maqueta
+   maquetas-fusion-dia-2026-11-06: su observación fue que la portada
+   «Tu día de un vistazo» (AUTH-278) repetía lo de «Metas de hoy» y
+   lo de la ventana de Comida. Desde esta fusión hay UNA tarjeta en
+   Inicio: la del motor de metas, que en su vista de HOY lleva
+   dentro, en este orden, (1) la cabecera «Metas de hoy» con el chip
+   de racha, (2) el aviso del tipo de día y las pastillas
+   Día/Objetivo/Enfoque, (3) UN anillo de doble lectura — héroe: las
+   kcal que QUEDAN (la cuenta atrás del vistazo); debajo: «Vas al
+   X% · N consumidas» (la cuenta arriba de siempre, sin repetir la
+   línea «X de Y kcal») —, la frase de estado de siempre y el aviso
+   de toque, que sigue abriendo EL MISMO detalle (openGmiDetail),
+   (4) las 4 barras de macros con las metas DEL TIPO DE DÍA,
+   (5) los 5 círculos de comidas, (6) el agua con su +250 ml por la
+   vía real de guardado y (7) el registro rápido Foto/Voz/Texto/
+   Manual; tras un divisor, (8) el bloque «TU OBJETIVO CON TU
+   CUERPO» y el desplegable «Tus metas, con fundamento» de siempre.
+   El panel separado del vistazo DESAPARECE y Comida no cambia.
+   Los cálculos NO se duplican: con metas fundadas, la cabecera y
+   las secciones leen LOS MISMOS totales y metas del motor del día
+   (gmiDayData: totals + goalsDayGoalsFor); sin ellas, las
+   secciones leen el cómputo del vistazo (glanceCompute) con la
+   convención de metas de siempre (goalOf/goalOfDay — que por
+   dentro ES goalsDayGoalsFor para carbohidratos y grasas). Viendo
+   OTRO día (la fecha de la ventana de Comida), la tarjeta es la de
+   ese día, como siempre, y las secciones de HOY no se mezclan en
+   ella. Los huecos reservados de AUTH-278 siguen reservados y
+   VACÍOS: la barra de fibra (Mejora 2, decisiones del dueño
+   pendientes), la puntuación 0–100 (fórmula sin cerrar) y el botón
+   de código de barras (Mejora 3): ninguno se añade aquí. */
+function fusedStatusText(left) {
+  if (left > 0) return t('gmi.headOk');
+  if (left === 0) return t('gmi.headExact');
+  return t('gmi.headOver', { n: fmt(-left) });
+}
+/* El anillo único de la tarjeta fusionada: la geometría y los
+   rótulos del anillo del vistazo (glanceRingSVG) con el héroe más
+   grande de la maqueta aprobada; el arco mide lo CONSUMIDO contra
+   la meta, como en los dos anillos que sustituye. */
+function fusedRingSVG(d) {
+  const C = 2 * Math.PI * 62;
+  const frac = Math.max(0, Math.min(d.tot.kcal / d.goals.kcal, 1));
+  const over = d.left < 0;
+  return `<svg class="dg-ring-svg" viewBox="0 0 150 150" aria-hidden="true">
+    <circle cx="75" cy="75" r="62" fill="none" stroke="#E9ECEF" stroke-width="14"/>
+    <circle cx="75" cy="75" r="62" fill="none" stroke="#0d9488" stroke-width="14"
+      stroke-linecap="round" stroke-dasharray="${(frac * C).toFixed(1)} ${C.toFixed(1)}"
+      transform="rotate(-90 75 75)"/>
+    <text x="75" y="78" text-anchor="middle" font-size="36" font-weight="800" fill="#0f766e">${fmt(Math.round(Math.abs(d.left)))}</text>
+    <text x="75" y="102" text-anchor="middle" font-size="12" fill="#6b7280">${over ? t('glance.kcalOver') : t('glance.kcalLeft')}</text>
+  </svg>`;
+}
+function fusedStreakToday() {
+  try { return glanceCompute(MEALS, todayISO(), () => null).streak; } catch { return 0; }
+}
+function fusedStreakChip(streak) {
+  if (!(streak > 0)) return '';
+  return `<span class="dg-streak">${esc(streak === 1 ? t('glance.streak1') : t('glance.streak', { n: streak }))}</span>`;
+}
+/* Los datos de las secciones de HOY, calculados UNA vez: el
+   cómputo del vistazo aporta comidas y racha; con metas fundadas
+   de hoy, totales y metas se SUSTITUYEN por los del motor del día
+   (gmiDayData) — las mismas cifras que pinta la cabecera. */
+function fusedTodayData(gmiD) {
+  const today = todayISO();
+  const goalFn = key => (key === 'carb' || key === 'gras') && typeof goalOfDay === 'function' ? goalOfDay(key, today) : goalOf(key);
+  const c = glanceCompute(MEALS, today, goalFn);
+  c.goals = { kcal: goalFn('kcal'), prot: goalFn('prot'), carb: goalFn('carb'), azuc: goalFn('azuc'), gras: goalFn('gras') };
+  if (gmiD && gmiIsToday(gmiD.iso)) {
+    c.tot = gmiD.tot;
+    c.goals = { kcal: gmiD.goals.kcal, prot: gmiD.goals.prot, carb: gmiD.goals.carb, azuc: gmiD.goals.azuc, gras: gmiD.goals.gras };
+    c.kcalGoal = gmiD.goals.kcal;
+    c.remaining = Math.round(gmiD.left);
+    c.pct = gmiD.pct;
+  }
+  return c;
+}
+function fusedBarsHTML(c) {
+  return METRICS.filter(m => m.key !== 'kcal').map(m => {
+    const goal = c.goals ? c.goals[m.key] : null;
+    const val = c.tot[m.key];
+    const w = !(goal > 0) ? 0 : Math.max(0, Math.min(val / goal * 100, 100));
+    const valTxt = !(goal > 0) ? `${fmt(val)} ${m.unit}` : `${fmt(val)} / ${fmt(goal)} ${m.unit}`;
+    return `<div class="dg-macro"><span class="dg-macro-name">${t('metric.' + m.key)}</span><span class="dg-macro-bar"><span class="dg-macro-fill" style="width:${w.toFixed(1)}%;background:${m.color}"></span></span><span class="dg-macro-val">${valTxt}</span></div>`;
+  }).join('');
+}
+/* Las secciones de hoy DENTRO de la tarjeta fusionada: barras,
+   círculos de comidas, agua y registro rápido — el mismo marcado
+   dg-* que pintaba el panel del vistazo, con sus mismos ids para
+   el cableado (fusedWire). Viendo otro día no pintan: esas
+   secciones son de HOY y no se mezclan en la tarjeta de otro día. */
+function fusedTodayHTML(gmiD) {
+  if (gmiD && !gmiIsToday(gmiD.iso)) return '';
+  const c = fusedTodayData(gmiD);
+  let h = `<div class="fused-today"><div class="dg-macros">${fusedBarsHTML(c)}</div>`;
+  /* HUECO PREVISTO (diseño §3 de AUTH-278): aquí irá la barra de
+     fibra cuando el dato exista de verdad (Mejora 2). */
+  /* HUECO PREVISTO (diseño §3 de AUTH-278): aquí irá la puntuación
+     del día cuando Ronald cierre su fórmula (Mejora 5). */
+  h += `<h3 class="dg-meals-t">${esc(t('glance.mealsTitle'))}</h3><div class="dg-meals">` + c.perMeal.map(pm => `
+    <button type="button" class="dg-meal" data-dg-meal="${esc(pm.name)}">
+      <span class="dg-meal-circ${pm.has ? ' has' : ''}">${pm.has ? '<span class="dg-meal-check" aria-hidden="true">✓</span>' : ''}<span class="dg-meal-ic" aria-hidden="true">${GLANCE_MEAL_ICONS[pm.name] || '🍽️'}</span></span>
+      <span class="dg-meal-name">${esc(mealName(pm.name))}</span>
+      <span class="dg-meal-kcal">${pm.has ? fmt(Math.round(pm.kcal)) + ' kcal' : esc(t('glance.pending'))}</span>
+    </button>`).join('') + `</div>`;
+  h += `<div class="dg-water">
+      <span class="dg-water-t">💧 <span>${esc(t('nutri.water'))}</span></span>
+      <span class="dg-water-v" id="dg-water-ml">0 ml</span>
+      <button type="button" class="btn-ghost dg-water-add" id="dg-water-add">+250 ml</button>
+    </div>
+    <div class="dg-quick">
+      <button type="button" class="dg-quick-btn dg-quick-hot" id="dg-btn-photo"><span class="dg-quick-ic" aria-hidden="true">📷</span><span>${esc(t('food.photo'))}</span></button>
+      <button type="button" class="dg-quick-btn" id="dg-btn-voice"><span class="dg-quick-ic" aria-hidden="true">🎙️</span><span>${esc(t('food.voice'))}</span></button>
+      <button type="button" class="dg-quick-btn" id="dg-btn-text"><span class="dg-quick-ic" aria-hidden="true">✍️</span><span>${esc(t('food.text'))}</span></button>
+      <button type="button" class="dg-quick-btn" id="dg-btn-manual"><span class="dg-quick-ic" aria-hidden="true">✋</span><span>${esc(t('food.manual'))}</span></button>
+    </div></div>`;
+  return h;
+}
+/* El bloque del objetivo, tras el divisor (paso 8 de la maqueta):
+   la misma pieza de siempre (gmiObjBoxHTML en su variante de
+   bloque), fuera ya del botón de la cabecera. */
+function fusedObjHTML(gmiD) {
+  if (!gmiD) return '';
+  const c = gmiCombo();
+  if (!c) return '';
+  return `<div class="fused-sep" aria-hidden="true"></div>` + gmiObjBoxHTML(c, 'div');
+}
+/* Sin metas fundadas (gmiDayData a null) la tarjeta no lleva el
+   botón del detalle: lleva la cabecera con el anillo honesto del
+   vistazo (solo lo registrado, o las restantes contra la meta base
+   si la hay) y debajo van las secciones de hoy, como el panel
+   retirado hacía para cualquier usuario con sesión. */
+function fusedNullHeadHTML() {
+  const c = fusedTodayData(null);
+  let h = `<div class="fused-nullhead"><span class="gmi-head-top fused-headrow"><span class="gmi-head-title">🎯 ${esc(t('gmi.title'))}</span>${fusedStreakChip(c.streak)}</span>`;
+  h += `<span class="fused-ringzone">${glanceRingSVG(c)}`;
+  if (c.kcalGoal === null) h += `<span class="fused-note">${esc(t('glance.noGoal'))}</span>`;
+  else h += `<span class="fused-at">${esc(t('fuse.atLine', { pct: c.pct, n: fmt(Math.round(c.tot.kcal)) }))}</span><span class="fused-note">${esc(fusedStatusText(c.remaining))}</span>`;
+  h += `</span></div>`;
+  return h;
+}
+let FUSED_WATER = { date: '', ml: 0 };
+async function fusedWaterPaint() {
+  const lab = $('dg-water-ml'); if (!lab) return;
+  const me = auth.currentUser && auth.currentUser.uid; if (!me) return;
+  const today = todayISO();
+  if (FUSED_WATER.date === today) lab.textContent = FUSED_WATER.ml + ' ml';
+  try {
+    const ws = await getDoc(doc(db, 'nutrition_water', me + '_' + today));
+    const ml = ws.exists() ? (Number(ws.data().ml) || 0) : 0;
+    FUSED_WATER = { date: today, ml };
+    lab.textContent = ml + ' ml';
+  } catch {}
+}
+/* El +250 ml de la tarjeta fusionada escribe EXACTAMENTE como el
+   botón de la tarjeta de Comida (renderWaterCard): mismo documento
+   nutrition_water/{uid}_{hoy}, mismos campos y merge con el total
+   sumado; al guardar refresca las dos etiquetas del agua. */
+async function fusedWaterAdd() {
+  const uid = auth.currentUser && auth.currentUser.uid; if (!uid) return;
+  try {
+    const ref = doc(db, 'nutrition_water', uid + '_' + todayISO());
+    const cur = await getDoc(ref);
+    const total = (cur.exists() ? (Number(cur.data().ml) || 0) : 0) + 250;
+    await setDoc(ref, { studentUid: uid, date: todayISO(), ml: total, byUid: uid, byRole: 'alumno', updatedAt: serverTimestamp() }, { merge: true });
+    FUSED_WATER = { date: todayISO(), ml: total };
+    const lab = $('dg-water-ml'); if (lab) lab.textContent = total + ' ml';
+    const lab2 = $('nutri-water-ml'); if (lab2) lab2.textContent = total + ' ml';
+    toast(t('nutri.saved'));
+  } catch { toast(t('err.createFail'), true); }
+}
+/* El cableado de las secciones fusionadas, tras cada pintado de la
+   tarjeta: los círculos abren la ventana de Comida en el día
+   (glanceOpenFood) y el registro rápido pulsa los botones REALES
+   de la hoja de Comida, con todas sus puertas de siempre. */
+function fusedWire(box) {
+  if (!box) return;
+  box.querySelectorAll('[data-dg-meal]').forEach(b => b.onclick = () => glanceOpenFood());
+  const add = $('dg-water-add');
+  if (add) add.onclick = () => fusedWaterAdd();
+  const dgMap = { 'dg-btn-photo': 'btn-food-photo', 'dg-btn-voice': 'btn-food-voice', 'dg-btn-text': 'btn-food-text', 'dg-btn-manual': 'btn-food-manual' };
+  for (const [dg, real] of Object.entries(dgMap)) {
+    const b = $(dg);
+    if (b) b.onclick = () => { const r = $(real); if (r) r.click(); };
+  }
+  fusedWaterPaint();
+}
 function gmiHeadHTML(d) {
   const c = gmiCombo();
-  let h = `<button type="button" class="gmi-head" id="gmi-open" aria-haspopup="dialog" aria-label="${esc(t('gmi.open'))}">`;
-  h += `<span class="gmi-head-top"><span class="gmi-head-title">🎯 ${esc(gmiTitleFor(d.iso))}</span></span>`;
+  let h = `<button type="button" class="gmi-head fused-head" id="gmi-open" aria-haspopup="dialog" aria-label="${esc(t('gmi.open'))}">`;
+  h += `<span class="gmi-head-top fused-headrow"><span class="gmi-head-title">🎯 ${esc(gmiTitleFor(d.iso))}</span>${gmiIsToday(d.iso) ? fusedStreakChip(fusedStreakToday()) : ''}</span>`;
   if (d.dayNote) h += `<span class="gmi-daynote">${esc(d.dayNote)}</span>`;
   h += `<span class="gmi-chips">${gmiChipsInner(d, c)}</span>`;
-  h += `<span class="gmi-head-main">${gmiRingSVG(d.pct)}<span class="gmi-head-side"><span class="gmi-kcal">${esc(t('gmi.ofKcal', { a: fmt(d.tot.kcal), b: fmt(d.goals.kcal) }))}</span>${gmiLeftHTML(d, 'span')}<span class="gmi-tap">${esc(t('gmi.tapHint'))} ›</span></span></span>`;
-  if (c) h += gmiObjBoxHTML(c, 'span');
+  h += `<span class="fused-ringzone">${fusedRingSVG(d)}<span class="fused-at">${esc(t('fuse.atLine', { pct: d.pct, n: fmt(Math.round(d.tot.kcal)) }))}</span><span class="fused-note">${esc(fusedStatusText(d.left))}</span><span class="gmi-tap">${esc(t('gmi.tapHint'))} ›</span></span>`;
   h += `</button>`;
   return h;
 }
@@ -19628,7 +19818,7 @@ function renderGoalsEngine() {
   const fx = gmFocusEffective(UDATA);
   const objBtns = ['mantener', 'bajar', 'ganar'].map(o => `<button type="button" class="btn-ghost btn-sm" data-gm-obj="${o}"${obj === o ? ' style="border-color:#0d9488;font-weight:700"' : ''}>${esc(t('gm.obj.' + o))}</button>`).join(' ');
   const gmiD = gmiDayData();
-  let html = `<div class="fb3-card" id="gm-card">` + (gmiD ? gmiHeadHTML(gmiD) : '') + gmHeadHTML(!!gmiD);
+  let html = `<div class="fb3-card" id="gm-card">` + (gmiD ? gmiHeadHTML(gmiD) : fusedNullHeadHTML()) + fusedTodayHTML(gmiD) + fusedObjHTML(gmiD) + gmHeadHTML(!!gmiD);
   if (GM_CARD_OPEN) {
   html += `<p class="progress-hint">${esc(t('gm.objective'))}</p><div class="eval-actions" style="justify-content:flex-start;gap:8px;flex-wrap:wrap">${objBtns}</div>`;
   html += gmFocusSectionHTML();
@@ -19696,6 +19886,7 @@ function renderGoalsEngine() {
   box.innerHTML = html;
   const tg = $('gm-toggle'); if (tg) tg.onclick = () => { GM_CARD_OPEN = !GM_CARD_OPEN; renderGoalsEngine(); };
   const go = $('gmi-open'); if (go) go.onclick = () => openGmiDetail();
+  try { fusedWire(box); } catch {}
   if (GM_CARD_OPEN) {
     box.querySelectorAll('[data-gm-obj]').forEach(b => b.onclick = () => gmSetObjective(b.dataset.gmObj));
     try { gmFocusWire(); } catch {}
@@ -35402,23 +35593,22 @@ function showLightbox(url) {
 /* ================= PORTADA «TU DÍA DE UN VISTAZO» =================
    Mejora 4 de la lista desde la competencia; diseño
    DISENO-PORTADA-VISTAZO-2026-11-06 aprobado por Ronald el
-   2026-11-06 10:40 CST («Constrúyela así») sobre su maqueta. Es la
-   pantalla principal REAL al abrir la app (panel #day-glance,
-   arriba de #tab-track, antes del panel semanal) — no una ficha
-   de «Comparte tus logros». Se pinta desde render() con los datos
-   que render() ya carga (MEALS, metas del motor vía goalOf/
-   goalOfDay, actividad vía actDayView): cero lecturas nuevas
-   masivas; la única lectura propia es el documento de agua de hoy
-   (un solo documento por pintado, la misma que ya hace
-   renderWaterCard en la ventana de Comida).
-   DENTRO de la v1: círculo de kcal restantes (meta − consumido,
-   sin mezclar la actividad en la aritmética), barras de proteína/
-   carbos/grasas/azúcares contra su meta, círculos de las comidas
-   de hoy (el toque abre #food-float en el día, vista Resumen),
-   racha de días con comidas, agua de hoy con +250 ml por la vía
-   real de siempre y registro rápido Foto/Voz/Texto/Manual que
-   pulsa los botones reales de la hoja de Comida.
-   FUERA de la v1 (huecos previstos en el HTML, diseño §3): la
+   2026-11-06 10:40 CST («Constrúyela así») sobre su maqueta.
+   FUSIÓN (2026-11-06, maqueta aprobada «Aprobada, constrúyela
+   así»): el panel separado que pintaba esta portada DESAPARECIÓ —
+   su contenido vive ahora dentro de la tarjeta única «Metas de
+   hoy» (ver el módulo FUSIÓN DE LA PORTADA junto a gmiHeadHTML,
+   que pinta y cablea las secciones con fusedTodayHTML/fusedWire).
+   De este módulo quedan las piezas de cómputo y apertura que la
+   tarjeta fusionada comparte: glanceCompute (totales, por comida,
+   restantes, % y racha — puros, sin red ni DOM), glanceRingSVG (el
+   anillo honesto de la cabecera sin metas fundadas) y
+   glanceOpenFood (el toque en un círculo abre la ventana de
+   Comida en el día, vista Resumen). Los datos siguen saliendo de
+   lo que render() ya carga (MEALS y el motor de metas): cero
+   lecturas nuevas masivas; la única lectura propia es el
+   documento de agua de hoy, en fusedWaterPaint.
+   FUERA, con su hueco previsto en fusedTodayHTML (diseño §3): la
    barra de fibra y la puntuación 0–100 — decisiones del dueño aún
    pendientes; nada de ceros falsos ni fórmulas inventadas — y el
    botón de código de barras (Mejora 3, aún no construida). */
@@ -35479,86 +35669,6 @@ function glanceOpenFood() {
   if (typeof foodOpenFloat === 'function') foodOpenFloat();
   if (typeof foodSetSub === 'function') foodSetSub('resumen');
 }
-let GLANCE_WATER = { date: '', ml: 0 };
-async function glanceWaterPaint() {
-  const lab = $('dg-water-ml'); if (!lab) return;
-  const me = auth.currentUser && auth.currentUser.uid; if (!me) return;
-  const today = todayISO();
-  if (GLANCE_WATER.date === today) lab.textContent = GLANCE_WATER.ml + ' ml';
-  try {
-    const ws = await getDoc(doc(db, 'nutrition_water', me + '_' + today));
-    const ml = ws.exists() ? (Number(ws.data().ml) || 0) : 0;
-    GLANCE_WATER = { date: today, ml };
-    lab.textContent = ml + ' ml';
-  } catch {}
-}
-function renderDayGlance() {
-  const box = $('day-glance'); if (!box) return;
-  const me = auth.currentUser && auth.currentUser.uid;
-  if (!me) { box.style.display = 'none'; return; }
-  box.style.display = '';
-  const today = todayISO();
-  /* La misma convención de metas de los anillos: carbos y grasas
-     leen la meta del día (tipo de día) y el resto, la meta base. */
-  const goalFn = key => (key === 'carb' || key === 'gras') && typeof goalOfDay === 'function' ? goalOfDay(key, today) : goalOf(key);
-  const c = glanceCompute(MEALS, today, goalFn);
-  $('dg-consumed').textContent = fmt(Math.round(c.tot.kcal));
-  /* Dato lateral de actividad: las kcal extra del día que ya pinta
-     la llamita de Actividad (actDayView.extras), solo si hay. NO
-     entra en la aritmética de los restantes (diseño §2.1). */
-  let burned = 0;
-  try { if (typeof ACT_LOADED !== 'undefined' && ACT_LOADED && typeof actDayView === 'function') burned = Math.round(actDayView(today).extras) || 0; } catch {}
-  const bb = $('dg-burned-box');
-  if (bb) { bb.style.visibility = burned > 0 ? '' : 'hidden'; if (burned > 0) $('dg-burned').textContent = fmt(burned); }
-  $('dg-ring').innerHTML = glanceRingSVG(c);
-  $('dg-goal').textContent = c.kcalGoal === null ? t('glance.noGoal') : t('glance.goalLine', { goal: fmt(c.kcalGoal), pct: c.pct });
-  const st = $('dg-streak');
-  if (st) {
-    if (c.streak > 0) { st.textContent = c.streak === 1 ? t('glance.streak1') : t('glance.streak', { n: c.streak }); st.style.display = ''; }
-    else st.style.display = 'none';
-  }
-  $('dg-macros').innerHTML = METRICS.filter(m => m.key !== 'kcal').map(m => {
-    const goal = goalFn(m.key);
-    const val = c.tot[m.key];
-    const w = goal === null ? 0 : Math.max(0, Math.min(val / goal * 100, 100));
-    const valTxt = goal === null ? `${fmt(val)} ${m.unit}` : `${fmt(val)} / ${fmt(goal)} ${m.unit}`;
-    return `<div class="dg-macro"><span class="dg-macro-name">${t('metric.' + m.key)}</span><span class="dg-macro-bar"><span class="dg-macro-fill" style="width:${w.toFixed(1)}%;background:${m.color}"></span></span><span class="dg-macro-val">${valTxt}</span></div>`;
-  }).join('');
-  $('dg-meals').innerHTML = c.perMeal.map(pm => `
-    <button type="button" class="dg-meal" data-dg-meal="${esc(pm.name)}">
-      <span class="dg-meal-circ${pm.has ? ' has' : ''}">${pm.has ? '<span class="dg-meal-check" aria-hidden="true">✓</span>' : ''}<span class="dg-meal-ic" aria-hidden="true">${GLANCE_MEAL_ICONS[pm.name] || '🍽️'}</span></span>
-      <span class="dg-meal-name">${esc(mealName(pm.name))}</span>
-      <span class="dg-meal-kcal">${pm.has ? fmt(Math.round(pm.kcal)) + ' kcal' : esc(t('glance.pending'))}</span>
-    </button>`).join('');
-  box.querySelectorAll('[data-dg-meal]').forEach(b => b.onclick = () => glanceOpenFood());
-  glanceWaterPaint();
-}
-/* El +250 ml de la portada escribe EXACTAMENTE como el botón de
-   la tarjeta de Comida (renderWaterCard): mismo documento
-   nutrition_water/{uid}_{hoy}, mismos campos y merge con el total
-   sumado; al guardar refresca las dos etiquetas del agua. */
-{ const b = $('dg-water-add');
-  if (b) b.onclick = async () => {
-    const uid = auth.currentUser && auth.currentUser.uid; if (!uid) return;
-    try {
-      const ref = doc(db, 'nutrition_water', uid + '_' + todayISO());
-      const cur = await getDoc(ref);
-      const total = (cur.exists() ? (Number(cur.data().ml) || 0) : 0) + 250;
-      await setDoc(ref, { studentUid: uid, date: todayISO(), ml: total, byUid: uid, byRole: 'alumno', updatedAt: serverTimestamp() }, { merge: true });
-      GLANCE_WATER = { date: todayISO(), ml: total };
-      const lab = $('dg-water-ml'); if (lab) lab.textContent = total + ' ml';
-      const lab2 = $('nutri-water-ml'); if (lab2) lab2.textContent = total + ' ml';
-      toast(t('nutri.saved'));
-    } catch { toast(t('err.createFail'), true); }
-  }; }
-/* Registro rápido: cada botón pulsa el botón REAL de la hoja de
-   Comida, con todas sus puertas de siempre (aiEndpoint, topes y
-   la preparación de la vía manual en mealManualOpen). */
-{ const dgMap = { 'dg-btn-photo': 'btn-food-photo', 'dg-btn-voice': 'btn-food-voice', 'dg-btn-text': 'btn-food-text', 'dg-btn-manual': 'btn-food-manual' };
-  for (const [dg, real] of Object.entries(dgMap)) {
-    const b = $(dg);
-    if (b) b.onclick = () => { const r = $(real); if (r) r.click(); };
-  } }
 
 /* ================= RENDER (igual que la versión anterior) ================= */
 function totals(date) {
@@ -36642,10 +36752,10 @@ function render(date) {
       await loadAllKeepDate(date);
     });
   renderActivity(date);
-  /* PORTADA «TU DÍA DE UN VISTAZO»: se repinta con cada render
-     (siempre el día de HOY propio, no la fecha elegida en la
-     ventana de Comida) con los datos ya cargados. */
-  try { renderDayGlance(); } catch {}
+  /* FUSIÓN DE LA PORTADA (2026-11-06): la tarjeta única de Inicio
+     se repinta con renderGoalsEngine() — llamada en este mismo
+     render, más arriba — y sus secciones de hoy leen MEALS, que a
+     esta altura ya está cargado. */
 }
 async function loadAllKeepDate(date) {
   await loadAll();
@@ -43455,7 +43565,7 @@ document.addEventListener('keydown', e => { if (e.key === 'Escape') shareClose()
  *  - El SW (sw.js) solo cachea la cáscara del mismo origen en modo
  *    RED PRIMERO: Auth/Firestore/Worker jamás pasan por la caché.
  * ================================================================ */
-const PWA_SW_VERSION = '20261106-dictado-coach';
+const PWA_SW_VERSION = '20261106-fusion-portada';
 /* Sello de versión VISIBLE (2026-11-03): el pie de la tarjeta de
    acceso enseña qué copia corre este teléfono ('v ' + el sello),
    para comprobar de un vistazo si la versión nueva ya llegó.

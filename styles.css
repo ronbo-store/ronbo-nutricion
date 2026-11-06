@@ -69,11 +69,7 @@ body { font-family: -apple-system, "Segoe UI", Roboto, Helvetica, Arial, sans-se
 .gmi-head-top { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; margin-bottom: 8px; }
 .gmi-head-title { font-size: 16px; font-weight: 700; color: #1f2a44; }
 .gmi-chip { background: #e6f4f1; color: #0d7a6f; border-radius: 999px; padding: 3px 10px; font-size: 12px; font-weight: 600; white-space: nowrap; }
-.gmi-head-main { display: flex; gap: 14px; align-items: center; }
 .gmi-ring { width: 118px; height: 118px; flex: none; display: block; }
-.gmi-head-side { flex: 1; min-width: 0; display: block; }
-.gmi-kcal { display: block; font-size: 15px; color: #6b7280; margin-bottom: 4px; }
-.gmi-kcal b { color: #1f2a44; font-size: 17px; }
 .gmi-bar { margin: 7px 0; }
 .gmi-bar-top { display: flex; align-items: baseline; gap: 6px; font-size: 13px; }
 .gmi-bar-name { color: #374151; text-transform: lowercase; }
@@ -89,10 +85,6 @@ body { font-family: -apple-system, "Segoe UI", Roboto, Helvetica, Arial, sans-se
    ventana (pensadas para div/p) reciben aquí su display. */
 .gmi-daynote { display: block; background: #FEF3C7; border: 1px solid #FDE68A; color: #92400E; border-radius: 10px; padding: 8px 10px; font-size: 13px; font-weight: 600; line-height: 1.4; margin-bottom: 8px; }
 .gmi-head .gmi-chips { margin-bottom: 8px; }
-.gmi-head .gmi-left { display: block; }
-.gmi-head .gmi-head-note { display: block; }
-.gmi-head .gmi-objbox { display: block; margin: 10px 0 2px; }
-.gmi-head .gmi-objbox-k, .gmi-head .gmi-objbox-t, .gmi-head .gmi-objbox-s { display: block; }
 .gmi-detail { text-align: left; }
 .gmi-chips { display: flex; gap: 6px; flex-wrap: wrap; margin-bottom: 12px; }
 .gmi-hero { display: flex; gap: 14px; align-items: center; background: #f2f7f6; border: 1px solid #e0ebe9; border-radius: 14px; padding: 12px 14px; margin-bottom: 12px; }
@@ -4232,26 +4224,31 @@ body.swap-sheet-open .asst-fab { display: none !important; }
 .nutri-zone-row .nutri-zone-btn { flex: 1 1 0; }
 .nutri-zone-btn { min-height: 48px; }
 
-/* ===== PORTADA «TU DÍA DE UN VISTAZO» (#day-glance) =====
-   Panel principal al abrir la app (diseño aprobado por Ronald el
-   2026-11-06): círculo grande de kcal restantes legible a un
-   metro, barras de macros, círculos de comidas, agua y registro
-   rápido con objetivos táctiles de 48 px o más (regla de la casa:
-   la app se usa entrenando). */
-.day-glance { margin-bottom: 14px; }
-.dg-head { display: flex; justify-content: space-between; align-items: center; gap: 10px; }
-.dg-head h2 { font-size: 17px; margin: 0; }
+/* ===== PORTADA «TU DÍA DE UN VISTAZO» — HOY, TARJETA FUSIONADA =====
+   Nació como panel propio (diseño aprobado por Ronald el
+   2026-11-06) y el mismo día se FUSIONÓ dentro de la tarjeta
+   «Metas de hoy» (maqueta aprobada «Aprobada, constrúyela así»):
+   las reglas dg-* de las secciones (barras, comidas, agua y
+   registro rápido, con objetivos táctiles de 48 px o más — regla
+   de la casa: la app se usa entrenando) se conservan tal cual y
+   las pinta fusedTodayHTML dentro de .goals-card; las del panel
+   retirado (cabecera propia, fila del anillo con lados y línea de
+   meta) se fueron con él. Las reglas fused-* son las piezas
+   nuevas de la cabecera única: fila título+racha, zona del anillo
+   de doble lectura centrada y el divisor ante el bloque del
+   objetivo. */
 .dg-streak { background: #fef3c7; color: #92400e; font-weight: 800; font-size: 13px; padding: 6px 12px; border-radius: 999px; white-space: nowrap; }
-.dg-ringrow { display: flex; align-items: center; justify-content: space-between; gap: 6px; margin-top: 10px; }
-.dg-side { width: 76px; text-align: center; flex: none; }
-.dg-side b { font-size: 19px; display: block; }
-.dg-side small { font-size: 11px; color: #64748b; line-height: 1.25; display: block; }
-.dg-ring { flex: none; }
 .dg-ring-svg { width: 168px; height: 168px; display: block; }
-.dg-goal { text-align: center; font-size: 12.5px; color: #64748b; margin-top: 6px; }
+.fused-headrow { justify-content: space-between; }
+.fused-ringzone { display: block; text-align: center; margin-top: 4px; }
+.fused-ringzone .dg-ring-svg { margin: 0 auto; }
+.fused-at { display: block; margin-top: 8px; font-size: 14.5px; font-weight: 600; color: #475569; }
+.fused-note { display: block; margin-top: 4px; font-size: 13.5px; color: #64748b; line-height: 1.4; }
+.fused-nullhead { display: block; border-bottom: 1px solid #e5e7eb; padding-bottom: 10px; margin-bottom: 2px; }
+.fused-sep { height: 1px; background: #e5e7eb; margin: 14px 0 12px; }
 .dg-macros { margin-top: 12px; display: flex; flex-direction: column; gap: 8px; }
 .dg-macro { display: flex; align-items: center; gap: 10px; font-size: 13px; }
-.dg-macro-name { width: 86px; font-weight: 600; flex: none; }
+.dg-macro-name { width: 106px; font-size: 12px; font-weight: 600; flex: none; }
 .dg-macro-bar { flex: 1; height: 10px; background: #e5e7eb; border-radius: 99px; overflow: hidden; }
 .dg-macro-fill { display: block; height: 100%; border-radius: 99px; }
 .dg-macro-val { width: 92px; text-align: right; color: #475569; font-size: 12px; flex: none; }
@@ -4274,8 +4271,6 @@ body.swap-sheet-open .asst-fab { display: none !important; }
 .dg-quick-hot { background: #0d9488; color: #fff; border-color: #0d9488; }
 @media (max-width: 480px) {
   .dg-ring-svg { width: 150px; height: 150px; }
-  .dg-side { width: 64px; }
-  .dg-side b { font-size: 17px; }
   .dg-meal { width: 60px; }
   .dg-meal-circ { width: 54px; height: 54px; }
 }
