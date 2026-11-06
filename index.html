@@ -21,7 +21,7 @@
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-title" content="RONBO FIT">
 <meta name="apple-mobile-web-app-status-bar-style" content="default">
-<link rel="stylesheet" href="styles.css?v=20261105-nombramiento">
+<link rel="stylesheet" href="styles.css?v=20261105-fab-mascota">
 <script defer src="https://cloud.umami.is/script.js" data-website-id="a29706d4-44a2-47cf-900a-5f74d74abfa8"></script>
 <script type="importmap">
 {
@@ -346,8 +346,14 @@
        hoja #asst-float del entrenador virtual. Su visibilidad la
        manda asstFabSync con la misma regla de la pestaña Registro
        que la ayuda y el compartir, y el corte del interruptor de IA
-       (applyAiControl). -->
-  <button type="button" class="asst-fab" id="btn-asst-fab" style="display:none" aria-label="Talk to your virtual trainer" data-i18n-aria="asst.open"><svg viewBox="0 0 48 48" width="32" height="32" fill="none" aria-hidden="true"><circle cx="24" cy="19" r="8.5" fill="#fff" opacity=".95"/><path d="M10 40c1.5-7 7-10.5 14-10.5S36.5 33 38 40" fill="#fff" opacity=".95"/><path d="M12.5 20a11.5 11.5 0 0 1 23 0" stroke="#fff" stroke-width="3" stroke-linecap="round"/><rect x="8.5" y="19" width="5" height="9" rx="2.5" fill="#fff"/><rect x="34.5" y="19" width="5" height="9" rx="2.5" fill="#fff"/><path d="M36.5 28v3a5 5 0 0 1-5 5H27" stroke="#fff" stroke-width="3" stroke-linecap="round"/><circle cx="25" cy="36" r="2" fill="#fff"/></svg></button>
+       (applyAiControl). AUTH-2026-11-05-264: el disco lleva la
+       MASCOTA del coach (la misma imagen viva de la cabecera de
+       su hoja, con el icono genérico de respaldo si la foto no
+       carga) y PULSA suave para llamar la atención (el aro de
+       .asst-fab::after en styles.css; se apaga con
+       prefers-reduced-motion) — pedido directo de Ronald vía el
+       chat RONBO.STORE, 2026-11-05 23:00 CST. -->
+  <button type="button" class="asst-fab" id="btn-asst-fab" style="display:none" aria-label="Talk to your virtual trainer" data-i18n-aria="asst.open"><img class="asst-fab-img" src="https://ronbo-store.github.io/ronbo-nutri-assets/coach-virtual-avatar-comico.webp" alt="" onerror="this.style.display='none';this.nextElementSibling.style.display=''"><span class="asst-av-fb" style="display:none"><svg viewBox="0 0 48 48" width="32" height="32" fill="none" aria-hidden="true"><circle cx="24" cy="19" r="8.5" fill="#fff" opacity=".95"/><path d="M10 40c1.5-7 7-10.5 14-10.5S36.5 33 38 40" fill="#fff" opacity=".95"/><path d="M12.5 20a11.5 11.5 0 0 1 23 0" stroke="#fff" stroke-width="3" stroke-linecap="round"/><rect x="8.5" y="19" width="5" height="9" rx="2.5" fill="#fff"/><rect x="34.5" y="19" width="5" height="9" rx="2.5" fill="#fff"/><path d="M36.5 28v3a5 5 0 0 1-5 5H27" stroke="#fff" stroke-width="3" stroke-linecap="round"/><circle cx="25" cy="36" r="2" fill="#fff"/></svg></span></button>
 
   <div class="tab-pane" id="tab-track">
   <!-- Mapa de pendientes por rol (2026-10-24): tarjeta-resumen en la
@@ -1972,6 +1978,6 @@
 <div id="toast" class="toast"></div>
 <div id="print-card" aria-hidden="true"></div>
 
-<script type="module" src="app.js?v=20261105-nombramiento"></script>
+<script type="module" src="app.js?v=20261105-fab-mascota"></script>
 </body>
 </html>
