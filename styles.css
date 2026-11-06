@@ -823,6 +823,12 @@ table.whist { min-width: 640px; }
 .ai-q p{margin:0 0 4px;font-weight:600}
 .ai-opt{display:block;margin:4px 0;font-weight:400}
 .ai-actions{display:flex;gap:8px;margin-top:12px;flex-wrap:wrap}
+/* AUTH-2026-11-05-269: la fila del aviso con la cara del momento
+   (analizando / tope / no disponible): cara de 34 px junto al
+   texto; si la imagen no carga, se retira y el aviso queda como
+   siempre. */
+.ai-face-row { display: flex; align-items: center; gap: 10px; }
+.ai-face { width: 34px; height: 34px; border-radius: 50%; object-fit: cover; flex: none; display: block; }
 .ai-banner{background:#e6f4f1;border:1px solid #0e7c6b;color:#0b5d51;border-radius:8px;padding:8px 10px;margin-bottom:10px;font-size:13px}
 .ai-food-row{display:flex;gap:6px;align-items:center;margin:5px 0}
 .ai-food-name{flex:1;min-width:0;padding:7px 9px;border:1px solid #d1d5db;border-radius:8px;font-size:14px}

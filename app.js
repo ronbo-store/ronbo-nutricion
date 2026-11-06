@@ -23262,6 +23262,21 @@ function aiWireFailExtras() {
    la identificación ya tuvo éxito (los alimentos quedaron capturados
    en el estado) y el reintento es recalcular con lo mismo: misma
    revisión y mismo saveId, porque aiCalculate no crea estado nuevo. */
+/* AUTH-2026-11-05-269 (propuesta 5 de la cola de la mascota): las
+   caras del análisis de comida — la misma lengua visual que la
+   hoja del coach: la expectante ANIMADA mientras «mira» tu foto,
+   el guiño cuando llegas al tope del día (cómplice, no muro) y la
+   de cansado cuando el sistema no está disponible un momento
+   («está dormido, vuelve en un rato»). Viven junto al texto del
+   aviso, a 34 px; si una imagen no carga, se retira sola y el
+   aviso queda como siempre. URLs del repo de activos (la caché
+   de imágenes del SW guarda por URL). */
+const AI_FACE_THINKING = 'https://ronbo-store.github.io/ronbo-nutri-assets/avatar-coach-virtual/web/expectante-animada.webp';
+const AI_FACE_CAP = 'https://ronbo-store.github.io/ronbo-nutri-assets/avatar-coach-virtual/web/guino.webp';
+const AI_FACE_DOWN = 'https://ronbo-store.github.io/ronbo-nutri-assets/avatar-coach-virtual/web/cansado.webp';
+function aiFaceRow(htmlText, faceUrl) {
+  return `<p class="progress-hint ai-face-row"><img class="ai-face" src="${faceUrl}" alt="" onerror="this.remove()"><span>${htmlText}</span></p>`;
+}
 function aiErrorCardHTML() {
   /* Interruptor del administrador: aviso propio, SIN reintento (el
      servidor negaría cada intento) y con la salida manual abierta. */
@@ -23277,7 +23292,7 @@ function aiErrorCardHTML() {
   if (aiState.doorDown) {
     const canRetry = aiState.errStage !== 'identify' || aiHasInput();
     const retryBtn = canRetry ? `<button type="button" class="btn-main btn-sm" id="ai-retry">${t('ai.retry')}</button>` : '';
-    return { html: `<p class="progress-hint">${t('ai.doorUnavailable')}</p><div class="ai-actions">${retryBtn}<button type="button" class="${canRetry ? 'btn-ghost' : 'btn-main'} btn-sm" id="ai-manual">${t('ai.continueManual')}</button><button type="button" class="btn-ghost btn-sm" id="ai-cancel">${t('ai.discard')}</button></div>`, extras: false };
+    return { html: `${aiFaceRow(t('ai.doorUnavailable'), AI_FACE_DOWN)}<div class="ai-actions">${retryBtn}<button type="button" class="${canRetry ? 'btn-ghost' : 'btn-main'} btn-sm" id="ai-manual">${t('ai.continueManual')}</button><button type="button" class="btn-ghost btn-sm" id="ai-cancel">${t('ai.discard')}</button></div>`, extras: false };
   }
   /* Ventana de 15 días del análisis de tipo corporal: el aviso dice
      CUÁNDO se renueva (fecha real que devolvió el Worker). */
@@ -23290,7 +23305,7 @@ function aiErrorCardHTML() {
     /* Con el límite aplicable conocido, el aviso lo NOMBRA y dice que
        se renueva mañana; sin él, el texto genérico de siempre. */
     const head = aiState.capLimit != null ? t('ai.capReachedN', { n: aiState.capLimit }) : t('ai.capReached');
-    return { html: `<p class="progress-hint">${head}</p><p class="progress-hint">${t('ai.limitNote')}</p><div class="ai-actions"><button type="button" class="btn-main btn-sm" id="ai-manual">${t('ai.continueManual')}</button><button type="button" class="btn-ghost btn-sm" id="ai-cancel">${t('ai.discard')}</button></div>`, extras: false };
+    return { html: `${aiFaceRow(head, AI_FACE_CAP)}<p class="progress-hint">${t('ai.limitNote')}</p><div class="ai-actions"><button type="button" class="btn-main btn-sm" id="ai-manual">${t('ai.continueManual')}</button><button type="button" class="btn-ghost btn-sm" id="ai-cancel">${t('ai.discard')}</button></div>`, extras: false };
   }
   const identify = aiState.errStage === 'identify';
   const canRetry = !identify || aiHasInput();
@@ -23409,7 +23424,7 @@ function aiRenderErrorFallback() {
 function aiRenderInner() {
   const p = $('ai-panel');
   if (!p || !aiState) return;
-  if (aiState.step === 'loading') { aiShow(`<p class="progress-hint">${t('ai.analyzing')}</p>`); aiProgShow(); return; }
+  if (aiState.step === 'loading') { aiShow(aiFaceRow(t('ai.analyzing'), AI_FACE_THINKING)); aiProgShow(); return; }
   if (aiState.step === 'error') {
     aiProgHide(); // sin completar: manda el aviso honesto de error
     /* Tope diario alcanzado (aiState.cap, PAQUETE 2): mensaje
@@ -42666,7 +42681,7 @@ document.addEventListener('keydown', e => { if (e.key === 'Escape') shareClose()
  *  - El SW (sw.js) solo cachea la cáscara del mismo origen en modo
  *    RED PRIMERO: Auth/Firestore/Worker jamás pasan por la caché.
  * ================================================================ */
-const PWA_SW_VERSION = '20261105-fibra-fase1';
+const PWA_SW_VERSION = '20261105-comida-caras';
 /* Sello de versión VISIBLE (2026-11-03): el pie de la tarjeta de
    acceso enseña qué copia corre este teléfono ('v ' + el sello),
    para comprobar de un vistazo si la versión nueva ya llegó.
