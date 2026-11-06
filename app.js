@@ -11705,7 +11705,9 @@ async function regCreateAccount(pd) {
     const rw = $('reg-waiting');
     if (rw) {
       const tEnt = REG_DIRECTORY.find(tr => tr.uid === trainerChoice);
-      rw.innerHTML = `<b>${esc(t('reg.waitTitle'))}</b>` +
+      /* AUTH-2026-11-05-272 (propuesta 8): la bienvenida tras
+         registrarse la encabeza la celebración animada. */
+      rw.innerHTML = `<img class="reg-wait-face" src="${MASCOT_CELEB_URL}" alt="" onerror="this.remove()"><b>${esc(t('reg.waitTitle'))}</b>` +
         (trainerChoice ? esc(t('reg.waitTrainer', { name: (tEnt && tEnt.name) || t('roles.chooseTrainer') })) : esc(t('reg.waitAdmin')));
       rw.style.display = '';
       try { rw.scrollIntoView({ behavior: 'smooth', block: 'center' }); } catch {}
@@ -42689,7 +42691,7 @@ document.addEventListener('keydown', e => { if (e.key === 'Escape') shareClose()
  *  - El SW (sw.js) solo cachea la cáscara del mismo origen en modo
  *    RED PRIMERO: Auth/Firestore/Worker jamás pasan por la caché.
  * ================================================================ */
-const PWA_SW_VERSION = '20261105-plan-caras';
+const PWA_SW_VERSION = '20261105-recepcion';
 /* Sello de versión VISIBLE (2026-11-03): el pie de la tarjeta de
    acceso enseña qué copia corre este teléfono ('v ' + el sello),
    para comprobar de un vistazo si la versión nueva ya llegó.
