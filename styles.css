@@ -4204,3 +4204,51 @@ body.swap-sheet-open .asst-fab { display: none !important; }
 .nutri-zone-row { display: flex; gap: 10px; }
 .nutri-zone-row .nutri-zone-btn { flex: 1 1 0; }
 .nutri-zone-btn { min-height: 48px; }
+
+/* ===== PORTADA «TU DÍA DE UN VISTAZO» (#day-glance) =====
+   Panel principal al abrir la app (diseño aprobado por Ronald el
+   2026-11-06): círculo grande de kcal restantes legible a un
+   metro, barras de macros, círculos de comidas, agua y registro
+   rápido con objetivos táctiles de 48 px o más (regla de la casa:
+   la app se usa entrenando). */
+.day-glance { margin-bottom: 14px; }
+.dg-head { display: flex; justify-content: space-between; align-items: center; gap: 10px; }
+.dg-head h2 { font-size: 17px; margin: 0; }
+.dg-streak { background: #fef3c7; color: #92400e; font-weight: 800; font-size: 13px; padding: 6px 12px; border-radius: 999px; white-space: nowrap; }
+.dg-ringrow { display: flex; align-items: center; justify-content: space-between; gap: 6px; margin-top: 10px; }
+.dg-side { width: 76px; text-align: center; flex: none; }
+.dg-side b { font-size: 19px; display: block; }
+.dg-side small { font-size: 11px; color: #64748b; line-height: 1.25; display: block; }
+.dg-ring { flex: none; }
+.dg-ring-svg { width: 168px; height: 168px; display: block; }
+.dg-goal { text-align: center; font-size: 12.5px; color: #64748b; margin-top: 6px; }
+.dg-macros { margin-top: 12px; display: flex; flex-direction: column; gap: 8px; }
+.dg-macro { display: flex; align-items: center; gap: 10px; font-size: 13px; }
+.dg-macro-name { width: 86px; font-weight: 600; flex: none; }
+.dg-macro-bar { flex: 1; height: 10px; background: #e5e7eb; border-radius: 99px; overflow: hidden; }
+.dg-macro-fill { display: block; height: 100%; border-radius: 99px; }
+.dg-macro-val { width: 92px; text-align: right; color: #475569; font-size: 12px; flex: none; }
+.dg-meals-t { font-size: 14px; margin: 16px 0 10px; }
+.dg-meals { display: flex; justify-content: space-between; gap: 4px; }
+.dg-meal { background: none; border: none; padding: 4px 0; width: 68px; text-align: center; cursor: pointer; font: inherit; }
+.dg-meal-circ { width: 60px; height: 60px; margin: 0 auto 5px; border-radius: 50%; background: #e5e7eb; border: 2px dashed #cbd5e1; display: flex; align-items: center; justify-content: center; position: relative; }
+.dg-meal-circ.has { background: #f0fdfa; border: 2px solid #0d9488; }
+.dg-meal-ic { font-size: 24px; }
+.dg-meal-check { position: absolute; top: -4px; right: -4px; width: 22px; height: 22px; background: #0d9488; color: #fff; border: 2px solid #fff; border-radius: 50%; font-size: 12px; display: flex; align-items: center; justify-content: center; }
+.dg-meal-name { font-size: 11.5px; font-weight: 600; display: block; }
+.dg-meal-kcal { font-size: 11px; color: #64748b; display: block; }
+.dg-water { margin-top: 14px; background: #eff6ff; border: 1px solid #dbeafe; border-radius: 14px; padding: 10px 12px; display: flex; align-items: center; gap: 10px; }
+.dg-water-t { font-weight: 600; font-size: 14px; }
+.dg-water-v { margin-left: auto; font-weight: 800; font-size: 15px; }
+.dg-water-add { min-height: 48px; font-weight: 800; white-space: nowrap; }
+.dg-quick { margin-top: 12px; display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px; }
+.dg-quick-btn { min-height: 56px; border-radius: 16px; border: 1.5px solid #ccfbf1; background: #f0fdfa; font-size: 12.5px; font-weight: 700; color: #115e59; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 3px; cursor: pointer; font-family: inherit; }
+.dg-quick-ic { font-size: 20px; }
+.dg-quick-hot { background: #0d9488; color: #fff; border-color: #0d9488; }
+@media (max-width: 480px) {
+  .dg-ring-svg { width: 150px; height: 150px; }
+  .dg-side { width: 64px; }
+  .dg-side b { font-size: 17px; }
+  .dg-meal { width: 60px; }
+  .dg-meal-circ { width: 54px; height: 54px; }
+}

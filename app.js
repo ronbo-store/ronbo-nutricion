@@ -4224,6 +4224,18 @@ en: {
   'rings.topContrib': 'Top contributor',
   'rings.ofDay': 'of the day',
   'rings.noContrib': 'No meal contributed to this metric on this day.',
+  'glance.title': 'Your day at a glance',
+  'glance.consumed': 'Consumed',
+  'glance.burned': 'Burned (activity)',
+  'glance.kcalLeft': 'kcal left',
+  'glance.kcalOver': 'kcal over your goal',
+  'glance.kcalLogged': 'kcal logged',
+  'glance.goalLine': 'Daily goal: {goal} kcal · You are at {pct}%',
+  'glance.noGoal': 'No daily goal set yet — your logged meals still count here.',
+  'glance.streak1': '🔥 1-day streak',
+  'glance.streak': '🔥 {n}-day streak',
+  'glance.mealsTitle': "Today's meals",
+  'glance.pending': 'pending',
   'weight.title': '⚖️ Weight progress',
   'weight.sub': '· weekly weigh-in',
   'weight.add': '＋ Log weigh-in',
@@ -7779,6 +7791,18 @@ es: {
   'rings.topContrib': 'Mayor aporte',
   'rings.ofDay': 'del día',
   'rings.noContrib': 'Ninguna comida aportó a esta métrica en este día.',
+  'glance.title': 'Tu día de un vistazo',
+  'glance.consumed': 'Consumidas',
+  'glance.burned': 'Quemadas (actividad)',
+  'glance.kcalLeft': 'kcal te quedan',
+  'glance.kcalOver': 'kcal por encima de tu meta',
+  'glance.kcalLogged': 'kcal registradas',
+  'glance.goalLine': 'Meta del día: {goal} kcal · Vas al {pct}%',
+  'glance.noGoal': 'Aún no tienes meta del día: tus comidas registradas sí cuentan aquí.',
+  'glance.streak1': '🔥 Racha de 1 día',
+  'glance.streak': '🔥 Racha de {n} días',
+  'glance.mealsTitle': 'Comidas de hoy',
+  'glance.pending': 'pendiente',
   'weight.title': '⚖️ Evolución de peso',
   'weight.sub': '· pesaje semanal',
   'weight.add': '＋ Registrar pesaje',
@@ -34951,6 +34975,167 @@ function showLightbox(url) {
   lb.style.display = 'flex';
 }
 
+/* ================= PORTADA «TU DÍA DE UN VISTAZO» =================
+   Mejora 4 de la lista desde la competencia; diseño
+   DISENO-PORTADA-VISTAZO-2026-11-06 aprobado por Ronald el
+   2026-11-06 10:40 CST («Constrúyela así») sobre su maqueta. Es la
+   pantalla principal REAL al abrir la app (panel #day-glance,
+   arriba de #tab-track, antes del panel semanal) — no una ficha
+   de «Comparte tus logros». Se pinta desde render() con los datos
+   que render() ya carga (MEALS, metas del motor vía goalOf/
+   goalOfDay, actividad vía actDayView): cero lecturas nuevas
+   masivas; la única lectura propia es el documento de agua de hoy
+   (un solo documento por pintado, la misma que ya hace
+   renderWaterCard en la ventana de Comida).
+   DENTRO de la v1: círculo de kcal restantes (meta − consumido,
+   sin mezclar la actividad en la aritmética), barras de proteína/
+   carbos/grasas/azúcares contra su meta, círculos de las comidas
+   de hoy (el toque abre #food-float en el día, vista Resumen),
+   racha de días con comidas, agua de hoy con +250 ml por la vía
+   real de siempre y registro rápido Foto/Voz/Texto/Manual que
+   pulsa los botones reales de la hoja de Comida.
+   FUERA de la v1 (huecos previstos en el HTML, diseño §3): la
+   barra de fibra y la puntuación 0–100 — decisiones del dueño aún
+   pendientes; nada de ceros falsos ni fórmulas inventadas — y el
+   botón de código de barras (Mejora 3, aún no construida). */
+const GLANCE_MEALS = ['Desayuno', 'Merienda', 'Almuerzo', 'Snack', 'Cena'];
+const GLANCE_MEAL_ICONS = { 'Desayuno': '🍳', 'Merienda': '🍎', 'Almuerzo': '🥗', 'Snack': '🥜', 'Cena': '🍽️' };
+/* Cómputo puro de la portada: totales del día, totales por comida,
+   restantes y % contra la meta de kcal y racha de días con al
+   menos una comida (terminando hoy o, si hoy aún no hay registro,
+   ayer). goalFn(key) devuelve la meta o null — en la app es el
+   motor de metas; en la batería, un mapa ficticio. Sin red, sin
+   DOM: la batería del paquete lo ejecuta tal cual. */
+function glanceCompute(mealsByDate, today, goalFn) {
+  const src = mealsByDate || {};
+  const rows = Array.isArray(src[today]) ? src[today] : [];
+  const tot = { kcal: 0, prot: 0, carb: 0, azuc: 0, gras: 0 };
+  rows.forEach(m => { tot.kcal += num(m.kcal); tot.prot += num(m.prot); tot.carb += num(m.carb); tot.azuc += num(m.sugar); tot.gras += num(m.fat); });
+  const perMeal = GLANCE_MEALS.map(name => ({
+    name,
+    kcal: rows.filter(m => m.meal === name).reduce((s, m) => s + num(m.kcal), 0),
+    has: rows.some(m => m.meal === name)
+  }));
+  const kcalGoal = goalFn ? goalFn('kcal') : null;
+  const remaining = kcalGoal === null ? null : Math.round(kcalGoal - tot.kcal);
+  const pct = kcalGoal === null ? null : Math.round(tot.kcal / kcalGoal * 100);
+  let streak = 0;
+  let cursor = (src[today] && src[today].length) ? today : addDaysISO(today, -1);
+  while (streak < 366 && Array.isArray(src[cursor]) && src[cursor].length) { streak++; cursor = addDaysISO(cursor, -1); }
+  return { tot, perMeal, kcalGoal, remaining, pct, streak };
+}
+function glanceRingSVG(c) {
+  const C = 2 * Math.PI * 62;
+  if (c.kcalGoal === null) {
+    /* Sin meta de kcal: anillo neutro con SOLO lo registrado, como
+       los anillos sin meta de la casa (sin % ni comparación). */
+    return `<svg class="dg-ring-svg" viewBox="0 0 150 150" aria-hidden="true">
+    <circle cx="75" cy="75" r="62" fill="none" stroke="#E9ECEF" stroke-width="14"/>
+    <text x="75" y="76" text-anchor="middle" font-size="30" font-weight="800" fill="#0f766e">${fmt(Math.round(c.tot.kcal))}</text>
+    <text x="75" y="100" text-anchor="middle" font-size="11" fill="#6b7280">${t('glance.kcalLogged')}</text>
+  </svg>`;
+  }
+  const frac = Math.max(0, Math.min(c.tot.kcal / c.kcalGoal, 1));
+  const over = c.remaining < 0;
+  return `<svg class="dg-ring-svg" viewBox="0 0 150 150" aria-hidden="true">
+    <circle cx="75" cy="75" r="62" fill="none" stroke="#E9ECEF" stroke-width="14"/>
+    <circle cx="75" cy="75" r="62" fill="none" stroke="#0d9488" stroke-width="14"
+      stroke-linecap="round" stroke-dasharray="${(frac * C).toFixed(1)} ${C.toFixed(1)}"
+      transform="rotate(-90 75 75)"/>
+    <text x="75" y="76" text-anchor="middle" font-size="30" font-weight="800" fill="#0f766e">${fmt(Math.abs(c.remaining))}</text>
+    <text x="75" y="100" text-anchor="middle" font-size="11" fill="#6b7280">${over ? t('glance.kcalOver') : t('glance.kcalLeft')}</text>
+  </svg>`;
+}
+function glanceOpenFood() {
+  const today = todayISO();
+  const sel = $('dateSel');
+  if (sel && [...sel.options].some(o => o.value === today)) sel.value = today;
+  try { render(today); } catch {}
+  try { dockHome($('food-float')); } catch {}
+  if (typeof foodOpenFloat === 'function') foodOpenFloat();
+  if (typeof foodSetSub === 'function') foodSetSub('resumen');
+}
+let GLANCE_WATER = { date: '', ml: 0 };
+async function glanceWaterPaint() {
+  const lab = $('dg-water-ml'); if (!lab) return;
+  const me = auth.currentUser && auth.currentUser.uid; if (!me) return;
+  const today = todayISO();
+  if (GLANCE_WATER.date === today) lab.textContent = GLANCE_WATER.ml + ' ml';
+  try {
+    const ws = await getDoc(doc(db, 'nutrition_water', me + '_' + today));
+    const ml = ws.exists() ? (Number(ws.data().ml) || 0) : 0;
+    GLANCE_WATER = { date: today, ml };
+    lab.textContent = ml + ' ml';
+  } catch {}
+}
+function renderDayGlance() {
+  const box = $('day-glance'); if (!box) return;
+  const me = auth.currentUser && auth.currentUser.uid;
+  if (!me) { box.style.display = 'none'; return; }
+  box.style.display = '';
+  const today = todayISO();
+  /* La misma convención de metas de los anillos: carbos y grasas
+     leen la meta del día (tipo de día) y el resto, la meta base. */
+  const goalFn = key => (key === 'carb' || key === 'gras') && typeof goalOfDay === 'function' ? goalOfDay(key, today) : goalOf(key);
+  const c = glanceCompute(MEALS, today, goalFn);
+  $('dg-consumed').textContent = fmt(Math.round(c.tot.kcal));
+  /* Dato lateral de actividad: las kcal extra del día que ya pinta
+     la llamita de Actividad (actDayView.extras), solo si hay. NO
+     entra en la aritmética de los restantes (diseño §2.1). */
+  let burned = 0;
+  try { if (typeof ACT_LOADED !== 'undefined' && ACT_LOADED && typeof actDayView === 'function') burned = Math.round(actDayView(today).extras) || 0; } catch {}
+  const bb = $('dg-burned-box');
+  if (bb) { bb.style.visibility = burned > 0 ? '' : 'hidden'; if (burned > 0) $('dg-burned').textContent = fmt(burned); }
+  $('dg-ring').innerHTML = glanceRingSVG(c);
+  $('dg-goal').textContent = c.kcalGoal === null ? t('glance.noGoal') : t('glance.goalLine', { goal: fmt(c.kcalGoal), pct: c.pct });
+  const st = $('dg-streak');
+  if (st) {
+    if (c.streak > 0) { st.textContent = c.streak === 1 ? t('glance.streak1') : t('glance.streak', { n: c.streak }); st.style.display = ''; }
+    else st.style.display = 'none';
+  }
+  $('dg-macros').innerHTML = METRICS.filter(m => m.key !== 'kcal').map(m => {
+    const goal = goalFn(m.key);
+    const val = c.tot[m.key];
+    const w = goal === null ? 0 : Math.max(0, Math.min(val / goal * 100, 100));
+    const valTxt = goal === null ? `${fmt(val)} ${m.unit}` : `${fmt(val)} / ${fmt(goal)} ${m.unit}`;
+    return `<div class="dg-macro"><span class="dg-macro-name">${t('metric.' + m.key)}</span><span class="dg-macro-bar"><span class="dg-macro-fill" style="width:${w.toFixed(1)}%;background:${m.color}"></span></span><span class="dg-macro-val">${valTxt}</span></div>`;
+  }).join('');
+  $('dg-meals').innerHTML = c.perMeal.map(pm => `
+    <button type="button" class="dg-meal" data-dg-meal="${esc(pm.name)}">
+      <span class="dg-meal-circ${pm.has ? ' has' : ''}">${pm.has ? '<span class="dg-meal-check" aria-hidden="true">✓</span>' : ''}<span class="dg-meal-ic" aria-hidden="true">${GLANCE_MEAL_ICONS[pm.name] || '🍽️'}</span></span>
+      <span class="dg-meal-name">${esc(mealName(pm.name))}</span>
+      <span class="dg-meal-kcal">${pm.has ? fmt(Math.round(pm.kcal)) + ' kcal' : esc(t('glance.pending'))}</span>
+    </button>`).join('');
+  box.querySelectorAll('[data-dg-meal]').forEach(b => b.onclick = () => glanceOpenFood());
+  glanceWaterPaint();
+}
+/* El +250 ml de la portada escribe EXACTAMENTE como el botón de
+   la tarjeta de Comida (renderWaterCard): mismo documento
+   nutrition_water/{uid}_{hoy}, mismos campos y merge con el total
+   sumado; al guardar refresca las dos etiquetas del agua. */
+{ const b = $('dg-water-add');
+  if (b) b.onclick = async () => {
+    const uid = auth.currentUser && auth.currentUser.uid; if (!uid) return;
+    try {
+      const ref = doc(db, 'nutrition_water', uid + '_' + todayISO());
+      const cur = await getDoc(ref);
+      const total = (cur.exists() ? (Number(cur.data().ml) || 0) : 0) + 250;
+      await setDoc(ref, { studentUid: uid, date: todayISO(), ml: total, byUid: uid, byRole: 'alumno', updatedAt: serverTimestamp() }, { merge: true });
+      GLANCE_WATER = { date: todayISO(), ml: total };
+      const lab = $('dg-water-ml'); if (lab) lab.textContent = total + ' ml';
+      const lab2 = $('nutri-water-ml'); if (lab2) lab2.textContent = total + ' ml';
+      toast(t('nutri.saved'));
+    } catch { toast(t('err.createFail'), true); }
+  }; }
+/* Registro rápido: cada botón pulsa el botón REAL de la hoja de
+   Comida, con todas sus puertas de siempre (aiEndpoint, topes y
+   la preparación de la vía manual en mealManualOpen). */
+{ const dgMap = { 'dg-btn-photo': 'btn-food-photo', 'dg-btn-voice': 'btn-food-voice', 'dg-btn-text': 'btn-food-text', 'dg-btn-manual': 'btn-food-manual' };
+  for (const [dg, real] of Object.entries(dgMap)) {
+    const b = $(dg);
+    if (b) b.onclick = () => { const r = $(real); if (r) r.click(); };
+  } }
+
 /* ================= RENDER (igual que la versión anterior) ================= */
 function totals(date) {
   const t = { kcal: 0, prot: 0, carb: 0, azuc: 0, gras: 0 };
@@ -36033,6 +36218,10 @@ function render(date) {
       await loadAllKeepDate(date);
     });
   renderActivity(date);
+  /* PORTADA «TU DÍA DE UN VISTAZO»: se repinta con cada render
+     (siempre el día de HOY propio, no la fecha elegida en la
+     ventana de Comida) con los datos ya cargados. */
+  try { renderDayGlance(); } catch {}
 }
 async function loadAllKeepDate(date) {
   await loadAll();
@@ -42842,7 +43031,7 @@ document.addEventListener('keydown', e => { if (e.key === 'Escape') shareClose()
  *  - El SW (sw.js) solo cachea la cáscara del mismo origen en modo
  *    RED PRIMERO: Auth/Firestore/Worker jamás pasan por la caché.
  * ================================================================ */
-const PWA_SW_VERSION = '20261106-voz-coach';
+const PWA_SW_VERSION = '20261106-portada-vistazo';
 /* Sello de versión VISIBLE (2026-11-03): el pie de la tarjeta de
    acceso enseña qué copia corre este teléfono ('v ' + el sello),
    para comprobar de un vistazo si la versión nueva ya llegó.

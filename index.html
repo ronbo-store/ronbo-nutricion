@@ -21,7 +21,7 @@
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-title" content="RONBO FIT">
 <meta name="apple-mobile-web-app-status-bar-style" content="default">
-<link rel="stylesheet" href="styles.css?v=20261106-voz-coach">
+<link rel="stylesheet" href="styles.css?v=20261106-portada-vistazo">
 <script defer src="https://cloud.umami.is/script.js" data-website-id="a29706d4-44a2-47cf-900a-5f74d74abfa8"></script>
 <script type="importmap">
 {
@@ -402,6 +402,53 @@
        hoja flotante de ingreso y la LLAMITA flotante del total
        diario — todo junto al dock, al final de #tab-track. El
        modelo de datos y de cómputo NO cambia (activity_logs). -->
+
+  <!-- PORTADA «TU DÍA DE UN VISTAZO» (Mejora 4 desde la competencia;
+       diseño DISENO-PORTADA-VISTAZO-2026-11-06 aprobado por Ronald
+       el 2026-11-06 10:40 CST, «Constrúyela así»): la pantalla
+       principal REAL al abrir la app — NO una ficha de «Comparte
+       tus logros». El panel #day-glance vive arriba de esta vista,
+       antes del panel semanal, y lo pinta renderDayGlance() con los
+       datos que render() ya carga (cero lecturas nuevas masivas):
+       círculo de kcal restantes del día propio, barras de proteína/
+       carbos/grasas/azúcares contra la meta del motor de metas,
+       círculos de las comidas de hoy (su toque abre #food-float en
+       el día), racha de días con comidas, agua de hoy con +250 ml
+       por la vía real de siempre y registro rápido Foto/Voz/Texto/
+       Manual por las vías reales. FUERA de la v1, con su hueco
+       previsto en la estructura: la barra de fibra y la puntuación
+       0–100 (decisiones del dueño aún pendientes) y el botón de
+       código de barras (Mejora 3, aún no construida). -->
+  <div class="panel day-glance" id="day-glance" style="display:none">
+    <div class="dg-head">
+      <h2 data-i18n="glance.title">Your day at a glance</h2>
+      <span class="dg-streak" id="dg-streak" style="display:none"></span>
+    </div>
+    <div class="dg-ringrow">
+      <div class="dg-side"><b id="dg-consumed">0</b><small data-i18n="glance.consumed">Consumed</small></div>
+      <div class="dg-ring" id="dg-ring"></div>
+      <div class="dg-side" id="dg-burned-box" style="visibility:hidden"><b id="dg-burned">0</b><small data-i18n="glance.burned">Burned (activity)</small></div>
+    </div>
+    <p class="dg-goal" id="dg-goal"></p>
+    <div class="dg-macros" id="dg-macros"></div>
+    <!-- HUECO PREVISTO (diseño §3): aquí irá la barra de fibra
+         cuando el dato exista de verdad (Mejora 2). -->
+    <!-- HUECO PREVISTO (diseño §3): aquí irá la puntuación del día
+         cuando Ronald cierre su fórmula (Mejora 5). -->
+    <h3 class="dg-meals-t" data-i18n="glance.mealsTitle">Today's meals</h3>
+    <div class="dg-meals" id="dg-meals"></div>
+    <div class="dg-water">
+      <span class="dg-water-t">💧 <span data-i18n="nutri.water">Water today</span></span>
+      <span class="dg-water-v" id="dg-water-ml">0 ml</span>
+      <button type="button" class="btn-ghost dg-water-add" id="dg-water-add">+250 ml</button>
+    </div>
+    <div class="dg-quick">
+      <button type="button" class="dg-quick-btn dg-quick-hot" id="dg-btn-photo"><span class="dg-quick-ic" aria-hidden="true">📷</span><span data-i18n="food.photo">Photo</span></button>
+      <button type="button" class="dg-quick-btn" id="dg-btn-voice"><span class="dg-quick-ic" aria-hidden="true">🎙️</span><span data-i18n="food.voice">Voice</span></button>
+      <button type="button" class="dg-quick-btn" id="dg-btn-text"><span class="dg-quick-ic" aria-hidden="true">✍️</span><span data-i18n="food.text">Text</span></button>
+      <button type="button" class="dg-quick-btn" id="dg-btn-manual"><span class="dg-quick-ic" aria-hidden="true">✋</span><span data-i18n="food.manual">Manual</span></button>
+    </div>
+  </div>
 
   <div class="panel week-panel">
     <h2 data-i18n="track.weekTitle">📈 Weekly goal compliance</h2>
@@ -2006,6 +2053,6 @@
 <div id="toast" class="toast"></div>
 <div id="print-card" aria-hidden="true"></div>
 
-<script type="module" src="app.js?v=20261106-voz-coach"></script>
+<script type="module" src="app.js?v=20261106-portada-vistazo"></script>
 </body>
 </html>
