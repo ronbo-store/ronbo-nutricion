@@ -4079,3 +4079,22 @@ body.swap-sheet-open .asst-fab { display: none !important; }
 .admq-line { font-size: 14px; color: #33524e; margin: 8px 0; line-height: 1.5; }
 .admq-hrow { display: flex; flex-wrap: wrap; gap: 4px 14px; align-items: baseline; padding: 8px 0; border-top: 1px solid #d8e6e2; font-size: 13.5px; color: #33524e; }
 .admq-hrow b { font-size: 14.5px; color: #14201f; min-width: 64px; }
+
+/* NOMBRAMIENTO (AUTH-2026-11-05-263): ventana de nombramiento de
+   Accesos — ventana .pend-float de la casa, interruptores grandes
+   (.ds-switch reutilizado) y botón de confirmación a todo ancho;
+   pensado para tocarse con la motricidad de quien entrena. */
+.appt-open-btn { min-height: 40px; padding: 8px 14px; font-size: 14px; }
+.appt-head { display: flex; gap: 12px; align-items: center; margin-bottom: 12px; }
+.appt-head-txt { min-width: 0; }
+.appt-name { font-weight: 800; font-size: 17px; color: #0a2e3f; }
+.appt-mail { font-size: 13px; overflow-wrap: anywhere; }
+.appt-row { display: flex; width: 100%; align-items: center; gap: 12px; text-align: left; background: #fff; border: 2px solid #d7e3e3; border-radius: 14px; padding: 12px 14px; margin: 0 0 10px; cursor: pointer; font-family: inherit; min-height: 64px; box-sizing: border-box; }
+.appt-row[aria-pressed="true"] { border-color: #07949e; background: #f0fafa; }
+.appt-row.is-held { opacity: .75; cursor: default; }
+.appt-row-txt { flex: 1; display: flex; flex-direction: column; gap: 2px; min-width: 0; }
+.appt-row-name { font-weight: 800; font-size: 16px; color: #0a2e3f; }
+.appt-row-sub { font-size: 13px; color: #475569; line-height: 1.4; }
+.appt-held-badge { align-self: flex-start; background: #e9f1f1; color: #0d6e7d; border-radius: 999px; padding: 2px 10px; font-size: 12px; font-weight: 700; }
+.appt-summary { background: #f8fbfb; border: 1px solid #e2ecec; border-radius: 12px; padding: 10px 12px; font-size: 13.5px; line-height: 1.5; color: #334155; margin: 2px 0 12px; }
+.appt-confirm { width: 100%; min-height: 52px; font-size: 16px; }

@@ -4278,6 +4278,21 @@ en: {
   'roles.usuario': 'Student',
   'roles.roleLabel': 'Role',
   'roles.roleSaved': 'Role updated.',
+  'appt.btn': 'Appoint',
+  'appt.title': 'Appoint roles',
+  'appt.trainer': 'Trainer',
+  'appt.trainerSub': 'Assigns routines and follows their students’ progress.',
+  'appt.coach': 'Food Coach',
+  'appt.coachSub': 'Builds and proposes meal plans for their students.',
+  'appt.already': 'Already has it',
+  'appt.summaryTrainer': 'Will become a trainer: profile and membership without a level, the same as with the Role menu.',
+  'appt.summaryCoach': 'Will become a food coach, already approved, with an active membership without a level. The coach directory is NOT published by this: publishing stays your separate button.',
+  'appt.summaryNone': 'Pick at least one role they do not have yet.',
+  'appt.confirm': 'Appoint and send email',
+  'appt.mailOnly': 'Send the email',
+  'appt.done': 'Appointment saved.',
+  'appt.mailFail': 'The roles were saved, but the email did not go out. You can retry it from here.',
+  'appt.working': 'Working…',
   'roles.chooseTrainer': 'Who will be your trainer?',
   'roles.waitingOption': 'Decide later — wait for assignment',
   'roles.waitingTitle': '⏳ Waiting for assignment',
@@ -7794,6 +7809,21 @@ es: {
   'roles.usuario': 'Alumno',
   'roles.roleLabel': 'Rol',
   'roles.roleSaved': 'Rol actualizado.',
+  'appt.btn': 'Nombrar',
+  'appt.title': 'Nombrar roles',
+  'appt.trainer': 'Entrenador',
+  'appt.trainerSub': 'Asigna rutinas y sigue el progreso de sus alumnos.',
+  'appt.coach': 'Coach de alimentación',
+  'appt.coachSub': 'Construye y propone planes de comidas para sus alumnos.',
+  'appt.already': 'Ya lo tiene',
+  'appt.summaryTrainer': 'Pasará a ser entrenador: perfil y membresía sin nivel, igual que con el menú Rol.',
+  'appt.summaryCoach': 'Pasará a ser coach de alimentación, ya aprobado, con membresía activa sin nivel. El directorio de coaches NO se publica con esto: publicarlo sigue siendo tu botón aparte.',
+  'appt.summaryNone': 'Elige al menos un rol que todavía no tenga.',
+  'appt.confirm': 'Nombrar y enviar correo',
+  'appt.mailOnly': 'Enviar el correo',
+  'appt.done': 'Nombramiento guardado.',
+  'appt.mailFail': 'Los roles se guardaron, pero el correo no salió. Puedes reintentarlo desde aquí.',
+  'appt.working': 'Trabajando…',
   'roles.chooseTrainer': '¿Quién será tu entrenador?',
   'roles.waitingOption': 'Decidir después: esperar asignación',
   'roles.waitingTitle': '⏳ En espera de asignación',
@@ -12289,6 +12319,7 @@ async function loadAdmin() {
         <button class="btn-ghost btn-sm" data-goals="${u.id}">${t('admin.goals')}</button>
         ${u.role === 'entrenador' ? `<button class="btn-ghost btn-sm" data-dos-mail="${u.id}">${t('esc.mailBtn')}</button>` : ''}
         <button class="btn-ghost btn-sm" data-mail-resend="${u.id}" title="${t('mail.resendBtn')}" aria-label="${t('mail.resendBtn')}">📧</button>
+        <button class="btn-primary appt-open-btn" data-appt="${u.id}">🎖️ ${esc(t('appt.btn'))}</button>
         <button class="btn-ghost btn-sm" data-revoke="${u.id}">${t('admin.revoke')}</button>
         ${PROTECTED_UIDS.includes(u.id) ? '' : `<button class="btn-ghost btn-sm btn-delete-user" data-delete-user="${u.id}">${t('admin.deleteUser')}</button>`}
         <button class="btn-ghost btn-sm" data-pk-revoke="${u.id}">${t('pk.revoke')}</button>
@@ -12389,6 +12420,9 @@ async function loadAdmin() {
     if (res.ok) toast(t('mail.sentOk', { email: res.to }));
     else toast(t('mail.sendFailed', { reason: mailReasonText(res) }));
   });
+  /* NOMBRAMIENTO (AUTH-2026-11-05-263): el botón «Nombrar» de cada
+     fila abre la ventana de nombramiento (apptOpen). */
+  document.querySelectorAll('[data-appt]').forEach(b => b.onclick = () => { apptOpen(b.dataset.appt); });
   const dirBox = $('trainer-dir-box');
   if (dirBox) {
     dirBox.innerHTML = `<div class="eval-actions"><button type="button" class="btn-ghost btn-sm" id="btn-dir-update">${t('roles.dirUpdate')}</button></div>`;
@@ -12545,6 +12579,8 @@ function apprFloatClose() {
 }
 { const x = document.getElementById('appr-float-x');
   if (x) x.onclick = () => apprFloatClose(); }
+{ const x = document.getElementById('appt-float-x');
+  if (x) x.onclick = () => { APPT = null; const fl = document.getElementById('appt-float'); if (fl) fl.style.display = 'none'; }; }
 
 /* ============ ELIMINAR USUARIO — BORRADO COMPLETO (solo dueño) ============
    Flujo de la fila de Accesos (botón rojo «Eliminar usuario», junto
@@ -20573,6 +20609,16 @@ async function mailSend(uid, template, langOverride, extra) {
        el Worker la revalida entera — un tipo fuera del catálogo
        invalida el envío completo, sin texto libre ni URLs. */
     if (extra && Array.isArray(extra.pends)) payload.pends = extra.pends;
+    /* NOMBRAMIENTO (AUTH-2026-11-05-263): extra.roles es la lista
+       CERRADA de roles recién otorgados (subconjunto de
+       ['trainer','coach']) y extra.appt el nonce del nombramiento;
+       solo viajan en el correo 'appointment' y el Worker los
+       revalida enteros (el nonce evita el doble envío). */
+    if (extra && Array.isArray(extra.roles)) {
+      const roles = [...new Set(extra.roles.filter(r => r === 'trainer' || r === 'coach'))];
+      if (roles.length) payload.roles = roles;
+    }
+    if (extra && typeof extra.appt === 'string' && extra.appt) payload.appt = extra.appt.slice(0, 80);
     const r = await fetch(ep + '/mail/send', {
       method: 'POST', headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(payload),
@@ -20643,6 +20689,170 @@ async function mailAutoWelcome(uid, name) {
    Solo el alumno y SU entrenador asignado ven cada petición; el
    administrador la ve en la ficha como ve todo, pero el pendiente,
    el correo y la resolución son del entrenador que la recibió. */
+/* ================= NOMBRAMIENTO (AUTH-2026-11-05-263) =================
+   El administrador nombra ÉL MISMO, desde la pastilla «Accesos», a
+   cualquier usuario activo ya registrado como entrenador y/o coach
+   de alimentación (orden de Ronald, 2026-11-05 23:02 CST: «eso
+   quiero hacerlo yo desde la app — crea el mecanismo»). Entrada
+   única: botón «Nombrar» en cada fila de usuario activo → ventana
+   con foto y nombre, dos interruptores grandes del estilo de la
+   casa (los roles que ya tenga salen marcados y no se repiten),
+   resumen claro y UN botón «Nombrar y enviar correo».
+   · Entrenador: EXACTAMENTE el camino probado del desplegable
+     «Rol» (users.role + escEnsureTrainerScaffold + auditLog) — el
+     desplegable NO se retira; esto es la vía con correo.
+   · Coach: nutritionist_profiles/{uid} nace YA APROBADO con la
+     marca de origen 'admin_appointment' y
+     nutritionist_memberships/{uid} ACTIVA sin nivel (decisiones
+     2026-11-03: sin nivel de prueba, cupo libre) — el hueco que
+     este paquete cierra; publicar el directorio sigue siendo el
+     botón aparte de Ronald (esto NO lo publica).
+   · Correo 'appointment' (banco fijo del Worker, con avatar): una
+     sola vez por nombramiento — el nonce viaja con el envío y el
+     Worker lo rechaza si se repite; nombrar un rol que ya tenía no
+     reenvía nada. */
+let APPT = null; /* { uid, name, photo, hasTrainer, coachOk, sel:{trainer,coach}, nonce, granted:[], stage:'pick'|'mail', busy } */
+
+function apptAvatarHtml(photo, name, size) {
+  const s = size || 64;
+  const ok = typeof photo === 'string' && /^https:\/\/[^\s"'<>]+$/.test(photo);
+  if (ok) return `<img src="${esc(photo)}" alt="" width="${s}" height="${s}" style="width:${s}px;height:${s}px;border-radius:50%;object-fit:cover;border:3px solid #07949e;background:#e9f1f1" onerror="this.outerHTML=apptAvatarHtml('', '', ${s})">`;
+  return `<span style="display:inline-flex;width:${s}px;height:${s}px;border-radius:50%;background:#07949e;color:#fff;font-weight:800;font-size:${Math.round(s * 0.42)}px;align-items:center;justify-content:center;border:3px solid #07949e">${esc((name || 'R').trim().charAt(0).toUpperCase() || 'R')}</span>`;
+}
+
+async function apptOpen(uid) {
+  const u = (typeof ADMIN_USERS !== 'undefined' ? ADMIN_USERS : []).find(x => x.id === uid);
+  if (!u) return;
+  const fl = $('appt-float'); if (!fl) return;
+  fl.style.display = 'block';
+  $('appt-float-body').innerHTML = `<div class="wempty">${esc(t('access.loading'))}</div>`;
+  let coachOk = false;
+  try {
+    const ps = await getDoc(doc(db, 'nutritionist_profiles', uid));
+    coachOk = ps.exists() && ps.data().status === 'aprobado';
+  } catch { coachOk = false; }
+  APPT = {
+    uid, name: u.name || u.email || uid, photo: u.photoURL || '',
+    hasTrainer: u.role === 'entrenador', coachOk,
+    sel: { trainer: false, coach: false },
+    nonce: uid + '-' + Date.now().toString(36),
+    granted: [], stage: 'pick', busy: false
+  };
+  apptPaint();
+}
+
+function apptRow(role) {
+  const held = role === 'trainer' ? APPT.hasTrainer : APPT.coachOk;
+  const on = held || !!APPT.sel[role];
+  return `<button type="button" class="appt-row${held ? ' is-held' : ''}" data-appt-role="${role}" aria-pressed="${on ? 'true' : 'false'}" ${held ? 'disabled' : ''}>
+    <span class="appt-row-txt"><span class="appt-row-name">${role === 'trainer' ? '🏋️' : '🥗'} ${esc(t('appt.' + role))}</span>
+    <span class="appt-row-sub">${esc(t('appt.' + role + 'Sub'))}</span>
+    ${held ? `<span class="appt-held-badge">${esc(t('appt.already'))}</span>` : ''}</span>
+    <span class="ds-switch${on ? ' on' : ''}" aria-hidden="true"><span class="ds-knob">${on ? '✓' : '✕'}</span></span>
+  </button>`;
+}
+
+function apptSummary() {
+  if (APPT.stage === 'mail') return esc(t('appt.mailFail'));
+  const parts = [];
+  if (APPT.sel.trainer && !APPT.hasTrainer) parts.push(esc(t('appt.summaryTrainer')));
+  if (APPT.sel.coach && !APPT.coachOk) parts.push(esc(t('appt.summaryCoach')));
+  return parts.length ? parts.join('<br>') : esc(t('appt.summaryNone'));
+}
+
+function apptPaint() {
+  if (!APPT) return;
+  $('appt-float-body').innerHTML = `
+    <div class="appt-head">${apptAvatarHtml(APPT.photo, APPT.name, 64)}
+      <div class="appt-head-txt"><div class="appt-name">${esc(APPT.name)}</div>
+      <div class="appt-mail muted">${esc(((typeof ADMIN_USERS !== 'undefined' ? ADMIN_USERS : []).find(x => x.id === APPT.uid) || {}).email || '')}</div></div>
+    </div>
+    ${apptRow('trainer')}
+    ${apptRow('coach')}
+    <p class="appt-summary" id="appt-summary">${apptSummary()}</p>
+    <button type="button" class="btn-primary appt-confirm" id="appt-confirm" ${APPT.busy ? 'disabled' : ''}>${APPT.busy ? esc(t('appt.working')) : esc(t(APPT.stage === 'mail' ? 'appt.mailOnly' : 'appt.confirm'))}</button>`;
+  document.querySelectorAll('#appt-float [data-appt-role]').forEach(b => {
+    b.onclick = () => {
+      if (APPT.busy) return;
+      const role = b.getAttribute('data-appt-role');
+      APPT.sel[role] = !APPT.sel[role];
+      apptPaint();
+    };
+  });
+  $('appt-confirm').onclick = () => { apptConfirm(); };
+}
+
+async function apptGrantCoach(uid, name) {
+  const me = auth.currentUser ? auth.currentUser.uid : null;
+  const ps = await getDoc(doc(db, 'nutritionist_profiles', uid));
+  if (!ps.exists()) {
+    await setDoc(doc(db, 'nutritionist_profiles', uid), {
+      displayName: name || '', bio: '', specialties: [], languages: [], modalities: ['virtual'], formation: '',
+      status: 'aprobado', origin: 'admin_appointment', activeClients: 0,
+      reviewedBy: me, reviewedAt: serverTimestamp(), createdAt: serverTimestamp(), updatedAt: serverTimestamp()
+    });
+  } else if (ps.data().status !== 'aprobado') {
+    await setDoc(doc(db, 'nutritionist_profiles', uid), {
+      status: 'aprobado', origin: 'admin_appointment', reviewedBy: me, reviewedAt: serverTimestamp(), updatedAt: serverTimestamp()
+    }, { merge: true });
+  }
+  const ms = await getDoc(doc(db, 'nutritionist_memberships', uid));
+  if (!ms.exists()) {
+    await setDoc(doc(db, 'nutritionist_memberships', uid), {
+      level: null, status: 'activa', origin: 'admin_appointment', source: 'gratis',
+      requestedLevel: null, requestedAt: null, decidedBy: me, decidedAt: serverTimestamp(),
+      startedAt: serverTimestamp(), currentPeriodEnd: null, priceSnapshot: null
+    });
+  } else if (ms.data().status !== 'activa') {
+    await setDoc(doc(db, 'nutritionist_memberships', uid), {
+      status: 'activa', origin: 'admin_appointment', source: 'gratis',
+      decidedBy: me, decidedAt: serverTimestamp(), startedAt: serverTimestamp()
+    }, { merge: true });
+  }
+  nutriAudit('nutritionist.appointed', uid, 'administrador', 'nombramiento desde Accesos');
+}
+
+async function apptSendMail() {
+  const res = await mailSend(APPT.uid, 'appointment', undefined, { roles: APPT.granted, appt: APPT.nonce });
+  if (res.ok) {
+    mailRecordNotice(APPT.uid, 'appointment');
+    toast(t('appt.done') + ' ' + t('mail.sentOk', { email: res.to }));
+    APPT = null;
+    const fl = $('appt-float'); if (fl) fl.style.display = 'none';
+    loadAdmin();
+  } else {
+    APPT.stage = 'mail'; APPT.busy = false;
+    apptPaint();
+    toast(mailReasonText(res));
+  }
+}
+
+async function apptConfirm() {
+  if (!APPT || APPT.busy) return;
+  if (APPT.stage === 'mail') { APPT.busy = true; apptPaint(); await apptSendMail(); return; }
+  const grant = [];
+  if (APPT.sel.trainer && !APPT.hasTrainer) grant.push('trainer');
+  if (APPT.sel.coach && !APPT.coachOk) grant.push('coach');
+  if (!grant.length) { toast(t('appt.summaryNone')); return; }
+  APPT.busy = true; apptPaint();
+  try {
+    if (grant.includes('trainer')) {
+      /* El MISMO camino del desplegable «Rol»: rol + andamiaje +
+         bitácora, en el mismo orden. */
+      await setDoc(doc(db, 'users', APPT.uid), { role: 'entrenador' }, { merge: true });
+      await escEnsureTrainerScaffold(APPT.uid, APPT.name);
+      auditLog('role', 'role.assigned', APPT.uid, 'entrenador');
+    }
+    if (grant.includes('coach')) await apptGrantCoach(APPT.uid, APPT.name);
+    APPT.granted = grant;
+    await apptSendMail();
+  } catch (e) {
+    APPT.busy = false;
+    apptPaint();
+    toast(t('mail.reasonGeneric'));
+  }
+}
+
 const TREQ_TYPES = ['more_days', 'fewer_days', 'change_exercise', 'pain_injury', 'question', 'other'];
 const TREQ_MSG_REQUIRED = ['change_exercise', 'pain_injury', 'other'];
 let TREQ_MINE = null;    /* mis peticiones (vista del alumno) o null si la lectura falló */
@@ -42271,7 +42481,7 @@ document.addEventListener('keydown', e => { if (e.key === 'Escape') shareClose()
  *  - El SW (sw.js) solo cachea la cáscara del mismo origen en modo
  *    RED PRIMERO: Auth/Firestore/Worker jamás pasan por la caché.
  * ================================================================ */
-const PWA_SW_VERSION = '20261105-avatar-comico';
+const PWA_SW_VERSION = '20261105-nombramiento';
 /* Sello de versión VISIBLE (2026-11-03): el pie de la tarjeta de
    acceso enseña qué copia corre este teléfono ('v ' + el sello),
    para comprobar de un vistazo si la versión nueva ya llegó.

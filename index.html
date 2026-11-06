@@ -21,7 +21,7 @@
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-title" content="RONBO FIT">
 <meta name="apple-mobile-web-app-status-bar-style" content="default">
-<link rel="stylesheet" href="styles.css?v=20261105-avatar-comico">
+<link rel="stylesheet" href="styles.css?v=20261105-nombramiento">
 <script defer src="https://cloud.umami.is/script.js" data-website-id="a29706d4-44a2-47cf-900a-5f74d74abfa8"></script>
 <script type="importmap">
 {
@@ -689,6 +689,18 @@
       <button type="button" class="pend-close nav-page-x" id="appr-float-x" aria-label="Close" data-i18n-aria="client.close">✕</button>
     </div>
     <div id="appr-float-list"><div class="wempty" data-i18n="access.loading">Loading…</div></div>
+  </div>
+  <!-- NOMBRAMIENTO (AUTH-2026-11-05-263): la ventana que abre el
+       botón «Nombrar» de cada fila de Accesos — foto y nombre de la
+       persona, dos interruptores grandes (Entrenador / Coach de
+       alimentación), resumen y un solo botón «Nombrar y enviar
+       correo». El contenido lo pinta apptOpen (app.js). -->
+  <div class="pend-float" id="appt-float" style="display:none" role="dialog">
+    <div class="pend-head">
+      <h2 data-i18n="appt.title">Appoint roles</h2>
+      <button type="button" class="pend-close" id="appt-float-x" aria-label="Close" data-i18n-aria="client.close">✕</button>
+    </div>
+    <div id="appt-float-body"><div class="wempty" data-i18n="access.loading">Loading…</div></div>
   </div>
   <!-- MÓDULO NUTRICIONISTA (SOLO DESARROLLO, 2026-11-02; preámbulo
        de Ronald del 2026-11-02 18:19 CST): la ventana flotante del
@@ -1960,6 +1972,6 @@
 <div id="toast" class="toast"></div>
 <div id="print-card" aria-hidden="true"></div>
 
-<script type="module" src="app.js?v=20261105-avatar-comico"></script>
+<script type="module" src="app.js?v=20261105-nombramiento"></script>
 </body>
 </html>
