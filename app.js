@@ -24236,20 +24236,27 @@ function asstClose() {
 }
 /* ── La voz del teléfono (fase 1) ── */
 function asstUnlockSpeech() {
-  /* DESBLOQUEO iOS (AUTH-2026-11-05-259): la voz del teléfono solo
-     suena si el canal se despierta DENTRO del gesto del usuario. La
-     respuesta del ayudante llega segundos después del toque (tras la
-     red) y, sin este desbloqueo, iOS traga la utterance en silencio,
-     sin error: la app pintaba la respuesta y no se oía nada. La
-     utterance es vacía y a volumen 0 — inaudible siempre — y no toca
-     la semántica de «Silenciar su voz» (ASST.muted manda en asstSpeak).
-     Se llama SOLO desde manejadores de gesto: abrir la hoja, enviar
-     texto, tocar «Hablar» y los chips rápidos. */
+  /* DESBLOQUEO iOS (AUTH-2026-11-05-259; corregido por
+     AUTH-2026-11-06-276): la voz del teléfono solo suena si el canal
+     se despierta DENTRO del gesto del usuario. La respuesta del
+     ayudante llega segundos después del toque (tras la red) y, sin
+     este desbloqueo, iOS traga la utterance en silencio, sin error.
+     La utterance de desbloqueo lleva UN carácter («.») a volumen 0 —
+     inaudible siempre — porque la VACÍA de AUTH-259 no despertaba
+     nada: iOS la descarta al encolar (no hay nada que sintetizar),
+     el canal quedaba dormido y la respuesta llegaba muda con el
+     rótulo «Hablando…» pintado (reincidencia reportada por Ronald
+     el 2026-11-06 02:04 CST: la ruta de voz quedó byte a byte la de
+     AUTH-259 — la cola de la mascota no la tocó —; lo que falló fue
+     el desbloqueo mismo). No toca la semántica de «Silenciar su
+     voz» (ASST.muted manda en asstSpeak). Se llama SOLO desde
+     manejadores de gesto: abrir la hoja, enviar texto, tocar
+     «Hablar» y los chips rápidos. */
   try {
     if (!('speechSynthesis' in window)) return;
     const syn = window.speechSynthesis;
     try { syn.resume(); } catch {}
-    const u = new SpeechSynthesisUtterance('');
+    const u = new SpeechSynthesisUtterance('.');
     u.volume = 0;
     syn.speak(u);
   } catch {}
@@ -24268,10 +24275,14 @@ function asstSpeak(text) {
     const mk = () => {
       const u = new SpeechSynthesisUtterance(String(text).slice(0, 1500));
       const want = LANG === 'es' ? 'es' : 'en';
-      try { const vs = syn.getVoices() || []; const v = vs.find(x => (x.lang || '').toLowerCase().startsWith(want)); if (v) u.voice = v; } catch {}
+      /* AUTH-2026-11-06-276: se prefiere la voz LOCAL del idioma
+         (localService: la descargada en el aparato); una voz solo
+         remota puede quedarse muda en iOS. Sin ninguna local, la
+         primera del idioma, como antes. */
+      try { const vs = syn.getVoices() || []; const v = vs.find(x => (x.lang || '').toLowerCase().startsWith(want) && x.localService) || vs.find(x => (x.lang || '').toLowerCase().startsWith(want)); if (v) u.voice = v; } catch {}
       u.lang = LANG === 'es' ? 'es-ES' : 'en-US';
-      u.onend = () => asstSpeakPaint(false);
-      u.onerror = () => asstSpeakPaint(false);
+      u.onend = () => { ASST.speakAwait = false; asstSpeakPaint(false); };
+      u.onerror = () => { ASST.speakAwait = false; asstSpeakPaint(false); };
       return u;
     };
     let started = false, retried = false;
@@ -24279,28 +24290,55 @@ function asstSpeak(text) {
       if (ASST.speakGen !== gen) return;
       try { syn.resume(); } catch {}
       const u = mk();
-      u.onstart = () => { started = true; };
+      u.onstart = () => { started = true; asstSpeakPaint(true); };
+      ASST.speakAwait = true;
       syn.speak(u);
-      asstSpeakPaint(true);
+      /* AUTH-2026-11-06-276: «Hablando…» se pinta cuando la utterance
+         ARRANCA (onstart), no al invocarla — pintarlo al invocar
+         mentía: la app decía «Hablando…» de una frase que iOS había
+         tragado y que nunca sonó. */
       /* Si la utterance no arranca (sin onstart en ~1,5 s: iOS la
-         tragó en silencio), UN reintento con el canal ya despierto. */
+         tragó en silencio), UN reintento tras re-despertar el canal
+         con la utterance de desbloqueo; y si tampoco arranca, el
+         rótulo se apaga solo — nunca se queda «Hablando…» de una
+         voz que no suena. */
       setTimeout(() => {
         if (started || retried || ASST.muted || ASST.speakGen !== gen) return;
         retried = true;
-        try { syn.resume(); } catch {}
-        syn.speak(mk());
+        try { asstUnlockSpeech(); } catch {}
+        const u2 = mk();
+        u2.onstart = () => { started = true; asstSpeakPaint(true); };
+        ASST.speakAwait = true;
+        syn.speak(u2);
+        setTimeout(() => {
+          if (!started && !ASST.muted && ASST.speakGen === gen) { ASST.speakAwait = false; asstSpeakPaint(false); }
+        }, 1500);
       }, 1500);
     };
     /* Carrera iOS: un speak() en el MISMO tick que el cancel() puede
        perder la utterance nueva — se cancela y se habla un latido
-       después (~90 ms). Sin nada sonando ni en cola, se habla ya. */
-    if (syn.speaking || syn.pending) { try { syn.cancel(); } catch {} setTimeout(speakNow, 90); }
+       después (~90 ms). Sin nada nuestro sonando ni en vuelo, se
+       habla ya. AUTH-2026-11-06-276: la rama la decide el estado
+       PROPIO (ASST.speaking / ASST.speakAwait), no syn.speaking /
+       syn.pending — en iOS esas banderas del motor se quedan
+       pegadas (un pending eterno tras un cancel o una utterance
+       tragada) y mandaban cancelar en vacío turno tras turno. */
+    if (ASST.speaking || ASST.speakAwait) { try { syn.cancel(); } catch {} ASST.speakAwait = false; setTimeout(speakNow, 90); }
     else speakNow();
   } catch { asstSpeakPaint(false); }
 }
 function asstStopSpeak() {
   ASST.speakGen = (ASST.speakGen || 0) + 1;
-  try { if ('speechSynthesis' in window) window.speechSynthesis.cancel(); } catch {}
+  /* AUTH-2026-11-06-276: cancel() SOLO si hay voz nuestra sonando o
+     en vuelo (ASST.speaking / ASST.speakAwait). El cancel() en vacío
+     de antes — el prólogo de CADA turno lo disparaba siempre, sonara
+     algo o no — en iOS puede dejar el canal sordo para la frase
+     siguiente; sin nada nuestro en el motor no hay nada que
+     cancelar y la generación basta para invalidar lo diferido y lo
+     reintentado. */
+  const habia = !!(ASST.speaking || ASST.speakAwait);
+  ASST.speakAwait = false;
+  if (habia) { try { if ('speechSynthesis' in window) window.speechSynthesis.cancel(); } catch {} }
   asstSpeakPaint(false);
 }
 /* ── Grabación propia de la hoja (espejo del dictado de comidas) ── */
@@ -26297,7 +26335,7 @@ function renderActSharePanel() {
     window.__ACT_SLEEP_SWEPT = true;
     actSleepPurgeAll().then(() => { window.__ACT_SLEEP_SWEPT = false; }, () => { window.__ACT_SLEEP_SWEPT = false; });
   }
-  /* AUTH-2026-11-06-275: el panel es UN solo bloque — explicación
+  /* AUTH-2026-11-06-276: el panel es UN solo bloque — explicación
      breve arriba y las cuatro filas separadas por divisores; la
      aceptación vive en su hoja (#acts-float). Solo presentación:
      la mecánica del consentimiento no cambia. */
@@ -26388,7 +26426,7 @@ async function withdrawActShare(tipo) {
   } catch (e) { failToast(e); }
 }
 /* ── Hoja de aceptación del consentimiento de actividad
-   (AUTH-2026-11-06-275; maqueta aprobada por Ronald 2026-11-06):
+   (AUTH-2026-11-06-276; maqueta aprobada por Ronald 2026-11-06):
    primero el resumen visual de los cuatro tipos, las dos notas
    clave y el desplegable con el texto legal COMPLETO — que nace
    CERRADO y es el texto que manda, byte a byte el servido —; la
@@ -42804,7 +42842,7 @@ document.addEventListener('keydown', e => { if (e.key === 'Escape') shareClose()
  *  - El SW (sw.js) solo cachea la cáscara del mismo origen en modo
  *    RED PRIMERO: Auth/Firestore/Worker jamás pasan por la caché.
  * ================================================================ */
-const PWA_SW_VERSION = '20261106-consentimiento-visual';
+const PWA_SW_VERSION = '20261106-voz-coach';
 /* Sello de versión VISIBLE (2026-11-03): el pie de la tarjeta de
    acceso enseña qué copia corre este teléfono ('v ' + el sello),
    para comprobar de un vistazo si la versión nueva ya llegó.
