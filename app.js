@@ -4101,7 +4101,7 @@ en: {
   'fdbiz.done': "You're on the Business list ✓",
   'fdbiz.saved': 'Done — your interest in RONBO.FIT Business is registered.',
   'whatsnew.title': "What's new · Coming soon",
-  'tabs.track': '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="5" y="4" width="14" height="17" rx="2"/><path d="M9 4.5V3h6v1.5"/><path d="M9 10h6M9 14h4"/></svg> My log',
+  'tabs.track': '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="5" y="4" width="14" height="17" rx="2"/><path d="M9 4.5V3h6v1.5"/><path d="M9 10h6M9 14h4"/></svg> Home',
   'tabs.profile': '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="8" r="3.6"/><path d="M5 20c.8-3.4 3.6-5 7-5s6.2 1.6 7 5"/></svg> My profile',
   'tabs.clients': '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="9" cy="8.4" r="3.2"/><path d="M3.4 19.4c.7-3 2.9-4.5 5.6-4.5s4.9 1.5 5.6 4.5"/><path d="M15.6 5.6a3.2 3.2 0 0 1 0 5.9"/><path d="M17.8 15.3c1.7.7 2.7 2 3.1 4.1"/></svg> My clients',
   'tabs.students': '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M2.5 9L12 4l9.5 5L12 14z"/><path d="M6.5 11.5V16c0 1.6 2.5 3 5.5 3s5.5-1.4 5.5-3v-4.5"/><path d="M21.5 9v5"/></svg> My students',
@@ -4702,7 +4702,7 @@ en: {
   'ai.continue': 'Continue',
   'ai.draftTitle': 'Estimated draft — nothing is saved yet',
   'ai.range': 'Estimated range: {a}–{b} kcal',
-  'ai.useDraft': 'Use as draft',
+  'ai.useDraft': 'Edit before saving',
   'ai.discard': 'Discard',
   'ai.unavailable': 'Food analysis is not active yet.',
   'ai.failed': 'The analysis failed. You can log the meal manually.',
@@ -4856,7 +4856,7 @@ en: {
   'access.loading': 'Loading…',
   'students.title': '🎓 My students',
   'students.sub': '· my trainer view',
-  'students.hint': 'Only the students assigned to you as their trainer — your trainer hat, and your single work surface for them. Your own training and meals stay in \"My log\".',
+  'students.hint': 'Only the students assigned to you as their trainer — your trainer hat, and your single work surface for them. Your own training and meals stay in \"Home\".',
   'students.empty': 'You have no assigned students yet. When a student is assigned to you, they will appear here.',
   'students.searchPh': 'Search a student…',
   'students.pillAssigned': 'Assigned',
@@ -5348,7 +5348,7 @@ en: {
   'train.repeat.applyBtn': 'Apply repeat',
   'train.repeat.applyNote': 'Approved. Nothing is saved yet: applying opens the editor with the copy ready and your save makes it real.',
   'train.planFreq': 'Your plan: {n} days per week',
-  'train.markDone': 'Mark as done today', 'train.doneToday': 'Done today ✓', 'train.undo': 'Undo',
+  'train.markDone': 'Done today', 'train.doneToday': 'Done today ✓', 'train.undo': 'Undo',
   /* PUENTE ENTRENAMIENTO→LLAMITA (2026-10-27): cronómetro y cierre. */
   'train.chronoStart': '▶ Start workout',
   'train.chronoStartBtn': '▶ Start',
@@ -7719,7 +7719,7 @@ es: {
   'fdbiz.done': 'Ya estás en la lista de Business ✓',
   'fdbiz.saved': 'Listo — tu interés en RONBO.FIT Business quedó registrado.',
   'whatsnew.title': 'Novedades · Muy pronto',
-  'tabs.track': '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="5" y="4" width="14" height="17" rx="2"/><path d="M9 4.5V3h6v1.5"/><path d="M9 10h6M9 14h4"/></svg> Mi registro',
+  'tabs.track': '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="5" y="4" width="14" height="17" rx="2"/><path d="M9 4.5V3h6v1.5"/><path d="M9 10h6M9 14h4"/></svg> Inicio',
   'tabs.profile': '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="8" r="3.6"/><path d="M5 20c.8-3.4 3.6-5 7-5s6.2 1.6 7 5"/></svg> Mi perfil',
   'tabs.clients': '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="9" cy="8.4" r="3.2"/><path d="M3.4 19.4c.7-3 2.9-4.5 5.6-4.5s4.9 1.5 5.6 4.5"/><path d="M15.6 5.6a3.2 3.2 0 0 1 0 5.9"/><path d="M17.8 15.3c1.7.7 2.7 2 3.1 4.1"/></svg> Mis clientes',
   'tabs.students': '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M2.5 9L12 4l9.5 5L12 14z"/><path d="M6.5 11.5V16c0 1.6 2.5 3 5.5 3s5.5-1.4 5.5-3v-4.5"/><path d="M21.5 9v5"/></svg> Mis alumnos',
@@ -8320,7 +8320,7 @@ es: {
   'ai.continue': 'Continuar',
   'ai.draftTitle': 'Borrador estimado: aún no se guarda nada',
   'ai.range': 'Rango estimado: {a}–{b} kcal',
-  'ai.useDraft': 'Usar como borrador',
+  'ai.useDraft': 'Editar antes de guardar',
   'ai.discard': 'Descartar',
   'ai.unavailable': 'El análisis de la comida aún no está activo.',
   'ai.failed': 'El análisis falló. Puedes registrar la comida manualmente.',
@@ -8474,7 +8474,7 @@ es: {
   'access.loading': 'Cargando…',
   'students.title': '🎓 Mis alumnos',
   'students.sub': '· mi vista de entrenador',
-  'students.hint': 'Solo los alumnos que tienes asignados como entrenador: tu sombrero de entrenador y tu única superficie de trabajo con ellos. Tu propio entrenamiento y tus comidas siguen en «Mi registro».',
+  'students.hint': 'Solo los alumnos que tienes asignados como entrenador: tu sombrero de entrenador y tu única superficie de trabajo con ellos. Tu propio entrenamiento y tus comidas siguen en «Inicio».',
   'students.empty': 'Todavía no tienes alumnos asignados. Cuando se te asigne un alumno, aparecerá aquí.',
   'students.searchPh': 'Buscar un alumno…',
   'students.pillAssigned': 'Asignados',
@@ -8966,7 +8966,7 @@ es: {
   'train.repeat.applyBtn': 'Aplicar repetición',
   'train.repeat.applyNote': 'Aprobada. Aún no se guarda nada: al aplicar se abre el editor con la copia lista y tu guardado la hace real.',
   'train.planFreq': 'Tu plan: {n} días por semana',
-  'train.markDone': 'Marcar como hecho hoy', 'train.doneToday': 'Hecho hoy ✓', 'train.undo': 'Deshacer',
+  'train.markDone': 'Hecho hoy', 'train.doneToday': 'Hecho hoy ✓', 'train.undo': 'Deshacer',
   /* PUENTE ENTRENAMIENTO→LLAMITA (2026-10-27): cronómetro y cierre. */
   'train.chronoStart': '▶ Iniciar entrenamiento',
   'train.chronoStartBtn': '▶ Iniciar',
@@ -44116,7 +44116,7 @@ document.addEventListener('keydown', e => { if (e.key === 'Escape') shareClose()
  *  - El SW (sw.js) solo cachea la cáscara del mismo origen en modo
  *    RED PRIMERO: Auth/Firestore/Worker jamás pasan por la caché.
  * ================================================================ */
-const PWA_SW_VERSION = '20261106-dedup';
+const PWA_SW_VERSION = '20261106-dedup2';
 /* Sello de versión VISIBLE (2026-11-03): el pie de la tarjeta de
    acceso enseña qué copia corre este teléfono ('v ' + el sello),
    para comprobar de un vistazo si la versión nueva ya llegó.
@@ -45120,8 +45120,8 @@ const FAQ_SEED = [
    "es": "Guardar una comida se queda colgado («Guardar» se queda en gris)."
   },
   "a": {
-   "en": "That means the save is waiting on your connection — do not close the app or discard the card. Toggle **airplane mode** on for about 20 seconds and off again; when the button comes back or an error appears, tap **Save** again: retrying writes the same meal, it never duplicates it. If it still fails, use **“Use as draft”** and save the same values from the manual form.",
-   "es": "Eso significa que el guardado está esperando a tu conexión — no cierres la app ni descartes la tarjeta. Activa el **modo avión** unos 20 segundos y desactívalo; cuando el botón se reactive o aparezca un error, toca **Guardar** de nuevo: el reintento escribe la misma comida, nunca la duplica. Si sigue fallando, usa **«Usar como borrador»** y guarda los mismos valores desde el formulario manual."
+   "en": "That means the save is waiting on your connection — do not close the app or discard the card. Toggle **airplane mode** on for about 20 seconds and off again; when the button comes back or an error appears, tap **Save** again: retrying writes the same meal, it never duplicates it. If it still fails, use **“Edit before saving”** and save the same values from the manual form.",
+   "es": "Eso significa que el guardado está esperando a tu conexión — no cierres la app ni descartes la tarjeta. Activa el **modo avión** unos 20 segundos y desactívalo; cuando el botón se reactive o aparezca un error, toca **Guardar** de nuevo: el reintento escribe la misma comida, nunca la duplica. Si sigue fallando, usa **«Editar antes de guardar»** y guarda los mismos valores desde el formulario manual."
   }
  },
  {
