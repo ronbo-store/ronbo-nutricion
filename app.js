@@ -4239,7 +4239,7 @@ en: {
   'fuse.atLine': 'You are at {pct}% · {n} consumed',
   'dict.open': '🎙 Add by dictating',
   'dict.title': 'Add exercises by dictating',
-  'dict.hint': 'Dictate with your keyboard microphone or type the exercises for this day. Your phone matches them against the library — no AI is used, and nothing is saved until you confirm.',
+  'dict.hint': 'Say your exercises out loud or type them. They are matched against the library right here on your phone, and nothing is saved until you confirm.',
   'dict.ph': 'E.g.: leg press 4 for 10 with 180 and lateral raises',
   'dict.review': 'Review',
   'dict.confirmTitle': 'Check before adding',
@@ -4256,6 +4256,19 @@ en: {
   'dict.back': 'Back',
   'dict.unresolved': 'Anything left unchosen is not added.',
   'dict.pickTitle': 'Choose the exercise',
+  'dict.micLabel': 'Dictate with the microphone',
+  'dict.micTap': 'Tap RONBO and say your exercises',
+  'dict.micListening': 'Listening… tap RONBO again to finish',
+  'dict.micWorking': 'Turning your voice into text…',
+  'dict.micCost': 'Dictating with the microphone uses 1 AI use to turn your voice into text. Dictating with the keyboard is free.',
+  'dict.micHeard': 'I heard you — check the text and tap "Review"',
+  'dict.micEmpty': 'I could not hear any exercise. Hold the phone closer and try again, or type them.',
+  'dict.micDenied': 'Microphone permission is off. You can turn it on for this app in your phone settings; meanwhile, the keyboard microphone and typing still work.',
+  'dict.micUnsupported': 'Voice recording is not available in this browser. The keyboard microphone and typing still work.',
+  'dict.micFail': 'Your voice could not be turned into text. Try again, or type the exercises.',
+  'dict.micCap': 'You reached today\'s AI limit, so the microphone cannot transcribe right now. The keyboard microphone still works, and it is free.',
+  'dict.needText': 'First dictate or type at least one exercise.',
+  'dict.kbHint': 'You can also tap the text box and use your keyboard\'s microphone key 🎤 — that way is free.',
   'weight.title': '⚖️ Weight progress',
   'weight.sub': '· weekly weigh-in',
   'weight.add': '＋ Log weigh-in',
@@ -7842,7 +7855,7 @@ es: {
   'fuse.atLine': 'Vas al {pct}% · {n} consumidas',
   'dict.open': '🎙 Añadir dictando',
   'dict.title': 'Añadir ejercicios dictando',
-  'dict.hint': 'Dicta con el micrófono de tu teclado o escribe los ejercicios para este día. Tu teléfono los empareja con la biblioteca: no se usa IA y nada se guarda hasta que confirmes.',
+  'dict.hint': 'Di tus ejercicios en voz alta o escríbelos. Se emparejan con la biblioteca aquí mismo, en tu teléfono, y nada se guarda hasta que confirmes.',
   'dict.ph': 'Ej.: prensa de piernas 4 por 10 con 180 y elevaciones laterales',
   'dict.review': 'Revisar',
   'dict.confirmTitle': 'Revisa antes de añadir',
@@ -7859,6 +7872,19 @@ es: {
   'dict.back': 'Volver',
   'dict.unresolved': 'Lo que quede sin elegir no se añade.',
   'dict.pickTitle': 'Elige el ejercicio',
+  'dict.micLabel': 'Dictar con el micrófono',
+  'dict.micTap': 'Toca a RONBO y di tus ejercicios',
+  'dict.micListening': 'Escuchando… toca a RONBO otra vez para terminar',
+  'dict.micWorking': 'Pasando tu voz a texto…',
+  'dict.micCost': 'Dictar con el micrófono usa 1 uso de IA para pasar tu voz a texto. Dictar con el teclado es gratis.',
+  'dict.micHeard': 'Te escuché: revisa el texto y toca «Revisar»',
+  'dict.micEmpty': 'No escuché ningún ejercicio. Acerca el teléfono e inténtalo otra vez, o escríbelos.',
+  'dict.micDenied': 'El permiso del micrófono está apagado. Puedes activarlo para esta app en los ajustes de tu teléfono; mientras tanto, el micrófono del teclado y escribir siguen funcionando.',
+  'dict.micUnsupported': 'La grabación de voz no está disponible en este navegador. El micrófono del teclado y escribir siguen funcionando.',
+  'dict.micFail': 'No se pudo pasar tu voz a texto. Inténtalo otra vez o escribe los ejercicios.',
+  'dict.micCap': 'Llegaste al límite de IA de hoy: el micrófono no puede transcribir ahora. El micrófono del teclado sigue funcionando y es gratis.',
+  'dict.needText': 'Primero dicta o escribe al menos un ejercicio.',
+  'dict.kbHint': 'También puedes tocar la caja de texto y usar la tecla de micrófono 🎤 de tu teclado: esa vía es gratis.',
   'weight.title': '⚖️ Evolución de peso',
   'weight.sub': '· pesaje semanal',
   'weight.add': '＋ Registrar pesaje',
@@ -28517,10 +28543,14 @@ function dictPickResultsHTML(D) {
 function dictSheetOpen(plan, di, iso) {
   TRAIN_DICT = { plan, di, iso: iso || todayISO(), step: 'input', text: '', rows: [], pickRow: -1, pickQuery: '' };
   dictSheetSync();
-  const ta = document.querySelector('#dict-text');
-  if (ta) { try { ta.focus(); } catch {} }
+  /* PISO B: la hoja ya NO roba el foco al abrir — su puerta es la
+     mascota (dictar); el teclado se abre cuando él toca la caja,
+     como en las demás hojas de voz de la casa. */
 }
 function dictSheetClose() {
+  /* PISO B: cerrar la hoja a media grabación DESCARTA el audio
+     (nunca se transcribe lo que él no terminó de dictar). */
+  try { dictMicAbort(); } catch {}
   TRAIN_DICT = null;
   dictSheetSync();
 }
@@ -28553,7 +28583,17 @@ function dictSheetSync() {
   let body = '';
   if (D.step === 'input') {
     body = `<p class="progress-hint">${esc(t('dict.hint'))}</p>
+      <div class="dict-mic-wrap">
+        <button type="button" class="dict-mic-btn" data-dict-mic="1" aria-label="${esc(t('dict.micLabel'))}">
+          <img class="dict-mic-img" src="${ASST_AVATAR_URL}" alt="" onerror="this.style.display='none';this.nextElementSibling.style.display='flex'">
+          <span class="dict-mic-fb" style="display:none">${DICT_MIC_SVG}</span>
+          <span class="dict-mic-badge">${DICT_MIC_SVG}</span>
+        </button>
+        <div class="dict-mic-status" data-dict-mic-status="1">${esc(t('dict.micTap'))}</div>
+        <p class="dict-mic-cost">${esc(t('dict.micCost'))}</p>
+      </div>
       <textarea id="dict-text" class="dict-textarea" rows="4" placeholder="${esc(t('dict.ph'))}">${esc(D.text)}</textarea>
+      <p class="dict-kb-hint">${esc(t('dict.kbHint'))}</p>
       <div class="dict-actions"><button type="button" class="btn-primary" data-dict-review="1">${esc(t('dict.review'))}</button></div>`;
   } else if (D.step === 'pick') {
     body = `<div class="swap-search-row"><input type="text" id="dict-pick-search" placeholder="${esc(t('train.prop.searchPh'))}" value="${esc(D.pickQuery || '')}"></div><div id="dict-pick-results">${dictPickResultsHTML(D)}</div>`;
@@ -28573,11 +28613,22 @@ function dictSheetSync() {
   };
   const ta = sheet.querySelector('#dict-text');
   if (ta) ta.oninput = () => { D.text = ta.value; };
+  const micBtn = sheet.querySelector('[data-dict-mic]');
+  if (micBtn) {
+    micBtn.onclick = () => dictMicToggle();
+    /* Si un repintado cae a media grabación o a media
+       transcripción, el estado de la mascota se restaura: el
+       controlador vive fuera del DOM, como el de comidas. */
+    if (DICT_MIC.rec && DICT_MIC.rec.state === 'recording') dictMicPaint('rec');
+    else if (DICT_MIC.busy) dictMicPaint('busy');
+  }
   const rev = sheet.querySelector('[data-dict-review]');
   if (rev) rev.onclick = () => {
     if (ta) D.text = ta.value;
     D.rows = dictParseText(D.text);
-    if (!D.rows.length) return;
+    /* PISO B: «Revisar» en vacío ya NO calla (era el callejón
+       silencioso del diagnóstico del botón de audio). */
+    if (!D.rows.length) { toast(t('dict.needText'), true); return; }
     D.step = 'confirm';
     dictSheetSync();
   };
@@ -28641,6 +28692,137 @@ function dictSheetApply() {
   trainEditsWrite(D.plan.id, ed, D.iso);
   dictSheetClose();
   loadMyTraining();
+}
+
+/* ═══════════ PISO B — MICRÓFONO DE VERDAD EN LA HOJA DE DICTADO
+   ═══════════ (AUTH-2026-11-06-284; decisión expresa de Ronald en
+   el chat RONBO.NUTRI, 2026-11-06 12:33 CST — «Piso B: micrófono
+   de verdad (1 uso de IA)» — y su refinamiento de las 12:34 CST:
+   «Creo que es mejor la mascota con un micrófono»).
+   El diagnóstico del botón de audio probó que la hoja de AUTH-279
+   no tenía oídos: la voz dependía solo de la tecla de dictado del
+   teclado, enseñada con una nota al pie de 13 px, y «Revisar» en
+   vacío callaba. Aquí la hoja gana oídos de verdad:
+   · EL CONTROL ES LA MASCOTA: el avatar vivo del RONBO COACH
+     VIRTUAL (ASST_AVATAR_URL, AUTH-262) en grande, con la insignia
+     de micrófono compuesta encima (DICT_MIC_SVG) — tocarla empieza
+     a grabar; mientras graba muestra el estado de escucha (anillo
+     pulsante; con prefers-reduced-motion, anillo fijo, sin
+     animación); tocarla otra vez detiene y transcribe. Si la
+     imagen no carga, un micrófono grande ocupa su sitio: nunca un
+     hueco roto.
+   · LA GRABACIÓN reusa la maquinaria de la casa (voiceSupported /
+     voicePickMime / VOICE_MAX_MS) con controlador PROPIO, como el
+     del ayudante, sin tocar el del registro de comida. El audio
+     viaja solo dentro de la petición y no se guarda en ningún
+     sitio.
+   · LA TRANSCRIPCIÓN la hace la ruta /transcribe del Worker (la
+     variante de texto libre de /identify-audio): pasa por la
+     puerta general de IA y cuenta EXACTAMENTE 1 uso por dictado —
+     declarado junto a la mascota en dict.micCost, en letra legible
+     —; NUNCA toca la puerta propia del coach (3/día). El texto
+     transcrito cae en la caja y desde ahí TODO sigue como
+     AUTH-279: el emparejado y el lector de números son LOCALES y
+     sin IA, la confirmación manda y nada se guarda sin «Añadir a
+     mi día».
+   · LA VÍA DEL TECLADO sigue existiendo y sigue siendo GRATIS:
+     la pista breve (dict.kbHint) queda junto a la caja, legible.
+   · ESTADOS HONESTOS, NUNCA SILENCIO: permiso denegado (con el
+     paso para activarlo), grabación no soportada, nada oído,
+     transcripción vacía o fallida, tope de IA alcanzado y
+     «Revisar» en vacío pintan cada uno su aviso. Cerrar la hoja a
+     media grabación descarta el audio sin transcribirlo. */
+const DICT_MIC = { rec: null, stream: null, chunks: [], mime: '', timer: 0, busy: false, discard: false };
+const DICT_MIC_SVG = '<svg viewBox="0 0 24 24" width="20" height="20" fill="none" aria-hidden="true"><rect x="9" y="2.5" width="6" height="11" rx="3" fill="currentColor"/><path d="M5.5 11a6.5 6.5 0 0 0 13 0" stroke="currentColor" stroke-width="2" stroke-linecap="round"/><path d="M12 17.5v3.5" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>';
+function dictMicPaint(state, msg) {
+  const sheet = document.getElementById('dict-sheet');
+  if (!sheet) return;
+  const btn = sheet.querySelector('[data-dict-mic]');
+  const st = sheet.querySelector('[data-dict-mic-status]');
+  if (btn) {
+    btn.classList.toggle('rec', state === 'rec');
+    btn.classList.toggle('busy', state === 'busy');
+    btn.disabled = state === 'busy';
+  }
+  if (st) st.textContent = msg || (state === 'rec' ? t('dict.micListening') : state === 'busy' ? t('dict.micWorking') : t('dict.micTap'));
+  const rev = sheet.querySelector('[data-dict-review]');
+  if (rev) rev.disabled = state === 'rec' || state === 'busy';
+}
+function dictMicStopTracks() {
+  if (DICT_MIC.timer) { clearTimeout(DICT_MIC.timer); DICT_MIC.timer = 0; }
+  if (DICT_MIC.stream) { DICT_MIC.stream.getTracks().forEach(tr => { try { tr.stop(); } catch {} }); DICT_MIC.stream = null; }
+}
+function dictMicAbort() {
+  if (DICT_MIC.rec && DICT_MIC.rec.state === 'recording') {
+    DICT_MIC.discard = true;
+    try { DICT_MIC.rec.stop(); } catch {}
+  } else if (!DICT_MIC.busy) {
+    dictMicStopTracks();
+    DICT_MIC.rec = null;
+  }
+}
+async function dictMicToggle() {
+  if (DICT_MIC.busy) return;
+  if (DICT_MIC.rec && DICT_MIC.rec.state === 'recording') { try { DICT_MIC.rec.stop(); } catch {} return; }
+  if (!voiceSupported()) { dictMicPaint('idle', t('dict.micUnsupported')); toast(t('dict.micUnsupported'), true); return; }
+  if (!aiEndpoint()) { toast(t('ai.unavailable'), true); return; }
+  let stream;
+  try { stream = await navigator.mediaDevices.getUserMedia({ audio: true }); }
+  catch { dictMicPaint('idle', t('dict.micDenied')); toast(t('dict.micDenied'), true); return; }
+  DICT_MIC.stream = stream;
+  DICT_MIC.chunks = [];
+  const mime = voicePickMime();
+  let rec;
+  try { rec = mime ? new MediaRecorder(stream, { mimeType: mime }) : new MediaRecorder(stream); }
+  catch { dictMicStopTracks(); dictMicPaint('idle', t('dict.micUnsupported')); toast(t('dict.micUnsupported'), true); return; }
+  DICT_MIC.rec = rec;
+  DICT_MIC.mime = (rec.mimeType || mime || 'audio/webm').split(';')[0];
+  rec.ondataavailable = e => { if (e.data && e.data.size) DICT_MIC.chunks.push(e.data); };
+  rec.onstop = () => {
+    const discard = DICT_MIC.discard; DICT_MIC.discard = false;
+    const blob = new Blob(DICT_MIC.chunks, { type: DICT_MIC.mime });
+    DICT_MIC.chunks = [];
+    DICT_MIC.rec = null;
+    dictMicStopTracks();
+    if (discard) { dictMicPaint('idle'); return; }
+    if (!blob.size) { dictMicPaint('idle', t('aiVoice.tooShort')); toast(t('aiVoice.tooShort'), true); return; }
+    const rd = new FileReader();
+    rd.onload = () => {
+      const dataUrl = String(rd.result || '');
+      if (!dataUrl.startsWith('data:')) { dictMicPaint('idle', t('dict.micFail')); toast(t('dict.micFail'), true); return; }
+      dictMicTranscribe(dataUrl);
+    };
+    rd.onerror = () => { dictMicPaint('idle', t('dict.micFail')); toast(t('dict.micFail'), true); };
+    rd.readAsDataURL(blob);
+  };
+  try { rec.start(250); } catch { DICT_MIC.rec = null; dictMicStopTracks(); dictMicPaint('idle', t('dict.micUnsupported')); toast(t('dict.micUnsupported'), true); return; }
+  dictMicPaint('rec');
+  DICT_MIC.timer = setTimeout(() => { if (DICT_MIC.rec && DICT_MIC.rec.state === 'recording') { try { DICT_MIC.rec.stop(); } catch {} } }, VOICE_MAX_MS);
+}
+async function dictMicTranscribe(dataUrl) {
+  if (!TRAIN_DICT) return;
+  DICT_MIC.busy = true;
+  dictMicPaint('busy');
+  try {
+    const out = await aiCall('/transcribe', { audioDataUrl: dataUrl, lang: LANG });
+    DICT_MIC.busy = false;
+    const D = TRAIN_DICT;
+    if (!D) return;
+    const txt = typeof out.transcript === 'string' ? out.transcript.trim() : '';
+    if (!txt) { dictMicPaint('idle', t('dict.micEmpty')); toast(t('dict.micEmpty'), true); return; }
+    D.text = (D.text ? D.text.replace(/\s+$/, '') + ' ' : '') + txt;
+    const ta = document.querySelector('#dict-text');
+    if (ta) ta.value = D.text;
+    dictMicPaint('idle', t('dict.micHeard'));
+  } catch (e) {
+    DICT_MIC.busy = false;
+    if (!TRAIN_DICT) return;
+    const m = e && e.message;
+    if (m === 'ai-cap') { dictMicPaint('idle', t('dict.micCap')); toast(t('dict.micCap'), true); }
+    else if (m === 'ai-door-unavailable') { dictMicPaint('idle', t('dict.micFail')); toast(t('sys.unavailable'), true); }
+    else if (m === 'ai-disabled' || m === 'ai-off') { dictMicPaint('idle', t('dict.micFail')); toast(t('ai.unavailable'), true); }
+    else { dictMicPaint('idle', t('dict.micFail')); toast(t('dict.micFail'), true); }
+  }
 }
 
 /* --- PUENTE ENTRENAMIENTO→LLAMITA: CRONÓMETRO DE SESIÓN (Anexo 2
@@ -43769,7 +43951,7 @@ document.addEventListener('keydown', e => { if (e.key === 'Escape') shareClose()
  *  - El SW (sw.js) solo cachea la cáscara del mismo origen en modo
  *    RED PRIMERO: Auth/Firestore/Worker jamás pasan por la caché.
  * ================================================================ */
-const PWA_SW_VERSION = '20261106-fila-tres';
+const PWA_SW_VERSION = '20261106-dictado-micro';
 /* Sello de versión VISIBLE (2026-11-03): el pie de la tarjeta de
    acceso enseña qué copia corre este teléfono ('v ' + el sello),
    para comprobar de un vistazo si la versión nueva ya llegó.

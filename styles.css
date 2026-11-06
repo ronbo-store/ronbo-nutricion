@@ -2230,6 +2230,31 @@ div.swap-card { cursor: default; }
    armazón .swap-sheet; controles grandes y claros porque la app se
    usa entrenando (regla de la casa 2026-11-02). */
 .dict-open-btn { width: 100%; min-height: 48px; font-size: 15px; }
+/* PISO B — LA MASCOTA CON MICRÓFONO (AUTH-2026-11-06-284; diseño
+   de Ronald: «es mejor la mascota con un micrófono»): el avatar
+   vivo del coach en grande es EL control de grabación; la
+   insignia de micrófono va compuesta sobre su esquina. Grabando:
+   anillo pulsante en rojo; con movimiento reducido, anillo fijo
+   y el estado lo lleva el texto — nunca solo la animación. */
+.dict-mic-wrap { display: flex; flex-direction: column; align-items: center; gap: 8px; margin: 12px 0 14px; }
+.dict-mic-btn { position: relative; width: 118px; height: 118px; flex: none; border-radius: 50%; border: 3px solid #0d9488; background: #e6f4f1; padding: 0; cursor: pointer; }
+.dict-mic-img { width: 100%; height: 100%; border-radius: 50%; object-fit: cover; display: block; }
+.dict-mic-fb { width: 100%; height: 100%; align-items: center; justify-content: center; color: #0d9488; }
+.dict-mic-fb svg { width: 46px; height: 46px; }
+.dict-mic-badge { position: absolute; right: -3px; bottom: -3px; width: 42px; height: 42px; border-radius: 50%; background: #0d9488; color: #fff; display: flex; align-items: center; justify-content: center; border: 2.5px solid #fff; box-sizing: border-box; }
+.dict-mic-btn.rec { border-color: #dc2626; animation: dictMicPulse 1.6s ease-in-out infinite; }
+.dict-mic-btn.rec .dict-mic-badge { background: #dc2626; }
+.dict-mic-btn.busy { opacity: .55; }
+@media (prefers-reduced-motion: reduce) {
+  .dict-mic-btn.rec { animation: none; box-shadow: 0 0 0 5px rgba(220, 38, 38, .45); }
+}
+@keyframes dictMicPulse {
+  0%, 100% { box-shadow: 0 0 0 0 rgba(220, 38, 38, .45); }
+  50% { box-shadow: 0 0 0 14px rgba(220, 38, 38, 0); }
+}
+.dict-mic-status { font-size: 15px; font-weight: 600; line-height: 1.35; color: #14201f; text-align: center; min-height: 21px; }
+.dict-mic-cost { font-size: 14px; font-weight: 500; line-height: 1.45; color: #41586e; text-align: center; margin: 0; max-width: 320px; }
+.dict-kb-hint { font-size: 13.5px; line-height: 1.45; color: #41586e; margin: 8px 2px 0; }
 .dict-textarea { width: 100%; box-sizing: border-box; min-height: 118px; padding: 12px; font: inherit; font-size: 16px; line-height: 1.45; border: 1.5px solid #cbd5e1; border-radius: 12px; resize: vertical; }
 .dict-actions { display: flex; gap: 8px; margin-top: 14px; }
 .dict-actions .btn-primary, .dict-actions .btn-ghost { flex: 1; min-height: 48px; font-size: 15px; }
