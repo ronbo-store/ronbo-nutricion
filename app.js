@@ -25452,6 +25452,7 @@ function navGoHome() {
   GM_CARD_OPEN = false;
   switchTab('track');
   try { renderGoalsEngine(); } catch {}
+  try { SCROLL_LOCK_TO_TOP = true; } catch {} // su subida manda: el candado de scroll no restaura la posición guardada al soltar
   try { window.scrollTo({ top: 0, behavior: 'smooth' }); } catch {}
 }
 { const hb = $('btn-nav-home'); if (hb) hb.addEventListener('click', navGoHome); }
@@ -25477,7 +25478,7 @@ function navGoHome() {
    en el acto. Si el navegador no soporta `inert`, se degrada a
    tabindex=-1 sobre los controles del fondo, guardando el valor
    original de cada uno para restaurarlo al cerrar. */
-const COVER_SEL = '.modal-backdrop, .dos-backdrop, .install-overlay, #sw-overlay, .lightbox, .swap-sheet, .tf-wheel, .ex-media-pop, [role="dialog"], #progress-content.nav-page-on, #train-content.nav-page-on';
+const COVER_SEL = '.modal-backdrop, .dos-backdrop, .install-overlay, #sw-overlay, .lightbox, .swap-sheet, .tf-wheel, .ex-media-pop, [role="dialog"], #progress-content.nav-page-on, #train-content.nav-page-on, #signup-card';
 const COVER_INERT_OK = typeof HTMLElement !== 'undefined' && 'inert' in HTMLElement.prototype;
 let COVER_NOW = null;         // la tapa vigente (o null)
 let COVER_INERTS = new Set(); // raíces inertadas por este sistema
@@ -25583,6 +25584,7 @@ function coverApply(cover) { // (re)aplica los inert para la tapa dada
   coverWalk(document.body, cover, coverIsSoft(cover) ? dock : null);
 }
 function coverSync() {
+  try { scrollLockSync(); } catch {} // el candado de scroll sigue a las tapas en cada ruta de coverSync
   const cover = coverFind();
   const top = COVER_STACK.length ? COVER_STACK[COVER_STACK.length - 1].cover : null;
   if (cover === top) { if (cover) coverEnsureFocus(cover); return; }
@@ -25619,6 +25621,57 @@ try {
     coverT = setTimeout(() => { coverT = null; try { coverSync(); } catch {} }, 60);
   }).observe(document.body, { subtree: true, childList: true, attributes: true, attributeFilter: ['style', 'class'] });
 } catch {}
+
+/* ============ EL SCROLL SE QUEDA EN LA VENTANA (orden de Ronald, 2026-11-06) ============
+   Su grabación de pantalla lo mostró tal cual: con la hoja
+   «Registrar comida» abierta al frente, su dedo arrastraba SOBRE
+   la hoja y lo que se desplazaba era la página de detrás. Causa
+   medida: el fondo NUNCA se bloqueaba con una ventana abierta
+   (el único candado de la app, body.nav-lock con overflow:hidden,
+   es solo de las dos páginas del dock; y una tarjeta cuyo
+   contenido cabe ni siquiera es un contenedor con scroll, así
+   que el gesto se encadena al documento). La regla desde aquí:
+   mientras CUALQUIER superficie de COVER_SEL esté visible — la
+   misma detección de tapas del sistema de foco A-N2, que ya
+   vigila todas las aperturas y cierres por su MutationObserver
+   y al que coverSync llama en cada sincronización — el fondo
+   queda CONGELADO y el gesto mueve solo la ventana.
+   La técnica es la que en iOS instalado (WKWebView) funciona de
+   verdad, y quedó medida en Chromium con arrastres táctiles
+   reales (experimento del paquete): el cuerpo pasa a
+   position:fixed con top = −scrollY (la clase body.scroll-lock
+   de styles.css), la página queda pintada exactamente donde
+   estaba y ni el tacto ni la rueda mueven el documento (con el
+   candado puesto, scrollY se lee 0); al cerrar la ÚLTIMA tapa
+   se suelta y se restaura la posición exacta con scrollTo. Con
+   dos tapas encadenadas el candado se mantiene — solo se suelta
+   cuando coverFind() ya no encuentra ninguna — y volver a abrir
+   conserva la posición de siempre. Excepción de intención:
+   navGoHome cierra las hojas y sube arriba ÉL; marca
+   SCROLL_LOCK_TO_TOP antes de su scrollTo y la restauración lo
+   respeta en vez de devolver la posición guardada. */
+let SCROLL_LOCK_ON = false;
+let SCROLL_LOCK_Y = 0;
+let SCROLL_LOCK_TO_TOP = false;
+function scrollLockSync() {
+  const locked = !!coverFind();
+  if (locked === SCROLL_LOCK_ON) return;
+  const body = document.body; if (!body) return;
+  if (locked) {
+    SCROLL_LOCK_Y = window.scrollY || 0;
+    SCROLL_LOCK_TO_TOP = false;
+    SCROLL_LOCK_ON = true;
+    body.classList.add('scroll-lock');
+    body.style.top = (-SCROLL_LOCK_Y) + 'px';
+    return;
+  }
+  SCROLL_LOCK_ON = false;
+  body.classList.remove('scroll-lock');
+  body.style.top = '';
+  if (SCROLL_LOCK_TO_TOP) { SCROLL_LOCK_TO_TOP = false; return; }
+  try { window.scrollTo(0, SCROLL_LOCK_Y); } catch {}
+}
+try { scrollLockSync(); } catch {}
 
 /* ============ NAVEGACIÓN FLOTANTE — páginas del dock (2026-10-30) ============
    Modelo aprobado por Ronald (mq7a/mq7b, variante A refinada; D2 y
@@ -43951,7 +44004,7 @@ document.addEventListener('keydown', e => { if (e.key === 'Escape') shareClose()
  *  - El SW (sw.js) solo cachea la cáscara del mismo origen en modo
  *    RED PRIMERO: Auth/Firestore/Worker jamás pasan por la caché.
  * ================================================================ */
-const PWA_SW_VERSION = '20261106-dictado-micro';
+const PWA_SW_VERSION = '20261106-scroll-ventana';
 /* Sello de versión VISIBLE (2026-11-03): el pie de la tarjeta de
    acceso enseña qué copia corre este teléfono ('v ' + el sello),
    para comprobar de un vistazo si la versión nueva ya llegó.

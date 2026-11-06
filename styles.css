@@ -2194,6 +2194,12 @@ body { padding: max(16px, env(safe-area-inset-top)) max(16px, env(safe-area-inse
    que nada tape la lista — el fallo de la captura de Ronald. === */
 .swap-sheet { position: fixed; inset: 0; z-index: 80; background: #fff; overflow-y: auto; overscroll-behavior: contain; padding: 12px 14px calc(20px + env(safe-area-inset-bottom)); box-sizing: border-box; }
 body.swap-sheet-open .share-fab, body.swap-sheet-open .help-fab, body.swap-sheet-open .sw-fab { display: none !important; }
+/* Contención del gesto (2026-11-06): al llegar al final de una
+   ventana, su scroll NO se transfiere a la página de detrás.
+   .swap-sheet y las páginas del dock ya lo traían; esta regla lo
+   extiende a los contenedores con scroll de las demás ventanas
+   (la tarjeta flotante, el modal y sus interiores con scroll). */
+.act-float, .pend-float, .modal, .ring-detail, .faq-panel, .signup-card, .dos-backdrop, .yt-card, .ex-media-card, .tf-wheel-card, .install-card, .sess-survey-card, .acts-body, .asst-body { overscroll-behavior: contain; }
 .swap-sheet-head { display: flex; align-items: center; gap: 10px; margin-bottom: 10px; }
 .swap-sheet-title { font-size: 16px; font-weight: 700; color: #134e4a; }
 .swap-sheet-x { margin-left: auto; flex: none; width: 36px; height: 36px; border-radius: 50%; border: 1px solid #d7e3e1; background: #f8fbfa; color: #33475b; font: inherit; font-size: 15px; cursor: pointer; }
@@ -2427,6 +2433,13 @@ div.cgrid-cell { cursor: default; }
 .nav-veil { position: fixed; inset: 0; background: rgba(15, 23, 42, .45); z-index: 37; }
 #progress-content.nav-page-on, #train-content.nav-page-on { position: fixed; left: 0; right: 0; top: 96px; bottom: 0; z-index: 38; background: #f1f5f9; border-radius: 24px 24px 0 0; box-shadow: 0 -10px 30px rgba(15, 23, 42, .35); padding: 18px 12px 128px; overflow-y: auto; overscroll-behavior: contain; margin: 0; box-sizing: border-box; }
 body.nav-lock { overflow: hidden; }
+/* EL SCROLL SE QUEDA EN LA VENTANA (orden de Ronald, 2026-11-06):
+   con cualquier ventana flotante visible, app.js marca
+   body.scroll-lock y pone el top con la posición guardada: el
+   cuerpo queda fijo, la página de detrás no se mueve ni un píxel
+   y el gesto solo desplaza la ventana. Al cerrar la última
+   ventana, app.js quita la clase y restaura la posición. */
+body.scroll-lock { position: fixed; left: 0; right: 0; width: 100%; overflow: hidden; overscroll-behavior: none; }
 body.nav-lock .sw-fab, body.nav-lock .help-fab, body.nav-lock .share-fab, body.nav-lock #act-flame { visibility: hidden; }
 .nav-page-title { font-size: 17px; font-weight: 800; color: #1f2a44; margin: 0 0 12px; }
 .prog-subtabs { display: flex; background: #e4e9f0; border-radius: 999px; padding: 4px; margin: 12px 0 14px; }
