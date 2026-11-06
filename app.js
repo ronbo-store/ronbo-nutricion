@@ -4760,13 +4760,13 @@ en: {
   'aiVoice.savedNote': 'Your voice note was not saved.',
   /* AYUDANTE QUE HABLA (AUTH-2026-11-05-249): los textos de la hoja
      del entrenador virtual, tal cual las maquetas aprobadas. */
-  'asst.title': 'Your virtual trainer',
+  'asst.title': 'RONBO COACH VIRTUAL',
   'asst.subtitle': 'Ask me about your day, out loud',
-  'asst.open': 'Talk to your virtual trainer',
-  'asst.pill': 'Talk to your virtual trainer',
-  'asst.who': 'YOUR VIRTUAL TRAINER',
-  'asst.greet': "Hi, {name}! I'm your virtual trainer. Ask me how you're doing today, what's on for training, or how your week is going — I'll answer out loud.",
-  'asst.greetNoName': "Hi! I'm your virtual trainer. Ask me how you're doing today, what's on for training, or how your week is going — I'll answer out loud.",
+  'asst.open': 'Talk to your RONBO COACH VIRTUAL',
+  'asst.pill': 'Talk to your RONBO COACH VIRTUAL',
+  'asst.who': 'RONBO COACH VIRTUAL',
+  'asst.greet': "Hi, {name}! I'm your RONBO COACH VIRTUAL. Ask me how you're doing today, what's on for training, or how your week is going — I'll answer out loud.",
+  'asst.greetNoName': "Hi! I'm your RONBO COACH VIRTUAL. Ask me how you're doing today, what's on for training, or how your week is going — I'll answer out loud.",
   'asst.chip1': 'How am I doing today?',
   'asst.chip2': "What's on today?",
   'asst.chip3': "How's my week going?",
@@ -4785,6 +4785,7 @@ en: {
   'asst.foot': 'Each question uses 1 of your AI uses · The conversation is not saved',
   'asst.errGeneric': "I couldn't answer just now. Try again in a moment.",
   'asst.errCap': "You've used up today's AI uses, so I can't answer right now. We can talk again tomorrow.",
+  'asst.errMembership': "You've used your 3 questions for today with your RONBO COACH VIRTUAL. Unlimited, the virtual coach is part of the membership: ask for your membership to keep asking.",
   'aiMulti.title': 'Photos of this meal',
   'aiMulti.hint': 'They are photos of ONE single meal: the dish as served and each item weighed on your scale. You can remove or replace any photo before analyzing.',
   'aiMulti.add': '＋ Add another photo',
@@ -8275,13 +8276,13 @@ es: {
   'aiVoice.savedNote': 'Tu nota de voz no se guardó.',
   /* AYUDANTE QUE HABLA (AUTH-2026-11-05-249): los textos de la hoja
      del entrenador virtual, tal cual las maquetas aprobadas. */
-  'asst.title': 'Tu entrenador virtual',
+  'asst.title': 'RONBO COACH VIRTUAL',
   'asst.subtitle': 'Pregúntame de tu día, en voz alta',
-  'asst.open': 'Habla con tu entrenador virtual',
-  'asst.pill': 'Habla con tu entrenador virtual',
-  'asst.who': 'TU ENTRENADOR VIRTUAL',
-  'asst.greet': '¡Hola, {name}! Soy tu entrenador virtual. Pregúntame cómo vas hoy, qué te toca entrenar o cómo va tu semana — te respondo hablando.',
-  'asst.greetNoName': '¡Hola! Soy tu entrenador virtual. Pregúntame cómo vas hoy, qué te toca entrenar o cómo va tu semana — te respondo hablando.',
+  'asst.open': 'Habla con tu RONBO COACH VIRTUAL',
+  'asst.pill': 'Habla con tu RONBO COACH VIRTUAL',
+  'asst.who': 'RONBO COACH VIRTUAL',
+  'asst.greet': '¡Hola, {name}! Soy tu RONBO COACH VIRTUAL. Pregúntame cómo vas hoy, qué te toca entrenar o cómo va tu semana — te respondo hablando.',
+  'asst.greetNoName': '¡Hola! Soy tu RONBO COACH VIRTUAL. Pregúntame cómo vas hoy, qué te toca entrenar o cómo va tu semana — te respondo hablando.',
   'asst.chip1': '¿Cómo voy hoy?',
   'asst.chip2': '¿Qué toca hoy?',
   'asst.chip3': '¿Cómo va mi semana?',
@@ -8300,6 +8301,7 @@ es: {
   'asst.foot': 'Cada pregunta usa 1 uso de tu IA · La conversación no se guarda',
   'asst.errGeneric': 'No pude responder justo ahora. Inténtalo de nuevo en un momento.',
   'asst.errCap': 'Ya usaste los usos de IA de hoy, así que ahora no puedo responder. Mañana hablamos de nuevo.',
+  'asst.errMembership': 'Ya usaste tus 3 preguntas de hoy con tu RONBO COACH VIRTUAL. Sin límite, el coach virtual es parte de la membresía: pide tu membresía para seguir preguntando.',
   'aiMulti.title': 'Fotos de esta comida',
   'aiMulti.hint': 'Son fotos de UNA misma comida: el plato servido y cada alimento pesado en tu báscula. Puedes quitar o reemplazar cualquier foto antes de analizar.',
   'aiMulti.add': '＋ Añadir otra foto',
@@ -20486,7 +20488,8 @@ async function aiCall(path, body) {
        genérico de siempre. */
     let info = null;
     try { info = await r.json(); } catch {}
-    const e = new Error(info && info.error === 'bodytype-window' ? 'ai-bt-window' : 'ai-cap');
+    const e = new Error(info && info.error === 'bodytype-window' ? 'ai-bt-window'
+      : info && info.error === 'assistant-membership' ? 'ai-asst-membership' : 'ai-cap');
     if (info) {
       if (isFinite(Number(info.limit))) e.capLimit = Number(info.limit);
       if (info.renewsAt) e.renewsAt = String(info.renewsAt);
@@ -23747,7 +23750,15 @@ async function voiceToggle(fromModal) {
    su propio controlador, sin tocar el del registro de comida. */
 const ASST = { busy: false, muted: false, speaking: false, history: [] };
 let ASST_DATA = { loaded: false, loading: null, plan: null, logs: [] };
-const ASST_AVATAR_MINI = '<svg viewBox="0 0 48 48" width="17" height="17" fill="none" aria-hidden="true"><circle cx="24" cy="19" r="8.5" fill="#fff" opacity=".95"/><path d="M10 40c1.5-7 7-10.5 14-10.5S36.5 33 38 40" fill="#fff" opacity=".95"/><path d="M12.5 20a11.5 11.5 0 0 1 23 0" stroke="#fff" stroke-width="3" stroke-linecap="round"/><rect x="8.5" y="19" width="5" height="9" rx="2.5" fill="#fff"/><rect x="34.5" y="19" width="5" height="9" rx="2.5" fill="#fff"/><path d="M36.5 28v3a5 5 0 0 1-5 5H27" stroke="#fff" stroke-width="3" stroke-linecap="round"/><circle cx="25" cy="36" r="2" fill="#fff"/></svg>';
+/* AUTH-2026-11-05-260: el avatar del coach es la imagen estilo
+   cómic de Ronald (generada desde su foto de perfil del gym;
+   corrección suya del 2026-11-05), servida desde el repo de
+   activos. Si la foto no carga, el icono genérico de siempre
+   ocupa su sitio (el span de respaldo nace oculto y el onerror
+   de la imagen lo destapa: nunca un hueco roto). */
+const ASST_AVATAR_URL = 'https://ronbo-store.github.io/ronbo-nutri-assets/coach-virtual-avatar.webp';
+const ASST_AVATAR_SVG = '<svg viewBox="0 0 48 48" width="17" height="17" fill="none" aria-hidden="true"><circle cx="24" cy="19" r="8.5" fill="#fff" opacity=".95"/><path d="M10 40c1.5-7 7-10.5 14-10.5S36.5 33 38 40" fill="#fff" opacity=".95"/><path d="M12.5 20a11.5 11.5 0 0 1 23 0" stroke="#fff" stroke-width="3" stroke-linecap="round"/><rect x="8.5" y="19" width="5" height="9" rx="2.5" fill="#fff"/><rect x="34.5" y="19" width="5" height="9" rx="2.5" fill="#fff"/><path d="M36.5 28v3a5 5 0 0 1-5 5H27" stroke="#fff" stroke-width="3" stroke-linecap="round"/><circle cx="25" cy="36" r="2" fill="#fff"/></svg>';
+const ASST_AVATAR_MINI = `<img class="asst-av-img" src="${ASST_AVATAR_URL}" alt="" onerror="this.style.display='none';this.nextElementSibling.style.display=''"><span class="asst-av-fb" style="display:none">${ASST_AVATAR_SVG}</span>`;
 /* Visibilidad del disco: la misma regla de la ayuda y el compartir
    (solo con Inicio activo) MÁS el corte del interruptor de IA. Sin
    argumento, repinta según la pestaña vigente (NAV_TAB) — así lo
@@ -24069,6 +24080,7 @@ async function asstSend(payload) {
     const msg = e && e.message;
     if (payload.text) asstBubble('me', payload.text);
     if (msg === 'ai-cap') asstBubble('bot', t('asst.errCap'), true);
+    else if (msg === 'ai-asst-membership') asstBubble('bot', t('asst.errMembership'), true);
     else if (msg === 'ai-disabled') asstBubble('bot', t('ai.disabledByAdmin'), true);
     else if (msg === 'ai-door-unavailable') asstBubble('bot', t('ai.doorUnavailable'), true);
     else asstBubble('bot', t('asst.errGeneric'), true);
@@ -42241,7 +42253,7 @@ document.addEventListener('keydown', e => { if (e.key === 'Escape') shareClose()
  *  - El SW (sw.js) solo cachea la cáscara del mismo origen en modo
  *    RED PRIMERO: Auth/Firestore/Worker jamás pasan por la caché.
  * ================================================================ */
-const PWA_SW_VERSION = '20261105-voz-ayudante';
+const PWA_SW_VERSION = '20261105-coach-virtual';
 /* Sello de versión VISIBLE (2026-11-03): el pie de la tarjeta de
    acceso enseña qué copia corre este teléfono ('v ' + el sello),
    para comprobar de un vistazo si la versión nueva ya llegó.

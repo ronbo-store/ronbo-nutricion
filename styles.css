@@ -4004,6 +4004,11 @@ body.swap-sheet-open .asst-fab { display: none !important; }
 .asst-row.me { text-align: right; }
 .asst-who { display: flex; align-items: center; gap: 7px; margin: 2px 0 5px 2px; }
 .asst-who-av { width: 26px; height: 26px; border-radius: 50%; background: linear-gradient(145deg, #10a594, #0b7c72); display: flex; align-items: center; justify-content: center; flex: none; }
+/* AUTH-2026-11-05-260: la foto del coach llena su marco circular
+   (cabecera de la hoja y mini-avatar de sus mensajes); si no carga,
+   el icono de respaldo se centra como antes en el mismo marco. */
+.asst-avatar .asst-av-img, .asst-who-av .asst-av-img { width: 100%; height: 100%; object-fit: cover; border-radius: 50%; display: block; }
+.asst-av-fb { line-height: 0; }
 .asst-who-tx { font-size: 12px; font-weight: bold; color: #0b7c72; letter-spacing: .3px; }
 .asst-bub { display: inline-block; max-width: 86%; border-radius: 18px; padding: 11px 14px; font-size: 15px; line-height: 1.5; text-align: left; white-space: pre-wrap; overflow-wrap: break-word; }
 .asst-bub.bot { background: #f0f7f5; border: 1px solid #dcebe8; color: #173f3a; border-bottom-left-radius: 6px; }
