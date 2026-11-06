@@ -23874,8 +23874,12 @@ function asstOpen() {
     asstBubble('bot', nm ? t('asst.greet', { name: nm }) : t('asst.greetNoName'));
   }
   /* La voz del teléfono solo arranca tras un gesto del usuario en
-     iOS: esta apertura ES el gesto (calienta la lista de voces). */
+     iOS: esta apertura ES el gesto — calienta la lista de voces Y
+     despierta el canal con la utterance silenciosa (getVoices solo
+     NO desbloquea: sin el desbloqueo, iOS traga la respuesta en
+     silencio cuando llega, segundos después del toque). */
   try { if ('speechSynthesis' in window) window.speechSynthesis.getVoices(); } catch {}
+  asstUnlockSpeech();
   try { asstSpeakPaint(ASST.speaking); } catch {}
 }
 function asstClose() {
@@ -23884,6 +23888,25 @@ function asstClose() {
   asstStopSpeak();
 }
 /* ── La voz del teléfono (fase 1) ── */
+function asstUnlockSpeech() {
+  /* DESBLOQUEO iOS (AUTH-2026-11-05-259): la voz del teléfono solo
+     suena si el canal se despierta DENTRO del gesto del usuario. La
+     respuesta del ayudante llega segundos después del toque (tras la
+     red) y, sin este desbloqueo, iOS traga la utterance en silencio,
+     sin error: la app pintaba la respuesta y no se oía nada. La
+     utterance es vacía y a volumen 0 — inaudible siempre — y no toca
+     la semántica de «Silenciar su voz» (ASST.muted manda en asstSpeak).
+     Se llama SOLO desde manejadores de gesto: abrir la hoja, enviar
+     texto, tocar «Hablar» y los chips rápidos. */
+  try {
+    if (!('speechSynthesis' in window)) return;
+    const syn = window.speechSynthesis;
+    try { syn.resume(); } catch {}
+    const u = new SpeechSynthesisUtterance('');
+    u.volume = 0;
+    syn.speak(u);
+  } catch {}
+}
 function asstSpeakPaint(on) {
   ASST.speaking = !!on;
   const row = $('asst-speaking'); if (row) row.style.display = on ? '' : 'none';
@@ -23894,18 +23917,42 @@ function asstSpeak(text) {
   try {
     if (!('speechSynthesis' in window)) return;
     const syn = window.speechSynthesis;
-    syn.cancel();
-    const u = new SpeechSynthesisUtterance(String(text).slice(0, 1500));
-    const want = LANG === 'es' ? 'es' : 'en';
-    try { const vs = syn.getVoices() || []; const v = vs.find(x => (x.lang || '').toLowerCase().startsWith(want)); if (v) u.voice = v; } catch {}
-    u.lang = LANG === 'es' ? 'es-ES' : 'en-US';
-    u.onend = () => asstSpeakPaint(false);
-    u.onerror = () => asstSpeakPaint(false);
-    syn.speak(u);
-    asstSpeakPaint(true);
+    const gen = (ASST.speakGen = (ASST.speakGen || 0) + 1);
+    const mk = () => {
+      const u = new SpeechSynthesisUtterance(String(text).slice(0, 1500));
+      const want = LANG === 'es' ? 'es' : 'en';
+      try { const vs = syn.getVoices() || []; const v = vs.find(x => (x.lang || '').toLowerCase().startsWith(want)); if (v) u.voice = v; } catch {}
+      u.lang = LANG === 'es' ? 'es-ES' : 'en-US';
+      u.onend = () => asstSpeakPaint(false);
+      u.onerror = () => asstSpeakPaint(false);
+      return u;
+    };
+    let started = false, retried = false;
+    const speakNow = () => {
+      if (ASST.speakGen !== gen) return;
+      try { syn.resume(); } catch {}
+      const u = mk();
+      u.onstart = () => { started = true; };
+      syn.speak(u);
+      asstSpeakPaint(true);
+      /* Si la utterance no arranca (sin onstart en ~1,5 s: iOS la
+         tragó en silencio), UN reintento con el canal ya despierto. */
+      setTimeout(() => {
+        if (started || retried || ASST.muted || ASST.speakGen !== gen) return;
+        retried = true;
+        try { syn.resume(); } catch {}
+        syn.speak(mk());
+      }, 1500);
+    };
+    /* Carrera iOS: un speak() en el MISMO tick que el cancel() puede
+       perder la utterance nueva — se cancela y se habla un latido
+       después (~90 ms). Sin nada sonando ni en cola, se habla ya. */
+    if (syn.speaking || syn.pending) { try { syn.cancel(); } catch {} setTimeout(speakNow, 90); }
+    else speakNow();
   } catch { asstSpeakPaint(false); }
 }
 function asstStopSpeak() {
+  ASST.speakGen = (ASST.speakGen || 0) + 1;
   try { if ('speechSynthesis' in window) window.speechSynthesis.cancel(); } catch {}
   asstSpeakPaint(false);
 }
@@ -23953,6 +24000,7 @@ function asstRecAnimate(stream) {
   } catch {}
 }
 async function asstTalkTap() {
+  asstUnlockSpeech();
   if (ASST.busy) return;
   if (ASST_REC.rec && ASST_REC.rec.state === 'recording') { asstRecFinish(true); return; }
   if (!voiceSupported()) { toast(t('aiVoice.unsupported'), true); return; }
@@ -24033,6 +24081,7 @@ function asstSendText() {
   const inp = $('asst-text'); if (!inp) return;
   const text = (inp.value || '').trim();
   if (!text || ASST.busy) return;
+  asstUnlockSpeech();
   inp.value = '';
   asstSend({ text });
 }
@@ -24045,7 +24094,7 @@ function asstSendText() {
 { const b = $('asst-send'); if (b) b.onclick = () => asstSendText(); }
 { const i = $('asst-text'); if (i) i.addEventListener('keydown', e => { if (e.key === 'Enter') { e.preventDefault(); asstSendText(); } }); }
 { const b = $('asst-silence'); if (b) b.onclick = () => { ASST.muted = !ASST.muted; if (ASST.muted) asstStopSpeak(); asstSpeakPaint(ASST.speaking); }; }
-document.querySelectorAll('[data-asst-chip]').forEach(ch => { ch.onclick = () => { const k = 'asst.chip' + ch.getAttribute('data-asst-chip'); if (!ASST.busy) asstSend({ text: t(k) }); }; });
+document.querySelectorAll('[data-asst-chip]').forEach(ch => { ch.onclick = () => { const k = 'asst.chip' + ch.getAttribute('data-asst-chip'); if (!ASST.busy) { asstUnlockSpeech(); asstSend({ text: t(k) }); } }; });
 
 /* Apertura del modal de comida con enfoque visible en el formulario. */
 function aiOpenMealModal() {
@@ -42192,7 +42241,7 @@ document.addEventListener('keydown', e => { if (e.key === 'Escape') shareClose()
  *  - El SW (sw.js) solo cachea la cáscara del mismo origen en modo
  *    RED PRIMERO: Auth/Firestore/Worker jamás pasan por la caché.
  * ================================================================ */
-const PWA_SW_VERSION = '20261105-cupo-velocidad';
+const PWA_SW_VERSION = '20261105-voz-ayudante';
 /* Sello de versión VISIBLE (2026-11-03): el pie de la tarjeta de
    acceso enseña qué copia corre este teléfono ('v ' + el sello),
    para comprobar de un vistazo si la versión nueva ya llegó.
