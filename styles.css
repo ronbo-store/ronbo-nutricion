@@ -1789,6 +1789,8 @@ body { padding: max(16px, env(safe-area-inset-top)) max(16px, env(safe-area-inse
 .train-sel-head { margin: 8px 0 0; font-size: 15px; color: #1f2a44; }
 .train-day.is-readonly { background: #fcfcfd; }
 .train-day.train-rest { background: #f8fafc; border-style: dashed; text-align: center; }
+/* AUTH-2026-11-05-271: la cara de cansado de la tarjeta de descanso. */
+.train-rest-face { width: 56px; height: 56px; border-radius: 50%; object-fit: cover; display: block; margin: 2px auto 6px; }
 .train-day.train-rest h4 { color: #0d9488; }
 .train-share-row { text-align: center; margin: 10px 0 2px; }
 /* Hoja de compartir en modo entrenamiento: sin selector de tarjeta
@@ -3760,6 +3762,8 @@ body.sess-on #pend-back-chip { bottom: calc(env(safe-area-inset-bottom, 0px) + 1
 .eve-kicker { color: #0d9488; font-weight: 800; font-size: 15px; letter-spacing: .02em; padding-right: 54px; }
 .eve-title { font-size: 30px; font-weight: 800; color: #1f2a44; line-height: 1.16; margin-top: 8px; overflow-wrap: break-word; }
 .eve-chip { display: inline-flex; align-items: center; gap: 8px; background: #fdf3d7; border: 1px solid #f0dfae; color: #8a6d1a; font-weight: 800; font-size: 15px; border-radius: 999px; padding: 9px 16px; margin-top: 14px; }
+/* AUTH-2026-11-05-271: la cara de músculos de la ventana del día exigente. */
+.eve-face { width: 56px; height: 56px; border-radius: 50%; object-fit: cover; display: block; margin-top: 12px; }
 .eve-numwrap { display: flex; align-items: center; gap: 14px; margin-top: 16px; }
 .eve-num { font-size: 64px; font-weight: 800; color: #0d9488; line-height: 1; white-space: nowrap; }
 .eve-numlab { display: flex; flex-direction: column; font-size: 19px; color: #33475b; line-height: 1.25; }

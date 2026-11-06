@@ -18922,6 +18922,13 @@ function eveAlertClose(goPlan, d) {
     } catch {}
   }
 }
+/* AUTH-2026-11-05-271 (propuesta 7 de la cola de la mascota): el
+   plan se siente — la ventana del día exigente lleva la mascota
+   de músculos («hoy toca darlo todo») y la tarjeta del día de
+   descanso, la de cansado bostezando. Si una imagen no carga, se
+   retira sola y cada superficie queda como siempre. */
+const PLAN_FACE_DEMAND = 'https://ronbo-store.github.io/ronbo-nutri-assets/avatar-coach-virtual/web/musculos.webp';
+const PLAN_FACE_REST = 'https://ronbo-store.github.io/ronbo-nutri-assets/avatar-coach-virtual/web/cansado.webp';
 function eveAlertShow(d) {
   eveAlertStamp(); // el sello se escribe SOLO al mostrar, nunca al evaluar
   eveAlertClose(false);
@@ -18932,6 +18939,7 @@ function eveAlertShow(d) {
     <button type="button" class="eve-x" data-eve-close aria-label="${esc(t('client.close'))}">✕</button>
     <div class="eve-kicker">${esc(t('eve.kicker', { date: eveDateLabel(d.dayISO) }).toUpperCase())}</div>
     <div class="eve-title">${esc(d.label)}</div>
+    <img class="eve-face" src="${PLAN_FACE_DEMAND}" alt="" onerror="this.remove()">
     <div class="eve-chip"><span aria-hidden="true">🔥</span>${esc(t('eve.demanding'))}</div>
     <div class="eve-numwrap"><span class="eve-num">${fmt(d.carb)} g</span><span class="eve-numlab"><b>${esc(t('eve.ofCarbs'))}</b><span>${esc(t('eve.todayWord'))}</span></span></div>
     <p class="eve-contrast">${esc(t('eve.contrastA', { base: fmt(d.baseCarb) }))} · <b>${esc(t('eve.contrastB', { d: fmt(d.carb - d.baseCarb) }))}</b></p>
@@ -30485,9 +30493,9 @@ async function loadMyTraining() {
            días, la misma del hallazgo de la línea); sin próximo día,
            queda solo el día libre — ausencia honesta. */
         const blankActions = `<div class="train-blank-actions">${nextFound ? `<button type="button" class="btn-primary btn-sm" data-train-bring="${nextFound.di}" data-from="${nextFound.iso}">${t('train.bring.btn')}</button> ` : ''}<button type="button" class="btn-ghost btn-sm" data-train-free="1">${t('train.free.btn')}</button><p class="progress-hint">${t('train.blank.hint')}</p></div>`;
-        selCard = `<div class="train-day train-rest"><h4>${t('train.today.restToday')}</h4>${nextLine ? `<p class="progress-hint">${esc(nextLine)}</p>` : ''}</div>` + blankActions + extra;
+        selCard = `<div class="train-day train-rest"><img class="train-rest-face" src="${PLAN_FACE_REST}" alt="" onerror="this.remove()"><h4>${t('train.today.restToday')}</h4>${nextLine ? `<p class="progress-hint">${esc(nextLine)}</p>` : ''}</div>` + blankActions + extra;
       } else {
-        selCard = `<div class="train-day train-rest"><h4>${t('train.today.restDay')}</h4></div>` + extra;
+        selCard = `<div class="train-day train-rest"><img class="train-rest-face" src="${PLAN_FACE_REST}" alt="" onerror="this.remove()"><h4>${t('train.today.restDay')}</h4></div>` + extra;
       }
     }
   } else {
@@ -42681,7 +42689,7 @@ document.addEventListener('keydown', e => { if (e.key === 'Escape') shareClose()
  *  - El SW (sw.js) solo cachea la cáscara del mismo origen en modo
  *    RED PRIMERO: Auth/Firestore/Worker jamás pasan por la caché.
  * ================================================================ */
-const PWA_SW_VERSION = '20261105-retos-caras';
+const PWA_SW_VERSION = '20261105-plan-caras';
 /* Sello de versión VISIBLE (2026-11-03): el pie de la tarjeta de
    acceso enseña qué copia corre este teléfono ('v ' + el sello),
    para comprobar de un vistazo si la versión nueva ya llegó.
