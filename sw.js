@@ -40,7 +40,11 @@
  * autenticación y los datos NUNCA tocan la caché del SW (los datos
  * viven en la caché de Firestore, gobernada por el SDK). De la
  * cáscara solo se cachean respuestas 200; de imágenes, 200 u opacas
- * (las <img> de otro origen llegan opacas por CORS).
+ * (las <img> de otro origen llegan opacas por CORS). Una entrada
+ * opaca nunca se sirve a una petición CORS (el lienzo de las
+ * tarjetas de compartir la rechazaría como error de red) ni
+ * sobrescribe a una entrada que ya sirve a CORS — ver
+ * imageCacheFirst (2026-11-05).
  *
  * DISCIPLINA DE VERSIÓN: SW_VERSION replica el sello `?v=` de
  * index.html. Cada promoción futura debe subir AMBOS sellos a la vez
@@ -51,15 +55,15 @@
  * app.js). La caché de imágenes NO se borra entre versiones: guarda
  * contenido ya visto, con su tope.
  */
-const SW_VERSION = '20261105-coach-virtual';
+const SW_VERSION = '20261105-fotos-tarjeta';
 const CACHE_NAME = 'ronbofit-shell-' + SW_VERSION;
 const IMG_CACHE_NAME = 'ronbofit-img-v1';
 const IMG_CACHE_MAX = 300;
 const SHELL_URLS = [
   './',
   './index.html',
-  './styles.css?v=20261105-coach-virtual',
-  './app.js?v=20261105-coach-virtual',
+  './styles.css?v=20261105-fotos-tarjeta',
+  './app.js?v=20261105-fotos-tarjeta',
   './manifest.json',
   './icons/icon-192.png',
   './icons/icon-512.png',
@@ -133,11 +137,29 @@ async function shellCacheFirst(req) {
    tope FIFO: el contenido ya visto no se re-descarga para pintar. */
 async function imageCacheFirst(req) {
   const cache = await caches.open(IMG_CACHE_NAME);
-  const hit = await cache.match(req);
+  let hit = await cache.match(req);
+  /* COPIA OPACA ≠ COPIA PARA EL LIENZO (2026-11-05): una vista <img>
+     sin CORS guarda la respuesta OPACA de la foto, y esa entrada,
+     servida tal cual a la petición CON CORS de las tarjetas de
+     compartir, es un error de red para el navegador (una respuesta
+     opaca no satisface una petición CORS): la foto nunca entraba al
+     lienzo aunque su dirección estuviera viva y con CORS abierto. A
+     una petición CORS la entrada opaca no le sirve: se ignora, manda
+     la red y su respuesta CORS sana la entrada al guardarse. */
+  if (hit && req.mode === 'cors' && hit.type === 'opaque') hit = null;
   const revalidate = fetch(req).then(async (fresh) => {
     if (fresh && (fresh.status === 200 || fresh.type === 'opaque')) {
       try {
-        await cache.put(req, fresh.clone());
+        /* Y al revés: una respuesta opaca (la revalidación tras una
+           vista sin CORS) nunca sobrescribe una entrada que ya sirve
+           a CORS; si lo hiciera, la foto volvería a caer del lienzo
+           en la siguiente tarjeta. */
+        let guardar = true;
+        if (fresh.type === 'opaque') {
+          const actual = await cache.match(req);
+          if (actual && actual.type !== 'opaque') guardar = false;
+        }
+        if (guardar) await cache.put(req, fresh.clone());
         const keys = await cache.keys();
         if (keys.length > IMG_CACHE_MAX) {
           await Promise.all(keys.slice(0, keys.length - IMG_CACHE_MAX).map((k) => cache.delete(k)));

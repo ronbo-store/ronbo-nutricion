@@ -41152,8 +41152,20 @@ function shareIconEnsure() {
    sola, como con la marca de agua. */
 const SHARE_PHOTOS = {};
 function sharePhotoEnsure(url) {
-  if (!url || SHARE_PHOTOS[url]) return;
-  const rec = SHARE_PHOTOS[url] = { img: null, state: 'loading' };
+  if (!url) return;
+  const prev = SHARE_PHOTOS[url];
+  if (prev && prev.state !== 'fail') return;
+  /* REINTENTO ACOTADO (2026-11-05): un fallo ya no condena la foto
+     por toda la sesión. La primera carga puede caer por un corte de
+     red o porque la caché de imágenes del SW sirvió a esta petición
+     CORS la copia opaca que una vista <img> sin CORS había guardado
+     (el SW ya no sirve esa copia a CORS ni deja que vuelva a tapar
+     la buena, pero una entrada vieja tarda una pasada en sanar). Al
+     volver a pintar se reintenta, con tope de 3 intentos por sesión
+     y URL: una dirección muerta de verdad no entra en bucle y la
+     fila se sigue componiendo sin foto, como siempre. */
+  if (prev && (prev.tries || 0) >= 3) return;
+  const rec = SHARE_PHOTOS[url] = { img: null, state: 'loading', tries: (prev ? (prev.tries || 0) : 0) + 1 };
   try {
     const im = new Image();
     im.crossOrigin = 'anonymous';
@@ -41170,6 +41182,7 @@ function sharePhotoDraw(ctx, url, x, y, s) {
   if (!url) return false;
   const rec = SHARE_PHOTOS[url];
   if (!rec) { sharePhotoEnsure(url); return false; }
+  if (rec.state === 'fail') { sharePhotoEnsure(url); return false; }
   if (rec.state !== 'ok' || !rec.img) return false;
   const im = rec.img, iw = im.naturalWidth || im.width, ih = im.naturalHeight || im.height;
   if (!iw || !ih) return false;
@@ -42253,7 +42266,7 @@ document.addEventListener('keydown', e => { if (e.key === 'Escape') shareClose()
  *  - El SW (sw.js) solo cachea la cáscara del mismo origen en modo
  *    RED PRIMERO: Auth/Firestore/Worker jamás pasan por la caché.
  * ================================================================ */
-const PWA_SW_VERSION = '20261105-coach-virtual';
+const PWA_SW_VERSION = '20261105-fotos-tarjeta';
 /* Sello de versión VISIBLE (2026-11-03): el pie de la tarjeta de
    acceso enseña qué copia corre este teléfono ('v ' + el sello),
    para comprobar de un vistazo si la versión nueva ya llegó.
