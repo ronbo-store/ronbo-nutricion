@@ -28795,6 +28795,11 @@ function dressExRows(html, di, mode) {
    nueva: la caché de imágenes del SW guarda por URL) y si no
    carga se retira sola. */
 const MASCOT_CELEB_URL = 'https://ronbo-store.github.io/ronbo-nutri-assets/avatar-coach-virtual/web/celebracion-animada.webp';
+/* AUTH-2026-11-05-267 (propuesta 3 de la cola de la mascota): la
+   expectante que invita a empezar en el historial vacío de
+   Progreso; fija, porque un vacío en pantalla no debe moverse
+   sin fin. Misma carpeta de activos y misma regla de URL nueva. */
+const MASCOT_EXPECT_URL = 'https://ronbo-store.github.io/ronbo-nutri-assets/avatar-coach-virtual/web/expectante.webp';
 function trainDressedHeadHTML(plan, logs, di, iso) {
   const m = trainShareModel(plan, logs, di, iso);
   const pct = m.total ? Math.round(100 * m.doneCount / m.total) : 0;
@@ -37064,7 +37069,7 @@ function renderProgress() {
           ? `<div class="hist-item"><img src="${esc(s[sl].photo)}" alt="${t('progress.' + sl)}" loading="lazy" data-hist-zoom="${esc(s[sl].id)}"><button type="button" class="hist-del" data-hist-del="${esc(s[sl].id)}" title="${t('progress.delete')}">✕</button></div>`
           : `<span class="wempty">${t('progress.' + sl)}: ${t('progress.noPhoto')}</span>`).join('')}
       </div></div>`;
-  }).join('') : `<div class="wempty">${t('progress.emptyHistory')}</div>`;
+  }).join('') : `<div class="wempty wempty-mascot"><img class="mascot-empty-img" src="${MASCOT_EXPECT_URL}" alt="" onerror="this.remove()"><div>${t('progress.emptyHistory')}</div></div>`;
   $('progress-history').querySelectorAll('[data-hist-zoom]').forEach(im => im.addEventListener('click', () => {
     const rec = findProgressPhoto(im.getAttribute('data-hist-zoom')); if (rec) showLightbox(rec.photo);
   }));
@@ -40250,7 +40255,7 @@ function renderPendings() {
         <button type="button" class="btn-ghost btn-sm pend-danger" data-pend-act="draft-discard">${esc(t('pend.draftDiscard'))}</button>
       </div></div>`;
   }
-  if (!items.length && !draft) html += `<p class="pend-none">${esc(t('pend.none'))}</p>`;
+  if (!items.length && !draft) html += `<div class="pend-none-wrap"><img class="mascot-empty-img" src="${MASCOT_CELEB_URL}" alt="" onerror="this.remove()"><p class="pend-none">${esc(t('pend.none'))}</p></div>`;
   /* AUTH-2026-11-01-133: bandas por responsable (solo rol usuario;
      para los demás roles, la misma lista plana de siempre). */
   html += pendItemsGroupedHTML(items, regDay);
@@ -42523,7 +42528,7 @@ document.addEventListener('keydown', e => { if (e.key === 'Escape') shareClose()
  *  - El SW (sw.js) solo cachea la cáscara del mismo origen en modo
  *    RED PRIMERO: Auth/Firestore/Worker jamás pasan por la caché.
  * ================================================================ */
-const PWA_SW_VERSION = '20261105-cierre-celebracion';
+const PWA_SW_VERSION = '20261105-vacios-mascota';
 /* Sello de versión VISIBLE (2026-11-03): el pie de la tarjeta de
    acceso enseña qué copia corre este teléfono ('v ' + el sello),
    para comprobar de un vistazo si la versión nueva ya llegó.

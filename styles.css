@@ -1107,6 +1107,12 @@ table.whist { min-width: 640px; }
 .pend-snooze select { max-width: 190px; }
 .pend-danger { color: #b91c1c; }
 .pend-none { margin: 8px 0; }
+/* AUTH-2026-11-05-267: la mascota de los estados vacíos (Sin
+   pendientes en Pendientes, historial vacío en Progreso): 76 px
+   centrada sobre el texto, como la maqueta aprobada; si la imagen
+   no carga, se retira y el vacío queda como siempre. */
+.pend-none-wrap { text-align: center; }
+.mascot-empty-img { width: 76px; height: 76px; border-radius: 50%; object-fit: cover; display: block; margin: 4px auto 10px; }
 .pend-traces { margin-top: 10px; }
 .pend-traces ul { margin: 4px 0 0; padding-left: 18px; }
 /* Checklist de comidas del día (2026-10-27): tres filas sobrias que
