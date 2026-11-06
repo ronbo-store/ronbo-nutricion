@@ -19817,7 +19817,18 @@ function fusedWire(box) {
   const dgMap = { 'dg-btn-photo': 'btn-food-photo', 'dg-btn-voice': 'btn-food-voice', 'dg-btn-text': 'btn-food-text', 'dg-btn-manual': 'btn-food-manual' };
   for (const [dg, real] of Object.entries(dgMap)) {
     const b = $(dg);
-    if (b) b.onclick = () => { const r = $(real); if (r) r.click(); };
+    /* ATAJO DE INICIO (AUTH-2026-11-06-290): el toque sobre la fila
+       rápida es un gesto de APERTURA, no un toque de fuera — sin el
+       stopPropagation, el MISMO toque seguía burbujeando hasta el
+       vigilante de clics de fuera de la familia Comida (que escucha
+       en el documento) y cerraba en el acto la hoja que el clic
+       sintético acababa de abrir: Texto y Voz «no hacían nada»
+       (Foto sobrevivía por el selector nativo ya lanzado y Manual
+       porque su modal no es de la familia). El clic sintético sobre
+       el botón real burbujea por su cuenta desde DENTRO de la hoja
+       y el vigilante lo deja pasar por contención, como siempre; un
+       toque fuera POSTERIOR sigue cerrando las hojas igual. */
+    if (b) b.onclick = e => { if (e && e.stopPropagation) e.stopPropagation(); const r = $(real); if (r) r.click(); };
   }
   fusedWaterPaint();
 }
@@ -44116,7 +44127,7 @@ document.addEventListener('keydown', e => { if (e.key === 'Escape') shareClose()
  *  - El SW (sw.js) solo cachea la cáscara del mismo origen en modo
  *    RED PRIMERO: Auth/Firestore/Worker jamás pasan por la caché.
  * ================================================================ */
-const PWA_SW_VERSION = '20261106-dedup2';
+const PWA_SW_VERSION = '20261106-atajo-inicio';
 /* Sello de versión VISIBLE (2026-11-03): el pie de la tarjeta de
    acceso enseña qué copia corre este teléfono ('v ' + el sello),
    para comprobar de un vistazo si la versión nueva ya llegó.
