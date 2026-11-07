@@ -42827,6 +42827,38 @@ function shareTransFmtDelta(disp) {
   const r = Math.round(disp * 10) / 10;
   return (r > 0 ? '+' : r < 0 ? '−' : '') + evalFmtNum(Math.abs(r));
 }
+/* RESPALDO DE COMPOSICIÓN EN EL PESAJE VIGENTE (AUTH-2026-11-07-295;
+   decisión expresa de Ronald, 2026-11-07 02:30 CST: «Amplía la
+   tarjeta a los pesajes»). La composición de cada lado se resuelve
+   POR MÉTRICA: primero manda el comp de la evaluación (el camino
+   de AUTH-294, sin cambios); lo que la evaluación no trae se toma
+   del pesaje VIGENTE en la fecha del lado — el mismo que ya da el
+   peso de ese lado (la regla de cmpWeightUpTo: el último pesaje
+   con fecha ≤ la del lado; NUNCA uno posterior) — y solo si ese
+   pesaje trae la lectura REAL de la báscula: en WEIGHTS los huecos
+   vienen en 0 (num()) y la propia app solo pinta grasa si es > 0,
+   así que un pesaje en ceros NO cuenta como composición. La grasa
+   del pesaje es % (como la de la evaluación) y su masa viene en
+   kg: la fila de masa sigue exigiendo la misma unidad en ambos
+   lados, como evalCompRow. */
+function shareTransWeightRecUpTo(W, date) {
+  let rec = null;
+  for (const w of (W || [])) { if (w.date <= date) { if (num(w.weight) > 0) rec = w; } else break; }
+  return rec;
+}
+function shareTransCompSide(iso) {
+  const c = (EVALS[iso] || {}).comp || {};
+  let fat = (c.fat && typeof c.fat.value === 'number') ? { value: c.fat.value } : null;
+  let muscle = (c.muscle && typeof c.muscle.value === 'number') ? { value: c.muscle.value, unit: c.muscle.unit } : null;
+  if (!fat || !muscle) {
+    const rec = shareTransWeightRecUpTo(WEIGHTS, iso);
+    if (rec) {
+      if (!fat && num(rec.fat) > 0) fat = { value: num(rec.fat) };
+      if (!muscle && num(rec.muscle) > 0) muscle = { value: num(rec.muscle), unit: 'kg' };
+    }
+  }
+  return { fat, muscle };
+}
 function shareTransData() {
   const dates = shareTransDates();
   if (dates.length < 2) return { ok: false, reason: 'evals', dates };
@@ -42844,7 +42876,7 @@ function shareTransData() {
       va: fmtMassVal(wa) + ' ' + UNIT_PREFS.mass, vb: fmtMassVal(wb) + ' ' + UNIT_PREFS.mass,
       diff: shareTransFmtDelta(massToDisplay(wb - wa)) + ' ' + UNIT_PREFS.mass + ' ' + t('share.transOfWeight') });
   }
-  const ca = (EVALS[a] || {}).comp || {}, cb = (EVALS[b] || {}).comp || {};
+  const ca = shareTransCompSide(a), cb = shareTransCompSide(b);
   if (ca.fat && cb.fat && typeof ca.fat.value === 'number' && typeof cb.fat.value === 'number') {
     rows.push({ kind: 'fat', label: t('eval.compFat'), ico: '%',
       va: evalFmtNum(ca.fat.value) + ' %', vb: evalFmtNum(cb.fat.value) + ' %',
@@ -44572,7 +44604,7 @@ document.addEventListener('keydown', e => { if (e.key === 'Escape') shareClose()
  *  - El SW (sw.js) solo cachea la cáscara del mismo origen en modo
  *    RED PRIMERO: Auth/Firestore/Worker jamás pasan por la caché.
  * ================================================================ */
-const PWA_SW_VERSION = '20261107-antes-despues';
+const PWA_SW_VERSION = '20261107-antes-pesajes';
 /* Sello de versión VISIBLE (2026-11-03): el pie de la tarjeta de
    acceso enseña qué copia corre este teléfono ('v ' + el sello),
    para comprobar de un vistazo si la versión nueva ya llegó.
