@@ -1355,6 +1355,10 @@ div > .btn-ghost:only-child, div > .btn-main:only-child {
 #progress-content > .btn-primary { display: block; width: fit-content; max-width: 100%; margin: 2px auto 14px; }
 .share-opts { grid-template-columns: repeat(2, 1fr); }
 .share-opts .act-chip[aria-pressed="true"] { background: #ccfbf1; border-color: #0d9488; box-shadow: 0 0 0 2px #0d9488 inset; }
+/* ANTES Y DESPUÉS (AUTH-2026-11-07-294): el selector de
+   evaluaciones usa botones de la casa con alto táctil ≥48 px. */
+.share-transsel { margin-top: 10px; }
+.share-transsel .act-chip { min-height: 48px; justify-content: center; }
 .share-fmt { display: flex; gap: 8px; justify-content: center; margin: 12px 0 2px; }
 .share-fmt .btn-ghost[aria-pressed="true"] { background: #0d9488; border-color: #0d9488; color: #fff; }
 .share-preview { margin: 10px auto 6px; max-width: 300px; }

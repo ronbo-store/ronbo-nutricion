@@ -21,7 +21,7 @@
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-title" content="RONBO FIT">
 <meta name="apple-mobile-web-app-status-bar-style" content="default">
-<link rel="stylesheet" href="styles.css?v=20261106-entreno-correo">
+<link rel="stylesheet" href="styles.css?v=20261107-antes-despues">
 <script defer src="https://cloud.umami.is/script.js" data-website-id="a29706d4-44a2-47cf-900a-5f74d74abfa8"></script>
 <script type="importmap">
 {
@@ -1105,6 +1105,11 @@
         <span class="act-chip-lab" data-i18n="share.logroLab">My milestone</span>
         <span class="act-chip-badge" data-i18n="share.newBadge">NEW</span>
       </button>
+      <button type="button" class="act-chip" id="btn-share-trans" aria-pressed="false">
+        <span class="act-chip-ico" aria-hidden="true">📸</span>
+        <span class="act-chip-lab" data-i18n="share.transLab">Before and after</span>
+        <span class="act-chip-badge" data-i18n="share.newBadge">NEW</span>
+      </button>
     </div>
     <div class="share-fmt" role="group">
       <button type="button" class="btn-ghost btn-sm" id="btn-share-f916" aria-pressed="true" data-i18n="share.format916">Story 9:16</button>
@@ -1124,6 +1129,17 @@
       </div>
       <p class="progress-hint" data-i18n="share.dayPhotoNote">Stays only on your phone, only for this card</p>
       <input type="file" id="share-dayphoto-file" accept="image/*" style="display:none">
+    </div>
+    <!-- ANTES Y DESPUÉS (AUTH-2026-11-07-294): el selector de las
+         dos evaluaciones solo se muestra con esa tarjeta elegida
+         (lo sincroniza shareTransSync en app.js). Botones grandes
+         de la casa; las fotos siguen a la evaluación elegida. -->
+    <div class="share-transsel" id="share-transsel" style="display:none">
+      <p class="photo-hint"><span data-i18n="share.transSelBefore">Before · evaluation</span></p>
+      <div class="food-chip-row share-opts" id="share-trans-a"></div>
+      <p class="photo-hint"><span data-i18n="share.transSelAfter">After · evaluation</span></p>
+      <div class="food-chip-row share-opts" id="share-trans-b"></div>
+      <p class="progress-hint" id="share-trans-note" style="display:none"></p>
     </div>
     <div class="share-preview"><canvas id="share-canvas" width="1080" height="1920" role="img"></canvas></div>
     <p class="progress-hint" data-i18n="share.privNote">Only your progress goes on the card: no weight, no measurements, no photos.</p>
@@ -2016,6 +2032,6 @@
 <div id="toast" class="toast"></div>
 <div id="print-card" aria-hidden="true"></div>
 
-<script type="module" src="app.js?v=20261106-entreno-correo"></script>
+<script type="module" src="app.js?v=20261107-antes-despues"></script>
 </body>
 </html>

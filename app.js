@@ -6867,6 +6867,20 @@ en: {
   'share.shortLab': 'My day in short',
   'share.todayLab': "Today's workout",
   'share.logroLab': 'My milestone',
+  'share.transLab': 'Before and after',
+  'share.transChip': '📸 MY TRANSFORMATION',
+  'share.before': 'Before',
+  'share.after': 'After',
+  'share.transSelBefore': 'Before · evaluation',
+  'share.transSelAfter': 'After · evaluation',
+  'share.transWeeks': 'Result in {n} weeks',
+  'share.transWeek1': 'Result in 1 week',
+  'share.transDays': 'Result in under a week',
+  'share.transOfWeight': 'of total weight',
+  'share.transOfFat': 'of body fat',
+  'share.transOfMuscle': 'of muscle mass',
+  'share.transNeedEvals': 'You need two progress evaluations to build this card. Complete another evaluation in Progress and come back.',
+  'share.transNeedPhotos': 'Your front progress photos are missing for these dates. Add them in Progress, in the photos of each evaluation, and the card will show them.',
   'share.todayPlan': 'from your plan "{name}"',
   'share.todayLast': 'LAST TIME',
   'share.todayDemanding': 'Today is a demanding day.',
@@ -10487,6 +10501,20 @@ es: {
   'share.shortLab': 'Mi resumen del día',
   'share.todayLab': 'Mi entreno de hoy',
   'share.logroLab': 'Mi logro',
+  'share.transLab': 'Antes y después',
+  'share.transChip': '📸 MI TRANSFORMACIÓN',
+  'share.before': 'Antes',
+  'share.after': 'Después',
+  'share.transSelBefore': 'Antes · evaluación',
+  'share.transSelAfter': 'Después · evaluación',
+  'share.transWeeks': 'Resultado en {n} semanas',
+  'share.transWeek1': 'Resultado en 1 semana',
+  'share.transDays': 'Resultado en menos de una semana',
+  'share.transOfWeight': 'de peso total',
+  'share.transOfFat': 'de grasa corporal',
+  'share.transOfMuscle': 'de masa muscular',
+  'share.transNeedEvals': 'Necesitas dos evaluaciones de progreso para crear esta tarjeta. Completa otra evaluación en Progreso y vuelve.',
+  'share.transNeedPhotos': 'Faltan tus fotos de frente de progreso para estas fechas. Añádelas en Progreso, en las fotos de cada evaluación, y la tarjeta las mostrará.',
   'share.todayPlan': 'de tu plan «{name}»',
   'share.todayLast': 'ÚLTIMA VEZ',
   'share.todayDemanding': 'Hoy es un día exigente.',
@@ -42295,7 +42323,7 @@ setInterval(() => { try { pendDockTick(); } catch {} }, 60000);
    1:1 (1080×1080: la misma composición adaptada — héroe + lo
    esencial, sin la línea de reto). Los emojis se dibujan con la
    fuente de emojis del propio dispositivo (fillText). */
-const SHARE = { type: 'day', format: '916', blob: null, fileName: '', workout: null, logro: null };
+const SHARE = { type: 'day', format: '916', blob: null, fileName: '', workout: null, logro: null, trans: { a: null, b: null } };
 const SHARE_WD = { en: ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'],
                    es: ['lunes', 'martes', 'miércoles', 'jueves', 'viernes', 'sábado', 'domingo'] };
 const SHARE_LETTERS = { en: ['M', 'T', 'W', 'T', 'F', 'S', 'S'], es: ['L', 'M', 'X', 'J', 'V', 'S', 'D'] };
@@ -42752,6 +42780,251 @@ function shareDrawWeek(ctx, W, H, d) {
   shareBottom(ctx, W, H, phrase, !cp);
 }
 
+/* ============================================================
+   TARJETA «ANTES Y DESPUÉS» (AUTH-2026-11-07-294; orden directa
+   de Ronald, 2026-11-07 01:58 CST, sobre la referencia que él
+   envió: fotos antes/después lado a lado, píldoras de métricas
+   por lado y resumen «Resultado en X semanas» con las
+   diferencias). El vestido es el de la familia: degradado de
+   shareBg, marca, píldoras y pie de la tarjeta semanal.
+   MAPA DEL DATO (verificado en el código y en documentos
+   reales): las evaluaciones viven en EVALS — documentos
+   nutrition_progress de tipo 'evaluation', id {uid}_{fecha}_eval
+   — con su composición en comp: la GRASA solo existe como %
+   (comp.fat, unit siempre '%') y la MASA MUSCULAR en la unidad
+   elegida al registrarla (comp.muscle.unit 'kg' o '%'). El PESO
+   de cada evaluación es el pesaje vigente en su fecha
+   (cmpWeightUpTo sobre nutrition_weight: la regla del
+   comparador de la casa). Las FOTOS de progreso son dataURL en
+   nutrition_progress {uid}_{fecha}_{slot} (PROG[fecha][slot]);
+   la tarjeta usa la de FRENTE del propio usuario de la sesión,
+   asociada a cada evaluación por la fecha de fotos MÁS CERCANA
+   con frente (empate: la más temprana) — en la práctica la
+   evaluación y su set de fotos nacen el mismo día. La tarjeta
+   pinta SOLO las métricas presentes en AMBAS evaluaciones (la
+   masa, además, solo si la unidad coincide, como evalCompRow);
+   ninguna cifra se inventa ni se estima. «Resultado en X
+   semanas»: días entre las dos fechas ÷ 7, redondeo al entero
+   más cercano; con menos de 7 días la frase es «menos de una
+   semana». Las diferencias llevan su signo real, sin maquillar
+   (la casa no celebra un dato en contra: pinta el número).
+   En 1:1 la composición se reduce a lo esencial, como en la
+   familia: sin línea de nombre, la fecha va dentro del rótulo
+   de cada foto y las fotos se recortan más cortas.
+   ============================================================ */
+function shareTransDates() { return Object.keys((typeof EVALS !== 'undefined' && EVALS) ? EVALS : {}).sort(); }
+function shareTransPhotoDate(evalDate) {
+  const prog = (typeof PROG !== 'undefined' && PROG) ? PROG : {};
+  let best = null, bestDist = Infinity;
+  for (const d of Object.keys(prog)) {
+    if (!prog[d] || !prog[d].front || !prog[d].front.photo) continue;
+    const dist = Math.abs(evalDaysBetween(evalDate, d));
+    if (dist < bestDist || (dist === bestDist && (best === null || d < best))) { best = d; bestDist = dist; }
+  }
+  return best;
+}
+function shareTransFmtDelta(disp) {
+  const r = Math.round(disp * 10) / 10;
+  return (r > 0 ? '+' : r < 0 ? '−' : '') + evalFmtNum(Math.abs(r));
+}
+function shareTransData() {
+  const dates = shareTransDates();
+  if (dates.length < 2) return { ok: false, reason: 'evals', dates };
+  let a = SHARE.trans.a, b = SHARE.trans.b;
+  if (!dates.includes(a)) a = dates[0];
+  if (!dates.includes(b) || b === a) b = dates[dates.length - 1];
+  if (a === b) b = dates.find(d => d !== a);
+  if (a > b) { const z = a; a = b; b = z; }
+  const pa = shareTransPhotoDate(a), pb = shareTransPhotoDate(b);
+  if (!pa || !pb) return { ok: false, reason: 'photos', dates, a, b };
+  const rows = [];
+  const wa = cmpWeightUpTo(WEIGHTS, a), wb = cmpWeightUpTo(WEIGHTS, b);
+  if (wa != null && wb != null) {
+    rows.push({ kind: 'weight', label: t('eval.measure.peso'), ico: '⚖️',
+      va: fmtMassVal(wa) + ' ' + UNIT_PREFS.mass, vb: fmtMassVal(wb) + ' ' + UNIT_PREFS.mass,
+      diff: shareTransFmtDelta(massToDisplay(wb - wa)) + ' ' + UNIT_PREFS.mass + ' ' + t('share.transOfWeight') });
+  }
+  const ca = (EVALS[a] || {}).comp || {}, cb = (EVALS[b] || {}).comp || {};
+  if (ca.fat && cb.fat && typeof ca.fat.value === 'number' && typeof cb.fat.value === 'number') {
+    rows.push({ kind: 'fat', label: t('eval.compFat'), ico: '%',
+      va: evalFmtNum(ca.fat.value) + ' %', vb: evalFmtNum(cb.fat.value) + ' %',
+      diff: shareTransFmtDelta(cb.fat.value - ca.fat.value) + ' % ' + t('share.transOfFat') });
+  }
+  const muOk = ca.muscle && cb.muscle && ca.muscle.unit === cb.muscle.unit &&
+    typeof ca.muscle.value === 'number' && typeof cb.muscle.value === 'number';
+  if (muOk && ca.muscle.unit === '%') {
+    rows.push({ kind: 'muscle', label: t('eval.compMuscle'), ico: '💪',
+      va: evalFmtNum(ca.muscle.value) + ' %', vb: evalFmtNum(cb.muscle.value) + ' %',
+      diff: shareTransFmtDelta(cb.muscle.value - ca.muscle.value) + ' % ' + t('share.transOfMuscle') });
+  } else if (muOk) {
+    rows.push({ kind: 'muscle', label: t('eval.compMuscle'), ico: '💪',
+      va: fmtMassVal(ca.muscle.value) + ' ' + UNIT_PREFS.mass, vb: fmtMassVal(cb.muscle.value) + ' ' + UNIT_PREFS.mass,
+      diff: shareTransFmtDelta(massToDisplay(cb.muscle.value - ca.muscle.value)) + ' ' + UNIT_PREFS.mass + ' ' + t('share.transOfMuscle') });
+  }
+  const days = evalDaysBetween(a, b);
+  const weeks = Math.round(days / 7);
+  const result = days < 7 ? t('share.transDays') : weeks <= 1 ? t('share.transWeek1') : t('share.transWeeks', { n: weeks });
+  return { ok: true, a, b, pa, pb, rows, days, weeks, result, name: shareFirstName() };
+}
+/* Las fotos de progreso son dataURL del propio usuario (mismo
+   origen): se cargan sin crossOrigin y sin pasar por la caché
+   del SW — el arreglo de AUTH-261 protege las cargas CORS de
+   URL remotas; aquí la imagen nace ya dentro de la sesión. Al
+   terminar de cargar con la hoja abierta, la tarjeta se
+   re-pinta sola, como con las fotos de ejercicio. */
+const SHARE_TPHOTO = {};
+function shareTransPhotoEnsure(date) {
+  if (!date || SHARE_TPHOTO[date]) return;
+  const rec = (typeof PROG !== 'undefined' && PROG && PROG[date]) ? PROG[date].front : null;
+  if (!rec || !rec.photo) return;
+  const r = SHARE_TPHOTO[date] = { img: null, state: 'loading' };
+  try {
+    const im = new Image();
+    im.onload = () => { r.img = im; r.state = 'ok'; const f = $('share-float'); if (f && f.style.display !== 'none' && SHARE.type === 'trans') shareRender(); };
+    im.onerror = () => { r.state = 'fail'; };
+    im.src = rec.photo;
+  } catch (e) { r.state = 'fail'; }
+}
+/* Pinta la foto en un rectángulo con recorte de cobertura
+   (ancla vertical 30 %, como el flujo de imágenes de la casa)
+   y devuelve true SOLO si la pintó; si no está lista, dispara
+   la carga y devuelve false: se compone el hueco honesto. */
+function shareTransPhotoDraw(ctx, date, x, y, w, h, r) {
+  const rec = SHARE_TPHOTO[date];
+  if (!rec || rec.state !== 'ok' || !rec.img) { shareTransPhotoEnsure(date); return false; }
+  const im = rec.img, iw = im.naturalWidth || im.width, ih = im.naturalHeight || im.height;
+  if (!iw || !ih) return false;
+  ctx.save();
+  ctx.beginPath(); shareRR(ctx, x, y, w, h, r); ctx.clip();
+  const sc = Math.max(w / iw, h / ih), dw = iw * sc, dh = ih * sc;
+  try { ctx.drawImage(im, x + (w - dw) / 2, y + (h - dh) * 0.30, dw, dh); } catch (e) { ctx.restore(); return false; }
+  ctx.restore();
+  return true;
+}
+function shareDrawTrans(ctx, W, H, d) {
+  const cp = H < 1500;
+  shareBg(ctx, W, H);
+  shareBrand(ctx, W, cp ? 88 : 160, cp ? 38 : 54);
+  const chipPx = cp ? 25 : 32, chipTop = cp ? 130 : 234;
+  sharePill(ctx, W / 2, chipTop + (chipPx + 34) / 2, t('share.transChip'), chipPx, { ls: 3 });
+  const chipBottom = chipTop + chipPx + 34;
+  if (!cp && d.name) sgText(ctx, d.name, W / 2, chipBottom + 46, 600, shareFitPx(ctx, d.name, 600, 34, 900), 'rgba(255,255,255,.95)', { align: 'center' });
+  const colW = 452, gapX = 32, x0 = (W - colW * 2 - gapX) / 2;
+  const photoY = chipBottom + (cp ? 36 : 96);
+  const photoH = cp ? 264 : 620;
+  const cols = [
+    { x: x0, date: d.a, pdate: d.pa, lab: t('share.before') },
+    { x: x0 + colW + gapX, date: d.b, pdate: d.pb, lab: t('share.after') }];
+  for (const c of cols) {
+    if (!shareTransPhotoDraw(ctx, c.pdate, c.x, photoY, colW, photoH, 30)) {
+      ctx.save(); ctx.fillStyle = 'rgba(255,255,255,.14)'; shareRR(ctx, c.x, photoY, colW, photoH, 30); ctx.fill(); ctx.restore();
+      sgText(ctx, '📸', c.x + colW / 2, photoY + photoH / 2, 400, 84, '#ffffff', { align: 'center', emoji: true });
+    }
+    const labTxt = cp ? c.lab.toUpperCase() + ' · ' + shortDate(c.date) + '/' + c.date.slice(2, 4) : c.lab.toUpperCase();
+    sharePill(ctx, c.x + colW / 2, photoY + photoH, labTxt, cp ? 23 : 28, { bg: 'rgba(4,40,34,.92)', ls: 2 });
+    if (!cp) { const dtxt = dateName(c.date); sgText(ctx, dtxt, c.x + colW / 2, photoY + photoH + 54, 600, shareFitPx(ctx, dtxt, 600, 28, colW), 'rgba(255,255,255,.94)', { align: 'center' }); }
+  }
+  let ry = photoY + photoH + (cp ? 40 : 96);
+  const pillH = cp ? 70 : 104, pitch = pillH + (cp ? 8 : 24);
+  for (const row of d.rows) {
+    for (const pair of [[x0 + colW / 2, row.va], [x0 + colW + gapX + colW / 2, row.vb]]) {
+      const cx = pair[0];
+      ctx.save();
+      ctx.shadowColor = 'rgba(0,60,50,.35)'; ctx.shadowBlur = 18; ctx.shadowOffsetY = 6;
+      ctx.fillStyle = '#ffffff'; shareRR(ctx, cx - colW / 2, ry, colW, pillH, pillH / 2); ctx.fill();
+      ctx.restore();
+      const labT = row.ico + '  ' + row.label.toUpperCase(), labPx = cp ? 19 : 24;
+      sgText(ctx, labT, cx, ry + pillH * 0.30, 700, shareFitPx(ctx, labT, 700, labPx, colW - 40, true), '#5B7370', { align: 'center', emoji: true });
+      const valPx = cp ? 36 : 46;
+      sgText(ctx, pair[1], cx, ry + pillH * 0.68, 900, shareFitPx(ctx, pair[1], 900, valPx, colW - 40), '#0B3B36', { align: 'center' });
+    }
+    sgText(ctx, '»', W / 2, ry + pillH / 2 + 12, 900, cp ? 40 : 56, '#ffffff', { align: 'center' });
+    ry += pitch;
+  }
+  const rowsEnd = ry - (pitch - pillH);
+  /* Resumen: la píldora del resultado es el pie de la familia
+     (shareBottom) y las líneas ✓ se apilan sobre ella; una
+     línea solo se pinta si cabe sin tocar las píldoras. */
+  const chipH = cp ? 44 : 64, chipGap = cp ? 8 : 14;
+  const pillTop = shareBottom(ctx, W, H, d.result, false);
+  const avail = (pillTop - chipGap) - (rowsEnd + 6);
+  const maxChips = Math.max(0, Math.floor((avail + chipGap) / (chipH + chipGap)));
+  const m = Math.min(d.rows.length, maxChips);
+  for (let k = 0; k < m; k++) {
+    const cyTop = pillTop - chipGap - (m - k) * chipH - (m - 1 - k) * chipGap;
+    const txt = d.rows[k].diff;
+    const tw = shareTextW(ctx, txt, 700, cp ? 27 : 36) + 130;
+    const wChip = Math.min(1000, Math.max(cp ? 480 : 560, tw));
+    const x = (W - wChip) / 2;
+    ctx.save();
+    ctx.shadowColor = 'rgba(0,60,50,.35)'; ctx.shadowBlur = 16; ctx.shadowOffsetY = 5;
+    ctx.fillStyle = '#ffffff'; shareRR(ctx, x, cyTop, wChip, chipH, chipH / 2); ctx.fill();
+    ctx.restore();
+    const cr = cp ? 17 : 24;
+    const g = ctx.createLinearGradient(x + 22, cyTop, x + 22 + cr * 2, cyTop + chipH);
+    g.addColorStop(0, '#00E2C4'); g.addColorStop(1, '#009E83');
+    ctx.save(); ctx.beginPath(); ctx.arc(x + 22 + cr, cyTop + chipH / 2, cr, 0, Math.PI * 2); ctx.fillStyle = g; ctx.fill(); ctx.restore();
+    sgText(ctx, '✓', x + 22 + cr, cyTop + chipH / 2 + 2, 900, cp ? 24 : 32, '#04382F', { align: 'center' });
+    const difPx = cp ? 27 : 36;
+    sgText(ctx, txt, x + 22 + cr * 2 + 14, cyTop + chipH / 2, 700, shareFitPx(ctx, txt, 700, difPx, wChip - (22 + cr * 2 + 14) - 24), '#22434F', {});
+  }
+}
+function shareDrawTransEmpty(ctx, W, H, reason) {
+  shareBg(ctx, W, H);
+  const square = H === W;
+  const u = W / 360;
+  shareBrand(ctx, W, square ? 50 : 60, 52);
+  sharePill(ctx, W / 2, (square ? 55 : 61) * u, t('share.transChip'), 31.5, { ls: 2.7 });
+  const IX = 24, IW = 312, panelY = (square ? 74 : 84) * u;
+  const F = (css) => css * u;
+  const nameLine = ((typeof UDATA !== 'undefined' && UDATA && UDATA.name) || shareFirstName() || '') + ' · ' + shareDayLabel(todayISO());
+  const lines = sgWrap(ctx, t(reason === 'photos' ? 'share.transNeedPhotos' : 'share.transNeedEvals'), 400, F(11), F(IW - 24));
+  const panelH = F(30 + lines.length * 15 + 16);
+  sgPanelWhite(ctx, 12 * u, panelY, 336 * u, panelH, 16 * u);
+  const npx = shareFitPx(ctx, nameLine, 600, F(9.5), F(IW - 16));
+  sgText(ctx, nameLine, W / 2, panelY + F(17), 700, npx, '#475569', { align: 'center' });
+  lines.forEach((ln, i) => sgText(ctx, ln, (IX + 12) * u, panelY + F(42 + i * 15), 400, F(11), '#475569'));
+  shareTxt(ctx, 'RONBO FIT · fit.ronbo.store · #MiAvanceRonboFit', W / 2, H - (square ? 24 : 92),
+    shareCtxFont(700, square ? 22 : 28), 'rgba(255,255,255,.94)', { ls: square ? 2 : 3, shadowBlur: 14 });
+}
+/* Selector de la tarjeta en la hoja: dos filas de botones
+   grandes de la casa con las fechas de las evaluaciones; las
+   fotos siguen a la evaluación elegida (shareTransData). */
+function shareTransSync() {
+  const box = $('share-transsel'); if (!box) return;
+  const on = SHARE.type === 'trans';
+  box.style.display = on ? '' : 'none';
+  if (!on) return;
+  const ra = $('share-trans-a'), rb = $('share-trans-b'), note = $('share-trans-note');
+  const dates = shareTransDates();
+  if (dates.length < 2) {
+    if (ra) ra.innerHTML = '';
+    if (rb) rb.innerHTML = '';
+    if (note) { note.style.display = ''; note.textContent = t('share.transNeedEvals'); }
+    return;
+  }
+  if (note) note.style.display = 'none';
+  const d = shareTransData();
+  const a = d.a || dates[0], b = d.b || dates[dates.length - 1];
+  const mk = (iso, side) => '<button type="button" class="act-chip" data-trans-pick="' + side + ':' + iso + '" aria-pressed="' +
+    ((side === 'a' ? iso === a : iso === b) ? 'true' : 'false') + '"><span class="act-chip-lab">' +
+    shortDate(iso) + '/' + iso.slice(2, 4) + '</span></button>';
+  if (ra) ra.innerHTML = dates.map(x => mk(x, 'a')).join('');
+  if (rb) rb.innerHTML = dates.map(x => mk(x, 'b')).join('');
+}
+function shareTransPick(side, iso) {
+  const dates = shareTransDates();
+  if (!dates.includes(iso)) return;
+  if (side === 'a') {
+    SHARE.trans.a = iso;
+    if (SHARE.trans.b === iso) SHARE.trans.b = dates.find(d => d !== iso && d > iso) || dates.find(d => d !== iso);
+  } else {
+    SHARE.trans.b = iso;
+    if (SHARE.trans.a === iso) SHARE.trans.a = dates.find(d => d !== iso && d < iso) || dates.find(d => d !== iso);
+  }
+  shareTransSync();
+  shareRender();
+}
 /* ---------- generación, vista previa y salidas ---------- */
 /* ---------- tarjeta «Mi entrenamiento» (diseño CERRADO v4/v5-final,
    2026-10-26) ----------
@@ -44139,6 +44412,18 @@ function shareRender() {
       shareDrawLogroEmpty(ctx, W, H);
       summary = t('share.logroLab') + ' · ' + t('reco.shEmpty') + ' · ronbo.fit';
     }
+  } else if (SHARE.type === 'trans') {
+    const d = shareTransData();
+    if (d.ok) {
+      shareDrawTrans(ctx, W, H, d);
+      SHARE.fileName = 'ronbo-fit-before-after-' + d.a + '-' + d.b + '.png';
+      summary = t('share.transLab') + ' · ' + dateName(d.a) + ' → ' + dateName(d.b) + ' · ' + d.result +
+        d.rows.map(r => ' · ' + r.diff).join('') + ' · ronbo.fit #MiAvanceRonboFit';
+    } else {
+      shareDrawTransEmpty(ctx, W, H, d.reason);
+      SHARE.fileName = 'ronbo-fit-before-after.png';
+      summary = t('share.transLab') + ' · ' + t(d.reason === 'photos' ? 'share.transNeedPhotos' : 'share.transNeedEvals') + ' · ronbo.fit';
+    }
   } else if (SHARE.type === 'short') {
     const d = shareShortData();
     shareDrawShort(ctx, W, H, d);
@@ -44161,6 +44446,7 @@ function shareRender() {
     ? 'ronbo-fit-workout-' + SHARE.workout.dateISO + '.png'
     : SHARE.type === 'goals' ? 'ronbo-fit-myday-' + todayISO() + '.png'
     : SHARE.type === 'short' ? 'ronbo-fit-dayshort-' + todayISO() + '.png'
+    : SHARE.type === 'trans' ? SHARE.fileName
     : (SHARE.type === 'week' ? 'ronbo-fit-week-' : 'ronbo-fit-goal-') + todayISO() + '.png';
   SHARE.blob = null;
   shareRefreshShareBtn();
@@ -44192,14 +44478,16 @@ function shareDownload() {
 function shareSyncTypeUI() {
   const f = $('share-float'); if (!f) return;
   f.classList.toggle('share-workout-mode', SHARE.type === 'workout');
-  const bd = $('btn-share-day'), bw = $('btn-share-week'), bg = $('btn-share-goals'), bs = $('btn-share-short'), bt = $('btn-share-today'), bl = $('btn-share-logro');
+  const bd = $('btn-share-day'), bw = $('btn-share-week'), bg = $('btn-share-goals'), bs = $('btn-share-short'), bt = $('btn-share-today'), bl = $('btn-share-logro'), bx = $('btn-share-trans');
   if (bd) bd.setAttribute('aria-pressed', SHARE.type === 'day' ? 'true' : 'false');
   if (bw) bw.setAttribute('aria-pressed', SHARE.type === 'week' ? 'true' : 'false');
   if (bg) bg.setAttribute('aria-pressed', SHARE.type === 'goals' ? 'true' : 'false');
   if (bs) bs.setAttribute('aria-pressed', SHARE.type === 'short' ? 'true' : 'false');
   if (bt) bt.setAttribute('aria-pressed', SHARE.type === 'today' ? 'true' : 'false');
   if (bl) bl.setAttribute('aria-pressed', SHARE.type === 'logro' ? 'true' : 'false');
+  if (bx) bx.setAttribute('aria-pressed', SHARE.type === 'trans' ? 'true' : 'false');
   shareDayPhotoSync();
+  shareTransSync();
 }
 function shareOpen() {
   const f = $('share-float'); if (!f) return;
@@ -44211,6 +44499,8 @@ function shareOpen() {
 }
 function shareClose() { const f = $('share-float'); if (f) f.style.display = 'none'; }
 function shareSetType(type) {
+  if (type === 'trans' && typeof ensureProgressLoaded === 'function')
+    ensureProgressLoaded().then(() => { if (SHARE.type === 'trans') { shareTransSync(); shareRender(); } });
   if (type === 'logro' && !SHARE.logro && typeof RECO_LATEST !== 'undefined' && RECO_LATEST)
     SHARE.logro = shareLogroData(RECO_LATEST);
   SHARE.type = type;
@@ -44244,6 +44534,8 @@ document.addEventListener('keydown', e => { if (e.key === 'Escape') { const f = 
 { const b = $('btn-share-short'); if (b) b.addEventListener('click', () => shareSetType('short')); }
 { const b = $('btn-share-today'); if (b) b.addEventListener('click', () => shareSetType('today')); }
 { const b = $('btn-share-logro'); if (b) b.addEventListener('click', () => shareSetType('logro')); }
+{ const b = $('btn-share-trans'); if (b) b.addEventListener('click', () => shareSetType('trans')); }
+{ const box = $('share-transsel'); if (box) box.addEventListener('click', e => { const btn = e.target.closest('[data-trans-pick]'); if (!btn) return; const p = btn.getAttribute('data-trans-pick').split(':'); shareTransPick(p[0], p[1]); }); }
 { const b = $('btn-share-f916'); if (b) b.addEventListener('click', () => shareSetFormat('916')); }
 { const b = $('btn-share-f11'); if (b) b.addEventListener('click', () => shareSetFormat('11')); }
 { const b = $('btn-share-send'); if (b) b.addEventListener('click', shareSend); }
@@ -44280,7 +44572,7 @@ document.addEventListener('keydown', e => { if (e.key === 'Escape') shareClose()
  *  - El SW (sw.js) solo cachea la cáscara del mismo origen en modo
  *    RED PRIMERO: Auth/Firestore/Worker jamás pasan por la caché.
  * ================================================================ */
-const PWA_SW_VERSION = '20261106-entreno-correo';
+const PWA_SW_VERSION = '20261107-antes-despues';
 /* Sello de versión VISIBLE (2026-11-03): el pie de la tarjeta de
    acceso enseña qué copia corre este teléfono ('v ' + el sello),
    para comprobar de un vistazo si la versión nueva ya llegó.
