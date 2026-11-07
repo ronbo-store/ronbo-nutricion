@@ -2014,10 +2014,10 @@ async function renderProfileView() {
         <span class="ds-row-label">${esc(t('myprof.dsTitle'))}</span>
         <span class="ds-row-side"><span class="ds-switch" aria-hidden="true"><span class="ds-knob">${dsEffOn ? '✓' : '✕'}</span></span><span class="ds-state" id="myprof-ds-state">${esc(t(dsEffOn ? 'myprof.dsStateOn' : 'myprof.dsStateOff'))}</span></span>
       </button>
-      <div class="ds-time-row">
+      ${dsEffOn ? `<div class="ds-time-row">
         <span class="ds-time-label">${esc(t('myprof.dsTime'))}</span>
-        <button type="button" class="ds-time-btn" id="myprof-ds-timebtn"${dsEffOn ? '' : ' disabled'}><span class="ds-clock" aria-hidden="true">🕐</span><span class="ds-time-val" id="myprof-ds-timeval">${esc(dsEffTime)}</span><span class="ds-chev" aria-hidden="true">▼</span></button>
-      </div>
+        <button type="button" class="ds-time-btn" id="myprof-ds-timebtn"><span class="ds-clock" aria-hidden="true">🕐</span><span class="ds-time-val" id="myprof-ds-timeval">${esc(dsEffTime)}</span><span class="ds-chev" aria-hidden="true">▼</span></button>
+      </div>` : ''}
     </div>
     <p class="progress-hint">${esc(t('myprof.dsTz', { tz: dsTz || '—' }))}</p>
     <p class="progress-hint">${esc(t('myprof.dsHint'))}</p>
@@ -2082,17 +2082,33 @@ async function renderProfileView() {
      cierra). La semántica de guardado no cambia ni en una coma:
      mismo mapa cerrado {on, time, tz}, mismo patrón de reversa
      ante el fallo, misma zona que se guarda sola al abrir. */
-  const dPanel = $('myprof-ds-panel'), dTgl = $('myprof-ds-toggle'), dTimeBtn = $('myprof-ds-timebtn');
-  if (dPanel && dTgl && dTimeBtn) {
+  const dPanel = $('myprof-ds-panel'), dTgl = $('myprof-ds-toggle');
+  let dTimeBtn = $('myprof-ds-timebtn');
+  if (dPanel && dTgl) {
     let dsOn = dsEffOn, dsTime = dsEffTime, dsFloat = null;
+    /* LA HORA SOLO APARECE AL ACTIVAR (orden de Ronald, 2026-11-06,
+       AUTH-2026-11-06-293): como el bloque hermano del aviso de día
+       exigente, la fila de la hora NO se pinta con el resumen
+       apagado — dsPaint la crea al encender (con la hora guardada,
+       que el apagado conserva en el dato) y la retira del DOM al
+       apagar. La fila nace del MISMO marcado que pinta
+       renderProfileView. El guardado no cambia ni en una coma:
+       mismo mapa cerrado {on, time, tz}. */
+    const dsTimeRowHTML = () => `<div class="ds-time-row">
+        <span class="ds-time-label">${esc(t('myprof.dsTime'))}</span>
+        <button type="button" class="ds-time-btn" id="myprof-ds-timebtn"><span class="ds-clock" aria-hidden="true">🕐</span><span class="ds-time-val" id="myprof-ds-timeval">${esc(dsTime)}</span><span class="ds-chev" aria-hidden="true">▼</span></button>
+      </div>`;
     const dsPaint = () => {
       dPanel.classList.toggle('is-on', dsOn);
       dPanel.classList.toggle('is-off', !dsOn);
       dTgl.setAttribute('aria-pressed', dsOn ? 'true' : 'false');
       const kb = dTgl.querySelector('.ds-knob'); if (kb) kb.textContent = dsOn ? '✓' : '✕';
       const st = $('myprof-ds-state'); if (st) st.textContent = t(dsOn ? 'myprof.dsStateOn' : 'myprof.dsStateOff');
+      const tRow = dPanel.querySelector('.ds-time-row');
+      if (dsOn && !tRow) { dPanel.insertAdjacentHTML('beforeend', dsTimeRowHTML()); dsWireTimeBtn(); }
+      else if (!dsOn && tRow) { tRow.remove(); dTimeBtn = null; }
       const tv = $('myprof-ds-timeval'); if (tv) tv.textContent = dsTime;
-      dTimeBtn.disabled = !dsOn;
+      if (dTimeBtn) dTimeBtn.disabled = !dsOn;
     };
     const dsRevert = () => {
       const sv = (UDATA.daySummary && typeof UDATA.daySummary === 'object') ? UDATA.daySummary : null;
@@ -2141,7 +2157,14 @@ async function renderProfileView() {
       const selB = dsFloat.querySelector('.ds-hour.sel');
       if (selB) selB.scrollIntoView({ block: 'center' });
     };
-    dTimeBtn.addEventListener('click', () => { if (dsOn) dsOpenFloat(); });
+    /* El botón de la hora se cablea aquí y cada vez que dsPaint
+       recrea su fila (declaración de función, izada en el bloque:
+       dsPaint la puede llamar antes de esta línea). */
+    function dsWireTimeBtn() {
+      dTimeBtn = $('myprof-ds-timebtn');
+      if (dTimeBtn) dTimeBtn.addEventListener('click', () => { if (dsOn) dsOpenFloat(); });
+    }
+    dsWireTimeBtn();
     if (me && dsTz && (!dsSaved || dsSaved.tz !== dsTz)) {
       try {
         await setDoc(doc(db, 'users', me.uid), { daySummary: { tz: dsTz } }, { merge: true });
@@ -3694,7 +3717,7 @@ en: {
   'myprof.mailLang': 'Email language',
   'myprof.mailLangHint': 'The language of the emails we send you (your welcome and your notices). It starts with your app language; change it here anytime.',
   'msg.mailLangSaved': 'Email language saved.',
-  'myprof.dsTitle': 'Daily training summary',
+  'myprof.dsTitle': 'My daily workout by email',
   'myprof.dsTime': 'Time',
   'myprof.dsTz': 'Your time zone: {tz} — read from your device and kept up to date when you open your profile.',
   'myprof.dsHint': 'On training days, one email with that day\'s session and a direct link to open it in the app. Rest days send nothing, and a day you already trained is skipped.',
@@ -7316,7 +7339,7 @@ es: {
   'myprof.mailLang': 'Idioma de los correos',
   'myprof.mailLangHint': 'El idioma de los correos que te enviamos (tu bienvenida y tus avisos). Empieza con el idioma de tu app; cámbialo aquí cuando quieras.',
   'msg.mailLangSaved': 'Idioma de correo guardado.',
-  'myprof.dsTitle': 'Resumen diario de mi entreno',
+  'myprof.dsTitle': 'Mi entreno diario por correo',
   'myprof.dsTime': 'Hora',
   'myprof.dsTz': 'Tu zona horaria: {tz} — se lee de tu aparato y se actualiza al abrir tu perfil.',
   'myprof.dsHint': 'Los días de entreno, un correo con la sesión de ese día y un enlace directo para abrirla en la app. Los días de descanso no se envía nada, y un día que ya entrenaste se salta.',
@@ -44257,7 +44280,7 @@ document.addEventListener('keydown', e => { if (e.key === 'Escape') shareClose()
  *  - El SW (sw.js) solo cachea la cáscara del mismo origen en modo
  *    RED PRIMERO: Auth/Firestore/Worker jamás pasan por la caché.
  * ================================================================ */
-const PWA_SW_VERSION = '20261106-volcado';
+const PWA_SW_VERSION = '20261106-entreno-correo';
 /* Sello de versión VISIBLE (2026-11-03): el pie de la tarjeta de
    acceso enseña qué copia corre este teléfono ('v ' + el sello),
    para comprobar de un vistazo si la versión nueva ya llegó.
