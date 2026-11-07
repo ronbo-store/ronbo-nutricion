@@ -5376,6 +5376,7 @@ en: {
   'train.d.statusDone': 'Done', 'train.d.statusPartial': 'Partial', 'train.d.statusSkipped': 'Skipped', 'train.d.statusNone': 'Not logged',
   'train.d.skipDay': 'Skip this day',
   'train.d.skipConfirm': 'Mark this day as skipped? It will be recorded as skipped (you can undo it afterwards).',
+  'train.dumpFail': 'Your workout was saved, but the activity day could not be updated.',
   'train.d.needCheck': 'Check at least one exercise as done, or use “Skip this day”. Nothing was saved.',
   'train.d.weekTitle': 'This week', 'train.d.weekSummary': 'Done {d} · Partial {p} · Skipped {s}',
   'train.d.dayN': 'Day {n}', 'train.d.cntDone': 'Done', 'train.d.cntPartial': 'Partial', 'train.d.cntSkipped': 'Skipped',
@@ -8994,6 +8995,7 @@ es: {
   'train.d.statusDone': 'Hecho', 'train.d.statusPartial': 'Parcial', 'train.d.statusSkipped': 'Saltado', 'train.d.statusNone': 'Sin registrar',
   'train.d.skipDay': 'Saltar este día',
   'train.d.skipConfirm': '¿Marcar este día como saltado? Quedará registrado como saltado (podrás deshacerlo después).',
+  'train.dumpFail': 'Tu entrenamiento se guardó, pero el día de actividad no pudo actualizarse.',
   'train.d.needCheck': 'Marca al menos un ejercicio como hecho, o usa «Saltar este día». No se guardó nada.',
   'train.d.weekTitle': 'Esta semana', 'train.d.weekSummary': 'Hechos {d} · Parciales {p} · Saltados {s}',
   'train.d.dayN': 'Día {n}', 'train.d.cntDone': 'Hechos', 'train.d.cntPartial': 'Parciales', 'train.d.cntSkipped': 'Saltados',
@@ -29244,14 +29246,36 @@ function trainEditTailHTML(planId, di) {
    se llama cuando hay algo que volcar o algo que retirar, y el
    propio actSaveDay exige pesaje vigente (sin peso no hay kcal
    que conservar: la entrada vieja, si la hubiera, nació con peso
-   y su recomputación la conserva coherente). */
+   y su recomputación la conserva coherente).
+   FIABILIDAD (AUTH-2026-11-06-292): actSaveDay devuelve false EN
+   SILENCIO si hay otro guardado del día en vuelo (candado
+   ACT_SAVING) y ese falso se tragó el volcado del jueves
+   2026-11-05 de Ronald para siempre: su día de actividad se creó
+   al mismo minuto desde la zona de extras y la entrada del plan
+   jamás se escribió (la tarjeta de la semana pintó 15 min en vez
+   de 83). El volcado ahora ESPERA a que el guardado en curso
+   termine y reintenta (acotado: 3 intentos, hasta ~5 s de espera
+   por intento); entre la última comprobación del candado y la
+   llamada no hay ningún await, así que el falso silencioso no
+   puede colarse. Si actSaveDay da un falso genuino (sin peso o
+   error de escritura), él mismo ya mostró su aviso y el volcado
+   no insiste; si el candado nunca se libera tras los intentos,
+   el volcado avisa con train.dumpFail: nunca silencio. */
 async function trainDumpSession(date, entry) {
   const has = (((ACT_LOGS[date] || {}).activities) || []).some(a => a.type === 'entrenamiento_plan');
-  if (!entry && !has) return;
-  await actSaveDay(date, dr => {
+  if (!entry && !has) return true;
+  const mutate = dr => {
     dr.activities = (dr.activities || []).filter(a => a.type !== 'entrenamiento_plan');
     if (entry) dr.activities.push(entry);
-  });
+  };
+  for (let intento = 0; intento < 3; intento++) {
+    let espera = 0;
+    while (ACT_SAVING && espera < 5000) { await new Promise(r => setTimeout(r, 150)); espera += 150; }
+    if (ACT_SAVING) continue;   /* el guardado en vuelo no terminó: otro intento acotado */
+    return await actSaveDay(date, mutate);
+  }
+  toast(t('train.dumpFail'), true);
+  return false;
 }
 
 /* --- MÓDULO D (P4-3 Etapa 4, desarrollo): ENTRENAMIENTO
@@ -44233,7 +44257,7 @@ document.addEventListener('keydown', e => { if (e.key === 'Escape') shareClose()
  *  - El SW (sw.js) solo cachea la cáscara del mismo origen en modo
  *    RED PRIMERO: Auth/Firestore/Worker jamás pasan por la caché.
  * ================================================================ */
-const PWA_SW_VERSION = '20261106-circulos';
+const PWA_SW_VERSION = '20261106-volcado';
 /* Sello de versión VISIBLE (2026-11-03): el pie de la tarjeta de
    acceso enseña qué copia corre este teléfono ('v ' + el sello),
    para comprobar de un vistazo si la versión nueva ya llegó.
