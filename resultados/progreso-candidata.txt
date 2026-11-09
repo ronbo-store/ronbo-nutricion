@@ -1,1 +1,17 @@
-(ausente)
+SEMILLAS OK · suite CANDIDATA
+OK P1 dueña: la escritura del motor (metas 5 + procedencia + goalsFib 27)
+OK P2 dueña: metas sin goalsFib (las 5 de siempre)
+OK P3 dueña: goalsFib = 0 se deniega
+OK P4 dueña: goalsFib como texto se deniega
+OK P5 dueña: goalsFib = 301 (sobre el tope derivado) se deniega
+OK P6 dueña: goalsFib = 280 (el máximo derivable) pasa
+OK P7 dueña: goalsFib = 25 (el piso) pasa
+OK P8 dueña: retira goalsFib con deleteField (sin kcal no hay meta)
+OK P9 tercera cuenta escribe goalsFib ajeno: denegado
+OK P10 dueña: goalsFib solo (sin tocar el mapa) pasa
+OK D1 SONDA doc completo CON goalsFib: la decisión exacta de la app pasa (sin tocar goalsFib)
+OK D2 SONDA doc REALISTA CON goalsFib: la decisión exacta de la app pasa
+OK D3 decisión que aplica `fib` DENTRO del mapa goals: denegada como hoy
+OK D4 decisión que cuela goalsFib en su parche: denegada (la cláusula no lo admite)
+OK D5 entrenador escribe SOLO goalsFib ajeno: denegado
+OK D6 rechazo con goalsFib presente en el documento: pasa
