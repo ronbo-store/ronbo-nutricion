@@ -4630,3 +4630,64 @@ body.swap-sheet-open .asst-fab { display: none !important; }
   .train-day-dressed .train-ex-compact .train-ex-photo { width: 64px; height: 64px; }
 }
 /* == FIN PLANTILLA ÚNICA DE TARJETA == */
+
+/* == HORARIOS DE ALIMENTACIÓN SUGERIDOS (dev 2026-11-09): la hoja
+   #sched-float es hermana de #plan-float en la familia .act-float;
+   estos estilos son solo de sus filas y controles. == */
+#sched-backdrop { position: fixed; inset: 0; background: rgba(15, 23, 42, .45); z-index: 46; }
+.sched-card-in { border-color: #b7d7f0; background: #f2f8fd; }
+.sched-tz { font-size: 12.5px; color: #64748b; line-height: 1.45; margin: 0 0 10px; }
+.sched-note { border: 1.5px solid #d7e5e1; background: #f8fafc; border-radius: 14px; padding: 10px 12px; margin: 0 0 10px; font-size: 13.5px; color: #334155; line-height: 1.45; }
+.sched-note.warn { border-color: #f3d38a; background: #fffaf0; }
+.sched-note ul { margin: 6px 0 8px; padding-left: 18px; }
+.sched-block { border-radius: 12px; padding: 9px 12px; margin: 0 0 8px; font-size: 14px; color: #0f2e2a; background: #eef6f3; }
+.sched-block.work { background: #eef2f7; }
+.sched-block.train { background: #e7f6f1; font-weight: 600; }
+.sched-block.rest { background: #f1eefc; }
+.sched-meal { border: 1.5px solid #e2e8f0; border-radius: 16px; padding: 12px 14px; margin: 0 0 10px; background: #fff; }
+.sched-meal.near-train { border-color: #0d9488; background: #f6fdfb; }
+.sched-meal-top { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
+.sched-meal-name { font-weight: 800; font-size: 16px; color: #0f2e2a; }
+.sched-meal-range { margin-left: auto; font-weight: 800; font-size: 15.5px; color: #0b7a6e; white-space: nowrap; }
+.sched-tag { font-size: 11.5px; font-weight: 800; padding: 2px 8px; border-radius: 999px; }
+.sched-tag.pin { background: #e0eaff; color: #2b4acb; }
+.sched-tag.eaten { background: #dcf2e8; color: #0b7a55; }
+.sched-rel { font-size: 13.5px; font-weight: 700; color: #0b7a6e; margin-top: 4px; }
+.sched-why { font-size: 13.5px; color: #475569; line-height: 1.45; margin: 6px 0 0; }
+.sched-edu { color: #7c6a1d; }
+.sched-planline { font-size: 13px; color: #52706a; margin: 6px 0 0; }
+.sched-actions { display: flex; gap: 8px; flex-wrap: wrap; margin-top: 10px; }
+.sched-btn { min-height: 48px; padding: 10px 16px; font-size: 15px; border-radius: 12px; }
+.sched-wide { width: 100%; min-height: 52px; font-size: 15.5px; border-radius: 12px; margin: 4px 0 10px; }
+.sched-edit { display: flex; align-items: flex-end; gap: 10px; flex-wrap: wrap; margin-top: 10px; }
+.sched-edit label { display: flex; flex-direction: column; gap: 4px; font-size: 13px; font-weight: 700; color: #334155; }
+.sched-edit input { min-height: 52px; font-size: 17px; padding: 6px 10px; border: 1.5px solid #cbd5e1; border-radius: 12px; box-sizing: border-box; }
+.sched-editbox { border: 1.5px solid #99ddd0; border-radius: 16px; padding: 12px 14px; margin: 0 0 10px; background: #f2fbf8; }
+.sched-preview { margin-top: 10px; font-size: 14px; color: #0f2e2a; }
+.sched-preview p { margin: 4px 0; }
+.sched-sec { border-top: 1.5px solid #eef2f1; padding-top: 12px; margin-top: 12px; font-size: 14px; color: #334155; }
+.sched-prop { border: 1.5px solid #f3d38a; background: #fffaf0; border-radius: 14px; padding: 10px 12px; margin: 10px 0; }
+.sched-prop p { margin: 0; line-height: 1.45; }
+.sched-follow { display: flex; align-items: center; gap: 10px; margin-top: 10px; }
+.sched-follow > span { flex: 1; font-size: 14px; }
+.sched-rate { display: flex; gap: 6px; }
+.sched-rate-btn { min-height: 48px; min-width: 64px; padding: 8px 10px; border-radius: 12px; border: 1.5px solid #d7e5e1; background: #fff; font-size: 14px; cursor: pointer; }
+.sched-rate-btn.on { background: #0d9488; border-color: #0d9488; color: #fff; font-weight: 800; }
+.sched-edu-list { margin: 8px 0; padding-left: 18px; line-height: 1.5; font-size: 13.5px; }
+.sched-fold { border-top: 1.5px solid #eef2f1; margin-top: 12px; padding-top: 6px; }
+.sched-fold summary { font-size: 16px; font-weight: 800; color: #0f2e2a; cursor: pointer; padding: 10px 0; }
+.sched-pf-group { margin: 10px 0; }
+.sched-pf-label { display: block; font-size: 13.5px; font-weight: 800; color: #334155; margin-bottom: 6px; }
+.sched-pf-row { display: flex; align-items: center; justify-content: space-between; gap: 10px; font-size: 14.5px; color: #0f2e2a; margin: 8px 0; }
+.sched-pf-row input { min-height: 52px; font-size: 17px; padding: 6px 10px; border: 1.5px solid #cbd5e1; border-radius: 12px; box-sizing: border-box; }
+.sched-wds, .sched-tols { display: flex; gap: 6px; flex-wrap: wrap; }
+.sched-wd, .sched-tol { min-height: 48px; padding: 8px 12px; border-radius: 12px; border: 1.5px solid #d7e5e1; background: #fff; font-size: 14px; cursor: pointer; text-transform: capitalize; }
+.sched-wd.on, .sched-tol.on { background: #0d9488; border-color: #0d9488; color: #fff; font-weight: 800; }
+.sched-pf-break, .sched-pf-train { display: flex; align-items: center; gap: 8px; margin: 6px 0; flex-wrap: wrap; }
+.sched-pf-break input, .sched-pf-train input { min-height: 48px; font-size: 16px; padding: 6px 8px; border: 1.5px solid #cbd5e1; border-radius: 12px; box-sizing: border-box; }
+.sched-pf-train span { width: 92px; font-size: 14px; text-transform: capitalize; }
+.sched-pf-train input[type="number"] { width: 64px; }
+.sched-pf-check { display: flex; gap: 10px; align-items: flex-start; font-size: 14.5px; line-height: 1.4; margin: 12px 0; }
+.sched-pf-check input { width: 24px; height: 24px; flex: none; margin-top: 1px; }
+/* == FIN HORARIOS DE ALIMENTACIÓN SUGERIDOS == */
+

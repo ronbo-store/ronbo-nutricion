@@ -7753,6 +7753,112 @@ en: {
   'chal.cat.weight4-30.title': 'Weigh in 4 times this month',
   'chal.cat.streak7-7.title': '7-day streak',
   'chal.cat.streak14-14.title': '14-day streak',
+  'sched.title': 'My daily schedule',
+  'sched.cardLineTrain': 'Today: {n} meals · you train at {time}',
+  'sched.cardLineRest': 'Today: {n} meals · rest day',
+  'sched.cardLinePlain': 'Meal-time suggestions for your day',
+  'sched.cardBtn': 'See my schedule',
+  'sched.sheetTitle': 'My daily schedule',
+  'sched.tzLine': 'Times in your device time zone ({tz}). Eating outside a range is fine: ranges are a guide, never a grade.',
+  'sched.restBlock': 'Rest',
+  'sched.workBlock': 'Work',
+  'sched.breakWord': 'break {from}–{to}',
+  'sched.trainBlock': 'Training',
+  'sched.trainNoTime': 'Training day · no time set yet',
+  'sched.freeDay': 'Rest day in your plan',
+  'sched.noTrainDay': 'No training in your plan today',
+  'sched.pinnedTag': 'Set by you',
+  'sched.eatenTag': 'You ate at {time}',
+  'sched.planLine': 'From your plan: {kcal} kcal · protein {prot} g',
+  'sched.noTimeYet': 'No suggested time yet',
+  'sched.relPre': 'Before your {time} training',
+  'sched.relPost': 'After your training',
+  'sched.why.pre': 'This range leaves time to digest. Adjust it to how you feel.',
+  'sched.why.post': 'Have it when it suits you after training: there is no rush and no mandatory window.',
+  'sched.why.break': 'Moved into your work break.',
+  'sched.why.sleep': 'Leaves a little room before your rest.',
+  'sched.why.spacing': 'Your last meal was recent and filling, so this one starts a bit later.',
+  'sched.why.moved': 'Adjusted around your training.',
+  'sched.why.generic': 'A flexible range: adjust it to your day.',
+  'sched.actChange': 'Change time',
+  'sched.actEaten': 'I ate it',
+  'sched.actSave': 'Save',
+  'sched.actCancel': 'Cancel',
+  'sched.actCorrect': 'Fix the time',
+  'sched.trainChangeBtn': 'I train at another time today',
+  'sched.trainChangeTitle': 'Training at another time today',
+  'sched.timeLabel': 'Time',
+  'sched.durLabel': 'Training minutes',
+  'sched.previewTitle': 'This is how your day would change',
+  'sched.previewNone': 'No meal would move.',
+  'sched.confirm': 'Confirm',
+  'sched.back': 'Back',
+  'sched.missingTitle': 'To personalize this fully, the app still needs:',
+  'sched.miss.routine': 'your wake-up and sleep times',
+  'sched.miss.work': 'your work hours',
+  'sched.miss.breaks': 'your breaks to eat at work',
+  'sched.miss.trainTime': 'what time you train',
+  'sched.miss.plan': 'a food plan — for now this is general guidance, with no amounts',
+  'sched.miss.tolerance': 'how you digest (optional: it fine-tunes the margin before training)',
+  'sched.completeBtn': 'Complete my details',
+  'sched.provisionalNote': 'For now, the rest window from your Reminders is used as a guide. Put your real times below whenever you want.',
+  'sched.eduTitle': 'What the evidence says',
+  'sched.edu1': 'Your total energy and protein for the day matter more than the exact time.',
+  'sched.edu2': 'Spreading your protein across several meals can support muscle recovery.',
+  'sched.edu3': 'If you ate protein before training, you do not need a shake right after.',
+  'sched.edu4': 'The best schedule also fits your rest, your work and your digestion.',
+  'sched.sources': 'Sources: ISSN position stand on meal timing (Kerksick et al., 2017) and an isocaloric time-window trial (Maruthur et al., Annals of Internal Medicine, 2024). Reviewed on November 9, 2026. This is general guidance, not medical treatment.',
+  'sched.unpin': 'Remove pin',
+  'sched.followTitle': 'How did today feel? (optional)',
+  'sched.follow.energy': 'Energy during training',
+  'sched.follow.hunger': 'Hunger during the day',
+  'sched.follow.digestion': 'Digestive comfort',
+  'sched.follow.ease': 'Ease of following the times',
+  'sched.rate.energy.low': 'Low',
+  'sched.rate.energy.high': 'High',
+  'sched.rate.hunger.low': 'Little',
+  'sched.rate.hunger.high': 'A lot',
+  'sched.rate.digestion.low': 'Uncomfortable',
+  'sched.rate.digestion.high': 'Comfortable',
+  'sched.rate.ease.low': 'Hard',
+  'sched.rate.ease.high': 'Easy',
+  'sched.rate.mid': 'Normal',
+  'sched.propTitle': 'A suggestion for you',
+  'sched.prop.gap': 'Your digestion felt uncomfortable on {n} recent days. Widen the margin before training by 30 minutes?',
+  'sched.prop.snack': 'You felt quite hungry on {n} recent days. Move {meal} 45 minutes earlier starting tomorrow?',
+  'sched.prop.redist': 'You felt quite hungry on {n} recent days and your plan has no snack. One option: move {pct}% of {meal} to a new snack — same totals, nothing added.',
+  'sched.prop.widen': 'Following the times felt hard on {n} recent days. Make the ranges 15 minutes wider?',
+  'sched.prop.energy': 'Your energy felt low on {n} recent days. Move {meal} 30 minutes earlier, so it sits further ahead of training?',
+  'sched.propApply': 'Apply',
+  'sched.propDismiss': 'Not now',
+  'sched.propNote': 'Suggestions never change the amounts in your plan — only times. And they never promise results.',
+  'sched.redistLine': '{meal}: {aK} → {bK} kcal · protein {aP} → {bP} g · new snack: {sK} kcal · protein {sP} g',
+  'sched.redistAsk': 'Ask for this change in my plan',
+  'sched.prefsTitle': 'My details for the schedule',
+  'sched.prefsIntro': 'Only you see and change these details. They are used only to suggest times.',
+  'sched.pf.workdays': 'My work days',
+  'sched.pf.wakeWork': 'I wake up (work days)',
+  'sched.pf.sleepWork': 'I go to sleep (work days)',
+  'sched.pf.wakeFree': 'I wake up (free days)',
+  'sched.pf.sleepFree': 'I go to sleep (free days)',
+  'sched.pf.workFrom': 'Work starts',
+  'sched.pf.workTo': 'Work ends',
+  'sched.pf.breaks': 'Breaks to eat',
+  'sched.pf.breakAdd': '+ Add a break',
+  'sched.pf.trainTimes': 'My usual training time (only on training days)',
+  'sched.pf.mins': 'min',
+  'sched.pf.tolerance': 'My digestion',
+  'sched.tol.fast': 'I digest fast',
+  'sched.tol.normal': 'Normal',
+  'sched.tol.slow': 'I need more time',
+  'sched.pf.reminders': 'Show suggested reminder times (always outside your rest)',
+  'sched.pf.save': 'Save my details',
+  'sched.pf.saved': 'Saved ✓',
+  'sched.remTitle': 'Suggested reminder times',
+  'sched.multiNote': 'Your day has two training sessions. Meal times around double sessions need a specific adaptation with your trainer; for now, this is a cautious suggestion around the first and last session.',
+  'sched.noMealBefore': 'No meal from your plan falls before your training today. If you want one there, pin it with “Change time”.',
+  'sched.trainOnWake': 'You train right after waking up, so no meal is forced before. Your first meal is suggested after training.',
+  'sched.orientOnly': 'General guidance for now',
 },
 es: {
   'app.title': 'RONBO.FIT · Privado',
@@ -11619,6 +11725,112 @@ es: {
   'chal.cat.weight4-30.title': 'Pésate 4 veces este mes',
   'chal.cat.streak7-7.title': 'Racha de 7 días',
   'chal.cat.streak14-14.title': 'Racha de 14 días',
+  'sched.title': 'Mi horario diario',
+  'sched.cardLineTrain': 'Hoy: {n} comidas · entrenas a las {time}',
+  'sched.cardLineRest': 'Hoy: {n} comidas · día de descanso',
+  'sched.cardLinePlain': 'Sugerencias de horarios de comida para tu día',
+  'sched.cardBtn': 'Ver mi horario',
+  'sched.sheetTitle': 'Mi horario diario',
+  'sched.tzLine': 'Horas en la zona horaria de tu dispositivo ({tz}). Comer fuera del rango está bien: los rangos son una guía, nunca una nota.',
+  'sched.restBlock': 'Descanso',
+  'sched.workBlock': 'Trabajo',
+  'sched.breakWord': 'pausa {from}–{to}',
+  'sched.trainBlock': 'Entrenamiento',
+  'sched.trainNoTime': 'Día de entrenamiento · aún sin hora',
+  'sched.freeDay': 'Día de descanso en tu plan',
+  'sched.noTrainDay': 'Hoy no hay entrenamiento en tu plan',
+  'sched.pinnedTag': 'Fijada por ti',
+  'sched.eatenTag': 'Comiste a las {time}',
+  'sched.planLine': 'Según tu plan: {kcal} kcal · proteína {prot} g',
+  'sched.noTimeYet': 'Aún sin hora sugerida',
+  'sched.relPre': 'Antes de tu entrenamiento de las {time}',
+  'sched.relPost': 'Después de tu entrenamiento',
+  'sched.why.pre': 'Este rango deja tiempo para digerir. Ajústalo según cómo te sientas.',
+  'sched.why.post': 'Cómela cuando te venga bien tras entrenar: no hay prisa ni ventana obligatoria.',
+  'sched.why.break': 'Movida a tu pausa del trabajo.',
+  'sched.why.sleep': 'Deja un margen antes de tu descanso.',
+  'sched.why.spacing': 'Tu última comida fue reciente y grande, así que esta empieza un poco después.',
+  'sched.why.moved': 'Ajustada alrededor de tu entrenamiento.',
+  'sched.why.generic': 'Un rango flexible: ajústalo a tu día.',
+  'sched.actChange': 'Cambiar horario',
+  'sched.actEaten': 'Ya comí',
+  'sched.actSave': 'Guardar',
+  'sched.actCancel': 'Cancelar',
+  'sched.actCorrect': 'Corregir la hora',
+  'sched.trainChangeBtn': 'Hoy entreno a otra hora',
+  'sched.trainChangeTitle': 'Hoy entreno a otra hora',
+  'sched.timeLabel': 'Hora',
+  'sched.durLabel': 'Minutos de entrenamiento',
+  'sched.previewTitle': 'Así cambiaría tu día',
+  'sched.previewNone': 'Ninguna comida se movería.',
+  'sched.confirm': 'Confirmar',
+  'sched.back': 'Volver',
+  'sched.missingTitle': 'Para personalizar esto del todo, la app aún necesita:',
+  'sched.miss.routine': 'tus horas de despertar y de dormir',
+  'sched.miss.work': 'tu horario de trabajo',
+  'sched.miss.breaks': 'tus pausas para comer en el trabajo',
+  'sched.miss.trainTime': 'a qué hora entrenas',
+  'sched.miss.plan': 'un plan de comidas — por ahora esto es orientación general, sin cantidades',
+  'sched.miss.tolerance': 'cómo digieres (opcional: afina el margen antes de entrenar)',
+  'sched.completeBtn': 'Completar mis datos',
+  'sched.provisionalNote': 'Por ahora se usa como guía la ventana de descanso de tus Recordatorios. Pon tus horas reales abajo cuando quieras.',
+  'sched.eduTitle': 'Lo que dice la evidencia',
+  'sched.edu1': 'La energía y proteína totales del día tienen prioridad sobre la hora exacta.',
+  'sched.edu2': 'Repartir la proteína entre varias comidas puede favorecer la recuperación muscular.',
+  'sched.edu3': 'Si comiste proteína antes de entrenar, no necesitas tomar un batido inmediatamente después.',
+  'sched.edu4': 'El mejor horario también debe encajar con tu descanso, trabajo y digestión.',
+  'sched.sources': 'Fuentes: posición de la ISSN sobre los horarios de comida (Kerksick et al., 2017) y un ensayo de ventana horaria con calorías equivalentes (Maruthur et al., Annals of Internal Medicine, 2024). Revisado el 9 de noviembre de 2026. Esto es orientación general, no un tratamiento médico.',
+  'sched.unpin': 'Quitar fijación',
+  'sched.followTitle': '¿Cómo te fue hoy? (opcional)',
+  'sched.follow.energy': 'Energía durante el entrenamiento',
+  'sched.follow.hunger': 'Hambre durante el día',
+  'sched.follow.digestion': 'Comodidad digestiva',
+  'sched.follow.ease': 'Facilidad para seguir los horarios',
+  'sched.rate.energy.low': 'Baja',
+  'sched.rate.energy.high': 'Alta',
+  'sched.rate.hunger.low': 'Poca',
+  'sched.rate.hunger.high': 'Mucha',
+  'sched.rate.digestion.low': 'Incómoda',
+  'sched.rate.digestion.high': 'Cómoda',
+  'sched.rate.ease.low': 'Difícil',
+  'sched.rate.ease.high': 'Fácil',
+  'sched.rate.mid': 'Normal',
+  'sched.propTitle': 'Una sugerencia para ti',
+  'sched.prop.gap': 'Tu digestión se sintió incómoda en {n} días recientes. ¿Ampliamos el margen antes de entrenar en 30 minutos?',
+  'sched.prop.snack': 'Sentiste bastante hambre en {n} días recientes. ¿Movemos {meal} 45 minutos antes desde mañana?',
+  'sched.prop.redist': 'Sentiste bastante hambre en {n} días recientes y tu plan no tiene merienda. Una opción: mover el {pct} % de {meal} a una merienda nueva — mismos totales, sin añadir nada.',
+  'sched.prop.widen': 'Seguir los horarios se sintió difícil en {n} días recientes. ¿Hacemos los rangos 15 minutos más amplios?',
+  'sched.prop.energy': 'Tu energía se sintió baja en {n} días recientes. ¿Movemos {meal} 30 minutos antes, para que quede más lejos del entrenamiento?',
+  'sched.propApply': 'Aplicar',
+  'sched.propDismiss': 'Ahora no',
+  'sched.propNote': 'Las sugerencias nunca cambian las cantidades de tu plan, solo las horas. Y nunca prometen resultados.',
+  'sched.redistLine': '{meal}: {aK} → {bK} kcal · proteína {aP} → {bP} g · merienda nueva: {sK} kcal · proteína {sP} g',
+  'sched.redistAsk': 'Pedir este cambio en mi plan',
+  'sched.prefsTitle': 'Mis datos para los horarios',
+  'sched.prefsIntro': 'Solo tú ves y cambias estos datos. Se usan solo para sugerir horarios.',
+  'sched.pf.workdays': 'Mis días de trabajo',
+  'sched.pf.wakeWork': 'Me despierto (días de trabajo)',
+  'sched.pf.sleepWork': 'Me duermo (días de trabajo)',
+  'sched.pf.wakeFree': 'Me despierto (días libres)',
+  'sched.pf.sleepFree': 'Me duermo (días libres)',
+  'sched.pf.workFrom': 'Empieza el trabajo',
+  'sched.pf.workTo': 'Termina el trabajo',
+  'sched.pf.breaks': 'Pausas para comer',
+  'sched.pf.breakAdd': '+ Añadir una pausa',
+  'sched.pf.trainTimes': 'Mi hora habitual de entrenamiento (solo los días que entreno)',
+  'sched.pf.mins': 'min',
+  'sched.pf.tolerance': 'Mi digestión',
+  'sched.tol.fast': 'Digiero rápido',
+  'sched.tol.normal': 'Normal',
+  'sched.tol.slow': 'Necesito más tiempo',
+  'sched.pf.reminders': 'Mostrar horas de aviso sugeridas (siempre fuera de tu descanso)',
+  'sched.pf.save': 'Guardar mis datos',
+  'sched.pf.saved': 'Guardado ✓',
+  'sched.remTitle': 'Horas de aviso sugeridas',
+  'sched.multiNote': 'Tu día tiene dos sesiones de entrenamiento. Los horarios de comida alrededor de dos sesiones necesitan una adaptación específica con tu entrenador; por ahora, esto es una sugerencia prudente alrededor de la primera y la última sesión.',
+  'sched.noMealBefore': 'Ninguna comida de tu plan cae antes de tu entrenamiento de hoy. Si quieres una ahí, fíjala con «Cambiar horario».',
+  'sched.trainOnWake': 'Entrenas justo al despertar, así que no se fuerza ninguna comida antes. Tu primera comida se sugiere después de entrenar.',
+  'sched.orientOnly': 'Orientación general por ahora',
 }
 };
 let LANG = 'en';
@@ -52014,6 +52226,804 @@ document.addEventListener('click', e => {
     if (f && f.style.display !== 'none') planCloseSheet();
   });
 })();
+
+/* ═══ HORARIOS DE ALIMENTACIÓN SUGERIDOS — «Mi horario diario»
+   (especificación formal de Ronald, chat RONBO.NUTRI, 2026-11-09
+   01:03 CST; construida SOLO en entorno de desarrollo/revisión —
+   rama dev-horarios-alimentacion-2026-11-09 — SIN despliegue).
+   Qué es: una vista en Comida que reúne las comidas del día, el
+   entrenamiento y el descanso, y sugiere RANGOS flexibles de hora
+   para cada comida, con su explicación breve. Qué NO es: no cambia
+   calorías, macronutrientes ni cantidades de ningún plan (REGLA
+   FUNDAMENTAL: el motor recibe las cantidades y las devuelve
+   intactas; solo mueve HORAS); no inventa comidas ni prescripción
+   sin plan; no impone ayuno, desayuno obligatorio, ventana de
+   30 minutos ni hora límite universal de cena; comer fuera del
+   rango no genera ninguna marca negativa (no existe tal marca).
+   Datos propios (patrón Pendientes, documentos del propio usuario
+   en nutrition_progress): {uid}_schedprefs (rutina, jornada y
+   pausas, horas de entrenamiento por día, tolerancia digestiva,
+   avisos) y {uid}_schedstate (por día: horas fijadas, «Ya comí»
+   con la hora real, cambio de hora de entrenamiento de hoy,
+   valoraciones y ajustes aceptados). La vista solo se pinta en la
+   Comida del PROPIO usuario y todas las referencias se construyen
+   con auth.currentUser.uid: ningún rol escribe las preferencias
+   de otro (el delta de reglas que lo cierra también en el servidor
+   va como candidato en papel en la carpeta del paquete).
+   Fundamento (revisado 2026-11-09; detalle y límites en
+   datos/FUENTES.md del paquete): ISSN 2017 (Kerksick et al.,
+   PMC5596471) — el total diario manda (punto 6), la comida previa
+   condiciona la posterior (punto 8), repartir la proteína puede
+   favorecer (puntos 6 y 11), la frecuencia por sí sola no cambia
+   el peso (punto 10); Maruthur et al. 2024 (PMID 38639542) — con
+   calorías equivalentes, la ventana horaria no cambió el peso. ═══ */
+function schedPrefsRef() { return doc(db, 'nutrition_progress', `${auth.currentUser.uid}_schedprefs`); }
+function schedStateRef() { return doc(db, 'nutrition_progress', `${auth.currentUser.uid}_schedstate`); }
+function schedPrefsDefaults() {
+  return { v: 1, workdays: [1, 2, 3, 4, 5], tolerance: '', remindersOn: false,
+    routine: { work: { wake: '', sleep: '', workFrom: '', workTo: '', breaks: [] }, free: { wake: '', sleep: '' } },
+    trainTimes: {} };
+}
+function schedStateDefaults() { return { days: {}, adjust: { preGapDeltaMin: 0, rangeWidenMin: 0 }, dismissed: {} }; }
+function schedDayStateDefaults() { return { pins: {}, eaten: {}, trainOverride: null, follow: { energy: 0, hunger: 0, digestion: 0, ease: 0 } }; }
+let SCHED_PREFS = null, SCHED_STATE = null, SCHED_DAY = null, SCHED_INPUT = null;
+const SCHED_UI = { mode: 'view', pinMeal: null, preview: null, previewTrain: null };
+const SCHED_GAP_BY_TOL = { fast: [45, 120], normal: [60, 180], slow: [120, 240] };
+
+/* ── Motor puro (sin DOM ni red: la batería lo extrae tal cual) ── */
+/* Marco de minutos del día de registro: la hora 'HH:MM' anterior al
+   corte (por defecto 04:00, el de Pendientes) pertenece al día
+   siguiente (+1440) — la misma semántica de pendMealWhen. Todo el
+   cálculo ocurre en ese marco; la vista formatea con pendFmtHM. */
+function schedFrameMin(hm, cutoffMin) {
+  if (hm == null || hm === '') return null;
+  const m = pendParseHM(hm);
+  return m < cutoffMin ? m + 1440 : m;
+}
+/* inp: { dateISO, weekday, isWorkday, objective, dayLevel,
+   isTrainDay, trainLabel, meals: [{name, time, kcal, prot, carb,
+   fat, source}], dayTotals: {kcal, prot}|null,
+   routine: {wake, sleep, wakeProv, sleepProv, workFrom, workTo,
+   breaks: [{from, to}]}, tolerance, sessions: [{time, durMin}],
+   pins: {name: 'HH:MM'}, eaten: {name: {at: 'HH:MM'}},
+   logged: [{name, frameMin, kcal}], pendTimes: {name: frameMin},
+   cutoffMin, preGapDeltaMin, rangeWidenMin }
+   Devuelve rangos por comida SIN tocar cantidades: cada comida
+   sale con las mismas kcal/prot/carb/fat que entraron (la batería
+   lo prueba campo a campo) y los totales se repiten tal cual. */
+function schedComputeDay(inp) {
+  const cut = inp.cutoffMin != null ? inp.cutoffMin : 240;
+  const F = hm => schedFrameMin(hm, cut);
+  const widen = Math.max(0, Math.min(30, Number(inp.rangeWidenMin) || 0));
+  const missing = [];
+  /* Descanso: span despierto [wakeF, sleepF] (sleepF puede pasar de
+     1440: dormir después de medianoche es el caso normal aquí). */
+  const wakeF = F(inp.routine && inp.routine.wake);
+  let sleepF = F(inp.routine && inp.routine.sleep);
+  if (wakeF != null && sleepF != null && sleepF <= wakeF) sleepF += 1440;
+  const hasRoutine = wakeF != null && sleepF != null;
+  if (!hasRoutine) missing.push('routine');
+  /* Normalización al span despierto: con la rutina conocida, una
+     hora muy anterior al despertar (más de 4 h antes) pertenece a
+     la cola del span (p. ej., la cena de las 06:30 de quien trabaja
+     de noche y se despierta a las 15:30), no a la mañana previa. */
+  const N = t => (hasRoutine && t != null && t < wakeF - 240) ? t + 1440 : t;
+  let restBlock = null;
+  if (hasRoutine) restBlock = sleepF > 1440 ? { from: sleepF - 1440, to: wakeF } : { from: sleepF, to: wakeF + 1440 };
+  /* Trabajo y pausas (solo si el usuario dio entrada y salida). */
+  let work = null;
+  if (inp.routine && inp.routine.workFrom && inp.routine.workTo) {
+    const wf = F(inp.routine.workFrom); let wt = F(inp.routine.workTo);
+    if (wt <= wf) wt += 1440;
+    const breaks = (inp.routine.breaks || []).map(b => {
+      let bf = F(b.from), bt = F(b.to);
+      if (bf == null || bt == null) return null;
+      if (bf < wf) bf += 1440;
+      if (bt <= bf) bt += 1440;
+      return { from: bf, to: bt };
+    }).filter(b => b && b.to > b.from);
+    work = { from: wf, to: wt, breaks };
+  }
+  if (inp.isWorkday && !work) missing.push('work');
+  if (inp.isWorkday && work && !work.breaks.length) missing.push('breaks');
+  /* Sesiones de entrenamiento (1 o 2) en el marco. */
+  const sessions = (inp.sessions || []).filter(s => s && s.time).map(s => {
+    const st = N(F(s.time));
+    return { from: st, to: st + (Number(s.durMin) || 60) };
+  }).sort((a, b) => a.from - b.from);
+  const multi = sessions.length > 1;
+  const trainKnown = inp.isTrainDay && sessions.length > 0;
+  if (inp.isTrainDay && !sessions.length) missing.push('trainTime');
+  if (!inp.tolerance) missing.push('tolerance');
+  const gapBase = SCHED_GAP_BY_TOL[inp.tolerance] || SCHED_GAP_BY_TOL.normal;
+  const gapDelta = Math.max(0, Math.min(60, Number(inp.preGapDeltaMin) || 0));
+  const gapMin = gapBase[0] + gapDelta, gapMax = gapBase[1] + gapDelta;
+  /* Comidas: se copian las cantidades y NO se vuelven a tocar. */
+  const srcMeals = Array.isArray(inp.meals) ? inp.meals : [];
+  const planSource = srcMeals.length ? (srcMeals[0].source || 'none') : 'none';
+  if (planSource === 'none') missing.push('plan');
+  const meals = srcMeals.map((m, i) => {
+    const pin = inp.pins && inp.pins[m.name] ? inp.pins[m.name] : null;
+    const eaten = inp.eaten && inp.eaten[m.name] ? inp.eaten[m.name] : null;
+    let loggedHHMM = null;
+    if (!eaten && Array.isArray(inp.logged)) {
+      const lg = inp.logged.filter(l => l && l.name === m.name).sort((a, b) => b.frameMin - a.frameMin)[0];
+      if (lg) loggedHHMM = pendFmtHM(lg.frameMin);
+    }
+    const fixedF = pin ? N(F(pin)) : (eaten ? N(F(eaten.at)) : (loggedHHMM ? N(F(loggedHHMM)) : null));
+    return { name: m.name, kcal: m.kcal != null ? m.kcal : null, prot: m.prot != null ? m.prot : null,
+      carb: m.carb != null ? m.carb : null, fat: m.fat != null ? m.fat : null, source: m.source || 'none',
+      pin, eatenAt: eaten ? eaten.at : loggedHHMM, fixedF,
+      anchorF: m.time ? N(F(m.time)) : (inp.pendTimes && inp.pendTimes[m.name] != null ? N(inp.pendTimes[m.name]) : null),
+      from: null, to: null, relation: null, whyKey: null, eduKey: null, moved: false, idx: i };
+  });
+  /* 1) Fijadas y comidas: punto exacto, intocable por los demás pasos. */
+  meals.forEach(m => { if (m.fixedF != null) { m.from = m.fixedF; m.to = m.fixedF; } });
+  /* 2) Con ancla (hora del plan o de Recordatorios): rango ±30. */
+  meals.forEach(m => { if (m.fixedF == null && m.anchorF != null) { m.from = m.anchorF - 30 - widen; m.to = m.anchorF + 30 + widen; } });
+  /* 3) Sin ancla: se reparten en los huecos entre vecinos con hora
+        (o entre despertar y dormir), en su orden del plan. */
+  if (hasRoutine) {
+    let i = 0;
+    while (i < meals.length) {
+      if (meals[i].from != null) { i++; continue; }
+      let j = i; while (j < meals.length && meals[j].from == null && meals[j].fixedF == null) j++;
+      const left = i > 0 && meals[i - 1].to != null ? meals[i - 1].to : wakeF;
+      const right = j < meals.length && meals[j].from != null ? meals[j].from : sleepF;
+      const n = j - i, span = Math.max(60, right - left);
+      for (let k = 0; k < n; k++) {
+        const c = left + Math.round(span * (k + 0.5) / n);
+        meals[i + k].from = c - 30 - widen; meals[i + k].to = c + 30 + widen;
+        meals[i + k].distributed = true;
+      }
+      i = j;
+    }
+  }
+  /* 4) Espaciado tras la última comida real: si fue grande (≥40 %
+        de las kcal del día del plan) y la siguiente sugerida cae a
+        menos de 120 min, esa empieza a los 120 min. Solo con dato
+        de contenido; sin él, no se toca nada. */
+  if (inp.dayTotals && inp.dayTotals.kcal) {
+    const past = [];
+    meals.forEach(m => { if (m.fixedF != null) past.push({ f: m.fixedF, kcal: m.kcal }); });
+    (inp.logged || []).forEach(l => { if (l) past.push({ f: N(l.frameMin), kcal: l.kcal }); });
+    past.sort((a, b) => a.f - b.f);
+    const lastE = past[past.length - 1];
+    if (lastE && lastE.kcal != null && lastE.kcal >= 0.4 * inp.dayTotals.kcal) {
+      const next = meals.find(m => m.fixedF == null && m.from != null && m.from > lastE.f);
+      if (next && next.from - lastE.f < 120) {
+        const shift = (lastE.f + 120) - next.from;
+        next.from += shift; next.to += shift; next.moved = true;
+        if (!next.whyKey) next.whyKey = 'spacing';
+      }
+    }
+  }
+  /* 5) Entrenamiento: la comida previa entra en la ventana de
+        orientación EDITABLE según tolerancia (rápida 45 min–2 h ·
+        normal 1–3 h · lenta 2–4 h; + el ajuste aceptado por el
+        usuario, tope +60). Solo se ajusta una comida cuyo centro ya
+        cae a ≤330 min antes: ninguna comida lejana es arrastrada.
+        La posterior se acerca tras el fin de la ÚLTIMA sesión SIN
+        ventana obligatoria: su texto lo dice expresamente. */
+  const notes = [];
+  if (multi) notes.push('multi');
+  let preMeal = null;
+  if (trainKnown) {
+    const t0 = sessions[0].from, t1 = sessions[sessions.length - 1].to;
+    let preC = null;
+    meals.forEach(m => {
+      if (m.fixedF != null || m.from == null) return;
+      const c = (m.from + m.to) / 2;
+      if (c <= t0 && c >= t0 - 330 && (preC == null || c > preC)) { preMeal = m; preC = c; }
+    });
+    if (preMeal) {
+      const w0 = t0 - gapMax, w1 = t0 - gapMin;
+      const nf = Math.max(preMeal.from, w0), nt = Math.min(preMeal.to, w1);
+      if (nt > nf) { if (nf !== preMeal.from || nt !== preMeal.to) preMeal.moved = true; preMeal.from = nf; preMeal.to = nt; }
+      else { preMeal.from = w0; preMeal.to = w1; preMeal.moved = true; }
+      preMeal.relation = 'pre'; preMeal.whyKey = 'pre'; preMeal.eduKey = 'edu2';
+    } else if (hasRoutine && t0 - wakeF <= 75 && !meals.some(m => m.fixedF != null && m.fixedF <= t0)) notes.push('trainOnWake');
+    else if (meals.length && !meals.some(m => (m.fixedF != null ? m.fixedF : (m.to != null ? (m.from + m.to) / 2 : null)) != null
+      && (m.fixedF != null ? m.fixedF : (m.from + m.to) / 2) <= t0)) notes.push('noMealBefore');
+    /* La comida previa ya fijada o comida también cuenta como
+       referencia (su proteína condiciona la línea educativa de la
+       posterior, ISSN punto 8), aunque su hora no se toca. */
+    if (!preMeal) preMeal = meals.filter(m => m.fixedF != null && m.fixedF <= t0).sort((a, b) => b.fixedF - a.fixedF)[0] || null;
+    let postMeal = null;
+    for (const m of meals) {
+      if (m.fixedF != null || m === preMeal || m.from == null) continue;
+      /* Candidata: su rango alcanza el fin del entrenamiento y no
+         es una comida de antes de entrenar. */
+      if (m.to >= t1 && (m.from + m.to) / 2 >= t0) { postMeal = m; break; }
+    }
+    if (postMeal) {
+      if (postMeal.from < t1) { postMeal.from = t1; postMeal.to = Math.max(postMeal.to, t1 + 45); postMeal.moved = true; }
+      else if (postMeal.from > t1 + 150) { postMeal.from = t1 + 60; postMeal.to = t1 + 120; postMeal.moved = true; }
+      postMeal.relation = 'post'; postMeal.whyKey = 'post';
+      postMeal.eduKey = (preMeal && preMeal.prot != null && preMeal.prot >= 10) ? 'edu3' : 'edu1';
+    }
+  }
+  /* 6) Pausas de trabajo: una comida BIEN DENTRO de la jornada
+        (no pegada a la entrada ni a la salida: quien entra o sale
+        puede comer fuera de la pausa) que no pisa ninguna pausa se
+        mueve a la pausa más cercana. */
+  if (work && work.breaks.length) {
+    meals.forEach(m => {
+      if (m.fixedF != null || m.from == null || m.relation === 'pre' || m.relation === 'post') return;
+      if (m.from >= work.from + 45 && m.to <= work.to - 45) {
+        const overlaps = work.breaks.some(b => m.from < b.to && m.to > b.from);
+        if (!overlaps) {
+          const b = work.breaks.slice().sort((x, y) => Math.abs(x.from - m.from) - Math.abs(y.from - m.from))[0];
+          m.from = b.from; m.to = Math.max(b.from + 30, Math.min(b.to, b.from + 60));
+          m.moved = true; if (!m.whyKey) m.whyKey = 'break';
+        }
+      }
+    });
+  }
+  /* 7) Comodidad antes de dormir: la última comida sin fijar deja
+        ≈45 min antes del sueño SOLO si no choca con entrenamiento
+        ni trabajo. Es relativo al sueño del PROPIO usuario: no es
+        una hora límite universal y el texto no lo presenta así. */
+  if (hasRoutine) {
+    const last = meals.slice().reverse().find(m => m.fixedF == null && m.to != null);
+    if (last && last.to > sleepF - 45) {
+      const nf = sleepF - 105, nt = sleepF - 45;
+      const hitsTrain = trainKnown && nf < sessions[sessions.length - 1].to && nt > sessions[0].from;
+      const hitsWork = work && nf < work.to && nt > work.from;
+      if (!hitsTrain && !hitsWork) { last.from = nf; last.to = nt; last.moved = true; if (!last.whyKey) last.whyKey = 'sleep'; }
+    }
+  }
+  /* Educación por comida sin relación: rotación determinista de las
+     líneas 1 y 4; en día de descanso manda la 4 (encaje con tu día). */
+  meals.forEach(m => {
+    if (!m.whyKey) m.whyKey = m.moved ? 'moved' : 'generic';
+    if (!m.eduKey) m.eduKey = !inp.isTrainDay ? (m.idx === 0 ? 'edu4' : 'edu1') : (m.idx % 2 === 0 ? 'edu1' : 'edu4');
+    if (!inp.isTrainDay) m.relation = 'rest';
+  });
+  return { dateISO: inp.dateISO, weekday: inp.weekday, objective: inp.objective || null,
+    dayLevel: inp.dayLevel || 'base', isTrainDay: !!inp.isTrainDay, trainLabel: inp.trainLabel || null,
+    trainKnown, multi, notes, missing,
+    orientationOnly: !hasRoutine || planSource === 'none',
+    restBlock, workBlock: work, sessions,
+    trainBlock: inp.isTrainDay ? (trainKnown ? { from: sessions[0].from, to: sessions[sessions.length - 1].to } : { noTime: true }) : null,
+    meals, totals: inp.dayTotals ? { kcal: inp.dayTotals.kcal, prot: inp.dayTotals.prot } : null,
+    provisional: !!(inp.routine && (inp.routine.wakeProv || inp.routine.sleepProv)) };
+}
+/* Redistribución EXPLÍCITA (solo para previsualizar una propuesta):
+   mueve pct % de las cantidades de una comida a una merienda nueva.
+   Los totales del día quedan EXACTOS (se resta lo que se suma, con
+   redondeo a 1 decimal por campo). Nunca escribe el plan: pedir el
+   cambio deriva a la hoja del plan, que es su flujo de revisión. */
+function schedRedistribute(meals, fromName, pct) {
+  const src = (meals || []).find(m => m.name === fromName);
+  if (!src || src.kcal == null) return null;
+  const r1 = v => Math.round(v * 10) / 10;
+  const fields = ['kcal', 'prot', 'carb', 'fat'];
+  const move = {}, rest = {};
+  fields.forEach(f => {
+    if (src[f] == null) { move[f] = null; rest[f] = null; return; }
+    move[f] = r1(src[f] * pct / 100);
+    rest[f] = r1(src[f] - move[f]);
+  });
+  const totals = ms => fields.reduce((a, f) => { a[f] = ms.reduce((s, m) => s + (m[f] || 0), 0); return a; }, {});
+  const before = totals(meals);
+  const afterMeals = meals.map(m => m === src ? Object.assign({}, m, rest) : m)
+    .concat([Object.assign({ name: 'Snack', time: null, source: 'redist' }, move)]);
+  const after = totals(afterMeals);
+  return { fromName, pct, move, rest, before, after, meals: afterMeals };
+}
+/* Propuestas del seguimiento: SOLO desde las valoraciones del
+   propio usuario (energía, hambre, digestión, facilidad). Ninguna
+   atribuye cambios de peso, rendimiento o recuperación al horario:
+   proponen mover horas o ampliar márgenes, y el usuario acepta o
+   descarta. history: [{iso, follow}] recientes primero. */
+function schedProposals(history, ctx) {
+  const rated = (history || []).filter(d => d && d.follow && (d.follow.energy || d.follow.hunger || d.follow.digestion || d.follow.ease));
+  const out = [];
+  const count = (key, val, n) => rated.slice(0, n).filter(d => d.follow[key] === val).length;
+  if (rated.length >= 2 && count('digestion', 1, 3) >= 2 && (ctx.adjust.preGapDeltaMin || 0) < 60)
+    out.push({ id: 'gap', n: count('digestion', 1, 3) });
+  if (rated.length >= 2 && count('hunger', 3, 5) >= 2) {
+    if (ctx.snackName) out.push({ id: 'snack', n: count('hunger', 3, 5), meal: ctx.snackName });
+    else if (ctx.biggestMeal) out.push({ id: 'redist', n: count('hunger', 3, 5), meal: ctx.biggestMeal, pct: 15 });
+  }
+  if (rated.length >= 2 && count('ease', 1, 5) >= 2 && (ctx.adjust.rangeWidenMin || 0) < 30)
+    out.push({ id: 'widen', n: count('ease', 1, 5) });
+  if (rated.length >= 2 && count('energy', 1, 5) >= 2 && ctx.preMealName)
+    out.push({ id: 'energy', n: count('energy', 1, 5), meal: ctx.preMealName });
+  return out.filter(p => {
+    const d = (ctx.dismissed || {})[p.id];
+    return !d || String(d) < String(ctx.oldISO || '');
+  });
+}
+/* Horas de aviso sugeridas: el inicio de cada rango, NUNCA dentro
+   del bloque de descanso (ni el que termina esta mañana ni el que
+   empieza esta noche). La entrega real de avisos reutiliza el
+   panel de Pendientes: cablearlo es paso de producción declarado. */
+function schedReminderTimes(result, remindersOn) {
+  if (!remindersOn || !result) return [];
+  const rest = result.restBlock;
+  const alt = rest ? { from: rest.from + 1440, to: rest.to + 1440 } : null;
+  const inRest = f => (rest && f >= rest.from && f < rest.to) || (alt && f >= alt.from && f < alt.to);
+  return result.meals.filter(m => m.fixedF == null && m.from != null)
+    .map(m => ({ name: m.name, at: m.from })).filter(r => !inRest(r.at));
+}
+
+/* ── Carga y guardado (solo la sesión del propio usuario) ─────── */
+async function schedLoadOwn() {
+  const [ps, ss] = await Promise.all([getDoc(schedPrefsRef()), getDoc(schedStateRef())]);
+  const p = ps.exists() ? ps.data() : {};
+  SCHED_PREFS = Object.assign(schedPrefsDefaults(), p);
+  SCHED_PREFS.routine = Object.assign(schedPrefsDefaults().routine, p.routine || {});
+  SCHED_PREFS.routine.work = Object.assign(schedPrefsDefaults().routine.work, (p.routine || {}).work || {});
+  SCHED_PREFS.routine.free = Object.assign(schedPrefsDefaults().routine.free, (p.routine || {}).free || {});
+  if (!Array.isArray(SCHED_PREFS.routine.work.breaks)) SCHED_PREFS.routine.work.breaks = [];
+  if (!Array.isArray(SCHED_PREFS.workdays)) SCHED_PREFS.workdays = [1, 2, 3, 4, 5];
+  SCHED_STATE = Object.assign(schedStateDefaults(), ss.exists() ? ss.data() : {});
+  if (!SCHED_STATE.days) SCHED_STATE.days = {};
+  if (!SCHED_STATE.adjust) SCHED_STATE.adjust = { preGapDeltaMin: 0, rangeWidenMin: 0 };
+  if (!SCHED_STATE.dismissed) SCHED_STATE.dismissed = {};
+}
+async function schedLoadPendCfg() {
+  if (typeof PEND_CFG !== 'undefined' && PEND_CFG && !PEND_CFG.__error && Array.isArray(PEND_CFG.meals)) return PEND_CFG;
+  try {
+    const cs = await getDoc(pendCfgRef());
+    return cs.exists() ? Object.assign(pendDefaults(), cs.data()) : pendDefaults();
+  } catch { return pendDefaults(); }
+}
+function schedDayState(iso) {
+  if (!SCHED_STATE.days[iso]) SCHED_STATE.days[iso] = schedDayStateDefaults();
+  const d = SCHED_STATE.days[iso];
+  if (!d.pins) d.pins = {};
+  if (!d.eaten) d.eaten = {};
+  if (!d.follow) d.follow = { energy: 0, hunger: 0, digestion: 0, ease: 0 };
+  return d;
+}
+async function schedSaveState() {
+  const me = auth.currentUser.uid;
+  const keys = Object.keys(SCHED_STATE.days).sort().reverse().slice(0, 14);
+  const days = {}; keys.forEach(k => { days[k] = SCHED_STATE.days[k]; });
+  SCHED_STATE.days = days;
+  await setDoc(schedStateRef(), Object.assign({ kind: 'schedState', uid: me, ownerUid: me, updatedAt: serverTimestamp() }, SCHED_STATE), { merge: true });
+}
+async function schedSavePrefs() {
+  const me = auth.currentUser.uid;
+  await setDoc(schedPrefsRef(), Object.assign({ kind: 'schedPrefs', uid: me, ownerUid: me, updatedAt: serverTimestamp() }, SCHED_PREFS), { merge: true });
+}
+/* Reúne TODO lo que el motor necesita desde lo que la app ya tiene
+   (sin escribir nada) y deja el contexto en SCHED_CTX. */
+const SCHED_CTX = { ready: false };
+async function schedGather() {
+  const me = auth.currentUser && auth.currentUser.uid; if (!me) return null;
+  if (!SCHED_PREFS) await schedLoadOwn();
+  const cfg = await schedLoadPendCfg();
+  const cut = pendParseHM(cfg.cutoff || '04:00');
+  const regISO = pendRegDay(new Date(), cfg.cutoff || '04:00');
+  const weekday = new Date(regISO + 'T12:00:00').getDay();
+  let wishes = (typeof NUTRI !== 'undefined' && NUTRI.myWishes) || null;
+  if (!wishes) { try { const w = await getDoc(doc(db, 'nutrition_wishes', me)); if (w.exists()) wishes = w.data(); } catch {} }
+  let menus = (typeof NUTRI !== 'undefined' && NUTRI.myMenus) || null;
+  if (!menus) { try { menus = await mmLoadMenus(me); if (typeof NUTRI !== 'undefined') NUTRI.myMenus = menus; } catch { menus = []; } }
+  const plan = (typeof MY_PLAN !== 'undefined') ? MY_PLAN : null;
+  const lvl = goalsDayLevelForDate(regISO, plan, cfg, (typeof LIB_BY_ID !== 'undefined' ? LIB_BY_ID : {}));
+  let isTrainDay = lvl.dayIndex != null && lvl.dayLevel !== 'descanso';
+  let trainLabel = lvl.dayIndex != null && plan && plan.days ? (plan.days[lvl.dayIndex].label || null) : null;
+  if (!isTrainDay && plan && cfg.trainOn && Array.isArray(cfg.trainDays) && cfg.trainDays.includes(weekday)) isTrainDay = true;
+  /* Comidas del día: menú vigente → estructura del plan → nombres
+     de Recordatorios/deseos (orientación sin cantidades). */
+  let mealsIn = [], dayTotals = null;
+  const wk = mmMondayOf(regISO);
+  const { own, coachVig } = planResolveMenu(menus || [], wk, me);
+  const menu = own || coachVig;
+  const menuDay = menu ? (menu.days || []).find(d => d.date === regISO) : null;
+  if (menuDay && (menuDay.meals || []).some(m => (m.items || []).length)) {
+    mealsIn = (menuDay.meals || []).filter(m => (m.items || []).length).map(m => {
+      const mt = mmMealTotals(m);
+      return { name: m.name, time: m.time || null, kcal: mt.kcal, prot: mt.prot, carb: mt.carb, fat: mt.fat, source: 'menu' };
+    });
+    const dt = mmDayTotals(menuDay);
+    dayTotals = { kcal: dt.kcal, prot: dt.prot };
+  } else {
+    const sc = mmStructureFor((typeof NUTRI !== 'undefined' ? NUTRI.myPlan : null) || plan, (typeof GOALS !== 'undefined' ? GOALS : null), wishes);
+    const dt2 = lvl.dayLevel || 'base';
+    if (sc.structure && sc.structure.days && sc.structure.days[dt2]) {
+      const sd = sc.structure.days[dt2];
+      mealsIn = (sd.meals || []).map(m => ({ name: m.name, time: null, kcal: m.kcal != null ? m.kcal : null, prot: m.prot != null ? m.prot : null, carb: m.carb != null ? m.carb : null, fat: m.fat != null ? m.fat : null, source: 'structure' }));
+      const tgt = mmDayTarget(sc.structure, dt2);
+      if (tgt && tgt.kcal) dayTotals = { kcal: tgt.kcal, prot: tgt.prot || 0 };
+    }
+  }
+  if (!mealsIn.length) {
+    const names = (cfg.meals || []).filter(m => m.on).map(m => m.name);
+    const set = PLAN_MEAL_SETS[(wishes && wishes.mealsPerDay) || names.length || 4] || PLAN_MEAL_SETS[4];
+    const use = names.length ? names : set;
+    mealsIn = use.map(n => ({ name: n, time: null, kcal: null, prot: null, carb: null, fat: null, source: 'none' }));
+    if (!dayTotals && typeof GOALS !== 'undefined' && GOALS && GOALS.kcal) dayTotals = { kcal: GOALS.kcal, prot: GOALS.prot || 0 };
+  }
+  const pendTimes = {};
+  (cfg.meals || []).forEach(m => { if (m.time) pendTimes[m.name] = schedFrameMin(m.time, cut); });
+  /* Diario de hoy (día de registro): lo ya comido con su hora real
+     de registro, con la misma regla de corte de Pendientes. */
+  const logged = [];
+  try {
+    const snap = await getDocs(query(collection(db, 'nutrition_meals'), where('ownerUid', '==', me), where('date', '>=', regISO), where('date', '<=', addDaysISO(regISO, 1))));
+    snap.forEach(d => {
+      const v = d.data();
+      const secs = v.createdAt && v.createdAt.seconds;
+      if (!secs) return;
+      const dtm = new Date(secs * 1000);
+      const mins = dtm.getHours() * 60 + dtm.getMinutes();
+      if (v.date === regISO && mins >= cut) logged.push({ name: v.meal, frameMin: mins, kcal: v.kcal != null ? Number(v.kcal) : null });
+      else if (v.date === addDaysISO(regISO, 1) && mins < cut) logged.push({ name: v.meal, frameMin: mins + 1440, kcal: v.kcal != null ? Number(v.kcal) : null });
+    });
+  } catch {}
+  Object.assign(SCHED_CTX, { ready: true, me, cfg, cut, regISO, weekday, wishes, isTrainDay, trainLabel,
+    dayLevel: lvl.dayLevel, mealsIn, dayTotals, pendTimes, logged,
+    objective: (typeof UDATA !== 'undefined' && UDATA && UDATA.goalObjective) || null });
+  schedRecompute();
+  return SCHED_DAY;
+}
+function schedBuildInput() {
+  const c = SCHED_CTX, p = SCHED_PREFS;
+  const isWorkday = (p.workdays || []).includes(c.weekday);
+  const r = isWorkday ? p.routine.work : p.routine.free;
+  const day = schedDayState(c.regISO);
+  const sessions = [];
+  if (day.trainOverride && day.trainOverride.time) sessions.push({ time: day.trainOverride.time, durMin: day.trainOverride.durMin || 60 });
+  else {
+    const tt = (p.trainTimes || {})[String(c.weekday)] || {};
+    if (tt.time) sessions.push({ time: tt.time, durMin: tt.durMin || 60 });
+    if (tt.time2) sessions.push({ time: tt.time2, durMin: tt.dur2Min || 60 });
+  }
+  return { dateISO: c.regISO, weekday: c.weekday, isWorkday, objective: c.objective, dayLevel: c.dayLevel,
+    isTrainDay: c.isTrainDay, trainLabel: c.trainLabel, meals: c.mealsIn, dayTotals: c.dayTotals,
+    routine: { wake: r.wake || (c.cfg.quietTo || ''), sleep: r.sleep || (c.cfg.quietFrom || ''),
+      wakeProv: !r.wake && !!c.cfg.quietTo, sleepProv: !r.sleep && !!c.cfg.quietFrom,
+      workFrom: isWorkday ? (p.routine.work.workFrom || '') : '', workTo: isWorkday ? (p.routine.work.workTo || '') : '',
+      breaks: isWorkday ? (p.routine.work.breaks || []) : [] },
+    tolerance: p.tolerance || '', sessions, pins: day.pins, eaten: day.eaten, logged: c.logged,
+    pendTimes: c.pendTimes, cutoffMin: c.cut,
+    preGapDeltaMin: SCHED_STATE.adjust.preGapDeltaMin || 0, rangeWidenMin: SCHED_STATE.adjust.rangeWidenMin || 0 };
+}
+function schedRecompute() { SCHED_INPUT = schedBuildInput(); SCHED_DAY = schedComputeDay(SCHED_INPUT); return SCHED_DAY; }
+function schedNowHHMM() { const d = new Date(); return String(d.getHours()).padStart(2, '0') + ':' + String(d.getMinutes()).padStart(2, '0'); }
+
+/* ── Tarjeta-puerta en Comida (junto a la del planificador) ───── */
+function schedCardHTML() {
+  const r = SCHED_DAY;
+  let line = t('sched.cardLinePlain');
+  if (r && SCHED_CTX.ready && r.dateISO === pendRegDay(new Date(), (SCHED_CTX.cfg && SCHED_CTX.cfg.cutoff) || '04:00')) {
+    if (r.isTrainDay && r.trainKnown) line = t('sched.cardLineTrain', { n: r.meals.length, time: pendFmtHM(r.trainBlock.from) });
+    else if (!r.isTrainDay) line = t('sched.cardLineRest', { n: r.meals.length });
+  }
+  return `<div class="plan-card-in sched-card-in"><div class="plan-card-txt"><b>🕐 ${esc(t('sched.title'))}</b><span>${esc(line)}</span></div><button type="button" class="btn-primary plan-card-btn" data-sched-open>${esc(t('sched.cardBtn'))}</button></div>`;
+}
+function renderSchedCard() {
+  const slot = $('sched-card'); if (!slot) return;
+  const me = auth.currentUser && auth.currentUser.uid;
+  const show = !!me && ((typeof ROLE !== 'undefined' && ROLE === 'usuario') || (typeof NUTRI !== 'undefined' && (NUTRI.myRel || NUTRI.myFollow || NUTRI.myPlan)) || (typeof IS_OWNER !== 'undefined' && IS_OWNER));
+  if (!show) { slot.innerHTML = ''; slot.style.display = 'none'; return; }
+  slot.style.display = '';
+  slot.innerHTML = schedCardHTML();
+  if (!SCHED_CTX.ready || !SCHED_PREFS) {
+    schedGather().then(() => { const ff = $('food-float'); if (ff && ff.style.display !== 'none' && $('sched-card')) slot.innerHTML = schedCardHTML(); }).catch(() => {});
+  }
+}
+
+/* ── La hoja «Mi horario diario» ──────────────────────────────── */
+function schedFmtRange(m) {
+  if (m.from == null) return t('sched.noTimeYet');
+  if (m.fixedF != null || m.from === m.to) return pendFmtHM(m.from);
+  return pendFmtHM(m.from) + '–' + pendFmtHM(m.to);
+}
+function schedMealHTML(m, r) {
+  const day = schedDayState(SCHED_CTX.regISO);
+  const isPin = !!day.pins[m.name], isEaten = !!day.eaten[m.name] || m.fixedF != null && !isPin;
+  let h = `<div class="sched-meal${m.relation === 'pre' || m.relation === 'post' ? ' near-train' : ''}">`;
+  h += `<div class="sched-meal-top"><span class="sched-meal-name">${esc(mealName(m.name))}</span>`;
+  if (isPin) h += `<span class="sched-tag pin">${esc(t('sched.pinnedTag'))}</span>`;
+  if (m.eatenAt) h += `<span class="sched-tag eaten">${esc(t('sched.eatenTag', { time: m.eatenAt }))}</span>`;
+  h += `<span class="sched-meal-range">${esc(schedFmtRange(m))}</span></div>`;
+  if (m.relation === 'pre' && r.trainBlock) h += `<div class="sched-rel">${esc(t('sched.relPre', { time: pendFmtHM(r.trainBlock.from) }))}</div>`;
+  if (m.relation === 'post') h += `<div class="sched-rel">${esc(t('sched.relPost'))}</div>`;
+  h += `<p class="sched-why">${esc(t('sched.why.' + (m.whyKey || 'generic')))} <span class="sched-edu">${esc(t('sched.' + (m.eduKey || 'edu1')))}</span></p>`;
+  if (m.kcal != null) h += `<p class="sched-planline">${esc(t('sched.planLine', { kcal: Math.round(m.kcal), prot: acNum(m.prot || 0) }))}</p>`;
+  const editing = (SCHED_UI.mode === 'pin' || SCHED_UI.mode === 'eatenfix') && SCHED_UI.pinMeal === m.name;
+  if (editing) {
+    const cur = SCHED_UI.mode === 'eatenfix' ? (day.eaten[m.name] ? day.eaten[m.name].at : (m.eatenAt || '')) : (day.pins[m.name] || (m.from != null ? pendFmtHM(m.from) : ''));
+    h += `<div class="sched-edit"><label>${esc(t('sched.timeLabel'))}<input type="time" id="sched-edit-time" value="${esc(cur)}"></label><div class="sched-actions"><button type="button" class="btn-primary sched-btn" data-sched-act="edit-save" data-meal="${esc(m.name)}">${esc(t('sched.actSave'))}</button><button type="button" class="btn-ghost sched-btn" data-sched-act="edit-cancel">${esc(t('sched.actCancel'))}</button></div></div>`;
+  } else if (m.eatenAt) {
+    h += `<div class="sched-actions"><button type="button" class="btn-ghost sched-btn" data-sched-act="eatenfix-open" data-meal="${esc(m.name)}">${esc(t('sched.actCorrect'))}</button></div>`;
+  } else {
+    h += `<div class="sched-actions"><button type="button" class="btn-primary sched-btn" data-sched-act="eaten" data-meal="${esc(m.name)}">✓ ${esc(t('sched.actEaten'))}</button><button type="button" class="btn-ghost sched-btn" data-sched-act="pin-open" data-meal="${esc(m.name)}">${esc(t('sched.actChange'))}</button>${isPin ? `<button type="button" class="btn-ghost sched-btn" data-sched-act="unpin" data-meal="${esc(m.name)}">${esc(t('sched.unpin'))}</button>` : ''}</div>`;
+  }
+  return h + '</div>';
+}
+function schedSheetHTML() {
+  const r = SCHED_DAY, c = SCHED_CTX, day = schedDayState(c.regISO);
+  const tz = (() => { try { return Intl.DateTimeFormat().resolvedOptions().timeZone || ''; } catch { return ''; } })();
+  let h = `<p class="sched-tz">${esc(t('sched.tzLine', { tz }))}</p>`;
+  if (r.orientationOnly) h += `<div class="sched-note warn"><b>${esc(t('sched.orientOnly'))}</b></div>`;
+  if (r.missing.length) {
+    h += `<div class="sched-note"><b>${esc(t('sched.missingTitle'))}</b><ul>${r.missing.map(k => `<li>${esc(t('sched.miss.' + k))}</li>`).join('')}</ul><button type="button" class="btn-ghost sched-btn" data-sched-act="goto-prefs">${esc(t('sched.completeBtn'))}</button></div>`;
+  }
+  if (r.provisional) h += `<p class="progress-hint">${esc(t('sched.provisionalNote'))}</p>`;
+  r.notes.forEach(n => {
+    if (n === 'multi') h += `<div class="sched-note">${esc(t('sched.multiNote'))}</div>`;
+    if (n === 'noMealBefore') h += `<div class="sched-note">${esc(t('sched.noMealBefore'))}</div>`;
+    if (n === 'trainOnWake') h += `<div class="sched-note">${esc(t('sched.trainOnWake'))}</div>`;
+  });
+  /* Línea de tiempo: descanso, trabajo, entrenamiento y comidas en
+     orden del marco del día (las comidas sin hora van al final). */
+  const items = [];
+  if (r.restBlock) items.push({ f: r.restBlock.from, html: `<div class="sched-block rest">🌙 <b>${esc(t('sched.restBlock'))}</b> · ${pendFmtHM(r.restBlock.from)}–${pendFmtHM(r.restBlock.to)}</div>` });
+  if (r.workBlock) {
+    const br = r.workBlock.breaks.map(b => esc(t('sched.breakWord', { from: pendFmtHM(b.from), to: pendFmtHM(b.to) }))).join(' · ');
+    items.push({ f: r.workBlock.from, html: `<div class="sched-block work">💼 <b>${esc(t('sched.workBlock'))}</b> · ${pendFmtHM(r.workBlock.from)}–${pendFmtHM(r.workBlock.to)}${br ? ' · ' + br : ''}</div>` });
+  }
+  if (r.trainBlock && !r.trainBlock.noTime) items.push({ f: r.trainBlock.from, html: `<div class="sched-block train">🏋️ <b>${esc(t('sched.trainBlock'))}</b> · ${pendFmtHM(r.trainBlock.from)}–${pendFmtHM(r.trainBlock.to)}${r.trainLabel ? ' · ' + esc(r.trainLabel) : ''}</div>` });
+  if (r.trainBlock && r.trainBlock.noTime) items.push({ f: -1, html: `<div class="sched-block train">🏋️ <b>${esc(t('sched.trainBlock'))}</b> · ${esc(t('sched.trainNoTime'))}${r.trainLabel ? ' · ' + esc(r.trainLabel) : ''}</div>` });
+  if (!r.isTrainDay) items.push({ f: -1, html: `<div class="sched-block rest">🌿 ${esc(r.dayLevel === 'descanso' ? t('sched.freeDay') : t('sched.noTrainDay'))}</div>` });
+  r.meals.forEach(m => items.push({ f: m.from != null ? m.from : 99999, html: schedMealHTML(m, r) }));
+  items.sort((a, b) => a.f - b.f);
+  h += items.map(i => i.html).join('');
+  /* Cambio de hora de entrenamiento de hoy: vista previa primero. */
+  if (r.isTrainDay) {
+    if (SCHED_UI.mode === 'train') {
+      const ov = day.trainOverride || {};
+      h += `<div class="sched-editbox"><b>${esc(t('sched.trainChangeTitle'))}</b><div class="sched-edit"><label>${esc(t('sched.timeLabel'))}<input type="time" id="sched-train-time" value="${esc(SCHED_UI.previewTrain ? SCHED_UI.previewTrain.time : (ov.time || ''))}"></label><label>${esc(t('sched.durLabel'))}<input type="number" id="sched-train-dur" min="10" max="300" step="5" value="${esc(SCHED_UI.previewTrain ? SCHED_UI.previewTrain.durMin : (ov.durMin || 60))}"></label></div>`;
+      if (SCHED_UI.preview) {
+        const diffs = [];
+        SCHED_UI.preview.meals.forEach(pm => {
+          const om = r.meals.find(x => x.name === pm.name);
+          if (om && (om.from !== pm.from || om.to !== pm.to)) diffs.push(`${esc(mealName(pm.name))}: ${esc(schedFmtRange(om))} → ${esc(schedFmtRange(pm))}`);
+        });
+        h += `<div class="sched-preview"><b>${esc(t('sched.previewTitle'))}</b>${diffs.length ? diffs.map(d => `<p>${d}</p>`).join('') : `<p>${esc(t('sched.previewNone'))}</p>`}</div>`;
+        h += `<div class="sched-actions"><button type="button" class="btn-primary sched-btn" data-sched-act="train-confirm">${esc(t('sched.confirm'))}</button><button type="button" class="btn-ghost sched-btn" data-sched-act="train-cancel">${esc(t('sched.back'))}</button></div>`;
+      } else {
+        h += `<div class="sched-actions"><button type="button" class="btn-primary sched-btn" data-sched-act="train-preview">${esc(t('sched.previewTitle'))}</button><button type="button" class="btn-ghost sched-btn" data-sched-act="train-cancel">${esc(t('sched.actCancel'))}</button></div>`;
+      }
+      h += '</div>';
+    } else {
+      h += `<button type="button" class="btn-ghost sched-wide" data-sched-act="train-open">🏋️ ${esc(t('sched.trainChangeBtn'))}</button>`;
+    }
+  }
+  /* Avisos sugeridos (nunca dentro del descanso). */
+  const rems = schedReminderTimes(r, SCHED_PREFS.remindersOn);
+  if (rems.length) h += `<div class="sched-sec"><b>${esc(t('sched.remTitle'))}</b><p>${rems.map(x => `${esc(mealName(x.name))} · ${pendFmtHM(x.at)}`).join('<br>')}</p></div>`;
+  /* Propuestas del seguimiento. */
+  const props = schedCurrentProposals();
+  if (props.length) {
+    h += `<div class="sched-sec"><b>${esc(t('sched.propTitle'))}</b>`;
+    props.forEach(p => {
+      h += `<div class="sched-prop"><p>${esc(schedPropText(p))}</p>`;
+      if (p.id === 'redist') {
+        const rd = schedRedistribute(SCHED_INPUT.meals, p.meal, p.pct);
+        const srcMeal = SCHED_INPUT.meals.find(m => m.name === p.meal) || {};
+        if (rd) h += `<p class="sched-planline">${esc(t('sched.redistLine', { meal: mealName(p.meal), aK: Math.round(srcMeal.kcal || 0), bK: Math.round(rd.rest.kcal || 0), aP: acNum(srcMeal.prot || 0), bP: acNum(rd.rest.prot || 0), sK: Math.round(rd.move.kcal || 0), sP: acNum(rd.move.prot || 0) }))}</p>`;
+        h += `<div class="sched-actions"><button type="button" class="btn-primary sched-btn" data-sched-act="redist-ask">${esc(t('sched.redistAsk'))}</button><button type="button" class="btn-ghost sched-btn" data-sched-act="prop-dismiss" data-id="redist">${esc(t('sched.propDismiss'))}</button></div>`;
+      } else {
+        h += `<div class="sched-actions"><button type="button" class="btn-primary sched-btn" data-sched-act="prop-apply" data-id="${p.id}">${esc(t('sched.propApply'))}</button><button type="button" class="btn-ghost sched-btn" data-sched-act="prop-dismiss" data-id="${p.id}">${esc(t('sched.propDismiss'))}</button></div>`;
+      }
+      h += '</div>';
+    });
+    h += `<p class="progress-hint">${esc(t('sched.propNote'))}</p></div>`;
+  }
+  /* Seguimiento opcional. */
+  h += `<div class="sched-sec"><b>${esc(t('sched.followTitle'))}</b>`;
+  ['energy', 'hunger', 'digestion', 'ease'].forEach(q => {
+    const v = day.follow[q] || 0;
+    h += `<div class="sched-follow"><span>${esc(t('sched.follow.' + q))}</span><div class="sched-rate">`
+      + [1, 2, 3].map(n => `<button type="button" class="sched-rate-btn${v === n ? ' on' : ''}" data-sched-follow="${q}" data-val="${n}">${esc(t(n === 2 ? 'sched.rate.mid' : 'sched.rate.' + q + (n === 1 ? '.low' : '.high')))}</button>`).join('')
+      + '</div></div>';
+  });
+  h += '</div>';
+  /* Educación con fuentes. */
+  h += `<div class="sched-sec"><b>${esc(t('sched.eduTitle'))}</b><ul class="sched-edu-list">${[1, 2, 3, 4].map(n => `<li>${esc(t('sched.edu' + n))}</li>`).join('')}</ul><p class="progress-hint">${esc(t('sched.sources'))}</p></div>`;
+  /* Preferencias del propio usuario. */
+  h += schedPrefsHTML();
+  return h;
+}
+function schedCurrentProposals() {
+  const c = SCHED_CTX; if (!c.ready) return [];
+  const hist = Object.keys(SCHED_STATE.days).sort().reverse().slice(0, 7).map(iso => ({ iso, follow: (SCHED_STATE.days[iso] || {}).follow || {} }));
+  const snack = SCHED_DAY.meals.find(m => m.name === 'Merienda' || m.name === 'Snack');
+  const withKcal = SCHED_DAY.meals.filter(m => m.kcal != null).sort((a, b) => b.kcal - a.kcal)[0];
+  const pre = SCHED_DAY.meals.find(m => m.relation === 'pre');
+  return schedProposals(hist, { adjust: SCHED_STATE.adjust, dismissed: SCHED_STATE.dismissed, oldISO: addDaysISO(c.regISO, -7),
+    snackName: snack ? snack.name : null, biggestMeal: withKcal ? withKcal.name : null, preMealName: pre ? pre.name : null });
+}
+function schedPropText(p) {
+  if (p.id === 'gap') return t('sched.prop.gap', { n: p.n });
+  if (p.id === 'snack') return t('sched.prop.snack', { n: p.n, meal: mealName(p.meal) });
+  if (p.id === 'redist') return t('sched.prop.redist', { n: p.n, meal: p.meal, pct: p.pct });
+  if (p.id === 'widen') return t('sched.prop.widen', { n: p.n });
+  if (p.id === 'energy') return t('sched.prop.energy', { n: p.n, meal: mealName(p.meal) });
+  return '';
+}
+/* ── Preferencias: borrador editable, guardar explícito ──────── */
+let SCHED_DRAFT = null;
+function schedDraft() {
+  if (!SCHED_DRAFT) SCHED_DRAFT = JSON.parse(JSON.stringify(SCHED_PREFS));
+  return SCHED_DRAFT;
+}
+function schedCollectDraft() {
+  const d = schedDraft();
+  const g = id => { const el = $(id); return el ? el.value : ''; };
+  d.routine.work.wake = g('sched-pf-wake-work'); d.routine.work.sleep = g('sched-pf-sleep-work');
+  d.routine.free.wake = g('sched-pf-wake-free'); d.routine.free.sleep = g('sched-pf-sleep-free');
+  d.routine.work.workFrom = g('sched-pf-work-from'); d.routine.work.workTo = g('sched-pf-work-to');
+  d.routine.work.breaks = [];
+  document.querySelectorAll('.sched-pf-break-from').forEach((f, i) => {
+    const to = document.querySelectorAll('.sched-pf-break-to')[i];
+    if (f.value || (to && to.value)) d.routine.work.breaks.push({ from: f.value, to: to ? to.value : '' });
+  });
+  d.trainTimes = {};
+  for (let wd = 0; wd < 7; wd++) {
+    const time = g('sched-pf-tt-' + wd), dur = parseInt(g('sched-pf-td-' + wd), 10);
+    const time2 = g('sched-pf-tt2-' + wd), dur2 = parseInt(g('sched-pf-td2-' + wd), 10);
+    if (time || time2) d.trainTimes[String(wd)] = { time, durMin: dur || 60, time2, dur2Min: dur2 || 60 };
+  }
+  const rem = $('sched-pf-rem'); if (rem) d.remindersOn = !!rem.checked;
+  return d;
+}
+function schedPrefsHTML() {
+  const d = schedDraft();
+  const open = SCHED_UI.mode === 'prefs' || SCHED_UI.prefsOpen || !SCHED_DAY || SCHED_DAY.missing.includes('routine');
+  const wdName = wd => weekdayName(addDaysISO('2026-11-02', (wd + 6) % 7));
+  let h = `<details class="sched-fold" id="sched-prefs-box"${open ? ' open' : ''}><summary>${esc(t('sched.prefsTitle'))}</summary><div class="sched-prefs">`;
+  h += `<p class="progress-hint">${esc(t('sched.prefsIntro'))}</p>`;
+  h += `<div class="sched-pf-group"><span class="sched-pf-label">${esc(t('sched.pf.workdays'))}</span><div class="sched-wds">${[0, 1, 2, 3, 4, 5, 6].map(wd => `<button type="button" class="sched-wd${(d.workdays || []).includes(wd) ? ' on' : ''}" data-sched-wd="${wd}">${esc(wdName(wd).slice(0, 3))}</button>`).join('')}</div></div>`;
+  const timeRow = (id, label, val) => `<label class="sched-pf-row">${esc(label)}<input type="time" id="${id}" value="${esc(val || '')}"></label>`;
+  h += timeRow('sched-pf-wake-work', t('sched.pf.wakeWork'), d.routine.work.wake);
+  h += timeRow('sched-pf-sleep-work', t('sched.pf.sleepWork'), d.routine.work.sleep);
+  h += timeRow('sched-pf-wake-free', t('sched.pf.wakeFree'), d.routine.free.wake);
+  h += timeRow('sched-pf-sleep-free', t('sched.pf.sleepFree'), d.routine.free.sleep);
+  h += timeRow('sched-pf-work-from', t('sched.pf.workFrom'), d.routine.work.workFrom);
+  h += timeRow('sched-pf-work-to', t('sched.pf.workTo'), d.routine.work.workTo);
+  h += `<div class="sched-pf-group"><span class="sched-pf-label">${esc(t('sched.pf.breaks'))}</span>`;
+  (d.routine.work.breaks || []).forEach((b, i) => {
+    h += `<div class="sched-pf-break"><input type="time" class="sched-pf-break-from" value="${esc(b.from || '')}"><span>–</span><input type="time" class="sched-pf-break-to" value="${esc(b.to || '')}"><button type="button" class="btn-ghost sched-btn" data-sched-act="brk-del" data-i="${i}">✕</button></div>`;
+  });
+  if ((d.routine.work.breaks || []).length < 3) h += `<button type="button" class="btn-ghost sched-btn" data-sched-act="brk-add">${esc(t('sched.pf.breakAdd'))}</button>`;
+  h += '</div>';
+  h += `<div class="sched-pf-group"><span class="sched-pf-label">${esc(t('sched.pf.trainTimes'))}</span>`;
+  for (let wd = 0; wd < 7; wd++) {
+    const tt = (d.trainTimes || {})[String(wd)] || {};
+    h += `<div class="sched-pf-train"><span>${esc(wdName(wd))}</span><input type="time" id="sched-pf-tt-${wd}" value="${esc(tt.time || '')}"><input type="number" id="sched-pf-td-${wd}" min="10" max="300" step="5" value="${esc(tt.durMin || 60)}" aria-label="${esc(t('sched.pf.mins'))}"><input type="time" id="sched-pf-tt2-${wd}" value="${esc(tt.time2 || '')}"><input type="number" id="sched-pf-td2-${wd}" min="10" max="300" step="5" value="${esc(tt.dur2Min || 60)}" aria-label="${esc(t('sched.pf.mins'))}"></div>`;
+  }
+  h += '</div>';
+  h += `<div class="sched-pf-group"><span class="sched-pf-label">${esc(t('sched.pf.tolerance'))}</span><div class="sched-tols">${['fast', 'normal', 'slow'].map(k => `<button type="button" class="sched-tol${d.tolerance === k ? ' on' : ''}" data-sched-tol="${k}">${esc(t('sched.tol.' + k))}</button>`).join('')}</div></div>`;
+  h += `<label class="sched-pf-check"><input type="checkbox" id="sched-pf-rem"${d.remindersOn ? ' checked' : ''}> ${esc(t('sched.pf.reminders'))}</label>`;
+  h += `<button type="button" class="btn-primary sched-wide" data-sched-act="prefs-save">${esc(SCHED_UI.savedFlash ? t('sched.pf.saved') : t('sched.pf.save'))}</button>`;
+  h += '</div></details>';
+  return h;
+}
+function schedPaintSheet() {
+  const body = $('sched-sheet-body'); if (!body || !SCHED_DAY) return;
+  body.innerHTML = schedSheetHTML();
+  if (SCHED_UI.mode === 'prefs') {
+    const box = $('sched-prefs-box');
+    if (box) { box.open = true; try { box.scrollIntoView({ block: 'start' }); } catch {} }
+    SCHED_UI.mode = 'view';
+  }
+}
+async function schedOpenSheet() {
+  const me = auth.currentUser && auth.currentUser.uid; if (!me) return;
+  const bd = $('sched-backdrop'), f = $('sched-float'); if (!bd || !f) return;
+  bd.style.display = ''; f.style.display = '';
+  const body = $('sched-sheet-body');
+  if (body) body.innerHTML = `<div class="wempty">${esc(t('access.loading'))}</div>`;
+  try { coverSync(); } catch {}
+  SCHED_UI.mode = 'view'; SCHED_UI.preview = null; SCHED_UI.previewTrain = null; SCHED_DRAFT = null;
+  try { await schedGather(); } catch {}
+  schedPaintSheet();
+}
+function schedCloseSheet() {
+  const bd = $('sched-backdrop'), f = $('sched-float');
+  if (bd) bd.style.display = 'none';
+  if (f) f.style.display = 'none';
+  try { coverSync(); } catch {}
+}
+async function schedAct(b) {
+  const act = b.getAttribute('data-sched-act');
+  const meal = b.getAttribute('data-meal');
+  const c = SCHED_CTX, day = schedDayState(c.regISO);
+  if (act === 'goto-prefs') { SCHED_UI.mode = 'prefs'; schedPaintSheet(); return; }
+  if (act === 'pin-open') { SCHED_UI.mode = 'pin'; SCHED_UI.pinMeal = meal; schedPaintSheet(); return; }
+  if (act === 'eatenfix-open') { SCHED_UI.mode = 'eatenfix'; SCHED_UI.pinMeal = meal; schedPaintSheet(); return; }
+  if (act === 'edit-cancel') { SCHED_UI.mode = 'view'; schedPaintSheet(); return; }
+  if (act === 'edit-save') {
+    const v = ($('sched-edit-time') || {}).value || '';
+    if (v) {
+      if (SCHED_UI.mode === 'eatenfix') { day.eaten[meal] = { at: v }; delete day.pins[meal]; }
+      else day.pins[meal] = v;
+      await schedSaveState();
+    }
+    SCHED_UI.mode = 'view'; schedRecompute(); schedPaintSheet(); return;
+  }
+  if (act === 'eaten') { day.eaten[meal] = { at: schedNowHHMM() }; await schedSaveState(); schedRecompute(); schedPaintSheet(); return; }
+  if (act === 'unpin') { delete day.pins[meal]; await schedSaveState(); schedRecompute(); schedPaintSheet(); return; }
+  if (act === 'train-open') { SCHED_UI.mode = 'train'; SCHED_UI.preview = null; schedPaintSheet(); return; }
+  if (act === 'train-cancel') { SCHED_UI.mode = 'view'; SCHED_UI.preview = null; SCHED_UI.previewTrain = null; schedPaintSheet(); return; }
+  if (act === 'train-preview') {
+    const time = ($('sched-train-time') || {}).value || '';
+    const durMin = parseInt(($('sched-train-dur') || {}).value, 10) || 60;
+    if (!time) return;
+    SCHED_UI.previewTrain = { time, durMin };
+    const inp = schedBuildInput();
+    inp.sessions = [{ time, durMin }];
+    SCHED_UI.preview = schedComputeDay(inp);
+    schedPaintSheet(); return;
+  }
+  if (act === 'train-confirm') {
+    if (SCHED_UI.previewTrain) { day.trainOverride = SCHED_UI.previewTrain; await schedSaveState(); }
+    SCHED_UI.mode = 'view'; SCHED_UI.preview = null; SCHED_UI.previewTrain = null;
+    schedRecompute(); schedPaintSheet(); return;
+  }
+  if (act === 'prop-dismiss') { SCHED_STATE.dismissed[b.getAttribute('data-id')] = c.regISO; await schedSaveState(); schedPaintSheet(); return; }
+  if (act === 'redist-ask') { schedCloseSheet(); planOpenSheet(); return; }
+  if (act === 'prop-apply') {
+    const id = b.getAttribute('data-id');
+    const tomorrow = addDaysISO(c.regISO, 1);
+    const tDay = schedDayState(tomorrow);
+    const props = schedCurrentProposals();
+    const p = props.find(x => x.id === id);
+    if (id === 'gap') SCHED_STATE.adjust.preGapDeltaMin = Math.min(60, (SCHED_STATE.adjust.preGapDeltaMin || 0) + 30);
+    if (id === 'widen') SCHED_STATE.adjust.rangeWidenMin = Math.min(30, (SCHED_STATE.adjust.rangeWidenMin || 0) + 15);
+    if ((id === 'snack' || id === 'energy') && p && p.meal) {
+      const m = SCHED_DAY.meals.find(x => x.name === p.meal);
+      if (m && m.from != null) tDay.pins[p.meal] = pendFmtHM(m.from - (id === 'snack' ? 45 : 30));
+    }
+    await schedSaveState(); schedRecompute(); schedPaintSheet(); return;
+  }
+  if (act === 'brk-add') { const d = schedCollectDraft(); d.routine.work.breaks.push({ from: '', to: '' }); SCHED_UI.prefsOpen = true; schedPaintSheet(); return; }
+  if (act === 'brk-del') { const d = schedCollectDraft(); d.routine.work.breaks.splice(parseInt(b.getAttribute('data-i'), 10), 1); SCHED_UI.prefsOpen = true; schedPaintSheet(); return; }
+  if (act === 'prefs-save') {
+    SCHED_PREFS = schedCollectDraft();
+    SCHED_DRAFT = null;
+    await schedSavePrefs();
+    SCHED_UI.savedFlash = true; SCHED_UI.prefsOpen = true;
+    schedRecompute(); schedPaintSheet();
+    setTimeout(() => { SCHED_UI.savedFlash = false; }, 2500);
+    return;
+  }
+}
+document.addEventListener('click', e => {
+  const open = e.target && e.target.closest ? e.target.closest('[data-sched-open]') : null;
+  if (open) { schedOpenSheet(); return; }
+  const body = $('sched-sheet-body');
+  if (!body || !body.contains(e.target)) return;
+  const fb = e.target.closest('[data-sched-follow]');
+  if (fb) {
+    const day = schedDayState(SCHED_CTX.regISO);
+    const q = fb.getAttribute('data-sched-follow'), v = parseInt(fb.getAttribute('data-val'), 10);
+    day.follow[q] = day.follow[q] === v ? 0 : v;
+    schedSaveState().then(() => schedPaintSheet()).catch(() => schedPaintSheet());
+    return;
+  }
+  const wd = e.target.closest('[data-sched-wd]');
+  if (wd) {
+    const d = schedCollectDraft();
+    const n = parseInt(wd.getAttribute('data-sched-wd'), 10);
+    d.workdays = (d.workdays || []).includes(n) ? d.workdays.filter(x => x !== n) : (d.workdays || []).concat([n]);
+    SCHED_UI.prefsOpen = true; schedPaintSheet(); return;
+  }
+  const tol = e.target.closest('[data-sched-tol]');
+  if (tol) { const d = schedCollectDraft(); d.tolerance = tol.getAttribute('data-sched-tol'); SCHED_UI.prefsOpen = true; schedPaintSheet(); return; }
+  const b = e.target.closest('[data-sched-act]');
+  if (b) schedAct(b);
+});
+(function schedWireSheet() {
+  const c = $('btn-sched-close'); if (c) c.onclick = schedCloseSheet;
+  const bd = $('sched-backdrop'); if (bd) bd.onclick = schedCloseSheet;
+  document.addEventListener('keydown', e => {
+    if (e.key !== 'Escape') return;
+    const f = $('sched-float');
+    if (f && f.style.display !== 'none') schedCloseSheet();
+  });
+})();
+
 /* La tarjeta-puerta de la ventana de Comida: la semana en curso y
    lo planificado para HOY contra su meta, desde los mismos
    documentos; sin menú, el estado honesto y la misma puerta. */
@@ -52045,6 +53055,7 @@ function renderPlanCard() {
   if (!show) { slot.innerHTML = ''; slot.style.display = 'none'; return; }
   slot.style.display = '';
   slot.innerHTML = planCardHTML();
+  try { renderSchedCard(); } catch {}
   /* Refresco en segundo plano: la semana recién construida se ve
      sin reabrir la ventana — la tarjeta se repinta con los menús
      frescos si Comida sigue abierta cuando llegan. */
