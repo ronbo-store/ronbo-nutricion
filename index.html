@@ -21,7 +21,7 @@
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-title" content="RONBO FIT">
 <meta name="apple-mobile-web-app-status-bar-style" content="default">
-<link rel="stylesheet" href="styles.css?v=20261109-pantalla-completa">
+<link rel="stylesheet" href="styles.css?v=20261109-progreso-cuadros">
 <script defer src="https://cloud.umami.is/script.js" data-website-id="a29706d4-44a2-47cf-900a-5f74d74abfa8"></script>
 <script type="importmap">
 {
@@ -430,9 +430,9 @@
          bloque final de styles.css). La hoja #share-float, su lógica
          y la clave share.button del diccionario no se tocan. -->
     <!-- Las tarjetas de reconocimiento («Tu semana», «Tus hitos» y
-         «Tu mes») ya NO viven aquí: se pintan al final de esta
-         página, tras la acción de fotos (variante A de Progreso →
-         Fotos, aprobada por Ronald el 2026-11-09). -->
+         «Tu mes») ya NO viven en esta página: desde AUTH-339 se
+         pintan dentro de la vista de 🏋️ Entrenamiento de la hoja
+         #mp-hist (#mp-x-train), enteras y con su cálculo intacto. -->
     <div id="mp-home">
   <div class="mp-head">
     <h3 class="block-title" data-i18n="mp.title">My progress</h3>
@@ -441,80 +441,15 @@
   <div id="mp-cards" class="mp-cards"><div class="wempty" data-i18n="mp.loading">Loading…</div></div>
   <div id="mp-comments"></div>
 </div>
-<div class="prog-subtabs" role="tablist">
-      <button type="button" class="prog-subtab active" id="prog-tab-fotos" role="tab" aria-selected="true" data-i18n="progress.tabPhotos">Photos</button>
-      <button type="button" class="prog-subtab" id="prog-tab-medidas" role="tab" aria-selected="false" data-i18n="progress.tabMeasures">Measures</button>
-    </div>
-    <div id="prog-g-medidas" style="display:none">
-    <div class="block-head">
-      <h3 class="block-title"><span data-i18n="weight.title">⚖️ Weight progress</span> <span class="h2-sub" data-i18n="weight.sub">· weekly weigh-in</span></h3>
-      <button id="btn-add-weight" class="btn-ghost btn-sm" data-i18n="weight.add">＋ Log weigh-in</button>
-    </div>
-    <div id="compacc-notice" class="compacc-notice" style="display:none"></div>
-    <div id="weightBody"><div class="wempty" data-i18n="weight.loading">Loading weigh-ins…</div></div>
-    </div>
-    <div id="prog-g-fotos">
-    <div class="progress-current">
-      <div class="progress-week" id="progress-week-label">This week</div>
-      <div class="progress-next" id="progress-next"></div>
-      <div id="progress-closed" class="progress-closed" style="display:none">
-        <p class="progress-closed-note" data-i18n="progress.closedNote">This evaluation is closed and stays untouched. New photos are saved in a new evaluation dated today.</p>
-        <button type="button" id="btn-new-eval" class="btn-primary progress-new-eval" data-i18n="progress.newEvalBtn">+ New evaluation for today</button>
-      </div>
-      <div class="progress-uploads">
-        <div class="progress-slot" id="slot-front">
-          <span class="slot-title" data-i18n="progress.front">Front</span>
-          <img id="preview-front" class="slot-img" style="display:none" data-i18n-alt="progress.front" alt="Front">
-          <label class="slot-empty" id="empty-front" for="photo-front" data-i18n="progress.upload">＋ Upload photo</label>
-          <input type="file" id="photo-front" accept="image/*" style="display:none">
-          <div class="slot-actions" id="actions-front" style="display:none">
-            <label class="slot-link" for="photo-front" data-i18n="progress.replace">Replace</label>
-            <button type="button" class="slot-link danger" id="del-front" data-i18n="progress.delete">Delete</button>
-          </div>
-        </div>
-        <div class="progress-slot" id="slot-side">
-          <span class="slot-title" data-i18n="progress.side">Side</span>
-          <img id="preview-side" class="slot-img" style="display:none" data-i18n-alt="progress.side" alt="Side">
-          <label class="slot-empty" id="empty-side" for="photo-side" data-i18n="progress.upload">＋ Upload photo</label>
-          <input type="file" id="photo-side" accept="image/*" style="display:none">
-          <div class="slot-actions" id="actions-side" style="display:none">
-            <label class="slot-link" for="photo-side" data-i18n="progress.replace">Replace</label>
-            <button type="button" class="slot-link danger" id="del-side" data-i18n="progress.delete">Delete</button>
-          </div>
-        </div>
-        <div class="progress-slot" id="slot-back">
-          <span class="slot-title" data-i18n="progress.back">Back</span>
-          <img id="preview-back" class="slot-img" style="display:none" data-i18n-alt="progress.back" alt="Back">
-          <label class="slot-empty" id="empty-back" for="photo-back" data-i18n="progress.upload">＋ Upload photo</label>
-          <input type="file" id="photo-back" accept="image/*" style="display:none">
-          <div class="slot-actions" id="actions-back" style="display:none">
-            <label class="slot-link" for="photo-back" data-i18n="progress.replace">Replace</label>
-            <button type="button" class="slot-link danger" id="del-back" data-i18n="progress.delete">Delete</button>
-          </div>
-        </div>
-      </div>
-      <div id="progress-status" class="progress-status"></div>
-    </div>
-    <div class="progress-priv" id="progress-priv">
-      <span class="progress-priv-line">🔒 <span data-i18n="progress.privLine">Only you, your trainer and the administrator can see them · they are never public.</span></span>
-      <button type="button" class="progress-priv-more" id="progress-priv-toggle" aria-expanded="false" aria-controls="progress-priv-full"><span data-i18n="progress.privMore">View explanation</span> <span class="priv-arrow" aria-hidden="true">▾</span></button>
-      <p class="progress-hint progress-priv-full" id="progress-priv-full" style="display:none" data-i18n="progress.hint">They're private: only you can see them. Take a new evaluation every 15 days: front, side and back. Whenever you want, ask your assistant to compare two evaluations and tell you what change it notices.</p>
-    </div>
-    <h3 class="history-title" data-i18n="progress.history">Previous evaluations</h3>
-    <div id="progress-history" class="progress-history"><div class="wempty" data-i18n="progress.loading">Loading photos…</div></div>
-    <div id="eval-root"></div>
-    </div>
-    <!-- TARJETAS DE RECONOCIMIENTO, TRAS LA ACCIÓN (variante A de
-         Progreso → Fotos, aprobada por Ronald el 2026-11-09):
-         «Tu semana» la pinta loadWeekCard() y «Tus hitos» / «Tu
-         mes» loadRecoCards() en app.js, desde los registros del
-         propio alumno; contenido y orden relativo intactos, solo
-         cambia el sitio: después de la acción de subir las fotos
-         de la evaluación, no encima. Sin avance comprobado, las
-         cajas quedan vacías y no pintan nada, como hasta ahora. -->
-    <div id="week-card-box"></div>
-    <div id="milestones-box"></div>
-    <div id="month-card-box"></div>
+    <!-- AUTH-2026-11-09-339 («Progreso en cuatro cuadros»):
+         los grupos Medidas y Fotos viven ahora dentro de la vista
+         de 🧍 Composición corporal de la hoja #mp-hist (contenedor
+         #mp-x-body) y las tarjetas de reconocimiento dentro de la
+         de 🏋️ Entrenamiento (#mp-x-train). En esta página quedan
+         SOLO la rejilla 2×2, el «＋ Registro rápido» y — por la
+         decisión D de Ronald (2026-11-09 03:00 CST) — el bloque de
+         comentarios del entrenador ENTERO bajo la rejilla, como
+         única excepción declarada. -->
     </div>
     <!-- «Ayuda con comidas» FUERA de esta vista (Ronald, 2026-10-22:
          «Eso de ayuda de comida no me gusta»): desaparecen el
@@ -1156,6 +1091,83 @@
 <div class="act-float act-sheet" id="mp-hist" style="display:none" role="dialog" aria-label="History">
   <div class="pend-head"><h2 id="mp-hist-title"></h2><button type="button" class="pend-close" data-mp-act="close" data-sheet="mp-hist" aria-label="Close">✕</button></div>
   <div id="mp-hist-body"></div>
+  <!-- AUTH-2026-11-09-339: bloques reubicados de la página de
+       Progreso. Los pintores buscan por id y pintan byte a
+       byte lo mismo; mpOpenHist muestra el contenedor de
+       su campo tras el historial propio del módulo. -->
+  <div id="mp-x-body" style="display:none">
+    <div id="prog-g-medidas">
+    <div class="block-head">
+      <h3 class="block-title"><span data-i18n="weight.title">⚖️ Weight progress</span> <span class="h2-sub" data-i18n="weight.sub">· weekly weigh-in</span></h3>
+      <button id="btn-add-weight" class="btn-ghost btn-sm" data-i18n="weight.add">＋ Log weigh-in</button>
+    </div>
+    <div id="compacc-notice" class="compacc-notice" style="display:none"></div>
+    <div id="weightBody"><div class="wempty" data-i18n="weight.loading">Loading weigh-ins…</div></div>
+    </div>
+    <div id="prog-g-fotos">
+    <div class="progress-current">
+      <div class="progress-week" id="progress-week-label">This week</div>
+      <div class="progress-next" id="progress-next"></div>
+      <div id="progress-closed" class="progress-closed" style="display:none">
+        <p class="progress-closed-note" data-i18n="progress.closedNote">This evaluation is closed and stays untouched. New photos are saved in a new evaluation dated today.</p>
+        <button type="button" id="btn-new-eval" class="btn-primary progress-new-eval" data-i18n="progress.newEvalBtn">+ New evaluation for today</button>
+      </div>
+      <div class="progress-uploads">
+        <div class="progress-slot" id="slot-front">
+          <span class="slot-title" data-i18n="progress.front">Front</span>
+          <img id="preview-front" class="slot-img" style="display:none" data-i18n-alt="progress.front" alt="Front">
+          <label class="slot-empty" id="empty-front" for="photo-front" data-i18n="progress.upload">＋ Upload photo</label>
+          <input type="file" id="photo-front" accept="image/*" style="display:none">
+          <div class="slot-actions" id="actions-front" style="display:none">
+            <label class="slot-link" for="photo-front" data-i18n="progress.replace">Replace</label>
+            <button type="button" class="slot-link danger" id="del-front" data-i18n="progress.delete">Delete</button>
+          </div>
+        </div>
+        <div class="progress-slot" id="slot-side">
+          <span class="slot-title" data-i18n="progress.side">Side</span>
+          <img id="preview-side" class="slot-img" style="display:none" data-i18n-alt="progress.side" alt="Side">
+          <label class="slot-empty" id="empty-side" for="photo-side" data-i18n="progress.upload">＋ Upload photo</label>
+          <input type="file" id="photo-side" accept="image/*" style="display:none">
+          <div class="slot-actions" id="actions-side" style="display:none">
+            <label class="slot-link" for="photo-side" data-i18n="progress.replace">Replace</label>
+            <button type="button" class="slot-link danger" id="del-side" data-i18n="progress.delete">Delete</button>
+          </div>
+        </div>
+        <div class="progress-slot" id="slot-back">
+          <span class="slot-title" data-i18n="progress.back">Back</span>
+          <img id="preview-back" class="slot-img" style="display:none" data-i18n-alt="progress.back" alt="Back">
+          <label class="slot-empty" id="empty-back" for="photo-back" data-i18n="progress.upload">＋ Upload photo</label>
+          <input type="file" id="photo-back" accept="image/*" style="display:none">
+          <div class="slot-actions" id="actions-back" style="display:none">
+            <label class="slot-link" for="photo-back" data-i18n="progress.replace">Replace</label>
+            <button type="button" class="slot-link danger" id="del-back" data-i18n="progress.delete">Delete</button>
+          </div>
+        </div>
+      </div>
+      <div id="progress-status" class="progress-status"></div>
+    </div>
+    <div class="progress-priv" id="progress-priv">
+      <span class="progress-priv-line">🔒 <span data-i18n="progress.privLine">Only you, your trainer and the administrator can see them · they are never public.</span></span>
+      <button type="button" class="progress-priv-more" id="progress-priv-toggle" aria-expanded="false" aria-controls="progress-priv-full"><span data-i18n="progress.privMore">View explanation</span> <span class="priv-arrow" aria-hidden="true">▾</span></button>
+      <p class="progress-hint progress-priv-full" id="progress-priv-full" style="display:none" data-i18n="progress.hint">They're private: only you can see them. Take a new evaluation every 15 days: front, side and back. Whenever you want, ask your assistant to compare two evaluations and tell you what change it notices.</p>
+    </div>
+    <h3 class="history-title" data-i18n="progress.history">Previous evaluations</h3>
+    <div id="progress-history" class="progress-history"><div class="wempty" data-i18n="progress.loading">Loading photos…</div></div>
+    <div id="eval-root"></div>
+    </div>
+  </div>
+  <div id="mp-x-train" style="display:none">
+    <!-- Tarjetas de reconocimiento ENTERAS (AUTH-339): «Tu semana»
+         la pinta loadWeekCard() y «Tus hitos» / «Tu mes»
+         loadRecoCards(), desde los registros del propio alumno;
+         contenido y orden relativo intactos — solo cambia el sitio:
+         dentro de la vista de 🏋️ Entrenamiento, bajo su historial
+         propio. Sin avance comprobado, las cajas quedan vacías y no
+         pintan nada, como hasta ahora. -->
+    <div id="week-card-box"></div>
+    <div id="milestones-box"></div>
+    <div id="month-card-box"></div>
+  </div>
 </div>
 <div class="act-float act-sheet" id="share-float" style="display:none" role="dialog" aria-label="Share your progress" data-i18n-aria="share.title">
     <div class="pend-head">
@@ -2155,6 +2167,6 @@
 <div id="toast" class="toast"></div>
 <div id="print-card" aria-hidden="true"></div>
 
-<script type="module" src="app.js?v=20261109-pantalla-completa"></script>
+<script type="module" src="app.js?v=20261109-progreso-cuadros"></script>
 </body>
 </html>

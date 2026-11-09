@@ -27856,19 +27856,23 @@ function navDockLeave(action) {
   navGuarded(() => { navClosePagesForce(); action(); });
 }
 
-/* Sub-pestañas de Progreso (Fotos | Medidas): un solo sub-panel
-   visible; el estado vive en memoria, como ADM_SEC_OPEN. */
+/* Puerta de tema de Progreso (AUTH-2026-11-09-339, «Progreso en
+   cuatro cuadros»): las sub-pestañas Fotos | Medidas DESAPARECEN
+   como mecanismo — sus dos grupos viven dentro de la vista de
+   🧍 Composición corporal de la hoja #mp-hist (#mp-x-body) y las
+   tarjetas de reconocimiento dentro de la de 🏋️ Entrenamiento
+   (#mp-x-train) —. progSetSub queda como la puerta única que usan
+   los enlaces de siempre (fotos de Pendientes, peso de Actividad,
+   historial de la tarjeta de peso, ruta «eval» de notificaciones):
+   quien llama abre la página (navOpenPage) y esta función abre la
+   vista del cuadro y se desplaza hasta el grupo pedido. El estado
+   PROG_SUB se conserva como registro del último tema pedido. */
 function progSetSub(name) {
   PROG_SUB = name;
-  const f = $('prog-g-fotos'), m = $('prog-g-medidas');
-  if (f) f.style.display = name === 'fotos' ? '' : 'none';
-  if (m) m.style.display = name === 'medidas' ? '' : 'none';
-  const bf = $('prog-tab-fotos'), bm = $('prog-tab-medidas');
-  if (bf) { bf.classList.toggle('active', name === 'fotos'); bf.setAttribute('aria-selected', name === 'fotos' ? 'true' : 'false'); }
-  if (bm) { bm.classList.toggle('active', name === 'medidas'); bm.setAttribute('aria-selected', name === 'medidas' ? 'true' : 'false'); }
+  mpOpenHist('body');
+  const g = $(name === 'medidas' ? 'prog-g-medidas' : 'prog-g-fotos');
+  if (g) { try { g.scrollIntoView({ behavior: 'smooth', block: 'start' }); } catch {} }
 }
-{ const bf = $('prog-tab-fotos'); if (bf) bf.onclick = () => progSetSub('fotos'); }
-{ const bm = $('prog-tab-medidas'); if (bm) bm.onclick = () => progSetSub('medidas'); }
 { const v = $('nav-veil'); if (v) v.addEventListener('click', () => navGuarded(navClosePagesForce)); }
 /* BOTÓN ✕ DE LAS PÁGINAS DEL DOCK (corrección 2026-11-01): las
    páginas Progreso y Entrenamiento no tenían ✕ en su cabecera —
@@ -28033,7 +28037,10 @@ function mirrorRestore(root, m) {
   });
 }
 
-progSetSub('fotos');
+/* (AUTH-339) Sin llamada de arranque a progSetSub: ya no hay
+   sub-paneles que mostrar u ocultar en la página — los grupos
+   nacen dentro de la vista de Composición, ocultos con su
+   contenedor hasta que su cuadro se abre. */
 navRender();
 /* «Comida» es una etiqueta sobre #ai-file: el selector de foto se
    abre igual desde cualquier área, pero el flujo del análisis vive
@@ -48884,7 +48891,7 @@ document.addEventListener('keydown', e => { if (e.key === 'Escape') shareClose()
  *  - El SW (sw.js) solo cachea la cáscara del mismo origen en modo
  *    RED PRIMERO: Auth/Firestore/Worker jamás pasan por la caché.
  * ================================================================ */
-const PWA_SW_VERSION = '20261109-pantalla-completa';
+const PWA_SW_VERSION = '20261109-progreso-cuadros';
 /* Sello de versión VISIBLE (2026-11-03): el pie de la tarjeta de
    acceso enseña qué copia corre este teléfono ('v ' + el sello),
    para comprobar de un vistazo si la versión nueva ya llegó.
@@ -55567,6 +55574,12 @@ function mpOpenHist(field) {
   const names = { body: 'mp.c1', train: 'mp.c2', food: 'mp.c3', well: 'mp.c4' };
   if (title) title.textContent = t(names[field] || 'mp.title');
   mpSheetOpen('mp-hist');
+  /* AUTH-339: los bloques reubicados de la página viven en los
+     contenedores por campo de esta misma hoja: se muestra el del
+     campo abierto, tras su historial propio. */
+  const xb = $('mp-x-body'), xt = $('mp-x-train');
+  if (xb) xb.style.display = field === 'body' ? '' : 'none';
+  if (xt) xt.style.display = field === 'train' ? '' : 'none';
   if (field === 'body') body.innerHTML = mpHistBody();
   else if (field === 'food') body.innerHTML = mpHistFood();
   else if (field === 'well') body.innerHTML = mpHistWell();
@@ -55902,7 +55915,7 @@ document.addEventListener('click', e => {
   else if (act === 'hist') mpOpenHist(b.dataset.field);
   else if (act === 'close') mpSheetClose(b.dataset.sheet);
   else if (act === 'weightdoor') { mpSheetClose('mp-hist'); openWeightModal(null); }
-  else if (act === 'photosdoor') { mpSheetClose('mp-hist'); try { progSetSub('fotos'); } catch {} }
+  else if (act === 'photosdoor') { const g = $('prog-g-fotos'); if (g) { try { g.scrollIntoView({ behavior: 'smooth', block: 'start' }); } catch {} } }
   else if (act === 'share-on') mpShareSet(true);
   else if (act === 'share-off') mpShareSet(false);
 });
