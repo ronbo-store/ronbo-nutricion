@@ -4439,6 +4439,51 @@ body.swap-sheet-open .asst-fab { display: none !important; }
 .mm-chip.over { border-color: #dc2626; background: #fef2f2; color: #991b1b; }
 .mm-chip.under { border-color: #d97706; background: #fffbeb; color: #92400e; }
 .mm-chip.none { border-color: #cbd5e1; background: #f8fafc; color: #475569; }
+/* ── PLANIFICADOR SEMANAL EN COMIDA (variante C, 2026-11-09) ──
+   La tarjeta-puerta dentro de la ventana de Comida, la hoja de la
+   semana (#plan-float con su velo #plan-backdrop, espejo del par
+   #gmi-backdrop/#gmi-detail) y el botón grande de la sección del
+   coach. Las pastillas de banda llevan los colores de la maqueta
+   aprobada con la semántica de .mm-chip (en la meta / se pasa /
+   le faltan, ±10 %). */
+#plan-backdrop { position: fixed; inset: 0; background: rgba(15, 23, 42, .45); z-index: 46; }
+.plan-card-in { display: flex; align-items: center; gap: 10px; border: 1.5px solid #99ddd0; background: #f2fbf8; border-radius: 16px; padding: 12px 14px; margin: 12px 0 4px; }
+.plan-card-txt { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 2px; }
+.plan-card-txt b { font-size: 15.5px; color: #0f2e2a; }
+.plan-card-txt span { font-size: 13px; color: #52706a; line-height: 1.35; }
+.plan-card-btn { flex: none; min-height: 48px; }
+.plan-wk-head { display: flex; align-items: center; gap: 8px; margin: 2px 0 4px; }
+.plan-wk-title { flex: 1; text-align: center; font-size: 17px; font-weight: 800; color: #0f2e2a; }
+.plan-wk-nav { width: 44px; height: 44px; flex: none; border-radius: 50%; border: 1.5px solid #d7e5e1; background: #fff; font-size: 20px; line-height: 1; color: #0b7a6e; cursor: pointer; }
+.plan-sub { text-align: center; font-size: 13.5px; color: #64748b; margin: 0 0 12px; line-height: 1.45; }
+.plan-src { display: flex; gap: 8px; margin: 0 0 10px; }
+.plan-day { border: 1.5px solid #e2e8f0; border-radius: 16px; margin-bottom: 10px; overflow: hidden; background: #fff; }
+.plan-day.today { border-color: #0d9488; background: #f6fdfb; }
+.plan-day-head { width: 100%; display: flex; align-items: center; gap: 8px; padding: 12px 14px; background: none; border: none; font: inherit; cursor: pointer; text-align: left; min-height: 52px; box-sizing: border-box; }
+.plan-day-name { font-weight: 700; font-size: 15px; color: #0f2e2a; text-transform: capitalize; }
+.plan-today-tag { background: #0d9488; color: #fff; font-size: 10.5px; font-weight: 800; padding: 2px 7px; border-radius: 999px; letter-spacing: .4px; }
+.plan-day-kcal { margin-left: auto; font-size: 13.5px; color: #475569; white-space: nowrap; }
+.plan-chip { display: inline-block; padding: 3px 9px; border-radius: 999px; font-size: 12px; font-weight: 700; white-space: nowrap; }
+.plan-chip.ok { background: #dcf2e8; color: #0b7a55; }
+.plan-chip.low { background: #fdeecb; color: #92600a; }
+.plan-chip.high { background: #fde3e3; color: #a12626; }
+.plan-chev { color: #94a3b8; font-size: 15px; flex: none; }
+.plan-day-body { border-top: 1px dashed #d7e5e1; padding: 10px 14px 12px; }
+.plan-meal { padding: 7px 0; border-bottom: 1px solid #eef4f2; }
+.plan-meal:last-child { border-bottom: none; }
+.plan-meal-top { display: flex; align-items: baseline; gap: 8px; }
+.plan-meal-time { font-size: 12.5px; color: #0b7a6e; font-weight: 700; white-space: nowrap; }
+.plan-meal-name { font-weight: 700; font-size: 14.5px; color: #0f2e2a; }
+.plan-meal-kcal { margin-left: auto; font-weight: 800; font-size: 14px; color: #0f2e2a; white-space: nowrap; }
+.plan-item { display: flex; justify-content: space-between; gap: 10px; font-size: 13.5px; color: #334155; padding: 1.5px 0 1.5px 12px; }
+.plan-item-g { color: #64748b; white-space: nowrap; }
+.plan-meal-mac { font-size: 12px; color: #7c8a94; padding-left: 12px; }
+.plan-edit-btn { width: 100%; min-height: 52px; font-size: 15.5px; margin-top: 4px; }
+.plan-open-btn { width: 100%; min-height: 52px; font-size: 16px; margin-top: 12px; }
+.plan-caption { text-align: center; margin-top: 6px; }
+.planline { font-size: 15px; line-height: 1.55; color: #334155; margin: 10px 0 2px; }
+.plan-empty { text-align: center; padding: 18px 10px 8px; }
+.plan-empty p { font-size: 14.5px; color: #64748b; line-height: 1.5; }
 .mm-search { border: 2px dashed #0d9488; border-radius: 12px; padding: 10px; margin: 8px 0; background: #f0fdfa; }
 .mm-search input[type="text"] { width: 100%; box-sizing: border-box; min-height: 48px; border: 2px solid #cbd5e1; border-radius: 12px; padding: 10px 12px; font-size: 16px; background: #fff; }
 .mm-res { margin-top: 6px; }

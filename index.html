@@ -21,7 +21,7 @@
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-title" content="RONBO FIT">
 <meta name="apple-mobile-web-app-status-bar-style" content="default">
-<link rel="stylesheet" href="styles.css?v=20261109-progreso-fotos">
+<link rel="stylesheet" href="styles.css?v=20261109-planificador-comida">
 <script defer src="https://cloud.umami.is/script.js" data-website-id="a29706d4-44a2-47cf-900a-5f74d74abfa8"></script>
 <script type="importmap">
 {
@@ -1016,6 +1016,12 @@
       <button type="button" class="food-subtab active" id="food-tab-resumen" role="tab" aria-selected="true" data-i18n="food.tabSummary">Summary</button>
       <button type="button" class="food-subtab" id="food-tab-consumido" role="tab" aria-selected="false" data-i18n="food.tabLogged">Logged</button>
     </div>
+    <!-- PUERTA AL PLANIFICADOR SEMANAL (variante C aprobada por
+         Ronald, 2026-11-09 00:15 CST): la tarjeta vive aquí, sobre
+         las dos sub-vistas, y la pinta renderPlanCard (app.js) con
+         la semana construida de verdad; su botón abre la hoja
+         #plan-float, la casa del planificador. -->
+    <div id="plan-card" style="display:none"></div>
     <div id="food-view-resumen">
       <div class="rings" id="rings"></div>
       <p class="rings-first-note" id="rings-note" style="display:none"></p>
@@ -1094,6 +1100,24 @@
     </div>
     <p class="progress-hint aiusage-line aiusage-meal-line" style="display:none"></p>
     <div id="ai-panel" class="ai-panel" style="display:none"></div>
+  </div>
+  <!-- HOJA DEL PLANIFICADOR SEMANAL (variante C aprobada por
+       Ronald, 2026-11-09 00:15 CST): la semana construida como
+       hoja flotante — velo propio (#plan-backdrop) y la disciplina
+       de tapas de la casa (role="dialog": velo atenuado, fondo
+       inerte y scroll del fondo bloqueado, automáticos). Vive
+       DESPUÉS de la familia de Comida en el DOM para mandar sobre
+       ella; su contenido lo pinta planPaintSheet (app.js) desde
+       los documentos nutrition_menus de siempre. Su puerta al
+       editor cierra la hoja (y la ventana de Comida si estaba
+       abierta) antes de abrir #nutri-float: una sola vía. -->
+  <div id="plan-backdrop" style="display:none"></div>
+  <div class="act-float act-sheet" id="plan-float" style="display:none" role="dialog" aria-label="My planner" data-i18n-aria="planwk.sheetTitle">
+    <div class="pend-head">
+      <h2>📅 <span data-i18n="planwk.sheetTitle">My planner</span></h2>
+      <button type="button" class="pend-close" id="btn-plan-close" aria-label="Close" data-i18n-aria="client.close">✕</button>
+    </div>
+    <div id="plan-sheet-body"></div>
   </div>
   <!-- «Comparte tus logros» (Ronald, 2026-10-25): hoja flotante con
        las DOS tarjetas (meta del día / logros de la semana). La imagen
@@ -2081,6 +2105,6 @@
 <div id="toast" class="toast"></div>
 <div id="print-card" aria-hidden="true"></div>
 
-<script type="module" src="app.js?v=20261109-progreso-fotos"></script>
+<script type="module" src="app.js?v=20261109-planificador-comida"></script>
 </body>
 </html>

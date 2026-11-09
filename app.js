@@ -4275,6 +4275,25 @@ en: {
   'menu.fillNone': 'No prepared meal fits this day with your goals and restrictions. Nothing was changed.',
   'menu.fillNoLib': 'The prepared-meals library is not available right now. Nothing was changed.',
   'menu.srcMeal': 'Prepared meal',
+  'planwk.title': 'My weekly planner',
+  'planwk.sheetTitle': 'My planner',
+  'planwk.cardBtn': 'See my planned week',
+  'planwk.cardLine': 'Week of {range} · today: {kcal} of {goal} kcal planned',
+  'planwk.cardLineNoGoal': 'Week of {range} · today: {kcal} kcal planned',
+  'planwk.cardLineEmpty': 'Week of {range} · no menu yet',
+  'planwk.weekOf': 'Week of {range}',
+  'planwk.sub': "Your weekly planner · each day's calories are compared with your goal of {kcal} kcal",
+  'planwk.today': 'TODAY',
+  'planwk.dayEmpty': 'No meals planned for this day.',
+  'planwk.editBtn': 'Build or change my menu',
+  'planwk.proposalSub': 'You can accept it, ask for a change or decline it from the editor.',
+  'planwk.coachBtn': 'See my planner for this week',
+  'planwk.caption': 'The planner lives in Food · week of {range}',
+  'planwk.forYou': "Your food coach's plan for you",
+  'planwk.goalsLine': '{kcal} kcal · {prot} g protein a day',
+  'planwk.wishesLine': '{n} meals a day, as you asked',
+  'planwk.allergyLine': 'no {food}, ever',
+  'planwk.noneYet': 'you do not have a plan from your coach yet — tell them your wishes and they will build you one',
   'nutri.consentTitle': 'My food-care data',
   'nutri.consentHint': 'Only with your specific consent, your food coach can see: allergies, intolerances, declared conditions, relevant medications, cultural or religious preferences and vegetarianism. No diagnoses are made in the app: with a condition, you get a referral, never a medical diet.',
   'nutri.consentGive': 'Give my consent and save',
@@ -8094,6 +8113,25 @@ es: {
   'menu.fillNone': 'Ninguna comida preparada encaja en este día con tus metas y restricciones. No se cambió nada.',
   'menu.fillNoLib': 'La biblioteca de comidas preparadas no está disponible ahora. No se cambió nada.',
   'menu.srcMeal': 'Comida preparada',
+  'planwk.title': 'Mi planificador de la semana',
+  'planwk.sheetTitle': 'Mi planificador',
+  'planwk.cardBtn': 'Ver mi semana planificada',
+  'planwk.cardLine': 'Semana del {range} · hoy: {kcal} de {goal} kcal planificadas',
+  'planwk.cardLineNoGoal': 'Semana del {range} · hoy: {kcal} kcal planificadas',
+  'planwk.cardLineEmpty': 'Semana del {range} · todavía no hay menú',
+  'planwk.weekOf': 'Semana del {range}',
+  'planwk.sub': 'Tu planificador de la semana · las calorías de cada día se comparan con tu meta de {kcal} kcal',
+  'planwk.today': 'HOY',
+  'planwk.dayEmpty': 'Día sin comidas planificadas.',
+  'planwk.editBtn': 'Armar o cambiar mi menú',
+  'planwk.proposalSub': 'Puedes aceptarlo, pedir un cambio o no aceptarlo desde el editor.',
+  'planwk.coachBtn': 'Ver mi planificador de esta semana',
+  'planwk.caption': 'El planificador vive en Comida · semana del {range}',
+  'planwk.forYou': 'Su plan para ti',
+  'planwk.goalsLine': '{kcal} kcal · {prot} g de proteína al día',
+  'planwk.wishesLine': '{n} comidas al día, como pediste',
+  'planwk.allergyLine': 'sin {food}, nunca',
+  'planwk.noneYet': 'todavía no tienes un plan de tu coach — cuéntale tus deseos y te arma uno',
   'nutri.consentTitle': 'Mis datos de alimentación',
   'nutri.consentHint': 'Solo con tu consentimiento específico, tu coach de alimentación puede ver: alergias, intolerancias, condiciones declaradas, medicamentos relevantes, preferencias culturales o religiosas y vegetarianismo. En la app no se hacen diagnósticos: ante una condición, recibes derivación, nunca una dieta médica.',
   'nutri.consentGive': 'Dar mi consentimiento y guardar',
@@ -25106,6 +25144,10 @@ function foodShowOnly(which) {
   /* F-21: abrir una superficie de análisis de comida pinta «te
      quedan X usos hoy» desde /ai/usage (en silencio si falla). */
   if (which === 'float' || which === 'text' || which === 'voice' || which === 'ai') { try { aiUsageRefreshSurfaces(); } catch {} }
+  /* Puerta del planificador semanal (variante C): al abrir la
+     ventana de Comida se pinta su tarjeta con la semana
+     construida de verdad (renderPlanCard). */
+  if (which === 'float') { try { renderPlanCard(); } catch {} }
 }
 function foodCloseAll() { foodShowOnly(null); }
 function foodOpenFloat() { foodShowOnly('float'); }
@@ -46480,7 +46522,7 @@ document.addEventListener('keydown', e => { if (e.key === 'Escape') shareClose()
  *  - El SW (sw.js) solo cachea la cáscara del mismo origen en modo
  *    RED PRIMERO: Auth/Firestore/Worker jamás pasan por la caché.
  * ================================================================ */
-const PWA_SW_VERSION = '20261109-progreso-fotos';
+const PWA_SW_VERSION = '20261109-planificador-comida';
 /* Sello de versión VISIBLE (2026-11-03): el pie de la tarjeta de
    acceso enseña qué copia corre este teléfono ('v ' + el sello),
    para comprobar de un vistazo si la versión nueva ya llegó.
@@ -48067,6 +48109,67 @@ function nutriGoalsChips(g) {
   const chip = (k, v, u) => `<span class="nutri-goal-chip"><b>${esc(k)}</b> ${v} ${u}</span>`;
   return `<div class="nutri-goals">${chip('kcal', g.kcal || '—', '')}${chip(t('th.protShort'), g.prot || '—', 'g')}${chip(t('th.carbShort'), g.carb || '—', 'g')}${chip(t('th.sugarShort'), g.azuc || '—', 'g')}${chip(t('th.fatShort'), g.gras || '—', 'g')}</div>`;
 }
+/* El bloque «plan activo y adherencia de hoy» TAL COMO vivía en
+   la caja del coach, mudado a la vista completa del plan
+   (nutriViewPlan): la caja enseña solo su línea compacta. */
+function nutriPlanActiveHTML(plan) {
+  let h = `<div class="nutri-sub"><b>${esc(t('nutri.planTitle'))}</b> <span class="muted">${esc(plan.startsOn || '')} → ${esc(plan.endsOn || '')}</span></div>`;
+  if (plan.goals) { h += nutriGoalsChips(plan.goals); h += `<p class="progress-hint">${esc(t('nutri.planGoalsFrom'))}</p>`; }
+  const mealsToday = (typeof MEALS !== 'undefined' && MEALS[todayISO()]) || [];
+  h += `<p class="myprof-row"><span class="myprof-k">${esc(t('nutri.adherence'))}</span><span class="myprof-v">${nutriAdhChip(nutriAdherenceState(mealsToday, plan.goals, todayISO()))}</span></p>`;
+  h += `<div class="eval-actions"><button type="button" class="btn-ghost btn-sm" id="nutri-btn-suggest">${esc(t('nutri.suggestGoals'))}</button></div><div id="nutri-suggest-zone"></div>`;
+  return h;
+}
+/* «Su plan para ti» (decisión 2 de Ronald, 2026-11-09 00:03 CST):
+   la línea compacta de la caja despejada — las metas del plan
+   aceptado y los deseos respondidos, compuesta SOLO de datos
+   reales; sin plan ni deseos, el estado honesto. La vista
+   completa vive tras su puerta (nutriOpenFloat('plan')). */
+function mealPlanSummaryHTML(plan) {
+  const wishes = NUTRI.myWishes;
+  const parts = [];
+  if (plan && plan.goals) parts.push(t('planwk.goalsLine', { kcal: Math.round(Number(plan.goals.kcal) || 0), prot: Math.round(Number(plan.goals.prot) || 0) }));
+  if (wishes) {
+    if (wishes.mealsPerDay) parts.push(t('planwk.wishesLine', { n: wishes.mealsPerDay }));
+    const alg = (wishes.allergies || []).filter(Boolean);
+    if (alg.length) parts.push(t('planwk.allergyLine', { food: alg.join(', ') }));
+  }
+  const line = parts.length ? parts.join(' · ') : t('planwk.noneYet');
+  return `<p class="planline"><b>${esc(t('planwk.forYou'))}:</b> ${esc(line)}</p>
+  <div class="eval-actions"><button type="button" class="btn-ghost btn-sm" id="nutri-btn-planview">${esc(t('plan.title'))}</button></div>`;
+}
+/* Vista completa de «Mi plan alimenticio»: el bloque de plan
+   activo y adherencia + la Fase 1 entera (mealPlanStudentSection,
+   la de siempre) — todo lo que la caja enseñaba antes del
+   rediseño, sin perder nada, tras la puerta de la línea compacta.
+   El cableado de «sugerir metas» vive ahora aquí. */
+async function nutriViewPlan(body) {
+  const plan = NUTRI.myPlan;
+  let h = '';
+  if (plan) h += nutriPlanActiveHTML(plan);
+  else h += `<p class="progress-hint">${esc(t('nutri.planNone'))}</p>`;
+  h += mealPlanStudentSection();
+  body.innerHTML = h;
+  const me = auth.currentUser && auth.currentUser.uid;
+  const rel = NUTRI.myRel;
+  const sb = $('nutri-btn-suggest');
+  if (sb) sb.onclick = () => {
+    const z = $('nutri-suggest-zone'); if (!z) return;
+    z.innerHTML = `<textarea id="nutri-suggest-text" class="nutri-area" rows="2" maxlength="500" placeholder="${esc(t('nutri.suggestGoals'))}"></textarea><div class="eval-actions"><button type="button" class="btn-primary btn-sm" id="nutri-suggest-send">${esc(t('nutri.suggestSend'))}</button></div>`;
+    $('nutri-suggest-send').onclick = async () => {
+      const txt = ($('nutri-suggest-text').value || '').trim(); if (!txt) return;
+      try {
+        await addDoc(collection(db, 'nutrition_goal_suggestions'), {
+          studentUid: me, planId: plan ? plan.id : null, nutritionistUid: rel ? rel.nutritionistUid : null,
+          text: txt, status: 'pendiente', createdAt: serverTimestamp()
+        });
+        nutriAudit('nutrition.suggestion', rel ? rel.nutritionistUid : null, 'alumno', txt.slice(0, 80));
+        toast(t('nutri.suggestSent'));
+        z.innerHTML = '';
+      } catch { toast(t('err.createFail'), true); }
+    };
+  };
+}
 async function renderNutriMyBox() {
   const box = $('nutri-my-box'); if (!box) return;
   const me = auth.currentUser && auth.currentUser.uid;
@@ -48102,18 +48205,22 @@ async function renderNutriMyBox() {
   if (fol && fol.status === 'pendiente_nutricionista') h += `<p class="progress-hint">⏳ ${esc(t('nutri.followPendingNutri'))}</p>`;
   else if (fol && fol.status === 'pendiente_administrador') h += `<p class="progress-hint">⏳ ${esc(t('nutri.followPendingAdmin'))}</p>`;
   else if (fol && fol.status === 'aprobada') h += `<p class="progress-hint">✅ ${esc(t('nutri.followActive'))}</p>`;
-  /* Plan activo y adherencia de hoy */
-  if (plan) {
-    h += `<div class="nutri-sub"><b>${esc(t('nutri.planTitle'))}</b> <span class="muted">${esc(plan.startsOn || '')} → ${esc(plan.endsOn || '')}</span></div>`;
-    if (plan.goals) { h += nutriGoalsChips(plan.goals); h += `<p class="progress-hint">${esc(t('nutri.planGoalsFrom'))}</p>`; }
-    const mealsToday = (typeof MEALS !== 'undefined' && MEALS[todayISO()]) || [];
-    h += `<p class="myprof-row"><span class="myprof-k">${esc(t('nutri.adherence'))}</span><span class="myprof-v">${nutriAdhChip(nutriAdherenceState(mealsToday, plan.goals, todayISO()))}</span></p>`;
-    h += `<div class="eval-actions"><button type="button" class="btn-ghost btn-sm" id="nutri-btn-suggest">${esc(t('nutri.suggestGoals'))}</button></div><div id="nutri-suggest-zone"></div>`;
-  } else {
-    h += `<p class="progress-hint">${esc(t('nutri.planNone'))}</p>`;
-  }
-  h += mealPlanStudentSection();
-  h += mealMenuStudentSection();
+  /* «Su plan para ti» + el botón al planificador (rediseño
+     aprobado por Ronald, 2026-11-09 00:15 CST): la caja queda
+     DESPEJADA — arriba solo vive la información del coach
+     (relación y seguimiento, espejo de «Mi entrenador») y aquí
+     debajo van la línea compacta del plan con su puerta a la
+     vista completa (nutriOpenFloat('plan'): el plan activo, la
+     adherencia y la Fase 1 entera viven allí, sin perder nada)
+     y el botón grande que abre la hoja del planificador, cuya
+     casa es Comida. Una propuesta de plan PENDIENTE se anuncia
+     en una línea (la tarjeta completa, con la decisión, vive
+     solo en la vista del plan). «Mi menú de la semana» SALE de
+     esta sección: la única puerta al editor es la hoja. */
+  h += mealPlanSummaryHTML(plan);
+  if (NUTRI.myProposed) h += `<p class="progress-hint">🍽️ <b>${esc(t('plan.proposalTitle'))}</b> — ${esc(t('plan.proposalSub'))}</p>`;
+  h += `<button type="button" class="btn-primary plan-open-btn" data-plan-open>📅 ${esc(t('planwk.coachBtn'))}</button>
+  <p class="progress-hint plan-caption">${esc(t('planwk.caption', { range: planWeekRange(mmMondayOf(todayISO())) }))}</p>`;
   /* Acciones de la zona, ORDENADAS (AUTH-2026-11-06-274; maqueta
      aprobada por Ronald en el chat el 2026-11-06 01:53 CST): el
      agua ya NO vive en esta zona — se mudó al panel «Hoy» de
@@ -48139,22 +48246,7 @@ async function renderNutriMyBox() {
   on('nutri-btn-follow', () => nutriOpenFloat('followup'));
   on('nutri-btn-consent', () => nutriOpenFloat('consent'));
   on('nutri-btn-recipes', () => nutriOpenFloat('recipes'));
-  on('nutri-btn-suggest', () => {
-    const z = $('nutri-suggest-zone'); if (!z) return;
-    z.innerHTML = `<textarea id="nutri-suggest-text" class="nutri-area" rows="2" maxlength="500" placeholder="${esc(t('nutri.suggestGoals'))}"></textarea><div class="eval-actions"><button type="button" class="btn-primary btn-sm" id="nutri-suggest-send">${esc(t('nutri.suggestSend'))}</button></div>`;
-    $('nutri-suggest-send').onclick = async () => {
-      const txt = ($('nutri-suggest-text').value || '').trim(); if (!txt) return;
-      try {
-        await addDoc(collection(db, 'nutrition_goal_suggestions'), {
-          studentUid: me, planId: plan ? plan.id : null, nutritionistUid: rel ? rel.nutritionistUid : null,
-          text: txt, status: 'pendiente', createdAt: serverTimestamp()
-        });
-        nutriAudit('nutrition.suggestion', rel ? rel.nutritionistUid : null, 'alumno', txt.slice(0, 80));
-        toast(t('nutri.suggestSent'));
-        z.innerHTML = '';
-      } catch { toast(t('err.createFail'), true); }
-    };
-  });
+  on('nutri-btn-planview', () => nutriOpenFloat('plan'));
 }
 /* AGUA DE HOY EN EL PANEL «HOY» DE COMIDA (AUTH-2026-11-06-274):
    la tarjeta #water-card vive en index.html, en la vista Resumen
@@ -48288,6 +48380,7 @@ async function nutriRenderFloat() {
     : v === 'consent' ? t('nutri.consentTitle')
     : v === 'recipes' || v === 'recipeform' ? t('nutri.recipes')
     : v === 'wishes' ? t('plan.title')
+    : v === 'plan' ? t('plan.title')
     : v === 'menu' ? t('menu.title')
     : v === 'menucoach' ? t('menu.coachTitle')
     : v === 'console' || v === 'client' ? t('nutri.proTitle')
@@ -48301,6 +48394,7 @@ async function nutriRenderFloat() {
     else if (v === 'recipeform') await nutriViewRecipeForm(body);
     else if (v === 'console') await nutriViewConsole(body);
     else if (v === 'wishes') await nutriViewWishes(body);
+    else if (v === 'plan') await nutriViewPlan(body);
     else if (v === 'menu') await mmViewStudent(body);
     else if (v === 'menucoach') await mmViewCoach(body, NUTRI.viewArg);
     else if (v === 'client') { await nutriViewClient(body, NUTRI.viewArg); try { await mmClientZoneFill(); } catch {} }
@@ -50208,6 +50302,10 @@ async function mealPlanDecide(planId, kind, extra) {
       toast(t('plan.changeSent'));
     }
     try { renderNutriMyBox(); } catch {}
+    /* Si la decisión se tomó desde la vista completa del plan
+       (nutriOpenFloat('plan'), adonde se mudó la sección entera),
+       esa vista se repinta también con el resultado. */
+    try { if (NUTRI.view === 'plan') { const f = $('nutri-float'); if (f && f.style.display !== 'none') nutriRenderFloat(); } } catch {}
   } catch { toast(t('err.createFail'), true); }
 }
 /* ── Cuestionario de deseos: una pregunta por pantalla ────────── */
@@ -51073,7 +51171,11 @@ async function mmViewStudent(body) {
   let pendMeals = [];
   try { const s = await getDoc(doc(db, 'users', me)); const pc = s.exists() ? (s.data().pendconfig || null) : null; if (pc && Array.isArray(pc.meals)) pendMeals = pc.meals; } catch {}
   const sc = mmStructureFor(NUTRI.myPlan, (typeof GOALS !== 'undefined' ? GOALS : null), NUTRI.myWishes);
-  mmInitEditor(body, { mode: 'alumno', studentUid: me, me, menus, wishes: NUTRI.myWishes, structure: sc.structure, source: sc.source, planId: sc.planId, pendMeals });
+  /* La semana que la hoja del planificador estaba mostrando
+     (planOpenEditor): se consume una sola vez; sin ella, la
+     semana actual, como siempre. */
+  const wkOnce = PLANWK.editorWeek; PLANWK.editorWeek = null;
+  mmInitEditor(body, { mode: 'alumno', studentUid: me, me, menus, wishes: NUTRI.myWishes, structure: sc.structure, source: sc.source, planId: sc.planId, pendMeals, ...(wkOnce ? { weekStart: wkOnce } : {}) });
   mmPaintEditor();
 }
 async function mmViewCoach(body, studentUid) {
@@ -51240,6 +51342,208 @@ function mealMenuStudentSection() {
 }
 /* Tarjeta del menú en la consola del coach (la rellena
    mealPlanConsoleFill junto al estado del plan). */
+/* ═══ PLANIFICADOR SEMANAL EN COMIDA — variante C (decisiones de
+   Ronald, chat RONBO.NUTRI: 2026-11-08 23:39 «en el área de comida
+   quiero ver mi planificador de comidas semanal»; 2026-11-09 00:03
+   plan y diario SEPARADOS y «Mi plan alimenticio» con el coach
+   como «Su plan para ti»; 2026-11-09 00:15 variante C aprobada).
+   La RAÍZ del planificador es esta hoja (#plan-float): la abren la
+   tarjeta de la ventana de Comida y el botón grande de «Mi coach
+   de alimentación». Pinta la semana CONSTRUIDA de verdad desde los
+   documentos nutrition_menus de siempre (AUTH-296/297) — hoy
+   desplegado, los demás días plegados, flechas de semana como las
+   del editor — y su única puerta al editor es planOpenEditor, que
+   cierra la hoja (y la ventana de Comida si estaba abierta) antes
+   de abrir #nutri-float: una sola vía, sin hojas apiladas. El
+   diario «Hoy» no se toca: menú y diario no se leen entre sí. ═══ */
+const PLANWK = { weekStart: null, showing: 'own', openDay: null, sc: null, editorWeek: null };
+
+function planWeekRange(weekStart) {
+  const a = String(weekStart || ''), b = planISOAddDays(a, 6);
+  const pa = a.split('-'), pb = String(b).split('-');
+  if (pa.length < 3 || pb.length < 3) return a;
+  const d1 = parseInt(pa[2], 10), d2 = parseInt(pb[2], 10);
+  const m1 = parseInt(pa[1], 10) - 1, m2 = parseInt(pb[1], 10) - 1;
+  if (LANG === 'es') return m1 === m2 ? `${d1} al ${d2} de ${MESES_ES[m1]}` : `${d1} de ${MESES_ES[m1]} al ${d2} de ${MESES_ES[m2]}`;
+  return m1 === m2 ? `${MESES_EN[m1]} ${d1} – ${d2}` : `${MESES_EN[m1]} ${d1} – ${MESES_EN[m2]} ${d2}`;
+}
+/* La banda del día con la MISMA regla del editor (mmMetricState,
+   ±10 % en kcal): pastilla corta junto al total del día. */
+function planBandChip(kcal, targetKcal, hasItems) {
+  if (!hasItems || targetKcal == null) return '';
+  const st = mmMetricState(kcal, targetKcal, 'kcal');
+  if (st.state === 'ok') return `<span class="plan-chip ok">${esc(t('menu.onTarget'))}</span>`;
+  if (st.state === 'over') return `<span class="plan-chip high">${esc(t('menu.over', { n: Math.round(st.diff) }))}</span>`;
+  if (st.state === 'under') return `<span class="plan-chip low">${esc(t('menu.under', { n: Math.round(-st.diff) }))}</span>`;
+  return '';
+}
+/* Qué menús hay en una semana, espejo del editor: el propio del
+   alumno (mmMenuForWeek) y el vigente de su coach, si lo hay. */
+function planResolveMenu(menus, weekStart, me) {
+  const own = mmMenuForWeek(menus, weekStart, 'alumno', me);
+  const coachVig = (menus || []).filter(m => m.weekStart === weekStart && m.authorRole === 'coach' && m.status === 'vigente')
+    .sort((a, b) => String((b.updatedAt && b.updatedAt.seconds) || '').localeCompare(String((a.updatedAt && a.updatedAt.seconds) || '')))[0] || null;
+  return { own, coachVig };
+}
+function planDayMealsHTML(day) {
+  const meals = (day.meals || []).filter(m => (m.items || []).length);
+  if (!meals.length) return `<p class="progress-hint">${esc(t('planwk.dayEmpty'))}</p>`;
+  return meals.map(meal => {
+    const mt = mmMealTotals(meal);
+    const items = (meal.items || []).map(it => `<div class="plan-item"><span>${esc(it.name || '')}</span><span class="plan-item-g">${Math.round(Number(it.grams) || 0)} g</span></div>`).join('');
+    return `<div class="plan-meal"><div class="plan-meal-top"><span class="plan-meal-time">${esc(meal.time || '')}</span><span class="plan-meal-name">${esc(mealName(meal.name))}</span><span class="plan-meal-kcal">${Math.round(mt.kcal)} kcal</span></div>${items}<div class="plan-meal-mac">${esc(t('th.protShort'))} ${acNum(mt.prot)} · ${esc(t('th.carbShort'))} ${acNum(mt.carb)} · ${esc(t('th.fatShort'))} ${acNum(mt.fat)} g</div></div>`;
+  }).join('');
+}
+function planSheetHTML() {
+  const me = auth.currentUser && auth.currentUser.uid;
+  const wk = PLANWK.weekStart || mmMondayOf(todayISO());
+  const menus = NUTRI.myMenus || [];
+  const { own, coachVig } = planResolveMenu(menus, wk, me);
+  if (PLANWK.showing === 'coach' && !coachVig) PLANWK.showing = 'own';
+  if (PLANWK.showing === 'own' && !own && coachVig) PLANWK.showing = 'coach';
+  const menu = PLANWK.showing === 'coach' ? coachVig : own;
+  const sc = PLANWK.sc || {};
+  const structure = sc.structure || null;
+  const baseGoals = structure && structure.days && structure.days.base ? structure.days.base.goals : null;
+  let h = `<div class="plan-wk-head"><button type="button" class="plan-wk-nav" id="plan-wk-prev" aria-label="‹">‹</button><div class="plan-wk-title">${esc(t('planwk.weekOf', { range: planWeekRange(wk) }))}</div><button type="button" class="plan-wk-nav" id="plan-wk-next" aria-label="›">›</button></div>`;
+  if (baseGoals && baseGoals.kcal) h += `<p class="plan-sub">${esc(t('planwk.sub', { kcal: Math.round(baseGoals.kcal) }))}</p>`;
+  if (menu) h += `<p class="progress-hint">${esc(t('menu.status.' + (menu.status || 'vigente')))} · ${esc(menu.authorRole === 'coach' ? t('menu.byCoach') : t('menu.byYou'))}${structure ? ' · ' + esc(t(sc.source === 'plan' ? 'menu.targetFromPlan' : 'menu.targetFromGoals')) : ''}</p>`;
+  const prop = NUTRI.myMenuProposed;
+  if (prop && prop.weekStart === wk) {
+    h += `<div class="nutri-card mp-proposal"><b>🍽️ ${esc(t('menu.proposalTitle'))}</b><p class="progress-hint">${esc(t('planwk.proposalSub'))}</p><div class="eval-actions"><button type="button" class="btn-primary btn-sm" id="plan-open-proposal">${esc(t('menu.view'))}</button></div></div>`;
+  }
+  if (own && coachVig) {
+    h += `<div class="plan-src"><button type="button" class="btn-ghost btn-sm" data-plan-src="own">${esc(t('menu.byYou'))}</button><button type="button" class="btn-ghost btn-sm" data-plan-src="coach">${esc(t('menu.byCoach'))}</button></div>`;
+  }
+  if (menu) {
+    if (!structure) h += `<div class="nutri-card"><p class="progress-hint">${esc(t('menu.noGoals'))}</p></div>`;
+    const byDate = {};
+    (menu.days || []).forEach(d => { byDate[d.date] = d; });
+    for (let i = 0; i < 7; i++) {
+      const iso = planISOAddDays(wk, i);
+      const day = byDate[iso] || { date: iso, dayType: 'base', meals: [] };
+      const tot = mmDayTotals(day);
+      const has = (day.meals || []).some(m => (m.items || []).length);
+      const tgt = structure ? mmDayTarget(structure, day.dayType) : null;
+      const isToday = iso === todayISO();
+      const open = PLANWK.openDay === iso;
+      const kcalTxt = tgt ? `${Math.round(tot.kcal)} / ${Math.round(tgt.kcal)} kcal` : `${Math.round(tot.kcal)} kcal`;
+      h += `<div class="plan-day${isToday ? ' today' : ''}"><button type="button" class="plan-day-head" data-plan-day="${iso}" aria-expanded="${open}"><span class="plan-day-name">${esc(weekdayName(iso))} ${parseInt(iso.slice(8), 10)}</span>${isToday ? `<span class="plan-today-tag">${esc(t('planwk.today'))}</span>` : ''}<span class="plan-day-kcal">${esc(kcalTxt)}</span>${planBandChip(tot.kcal, tgt ? tgt.kcal : null, has)}<span class="plan-chev">${open ? '▴' : '▾'}</span></button>${open ? `<div class="plan-day-body">${planDayMealsHTML(day)}</div>` : ''}</div>`;
+    }
+  } else {
+    h += `<div class="plan-empty"><p>${esc(t('menu.empty'))}</p></div>`;
+  }
+  h += `<button type="button" class="btn-primary plan-edit-btn" id="plan-open-editor">✏️ ${esc(t('planwk.editBtn'))}</button>`;
+  return h;
+}
+function planPaintSheet() {
+  const body = $('plan-sheet-body'); if (!body) return;
+  body.innerHTML = planSheetHTML();
+  const on = (id, fn) => { const el = $(id); if (el) el.onclick = fn; };
+  const nav = delta => {
+    PLANWK.weekStart = planISOAddDays(PLANWK.weekStart, delta);
+    PLANWK.showing = 'own';
+    const hoy = todayISO(), fin = planISOAddDays(PLANWK.weekStart, 6);
+    PLANWK.openDay = (hoy >= PLANWK.weekStart && hoy <= fin) ? hoy : null;
+    planPaintSheet();
+  };
+  on('plan-wk-prev', () => nav(-7));
+  on('plan-wk-next', () => nav(7));
+  on('plan-open-editor', () => planOpenEditor());
+  on('plan-open-proposal', () => planOpenEditor());
+  body.querySelectorAll('[data-plan-day]').forEach(b => { b.onclick = () => { const d = b.getAttribute('data-plan-day'); PLANWK.openDay = PLANWK.openDay === d ? null : d; planPaintSheet(); }; });
+  body.querySelectorAll('[data-plan-src]').forEach(b => { b.onclick = () => { PLANWK.showing = b.getAttribute('data-plan-src'); planPaintSheet(); }; });
+}
+async function planOpenSheet() {
+  const me = auth.currentUser && auth.currentUser.uid; if (!me) return;
+  const bd = $('plan-backdrop'), f = $('plan-float'); if (!bd || !f) return;
+  PLANWK.weekStart = mmMondayOf(todayISO());
+  PLANWK.showing = 'own';
+  PLANWK.openDay = todayISO();
+  bd.style.display = ''; f.style.display = '';
+  const body = $('plan-sheet-body');
+  if (body) body.innerHTML = `<div class="wempty">${esc(t('access.loading'))}</div>`;
+  try { coverSync(); } catch {}
+  try {
+    const menus = await mmLoadMenus(me);
+    NUTRI.myMenus = menus;
+    NUTRI.myMenuProposed = menus.filter(x => x.status === 'propuesto' && x.authorRole === 'coach')
+      .sort((a, b) => String(b.weekStart || '').localeCompare(String(a.weekStart || '')))[0] || null;
+    PLANWK.sc = mmStructureFor(NUTRI.myPlan, (typeof GOALS !== 'undefined' ? GOALS : null), NUTRI.myWishes);
+  } catch {}
+  planPaintSheet();
+}
+function planCloseSheet() {
+  const bd = $('plan-backdrop'), f = $('plan-float');
+  if (bd) bd.style.display = 'none';
+  if (f) f.style.display = 'none';
+  try { coverSync(); } catch {}
+}
+/* LA única puerta al editor desde la hoja: la hoja se cierra (y la
+   ventana de Comida, si era la superficie de origen) y el editor
+   de siempre se abre en la semana que la hoja estaba mostrando. */
+function planOpenEditor() {
+  PLANWK.editorWeek = PLANWK.weekStart;
+  planCloseSheet();
+  try { foodCloseAll(); } catch {}
+  nutriOpenFloat('menu');
+}
+/* Las dos puertas a la hoja — la tarjeta de Comida y el botón
+   grande del coach — comparten el atributo data-plan-open. */
+document.addEventListener('click', e => {
+  const b = e.target && e.target.closest ? e.target.closest('[data-plan-open]') : null;
+  if (b) planOpenSheet();
+});
+(function planWireSheet() {
+  const c = $('btn-plan-close'); if (c) c.onclick = planCloseSheet;
+  const bd = $('plan-backdrop'); if (bd) bd.onclick = planCloseSheet;
+  document.addEventListener('keydown', e => {
+    if (e.key !== 'Escape') return;
+    const f = $('plan-float');
+    if (f && f.style.display !== 'none') planCloseSheet();
+  });
+})();
+/* La tarjeta-puerta de la ventana de Comida: la semana en curso y
+   lo planificado para HOY contra su meta, desde los mismos
+   documentos; sin menú, el estado honesto y la misma puerta. */
+function planCardHTML() {
+  const me = auth.currentUser && auth.currentUser.uid;
+  const wk = mmMondayOf(todayISO());
+  const { own, coachVig } = planResolveMenu(NUTRI.myMenus || [], wk, me);
+  const menu = own || coachVig;
+  const range = planWeekRange(wk);
+  let line, chip = '';
+  if (menu) {
+    const day = (menu.days || []).find(d => d.date === todayISO()) || null;
+    const tot = day ? mmDayTotals(day) : { kcal: 0 };
+    const sc = mmStructureFor(NUTRI.myPlan, (typeof GOALS !== 'undefined' ? GOALS : null), NUTRI.myWishes);
+    const tgt = (sc.structure && day) ? mmDayTarget(sc.structure, day.dayType) : null;
+    const has = !!day && (day.meals || []).some(m => (m.items || []).length);
+    line = tgt ? t('planwk.cardLine', { range, kcal: Math.round(tot.kcal), goal: Math.round(tgt.kcal) })
+      : t('planwk.cardLineNoGoal', { range, kcal: Math.round(tot.kcal) });
+    chip = planBandChip(tot.kcal, tgt ? tgt.kcal : null, has);
+  } else {
+    line = t('planwk.cardLineEmpty', { range });
+  }
+  return `<div class="plan-card-in"><div class="plan-card-txt"><b>📅 ${esc(t('planwk.title'))}</b><span>${esc(line)}</span></div>${chip}<button type="button" class="btn-primary plan-card-btn" data-plan-open>${esc(t('planwk.cardBtn'))}</button></div>`;
+}
+function renderPlanCard() {
+  const slot = $('plan-card'); if (!slot) return;
+  const me = auth.currentUser && auth.currentUser.uid;
+  const show = !!me && ((typeof ROLE !== 'undefined' && ROLE === 'usuario') || NUTRI.myRel || NUTRI.myFollow || NUTRI.myPlan || (typeof IS_OWNER !== 'undefined' && IS_OWNER));
+  if (!show) { slot.innerHTML = ''; slot.style.display = 'none'; return; }
+  slot.style.display = '';
+  slot.innerHTML = planCardHTML();
+  /* Refresco en segundo plano: la semana recién construida se ve
+     sin reabrir la ventana — la tarjeta se repinta con los menús
+     frescos si Comida sigue abierta cuando llegan. */
+  mmLoadMenus(me).then(menus => {
+    NUTRI.myMenus = menus;
+    const ff = $('food-float');
+    if (ff && ff.style.display !== 'none' && $('plan-card')) slot.innerHTML = planCardHTML();
+  }).catch(() => {});
+}
+
 async function mmClientZoneFill() {
   const zones = document.querySelectorAll('[data-mm-zone]');
   for (const z of zones) {
