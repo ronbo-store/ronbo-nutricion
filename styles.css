@@ -2333,6 +2333,13 @@ div.cgrid-cell { cursor: default; }
 .admuse-zone { margin-top: 14px; }
 .admuse-subspace { border-top: 1px solid #e5e7eb; margin-top: 10px; padding-top: 10px; }
 .admuse-subhead { margin: 0 0 8px; font-size: 15px; }
+/* Subrenglón «Personas» de Administración (AUTH-2026-11-08-299,
+   maqueta aprobada): franja propia del bloque — sus tres botones
+   heredan .main-tab tal cual; aquí solo su aire y el alto de
+   56 px de la maqueta (sobre el mínimo de la casa). */
+.admuse-people-tabs { margin: 8px 0 2px; }
+.admuse-people-tabs .main-tab { min-height: 56px; font-size: 13px; }
+.admuse-people-ico { font-size: 21px; line-height: 1.1; }
 .admuse-aititle { margin: 0 0 4px; font-size: 14px; }
 .admuse-switchrow { display: flex; align-items: center; justify-content: space-between; gap: 10px; font-weight: 700; margin: 10px 0; }
 .admuse-pill { border-radius: 999px; padding: 3px 12px; font-size: 12px; font-weight: 800; color: #fff; background: #64748b; }

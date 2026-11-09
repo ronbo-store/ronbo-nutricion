@@ -2335,7 +2335,23 @@ function admuseSkeleton() {
   const secHTML = s => `<div class="admsec" data-admsec="${s.id}"><button type="button" class="admsec-head" data-admsec-btn="${s.id}" aria-expanded="${ADM_SEC_OPEN[s.id] ? 'true' : 'false'}"><span>${esc(t(s.titleKey))}</span><span class="admsec-chev" aria-hidden="true">${ADM_SEC_OPEN[s.id] ? '▾' : '▸'}</span></button><div class="admsec-body" data-admsec-body="${s.id}"${ADM_SEC_OPEN[s.id] ? '' : ' style="display:none"'}></div></div>`;
   const tech = ADMIN_SECTIONS.filter(s => s.sub === 'tech').map(secHTML).join('');
   const sys = ADMIN_SECTIONS.filter(s => s.sub === 'system').map(secHTML).join('');
+  /* Subrenglón «Personas» (AUTH-2026-11-08-299, maqueta aprobada por
+     Ronald el 2026-11-06 y su «hazlo» del 2026-11-08 22:16 CST):
+     PRIMER bloque de la zona, tras la cabecera y antes de «Tech» —
+     una franja propia, espejo en pequeño de la franja principal,
+     con SOLO las tres áreas de personas. Sus botones abren las
+     MISMAS vistas que abrían las pastillas retiradas de la franja
+     (clientes · entrenadores · coaches) por la misma puerta
+     (navGuarded → switchTab, cableado en renderAdminZone); los
+     tres paneles por dentro no cambian en nada. La zona entera
+     solo se pinta para el rol administrador (la puerta de
+     renderAdminZone), que es quien veía las tres pastillas. */
+  const people = `<nav class="main-tabs admuse-people-tabs" aria-label="${esc(t('admuse.peopleLabel'))}">`
+    + `<button type="button" class="main-tab" data-admpeople="clients"><span class="admuse-people-ico" aria-hidden="true">👥</span> ${esc(t('admuse.peopleClients'))}</button>`
+    + `<button type="button" class="main-tab" data-admpeople="trainers"><span class="admuse-people-ico" aria-hidden="true">🏋️</span> ${esc(t('admuse.peopleTrainers'))}</button>`
+    + `<button type="button" class="main-tab" data-admpeople="coaches"><span class="admuse-people-ico" aria-hidden="true">🍎</span> ${esc(t('admuse.peopleCoaches'))}</button></nav>`;
   return `<div class="panel admuse-zone"><h3 class="history-title">${esc(t('admuse.title'))}</h3><p class="progress-hint">${esc(t('admuse.sub'))}</p>`
+    + `<div class="admuse-subspace"><h4 class="admuse-subhead">${esc(t('admuse.subPeople'))}</h4>${people}</div>`
     + `<div class="admuse-subspace"><h4 class="admuse-subhead">${esc(t('admuse.subTech'))}</h4>${tech}</div>`
     + `<div class="admuse-subspace"><h4 class="admuse-subhead">${esc(t('admuse.subSystem'))}</h4>${sys}</div></div>`;
 }
@@ -2388,6 +2404,9 @@ async function renderAdminZone() {
   box.style.display = '';
   box.innerHTML = admuseSkeleton();
   box.querySelectorAll('[data-admsec-btn]').forEach(b => b.addEventListener('click', () => admSecToggle(b.getAttribute('data-admsec-btn'))));
+  /* Los tres botones del subrenglón «Personas» (AUTH-299): la
+     misma puerta guardada que usaban las pastillas retiradas. */
+  box.querySelectorAll('[data-admpeople]').forEach(b => b.addEventListener('click', () => navGuarded(() => switchTab(b.getAttribute('data-admpeople')))));
   /* Las secciones que estaban abiertas se re-montan (el DOM es
      nuevo); las recogidas no disparan ninguna lectura. */
   ADMIN_SECTIONS.forEach(s => {
@@ -5778,6 +5797,11 @@ en: {
   'admuse.unavailable': 'Unavailable right now',
   'admuse.loading': 'Loading…',
   'admuse.subSystem': 'System',
+  'admuse.subPeople': 'People',
+  'admuse.peopleLabel': 'People areas',
+  'admuse.peopleClients': 'Clients',
+  'admuse.peopleTrainers': 'Trainers',
+  'admuse.peopleCoaches': 'Food coaches',
   'admuse.fetchedAt': 'Data checked: {when}',
   'admuse.stale': '⚠️ The refresh failed — showing the previous data from {when}; it is not current.',
   'admuse.refresh': 'Refresh',
@@ -9496,6 +9520,11 @@ es: {
   'admuse.unavailable': 'No disponible ahora',
   'admuse.loading': 'Cargando…',
   'admuse.subSystem': 'Sistema',
+  'admuse.subPeople': 'Personas',
+  'admuse.peopleLabel': 'Áreas de personas',
+  'admuse.peopleClients': 'Clientes',
+  'admuse.peopleTrainers': 'Entrenadores',
+  'admuse.peopleCoaches': 'Coaches de alimentación',
   'admuse.fetchedAt': 'Datos consultados: {when}',
   'admuse.stale': '⚠️ La actualización falló — se muestran los datos anteriores de {when}; no son los actuales.',
   'admuse.refresh': 'Actualizar',
@@ -12322,17 +12351,18 @@ onAuthStateChanged(auth, async user => {
      'clients' van ahora a 'students' (rolePendItems). */
   const trackTabBtn = document.querySelector('.main-tab[data-tab="track"]');
   if (trackTabBtn) trackTabBtn.style.display = ROLE === 'usuario' ? 'none' : '';
-  const cliTabBtn = document.querySelector('.main-tab[data-tab="clients"]');
-  if (cliTabBtn) cliTabBtn.style.display = ROLE === 'administrador' ? '' : 'none';
+  /* «Mis clientes» ya no es pastilla (AUTH-2026-11-08-299): su
+     puerta vive en Administración → Personas (renderAdminZone,
+     tras la puerta de siempre del administrador). */
   const accTabBtn = document.querySelector('.main-tab[data-tab="access"]');
   if (accTabBtn) accTabBtn.style.display = ROLE === 'administrador' ? '' : 'none';
-  /* Vistas dedicadas (corrección reprueba, 2026-10-24): Entrenadores
-     es SOLO del administrador, como Accesos. Biblioteca la tienen el
-     administrador Y el entrenador (Biblioteca comunitaria, decisión
-     de Ronald 2026-10-24 20:57: el botón de Biblioteca también para
-     los entrenadores, que aportan y el administrador aprueba). */
-  const trTabBtn = document.querySelector('.main-tab[data-tab="trainers"]');
-  if (trTabBtn) trTabBtn.style.display = ROLE === 'administrador' ? '' : 'none';
+  /* Vistas dedicadas (corrección reprueba, 2026-10-24): Biblioteca
+     la tienen el administrador Y el entrenador (Biblioteca
+     comunitaria, decisión de Ronald 2026-10-24 20:57: el botón de
+     Biblioteca también para los entrenadores, que aportan y el
+     administrador aprueba). «Entrenadores» ya no es pastilla
+     (AUTH-2026-11-08-299): su puerta vive en Administración →
+     Personas, solo del administrador, como la pastilla de antes. */
   const libTabBtn = document.querySelector('.main-tab[data-tab="library"]');
   if (libTabBtn) libTabBtn.style.display = (ROLE === 'administrador' || ROLE === 'entrenador') ? '' : 'none';
   /* «Mi perfil» (AUTH-2026-11-06-286, orden de Ronald en el chat
@@ -12368,12 +12398,11 @@ onAuthStateChanged(auth, async user => {
   const stuTabBtn = document.querySelector('.main-tab[data-tab="students"]');
   if (stuTabBtn) stuTabBtn.style.display = (ROLE === 'administrador' || ROLE === 'entrenador') ? '' : 'none';
   /* «Coaches de alimentación» (decisión de Ronald, correo Memphis
-     2026-11-03 22:16 CST): pastilla principal SOLO del
-     administrador, al nivel de «Entrenadores» — la administración
-     del módulo salió de Administración → Sistema a su vista
-     propia (#tab-coaches). */
-  const coachesTabBtn = document.querySelector('.main-tab[data-tab="coaches"]');
-  if (coachesTabBtn) coachesTabBtn.style.display = ROLE === 'administrador' ? '' : 'none';
+     2026-11-03 22:16 CST): la administración del módulo vive en su
+     vista propia (#tab-coaches). Ya no es pastilla
+     (AUTH-2026-11-08-299): su puerta vive en Administración →
+     Personas, solo del administrador, como la pastilla de antes;
+     switchTab('coaches') conserva su propia puerta de rol. */
   /* «Mi coach de alimentación» (misma decisión): la pastilla del
      alumno, junto a «Administración» en su barra — también para
      el alumno SIN entrenador. Regla INICIAL de la sesión: la ven
@@ -44772,7 +44801,7 @@ document.addEventListener('keydown', e => { if (e.key === 'Escape') shareClose()
  *  - El SW (sw.js) solo cachea la cáscara del mismo origen en modo
  *    RED PRIMERO: Auth/Firestore/Worker jamás pasan por la caché.
  * ================================================================ */
-const PWA_SW_VERSION = '20261108-biblioteca-llenado';
+const PWA_SW_VERSION = '20261108-admin-personas';
 /* Sello de versión VISIBLE (2026-11-03): el pie de la tarjeta de
    acceso enseña qué copia corre este teléfono ('v ' + el sello),
    para comprobar de un vistazo si la versión nueva ya llegó.
