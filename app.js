@@ -213,6 +213,90 @@ function deriveRole(udata, isOwner) {
   if (isOwner) return 'administrador';
   return udata && udata.role === 'entrenador' ? 'entrenador' : 'usuario';
 }
+
+/* ============ INSIGNIAS DE ROL (RONDA 4 APROBADA) ============
+   Diseño: la lámina «Ejemplos de condecoraciones» de Ronald y su
+   ronda 4 de maquetas (aprobada por su «Me gusta» del 2026-11-09
+   00:34 CST): de sus medallas redondas sale UN molde — disco de
+   metal pulido con borde estriado de moneda, corona de laurel
+   COMPLETA en relieve atada abajo y el emblema del rol grabado —
+   en oro (Administrador, escudo · Coach de alimentación, hoja) y
+   bronce (Entrenador, mancuerna · Alumno, persona).
+   EL OBJETO DE PRODUCCIÓN es el DISCO SOLO a 30 px, como elemento
+   propio JUNTO AL NOMBRE — nunca sobre la foto de perfil (su
+   corrección expresa contra la ronda 3) — en WebP sin pérdida a
+   30/60/90 px en el repo de activos de la casa (insignias/).
+   DERIVACIÓN DE ROLES (de los datos, sin inventar):
+   · Administrador ⇔ isOwner (deriveRole).
+   · Entrenador ⇔ isOwner o role 'entrenador' (la derivación de
+     assignTrainerPool, la de la casa).
+   · Coach de alimentación ⇔ nutritionist_profiles/{uid} con
+     status 'aprobado' (la lectura de apptGrantCoach); el conjunto
+     se lee UNA vez por sesión (las reglas vivas listan los
+     perfiles a todo usuario aprobado) y al llegar se repintan la
+     cabecera y las listas visibles; si la lectura falla, el disco
+     de coach simplemente no nace — jamás se inventa.
+   · Alumno ⇔ role 'usuario' o el propietario (que entrena en su
+     propia cuenta, como fijó la maqueta de ficha aprobada, donde
+     Ronald lleva Administrador · Entrenador · Alumno).
+   ORDEN de la maqueta aprobada: Administrador · Entrenador ·
+   Coach · Alumno. Sin rol conocido, sin disco. */
+const ROLE_DISC_BASE = 'https://ronbo-store.github.io/ronbo-nutri-assets/insignias/';
+const ROLE_DISC_LABEL = { admin: 'roles.administrador', trainer: 'roles.entrenador', coach: 'appt.coach', student: 'roles.usuario' };
+let ROLE_DISC_COACHES = null;   // Set de uids con perfil de coach aprobado (caché de sesión)
+let ROLE_DISC_COACHES_P = null; // lectura en curso del conjunto de coaches
+function roleDiscImg(key) {
+  return `<img class="role-disc" src="${ROLE_DISC_BASE}${key}-30.webp" srcset="${ROLE_DISC_BASE}${key}-30.webp 1x, ${ROLE_DISC_BASE}${key}-60.webp 2x, ${ROLE_DISC_BASE}${key}-90.webp 3x" width="30" height="30" alt="" loading="lazy" decoding="async">`;
+}
+function roleDiscHTML(key) {
+  return `<span class="role-discs" role="img" aria-label="${esc(t(ROLE_DISC_LABEL[key]))}">${roleDiscImg(key)}</span>`;
+}
+function roleDiscKeysOf(u, isCoach) {
+  if (!u) return [];
+  const keys = [];
+  const owner = u.isOwner === true;
+  if (owner) keys.push('admin');
+  if (owner || u.role === 'entrenador') keys.push('trainer');
+  if (isCoach) keys.push('coach');
+  if (owner || u.role === 'usuario') keys.push('student');
+  return keys;
+}
+function roleDiscsHTML(u) {
+  if (!ROLE_DISC_COACHES && u && u.id) { try { roleDiscCoachSetLoad(); } catch {} }
+  const keys = roleDiscKeysOf(u, !!(u && u.id && ROLE_DISC_COACHES && ROLE_DISC_COACHES.has(u.id)));
+  if (!keys.length) return '';
+  const label = keys.map(k => t(ROLE_DISC_LABEL[k])).join(' · ');
+  return `<span class="role-discs" role="img" aria-label="${esc(label)}">${keys.map(roleDiscImg).join('')}</span>`;
+}
+function roleDiscCoachSetLoad() {
+  if (ROLE_DISC_COACHES) return Promise.resolve();
+  if (ROLE_DISC_COACHES_P) return ROLE_DISC_COACHES_P;
+  ROLE_DISC_COACHES_P = (async () => {
+    try {
+      const snap = await getDocs(collection(db, 'nutritionist_profiles'));
+      const set = new Set();
+      snap.forEach(d => { if (d.data() && d.data().status === 'aprobado') set.add(d.id); });
+      ROLE_DISC_COACHES = set;
+    } catch { ROLE_DISC_COACHES_P = null; return; }
+    try { roleDiscsHeaderSync(); } catch {}
+    try { if (typeof CLIENTS_LAST !== 'undefined' && CLIENTS_LAST && typeof renderClientsBody === 'function') renderClientsBody(); } catch {}
+    try { if (typeof STUDENTS_LAST !== 'undefined' && STUDENTS_LAST && typeof renderStudentsBody === 'function') renderStudentsBody(); } catch {}
+  })();
+  return ROLE_DISC_COACHES_P;
+}
+function roleDiscsHeaderSync() {
+  const host = $('who-discs');
+  if (!host) return;
+  if (typeof UDATA === 'undefined' || !UDATA || typeof auth === 'undefined' || !auth.currentUser) { host.innerHTML = ''; host.setAttribute('aria-label', ''); return; }
+  const me = auth.currentUser.uid;
+  let isCoach = !!(ROLE_DISC_COACHES && ROLE_DISC_COACHES.has(me));
+  if (!isCoach && typeof NUTRI !== 'undefined' && NUTRI && NUTRI.myProfile && NUTRI.myProfile.status === 'aprobado') isCoach = true;
+  const mine = { id: me, isOwner: (typeof IS_OWNER !== 'undefined' && IS_OWNER === true) || UDATA.isOwner === true, role: UDATA.role };
+  const keys = roleDiscKeysOf(mine, isCoach);
+  host.innerHTML = keys.length ? keys.map(roleDiscImg).join('') : '';
+  host.setAttribute('aria-label', keys.map(k => t(ROLE_DISC_LABEL[k])).join(' · '));
+  if (!ROLE_DISC_COACHES) { try { roleDiscCoachSetLoad(); } catch {} }
+}
 let suppressAuthCheck = false; // evita el chequeo durante el registro (el doc aún se está creando)
 
 /* ============ ROLES + ESCALABILIDAD (2026-10-24, SOLO desarrollo) ============
@@ -653,11 +737,11 @@ async function renderMyTrainerBox() {
      entrenador: miniatura redonda + nombre (cadena segura de
      siempre; jamás el uid ni un correo) + titular del dossier.
      En espera: la misma frase de estado que hoy abre la tarjeta. */
-  const lineHtml = `<button type="button" class="mt-toggle" id="mt-toggle" aria-expanded="${MT_CARD_OPEN ? 'true' : 'false'}">${rel.trainerUid ? `<span class="mt-thumb"><span class="mt-thumb-initials">${esc(tInitials)}</span>${tPhoto ? `<img class="mt-thumb-img" src="${esc(tPhoto)}" alt="">` : ''}</span><span class="mt-toggle-text"><b>${esc(tNameSafe || t('esc.currentTrainer'))}</b>${tHeadline ? `<span class="mt-toggle-head"> · ${esc(tHeadline)}</span>` : ''}</span>` : `<span class="mt-thumb mt-thumb-wait"><span class="mt-thumb-emoji" aria-hidden="true">🧑‍🏫</span></span><span class="mt-toggle-text"><span class="mt-toggle-wait">${esc(t('esc.noTrainerYet'))}</span></span>`}<span class="mt-chev" aria-hidden="true">▾</span></button>`;
+  const lineHtml = `<button type="button" class="mt-toggle" id="mt-toggle" aria-expanded="${MT_CARD_OPEN ? 'true' : 'false'}">${rel.trainerUid ? `<span class="mt-thumb"><span class="mt-thumb-initials">${esc(tInitials)}</span>${tPhoto ? `<img class="mt-thumb-img" src="${esc(tPhoto)}" alt="">` : ''}</span><span class="mt-toggle-text"><b>${esc(tNameSafe || t('esc.currentTrainer'))}</b>${tNameSafe ? ' ' + roleDiscHTML('trainer') : ''}${tHeadline ? `<span class="mt-toggle-head"> · ${esc(tHeadline)}</span>` : ''}</span>` : `<span class="mt-thumb mt-thumb-wait"><span class="mt-thumb-emoji" aria-hidden="true">🧑‍🏫</span></span><span class="mt-toggle-text"><span class="mt-toggle-wait">${esc(t('esc.noTrainerYet'))}</span></span>`}<span class="mt-chev" aria-hidden="true">▾</span></button>`;
   const bodyHtml = `${rel.trainerUid ? `<div class="mt-head">
       <div class="mt-info">
         <h3 class="history-title">${esc(t('esc.myTrainerTitle'))}</h3>
-        <p class="progress-hint mt-line">${esc(t('esc.currentTrainer'))}${tNameSafe ? `: <b>${esc(tNameSafe)}</b>` : ''}</p>
+        <p class="progress-hint mt-line">${esc(t('esc.currentTrainer'))}${tNameSafe ? `: <b>${esc(tNameSafe)}</b> ${roleDiscHTML('trainer')}` : ''}</p>
         ${tHeadline ? `<p class="mt-headline">${esc(tHeadline)}</p>` : ''}
         ${rel.modality ? `<p class="progress-hint mt-line">${esc(t('esc.modality'))}: <b>${esc(escModLabel(rel.modality))}</b></p>` : ''}
         ${tMods.length ? `<p class="progress-hint mt-line">${esc(t('esc.modalitiesLabel'))}: ${tMods.map(m => esc(escModLabel(m))).join(' · ')}</p>` : ''}
@@ -12773,6 +12857,7 @@ onAuthStateChanged(auth, async user => {
     return;
   }
   $('who').textContent = UDATA.name ? UDATA.name : user.email;
+  try { roleDiscsHeaderSync(); } catch {}
   setAvatar(UDATA.photoURL || '');
   /* Mensaje de instalación (pieza C, 2026-10-26): con sesión
      iniciada en navegador la tarjeta SÍ se ofrece — aparece en
@@ -14353,7 +14438,7 @@ function clientsRowBadge(u, d, cats) {
 }
 function clientsRowHTML(u) {
   const L = CLIENTS_LAST; const d = clientsDataOf(L, u); const cats = clientCategories(u, d);
-  const inner = `${stuAvatarHTML(u, u.name || '')}<span class="srow-main"><span class="srow-name">${esc(u.name || '—')}</span><span class="srow-sum">${clientsRowSummary(u, d)}</span><span class="srow-assign">${assignRowLine(u)}</span></span>${clientsRowBadge(u, d, cats)}<span class="srow-go">›</span>`;
+  const inner = `${stuAvatarHTML(u, u.name || '')}<span class="srow-main"><span class="srow-nameline"><span class="srow-name">${esc(u.name || '—')}</span>${roleDiscsHTML(u)}</span><span class="srow-sum">${clientsRowSummary(u, d)}</span><span class="srow-assign">${assignRowLine(u)}</span></span>${clientsRowBadge(u, d, cats)}<span class="srow-go">›</span>`;
   return u.approved === true
     ? `<button type="button" class="srow" data-client="${u.id}">${inner}</button>`
     : `<div class="srow srow-static">${inner}</div>`;
@@ -14385,7 +14470,7 @@ function clientsCellHTML(u) {
   const thumb = u.photoURL
     ? `<img src="${esc(u.photoURL)}" alt="">`
     : `<span class="mt-initials" style="background:${stuTint(u.id)};color:#134e4a">${esc(clientInitials(u).toUpperCase() || '·')}</span>`;
-  const inner = `<span class="cgrid-thumb">${thumb}<span class="cgrid-ring" style="border-color:${ring}"></span></span>${badge}<span class="cgrid-name">${esc(u.name || '—')}</span><span class="cgrid-cat" style="color:#6b7280">${clientsRowSummary(u, d)}</span><span class="cgrid-assign">${assignRowLine(u)}</span>`;
+  const inner = `<span class="cgrid-thumb">${thumb}<span class="cgrid-ring" style="border-color:${ring}"></span></span>${badge}<span class="cgrid-nameline"><span class="cgrid-name">${esc(u.name || '—')}</span>${roleDiscsHTML(u)}</span><span class="cgrid-cat" style="color:#6b7280">${clientsRowSummary(u, d)}</span><span class="cgrid-assign">${assignRowLine(u)}</span>`;
   return u.approved === true
     ? `<button type="button" class="cgrid-cell" data-client="${u.id}">${inner}</button>`
     : `<div class="cgrid-cell">${inner}</div>`;
@@ -16265,7 +16350,7 @@ function studentsRowHTML(u) {
      La memoria de regreso de la ficha (STUDENTS_RESTORE) no
      cambia; una entrada fresca a la vista nace con todas las
      fichas cerradas, como pide la restauración. */
-  return `<button type="button" class="srow" data-stu="${u.id}">${stuAvatarHTML(u, name)}<span class="srow-main"><span class="srow-name">${esc(name)}</span><span class="srow-sub">${studentsSummary(u)}</span><span class="srow-assign">${assignRowLine(u)}</span></span>${studentsBadge(u)}<span class="srow-chev">›</span></button>`;
+  return `<button type="button" class="srow" data-stu="${u.id}">${stuAvatarHTML(u, name)}<span class="srow-main"><span class="srow-nameline"><span class="srow-name">${esc(name)}</span>${roleDiscsHTML(u)}</span><span class="srow-sub">${studentsSummary(u)}</span><span class="srow-assign">${assignRowLine(u)}</span></span>${studentsBadge(u)}<span class="srow-chev">›</span></button>`;
 }
 function studentsGridCellHTML(u) {
   const name = stuName(u);
@@ -16275,7 +16360,7 @@ function studentsGridCellHTML(u) {
   const ring = err ? '#dc2626' : n ? '#f59e0b' : '#0d9488';
   return `<button type="button" class="cgrid-cell" data-stu="${u.id}">
     <span class="cgrid-thumb">${u.photoURL ? `<img src="${esc(u.photoURL)}" alt="">` : `<span class="mt-initials" style="background:${stuTint(u.id)};color:#134e4a">${esc(stuInitials(name).toUpperCase() || '·')}</span>`}<span class="cgrid-ring" style="border-color:${ring}"></span></span>
-    <span class="cgrid-name">${esc(name)}</span>
+    <span class="cgrid-nameline"><span class="cgrid-name">${esc(name)}</span>${roleDiscsHTML(u)}</span>
     <span class="cgrid-cat" style="color:#6b7280">${studentsSummary(u)}</span>
     <span class="cgrid-assign">${assignRowLine(u)}</span>
   </button>`;
@@ -22313,6 +22398,7 @@ function apptPaint() {
 }
 
 async function apptGrantCoach(uid, name) {
+  ROLE_DISC_COACHES = null; ROLE_DISC_COACHES_P = null;
   const me = auth.currentUser ? auth.currentUser.uid : null;
   const ps = await getDoc(doc(db, 'nutritionist_profiles', uid));
   if (!ps.exists()) {
@@ -41882,9 +41968,9 @@ function assignRowLine(u) {
 function assignBlockHTML(uid, st, ficha) {
   let h = `<div class="assign-box">
     <h3 class="history-title">🤝 ${esc(t('assign.title'))}</h3>
-    <p class="assign-line">🏋️ ${esc(t('assign.lineTrainer', { name: st.trainerUid ? (assignNameSync(st.trainerUid) || '—') : t('assign.noneTrainer') }))}</p>`;
+    <p class="assign-line">🏋️ ${esc(t('assign.lineTrainer', { name: st.trainerUid ? (assignNameSync(st.trainerUid) || '—') : t('assign.noneTrainer') }))}${st.trainerUid ? ' ' + roleDiscHTML('trainer') : ''}</p>`;
   if (st.coachKnown) h += `
-    <p class="assign-line">🥗 ${esc(t('assign.lineCoach', { name: st.coachUid ? (assignNameSync(st.coachUid) || '—') : t('assign.noneCoach') }))}</p>`;
+    <p class="assign-line">🥗 ${esc(t('assign.lineCoach', { name: st.coachUid ? (assignNameSync(st.coachUid) || '—') : t('assign.noneCoach') }))}${st.coachUid ? ' ' + roleDiscHTML('coach') : ''}</p>`;
   if (ROLE === 'administrador') {
     h += `
     <div class="assign-actions"><button type="button" class="btn-primary assign-manage-btn" data-assign-open="${esc(uid)}">${esc(t('assign.manage'))}</button>`;
@@ -46887,7 +46973,7 @@ document.addEventListener('keydown', e => { if (e.key === 'Escape') shareClose()
  *  - El SW (sw.js) solo cachea la cáscara del mismo origen en modo
  *    RED PRIMERO: Auth/Firestore/Worker jamás pasan por la caché.
  * ================================================================ */
-const PWA_SW_VERSION = '20261109-bajo-la-cabecera';
+const PWA_SW_VERSION = '20261109-insignias-rol';
 /* Sello de versión VISIBLE (2026-11-03): el pie de la tarjeta de
    acceso enseña qué copia corre este teléfono ('v ' + el sello),
    para comprobar de un vistazo si la versión nueva ya llegó.
@@ -48375,6 +48461,7 @@ async function nutriBoot() {
   NUTRI.booted = true;
   const me = auth.currentUser.uid;
   try { const s = await getDoc(doc(db, 'nutritionist_profiles', me)); NUTRI.myProfile = s.exists() ? { uid: s.id, ...s.data() } : null; } catch {}
+  try { roleDiscsHeaderSync(); } catch {}
   if (NUTRI.myProfile) {
     try { const s = await getDoc(doc(db, 'nutritionist_memberships', me)); NUTRI.myMembership = s.exists() ? s.data() : null; } catch {}
   }
@@ -48555,7 +48642,7 @@ async function renderNutriMyBox() {
   let h = `<div class="panel nutri-panel"><h3 class="history-title">🥗 ${esc(t('nutri.boxTitle'))}</h3>`;
   if (rel && rel.status === 'activa' && rel.nutritionistUid) {
     const nm = await nutriNameOf(rel.nutritionistUid);
-    h += `<p class="myprof-row"><span class="myprof-k">${esc(t('nutri.myNutri'))}</span><span class="myprof-v">${esc(nm)}</span></p>`;
+    h += `<p class="myprof-row"><span class="myprof-k">${esc(t('nutri.myNutri'))}</span><span class="myprof-v">${esc(nm)} ${roleDiscHTML('coach')}</span></p>`;
     if (rel.followUpCadence) h += `<p class="myprof-row"><span class="myprof-k">${esc(t('nutri.cadence'))}</span><span class="myprof-v">${esc(nutriCadLabel(rel.followUpCadence))}</span></p>`;
     if (rel.pendingChange) {
       h += `<p class="progress-hint">${esc(t(rel.pendingChange.stage === 'espera_administrador' ? 'nutri.changePendingAdmin' : 'nutri.changePendingNew'))}</p>`;

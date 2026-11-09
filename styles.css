@@ -4582,3 +4582,17 @@ body.swap-sheet-open .asst-fab { display: none !important; }
 .progress-priv-line { font-size: 13px; color: #42566b; line-height: 1.45; }
 .progress-priv-more { display: flex; align-items: center; gap: 4px; margin-left: auto; margin-top: 2px; background: none; border: none; padding: 10px 2px; min-height: 44px; color: #0d9488; font-weight: 700; font-size: 13px; font-family: inherit; cursor: pointer; }
 .progress-priv-full { margin: 8px 0 2px; background: #fbfdfd; border: 1px dashed #c4d8d5; border-radius: 12px; padding: 11px 12px; }
+
+/* ============ INSIGNIAS DE ROL (RONDA 4 APROBADA) ============
+   El disco de 30 px junto al nombre, como elemento propio —
+   nunca sobre la foto. La fila del nombre envuelve el nombre
+   (que se sigue truncando con su ellipsis de siempre) y los
+   discos, que nunca se encogen ni desplazan el nombre. */
+.role-discs { display: inline-flex; align-items: center; gap: 4px; flex: none; vertical-align: middle; line-height: 0; }
+.role-disc { width: 30px; height: 30px; display: block; }
+.hdr-namerow { display: flex; align-items: center; gap: 7px; min-width: 0; }
+.hdr-namerow #who { flex: 0 1 auto; min-width: 0; }
+.srow-nameline { display: flex; align-items: center; gap: 6px; min-width: 0; }
+.srow-nameline .srow-name { flex: 0 1 auto; min-width: 0; }
+.cgrid-nameline { display: flex; align-items: center; justify-content: center; gap: 5px; max-width: 100%; min-width: 0; }
+.cgrid-nameline .cgrid-name { flex: 0 1 auto; min-width: 0; }
