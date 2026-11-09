@@ -7059,6 +7059,11 @@ en: {
   'gender.Prefiero no decirlo': 'Prefer not to say',
   'cond.Hipertensión': 'High blood pressure',
   'cond.Diabetes': 'Diabetes',
+  'cond.Prediabetes': 'Prediabetes',
+  'cond.Hipoglucemia': 'Low blood sugar (hypoglycemia)',
+  'cond.Uso de insulina o medicación que baja el azúcar': 'Insulin or medication that lowers blood sugar',
+  'cond.Enfermedad renal': 'Kidney disease',
+  'cond.Trastorno alimentario': 'Eating disorder',
   'cond.Problemas del corazón': 'Heart problems',
   'cond.Dolor de pecho al ejercitarse': 'Chest pain when exercising',
   'cond.Mareos o desmayos': 'Dizziness or fainting',
@@ -7070,6 +7075,11 @@ en: {
   'cond.Lactancia': 'Lactation (breastfeeding)',
   'cond.Menopausia': 'Menopause',
   'cond.Ninguna de las anteriores': 'None of the above',
+  'condBrake.Prediabetes': 'If you check this, you are saying you have prediabetes. The app does NOT set your sugars, your carbohydrates or your weight-loss pace on its own: your trainer reviews them (or they stay unset, with a notice, if you have no trainer).',
+  'condBrake.Hipoglucemia': 'If you check this, you are saying your blood sugar drops too low. The app does NOT set your sugars, your carbohydrates or your weight-loss pace on its own: your trainer reviews them (or they stay unset, with a notice, if you have no trainer).',
+  'condBrake.Uso de insulina o medicación que baja el azúcar': 'If you check this, you are saying you use insulin or another medicine that lowers blood sugar. The app does NOT set your sugars, your carbohydrates or your weight-loss pace on its own: your trainer reviews them (or they stay unset, with a notice, if you have no trainer).',
+  'condBrake.Enfermedad renal': 'If you check this, you are saying you have a kidney condition. With it, the usual amount of protein may not be right for you: the app does NOT set your protein on its own — your trainer reviews it (or it stays unset, with a notice, if you have no trainer).',
+  'condBrake.Trastorno alimentario': 'If you check this, you are saying you have or have had an eating disorder. The app will NOT put you on a weight-loss pace or set your goals on its own: your trainer reviews everything (or it stays unset, with a notice, if you have no trainer).',
   /* FRENTE 1 — ETAPAS DE VIDA (2026-10-30): intro del grupo de la
      declaración, tarjetas de trato, pregunta de síntomas del
      posparto (su respuesta se persiste como ppSymptoms, N-2) y
@@ -10898,6 +10908,11 @@ es: {
   'gender.Prefiero no decirlo': 'Prefiero no decirlo',
   'cond.Hipertensión': 'Hipertensión',
   'cond.Diabetes': 'Diabetes',
+  'cond.Prediabetes': 'Prediabetes',
+  'cond.Hipoglucemia': 'Hipoglucemia',
+  'cond.Uso de insulina o medicación que baja el azúcar': 'Uso de insulina o medicación que baja el azúcar',
+  'cond.Enfermedad renal': 'Enfermedad renal',
+  'cond.Trastorno alimentario': 'Trastorno alimentario',
   'cond.Problemas del corazón': 'Problemas del corazón',
   'cond.Dolor de pecho al ejercitarse': 'Dolor de pecho al ejercitarse',
   'cond.Mareos o desmayos': 'Mareos o desmayos',
@@ -10909,6 +10924,11 @@ es: {
   'cond.Lactancia': 'Lactancia',
   'cond.Menopausia': 'Menopausia',
   'cond.Ninguna de las anteriores': 'Ninguna de las anteriores',
+  'condBrake.Prediabetes': 'Si la marcas, dices que tienes prediabetes. La app NO fija sola tus azúcares, tus carbohidratos ni tu ritmo para bajar de peso: quedan en revisión de tu entrenador (o sin fijar, con aviso, si no tienes entrenador).',
+  'condBrake.Hipoglucemia': 'Si la marcas, dices que se te baja el azúcar en la sangre. La app NO fija sola tus azúcares, tus carbohidratos ni tu ritmo para bajar de peso: quedan en revisión de tu entrenador (o sin fijar, con aviso, si no tienes entrenador).',
+  'condBrake.Uso de insulina o medicación que baja el azúcar': 'Si la marcas, dices que usas insulina u otra medicación que baja el azúcar en la sangre. La app NO fija sola tus azúcares, tus carbohidratos ni tu ritmo para bajar de peso: quedan en revisión de tu entrenador (o sin fijar, con aviso, si no tienes entrenador).',
+  'condBrake.Enfermedad renal': 'Si la marcas, dices que tienes una enfermedad de los riñones. Con ella, la cantidad de proteína de siempre puede no ser la adecuada para ti: la app NO fija tu proteína sola — queda en revisión de tu entrenador (o sin fijar, con aviso, si no tienes entrenador).',
+  'condBrake.Trastorno alimentario': 'Si la marcas, dices que tienes o has tenido un trastorno alimentario. La app NO te pondrá a bajar de peso ni fijará tus metas sola: todo queda en revisión de tu entrenador (o sin fijar, con aviso, si no tienes entrenador).',
   /* FRENTE 1 — ETAPAS DE VIDA (2026-10-30): intro del grupo de la
      declaración, tarjetas de trato, pregunta de síntomas del
      posparto (su respuesta se persiste como ppSymptoms, N-2) y
@@ -19621,10 +19641,13 @@ function fiberGoalFromKcal(kcal) {
 function goalsNorm(s) { return String(s || '').toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, ''); }
 /* Mapa §E: condiciones ESTRUCTURADAS de la declaración vigente →
    parámetros retenidos. La lista estructurada actual solo expone
-   Diabetes, Hipertensión, Problemas del corazón y Embarazo; el mapa
-   también reconoce por texto normalizado renal/prediabetes/
-   hipoglucemia/insulina/trastorno alimentario por si la
-   declaración los incorpora. El texto libre NUNCA se interpreta.
+   Diabetes, Hipertensión, Problemas del corazón y Embarazo; desde
+   F-02 (2026-11-09) la declaración TAMBIÉN pregunta Enfermedad
+   renal, Prediabetes, Hipoglucemia, Uso de insulina o medicación
+   que baja el azúcar y Trastorno alimentario — las cinco filas
+   del §E que este mapa ya reconocía por texto normalizado sin
+   que la declaración pudiera alimentarlas. El texto libre NUNCA
+   se interpreta.
    N-1 (Frente 1, 2026-10-30): la LACTANCIA ya NO retiene — Ronald
    levantó expresamente esa fila §E solo para ella: sus metas
    calculan normal y el rango fundado del IOM se le muestra como
@@ -27341,9 +27364,17 @@ $('btn-delete-account') && $('btn-delete-account').addEventListener('click', asy
      consentimiento específico activo; nunca escribe respuestas.
    - Retirar el específico bloquea la vigente; no borra nada. */
 const SPEC_VERSION = 'v1-2026-10-16';
-const HEALTH_CONDITIONS = ['Hipertensión', 'Diabetes', 'Problemas del corazón',
+/* F-02 (2026-11-09, decisión de Ronald): la declaración pregunta
+   por fin TODAS las condiciones con freno del §E — se añaden
+   Enfermedad renal, Prediabetes, Hipoglucemia, Uso de insulina o
+   medicación que baja el azúcar y Trastorno alimentario, que el
+   motor (goalsHealthMap) ya reconocía sin que nadie pudiera
+   declararlas. Las cadenas canónicas son las de siempre (texto
+   en español guardado; el nombre visible sale de cond.<valor>). */
+const HEALTH_CONDITIONS = ['Hipertensión', 'Diabetes', 'Prediabetes', 'Hipoglucemia',
+  'Uso de insulina o medicación que baja el azúcar', 'Enfermedad renal', 'Problemas del corazón',
   'Dolor de pecho al ejercitarse', 'Mareos o desmayos', 'Asma / problemas respiratorios',
-  'Lesiones articulares o musculares', 'Cirugía reciente', 'Embarazo', 'Posparto', 'Lactancia',
+  'Lesiones articulares o musculares', 'Cirugía reciente', 'Trastorno alimentario', 'Embarazo', 'Posparto', 'Lactancia',
   'Menopausia', 'Ninguna de las anteriores'];
 /* Frente 1 — ETAPAS DE VIDA (2026-10-30, D1): las cuatro etapas se
    pintan AGRUPADAS al final de la rejilla de la declaración, bajo su
@@ -27486,8 +27517,16 @@ function declFormHTML(d) {
      qué significa marcarla. Las líneas son AYUDA VISUAL auxiliar:
      no forman parte del texto legal, no lo sustituyen y no cambian
      su alcance (ver INFORME-AJUSTES-UX-PLANTILLAS-DEV-2026-10-23). */
-  const condBox = v =>
-    `<label><input type="checkbox" class="h-cond" value="${esc(v)}"${sel.has(v) ? ' checked' : ''}> ${esc(condName(v))}<small class="consent-help" data-help-key="health.condHelp">${t('health.condHelp')}</small></label>`;
+  const condBox = v => {
+    /* F-02 (2026-11-09): las condiciones con freno del §E llevan
+       SU línea en lenguaje simple — qué declara la alumna y qué
+       hará la app con ello (su freno, en claro) — como ayuda
+       visual auxiliar con el mismo estatuto de siempre; las
+       demás conservan la línea genérica, palabra por palabra. */
+    const bk = t('condBrake.' + v);
+    const hk = bk === 'condBrake.' + v ? 'health.condHelp' : 'condBrake.' + v;
+    return `<label><input type="checkbox" class="h-cond" value="${esc(v)}"${sel.has(v) ? ' checked' : ''}> ${esc(condName(v))}<small class="consent-help" data-help-key="${hk}">${t(hk)}</small></label>`;
+  };
   const grid = HEALTH_CONDITIONS.filter(v => !STAGE_CONDS.includes(v)).map(condBox).join('');
   /* Frente 1 (D1): las cuatro etapas, agrupadas al final de la
      rejilla bajo su encabezado y su intro de voluntariedad. */
@@ -46610,7 +46649,7 @@ document.addEventListener('keydown', e => { if (e.key === 'Escape') shareClose()
  *  - El SW (sw.js) solo cachea la cáscara del mismo origen en modo
  *    RED PRIMERO: Auth/Firestore/Worker jamás pasan por la caché.
  * ================================================================ */
-const PWA_SW_VERSION = '20261109-racha-pesos';
+const PWA_SW_VERSION = '20261109-frenos-salud';
 /* Sello de versión VISIBLE (2026-11-03): el pie de la tarjeta de
    acceso enseña qué copia corre este teléfono ('v ' + el sello),
    para comprobar de un vistazo si la versión nueva ya llegó.
