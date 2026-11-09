@@ -6531,6 +6531,11 @@ en: {
   'fa.female': 'Female',
   'fa.male': 'Male',
   'fa.current': 'Saved value: {v}',
+  'fa.foldAthleteYes': 'You declared: recreational athlete',
+  'fa.foldAthleteNo': 'No athlete declaration',
+  'fa.foldFoundation': 'Basis data saved: born {by} · {h} cm · activity level {act} · multiplier {pal}',
+  'fa.bandNormal': 'normal range',
+  'fa.bandException': 'exception band',
   'fa.save': 'Save',
   'fa.delete': 'Delete this data',
   'fa.deleteConfirm': 'Delete your private sex data? Without it, the energy calculation cannot be done. You can provide it again whenever you want.',
@@ -10344,6 +10349,11 @@ es: {
   'fa.female': 'Femenino',
   'fa.male': 'Masculino',
   'fa.current': 'Dato guardado: {v}',
+  'fa.foldAthleteYes': 'Declaraste: atleta recreativo',
+  'fa.foldAthleteNo': 'Sin declaración de atleta',
+  'fa.foldFoundation': 'Datos de fundamento guardados: {by} · {h} cm · nivel de actividad {act} · multiplicador {pal}',
+  'fa.bandNormal': 'rango normal',
+  'fa.bandException': 'banda de excepción',
   'fa.save': 'Guardar',
   'fa.delete': 'Borrar este dato',
   'fa.deleteConfirm': '¿Borrar tu dato privado de sexo? Sin él no se podrá hacer el cálculo de energía. Puedes volver a aportarlo cuando quieras.',
@@ -17804,6 +17814,46 @@ async function faSaveConfig(uid) {
 }
 
 /* ---------- Vista del cliente: su espacio privado y su cálculo ---------- */
+/* ---------- La evaluación ya llenada nace plegada (AUTH-2026-11-09-318) ----------
+   Orden de Ronald (chat RONBO.NUTRI, 2026-11-09 00:08 CST): «Si
+   cualquier campo ya está lleno, y no necesita ser editado de
+   nuevo, no debería aparecer. Si ya yo hice mi declaración, no
+   debería aparecer en blanco el check: debería aparecer el
+   checklist, o en su defecto encogerse, plegarse, como un
+   "listo"… y que tenga la posibilidad de desplegarse, si se
+   quiere ver.» La completitud se DERIVA del estado guardado en
+   cada pintado (la misma derivación de la ruta plegada,
+   AUTH-2026-11-08-309, y del panel de Administración,
+   AUTH-2026-11-08-311): sección completa → nace plegada en su
+   línea «listo» con su dato clave; incompleta → nace abierta,
+   guiando, como hoy; si el dato se borra o la declaración deja
+   de estar respondida, vuelve a nacer abierta. El toque del
+   usuario vive en memoria (EVAL_FOLD_TOUCH) y los guardados lo
+   reinician (evalFoldReset) para que el repintado posterior
+   derive del estado nuevo. SOLO presentación: ningún cálculo,
+   ninguna escritura, ningún texto legal ni quién ve qué cambia. */
+const EVAL_FOLD_TOUCH = {};
+function evalFoldOpen(id, complete) {
+  if (!complete) return true;
+  return EVAL_FOLD_TOUCH[id] === true;
+}
+function evalFoldHead(id, line, open) {
+  return `<button type="button" class="eval-fold-head" id="efold-btn-${id}" aria-expanded="${open ? 'true' : 'false'}"><span class="eval-fold-line">${line}</span><span class="eval-fold-chev" aria-hidden="true">${open ? '▴' : '▾'}</span></button>`;
+}
+function evalFoldWire(id) {
+  const btn = $('efold-btn-' + id); if (!btn || btn.dataset.wired) return;
+  btn.dataset.wired = '1';
+  btn.onclick = () => {
+    const body = $('efold-body-' + id); if (!body) return;
+    const open = body.style.display === 'none';
+    EVAL_FOLD_TOUCH[id] = open;
+    body.style.display = open ? '' : 'none';
+    btn.setAttribute('aria-expanded', open ? 'true' : 'false');
+    const chev = btn.querySelector('.eval-fold-chev');
+    if (chev) chev.textContent = open ? '▴' : '▾';
+  };
+}
+function evalFoldReset(id) { delete EVAL_FOLD_TOUCH[id]; }
 function renderEnergyPanel() {
   const box = $('energy-panel-body');
   if (!box || !auth.currentUser) return;
@@ -17842,15 +17892,17 @@ function renderEnergyPanel() {
      SU declaración; el entrenador solo ve la señal sí/no en su
      ficha. Sin documento de evaluación todavía, se explica y no
      se escribe nada. */
-  const athleteBlock = `<div class="fa-athlete">
-    <h4 class="fa-athtitle">${t('fa.athleteTitle')}</h4>
-    <p class="fa-sextext">${t('fa.athleteBody')}</p>
-    ${d
-      ? `<label class="fa-opt2"><input type="checkbox" id="fa-athlete" ${d.athleteDeclared === true ? 'checked' : ''}> <span>${t('fa.athleteCheck')}</span></label>
-    <div class="fa-btnrow"><button type="button" class="btn-primary btn-sm" id="fa-athlete-save">${t('fa.save')}</button></div>`
-      : `<div class="fa-stale-note">${t('fa.athleteNoDoc')}</div>`}
-  </div>`;
-  box.innerHTML = `<div class="fa-privcard">
+  /* AUTH-318 — pliegue derivado de las dos primeras secciones:
+     el sexo guardado se pliega sobre su propia banda «Dato
+     guardado», que pasa a ser la línea «listo»; la declaración
+     de atleta se pliega cuando ya fue RESPONDIDA (declarada o
+     guardada en «no» con su fecha: athleteDeclaredAt solo lo
+     escribe el propio guardado de la declaración). Sin
+     completar, ambas se pintan como hoy, abiertas y guiando. */
+  const sexDone = !!sex;
+  const sexOpen = evalFoldOpen('sex', sexDone);
+  const sexBlock = `${sexDone ? evalFoldHead('sex', '✓ ' + esc(t('fa.current', { v: t(sex === 'female' ? 'fa.female' : 'fa.male') })), sexOpen) : ''}
+  <div id="efold-body-sex"${sexDone && !sexOpen ? ' style="display:none"' : ''}>
     <h3 class="history-title" style="margin-top:0">${t('fa.sexTitle')}</h3>
     <p class="fa-sextext">${t('fa.sexBody')}</p>
     ${cur}
@@ -17863,6 +17915,22 @@ function renderEnergyPanel() {
       ${sex ? `<button type="button" class="btn-ghost btn-sm fa-delbtn" id="fa-sex-del">${t('fa.delete')}</button>` : ''}
     </div>
     <div class="fa-locknote">🔒 ${t('fa.lockNote')}</div>
+  </div>`;
+  const athDone = !!d && (d.athleteDeclared === true || (d.athleteDeclared === false && !!d.athleteDeclaredAt));
+  const athOpen = evalFoldOpen('athlete', athDone);
+  const athEditor = `<h4 class="fa-athtitle">${t('fa.athleteTitle')}</h4>
+    <p class="fa-sextext">${t('fa.athleteBody')}</p>
+    ${d
+      ? `<label class="fa-opt2"><input type="checkbox" id="fa-athlete" ${d.athleteDeclared === true ? 'checked' : ''}> <span>${t('fa.athleteCheck')}</span></label>
+    <div class="fa-btnrow"><button type="button" class="btn-primary btn-sm" id="fa-athlete-save">${t('fa.save')}</button></div>`
+      : `<div class="fa-stale-note">${t('fa.athleteNoDoc')}</div>`}`;
+  const athleteBlock = athDone
+    ? `<div class="fa-athlete">${evalFoldHead('athlete', (d.athleteDeclared === true ? '✓ ' : '') + esc(t(d.athleteDeclared === true ? 'fa.foldAthleteYes' : 'fa.foldAthleteNo')), athOpen)}<div id="efold-body-athlete"${athOpen ? '' : ' style="display:none"'}>${athEditor}</div></div>`
+    : `<div class="fa-athlete">
+    ${athEditor}
+  </div>`;
+  box.innerHTML = `<div class="fa-privcard">
+    ${sexBlock}
     ${athleteBlock}
     ${own}
     ${typeof goalsFoundationHTML === 'function' ? goalsFoundationHTML() : ''}
@@ -17871,6 +17939,8 @@ function renderEnergyPanel() {
   const sv = $('fa-sex-save'); if (sv) sv.onclick = saveMySex;
   const dl = $('fa-sex-del'); if (dl) dl.onclick = deleteMySex;
   const as = $('fa-athlete-save'); if (as) as.onclick = saveMyAthleteDeclaration;
+  evalFoldWire('sex');
+  evalFoldWire('athlete');
   try { goalsFoundationWire(); } catch {}
   mirrorRestore(box, __emCap);
 }
@@ -17889,7 +17959,13 @@ async function saveMyAthleteDeclaration() {
     await setDoc(doc(db, 'users', uid, 'assessment', 'current'),
       { athleteDeclared: declared, athleteDeclaredAt: serverTimestamp() }, { merge: true });
   } catch (e) { failToast(e); return; }
-  if (MY_ASMT.doc) MY_ASMT.doc = { ...MY_ASMT.doc, athleteDeclared: declared };
+  /* AUTH-318: el espejo local anota TAMBIÉN que la declaración
+     quedó respondida ahora (la fecha real la pone el servidor en
+     la escritura de arriba; esta solo gobierna el pintado) para
+     que el pliegue derive del estado nuevo: guardar —también en
+     «no»— vuelve a plegar la sección. */
+  if (MY_ASMT.doc) MY_ASMT.doc = { ...MY_ASMT.doc, athleteDeclared: declared, athleteDeclaredAt: new Date().toISOString() };
+  evalFoldReset('athlete');
   toast(t('fa.athleteSaved'));
   renderEnergyPanel();
   await faComputeMine(uid);
@@ -18032,6 +18108,7 @@ async function saveMySex() {
   try {
     await setDoc(doc(db, 'users', uid, 'energyPrivate', 'sex'), data, { merge: true });
     MY_ENERGY = { state: 'ok', sex: sel.value };
+    evalFoldReset('sex');   /* AUTH-318: el repintado deriva del estado nuevo (guardado → plegado) */
     toast(t('fa.saved'));
     renderEnergyPanel();
     await faSyncSignal(uid);
@@ -18045,6 +18122,7 @@ async function deleteMySex() {
   try {
     await deleteDoc(doc(db, 'users', uid, 'energyPrivate', 'sex'));
     MY_ENERGY = { state: 'ok', sex: null };
+    evalFoldReset('sex');   /* AUTH-318: sin dato, la sección renace abierta al repintar */
     toast(t('fa.deleted'));
     ENERGY_MIRROR_SKIP = true;
     renderEnergyPanel();
@@ -20859,7 +20937,26 @@ function goalsFoundationHTML() {
   if (!dPalVal && dPalDef != null) { dPalVal = String(dPalDef); dPalAuto = String(parseInt(d.activityCategoryId, 10)); }
   else if (dPalVal && dPalDef != null && num(dPalVal) === dPalDef) dPalAuto = String(parseInt(d.activityCategoryId, 10));
   const actOpts = ['', '1', '2', '3', '4', '5', '6'].map(v => `<option value="${v}"${String(d.activityCategoryId || '') === v ? ' selected' : ''}>${esc(v === '' ? t('fa.actNone') : t('fa.act' + v))}</option>`).join('');
-  return `<div class="fa-athlete" id="gm-foundation"><h4 class="fa-athtitle">${esc(t('gm.foundation'))}</h4>
+  /* AUTH-318 — pliegue derivado del fundamento + puerta de la
+     casilla de excepción. Completo = los cuatro datos guardados
+     y válidos (los mismos rangos de faCalcCheck). La casilla de
+     excepción solo se MUESTRA cuando el multiplicador guardado
+     está EN la banda 1,20–1,39 (y entonces se pinta como quedó
+     guardada: marcada si la confirmación está guardada); con un
+     valor en rango normal no existe check en blanco visible ni
+     en la línea ni en el editor en reposo — gmPalConfirmGate la
+     hace aparecer al teclear un valor de banda, y la exigencia
+     de guardar (fa.errConfirm) no cambia. */
+  const fPalNum = num(d.palBasal);
+  const fBy = parseInt(d.birthYear, 10);
+  const fComplete = !!(Number.isInteger(fBy) && fBy >= 1900 && fBy <= new Date().getFullYear() - 18
+    && num(d.heightCm) >= 50 && num(d.heightCm) <= 250
+    && d.activityCategoryId != null && d.activityCategoryId !== ''
+    && fPalNum >= 1.20 && fPalNum <= 2.00);
+  const fOpen = evalFoldOpen('foundation', fComplete);
+  const fInBand = fPalNum >= 1.20 && fPalNum < 1.40;
+  const fLine = '✓ ' + esc(t('fa.foldFoundation', { by: d.birthYear, h: d.heightCm, act: d.activityCategoryId, pal: String(d.palBasal).replace('.', LANG === 'es' ? ',' : '.') })) + ' — ' + esc(t(fInBand ? 'fa.bandException' : 'fa.bandNormal'));
+  const editor = `<h4 class="fa-athtitle">${esc(t('gm.foundation'))}</h4>
     <p class="fa-sextext">${esc(t('gm.foundationHint'))}</p>
     <label><span>${esc(t('fa.birthYear'))}</span><input type="number" id="gm-by" value="${esc(d.birthYear || '')}" min="1900" max="${new Date().getFullYear() - 18}"></label>
     <label><span>${esc(t('fa.height'))}</span><input type="number" id="gm-h" value="${esc(d.heightCm || '')}" min="50" max="250"></label>
@@ -20867,8 +20964,19 @@ function goalsFoundationHTML() {
     <label><span>${esc(t('fa.palLabel'))}</span><input type="number" id="gm-pal" step="0.01" data-pal-auto-cat="${dPalAuto}" value="${esc(dPalVal)}" placeholder="${esc(t('fa.palPlaceholder'))}"></label>
     <p class="fa-sextext">${esc(t('fa.palAutoNote'))}</p>
     <p class="fa-sextext">${esc(t('fa.palRules'))}</p>
-    <label class="fa-opt2"><input type="checkbox" id="gm-pal-confirm"> <span>${esc(t('fa.palConfirm'))}</span></label>
-    <div class="fa-btnrow"><button type="button" class="btn-primary btn-sm" id="gm-foundation-save">${esc(t('gm.saveFoundation'))}</button></div></div>`;
+    <div id="gm-pal-confirm-wrap"${fInBand ? '' : ' style="display:none"'}><label class="fa-opt2"><input type="checkbox" id="gm-pal-confirm"${fInBand && d.palExceptionConfirmed === true ? ' checked' : ''}> <span>${esc(t('fa.palConfirm'))}</span></label></div>
+    <div class="fa-btnrow"><button type="button" class="btn-primary btn-sm" id="gm-foundation-save">${esc(t('gm.saveFoundation'))}</button></div>`;
+  if (!fComplete) return `<div class="fa-athlete" id="gm-foundation">${editor}</div>`;
+  return `<div class="fa-athlete" id="gm-foundation">${evalFoldHead('foundation', fLine, fOpen)}<div id="efold-body-foundation"${fOpen ? '' : ' style="display:none"'}>${editor}</div></div>`;
+}
+/* AUTH-318 — la puerta de la casilla de excepción: visible solo
+   mientras el valor TECLEADO está en la banda 1,20–1,39 (la
+   misma banda que exige la confirmación al guardar). */
+function gmPalConfirmGate() {
+  const wrap = $('gm-pal-confirm-wrap'), pal = $('gm-pal');
+  if (!wrap || !pal) return;
+  const v = num(pal.value);
+  wrap.style.display = (isFinite(v) && v >= 1.20 && v < 1.40) ? '' : 'none';
 }
 function goalsFoundationWire() {
   const b = $('gm-foundation-save'); if (b) b.onclick = gmSaveFoundation;
@@ -20880,6 +20988,13 @@ function goalsFoundationWire() {
     act.addEventListener('change', () => faPalAutoApply(act, pal));
     pal.addEventListener('input', () => faPalTrack(pal, act));
   }
+  /* AUTH-318: la puerta de la casilla sigue a lo tecleado (y a
+     la (re)propuesta automática de la categoría, que corre en el
+     listener anterior) y el pliegue del fundamento se cablea. */
+  if (pal) { pal.addEventListener('input', gmPalConfirmGate); pal.addEventListener('change', gmPalConfirmGate); }
+  if (act) act.addEventListener('change', gmPalConfirmGate);
+  gmPalConfirmGate();
+  evalFoldWire('foundation');
 }
 async function gmSaveFoundation() {
   if (!auth.currentUser) return;
@@ -20893,6 +21008,7 @@ async function gmSaveFoundation() {
   try {
     await setDoc(doc(db, 'users', auth.currentUser.uid, 'assessment', 'current'), payload, { merge: true });
     MY_ASMT.doc = { ...(MY_ASMT.doc || {}), ...payload };
+    evalFoldReset('foundation');   /* AUTH-318: guardar vuelve a plegar al repintar */
     toast(t('gm.saved'));
     await faComputeMine(auth.currentUser.uid);
     renderEnergyPanel();
@@ -46337,7 +46453,7 @@ document.addEventListener('keydown', e => { if (e.key === 'Escape') shareClose()
  *  - El SW (sw.js) solo cachea la cáscara del mismo origen en modo
  *    RED PRIMERO: Auth/Firestore/Worker jamás pasan por la caché.
  * ================================================================ */
-const PWA_SW_VERSION = '20261109-sin-datos-cero';
+const PWA_SW_VERSION = '20261109-evaluacion-plegada';
 /* Sello de versión VISIBLE (2026-11-03): el pie de la tarjeta de
    acceso enseña qué copia corre este teléfono ('v ' + el sello),
    para comprobar de un vistazo si la versión nueva ya llegó.

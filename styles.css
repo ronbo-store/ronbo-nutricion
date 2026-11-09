@@ -1016,6 +1016,12 @@ table.whist { min-width: 640px; }
 .fa-privcard { background: #fff; border: 1px solid #e5e7eb; border-radius: 12px; padding: 14px; }
 .fa-sextext { font-size: 14px; line-height: 1.55; color: #374151; margin: 6px 0 0; }
 .fa-current { margin-top: 10px; font-size: 13.5px; font-weight: 700; color: #14532d; background: #d9f2e3; border-radius: 8px; padding: 8px 11px; }
+/* AUTH-2026-11-09-318: la línea «listo» de una sección de la
+   evaluación ya completada (botón de pliegue derivado): la
+   misma banda verde de «Dato guardado», táctil de 44 px. */
+.eval-fold-head { display: flex; align-items: center; gap: 8px; width: 100%; min-height: 44px; box-sizing: border-box; background: #d9f2e3; border: 0; border-radius: 8px; padding: 8px 11px; margin: 0 0 10px; cursor: pointer; text-align: left; color: inherit; font: inherit; }
+.eval-fold-line { flex: 1; min-width: 0; font-size: 14px; font-weight: 700; color: #14532d; }
+.eval-fold-chev { flex: none; color: #0d9488; font-size: 13px; }
 .fa-opts { margin-top: 14px; display: flex; flex-direction: column; gap: 9px; }
 .fa-opt2 { display: flex; align-items: center; gap: 11px; border: 1px solid #d1d5db; border-radius: 10px; padding: 13px 14px; font-size: 15px; font-weight: 600; color: #111827; background: #fff; cursor: pointer; }
 .fa-opt2 input { width: 21px; height: 21px; accent-color: #0d9488; }
