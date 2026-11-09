@@ -5628,7 +5628,7 @@ en: {
   'ui.photoAlt': 'Enlarged photo',
   'msg.photoDeleted': 'Photo deleted.',
   'msg.foodSent': 'Photo sent. Let me know in the chat so I can analyze it.',
-  'train.title': '🏋️ My training plan', 'train.loading': 'Loading your plan…',
+  'train.title': '🏋️ My training plan', 'train.myPlans': '📋 My plans', 'train.loading': 'Loading your plan…',
   'train.none': 'Your trainer has not assigned you a plan yet.',
   'train.noneNamed': 'Your trainer {name} hasn\'t assigned you a plan yet.',
   'train.today.btnToday': 'Today', 'train.today.todayWord': 'Today',
@@ -9822,7 +9822,7 @@ es: {
   'ui.photoAlt': 'Foto ampliada',
   'msg.photoDeleted': 'Foto eliminada.',
   'msg.foodSent': 'Foto enviada. Avísame por el chat para analizarla.',
-  'train.title': '🏋️ Mi plan de entrenamiento', 'train.loading': 'Cargando tu plan…',
+  'train.title': '🏋️ Mi plan de entrenamiento', 'train.myPlans': '📋 Mis planes', 'train.loading': 'Cargando tu plan…',
   'train.none': 'Tu entrenador aún no te ha asignado un plan.',
   'train.noneNamed': 'Tu entrenador {name} aún no te ha asignado un plan.',
   'train.today.btnToday': 'Hoy', 'train.today.todayWord': 'Hoy',
@@ -34777,6 +34777,23 @@ async function loadMyTraining() {
   const myTrainerUid = (typeof MY_REL !== 'undefined' && MY_REL && MY_REL.status === 'activa' && MY_REL.trainerUid)
     ? MY_REL.trainerUid
     : ((typeof UDATA !== 'undefined' && UDATA && UDATA.assignmentStatus === 'assigned' && UDATA.trainerUid) ? UDATA.trainerUid : '');
+  /* AUTH-343 — «MIS PLANES»: quien no tiene OTRO entrenador (sin
+     entrenador asignado, o es su propio entrenador) administra
+     aquí SUS planes, con las mismas piezas de la ficha del
+     entrenador (planRowsHTML + wirePlanActions: fuente única —
+     Editar abre el mismo editor, con Plantillas y el Programa
+     Automático; Activar apaga los demás planes del mismo
+     usuario; Versiones y Eliminar, los de la ficha). Con un
+     entrenador distinto, el bloque NO se pinta y nada cambia
+     para ese alumno: sus planes los maneja su entrenador. Las
+     reglas ya conceden la autoría propia al alumno aprobado sin
+     entrenador (crear/editar/activar) y, con el delta de este
+     paquete, también borrar sus propios planes. */
+  const canSelfManage = !myTrainerUid || myTrainerUid === uid;
+  const myPlansHTML = canSelfManage ? `<div class="my-plans-block" id="my-plans-box">
+    <div class="my-plans-head"><h4 class="history-title">${t('train.myPlans')}</h4><button type="button" class="btn-primary btn-sm" data-plan-new="1">${t('train.new')}</button></div>
+    ${planRowsHTML(plans)}
+  </div>` : '';
   const selDiRow = diForDate(sel);
   const logSelRow = logs.find(l => l.date === sel) || null;
   let repeatRow = `<div style="margin:10px 0"><button type="button" class="btn-ghost btn-sm" data-my-repeat="week">${myTrainerUid ? t('train.repeat.reqWeekBtn') : t('train.repeat.weekBtn')}</button>`;
@@ -34805,6 +34822,7 @@ async function loadMyTraining() {
     ${planPeriodText(plan) ? `<p class="progress-hint">${t('train.dates.clientLine', { period: esc(planPeriodText(plan)) })}</p>` : ''}
     <p class="progress-hint">${t('train.planFreq', { n: (plan.days || []).length })}</p>
     ${repeatRow}`}
+    ${myPlansHTML}
     ${weekHtml}
     ${trainTodayHTML}
     <p class="progress-hint">${t('train.weekDone', { n: weekCount })}</p>
@@ -34817,6 +34835,8 @@ async function loadMyTraining() {
          alargaba la página y era además la superficie donde las
          filas de series aplastaban la columna del nombre. -->`;
   if (isLoose) trainNoneNamedRender(box);
+  const mpBox = $('my-plans-box');
+  if (mpBox) wirePlanActions(mpBox, uid, plans, () => loadMyTraining());
   const pcBtn = $('btn-print-card');
   if (pcBtn) pcBtn.onclick = () => printCardRender(plan);
   box.querySelectorAll('[data-my-repeat]').forEach(b => b.onclick = async () => {
@@ -49051,7 +49071,7 @@ document.addEventListener('keydown', e => { if (e.key === 'Escape') shareClose()
  *  - El SW (sw.js) solo cachea la cáscara del mismo origen en modo
  *    RED PRIMERO: Auth/Firestore/Worker jamás pasan por la caché.
  * ================================================================ */
-const PWA_SW_VERSION = '20261109-tarjeta-manual';
+const PWA_SW_VERSION = '20261109-mis-planes';
 /* Sello de versión VISIBLE (2026-11-03): el pie de la tarjeta de
    acceso enseña qué copia corre este teléfono ('v ' + el sello),
    para comprobar de un vistazo si la versión nueva ya llegó.

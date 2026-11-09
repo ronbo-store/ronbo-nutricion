@@ -2604,6 +2604,9 @@ body.nav-lock .sw-fab, body.nav-lock .help-fab, body.nav-lock .share-fab, body.n
    «Mis alumnos» — las tarjetas son las de la ficha (.user-row);
    el bloque solo aporta su respiro dentro de la tarjeta. */
 .stu-plan-block { margin: 10px 0 14px; }
+.my-plans-block { margin: 12px 0 14px; }
+.my-plans-head { display: flex; align-items: center; justify-content: space-between; gap: 10px; margin-bottom: 8px; }
+.my-plans-head .history-title { margin: 0; }
 .detail-head .srow-ava { width: 52px; height: 52px; font-size: 17px; }
 .detail-main { min-width: 0; }
 .detail-name { display: block; font-size: 17px; font-weight: 700; color: #1f2a44; }
