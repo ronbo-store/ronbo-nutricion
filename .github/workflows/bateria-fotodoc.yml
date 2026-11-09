@@ -1,0 +1,61 @@
+name: Batería reglas FotoDoc (emulador)
+run-name: "Batería FotoDoc · ${{ github.ref_name }} · ${{ github.sha }}"
+on:
+  push:
+    branches: [ci/fotodoc-bateria]
+permissions:
+  contents: read
+jobs:
+  bateria:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: tests-fotodoc
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: npm
+          cache-dependency-path: tests-fotodoc/package-lock.json
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '17'
+      - run: npm ci
+      - run: npm install -g firebase-tools@15.34.0
+      - name: Suite CANDIDATA (delta foto dentro del documento; las guardas deniegan lo excedido)
+        run: |
+          cp reglas-candidatas.txt firestore.rules
+          rm -f fallos.txt progreso.txt
+          set +e
+          ESPERA_NUEVO=true firebase emulators:exec --only firestore --project ronbo-nutri-test "node test-fotodoc.mjs" > salida-candidata.log 2>&1
+          echo "suite-candidata exit=$?"
+          [ -f fallos.txt ] && cp fallos.txt fallos-candidata.txt || true
+          [ -f progreso.txt ] && cp progreso.txt progreso-candidata.txt || true
+      - name: Suite CONTROL (reglas vivas de hoy; sin guarda, lo excedido aún pasa)
+        run: |
+          cp reglas-vivas.txt firestore.rules
+          rm -f fallos.txt progreso.txt
+          set +e
+          ESPERA_NUEVO=false firebase emulators:exec --only firestore --project ronbo-nutri-test "node test-fotodoc.mjs" > salida-control.log 2>&1
+          echo "suite-control exit=$?"
+          [ -f fallos.txt ] && cp fallos.txt fallos-control.txt || true
+          [ -f progreso.txt ] && cp progreso.txt progreso-control.txt || true
+      - name: Diagnóstico y veredicto
+        if: always()
+        working-directory: ${{ github.workspace }}
+        run: |
+          cd tests-fotodoc
+          for f in fallos-candidata.txt fallos-control.txt; do
+            if [ -f "$f" ]; then echo "::error title=Fallos::$f"; sed 's/^/::error ::/' "$f"; fi
+          done
+          for f in progreso-candidata.txt progreso-control.txt; do
+            if [ -f "$f" ]; then echo "== últimas marcas de $f"; tail -n 2 "$f" | sed 's/^/::error ::ULTIMO ::/' ; fi
+          done
+          for f in salida-candidata.log salida-control.log; do
+            if [ -f "$f" ]; then echo "== cola de $f"; grep -E "^(OK|FALLO|BATERÍA|FALLOS|Error)" "$f" | tail -n 6 | sed 's/^/::error ::LOG ::/' || true; fi
+          done
+          test ! -f fallos-candidata.txt && test ! -f fallos-control.txt
+          grep -q "BATERÍA FOTODOC OK — CANDIDATA" salida-candidata.log
+          grep -q "BATERÍA FOTODOC OK — VIVAS" salida-control.log
