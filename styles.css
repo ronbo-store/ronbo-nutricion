@@ -4414,6 +4414,7 @@ body.swap-sheet-open .asst-fab { display: none !important; }
 /* ═══ AUTH-2026-11-08-RETOS · Retos: aprobación, ficha y puntos ═══ */
 .chal-cat { cursor: pointer; }
 .chal-cat-ico { font-size: 1.25rem; margin-right: 8px; }
+.chal-cat-face { width: 36px; height: 36px; border-radius: 50%; object-fit: cover; flex: none; display: block; }
 .chal-medal-line { color: #0f766e; font-weight: 600; margin: 4px 0 0; }
 .chal-cat-state { margin: 6px 0 0; }
 .chal-cat-bar .chal-bar { margin-top: 8px; }

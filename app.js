@@ -45914,7 +45914,7 @@ document.addEventListener('keydown', e => { if (e.key === 'Escape') shareClose()
  *  - El SW (sw.js) solo cachea la cáscara del mismo origen en modo
  *    RED PRIMERO: Auth/Firestore/Worker jamás pasan por la caché.
  * ================================================================ */
-const PWA_SW_VERSION = '20261108-retos-aprobacion';
+const PWA_SW_VERSION = '20261108-retos-mascota';
 /* Sello de versión VISIBLE (2026-11-03): el pie de la tarjeta de
    acceso enseña qué copia corre este teléfono ('v ' + el sello),
    para comprobar de un vistazo si la versión nueva ya llegó.
@@ -49085,7 +49085,15 @@ function chalSheetPaint() {
   let face = '';
   if (just) face = `<img class="chal-face" src="${MASCOT_CELEB_URL}" alt="" onerror="this.remove()">`;
   else if (state === 'none' || state === 'pending' || state === 'approved') face = `<img class="chal-face" src="${CHAL_FACE_MUSCLE}" alt="" onerror="this.remove()">`;
-  let h = `<div class="chal-sheet-head"><span class="chal-sheet-ico" aria-hidden="true">${CHAL_METRIC_ICON[chal.metric] || '🏆'}</span><div class="chal-sheet-tt"><b>${esc(chalNameOf(chal))}</b><div class="chal-sheet-tags">${chalTagHTML(chal)}<span class="chal-tag">${esc(t('chal.periodDaysTxt', { n: chal.periodDays }))}</span></div></div>${face}</div>`;
+  /* Correctivo 2026-11-08 (orden de Ronald en el chat RONBO.NUTRI,
+     23:25 CST, con su captura): en la ficha NO conviven dos iconos —
+     cuando la mascota se pinta, el icono de la métrica SALE de la
+     cabecera («siempre gana la mascota»). En los estados sin cara
+     (cumplido antiguo y no aprobado: la celebración es del momento
+     de cumplir — AUTH-270 — y la familia no tiene expresión para el
+     rechazo) el icono queda como único icono de la cabecera. */
+  const sheetIco = face ? '' : `<span class="chal-sheet-ico" aria-hidden="true">${CHAL_METRIC_ICON[chal.metric] || '🏆'}</span>`;
+  let h = `<div class="chal-sheet-head">${sheetIco}<div class="chal-sheet-tt"><b>${esc(chalNameOf(chal))}</b><div class="chal-sheet-tags">${chalTagHTML(chal)}<span class="chal-tag">${esc(t('chal.periodDaysTxt', { n: chal.periodDays }))}</span></div></div>${face}</div>`;
   h += `<div class="chal-sheet-sec"><h4>${esc(t('chal.fichaWhat'))}</h4><p>${esc(t('chal.what.' + chal.metric, { y: chal.target, n: chal.periodDays }))}</p></div>`;
   h += `<div class="chal-sheet-sec"><h4>${esc(t('chal.fichaGoal'))}</h4><p class="chal-goal-big">${esc(t('chal.goalLine', { y: chal.target, metric: t('chal.metric.' + chal.metric), n: chal.periodDays }))}</p>`;
   if (state === 'none' || state === 'pending') {
@@ -49205,7 +49213,14 @@ function chalRenderPaint() {
   /* El catálogo, compacto (diseño §2): icono de la métrica,
      nombre, la meta y el plazo en una línea, «Medalla + 1 punto»
      y el estado si ya participo. El párrafo fundado vive entero
-     en la ficha del reto, que se abre tocando la tarjeta. */
+     en la ficha del reto, que se abre tocando la tarjeta.
+     Correctivo 2026-11-08 (la misma orden de arriba): la tarjeta
+     del catálogo pintaba SOLO el emoji de la métrica como icono
+     principal; toma su sitio la cara de músculos, que es la cara
+     de los retos por unirse del paquete de la mascota (la misma
+     que ya pintan las tarjetas de grupo por unirse en
+     chalItemHTML). La métrica sigue nombrada en el texto de la
+     línea de meta. */
   h += CHAL_CATALOG.map(c => {
     const mineC = CHAL.mine.filter(x => x.chal.catalogId === c.id);
     const cur = mineC.find(x => chalJoinState(x.part) === 'pending')
@@ -49219,7 +49234,7 @@ function chalRenderPaint() {
       else st = `<div class="chal-cat-bar">${chalBarHTML(cur.part, cur.chal)}</div>`;
     }
     return `<div class="chal-item chal-cat" data-chal-act="open" data-chal-cat="${c.id}" role="button" tabindex="0">
-      <div class="chal-item-head"><span class="chal-head-l"><span class="chal-cat-ico" aria-hidden="true">${CHAL_METRIC_ICON[c.metric] || '🏆'}</span><b>${esc(t('chal.cat.' + c.id + '.title'))}</b></span><span class="chal-tag">${esc(t('chal.periodDaysTxt', { n: c.periodDays }))}</span></div>
+      <div class="chal-item-head"><span class="chal-head-l"><img class="chal-cat-face" src="${CHAL_FACE_MUSCLE}" alt="" aria-hidden="true" onerror="this.remove()"><b>${esc(t('chal.cat.' + c.id + '.title'))}</b></span><span class="chal-tag">${esc(t('chal.periodDaysTxt', { n: c.periodDays }))}</span></div>
       <p class="chal-metric">${esc(t('chal.goalLine', { y: c.target, metric: t('chal.metric.' + c.metric), n: c.periodDays }))}</p>
       <p class="chal-medal-line">${esc(t('chal.medalPointLine'))}</p>
       ${st}
