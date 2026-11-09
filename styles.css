@@ -2600,6 +2600,10 @@ body.nav-lock .sw-fab, body.nav-lock .help-fab, body.nav-lock .share-fab, body.n
 .back-row { display: flex; align-items: center; gap: 6px; color: #0d9488; font-weight: 700; font-size: 14.5px; margin-bottom: 12px; background: none; border: none; cursor: pointer; font-family: inherit; padding: 0; }
 .detail-card { background: #fff; border: 1px solid #e5e7eb; border-radius: 14px; padding: 16px; }
 .detail-head { display: flex; align-items: center; gap: 12px; padding-bottom: 12px; border-bottom: 1px solid #eef2f5; margin-bottom: 6px; }
+/* AUTH-341: el bloque «Su plan de entrenamiento» del detalle de
+   «Mis alumnos» — las tarjetas son las de la ficha (.user-row);
+   el bloque solo aporta su respiro dentro de la tarjeta. */
+.stu-plan-block { margin: 10px 0 14px; }
 .detail-head .srow-ava { width: 52px; height: 52px; font-size: 17px; }
 .detail-main { min-width: 0; }
 .detail-name { display: block; font-size: 17px; font-weight: 700; color: #1f2a44; }

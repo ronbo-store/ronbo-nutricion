@@ -5513,6 +5513,7 @@ en: {
   'students.pend.bodyNoConsent': 'Their specific consent for this analysis is missing',
   'students.pend.bodyNoAnalysis': 'No body-type analysis on record yet',
   'students.viewFull': 'View full record',
+  'students.planBlock': '🏋️ Their training plan',
   'students.resolvedTitle': 'Resolved',
   'students.detailClear': 'This student has nothing pending.',
   'students.nonePending': 'No student has anything pending.',
@@ -9706,6 +9707,7 @@ es: {
   'students.pend.bodyNoConsent': 'Falta su consentimiento específico para este análisis',
   'students.pend.bodyNoAnalysis': 'Aún no tiene un análisis de tipo corporal registrado',
   'students.viewFull': 'Ver ficha completa',
+  'students.planBlock': '🏋️ Su plan de entrenamiento',
   'students.resolvedTitle': 'Resueltos',
   'students.detailClear': 'Este alumno no tiene nada pendiente.',
   'students.nonePending': 'Ningún alumno tiene pendientes.',
@@ -17076,6 +17078,41 @@ function studentsListSectionHTML() {
     ? `<div class="cgrid">${list.map(studentsGridCellHTML).join('')}</div>`
     : `<div class="students-rows">${list.map(studentsRowHTML).join('')}</div>`;
 }
+/* AUTH-341 (orden de Ronald, 2026-11-09 10:44 CST): el plan de
+   entrenamiento del alumno vive TAMBIÉN en la primera pantalla de
+   su detalle en «Mis alumnos», justo tras la cabecera y antes de
+   los pendientes — sin tener que abrir la ficha completa. Las
+   tarjetas y los botones son LOS MISMOS de la ficha (planRowsHTML
+   + wirePlanActions: fuente única) y los datos llegan por la
+   misma vía (fetchPlans, la consulta de la ficha), en segundo
+   plano: el bloque nace en «cargando» y se repinta al llegar, sin
+   bloquear el resto del detalle. La caché es por alumno y la
+   invalida cualquier escritura de planes (los botones del propio
+   bloque y el guardado del editor de planes). */
+let STU_PLANS = { uid: null, plans: null, loadingFor: null };
+function stuPlanBlockHTML(u) {
+  const loaded = STU_PLANS.uid === u.id && !!STU_PLANS.plans;
+  const inner = !loaded
+    ? `<div class="wempty">${esc(t('access.loading'))}</div>`
+    : `<div style="margin-bottom:10px"><button class="btn-primary btn-sm" data-plan-new="1">${t('train.new')}</button></div>`
+      + (STU_PLANS.plans.length ? planRowsHTML(STU_PLANS.plans) : `<div class="wempty">${t('train.noPlan')}</div>`);
+  return `<div class="stu-plan-block" id="stu-plan-block"><h3 class="history-title">${esc(t('students.planBlock'))}</h3>${inner}</div>`;
+}
+function stuPlansWireCurrent(uid) {
+  const blk = document.querySelector('#stu-plan-block');
+  if (!blk || STU_PLANS.uid !== uid || !STU_PLANS.plans) return;
+  wirePlanActions(blk, uid, STU_PLANS.plans, () => { STU_PLANS.plans = null; loadStudentPlans(uid); });
+}
+async function loadStudentPlans(uid) {
+  if (STU_PLANS.uid === uid && STU_PLANS.plans) { stuPlansWireCurrent(uid); return; }
+  if (STU_PLANS.loadingFor === uid) return;
+  STU_PLANS.loadingFor = uid;
+  const plans = await fetchPlans(uid);
+  STU_PLANS = { uid, plans, loadingFor: null };
+  if (STUDENTS_DETAIL !== uid) return;
+  const blk = document.querySelector('#stu-plan-block');
+  if (blk) { blk.outerHTML = stuPlanBlockHTML({ id: uid }); stuPlansWireCurrent(uid); }
+}
 function studentsDetailHTML(u) {
   const L = STUDENTS_LAST;
   const name = stuName(u);
@@ -17088,6 +17125,9 @@ function studentsDetailHTML(u) {
   let h = `<button type="button" class="back-row" id="stu-back">‹ ${esc(fromLabel)}</button>
   <div class="detail-card">
     <div class="detail-head">${stuAvatarHTML(u, name)}<span class="detail-main"><span class="detail-name">${esc(name)}</span>${alertChipHTML((L.alertsByUid || {})[u.id])}<span class="detail-sub">${err ? esc(t('students.pendLoadError')) : pend.items.length ? esc(t('students.pendToResolve', { n: pend.items.length })) : esc(t('students.upToDate'))}</span></span></div>`;
+  /* AUTH-341: «🏋️ Su plan de entrenamiento», nacido desplegado,
+     inmediatamente tras la cabecera y ANTES de los pendientes. */
+  h += stuPlanBlockHTML(u);
   if (err) {
     h += `<div class="stu-err">${esc(t('students.loadError'))}<br><button type="button" class="btn-ghost btn-sm" data-stu-retry="${u.id}" style="margin-top:8px">${esc(t('students.retry'))}</button></div>`;
   } else {
@@ -17162,6 +17202,10 @@ function renderStudentsBody() {
   el.querySelectorAll('[data-assign-open]').forEach(b => b.onclick = () => assignOpen(b.dataset.assignOpen, 'students'));
   el.querySelectorAll('[data-stu-admin-meals]').forEach(b => b.onclick = () => stuGoAdminMeals());
   el.querySelectorAll('[data-stu-retry]').forEach(b => b.onclick = () => { STUDENTS_RESTORE = true; loadStudents(); });
+  /* AUTH-341: con un detalle abierto, el bloque de su plan se
+     cablea desde la caché o se pide (la respuesta repinta solo
+     el bloque; el resto del detalle no espera). */
+  if (du) loadStudentPlans(du.id);
 }
 /* Barra de la vista: buscador + conmutador Lista/Rejilla en una
    fila y las tres pastillas debajo (A-A2), con el estado PROPIO
@@ -35583,13 +35627,12 @@ function propTrayCardHTML(p) {
 }
 
 /* --- Vista del entrenador (dentro del detalle del cliente) --- */
-async function loadClientTraining(uid) {
-  const box = $('client-training');
-  if (!box) return;
-  const plans = await fetchPlans(uid);
-  const logs = await fetchLogs(uid);
-  const actByDate = await fetchClientActLogs(uid);
-  const planRows = plans.length ? plans.map(p => `
+/* AUTH-341: el pintor de las tarjetas de planes de la ficha,
+   extraído TAL CUAL de loadClientTraining para que el detalle de
+   «Mis alumnos» pinte las MISMAS tarjetas (fuente única: las dos
+   superficies nunca se contradicen). */
+function planRowsHTML(plans) {
+  return plans.length ? plans.map(p => `
     <div class="user-row"><div><b>${esc(p.title || '')}</b>${p.active === true ? ` <span class="ok-badge">${t('train.activeBadge')}</span>` : ''}${p.active === true && planIsExpired(p) ? ` <span class="exp-badge">${t('train.dates.expired')}</span>` : ''}<br><span class="muted">${t('train.daysCount', { n: (p.days || []).length })} · ${t('train.exCount', { n: (p.days || []).reduce((n, d) => n + (d.exercises || []).length, 0) })}${planPeriodText(p) ? ' · ' + esc(planPeriodText(p)) : ''}</span></div>
     <div class="user-actions">
       <button class="btn-ghost btn-sm" data-plan-edit="${p.id}">${t('client.edit')}</button>
@@ -35598,6 +35641,71 @@ async function loadClientTraining(uid) {
       <button class="btn-ghost btn-sm" data-plan-history="${p.id}">${t('train.snap.btn')}</button>
       <button class="btn-ghost btn-sm" data-plan-del="${p.id}">${t('train.delete')}</button>
     </div></div><div class="plan-history" id="ph-${p.id}" style="display:none"></div>`).join('') : `<div class="wempty">${t('train.noPlan')}</div>`;
+}
+/* AUTH-341: el cableado de los botones de plan de la ficha,
+   extraído de loadClientTraining y compartido con el bloque del
+   detalle de «Mis alumnos»: MISMOS manejadores — Editar abre el
+   mismo editor de planes, Repetir semana el mismo flujo, y
+   Activar/Desactivar y Eliminar escriben lo mismo; al terminar
+   una escritura cada superficie se repinta por su reload().
+   El historial de versiones se busca DENTRO del contenedor
+   recibido (en la ficha resuelve al mismo elemento de siempre;
+   en el detalle evita el choque de ids con la ficha oculta). */
+function wirePlanActions(box, uid, plans, reload) {
+  box.querySelectorAll('[data-plan-new]').forEach(b => b.onclick = () => openPlanEditor(uid, null));
+  box.querySelectorAll('[data-plan-edit]').forEach(b => b.onclick = () => { const p = plans.find(x => x.id === b.dataset.planEdit); if (p) openPlanEditor(uid, p); });
+  /* REPETIR: semana desde la tarjeta del plan; día desde un
+     registro del historial (la copia nace en el editor; aquí no se
+     escribe nada). */
+  box.querySelectorAll('[data-plan-repeat-week]').forEach(b => b.onclick = () => { const p = plans.find(x => x.id === b.dataset.planRepeatWeek); if (p) repeatWeekOpen(uid, p, plans); });
+  box.querySelectorAll('[data-plan-toggle]').forEach(b => b.onclick = async () => {
+    const p = plans.find(x => x.id === b.dataset.planToggle); if (!p) return;
+    if (p.active === true) {
+      await setDoc(doc(db, 'training_plans', p.id), { active: false, updatedAt: serverTimestamp() }, { merge: true });
+    } else {
+      for (const o of plans) if (o.id !== p.id && o.active === true)
+        await setDoc(doc(db, 'training_plans', o.id), { active: false, updatedAt: serverTimestamp() }, { merge: true });
+      await setDoc(doc(db, 'training_plans', p.id), { active: true, updatedAt: serverTimestamp() }, { merge: true });
+    }
+    reload();
+  });
+  box.querySelectorAll('[data-plan-del]').forEach(b => b.onclick = async () => {
+    if (!confirm(t('train.deleteConfirm'))) return;
+    await deleteDoc(doc(db, 'training_plans', b.dataset.planDel));
+    toast(t('train.deleted'));
+    reload();
+  });
+  /* VERSIONADO (§6.4): el historial se carga perezosamente al abrir
+     y es SOLO LECTURA — ver una instantánea no escribe nada y el
+     plan vivo no se toca desde aquí. */
+  box.querySelectorAll('[data-plan-history]').forEach(b => b.onclick = async () => {
+    const boxH = box.querySelector('#ph-' + b.dataset.planHistory);
+    if (!boxH) return;
+    if (boxH.style.display !== 'none') { boxH.style.display = 'none'; return; }
+    boxH.style.display = '';
+    if (boxH.dataset.loaded) return;
+    boxH.dataset.loaded = '1';
+    const snaps = (await fetchSnapshots(uid)).filter(s => s.sourcePlanId === b.dataset.planHistory);
+    boxH.innerHTML = `<h4 class="history-title">${t('train.snap.title')}</h4>` + (snaps.length ? snaps.map(s => `
+      <div class="train-ex"><span>${esc(t('train.snap.at', { d: snapDateLabel(s.snapshotAt) }))} · <b>${esc(s.title || '')}</b></span><button class="btn-ghost btn-sm" data-snap-view="${s.id}">${t('train.snap.view')}</button></div>
+      <div class="snap-detail" id="sd-${s.id}" style="display:none">${(s.days || []).map(d => `<div class="snap-day"><b>${esc(d.label || '')}</b>${trainExercisesHTML(d)}</div>`).join('')}</div>`).join('')
+      : `<div class="wempty">${t('train.snap.empty')}</div>`);
+    boxH.querySelectorAll('[data-snap-view]').forEach(vb => vb.onclick = () => {
+      const det = box.querySelector('#sd-' + vb.dataset.snapView);
+      if (!det) return;
+      const open = det.style.display !== 'none';
+      det.style.display = open ? 'none' : '';
+      vb.textContent = open ? t('train.snap.view') : t('train.snap.hide');
+    });
+  });
+}
+async function loadClientTraining(uid) {
+  const box = $('client-training');
+  if (!box) return;
+  const plans = await fetchPlans(uid);
+  const logs = await fetchLogs(uid);
+  const actByDate = await fetchClientActLogs(uid);
+  const planRows = planRowsHTML(plans);
   /* PERSONALIZA (2026-10-27): si el registro trae cambios o
      agregados de la sesión, el entrenador ve la verdad con sus
      marcas también en este resumen (el detalle vive en el
@@ -35637,60 +35745,18 @@ async function loadClientTraining(uid) {
   const logRows = logs.slice(0, 8).map(l => `<div class="train-ex"><span>${esc(l.dayLabel || '')}${logMarks(l)}${logBurn(l)}${trainLogMetaHTML(l)}</span><span class="sx">${dateName(l.date)} ✓</span><button class="btn-ghost btn-sm" data-log-repeat="${l.id}">${t('train.repeat.fromHistory')}</button></div>`).join('');
   box.innerHTML = `
     <h3 class="history-title">${t('train.section')}</h3>
-    <div style="margin-bottom:10px"><button class="btn-primary btn-sm" id="btn-plan-new">${t('train.new')}</button></div>
+    <div style="margin-bottom:10px"><button class="btn-primary btn-sm" data-plan-new="1">${t('train.new')}</button></div>
     ${planRows}
     <div id="client-proposals"></div>
     <h3 class="history-title">${t('train.recent')}</h3>
     ${logRows || `<div class="wempty">${t('train.noLogs')}</div>`}`;
   paintClientWeekCard(uid, plans, logs);
-  $('btn-plan-new').onclick = () => openPlanEditor(uid, null);
-  box.querySelectorAll('[data-plan-edit]').forEach(b => b.onclick = () => { const p = plans.find(x => x.id === b.dataset.planEdit); if (p) openPlanEditor(uid, p); });
-  /* REPETIR: semana desde la tarjeta del plan; día desde un
-     registro del historial (la copia nace en el editor; aquí no se
-     escribe nada). */
-  box.querySelectorAll('[data-plan-repeat-week]').forEach(b => b.onclick = () => { const p = plans.find(x => x.id === b.dataset.planRepeatWeek); if (p) repeatWeekOpen(uid, p, plans); });
+  /* AUTH-341: los botones de plan se cablean por la vía compartida
+     (wirePlanActions); al terminar una escritura, la ficha se
+     repinta como siempre, recargándose a sí misma. */
+  wirePlanActions(box, uid, plans, () => loadClientTraining(uid));
   box.querySelectorAll('[data-log-repeat]').forEach(b => b.onclick = () => { const l = logs.find(x => x.id === b.dataset.logRepeat); if (l) repeatDayFromLogOpen(uid, l, plans); });
-  box.querySelectorAll('[data-plan-toggle]').forEach(b => b.onclick = async () => {
-    const p = plans.find(x => x.id === b.dataset.planToggle); if (!p) return;
-    if (p.active === true) {
-      await setDoc(doc(db, 'training_plans', p.id), { active: false, updatedAt: serverTimestamp() }, { merge: true });
-    } else {
-      for (const o of plans) if (o.id !== p.id && o.active === true)
-        await setDoc(doc(db, 'training_plans', o.id), { active: false, updatedAt: serverTimestamp() }, { merge: true });
-      await setDoc(doc(db, 'training_plans', p.id), { active: true, updatedAt: serverTimestamp() }, { merge: true });
-    }
-    loadClientTraining(uid);
-  });
-  box.querySelectorAll('[data-plan-del]').forEach(b => b.onclick = async () => {
-    if (!confirm(t('train.deleteConfirm'))) return;
-    await deleteDoc(doc(db, 'training_plans', b.dataset.planDel));
-    toast(t('train.deleted'));
-    loadClientTraining(uid);
-  });
   loadClientProposals(uid, plans);
-  /* VERSIONADO (§6.4): el historial se carga perezosamente al abrir
-     y es SOLO LECTURA — ver una instantánea no escribe nada y el
-     plan vivo no se toca desde aquí. */
-  box.querySelectorAll('[data-plan-history]').forEach(b => b.onclick = async () => {
-    const boxH = $('ph-' + b.dataset.planHistory);
-    if (!boxH) return;
-    if (boxH.style.display !== 'none') { boxH.style.display = 'none'; return; }
-    boxH.style.display = '';
-    if (boxH.dataset.loaded) return;
-    boxH.dataset.loaded = '1';
-    const snaps = (await fetchSnapshots(uid)).filter(s => s.sourcePlanId === b.dataset.planHistory);
-    boxH.innerHTML = `<h4 class="history-title">${t('train.snap.title')}</h4>` + (snaps.length ? snaps.map(s => `
-      <div class="train-ex"><span>${esc(t('train.snap.at', { d: snapDateLabel(s.snapshotAt) }))} · <b>${esc(s.title || '')}</b></span><button class="btn-ghost btn-sm" data-snap-view="${s.id}">${t('train.snap.view')}</button></div>
-      <div class="snap-detail" id="sd-${s.id}" style="display:none">${(s.days || []).map(d => `<div class="snap-day"><b>${esc(d.label || '')}</b>${trainExercisesHTML(d)}</div>`).join('')}</div>`).join('')
-      : `<div class="wempty">${t('train.snap.empty')}</div>`);
-    boxH.querySelectorAll('[data-snap-view]').forEach(vb => vb.onclick = () => {
-      const det = $('sd-' + vb.dataset.snapView);
-      if (!det) return;
-      const open = det.style.display !== 'none';
-      det.style.display = open ? 'none' : '';
-      vb.textContent = open ? t('train.snap.view') : t('train.snap.hide');
-    });
-  });
 }
 
 /* ================= PUERTA PAR-Q (§4.5) — guarda de INTERFAZ =================
@@ -38851,6 +38917,9 @@ $('form-plan').addEventListener('submit', async e => {
      vuelve a «Guardar plan» y queda listo para otro guardado. */
   saveDone();
   if ($('client-training')) loadClientTraining(cuid);
+  /* AUTH-341: si el detalle de «Mis alumnos» de este alumno está
+     abierto, su bloque de plan se recarga con lo recién guardado. */
+  if (STU_PLANS.uid === cuid && STUDENTS_DETAIL === cuid) { STU_PLANS.plans = null; loadStudentPlans(cuid); }
   if (cuid === auth.currentUser.uid) loadMyTraining();
 });
 
@@ -48959,7 +49028,7 @@ document.addEventListener('keydown', e => { if (e.key === 'Escape') shareClose()
  *  - El SW (sw.js) solo cachea la cáscara del mismo origen en modo
  *    RED PRIMERO: Auth/Firestore/Worker jamás pasan por la caché.
  * ================================================================ */
-const PWA_SW_VERSION = '20261109-tres-errores';
+const PWA_SW_VERSION = '20261109-plan-rapido';
 /* Sello de versión VISIBLE (2026-11-03): el pie de la tarjeta de
    acceso enseña qué copia corre este teléfono ('v ' + el sello),
    para comprobar de un vistazo si la versión nueva ya llegó.
