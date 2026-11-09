@@ -34,9 +34,10 @@ async function caso(nombre, promesa, debePasar) {
     else await assertFails(promesa);
     console.log(`OK    ${nombre} → ${debePasar ? 'PERMITIDO' : 'DENEGADO'}`);
   } catch (e) {
-    const crudo = String((e && e.message) || e).replace(/\s+/g, ' ').slice(0, 220);
-    fallos.push(`${nombre}: se esperaba ${debePasar ? 'PERMITIDO' : 'DENEGADO'} — ${crudo}`);
-    console.log(`FALLO ${nombre}: se esperaba ${debePasar ? 'PERMITIDO' : 'DENEGADO'} — ${crudo}`);
+    const crudo = String((e && e.message) || e).replace(/\s+/g, ' ');
+    fallos.push(`${nombre}: se esperaba ${debePasar ? 'PERMITIDO' : 'DENEGADO'}`);
+    for (let i = 0; i < crudo.length; i += 180) fallos.push('  CRUDO ' + crudo.slice(i, i + 180));
+    console.log(`FALLO ${nombre}: se esperaba ${debePasar ? 'PERMITIDO' : 'DENEGADO'} — ${crudo.slice(0, 400)}`);
   }
 }
 
