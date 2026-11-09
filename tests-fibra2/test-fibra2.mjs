@@ -103,7 +103,13 @@ await testEnv.withSecurityRulesDisabled(async (ctx) => {
   await setDoc(doc(db, 'users', 'full3'), alumnaBase('full3'));
   await setDoc(doc(db, 'users', 'real1'), alumnaReal('real1'));
   await setDoc(doc(db, 'users', 'real2'), alumnaReal('real2'));
-  await setDoc(doc(db, 'users', ENT), { name: 'Entrenador', role: 'entrenador', approved: true, isOwner: false });
+  await setDoc(doc(db, 'users', ENT), { name: 'Entrenador', role: 'entrenador', approved: true, isOwner: false, approvalsUsed: 0 });
+  // Semilla FIEL a producción: el documento de aprobaciones y el
+  // perfil de entrenador EXISTEN en producción; sin ellos, varias
+  // cláusulas del entrenador caen en rutas de error que consumen
+  // presupuesto de expresiones en el emulador.
+  await setDoc(doc(db, 'app_settings', 'approvals'), { maxPerTrainer: 1 });
+  await setDoc(doc(db, 'trainer_profiles', ENT), { uid: ENT, active: true });
   await setDoc(doc(db, 'users', OTRA), { name: 'Otra', role: 'usuario', approved: true, isOwner: false });
 });
 
