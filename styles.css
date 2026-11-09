@@ -1165,6 +1165,12 @@ table.whist { min-width: 640px; }
 .train-ex-card { display: flex; gap: 10px; align-items: flex-start; padding: 8px 0; border-bottom: 1px dashed #eef1f3; }
 .train-ex-card:last-of-type { border-bottom: none; }
 .train-ex-card.is-done { background: #f2fbf6; border-radius: 8px; }
+.train-ex-card.is-progress { background: #fffbeb; border-radius: 8px; }
+.train-ex-state { display: inline-block; margin-top: 4px; font-size: 12px; font-weight: 600; }
+.train-ex-state.st-done { color: #15803d; }
+.train-ex-state.st-progress { color: #b45309; }
+.train-ex-state.st-todo { color: #6b7280; font-weight: 500; }
+#tf-save.is-marked { outline: 3px solid #15803d; outline-offset: 2px; }
 .train-ex-photo { width: 64px; height: 64px; object-fit: cover; border-radius: 8px; flex: none; cursor: pointer; background: #eef1f3; }
 .train-ex-info { flex: 1; min-width: 0; }
 .train-ex-name { font-weight: 600; color: #1f2a44; }

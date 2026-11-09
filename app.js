@@ -5826,7 +5826,7 @@ en: {
   'train.d.restWord': 'Rest', 'train.d.notYet': 'Not logged yet',
   'train.d.setsLabel': 'Sets', 'train.d.skippedNote': 'You marked this day as skipped.',
   'train.view.rest': 'Rest', 'train.view.warmup': 'Warm-up', 'train.view.session': 'Session',
-  'train.view.rpe': 'RPE', 'train.view.rpeNone': 'No RPE', 'train.view.exDone': 'Done',
+  'train.view.rpe': 'RPE', 'train.view.rpeNone': 'No RPE', 'train.view.exDone': 'Done', 'train.view.exInProgress': 'In progress', 'train.view.exToDo': 'Not started', 'train.view.exDoneMarked': '✓ Done · tap to unmark',
   'train.view.alignBody': 'Your routine: {plan}. Your training reminders: {cfg}. Align your reminders with your plan?',
   'train.view.sessionsWeek': '{n} sessions a week', 'train.view.noDays': 'no days set',
   'train.view.alignYes': 'Align with my plan', 'train.view.alignOpen': 'Review settings',
@@ -10020,7 +10020,7 @@ es: {
   'train.d.restWord': 'Descanso', 'train.d.notYet': 'Aún sin registrar',
   'train.d.setsLabel': 'Series', 'train.d.skippedNote': 'Marcaste este día como saltado.',
   'train.view.rest': 'Descanso', 'train.view.warmup': 'Aproximación', 'train.view.session': 'Sesión',
-  'train.view.rpe': 'RPE', 'train.view.rpeNone': 'Sin RPE', 'train.view.exDone': 'Hecho',
+  'train.view.rpe': 'RPE', 'train.view.rpeNone': 'Sin RPE', 'train.view.exDone': 'Hecho', 'train.view.exInProgress': 'En curso', 'train.view.exToDo': 'Sin empezar', 'train.view.exDoneMarked': '✓ Hecho · toca para desmarcar',
   'train.view.alignBody': 'Tu rutina: {plan}. Tus avisos de entrenamiento: {cfg}. ¿Alineas tus avisos con tu plan?',
   'train.view.sessionsWeek': '{n} sesiones por semana', 'train.view.noDays': 'ningún día configurado',
   'train.view.alignYes': 'Alinear con mi plan', 'train.view.alignOpen': 'Revisar ajustes',
@@ -29438,6 +29438,12 @@ function trainChecksRead(planId) {
       const c = v[k];
       if (!/^\d+:\d+$/.test(k) || !c || typeof c !== 'object') return;
       out[k] = { rpe: (typeof c.rpe === 'number' && isFinite(c.rpe)) ? c.rpe : null,
+        /* AUTH-344: la marca de completado SÍ sobrevive a la
+           restauración del borrador, saneada como en las demás
+           marcas: solo viaja `done:true`; su ausencia es «en
+           curso». Un borrador anterior a este paquete no la trae:
+           la entrada se lee en curso, nunca hecha por inercia. */
+        ...(c.done === true ? { done: true } : {}),
         sets: Array.isArray(c.sets) ? c.sets.filter(s => s && typeof s === 'object').map(s => ({
           repsPlanned: String(s.repsPlanned == null ? '' : s.repsPlanned),
           repsDone: String(s.repsDone == null ? '' : s.repsDone),
@@ -32278,9 +32284,10 @@ function trainExCardHTML(ex, di, ei) {
         <input type="number" inputmode="decimal" min="0" step="any" class="train-set-in" data-train-set-load="${key}:${si}" placeholder="${t('train.d.loadPh')}" value="${esc(s.loadVal)}" aria-label="${t('train.d.loadPh')}">
         <span class="train-set-unit">${esc(UNIT_PREFS.mass)}</span></div>`).join('')}
     </div>` : '';
-  return `<div class="train-ex-card${chk ? ' is-done' : ''}">${trainExInfoHTML(ex)}
+  return `<div class="train-ex-card${chk ? (chk.done === true ? ' is-done' : ' is-progress') : ''}">${trainExInfoHTML(ex)}
     <div class="train-ex-side">
-      <label class="train-ex-check"><input type="checkbox" data-train-check="${key}" ${chk ? 'checked' : ''}> <span>${t('train.view.exDone')}</span></label>
+      <label class="train-ex-check"><input type="checkbox" data-train-check="${key}" ${chk && chk.done === true ? 'checked' : ''}> <span>${t('train.view.exDone')}</span></label>
+      ${chk ? `<span class="train-ex-state ${chk.done === true ? 'st-done' : 'st-progress'}">${chk.done === true ? '✓ ' + t('train.view.exDone') : '◐ ' + t('train.view.exInProgress')}</span>` : `<span class="train-ex-state st-todo">○ ${t('train.view.exToDo')}</span>`}
       <select class="train-ex-rpe" data-train-rpe="${key}" ${chk ? '' : 'disabled'} aria-label="${t('train.view.rpe')}">
         <option value="">${t('train.view.rpeNone')}</option>
         ${[1, 2, 3, 4, 5, 6, 7, 8, 9, 10].map(n => `<option value="${n}" ${chk && chk.rpe === n ? 'selected' : ''}>${t('train.view.rpe')} ${n}</option>`).join('')}
@@ -32336,12 +32343,12 @@ function trainExCompactHTML(ex, di, ei, mode, de, mv) {
   const figs = mode === 'ficha' ? '' : `<div class="train-ex-figs">
     ${trainHistBlockHTML(mode === 'edit' ? trainSessionSummaryLive(chk) : (de ? trainSessionSummaryFromSets(de.sets) : null))}
     <div class="train-ex-side">${mode === 'edit'
-      ? `<label class="train-ex-check"><input type="checkbox" data-train-check="${key}" ${chk ? 'checked' : ''}> <span>${t('train.view.exDone')}</span></label>`
+      ? `<label class="train-ex-check"><input type="checkbox" data-train-check="${key}" ${chk && chk.done === true ? 'checked' : ''}> <span>${t('train.view.exDone')}</span></label><span class="train-ex-state ${chk ? (chk.done === true ? 'st-done' : 'st-progress') : 'st-todo'}">${chk ? (chk.done === true ? '✓ ' + t('train.view.exDone') : '◐ ' + t('train.view.exInProgress')) : '○ ' + t('train.view.exToDo')}</span>`
       : mode === 'read'
         ? (de ? `<span class="ok-badge">✓ ${t('train.view.exDone')}${de.rpe ? ` · ${t('train.view.rpe')} ${esc(String(de.rpe))}` : ''}</span>` : '<span class="muted">—</span>')
         : ''}</div>
   </div>`;
-  return `<div class="train-ex-card train-ex-compact${chk || de ? ' is-done' : ''}"><div class="train-ex-top">${photo ? `<img class="train-ex-photo" src="${esc(photo)}" alt="" loading="lazy" data-train-photo="${esc(photo)}">` : (thumb ? `<img class="train-ex-photo" src="${esc(thumb)}" alt="" loading="lazy" data-yt-fb="gone" onerror="ytThumbErr(this)">` : '')}
+  return `<div class="train-ex-card train-ex-compact${(chk && chk.done === true) || de ? ' is-done' : (chk ? ' is-progress' : '')}"><div class="train-ex-top">${photo ? `<img class="train-ex-photo" src="${esc(photo)}" alt="" loading="lazy" data-train-photo="${esc(photo)}">` : (thumb ? `<img class="train-ex-photo" src="${esc(thumb)}" alt="" loading="lazy" data-yt-fb="gone" onerror="ytThumbErr(this)">` : '')}
     <div class="train-ex-info">
       <div class="train-ex-name">${esc(trainExName(ex))}</div>
       ${spec || ex.note ? `<div class="train-ex-spec">${esc(spec)}${ex.note ? `${spec ? ' · ' : ''}${esc(ex.note)}` : ''}</div>` : ''}
@@ -32698,7 +32705,9 @@ function trainShareModel(plan, logs, di, iso) {
     rows.forEach((r, ei) => { if (r.de) doneSet.add(ei); });
   } else if (iso === today) {
     rowExs = trainEffectiveList(plan, di).map(it => it.ex);
-    rowExs.forEach((ex, ei) => { if (TRAIN_CHECKS[di + ':' + ei]) doneSet.add(ei); });
+    /* AUTH-344: el avance cuenta SOLO ejercicios marcados Hecho;
+       una entrada en curso (con números guardados) no cuenta. */
+    rowExs.forEach((ex, ei) => { const c = TRAIN_CHECKS[di + ':' + ei]; if (c && c.done === true) doneSet.add(ei); });
   } else {
     rowExs = (day.exercises || []).slice();
   }
@@ -33088,7 +33097,7 @@ function tfChipsHTML(ctx, idx, s) {
     `<button type="button" class="tf-chip" data-tf-chip="${ctx}:${idx}:load" aria-label="${t('train.d.loadPh')}"><span class="tf-chip-lab">${t('train.d.loadPh')}</span><span class="tf-chip-v">${loadMain}${lv !== '' ? ` <span class="tf-chip-u">${esc(UNIT_PREFS.mass)}</span>` : ''}</span>${eq ? `<span class="tf-chip-eq">${esc(eq)}</span>` : ''}</button>`;
 }
 function trainFloatSetsHTML(draft) {
-  if (!draft || !draft.done) return '';
+  if (!draft || !draft.started) return '';
   const sets = Array.isArray(draft.sets) ? draft.sets : [];
   /* «+ AÑADIR SERIE» + QUITAR SERIE (encargo por correo de Ronald,
      2026-10-30): bajo las series de trabajo, el botón gemelo del
@@ -33141,7 +33150,7 @@ function trainFloatSessionHTML(draft) {
      curso) — sale solo de la sesión de hoy (mecánica en
      trainSessionRemoveAt). */
   const removeRow = `<div class="tf-remove-row"><button type="button" class="btn-ghost btn-sm tf-remove-btn" id="tf-remove-today">${esc(t('train.remove.today'))}</button></div>`;
-  if (!draft || !draft.done)
+  if (!draft || !draft.started)
     return `<div class="tf-start-box"><button type="button" class="btn-primary tf-start-btn" id="tf-start">${t('train.start.btn')}</button></div>${removeRow}`;
   return `<div class="tf-warm" id="tf-warm">${trainFloatWarmHTML(draft)}</div>
     <div id="tf-sets">${trainFloatSetsHTML(draft)}</div>
@@ -33150,7 +33159,7 @@ function trainFloatSessionHTML(draft) {
       <option value="">${t('train.view.rpeNone')}</option>
       ${[1, 2, 3, 4, 5, 6, 7, 8, 9, 10].map(n => `<option value="${n}" ${draft.rpe === n ? 'selected' : ''}>${t('train.view.rpe')} ${n}</option>`).join('')}
     </select></div>
-    <div class="train-float-actions"><button type="button" class="btn-primary" id="tf-save">✓ ${t('train.view.exDone')}</button></div>${removeRow}`;
+    <div class="train-float-actions"><button type="button" class="btn-primary${draft.done ? ' is-marked' : ''}" id="tf-save" aria-pressed="${draft.done ? 'true' : 'false'}">${draft.done ? esc(t('train.view.exDoneMarked')) : '✓ ' + t('train.view.exDone')}</button></div>${removeRow}`;
 }
 function tfWarmSnap(w) {
   const o = (w && typeof w === 'object' && !Array.isArray(w)) ? w : {};
@@ -33167,8 +33176,8 @@ function trainFloatMirror(chrono) {
   const F = TRAIN_FLOAT;
   if (!F || F.mode !== 'edit' || !F.draft) return;
   const key = F.di + ':' + F.ei, d = F.draft;
-  if (d.done) {
-    TRAIN_CHECKS[key] = { rpe: d.rpe, sets: (Array.isArray(d.sets) ? d.sets : []).map(s => ({ ...s })), warmup: tfWarmSnap(d.warmup) };
+  if (d.started) {
+    TRAIN_CHECKS[key] = { rpe: d.rpe, sets: (Array.isArray(d.sets) ? d.sets : []).map(s => ({ ...s })), warmup: tfWarmSnap(d.warmup), ...(d.done === true ? { done: true } : {}) };
     if (chrono) trainChronoTouch(F.planId, (typeof MY_PLAN !== 'undefined' && MY_PLAN && MY_PLAN.id === F.planId) ? trainDayLabelOf(MY_PLAN, F.di) : undefined);
   } else delete TRAIN_CHECKS[key];
   trainChecksPersist(F.planId);
@@ -33339,7 +33348,7 @@ function trainFloatWireSession(body) {
     /* INICIAR: la ficha pasa a modo en curso ALLÍ MISMO — el área
        de trabajo sustituye al botón sin salir de la hoja, y el
        estado se espeja al acto (espejo continuo). */
-    d.done = true;
+    d.started = true;
     if (!Array.isArray(d.sets) || !d.sets.length) d.sets = trainDefaultSets(F.ex);
     const host = body.querySelector('#tf-session');
     if (host) host.innerHTML = trainFloatSessionHTML(d);
@@ -33411,17 +33420,25 @@ function trainFloatWireSession(body) {
   if (wDone) wDone.onclick = () => { const p = document.getElementById('tf-wheel'); if (p) p.style.display = 'none'; };
   const saveBtn = body.querySelector('#tf-save');
   if (saveBtn) saveBtn.onclick = () => {
-    /* «✓ Hecho» = la confirmación de siempre, con el espejo ya
-       aplicado: la marca vive en TRAIN_CHECKS (con su warmup) y
-       la flotante no escribe nada en Firestore (eso sigue siendo
-       solo el cierre del día). La hoja se recoge y la tarjeta se
-       re-pinta con el estado nuevo al instante. */
-    /* HORA DE MARCA: «✓ Hecho» es la confirmación del ejercicio —
-       toda serie con datos y sin hora la recibe AHORA (su fin
+    /* AUTH-344 — «✓ Hecho» es SOLO la marca de completado y es
+       REVERSIBLE: los datos de trabajo ya viven guardados por el
+       espejo continuo desde el primer cambio, así que este botón
+       no guarda nada: pone o quita la marca. Al marcar, las
+       series con datos y sin hora la reciben AHORA (su fin
        declarado), incluidas las precargadas como sugerencia que
-       él deja tal cual: cuentan como hechas a esta hora. */
-    if (Array.isArray(d.sets)) { const nowH = Date.now(); d.sets.forEach(s => { if (trainSetHasData(s) && !(typeof s.markedAt === 'number' && s.markedAt > 0)) s.markedAt = nowH; }); }
-    trainFloatMirror(true);
+       él deja tal cual. Al desmarcar, el ejercicio vuelve a «en
+       curso» con sus números intactos. La flotante no escribe
+       nada en Firestore (eso sigue siendo solo el cierre del
+       día). La hoja se recoge y la tarjeta se re-pinta con el
+       estado nuevo al instante. */
+    if (!d.done) {
+      if (Array.isArray(d.sets)) { const nowH = Date.now(); d.sets.forEach(s => { if (trainSetHasData(s) && !(typeof s.markedAt === 'number' && s.markedAt > 0)) s.markedAt = nowH; }); }
+      d.done = true;
+      trainFloatMirror(true);
+    } else {
+      d.done = false;
+      trainFloatMirror(false);
+    }
     trainFloatClose();
     loadMyTraining();
   };
@@ -33894,7 +33911,7 @@ function trainFloatOpen(plan, logs, di, ei, mode, iso) {
   if (mode === 'edit') {
     const key = di + ':' + ei;
     const chk = TRAIN_CHECKS[key];
-    const draft = { done: !!chk, rpe: chk ? chk.rpe : null,
+    const draft = { started: !!chk, done: !!(chk && chk.done === true), rpe: chk ? chk.rpe : null,
       sets: chk && Array.isArray(chk.sets) && chk.sets.length ? chk.sets.map(s => ({ ...s })) : trainDefaultSets(ex),
       warmup: chk && chk.warmup ? tfWarmSnap(chk.warmup) : { on: false, sets: [] } };
     TRAIN_FLOAT = { di, ei, mode, iso, draft, planId: plan.id, ex };
@@ -33902,7 +33919,7 @@ function trainFloatOpen(plan, logs, di, ei, mode, iso) {
        borrador restaurado ya trae una serie con datos y vacías
        tras ella (p. ej. tecleado en la tarjeta del día), las
        vacías nacen con la sugerencia puesta. */
-    if (draft.done) tfSuggestApply();
+    if (draft.started) tfSuggestApply();
     sessionHTML = `<div id="tf-session">${trainFloatSessionHTML(draft)}</div>`;
   } else {
     TRAIN_FLOAT = { di, ei, mode, iso, draft: null };
@@ -34886,15 +34903,22 @@ async function loadMyTraining() {
     const card = c.closest('.train-ex-card');
     const sel = card ? card.querySelector('[data-train-rpe]') : null;
     if (c.checked) {
-      /* MÓDULO D: la marca nace con sus series planificadas (D-2);
-         se re-pinta para mostrarlas (todo input confirma al acto
-         en TRAIN_CHECKS, así que re-pintar no pierde nada). */
-      TRAIN_CHECKS[key] = { rpe: sel && sel.value ? Number(sel.value) : null, sets: trainDefaultSets(ex) };
+      /* AUTH-344: marcar «Hecho» SOLO pone la marca de completado.
+         Si el ejercicio ya estaba en curso, sus series, su RPE y
+         su aproximación se conservan tal cual (antes la casilla
+         reescribía la entrada con las series del plan); si no
+         había entrada, nace con sus series planificadas (D-2) y
+         ya marcada. Se re-pinta (todo input confirma al acto en
+         TRAIN_CHECKS, así que re-pintar no pierde nada). */
+      if (TRAIN_CHECKS[key]) TRAIN_CHECKS[key].done = true;
+      else TRAIN_CHECKS[key] = { rpe: sel && sel.value ? Number(sel.value) : null, sets: trainDefaultSets(ex), done: true };
       trainChronoTouch(plan.id, trainDayLabelOf(plan, Number(diS)));   /* PUENTE: la marca alimenta el cronómetro (y lo arranca si no se pulsó INICIAR) */
       trainChecksPersist(plan.id);   /* MARCAS QUE SOBREVIVEN */
       loadMyTraining();
     } else {
-      delete TRAIN_CHECKS[key];
+      /* AUTH-344: desmarcar es reversible y NO borra nada — la
+         entrada vuelve a «en curso» con sus números intactos. */
+      if (TRAIN_CHECKS[key]) delete TRAIN_CHECKS[key].done;
       trainChecksPersist(plan.id);   /* MARCAS QUE SOBREVIVEN */
       loadMyTraining();
     }
@@ -34946,7 +34970,7 @@ async function loadMyTraining() {
   });
   box.querySelectorAll('[data-train-done]').forEach(b => b.onclick = () => {
     const di = Number(b.dataset.trainDone);
-    const any = trainEffectiveList(plan, di).some((it, ei) => TRAIN_CHECKS[di + ':' + ei]);
+    const any = trainEffectiveList(plan, di).some((it, ei) => { const c = TRAIN_CHECKS[di + ':' + ei]; return !!c && c.done === true; });
     /* MÓDULO D (D-3): sin ninguna marca no hay cierre que abrir. */
     if (!any) { toast(t('train.d.needCheck'), true); return; }
     /* PUENTE ENTRENAMIENTO→LLAMITA (2026-10-27): TERMINAR abre el
@@ -34979,7 +35003,11 @@ async function loadMyTraining() {
     trainEffectiveList(plan, di).forEach((it, ei) => {
       const ex = it.ex;
       const c = TRAIN_CHECKS[di + ':' + ei];
-      if (!c) return;
+      /* AUTH-344: al registro viaja SOLO lo marcado Hecho; una
+         entrada en curso no alimenta el historial, la «última
+         vez», la racha ni ninguna tarjeta como si estuviera
+         terminada. */
+      if (!c || c.done !== true) return;
       const e = { done: true };
       if (ex.exerciseId) e.exerciseId = ex.exerciseId; else if (ex.name) e.name = ex.name;
       if (it.kind === 'swap') {
@@ -35216,7 +35244,7 @@ async function loadMyTraining() {
              quedó al cerrar. */
           ...(typeof s.markedAt === 'number' && isFinite(s.markedAt) && s.markedAt > 0 ? { markedAt: Math.floor(s.markedAt) } : {})
         })) : trainDefaultSets(row.ex);
-        TRAIN_CHECKS[diU + ':' + ei] = { rpe: (typeof de.rpe === 'number' && isFinite(de.rpe)) ? de.rpe : null, sets };
+        TRAIN_CHECKS[diU + ':' + ei] = { rpe: (typeof de.rpe === 'number' && isFinite(de.rpe)) ? de.rpe : null, sets, done: true };
       });
       trainChecksPersist(plan.id);
     }
@@ -48315,7 +48343,7 @@ function shareShortData() {
       if (mainDi === null) mainDi = di;
       trainEffectiveList(plan, di, iso).forEach((it, ei) => {
         const chk = TRAIN_CHECKS[di + ':' + ei];
-        if (!chk) return;
+        if (!chk || chk.done !== true) return;
         exs.push({ name: trainExName(it.ex) || it.ex.name || '', sum: trainSessionSummaryLive(chk) });
       });
     });
@@ -49071,7 +49099,7 @@ document.addEventListener('keydown', e => { if (e.key === 'Escape') shareClose()
  *  - El SW (sw.js) solo cachea la cáscara del mismo origen en modo
  *    RED PRIMERO: Auth/Firestore/Worker jamás pasan por la caché.
  * ================================================================ */
-const PWA_SW_VERSION = '20261109-mis-planes';
+const PWA_SW_VERSION = '20261109-guardado-automatico';
 /* Sello de versión VISIBLE (2026-11-03): el pie de la tarjeta de
    acceso enseña qué copia corre este teléfono ('v ' + el sello),
    para comprobar de un vistazo si la versión nueva ya llegó.
