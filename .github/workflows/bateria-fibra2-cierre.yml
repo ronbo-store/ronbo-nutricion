@@ -1,0 +1,41 @@
+name: Batería reglas Fibra2 cierre (emulador)
+run-name: "Batería Fibra2 cierre · ${{ github.ref_name }} · ${{ github.sha }}"
+on:
+  push:
+    branches: [ci/fibra2-cierre-bateria]
+permissions:
+  contents: read
+jobs:
+  bateria:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: tests-fibra2-cierre
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: npm
+          cache-dependency-path: tests-fibra2-cierre/package-lock.json
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '17'
+      - run: npm ci
+      - run: npm install -g firebase-tools@15.34.0
+      - name: Suite CANDIDATA (delta goalsFib; la sonda de decisión debe pasar)
+        run: |
+          cp reglas-candidatas.txt firestore.rules
+          ESPERA_NUEVO=true firebase emulators:exec --only firestore --project ronbo-nutri-test "node test-fibra2-cierre.mjs"
+      - name: Suite CONTROL (reglas vivas de hoy; goalsFib aún no, la sonda debe pasar igual)
+        run: |
+          cp reglas-vivas.txt firestore.rules
+          ESPERA_NUEVO=false firebase emulators:exec --only firestore --project ronbo-nutri-test "node test-fibra2-cierre.mjs"
+      - name: Diagnóstico (si algo falla)
+        if: failure()
+        working-directory: ${{ github.workspace }}
+        run: |
+          for f in tests-fibra2-cierre/fallos.txt; do
+            if [ -f "$f" ]; then echo "::error title=Fallos::$f"; sed 's/^/::error ::/' "$f"; fi
+          done
