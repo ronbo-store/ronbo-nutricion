@@ -4,7 +4,7 @@ on:
   push:
     branches: [ci/fotodoc-bateria]
 permissions:
-  contents: read
+  contents: write
 jobs:
   bateria:
     runs-on: ubuntu-latest
@@ -21,7 +21,7 @@ jobs:
       - uses: actions/setup-java@v4
         with:
           distribution: temurin
-          java-version: '17'
+          java-version: '21'
       - run: npm ci
       - run: npm install -g firebase-tools@15.34.0
       # Un paso por GRUPO de casos y por suite: la conclusión de cada
@@ -66,6 +66,20 @@ jobs:
         run: |
           cp reglas-vivas.txt firestore.rules
           CASOS=U4,R1,R2,R3,R4,X1,D1 ESPERA_NUEVO=false firebase emulators:exec --only firestore --project ronbo-nutri-test "node test-fotodoc.mjs" > salida-ctrl-g4.log 2>&1
+      - name: Publicar los registros en la rama (evidencia legible por git)
+        if: always()
+        working-directory: ${{ github.workspace }}
+        run: |
+          mkdir -p resultados-fotodoc
+          for f in tests-fotodoc/salida-cand-g1.log tests-fotodoc/salida-cand-g2.log tests-fotodoc/salida-cand-g3.log tests-fotodoc/salida-cand-g4.log tests-fotodoc/salida-ctrl-g1.log tests-fotodoc/salida-ctrl-g2.log tests-fotodoc/salida-ctrl-g3.log tests-fotodoc/salida-ctrl-g4.log tests-fotodoc/fallos.txt tests-fotodoc/progreso.txt; do
+            if [ -f "$f" ]; then cp "$f" "resultados-fotodoc/$(basename $f)"; else echo "(ausente)" > "resultados-fotodoc/$(basename $f)"; fi
+          done
+          { echo "node: $(node --version 2>&1)"; echo "java: $(java -version 2>&1 | head -n 1)"; echo "firebase: $(firebase --version 2>&1 | head -n 1)"; } > resultados-fotodoc/entorno.txt 2>&1 || true
+          git config user.name "bateria-ci"
+          git config user.email "bateria-ci@ronbo.local"
+          git add resultados-fotodoc
+          git commit -m "Resultados de la batería FotoDoc (run ${{ github.run_id }})" || echo "sin cambios"
+          git push origin HEAD:ci/fotodoc-bateria
       - name: Veredicto (las 8 corridas de grupo en verde)
         if: always()
         run: |
