@@ -27,15 +27,35 @@ jobs:
       - name: Suite CANDIDATA (delta goalsFib; la sonda de decisión debe pasar)
         run: |
           cp reglas-candidatas.txt firestore.rules
-          ESPERA_NUEVO=true firebase emulators:exec --only firestore --project ronbo-nutri-test "node test-fibra2-cierre.mjs"
+          rm -f fallos.txt progreso.txt
+          set +e
+          ESPERA_NUEVO=true firebase emulators:exec --only firestore --project ronbo-nutri-test "node test-fibra2-cierre.mjs" > salida-candidata.log 2>&1
+          echo "suite-candidata exit=$?"
+          [ -f fallos.txt ] && cp fallos.txt fallos-candidata.txt || true
+          [ -f progreso.txt ] && cp progreso.txt progreso-candidata.txt || true
       - name: Suite CONTROL (reglas vivas de hoy; goalsFib aún no, la sonda debe pasar igual)
         run: |
           cp reglas-vivas.txt firestore.rules
-          ESPERA_NUEVO=false firebase emulators:exec --only firestore --project ronbo-nutri-test "node test-fibra2-cierre.mjs"
-      - name: Diagnóstico (si algo falla)
-        if: failure()
+          rm -f fallos.txt progreso.txt
+          set +e
+          ESPERA_NUEVO=false firebase emulators:exec --only firestore --project ronbo-nutri-test "node test-fibra2-cierre.mjs" > salida-control.log 2>&1
+          echo "suite-control exit=$?"
+          [ -f fallos.txt ] && cp fallos.txt fallos-control.txt || true
+          [ -f progreso.txt ] && cp progreso.txt progreso-control.txt || true
+      - name: Diagnóstico y veredicto
+        if: always()
         working-directory: ${{ github.workspace }}
         run: |
-          for f in tests-fibra2-cierre/fallos.txt; do
+          cd tests-fibra2-cierre
+          for f in fallos-candidata.txt fallos-control.txt; do
             if [ -f "$f" ]; then echo "::error title=Fallos::$f"; sed 's/^/::error ::/' "$f"; fi
           done
+          for f in progreso-candidata.txt progreso-control.txt; do
+            if [ -f "$f" ]; then echo "== últimas marcas de $f"; tail -n 2 "$f" | sed 's/^/::error ::ULTIMO ::/' ; fi
+          done
+          for f in salida-candidata.log salida-control.log; do
+            if [ -f "$f" ]; then echo "== cola de $f"; grep -E "^(OK|FALLO|BATERÍA|FALLOS|Error)" "$f" | tail -n 6 | sed 's/^/::error ::LOG ::/' || true; fi
+          done
+          test ! -f fallos-candidata.txt && test ! -f fallos-control.txt
+          grep -q "BATERÍA FIBRA2-CIERRE OK — CANDIDATA" salida-candidata.log
+          grep -q "BATERÍA FIBRA2-CIERRE OK — VIVAS" salida-control.log

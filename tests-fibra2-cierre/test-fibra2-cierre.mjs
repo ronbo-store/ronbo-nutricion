@@ -25,7 +25,16 @@ import {
   assertSucceeds,
   assertFails,
 } from '@firebase/rules-unit-testing';
-import { readFileSync, writeFileSync, rmSync } from 'node:fs';
+import { readFileSync, writeFileSync, rmSync, appendFileSync } from 'node:fs';
+
+/* Diagnóstico incremental (ronda 2): cada caso deja su marca en
+   progreso.txt al terminar y cada fallo se escribe a fallos.txt
+   EN EL MOMENTO — si el proceso muere a mitad (semillas, carga de
+   reglas), el rastro sobrevive y el paso de diagnóstico del
+   workflow lo publica como anotaciones. */
+const marca = (f, s) => { try { appendFileSync(f, s + '\n'); } catch {} };
+process.on('uncaughtException', e => { marca('fallos.txt', 'CRASH: ' + String((e && e.message) || e).replace(/\s+/g, ' ').slice(0, 400)); process.exit(1); });
+process.on('unhandledRejection', e => { marca('fallos.txt', 'CRASH-REJ: ' + String((e && e.message) || e).replace(/\s+/g, ' ').slice(0, 400)); process.exit(1); });
 
 const N = process.env.ESPERA_NUEVO !== 'false';
 const fallos = [];
@@ -34,10 +43,13 @@ async function caso(nombre, promesa, debePasar) {
     if (debePasar) await assertSucceeds(promesa);
     else await assertFails(promesa);
     console.log(`OK    ${nombre} → ${debePasar ? 'PERMITIDO' : 'DENEGADO'}`);
+    marca('progreso.txt', 'OK ' + nombre);
   } catch (e) {
     const crudo = String((e && e.message) || e).replace(/\s+/g, ' ');
-    if (!fallos.length) for (let i = 0; i < Math.min(crudo.length, 540); i += 180) fallos.push('CRUDO1 ' + crudo.slice(i, i + 180));
+    if (!fallos.length) for (let i = 0; i < Math.min(crudo.length, 540); i += 180) { fallos.push('CRUDO1 ' + crudo.slice(i, i + 180)); marca('fallos.txt', 'CRUDO1 ' + crudo.slice(i, i + 180)); }
     fallos.push('FALLO: ' + nombre);
+    marca('fallos.txt', 'FALLO: ' + nombre);
+    marca('progreso.txt', 'FALLO ' + nombre);
     console.log(`FALLO ${nombre}: se esperaba ${debePasar ? 'PERMITIDO' : 'DENEGADO'} — ${crudo.slice(0, 400)}`);
   }
 }
@@ -107,6 +119,7 @@ await testEnv.withSecurityRulesDisabled(async (ctx) => {
   await setDoc(doc(db, 'users', OTRA), { name: 'Otra', role: 'usuario', approved: true, isOwner: false });
 });
 
+marca('progreso.txt', 'SEMILLAS OK · suite ' + (N ? 'CANDIDATA' : 'VIVAS'));
 const dbS = testEnv.authenticatedContext(ALU).firestore();
 const dbB = testEnv.authenticatedContext(ALU2).firestore();
 const dbE = testEnv.authenticatedContext(ENT).firestore();
@@ -162,6 +175,6 @@ await caso('D5 entrenador escribe SOLO goalsFib ajeno: denegado', updateDoc(doc(
 await caso('D6 rechazo con goalsFib presente en el documento: pasa', rechazoReal('rej1'), true);
 
 await testEnv.cleanup();
-if (fallos.length) { writeFileSync('fallos.txt', fallos.join('\n') + '\n'); console.log('FALLOS:', fallos.length); process.exit(1); }
+if (fallos.length) { console.log('FALLOS:', fallos.length); process.exit(1); }
 try { rmSync('fallos.txt'); } catch {}
 console.log('BATERÍA FIBRA2-CIERRE OK —', N ? 'CANDIDATA' : 'VIVAS');
