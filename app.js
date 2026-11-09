@@ -29838,7 +29838,13 @@ function dictSheetApply() {
    1920×1280, recorte cover con ancla vertical al 40 %, por debajo
    de 200 000 bytes — el estándar del flujo de imagen de la
    biblioteca) y queda guardada como su foto; al aprobarla, esa
-   foto ES la de la ficha, sin más pasos; (3) si la máquina SÍ
+   foto ES la de la ficha, sin más pasos. DÓNDE VIVE LA FOTO
+   (completado el 2026-11-08, decisión de Ronald de las 23:32
+   CST): DENTRO DEL DOCUMENTO del borrador, como dato en el
+   propio campo foto_url — Firebase Storage nunca fue
+   aprovisionado en el proyecto y activarlo exigiría pasar
+   todo el proyecto al plan de pago; el proyecto sigue en
+   Spark $0 (ver mphBlobToDataUrl); (3) si la máquina SÍ
    está — o la persona la elige a mano de la biblioteca — la foto
    del análisis NO se guarda en ningún sitio: vive solo en memoria
    dentro de la petición, como las fotos de comida. La búsqueda
@@ -30107,7 +30113,11 @@ function mphSheetClose() {
    estándar de la casa (flujo de imagen de la biblioteca): WebP
    1920×1280, recorte cover con ancla vertical al 40 % y la mayor
    calidad que quede por debajo de 200 000 bytes; si ni así, baja
-   el tamaño (1600, 1280) antes que la calidad mínima. */
+   el tamaño (1600, 1280, 1024, 854) antes que la calidad mínima.
+   El tope es DURO: la foto vive dentro del documento del
+   borrador, así que una foto que ni al tamaño menor baja del
+   tope no se guarda — la función lanza y la hoja queda abierta
+   con el error visible, sin nada creado a medias. */
 async function mphStandardizePhoto(file) {
   const bmp = await createImageBitmap(file);
   const R = 3 / 2;
@@ -30119,15 +30129,44 @@ async function mphStandardizePhoto(file) {
   const draw = w => { canvas.width = w; canvas.height = Math.round(w / R); ctx.drawImage(bmp, sx, sy, sw, sh, 0, 0, canvas.width, canvas.height); };
   const toBlob = q => new Promise(res => canvas.toBlob(res, 'image/webp', q));
   let blob = null;
-  for (const w of [1920, 1600, 1280]) {
+  for (const w of [1920, 1600, 1280, 1024, 854]) {
     draw(w);
-    for (const q of [0.85, 0.75, 0.65, 0.55, 0.45]) {
+    for (const q of [0.85, 0.75, 0.65, 0.55, 0.45, 0.35]) {
       blob = await toBlob(q);
       if (blob && blob.size < 200000) return blob;
     }
   }
-  if (!blob) throw new Error('photo-blob');
+  if (!blob || blob.size >= 200000) throw new Error('photo-blob');
   return blob;
+}
+
+/* El blob estandarizado → la cadena «data:» que viaja en el
+   campo foto_url del borrador. LA FOTO VIVE DENTRO DEL
+   DOCUMENTO (decisión de Ronald, 2026-11-08 23:32 CST: «Ok por
+   ahora tu recomendación»): Firebase Storage nunca fue
+   aprovisionado en el proyecto y activarlo exigiría pasar todo
+   el proyecto al plan de pago Blaze; el proyecto sigue en
+   Spark $0 y la foto se guarda como dato en el propio
+   documento, como las fotos de perfil. Las cuentas: el blob
+   manda < 200 000 bytes, así que la cadena queda por debajo de
+   ~267 000 caracteres y el documento entero, con todos sus
+   campos, muy por debajo del límite de 1 MiB de Firestore;
+   las reglas ponen el tope duro (300 000 caracteres) en la
+   rama de creación del borrador y en las ediciones de su
+   autor. El manifiesto de la biblioteca jamás carga la foto:
+   solo guarda fichas de fábrica (sin «estado») y este
+   documento nace y vive con «estado» hasta su aprobación. Al
+   aprobarse no hay nada que mover: foto_url ya ES la foto y
+   todos los pintores (la biblioteca, la tarjeta del ejercicio,
+   el día, «Mis aportes» y la bandeja) la leen como leen
+   cualquier otra foto. */
+function mphBlobToDataUrl(blob) {
+  return new Promise((res, rej) => {
+    const fr = new FileReader();
+    fr.onload = () => res(String(fr.result || ''));
+    fr.onerror = () => rej(new Error('photo-read'));
+    fr.readAsDataURL(blob);
+  });
 }
 
 function mphDraftData(r, photoUrl) {
@@ -30193,14 +30232,10 @@ async function mphSheetApply() {
   const uid = auth.currentUser.uid;
   const myName = (UDATA && (UDATA.name || UDATA.email)) || '';
   const ref = doc(collection(db, 'exercise_library'));
-  const path = `library/${uid}/${ref.id}.webp`;
-  let uploaded = false;
   try {
     const blob = await mphStandardizePhoto(D.file);
-    await uploadBytes(sRef(storage, path), blob, { contentType: 'image/webp' });
-    uploaded = true;
-    const url = await getDownloadURL(sRef(storage, path));
-    const data = mphDraftData(r, url);
+    const dataUrl = await mphBlobToDataUrl(blob);
+    const data = mphDraftData(r, dataUrl);
     const full = { ...data, estado: 'pendiente', createdBy: uid, createdByName: myName, createdAt: serverTimestamp() };
     await setDoc(ref, full);
     libMemPut({ ...data, id: ref.id, estado: 'pendiente', createdBy: uid, createdByName: myName, createdAt: new Date() });
@@ -30209,9 +30244,10 @@ async function mphSheetApply() {
     loadMyTraining();
     toast(t('mph.addedDraft'));
   } catch (e) {
-    /* Nada a medias: si la foto subió pero la ficha no nació, la
-       foto se borra; la hoja queda abierta para reintentar. */
-    if (uploaded) { try { await deleteObject(sRef(storage, path)); } catch {} }
+    /* Nada a medias: la foto vive dentro del propio documento,
+       así que si la escritura falla no queda ni borrador ni
+       foto huérfana en ningún sitio; la hoja queda abierta
+       para reintentar. */
     D.busy = false; D.step = 'confirm';
     mphSheetSync();
     failToast(e);
@@ -46275,7 +46311,7 @@ document.addEventListener('keydown', e => { if (e.key === 'Escape') shareClose()
  *  - El SW (sw.js) solo cachea la cáscara del mismo origen en modo
  *    RED PRIMERO: Auth/Firestore/Worker jamás pasan por la caché.
  * ================================================================ */
-const PWA_SW_VERSION = '20261108-camara-anuncio';
+const PWA_SW_VERSION = '20261108-foto-documento';
 /* Sello de versión VISIBLE (2026-11-03): el pie de la tarjeta de
    acceso enseña qué copia corre este teléfono ('v ' + el sello),
    para comprobar de un vistazo si la versión nueva ya llegó.
