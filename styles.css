@@ -4692,3 +4692,21 @@ body.swap-sheet-open .asst-fab { display: none !important; }
 .sched-pf-check input { width: 24px; height: 24px; flex: none; margin-top: 1px; }
 /* == FIN HORARIOS DE ALIMENTACIÓN SUGERIDOS == */
 
+/* PROGRAMA AUTOMÁTICO (2026-11-09): panel de generación dentro de
+   la zona de plantillas del editor de planes. */
+.pl-auto { margin-top: 14px; border-top: 1px dashed #c4d8d5; padding-top: 10px; }
+.pl-auto-ctx { font-size: 13px; opacity: .85; display: grid; gap: 2px; margin-bottom: 6px; }
+.pl-auto-lab { display: block; margin: 8px 0; font-size: 14px; }
+.pl-auto-chips { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 4px; }
+.pl-auto-warn { color: #b45309; font-size: 13px; margin: 4px 0; }
+.pl-auto-block { background: #fef3c7; border: 1px solid #f59e0b; border-radius: 8px; padding: 8px 10px; font-size: 13px; margin: 6px 0; }
+#pl-auto-gen { min-height: 44px; }
+#pl-auto-summary { font-size: 13px; display: grid; gap: 3px; margin-top: 10px; }
+.pl-auto-sumt { font-weight: 700; }
+
+/* AUTH-333 (decisión de Ronald, 2026-11-09; F-18): la señal
+   PROPIA de la alerta junto al nombre del alumno — disco
+   rojizo con ⚠, distinto del contador ámbar de pendientes
+   (.pend-n) y del ✓ de «al día»: la alerta nunca se suma al
+   número. */
+.talert-chip { display: inline-flex; align-items: center; justify-content: center; min-width: 22px; height: 22px; padding: 0 5px; border-radius: 999px; background: #fee2e2; color: #b91c1c; font-size: 12px; font-weight: 700; flex: none; }

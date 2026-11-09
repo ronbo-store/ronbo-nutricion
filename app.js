@@ -5907,6 +5907,75 @@ en: {
   'train.tpl.perWeek': '{n} days/week',
   'train.tpl.unavailable': '📋 The routine templates are unavailable right now (they may be empty or could not be loaded). You can keep building the plan by hand — nothing is blocked.',
   'train.tpl.replaceConfirm': 'Applying this template will REPLACE the current draft in the editor (title, days and exercises). Continue?',
+  'train.auto.title': '✨ Automatic training program',
+  'train.auto.loading': 'Loading the student’s data…',
+  'train.auto.libUnavailable': 'The exercise library could not be loaded, so a program cannot be generated right now.',
+  'train.auto.healthBlocked': 'This program is not generated: the student’s health declaration cannot be read. By the house rule, without a readable declaration nothing is generated — health comes first.',
+  'train.auto.ctxObjective': 'Objective: {v}',
+  'train.auto.ctxFocus': 'Focus: {v}',
+  'train.auto.ctxActivity': 'Activity (PAL): {v}',
+  'train.auto.ctxEstimate': 'Body estimate: {v} — visual reference only; it just breaks ties between equivalent exercises.',
+  'train.auto.ctxHealthConds': 'Health declaration: {n} condition(s) declared — the engine excludes and marks accordingly.',
+  'train.auto.ctxHealthOk': 'Health declaration: no conditions declared.',
+  'train.auto.ctxLevelInf': 'Level inferred from history: {v} ({n} closed sessions).',
+  'train.auto.ctxNone': 'none on file',
+  'train.auto.noTdee': '⚠ No energy expenditure (TDEE) on file: the program is still generated, but review the volume with your judgment.',
+  'train.auto.focusGeneral': 'No focus declared: the General focus is used, as designed.',
+  'train.auto.wds': 'Mon,Tue,Wed,Thu,Fri,Sat,Sun',
+  'train.auto.levelLabel': 'Experience level (new student, no history yet — you provide it this first time):',
+  'train.auto.lvl.principiante': 'Beginner',
+  'train.auto.lvl.intermedio': 'Intermediate',
+  'train.auto.lvl.avanzado': 'Advanced',
+  'train.auto.objPickLabel': 'Objective for this generation (the student has none — it is not saved to their record):',
+  'train.auto.obj.bajar': 'Lose weight',
+  'train.auto.obj.mantener': 'Maintain',
+  'train.auto.obj.ganar': 'Gain muscle',
+  'train.auto.daysLabel': 'Training days (you choose them; the engine chooses the split):',
+  'train.auto.durLabel': 'Time per session:',
+  'train.auto.eqLabel': 'Available equipment:',
+  'train.auto.eq.all': 'Full gym',
+  'train.auto.eq.barra': 'Barbell',
+  'train.auto.eq.mancuernas': 'Dumbbells',
+  'train.auto.eq.poleas': 'Cables',
+  'train.auto.eq.maquinas': 'Machines',
+  'train.auto.eq.corporal': 'Bodyweight',
+  'train.auto.eq.kb': 'Kettlebell / bands',
+  'train.auto.emphLabel': 'Emphasis (up to 2 muscle groups):',
+  'train.auto.emphMax': 'Up to 2 emphasis groups.',
+  'train.auto.genBtn': 'Generate proposal',
+  'train.auto.generated': 'Proposal generated in the editor — review it and save it when ready.',
+  'train.auto.replaceConfirm': 'Generating will REPLACE the current draft in the editor (title, days and exercises). Continue?',
+  'train.auto.titleSug': 'Automatic program',
+  'train.auto.errDays': 'Choose between 1 and 6 training days.',
+  'train.auto.errLevel': 'Choose the experience level for this first generation.',
+  'train.auto.errObj': 'Choose the objective for this generation.',
+  'train.auto.sumTitle': 'Proposal summary',
+  'train.auto.sumSplit': 'Split chosen by the engine: {v}',
+  'train.auto.sumVol': 'Weekly sets done/target: {v}',
+  'train.auto.sumVolMiss': '{g}: {n} set(s) short of the target — the library or the chosen equipment could not cover them; complete it by hand if you judge it right.',
+  'train.auto.sumExcl': 'Excluded by the health declaration: {v}',
+  'train.auto.sumMarks': 'Conditions marked on this program: {v} — review them before saving.',
+  'train.auto.sumDeclDetails': 'Student’s note on their condition: {v}',
+  'train.auto.sumGaps': 'No library exercise fits for: {v} — add it by hand if it applies.',
+  'train.auto.sumTrim': 'Trimmed to fit the session time: {v}',
+  'train.auto.sumTie': 'Body-type tiebreak (soft preference): {v}',
+  'train.auto.sumDur': 'Estimated minutes per day: {v}',
+  'train.auto.sumHonest': 'Conservative automatic filtering over the student’s declaration; it does not replace your judgment as trainer.',
+  'train.auto.chestWarn': '⚠ The student declared chest pain when exercising: the program was generated in conservative mode. Review it in full before saving.',
+  'train.auto.chestConfirm': 'I reviewed this program in full.',
+  'train.auto.chestBlock': 'This program was generated for a student who declared chest pain when exercising: confirm in the automatic-program section that you reviewed it in full before saving.',
+  'train.auto.noteProgression': 'Progression: when you complete the top of the range in every set of an exercise in two sessions in a row, raise the load one step (≈2–5%) and return to the bottom of the range.',
+  'train.auto.noteDiabetes': 'Note: check feet and footwear on leg work and bring a fast glucose source to the session.',
+  'train.auto.dayLabel': '(Day {n}) {v}',
+  'train.auto.split.full': 'FULL BODY',
+  'train.auto.split.torso': 'TORSO',
+  'train.auto.split.legs': 'LEGS',
+  'train.auto.split.push': 'PUSH',
+  'train.auto.split.pull': 'PULL',
+  'train.auto.foc.general': 'General',
+  'train.auto.foc.recomposicion': 'Recomposition',
+  'train.auto.foc.competencia': 'Competition',
+  'train.auto.warnConsecutive': '{g} falls on consecutive days — that was your day choice; the engine generated it anyway.',
   'train.tpl.applied': 'Draft created from the template. Review and adjust it — nothing is saved until you tap Save plan.',
   'train.tpl.startLabel': 'Start date (for the weekday suggestion)',
   'train.tpl.alignHint': 'Pick a start date to see a suggestion: aligning each template day with a real weekday. The suggestion never changes anything by itself.',
@@ -7316,8 +7385,10 @@ en: {
   'share.choose': 'Choose your card:',
   'share.dayLab': 'My goal for today',
   'share.weekLab': 'My week in review',
+  'share.monthLab': 'My month in review',
   'share.dayChip': '🎯 MY GOAL FOR TODAY',
   'share.weekChip': '🏆 MY WEEK IN REVIEW',
+  'share.monthChip': '🗓️ MY MONTH IN REVIEW',
   'share.goalsLab': 'My day in goals',
   'share.goalsChip': '📊 MY DAY IN GOALS',
   'share.newBadge': 'NEW',
@@ -7380,6 +7451,17 @@ en: {
   'share.meals': 'meals',
   'share.minPerDay': 'MINUTES PER DAY',
   'share.bestDay': '★ Best day: {day}',
+  'share.minPerWeek': 'MINUTES PER WEEK',
+  'share.wkN': 'W{n}',
+  'share.moBestWeek': '★ Best week: {min} min',
+  'share.moWeeksFull1': '1 full week',
+  'share.moWeeksFull': '{x} full weeks',
+  'share.moPrs1': '1 personal record',
+  'share.moPrs': '{x} personal records',
+  'share.moWeight': 'weight',
+  'share.moWeightDelta': 'weight · {d}',
+  'share.moEmpty': 'No activity recorded this month yet — your month card fills up as you go.',
+  'share.phraseMonth': 'A month that counts 💪',
   'share.weekSame': 'Week of {m} {d1} – {d2} · {name}',
   'share.weekDiff': 'Week of {m1} {d1} – {m2} {d2} · {name}',
   'share.mileWeek': 'First full week',
@@ -9889,6 +9971,75 @@ es: {
   'train.tpl.perWeek': '{n} días/semana',
   'train.tpl.unavailable': '📋 Las plantillas de rutina no están disponibles ahora (pueden estar vacías o no pudieron cargarse). Puedes seguir armando el plan a mano: nada se bloquea.',
   'train.tpl.replaceConfirm': 'Aplicar esta plantilla REEMPLAZA el borrador actual del editor (título, días y ejercicios). ¿Continuar?',
+  'train.auto.title': '✨ Programa de entrenamiento automático',
+  'train.auto.loading': 'Cargando los datos del alumno…',
+  'train.auto.libUnavailable': 'La biblioteca de ejercicios no pudo cargarse, así que no se puede generar el programa ahora.',
+  'train.auto.healthBlocked': 'Este programa no se genera: la declaración de salud del alumno no se puede leer. Por la regla de la casa, sin declaración legible no se genera nada — la salud manda.',
+  'train.auto.ctxObjective': 'Objetivo: {v}',
+  'train.auto.ctxFocus': 'Enfoque: {v}',
+  'train.auto.ctxActivity': 'Actividad (PAL): {v}',
+  'train.auto.ctxEstimate': 'Estimado corporal: {v} — solo referencia visual; solo desempata entre ejercicios equivalentes.',
+  'train.auto.ctxHealthConds': 'Declaración de salud: {n} condición(es) declarada(s) — el motor excluye y marca según corresponda.',
+  'train.auto.ctxHealthOk': 'Declaración de salud: sin condiciones declaradas.',
+  'train.auto.ctxLevelInf': 'Nivel inferido del historial: {v} ({n} sesiones cerradas).',
+  'train.auto.ctxNone': 'ninguno en la ficha',
+  'train.auto.noTdee': '⚠ No hay gasto energético (TDEE) registrado: el programa se genera igual, pero revisa el volumen con tu criterio.',
+  'train.auto.focusGeneral': 'Sin enfoque declarado: se usa el enfoque General, como está diseñado.',
+  'train.auto.wds': 'Lun,Mar,Mié,Jue,Vie,Sáb,Dom',
+  'train.auto.levelLabel': 'Nivel de experiencia (alumno nuevo, sin historial todavía — lo aportas tú esta primera vez):',
+  'train.auto.lvl.principiante': 'Principiante',
+  'train.auto.lvl.intermedio': 'Intermedio',
+  'train.auto.lvl.avanzado': 'Avanzado',
+  'train.auto.objPickLabel': 'Objetivo para esta generación (el alumno no tiene — no se guarda en su ficha):',
+  'train.auto.obj.bajar': 'Bajar de peso',
+  'train.auto.obj.mantener': 'Mantener',
+  'train.auto.obj.ganar': 'Ganar músculo',
+  'train.auto.daysLabel': 'Días de entrenamiento (los eliges tú; la división la elige el motor):',
+  'train.auto.durLabel': 'Tiempo por sesión:',
+  'train.auto.eqLabel': 'Equipo disponible:',
+  'train.auto.eq.all': 'Gimnasio completo',
+  'train.auto.eq.barra': 'Barra',
+  'train.auto.eq.mancuernas': 'Mancuernas',
+  'train.auto.eq.poleas': 'Poleas',
+  'train.auto.eq.maquinas': 'Máquinas',
+  'train.auto.eq.corporal': 'Peso corporal',
+  'train.auto.eq.kb': 'Kettlebell / bandas',
+  'train.auto.emphLabel': 'Énfasis (hasta 2 grupos musculares):',
+  'train.auto.emphMax': 'Hasta 2 grupos de énfasis.',
+  'train.auto.genBtn': 'Generar propuesta',
+  'train.auto.generated': 'Propuesta generada en el editor — revísala y guárdala cuando esté lista.',
+  'train.auto.replaceConfirm': 'Generar REEMPLAZARÁ el borrador actual del editor (título, días y ejercicios). ¿Continuar?',
+  'train.auto.titleSug': 'Programa automático',
+  'train.auto.errDays': 'Elige entre 1 y 6 días de entrenamiento.',
+  'train.auto.errLevel': 'Elige el nivel de experiencia para esta primera generación.',
+  'train.auto.errObj': 'Elige el objetivo para esta generación.',
+  'train.auto.sumTitle': 'Resumen de la propuesta',
+  'train.auto.sumSplit': 'División elegida por el motor: {v}',
+  'train.auto.sumVol': 'Series semanales hechas/objetivo: {v}',
+  'train.auto.sumVolMiss': '{g}: faltan {n} serie(s) para el objetivo — la biblioteca o el equipo elegido no dieron para cubrirlas; complétalo a mano si lo juzgas correcto.',
+  'train.auto.sumExcl': 'Excluidos por la declaración de salud: {v}',
+  'train.auto.sumMarks': 'Condiciones marcadas en este programa: {v} — revísalas antes de guardar.',
+  'train.auto.sumDeclDetails': 'Nota del alumno sobre su condición: {v}',
+  'train.auto.sumGaps': 'Sin ejercicio de la biblioteca que encaje para: {v} — añádelo a mano si aplica.',
+  'train.auto.sumTrim': 'Recortado para caber en el tiempo de sesión: {v}',
+  'train.auto.sumTie': 'Desempate por tipo de cuerpo (preferencia suave): {v}',
+  'train.auto.sumDur': 'Minutos estimados por día: {v}',
+  'train.auto.sumHonest': 'Filtrado automático conservador sobre la declaración del alumno; no sustituye tu criterio como entrenador.',
+  'train.auto.chestWarn': '⚠ El alumno declaró dolor de pecho al ejercitarse: el programa se generó en modo conservador. Revísalo completo antes de guardar.',
+  'train.auto.chestConfirm': 'Revisé este programa completo.',
+  'train.auto.chestBlock': 'Este programa se generó para un alumno que declaró dolor de pecho al ejercitarse: confirma en la sección del programa automático que lo revisaste completo antes de guardar.',
+  'train.auto.noteProgression': 'Progresión: cuando completes el máximo del rango en todas las series de un ejercicio en dos sesiones seguidas, sube la carga un paso (≈2–5 %) y vuelve al mínimo del rango.',
+  'train.auto.noteDiabetes': 'Nota: revisa pies y calzado en el trabajo de pierna y lleva una fuente de glucosa a la sesión.',
+  'train.auto.dayLabel': '(Día {n}) {v}',
+  'train.auto.split.full': 'CUERPO COMPLETO',
+  'train.auto.split.torso': 'TORSO',
+  'train.auto.split.legs': 'PIERNA',
+  'train.auto.split.push': 'EMPUJE',
+  'train.auto.split.pull': 'JALE',
+  'train.auto.foc.general': 'General',
+  'train.auto.foc.recomposicion': 'Recomposición',
+  'train.auto.foc.competencia': 'Competencia',
+  'train.auto.warnConsecutive': '{g} cae en días consecutivos — fue tu elección de días; el motor generó igual.',
   'train.tpl.applied': 'Borrador creado desde la plantilla. Revísalo y ajústalo: nada se guarda hasta que toques Guardar plan.',
   'train.tpl.startLabel': 'Fecha de inicio (para la sugerencia de días)',
   'train.tpl.alignHint': 'Elige una fecha de inicio para ver una sugerencia: alinear cada día de la plantilla con un día de semana real. La sugerencia nunca cambia nada por sí sola.',
@@ -11299,8 +11450,10 @@ es: {
   'share.choose': 'Elige tu tarjeta:',
   'share.dayLab': 'Mi meta del día',
   'share.weekLab': 'Mis logros de la semana',
+  'share.monthLab': 'Mis logros del mes',
   'share.dayChip': '🎯 MI META DEL DÍA',
   'share.weekChip': '🏆 MIS LOGROS DE LA SEMANA',
+  'share.monthChip': '🗓️ MIS LOGROS DEL MES',
   'share.goalsLab': 'Mi día en metas',
   'share.goalsChip': '📊 MI DÍA EN METAS',
   'share.newBadge': 'NUEVA',
@@ -11363,6 +11516,17 @@ es: {
   'share.meals': 'comidas',
   'share.minPerDay': 'MINUTOS POR DÍA',
   'share.bestDay': '★ Mejor día: {day}',
+  'share.minPerWeek': 'MINUTOS POR SEMANA',
+  'share.wkN': 'S{n}',
+  'share.moBestWeek': '★ Mejor semana: {min} min',
+  'share.moWeeksFull1': '1 semana completa',
+  'share.moWeeksFull': '{x} semanas completas',
+  'share.moPrs1': '1 marca personal',
+  'share.moPrs': '{x} marcas personales',
+  'share.moWeight': 'peso',
+  'share.moWeightDelta': 'peso · {d}',
+  'share.moEmpty': 'Todavía no hay actividad registrada en este mes — tu tarjeta del mes se va llenando sobre la marcha.',
+  'share.phraseMonth': 'Un mes que cuenta 💪',
   'share.weekSame': 'Semana del {d1} al {d2} de {m} · {name}',
   'share.weekDiff': 'Semana del {d1} de {m1} al {d2} de {m2} · {name}',
   'share.mileWeek': 'Primera semana completa',
@@ -14659,16 +14823,31 @@ function clientsRowSummary(u, d) {
   if (da === null) return esc(t('clients.noWeighins'));
   return esc(t('clients.daysAgoShort', { d: da })) + (d.lastW ? ' · ' + esc(String(d.lastW)) + ' kg' : '');
 }
+/* LA SEÑAL DE ALERTA (decisión de Ronald, 2026-11-09 01:21
+   CST; cierra F-18 de la auditoría): las alertas de un alumno
+   (la de fin de plan y cualquier otra) se presentan APARTE,
+   con su propia señal — este chip ⚠ junto al nombre — y
+   NUNCA se suman al número de pendientes. El texto completo
+   de la primera alerta viaja en el title; su detalle vive en
+   la ficha, en su bloque de alertas de siempre. */
+function alertChipHTML(alerts) {
+  if (!alerts || !alerts.length) return '';
+  return `<span class="talert-chip" title="${esc(talertText(alerts[0]))}">⚠</span>`;
+}
 /* Contador DISCRETO de la fila (espejo de Alumnos). AUTH-110: el
    número ES el total de la unión única de pendientes — el mismo
    que muestra «Mis alumnos» para la misma persona (decisión B-A1
-   de Ronald: coincidencia ítem a ítem y en total). Las alertas
-   conservan su precedencia visual de siempre; un fallo de carga
-   se marca «!» (nunca ✓ falso). Las categorías siguen contándose
-   en su panel de filtros, que no cambia. */
+   de Ronald: coincidencia ítem a ítem y en total). CORRECCIÓN
+   AUTH-333 (decisión de Ronald, 2026-11-09; F-18): la rama que
+   mostraba LA CUENTA DE ALERTAS en este contador cuando había
+   alertas quedaba retirada — el número cuenta SOLO pendientes
+   reales; la alerta se ve por su carril (el chip ⚠ junto al
+   nombre y, en Clientes, el resumen que abre con su texto y el
+   anillo rojo). Un fallo de carga se marca «!» (nunca ✓
+   falso). Las categorías siguen contándose en su panel de
+   filtros, que no cambia. */
 function clientsRowBadge(u, d, cats) {
   if (d.tpendErr) return '<span class="pend-n pend-n-err">!</span>';
-  if (d.alerts.length) return `<span class="pend-n">${d.alerts.length}</span>`;
   if (d.tpend) return d.tpend.items.length ? `<span class="pend-n">${d.tpend.items.length}</span>` : '<span class="ok-disc">✓</span>';
   const probs = (cats || []).filter(c => c !== 'aldia');
   if (!probs.length) return '<span class="ok-disc">✓</span>';
@@ -14676,7 +14855,7 @@ function clientsRowBadge(u, d, cats) {
 }
 function clientsRowHTML(u) {
   const L = CLIENTS_LAST; const d = clientsDataOf(L, u); const cats = clientCategories(u, d);
-  const inner = `${stuAvatarHTML(u, u.name || '')}<span class="srow-main"><span class="srow-nameline"><span class="srow-name">${esc(u.name || '—')}</span>${roleDiscsHTML(u)}</span><span class="srow-sum">${clientsRowSummary(u, d)}</span><span class="srow-assign">${assignRowLine(u)}</span></span>${clientsRowBadge(u, d, cats)}<span class="srow-go">›</span>`;
+  const inner = `${stuAvatarHTML(u, u.name || '')}<span class="srow-main"><span class="srow-nameline"><span class="srow-name">${esc(u.name || '—')}</span>${roleDiscsHTML(u)}${alertChipHTML(d.alerts)}</span><span class="srow-sum">${clientsRowSummary(u, d)}</span><span class="srow-assign">${assignRowLine(u)}</span></span>${clientsRowBadge(u, d, cats)}<span class="srow-go">›</span>`;
   return u.approved === true
     ? `<button type="button" class="srow" data-client="${u.id}">${inner}</button>`
     : `<div class="srow srow-static">${inner}</div>`;
@@ -14702,13 +14881,16 @@ function clientsCellHTML(u) {
   const unionN = d.tpend ? d.tpend.items.length : null;
   const alDia = !d.tpendErr && unionN === 0 && cats.length === 1 && cats[0] === 'aldia';
   const ring = d.alerts.length ? '#dc2626' : (alDia ? '#0d9488' : '#f59e0b');
-  const badge = d.alerts.length ? `<span class="cgrid-badge">${d.alerts.length}</span>`
-    : d.tpendErr ? '<span class="cgrid-badge">!</span>'
+  /* AUTH-333 (F-18): el distintivo cuenta SOLO la unión de
+     pendientes — la rama que mostraba la cuenta de ALERTAS
+     queda retirada; la alerta conserva su carril (el anillo
+     rojo y el chip ⚠ junto al nombre). */
+  const badge = d.tpendErr ? '<span class="cgrid-badge">!</span>'
     : (unionN ? `<span class="cgrid-badge">${unionN}</span>` : '');
   const thumb = u.photoURL
     ? `<img src="${esc(u.photoURL)}" alt="">`
     : `<span class="mt-initials" style="background:${stuTint(u.id)};color:#134e4a">${esc(clientInitials(u).toUpperCase() || '·')}</span>`;
-  const inner = `<span class="cgrid-thumb">${thumb}<span class="cgrid-ring" style="border-color:${ring}"></span></span>${badge}<span class="cgrid-nameline"><span class="cgrid-name">${esc(u.name || '—')}</span>${roleDiscsHTML(u)}</span><span class="cgrid-cat" style="color:#6b7280">${clientsRowSummary(u, d)}</span><span class="cgrid-assign">${assignRowLine(u)}</span>`;
+  const inner = `<span class="cgrid-thumb">${thumb}<span class="cgrid-ring" style="border-color:${ring}"></span></span>${badge}<span class="cgrid-nameline"><span class="cgrid-name">${esc(u.name || '—')}</span>${roleDiscsHTML(u)}${alertChipHTML(d.alerts)}</span><span class="cgrid-cat" style="color:#6b7280">${clientsRowSummary(u, d)}</span><span class="cgrid-assign">${assignRowLine(u)}</span>`;
   return u.approved === true
     ? `<button type="button" class="cgrid-cell" data-client="${u.id}">${inner}</button>`
     : `<div class="cgrid-cell">${inner}</div>`;
@@ -16588,17 +16770,21 @@ function studentsRowHTML(u) {
      La memoria de regreso de la ficha (STUDENTS_RESTORE) no
      cambia; una entrada fresca a la vista nace con todas las
      fichas cerradas, como pide la restauración. */
-  return `<button type="button" class="srow" data-stu="${u.id}">${stuAvatarHTML(u, name)}<span class="srow-main"><span class="srow-nameline"><span class="srow-name">${esc(name)}</span>${roleDiscsHTML(u)}</span><span class="srow-sub">${studentsSummary(u)}</span><span class="srow-assign">${assignRowLine(u)}</span></span>${studentsBadge(u)}<span class="srow-chev">›</span></button>`;
+  const alerts = (typeof STUDENTS_LAST !== 'undefined' && STUDENTS_LAST && STUDENTS_LAST.alertsByUid && STUDENTS_LAST.alertsByUid[u.id]) || [];
+  return `<button type="button" class="srow" data-stu="${u.id}">${stuAvatarHTML(u, name)}<span class="srow-main"><span class="srow-nameline"><span class="srow-name">${esc(name)}</span>${roleDiscsHTML(u)}${alertChipHTML(alerts)}</span><span class="srow-sub">${studentsSummary(u)}</span><span class="srow-assign">${assignRowLine(u)}</span></span>${studentsBadge(u)}<span class="srow-chev">›</span></button>`;
 }
 function studentsGridCellHTML(u) {
   const name = stuName(u);
   const L = STUDENTS_LAST;
   const err = !!L.pendErrByUid[u.id];
   const n = (L.pendByUid[u.id] || { items: [] }).items.length;
-  const ring = err ? '#dc2626' : n ? '#f59e0b' : '#0d9488';
+  const alerts = (L.alertsByUid || {})[u.id] || [];
+  /* AUTH-333 (F-18): con alertas el anillo va rojo, como en
+     Clientes — su señal propia, fuera del número. */
+  const ring = (err || alerts.length) ? '#dc2626' : n ? '#f59e0b' : '#0d9488';
   return `<button type="button" class="cgrid-cell" data-stu="${u.id}">
     <span class="cgrid-thumb">${u.photoURL ? `<img src="${esc(u.photoURL)}" alt="">` : `<span class="mt-initials" style="background:${stuTint(u.id)};color:#134e4a">${esc(stuInitials(name).toUpperCase() || '·')}</span>`}<span class="cgrid-ring" style="border-color:${ring}"></span></span>
-    <span class="cgrid-nameline"><span class="cgrid-name">${esc(name)}</span>${roleDiscsHTML(u)}</span>
+    <span class="cgrid-nameline"><span class="cgrid-name">${esc(name)}</span>${roleDiscsHTML(u)}${alertChipHTML(alerts)}</span>
     <span class="cgrid-cat" style="color:#6b7280">${studentsSummary(u)}</span>
     <span class="cgrid-assign">${assignRowLine(u)}</span>
   </button>`;
@@ -16643,7 +16829,7 @@ function studentsDetailHTML(u) {
     : clientCatLabel(STUDENTS_DETAIL_FROM);
   let h = `<button type="button" class="back-row" id="stu-back">‹ ${esc(fromLabel)}</button>
   <div class="detail-card">
-    <div class="detail-head">${stuAvatarHTML(u, name)}<span class="detail-main"><span class="detail-name">${esc(name)}</span><span class="detail-sub">${err ? esc(t('students.pendLoadError')) : pend.items.length ? esc(t('students.pendToResolve', { n: pend.items.length })) : esc(t('students.upToDate'))}</span></span></div>`;
+    <div class="detail-head">${stuAvatarHTML(u, name)}<span class="detail-main"><span class="detail-name">${esc(name)}</span>${alertChipHTML((L.alertsByUid || {})[u.id])}<span class="detail-sub">${err ? esc(t('students.pendLoadError')) : pend.items.length ? esc(t('students.pendToResolve', { n: pend.items.length })) : esc(t('students.upToDate'))}</span></span></div>`;
   if (err) {
     h += `<div class="stu-err">${esc(t('students.loadError'))}<br><button type="button" class="btn-ghost btn-sm" data-stu-retry="${u.id}" style="margin-top:8px">${esc(t('students.retry'))}</button></div>`;
   } else {
@@ -25974,10 +26160,10 @@ function asstContextBuild() {
       }
       const curMon = mondayISO(today);
       const prevMon = addDaysISO(curMon, -7);
-      const cur = wkWeekMetrics(logs || [], curMon, true);
+      const cur = wkWeekMetrics(logs || [], curMon, true, (typeof ACT_LOGS !== 'undefined' ? ACT_LOGS : null));
       const prev = wkWeekMetrics(logs || [], prevMon, true);
       ctx.week = { sessions: cur.sessions, prevSessions: prev.sessions, prevPlanned: wkPlannedDates([plan], prevMon, addDaysISO(prevMon, 6), today).length };
-      if (cur.minutesKnown) ctx.week.minutes = cur.minutes;
+      if (cur.actMinutes > 0) ctx.week.minutes = cur.actMinutes;
       if (cur.volumeKg != null) ctx.week.volumeKg = cur.volumeKg;
       try { ctx.week.streak = recoWeeks(logs || [], [plan], today).streakNow || 0; } catch {}
     }
@@ -37067,6 +37253,7 @@ async function tplApply(id) {
   });
   $('pl-title').value = tplField(tpl, 'nombre');
   if (planCtx) planCtx.tplSource = { id: tpl.id, version: tpl.version || '' };
+  if (planCtx) planCtx.genSource = null;
   tplAlignState = { tpl, dismissed: false, aligned: false };
   tplRenderAlign();
   toast(t('train.tpl.applied'));
@@ -38068,6 +38255,7 @@ function openPlanEditor(clientUid, plan) {
      lectura es única por sesión y el estado de alineación nace
      limpio en cada apertura. */
   tplOnEditorOpen();
+  autoOnEditorOpen(clientUid);
   /* CONSTRUCTOR VISUAL (§5.1): el panel nace cerrado y con el día
      destino en el primer día en cada apertura del editor. */
   vizOnEditorOpen();
@@ -38220,6 +38408,14 @@ $('form-plan').addEventListener('submit', async e => {
     saveDone();
     return;
   }
+  /* PROGRAMA AUTOMÁTICO (§8 del diseño): si el borrador nació del
+     motor para un alumno con dolor de pecho declarado, el guardado
+     exige la confirmación de revisión completa del panel. */
+  if (planCtx.genSource && planCtx.genSource.params && planCtx.genSource.params.chestPain && !planCtx.genChestConfirmed) {
+    toast(t('train.auto.chestBlock'), true);
+    saveDone();
+    return;
+  }
   const gateWarnAfter = !isFirstSave && gateState !== 'valid';
   const active = $('pl-active').checked;
   const data = { clientUid: planCtx.clientUid, title, notes: $('pl-notes').value.trim(), days, active, updatedAt: serverTimestamp() };
@@ -38249,6 +38445,11 @@ $('form-plan').addEventListener('submit', async e => {
     const lv = (LIB && LIB.length && LIB[0].version) || '';
     if (lv) data.libraryVersion = lv;
   }
+  /* PROGRAMA AUTOMÁTICO (D-A1/D-A2): procedencia OPCIONAL y veraz
+     del borrador generado — mismos términos que la de plantillas:
+     trazabilidad, sin vínculo vivo; el plan guardado es del
+     entrenador, que lo revisó y lo cargó por el camino ordinario. */
+  if (planCtx.genSource) data.genSource = planCtx.genSource;
   /* REPETIR SEMANA (diseño §3.1): si este guardado activa la copia
      apagando otro plan activo, se confirma con su aviso específico
      ANTES de cualquier escritura (ni instantánea ni plan). */
@@ -38315,6 +38516,478 @@ $('form-plan').addEventListener('submit', async e => {
   if ($('client-training')) loadClientTraining(cuid);
   if (cuid === auth.currentUser.uid) loadMyTraining();
 });
+
+/* ================= PROGRAMA DE ENTRENAMIENTO AUTOMÁTICO =================
+   Diseño: DISENO-PROGRAMA-AUTOMATICO-2026-10-29.md y decisiones de
+   Ronald del 2026-11-01 (D-A1…D-A7; registro en memory/2026-11-01.md).
+   · D-A1: motor DETERMINISTA en la app — sin IA, sin Worker y sin
+     delta de reglas: lee lo que el editor ya lee (ficha, evaluación,
+     declaración por la vía condicionada de siempre, biblioteca,
+     calificaciones y estimado) y vuelca un BORRADOR en el editor.
+   · D-A2: lo generado nace como borrador; el entrenador revisa,
+     ajusta y guarda por el camino ordinario (puerta PAR-Q e
+     instantánea §6.4 intactas). Generar NO escribe nada.
+   · D-A3: el entrenador elige los días (cuántos y cuáles); el motor
+     elige la división (§7.1 del diseño).
+   · D-A4 (palabras de Ronald): el estimado corporal y las
+     calificaciones por tipo de cuerpo SÍ influyen, PERO NO SON
+     DETERMINANTES — solo desempatan entre ejercicios YA equivalentes
+     tras los filtros con fundamento, con la procedencia anotada en
+     el resumen; nunca excluyen y nunca pasan sobre la declaración
+     de salud. Lo determinante viene del entrenador.
+   · D-A5 (§9.4): sin declaración legible NO se genera; sin TDEE se
+     genera con aviso; sin objetivo, lo elige el entrenador solo
+     para esta generación (no se escribe en la ficha del alumno);
+     sin enfoque, General declarado.
+   · D-A6: la doble progresión va ESCRITA en las notas del plan
+     generado; ningún automatismo reescribe planes después.
+   · D-A7: el nivel se INFIERE del historial de sesiones cerradas
+     del alumno; sin historial, lo aporta el entrenador esa primera
+     vez (el selector solo se ve en ese caso).
+   Parámetros y fuentes (diseño §7): volumen por grupo — Schoenfeld,
+   Ogborn & Krieger 2017 (dosis-respuesta) y Baz-Valle et al. 2022;
+   frecuencia ≥2×/semana por grupo — Schoenfeld, Ogborn & Krieger
+   2016 y Schoenfeld, Grgic & Krieger 2019 (con volumen equiparado
+   la frecuencia no manda: por eso la división la reparte el motor
+   y los días los elige el entrenador); rangos de repeticiones —
+   continuo NSCA (fuerza ≤6 · hipertrofia 6–12 · resistencia ≥12) y
+   Helms, Aragon & Fitschen 2014 (en déficit, extremo bajo de banda
+   y sin principal pesado con banderas cardiovasculares); descansos
+   — Schoenfeld et al. 2016 (3 min > 1 min) y ACSM 2009; progresión
+   — ACSM 2009 (regla 2×2) y Helms et al., doble progresión. Lo
+   marcado [D] es decisión de diseño declarada, no ciencia. */
+const AUTO_VERSION = 'v1';
+const AUTO_LEVEL_RANK = { principiante: 0, intermedio: 1, avanzado: 2 };
+const AUTO_MAJOR = ['Pecho', 'Espalda', 'Hombros', 'Cuádriceps', 'Isquiotibiales', 'Glúteos'];
+const AUTO_MINOR = ['Bíceps', 'Tríceps', 'Pantorrillas'];
+const AUTO_EMPH_GROUPS = ['Pecho', 'Espalda', 'Hombros', 'Tríceps', 'Bíceps', 'Cuádriceps', 'Isquiotibiales', 'Glúteos', 'Pantorrillas', 'Core'];
+const AUTO_GROUP_EN = { 'Pecho': 'Chest', 'Espalda': 'Back', 'Hombros': 'Shoulders', 'Tríceps': 'Triceps', 'Bíceps': 'Biceps', 'Cuádriceps': 'Quadriceps', 'Isquiotibiales': 'Hamstrings', 'Glúteos': 'Glutes', 'Pantorrillas': 'Calves', 'Core': 'Core', 'Cuerpo completo': 'Full body' };
+const AUTO_VOL_BANDS = {
+  principiante: { major: [8, 10], minor: [6, 8], core: [6, 8] },
+  intermedio: { major: [10, 16], minor: [6, 10], core: [6, 9] },
+  avanzado: { major: [14, 20], minor: [8, 12], core: [8, 12] },
+};
+const AUTO_WD_PATTERNS = { 1: [1], 2: [1, 4], 3: [1, 3, 5], 4: [1, 2, 4, 5], 5: [1, 2, 4, 5, 6], 6: [1, 2, 3, 4, 5, 6] };
+function autoBandOf(group) { return AUTO_MAJOR.includes(group) ? 'major' : AUTO_MINOR.includes(group) ? 'minor' : 'core'; }
+function autoTargetFor(group, level, objective) {
+  const band = AUTO_VOL_BANDS[level][autoBandOf(group)];
+  if (objective === 'bajar') return band[0];
+  if (objective === 'ganar') return band[1];
+  return band[0] + Math.round((band[1] - band[0]) / 3);
+}
+function autoLevelOf(entry) {
+  const n = libNorm((entry && (entry.nivel_es || entry.nivel_en)) || '');
+  return n === 'principiante' || n === 'beginner' ? 'principiante'
+    : n === 'intermedio' || n === 'intermediate' ? 'intermedio'
+    : n === 'avanzado' || n === 'advanced' ? 'avanzado' : null;
+}
+/* Familias de equipo (§7.6 del diseño): equipo_es es texto libre
+   (~89 valores); el motor lo normaliza por palabras clave a las 6
+   familias del panel. Una ficha puede pertenecer a varias familias
+   («Mancuerna o kettlebell»); la que no casa con ninguna queda
+   «especial» y solo entra con el gimnasio completo marcado [D]. */
+function autoEqFamilies(entry) {
+  const eq = libNorm(((entry && entry.equipo_es) || '') + ' ' + ((entry && entry.equipo_en) || ''));
+  const fams = new Set();
+  if (/smith|maquina|machine|prensa de piernas|leg press|hack/.test(eq)) fams.add('maquinas');
+  if (/polea|cable/.test(eq)) fams.add('poleas');
+  if (/kettlebell|pesa rusa|banda elastica|elastic band|resistance band/.test(eq)) fams.add('kb');
+  if (/mancuerna|dumbbell/.test(eq)) fams.add('mancuernas');
+  if (/barra de dominadas|barras paralelas|pull-up bar|pull up bar|parallel bars|peso corporal|bodyweight|colchoneta|\bmat\b|pared|wall|companero|partner|banco romano|roman chair|silla romana|captain/.test(eq)) fams.add('corporal');
+  if (/\bbarra\b|barbell/.test(eq) && !/barra de dominadas/.test(eq)) fams.add('barra');
+  if (entry && entry.categoria_es === 'Con máquinas') fams.add('maquinas');
+  return [...fams];
+}
+/* Compuesto vs. aislamiento [D — heurística declarada sobre la
+   biblioteca cerrada]: «Ninguno» en secundarios ⇒ aislamiento; si
+   no, una lista cerrada de patrones de aislamiento sobre el nombre;
+   el resto se trata como compuesto. Solo ordena dentro del slot y
+   elige la banda de series/repeticiones del §7.3. */
+const AUTO_ISO_RE = /curl|apertura|mariposa|peck deck|cruce en polea|crossover|cross-over|elevacion lateral|elevaciones laterales|lateral raise|elevacion frontal|front raise|extension de triceps|triceps extension|press frances|skull|patada|kickback|abduccion|abduction|aduccion|adduction|encogimiento|shrug|extension de piernas|leg extension|curl femoral|leg curl|extension lumbar|gemelo|calf raise|elevacion de talones|crunch|plancha|plank|pullover|face pull|pajaros|reverse fly|vuelos|hiperextension|abdominal/;
+function autoIsIsolation(entry) {
+  const sec = libNorm((entry && entry.musculos_secundarios_es) || '');
+  if (sec === 'ninguno' || sec === 'none') return true;
+  const nm = libNorm(((entry && entry.nombre_es) || '') + ' ' + ((entry && entry.nombre_en) || ''));
+  return AUTO_ISO_RE.test(nm);
+}
+/* Filtrado por salud (§8 del diseño): la declaración manda. Las
+   condiciones posteriores al diseño (las del paquete F-02 —
+   renal, prediabetes, hipoglucemia, insulina/medicación y
+   trastorno alimentario — y las etapas de vida) reciben el trato
+   conservador declarado: programa MARCADO con la condición
+   nombrada, sin inventar correspondencias ejercicio a ejercicio;
+   la familia de la glucosa lleva además la nota de sesión de la
+   fila de diabetes (ACSM/ADA: fuente de glucosa a la sesión). */
+function autoHealthPlan(conditions) {
+  const c = new Set(conditions || []);
+  const hp = { excludeSupine: false, conservative: false, mainConservative: false, chestPain: false, preferMachines: false, levelCap: null, valsalva: false, diabetesNote: false, asthmaWarmup: false, detailsShown: false, programMarks: [] };
+  const mark = name => { if (c.has(name)) hp.programMarks.push(name); };
+  if (c.has('Embarazo')) { hp.excludeSupine = true; mark('Embarazo'); }
+  if (c.has('Dolor de pecho al ejercitarse')) { hp.conservative = true; hp.chestPain = true; mark('Dolor de pecho al ejercitarse'); }
+  if (c.has('Problemas del corazón')) { hp.conservative = true; mark('Problemas del corazón'); }
+  if (c.has('Hipertensión')) hp.valsalva = true;
+  if (c.has('Mareos o desmayos')) mark('Mareos o desmayos');
+  if (c.has('Lesiones articulares o musculares')) { hp.preferMachines = true; hp.levelCap = 'intermedio'; hp.detailsShown = true; mark('Lesiones articulares o musculares'); }
+  if (c.has('Cirugía reciente')) { hp.preferMachines = true; hp.mainConservative = true; mark('Cirugía reciente'); }
+  if (c.has('Diabetes')) { hp.diabetesNote = true; mark('Diabetes'); }
+  if (c.has('Asma / problemas respiratorios')) { hp.asthmaWarmup = true; mark('Asma / problemas respiratorios'); }
+  ['Enfermedad renal', 'Trastorno alimentario', 'Posparto', 'Lactancia', 'Menopausia'].forEach(mark);
+  ['Prediabetes', 'Hipoglucemia', 'Uso de insulina o medicación que baja el azúcar'].forEach(nm => { if (c.has(nm)) { hp.diabetesNote = true; mark(nm); } });
+  return hp;
+}
+const AUTO_SUPINE_RE = /supin|banco plano|press de banca|bench press|crunch|abdominal|floor press|press en el suelo/;
+function autoHealthExcludes(entry, hp) {
+  if (!hp.excludeSupine) return false;
+  const nm = libNorm(((entry && entry.nombre_es) || '') + ' ' + ((entry && entry.nombre_en) || ''));
+  return AUTO_SUPINE_RE.test(nm);
+}
+/* D-A7: nivel inferido del historial de sesiones CERRADAS (hechas
+   o parciales, la lectura de trainLogStatus). Umbrales [D —
+   decisión de diseño declarada, sin fuente directa: anclados en la
+   progresión por experiencia del ACSM 2009]: sin sesiones cerradas
+   no hay inferencia posible (null) y el nivel lo aporta el
+   entrenador esa primera vez. */
+function autoInferLevel(logs) {
+  const closed = (logs || []).filter(l => { const s = trainLogStatus(l); return s === 'done' || s === 'partial'; });
+  if (!closed.length) return null;
+  const dates = closed.map(l => l.date).filter(d => /^\d{4}-\d{2}-\d{2}$/.test(d || '')).sort();
+  const n = closed.length;
+  let spanWeeks = 0;
+  if (dates.length > 1) spanWeeks = Math.round((new Date(dates[dates.length - 1] + 'T12:00:00') - new Date(dates[0] + 'T12:00:00')) / 604800000);
+  if (n >= 80 && spanWeeks >= 26) return { level: 'avanzado', sessions: n, spanWeeks };
+  if (n >= 24 && spanWeeks >= 8) return { level: 'intermedio', sessions: n, spanWeeks };
+  return { level: 'principiante', sessions: n, spanWeeks };
+}
+/* La división (§7.1): los días los elige el entrenador; el motor
+   reparte los grupos. Nombre de división + grupos por día, en el
+   orden en que se entrenan. */
+function autoSplitDef(n, level) {
+  const FULL_A = ['Cuádriceps', 'Espalda', 'Pecho', 'Core'];
+  const FULL_B = ['Isquiotibiales', 'Pecho', 'Espalda', 'Hombros', 'Core'];
+  const FULL_C = ['Cuádriceps', 'Espalda', 'Hombros', 'Glúteos', 'Core'];
+  const TORSO = ['Pecho', 'Espalda', 'Hombros', 'Tríceps', 'Bíceps'];
+  const PIERNA = ['Cuádriceps', 'Isquiotibiales', 'Glúteos', 'Pantorrillas'];
+  const EMPUJE = ['Pecho', 'Hombros', 'Tríceps'];
+  const JALE = ['Espalda', 'Hombros', 'Bíceps'];
+  switch (n) {
+    case 1: return [{ name: 'full', groups: FULL_A }];
+    case 2: return [{ name: 'full', groups: FULL_A }, { name: 'full', groups: FULL_B }];
+    case 3: return level === 'principiante'
+      ? [{ name: 'full', groups: FULL_A }, { name: 'full', groups: FULL_B }, { name: 'full', groups: FULL_C }]
+      : [{ name: 'push', groups: EMPUJE }, { name: 'pull', groups: JALE }, { name: 'legs', groups: PIERNA }];
+    case 4: return [{ name: 'torso', groups: TORSO }, { name: 'legs', groups: PIERNA }, { name: 'torso', groups: TORSO }, { name: 'legs', groups: PIERNA }];
+    case 5: return [{ name: 'torso', groups: TORSO }, { name: 'legs', groups: PIERNA }, { name: 'push', groups: EMPUJE }, { name: 'pull', groups: JALE }, { name: 'legs', groups: PIERNA }];
+    default: return [{ name: 'push', groups: EMPUJE }, { name: 'pull', groups: JALE }, { name: 'legs', groups: PIERNA }, { name: 'push', groups: EMPUJE }, { name: 'pull', groups: JALE }, { name: 'legs', groups: PIERNA }];
+  }
+}
+/* EL MOTOR (función pura de sus insumos: mismos insumos ⇒ mismo
+   programa, byte a byte salvo la procedencia temporal que estampa
+   la capa de interfaz al guardar). inp: { lib, ratingsById,
+   archetype ('ectomorfo'|'mesomorfo'|'endomorfo'|null), conditions,
+   objective, focusComp, level, weekdays (ordenados), equipment
+   ('all' o lista de familias), emphasis, durationMin, lang }. */
+function autoGenerateProgram(inp) {
+  const hp = autoHealthPlan(inp.conditions);
+  const effLevel = hp.levelCap && AUTO_LEVEL_RANK[hp.levelCap] < AUTO_LEVEL_RANK[inp.level] ? hp.levelCap : inp.level;
+  const split = autoSplitDef(inp.weekdays.length, inp.level);
+  const sum = { splitNames: split.map(d => d.name), volume: [], exclusions: [], gaps: [], durations: [], tiebreaks: [], consecutive: [], trimmed: [], healthMarks: hp.programMarks.slice(), diabetesNote: hp.diabetesNote, chestPain: hp.chestPain, detailsShown: hp.detailsShown };
+  /* Sesiones por grupo y presupuestos (§7.2): objetivo semanal por
+     banda y objetivo; énfasis +3 dentro de la banda y −1 a los
+     demás sin bajarlos del mínimo [D]; tope ~10 series por sesión
+     y grupo, y 6 en días de cuerpo completo [D — una sesión de
+     cuerpo completo no admite 10×5 grupos]. */
+  const sessionsOf = {};
+  split.forEach(d => d.groups.forEach(g => { sessionsOf[g] = (sessionsOf[g] || 0) + 1; }));
+  const budgets = {};
+  Object.keys(sessionsOf).forEach(g => {
+    let tg = autoTargetFor(g, inp.level, inp.objective);
+    const band = AUTO_VOL_BANDS[inp.level][autoBandOf(g)];
+    if (inp.emphasis.includes(g)) tg = Math.min(band[1], tg + 3);
+    else if (inp.emphasis.length) tg = Math.max(band[0], tg - 1);
+    const n = sessionsOf[g], per = [];
+    let rem = tg;
+    for (let i = 0; i < n; i++) { const v = Math.min(10, Math.ceil(rem / (n - i))); per.push(v); rem -= v; }
+    budgets[g] = { target: tg, per };
+    sum.volume.push({ group: g, groupEn: AUTO_GROUP_EN[g] || g, target: tg, got: 0 });
+  });
+  const volOf = g => sum.volume.find(v => v.group === g);
+  /* Exclusiones por salud, una vez por generación: fichas que
+     habrían sido candidatas (grupo del reparto, nivel y equipo
+     admitidos) y la salud aparta — el resumen las nombra con su
+     motivo, como manda el §9.3. */
+  const splitGroups = [...new Set(split.flatMap(d => d.groups))];
+  (inp.lib || []).forEach(e => {
+    if (!e || !e.id || !splitGroups.includes(e.grupo_muscular_es || '')) return;
+    const lv = autoLevelOf(e);
+    if (lv == null || AUTO_LEVEL_RANK[lv] > AUTO_LEVEL_RANK[effLevel]) return;
+    if (inp.equipment !== 'all') { const fams = autoEqFamilies(e); if (fams.length && !fams.some(f => inp.equipment.includes(f))) return; }
+    if (autoHealthExcludes(e, hp)) sum.exclusions.push({ id: e.id, name: libNameOf(e), cond: 'Embarazo' });
+  });
+  sum.exclusions.sort((a, b) => a.id < b.id ? -1 : 1);
+  const usedWeek = new Set();
+  const seenWeek = {};
+  const mainSets = inp.focusComp ? 5 : (inp.objective === 'bajar' || hp.conservative ? 3 : 4);
+  const isoSets = (inp.objective === 'bajar' || hp.conservative) ? 2 : 3;
+  const pickFrom = (pool, roleWanted, dayUsed) => {
+    const cls = e => ((roleWanted === 'isolation') === autoIsIsolation(e)) ? 0 : 1;
+    const mach = e => hp.preferMachines ? ((e.categoria_es === 'Con máquinas') ? 0 : 1) : 0;
+    const unused = e => usedWeek.has(e.id) ? 1 : 0;
+    const sorted = pool.filter(e => !dayUsed.has(e.id)).slice().sort((a, b) =>
+      cls(a) - cls(b) || mach(a) - mach(b) || unused(a) - unused(b) || (a.id < b.id ? -1 : a.id > b.id ? 1 : 0));
+    if (!sorted.length) return null;
+    let pick = sorted[0];
+    /* D-A4: desempate SOLO dentro de la clase de equivalencia del
+       primero (mismo rol, misma preferencia de máquina y mismo uso
+       en la semana): gana la mejor calificación para el arquetipo
+       dominante del estimado del alumno, si la hay. Si el ganador
+       no es el que habría salido por orden de ficha, la
+       procedencia queda anotada. Sin estimado o sin
+       calificaciones, manda el orden determinista de siempre. */
+    if (inp.archetype && inp.ratingsById) {
+      const grade = e => { const r = inp.ratingsById[e.id]; const g = r && r.calificaciones ? r.calificaciones[inp.archetype] : null; return g === 'Alto' ? 3 : g === 'Medio' ? 2 : g === 'Bajo' ? 1 : 0; };
+      const eqClass = sorted.filter(e => cls(e) === cls(pick) && mach(e) === mach(pick) && unused(e) === unused(pick));
+      if (eqClass.length > 1) {
+        let best = pick, bestG = grade(pick);
+        for (const e of eqClass) { const g = grade(e); if (g > bestG) { best = e; bestG = g; } }
+        if (best !== pick && bestG > 0) { sum.tiebreaks.push({ id: best.id, name: libNameOf(best), grade: bestG === 3 ? 'Alto' : 'Medio', archetype: inp.archetype, over: pick.id }); pick = best; }
+      }
+    }
+    return pick;
+  };
+  const restSecOf = r => r === '3 min' ? 180 : r === '2-3 min' ? 150 : 75;
+  const daysOut = [];
+  split.forEach((sd, di) => {
+    const dayUsed = new Set();
+    const exs = [];
+    sd.groups.forEach((g, gi) => {
+      const occ = (seenWeek[g] = (seenWeek[g] || 0) + 1) - 1;
+      let remaining = budgets[g].per[occ] || 0;
+      if (sd.name === 'full') remaining = Math.min(remaining, 6);
+      const slotGroups = (sd.name === 'full' && gi === 0) ? [g, 'Cuerpo completo'] : [g];
+      let firstOfGroup = true, gotBefore = volOf(g).got;
+      while (remaining >= 2) {
+        const role = exs.length === 0 ? 'main' : (firstOfGroup ? 'secondary' : 'isolation');
+        const pool = (inp.lib || []).filter(e => {
+          if (!e || !e.id || !slotGroups.includes(e.grupo_muscular_es || '')) return false;
+          const lv = autoLevelOf(e);
+          if (lv == null || AUTO_LEVEL_RANK[lv] > AUTO_LEVEL_RANK[effLevel]) return false;
+          if (autoHealthExcludes(e, hp)) return false;
+          if (inp.equipment !== 'all') { const fams = autoEqFamilies(e); if (!fams.length || !fams.some(f => inp.equipment.includes(f))) return false; }
+          return true;
+        });
+        const pick = pickFrom(pool, role === 'isolation' ? 'isolation' : 'compound', dayUsed);
+        if (!pick) break;
+        let sets = role === 'main' ? mainSets : role === 'secondary' ? 3 : isoSets;
+        if (remaining < sets) sets = remaining;
+        if (sets < 2) break;
+        const iso = autoIsIsolation(pick);
+        const reps = role === 'main'
+          ? (inp.focusComp ? '3-6' : (hp.conservative || hp.mainConservative ? '8-12' : '6-10'))
+          : role === 'secondary' ? '8-12'
+          : (hp.conservative ? '12-15' : (g === 'Core' || g === 'Pantorrillas' ? '12-20' : '10-15'));
+        const rm = reps.split('-').map(Number);
+        const rest = iso ? '60-90 s' : (hp.valsalva ? '3 min' : '2-3 min');
+        const row = { name: libNameOf(pick), sets: String(sets), reps, note: '', exerciseId: pick.id, photoUrl: pick.foto_url || '', videoUrl: pick.video_youtube_url || '', rest, rest_en: rest, repsMin: rm[0], repsMax: rm[1] || rm[0], repsKind: 'reps', _grp: g, _iso: iso };
+        if (hp.valsalva && !iso) row.note = inp.lang === 'en' ? 'No prolonged Valsalva; breathe on the effort' : 'Sin Valsalva prolongado; respira en el esfuerzo';
+        exs.push(row);
+        dayUsed.add(pick.id); usedWeek.add(pick.id);
+        volOf(g).got += sets; remaining -= sets; firstOfGroup = false;
+      }
+      if (remaining === 1) {
+        const last = [...exs].reverse().find(x => x._grp === g);
+        if (last) { last.sets = String(Number(last.sets) + 1); volOf(g).got += 1; remaining = 0; }
+      }
+      if (volOf(g).got === gotBefore && (budgets[g].per[occ] || 0) > 0 && !sum.gaps.includes(g)) sum.gaps.push(g);
+    });
+    /* Duración estimada [D — aritmética declarada]: series ×
+       (40 s de trabajo + descanso de la fila). Si se pasa de la
+       objetivo en más de un 15 %, se recorta aislamiento del final
+       y se declara en el resumen (§7.4). */
+    const estOf = list => Math.round(list.reduce((s, x) => s + Number(x.sets || 0) * (40 + restSecOf(x.rest)) / 60, 0));
+    let est = estOf(exs);
+    while (est > inp.durationMin * 1.15 && exs.length > 3) {
+      const idx = [...exs].map((x, i) => x._iso ? i : -1).filter(i => i >= 0).pop();
+      if (idx == null) break;
+      const [rmRow] = exs.splice(idx, 1);
+      volOf(rmRow._grp).got -= Number(rmRow.sets || 0);
+      sum.trimmed.push(libNameOf(LIB_BY_ID[rmRow.exerciseId] || { id: rmRow.exerciseId, nombre_es: rmRow.name, nombre_en: rmRow.name }));
+      est = estOf(exs);
+    }
+    if (exs.length) {
+      const first = exs[0];
+      if (hp.asthmaWarmup) { first.warmup = 'Calentamiento progresivo largo: series de aproximación'; first.warmup_en = 'Long progressive warm-up: ramp-up sets'; }
+      else { first.warmup = 'Series de aproximación'; first.warmup_en = 'Warm-up sets'; }
+    }
+    sum.durations.push(est);
+    daysOut.push({ label: t('train.auto.dayLabel', { n: di + 1, v: t('train.auto.split.' + sd.name) }), exercises: exs.map(x => { const y = { ...x }; delete y._grp; delete y._iso; return y; }) });
+  });
+  /* Aviso §7.1: un grupo en días consecutivos es elección del
+     entrenador; el motor genera igual y lo declara. */
+  const wdGroups = {};
+  inp.weekdays.forEach((wd, i) => { wdGroups[wd] = new Set(split[i] ? split[i].groups : []); });
+  inp.weekdays.forEach(wd => {
+    const nx = (wd + 1) % 7;
+    if (wdGroups[nx]) wdGroups[wd].forEach(g => { if (wdGroups[nx].has(g) && !sum.consecutive.includes(g)) sum.consecutive.push(g); });
+  });
+  return { days: daysOut, summary: sum, health: hp };
+}
+
+/* ---------- Panel de generación (capa de interfaz) ---------- */
+let AUTO_CTX = null;
+let AUTO_SEQ = 0;
+function autoDominantArchetype(est) {
+  if (!est) return null;
+  const mix = est.mix || {};
+  const pairs = [['ectomorfo', Number(mix.ectomorph) || 0], ['mesomorfo', Number(mix.mesomorph) || 0], ['endomorfo', Number(mix.endomorph) || 0]];
+  pairs.sort((a, b) => b[1] - a[1]);
+  if (pairs[0][1] > 0) return pairs[0][0];
+  return est.category === 'ectomorph' ? 'ectomorfo' : est.category === 'endomorph' ? 'endomorfo' : est.category === 'mesomorph' ? 'mesomorfo' : null;
+}
+async function autoOnEditorOpen(uid) {
+  if (planCtx) { planCtx.genSource = null; planCtx.genChestConfirmed = false; }
+  const seq = ++AUTO_SEQ;
+  AUTO_CTX = null;
+  const note = $('pl-auto-note'), body = $('pl-auto-body');
+  if (!body) return;
+  body.innerHTML = '';
+  if (note) note.textContent = t('train.auto.loading');
+  const [udata, assess, plans, logs] = await Promise.all([
+    getDoc(doc(db, 'users', uid)).then(s => s.exists() ? s.data() : null).catch(() => null),
+    getDoc(doc(db, 'users', uid, 'assessment', 'current')).then(s => s.exists() ? s.data() : null).catch(() => null),
+    fetchPlans(uid), fetchLogs(uid),
+  ]);
+  if (seq !== AUTO_SEQ || !planCtx || planCtx.clientUid !== uid) return;
+  const ch = udata ? await fetchClientHealth(uid, udata).catch(() => ({ available: false, decl: null, cause: 'error' })) : { available: false, decl: null, cause: null };
+  if (seq !== AUTO_SEQ || !planCtx || planCtx.clientUid !== uid) return;
+  let estimate = null;
+  if (udata && btIsActive(udata)) {
+    try {
+      const bs = await getDocs(query(collection(db, 'body_type_estimates'), where('clientUid', '==', uid)));
+      bs.forEach(d => { const v = { id: d.id, ...d.data() }; if (!estimate || String(v.createdAt || v.sourceDate || '') >= String(estimate.createdAt || estimate.sourceDate || '')) estimate = v; });
+    } catch { estimate = null; }
+  }
+  await libEnsure(); await btrEnsure();
+  if (seq !== AUTO_SEQ || !planCtx || planCtx.clientUid !== uid) return;
+  const eff = udata ? gmFocusEffective(udata) : { focus: 'general', status: 'active', objective: '', source: 'student', phase: null };
+  const active = (plans || []).find(p => p.active === true) || null;
+  let defWd = AUTO_WD_PATTERNS[4].slice();
+  if (active) {
+    const pairs = trainWeekdayPairs(active.days);
+    if (pairs) defWd = Object.keys(pairs).map(Number).sort((a, b) => a - b);
+    else defWd = (AUTO_WD_PATTERNS[planCalWeeklySessions(active)] || defWd).slice();
+  }
+  AUTO_CTX = { uid, udata, assess, ch, estimate, levelInf: autoInferLevel(logs), eff, defWd };
+  autoRenderPanel();
+}
+function autoRenderPanel() {
+  const note = $('pl-auto-note'), body = $('pl-auto-body');
+  if (!body || !AUTO_CTX) return;
+  const C = AUTO_CTX;
+  if (LIB_STATE !== 'ok' || !LIB || !LIB.length) {
+    if (note) note.textContent = t('train.auto.libUnavailable');
+    body.innerHTML = ''; return;
+  }
+  if (!C.ch.available) {
+    if (note) note.textContent = '';
+    body.innerHTML = `<div class="pl-auto-block">${esc(t('train.auto.healthBlocked'))}<br><span class="progress-hint">${esc(clientHealthCauseText(C.ch))}</span></div>`;
+    return;
+  }
+  if (note) note.textContent = '';
+  const conds = (C.ch.decl && C.ch.decl.conditions) || [];
+  const ctx = [];
+  ctx.push(`<div>${esc(t('train.auto.ctxObjective', { v: C.eff.objective ? t('train.auto.obj.' + C.eff.objective) : t('train.auto.ctxNone') }))} · ${esc(t('train.auto.ctxFocus', { v: t('train.auto.foc.' + C.eff.focus) + (C.eff.phase ? ' · ' + C.eff.phase : '') }))}</div>`);
+  if (C.assess) ctx.push(`<div>${esc(t('train.auto.ctxActivity', { v: String(C.assess.palBasal != null ? C.assess.palBasal : '—') }))}</div>`);
+  if (C.estimate) ctx.push(`<div>${esc(t('train.auto.ctxEstimate', { v: t('bt.category.' + C.estimate.category) }))}</div>`);
+  ctx.push(`<div>${esc(conds.length ? t('train.auto.ctxHealthConds', { n: conds.length }) : t('train.auto.ctxHealthOk'))}</div>`);
+  if (C.levelInf) ctx.push(`<div>${esc(t('train.auto.ctxLevelInf', { v: t('train.auto.lvl.' + C.levelInf.level), n: C.levelInf.sessions }))}</div>`);
+  const warns = [];
+  if (!C.assess || !C.assess.tdeeKcal) warns.push(`<div class="pl-auto-warn">${esc(t('train.auto.noTdee'))}</div>`);
+  if (!C.udata || !C.udata.goalFocus) warns.push(`<div class="pl-auto-warn">${esc(t('train.auto.focusGeneral'))}</div>`);
+  const wdNames = t('train.auto.wds').split(',');
+  const wdOrder = [1, 2, 3, 4, 5, 6, 0];
+  const wdChips = wdOrder.map((wd, i) => `<button type="button" class="pl-type-btn pl-auto-wd${C.defWd.includes(wd) ? ' is-on' : ''}" data-wd="${wd}">${esc(wdNames[i] || '')}</button>`).join('');
+  const eqDefs = [['barra', 'train.auto.eq.barra'], ['mancuernas', 'train.auto.eq.mancuernas'], ['poleas', 'train.auto.eq.poleas'], ['maquinas', 'train.auto.eq.maquinas'], ['corporal', 'train.auto.eq.corporal'], ['kb', 'train.auto.eq.kb']];
+  const eqChips = eqDefs.map(([f, k]) => `<button type="button" class="pl-type-btn pl-auto-eq is-on" data-eq="${f}">${esc(t(k))}</button>`).join('');
+  const emphChips = AUTO_EMPH_GROUPS.map(g => `<button type="button" class="pl-type-btn pl-auto-emph" data-emph="${esc(g)}">${esc(LANG === 'en' ? (AUTO_GROUP_EN[g] || g) : g)}</button>`).join('');
+  body.innerHTML = `
+    <div class="pl-auto-ctx">${ctx.join('')}</div>
+    ${warns.join('')}
+    ${C.levelInf ? '' : `<label class="pl-auto-lab"><span>${esc(t('train.auto.levelLabel'))}</span> <select id="pl-auto-level"><option value="">—</option><option value="principiante">${esc(t('train.auto.lvl.principiante'))}</option><option value="intermedio">${esc(t('train.auto.lvl.intermedio'))}</option><option value="avanzado">${esc(t('train.auto.lvl.avanzado'))}</option></select></label>`}
+    ${C.eff.objective ? '' : `<label class="pl-auto-lab"><span>${esc(t('train.auto.objPickLabel'))}</span> <select id="pl-auto-obj"><option value="">—</option><option value="bajar">${esc(t('train.auto.obj.bajar'))}</option><option value="mantener">${esc(t('train.auto.obj.mantener'))}</option><option value="ganar">${esc(t('train.auto.obj.ganar'))}</option></select></label>`}
+    <div class="pl-auto-lab"><span>${esc(t('train.auto.daysLabel'))}</span><div class="pl-auto-chips">${wdChips}</div></div>
+    <label class="pl-auto-lab"><span>${esc(t('train.auto.durLabel'))}</span> <select id="pl-auto-dur"><option value="45">45 min</option><option value="60" selected>60 min</option><option value="75">75 min</option><option value="90">90 min</option></select></label>
+    <div class="pl-auto-lab"><span>${esc(t('train.auto.eqLabel'))}</span><div class="pl-auto-chips"><button type="button" class="pl-type-btn pl-auto-eqall is-on">${esc(t('train.auto.eq.all'))}</button>${eqChips}</div></div>
+    <div class="pl-auto-lab"><span>${esc(t('train.auto.emphLabel'))}</span><div class="pl-auto-chips">${emphChips}</div></div>
+    <div class="frow"><button type="button" class="btn-primary" id="pl-auto-gen">${esc(t('train.auto.genBtn'))}</button></div>
+    <div id="pl-auto-summary"></div>`;
+  body.querySelectorAll('.pl-auto-wd').forEach(b => b.onclick = () => b.classList.toggle('is-on'));
+  const eqAll = body.querySelector('.pl-auto-eqall');
+  body.querySelectorAll('.pl-auto-eq').forEach(b => b.onclick = () => { b.classList.toggle('is-on'); eqAll.classList.toggle('is-on', [...body.querySelectorAll('.pl-auto-eq')].every(x => x.classList.contains('is-on'))); });
+  if (eqAll) eqAll.onclick = () => { const on = !eqAll.classList.contains('is-on'); eqAll.classList.toggle('is-on', on); body.querySelectorAll('.pl-auto-eq').forEach(x => x.classList.toggle('is-on', on)); };
+  body.querySelectorAll('.pl-auto-emph').forEach(b => b.onclick = () => {
+    if (!b.classList.contains('is-on') && body.querySelectorAll('.pl-auto-emph.is-on').length >= 2) { toast(t('train.auto.emphMax'), true); return; }
+    b.classList.toggle('is-on');
+  });
+  $('pl-auto-gen').onclick = () => autoGenerate();
+}
+function autoSummaryHTML(res, inp) {
+  const S = res.summary;
+  const gname = v => LANG === 'en' ? v.groupEn : v.group;
+  const parts = [];
+  parts.push(`<div class="pl-auto-sumt">${esc(t('train.auto.sumTitle'))}</div>`);
+  parts.push(`<div>${esc(t('train.auto.sumSplit', { v: S.splitNames.map(n => t('train.auto.split.' + n)).join(' · ') }))}</div>`);
+  parts.push(`<div>${esc(t('train.auto.sumVol', { v: S.volume.map(v => `${gname(v)} ${v.got}/${v.target}`).join(' · ') }))}</div>`);
+  S.volume.filter(v => v.got < v.target).forEach(v => parts.push(`<div class="pl-auto-warn">${esc(t('train.auto.sumVolMiss', { g: gname(v), n: v.target - v.got }))}</div>`));
+  if (S.exclusions.length) parts.push(`<div>${esc(t('train.auto.sumExcl', { v: S.exclusions.map(x => `${x.name} — ${condName(x.cond)}`).join(' · ') }))}</div>`);
+  if (S.healthMarks.length) parts.push(`<div>${esc(t('train.auto.sumMarks', { v: S.healthMarks.map(condName).join(' · ') }))}</div>`);
+  if (S.detailsShown && AUTO_CTX && AUTO_CTX.ch.decl && AUTO_CTX.ch.decl.details) parts.push(`<div>${esc(t('train.auto.sumDeclDetails', { v: AUTO_CTX.ch.decl.details }))}</div>`);
+  if (S.gaps.length) parts.push(`<div class="pl-auto-warn">${esc(t('train.auto.sumGaps', { v: S.gaps.map(g => LANG === 'en' ? (AUTO_GROUP_EN[g] || g) : g).join(' · ') }))}</div>`);
+  if (S.trimmed.length) parts.push(`<div>${esc(t('train.auto.sumTrim', { v: S.trimmed.join(' · ') }))}</div>`);
+  if (S.tiebreaks.length) parts.push(`<div>${esc(t('train.auto.sumTie', { v: S.tiebreaks.map(x => `${x.name} (${x.grade} · ${x.archetype})`).join(' · ') }))}</div>`);
+  S.consecutive.forEach(g => parts.push(`<div class="pl-auto-warn">${esc(t('train.auto.warnConsecutive', { g: LANG === 'en' ? (AUTO_GROUP_EN[g] || g) : g }))}</div>`));
+  parts.push(`<div>${esc(t('train.auto.sumDur', { v: S.durations.map((m, i) => `${i + 1}: ${m} min`).join(' · ') }))}</div>`);
+  if (res.health.chestPain) parts.push(`<div class="pl-auto-block">${esc(t('train.auto.chestWarn'))}<br><label class="check-row"><input type="checkbox" id="pl-auto-chest"> <span>${esc(t('train.auto.chestConfirm'))}</span></label></div>`);
+  parts.push(`<div class="progress-hint">${esc(t('train.auto.sumHonest'))}</div>`);
+  return parts.join('');
+}
+async function autoGenerate() {
+  if (!AUTO_CTX || !planCtx) return;
+  const C = AUTO_CTX;
+  const body = $('pl-auto-body');
+  const weekdays = [...body.querySelectorAll('.pl-auto-wd.is-on')].map(b => Number(b.dataset.wd)).sort((a, b) => a - b);
+  if (weekdays.length < 1 || weekdays.length > 6) { toast(t('train.auto.errDays'), true); return; }
+  let level = C.levelInf ? C.levelInf.level : (($('pl-auto-level') || {}).value || '');
+  if (!level) { toast(t('train.auto.errLevel'), true); return; }
+  let objective = C.eff.objective || '', objectiveSource = C.eff.source || 'student';
+  if (!objective) { objective = (($('pl-auto-obj') || {}).value || ''); objectiveSource = 'trainer'; if (!objective) { toast(t('train.auto.errObj'), true); return; } }
+  const eqOn = [...body.querySelectorAll('.pl-auto-eq.is-on')].map(b => b.dataset.eq);
+  const equipment = eqOn.length >= 6 ? 'all' : eqOn;
+  const emphasis = [...body.querySelectorAll('.pl-auto-emph.is-on')].map(b => b.dataset.emph);
+  const durationMin = Number((($('pl-auto-dur') || {}).value) || 60);
+  const focusComp = C.eff.focus === 'competencia' && C.eff.status === 'active' && !!C.eff.phase;
+  const inp = { lib: LIB, ratingsById: BTR_BY_ID, archetype: autoDominantArchetype(C.estimate), conditions: (C.ch.decl && C.ch.decl.conditions) || [], objective, focusComp, level, weekdays, equipment, emphasis, durationMin, lang: LANG };
+  if (tplEditorIsDirty() && !confirm(t('train.auto.replaceConfirm'))) return;
+  await libEnsure();
+  const res = autoGenerateProgram(inp);
+  const daysBox = $('pl-days');
+  daysBox.innerHTML = '';
+  res.days.forEach(d => daysBox.appendChild(planDayRow(d)));
+  if (!($('pl-title').value || '').trim()) $('pl-title').value = t('train.auto.titleSug');
+  const noteTxt = t('train.auto.noteProgression') + (res.summary.diabetesNote ? ' ' + t('train.auto.noteDiabetes') : '');
+  const curNotes = ($('pl-notes').value || '').trim();
+  $('pl-notes').value = curNotes ? curNotes + ' ' + noteTxt : noteTxt;
+  planCtx.genSource = { kind: 'autoProgram', version: AUTO_VERSION, params: { daysPerWeek: weekdays.length, weekdays, split: res.summary.splitNames.join('+'), level, levelSource: C.levelInf ? 'history' : 'trainer', equipment, emphasis, objective, objectiveSource, focus: C.eff.focus, healthFiltered: res.summary.exclusions.length, chestPain: !!res.summary.chestPain, generatedAt: new Date().toISOString() } };
+  planCtx.genChestConfirmed = false;
+  planTouched = true;
+  const sumBox = $('pl-auto-summary');
+  if (sumBox) {
+    sumBox.innerHTML = autoSummaryHTML(res, inp);
+    const chk = $('pl-auto-chest');
+    if (chk) chk.onchange = () => { if (planCtx) planCtx.genChestConfirmed = !!chk.checked; };
+    sumBox.scrollIntoView({ block: 'nearest' });
+  }
+  toast(t('train.auto.generated'));
+}
 
 /* ================= REPETIR DÍA / REPETIR SEMANA (2026-10-29) =================
    Diseño: DISENO-REPETIR-DIA-SEMANA-2026-10-28.md + decisiones de
@@ -40280,7 +40953,7 @@ function wkPrevApps(logs, monday) {
     }));
   return out;
 }
-function wkWeekMetrics(logs, monday, light) {
+function wkWeekMetrics(logs, monday, light, actByDate) {
   const sunday = addDaysISO(monday, 6);
   const ls = (Array.isArray(logs) ? logs : []).filter(l => wkIsClosed(l) && l.date >= monday && l.date <= sunday)
     .slice().sort((a, b) => (a.date < b.date ? -1 : a.date > b.date ? 1 : 0));
@@ -40323,6 +40996,36 @@ function wkWeekMetrics(logs, monday, light) {
   if (sats.length) { met.satAvg = sats.reduce((a, c) => a + c, 0) / sats.length; met.satCount = sats.length; }
   met.groups = [...groups.values()];
   if (gaps.length) met.restAvgSec = gaps.reduce((a, c) => a + c, 0) / gaps.length;
+  /* MINUTOS DE ACTIVIDAD TOTAL (decisión de Ronald, 2026-11-09
+     01:21 CST; cierra F-04/F-09): LA definición única de
+     «minutos de la semana» — las sesiones cerradas con su
+     duración guardada (calentamiento dentro) MÁS las
+     actividades registradas de cada día, sin el volcado
+     «entrenamiento_plan» (es la propia sesión, neta: contarlo
+     duplicaría). Una sesión sin duración aporta 0 minutos,
+     jamás inventados, y sigue contando como sesión.
+     actByDate llega por opts (la vista propia: ACT_LOGS; la
+     ficha: los activity_logs del alumno solo si su
+     consentimiento de ejercicio está vigente; sin fuente de
+     actividades, el total es el de las sesiones — misma
+     definición, los datos que ese visor puede ver).
+     minutes/minutesKnown/minutesList quedan como el detalle
+     de sesiones (la pista de «tiempo registrado»); actMinutes
+     es LA cifra que se pinta. */
+  met.unknownSessions = met.sessions - met.minutesKnown;
+  met.actMinutes = met.minutes;
+  if (actByDate) {
+    let extra = 0;
+    for (let i = 0; i < 7; i++) {
+      const dv = actByDate[addDaysISO(monday, i)];
+      const acts = Array.isArray(dv) ? dv : (dv && dv.activities);
+      if (Array.isArray(acts)) for (const a of acts) {
+        if (!a || a.type === 'entrenamiento_plan') continue;
+        extra += Math.max(0, Math.floor(num(a.durationMin)));
+      }
+    }
+    met.actMinutes += extra;
+  }
   return met;
 }
 /* Días planeados de una semana según los anclajes del plan, con
@@ -40360,7 +41063,7 @@ function weekCardCompute(logs, plans, todayIso, opts) {
   let target = null, targetMet = null;
   for (let back = 1; back <= 30; back++) {
     const mon = addDaysISO(curMon, -7 * back);
-    const met = wkWeekMetrics(logs, mon, false);
+    const met = wkWeekMetrics(logs, mon, false, opts && opts.actByDate);
     if (met.sessions > 0) { target = mon; targetMet = met; break; }
   }
   if (!target) return null;
@@ -40481,8 +41184,8 @@ function weekCardCompute(logs, plans, todayIso, opts) {
   return {
     monday: target, sunday, name,
     sessions: targetMet.sessions,
-    minutes: targetMet.minutesKnown ? targetMet.minutes : null,
-    minutesPartial: targetMet.minutesKnown > 0 && targetMet.minutesKnown < targetMet.sessions,
+    minutes: targetMet.actMinutes > 0 ? targetMet.actMinutes : null,
+    minutesPartial: targetMet.unknownSessions > 0,
     volumeKg: targetMet.volumeKg, effortAvg: targetMet.effortAvg,
     satAvg: targetMet.satAvg, satCount: targetMet.satCount,
     moment, improvements: imps.slice(0, 2), cmp,
@@ -40724,9 +41427,13 @@ async function loadWeekCard() {
     try { await libEnsure(); } catch {}
     if (!$('week-card-box')) return;
     const uid = auth.currentUser.uid;
+    /* Los minutos de la tarjeta son los de ACTIVIDAD TOTAL
+       (definición única): si la lectura de actividades aún no
+       corrió en esta sesión, se asegura aquí. */
+    if (typeof ACT_LOADED !== 'undefined' && !ACT_LOADED) { try { await loadActivityLogs(); } catch {} }
     const [plans, logs, reqs] = await Promise.all([fetchPlans(uid), fetchLogs(uid), fetchWeekRequests(uid)]);
     const model = weekCardCompute(wkPrepareLogs(logs), wkPreparePlans(plans), todayISO(),
-      { name: (typeof UDATA !== 'undefined' && UDATA && UDATA.name) || '', requests: reqs, mealsByDate: (typeof MEALS !== 'undefined' ? MEALS : null) });
+      { name: (typeof UDATA !== 'undefined' && UDATA && UDATA.name) || '', requests: reqs, mealsByDate: (typeof MEALS !== 'undefined' ? MEALS : null), actByDate: (typeof ACT_LOGS !== 'undefined' ? ACT_LOGS : null) });
     box.innerHTML = weekCardHTML(model, true);
     /* Cada línea de ejercicio con ficha abre la ficha del
        ejercicio con su historia (la superficie de siempre). */
@@ -40751,7 +41458,25 @@ function paintClientWeekCard(uid, plans, logs) {
       const reqs = await fetchWeekRequests(uid);
       const nm = (typeof FICHA_ASSIGN !== 'undefined' && FICHA_ASSIGN && FICHA_ASSIGN.uid === uid && FICHA_ASSIGN.name)
         || (typeof ADMIN_NAME_CACHE !== 'undefined' && ADMIN_NAME_CACHE[uid]) || '';
-      const model = weekCardCompute(wkPrepareLogs(logs), wkPreparePlans(plans), todayISO(), { name: nm, requests: reqs });
+      /* Minutos de actividad total en la ficha (definición
+         única): las actividades del alumno solo entran si su
+         consentimiento de EJERCICIO está vigente — la misma
+         puerta de la tarjeta de adherencia —; sin él, el total
+         es el de sus sesiones (misma definición, los datos que
+         el permiso deja ver). Cualquier fallo deja actByDate
+         en null y la tarjeta pinta como siempre. */
+      let actByDate = null;
+      try {
+        const us = await getDoc(doc(db, 'users', uid));
+        const cons = (us.exists() && us.data() && us.data().activityConsents) || {};
+        const ce = cons.exercise;
+        if (ce && ce.status === 'accepted' && ce.version === ACT_CONSENT_VERSION) {
+          const snap = await getDocs(query(collection(db, 'activity_logs'), where('ownerUid', '==', uid), where('date', '>=', histCutoffISO())));
+          actByDate = {};
+          snap.forEach(d => { const v = d.data(); if (v && v.date) actByDate[v.date] = { activities: Array.isArray(v.activities) ? v.activities : [] }; });
+        }
+      } catch {}
+      const model = weekCardCompute(wkPrepareLogs(logs), wkPreparePlans(plans), todayISO(), { name: nm, requests: reqs, actByDate });
       if ($('client-weekcard') === host) { host.innerHTML = weekCardHTML(model, false); wkCardWire(host); }
       /* Los hitos guardados del alumno, de solo lectura, bajo
          su tarjeta semanal (Nivel 2): se leen de su documento
@@ -41055,7 +41780,7 @@ function monthCardHTML(m) {
   return `<div class="rcard">
     <div class="rcard-head"><div class="rcard-ico" aria-hidden="true">🏆</div><div><div class="rcard-t1">${esc(t('reco.moTitle'))}${m.pending ? '' : ' · ' + esc(recoMonthName(m.ym))}</div><div class="rcard-t2">${esc(t('reco.moSub'))}</div></div></div>
     <div class="rcard-body">${body}</div>
-    ${m.pending ? '' : `<div class="rcard-foot">${esc(t('reco.moFoot'))}</div>`}
+    ${m.pending ? '' : `<div class="rcard-foot">${esc(t('reco.moFoot'))} <button type="button" class="ms-share" data-mo-share="${esc(m.ym)}">${esc(t('reco.msShare'))} ›</button></div>`}
   </div>`;
 }
 /* ---------- carga de las superficies propias (Progreso) ------- */
@@ -41095,7 +41820,12 @@ async function loadRecoCards(uid, logs, plans) {
         };
       });
     }
-    if (moBox) moBox.innerHTML = monthCardHTML(monthCardCompute(pLogs, pPlans, todayISO()));
+    if (moBox) {
+      moBox.innerHTML = monthCardHTML(monthCardCompute(pLogs, pPlans, todayISO()));
+      moBox.querySelectorAll('[data-mo-share]').forEach(b => {
+        b.onclick = () => shareOpenMonth(b.dataset.moShare);
+      });
+    }
   } catch {}
 }
 /* REINTENTO AL ARRANCAR LA SESIÓN (AUTH-2026-11-05-250): la
@@ -41116,8 +41846,8 @@ async function recoStartupSync() {
     if (!auth.currentUser) return;
     const uid = auth.currentUser.uid;
     try { await libEnsure(); } catch {}
-    const plans = MY_PLANS_ALL || await fetchPlans(uid);
-    const logs = MY_LOGS_ALL || await fetchLogs(uid);
+    const plans = MY_PLANS_ALL || (MY_PLANS_ALL = await fetchPlans(uid));
+    const logs = MY_LOGS_ALL || (MY_LOGS_ALL = await fetchLogs(uid));
     await recoComputeSync(uid, logs, plans, (typeof MEALS !== 'undefined' && MEALS) || {});
   } catch {}
   finally { RECO_STARTUP_RUNNING = false; }
@@ -44896,7 +45626,7 @@ setInterval(() => { try { pendDockTick(); } catch {} }, 60000);
    1:1 (1080×1080: la misma composición adaptada — héroe + lo
    esencial, sin la línea de reto). Los emojis se dibujan con la
    fuente de emojis del propio dispositivo (fillText). */
-const SHARE = { type: 'day', format: '916', blob: null, fileName: '', workout: null, logro: null, trans: { a: null, b: null } };
+const SHARE = { type: 'day', format: '916', blob: null, fileName: '', workout: null, logro: null, monthYm: null, trans: { a: null, b: null } };
 const SHARE_WD = { en: ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'],
                    es: ['lunes', 'martes', 'miércoles', 'jueves', 'viernes', 'sábado', 'domingo'] };
 const SHARE_LETTERS = { en: ['M', 'T', 'W', 'T', 'F', 'S', 'S'], es: ['L', 'M', 'X', 'J', 'V', 'S', 'D'] };
@@ -44919,9 +45649,41 @@ function shareFirstName() {
   const e = String((UDATA && UDATA.email) || (auth.currentUser && auth.currentUser.email) || '');
   return e ? e.split('@')[0] : '';
 }
+/* Los registros que leen las superficies de compartir: la
+   lectura COMPLETA (todos los planes) cuando existe; si no, la
+   del plan activo — la misma precedencia de la casa. */
+function shareLogsAll() {
+  return (typeof MY_LOGS_ALL !== 'undefined' && Array.isArray(MY_LOGS_ALL)) ? MY_LOGS_ALL
+    : (Array.isArray(MY_LOGS) ? MY_LOGS : []);
+}
+/* MINUTOS DE ACTIVIDAD TOTAL DEL DÍA — DEFINICIÓN ÚNICA
+   (decisión de Ronald, 2026-11-09 01:21 CST; cierra F-04/F-09
+   de la auditoría de fidelidad de números): los minutos de un
+   día son las actividades registradas en activity_logs MÁS
+   las sesiones cerradas de training_logs, con el calentamiento
+   DENTRO del tiempo de la sesión (la duración guardada del
+   registro, wkSessionMinutes). La entrada «entrenamiento_plan»
+   de activity_logs es el VOLCADO de la propia sesión (neto de
+   calentamiento y solo existe si hubo estimación de kcal): se
+   excluye para no contar la sesión dos veces ni en neto. Una
+   sesión sin duración registrada aporta 0 minutos — jamás
+   minutos inventados — y sigue contando como sesión y como
+   día entrenado. TODAS las superficies de minutos semanales
+   leen esta definición: la tarjeta de compartir, «Tu semana»
+   de Progreso y la ficha del alumno (actMinutes de
+   wkWeekMetrics, el mismo cálculo) y el correo semanal del
+   Worker (su puerto wkcDayTotal). */
 function shareActMinutes(iso) {
-  const d = ACT_LOGS[iso]; if (!d || !Array.isArray(d.activities)) return 0;
-  return d.activities.reduce((s, a) => s + Math.max(0, Math.floor(num(a && a.durationMin))), 0);
+  let total = 0;
+  const d = ACT_LOGS[iso];
+  if (d && Array.isArray(d.activities))
+    total += d.activities.reduce((s, a) => s + ((a && a.type === 'entrenamiento_plan') ? 0 : Math.max(0, Math.floor(num(a && a.durationMin)))), 0);
+  for (const l of shareLogsAll()) {
+    if (!l || l.date !== iso || !wkIsClosed(l)) continue;
+    const m = wkSessionMinutes(l);
+    if (m != null) total += m;
+  }
+  return total;
 }
 function shareTrainDone(iso) { return MY_LOGS.some(l => l.date === iso && trainLogStatus(l) === 'done'); }
 /* ════════════════════════════════════════════════════════════════
@@ -45044,21 +45806,41 @@ function shareWeekData() {
   const days = weekDates(todayISO());
   const minutes = days.map(shareActMinutes);
   const active = days.map(shareIsActiveDay);
-  const workoutsWeek = MY_LOGS.filter(l => days.indexOf(l.date) >= 0 && trainLogStatus(l) === 'done').length;
+  /* Sesiones de la semana = sesiones CERRADAS (hechas o
+     parciales), la misma cuenta de «Tu semana» y del correo
+     (antes solo contaba las «done»: F-04). */
+  const workoutsWeek = shareLogsAll().filter(l => days.indexOf(l.date) >= 0 && wkIsClosed(l)).length;
   const mealsWeek = days.reduce((s, d) => s + (MEALS[d] || []).length, 0);
   const minutesTotal = minutes.reduce((s, m) => s + m, 0);
   let bestIdx = -1, best = 0;
   minutes.forEach((m, i) => { if (m > best) { best = m; bestIdx = i; } });
   const streak = shareStreak();
   const totalWorkouts = MY_LOGS.filter(l => trainLogStatus(l) === 'done').length;
-  const allDays = new Set([...Object.keys(MEALS), ...Object.keys(ACT_LOGS), ...MY_LOGS.map(l => l.date)]);
-  let activeAllTime = 0; allDays.forEach(d => { if (shareIsActiveDay(d)) activeAllTime++; });
+  const allDays = new Set([...Object.keys(MEALS), ...Object.keys(ACT_LOGS), ...shareLogsAll().map(l => l.date)]);
+  /* «Primera semana completa» (decisión de Ronald, 2026-11-09
+     01:21 CST; cierra F-13 de la auditoría): el logro CONSERVA
+     su nombre y pasa a medir lo que dice — 7 días activos
+     DENTRO DE UNA MISMA semana natural (lunes a domingo, por
+     las fechas locales registradas) — en lugar de 7 días
+     activos acumulados en todo el historial. El «día activo»
+     es el de siempre (shareIsActiveDay: el día vale algo en
+     la definición ponderada de la racha AUTH-323); solo
+     cambia la ventana, no la definición del día. Es cálculo
+     en vivo, sin estado guardado: este chip nunca se
+     «otorga», se muestra cuando la semana completa existe.
+     (El hito guardado de «Tus hitos» con un nombre parecido
+     es OTRO logro — haber entrenado todos los días que el
+     plan pedía una semana — y no se toca.) */
+  const activeByMonday = {};
+  allDays.forEach(d => { if (shareIsActiveDay(d)) { const mon = mondayISO(d); activeByMonday[mon] = (activeByMonday[mon] || 0) + 1; } });
+  const hasFullWeek = Object.keys(activeByMonday).some(mon => activeByMonday[mon] >= 7);
   /* Hitos SOLO si son reales, con umbrales fijos y honestos:
-     primera semana completa = ≥7 días activos en todo el historial;
-     racha de 7 = la racha actual llega a 7; 10 entrenamientos =
-     ≥10 sesiones completadas en todo el historial. */
+     primera semana completa = una semana natural con los 7
+     días activos; racha de 7 = la racha actual llega a 7;
+     10 entrenamientos = ≥10 sesiones completadas en todo el
+     historial. */
   const milestones = [];
-  if (activeAllTime >= 7) milestones.push(t('share.mileWeek'));
+  if (hasFullWeek) milestones.push(t('share.mileWeek'));
   if (streak >= 7) milestones.push(t('share.mileStreak'));
   if (totalWorkouts >= 10) milestones.push(t('share.mileWorkouts'));
   const hasActivity = minutesTotal > 0 || workoutsWeek > 0 || mealsWeek > 0;
@@ -45440,6 +46222,207 @@ function shareDrawWeek(ctx, W, H, d) {
   shareTxt(ctx, 'ronbo.fit', gx + bav + 18, blCy + btPx * 0.35, shareCtxFont(900, btPx), '#ffffff', { align: 'left', shadowBlur: 12 });
   const phrase = d.phrase === 'week' ? t('share.phraseWeek') : t('share.phraseStart');
   shareBottom(ctx, W, H, phrase, !cp);
+}
+
+/* ============================================================
+   TARJETA DEL MES (decisión de Ronald, 2026-11-09 01:21 CST:
+   «haz la del mes también»; cierra F-15 de la auditoría): el
+   resumen del MES NATURAL en la misma familia visual que las
+   tarjetas del día y de la semana — mismo fondo, marca,
+   píldora, héroe, tira de cifras, barras y chips —. Los
+   minutos son los de la DEFINICIÓN ÚNICA (AUTH-330: actividad
+   total del día, shareActMinutes); las sesiones, las cerradas
+   (hechas o parciales). El peso entra solo si hay pesajes DEL
+   MES: con dos o más se pinta el peso último y su cambio en el
+   mes; con uno, el peso sin cambio; sin ninguno, esa cifra no
+   se pinta (la tira queda en tres) — nunca un cero disfrazado.
+   Las barras son las semanas naturales que tocan el mes y
+   suman SOLO los días del mes (la suma de las barras es el
+   total del mes). Las «semanas completas» del chip son las
+   semanas naturales ENTERAS dentro del mes con los 7 días
+   activos (la regla de AUTH-331). Un mes sin actividad se
+   pinta con su estado honesto (shareDrawMonthEmpty). */
+function shareMonthData(ym) {
+  const cur = String(todayISO()).slice(0, 7);
+  ym = /^\d{4}-\d{2}$/.test(ym || '') ? ym : cur;
+  const pp = ym.split('-').map(Number);
+  const dim = new Date(Date.UTC(pp[0], pp[1], 0)).getUTCDate();
+  const days = [], minutes = [], active = [];
+  for (let d = 1; d <= dim; d++) {
+    const iso = ym + '-' + String(d).padStart(2, '0');
+    days.push(iso); minutes.push(shareActMinutes(iso)); active.push(shareIsActiveDay(iso));
+  }
+  const logs = shareLogsAll();
+  const sessions = logs.filter(l => l && l.date && l.date.slice(0, 7) === ym && wkIsClosed(l)).length;
+  const mealsMonth = days.reduce((s, iso) => s + ((MEALS[iso] || []).length), 0);
+  const minutesTotal = minutes.reduce((s, x) => s + x, 0);
+  const activeDays = active.filter(Boolean).length;
+  const weeks = [];
+  let mon = mondayISO(days[0]);
+  while (mon <= days[dim - 1]) {
+    let wmin = 0;
+    for (let i = 0; i < 7; i++) { const idx = days.indexOf(addDaysISO(mon, i)); if (idx >= 0) wmin += minutes[idx]; }
+    weeks.push({ monday: mon, minutes: wmin });
+    mon = addDaysISO(mon, 7);
+  }
+  let bestWeekIdx = -1, bestWeekMin = 0;
+  weeks.forEach((w, i) => { if (w.minutes > bestWeekMin) { bestWeekMin = w.minutes; bestWeekIdx = i; } });
+  let fullWeeks = 0;
+  { let m2 = mondayISO(days[0]); if (m2 < days[0]) m2 = addDaysISO(m2, 7);
+    while (addDaysISO(m2, 6) <= days[dim - 1]) {
+      let all = true;
+      for (let i = 0; i < 7; i++) if (!active[days.indexOf(addDaysISO(m2, i))]) { all = false; break; }
+      if (all) fullWeeks++;
+      m2 = addDaysISO(m2, 7);
+    } }
+  let weight = null;
+  const ws = (typeof WEIGHTS !== 'undefined' && Array.isArray(WEIGHTS) ? WEIGHTS : [])
+    .filter(w => w && w.date && w.date.slice(0, 7) === ym && Number(w.weight) > 0)
+    .slice().sort((a, b) => (a.date < b.date ? -1 : 1));
+  if (ws.length) weight = { first: Number(ws[0].weight), last: Number(ws[ws.length - 1].weight), n: ws.length };
+  let prs = 0;
+  try { prs = recoPrEvents(logs).filter(ev => ev && ev.date && ev.date.slice(0, 7) === ym).length; } catch {}
+  const hasActivity = minutesTotal > 0 || sessions > 0 || mealsMonth > 0 || activeDays > 0;
+  return { ym, days, minutes, active, activeDays, daysInMonth: dim, sessions, mealsMonth, minutesTotal,
+    weeks, bestWeekIdx, fullWeeks, weight, prs, hasActivity,
+    phrase: hasActivity ? 'month' : 'start', name: shareFirstName() };
+}
+function shareDrawMonth(ctx, W, H, d) {
+  const cp = H < 1500;
+  shareBg(ctx, W, H);
+  const hy = cp ? 330 : 580;
+  const rg = ctx.createRadialGradient(W / 2, hy, 0, W / 2, hy, cp ? 300 : 430);
+  rg.addColorStop(0, 'rgba(255,170,40,.20)'); rg.addColorStop(1, 'rgba(255,170,40,0)');
+  ctx.fillStyle = rg; ctx.fillRect(0, 0, W, H);
+  shareBrand(ctx, W, cp ? 100 : 160, cp ? 42 : 54);
+  const chipPx = cp ? 27 : 32, chipTop = cp ? 148 : 234;
+  sharePill(ctx, W / 2, chipTop + (chipPx + 34) / 2, t('share.monthChip'), chipPx, { ls: 3 });
+  const chipBottom = chipTop + chipPx + 34;
+  shareTxt(ctx, recoMonthName(d.ym), W / 2, chipBottom + (cp ? 44 : 60), shareCtxFont(600, cp ? 24 : 32), 'rgba(255,255,255,.92)', { shadowBlur: 12 });
+  /* héroe: llama + días activos del mes (x/N, el estilo de la familia) */
+  const flameY = chipBottom + (cp ? 96 : 172);
+  shareTxt(ctx, '🔥', W / 2, flameY, shareCtxFont(400, cp ? 46 : 64, true), '#ffffff', { shadowColor: 'rgba(255,150,30,.75)', shadowBlur: 26 });
+  const numPx = cp ? 128 : 200, numY = flameY + (cp ? 122 : 208);
+  shareTxt(ctx, d.activeDays + '/' + d.daysInMonth, W / 2, numY, shareCtxFont(900, numPx), '#ffffff', { shadowBlur: 44, shadowColor: 'rgba(0,60,52,.42)', shadowY: 10 });
+  shareTxt(ctx, t('share.daysActive'), W / 2, numY + (cp ? 46 : 68), shareCtxFont(900, cp ? 32 : 45), '#ffffff', { shadowBlur: 18 });
+  /* tira de totales SIN caja: sesiones · minutos · comidas · (peso) */
+  const stripW = 936, sx = (W - stripW) / 2;
+  const stats = [ [String(d.sessions), t('share.workouts')],
+                  [fmt(d.minutesTotal), t('share.minActivity')], [String(d.mealsMonth), t('share.meals')] ];
+  if (d.weight) {
+    let wlab = t('share.moWeight');
+    if (d.weight.n >= 2) {
+      const wd = d.weight.last - d.weight.first;
+      const dTxt = (wd < 0 ? '↓ ' : wd > 0 ? '↑ ' : '= ') + fmtMass(Math.abs(wd));
+      wlab = t('share.moWeightDelta', { d: dTxt });
+    }
+    stats.push([fmtMass(d.weight.last), wlab]);
+  }
+  const colW = stripW / stats.length;
+  const nY = numY + (cp ? 46 : 68) + (cp ? 54 : 96);
+  stats.forEach((s, i) => {
+    const ccx = sx + colW * i + colW / 2;
+    shareTxt(ctx, s[0], ccx, nY, shareCtxFont(900, cp ? 46 : 60), '#ffffff', { shadowBlur: 18 });
+    shareTxt(ctx, s[1], ccx, nY + (cp ? 28 : 38), shareCtxFont(700, cp ? 20 : 25), 'rgba(255,255,255,.90)', { shadowBlur: 10 });
+    if (i > 0) { ctx.save(); ctx.strokeStyle = 'rgba(255,255,255,.35)'; ctx.lineWidth = 2; ctx.beginPath(); ctx.moveTo(sx + colW * i, nY - (cp ? 44 : 58)); ctx.lineTo(sx + colW * i, nY + (cp ? 26 : 36)); ctx.stroke(); ctx.restore(); }
+  });
+  /* gráfica de barras por semana SIN caja (solo días del mes) */
+  const headY = nY + (cp ? 28 : 38) + (cp ? 64 : 90);
+  shareTxt(ctx, t('share.minPerWeek'), sx + 4, headY, shareCtxFont(900, cp ? 23 : 29), 'rgba(255,255,255,.88)', { align: 'left', ls: 2, shadowBlur: 10 });
+  if (d.bestWeekIdx >= 0) {
+    const tag = t('share.moBestWeek', { min: fmt(d.weeks[d.bestWeekIdx].minutes) });
+    const tagPx = cp ? 22 : 27, tagW = shareTextW(ctx, tag, 900, tagPx) + 48;
+    sharePill(ctx, sx + stripW - tagW / 2, headY - (cp ? 9 : 11), tag, tagPx, { bg: '#fff3df', color: '#b05f00', padX: 24, padY: cp ? 8 : 10, shadowBlur: 26, shadowY: 12 });
+  }
+  const maxMin = Math.max(...d.weeks.map(w => w.minutes), 1), maxBarH = cp ? 92 : 170;
+  const axisY = headY + (cp ? 46 : 62) + maxBarH;
+  const innerX = sx + 22, innerW = stripW - 44, gapB = 26;
+  const colBW = (innerW - gapB * (d.weeks.length - 1)) / d.weeks.length, barW = cp ? 62 : 76;
+  let colorIdx = 0;
+  d.weeks.forEach((w, i) => {
+    const ccx = innerX + colBW * i + colBW / 2;
+    const isBest = i === d.bestWeekIdx;
+    const h = w.minutes > 0 ? Math.max(14, Math.round(w.minutes / maxMin * maxBarH)) : 12;
+    const barTop = axisY - h;
+    shareTxt(ctx, String(w.minutes), ccx, barTop - 10, shareCtxFont(800, cp ? 21 : 27), isBest ? '#ffe1a8' : '#ffffff', { shadowBlur: 10 });
+    ctx.save();
+    if (w.minutes > 0) {
+      const cols = isBest ? SHARE_BAR_BEST : SHARE_BAR_COLORS[colorIdx++ % SHARE_BAR_COLORS.length];
+      const bg3 = ctx.createLinearGradient(0, barTop, 0, axisY);
+      bg3.addColorStop(0, cols[0]); bg3.addColorStop(1, cols[1]);
+      ctx.fillStyle = bg3; ctx.shadowColor = cols[2]; ctx.shadowBlur = isBest ? 48 : 26;
+    } else {
+      ctx.fillStyle = 'rgba(255,255,255,.30)';
+    }
+    shareRR(ctx, ccx - barW / 2, barTop, barW, h, Math.min(cp ? 12 : 18, h));
+    ctx.fill(); ctx.restore();
+    shareTxt(ctx, t('share.wkN', { n: i + 1 }), ccx, axisY + (cp ? 34 : 44), shareCtxFont(900, cp ? 22 : 28), isBest ? '#ffe1a8' : '#ffffff', { shadowBlur: 10 });
+  });
+  /* chips de hitos del mes (solo los reales) */
+  const chips = [];
+  if (d.fullWeeks > 0) chips.push(t(d.fullWeeks === 1 ? 'share.moWeeksFull1' : 'share.moWeeksFull', { x: d.fullWeeks }));
+  if (d.prs > 0) chips.push(t(d.prs === 1 ? 'share.moPrs1' : 'share.moPrs', { x: d.prs }));
+  let flowBottom = axisY + (cp ? 34 : 44);
+  if (chips.length) {
+    const chipFont = cp ? 24 : 31, ck = cp ? 34 : 42, chipH = chipFont + (cp ? 24 : 30);
+    const items = chips.map(m => ({ text: m, w: shareTextW(ctx, m, 800, chipFont) + ck + 13 + 44 }));
+    const rows = []; let row = [], rowW = 0;
+    items.forEach(it => { const add = (row.length ? 16 : 0) + it.w; if (rowW + add > 936 && row.length) { rows.push(row); row = []; rowW = 0; } row.push(it); rowW += (row.length > 1 ? 16 : 0) + it.w; });
+    if (row.length) rows.push(row);
+    let ry = flowBottom + (cp ? 20 : 34);
+    rows.forEach(rw => {
+      const total = rw.reduce((s, it) => s + it.w, 0) + 16 * (rw.length - 1);
+      let px = (W - total) / 2;
+      rw.forEach(it => {
+        ctx.save(); ctx.shadowColor = 'rgba(0,42,36,.28)'; ctx.shadowBlur = 30; ctx.shadowOffsetY = 14;
+        ctx.fillStyle = '#ffffff'; shareRR(ctx, px, ry, it.w, chipH, chipH / 2); ctx.fill(); ctx.restore();
+        const ckCx = px + 16 + ck / 2, ckCy = ry + chipH / 2;
+        const ckg = ctx.createLinearGradient(ckCx - ck / 2, ckCy - ck / 2, ckCx + ck / 2, ckCy + ck / 2);
+        ckg.addColorStop(0, '#00b98d'); ckg.addColorStop(1, '#008f6d');
+        ctx.save(); ctx.beginPath(); ctx.fillStyle = ckg; ctx.shadowColor = 'rgba(0,150,110,.35)'; ctx.shadowBlur = 14; ctx.shadowOffsetY = 6;
+        ctx.arc(ckCx, ckCy, ck / 2, 0, Math.PI * 2); ctx.fill(); ctx.restore();
+        shareTxt(ctx, '✓', ckCx, ckCy + ck * 0.19, shareCtxFont(900, ck * 0.6), '#ffffff', { shadow: false });
+        shareTxt(ctx, it.text, px + 16 + ck + 13, ry + chipH / 2 + chipFont * 0.35, shareCtxFont(800, chipFont), '#22434f', { align: 'left', shadow: false });
+        px += it.w + 16;
+      });
+      ry += chipH + 16;
+    });
+    flowBottom = ry - 16;
+  }
+  /* línea de marca «ronbo.fit» (decisión §10: nunca el entrenador) */
+  const blCy = flowBottom + (cp ? 28 : 56);
+  const btPx = cp ? 27 : 36, bav = cp ? 48 : 64;
+  const btW = shareTextW(ctx, 'ronbo.fit', 900, btPx);
+  const gx = (W - (bav + 18 + btW)) / 2;
+  const bg4 = ctx.createLinearGradient(gx, blCy - bav / 2, gx + bav, blCy + bav / 2);
+  bg4.addColorStop(0, '#0b5a4c'); bg4.addColorStop(1, '#04382f');
+  ctx.save(); ctx.beginPath(); ctx.fillStyle = bg4; ctx.shadowColor = 'rgba(0,42,36,.40)'; ctx.shadowBlur = 22; ctx.shadowOffsetY = 10;
+  ctx.arc(gx + bav / 2, blCy, bav / 2, 0, Math.PI * 2); ctx.fill(); ctx.restore();
+  ctx.save(); ctx.beginPath(); ctx.lineWidth = 2; ctx.strokeStyle = 'rgba(255,255,255,.55)';
+  ctx.arc(gx + bav / 2, blCy, bav / 2 - 1, 0, Math.PI * 2); ctx.stroke(); ctx.restore();
+  shareTxt(ctx, 'R', gx + bav / 2, blCy + bav * 0.47 * 0.36 + 4, shareCtxFont(900, bav * 0.47), '#ffffff', { shadow: false });
+  shareTxt(ctx, 'ronbo.fit', gx + bav + 18, blCy + btPx * 0.35, shareCtxFont(900, btPx), '#ffffff', { align: 'left', shadowBlur: 12 });
+  shareBottom(ctx, W, H, t('share.phraseMonth'), !cp);
+}
+/* El mes sin actividad: el mismo vestido, con su estado
+   honesto — nunca cifras disfrazadas. */
+function shareDrawMonthEmpty(ctx, W, H, d) {
+  const cp = H < 1500;
+  shareBg(ctx, W, H);
+  const hy = cp ? 330 : 580;
+  const rg = ctx.createRadialGradient(W / 2, hy, 0, W / 2, hy, cp ? 300 : 430);
+  rg.addColorStop(0, 'rgba(255,170,40,.20)'); rg.addColorStop(1, 'rgba(255,170,40,0)');
+  ctx.fillStyle = rg; ctx.fillRect(0, 0, W, H);
+  shareBrand(ctx, W, cp ? 100 : 160, cp ? 42 : 54);
+  const chipPx = cp ? 27 : 32, chipTop = cp ? 148 : 234;
+  sharePill(ctx, W / 2, chipTop + (chipPx + 34) / 2, t('share.monthChip'), chipPx, { ls: 3 });
+  const chipBottom = chipTop + chipPx + 34;
+  shareTxt(ctx, recoMonthName(d.ym), W / 2, chipBottom + (cp ? 44 : 60), shareCtxFont(600, cp ? 24 : 32), 'rgba(255,255,255,.92)', { shadowBlur: 12 });
+  const midY = chipBottom + (cp ? 190 : 330);
+  shareTxt(ctx, '🗓️', W / 2, midY, shareCtxFont(400, cp ? 72 : 110, true), '#ffffff', { shadowBlur: 22 });
+  const lines = sgWrap(ctx, t('share.moEmpty'), 600, cp ? 30 : 40, 780);
+  lines.forEach((ln, i) => sgText(ctx, ln, W / 2, midY + (cp ? 90 : 140) + i * (cp ? 44 : 58), 600, cp ? 30 : 40, 'rgba(255,255,255,.94)', { align: 'center' }));
+  shareBottom(ctx, W, H, t('share.phraseStart'), !cp);
 }
 
 /* ============================================================
@@ -46999,6 +47982,15 @@ function shareOpenLogro(it) {
   SHARE.type = 'logro';
   shareOpen();
 }
+/* La puerta de «Tu mes» (Progreso): abre la hoja de compartir
+   en la tarjeta del mes DE ESA tarjeta (su mes cerrado), con
+   el mismo patrón que la puerta de los hitos. Sin mes fijado
+   (el chip de la hoja), la tarjeta pinta el mes en curso. */
+function shareOpenMonth(ym) {
+  SHARE.monthYm = /^\d{4}-\d{2}$/.test(ym || '') ? ym : null;
+  SHARE.type = 'month';
+  shareOpen();
+}
 function shareDrawLogroBase(ctx, W, H) {
   const square = H === W;
   const grd = ctx.createLinearGradient(0, 0, 0, H);
@@ -47088,6 +48080,16 @@ function shareRender() {
       (d.bestIdx >= 0 ? ' · ' + t('share.bestDay', { day: (SHARE_WD[LANG] || SHARE_WD.en)[d.bestIdx] }) : '') +
       (d.milestones.length ? ' · ' + d.milestones.join(' · ') : '') +
       ' · ' + (d.phrase === 'week' ? t('share.phraseWeek') : t('share.phraseStart')) + ' · ronbo.fit';
+  } else if (SHARE.type === 'month') {
+    const d = shareMonthData(SHARE.monthYm);
+    if (d.hasActivity) shareDrawMonth(ctx, W, H, d); else shareDrawMonthEmpty(ctx, W, H, d);
+    SHARE.fileName = 'ronbo-fit-month-' + d.ym + '.png';
+    summary = t('share.monthLab') + ' · ' + recoMonthName(d.ym) + ' · ' + d.activeDays + '/' + d.daysInMonth + ' ' + t('share.daysActive') +
+      ' · ' + d.sessions + ' ' + t('share.workouts') + ' · ' + fmt(d.minutesTotal) + ' ' + t('share.minActivity') +
+      ' · ' + d.mealsMonth + ' ' + t('share.meals') +
+      (d.fullWeeks > 0 ? ' · ' + t(d.fullWeeks === 1 ? 'share.moWeeksFull1' : 'share.moWeeksFull', { x: d.fullWeeks }) : '') +
+      (d.prs > 0 ? ' · ' + t(d.prs === 1 ? 'share.moPrs1' : 'share.moPrs', { x: d.prs }) : '') +
+      ' · ' + (d.phrase === 'month' ? t('share.phraseMonth') : t('share.phraseStart')) + ' · ronbo.fit';
   } else if (SHARE.type === 'today') {
     shareFranjaEnsure();
     const d = shareTodayData();
@@ -47140,7 +48142,7 @@ function shareRender() {
     ? 'ronbo-fit-workout-' + SHARE.workout.dateISO + '.png'
     : SHARE.type === 'goals' ? 'ronbo-fit-myday-' + todayISO() + '.png'
     : SHARE.type === 'short' ? 'ronbo-fit-dayshort-' + todayISO() + '.png'
-    : SHARE.type === 'trans' ? SHARE.fileName
+    : (SHARE.type === 'trans' || SHARE.type === 'month') ? SHARE.fileName
     : (SHARE.type === 'week' ? 'ronbo-fit-week-' : 'ronbo-fit-goal-') + todayISO() + '.png';
   SHARE.blob = null;
   shareRefreshShareBtn();
@@ -47172,9 +48174,10 @@ function shareDownload() {
 function shareSyncTypeUI() {
   const f = $('share-float'); if (!f) return;
   f.classList.toggle('share-workout-mode', SHARE.type === 'workout');
-  const bd = $('btn-share-day'), bw = $('btn-share-week'), bg = $('btn-share-goals'), bs = $('btn-share-short'), bt = $('btn-share-today'), bl = $('btn-share-logro'), bx = $('btn-share-trans');
+  const bd = $('btn-share-day'), bw = $('btn-share-week'), bm = $('btn-share-month'), bg = $('btn-share-goals'), bs = $('btn-share-short'), bt = $('btn-share-today'), bl = $('btn-share-logro'), bx = $('btn-share-trans');
   if (bd) bd.setAttribute('aria-pressed', SHARE.type === 'day' ? 'true' : 'false');
   if (bw) bw.setAttribute('aria-pressed', SHARE.type === 'week' ? 'true' : 'false');
+  if (bm) bm.setAttribute('aria-pressed', SHARE.type === 'month' ? 'true' : 'false');
   if (bg) bg.setAttribute('aria-pressed', SHARE.type === 'goals' ? 'true' : 'false');
   if (bs) bs.setAttribute('aria-pressed', SHARE.type === 'short' ? 'true' : 'false');
   if (bt) bt.setAttribute('aria-pressed', SHARE.type === 'today' ? 'true' : 'false');
@@ -47224,6 +48227,7 @@ document.addEventListener('keydown', e => { if (e.key === 'Escape') { const f = 
 document.addEventListener('keydown', e => { if (e.key === 'Escape') { const f = $('yt-float'); if (f && f.style.display !== 'none') ytClosePlayer(); } });
 { const b = $('btn-share-day'); if (b) b.addEventListener('click', () => shareSetType('day')); }
 { const b = $('btn-share-week'); if (b) b.addEventListener('click', () => shareSetType('week')); }
+{ const b = $('btn-share-month'); if (b) b.addEventListener('click', () => shareSetType('month')); }
 { const b = $('btn-share-goals'); if (b) b.addEventListener('click', () => shareSetType('goals')); }
 { const b = $('btn-share-short'); if (b) b.addEventListener('click', () => shareSetType('short')); }
 { const b = $('btn-share-today'); if (b) b.addEventListener('click', () => shareSetType('today')); }
@@ -47266,7 +48270,7 @@ document.addEventListener('keydown', e => { if (e.key === 'Escape') shareClose()
  *  - El SW (sw.js) solo cachea la cáscara del mismo origen en modo
  *    RED PRIMERO: Auth/Firestore/Worker jamás pasan por la caché.
  * ================================================================ */
-const PWA_SW_VERSION = '20261109-tarjeta-ejercicio';
+const PWA_SW_VERSION = '20261109-pendientes-solo';
 /* Sello de versión VISIBLE (2026-11-03): el pie de la tarjeta de
    acceso enseña qué copia corre este teléfono ('v ' + el sello),
    para comprobar de un vistazo si la versión nueva ya llegó.
