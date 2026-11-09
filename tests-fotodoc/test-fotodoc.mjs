@@ -39,11 +39,16 @@ process.on('uncaughtException', e => { marca('fallos.txt', 'CRASH: ' + String((e
 process.on('unhandledRejection', e => { marca('fallos.txt', 'CRASH-REJ: ' + String((e && e.message) || e).replace(/\s+/g, ' ').slice(0, 400)); process.exit(1); });
 
 const N = process.env.ESPERA_NUEVO !== 'false';
+/* Filtro por grupo para el diagnóstico en CI: CASOS=C1,C2,… limita
+   la corrida a esos casos (las semillas siempre se plantan). */
+const SOLO = (process.env.CASOS || '').split(',').map(x => x.trim()).filter(Boolean);
 const fallos = [];
 async function caso(nombre, promesa, debePasar) {
+  const id = nombre.split(' ')[0];
+  if (SOLO.length && !SOLO.includes(id)) return;
   try {
-    if (debePasar) await assertSucceeds(promesa);
-    else await assertFails(promesa);
+    if (debePasar) await assertSucceeds(promesa());
+    else await assertFails(promesa());
     console.log(`OK    ${nombre} → ${debePasar ? 'PERMITIDO' : 'DENEGADO'}`);
     marca('progreso.txt', 'OK ' + nombre);
   } catch (e) {
@@ -130,21 +135,21 @@ const dbN = testEnv.authenticatedContext(NOAP).firestore();
 const lib = (db, id) => doc(db, 'exercise_library', id);
 
 /* — CREACIÓN: el borrador de la foto (tercera rama) — */
-await caso('C1 alumna: borrador con foto-dato normal nace', setDoc(lib(dbA, 'FD01'), borrador(FOTO_OK)), true);
-await caso('C2 alumna: foto-dato en el tope exacto (300 000) nace', setDoc(lib(dbA, 'FD02'), borrador(FOTO_TOPE)), true);
-await caso('C3 alumna: foto-dato sobre el tope (300 001) — la guarda manda', setDoc(lib(dbA, 'FD03'), borrador(FOTO_SOBRE)), N ? false : true);
-await caso('C4 alumna: foto_url numérica — la guarda exige texto', setDoc(lib(dbA, 'FD04'), borrador(12345)), N ? false : true);
+await caso('C1 alumna: borrador con foto-dato normal nace', () => setDoc(lib(dbA, 'FD01'), borrador(FOTO_OK)), true);
+await caso('C2 alumna: foto-dato en el tope exacto (300 000) nace', () => setDoc(lib(dbA, 'FD02'), borrador(FOTO_TOPE)), true);
+await caso('C3 alumna: foto-dato sobre el tope (300 001) — la guarda manda', () => setDoc(lib(dbA, 'FD03'), borrador(FOTO_SOBRE)), N ? false : true);
+await caso('C4 alumna: foto_url numérica — la guarda exige texto', () => setDoc(lib(dbA, 'FD04'), borrador(12345)), N ? false : true);
 const sinFoto = borrador(''); delete sinFoto.foto_url;
-await caso('C5 alumna: borrador SIN campo foto_url nace (forma manual)', setDoc(lib(dbA, 'FD05'), sinFoto), true);
-await caso('C6 alumna: borrador con foto_url de URL corta nace (forma manual)', setDoc(lib(dbA, 'FD06'), borrador('https://ejemplo.test/foto.webp')), true);
-await caso('C7 alumna: nacer ya «aprobado» se deniega', setDoc(lib(dbA, 'FD07'), borrador(FOTO_OK, { estado: 'aprobado' })), false);
-await caso('C8 alumna: pendiente con firma de aprobación se deniega', setDoc(lib(dbA, 'FD08'), borrador(FOTO_OK, { approvedBy: ALU, approvedAt: serverTimestamp() })), false);
-await caso('C9 alumna: createdBy ajeno se deniega', setDoc(lib(dbA, 'FD09'), borrador(FOTO_OK, { createdBy: OTRA })), false);
-await caso('C10 alumna: campo fuera de la lista cerrada se deniega', setDoc(lib(dbA, 'FD10'), borrador(FOTO_OK, { foo: 'x' })), false);
-await caso('C11 cuenta NO aprobada no crea borradores', setDoc(lib(dbN, 'FD11'), borrador(FOTO_OK)), false);
-await caso('C12 entrenador: su pendiente con foto-dato normal nace', setDoc(lib(dbE, 'FD12'), borrador(FOTO_OK, { createdBy: ENT, createdByName: 'Entrenador' })), true);
-await caso('C13 entrenador: su rama NO lleva la guarda (alcance declarado)', setDoc(lib(dbE, 'FD13'), borrador(FOTO_SOBRE, { createdBy: ENT, createdByName: 'Entrenador' })), true);
-await caso('C14 administrador: crea «aprobado» directo con su firma (rama intacta)', setDoc(lib(dbAd, 'FD14'), borrador('https://ejemplo.test/f.webp', { estado: 'aprobado', createdBy: ADMIN, createdByName: 'Admin', approvedBy: ADMIN, approvedAt: serverTimestamp() })), true);
+await caso('C5 alumna: borrador SIN campo foto_url nace (forma manual)', () => setDoc(lib(dbA, 'FD05'), sinFoto), true);
+await caso('C6 alumna: borrador con foto_url de URL corta nace (forma manual)', () => setDoc(lib(dbA, 'FD06'), borrador('https://ejemplo.test/foto.webp')), true);
+await caso('C7 alumna: nacer ya «aprobado» se deniega', () => setDoc(lib(dbA, 'FD07'), borrador(FOTO_OK, { estado: 'aprobado' })), false);
+await caso('C8 alumna: pendiente con firma de aprobación se deniega', () => setDoc(lib(dbA, 'FD08'), borrador(FOTO_OK, { approvedBy: ALU, approvedAt: serverTimestamp() })), false);
+await caso('C9 alumna: createdBy ajeno se deniega', () => setDoc(lib(dbA, 'FD09'), borrador(FOTO_OK, { createdBy: OTRA })), false);
+await caso('C10 alumna: campo fuera de la lista cerrada se deniega', () => setDoc(lib(dbA, 'FD10'), borrador(FOTO_OK, { foo: 'x' })), false);
+await caso('C11 cuenta NO aprobada no crea borradores', () => setDoc(lib(dbN, 'FD11'), borrador(FOTO_OK)), false);
+await caso('C12 entrenador: su pendiente con foto-dato normal nace', () => setDoc(lib(dbE, 'FD12'), borrador(FOTO_OK, { createdBy: ENT, createdByName: 'Entrenador' })), true);
+await caso('C13 entrenador: su rama NO lleva la guarda (alcance declarado)', () => setDoc(lib(dbE, 'FD13'), borrador(FOTO_SOBRE, { createdBy: ENT, createdByName: 'Entrenador' })), true);
+await caso('C14 administrador: crea «aprobado» directo con su firma (rama intacta)', () => setDoc(lib(dbAd, 'FD14'), borrador('https://ejemplo.test/f.webp', { estado: 'aprobado', createdBy: ADMIN, createdByName: 'Admin', approvedBy: ADMIN, approvedAt: serverTimestamp() })), true);
 
 /* — ACTUALIZACIÓN: la vida del borrador — */
 const edicionAutora = (foto, extra = {}) => ({
@@ -154,19 +159,19 @@ const edicionAutora = (foto, extra = {}) => ({
   como_se_hace_es: '1. Ajusta el asiento. 2. Empuja con los talones.',
   foto_url: foto, updatedAt: serverTimestamp(), updatedBy: ALU, ...extra,
 });
-await caso('U1 autora: completa los pasos de SU borrador con la foto-dato intacta', updateDoc(lib(dbA, 'DRAFT1'), edicionAutora(FOTO_OK)), true);
-await caso('U2 autora: inflar foto_url sobre el tope en su edición — la guarda manda', updateDoc(lib(dbA, 'DRAFT1'), edicionAutora(FOTO_SOBRE)), N ? false : true);
-await caso('U3 autora: auto-aprobarse su borrador se deniega', updateDoc(lib(dbA, 'DRAFT1'), edicionAutora(FOTO_OK, { estado: 'aprobado', approvedBy: ALU, approvedAt: serverTimestamp() })), false);
-await caso('U4 administrador: APRUEBA el borrador con la foto-dato intacta (la decisión del paquete)', updateDoc(lib(dbAd, 'DRAFT1'), { estado: 'aprobado', approvedAt: serverTimestamp(), approvedBy: ADMIN, updatedAt: serverTimestamp(), updatedBy: ADMIN }), true);
-await caso('U5 tercera cuenta: editar el borrador ajeno se deniega', updateDoc(lib(dbT, 'DRAFT2'), { como_se_hace_es: 'x', updatedAt: serverTimestamp(), updatedBy: OTRA }), false);
-await caso('U6 autora: edita su borrador con la foto EN el tope (no sobre)', updateDoc(lib(dbA, 'DRAFT2'), edicionAutora(FOTO_TOPE)), true);
+await caso('U1 autora: completa los pasos de SU borrador con la foto-dato intacta', () => updateDoc(lib(dbA, 'DRAFT1'), edicionAutora(FOTO_OK)), true);
+await caso('U2 autora: inflar foto_url sobre el tope en su edición — la guarda manda', () => updateDoc(lib(dbA, 'DRAFT1'), edicionAutora(FOTO_SOBRE)), N ? false : true);
+await caso('U3 autora: auto-aprobarse su borrador se deniega', () => updateDoc(lib(dbA, 'DRAFT1'), edicionAutora(FOTO_OK, { estado: 'aprobado', approvedBy: ALU, approvedAt: serverTimestamp() })), false);
+await caso('U4 administrador: APRUEBA el borrador con la foto-dato intacta (la decisión del paquete)', () => updateDoc(lib(dbAd, 'DRAFT1'), { estado: 'aprobado', approvedAt: serverTimestamp(), approvedBy: ADMIN, updatedAt: serverTimestamp(), updatedBy: ADMIN }), true);
+await caso('U5 tercera cuenta: editar el borrador ajeno se deniega', () => updateDoc(lib(dbT, 'DRAFT2'), { como_se_hace_es: 'x', updatedAt: serverTimestamp(), updatedBy: OTRA }), false);
+await caso('U6 autora: edita su borrador con la foto EN el tope (no sobre)', () => updateDoc(lib(dbA, 'DRAFT2'), edicionAutora(FOTO_TOPE)), true);
 
 /* — LECTURA y BORRADO — */
-await caso('R1 tercera cuenta: NO lee el pendiente ajeno (DRAFT2)', getDoc(lib(dbT, 'DRAFT2')), false);
-await caso('R2 administrador: lee el pendiente en su bandeja', getDoc(lib(dbAd, 'DRAFT2')), true);
-await caso('R3 autora: lee su propio pendiente', getDoc(lib(dbA, 'DRAFT2')), true);
-await caso('R4 tras la aprobación (U4), el aprobado ya lo lee cualquiera aprobado', getDoc(lib(dbT, 'DRAFT1')), true);
-await caso('X1 autora: borra su propio borrador', deleteDoc(lib(dbA, 'DRAFT2')), true);
+await caso('R1 tercera cuenta: NO lee el pendiente ajeno (DRAFT2)', () => getDoc(lib(dbT, 'DRAFT2')), false);
+await caso('R2 administrador: lee el pendiente en su bandeja', () => getDoc(lib(dbAd, 'DRAFT2')), true);
+await caso('R3 autora: lee su propio pendiente', () => getDoc(lib(dbA, 'DRAFT2')), true);
+await caso('R4 tras la aprobación (U4), el aprobado ya lo lee cualquiera aprobado', () => getDoc(lib(dbT, 'DRAFT1')), true);
+await caso('X1 autora: borra su propio borrador', () => deleteDoc(lib(dbA, 'DRAFT2')), true);
 
 /* — LA SONDA: el camino grande de decisión (bloque users intacto) — */
 async function decisionReal(uid, goalsAplicadas) {
@@ -184,7 +189,7 @@ async function decisionReal(uid, goalsAplicadas) {
   if (goalsAplicadas) patch.goals = goalsAplicadas;
   return updateDoc(doc(dbE, 'users', uid), patch);
 }
-await caso('D1 SONDA: la decisión exacta del entrenador sigue pasando (bloque users intacto)', decisionReal('aluD', METAS5), true);
+await caso('D1 SONDA: la decisión exacta del entrenador sigue pasando (bloque users intacto)', () => decisionReal('aluD', METAS5), true);
 
 await testEnv.cleanup();
 if (fallos.length) { console.log('FALLOS:', fallos.length); process.exit(1); }

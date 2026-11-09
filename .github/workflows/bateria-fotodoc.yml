@@ -24,41 +24,52 @@ jobs:
           java-version: '17'
       - run: npm ci
       - run: npm install -g firebase-tools@15.34.0
-      - name: Suite CANDIDATA (delta foto dentro del documento; las guardas deniegan lo excedido)
+      # Un paso por GRUPO de casos y por suite: la conclusión de cada
+      # paso (visible en la API de la corrida) dice qué grupo falló.
+      - name: CAND G1 creación C1–C7
+        if: always()
         run: |
           cp reglas-candidatas.txt firestore.rules
-          rm -f fallos.txt progreso.txt
-          set +e
-          ESPERA_NUEVO=true firebase emulators:exec --only firestore --project ronbo-nutri-test "node test-fotodoc.mjs" > salida-candidata.log 2>&1
-          echo "suite-candidata exit=$?"
-          [ -f fallos.txt ] && cp fallos.txt fallos-candidata.txt || true
-          [ -f progreso.txt ] && cp progreso.txt progreso-candidata.txt || true
-      - name: Suite CONTROL (reglas vivas de hoy; sin guarda, lo excedido aún pasa)
+          CASOS=C1,C2,C3,C4,C5,C6,C7 ESPERA_NUEVO=true firebase emulators:exec --only firestore --project ronbo-nutri-test "node test-fotodoc.mjs" > salida-cand-g1.log 2>&1
+      - name: CAND G2 creación C8–C14
+        if: always()
+        run: |
+          cp reglas-candidatas.txt firestore.rules
+          CASOS=C8,C9,C10,C11,C12,C13,C14 ESPERA_NUEVO=true firebase emulators:exec --only firestore --project ronbo-nutri-test "node test-fotodoc.mjs" > salida-cand-g2.log 2>&1
+      - name: CAND G3 actualización U1–U6 (sin U4)
+        if: always()
+        run: |
+          cp reglas-candidatas.txt firestore.rules
+          CASOS=U1,U2,U3,U5,U6 ESPERA_NUEVO=true firebase emulators:exec --only firestore --project ronbo-nutri-test "node test-fotodoc.mjs" > salida-cand-g3.log 2>&1
+      - name: CAND G4 aprobación, lectura, borrado y sonda
+        if: always()
+        run: |
+          cp reglas-candidatas.txt firestore.rules
+          CASOS=U4,R1,R2,R3,R4,X1,D1 ESPERA_NUEVO=true firebase emulators:exec --only firestore --project ronbo-nutri-test "node test-fotodoc.mjs" > salida-cand-g4.log 2>&1
+      - name: CTRL G1 creación C1–C7
+        if: always()
         run: |
           cp reglas-vivas.txt firestore.rules
-          rm -f fallos.txt progreso.txt
-          set +e
-          ESPERA_NUEVO=false firebase emulators:exec --only firestore --project ronbo-nutri-test "node test-fotodoc.mjs" > salida-control.log 2>&1
-          echo "suite-control exit=$?"
-          [ -f fallos.txt ] && cp fallos.txt fallos-control.txt || true
-          [ -f progreso.txt ] && cp progreso.txt progreso-control.txt || true
-      - name: Diagnóstico y veredicto
+          CASOS=C1,C2,C3,C4,C5,C6,C7 ESPERA_NUEVO=false firebase emulators:exec --only firestore --project ronbo-nutri-test "node test-fotodoc.mjs" > salida-ctrl-g1.log 2>&1
+      - name: CTRL G2 creación C8–C14
         if: always()
-        working-directory: ${{ github.workspace }}
         run: |
-          cd tests-fotodoc
-          for f in fallos-candidata.txt progreso-candidata.txt fallos-control.txt progreso-control.txt; do
-            if [ -f "$f" ]; then awk -v F="$f" '{printf "::error file=%s,line=%d::%s\n", F, NR, $0}' "$f"; fi
-          done
-          for f in salida-candidata.log salida-control.log; do
-            if [ -f "$f" ]; then grep -E "^(FALLO|BATERÍA|FALLOS|CRASH)" "$f" | awk -v F="$f" '{printf "::error file=%s,line=%d::%s\n", F, NR+900, $0}' || true; fi
-          done
-          for f in progreso-candidata.txt progreso-control.txt; do
-            if [ -f "$f" ]; then echo "== últimas marcas de $f"; tail -n 2 "$f" | sed 's/^/::error ::ULTIMO ::/' ; fi
-          done
-          for f in salida-candidata.log salida-control.log; do
-            if [ -f "$f" ]; then echo "== cola de $f"; grep -E "^(OK|FALLO|BATERÍA|FALLOS|Error)" "$f" | tail -n 6 | sed 's/^/::error ::LOG ::/' || true; fi
-          done
-          test ! -f fallos-candidata.txt && test ! -f fallos-control.txt
-          grep -q "BATERÍA FOTODOC OK — CANDIDATA" salida-candidata.log
-          grep -q "BATERÍA FOTODOC OK — VIVAS" salida-control.log
+          cp reglas-vivas.txt firestore.rules
+          CASOS=C8,C9,C10,C11,C12,C13,C14 ESPERA_NUEVO=false firebase emulators:exec --only firestore --project ronbo-nutri-test "node test-fotodoc.mjs" > salida-ctrl-g2.log 2>&1
+      - name: CTRL G3 actualización U1–U6 (sin U4)
+        if: always()
+        run: |
+          cp reglas-vivas.txt firestore.rules
+          CASOS=U1,U2,U3,U5,U6 ESPERA_NUEVO=false firebase emulators:exec --only firestore --project ronbo-nutri-test "node test-fotodoc.mjs" > salida-ctrl-g3.log 2>&1
+      - name: CTRL G4 aprobación, lectura, borrado y sonda
+        if: always()
+        run: |
+          cp reglas-vivas.txt firestore.rules
+          CASOS=U4,R1,R2,R3,R4,X1,D1 ESPERA_NUEVO=false firebase emulators:exec --only firestore --project ronbo-nutri-test "node test-fotodoc.mjs" > salida-ctrl-g4.log 2>&1
+      - name: Veredicto (las 8 corridas de grupo en verde)
+        if: always()
+        run: |
+          echo "líneas OK de candidata: $(grep -l 'BATERÍA FOTODOC OK — CANDIDATA' salida-cand-g*.log | wc -l) / 4"
+          echo "líneas OK de control:   $(grep -l 'BATERÍA FOTODOC OK — VIVAS' salida-ctrl-g*.log | wc -l) / 4"
+          test "$(grep -l 'BATERÍA FOTODOC OK — CANDIDATA' salida-cand-g*.log | wc -l)" = "4"
+          test "$(grep -l 'BATERÍA FOTODOC OK — VIVAS' salida-ctrl-g*.log | wc -l)" = "4"
