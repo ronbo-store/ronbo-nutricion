@@ -4658,3 +4658,9 @@ body.swap-sheet-open .asst-fab { display: none !important; }
 .wk5-titlebox { display: inline-flex; align-items: baseline; gap: 8px; min-width: 0; }
 .wk5-navbox { display: inline-flex; align-items: center; gap: 6px; flex: none; }
 .wk5-navbox .train-nav { height: 30px; }
+/* ===== TARJETA «TU SEMANA» PARA COMPARTIR (pedido de Ronald,
+   2026-11-09): la puerta en el pie del panel semanal propio.
+   Cuando el botón vive en el pie, el pie pasa a fila (texto a la
+   izquierda, botón a la derecha, como el pie de «Tu mes»); la
+   ficha del entrenador no pinta el botón y su pie no cambia. */
+.wkcard-foot:has(.wk-share) { display: flex; align-items: center; justify-content: space-between; gap: 10px; }

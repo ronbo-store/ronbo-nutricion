@@ -7386,9 +7386,12 @@ en: {
   'share.dayLab': 'My goal for today',
   'share.weekLab': 'My week in review',
   'share.monthLab': 'My month in review',
+  'share.panelLab': 'My week summary',
   'share.dayChip': '🎯 MY GOAL FOR TODAY',
   'share.weekChip': '🏆 MY WEEK IN REVIEW',
   'share.monthChip': '🗓️ MY MONTH IN REVIEW',
+  'share.panelChip': '🏋️ YOUR WEEK',
+  'share.panelEmpty': 'No closed week with sessions to sum up yet — your weekly summary will appear here once you finish one.',
   'share.goalsLab': 'My day in goals',
   'share.goalsChip': '📊 MY DAY IN GOALS',
   'share.newBadge': 'NEW',
@@ -11334,9 +11337,12 @@ es: {
   'share.dayLab': 'Mi meta del día',
   'share.weekLab': 'Mis logros de la semana',
   'share.monthLab': 'Mis logros del mes',
+  'share.panelLab': 'Mi resumen semanal',
   'share.dayChip': '🎯 MI META DEL DÍA',
   'share.weekChip': '🏆 MIS LOGROS DE LA SEMANA',
   'share.monthChip': '🗓️ MIS LOGROS DEL MES',
+  'share.panelChip': '🏋️ TU SEMANA',
+  'share.panelEmpty': 'Aún no hay una semana cerrada con sesiones para resumir: tu resumen semanal aparecerá aquí en cuanto completes una.',
   'share.goalsLab': 'Mi día en metas',
   'share.goalsChip': '📊 MI DÍA EN METAS',
   'share.newBadge': 'NUEVA',
@@ -41082,6 +41088,13 @@ function wkExSectionHTML(m, links) {
    carga nace plegada —). Solo presentación: el cálculo, los
    textos y las cifras de la tarjeta no cambian en una coma. */
 let WK_CARD_OPEN = false;
+/* El modelo de la tarjeta semanal PROPIA tal como lo calculó
+   loadWeekCard (weekCardCompute, la fuente única): lo consume la
+   tarjeta «Tu semana» para compartir (sharePanelWeekData) para
+   pintar EXACTAMENTE el mismo resumen, sin un segundo cálculo.
+   Solo lo escribe la vista propia; la ficha del alumno para el
+   entrenador jamás lo toca. */
+let WK_MODEL_OWN = null;
 /* La banda dorada del Nivel 1: las líneas de reconocimiento que
    weekCardCompute comprobó (m.reco). Sin líneas, no hay banda. */
 function wkRecoHTML(m) {
@@ -41156,7 +41169,7 @@ function weekCardHTML(m, links) {
       ${imps ? `<div class="wkcard-mej"><span class="wkcard-mej-ico" aria-hidden="true">🎯</span><div class="wkcard-mej-tx">${imps}</div></div>` : ''}
       <p class="wkcard-close">${q[0]}${esc(t('wk.close.' + m.closeIdx))}${q[1]}</p>
     </div>
-    <div class="wkcard-foot">${esc(t('wk.foot'))}</div>
+    <div class="wkcard-foot">${esc(t('wk.foot'))}${links ? ` <button type="button" class="ms-share wk-share" data-wk-share="1">${esc(t('reco.msShare'))} ›</button>` : ''}</div>
     </div>
   </div>` + wkExSectionHTML(m, links);
 }
@@ -41236,10 +41249,15 @@ async function loadWeekCard() {
     const [plans, logs, reqs] = await Promise.all([fetchPlans(uid), fetchLogs(uid), fetchWeekRequests(uid)]);
     const model = weekCardCompute(wkPrepareLogs(logs), wkPreparePlans(plans), todayISO(),
       { name: (typeof UDATA !== 'undefined' && UDATA && UDATA.name) || '', requests: reqs, mealsByDate: (typeof MEALS !== 'undefined' ? MEALS : null), actByDate: (typeof ACT_LOGS !== 'undefined' ? ACT_LOGS : null) });
+    WK_MODEL_OWN = model;
     box.innerHTML = weekCardHTML(model, true);
     /* Cada línea de ejercicio con ficha abre la ficha del
        ejercicio con su historia (la superficie de siempre). */
     box.querySelectorAll('[data-wkex-id]').forEach(b => { b.onclick = () => { libCardOpen(b.dataset.wkexId); }; });
+    /* La puerta de compartir de la propia tarjeta: abre la hoja
+       en la tarjeta «Tu semana» para compartir, que se alimenta
+       de ESTE modelo (WK_MODEL_OWN), sin recalcular nada. */
+    box.querySelectorAll('[data-wk-share]').forEach(b => { b.onclick = () => { shareOpenPanelWeek(); }; });
     wkCardWire(box);
     /* Niveles 2 y 3 del reconocimiento: hitos guardados y
        tarjeta del mes, bajo la tarjeta semanal. Van en su
@@ -46228,6 +46246,318 @@ function shareDrawMonthEmpty(ctx, W, H, d) {
 }
 
 /* ============================================================
+   TARJETA «TU SEMANA» PARA COMPARTIR (pedido de Ronald,
+   2026-11-09 01:53 CST, con sus dos capturas del panel de
+   Progreso: «Me gustaría que esto fuese una tarjeta para
+   compartir»): el resumen semanal del panel — banda de
+   reconocimiento, relato, línea de fibra, las cuatro cajitas,
+   «A mejorar» y frase de cierre — como UNA imagen de esta
+   familia, sobre el vestido oscuro de siempre y con el panel
+   blanco del resumen dentro.
+   FUENTE ÚNICA: la tarjeta NO calcula nada. Su modelo es el de
+   weekCardCompute tal como lo dejó loadWeekCard en
+   WK_MODEL_OWN — el mismo objeto que weekCardHTML viste en el
+   panel (y cuyo puerto fiel del Worker alimenta el correo
+   semanal «Tu semana»). Los textos planos de abajo repiten,
+   clave a clave y campo a campo, la composición del panel
+   (wkRecoHTML / weekCardHTML) sin el vestido HTML: mismas
+   frases wk.* / reco.* / fiber.*, mismas cifras, mismas
+   condiciones de nacimiento. Si el panel cambia su relato, la
+   batería de este paquete — que compara ambos textos con la
+   semana real de Ronald — lo caza.
+   «A MEJORAR» ENTRA ENTERO, con su sugerencia de carga tal
+   como el cálculo la sostiene: solo nace cuando el dato la
+   sostiene (la carga no se movió y la última aparición no
+   llegó a esfuerzo máximo guardado) y su propio texto la
+   condiciona («si la sientes por debajo de tu límite»). Es el
+   mismo criterio del panel y del correo: recortar la tarjeta
+   al compartir crearía una segunda versión del mismo resumen.
+   LA TARJETA COMPACTA (shareDrawWeek) NO SE TOCA: es otra
+   tarjeta — la semana EN CURSO con su racha y sus barras —;
+   esta es el resumen de la semana CERRADA que el panel relata.
+   Sin semana cerrada con sesiones, la tarjeta pinta su estado
+   honesto (shareDrawPanelWeekEmpty): nada se inventa.
+   La puerta vive en el propio panel (su pie, solo en la vista
+   propia: data-wk-share) y en la hoja de compartir (su chip),
+   como la puerta del mes. */
+function wkStripB(s) { return String(s == null ? '' : s).replace(/\*\*(.+?)\*\*/g, '$1'); }
+/* Las líneas de la banda dorada, en texto plano: la misma
+   composición que wkRecoHTML, sin esc() (el lienzo no lo
+   necesita) y sin las marcas ** (el pintor las dibuja en
+   negrita con sgRichWrap). */
+function wkRecoPlain(m) {
+  const lines = (m && Array.isArray(m.reco)) ? m.reco : [];
+  const out = [];
+  lines.forEach(r => {
+    let s = '';
+    if (r.kind === 'constancy') s = t('reco.constancy');
+    else if (r.kind === 'pr') s = t('reco.pr', { name: wkDispName(r.name), kg: fmtMass(r.kg), prev: fmtMass(r.prevKg) });
+    else if (r.kind === 'progress') s = t('reco.progress', { name: wkDispName(r.name), a: fmtMass(r.fromKg), b: fmtMass(r.toKg) });
+    else if (r.kind === 'effort') {
+      if (r.effortAvg != null) {
+        s = t('reco.effort', { r: r.effortAvg });
+        if (r.satAvg != null && r.satAvg >= 4)
+          s += t('reco.effortSat', { s: Number.isInteger(r.satAvg) ? String(r.satAvg) : fmt(r.satAvg) });
+      } else if (r.satAvg != null) {
+        s = t('reco.effortSatOnly', { s: Number.isInteger(r.satAvg) ? String(r.satAvg) : fmt(r.satAvg) });
+      }
+    }
+    if (s) out.push(wkStripB(s));
+  });
+  return out;
+}
+/* El relato de la semana, en texto plano: la misma composición
+   de frases que weekCardHTML monta en su párrafo .wkcard-rel,
+   en el mismo orden y con las mismas condiciones. */
+function wkNarrativePlain(m) {
+  const S = [];
+  const first = String(m.name || '').trim().split(/\s+/)[0] || '';
+  let open = t(first ? (m.sessions === 1 ? 'wk.open1' : 'wk.openN') : (m.sessions === 1 ? 'wk.open1nn' : 'wk.openNnn'),
+    first ? { name: first, n: m.sessions } : { n: m.sessions });
+  if (m.minutes != null && m.minutes > 0) open += t('wk.openTime', { time: wkTimeText(m.minutes) });
+  if (m.volumeKg != null) open += t('wk.openKg', { kg: fmt(m.volumeKg) });
+  S.push(open + '.');
+  if (m.moment) S.push(t('wk.moment', { name: wkDispName(m.moment.name), a: fmtMass(m.moment.fromKg), b: fmtMass(m.moment.toKg), reps: m.moment.repsKept ? t('wk.momentReps') : '' }) + '.');
+  const satTxt = m.satAvg == null ? null : (Number.isInteger(m.satAvg) ? String(m.satAvg) : fmt(m.satAvg));
+  const satTail = m.satAvg == null ? '' : (m.satAvg >= 4 ? t('wk.satGood') : (m.satAvg <= 2.5 ? t('wk.satLow') : ''));
+  if (m.effortAvg != null && m.satAvg != null) S.push(t('wk.effort', { r: m.effortAvg }) + ' ' + t('wk.and') + ' ' + t('wk.sat', { s: satTxt }) + satTail + '.');
+  else if (m.effortAvg != null) S.push(t('wk.effort', { r: m.effortAvg }) + '.');
+  else if (m.satAvg != null) { const s0 = t('wk.sat', { s: satTxt }); S.push(s0.charAt(0).toUpperCase() + s0.slice(1) + satTail + '.'); }
+  if (m.injuries > 0) S.push(t(m.injuries === 1 ? 'wk.injury1' : 'wk.injuryN', { n: m.injuries }) + '.');
+  if (m.cmp) {
+    if (m.cmp.kind === 'kg') S.push(t(m.cmp.pct > 0 ? 'wk.cmpKgUp' : 'wk.cmpKgDown', { p: Math.abs(m.cmp.pct) }) + '.');
+    else if (m.cmp.diff === 1) S.push(t('wk.cmpSesUp1') + '.');
+    else if (m.cmp.diff > 1) S.push(t('wk.cmpSesUpN', { n: m.cmp.diff }) + '.');
+    else if (m.cmp.diff === -1) S.push(t('wk.cmpSesDown1') + '.');
+    else S.push(t('wk.cmpSesDownN', { n: Math.abs(m.cmp.diff) }) + '.');
+  }
+  if (m.planned > 0) S.push(t('wk.constancy', { d: m.donePlanned, p: m.planned }) + (m.streak >= 2 ? t('wk.streak', { n: m.streak }) : '') + '.');
+  if (m.restAvgSec != null) S.push(t('wk.rest', { x: wkRestText(m.restAvgSec) }) + (m.restSessions < m.sessions ? t('wk.restScope') : '') + '.');
+  return wkStripB(S.join(' '));
+}
+/* Las cajitas de cifras del panel, tal cual nacen en
+   weekCardHTML (sesiones; tiempo con su etiqueta de parcial
+   cuando falta la duración de alguna sesión; peso movido en la
+   unidad del visor; esfuerzo medio). */
+function wkChipsPlain(m) {
+  const chips = [{ v: String(m.sessions), l: t('wk.chipSessions') }];
+  if (m.minutes != null && m.minutes > 0) chips.push({ v: wkChipTime(m.minutes), l: t(m.minutesPartial ? 'wk.chipTimeReg' : 'wk.chipTime') });
+  if (m.volumeKg != null) chips.push({ v: fmt(massToDisplay(m.volumeKg)) + ' ' + UNIT_PREFS.mass, l: t('wk.chipKg') });
+  if (m.effortAvg != null) chips.push({ v: m.effortAvg + ' / 10', l: t('wk.chipEffort') });
+  return chips;
+}
+/* Los puntos de «A mejorar», en texto plano: la misma
+   composición que el bloque .wkcard-mej del panel, con su
+   entradilla solo en el primero. */
+function wkImpsPlain(m) {
+  return (m.improvements || []).map((im, ix) => {
+    let s = '';
+    if (im.kind === 'stag') s = t(im.days === 2 ? 'wk.impStag' : 'wk.impStagN', { name: wkDispName(im.name), v: fmtMass(im.vKg), v2: fmtMass(im.vKg + 2.5), k: im.days });
+    else if (im.kind === 'missed') s = t(im.n === 1 ? 'wk.impMissed1' : 'wk.impMissedN', { n: im.n });
+    else if (im.kind === 'short') s = t('wk.impShort', { day: wkDayShort(im.date), m: im.min, avg: im.avg });
+    else if (im.kind === 'nofig') s = t('wk.impNoFig', { name: wkDispName(im.name) });
+    return s ? { lead: ix === 0 ? t('wk.impLead') : '', raw: s } : null;
+  }).filter(Boolean);
+}
+/* Los datos de la tarjeta: el modelo del panel propio, vestido
+   de texto. Sin modelo (ninguna semana cerrada con sesiones en
+   el horizonte del panel), null: la tarjeta pinta su estado
+   honesto y el panel tampoco existe. */
+function sharePanelWeekData() {
+  const m = (typeof WK_MODEL_OWN !== 'undefined') ? WK_MODEL_OWN : null;
+  if (!m) return null;
+  return { monday: m.monday, range: wkRangeText(m.monday, m.sunday),
+    reco: wkRecoPlain(m), narrative: wkNarrativePlain(m),
+    fiber: m.fiber ? t(m.fiber.days === 1 ? 'fiber.week1' : 'fiber.weekN', { g: fmt(m.fiber.avg), n: m.fiber.days }) : null,
+    chips: wkChipsPlain(m), imps: wkImpsPlain(m),
+    close: t('wk.close.' + m.closeIdx), foot: t('wk.foot') };
+}
+/* Envuelve un texto con marcas **negrita** en líneas de
+   palabras con su peso (normal/negrita), midiendo cada palabra
+   con la fuente de su peso: el relato del panel conserva en el
+   lienzo las cifras destacadas que en HTML van en <b>. */
+function sgRichWrap(ctx, str, px, maxW, wNorm, wBold) {
+  const words = [];
+  String(str == null ? '' : str).split(/(\*\*[^*]+\*\*)/).forEach(part => {
+    if (!part) return;
+    const bold = /^\*\*[^*]+\*\*$/.test(part);
+    const txt = bold ? part.slice(2, -2) : part;
+    txt.split(/\s+/).filter(Boolean).forEach(w => words.push({ w, bold }));
+  });
+  ctx.save();
+  ctx.font = shareCtxFont(wNorm, px);
+  const spaceW = ctx.measureText(' ').width;
+  const widthOf = wd => { ctx.font = shareCtxFont(wd.bold ? wBold : wNorm, px); return ctx.measureText(wd.w).width; };
+  const lines = []; let cur = [], curW = 0;
+  words.forEach(wd => {
+    const ww = widthOf(wd);
+    const add = (cur.length ? spaceW : 0) + ww;
+    if (cur.length && curW + add > maxW) { lines.push(cur); cur = [wd]; curW = ww; }
+    else { cur.push(wd); curW += add; }
+  });
+  if (cur.length) lines.push(cur);
+  ctx.restore();
+  return lines;
+}
+/* Pinta las líneas de sgRichWrap desde (x, yTop) con su
+   interlineado; las palabras en negrita van en su color. */
+function sgRichDraw(ctx, lines, x, yTop, px, lh, wNorm, wBold, cNorm, cBold) {
+  ctx.save();
+  ctx.textAlign = 'left'; ctx.textBaseline = 'alphabetic';
+  lines.forEach((line, li) => {
+    let cx = x; const base = yTop + li * lh + px;
+    ctx.font = shareCtxFont(wNorm, px);
+    const spaceW = ctx.measureText(' ').width;
+    line.forEach(wd => {
+      ctx.font = shareCtxFont(wd.bold ? wBold : wNorm, px);
+      ctx.fillStyle = wd.bold ? cBold : cNorm;
+      ctx.fillText(wd.w, cx, base);
+      cx += ctx.measureText(wd.w).width + spaceW;
+    });
+  });
+  ctx.restore();
+}
+/* El panel blanco de la tarjeta, medido y pintado en una sola
+   pasada de composición (draw=false solo mide): cabecera de
+   marca, banda dorada si la hay, relato, fibra, las cajitas,
+   «A mejorar» si lo hay, frase de cierre y pie — el contenido
+   del panel, en su orden. La escala sc encoge los cuerpos de
+   texto hasta que el panel cabe en su zona (el resumen íntegro,
+   sin recortar contenido). */
+function wkPanelCompose(ctx, d, x0, y0, wIn, cp, sc, draw) {
+  const S = n => Math.round(n * sc);
+  const padX = 0; /* el ancho útil ya viene descontado del panel */
+  let y = y0;
+  /* cabecera de marca, como la del panel blanco del logro */
+  if (draw) sgText(ctx, 'RONBO.FIT', x0 + padX, y + S(cp ? 22 : 30), 900, S(cp ? 32 : 40), '#0B7C72', { ls: 1 });
+  y += S(cp ? 48 : 62);
+  /* banda de reconocimiento */
+  if (d.reco.length) {
+    const bPad = S(cp ? 18 : 24), tPx = S(cp ? 20 : 24), lPx = S(cp ? 23 : 28), lLh = S(cp ? 33 : 40);
+    const title = '🏅 ' + t('reco.bandTitle');
+    const wrapped = d.reco.map(line => sgRichWrap(ctx, line, lPx, wIn - bPad * 2, 600, 800));
+    const linesH = wrapped.reduce((s, ls) => s + ls.length * lLh, 0) + (wrapped.length - 1) * S(6);
+    const bandH = bPad * 2 + S(cp ? 30 : 36) + linesH;
+    if (draw) {
+      sgBox(ctx, x0, y, wIn, bandH, S(18), '#FBEDBE');
+      sgText(ctx, title, x0 + bPad, y + bPad + S(cp ? 15 : 18), 800, tPx, '#8A6D1A', { ls: 2 });
+      let ly = y + bPad + S(cp ? 30 : 36);
+      wrapped.forEach(ls => { sgRichDraw(ctx, ls, x0 + bPad, ly, lPx, lLh, 600, 800, '#54430D', '#6D5510'); ly += ls.length * lLh + S(6); });
+    }
+    y += bandH + S(cp ? 18 : 24);
+  }
+  /* relato */
+  const nPx = S(cp ? 25 : 31), nLh = S(cp ? 36 : 46);
+  const nLines = sgRichWrap(ctx, d.narrative, nPx, wIn, 500, 800);
+  if (draw) sgRichDraw(ctx, nLines, x0, y, nPx, nLh, 500, 800, '#22384A', '#0B7A6E');
+  y += nLines.length * nLh;
+  /* fibra */
+  if (d.fiber) {
+    const fPx = S(cp ? 22 : 27), fLh = S(cp ? 31 : 39);
+    const fLines = sgWrap(ctx, '🌾 ' + d.fiber, 600, fPx, wIn);
+    y += S(cp ? 10 : 14);
+    if (draw) fLines.forEach((ln, i) => sgText(ctx, ln, x0, y + i * fLh + fPx * 0.85, 600, fPx, '#22384A', {}));
+    y += fLines.length * fLh;
+  }
+  /* las cajitas de cifras */
+  const cGap = S(cp ? 10 : 14), cH = S(cp ? 76 : 98), vPx0 = S(cp ? 31 : 40), lPx2 = S(cp ? 15 : 19);
+  const n = d.chips.length, cW = (wIn - cGap * (n - 1)) / n;
+  y += S(cp ? 14 : 18);
+  if (draw) d.chips.forEach((c, i) => {
+    const cx = x0 + i * (cW + cGap);
+    ctx.save(); ctx.fillStyle = '#EEF7F5'; shareRR(ctx, cx, y, cW, cH, S(14)); ctx.fill();
+    ctx.strokeStyle = '#CFE8E2'; ctx.lineWidth = 2; ctx.stroke(); ctx.restore();
+    const vPx = shareFitPx(ctx, c.v, 900, vPx0, cW - S(14));
+    sgText(ctx, c.v, cx + cW / 2, y + S(cp ? 30 : 38), 900, vPx, '#0B3F38', { align: 'center' });
+    sgText(ctx, String(c.l).toUpperCase(), cx + cW / 2, y + cH - S(cp ? 14 : 18), 700, lPx2, '#5B7A72', { align: 'center', ls: 1 });
+  });
+  y += cH;
+  /* «A mejorar» */
+  if (d.imps.length) {
+    const iPad = S(cp ? 16 : 22), icoW = S(cp ? 40 : 50), iPx = S(cp ? 22 : 27), iLh = S(cp ? 31 : 39);
+    const items = d.imps.map(im => sgRichWrap(ctx, (im.lead ? '**' + im.lead + '** ' : '') + im.raw, iPx, wIn - iPad * 2 - icoW, 500, 800));
+    const itemsH = items.reduce((s, ls) => s + ls.length * iLh, 0) + (items.length - 1) * S(9);
+    const boxH = iPad * 2 + itemsH;
+    y += S(cp ? 12 : 16);
+    if (draw) {
+      sgBox(ctx, x0, y, wIn, boxH, S(14), '#FFF8EC');
+      ctx.save(); ctx.strokeStyle = '#F3DDBA'; ctx.lineWidth = 2; shareRR(ctx, x0, y, wIn, boxH, S(14)); ctx.stroke(); ctx.restore();
+      sgText(ctx, '🎯', x0 + iPad, y + iPad + S(cp ? 16 : 20), 400, S(cp ? 26 : 32), '#5B4420', { emoji: true });
+      let iy = y + iPad;
+      items.forEach(ls => { sgRichDraw(ctx, ls, x0 + iPad + icoW, iy, iPx, iLh, 500, 800, '#5B4420', '#8A5A12'); iy += ls.length * iLh + S(9); });
+    }
+    y += boxH;
+  }
+  /* frase de cierre, entre las comillas del panel */
+  const q = LANG === 'es' ? ['«', '»'] : ['“', '”'];
+  const clPx = S(cp ? 23 : 29), clLh = S(cp ? 33 : 42);
+  const clLines = sgWrap(ctx, q[0] + d.close + q[1], 600, clPx, wIn);
+  y += S(cp ? 14 : 18);
+  if (draw) clLines.forEach((ln, i) => {
+    ctx.save(); ctx.font = 'italic ' + shareCtxFont(600, clPx); ctx.fillStyle = '#46616F';
+    ctx.textAlign = 'center'; ctx.textBaseline = 'alphabetic';
+    ctx.fillText(ln, x0 + wIn / 2, y + i * clLh + clPx * 0.85); ctx.restore();
+  });
+  y += clLines.length * clLh;
+  /* pie */
+  const fPx2 = S(cp ? 17 : 21);
+  y += S(cp ? 8 : 12);
+  if (draw) sgText(ctx, d.foot, x0, y + fPx2 * 0.85, 500, fPx2, '#8AA0AD', {});
+  y += fPx2 + S(cp ? 2 : 4);
+  return y - y0;
+}
+function shareDrawPanelWeek(ctx, W, H, d) {
+  const cp = H < 1500;
+  shareBg(ctx, W, H);
+  const hy = cp ? 330 : 580;
+  const rg = ctx.createRadialGradient(W / 2, hy, 0, W / 2, hy, cp ? 300 : 430);
+  rg.addColorStop(0, 'rgba(255,170,40,.20)'); rg.addColorStop(1, 'rgba(255,170,40,0)');
+  ctx.fillStyle = rg; ctx.fillRect(0, 0, W, H);
+  shareBrand(ctx, W, cp ? 100 : 160, cp ? 42 : 54);
+  const chipPx = cp ? 27 : 32, chipTop = cp ? 148 : 234;
+  sharePill(ctx, W / 2, chipTop + (chipPx + 34) / 2, t('share.panelChip'), chipPx, { ls: 3 });
+  const chipBottom = chipTop + chipPx + 34;
+  shareTxt(ctx, d.range, W / 2, chipBottom + (cp ? 44 : 60), shareCtxFont(600, cp ? 24 : 32), 'rgba(255,255,255,.92)', { shadowBlur: 12 });
+  /* el panel blanco, medido antes de pintarse: la escala baja
+     hasta que el resumen ÍNTEGRO cabe en su zona (entre el rango
+     y la línea de marca); nunca se recorta contenido. */
+  const MX = 64, PW = W - 128, padIn = cp ? 40 : 52, wIn = PW - padIn * 2, padTop = cp ? 34 : 44, padBot = cp ? 30 : 40;
+  const top0 = chipBottom + (cp ? 78 : 112);
+  const botMax = H - (cp ? 158 : 336);
+  let sc = 1, contentH = wkPanelCompose(ctx, d, 0, 0, wIn, cp, 1, false);
+  while (sc > 0.62 && top0 + padTop + contentH + padBot > botMax) { sc = Math.round((sc - 0.07) * 100) / 100; contentH = wkPanelCompose(ctx, d, 0, 0, wIn, cp, sc, false); }
+  sgPanelWhite(ctx, MX, top0, PW, padTop + contentH + padBot, 36);
+  wkPanelCompose(ctx, d, MX + padIn, top0 + padTop, wIn, cp, sc, true);
+  shareBottom(ctx, W, H, LANG === 'es' ? 'Come bien. Entrena fuerte. Vive el presente.' : 'Eat well. Train strong. Live present.', !cp);
+}
+/* Sin semana que resumir: el mismo vestido, con su estado
+   honesto — nunca un resumen inventado. */
+function shareDrawPanelWeekEmpty(ctx, W, H) {
+  const cp = H < 1500;
+  shareBg(ctx, W, H);
+  const hy = cp ? 330 : 580;
+  const rg = ctx.createRadialGradient(W / 2, hy, 0, W / 2, hy, cp ? 300 : 430);
+  rg.addColorStop(0, 'rgba(255,170,40,.20)'); rg.addColorStop(1, 'rgba(255,170,40,0)');
+  ctx.fillStyle = rg; ctx.fillRect(0, 0, W, H);
+  shareBrand(ctx, W, cp ? 100 : 160, cp ? 42 : 54);
+  const chipPx = cp ? 27 : 32, chipTop = cp ? 148 : 234;
+  sharePill(ctx, W / 2, chipTop + (chipPx + 34) / 2, t('share.panelChip'), chipPx, { ls: 3 });
+  const chipBottom = chipTop + chipPx + 34;
+  const midY = chipBottom + (cp ? 190 : 330);
+  shareTxt(ctx, '🏋️', W / 2, midY, shareCtxFont(400, cp ? 72 : 110, true), '#ffffff', { shadowBlur: 22 });
+  const lines = sgWrap(ctx, t('share.panelEmpty'), 600, cp ? 30 : 40, 780);
+  lines.forEach((ln, i) => sgText(ctx, ln, W / 2, midY + (cp ? 90 : 140) + i * (cp ? 44 : 58), 600, cp ? 30 : 40, 'rgba(255,255,255,.94)', { align: 'center' }));
+  shareBottom(ctx, W, H, t('share.phraseStart'), !cp);
+}
+/* La puerta del panel «Tu semana» (Progreso): abre la hoja de
+   compartir en esta tarjeta, con el mismo patrón que la puerta
+   del mes. Sin puerta usada, el chip de la hoja la elige igual. */
+function shareOpenPanelWeek() {
+  SHARE.type = 'panel';
+  shareOpen();
+}
+
+/* ============================================================
    TARJETA «ANTES Y DESPUÉS» (AUTH-2026-11-07-294; orden directa
    de Ronald, 2026-11-07 01:58 CST, sobre la referencia que él
    envió: fotos antes/después lado a lado, píldoras de métricas
@@ -47882,6 +48212,23 @@ function shareRender() {
       (d.bestIdx >= 0 ? ' · ' + t('share.bestDay', { day: (SHARE_WD[LANG] || SHARE_WD.en)[d.bestIdx] }) : '') +
       (d.milestones.length ? ' · ' + d.milestones.join(' · ') : '') +
       ' · ' + (d.phrase === 'week' ? t('share.phraseWeek') : t('share.phraseStart')) + ' · ronbo.fit';
+  } else if (SHARE.type === 'panel') {
+    /* La tarjeta «Tu semana» para compartir: el resumen del
+       panel, alimentado SOLO por el modelo que weekCardCompute
+       dejó en WK_MODEL_OWN — jamás un segundo cálculo. Sin
+       modelo, su estado honesto. */
+    const d = sharePanelWeekData();
+    if (d) {
+      shareDrawPanelWeek(ctx, W, H, d);
+      SHARE.fileName = 'ronbo-fit-week-summary-' + d.monday + '.png';
+      summary = t('share.panelLab') + ' · ' + d.range + ' · ' +
+        d.chips.map(c => c.v + ' ' + c.l).join(' · ') +
+        (d.reco.length ? ' · ' + d.reco.join(' · ') : '') + ' · ronbo.fit';
+    } else {
+      shareDrawPanelWeekEmpty(ctx, W, H);
+      SHARE.fileName = 'ronbo-fit-week-summary.png';
+      summary = t('share.panelLab') + ' · ' + t('share.panelEmpty') + ' · ronbo.fit';
+    }
   } else if (SHARE.type === 'month') {
     const d = shareMonthData(SHARE.monthYm);
     if (d.hasActivity) shareDrawMonth(ctx, W, H, d); else shareDrawMonthEmpty(ctx, W, H, d);
@@ -47944,7 +48291,7 @@ function shareRender() {
     ? 'ronbo-fit-workout-' + SHARE.workout.dateISO + '.png'
     : SHARE.type === 'goals' ? 'ronbo-fit-myday-' + todayISO() + '.png'
     : SHARE.type === 'short' ? 'ronbo-fit-dayshort-' + todayISO() + '.png'
-    : (SHARE.type === 'trans' || SHARE.type === 'month') ? SHARE.fileName
+    : (SHARE.type === 'trans' || SHARE.type === 'month' || SHARE.type === 'panel') ? SHARE.fileName
     : (SHARE.type === 'week' ? 'ronbo-fit-week-' : 'ronbo-fit-goal-') + todayISO() + '.png';
   SHARE.blob = null;
   shareRefreshShareBtn();
@@ -47976,10 +48323,11 @@ function shareDownload() {
 function shareSyncTypeUI() {
   const f = $('share-float'); if (!f) return;
   f.classList.toggle('share-workout-mode', SHARE.type === 'workout');
-  const bd = $('btn-share-day'), bw = $('btn-share-week'), bm = $('btn-share-month'), bg = $('btn-share-goals'), bs = $('btn-share-short'), bt = $('btn-share-today'), bl = $('btn-share-logro'), bx = $('btn-share-trans');
+  const bd = $('btn-share-day'), bw = $('btn-share-week'), bm = $('btn-share-month'), bg = $('btn-share-goals'), bs = $('btn-share-short'), bt = $('btn-share-today'), bl = $('btn-share-logro'), bx = $('btn-share-trans'), bp = $('btn-share-panel');
   if (bd) bd.setAttribute('aria-pressed', SHARE.type === 'day' ? 'true' : 'false');
   if (bw) bw.setAttribute('aria-pressed', SHARE.type === 'week' ? 'true' : 'false');
   if (bm) bm.setAttribute('aria-pressed', SHARE.type === 'month' ? 'true' : 'false');
+  if (bp) bp.setAttribute('aria-pressed', SHARE.type === 'panel' ? 'true' : 'false');
   if (bg) bg.setAttribute('aria-pressed', SHARE.type === 'goals' ? 'true' : 'false');
   if (bs) bs.setAttribute('aria-pressed', SHARE.type === 'short' ? 'true' : 'false');
   if (bt) bt.setAttribute('aria-pressed', SHARE.type === 'today' ? 'true' : 'false');
@@ -47998,6 +48346,12 @@ function shareOpen() {
 }
 function shareClose() { const f = $('share-float'); if (f) f.style.display = 'none'; }
 function shareSetType(type) {
+  /* La tarjeta del panel semanal se alimenta del modelo que
+     loadWeekCard ya dejó en WK_MODEL_OWN; si la hoja se abrió
+     sin pasar por Progreso y aún no hay modelo, se pide la carga
+     del panel (que lo deja servido) y se repinta al llegar. */
+  if (type === 'panel' && !WK_MODEL_OWN && typeof loadWeekCard === 'function')
+    loadWeekCard().then(() => { if (SHARE.type === 'panel') shareRender(); }).catch(() => {});
   if (type === 'trans' && typeof ensureProgressLoaded === 'function')
     ensureProgressLoaded().then(() => { if (SHARE.type === 'trans') { shareTransSync(); shareRender(); } });
   if (type === 'logro' && !SHARE.logro && typeof RECO_LATEST !== 'undefined' && RECO_LATEST)
@@ -48030,6 +48384,7 @@ document.addEventListener('keydown', e => { if (e.key === 'Escape') { const f = 
 { const b = $('btn-share-day'); if (b) b.addEventListener('click', () => shareSetType('day')); }
 { const b = $('btn-share-week'); if (b) b.addEventListener('click', () => shareSetType('week')); }
 { const b = $('btn-share-month'); if (b) b.addEventListener('click', () => shareSetType('month')); }
+{ const b = $('btn-share-panel'); if (b) b.addEventListener('click', () => shareSetType('panel')); }
 { const b = $('btn-share-goals'); if (b) b.addEventListener('click', () => shareSetType('goals')); }
 { const b = $('btn-share-short'); if (b) b.addEventListener('click', () => shareSetType('short')); }
 { const b = $('btn-share-today'); if (b) b.addEventListener('click', () => shareSetType('today')); }
@@ -48072,7 +48427,7 @@ document.addEventListener('keydown', e => { if (e.key === 'Escape') shareClose()
  *  - El SW (sw.js) solo cachea la cáscara del mismo origen en modo
  *    RED PRIMERO: Auth/Firestore/Worker jamás pasan por la caché.
  * ================================================================ */
-const PWA_SW_VERSION = '20261109-tira-unica';
+const PWA_SW_VERSION = '20261109-tarjeta-semana';
 /* Sello de versión VISIBLE (2026-11-03): el pie de la tarjeta de
    acceso enseña qué copia corre este teléfono ('v ' + el sello),
    para comprobar de un vistazo si la versión nueva ya llegó.
