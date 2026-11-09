@@ -2248,6 +2248,15 @@ div.swap-card { cursor: default; }
    armazón .swap-sheet; controles grandes y claros porque la app se
    usa entrenando (regla de la casa 2026-11-02). */
 .dict-open-btn { width: 100%; min-height: 48px; font-size: 15px; }
+.photo-open-btn { width: 100%; min-height: 48px; font-size: 15px; }
+/* FOTO DE MÁQUINA (AUTH-2026-11-08-304): el estado «mirando la
+   foto» de la hoja y las dos cajas de nombre del borrador nuevo,
+   con los controles de la casa (≥48 px, borde y radio de las
+   cajas del dictado). */
+.mph-busy { font-size: 16px; text-align: center; padding: 22px 4px; }
+.mph-names { display: grid; gap: 10px; margin: 10px 0; }
+.mph-names label { display: grid; gap: 4px; font-size: 13px; font-weight: 600; }
+.mph-names input { font: inherit; font-size: 16px; padding: 9px 10px; border: 1.5px solid #cbd5e1; border-radius: 10px; width: 100%; box-sizing: border-box; min-height: 48px; background: #fff; }
 /* PISO B — LA MASCOTA CON MICRÓFONO (AUTH-2026-11-06-284; diseño
    de Ronald: «es mejor la mascota con un micrófono»): el avatar
    vivo del coach en grande es EL control de grabación; la

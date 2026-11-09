@@ -4338,6 +4338,7 @@ en: {
   'libcom.pendingNote': 'Awaiting the administrator’s review — only you and the administrator can see it.',
   'libcom.sentToast': 'Exercise sent ✓ — it will appear for everyone once the administrator approves it',
   'libcom.resubToast': 'Changes saved and sent for review again ✓',
+  'libcom.stepsMissing': '⚠ Missing: the how-to steps (never made up).',
   'libcom.del': 'Delete',
   'libcom.delConfirm': 'Delete this exercise? This cannot be undone.',
   'libcom.deletedToast': 'Exercise deleted',
@@ -4429,6 +4430,29 @@ en: {
   'dict.micCap': 'You reached today\'s AI limit, so the microphone cannot transcribe right now. The keyboard microphone still works, and it is free.',
   'dict.needText': 'First dictate or type at least one exercise.',
   'dict.kbHint': 'You can also tap the text box and use your keyboard\'s microphone key 🎤 — that way is free.',
+  'mph.open': '📷 By photo',
+  'mph.title': 'Add by photo',
+  'mph.hint': 'Take a photo of the machine — or of its name plate — and the AI will look for it in the library. Each identification costs 2 AI uses, like a food photo.',
+  'mph.analyzing': 'Looking at your photo…',
+  'mph.confirmTitle': 'Is this the machine?',
+  'mph.read': 'I read: {text}',
+  'mph.confHigh': 'Sure match',
+  'mph.confMed': 'Looks like this one',
+  'mph.newHead': 'This one is not in the library yet',
+  'mph.nameEs': 'Name (Spanish)',
+  'mph.nameEn': 'Name (English)',
+  'mph.groupProposal': 'Probable group (proposal)',
+  'mph.draftNote': 'Adding it to your day also creates its library card as YOUR pending draft: only you and the administrator can see it until it is approved. Its photo becomes the card’s photo, and its how-to steps stay as a visible gap — they are never made up.',
+  'mph.createAdd': 'Add to my day & create the card',
+  'mph.notRead': 'I could not read the machine in that photo.',
+  'mph.notReadHint': 'Try a closer photo of the name plate, pick the exercise from the library, or take another photo.',
+  'mph.retake': 'Take another photo',
+  'mph.errGeneric': 'The identification failed. Nothing was saved — try again.',
+  'mph.errCap': 'You reached today’s AI limit, so the photo cannot be identified now. It renews tomorrow; meanwhile you can pick the exercise from the library.',
+  'mph.errDisabled': 'AI is turned off by the administrator right now, so the photo cannot be identified. You can pick the exercise from the library instead.',
+  'mph.errDoor': 'The AI service is temporarily unavailable. Try again in a little while, or pick the exercise from the library.',
+  'mph.uploading': 'Saving the card…',
+  'mph.addedDraft': 'Added to your day — its card was born as your pending draft.',
   'weight.title': '⚖️ Weight progress',
   'weight.sub': '· weekly weigh-in',
   'weight.add': '＋ Log weigh-in',
@@ -8061,6 +8085,7 @@ es: {
   'libcom.pendingNote': 'En espera de la revisión del administrador — solo lo veis tú y el administrador.',
   'libcom.sentToast': 'Ejercicio enviado ✓ — aparecerá para todos cuando el administrador lo apruebe',
   'libcom.resubToast': 'Cambios guardados y enviados a revisión de nuevo ✓',
+  'libcom.stepsMissing': '⚠ Faltan: los pasos de cómo se hace (nunca se inventan).',
   'libcom.del': 'Borrar',
   'libcom.delConfirm': '¿Borrar este ejercicio? No se puede deshacer.',
   'libcom.deletedToast': 'Ejercicio borrado',
@@ -8152,6 +8177,29 @@ es: {
   'dict.micCap': 'Llegaste al límite de IA de hoy: el micrófono no puede transcribir ahora. El micrófono del teclado sigue funcionando y es gratis.',
   'dict.needText': 'Primero dicta o escribe al menos un ejercicio.',
   'dict.kbHint': 'También puedes tocar la caja de texto y usar la tecla de micrófono 🎤 de tu teclado: esa vía es gratis.',
+  'mph.open': '📷 Por foto',
+  'mph.title': 'Añadir por foto',
+  'mph.hint': 'Toma una foto de la máquina — o de su placa con el nombre — y la IA la buscará en la biblioteca. Cada identificación cuesta 2 usos de IA, como una foto de comida.',
+  'mph.analyzing': 'Mirando tu foto…',
+  'mph.confirmTitle': '¿Es esta la máquina?',
+  'mph.read': 'Leí: {text}',
+  'mph.confHigh': 'Coincidencia segura',
+  'mph.confMed': 'Parece esta',
+  'mph.newHead': 'Esta aún no está en la biblioteca',
+  'mph.nameEs': 'Nombre (español)',
+  'mph.nameEn': 'Nombre (inglés)',
+  'mph.groupProposal': 'Grupo probable (propuesta)',
+  'mph.draftNote': 'Al añadirla a tu día nace también su ficha en la biblioteca como TU borrador pendiente: solo la ves tú y el administrador hasta que se apruebe. Su foto será la foto de la ficha, y sus pasos de «cómo se hace» quedan como hueco visible — nunca se inventan.',
+  'mph.createAdd': 'Añadir a mi día y crear la ficha',
+  'mph.notRead': 'No pude leer la máquina en esa foto.',
+  'mph.notReadHint': 'Prueba una foto más cercana de la placa, elige el ejercicio de la biblioteca o toma otra foto.',
+  'mph.retake': 'Tomar otra foto',
+  'mph.errGeneric': 'La identificación falló. No se guardó nada — inténtalo de nuevo.',
+  'mph.errCap': 'Alcanzaste el límite de IA de hoy, así que la foto no se puede identificar ahora. Se renueva mañana; mientras tanto puedes elegir el ejercicio de la biblioteca.',
+  'mph.errDisabled': 'La IA está desactivada por el administrador en este momento, así que la foto no se puede identificar. Puedes elegir el ejercicio de la biblioteca.',
+  'mph.errDoor': 'El servicio de IA no está disponible temporalmente. Inténtalo de nuevo en un rato, o elige el ejercicio de la biblioteca.',
+  'mph.uploading': 'Guardando la ficha…',
+  'mph.addedDraft': 'Añadido a tu día — su ficha nació como tu borrador pendiente.',
   'weight.title': '⚖️ Evolución de peso',
   'weight.sub': '· pesaje semanal',
   'weight.add': '＋ Registrar pesaje',
@@ -21269,6 +21317,9 @@ function applyAiControl() {
      cortes lo esconde. */
   const gateOff = (typeof mealsGateOff === 'function') ? mealsGateOff() : false;
   if (dock) dock.style.display = (off || gateOff) ? 'none' : '';
+  /* FOTO DE MÁQUINA (AUTH-2026-11-08-304): su botón es IA pura —
+     con el interruptor apagado se esconde, como el dock de comida. */
+  document.querySelectorAll('.photo-open-btn').forEach(b => { b.style.display = off ? 'none' : ''; });
   /* AYUDANTE QUE HABLA: el corte del interruptor esconde su
      puerta — el disco de la pila con la mascota, vía asstFabSync
      (que repinta según la pestaña vigente al reactivarse). La
@@ -28387,7 +28438,7 @@ function trainCustomRenderSession(plan, di, closed, iso) {
        TRAIN_PICK = add y abrían el mismo selector). La fila es la
        puerta dueña: su handler fija el selector directamente.
        Aquí quedan Cambiar/Quitar por ejercicio y el dictado. */
-    else inner += `<div style="margin-top:8px"><button type="button" class="btn-primary dict-open-btn" data-tcu-dict="1">${t('dict.open')}</button></div>`;
+    else inner += `<div style="margin-top:8px"><button type="button" class="btn-primary dict-open-btn" data-tcu-dict="1">${t('dict.open')}</button></div><div style="margin-top:8px"><button type="button" class="btn-secondary photo-open-btn" data-tcu-photo="1">${t('mph.open')}</button></div>`;
   }
   tools.innerHTML = inner;
   if (readOnly) { swapSheetSync(null); return; }
@@ -28403,6 +28454,7 @@ function trainCustomWire(plan, di, iso) {
   /* DICTADO SIN IA (2026-11-06): abre la hoja de dictado para el día
      VISTO (mismas condiciones de visibilidad que «＋ Añadir»). */
   tools.querySelectorAll('[data-tcu-dict]').forEach(b => b.onclick = () => dictSheetOpen(plan, di, viewIso));
+  tools.querySelectorAll('[data-tcu-photo]').forEach(b => b.onclick = () => mphSheetOpen(plan, di, viewIso));
   tools.querySelectorAll('[data-tcu-undo-swap]').forEach(b => b.onclick = () => {
     const ed = trainEditsRead(plan.id, viewIso) || { swaps: {}, added: [] };
     delete ed.swaps[String(b.dataset.tcuUndoSwap)];
@@ -29240,6 +29292,398 @@ function dictSheetApply() {
   trainEditsWrite(D.plan.id, ed, D.iso);
   dictSheetClose();
   loadMyTraining();
+}
+
+/* ═══════════ FOTO DE MÁQUINA → FICHA DE BIBLIOTECA
+   ═══════════ (AUTH-2026-11-08-304; propuesta aprobada por Ronald
+   el 2026-11-08 con sus tres decisiones: (1) la ficha que nace de
+   una foto nace como borrador «pendiente» del autor — la ven solo
+   él y el administrador hasta que se aprueba, por el mecanismo de
+   biblioteca comunitaria vivo desde 2026-10-24 —; (2) la foto de
+   la persona SE CONVIERTE en la foto de la ficha al aprobarse, con
+   el retoque de la casa: por eso, cuando la máquina NO está en la
+   biblioteca, la foto se estandariza al nacer el borrador (WebP
+   1920×1280, recorte cover con ancla vertical al 40 %, por debajo
+   de 200 000 bytes — el estándar del flujo de imagen de la
+   biblioteca) y queda guardada como su foto; al aprobarla, esa
+   foto ES la de la ficha, sin más pasos; (3) si la máquina SÍ
+   está — o la persona la elige a mano de la biblioteca — la foto
+   del análisis NO se guarda en ningún sitio: vive solo en memoria
+   dentro de la petición, como las fotos de comida. La búsqueda
+   por foto sobre el catálogo visual queda para una FASE 2: esta
+   entrega es foto → identificación → revisión → guardar.
+   · LA IDENTIFICACIÓN la hace la ruta /identify-machine del
+     Worker: pasa por la puerta general de IA y cuesta 2 usos,
+     como el análisis completo de una foto de comida (identificar
+     + calcular); el coste se avisa en la propia hoja (mph.hint)
+     antes de que la persona elija la foto.
+   · LA IA NUNCA INVENTA PASOS: si la máquina no está, el borrador
+     nace con «cómo se hace» VACÍO — el hueco visible — y la hoja,
+     «Mis aportes» y la bandeja lo dicen (libcom.stepsMissing).
+   · AÑADIR AL DÍA reutiliza las ediciones de sesión de la casa
+     (trainEditsRead / trainEditsWrite), igual que el dictado.
+   · LA HOJA espeja la del dictado (AUTH-279): clases swap-sheet /
+     dict-sheet, bloqueo de scroll con swap-sheet-open, tarjetas
+     swap-card y números dict-nums. */
+let TRAIN_PHOTO = null;
+
+function mphCatalog() {
+  const seen = new Set(); const out = [];
+  const push = ex => { if (ex && ex.id && !seen.has(ex.id)) { seen.add(ex.id); out.push({ id: ex.id, es: ex.nombre_es || '', en: ex.nombre_en || '' }); } };
+  (typeof LIB !== 'undefined' && Array.isArray(LIB) ? LIB : []).forEach(push);
+  (typeof LIB_OWN !== 'undefined' && Array.isArray(LIB_OWN) ? LIB_OWN : []).filter(ex => libEstadoOf(ex) === 'pendiente').forEach(push);
+  return out;
+}
+
+function mphSheetOpen(plan, di, iso) {
+  if (typeof LIB === 'undefined' || !LIB || !LIB.length) { toast(t('train.lib.unavailable'), true); return; }
+  TRAIN_PHOTO = { plan, di, iso: iso || todayISO(), step: 'busy', row: null, file: null, err: null, pickFrom: 'confirm', pickQuery: '', busy: false };
+  mphPickFile();
+}
+
+function mphPickFile() {
+  const D = TRAIN_PHOTO;
+  const inp = document.getElementById('mph-file');
+  if (!D || !inp) return;
+  inp.value = '';
+  inp.onchange = () => {
+    const f = inp.files && inp.files[0];
+    if (!f) { if (TRAIN_PHOTO && !TRAIN_PHOTO.file && !TRAIN_PHOTO.open) TRAIN_PHOTO = null; return; }
+    mphOnFile(f);
+  };
+  inp.oncancel = () => { if (TRAIN_PHOTO && !TRAIN_PHOTO.file) TRAIN_PHOTO = null; };
+  inp.click();
+}
+
+async function mphOnFile(f) {
+  const D = TRAIN_PHOTO;
+  if (!D) return;
+  D.file = f; D.open = true; D.step = 'busy'; D.err = null; D.row = null;
+  mphSheetSync();
+  const dataUrl = await aiCompressChecked(f);
+  if (!dataUrl) { mphSheetClose(); return; }
+  if (TRAIN_PHOTO !== D) return;
+  let res = null;
+  try {
+    res = await aiCall('/identify-machine', { imageDataUrl: dataUrl, lang: LANG, catalog: mphCatalog() });
+  } catch (e) {
+    if (TRAIN_PHOTO !== D) return;
+    D.err = (e && e.message) || 'failed';
+    D.step = 'error';
+    mphSheetSync();
+    return;
+  }
+  if (TRAIN_PHOTO !== D) return;
+  D.row = mphRowFromResult(res);
+  D.step = D.row ? 'confirm' : 'notread';
+  mphSheetSync();
+}
+
+function mphRowFromResult(res) {
+  const base = { sets: '3', reps: '10', load: null, loadUnit: 'kg', vi: null };
+  const readEs = (res && res.readNameEs) || '', readEn = (res && res.readNameEn) || '';
+  const matches = (res && Array.isArray(res.matches) ? res.matches : [])
+    .map(m => ({ ex: (typeof LIB_BY_ID !== 'undefined' && LIB_BY_ID) ? LIB_BY_ID[m.id] : null, conf: m.confidence === 'high' ? 'high' : 'medium' }))
+    .filter(c => c.ex);
+  if (matches.length === 1 && matches[0].conf === 'high') {
+    return { ...base, status: 'ok', entry: matches[0].ex, conf: 'high', readEs, readEn };
+  }
+  if (matches.length) {
+    return { ...base, status: 'ambig', candidates: matches, readEs, readEn };
+  }
+  if (readEs || readEn) {
+    return { ...base, status: 'new', nameEs: readEs, nameEn: readEn, groupEs: (res && res.groupEs) || '', groupEn: (res && res.groupEn) || '', readEs, readEn };
+  }
+  return null;
+}
+
+function mphCardHTML(ex, vi, conf, dataAttr) {
+  const v = vi != null && Array.isArray(ex.variantes) ? ex.variantes[vi] : null;
+  const name = v ? libNameOf(ex) + ' — ' + libField(v, 'nombre') : libNameOf(ex);
+  const sub = [libField(ex, 'equipo'), libField(ex, 'nivel')].filter(Boolean).join(' · ');
+  const photo = (v && v.foto_url) || ex.foto_url || '';
+  const th = !photo ? ytThumbOf((v && v.video_youtube_url) || ex.video_youtube_url) : '';
+  return `<button type="button" class="swap-card" ${dataAttr}>
+    ${photo ? `<img class="swap-card-img" src="${esc(photo)}" alt="" loading="lazy">` : (th ? `<img class="swap-card-img" src="${esc(th)}" alt="" loading="lazy" data-yt-fb="swap" onerror="ytThumbErr(this)">` : '<span class="swap-card-img swap-card-noimg" aria-hidden="true"></span>')}
+    <span class="swap-card-main"><span class="swap-card-name">${esc(name)}</span>${sub ? `<span class="swap-card-sub">${esc(sub)}</span>` : ''}${v ? `<span class="swap-card-tag">${esc(t('train.swap.variantTag'))}</span>` : ''}${conf ? `<span class="swap-card-tag">${esc(t(conf === 'high' ? 'mph.confHigh' : 'mph.confMed'))}</span>` : ''}</span><span class="swap-card-btn">${esc(t('dict.choose'))}</span></button>`;
+}
+
+function mphNumsHTML(r) {
+  return `<div class="dict-nums">
+    <span class="dict-num"><label>${esc(t('dict.sets'))}</label><input type="number" inputmode="numeric" min="0" max="30" data-mph-num="sets" value="${esc(r.sets)}"></span>
+    <span class="dict-num"><label>${esc(t('dict.reps'))}</label><input type="text" data-mph-num="reps" value="${esc(r.reps)}"></span>
+    <span class="dict-num"><label>${esc(t('dict.load'))}</label><input type="number" inputmode="decimal" min="0" step="any" data-mph-num="load" value="${r.load != null ? esc(String(r.load)) : ''}"></span>
+    <span class="dict-num dict-num-unit"><label>&nbsp;</label><select data-mph-unit="1"><option value="kg"${r.loadUnit === 'kg' ? ' selected' : ''}>kg</option><option value="lb"${r.loadUnit === 'lb' ? ' selected' : ''}>lb</option></select></span>
+  </div>`;
+}
+
+function mphConfirmHTML(D) {
+  const r = D.row;
+  if (!r) return '';
+  const readName = LANG === 'es' ? (r.readEs || r.readEn) : (r.readEn || r.readEs);
+  let h = '';
+  if (r.status === 'ok' && r.entry) {
+    const v = r.vi != null && Array.isArray(r.entry.variantes) ? r.entry.variantes[r.vi] : null;
+    const name = v ? libNameOf(r.entry) + ' — ' + libField(v, 'nombre') : libNameOf(r.entry);
+    const sub = [libField(r.entry, 'equipo'), libField(r.entry, 'nivel')].filter(Boolean).join(' · ');
+    const photo = (v && v.foto_url) || r.entry.foto_url || '';
+    const th = !photo ? ytThumbOf((v && v.video_youtube_url) || r.entry.video_youtube_url) : '';
+    h += `<div class="dict-row">
+      ${readName ? `<div class="dict-said">${esc(t('mph.read', { text: readName }))}</div>` : ''}
+      <div class="dict-row-head">
+        ${photo ? `<img class="swap-card-img" src="${esc(photo)}" alt="" loading="lazy">` : (th ? `<img class="swap-card-img" src="${esc(th)}" alt="" loading="lazy">` : '<span class="swap-card-img swap-card-noimg" aria-hidden="true"></span>')}
+        <span class="swap-card-main"><span class="swap-card-name">${esc(name)}</span>${sub ? `<span class="swap-card-sub">${esc(sub)}</span>` : ''}${r.conf ? `<span class="swap-card-tag">${esc(t(r.conf === 'high' ? 'mph.confHigh' : 'mph.confMed'))}</span>` : ''}</span>
+      </div>
+      ${mphNumsHTML(r)}
+    </div>`;
+  } else if (r.status === 'ambig') {
+    h += `<div class="dict-row dict-row-warn">
+      ${readName ? `<div class="dict-said">${esc(t('mph.read', { text: readName }))}</div>` : ''}
+      <div class="dict-which">${esc(t('dict.which'))}</div>
+      ${r.candidates.map((c, j) => mphCardHTML(c.ex, null, c.conf, `data-mph-cand="${j}"`)).join('')}
+    </div>`;
+  } else if (r.status === 'new') {
+    const grp = LANG === 'es' ? (r.groupEs || r.groupEn) : (r.groupEn || r.groupEs);
+    h += `<div class="dict-row dict-row-warn">
+      <div class="dict-which">🆕 ${esc(t('mph.newHead'))}</div>
+      <div class="mph-names">
+        <label>${esc(t('mph.nameEs'))}<input type="text" data-mph-name="es" value="${esc(r.nameEs)}"></label>
+        <label>${esc(t('mph.nameEn'))}<input type="text" data-mph-name="en" value="${esc(r.nameEn)}"></label>
+      </div>
+      ${grp ? `<p class="progress-hint">${esc(t('mph.groupProposal'))}: <b>${esc(grp)}</b></p>` : ''}
+      <p class="progress-hint">${esc(t('mph.draftNote'))}</p>
+      ${mphNumsHTML(r)}
+      <div class="dict-row-btns"><button type="button" class="btn-secondary btn-sm" data-mph-pick="1">${esc(t('dict.pickFromLib'))}</button></div>
+    </div>`;
+  }
+  return h;
+}
+
+function mphPickResultsHTML(D) {
+  if (!LIB || !LIB.length) return `<p class="progress-hint">${esc(t('train.lib.unavailable'))}</p>`;
+  const q = (D.pickQuery || '').trim();
+  if (q.length >= 2) {
+    const hits = libSearchDetailed(q);
+    return `<div class="swap-sec-title">${esc(t('train.swap.resultsTitle'))}</div>` +
+      (hits.length ? hits.map(hit => dictCardHTML(hit.ex, hit.vi, `data-mph-libpick="${esc(hit.ex.id)}" data-mph-libpick-vi="${hit.vi != null ? hit.vi : ''}"`)).join('') : `<p class="progress-hint">${esc(t('train.swap.noResults'))}</p>`);
+  }
+  return libSections(LIB).map(sec => `<div class="swap-sec-title">${esc(sec.label)}</div>` + sec.items.map(ex => dictCardHTML(ex, null, `data-mph-libpick="${esc(ex.id)}" data-mph-libpick-vi=""`)).join('')).join('');
+}
+
+function wireMphLibPicks(sheet) {
+  const D = TRAIN_PHOTO;
+  if (!D) return;
+  sheet.querySelectorAll('[data-mph-libpick]').forEach(b => b.onclick = () => {
+    const ex = LIB_BY_ID[b.dataset.mphLibpick];
+    if (!ex || !D.row) return;
+    const viRaw = b.dataset.mphLibpickVi;
+    D.row = { ...D.row, status: 'ok', entry: ex, vi: viRaw === '' || viRaw == null ? null : Number(viRaw), conf: null, candidates: null };
+    D.step = 'confirm'; D.pickQuery = '';
+    mphSheetSync();
+  });
+}
+
+function mphSheetSync() {
+  let sheet = document.getElementById('mph-sheet');
+  const D = TRAIN_PHOTO;
+  if (!D || !D.open) {
+    if (sheet) sheet.remove();
+    document.body.classList.remove('swap-sheet-open');
+    return;
+  }
+  if (!sheet) {
+    sheet = document.createElement('div');
+    sheet.id = 'mph-sheet';
+    sheet.className = 'swap-sheet dict-sheet';
+    document.body.appendChild(sheet);
+  }
+  document.body.classList.add('swap-sheet-open');
+  let body = '';
+  if (D.step === 'busy') {
+    body = `<p class="progress-hint">${esc(t('mph.hint'))}</p>
+      <p class="mph-busy">${D.busy ? esc(t('mph.uploading')) : esc(t('mph.analyzing'))}</p>`;
+  } else if (D.step === 'error') {
+    const key = D.err === 'ai-cap' ? 'mph.errCap' : (D.err === 'ai-disabled' || D.err === 'ai-off') ? 'mph.errDisabled' : D.err === 'ai-door-unavailable' ? 'mph.errDoor' : 'mph.errGeneric';
+    body = `<div class="dict-row dict-row-warn"><div class="dict-which">⚠ ${esc(t(key))}</div>
+      <div class="dict-row-btns"><button type="button" class="btn-secondary btn-sm" data-mph-pick="1">${esc(t('dict.pickFromLib'))}</button><button type="button" class="btn-ghost btn-sm" data-mph-retake="1">${esc(t('mph.retake'))}</button></div></div>`;
+    if (!D.row) D.row = { status: 'new', nameEs: '', nameEn: '', groupEs: '', groupEn: '', sets: '3', reps: '10', load: null, loadUnit: 'kg', vi: null, readEs: '', readEn: '' };
+  } else if (D.step === 'notread') {
+    body = `<div class="dict-row dict-row-warn"><div class="dict-which">📷 ${esc(t('mph.notRead'))}</div>
+      <p class="progress-hint">${esc(t('mph.notReadHint'))}</p>
+      <div class="dict-row-btns"><button type="button" class="btn-secondary btn-sm" data-mph-pick="1">${esc(t('dict.pickFromLib'))}</button><button type="button" class="btn-ghost btn-sm" data-mph-retake="1">${esc(t('mph.retake'))}</button></div></div>`;
+    if (!D.row) D.row = { status: 'new', nameEs: '', nameEn: '', groupEs: '', groupEn: '', sets: '3', reps: '10', load: null, loadUnit: 'kg', vi: null, readEs: '', readEn: '' };
+  } else if (D.step === 'pick') {
+    body = `<div class="swap-search-row"><input type="text" id="mph-pick-search" placeholder="${esc(t('train.prop.searchPh'))}" value="${esc(D.pickQuery || '')}"></div><div id="mph-pick-results">${mphPickResultsHTML(D)}</div>`;
+  } else {
+    const r = D.row;
+    const canApply = !!r && (r.status === 'ok' || r.status === 'new');
+    body = mphConfirmHTML(D) +
+      `<div class="dict-actions"><button type="button" class="btn-ghost" data-mph-retake="1">${esc(t('mph.retake'))}</button><button type="button" class="btn-primary" data-mph-apply="1"${canApply && !D.busy ? '' : ' disabled'}>${esc(r && r.status === 'new' ? t('mph.createAdd') : t('dict.addToDay'))}</button></div>`;
+  }
+  const title = D.step === 'pick' ? t('dict.pickTitle') : (D.step === 'confirm' ? t('mph.confirmTitle') : t('mph.title'));
+  sheet.innerHTML = `<div class="swap-sheet-head"><span class="swap-sheet-title">${esc(title)}</span><button type="button" class="swap-sheet-x" data-mph-close="1" aria-label="✕">✕</button></div>${body}`;
+  const closeBtn = sheet.querySelector('[data-mph-close]');
+  if (closeBtn) closeBtn.onclick = () => {
+    /* Como en el dictado: en el paso de elegir a mano, la ✕ vuelve
+       al paso anterior; no se pierde lo ya leído por un toque. */
+    if (D.step === 'pick') { D.step = D.pickFrom; D.pickQuery = ''; mphSheetSync(); }
+    else mphSheetClose();
+  };
+  sheet.querySelectorAll('[data-mph-num]').forEach(inp => {
+    inp.onchange = () => {
+      const r = D.row; if (!r) return;
+      const f = inp.dataset.mphNum;
+      if (f === 'load') { const v = parseFloat(String(inp.value).replace(',', '.')); r.load = isFinite(v) && v > 0 ? v : null; }
+      else r[f] = inp.value.trim();
+    };
+  });
+  const unitSel = sheet.querySelector('[data-mph-unit]');
+  if (unitSel) unitSel.onchange = () => { if (D.row) D.row.loadUnit = unitSel.value === 'lb' ? 'lb' : 'kg'; };
+  sheet.querySelectorAll('[data-mph-name]').forEach(inp => {
+    inp.onchange = () => { if (D.row) D.row[inp.dataset.mphName === 'es' ? 'nameEs' : 'nameEn'] = inp.value.trim(); };
+  });
+  sheet.querySelectorAll('[data-mph-cand]').forEach(b => b.onclick = () => {
+    const r = D.row; if (!r || r.status !== 'ambig') return;
+    const c = r.candidates[Number(b.dataset.mphCand)];
+    if (!c) return;
+    D.row = { ...r, status: 'ok', entry: c.ex, conf: c.conf, vi: null, candidates: null };
+    mphSheetSync();
+  });
+  sheet.querySelectorAll('[data-mph-pick]').forEach(b => b.onclick = () => {
+    D.pickFrom = D.step; D.pickQuery = ''; D.step = 'pick';
+    mphSheetSync();
+  });
+  const ps = sheet.querySelector('#mph-pick-search');
+  if (ps) ps.oninput = () => {
+    D.pickQuery = ps.value;
+    const box = sheet.querySelector('#mph-pick-results');
+    if (box) { box.innerHTML = mphPickResultsHTML(D); wireMphLibPicks(sheet); }
+  };
+  wireMphLibPicks(sheet);
+  const retake = sheet.querySelectorAll('[data-mph-retake]');
+  retake.forEach(b => b.onclick = () => { D.row = null; D.err = null; D.file = null; mphPickFile(); });
+  const apply = sheet.querySelector('[data-mph-apply]');
+  if (apply) apply.onclick = () => mphSheetApply();
+}
+
+function mphSheetClose() {
+  TRAIN_PHOTO = null;
+  mphSheetSync();
+}
+
+/* La foto del borrador, estandarizada en el teléfono con el
+   estándar de la casa (flujo de imagen de la biblioteca): WebP
+   1920×1280, recorte cover con ancla vertical al 40 % y la mayor
+   calidad que quede por debajo de 200 000 bytes; si ni así, baja
+   el tamaño (1600, 1280) antes que la calidad mínima. */
+async function mphStandardizePhoto(file) {
+  const bmp = await createImageBitmap(file);
+  const R = 3 / 2;
+  let sw = bmp.width, sh = bmp.height, sx = 0, sy = 0;
+  if (sw / sh > R) { const w = sh * R; sx = (sw - w) / 2; sw = w; }
+  else { const h = sw / R; sy = (sh - h) * 0.40; sh = h; }
+  const canvas = document.createElement('canvas');
+  const ctx = canvas.getContext('2d');
+  const draw = w => { canvas.width = w; canvas.height = Math.round(w / R); ctx.drawImage(bmp, sx, sy, sw, sh, 0, 0, canvas.width, canvas.height); };
+  const toBlob = q => new Promise(res => canvas.toBlob(res, 'image/webp', q));
+  let blob = null;
+  for (const w of [1920, 1600, 1280]) {
+    draw(w);
+    for (const q of [0.85, 0.75, 0.65, 0.55, 0.45]) {
+      blob = await toBlob(q);
+      if (blob && blob.size < 200000) return blob;
+    }
+  }
+  if (!blob) throw new Error('photo-blob');
+  return blob;
+}
+
+function mphDraftData(r, photoUrl) {
+  const data = {};
+  LIB_FIELDS.forEach(([key]) => { data[key] = ''; });
+  data.nombre_es = (r.nameEs || '').trim();
+  data.nombre_en = (r.nameEn || '').trim();
+  data.grupo_muscular_es = r.groupEs || '';
+  data.grupo_muscular_en = r.groupEn || '';
+  /* La foto es de una MÁQUINA — es la premisa de este flujo — así
+     que la categoría nace con el valor de fábrica de máquinas; el
+     resto de campos nace vacío y lo completa el autor o la
+     revisión, nunca la IA. */
+  data.categoria_es = 'Con máquinas';
+  data.categoria_en = 'Machine-based';
+  data.foto_url = photoUrl;
+  data.variantes = [];
+  return data;
+}
+
+function mphPushAdded(D, rec0) {
+  const ed = trainEditsRead(D.plan.id, D.iso) || { swaps: {}, added: [] };
+  if (!ed.swaps || typeof ed.swaps !== 'object') ed.swaps = {};
+  if (!Array.isArray(ed.added)) ed.added = [];
+  const rec = { exerciseId: rec0.exerciseId, name: rec0.name, sets: String(rec0.sets || ''), reps: String(rec0.reps || '') };
+  if (rec0.variantIndex != null) rec.variantIndex = rec0.variantIndex;
+  if (typeof rec0.load === 'number' && rec0.load > 0) { rec.load = rec0.load; rec.loadUnit = rec0.loadUnit === 'lb' ? 'lb' : 'kg'; }
+  ed.added.push(rec);
+  trainEditsWrite(D.plan.id, ed, D.iso);
+}
+
+async function mphSheetApply() {
+  const D = TRAIN_PHOTO;
+  if (!D || !D.plan || !D.row) return;
+  const r = D.row;
+  if (r.status === 'ambig') return;
+  if (r.status === 'ok' && r.entry) {
+    /* Camino sin guardado: la foto del análisis nunca se subió —
+       vivió solo en memoria dentro de la petición al Worker. */
+    const v = r.vi != null && Array.isArray(r.entry.variantes) ? r.entry.variantes[r.vi] : null;
+    mphPushAdded(D, {
+      exerciseId: r.entry.id,
+      name: v && !v.es_estandar ? libNameOf(r.entry) + ' — ' + libField(v, 'nombre') : libNameOf(r.entry),
+      sets: r.sets, reps: r.reps, load: r.load, loadUnit: r.loadUnit,
+      variantIndex: v && !v.es_estandar && Number.isInteger(r.vi) ? r.vi : null
+    });
+    mphSheetClose();
+    loadMyTraining();
+    return;
+  }
+  if (r.status !== 'new') return;
+  /* Los nombres mandan tal como quedaron en las cajas (el onchange
+     ya los sincronizó; se relee el DOM por si el último toque no
+     disparó el cambio). */
+  const sh = document.getElementById('mph-sheet');
+  if (sh) {
+    const esIn = sh.querySelector('[data-mph-name="es"]'); if (esIn) r.nameEs = esIn.value.trim();
+    const enIn = sh.querySelector('[data-mph-name="en"]'); if (enIn) r.nameEn = enIn.value.trim();
+  }
+  if (!(r.nameEs || '').trim() && !(r.nameEn || '').trim()) { toast(t('libcom.needName')); return; }
+  D.busy = true; D.step = 'busy';
+  mphSheetSync();
+  const uid = auth.currentUser.uid;
+  const myName = (UDATA && (UDATA.name || UDATA.email)) || '';
+  const ref = doc(collection(db, 'exercise_library'));
+  const path = `library/${uid}/${ref.id}.webp`;
+  let uploaded = false;
+  try {
+    const blob = await mphStandardizePhoto(D.file);
+    await uploadBytes(sRef(storage, path), blob, { contentType: 'image/webp' });
+    uploaded = true;
+    const url = await getDownloadURL(sRef(storage, path));
+    const data = mphDraftData(r, url);
+    const full = { ...data, estado: 'pendiente', createdBy: uid, createdByName: myName, createdAt: serverTimestamp() };
+    await setDoc(ref, full);
+    libMemPut({ ...data, id: ref.id, estado: 'pendiente', createdBy: uid, createdByName: myName, createdAt: new Date() });
+    mphPushAdded(D, { exerciseId: ref.id, name: libNameOf({ id: ref.id, ...data }), sets: r.sets, reps: r.reps, load: r.load, loadUnit: r.loadUnit, variantIndex: null });
+    mphSheetClose();
+    loadMyTraining();
+    toast(t('mph.addedDraft'));
+  } catch (e) {
+    /* Nada a medias: si la foto subió pero la ficha no nació, la
+       foto se borra; la hoja queda abierta para reintentar. */
+    if (uploaded) { try { await deleteObject(sRef(storage, path)); } catch {} }
+    D.busy = false; D.step = 'confirm';
+    mphSheetSync();
+    failToast(e);
+  }
 }
 
 /* ═══════════ PISO B — MICRÓFONO DE VERDAD EN LA HOJA DE DICTADO
@@ -33536,7 +33980,14 @@ function libEstadoOf(ex) { return ex && ex.estado ? ex.estado : 'fabrica'; }
    la fábrica no lleva marca. */
 function libByLineHTML(ex) {
   if (!ex || !ex.estado || !ex.createdByName) return '';
-  return `<br><span class="tpl-byline">${esc(t('libcom.byLine', { name: ex.createdByName, date: tplFmtDate(ex.createdAt) || '—' }))}</span>`;
+  /* FOTO DE MÁQUINA (AUTH-2026-11-08-304): el hueco visible — un
+     borrador pendiente SIN los pasos de «cómo se hace» lo declara
+     donde su autor y el administrador lo revisan («Mis aportes» y
+     la bandeja pintan esta línea de autoría): los pasos nunca se
+     inventan, así que su ausencia se dice, no se disimula. */
+  const gap = ex.estado === 'pendiente' && !(ex.como_se_hace_es || '').trim() && !(ex.como_se_hace_en || '').trim()
+    ? `<br><span class="muted">${esc(t('libcom.stepsMissing'))}</span>` : '';
+  return `<br><span class="tpl-byline">${esc(t('libcom.byLine', { name: ex.createdByName, date: tplFmtDate(ex.createdAt) || '—' }))}</span>${gap}`;
 }
 function libStateBadge(ex) {
   if (!ex || !ex.estado) return '';
@@ -45016,7 +45467,7 @@ document.addEventListener('keydown', e => { if (e.key === 'Escape') shareClose()
  *  - El SW (sw.js) solo cachea la cáscara del mismo origen en modo
  *    RED PRIMERO: Auth/Firestore/Worker jamás pasan por la caché.
  * ================================================================ */
-const PWA_SW_VERSION = '20261108-personas-persistente';
+const PWA_SW_VERSION = '20261108-foto-maquina';
 /* Sello de versión VISIBLE (2026-11-03): el pie de la tarjeta de
    acceso enseña qué copia corre este teléfono ('v ' + el sello),
    para comprobar de un vistazo si la versión nueva ya llegó.
