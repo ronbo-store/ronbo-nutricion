@@ -1385,7 +1385,7 @@ function rolePendItems() {
         push('trainer|membership', 'membership', t('pend.role.membTitle'), t('pend.role.membDetail'), t('pend.role.membGo'));
       if (dosEnrichMissing())
         push('profile|enrich', 'dossier-editor', t('pend.role.enrichTitle'), t('pend.role.enrichDetail'), t('pend.role.enrichGo'));
-      if (typeof ADMIN_USERS !== 'undefined' && Array.isArray(ADMIN_USERS)) {
+      if (typeof ADMIN_USERS !== 'undefined' && Array.isArray(ADMIN_USERS) && ADMIN_USERS.length) {
         const me2 = (typeof auth !== 'undefined' && auth.currentUser) ? auth.currentUser.uid : null;
         for (const cu of ADMIN_USERS) {
           if (!cu || cu.isOwner || cu.trainerUid !== me2) continue;
@@ -1396,6 +1396,11 @@ function rolePendItems() {
           const gfoc = cu.goalFocus || null;
           if (gfoc && gfoc.focus === 'competencia' && gfoc.status === 'pending-trainer') push('trainer|focus-activation|' + cu.id, 'students', t('pend.trainerFocusTitle'), t('pend.trainerFocusDetail', { name: cu.name || cu.email || '—' }), t('pend.trainerFocusGo'));
         }
+      } else {
+        /* F-19: sin la lista de alumnos cargada, los pendientes por
+           alumno no desaparecen en silencio: se pinta el estado
+           «sin datos» en su lugar. */
+        push('trainer|nodata', 'students', t('pend.trainerNoData'), '', t('pend.trainerHeldGo'));
       }
     } else if (ROLE === 'usuario') {
       const rel = (typeof MY_REL !== 'undefined' && MY_REL) || null;
@@ -1454,6 +1459,7 @@ function rolePendItems() {
       if (c.memberships > 0) push('admin|memberships', 'admin-membership', t('pend.role.adminMemberships', { n: c.memberships }), '', t('pend.role.adminGo'));
       if (c.meals > 0) push('admin|meals', 'admin-meals', t('pend.role.adminMeals', { n: c.meals }), '', t('pend.role.adminGo'));
       if (c.waiting > 0) push('admin|waiting', 'admin-waiting', pendWaitingTitle(c), '', t('pend.role.adminGo'));
+      if (Array.isArray(c.failed) && c.failed.length) push('admin|nodata', 'admin-pending', t('pend.adminNoData'), '', t('pend.role.adminGo'));
     }
   } catch {}
   return items;
@@ -1473,7 +1479,7 @@ function roleChecklist(forRole) {
       if (typeof MY_DOSSIER === 'undefined') return null;
       const rows = [
         { label: t('pend.chk.profile'), done: dosProfileComplete(MY_DOSSIER) },
-        { label: t('pend.chk.membership'), done: !!(MY_MEMB && (MY_MEMB.status === 'pendiente' || MY_MEMB.status === 'activa')) },
+        { label: t('pend.chk.membership'), done: !!(MY_MEMB && MY_MEMB.status === 'activa'), wait: !!(MY_MEMB && MY_MEMB.status === 'pendiente') },
         { label: t('pend.chk.enrich'), done: dosProfileComplete(MY_DOSSIER) && !dosEnrichMissing() },
       ];
       const done = rows.filter(r => r.done).length;
@@ -1487,7 +1493,7 @@ function roleChecklist(forRole) {
         { label: t('pend.chk.consent'), done: (typeof specIsActive === 'function') && specIsActive(UDATA) },
         { label: t('pend.chk.parq'), done: !!((typeof activeDecl === 'function') && activeDecl()) },
         { label: t('pend.chk.goals'), done: (typeof hasAnyGoal === 'function') && hasAnyGoal() },
-        { label: t('pend.chk.meals'), done: ((typeof featuresOf === 'function') && featuresOf(UDATA).meals === true) || !!((typeof MY_MEAL_REQ !== 'undefined' && MY_MEAL_REQ) && (MY_MEAL_REQ.status === 'pendiente_entrenador' || MY_MEAL_REQ.status === 'pendiente_administrador')) },
+        { label: t('pend.chk.meals'), done: ((typeof featuresOf === 'function') && featuresOf(UDATA).meals === true), wait: !!((typeof MY_MEAL_REQ !== 'undefined' && MY_MEAL_REQ) && (MY_MEAL_REQ.status === 'pendiente_entrenador' || MY_MEAL_REQ.status === 'pendiente_administrador')) },
       ];
       const done = rows.filter(r => r.done).length;
       return { pct: Math.round(done / rows.length * 100), rows };
@@ -1498,7 +1504,7 @@ function roleChecklist(forRole) {
 function pendChecklistHTML() {
   const chk = roleChecklist();
   if (!chk) return '';
-  return `<div class="pend-check"><p class="pend-check-title">${esc(t('pend.chkTitle', { pct: chk.pct }))}</p><ul>${chk.rows.map(r => `<li>${r.done ? '✅' : '⬜'} ${esc(r.label)}</li>`).join('')}</ul></div>`;
+  return `<div class="pend-check"><p class="pend-check-title">${esc(t('pend.chkTitle', { pct: chk.pct }))}</p><ul>${chk.rows.map(r => `<li>${r.done ? '✅' : r.wait ? '⏳' : '⬜'} ${esc(r.label)}${r.wait ? ' — ' + esc(t('pend.chkWaiting')) : ''}</li>`).join('')}</ul></div>`;
 }
 /* LA RUTA DEL USUARIO (aprobada por Ronald 2026-11-01, maqueta
    mq-ruta-usuario): la ventana de Pendientes del ALUMNO presenta el
@@ -1635,10 +1641,10 @@ function pendTopCardHTML() {
    por aprobar, comidas por confirmar y alumnos en espera. */
 async function escLoadAdminCounts() {
   if (!IS_OWNER) return;
-  const c = { accounts: 0, memberships: 0, meals: 0, waiting: 0, waitingNames: [] };
-  try { const s = await getDocs(collection(db, 'users')); s.forEach(d => { const u = d.data(); if (u.isOwner) return; if (u.approved !== true) c.accounts++; else if ((u.role || 'usuario') === 'usuario' && !u.trainerUid) { c.waiting++; c.waitingNames.push(u.name || u.email || '—'); } }); } catch {}
-  try { const s = await getDocs(collection(db, 'memberships')); s.forEach(d => { if (d.data().status === 'pendiente') c.memberships++; }); } catch {}
-  try { const s = await getDocs(collection(db, 'meal_requests')); s.forEach(d => { if (d.data().status === 'pendiente_administrador') c.meals++; }); } catch {}
+  const c = { accounts: 0, memberships: 0, meals: 0, waiting: 0, waitingNames: [], failed: [] };
+  try { const s = await getDocs(collection(db, 'users')); s.forEach(d => { const u = d.data(); if (u.isOwner) return; if (u.approved !== true) c.accounts++; else if ((u.role || 'usuario') === 'usuario' && !u.trainerUid) { c.waiting++; c.waitingNames.push(u.name || u.email || '—'); } }); } catch { c.failed.push('users'); }
+  try { const s = await getDocs(collection(db, 'memberships')); s.forEach(d => { if (d.data().status === 'pendiente') c.memberships++; }); } catch { c.failed.push('memberships'); }
+  try { const s = await getDocs(collection(db, 'meal_requests')); s.forEach(d => { if (d.data().status === 'pendiente_administrador') c.meals++; }); } catch { c.failed.push('meal_requests'); }
   ESC_ADMIN_COUNTS = c;
 }
 function dosMs(v) {
@@ -2037,6 +2043,7 @@ async function renderProfileView() {
     </div>
     <p class="progress-hint">${esc(t('myprof.dsTz', { tz: dsTz || '—' }))}</p>
     <p class="progress-hint">${esc(t('myprof.dsHint'))}</p>
+    <p class="progress-hint">${esc(t('myprof.dsSeparate'))}</p>
     <div class="ds-panel${eveEffOn ? ' is-on' : ' is-off'}" id="myprof-eve-panel">
       <button type="button" class="ds-row" id="myprof-eve-toggle" aria-pressed="${eveEffOn ? 'true' : 'false'}">
         <span class="ds-row-label">${esc(t('eve.title'))}</span>
@@ -3167,6 +3174,7 @@ function admPaintUsage(data, stale) {
       <table class="admuse-table"><thead><tr><th>${esc(t('admuse.colUser'))}</th><th>${esc(t('admuse.colToday'))}</th><th>${esc(t('admuse.colTotal'))}</th><th>${esc(t('admuse.colLimit'))}</th></tr></thead><tbody>${rows}</tbody></table>
       ${bodyLines}
       <p class="admuse-note">${esc(t('admuse.note'))}</p>
+      <p class="admuse-note">${esc(t('admuse.dayNote'))}</p>
       <p class="admuse-eqnote">${esc(t('admuse.eqNote'))}</p>
       <div class="eval-actions"><button type="button" class="btn-ghost btn-sm" id="adm-usage-refresh">${esc(t('admuse.refresh'))}</button></div>`;
   const rb = $('adm-usage-refresh');
@@ -3282,6 +3290,7 @@ function admPaintQuota(stale) {
   } else {
     h += `<p class="admq-alert">${esc(t('admq.bandAError', { detail: String(A.detail || '') }))}</p>`;
   }
+  h += `<p class="admq-note">${esc(t('admq.cacheNote'))}</p>`;
   h += `</div>`;
   /* ── BANDA B: lo nuestro, exacto ── */
   const B = d.bandB || {};
@@ -3302,7 +3311,7 @@ function admPaintQuota(stale) {
   };
   const wk = B.worker || {};
   const srcKeys = Object.keys(SRC_LABEL).filter(k => wk[k] && (wk[k].docs > 0 || wk[k].reqs > 0));
-  h += `<div class="admq-card"><div class="admq-cardtitle">${esc(t('admq.serverTitle'))}</div>`;
+  h += `<div class="admq-card"><div class="admq-cardtitle">${esc(t('admq.serverTitle'))}</div><p class="admq-small">${esc(t('admq.dayChicago'))}</p>`;
   if (srcKeys.length) {
     h += srcKeys.map(k => `<div class="admq-srcrow"><span>${esc(t(SRC_LABEL[k]))}</span><b>${esc(t('admq.docsReqs', { docs: admqNum(wk[k].docs), reqs: admqNum(wk[k].reqs) }))}</b></div>`).join('');
   } else {
@@ -3323,7 +3332,7 @@ function admPaintQuota(stale) {
   /* ── BANDA C: la app, estimación por sección ── */
   const C = d.bandC || { porSeccion: {}, sesiones: 0, usuarios: 0 };
   const SEC_LABEL = { arranque: 'admq.secArranque', inicio: 'admq.secInicio', comida: 'admq.secComida', entrenamiento: 'admq.secEntrenamiento', progreso: 'admq.secProgreso', otros: 'admq.secOtros' };
-  h += `<div class="admq-band"><h4 class="admuse-aititle">${esc(t('admq.bandC'))}</h4><p class="admq-note">${esc(t('admq.bandCSub'))}</p>`;
+  h += `<div class="admq-band"><h4 class="admuse-aititle">${esc(t('admq.bandC'))}</h4><p class="admq-note">${esc(t('admq.bandCSub'))}</p><p class="admq-small">${esc(t('admq.dayChicago'))}</p>`;
   if (C.usuarios > 0) {
     h += `<p class="admq-small">${esc(t('admq.bandCSessions', { users: admqNum(C.usuarios), sessions: admqNum(C.sesiones) }))}</p>`;
     h += Object.keys(SEC_LABEL).map(k => {
@@ -3791,6 +3800,7 @@ en: {
   'myprof.dsTime': 'Time',
   'myprof.dsTz': 'Your time zone: {tz} — read from your device and kept up to date when you open your profile.',
   'myprof.dsHint': 'On training days, one email with that day\'s session and a direct link to open it in the app. Rest days send nothing, and a day you already trained is skipped.',
+  'myprof.dsSeparate': 'Separate switch: the demanding-day alert (below) is NOT this email. Turning this email off does not turn that alert off — and turning that alert off does not stop this email.',
   'eve.kicker': 'TODAY · {date}',
   'eve.demanding': 'DEMANDING DAY',
   'eve.ofCarbs': 'of carbs',
@@ -4474,7 +4484,7 @@ en: {
   'wcard.title': '⚖️ Your weight',
   'wcard.lastToday': 'Last log: today',
   'wcard.last': 'Last log: {date}',
-  'wcard.weekDelta': '{v} this week',
+  'wcard.weekDelta': '{v} since the last comparable weigh-in',
   'wcard.none': 'You have not logged your weight yet',
   'wcard.noneWhy': 'Your weight is the base for your energy and goal calculations.',
   'wcard.log': 'Log my weight',
@@ -4891,7 +4901,12 @@ en: {
   'ai.introTitle': 'Analyze a meal from a photo',
   'ai.introTake': '📷 Take or choose the photo',
   'ai.photoNotSaved': '📷 Before you take the photo: food photos are NOT saved. A photo is used only for this analysis, in this moment — the app keeps the meal record (the foods and their values), never the picture. If you want to keep the photo, keep it in your phone\'s gallery as well.',
-  'ai.limitNote': 'Daily analysis limit: photo and text analyses share a daily counter (a complete analysis usually takes 2 requests: identify + calculate). If your account has a daily limit set and you reach it, photo and text analysis pause until the counter resets the next day — you can still log every meal by hand. If no limit is set for your account, a default of 10 requests per day applies — enough for five complete meals (2 requests each).',
+  'ai.limitNote': 'Daily analysis limit: photo, text and voice analyses share a daily counter, and a complete analysis costs 2 uses in all three ways (identify + calculate). If your account has a daily limit set and you reach it, analysis pauses until the counter resets the next day — you can still log every meal by hand. If no limit is set for your account, a default of 10 uses per day applies — enough for five complete analyses (2 uses each).',
+  'aiusage.leftToday': 'You have {n} AI uses left today',
+  'aiusage.leftUnlimited': 'Your AI uses today are unlimited',
+  'aiusage.coachLeft': 'You have {n} of 3 questions left today',
+  'aiusage.coachExempt': 'As the owner, your coach questions are unlimited',
+  'aiusage.coachUnlimited': 'Your coach questions today are unlimited',
   'ai.scaleWhy': 'Why it matters whether a weight came from your scale: the scale gives the real weight, so the calculation rests on a measured fact. An estimate has a wider margin of error — that is why each amount keeps its badge (from your scale / estimated): so you and your trainer know which numbers are measured and which are estimated, and treat them with that honesty.',
   'ai.analyzing': 'Analyzing…',
   'ai.foodsFound': 'I found these foods:',
@@ -5873,7 +5888,8 @@ en: {
   'admuse.colTotal': 'Total',
   'admuse.colLimit': 'Limit/day',
   'admuse.lastBody': 'Last body analysis',
-  'admuse.note': 'These figures count AI requests (photo ≈ 2 · text/voice ≈ 1). Exact tokens and cost live in the Google panel: they are shown here with their date when reconciled.',
+  'admuse.note': 'These figures count AI requests (a complete analysis = 2 uses by photo, text or voice). Exact tokens and cost live in the Google panel: they are shown here with their date when reconciled.',
+  'admuse.dayNote': 'Day: today in UTC — the same counter day that applies the daily limits. This panel reads the counters live: the 5-minute cache belongs to Band A of “Usage & quotas” (/admin/quota), not to this panel.',
   'admuse.eqNote': 'Equivalent to the counters that apply the daily limits of each user.',
   'admuse.unavailable': 'Unavailable right now',
   'admuse.loading': 'Loading…',
@@ -5895,6 +5911,8 @@ en: {
   'admq.fetchedAt': 'Data checked: {when}',
   'admq.stale': '⚠️ The refresh failed — showing the previous data from {when}; it is not current.',
   'admq.fromCache': 'Google data from the 5-minute cache',
+  'admq.dayChicago': 'Day: today in Chicago (America/Chicago)',
+  'admq.cacheNote': 'The 5-minute Google cache lives here, in Band A of this panel (/admin/quota) — the AI usage panel reads its counters live, with no cache.',
   'admq.bandA': "Google's official total",
   'admq.bandASub': 'Everything the project read, wrote and deleted today (Pacific day, still in progress), as counted by Google itself.',
   'admq.reads': 'Reads',
@@ -6447,6 +6465,9 @@ en: {
   'pend.savedOk': '✓ Settings saved',
   'pend.offOk': '✓ Reminders off',
   'pend.none': 'Nothing pending. Everything is logged. ✓',
+  'pend.adminNoData': 'Admin counts: no data — a collection could not be read, so its count is not shown as 0',
+  'pend.trainerNoData': 'Student pendings: no data — the student list has not loaded yet',
+  'pend.chkWaiting': 'waiting',
   'pend.mealTitle': 'You haven\'t logged your {meal} yet.',
   'pend.mealDetail': 'Reminder you set for {time}',
   'pend.goMeal': 'Log {meal}',
@@ -7546,6 +7567,7 @@ es: {
   'myprof.dsTime': 'Hora',
   'myprof.dsTz': 'Tu zona horaria: {tz} — se lee de tu aparato y se actualiza al abrir tu perfil.',
   'myprof.dsHint': 'Los días de entreno, un correo con la sesión de ese día y un enlace directo para abrirla en la app. Los días de descanso no se envía nada, y un día que ya entrenaste se salta.',
+  'myprof.dsSeparate': 'Interruptor aparte: el aviso de día exigente (abajo) NO es este correo. Apagar este correo no apaga ese aviso — y apagar ese aviso no detiene este correo.',
   'eve.kicker': 'HOY · {date}',
   'eve.demanding': 'DÍA EXIGENTE',
   'eve.ofCarbs': 'de carbohidratos',
@@ -8226,7 +8248,7 @@ es: {
   'wcard.title': '⚖️ Tu peso',
   'wcard.lastToday': 'Último registro: hoy',
   'wcard.last': 'Último registro: {date}',
-  'wcard.weekDelta': '{v} esta semana',
+  'wcard.weekDelta': '{v} desde el último pesaje comparable',
   'wcard.none': 'Aún no registras tu peso',
   'wcard.noneWhy': 'Tu peso es la base del cálculo de tu energía y de tus metas.',
   'wcard.log': 'Registrar mi peso',
@@ -8643,7 +8665,12 @@ es: {
   'ai.introTitle': 'Analizar una comida desde una foto',
   'ai.introTake': '📷 Tomar o elegir la foto',
   'ai.photoNotSaved': '📷 Antes de tomar la foto: las fotos de comida NO se guardan. Una foto se usa solo para este análisis, en este momento: la app conserva el registro de la comida (los alimentos y sus valores), nunca la imagen. Si quieres conservar la foto, guárdala también en la galería de tu teléfono.',
-  'ai.limitNote': 'Límite diario de análisis: los análisis por foto y por texto comparten un contador diario (un análisis completo suele llevar 2 peticiones: identificar + calcular). Si tu cuenta tiene un límite diario fijado y lo alcanzas, el análisis por foto y por texto se pausa hasta que el contador se reinicia al día siguiente; puedes seguir registrando cada comida a mano. Si tu cuenta no tiene límite fijado, aplica el límite por defecto de 10 peticiones al día: las cinco comidas completas (2 peticiones cada una).',
+  'ai.limitNote': 'Límite diario de análisis: los análisis por foto, por texto y por voz comparten un contador diario, y un análisis completo cuesta 2 usos en las tres vías (identificar + calcular). Si tu cuenta tiene un límite diario fijado y lo alcanzas, el análisis se pausa hasta que el contador se reinicia al día siguiente; puedes seguir registrando cada comida a mano. Si tu cuenta no tiene límite fijado, aplica el límite por defecto de 10 usos al día: los cinco análisis completos (2 usos cada uno).',
+  'aiusage.leftToday': 'Te quedan {n} usos de IA hoy',
+  'aiusage.leftUnlimited': 'Tus usos de IA de hoy son ilimitados',
+  'aiusage.coachLeft': 'Te quedan {n} de 3 preguntas hoy',
+  'aiusage.coachExempt': 'Como propietario, tus preguntas al coach son ilimitadas',
+  'aiusage.coachUnlimited': 'Tus preguntas al coach de hoy son ilimitadas',
   'ai.scaleWhy': 'Por qué importa si un peso era de báscula: la báscula da el peso real, así que el cálculo se apoya en un dato medido. Un estimado tiene más margen de error; por eso cada cantidad conserva su insignia (de tu báscula / estimado): para que tú y tu entrenador sepáis qué números son medidos y cuáles estimados, y los tratéis con esa honestidad.',
   'ai.analyzing': 'Analizando…',
   'ai.foodsFound': 'Encontré estos alimentos:',
@@ -9626,7 +9653,8 @@ es: {
   'admuse.colTotal': 'Total',
   'admuse.colLimit': 'Límite/día',
   'admuse.lastBody': 'Último análisis corporal',
-  'admuse.note': 'Las cifras cuentan solicitudes de IA (foto ≈ 2 · texto/voz ≈ 1). Los tokens y el costo exacto viven en el panel de Google: aquí se muestran con su fecha cuando se concilian.',
+  'admuse.note': 'Las cifras cuentan solicitudes de IA (un análisis completo = 2 usos por foto, texto o voz). Los tokens y el costo exacto viven en el panel de Google: aquí se muestran con su fecha cuando se concilian.',
+  'admuse.dayNote': 'Día: hoy en UTC — el mismo día de contador que aplica los límites diarios. Este panel lee los contadores en vivo: la caché de 5 minutos es de la Banda A de «Consumo y cuotas» (/admin/quota), no de este panel.',
   'admuse.eqNote': 'Equivale a los contadores que aplican los límites diarios de cada usuario.',
   'admuse.unavailable': 'No disponible ahora',
   'admuse.loading': 'Cargando…',
@@ -9648,6 +9676,8 @@ es: {
   'admq.fetchedAt': 'Datos consultados: {when}',
   'admq.stale': '⚠️ La actualización falló — se muestran los datos anteriores de {when}; no son los actuales.',
   'admq.fromCache': 'Datos de Google de la caché de 5 minutos',
+  'admq.dayChicago': 'Día: hoy en Chicago (America/Chicago)',
+  'admq.cacheNote': 'La caché de Google de 5 minutos vive aquí, en la Banda A de este panel (/admin/quota): el panel de consumo de IA lee sus contadores en vivo, sin caché.',
   'admq.bandA': 'Total oficial de Google',
   'admq.bandASub': 'Todo lo que el proyecto leyó, escribió y borró hoy (día del Pacífico, aún en curso), contado por el propio Google.',
   'admq.reads': 'Lecturas',
@@ -10200,6 +10230,9 @@ es: {
   'pend.savedOk': '✓ Configuración guardada',
   'pend.offOk': '✓ Avisos apagados',
   'pend.none': 'Nada pendiente. Todo registrado. ✓',
+  'pend.adminNoData': 'Conteos de administración: sin datos — una colección no se pudo leer, así que su conteo no se muestra como 0',
+  'pend.trainerNoData': 'Pendientes por alumno: sin datos — la lista de alumnos aún no ha cargado',
+  'pend.chkWaiting': 'en espera',
   'pend.mealTitle': 'Aún no has registrado tu {meal}.',
   'pend.mealDetail': 'Aviso que fijaste para las {time}',
   'pend.goMeal': 'Registrar {meal}',
@@ -21262,6 +21295,51 @@ function aiEndpoint() {
   if (AI_ENDPOINT) return AI_ENDPOINT;
   try { return localStorage.getItem('m8.endpoint') || ''; } catch { return ''; }
 }
+/* «TE QUEDAN X USOS HOY» (corrección de la auditoría, F-21): al
+   abrir las superficies de análisis de comida y la hoja del Coach
+   se consulta GET /ai/usage del Worker (ruta en vivo desde
+   AUTH-2026-11-08-303: devuelve SOLO los números del llamante —
+   general {used, limit, remaining} y coach {used, limit|null,
+   exempt, remaining}; la exención del propietario la resuelve el
+   Worker por isOwner y la app solo pinta lo que la ruta devuelve).
+   Ayuda NO crítica: si la ruta falla o no responde, no se pinta
+   nada y nada se bloquea (falla en silencio, como manda la casa). */
+async function aiUsageFetch() {
+  try {
+    const ep = aiEndpoint();
+    if (!ep || !auth.currentUser) return null;
+    const idToken = await auth.currentUser.getIdToken();
+    const r = await fetch(ep + '/ai/usage', { headers: { Authorization: 'Bearer ' + idToken } });
+    if (!r.ok) return null;
+    const d = await r.json();
+    return (d && typeof d === 'object') ? d : null;
+  } catch { return null; }
+}
+function aiUsageMealPaint(d) {
+  const g = d && d.general;
+  if (!g) return;
+  const txt = (typeof g.remaining === 'number') ? t('aiusage.leftToday', { n: g.remaining })
+    : (g.limit == null ? t('aiusage.leftUnlimited') : '');
+  if (!txt) return;
+  document.querySelectorAll('.aiusage-meal-line').forEach(el => { el.textContent = txt; el.style.display = ''; });
+}
+function aiUsageCoachPaint(d) {
+  const el = $('asst-usage');
+  const c = d && d.coach;
+  if (!el || !c) return;
+  const txt = c.exempt ? t('aiusage.coachExempt')
+    : (typeof c.remaining === 'number') ? t('aiusage.coachLeft', { n: c.remaining })
+    : (c.limit == null ? t('aiusage.coachUnlimited') : '');
+  if (!txt) return;
+  el.textContent = txt;
+  el.style.display = '';
+}
+async function aiUsageRefreshSurfaces() {
+  const d = await aiUsageFetch();
+  if (!d) return;
+  try { aiUsageMealPaint(d); } catch {}
+  try { aiUsageCoachPaint(d); } catch {}
+}
 /* ENDURECIMIENTO ANTI-SILENCIO (Parte B, 2026-10-22 — caso real de
    Ronald: foto de una tortilla compuesta ~09:57 CDT; el diagnóstico de
    solo lectura probó que el Worker SÍ respondió y que la ruptura
@@ -24543,6 +24621,9 @@ function foodShowOnly(which) {
   const map = { float: 'food-float', text: 'food-text', help: 'food-help', voice: 'food-voice', ai: 'food-ai' };
   for (const [k, id] of Object.entries(map)) { const el = $(id); if (el) el.style.display = (k === which) ? '' : 'none'; }
   try { coverSync(); } catch {} // A-N2
+  /* F-21: abrir una superficie de análisis de comida pinta «te
+     quedan X usos hoy» desde /ai/usage (en silencio si falla). */
+  if (which === 'float' || which === 'text' || which === 'voice' || which === 'ai') { try { aiUsageRefreshSurfaces(); } catch {} }
 }
 function foodCloseAll() { foodShowOnly(null); }
 function foodOpenFloat() { foodShowOnly('float'); }
@@ -25035,6 +25116,7 @@ function asstOpen() {
   const sh = $('asst-float'); if (!sh) return;
   if (sh.style.display !== 'none') { asstClose(); return; }
   sh.style.display = '';
+  try { aiUsageRefreshSurfaces(); } catch {}
   asstEnsureData();
   const log = $('asst-log');
   if (log && !log.children.length) {
@@ -27809,8 +27891,9 @@ function trainChecksKey(planId) {
    el propio borrador de la sesión; al cerrar el día, la hora viaja
    dentro del registro (training_logs) con el resto de datos de la
    serie, y la tarjeta semanal calcula con ella los descansos
-   entre ejercicios (y entre series). Nada visible cambia al
-   entrenar. La serie vaciada del todo pierde su hora: sin datos
+   entre ejercicios (SOLO entre ejercicios: la tarjeta semanal
+   mide huecos entre ejercicios; los descansos entre series no
+   se miden). Nada visible cambia al entrenar. La serie vaciada del todo pierde su hora: sin datos
    no hay marca. Las series SUGERIDAS (sug) no se sellan al nacer:
    su hora nace solo si él las adopta con un toque o confirma el
    ejercicio con «✓ Hecho» (que sella las que aún no la tienen,
@@ -37665,6 +37748,11 @@ const ACT_TYPES = Object.keys(ACT_MET).filter(tp => tp !== 'entrenamiento_plan')
 const ACT_INTENSITIES = ['suave', 'moderada', 'intensa'];
 const actRound1 = x => Math.round(x * 10) / 10;
 const actIsSummable = type => type !== 'transporte_activo';
+/* ESTIMACIONES DE LA CASA (corrección F-36): las constantes de
+   pasos — 0,0005 kcal por kg y paso en actStepsKcal y la zancada
+   fija de 0,8 m (0,0008 km por paso) en actStepsKm — son
+   ESTIMACIONES DE LA CASA, sin fundamento científico citado; no
+   se presentan como ciencia en ninguna superficie. */
 function actStepsKcal(steps, wKg) { return actRound1(steps * 0.0005 * wKg); }
 function actStepsKm(steps) { return actRound1(steps * 0.0008); }
 function actKcalOf(type, intensity, durationMin, wKg) {
@@ -37948,16 +38036,18 @@ function actOpenEntry(type) { if (!ACT_MET[type]) return; ACT_ENTRY_DATE = null;
 function actOpenCardExtra(type) { if (!ACT_MET[type]) return; ACT_ENTRY_DATE = todayISO(); ACT_ENTRY_CARD = true; renderActEntry(type); actShowOnly('entry'); }
 function actOpenConfig() { renderActConfig(); actShowOnly('config'); }
 
-/* LLAMITA: el TOTAL DIARIO (base + extras que sí suman). Sin
-   evaluación válida no hay total que mostrar: la llamita enseña
-   «—» y el desglose declara la causa — no se disfraza el extra
-   de total. Solo vive en #tab-track (pantalla principal). */
+/* LLAMITA: el TOTAL DIARIO (base + extras que sí suman).
+   Comportamiento vigente (F-35): la llamita pinta el QUEMADO del
+   día; sin documento de actividad de hoy, el quemado es 0 y la
+   llamita pinta «0» (no «—»): el «—» no es su estado sin datos.
+   Solo vive en #tab-track (pantalla principal). */
 /* PUENTE ENTRENAMIENTO→LLAMITA (2026-10-27, corrección expresa de
    Ronald: «no necesito ver mi base, necesito ver mi proceso»): la
    llamita pinta el QUEMADO del día — los extras sumables
    registrados (sesión del plan incluida) — SIN depender de la
-   base: el «—» solo aparece mientras el módulo carga. La base
-   queda como referencia dentro de la hoja, nunca como titular. */
+   base: mientras el módulo carga la llamita se oculta, y sin
+   documento de hoy pinta «0». La base queda como referencia
+   dentro de la hoja, nunca como titular. */
 function renderActFlame(date) {
   const f = $('act-flame'); if (!f) return;
   if (!ACT_LOADED) { f.style.display = 'none'; return; }
@@ -38492,9 +38582,10 @@ function renderWeightCard() {
       ${btn}`;
   } else {
     const last = data[data.length - 1];
-    /* Variación «de la semana»: contra el pesaje más reciente que
-       sea al menos 5 días anterior al último. Sin esa base NO se
-       pinta variación alguna: nunca se inventa una cifra. */
+    /* Variación contra el último pesaje comparable: contra el
+       pesaje más reciente que sea al menos 5 días anterior al
+       último (su ventana real, la que nombra la etiqueta). Sin esa
+       base NO se pinta variación alguna: nunca se inventa una cifra. */
     let deltaHtml = '';
     const corte = new Date(last.date + 'T12:00:00').getTime() - 5 * 864e5;
     const base = [...data].reverse().find(w => new Date(w.date + 'T12:00:00').getTime() <= corte);
@@ -42676,6 +42767,25 @@ function pendCompute() {
     }
   } catch {}
 
+  /* Corrección de la auditoría (F-17): DEDUPLICACIÓN POR CAUSA en
+     el disco del propio alumno. La causa «evaluación sin resultado»
+     podía contarse hasta 3 veces: el ítem de rol (alumno|eval), el
+     ítem del ciclo (type 'eval') y los ítems de energía (type
+     'energy' — son las causas de que ese mismo resultado no exista:
+     dato privado, peso base o declaración de atleta). Se conserva
+     SOLO el primero (el de rol, el accionable por la vía de datos
+     base) y la causa cuenta UNA vez. La unión del entrenador no se
+     toca: ya deduplica por su propia vía. */
+  try {
+    const seenCause = new Set();
+    out.items = out.items.filter(it => {
+      const cause = (it && (it.id === 'alumno|eval' || it.type === 'eval' || it.type === 'energy')) ? 'eval' : null;
+      if (!cause) return true;
+      if (seenCause.has(cause)) return false;
+      seenCause.add(cause);
+      return true;
+    });
+  } catch {}
   const order = { profile: 0, role: 0, meal: 1, weight: 2, training: 3, eval: 4, energy: 5 };
   out.items.sort((a, b) => (a.date < b.date ? -1 : a.date > b.date ? 1 : (order[a.type] || 9) - (order[b.type] || 9)));
   return out;
@@ -43022,7 +43132,6 @@ function renderPendings() {
   if (!cfg) { body.innerHTML = `<div class="wempty">${esc(t('train.loading'))}</div>`; pendSyncDock(); return; }
   if (cfg.__error) { body.innerHTML = `<p class="progress-hint">${esc(t('pend.loadError'))}</p>`; if (count) count.style.display = 'none'; if (cfgBtn) cfgBtn.style.display = 'none'; pendSyncDock(); return; }
   if (!cfg.activated) {
-    if (count) count.style.display = 'none';
     if (cfgBtn) cfgBtn.style.display = 'none';
     /* Sin activar: el formulario trae los valores SUGERIDOS — o los
        que el usuario ya guardó si desactivó antes (no se le borra
@@ -43039,6 +43148,13 @@ function renderPendings() {
       if (pit) { pit.date = pendRegDay(new Date(), cfg.cutoff || '04:00'); preItems.push(pit); }
       if (typeof rolePendItems === 'function') for (const rit of rolePendItems()) { rit.date = pendRegDay(new Date(), cfg.cutoff || '04:00'); preItems.push(rit); }
       pre += pendItemsGroupedHTML(preItems, pendRegDay(new Date(), cfg.cutoff || '04:00'));
+      /* F-17: el número del flotante se pinta siempre que haya
+         ítems (los de rol existen sin activar el módulo), no solo
+         en la rama activada. */
+      if (count) {
+        if (preItems.length) { count.textContent = preItems.length; count.style.display = ''; }
+        else count.style.display = 'none';
+      }
     } catch {}
     body.innerHTML = pre + pendCfgFormHTML(cfg.meals ? cfg : pendDefaults(), true);
     pendSyncDock();
@@ -45641,7 +45757,7 @@ document.addEventListener('keydown', e => { if (e.key === 'Escape') shareClose()
  *  - El SW (sw.js) solo cachea la cáscara del mismo origen en modo
  *    RED PRIMERO: Auth/Firestore/Worker jamás pasan por la caché.
  * ================================================================ */
-const PWA_SW_VERSION = '20261108-dia-entrenado';
+const PWA_SW_VERSION = '20261108-correcciones-textos';
 /* Sello de versión VISIBLE (2026-11-03): el pie de la tarjeta de
    acceso enseña qué copia corre este teléfono ('v ' + el sello),
    para comprobar de un vistazo si la versión nueva ya llegó.

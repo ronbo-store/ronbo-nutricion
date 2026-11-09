@@ -21,7 +21,7 @@
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-title" content="RONBO FIT">
 <meta name="apple-mobile-web-app-status-bar-style" content="default">
-<link rel="stylesheet" href="styles.css?v=20261108-dia-entrenado">
+<link rel="stylesheet" href="styles.css?v=20261108-correcciones-textos">
 <script defer src="https://cloud.umami.is/script.js" data-website-id="a29706d4-44a2-47cf-900a-5f74d74abfa8"></script>
 <script type="importmap">
 {
@@ -838,6 +838,7 @@
       <button type="button" class="asst-send" id="asst-send" aria-label="Send" data-i18n-aria="asst.send"><svg viewBox="0 0 24 24" width="21" height="21" fill="none" aria-hidden="true"><path d="M4.5 19.5L20 12L4.5 4.5L7 10L13.5 12L7 14Z" fill="#fff"/></svg></button>
     </div>
     <div class="asst-foot" data-i18n="asst.foot">Each question uses 1 of your AI uses · The conversation is not saved</div>
+    <div class="asst-foot aiusage-line" id="asst-usage" style="display:none"></div>
   </div>
   <!-- Hoja de aceptación del consentimiento de actividad
        (AUTH-2026-11-06-275): resumen visual de los cuatro tipos,
@@ -969,6 +970,7 @@
         <span class="act-chip-lab" data-i18n="food.manual">Manual</span>
       </button>
     </div>
+    <p class="progress-hint aiusage-line aiusage-meal-line" id="aiusage-meal-float" style="display:none"></p>
     <!-- APARTADO ÚNICO DE COMIDA (AUTH-2026-10-31-115; diseño
          aprobado por Ronald, correo 590, 2026-10-31 ~13:41 CDT):
          esta ventana es ahora TODO el apartado de Comida — las
@@ -1024,6 +1026,7 @@
       <button type="button" class="pend-close" id="btn-food-text-close" aria-label="Close" data-i18n-aria="client.close">✕</button>
     </div>
     <p class="photo-hint" data-i18n="aiText.hint">No photo? Describe the dish and AI will suggest its components and amounts — you review and edit everything before saving.</p>
+    <p class="progress-hint aiusage-line aiusage-meal-line" style="display:none"></p>
     <span class="ac-wrap"><textarea id="food-text-desc" class="food-textarea" rows="3" maxlength="600" data-i18n-ph="aiText.ph" placeholder="E.g. quinoa tortilla with egg, cottage cheese and turkey ham"></textarea><span class="ac-sug" id="ac-sug-text"></span></span>
     <div class="ai-actions"><button type="button" class="btn-main btn-sm" id="btn-food-text-go" data-i18n="aiText.button">Analyze the description with AI</button></div>
   </div>
@@ -1036,6 +1039,7 @@
       <button type="button" class="pend-close" id="btn-food-voice-close" aria-label="Close" data-i18n-aria="client.close">✕</button>
     </div>
     <p class="photo-hint" data-i18n="aiVoice.hint">Or say it: tap the button and dictate what you ate — food, amount and preparation (e.g. "300 grams of skinless chicken breast made in the air fryer"). AI transcribes it and suggests the values; you review and edit everything before saving. The audio is never saved.</p>
+    <p class="progress-hint aiusage-line aiusage-meal-line" style="display:none"></p>
     <div class="voice-box">
       <button type="button" class="voice-btn" id="fv-voice-btn" aria-label="Dictate your meal" data-i18n-aria="aiVoice.label"><span class="voice-bars" aria-hidden="true"><i></i><i></i><i></i><i></i><i></i></span></button>
       <p class="voice-status" id="fv-voice-status" data-i18n="aiVoice.tap">Tap to dictate</p>
@@ -1048,7 +1052,7 @@
     </div>
     <h3 data-i18n="ai.introTitle">Analyze a meal from a photo</h3>
     <p class="progress-hint" data-i18n="ai.photoNotSaved">📷 Before you take the photo: food photos are NOT saved. A photo is used only for this analysis, in this moment — the app keeps the meal record (the foods and their values), never the picture. If you want to keep the photo, keep it in your phone's gallery as well.</p>
-    <p class="progress-hint" data-i18n="ai.limitNote">Daily analysis limit: photo and text analyses share a daily counter (a complete analysis usually takes 2 requests: identify + calculate). If your account has a daily limit set and you reach it, photo and text analysis pause until the counter resets the next day — you can still log every meal by hand. If no limit is set for your account, a default of 10 requests per day applies — enough for five complete meals (2 requests each).</p>
+    <p class="progress-hint" data-i18n="ai.limitNote">Daily analysis limit: photo, text and voice analyses share a daily counter, and a complete analysis costs 2 uses in all three ways (identify + calculate). If your account has a daily limit set and you reach it, analysis pauses until the counter resets the next day — you can still log every meal by hand. If no limit is set for your account, a default of 10 uses per day applies — enough for five complete analyses (2 uses each).</p>
   </div>
   <!-- Hoja de la revisión del análisis con IA (puntos 19–20 de la
        cola; D1/D2, Ronald 2026-11-01): HERMANA de la familia de
@@ -1062,6 +1066,7 @@
       <h2 data-i18n="meal.title">Log meal</h2>
       <button type="button" class="pend-close" id="btn-food-ai-close" aria-label="Close" data-i18n-aria="client.close">✕</button>
     </div>
+    <p class="progress-hint aiusage-line aiusage-meal-line" style="display:none"></p>
     <div id="ai-panel" class="ai-panel" style="display:none"></div>
   </div>
   <!-- «Comparte tus logros» (Ronald, 2026-10-25): hoja flotante con
@@ -1701,6 +1706,7 @@
           <span class="ac-wrap"><textarea id="m-desc" rows="2" maxlength="600" data-i18n-ph="aiText.ph" placeholder="E.g. quinoa tortilla with egg, cottage cheese and turkey ham"></textarea><span class="ac-sug" id="ac-sug-desc"></span></span>
         </label>
         <p class="photo-hint" data-i18n="aiText.hint">No photo? Describe the dish and AI will suggest its components and amounts — you review and edit everything before saving.</p>
+    <p class="progress-hint aiusage-line aiusage-meal-line" style="display:none"></p>
         <button type="button" class="btn-main btn-sm" id="m-ai-text-btn" data-i18n="aiText.button">Analyze the description with AI</button>
         <!-- BOTÓN DE VOZ (2026-10-26): junto al texto, la vía de dictado
              — el botón de ondas en el verde de marca (#0d9488), 5 barras
@@ -1708,6 +1714,7 @@
              vive solo en memoria y jamás se guarda (ver aiStartAudio y
              el controlador voice* en app.js). -->
         <p class="photo-hint" data-i18n="aiVoice.hint">Or say it: tap the button and dictate what you ate — food, amount and preparation (e.g. "300 grams of skinless chicken breast made in the air fryer"). AI transcribes it and suggests the values; you review and edit everything before saving. The audio is never saved.</p>
+    <p class="progress-hint aiusage-line aiusage-meal-line" style="display:none"></p>
         <div class="voice-box">
           <button type="button" class="voice-btn" id="m-voice-btn" aria-label="Dictate your meal" data-i18n-aria="aiVoice.label"><span class="voice-bars" aria-hidden="true"><i></i><i></i><i></i><i></i><i></i></span></button>
           <p class="voice-status" id="m-voice-status" data-i18n="aiVoice.tap">Tap to dictate</p>
@@ -2042,6 +2049,6 @@
 <div id="toast" class="toast"></div>
 <div id="print-card" aria-hidden="true"></div>
 
-<script type="module" src="app.js?v=20261108-dia-entrenado"></script>
+<script type="module" src="app.js?v=20261108-correcciones-textos"></script>
 </body>
 </html>

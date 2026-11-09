@@ -228,6 +228,7 @@ table.detail tr.total td { font-weight: 800; background: #f0fdf4; border-top: 2p
 .progress-section { background: #fff; border-radius: 14px; padding: 20px; margin-top: 18px; box-shadow: 0 1px 3px rgba(0,0,0,.06); }
 .progress-section h2 { font-size: 17px; color: #1f2a44; margin-bottom: 6px; }
 .progress-hint { font-size: 13px; color: #6b7280; margin-bottom: 14px; }
+.aiusage-line { font-weight: 600; color: #0d9488; }
 .progress-week { font-weight: 800; color: #0d9488; margin-bottom: 10px; }
 .progress-next { font-size: 13px; font-weight: 600; color: #0d9488; margin-bottom: 10px; }
 .progress-next:empty { display: none; }
