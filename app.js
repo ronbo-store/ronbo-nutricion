@@ -6032,6 +6032,8 @@ en: {
   'train.n09.mybAddedBtn': '✓ Added',
   'train.n09.mybNone': 'You have not added any exercises yet', 'train.n09.mybOne': '1 added to this day', 'train.n09.mybMany': '{n} added to this day',
   'train.n09.mybDone': 'Done',
+  'train.nodup.blocked': 'That exercise is already in this day — it was not added again.', 'train.nodup.omittedOne': '1 repeated exercise was left out: it was already in its day.', 'train.nodup.omittedMany': '{n} repeated exercises were left out: they were already in their day.',
+  'train.nodup.saveBlock': 'A day in this plan has the same exercise twice ({name}). Remove the repeat to save.',
   'train.prop.tplTitle': '📋 Routine templates',
   'train.prop.tplIntro': 'Browse the routine templates. You can propose adding or swapping an exercise in your active plan — your trainer reviews and decides.',
   'train.prop.viewTemplates': 'View templates', 'train.prop.hideTemplates': 'Hide templates',
@@ -10226,6 +10228,8 @@ es: {
   'train.n09.mybAddedBtn': '✓ Añadido',
   'train.n09.mybNone': 'Aún no añades ejercicios', 'train.n09.mybOne': '1 añadido a este día', 'train.n09.mybMany': '{n} añadidos a este día',
   'train.n09.mybDone': 'Listo',
+  'train.nodup.blocked': 'Ese ejercicio ya está en este día: no se agregó otra vez.', 'train.nodup.omittedOne': 'Se omitió 1 ejercicio repetido: ya estaba en su día.', 'train.nodup.omittedMany': 'Se omitieron {n} ejercicios repetidos: ya estaban en su día.',
+  'train.nodup.saveBlock': 'Un día de este plan tiene el mismo ejercicio dos veces ({name}). Quita el repetido para guardar.',
   'train.prop.tplTitle': '📋 Plantillas de rutina',
   'train.prop.tplIntro': 'Explora las plantillas de rutina. Puedes proponer añadir o cambiar un ejercicio de tu plan activo: tu entrenador lo revisa y decide.',
   'train.prop.viewTemplates': 'Ver plantillas', 'train.prop.hideTemplates': 'Ocultar plantillas',
@@ -37278,7 +37282,89 @@ function libUnlinkRow(row) {
   const wrap = row.querySelector('.pl-ex-links-wrap');
   if (wrap) wrap.innerHTML = '';
 }
+/* ================= AUTH-348 · «NINGÚN EJERCICIO DOS VECES EN EL
+   MISMO DÍA» (regla de producto de Ronald, 2026-11-09 11:11 CST)
+   Identidad del ejercicio: su exerciseId cuando lo hay; el texto
+   libre se compara por nombre NORMALIZADO con libNorm — la
+   normalización de la casa (minúsculas, sin acentos) — y una fila
+   vinculada aporta además los nombres ES y EN de su ficha, así un
+   texto libre que nombra a una ficha presente también cuenta como
+   repetido. La guarda NUNCA borra contenido: bloquea el añadido
+   nuevo (selector, autocompletado, sustituto), omite lo repetido
+   en las copias masivas conservando lo que ya había (plantillas y
+   Repetir, con aviso de cuántos se omitieron) y el guardado no
+   escribe un día con repetidos. Un plan legado que ya trae un día
+   con repetidos se ABRE tal cual: la guarda actúa al construir y
+   al guardar, no reescribe datos. En días distintos el mismo
+   ejercicio SÍ puede repetirse: toda comparación es dentro de UN
+   día. El editor de rutinas (MYB) es otra pieza y la sesión ya
+   cumple desde AUTH-340: aquí solo vive el editor de planes. */
+function planExKeySet(ex) {
+  const keys = new Set();
+  if (!ex) return keys;
+  const id = ex.exerciseId || ex.id || '';
+  if (id) {
+    keys.add('id:' + id);
+    const entry = (typeof LIB_BY_ID !== 'undefined' && LIB_BY_ID[id]) || null;
+    if (entry) {
+      const a = libNorm(entry.nombre_es).trim(), b = libNorm(entry.nombre_en).trim();
+      if (a) keys.add('nm:' + a);
+      if (b) keys.add('nm:' + b);
+    }
+  }
+  const nm = libNorm(ex.name || '').trim();
+  if (nm) keys.add('nm:' + nm);
+  return keys;
+}
+function planKeysHit(a, b) { for (const k of a) if (b.has(k)) return k; return null; }
+function planRowKeySet(row) {
+  if (!row) return new Set();
+  const nameIn = row.querySelector('.pl-ex-name');
+  return planExKeySet({ exerciseId: row.dataset.exid || '', name: nameIn ? nameIn.value : '' });
+}
+function planDayRowDup(dayEl, candKeys, exceptRow) {
+  if (!dayEl || !candKeys || !candKeys.size) return null;
+  const rows = dayEl.querySelectorAll('.pl-ex-row');
+  for (const r of rows) {
+    if (exceptRow && r === exceptRow) continue;
+    const ks = planRowKeySet(r);
+    if (ks.size && planKeysHit(candKeys, ks)) return r;
+  }
+  return null;
+}
+function planDedupList(existing, incoming) {
+  const seen = [];
+  (existing || []).forEach(ex => seen.push(planExKeySet(ex)));
+  const kept = [], omitted = [];
+  (incoming || []).forEach(ex => {
+    const ks = planExKeySet(ex);
+    if (ks.size && seen.some(s => planKeysHit(ks, s))) { omitted.push(ex); return; }
+    kept.push(ex); seen.push(ks);
+  });
+  return { kept, omitted };
+}
+function planDupInDays(days) {
+  for (let di = 0; di < (days || []).length; di++) {
+    const seen = [];
+    const exs = (days[di] && days[di].exercises) || [];
+    for (const ex of exs) {
+      const ks = planExKeySet(ex);
+      if (ks.size && seen.some(s => planKeysHit(ks, s))) return { dayIndex: di, name: (ex && ex.name) || '' };
+      seen.push(ks);
+    }
+  }
+  return null;
+}
+function planDupToastOmitted(n) {
+  if (n > 0) toast(t(n === 1 ? 'train.nodup.omittedOne' : 'train.nodup.omittedMany', { n }));
+}
 function libLinkRow(row, ex) {
+  /* AUTH-348: si la fila vive en un día del editor de planes y
+     OTRA fila de ESE día ya tiene este ejercicio (por su id o
+     por su nombre normalizado), no se vincula: la fila queda
+     como estaba y se avisa. Devuelve false solo en ese caso. */
+  const libDayEl = row && row.closest ? row.closest('.pl-day') : null;
+  if (libDayEl && planDayRowDup(libDayEl, planExKeySet({ exerciseId: ex.id, name: libNameOf(ex) }), row)) { toast(t('train.nodup.blocked'), true); return false; }
   const nameIn = row.querySelector('.pl-ex-name');
   row.dataset.exid = ex.id;
   if (ex.foto_url) row.dataset.photo = ex.foto_url; else row.removeAttribute('data-photo');
@@ -37293,6 +37379,7 @@ function libLinkRow(row, ex) {
      estándar; el selector de la fila se repinta con la ficha. */
   if (row._extra) delete row._extra.variantIndex;
   planVariantSyncRow(row);
+  return true;
 }
 function wireLibRow(row) {
   if (row.dataset.libWired) return;
@@ -37327,7 +37414,16 @@ function wireLibRow(row) {
     }));
   });
   nameIn.addEventListener('focus', () => { if (LIB_STATE === 'ok' && !row.dataset.exid && nameIn.value.trim().length >= 2) nameIn.dispatchEvent(new Event('input')); });
-  nameIn.addEventListener('blur', () => setTimeout(() => libCloseSug(row), 150));
+  nameIn.addEventListener('blur', () => setTimeout(() => {
+    libCloseSug(row);
+    /* AUTH-348: texto libre — si el nombre tecleado ya está en
+       OTRA fila de este día (comparación normalizada de la
+       casa), se avisa al salir del campo. No se borra lo
+       tecleado: lo corrige el entrenador; el candado duro es
+       el guardado, que no escribe un día con repetidos. */
+    const freeDayEl = row.closest('.pl-day');
+    if (freeDayEl && nameIn.value.trim() && planDayRowDup(freeDayEl, planRowKeySet(row), row)) toast(t('train.nodup.blocked'), true);
+  }, 150));
   nameIn.addEventListener('keydown', ev => { if (ev.key === 'Escape') libCloseSug(row); });
 }
 /* ARRASTRAR PARA REORDENAR (2026-10-27, correo de Ronald 17:33 CDT):
@@ -37454,7 +37550,7 @@ function substRender(row) {
     <button type="button" class="pl-sug-item" data-sub-id="${esc(ex.id)}">${ex.foto_url ? `<img class="sg-thumb" src="${esc(ex.foto_url)}" alt="" loading="lazy" decoding="async" onerror="this.remove()">` : ''}<span class="sg-text"><span class="sg-name">${esc(libNameOf(ex))}</span><span class="sg-meta">${esc([libField(ex, 'grupo_muscular'), libField(ex, 'equipo'), libField(ex, 'nivel')].filter(Boolean).join(' · '))}${ex.equipo_es === cur.equipo_es ? ' · ' + t('train.sub.sameEq') : ''}</span></span></button>`).join('');
   box.querySelectorAll('[data-sub-id]').forEach(b => b.onclick = () => {
     const ex = LIB_BY_ID[b.dataset.subId];
-    if (ex) libLinkRow(row, ex);
+    if (ex && libLinkRow(row, ex) === false) return;
     box.innerHTML = ''; box.dataset.open = '';
   });
 }
@@ -37739,23 +37835,30 @@ async function tplApply(id) {
   (tpl.session || []).forEach(s => { blocksByDay[Number(s.dia_num)] = tplSessionBlocks(s); });
   const daysBox = $('pl-days');
   daysBox.innerHTML = '';
+  /* AUTH-348: cada día de la plantilla entra SIN repetidos —
+     lo que ya está en ese día no se duplica: se omite lo repetido
+     y se conserva todo lo demás, con aviso de cuántos se omitieron. */
+  let tplOmitted = 0;
   (tpl.days || []).forEach(d => {
+    const tplMapped = (d.exercises || []).map(te => {
+      const entry = LIB_BY_ID[te.exerciseId] || null;
+      return {
+        name: entry ? libNameOf(entry) : (te.nombre_libre || te.exerciseId || ''),
+        sets: te.series || '', reps: te.repeticiones || '', note: '',
+        exerciseId: te.exerciseId || '',
+        photoUrl: entry ? (entry.foto_url || '') : '',
+        videoUrl: entry ? (entry.video_youtube_url || '') : '',
+        rest: te.descanso_es || '', rest_en: te.descanso_en || '',
+        warmup: te.aproximacion_es || '', warmup_en: te.aproximacion_en || '',
+      };
+    });
+    const tplDedup = planDedupList([], tplMapped);
+    tplOmitted += tplDedup.omitted.length;
     daysBox.appendChild(planDayRow({
       label: LANG === 'es' ? (d.dia_nombre_es || d.dia_nombre_en || '') : (d.dia_nombre_en || d.dia_nombre_es || ''),
       freeDay: d.libre === true,
       sessionBlocks: blocksByDay[Number(d.dia_num)] || [],
-      exercises: (d.exercises || []).map(te => {
-        const entry = LIB_BY_ID[te.exerciseId] || null;
-        return {
-          name: entry ? libNameOf(entry) : (te.nombre_libre || te.exerciseId || ''),
-          sets: te.series || '', reps: te.repeticiones || '', note: '',
-          exerciseId: te.exerciseId || '',
-          photoUrl: entry ? (entry.foto_url || '') : '',
-          videoUrl: entry ? (entry.video_youtube_url || '') : '',
-          rest: te.descanso_es || '', rest_en: te.descanso_en || '',
-          warmup: te.aproximacion_es || '', warmup_en: te.aproximacion_en || '',
-        };
-      }),
+      exercises: tplDedup.kept,
     }));
   });
   $('pl-title').value = tplField(tpl, 'nombre');
@@ -37764,6 +37867,7 @@ async function tplApply(id) {
   tplAlignState = { tpl, dismissed: false, aligned: false };
   tplRenderAlign();
   toast(t('train.tpl.applied'));
+  if (tplOmitted) planDupToastOmitted(tplOmitted);
 }
 /* ================= N-09: PERMISOS DE BIBLIOTECA Y PLANTILLAS =================
    Decisión N-09 de Ronald (correo memphis, 2026-10-23 22:53 CDT),
@@ -38384,13 +38488,19 @@ function vizRenderFacets() {
   libFillFacet($('pl-viz-level'), 'nivel', LIB_LEVEL_ORDER, t('libcat.allLevels'), VIZ_F.level);
 }
 function vizCardHTML(ex) {
+  /* AUTH-348: la tarjeta de un ejercicio YA presente en el día
+     destino (el elegido en #pl-viz-day) nace «✓ Añadido» y
+     DESACTIVADA — la misma presentación de AUTH-340 —; los de
+     otros días quedan libres. */
+  const vizDayEl = document.querySelectorAll('#pl-days .pl-day')[Number((($('pl-viz-day') || {}).value) || 0)] || null;
+  const vizAdded = !!(vizDayEl && planDayRowDup(vizDayEl, planExKeySet({ exerciseId: ex.id, name: libNameOf(ex) }), null));
   const meta = [libField(ex, 'grupo_muscular'), libField(ex, 'equipo'), libField(ex, 'nivel')].filter(Boolean).join(' · ');
   const th = !ex.foto_url ? ytThumbOf(ex.video_youtube_url) : '';
   return `<div class="pl-viz-card">
       ${ex.foto_url ? `<img class="pl-viz-img" src="${esc(ex.foto_url)}" alt="${esc(libNameOf(ex))}" loading="lazy">` : (th ? `<img class="pl-viz-img" src="${esc(th)}" alt="${esc(libNameOf(ex))}" loading="lazy" data-yt-fb="viz" onerror="ytThumbErr(this)">` : `<div class="pl-viz-img pl-viz-noimg">🏋️</div>`)}
       <div class="pl-viz-name">${esc(libNameOf(ex))}</div>
       <div class="pl-viz-meta">${esc(meta)}</div>
-      <button type="button" class="btn-primary btn-sm pl-viz-add" data-viz-id="${esc(ex.id)}">${t('train.viz.add')}</button>
+      <button type="button" class="btn-primary btn-sm pl-viz-add" data-viz-id="${esc(ex.id)}"${vizAdded ? ' disabled' : ''}>${vizAdded ? t('train.n09.mybAddedBtn') : t('train.viz.add')}</button>
     </div>`;
 }
 function vizRenderGrid() {
@@ -38418,6 +38528,9 @@ function vizRefreshDays(keepIdx) {
     return `<option value="${i}">${esc(lab || t('train.viz.dayN', { n: i + 1 }))}</option>`;
   }).join('');
   sel.value = String(Math.min(Math.max(Number.isFinite(prev) ? prev : 0, 0), Math.max(days.length - 1, 0)));
+  /* AUTH-348: la rejilla depende del día destino (lo presente en
+     ESE día nace marcado): al refrescar los días se repinta. */
+  if (typeof LIB_STATE !== 'undefined' && LIB_STATE === 'ok' && $('pl-viz-grid')) vizRenderGrid();
 }
 function vizRenderAll() { vizRenderChips(); vizRenderFacets(); vizRenderGrid(); vizRefreshDays(); }
 function vizAddToDay(exId) {
@@ -38427,15 +38540,19 @@ function vizAddToDay(exId) {
   const idx = Number(($('pl-viz-day') || {}).value || 0);
   const dayEl = document.querySelectorAll('#pl-days .pl-day')[idx];
   if (!dayEl) return;
+  /* AUTH-348: el mismo ejercicio no entra dos veces en el día
+     destino — se avisa y no se crea ninguna fila. */
+  if (planDayRowDup(dayEl, planExKeySet({ exerciseId: ex.id, name: libNameOf(ex) }), null)) { toast(t('train.nodup.blocked'), true); return; }
   const d = document.createElement('div');
   d.innerHTML = planExRow({});
   const row = d.firstElementChild;
   dayEl.querySelector('.pl-exs').appendChild(row);
   wirePlanExRows(dayEl);
-  libLinkRow(row, ex);
+  if (libLinkRow(row, ex) === false) { row.remove(); return; }
   row.classList.add('pl-ex-just-added');
   setTimeout(() => row.classList.remove('pl-ex-just-added'), 1500);
   if (row.scrollIntoView) row.scrollIntoView({ block: 'nearest' });
+  try { vizRenderGrid(); } catch {}
   toast(t('train.viz.added', { name: libNameOf(ex) }));
 }
 function vizOnEditorOpen() {
@@ -38452,6 +38569,7 @@ if ($('pl-viz-toggle')) $('pl-viz-toggle').onclick = () => {
   if (open) { vizRenderAll(); libEnsure().then(() => vizRenderAll()); }
 };
 if ($('pl-viz-q')) $('pl-viz-q').addEventListener('input', () => { vizRenderChips(); vizRenderGrid(); });
+if ($('pl-viz-day')) $('pl-viz-day').addEventListener('change', () => vizRenderGrid());
 if ($('pl-viz-cat')) $('pl-viz-cat').addEventListener('change', e => { VIZ_F.cat = e.target.value; vizRenderChips(); vizRenderGrid(); });
 if ($('pl-viz-level')) $('pl-viz-level').addEventListener('change', e => { VIZ_F.level = e.target.value; vizRenderChips(); vizRenderGrid(); });
 if ($('pl-days')) $('pl-days').addEventListener('click', e => {
@@ -38901,6 +39019,13 @@ $('form-plan').addEventListener('submit', async e => {
       days.push(dayObj);
     }
   });
+  /* AUTH-348: candado del guardado — ningún día puede guardarse
+     con el mismo ejercicio dos veces (la red que recoge cualquier
+     vía, p. ej. el texto libre). No se escribe nada y el editor
+     queda abierto con todo su contenido: quitar el repetido es
+     del entrenador, la app no borra nada por su cuenta. */
+  const dupDay348 = planDupInDays(days);
+  if (dupDay348) { toast(t('train.nodup.saveBlock', { name: dupDay348.name || '' }), true); saveDone(); return; }
   const title = $('pl-title').value.trim();
   if (!title || !days.length) { toast(t('train.err'), true); saveDone(); return; }
   /* PUERTA PAR-Q: la comprobación corre ANTES de cualquier escritura.
@@ -39579,10 +39704,16 @@ async function repeatWeekOpen(clientUid, srcPlan, allPlans) {
     const span = Math.round((new Date(String(srcPlan.endsAt).slice(0, 10) + 'T12:00:00') - new Date(String(srcPlan.startsAt).slice(0, 10) + 'T12:00:00')) / 86400000);
     if (isFinite(span) && span >= 0) end = planISOAddDays(start, span);
   }
+  /* AUTH-348: la semana repetida entra sin repetidos dentro de
+     cada día (un día fuente legado con repetidos no los arrastra
+     a la copia): se omite lo repetido y se avisa. */
+  const rwDays = repeatClone(srcPlan.days);
+  let rwOmitted = 0;
+  rwDays.forEach(d => { if (d && Array.isArray(d.exercises)) { const dd = planDedupList([], d.exercises); rwOmitted += dd.omitted.length; d.exercises = dd.kept; } });
   const draft = {
     title: (srcPlan.title || '') + ' ' + t('train.repeat.suffix'),
     notes: srcPlan.notes || '',
-    days: repeatClone(srcPlan.days),
+    days: rwDays,
     active: !hasOtherActive,
     startsAt: start, endsAt: end,
     durationPreset: srcPlan.durationPreset || '',
@@ -39593,18 +39724,27 @@ async function repeatWeekOpen(clientUid, srcPlan, allPlans) {
   if (srcPlan.sessionsPerWeek) planCtx.repeatSessionsPerWeek = srcPlan.sessionsPerWeek;
   planTouched = true;
   repeatNoteShow(t('train.repeat.weekNote', { title: srcPlan.title || '' }));
+  if (rwOmitted) planDupToastOmitted(rwOmitted);
 }
 /* --- REPETIR DÍA sobre un plan (lo abre en el editor con el día
    agregado al final de la secuencia, Q1) o plan de un día si no
    hay plan destino (§4.2) --- */
 async function repeatDayAppendOpen(clientUid, targetPlan, dayData, opts = {}) {
   if (!dayData || !(dayData.exercises || []).length) { toast(t('train.repeat.noSource'), true); return; }
+  /* AUTH-348: el día repetido entra sin repetidos internos (la
+     fuente puede traerlos del historial o de un plan legado): se
+     omite lo repetido y se avisa; el día destino — nuevo — conserva
+     íntegro lo que trae la fuente ya limpia. */
+  const cleanDay = repeatClone(dayData);
+  let rdOmitted = 0;
+  if (Array.isArray(cleanDay.exercises)) { const dd = planDedupList([], cleanDay.exercises); cleanDay.exercises = dd.kept; rdOmitted = dd.omitted.length; }
+  if (rdOmitted) planDupToastOmitted(rdOmitted);
   if (!targetPlan) {
     const today = todayISO();
     const draft = {
       title: t('train.repeat.oneDayTitle', { day: dayData.label || '', date: dateName(today) }),
       notes: '',
-      days: [repeatClone(dayData)],
+      days: [cleanDay],
       active: true, startsAt: today, endsAt: today, durationPreset: '',
     };
     openPlanEditor(clientUid, draft);
@@ -39618,7 +39758,7 @@ async function repeatDayAppendOpen(clientUid, targetPlan, dayData, opts = {}) {
   }
   const cfg = opts.cfg !== undefined ? opts.cfg : await repeatCfgFor(clientUid);
   const draftDays = repeatClone(targetPlan.days || []);
-  const appended = { ...repeatClone(dayData), label: uniqueRepeatLabel(dayData.label || '', draftDays.map(d => d.label || '')) };
+  const appended = { ...cleanDay, label: uniqueRepeatLabel(dayData.label || '', draftDays.map(d => d.label || '')) };
   draftDays.push(appended);
   if (!repeatModeGuardOk(targetPlan, draftDays, cfg)) { toast(t('train.repeat.modeGuard'), true); return; }
   openPlanEditor(clientUid, { ...targetPlan, days: draftDays });
@@ -39715,6 +39855,9 @@ async function repeatDayInEditor(wrap) {
   const base = planCtx.planData;
   const labels = [...document.querySelectorAll('#pl-days .pl-day-label')].map(i => i.value.trim());
   const newDay = { ...dayData, label: uniqueRepeatLabel(dayData.label, labels) };
+  /* AUTH-348: el día copiado dentro del editor entra sin
+     repetidos internos (la fuente puede ser un día legado). */
+  if (Array.isArray(newDay.exercises)) { const dd = planDedupList([], newDay.exercises); newDay.exercises = dd.kept; if (dd.omitted.length) planDupToastOmitted(dd.omitted.length); }
   if (base && base.id) {
     const cfg = await repeatCfgFor(planCtx.clientUid);
     const draftDays = [...(base.days || []), newDay];
@@ -49157,7 +49300,7 @@ document.addEventListener('keydown', e => { if (e.key === 'Escape') shareClose()
  *  - El SW (sw.js) solo cachea la cáscara del mismo origen en modo
  *    RED PRIMERO: Auth/Firestore/Worker jamás pasan por la caché.
  * ================================================================ */
-const PWA_SW_VERSION = '20261109-listo-al-pie';
+const PWA_SW_VERSION = '20261109-sin-repetidos';
 /* Sello de versión VISIBLE (2026-11-03): el pie de la tarjeta de
    acceso enseña qué copia corre este teléfono ('v ' + el sello),
    para comprobar de un vistazo si la versión nueva ya llegó.
