@@ -2843,6 +2843,15 @@ body.nav-lock.prog-page #act-flame { visibility: visible; }
    Entrenamiento, el padding de siempre (12 px) manda intacto;
    Inicio no cambia. */
 body.prog-page #progress-content.nav-page-on { padding-right: 88px; }
+/* LA MASCOTA EN TODAS PARTES (orden de Ronald, 2026-11-09): con la
+   página de Entrenamiento abierta, SOLO el disco de la mascota
+   flota en la banda derecha de la pila (el resto sigue escondido);
+   el contenido de la página gana el mismo resguardo de 88 px que
+   Progreso para que ninguna tarjeta ni botón pase por debajo del
+   disco a ningún scroll. El anuncio de «Entrena con cámara»
+   (#fdcam-float, z 47) sigue mandando mientras está abierto; al
+   cerrarse, la mascota queda en su rincón sobre la página. */
+body.train-page #train-content.nav-page-on { padding-right: 88px; }
 /* ============ TARJETA «TU PESO» EN INICIO (PESO-VISIBLE, AUTH-2026-11-01-134) ============
    Tarjeta permanente bajo «Metas de hoy», la misma tarjeta
    blanca de la casa (.goals-card). Su botón es el primario teal
@@ -4191,11 +4200,16 @@ button.wkex-row:active { background: #eef7f5; }
   box-shadow: 0 0 0 0 rgba(13,148,136,.45); animation: asstFabPulse 3.6s ease-out infinite; }
 @keyframes asstFabPulse { 0% { box-shadow: 0 0 0 0 rgba(13,148,136,.45); } 45% { box-shadow: 0 0 0 13px rgba(13,148,136,0); } 100% { box-shadow: 0 0 0 0 rgba(13,148,136,0); } }
 @media (prefers-reduced-motion: reduce) { .asst-fab::after { animation: none; } }
-/* La misma coreografía de visibilidad que sus discos hermanos:
-   la portada de Progreso la deja viva y las hojas de intercambio
-   la retiran (las reglas hermanas viven arriba; estas la suman). */
+/* La coreografía de visibilidad del disco: sin página del dock,
+   vive en todas las secciones (asstFabSync); con una página
+   abierta (nav-lock), las marcas de página la dejan viva — la de
+   Progreso desde AUTH-129 y la de Entrenamiento desde la orden de
+   Ronald del 2026-11-09 «la mascota en todas partes» — y las hojas
+   de intercambio la retiran (las reglas hermanas viven arriba;
+   estas la suman). */
 body.nav-lock .asst-fab { visibility: hidden; opacity: 0; pointer-events: none; }
-body.nav-lock.prog-page .asst-fab { visibility: visible; opacity: 1; pointer-events: auto; }
+body.nav-lock.prog-page .asst-fab,
+body.nav-lock.train-page .asst-fab { visibility: visible; opacity: 1; pointer-events: auto; }
 body.swap-sheet-open .asst-fab { display: none !important; }
 /* — La pastilla ancha de Inicio se retiró con AUTH-2026-11-06-286:
      el disco flotante con la mascota es la única puerta del coach. — */

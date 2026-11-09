@@ -25336,15 +25336,22 @@ const ASST_AVATAR_MINI = `<img class="asst-av-img" src="${ASST_AVATAR_URL}" alt=
 const ASST_FACE_THINKING = 'https://ronbo-store.github.io/ronbo-nutri-assets/avatar-coach-virtual/web/expectante-animada.webp';
 const ASST_FACE_MEMBERSHIP = 'https://ronbo-store.github.io/ronbo-nutri-assets/avatar-coach-virtual/web/guino.webp';
 const ASST_FACE_ERROR = 'https://ronbo-store.github.io/ronbo-nutri-assets/avatar-coach-virtual/web/frustracion.webp';
-/* Visibilidad del disco: la misma regla de la ayuda y el compartir
-   (solo con Inicio activo) MÁS el corte del interruptor de IA. Sin
-   argumento, repinta según la pestaña vigente (NAV_TAB) — así lo
-   llama applyAiControl cuando el interruptor cambia. */
+/* Visibilidad del disco: EN TODAS PARTES (orden de Ronald, chat
+   RONBO.NUTRI 2026-11-09 00:02 CST): la mascota es la única puerta
+   del Coach Virtual y aparece en TODAS las secciones principales
+   de la experiencia del usuario, sin depender de la pestaña activa
+   — antes heredaba la regla de la ayuda y el compartir (solo con
+   Inicio activo) y faltaba en Mi perfil, Administración, Mi
+   entrenador, Coach de alimentación, Retos y las demás vistas. El
+   único corte que queda es el del interruptor de IA, como siempre.
+   El argumento se acepta por compatibilidad con sus llamadores
+   (switchTab y applyAiControl), pero ya no manda en la regla; sobre
+   las páginas del dock y bajo las hojas manda la coreografía de
+   styles.css y la contención de foco (coverApply), como siempre. */
 function asstFabSync(tabName) {
   const f = $('btn-asst-fab'); if (!f) return;
-  const tab = tabName || (typeof NAV_TAB !== 'undefined' ? NAV_TAB : null);
   const off = (typeof AI_CTRL !== 'undefined') && AI_CTRL.known && !AI_CTRL.enabled;
-  f.style.display = (tab === 'track' && !off) ? '' : 'none';
+  f.style.display = off ? 'none' : '';
 }
 /* El plan y los registros del alumno: si Entrenamiento ya cargó,
    manda su memoria viva (MY_PLAN/MY_LOGS); si no, se cargan UNA vez
@@ -26583,7 +26590,7 @@ function coverFocusHome(cover) { // ¿el foco actual ya es válido bajo esta tap
   if (!a || a === document.body || !a.isConnected) return false;
   if (cover.contains(a)) return true;
   if (coverIsSoft(cover) && a.closest && a.closest('.actions-dock')) return true;
-  if (cover.id === 'progress-content' && COVER_ALIVE.has(a)) return true; // AUTH-129: el foco en un disco vivo también es «casa»
+  if ((cover.id === 'progress-content' || cover.id === 'train-content') && COVER_ALIVE.has(a)) return true; // AUTH-129 (+ la mascota viva sobre Entrenamiento, 2026-11-09): el foco en un disco vivo también es «casa»
   return false;
 }
 function coverEnsureFocus(cover) {
@@ -26611,6 +26618,12 @@ function coverApply(cover) { // (re)aplica los inert para la tapa dada
      llamita de esa página. Bajo cualquier otra tapa (Entrenamiento,
      láminas, modales) los discos quedan inertes, como hasta hoy. */
   if (cover.id === 'progress-content') for (const id of ['btn-share-fab', 'btn-help', 'btn-stopwatch', 'act-flame', 'btn-asst-fab']) { const el = document.getElementById(id); if (el) COVER_ALIVE.add(el); }
+  /* LA MASCOTA EN TODAS PARTES (orden de Ronald, 2026-11-09): bajo
+     la página de Entrenamiento sigue vivo SOLO el disco de la
+     mascota — es la puerta del Coach Virtual y Ronald la quiere en
+     todas partes —; el resto de la pila queda inerte bajo esa
+     página, como hasta hoy. */
+  if (cover.id === 'train-content') { const el = document.getElementById('btn-asst-fab'); if (el) COVER_ALIVE.add(el); }
   const dock = document.querySelector('.actions-dock');
   coverWalk(document.body, cover, coverIsSoft(cover) ? dock : null);
 }
@@ -26760,8 +26773,15 @@ function navRender() {
   /* AUTH-2026-11-01-129: con Progreso abierta, su marca en el body
      es lo que mantiene visible la pila de 4 discos sobre la página
      (bloque final de styles.css); con Entrenamiento, nav-lock los
-     sigue escondiendo como siempre. */
+     sigue escondiendo como siempre. LA MASCOTA EN TODAS PARTES
+     (orden de Ronald, 2026-11-09): Entrenamiento gana su propia
+     marca, «train-page», simétrica a la de Progreso — es la que
+     mantiene visible y vivo SOLO el disco de la mascota sobre su
+     página (el rescate de .asst-fab en styles.css y la vida bajo
+     tapa en coverApply); el resto de la pila sigue escondido en
+     Entrenamiento, como siempre. */
   document.body.classList.toggle('prog-page', NAV_PAGE === 'progress');
+  document.body.classList.toggle('train-page', NAV_PAGE === 'train');
   const hb = $('btn-nav-home'); if (hb) hb.classList.toggle('nav-on', !NAV_PAGE && NAV_TAB === 'track');
   try { coverSync(); } catch {} // A-N2: la contención de foco sigue a la página en el acto
 }
@@ -46311,7 +46331,7 @@ document.addEventListener('keydown', e => { if (e.key === 'Escape') shareClose()
  *  - El SW (sw.js) solo cachea la cáscara del mismo origen en modo
  *    RED PRIMERO: Auth/Firestore/Worker jamás pasan por la caché.
  * ================================================================ */
-const PWA_SW_VERSION = '20261108-foto-documento';
+const PWA_SW_VERSION = '20261109-mascota-todas';
 /* Sello de versión VISIBLE (2026-11-03): el pie de la tarjeta de
    acceso enseña qué copia corre este teléfono ('v ' + el sello),
    para comprobar de un vistazo si la versión nueva ya llegó.
