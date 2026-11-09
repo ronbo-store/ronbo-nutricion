@@ -27479,52 +27479,26 @@ function navGoHome() {
 }
 { const hb = $('btn-nav-home'); if (hb) hb.addEventListener('click', navGoHome); }
 
-/* ============ BAJO LA CABECERA (regla de Ronald, 2026-11-09) ============
-   La cabecera (la banda con el logo, su nombre y la fecha) y la
-   subcabecera (la fila de la barra de perfil, #main-tabs) quedan
-   SIEMPRE visibles: ninguna sección que se abre nace por encima del
-   borde inferior de la subcabecera. El ancla compartida es ese borde,
-   medido del DOM real en cada pintado (nada de píxeles fijos: si la
-   cabecera crece o encoge, el ancla la sigue) y publicado como la
-   propiedad CSS --hdr-anchor, que styles.css consume para el borde
-   superior de las páginas y hojas de sección y para el techo de
-   altura de las hojas y tarjetas de trabajo. Si la barra no está
-   pintada (antes de entrar), el ancla conserva su último valor y
-   styles.css usa su respaldo. */
-let HDR_ANCHOR_LAST = 0;
-function hdrAnchorSync() {
-  const tabs = document.getElementById('main-tabs');
-  if (!tabs || !tabs.getClientRects().length) return;
-  let y = 0, el = tabs;
-  while (el) { y += el.offsetTop || 0; el = el.offsetParent; }
-  const bottom = y + (tabs.offsetHeight || 0);
-  if (bottom > 40 && bottom !== HDR_ANCHOR_LAST) {
-    HDR_ANCHOR_LAST = bottom;
-    try { document.documentElement.style.setProperty('--hdr-anchor', bottom + 'px'); } catch {}
-  }
-}
-/* Con una sección de pantalla completa abierta (una página del dock
-   o el panel de Ayuda), el fondo se presenta desde arriba — es la
-   única forma de que las dos bandas se vean — y al cerrar vuelve a
-   la posición que tenía: la cuenta por referencias deja convivir la
-   página y el panel sin pisarse el guardado. */
-let BG_PIN_Y = null, BG_PIN_N = 0;
-function bgPinTop() {
-  if (BG_PIN_N === 0) {
-    BG_PIN_Y = window.scrollY || 0;
-    if (BG_PIN_Y) { try { window.scrollTo(0, 0); } catch {} }
-  }
-  BG_PIN_N++;
-}
-function bgPinRelease() {
-  if (BG_PIN_N > 0) BG_PIN_N--;
-  if (BG_PIN_N === 0 && BG_PIN_Y !== null) {
-    const y = BG_PIN_Y; BG_PIN_Y = null;
-    if (y) { try { window.scrollTo(0, y); } catch {} }
-  }
-}
-let NAV_WAS_OPEN = false;
-try { window.addEventListener('resize', () => { try { hdrAnchorSync(); } catch {} }); } catch {}
+/* ============ PANTALLA COMPLETA (regla de Ronald, 2026-11-09) ============
+   DEROGA el ancla de AUTH-326 («BAJO LA CABECERA») por la palabra
+   expresa de Ronald de hoy, con su captura de la vista de Fotos de
+   Progreso abierta: «No tiene sentido que la barra de arriba esté
+   estática y no funcione. Si los botones se quedan ahí es para
+   funcionar. Si no, colócalo todo recto. Que se suba hacia arriba
+   la cabecera y la barra de accesos directos.» Toda cubierta nace
+   ahora a PANTALLA COMPLETA desde arriba (top:0 y altura completa
+   del viewport, en styles.css) y la cabecera y la fila #main-tabs
+   quedan BAJO la cubierta, fuera de la vista: nada muerto queda
+   congelado sobre la sección. De la maquinaria de AUTH-326 no
+   queda nada: ni la medición del ancla ni la sujeción del fondo,
+   cuya única función era presentar las bandas sobre la sección. Lo que NO cambia: el
+   candado de scroll del fondo (AUTH-285), que ya guarda y restaura
+   la posición del fondo por su cuenta; la contención de foco A-N2;
+   y el gesto del dock que cierra la página abierta antes de
+   navegar (AUTH-312) — el dock sigue visible y vivo sobre las
+   tapas blandas. Las excepciones de pantalla completa declaradas
+   en AUTH-326 (visor de fotos, cronómetro, reproductor de video y
+   aviso de instalación) ya nacían así y no se tocan. */
 
 /* ============ CONTENCIÓN DE FOCO DE TECLADO (A-N2, 2026-10-31) ============
    Revisión «una sola sección visible», requisito de foco: con una
@@ -27641,7 +27615,7 @@ function coverApply(cover) { // (re)aplica los inert para la tapa dada
   coverClearInerts();
   COVER_NOW = cover;
   COVER_ALIVE = new Set();
-  if (!cover) return;
+  if (!cover) { for (const id of ['btn-share-fab', 'btn-help', 'btn-stopwatch', 'act-flame', 'btn-asst-fab']) { const el = document.getElementById(id); if (el) el.classList.remove('fab-bg'); } return; }
   /* AUTH-2026-11-01-129: bajo la página de Progreso — y solo bajo
      ella — la pila de 4 discos flotantes de Inicio también sigue
      viva, con el mismo criterio con que el dock sigue vivo bajo
@@ -27655,11 +27629,17 @@ function coverApply(cover) { // (re)aplica los inert para la tapa dada
      todas partes —; el resto de la pila queda inerte bajo esa
      página, como hasta hoy. */
   if (cover.id === 'train-content') { const el = document.getElementById('btn-asst-fab'); if (el) COVER_ALIVE.add(el); }
+  /* PANTALLA COMPLETA (2026-11-09): la columna flotante va con el
+     fondo — con una tapa abierta solo quedan a la vista los discos
+     que este gestor mantiene vivos sobre esa tapa (COVER_ALIVE:
+     actúan sobre la propia hoja); los demás se retiran con el
+     fondo (clase fab-bg) en vez de quedar flotando muertos sobre
+     la cubierta. */
+  for (const id of ['btn-share-fab', 'btn-help', 'btn-stopwatch', 'act-flame', 'btn-asst-fab']) { const el = document.getElementById(id); if (el) el.classList.toggle('fab-bg', !COVER_ALIVE.has(el)); }
   const dock = document.querySelector('.actions-dock');
   coverWalk(document.body, cover, coverIsSoft(cover) ? dock : null);
 }
 function coverSync() {
-  try { hdrAnchorSync(); } catch {} // BAJO LA CABECERA: el ancla sigue a la subcabecera en cada pintado
   try { scrollLockSync(); } catch {} // el candado de scroll sigue a las tapas en cada ruta de coverSync
   const cover = coverFind();
   const top = COVER_STACK.length ? COVER_STACK[COVER_STACK.length - 1].cover : null;
@@ -27790,12 +27770,6 @@ function navPageEl(page) { return page === 'progress' ? $('progress-content') : 
 function navPageBtn(page) { return page === 'progress' ? $('btn-toggle-progress') : $('btn-toggle-train'); }
 
 function navRender() {
-  /* BAJO LA CABECERA (2026-11-09): con una página abierta, el fondo
-     se presenta desde arriba para que la cabecera y la subcabecera
-     queden visibles sobre la página; al cerrar la última, el fondo
-     vuelve a la posición que tenía. */
-  const pageOpenNow = !!NAV_PAGE;
-  if (pageOpenNow && !NAV_WAS_OPEN) { try { bgPinTop(); } catch {} }
   for (const p of ['progress', 'train']) {
     const el = navPageEl(p); if (!el) continue;
     const open = NAV_PAGE === p;
@@ -27822,8 +27796,6 @@ function navRender() {
   document.body.classList.toggle('train-page', NAV_PAGE === 'train');
   const hb = $('btn-nav-home'); if (hb) hb.classList.toggle('nav-on', !NAV_PAGE && NAV_TAB === 'track');
   try { coverSync(); } catch {} // A-N2: la contención de foco sigue a la página en el acto
-  if (!pageOpenNow && NAV_WAS_OPEN) { try { bgPinRelease(); } catch {} }
-  NAV_WAS_OPEN = pageOpenNow;
 }
 function navSaveScroll() { if (NAV_PAGE) { const el = navPageEl(NAV_PAGE); if (el) NAV_SHEET_SCROLL[NAV_PAGE] = el.scrollTop; } }
 function navRestoreScroll(page) {
@@ -48912,7 +48884,7 @@ document.addEventListener('keydown', e => { if (e.key === 'Escape') shareClose()
  *  - El SW (sw.js) solo cachea la cáscara del mismo origen en modo
  *    RED PRIMERO: Auth/Firestore/Worker jamás pasan por la caché.
  * ================================================================ */
-const PWA_SW_VERSION = '20261109-mi-progreso';
+const PWA_SW_VERSION = '20261109-pantalla-completa';
 /* Sello de versión VISIBLE (2026-11-03): el pie de la tarjeta de
    acceso enseña qué copia corre este teléfono ('v ' + el sello),
    para comprobar de un vistazo si la versión nueva ya llegó.
@@ -49967,8 +49939,8 @@ function renderFaqPanel() {
   body.innerHTML = html;
   body.querySelectorAll('[data-faq-block]').forEach(btn => { btn.onclick = () => { const b = Number(btn.dataset.faqBlock); FAQ_OPEN_BLOCK = (FAQ_OPEN_BLOCK === b) ? 0 : b; renderFaqPanel(); }; });
 }
-function faqOpenPanel() { try { bgPinTop(); } catch {} FAQ_IS_OPEN = true; renderFaqPanel(); const bd = $('faq-backdrop'); if (bd) bd.style.display = ''; const p = $('faq-panel'); if (p) p.style.display = ''; }
-function faqClosePanel() { FAQ_IS_OPEN = false; const bd = $('faq-backdrop'); if (bd) bd.style.display = 'none'; const p = $('faq-panel'); if (p) p.style.display = 'none'; try { coverSync(); } catch {} try { bgPinRelease(); } catch {} }
+function faqOpenPanel() { FAQ_IS_OPEN = true; renderFaqPanel(); const bd = $('faq-backdrop'); if (bd) bd.style.display = ''; const p = $('faq-panel'); if (p) p.style.display = ''; }
+function faqClosePanel() { FAQ_IS_OPEN = false; const bd = $('faq-backdrop'); if (bd) bd.style.display = 'none'; const p = $('faq-panel'); if (p) p.style.display = 'none'; try { coverSync(); } catch {} }
 function helpFabSync(tabName) { const f = $('btn-help'); if (f) f.style.display = (tabName === 'track') ? '' : 'none'; const s = $('btn-share-fab'); if (s) s.style.display = (tabName === 'track') ? '' : 'none'; }
 /* Cronómetro SOLO en Inicio (decisión de Ronald, correo
    2026-10-28 22:11 CDT): el botón flotante se muestra únicamente
