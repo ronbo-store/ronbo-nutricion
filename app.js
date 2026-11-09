@@ -5628,7 +5628,7 @@ en: {
   'ui.photoAlt': 'Enlarged photo',
   'msg.photoDeleted': 'Photo deleted.',
   'msg.foodSent': 'Photo sent. Let me know in the chat so I can analyze it.',
-  'train.title': '🏋️ My training plan', 'train.myPlans': '📋 My plans', 'train.loading': 'Loading your plan…',
+  'train.title': '🏋️ My training plan', 'train.myPlans': '📋 My plans', 'train.noActivePlan': 'no active plan', 'train.planMenu': 'Plan actions', 'train.loading': 'Loading your plan…',
   'train.none': 'Your trainer has not assigned you a plan yet.',
   'train.noneNamed': 'Your trainer {name} hasn\'t assigned you a plan yet.',
   'train.today.btnToday': 'Today', 'train.today.todayWord': 'Today',
@@ -9822,7 +9822,7 @@ es: {
   'ui.photoAlt': 'Foto ampliada',
   'msg.photoDeleted': 'Foto eliminada.',
   'msg.foodSent': 'Foto enviada. Avísame por el chat para analizarla.',
-  'train.title': '🏋️ Mi plan de entrenamiento', 'train.myPlans': '📋 Mis planes', 'train.loading': 'Cargando tu plan…',
+  'train.title': '🏋️ Mi plan de entrenamiento', 'train.myPlans': '📋 Mis planes', 'train.noActivePlan': 'sin plan activo', 'train.planMenu': 'Acciones del plan', 'train.loading': 'Cargando tu plan…',
   'train.none': 'Tu entrenador aún no te ha asignado un plan.',
   'train.noneNamed': 'Tu entrenador {name} aún no te ha asignado un plan.',
   'train.today.btnToday': 'Hoy', 'train.today.todayWord': 'Hoy',
@@ -34820,9 +34820,18 @@ async function loadMyTraining() {
      entrenador (crear/editar/activar) y, con el delta de este
      paquete, también borrar sus propios planes. */
   const canSelfManage = !myTrainerUid || myTrainerUid === uid;
+  /* AUTH-346 — el bloque NACE PLEGADO en una sola línea: «📋 Mis
+     planes · N · Activo: {título del activo}»; sin plan activo la
+     línea lo dice con honestidad («sin plan activo»). Tocar la
+     línea despliega el cuerpo (las filas compactas de
+     planRowsHTML y el botón «Plan nuevo») y lo repliega. */
+  const mpActive = plans.find(p => p.active === true) || null;
   const myPlansHTML = canSelfManage ? `<div class="my-plans-block" id="my-plans-box">
-    <div class="my-plans-head"><h4 class="history-title">${t('train.myPlans')}</h4><button type="button" class="btn-primary btn-sm" data-plan-new="1">${t('train.new')}</button></div>
+    <button type="button" class="my-plans-line" id="my-plans-toggle" aria-expanded="false"><span class="my-plans-line-tx">${t('train.myPlans')} · ${plans.length} · ${mpActive ? `${t('train.activeBadge')}: ${esc(mpActive.title || '')}` : t('train.noActivePlan')}</span><span class="chev" aria-hidden="true">▾</span></button>
+    <div class="my-plans-body" id="my-plans-body" style="display:none">
     ${planRowsHTML(plans)}
+    <div class="my-plans-new"><button type="button" class="btn-primary btn-sm" data-plan-new="1">${t('train.new')}</button></div>
+    </div>
   </div>` : '';
   const selDiRow = diForDate(sel);
   const logSelRow = logs.find(l => l.date === sel) || null;
@@ -34867,6 +34876,14 @@ async function loadMyTraining() {
   if (isLoose) trainNoneNamedRender(box);
   const mpBox = $('my-plans-box');
   if (mpBox) wirePlanActions(mpBox, uid, plans, () => loadMyTraining());
+  const mpTgl = $('my-plans-toggle');
+  if (mpTgl) mpTgl.onclick = () => {
+    const mpBody = $('my-plans-body'); if (!mpBody) return;
+    const open = mpBody.style.display !== 'none';
+    mpBody.style.display = open ? 'none' : '';
+    mpTgl.setAttribute('aria-expanded', open ? 'false' : 'true');
+    const chv = mpTgl.querySelector('.chev'); if (chv) chv.textContent = open ? '▾' : '▴';
+  };
   const pcBtn = $('btn-print-card');
   if (pcBtn) pcBtn.onclick = () => printCardRender(plan);
   box.querySelectorAll('[data-my-repeat]').forEach(b => b.onclick = async () => {
@@ -35693,15 +35710,17 @@ function propTrayCardHTML(p) {
    «Mis alumnos» pinte las MISMAS tarjetas (fuente única: las dos
    superficies nunca se contradicen). */
 function planRowsHTML(plans) {
+  /* AUTH-346 — presentación COMPACTA, y sigue siendo la pieza
+     ÚNICA de las tres superficies que pintan planes (la ficha del
+     alumno, el detalle de «Mis alumnos» de AUTH-341 y el bloque
+     «Mis planes» de AUTH-343): UNA línea fina por plan — título,
+     meta corta (días · ejercicios · periodo) e insignia «Activo»
+     si aplica — y un solo botón «⋮» (zona táctil ≥44 px) que abre
+     la hoja de acciones de ESE plan (wirePlanActions). Los cinco
+     botones ya no se apilan en la superficie. */
   return plans.length ? plans.map(p => `
-    <div class="user-row"><div><b>${esc(p.title || '')}</b>${p.active === true ? ` <span class="ok-badge">${t('train.activeBadge')}</span>` : ''}${p.active === true && planIsExpired(p) ? ` <span class="exp-badge">${t('train.dates.expired')}</span>` : ''}<br><span class="muted">${t('train.daysCount', { n: (p.days || []).length })} · ${t('train.exCount', { n: (p.days || []).reduce((n, d) => n + (d.exercises || []).length, 0) })}${planPeriodText(p) ? ' · ' + esc(planPeriodText(p)) : ''}</span></div>
-    <div class="user-actions">
-      <button class="btn-ghost btn-sm" data-plan-edit="${p.id}">${t('client.edit')}</button>
-      <button class="btn-ghost btn-sm" data-plan-repeat-week="${p.id}">${t('train.repeat.weekBtn')}</button>
-      <button class="btn-ghost btn-sm" data-plan-toggle="${p.id}">${p.active === true ? t('train.deactivate') : t('train.activate')}</button>
-      <button class="btn-ghost btn-sm" data-plan-history="${p.id}">${t('train.snap.btn')}</button>
-      <button class="btn-ghost btn-sm" data-plan-del="${p.id}">${t('train.delete')}</button>
-    </div></div><div class="plan-history" id="ph-${p.id}" style="display:none"></div>`).join('') : `<div class="wempty">${t('train.noPlan')}</div>`;
+    <div class="plan-row-c"><div class="plan-row-c-main"><b>${esc(p.title || '')}</b>${p.active === true ? ` <span class="ok-badge">${t('train.activeBadge')}</span>` : ''}${p.active === true && planIsExpired(p) ? ` <span class="exp-badge">${t('train.dates.expired')}</span>` : ''}<br><span class="muted">${t('train.daysCount', { n: (p.days || []).length })} · ${t('train.exCount', { n: (p.days || []).reduce((n, d) => n + (d.exercises || []).length, 0) })}${planPeriodText(p) ? ' · ' + esc(planPeriodText(p)) : ''}</span></div>
+    <button type="button" class="plan-dots" data-plan-menu="${p.id}" aria-label="${esc(t('train.planMenu'))}">⋮</button></div><div class="plan-history" id="ph-${p.id}" style="display:none"></div>`).join('') : `<div class="wempty">${t('train.noPlan')}</div>`;
 }
 /* AUTH-341: el cableado de los botones de plan de la ficha,
    extraído de loadClientTraining y compartido con el bloque del
@@ -35713,13 +35732,39 @@ function planRowsHTML(plans) {
    recibido (en la ficha resuelve al mismo elemento de siempre;
    en el detalle evita el choque de ids con la ficha oculta). */
 function wirePlanActions(box, uid, plans, reload) {
-  box.querySelectorAll('[data-plan-new]').forEach(b => b.onclick = () => openPlanEditor(uid, null));
-  box.querySelectorAll('[data-plan-edit]').forEach(b => b.onclick = () => { const p = plans.find(x => x.id === b.dataset.planEdit); if (p) openPlanEditor(uid, p); });
+  wirePlanActionButtons(box, box, uid, plans, reload);
+  /* AUTH-346 — el «⋮» de cada fila compacta abre la HOJA de
+     acciones de ESE plan: las mismas cinco acciones de siempre
+     (Editar · Activar/Desactivar · Repetir semana · Versiones ·
+     Eliminar), con los mismos data-* y el mismo cableado
+     (wirePlanActionButtons aplicado a la hoja; el historial sigue
+     resolviéndose dentro del bloque). Al elegir una acción la
+     hoja se retira; la ✕ la cierra sin hacer nada. */
+  box.querySelectorAll('[data-plan-menu]').forEach(b => b.onclick = () => {
+    const p = plans.find(x => x.id === b.dataset.planMenu); if (!p) return;
+    const old = box.querySelector('.plan-sheet'); if (old) old.remove();
+    const sh = document.createElement('div');
+    sh.className = 'plan-sheet'; sh.setAttribute('role', 'dialog'); sh.setAttribute('aria-label', p.title || '');
+    sh.innerHTML = `<div class="plan-sheet-t"><b>${esc(p.title || '')}</b><button type="button" class="plan-sheet-x" data-plan-sheet-close="1" aria-label="✕">✕</button></div>`
+      + `<button type="button" class="plan-sheet-opt" data-plan-edit="${p.id}">✏️ ${t('client.edit')}</button>`
+      + `<button type="button" class="plan-sheet-opt" data-plan-toggle="${p.id}">${p.active === true ? '⏸ ' + t('train.deactivate') : '▶ ' + t('train.activate')}</button>`
+      + `<button type="button" class="plan-sheet-opt" data-plan-repeat-week="${p.id}">${t('train.repeat.weekBtn')}</button>`
+      + `<button type="button" class="plan-sheet-opt" data-plan-history="${p.id}">🕘 ${t('train.snap.btn')}</button>`
+      + `<button type="button" class="plan-sheet-opt del" data-plan-del="${p.id}">🗑 ${t('train.delete')}</button>`;
+    box.appendChild(sh);
+    sh.querySelector('[data-plan-sheet-close]').onclick = () => sh.remove();
+    wirePlanActionButtons(box, sh, uid, plans, reload);
+    sh.querySelectorAll('.plan-sheet-opt').forEach(o => o.addEventListener('click', () => setTimeout(() => { if (sh.parentNode) sh.remove(); }, 0)));
+  });
+}
+function wirePlanActionButtons(box, root, uid, plans, reload) {
+  root.querySelectorAll('[data-plan-new]').forEach(b => b.onclick = () => openPlanEditor(uid, null));
+  root.querySelectorAll('[data-plan-edit]').forEach(b => b.onclick = () => { const p = plans.find(x => x.id === b.dataset.planEdit); if (p) openPlanEditor(uid, p); });
   /* REPETIR: semana desde la tarjeta del plan; día desde un
      registro del historial (la copia nace en el editor; aquí no se
      escribe nada). */
-  box.querySelectorAll('[data-plan-repeat-week]').forEach(b => b.onclick = () => { const p = plans.find(x => x.id === b.dataset.planRepeatWeek); if (p) repeatWeekOpen(uid, p, plans); });
-  box.querySelectorAll('[data-plan-toggle]').forEach(b => b.onclick = async () => {
+  root.querySelectorAll('[data-plan-repeat-week]').forEach(b => b.onclick = () => { const p = plans.find(x => x.id === b.dataset.planRepeatWeek); if (p) repeatWeekOpen(uid, p, plans); });
+  root.querySelectorAll('[data-plan-toggle]').forEach(b => b.onclick = async () => {
     const p = plans.find(x => x.id === b.dataset.planToggle); if (!p) return;
     if (p.active === true) {
       await setDoc(doc(db, 'training_plans', p.id), { active: false, updatedAt: serverTimestamp() }, { merge: true });
@@ -35730,7 +35775,7 @@ function wirePlanActions(box, uid, plans, reload) {
     }
     reload();
   });
-  box.querySelectorAll('[data-plan-del]').forEach(b => b.onclick = async () => {
+  root.querySelectorAll('[data-plan-del]').forEach(b => b.onclick = async () => {
     if (!confirm(t('train.deleteConfirm'))) return;
     await deleteDoc(doc(db, 'training_plans', b.dataset.planDel));
     toast(t('train.deleted'));
@@ -35739,7 +35784,7 @@ function wirePlanActions(box, uid, plans, reload) {
   /* VERSIONADO (§6.4): el historial se carga perezosamente al abrir
      y es SOLO LECTURA — ver una instantánea no escribe nada y el
      plan vivo no se toca desde aquí. */
-  box.querySelectorAll('[data-plan-history]').forEach(b => b.onclick = async () => {
+  root.querySelectorAll('[data-plan-history]').forEach(b => b.onclick = async () => {
     const boxH = box.querySelector('#ph-' + b.dataset.planHistory);
     if (!boxH) return;
     if (boxH.style.display !== 'none') { boxH.style.display = 'none'; return; }
@@ -49112,7 +49157,7 @@ document.addEventListener('keydown', e => { if (e.key === 'Escape') shareClose()
  *  - El SW (sw.js) solo cachea la cáscara del mismo origen en modo
  *    RED PRIMERO: Auth/Firestore/Worker jamás pasan por la caché.
  * ================================================================ */
-const PWA_SW_VERSION = '20261109-carga-clara';
+const PWA_SW_VERSION = '20261109-mis-planes-compacto';
 /* Sello de versión VISIBLE (2026-11-03): el pie de la tarjeta de
    acceso enseña qué copia corre este teléfono ('v ' + el sello),
    para comprobar de un vistazo si la versión nueva ya llegó.
