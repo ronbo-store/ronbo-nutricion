@@ -2410,6 +2410,13 @@ div.cgrid-cell { cursor: default; }
 .fdcam-title { font-size: 17px; font-weight: 800; color: #14201f; }
 .fdcam-body { font-size: 13.5px; line-height: 1.5; color: #4b5563; margin: 8px 0 12px; }
 .fdcam-done { font-size: 14px; font-weight: 700; color: #0d9488; padding: 6px 0 2px; }
+/* ANUNCIO DE INGRESOS de la puerta de cámara (2026-11-08): la
+   tarjeta-anuncio lleva una ✕ BIEN NOTORIA — la .pend-close de
+   siempre a 48×48 de toque, el doble de la común — fijada en su
+   esquina, y la etiqueta deja libre su espacio. */
+.fdcam-ad-card { position: relative; }
+.fdcam-ad-card .fdcam-tag { margin-right: 58px; }
+.fdcam-ad-x { position: absolute; top: 10px; right: 10px; width: 48px; height: 48px; min-width: 48px; min-height: 48px; font-size: 20px; margin-left: 0; }
 /* PUERTA FALSA «RONBO.FIT Business» (construcción 2026-10-30):
    la tarjeta reutiliza las clases .fdcam- de AUTH-071; lo único
    nuevo es el campo opcional del nombre del gimnasio. */

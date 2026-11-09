@@ -4380,7 +4380,7 @@ en: {
   'fdcam.tag': 'COMING SOON',
   'fdcam.title': 'Camera Coach',
   'fdcam.body': 'Your phone counts your reps and watches your form while you train — and the set is logged for you.',
-  'fdcam.notify': 'Notify me',
+  'fdcam.notify': 'I\'m interested',
   'fdcam.done': "You're on the list ✓",
   'fdcam.sheetTitle': 'Camera Coach is not available yet',
   'fdcam.sheetBody': "We're building it: automatic rep counting, live form cues in English and Spanish, and your video never leaves your phone. If enough students ask for it, it gets built first. Tap below and you'll be among the first to try it.",
@@ -8192,7 +8192,7 @@ es: {
   'fdcam.tag': 'MUY PRONTO',
   'fdcam.title': 'Entrena con cámara',
   'fdcam.body': 'Tu móvil cuenta tus repeticiones y mira tu técnica mientras entrenas — y la serie queda registrada sola.',
-  'fdcam.notify': 'Avísame',
+  'fdcam.notify': 'Estoy interesado',
   'fdcam.done': 'Ya estás en la lista ✓',
   'fdcam.sheetTitle': 'Entrenar con cámara aún no está disponible',
   'fdcam.sheetBody': 'Lo estamos construyendo: conteo automático de repeticiones, correcciones de técnica en vivo en inglés y español, y tu video nunca sale de tu teléfono. Si suficientes alumnos lo piden, se construye primero. Toca abajo y estarás entre los primeros en probarlo.',
@@ -26781,6 +26781,13 @@ function navOpenPage(page) {
   if (NAV_PAGE === page) { navRestoreScroll(page); return; }
   navSaveScroll();
   NAV_PAGE = page;
+  /* CONTEO DE INGRESOS DE LA PUERTA DE CÁMARA (2026-11-08): un
+     ingreso a Entrenamiento se cuenta AQUÍ, en la transición
+     cerrada→abierta — esta función es el único embudo y el
+     retorno anterior ya descartó el «ya estaba abierta». Los
+     repintados dentro de la página y las aperturas de la app
+     NO cuentan. */
+  if (page === 'train') { try { fdCamNoteEntry(); } catch {} }
   navRender();
   navRestoreScroll(page);
 }
@@ -32870,8 +32877,10 @@ function tfVarApply(pick) {
  * PUERTA FALSA «Camera Coach» (AUTH-2026-10-28-071) — diseño
  * aprobado por Ronald el 2026-10-28 (chat del análisis del video
  * de Adrián Sáenz; documento PAQUETE-PUERTA-FALSA-CAMARA-DISENO-
- * 2026-10-28): la tarjeta vive al inicio de #train-content y solo
- * la ven los alumnos APROBADOS. Anuncia una función que AÚN NO
+ * 2026-10-28): la tarjeta vivía al inicio de #train-content y solo
+ * la ven los alumnos APROBADOS. (Desde el anuncio de ingresos de
+ * 2026-11-08 vive AL FINAL de la vista y se anuncia al inicio en
+ * los primeros cinco ingresos — ver «ANUNCIO DE INGRESOS» abajo.) Anuncia una función que AÚN NO
  * EXISTE (conteo de repeticiones y técnica por cámara) y recoge
  * el interés confirmando: la ÚNICA escritura de la pieza es
  * {fdCamAt: ISO} en el PROPIO documento del alumno por la rama de
@@ -32897,24 +32906,104 @@ function trackEvt(name) {
   try { if (window.umami && typeof window.umami.track === 'function') window.umami.track(name); } catch (e) {}
 }
 let fdcamViewSent = false;
-function fdCamRender() {
-  const box = $('fdcam-box');
-  if (!box) return;
-  const show = ROLE === 'usuario' && UDATA && UDATA.approved === true;
-  if (!show) { box.style.display = 'none'; box.innerHTML = ''; return; }
-  box.style.display = 'block';
-  if (!fdcamViewSent) { fdcamViewSent = true; trackEvt('fdcam-view'); }
-  const joined = typeof UDATA.fdCamAt === 'string' && UDATA.fdCamAt.length > 0;
-  box.innerHTML = `<div class="panel fdcam-card">
-    <span class="fdcam-tag">${esc(t('fdcam.tag'))}</span>
+/* ================================================================
+ * ANUNCIO DE INGRESOS (orden de Ronald, 2026-11-08 23:55 CST):
+ * la tarjeta ya NO vive fija arriba de Entrenamiento. En los
+ * primeros CINCO ingresos a la pestaña se presenta como ANUNCIO
+ * al inicio de la vista (#fdcam-ad-box), con una ✕ bien notoria
+ * para salir y ver el plan que sigue debajo; desde el sexto
+ * ingreso vive como tarjeta tranquila AL FINAL de la vista
+ * (#fdcam-box se mudó ahí en index.html). El conteo de ingresos
+ * vive en localStorage POR CUENTA (clave con el uid, el patrón de
+ * las ediciones de sesión): cero lecturas y cero escrituras en el
+ * servidor para contar. Su límite declarado: es POR DISPOSITIVO
+ * — en otro teléfono la fase de anuncio puede repetirse —,
+ * mientras el interés registrado (fdCamAt) sí viaja con la
+ * cuenta y apaga la fase en cualquier dispositivo.
+ * La ✕ solo apaga el anuncio de ESE ingreso (marca en memoria):
+ * al siguiente ingreso vuelve a salir, hasta agotar los cinco.
+ * «Estoy interesado» DEL ANUNCIO registra el interés con la
+ * MISMA escritura de siempre ({fdCamAt}), cierra el anuncio y
+ * TERMINA la fase en ese acto: la tarjeta pasa a vivir al final
+ * (en su estado «Ya estás en la lista»). La tarjeta del final es
+ * la de siempre, solo reubicada: su botón abre la hoja de
+ * explicación y su «Quiero entrar» registra igual que hoy.
+ * ================================================================ */
+let fdcamAdGoneFor = -1;
+function fdcamCountKey() {
+  const u = auth.currentUser && auth.currentUser.uid;
+  return u ? 'ronbofit-fdcam-anuncio-' + u : null;
+}
+function fdcamEntries() {
+  try {
+    const k = fdcamCountKey(); if (!k) return 0;
+    const n = parseInt(localStorage.getItem(k) || '0', 10);
+    return Number.isFinite(n) && n > 0 ? n : 0;
+  } catch { return 0; }
+}
+function fdCamNoteEntry() {
+  try {
+    const k = fdcamCountKey();
+    if (k) localStorage.setItem(k, String(fdcamEntries() + 1));
+  } catch {}
+  fdCamRender();
+}
+function fdCamJoined() {
+  return typeof UDATA.fdCamAt === 'string' && UDATA.fdCamAt.length > 0;
+}
+function fdcamCardInner(joined, btnId) {
+  return `<span class="fdcam-tag">${esc(t('fdcam.tag'))}</span>
     <div class="fdcam-title">📷 ${esc(t('fdcam.title'))}</div>
     <p class="fdcam-body">${esc(t('fdcam.body'))}</p>
     ${joined
       ? `<div class="fdcam-done">${esc(t('fdcam.done'))}</div>`
-      : `<button type="button" class="btn-primary" id="fdcam-notify">${esc(t('fdcam.notify'))}</button>`}
+      : `<button type="button" class="btn-primary" id="${btnId}">${esc(t('fdcam.notify'))}</button>`}`;
+}
+function fdCamRender() {
+  const box = $('fdcam-box');
+  if (!box) return;
+  const adBox = $('fdcam-ad-box');
+  const show = ROLE === 'usuario' && UDATA && UDATA.approved === true;
+  if (!show) {
+    box.style.display = 'none'; box.innerHTML = '';
+    if (adBox) { adBox.style.display = 'none'; adBox.innerHTML = ''; }
+    return;
+  }
+  const joined = fdCamJoined();
+  const n = fdcamEntries();
+  const phaseOver = joined || n >= 6;
+  const paint = () => { if (!fdcamViewSent) { fdcamViewSent = true; trackEvt('fdcam-view'); } };
+  /* La tarjeta tranquila del FINAL: solo cuando la fase de
+     anuncio terminó (interés registrado o cinco ingresos). */
+  if (phaseOver) {
+    box.style.display = 'block';
+    box.innerHTML = `<div class="panel fdcam-card">${fdcamCardInner(joined, 'fdcam-notify')}</div>`;
+    paint();
+    const b = $('fdcam-notify');
+    if (b) b.addEventListener('click', fdCamOpen);
+  } else { box.style.display = 'none'; box.innerHTML = ''; }
+  /* El anuncio de ESTE ingreso: primeros cinco, si la ✕ no lo
+     cerró ya dentro del mismo ingreso. */
+  if (adBox) {
+    const showAd = !phaseOver && n >= 1 && fdcamAdGoneFor !== n;
+    if (showAd) {
+      adBox.style.display = 'block';
+      adBox.innerHTML = `<div class="panel fdcam-card fdcam-ad-card">
+    <button type="button" class="pend-close fdcam-ad-x" id="fdcam-ad-x" aria-label="${esc(t('client.close'))}">✕</button>
+    ${fdcamCardInner(false, 'fdcam-ad-join')}
   </div>`;
-  const b = $('fdcam-notify');
-  if (b) b.addEventListener('click', fdCamOpen);
+      paint();
+      const x = $('fdcam-ad-x');
+      if (x) x.addEventListener('click', fdCamAdClose);
+      const j = $('fdcam-ad-join');
+      if (j) j.addEventListener('click', fdCamAdJoin);
+    } else { adBox.style.display = 'none'; adBox.innerHTML = ''; }
+  }
+}
+function fdCamAdClose() {
+  fdcamAdGoneFor = fdcamEntries();
+  const adBox = $('fdcam-ad-box');
+  if (adBox) { adBox.style.display = 'none'; adBox.innerHTML = ''; }
 }
 function fdCamOpen() {
   const fl = $('fdcam-float');
@@ -32930,17 +33019,33 @@ function fdCamClose() {
   fl.classList.add('is-closing');
   setTimeout(() => { fl.style.display = 'none'; fl.classList.remove('is-closing'); fl.classList.remove('is-open'); }, 170);
 }
+/* La escritura del interés, UNA sola para las dos puertas (la
+   hoja de siempre y el anuncio): {fdCamAt} en el propio
+   documento, el patrón de AUTH-071. */
+async function fdCamWriteJoin() {
+  const v = new Date().toISOString();
+  await setDoc(doc(db, 'users', auth.currentUser.uid), { fdCamAt: v }, { merge: true });
+  UDATA = { ...UDATA, fdCamAt: v };
+  trackEvt('fdcam-join');
+}
 async function fdCamJoin() {
   if (!auth.currentUser) return;
   const btn = $('fdcam-join');
   if (btn) btn.disabled = true;
   try {
-    const v = new Date().toISOString();
-    await setDoc(doc(db, 'users', auth.currentUser.uid), { fdCamAt: v }, { merge: true });
-    UDATA = { ...UDATA, fdCamAt: v };
+    await fdCamWriteJoin();
     fdCamClose();
     fdCamRender();
-    trackEvt('fdcam-join');
+    toast(t('fdcam.saved'));
+  } catch (e) { if (btn) btn.disabled = false; failToast(e); }
+}
+async function fdCamAdJoin() {
+  if (!auth.currentUser) return;
+  const btn = $('fdcam-ad-join');
+  if (btn) btn.disabled = true;
+  try {
+    await fdCamWriteJoin();
+    fdCamRender();
     toast(t('fdcam.saved'));
   } catch (e) { if (btn) btn.disabled = false; failToast(e); }
 }
@@ -46170,7 +46275,7 @@ document.addEventListener('keydown', e => { if (e.key === 'Escape') shareClose()
  *  - El SW (sw.js) solo cachea la cáscara del mismo origen en modo
  *    RED PRIMERO: Auth/Firestore/Worker jamás pasan por la caché.
  * ================================================================ */
-const PWA_SW_VERSION = '20261108-fibra-hoja';
+const PWA_SW_VERSION = '20261108-camara-anuncio';
 /* Sello de versión VISIBLE (2026-11-03): el pie de la tarjeta de
    acceso enseña qué copia corre este teléfono ('v ' + el sello),
    para comprobar de un vistazo si la versión nueva ya llegó.
