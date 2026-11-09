@@ -4353,6 +4353,7 @@ body.swap-sheet-open .asst-fab { display: none !important; }
 
 /* ===== Menú semanal del coach de alimentación (AUTH-296) ===== */
 .mm-btn { min-height: 48px; padding: 10px 16px; border-radius: 12px; font-size: 15px; }
+.mm-fill { width: 100%; min-height: 52px; font-size: 16px; margin: 2px 0 10px; }
 .mm-weeknav { align-items: center; justify-content: space-between; gap: 8px; flex-wrap: wrap; }
 .mm-day-h { display: flex; align-items: center; justify-content: space-between; gap: 8px; flex-wrap: wrap; margin-bottom: 6px; }
 .mm-day-t { font-weight: 700; margin: 10px 0 4px; }

@@ -4080,6 +4080,14 @@ en: {
   'menu.makeMine': 'Copy it as my own editable menu',
   'menu.studentOwnLine': 'Your own menu for this week.',
   'menu.changeReason': 'What should change?',
+  'menu.fillDay': 'Fill my day',
+  'menu.fillConfirm': 'This day already has food. Replace it with an auto-filled day from the prepared-meals library?',
+  'menu.filling': 'Filling your day…',
+  'menu.filled': 'Day filled from the prepared-meals library. Check it, edit anything and save.',
+  'menu.fillPartial': 'These moments had no matching prepared meal and were left empty: {list}',
+  'menu.fillNone': 'No prepared meal fits this day with your goals and restrictions. Nothing was changed.',
+  'menu.fillNoLib': 'The prepared-meals library is not available right now. Nothing was changed.',
+  'menu.srcMeal': 'Prepared meal',
   'nutri.consentTitle': 'My food-care data',
   'nutri.consentHint': 'Only with your specific consent, your food coach can see: allergies, intolerances, declared conditions, relevant medications, cultural or religious preferences and vegetarianism. No diagnoses are made in the app: with a condition, you get a referral, never a medical diet.',
   'nutri.consentGive': 'Give my consent and save',
@@ -7789,6 +7797,14 @@ es: {
   'menu.makeMine': 'Copiarlo como mi menú editable',
   'menu.studentOwnLine': 'Tu menú propio de esta semana.',
   'menu.changeReason': '¿Qué debería cambiar?',
+  'menu.fillDay': 'Llenar mi día',
+  'menu.fillConfirm': 'Este día ya tiene alimentos. ¿Lo reemplazo con un día llenado automáticamente desde la biblioteca de comidas preparadas?',
+  'menu.filling': 'Llenando tu día…',
+  'menu.filled': 'Día llenado desde la biblioteca de comidas preparadas. Revísalo, edita lo que quieras y guarda.',
+  'menu.fillPartial': 'Estos momentos no tuvieron una comida preparada que encajara y quedaron vacíos: {list}',
+  'menu.fillNone': 'Ninguna comida preparada encaja en este día con tus metas y restricciones. No se cambió nada.',
+  'menu.fillNoLib': 'La biblioteca de comidas preparadas no está disponible ahora. No se cambió nada.',
+  'menu.srcMeal': 'Comida preparada',
   'nutri.consentTitle': 'Mis datos de alimentación',
   'nutri.consentHint': 'Solo con tu consentimiento específico, tu coach de alimentación puede ver: alergias, intolerancias, condiciones declaradas, medicamentos relevantes, preferencias culturales o religiosas y vegetarianismo. En la app no se hacen diagnósticos: ante una condición, recibes derivación, nunca una dieta médica.',
   'nutri.consentGive': 'Dar mi consentimiento y guardar',
@@ -44756,7 +44772,7 @@ document.addEventListener('keydown', e => { if (e.key === 'Escape') shareClose()
  *  - El SW (sw.js) solo cachea la cáscara del mismo origen en modo
  *    RED PRIMERO: Auth/Firestore/Worker jamás pasan por la caché.
  * ================================================================ */
-const PWA_SW_VERSION = '20261108-menu-coach-f2';
+const PWA_SW_VERSION = '20261108-biblioteca-llenado';
 /* Sello de versión VISIBLE (2026-11-03): el pie de la tarjeta de
    acceso enseña qué copia corre este teléfono ('v ' + el sello),
    para comprobar de un vistazo si la versión nueva ya llegó.
@@ -48860,6 +48876,7 @@ function mmDayHTML(day, di) {
   const wd = weekdayName(day.date), dn = dateName(day.date);
   let h = `<div class="nutri-card mm-day"><div class="mm-day-h"><b>${esc(wd)} ${esc(dn)}</b>
   <div class="nutri-chips">${MM_DAY_TYPES.map(dt => `<button type="button" class="nutri-chip${day.dayType === dt ? ' sel' : ''}" data-mm="dtype" data-d="${di}" data-v="${dt}" ${MENU.readOnly ? 'disabled' : ''}>${esc(t('menu.dayType.' + dt))}</button>`).join('')}</div></div>`;
+  if (!MENU.readOnly) h += `<div class="eval-actions"><button type="button" class="btn-primary mm-btn mm-fill" data-mm="fill-day" data-d="${di}">✨ ${esc(t('menu.fillDay'))}</button></div>`;
   h += day.meals.map((m, mi) => mmMealHTML(day, di, mi)).join('');
   h += `<div class="mm-tot" id="mm-dt-${di}">${mmTotalsHTML(day)}</div></div>`;
   return h;
@@ -49197,6 +49214,168 @@ async function mmClientZoneFill() {
     } catch { z.innerHTML = ''; }
   }
 }
+
+/* ── AUTH-297: biblioteca de comidas preparadas + «Llenar mi día» ──
+   La biblioteca vive en app_settings/prepared_meals (patrón de
+   catálogo de la casa: lectura con sesión; escritura solo por la
+   vía del propietario/script de carga). Cada comida preparada se
+   reconstruyó con ingredientes y gramos concretos y sus totales se
+   CALCULARON desde la tabla verificada de la app (FOOD_REF) más los
+   ingredientes incorporados con valores USDA FDC bajo la misma
+   gobernanza; los números de las recetas de internet NUNCA se
+   copiaron: la receta es solo la plantilla (qué lleva y su origen).
+   Marcas de cada comida: momentos, objetivos (bajar/mantener/ganar),
+   formas derivadas de sus ingredientes (vegetariana, vegana,
+   sin gluten por alérgenos, baja en grasa si ≤30 % de sus kcal
+   vienen de la grasa — ancla AMDR de grasa 20–35 % de las Guías
+   Alimentarias; el punto de corte exacto es decisión de diseño
+   declarada) y origen (cocina + tradicional/adaptada). Sin marca de
+   texturas blandas en la v1: la investigación no encontró plantillas
+   reputadas de dietas de textura modificada. */
+let PM_LIB = null;
+async function pmLoadLib() {
+  if (PM_LIB) return PM_LIB;
+  try {
+    const s = await getDoc(doc(db, 'app_settings', 'prepared_meals'));
+    if (s.exists()) { const d = s.data() || {}; PM_LIB = Array.isArray(d.meals) ? d.meals : []; }
+  } catch {}
+  return PM_LIB;
+}
+/* Filtro duro de la biblioteca: el de la casa (mmBlocked: familia en
+   los «no quiero», alérgenos por metadatos de la tabla y por nombre,
+   texto libre de alergias) MÁS los alérgenos y la familia guardados
+   en el propio ingrediente de la biblioteca. Se aplica a la comida
+   COMPLETA antes de elegir: un solo ingrediente bloqueado excluye
+   la comida entera. */
+function pmItemBlocked(item, wishes) {
+  if (mmBlocked(item, wishes)) return true;
+  if (!wishes) return false;
+  const algs = (item && item.allergens) || [];
+  for (const a of (wishes.allergies || [])) if (algs.includes(a)) return true;
+  if (item && item.family && (wishes.dislikes || []).includes(item.family)) return true;
+  return false;
+}
+function pmMealBlocked(meal, wishes) {
+  return ((meal && meal.items) || []).some(it => pmItemBlocked(it, wishes));
+}
+/* Forma declarada por la persona en su cuestionario: si dejó fuera
+   las cuatro familias de carne y pescado, solo entran comidas
+   vegetarianas; si además dejó fuera huevos y lácteos, solo
+   veganas. Simplificación declarada: se lee SOLO de los «no quiero»
+   del cuestionario (no hay campo de forma aparte). */
+function pmFormWanted(wishes) {
+  const dis = (wishes && wishes.dislikes) || [];
+  if (!['pollo', 'carne', 'pescado', 'cerdo'].every(f => dis.includes(f))) return null;
+  return (dis.includes('huevos') && dis.includes('lacteos')) ? 'vegana' : 'vegetariana';
+}
+function pmCandidates(lib, slotName, goal, wishes, formWanted, usedIds) {
+  return (lib || []).filter(m =>
+    (m.slots || []).includes(slotName) &&
+    (!goal || (m.goals || []).includes(goal)) &&
+    !(usedIds && usedIds.has(m.id)) &&
+    (!formWanted || (m.forms || []).includes(formWanted)) &&
+    !pmMealBlocked(m, wishes));
+}
+function pmScaleItem(base, factor) {
+  let g = (Number(base.grams) || 0) * factor;
+  g = (Number(base.grams) || 0) <= 10 ? Math.max(1, Math.round(g)) : Math.max(5, Math.round(g / 5) * 5);
+  const p = base.per100 || {};
+  return {
+    name: (typeof LANG !== 'undefined' && LANG === 'en') ? (base.nameEn || base.name) : base.name,
+    src: 'meal', refId: base.refId || null, libKey: base.libKey || null, grams: g,
+    per100: { kcal: p.kcal, prot: p.prot, carb: p.carb, sugar: p.sugar, fat: p.fat, fiber: p.fiber != null ? p.fiber : null },
+    family: base.family || null
+  };
+}
+function pmScaledMeal(meal, target) {
+  const baseKcal = (meal.totals && Number(meal.totals.kcal)) || 0;
+  let factor = target && target.kcal && baseKcal > 0 ? Number(target.kcal) / baseKcal : 1;
+  factor = Math.min(2, Math.max(0.5, factor));
+  return (meal.items || []).map(it => pmScaleItem(it, factor));
+}
+function pmScore(items, target) {
+  let kcal = 0, prot = 0, sugar = 0;
+  for (const it of items) { const v = mmVals(it); kcal += v.kcal; prot += v.prot; sugar += v.sugar; }
+  const dk = target && target.kcal ? Math.abs(kcal - target.kcal) / target.kcal : 0;
+  const dp = target && target.prot ? Math.abs(prot - target.prot) / target.prot : 0;
+  let score = dk * 2 + dp;
+  /* El azúcar es techo también al elegir: pasarse de la parte del
+     techo que toca a este momento penaliza la candidatura. */
+  if (target && target.azuc > 0 && sugar > target.azuc) score += ((sugar - target.azuc) / target.azuc) * 1.5;
+  return score;
+}
+function pmPickForSlot(lib, slotName, goal, wishes, formWanted, usedIds, target) {
+  let best = null;
+  for (const m of pmCandidates(lib, slotName, goal, wishes, formWanted, usedIds)) {
+    const items = pmScaledMeal(m, target);
+    const score = pmScore(items, target);
+    if (!best || score < best.score) best = { meal: m, items, score };
+  }
+  return best;
+}
+/* Llena UN día del editor: todos sus momentos según la estructura
+   de la persona (mmMealTarget/mmDayTarget de AUTH-296: el plan
+   aceptado manda; si no, las metas actuales con el motor de la
+   Fase 1). Lo generado cae como contenido normal del menú:
+   editable, sustituible y con la suma del día viva. Este módulo
+   SOLO LEE las metas y la biblioteca; no escribe metas de nadie. */
+async function pmFillDay(di) {
+  if (!MENU || MENU.readOnly) return;
+  const day = MENU.days[di];
+  if (!day) return;
+  if (day.meals.some(m => (m.items || []).length) && !confirm(t('menu.fillConfirm'))) return;
+  toast(t('menu.filling'));
+  const lib = await pmLoadLib();
+  if (!lib || !lib.length) { toast(t('menu.fillNoLib'), true); return; }
+  const wishes = MENU.wishes || null;
+  const goal = wishes && wishes.goal ? wishes.goal : null;
+  const formWanted = pmFormWanted(wishes);
+  const used = new Set();
+  const slotMealIds = day.meals.map(() => null);
+  const missing = [];
+  let filled = 0;
+  for (let mi = 0; mi < day.meals.length; mi++) {
+    const slot = day.meals[mi];
+    const target = MENU.structure ? mmMealTarget(MENU.structure, day.dayType, slot.name) : null;
+    const pick = pmPickForSlot(lib, slot.name, goal, wishes, formWanted, used, target);
+    if (!pick) { slot.items = []; missing.push(mealName(slot.name)); continue; }
+    used.add(pick.meal.id); slotMealIds[mi] = pick.meal.id;
+    slot.items = pick.items; filled++;
+  }
+  /* El azúcar manda como TECHO (criterio OMS de AUTH-296): si el
+     día generado se pasa del techo, se intenta cambiar el momento
+     más dulce por la alternativa menos dulce que mantenga el día
+     dentro de la banda de kcal; si ninguna lo logra, se deja lo
+     generado y la suma del día lo muestra, como siempre. */
+  const dayTgt = MENU.structure ? mmDayTarget(MENU.structure, day.dayType) : null;
+  if (dayTgt && dayTgt.azuc > 0 && filled) {
+    const tot = mmDayTotals(day);
+    if (tot.sugar > dayTgt.azuc) {
+      let si = -1, sv = 0;
+      day.meals.forEach((m, i) => { const s = mmMealTotals(m).sugar; if (s > sv) { sv = s; si = i; } });
+      if (si >= 0 && slotMealIds[si]) {
+        const usedEx = new Set(used); usedEx.delete(slotMealIds[si]);
+        const target = mmMealTarget(MENU.structure, day.dayType, day.meals[si].name);
+        const alts = pmCandidates(lib, day.meals[si].name, goal, wishes, formWanted, usedEx)
+          .map(m => { const items = pmScaledMeal(m, target); return { meal: m, items, sugar: items.reduce((a, it) => a + mmVals(it).sugar, 0) }; })
+          .sort((a, b) => a.sugar - b.sugar);
+        for (const alt of alts) {
+          const oldItems = day.meals[si].items;
+          day.meals[si].items = alt.items;
+          const tt = mmDayTotals(day);
+          const inBand = !dayTgt.kcal || (tt.kcal >= dayTgt.kcal * (1 - MM_TOL) && tt.kcal <= dayTgt.kcal * (1 + MM_TOL));
+          if (tt.sugar < tot.sugar && inBand) { used.delete(slotMealIds[si]); used.add(alt.meal.id); slotMealIds[si] = alt.meal.id; break; }
+          day.meals[si].items = oldItems;
+        }
+      }
+    }
+  }
+  mmPaintEditor();
+  if (!filled) { toast(t('menu.fillNone'), true); return; }
+  toast(t('menu.filled'));
+  if (missing.length) setTimeout(() => toast(t('menu.fillPartial', { list: missing.join(', ') }), true), 60);
+}
+
 /* Delegación única de clics del paquete (data-mm). */
 document.addEventListener('click', async e => {
   const b = e.target && e.target.closest ? e.target.closest('[data-mm]') : null;
@@ -49223,6 +49402,8 @@ document.addEventListener('click', async e => {
   } else if (act === 'dtype') {
     if (MENU.readOnly) return;
     MENU.days[d].dayType = b.dataset.v; mmPaintEditor();
+  } else if (act === 'fill-day') {
+    await pmFillDay(d);
   } else if (act === 'add-open') {
     MENU.search = { d, m, q: '' }; MENU.swap = null; mmPaintEditor();
   } else if (act === 'search-close') { MENU.search = null; mmPaintEditor(); }
