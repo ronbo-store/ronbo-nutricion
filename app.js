@@ -47545,9 +47545,32 @@ function shareTodayData() {
     try { di = trainRotationNext(plan, (typeof MY_LOGS !== 'undefined' && Array.isArray(MY_LOGS)) ? MY_LOGS : [], iso); } catch (e) { di = null; }
   }
   const rows = [];
-  if (plan && di != null && Array.isArray(plan.days) && plan.days[di]) {
+  /* AUTH-342 — LA SESIÓN ARMADA A MANO TAMBIÉN SALE EN LA TARJETA:
+     el día de las filas se resuelve como lo resuelve la vista de
+     Entrenamiento (trainTodayDiEffective, la misma fuente). Si el
+     motor de metas mapea un día del plan que no es día libre
+     asignado, ese día manda, como siempre. Si hoy no hay día de
+     plan (el plan empieza otro día, hoy no toca, o el día mapeado
+     es libre asignado), manda la base de sesión del día: un día
+     traído (brought) pinta ese día del plan con las ediciones de
+     hoy, y un día entrenado suelto (extra) pinta la lista efectiva
+     en −1 — exactamente los ejercicios agregados a mano, con sus
+     series/repeticiones y su «última vez» como en un día de plan.
+     Sin plan, la sesión suelta se lee bajo el mismo plan sintético
+     «suelta» de la vista. Sin base ni agregados no hay filas y la
+     tarjeta pinta su texto vacío de siempre. La caja del tipo de
+     día y la nota de carbohidratos NO se tocan: siguen saliendo
+     de det (el motor de metas), como hoy. */
+  let diRows = di;
+  if (plan && diRows != null && !(Array.isArray(plan.days) && plan.days[diRows])) diRows = null;
+  if (plan && (diRows == null || plan.days[diRows].freeDay === true)) {
+    try { diRows = trainTodayDiEffective(plan, di); } catch (e) { diRows = null; }
+  }
+  const planRows = plan || { id: 'suelta', days: [] };
+  if (!plan) { try { diRows = trainTodayDiEffective(planRows, null); } catch (e) { diRows = null; } }
+  if (diRows != null && (diRows === -1 || (Array.isArray(planRows.days) && planRows.days[diRows]))) {
     const loads = shareTodayLastLoads(iso);
-    trainEffectiveList(plan, di, iso).forEach(it => {
+    trainEffectiveList(planRows, diRows, iso).forEach(it => {
       const ex = it && it.ex; if (!ex) return;
       const name = trainExName(ex) || ex.name || '';
       const key = ex.exerciseId ? 'id:' + ex.exerciseId : ('nm:' + goalsNorm(name));
@@ -49028,7 +49051,7 @@ document.addEventListener('keydown', e => { if (e.key === 'Escape') shareClose()
  *  - El SW (sw.js) solo cachea la cáscara del mismo origen en modo
  *    RED PRIMERO: Auth/Firestore/Worker jamás pasan por la caché.
  * ================================================================ */
-const PWA_SW_VERSION = '20261109-plan-rapido';
+const PWA_SW_VERSION = '20261109-tarjeta-manual';
 /* Sello de versión VISIBLE (2026-11-03): el pie de la tarjeta de
    acceso enseña qué copia corre este teléfono ('v ' + el sello),
    para comprobar de un vistazo si la versión nueva ya llegó.
