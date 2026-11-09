@@ -20365,8 +20365,11 @@ function gmiBarHTML(m, val, goal, inWindow) {
    con el campo aparte `goalsFib` como respaldo, y lo consumido de
    fiberDayStats sobre las comidas del día pintado — los mismos
    gramos que suma la barra de Inicio. Sin ninguna comida con dato,
-   estado honesto con la meta (glance.fibNone), jamás un 0 pintado;
-   con dato parcial, la fila lo dice (glance.fibPart); sin meta
+   la fila se pinta en cero como las demás barras («0 / meta g»)
+   — regla de Ronald del 2026-11-09 («cuando no hayan datos,
+   simplemente que aparezca en cero»), que sustituye al texto de
+   «sin dato» con el que la fila nació en AUTH-313 —; con dato
+   parcial, la fila lo dice (glance.fibPart); sin meta
    derivada ni sello, la fila no nace. El color #92400E es el de la
    barra de Inicio (ámbar oscuro, tono trigo). */
 function gmiFiberBarHTML(d) {
@@ -20376,7 +20379,7 @@ function gmiFiberBarHTML(d) {
   const st = (typeof fiberDayStats === 'function' && typeof MEALS !== 'undefined' && MEALS) ? fiberDayStats(MEALS[d.iso] || []) : { meals: 0, withFiber: 0, grams: 0 };
   const head = `<span class="gmi-dot" style="background:#92400E"></span><span class="gmi-bar-name">${esc(t('metric.fib'))}</span>`;
   if (!(st.withFiber > 0)) {
-    return `<div class="gmi-bar"><div class="gmi-bar-top">${head}<span class="gmi-bar-nums">${esc(t('glance.fibNone', { goal: fmt(goal) }))}</span></div><div class="gmi-bar-track"><div class="gmi-bar-fill" style="width:0%;background:#92400E"></div></div></div>`;
+    return `<div class="gmi-bar"><div class="gmi-bar-top">${head}<span class="gmi-bar-nums">${fmt(0)} / ${fmt(goal)} g</span></div><div class="gmi-bar-track"><div class="gmi-bar-fill" style="width:0%;background:#92400E"></div></div></div>`;
   }
   const pct = Math.round(st.grams / goal * 100);
   const w = Math.max(0, Math.min(pct, 100));
@@ -20513,7 +20516,10 @@ function fusedBarsHTML(c) {
    presentación que Ronald tocó el 2026-11-08 («Barra, como la de
    proteína»), NO un anillo. Con dato parcial, los gramos son solo
    de las comidas que lo traen y la fila lo dice ({n} de {m}); sin
-   ningún dato, estado honesto con la meta, jamás un 0 pintado.
+   ningún dato, la fila se pinta en cero como las demás («0 / meta g»)
+   — regla de Ronald del 2026-11-09 («cuando no hayan datos,
+   simplemente que aparezca en cero»), que sustituye al texto de
+   «sin dato» con el que nació en AUTH-310.
    Sin meta derivada (cuenta sin metas), la fila no nace. El color
    #92400E (ámbar oscuro, tono trigo) es decisión de diseño para
    distinguirla del ámbar de los carbos (#F59E0B). */
@@ -20525,7 +20531,7 @@ function fusedFiberBarHTML(c) {
     w = Math.max(0, Math.min(st.grams / c.fibGoal * 100, 100));
     valTxt = `${fmt(st.grams)} / ${fmt(c.fibGoal)} g` + (st.withFiber < st.meals ? ' ' + t('glance.fibPart', { n: st.withFiber, m: st.meals }) : '');
   } else {
-    valTxt = t('glance.fibNone', { goal: fmt(c.fibGoal) });
+    valTxt = `${fmt(0)} / ${fmt(c.fibGoal)} g`;
   }
   return `<div class="dg-macro"><span class="dg-macro-name">${t('metric.fib')}</span><span class="dg-macro-bar"><span class="dg-macro-fill" style="width:${w.toFixed(1)}%;background:#92400E"></span></span><span class="dg-macro-val">${valTxt}</span></div>`;
 }
@@ -46331,7 +46337,7 @@ document.addEventListener('keydown', e => { if (e.key === 'Escape') shareClose()
  *  - El SW (sw.js) solo cachea la cáscara del mismo origen en modo
  *    RED PRIMERO: Auth/Firestore/Worker jamás pasan por la caché.
  * ================================================================ */
-const PWA_SW_VERSION = '20261109-mascota-todas';
+const PWA_SW_VERSION = '20261109-sin-datos-cero';
 /* Sello de versión VISIBLE (2026-11-03): el pie de la tarjeta de
    acceso enseña qué copia corre este teléfono ('v ' + el sello),
    para comprobar de un vistazo si la versión nueva ya llegó.
