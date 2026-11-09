@@ -8,7 +8,7 @@ import {
 import {
   getFirestore, initializeFirestore, persistentLocalCache, persistentMultipleTabManager, CACHE_SIZE_UNLIMITED,
   doc, getDoc as _fsGetDoc, getDocFromServer as _fsGetDocFromServer, collection, getDocs as _fsGetDocs, getDocsFromServer as _fsGetDocsFromServer, addDoc,
-  setDoc, updateDoc, deleteDoc, deleteField, serverTimestamp, Timestamp, query, where, limit, writeBatch, onSnapshot as _fsOnSnapshot,
+  setDoc, updateDoc, deleteDoc, deleteField, serverTimestamp, Timestamp, query, where, limit, writeBatch, runTransaction, onSnapshot as _fsOnSnapshot,
 } from "firebase/firestore";
 import {
   getStorage, ref as sRef, uploadBytes, getDownloadURL, deleteObject,
@@ -2587,7 +2587,8 @@ function careCompute(tUid, X, nowMs, th) {
         if (l.date >= w7a && l.date <= today) { satSum7 += v; R.satN7++; }
         if (l.date >= w30a && l.date <= today) { satSum30 += v; R.satN30++; }
       }
-      if (!l.done) return;
+      const cst = trainLogStatus(l);
+      if (cst !== 'done' && cst !== 'partial') return;
       if (l.date >= w7a && l.date <= today) { R.done7++; per.done7++; }
       if (l.date >= w30a && l.date <= today) { R.done30++; R.logsN30++; }
       if (l.date >= idleA && l.date <= today) doneIdle++;
@@ -2751,7 +2752,7 @@ async function careGather(scopeUid) {
     await inChunks('nutrition_weight', 'ownerUid', studentIds, v => { if (v.ownerUid && num(v.weight) > 0 && v.date) { (wdates[v.ownerUid] = wdates[v.ownerUid] || []).push({ date: v.date, weight: num(v.weight) }); (wByUid[v.ownerUid] = wByUid[v.ownerUid] || []).push(v.date); } });
     await inChunks('meal_help', 'ownerUid', studentIds, v => { if (v.status === 'pending' && v.ownerUid) (foodItems[v.ownerUid] = foodItems[v.ownerUid] || []).push({ id: v.id, createdAt: v.createdAt || null }); });
     await inChunks('nutrition_meals', 'ownerUid', studentIds, v => { if (v.ownerUid && v.date) (mealDatesByUid[v.ownerUid] = mealDatesByUid[v.ownerUid] || []).push(v.date); });
-    await inChunks('training_logs', 'clientUid', studentIds, v => { if (v.clientUid) (logsByUid[v.clientUid] = logsByUid[v.clientUid] || []).push({ date: v.date, done: v.done === true, satisfaction: v.satisfaction }); });
+    await inChunks('training_logs', 'clientUid', studentIds, v => { if (v.clientUid) (logsByUid[v.clientUid] = logsByUid[v.clientUid] || []).push({ date: v.date, done: v.done === true, status: v.status || null, satisfaction: v.satisfaction }); });
     await inChunks('training_plans', 'clientUid', studentIds, v => { allPlans.push(v); });
   } else {
     const ws = await getDocs(collection(db, 'nutrition_weight'));
@@ -2761,7 +2762,7 @@ async function careGather(scopeUid) {
     const ms2 = await getDocs(collection(db, 'nutrition_meals'));
     ms2.forEach(d => { const v = d.data(); if (v.ownerUid && v.date) (mealDatesByUid[v.ownerUid] = mealDatesByUid[v.ownerUid] || []).push(v.date); });
     const ls = await getDocs(collection(db, 'training_logs'));
-    ls.forEach(d => { const v = d.data(); if (v.clientUid) (logsByUid[v.clientUid] = logsByUid[v.clientUid] || []).push({ date: v.date, done: v.done === true, satisfaction: v.satisfaction }); });
+    ls.forEach(d => { const v = d.data(); if (v.clientUid) (logsByUid[v.clientUid] = logsByUid[v.clientUid] || []).push({ date: v.date, done: v.done === true, status: v.status || null, satisfaction: v.satisfaction }); });
     const pl = await getDocs(collection(db, 'training_plans'));
     pl.forEach(d => { allPlans.push({ id: d.id, ...d.data() }); });
   }
@@ -14027,6 +14028,24 @@ function renderClientsViewbar() {
     renderClientsViewbar(); renderClientsBody();
   });
 }
+/* F-07 (auditoría de cálculos 2026-11-06): las consultas «in»
+   de Firestore admiten 30 valores; las listas de alumnos/clientes
+   trocean TODOS los ids en bloques de 30 y fusionan los
+   documentos, para que el alumno 31+ también cargue. */
+function chunk30(ids) {
+  const out = [];
+  for (let i = 0; i < (ids || []).length; i += 30) out.push(ids.slice(i, i + 30));
+  return out;
+}
+async function getDocsInChunks30(collName, field, ids) {
+  const docs = [];
+  for (const part of chunk30(ids)) {
+    if (!part.length) continue;
+    const s = await getDocs(query(collection(db, collName), where(field, 'in', part)));
+    s.forEach(d => docs.push(d));
+  }
+  return docs;
+}
 async function loadClients() {
   const sec = $('clients-section');
   if (ROLE === 'usuario') { sec.style.display = 'none'; return; }
@@ -14052,7 +14071,7 @@ async function loadClients() {
   try {
     const clientIds = clients.map(u => u.id);
     const ws = (ROLE === 'entrenador' && clientIds.length)
-      ? await getDocs(query(collection(db, 'nutrition_weight'), where('ownerUid', 'in', clientIds.slice(0, 30))))
+      ? await getDocsInChunks30('nutrition_weight', 'ownerUid', clientIds)
       : await getDocs(collection(db, 'nutrition_weight'));
     ws.forEach(d => { const v = d.data();
       if (v.ownerUid && num(v.weight) > 0) weights.push({ uid: v.ownerUid, date: v.date, weight: num(v.weight) }); });
@@ -14064,7 +14083,7 @@ async function loadClients() {
   try {
     const clientIds2 = clients.map(u => u.id);
     const fs = (ROLE === 'entrenador' && clientIds2.length)
-      ? await getDocs(query(collection(db, 'meal_help'), where('ownerUid', 'in', clientIds2.slice(0, 30))))
+      ? await getDocsInChunks30('meal_help', 'ownerUid', clientIds2)
       : await getDocs(collection(db, 'meal_help'));
     fs.forEach(d => { const v = d.data();
       if (v.status === 'pending' && v.ownerUid) { pendingFood[v.ownerUid] = (pendingFood[v.ownerUid] || 0) + 1; (foodItemsByUid[v.ownerUid] = foodItemsByUid[v.ownerUid] || []).push({ id: d.id, createdAt: v.createdAt || null }); } });
@@ -16444,7 +16463,7 @@ async function loadStudents() {
     const out = []; let ok = true;
     try {
       if (ids.length) {
-        const ws = await getDocs(query(collection(db, 'nutrition_weight'), where('ownerUid', 'in', ids.slice(0, 30))));
+        const ws = await getDocsInChunks30('nutrition_weight', 'ownerUid', ids);
         ws.forEach(d => { const v = d.data();
           if (v.ownerUid && num(v.weight) > 0) out.push({ uid: v.ownerUid, date: v.date, weight: num(v.weight) }); });
       }
@@ -16455,7 +16474,7 @@ async function loadStudents() {
     const pending = {}, items = {}; let ok = true;
     try {
       if (ids.length) {
-        const fs = await getDocs(query(collection(db, 'meal_help'), where('ownerUid', 'in', ids.slice(0, 30))));
+        const fs = await getDocsInChunks30('meal_help', 'ownerUid', ids);
         fs.forEach(d => { const v = d.data();
           if (v.status === 'pending' && v.ownerUid) {
             pending[v.ownerUid] = (pending[v.ownerUid] || 0) + 1;
@@ -18403,6 +18422,48 @@ function adhCardWire(root) {
     if (chev) chev.textContent = ADH_CARD_OPEN ? '▴' : '▾';
   };
 }
+/* F-16 (auditoría de cálculos 2026-11-06): el plan que regía en
+   una semana — entre los planes del alumno (sin instantáneas), el
+   cuyo rango [startsAt, endsAt] alcanza esa semana; sin endsAt el
+   rango queda abierto, y sin startsAt también. Si varios alcanzan
+   la semana, manda el de arranque más tardío (y, a igualdad, el
+   creado más tarde). Ningún plan la alcanza → null. */
+function adhPlanForWeek(plans, wStart, wEnd) {
+  const list = (Array.isArray(plans) ? plans : []).filter(p => p && p.isSnapshot !== true && Array.isArray(p.days) && p.days.length);
+  const covers = list.filter(p => {
+    const s = p.startsAt ? String(p.startsAt).slice(0, 10) : null;
+    const e = p.endsAt ? String(p.endsAt).slice(0, 10) : null;
+    if (s && /^\d{4}-\d{2}-\d{2}$/.test(s) && s > wEnd) return false;
+    if (e && /^\d{4}-\d{2}-\d{2}$/.test(e) && e < wStart) return false;
+    return true;
+  });
+  if (!covers.length) return null;
+  covers.sort((a, b) => {
+    const sa = a.startsAt ? String(a.startsAt).slice(0, 10) : '', sb = b.startsAt ? String(b.startsAt).slice(0, 10) : '';
+    if (sa !== sb) return sa < sb ? -1 : 1;
+    return (tsMs(a.createdAt) || 0) - (tsMs(b.createdAt) || 0);
+  });
+  return covers[covers.length - 1];
+}
+/* F-16: las «hechas» de la adherencia cuentan SOLO en días
+   planeados de esa semana (con el plan de esa semana, resuelto
+   día a día con careDayFor); una sesión fuera de plan no infla el
+   numerador. doneAll conserva el conteo bruto de la semana para
+   la lectura sin plan / en rotación, como hasta hoy. */
+function adhWeekExercise(plans, cfg, doneDates, w) {
+  let doneAll = 0;
+  for (let d = w.start; d <= w.end; d = planISOAddDays(d, 1)) if (doneDates.has(d)) doneAll++;
+  const plan = adhPlanForWeek(plans, w.start, w.end);
+  if (!plan) return { hasPlan: false, rotation: false, done: 0, doneAll, planned: 0, plan: null };
+  let done = 0, planned = 0, rotation = false;
+  for (let d = w.start; d <= w.end; d = planISOAddDays(d, 1)) {
+    const r = careDayFor(plan, cfg, d);
+    if (r.mode === 'rotation') { rotation = true; continue; }
+    if (r.idx != null) { planned++; if (doneDates.has(d)) done++; }
+  }
+  if (rotation) return { hasPlan: true, rotation: true, done: doneAll, doneAll, planned: 0, plan };
+  return { hasPlan: true, rotation: false, done, doneAll, planned, plan };
+}
 async function adhLoadTrainerCard(uid, udata, weights) {
   const box = $('adh-card'); if (!box) return;
   const consents = (udata && udata.activityConsents) || {};
@@ -18433,22 +18494,18 @@ async function adhLoadTrainerCard(uid, udata, weights) {
         getDoc(doc(db, 'nutrition_progress', uid + '_pendconfig'))
       ]);
       const doneDates = new Set();
-      logsSnap.forEach(d => { const v = d.data(); if (v && v.done === true && inWin(v.date)) doneDates.add(v.date); });
-      let plan = null;
-      plansSnap.forEach(d => { const v = { id: d.id, ...d.data() };
-        if (v.active === true && v.isSnapshot !== true && (!plan || (tsMs(v.createdAt) || 0) >= (tsMs(plan.createdAt) || 0))) plan = v; });
+      logsSnap.forEach(d => { const v = d.data(); if (v && inWin(v.date)) { const st = trainLogStatus(v); if (st === 'done' || st === 'partial') doneDates.add(v.date); } });
+      const allPlans = [];
+      plansSnap.forEach(d => { const v = { id: d.id, ...d.data() }; if (v.isSnapshot !== true && Array.isArray(v.days) && v.days.length) allPlans.push(v); });
       const cfg = cfgSnap.exists() ? Object.assign(pendDefaults(), cfgSnap.data()) : null;
       weeks.forEach((w, wi) => {
-        let done = 0, planned = 0;
-        for (let d = w.start; d <= w.end; d = planISOAddDays(d, 1)) {
-          if (doneDates.has(d)) done++;
-          if (plan) { const r = careDayFor(plan, cfg, d); if (r.mode === 'rotation') rotation = true; else if (r.idx != null) planned++; }
-        }
-        perWeek[wi].cells.exercise = !plan
-          ? (done ? t('adh.exerciseNoPlan', { done }) : t('adh.empty'))
-          : (rotation && planned === 0
-              ? (done ? t('adh.exerciseNoPlan', { done }) : t('adh.empty'))
-              : t('adh.exerciseVal', { done, planned }));
+        const r = adhWeekExercise(allPlans, cfg, doneDates, w);
+        if (r.rotation) rotation = true;
+        perWeek[wi].cells.exercise = !r.hasPlan
+          ? (r.doneAll ? t('adh.exerciseNoPlan', { done: r.doneAll }) : t('adh.empty'))
+          : (r.rotation && r.planned === 0
+              ? (r.done ? t('adh.exerciseNoPlan', { done: r.done }) : t('adh.empty'))
+              : t('adh.exerciseVal', { done: r.done, planned: r.planned }));
       });
     }
     if (on('weight')) {
@@ -19082,6 +19139,11 @@ function goalsCoreCompute(inp) {
     const cnd = condOf('kcal') || condOf('deficit') || '';
     if (!held.has('carb')) addHeld('carb', cnd);
     if (!held.has('gras')) addHeld('gras', cnd);
+    /* F-08: sin base calórica la proteína tampoco se escribe (la
+       cascada falla cerrada y deja las cinco metas sin escribir):
+       que conste como retenida, con su condición, en la
+       procedencia y en la alerta — no desaparece en silencio. */
+    if (!held.has('prot')) addHeld('prot', cnd);
   } else if (held.has('prot')) {
     /* §E renal: sin proteína escrita no se puede repartir el resto. */
     const cnd = condOf('prot');
@@ -20070,9 +20132,15 @@ async function waterAddToday(addMl) {
   const uid = auth.currentUser && auth.currentUser.uid; if (!uid) return null;
   try {
     const ref = doc(db, 'nutrition_water', uid + '_' + todayISO());
-    const cur = await getDoc(ref);
-    const total = (cur.exists() ? (Number(cur.data().ml) || 0) : 0) + addMl;
-    await setDoc(ref, { studentUid: uid, date: todayISO(), ml: total, byUid: uid, byRole: 'alumno', updatedAt: serverTimestamp() }, { merge: true });
+    /* F-29: suma ATÓMICA — la lectura y la escritura viven dentro
+       de una transacción de Firestore; dos toques casi simultáneos
+       (dos superficies o dos dispositivos) ya no se pisan. */
+    const total = await runTransaction(db, async tx => {
+      const cur = await tx.get(ref);
+      const t2 = (cur.exists() ? (Number(cur.data().ml) || 0) : 0) + addMl;
+      tx.set(ref, { studentUid: uid, date: todayISO(), ml: t2, byUid: uid, byRole: 'alumno', updatedAt: serverTimestamp() }, { merge: true });
+      return t2;
+    });
     FUSED_WATER = { date: todayISO(), ml: total };
     const lab = $('dg-water-ml'); if (lab) lab.textContent = total + ' ml';
     const lab2 = $('nutri-water-ml'); if (lab2) lab2.textContent = total + ' ml';
@@ -29279,9 +29347,9 @@ async function dictMicTranscribe(dataUrl) {
    con la duración sugerida. Los sellos viven en localStorage por
    usuario|plan|fecha porque las sesiones de página son largas y la
    memoria no basta. Redes de seguridad del propio mecanismo: si no
-   se pulsó INICIAR, la primera marca arranca el reloj; si se olvida
-   TERMINAR, la duración sugerida se corta en la última marca (el
-   reloj nunca corre «para siempre» dentro de la sugerencia). */
+   se pulsó INICIAR, la primera marca arranca el reloj; mientras el
+   reloj sigue corriendo, la sugerencia al cerrar mide hasta el
+   instante del cierre (F-39), con el tope de 240 minutos. */
 function trainChronoKey(planId) {
   const uid = auth.currentUser ? auth.currentUser.uid : '';
   return 'ronbofit-chrono-' + uid + '|' + planId + '|' + todayISO();
@@ -29332,12 +29400,16 @@ function trainChronoTouch(planId, label) {
   if (c) { c.last = now; trainChronoWrite(planId, c); }
   else if (!trainChronoAnyToday(planId)) trainChronoWrite(planId, { start: now, last: now, label: label || '' });
 }
-/* Minutos sugeridos al cerrar: última marca − inicio (D1 híbrida +
-   Anexo 2). Más de 240 se recorta a 240 y se avisa (capped). */
+/* Minutos sugeridos al cerrar (D1 híbrida + Anexo 2): si el reloj
+   sigue corriendo al cerrar — su registro solo existe mientras
+   corre — la sugerencia mide hasta el instante del cierre, no
+   hasta la última interacción (F-39). Más de 240 se recorta a
+   240 y se avisa (capped). */
 function trainChronoSuggestion(planId) {
   const c = trainChronoRead(planId);
   if (!c) return null;
-  const raw = Math.max(1, Math.round((c.last - c.start) / 60000));
+  const end = Math.max(c.last, Date.now());
+  const raw = Math.max(1, Math.round((end - c.start) / 60000));
   return { min: Math.min(raw, 240), capped: raw > 240 };
 }
 /* BOTONES DEL CRONÓMETRO A LOS LATERALES (AUTH-036, 2026-10-27):
@@ -31281,7 +31353,10 @@ function trainLastTimeSession(ex, allLogs, excludeIso) {
   const stdIdx = varsH ? varsH.findIndex(v => v && v.es_estandar) : -1;
   const viEx = ex && Number.isInteger(ex.variantIndex) ? ex.variantIndex : null;
   const viActive = !!(varsH && viEx != null && varsH[viEx] && !varsH[viEx].es_estandar);
-  const logs = Array.isArray(allLogs) ? allLogs : [];
+  /* F-37: la búsqueda ordena ELLA MISMA por fecha descendente;
+     no depende del orden de carga de MY_LOGS_ALL. */
+  const logs = (Array.isArray(allLogs) ? [...allLogs] : []).sort((a, b) => String((b && b.date) || '').localeCompare(String((a && a.date) || '')));
+  let legacyFallback = null;
   for (const log of logs) {
     if (!log || (excludeIso && log.date === excludeIso)) continue;
     const st = trainLogStatus(log);
@@ -31298,13 +31373,17 @@ function trainLastTimeSession(ex, allLogs, excludeIso) {
         else if (ev !== null && ev !== stdIdx) continue;
       }
       const sets = Array.isArray(e.sets) ? e.sets : null;
-      if (!sets) return { legacy: true, date: log.date };
+      /* F-37: una aparición v1 sin series NO tapa la búsqueda:
+         se recuerda como respaldo y se sigue hacia atrás hasta
+         dar con una anterior CON series (misma regla de
+         variantes); solo si no hay ninguna vale el respaldo. */
+      if (!sets) { if (!legacyFallback) legacyFallback = { legacy: true, date: log.date }; continue; }
       const withData = sets.filter(s => s && (typeof s.loadKg === 'number' || (s.repsDone != null && s.repsDone !== '')));
       if (!withData.length) continue;
       return { legacy: false, date: log.date, sets: withData };
     }
   }
-  return null;
+  return legacyFallback;
 }
 /* La carga TAL COMO QUEDÓ REGISTRADA: lo tecleado con su unidad
    verdadera (loadOriginal + loadUnitOriginal — el mismo par que
@@ -36558,7 +36637,7 @@ function glanceFocusMeal(mealName) {
 /* ================= RENDER (igual que la versión anterior) ================= */
 function totals(date) {
   const t = { kcal: 0, prot: 0, carb: 0, azuc: 0, gras: 0 };
-  (MEALS[date] || []).forEach(m => { t.kcal += m.kcal; t.prot += m.prot; t.carb += m.carb; t.azuc += m.sugar; t.gras += m.fat; });
+  (MEALS[date] || []).forEach(m => { t.kcal += num(m.kcal); t.prot += num(m.prot); t.carb += num(m.carb); t.azuc += num(m.sugar); t.gras += num(m.fat); });
   return t;
 }
 /* FIBRA (Fase 1, 2026-11-05; plan aprobado por Ronald ese día
@@ -37334,6 +37413,21 @@ function renderActConfig() {
    resumen de movimiento, vista del día (base + extras = total;
    el plan «aún sin estimar») y vista habitual separada. El
    ingreso ya NO vive aquí: vive en los hobbies flotantes. */
+/* F-12 (auditoría de cálculos 2026-11-06): con la evaluación
+   marcada «anterior», el total de referencia (TDEE viejo + extras
+   con peso nuevo) NO se pinta como cifra corriente: se pintan los
+   extras del día y el aviso de base desactualizada (bloqueo de la
+   cifra, no recálculo — sin la evaluación nueva no hay datos para
+   recalcular). Con evaluación vigente, la vista es la de siempre. */
+function actDayBaseHtml(base, extras) {
+  if (!base.ok) return `<p class="act-note">${t('act.dayNoBase')}</p>
+      <div class="act-line"><span>${t('act.dayExtra')}</span><b>${fmt(Math.round(extras))} ${t('act.kcalUnit')}</b></div>`;
+  if (base.stale) return `<div class="act-line"><span>${t('act.dayExtra')}</span><b>+ ${fmt(Math.round(extras))} ${t('act.kcalUnit')}</b></div>
+      <p class="act-note">${t('act.staleTag')}</p>`;
+  return `<div class="act-line"><span>${t('act.dayBase')}</span><b>${fmt(Math.round(base.tdee))} ${t('act.kcalUnit')}</b></div>
+      <div class="act-line"><span>${t('act.dayExtra')}</span><b>+ ${fmt(Math.round(extras))} ${t('act.kcalUnit')}</b></div>
+      <div class="act-line act-total"><span>${t('act.dayTotalRef')}</span><b id="act-day-total">${fmt(Math.round(base.tdee + extras))} ${t('act.kcalUnit')}</b></div>`;
+}
 function renderActDay(date) {
   const box = $('act-day-body'); if (!box) return;
   const dEl = $('act-day-date'); if (dEl) dEl.textContent = dateName(date);
@@ -37351,13 +37445,7 @@ function renderActDay(date) {
       <button type="button" class="btn-ghost btn-sm" data-actd-del="${i}">${t('act.del')}</button>
     </div>${a.type === 'otro' ? `<div class="act-row-note">${t('act.otherWarn')}</div>` : ''}${a.notes ? `<div class="act-row-note">${esc(a.notes)}</div>` : ''}`).join('')
     : `<div class="wempty compact">${t('act.empty')}</div>`;
-  const dayHtml = base.ok ? `
-      <div class="act-line"><span>${t('act.dayBase')}</span><b>${fmt(Math.round(base.tdee))} ${t('act.kcalUnit')}</b></div>
-      <div class="act-line"><span>${t('act.dayExtra')}</span><b>+ ${fmt(Math.round(v.extras))} ${t('act.kcalUnit')}</b></div>
-      <div class="act-line act-total"><span>${t('act.dayTotalRef')}</span><b id="act-day-total">${fmt(Math.round(base.tdee + v.extras))} ${t('act.kcalUnit')}</b></div>
-      ${base.stale ? `<p class="act-note">${t('act.staleTag')}</p>` : ''}`
-    : `<p class="act-note">${t('act.dayNoBase')}</p>
-      <div class="act-line"><span>${t('act.dayExtra')}</span><b>${fmt(Math.round(v.extras))} ${t('act.kcalUnit')}</b></div>`;
+  const dayHtml = actDayBaseHtml(base, v.extras);
   /* PUENTE: si la sesión ya volcó su gasto, su desglose vive en la
      sección del quemado y la línea «gasto aún sin estimar» no se
      pinta (ya no sería verdad). */
@@ -37664,13 +37752,13 @@ async function loadAllKeepDate(date) {
 function weightChartSVG(data) {
   const W = 640, H = 260, P = { l: 46, r: 46, t: 18, b: 30 };
   const iw = W - P.l - P.r, ih = H - P.t - P.b;
-  const pesos = data.map(d => d.weight);
+  const pesos = data.map(d => massToDisplay(d.weight));
   let mn = Math.min(...pesos), mx = Math.max(...pesos);
   if (mn === mx) { mn -= 1; mx += 1; }
   const pad = (mx - mn) * 0.25; mn -= pad; mx += pad;
   const X = i => P.l + (data.length === 1 ? iw / 2 : (i / (data.length - 1)) * iw);
   const Y = v => P.t + ih - ((v - mn) / (mx - mn)) * ih;
-  const pts = data.map((d, i) => `${X(i).toFixed(1)},${Y(d.weight).toFixed(1)}`).join(' ');
+  const pts = data.map((d, i) => `${X(i).toFixed(1)},${Y(massToDisplay(d.weight)).toFixed(1)}`).join(' ');
   let grasaLine = '', grasaDots = '';
   const grasas = data.map(d => d.fat).filter(g => g > 0);
   if (grasas.length >= 2) {
@@ -37683,8 +37771,8 @@ function weightChartSVG(data) {
       ? `<circle cx="${X(i)}" cy="${GY(d.fat)}" r="4" fill="#A855F7"><title>Grasa ${d.fat}% · ${dateName(d.date)}</title></circle>` : '').join('');
   }
   const dots = data.map((d, i) =>
-    `<circle cx="${X(i)}" cy="${Y(d.weight)}" r="5" fill="#0d9488" stroke="#fff" stroke-width="2"><title>${d.weight} kg · ${dateName(d.date)}</title></circle>
-     <text x="${X(i)}" y="${Y(d.weight) - 10}" text-anchor="middle" font-size="11" font-weight="700" fill="#0f766e">${d.weight}</text>
+    `<circle cx="${X(i)}" cy="${Y(massToDisplay(d.weight))}" r="5" fill="#0d9488" stroke="#fff" stroke-width="2"><title>${fmtMass(d.weight)} · ${dateName(d.date)}</title></circle>
+     <text x="${X(i)}" y="${Y(massToDisplay(d.weight)) - 10}" text-anchor="middle" font-size="11" font-weight="700" fill="#0f766e">${fmtMassVal(d.weight)}</text>
      <text x="${X(i)}" y="${H - 8}" text-anchor="middle" font-size="10" fill="#9ca3af">${shortDate(d.date)}</text>`).join('');
   const grid = [0, 0.5, 1].map(f => {
     const v = mn + (mx - mn) * f, y = Y(v);
@@ -37983,8 +38071,14 @@ function progressUploadDate() {
    el silencio). La declaración de salud NO alimenta la frase.
    ================================================================ */
 function wkIsClosed(l) {
-  if (!l || !Array.isArray(l.exercisesDone) || !l.exercisesDone.length) return false;
-  return l.status === 'done' || l.status === 'partial' || (l.status == null && l.done === true);
+  if (!l) return false;
+  const st = trainLogStatus(l);
+  if (st !== 'done' && st !== 'partial') return false;
+  if (Array.isArray(l.exercisesDone) && l.exercisesDone.length) return true;
+  /* F-11: el legado v1 «done» sin ejercicios SÍ es sesión cerrada
+     (sin minutos si no trae duración, vía wkSessionMinutes); el
+     parcial v2 siempre trae ejercicios y no cambia su trato. */
+  return st === 'done';
 }
 function wkSessionMinutes(l) {
   if (typeof l.durationMin === 'number' && isFinite(l.durationMin) && l.durationMin > 0) return Math.round(l.durationMin);
@@ -38373,7 +38467,7 @@ function weekCardHTML(m, links) {
   if (m.restAvgSec != null) S.push(t('wk.rest', { x: wkRestText(m.restAvgSec) }) + (m.restSessions < m.sessions ? t('wk.restScope') : '') + '.');
   const chips = [{ v: String(m.sessions), l: t('wk.chipSessions') }];
   if (m.minutes != null && m.minutes > 0) chips.push({ v: wkChipTime(m.minutes), l: t(m.minutesPartial ? 'wk.chipTimeReg' : 'wk.chipTime') });
-  if (m.volumeKg != null) chips.push({ v: fmt(m.volumeKg) + ' kg', l: t('wk.chipKg') });
+  if (m.volumeKg != null) chips.push({ v: fmt(massToDisplay(m.volumeKg)) + ' ' + UNIT_PREFS.mass, l: t('wk.chipKg') });
   if (m.effortAvg != null) chips.push({ v: m.effortAvg + ' / 10', l: t('wk.chipEffort') });
   const imps = (m.improvements || []).map((im, ix) => {
     let s = '';
@@ -38798,7 +38892,7 @@ function monthCardHTML(m) {
     body = `<p class="mo-tx">${S.map(wkB).join(' ')}</p>`;
   }
   return `<div class="rcard">
-    <div class="rcard-head"><div class="rcard-ico" aria-hidden="true">🏆</div><div><div class="rcard-t1">${esc(t('reco.moTitle'))}</div><div class="rcard-t2">${esc(t('reco.moSub'))}</div></div></div>
+    <div class="rcard-head"><div class="rcard-ico" aria-hidden="true">🏆</div><div><div class="rcard-t1">${esc(t('reco.moTitle'))}${m.pending ? '' : ' · ' + esc(recoMonthName(m.ym))}</div><div class="rcard-t2">${esc(t('reco.moSub'))}</div></div></div>
     <div class="rcard-body">${body}</div>
     ${m.pending ? '' : `<div class="rcard-foot">${esc(t('reco.moFoot'))}</div>`}
   </div>`;
@@ -39330,11 +39424,11 @@ async function evalReconcile(date) {
 /* ---------- Unidades: presentación sobre el dato canónico ---------- */
 function evalFmtNum(v) { const r = Math.round(v * 10) / 10; return r % 1 === 0 ? String(Math.round(r)) : String(r); }
 function evalMeasureStr(kind, v) {
-  if (EVAL_CFG.units === 'imperial') return kind === 'w' ? evalFmtNum(v * 2.20462) + ' lb' : evalFmtNum(v / 2.54) + ' in';
+  if (EVAL_CFG.units === 'imperial') return kind === 'w' ? evalFmtNum(v / UNIT_LB_KG) + ' lb' : evalFmtNum(v / 2.54) + ' in';
   return kind === 'w' ? evalFmtNum(v) + ' kg' : evalFmtNum(v) + ' cm';
 }
 function evalMeasureDiffStr(kind, d) {
-  const conv = EVAL_CFG.units === 'imperial' ? (kind === 'w' ? d * 2.20462 : d / 2.54) : d;
+  const conv = EVAL_CFG.units === 'imperial' ? (kind === 'w' ? d / UNIT_LB_KG : d / 2.54) : d;
   const unit = EVAL_CFG.units === 'imperial' ? (kind === 'w' ? ' lb' : ' in') : (kind === 'w' ? ' kg' : ' cm');
   const r = Math.round(conv * 10) / 10;
   return (r > 0 ? '+' : r < 0 ? '−' : '') + evalFmtNum(Math.abs(r)) + unit;
@@ -39342,12 +39436,12 @@ function evalMeasureDiffStr(kind, d) {
 /* De la unidad de presentación al canónico (al capturar un valor). */
 function evalToCanonical(kind, v) {
   if (EVAL_CFG.units !== 'imperial') return Math.round(v * 10) / 10;
-  return Math.round((kind === 'w' ? v / 2.20462 : v * 2.54) * 10) / 10;
+  return Math.round((kind === 'w' ? v * UNIT_LB_KG : v * 2.54) * 10) / 10;
 }
 function evalToDisplay(kind, v) {
   if (v == null) return '';
   if (EVAL_CFG.units !== 'imperial') return String(Math.round(v * 10) / 10);
-  return String(Math.round((kind === 'w' ? v * 2.20462 : v / 2.54) * 10) / 10);
+  return String(Math.round((kind === 'w' ? v / UNIT_LB_KG : v / 2.54) * 10) / 10);
 }
 /* ---------- Ficha y composición ---------- */
 function evalFichaHTML(S) {
@@ -39642,7 +39736,7 @@ function cmpCompleteDates(P, E, cfg, W, cycle) {
   }).sort();
 }
 function cmpMeasureStr(units, kind, v) {
-  if (units === 'imperial') return kind === 'w' ? evalFmtNum(v * 2.20462) + ' lb' : evalFmtNum(v / 2.54) + ' in';
+  if (units === 'imperial') return kind === 'w' ? evalFmtNum(v / UNIT_LB_KG) + ' lb' : evalFmtNum(v / 2.54) + ' in';
   return kind === 'w' ? evalFmtNum(v) + ' kg' : evalFmtNum(v) + ' cm';
 }
 function cmpWeightUpTo(W, date) {
@@ -42636,7 +42730,11 @@ function shareStreak() {
 function shareDayData() {
   const iso = todayISO();
   const tot = totals(iso);
-  const goalKcal = goalOf('kcal');
+  /* F-14: el % de la tarjeta «día» va contra las metas del TIPO
+     de día (goalsDayGoalsFor, la misma lectura de su hermana
+     «Mi día en metas»), no contra la base estática. */
+  const dg = (typeof goalsDayGoalsFor === 'function') ? goalsDayGoalsFor(iso) : null;
+  const goalKcal = (dg && dg.goals && Number(dg.goals.kcal) > 0) ? Number(dg.goals.kcal) : goalOf('kcal');
   const pctKcal = goalKcal ? tot.kcal / goalKcal : null;
   const hasMeals = (MEALS[iso] || []).length > 0;
   const phrase = !hasMeals ? 'start' : (pctKcal !== null && pctKcal >= 1 ? 'done' : 'going');
@@ -44870,7 +44968,7 @@ document.addEventListener('keydown', e => { if (e.key === 'Escape') shareClose()
  *  - El SW (sw.js) solo cachea la cáscara del mismo origen en modo
  *    RED PRIMERO: Auth/Firestore/Worker jamás pasan por la caché.
  * ================================================================ */
-const PWA_SW_VERSION = '20261108-puertas-entrenador';
+const PWA_SW_VERSION = '20261108-correcciones-calculo';
 /* Sello de versión VISIBLE (2026-11-03): el pie de la tarjeta de
    acceso enseña qué copia corre este teléfono ('v ' + el sello),
    para comprobar de un vistazo si la versión nueva ya llegó.
