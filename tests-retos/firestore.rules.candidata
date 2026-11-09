@@ -2760,6 +2760,16 @@ service cloud.firestore {
           || (isTrainerUser()
               && request.resource.data.get('estado', '') == 'pendiente'
               && !('approvedAt' in request.resource.data)
+              && !('approvedBy' in request.resource.data))
+          // Foto de máquina (AUTH-2026-11-08-304): la tercera rama
+          // deja que CUALQUIER usuario aprobado cree SU ficha en
+          // 'pendiente' y sin firma — el autor de un aporte de foto
+          // suele ser un alumno, no el entrenador —; la lectura del
+          // bloque ya limita los pendientes a su autor y al
+          // administrador, y la aprobación sigue siendo del
+          // administrador por la rama update de siempre.
+          || (request.resource.data.get('estado', '') == 'pendiente'
+              && !('approvedAt' in request.resource.data)
               && !('approvedBy' in request.resource.data)) );
       allow update: if isApprovedUser()
         && request.resource.data.updatedAt == request.time
