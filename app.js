@@ -14589,16 +14589,31 @@ function clientsRowSummary(u, d) {
   if (da === null) return esc(t('clients.noWeighins'));
   return esc(t('clients.daysAgoShort', { d: da })) + (d.lastW ? ' · ' + esc(String(d.lastW)) + ' kg' : '');
 }
+/* LA SEÑAL DE ALERTA (decisión de Ronald, 2026-11-09 01:21
+   CST; cierra F-18 de la auditoría): las alertas de un alumno
+   (la de fin de plan y cualquier otra) se presentan APARTE,
+   con su propia señal — este chip ⚠ junto al nombre — y
+   NUNCA se suman al número de pendientes. El texto completo
+   de la primera alerta viaja en el title; su detalle vive en
+   la ficha, en su bloque de alertas de siempre. */
+function alertChipHTML(alerts) {
+  if (!alerts || !alerts.length) return '';
+  return `<span class="talert-chip" title="${esc(talertText(alerts[0]))}">⚠</span>`;
+}
 /* Contador DISCRETO de la fila (espejo de Alumnos). AUTH-110: el
    número ES el total de la unión única de pendientes — el mismo
    que muestra «Mis alumnos» para la misma persona (decisión B-A1
-   de Ronald: coincidencia ítem a ítem y en total). Las alertas
-   conservan su precedencia visual de siempre; un fallo de carga
-   se marca «!» (nunca ✓ falso). Las categorías siguen contándose
-   en su panel de filtros, que no cambia. */
+   de Ronald: coincidencia ítem a ítem y en total). CORRECCIÓN
+   AUTH-333 (decisión de Ronald, 2026-11-09; F-18): la rama que
+   mostraba LA CUENTA DE ALERTAS en este contador cuando había
+   alertas quedaba retirada — el número cuenta SOLO pendientes
+   reales; la alerta se ve por su carril (el chip ⚠ junto al
+   nombre y, en Clientes, el resumen que abre con su texto y el
+   anillo rojo). Un fallo de carga se marca «!» (nunca ✓
+   falso). Las categorías siguen contándose en su panel de
+   filtros, que no cambia. */
 function clientsRowBadge(u, d, cats) {
   if (d.tpendErr) return '<span class="pend-n pend-n-err">!</span>';
-  if (d.alerts.length) return `<span class="pend-n">${d.alerts.length}</span>`;
   if (d.tpend) return d.tpend.items.length ? `<span class="pend-n">${d.tpend.items.length}</span>` : '<span class="ok-disc">✓</span>';
   const probs = (cats || []).filter(c => c !== 'aldia');
   if (!probs.length) return '<span class="ok-disc">✓</span>';
@@ -14606,7 +14621,7 @@ function clientsRowBadge(u, d, cats) {
 }
 function clientsRowHTML(u) {
   const L = CLIENTS_LAST; const d = clientsDataOf(L, u); const cats = clientCategories(u, d);
-  const inner = `${stuAvatarHTML(u, u.name || '')}<span class="srow-main"><span class="srow-nameline"><span class="srow-name">${esc(u.name || '—')}</span>${roleDiscsHTML(u)}</span><span class="srow-sum">${clientsRowSummary(u, d)}</span><span class="srow-assign">${assignRowLine(u)}</span></span>${clientsRowBadge(u, d, cats)}<span class="srow-go">›</span>`;
+  const inner = `${stuAvatarHTML(u, u.name || '')}<span class="srow-main"><span class="srow-nameline"><span class="srow-name">${esc(u.name || '—')}</span>${roleDiscsHTML(u)}${alertChipHTML(d.alerts)}</span><span class="srow-sum">${clientsRowSummary(u, d)}</span><span class="srow-assign">${assignRowLine(u)}</span></span>${clientsRowBadge(u, d, cats)}<span class="srow-go">›</span>`;
   return u.approved === true
     ? `<button type="button" class="srow" data-client="${u.id}">${inner}</button>`
     : `<div class="srow srow-static">${inner}</div>`;
@@ -14632,13 +14647,16 @@ function clientsCellHTML(u) {
   const unionN = d.tpend ? d.tpend.items.length : null;
   const alDia = !d.tpendErr && unionN === 0 && cats.length === 1 && cats[0] === 'aldia';
   const ring = d.alerts.length ? '#dc2626' : (alDia ? '#0d9488' : '#f59e0b');
-  const badge = d.alerts.length ? `<span class="cgrid-badge">${d.alerts.length}</span>`
-    : d.tpendErr ? '<span class="cgrid-badge">!</span>'
+  /* AUTH-333 (F-18): el distintivo cuenta SOLO la unión de
+     pendientes — la rama que mostraba la cuenta de ALERTAS
+     queda retirada; la alerta conserva su carril (el anillo
+     rojo y el chip ⚠ junto al nombre). */
+  const badge = d.tpendErr ? '<span class="cgrid-badge">!</span>'
     : (unionN ? `<span class="cgrid-badge">${unionN}</span>` : '');
   const thumb = u.photoURL
     ? `<img src="${esc(u.photoURL)}" alt="">`
     : `<span class="mt-initials" style="background:${stuTint(u.id)};color:#134e4a">${esc(clientInitials(u).toUpperCase() || '·')}</span>`;
-  const inner = `<span class="cgrid-thumb">${thumb}<span class="cgrid-ring" style="border-color:${ring}"></span></span>${badge}<span class="cgrid-nameline"><span class="cgrid-name">${esc(u.name || '—')}</span>${roleDiscsHTML(u)}</span><span class="cgrid-cat" style="color:#6b7280">${clientsRowSummary(u, d)}</span><span class="cgrid-assign">${assignRowLine(u)}</span>`;
+  const inner = `<span class="cgrid-thumb">${thumb}<span class="cgrid-ring" style="border-color:${ring}"></span></span>${badge}<span class="cgrid-nameline"><span class="cgrid-name">${esc(u.name || '—')}</span>${roleDiscsHTML(u)}${alertChipHTML(d.alerts)}</span><span class="cgrid-cat" style="color:#6b7280">${clientsRowSummary(u, d)}</span><span class="cgrid-assign">${assignRowLine(u)}</span>`;
   return u.approved === true
     ? `<button type="button" class="cgrid-cell" data-client="${u.id}">${inner}</button>`
     : `<div class="cgrid-cell">${inner}</div>`;
@@ -16518,17 +16536,21 @@ function studentsRowHTML(u) {
      La memoria de regreso de la ficha (STUDENTS_RESTORE) no
      cambia; una entrada fresca a la vista nace con todas las
      fichas cerradas, como pide la restauración. */
-  return `<button type="button" class="srow" data-stu="${u.id}">${stuAvatarHTML(u, name)}<span class="srow-main"><span class="srow-nameline"><span class="srow-name">${esc(name)}</span>${roleDiscsHTML(u)}</span><span class="srow-sub">${studentsSummary(u)}</span><span class="srow-assign">${assignRowLine(u)}</span></span>${studentsBadge(u)}<span class="srow-chev">›</span></button>`;
+  const alerts = (typeof STUDENTS_LAST !== 'undefined' && STUDENTS_LAST && STUDENTS_LAST.alertsByUid && STUDENTS_LAST.alertsByUid[u.id]) || [];
+  return `<button type="button" class="srow" data-stu="${u.id}">${stuAvatarHTML(u, name)}<span class="srow-main"><span class="srow-nameline"><span class="srow-name">${esc(name)}</span>${roleDiscsHTML(u)}${alertChipHTML(alerts)}</span><span class="srow-sub">${studentsSummary(u)}</span><span class="srow-assign">${assignRowLine(u)}</span></span>${studentsBadge(u)}<span class="srow-chev">›</span></button>`;
 }
 function studentsGridCellHTML(u) {
   const name = stuName(u);
   const L = STUDENTS_LAST;
   const err = !!L.pendErrByUid[u.id];
   const n = (L.pendByUid[u.id] || { items: [] }).items.length;
-  const ring = err ? '#dc2626' : n ? '#f59e0b' : '#0d9488';
+  const alerts = (L.alertsByUid || {})[u.id] || [];
+  /* AUTH-333 (F-18): con alertas el anillo va rojo, como en
+     Clientes — su señal propia, fuera del número. */
+  const ring = (err || alerts.length) ? '#dc2626' : n ? '#f59e0b' : '#0d9488';
   return `<button type="button" class="cgrid-cell" data-stu="${u.id}">
     <span class="cgrid-thumb">${u.photoURL ? `<img src="${esc(u.photoURL)}" alt="">` : `<span class="mt-initials" style="background:${stuTint(u.id)};color:#134e4a">${esc(stuInitials(name).toUpperCase() || '·')}</span>`}<span class="cgrid-ring" style="border-color:${ring}"></span></span>
-    <span class="cgrid-nameline"><span class="cgrid-name">${esc(name)}</span>${roleDiscsHTML(u)}</span>
+    <span class="cgrid-nameline"><span class="cgrid-name">${esc(name)}</span>${roleDiscsHTML(u)}${alertChipHTML(alerts)}</span>
     <span class="cgrid-cat" style="color:#6b7280">${studentsSummary(u)}</span>
     <span class="cgrid-assign">${assignRowLine(u)}</span>
   </button>`;
@@ -16573,7 +16595,7 @@ function studentsDetailHTML(u) {
     : clientCatLabel(STUDENTS_DETAIL_FROM);
   let h = `<button type="button" class="back-row" id="stu-back">‹ ${esc(fromLabel)}</button>
   <div class="detail-card">
-    <div class="detail-head">${stuAvatarHTML(u, name)}<span class="detail-main"><span class="detail-name">${esc(name)}</span><span class="detail-sub">${err ? esc(t('students.pendLoadError')) : pend.items.length ? esc(t('students.pendToResolve', { n: pend.items.length })) : esc(t('students.upToDate'))}</span></span></div>`;
+    <div class="detail-head">${stuAvatarHTML(u, name)}<span class="detail-main"><span class="detail-name">${esc(name)}</span>${alertChipHTML((L.alertsByUid || {})[u.id])}<span class="detail-sub">${err ? esc(t('students.pendLoadError')) : pend.items.length ? esc(t('students.pendToResolve', { n: pend.items.length })) : esc(t('students.upToDate'))}</span></span></div>`;
   if (err) {
     h += `<div class="stu-err">${esc(t('students.loadError'))}<br><button type="button" class="btn-ghost btn-sm" data-stu-retry="${u.id}" style="margin-top:8px">${esc(t('students.retry'))}</button></div>`;
   } else {
@@ -48014,7 +48036,7 @@ document.addEventListener('keydown', e => { if (e.key === 'Escape') shareClose()
  *  - El SW (sw.js) solo cachea la cáscara del mismo origen en modo
  *    RED PRIMERO: Auth/Firestore/Worker jamás pasan por la caché.
  * ================================================================ */
-const PWA_SW_VERSION = '20261109-tarjeta-mes';
+const PWA_SW_VERSION = '20261109-pendientes-solo';
 /* Sello de versión VISIBLE (2026-11-03): el pie de la tarjeta de
    acceso enseña qué copia corre este teléfono ('v ' + el sello),
    para comprobar de un vistazo si la versión nueva ya llegó.

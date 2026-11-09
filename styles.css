@@ -4642,3 +4642,10 @@ body.swap-sheet-open .asst-fab { display: none !important; }
 #pl-auto-gen { min-height: 44px; }
 #pl-auto-summary { font-size: 13px; display: grid; gap: 3px; margin-top: 10px; }
 .pl-auto-sumt { font-weight: 700; }
+
+/* AUTH-333 (decisión de Ronald, 2026-11-09; F-18): la señal
+   PROPIA de la alerta junto al nombre del alumno — disco
+   rojizo con ⚠, distinto del contador ámbar de pendientes
+   (.pend-n) y del ✓ de «al día»: la alerta nunca se suma al
+   número. */
+.talert-chip { display: inline-flex; align-items: center; justify-content: center; min-width: 22px; height: 22px; padding: 0 5px; border-radius: 999px; background: #fee2e2; color: #b91c1c; font-size: 12px; font-weight: 700; flex: none; }
