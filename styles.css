@@ -1784,6 +1784,26 @@ div > .btn-ghost:only-child, div > .btn-main:only-child {
 .myb-pick-foot { position: sticky; bottom: 0; display: flex; align-items: center; gap: 12px; background: #fff; border-top: 1px solid #e2e8f0; padding: 10px 2px calc(6px + env(safe-area-inset-bottom)); margin-top: 12px; }
 .myb-pick-count { flex: 1; font-size: 14px; font-weight: 700; color: #134e4a; }
 .myb-pick-done { flex: none; min-width: 130px; height: 52px; background: #0d9488; color: #fff; border: none; border-radius: 12px; font-size: 16px; font-weight: 800; font-family: inherit; cursor: pointer; padding: 0 22px; }
+/* AUTH-347 — «La barra de Listo al pie de la hoja»: las DOS hojas
+   selectoras (la de la sesión, #swap-sheet, y la del editor de
+   rutinas, #myb-pick-sheet) pasan a TRES ZONAS con la clase
+   pick3z: cabecera fija arriba (la .swap-sticky-top de AUTH-340,
+   intacta), la lista (.pick-results) con su PROPIO desplazamiento
+   en medio, y el pie .myb-pick-foot FIJO abajo como último hijo
+   de la hoja — ya no flota con sticky sobre la lista ni la cruza
+   a mitad de pantalla tapando tarjetas (reporte de Ronald
+   2026-11-09). El pie es de la HOJA (flex), no de la ventana:
+   solo existe con la hoja abierta y no tapa el dock ni otras
+   superficies. La lista termina exactamente sobre el pie: su
+   última tarjeta se ve ENTERA al llegar al final del
+   desplazamiento, sin hueco añadido (la hoja pierde su
+   padding-bottom de 120 px solo en estas dos hojas: el respiro
+   lo da la propia estructura). Las demás hojas .swap-sheet
+   (traer día, dictado, variantes, el editor) no cambian. */
+.swap-sheet.pick3z { display: flex; flex-direction: column; overflow: hidden; padding-bottom: 0; }
+.swap-sheet.pick3z .swap-sticky-top { flex: none; }
+.swap-sheet.pick3z .pick-results { flex: 1 1 auto; min-height: 0; overflow-y: auto; overscroll-behavior: contain; }
+.swap-sheet.pick3z .myb-pick-foot { position: static; flex: none; margin-top: 0; }
 .swap-card.is-added { border-color: #0d9488; background: #f0fdfa; }
 .swap-card.is-added .swap-card-btn { background: #0f766e; }
 #myb-name { width: 100%; margin: 6px 0; }

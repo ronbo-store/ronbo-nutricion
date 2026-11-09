@@ -30631,7 +30631,7 @@ function swapSheetSync(plan, di, iso) {
   if (!sheet) {
     sheet = document.createElement('div');
     sheet.id = 'swap-sheet';
-    sheet.className = 'swap-sheet';
+    sheet.className = 'swap-sheet pick3z';
     document.body.appendChild(sheet);
   }
   document.body.classList.add('swap-sheet-open');
@@ -30657,7 +30657,7 @@ function swapSheetSync(plan, di, iso) {
     <div class="swap-search-row"><input type="text" id="swap-search" placeholder="${esc(t('train.prop.searchPh'))}" autocomplete="off" value="${esc(SWAP_QUERY)}"></div>
     <div id="swap-presets-slot">${swapPresetRowHTML()}</div>
     </div>
-    <div id="swap-results">${swapSheetResultsHTML(plan, di, iso)}</div>
+    <div id="swap-results" class="pick-results">${swapSheetResultsHTML(plan, di, iso)}</div>
     ${TRAIN_PICK.kind === 'add' ? `<div class="myb-pick-foot"><span class="myb-pick-count" id="swap-pick-count">${esc(swapPickCountText(plan, iso))}</span><button type="button" class="myb-pick-done" data-swap-close="1">${esc(t('train.n09.mybDone'))}</button></div>` : ''}`;
   sheet.querySelectorAll('[data-swap-close]').forEach(b => b.onclick = () => { TRAIN_PICK = null; SWAP_QUERY = ''; loadMyTraining(); });
   swapSheetWireResults(plan, di, iso);
@@ -38144,7 +38144,7 @@ function mybPickRender() {
   if (!sheet) {
     sheet = document.createElement('div');
     sheet.id = 'myb-pick-sheet';
-    sheet.className = 'swap-sheet myb-pick-sheet';
+    sheet.className = 'swap-sheet myb-pick-sheet pick3z';
     document.body.appendChild(sheet);
   }
   document.body.classList.add('swap-sheet-open');
@@ -38160,7 +38160,7 @@ function mybPickRender() {
     <span class="myb-ctx">${esc(ctx)}</span>
     <div class="swap-search-row"><input type="text" id="myb-pick-search" placeholder="${esc(t('train.prop.searchPh'))}" autocomplete="off" value="${esc(MYB_PICK.q)}"></div>
     </div>
-    <div id="myb-pick-results">${mybPickResultsHTML()}</div>
+    <div id="myb-pick-results" class="pick-results">${mybPickResultsHTML()}</div>
     <div class="myb-pick-foot"><span class="myb-pick-count" id="myb-pick-count">${esc(mybPickCountText())}</span><button type="button" class="myb-pick-done" data-mybpick-close="1">${esc(t('train.n09.mybDone'))}</button></div>`;
   const close = () => { mybPickClose(); mybSheetRender(); };
   sheet.querySelectorAll('[data-mybpick-close]').forEach(b => b.onclick = close);
@@ -49157,7 +49157,7 @@ document.addEventListener('keydown', e => { if (e.key === 'Escape') shareClose()
  *  - El SW (sw.js) solo cachea la cáscara del mismo origen en modo
  *    RED PRIMERO: Auth/Firestore/Worker jamás pasan por la caché.
  * ================================================================ */
-const PWA_SW_VERSION = '20261109-mis-planes-compacto';
+const PWA_SW_VERSION = '20261109-listo-al-pie';
 /* Sello de versión VISIBLE (2026-11-03): el pie de la tarjeta de
    acceso enseña qué copia corre este teléfono ('v ' + el sello),
    para comprobar de un vistazo si la versión nueva ya llegó.
