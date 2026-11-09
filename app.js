@@ -5815,7 +5815,7 @@ en: {
   'train.intLabel': 'Session intensity',
   'train.warmLabel': 'Warm-up minutes (not counted)',
   'train.noDurNoEstimate': 'No duration: the session is saved as done, without estimating its burn.',
-  'train.d.set': 'Set', 'train.d.repsPh': 'reps done', 'train.d.loadPh': 'load',
+  'train.d.set': 'Set', 'train.d.repsPh': 'reps done', 'train.d.loadPh': 'load', 'train.d.loadPerDb': 'Load per dumbbell',
   'train.d.statusDone': 'Done', 'train.d.statusPartial': 'Partial', 'train.d.statusSkipped': 'Skipped', 'train.d.statusNone': 'Not logged',
   'train.d.skipDay': 'Skip this day',
   'train.d.skipConfirm': 'Mark this day as skipped? It will be recorded as skipped (you can undo it afterwards).',
@@ -10009,7 +10009,7 @@ es: {
   'train.intLabel': 'Intensidad de la sesión',
   'train.warmLabel': 'Minutos de calentamiento (no cuentan)',
   'train.noDurNoEstimate': 'Sin duración: la sesión se guarda como hecha, sin estimar su quemado.',
-  'train.d.set': 'Serie', 'train.d.repsPh': 'reps hechas', 'train.d.loadPh': 'carga',
+  'train.d.set': 'Serie', 'train.d.repsPh': 'reps hechas', 'train.d.loadPh': 'carga', 'train.d.loadPerDb': 'Carga por mancuerna',
   'train.d.statusDone': 'Hecho', 'train.d.statusPartial': 'Parcial', 'train.d.statusSkipped': 'Saltado', 'train.d.statusNone': 'Sin registrar',
   'train.d.skipDay': 'Saltar este día',
   'train.d.skipConfirm': '¿Marcar este día como saltado? Quedará registrado como saltado (podrás deshacerlo después).',
@@ -32278,7 +32278,7 @@ function trainExCardHTML(ex, di, ei) {
      se guarda al cerrar el día es la carga CANÓNICA en kg más el
      original con su unidad. Sin marcar, no hay filas de series. */
   const sets = chk && Array.isArray(chk.sets) ? chk.sets : null;
-  const setsHtml = sets ? `<div class="train-sets-unit"><span class="train-sets-unit-lab">${esc(t('units.mass'))}</span>${trainUnitSelHTML()}</div><div class="train-sets">${sets.map((s, si) => `
+  const setsHtml = sets ? `<div class="train-sets-unit"><span class="train-sets-unit-lab">${esc(t('units.mass'))}${trainLoadPair(ex) ? ' · ' + esc(t('train.d.loadPerDb')) : ''}</span>${trainUnitSelHTML()}</div><div class="train-sets">${sets.map((s, si) => `
       <div class="train-set-row${s.pend === true ? ' is-sug' : ''}"><span class="train-set-n">${t('train.d.set')} ${si + 1}${s.repsPlanned ? ` · ${esc(s.repsPlanned)}` : ''}${s.pend === true ? ` <span class="tf-sug-tag">${esc(t('train.sets.suggested'))}</span>` : ''}</span>
         <input type="number" inputmode="decimal" min="0" class="train-set-in" data-train-set-reps="${key}:${si}" placeholder="${t('train.d.repsPh')}" value="${esc(s.repsDone)}" aria-label="${t('train.d.repsPh')}">
         <input type="number" inputmode="decimal" min="0" step="any" class="train-set-in" data-train-set-load="${key}:${si}" placeholder="${t('train.d.loadPh')}" value="${esc(s.loadVal)}" aria-label="${t('train.d.loadPh')}">
@@ -33093,8 +33093,15 @@ function tfChipsHTML(ctx, idx, s) {
   const lv = s ? String(s.loadVal == null ? '' : s.loadVal) : '';
   const loadMain = lv === '' ? esc(t('train.start.noLoad')) : esc(lv);
   const eq = tfEquivText(lv);
+  /* AUTH-345: la etiqueta de la carga dice QUÉ se está escribiendo:
+     la unidad activa (kg o lb, la del selector «Peso») va SIEMPRE
+     en la etiqueta — también sin valor — y en los ejercicios con
+     dos mancuernas la etiqueta es «Carga por mancuerna» (la que se
+     registra es la de UNA; el valor mostrado no se suma). */
+  const loadLab = (typeof TRAIN_FLOAT !== 'undefined' && TRAIN_FLOAT && trainLoadPair(TRAIN_FLOAT.ex)) ? t('train.d.loadPerDb') : t('train.d.loadPh');
+  const loadLabU = loadLab + ' (' + UNIT_PREFS.mass + ')';
   return `<button type="button" class="tf-chip" data-tf-chip="${ctx}:${idx}:reps" aria-label="${t('train.d.repsPh')}"><span class="tf-chip-lab">${t('train.d.repsPh')}</span><span class="tf-chip-v">${reps}</span></button>` +
-    `<button type="button" class="tf-chip" data-tf-chip="${ctx}:${idx}:load" aria-label="${t('train.d.loadPh')}"><span class="tf-chip-lab">${t('train.d.loadPh')}</span><span class="tf-chip-v">${loadMain}${lv !== '' ? ` <span class="tf-chip-u">${esc(UNIT_PREFS.mass)}</span>` : ''}</span>${eq ? `<span class="tf-chip-eq">${esc(eq)}</span>` : ''}</button>`;
+    `<button type="button" class="tf-chip" data-tf-chip="${ctx}:${idx}:load" aria-label="${esc(loadLabU)}"><span class="tf-chip-lab">${esc(loadLabU)}</span><span class="tf-chip-v">${loadMain}${lv !== '' ? ` <span class="tf-chip-u">${esc(UNIT_PREFS.mass)}</span>` : ''}</span>${eq ? `<span class="tf-chip-eq">${esc(eq)}</span>` : ''}</button>`;
 }
 function trainFloatSetsHTML(draft) {
   if (!draft || !draft.started) return '';
@@ -33106,7 +33113,7 @@ function trainFloatSetsHTML(draft) {
      conserva las demás y lo ya escrito. La serie AÑADIDA nace
      PENDIENTE: pastilla «Sugerida» y chips atenuados (is-sug)
      hasta que él la trabaja; la aproximación no cambia. */
-  return `<div class="train-sets-unit"><span class="train-sets-unit-lab">${esc(t('units.mass'))}</span>${trainUnitSelHTML()}</div><div class="train-sets">${sets.map((s, si) => `
+  return `<div class="train-sets-unit"><span class="train-sets-unit-lab">${esc(t('units.mass'))}${(typeof TRAIN_FLOAT !== 'undefined' && TRAIN_FLOAT && trainLoadPair(TRAIN_FLOAT.ex)) ? ' · ' + esc(t('train.d.loadPerDb')) : ''}</span>${trainUnitSelHTML()}</div><div class="train-sets">${sets.map((s, si) => `
     <div class="train-set-row${s.pend === true ? ' is-sug' : ''}"><span class="train-set-n">${t('train.d.set')} ${si + 1}${s.repsPlanned ? ` · ${esc(s.repsPlanned)}` : ''}${s.pend === true ? ` <span class="tf-sug-tag">${esc(t('train.sets.suggested'))}</span>` : ''}</span>
       <span class="tf-chips" data-tf-chips="set:${si}">${tfChipsHTML('set', si, s)}</span>${sets.length > 1 ? `<button type="button" class="tf-set-del" data-tf-set-del="${si}" aria-label="${t('train.sets.remove')}">✕</button>` : ''}</div>`).join('')}</div><div class="tf-sets-actions">${sets.length < 12 ? `<button type="button" class="btn-ghost btn-sm" id="tf-sets-add">${t('train.sets.add')}</button>` : ''}${tfVarBtnHTML()}</div>`;
 }
@@ -33141,7 +33148,7 @@ function trainFloatWheelHTML() {
     <div class="tf-wheel-head"><span class="tf-wheel-title" id="tf-wheel-title"></span><button type="button" class="btn-primary btn-sm" id="tf-wheel-done">${t('train.start.wheelDone')}</button></div>
     <div class="tf-wheel-cols">
       <div class="tf-wheel-col"><div class="tf-wheel-lab">${t('train.d.repsPh')}</div><div class="tf-wheel-list" id="tf-wheel-reps"></div></div>
-      <div class="tf-wheel-col"><div class="tf-wheel-lab">${t('train.d.loadPh')}</div><div class="tf-wheel-list" id="tf-wheel-load"></div></div>
+      <div class="tf-wheel-col"><div class="tf-wheel-lab" id="tf-wheel-load-lab">${t('train.d.loadPh')} (${esc(UNIT_PREFS.mass)})</div><div class="tf-wheel-list" id="tf-wheel-load"></div></div>
     </div></div></div>`;
 }
 function trainFloatSessionHTML(draft) {
@@ -33305,6 +33312,12 @@ function tfWheelOpen(body, ctx, idx) {
   }
   const title = panel.querySelector('#tf-wheel-title');
   if (title) title.textContent = ctx === 'warm' ? `${t('train.start.warmupTitle')} ${idx + 1}` : `${t('train.d.set')} ${idx + 1}`;
+  /* AUTH-345: la cabecera de la columna de carga dice la unidad
+     de la escala activa (la del selector «Peso») y, en pareja,
+     que el número es POR MANCUERNA — inconfundible mientras se
+     teclea en la rueda. */
+  const loadLab = panel.querySelector('#tf-wheel-load-lab');
+  if (loadLab) loadLab.textContent = (trainLoadPair(F.ex) ? t('train.d.loadPerDb') : t('train.d.loadPh')) + ' (' + (TF_LOAD_SCALE ? TF_LOAD_SCALE.unit : UNIT_PREFS.mass) + ')';
   const repsList = panel.querySelector('#tf-wheel-reps');
   const loadList = panel.querySelector('#tf-wheel-load');
   if (repsList) {
@@ -49099,7 +49112,7 @@ document.addEventListener('keydown', e => { if (e.key === 'Escape') shareClose()
  *  - El SW (sw.js) solo cachea la cáscara del mismo origen en modo
  *    RED PRIMERO: Auth/Firestore/Worker jamás pasan por la caché.
  * ================================================================ */
-const PWA_SW_VERSION = '20261109-guardado-automatico';
+const PWA_SW_VERSION = '20261109-carga-clara';
 /* Sello de versión VISIBLE (2026-11-03): el pie de la tarjeta de
    acceso enseña qué copia corre este teléfono ('v ' + el sello),
    para comprobar de un vistazo si la versión nueva ya llegó.
@@ -55743,12 +55756,45 @@ async function mpQuickSave() {
 
 
 /* ---------- Agregados de entrenamiento ---------- */
+/* AUTH-345 — LA CARGA REAL POR REPETICIÓN: la carga registrada
+   (loadKg) es la de UN implemento. En los ejercicios que se
+   ejecutan con DOS implementos iguales, uno por mano (mancuernas
+   en pareja y equivalentes), la carga real total que se mueve en
+   cada repetición es el DOBLE; en los de un solo implemento
+   (aunque lo sujeten las dos manos: Pullover, goblet…), en barra
+   (su número ya es el total) y en máquinas, es la registrada.
+   La base sale de la FICHA de cada ejercicio de la Biblioteca
+   (su equipo y su ejecución, E001–E143, auditadas ficha a ficha;
+   la tabla entera con la base de cada ejercicio con mancuernas
+   queda declarada en el informe del paquete): PAREJA = las 21
+   fichas de LOAD_PAIR_IDS; ÚNICO = el resto, incluidas las 15
+   fichas con mancuerna/kettlebell de un solo implemento (E022,
+   E041, E049, E050, E058, E075, E082, E092, E099, E100, E102,
+   E104, E108, E137, E139) y cualquier registro sin exerciseId.
+   EXCEPCIÓN declarada: E127 se ejecuta en pareja SOLO en su
+   variante estándar («En Y bilateral»); su variante n.º 1
+   («Trap 3 (unilateral)») es a una mano y vale ×1. */
+const LOAD_PAIR_IDS = { E006: 1, E012: 1, E023: 1, E029: 1, E030: 1, E032: 1, E033: 1, E034: 1, E039: 1, E040: 1, E042: 1, E059: 1, E060: 1, E066: 1, E081: 1, E098: 1, E103: 1, E113: 1, E117: 1, E127: 1, E142: 1 };
+const LOAD_PAIR_VAR_SINGLE = { E127: [1] };
+function loadPairFactor(e) {
+  if (!e || e.exerciseId == null) return 1;
+  const id = String(e.exerciseId);
+  if (!LOAD_PAIR_IDS[id]) return 1;
+  const vi = Number.isInteger(e.variantIndex) ? e.variantIndex : null;
+  if (vi != null && (LOAD_PAIR_VAR_SINGLE[id] || []).includes(vi)) return 1;
+  return 2;
+}
+function trainLoadPair(ex) { return loadPairFactor(ex) === 2; }
 function mpExAgg(e) {
   let sets = 0, reps = 0, vol = 0, max = 0;
+  /* AUTH-345: el VOLUMEN suma la carga real total por repetición
+     (×2 en pareja); la carga MÁXIMA sigue siendo la registrada —
+     la de UNA mancuerna — porque es lo que él cargó en la mano. */
+  const f = loadPairFactor(e);
   for (const s of (e.sets || [])) {
     if (s.repsDone == null && s.loadKg == null) continue;
     const r = num(s.repsDone), l = num(s.loadKg);
-    sets++; reps += r; vol += r * l; if (l > max) max = l;
+    sets++; reps += r; vol += r * l * f; if (l > max) max = l;
   }
   return { sets, reps, vol: Math.round(vol), maxLoad: max, rpe: (e.rpe != null && num(e.rpe) > 0) ? num(e.rpe) : null };
 }
