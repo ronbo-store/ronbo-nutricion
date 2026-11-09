@@ -1265,9 +1265,17 @@ service cloud.firestore {
       // approved, el rol, la asignación de entrenador y TODOS los
       // estados de consentimiento/recibos quedan fuera de la lista:
       // ninguna rama del alumno los abre, como hasta hoy.
+      // Fibra Fase 2 (cierre 2026-11-08, decisión B de Ronald): la
+      // meta derivada de fibra vive en el campo APARTE `goalsFib`
+      // (número > 0 y ≤ 300: la derivación máxima con la kcal al
+      // tope de 20.000 es redondeo(20.000 × 14 / 1.000) = 280) y lo
+      // escribe el mismo camino del dueño — NUNCA dentro del mapa
+      // cerrado `goals`, cuya única clave nueva ensayada (`fib`)
+      // agotaba el presupuesto de 1.000 expresiones de este bloque
+      // y denegaba la decisión del entrenador.
       allow update: if isSelf(uid)
         && request.resource.data.diff(resource.data).affectedKeys()
-             .hasOnly(['goals', 'goalsProvenance', 'goalObjective', 'paceSuggestion', 'goalsTerms', 'goalsProposal', 'goalsDayOverrides', 'goalsAgreement', 'appInstall', 'goalFocus'])
+             .hasOnly(['goals', 'goalsProvenance', 'goalObjective', 'paceSuggestion', 'goalsTerms', 'goalsProposal', 'goalsDayOverrides', 'goalsAgreement', 'appInstall', 'goalFocus', 'goalsFib'])
         && (!request.resource.data.diff(resource.data).affectedKeys().hasAny(['goals'])
             || (request.resource.data.goals is map
                 && request.resource.data.goals.keys().hasOnly(['kcal', 'prot', 'carb', 'azuc', 'gras'])
@@ -1297,6 +1305,11 @@ service cloud.firestore {
         && (!request.resource.data.diff(resource.data).affectedKeys().hasAny(['goalObjective'])
             || (request.resource.data.goalObjective is string
                 && request.resource.data.goalObjective.size() <= 40))
+        && (!request.resource.data.diff(resource.data).affectedKeys().hasAny(['goalsFib'])
+            || !('goalsFib' in request.resource.data)
+            || (request.resource.data.goalsFib is number
+                && request.resource.data.goalsFib > 0
+                && request.resource.data.goalsFib <= 300))
         && (!request.resource.data.diff(resource.data).affectedKeys().hasAny(['goalsTerms'])
             || (request.resource.data.goalsTerms is map
                 && (!('acceptedAt' in request.resource.data.goalsTerms)
