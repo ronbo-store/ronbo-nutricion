@@ -7917,6 +7917,8 @@ en: {
   'sched.conflictBreak': '⚠ {meal}: its ideal time falls outside your breaks, so it was placed in your break ({when}). You can change it above if another arrangement suits you better.',
   'sched.conflictBreakNoFit': '⚠ {meal}: no break can hold it before your training, so its suggested time may not be a moment when you can actually eat. Adjust it above, or review it with your trainer.',
   'sched.provTag': 'Provisional',
+  'sched.preloadNote': 'This day comes preloaded as a suggestion, built from your food plan and your goals. It is a starting point, not a set schedule: adjust whatever you want — nothing is saved until you save your details below.',
+  'sched.prefsPreloadNote': 'These times come preloaded from your Reminders rest window, so you do not start from zero. Change whatever you want: they are only saved when you tap Save.',
   'sched.saveError': 'It could not be saved. Check your connection and try again — your change is still on screen.',
   'sched.redistFoods': 'The snack would come from {meal}:',
   'sched.redistSimul': 'Shown as amounts only for now (your plan does not bring this meal’s food detail here); the real change is made in your plan, food by food.',
@@ -11982,6 +11984,8 @@ es: {
   'sched.conflictBreak': '⚠ {meal}: su hora ideal cae fuera de tus pausas, así que se colocó en tu pausa ({when}). Puedes cambiarla arriba si otro arreglo te conviene más.',
   'sched.conflictBreakNoFit': '⚠ {meal}: ninguna pausa puede acogerla antes de tu entrenamiento, así que su hora sugerida puede no ser un momento en el que puedas comer. Ajústala arriba o revísala con tu entrenador.',
   'sched.provTag': 'Provisional',
+  'sched.preloadNote': 'Este día viene precargado como sugerencia, armado desde tu plan de comidas y tus metas. Es un punto de partida, no un horario fijo: ajusta lo que quieras — nada queda guardado hasta que guardes tus datos abajo.',
+  'sched.prefsPreloadNote': 'Estas horas vienen precargadas desde la ventana de descanso de tus Recordatorios, para que no empieces de cero. Cambia lo que quieras: solo se guardan cuando tocas Guardar.',
   'sched.saveError': 'No se pudo guardar. Revisa tu conexión e inténtalo de nuevo — tu cambio sigue en pantalla.',
   'sched.redistFoods': 'La merienda saldría de {meal}:',
   'sched.redistSimul': 'Por ahora se muestra solo en cantidades (tu plan no trae aquí el detalle de alimentos de esta comida); el cambio real se hace en tu plan, alimento por alimento.',
@@ -53298,6 +53302,12 @@ function schedPrefsDefaults() {
 function schedStateDefaults() { return { days: {}, adjust: { preGapDeltaMin: 0, rangeWidenMin: 0 }, dismissed: {} }; }
 function schedDayStateDefaults() { return { pins: {}, eaten: {}, trainOverride: null, follow: { energy: 0, hunger: 0, digestion: 0, ease: 0 } }; }
 let SCHED_PREFS = null, SCHED_STATE = null, SCHED_DAY = null, SCHED_INPUT = null;
+/* SCHED_PREFS_SAVED: el documento de preferencias EXISTE en
+   Firestore (el usuario ya guardó alguna vez). Sin él, la vista
+   nace PRECARGADA como sugerencia (ver schedSeedDraft) y nada
+   se persiste hasta su guardado explícito. SCHED_PRELOADED: el
+   borrador en pantalla trae valores sembrados por la precarga. */
+let SCHED_PREFS_SAVED = false, SCHED_PRELOADED = false;
 const SCHED_UI = { mode: 'view', pinMeal: null, preview: null, previewTrain: null };
 const SCHED_GAP_BY_TOL = { fast: [45, 120], normal: [60, 180], slow: [120, 240] };
 /* Heurística de PRODUCTO (no evidencia científica): umbral
@@ -53675,6 +53685,8 @@ function schedReminderTimes(result, remindersOn) {
 /* ── Carga y guardado (solo la sesión del propio usuario) ─────── */
 async function schedLoadOwn() {
   const [ps, ss] = await Promise.all([getDoc(schedPrefsRef()), getDoc(schedStateRef())]);
+  SCHED_PREFS_SAVED = ps.exists();
+  SCHED_PRELOADED = false;
   const p = ps.exists() ? ps.data() : {};
   SCHED_PREFS = Object.assign(schedPrefsDefaults(), p);
   SCHED_PREFS.routine = Object.assign(schedPrefsDefaults().routine, p.routine || {});
@@ -53909,10 +53921,20 @@ function schedSheetHTML() {
   let h = `<p class="sched-tz">${esc(t('sched.tzLine', { tz }))}</p>`;
   if (SCHED_UI.saveError) h += `<div class="sched-note warn"><b>${esc(t('sched.saveError'))}</b></div>`;
   if (r.orientationOnly) h += `<div class="sched-note warn"><b>${esc(t('sched.orientOnly'))}</b></div>`;
+  /* PRECARGA (pedido de Ronald, 2026-11-09 02:09 CST: «que venga
+     precargado con sugerencia de horario según las metas del
+     usuario»): sin preferencias guardadas y con una propuesta real
+     sobre la mesa (alguna comida con rango o el bloque de
+     descanso), el día se anuncia como lo que es — una sugerencia
+     precargada desde su plan y sus metas, editable y todavía sin
+     guardar. Sin propuesta no se anuncia precarga alguna: manda
+     la orientación honesta de arriba. */
+  if (!SCHED_PREFS_SAVED && (r.meals.some(m => m.from != null) || !!r.restBlock))
+    h += `<div class="sched-note"><b>${esc(t('sched.preloadNote'))}</b></div>`;
   if (r.missing.length) {
     h += `<div class="sched-note"><b>${esc(t('sched.missingTitle'))}</b><ul>${r.missing.map(k => `<li>${esc(t('sched.miss.' + k))}</li>`).join('')}</ul><button type="button" class="btn-ghost sched-btn" data-sched-act="goto-prefs">${esc(t('sched.completeBtn'))}</button></div>`;
   }
-  if (r.provisional) h += `<p class="progress-hint">${esc(t('sched.provisionalNote'))}</p>`;
+  if (r.provisional && SCHED_PREFS_SAVED) h += `<p class="progress-hint">${esc(t('sched.provisionalNote'))}</p>`;
   (r.conflicts || []).forEach(cf => {
     if (cf.type === 'breakNoFit') h += `<div class="sched-note warn">${esc(t('sched.conflictBreakNoFit', { meal: mealName(cf.meal) }))}</div>`;
     else h += `<div class="sched-note warn">${esc(t('sched.conflictBreak', { meal: mealName(cf.meal), when: cf.when || '' }))}</div>`;
@@ -54031,8 +54053,36 @@ function schedPropText(p) {
 }
 /* ── Preferencias: borrador editable, guardar explícito ──────── */
 let SCHED_DRAFT = null;
+/* PRECARGA — siembra del borrador (función pura): sin preferencias
+   guardadas, el borrador de «Mis datos» NO nace vacío: se siembra
+   con la ventana de descanso que Recordatorios ya conoce del
+   usuario (quietTo → despertar, quietFrom → dormir), la misma
+   ancla provisional que el motor ya usa para el bloque de
+   descanso. Solo rellena campos VACÍOS — jamás pisa un valor que
+   el usuario haya puesto — y el resultado vive solo en el
+   borrador en pantalla: nada se escribe hasta el guardado
+   explícito de siempre (prefs-save). Sin ventana conocida no se
+   siembra nada: no se inventa una rutina. */
+function schedSeedDraft(d, cfg) {
+  if (!d || !cfg) return d;
+  const wake = cfg.quietTo || '', sleep = cfg.quietFrom || '';
+  if (!wake && !sleep) return d;
+  ['work', 'free'].forEach(k => {
+    if (!d.routine[k].wake && wake) d.routine[k].wake = wake;
+    if (!d.routine[k].sleep && sleep) d.routine[k].sleep = sleep;
+  });
+  return d;
+}
 function schedDraft() {
-  if (!SCHED_DRAFT) SCHED_DRAFT = JSON.parse(JSON.stringify(SCHED_PREFS));
+  if (!SCHED_DRAFT) {
+    SCHED_DRAFT = JSON.parse(JSON.stringify(SCHED_PREFS));
+    SCHED_PRELOADED = false;
+    if (!SCHED_PREFS_SAVED) {
+      const before = JSON.stringify(SCHED_DRAFT.routine);
+      schedSeedDraft(SCHED_DRAFT, (typeof SCHED_CTX !== 'undefined' && SCHED_CTX && SCHED_CTX.cfg) || {});
+      SCHED_PRELOADED = JSON.stringify(SCHED_DRAFT.routine) !== before;
+    }
+  }
   return SCHED_DRAFT;
 }
 function schedCollectDraft() {
@@ -54062,6 +54112,7 @@ function schedPrefsHTML() {
   const wdName = wd => weekdayName(addDaysISO('2026-11-02', (wd + 6) % 7));
   let h = `<details class="sched-fold" id="sched-prefs-box"${open ? ' open' : ''}><summary>${esc(t('sched.prefsTitle'))}</summary><div class="sched-prefs">`;
   h += `<p class="progress-hint">${esc(t('sched.prefsIntro'))}</p>`;
+  if (SCHED_PRELOADED && !SCHED_PREFS_SAVED) h += `<p class="progress-hint">${esc(t('sched.prefsPreloadNote'))}</p>`;
   h += `<div class="sched-pf-group"><span class="sched-pf-label">${esc(t('sched.pf.workdays'))}</span><div class="sched-wds">${[0, 1, 2, 3, 4, 5, 6].map(wd => `<button type="button" class="sched-wd${(d.workdays || []).includes(wd) ? ' on' : ''}" data-sched-wd="${wd}">${esc(wdName(wd).slice(0, 3))}</button>`).join('')}</div></div>`;
   const timeRow = (id, label, val) => `<label class="sched-pf-row">${esc(label)}<input type="time" id="${id}" value="${esc(val || '')}"></label>`;
   h += timeRow('sched-pf-wake-work', t('sched.pf.wakeWork'), d.routine.work.wake);
@@ -54181,6 +54232,9 @@ async function schedAct(b) {
     SCHED_PREFS = draft;
     const ok = await schedPersist(schedSavePrefs);
     if (ok) {
+      /* Ya hay documento guardado: desde este momento la vista
+         deja de presentarse como precarga sin guardar. */
+      SCHED_PREFS_SAVED = true;
       SCHED_DRAFT = null;
       SCHED_UI.savedFlash = true;
       setTimeout(() => { SCHED_UI.savedFlash = false; }, 2500);
