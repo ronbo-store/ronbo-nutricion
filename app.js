@@ -5857,6 +5857,21 @@ en: {
   'train.n09.needName': 'Give your routine a name first.',
   'train.n09.needEx': 'Add at least one library exercise.',
   'train.n09.editMineNote': '✏️ You are editing your private template “{name}”.',
+  'train.n09.mybIntro': 'Build your routine in 3 steps with library exercises. It stays as your private template: only you can see it.',
+  'train.n09.mybStep1': 'Routine name', 'train.n09.mybStep1Sub': 'The name you will find it by in your templates.',
+  'train.n09.mybNameLab': 'Routine name',
+  'train.n09.mybStep2': 'Build each day', 'train.n09.mybStep2Sub': 'Name the day and add its exercises from the library.',
+  'train.n09.mybDayLab': 'Day name', 'train.n09.mybDayTag': 'Day {n}',
+  'train.n09.mybDelDay': '🗑 Delete day', 'train.n09.mybRemove': '✕ Remove',
+  'train.n09.mybDoor': 'Add exercises', 'train.n09.mybDoorSub': 'Opens the library: search and tap this day’s exercises',
+  'train.n09.mybEmptyDay': 'This day has no exercises yet. Add the first one with the green button:',
+  'train.n09.mybAddDay': '＋ Add another day',
+  'train.n09.mybStep3': 'Save your routine', 'train.n09.mybStep3Sub': 'You can use it as a template and edit it whenever you want.',
+  'train.n09.mybResume': '✏️ Keep editing', 'train.n09.mybDraftNew': '✏️ You are building a new private routine.',
+  'train.n09.mybAddingTo': 'Adding to: {day} — “{name}”', 'train.n09.mybAddingToDay': 'Adding to: {day}',
+  'train.n09.mybAddedBtn': '✓ Added',
+  'train.n09.mybNone': 'You have not added any exercises yet', 'train.n09.mybOne': '1 added to this day', 'train.n09.mybMany': '{n} added to this day',
+  'train.n09.mybDone': 'Done',
   'train.prop.tplTitle': '📋 Routine templates',
   'train.prop.tplIntro': 'Browse the routine templates. You can propose adding or swapping an exercise in your active plan — your trainer reviews and decides.',
   'train.prop.viewTemplates': 'View templates', 'train.prop.hideTemplates': 'Hide templates',
@@ -9705,6 +9720,21 @@ es: {
   'train.n09.needName': 'Ponle primero un nombre a tu rutina.',
   'train.n09.needEx': 'Añade al menos un ejercicio de la biblioteca.',
   'train.n09.editMineNote': '✏️ Estás editando tu plantilla privada «{name}».',
+  'train.n09.mybIntro': 'Arma tu rutina en 3 pasos con ejercicios de la biblioteca. Queda como tu plantilla privada: solo tú la ves.',
+  'train.n09.mybStep1': 'Nombre de la rutina', 'train.n09.mybStep1Sub': 'El nombre con el que la encontrarás en tus plantillas.',
+  'train.n09.mybNameLab': 'Nombre de la rutina',
+  'train.n09.mybStep2': 'Arma cada día', 'train.n09.mybStep2Sub': 'Ponle nombre al día y añade sus ejercicios desde la biblioteca.',
+  'train.n09.mybDayLab': 'Nombre del día', 'train.n09.mybDayTag': 'Día {n}',
+  'train.n09.mybDelDay': '🗑 Borrar día', 'train.n09.mybRemove': '✕ Quitar',
+  'train.n09.mybDoor': 'Añadir ejercicios', 'train.n09.mybDoorSub': 'Abre la biblioteca: busca y toca los ejercicios de este día',
+  'train.n09.mybEmptyDay': 'Este día aún no tiene ejercicios. Añade el primero con el botón verde:',
+  'train.n09.mybAddDay': '＋ Añadir otro día',
+  'train.n09.mybStep3': 'Guarda tu rutina', 'train.n09.mybStep3Sub': 'Podrás usarla como plantilla y editarla cuando quieras.',
+  'train.n09.mybResume': '✏️ Seguir editando', 'train.n09.mybDraftNew': '✏️ Estás armando una rutina privada nueva.',
+  'train.n09.mybAddingTo': 'Se añade a: {day} — «{name}»', 'train.n09.mybAddingToDay': 'Se añade a: {day}',
+  'train.n09.mybAddedBtn': '✓ Añadido',
+  'train.n09.mybNone': 'Aún no añades ejercicios', 'train.n09.mybOne': '1 añadido a este día', 'train.n09.mybMany': '{n} añadidos a este día',
+  'train.n09.mybDone': 'Listo',
   'train.prop.tplTitle': '📋 Plantillas de rutina',
   'train.prop.tplIntro': 'Explora las plantillas de rutina. Puedes proponer añadir o cambiar un ejercicio de tu plan activo: tu entrenador lo revisa y decide.',
   'train.prop.viewTemplates': 'Ver plantillas', 'train.prop.hideTemplates': 'Ocultar plantillas',
@@ -36834,44 +36864,196 @@ function renderMyBuilder() {
     inner += `<button type="button" class="btn-primary btn-sm" id="myb-open">${t('train.n09.createBtn')}</button>`;
     box.innerHTML = inner;
     $('myb-open').onclick = () => { MYB = { editId: null, name: '', days: [{ label: '', exercises: [] }] }; renderMyBuilder(); };
-    return;
+  } else {
+    /* Con un borrador vivo, la zona es la puerta de vuelta a la
+       hoja del editor (la hoja es la casa del editor desde el
+       rediseño; si algo la retiró, esta puerta la reabre sin
+       perder el borrador, que vive en MYB). */
+    inner += `<div class="prop-note">${MYB.editId ? t('train.n09.editMineNote', { name: MYB.name || '' }) : t('train.n09.mybDraftNew')}</div>
+    <button type="button" class="btn-primary btn-sm" id="myb-resume">${t('train.n09.mybResume')}</button>`;
+    box.innerHTML = inner;
+    $('myb-resume').onclick = () => mybSheetOpen();
   }
-  if (MYB.editId) inner += `<div class="prop-note">${t('train.n09.editMineNote', { name: MYB.name || '' })}</div>`;
-  inner += `<input type="text" id="myb-name" placeholder="${t('train.n09.namePh')}" value="${esc(MYB.name || '')}">`;
+  mybSheetSync();
+}
+/* ── LA HOJA DEL EDITOR (rediseño aprobado por Ronald
+   2026-11-08, maqueta maqueta-editor-rutinas-2026-11-08): el
+   editor sale del panel plegable y vive en su propia hoja a
+   pantalla completa — el armazón .swap-sheet de la casa — con
+   su propio desplazamiento, pasos numerados, etiquetas siempre
+   visibles y campos de 52 px con letra de 16 (sin zoom de iOS).
+   El estado sigue siendo MYB y el guardado, mybSave intacto:
+   esto es presentación y flujo, no modelo de datos. ── */
+function mybSheetEl() { return document.getElementById('myb-sheet'); }
+function mybSheetSync() {
+  if (!MYB) { mybSheetClose(); return; }
+  if (!mybSheetEl()) mybSheetRender();
+}
+function mybSheetOpen() {
+  mybSheetRender();
+  const s = mybSheetEl(); if (s) s.scrollTop = 0;
+}
+function mybSheetClose() {
+  mybPickClose();
+  const s = mybSheetEl(); if (s) s.remove();
+  if (!document.querySelector('.swap-sheet')) document.body.classList.remove('swap-sheet-open');
+}
+function mybExCardHTML(ex, di, ei) {
+  const entry = ex.exerciseId ? (LIB_BY_ID[ex.exerciseId] || null) : null;
+  const name = ex.name || (entry ? libNameOf(entry) : '') || ex.exerciseId || '';
+  const sub = entry ? [libField(entry, 'equipo'), libField(entry, 'nivel')].filter(Boolean).join(' · ') : '';
+  const photo = entry ? (entry.foto_url || '') : '';
+  const th = entry && !photo ? ytThumbOf(entry.video_youtube_url) : '';
+  return `<div class="myb-excard">
+    <div class="myb-ex-top">
+      ${photo ? `<img class="myb-ex-img" src="${esc(photo)}" alt="" loading="lazy">` : (th ? `<img class="myb-ex-img" src="${esc(th)}" alt="" loading="lazy" data-yt-fb="swap" onerror="ytThumbErr(this)">` : '<span class="myb-ex-img swap-card-noimg" aria-hidden="true"></span>')}
+      <span class="myb-ex-main"><span class="myb-ex-name">${esc(name)}</span>${sub ? `<span class="myb-ex-sub">${esc(sub)}</span>` : ''}</span>
+      <button type="button" class="myb-quit" data-myb-delex="${di}-${ei}">${esc(t('train.n09.mybRemove'))}</button>
+    </div>
+    <div class="myb-ex-ctrls">
+      <div class="myb-ctl"><label for="myb-sets-${di}-${ei}">${esc(t('train.n09.setsPh'))}</label><input type="text" id="myb-sets-${di}-${ei}" data-myb-sets="${di}-${ei}" value="${esc(ex.series || '')}"></div>
+      <div class="myb-ctl"><label for="myb-reps-${di}-${ei}">${esc(t('train.n09.repsPh'))}</label><input type="text" id="myb-reps-${di}-${ei}" data-myb-reps="${di}-${ei}" value="${esc(ex.repeticiones || '')}"></div>
+    </div>
+  </div>`;
+}
+function mybSheetRender() {
+  if (!MYB) { mybSheetClose(); return; }
+  let sheet = mybSheetEl();
+  if (!sheet) {
+    sheet = document.createElement('div');
+    sheet.id = 'myb-sheet';
+    sheet.className = 'swap-sheet myb-sheet';
+    document.body.appendChild(sheet);
+    /* Al tocar un campo, la hoja desplaza la vista para que el
+       campo activo quede visible sobre el teclado (nota de
+       construcción de la maqueta aprobada). */
+    sheet.addEventListener('focusin', e => {
+      const el = e.target;
+      if (el && el.tagName === 'INPUT') setTimeout(() => { try { el.scrollIntoView({ block: 'center', behavior: 'smooth' }); } catch {} }, 300);
+    });
+  }
+  document.body.classList.add('swap-sheet-open');
+  const stepHead = (n, tk, sk) => `<div class="myb-step-head"><span class="myb-step-num">${n}</span><div><div class="myb-step-title">${esc(t(tk))}</div><div class="myb-step-sub">${esc(t(sk))}</div></div></div>`;
+  let h = `<div class="swap-sheet-head"><span class="swap-sheet-title">${esc(t('train.n09.myTitle'))}</span><button type="button" class="swap-sheet-x" data-myb-close="1" aria-label="✕">✕</button></div>
+  <p class="myb-intro">${esc(t('train.n09.mybIntro'))}</p>`;
+  if (MYB.editId) h += `<div class="prop-note">${esc(t('train.n09.editMineNote', { name: MYB.name || '' }))}</div>`;
+  h += `<div class="myb-step">${stepHead(1, 'train.n09.mybStep1', 'train.n09.mybStep1Sub')}
+    <label class="myb-lab" for="myb-name">${esc(t('train.n09.mybNameLab'))}</label>
+    <input class="myb-fld" type="text" id="myb-name" name="myb-routine-name" autocomplete="off" placeholder="${esc(t('train.n09.namePh'))}" value="${esc(MYB.name || '')}"></div>`;
+  h += `<div class="myb-step">${stepHead(2, 'train.n09.mybStep2', 'train.n09.mybStep2Sub')}`;
   MYB.days.forEach((d, di) => {
-    inner += `<div class="myb-day">
-      <div class="frow"><input type="text" data-myb-daylabel="${di}" placeholder="${t('train.n09.dayPh')}" value="${esc(d.label || '')}">
-      <button type="button" class="btn-ghost btn-sm" data-myb-delday="${di}">✕</button></div>
-      ${d.exercises.map((ex, ei) => `<div class="myb-ex"><span class="myb-ex-name">${esc(ex.name || ex.exerciseId || '')}</span><input type="text" data-myb-sets="${di}-${ei}" placeholder="${t('train.n09.setsPh')}" value="${esc(ex.series || '')}"><input type="text" data-myb-reps="${di}-${ei}" placeholder="${t('train.n09.repsPh')}" value="${esc(ex.repeticiones || '')}"><button type="button" class="btn-ghost btn-sm" data-myb-delex="${di}-${ei}">✕</button></div>`).join('')}
-      <input type="text" data-myb-q="${di}" placeholder="${t('train.prop.searchPh')}" autocomplete="off">
-      <div class="prop-sug" data-myb-sug="${di}"></div>
+    h += `<div class="myb-day">
+      <div class="myb-day-head"><span class="myb-day-tag">${esc(t('train.n09.mybDayTag', { n: di + 1 }))}</span><button type="button" class="myb-del-day" data-myb-delday="${di}">${esc(t('train.n09.mybDelDay'))}</button></div>
+      <label class="myb-lab" for="myb-day-${di}">${esc(t('train.n09.mybDayLab'))}</label>
+      <input class="myb-fld" type="text" id="myb-day-${di}" data-myb-daylabel="${di}" autocomplete="off" placeholder="${esc(t('train.n09.dayPh'))}" value="${esc(d.label || '')}">
+      ${d.exercises.map((ex, ei) => mybExCardHTML(ex, di, ei)).join('')}
+      ${!d.exercises.length ? `<p class="myb-empty-note">${esc(t('train.n09.mybEmptyDay'))}</p>` : ''}
+      <button type="button" class="myb-door" data-myb-door="${di}"><b>＋ ${esc(t('train.n09.mybDoor'))}</b><span>${esc(t('train.n09.mybDoorSub'))}</span></button>
     </div>`;
   });
-  inner += `<div class="prop-form-actions">
-    <button type="button" class="btn-ghost btn-sm" id="myb-addday">${t('train.n09.addDay')}</button>
-    <button type="button" class="btn-primary btn-sm" id="myb-save">${t('train.n09.saveMine')}</button>
-    <button type="button" class="btn-ghost btn-sm" id="myb-cancel">${t('train.prop.cancel')}</button>
-  </div>`;
-  box.innerHTML = inner;
-  box.querySelectorAll('[data-myb-q]').forEach(inp => {
-    inp.oninput = () => {
-      const di = Number(inp.dataset.mybQ);
-      const sug = box.querySelector(`[data-myb-sug="${di}"]`);
-      const res = libSearch(inp.value);
-      sug.innerHTML = res.map(ex => `<button type="button" class="prop-sug-item" data-myb-pick="${esc(ex.id)}">${esc(libNameOf(ex))}</button>`).join('');
-      sug.querySelectorAll('[data-myb-pick]').forEach(b => b.onclick = () => {
-        mybHarvest();
-        const ex = LIB_BY_ID[b.dataset.mybPick];
-        if (ex) MYB.days[di].exercises.push({ exerciseId: ex.id, name: libNameOf(ex), series: '', repeticiones: '' });
-        renderMyBuilder();
-      });
-    };
-  });
-  box.querySelectorAll('[data-myb-delday]').forEach(b => b.onclick = () => { mybHarvest(); MYB.days.splice(Number(b.dataset.mybDelday), 1); if (!MYB.days.length) MYB.days.push({ label: '', exercises: [] }); renderMyBuilder(); });
-  box.querySelectorAll('[data-myb-delex]').forEach(b => b.onclick = () => { mybHarvest(); const [di, ei] = b.dataset.mybDelex.split('-').map(Number); MYB.days[di].exercises.splice(ei, 1); renderMyBuilder(); });
-  $('myb-addday').onclick = () => { mybHarvest(); MYB.days.push({ label: '', exercises: [] }); renderMyBuilder(); };
+  h += `<button type="button" class="myb-addday" id="myb-addday">${esc(t('train.n09.mybAddDay'))}</button></div>`;
+  h += `<div class="myb-step">${stepHead(3, 'train.n09.mybStep3', 'train.n09.mybStep3Sub')}
+    <button type="button" class="myb-save" id="myb-save">${esc(t('train.n09.saveMine'))}</button>
+    <button type="button" class="myb-cancel" id="myb-cancel">${esc(t('train.prop.cancel'))}</button></div>`;
+  sheet.innerHTML = h;
+  sheet.querySelectorAll('[data-myb-close]').forEach(b => b.onclick = () => { MYB = null; renderMyBuilder(); });
+  sheet.querySelectorAll('[data-myb-delday]').forEach(b => b.onclick = () => { mybHarvest(); MYB.days.splice(Number(b.dataset.mybDelday), 1); if (!MYB.days.length) MYB.days.push({ label: '', exercises: [] }); mybSheetRender(); });
+  sheet.querySelectorAll('[data-myb-delex]').forEach(b => b.onclick = () => { mybHarvest(); const [di, ei] = b.dataset.mybDelex.split('-').map(Number); MYB.days[di].exercises.splice(ei, 1); mybSheetRender(); });
+  sheet.querySelectorAll('[data-myb-door]').forEach(b => b.onclick = () => { mybHarvest(); mybPickOpen(Number(b.dataset.mybDoor)); });
+  $('myb-addday').onclick = () => { mybHarvest(); MYB.days.push({ label: '', exercises: [] }); mybSheetRender(); };
   $('myb-cancel').onclick = () => { MYB = null; renderMyBuilder(); };
   $('myb-save').onclick = () => mybSave();
+}
+/* ── EL SELECTOR DEL EDITOR (decisión de Ronald, chat
+   RONBO.NUTRI 2026-11-09 00:21 CST: «queda abierto hasta
+   completarlo»): hoja hermana sobre el mismo armazón, con las
+   MISMAS tarjetas del selector de Entrenamiento (foto, equipo,
+   nivel) y su misma búsqueda — pero NO se cierra al elegir:
+   cada toque suma el ejercicio al día en edición, la tarjeta
+   queda marcada «✓ Añadido» y el pie lleva la cuenta, hasta
+   que «Listo» (o la ✕) la cierra y vuelve al editor con el
+   día completo. El selector de Entrenamiento (swapSheetSync)
+   no se toca: su conducta en su casa queda como está — la
+   permanencia vive solo aquí porque el destino es otro estado
+   (el borrador MYB, no el plan del día). ── */
+let MYB_PICK = null;   // { di, q, added: Set<exerciseId> }
+function mybPickOpen(di) {
+  if (!MYB || !MYB.days[di]) return;
+  MYB_PICK = { di, q: '', added: new Set() };
+  mybPickRender();
+}
+function mybPickClose() {
+  const s = document.getElementById('myb-pick-sheet'); if (s) s.remove();
+  MYB_PICK = null;
+  if (!document.querySelector('.swap-sheet')) document.body.classList.remove('swap-sheet-open');
+}
+function mybPickCardHTML(ex) {
+  const added = !!(MYB_PICK && MYB_PICK.added.has(ex.id));
+  const sub = [libField(ex, 'equipo'), libField(ex, 'nivel')].filter(Boolean).join(' · ');
+  const th = !ex.foto_url ? ytThumbOf(ex.video_youtube_url) : '';
+  return `<button type="button" class="swap-card${added ? ' is-added' : ''}" data-mybpick-pick="${esc(ex.id)}"${added ? ' disabled' : ''}>
+    ${ex.foto_url ? `<img class="swap-card-img" src="${esc(ex.foto_url)}" alt="" loading="lazy">` : (th ? `<img class="swap-card-img" src="${esc(th)}" alt="" loading="lazy" data-yt-fb="swap" onerror="ytThumbErr(this)">` : '<span class="swap-card-img swap-card-noimg" aria-hidden="true"></span>')}
+    <span class="swap-card-main"><span class="swap-card-name">${esc(libNameOf(ex))}</span>${sub ? `<span class="swap-card-sub">${esc(sub)}</span>` : ''}</span><span class="swap-card-btn">${esc(added ? t('train.n09.mybAddedBtn') : t('train.swap.addBtn'))}</span></button>`;
+}
+function mybPickResultsHTML() {
+  if (!LIB || !LIB.length) return `<p class="progress-hint">${esc(t('train.lib.unavailable'))}</p>`;
+  const q = (MYB_PICK.q || '').trim();
+  if (q.length >= 2) {
+    const hits = libSearch(q);
+    return `<div class="swap-sec-title">${esc(t('train.swap.resultsTitle'))}</div>` +
+      (hits.length ? hits.map(ex => mybPickCardHTML(ex)).join('') : `<p class="progress-hint">${esc(t('train.swap.noResults'))}</p>`);
+  }
+  return libSections(LIB).map(sec => `<div class="swap-sec-title">${esc(sec.label)}</div>` + sec.items.map(ex => mybPickCardHTML(ex)).join('')).join('');
+}
+function mybPickCountText() {
+  const n = MYB_PICK ? MYB_PICK.added.size : 0;
+  return n === 0 ? t('train.n09.mybNone') : (n === 1 ? t('train.n09.mybOne') : t('train.n09.mybMany', { n }));
+}
+function mybPickRender() {
+  if (!MYB_PICK || !MYB) { mybPickClose(); return; }
+  let sheet = document.getElementById('myb-pick-sheet');
+  if (!sheet) {
+    sheet = document.createElement('div');
+    sheet.id = 'myb-pick-sheet';
+    sheet.className = 'swap-sheet myb-pick-sheet';
+    document.body.appendChild(sheet);
+  }
+  document.body.classList.add('swap-sheet-open');
+  const d = MYB.days[MYB_PICK.di];
+  const dayName = (d && (d.label || '').trim()) || t('train.n09.mybDayTag', { n: MYB_PICK.di + 1 });
+  const ctx = (MYB.name || '').trim() ? t('train.n09.mybAddingTo', { day: dayName, name: (MYB.name || '').trim() }) : t('train.n09.mybAddingToDay', { day: dayName });
+  sheet.innerHTML = `
+    <div class="swap-sheet-head">
+      <span class="swap-sheet-title">${esc(t('train.custom.pickAdd'))}</span>
+      <button type="button" class="swap-sheet-x" data-mybpick-close="1" aria-label="✕">✕</button>
+    </div>
+    <span class="myb-ctx">${esc(ctx)}</span>
+    <div class="swap-search-row"><input type="text" id="myb-pick-search" placeholder="${esc(t('train.prop.searchPh'))}" autocomplete="off" value="${esc(MYB_PICK.q)}"></div>
+    <div id="myb-pick-results">${mybPickResultsHTML()}</div>
+    <div class="myb-pick-foot"><span class="myb-pick-count" id="myb-pick-count">${esc(mybPickCountText())}</span><button type="button" class="myb-pick-done" data-mybpick-close="1">${esc(t('train.n09.mybDone'))}</button></div>`;
+  const close = () => { mybPickClose(); mybSheetRender(); };
+  sheet.querySelectorAll('[data-mybpick-close]').forEach(b => b.onclick = close);
+  const wire = () => {
+    sheet.querySelectorAll('[data-mybpick-pick]').forEach(b => b.onclick = () => {
+      const entry = LIB_BY_ID[b.dataset.mybpickPick];
+      if (!entry || !MYB_PICK || MYB_PICK.added.has(entry.id)) return;
+      MYB.days[MYB_PICK.di].exercises.push({ exerciseId: entry.id, name: libNameOf(entry), series: '', repeticiones: '' });
+      MYB_PICK.added.add(entry.id);
+      /* La hoja NO se cierra: se repintan resultados (la tarjeta
+         queda marcada) y la cuenta del pie — la confirmación
+         visible de cada suma. */
+      const box = sheet.querySelector('#myb-pick-results');
+      if (box) { box.innerHTML = mybPickResultsHTML(); wire(); }
+      const c = sheet.querySelector('#myb-pick-count'); if (c) c.textContent = mybPickCountText();
+    });
+  };
+  wire();
+  const search = sheet.querySelector('#myb-pick-search');
+  if (search) search.oninput = () => {
+    MYB_PICK.q = search.value;
+    const box = sheet.querySelector('#myb-pick-results');
+    if (box) { box.innerHTML = mybPickResultsHTML(); wire(); }
+  };
 }
 async function mybSave() {
   if (!MYB || !auth.currentUser) return;
@@ -36927,7 +37109,7 @@ function mybOpenEdit(tpl) {
   };
   if (!MYB.days.length) MYB.days.push({ label: '', exercises: [] });
   renderMyBuilder();
-  const box = $('my-builder'); if (box) box.scrollIntoView({ behavior: 'smooth', block: 'start' });
+  mybSheetOpen();
 }
 
 /* Reparto semanal de la sugerencia de alineación: desplazamientos
@@ -46649,7 +46831,7 @@ document.addEventListener('keydown', e => { if (e.key === 'Escape') shareClose()
  *  - El SW (sw.js) solo cachea la cáscara del mismo origen en modo
  *    RED PRIMERO: Auth/Firestore/Worker jamás pasan por la caché.
  * ================================================================ */
-const PWA_SW_VERSION = '20261109-frenos-salud';
+const PWA_SW_VERSION = '20261109-editor-rutinas';
 /* Sello de versión VISIBLE (2026-11-03): el pie de la tarjeta de
    acceso enseña qué copia corre este teléfono ('v ' + el sello),
    para comprobar de un vistazo si la versión nueva ya llegó.
