@@ -9,16 +9,16 @@
 [36m[1mi [22m[39m Running script: [1mnode test-fotodoc.mjs[22m
 OK    C1 alumna: borrador con foto-dato normal nace → PERMITIDO
 OK    C2 alumna: foto-dato en el tope exacto (300 000) nace → PERMITIDO
-[2026-11-09T05:59:11.081Z]  @firebase/firestore: Firestore (13.0.0): GrpcConnection RPC 'Write' stream 0x6a22ae2a error. Code: 7 Message: 7 PERMISSION_DENIED: 
-evaluation error at L2740:24 for 'create' @ L2740, false for 'create' @ L4038, evaluation error at L2787:24 for 'update' @ L2787, false for 'update' @ L4038, false for 'create' @ L2740, false for 'create' @ L4038
+[2026-11-09T06:04:22.461Z]  @firebase/firestore: Firestore (13.0.0): GrpcConnection RPC 'Write' stream 0x6251bbe2 error. Code: 7 Message: 7 PERMISSION_DENIED: 
+evaluation error at L2753:24 for 'create' @ L2753, false for 'create' @ L4051, evaluation error at L2800:24 for 'update' @ L2800, false for 'update' @ L4051, false for 'create' @ L2753, false for 'create' @ L4051
 OK    C3 alumna: foto-dato sobre el tope (300 001) — la guarda manda → DENEGADO
-[2026-11-09T05:59:11.119Z]  @firebase/firestore: Firestore (13.0.0): GrpcConnection RPC 'Write' stream 0x6a22ae2b error. Code: 7 Message: 7 PERMISSION_DENIED: 
-evaluation error at L2740:24 for 'create' @ L2740, false for 'create' @ L4038, evaluation error at L2787:24 for 'update' @ L2787, false for 'update' @ L4038, false for 'create' @ L2740, false for 'create' @ L4038
+[2026-11-09T06:04:22.495Z]  @firebase/firestore: Firestore (13.0.0): GrpcConnection RPC 'Write' stream 0x6251bbe3 error. Code: 7 Message: 7 PERMISSION_DENIED: 
+evaluation error at L2753:24 for 'create' @ L2753, false for 'create' @ L4051, evaluation error at L2800:24 for 'update' @ L2800, false for 'update' @ L4051, false for 'create' @ L2753, false for 'create' @ L4051
 OK    C4 alumna: foto_url numérica — la guarda exige texto → DENEGADO
 OK    C5 alumna: borrador SIN campo foto_url nace (forma manual) → PERMITIDO
 OK    C6 alumna: borrador con foto_url de URL corta nace (forma manual) → PERMITIDO
-[2026-11-09T05:59:11.201Z]  @firebase/firestore: Firestore (13.0.0): GrpcConnection RPC 'Write' stream 0x6a22ae2c error. Code: 7 Message: 7 PERMISSION_DENIED: 
-evaluation error at L2740:24 for 'create' @ L2740, false for 'create' @ L4038, evaluation error at L2787:24 for 'update' @ L2787, false for 'update' @ L4038, false for 'create' @ L2740, false for 'create' @ L4038
+[2026-11-09T06:04:22.582Z]  @firebase/firestore: Firestore (13.0.0): GrpcConnection RPC 'Write' stream 0x6251bbe4 error. Code: 7 Message: 7 PERMISSION_DENIED: 
+evaluation error at L2753:24 for 'create' @ L2753, false for 'create' @ L4051, evaluation error at L2800:24 for 'update' @ L2800, false for 'update' @ L4051, false for 'create' @ L2753, false for 'create' @ L4051
 OK    C7 alumna: nacer ya «aprobado» se deniega → DENEGADO
 BATERÍA FOTODOC OK — CANDIDATA
 [32m[1m✔ [22m[39m Script exited successfully (code 0)

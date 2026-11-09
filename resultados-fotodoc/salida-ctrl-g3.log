@@ -6,11 +6,11 @@
 [36m[1mi [22m[39m Running script: [1mnode test-fotodoc.mjs[22m
 OK    U1 autora: completa los pasos de SU borrador con la foto-dato intacta → PERMITIDO
 OK    U2 autora: inflar foto_url sobre el tope en su edición — la guarda manda → PERMITIDO
-[2026-11-09T06:00:06.581Z]  @firebase/firestore: Firestore (13.0.0): GrpcConnection RPC 'Write' stream 0x491c8517 error. Code: 7 Message: 7 PERMISSION_DENIED: 
-evaluation error at L2774:24 for 'update' @ L2774, false for 'update' @ L4020, false for 'update' @ L2774, false for 'update' @ L4020
+[2026-11-09T06:05:18.186Z]  @firebase/firestore: Firestore (13.0.0): GrpcConnection RPC 'Write' stream 0x770e40b1 error. Code: 7 Message: 7 PERMISSION_DENIED: 
+evaluation error at L2787:24 for 'update' @ L2787, false for 'update' @ L4033, false for 'update' @ L2787, false for 'update' @ L4033
 OK    U3 autora: auto-aprobarse su borrador se deniega → DENEGADO
-[2026-11-09T06:00:06.661Z]  @firebase/firestore: Firestore (13.0.0): GrpcConnection RPC 'Write' stream 0x491c8518 error. Code: 7 Message: 7 PERMISSION_DENIED: 
-evaluation error at L2774:24 for 'update' @ L2774, false for 'update' @ L4020, false for 'update' @ L2774, false for 'update' @ L4020
+[2026-11-09T06:05:18.263Z]  @firebase/firestore: Firestore (13.0.0): GrpcConnection RPC 'Write' stream 0x770e40b2 error. Code: 7 Message: 7 PERMISSION_DENIED: 
+evaluation error at L2787:24 for 'update' @ L2787, false for 'update' @ L4033, false for 'update' @ L2787, false for 'update' @ L4033
 OK    U5 tercera cuenta: editar el borrador ajeno se deniega → DENEGADO
 OK    U6 autora: edita su borrador con la foto EN el tope (no sobre) → PERMITIDO
 BATERÍA FOTODOC OK — VIVAS

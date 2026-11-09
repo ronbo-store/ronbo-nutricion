@@ -10,8 +10,8 @@ OK    C3 alumna: foto-dato sobre el tope (300 001) — la guarda manda → PERMI
 OK    C4 alumna: foto_url numérica — la guarda exige texto → PERMITIDO
 OK    C5 alumna: borrador SIN campo foto_url nace (forma manual) → PERMITIDO
 OK    C6 alumna: borrador con foto_url de URL corta nace (forma manual) → PERMITIDO
-[2026-11-09T05:59:48.350Z]  @firebase/firestore: Firestore (13.0.0): GrpcConnection RPC 'Write' stream 0x2db91c1c error. Code: 7 Message: 7 PERMISSION_DENIED: 
-evaluation error at L2740:24 for 'create' @ L2740, false for 'create' @ L4020, evaluation error at L2774:24 for 'update' @ L2774, false for 'update' @ L4020, false for 'create' @ L2740, false for 'create' @ L4020
+[2026-11-09T06:05:00.431Z]  @firebase/firestore: Firestore (13.0.0): GrpcConnection RPC 'Write' stream 0x298175fc error. Code: 7 Message: 7 PERMISSION_DENIED: 
+evaluation error at L2753:24 for 'create' @ L2753, false for 'create' @ L4033, evaluation error at L2787:24 for 'update' @ L2787, false for 'update' @ L4033, false for 'create' @ L2753, false for 'create' @ L4033
 OK    C7 alumna: nacer ya «aprobado» se deniega → DENEGADO
 BATERÍA FOTODOC OK — VIVAS
 [32m[1m✔ [22m[39m Script exited successfully (code 0)
