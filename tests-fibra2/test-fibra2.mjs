@@ -13,6 +13,12 @@
 //   ESPERA_NUEVO=false → VIVAS cc0cfae7 (AUTH-2026-11-08-298): la
 //                        escritura con fib se DENIEGA (hasOnly) y
 //                        el resto se comporta idéntico.
+// La decisión del entrenador espeja la escritura REAL de la app
+// (goalsTrainerDecideProposal): reparte la propuesta RELEÍDA del
+// documento, firma decidedBy/decidedAt y escribe la procedencia
+// con su changeLog; al aprobar un kind 'goal', goals = el mapa
+// vigente con el parámetro aplicado. Cada caso de decisión corre
+// sobre una alumna FRESCA (semilla idéntica) para aislar estados.
 // Salida: fallos.txt solo si hay fallos.
 import {
   initializeTestEnvironment,
@@ -45,25 +51,29 @@ const testEnv = await initializeTestEnvironment({
 
 const DUENO = 'dueno', ALU = 'alumnaS', ENT = 'entrenadorE', OTRA = 'alumnaT';
 const F = await import('firebase/firestore');
-const { doc, setDoc, updateDoc, serverTimestamp, Timestamp } = F;
+const { doc, setDoc, getDoc, updateDoc, serverTimestamp, Timestamp } = F;
 
 const METAS5 = { kcal: 1915, prot: 179, carb: 204, azuc: 24, gras: 43 };
 const METAS6 = { ...METAS5, fib: 27 };
 const PROP_TS = Timestamp.fromDate(new Date('2026-11-08T12:00:00Z'));
-const propuesta = () => ({ kind: 'goal', param: 'kcal', date: null, foundedValue: 1915, chosenValue: 1915, warningKey: '', status: 'pending', proposedAt: PROP_TS, decidedBy: null, decidedAt: null });
+const propuesta = () => ({ kind: 'goal', param: 'kcal', date: null, foundedValue: 1915, chosenValue: 1915, warningKey: 'gm.warn.kcal', status: 'pending', proposedAt: PROP_TS, decidedBy: null, decidedAt: null });
+const alumnaBase = (uid) => ({
+  name: 'Alumna ' + uid, role: 'usuario', approved: true, isOwner: false,
+  trainerUid: ENT, assignmentStatus: 'assigned', consentSeq: 4, termsVersion: 'v4-2026-10-24',
+  goals: { kcal: 1800, prot: 170, carb: 190, azuc: 23, gras: 40 },
+  goalsProvenance: { engineVersion: 'metas-v3-2026-10-26', changeLog: [] },
+  goalsProposal: propuesta(),
+});
 
+const FRESCAS = ['aluF1', 'aluF2', 'aluF3', 'aluF4'];
 await testEnv.withSecurityRulesDisabled(async (ctx) => {
   const db = ctx.firestore();
   await setDoc(doc(db, 'users', DUENO), { name: 'Dueno', role: 'administrador', approved: false, isOwner: true });
-  await setDoc(doc(db, 'users', ALU), { name: 'Alumna', role: 'usuario', approved: true, isOwner: false, trainerUid: ENT, goals: { kcal: 1800, prot: 170, carb: 190, azuc: 23, gras: 40 }, goalsProposal: propuesta() });
+  await setDoc(doc(db, 'users', ALU), alumnaBase(ALU));
+  for (const u of FRESCAS) await setDoc(doc(db, 'users', u), alumnaBase(u));
   await setDoc(doc(db, 'users', ENT), { name: 'Entrenador', role: 'entrenador', approved: true, isOwner: false });
   await setDoc(doc(db, 'users', OTRA), { name: 'Otra', role: 'usuario', approved: true, isOwner: false });
 });
-async function resembrarPropuesta() {
-  await testEnv.withSecurityRulesDisabled(async (ctx) => {
-    await setDoc(doc(ctx.firestore(), 'users', ALU), { goalsProposal: propuesta() }, { merge: true });
-  });
-}
 
 const dbS = testEnv.authenticatedContext(ALU).firestore();
 const dbE = testEnv.authenticatedContext(ENT).firestore();
@@ -79,18 +89,33 @@ await caso('dueña escribe clave desconocida (fib2)', updateDoc(doc(dbS, 'users'
 await caso('dueña escribe fib decimal válida (26.8)', updateDoc(doc(dbS, 'users', ALU), { goals: { ...METAS5, fib: 26.8 } }), N);
 await caso('otra usuaria escribe las metas de la alumna', updateDoc(doc(dbT, 'users', ALU), { goals: METAS6 }), false);
 
-/* — cláusula del entrenador asignado al aplicar la propuesta — */
-const decision = (goals) => ({
-  goalsProposal: { ...propuesta(), status: 'approved', decidedBy: ENT, decidedAt: serverTimestamp() },
-  goals,
-});
-await caso('entrenador asignado aprueba y aplica metas CON fib', updateDoc(doc(dbE, 'users', ALU), decision(METAS6)), N);
-await resembrarPropuesta();
-await caso('entrenador asignado aprueba y aplica metas SIN fib', updateDoc(doc(dbE, 'users', ALU), decision(METAS5)), true);
-await resembrarPropuesta();
-await caso('entrenador asignado aprueba y aplica con fib = 0', updateDoc(doc(dbE, 'users', ALU), decision({ ...METAS5, fib: 0 })), false);
-await resembrarPropuesta();
-await caso('entrenador NO asignado intenta aplicar con fib', updateDoc(doc(dbT, 'users', ALU), decision(METAS6)), false);
+/* — cláusula del entrenador asignado al aplicar la propuesta —
+     la decisión espeja goalsTrainerDecideProposal de la app:
+     propuesta releída, firma del entrenador, procedencia con
+     changeLog y, al aprobar, el mapa de metas resultante. */
+async function decisionReal(uid, goalsAplicadas) {
+  const snap = await getDoc(doc(dbE, 'users', uid));
+  const data = snap.data();
+  const prop = data.goalsProposal;
+  const patch = {
+    goalsProposal: { ...prop, status: 'approved', decidedBy: ENT, decidedAt: serverTimestamp() },
+    goalsProvenance: { ...(data.goalsProvenance || {}), changeLog: [...(((data.goalsProvenance || {}).changeLog) || []), { at: '2026-11-08T18:00:00.000Z', kind: prop.kind, param: prop.param, date: prop.date || null, foundedValue: prop.foundedValue, chosenValue: prop.chosenValue, gate: 'approved', by: ENT }] },
+  };
+  if (goalsAplicadas) patch.goals = goalsAplicadas;
+  return updateDoc(doc(dbE, 'users', uid), patch);
+}
+await caso('entrenador asignado aprueba SIN aplicar metas (solo decisión + procedencia)', decisionReal('aluF1', null), true);
+await caso('entrenador asignado aprueba y aplica metas SIN fib', decisionReal('aluF2', METAS5), true);
+await caso('entrenador asignado aprueba y aplica metas CON fib', decisionReal('aluF3', METAS6), N);
+await caso('entrenador asignado aprueba y aplica con fib = 0', decisionReal('aluF4', { ...METAS5, fib: 0 }), false);
+await caso('entrenador NO asignado intenta aplicar con fib', (async () => {
+  const snap = await getDoc(doc(dbT, 'users', 'aluF3'));
+  const prop = snap.data().goalsProposal;
+  return updateDoc(doc(dbT, 'users', 'aluF3'), {
+    goalsProposal: { ...prop, status: 'approved', decidedBy: OTRA, decidedAt: serverTimestamp() },
+    goals: METAS6,
+  });
+})(), false);
 
 await testEnv.cleanup();
 if (fallos.length) { writeFileSync('fallos.txt', fallos.join('\n') + '\n'); console.log('FALLOS:', fallos.length); process.exit(1); }

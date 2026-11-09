@@ -23,7 +23,7 @@ permissions:
 
 jobs:
   bateria:
-    name: 12 casos x2 (candidata y vivo) contra el emulador oficial
+    name: 13 casos x2 (candidata y vivo) contra el emulador oficial
     runs-on: ubuntu-24.04
     timeout-minutes: 20
     defaults:
