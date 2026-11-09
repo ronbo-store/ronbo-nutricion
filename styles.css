@@ -2284,7 +2284,7 @@ body.swap-sheet-open .share-fab, body.swap-sheet-open .help-fab, body.swap-sheet
    la hoja (12 px arriba, 14 px a los lados) para nacer a ras del
    borde y verse igual pegado que sin pegar. Lo comparten el
    selector de la sesión de hoy y el del editor de rutinas. */
-.swap-sticky-top { position: sticky; top: 0; z-index: 6; background: #fff; margin: -12px -14px 6px; padding: 12px 14px 4px; }
+.swap-sticky-top { position: sticky; top: -12px; z-index: 6; background: #fff; margin: -12px -14px 6px; padding: 12px 14px 4px; }
 .swap-search-row input[type="text"] { width: 100%; box-sizing: border-box; padding: 11px 12px; font-size: 15px; border: 1.5px solid #cbd5e1; border-radius: 12px; }
 /* Atajos del selector (2026-11-06): Cardio · Core · Estirar dentro
    del flujo de «+ Agregar» — botones grandes estilo casa, el grupo
