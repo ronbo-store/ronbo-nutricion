@@ -20357,6 +20357,32 @@ function gmiBarHTML(m, val, goal, inWindow) {
   const gv = m.key === 'azuc' ? '≤ ' + fmt(goal) : fmt(goal);
   return `<div class="gmi-bar"><div class="gmi-bar-top">${inWindow ? `<span class="gmi-dot" style="background:${m.color}"></span>` : ''}<span class="gmi-bar-name">${esc(t('metric.' + m.key))}</span><span class="gmi-bar-nums">${fmt(val)} / ${gv} ${m.unit}</span>${inWindow ? `<span class="gmi-bar-pct" style="color:${m.color}">${pct}%</span>` : ''}</div><div class="gmi-bar-track"><div class="gmi-bar-fill" style="width:${w}%;background:${m.color}"></div></div></div>`;
 }
+/* La fila de FIBRA de la hoja de detalle de metas (AUTH-2026-11-08-313):
+   la tarjeta fusionada de Inicio la ganó en AUTH-2026-11-08-310, pero
+   esta hoja enumera sus propias barras (METRICS) y la fibra quedó
+   fuera. La fila lee la MISMA definición compartida de AUTH-310: la
+   meta sale de fiberGoalFromKcal sobre la kcal que la hoja pinta,
+   con el campo aparte `goalsFib` como respaldo, y lo consumido de
+   fiberDayStats sobre las comidas del día pintado — los mismos
+   gramos que suma la barra de Inicio. Sin ninguna comida con dato,
+   estado honesto con la meta (glance.fibNone), jamás un 0 pintado;
+   con dato parcial, la fila lo dice (glance.fibPart); sin meta
+   derivada ni sello, la fila no nace. El color #92400E es el de la
+   barra de Inicio (ámbar oscuro, tono trigo). */
+function gmiFiberBarHTML(d) {
+  const goal = (typeof fiberGoalFromKcal === 'function' ? fiberGoalFromKcal(d && d.goals ? d.goals.kcal : null) : null)
+    || ((typeof UDATA !== 'undefined' && UDATA && Number(UDATA.goalsFib) > 0) ? Number(UDATA.goalsFib) : null);
+  if (!(goal > 0)) return '';
+  const st = (typeof fiberDayStats === 'function' && typeof MEALS !== 'undefined' && MEALS) ? fiberDayStats(MEALS[d.iso] || []) : { meals: 0, withFiber: 0, grams: 0 };
+  const head = `<span class="gmi-dot" style="background:#92400E"></span><span class="gmi-bar-name">${esc(t('metric.fib'))}</span>`;
+  if (!(st.withFiber > 0)) {
+    return `<div class="gmi-bar"><div class="gmi-bar-top">${head}<span class="gmi-bar-nums">${esc(t('glance.fibNone', { goal: fmt(goal) }))}</span></div><div class="gmi-bar-track"><div class="gmi-bar-fill" style="width:0%;background:#92400E"></div></div></div>`;
+  }
+  const pct = Math.round(st.grams / goal * 100);
+  const w = Math.max(0, Math.min(pct, 100));
+  const part = st.withFiber < st.meals ? ` ${t('glance.fibPart', { n: st.withFiber, m: st.meals })}` : '';
+  return `<div class="gmi-bar"><div class="gmi-bar-top">${head}<span class="gmi-bar-nums">${fmt(st.grams)} / ${fmt(goal)} g${part}</span><span class="gmi-bar-pct" style="color:#92400E">${pct}%</span></div><div class="gmi-bar-track"><div class="gmi-bar-fill" style="width:${w}%;background:#92400E"></div></div></div>`;
+}
 function gmiIsToday(iso) { return iso === (typeof todayISO === 'function' ? todayISO() : ''); }
 function gmiTitleFor(iso) { return gmiIsToday(iso) ? t('gmi.title') : t('gmi.titleDate', { date: dateName(iso) }); }
 /* Piezas compartidas cabecera/ventana (ajuste 2026-10-27): la
@@ -20679,7 +20705,7 @@ function gmiWindowHTML(d) {
        solo el párrafo, generado por plantilla como siempre. */
     if (s) h += `<div class="gmi-sumbox"><p class="gmi-sumbox-t">${esc(s.intent)} ${esc(s.route)}${s.lag ? ' ' + esc(s.lag) : ''}</p></div>`;
   }
-  h += `<div class="gmi-bars">` + METRICS.map(m => gmiBarHTML(m, d.tot[m.key], d.goals[m.key], true)).join('') + `</div>`;
+  h += `<div class="gmi-bars">` + METRICS.map(m => gmiBarHTML(m, d.tot[m.key], d.goals[m.key], true)).join('') + gmiFiberBarHTML(d) + `</div>`;
   h += `<p class="gmi-found">${esc(t('gmi.foundNote'))}</p>`;
   return h;
 }
@@ -46144,7 +46170,7 @@ document.addEventListener('keydown', e => { if (e.key === 'Escape') shareClose()
  *  - El SW (sw.js) solo cachea la cáscara del mismo origen en modo
  *    RED PRIMERO: Auth/Firestore/Worker jamás pasan por la caché.
  * ================================================================ */
-const PWA_SW_VERSION = '20261108-navegacion-dock';
+const PWA_SW_VERSION = '20261108-fibra-hoja';
 /* Sello de versión VISIBLE (2026-11-03): el pie de la tarjeta de
    acceso enseña qué copia corre este teléfono ('v ' + el sello),
    para comprobar de un vistazo si la versión nueva ya llegó.
