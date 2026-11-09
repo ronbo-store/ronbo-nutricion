@@ -37,8 +37,10 @@ async function caso(nombre, promesa, debePasar) {
     console.log(`OK    ${nombre} → ${debePasar ? 'PERMITIDO' : 'DENEGADO'}`);
   } catch (e) {
     const crudo = String((e && e.message) || e).replace(/\s+/g, ' ');
-    fallos.push(`${nombre}: se esperaba ${debePasar ? 'PERMITIDO' : 'DENEGADO'}`);
-    for (let i = 0; i < Math.min(crudo.length, 720); i += 180) fallos.push('  CRUDO ' + crudo.slice(i, i + 180));
+    // Solo el NOMBRE del caso (la vista de anotaciones de GitHub
+    // se corta a ~10) + el error crudo del PRIMER fallo.
+    if (!fallos.length) for (let i = 0; i < Math.min(crudo.length, 540); i += 180) fallos.push('CRUDO1 ' + crudo.slice(i, i + 180));
+    fallos.push('FALLO: ' + nombre);
     console.log(`FALLO ${nombre}: se esperaba ${debePasar ? 'PERMITIDO' : 'DENEGADO'} — ${crudo.slice(0, 400)}`);
   }
 }
