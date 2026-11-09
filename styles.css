@@ -4652,6 +4652,7 @@ body.swap-sheet-open .asst-fab { display: none !important; }
 .sched-tag { font-size: 11.5px; font-weight: 800; padding: 2px 8px; border-radius: 999px; }
 .sched-tag.pin { background: #e0eaff; color: #2b4acb; }
 .sched-tag.eaten { background: #dcf2e8; color: #0b7a55; }
+.sched-tag.prov { background: #fdf0d5; color: #92600a; }
 .sched-rel { font-size: 13.5px; font-weight: 700; color: #0b7a6e; margin-top: 4px; }
 .sched-why { font-size: 13.5px; color: #475569; line-height: 1.45; margin: 6px 0 0; }
 .sched-edu { color: #7c6a1d; }
