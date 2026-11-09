@@ -25878,10 +25878,10 @@ function asstContextBuild() {
       }
       const curMon = mondayISO(today);
       const prevMon = addDaysISO(curMon, -7);
-      const cur = wkWeekMetrics(logs || [], curMon, true);
+      const cur = wkWeekMetrics(logs || [], curMon, true, (typeof ACT_LOGS !== 'undefined' ? ACT_LOGS : null));
       const prev = wkWeekMetrics(logs || [], prevMon, true);
       ctx.week = { sessions: cur.sessions, prevSessions: prev.sessions, prevPlanned: wkPlannedDates([plan], prevMon, addDaysISO(prevMon, 6), today).length };
-      if (cur.minutesKnown) ctx.week.minutes = cur.minutes;
+      if (cur.actMinutes > 0) ctx.week.minutes = cur.actMinutes;
       if (cur.volumeKg != null) ctx.week.volumeKg = cur.volumeKg;
       try { ctx.week.streak = recoWeeks(logs || [], [plan], today).streakNow || 0; } catch {}
     }
@@ -40671,7 +40671,7 @@ function wkPrevApps(logs, monday) {
     }));
   return out;
 }
-function wkWeekMetrics(logs, monday, light) {
+function wkWeekMetrics(logs, monday, light, actByDate) {
   const sunday = addDaysISO(monday, 6);
   const ls = (Array.isArray(logs) ? logs : []).filter(l => wkIsClosed(l) && l.date >= monday && l.date <= sunday)
     .slice().sort((a, b) => (a.date < b.date ? -1 : a.date > b.date ? 1 : 0));
@@ -40714,6 +40714,36 @@ function wkWeekMetrics(logs, monday, light) {
   if (sats.length) { met.satAvg = sats.reduce((a, c) => a + c, 0) / sats.length; met.satCount = sats.length; }
   met.groups = [...groups.values()];
   if (gaps.length) met.restAvgSec = gaps.reduce((a, c) => a + c, 0) / gaps.length;
+  /* MINUTOS DE ACTIVIDAD TOTAL (decisión de Ronald, 2026-11-09
+     01:21 CST; cierra F-04/F-09): LA definición única de
+     «minutos de la semana» — las sesiones cerradas con su
+     duración guardada (calentamiento dentro) MÁS las
+     actividades registradas de cada día, sin el volcado
+     «entrenamiento_plan» (es la propia sesión, neta: contarlo
+     duplicaría). Una sesión sin duración aporta 0 minutos,
+     jamás inventados, y sigue contando como sesión.
+     actByDate llega por opts (la vista propia: ACT_LOGS; la
+     ficha: los activity_logs del alumno solo si su
+     consentimiento de ejercicio está vigente; sin fuente de
+     actividades, el total es el de las sesiones — misma
+     definición, los datos que ese visor puede ver).
+     minutes/minutesKnown/minutesList quedan como el detalle
+     de sesiones (la pista de «tiempo registrado»); actMinutes
+     es LA cifra que se pinta. */
+  met.unknownSessions = met.sessions - met.minutesKnown;
+  met.actMinutes = met.minutes;
+  if (actByDate) {
+    let extra = 0;
+    for (let i = 0; i < 7; i++) {
+      const dv = actByDate[addDaysISO(monday, i)];
+      const acts = Array.isArray(dv) ? dv : (dv && dv.activities);
+      if (Array.isArray(acts)) for (const a of acts) {
+        if (!a || a.type === 'entrenamiento_plan') continue;
+        extra += Math.max(0, Math.floor(num(a.durationMin)));
+      }
+    }
+    met.actMinutes += extra;
+  }
   return met;
 }
 /* Días planeados de una semana según los anclajes del plan, con
@@ -40751,7 +40781,7 @@ function weekCardCompute(logs, plans, todayIso, opts) {
   let target = null, targetMet = null;
   for (let back = 1; back <= 30; back++) {
     const mon = addDaysISO(curMon, -7 * back);
-    const met = wkWeekMetrics(logs, mon, false);
+    const met = wkWeekMetrics(logs, mon, false, opts && opts.actByDate);
     if (met.sessions > 0) { target = mon; targetMet = met; break; }
   }
   if (!target) return null;
@@ -40872,8 +40902,8 @@ function weekCardCompute(logs, plans, todayIso, opts) {
   return {
     monday: target, sunday, name,
     sessions: targetMet.sessions,
-    minutes: targetMet.minutesKnown ? targetMet.minutes : null,
-    minutesPartial: targetMet.minutesKnown > 0 && targetMet.minutesKnown < targetMet.sessions,
+    minutes: targetMet.actMinutes > 0 ? targetMet.actMinutes : null,
+    minutesPartial: targetMet.unknownSessions > 0,
     volumeKg: targetMet.volumeKg, effortAvg: targetMet.effortAvg,
     satAvg: targetMet.satAvg, satCount: targetMet.satCount,
     moment, improvements: imps.slice(0, 2), cmp,
@@ -41115,9 +41145,13 @@ async function loadWeekCard() {
     try { await libEnsure(); } catch {}
     if (!$('week-card-box')) return;
     const uid = auth.currentUser.uid;
+    /* Los minutos de la tarjeta son los de ACTIVIDAD TOTAL
+       (definición única): si la lectura de actividades aún no
+       corrió en esta sesión, se asegura aquí. */
+    if (typeof ACT_LOADED !== 'undefined' && !ACT_LOADED) { try { await loadActivityLogs(); } catch {} }
     const [plans, logs, reqs] = await Promise.all([fetchPlans(uid), fetchLogs(uid), fetchWeekRequests(uid)]);
     const model = weekCardCompute(wkPrepareLogs(logs), wkPreparePlans(plans), todayISO(),
-      { name: (typeof UDATA !== 'undefined' && UDATA && UDATA.name) || '', requests: reqs, mealsByDate: (typeof MEALS !== 'undefined' ? MEALS : null) });
+      { name: (typeof UDATA !== 'undefined' && UDATA && UDATA.name) || '', requests: reqs, mealsByDate: (typeof MEALS !== 'undefined' ? MEALS : null), actByDate: (typeof ACT_LOGS !== 'undefined' ? ACT_LOGS : null) });
     box.innerHTML = weekCardHTML(model, true);
     /* Cada línea de ejercicio con ficha abre la ficha del
        ejercicio con su historia (la superficie de siempre). */
@@ -41142,7 +41176,25 @@ function paintClientWeekCard(uid, plans, logs) {
       const reqs = await fetchWeekRequests(uid);
       const nm = (typeof FICHA_ASSIGN !== 'undefined' && FICHA_ASSIGN && FICHA_ASSIGN.uid === uid && FICHA_ASSIGN.name)
         || (typeof ADMIN_NAME_CACHE !== 'undefined' && ADMIN_NAME_CACHE[uid]) || '';
-      const model = weekCardCompute(wkPrepareLogs(logs), wkPreparePlans(plans), todayISO(), { name: nm, requests: reqs });
+      /* Minutos de actividad total en la ficha (definición
+         única): las actividades del alumno solo entran si su
+         consentimiento de EJERCICIO está vigente — la misma
+         puerta de la tarjeta de adherencia —; sin él, el total
+         es el de sus sesiones (misma definición, los datos que
+         el permiso deja ver). Cualquier fallo deja actByDate
+         en null y la tarjeta pinta como siempre. */
+      let actByDate = null;
+      try {
+        const us = await getDoc(doc(db, 'users', uid));
+        const cons = (us.exists() && us.data() && us.data().activityConsents) || {};
+        const ce = cons.exercise;
+        if (ce && ce.status === 'accepted' && ce.version === ACT_CONSENT_VERSION) {
+          const snap = await getDocs(query(collection(db, 'activity_logs'), where('ownerUid', '==', uid), where('date', '>=', histCutoffISO())));
+          actByDate = {};
+          snap.forEach(d => { const v = d.data(); if (v && v.date) actByDate[v.date] = { activities: Array.isArray(v.activities) ? v.activities : [] }; });
+        }
+      } catch {}
+      const model = weekCardCompute(wkPrepareLogs(logs), wkPreparePlans(plans), todayISO(), { name: nm, requests: reqs, actByDate });
       if ($('client-weekcard') === host) { host.innerHTML = weekCardHTML(model, false); wkCardWire(host); }
       /* Los hitos guardados del alumno, de solo lectura, bajo
          su tarjeta semanal (Nivel 2): se leen de su documento
@@ -41507,8 +41559,8 @@ async function recoStartupSync() {
     if (!auth.currentUser) return;
     const uid = auth.currentUser.uid;
     try { await libEnsure(); } catch {}
-    const plans = MY_PLANS_ALL || await fetchPlans(uid);
-    const logs = MY_LOGS_ALL || await fetchLogs(uid);
+    const plans = MY_PLANS_ALL || (MY_PLANS_ALL = await fetchPlans(uid));
+    const logs = MY_LOGS_ALL || (MY_LOGS_ALL = await fetchLogs(uid));
     await recoComputeSync(uid, logs, plans, (typeof MEALS !== 'undefined' && MEALS) || {});
   } catch {}
   finally { RECO_STARTUP_RUNNING = false; }
@@ -45310,9 +45362,41 @@ function shareFirstName() {
   const e = String((UDATA && UDATA.email) || (auth.currentUser && auth.currentUser.email) || '');
   return e ? e.split('@')[0] : '';
 }
+/* Los registros que leen las superficies de compartir: la
+   lectura COMPLETA (todos los planes) cuando existe; si no, la
+   del plan activo — la misma precedencia de la casa. */
+function shareLogsAll() {
+  return (typeof MY_LOGS_ALL !== 'undefined' && Array.isArray(MY_LOGS_ALL)) ? MY_LOGS_ALL
+    : (Array.isArray(MY_LOGS) ? MY_LOGS : []);
+}
+/* MINUTOS DE ACTIVIDAD TOTAL DEL DÍA — DEFINICIÓN ÚNICA
+   (decisión de Ronald, 2026-11-09 01:21 CST; cierra F-04/F-09
+   de la auditoría de fidelidad de números): los minutos de un
+   día son las actividades registradas en activity_logs MÁS
+   las sesiones cerradas de training_logs, con el calentamiento
+   DENTRO del tiempo de la sesión (la duración guardada del
+   registro, wkSessionMinutes). La entrada «entrenamiento_plan»
+   de activity_logs es el VOLCADO de la propia sesión (neto de
+   calentamiento y solo existe si hubo estimación de kcal): se
+   excluye para no contar la sesión dos veces ni en neto. Una
+   sesión sin duración registrada aporta 0 minutos — jamás
+   minutos inventados — y sigue contando como sesión y como
+   día entrenado. TODAS las superficies de minutos semanales
+   leen esta definición: la tarjeta de compartir, «Tu semana»
+   de Progreso y la ficha del alumno (actMinutes de
+   wkWeekMetrics, el mismo cálculo) y el correo semanal del
+   Worker (su puerto wkcDayTotal). */
 function shareActMinutes(iso) {
-  const d = ACT_LOGS[iso]; if (!d || !Array.isArray(d.activities)) return 0;
-  return d.activities.reduce((s, a) => s + Math.max(0, Math.floor(num(a && a.durationMin))), 0);
+  let total = 0;
+  const d = ACT_LOGS[iso];
+  if (d && Array.isArray(d.activities))
+    total += d.activities.reduce((s, a) => s + ((a && a.type === 'entrenamiento_plan') ? 0 : Math.max(0, Math.floor(num(a && a.durationMin)))), 0);
+  for (const l of shareLogsAll()) {
+    if (!l || l.date !== iso || !wkIsClosed(l)) continue;
+    const m = wkSessionMinutes(l);
+    if (m != null) total += m;
+  }
+  return total;
 }
 function shareTrainDone(iso) { return MY_LOGS.some(l => l.date === iso && trainLogStatus(l) === 'done'); }
 /* ════════════════════════════════════════════════════════════════
@@ -45435,7 +45519,10 @@ function shareWeekData() {
   const days = weekDates(todayISO());
   const minutes = days.map(shareActMinutes);
   const active = days.map(shareIsActiveDay);
-  const workoutsWeek = MY_LOGS.filter(l => days.indexOf(l.date) >= 0 && trainLogStatus(l) === 'done').length;
+  /* Sesiones de la semana = sesiones CERRADAS (hechas o
+     parciales), la misma cuenta de «Tu semana» y del correo
+     (antes solo contaba las «done»: F-04). */
+  const workoutsWeek = shareLogsAll().filter(l => days.indexOf(l.date) >= 0 && wkIsClosed(l)).length;
   const mealsWeek = days.reduce((s, d) => s + (MEALS[d] || []).length, 0);
   const minutesTotal = minutes.reduce((s, m) => s + m, 0);
   let bestIdx = -1, best = 0;
@@ -47657,7 +47744,7 @@ document.addEventListener('keydown', e => { if (e.key === 'Escape') shareClose()
  *  - El SW (sw.js) solo cachea la cáscara del mismo origen en modo
  *    RED PRIMERO: Auth/Firestore/Worker jamás pasan por la caché.
  * ================================================================ */
-const PWA_SW_VERSION = '20261109-programa-automatico';
+const PWA_SW_VERSION = '20261109-minutos-unicos';
 /* Sello de versión VISIBLE (2026-11-03): el pie de la tarjeta de
    acceso enseña qué copia corre este teléfono ('v ' + el sello),
    para comprobar de un vistazo si la versión nueva ya llegó.
