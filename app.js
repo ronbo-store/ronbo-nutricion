@@ -45529,14 +45529,31 @@ function shareWeekData() {
   minutes.forEach((m, i) => { if (m > best) { best = m; bestIdx = i; } });
   const streak = shareStreak();
   const totalWorkouts = MY_LOGS.filter(l => trainLogStatus(l) === 'done').length;
-  const allDays = new Set([...Object.keys(MEALS), ...Object.keys(ACT_LOGS), ...MY_LOGS.map(l => l.date)]);
-  let activeAllTime = 0; allDays.forEach(d => { if (shareIsActiveDay(d)) activeAllTime++; });
+  const allDays = new Set([...Object.keys(MEALS), ...Object.keys(ACT_LOGS), ...shareLogsAll().map(l => l.date)]);
+  /* «Primera semana completa» (decisión de Ronald, 2026-11-09
+     01:21 CST; cierra F-13 de la auditoría): el logro CONSERVA
+     su nombre y pasa a medir lo que dice — 7 días activos
+     DENTRO DE UNA MISMA semana natural (lunes a domingo, por
+     las fechas locales registradas) — en lugar de 7 días
+     activos acumulados en todo el historial. El «día activo»
+     es el de siempre (shareIsActiveDay: el día vale algo en
+     la definición ponderada de la racha AUTH-323); solo
+     cambia la ventana, no la definición del día. Es cálculo
+     en vivo, sin estado guardado: este chip nunca se
+     «otorga», se muestra cuando la semana completa existe.
+     (El hito guardado de «Tus hitos» con un nombre parecido
+     es OTRO logro — haber entrenado todos los días que el
+     plan pedía una semana — y no se toca.) */
+  const activeByMonday = {};
+  allDays.forEach(d => { if (shareIsActiveDay(d)) { const mon = mondayISO(d); activeByMonday[mon] = (activeByMonday[mon] || 0) + 1; } });
+  const hasFullWeek = Object.keys(activeByMonday).some(mon => activeByMonday[mon] >= 7);
   /* Hitos SOLO si son reales, con umbrales fijos y honestos:
-     primera semana completa = ≥7 días activos en todo el historial;
-     racha de 7 = la racha actual llega a 7; 10 entrenamientos =
-     ≥10 sesiones completadas en todo el historial. */
+     primera semana completa = una semana natural con los 7
+     días activos; racha de 7 = la racha actual llega a 7;
+     10 entrenamientos = ≥10 sesiones completadas en todo el
+     historial. */
   const milestones = [];
-  if (activeAllTime >= 7) milestones.push(t('share.mileWeek'));
+  if (hasFullWeek) milestones.push(t('share.mileWeek'));
   if (streak >= 7) milestones.push(t('share.mileStreak'));
   if (totalWorkouts >= 10) milestones.push(t('share.mileWorkouts'));
   const hasActivity = minutesTotal > 0 || workoutsWeek > 0 || mealsWeek > 0;
@@ -47744,7 +47761,7 @@ document.addEventListener('keydown', e => { if (e.key === 'Escape') shareClose()
  *  - El SW (sw.js) solo cachea la cáscara del mismo origen en modo
  *    RED PRIMERO: Auth/Firestore/Worker jamás pasan por la caché.
  * ================================================================ */
-const PWA_SW_VERSION = '20261109-minutos-unicos';
+const PWA_SW_VERSION = '20261109-semana-completa';
 /* Sello de versión VISIBLE (2026-11-03): el pie de la tarjeta de
    acceso enseña qué copia corre este teléfono ('v ' + el sello),
    para comprobar de un vistazo si la versión nueva ya llegó.
