@@ -431,7 +431,8 @@ service cloud.firestore {
     }
     function chalPartKeysOk() {
       return request.resource.data.keys().hasOnly(['challengeId', 'uid', 'displayName',
-        'progressCount', 'progressPct', 'completedAt', 'joinedAt']);
+        'progressCount', 'progressPct', 'completedAt', 'joinedAt',
+        'joinState', 'joinRequestedAt', 'joinDecidedAt', 'joinDecidedBy']);
     }
     function chalPartShapeOk(pid) {
       let d = request.resource.data;
@@ -441,7 +442,19 @@ service cloud.firestore {
         && d.displayName is string && d.displayName.size() <= 60
         && d.progressCount is int && d.progressCount >= 0 && d.progressCount <= 100
         && d.progressPct is int && d.progressPct >= 0 && d.progressPct <= 100
-        && d.joinedAt == request.time;
+        && d.joinedAt == request.time
+        // AUTH-2026-11-08-306 (Retos — aprobación): la participación
+        // nace con estado de inscripción. «pending» = solicitada y
+        // sin decidir (nadie la ha decidido: campos en null);
+        // «approved» = nace aprobada (asignada por el entrenador o
+        // auto-cura), con la decisión sellada a la hora del servidor.
+        && d.joinState is string && (d.joinState == 'pending' || d.joinState == 'approved')
+        && d.joinRequestedAt == request.time
+        && (d.joinState == 'pending'
+            ? (d.joinDecidedAt == null && d.joinDecidedBy == null)
+            : (d.joinDecidedAt == request.time
+               && d.joinDecidedBy is string && d.joinDecidedBy.size() > 0
+               && d.joinDecidedBy.size() <= 40));
     }
 
     // ---------- Reconocimiento por avance (AUTH-2026-11-04-240) ----------
@@ -1252,7 +1265,7 @@ service cloud.firestore {
       // approved, el rol, la asignación de entrenador y TODOS los
       // estados de consentimiento/recibos quedan fuera de la lista:
       // ninguna rama del alumno los abre, como hasta hoy.
-      // Fibra Fase 2 (AUTH-2026-11-08-303): el mapa admite la clave
+      // Fibra Fase 2 (AUTH-2026-11-08-308): el mapa admite la clave
       // `fib` — la meta de fibra DERIVADA de la kcal que el motor
       // escribe (14 g/1.000 kcal, piso 25 g/día), con el mismo
       // saneado numérico que las demás claves.
@@ -2759,6 +2772,16 @@ service cloud.firestore {
           || (isTrainerUser()
               && request.resource.data.get('estado', '') == 'pendiente'
               && !('approvedAt' in request.resource.data)
+              && !('approvedBy' in request.resource.data))
+          // Foto de máquina (AUTH-2026-11-08-304): la tercera rama
+          // deja que CUALQUIER usuario aprobado cree SU ficha en
+          // 'pendiente' y sin firma — el autor de un aporte de foto
+          // suele ser un alumno, no el entrenador —; la lectura del
+          // bloque ya limita los pendientes a su autor y al
+          // administrador, y la aprobación sigue siendo del
+          // administrador por la rama update de siempre.
+          || (request.resource.data.get('estado', '') == 'pendiente'
+              && !('approvedAt' in request.resource.data)
               && !('approvedBy' in request.resource.data)) );
       allow update: if isApprovedUser()
         && request.resource.data.updatedAt == request.time
@@ -3827,6 +3850,19 @@ service cloud.firestore {
         && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['title', 'rewardText'])
         && request.resource.data.title is string && request.resource.data.title.size() <= 80
         && request.resource.data.rewardText is string && request.resource.data.rewardText.size() <= 200;
+      // AUTH-2026-11-08-306 (Retos — aprobación, D3): al aprobar la
+      // inscripción a un reto INDIVIDUAL de catálogo, la ventana
+      // empieza el día de la aprobación: quien decide (el
+      // entrenador asignado del dueño, el administrador o el
+      // propietario) puede reponer SOLO startDate/endDate de un
+      // reto individual, con la ventana bien formada.
+      allow update: if signedIn() && resource.data.kind == 'individual'
+        && resource.data.ownerUid is string && resource.data.ownerUid.size() > 0
+        && (isAssignedTrainerOf(resource.data.ownerUid) || isAdminUser() || isOwnerUser())
+        && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['startDate', 'endDate'])
+        && request.resource.data.startDate is string && request.resource.data.startDate.size() == 10
+        && request.resource.data.endDate is string && request.resource.data.endDate.size() == 10
+        && request.resource.data.startDate <= request.resource.data.endDate;
       allow delete: if isOwnerUser()
         || (signedIn() && resource.data.createdBy == request.auth.uid);
     }
@@ -3854,20 +3890,42 @@ service cloud.firestore {
         && request.resource.data.progressPct == 0
         && request.resource.data.completedAt == null
         && (
-          // Alta propia: me uno a un reto que puedo ver.
+          // Alta propia SOLICITADA (AUTH-2026-11-08-306): nazco
+          // «pending» en un reto que puedo ver; el avance queda a
+          // cero hasta que mi entrenador (o el administrador)
+          // apruebe.
           (request.resource.data.uid == request.auth.uid
+            && request.resource.data.joinState == 'pending'
             && chalJoinable(request.resource.data.challengeId))
+          // Alta propia YA APROBADA al nacer, solo en dos casos
+          // cerrados (D2): el reto ASIGNADO a mí por mi entrenador
+          // (auto-cura: la decisión es de su creador) y el reto de
+          // grupo que yo mismo creé (me apruebo a mí mismo como
+          // creador).
+          || (request.resource.data.uid == request.auth.uid
+              && request.resource.data.joinState == 'approved'
+              && chalExists(request.resource.data.challengeId)
+              && ((chalDoc(request.resource.data.challengeId).kind == 'assigned'
+                   && chalDoc(request.resource.data.challengeId).ownerUid == request.auth.uid
+                   && request.resource.data.joinDecidedBy == chalDoc(request.resource.data.challengeId).createdBy)
+                  || (chalDoc(request.resource.data.challengeId).kind == 'group'
+                      && chalDoc(request.resource.data.challengeId).createdBy == request.auth.uid
+                      && request.resource.data.joinDecidedBy == request.auth.uid)))
           // Alta sembrada por el creador al asignar: el dueño
-          // del reto asignado, con todo a cero.
+          // del reto asignado, con todo a cero y YA APROBADA (D2):
+          // la decisión la sella el propio creador al sembrar.
           || (chalExists(request.resource.data.challengeId)
               && chalDoc(request.resource.data.challengeId).createdBy == request.auth.uid
               && chalDoc(request.resource.data.challengeId).ownerUid == request.resource.data.uid
-              && chalDoc(request.resource.data.challengeId).kind == 'assigned')
+              && chalDoc(request.resource.data.challengeId).kind == 'assigned'
+              && request.resource.data.joinState == 'approved'
+              && request.resource.data.joinDecidedBy == request.auth.uid)
         );
       // Solo el participante mueve su avance; completedAt
       // nace una sola vez (de null a la hora del servidor) y
       // jamás se mueve ni se borra.
       allow update: if signedIn() && resource.data.uid == request.auth.uid
+        && resource.data.get('joinState', 'approved') == 'approved'
         && request.resource.data.diff(resource.data).affectedKeys()
              .hasOnly(['progressCount', 'progressPct', 'completedAt', 'displayName'])
         && request.resource.data.challengeId == resource.data.challengeId
@@ -3883,6 +3941,41 @@ service cloud.firestore {
             ? (request.resource.data.completedAt == null
                || request.resource.data.completedAt == request.time)
             : request.resource.data.completedAt == resource.data.completedAt);
+      // AUTH-2026-11-08-306 (Retos — aprobación): LA DECISIÓN.
+      // Quien aprueba es el entrenador asignado del alumno; sin
+      // entrenador, el administrador (D1); el propietario, siempre.
+      // Solo desde «pending», solo los tres campos de la decisión,
+      // con el avance clavado a cero y sin cumplimiento: aprobar
+      // no regala progreso. La ventana del reto individual la
+      // repone la misma sesión en el documento del reto (rama de
+      // update de /challenges de este mismo paquete, D3).
+      allow update: if signedIn()
+        && resource.data.get('joinState', '') == 'pending'
+        && (request.resource.data.get('joinState', '') == 'approved'
+            || request.resource.data.get('joinState', '') == 'rejected')
+        && request.resource.data.diff(resource.data).affectedKeys()
+             .hasOnly(['joinState', 'joinDecidedAt', 'joinDecidedBy'])
+        && request.resource.data.joinDecidedBy == request.auth.uid
+        && request.resource.data.joinDecidedAt == request.time
+        && request.resource.data.progressCount == 0
+        && request.resource.data.completedAt == null
+        && (isAssignedTrainerOf(resource.data.uid) || isAdminUser() || isOwnerUser());
+      // AUTH-2026-11-08-306: RE-SOLICITUD del propio alumno tras un
+      // «no aprobada»: vuelve a «pending» limpiando la decisión,
+      // con el avance a cero y sin cumplimiento.
+      allow update: if signedIn() && resource.data.uid == request.auth.uid
+        && resource.data.get('joinState', '') == 'rejected'
+        && request.resource.data.get('joinState', '') == 'pending'
+        && request.resource.data.diff(resource.data).affectedKeys()
+             .hasOnly(['joinState', 'joinRequestedAt', 'joinDecidedAt', 'joinDecidedBy'])
+        && request.resource.data.joinRequestedAt == request.time
+        && request.resource.data.joinDecidedAt == null
+        && request.resource.data.joinDecidedBy == null
+        && request.resource.data.challengeId == resource.data.challengeId
+        && request.resource.data.uid == resource.data.uid
+        && request.resource.data.joinedAt == resource.data.joinedAt
+        && request.resource.data.progressCount == 0
+        && request.resource.data.completedAt == null;
       allow delete: if isOwnerUser()
         || (signedIn() && resource.data.uid == request.auth.uid)
         || (signedIn() && chalExists(resource.data.challengeId)

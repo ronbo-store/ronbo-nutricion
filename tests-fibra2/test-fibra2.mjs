@@ -1,5 +1,5 @@
 // RONBO FIT — Batería gemela del delta de reglas «FIBRA FASE 2»
-// (AUTH-2026-11-08-303) contra el emulador oficial de Firestore
+// (AUTH-2026-11-08-308) contra el emulador oficial de Firestore
 // (proyecto ficticio ronbo-nutri-test, sin secretos ni datos reales).
 // El delta: el mapa `goals` admite la clave `fib` — la meta de fibra
 // DERIVADA de la kcal que el motor escribe — en las DOS cláusulas
@@ -7,8 +7,8 @@
 // aplicar una propuesta aprobada), con el mismo saneado numérico
 // de las demás claves (> 0, <= 20000).
 // Suite GEMELA:
-//   ESPERA_NUEVO=true  → CANDIDATA (vivas cc0cfae7 + delta).
-//   ESPERA_NUEVO=false → VIVAS cc0cfae7 (AUTH-2026-11-08-298): la
+//   ESPERA_NUEVO=true  → CANDIDATA (vivas 771d4be6 + delta).
+//   ESPERA_NUEVO=false → VIVAS 771d4be6 (AUTH-2026-11-08-307): la
 //                        escritura con fib se DENIEGA (hasOnly) y
 //                        el resto se comporta idéntico.
 // La decisión del entrenador espeja la escritura REAL de la app
