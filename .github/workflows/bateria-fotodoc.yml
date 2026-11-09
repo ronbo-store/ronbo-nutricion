@@ -47,8 +47,11 @@ jobs:
         working-directory: ${{ github.workspace }}
         run: |
           cd tests-fotodoc
-          for f in fallos-candidata.txt fallos-control.txt; do
-            if [ -f "$f" ]; then echo "::error title=Fallos::$f"; sed 's/^/::error ::/' "$f"; fi
+          for f in fallos-candidata.txt progreso-candidata.txt fallos-control.txt progreso-control.txt; do
+            if [ -f "$f" ]; then awk -v F="$f" '{printf "::error file=%s,line=%d::%s\n", F, NR, $0}' "$f"; fi
+          done
+          for f in salida-candidata.log salida-control.log; do
+            if [ -f "$f" ]; then grep -E "^(FALLO|BATERÍA|FALLOS|CRASH)" "$f" | awk -v F="$f" '{printf "::error file=%s,line=%d::%s\n", F, NR+900, $0}' || true; fi
           done
           for f in progreso-candidata.txt progreso-control.txt; do
             if [ -f "$f" ]; then echo "== últimas marcas de $f"; tail -n 2 "$f" | sed 's/^/::error ::ULTIMO ::/' ; fi
