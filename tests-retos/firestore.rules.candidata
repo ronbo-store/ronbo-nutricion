@@ -443,7 +443,7 @@ service cloud.firestore {
         && d.progressCount is int && d.progressCount >= 0 && d.progressCount <= 100
         && d.progressPct is int && d.progressPct >= 0 && d.progressPct <= 100
         && d.joinedAt == request.time
-        // AUTH-2026-11-08-306 (Retos — aprobación): la participación
+        // AUTH-2026-11-08-307 (Retos — aprobación): la participación
         // nace con estado de inscripción. «pending» = solicitada y
         // sin decidir (nadie la ha decidido: campos en null);
         // «approved» = nace aprobada (asignada por el entrenador o
@@ -3838,7 +3838,7 @@ service cloud.firestore {
         && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['title', 'rewardText'])
         && request.resource.data.title is string && request.resource.data.title.size() <= 80
         && request.resource.data.rewardText is string && request.resource.data.rewardText.size() <= 200;
-      // AUTH-2026-11-08-306 (Retos — aprobación, D3): al aprobar la
+      // AUTH-2026-11-08-307 (Retos — aprobación, D3): al aprobar la
       // inscripción a un reto INDIVIDUAL de catálogo, la ventana
       // empieza el día de la aprobación: quien decide (el
       // entrenador asignado del dueño, el administrador o el
@@ -3878,7 +3878,7 @@ service cloud.firestore {
         && request.resource.data.progressPct == 0
         && request.resource.data.completedAt == null
         && (
-          // Alta propia SOLICITADA (AUTH-2026-11-08-306): nazco
+          // Alta propia SOLICITADA (AUTH-2026-11-08-307): nazco
           // «pending» en un reto que puedo ver; el avance queda a
           // cero hasta que mi entrenador (o el administrador)
           // apruebe.
@@ -3929,7 +3929,7 @@ service cloud.firestore {
             ? (request.resource.data.completedAt == null
                || request.resource.data.completedAt == request.time)
             : request.resource.data.completedAt == resource.data.completedAt);
-      // AUTH-2026-11-08-306 (Retos — aprobación): LA DECISIÓN.
+      // AUTH-2026-11-08-307 (Retos — aprobación): LA DECISIÓN.
       // Quien aprueba es el entrenador asignado del alumno; sin
       // entrenador, el administrador (D1); el propietario, siempre.
       // Solo desde «pending», solo los tres campos de la decisión,
@@ -3948,7 +3948,7 @@ service cloud.firestore {
         && request.resource.data.progressCount == 0
         && request.resource.data.completedAt == null
         && (isAssignedTrainerOf(resource.data.uid) || isAdminUser() || isOwnerUser());
-      // AUTH-2026-11-08-306: RE-SOLICITUD del propio alumno tras un
+      // AUTH-2026-11-08-307: RE-SOLICITUD del propio alumno tras un
       // «no aprobada»: vuelve a «pending» limpiando la decisión,
       // con el avance a cero y sin cumplimiento.
       allow update: if signedIn() && resource.data.uid == request.auth.uid
