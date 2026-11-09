@@ -298,11 +298,16 @@ service cloud.firestore {
     function myDocExists() {
       return exists(/databases/$(database)/documents/users/$(request.auth.uid));
     }
+    // AUTH-2026-11-08-298 (corrección de AUTH-296): lectura con
+    // .get() y valor por omisión — un documento de usuario sin el
+    // campo isOwner/approved NO debe hacer fallar la evaluación
+    // («Property isOwner is undefined»): equivale a false y no
+    // cambia ningún permiso en documentos que sí traen los campos.
     function isOwnerUser() {
-      return signedIn() && myDocExists() && myDoc().isOwner == true;
+      return signedIn() && myDocExists() && myDoc().get('isOwner', false) == true;
     }
     function isApprovedUser() {
-      return signedIn() && myDocExists() && (myDoc().isOwner == true || myDoc().approved == true);
+      return signedIn() && myDocExists() && (myDoc().get('isOwner', false) == true || myDoc().get('approved', false) == true);
     }
     function isSelf(uid) {
       return signedIn() && request.auth.uid == uid;
@@ -2914,11 +2919,17 @@ service cloud.firestore {
     // misma vía del editor que escribe 'faq'. El documento
     // interno 'faq' y todos los demás siguen tras sesión; list
     // sigue prohibido para todos.
+    // app_settings/prepared_meals = { v, count, generatedAt, meals }:
+    // biblioteca de comidas preparadas del botón «Llenar mi día»
+    // (AUTH-2026-11-08-297): catálogo calculado desde la tabla
+    // verificada de alimentos; lectura con sesión, como el
+    // manifiesto de la biblioteca de ejercicios, y escritura SOLO
+    // del propietario (la carga va por script del propietario).
     match /app_settings/{docId} {
       allow get: if docId == 'faq_public'
-        || (signedIn() && docId in ['approvals', 'ai_control', 'feature_flags', 'membership_catalog', 'faq', 'library_manifest']);
+        || (signedIn() && docId in ['approvals', 'ai_control', 'feature_flags', 'membership_catalog', 'faq', 'library_manifest', 'prepared_meals']);
       allow list: if false;
-      allow create, update, delete: if isOwnerUser() && docId in ['approvals', 'ai_control', 'feature_flags', 'membership_catalog', 'faq', 'faq_public', 'library_manifest'];
+      allow create, update, delete: if isOwnerUser() && docId in ['approvals', 'ai_control', 'feature_flags', 'membership_catalog', 'faq', 'faq_public', 'library_manifest', 'prepared_meals'];
     }
 
     // COMUNICACIONES (AUTH-2026-11-01-145): los textos de correo
