@@ -19438,7 +19438,7 @@ const GOALS_PROTEIN_FACTOR = { mantener: 1.6, ganar: 1.8, bajar: 2.2 };
 const GOALS_FAT_PCT = { mantener: 0.25, ganar: 0.25, bajar: 0.20 };
 const GOALS_FAT_FLOOR_PCT = 0.15;
 const GOALS_FAT_CEIL_PCT = 0.30;
-/* Fibra Fase 2 (AUTH-2026-11-08-308): la meta de fibra es DERIVADA
+/* Fibra Fase 2 (AUTH-2026-11-08-310): la meta de fibra es DERIVADA
    de la meta de kcal — densidad de 14 g por cada 1.000 kcal (IOM,
    Dietary Reference Intakes 2002/2005: la ingesta adecuada de fibra
    sale de 14 g/1.000 kcal; las DGA 2020-2025 la usan como densidad)
@@ -20373,7 +20373,7 @@ function gmiObjBoxHTML(c, tag) {
    OTRO día (la fecha de la ventana de Comida), la tarjeta es la de
    ese día, como siempre, y las secciones de HOY no se mezclan en
    ella. De los huecos reservados de AUTH-278, la barra de fibra
-   YA ESTÁ CONSTRUIDA (AUTH-2026-11-08-308: Fase 2 de fibra, barra
+   YA ESTÁ CONSTRUIDA (AUTH-2026-11-08-310: Fase 2 de fibra, barra
    contra la meta derivada de la kcal); siguen reservados y VACÍOS
    la puntuación 0–100 (fórmula sin cerrar) y el botón de código
    de barras (Mejora 3): ninguno se añade aquí. */
@@ -20422,7 +20422,7 @@ function fusedTodayData(gmiD) {
     c.remaining = Math.round(gmiD.left);
     c.pct = gmiD.pct;
   }
-  /* Fibra Fase 2 (AUTH-2026-11-08-308): gramos de fibra de hoy
+  /* Fibra Fase 2 (AUTH-2026-11-08-310): gramos de fibra de hoy
      (fiberDayStats sobre MEALS — la corrección F-01 hace que las
      comidas conserven el campo) y su meta DERIVADA de la kcal
      que la propia tarjeta pinta; sin kcal, manda como respaldo
@@ -20440,7 +20440,7 @@ function fusedBarsHTML(c) {
     return `<div class="dg-macro"><span class="dg-macro-name">${t('metric.' + m.key)}</span><span class="dg-macro-bar"><span class="dg-macro-fill" style="width:${w.toFixed(1)}%;background:${m.color}"></span></span><span class="dg-macro-val">${valTxt}</span></div>`;
   }).join('');
 }
-/* La barra de fibra de la tarjeta fusionada (AUTH-2026-11-08-308):
+/* La barra de fibra de la tarjeta fusionada (AUTH-2026-11-08-310):
    la misma fila .dg-macro que las de proteína y carbos — la
    presentación que Ronald tocó el 2026-11-08 («Barra, como la de
    proteína»), NO un anillo. Con dato parcial, los gramos son solo
@@ -20471,7 +20471,7 @@ function fusedTodayHTML(gmiD) {
   const c = fusedTodayData(gmiD);
   let h = `<div class="fused-today"><div class="dg-macros">${fusedBarsHTML(c)}${fusedFiberBarHTML(c)}</div>`;
   /* La barra de fibra ocupa el hueco previsto del diseño §3 de
-     AUTH-278 desde AUTH-2026-11-08-308 (Fase 2 de fibra). */
+     AUTH-278 desde AUTH-2026-11-08-310 (Fase 2 de fibra). */
   /* HUECO PREVISTO (diseño §3 de AUTH-278): aquí irá la puntuación
      del día cuando Ronald cierre su fórmula (Mejora 5). */
   h += `<h3 class="dg-meals-t">${esc(t('glance.mealsTitle'))}</h3><div class="dg-meals">` + c.perMeal.map(pm => `
@@ -21229,7 +21229,7 @@ async function loadAll() {
            la hora de registro, NO una hora editable de la comida. */
         createdAtMs: (v.createdAt && v.createdAt.toMillis) ? v.createdAt.toMillis() : 0,
         photoURL: v.photoURL || '', photoPath: v.photoPath || '',
-        /* Fibra (corrección F-01 de la auditoría, AUTH-2026-11-08-308):
+        /* Fibra (corrección F-01 de la auditoría, AUTH-2026-11-08-310):
            el campo `fiber` del documento SÍ se mapea, conservando el
            null de «sin dato» (fiberOf) — sin esto, la fibra guardada
            desde la Fase 1 no se veía en la vista del propio alumno. */
