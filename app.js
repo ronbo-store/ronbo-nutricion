@@ -682,7 +682,7 @@ async function renderMyTrainerBox() {
   box.innerHTML = `
   <div class="panel">
     ${lineHtml}
-    ${MT_CARD_OPEN ? `<div class="mt-body">${bodyHtml}</div>` : ''}
+    ${MT_CARD_OPEN ? `<div class="mt-body">${bodyHtml}</div>` : `<div class="mt-access"><button type="button" class="btn-ghost mt-access-btn" id="mt-change-access">${esc(t('esc.changeRemove'))}</button></div>`}
   </div>`;
   const reqBtn = $('btn-meal-request');
   if (reqBtn) reqBtn.onclick = async () => {
@@ -746,6 +746,22 @@ async function renderMyTrainerBox() {
      los cableados quedan en nada por sus propias guardas. */
   const mtTg = $('mt-toggle');
   if (mtTg) mtTg.onclick = () => { MT_CARD_OPEN = !MT_CARD_OPEN; renderMyTrainerBox(); };
+  /* Acceso visible «Cambiar / quitar entrenador» (este paquete):
+     con la tarjeta recogida, el selector vive tras la línea y quien
+     entrena no lo encuentra; este botón la despliega por EL MISMO
+     camino del interruptor y deja a la vista EL MISMO selector de
+     siempre (mismo id, mismo pool, mismo botón «Cambiar» con su
+     escChangeTrainer) — no se duplica ni el selector ni su lógica.
+     Desplegada, el acceso no se pinta: el selector ya está a la
+     vista y dos puertas al mismo sitio en la misma superficie
+     serían la duplicación que la casa corrige. */
+  const mtAcc = $('mt-change-access');
+  if (mtAcc) mtAcc.onclick = async () => {
+    MT_CARD_OPEN = true;
+    await renderMyTrainerBox();
+    const sel = $('my-trainer-sel');
+    if (sel) { try { sel.scrollIntoView({ block: 'center' }); } catch {} try { sel.focus({ preventScroll: true }); } catch {} }
+  };
   /* Miniatura de la línea: si la foto no carga, la imagen se
      retira y quedan las iniciales, como en la foto grande. */
   const mtThumb = box.querySelector('.mt-thumb-img');
@@ -4476,6 +4492,7 @@ en: {
   'esc.currentTrainer': 'Your trainer',
   'esc.changeTrainer': 'Change trainer',
   'esc.changeBtn': 'Change',
+  'esc.changeRemove': 'Change / remove trainer',
   'esc.alreadyState': 'You\'re already in that state',
   'esc.changedOk': 'Trainer changed.',
   'esc.waitOption': 'No trainer for now — wait for assignment',
@@ -8198,6 +8215,7 @@ es: {
   'esc.currentTrainer': 'Tu entrenador',
   'esc.changeTrainer': 'Cambiar de entrenador',
   'esc.changeBtn': 'Cambiar',
+  'esc.changeRemove': 'Cambiar / quitar entrenador',
   'esc.alreadyState': 'Ya estás en ese estado',
   'esc.changedOk': 'Entrenador cambiado.',
   'esc.waitOption': 'Sin entrenador por ahora: esperar asignación',
@@ -18157,7 +18175,18 @@ async function openClient(uid) {
     fichaCoachKnown = true;
     fichaCoachUid = (cs.exists() && cs.data().status === 'activa') ? (cs.data().nutritionistUid || null) : null;
   } catch {}
-  FICHA_ASSIGN = { uid, name: uname, trainerUid: udata ? (udata.trainerUid || null) : null, coachUid: fichaCoachUid, coachKnown: fichaCoachKnown };
+  /* PUERTAS VISIBLES (este paquete): el congelamiento por una
+     solicitud de modalidad VIVA se lee UNA vez aquí — solo para el
+     administrador, que es quien ve el botón de quitar en la ficha —
+     para que el bloque lo refleje al pintar, como la hoja de
+     asignaciones. Si la lectura falla, modLive queda en falso y la
+     propia escritura (assignSetTrainer) sigue devolviendo
+     'modlive' al intentarlo: la guarda manda igual. */
+  let fichaModLive = false;
+  if (ROLE === 'administrador') {
+    try { const ms = await getDoc(doc(db, 'modality_requests', uid)); if (ms.exists() && String(ms.data().status || '').startsWith('pendiente_')) fichaModLive = true; } catch {}
+  }
+  FICHA_ASSIGN = { uid, name: uname, trainerUid: udata ? (udata.trainerUid || null) : null, coachUid: fichaCoachUid, coachKnown: fichaCoachKnown, modLive: fichaModLive };
   const data = [];
   try {
     const ws = await getDocs(query(collection(db, 'nutrition_weight'), where('ownerUid', '==', uid)));
@@ -18201,7 +18230,7 @@ async function openClient(uid) {
     ${fichaPendBlockHTML(uid)}
     <div id="client-treq"></div>
     <div id="ficha-met-box" data-met-uid="${uid}">${fichaMetBlockHTML(uid)}</div>
-    <div id="ficha-assign-box">${assignBlockHTML(uid, FICHA_ASSIGN)}</div>
+    <div id="ficha-assign-box">${assignBlockHTML(uid, FICHA_ASSIGN, true)}</div>
     <div id="client-rings"></div>
     <div id="client-alerts" data-uid="${uid}"></div>
     ${foodItems.length ? `<h3 class="history-title">${t('client.foodReview', { n: foodItems.length })}</h3>${foodBlock}` : ''}
@@ -39897,7 +39926,7 @@ function fichaMetRefresh(uid) {
    cierra su propio flujo; el administrador la resuelve en
    Administración): la hoja lo explica y no pinta los botones. ═══ */
 const ASSIGN_NAMES = {};       // uid → nombre visible (entrenadores y coaches)
-let FICHA_ASSIGN = null;       // { uid, trainerUid, coachUid, coachKnown } de la ficha abierta
+let FICHA_ASSIGN = null;       // { uid, trainerUid, coachUid, coachKnown, modLive } de la ficha abierta
 let ASSIGN_CTX = null;         // contexto de la hoja de asignaciones
 
 /* Nombre visible SINCRÓNICO desde las cachés de la casa; null si
@@ -39949,14 +39978,28 @@ function assignRowLine(u) {
 /* El bloque del detalle y de la ficha: los dos nombres con su
    rótulo completo y, SOLO para el administrador, el botón que abre
    la hoja de gestión. */
-function assignBlockHTML(uid, st) {
+function assignBlockHTML(uid, st, ficha) {
   let h = `<div class="assign-box">
     <h3 class="history-title">🤝 ${esc(t('assign.title'))}</h3>
     <p class="assign-line">🏋️ ${esc(t('assign.lineTrainer', { name: st.trainerUid ? (assignNameSync(st.trainerUid) || '—') : t('assign.noneTrainer') }))}</p>`;
   if (st.coachKnown) h += `
     <p class="assign-line">🥗 ${esc(t('assign.lineCoach', { name: st.coachUid ? (assignNameSync(st.coachUid) || '—') : t('assign.noneCoach') }))}</p>`;
-  if (ROLE === 'administrador') h += `
-    <div class="assign-actions"><button type="button" class="btn-primary assign-manage-btn" data-assign-open="${esc(uid)}">${esc(t('assign.manage'))}</button></div>`;
+  if (ROLE === 'administrador') {
+    h += `
+    <div class="assign-actions"><button type="button" class="btn-primary assign-manage-btn" data-assign-open="${esc(uid)}">${esc(t('assign.manage'))}</button>`;
+    /* PUERTAS VISIBLES (este paquete): SOLO en la ficha (ficha=true)
+       y con entrenador asignado, el «Quitar entrenador» se ve junto
+       a la línea de asignación sin abrir la hoja — corre por la
+       misma escritura de siempre (assignRemoveTrainerFromFicha).
+       Con una solicitud de modalidad VIVA no se pinta: el bloque
+       muestra la nota del congelamiento, como la hoja. El detalle
+       de «Mis alumnos» pinta este mismo bloque sin la bandera: su
+       puerta sigue siendo la hoja (fuera de alcance aquí). */
+    if (ficha && st.trainerUid && !st.modLive) h += `<button type="button" class="btn-ghost assign-remove-btn" data-assign-remove-trainer="${esc(uid)}">${esc(t('assign.removeTrainer'))}</button>`;
+    h += `</div>`;
+    if (ficha && st.modLive) h += `
+    <p class="assign-note">${esc(t('assign.modLive'))}</p>`;
+  }
   h += `
   </div>`;
   return h;
@@ -39965,11 +40008,13 @@ function fichaAssignWire(scope) {
   const root = scope || document;
   const b = root.querySelector ? root.querySelector('[data-assign-open]') : null;
   if (b) b.addEventListener('click', () => assignOpen(b.getAttribute('data-assign-open'), 'ficha'));
+  const rb = root.querySelector ? root.querySelector('[data-assign-remove-trainer]') : null;
+  if (rb) rb.addEventListener('click', () => assignRemoveTrainerFromFicha(rb.getAttribute('data-assign-remove-trainer')));
 }
 function fichaAssignPaint(uid) {
   const box = $('ficha-assign-box');
   if (!box || !FICHA_ASSIGN || FICHA_ASSIGN.uid !== uid) return;
-  box.innerHTML = assignBlockHTML(uid, FICHA_ASSIGN);
+  box.innerHTML = assignBlockHTML(uid, FICHA_ASSIGN, true);
   fichaAssignWire(box);
 }
 /* El pool de entrenadores asignables: la misma derivación de la
@@ -40148,6 +40193,30 @@ async function assignDoTrainer(newUid) {
   assignClose();
   toast(newUid ? t('assign.savedTrainer', { name: assignNameSync(newUid) || '—' }) : t('assign.savedNoTrainer'));
   await assignAfterSave(uid, 'trainer', from);
+}
+/* «Quitar entrenador» DESDE LA FICHA (este paquete): la misma
+   escritura de la hoja (assignSetTrainer con null — que devuelve
+   'modlive' si hay una solicitud de modalidad viva) y el mismo
+   después (assignAfterSave con origen 'ficha'), sin abrir la hoja.
+   La lógica de asignación no cambia: esto es solo una puerta
+   visible más sobre el camino de siempre. Si la escritura avisa
+   del congelamiento, el bloque se repinta ya con la nota y sin el
+   botón, para que el estado quede reflejado también en reposo. */
+async function assignRemoveTrainerFromFicha(uid) {
+  if (ROLE !== 'administrador') return;
+  if (!FICHA_ASSIGN || FICHA_ASSIGN.uid !== uid || !FICHA_ASSIGN.trainerUid) return;
+  const box = $('ficha-assign-box');
+  if (box) box.querySelectorAll('button').forEach(b => b.disabled = true);
+  const r = await assignSetTrainer(uid, null);
+  if (r === 'modlive') {
+    if (FICHA_ASSIGN && FICHA_ASSIGN.uid === uid) FICHA_ASSIGN.modLive = true;
+    toast(t('assign.modLive'), true);
+    fichaAssignPaint(uid);
+    return;
+  }
+  if (!r) { toast(t('assign.error'), true); fichaAssignPaint(uid); return; }
+  toast(t('assign.savedNoTrainer'));
+  await assignAfterSave(uid, 'trainer', 'ficha');
 }
 async function assignDoCoach(newUid) {
   const ctx = ASSIGN_CTX; if (!ctx || ctx.busy) return;
@@ -44801,7 +44870,7 @@ document.addEventListener('keydown', e => { if (e.key === 'Escape') shareClose()
  *  - El SW (sw.js) solo cachea la cáscara del mismo origen en modo
  *    RED PRIMERO: Auth/Firestore/Worker jamás pasan por la caché.
  * ================================================================ */
-const PWA_SW_VERSION = '20261108-admin-personas';
+const PWA_SW_VERSION = '20261108-puertas-entrenador';
 /* Sello de versión VISIBLE (2026-11-03): el pie de la tarjeta de
    acceso enseña qué copia corre este teléfono ('v ' + el sello),
    para comprobar de un vistazo si la versión nueva ya llegó.

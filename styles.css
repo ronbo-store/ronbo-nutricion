@@ -2075,6 +2075,8 @@ body { padding: max(16px, env(safe-area-inset-top)) max(16px, env(safe-area-inse
 .mt-toggle-head { font-style: italic; color: #4b5563; font-size: 13.5px; }
 .mt-toggle-wait { color: #374151; font-size: 13.5px; }
 .mt-body { margin-top: 12px; }
+.mt-access { margin-top: 8px; }
+.mt-access-btn { width: 100%; min-height: 48px; font-size: 15px; }
 
 /* ===== Cronómetro deportivo libre (2026-10-27) =====
    Botón redondo flotante arriba a la derecha (familia de la llamita;
@@ -3817,6 +3819,7 @@ body.sess-on #pend-back-chip { bottom: calc(env(safe-area-inset-bottom, 0px) + 1
 .assign-line { margin: 4px 0; font-size: 14px; color: #1f2937; }
 .assign-actions { margin-top: 10px; }
 .assign-manage-btn { width: 100%; min-height: 48px; font-size: 15px; }
+.assign-remove-btn { width: 100%; min-height: 48px; margin-top: 8px; font-size: 15px; color: #b91c1c; }
 .assign-sec-t { display: block; margin: 14px 0 6px; font-size: 13px; font-weight: 800; letter-spacing: .04em; text-transform: uppercase; color: #0f766e; }
 .assign-opt { display: block; width: 100%; min-height: 48px; margin: 6px 0; padding: 10px 14px; box-sizing: border-box; border: 1px solid #d1d5db; border-radius: 12px; background: #fff; color: #111827; font-family: inherit; font-size: 15px; text-align: left; cursor: pointer; }
 .assign-opt.on { border-color: #0d9488; background: #f0fdfa; font-weight: 700; }
