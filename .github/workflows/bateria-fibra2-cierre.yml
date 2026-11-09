@@ -4,7 +4,7 @@ on:
   push:
     branches: [ci/fibra2-cierre-bateria]
 permissions:
-  contents: read
+  contents: write
 jobs:
   bateria:
     runs-on: ubuntu-latest
@@ -24,10 +24,6 @@ jobs:
           java-version: '17'
       - run: npm ci
       - run: npm install -g firebase-tools@15.34.0
-      - name: Entorno (diagnóstico ronda 3)
-        run: |
-          { echo "node: $(node --version 2>&1)"; echo "java: $(java -version 2>&1 | head -n 1)"; echo "firebase: $(firebase --version 2>&1 | head -n 1)"; echo "archivos:"; ls -la; } > entorno.log 2>&1 || true
-          cat entorno.log
       - name: Suite CANDIDATA (delta goalsFib; la sonda de decisión debe pasar)
         run: |
           cp reglas-candidatas.txt firestore.rules
@@ -46,20 +42,23 @@ jobs:
           echo "suite-control exit=$?"
           [ -f fallos.txt ] && cp fallos.txt fallos-control.txt || true
           [ -f progreso.txt ] && cp progreso.txt progreso-control.txt || true
-      - name: Diagnóstico y veredicto
+      - name: Publicar los registros en la rama (evidencia legible por git)
         if: always()
         working-directory: ${{ github.workspace }}
         run: |
-          cd tests-fibra2-cierre
-          for f in fallos-candidata.txt fallos-control.txt; do
-            if [ -f "$f" ]; then sed 's/^/::error ::/' "$f"; fi
+          mkdir -p resultados
+          for f in salida-candidata.log salida-control.log fallos-candidata.txt fallos-control.txt progreso-candidata.txt progreso-control.txt; do
+            if [ -f "tests-fibra2-cierre/$f" ]; then cp "tests-fibra2-cierre/$f" "resultados/$f"; else echo "(ausente)" > "resultados/$f"; fi
           done
-          echo "::error ::ENTORNO>"
-          if [ -f entorno.log ]; then tail -n 8 entorno.log | sed 's/[^[:print:]]//g' | cut -c1-200 | sed 's/^/::error ::ENV ::/'; else echo "::error ::ENV sin-entorno.log"; fi
-          for f in salida-candidata.log salida-control.log; do
-            echo "::error ::COLA $f>"
-            if [ -f "$f" ]; then tail -n 8 "$f" | sed 's/[^[:print:]]//g' | cut -c1-200 | sed 's/^/::error ::LOG ::/'; else echo "::error ::LOG sin-$f"; fi
-          done
-          test ! -f fallos-candidata.txt && test ! -f fallos-control.txt
-          grep -q "BATERÍA FIBRA2-CIERRE OK — CANDIDATA" salida-candidata.log
-          grep -q "BATERÍA FIBRA2-CIERRE OK — VIVAS" salida-control.log
+          { echo "node: $(node --version 2>&1)"; echo "firebase: $(firebase --version 2>&1 | head -n 1)"; } > resultados/entorno.txt 2>&1 || true
+          git config user.name "bateria-ci"
+          git config user.email "bateria-ci@ronbo.local"
+          git add resultados
+          git commit -m "Resultados de la batería (run ${{ github.run_id }})" || echo "sin cambios"
+          git push origin HEAD:ci/fibra2-cierre-bateria
+      - name: Veredicto
+        working-directory: ${{ github.workspace }}
+        run: |
+          test ! -f tests-fibra2-cierre/fallos-candidata.txt && test ! -f tests-fibra2-cierre/fallos-control.txt
+          grep -q "BATERÍA FIBRA2-CIERRE OK — CANDIDATA" tests-fibra2-cierre/salida-candidata.log
+          grep -q "BATERÍA FIBRA2-CIERRE OK — VIVAS" tests-fibra2-cierre/salida-control.log
