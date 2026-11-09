@@ -1022,6 +1022,7 @@
          la semana construida de verdad; su botón abre la hoja
          #plan-float, la casa del planificador. -->
     <div id="plan-card" style="display:none"></div>
+    <div id="sched-card" style="display:none"></div>
     <div id="food-view-resumen">
       <div class="rings" id="rings"></div>
       <p class="rings-first-note" id="rings-note" style="display:none"></p>
@@ -1118,6 +1119,21 @@
       <button type="button" class="pend-close" id="btn-plan-close" aria-label="Close" data-i18n-aria="client.close">✕</button>
     </div>
     <div id="plan-sheet-body"></div>
+  </div>
+
+  <!-- «Mi horario diario» — Horarios de alimentación sugeridos
+       (especificación de Ronald, 2026-11-09; SOLO desarrollo):
+       hoja hermana de #plan-float en la familia .act-float; reúne
+       comidas, entrenamiento y descanso con rangos sugeridos. Su
+       contenido lo pinta schedPaintSheet (app.js) SOLO desde los
+       documentos del propio usuario; abrirla no escribe nada. -->
+  <div id="sched-backdrop" style="display:none"></div>
+  <div class="act-float act-sheet" id="sched-float" style="display:none" role="dialog" aria-label="My daily schedule" data-i18n-aria="sched.sheetTitle">
+    <div class="pend-head">
+      <h2>🕐 <span data-i18n="sched.sheetTitle">My daily schedule</span></h2>
+      <button type="button" class="pend-close" id="btn-sched-close" aria-label="Close" data-i18n-aria="client.close">✕</button>
+    </div>
+    <div id="sched-sheet-body"></div>
   </div>
   <!-- «Comparte tus logros» (Ronald, 2026-10-25): hoja flotante con
        las DOS tarjetas (meta del día / logros de la semana). La imagen
