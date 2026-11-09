@@ -19444,7 +19444,12 @@ const GOALS_FAT_CEIL_PCT = 0.30;
    sale de 14 g/1.000 kcal; las DGA 2020-2025 la usan como densidad)
    con piso de 25 g/día (EFSA 2010: ingesta adecuada en adultos).
    No se edita a mano: si la kcal cambia, la fibra se recalcula sola
-   en cada corrida del motor y viaja en el mapa como clave `fib`. */
+   en cada corrida del motor. DÓNDE VIAJA (decisión B de Ronald,
+   2026-11-08 23:17 CST): en el campo APARTE `goalsFib` del documento
+   users/{uid}, NUNCA dentro del mapa cerrado `goals` — meterla
+   dentro agotaba el presupuesto de 1.000 expresiones de las reglas
+   y denegaba la decisión del entrenador (informe del intento
+   detenido en construccion-fibra-fase2-2026-11-08). */
 const GOALS_FIBER_PER_1000 = 14;
 const GOALS_FIBER_FLOOR = 25;
 function fiberGoalFromKcal(kcal) {
@@ -19535,9 +19540,9 @@ function goalsCoreCompute(inp) {
     }
   }
   if (goals.kcal != null && !held.has('azuc')) goals.azuc = Math.round(goals.kcal * 0.05 / 4);
-  if (goals.kcal != null) goals.fib = fiberGoalFromKcal(goals.kcal);
+  const fibGoal = goals.kcal != null ? fiberGoalFromKcal(goals.kcal) : null;
   const fingerprint = [obj, Math.round(tdee), w, paceState, paceKcal || 0, fatPct, guardHeld.join(','), [...held].sort().join(','), (inp.conditions || []).join(',')].join('|');
-  return { goals, proteinFactor: pf, fatPct, dayLevel: 'base', paceState, paceKcal, heldParams: [...held], heldDetails, guardHeld, infoAlerts: hm.info, fingerprint };
+  return { goals, fibGoal, proteinFactor: pf, fatPct, dayLevel: 'base', paceState, paceKcal, heldParams: [...held], heldDetails, guardHeld, infoAlerts: hm.info, fingerprint };
 }
 /* ---------- Variación por día (§K) — funciones puras ---------- */
 /* Ajuste del día: base + nivel → carb/gras de ESE día. kcal/prot/azuc
@@ -19971,10 +19976,15 @@ async function goalsEngineRun(reason) {
   const newGoals = { ...res.goals };
   const provCmp = { ...prov }; delete provCmp.computedAt;
   const curCmp = curProv ? { ...curProv } : null; if (curCmp) delete curCmp.computedAt;
-  if (JSON.stringify(newGoals) === JSON.stringify(curGoals || {}) && JSON.stringify(provCmp) === JSON.stringify(curCmp)) { renderGoalsEngine(); return; }
+  /* Fibra Fase 2 (decisión B): la corrida solo es «sin cambios» si el
+     sello goalsFib guardado ya es el derivado de esta corrida — así
+     la primera corrida tras el despliegue estampa el campo aunque
+     metas y procedencia no cambien. */
+  const curFib = (UDATA && UDATA.goalsFib != null && Number(UDATA.goalsFib) > 0) ? Number(UDATA.goalsFib) : null;
+  if (JSON.stringify(newGoals) === JSON.stringify(curGoals || {}) && JSON.stringify(provCmp) === JSON.stringify(curCmp) && (res.fibGoal != null ? res.fibGoal : null) === curFib) { renderGoalsEngine(); return; }
   try {
-    await setDoc(doc(db, 'users', auth.currentUser.uid), { goals: newGoals, goalsProvenance: prov }, { merge: true });
-    UDATA.goals = newGoals; UDATA.goalsProvenance = prov; GOALS = { ...newGoals };
+    await setDoc(doc(db, 'users', auth.currentUser.uid), { goals: newGoals, goalsProvenance: prov, goalsFib: res.fibGoal != null ? res.fibGoal : deleteField() }, { merge: true });
+    UDATA.goals = newGoals; UDATA.goalsProvenance = prov; UDATA.goalsFib = res.fibGoal != null ? res.fibGoal : null; GOALS = { ...newGoals };
     const ds = $('dateSel'); if (ds) render(ds.value);
   } catch {}
   renderGoalsEngine();
@@ -20416,9 +20426,9 @@ function fusedTodayData(gmiD) {
      (fiberDayStats sobre MEALS — la corrección F-01 hace que las
      comidas conserven el campo) y su meta DERIVADA de la kcal
      que la propia tarjeta pinta; sin kcal, manda como respaldo
-     la meta guardada en el mapa (clave `fib`). */
+     la meta guardada en el campo aparte `goalsFib` del documento. */
   c.fiber = fiberDayStats((MEALS && MEALS[today]) || []);
-  c.fibGoal = fiberGoalFromKcal(c.goals ? c.goals.kcal : null) || goalOf('fib');
+  c.fibGoal = fiberGoalFromKcal(c.goals ? c.goals.kcal : null) || ((typeof UDATA !== 'undefined' && UDATA && Number(UDATA.goalsFib) > 0) ? Number(UDATA.goalsFib) : null);
   return c;
 }
 function fusedBarsHTML(c) {
@@ -21076,7 +21086,11 @@ $('form-goals').addEventListener('submit', async e => {
   const btnLabel = btn ? btn.textContent : '';
   if (btn) { btn.disabled = true; btn.textContent = t('msg.saving'); }
   try {
-    await setDoc(doc(db, 'users', goalsUid), { goals }, { merge: true });
+    /* Fibra Fase 2 (decisión B): el editor manual cambia la kcal,
+       así que refresca el sello goalsFib con la misma derivación (o
+       lo retira si la kcal tecleada no da meta): el campo nunca
+       queda contradiciendo al mapa que acompaña. */
+    await setDoc(doc(db, 'users', goalsUid), { goals, goalsFib: fiberGoalFromKcal(goals.kcal) != null ? fiberGoalFromKcal(goals.kcal) : deleteField() }, { merge: true });
   } catch (err) {
     failToast(err);
     if (btn) { btn.disabled = false; btn.textContent = btnLabel; }
@@ -21087,7 +21101,7 @@ $('form-goals').addEventListener('submit', async e => {
   goalsUid = null;
   $('goals-modal').style.display = 'none';
   toast(t('msg.goalsSaved'));
-  if (mine) { GOALS = { ...goals }; render($('dateSel').value); }
+  if (mine) { GOALS = { ...goals }; UDATA.goalsFib = fiberGoalFromKcal(goals.kcal); render($('dateSel').value); }
   await loadAdmin();
 });
 
