@@ -24,6 +24,10 @@ jobs:
           java-version: '17'
       - run: npm ci
       - run: npm install -g firebase-tools@15.34.0
+      - name: Entorno (diagnóstico ronda 3)
+        run: |
+          { echo "node: $(node --version 2>&1)"; echo "java: $(java -version 2>&1 | head -n 1)"; echo "firebase: $(firebase --version 2>&1 | head -n 1)"; echo "archivos:"; ls -la; } > entorno.log 2>&1 || true
+          cat entorno.log
       - name: Suite CANDIDATA (delta goalsFib; la sonda de decisión debe pasar)
         run: |
           cp reglas-candidatas.txt firestore.rules
@@ -48,13 +52,13 @@ jobs:
         run: |
           cd tests-fibra2-cierre
           for f in fallos-candidata.txt fallos-control.txt; do
-            if [ -f "$f" ]; then echo "::error title=Fallos::$f"; sed 's/^/::error ::/' "$f"; fi
+            if [ -f "$f" ]; then sed 's/^/::error ::/' "$f"; fi
           done
-          for f in progreso-candidata.txt progreso-control.txt; do
-            if [ -f "$f" ]; then echo "== últimas marcas de $f"; tail -n 2 "$f" | sed 's/^/::error ::ULTIMO ::/' ; fi
-          done
+          echo "::error ::ENTORNO>"
+          if [ -f entorno.log ]; then tail -n 8 entorno.log | sed 's/[^[:print:]]//g' | cut -c1-200 | sed 's/^/::error ::ENV ::/'; else echo "::error ::ENV sin-entorno.log"; fi
           for f in salida-candidata.log salida-control.log; do
-            if [ -f "$f" ]; then echo "== cola de $f"; grep -E "^(OK|FALLO|BATERÍA|FALLOS|Error)" "$f" | tail -n 6 | sed 's/^/::error ::LOG ::/' || true; fi
+            echo "::error ::COLA $f>"
+            if [ -f "$f" ]; then tail -n 8 "$f" | sed 's/[^[:print:]]//g' | cut -c1-200 | sed 's/^/::error ::LOG ::/'; else echo "::error ::LOG sin-$f"; fi
           done
           test ! -f fallos-candidata.txt && test ! -f fallos-control.txt
           grep -q "BATERÍA FIBRA2-CIERRE OK — CANDIDATA" salida-candidata.log
