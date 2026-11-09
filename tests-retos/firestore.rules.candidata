@@ -3896,7 +3896,8 @@ service cloud.firestore {
               && ((chalDoc(request.resource.data.challengeId).kind == 'assigned'
                    && chalDoc(request.resource.data.challengeId).ownerUid == request.auth.uid
                    && request.resource.data.joinDecidedBy == chalDoc(request.resource.data.challengeId).createdBy)
-                  || (chalDoc(request.resource.data.challengeId).createdBy == request.auth.uid
+                  || (chalDoc(request.resource.data.challengeId).kind == 'group'
+                      && chalDoc(request.resource.data.challengeId).createdBy == request.auth.uid
                       && request.resource.data.joinDecidedBy == request.auth.uid)))
           // Alta sembrada por el creador al asignar: el dueño
           // del reto asignado, con todo a cero y YA APROBADA (D2):

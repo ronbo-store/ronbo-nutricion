@@ -79,6 +79,7 @@ await testEnv.withSecurityRulesDisabled(async (ctx) => {
   for (const id of ['ASGA', 'ASGB', 'ASGC', 'ASGD']) await setDoc(doc(db, 'challenges', id), asg(id));
   await setDoc(doc(db, 'challenges', 'GRPALL'), grp('all', TR1));
   await setDoc(doc(db, 'challenges', 'GRPTR1'), grp(TR1, TR1));
+  await setDoc(doc(db, 'challenges', 'GRPOWN'), grp('all', ALU));
   /* Participaciones sembradas por estado */
   const seed = async (cid, uid, data) => setDoc(doc(db, 'challenge_parts', cid + '_' + uid), data);
   await seed('INDB', ALU, partNew('INDB', ALU));                                   // pending → aprobar (TR1)
@@ -116,6 +117,7 @@ await caso('entrenador siembra el asignado PENDING (debe nacer aprobado, D2)', s
 await caso('entrenador siembra el asignado ya aprobado (D2)', setDoc(P(dbT, 'ASGB', ALU), partApprovedBy('ASGB', ALU, TR1)), N);
 await caso('alumna auto-cura su asignado (aprobado, decisión del creador)', setDoc(P(dbS, 'ASGC', ALU), partApprovedBy('ASGC', ALU, TR1)), N);
 await caso('alumna auto-cura su asignado sellándose ella la decisión', setDoc(P(dbS, 'ASGD', ALU), partApprovedBy('ASGD', ALU, ALU)), false);
+await caso('la creadora entra aprobada a SU propio grupo (sin solicitud)', setDoc(P(dbS, 'GRPOWN', ALU), partApprovedBy('GRPOWN', ALU, ALU)), N);
 
 /* ── LA DECISIÓN ── */
 await caso('su entrenador APRUEBA la solicitud', updateDoc(P(dbT, 'INDB', ALU), decide(TR1, 'approved')), N);
@@ -131,7 +133,7 @@ await caso('decidir sobre una participación YA aprobada', updateDoc(P(dbT, 'IND
 await caso('su entrenador repone la ventana del individual al aprobar', updateDoc(doc(dbT, 'challenges', 'INDW'), { startDate: '2026-11-08', endDate: '2026-11-14' }), N);
 await caso('reponer la ventana tocando también el título', updateDoc(doc(dbT, 'challenges', 'INDW'), { startDate: '2026-11-08', endDate: '2026-11-14', title: 'X' }), false);
 await caso('un entrenador ajeno repone la ventana', updateDoc(doc(dbT2, 'challenges', 'INDW'), { startDate: '2026-11-08', endDate: '2026-11-14' }), false);
-await caso('la alumna repone la ventana de su propio reto', updateDoc(doc(dbS, 'challenges', 'INDW'), { startDate: '2026-11-08', endDate: '2026-11-14' }), false);
+await caso('la alumna repone la ventana de su propio reto', updateDoc(doc(dbS, 'challenges', 'INDW'), { startDate: '2026-11-09', endDate: '2026-11-15' }), false);
 
 /* ── EL AVANCE: solo con la participación aprobada ── */
 await caso('la alumna mueve su avance en una participación aprobada', updateDoc(P(dbS, 'INDG', ALU), { progressCount: 2, progressPct: 50 }), true);
