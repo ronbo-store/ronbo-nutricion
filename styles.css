@@ -2360,6 +2360,12 @@ div.cgrid-cell { cursor: default; }
 .admuse-people-tabs { margin: 8px 0 2px; }
 .admuse-people-tabs .main-tab { min-height: 56px; font-size: 13px; }
 .admuse-people-ico { font-size: 21px; line-height: 1.1; }
+/* Baldosa «Permisos y privacidad» (AUTH-2026-11-08-311): en modo
+   baldosa (administrador) el panel personal vive tras la zona con
+   su contenido íntegro, pero su botón propio — la puerta fina de
+   siempre — se retira: la puerta es la baldosa de la fila. La
+   cáscara cerrada la oculta syncPermsPanel por display. */
+#perms-panel.perms-tiled #btn-perms { display: none; }
 .admuse-aititle { margin: 0 0 4px; font-size: 14px; }
 .admuse-switchrow { display: flex; align-items: center; justify-content: space-between; gap: 10px; font-weight: 700; margin: 10px 0; }
 .admuse-pill { border-radius: 999px; padding: 3px 12px; font-size: 12px; font-weight: 800; color: #fff; background: #64748b; }

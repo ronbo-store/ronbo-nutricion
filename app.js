@@ -2421,12 +2421,17 @@ const ADM_SEC_MOUNTED = {};  // id → contenido ya montado
    fila nace aquí una sola vez y la pintan, con el MISMO HTML, el
    esqueleto de la zona de Administración (admuseSkeleton) y los
    huecos [data-admpeople-slot] de las tres vistas del campo
-   (Clientes · Entrenadores · Coaches de alimentación). */
+   (Clientes · Entrenadores · Coaches de alimentación). Desde
+   AUTH-2026-11-08-311 lleva una CUARTA baldosa, «Permisos y
+   privacidad» (data-admperms): no es una vista — es la PUERTA del
+   panel personal de siempre (admPermsDoor) — y no participa en la
+   marca de área activa de admPeopleSync. */
 function admPeopleNavHTML() {
   return `<nav class="main-tabs admuse-people-tabs" aria-label="${esc(t('admuse.peopleLabel'))}">`
     + `<button type="button" class="main-tab" data-admpeople="clients"><span class="admuse-people-ico" aria-hidden="true">👥</span> ${esc(t('admuse.peopleClients'))}</button>`
     + `<button type="button" class="main-tab" data-admpeople="trainers"><span class="admuse-people-ico" aria-hidden="true">🏋️</span> ${esc(t('admuse.peopleTrainers'))}</button>`
-    + `<button type="button" class="main-tab" data-admpeople="coaches"><span class="admuse-people-ico" aria-hidden="true">🍎</span> ${esc(t('admuse.peopleCoaches'))}</button></nav>`;
+    + `<button type="button" class="main-tab" data-admpeople="coaches"><span class="admuse-people-ico" aria-hidden="true">🍎</span> ${esc(t('admuse.peopleCoaches'))}</button>`
+    + `<button type="button" class="main-tab" data-admperms="1"><span class="admuse-people-ico" aria-hidden="true">🔒</span> ${esc(t('perm.title'))}</button></nav>`;
 }
 /* Sincronía de la fila «Personas» (AUTH-2026-11-08-300, orden de
    Ronald en su revisión en vivo del 2026-11-08 22:30 CST): la fila
@@ -2449,6 +2454,26 @@ function admPeopleSync(name) {
     if (on) b.setAttribute('aria-current', 'page'); else b.removeAttribute('aria-current');
   });
 }
+/* Puerta «Permisos y privacidad» de la fila (AUTH-2026-11-08-311,
+   orden de Ronald): la baldosa lleva al panel personal de siempre
+   — el que vive en #tab-admin — abriéndolo por SU propio
+   mecanismo (el clic de #btn-perms, el mismo que usan los enlaces
+   profundos de ruta «perms»): desde otra vista navega a
+   Administración y lo abre; ya en Administración, alterna como su
+   botón de siempre. Un toque = una apertura: la atiende el
+   listener delegado único de la fila, y la baldosa NO lleva
+   data-admpeople (no es una vista ni marca área activa). */
+function admPermsDoor() {
+  navGuarded(() => {
+    const onAdmin = NAV_TAB === 'admin';
+    switchTab('admin');
+    const pb = $('btn-perms');
+    if (!pb) return;
+    if (onAdmin) pb.click();
+    else if (!permsOpen) pb.click();
+    if (permsOpen) { const panel = $('perms-panel'); if (panel) { try { panel.scrollIntoView({ behavior: 'smooth', block: 'start' }); } catch {} } }
+  });
+}
 function admuseSkeleton() {
   const secHTML = s => `<div class="admsec" data-admsec="${s.id}"><button type="button" class="admsec-head" data-admsec-btn="${s.id}" aria-expanded="${ADM_SEC_OPEN[s.id] ? 'true' : 'false'}"><span>${esc(t(s.titleKey))}</span><span class="admsec-chev" aria-hidden="true">${ADM_SEC_OPEN[s.id] ? '▾' : '▸'}</span></button><div class="admsec-body" data-admsec-body="${s.id}"${ADM_SEC_OPEN[s.id] ? '' : ' style="display:none"'}></div></div>`;
   const tech = ADMIN_SECTIONS.filter(s => s.sub === 'tech').map(secHTML).join('');
@@ -2467,9 +2492,12 @@ function admuseSkeleton() {
      pastillas. Desde AUTH-2026-11-08-300 la misma fila es además
      la subnavegación persistente de las tres vistas del campo
      (admPeopleSync). */
+  /* AUTH-2026-11-08-311 (orden de Ronald): el subrenglón ya NO
+     lleva el título «Personas» — la fila va directamente bajo la
+     cabecera de la zona, como primer bloque. */
   const people = admPeopleNavHTML();
   return `<div class="panel admuse-zone"><h3 class="history-title">${esc(t('admuse.title'))}</h3><p class="progress-hint">${esc(t('admuse.sub'))}</p>`
-    + `<div class="admuse-subspace"><h4 class="admuse-subhead">${esc(t('admuse.subPeople'))}</h4>${people}</div>`
+    + `<div class="admuse-subspace">${people}</div>`
     + `<div class="admuse-subspace"><h4 class="admuse-subhead">${esc(t('admuse.subTech'))}</h4>${tech}</div>`
     + `<div class="admuse-subspace"><h4 class="admuse-subhead">${esc(t('admuse.subSystem'))}</h4>${sys}</div></div>`;
 }
@@ -2518,9 +2546,25 @@ async function renderAdminZone() {
      #tab-admin, no vive en esta caja, y se pinta para cada rol con
      sus propios renderizadores de siempre: esta función no lo
      toca ni lo vacía. */
-  if (ROLE !== 'administrador') { box.innerHTML = ''; box.style.display = 'none'; return; }
+  if (ROLE !== 'administrador') { box.innerHTML = ''; box.style.display = 'none'; try { permsBirthSync(); } catch {} return; }
   box.style.display = '';
   box.innerHTML = admuseSkeleton();
+  /* AUTH-2026-11-08-311 (orden de Ronald): para el administrador,
+     el panel personal «Permisos y privacidad» deja de ser un
+     bloque fijo sobre la zona: se traslada TRAS la zona dentro de
+     #tab-admin y su puerta pasa a ser la baldosa de la fila (modo
+     «perms-tiled»: su botón propio se oculta y la cáscara solo se
+     muestra abierta — syncPermsPanel). Para los demás roles el
+     panel NO se toca — esta función sale antes de llegar aquí —:
+     es su única puerta en esta vista, con la visibilidad de
+     siempre. */
+  const pp = $('perms-panel');
+  if (pp && pp.parentElement === box.parentElement) {
+    box.after(pp);
+    pp.classList.add('perms-tiled');
+    try { syncPermsPanel(); } catch {}
+  }
+  try { permsBirthSync(); } catch {}
   box.querySelectorAll('[data-admsec-btn]').forEach(b => b.addEventListener('click', () => admSecToggle(b.getAttribute('data-admsec-btn'))));
   /* Los botones «Personas» NO se cablean aquí (AUTH-300): los
      atiende el listener delegado único de [data-admpeople] (junto
@@ -5959,8 +6003,7 @@ en: {
   'admuse.unavailable': 'Unavailable right now',
   'admuse.loading': 'Loading…',
   'admuse.subSystem': 'System',
-  'admuse.subPeople': 'People',
-  'admuse.peopleLabel': 'People areas',
+  'admuse.peopleLabel': 'Administration',
   'admuse.peopleClients': 'Clients',
   'admuse.peopleTrainers': 'Trainers',
   'admuse.peopleCoaches': 'Food coaches',
@@ -9773,8 +9816,7 @@ es: {
   'admuse.unavailable': 'No disponible ahora',
   'admuse.loading': 'Cargando…',
   'admuse.subSystem': 'Sistema',
-  'admuse.subPeople': 'Personas',
-  'admuse.peopleLabel': 'Áreas de personas',
+  'admuse.peopleLabel': 'Administración',
   'admuse.peopleClients': 'Clientes',
   'admuse.peopleTrainers': 'Entrenadores',
   'admuse.peopleCoaches': 'Coaches de alimentación',
@@ -26210,6 +26252,32 @@ function renumberManageItems(list) {
    efectivo, y el botón lo refleja (aria-expanded + chevron).
    Abrir/cerrar solo cambia la presentación: no escribe nada. */
 let permsOpen = false;
+/* AUTH-2026-11-08-311 · AMPLIACIÓN (orden de Ronald, 23:57): la
+   cara del USUARIO COMÚN de esta misma vista. Para quien no es
+   administrador, la zona de sistema queda vacía y este panel es
+   el ÚNICO contenido de la vista Administración — y un único
+   contenido tras un encabezado plegable es un toque de más. Su
+   regla: si el panel es el único contenido, nace DESPLEGADO; si
+   la vista tuviera otro acceso u otra sección, nacería plegado
+   como siempre. El criterio se DERIVA de la composición real de
+   #tab-admin al fijarse la vista (renderAdminZone la invoca al
+   terminar de pintarla o de vaciarla): cuenta como «otro
+   contenido» cualquier hermano del panel con texto pintado. Así,
+   añadir una sección mañana devuelve el nacimiento a plegado sin
+   tocar esta función. Se decide UNA vez por sesión: el plegado
+   manual de la persona se respeta y nunca se re-fuerza. Para el
+   administrador la derivación da siempre «hay más contenido» (su
+   zona pinta el esqueleto) y su conducta es la de la baldosa, sin
+   tocarse con esta. */
+let permsBirthDone = false;
+function permsBirthSync() {
+  if (permsBirthDone) return;
+  const tab = $('tab-admin'), panel = $('perms-panel');
+  if (!tab || !panel) return;
+  permsBirthDone = true;
+  const solo = [...tab.children].every(el => el === panel || !(el.textContent || '').trim());
+  if (solo && !permsOpen) { permsOpen = true; try { syncPermsPanel(); } catch {} }
+}
 function syncPermsPanel() {
   const body = $('perms-body'); if (!body) return;
   const working = !$('health-manage-list');
@@ -26219,6 +26287,12 @@ function syncPermsPanel() {
   const pl = $('privacy-manage-list'); if (pl) pl.style.display = open ? '' : 'none';
   const btn = $('btn-perms'); if (btn) btn.setAttribute('aria-expanded', open ? 'true' : 'false');
   const chev = $('perms-chev'); if (chev) chev.textContent = open ? '▴' : '▾';
+  /* AUTH-2026-11-08-311: en modo baldosa (administrador), la
+     cáscara del panel solo existe visible cuando está abierta —
+     cerrada, la vista Administración empieza por la zona y su
+     fila, sin ningún bloque de Permisos intercalado encima. */
+  const panel = $('perms-panel');
+  if (panel && panel.classList.contains('perms-tiled')) panel.style.display = open ? '' : 'none';
 }
 function renderPrivacy() {
   const st = $('privacy-status');
@@ -37548,8 +37622,13 @@ document.querySelectorAll('.main-tab').forEach(b => b.addEventListener('click', 
    botones nacen por innerHTML — el esqueleto de la zona y los
    huecos de las tres vistas — así que los atiende UN listener
    delegado, el mismo para todas las copias: la puerta guardada
-   de siempre (navGuarded → switchTab) que usaban las pastillas. */
+   de siempre (navGuarded → switchTab) que usaban las pastillas.
+   Desde AUTH-2026-11-08-311 atiende primero la baldosa de
+   Permisos (data-admperms → admPermsDoor): un toque, una acción,
+   sin doble disparo con los botones de vista. */
 document.addEventListener('click', e => {
+  const p = e.target && e.target.closest ? e.target.closest('[data-admperms]') : null;
+  if (p) { admPermsDoor(); return; }
   const b = e.target && e.target.closest ? e.target.closest('[data-admpeople]') : null;
   if (!b) return;
   navGuarded(() => switchTab(b.getAttribute('data-admpeople')));
@@ -46047,7 +46126,7 @@ document.addEventListener('keydown', e => { if (e.key === 'Escape') shareClose()
  *  - El SW (sw.js) solo cachea la cáscara del mismo origen en modo
  *    RED PRIMERO: Auth/Firestore/Worker jamás pasan por la caché.
  * ================================================================ */
-const PWA_SW_VERSION = '20261108-fibra-fase2';
+const PWA_SW_VERSION = '20261108-admin-permisos';
 /* Sello de versión VISIBLE (2026-11-03): el pie de la tarjeta de
    acceso enseña qué copia corre este teléfono ('v ' + el sello),
    para comprobar de un vistazo si la versión nueva ya llegó.
