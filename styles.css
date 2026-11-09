@@ -4400,3 +4400,12 @@ body.swap-sheet-open .asst-fab { display: none !important; }
 .mm-search { border: 2px dashed #0d9488; border-radius: 12px; padding: 10px; margin: 8px 0; background: #f0fdfa; }
 .mm-search input[type="text"] { width: 100%; box-sizing: border-box; min-height: 48px; border: 2px solid #cbd5e1; border-radius: 12px; padding: 10px 12px; font-size: 16px; background: #fff; }
 .mm-res { margin-top: 6px; }
+
+/* DÍA ENTRENADO Y DÍA LIBRE (2026-11-08): selector de tipo de día
+   en el editor de planes — controles de la casa, grandes (≥44 px);
+   el día marcado libre apaga su zona de ejercicios. */
+.pl-day-type { display: flex; align-items: center; gap: 8px; margin: 8px 0 2px; flex-wrap: wrap; }
+.pl-day-type-l { font-weight: 700; font-size: .92rem; }
+.pl-type-btn { min-height: 44px; padding: 8px 18px; border-radius: 999px; border: 2px solid #cfd8dc; background: transparent; color: inherit; font-weight: 700; cursor: pointer; }
+.pl-type-btn.is-on { background: #0d9488; border-color: #0d9488; color: #fff; }
+.pl-day.is-freeday .pl-exs, .pl-day.is-freeday .pl-ex-add, .pl-day.is-freeday .pl-day-blocks { opacity: .38; pointer-events: none; }
