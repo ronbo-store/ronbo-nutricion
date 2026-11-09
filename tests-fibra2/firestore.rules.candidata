@@ -1252,7 +1252,7 @@ service cloud.firestore {
       // approved, el rol, la asignación de entrenador y TODOS los
       // estados de consentimiento/recibos quedan fuera de la lista:
       // ninguna rama del alumno los abre, como hasta hoy.
-      // Fibra Fase 2 (AUTH-2026-11-08-300): el mapa admite la clave
+      // Fibra Fase 2 (AUTH-2026-11-08-303): el mapa admite la clave
       // `fib` — la meta de fibra DERIVADA de la kcal que el motor
       // escribe (14 g/1.000 kcal, piso 25 g/día), con el mismo
       // saneado numérico que las demás claves.

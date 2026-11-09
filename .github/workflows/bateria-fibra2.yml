@@ -1,5 +1,5 @@
 # RONBO FIT — Batería oficial del delta de reglas «FIBRA FASE 2»
-# (AUTH-2026-11-08-300) en el emulador oficial de Firestore
+# (AUTH-2026-11-08-303) en el emulador oficial de Firestore
 # (proyecto ficticio ronbo-nutri-test): suites gemelas contra la
 # CANDIDATA y contra el texto VIVO cc0cfae7 (AUTH-2026-11-08-298),
 # con las expectativas del delta invertidas en el vivo. Sin
@@ -23,7 +23,7 @@ permissions:
 
 jobs:
   bateria:
-    name: 13 casos x2 (candidata y vivo) contra el emulador oficial
+    name: 15 casos x2 (candidata y vivo) contra el emulador oficial
     runs-on: ubuntu-24.04
     timeout-minutes: 20
     defaults:
