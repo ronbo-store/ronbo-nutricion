@@ -4349,3 +4349,34 @@ body.swap-sheet-open .asst-fab { display: none !important; }
   .dg-meal { width: 60px; }
   .dg-meal-circ { width: 54px; height: 54px; }
 }
+
+
+/* ===== Menú semanal del coach de alimentación (AUTH-296) ===== */
+.mm-btn { min-height: 48px; padding: 10px 16px; border-radius: 12px; font-size: 15px; }
+.mm-weeknav { align-items: center; justify-content: space-between; gap: 8px; flex-wrap: wrap; }
+.mm-day-h { display: flex; align-items: center; justify-content: space-between; gap: 8px; flex-wrap: wrap; margin-bottom: 6px; }
+.mm-day-t { font-weight: 700; margin: 10px 0 4px; }
+.mm-meal { border-top: 1px solid #e2e8f0; padding: 10px 0 4px; }
+.mm-meal:first-of-type { border-top: none; }
+.mm-meal-h { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
+.mm-meal-tot { margin-left: auto; font-weight: 700; color: #0f766e; }
+.mm-time { font-weight: 700; color: #0f766e; }
+.mm-time-in { min-height: 48px; border: 2px solid #cbd5e1; border-radius: 12px; padding: 6px 10px; font-size: 16px; background: #fff; }
+.mm-item { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; padding: 8px 0; border-bottom: 1px dashed #e2e8f0; }
+.mm-item-main { flex: 1 1 180px; display: flex; flex-direction: column; gap: 2px; }
+.mm-item-vals { font-size: 13px; color: #475569; }
+.mm-item-g { font-weight: 700; }
+.mm-g { display: inline-flex; align-items: center; gap: 6px; font-size: 14px; color: #475569; }
+.mm-g input { width: 92px; min-height: 48px; border: 2px solid #cbd5e1; border-radius: 12px; padding: 6px 10px; font-size: 16px; background: #fff; box-sizing: border-box; }
+.mm-item-btns { display: inline-flex; gap: 8px; }
+.mm-tot { border-top: 2px solid #0d9488; margin-top: 8px; padding-top: 8px; }
+.mm-tot-t { font-weight: 700; margin-bottom: 6px; }
+.mm-chips { display: flex; flex-wrap: wrap; gap: 6px; }
+.mm-chip { display: inline-block; padding: 6px 10px; border-radius: 999px; font-size: 13px; font-weight: 600; border: 1.5px solid #cbd5e1; background: #f8fafc; color: #334155; }
+.mm-chip.ok { border-color: #0d9488; background: #edf7f3; color: #065f46; }
+.mm-chip.over { border-color: #dc2626; background: #fef2f2; color: #991b1b; }
+.mm-chip.under { border-color: #d97706; background: #fffbeb; color: #92400e; }
+.mm-chip.none { border-color: #cbd5e1; background: #f8fafc; color: #475569; }
+.mm-search { border: 2px dashed #0d9488; border-radius: 12px; padding: 10px; margin: 8px 0; background: #f0fdfa; }
+.mm-search input[type="text"] { width: 100%; box-sizing: border-box; min-height: 48px; border: 2px solid #cbd5e1; border-radius: 12px; padding: 10px 12px; font-size: 16px; background: #fff; }
+.mm-res { margin-top: 6px; }

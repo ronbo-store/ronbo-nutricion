@@ -4004,6 +4004,82 @@ en: {
   'plan.coach.discard': 'Discard draft',
   'plan.coach.withdraw': 'Withdraw proposal',
   'plan.coach.needTdee': 'No energy or no weight on file for this student: a founded plan cannot be calculated yet.',
+  'menu.title': 'My weekly menu',
+  'menu.open': 'Open my weekly menu',
+  'menu.weekOf': 'Week of {date}',
+  'menu.prevWeek': '← Previous week',
+  'menu.nextWeek': 'Next week →',
+  'menu.status.borrador': 'Draft',
+  'menu.status.propuesto': 'Proposed',
+  'menu.status.vigente': 'Current',
+  'menu.status.archivado': 'Archived',
+  'menu.byCoach': 'From your food coach',
+  'menu.byYou': 'Built by you',
+  'menu.proposalTitle': 'Your coach proposed this weekly menu',
+  'menu.proposalSub': 'Foods and amounts for each day of the week. Nothing applies until you accept it.',
+  'menu.accept': 'I accept this menu',
+  'menu.accepted': 'Menu accepted ✓ — it is your current menu for that week.',
+  'menu.change': 'I want a change',
+  'menu.changeSend': 'Send the change request',
+  'menu.changeSent': 'Change request sent ✓ — your coach will adjust the menu.',
+  'menu.decline': 'Not now',
+  'menu.declined': 'Menu archived — nothing was applied.',
+  'menu.currentLine': 'You have a current menu for this week.',
+  'menu.view': 'View menu',
+  'menu.buildMine': 'Build my own menu',
+  'menu.empty': 'No menu for this week yet.',
+  'menu.noGoals': 'Your goals are not set yet, so the day totals cannot be checked against anything. They appear once your assessment and goals are complete.',
+  'menu.targetFromPlan': 'Checked against your accepted plan.',
+  'menu.targetFromGoals': 'Checked against your current goals.',
+  'menu.dayType.base': 'Regular day',
+  'menu.dayType.exigente': 'Demanding day',
+  'menu.dayType.descanso': 'Rest day',
+  'menu.dayTotal': 'Day total',
+  'menu.target': 'Goal',
+  'menu.over': 'over by {n}',
+  'menu.under': 'under by {n}',
+  'menu.onTarget': 'on goal ✓',
+  'menu.addFood': '+ Add food',
+  'menu.searchPh': 'Search a food…',
+  'menu.searchNone': 'Nothing found with that name. Blocked foods never appear.',
+  'menu.srcRef': 'Reference table',
+  'menu.srcOwn': 'Your foods',
+  'menu.srcLib': 'Shared library',
+  'menu.grams': 'Grams',
+  'menu.swap': 'Swap',
+  'menu.swapTitle': 'Swap for a similar food',
+  'menu.swapNone': 'No similar food available. Blocked foods never appear.',
+  'menu.swapDone': 'Swapped ✓ — check the day total.',
+  'menu.remove': 'Remove',
+  'menu.save': 'Save menu',
+  'menu.saved': 'Menu saved ✓ — it is your current menu for this week.',
+  'menu.saveDraft': 'Save draft',
+  'menu.propose': 'Propose to the student',
+  'menu.proposed': 'Menu proposed ✓ — the student decides.',
+  'menu.draftSaved': 'Draft saved ✓ — only you can see it.',
+  'menu.copyWeek': 'Copy week',
+  'menu.copyTo': 'Copy this menu to the week of',
+  'menu.copyDo': 'Copy',
+  'menu.copied': 'Week copied ✓.',
+  'menu.copyDropped': '{n} food(s) stayed out because of the hard filter.',
+  'menu.shopping': 'Shopping list',
+  'menu.shoppingSub': 'Everything for this week, added up. No prices: the app does not invent them.',
+  'menu.aisle.proteinas': 'Proteins',
+  'menu.aisle.vegetales': 'Vegetables',
+  'menu.aisle.frutas': 'Fruits',
+  'menu.aisle.granos': 'Grains & legumes',
+  'menu.aisle.lacteos': 'Dairy',
+  'menu.aisle.otros': 'Other',
+  'menu.blockedSave': 'A blocked food was removed before saving.',
+  'menu.time': 'Time',
+  'menu.coachTitle': 'Weekly menu',
+  'menu.coachBuild': 'Build the weekly menu',
+  'menu.coachViewStudent': "The student's own menu",
+  'menu.consoleState': 'Weekly menu: {state}',
+  'menu.readOnly': 'Read only — this menu is not yours to edit.',
+  'menu.makeMine': 'Copy it as my own editable menu',
+  'menu.studentOwnLine': 'Your own menu for this week.',
+  'menu.changeReason': 'What should change?',
   'nutri.consentTitle': 'My food-care data',
   'nutri.consentHint': 'Only with your specific consent, your food coach can see: allergies, intolerances, declared conditions, relevant medications, cultural or religious preferences and vegetarianism. No diagnoses are made in the app: with a condition, you get a referral, never a medical diet.',
   'nutri.consentGive': 'Give my consent and save',
@@ -7637,6 +7713,82 @@ es: {
   'plan.coach.discard': 'Descartar borrador',
   'plan.coach.withdraw': 'Retirar propuesta',
   'plan.coach.needTdee': 'Sin energía o sin peso de este alumno: aún no se puede calcular un plan fundado.',
+  'menu.title': 'Mi menú de la semana',
+  'menu.open': 'Abrir mi menú de la semana',
+  'menu.weekOf': 'Semana del {date}',
+  'menu.prevWeek': '← Semana anterior',
+  'menu.nextWeek': 'Semana siguiente →',
+  'menu.status.borrador': 'Borrador',
+  'menu.status.propuesto': 'Propuesto',
+  'menu.status.vigente': 'Vigente',
+  'menu.status.archivado': 'Archivado',
+  'menu.byCoach': 'De tu coach de alimentación',
+  'menu.byYou': 'Armado por ti',
+  'menu.proposalTitle': 'Tu coach te propuso este menú de la semana',
+  'menu.proposalSub': 'Alimentos y cantidades para cada día de la semana. Nada se aplica hasta que lo aceptes.',
+  'menu.accept': 'Acepto este menú',
+  'menu.accepted': 'Menú aceptado ✓ — ya es tu menú vigente de esa semana.',
+  'menu.change': 'Quiero un cambio',
+  'menu.changeSend': 'Enviar el pedido de cambio',
+  'menu.changeSent': 'Pedido de cambio enviado ✓ — tu coach ajustará el menú.',
+  'menu.decline': 'Ahora no',
+  'menu.declined': 'Menú archivado — no se aplicó nada.',
+  'menu.currentLine': 'Tienes un menú vigente para esta semana.',
+  'menu.view': 'Ver menú',
+  'menu.buildMine': 'Armar mi propio menú',
+  'menu.empty': 'Todavía no hay menú para esta semana.',
+  'menu.noGoals': 'Tus metas aún no están fijadas, así que los totales del día no tienen contra qué compararse. Aparecen cuando tu evaluación y tus metas estén completas.',
+  'menu.targetFromPlan': 'Comparado con tu plan aceptado.',
+  'menu.targetFromGoals': 'Comparado con tus metas actuales.',
+  'menu.dayType.base': 'Día normal',
+  'menu.dayType.exigente': 'Día exigente',
+  'menu.dayType.descanso': 'Día de descanso',
+  'menu.dayTotal': 'Total del día',
+  'menu.target': 'Meta',
+  'menu.over': 'se pasa por {n}',
+  'menu.under': 'le faltan {n}',
+  'menu.onTarget': 'en la meta ✓',
+  'menu.addFood': '+ Añadir alimento',
+  'menu.searchPh': 'Busca un alimento…',
+  'menu.searchNone': 'Nada con ese nombre. Los alimentos bloqueados nunca aparecen.',
+  'menu.srcRef': 'Tabla de referencia',
+  'menu.srcOwn': 'Tus alimentos',
+  'menu.srcLib': 'Biblioteca compartida',
+  'menu.grams': 'Gramos',
+  'menu.swap': 'Cambiar',
+  'menu.swapTitle': 'Cambiar por un alimento parecido',
+  'menu.swapNone': 'No hay un alimento parecido disponible. Los bloqueados nunca aparecen.',
+  'menu.swapDone': 'Cambiado ✓ — revisa el total del día.',
+  'menu.remove': 'Quitar',
+  'menu.save': 'Guardar menú',
+  'menu.saved': 'Menú guardado ✓ — ya es tu menú vigente de esta semana.',
+  'menu.saveDraft': 'Guardar borrador',
+  'menu.propose': 'Proponer al alumno',
+  'menu.proposed': 'Menú propuesto ✓ — el alumno decide.',
+  'menu.draftSaved': 'Borrador guardado ✓ — solo lo ves tú.',
+  'menu.copyWeek': 'Copiar semana',
+  'menu.copyTo': 'Copiar este menú a la semana del',
+  'menu.copyDo': 'Copiar',
+  'menu.copied': 'Semana copiada ✓.',
+  'menu.copyDropped': '{n} alimento(s) quedaron fuera por el filtro duro.',
+  'menu.shopping': 'Lista de compras',
+  'menu.shoppingSub': 'Todo lo de esta semana, sumado. Sin precios: la app no los inventa.',
+  'menu.aisle.proteinas': 'Proteínas',
+  'menu.aisle.vegetales': 'Vegetales',
+  'menu.aisle.frutas': 'Frutas',
+  'menu.aisle.granos': 'Granos y legumbres',
+  'menu.aisle.lacteos': 'Lácteos',
+  'menu.aisle.otros': 'Otros',
+  'menu.blockedSave': 'Se quitó un alimento bloqueado antes de guardar.',
+  'menu.time': 'Hora',
+  'menu.coachTitle': 'Menú de la semana',
+  'menu.coachBuild': 'Armar el menú de la semana',
+  'menu.coachViewStudent': 'El menú propio del alumno',
+  'menu.consoleState': 'Menú de la semana: {state}',
+  'menu.readOnly': 'Solo lectura — este menú no es tuyo para editar.',
+  'menu.makeMine': 'Copiarlo como mi menú editable',
+  'menu.studentOwnLine': 'Tu menú propio de esta semana.',
+  'menu.changeReason': '¿Qué debería cambiar?',
   'nutri.consentTitle': 'Mis datos de alimentación',
   'nutri.consentHint': 'Solo con tu consentimiento específico, tu coach de alimentación puede ver: alergias, intolerancias, condiciones declaradas, medicamentos relevantes, preferencias culturales o religiosas y vegetarianismo. En la app no se hacen diagnósticos: ante una condición, recibes derivación, nunca una dieta médica.',
   'nutri.consentGive': 'Dar mi consentimiento y guardar',
@@ -44604,7 +44756,7 @@ document.addEventListener('keydown', e => { if (e.key === 'Escape') shareClose()
  *  - El SW (sw.js) solo cachea la cáscara del mismo origen en modo
  *    RED PRIMERO: Auth/Firestore/Worker jamás pasan por la caché.
  * ================================================================ */
-const PWA_SW_VERSION = '20261107-antes-pesajes';
+const PWA_SW_VERSION = '20261108-menu-coach-f2';
 /* Sello de versión VISIBLE (2026-11-03): el pie de la tarjeta de
    acceso enseña qué copia corre este teléfono ('v ' + el sello),
    para comprobar de un vistazo si la versión nueva ya llegó.
@@ -45995,6 +46147,8 @@ const NUTRI = {
   myConsent: null,      // nutrition_consents/{yo}
   myWishes: null,       // nutrition_wishes/{yo} (Plan coach F1)
   myProposed: null,     // mi propuesta de plan pendiente de decisión
+  myMenus: [],          // mis menús semanales (Plan coach F2 · AUTH-296)
+  myMenuProposed: null, // mi propuesta de menú pendiente de decisión
   myPlansAll: [],       // todos mis planes (historial visible)
   wishStep: 0, wishDraft: null, chgReason: 'other',
   draftBasis: null, draftWishes: null, draftMeals: 4, focusDraft: '',
@@ -46106,6 +46260,13 @@ async function nutriBoot() {
     snap.forEach(d => { const x = { id: d.id, ...d.data() }; allPlans.push(x); if (x.status === 'activo') NUTRI.myPlan = x; });
     NUTRI.myPlansAll = allPlans;
     NUTRI.myProposed = allPlans.filter(p => p.status === 'propuesto').sort((a, b) => ((b.proposedAt && b.proposedAt.seconds) || 0) - ((a.proposedAt && a.proposedAt.seconds) || 0))[0] || null;
+  } catch {}
+  try {
+    const ms = await getDocs(query(collection(db, 'nutrition_menus'), where('studentUid', '==', me)));
+    NUTRI.myMenus = []; NUTRI.myMenuProposed = null;
+    ms.forEach(d => NUTRI.myMenus.push({ id: d.id, ...d.data() }));
+    NUTRI.myMenuProposed = NUTRI.myMenus.filter(p => p.status === 'propuesto' && p.authorRole === 'coach')
+      .sort((a, b) => String(b.weekStart || '').localeCompare(String(a.weekStart || '')))[0] || null;
   } catch {}
   try { const s = await getDoc(doc(db, 'nutrition_consents', me)); NUTRI.myConsent = s.exists() ? s.data() : null; } catch {}
   try { const s = await getDoc(doc(db, 'nutrition_wishes', me)); NUTRI.myWishes = s.exists() ? s.data() : null; } catch {}
@@ -46228,6 +46389,7 @@ async function renderNutriMyBox() {
     h += `<p class="progress-hint">${esc(t('nutri.planNone'))}</p>`;
   }
   h += mealPlanStudentSection();
+  h += mealMenuStudentSection();
   /* Acciones de la zona, ORDENADAS (AUTH-2026-11-06-274; maqueta
      aprobada por Ronald en el chat el 2026-11-06 01:53 CST): el
      agua ya NO vive en esta zona — se mudó al panel «Hoy» de
@@ -46402,6 +46564,8 @@ async function nutriRenderFloat() {
     : v === 'consent' ? t('nutri.consentTitle')
     : v === 'recipes' || v === 'recipeform' ? t('nutri.recipes')
     : v === 'wishes' ? t('plan.title')
+    : v === 'menu' ? t('menu.title')
+    : v === 'menucoach' ? t('menu.coachTitle')
     : v === 'console' || v === 'client' ? t('nutri.proTitle')
     : t('nutri.boxTitle');
   body.innerHTML = `<div class="wempty">${esc(t('access.loading'))}</div>`;
@@ -46413,7 +46577,9 @@ async function nutriRenderFloat() {
     else if (v === 'recipeform') await nutriViewRecipeForm(body);
     else if (v === 'console') await nutriViewConsole(body);
     else if (v === 'wishes') await nutriViewWishes(body);
-    else if (v === 'client') await nutriViewClient(body, NUTRI.viewArg);
+    else if (v === 'menu') await mmViewStudent(body);
+    else if (v === 'menucoach') await mmViewCoach(body, NUTRI.viewArg);
+    else if (v === 'client') { await nutriViewClient(body, NUTRI.viewArg); try { await mmClientZoneFill(); } catch {} }
   } catch { body.innerHTML = `<div class="wempty">${esc(t('err.createFail'))}</div>`; }
 }
 /* POOL: elegir (primera vez → relación activa directa, como la
@@ -46591,6 +46757,7 @@ async function nutriViewConsole(body) {
   <div id="nc-pane">
   ${clients.length ? clients.map(c => `<div class="nutri-card"><b>${esc(c._name)}</b> <span class="muted">· ${esc(nutriCadLabel(c.followUpCadence))}</span>
     <div data-mp-console="${esc(c.studentUid || c.uid)}"></div>
+    <div data-mm-zone="${esc(c.studentUid || c.uid)}"></div>
     <div class="eval-actions"><button type="button" class="btn-primary btn-sm" data-nc-open="${esc(c.studentUid || c.uid)}">${esc(t('nutri.client.plan'))}</button></div></div>`).join('')
     : `<p class="progress-hint">${esc(t('nutri.admin.empty'))}</p>`}
   </div>`;
@@ -46713,6 +46880,9 @@ async function nutriViewClient(body, studentUid) {
       <div class="eval-actions"><button type="button" class="btn-ghost btn-sm" data-mp="np-withdraw" data-id="${esc(p.id)}">${esc(t('plan.coach.withdraw'))}</button></div></div>`
     : `<div class="nutri-card"><b>✏️ ${esc(t('plan.coach.stateBorrador'))}</b>${p.changeRequest ? `<br><span class="mp-medical">💬 ${esc(t('plan.coach.changeReq'))}: ${esc(t('plan.change.' + (p.changeRequest.reason || 'other')))}${p.changeRequest.text ? ' — ' + esc(p.changeRequest.text) : ''}</span>` : ''}
       <div class="eval-actions"><button type="button" class="btn-ghost btn-sm" data-mp="np-discard" data-id="${esc(p.id)}">${esc(t('plan.coach.discard'))}</button></div></div>`).join('')}
+  <div class="nutri-sub"><b>🍽️ ${esc(t('menu.coachTitle'))}</b></div>
+  <div class="nutri-card"><div data-mm-zone="${esc(studentUid)}"><span class="progress-hint">${esc(t('access.loading'))}</span></div>
+  <div class="eval-actions"><button type="button" class="btn-primary mm-btn" data-mm="coach-open" data-uid="${esc(studentUid)}">${esc(t('menu.coachBuild'))}</button></div></div>
   <div class="nutri-adh-week">${adhHtml}</div>
   ${sugg.map(s => `<div class="nutri-card">💡 <b>${esc(t('nutri.client.suggest'))}</b><br>${esc(s.text || '')}
     <div class="eval-actions"><button type="button" class="btn-ghost btn-sm" data-sugg-ok="${esc(s.id)}">${esc(t('nutri.accept'))}</button>
@@ -48159,6 +48329,7 @@ async function mealPlanSave(mode, studentUid) {
    la ficha en su constructor, donde el ajuste nace como borrador
    y sigue el mismo flujo de propuesta y aceptación. */
 async function mealPlanConsoleFill() {
+  try { mmClientZoneFill(); } catch {}
   const cards = document.querySelectorAll('[data-mp-console]');
   for (const el of cards) {
     const sid = el.dataset.mpConsole;
@@ -48171,13 +48342,13 @@ async function mealPlanConsoleFill() {
         let done = 0;
         try {
           const mealsByDate = {};
-          const ms = await getDocs(query(collection(db, 'nutrition_meals'), where('ownerUid', '==', sid)));
+          const ms = await getDocs(query(collection(db, 'nutrition_meals'), where('ownerUid', '==', sid), where('date', '>=', histCutoffISO())));
           ms.forEach(d => { const x = d.data(); (mealsByDate[x.date] = mealsByDate[x.date] || []).push(x); });
           for (let i = 0; i < 7; i++) { const dt = new Date(); dt.setDate(dt.getDate() - i); const ds = dt.toISOString().slice(0, 10); if (nutriAdherenceState(mealsByDate[ds] || [], plan.goals, ds) === 'done') done++; }
         } catch {}
         h += `<span class="nutri-tag">✓ ${esc(t('plan.coach.stateActivo'))}</span> <span class="progress-hint">${esc(t('plan.coach.weekOk', { done }))}</span>`;
         try {
-          const ws = await getDocs(query(collection(db, 'nutrition_weight'), where('ownerUid', '==', sid)));
+          const ws = await getDocs(query(collection(db, 'nutrition_weight'), where('ownerUid', '==', sid), where('date', '>=', histCutoffISO())));
           const arr = []; ws.forEach(d => arr.push(d.data()));
           arr.sort((a, b) => String(a.date) < String(b.date) ? -1 : 1);
           if (arr.length >= 2) {
@@ -48260,4 +48431,854 @@ document.addEventListener('input', e => {
   const tg = e.target;
   if (!tg || !(tg.matches && (tg.matches('[data-dg-pct]') || tg.matches('[data-dg-goal]')))) return;
   try { mealPlanPaintDraftPreview(); } catch {}
+});
+
+
+/* ════════════════════════════════════════════════════════════════
+   PLAN ALIMENTICIO DEL COACH — FASE 2 (AUTH-2026-11-08-296)
+   Diseño: DISENO-PLAN-ALIMENTICIO-COACH-2026-11-04.md (§5, §7, §8)
+   + adenda §11 (2026-11-08): Ronald ordenó construirla y decidió
+   que el menú lo arman EL COACH Y TAMBIÉN EL ALUMNO.
+
+   El menú vive en nutrition_menus/{id}: UNA semana con fechas
+   (weekStart = lunes), 7 días fechados, cada día con sus comidas
+   (los momentos de la estructura de la persona) y cada comida con
+   SU HORA y sus ALIMENTOS CONCRETOS CON GRAMOS, tomados de las
+   mismas fuentes del registro de comidas de la app: la tabla
+   verificada FOOD_REF (USDA/etiqueta), los alimentos propios del
+   alumno (su historial, acIndex) y la biblioteca compartida
+   (food_library). La SUMA DE CADA DÍA se compara EN VIVO contra
+   las metas que mandan para esa persona: la estructura aceptada
+   de su plan del coach (Fase 1) cuando la hay — con sus variantes
+   de día normal / exigente / descanso — y, si no hay plan
+   aceptado, contra sus metas actuales (las que leen su portada y
+   su Comida), repartidas con el MISMO motor de la Fase 1
+   (mealPlanStructure). El módulo SOLO LEE metas: jamás escribe
+   users.goals ni las metas del entrenador.
+
+   DOS PUERTAS: (a) el coach arma en la ficha del alumno y PROPONE
+   — corre el mismo flujo de estados de la Fase 1 (borrador →
+   propuesto → vigente al aceptar el alumno; cambios pedidos →
+   borrador; no aceptado → archivado) —; (b) el alumno arma SU
+   menú en «Mi menú de la semana» y le queda VIGENTE al guardarlo,
+   sin aceptación de nadie (su caso sin coach ni plan es el caso
+   real de Ronald y funciona de principio a fin). La vigencia es
+   por semana Y por autor: el menú del coach y el propio pueden
+   convivir la misma semana; nada se impone.
+
+   FILTRO DURO (diseño §3.2.5 y §8): las alergias y los «no
+   quiero» del cuestionario de deseos NUNCA aparecen — ni en el
+   buscador, ni en las sustituciones, ni al copiar una semana — y
+   el guardado vuelve a filtrar todo el menú antes de escribir.
+   Sustitución en un toque: equivalentes de la MISMA FAMILIA con
+   macros parecidos; al cambiar, los totales del día se recalculan
+   al momento. Lista de compras: suma la semana y agrupa por
+   pasillo; SIN precios (la app no tiene precios verificados).
+   Decisiones de diseño declaradas en el informe: la banda de
+   «en la meta» del día es ±10 % de las kcal (simetría con la
+   regla de la casa del día completado ≥90 %); el tipo de día lo
+   marca quien arma (normal por defecto); las horas nacen de la
+   configuración de avisos del alumno cuando existe y, si no, de
+   un defecto editable — jamás se dan por buenas sin poder
+   cambiarlas. ═════════════════════════════════════════════════ */
+const MM_REF_META = {
+  'clara': { fam: 'huevos', alg: ['huevo'] }, 'yema': { fam: 'huevos', alg: ['huevo'] }, 'huevo': { fam: 'huevos', alg: ['huevo'] },
+  'leche': { fam: 'lacteos', alg: ['lactosa'] }, 'yogur-griego': { fam: 'lacteos', alg: ['lactosa'] },
+  'cheddar': { fam: 'lacteos', alg: ['lactosa'] }, 'mozzarella': { fam: 'lacteos', alg: ['lactosa'] },
+  'mantequilla': { fam: 'lacteos', alg: ['lactosa'] },
+  'pan-integral': { fam: 'granos', alg: ['gluten'] }, 'pan-blanco': { fam: 'granos', alg: ['gluten'] },
+  'tortilla-maiz': { fam: 'granos', alg: [] }, 'tortilla-harina': { fam: 'granos', alg: ['gluten'] },
+  'arroz-integral': { fam: 'granos', alg: [] }, 'arroz': { fam: 'granos', alg: [] },
+  'avena': { fam: 'granos', alg: [] }, 'pasta': { fam: 'granos', alg: ['gluten'] },
+  'papa': { fam: 'vegetales', alg: [] }, 'batata': { fam: 'vegetales', alg: [] },
+  'pechuga-pollo': { fam: 'pollo', alg: [] }, 'pierna-pollo': { fam: 'pollo', alg: [] },
+  'pavo-rebanada': { fam: 'pollo', alg: [] },
+  'carne-molida': { fam: 'carne', alg: [] },
+  'atun': { fam: 'pescado', alg: ['pescado'] }, 'salmon': { fam: 'pescado', alg: ['pescado'] },
+  'frijoles-negros': { fam: 'granos', alg: [] }, 'lentejas': { fam: 'granos', alg: [] }, 'garbanzos': { fam: 'granos', alg: [] },
+  'platano': { fam: 'frutas', alg: [] }, 'manzana': { fam: 'frutas', alg: [] }, 'naranja': { fam: 'frutas', alg: [] },
+  'aguacate': { fam: 'frutas', alg: [] }, 'fresas': { fam: 'frutas', alg: [] }, 'uvas': { fam: 'frutas', alg: [] },
+  'mango': { fam: 'frutas', alg: [] }, 'pina': { fam: 'frutas', alg: [] }, 'sandia': { fam: 'frutas', alg: [] },
+  'brocoli': { fam: 'vegetales', alg: [] }, 'zanahoria': { fam: 'vegetales', alg: [] }, 'tomate': { fam: 'vegetales', alg: [] },
+  'espinaca': { fam: 'vegetales', alg: [] }, 'lechuga': { fam: 'vegetales', alg: [] }, 'cebolla': { fam: 'vegetales', alg: [] },
+  'elote': { fam: 'vegetales', alg: [] }, 'pepino': { fam: 'vegetales', alg: [] },
+  'aceite-oliva': { fam: null, alg: [] }, 'mantequilla-mani': { fam: null, alg: ['mani'] },
+  'mayonesa': { fam: null, alg: ['huevo'] }, 'azucar': { fam: null, alg: [] }, 'miel': { fam: null, alg: [] },
+  'cafe': { fam: null, alg: [] }, 'almendras': { fam: null, alg: ['nueces'] }, 'hummus': { fam: 'granos', alg: [] }
+};
+const MM_ALG_WORDS = {
+  gluten: ['pan', 'pasta', 'trigo', 'harina', 'galleta', 'cereal', 'bread', 'wheat', 'flour'],
+  lactosa: ['leche', 'queso', 'yogur', 'yogurt', 'mantequilla', 'crema', 'milk', 'cheese', 'butter'],
+  huevo: ['huevo', 'clara', 'yema', 'mayonesa', 'mayonnaise', 'egg'],
+  soya: ['soya', 'soja', 'tofu', 'soy'],
+  nueces: ['nuez', 'nueces', 'almendra', 'avellana', 'pistacho', 'anacardo', 'walnut', 'almond'],
+  pescado: ['pescado', 'atun', 'salmon', 'sardina', 'bacalao', 'tuna', 'fish'],
+  mariscos: ['camaron', 'marisco', 'langosta', 'cangrejo', 'shrimp', 'crab', 'seafood'],
+  mani: ['mani', 'cacahuate', 'peanut']
+};
+const MM_AISLE_OF = { pollo: 'proteinas', carne: 'proteinas', pescado: 'proteinas', huevos: 'proteinas', cerdo: 'proteinas', vegetales: 'vegetales', frutas: 'frutas', granos: 'granos', lacteos: 'lacteos' };
+const MM_DAY_TYPES = ['base', 'exigente', 'descanso'];
+const MM_TOL = 0.10;
+const MM_DEFAULT_TIMES = { Desayuno: '07:00', Almuerzo: '12:30', Merienda: '16:00', Cena: '19:30', Snack: '21:00' };
+let MENU = null;
+const MM_LIB_CACHE = new Map();
+
+function mmMondayOf(iso) {
+  const d = new Date(String(iso || todayISO()) + 'T12:00:00');
+  const back = (d.getDay() + 6) % 7;
+  return planISOAddDays(String(iso || todayISO()), -back);
+}
+function mmItemMeta(item) {
+  if (!item) return { fam: null, alg: [] };
+  if (item.refId && MM_REF_META[item.refId]) return MM_REF_META[item.refId];
+  const p = (typeof foodRefMatch === 'function') ? foodRefMatch(item.name || '') : null;
+  if (p && MM_REF_META[p.id]) return MM_REF_META[p.id];
+  return { fam: null, alg: [] };
+}
+function mmItemFamily(item) { return (item && item.family) || mmItemMeta(item).fam || null; }
+function mmItemAllergens(item) {
+  const out = new Set(mmItemMeta(item).alg || []);
+  const n = ' ' + acNorm(item && item.name || '') + ' ';
+  for (const a of Object.keys(MM_ALG_WORDS)) for (const w of MM_ALG_WORDS[a]) if (n.includes(' ' + w) || n.includes(w + ' ') || n.includes(' ' + w + ' ')) { out.add(a); break; }
+  return [...out];
+}
+function mmAllergyTextTokens(wishes) {
+  const stop = ['de', 'la', 'el', 'los', 'las', 'un', 'una', 'con', 'sin', 'que', 'por', 'para', 'the', 'and', 'with', 'sin ', 'nada'];
+  return acNorm((wishes && wishes.allergyText) || '').split(' ').filter(w => w.length >= 4 && !stop.includes(w));
+}
+/* EL FILTRO DURO: true si el alimento NO puede aparecer para
+   esta persona (familia en sus «no quiero», alérgeno declarado
+   o palabra de su texto libre de alergias en el nombre). */
+function mmBlocked(item, wishes) {
+  if (!item || !wishes) return false;
+  const fam = mmItemFamily(item);
+  if (fam && (wishes.dislikes || []).includes(fam)) return true;
+  const algs = mmItemAllergens(item);
+  for (const a of (wishes.allergies || [])) if (algs.includes(a)) return true;
+  const toks = mmAllergyTextTokens(wishes);
+  if (toks.length) { const n = acNorm(item.name || ''); for (const tk of toks) if (n.includes(tk)) return true; }
+  return false;
+}
+function mmFilterDays(days, wishes) {
+  let dropped = 0;
+  const out = (days || []).map(d => ({
+    ...d,
+    meals: (d.meals || []).map(m => ({
+      ...m,
+      items: (m.items || []).filter(it => { const b = mmBlocked(it, wishes); if (b) dropped++; return !b; })
+    }))
+  }));
+  return { days: out, dropped };
+}
+function mmVals(item) {
+  const p = (item && item.per100) || {};
+  const f = (Number(item && item.grams) || 0) / 100;
+  const r1 = x => Math.round(x * 10) / 10;
+  return {
+    kcal: Math.round((Number(p.kcal) || 0) * f),
+    prot: r1((Number(p.prot) || 0) * f), carb: r1((Number(p.carb) || 0) * f),
+    sugar: r1((Number(p.sugar) || 0) * f), fat: r1((Number(p.fat) || 0) * f),
+    fiber: p.fiber == null ? null : r1((Number(p.fiber) || 0) * f)
+  };
+}
+function mmSumItems(items) {
+  const s = { kcal: 0, prot: 0, carb: 0, sugar: 0, fat: 0, fiber: null };
+  for (const it of (items || [])) {
+    const v = mmVals(it);
+    s.kcal += v.kcal; s.prot += v.prot; s.carb += v.carb; s.sugar += v.sugar; s.fat += v.fat;
+    if (v.fiber != null) s.fiber = (s.fiber || 0) + v.fiber;
+  }
+  s.prot = Math.round(s.prot * 10) / 10; s.carb = Math.round(s.carb * 10) / 10;
+  s.sugar = Math.round(s.sugar * 10) / 10; s.fat = Math.round(s.fat * 10) / 10;
+  if (s.fiber != null) s.fiber = Math.round(s.fiber * 10) / 10;
+  return s;
+}
+function mmMealTotals(meal) { return mmSumItems(meal && meal.items); }
+function mmDayTotals(day) {
+  const all = [];
+  for (const m of ((day && day.meals) || [])) for (const it of (m.items || [])) all.push(it);
+  return mmSumItems(all);
+}
+function mmDayTarget(structure, dayType) {
+  if (!structure || !structure.days) return null;
+  return (structure.days[dayType] || structure.days.base || {}).goals || null;
+}
+function mmMealTarget(structure, dayType, mealName) {
+  if (!structure || !structure.days) return null;
+  const d = structure.days[dayType] || structure.days.base;
+  if (!d || !d.meals) return null;
+  return d.meals.find(m => m.name === mealName) || null;
+}
+/* Estado del día por métrica: 'ok' dentro de la banda, 'over' /
+   'under' con el desfase. Las kcal usan la banda ±10 %; el azúcar
+   es techo (OMS): pasarse es el aviso, quedarse corto no. */
+function mmMetricState(sum, target, kind) {
+  if (target == null || !(target > 0)) return { state: 'none', diff: 0 };
+  const diff = Math.round((sum - target) * 10) / 10;
+  if (kind === 'sugar') return { state: diff > 0 ? 'over' : 'ok', diff };
+  if (kind === 'kcal') {
+    if (sum >= target * (1 - MM_TOL) && sum <= target * (1 + MM_TOL)) return { state: 'ok', diff };
+    return { state: diff > 0 ? 'over' : 'under', diff };
+  }
+  return { state: diff === 0 ? 'ok' : (diff > 0 ? 'over' : 'under'), diff };
+}
+function mmEmptyWeek(weekStart, structure, pendMeals) {
+  const names = (structure && structure.days && structure.days.base && structure.days.base.meals || []).map(m => m.name);
+  const mealNames = names.length ? names : (PLAN_MEAL_SETS[4] || []);
+  const times = {};
+  for (const pm of (pendMeals || [])) if (pm && pm.name && pm.time) times[pm.name] = pm.time;
+  const days = [];
+  for (let i = 0; i < 7; i++) {
+    const date = planISOAddDays(weekStart, i);
+    days.push({
+      date, dayType: 'base',
+      meals: mealNames.map(nm => ({ name: nm, time: times[nm] || MM_DEFAULT_TIMES[nm] || '', items: [] }))
+    });
+  }
+  return days;
+}
+function mmRefTemplate(p) {
+  const meta = MM_REF_META[p.id] || { fam: null };
+  return {
+    name: (typeof LANG !== 'undefined' && LANG === 'en') ? p.en : p.es,
+    src: 'ref', refId: p.id, grams: 100,
+    per100: { kcal: p.per100.kcal, prot: p.per100.prot, carb: p.per100.carb, sugar: p.per100.sugar, fat: p.per100.fat, fiber: p.per100.fiber != null ? p.per100.fiber : null },
+    family: meta.fam || null
+  };
+}
+function mmOwnTemplate(e) {
+  const p = (typeof repeatParseQty === 'function') ? repeatParseQty(e.qty || '') : null;
+  if (!p || !(p.num > 0)) return null;
+  let grams = null;
+  if (p.pieces) {
+    const tot = String(e.qty || '').match(/\((\d+(?:\.\d+)?)\s*g\)/);
+    if (tot) grams = parseFloat(tot[1]); else return null;
+  } else if (/^(g|gr|gramos?|ml)$/.test(p.unit) || p.unit === '') grams = p.num;
+  else return null;
+  if (!(grams > 0)) return null;
+  const f = 100 / grams;
+  const r1 = x => Math.round(x * 10) / 10;
+  const per100 = {
+    kcal: r1((Number(e.kcal) || 0) * f), prot: r1((Number(e.prot) || 0) * f),
+    carb: r1((Number(e.carb) || 0) * f), sugar: r1((Number(e.sugar) || 0) * f),
+    fat: r1((Number(e.fat) || 0) * f), fiber: e.fiber == null ? null : r1((Number(e.fiber) || 0) * f)
+  };
+  const meta = mmItemMeta({ name: e.name });
+  return { name: e.name, src: 'own', refId: null, grams: Math.round(grams), per100, family: meta.fam || null };
+}
+function mmLibTemplate(f) {
+  const base = (typeof foodlibBaseOf === 'function') ? foodlibBaseOf(f) : 0;
+  if (!(base > 0)) return null;
+  const k = 100 / base;
+  const r1 = x => Math.round(x * 10) / 10;
+  const per100 = {
+    kcal: r1((Number(f.kcal) || 0) * k), prot: r1((Number(f.prot) || 0) * k),
+    carb: r1((Number(f.carb) || 0) * k), sugar: r1((Number(f.sugar) || 0) * k),
+    fat: r1((Number(f.fat) || 0) * k), fiber: f.fiber == null ? null : r1((Number(f.fiber) || 0) * k)
+  };
+  const meta = mmItemMeta({ name: f.name });
+  return { name: f.name, src: 'lib', refId: f.id || null, grams: 100, per100, family: meta.fam || null };
+}
+function mmSearchSync(q, wishes, withOwn) {
+  const nq = acNorm(q || '');
+  if (nq.length < 2) return [];
+  const out = [];
+  for (const p of FOOD_REF) {
+    if (acNorm(p.es).includes(nq) || acNorm(p.en).includes(nq)) {
+      const tpl = mmRefTemplate(p);
+      if (!mmBlocked(tpl, wishes)) out.push(tpl);
+    }
+    if (out.length >= 8) break;
+  }
+  if (withOwn && typeof acSearch === 'function') {
+    for (const e of acSearch(q)) {
+      const tpl = mmOwnTemplate(e);
+      if (tpl && !mmBlocked(tpl, wishes) && !out.some(o => acNorm(o.name) === acNorm(tpl.name))) out.push(tpl);
+      if (out.length >= 12) break;
+    }
+  }
+  return out;
+}
+async function mmSearchLib(q, wishes) {
+  const nq = acNorm(q || '');
+  if (nq.length < 2) return [];
+  let rows = MM_LIB_CACHE.get(nq);
+  if (!rows) {
+    try {
+      const snap = await getDocs(query(collection(db, 'food_library'), where('nameKey', '>=', nq), where('nameKey', '<', nq + '\uf8ff'), limit(12)));
+      rows = snap.docs.map(d => ({ id: d.id, ...d.data() }));
+    } catch { rows = []; }
+    MM_LIB_CACHE.set(nq, rows);
+  }
+  const out = [];
+  for (const f of rows) { const tpl = mmLibTemplate(f); if (tpl && !mmBlocked(tpl, wishes)) out.push(tpl); if (out.length >= 6) break; }
+  return out;
+}
+/* Sustitutos: la MISMA familia (la de la tabla verificada),
+   macros parecidos (kcal por 100 g más cercanas primero), con
+   el filtro duro aplicado. Sin familia conocida no se inventa
+   equivalencia: lista vacía y el buscador queda como camino. */
+function mmSwapCandidates(item, wishes) {
+  const fam = mmItemFamily(item);
+  if (!fam) return [];
+  const base = item && item.per100 ? (Number(item.per100.kcal) || 0) : 0;
+  return FOOD_REF
+    .filter(p => p.id !== (item && item.refId) && (MM_REF_META[p.id] || {}).fam === fam)
+    .map(p => mmRefTemplate(p))
+    .filter(tpl => !mmBlocked(tpl, wishes))
+    .sort((a, b) => Math.abs((a.per100.kcal || 0) - base) - Math.abs((b.per100.kcal || 0) - base))
+    .slice(0, 8);
+}
+function mmShopping(days) {
+  const agg = new Map();
+  for (const d of (days || [])) for (const m of (d.meals || [])) for (const it of (m.items || [])) {
+    const key = (it.refId ? 'r:' + it.refId : 'n:' + acNorm(it.name || ''));
+    const cur = agg.get(key) || { name: it.name, grams: 0, family: mmItemFamily(it) };
+    cur.grams += Number(it.grams) || 0;
+    agg.set(key, cur);
+  }
+  const aisles = {};
+  for (const row of agg.values()) {
+    const a = MM_AISLE_OF[row.family] || 'otros';
+    (aisles[a] = aisles[a] || []).push(row);
+  }
+  for (const a of Object.keys(aisles)) aisles[a].sort((x, y) => String(x.name).localeCompare(String(y.name)));
+  return aisles;
+}
+function mmGramsText(g) {
+  const n = Math.round((Number(g) || 0) * 10) / 10;
+  return n >= 1000 ? (Math.round(n / 100) / 10) + ' kg' : n + ' g';
+}
+
+function mmClone(o) { return JSON.parse(JSON.stringify(o == null ? null : o)); }
+function mmGoals5(g) {
+  if (!g) return null;
+  const out = {
+    kcal: Number(g.kcal) || 0, prot: Number(g.prot != null ? g.prot : g.protein) || 0,
+    carb: Number(g.carb) || 0, azuc: Number(g.azuc != null ? g.azuc : g.sugar) || 0,
+    gras: Number(g.gras != null ? g.gras : g.fat) || 0
+  };
+  return out.kcal > 0 ? out : null;
+}
+/* Las metas que MANDAN para el menú de un alumno: la estructura
+   aceptada de su plan del coach (Fase 1) o, sin plan aceptado,
+   sus metas actuales repartidas con el motor de la Fase 1. */
+function mmStructureFor(plan, goalsRaw, wishes) {
+  if (plan && plan.structure && plan.structure.days) return { structure: plan.structure, source: 'plan', planId: plan.id || null };
+  const g = mmGoals5(goalsRaw);
+  if (!g) return { structure: null, source: null, planId: null };
+  const fatFrac = g.gras > 0 && g.kcal > 0 ? (g.gras * 9) / g.kcal : 0.25;
+  return { structure: mealPlanStructure(g, fatFrac, (wishes && wishes.mealsPerDay) || 4, null), source: 'goals', planId: null };
+}
+async function mmLoadMenus(studentUid) {
+  const out = [];
+  try {
+    const snap = await getDocs(query(collection(db, 'nutrition_menus'), where('studentUid', '==', studentUid)));
+    snap.forEach(d => out.push({ id: d.id, ...d.data() }));
+  } catch {}
+  return out;
+}
+function mmNormDays(days, weekStart, structure, pendMeals) {
+  const base = mmEmptyWeek(weekStart, structure, pendMeals);
+  if (!Array.isArray(days)) return base;
+  return base.map(bd => {
+    const sd = days.find(d => d && d.date === bd.date);
+    if (!sd) return bd;
+    return {
+      date: bd.date, dayType: MM_DAY_TYPES.includes(sd.dayType) ? sd.dayType : 'base',
+      meals: bd.meals.map(bm => {
+        const sm = (sd.meals || []).find(m => m && m.name === bm.name);
+        if (!sm) return bm;
+        return { name: bm.name, time: sm.time || bm.time, items: Array.isArray(sm.items) ? mmClone(sm.items) : [] };
+      })
+    };
+  });
+}
+function mmMenuForWeek(menus, weekStart, authorRole, authorUid) {
+  return (menus || []).filter(m => m.weekStart === weekStart && m.authorRole === authorRole && m.authorUid === authorUid && m.status !== 'archivado')
+    .sort((a, b) => String(b.updatedAt && b.updatedAt.seconds || '').localeCompare(String(a.updatedAt && a.updatedAt.seconds || '')))[0] || null;
+}
+/* ── Pintado del editor ─────────────────────────────────────── */
+function mmChipHTML(label, sum, target, kind) {
+  const st = mmMetricState(sum, target, kind);
+  const sumT = kind === 'kcal' ? String(Math.round(sum)) : acNum(sum);
+  if (st.state === 'none') return `<span class="mm-chip none">${label} ${sumT}</span>`;
+  const tgtT = kind === 'kcal' ? String(Math.round(target)) : acNum(target);
+  let tail = '';
+  if (st.state === 'ok') tail = ' · ' + t('menu.onTarget');
+  else if (st.state === 'over') tail = ' · ' + t('menu.over', { n: kind === 'kcal' ? Math.round(st.diff) : acNum(st.diff) });
+  else tail = ' · ' + t('menu.under', { n: kind === 'kcal' ? Math.round(-st.diff) : acNum(-st.diff) });
+  return `<span class="mm-chip ${st.state}">${label} ${sumT}/${tgtT}${tail}</span>`;
+}
+function mmTotalsHTML(day) {
+  const tot = mmDayTotals(day);
+  const tgt = MENU.structure ? mmDayTarget(MENU.structure, day.dayType) : null;
+  let h = `<div class="mm-tot-t">${esc(t('menu.dayTotal'))}</div><div class="mm-chips">`;
+  h += mmChipHTML('kcal', tot.kcal, tgt ? tgt.kcal : null, 'kcal');
+  h += mmChipHTML(t('th.protShort'), tot.prot, tgt ? tgt.prot : null, 'macro');
+  h += mmChipHTML(t('th.carbShort'), tot.carb, tgt ? tgt.carb : null, 'macro');
+  h += mmChipHTML(t('th.sugarShort'), tot.sugar, tgt ? tgt.azuc : null, 'sugar');
+  h += mmChipHTML(t('th.fatShort'), tot.fat, tgt ? tgt.gras : null, 'macro');
+  if (tot.fiber != null) h += `<span class="mm-chip none">🌾 ${acNum(tot.fiber)} g</span>`;
+  return h + '</div>';
+}
+function mmItemHTML(it, di, mi, ii) {
+  const v = mmVals(it);
+  const ro = MENU.readOnly;
+  return `<div class="mm-item">
+    <div class="mm-item-main"><b>${esc(it.name || '')}</b>
+    <span class="mm-item-vals" id="mm-iv-${di}-${mi}-${ii}">${v.kcal} kcal · ${esc(t('th.protShort'))} ${acNum(v.prot)} · ${esc(t('th.carbShort'))} ${acNum(v.carb)} · ${esc(t('th.fatShort'))} ${acNum(v.fat)}</span></div>
+    ${ro ? `<span class="mm-item-g">${Math.round(Number(it.grams) || 0)} g</span>` : `<label class="mm-g">${esc(t('menu.grams'))}<input type="number" min="0" step="5" value="${Math.round(Number(it.grams) || 0)}" data-mm-grams data-d="${di}" data-m="${mi}" data-i="${ii}"></label>
+    <div class="mm-item-btns"><button type="button" class="btn-ghost mm-btn" data-mm="swap-open" data-d="${di}" data-m="${mi}" data-i="${ii}">${esc(t('menu.swap'))}</button>
+    <button type="button" class="btn-ghost mm-btn" data-mm="item-del" data-d="${di}" data-m="${mi}" data-i="${ii}">${esc(t('menu.remove'))}</button></div>`}
+  </div>`;
+}
+function mmMealHTML(day, di, mi) {
+  const meal = day.meals[mi];
+  const mt = MENU.structure ? mmMealTarget(MENU.structure, day.dayType, meal.name) : null;
+  const tot = mmMealTotals(meal);
+  let h = `<div class="mm-meal"><div class="mm-meal-h"><b>${esc(mealName(meal.name))}</b>
+  ${MENU.readOnly ? `<span class="mm-time">${esc(meal.time || '')}</span>` : `<input type="time" class="mm-time-in" value="${esc(meal.time || '')}" data-mm-time data-d="${di}" data-m="${mi}" aria-label="${esc(t('menu.time'))}">`}
+  <span class="mm-meal-tot" id="mm-mt-${di}-${mi}">${tot.kcal} kcal${mt ? ' / ' + mt.kcal : ''}</span></div>`;
+  h += (meal.items || []).map((it, ii) => mmItemHTML(it, di, mi, ii)).join('');
+  if (!MENU.readOnly) h += `<div class="eval-actions"><button type="button" class="btn-ghost mm-btn" data-mm="add-open" data-d="${di}" data-m="${mi}">${esc(t('menu.addFood'))}</button></div>`;
+  if (MENU.search && MENU.search.d === di && MENU.search.m === mi) {
+    h += `<div class="mm-search"><input type="text" id="mm-search-in" placeholder="${esc(t('menu.searchPh'))}" value="${esc(MENU.search.q || '')}" autocomplete="off">
+    <div id="mm-res-${di}-${mi}" class="mm-res"></div>
+    <div class="eval-actions"><button type="button" class="btn-ghost mm-btn" data-mm="search-close">${esc(t('client.close'))}</button></div></div>`;
+  }
+  if (MENU.swap && MENU.swap.d === di && MENU.swap.m === mi) {
+    const cands = MENU.swapCands || [];
+    h += `<div class="mm-search"><b>${esc(t('menu.swapTitle'))}</b><div class="mm-res">${cands.length
+      ? cands.map((c, ci) => `<button type="button" class="pl-sug-item" data-mm="swap-pick" data-idx="${ci}"><span class="sg-name">${esc(c.name)}</span><span class="sg-meta">${c.per100.kcal} kcal/100 g</span></button>`).join('')
+      : `<p class="progress-hint">${esc(t('menu.swapNone'))}</p>`}</div>
+    <div class="eval-actions"><button type="button" class="btn-ghost mm-btn" data-mm="swap-close">${esc(t('client.close'))}</button></div></div>`;
+  }
+  return h + '</div>';
+}
+function mmDayHTML(day, di) {
+  const wd = weekdayName(day.date), dn = dateName(day.date);
+  let h = `<div class="nutri-card mm-day"><div class="mm-day-h"><b>${esc(wd)} ${esc(dn)}</b>
+  <div class="nutri-chips">${MM_DAY_TYPES.map(dt => `<button type="button" class="nutri-chip${day.dayType === dt ? ' sel' : ''}" data-mm="dtype" data-d="${di}" data-v="${dt}" ${MENU.readOnly ? 'disabled' : ''}>${esc(t('menu.dayType.' + dt))}</button>`).join('')}</div></div>`;
+  h += day.meals.map((m, mi) => mmMealHTML(day, di, mi)).join('');
+  h += `<div class="mm-tot" id="mm-dt-${di}">${mmTotalsHTML(day)}</div></div>`;
+  return h;
+}
+function mmShoppingHTML(days) {
+  const aisles = mmShopping(days);
+  const order = ['proteinas', 'vegetales', 'frutas', 'granos', 'lacteos', 'otros'];
+  let h = `<div class="nutri-card"><b>🛒 ${esc(t('menu.shopping'))}</b><p class="progress-hint">${esc(t('menu.shoppingSub'))}</p>`;
+  let any = false;
+  for (const a of order) {
+    const rows = aisles[a] || [];
+    if (!rows.length) continue;
+    any = true;
+    h += `<div class="mm-day-t">${esc(t('menu.aisle.' + a))}</div>` + rows.map(r => `<div class="mp-mealrow"><span class="mp-meal-name">${esc(r.name)}</span><span class="mp-meal-kcal"><b>${esc(mmGramsText(r.grams))}</b></span></div>`).join('');
+  }
+  if (!any) h += `<p class="progress-hint">${esc(t('menu.empty'))}</p>`;
+  return h + '</div>';
+}
+function mmEditorHTML() {
+  const M = MENU;
+  let h = `<div class="eval-actions mm-weeknav">
+    <button type="button" class="btn-ghost mm-btn" data-mm="week" data-dir="-1">${esc(t('menu.prevWeek'))}</button>
+    <b>${esc(t('menu.weekOf', { date: dateName(M.weekStart) }))}</b>
+    <button type="button" class="btn-ghost mm-btn" data-mm="week" data-dir="1">${esc(t('menu.nextWeek'))}</button></div>`;
+  if (M.status) h += `<p class="progress-hint">${esc(t('menu.status.' + M.status))} · ${esc(M.authorRole === 'coach' && M.mode === 'alumno' ? t('menu.byCoach') : t('menu.byYou'))}</p>`;
+  if (M.source) h += `<p class="progress-hint">${esc(t(M.source === 'plan' ? 'menu.targetFromPlan' : 'menu.targetFromGoals'))}</p>`;
+  if (M.mode === 'alumno') {
+    const prop = (NUTRI.myMenuProposed && NUTRI.myMenuProposed.weekStart === M.weekStart) ? NUTRI.myMenuProposed : null;
+    if (prop) h += mmProposalCardHTML(prop);
+    if (M.coachVigente && M.coachVigente.weekStart === M.weekStart) {
+      h += `<div class="eval-actions"><button type="button" class="btn-ghost mm-btn" data-mm="show-coach">${esc(t('menu.byCoach'))}</button><button type="button" class="btn-ghost mm-btn" data-mm="show-own">${esc(t('menu.byYou'))}</button></div>`;
+    }
+  }
+  if (M.readOnly) h += `<p class="progress-hint">🔒 ${esc(t('menu.readOnly'))}</p>`;
+  if (!M.structure) h += `<div class="nutri-card"><p class="progress-hint">${esc(t('menu.noGoals'))}</p></div>`;
+  if (M.view === 'shop') h += mmShoppingHTML(M.days);
+  else h += M.days.map((d, di) => mmDayHTML(d, di)).join('');
+  h += `<div class="nutri-card"><div class="mm-day-t">${esc(t('menu.copyWeek'))}</div>
+  <div class="eval-actions mm-weeknav"><button type="button" class="btn-ghost mm-btn" data-mm="copy-shift" data-dir="-1">←</button>
+  <span>${esc(t('menu.copyTo'))} <b>${esc(dateName(M.copyWeek))}</b></span>
+  <button type="button" class="btn-ghost mm-btn" data-mm="copy-shift" data-dir="1">→</button>
+  <button type="button" class="btn-primary mm-btn" data-mm="copy-do" ${M.readOnly ? 'disabled' : ''}>${esc(t('menu.copyDo'))}</button></div>
+  <div class="eval-actions">
+  <button type="button" class="btn-ghost mm-btn" data-mm="shop">${esc(M.view === 'shop' ? t('menu.title') : t('menu.shopping'))}</button>
+  ${M.readOnly ? (M.mode === 'alumno' && M.showing === 'coach' ? `<button type="button" class="btn-primary mm-btn" data-mm="make-mine">${esc(t('menu.makeMine'))}</button>` : '')
+    : (M.mode === 'coach'
+      ? `<button type="button" class="btn-ghost mm-btn" data-mm="save">${esc(t('menu.saveDraft'))}</button><button type="button" class="btn-primary mm-btn" data-mm="save-propose">${esc(t('menu.propose'))}</button>${M.status === 'propuesto' ? `<button type="button" class="btn-ghost mm-btn" data-mm="withdraw">${esc(t('plan.coach.withdraw'))}</button>` : ''}`
+      : `<button type="button" class="btn-primary mm-btn" data-mm="save">${esc(t('menu.save'))}</button>`)}
+  </div></div>`;
+  return h;
+}
+function mmProposalCardHTML(prop) {
+  return `<div class="nutri-card mp-proposal"><b>🍽️ ${esc(t('menu.proposalTitle'))}</b>
+  <p class="progress-hint">${esc(t('menu.proposalSub'))} · ${esc(t('menu.weekOf', { date: dateName(prop.weekStart) }))}</p>
+  <div class="eval-actions"><button type="button" class="btn-primary mm-btn" data-mm="dec-accept" data-id="${esc(prop.id)}">${esc(t('menu.accept'))}</button>
+  <button type="button" class="btn-ghost mm-btn" data-mm="dec-change-open">${esc(t('menu.change'))}</button></div>
+  <div id="mm-change-panel" style="display:none">
+    <div class="nutri-sub"><b>${esc(t('menu.changeReason'))}</b></div>
+    <div class="nutri-chips">${['food', 'count', 'other'].map(r => `<button type="button" class="nutri-chip mp-chg${r === 'other' ? ' sel' : ''}" data-mm="dec-chg-reason" data-r="${r}">${esc(t('plan.change.' + r))}</button>`).join('')}</div>
+    <textarea id="mm-change-text" class="nutri-area" rows="2" maxlength="500" placeholder="${esc(t('plan.changeTextPh'))}"></textarea>
+    <div class="eval-actions"><button type="button" class="btn-primary mm-btn" data-mm="dec-change-send" data-id="${esc(prop.id)}">${esc(t('menu.changeSend'))}</button>
+    <button type="button" class="btn-ghost mm-btn" data-mm="dec-decline" data-id="${esc(prop.id)}">${esc(t('menu.decline'))}</button></div>
+  </div></div>`;
+}
+function mmPaintEditor() {
+  const body = MENU && MENU.mount;
+  if (!body) return;
+  body.innerHTML = mmEditorHTML();
+  if (MENU.search) { mmPaintSearchResults(); const inp = $('mm-search-in'); if (inp) { try { inp.focus({ preventScroll: true }); inp.setSelectionRange(inp.value.length, inp.value.length); } catch {} } }
+}
+function mmPaintDayTotals(di) {
+  const z = $('mm-dt-' + di); if (!z || !MENU) return;
+  z.innerHTML = mmTotalsHTML(MENU.days[di]);
+}
+async function mmPaintSearchResults() {
+  const M = MENU; if (!M || !M.search) return;
+  const { d, m } = M.search;
+  const box = document.getElementById('mm-res-' + d + '-' + m); if (!box) return;
+  const sync = mmSearchSync(M.search.q, M.wishes, M.mode === 'alumno');
+  M.cands = sync;
+  const paint = () => {
+    if (!MENU || !MENU.search || MENU.search.d !== d || MENU.search.m !== m) return;
+    box.innerHTML = M.cands.length
+      ? M.cands.map((c, ci) => `<button type="button" class="pl-sug-item" data-mm="pick" data-idx="${ci}"><span class="sg-name">${esc(c.name)}</span><span class="sg-meta">${c.per100.kcal} kcal/100 g · ${esc(t('menu.src' + (c.src === 'ref' ? 'Ref' : c.src === 'own' ? 'Own' : 'Lib')))}</span></button>`).join('')
+      : `<p class="progress-hint">${esc(t('menu.searchNone'))}</p>`;
+  };
+  paint();
+  const lib = await mmSearchLib(M.search.q, M.wishes);
+  if (lib.length) {
+    for (const tpl of lib) if (!M.cands.some(c => acNorm(c.name) === acNorm(tpl.name))) M.cands.push(tpl);
+    paint();
+  }
+}
+
+/* ── Inicialización del editor y vistas ─────────────────────── */
+function mmInitEditor(body, opts) {
+  const menus = opts.menus || [];
+  const weekStart = opts.weekStart || mmMondayOf(todayISO());
+  MENU = {
+    mount: body, mode: opts.mode, studentUid: opts.studentUid, me: opts.me,
+    menus, weekStart, copyWeek: planISOAddDays(weekStart, 7),
+    wishes: opts.wishes || null, structure: opts.structure, source: opts.source, planId: opts.planId || null,
+    pendMeals: opts.pendMeals || [], view: 'edit', search: null, swap: null, swapCands: [], cands: [],
+    menuId: null, authorRole: opts.mode === 'coach' ? 'coach' : 'alumno', status: null,
+    nutritionistUid: null, readOnly: false, showing: 'own', days: [], coachVigente: null, chgReason: 'other'
+  };
+  mmLoadWeekIntoEditor();
+}
+function mmLoadWeekIntoEditor() {
+  const M = MENU, me = M.me;
+  const own = mmMenuForWeek(M.menus, M.weekStart, 'alumno', M.studentUid);
+  const coachAll = (M.menus || []).filter(x => x.weekStart === M.weekStart && x.authorRole === 'coach' && x.status !== 'archivado');
+  const coachMine = M.mode === 'coach' ? (coachAll.filter(x => x.authorUid === me)[0] || null) : null;
+  const coachVig = coachAll.filter(x => x.status === 'vigente')[0] || null;
+  M.coachVigente = coachVig;
+  if (M.mode === 'coach') {
+    const doc = coachMine;
+    M.menuId = doc ? doc.id : null;
+    M.status = doc ? doc.status : null;
+    M.authorRole = 'coach';
+    M.nutritionistUid = me;
+    M.readOnly = !!doc && doc.status !== 'borrador';
+    M.days = doc ? mmNormDays(doc.days, M.weekStart, M.structure, M.pendMeals) : mmEmptyWeek(M.weekStart, M.structure, M.pendMeals);
+    M.showing = 'coach';
+  } else {
+    const doc = own;
+    if (doc) {
+      M.menuId = doc.id; M.status = doc.status; M.authorRole = 'alumno';
+      M.nutritionistUid = doc.nutritionistUid || null;
+      M.readOnly = false; M.showing = 'own';
+      M.days = mmNormDays(doc.days, M.weekStart, M.structure, M.pendMeals);
+    } else if (coachVig && M.showing === 'coach') {
+      M.menuId = coachVig.id; M.status = coachVig.status; M.authorRole = 'coach';
+      M.nutritionistUid = coachVig.nutritionistUid || null;
+      M.readOnly = true;
+      M.days = mmNormDays(coachVig.days, M.weekStart, M.structure, M.pendMeals);
+    } else {
+      M.menuId = null; M.status = null; M.authorRole = 'alumno';
+      M.nutritionistUid = (NUTRI.myRel && NUTRI.myRel.status === 'activa' && NUTRI.myRel.nutritionistUid) || null;
+      M.readOnly = false; M.showing = 'own';
+      M.days = mmEmptyWeek(M.weekStart, M.structure, M.pendMeals);
+    }
+  }
+  M.search = null; M.swap = null;
+}
+async function mmViewStudent(body) {
+  const me = auth.currentUser && auth.currentUser.uid;
+  if (!me) return;
+  const menus = await mmLoadMenus(me);
+  NUTRI.myMenus = menus;
+  NUTRI.myMenuProposed = menus.filter(x => x.status === 'propuesto' && x.authorRole === 'coach')
+    .sort((a, b) => String(b.weekStart || '').localeCompare(String(a.weekStart || '')))[0] || null;
+  let pendMeals = [];
+  try { const s = await getDoc(doc(db, 'users', me)); const pc = s.exists() ? (s.data().pendconfig || null) : null; if (pc && Array.isArray(pc.meals)) pendMeals = pc.meals; } catch {}
+  const sc = mmStructureFor(NUTRI.myPlan, (typeof GOALS !== 'undefined' ? GOALS : null), NUTRI.myWishes);
+  mmInitEditor(body, { mode: 'alumno', studentUid: me, me, menus, wishes: NUTRI.myWishes, structure: sc.structure, source: sc.source, planId: sc.planId, pendMeals });
+  mmPaintEditor();
+}
+async function mmViewCoach(body, studentUid) {
+  const me = auth.currentUser && auth.currentUser.uid;
+  if (!me || !studentUid) return;
+  let userData = null;
+  try { const s = await getDoc(doc(db, 'users', studentUid)); if (s.exists()) userData = s.data(); } catch {}
+  let wishes = null;
+  try { const s = await getDoc(doc(db, 'nutrition_wishes', studentUid)); if (s.exists()) wishes = s.data(); } catch {}
+  let plan = null;
+  try {
+    const snap = await getDocs(query(collection(db, 'nutrition_plans'), where('studentUid', '==', studentUid)));
+    snap.forEach(d => { const x = { id: d.id, ...d.data() }; if (x.status === 'activo') plan = x; });
+  } catch {}
+  const menus = await mmLoadMenus(studentUid);
+  const sc = mmStructureFor(plan, userData ? userData.goals : null, wishes);
+  const name = await nutriNameOf(studentUid);
+  body.innerHTML = `<div class="eval-actions"><button type="button" class="btn-ghost btn-sm" data-mm="coach-back" data-uid="${esc(studentUid)}">← ${esc(name)}</button></div><div id="mm-coach-mount"></div>`;
+  const mount = body.querySelector('#mm-coach-mount');
+  mmInitEditor(mount, { mode: 'coach', studentUid, me, menus, wishes, structure: sc.structure, source: sc.source, planId: sc.planId, pendMeals: (userData && userData.pendconfig && userData.pendconfig.meals) || [] });
+  mmPaintEditor();
+  const own = mmMenuForWeek(menus, MENU.weekStart, 'alumno', studentUid);
+  if (own) {
+    const zone = document.createElement('div');
+    zone.innerHTML = `<div class="nutri-sub"><b>${esc(t('menu.coachViewStudent'))}</b></div>` +
+      own.days.map(dd => { const tt = mmDayTotals(dd); return `<p class="progress-hint">${esc(weekdayName(dd.date))} ${esc(dateName(dd.date))} · ${tt.kcal} kcal</p>`; }).join('');
+    mount.appendChild(zone);
+  }
+}
+/* ── Guardado, decisión y copia ─────────────────────────────── */
+function mmPayload(status, days) {
+  const M = MENU;
+  return {
+    studentUid: M.studentUid,
+    nutritionistUid: M.mode === 'coach' ? M.me : (M.nutritionistUid || null),
+    authorRole: M.mode === 'coach' ? 'coach' : 'alumno',
+    authorUid: M.me, status,
+    basedOnPlanId: M.planId || null,
+    weekStart: M.weekStart, days,
+    wishesSnapshot: M.wishes ? {
+      allergies: M.wishes.allergies || [], allergyText: M.wishes.allergyText || '',
+      dislikes: M.wishes.dislikes || []
+    } : null,
+    updatedAt: serverTimestamp()
+  };
+}
+async function mmSave(asStatus) {
+  const M = MENU;
+  if (!M || M.readOnly || !M.structure) return;
+  const filt = mmFilterDays(M.days, M.wishes);
+  if (filt.dropped > 0) toast(t('menu.blockedSave'), true);
+  M.days = filt.days;
+  try {
+    if (M.mode === 'coach') {
+      const snap = await getDocs(query(collection(db, 'nutrition_menus'), where('studentUid', '==', M.studentUid)));
+      let draftId = null, otherProposed = null;
+      snap.forEach(d => {
+        const x = d.data();
+        if (x.authorUid !== M.me || x.authorRole !== 'coach') return;
+        if (x.status === 'borrador') draftId = d.id;
+        if (x.status === 'propuesto' && d.id !== (M.menuId || draftId)) otherProposed = d.id;
+      });
+      if (asStatus === 'propuesto' && otherProposed) { toast(t('plan.coach.proposedOn'), true); return; }
+      const payload = mmPayload(asStatus, M.days);
+      let id = M.menuId || draftId;
+      if (id) await setDoc(doc(db, 'nutrition_menus', id), { ...payload, changeRequest: null }, { merge: true });
+      else { payload.createdAt = serverTimestamp(); payload.changeRequest = null; id = (await addDoc(collection(db, 'nutrition_menus'), payload)).id; }
+      M.menuId = id; M.status = asStatus;
+      M.menus = await mmLoadMenus(M.studentUid);
+      nutriHist(M.studentUid, asStatus === 'propuesto' ? 'menu_proposed' : 'menu_draft_saved', 'nutricionista', M.weekStart);
+      nutriAudit(asStatus === 'propuesto' ? 'nutrition.menu.proposed' : 'nutrition.menu.draftSaved', M.studentUid, 'nutricionista', M.weekStart);
+      toast(asStatus === 'propuesto' ? t('menu.proposed') : t('menu.draftSaved'));
+    } else {
+      const payload = mmPayload('vigente', M.days);
+      const batch = writeBatch(db);
+      let id = M.menuId;
+      if (id) batch.set(doc(db, 'nutrition_menus', id), payload, { merge: true });
+      else { const ref = doc(collection(db, 'nutrition_menus')); id = ref.id; batch.set(ref, { ...payload, createdAt: serverTimestamp(), changeRequest: null }); }
+      const snap = await getDocs(query(collection(db, 'nutrition_menus'), where('studentUid', '==', M.studentUid)));
+      snap.forEach(d => {
+        const x = d.data();
+        if (d.id !== id && x.authorRole === 'alumno' && x.weekStart === M.weekStart && x.status === 'vigente') batch.set(doc(db, 'nutrition_menus', d.id), { status: 'archivado', updatedAt: serverTimestamp() }, { merge: true });
+      });
+      await batch.commit();
+      M.menuId = id; M.status = 'vigente';
+      M.menus = await mmLoadMenus(M.studentUid);
+      NUTRI.myMenus = M.menus;
+      nutriHist(M.studentUid, 'menu_saved', 'alumno', M.weekStart);
+      nutriAudit('nutrition.menu.saved', M.studentUid, 'alumno', M.weekStart);
+      toast(t('menu.saved'));
+    }
+    mmLoadWeekIntoEditor();
+    mmPaintEditor();
+  } catch { toast(t('err.createFail'), true); }
+}
+async function mmDecide(menuId, kind, extra) {
+  const me = auth.currentUser && auth.currentUser.uid;
+  if (!me) return;
+  try {
+    const menus = NUTRI.myMenus && NUTRI.myMenus.length ? NUTRI.myMenus : await mmLoadMenus(me);
+    const target = menus.find(x => x.id === menuId);
+    if (kind === 'accept') {
+      const batch = writeBatch(db);
+      batch.set(doc(db, 'nutrition_menus', menuId), { status: 'vigente', acceptedAt: serverTimestamp(), changeRequest: null, updatedAt: serverTimestamp() }, { merge: true });
+      for (const m of menus) if (m.id !== menuId && m.authorRole === 'coach' && m.status === 'vigente' && target && m.weekStart === target.weekStart) batch.set(doc(db, 'nutrition_menus', m.id), { status: 'archivado', updatedAt: serverTimestamp() }, { merge: true });
+      await batch.commit();
+      toast(t('menu.accepted'));
+      nutriHist(me, 'menu_accepted', 'alumno', target ? target.weekStart : '');
+    } else if (kind === 'decline') {
+      await setDoc(doc(db, 'nutrition_menus', menuId), { status: 'archivado', declinedAt: serverTimestamp(), declineReason: String(extra || '').slice(0, 200), updatedAt: serverTimestamp() }, { merge: true });
+      toast(t('menu.declined'));
+      nutriHist(me, 'menu_declined', 'alumno', '');
+    } else if (kind === 'change') {
+      const ex = extra || {};
+      await setDoc(doc(db, 'nutrition_menus', menuId), { status: 'borrador', changeRequest: { reason: ex.reason || 'other', text: String(ex.text || '').slice(0, 500), at: serverTimestamp() }, updatedAt: serverTimestamp() }, { merge: true });
+      toast(t('menu.changeSent'));
+      nutriHist(me, 'menu_change_requested', 'alumno', ex.reason || 'other');
+    }
+    NUTRI.myMenus = await mmLoadMenus(me);
+    NUTRI.myMenuProposed = NUTRI.myMenus.filter(x => x.status === 'propuesto' && x.authorRole === 'coach')
+      .sort((a, b) => String(b.weekStart || '').localeCompare(String(a.weekStart || '')))[0] || null;
+    try { renderNutriMyBox(); } catch {}
+    if (MENU && MENU.mode === 'alumno') { MENU.menus = NUTRI.myMenus; mmLoadWeekIntoEditor(); mmPaintEditor(); }
+  } catch { toast(t('err.createFail'), true); }
+}
+async function mmCopyDo() {
+  const M = MENU;
+  if (!M || M.readOnly) return;
+  const target = M.copyWeek;
+  const shift = Math.round((new Date(target + 'T12:00:00') - new Date(M.weekStart + 'T12:00:00')) / 86400000);
+  const shifted = M.days.map(d => ({ ...d, date: planISOAddDays(d.date, shift), meals: mmClone(d.meals) }));
+  const filt = mmFilterDays(shifted, M.wishes);
+  try {
+    const existing = mmMenuForWeek(M.menus, target, M.mode === 'coach' ? 'coach' : 'alumno', M.me);
+    const payload = {
+      studentUid: M.studentUid,
+      nutritionistUid: M.mode === 'coach' ? M.me : (M.nutritionistUid || null),
+      authorRole: M.mode === 'coach' ? 'coach' : 'alumno', authorUid: M.me,
+      status: M.mode === 'coach' ? 'borrador' : 'vigente',
+      basedOnPlanId: M.planId || null, weekStart: target, days: filt.days,
+      wishesSnapshot: M.wishes ? { allergies: M.wishes.allergies || [], allergyText: M.wishes.allergyText || '', dislikes: M.wishes.dislikes || [] } : null,
+      changeRequest: null, updatedAt: serverTimestamp()
+    };
+    if (existing) await setDoc(doc(db, 'nutrition_menus', existing.id), payload, { merge: true });
+    else { payload.createdAt = serverTimestamp(); await addDoc(collection(db, 'nutrition_menus'), payload); }
+    M.menus = await mmLoadMenus(M.studentUid);
+    if (M.mode === 'alumno') NUTRI.myMenus = M.menus;
+    toast(t('menu.copied') + (filt.dropped > 0 ? ' ' + t('menu.copyDropped', { n: filt.dropped }) : ''));
+    M.weekStart = target; M.copyWeek = planISOAddDays(target, 7);
+    mmLoadWeekIntoEditor();
+    mmPaintEditor();
+  } catch { toast(t('err.createFail'), true); }
+}
+/* ── Sección del alumno en su caja ──────────────────────────── */
+function mealMenuStudentSection() {
+  let h = `<div class="nutri-sub"><b>🍽️ ${esc(t('menu.title'))}</b></div>`;
+  const prop = NUTRI.myMenuProposed;
+  if (prop) h += mmProposalCardHTML(prop);
+  const wk = mmMondayOf(todayISO());
+  const vig = (NUTRI.myMenus || []).filter(x => x.weekStart === wk && x.status === 'vigente');
+  for (const v of vig) h += `<p class="progress-hint">✅ ${esc(v.authorRole === 'coach' ? t('menu.currentLine') + ' · ' + t('menu.byCoach') : t('menu.studentOwnLine'))}</p>`;
+  h += `<div class="eval-actions"><button type="button" class="btn-primary mm-btn" data-mm="open">${esc(t('menu.open'))}</button></div>`;
+  return h;
+}
+/* Tarjeta del menú en la consola del coach (la rellena
+   mealPlanConsoleFill junto al estado del plan). */
+async function mmClientZoneFill() {
+  const zones = document.querySelectorAll('[data-mm-zone]');
+  for (const z of zones) {
+    const sid = z.dataset.mmZone;
+    try {
+      const menus = await mmLoadMenus(sid);
+      const wk = mmMondayOf(todayISO());
+      const cur = menus.filter(x => x.weekStart === wk && x.status !== 'archivado')
+        .sort((a, b) => (a.status === 'vigente' ? 0 : 1) - (b.status === 'vigente' ? 0 : 1))[0];
+      z.innerHTML = cur
+        ? `<span class="progress-hint">🍽️ ${esc(t('menu.consoleState', { state: t('menu.status.' + cur.status) }))} · ${esc(cur.authorRole === 'coach' ? t('menu.byCoach') : t('menu.byYou'))}</span>`
+        : `<span class="progress-hint">${esc(t('menu.empty'))}</span>`;
+    } catch { z.innerHTML = ''; }
+  }
+}
+/* Delegación única de clics del paquete (data-mm). */
+document.addEventListener('click', async e => {
+  const b = e.target && e.target.closest ? e.target.closest('[data-mm]') : null;
+  if (!b || b.disabled) return;
+  const act = b.dataset.mm;
+  if (act === 'open') { nutriOpenFloat('menu'); return; }
+  if (act === 'coach-open') { nutriOpenFloat('menucoach', b.dataset.uid); return; }
+  if (act === 'coach-back') { nutriOpenFloat('client', b.dataset.uid); return; }
+  if (act === 'dec-accept') { await mmDecide(b.dataset.id, 'accept'); return; }
+  if (act === 'dec-decline') { await mmDecide(b.dataset.id, 'decline', (($('mm-change-text') || {}).value) || ''); return; }
+  if (act === 'dec-change-open') { const p = $('mm-change-panel'); if (p) p.style.display = p.style.display === 'none' ? '' : 'none'; return; }
+  if (act === 'dec-chg-reason') {
+    if (MENU) MENU.chgReason = b.dataset.r;
+    document.querySelectorAll('[data-mm="dec-chg-reason"]').forEach(x => x.classList.toggle('sel', x === b));
+    return;
+  }
+  if (act === 'dec-change-send') { await mmDecide(b.dataset.id, 'change', { reason: (MENU && MENU.chgReason) || 'other', text: (($('mm-change-text') || {}).value) || '' }); return; }
+  if (!MENU) return;
+  const d = Number(b.dataset.d), m = Number(b.dataset.m), i = Number(b.dataset.i);
+  if (act === 'week') {
+    MENU.weekStart = planISOAddDays(MENU.weekStart, 7 * Number(b.dataset.dir || 1));
+    MENU.copyWeek = planISOAddDays(MENU.weekStart, 7);
+    mmLoadWeekIntoEditor(); mmPaintEditor();
+  } else if (act === 'dtype') {
+    if (MENU.readOnly) return;
+    MENU.days[d].dayType = b.dataset.v; mmPaintEditor();
+  } else if (act === 'add-open') {
+    MENU.search = { d, m, q: '' }; MENU.swap = null; mmPaintEditor();
+  } else if (act === 'search-close') { MENU.search = null; mmPaintEditor(); }
+  else if (act === 'pick') {
+    const tpl = MENU.cands[Number(b.dataset.idx)];
+    if (tpl) { MENU.days[d].meals[m].items.push(mmClone(tpl)); MENU.search = null; mmPaintEditor(); }
+  } else if (act === 'swap-open') {
+    MENU.swap = { d, m, i }; MENU.swapCands = mmSwapCandidates(MENU.days[d].meals[m].items[i], MENU.wishes); MENU.search = null; mmPaintEditor();
+  } else if (act === 'swap-close') { MENU.swap = null; mmPaintEditor(); }
+  else if (act === 'swap-pick') {
+    const cand = MENU.swapCands[Number(b.dataset.idx)];
+    if (cand && MENU.swap) {
+      const it = MENU.days[MENU.swap.d].meals[MENU.swap.m].items[MENU.swap.i];
+      MENU.days[MENU.swap.d].meals[MENU.swap.m].items[MENU.swap.i] = { ...mmClone(cand), grams: it.grams };
+      MENU.swap = null; mmPaintEditor(); toast(t('menu.swapDone'));
+    }
+  } else if (act === 'item-del') {
+    MENU.days[d].meals[m].items.splice(i, 1); mmPaintEditor();
+  } else if (act === 'save') { await mmSave(MENU.mode === 'coach' ? 'borrador' : 'vigente'); }
+  else if (act === 'save-propose') { await mmSave('propuesto'); }
+  else if (act === 'withdraw') {
+    if (MENU.menuId) { try { await setDoc(doc(db, 'nutrition_menus', MENU.menuId), { status: 'archivado', updatedAt: serverTimestamp() }, { merge: true }); MENU.menus = await mmLoadMenus(MENU.studentUid); mmLoadWeekIntoEditor(); mmPaintEditor(); toast(t('nutri.saved')); } catch { toast(t('err.createFail'), true); } }
+  } else if (act === 'shop') { MENU.view = MENU.view === 'shop' ? 'edit' : 'shop'; mmPaintEditor(); }
+  else if (act === 'copy-shift') { MENU.copyWeek = planISOAddDays(MENU.copyWeek, 7 * Number(b.dataset.dir || 1)); mmPaintEditor(); }
+  else if (act === 'copy-do') { await mmCopyDo(); }
+  else if (act === 'show-coach') { MENU.showing = 'coach'; mmLoadWeekIntoEditor(); mmPaintEditor(); }
+  else if (act === 'show-own') { MENU.showing = 'own'; mmLoadWeekIntoEditor(); mmPaintEditor(); }
+  else if (act === 'make-mine') {
+    MENU.days = mmClone(MENU.days); MENU.menuId = null; MENU.status = null; MENU.authorRole = 'alumno';
+    MENU.readOnly = false; MENU.showing = 'own'; mmPaintEditor();
+  }
+});
+document.addEventListener('input', e => {
+  const tg = e.target;
+  if (!tg || !MENU) return;
+  if (tg.matches && tg.matches('[data-mm-grams]')) {
+    const d = Number(tg.dataset.d), m = Number(tg.dataset.m), i = Number(tg.dataset.i);
+    const it = MENU.days[d] && MENU.days[d].meals[m] && MENU.days[d].meals[m].items[i];
+    if (!it) return;
+    it.grams = Math.max(0, Number(tg.value) || 0);
+    const v = mmVals(it);
+    const z = document.getElementById('mm-iv-' + d + '-' + m + '-' + i);
+    if (z) z.textContent = `${v.kcal} kcal · ${t('th.protShort')} ${acNum(v.prot)} · ${t('th.carbShort')} ${acNum(v.carb)} · ${t('th.fatShort')} ${acNum(v.fat)}`;
+    const mt = document.getElementById('mm-mt-' + d + '-' + m);
+    if (mt) { const tot = mmMealTotals(MENU.days[d].meals[m]); const tgt = MENU.structure ? mmMealTarget(MENU.structure, MENU.days[d].dayType, MENU.days[d].meals[m].name) : null; mt.textContent = tot.kcal + ' kcal' + (tgt ? ' / ' + tgt.kcal : ''); }
+    mmPaintDayTotals(d);
+  } else if (tg.id === 'mm-search-in') {
+    if (!MENU.search) return;
+    MENU.search.q = tg.value;
+    clearTimeout(MENU._mmT);
+    MENU._mmT = setTimeout(() => { try { mmPaintSearchResults(); } catch {} }, 220);
+  }
+});
+document.addEventListener('change', e => {
+  const tg = e.target;
+  if (!tg || !MENU || !(tg.matches && tg.matches('[data-mm-time]'))) return;
+  const d = Number(tg.dataset.d), m = Number(tg.dataset.m);
+  if (MENU.days[d] && MENU.days[d].meals[m]) MENU.days[d].meals[m].time = tg.value || '';
 });
