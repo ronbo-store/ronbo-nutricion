@@ -12,12 +12,14 @@
 //                        escritura con fib se DENIEGA (hasOnly) y
 //                        el resto se comporta idéntico.
 // La decisión del entrenador espeja la escritura REAL de la app
-// (goalsTrainerDecideProposal): reparte la propuesta RELEÍDA del
-// documento, firma decidedBy/decidedAt y escribe la procedencia
-// con su changeLog; al aprobar un kind 'goal', goals = el mapa
-// vigente con el parámetro aplicado. Cada caso corre sobre una
-// alumna FRESCA (semilla idéntica) y los fallos registran el error
-// crudo para diagnóstico.
+// (goalsTrainerDecideProposal). Cada caso corre sobre una alumna
+// FRESCA. RONDA DE DIAGNÓSTICO (2026-11-08): las corridas 1–4
+// mostraron que la decisión CON fib agota el presupuesto de 1.000
+// expresiones del motor de reglas antes de llegar a la cláusula
+// de decisión en documentos con la forma completa; esta ronda
+// discrimina documento mínimo / completo / REALISTA (la forma de
+// un alumno de verdad) y decisión sin procedencia, para saber si
+// el riesgo es del delta o preexistente en el flujo de hoy.
 // Salida: fallos.txt solo si hay fallos.
 import {
   initializeTestEnvironment,
@@ -36,7 +38,7 @@ async function caso(nombre, promesa, debePasar) {
   } catch (e) {
     const crudo = String((e && e.message) || e).replace(/\s+/g, ' ');
     fallos.push(`${nombre}: se esperaba ${debePasar ? 'PERMITIDO' : 'DENEGADO'}`);
-    for (let i = 0; i < crudo.length; i += 180) fallos.push('  CRUDO ' + crudo.slice(i, i + 180));
+    for (let i = 0; i < Math.min(crudo.length, 720); i += 180) fallos.push('  CRUDO ' + crudo.slice(i, i + 180));
     console.log(`FALLO ${nombre}: se esperaba ${debePasar ? 'PERMITIDO' : 'DENEGADO'} — ${crudo.slice(0, 400)}`);
   }
 }
@@ -66,13 +68,39 @@ const alumnaBase = (uid) => ({
   goalsProvenance: { engineVersion: 'metas-v3-2026-10-26', changeLog: [] },
   goalsProposal: propuesta(),
 });
+/* La forma de un alumno REAL de producción: el documento trae
+   además los campos que la app va escribiendo con el uso
+   (funciones elegidas, acuerdo firmado, avisos, resumen diario,
+   sugerencia de ritmo, día-tipo, instalación…). */
+const alumnaReal = (uid) => ({
+  ...alumnaBase(uid),
+  email: uid + '@example.com', phone: '+10000000000', gender: 'femenino', social: '',
+  accountType: 'alumno', modality: 'virtual', lang: 'es', mailLang: 'es',
+  createdAt: PROP_TS, termsVersion: 'v4-2026-10-24', acceptedTerms: true, adultConfirmed: true,
+  features: { actividad: true, camaraCoach: false, retos: true },
+  goalsAgreement: { version: 'v2-2026-11-03', records: [
+    { kind: 'goal', param: 'kcal', date: null, foundedValue: 2000, chosenValue: 2000, warningKey: '', agreementVersion: 'v2-2026-11-03', acceptedAt: '2026-11-01T10:00:00.000Z' },
+    { kind: 'goal', param: 'prot', date: null, foundedValue: 170, chosenValue: 170, warningKey: '', agreementVersion: 'v2-2026-11-03', acceptedAt: '2026-11-01T10:00:00.000Z' } ], updatedAt: PROP_TS },
+  goalsDayOverrides: { '2026-11-10': 'exigente', '2026-11-12': 'descanso' },
+  paceSuggestion: { paceKcal: -750, suggestedAt: PROP_TS, status: 'approved', decidedBy: ENT, decidedAt: PROP_TS },
+  goalObjective: 'bajar', goalFocus: null,
+  notices: { welcome: { by: ENT, at: PROP_TS } },
+  daySummary: { enabled: true, hour: '21:00', tz: 'America/Chicago' },
+  eveAlert: { meds: true },
+  appInstall: { installed: true, platform: 'ios' },
+  approvalsUsed: 0,
+});
 
-const FRESCAS = ['aluM1', 'aluM2', 'aluM3', 'aluM4', 'aluM5', 'aluM6'];
 await testEnv.withSecurityRulesDisabled(async (ctx) => {
   const db = ctx.firestore();
   await setDoc(doc(db, 'users', DUENO), { name: 'Dueno', role: 'administrador', approved: false, isOwner: true });
   await setDoc(doc(db, 'users', ALU), alumnaBase(ALU));
-  for (const u of FRESCAS) await setDoc(doc(db, 'users', u), alumnaBase(u));
+  await setDoc(doc(db, 'users', 'min1'), { trainerUid: ENT, goals: { ...SEMILLA }, goalsProposal: propuesta() });
+  await setDoc(doc(db, 'users', 'full1'), alumnaBase('full1'));
+  await setDoc(doc(db, 'users', 'full2'), alumnaBase('full2'));
+  await setDoc(doc(db, 'users', 'full3'), alumnaBase('full3'));
+  await setDoc(doc(db, 'users', 'real1'), alumnaReal('real1'));
+  await setDoc(doc(db, 'users', 'real2'), alumnaReal('real2'));
   await setDoc(doc(db, 'users', ENT), { name: 'Entrenador', role: 'entrenador', approved: true, isOwner: false });
   await setDoc(doc(db, 'users', OTRA), { name: 'Otra', role: 'usuario', approved: true, isOwner: false });
 });
@@ -91,9 +119,8 @@ await caso('dueña escribe clave desconocida (fib2)', updateDoc(doc(dbS, 'users'
 await caso('dueña escribe fib decimal válida (26.8)', updateDoc(doc(dbS, 'users', ALU), { goals: { ...METAS5, fib: 26.8 } }), N);
 await caso('otra usuaria escribe las metas de la alumna', updateDoc(doc(dbT, 'users', ALU), { goals: METAS6 }), false);
 
-/* — cláusula del entrenador: matriz discriminante —
-     decisionReal espeja goalsTrainerDecideProposal de la app. */
-async function decisionReal(uid, goalsAplicadas) {
+/* — cláusula del entrenador: diagnóstico del presupuesto — */
+async function decisionReal(uid, goalsAplicadas, conProv = true) {
   let data;
   try {
     const snap = await getDoc(doc(dbE, 'users', uid));
@@ -103,25 +130,18 @@ async function decisionReal(uid, goalsAplicadas) {
   const prop = data.goalsProposal;
   const patch = {
     goalsProposal: { ...prop, status: 'approved', decidedBy: ENT, decidedAt: serverTimestamp() },
-    goalsProvenance: { ...(data.goalsProvenance || {}), changeLog: [...(((data.goalsProvenance || {}).changeLog) || []), { at: '2026-11-08T18:00:00.000Z', kind: prop.kind, param: prop.param, date: prop.date || null, foundedValue: prop.foundedValue, chosenValue: prop.chosenValue, gate: 'approved', by: ENT }] },
   };
+  if (conProv) patch.goalsProvenance = { ...(data.goalsProvenance || {}), changeLog: [...(((data.goalsProvenance || {}).changeLog) || []), { at: '2026-11-08T18:00:00.000Z', kind: prop.kind, param: prop.param, date: prop.date || null, foundedValue: prop.foundedValue, chosenValue: prop.chosenValue, gate: 'approved', by: ENT }] };
   if (goalsAplicadas) patch.goals = goalsAplicadas;
   return updateDoc(doc(dbE, 'users', uid), patch);
 }
-await caso('M1 entrenador aprueba y aplica la fusión de la app SIN fib', decisionReal('aluM1', { ...SEMILLA, kcal: 1915 }), true);
-await caso('M2 entrenador aprueba y aplica la fusión de la app CON fib', decisionReal('aluM2', { ...SEMILLA, kcal: 1915, fib: 27 }), N);
-await caso('M3 entrenador aprueba y SOLO añade fib al mapa vigente', decisionReal('aluM3', { ...SEMILLA, fib: 27 }), N);
-await caso('M4 entrenador aprueba y aplica el mapa completo CON fib', decisionReal('aluM4', METAS6), N);
-await caso('M5 entrenador aprueba y aplica con fib decimal (27.0)', decisionReal('aluM5', { ...SEMILLA, kcal: 1915, fib: 27.0 }), N);
-await caso('M6 entrenador escribe SOLO goals con fib (sin decisión): denegado', updateDoc(doc(dbE, 'users', 'aluM6'), { goals: { ...SEMILLA, fib: 27 } }), false);
-await caso('M7 entrenador NO asignado intenta aplicar con fib', (async () => {
-  const snap = await getDoc(doc(dbT, 'users', 'aluM2'));
-  const prop = snap.data().goalsProposal;
-  return updateDoc(doc(dbT, 'users', 'aluM2'), {
-    goalsProposal: { ...prop, status: 'approved', decidedBy: OTRA, decidedAt: serverTimestamp() },
-    goals: METAS6,
-  });
-})(), false);
+await caso('D1 doc MÍNIMO: entrenador aprueba y aplica CON fib', decisionReal('min1', METAS6), N);
+await caso('D2 doc completo: entrenador aprueba y aplica SIN fib (control)', decisionReal('full1', METAS5), true);
+await caso('D3 doc completo: entrenador aprueba y aplica CON fib', decisionReal('full2', METAS6), N);
+await caso('D4 doc completo: decisión CON fib SIN procedencia', decisionReal('full3', METAS6, false), N);
+await caso('D5 doc REALISTA: entrenador aprueba y aplica SIN fib (flujo de hoy)', decisionReal('real2', METAS5), true);
+await caso('D6 doc REALISTA: entrenador aprueba y aplica CON fib', decisionReal('real1', METAS6), N);
+await caso('D7 entrenador escribe SOLO goals con fib (sin decisión): denegado', updateDoc(doc(dbE, 'users', 'full2'), { goals: { ...SEMILLA, fib: 27 } }), false);
 
 await testEnv.cleanup();
 if (fallos.length) { writeFileSync('fallos.txt', fallos.join('\n') + '\n'); console.log('FALLOS:', fallos.length); process.exit(1); }
