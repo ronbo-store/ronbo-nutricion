@@ -4649,3 +4649,12 @@ body.swap-sheet-open .asst-fab { display: none !important; }
    (.pend-n) y del ✓ de «al día»: la alerta nunca se suma al
    número. */
 .talert-chip { display: inline-flex; align-items: center; justify-content: center; min-width: 22px; height: 22px; padding: 0 5px; border-radius: 999px; background: #fee2e2; color: #b91c1c; font-size: 12px; font-weight: 700; flex: none; }
+
+/* AUTH-334 (decisión de Ronald, 2026-11-09; tira única): la
+   cabecera de «Esta semana» agrupa título y rango a la
+   izquierda y lleva a la derecha su caja de navegación (‹ ›
+   de semana y «Hoy»), heredada de la tira superior retirada.
+   La fila de días sigue siendo la rejilla de 7 de siempre. */
+.wk5-titlebox { display: inline-flex; align-items: baseline; gap: 8px; min-width: 0; }
+.wk5-navbox { display: inline-flex; align-items: center; gap: 6px; flex: none; }
+.wk5-navbox .train-nav { height: 30px; }
