@@ -20591,11 +20591,11 @@ function fusedRingSVG(d) {
   </svg>`;
 }
 function fusedStreakToday() {
-  try { return glanceCompute(MEALS, todayISO(), () => null).streak; } catch { return 0; }
+  try { return streakWeighted(); } catch { return 0; }
 }
 function fusedStreakChip(streak) {
   if (!(streak > 0)) return '';
-  return `<span class="dg-streak">${esc(streak === 1 ? t('glance.streak1') : t('glance.streak', { n: streak }))}</span>`;
+  return `<span class="dg-streak">${esc(streak === 1 ? t('glance.streak1') : t('glance.streak', { n: streakFmt(streak) }))}</span>`;
 }
 /* Los datos de las secciones de HOY, calculados UNA vez: el
    cómputo del vistazo aporta comidas y racha; con metas fundadas
@@ -20604,7 +20604,7 @@ function fusedStreakChip(streak) {
 function fusedTodayData(gmiD) {
   const today = todayISO();
   const goalFn = key => (key === 'carb' || key === 'gras') && typeof goalOfDay === 'function' ? goalOfDay(key, today) : goalOf(key);
-  const c = glanceCompute(MEALS, today, goalFn);
+  const c = glanceCompute(MEALS, today, goalFn, streakDayValue);
   c.goals = { kcal: goalFn('kcal'), prot: goalFn('prot'), carb: goalFn('carb'), azuc: goalFn('azuc'), gras: goalFn('gras') };
   if (gmiD && gmiIsToday(gmiD.iso)) {
     c.tot = gmiD.tot;
@@ -38049,12 +38049,16 @@ function showLightbox(url) {
 const GLANCE_MEALS = ['Desayuno', 'Merienda', 'Almuerzo', 'Snack', 'Cena'];
 const GLANCE_MEAL_ICONS = { 'Desayuno': '🍳', 'Merienda': '🍎', 'Almuerzo': '🥗', 'Snack': '🥜', 'Cena': '🍽️' };
 /* Cómputo puro de la portada: totales del día, totales por comida,
-   restantes y % contra la meta de kcal y racha de días con al
-   menos una comida (terminando hoy o, si hoy aún no hay registro,
-   ayer). goalFn(key) devuelve la meta o null — en la app es el
-   motor de metas; en la batería, un mapa ficticio. Sin red, sin
-   DOM: la batería del paquete lo ejecuta tal cual. */
-function glanceCompute(mealsByDate, today, goalFn) {
+   restantes y % contra la meta de kcal y la racha. La racha llega
+   por dayValueFn (el valor ponderado del día, streakDayValue —
+   la definición ÚNICA de la racha, junto a shareStreak): la suma
+   es streakSumWith, la misma que suma la tarjeta de la semana;
+   sin dayValueFn vale la lectura simple de siempre (un día con
+   al menos una comida vale 1). goalFn(key) devuelve la meta o
+   null — en la app es el motor de metas; en la batería, un mapa
+   ficticio. Sin red, sin DOM: la batería del paquete lo ejecuta
+   tal cual. */
+function glanceCompute(mealsByDate, today, goalFn, dayValueFn) {
   const src = mealsByDate || {};
   const rows = Array.isArray(src[today]) ? src[today] : [];
   const tot = { kcal: 0, prot: 0, carb: 0, azuc: 0, gras: 0 };
@@ -38067,9 +38071,8 @@ function glanceCompute(mealsByDate, today, goalFn) {
   const kcalGoal = goalFn ? goalFn('kcal') : null;
   const remaining = kcalGoal === null ? null : Math.round(kcalGoal - tot.kcal);
   const pct = kcalGoal === null ? null : Math.round(tot.kcal / kcalGoal * 100);
-  let streak = 0;
-  let cursor = (src[today] && src[today].length) ? today : addDaysISO(today, -1);
-  while (streak < 366 && Array.isArray(src[cursor]) && src[cursor].length) { streak++; cursor = addDaysISO(cursor, -1); }
+  const dayValue = dayValueFn || (iso => (Array.isArray(src[iso]) && src[iso].length) ? 1 : 0);
+  const streak = streakSumWith(dayValue, today);
   return { tot, perMeal, kcalGoal, remaining, pct, streak };
 }
 function glanceRingSVG(c) {
@@ -44265,22 +44268,107 @@ function shareActMinutes(iso) {
   return d.activities.reduce((s, a) => s + Math.max(0, Math.floor(num(a && a.durationMin))), 0);
 }
 function shareTrainDone(iso) { return MY_LOGS.some(l => l.date === iso && trainLogStatus(l) === 'done'); }
-/* Día activo — definición ÚNICA para la racha y para el contador de
-   la semana: comida registrada, actividad (minutos o pasos) o
-   entrenamiento completado. */
-function shareIsActiveDay(iso) {
-  if ((MEALS[iso] || []).length) return true;
+/* ════════════════════════════════════════════════════════════════
+   LA RACHA, PESADA — DEFINICIÓN ÚNICA (decisión de Ronald,
+   2026-11-09 00:23 CST; corrección ponderada de las 00:26 y
+   confirmación de las 00:27: «Correcto»). La corrección n.º 3 de
+   la auditoría de cálculos cazó DOS rachas con reglas distintas
+   (la portada contaba solo días con comidas; la tarjeta semanal,
+   cualquier día activo) y el mismo día daba dos números: desde
+   este paquete TODAS las rachas de días de la app suman de ESTA
+   única tabla — Inicio (glanceCompute vía fusedTodayData y el
+   chip vía fusedStreakToday) y la tarjeta de la semana
+   (shareStreak/shareWeekData) leen el mismo streakDayValue.
+   LA LLAMITA ES OTRA COSA (aclaración de Ronald, 00:24 CST): el
+   disco 🔥 siempre presente muestra las CALORÍAS GASTADAS del
+   día (renderActFlame sobre actDayView: sesiones cerradas a su
+   estimación guardada + kcalExtraTotal de la actividad) — no es
+   la racha y este paquete no la toca.
+   TABLA DE PESOS (aislada en STREAK_WEIGHTS: retocar los pesos
+   es tocar solo esta tabla):
+     · día completo = 1 — cumplió lo que tocaba: en día de
+       entreno según su plan, entrenó Y registró comidas; en día
+       de DESCANSO según su plan, registró comidas (el descanso
+       era lo que tocaba).
+     · día a medias = 0,5 — solo una parte: día de entreno con
+       comidas y sin entrenar, o entrenó sin registrar comidas.
+     · día vacío = 0 — ni lo uno ni lo otro; reinicia la suma.
+   La racha SUMA los valores de los días seguidos sin día vacío
+   (ej.: 1 + 1 + 0,5 + 1 = 3,5), empezando hoy o — si hoy aún
+   vale 0 — ayer, con el tope de siempre (3660 días).
+   «Entrenó» = sesión registrada hecha o parcial (trainLogStatus
+   done|partial; una sesión saltada NO cuenta) O actividad
+   registrada en Actividad (minutos o pasos: la puerta de
+   «entrenar» de la decisión). «Qué tocaba» (streakPlanDue) se
+   resuelve con el plan activo (MY_PLAN) y los anclajes de la
+   casa — etiquetas de día de semana (trainWeekdayPairs) o
+   calendario del plan (planCalDayIndex), con el día libre
+   asignado (freeDay) como descanso — dentro de la vigencia del
+   plan (startsAt/endsAt); un plan de rotación pura no declara
+   días. Sin plan, fuera de su vigencia o sin ancla, el día se
+   juzga por lo hecho: entreno+comidas = 1 · solo una de las
+   dos = 0,5 · nada = 0.
+   ════════════════════════════════════════════════════════════════ */
+const STREAK_WEIGHTS = { full: 1, half: 0.5, empty: 0 };
+function streakTrainedOn(iso) {
+  if (shareTrainDone(iso)) return true;
+  if (Array.isArray(MY_LOGS) && MY_LOGS.some(l => l.date === iso && trainLogStatus(l) === 'partial')) return true;
   if (shareActMinutes(iso) > 0) return true;
   const a = ACT_LOGS[iso]; if (a && num(a.steps) > 0) return true;
-  return shareTrainDone(iso);
+  return false;
 }
-function shareStreak() {
-  let d = todayISO();
-  if (!shareIsActiveDay(d)) d = addDaysISO(d, -1);
-  let n = 0;
-  while (shareIsActiveDay(d) && n < 3660) { n++; d = addDaysISO(d, -1); }
-  return n;
+function streakPlanDue(iso) {
+  try {
+    const plan = (typeof MY_PLAN !== 'undefined') ? MY_PLAN : null;
+    if (!plan || plan.isSnapshot === true || !Array.isArray(plan.days) || !plan.days.length) return null;
+    const start = String(plan._wkCreated || plan.startsAt || '').slice(0, 10);
+    if (/^\d{4}-\d{2}-\d{2}$/.test(start) && iso < start) return null;
+    const end = plan.endsAt ? String(plan.endsAt).slice(0, 10) : '';
+    if (/^\d{4}-\d{2}-\d{2}$/.test(end) && iso > end) return null;
+    const pairs = trainWeekdayPairs(plan.days);
+    if (pairs) {
+      const di = pairs[new Date(iso + 'T12:00:00').getDay()];
+      if (di == null) return 'rest';
+      return ((plan.days[di] || {}).freeDay === true) ? 'rest' : 'train';
+    }
+    if (planCalApplies(plan)) {
+      const cdi = planCalDayIndex(plan, iso);
+      if (cdi == null) return 'rest';
+      return ((plan.days[cdi] || {}).freeDay === true) ? 'rest' : 'train';
+    }
+    return null;
+  } catch { return null; }
 }
+function streakDayValue(iso) {
+  const trained = streakTrainedOn(iso);
+  const fed = ((typeof MEALS !== 'undefined' && MEALS[iso]) || []).length > 0;
+  if (trained && fed) return STREAK_WEIGHTS.full;
+  if (!trained && !fed) return STREAK_WEIGHTS.empty;
+  if (fed && streakPlanDue(iso) === 'rest') return STREAK_WEIGHTS.full;
+  return STREAK_WEIGHTS.half;
+}
+/* Suma ponderada hacia atrás: hoy cuenta si vale > 0; si hoy vale
+   0 (el día aún no tiene nada), la suma empieza ayer — la misma
+   cortesía de siempre. Un día en 0 corta la suma. */
+function streakSumWith(valueFn, today) {
+  let d = valueFn(today) > 0 ? today : addDaysISO(today, -1);
+  let sum = 0, n = 0;
+  while (n < 3660) { const v = valueFn(d); if (!(v > 0)) break; sum += v; d = addDaysISO(d, -1); n++; }
+  return sum;
+}
+function streakWeighted() { return streakSumWith(streakDayValue, todayISO()); }
+/* Presentación de la suma: el entero tal cual; con medios, una
+   cifra decimal con la coma del idioma (3,5 en español). */
+function streakFmt(v) {
+  const r = Math.round((Number(v) || 0) * 10) / 10;
+  if (Number.isInteger(r)) return String(r);
+  return r.toFixed(1).replace('.', LANG === 'es' ? ',' : '.');
+}
+/* Día activo para los contadores binarios de la semana (puntos de
+   la semana, días activos y el contador de todos los tiempos):
+   el día vale algo (> 0) en la ÚNICA definición ponderada. */
+function shareIsActiveDay(iso) { return streakDayValue(iso) > 0; }
+function shareStreak() { return streakWeighted(); }
 function shareDayData() {
   const iso = todayISO();
   const tot = totals(iso);
@@ -44602,7 +44690,7 @@ function shareDrawWeek(ctx, W, H, d) {
   const flameY = chipBottom + (cp ? 96 : 172);
   shareTxt(ctx, '🔥', W / 2, flameY, shareCtxFont(400, cp ? 46 : 64, true), '#ffffff', { shadowColor: 'rgba(255,150,30,.75)', shadowBlur: 26 });
   const numPx = cp ? 128 : 200, numY = flameY + (cp ? 122 : 208);
-  shareTxt(ctx, String(d.streak), W / 2, numY, shareCtxFont(900, numPx), '#ffffff', { shadowBlur: 44, shadowColor: 'rgba(0,60,52,.42)', shadowY: 10 });
+  shareTxt(ctx, streakFmt(d.streak), W / 2, numY, shareCtxFont(900, numPx), '#ffffff', { shadowBlur: 44, shadowColor: 'rgba(0,60,52,.42)', shadowY: 10 });
   shareTxt(ctx, t('share.streak'), W / 2, numY + (cp ? 46 : 68), shareCtxFont(900, cp ? 32 : 45), '#ffffff', { shadowBlur: 18 });
   /* tira de totales SIN caja: números sobre el fondo, filetes de luz */
   const stripW = 936, sx = (W - stripW) / 2, colW = stripW / 4;
@@ -46337,7 +46425,7 @@ function shareRender() {
   } else if (SHARE.type === 'week') {
     const d = shareWeekData();
     shareDrawWeek(ctx, W, H, d);
-    summary = t('share.weekLab') + ' · ' + shareWeekLabel(d.days) + ' · ' + t('share.streak') + ': ' + d.streak +
+    summary = t('share.weekLab') + ' · ' + shareWeekLabel(d.days) + ' · ' + t('share.streak') + ': ' + streakFmt(d.streak) +
       ' · ' + d.activeDays + '/7 ' + t('share.daysActive') + ' · ' + d.workoutsWeek + ' ' + t('share.workouts') +
       ' · ' + fmt(d.minutesTotal) + ' ' + t('share.minActivity') + ' · ' + d.mealsWeek + ' ' + t('share.meals') +
       ' · ' + d.minutes.join(',') +
@@ -46522,7 +46610,7 @@ document.addEventListener('keydown', e => { if (e.key === 'Escape') shareClose()
  *  - El SW (sw.js) solo cachea la cáscara del mismo origen en modo
  *    RED PRIMERO: Auth/Firestore/Worker jamás pasan por la caché.
  * ================================================================ */
-const PWA_SW_VERSION = '20261109-planificador-comida';
+const PWA_SW_VERSION = '20261109-racha-pesos';
 /* Sello de versión VISIBLE (2026-11-03): el pie de la tarjeta de
    acceso enseña qué copia corre este teléfono ('v ' + el sello),
    para comprobar de un vistazo si la versión nueva ya llegó.
