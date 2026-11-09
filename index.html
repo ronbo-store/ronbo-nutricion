@@ -21,7 +21,7 @@
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-title" content="RONBO FIT">
 <meta name="apple-mobile-web-app-status-bar-style" content="default">
-<link rel="stylesheet" href="styles.css?v=20261109-horarios-precarga">
+<link rel="stylesheet" href="styles.css?v=20261109-mi-progreso">
 <script defer src="https://cloud.umami.is/script.js" data-website-id="a29706d4-44a2-47cf-900a-5f74d74abfa8"></script>
 <script type="importmap">
 {
@@ -433,7 +433,15 @@
          «Tu mes») ya NO viven aquí: se pintan al final de esta
          página, tras la acción de fotos (variante A de Progreso →
          Fotos, aprobada por Ronald el 2026-11-09). -->
-    <div class="prog-subtabs" role="tablist">
+    <div id="mp-home">
+  <div class="mp-head">
+    <h3 class="block-title" data-i18n="mp.title">My progress</h3>
+    <button type="button" class="btn-primary btn-sm mp-quick-btn" data-mp-act="quick" data-i18n="mp.quickBtn">＋ Quick log</button>
+  </div>
+  <div id="mp-cards" class="mp-cards"><div class="wempty" data-i18n="mp.loading">Loading…</div></div>
+  <div id="mp-comments"></div>
+</div>
+<div class="prog-subtabs" role="tablist">
       <button type="button" class="prog-subtab active" id="prog-tab-fotos" role="tab" aria-selected="true" data-i18n="progress.tabPhotos">Photos</button>
       <button type="button" class="prog-subtab" id="prog-tab-medidas" role="tab" aria-selected="false" data-i18n="progress.tabMeasures">Measures</button>
     </div>
@@ -1141,7 +1149,15 @@
        cargados; no se sube ni se guarda en ningún servidor y la app
        nunca publica por el usuario: él ve la vista previa y toca
        Compartir o Descargar. Sin peso, sin medidas, sin fotos. -->
-  <div class="act-float act-sheet" id="share-float" style="display:none" role="dialog" aria-label="Share your progress" data-i18n-aria="share.title">
+  <div class="act-float act-sheet" id="mp-quick" style="display:none" role="dialog" aria-label="Quick log">
+  <div class="pend-head"><h2 data-i18n="mp.quick">Quick log</h2><button type="button" class="pend-close" data-mp-act="close" data-sheet="mp-quick" aria-label="Close">✕</button></div>
+  <div id="mp-quick-body"></div>
+</div>
+<div class="act-float act-sheet" id="mp-hist" style="display:none" role="dialog" aria-label="History">
+  <div class="pend-head"><h2 id="mp-hist-title"></h2><button type="button" class="pend-close" data-mp-act="close" data-sheet="mp-hist" aria-label="Close">✕</button></div>
+  <div id="mp-hist-body"></div>
+</div>
+<div class="act-float act-sheet" id="share-float" style="display:none" role="dialog" aria-label="Share your progress" data-i18n-aria="share.title">
     <div class="pend-head">
       <h2 data-i18n="share.title">Share your progress</h2>
       <button type="button" class="pend-close" id="btn-share-close" aria-label="Close" data-i18n-aria="client.close">✕</button>
@@ -1862,6 +1878,9 @@
         <label><span data-i18n="form.visceral">Visceral fat (level)</span> <input type="number" id="w-visceral" step="any" min="0" data-i18n-ph="form.optional" placeholder="optional"></label>
       </div>
       <div class="frow">
+        <label><span data-i18n="mp.f.fatMethod">Measurement method</span> <select id="w-fatmethod"><option value="">—</option><option value="bio" data-i18n="mp.m.bio">Bioimpedance scale</option><option value="caliper" data-i18n="mp.m.caliper">Skinfold calipers</option><option value="dexa" data-i18n="mp.m.dexa">DEXA scan</option><option value="other" data-i18n="mp.m.other">Other / estimate</option></select></label>
+      </div>
+      <div class="frow">
         <label><span data-i18n="form.notes">Notes</span> <input type="text" id="w-notes" data-i18n-ph="form.optional" placeholder="optional"></label>
       </div>
       <p id="w-pct-note" class="form-note" style="display:none"></p>
@@ -2136,6 +2155,6 @@
 <div id="toast" class="toast"></div>
 <div id="print-card" aria-hidden="true"></div>
 
-<script type="module" src="app.js?v=20261109-horarios-precarga"></script>
+<script type="module" src="app.js?v=20261109-mi-progreso"></script>
 </body>
 </html>

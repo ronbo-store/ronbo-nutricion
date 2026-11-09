@@ -7957,6 +7957,126 @@ en: {
   'sched.noMealBefore': 'No meal from your plan falls before your training today. If you want one there, pin it with “Change time”.',
   'sched.trainOnWake': 'You train right after waking up, so no meal is forced before. Your first meal is suggested after training.',
   'sched.orientOnly': 'General guidance for now',
+  'mp.title': 'My progress',
+  'mp.quickBtn': '＋ Quick log',
+  'mp.quick': 'Quick log',
+  'mp.c1': 'Body composition',
+  'mp.c2': 'Training & performance',
+  'mp.c3': 'Food & hydration',
+  'mp.c4': 'Recovery & wellbeing',
+  'mp.log': 'Log',
+  'mp.history': 'History',
+  'mp.lastWeight': 'Weight',
+  'mp.lastSession': 'Last session',
+  'mp.edit': 'Edit',
+  'mp.none': 'No record yet',
+  'mp.loading': 'Loading…',
+  'mp.errLoad': 'Your progress could not be loaded. Check your connection and reopen this page.',
+  'mp.whenTouch': 'Log it when it fits — weekly or monthly is fine.',
+  'mp.q.date': 'Date',
+  'mp.q.save': 'Save log',
+  'mp.q.saved': '✓ Saved',
+  'mp.q.empty': 'Nothing to save yet: fill in at least one field.',
+  'mp.q.errPart': 'Some parts could not be saved: {parts}. Everything else was saved.',
+  'mp.q.errAll': 'Nothing could be saved. Check your connection and try again.',
+  'mp.q.needWeight': 'To save body fat, first save a weight for this date.',
+  'mp.s.body': 'Body',
+  'mp.s.food': 'Food & water',
+  'mp.s.well': 'Wellbeing',
+  'mp.f.fatMethod': 'Measurement method',
+  'mp.m.bio': 'Bioimpedance scale',
+  'mp.m.caliper': 'Skinfold calipers',
+  'mp.m.dexa': 'DEXA scan',
+  'mp.m.other': 'Other / estimate',
+  'mp.f.water': 'Water today',
+  'mp.f.compliance': 'How did you follow your food plan today?',
+  'mp.f.sleep': 'Sleep last night',
+  'mp.f.sleepH': 'h',
+  'mp.f.sleepM': 'min',
+  'mp.f.sleepQuality': 'Sleep quality',
+  'mp.f.energy': 'Energy',
+  'mp.f.fatigue': 'Fatigue',
+  'mp.f.stress': 'Stress',
+  'mp.f.pain': 'Pain or discomfort',
+  'mp.f.painZone': 'Body area',
+  'mp.f.painInt': 'Intensity',
+  'mp.f.addPain': '＋ Add pain',
+  'mp.z.neck': 'Neck',
+  'mp.z.shoulder': 'Shoulder',
+  'mp.z.back': 'Back',
+  'mp.z.lowerback': 'Lower back',
+  'mp.z.hip': 'Hip',
+  'mp.z.knee': 'Knee',
+  'mp.z.ankle': 'Ankle',
+  'mp.z.elbow': 'Elbow',
+  'mp.z.wrist': 'Wrist',
+  'mp.z.other': 'Other',
+  'mp.lvl1': 'Very low',
+  'mp.lvl2': 'Low',
+  'mp.lvl3': 'So-so',
+  'mp.lvl4': 'Good',
+  'mp.lvl5': 'Very good',
+  'mp.h.evolution': 'Progress by exercise',
+  'mp.h.pickEx': 'Choose an exercise',
+  'mp.h.sets': 'Sets',
+  'mp.h.reps': 'Reps',
+  'mp.h.maxLoad': 'Top load',
+  'mp.h.volume': 'Volume',
+  'mp.h.lastTwo': 'Last two sessions',
+  'mp.h.sessionNote': 'Session note',
+  'mp.f.effort': 'Overall effort (1–10)',
+  'mp.f.rir': 'or reps in reserve',
+  'mp.effortHelp': 'Effort: 1 = very easy, 10 = the most you can give. Reps in reserve: how many more reps you could have done in your last set.',
+  'mp.rpeHelp': 'RPE is how hard a set felt: 1 = very easy, 10 = maximum effort.',
+  'mp.f.technique': 'Technique notes',
+  'mp.f.discomfort': 'Discomfort during the session',
+  'mp.h.saveNote': 'Save note',
+  'mp.h.noteSaved': '✓ Note saved',
+  'mp.h.mealsN': '{n} meals logged',
+  'mp.h.waterDay': 'Water',
+  'mp.h.noData': 'No records in this period yet.',
+  'mp.h.insufficient': 'Not enough data to compare yet.',
+  'mp.h.photosDoor': 'Photos and evaluations',
+  'mp.h.weightDoor': 'Log a weigh-in',
+  'mp.h.trend': 'Trend',
+  'mp.share.title': 'Share my wellbeing with my trainer',
+  'mp.share.text': 'If you share, your trainer can see your sleep quality, energy, fatigue, stress and pain records to adjust your training. Only you can turn this on or off. Your records stay yours: stopping sharing hides them again and deletes nothing.',
+  'mp.share.on': 'Sharing is on',
+  'mp.share.off': 'Not shared',
+  'mp.share.grant': 'Share',
+  'mp.share.stop': 'Stop sharing',
+  'mp.t.title': 'Progress — coach view',
+  'mp.t.week': 'Week',
+  'mp.t.month': 'Month',
+  'mp.t.custom': 'Custom',
+  'mp.t.from': 'From',
+  'mp.t.to': 'To',
+  'mp.t.apply': 'Apply',
+  'mp.t.vs': 'vs previous period',
+  'mp.t.sessions': 'Sessions',
+  'mp.t.minutes': 'Training minutes',
+  'mp.t.daysMeals': 'Days with meals',
+  'mp.t.avgKcal': 'Average kcal (days with meals)',
+  'mp.t.avgProt': 'Average protein',
+  'mp.t.avgWater': 'Average water',
+  'mp.t.avgSleep': 'Average sleep',
+  'mp.t.painReports': 'Pain reports',
+  'mp.t.weightChange': 'Weight change in the period',
+  'mp.t.lastEval': 'Last evaluation',
+  'mp.t.photos': 'Progress photos',
+  'mp.t.wellHidden': 'Wellbeing is not shared by this student.',
+  'mp.t.sleepHidden': 'Sleep is not shared.',
+  'mp.t.comments': 'Coach comments',
+  'mp.t.byCoach': 'Comment from your coach',
+  'mp.t.addComment': 'Add a comment',
+  'mp.t.commentPh': 'An observation or a suggested adjustment…',
+  'mp.t.saveComment': 'Save comment',
+  'mp.t.commentSaved': '✓ Comment saved',
+  'mp.t.field.general': 'General',
+  'mp.painLine': '{zone} · {n}/10',
+  'mp.sleepLine': '{h} h {m} min',
+  'mp.ofGoal': 'of {goal}',
+  'mp.perDay': '/day',
 },
 es: {
   'app.title': 'RONBO.FIT · Privado',
@@ -12027,6 +12147,126 @@ es: {
   'sched.noMealBefore': 'Ninguna comida de tu plan cae antes de tu entrenamiento de hoy. Si quieres una ahí, fíjala con «Cambiar horario».',
   'sched.trainOnWake': 'Entrenas justo al despertar, así que no se fuerza ninguna comida antes. Tu primera comida se sugiere después de entrenar.',
   'sched.orientOnly': 'Orientación general por ahora',
+  'mp.title': 'Mi progreso',
+  'mp.quickBtn': '＋ Registro rápido',
+  'mp.quick': 'Registro rápido',
+  'mp.c1': 'Composición corporal',
+  'mp.c2': 'Entrenamiento y rendimiento',
+  'mp.c3': 'Alimentación e hidratación',
+  'mp.c4': 'Recuperación y bienestar',
+  'mp.log': 'Registrar',
+  'mp.history': 'Historial',
+  'mp.lastWeight': 'Peso',
+  'mp.lastSession': 'Última sesión',
+  'mp.edit': 'Editar',
+  'mp.none': 'Sin registro',
+  'mp.loading': 'Cargando…',
+  'mp.errLoad': 'No se pudo cargar tu progreso. Revisa tu conexión y vuelve a abrir esta página.',
+  'mp.whenTouch': 'Regístralo cuando te venga bien: semanal o mensual está bien.',
+  'mp.q.date': 'Fecha',
+  'mp.q.save': 'Guardar registro',
+  'mp.q.saved': '✓ Guardado',
+  'mp.q.empty': 'Aún no hay nada que guardar: completa al menos un campo.',
+  'mp.q.errPart': 'Algunas partes no se pudieron guardar: {parts}. Todo lo demás sí se guardó.',
+  'mp.q.errAll': 'No se pudo guardar nada. Revisa tu conexión e inténtalo de nuevo.',
+  'mp.q.needWeight': 'Para guardar la grasa corporal, primero guarda un peso en esta fecha.',
+  'mp.s.body': 'Cuerpo',
+  'mp.s.food': 'Comida y agua',
+  'mp.s.well': 'Bienestar',
+  'mp.f.fatMethod': 'Método de medición',
+  'mp.m.bio': 'Báscula de bioimpedancia',
+  'mp.m.caliper': 'Pliegues (caliper)',
+  'mp.m.dexa': 'Escáner DEXA',
+  'mp.m.other': 'Otro / estimación',
+  'mp.f.water': 'Agua de hoy',
+  'mp.f.compliance': '¿Cómo seguiste hoy tu plan de comidas?',
+  'mp.f.sleep': 'Sueño de anoche',
+  'mp.f.sleepH': 'h',
+  'mp.f.sleepM': 'min',
+  'mp.f.sleepQuality': 'Calidad del sueño',
+  'mp.f.energy': 'Energía',
+  'mp.f.fatigue': 'Cansancio',
+  'mp.f.stress': 'Estrés',
+  'mp.f.pain': 'Dolor o molestias',
+  'mp.f.painZone': 'Zona del cuerpo',
+  'mp.f.painInt': 'Intensidad',
+  'mp.f.addPain': '＋ Añadir dolor',
+  'mp.z.neck': 'Cuello',
+  'mp.z.shoulder': 'Hombro',
+  'mp.z.back': 'Espalda',
+  'mp.z.lowerback': 'Zona lumbar',
+  'mp.z.hip': 'Cadera',
+  'mp.z.knee': 'Rodilla',
+  'mp.z.ankle': 'Tobillo',
+  'mp.z.elbow': 'Codo',
+  'mp.z.wrist': 'Muñeca',
+  'mp.z.other': 'Otra',
+  'mp.lvl1': 'Muy poca',
+  'mp.lvl2': 'Poca',
+  'mp.lvl3': 'Regular',
+  'mp.lvl4': 'Buena',
+  'mp.lvl5': 'Muy buena',
+  'mp.h.evolution': 'Evolución por ejercicio',
+  'mp.h.pickEx': 'Elige un ejercicio',
+  'mp.h.sets': 'Series',
+  'mp.h.reps': 'Repeticiones',
+  'mp.h.maxLoad': 'Carga máxima',
+  'mp.h.volume': 'Volumen',
+  'mp.h.lastTwo': 'Dos últimas sesiones',
+  'mp.h.sessionNote': 'Nota de la sesión',
+  'mp.f.effort': 'Esfuerzo general (1–10)',
+  'mp.f.rir': 'o repeticiones en reserva',
+  'mp.effortHelp': 'Esfuerzo: 1 = muy fácil, 10 = lo máximo que puedes dar. Repeticiones en reserva: cuántas repeticiones más podrías haber hecho en tu última serie.',
+  'mp.rpeHelp': 'El RPE es cuánto esfuerzo sentiste en la serie: 1 = muy fácil, 10 = esfuerzo máximo.',
+  'mp.f.technique': 'Observaciones de técnica',
+  'mp.f.discomfort': 'Molestias durante la sesión',
+  'mp.h.saveNote': 'Guardar nota',
+  'mp.h.noteSaved': '✓ Nota guardada',
+  'mp.h.mealsN': '{n} comidas registradas',
+  'mp.h.waterDay': 'Agua',
+  'mp.h.noData': 'Aún no hay registros en este periodo.',
+  'mp.h.insufficient': 'Aún no hay datos suficientes para comparar.',
+  'mp.h.photosDoor': 'Fotos y evaluaciones',
+  'mp.h.weightDoor': 'Registrar un pesaje',
+  'mp.h.trend': 'Tendencia',
+  'mp.share.title': 'Compartir mi bienestar con mi entrenador',
+  'mp.share.text': 'Si compartes, tu entrenador puede ver tu calidad de sueño, energía, cansancio, estrés y registros de dolor para ajustar tu entrenamiento. Solo tú puedes activarlo o desactivarlo. Tus registros siguen siendo tuyos: al dejar de compartir vuelven a ocultarse y no se borra nada.',
+  'mp.share.on': 'Compartiendo',
+  'mp.share.off': 'Sin compartir',
+  'mp.share.grant': 'Compartir',
+  'mp.share.stop': 'Dejar de compartir',
+  'mp.t.title': 'Progreso — vista del entrenador',
+  'mp.t.week': 'Semana',
+  'mp.t.month': 'Mes',
+  'mp.t.custom': 'Personalizado',
+  'mp.t.from': 'Desde',
+  'mp.t.to': 'Hasta',
+  'mp.t.apply': 'Aplicar',
+  'mp.t.vs': 'frente al periodo anterior',
+  'mp.t.sessions': 'Sesiones',
+  'mp.t.minutes': 'Minutos de entrenamiento',
+  'mp.t.daysMeals': 'Días con comidas',
+  'mp.t.avgKcal': 'Calorías promedio (días con comidas)',
+  'mp.t.avgProt': 'Proteína promedio',
+  'mp.t.avgWater': 'Agua promedio',
+  'mp.t.avgSleep': 'Sueño promedio',
+  'mp.t.painReports': 'Registros de dolor',
+  'mp.t.weightChange': 'Cambio de peso en el periodo',
+  'mp.t.lastEval': 'Última evaluación',
+  'mp.t.photos': 'Fotos de progreso',
+  'mp.t.wellHidden': 'La persona no ha compartido su bienestar.',
+  'mp.t.sleepHidden': 'El sueño no está compartido.',
+  'mp.t.comments': 'Comentarios del entrenador',
+  'mp.t.byCoach': 'Comentario de tu entrenador',
+  'mp.t.addComment': 'Añadir un comentario',
+  'mp.t.commentPh': 'Una observación o una propuesta de ajuste…',
+  'mp.t.saveComment': 'Guardar comentario',
+  'mp.t.commentSaved': '✓ Comentario guardado',
+  'mp.t.field.general': 'General',
+  'mp.painLine': '{zone} · {n}/10',
+  'mp.sleepLine': '{h} h {m} min',
+  'mp.ofGoal': 'de {goal}',
+  'mp.perDay': '/día',
 }
 };
 let LANG = 'en';
@@ -19295,6 +19535,7 @@ async function openClient(uid) {
       if (v.ownerUid === uid && num(v.weight) > 0) data.push({ id: d.id, date: v.date, weight: num(v.weight),
         fat: num(v.fat), muscle: num(v.muscle), water: num(v.water), visceral: num(v.visceral), notes: v.notes || '',
         weightOriginal: v.weightOriginal != null ? num(v.weightOriginal) : null,
+        fatMethod: v.fatMethod || '',
         weightUnitOriginal: v.weightUnitOriginal || null });
     });
   } catch {}
@@ -19452,6 +19693,7 @@ async function openClient(uid) {
      ficha abre como siempre. */
   fichaFocusApply(uid);
   pendConsultApply(uid);
+  try { await mpTrainerMount(uid); } catch {}
 }
 
 /* ============ ADHERENCIA · ACTIVIDAD (ficha del entrenador, P1) ============
@@ -22057,6 +22299,7 @@ async function loadAll() {
         fat: num(v.fat), muscle: num(v.muscle), water: num(v.water),
         visceral: num(v.visceral), notes: v.notes || '',
         weightOriginal: v.weightOriginal != null ? num(v.weightOriginal) : null,
+        fatMethod: v.fatMethod || '',
         weightUnitOriginal: v.weightUnitOriginal || null });
     });
     WEIGHTS.sort((a, b) => a.date < b.date ? -1 : 1);
@@ -27612,6 +27855,7 @@ function navClosePagesForce() {
   navSaveScroll();
   NAV_PAGE = null;
   try { foodCloseAll(); } catch {}
+  try { mpCloseAll(); } catch {}
   navRender();
 }
 function navTogglePage(page) {
@@ -41936,6 +42180,7 @@ async function loadProgress() {
   applyCompAccessUI();
   loadWeekCard();
   PROGRESS_LOADED = true;
+  try { mpRenderHome(); } catch {}
 }
 function setSlot(which, url) {
   const img = $('preview-' + which), empty = $('empty-' + which), act = $('actions-' + which);
@@ -44531,6 +44776,7 @@ function openWeightModal(ctx) {
   $('w-water').value = (rec && rec.water) || '';
   $('w-visceral').value = (rec && rec.visceral) || '';
   $('w-notes').value = (rec && rec.notes) || '';
+  const wfm = $('w-fatmethod'); if (wfm) wfm.value = (rec && rec.fatMethod) || '';
   /* Formulario POR ROL (correo 2026-10-23 18:23, que REDEFINE el
      de 17:48 en lo solapado): el PESO lo ingresa SIEMPRE el
      usuario; los PORCENTAJES (grasa, músculo, agua, visceral) y
@@ -44539,7 +44785,7 @@ function openWeightModal(ctx) {
      nota visible. En la vista del entrenador (contexto de cliente)
      todo queda habilitado. */
   const pctLocked = (!ctx || ctx.uid === auth.currentUser.uid) && !compClientCanEdit();
-  ['w-fat', 'w-muscle', 'w-water', 'w-visceral', 'w-notes'].forEach(idF => { const el = $(idF); if (el) el.disabled = pctLocked; });
+  ['w-fat', 'w-muscle', 'w-water', 'w-visceral', 'w-notes', 'w-fatmethod'].forEach(idF => { const el = $(idF); if (el) el.disabled = pctLocked; });
   const pn = $('w-pct-note'); if (pn) { pn.style.display = pctLocked ? '' : 'none'; pn.textContent = t('compacc.pctNote'); }
   /* AUTH-153 (punto 13, parte 2): con el candado puesto, junto a la
      nota va su línea POSITIVA — el peso lo guarda siempre la propia
@@ -44572,6 +44818,7 @@ $('form-weight').addEventListener('submit', async e => {
     muscle: pctLocked ? Math.max(0, num(prevRec.muscle)) : Math.max(0, num($('w-muscle').value)),
     water: pctLocked ? Math.max(0, num(prevRec.water)) : Math.max(0, num($('w-water').value)),
     visceral: pctLocked ? Math.max(0, num(prevRec.visceral)) : Math.max(0, num($('w-visceral').value)),
+    fatMethod: pctLocked ? String(prevRec.fatMethod || '') : String((($('w-fatmethod') || {}).value) || ''),
     notes: pctLocked ? String(prevRec.notes || '') : $('w-notes').value.trim(),
     updatedAt: serverTimestamp() };
   if (!date || data.weight <= 0) { toast(t('err.weightMissing'), true); return; }
@@ -44613,7 +44860,7 @@ $('form-weight').addEventListener('submit', async e => {
       try { console.warn('[ronbo] recarga tras guardar el peso falló; fusión en memoria:', (loadErr && loadErr.code) || String(loadErr)); } catch {}
       const recW = { id: docId, date, weight: data.weight,
         fat: data.fat, muscle: data.muscle, water: data.water, visceral: data.visceral, notes: data.notes,
-        weightOriginal: data.weightOriginal, weightUnitOriginal: data.weightUnitOriginal };
+        weightOriginal: data.weightOriginal, weightUnitOriginal: data.weightUnitOriginal, fatMethod: data.fatMethod };
       const ixW = WEIGHTS.findIndex(w => w.id === docId);
       if (ixW >= 0) WEIGHTS[ixW] = recW; else { WEIGHTS.push(recW); WEIGHTS.sort((a, b) => a.date < b.date ? -1 : 1); }
       try { renderWeight(); } catch {}
@@ -48665,7 +48912,7 @@ document.addEventListener('keydown', e => { if (e.key === 'Escape') shareClose()
  *  - El SW (sw.js) solo cachea la cáscara del mismo origen en modo
  *    RED PRIMERO: Auth/Firestore/Worker jamás pasan por la caché.
  * ================================================================ */
-const PWA_SW_VERSION = '20261109-horarios-precarga';
+const PWA_SW_VERSION = '20261109-mi-progreso';
 /* Sello de versión VISIBLE (2026-11-03): el pie de la tarjeta de
    acceso enseña qué copia corre este teléfono ('v ' + el sello),
    para comprobar de un vistazo si la versión nueva ya llegó.
@@ -54982,3 +55229,709 @@ document.addEventListener('change', e => {
   const d = Number(tg.dataset.d), m = Number(tg.dataset.m);
   if (MENU.days[d] && MENU.days[d].meals[m]) MENU.days[d].meals[m].time = tg.value || '';
 });
+
+/* === MI PROGRESO (DEV) =====================================================
+   CONSTRUCCIÓN EN DESARROLLO 2026-11-09 — SOLO ENTORNO DE PRUEBA.
+   NO es un AUTH de despliegue; nada de este bloque está en producción.
+   Módulo «Mi progreso»: reorganiza la página Progreso con cuatro botones cuadrados.
+   Reutiliza los registros de siempre (nutrition_weight, nutrition_progress,
+   training_logs, nutrition_meals, nutrition_water, activity_data) y añade
+   solo lo que no existía: progress_wellness, progress_daycheck,
+   progress_session_notes, progress_comments, progress_share y el campo
+   fatMethod en nutrition_weight. Ver datos/INVENTARIO.md del paquete. */
+let MP = null;            // { well:[], checks:[], notes:[], comments:[], water:{}, share:null, err:false }
+let MP_LOGS = null;       // sesiones propias (training_logs) para el campo 2
+let MP_QDATE = null;      // fecha abierta en el registro rápido
+const MP_SHARE_VERSION = 'mpwell-v1-2026-11-09';
+const MP_ZONES = ['neck', 'shoulder', 'back', 'lowerback', 'hip', 'knee', 'ankle', 'elbow', 'wrist', 'other'];
+const mpMe = () => (auth.currentUser && auth.currentUser.uid) || null;
+const mpByDateDesc = (a, b) => (a.date < b.date ? 1 : a.date > b.date ? -1 : 0);
+const mpByDateAsc = (a, b) => (a.date < b.date ? -1 : a.date > b.date ? 1 : 0);
+function mpFmtKg(kg) { return (Math.round(massToDisplay(num(kg)) * 10) / 10) + ' ' + UNIT_PREFS.mass; }
+function mpFmtCm(cm) { const u = (typeof EVAL_CFG !== 'undefined' && EVAL_CFG.units === 'imperial') ? 'in' : 'cm'; return evalToDisplay('l', num(cm)) + ' ' + u; }
+function mpSleepTxt(min) { const m = Math.round(num(min)); return t('mp.sleepLine', { h: Math.floor(m / 60), m: m % 60 }); }
+function mpTs(c) { const v = c && c.createdAt; if (!v) return 0; if (typeof v === 'number') return v; if (v.seconds) return v.seconds * 1000; return 0; }
+
+async function mpLoadOwn() {
+  const me = mpMe(); if (!me) return null;
+  const st = { well: [], checks: [], notes: [], comments: [], water: {}, share: null, err: false };
+  const grab = async (col, field) => {
+    const out = [];
+    const snap = await getDocs(query(collection(db, col), where(field, '==', me)));
+    snap.forEach(d => out.push({ id: d.id, ...d.data() }));
+    return out;
+  };
+  try { st.well = await grab('progress_wellness', 'ownerUid'); } catch { st.err = true; }
+  try { st.checks = await grab('progress_daycheck', 'ownerUid'); } catch { st.err = true; }
+  try { st.notes = await grab('progress_session_notes', 'ownerUid'); } catch { st.err = true; }
+  try { st.comments = await grab('progress_comments', 'clientUid'); } catch { st.err = true; }
+  try {
+    const ws = await getDocs(query(collection(db, 'nutrition_water'), where('studentUid', '==', me)));
+    ws.forEach(d => { const v = d.data(); if (v.date) st.water[v.date] = num(v.ml); });
+  } catch { st.err = true; }
+  try { const s = await getDoc(doc(db, 'progress_share', me)); if (s.exists()) st.share = s.data(); } catch { st.err = true; }
+  try { MP_LOGS = await fetchLogs(me); } catch { MP_LOGS = MP_LOGS || []; }
+  st.well.sort(mpByDateDesc); st.checks.sort(mpByDateDesc); st.notes.sort(mpByDateDesc);
+  st.comments.sort((a, b) => mpTs(b) - mpTs(a));
+  MP = st;
+  return st;
+}
+function mpShareActive() { return !!(MP && MP.share && MP.share.wellness && MP.share.wellness.status === 'accepted'); }
+function mpMyLogs() { return (typeof MY_LOGS_ALL !== 'undefined' && MY_LOGS_ALL) || MP_LOGS || []; }
+function mpLogStatus(l) { try { return trainLogStatus(l); } catch { return l && l.done ? 'done' : 'none'; } }
+
+/* ---------- Botones cuadrados de la pantalla principal ---------- */
+function mpCardBodyData() {
+  const lines = [];
+  const w = WEIGHTS.length ? WEIGHTS[WEIGHTS.length - 1] : null;
+  if (w) lines.push(`<span class="mp-line"><strong>${esc(mpFmtKg(w.weight))}</strong> · ${esc(shortDate(w.date))}</span>`);
+  let fat = null;
+  for (let i = WEIGHTS.length - 1; i >= 0 && !fat; i--) if (num(WEIGHTS[i].fat) > 0) fat = WEIGHTS[i];
+  if (fat) lines.push(`<span class="mp-line">${esc(t('form.bodyfat'))}: ${fmt(fat.fat)}%${fat.fatMethod ? ' · ' + esc(t('mp.m.' + fat.fatMethod)) : ''} · ${esc(shortDate(fat.date))}</span>`);
+  let meas = null;
+  for (const d of Object.keys(EVALS).sort().reverse()) {
+    const m = (EVALS[d] && EVALS[d].measures) || {};
+    const keys = Object.keys(m).filter(k => k !== 'peso' && m[k] != null && num(m[k]) > 0);
+    if (keys.length) { meas = { date: d, keys, m }; break; }
+  }
+  if (meas) lines.push(`<span class="mp-line">${meas.keys.slice(0, 2).map(k => esc(t('eval.measure.' + k)) + ' ' + esc(mpFmtCm(meas.m[k]))).join(' · ')} · ${esc(shortDate(meas.date))}</span>`);
+  return lines;
+}
+function mpCardTrainData() {
+  const logs = mpMyLogs().filter(l => { const s = mpLogStatus(l); return s === 'done' || s === 'partial'; });
+  if (!logs.length) return [];
+  const l = logs.slice().sort(mpByDateDesc)[0];
+  const a = mpLogAgg(l);
+  const bits = [esc(shortDate(l.date))];
+  if (l.dayLabel) bits.push(esc(l.dayLabel));
+  if (a.dur != null) bits.push(a.dur + ' min');
+  if (a.sets) bits.push(a.sets + ' ' + esc(t('mp.h.sets').toLowerCase()));
+  return [`<span class="mp-line">${bits.join(' · ')}</span>`];
+}
+function mpCardFoodData() {
+  const today = todayISO();
+  const dates = Object.keys(MEALS || {}).filter(d => d <= today && (MEALS[d] || []).length).sort().reverse();
+  if (!dates.length && !(MP && MP.checks.length)) return [];
+  const lines = [];
+  if (dates.length) {
+    const d = dates[0];
+    const tt = totals(d);
+    let line = `${Math.round(num(tt.kcal))} kcal · ${Math.round(num(tt.prot))} g`;
+    if (GOALS && num(GOALS.kcal) > 0) line += ` <span class="mp-sub">${esc(t('mp.ofGoal', { goal: Math.round(num(GOALS.kcal)) + ' kcal' }))}</span>`;
+    lines.push(`<span class="mp-line">${line} · ${esc(shortDate(d))}</span>`);
+    if (d === today && typeof FUSED_WATER !== 'undefined' && FUSED_WATER.date === today) lines.push(`<span class="mp-line">${esc(t('mp.h.waterDay'))}: ${Math.round(num(FUSED_WATER.ml))} ml</span>`);
+    const chk = MP ? MP.checks.find(c => c.date === d) : null;
+    if (chk && chk.compliance) lines.push(`<span class="mp-line">${esc(t('mp.f.compliance'))}: ${esc(t('mp.lvl' + chk.compliance))}</span>`);
+  }
+  return lines;
+}
+function mpCardWellData() {
+  const lines = [];
+  const sd = Object.keys(ACT_SLEEP || {}).filter(d => ACT_SLEEP[d] != null).sort().reverse();
+  if (sd.length) lines.push(`<span class="mp-line">${esc(mpSleepTxt(ACT_SLEEP[sd[0]]))} · ${esc(shortDate(sd[0]))}</span>`);
+  const w = MP && MP.well.length ? MP.well[0] : null;
+  if (w) {
+    const bits = [];
+    if (w.energy) bits.push(esc(t('mp.f.energy')) + ' ' + w.energy + '/5');
+    if (w.fatigue) bits.push(esc(t('mp.f.fatigue')) + ' ' + w.fatigue + '/5');
+    if (w.stress) bits.push(esc(t('mp.f.stress')) + ' ' + w.stress + '/5');
+    if (bits.length) lines.push(`<span class="mp-line">${bits.join(' · ')} · ${esc(shortDate(w.date))}</span>`);
+    if (Array.isArray(w.pain) && w.pain.length) lines.push(`<span class="mp-line">${w.pain.map(p => esc(t('mp.painLine', { zone: t('mp.z.' + (p.zone || 'other')), n: p.intensity }))).join(' · ')}</span>`);
+  }
+  return lines;
+}
+function mpRenderHome() {
+  const host = $('mp-cards'); if (!host) return;
+  if (!MP) {
+    host.innerHTML = `<div class="wempty">${esc(t('mp.loading'))}</div>`;
+    mpLoadOwn().then(() => mpRenderHome()).catch(() => { const h = $('mp-cards'); if (h) h.innerHTML = `<div class="wempty">${esc(t('mp.errLoad'))}</div>`; });
+    return;
+  }
+  const cards = [
+    { f: 'body', icon: '🧍', title: t('mp.c1'), lines: mpCardBodyData() },
+    { f: 'train', icon: '🏋️', title: t('mp.c2'), lines: mpCardTrainData() },
+    { f: 'food', icon: '🥗', title: t('mp.c3'), lines: mpCardFoodData() },
+    { f: 'well', icon: '🌙', title: t('mp.c4'), lines: mpCardWellData() }
+  ];
+  host.innerHTML = cards.map(c => `
+    <button type="button" class="mp-tile" data-mp-act="hist" data-field="${c.f}" aria-label="${esc(c.title)} — ${esc(t('mp.history'))}">
+      <span class="mp-tile-icon" aria-hidden="true">${c.icon}</span>
+      <span class="mp-tile-name">${esc(c.title)}</span>
+      <span class="mp-tile-data">${c.lines.length ? c.lines.join('') : `<span class="mp-line mp-none">${esc(t('mp.none'))}</span>`}</span>
+    </button>`).join('');
+  const cm = $('mp-comments');
+  if (cm) {
+    const list = (MP.comments || []).slice(0, 3);
+    cm.innerHTML = list.length ? `<h4 class="mp-cm-t">${esc(t('mp.t.comments'))}</h4>` + list.map(c => `
+      <div class="mp-cm"><span class="mp-cm-badge">${esc(t('mp.t.byCoach'))}</span>
+      <div class="mp-cm-text">${esc(c.text || '')}</div>
+      <div class="mp-cm-meta">${esc(shortDate(String(c.date || todayISO())))}${c.field && c.field !== 'general' ? ' · ' + esc(t('mp.c' + ({ body: 1, train: 2, food: 3, well: 4 }[c.field] || ''))) : ''}</div></div>`).join('') : '';
+  }
+}
+
+/* ---------- Hojas (sábanas) ---------- */
+function mpSheetOpen(id) { const el = $(id); if (el) el.style.display = ''; try { coverSync(); } catch {} }
+function mpSheetClose(id) { const el = $(id); if (el) el.style.display = 'none'; try { coverSync(); } catch {} }
+/* Registro en el gestor central de cubiertas (pase a producción):
+   las hojas del módulo se cierran por la vía forzada del gesto del
+   dock (navClosePagesForce, AUTH-312) y con Escape, como las demás
+   familias; el candado de scroll (AUTH-285) y el ancla bajo la
+   cabecera (AUTH-326) los heredan de COVER_SEL (role="dialog") y
+   de la familia .act-float. Ocultar nunca destruye (D3). */
+function mpCloseAll() { mpSheetClose('mp-quick'); mpSheetClose('mp-hist'); }
+document.addEventListener('keydown', e => { if (e.key === 'Escape') mpCloseAll(); });
+
+/* ---------- Registro rápido ---------- */
+function mpSeg(name, val) {
+  return `<div class="mp-seg" data-mpseg="${name}">${[1, 2, 3, 4, 5].map(n => `<button type="button" class="mp-seg-b${val === n ? ' on' : ''}" data-v="${n}" aria-label="${esc(t('mp.lvl' + n))}">${n}</button>`).join('')}</div><div class="mp-seg-lab"><span>${esc(t('mp.lvl1'))}</span><span>${esc(t('mp.lvl5'))}</span></div>`;
+}
+function mpSegVal(name) { const b = document.querySelector(`[data-mpseg="${name}"] .mp-seg-b.on`); return b ? Number(b.dataset.v) : 0; }
+function mpSegWire(root) {
+  root.querySelectorAll('.mp-seg').forEach(g => g.addEventListener('click', e => {
+    const b = e.target.closest('.mp-seg-b'); if (!b) return;
+    const was = b.classList.contains('on');
+    g.querySelectorAll('.mp-seg-b').forEach(x => x.classList.remove('on'));
+    if (!was) b.classList.add('on');
+  }));
+}
+function mpPainRow(p) {
+  const opts = MP_ZONES.map(z => `<option value="${z}"${p && p.zone === z ? ' selected' : ''}>${esc(t('mp.z.' + z))}</option>`).join('');
+  return `<div class="mp-pain-row"><label>${esc(t('mp.f.painZone'))}<select class="mp-pain-zone">${opts}</select></label><label>${esc(t('mp.f.painInt'))}<input type="number" class="mp-pain-int" min="1" max="10" step="1" value="${p ? p.intensity : ''}"></label><button type="button" class="btn-ghost btn-sm mp-pain-del" aria-label="✕">✕</button></div>`;
+}
+function mpPainCollect() {
+  const out = [];
+  document.querySelectorAll('#mp-q-pain .mp-pain-row').forEach(r => {
+    const z = r.querySelector('.mp-pain-zone').value;
+    const i = Math.round(num(r.querySelector('.mp-pain-int').value));
+    if (z && i >= 1 && i <= 10) out.push({ zone: z, intensity: i });
+  });
+  return out;
+}
+function mpOpenQuick(date, focus) {
+  const me = mpMe(); if (!me) return;
+  MP_QDATE = date || todayISO();
+  const d = MP_QDATE;
+  const body = $('mp-quick-body'); if (!body) return;
+  const wRec = WEIGHTS.find(w => w.date === d) || null;
+  const meas = (EVALS[d] && EVALS[d].measures) || {};
+  const chk = MP ? MP.checks.find(c => c.date === d) : null;
+  const well = MP ? MP.well.find(w => w.date === d) : null;
+  const sleepMin = (typeof ACT_SLEEP !== 'undefined' && ACT_SLEEP[d] != null) ? num(ACT_SLEEP[d]) : null;
+  const pctLocked = !compClientCanEdit();
+  const isToday = d === todayISO();
+  const measInputs = EVAL_MEASURES.filter(m => m.kind === 'l').map(m => `
+    <label><span>${esc(t('eval.measure.' + m.id))}</span> <input type="number" step="any" min="0" data-mpm="${m.id}" value="${meas[m.id] != null ? esc(evalToDisplay('l', meas[m.id])) : ''}"></label>`).join('');
+  body.innerHTML = `
+    <label class="mp-q-date">${esc(t('mp.q.date'))} <input type="date" id="mp-q-date" value="${d}" max="${todayISO()}"></label>
+    <h4 class="mp-sec">${esc(t('mp.s.body'))}</h4>
+    <div class="frow3">
+      <label><span>${esc(t('units.weightField', { u: UNIT_PREFS.mass }))}</span> <input type="number" id="mp-q-weight" step="any" min="0" value="${wRec ? esc(String(weightDisplayOf(wRec))) : ''}"></label>
+      <label><span>${esc(t('form.bodyfat'))}</span> <input type="number" id="mp-q-fat" step="any" min="0" value="${wRec && num(wRec.fat) > 0 ? esc(String(wRec.fat)) : ''}" ${pctLocked ? 'disabled' : ''}></label>
+      <label><span>${esc(t('mp.f.fatMethod'))}</span> <select id="mp-q-fatmethod" ${pctLocked ? 'disabled' : ''}><option value="">—</option>${['bio', 'caliper', 'dexa', 'other'].map(m => `<option value="${m}"${wRec && wRec.fatMethod === m ? ' selected' : ''}>${esc(t('mp.m.' + m))}</option>`).join('')}</select></label>
+    </div>
+    <div class="frow3">${measInputs}</div>
+    <p class="form-note">${esc(t('mp.whenTouch'))}</p>
+    <h4 class="mp-sec">${esc(t('mp.s.food'))}</h4>
+    ${isToday ? `<div class="mp-water"><span>${esc(t('mp.f.water'))}: <strong id="mp-q-water-ml">${Math.round(num((typeof FUSED_WATER !== 'undefined' && FUSED_WATER.date === d) ? FUSED_WATER.ml : (MP && MP.water[d]) || 0))} ml</strong></span><button type="button" class="btn-ghost btn-sm" id="mp-q-water-add">+250 ml</button></div>` : ''}
+    <label class="mp-lab">${esc(t('mp.f.compliance'))}</label>
+    ${mpSeg('compliance', chk && chk.compliance ? Number(chk.compliance) : 0)}
+    <label class="mp-lab"><span>${esc(t('form.notes'))}</span> <input type="text" id="mp-q-checknotes" value="${chk ? esc(chk.notes || '') : ''}"></label>
+    <h4 class="mp-sec">${esc(t('mp.s.well'))}</h4>
+    <div class="frow">
+      <label><span>${esc(t('mp.f.sleep'))} (${esc(t('mp.f.sleepH'))})</span> <input type="number" id="mp-q-sleeph" min="0" max="24" step="1" value="${sleepMin != null ? Math.floor(sleepMin / 60) : ''}"></label>
+      <label><span>${esc(t('mp.f.sleepM'))}</span> <input type="number" id="mp-q-sleepm" min="0" max="59" step="1" value="${sleepMin != null ? sleepMin % 60 : ''}"></label>
+    </div>
+    <label class="mp-lab">${esc(t('mp.f.sleepQuality'))}</label>${mpSeg('sleepQuality', well && well.sleepQuality ? Number(well.sleepQuality) : 0)}
+    <label class="mp-lab">${esc(t('mp.f.energy'))}</label>${mpSeg('energy', well && well.energy ? Number(well.energy) : 0)}
+    <label class="mp-lab">${esc(t('mp.f.fatigue'))}</label>${mpSeg('fatigue', well && well.fatigue ? Number(well.fatigue) : 0)}
+    <label class="mp-lab">${esc(t('mp.f.stress'))}</label>${mpSeg('stress', well && well.stress ? Number(well.stress) : 0)}
+    <label class="mp-lab">${esc(t('mp.f.pain'))}</label>
+    <div id="mp-q-pain">${well && Array.isArray(well.pain) ? well.pain.map(mpPainRow).join('') : ''}</div>
+    <button type="button" class="btn-ghost btn-sm" id="mp-q-pain-add">${esc(t('mp.f.addPain'))}</button>
+    <label class="mp-lab"><span>${esc(t('form.notes'))}</span> <textarea id="mp-q-wellnotes" rows="2">${well ? esc(well.notes || '') : ''}</textarea></label>
+    <div id="mp-q-result"></div>
+    <div class="modal-foot"><button type="button" class="btn-primary" id="mp-q-save">${esc(t('mp.q.save'))}</button></div>`;
+  mpSegWire(body);
+  $('mp-q-date').addEventListener('change', e => { if (e.target.value) mpOpenQuick(e.target.value, focus); });
+  const wAdd = $('mp-q-water-add');
+  if (wAdd) wAdd.addEventListener('click', async () => {
+    try { await waterAddToday(250); const lab = $('mp-q-water-ml'); if (lab) lab.textContent = Math.round(num(FUSED_WATER.ml)) + ' ml'; if (MP) MP.water[d] = num(FUSED_WATER.ml); }
+    catch (e) { toast(t('mp.q.errAll'), true); }
+  });
+  $('mp-q-pain-add').addEventListener('click', () => { $('mp-q-pain').insertAdjacentHTML('beforeend', mpPainRow(null)); });
+  body.addEventListener('click', e => { const del = e.target.closest('.mp-pain-del'); if (del) del.closest('.mp-pain-row').remove(); });
+  $('mp-q-save').addEventListener('click', () => mpQuickSave());
+  mpSheetOpen('mp-quick');
+}
+async function mpQuickSave() {
+  const me = mpMe(); if (!me || !MP_QDATE) return;
+  const d = MP_QDATE;
+  const res = $('mp-q-result');
+  const failed = [];
+  let savedAny = false;
+  /* --- Cuerpo: peso + grasa + método (mismo registro nutrition_weight) --- */
+  try {
+    const prev = WEIGHTS.find(w => w.date === d) || null;
+    const pctLocked = !compClientCanEdit();
+    const wIn = $('mp-q-weight').value.trim();
+    const fatIn = $('mp-q-fat').value.trim();
+    const methIn = $('mp-q-fatmethod').value || '';
+    const wDisp = wIn !== '' ? num(wIn) : (prev ? weightDisplayOf(prev) : 0);
+    const wCanon = wIn !== '' ? massToCanonical(num(wIn)) : (prev ? num(prev.weight) : 0);
+    const fatV = pctLocked ? (prev ? num(prev.fat) : 0) : (fatIn !== '' ? num(fatIn) : 0);
+    const methV = pctLocked ? (prev && prev.fatMethod || '') : methIn;
+    const touched = wIn !== '' || fatIn !== '' || methIn !== '' || !!prev;
+    const same = prev && Math.abs(num(prev.weight) - wCanon) < 1e-9 && num(prev.fat) === fatV && (prev.fatMethod || '') === methV;
+    if (touched && !same) {
+      if (!(wCanon > 0)) throw new Error('need-weight');
+      const data = { ownerUid: me, date: d, weight: wCanon, weightOriginal: wDisp, weightUnitOriginal: UNIT_PREFS.mass,
+        fat: fatV, muscle: prev ? num(prev.muscle) : 0, water: prev ? num(prev.water) : 0, visceral: prev ? num(prev.visceral) : 0,
+        notes: prev ? String(prev.notes || '') : '', fatMethod: methV, updatedAt: serverTimestamp() };
+      await setDoc(doc(db, 'nutrition_weight', me + '_' + d), data);
+      const recW = { id: me + '_' + d, ...data, updatedAt: undefined };
+      const ix = WEIGHTS.findIndex(w => w.date === d);
+      if (ix >= 0) WEIGHTS[ix] = { ...WEIGHTS[ix], ...recW }; else { WEIGHTS.push(recW); WEIGHTS.sort(mpByDateAsc); }
+      try { renderWeight(); } catch {}
+      savedAny = true;
+    }
+  } catch { failed.push(t('mp.s.body')); }
+  /* --- Cuerpo: medidas (evaluación de la fecha, mismo registro) --- */
+  try {
+    const collected = {};
+    document.querySelectorAll('[data-mpm]').forEach(inp => { if (inp.value.trim() !== '') collected[inp.dataset.mpm] = evalToCanonical('l', num(inp.value)); });
+    if (Object.keys(collected).length) {
+      const merged = { ...((EVALS[d] && EVALS[d].measures) || {}), ...collected };
+      await setDoc(evalDocRef(d), { kind: 'evaluation', uid: me, ownerUid: me, date: d, measures: merged, updatedAt: serverTimestamp() }, { merge: true });
+      EVALS[d] = { ...((EVALS[d]) || {}), measures: merged };
+      savedAny = true;
+    }
+  } catch { failed.push(t('mp.s.body')); }
+  /* --- Comida: cumplimiento percibido + observaciones --- */
+  try {
+    const comp = mpSegVal('compliance');
+    const notes = $('mp-q-checknotes').value.trim();
+    const prevC = MP.checks.find(c => c.date === d) || null;
+    if (comp > 0 || notes !== '' || prevC) {
+      const data = { ownerUid: me, date: d, compliance: comp > 0 ? comp : null, notes, updatedAt: serverTimestamp() };
+      await setDoc(doc(db, 'progress_daycheck', me + '_' + d), data);
+      const ix = MP.checks.findIndex(c => c.date === d);
+      if (ix >= 0) MP.checks[ix] = { ...MP.checks[ix], ...data }; else MP.checks.push({ id: me + '_' + d, ...data });
+      MP.checks.sort(mpByDateDesc);
+      savedAny = true;
+    }
+  } catch { failed.push(t('mp.s.food')); }
+  /* --- Bienestar: sueño (registro de siempre) --- */
+  try {
+    const h = $('mp-q-sleeph').value.trim(), m = $('mp-q-sleepm').value.trim();
+    if (h !== '' || m !== '') { await actSaveSleep(d, (num(h) * 60) + num(m)); savedAny = true; }
+  } catch { failed.push(t('mp.s.well')); }
+  /* --- Bienestar: escalas, dolor y notas --- */
+  try {
+    const well = {
+      sleepQuality: mpSegVal('sleepQuality'), energy: mpSegVal('energy'),
+      fatigue: mpSegVal('fatigue'), stress: mpSegVal('stress'),
+      pain: mpPainCollect(), notes: $('mp-q-wellnotes').value.trim()
+    };
+    const prevW = MP.well.find(w => w.date === d) || null;
+    const anyW = well.sleepQuality || well.energy || well.fatigue || well.stress || well.pain.length || well.notes !== '';
+    if (anyW || prevW) {
+      const data = { ownerUid: me, date: d,
+        sleepQuality: well.sleepQuality || null, energy: well.energy || null,
+        fatigue: well.fatigue || null, stress: well.stress || null,
+        pain: well.pain, notes: well.notes, updatedAt: serverTimestamp() };
+      await setDoc(doc(db, 'progress_wellness', me + '_' + d), data);
+      const ix = MP.well.findIndex(w => w.date === d);
+      if (ix >= 0) MP.well[ix] = { ...MP.well[ix], ...data }; else MP.well.push({ id: me + '_' + d, ...data });
+      MP.well.sort(mpByDateDesc);
+      savedAny = true;
+    }
+  } catch { failed.push(t('mp.s.well')); }
+  mpRenderHome();
+  if (!savedAny && !failed.length) { if (res) res.innerHTML = `<p class="mp-err">${esc(t('mp.q.empty'))}</p>`; return; }
+  if (failed.length && !savedAny) { if (res) res.innerHTML = `<p class="mp-err">${esc(t('mp.q.errAll'))}</p>`; toast(t('mp.q.errAll'), true); return; }
+  if (failed.length) { if (res) res.innerHTML = `<p class="mp-err">${esc(t('mp.q.errPart', { parts: [...new Set(failed)].join(', ') }))}</p>`; return; }
+  if (res) res.innerHTML = `<p class="mp-ok">${esc(t('mp.q.saved'))}</p>`;
+  toast(t('mp.q.saved'));
+}
+
+
+/* ---------- Agregados de entrenamiento ---------- */
+function mpExAgg(e) {
+  let sets = 0, reps = 0, vol = 0, max = 0;
+  for (const s of (e.sets || [])) {
+    if (s.repsDone == null && s.loadKg == null) continue;
+    const r = num(s.repsDone), l = num(s.loadKg);
+    sets++; reps += r; vol += r * l; if (l > max) max = l;
+  }
+  return { sets, reps, vol: Math.round(vol), maxLoad: max, rpe: (e.rpe != null && num(e.rpe) > 0) ? num(e.rpe) : null };
+}
+function mpLogAgg(log) {
+  let sets = 0, reps = 0, vol = 0, maxLoad = 0; const rpes = [];
+  for (const e of (log.exercisesDone || [])) {
+    const a = mpExAgg(e);
+    sets += a.sets; reps += a.reps; vol += a.vol; if (a.maxLoad > maxLoad) maxLoad = a.maxLoad;
+    if (a.rpe != null) rpes.push(a.rpe);
+  }
+  return { sets, reps, vol, maxLoad, rpe: rpes.length ? Math.round(rpes.reduce((x, y) => x + y, 0) / rpes.length * 10) / 10 : null, dur: log.durationMin != null ? num(log.durationMin) : null };
+}
+function mpLineSVG(points) {
+  if (!points || points.length < 2) return '';
+  const W = 640, H = 200, PL = 46, PR = 12, PT = 16, PB = 28;
+  const vs = points.map(p => p.v);
+  let mn = Math.min(...vs), mx = Math.max(...vs);
+  if (mx - mn < 1e-9) { mx += 1; mn -= 1; }
+  const pad = (mx - mn) * 0.15; mx += pad; mn -= pad;
+  const X = i => PL + (W - PL - PR) * (points.length === 1 ? 0 : i / (points.length - 1));
+  const Y = v => PT + (H - PT - PB) * (1 - (v - mn) / (mx - mn));
+  const pts = points.map((p, i) => `${X(i).toFixed(1)},${Y(p.v).toFixed(1)}`).join(' ');
+  const dots = points.map((p, i) => `<circle cx="${X(i).toFixed(1)}" cy="${Y(p.v).toFixed(1)}" r="3.5" fill="#2b7a5b"/>`).join('');
+  const f1 = v => String(Math.round(v * 10) / 10);
+  return `<svg viewBox="0 0 ${W} ${H}" class="mp-svg" role="img"><line x1="${PL}" y1="${PT}" x2="${PL}" y2="${H - PB}" stroke="#cbd5d1"/><line x1="${PL}" y1="${H - PB}" x2="${W - PR}" y2="${H - PB}" stroke="#cbd5d1"/><polyline points="${pts}" fill="none" stroke="#2b7a5b" stroke-width="2.5"/>${dots}<text x="4" y="${Y(mx - pad) + 4}" font-size="12" fill="#5b6b66">${f1(mx - pad)}</text><text x="4" y="${Y(mn + pad) + 4}" font-size="12" fill="#5b6b66">${f1(mn + pad)}</text><text x="${PL}" y="${H - 8}" font-size="12" fill="#5b6b66">${esc(shortDate(points[0].d))}</text><text x="${W - PR - 64}" y="${H - 8}" font-size="12" fill="#5b6b66">${esc(shortDate(points[points.length - 1].d))}</text></svg>`;
+}
+
+/* ---------- Historiales ---------- */
+function mpOpenHist(field) {
+  const title = $('mp-hist-title'); const body = $('mp-hist-body'); if (!body) return;
+  const names = { body: 'mp.c1', train: 'mp.c2', food: 'mp.c3', well: 'mp.c4' };
+  if (title) title.textContent = t(names[field] || 'mp.title');
+  mpSheetOpen('mp-hist');
+  if (field === 'body') body.innerHTML = mpHistBody();
+  else if (field === 'food') body.innerHTML = mpHistFood();
+  else if (field === 'well') body.innerHTML = mpHistWell();
+  else if (field === 'train') { body.innerHTML = `<div class="wempty">${esc(t('mp.loading'))}</div>`; mpPaintTrainHist(); }
+}
+function mpHistBody() {
+  const parts = [];
+  parts.push(`<div class="mp-doors"><button type="button" class="btn-primary btn-sm" data-mp-act="weightdoor">${esc(t('mp.h.weightDoor'))}</button><button type="button" class="btn-ghost btn-sm" data-mp-act="photosdoor">${esc(t('mp.h.photosDoor'))}</button></div>`);
+  if (WEIGHTS.length) parts.push(`<h4 class="mp-sec">${esc(t('mp.h.trend'))} · ${esc(t('mp.lastWeight'))}</h4><div class="mp-chart">${weightChartSVG(WEIGHTS)}</div>`);
+  const fats = WEIGHTS.filter(w => num(w.fat) > 0).slice(-5).reverse();
+  if (fats.length) parts.push(`<h4 class="mp-sec">${esc(t('form.bodyfat'))}</h4>` + fats.map(w => `<div class="mp-row"><span>${esc(shortDate(w.date))}</span><span>${fmt(w.fat)}%${w.fatMethod ? ' · ' + esc(t('mp.m.' + w.fatMethod)) : ''}</span></div>`).join(''));
+  const dates = Object.keys(EVALS).sort().reverse();
+  const withMeas = dates.filter(d => { const m = (EVALS[d] && EVALS[d].measures) || {}; return Object.keys(m).some(k => k !== 'peso' && m[k] != null && num(m[k]) > 0); });
+  if (withMeas.length) {
+    parts.push(`<h4 class="mp-sec">${esc(t('eval.measure.cintura'))}</h4>`);
+    const series = withMeas.slice().sort().filter(d => EVALS[d].measures.cintura != null).map(d => ({ d, v: num(EVALS[d].measures.cintura) }));
+    const svg = mpLineSVG(series);
+    if (svg) parts.push(`<div class="mp-chart">${svg}</div>`);
+    parts.push(withMeas.slice(0, 8).map(d => { const m = EVALS[d].measures; return `<div class="mp-row"><span>${esc(shortDate(d))}</span><span>${Object.keys(m).filter(k => k !== 'peso' && m[k] != null).map(k => esc(t('eval.measure.' + k)) + ' ' + esc(mpFmtCm(m[k]))).join(' · ')}</span></div>`; }).join(''));
+  }
+  if (!WEIGHTS.length && !withMeas.length) parts.push(`<div class="wempty">${esc(t('mp.none'))}</div>`);
+  return parts.join('');
+}
+function mpHistFood() {
+  const today = todayISO();
+  const rows = [];
+  for (let i = 0; i < 14; i++) {
+    const d = addDaysISO(today, -i);
+    const entries = (MEALS && MEALS[d]) || [];
+    const chk = MP ? MP.checks.find(c => c.date === d) : null;
+    const wat = d === today && typeof FUSED_WATER !== 'undefined' && FUSED_WATER.date === d ? num(FUSED_WATER.ml) : (MP && MP.water[d] != null ? MP.water[d] : null);
+    if (!entries.length && !chk && wat == null) { rows.push(`<div class="mp-row"><span>${esc(dateName(d))}</span><span class="mp-none">${esc(t('mp.none'))}</span></div>`); continue; }
+    const bits = [];
+    if (entries.length) { const tt = totals(d); bits.push(esc(t('mp.h.mealsN', { n: entries.length }))); bits.push(Math.round(num(tt.kcal)) + ' kcal'); bits.push(Math.round(num(tt.prot)) + ' g'); }
+    if (wat != null) bits.push(esc(t('mp.h.waterDay')) + ' ' + Math.round(wat) + ' ml');
+    if (chk && chk.compliance) bits.push(esc(t('mp.lvl' + chk.compliance)));
+    rows.push(`<div class="mp-row"><span>${esc(dateName(d))}</span><span>${bits.join(' · ')}</span></div>`);
+  }
+  return rows.join('');
+}
+function mpHistWell() {
+  const parts = [];
+  const on = mpShareActive();
+  parts.push(`<div class="mp-share"><h4 class="mp-sec">${esc(t('mp.share.title'))}</h4><p class="form-note">${esc(t('mp.share.text'))}</p><div class="mp-share-row"><span>${esc(on ? t('mp.share.on') : t('mp.share.off'))}</span>${on ? `<button type="button" class="btn-ghost btn-sm" data-mp-act="share-off">${esc(t('mp.share.stop'))}</button>` : `<button type="button" class="btn-primary btn-sm" data-mp-act="share-on">${esc(t('mp.share.grant'))}</button>`}</div></div>`);
+  const sleepPts = Object.keys(ACT_SLEEP || {}).filter(d => ACT_SLEEP[d] != null).sort().map(d => ({ d, v: Math.round(num(ACT_SLEEP[d]) / 6) / 10 }));
+  if (sleepPts.length >= 2) parts.push(`<h4 class="mp-sec">${esc(t('mp.h.trend'))} · ${esc(t('mp.f.sleep'))} (h)</h4><div class="mp-chart">${mpLineSVG(sleepPts)}</div>`);
+  const energyPts = (MP ? MP.well : []).filter(w => w.energy).slice().sort(mpByDateAsc).map(w => ({ d: w.date, v: num(w.energy) }));
+  if (energyPts.length >= 2) parts.push(`<h4 class="mp-sec">${esc(t('mp.h.trend'))} · ${esc(t('mp.f.energy'))}</h4><div class="mp-chart">${mpLineSVG(energyPts)}</div>`);
+  const dates = [...new Set([...Object.keys(ACT_SLEEP || {}), ...(MP ? MP.well.map(w => w.date) : [])])].sort().reverse().slice(0, 30);
+  if (!dates.length) { parts.push(`<div class="wempty">${esc(t('mp.none'))}</div>`); return parts.join(''); }
+  parts.push(dates.map(d => {
+    const w = MP ? MP.well.find(x => x.date === d) : null;
+    const bits = [];
+    if (ACT_SLEEP && ACT_SLEEP[d] != null) bits.push('🌙 ' + esc(mpSleepTxt(ACT_SLEEP[d])));
+    if (w) {
+      if (w.sleepQuality) bits.push(esc(t('mp.f.sleepQuality')) + ' ' + w.sleepQuality + '/5');
+      if (w.energy) bits.push(esc(t('mp.f.energy')) + ' ' + w.energy + '/5');
+      if (w.fatigue) bits.push(esc(t('mp.f.fatigue')) + ' ' + w.fatigue + '/5');
+      if (w.stress) bits.push(esc(t('mp.f.stress')) + ' ' + w.stress + '/5');
+      if (Array.isArray(w.pain)) bits.push(...w.pain.map(p => esc(t('mp.painLine', { zone: t('mp.z.' + (p.zone || 'other')), n: p.intensity }))));
+      if (w.notes) bits.push(esc(w.notes));
+    }
+    return `<div class="mp-row"><span>${esc(shortDate(d))}</span><span>${bits.join(' · ') || esc(t('mp.none'))}</span><button type="button" class="btn-ghost btn-sm" data-mp-act="quick" data-date="${d}">${esc(t('mp.edit'))}</button></div>`;
+  }).join(''));
+  return parts.join('');
+}
+async function mpShareSet(on) {
+  const me = mpMe(); if (!me || !MP) return;
+  try {
+    const prev = (MP.share && MP.share.wellness) || {};
+    const w = { status: on ? 'accepted' : 'withdrawn', version: MP_SHARE_VERSION,
+      acceptedAt: on ? serverTimestamp() : (prev.acceptedAt || null),
+      withdrawnAt: on ? null : serverTimestamp() };
+    await setDoc(doc(db, 'progress_share', me), { ownerUid: me, wellness: w }, { merge: true });
+    MP.share = { ...(MP.share || {}), ownerUid: me, wellness: w };
+    toast(t(on ? 'mp.share.on' : 'mp.share.off'));
+    mpOpenHist('well');
+  } catch { toast(t('mp.q.errAll'), true); }
+}
+async function mpPaintTrainHist() {
+  const box = $('mp-hist-body'); if (!box) return;
+  const logs = mpMyLogs().filter(l => { const s = mpLogStatus(l); return s === 'done' || s === 'partial'; }).slice().sort(mpByDateDesc);
+  if (!logs.length) { box.innerHTML = `<div class="wempty">${esc(t('mp.none'))}</div>`; return; }
+  const exMap = {};
+  for (const l of logs) for (const e of (l.exercisesDone || [])) {
+    if (!e.sets || !e.sets.length) continue;
+    const key = e.exerciseId || ('n:' + (e.name || ''));
+    const rec = exMap[key] = exMap[key] || { name: e.name || e.exerciseId || key, sessions: [] };
+    rec.sessions.push({ date: l.date, agg: mpExAgg(e) });
+  }
+  const exKeys = Object.keys(exMap).sort((a, b) => exMap[b].sessions.length - exMap[a].sessions.length);
+  const noteFor = l => MP ? MP.notes.find(n => n.date === l.date && n.planId === l.planId) : null;
+  box.innerHTML = `
+    <h4 class="mp-sec">${esc(t('mp.h.evolution'))}</h4>
+    <p class="form-note">${esc(t('mp.rpeHelp'))}</p>
+    <label class="mp-lab">${esc(t('mp.h.pickEx'))} <select id="mp-ex-select">${exKeys.map(k => `<option value="${esc(k)}">${esc(exMap[k].name)} (${exMap[k].sessions.length})</option>`).join('')}</select></label>
+    <div id="mp-ex-evo"></div>
+    <h4 class="mp-sec">${esc(t('mp.lastSession'))}</h4>
+    ${logs.slice(0, 10).map(l => { const a = mpLogAgg(l); return `<div class="mp-row"><span>${esc(shortDate(l.date))}${l.dayLabel ? ' · ' + esc(l.dayLabel) : ''}</span><span>${a.sets} ${esc(t('mp.h.sets').toLowerCase())} · ${a.reps} ${esc(t('mp.h.reps').toLowerCase())} · ${a.vol} kg${a.rpe != null ? ' · RPE ' + a.rpe : ''}${a.dur != null ? ' · ' + a.dur + ' min' : ''}</span><button type="button" class="btn-ghost btn-sm" data-mp-note="${esc(l.id)}">${esc(t('mp.h.sessionNote'))}${noteFor(l) ? ' ✓' : ''}</button></div>`; }).join('')}
+    <div id="mp-note-box"></div>`;
+  box._mpExMap = exMap;
+  const sel = $('mp-ex-select');
+  if (sel) { sel.addEventListener('change', () => mpPaintExEvo(sel.value)); if (exKeys.length) mpPaintExEvo(exKeys[0]); }
+}
+function mpPaintExEvo(key) {
+  const box = $('mp-ex-evo'); if (!box) return;
+  const host = $('mp-hist-body'); const rec = host && host._mpExMap ? host._mpExMap[key] : null;
+  if (!rec) { box.innerHTML = ''; return; }
+  const ss = rec.sessions.slice().sort(mpByDateAsc);
+  const rows = ss.map(s => `<div class="mp-row"><span>${esc(shortDate(s.date))}</span><span>${s.agg.sets} · ${s.agg.reps} · ${esc(t('mp.h.maxLoad'))} ${s.agg.maxLoad} kg · ${esc(t('mp.h.volume'))} ${s.agg.vol} kg${s.agg.rpe != null ? ' · RPE ' + s.agg.rpe : ''}</span></div>`).join('');
+  let cmp = '';
+  if (ss.length >= 2) {
+    const a = ss[ss.length - 1].agg, b = ss[ss.length - 2].agg;
+    const d = (x, y) => { const v = x - y; return (v > 0 ? '+' : '') + v; };
+    cmp = `<div class="mp-cmp"><strong>${esc(t('mp.h.lastTwo'))}</strong>: ${esc(t('mp.h.volume'))} ${d(a.vol, b.vol)} kg · ${esc(t('mp.h.maxLoad'))} ${d(a.maxLoad, b.maxLoad)} kg · ${esc(t('mp.h.reps'))} ${d(a.reps, b.reps)}</div>`;
+  }
+  const svg = mpLineSVG(ss.map(s => ({ d: s.date, v: s.agg.vol })));
+  box.innerHTML = (svg ? `<div class="mp-chart">${svg}</div>` : '') + cmp + rows;
+}
+function mpNoteForm(logId) {
+  const box = $('mp-note-box'); if (!box || !MP) return;
+  const log = mpMyLogs().find(l => l.id === logId); if (!log) return;
+  const n = MP.notes.find(x => x.date === log.date && x.planId === log.planId) || {};
+  box.innerHTML = `
+    <div class="mp-noteform">
+      <h4 class="mp-sec">${esc(t('mp.h.sessionNote'))} · ${esc(shortDate(log.date))}${log.dayLabel ? ' · ' + esc(log.dayLabel) : ''}</h4>
+      <p class="form-note">${esc(t('mp.effortHelp'))}</p>
+      <div class="frow">
+        <label><span>${esc(t('mp.f.effort'))}</span> <input type="number" id="mp-n-effort" min="1" max="10" step="1" value="${n.effort != null ? n.effort : ''}"></label>
+        <label><span>${esc(t('mp.f.rir'))}</span> <input type="number" id="mp-n-rir" min="0" max="10" step="1" value="${n.rir != null ? n.rir : ''}"></label>
+      </div>
+      <label class="mp-lab"><span>${esc(t('mp.f.technique'))}</span> <textarea id="mp-n-tech" rows="2">${esc(n.technique || '')}</textarea></label>
+      <label class="mp-lab"><span>${esc(t('mp.f.discomfort'))}</span> <textarea id="mp-n-disc" rows="2">${esc(n.discomfort || '')}</textarea></label>
+      <div class="modal-foot"><button type="button" class="btn-primary" id="mp-n-save">${esc(t('mp.h.saveNote'))}</button></div>
+    </div>`;
+  $('mp-n-save').addEventListener('click', async () => {
+    const me = mpMe(); if (!me) return;
+    const data = { ownerUid: me, date: log.date, planId: log.planId,
+      effort: $('mp-n-effort').value.trim() !== '' ? Math.round(num($('mp-n-effort').value)) : null,
+      rir: $('mp-n-rir').value.trim() !== '' ? Math.round(num($('mp-n-rir').value)) : null,
+      technique: $('mp-n-tech').value.trim(), discomfort: $('mp-n-disc').value.trim(),
+      updatedAt: serverTimestamp() };
+    try {
+      await setDoc(doc(db, 'progress_session_notes', me + '_' + log.date + '_' + log.planId), data);
+      const ix = MP.notes.findIndex(x => x.date === log.date && x.planId === log.planId);
+      if (ix >= 0) MP.notes[ix] = { ...MP.notes[ix], ...data }; else MP.notes.push({ id: me + '_' + log.date + '_' + log.planId, ...data });
+      toast(t('mp.h.noteSaved'));
+      mpPaintTrainHist();
+    } catch { toast(t('mp.q.errAll'), true); }
+  });
+}
+
+/* ---------- Vista del entrenador ---------- */
+let MPT = null;
+async function mpTrainerMount(uid) {
+  const host = $('client-detail'); if (!host || document.getElementById('mp-trainer-block')) return;
+  const sec = document.createElement('section');
+  sec.id = 'mp-trainer-block'; sec.className = 'mp-tblock';
+  sec.innerHTML = `<h3 class="history-title">${esc(t('mp.t.title'))}</h3>
+    <div class="mp-t-modes">
+      <button type="button" class="btn-ghost btn-sm" data-mpt="week">${esc(t('mp.t.week'))}</button>
+      <button type="button" class="btn-ghost btn-sm" data-mpt="month">${esc(t('mp.t.month'))}</button>
+      <button type="button" class="btn-ghost btn-sm" data-mpt="custom">${esc(t('mp.t.custom'))}</button>
+      <span class="mp-t-custom" style="display:none"><input type="date" id="mp-t-from"> – <input type="date" id="mp-t-to"> <button type="button" class="btn-primary btn-sm" id="mp-t-apply">${esc(t('mp.t.apply'))}</button></span>
+    </div>
+    <div id="mp-t-body"><div class="wempty">${esc(t('mp.loading'))}</div></div>
+    <div id="mp-t-comments"></div>`;
+  host.appendChild(sec);
+  MPT = { uid, mode: 'week', from: null, to: null, data: null, udata: null };
+  sec.querySelectorAll('[data-mpt]').forEach(b => b.addEventListener('click', () => {
+    MPT.mode = b.dataset.mpt;
+    sec.querySelector('.mp-t-custom').style.display = MPT.mode === 'custom' ? '' : 'none';
+    if (MPT.mode !== 'custom') mpTrainerPaint();
+  }));
+  sec.querySelector('#mp-t-apply').addEventListener('click', () => {
+    MPT.from = $('mp-t-from').value || null; MPT.to = $('mp-t-to').value || null;
+    mpTrainerPaint();
+  });
+  try { await mpTrainerLoad(); }
+  catch { const b = $('mp-t-body'); if (b) b.innerHTML = `<div class="wempty">${esc(t('mp.errLoad'))}</div>`; }
+}
+async function mpTrainerLoad() {
+  const uid = MPT.uid;
+  const D = { weights: [], evals: {}, photos: 0, lastPhoto: null, logs: [], meals: {}, water: {}, sleep: null, well: null, checks: [], comments: [] };
+  const ud = await getDoc(doc(db, 'users', uid));
+  const udata = ud.exists() ? ud.data() : {};
+  const ws = await getDocs(query(collection(db, 'nutrition_weight'), where('ownerUid', '==', uid)));
+  ws.forEach(d => D.weights.push({ id: d.id, ...d.data() }));
+  D.weights.sort(mpByDateAsc);
+  const ps = await getDocs(query(collection(db, 'nutrition_progress'), where('ownerUid', '==', uid)));
+  ps.forEach(d => { const v = d.data(); if (v.kind === 'evaluation' && v.date) D.evals[v.date] = v; if (v.slot && v.photo) { D.photos++; if (!D.lastPhoto || v.date > D.lastPhoto) D.lastPhoto = v.date; } });
+  D.logs = await fetchLogs(uid);
+  const ms = await getDocs(query(collection(db, 'nutrition_meals'), where('ownerUid', '==', uid), where('date', '>=', histCutoffISO())));
+  ms.forEach(d => { const v = d.data(); if (!v.date) return; const tt = D.meals[v.date] = D.meals[v.date] || { kcal: 0, prot: 0, n: 0 }; tt.kcal += num(v.kcal); tt.prot += num(v.prot); tt.n++; });
+  const wq = await getDocs(query(collection(db, 'nutrition_water'), where('studentUid', '==', uid)));
+  wq.forEach(d => { const v = d.data(); if (v.date) D.water[v.date] = num(v.ml); });
+  const ck = await getDocs(query(collection(db, 'progress_daycheck'), where('ownerUid', '==', uid)));
+  ck.forEach(d => D.checks.push({ id: d.id, ...d.data() }));
+  if (actShareActive(udata, 'sleep')) {
+    D.sleep = {};
+    const ss = await getDocs(query(collection(db, 'activity_data'), where('clientUid', '==', uid), where('dataType', '==', 'sleep')));
+    ss.forEach(d => { const v = d.data(); if (v.date && !v.deletedAt) D.sleep[v.date] = num(v.value); });
+  }
+  const sh = await getDoc(doc(db, 'progress_share', uid));
+  if (sh.exists() && sh.data().wellness && sh.data().wellness.status === 'accepted') {
+    D.well = [];
+    const wl = await getDocs(query(collection(db, 'progress_wellness'), where('ownerUid', '==', uid)));
+    wl.forEach(d => D.well.push({ id: d.id, ...d.data() }));
+  }
+  const cm = await getDocs(query(collection(db, 'progress_comments'), where('clientUid', '==', uid)));
+  cm.forEach(d => D.comments.push({ id: d.id, ...d.data() }));
+  D.comments.sort((a, b) => mpTs(b) - mpTs(a));
+  MPT.data = D; MPT.udata = udata;
+  mpTrainerPaint();
+}
+function mpRange() {
+  const today = todayISO();
+  if (MPT.mode === 'week') return { from: addDaysISO(today, -6), to: today };
+  if (MPT.mode === 'month') return { from: addDaysISO(today, -29), to: today };
+  return { from: MPT.from || addDaysISO(today, -29), to: MPT.to || today };
+}
+function mpPrevRange(r) {
+  const len = Math.round((new Date(r.to + 'T12:00:00') - new Date(r.from + 'T12:00:00')) / 86400000) + 1;
+  return { from: addDaysISO(r.from, -len), to: addDaysISO(r.to, -len) };
+}
+function mpAgg(D, r) {
+  const inR = d => d >= r.from && d <= r.to;
+  const A = { lastWeight: null, weightChange: null, waist: null, sessions: 0, minutes: 0, daysMeals: 0, avgKcal: null, avgProt: null, avgWater: null, complianceAvg: null, sleepAvg: null, energyAvg: null, fatigueAvg: null, stressAvg: null, painCount: 0 };
+  const wIn = D.weights.filter(w => inR(w.date));
+  const wUpTo = D.weights.filter(w => w.date <= r.to);
+  if (wUpTo.length) A.lastWeight = { v: num(wUpTo[wUpTo.length - 1].weight), date: wUpTo[wUpTo.length - 1].date };
+  if (wIn.length >= 2) A.weightChange = num(wIn[wIn.length - 1].weight) - num(wIn[0].weight);
+  const evDates = Object.keys(D.evals).filter(d => d <= r.to && D.evals[d].measures && D.evals[d].measures.cintura != null).sort();
+  if (evDates.length) A.waist = { v: num(D.evals[evDates[evDates.length - 1]].measures.cintura), date: evDates[evDates.length - 1] };
+  const logs = D.logs.filter(l => inR(l.date) && (mpLogStatus(l) === 'done' || mpLogStatus(l) === 'partial'));
+  A.sessions = logs.length;
+  A.minutes = logs.reduce((s, l) => s + (l.durationMin != null ? num(l.durationMin) : 0), 0);
+  const mealDates = Object.keys(D.meals).filter(inR);
+  A.daysMeals = mealDates.length;
+  if (mealDates.length) {
+    A.avgKcal = mealDates.reduce((s, d) => s + D.meals[d].kcal, 0) / mealDates.length;
+    A.avgProt = mealDates.reduce((s, d) => s + D.meals[d].prot, 0) / mealDates.length;
+  }
+  const waterDates = Object.keys(D.water).filter(inR);
+  if (waterDates.length) A.avgWater = waterDates.reduce((s, d) => s + D.water[d], 0) / waterDates.length;
+  const cks = D.checks.filter(c => inR(c.date) && c.compliance);
+  if (cks.length) A.complianceAvg = cks.reduce((s, c) => s + num(c.compliance), 0) / cks.length;
+  if (D.sleep) {
+    const sd = Object.keys(D.sleep).filter(inR);
+    if (sd.length) A.sleepAvg = sd.reduce((s, d) => s + D.sleep[d], 0) / sd.length;
+  }
+  if (D.well) {
+    const ws2 = D.well.filter(w => inR(w.date));
+    const avg = k => { const xs = ws2.filter(w => w[k]); return xs.length ? xs.reduce((s, w) => s + num(w[k]), 0) / xs.length : null; };
+    A.energyAvg = avg('energy'); A.fatigueAvg = avg('fatigue'); A.stressAvg = avg('stress');
+    A.painCount = ws2.reduce((s, w) => s + (Array.isArray(w.pain) ? w.pain.length : 0), 0);
+  }
+  return A;
+}
+function mpRow(label, cur, prev, fmtF) {
+  const c = cur == null ? esc(t('mp.none')) : esc(fmtF(cur));
+  let p;
+  if (cur == null || prev == null) p = `<span class="mp-insuf">${esc(t('mp.h.insufficient'))}</span>`;
+  else { const d = cur - prev; p = `${esc(t('mp.t.vs'))}: ${esc(fmtF(prev))} (${d > 0 ? '+' : ''}${esc(fmtF(d))})`; }
+  return `<div class="mp-trow"><span class="mp-tlab">${esc(label)}</span><span class="mp-tval">${c}</span><span class="mp-tsub">${p}</span></div>`;
+}
+function mpTrainerPaint() {
+  const box = $('mp-t-body'); if (!box || !MPT || !MPT.data) return;
+  const D = MPT.data;
+  const r = mpRange(); const pr = mpPrevRange(r);
+  const A = mpAgg(D, r); const P = mpAgg(D, pr);
+  const f0 = v => String(Math.round(v));
+  const f1 = v => String(Math.round(v * 10) / 10);
+  const parts = [];
+  parts.push(`<h4 class="mp-sec">${esc(t('mp.c1'))}</h4>`);
+  parts.push(mpRow(t('mp.lastWeight'), A.lastWeight ? A.lastWeight.v : null, P.lastWeight ? P.lastWeight.v : null, v => mpFmtKg(v)));
+  if (A.weightChange != null) { const sgn = A.weightChange > 0 ? '+' : (A.weightChange < 0 ? '−' : ''); parts.push(`<div class="mp-trow"><span class="mp-tlab">${esc(t('mp.t.weightChange'))}</span><span class="mp-tval">${sgn}${esc(mpFmtKg(Math.abs(A.weightChange)))}</span><span class="mp-tsub"></span></div>`); }
+  parts.push(mpRow(t('eval.measure.cintura'), A.waist ? A.waist.v : null, P.waist ? P.waist.v : null, v => mpFmtCm(v)));
+  parts.push(`<div class="mp-trow"><span class="mp-tlab">${esc(t('mp.t.photos'))}</span><span class="mp-tval">${D.photos}${D.lastPhoto ? ' · ' + esc(shortDate(D.lastPhoto)) : ''}</span><span class="mp-tsub"></span></div>`);
+  parts.push(`<h4 class="mp-sec">${esc(t('mp.c2'))}</h4>`);
+  parts.push(mpRow(t('mp.t.sessions'), A.sessions || null, P.sessions || null, f0));
+  parts.push(mpRow(t('mp.t.minutes'), A.minutes || null, P.minutes || null, f0));
+  parts.push(`<h4 class="mp-sec">${esc(t('mp.c3'))}</h4>`);
+  parts.push(mpRow(t('mp.t.daysMeals'), A.daysMeals || null, P.daysMeals || null, f0));
+  parts.push(mpRow(t('mp.t.avgKcal'), A.avgKcal, P.avgKcal, f0));
+  parts.push(mpRow(t('mp.t.avgProt'), A.avgProt, P.avgProt, v => f0(v) + ' g'));
+  parts.push(mpRow(t('mp.t.avgWater'), A.avgWater, P.avgWater, v => f0(v) + ' ml'));
+  parts.push(mpRow(t('mp.f.compliance'), A.complianceAvg, P.complianceAvg, v => f1(v) + '/5'));
+  parts.push(`<h4 class="mp-sec">${esc(t('mp.c4'))}</h4>`);
+  if (D.sleep === null) parts.push(`<div class="mp-trow"><span class="mp-tlab">${esc(t('mp.f.sleep'))}</span><span class="mp-tsub">${esc(t('mp.t.sleepHidden'))}</span></div>`);
+  else parts.push(mpRow(t('mp.t.avgSleep'), A.sleepAvg, P.sleepAvg, v => mpSleepTxt(v)));
+  if (D.well === null) parts.push(`<div class="mp-trow"><span class="mp-tlab">${esc(t('mp.c4'))}</span><span class="mp-tsub">${esc(t('mp.t.wellHidden'))}</span></div>`);
+  else {
+    parts.push(mpRow(t('mp.f.energy'), A.energyAvg, P.energyAvg, v => f1(v) + '/5'));
+    parts.push(mpRow(t('mp.f.fatigue'), A.fatigueAvg, P.fatigueAvg, v => f1(v) + '/5'));
+    parts.push(mpRow(t('mp.f.stress'), A.stressAvg, P.stressAvg, v => f1(v) + '/5'));
+    parts.push(mpRow(t('mp.t.painReports'), A.painCount || null, P.painCount || null, f0));
+  }
+  box.innerHTML = parts.join('');
+  mpTrainerPaintComments();
+}
+function mpTrainerPaintComments() {
+  const host = $('mp-t-comments'); if (!host || !MPT || !MPT.data) return;
+  const list = MPT.data.comments.slice(0, 10);
+  host.innerHTML = `<h4 class="mp-sec">${esc(t('mp.t.comments'))}</h4>
+    ${list.map(c => `<div class="mp-cm"><span class="mp-cm-badge">${esc(t('mp.t.byCoach'))}</span><div class="mp-cm-text">${esc(c.text || '')}</div><div class="mp-cm-meta">${esc(shortDate(String(c.date || todayISO())))}</div></div>`).join('') || `<div class="wempty">${esc(t('mp.none'))}</div>`}
+    <label class="mp-lab">${esc(t('mp.t.addComment'))}
+      <select id="mp-tc-field"><option value="general">${esc(t('mp.t.field.general'))}</option><option value="body">${esc(t('mp.c1'))}</option><option value="train">${esc(t('mp.c2'))}</option><option value="food">${esc(t('mp.c3'))}</option><option value="well">${esc(t('mp.c4'))}</option></select>
+    </label>
+    <textarea id="mp-tc-text" rows="2" placeholder="${esc(t('mp.t.commentPh'))}"></textarea>
+    <div class="modal-foot"><button type="button" class="btn-primary" id="mp-tc-save">${esc(t('mp.t.saveComment'))}</button></div>`;
+  $('mp-tc-save').addEventListener('click', async () => {
+    const me = mpMe(); if (!me) return;
+    const text = $('mp-tc-text').value.trim(); if (!text) return;
+    const data = { clientUid: MPT.uid, authorUid: me, authorRole: (typeof ROLE !== 'undefined' ? ROLE : 'trainer'), field: $('mp-tc-field').value || 'general', text, date: todayISO(), createdAt: serverTimestamp() };
+    try {
+      const ref = await addDoc(collection(db, 'progress_comments'), data);
+      MPT.data.comments.unshift({ id: ref && ref.id ? ref.id : 'local', ...data, createdAt: Date.now() });
+      toast(t('mp.t.commentSaved'));
+      mpTrainerPaintComments();
+    } catch { toast(t('mp.q.errAll'), true); }
+  });
+}
+
+/* ---------- Delegación global de clics del módulo ---------- */
+document.addEventListener('click', e => {
+  const nb = e.target.closest && e.target.closest('[data-mp-note]');
+  if (nb) { mpNoteForm(nb.dataset.mpNote); return; }
+  const b = e.target.closest && e.target.closest('[data-mp-act]');
+  if (!b) return;
+  const act = b.dataset.mpAct;
+  if (act === 'quick') { mpSheetClose('mp-hist'); mpOpenQuick(b.dataset.date || todayISO(), b.dataset.field || ''); }
+  else if (act === 'hist') mpOpenHist(b.dataset.field);
+  else if (act === 'close') mpSheetClose(b.dataset.sheet);
+  else if (act === 'weightdoor') { mpSheetClose('mp-hist'); openWeightModal(null); }
+  else if (act === 'photosdoor') { mpSheetClose('mp-hist'); try { progSetSub('fotos'); } catch {} }
+  else if (act === 'share-on') mpShareSet(true);
+  else if (act === 'share-off') mpShareSet(false);
+});
+/* === FIN MI PROGRESO === */
