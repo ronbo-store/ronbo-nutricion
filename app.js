@@ -26772,6 +26772,24 @@ function navTogglePage(page) {
   navGuarded(() => navOpenPage(page));
 }
 
+/* EL DOCK SIEMPRE MANDA (corrección 2026-11-08, reporte de Ronald
+   en vivo): con una página del dock abierta (Progreso o
+   Entrenamiento), tocar OTRO disco no la cerraba — los destinos de
+   hoja (Actividad, Pendientes) abrían su flotante SOBRE la página y
+   el disco de Comida solo volvía a su pestaña — y la página solo
+   salía con su ✕. Los gestos de hoja del dock pasan ahora por esta
+   vía única: con página abierta, el gesto va custodiado por la
+   guarda de siempre (navGuarded) y primero cierra las páginas por
+   la vía forzada de la casa (la misma de switchTab y de Inicio);
+   sin página abierta, el gesto es el de siempre, intacto. Los
+   discos de página y el de Inicio ya cerraban por sus propias vías
+   y no cambian. Cerrar nunca destruye: las hojas conservan su
+   estado, como manda la regla de oro de este módulo. */
+function navDockLeave(action) {
+  if (!NAV_PAGE) { action(); return; }
+  navGuarded(() => { navClosePagesForce(); action(); });
+}
+
 /* Sub-pestañas de Progreso (Fotos | Medidas): un solo sub-panel
    visible; el estado vive en memoria, como ADM_SEC_OPEN. */
 function progSetSub(name) {
@@ -26955,7 +26973,7 @@ navRender();
    abre igual desde cualquier área, pero el flujo del análisis vive
    en «Mi registro» — al tocarla desde otra área se vuelve allí
    primero, para que el resultado caiga en su pantalla. */
-{ const fl = $('btn-round-food'); if (fl) fl.addEventListener('click', () => dockHome($('tab-track'))); }
+{ const fl = $('btn-round-food'); if (fl) fl.addEventListener('click', () => navDockLeave(() => dockHome($('tab-track')))); }
 /* El rediseño flotante de actividad (2026-10-24) retira el cableado
    de la tira: el botón ACTIVIDAD del dock y la llamita se cablean en
    el propio módulo de actividad (junto a ACT_UI). */
@@ -38712,7 +38730,7 @@ function renderActivity(date) {
 
 /* ---------- cableado del dock, la llamita y los cierres ---------- */
 { const b = $('btn-toggle-activity');
-  if (b) b.onclick = () => { dockHome($('act-float')); if (actIsOpen('act-float')) actCloseAll(); else actOpenFloat(); }; }
+  if (b) b.onclick = () => { navDockLeave(() => { dockHome($('act-float')); if (actIsOpen('act-float')) actCloseAll(); else actOpenFloat(); }); }; }
 { const f = $('act-flame');
   if (f) f.onclick = () => { if (actIsOpen('act-day')) actCloseAll(); else actOpenDay(); }; }
 { const c = $('btn-act-close'); if (c) c.onclick = () => actCloseAll(); }
@@ -43675,7 +43693,7 @@ function pendGoWaitingTray() {
 { const b = document.getElementById('btn-pend-config');
   if (b) b.onclick = () => { PEND_UI.configOpen = !PEND_UI.configOpen; renderPendings(); }; }
 { const b = document.getElementById('btn-toggle-pend');
-  if (b) b.onclick = () => { dockHome($('pend-float')); pendSetFloat(!PEND_UI.floatOpen); }; }
+  if (b) b.onclick = () => { navDockLeave(() => { dockHome($('pend-float')); pendSetFloat(!PEND_UI.floatOpen); }); }; }
 { const c = document.getElementById('btn-pend-close');
   if (c) c.onclick = () => pendSetFloat(false); }
 /* Edición sin guardar SOLO dentro del formulario de configuración
@@ -46126,7 +46144,7 @@ document.addEventListener('keydown', e => { if (e.key === 'Escape') shareClose()
  *  - El SW (sw.js) solo cachea la cáscara del mismo origen en modo
  *    RED PRIMERO: Auth/Firestore/Worker jamás pasan por la caché.
  * ================================================================ */
-const PWA_SW_VERSION = '20261108-admin-permisos';
+const PWA_SW_VERSION = '20261108-navegacion-dock';
 /* Sello de versión VISIBLE (2026-11-03): el pie de la tarjeta de
    acceso enseña qué copia corre este teléfono ('v ' + el sello),
    para comprobar de un vistazo si la versión nueva ya llegó.
