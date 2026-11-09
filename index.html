@@ -21,7 +21,7 @@
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-title" content="RONBO FIT">
 <meta name="apple-mobile-web-app-status-bar-style" content="default">
-<link rel="stylesheet" href="styles.css?v=20261108-correcciones-textos">
+<link rel="stylesheet" href="styles.css?v=20261108-retos-aprobacion">
 <script defer src="https://cloud.umami.is/script.js" data-website-id="a29706d4-44a2-47cf-900a-5f74d74abfa8"></script>
 <script type="importmap">
 {
@@ -657,6 +657,20 @@
       <button type="button" class="pend-close" id="treq-reply-x" aria-label="Close" data-i18n-aria="client.close">✕</button>
     </div>
     <div id="treq-reply-body"></div>
+  </div>
+
+  <!-- FICHA DE CADA RETO (AUTH-2026-11-08-RETOS): la hoja flotante
+       del diseño §3 — qué es, tu meta, cómo cuenta, por qué
+       funciona, qué ganas y la acción según el estado (pedir
+       unirme / esperando aprobación / no aprobada / en marcha /
+       cumplido). El contenido lo pinta chalSheetPaint (app.js);
+       la ✕ cierra sin tocar nada. -->
+  <div class="pend-float pend-consult" id="chal-ficha-float" style="display:none" role="dialog">
+    <div class="pend-head">
+      <h2><span data-i18n="chal.title">🏆 Challenges</span></h2>
+      <button type="button" class="pend-close" id="chal-ficha-x" aria-label="Close" data-i18n-aria="client.close">✕</button>
+    </div>
+    <div id="chal-ficha-sheet-body"></div>
   </div>
 
   <!-- ASIGNACIONES (pedido de Ronald, chat RONBO.NUTRI, 2026-11-03
@@ -2049,6 +2063,6 @@
 <div id="toast" class="toast"></div>
 <div id="print-card" aria-hidden="true"></div>
 
-<script type="module" src="app.js?v=20261108-correcciones-textos"></script>
+<script type="module" src="app.js?v=20261108-retos-aprobacion"></script>
 </body>
 </html>
