@@ -1,0 +1,60 @@
+SEMILLAS OK · suite CANDIDATA
+OK C1 alumna: borrador con foto-dato normal nace
+OK C2 alumna: foto-dato en el tope exacto (300 000) nace
+OK C3 alumna: foto-dato sobre el tope (300 001) — la guarda manda
+OK C4 alumna: foto_url numérica — la guarda exige texto
+OK C5 alumna: borrador SIN campo foto_url nace (forma manual)
+OK C6 alumna: borrador con foto_url de URL corta nace (forma manual)
+OK C7 alumna: nacer ya «aprobado» se deniega
+SEMILLAS OK · suite CANDIDATA
+OK C8 alumna: pendiente con firma de aprobación se deniega
+OK C9 alumna: createdBy ajeno se deniega
+OK C10 alumna: campo fuera de la lista cerrada se deniega
+OK C11 cuenta NO aprobada no crea borradores
+OK C12 entrenador: su pendiente con foto-dato normal nace
+OK C13 entrenador: su rama NO lleva la guarda (alcance declarado)
+OK C14 administrador: crea «aprobado» directo con su firma (rama intacta)
+SEMILLAS OK · suite CANDIDATA
+OK U1 autora: completa los pasos de SU borrador con la foto-dato intacta
+OK U2 autora: inflar foto_url sobre el tope en su edición — la guarda manda
+OK U3 autora: auto-aprobarse su borrador se deniega
+OK U5 tercera cuenta: editar el borrador ajeno se deniega
+OK U6 autora: edita su borrador con la foto EN el tope (no sobre)
+SEMILLAS OK · suite CANDIDATA
+OK U4 administrador: APRUEBA el borrador con la foto-dato intacta (la decisión del paquete)
+OK R1 tercera cuenta: NO lee el pendiente ajeno (DRAFT2)
+OK R2 administrador: lee el pendiente en su bandeja
+OK R3 autora: lee su propio pendiente
+OK R4 tras la aprobación (U4), el aprobado ya lo lee cualquiera aprobado
+OK X1 autora: borra su propio borrador
+OK D1 SONDA: la decisión exacta del entrenador sigue pasando (bloque users intacto)
+SEMILLAS OK · suite VIVAS
+OK C1 alumna: borrador con foto-dato normal nace
+OK C2 alumna: foto-dato en el tope exacto (300 000) nace
+OK C3 alumna: foto-dato sobre el tope (300 001) — la guarda manda
+OK C4 alumna: foto_url numérica — la guarda exige texto
+OK C5 alumna: borrador SIN campo foto_url nace (forma manual)
+OK C6 alumna: borrador con foto_url de URL corta nace (forma manual)
+OK C7 alumna: nacer ya «aprobado» se deniega
+SEMILLAS OK · suite VIVAS
+OK C8 alumna: pendiente con firma de aprobación se deniega
+OK C9 alumna: createdBy ajeno se deniega
+OK C10 alumna: campo fuera de la lista cerrada se deniega
+OK C11 cuenta NO aprobada no crea borradores
+OK C12 entrenador: su pendiente con foto-dato normal nace
+OK C13 entrenador: su rama NO lleva la guarda (alcance declarado)
+OK C14 administrador: crea «aprobado» directo con su firma (rama intacta)
+SEMILLAS OK · suite VIVAS
+OK U1 autora: completa los pasos de SU borrador con la foto-dato intacta
+OK U2 autora: inflar foto_url sobre el tope en su edición — la guarda manda
+OK U3 autora: auto-aprobarse su borrador se deniega
+OK U5 tercera cuenta: editar el borrador ajeno se deniega
+OK U6 autora: edita su borrador con la foto EN el tope (no sobre)
+SEMILLAS OK · suite VIVAS
+OK U4 administrador: APRUEBA el borrador con la foto-dato intacta (la decisión del paquete)
+OK R1 tercera cuenta: NO lee el pendiente ajeno (DRAFT2)
+OK R2 administrador: lee el pendiente en su bandeja
+OK R3 autora: lee su propio pendiente
+OK R4 tras la aprobación (U4), el aprobado ya lo lee cualquiera aprobado
+OK X1 autora: borra su propio borrador
+OK D1 SONDA: la decisión exacta del entrenador sigue pasando (bloque users intacto)

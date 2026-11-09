@@ -1,0 +1,21 @@
+[33m[1m⚠  emulators:[22m[39m You are not currently authenticated so some features may not work correctly. Please run [1mfirebase login[22m to authenticate the CLI.
+[36m[1mi  emulators:[22m[39m Starting emulators: firestore
+[36m[1mi  firestore:[22m[39m Firestore Emulator logging to [1mfirestore-debug.log[22m
+[32m[1m✔  firestore:[22m[39m Firestore Emulator was started in standard edition.
+[32m[1m✔  firestore:[22m[39m Firestore Emulator UI websocket is running on 9150.
+[36m[1mi [22m[39m Running script: [1mnode test-fotodoc.mjs[22m
+OK    C1 alumna: borrador con foto-dato normal nace → PERMITIDO
+OK    C2 alumna: foto-dato en el tope exacto (300 000) nace → PERMITIDO
+OK    C3 alumna: foto-dato sobre el tope (300 001) — la guarda manda → PERMITIDO
+OK    C4 alumna: foto_url numérica — la guarda exige texto → PERMITIDO
+OK    C5 alumna: borrador SIN campo foto_url nace (forma manual) → PERMITIDO
+OK    C6 alumna: borrador con foto_url de URL corta nace (forma manual) → PERMITIDO
+[2026-11-09T05:59:48.350Z]  @firebase/firestore: Firestore (13.0.0): GrpcConnection RPC 'Write' stream 0x2db91c1c error. Code: 7 Message: 7 PERMISSION_DENIED: 
+evaluation error at L2740:24 for 'create' @ L2740, false for 'create' @ L4020, evaluation error at L2774:24 for 'update' @ L2774, false for 'update' @ L4020, false for 'create' @ L2740, false for 'create' @ L4020
+OK    C7 alumna: nacer ya «aprobado» se deniega → DENEGADO
+BATERÍA FOTODOC OK — VIVAS
+[32m[1m✔ [22m[39m Script exited successfully (code 0)
+[36m[1mi  emulators:[22m[39m Shutting down emulators.
+[36m[1mi  firestore:[22m[39m Stopping Firestore Emulator
+[36m[1mi  hub:[22m[39m Stopping emulator hub
+[36m[1mi  logging:[22m[39m Stopping Logging Emulator
