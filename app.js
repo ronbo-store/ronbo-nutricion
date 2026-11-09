@@ -32472,7 +32472,10 @@ function printCardRender(plan) {
     const blocks = (day.sessionBlocks || []).map(b => `<div class="pc-block"><b>${t('train.print.session')}:</b> ${esc(LANG === 'es' ? (b.title_es || b.title_en || '') : (b.title_en || b.title_es || ''))}${(b.detail_es || b.detail_en) ? ' — ' + esc(LANG === 'es' ? (b.detail_es || b.detail_en || '') : (b.detail_en || b.detail_es || '')) : ''}</div>`).join('');
     return `<h4 class="pc-day">${esc(day.label || '')}</h4><table class="pc-table"><tbody>${exs}</tbody></table>${blocks}`;
   }).join('');
-  pc.innerHTML = `<h2 class="pc-title">${esc(plan.title || '')}</h2><p class="pc-sub">${t('train.print.title')} · ${esc(dateName(todayISO()))}</p>${plan.notes ? `<p class="pc-notes">${esc(plan.notes)}</p>` : ''}${days}`;
+  /* AUTH-349: la tarjeta imprimible tampoco pinta las notas
+     del plan (decisión C: el texto completo vive solo en el
+     editor del plan); título, fecha y días quedan como hoy. */
+  pc.innerHTML = `<h2 class="pc-title">${esc(plan.title || '')}</h2><p class="pc-sub">${t('train.print.title')} · ${esc(dateName(todayISO()))}</p>${days}`;
   window.print();
 }
 /* ENTRENAMIENTO-HOY (diseño aprobado por Ronald, chat 2026-10-26
@@ -34859,9 +34862,15 @@ async function loadMyTraining() {
   WEEK5_CTX = { plan, logs, today, sel, sumX: wkDone, sumY: (plan.days || []).length, sumHide: !!isLoose, mapped: !!(tmap.pairs || isCal), effDiForDate };
   WEEK5_SEL = sel;
   const weekHtml = renderWeek5Block();
+  /* AUTH-349 (decisión C de Ronald, 2026-11-09): la cabecera de
+     su plan ya NO pinta las notas del plan como texto completo:
+     queda solo el resumen corto estructurado (título, periodo y
+     «Tu plan: N días por semana»). El texto entero de las notas
+     vive y se edita solo en el editor del plan; el dato guardado
+     no se toca — esto es solo de pintado. */
   box.innerHTML = `
     ${isLoose ? `<div class="wempty compact" id="train-none-msg">${t('train.none')}</div>` : `<h3 class="history-title">${esc(plan.title || '')}</h3>
-    ${plan.notes ? `<p class="progress-hint">${esc(plan.notes)}</p>` : ''}
+    
     ${planPeriodText(plan) ? `<p class="progress-hint">${t('train.dates.clientLine', { period: esc(planPeriodText(plan)) })}</p>` : ''}
     <p class="progress-hint">${t('train.planFreq', { n: (plan.days || []).length })}</p>
     ${repeatRow}`}
@@ -49300,7 +49309,7 @@ document.addEventListener('keydown', e => { if (e.key === 'Escape') shareClose()
  *  - El SW (sw.js) solo cachea la cáscara del mismo origen en modo
  *    RED PRIMERO: Auth/Firestore/Worker jamás pasan por la caché.
  * ================================================================ */
-const PWA_SW_VERSION = '20261109-sin-repetidos';
+const PWA_SW_VERSION = '20261109-leyenda-resumen';
 /* Sello de versión VISIBLE (2026-11-03): el pie de la tarjeta de
    acceso enseña qué copia corre este teléfono ('v ' + el sello),
    para comprobar de un vistazo si la versión nueva ya llegó.
