@@ -21,7 +21,7 @@
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-title" content="RONBO FIT">
 <meta name="apple-mobile-web-app-status-bar-style" content="default">
-<link rel="stylesheet" href="styles.css?v=20261108-correcciones-calculo">
+<link rel="stylesheet" href="styles.css?v=20261108-personas-persistente">
 <script defer src="https://cloud.umami.is/script.js" data-website-id="a29706d4-44a2-47cf-900a-5f74d74abfa8"></script>
 <script type="importmap">
 {
@@ -1364,6 +1364,10 @@
        (pendientes de cuenta, usuarios, límites de análisis,
        interruptor de IA, banderas, textos de correo y ND-2). -->
   <div class="tab-pane" id="tab-trainers" style="display:none">
+  <!-- Subnavegación «Personas» persistente (AUTH-2026-11-08-300):
+       la fila de personas vive también arriba de esta vista; la
+       pinta admPeopleSync (app.js) solo para el administrador. -->
+  <div data-admpeople-slot></div>
   <div class="admin-section" id="trainers-section" style="display:none">
     <h2><span data-i18n="trainers.title">👨‍🏫 Trainer administration</span> <span class="h2-sub" data-i18n="access.sub">· owner only</span></h2>
     <p class="progress-hint" data-i18n="trainers.hint">Everything about trainers in one place: role requests, memberships (levels and quotas), the two-step confirmations that start with a trainer, the trainer approval limit and the public directory.</p>
@@ -1425,6 +1429,10 @@
   </div><!-- /tab-library -->
 
   <div class="tab-pane" id="tab-clients" style="display:none">
+  <!-- Subnavegación «Personas» persistente (AUTH-2026-11-08-300):
+       la fila de personas vive también arriba de esta vista; la
+       pinta admPeopleSync (app.js) solo para el administrador. -->
+  <div data-admpeople-slot></div>
   <div class="admin-section" id="clients-section" style="display:none">
     <div id="ficha-backbar" style="display:none"><button type="button" class="back-row" id="ficha-back"></button></div>
     <h2><span data-i18n="clients.title">👥 My clients</span> <span class="h2-sub" data-i18n="clients.sub">· trainer management</span></h2>
@@ -1589,6 +1597,10 @@
        abrir la pastilla (gancho en switchTab): contenido y
        funciones idénticos, solo cambia el sitio. -->
   <div class="tab-pane" id="tab-coaches" style="display:none">
+  <!-- Subnavegación «Personas» persistente (AUTH-2026-11-08-300):
+       la fila de personas vive también arriba de esta vista; la
+       pinta admPeopleSync (app.js) solo para el administrador. -->
+  <div data-admpeople-slot></div>
     <div id="coaches-admin-box"></div>
   </div>
   <!-- /tab-coaches -->
@@ -2029,6 +2041,6 @@
 <div id="toast" class="toast"></div>
 <div id="print-card" aria-hidden="true"></div>
 
-<script type="module" src="app.js?v=20261108-correcciones-calculo"></script>
+<script type="module" src="app.js?v=20261108-personas-persistente"></script>
 </body>
 </html>

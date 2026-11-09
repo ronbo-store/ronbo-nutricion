@@ -2347,6 +2347,38 @@ const ADMIN_SECTIONS = [
 ];
 const ADM_SEC_OPEN = {};     // id → abierta (solo presentación)
 const ADM_SEC_MOUNTED = {};  // id → contenido ya montado
+/* Fila «Personas» — COMPONENTE ÚNICO (AUTH-2026-11-08-300): la
+   fila nace aquí una sola vez y la pintan, con el MISMO HTML, el
+   esqueleto de la zona de Administración (admuseSkeleton) y los
+   huecos [data-admpeople-slot] de las tres vistas del campo
+   (Clientes · Entrenadores · Coaches de alimentación). */
+function admPeopleNavHTML() {
+  return `<nav class="main-tabs admuse-people-tabs" aria-label="${esc(t('admuse.peopleLabel'))}">`
+    + `<button type="button" class="main-tab" data-admpeople="clients"><span class="admuse-people-ico" aria-hidden="true">👥</span> ${esc(t('admuse.peopleClients'))}</button>`
+    + `<button type="button" class="main-tab" data-admpeople="trainers"><span class="admuse-people-ico" aria-hidden="true">🏋️</span> ${esc(t('admuse.peopleTrainers'))}</button>`
+    + `<button type="button" class="main-tab" data-admpeople="coaches"><span class="admuse-people-ico" aria-hidden="true">🍎</span> ${esc(t('admuse.peopleCoaches'))}</button></nav>`;
+}
+/* Sincronía de la fila «Personas» (AUTH-2026-11-08-300, orden de
+   Ronald en su revisión en vivo del 2026-11-08 22:30 CST): la fila
+   es la SUBNAVEGACIÓN PERSISTENTE de todo el campo de
+   administración/personas — al cambiar de área se pinta (solo para
+   el administrador, la puerta de siempre) en los huecos de las
+   tres vistas y marca el área actual en TODAS sus copias, para
+   saltar de un área de personas a otra SIN volver a
+   Administración. En la vista «Administración» ninguna área está
+   marcada: allí la fila es el bloque de entrada, como en AUTH-299.
+   Corre en cada switchTab; jamás escribe datos. */
+function admPeopleSync(name) {
+  document.querySelectorAll('[data-admpeople-slot]').forEach(slot => {
+    if (ROLE !== 'administrador') { if (slot.innerHTML) slot.innerHTML = ''; return; }
+    slot.innerHTML = admPeopleNavHTML();
+  });
+  document.querySelectorAll('[data-admpeople]').forEach(b => {
+    const on = b.getAttribute('data-admpeople') === name;
+    b.classList.toggle('active', on);
+    if (on) b.setAttribute('aria-current', 'page'); else b.removeAttribute('aria-current');
+  });
+}
 function admuseSkeleton() {
   const secHTML = s => `<div class="admsec" data-admsec="${s.id}"><button type="button" class="admsec-head" data-admsec-btn="${s.id}" aria-expanded="${ADM_SEC_OPEN[s.id] ? 'true' : 'false'}"><span>${esc(t(s.titleKey))}</span><span class="admsec-chev" aria-hidden="true">${ADM_SEC_OPEN[s.id] ? '▾' : '▸'}</span></button><div class="admsec-body" data-admsec-body="${s.id}"${ADM_SEC_OPEN[s.id] ? '' : ' style="display:none"'}></div></div>`;
   const tech = ADMIN_SECTIONS.filter(s => s.sub === 'tech').map(secHTML).join('');
@@ -2358,14 +2390,14 @@ function admuseSkeleton() {
      con SOLO las tres áreas de personas. Sus botones abren las
      MISMAS vistas que abrían las pastillas retiradas de la franja
      (clientes · entrenadores · coaches) por la misma puerta
-     (navGuarded → switchTab, cableado en renderAdminZone); los
-     tres paneles por dentro no cambian en nada. La zona entera
-     solo se pinta para el rol administrador (la puerta de
-     renderAdminZone), que es quien veía las tres pastillas. */
-  const people = `<nav class="main-tabs admuse-people-tabs" aria-label="${esc(t('admuse.peopleLabel'))}">`
-    + `<button type="button" class="main-tab" data-admpeople="clients"><span class="admuse-people-ico" aria-hidden="true">👥</span> ${esc(t('admuse.peopleClients'))}</button>`
-    + `<button type="button" class="main-tab" data-admpeople="trainers"><span class="admuse-people-ico" aria-hidden="true">🏋️</span> ${esc(t('admuse.peopleTrainers'))}</button>`
-    + `<button type="button" class="main-tab" data-admpeople="coaches"><span class="admuse-people-ico" aria-hidden="true">🍎</span> ${esc(t('admuse.peopleCoaches'))}</button></nav>`;
+     (navGuarded → switchTab, por el listener delegado único de
+     [data-admpeople]); los tres paneles por dentro no cambian en
+     nada. La zona entera solo se pinta para el rol administrador
+     (la puerta de renderAdminZone), que es quien veía las tres
+     pastillas. Desde AUTH-2026-11-08-300 la misma fila es además
+     la subnavegación persistente de las tres vistas del campo
+     (admPeopleSync). */
+  const people = admPeopleNavHTML();
   return `<div class="panel admuse-zone"><h3 class="history-title">${esc(t('admuse.title'))}</h3><p class="progress-hint">${esc(t('admuse.sub'))}</p>`
     + `<div class="admuse-subspace"><h4 class="admuse-subhead">${esc(t('admuse.subPeople'))}</h4>${people}</div>`
     + `<div class="admuse-subspace"><h4 class="admuse-subhead">${esc(t('admuse.subTech'))}</h4>${tech}</div>`
@@ -2420,9 +2452,10 @@ async function renderAdminZone() {
   box.style.display = '';
   box.innerHTML = admuseSkeleton();
   box.querySelectorAll('[data-admsec-btn]').forEach(b => b.addEventListener('click', () => admSecToggle(b.getAttribute('data-admsec-btn'))));
-  /* Los tres botones del subrenglón «Personas» (AUTH-299): la
-     misma puerta guardada que usaban las pastillas retiradas. */
-  box.querySelectorAll('[data-admpeople]').forEach(b => b.addEventListener('click', () => navGuarded(() => switchTab(b.getAttribute('data-admpeople')))));
+  /* Los botones «Personas» NO se cablean aquí (AUTH-300): los
+     atiende el listener delegado único de [data-admpeople] (junto
+     a switchTab), el mismo para esta fila y las de las tres
+     vistas — un solo cableado, sin dobles disparos. */
   /* Las secciones que estaban abiertas se re-montan (el DOM es
      nuevo); las recogidas no disparan ninguna lectura. */
   ADMIN_SECTIONS.forEach(s => {
@@ -36465,6 +36498,10 @@ function switchTab(name) {
   if (name !== 'track' && NAV_PAGE) navClosePagesForce();
   document.querySelectorAll('.main-tab').forEach(b => b.classList.toggle('active', b.dataset.tab === name));
   document.querySelectorAll('.tab-pane').forEach(p => { p.style.display = (p.id === 'tab-' + name) ? '' : 'none'; });
+  /* Subnavegación «Personas» persistente (AUTH-2026-11-08-300):
+     pinta la fila en las tres vistas del campo y marca el área
+     actual en todas sus copias. */
+  try { admPeopleSync(name); } catch {}
   if (IS_OWNER && (name === 'access' || name === 'trainers')) loadAdmin();
   if (ROLE !== 'usuario' && name === 'clients') loadClients();
   if ((ROLE === 'administrador' || ROLE === 'entrenador') && name === 'students') loadStudents();
@@ -36515,6 +36552,17 @@ document.querySelectorAll('.main-tab').forEach(b => b.addEventListener('click', 
   if (b.dataset.tab !== 'track') navGuarded(() => switchTab(b.dataset.tab));
   else switchTab(b.dataset.tab);
 }));
+
+/* Fila «Personas» (AUTH-299; persistente desde AUTH-300): sus
+   botones nacen por innerHTML — el esqueleto de la zona y los
+   huecos de las tres vistas — así que los atiende UN listener
+   delegado, el mismo para todas las copias: la puerta guardada
+   de siempre (navGuarded → switchTab) que usaban las pastillas. */
+document.addEventListener('click', e => {
+  const b = e.target && e.target.closest ? e.target.closest('[data-admpeople]') : null;
+  if (!b) return;
+  navGuarded(() => switchTab(b.getAttribute('data-admpeople')));
+});
 
 /* Lightbox simple para ampliar fotos */
 function showLightbox(url) {
@@ -44968,7 +45016,7 @@ document.addEventListener('keydown', e => { if (e.key === 'Escape') shareClose()
  *  - El SW (sw.js) solo cachea la cáscara del mismo origen en modo
  *    RED PRIMERO: Auth/Firestore/Worker jamás pasan por la caché.
  * ================================================================ */
-const PWA_SW_VERSION = '20261108-correcciones-calculo';
+const PWA_SW_VERSION = '20261108-personas-persistente';
 /* Sello de versión VISIBLE (2026-11-03): el pie de la tarjeta de
    acceso enseña qué copia corre este teléfono ('v ' + el sello),
    para comprobar de un vistazo si la versión nueva ya llegó.
