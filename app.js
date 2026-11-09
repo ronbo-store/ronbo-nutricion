@@ -5907,6 +5907,75 @@ en: {
   'train.tpl.perWeek': '{n} days/week',
   'train.tpl.unavailable': '📋 The routine templates are unavailable right now (they may be empty or could not be loaded). You can keep building the plan by hand — nothing is blocked.',
   'train.tpl.replaceConfirm': 'Applying this template will REPLACE the current draft in the editor (title, days and exercises). Continue?',
+  'train.auto.title': '✨ Automatic training program',
+  'train.auto.loading': 'Loading the student’s data…',
+  'train.auto.libUnavailable': 'The exercise library could not be loaded, so a program cannot be generated right now.',
+  'train.auto.healthBlocked': 'This program is not generated: the student’s health declaration cannot be read. By the house rule, without a readable declaration nothing is generated — health comes first.',
+  'train.auto.ctxObjective': 'Objective: {v}',
+  'train.auto.ctxFocus': 'Focus: {v}',
+  'train.auto.ctxActivity': 'Activity (PAL): {v}',
+  'train.auto.ctxEstimate': 'Body estimate: {v} — visual reference only; it just breaks ties between equivalent exercises.',
+  'train.auto.ctxHealthConds': 'Health declaration: {n} condition(s) declared — the engine excludes and marks accordingly.',
+  'train.auto.ctxHealthOk': 'Health declaration: no conditions declared.',
+  'train.auto.ctxLevelInf': 'Level inferred from history: {v} ({n} closed sessions).',
+  'train.auto.ctxNone': 'none on file',
+  'train.auto.noTdee': '⚠ No energy expenditure (TDEE) on file: the program is still generated, but review the volume with your judgment.',
+  'train.auto.focusGeneral': 'No focus declared: the General focus is used, as designed.',
+  'train.auto.wds': 'Mon,Tue,Wed,Thu,Fri,Sat,Sun',
+  'train.auto.levelLabel': 'Experience level (new student, no history yet — you provide it this first time):',
+  'train.auto.lvl.principiante': 'Beginner',
+  'train.auto.lvl.intermedio': 'Intermediate',
+  'train.auto.lvl.avanzado': 'Advanced',
+  'train.auto.objPickLabel': 'Objective for this generation (the student has none — it is not saved to their record):',
+  'train.auto.obj.bajar': 'Lose weight',
+  'train.auto.obj.mantener': 'Maintain',
+  'train.auto.obj.ganar': 'Gain muscle',
+  'train.auto.daysLabel': 'Training days (you choose them; the engine chooses the split):',
+  'train.auto.durLabel': 'Time per session:',
+  'train.auto.eqLabel': 'Available equipment:',
+  'train.auto.eq.all': 'Full gym',
+  'train.auto.eq.barra': 'Barbell',
+  'train.auto.eq.mancuernas': 'Dumbbells',
+  'train.auto.eq.poleas': 'Cables',
+  'train.auto.eq.maquinas': 'Machines',
+  'train.auto.eq.corporal': 'Bodyweight',
+  'train.auto.eq.kb': 'Kettlebell / bands',
+  'train.auto.emphLabel': 'Emphasis (up to 2 muscle groups):',
+  'train.auto.emphMax': 'Up to 2 emphasis groups.',
+  'train.auto.genBtn': 'Generate proposal',
+  'train.auto.generated': 'Proposal generated in the editor — review it and save it when ready.',
+  'train.auto.replaceConfirm': 'Generating will REPLACE the current draft in the editor (title, days and exercises). Continue?',
+  'train.auto.titleSug': 'Automatic program',
+  'train.auto.errDays': 'Choose between 1 and 6 training days.',
+  'train.auto.errLevel': 'Choose the experience level for this first generation.',
+  'train.auto.errObj': 'Choose the objective for this generation.',
+  'train.auto.sumTitle': 'Proposal summary',
+  'train.auto.sumSplit': 'Split chosen by the engine: {v}',
+  'train.auto.sumVol': 'Weekly sets done/target: {v}',
+  'train.auto.sumVolMiss': '{g}: {n} set(s) short of the target — the library or the chosen equipment could not cover them; complete it by hand if you judge it right.',
+  'train.auto.sumExcl': 'Excluded by the health declaration: {v}',
+  'train.auto.sumMarks': 'Conditions marked on this program: {v} — review them before saving.',
+  'train.auto.sumDeclDetails': 'Student’s note on their condition: {v}',
+  'train.auto.sumGaps': 'No library exercise fits for: {v} — add it by hand if it applies.',
+  'train.auto.sumTrim': 'Trimmed to fit the session time: {v}',
+  'train.auto.sumTie': 'Body-type tiebreak (soft preference): {v}',
+  'train.auto.sumDur': 'Estimated minutes per day: {v}',
+  'train.auto.sumHonest': 'Conservative automatic filtering over the student’s declaration; it does not replace your judgment as trainer.',
+  'train.auto.chestWarn': '⚠ The student declared chest pain when exercising: the program was generated in conservative mode. Review it in full before saving.',
+  'train.auto.chestConfirm': 'I reviewed this program in full.',
+  'train.auto.chestBlock': 'This program was generated for a student who declared chest pain when exercising: confirm in the automatic-program section that you reviewed it in full before saving.',
+  'train.auto.noteProgression': 'Progression: when you complete the top of the range in every set of an exercise in two sessions in a row, raise the load one step (≈2–5%) and return to the bottom of the range.',
+  'train.auto.noteDiabetes': 'Note: check feet and footwear on leg work and bring a fast glucose source to the session.',
+  'train.auto.dayLabel': '(Day {n}) {v}',
+  'train.auto.split.full': 'FULL BODY',
+  'train.auto.split.torso': 'TORSO',
+  'train.auto.split.legs': 'LEGS',
+  'train.auto.split.push': 'PUSH',
+  'train.auto.split.pull': 'PULL',
+  'train.auto.foc.general': 'General',
+  'train.auto.foc.recomposicion': 'Recomposition',
+  'train.auto.foc.competencia': 'Competition',
+  'train.auto.warnConsecutive': '{g} falls on consecutive days — that was your day choice; the engine generated it anyway.',
   'train.tpl.applied': 'Draft created from the template. Review and adjust it — nothing is saved until you tap Save plan.',
   'train.tpl.startLabel': 'Start date (for the weekday suggestion)',
   'train.tpl.alignHint': 'Pick a start date to see a suggestion: aligning each template day with a real weekday. The suggestion never changes anything by itself.',
@@ -9772,6 +9841,75 @@ es: {
   'train.tpl.perWeek': '{n} días/semana',
   'train.tpl.unavailable': '📋 Las plantillas de rutina no están disponibles ahora (pueden estar vacías o no pudieron cargarse). Puedes seguir armando el plan a mano: nada se bloquea.',
   'train.tpl.replaceConfirm': 'Aplicar esta plantilla REEMPLAZA el borrador actual del editor (título, días y ejercicios). ¿Continuar?',
+  'train.auto.title': '✨ Programa de entrenamiento automático',
+  'train.auto.loading': 'Cargando los datos del alumno…',
+  'train.auto.libUnavailable': 'La biblioteca de ejercicios no pudo cargarse, así que no se puede generar el programa ahora.',
+  'train.auto.healthBlocked': 'Este programa no se genera: la declaración de salud del alumno no se puede leer. Por la regla de la casa, sin declaración legible no se genera nada — la salud manda.',
+  'train.auto.ctxObjective': 'Objetivo: {v}',
+  'train.auto.ctxFocus': 'Enfoque: {v}',
+  'train.auto.ctxActivity': 'Actividad (PAL): {v}',
+  'train.auto.ctxEstimate': 'Estimado corporal: {v} — solo referencia visual; solo desempata entre ejercicios equivalentes.',
+  'train.auto.ctxHealthConds': 'Declaración de salud: {n} condición(es) declarada(s) — el motor excluye y marca según corresponda.',
+  'train.auto.ctxHealthOk': 'Declaración de salud: sin condiciones declaradas.',
+  'train.auto.ctxLevelInf': 'Nivel inferido del historial: {v} ({n} sesiones cerradas).',
+  'train.auto.ctxNone': 'ninguno en la ficha',
+  'train.auto.noTdee': '⚠ No hay gasto energético (TDEE) registrado: el programa se genera igual, pero revisa el volumen con tu criterio.',
+  'train.auto.focusGeneral': 'Sin enfoque declarado: se usa el enfoque General, como está diseñado.',
+  'train.auto.wds': 'Lun,Mar,Mié,Jue,Vie,Sáb,Dom',
+  'train.auto.levelLabel': 'Nivel de experiencia (alumno nuevo, sin historial todavía — lo aportas tú esta primera vez):',
+  'train.auto.lvl.principiante': 'Principiante',
+  'train.auto.lvl.intermedio': 'Intermedio',
+  'train.auto.lvl.avanzado': 'Avanzado',
+  'train.auto.objPickLabel': 'Objetivo para esta generación (el alumno no tiene — no se guarda en su ficha):',
+  'train.auto.obj.bajar': 'Bajar de peso',
+  'train.auto.obj.mantener': 'Mantener',
+  'train.auto.obj.ganar': 'Ganar músculo',
+  'train.auto.daysLabel': 'Días de entrenamiento (los eliges tú; la división la elige el motor):',
+  'train.auto.durLabel': 'Tiempo por sesión:',
+  'train.auto.eqLabel': 'Equipo disponible:',
+  'train.auto.eq.all': 'Gimnasio completo',
+  'train.auto.eq.barra': 'Barra',
+  'train.auto.eq.mancuernas': 'Mancuernas',
+  'train.auto.eq.poleas': 'Poleas',
+  'train.auto.eq.maquinas': 'Máquinas',
+  'train.auto.eq.corporal': 'Peso corporal',
+  'train.auto.eq.kb': 'Kettlebell / bandas',
+  'train.auto.emphLabel': 'Énfasis (hasta 2 grupos musculares):',
+  'train.auto.emphMax': 'Hasta 2 grupos de énfasis.',
+  'train.auto.genBtn': 'Generar propuesta',
+  'train.auto.generated': 'Propuesta generada en el editor — revísala y guárdala cuando esté lista.',
+  'train.auto.replaceConfirm': 'Generar REEMPLAZARÁ el borrador actual del editor (título, días y ejercicios). ¿Continuar?',
+  'train.auto.titleSug': 'Programa automático',
+  'train.auto.errDays': 'Elige entre 1 y 6 días de entrenamiento.',
+  'train.auto.errLevel': 'Elige el nivel de experiencia para esta primera generación.',
+  'train.auto.errObj': 'Elige el objetivo para esta generación.',
+  'train.auto.sumTitle': 'Resumen de la propuesta',
+  'train.auto.sumSplit': 'División elegida por el motor: {v}',
+  'train.auto.sumVol': 'Series semanales hechas/objetivo: {v}',
+  'train.auto.sumVolMiss': '{g}: faltan {n} serie(s) para el objetivo — la biblioteca o el equipo elegido no dieron para cubrirlas; complétalo a mano si lo juzgas correcto.',
+  'train.auto.sumExcl': 'Excluidos por la declaración de salud: {v}',
+  'train.auto.sumMarks': 'Condiciones marcadas en este programa: {v} — revísalas antes de guardar.',
+  'train.auto.sumDeclDetails': 'Nota del alumno sobre su condición: {v}',
+  'train.auto.sumGaps': 'Sin ejercicio de la biblioteca que encaje para: {v} — añádelo a mano si aplica.',
+  'train.auto.sumTrim': 'Recortado para caber en el tiempo de sesión: {v}',
+  'train.auto.sumTie': 'Desempate por tipo de cuerpo (preferencia suave): {v}',
+  'train.auto.sumDur': 'Minutos estimados por día: {v}',
+  'train.auto.sumHonest': 'Filtrado automático conservador sobre la declaración del alumno; no sustituye tu criterio como entrenador.',
+  'train.auto.chestWarn': '⚠ El alumno declaró dolor de pecho al ejercitarse: el programa se generó en modo conservador. Revísalo completo antes de guardar.',
+  'train.auto.chestConfirm': 'Revisé este programa completo.',
+  'train.auto.chestBlock': 'Este programa se generó para un alumno que declaró dolor de pecho al ejercitarse: confirma en la sección del programa automático que lo revisaste completo antes de guardar.',
+  'train.auto.noteProgression': 'Progresión: cuando completes el máximo del rango en todas las series de un ejercicio en dos sesiones seguidas, sube la carga un paso (≈2–5 %) y vuelve al mínimo del rango.',
+  'train.auto.noteDiabetes': 'Nota: revisa pies y calzado en el trabajo de pierna y lleva una fuente de glucosa a la sesión.',
+  'train.auto.dayLabel': '(Día {n}) {v}',
+  'train.auto.split.full': 'CUERPO COMPLETO',
+  'train.auto.split.torso': 'TORSO',
+  'train.auto.split.legs': 'PIERNA',
+  'train.auto.split.push': 'EMPUJE',
+  'train.auto.split.pull': 'JALE',
+  'train.auto.foc.general': 'General',
+  'train.auto.foc.recomposicion': 'Recomposición',
+  'train.auto.foc.competencia': 'Competencia',
+  'train.auto.warnConsecutive': '{g} cae en días consecutivos — fue tu elección de días; el motor generó igual.',
   'train.tpl.applied': 'Borrador creado desde la plantilla. Revísalo y ajústalo: nada se guarda hasta que toques Guardar plan.',
   'train.tpl.startLabel': 'Fecha de inicio (para la sugerencia de días)',
   'train.tpl.alignHint': 'Elige una fecha de inicio para ver una sugerencia: alinear cada día de la plantilla con un día de semana real. La sugerencia nunca cambia nada por sí sola.',
@@ -36833,6 +36971,7 @@ async function tplApply(id) {
   });
   $('pl-title').value = tplField(tpl, 'nombre');
   if (planCtx) planCtx.tplSource = { id: tpl.id, version: tpl.version || '' };
+  if (planCtx) planCtx.genSource = null;
   tplAlignState = { tpl, dismissed: false, aligned: false };
   tplRenderAlign();
   toast(t('train.tpl.applied'));
@@ -37834,6 +37973,7 @@ function openPlanEditor(clientUid, plan) {
      lectura es única por sesión y el estado de alineación nace
      limpio en cada apertura. */
   tplOnEditorOpen();
+  autoOnEditorOpen(clientUid);
   /* CONSTRUCTOR VISUAL (§5.1): el panel nace cerrado y con el día
      destino en el primer día en cada apertura del editor. */
   vizOnEditorOpen();
@@ -37986,6 +38126,14 @@ $('form-plan').addEventListener('submit', async e => {
     saveDone();
     return;
   }
+  /* PROGRAMA AUTOMÁTICO (§8 del diseño): si el borrador nació del
+     motor para un alumno con dolor de pecho declarado, el guardado
+     exige la confirmación de revisión completa del panel. */
+  if (planCtx.genSource && planCtx.genSource.params && planCtx.genSource.params.chestPain && !planCtx.genChestConfirmed) {
+    toast(t('train.auto.chestBlock'), true);
+    saveDone();
+    return;
+  }
   const gateWarnAfter = !isFirstSave && gateState !== 'valid';
   const active = $('pl-active').checked;
   const data = { clientUid: planCtx.clientUid, title, notes: $('pl-notes').value.trim(), days, active, updatedAt: serverTimestamp() };
@@ -38015,6 +38163,11 @@ $('form-plan').addEventListener('submit', async e => {
     const lv = (LIB && LIB.length && LIB[0].version) || '';
     if (lv) data.libraryVersion = lv;
   }
+  /* PROGRAMA AUTOMÁTICO (D-A1/D-A2): procedencia OPCIONAL y veraz
+     del borrador generado — mismos términos que la de plantillas:
+     trazabilidad, sin vínculo vivo; el plan guardado es del
+     entrenador, que lo revisó y lo cargó por el camino ordinario. */
+  if (planCtx.genSource) data.genSource = planCtx.genSource;
   /* REPETIR SEMANA (diseño §3.1): si este guardado activa la copia
      apagando otro plan activo, se confirma con su aviso específico
      ANTES de cualquier escritura (ni instantánea ni plan). */
@@ -38081,6 +38234,478 @@ $('form-plan').addEventListener('submit', async e => {
   if ($('client-training')) loadClientTraining(cuid);
   if (cuid === auth.currentUser.uid) loadMyTraining();
 });
+
+/* ================= PROGRAMA DE ENTRENAMIENTO AUTOMÁTICO =================
+   Diseño: DISENO-PROGRAMA-AUTOMATICO-2026-10-29.md y decisiones de
+   Ronald del 2026-11-01 (D-A1…D-A7; registro en memory/2026-11-01.md).
+   · D-A1: motor DETERMINISTA en la app — sin IA, sin Worker y sin
+     delta de reglas: lee lo que el editor ya lee (ficha, evaluación,
+     declaración por la vía condicionada de siempre, biblioteca,
+     calificaciones y estimado) y vuelca un BORRADOR en el editor.
+   · D-A2: lo generado nace como borrador; el entrenador revisa,
+     ajusta y guarda por el camino ordinario (puerta PAR-Q e
+     instantánea §6.4 intactas). Generar NO escribe nada.
+   · D-A3: el entrenador elige los días (cuántos y cuáles); el motor
+     elige la división (§7.1 del diseño).
+   · D-A4 (palabras de Ronald): el estimado corporal y las
+     calificaciones por tipo de cuerpo SÍ influyen, PERO NO SON
+     DETERMINANTES — solo desempatan entre ejercicios YA equivalentes
+     tras los filtros con fundamento, con la procedencia anotada en
+     el resumen; nunca excluyen y nunca pasan sobre la declaración
+     de salud. Lo determinante viene del entrenador.
+   · D-A5 (§9.4): sin declaración legible NO se genera; sin TDEE se
+     genera con aviso; sin objetivo, lo elige el entrenador solo
+     para esta generación (no se escribe en la ficha del alumno);
+     sin enfoque, General declarado.
+   · D-A6: la doble progresión va ESCRITA en las notas del plan
+     generado; ningún automatismo reescribe planes después.
+   · D-A7: el nivel se INFIERE del historial de sesiones cerradas
+     del alumno; sin historial, lo aporta el entrenador esa primera
+     vez (el selector solo se ve en ese caso).
+   Parámetros y fuentes (diseño §7): volumen por grupo — Schoenfeld,
+   Ogborn & Krieger 2017 (dosis-respuesta) y Baz-Valle et al. 2022;
+   frecuencia ≥2×/semana por grupo — Schoenfeld, Ogborn & Krieger
+   2016 y Schoenfeld, Grgic & Krieger 2019 (con volumen equiparado
+   la frecuencia no manda: por eso la división la reparte el motor
+   y los días los elige el entrenador); rangos de repeticiones —
+   continuo NSCA (fuerza ≤6 · hipertrofia 6–12 · resistencia ≥12) y
+   Helms, Aragon & Fitschen 2014 (en déficit, extremo bajo de banda
+   y sin principal pesado con banderas cardiovasculares); descansos
+   — Schoenfeld et al. 2016 (3 min > 1 min) y ACSM 2009; progresión
+   — ACSM 2009 (regla 2×2) y Helms et al., doble progresión. Lo
+   marcado [D] es decisión de diseño declarada, no ciencia. */
+const AUTO_VERSION = 'v1';
+const AUTO_LEVEL_RANK = { principiante: 0, intermedio: 1, avanzado: 2 };
+const AUTO_MAJOR = ['Pecho', 'Espalda', 'Hombros', 'Cuádriceps', 'Isquiotibiales', 'Glúteos'];
+const AUTO_MINOR = ['Bíceps', 'Tríceps', 'Pantorrillas'];
+const AUTO_EMPH_GROUPS = ['Pecho', 'Espalda', 'Hombros', 'Tríceps', 'Bíceps', 'Cuádriceps', 'Isquiotibiales', 'Glúteos', 'Pantorrillas', 'Core'];
+const AUTO_GROUP_EN = { 'Pecho': 'Chest', 'Espalda': 'Back', 'Hombros': 'Shoulders', 'Tríceps': 'Triceps', 'Bíceps': 'Biceps', 'Cuádriceps': 'Quadriceps', 'Isquiotibiales': 'Hamstrings', 'Glúteos': 'Glutes', 'Pantorrillas': 'Calves', 'Core': 'Core', 'Cuerpo completo': 'Full body' };
+const AUTO_VOL_BANDS = {
+  principiante: { major: [8, 10], minor: [6, 8], core: [6, 8] },
+  intermedio: { major: [10, 16], minor: [6, 10], core: [6, 9] },
+  avanzado: { major: [14, 20], minor: [8, 12], core: [8, 12] },
+};
+const AUTO_WD_PATTERNS = { 1: [1], 2: [1, 4], 3: [1, 3, 5], 4: [1, 2, 4, 5], 5: [1, 2, 4, 5, 6], 6: [1, 2, 3, 4, 5, 6] };
+function autoBandOf(group) { return AUTO_MAJOR.includes(group) ? 'major' : AUTO_MINOR.includes(group) ? 'minor' : 'core'; }
+function autoTargetFor(group, level, objective) {
+  const band = AUTO_VOL_BANDS[level][autoBandOf(group)];
+  if (objective === 'bajar') return band[0];
+  if (objective === 'ganar') return band[1];
+  return band[0] + Math.round((band[1] - band[0]) / 3);
+}
+function autoLevelOf(entry) {
+  const n = libNorm((entry && (entry.nivel_es || entry.nivel_en)) || '');
+  return n === 'principiante' || n === 'beginner' ? 'principiante'
+    : n === 'intermedio' || n === 'intermediate' ? 'intermedio'
+    : n === 'avanzado' || n === 'advanced' ? 'avanzado' : null;
+}
+/* Familias de equipo (§7.6 del diseño): equipo_es es texto libre
+   (~89 valores); el motor lo normaliza por palabras clave a las 6
+   familias del panel. Una ficha puede pertenecer a varias familias
+   («Mancuerna o kettlebell»); la que no casa con ninguna queda
+   «especial» y solo entra con el gimnasio completo marcado [D]. */
+function autoEqFamilies(entry) {
+  const eq = libNorm(((entry && entry.equipo_es) || '') + ' ' + ((entry && entry.equipo_en) || ''));
+  const fams = new Set();
+  if (/smith|maquina|machine|prensa de piernas|leg press|hack/.test(eq)) fams.add('maquinas');
+  if (/polea|cable/.test(eq)) fams.add('poleas');
+  if (/kettlebell|pesa rusa|banda elastica|elastic band|resistance band/.test(eq)) fams.add('kb');
+  if (/mancuerna|dumbbell/.test(eq)) fams.add('mancuernas');
+  if (/barra de dominadas|barras paralelas|pull-up bar|pull up bar|parallel bars|peso corporal|bodyweight|colchoneta|\bmat\b|pared|wall|companero|partner|banco romano|roman chair|silla romana|captain/.test(eq)) fams.add('corporal');
+  if (/\bbarra\b|barbell/.test(eq) && !/barra de dominadas/.test(eq)) fams.add('barra');
+  if (entry && entry.categoria_es === 'Con máquinas') fams.add('maquinas');
+  return [...fams];
+}
+/* Compuesto vs. aislamiento [D — heurística declarada sobre la
+   biblioteca cerrada]: «Ninguno» en secundarios ⇒ aislamiento; si
+   no, una lista cerrada de patrones de aislamiento sobre el nombre;
+   el resto se trata como compuesto. Solo ordena dentro del slot y
+   elige la banda de series/repeticiones del §7.3. */
+const AUTO_ISO_RE = /curl|apertura|mariposa|peck deck|cruce en polea|crossover|cross-over|elevacion lateral|elevaciones laterales|lateral raise|elevacion frontal|front raise|extension de triceps|triceps extension|press frances|skull|patada|kickback|abduccion|abduction|aduccion|adduction|encogimiento|shrug|extension de piernas|leg extension|curl femoral|leg curl|extension lumbar|gemelo|calf raise|elevacion de talones|crunch|plancha|plank|pullover|face pull|pajaros|reverse fly|vuelos|hiperextension|abdominal/;
+function autoIsIsolation(entry) {
+  const sec = libNorm((entry && entry.musculos_secundarios_es) || '');
+  if (sec === 'ninguno' || sec === 'none') return true;
+  const nm = libNorm(((entry && entry.nombre_es) || '') + ' ' + ((entry && entry.nombre_en) || ''));
+  return AUTO_ISO_RE.test(nm);
+}
+/* Filtrado por salud (§8 del diseño): la declaración manda. Las
+   condiciones posteriores al diseño (las del paquete F-02 —
+   renal, prediabetes, hipoglucemia, insulina/medicación y
+   trastorno alimentario — y las etapas de vida) reciben el trato
+   conservador declarado: programa MARCADO con la condición
+   nombrada, sin inventar correspondencias ejercicio a ejercicio;
+   la familia de la glucosa lleva además la nota de sesión de la
+   fila de diabetes (ACSM/ADA: fuente de glucosa a la sesión). */
+function autoHealthPlan(conditions) {
+  const c = new Set(conditions || []);
+  const hp = { excludeSupine: false, conservative: false, mainConservative: false, chestPain: false, preferMachines: false, levelCap: null, valsalva: false, diabetesNote: false, asthmaWarmup: false, detailsShown: false, programMarks: [] };
+  const mark = name => { if (c.has(name)) hp.programMarks.push(name); };
+  if (c.has('Embarazo')) { hp.excludeSupine = true; mark('Embarazo'); }
+  if (c.has('Dolor de pecho al ejercitarse')) { hp.conservative = true; hp.chestPain = true; mark('Dolor de pecho al ejercitarse'); }
+  if (c.has('Problemas del corazón')) { hp.conservative = true; mark('Problemas del corazón'); }
+  if (c.has('Hipertensión')) hp.valsalva = true;
+  if (c.has('Mareos o desmayos')) mark('Mareos o desmayos');
+  if (c.has('Lesiones articulares o musculares')) { hp.preferMachines = true; hp.levelCap = 'intermedio'; hp.detailsShown = true; mark('Lesiones articulares o musculares'); }
+  if (c.has('Cirugía reciente')) { hp.preferMachines = true; hp.mainConservative = true; mark('Cirugía reciente'); }
+  if (c.has('Diabetes')) { hp.diabetesNote = true; mark('Diabetes'); }
+  if (c.has('Asma / problemas respiratorios')) { hp.asthmaWarmup = true; mark('Asma / problemas respiratorios'); }
+  ['Enfermedad renal', 'Trastorno alimentario', 'Posparto', 'Lactancia', 'Menopausia'].forEach(mark);
+  ['Prediabetes', 'Hipoglucemia', 'Uso de insulina o medicación que baja el azúcar'].forEach(nm => { if (c.has(nm)) { hp.diabetesNote = true; mark(nm); } });
+  return hp;
+}
+const AUTO_SUPINE_RE = /supin|banco plano|press de banca|bench press|crunch|abdominal|floor press|press en el suelo/;
+function autoHealthExcludes(entry, hp) {
+  if (!hp.excludeSupine) return false;
+  const nm = libNorm(((entry && entry.nombre_es) || '') + ' ' + ((entry && entry.nombre_en) || ''));
+  return AUTO_SUPINE_RE.test(nm);
+}
+/* D-A7: nivel inferido del historial de sesiones CERRADAS (hechas
+   o parciales, la lectura de trainLogStatus). Umbrales [D —
+   decisión de diseño declarada, sin fuente directa: anclados en la
+   progresión por experiencia del ACSM 2009]: sin sesiones cerradas
+   no hay inferencia posible (null) y el nivel lo aporta el
+   entrenador esa primera vez. */
+function autoInferLevel(logs) {
+  const closed = (logs || []).filter(l => { const s = trainLogStatus(l); return s === 'done' || s === 'partial'; });
+  if (!closed.length) return null;
+  const dates = closed.map(l => l.date).filter(d => /^\d{4}-\d{2}-\d{2}$/.test(d || '')).sort();
+  const n = closed.length;
+  let spanWeeks = 0;
+  if (dates.length > 1) spanWeeks = Math.round((new Date(dates[dates.length - 1] + 'T12:00:00') - new Date(dates[0] + 'T12:00:00')) / 604800000);
+  if (n >= 80 && spanWeeks >= 26) return { level: 'avanzado', sessions: n, spanWeeks };
+  if (n >= 24 && spanWeeks >= 8) return { level: 'intermedio', sessions: n, spanWeeks };
+  return { level: 'principiante', sessions: n, spanWeeks };
+}
+/* La división (§7.1): los días los elige el entrenador; el motor
+   reparte los grupos. Nombre de división + grupos por día, en el
+   orden en que se entrenan. */
+function autoSplitDef(n, level) {
+  const FULL_A = ['Cuádriceps', 'Espalda', 'Pecho', 'Core'];
+  const FULL_B = ['Isquiotibiales', 'Pecho', 'Espalda', 'Hombros', 'Core'];
+  const FULL_C = ['Cuádriceps', 'Espalda', 'Hombros', 'Glúteos', 'Core'];
+  const TORSO = ['Pecho', 'Espalda', 'Hombros', 'Tríceps', 'Bíceps'];
+  const PIERNA = ['Cuádriceps', 'Isquiotibiales', 'Glúteos', 'Pantorrillas'];
+  const EMPUJE = ['Pecho', 'Hombros', 'Tríceps'];
+  const JALE = ['Espalda', 'Hombros', 'Bíceps'];
+  switch (n) {
+    case 1: return [{ name: 'full', groups: FULL_A }];
+    case 2: return [{ name: 'full', groups: FULL_A }, { name: 'full', groups: FULL_B }];
+    case 3: return level === 'principiante'
+      ? [{ name: 'full', groups: FULL_A }, { name: 'full', groups: FULL_B }, { name: 'full', groups: FULL_C }]
+      : [{ name: 'push', groups: EMPUJE }, { name: 'pull', groups: JALE }, { name: 'legs', groups: PIERNA }];
+    case 4: return [{ name: 'torso', groups: TORSO }, { name: 'legs', groups: PIERNA }, { name: 'torso', groups: TORSO }, { name: 'legs', groups: PIERNA }];
+    case 5: return [{ name: 'torso', groups: TORSO }, { name: 'legs', groups: PIERNA }, { name: 'push', groups: EMPUJE }, { name: 'pull', groups: JALE }, { name: 'legs', groups: PIERNA }];
+    default: return [{ name: 'push', groups: EMPUJE }, { name: 'pull', groups: JALE }, { name: 'legs', groups: PIERNA }, { name: 'push', groups: EMPUJE }, { name: 'pull', groups: JALE }, { name: 'legs', groups: PIERNA }];
+  }
+}
+/* EL MOTOR (función pura de sus insumos: mismos insumos ⇒ mismo
+   programa, byte a byte salvo la procedencia temporal que estampa
+   la capa de interfaz al guardar). inp: { lib, ratingsById,
+   archetype ('ectomorfo'|'mesomorfo'|'endomorfo'|null), conditions,
+   objective, focusComp, level, weekdays (ordenados), equipment
+   ('all' o lista de familias), emphasis, durationMin, lang }. */
+function autoGenerateProgram(inp) {
+  const hp = autoHealthPlan(inp.conditions);
+  const effLevel = hp.levelCap && AUTO_LEVEL_RANK[hp.levelCap] < AUTO_LEVEL_RANK[inp.level] ? hp.levelCap : inp.level;
+  const split = autoSplitDef(inp.weekdays.length, inp.level);
+  const sum = { splitNames: split.map(d => d.name), volume: [], exclusions: [], gaps: [], durations: [], tiebreaks: [], consecutive: [], trimmed: [], healthMarks: hp.programMarks.slice(), diabetesNote: hp.diabetesNote, chestPain: hp.chestPain, detailsShown: hp.detailsShown };
+  /* Sesiones por grupo y presupuestos (§7.2): objetivo semanal por
+     banda y objetivo; énfasis +3 dentro de la banda y −1 a los
+     demás sin bajarlos del mínimo [D]; tope ~10 series por sesión
+     y grupo, y 6 en días de cuerpo completo [D — una sesión de
+     cuerpo completo no admite 10×5 grupos]. */
+  const sessionsOf = {};
+  split.forEach(d => d.groups.forEach(g => { sessionsOf[g] = (sessionsOf[g] || 0) + 1; }));
+  const budgets = {};
+  Object.keys(sessionsOf).forEach(g => {
+    let tg = autoTargetFor(g, inp.level, inp.objective);
+    const band = AUTO_VOL_BANDS[inp.level][autoBandOf(g)];
+    if (inp.emphasis.includes(g)) tg = Math.min(band[1], tg + 3);
+    else if (inp.emphasis.length) tg = Math.max(band[0], tg - 1);
+    const n = sessionsOf[g], per = [];
+    let rem = tg;
+    for (let i = 0; i < n; i++) { const v = Math.min(10, Math.ceil(rem / (n - i))); per.push(v); rem -= v; }
+    budgets[g] = { target: tg, per };
+    sum.volume.push({ group: g, groupEn: AUTO_GROUP_EN[g] || g, target: tg, got: 0 });
+  });
+  const volOf = g => sum.volume.find(v => v.group === g);
+  /* Exclusiones por salud, una vez por generación: fichas que
+     habrían sido candidatas (grupo del reparto, nivel y equipo
+     admitidos) y la salud aparta — el resumen las nombra con su
+     motivo, como manda el §9.3. */
+  const splitGroups = [...new Set(split.flatMap(d => d.groups))];
+  (inp.lib || []).forEach(e => {
+    if (!e || !e.id || !splitGroups.includes(e.grupo_muscular_es || '')) return;
+    const lv = autoLevelOf(e);
+    if (lv == null || AUTO_LEVEL_RANK[lv] > AUTO_LEVEL_RANK[effLevel]) return;
+    if (inp.equipment !== 'all') { const fams = autoEqFamilies(e); if (fams.length && !fams.some(f => inp.equipment.includes(f))) return; }
+    if (autoHealthExcludes(e, hp)) sum.exclusions.push({ id: e.id, name: libNameOf(e), cond: 'Embarazo' });
+  });
+  sum.exclusions.sort((a, b) => a.id < b.id ? -1 : 1);
+  const usedWeek = new Set();
+  const seenWeek = {};
+  const mainSets = inp.focusComp ? 5 : (inp.objective === 'bajar' || hp.conservative ? 3 : 4);
+  const isoSets = (inp.objective === 'bajar' || hp.conservative) ? 2 : 3;
+  const pickFrom = (pool, roleWanted, dayUsed) => {
+    const cls = e => ((roleWanted === 'isolation') === autoIsIsolation(e)) ? 0 : 1;
+    const mach = e => hp.preferMachines ? ((e.categoria_es === 'Con máquinas') ? 0 : 1) : 0;
+    const unused = e => usedWeek.has(e.id) ? 1 : 0;
+    const sorted = pool.filter(e => !dayUsed.has(e.id)).slice().sort((a, b) =>
+      cls(a) - cls(b) || mach(a) - mach(b) || unused(a) - unused(b) || (a.id < b.id ? -1 : a.id > b.id ? 1 : 0));
+    if (!sorted.length) return null;
+    let pick = sorted[0];
+    /* D-A4: desempate SOLO dentro de la clase de equivalencia del
+       primero (mismo rol, misma preferencia de máquina y mismo uso
+       en la semana): gana la mejor calificación para el arquetipo
+       dominante del estimado del alumno, si la hay. Si el ganador
+       no es el que habría salido por orden de ficha, la
+       procedencia queda anotada. Sin estimado o sin
+       calificaciones, manda el orden determinista de siempre. */
+    if (inp.archetype && inp.ratingsById) {
+      const grade = e => { const r = inp.ratingsById[e.id]; const g = r && r.calificaciones ? r.calificaciones[inp.archetype] : null; return g === 'Alto' ? 3 : g === 'Medio' ? 2 : g === 'Bajo' ? 1 : 0; };
+      const eqClass = sorted.filter(e => cls(e) === cls(pick) && mach(e) === mach(pick) && unused(e) === unused(pick));
+      if (eqClass.length > 1) {
+        let best = pick, bestG = grade(pick);
+        for (const e of eqClass) { const g = grade(e); if (g > bestG) { best = e; bestG = g; } }
+        if (best !== pick && bestG > 0) { sum.tiebreaks.push({ id: best.id, name: libNameOf(best), grade: bestG === 3 ? 'Alto' : 'Medio', archetype: inp.archetype, over: pick.id }); pick = best; }
+      }
+    }
+    return pick;
+  };
+  const restSecOf = r => r === '3 min' ? 180 : r === '2-3 min' ? 150 : 75;
+  const daysOut = [];
+  split.forEach((sd, di) => {
+    const dayUsed = new Set();
+    const exs = [];
+    sd.groups.forEach((g, gi) => {
+      const occ = (seenWeek[g] = (seenWeek[g] || 0) + 1) - 1;
+      let remaining = budgets[g].per[occ] || 0;
+      if (sd.name === 'full') remaining = Math.min(remaining, 6);
+      const slotGroups = (sd.name === 'full' && gi === 0) ? [g, 'Cuerpo completo'] : [g];
+      let firstOfGroup = true, gotBefore = volOf(g).got;
+      while (remaining >= 2) {
+        const role = exs.length === 0 ? 'main' : (firstOfGroup ? 'secondary' : 'isolation');
+        const pool = (inp.lib || []).filter(e => {
+          if (!e || !e.id || !slotGroups.includes(e.grupo_muscular_es || '')) return false;
+          const lv = autoLevelOf(e);
+          if (lv == null || AUTO_LEVEL_RANK[lv] > AUTO_LEVEL_RANK[effLevel]) return false;
+          if (autoHealthExcludes(e, hp)) return false;
+          if (inp.equipment !== 'all') { const fams = autoEqFamilies(e); if (!fams.length || !fams.some(f => inp.equipment.includes(f))) return false; }
+          return true;
+        });
+        const pick = pickFrom(pool, role === 'isolation' ? 'isolation' : 'compound', dayUsed);
+        if (!pick) break;
+        let sets = role === 'main' ? mainSets : role === 'secondary' ? 3 : isoSets;
+        if (remaining < sets) sets = remaining;
+        if (sets < 2) break;
+        const iso = autoIsIsolation(pick);
+        const reps = role === 'main'
+          ? (inp.focusComp ? '3-6' : (hp.conservative || hp.mainConservative ? '8-12' : '6-10'))
+          : role === 'secondary' ? '8-12'
+          : (hp.conservative ? '12-15' : (g === 'Core' || g === 'Pantorrillas' ? '12-20' : '10-15'));
+        const rm = reps.split('-').map(Number);
+        const rest = iso ? '60-90 s' : (hp.valsalva ? '3 min' : '2-3 min');
+        const row = { name: libNameOf(pick), sets: String(sets), reps, note: '', exerciseId: pick.id, photoUrl: pick.foto_url || '', videoUrl: pick.video_youtube_url || '', rest, rest_en: rest, repsMin: rm[0], repsMax: rm[1] || rm[0], repsKind: 'reps', _grp: g, _iso: iso };
+        if (hp.valsalva && !iso) row.note = inp.lang === 'en' ? 'No prolonged Valsalva; breathe on the effort' : 'Sin Valsalva prolongado; respira en el esfuerzo';
+        exs.push(row);
+        dayUsed.add(pick.id); usedWeek.add(pick.id);
+        volOf(g).got += sets; remaining -= sets; firstOfGroup = false;
+      }
+      if (remaining === 1) {
+        const last = [...exs].reverse().find(x => x._grp === g);
+        if (last) { last.sets = String(Number(last.sets) + 1); volOf(g).got += 1; remaining = 0; }
+      }
+      if (volOf(g).got === gotBefore && (budgets[g].per[occ] || 0) > 0 && !sum.gaps.includes(g)) sum.gaps.push(g);
+    });
+    /* Duración estimada [D — aritmética declarada]: series ×
+       (40 s de trabajo + descanso de la fila). Si se pasa de la
+       objetivo en más de un 15 %, se recorta aislamiento del final
+       y se declara en el resumen (§7.4). */
+    const estOf = list => Math.round(list.reduce((s, x) => s + Number(x.sets || 0) * (40 + restSecOf(x.rest)) / 60, 0));
+    let est = estOf(exs);
+    while (est > inp.durationMin * 1.15 && exs.length > 3) {
+      const idx = [...exs].map((x, i) => x._iso ? i : -1).filter(i => i >= 0).pop();
+      if (idx == null) break;
+      const [rmRow] = exs.splice(idx, 1);
+      volOf(rmRow._grp).got -= Number(rmRow.sets || 0);
+      sum.trimmed.push(libNameOf(LIB_BY_ID[rmRow.exerciseId] || { id: rmRow.exerciseId, nombre_es: rmRow.name, nombre_en: rmRow.name }));
+      est = estOf(exs);
+    }
+    if (exs.length) {
+      const first = exs[0];
+      if (hp.asthmaWarmup) { first.warmup = 'Calentamiento progresivo largo: series de aproximación'; first.warmup_en = 'Long progressive warm-up: ramp-up sets'; }
+      else { first.warmup = 'Series de aproximación'; first.warmup_en = 'Warm-up sets'; }
+    }
+    sum.durations.push(est);
+    daysOut.push({ label: t('train.auto.dayLabel', { n: di + 1, v: t('train.auto.split.' + sd.name) }), exercises: exs.map(x => { const y = { ...x }; delete y._grp; delete y._iso; return y; }) });
+  });
+  /* Aviso §7.1: un grupo en días consecutivos es elección del
+     entrenador; el motor genera igual y lo declara. */
+  const wdGroups = {};
+  inp.weekdays.forEach((wd, i) => { wdGroups[wd] = new Set(split[i] ? split[i].groups : []); });
+  inp.weekdays.forEach(wd => {
+    const nx = (wd + 1) % 7;
+    if (wdGroups[nx]) wdGroups[wd].forEach(g => { if (wdGroups[nx].has(g) && !sum.consecutive.includes(g)) sum.consecutive.push(g); });
+  });
+  return { days: daysOut, summary: sum, health: hp };
+}
+
+/* ---------- Panel de generación (capa de interfaz) ---------- */
+let AUTO_CTX = null;
+let AUTO_SEQ = 0;
+function autoDominantArchetype(est) {
+  if (!est) return null;
+  const mix = est.mix || {};
+  const pairs = [['ectomorfo', Number(mix.ectomorph) || 0], ['mesomorfo', Number(mix.mesomorph) || 0], ['endomorfo', Number(mix.endomorph) || 0]];
+  pairs.sort((a, b) => b[1] - a[1]);
+  if (pairs[0][1] > 0) return pairs[0][0];
+  return est.category === 'ectomorph' ? 'ectomorfo' : est.category === 'endomorph' ? 'endomorfo' : est.category === 'mesomorph' ? 'mesomorfo' : null;
+}
+async function autoOnEditorOpen(uid) {
+  if (planCtx) { planCtx.genSource = null; planCtx.genChestConfirmed = false; }
+  const seq = ++AUTO_SEQ;
+  AUTO_CTX = null;
+  const note = $('pl-auto-note'), body = $('pl-auto-body');
+  if (!body) return;
+  body.innerHTML = '';
+  if (note) note.textContent = t('train.auto.loading');
+  const [udata, assess, plans, logs] = await Promise.all([
+    getDoc(doc(db, 'users', uid)).then(s => s.exists() ? s.data() : null).catch(() => null),
+    getDoc(doc(db, 'users', uid, 'assessment', 'current')).then(s => s.exists() ? s.data() : null).catch(() => null),
+    fetchPlans(uid), fetchLogs(uid),
+  ]);
+  if (seq !== AUTO_SEQ || !planCtx || planCtx.clientUid !== uid) return;
+  const ch = udata ? await fetchClientHealth(uid, udata).catch(() => ({ available: false, decl: null, cause: 'error' })) : { available: false, decl: null, cause: null };
+  if (seq !== AUTO_SEQ || !planCtx || planCtx.clientUid !== uid) return;
+  let estimate = null;
+  if (udata && btIsActive(udata)) {
+    try {
+      const bs = await getDocs(query(collection(db, 'body_type_estimates'), where('clientUid', '==', uid)));
+      bs.forEach(d => { const v = { id: d.id, ...d.data() }; if (!estimate || String(v.createdAt || v.sourceDate || '') >= String(estimate.createdAt || estimate.sourceDate || '')) estimate = v; });
+    } catch { estimate = null; }
+  }
+  await libEnsure(); await btrEnsure();
+  if (seq !== AUTO_SEQ || !planCtx || planCtx.clientUid !== uid) return;
+  const eff = udata ? gmFocusEffective(udata) : { focus: 'general', status: 'active', objective: '', source: 'student', phase: null };
+  const active = (plans || []).find(p => p.active === true) || null;
+  let defWd = AUTO_WD_PATTERNS[4].slice();
+  if (active) {
+    const pairs = trainWeekdayPairs(active.days);
+    if (pairs) defWd = Object.keys(pairs).map(Number).sort((a, b) => a - b);
+    else defWd = (AUTO_WD_PATTERNS[planCalWeeklySessions(active)] || defWd).slice();
+  }
+  AUTO_CTX = { uid, udata, assess, ch, estimate, levelInf: autoInferLevel(logs), eff, defWd };
+  autoRenderPanel();
+}
+function autoRenderPanel() {
+  const note = $('pl-auto-note'), body = $('pl-auto-body');
+  if (!body || !AUTO_CTX) return;
+  const C = AUTO_CTX;
+  if (LIB_STATE !== 'ok' || !LIB || !LIB.length) {
+    if (note) note.textContent = t('train.auto.libUnavailable');
+    body.innerHTML = ''; return;
+  }
+  if (!C.ch.available) {
+    if (note) note.textContent = '';
+    body.innerHTML = `<div class="pl-auto-block">${esc(t('train.auto.healthBlocked'))}<br><span class="progress-hint">${esc(clientHealthCauseText(C.ch))}</span></div>`;
+    return;
+  }
+  if (note) note.textContent = '';
+  const conds = (C.ch.decl && C.ch.decl.conditions) || [];
+  const ctx = [];
+  ctx.push(`<div>${esc(t('train.auto.ctxObjective', { v: C.eff.objective ? t('train.auto.obj.' + C.eff.objective) : t('train.auto.ctxNone') }))} · ${esc(t('train.auto.ctxFocus', { v: t('train.auto.foc.' + C.eff.focus) + (C.eff.phase ? ' · ' + C.eff.phase : '') }))}</div>`);
+  if (C.assess) ctx.push(`<div>${esc(t('train.auto.ctxActivity', { v: String(C.assess.palBasal != null ? C.assess.palBasal : '—') }))}</div>`);
+  if (C.estimate) ctx.push(`<div>${esc(t('train.auto.ctxEstimate', { v: t('bt.category.' + C.estimate.category) }))}</div>`);
+  ctx.push(`<div>${esc(conds.length ? t('train.auto.ctxHealthConds', { n: conds.length }) : t('train.auto.ctxHealthOk'))}</div>`);
+  if (C.levelInf) ctx.push(`<div>${esc(t('train.auto.ctxLevelInf', { v: t('train.auto.lvl.' + C.levelInf.level), n: C.levelInf.sessions }))}</div>`);
+  const warns = [];
+  if (!C.assess || !C.assess.tdeeKcal) warns.push(`<div class="pl-auto-warn">${esc(t('train.auto.noTdee'))}</div>`);
+  if (!C.udata || !C.udata.goalFocus) warns.push(`<div class="pl-auto-warn">${esc(t('train.auto.focusGeneral'))}</div>`);
+  const wdNames = t('train.auto.wds').split(',');
+  const wdOrder = [1, 2, 3, 4, 5, 6, 0];
+  const wdChips = wdOrder.map((wd, i) => `<button type="button" class="pl-type-btn pl-auto-wd${C.defWd.includes(wd) ? ' is-on' : ''}" data-wd="${wd}">${esc(wdNames[i] || '')}</button>`).join('');
+  const eqDefs = [['barra', 'train.auto.eq.barra'], ['mancuernas', 'train.auto.eq.mancuernas'], ['poleas', 'train.auto.eq.poleas'], ['maquinas', 'train.auto.eq.maquinas'], ['corporal', 'train.auto.eq.corporal'], ['kb', 'train.auto.eq.kb']];
+  const eqChips = eqDefs.map(([f, k]) => `<button type="button" class="pl-type-btn pl-auto-eq is-on" data-eq="${f}">${esc(t(k))}</button>`).join('');
+  const emphChips = AUTO_EMPH_GROUPS.map(g => `<button type="button" class="pl-type-btn pl-auto-emph" data-emph="${esc(g)}">${esc(LANG === 'en' ? (AUTO_GROUP_EN[g] || g) : g)}</button>`).join('');
+  body.innerHTML = `
+    <div class="pl-auto-ctx">${ctx.join('')}</div>
+    ${warns.join('')}
+    ${C.levelInf ? '' : `<label class="pl-auto-lab"><span>${esc(t('train.auto.levelLabel'))}</span> <select id="pl-auto-level"><option value="">—</option><option value="principiante">${esc(t('train.auto.lvl.principiante'))}</option><option value="intermedio">${esc(t('train.auto.lvl.intermedio'))}</option><option value="avanzado">${esc(t('train.auto.lvl.avanzado'))}</option></select></label>`}
+    ${C.eff.objective ? '' : `<label class="pl-auto-lab"><span>${esc(t('train.auto.objPickLabel'))}</span> <select id="pl-auto-obj"><option value="">—</option><option value="bajar">${esc(t('train.auto.obj.bajar'))}</option><option value="mantener">${esc(t('train.auto.obj.mantener'))}</option><option value="ganar">${esc(t('train.auto.obj.ganar'))}</option></select></label>`}
+    <div class="pl-auto-lab"><span>${esc(t('train.auto.daysLabel'))}</span><div class="pl-auto-chips">${wdChips}</div></div>
+    <label class="pl-auto-lab"><span>${esc(t('train.auto.durLabel'))}</span> <select id="pl-auto-dur"><option value="45">45 min</option><option value="60" selected>60 min</option><option value="75">75 min</option><option value="90">90 min</option></select></label>
+    <div class="pl-auto-lab"><span>${esc(t('train.auto.eqLabel'))}</span><div class="pl-auto-chips"><button type="button" class="pl-type-btn pl-auto-eqall is-on">${esc(t('train.auto.eq.all'))}</button>${eqChips}</div></div>
+    <div class="pl-auto-lab"><span>${esc(t('train.auto.emphLabel'))}</span><div class="pl-auto-chips">${emphChips}</div></div>
+    <div class="frow"><button type="button" class="btn-primary" id="pl-auto-gen">${esc(t('train.auto.genBtn'))}</button></div>
+    <div id="pl-auto-summary"></div>`;
+  body.querySelectorAll('.pl-auto-wd').forEach(b => b.onclick = () => b.classList.toggle('is-on'));
+  const eqAll = body.querySelector('.pl-auto-eqall');
+  body.querySelectorAll('.pl-auto-eq').forEach(b => b.onclick = () => { b.classList.toggle('is-on'); eqAll.classList.toggle('is-on', [...body.querySelectorAll('.pl-auto-eq')].every(x => x.classList.contains('is-on'))); });
+  if (eqAll) eqAll.onclick = () => { const on = !eqAll.classList.contains('is-on'); eqAll.classList.toggle('is-on', on); body.querySelectorAll('.pl-auto-eq').forEach(x => x.classList.toggle('is-on', on)); };
+  body.querySelectorAll('.pl-auto-emph').forEach(b => b.onclick = () => {
+    if (!b.classList.contains('is-on') && body.querySelectorAll('.pl-auto-emph.is-on').length >= 2) { toast(t('train.auto.emphMax'), true); return; }
+    b.classList.toggle('is-on');
+  });
+  $('pl-auto-gen').onclick = () => autoGenerate();
+}
+function autoSummaryHTML(res, inp) {
+  const S = res.summary;
+  const gname = v => LANG === 'en' ? v.groupEn : v.group;
+  const parts = [];
+  parts.push(`<div class="pl-auto-sumt">${esc(t('train.auto.sumTitle'))}</div>`);
+  parts.push(`<div>${esc(t('train.auto.sumSplit', { v: S.splitNames.map(n => t('train.auto.split.' + n)).join(' · ') }))}</div>`);
+  parts.push(`<div>${esc(t('train.auto.sumVol', { v: S.volume.map(v => `${gname(v)} ${v.got}/${v.target}`).join(' · ') }))}</div>`);
+  S.volume.filter(v => v.got < v.target).forEach(v => parts.push(`<div class="pl-auto-warn">${esc(t('train.auto.sumVolMiss', { g: gname(v), n: v.target - v.got }))}</div>`));
+  if (S.exclusions.length) parts.push(`<div>${esc(t('train.auto.sumExcl', { v: S.exclusions.map(x => `${x.name} — ${condName(x.cond)}`).join(' · ') }))}</div>`);
+  if (S.healthMarks.length) parts.push(`<div>${esc(t('train.auto.sumMarks', { v: S.healthMarks.map(condName).join(' · ') }))}</div>`);
+  if (S.detailsShown && AUTO_CTX && AUTO_CTX.ch.decl && AUTO_CTX.ch.decl.details) parts.push(`<div>${esc(t('train.auto.sumDeclDetails', { v: AUTO_CTX.ch.decl.details }))}</div>`);
+  if (S.gaps.length) parts.push(`<div class="pl-auto-warn">${esc(t('train.auto.sumGaps', { v: S.gaps.map(g => LANG === 'en' ? (AUTO_GROUP_EN[g] || g) : g).join(' · ') }))}</div>`);
+  if (S.trimmed.length) parts.push(`<div>${esc(t('train.auto.sumTrim', { v: S.trimmed.join(' · ') }))}</div>`);
+  if (S.tiebreaks.length) parts.push(`<div>${esc(t('train.auto.sumTie', { v: S.tiebreaks.map(x => `${x.name} (${x.grade} · ${x.archetype})`).join(' · ') }))}</div>`);
+  S.consecutive.forEach(g => parts.push(`<div class="pl-auto-warn">${esc(t('train.auto.warnConsecutive', { g: LANG === 'en' ? (AUTO_GROUP_EN[g] || g) : g }))}</div>`));
+  parts.push(`<div>${esc(t('train.auto.sumDur', { v: S.durations.map((m, i) => `${i + 1}: ${m} min`).join(' · ') }))}</div>`);
+  if (res.health.chestPain) parts.push(`<div class="pl-auto-block">${esc(t('train.auto.chestWarn'))}<br><label class="check-row"><input type="checkbox" id="pl-auto-chest"> <span>${esc(t('train.auto.chestConfirm'))}</span></label></div>`);
+  parts.push(`<div class="progress-hint">${esc(t('train.auto.sumHonest'))}</div>`);
+  return parts.join('');
+}
+async function autoGenerate() {
+  if (!AUTO_CTX || !planCtx) return;
+  const C = AUTO_CTX;
+  const body = $('pl-auto-body');
+  const weekdays = [...body.querySelectorAll('.pl-auto-wd.is-on')].map(b => Number(b.dataset.wd)).sort((a, b) => a - b);
+  if (weekdays.length < 1 || weekdays.length > 6) { toast(t('train.auto.errDays'), true); return; }
+  let level = C.levelInf ? C.levelInf.level : (($('pl-auto-level') || {}).value || '');
+  if (!level) { toast(t('train.auto.errLevel'), true); return; }
+  let objective = C.eff.objective || '', objectiveSource = C.eff.source || 'student';
+  if (!objective) { objective = (($('pl-auto-obj') || {}).value || ''); objectiveSource = 'trainer'; if (!objective) { toast(t('train.auto.errObj'), true); return; } }
+  const eqOn = [...body.querySelectorAll('.pl-auto-eq.is-on')].map(b => b.dataset.eq);
+  const equipment = eqOn.length >= 6 ? 'all' : eqOn;
+  const emphasis = [...body.querySelectorAll('.pl-auto-emph.is-on')].map(b => b.dataset.emph);
+  const durationMin = Number((($('pl-auto-dur') || {}).value) || 60);
+  const focusComp = C.eff.focus === 'competencia' && C.eff.status === 'active' && !!C.eff.phase;
+  const inp = { lib: LIB, ratingsById: BTR_BY_ID, archetype: autoDominantArchetype(C.estimate), conditions: (C.ch.decl && C.ch.decl.conditions) || [], objective, focusComp, level, weekdays, equipment, emphasis, durationMin, lang: LANG };
+  if (tplEditorIsDirty() && !confirm(t('train.auto.replaceConfirm'))) return;
+  await libEnsure();
+  const res = autoGenerateProgram(inp);
+  const daysBox = $('pl-days');
+  daysBox.innerHTML = '';
+  res.days.forEach(d => daysBox.appendChild(planDayRow(d)));
+  if (!($('pl-title').value || '').trim()) $('pl-title').value = t('train.auto.titleSug');
+  const noteTxt = t('train.auto.noteProgression') + (res.summary.diabetesNote ? ' ' + t('train.auto.noteDiabetes') : '');
+  const curNotes = ($('pl-notes').value || '').trim();
+  $('pl-notes').value = curNotes ? curNotes + ' ' + noteTxt : noteTxt;
+  planCtx.genSource = { kind: 'autoProgram', version: AUTO_VERSION, params: { daysPerWeek: weekdays.length, weekdays, split: res.summary.splitNames.join('+'), level, levelSource: C.levelInf ? 'history' : 'trainer', equipment, emphasis, objective, objectiveSource, focus: C.eff.focus, healthFiltered: res.summary.exclusions.length, chestPain: !!res.summary.chestPain, generatedAt: new Date().toISOString() } };
+  planCtx.genChestConfirmed = false;
+  planTouched = true;
+  const sumBox = $('pl-auto-summary');
+  if (sumBox) {
+    sumBox.innerHTML = autoSummaryHTML(res, inp);
+    const chk = $('pl-auto-chest');
+    if (chk) chk.onchange = () => { if (planCtx) planCtx.genChestConfirmed = !!chk.checked; };
+    sumBox.scrollIntoView({ block: 'nearest' });
+  }
+  toast(t('train.auto.generated'));
+}
 
 /* ================= REPETIR DÍA / REPETIR SEMANA (2026-10-29) =================
    Diseño: DISENO-REPETIR-DIA-SEMANA-2026-10-28.md + decisiones de
@@ -47032,7 +47657,7 @@ document.addEventListener('keydown', e => { if (e.key === 'Escape') shareClose()
  *  - El SW (sw.js) solo cachea la cáscara del mismo origen en modo
  *    RED PRIMERO: Auth/Firestore/Worker jamás pasan por la caché.
  * ================================================================ */
-const PWA_SW_VERSION = '20261109-tarjeta-ejercicio';
+const PWA_SW_VERSION = '20261109-programa-automatico';
 /* Sello de versión VISIBLE (2026-11-03): el pie de la tarjeta de
    acceso enseña qué copia corre este teléfono ('v ' + el sello),
    para comprobar de un vistazo si la versión nueva ya llegó.

@@ -4630,3 +4630,15 @@ body.swap-sheet-open .asst-fab { display: none !important; }
   .train-day-dressed .train-ex-compact .train-ex-photo { width: 64px; height: 64px; }
 }
 /* == FIN PLANTILLA ÚNICA DE TARJETA == */
+
+/* PROGRAMA AUTOMÁTICO (2026-11-09): panel de generación dentro de
+   la zona de plantillas del editor de planes. */
+.pl-auto { margin-top: 14px; border-top: 1px dashed #c4d8d5; padding-top: 10px; }
+.pl-auto-ctx { font-size: 13px; opacity: .85; display: grid; gap: 2px; margin-bottom: 6px; }
+.pl-auto-lab { display: block; margin: 8px 0; font-size: 14px; }
+.pl-auto-chips { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 4px; }
+.pl-auto-warn { color: #b45309; font-size: 13px; margin: 4px 0; }
+.pl-auto-block { background: #fef3c7; border: 1px solid #f59e0b; border-radius: 8px; padding: 8px 10px; font-size: 13px; margin: 6px 0; }
+#pl-auto-gen { min-height: 44px; }
+#pl-auto-summary { font-size: 13px; display: grid; gap: 3px; margin-top: 10px; }
+.pl-auto-sumt { font-weight: 700; }
