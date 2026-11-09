@@ -4452,7 +4452,7 @@ en: {
   'repeat.scaled': 'Values recalculated for the new amount (proportional to the original entry).',
   'foodref.applied': 'Reference values applied (USDA) — you can edit them.',
   'vs.indicator': 'Metric', 'vs.intake': 'Intake', 'vs.goal': 'Goal', 'vs.progress': 'Progress',
-  'metric.kcal': 'CALORIES', 'metric.prot': 'PROTEIN', 'metric.carb': 'CARBS', 'metric.azuc': 'SUGAR', 'metric.gras': 'FAT',
+  'metric.kcal': 'CALORIES', 'metric.prot': 'PROTEIN', 'metric.carb': 'CARBS', 'metric.azuc': 'SUGAR', 'metric.gras': 'FAT', 'metric.fib': 'FIBER',
   'rings.title': 'Metric detail',
   'rings.firstNote': 'Your rings are at zero because nothing is logged for this day yet. Each ring fills as you log meals and compares your day with your goal: kcal = the energy you eat · protein = builds and repairs muscle · carbohydrates = your main fuel · sugars = the one to keep under its limit · fat = essential fats. Tap a ring to see its detail.',
   'rings.contributions': 'Contributions',
@@ -4469,6 +4469,8 @@ en: {
   'glance.noGoal': 'No daily goal set yet — your logged meals still count here.',
   'glance.streak1': '🔥 1-day streak',
   'glance.streak': '🔥 {n}-day streak',
+  'glance.fibNone': 'no data yet · goal {goal} g',
+  'glance.fibPart': '({n} of {m} meals)',
   'glance.mealsTitle': "Today's meals",
   'glance.pending': 'pending',
   'fuse.atLine': 'You are at {pct}% · {n} consumed',
@@ -8263,7 +8265,7 @@ es: {
   'repeat.scaled': 'Valores recalculados para la cantidad nueva (proporcionales al registro original).',
   'foodref.applied': 'Valores de referencia aplicados (USDA) — puedes editarlos.',
   'vs.indicator': 'Indicador', 'vs.intake': 'Consumo', 'vs.goal': 'Meta', 'vs.progress': 'Progreso',
-  'metric.kcal': 'CALORÍAS', 'metric.prot': 'PROTEÍNA', 'metric.carb': 'CARBOHIDRATOS', 'metric.azuc': 'AZÚCARES', 'metric.gras': 'GRASAS',
+  'metric.kcal': 'CALORÍAS', 'metric.prot': 'PROTEÍNA', 'metric.carb': 'CARBOHIDRATOS', 'metric.azuc': 'AZÚCARES', 'metric.gras': 'GRASAS', 'metric.fib': 'FIBRA',
   'rings.title': 'Detalle de la métrica',
   'rings.firstNote': 'Tus anillos están en cero porque aún no hay nada registrado en este día. Cada anillo se llena según registras comidas y compara tu día con tu meta: kcal = la energía que comes · proteína = construye y repara el músculo · carbohidratos = tu combustible principal · azúcares = el que conviene mantener bajo su límite · grasas = grasas esenciales. Toca un anillo para ver su detalle.',
   'rings.contributions': 'Aportes',
@@ -8280,6 +8282,8 @@ es: {
   'glance.noGoal': 'Aún no tienes meta del día: tus comidas registradas sí cuentan aquí.',
   'glance.streak1': '🔥 Racha de 1 día',
   'glance.streak': '🔥 Racha de {n} días',
+  'glance.fibNone': 'aún no hay dato · meta {goal} g',
+  'glance.fibPart': '({n} de {m} comidas)',
   'glance.mealsTitle': 'Comidas de hoy',
   'glance.pending': 'pendiente',
   'fuse.atLine': 'Vas al {pct}% · {n} consumidas',
@@ -19434,6 +19438,19 @@ const GOALS_PROTEIN_FACTOR = { mantener: 1.6, ganar: 1.8, bajar: 2.2 };
 const GOALS_FAT_PCT = { mantener: 0.25, ganar: 0.25, bajar: 0.20 };
 const GOALS_FAT_FLOOR_PCT = 0.15;
 const GOALS_FAT_CEIL_PCT = 0.30;
+/* Fibra Fase 2 (AUTH-2026-11-08-308): la meta de fibra es DERIVADA
+   de la meta de kcal — densidad de 14 g por cada 1.000 kcal (IOM,
+   Dietary Reference Intakes 2002/2005: la ingesta adecuada de fibra
+   sale de 14 g/1.000 kcal; las DGA 2020-2025 la usan como densidad)
+   con piso de 25 g/día (EFSA 2010: ingesta adecuada en adultos).
+   No se edita a mano: si la kcal cambia, la fibra se recalcula sola
+   en cada corrida del motor y viaja en el mapa como clave `fib`. */
+const GOALS_FIBER_PER_1000 = 14;
+const GOALS_FIBER_FLOOR = 25;
+function fiberGoalFromKcal(kcal) {
+  const k = Number(kcal);
+  return (k > 0) ? Math.max(GOALS_FIBER_FLOOR, Math.round(k * GOALS_FIBER_PER_1000 / 1000)) : null;
+}
 function goalsNorm(s) { return String(s || '').toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, ''); }
 /* Mapa §E: condiciones ESTRUCTURADAS de la declaración vigente →
    parámetros retenidos. La lista estructurada actual solo expone
@@ -19518,6 +19535,7 @@ function goalsCoreCompute(inp) {
     }
   }
   if (goals.kcal != null && !held.has('azuc')) goals.azuc = Math.round(goals.kcal * 0.05 / 4);
+  if (goals.kcal != null) goals.fib = fiberGoalFromKcal(goals.kcal);
   const fingerprint = [obj, Math.round(tdee), w, paceState, paceKcal || 0, fatPct, guardHeld.join(','), [...held].sort().join(','), (inp.conditions || []).join(',')].join('|');
   return { goals, proteinFactor: pf, fatPct, dayLevel: 'base', paceState, paceKcal, heldParams: [...held], heldDetails, guardHeld, infoAlerts: hm.info, fingerprint };
 }
@@ -19949,7 +19967,7 @@ async function goalsEngineRun(reason) {
   /* Ajuste manual posterior del entrenador/administrador: si las metas
      actuales ya no coinciden con las últimas del motor (las CINCO) y
      la huella de fundamento NO cambió, el motor no las pisa. */
-  if (curProv && curProv.fingerprint === prov.fingerprint && curGoals && JSON.stringify(gmPick5(curGoals)) !== JSON.stringify(curProv.engineGoals || {})) { renderGoalsEngine(); return; }
+  if (curProv && curProv.fingerprint === prov.fingerprint && curGoals && JSON.stringify(gmPick5(curGoals)) !== JSON.stringify(gmPick5(curProv.engineGoals || {}))) { renderGoalsEngine(); return; }
   const newGoals = { ...res.goals };
   const provCmp = { ...prov }; delete provCmp.computedAt;
   const curCmp = curProv ? { ...curProv } : null; if (curCmp) delete curCmp.computedAt;
@@ -20344,10 +20362,11 @@ function gmiObjBoxHTML(c, tag) {
    dentro ES goalsDayGoalsFor para carbohidratos y grasas). Viendo
    OTRO día (la fecha de la ventana de Comida), la tarjeta es la de
    ese día, como siempre, y las secciones de HOY no se mezclan en
-   ella. Los huecos reservados de AUTH-278 siguen reservados y
-   VACÍOS: la barra de fibra (Mejora 2, decisiones del dueño
-   pendientes), la puntuación 0–100 (fórmula sin cerrar) y el botón
-   de código de barras (Mejora 3): ninguno se añade aquí. */
+   ella. De los huecos reservados de AUTH-278, la barra de fibra
+   YA ESTÁ CONSTRUIDA (AUTH-2026-11-08-308: Fase 2 de fibra, barra
+   contra la meta derivada de la kcal); siguen reservados y VACÍOS
+   la puntuación 0–100 (fórmula sin cerrar) y el botón de código
+   de barras (Mejora 3): ninguno se añade aquí. */
 function fusedStatusText(left) {
   if (left > 0) return t('gmi.headOk');
   if (left === 0) return t('gmi.headExact');
@@ -20393,6 +20412,13 @@ function fusedTodayData(gmiD) {
     c.remaining = Math.round(gmiD.left);
     c.pct = gmiD.pct;
   }
+  /* Fibra Fase 2 (AUTH-2026-11-08-308): gramos de fibra de hoy
+     (fiberDayStats sobre MEALS — la corrección F-01 hace que las
+     comidas conserven el campo) y su meta DERIVADA de la kcal
+     que la propia tarjeta pinta; sin kcal, manda como respaldo
+     la meta guardada en el mapa (clave `fib`). */
+  c.fiber = fiberDayStats((MEALS && MEALS[today]) || []);
+  c.fibGoal = fiberGoalFromKcal(c.goals ? c.goals.kcal : null) || goalOf('fib');
   return c;
 }
 function fusedBarsHTML(c) {
@@ -20404,6 +20430,27 @@ function fusedBarsHTML(c) {
     return `<div class="dg-macro"><span class="dg-macro-name">${t('metric.' + m.key)}</span><span class="dg-macro-bar"><span class="dg-macro-fill" style="width:${w.toFixed(1)}%;background:${m.color}"></span></span><span class="dg-macro-val">${valTxt}</span></div>`;
   }).join('');
 }
+/* La barra de fibra de la tarjeta fusionada (AUTH-2026-11-08-308):
+   la misma fila .dg-macro que las de proteína y carbos — la
+   presentación que Ronald tocó el 2026-11-08 («Barra, como la de
+   proteína»), NO un anillo. Con dato parcial, los gramos son solo
+   de las comidas que lo traen y la fila lo dice ({n} de {m}); sin
+   ningún dato, estado honesto con la meta, jamás un 0 pintado.
+   Sin meta derivada (cuenta sin metas), la fila no nace. El color
+   #92400E (ámbar oscuro, tono trigo) es decisión de diseño para
+   distinguirla del ámbar de los carbos (#F59E0B). */
+function fusedFiberBarHTML(c) {
+  if (!(c && c.fibGoal > 0)) return '';
+  const st = c.fiber || { meals: 0, withFiber: 0, grams: 0 };
+  let w = 0, valTxt;
+  if (st.withFiber > 0) {
+    w = Math.max(0, Math.min(st.grams / c.fibGoal * 100, 100));
+    valTxt = `${fmt(st.grams)} / ${fmt(c.fibGoal)} g` + (st.withFiber < st.meals ? ' ' + t('glance.fibPart', { n: st.withFiber, m: st.meals }) : '');
+  } else {
+    valTxt = t('glance.fibNone', { goal: fmt(c.fibGoal) });
+  }
+  return `<div class="dg-macro"><span class="dg-macro-name">${t('metric.fib')}</span><span class="dg-macro-bar"><span class="dg-macro-fill" style="width:${w.toFixed(1)}%;background:#92400E"></span></span><span class="dg-macro-val">${valTxt}</span></div>`;
+}
 /* Las secciones de hoy DENTRO de la tarjeta fusionada: barras,
    círculos de comidas, agua y registro rápido — el mismo marcado
    dg-* que pintaba el panel del vistazo, con sus mismos ids para
@@ -20412,9 +20459,9 @@ function fusedBarsHTML(c) {
 function fusedTodayHTML(gmiD) {
   if (gmiD && !gmiIsToday(gmiD.iso)) return '';
   const c = fusedTodayData(gmiD);
-  let h = `<div class="fused-today"><div class="dg-macros">${fusedBarsHTML(c)}</div>`;
-  /* HUECO PREVISTO (diseño §3 de AUTH-278): aquí irá la barra de
-     fibra cuando el dato exista de verdad (Mejora 2). */
+  let h = `<div class="fused-today"><div class="dg-macros">${fusedBarsHTML(c)}${fusedFiberBarHTML(c)}</div>`;
+  /* La barra de fibra ocupa el hueco previsto del diseño §3 de
+     AUTH-278 desde AUTH-2026-11-08-308 (Fase 2 de fibra). */
   /* HUECO PREVISTO (diseño §3 de AUTH-278): aquí irá la puntuación
      del día cuando Ronald cierre su fórmula (Mejora 5). */
   h += `<h3 class="dg-meals-t">${esc(t('glance.mealsTitle'))}</h3><div class="dg-meals">` + c.perMeal.map(pm => `
@@ -21168,6 +21215,11 @@ async function loadAll() {
            la hora de registro, NO una hora editable de la comida. */
         createdAtMs: (v.createdAt && v.createdAt.toMillis) ? v.createdAt.toMillis() : 0,
         photoURL: v.photoURL || '', photoPath: v.photoPath || '',
+        /* Fibra (corrección F-01 de la auditoría, AUTH-2026-11-08-308):
+           el campo `fiber` del documento SÍ se mapea, conservando el
+           null de «sin dato» (fiberOf) — sin esto, la fibra guardada
+           desde la Fase 1 no se veía en la vista del propio alumno. */
+        fiber: fiberOf(v),
         /* MÓDULO NUTRICIONISTA (desarrollo 2026-11-02): autoría aditiva
            del registro — los documentos viejos no la traen y se leen
            como del propio alumno. */
@@ -45981,7 +46033,7 @@ document.addEventListener('keydown', e => { if (e.key === 'Escape') shareClose()
  *  - El SW (sw.js) solo cachea la cáscara del mismo origen en modo
  *    RED PRIMERO: Auth/Firestore/Worker jamás pasan por la caché.
  * ================================================================ */
-const PWA_SW_VERSION = '20261108-ruta-plegada';
+const PWA_SW_VERSION = '20261108-fibra-fase2';
 /* Sello de versión VISIBLE (2026-11-03): el pie de la tarjeta de
    acceso enseña qué copia corre este teléfono ('v ' + el sello),
    para comprobar de un vistazo si la versión nueva ya llegó.
