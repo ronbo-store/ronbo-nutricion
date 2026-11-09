@@ -1631,6 +1631,14 @@ div > .btn-ghost:only-child, div > .btn-main:only-child {
 /* LA RUTA DEL USUARIO (maqueta aprobada 2026-11-01): camino vertical
    de pasos en la ventana de pendientes del alumno. */
 .route-card{background:#fff;border:1px solid #E7E1D3;border-radius:14px;padding:12px;margin:0 0 10px}
+.route-fold-card{padding:0;overflow:hidden}
+.route-fold-head{display:flex;align-items:center;gap:10px;width:100%;min-height:52px;padding:10px 14px;background:none;border:0;cursor:pointer;text-align:left;font:inherit;color:#1F2A44}
+.route-fold-ico{font-size:19px;line-height:1}
+.route-fold-txt{flex:1;font-size:15px;color:#374151}
+.route-fold-txt b{color:#1F2A44;font-weight:800}
+.route-fold-done{color:#0F766E;font-weight:900;font-size:16px}
+.route-fold-chev{color:#0F766E;font-size:14px}
+.route-fold-body .route-card{border:0;border-top:1px solid #E7E1D3;border-radius:0;margin:0}
 .route-head{font-size:17px;font-weight:800;color:#1F2A44;margin:0 0 2px}
 .route-prog{margin:0 0 6px;color:#374151;font-size:13.5px}
 .route-prog b{color:#0F766E}

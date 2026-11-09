@@ -1624,9 +1624,71 @@ function pendRouteHTML() {
 /* Tarjeta superior de la ventana de pendientes: para el ALUMNO es
    LA RUTA; para entrenador/administrador, el checklist de siempre. */
 function pendTopCardHTML() {
-  if (ROLE === 'usuario') { const r = pendRouteHTML(); if (r) return r; }
+  if (ROLE === 'usuario') {
+    const R = pendRouteSteps();
+    /* La ruta COMPLETA ya no es un pendiente (ampliación de la
+       orden de Ronald, 2026-11-08 23:38 CST): no se pinta en esta
+       ventana en ningún estado — vive plegada en «Mi perfil»
+       (routeProfileSync). La incompleta se pinta entera, como
+       siempre. Sin ruta computable no hay caída al checklist: es
+       la misma fuente (sin checklist no hay ruta) y pintaría ''. */
+    if (!R) return '';
+    return routeIsComplete(R) ? '' : pendRouteHTML();
+  }
   return (typeof pendChecklistHTML === 'function') ? pendChecklistHTML() : '';
 }
+/* LA RUTA COMPLETADA: SE PLIEGA Y SE MUDA A «MI PERFIL»
+   (órdenes de Ronald, chat RONBO.NUTRI 2026-11-08 23:37 y 23:38 CST:
+   «cuando la persona haya completado toda la ruta, la ruta se pliega
+   para no ocupar espacio y se despliega solo cuando se presione
+   encima» y «una vez completada ya no debería aparecer en
+   Pendientes; yo la trasladaría a Mi perfil»). El hogar se DERIVA
+   del estado real en cada pintado, sin preferencias guardadas:
+   incompleta, la ruta vive en Pendientes desplegada guiando;
+   completa, sale de Pendientes y vive en «Mi perfil» recogida en
+   su línea resumen — icono, «Tu ruta», «N de N pasos · 100 %»,
+   marca de completo y chevron — y un toque despliega el contenido
+   íntegro de siempre. Si un paso vuelve a faltar, regresa sola a
+   Pendientes y sale de «Mi perfil». La sección «PARA MANTENERLA
+   VIVA» viaja DENTRO de la tarjeta (es parte de pendRouteHTML):
+   no se pliega por separado ni se queda en Pendientes — se ve al
+   desplegar, en su sitio de la tarjeta. El estado del pliegue es
+   solo de sesión (memoria): al entrar de nuevo a la app, la ruta
+   completa vuelve a nacer plegada. Cero lecturas y cero
+   escrituras nuevas: todo sale de la misma fuente de la ruta. */
+let ROUTE_FOLD_OPEN = false;
+function routeIsComplete(R) {
+  return !!(R && Array.isArray(R.steps) && R.steps.length > 0 && R.nDone >= R.steps.length);
+}
+function routeFoldHTML(R) {
+  return `<div class="route-card route-fold-card">
+    <button type="button" class="route-fold-head" data-route-fold aria-expanded="${ROUTE_FOLD_OPEN ? 'true' : 'false'}">
+      <span class="route-fold-ico" aria-hidden="true">🗺️</span>
+      <span class="route-fold-txt"><b>${esc(t('route.foldTitle'))}</b> · ${esc(t('route.foldSteps', { n: R.nDone, total: R.steps.length, pct: R.pct }))}</span>
+      <span class="route-fold-done" aria-hidden="true">✓</span>
+      <span class="route-fold-chev" aria-hidden="true">${ROUTE_FOLD_OPEN ? '▴' : '▾'}</span>
+    </button>
+    <div class="route-fold-body"${ROUTE_FOLD_OPEN ? '' : ' hidden'}>${pendRouteHTML()}</div>
+  </div>`;
+}
+function routeProfileSync() {
+  const box = document.getElementById('route-profile-box');
+  if (!box) return;
+  let html = '';
+  try {
+    if (ROLE === 'usuario') {
+      const R = pendRouteSteps();
+      if (routeIsComplete(R)) html = routeFoldHTML(R);
+    }
+  } catch {}
+  if (box.innerHTML !== html) box.innerHTML = html;
+}
+document.addEventListener('click', e => {
+  const b = e.target && e.target.closest ? e.target.closest('[data-route-fold]') : null;
+  if (!b) return;
+  ROUTE_FOLD_OPEN = !ROUTE_FOLD_OPEN;
+  try { routeProfileSync(); } catch {}
+});
 /* La tarjeta-resumen de pendientes que vivía aquí en Inicio se
    RETIRÓ con AUTH-2026-11-06-286 (orden de Ronald, chat
    RONBO.NUTRI 2026-11-06 13:09 CST): Pendientes ya tiene su
@@ -1981,6 +2043,7 @@ async function renderProfileView() {
   const box = $('profile-card-box'); if (!box) return;
   try { renderPurposeProfileBox(); } catch {}
   try { renderNutriBoxes(); } catch {}
+  try { routeProfileSync(); } catch {}
   const u = UDATA || {};
   const me = auth.currentUser;
   const name = u.name || (me && me.email) || '—';
@@ -6665,6 +6728,8 @@ en: {
   'pend.chk.goals': 'Goals set',
   'pend.chk.meals': 'Meals active or requested',
   'route.title': 'Your route in RONBO FIT',
+  'route.foldTitle': 'Your route',
+  'route.foldSteps': '{n} of {total} steps · {pct} %',
   'route.progressPre': 'Your route:',
   'route.progressMid': 'of 6 steps',
   'route.progressPost': 'of the base',
@@ -10475,6 +10540,8 @@ es: {
   'pend.chk.goals': 'Metas definidas',
   'pend.chk.meals': 'Comidas activas o solicitadas',
   'route.title': 'Tu ruta en RONBO FIT',
+  'route.foldTitle': 'Tu ruta',
+  'route.foldSteps': '{n} de {total} pasos · {pct} %',
   'route.progressPre': 'Tu ruta:',
   'route.progressMid': 'de 6 pasos',
   'route.progressPost': 'de la base',
@@ -45914,7 +45981,7 @@ document.addEventListener('keydown', e => { if (e.key === 'Escape') shareClose()
  *  - El SW (sw.js) solo cachea la cáscara del mismo origen en modo
  *    RED PRIMERO: Auth/Firestore/Worker jamás pasan por la caché.
  * ================================================================ */
-const PWA_SW_VERSION = '20261108-retos-mascota';
+const PWA_SW_VERSION = '20261108-ruta-plegada';
 /* Sello de versión VISIBLE (2026-11-03): el pie de la tarjeta de
    acceso enseña qué copia corre este teléfono ('v ' + el sello),
    para comprobar de un vistazo si la versión nueva ya llegó.

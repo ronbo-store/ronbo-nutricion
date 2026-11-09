@@ -21,7 +21,7 @@
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-title" content="RONBO FIT">
 <meta name="apple-mobile-web-app-status-bar-style" content="default">
-<link rel="stylesheet" href="styles.css?v=20261108-retos-mascota">
+<link rel="stylesheet" href="styles.css?v=20261108-ruta-plegada">
 <script defer src="https://cloud.umami.is/script.js" data-website-id="a29706d4-44a2-47cf-900a-5f74d74abfa8"></script>
 <script type="importmap">
 {
@@ -1256,6 +1256,12 @@
          Lo muestra solo el rol usuario (app.js, al entrar). -->
     <button type="button" class="btn-ghost btn-sm" id="btn-profile-back" style="display:none">← <span data-i18n="nav.back">Back</span></button>
     <div id="profile-card-box"></div>
+    <!-- LA RUTA COMPLETADA (órdenes de Ronald, 2026-11-08): al
+         completar la ruta base, la tarjeta «Tu ruta» sale de
+         Pendientes y vive aquí, plegada en su línea resumen,
+         desplegable al toque. La pinta routeProfileSync desde
+         renderProfileView; incompleta, esta caja queda vacía. -->
+    <div id="route-profile-box"></div>
     <!-- REGISTRO CON PROPÓSITO (AUTH-2026-11-01-147): panel «Mi
          propósito» — solo se pinta para quien eligió «Entreno
          por mi cuenta»; su uso (comidas / entrenamiento / ambos)
@@ -2063,6 +2069,6 @@
 <div id="toast" class="toast"></div>
 <div id="print-card" aria-hidden="true"></div>
 
-<script type="module" src="app.js?v=20261108-retos-mascota"></script>
+<script type="module" src="app.js?v=20261108-ruta-plegada"></script>
 </body>
 </html>
