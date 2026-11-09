@@ -4846,6 +4846,8 @@ en: {
   'nav.leaveUnsaved': 'Leave without saving',
   'progress.sub': '· photos every 15 days: front, side and back',
   'progress.hint': 'Your progress photos (front, side and back). Who can see them: only you, your assigned trainer and the program\'s administrator — they are never public. Take a new evaluation every 15 days, and compare two of your evaluations yourself in the comparator in this same section.',
+  'progress.privLine': 'Only you, your trainer and the administrator can see them · they are never public.',
+  'progress.privMore': 'View explanation',
   'progress.week': 'This week',
   'progress.thisWeek': ' (this week)',
   'progress.front': 'Front',
@@ -8663,6 +8665,8 @@ es: {
   'nav.leaveUnsaved': 'Salir sin guardar',
   'progress.sub': '· fotos cada 15 días: frente, costado y espalda',
   'progress.hint': 'Tus fotos de progreso (frente, costado y espalda). Quién puede verlas: solo tú, tu entrenador asignado y el administrador del programa; nunca son públicas. Haz una nueva evaluación cada 15 días, y compara dos de tus evaluaciones tú mismo en el comparador de esta misma sección.',
+  'progress.privLine': 'Solo tú, tu entrenador y el administrador pueden verlas · nunca son públicas.',
+  'progress.privMore': 'Ver explicación',
   'progress.week': 'Esta semana',
   'progress.thisWeek': ' (esta semana)',
   'progress.front': 'Frente',
@@ -40671,6 +40675,29 @@ document.querySelectorAll('label[for^="photo-"]').forEach(l => l.addEventListene
   e.preventDefault();
   openFrameModal(l.getAttribute('for').slice('photo-'.length));
 }));
+/* LA CASILLA ENTERA ES EL BOTÓN (Progreso → Fotos, variante A
+   aprobada por Ronald el 2026-11-09): un toque en cualquier punto
+   de la casilla — su título, su borde, el hueco vacío — abre el
+   mismo paso de encuadre que hasta hoy abría solo el texto
+   «＋ Subir foto». Los blancos con gesto propio no se duplican ni
+   se pisan: la foto ya subida (abre el visor), las acciones
+   «Reemplazar» / «Borrar» y las propias etiquetas conservan su
+   handler de siempre; todo lo demás de la casilla cae aquí. */
+document.querySelectorAll('.progress-slot').forEach(sl => sl.addEventListener('click', e => {
+  if (e.target.closest('label, button, img, input, .slot-actions')) return;
+  openFrameModal(sl.id.slice('slot-'.length));
+}));
+/* LA EXPLICACIÓN DE PRIVACIDAD, A UN TOQUE (misma variante A): la
+   vista muestra solo la línea breve (progress.privLine) y el texto
+   íntegro de siempre (progress.hint, sin tocar una coma) vive
+   recogido bajo el botón, desplegable y recogible con un toque. */
+{ const pt = $('progress-priv-toggle'), pf = $('progress-priv-full');
+  if (pt && pf) pt.addEventListener('click', () => {
+    const open = pf.style.display !== 'none';
+    pf.style.display = open ? 'none' : '';
+    pt.setAttribute('aria-expanded', open ? 'false' : 'true');
+    const ar = pt.querySelector('.priv-arrow'); if (ar) ar.textContent = open ? '▾' : '▴';
+  }); }
 $('frame-cancel').onclick = closeFrameModal;
 $('frame-modal').addEventListener('click', e => { if (e.target.id === 'frame-modal') closeFrameModal(); });
 $('frame-pick').onclick = () => { const inp = $('photo-' + FRAME.slot); if (inp) inp.click(); };
@@ -46453,7 +46480,7 @@ document.addEventListener('keydown', e => { if (e.key === 'Escape') shareClose()
  *  - El SW (sw.js) solo cachea la cáscara del mismo origen en modo
  *    RED PRIMERO: Auth/Firestore/Worker jamás pasan por la caché.
  * ================================================================ */
-const PWA_SW_VERSION = '20261109-evaluacion-plegada';
+const PWA_SW_VERSION = '20261109-progreso-fotos';
 /* Sello de versión VISIBLE (2026-11-03): el pie de la tarjeta de
    acceso enseña qué copia corre este teléfono ('v ' + el sello),
    para comprobar de un vistazo si la versión nueva ya llegó.

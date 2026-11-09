@@ -21,7 +21,7 @@
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-title" content="RONBO FIT">
 <meta name="apple-mobile-web-app-status-bar-style" content="default">
-<link rel="stylesheet" href="styles.css?v=20261109-evaluacion-plegada">
+<link rel="stylesheet" href="styles.css?v=20261109-progreso-fotos">
 <script defer src="https://cloud.umami.is/script.js" data-website-id="a29706d4-44a2-47cf-900a-5f74d74abfa8"></script>
 <script type="importmap">
 {
@@ -429,21 +429,10 @@
          vive sobre la página (navRender + coverApply en app.js y el
          bloque final de styles.css). La hoja #share-float, su lógica
          y la clave share.button del diccionario no se tocan. -->
-    <!-- TARJETA SEMANAL «TU SEMANA» (diseño aprobado por Ronald
-         2026-11-04): la pinta loadWeekCard() en app.js desde los
-         registros del propio alumno; si no hay semana cerrada con
-         sesiones, la caja queda vacía y la página se ve como
-         siempre. -->
-    <div id="week-card-box"></div>
-    <!-- RECONOCIMIENTO POR AVANCE (aprobado por Ronald el
-         2026-11-04): bajo la tarjeta semanal, la tarjeta «Tus
-         hitos» (logros con fecha que se quedan guardados) y la
-         tarjeta «Tu mes» (resumen del mes cerrado, solo contra
-         el propio mes anterior). Las pinta loadRecoCards() en
-         app.js desde los registros del propio alumno; sin
-         avance comprobado, las cajas quedan vacías. -->
-    <div id="milestones-box"></div>
-    <div id="month-card-box"></div>
+    <!-- Las tarjetas de reconocimiento («Tu semana», «Tus hitos» y
+         «Tu mes») ya NO viven aquí: se pintan al final de esta
+         página, tras la acción de fotos (variante A de Progreso →
+         Fotos, aprobada por Ronald el 2026-11-09). -->
     <div class="prog-subtabs" role="tablist">
       <button type="button" class="prog-subtab active" id="prog-tab-fotos" role="tab" aria-selected="true" data-i18n="progress.tabPhotos">Photos</button>
       <button type="button" class="prog-subtab" id="prog-tab-medidas" role="tab" aria-selected="false" data-i18n="progress.tabMeasures">Measures</button>
@@ -457,7 +446,6 @@
     <div id="weightBody"><div class="wempty" data-i18n="weight.loading">Loading weigh-ins…</div></div>
     </div>
     <div id="prog-g-fotos">
-    <p class="progress-hint" data-i18n="progress.hint">They're private: only you can see them. Take a new evaluation every 15 days: front, side and back. Whenever you want, ask your assistant to compare two evaluations and tell you what change it notices.</p>
     <div class="progress-current">
       <div class="progress-week" id="progress-week-label">This week</div>
       <div class="progress-next" id="progress-next"></div>
@@ -499,10 +487,26 @@
       </div>
       <div id="progress-status" class="progress-status"></div>
     </div>
+    <div class="progress-priv" id="progress-priv">
+      <span class="progress-priv-line">🔒 <span data-i18n="progress.privLine">Only you, your trainer and the administrator can see them · they are never public.</span></span>
+      <button type="button" class="progress-priv-more" id="progress-priv-toggle" aria-expanded="false" aria-controls="progress-priv-full"><span data-i18n="progress.privMore">View explanation</span> <span class="priv-arrow" aria-hidden="true">▾</span></button>
+      <p class="progress-hint progress-priv-full" id="progress-priv-full" style="display:none" data-i18n="progress.hint">They're private: only you can see them. Take a new evaluation every 15 days: front, side and back. Whenever you want, ask your assistant to compare two evaluations and tell you what change it notices.</p>
+    </div>
     <h3 class="history-title" data-i18n="progress.history">Previous evaluations</h3>
     <div id="progress-history" class="progress-history"><div class="wempty" data-i18n="progress.loading">Loading photos…</div></div>
     <div id="eval-root"></div>
     </div>
+    <!-- TARJETAS DE RECONOCIMIENTO, TRAS LA ACCIÓN (variante A de
+         Progreso → Fotos, aprobada por Ronald el 2026-11-09):
+         «Tu semana» la pinta loadWeekCard() y «Tus hitos» / «Tu
+         mes» loadRecoCards() en app.js, desde los registros del
+         propio alumno; contenido y orden relativo intactos, solo
+         cambia el sitio: después de la acción de subir las fotos
+         de la evaluación, no encima. Sin avance comprobado, las
+         cajas quedan vacías y no pintan nada, como hasta ahora. -->
+    <div id="week-card-box"></div>
+    <div id="milestones-box"></div>
+    <div id="month-card-box"></div>
     </div>
     <!-- «Ayuda con comidas» FUERA de esta vista (Ronald, 2026-10-22:
          «Eso de ayuda de comida no me gusta»): desaparecen el
@@ -2077,6 +2081,6 @@
 <div id="toast" class="toast"></div>
 <div id="print-card" aria-hidden="true"></div>
 
-<script type="module" src="app.js?v=20261109-evaluacion-plegada"></script>
+<script type="module" src="app.js?v=20261109-progreso-fotos"></script>
 </body>
 </html>
