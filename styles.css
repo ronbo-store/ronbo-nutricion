@@ -2278,6 +2278,13 @@ body.swap-sheet-open .share-fab, body.swap-sheet-open .help-fab, body.swap-sheet
 .swap-drop-form { font-weight: 600; color: #0f766e; }
 .swap-drop-sub { font-size: 12.5px; color: #5b6b7a; }
 .swap-search-row { margin-bottom: 6px; }
+/* AUTH-340: la cabecera del selector (título, ✕, buscador y
+   atajos) queda FIJA arriba de la hoja mientras la lista baja:
+   viaja en un bloque pegajoso que compensa el padding propio de
+   la hoja (12 px arriba, 14 px a los lados) para nacer a ras del
+   borde y verse igual pegado que sin pegar. Lo comparten el
+   selector de la sesión de hoy y el del editor de rutinas. */
+.swap-sticky-top { position: sticky; top: 0; z-index: 6; background: #fff; margin: -12px -14px 6px; padding: 12px 14px 4px; }
 .swap-search-row input[type="text"] { width: 100%; box-sizing: border-box; padding: 11px 12px; font-size: 15px; border: 1.5px solid #cbd5e1; border-radius: 12px; }
 /* Atajos del selector (2026-11-06): Cardio · Core · Estirar dentro
    del flujo de «+ Agregar» — botones grandes estilo casa, el grupo
@@ -2525,7 +2532,14 @@ div.cgrid-cell { cursor: default; }
    eleva in situ (sin mover nodos) a hoja fija con scroll propio
    sobre el velo, con el dock flotando encima (z 40). Ocultar nunca
    destruye: la hoja solo alterna visibilidad y clase. */
-.dock-scrim { position: fixed; left: 0; right: 0; bottom: 0; height: 118px; z-index: 39; background: linear-gradient(to top, rgba(241, 245, 249, .94), rgba(241, 245, 249, 0)); pointer-events: none; }
+.dock-scrim { position: fixed; left: 0; right: 0; bottom: 0; height: 168px; z-index: 39; background: linear-gradient(to top, #f1f5f9 120px, rgba(241, 245, 249, .85) 144px, rgba(241, 245, 249, 0) 168px); pointer-events: none; }
+/* AUTH-340: el velo anterior se desvanecía desde abajo y el texto
+   de la página se leía a través, cruzándose con las etiquetas del
+   dock (video de Ronald, 2026-11-09). Ahora el velo es SÓLIDO en
+   el color de fondo de la página hasta los 120 px — por encima
+   del borde superior del dock incluso con la zona segura del
+   iPhone (~114 px) — y solo se disipa por encima de esa zona.
+   El dock, sus discos y su comportamiento no se tocan. */
 .nav-veil { position: fixed; inset: 0; background: rgba(15, 23, 42, .45); z-index: 37; }
 #progress-content.nav-page-on, #train-content.nav-page-on { position: fixed; left: 0; right: 0; top: 0; bottom: 0; z-index: 38; background: #f1f5f9; border-radius: 0; box-shadow: 0 -10px 30px rgba(15, 23, 42, .35); padding: 18px 12px 128px; overflow-y: auto; overscroll-behavior: contain; margin: 0; box-sizing: border-box; }
 body.nav-lock { overflow: hidden; }

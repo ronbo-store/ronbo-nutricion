@@ -5653,6 +5653,10 @@ en: {
   'train.swap.presetEmpty': 'There are no exercises of this type in the library yet.',
   'train.swap.allGroups': 'See the whole library',
   'train.swap.addBtn': 'Add',
+  'train.pick.inSession': 'Already in your session',
+  'train.pick.none': 'No exercises added yet',
+  'train.pick.one': '1 added to your session',
+  'train.pick.many': '{n} added to your session',
   'train.variant.changeBtn': 'Switch to a variant',
   'train.variant.title': 'Variants of {name}',
   'train.variant.none': 'This exercise has no variants in the library.',
@@ -9842,6 +9846,10 @@ es: {
   'train.swap.presetEmpty': 'Todavía no hay ejercicios de este tipo en la biblioteca.',
   'train.swap.allGroups': 'Ver toda la biblioteca',
   'train.swap.addBtn': 'Agregar',
+  'train.pick.inSession': 'Ya está en tu sesión',
+  'train.pick.none': 'Sin agregados todavía',
+  'train.pick.one': '1 agregado a tu sesión',
+  'train.pick.many': '{n} agregados a tu sesión',
   'train.variant.changeBtn': 'Cambiar a variante',
   'train.variant.title': 'Variantes de {name}',
   'train.variant.none': 'Este ejercicio no tiene variantes en la biblioteca',
@@ -30257,6 +30265,12 @@ let SWAP_QUERY = '';
    limpian. Si la biblioteca no tiene ejercicios de ese grupo, la
    hoja lo dice con honestidad (train.swap.presetEmpty). */
 let SWAP_PRESET_GROUP = null;
+/* AUTH-340: ids de los ejercicios YA presentes en la lista
+   efectiva de la sesión vista (plan + cambios + agregados). Lo
+   calcula swapSheetResultsHTML en modo «agregar» y lo lee
+   swapCardHTML para nacer marcando «✓ Añadido» las tarjetas ya
+   presentes. null fuera de ese modo: en «cambiar» no marca. */
+let SWAP_EFF_IDS = null;
 const SWAP_GROUP_SYNONYMS = {
   'Pecho': ['pecho', 'pectoral', 'pectorales', 'chest', 'pecs'],
   'Espalda': ['espalda', 'back', 'dorsales', 'lats'],
@@ -30327,11 +30341,17 @@ function swapCardHTML(ex, opts) {
   opts = opts || {};
   const sub = [libField(ex, 'equipo'), libField(ex, 'nivel')].filter(Boolean).join(' · ');
   const tag = opts.tagKey ? `<span class="swap-card-tag">${esc(t(opts.tagKey))}</span>` : '';
-  const btn = TRAIN_PICK && TRAIN_PICK.kind === 'add' ? t('train.swap.addBtn') : t('train.custom.swap');
+  /* AUTH-340: en modo «agregar», la tarjeta de un ejercicio que YA
+     está en la sesión vista (SWAP_EFF_IDS: la lista efectiva del
+     día) nace marcada «✓ Añadido» con su etiqueta y DESACTIVADA —
+     el espejo del editor de rutinas (AUTH-325): sin duplicados
+     posibles desde la propia tarjeta. En «cambiar» nada cambia. */
+  const inSession = !!(TRAIN_PICK && TRAIN_PICK.kind === 'add' && SWAP_EFF_IDS && SWAP_EFF_IDS.has(ex.id));
+  const btn = inSession ? t('train.n09.mybAddedBtn') : (TRAIN_PICK && TRAIN_PICK.kind === 'add' ? t('train.swap.addBtn') : t('train.custom.swap'));
   const th = !ex.foto_url ? ytThumbOf(ex.video_youtube_url) : '';
-  return `<button type="button" class="swap-card" data-swap-pick="${esc(ex.id)}">
+  return `<button type="button" class="swap-card${inSession ? ' is-added' : ''}" data-swap-pick="${esc(ex.id)}"${inSession ? ' disabled aria-disabled="true"' : ''}>
     ${ex.foto_url ? `<img class="swap-card-img" src="${esc(ex.foto_url)}" alt="" loading="lazy">` : (th ? `<img class="swap-card-img" src="${esc(th)}" alt="" loading="lazy" data-yt-fb="swap" onerror="ytThumbErr(this)">` : '<span class="swap-card-img swap-card-noimg" aria-hidden="true"></span>')}
-    <span class="swap-card-main"><span class="swap-card-name">${esc(opts.nameOverride || libNameOf(ex))}</span>${sub ? `<span class="swap-card-sub">${esc(sub)}</span>` : ''}${tag}</span><span class="swap-card-btn">${esc(btn)}</span></button>`;
+    <span class="swap-card-main"><span class="swap-card-name">${esc(opts.nameOverride || libNameOf(ex))}</span>${sub ? `<span class="swap-card-sub">${esc(sub)}</span>` : ''}${tag}${inSession ? `<span class="swap-card-tag">${esc(t('train.pick.inSession'))}</span>` : ''}</span><span class="swap-card-btn">${esc(btn)}</span></button>`;
 }
 function swapVariantCardHTML(entry, v, vi) {
   const sub = [libField(v, 'cambio'), libField(v, 'enfasis')].filter(Boolean).join(' · ');
@@ -30349,6 +30369,8 @@ function swapVariantCardHTML(entry, v, vi) {
 function swapSheetResultsHTML(plan, di, iso) {
   if (!LIB.length) return `<p class="progress-hint">${esc(t('train.lib.unavailable'))}</p>`;
   const eff = trainEffectiveList(plan, di, iso);
+  SWAP_EFF_IDS = TRAIN_PICK && TRAIN_PICK.kind === 'add'
+    ? new Set(eff.map(it => it && it.ex && it.ex.exerciseId).filter(Boolean)) : null;
   const target = TRAIN_PICK && TRAIN_PICK.kind === 'swap' ? eff[TRAIN_PICK.idx] : null;
   const tEntry = target && target.ex && target.ex.exerciseId ? (LIB_BY_ID[target.ex.exerciseId] || null) : null;
   const q = SWAP_QUERY.trim();
@@ -30408,22 +30430,36 @@ function swapSheetResultsHTML(plan, di, iso) {
   }).join('');
 }
 function swapSheetApply(plan, di, entry, iso) {
-  SWAP_PRESET_GROUP = null;
   /* La MISMA escritura del selector anterior: edición de sesión
      — de la FECHA VISTA si el selector viene del desplegable con
      otra fecha (iso la pasa la cadena del desplegable; sin iso,
      la de hoy, como siempre). */
   const ed = trainEditsRead(plan.id, iso) || { swaps: {}, added: [] };
   if (TRAIN_PICK.kind === 'swap') {
+    SWAP_PRESET_GROUP = null;
     const it2 = trainEffectiveList(plan, di, iso)[TRAIN_PICK.idx];
     if (it2 && it2.slot >= 0) ed.swaps[String(it2.slot)] = { exerciseId: entry.id, name: libNameOf(entry) };
-  } else {
-    ed.added.push({ exerciseId: entry.id, name: libNameOf(entry), sets: '', reps: '' });
+    trainEditsWrite(plan.id, ed, iso);
+    TRAIN_PICK = null;
+    SWAP_QUERY = '';
+    loadMyTraining();
+    return;
   }
+  /* AUTH-340 — «agregar» SIN duplicados y SIN cerrar la hoja
+     (espejo del editor de rutinas, AUTH-325): si el ejercicio ya
+     está en la lista efectiva de la sesión (plan, cambios o
+     agregados) no se vuelve a meter — su tarjeta ya nace marcada
+     y desactivada, y este es el segundo candado. Al agregar, la
+     hoja SE QUEDA ABIERTA: se repintan en el sitio los resultados
+     (la tarjeta agregada nace marcada «✓ Añadido»), los atajos y
+     la cuenta del pie, conservando el grupo y el texto buscado.
+     La sesión de detrás se repinta al cerrar, como en el editor:
+     todas las vías de cierre (✕, «Listo», gesto del dock) pasan
+     por loadMyTraining. */
+  const effIds = new Set(trainEffectiveList(plan, di, iso).map(it => it && it.ex && it.ex.exerciseId).filter(Boolean));
+  if (!effIds.has(entry.id)) ed.added.push({ exerciseId: entry.id, name: libNameOf(entry), sets: '', reps: '' });
   trainEditsWrite(plan.id, ed, iso);
-  TRAIN_PICK = null;
-  SWAP_QUERY = '';
-  loadMyTraining();
+  swapSheetRepaintResults(plan, di, iso);
 }
 function swapSheetApplyVariant(plan, di, entry, vi, iso) {
   SWAP_PRESET_GROUP = null;
@@ -30471,6 +30507,58 @@ function swapPresetRowHTML() {
   const all = SWAP_PRESET_GROUP ? `<div class="swap-presets-all"><button type="button" class="swap-preset-all" data-swap-preset-clear="1">${t('train.swap.allGroups')}</button></div>` : '';
   return `<div class="swap-presets">${btns}</div>${all}`;
 }
+/* AUTH-340: la cuenta del pie del selector en modo «agregar» —
+   los ejercicios agregados a la sesión de ESA fecha (la capa de
+   edición de sesión de siempre; incluye los que entraron por
+   dictado o por foto, que viven en la misma capa). La hoja nace
+   sabiendo el contenido de la sesión, no «por visita». */
+function swapPickCountText(plan, iso) {
+  const ed = plan ? trainEditsRead(plan.id, iso) : null;
+  const n = ed && Array.isArray(ed.added) ? ed.added.length : 0;
+  if (n === 0) return t('train.pick.none');
+  return n === 1 ? t('train.pick.one') : t('train.pick.many', { n });
+}
+/* AUTH-340: el cableado de resultados/atajos del selector, fuera
+   de swapSheetSync para poder repintar EN EL SITIO al agregar
+   sin cerrar la hoja. La cabecera fija, el buscador y la ✕ no se
+   tocan en el repintado: solo resultados, atajos y la cuenta.
+   Los atajos conservan su gesto de siempre (fijar el grupo limpia
+   la búsqueda y repinta la fila). */
+function swapSheetWireResults(plan, di, iso) {
+  const sheet = document.getElementById('swap-sheet');
+  if (!sheet) return;
+  sheet.querySelectorAll('[data-swap-pick]').forEach(pb => pb.onclick = () => {
+    const entry = LIB_BY_ID[pb.dataset.swapPick];
+    if (entry && TRAIN_PICK) swapSheetApply(plan, di, entry, iso);
+  });
+  sheet.querySelectorAll('[data-swap-variant]').forEach(vb => vb.onclick = () => {
+    const eff = trainEffectiveList(plan, di, iso);
+    const target = TRAIN_PICK && TRAIN_PICK.kind === 'swap' ? eff[TRAIN_PICK.idx] : null;
+    const tEntry = target && target.ex && target.ex.exerciseId ? (LIB_BY_ID[target.ex.exerciseId] || null) : null;
+    if (tEntry && TRAIN_PICK) swapSheetApplyVariant(plan, di, tEntry, Number(vb.dataset.swapVariant), iso);
+  });
+  sheet.querySelectorAll('[data-swap-preset]').forEach(b => b.onclick = () => {
+    SWAP_PRESET_GROUP = b.dataset.swapPreset || null;
+    SWAP_QUERY = '';
+    const sI = sheet.querySelector('#swap-search'); if (sI) sI.value = '';
+    swapSheetRepaintResults(plan, di, iso);
+  });
+  sheet.querySelectorAll('[data-swap-preset-clear]').forEach(b => b.onclick = () => {
+    SWAP_PRESET_GROUP = null;
+    swapSheetRepaintResults(plan, di, iso);
+  });
+}
+function swapSheetRepaintResults(plan, di, iso) {
+  const sheet = document.getElementById('swap-sheet');
+  if (!sheet) return;
+  const box = sheet.querySelector('#swap-results');
+  if (box) box.innerHTML = swapSheetResultsHTML(plan, di, iso);
+  const slot = sheet.querySelector('#swap-presets-slot');
+  if (slot) slot.innerHTML = swapPresetRowHTML();
+  const cnt = sheet.querySelector('#swap-pick-count');
+  if (cnt) cnt.textContent = swapPickCountText(plan, iso);
+  swapSheetWireResults(plan, di, iso);
+}
 function swapSheetSync(plan, di, iso) {
   const old = document.getElementById('swap-sheet');
   if (!plan || !TRAIN_PICK) {
@@ -30497,7 +30585,15 @@ function swapSheetSync(plan, di, iso) {
     document.body.appendChild(sheet);
   }
   document.body.classList.add('swap-sheet-open');
+  /* AUTH-340: título, ejercicio a cambiar (si aplica), buscador
+     y atajos viajan en .swap-sticky-top — quedan FIJOS arriba de
+     la hoja mientras la lista baja (antes se perdían al bajar).
+     En modo «agregar» la hoja lleva además el pie fijo con la
+     cuenta de agregados y su botón «Listo» (las clases del pie
+     del editor de rutinas, AUTH-325; el botón cierra por la vía
+     de siempre, data-swap-close). */
   sheet.innerHTML = `
+    <div class="swap-sticky-top">
     <div class="swap-sheet-head">
       <span class="swap-sheet-title">${esc(title)}</span>
       <button type="button" class="swap-sheet-x" data-swap-close="1" aria-label="✕">✕</button>
@@ -30510,46 +30606,16 @@ function swapSheetSync(plan, di, iso) {
     </div>` : ''}
     <div class="swap-search-row"><input type="text" id="swap-search" placeholder="${esc(t('train.prop.searchPh'))}" autocomplete="off" value="${esc(SWAP_QUERY)}"></div>
     <div id="swap-presets-slot">${swapPresetRowHTML()}</div>
-    <div id="swap-results">${swapSheetResultsHTML(plan, di, iso)}</div>`;
+    </div>
+    <div id="swap-results">${swapSheetResultsHTML(plan, di, iso)}</div>
+    ${TRAIN_PICK.kind === 'add' ? `<div class="myb-pick-foot"><span class="myb-pick-count" id="swap-pick-count">${esc(swapPickCountText(plan, iso))}</span><button type="button" class="myb-pick-done" data-swap-close="1">${esc(t('train.n09.mybDone'))}</button></div>` : ''}`;
   sheet.querySelectorAll('[data-swap-close]').forEach(b => b.onclick = () => { TRAIN_PICK = null; SWAP_QUERY = ''; loadMyTraining(); });
-  const wirePicks = () => {
-    sheet.querySelectorAll('[data-swap-pick]').forEach(pb => pb.onclick = () => {
-      const entry = LIB_BY_ID[pb.dataset.swapPick];
-      if (entry && TRAIN_PICK) swapSheetApply(plan, di, entry, iso);
-    });
-    sheet.querySelectorAll('[data-swap-variant]').forEach(vb => vb.onclick = () => {
-      if (tEntry && TRAIN_PICK) swapSheetApplyVariant(plan, di, tEntry, Number(vb.dataset.swapVariant), iso);
-    });
-  };
-  wirePicks();
-  /* Los atajos dentro del flujo: tocar uno fija el grupo (y limpia
-     la búsqueda, como la apertura fresca de los antiguos chips) y
-     re-pinta resultados y la propia fila (marca activa y botón de
-     volver); «Ver toda la biblioteca» retira el grupo. */
-  const wirePresets = () => {
-    const repaint = () => {
-      const box = sheet.querySelector('#swap-results');
-      if (box) { box.innerHTML = swapSheetResultsHTML(plan, di, iso); wirePicks(); }
-      const slot = sheet.querySelector('#swap-presets-slot');
-      if (slot) { slot.innerHTML = swapPresetRowHTML(); wirePresets(); }
-    };
-    sheet.querySelectorAll('[data-swap-preset]').forEach(b => b.onclick = () => {
-      SWAP_PRESET_GROUP = b.dataset.swapPreset || null;
-      SWAP_QUERY = '';
-      const sI = sheet.querySelector('#swap-search'); if (sI) sI.value = '';
-      repaint();
-    });
-    sheet.querySelectorAll('[data-swap-preset-clear]').forEach(b => b.onclick = () => {
-      SWAP_PRESET_GROUP = null;
-      repaint();
-    });
-  };
-  wirePresets();
+  swapSheetWireResults(plan, di, iso);
   const search = sheet.querySelector('#swap-search');
   if (search) search.oninput = () => {
     SWAP_QUERY = search.value;
     const box = sheet.querySelector('#swap-results');
-    if (box) { box.innerHTML = swapSheetResultsHTML(plan, di, iso); wirePicks(); }
+    if (box) { box.innerHTML = swapSheetResultsHTML(plan, di, iso); swapSheetWireResults(plan, di, iso); }
   };
 }
 
@@ -37914,12 +37980,14 @@ function mybPickRender() {
   const dayName = (d && (d.label || '').trim()) || t('train.n09.mybDayTag', { n: MYB_PICK.di + 1 });
   const ctx = (MYB.name || '').trim() ? t('train.n09.mybAddingTo', { day: dayName, name: (MYB.name || '').trim() }) : t('train.n09.mybAddingToDay', { day: dayName });
   sheet.innerHTML = `
+    <div class="swap-sticky-top">
     <div class="swap-sheet-head">
       <span class="swap-sheet-title">${esc(t('train.custom.pickAdd'))}</span>
       <button type="button" class="swap-sheet-x" data-mybpick-close="1" aria-label="✕">✕</button>
     </div>
     <span class="myb-ctx">${esc(ctx)}</span>
     <div class="swap-search-row"><input type="text" id="myb-pick-search" placeholder="${esc(t('train.prop.searchPh'))}" autocomplete="off" value="${esc(MYB_PICK.q)}"></div>
+    </div>
     <div id="myb-pick-results">${mybPickResultsHTML()}</div>
     <div class="myb-pick-foot"><span class="myb-pick-count" id="myb-pick-count">${esc(mybPickCountText())}</span><button type="button" class="myb-pick-done" data-mybpick-close="1">${esc(t('train.n09.mybDone'))}</button></div>`;
   const close = () => { mybPickClose(); mybSheetRender(); };
@@ -48891,7 +48959,7 @@ document.addEventListener('keydown', e => { if (e.key === 'Escape') shareClose()
  *  - El SW (sw.js) solo cachea la cáscara del mismo origen en modo
  *    RED PRIMERO: Auth/Firestore/Worker jamás pasan por la caché.
  * ================================================================ */
-const PWA_SW_VERSION = '20261109-progreso-cuadros';
+const PWA_SW_VERSION = '20261109-tres-errores';
 /* Sello de versión VISIBLE (2026-11-03): el pie de la tarjeta de
    acceso enseña qué copia corre este teléfono ('v ' + el sello),
    para comprobar de un vistazo si la versión nueva ya llegó.
