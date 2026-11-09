@@ -7385,8 +7385,10 @@ en: {
   'share.choose': 'Choose your card:',
   'share.dayLab': 'My goal for today',
   'share.weekLab': 'My week in review',
+  'share.monthLab': 'My month in review',
   'share.dayChip': '🎯 MY GOAL FOR TODAY',
   'share.weekChip': '🏆 MY WEEK IN REVIEW',
+  'share.monthChip': '🗓️ MY MONTH IN REVIEW',
   'share.goalsLab': 'My day in goals',
   'share.goalsChip': '📊 MY DAY IN GOALS',
   'share.newBadge': 'NEW',
@@ -7449,6 +7451,17 @@ en: {
   'share.meals': 'meals',
   'share.minPerDay': 'MINUTES PER DAY',
   'share.bestDay': '★ Best day: {day}',
+  'share.minPerWeek': 'MINUTES PER WEEK',
+  'share.wkN': 'W{n}',
+  'share.moBestWeek': '★ Best week: {min} min',
+  'share.moWeeksFull1': '1 full week',
+  'share.moWeeksFull': '{x} full weeks',
+  'share.moPrs1': '1 personal record',
+  'share.moPrs': '{x} personal records',
+  'share.moWeight': 'weight',
+  'share.moWeightDelta': 'weight · {d}',
+  'share.moEmpty': 'No activity recorded this month yet — your month card fills up as you go.',
+  'share.phraseMonth': 'A month that counts 💪',
   'share.weekSame': 'Week of {m} {d1} – {d2} · {name}',
   'share.weekDiff': 'Week of {m1} {d1} – {m2} {d2} · {name}',
   'share.mileWeek': 'First full week',
@@ -11320,8 +11333,10 @@ es: {
   'share.choose': 'Elige tu tarjeta:',
   'share.dayLab': 'Mi meta del día',
   'share.weekLab': 'Mis logros de la semana',
+  'share.monthLab': 'Mis logros del mes',
   'share.dayChip': '🎯 MI META DEL DÍA',
   'share.weekChip': '🏆 MIS LOGROS DE LA SEMANA',
+  'share.monthChip': '🗓️ MIS LOGROS DEL MES',
   'share.goalsLab': 'Mi día en metas',
   'share.goalsChip': '📊 MI DÍA EN METAS',
   'share.newBadge': 'NUEVA',
@@ -11384,6 +11399,17 @@ es: {
   'share.meals': 'comidas',
   'share.minPerDay': 'MINUTOS POR DÍA',
   'share.bestDay': '★ Mejor día: {day}',
+  'share.minPerWeek': 'MINUTOS POR SEMANA',
+  'share.wkN': 'S{n}',
+  'share.moBestWeek': '★ Mejor semana: {min} min',
+  'share.moWeeksFull1': '1 semana completa',
+  'share.moWeeksFull': '{x} semanas completas',
+  'share.moPrs1': '1 marca personal',
+  'share.moPrs': '{x} marcas personales',
+  'share.moWeight': 'peso',
+  'share.moWeightDelta': 'peso · {d}',
+  'share.moEmpty': 'Todavía no hay actividad registrada en este mes — tu tarjeta del mes se va llenando sobre la marcha.',
+  'share.phraseMonth': 'Un mes que cuenta 💪',
   'share.weekSame': 'Semana del {d1} al {d2} de {m} · {name}',
   'share.weekDiff': 'Semana del {d1} de {m1} al {d2} de {m2} · {name}',
   'share.mileWeek': 'Primera semana completa',
@@ -41498,7 +41524,7 @@ function monthCardHTML(m) {
   return `<div class="rcard">
     <div class="rcard-head"><div class="rcard-ico" aria-hidden="true">🏆</div><div><div class="rcard-t1">${esc(t('reco.moTitle'))}${m.pending ? '' : ' · ' + esc(recoMonthName(m.ym))}</div><div class="rcard-t2">${esc(t('reco.moSub'))}</div></div></div>
     <div class="rcard-body">${body}</div>
-    ${m.pending ? '' : `<div class="rcard-foot">${esc(t('reco.moFoot'))}</div>`}
+    ${m.pending ? '' : `<div class="rcard-foot">${esc(t('reco.moFoot'))} <button type="button" class="ms-share" data-mo-share="${esc(m.ym)}">${esc(t('reco.msShare'))} ›</button></div>`}
   </div>`;
 }
 /* ---------- carga de las superficies propias (Progreso) ------- */
@@ -41538,7 +41564,12 @@ async function loadRecoCards(uid, logs, plans) {
         };
       });
     }
-    if (moBox) moBox.innerHTML = monthCardHTML(monthCardCompute(pLogs, pPlans, todayISO()));
+    if (moBox) {
+      moBox.innerHTML = monthCardHTML(monthCardCompute(pLogs, pPlans, todayISO()));
+      moBox.querySelectorAll('[data-mo-share]').forEach(b => {
+        b.onclick = () => shareOpenMonth(b.dataset.moShare);
+      });
+    }
   } catch {}
 }
 /* REINTENTO AL ARRANCAR LA SESIÓN (AUTH-2026-11-05-250): la
@@ -45339,7 +45370,7 @@ setInterval(() => { try { pendDockTick(); } catch {} }, 60000);
    1:1 (1080×1080: la misma composición adaptada — héroe + lo
    esencial, sin la línea de reto). Los emojis se dibujan con la
    fuente de emojis del propio dispositivo (fillText). */
-const SHARE = { type: 'day', format: '916', blob: null, fileName: '', workout: null, logro: null, trans: { a: null, b: null } };
+const SHARE = { type: 'day', format: '916', blob: null, fileName: '', workout: null, logro: null, monthYm: null, trans: { a: null, b: null } };
 const SHARE_WD = { en: ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'],
                    es: ['lunes', 'martes', 'miércoles', 'jueves', 'viernes', 'sábado', 'domingo'] };
 const SHARE_LETTERS = { en: ['M', 'T', 'W', 'T', 'F', 'S', 'S'], es: ['L', 'M', 'X', 'J', 'V', 'S', 'D'] };
@@ -45935,6 +45966,207 @@ function shareDrawWeek(ctx, W, H, d) {
   shareTxt(ctx, 'ronbo.fit', gx + bav + 18, blCy + btPx * 0.35, shareCtxFont(900, btPx), '#ffffff', { align: 'left', shadowBlur: 12 });
   const phrase = d.phrase === 'week' ? t('share.phraseWeek') : t('share.phraseStart');
   shareBottom(ctx, W, H, phrase, !cp);
+}
+
+/* ============================================================
+   TARJETA DEL MES (decisión de Ronald, 2026-11-09 01:21 CST:
+   «haz la del mes también»; cierra F-15 de la auditoría): el
+   resumen del MES NATURAL en la misma familia visual que las
+   tarjetas del día y de la semana — mismo fondo, marca,
+   píldora, héroe, tira de cifras, barras y chips —. Los
+   minutos son los de la DEFINICIÓN ÚNICA (AUTH-330: actividad
+   total del día, shareActMinutes); las sesiones, las cerradas
+   (hechas o parciales). El peso entra solo si hay pesajes DEL
+   MES: con dos o más se pinta el peso último y su cambio en el
+   mes; con uno, el peso sin cambio; sin ninguno, esa cifra no
+   se pinta (la tira queda en tres) — nunca un cero disfrazado.
+   Las barras son las semanas naturales que tocan el mes y
+   suman SOLO los días del mes (la suma de las barras es el
+   total del mes). Las «semanas completas» del chip son las
+   semanas naturales ENTERAS dentro del mes con los 7 días
+   activos (la regla de AUTH-331). Un mes sin actividad se
+   pinta con su estado honesto (shareDrawMonthEmpty). */
+function shareMonthData(ym) {
+  const cur = String(todayISO()).slice(0, 7);
+  ym = /^\d{4}-\d{2}$/.test(ym || '') ? ym : cur;
+  const pp = ym.split('-').map(Number);
+  const dim = new Date(Date.UTC(pp[0], pp[1], 0)).getUTCDate();
+  const days = [], minutes = [], active = [];
+  for (let d = 1; d <= dim; d++) {
+    const iso = ym + '-' + String(d).padStart(2, '0');
+    days.push(iso); minutes.push(shareActMinutes(iso)); active.push(shareIsActiveDay(iso));
+  }
+  const logs = shareLogsAll();
+  const sessions = logs.filter(l => l && l.date && l.date.slice(0, 7) === ym && wkIsClosed(l)).length;
+  const mealsMonth = days.reduce((s, iso) => s + ((MEALS[iso] || []).length), 0);
+  const minutesTotal = minutes.reduce((s, x) => s + x, 0);
+  const activeDays = active.filter(Boolean).length;
+  const weeks = [];
+  let mon = mondayISO(days[0]);
+  while (mon <= days[dim - 1]) {
+    let wmin = 0;
+    for (let i = 0; i < 7; i++) { const idx = days.indexOf(addDaysISO(mon, i)); if (idx >= 0) wmin += minutes[idx]; }
+    weeks.push({ monday: mon, minutes: wmin });
+    mon = addDaysISO(mon, 7);
+  }
+  let bestWeekIdx = -1, bestWeekMin = 0;
+  weeks.forEach((w, i) => { if (w.minutes > bestWeekMin) { bestWeekMin = w.minutes; bestWeekIdx = i; } });
+  let fullWeeks = 0;
+  { let m2 = mondayISO(days[0]); if (m2 < days[0]) m2 = addDaysISO(m2, 7);
+    while (addDaysISO(m2, 6) <= days[dim - 1]) {
+      let all = true;
+      for (let i = 0; i < 7; i++) if (!active[days.indexOf(addDaysISO(m2, i))]) { all = false; break; }
+      if (all) fullWeeks++;
+      m2 = addDaysISO(m2, 7);
+    } }
+  let weight = null;
+  const ws = (typeof WEIGHTS !== 'undefined' && Array.isArray(WEIGHTS) ? WEIGHTS : [])
+    .filter(w => w && w.date && w.date.slice(0, 7) === ym && Number(w.weight) > 0)
+    .slice().sort((a, b) => (a.date < b.date ? -1 : 1));
+  if (ws.length) weight = { first: Number(ws[0].weight), last: Number(ws[ws.length - 1].weight), n: ws.length };
+  let prs = 0;
+  try { prs = recoPrEvents(logs).filter(ev => ev && ev.date && ev.date.slice(0, 7) === ym).length; } catch {}
+  const hasActivity = minutesTotal > 0 || sessions > 0 || mealsMonth > 0 || activeDays > 0;
+  return { ym, days, minutes, active, activeDays, daysInMonth: dim, sessions, mealsMonth, minutesTotal,
+    weeks, bestWeekIdx, fullWeeks, weight, prs, hasActivity,
+    phrase: hasActivity ? 'month' : 'start', name: shareFirstName() };
+}
+function shareDrawMonth(ctx, W, H, d) {
+  const cp = H < 1500;
+  shareBg(ctx, W, H);
+  const hy = cp ? 330 : 580;
+  const rg = ctx.createRadialGradient(W / 2, hy, 0, W / 2, hy, cp ? 300 : 430);
+  rg.addColorStop(0, 'rgba(255,170,40,.20)'); rg.addColorStop(1, 'rgba(255,170,40,0)');
+  ctx.fillStyle = rg; ctx.fillRect(0, 0, W, H);
+  shareBrand(ctx, W, cp ? 100 : 160, cp ? 42 : 54);
+  const chipPx = cp ? 27 : 32, chipTop = cp ? 148 : 234;
+  sharePill(ctx, W / 2, chipTop + (chipPx + 34) / 2, t('share.monthChip'), chipPx, { ls: 3 });
+  const chipBottom = chipTop + chipPx + 34;
+  shareTxt(ctx, recoMonthName(d.ym), W / 2, chipBottom + (cp ? 44 : 60), shareCtxFont(600, cp ? 24 : 32), 'rgba(255,255,255,.92)', { shadowBlur: 12 });
+  /* héroe: llama + días activos del mes (x/N, el estilo de la familia) */
+  const flameY = chipBottom + (cp ? 96 : 172);
+  shareTxt(ctx, '🔥', W / 2, flameY, shareCtxFont(400, cp ? 46 : 64, true), '#ffffff', { shadowColor: 'rgba(255,150,30,.75)', shadowBlur: 26 });
+  const numPx = cp ? 128 : 200, numY = flameY + (cp ? 122 : 208);
+  shareTxt(ctx, d.activeDays + '/' + d.daysInMonth, W / 2, numY, shareCtxFont(900, numPx), '#ffffff', { shadowBlur: 44, shadowColor: 'rgba(0,60,52,.42)', shadowY: 10 });
+  shareTxt(ctx, t('share.daysActive'), W / 2, numY + (cp ? 46 : 68), shareCtxFont(900, cp ? 32 : 45), '#ffffff', { shadowBlur: 18 });
+  /* tira de totales SIN caja: sesiones · minutos · comidas · (peso) */
+  const stripW = 936, sx = (W - stripW) / 2;
+  const stats = [ [String(d.sessions), t('share.workouts')],
+                  [fmt(d.minutesTotal), t('share.minActivity')], [String(d.mealsMonth), t('share.meals')] ];
+  if (d.weight) {
+    let wlab = t('share.moWeight');
+    if (d.weight.n >= 2) {
+      const wd = d.weight.last - d.weight.first;
+      const dTxt = (wd < 0 ? '↓ ' : wd > 0 ? '↑ ' : '= ') + fmtMass(Math.abs(wd));
+      wlab = t('share.moWeightDelta', { d: dTxt });
+    }
+    stats.push([fmtMass(d.weight.last), wlab]);
+  }
+  const colW = stripW / stats.length;
+  const nY = numY + (cp ? 46 : 68) + (cp ? 54 : 96);
+  stats.forEach((s, i) => {
+    const ccx = sx + colW * i + colW / 2;
+    shareTxt(ctx, s[0], ccx, nY, shareCtxFont(900, cp ? 46 : 60), '#ffffff', { shadowBlur: 18 });
+    shareTxt(ctx, s[1], ccx, nY + (cp ? 28 : 38), shareCtxFont(700, cp ? 20 : 25), 'rgba(255,255,255,.90)', { shadowBlur: 10 });
+    if (i > 0) { ctx.save(); ctx.strokeStyle = 'rgba(255,255,255,.35)'; ctx.lineWidth = 2; ctx.beginPath(); ctx.moveTo(sx + colW * i, nY - (cp ? 44 : 58)); ctx.lineTo(sx + colW * i, nY + (cp ? 26 : 36)); ctx.stroke(); ctx.restore(); }
+  });
+  /* gráfica de barras por semana SIN caja (solo días del mes) */
+  const headY = nY + (cp ? 28 : 38) + (cp ? 64 : 90);
+  shareTxt(ctx, t('share.minPerWeek'), sx + 4, headY, shareCtxFont(900, cp ? 23 : 29), 'rgba(255,255,255,.88)', { align: 'left', ls: 2, shadowBlur: 10 });
+  if (d.bestWeekIdx >= 0) {
+    const tag = t('share.moBestWeek', { min: fmt(d.weeks[d.bestWeekIdx].minutes) });
+    const tagPx = cp ? 22 : 27, tagW = shareTextW(ctx, tag, 900, tagPx) + 48;
+    sharePill(ctx, sx + stripW - tagW / 2, headY - (cp ? 9 : 11), tag, tagPx, { bg: '#fff3df', color: '#b05f00', padX: 24, padY: cp ? 8 : 10, shadowBlur: 26, shadowY: 12 });
+  }
+  const maxMin = Math.max(...d.weeks.map(w => w.minutes), 1), maxBarH = cp ? 92 : 170;
+  const axisY = headY + (cp ? 46 : 62) + maxBarH;
+  const innerX = sx + 22, innerW = stripW - 44, gapB = 26;
+  const colBW = (innerW - gapB * (d.weeks.length - 1)) / d.weeks.length, barW = cp ? 62 : 76;
+  let colorIdx = 0;
+  d.weeks.forEach((w, i) => {
+    const ccx = innerX + colBW * i + colBW / 2;
+    const isBest = i === d.bestWeekIdx;
+    const h = w.minutes > 0 ? Math.max(14, Math.round(w.minutes / maxMin * maxBarH)) : 12;
+    const barTop = axisY - h;
+    shareTxt(ctx, String(w.minutes), ccx, barTop - 10, shareCtxFont(800, cp ? 21 : 27), isBest ? '#ffe1a8' : '#ffffff', { shadowBlur: 10 });
+    ctx.save();
+    if (w.minutes > 0) {
+      const cols = isBest ? SHARE_BAR_BEST : SHARE_BAR_COLORS[colorIdx++ % SHARE_BAR_COLORS.length];
+      const bg3 = ctx.createLinearGradient(0, barTop, 0, axisY);
+      bg3.addColorStop(0, cols[0]); bg3.addColorStop(1, cols[1]);
+      ctx.fillStyle = bg3; ctx.shadowColor = cols[2]; ctx.shadowBlur = isBest ? 48 : 26;
+    } else {
+      ctx.fillStyle = 'rgba(255,255,255,.30)';
+    }
+    shareRR(ctx, ccx - barW / 2, barTop, barW, h, Math.min(cp ? 12 : 18, h));
+    ctx.fill(); ctx.restore();
+    shareTxt(ctx, t('share.wkN', { n: i + 1 }), ccx, axisY + (cp ? 34 : 44), shareCtxFont(900, cp ? 22 : 28), isBest ? '#ffe1a8' : '#ffffff', { shadowBlur: 10 });
+  });
+  /* chips de hitos del mes (solo los reales) */
+  const chips = [];
+  if (d.fullWeeks > 0) chips.push(t(d.fullWeeks === 1 ? 'share.moWeeksFull1' : 'share.moWeeksFull', { x: d.fullWeeks }));
+  if (d.prs > 0) chips.push(t(d.prs === 1 ? 'share.moPrs1' : 'share.moPrs', { x: d.prs }));
+  let flowBottom = axisY + (cp ? 34 : 44);
+  if (chips.length) {
+    const chipFont = cp ? 24 : 31, ck = cp ? 34 : 42, chipH = chipFont + (cp ? 24 : 30);
+    const items = chips.map(m => ({ text: m, w: shareTextW(ctx, m, 800, chipFont) + ck + 13 + 44 }));
+    const rows = []; let row = [], rowW = 0;
+    items.forEach(it => { const add = (row.length ? 16 : 0) + it.w; if (rowW + add > 936 && row.length) { rows.push(row); row = []; rowW = 0; } row.push(it); rowW += (row.length > 1 ? 16 : 0) + it.w; });
+    if (row.length) rows.push(row);
+    let ry = flowBottom + (cp ? 20 : 34);
+    rows.forEach(rw => {
+      const total = rw.reduce((s, it) => s + it.w, 0) + 16 * (rw.length - 1);
+      let px = (W - total) / 2;
+      rw.forEach(it => {
+        ctx.save(); ctx.shadowColor = 'rgba(0,42,36,.28)'; ctx.shadowBlur = 30; ctx.shadowOffsetY = 14;
+        ctx.fillStyle = '#ffffff'; shareRR(ctx, px, ry, it.w, chipH, chipH / 2); ctx.fill(); ctx.restore();
+        const ckCx = px + 16 + ck / 2, ckCy = ry + chipH / 2;
+        const ckg = ctx.createLinearGradient(ckCx - ck / 2, ckCy - ck / 2, ckCx + ck / 2, ckCy + ck / 2);
+        ckg.addColorStop(0, '#00b98d'); ckg.addColorStop(1, '#008f6d');
+        ctx.save(); ctx.beginPath(); ctx.fillStyle = ckg; ctx.shadowColor = 'rgba(0,150,110,.35)'; ctx.shadowBlur = 14; ctx.shadowOffsetY = 6;
+        ctx.arc(ckCx, ckCy, ck / 2, 0, Math.PI * 2); ctx.fill(); ctx.restore();
+        shareTxt(ctx, '✓', ckCx, ckCy + ck * 0.19, shareCtxFont(900, ck * 0.6), '#ffffff', { shadow: false });
+        shareTxt(ctx, it.text, px + 16 + ck + 13, ry + chipH / 2 + chipFont * 0.35, shareCtxFont(800, chipFont), '#22434f', { align: 'left', shadow: false });
+        px += it.w + 16;
+      });
+      ry += chipH + 16;
+    });
+    flowBottom = ry - 16;
+  }
+  /* línea de marca «ronbo.fit» (decisión §10: nunca el entrenador) */
+  const blCy = flowBottom + (cp ? 28 : 56);
+  const btPx = cp ? 27 : 36, bav = cp ? 48 : 64;
+  const btW = shareTextW(ctx, 'ronbo.fit', 900, btPx);
+  const gx = (W - (bav + 18 + btW)) / 2;
+  const bg4 = ctx.createLinearGradient(gx, blCy - bav / 2, gx + bav, blCy + bav / 2);
+  bg4.addColorStop(0, '#0b5a4c'); bg4.addColorStop(1, '#04382f');
+  ctx.save(); ctx.beginPath(); ctx.fillStyle = bg4; ctx.shadowColor = 'rgba(0,42,36,.40)'; ctx.shadowBlur = 22; ctx.shadowOffsetY = 10;
+  ctx.arc(gx + bav / 2, blCy, bav / 2, 0, Math.PI * 2); ctx.fill(); ctx.restore();
+  ctx.save(); ctx.beginPath(); ctx.lineWidth = 2; ctx.strokeStyle = 'rgba(255,255,255,.55)';
+  ctx.arc(gx + bav / 2, blCy, bav / 2 - 1, 0, Math.PI * 2); ctx.stroke(); ctx.restore();
+  shareTxt(ctx, 'R', gx + bav / 2, blCy + bav * 0.47 * 0.36 + 4, shareCtxFont(900, bav * 0.47), '#ffffff', { shadow: false });
+  shareTxt(ctx, 'ronbo.fit', gx + bav + 18, blCy + btPx * 0.35, shareCtxFont(900, btPx), '#ffffff', { align: 'left', shadowBlur: 12 });
+  shareBottom(ctx, W, H, t('share.phraseMonth'), !cp);
+}
+/* El mes sin actividad: el mismo vestido, con su estado
+   honesto — nunca cifras disfrazadas. */
+function shareDrawMonthEmpty(ctx, W, H, d) {
+  const cp = H < 1500;
+  shareBg(ctx, W, H);
+  const hy = cp ? 330 : 580;
+  const rg = ctx.createRadialGradient(W / 2, hy, 0, W / 2, hy, cp ? 300 : 430);
+  rg.addColorStop(0, 'rgba(255,170,40,.20)'); rg.addColorStop(1, 'rgba(255,170,40,0)');
+  ctx.fillStyle = rg; ctx.fillRect(0, 0, W, H);
+  shareBrand(ctx, W, cp ? 100 : 160, cp ? 42 : 54);
+  const chipPx = cp ? 27 : 32, chipTop = cp ? 148 : 234;
+  sharePill(ctx, W / 2, chipTop + (chipPx + 34) / 2, t('share.monthChip'), chipPx, { ls: 3 });
+  const chipBottom = chipTop + chipPx + 34;
+  shareTxt(ctx, recoMonthName(d.ym), W / 2, chipBottom + (cp ? 44 : 60), shareCtxFont(600, cp ? 24 : 32), 'rgba(255,255,255,.92)', { shadowBlur: 12 });
+  const midY = chipBottom + (cp ? 190 : 330);
+  shareTxt(ctx, '🗓️', W / 2, midY, shareCtxFont(400, cp ? 72 : 110, true), '#ffffff', { shadowBlur: 22 });
+  const lines = sgWrap(ctx, t('share.moEmpty'), 600, cp ? 30 : 40, 780);
+  lines.forEach((ln, i) => sgText(ctx, ln, W / 2, midY + (cp ? 90 : 140) + i * (cp ? 44 : 58), 600, cp ? 30 : 40, 'rgba(255,255,255,.94)', { align: 'center' }));
+  shareBottom(ctx, W, H, t('share.phraseStart'), !cp);
 }
 
 /* ============================================================
@@ -47494,6 +47726,15 @@ function shareOpenLogro(it) {
   SHARE.type = 'logro';
   shareOpen();
 }
+/* La puerta de «Tu mes» (Progreso): abre la hoja de compartir
+   en la tarjeta del mes DE ESA tarjeta (su mes cerrado), con
+   el mismo patrón que la puerta de los hitos. Sin mes fijado
+   (el chip de la hoja), la tarjeta pinta el mes en curso. */
+function shareOpenMonth(ym) {
+  SHARE.monthYm = /^\d{4}-\d{2}$/.test(ym || '') ? ym : null;
+  SHARE.type = 'month';
+  shareOpen();
+}
 function shareDrawLogroBase(ctx, W, H) {
   const square = H === W;
   const grd = ctx.createLinearGradient(0, 0, 0, H);
@@ -47583,6 +47824,16 @@ function shareRender() {
       (d.bestIdx >= 0 ? ' · ' + t('share.bestDay', { day: (SHARE_WD[LANG] || SHARE_WD.en)[d.bestIdx] }) : '') +
       (d.milestones.length ? ' · ' + d.milestones.join(' · ') : '') +
       ' · ' + (d.phrase === 'week' ? t('share.phraseWeek') : t('share.phraseStart')) + ' · ronbo.fit';
+  } else if (SHARE.type === 'month') {
+    const d = shareMonthData(SHARE.monthYm);
+    if (d.hasActivity) shareDrawMonth(ctx, W, H, d); else shareDrawMonthEmpty(ctx, W, H, d);
+    SHARE.fileName = 'ronbo-fit-month-' + d.ym + '.png';
+    summary = t('share.monthLab') + ' · ' + recoMonthName(d.ym) + ' · ' + d.activeDays + '/' + d.daysInMonth + ' ' + t('share.daysActive') +
+      ' · ' + d.sessions + ' ' + t('share.workouts') + ' · ' + fmt(d.minutesTotal) + ' ' + t('share.minActivity') +
+      ' · ' + d.mealsMonth + ' ' + t('share.meals') +
+      (d.fullWeeks > 0 ? ' · ' + t(d.fullWeeks === 1 ? 'share.moWeeksFull1' : 'share.moWeeksFull', { x: d.fullWeeks }) : '') +
+      (d.prs > 0 ? ' · ' + t(d.prs === 1 ? 'share.moPrs1' : 'share.moPrs', { x: d.prs }) : '') +
+      ' · ' + (d.phrase === 'month' ? t('share.phraseMonth') : t('share.phraseStart')) + ' · ronbo.fit';
   } else if (SHARE.type === 'today') {
     shareFranjaEnsure();
     const d = shareTodayData();
@@ -47635,7 +47886,7 @@ function shareRender() {
     ? 'ronbo-fit-workout-' + SHARE.workout.dateISO + '.png'
     : SHARE.type === 'goals' ? 'ronbo-fit-myday-' + todayISO() + '.png'
     : SHARE.type === 'short' ? 'ronbo-fit-dayshort-' + todayISO() + '.png'
-    : SHARE.type === 'trans' ? SHARE.fileName
+    : (SHARE.type === 'trans' || SHARE.type === 'month') ? SHARE.fileName
     : (SHARE.type === 'week' ? 'ronbo-fit-week-' : 'ronbo-fit-goal-') + todayISO() + '.png';
   SHARE.blob = null;
   shareRefreshShareBtn();
@@ -47667,9 +47918,10 @@ function shareDownload() {
 function shareSyncTypeUI() {
   const f = $('share-float'); if (!f) return;
   f.classList.toggle('share-workout-mode', SHARE.type === 'workout');
-  const bd = $('btn-share-day'), bw = $('btn-share-week'), bg = $('btn-share-goals'), bs = $('btn-share-short'), bt = $('btn-share-today'), bl = $('btn-share-logro'), bx = $('btn-share-trans');
+  const bd = $('btn-share-day'), bw = $('btn-share-week'), bm = $('btn-share-month'), bg = $('btn-share-goals'), bs = $('btn-share-short'), bt = $('btn-share-today'), bl = $('btn-share-logro'), bx = $('btn-share-trans');
   if (bd) bd.setAttribute('aria-pressed', SHARE.type === 'day' ? 'true' : 'false');
   if (bw) bw.setAttribute('aria-pressed', SHARE.type === 'week' ? 'true' : 'false');
+  if (bm) bm.setAttribute('aria-pressed', SHARE.type === 'month' ? 'true' : 'false');
   if (bg) bg.setAttribute('aria-pressed', SHARE.type === 'goals' ? 'true' : 'false');
   if (bs) bs.setAttribute('aria-pressed', SHARE.type === 'short' ? 'true' : 'false');
   if (bt) bt.setAttribute('aria-pressed', SHARE.type === 'today' ? 'true' : 'false');
@@ -47719,6 +47971,7 @@ document.addEventListener('keydown', e => { if (e.key === 'Escape') { const f = 
 document.addEventListener('keydown', e => { if (e.key === 'Escape') { const f = $('yt-float'); if (f && f.style.display !== 'none') ytClosePlayer(); } });
 { const b = $('btn-share-day'); if (b) b.addEventListener('click', () => shareSetType('day')); }
 { const b = $('btn-share-week'); if (b) b.addEventListener('click', () => shareSetType('week')); }
+{ const b = $('btn-share-month'); if (b) b.addEventListener('click', () => shareSetType('month')); }
 { const b = $('btn-share-goals'); if (b) b.addEventListener('click', () => shareSetType('goals')); }
 { const b = $('btn-share-short'); if (b) b.addEventListener('click', () => shareSetType('short')); }
 { const b = $('btn-share-today'); if (b) b.addEventListener('click', () => shareSetType('today')); }
@@ -47761,7 +48014,7 @@ document.addEventListener('keydown', e => { if (e.key === 'Escape') shareClose()
  *  - El SW (sw.js) solo cachea la cáscara del mismo origen en modo
  *    RED PRIMERO: Auth/Firestore/Worker jamás pasan por la caché.
  * ================================================================ */
-const PWA_SW_VERSION = '20261109-semana-completa';
+const PWA_SW_VERSION = '20261109-tarjeta-mes';
 /* Sello de versión VISIBLE (2026-11-03): el pie de la tarjeta de
    acceso enseña qué copia corre este teléfono ('v ' + el sello),
    para comprobar de un vistazo si la versión nueva ya llegó.
