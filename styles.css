@@ -4583,8 +4583,7 @@ body.swap-sheet-open .asst-fab { display: none !important; }
 .progress-priv-more { display: flex; align-items: center; gap: 4px; margin-left: auto; margin-top: 2px; background: none; border: none; padding: 10px 2px; min-height: 44px; color: #0d9488; font-weight: 700; font-size: 13px; font-family: inherit; cursor: pointer; }
 .progress-priv-full { margin: 8px 0 2px; background: #fbfdfd; border: 1px dashed #c4d8d5; border-radius: 12px; padding: 11px 12px; }
 
-/* ============ INSIGNIAS DE ROL (RONDA 4 APROBADA) ============
-   El disco de 30 px junto al nombre, como elemento propio —
+/* ============ INSIGNIAS DE ROL (RONDA 4 APROBADA) =====   El disco de 30 px junto al nombre, como elemento propio —
    nunca sobre la foto. La fila del nombre envuelve el nombre
    (que se sigue truncando con su ellipsis de siempre) y los
    discos, que nunca se encogen ni desplazan el nombre. */
@@ -4596,3 +4595,38 @@ body.swap-sheet-open .asst-fab { display: none !important; }
 .srow-nameline .srow-name { flex: 0 1 auto; min-width: 0; }
 .cgrid-nameline { display: flex; align-items: center; justify-content: center; gap: 5px; max-width: 100%; min-width: 0; }
 .cgrid-nameline .cgrid-name { flex: 0 1 auto; min-width: 0; }
+=======
+/* == TARJETA DEL EJERCICIO: PLANTILLA ÚNICA (2026-11-09 — reporte
+   en vivo de Ronald 00:38 CST: «sigue desordenado visualmente»):
+   la fila compacta deja de ser una sola línea de columnas que se
+   estrangulan entre sí y pasa a ser una columna de filas fijas —
+   (.train-ex-top) foto + nombre, (.train-ex-figs) cifras de HOY +
+   Hecho siempre a la derecha, (.train-ex-last) la última vez y la
+   franja de mover al pie. El nombre recupera su ancho (su fila ya
+   no compite con la foto, las cifras y el check a la vez) y los
+   cortes vuelven a ser SOLO entre palabras: se retira el
+   overflow-wrap:anywhere de AUTH-165, que partía «mancue-rnas» a
+   mitad de palabra. La foto crece a 64 px en todas las bandas (a
+   ≤480 la regla de AUTH-165 la bajaba a 32 px: se pintaba pero no
+   se VEÍA — la queja «siguen sin aparecer fotos»). La franja de
+   mover pierde el flex-basis:100% (en columna sería altura) y
+   ocupa su fila con width:100%. == */
+.train-ex-compact { flex-direction: column; align-items: stretch; gap: 8px; }
+.train-day-dressed .train-ex-compact { flex-direction: column; align-items: stretch; flex-wrap: nowrap; }
+.train-ex-compact .train-ex-name, .train-ex-compact .train-ex-spec { overflow-wrap: break-word; }
+.train-ex-top { display: flex; align-items: center; gap: 10px; width: 100%; min-width: 0; }
+.train-ex-compact .train-ex-photo { width: 64px; height: 64px; }
+.train-day-dressed .train-ex-compact .train-ex-photo { width: 64px; height: 64px; }
+.train-ex-figs { display: flex; align-items: center; justify-content: space-between; gap: 10px; width: 100%; }
+.train-ex-compact .train-ex-hist { margin-left: 0; padding-left: 0; }
+.train-ex-compact .train-ex-side { flex-direction: row; align-items: center; }
+.train-ex-last { width: 100%; font-size: 12.5px; line-height: 1.35; color: #5b6b82; }
+.train-ex-last-lab { font-weight: 700; }
+.train-day-dressed .train-ex-last { color: rgba(255,255,255,.82); }
+.train-ex-compact .train-ex-move { flex-basis: auto; width: 100%; margin-top: 0; }
+@media (max-width: 480px) {
+  .train-ex-top { gap: 8px; }
+  .train-ex-compact .train-ex-photo { width: 64px; height: 64px; }
+  .train-day-dressed .train-ex-compact .train-ex-photo { width: 64px; height: 64px; }
+}
+/* == FIN PLANTILLA ÚNICA DE TARJETA == */

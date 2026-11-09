@@ -5756,6 +5756,8 @@ en: {
   'train.histRec.loadMax': 'Max weight', 'train.histRec.none': 'No history',
   'train.histRec.setsToday': 'Sets today', 'train.histRec.repsToday': 'Reps today',
   'train.histRec.loadToday': 'Weight today',
+  'train.lastTime.card': 'Last time', 'train.lastTime.first': 'first time',
+  'train.lastTime.legacy': 'log without set detail', 'train.lastTime.max': 'max',
   /* INICIAR EJERCICIO + RUEDAS + APROXIMACIÓN (complemento de la
      ficha — 2026-10-30; maqueta v2 aprobada por Ronald): el botón
      de inicio, las ruedas de scroll (sin teclado) y el bloque de
@@ -9619,6 +9621,8 @@ es: {
   'train.histRec.loadMax': 'Peso máx', 'train.histRec.none': 'Sin historial',
   'train.histRec.setsToday': 'Series hoy', 'train.histRec.repsToday': 'Reps hoy',
   'train.histRec.loadToday': 'Peso hoy',
+  'train.lastTime.card': 'Última vez', 'train.lastTime.first': 'primera vez',
+  'train.lastTime.legacy': 'registro sin detalle de series', 'train.lastTime.max': 'máx',
   /* INICIAR EJERCICIO + RUEDAS + APROXIMACIÓN (complemento de la
      ficha — 2026-10-30; maqueta v2 aprobada por Ronald): el botón
      de inicio, las ruedas de scroll (sin teclado) y el bloque de
@@ -31515,17 +31519,32 @@ function trainExCompactHTML(ex, di, ei, mode, de, mv) {
   const spec = [ex.sets, ex.reps].filter(Boolean).join(' × ');
   const photo = trainExPhoto(ex);
   const thumb = !photo ? ytThumbOf(trainExVideo(ex)) : '';
-  return `<div class="train-ex-card train-ex-compact${chk || de ? ' is-done' : ''}">${photo ? `<img class="train-ex-photo" src="${esc(photo)}" alt="" loading="lazy" data-train-photo="${esc(photo)}">` : (thumb ? `<img class="train-ex-photo" src="${esc(thumb)}" alt="" loading="lazy" data-yt-fb="gone" onerror="ytThumbErr(this)">` : '')}
-    <div class="train-ex-info">
-      <div class="train-ex-name">${esc(trainExName(ex))}</div>
-      ${spec || ex.note ? `<div class="train-ex-spec">${esc(spec)}${ex.note ? `${spec ? ' · ' : ''}${esc(ex.note)}` : ''}</div>` : ''}
-    </div>
+  /* PLANTILLA ÚNICA (2026-11-09 — reporte de Ronald 00:38 CST: el
+     nombre estrangulado en una columna con las palabras partidas,
+     la cabecera de cifras flotando a mitad de tarjeta y «Hecho» en
+     un sitio distinto en cada tarjeta): la tarjeta se ordena en
+     filas fijas — (1) foto + nombre a todo el ancho que queda, con
+     cortes solo entre palabras; (2) la zona de cifras de HOY con
+     «Hecho» siempre a su derecha, en el mismo sitio en todas; (3)
+     la referencia de la última vez; (4) la franja de mover. En
+     modo ficha no hay sesión que resumir: la zona de cifras no se
+     pinta (eran guiones flotantes) y queda la última vez. */
+  const figs = mode === 'ficha' ? '' : `<div class="train-ex-figs">
     ${trainHistBlockHTML(mode === 'edit' ? trainSessionSummaryLive(chk) : (de ? trainSessionSummaryFromSets(de.sets) : null))}
     <div class="train-ex-side">${mode === 'edit'
       ? `<label class="train-ex-check"><input type="checkbox" data-train-check="${key}" ${chk ? 'checked' : ''}> <span>${t('train.view.exDone')}</span></label>`
       : mode === 'read'
         ? (de ? `<span class="ok-badge">✓ ${t('train.view.exDone')}${de.rpe ? ` · ${t('train.view.rpe')} ${esc(String(de.rpe))}` : ''}</span>` : '<span class="muted">—</span>')
         : ''}</div>
+  </div>`;
+  return `<div class="train-ex-card train-ex-compact${chk || de ? ' is-done' : ''}"><div class="train-ex-top">${photo ? `<img class="train-ex-photo" src="${esc(photo)}" alt="" loading="lazy" data-train-photo="${esc(photo)}">` : (thumb ? `<img class="train-ex-photo" src="${esc(thumb)}" alt="" loading="lazy" data-yt-fb="gone" onerror="ytThumbErr(this)">` : '')}
+    <div class="train-ex-info">
+      <div class="train-ex-name">${esc(trainExName(ex))}</div>
+      ${spec || ex.note ? `<div class="train-ex-spec">${esc(spec)}${ex.note ? `${spec ? ' · ' : ''}${esc(ex.note)}` : ''}</div>` : ''}
+    </div>
+  </div>
+    ${figs}
+    ${trainLastTimeCardHTML(ex, mode)}
     ${mode === 'edit' && mv ? `<div class="train-ex-move"><button type="button" class="train-ex-grip" data-train-grip="${ei}" aria-label="${esc(t('train.custom.move'))}">⠿</button><button type="button" class="btn-ghost train-ex-move-btn" data-train-move-up="${ei}" ${mv.first ? 'disabled' : ''}>▲ ${esc(t('train.custom.moveUp'))}</button><button type="button" class="btn-ghost train-ex-move-btn" data-train-move-down="${ei}" ${mv.last ? 'disabled' : ''}>▼ ${esc(t('train.custom.moveDown'))}</button></div>` : ''}
   </div>`;
 }
@@ -32759,16 +32778,23 @@ function trainHistLoadsRows(ex, allLogs) {
       if (!sets) { out.push({ date: log.date, legacy: true }); continue; }
       const withData = sets.filter(s => s && (typeof s.loadKg === 'number' || (s.repsDone != null && s.repsDone !== '')));
       if (!withData.length) continue;
+      /* TOTALES DE LA SESIÓN (2026-11-09, tarjeta del día): la suma
+         de repeticiones de las series con dato — la fila de la ficha
+         sigue pintando su detalle por serie; el total vive en la
+         fila para la referencia compacta de la tarjeta. */
+      let totalReps = null;
+      withData.forEach(s => { const rv = Number(s.repsDone); if (s.repsDone != null && s.repsDone !== '' && isFinite(rv)) totalReps = (totalReps == null ? 0 : totalReps) + rv; });
       const loadsKg = [];
       sets.forEach(s => { if (s && typeof s.loadKg === 'number' && s.loadKg > 0 && !loadsKg.includes(s.loadKg)) loadsKg.push(s.loadKg); });
       const reps = [];
       sets.forEach(s => { if (s && s.repsDone != null && s.repsDone !== '') reps.push(String(s.repsDone)); });
-      out.push({ date: log.date, legacy: false, n: withData.length, loadsKg, repsStr: reps.join('/') });
+      out.push({ date: log.date, legacy: false, n: withData.length, loadsKg, repsStr: reps.join('/'), totalReps });
     }
   }
   return out.map(r => r.legacy
     ? { dateShort: histShortDate(r.date), legacy: true }
     : { dateShort: histShortDate(r.date), legacy: false, n: r.n, repsStr: r.repsStr,
+        totalReps: r.totalReps, maxKg: r.loadsKg.length ? Math.max(...r.loadsKg) : null,
         loadsStr: r.loadsKg.length ? r.loadsKg.map(fmtMassVal).join(' / ') + ' ' + UNIT_PREFS.mass : '',
         maxStr: r.loadsKg.length ? fmtMassDual(Math.max(...r.loadsKg)) : '' });
 }
@@ -32781,7 +32807,40 @@ function trainHistLoadsHTML(ex, allLogs) {
     return `<div class="excard-hist-line">${t('train.histLoads.bodyLine', { date: r.dateShort, n: r.n, reps: r.repsStr })}</div>`;
   }).join('');
   return `<div class="excard-hist"><div class="excard-hist-title">${t('train.histLoads.title')}</div>${lines}</div>`;
+}/* LA ÚLTIMA VEZ EN LA TARJETA (2026-11-09 — reporte en vivo de
+   Ronald, chat RONBO.NUTRI 00:38 CST: «sigue sin aparecerme la
+   última cantidad total de series, repeticiones y peso»): la fila
+   compacta del día gana una línea de referencia con los TOTALES de
+   la última sesión cerrada (hecha o parcial) en la que el ejercicio
+   se realizó de verdad: n.º de series con dato, SUMA de
+   repeticiones y el mayor peso usado, etiquetado «máx» (el peso de
+   referencia honesto que sus registros guardan por serie). Se lee
+   del MISMO escaneo de la casa (trainHistLoadsRows: misma identidad
+   del realizado, mismo filtro de variantes, parada en la primera
+   sesión con detalle) sobre MY_LOGS_ALL — la lectura que la vista
+   ya hace: CERO lecturas y CERO escrituras nuevas. Sin historial:
+   «primera vez», sin cifras inventadas (la regla de AUTH-317);
+   historial solo legado (v1 sin series): la fecha y «sin detalle».
+   En modo lectura la línea NO se pinta: la tarjeta de un día
+   cerrado ya muestra las cifras de ESE día en su bloque. Si los
+   registros aún no cargaron (MY_LOGS_ALL sin poblar), la línea no
+   se pinta — jamás se afirma «primera vez» sin haberlos leído. No
+   confundir con trainLastTimeHTML (AUTH-257): aquella es el
+   detalle por serie de la ficha; esta es el total en la tarjeta. */
+function trainLastTimeCardHTML(ex, mode) {
+  if (mode !== 'edit' && mode !== 'ficha') return '';
+  if (typeof MY_LOGS_ALL === 'undefined' || !Array.isArray(MY_LOGS_ALL)) return '';
+  const rows = trainHistLoadsRows(ex, MY_LOGS_ALL);
+  const head = `<span class="train-ex-last-lab">${t('train.lastTime.card')}</span>`;
+  if (!rows.length) return `<div class="train-ex-last">${head}: ${t('train.lastTime.first')}</div>`;
+  const r = rows.find(x => !x.legacy);
+  if (!r) return `<div class="train-ex-last">${head} · ${esc(rows[0].dateShort)}: ${t('train.lastTime.legacy')}</div>`;
+  const segs = [`${r.n} ${t('train.histRec.sets').toLowerCase()}`];
+  if (r.totalReps != null) segs.push(`${r.totalReps} reps`);
+  if (r.maxKg != null) segs.push(`${fmtMass(r.maxKg)} ${t('train.lastTime.max')}`);
+  return `<div class="train-ex-last">${head} · ${esc(r.dateShort)}: ${esc(segs.join(' · '))}</div>`;
 }
+
 /* LA VEZ PASADA POR SERIE (AUTH-2026-11-05-257 — decisión de
    Ronald del 2026-11-05, que revisita D-H2 SOLO para la última
    sesión y SOLO como referencia visible entrenando): escaneo puro
@@ -46973,7 +47032,7 @@ document.addEventListener('keydown', e => { if (e.key === 'Escape') shareClose()
  *  - El SW (sw.js) solo cachea la cáscara del mismo origen en modo
  *    RED PRIMERO: Auth/Firestore/Worker jamás pasan por la caché.
  * ================================================================ */
-const PWA_SW_VERSION = '20261109-insignias-rol';
+const PWA_SW_VERSION = '20261109-tarjeta-ejercicio';
 /* Sello de versión VISIBLE (2026-11-03): el pie de la tarjeta de
    acceso enseña qué copia corre este teléfono ('v ' + el sello),
    para comprobar de un vistazo si la versión nueva ya llegó.
