@@ -5281,7 +5281,7 @@ en: {
   'aiMulti.estimated': 'Estimated',
   'access.title': '🔐 Access management',
   'access.sub': '· administrator only',
-  'access.hint': 'New accounts stay pending until you approve them. Only approved users can sign in, and each one sees only their own data.',
+  'access.hint': 'New accounts are active from the moment they sign up — no approval needed. Each user sees only their own data, and you can revoke access from here at any time.',
   'access.pending': 'Pending approval (',
   'access.users': 'Users with access',
   'access.loading': 'Loading…',
@@ -5605,10 +5605,10 @@ en: {
   'err.mealMissing': 'Missing date or food.',
   'err.mealPhotoFail': 'Couldn\'t upload the photo; saved without photo.',
   'err.weightMissing': 'Missing date or valid weight.',
-  'msg.accountCreated': 'Account created. It now waits for approval — see the note below.',
-  'reg.waitTitle': '✅ Your account was created — one step left: approval',
-  'reg.waitTrainer': 'Your account now waits for {name}, the trainer you chose, to approve it. Your trainer reviews new accounts personally; as soon as they approve you, just sign in with your email and password and you will go straight in — there is nothing else to send and no second form. We cannot promise an exact time: it depends on your trainer reviewing it. Meanwhile your account stays closed inside the app — that is normal, and nothing is wrong with your registration.',
-  'reg.waitAdmin': 'Your account now waits for approval: the administrator will assign you a trainer and approve your account. As soon as that happens, just sign in with your email and password and you will go straight in — there is nothing else to send and no second form. We cannot promise an exact time: it depends on the administrator reviewing it. Meanwhile your account stays closed inside the app — that is normal, and nothing is wrong with your registration.',
+  'msg.accountCreated': 'Account created and already active — see the note below.',
+  'reg.waitTitle': '✅ Your account was created — and it is already active',
+  'reg.waitTrainer': 'Your account is active from now: sign in with your email and password and you will go straight in — there is nothing else to send and no second form. {name}, the trainer you chose, is already linked to your account and can follow your progress from your first day.',
+  'reg.waitAdmin': 'Your account is active from now: sign in with your email and password and you will go straight in — there is nothing else to send and no second form. You start without a trainer: the administrator will assign you one, and meanwhile you can already use the app.',
   'msg.resetSent': 'Reset email sent. It contains a link (not a code): tap the link and set your new password on the page that opens. Check your spam folder too.',
   'msg.approved': 'User approved.',
   'msg.revoked': 'Access removed.',
@@ -9477,7 +9477,7 @@ es: {
   'aiMulti.estimated': 'Estimado',
   'access.title': '🔐 Administración de accesos',
   'access.sub': '· solo administrador',
-  'access.hint': 'Las cuentas nuevas quedan pendientes hasta que las apruebes. Solo los usuarios aprobados pueden entrar y cada uno ve únicamente sus datos.',
+  'access.hint': 'Las cuentas nuevas quedan activas desde que se registran: no necesitan aprobación. Cada usuario ve únicamente sus datos, y desde aquí puedes revocar un acceso en cualquier momento.',
   'access.pending': 'Pendientes de aprobación (',
   'access.users': 'Usuarios con acceso',
   'access.loading': 'Cargando…',
@@ -9801,10 +9801,10 @@ es: {
   'err.mealMissing': 'Faltan fecha o alimento.',
   'err.mealPhotoFail': 'No se pudo subir la foto; se guarda sin foto.',
   'err.weightMissing': 'Faltan fecha o peso válido.',
-  'msg.accountCreated': 'Cuenta creada. Ahora espera aprobación: lee la nota de abajo.',
-  'reg.waitTitle': '✅ Tu cuenta fue creada: falta un paso, la aprobación',
-  'reg.waitTrainer': 'Tu cuenta ahora espera a que {name}, el entrenador que elegiste, la apruebe. Tu entrenador revisa las cuentas nuevas personalmente; en cuanto te apruebe, entra con tu correo y tu contraseña y pasarás directo: no hay nada más que enviar ni un segundo formulario. No podemos prometer un plazo exacto: depende de que tu entrenador lo revise. Mientras tanto tu cuenta permanece cerrada dentro de la app: es normal y no hay nada malo en tu registro.',
-  'reg.waitAdmin': 'Tu cuenta ahora espera aprobación: el administrador te asignará un entrenador y aprobará tu cuenta. En cuanto eso ocurra, entra con tu correo y tu contraseña y pasarás directo: no hay nada más que enviar ni un segundo formulario. No podemos prometer un plazo exacto: depende de que el administrador lo revise. Mientras tanto tu cuenta permanece cerrada dentro de la app: es normal y no hay nada malo en tu registro.',
+  'msg.accountCreated': 'Cuenta creada y ya activa: lee la nota de abajo.',
+  'reg.waitTitle': '✅ Tu cuenta fue creada y ya está activa',
+  'reg.waitTrainer': 'Tu cuenta ya está activa: entra con tu correo y tu contraseña y pasarás directo — no hay nada más que enviar ni un segundo formulario. {name}, el entrenador que elegiste, ya quedó vinculado a tu cuenta y podrá seguir tu progreso desde tu primer día.',
+  'reg.waitAdmin': 'Tu cuenta ya está activa: entra con tu correo y tu contraseña y pasarás directo — no hay nada más que enviar ni un segundo formulario. Empiezas sin entrenador: el administrador te asignará uno, y mientras tanto ya puedes usar la app.',
   'msg.resetSent': 'Correo enviado. Contiene un enlace (no un código): toca el enlace y escribe tu nueva contraseña en la página que se abre. Revisa también tu carpeta de spam.',
   'msg.approved': 'Usuario aprobado.',
   'msg.revoked': 'Acceso retirado.',
@@ -13182,7 +13182,7 @@ async function regCreateAccount(pd) {
     const regBatch = writeBatch(db);
     regBatch.set(doc(db, 'users', cred.user.uid), {
       name, email, phone, gender, social: social || '',
-      role: 'usuario', isOwner: false, approved: false,
+      role: 'usuario', isOwner: false, approved: true,
       accountType,
       ...(isTrainerReg ? { roleRequest: 'entrenador' } : {}),
       ...(isTrainerReg ? {} : { modality, features: pd.purpose === 'cuenta' ? purposeFeaturesForUse(pd.use) : { ...ESC_FEATURE_DEFAULTS } }),
@@ -49309,7 +49309,7 @@ document.addEventListener('keydown', e => { if (e.key === 'Escape') shareClose()
  *  - El SW (sw.js) solo cachea la cáscara del mismo origen en modo
  *    RED PRIMERO: Auth/Firestore/Worker jamás pasan por la caché.
  * ================================================================ */
-const PWA_SW_VERSION = '20261109-guardar-se-nota';
+const PWA_SW_VERSION = '20261109-cuentas-activas';
 /* Sello de versión VISIBLE (2026-11-03): el pie de la tarjeta de
    acceso enseña qué copia corre este teléfono ('v ' + el sello),
    para comprobar de un vistazo si la versión nueva ya llegó.
@@ -49767,8 +49767,8 @@ const FAQ_SEED = [
    "es": "¿Cómo creo mi cuenta?"
   },
   "a": {
-   "en": "Go to https://fit.ronbo.store, choose to register and create your account with your email and a password. Your account starts as **pending approval**: you will be able to enter once your trainer or the administrator approves it.",
-   "es": "Entra a https://fit.ronbo.store, elige registrarte y crea tu cuenta con tu correo y una contraseña. Tu cuenta nace **pendiente de aprobación**: podrás entrar cuando tu entrenador o el administrador la apruebe."
+   "en": "Go to https://fit.ronbo.store, choose to register and create your account with your email and a password. Your account is **active from the moment you sign up**: you can enter right away — no approval is needed.",
+   "es": "Entra a https://fit.ronbo.store, elige registrarte y crea tu cuenta con tu correo y una contraseña. Tu cuenta queda **activa desde el momento en que te registras**: puedes entrar de inmediato, sin esperar ninguna aprobación."
   }
  },
  {
@@ -49780,8 +49780,8 @@ const FAQ_SEED = [
    "es": "Me registré pero todavía no puedo entrar. ¿Por qué?"
   },
   "a": {
-   "en": "Your approval is still pending — this is normal and protects who can enter. The moment you are approved, a welcome email is sent automatically from **ronbo.fit@gmail.com** and you can sign in.",
-   "es": "Tu aprobación sigue pendiente — es normal y protege quién puede entrar. En el momento en que te aprueban, sale automáticamente un correo de bienvenida desde **ronbo.fit@gmail.com** y ya puedes entrar."
+   "en": "Accounts are active from the moment they are created, so there is no approval wait. If you still cannot get in, check that you are using the same email and password you registered with and that you completed the email confirmation step; if it keeps failing, tell the administrator so they can check your account.",
+   "es": "Las cuentas quedan activas desde el momento en que se crean: no hay espera de aprobación. Si aun así no puedes entrar, comprueba que usas el mismo correo y la misma contraseña de tu registro y que completaste la confirmación de correo; si sigue fallando, avisa al administrador para que revise tu cuenta."
   }
  },
  {
@@ -50274,8 +50274,8 @@ const FAQ_SEED = [
    "es": "No me llegó el correo de bienvenida."
   },
   "a": {
-   "en": "First check your **spam/promotions** folders — the welcome is sent automatically from **ronbo.fit@gmail.com** the moment your account is approved. If it is nowhere, tell the administrator: from **Access** they can resend your approval notice with one tap.",
-   "es": "Primero revisa tus carpetas de **spam/promociones** — el welcome sale automáticamente desde **ronbo.fit@gmail.com** en el momento en que tu cuenta se aprueba. Si no aparece, avisa al administrador: desde **Accesos** puede reenviarte el aviso de aprobación con un toque."
+   "en": "First check your **spam/promotions** folders — the welcome is sent automatically from **ronbo.fit@gmail.com**. If it is nowhere, tell the administrator: from **Access** they can resend it with one tap.",
+   "es": "Primero revisa tus carpetas de **spam/promociones** — el welcome sale automáticamente desde **ronbo.fit@gmail.com**. Si no aparece, avisa al administrador: desde **Accesos** puede reenviártelo con un toque."
   }
  },
  {
