@@ -7885,6 +7885,17 @@ en: {
   'sched.actSave': 'Save',
   'sched.actCancel': 'Cancel',
   'sched.actCorrect': 'Fix the time',
+  'sched.fastBlock': 'Fasting',
+  'sched.fastAdd': '+ Add a fasting block',
+  'sched.fastRemove': 'Remove fasting block',
+  'sched.fastDur': 'Duration',
+  'sched.fastFrom': 'Fasting starts',
+  'sched.fastTo': 'Fasting ends',
+  'sched.fastNote': 'This block only organizes your day: it moves meal times, never amounts. Nothing here recommends fasting.',
+  'sched.fastBlocked': 'Your health declaration includes an eating disorder, so fasting blocks are not offered here. If organizing your eating times is something you want to review, please do it with your health professional or your trainer.',
+  'sched.fastUnchecked': 'Your health declaration could not be checked just now, so the fasting block is not shown. Try again later.',
+  'sched.actUneaten': 'Unmark',
+  'sched.why.fast': 'Moved outside the fasting block you set.',
   'sched.trainChangeBtn': 'I train at another time today',
   'sched.trainChangeTitle': 'Training at another time today',
   'sched.timeLabel': 'Time',
@@ -12099,6 +12110,17 @@ es: {
   'sched.actSave': 'Guardar',
   'sched.actCancel': 'Cancelar',
   'sched.actCorrect': 'Corregir la hora',
+  'sched.fastBlock': 'Ayuno',
+  'sched.fastAdd': '+ Añadir bloque de ayuno',
+  'sched.fastRemove': 'Quitar bloque de ayuno',
+  'sched.fastDur': 'Duración',
+  'sched.fastFrom': 'Empieza el ayuno',
+  'sched.fastTo': 'Termina el ayuno',
+  'sched.fastNote': 'Este bloque solo organiza tu día: mueve las horas de las comidas, nunca las cantidades. Nada aquí recomienda ayunar.',
+  'sched.fastBlocked': 'Tu declaración de salud incluye un trastorno alimentario, así que aquí no se ofrecen bloques de ayuno. Si quieres revisar cómo organizar tus horarios de comida, hazlo con tu profesional de salud o tu entrenador.',
+  'sched.fastUnchecked': 'Ahora mismo no se pudo comprobar tu declaración de salud, así que el bloque de ayuno no se muestra. Inténtalo más tarde.',
+  'sched.actUneaten': 'Desmarcar',
+  'sched.why.fast': 'Movida fuera del bloque de ayuno que pusiste.',
   'sched.trainChangeBtn': 'Hoy entreno a otra hora',
   'sched.trainChangeTitle': 'Hoy entreno a otra hora',
   'sched.timeLabel': 'Hora',
@@ -49654,7 +49676,7 @@ document.addEventListener('keydown', e => { if (e.key === 'Escape') shareClose()
  *  - El SW (sw.js) solo cachea la cáscara del mismo origen en modo
  *    RED PRIMERO: Auth/Firestore/Worker jamás pasan por la caché.
  * ================================================================ */
-const PWA_SW_VERSION = '20261109-registro-rapido';
+const PWA_SW_VERSION = '20261109-ayuno-horario';
 /* Sello de versión VISIBLE (2026-11-03): el pie de la tarjeta de
    acceso enseña qué copia corre este teléfono ('v ' + el sello),
    para comprobar de un vistazo si la versión nueva ya llegó.
@@ -54677,7 +54699,7 @@ function schedPrefsDefaults() {
   return { v: 1, workdays: [1, 2, 3, 4, 5], tolerance: '', remindersOn: false,
     breaksStrict: false, sleepMarginMin: 45,
     routine: { work: { wake: '', sleep: '', workFrom: '', workTo: '', breaks: [] }, free: { wake: '', sleep: '' } },
-    trainTimes: {} };
+    trainTimes: {}, fasting: null };
 }
 function schedStateDefaults() { return { days: {}, adjust: { preGapDeltaMin: 0, rangeWidenMin: 0 }, dismissed: {} }; }
 function schedDayStateDefaults() { return { pins: {}, eaten: {}, trainOverride: null, follow: { energy: 0, hunger: 0, digestion: 0, ease: 0 } }; }
@@ -54690,6 +54712,53 @@ let SCHED_PREFS = null, SCHED_STATE = null, SCHED_DAY = null, SCHED_INPUT = null
 let SCHED_PREFS_SAVED = false, SCHED_PRELOADED = false;
 const SCHED_UI = { mode: 'view', pinMeal: null, preview: null, previewTrain: null };
 const SCHED_GAP_BY_TOL = { fast: [45, 120], normal: [60, 180], slow: [120, 240] };
+/* ── AUTH-357 · Bloque «Ayuno» ────────────────────────────────────
+   DOCTRINA §8: el ayuno es SOLO una herramienta de organización
+   que el usuario pone si quiere; ningún texto lo recomienda, lo
+   sugiere, lo celebra ni lo prescribe, y jamás cambia cantidades
+   (solo mueve horas de la SUGERENCIA). FRENO DE SALUD (el de
+   AUTH-324, aplicado aquí tal cual): si la declaración ACTIVA del
+   propio usuario incluye trastorno alimentario — reconocido con
+   el MISMO patrón de texto normalizado de goalsHealthMap y de
+   gmFocusEdBlocked — el bloque NO se ofrece como función normal:
+   ni botón, ni atajos, ni grupo en «Mis datos»; en su lugar va la
+   nota de derivación (sched.fastBlocked) y el motor recibe
+   fasting:null aunque hubiera un ayuno guardado de antes (el dato
+   no se borra: deja de ofrecerse y de aplicarse). Si la
+   declaración no se puede comprobar, el freno manda igual:
+   no se ofrece y se dice por qué (sched.fastUnchecked). */
+function schedFastBlocked(conds) { return (conds || []).some(c => /trastorno|eating disorder|anorex|bulim/.test(goalsNorm(c))); }
+function schedFastDurTo(fromHM, durH) {
+  const m = pendParseHM(fromHM);
+  if (m == null || !isFinite(m)) return '';
+  const tot = ((m + durH * 60) % 1440 + 1440) % 1440;
+  return String(Math.floor(tot / 60)).padStart(2, '0') + ':' + String(tot % 60).padStart(2, '0');
+}
+/* Por defecto al añadir: empieza a la hora de dormir del usuario
+   (la de su rutina, si la dio) y dura 16 h; editable en el acto. */
+function schedFastDefault(p) {
+  const r = (p && p.routine) ? (((p.workdays || []).length ? p.routine.work : p.routine.free) || {}) : {};
+  const from = (r && r.sleep) || '20:00';
+  return { from, to: schedFastDurTo(from, 16) };
+}
+/* Lee la declaración ACTIVA del PROPIO usuario por la vía del
+   dueño: la ya cargada por la app si su carga terminó bien
+   (declLoadState 'ok' + activeDecl), y si no, fetchDeclarations
+   propio. Devuelve {blocked, unknown}: un fallo de lectura es
+   unknown (freno aplicado), jamás una ausencia fingida. */
+async function schedFastGateLoad(me) {
+  try {
+    let conds = null;
+    if (typeof declLoadState !== 'undefined' && declLoadState === 'ok' && typeof activeDecl === 'function') {
+      const ad = activeDecl(); conds = ad ? (ad.conditions || []) : [];
+    } else if (typeof fetchDeclarations === 'function') {
+      const ds = await fetchDeclarations(me);
+      const ad = (ds || []).find(d => d.state === 'active');
+      conds = ad ? (ad.conditions || []) : [];
+    } else return { blocked: false, unknown: true };
+    return { blocked: schedFastBlocked(conds), unknown: false };
+  } catch { return { blocked: false, unknown: true }; }
+}
 /* Heurística de PRODUCTO (no evidencia científica): umbral
    operativo SOLO para decidir si la comida posterior cita la
    línea educativa 3 («si ya comiste proteína antes de entrenar,
@@ -54773,6 +54842,14 @@ function schedComputeDay(inp) {
   }
   if (inp.isWorkday && !work) missing.push('work');
   if (inp.isWorkday && work && !work.breaks.length) missing.push('breaks');
+  /* Ayuno (AUTH-357): la ventana que el PROPIO usuario puso, en el
+     mismo marco del día (su fin puede pasar de medianoche). Sin
+     ventana válida no hay bloque y todo sigue como siempre. */
+  let fastBlock = null;
+  if (inp.fasting && inp.fasting.from && inp.fasting.to) {
+    const ff = F(inp.fasting.from); let ft = F(inp.fasting.to);
+    if (ff != null && ft != null && ft !== ff) { if (ft <= ff) ft += 1440; fastBlock = { from: ff, to: ft }; }
+  }
   /* Sesiones de entrenamiento (1 o 2) en el marco. */
   const sessions = (inp.sessions || []).filter(s => s && s.time).map(s => {
     const st = N(F(s.time));
@@ -54963,6 +55040,38 @@ function schedComputeDay(inp) {
       if (!hitsTrain && !hitsWork) { last.from = nf; last.to = nt; last.moved = true; if (!last.whyKey) last.whyKey = 'sleep'; }
     }
   }
+  /* 8) Ayuno: ninguna comida SIN fijar se sugiere dentro de la
+        ventana de ayuno del propio usuario: se mueve a la ventana
+        de alimentación — el lado factible (dentro del span
+        despierto) más cercano a su centro — conservando la
+        duración de su rango y SIN tocar cantidades: kcal, macros
+        y gramos salen idénticos a como entraron (la doctrina de
+        siempre de este motor). Las fijadas por el usuario y las
+        ya comidas NO se mueven: son su decisión o un hecho, no
+        una sugerencia. */
+  if (fastBlock) {
+    const occupied = meals.filter(m => m.fixedF != null && m.from != null).map(m => [m.from, m.to]);
+    meals.forEach(m => {
+      if (m.fixedF != null || m.from == null) return;
+      if (m.to <= fastBlock.from || m.from >= fastBlock.to) { occupied.push([m.from, m.to]); return; }
+      const len = Math.max(30, m.to - m.from);
+      const center = (m.from + m.to) / 2;
+      const sides = [];
+      const bF = fastBlock.from - len, bT = fastBlock.from;
+      if (!hasRoutine || bF >= wakeF) sides.push({ f: bF, t: bT, d: Math.abs((bF + bT) / 2 - center), dir: -1 });
+      const aF = fastBlock.to, aT = fastBlock.to + len;
+      if (!hasRoutine || aT <= sleepF) sides.push({ f: aF, t: aT, d: Math.abs((aF + aT) / 2 - center), dir: 1 });
+      if (!sides.length) sides.push({ f: aF, t: aT, d: 0, dir: 1 });
+      sides.sort((x, y) => x.d - y.d);
+      let nf = sides[0].f, nt = sides[0].t; const dir = sides[0].dir;
+      for (let k = 0; k < 8; k++) {
+        if (!occupied.some(o => nf < o[1] && nt > o[0])) break;
+        nf += 15 * dir; nt += 15 * dir;
+      }
+      m.from = nf; m.to = nt; m.moved = true; m.whyKey = 'fast'; m.fastMoved = true;
+      occupied.push([m.from, m.to]);
+    });
+  }
   /* Educación por comida sin relación: rotación determinista de las
      líneas 1 y 4; en día de descanso manda la 4 (encaje con tu día). */
   meals.forEach(m => {
@@ -54976,7 +55085,7 @@ function schedComputeDay(inp) {
     orientationOnly: !hasRoutine || planSource === 'none',
     restBlock, workBlock: work, sessions,
     trainBlock: inp.isTrainDay ? (trainKnown ? { from: sessions[0].from, to: sessions[sessions.length - 1].to } : { noTime: true }) : null,
-    meals, conflicts, totals: inp.dayTotals ? { kcal: inp.dayTotals.kcal, prot: inp.dayTotals.prot } : null,
+    fastBlock, meals, conflicts, totals: inp.dayTotals ? { kcal: inp.dayTotals.kcal, prot: inp.dayTotals.prot } : null,
     provisional: !!(inp.routine && (inp.routine.wakeProv || inp.routine.sleepProv)) };
 }
 /* Redistribución EXPLÍCITA (solo para previsualizar una propuesta):
@@ -55058,8 +55167,10 @@ function schedReminderTimes(result, remindersOn) {
   const rest = result.restBlock;
   const alt = rest ? { from: rest.from + 1440, to: rest.to + 1440 } : null;
   const inRest = f => (rest && f >= rest.from && f < rest.to) || (alt && f >= alt.from && f < alt.to);
+  const fbR = result.fastBlock || null;
+  const inFast = f => !!fbR && f >= fbR.from && f < fbR.to;
   return result.meals.filter(m => m.fixedF == null && m.from != null)
-    .map(m => ({ name: m.name, at: m.from })).filter(r => !inRest(r.at));
+    .map(m => ({ name: m.name, at: m.from })).filter(r => !inRest(r.at) && !inFast(r.at));
 }
 
 /* ── Carga y guardado (solo la sesión del propio usuario) ─────── */
@@ -55074,6 +55185,7 @@ async function schedLoadOwn() {
   SCHED_PREFS.routine.free = Object.assign(schedPrefsDefaults().routine.free, (p.routine || {}).free || {});
   if (!Array.isArray(SCHED_PREFS.routine.work.breaks)) SCHED_PREFS.routine.work.breaks = [];
   if (!Array.isArray(SCHED_PREFS.workdays)) SCHED_PREFS.workdays = [1, 2, 3, 4, 5];
+  if (!SCHED_PREFS.fasting || !SCHED_PREFS.fasting.from || !SCHED_PREFS.fasting.to) SCHED_PREFS.fasting = null;
   SCHED_STATE = Object.assign(schedStateDefaults(), ss.exists() ? ss.data() : {});
   if (!SCHED_STATE.days) SCHED_STATE.days = {};
   if (!SCHED_STATE.adjust) SCHED_STATE.adjust = { preGapDeltaMin: 0, rangeWidenMin: 0 };
@@ -55211,7 +55323,9 @@ async function schedGather() {
       else if (spanSleepClock != null && v.date === pendISO && mins >= cut && mins < spanSleepClock) logged.push({ name: v.meal, frameMin: mins + 1440, kcal: v.kcal != null ? Number(v.kcal) : null });
     });
   } catch {}
+  const fastGate = await schedFastGateLoad(me);
   Object.assign(SCHED_CTX, { ready: true, me, cfg, cut, regISO, pendISO, weekday, wishes, isTrainDay, trainLabel,
+    fastBlocked: fastGate.blocked, fastUnknown: fastGate.unknown,
     dayLevel: lvl.dayLevel, mealsIn, dayTotals, pendTimes, logged,
     objective: (typeof UDATA !== 'undefined' && UDATA && UDATA.goalObjective) || null });
   schedRecompute();
@@ -55238,7 +55352,8 @@ function schedBuildInput() {
     tolerance: p.tolerance || '', sessions, pins: day.pins, eaten: day.eaten, logged: c.logged,
     pendTimes: c.pendTimes, cutoffMin: c.cut,
     breaksStrict: isWorkday && !!p.breaksStrict, sleepMarginMin: p.sleepMarginMin,
-    preGapDeltaMin: SCHED_STATE.adjust.preGapDeltaMin || 0, rangeWidenMin: SCHED_STATE.adjust.rangeWidenMin || 0 };
+    preGapDeltaMin: SCHED_STATE.adjust.preGapDeltaMin || 0, rangeWidenMin: SCHED_STATE.adjust.rangeWidenMin || 0,
+    fasting: (c.fastBlocked || c.fastUnknown) ? null : (p.fasting || null) };
 }
 function schedRecompute() { SCHED_INPUT = schedBuildInput(); SCHED_DAY = schedComputeDay(SCHED_INPUT); return SCHED_DAY; }
 function schedNowHHMM() { const d = new Date(); return String(d.getHours()).padStart(2, '0') + ':' + String(d.getMinutes()).padStart(2, '0'); }
@@ -55275,6 +55390,19 @@ function schedFmtRange(m) {
 function schedMealHTML(m, r) {
   const day = schedDayState(SCHED_CTX.regISO);
   const isPin = !!day.pins[m.name], isEaten = !!day.eaten[m.name] || m.fixedF != null && !isPin;
+  /* AUTH-357 · «YA COMÍ» QUE SE PLIEGA: una comida marcada con
+     «Ya comí» (day.eaten propio, no la deducida del registro) se
+     pliega a UNA línea — casilla de verificación roja de la casa
+     (.mp-q-check, la del «Registro rápido» de AUTH-356) — y solo
+     se despliega al tocarla (mode 'eatenopen'), donde viven
+     «Corregir la hora» y «Desmarcar». En edición (eatenfix) o
+     desplegada no se pliega. */
+  const explicitEaten = !!day.eaten[m.name];
+  const editingThis = (SCHED_UI.mode === 'pin' || SCHED_UI.mode === 'eatenfix') && SCHED_UI.pinMeal === m.name;
+  const eatenOpen = explicitEaten && SCHED_UI.mode === 'eatenopen' && SCHED_UI.pinMeal === m.name;
+  if (explicitEaten && !editingThis && !eatenOpen) {
+    return `<div class="sched-meal eaten-folded"><button type="button" class="sched-fold-line" data-sched-act="eaten-open" data-meal="${esc(m.name)}"><span class="mp-q-check" aria-hidden="true">✓</span><span class="sched-fold-txt">${esc(mealName(m.name))} · ${esc(t('sched.eatenTag', { time: day.eaten[m.name].at }))}</span><span class="sched-fold-chev">▾</span></button></div>`;
+  }
   let h = `<div class="sched-meal${m.relation === 'pre' || m.relation === 'post' ? ' near-train' : ''}">`;
   h += `<div class="sched-meal-top"><span class="sched-meal-name">${esc(mealName(m.name))}</span>`;
   if (isPin) h += `<span class="sched-tag pin">${esc(t('sched.pinnedTag'))}</span>`;
@@ -55289,11 +55417,33 @@ function schedMealHTML(m, r) {
     const cur = SCHED_UI.mode === 'eatenfix' ? (day.eaten[m.name] ? day.eaten[m.name].at : (m.eatenAt || '')) : (day.pins[m.name] || (m.from != null ? pendFmtHM(m.from) : ''));
     h += `<div class="sched-edit"><label>${esc(t('sched.timeLabel'))}<input type="time" id="sched-edit-time" value="${esc(cur)}"></label><div class="sched-actions"><button type="button" class="btn-primary sched-btn" data-sched-act="edit-save" data-meal="${esc(m.name)}">${esc(t('sched.actSave'))}</button><button type="button" class="btn-ghost sched-btn" data-sched-act="edit-cancel">${esc(t('sched.actCancel'))}</button></div></div>`;
   } else if (m.eatenAt) {
-    h += `<div class="sched-actions"><button type="button" class="btn-ghost sched-btn" data-sched-act="eatenfix-open" data-meal="${esc(m.name)}">${esc(t('sched.actCorrect'))}</button></div>`;
+    h += `<div class="sched-actions"><button type="button" class="btn-ghost sched-btn" data-sched-act="eatenfix-open" data-meal="${esc(m.name)}">${esc(t('sched.actCorrect'))}</button>${explicitEaten ? `<button type="button" class="btn-ghost sched-btn" data-sched-act="uneaten" data-meal="${esc(m.name)}">${esc(t('sched.actUneaten'))}</button>` : ''}</div>`;
   } else {
+    const inlVal = SCHED_UI.inlineErrMeal === m.name ? (SCHED_UI.inlineVal || '') : (day.pins[m.name] || (m.from != null ? pendFmtHM(m.from) : ''));
+    h += `<div class="sched-edit sched-inline"><label>${esc(t('sched.timeLabel'))}<input type="time" class="sched-inline-time" data-inline-meal="${esc(m.name)}" value="${esc(inlVal)}"></label><button type="button" class="btn-primary sched-btn" data-sched-act="inline-save" data-meal="${esc(m.name)}">${esc(t('sched.actSave'))}</button></div>`;
     h += `<div class="sched-actions"><button type="button" class="btn-primary sched-btn" data-sched-act="eaten" data-meal="${esc(m.name)}">✓ ${esc(t('sched.actEaten'))}</button><button type="button" class="btn-ghost sched-btn" data-sched-act="pin-open" data-meal="${esc(m.name)}">${esc(t('sched.actChange'))}</button>${isPin ? `<button type="button" class="btn-ghost sched-btn" data-sched-act="unpin" data-meal="${esc(m.name)}">${esc(t('sched.unpin'))}</button>` : ''}</div>`;
   }
   return h + '</div>';
+}
+function schedFastBlockHTML(r) {
+  const fb = r.fastBlock; const p = SCHED_PREFS || {};
+  const fromHM = (p.fasting && p.fasting.from) || pendFmtHM(fb.from), toHM = (p.fasting && p.fasting.to) || pendFmtHM(fb.to);
+  const tryV = SCHED_UI.fastTry || null;
+  let h = `<div class="sched-block fast">⏳ <b>${esc(t('sched.fastBlock'))}</b> · ${pendFmtHM(fb.from)}–${pendFmtHM(fb.to)}`;
+  h += `<div class="sched-edit sched-fast-edit"><label>${esc(t('sched.fastFrom'))}<input type="time" class="sched-fast-from" value="${esc(tryV ? tryV.from : fromHM)}"></label><label>${esc(t('sched.fastTo'))}<input type="time" class="sched-fast-to" value="${esc(tryV ? tryV.to : toHM)}"></label><button type="button" class="btn-primary sched-btn" data-sched-act="fast-save">${esc(t('sched.actSave'))}</button></div>`;
+  h += `<div class="sched-actions"><span class="sched-fast-durlab">${esc(t('sched.fastDur'))}</span>${[12, 14, 16, 18].map(n => `<button type="button" class="sched-tol" data-sched-fast-dur-live="${n}">${n} h</button>`).join('')}<button type="button" class="btn-ghost sched-btn" data-sched-act="fast-del">${esc(t('sched.fastRemove'))}</button></div>`;
+  h += `<p class="sched-why">${esc(t('sched.fastNote'))}</p></div>`;
+  return h;
+}
+/* La zona del ayuno cuando NO hay bloque pintado: con el freno de
+   salud puesto va la nota de derivación (nunca el botón); si la
+   declaración no se pudo comprobar, la nota de no comprobado; si
+   no, el botón de añadir con un toque y la nota neutra de §8. */
+function schedFastZoneHTML() {
+  if (SCHED_DAY && SCHED_DAY.fastBlock) return '';
+  if (SCHED_CTX.fastBlocked) return `<div class="sched-note warn">${esc(t('sched.fastBlocked'))}</div>`;
+  if (SCHED_CTX.fastUnknown) return `<div class="sched-note warn">${esc(t('sched.fastUnchecked'))}</div>`;
+  return `<button type="button" class="btn-ghost sched-wide" data-sched-act="fast-add">⏳ ${esc(t('sched.fastAdd'))}</button><p class="progress-hint">${esc(t('sched.fastNote'))}</p>`;
 }
 function schedSheetHTML() {
   const r = SCHED_DAY, c = SCHED_CTX, day = schedDayState(c.regISO);
@@ -55334,10 +55484,12 @@ function schedSheetHTML() {
   }
   if (r.trainBlock && !r.trainBlock.noTime) items.push({ f: r.trainBlock.from, html: `<div class="sched-block train">🏋️ <b>${esc(t('sched.trainBlock'))}</b> · ${pendFmtHM(r.trainBlock.from)}–${pendFmtHM(r.trainBlock.to)}${r.trainLabel ? ' · ' + esc(r.trainLabel) : ''}</div>` });
   if (r.trainBlock && r.trainBlock.noTime) items.push({ f: -1, html: `<div class="sched-block train">🏋️ <b>${esc(t('sched.trainBlock'))}</b> · ${esc(t('sched.trainNoTime'))}${r.trainLabel ? ' · ' + esc(r.trainLabel) : ''}</div>` });
+  if (r.fastBlock) items.push({ f: r.fastBlock.from, html: schedFastBlockHTML(r) });
   if (!r.isTrainDay) items.push({ f: -1, html: `<div class="sched-block rest">🌿 ${esc(r.dayLevel === 'descanso' ? t('sched.freeDay') : t('sched.noTrainDay'))}</div>` });
   r.meals.forEach(m => items.push({ f: m.from != null ? m.from : 99999, html: schedMealHTML(m, r) }));
   items.sort((a, b) => a.f - b.f);
   h += items.map(i => i.html).join('');
+  h += schedFastZoneHTML();
   /* Cambio de hora de entrenamiento de hoy: vista previa primero. */
   if (r.isTrainDay) {
     if (SCHED_UI.mode === 'train') {
@@ -55482,6 +55634,8 @@ function schedCollectDraft() {
     const time2 = g('sched-pf-tt2-' + wd), dur2 = parseInt(g('sched-pf-td2-' + wd), 10);
     if (time || time2) d.trainTimes[String(wd)] = { time, durMin: dur || 60, time2, dur2Min: dur2 || 60 };
   }
+  const ffEl = $('sched-pf-fast-from'), ftEl = $('sched-pf-fast-to');
+  if (ffEl && ftEl && ffEl.value && ftEl.value) d.fasting = { from: ffEl.value, to: ftEl.value };
   const rem = $('sched-pf-rem'); if (rem) d.remindersOn = !!rem.checked;
   const bs = $('sched-pf-brkstrict'); if (bs) d.breaksStrict = !!bs.checked;
   return d;
@@ -55516,6 +55670,24 @@ function schedPrefsHTML() {
   h += `<div class="sched-pf-group"><span class="sched-pf-label">${esc(t('sched.pf.tolerance'))}</span><div class="sched-tols">${['fast', 'normal', 'slow'].map(k => `<button type="button" class="sched-tol${d.tolerance === k ? ' on' : ''}" data-sched-tol="${k}">${esc(t('sched.tol.' + k))}</button>`).join('')}</div></div>`;
   h += `<label class="sched-pf-check"><input type="checkbox" id="sched-pf-brkstrict"${d.breaksStrict ? ' checked' : ''}> ${esc(t('sched.pf.breaksStrict'))}</label>`;
   h += `<div class="sched-pf-group"><span class="sched-pf-label">${esc(t('sched.pf.sleepMargin'))}</span><div class="sched-tols">${[30, 45, 60].map(n => `<button type="button" class="sched-tol${(d.sleepMarginMin || 45) === n ? ' on' : ''}" data-sched-marg="${n}">${n} min</button>`).join('')}</div></div>`;
+  /* AUTH-357 · Ayuno en «Mis datos»: el MISMO freno que en la
+     lista — con trastorno alimentario declarado (o sin poder
+     comprobar la declaración) no se ofrece; el dato guardado no
+     se borra, solo deja de ofrecerse y de aplicarse. */
+  if (SCHED_CTX.fastBlocked) {
+    h += `<div class="sched-pf-group"><span class="sched-pf-label">⏳ ${esc(t('sched.fastBlock'))}</span><p class="progress-hint">${esc(t('sched.fastBlocked'))}</p></div>`;
+  } else if (SCHED_CTX.fastUnknown) {
+    h += `<div class="sched-pf-group"><span class="sched-pf-label">⏳ ${esc(t('sched.fastBlock'))}</span><p class="progress-hint">${esc(t('sched.fastUnchecked'))}</p></div>`;
+  } else if (d.fasting && d.fasting.from && d.fasting.to) {
+    h += `<div class="sched-pf-group"><span class="sched-pf-label">⏳ ${esc(t('sched.fastBlock'))}</span>`
+      + timeRow('sched-pf-fast-from', t('sched.fastFrom'), d.fasting.from)
+      + timeRow('sched-pf-fast-to', t('sched.fastTo'), d.fasting.to)
+      + `<div class="sched-tols">${[12, 14, 16, 18].map(n => `<button type="button" class="sched-tol" data-sched-fast-dur="${n}">${n} h</button>`).join('')}</div>`
+      + `<button type="button" class="btn-ghost sched-btn" data-sched-act="fast-del-draft">${esc(t('sched.fastRemove'))}</button>`
+      + `<p class="progress-hint">${esc(t('sched.fastNote'))}</p></div>`;
+  } else {
+    h += `<div class="sched-pf-group"><span class="sched-pf-label">⏳ ${esc(t('sched.fastBlock'))}</span><button type="button" class="btn-ghost sched-btn" data-sched-act="fast-add-draft">${esc(t('sched.fastAdd'))}</button><p class="progress-hint">${esc(t('sched.fastNote'))}</p></div>`;
+  }
   h += `<label class="sched-pf-check"><input type="checkbox" id="sched-pf-rem"${d.remindersOn ? ' checked' : ''}> ${esc(t('sched.pf.reminders'))}</label>`;
   h += `<button type="button" class="btn-primary sched-wide" data-sched-act="prefs-save">${esc(SCHED_UI.savedFlash ? t('sched.pf.saved') : t('sched.pf.save'))}</button>`;
   h += '</div></details>';
@@ -55619,6 +55791,75 @@ async function schedAct(b) {
     }
     await schedPersist(schedSaveState); schedRecompute(); schedPaintSheet(); return;
   }
+  if (act === 'eaten-open') { SCHED_UI.mode = 'eatenopen'; SCHED_UI.pinMeal = meal; schedPaintSheet(); return; }
+  if (act === 'uneaten') {
+    /* DESMARCAR (AUTH-357): borra day.eaten[meal] y la comida
+       vuelve a pendiente. Si la escritura falla, la marca se
+       restaura y la hoja lo dice (banner sched.saveError): la
+       comida NO se da por desmarcada en silencio. */
+    const prevEaten = day.eaten[meal];
+    delete day.eaten[meal];
+    const okU = await schedPersist(schedSaveState);
+    if (!okU) { if (prevEaten) day.eaten[meal] = prevEaten; schedPaintSheet(); return; }
+    SCHED_UI.mode = 'view'; schedRecompute(); schedPaintSheet(); return;
+  }
+  if (act === 'inline-save') {
+    /* Edición EN LÍNEA (AUTH-357): la hora tecleada en la propia
+       fila de la lista se guarda como fijación (la misma vía
+       pins→schedSaveState de siempre), sin abrir la tarjeta
+       grande. Doctrina AUTH-350: con éxito la hoja se repinta con
+       la hora nueva («Fijada por ti»); con fallo, la fila se
+       queda con la hora tecleada (inlineErrMeal/inlineVal) y el
+       banner de error de la hoja. Sin hora no hay guardado. */
+    let v = '';
+    document.querySelectorAll('.sched-inline-time').forEach(el => { if (el.getAttribute('data-inline-meal') === meal) v = el.value || ''; });
+    if (!v) return;
+    day.pins[meal] = v;
+    const okI = await schedPersist(schedSaveState);
+    if (!okI) { SCHED_UI.inlineErrMeal = meal; SCHED_UI.inlineVal = v; schedPaintSheet(); return; }
+    SCHED_UI.inlineErrMeal = null; SCHED_UI.inlineVal = null;
+    schedRecompute(); schedPaintSheet(); return;
+  }
+  if (act === 'fast-add' || act === 'fast-add-draft') {
+    /* Añadir el bloque con UN toque: en la lista persiste en el
+       acto (vía schedSavePrefs de siempre, con su doctrina
+       AUTH-350: si falla, se restaura y nada se da por guardado);
+       en «Mis datos» solo entra en el borrador, como todo allí.
+       Con el freno de salud puesto no se ofrece: ni caso. */
+    if (SCHED_CTX.fastBlocked || SCHED_CTX.fastUnknown) { schedPaintSheet(); return; }
+    if (act === 'fast-add-draft') { const d = schedCollectDraft(); d.fasting = schedFastDefault(d); SCHED_UI.prefsOpen = true; schedPaintSheet(); return; }
+    const prevF = SCHED_PREFS.fasting || null;
+    SCHED_PREFS.fasting = schedFastDefault(SCHED_PREFS);
+    const okF = await schedPersist(schedSavePrefs);
+    if (!okF) { SCHED_PREFS.fasting = prevF; schedPaintSheet(); return; }
+    SCHED_PREFS_SAVED = true; toast(t('sched.pf.saved'));
+    schedRecompute(); schedPaintSheet(); return;
+  }
+  if (act === 'fast-del' || act === 'fast-del-draft') {
+    /* Quitar el bloque con UN toque (en «Mis datos», del
+       borrador). Misma doctrina de persistencia que fast-add. */
+    if (act === 'fast-del-draft') { const d = schedCollectDraft(); d.fasting = null; SCHED_UI.prefsOpen = true; schedPaintSheet(); return; }
+    const prevF = SCHED_PREFS.fasting || null;
+    SCHED_PREFS.fasting = null;
+    const okF = await schedPersist(schedSavePrefs);
+    if (!okF) { SCHED_PREFS.fasting = prevF; schedPaintSheet(); return; }
+    toast(t('sched.pf.saved'));
+    schedRecompute(); schedPaintSheet(); return;
+  }
+  if (act === 'fast-save') {
+    /* Guardar las horas del bloque desde su fila en la lista.
+       Con fallo, las horas tecleadas se quedan en la fila
+       (SCHED_UI.fastTry) y el banner lo dice. */
+    const fEl = document.querySelector('.sched-fast-from'), tEl = document.querySelector('.sched-fast-to');
+    const fv = fEl ? fEl.value : '', tv = tEl ? tEl.value : '';
+    if (!fv || !tv) return;
+    const prevF = SCHED_PREFS.fasting || null;
+    SCHED_PREFS.fasting = { from: fv, to: tv };
+    const okF = await schedPersist(schedSavePrefs);
+    if (!okF) { SCHED_PREFS.fasting = prevF; SCHED_UI.fastTry = { from: fv, to: tv }; schedPaintSheet(); return; }
+    SCHED_UI.fastTry = null; toast(t('sched.pf.saved'));
+    schedRecompute(); schedPaintSheet(); return;
+  }
   if (act === 'brk-add') { const d = schedCollectDraft(); d.routine.work.breaks.push({ from: '', to: '' }); SCHED_UI.prefsOpen = true; schedPaintSheet(); return; }
   if (act === 'brk-del') { const d = schedCollectDraft(); d.routine.work.breaks.splice(parseInt(b.getAttribute('data-i'), 10), 1); SCHED_UI.prefsOpen = true; schedPaintSheet(); return; }
   if (act === 'prefs-save') {
@@ -55675,6 +55916,29 @@ document.addEventListener('click', e => {
   if (tol) { const d = schedCollectDraft(); d.tolerance = tol.getAttribute('data-sched-tol'); SCHED_UI.prefsOpen = true; schedPaintSheet(); return; }
   const marg = e.target.closest('[data-sched-marg]');
   if (marg) { const d = schedCollectDraft(); d.sleepMarginMin = parseInt(marg.getAttribute('data-sched-marg'), 10) || 45; SCHED_UI.prefsOpen = true; schedPaintSheet(); return; }
+  const fd = e.target.closest('[data-sched-fast-dur]');
+  if (fd) {
+    /* Atajo de duración en «Mis datos»: fija el fin = inicio +
+       12/14/16/18 h en el BORRADOR (se guarda con prefs-save). */
+    const d = schedCollectDraft();
+    if (!d.fasting) d.fasting = schedFastDefault(d);
+    d.fasting.to = schedFastDurTo(d.fasting.from || '20:00', parseInt(fd.getAttribute('data-sched-fast-dur'), 10) || 16);
+    SCHED_UI.prefsOpen = true; schedPaintSheet(); return;
+  }
+  const fdl = e.target.closest('[data-sched-fast-dur-live]');
+  if (fdl) {
+    /* Atajo de duración en la LISTA: un toque y persiste (misma
+       vía y doctrina que fast-add). */
+    if (SCHED_PREFS && SCHED_PREFS.fasting && SCHED_PREFS.fasting.from && !SCHED_CTX.fastBlocked && !SCHED_CTX.fastUnknown) {
+      const prevF = SCHED_PREFS.fasting;
+      SCHED_PREFS.fasting = { from: prevF.from, to: schedFastDurTo(prevF.from, parseInt(fdl.getAttribute('data-sched-fast-dur-live'), 10) || 16) };
+      schedPersist(schedSavePrefs).then(okF => {
+        if (!okF) { SCHED_PREFS.fasting = prevF; schedPaintSheet(); return; }
+        toast(t('sched.pf.saved')); schedRecompute(); schedPaintSheet();
+      });
+    }
+    return;
+  }
   const b = e.target.closest('[data-sched-act]');
   if (b) schedAct(b);
 });
