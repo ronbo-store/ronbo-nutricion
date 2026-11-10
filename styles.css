@@ -5511,3 +5511,31 @@ body.swap-sheet-open .asst-fab { display: none !important; }
 .wiz-actions{display:grid;gap:9px;margin-top:14px}
 .wiz-actions .btn{min-height:52px;font-size:16px}
 .route-wiz-btn{width:100%;min-height:50px;margin:10px 0 2px;font-size:16px}
+
+/* ═══ AUTH-383 · COMPARACIÓN DE FOTOS CON NOTAS DE IA ═══
+   Solo la vista del propio alumno. Los lienzos alineados y las
+   notas viven en memoria, en esta hoja: al cerrar o repintar se
+   descartan y los originales quedan tal cual. */
+.mrc-zone{margin:10px 0 2px}
+.mrc-btn{display:block;width:100%;text-align:left;background:#0c5747;color:#fff;border:0;border-radius:16px;padding:14px 16px;cursor:pointer;min-height:52px}
+.mrc-btn-t{display:block;font-size:16.5px;font-weight:800;line-height:1.25}
+.mrc-btn-s{display:block;font-size:12.5px;opacity:.88;margin-top:3px;line-height:1.4}
+.mrc-busy{text-align:center;color:#5b7a74;font-weight:700;padding:14px 0;margin:0}
+.mrc-honest{font-size:12.5px;color:#5b7a74;background:#eef4f2;border-radius:12px;padding:9px 12px;line-height:1.45;margin:10px 0 0}
+.mrc-tog{display:flex;gap:8px;margin:2px 0 10px}
+.mrc-togb{flex:1;min-height:48px;padding:10px;border-radius:999px;border:1.5px solid #0c5747;background:#fff;color:#0c5747;font-weight:800;font-size:14.5px;cursor:pointer}
+.mrc-togb.on{background:#0c5747;color:#fff}
+.mrc-stage{position:relative;display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.mrc-cv{width:100%;height:auto;display:block;border-radius:14px;background:#e7eeec;cursor:zoom-in}
+.mrc-bwrap{position:relative}
+.mrc-gl{position:absolute;left:0;right:0;border-top:2px dashed rgba(23,124,98,.55);pointer-events:none}
+.mrc-gl-eyes{top:15%}
+.mrc-gl-hips{top:51%;border-top-color:rgba(216,150,0,.65)}
+.mrc-pin{position:absolute;transform:translate(-50%,-50%);width:24px;height:24px;border-radius:50%;background:#0c7a5f;color:#fff;font-size:12.5px;font-weight:800;display:flex;align-items:center;justify-content:center;box-shadow:0 1px 4px rgba(0,0,0,.35);pointer-events:none}
+.mrc-caps{display:grid;grid-template-columns:1fr 1fr;gap:10px;text-align:center;font-size:11.5px;color:#5b7a74;font-weight:700;letter-spacing:.03em;margin-top:5px}
+.mrc-nt{font-size:12px;font-weight:800;letter-spacing:.06em;color:#33524b;margin:14px 0 6px;text-transform:uppercase}
+.mrc-notes{list-style:none;margin:0;padding:0}
+.mrc-notes li{display:flex;gap:9px;align-items:flex-start;font-size:14px;line-height:1.45;color:#21332e;padding:5px 0}
+.mrc-nn{flex:none;width:22px;height:22px;border-radius:50%;background:#0c7a5f;color:#fff;font-size:12px;font-weight:800;display:flex;align-items:center;justify-content:center;margin-top:1px}
+.mrc-notes li.mrc-note1{display:block;color:#33524b;font-weight:600}
+.mrc-disc{font-size:11.5px;color:#7b8f8a;line-height:1.5;margin:12px 0 2px}

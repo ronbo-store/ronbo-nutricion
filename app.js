@@ -8370,6 +8370,21 @@ en: {
   'mr.photosNoneYet': 'You have no progress photos yet: your report shows them here as soon as you log them.',
   'mr.photosGo': 'Add my photos',
   'mr.cmpPhotos': 'Side by side',
+  'mrc.btn': '🔍 Compare with AI notes',
+  'mrc.btnSub': 'Aligns both photos to the same size, straightens them and points out the visible changes. Uses 2 of your AI uses.',
+  'mrc.busy': 'Comparing your photos…',
+  'mrc.aligned': 'Aligned',
+  'mrc.raw': 'As taken',
+  'mrc.notesTitle': 'AI notes',
+  'mrc.noChange': 'No clear visible changes between these two photos.',
+  'mrc.disc': 'Aligned by the app so both photos match in size — a visual guide only, not a measurement. Your original photos are never changed.',
+  'mrc.cantAlign': 'These photos couldn’t be aligned — shown exactly as taken.',
+  'mrc.diffView': 'These two photos don’t seem to be the same view.',
+  'mrc.noStraight': 'One of the photos couldn’t be straightened with confidence, so it is shown unrotated.',
+  'mrc.errCap': 'You reached today’s AI limit; it renews tomorrow. Your photos stay as they are meanwhile.',
+  'mrc.errDisabled': 'AI is turned off right now.',
+  'mrc.errDoor': 'The AI service is temporarily unavailable. Try again in a little while.',
+  'mrc.errGeneric': 'The comparison could not be made. Check your connection and try again.',
   'mr.noRec': 'No record',
   'mr.compTitle': '⚖️ Your composition — {d}',
   'mr.colMeasure': 'Measure',
@@ -13039,6 +13054,21 @@ es: {
   'mr.photosNoneYet': 'Aún no tienes fotos de progreso: tu reporte las muestra aquí en cuanto las registres.',
   'mr.photosGo': 'Registrar mis fotos',
   'mr.cmpPhotos': 'Lado a lado',
+  'mrc.btn': '🔍 Comparar con notas de IA',
+  'mrc.btnSub': 'Alinea las dos fotos al mismo tamaño, las endereza y te señala los cambios visibles. Usa 2 usos de tu fondo de IA.',
+  'mrc.busy': 'Comparando tus fotos…',
+  'mrc.aligned': 'Alineadas',
+  'mrc.raw': 'Tal cual',
+  'mrc.notesTitle': 'Notas de la IA',
+  'mrc.noChange': 'Sin cambios visibles claros entre estas dos fotos.',
+  'mrc.disc': 'Alineadas por la app para que ambas fotos coincidan en tamaño: es solo una guía visual, no una medición. Tus fotos originales nunca se modifican.',
+  'mrc.cantAlign': 'Estas fotos no se pudieron alinear: se muestran tal cual fueron tomadas.',
+  'mrc.diffView': 'Estas dos fotos no parecen de la misma vista.',
+  'mrc.noStraight': 'Una de las fotos no se pudo enderezar con confianza: se muestra sin girar.',
+  'mrc.errCap': 'Alcanzaste el límite de IA de hoy; se renueva mañana. Mientras tanto tus fotos quedan tal cual.',
+  'mrc.errDisabled': 'La IA está apagada ahora mismo.',
+  'mrc.errDoor': 'El servicio de IA no está disponible temporalmente. Inténtalo de nuevo en un rato.',
+  'mrc.errGeneric': 'La comparación no se pudo hacer. Revisa tu conexión y prueba de nuevo.',
   'mr.noRec': 'Sin registro',
   'mr.compTitle': '⚖️ Tu composición — {d}',
   'mr.colMeasure': 'Medida',
@@ -53220,7 +53250,7 @@ document.addEventListener('keydown', e => { if (e.key === 'Escape') shareClose()
  *  - El SW (sw.js) solo cachea la cáscara del mismo origen en modo
  *    RED PRIMERO: Auth/Firestore/Worker jamás pasan por la caché.
  * ================================================================ */
-const PWA_SW_VERSION = '20261110-asistente-arranque';
+const PWA_SW_VERSION = '20261110-comparacion-fotos';
 /* Sello de versión VISIBLE (2026-11-03): el pie de la tarjeta de
    acceso enseña qué copia corre este teléfono ('v ' + el sello),
    para comprobar de un vistazo si la versión nueva ya llegó.
@@ -61295,10 +61325,190 @@ function mrPhotosHTML(m, inp, ctx) {
   if (m.photoDates.length >= 2) {
     const dA = m.photoDates[m.photoDates.length - 2], dB = m.photoDates[m.photoDates.length - 1];
     const cap = d => { const r = m.recs.find(x => x.date === d) || m.recs.filter(x => x.date <= d).pop(); return `${esc(shortDate(d))}${r && r.weight != null ? ' · ' + esc(mpFmtKg(r.weight)) : ''}`; };
-    const rows = PROGRESS_SLOTS.filter(s => { const A = (inp.prog[dA] || {})[s], B = (inp.prog[dB] || {})[s]; return A && A.photo && B && B.photo; }).map(s => `<div class="mr-phcmp-row"><figure class="mr-ph"><img src="${inp.prog[dA][s].photo}" alt=""><figcaption>${cap(dA)}</figcaption></figure><figure class="mr-ph"><img src="${inp.prog[dB][s].photo}" alt=""><figcaption>${cap(dB)}</figcaption></figure></div><p class="mr-phslot">${esc(s.toUpperCase())}</p>`).join('');
+    const ownCmp = ctx.mode === 'view' && !ctx.trainer;
+    const rows = PROGRESS_SLOTS.filter(s => { const A = (inp.prog[dA] || {})[s], B = (inp.prog[dB] || {})[s]; return A && A.photo && B && B.photo; }).map(s => {
+      const row = `<div class="mr-phcmp-row"><figure class="mr-ph"><img src="${inp.prog[dA][s].photo}" alt=""><figcaption>${cap(dA)}</figcaption></figure><figure class="mr-ph"><img src="${inp.prog[dB][s].photo}" alt=""><figcaption>${cap(dB)}</figcaption></figure></div><p class="mr-phslot">${esc(s.toUpperCase())}</p>`;
+      return ownCmp ? `<div class="mrc" data-mrc-slot="${s}" data-mrc-da="${dA}" data-mrc-db="${dB}" data-mrc-capa="${esc(cap(dA))}" data-mrc-capb="${esc(cap(dB))}">${row}<div class="mrc-zone">${mrcBtnHTML()}</div></div>` : row;
+    }).join('');
     if (rows) cmp = `<h4 class="mr-subt">${esc(t('mr.cmpPhotos'))} · ${esc(shortDate(dA))} → ${esc(shortDate(dB))}</h4>${rows}`;
   }
   return `<section class="mr-card">${title}<div class="mr-phrow">${cells}</div>${cmp}</section>`;
+}
+/* ═══ COMPARACIÓN DE FOTOS CON NOTAS DE IA (AUTH-383) ═══
+   Diseño aprobado por Ronald (2026-11-10; maqueta con su par real
+   22 oct → 2 nov) con su adición textual: «podría enderezar la foto
+   también». Vive SOLO en la vista del PROPIO alumno de «Mi
+   reporte»: mrPhotosHTML envuelve cada par en .mrc únicamente con
+   ctx.mode === 'view' y sin entrenador; la vista del entrenador,
+   Compartir y el PDF pintan como siempre y ninguna nota sale de
+   esta hoja. Al tocar la puerta, la ruta /photocmp devuelve en UNA
+   llamada la detección de la persona en cada foto (caja, ojos,
+   cadera, centro y «roll»: cuánto está girado el eje del cuerpo) y
+   las diferencias visibles; el cargo (2 usos del fondo común, solo
+   en 2xx) lo aplica el Worker. Con eso, la vista pinta las dos
+   fotos en canvas EN MEMORIA con una transformación por foto:
+   ancla en (centro, ojos) llevada al centro del marco y a su línea
+   de ojos (15 %), escala para que el segmento ojos→cadera mida lo
+   mismo en ambas (36 % del marco) y rotación de −roll alrededor
+   del ancla — el ENDEREZADO — solo si la IA lo determinó con
+   confianza y |roll| ≤ 15°: si no, esa foto no se gira y la vista
+   lo declara (mrc.noStraight), sin deformar nada. Los originales
+   — el documento y su <img> — jamás se tocan; las notas son HTML
+   superpuesto, nunca quemado en la imagen; tocar un lienzo abre
+   el visor con la foto ORIGINAL. Nada se guarda: ni la alineación
+   ni las notas se escriben en Firestore ni en el dispositivo; el
+   estado vive en el DOM de la hoja y muere al repintar o cerrar.
+   Si la IA no ve cambios claros, la vista alineada se muestra con
+   la única nota cerrada de «sin cambios visibles claros»: jamás
+   se inventa una diferencia. */
+let MRC = {};
+const MRC_FW = 432, MRC_FH = 576, MRC_EYE = 0.15, MRC_SEG = 0.36, MRC_ROLL_MAX = 15;
+function mrcBtnHTML() {
+  return `<button type="button" class="mrc-btn"><span class="mrc-btn-t">${esc(t('mrc.btn'))}</span><span class="mrc-btn-s">${esc(t('mrc.btnSub'))}</span></button>`;
+}
+function mrcWire(body) {
+  MRC = {};
+  body.querySelectorAll('.mrc').forEach(w => {
+    const btn = w.querySelector('.mrc-btn');
+    if (btn) btn.onclick = () => mrcRun(w);
+  });
+}
+function mrcZoneBtn(zone, wrap) {
+  zone.innerHTML = mrcBtnHTML();
+  const btn = zone.querySelector('.mrc-btn');
+  if (btn) btn.onclick = () => mrcRun(wrap);
+}
+function mrcLoadImg(src) {
+  return new Promise(res => {
+    const img = new Image();
+    img.onload = () => res(img);
+    img.onerror = () => res(null);
+    img.src = src;
+  });
+}
+function mrcShrink(dataUrl) {
+  return new Promise(res => {
+    const img = new Image();
+    img.onload = () => {
+      try {
+        const mx = Math.max(img.naturalWidth, img.naturalHeight);
+        if (mx <= 1024 && dataUrl.length <= 1400000) return res(dataUrl);
+        const sc = 1024 / mx;
+        const cv = document.createElement('canvas');
+        cv.width = Math.max(1, Math.round(img.naturalWidth * sc));
+        cv.height = Math.max(1, Math.round(img.naturalHeight * sc));
+        cv.getContext('2d').drawImage(img, 0, 0, cv.width, cv.height);
+        res(cv.toDataURL('image/jpeg', 0.85));
+      } catch { res(dataUrl); }
+    };
+    img.onerror = () => res(dataUrl);
+    img.src = dataUrl;
+  });
+}
+function mrcDetOk(det) {
+  return !!(det && det.quality === 'ok' && det.box && det.eyes != null && det.hips != null && det.hips > det.eyes);
+}
+/* La transformación afín de una foto al marco alineado:
+   dest = T + s·R(φ)·(src − A), con A = (cx, ojos) en px de la foto,
+   T = (centro del marco, línea de ojos), φ = −roll (el enderezado;
+   0 si no se endereza) y s tal que el segmento ojos→cadera mida
+   MRC_SEG del alto del marco tras girar (su proyección vertical es
+   seg·cos φ, con la x de la cadera ≈ cx: la línea de ojos es
+   exacta y la de cintura es la guía que el aviso declara). */
+function mrcXform(w, h, det) {
+  if (!mrcDetOk(det)) return null;
+  const eyesY = det.eyes * h, hipsY = det.hips * h;
+  const cx = (det.cx != null ? det.cx : det.box[0] + det.box[2] / 2) * w;
+  const seg = hipsY - eyesY;
+  if (!(seg > 4)) return null;
+  const roll = (typeof det.roll === 'number' && isFinite(det.roll)) ? det.roll : null;
+  const straight = roll != null && Math.abs(roll) <= MRC_ROLL_MAX;
+  const phi = straight ? -roll * Math.PI / 180 : 0;
+  const cs = Math.cos(phi), sn = Math.sin(phi);
+  const s = (MRC_SEG * MRC_FH) / (seg * cs);
+  const a = s * cs, b = s * sn, c = -s * sn, d = s * cs;
+  const e = MRC_FW / 2 - (a * cx + c * eyesY);
+  const f = MRC_EYE * MRC_FH - (b * cx + d * eyesY);
+  return { a, b, c, d, e, f, straight };
+}
+function mrcProject(xf, x, y) {
+  return [xf.a * x + xf.c * y + xf.e, xf.b * x + xf.d * y + xf.f];
+}
+function mrcDrawInto(cv, img, xf) {
+  const g = cv.getContext('2d');
+  g.setTransform(1, 0, 0, 1, 0, 0);
+  g.fillStyle = '#e7eeec';
+  g.fillRect(0, 0, cv.width, cv.height);
+  g.setTransform(xf.a, xf.b, xf.c, xf.d, xf.e, xf.f);
+  g.drawImage(img, 0, 0);
+  g.setTransform(1, 0, 0, 1, 0, 0);
+}
+function mrcAlignedHTML(capA, capB, pins, notes, noStraight) {
+  return `<div class="mrc-tog"><button type="button" class="mrc-togb on" data-mrc-tog="al">${esc(t('mrc.aligned'))}</button><button type="button" class="mrc-togb" data-mrc-tog="raw">${esc(t('mrc.raw'))}</button></div>`
+    + `<div class="mrc-view"><div class="mrc-stage"><canvas class="mrc-cv" width="${MRC_FW}" height="${MRC_FH}"></canvas><div class="mrc-bwrap"><canvas class="mrc-cv" width="${MRC_FW}" height="${MRC_FH}"></canvas>${pins}</div><span class="mrc-gl mrc-gl-eyes"></span><span class="mrc-gl mrc-gl-hips"></span></div>`
+    + `<div class="mrc-caps"><span>${capA}</span><span>${capB}</span></div>`
+    + `<h5 class="mrc-nt">${esc(t('mrc.notesTitle'))}</h5><ol class="mrc-notes">${notes}</ol>`
+    + (noStraight ? `<p class="mrc-honest">${esc(t('mrc.noStraight'))}</p>` : '')
+    + `<p class="mrc-disc">${esc(t('mrc.disc'))}</p></div>`;
+}
+async function mrcRun(wrap) {
+  if (!MR || !MR.input) return;
+  const slot = wrap.getAttribute('data-mrc-slot');
+  const zone = wrap.querySelector('.mrc-zone'); if (!zone || !slot) return;
+  if (MRC[slot] === 'busy') return;
+  const dA = wrap.getAttribute('data-mrc-da'), dB = wrap.getAttribute('data-mrc-db');
+  const pA = ((MR.input.prog || {})[dA] || {})[slot], pB = ((MR.input.prog || {})[dB] || {})[slot];
+  if (!pA || !pA.photo || !pB || !pB.photo) return;
+  MRC[slot] = 'busy';
+  zone.innerHTML = `<p class="mrc-busy">${esc(t('mrc.busy'))}</p>`;
+  let out = null;
+  try {
+    const a = await mrcShrink(pA.photo), b = await mrcShrink(pB.photo);
+    out = await aiCall('/photocmp', { a, b, view: slot, lang: LANG });
+  } catch (e) {
+    const m = e && e.message;
+    toast(t(m === 'ai-cap' ? 'mrc.errCap' : (m === 'ai-disabled' || m === 'ai-off') ? 'mrc.errDisabled' : m === 'ai-door-unavailable' ? 'mrc.errDoor' : 'mrc.errGeneric'), true);
+    MRC[slot] = 'idle';
+    mrcZoneBtn(zone, wrap);
+    return;
+  }
+  try { aiUsageRefreshSurfaces(); } catch {}
+  if (!out || out.sameView === false) {
+    MRC[slot] = 'note';
+    mrcZoneBtn(zone, wrap);
+    zone.insertAdjacentHTML('beforeend', `<p class="mrc-honest">${esc(t(out ? 'mrc.diffView' : 'mrc.cantAlign'))}</p>`);
+    return;
+  }
+  const imgA = await mrcLoadImg(pA.photo), imgB = await mrcLoadImg(pB.photo);
+  const xfA = imgA ? mrcXform(imgA.naturalWidth, imgA.naturalHeight, out.a) : null;
+  const xfB = imgB ? mrcXform(imgB.naturalWidth, imgB.naturalHeight, out.b) : null;
+  if (!xfA || !xfB) {
+    MRC[slot] = 'note';
+    mrcZoneBtn(zone, wrap);
+    zone.insertAdjacentHTML('beforeend', `<p class="mrc-honest">${esc(t('mrc.cantAlign'))}</p>`);
+    return;
+  }
+  const pins = (out.noClearChange ? [] : (out.notes || [])).map((n, i) => {
+    const p = mrcProject(xfB, n.x * imgB.naturalWidth, n.y * imgB.naturalHeight);
+    const lx = Math.min(97, Math.max(3, p[0] / MRC_FW * 100));
+    const ty = Math.min(97, Math.max(3, p[1] / MRC_FH * 100));
+    return `<span class="mrc-pin" style="left:${lx.toFixed(1)}%;top:${ty.toFixed(1)}%">${i + 1}</span>`;
+  }).join('');
+  const notes = out.noClearChange
+    ? `<li class="mrc-note1">${esc(t('mrc.noChange'))}</li>`
+    : (out.notes || []).map((n, i) => `<li><span class="mrc-nn">${i + 1}</span><span>${esc(n.text)}</span></li>`).join('');
+  MRC[slot] = 'done';
+  zone.innerHTML = mrcAlignedHTML(esc(wrap.getAttribute('data-mrc-capa') || ''), esc(wrap.getAttribute('data-mrc-capb') || ''), pins, notes, !xfA.straight || !xfB.straight);
+  const cvs = zone.querySelectorAll('.mrc-cv');
+  if (cvs[0]) { mrcDrawInto(cvs[0], imgA, xfA); cvs[0].onclick = () => { if (typeof showLightbox === 'function') showLightbox(pA.photo); }; }
+  if (cvs[1]) { mrcDrawInto(cvs[1], imgB, xfB); cvs[1].onclick = () => { if (typeof showLightbox === 'function') showLightbox(pB.photo); }; }
+  const row = wrap.querySelector('.mr-phcmp-row'); if (row) row.style.display = 'none';
+  zone.querySelectorAll('[data-mrc-tog]').forEach(btn => btn.onclick = () => {
+    const al = btn.getAttribute('data-mrc-tog') === 'al';
+    zone.querySelectorAll('[data-mrc-tog]').forEach(x => x.classList.toggle('on', x === btn));
+    const view = zone.querySelector('.mrc-view'); if (view) view.style.display = al ? '' : 'none';
+    if (row) row.style.display = al ? 'none' : '';
+  });
 }
 function mrCompHTML(m, inp) {
   const rec = m.rec, rows = [];
@@ -61454,6 +61664,7 @@ function mrWire(body) {
   body.querySelectorAll('.mr-ph img').forEach(im => { im.style.cursor = 'zoom-in'; im.onclick = () => { if (typeof showLightbox === 'function') showLightbox(im.src); }; });
   const sh = body.querySelector('#mr-share'); if (sh) sh.onclick = () => mrShare();
   const pdf = body.querySelector('#mr-pdf'); if (pdf) pdf.onclick = () => mrPrint();
+  mrcWire(body);
 }
 async function mrLatestBt(uid, needShared) {
   const snap = await getDocs(query(btCol(), where('clientUid', '==', uid)));
