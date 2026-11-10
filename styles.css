@@ -4878,3 +4878,56 @@ body.swap-sheet-open .asst-fab { display: none !important; }
 #mp-x-body > #prog-g-medidas, #mp-x-body > #prog-g-fotos,
 #mp-x-train > #week-card-box, #mp-x-train > #milestones-box,
 #mp-x-train > #month-card-box { margin-top: 14px; }
+
+/* ════════════════════════════════════════════════════════════════
+   LA PILA FLOTANTE NO TAPA CONTENIDO (AUTH-2026-11-09-354;
+   hallazgo H-14 de la auditoría de espacio del 2026-11-09,
+   confirmado por Ronald el 2026-11-09 22:57 CST con captura: en
+   Administración el disco de la llamita — 🔥 71 — quedaba ENCIMA
+   de la baldosa «Permisos y privacidad» y la dejaba parcialmente
+   intocable; en Inicio tapaba el borde de la tarjeta de peso y
+   de su botón).
+   LA ESQUINA: la pila (mascota · compartir · ayuda · cronómetro ·
+   llamita, discos de 58 px en vertical, paso 72) se queda en la
+   esquina inferior derecha, sobre la barra inferior de navegación
+   — es la esquina segura de la casa: la superior derecha choca
+   con el selector EN/ES y la cabecera (precedente AUTH-040, que
+   ya bajó el cronómetro de ahí), la inferior izquierda con la
+   pastilla flotante «← Atrás» (#pend-back-chip, fixed left:12,
+   bottom 128, z 44) y el dock centrado manda en el centro. Los
+   discos NO se mueven, NO cambian de orden, de aspecto ni de
+   función (doctrina AUTH-131/151/163: la pila queda byte a byte;
+   lo que se mueve es el contenido).
+   EL DESPEJE: ninguna superficie deja contenido interactivo bajo
+   la banda de la pila. La cifra es la de la casa, 88 px de
+   resguardo derecho (la banda: right 14 + disco 58 = 72, más 16
+   de respiro — AUTH-131 Progreso · AUTH-151 bandejas · AUTH-163
+   Permisos, que ya la tenían y aquí NO se duplican). Este bloque
+   la aplica SOLO donde faltaba:
+   · Inicio: la tarjeta de «Metas de hoy» (.goals-card, con los
+     círculos de comidas, el agua y el registro rápido dentro),
+     la tarjeta «⚖️ Tu peso» (.weight-card, con su botón a todo
+     el ancho), el aviso de borrador de IA (#ai-draft-notice, con
+     su botón), el panel de la semana (.week-panel) y las alertas
+     del entrenador (#trainer-alerts) ganan margin-right de 88 px:
+     la TARJETA ENTERA — no solo su texto — queda fuera de la
+     banda a cualquier scroll.
+   · Administración: la zona entera (#admin-zone-box) gana
+     padding-right de 88 px — dentro viven la fila de las CUATRO
+     baldosas (Clientes · Entrenadores · Coaches de alimentación ·
+     Permisos y privacidad, .admuse-people-tabs) y las cabeceras
+     desplegables .admsec-head —; y las copias de la misma fila
+     que viven en los huecos de Clientes/Entrenadores/Coaches
+     ([data-admpeople-slot]) ganan el mismo margin-right.
+   · Entrenamiento y Mi progreso YA la tenían como páginas
+     (body.train-page / body.prog-page #…-content.nav-page-on,
+     padding-right 88 px, AUTH-131 y la mascota del 2026-11-09):
+     este bloque no las toca y la batería lo reverifica.
+   · Comida (#food-float) es una hoja (z 46) POR ENCIMA de la
+     pila (z 44/45): sus botones quedan sobre los discos, nunca
+     debajo — la batería lo verifica por punto de toque.
+   Sin cambios de lógica: app.js solo cambia el sello. ═══ */
+.goals-card, .weight-card, #ai-draft-notice, #trainer-alerts { margin-right: 88px; }
+#tab-track .week-panel { margin-right: 88px; }
+#admin-zone-box { padding-right: 88px; }
+[data-admpeople-slot] .admuse-people-tabs { margin-right: 88px; }
