@@ -4931,3 +4931,46 @@ body.swap-sheet-open .asst-fab { display: none !important; }
 #tab-track .week-panel { margin-right: 88px; }
 #admin-zone-box { padding-right: 88px; }
 [data-admpeople-slot] .admuse-people-tabs { margin-right: 88px; }
+
+/* ════════════════════════════════════════════════════════════════
+   LAS ACTIVIDADES FLOTAN COMO ANTES (AUTH-2026-11-09-355; orden
+   expresa de Ronald, chat RONBO.NUTRI, 2026-11-09 23:09–23:14 CST,
+   con captura de la hoja «Mis hobbies» — tres botones grandes,
+   Correr/Ciclismo/Natación, y la hoja casi vacía debajo —: «Me
+   gusta más antes: estos botones solo flotaban las actividades»,
+   confirmado: que las actividades floten como antes).
+   QUÉ ERA «ANTES» (inventario probado, en datos/INVENTARIO.md):
+   la hoja de hobbies #act-float nació FLOTANTE en el rediseño del
+   2026-10-24 (comentario rector en app.js: «#act-float — botones
+   flotantes con los HOBBIES elegidos») y su regla en este mismo
+   fichero, hasta AUTH-338, era tarjeta anclada ABAJO — bottom:
+   calc(safe + 120px), sobre la barra inferior — y A SU ALTURA
+   (max-height con margen). AUTH-2026-11-09-338 «Pantalla completa»
+   la pasó, con toda la familia .act-float, a top:0/bottom:0: la
+   pantalla casi vacía de la captura.
+   LA RESTAURACIÓN (SOLO #act-float; excepción declarada a la
+   doctrina de pantalla completa de AUTH-338, fundada en que el
+   contenido de esta hoja es una rejilla pequeña de botones
+   rápidos — no una sección — y en la orden expresa de Ronald):
+   vuelve la geometría anterior — anclada abajo a 120 px + zona
+   segura (la línea base de la pila y del dock de siempre), a su
+   altura, con max-height = viewport − 120 − zona segura − 16 px
+   de margen superior (la regla anterior restaba además el ancla
+   de cabecera de AUTH-326, derogada por la propia AUTH-338; la
+   tarjeta va anclada abajo y su despeje superior es ese margen)
+   y su padding de siempre (sin el relleno inferior de 120 px de
+   la pantalla completa).
+   COORDINACIÓN CON AUTH-354 (la pila no se toca): en bandas de
+   573 px o menos la tarjeta deja libre el resguardo derecho de
+   la casa — right: 100 px = los 88 px de AUTH-131/151/163/354
+   más el margen de 12 px de la familia — así ni el contenedor ni
+   los botones tocan la banda de los discos (right 14 + 58); en
+   bandas más anchas la tarjeta centrada de siempre (máx. 430 px)
+   ya termina antes de que la banda empiece (a 646: termina en
+   538 y la banda empieza en 574). Las demás hojas de actividad
+   (#act-entry, #act-config, #act-day) NO se tocan: siguen a
+   pantalla completa por AUTH-338, y lo que se registra y cómo
+   (actSaveDay → activity_logs) queda byte a byte como la base:
+   el botón flotante abre la MISMA hoja de ingreso de siempre. */
+#act-float { top: auto; bottom: calc(env(safe-area-inset-bottom, 0px) + 120px); max-height: calc(100dvh - 120px - env(safe-area-inset-bottom, 0px) - 16px); padding: 14px 16px; }
+@media (max-width: 573px) { #act-float { left: 12px; right: 100px; transform: none; width: auto; } }
