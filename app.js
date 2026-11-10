@@ -1569,6 +1569,7 @@ function rolePendItems() {
       const c = ESC_ADMIN_COUNTS;
       if (c.accounts > 0) push('admin|accounts', 'admin-pending', t('pend.role.adminAccounts', { n: c.accounts }), '', t('pend.role.adminGo'));
       if (c.memberships > 0) push('admin|memberships', 'admin-membership', t('pend.role.adminMemberships', { n: c.memberships }), '', t('pend.role.adminGo'));
+      if (c.roleRequests > 0) push('admin|rolerequests', 'admin-rolerequests', t('pend.role.adminRoleRequests', { n: c.roleRequests }), '', t('pend.role.adminGo'));
       if (c.meals > 0) push('admin|meals', 'admin-meals', t('pend.role.adminMeals', { n: c.meals }), '', t('pend.role.adminGo'));
       if (c.waiting > 0) push('admin|waiting', 'admin-waiting', pendWaitingTitle(c), '', t('pend.role.adminGo'));
       if (Array.isArray(c.failed) && c.failed.length) push('admin|nodata', 'admin-pending', t('pend.adminNoData'), '', t('pend.role.adminGo'));
@@ -1818,8 +1819,8 @@ document.addEventListener('click', e => {
    por aprobar, comidas por confirmar y alumnos en espera. */
 async function escLoadAdminCounts() {
   if (!IS_OWNER) return;
-  const c = { accounts: 0, memberships: 0, meals: 0, waiting: 0, waitingNames: [], failed: [] };
-  try { const s = await getDocs(collection(db, 'users')); s.forEach(d => { const u = d.data(); if (u.isOwner) return; if (u.approved !== true) c.accounts++; else if ((u.role || 'usuario') === 'usuario' && !u.trainerUid && !selfTrainedOf(u)) { c.waiting++; c.waitingNames.push(u.name || u.email || '—'); } }); } catch { c.failed.push('users'); }
+  const c = { accounts: 0, memberships: 0, meals: 0, waiting: 0, waitingNames: [], roleRequests: 0, failed: [] };
+  try { const s = await getDocs(collection(db, 'users')); s.forEach(d => { const u = d.data(); if (u.isOwner) return; /* AUTH-373: las solicitudes de rol cuentan SIN el filtro de approved (desde AUTH-351 las cuentas nacen aprobadas y el contador viejo no las veía). */ if (u.roleRequest === 'entrenador' && (u.role || 'usuario') !== 'entrenador') c.roleRequests++; if (u.approved !== true) c.accounts++; else if ((u.role || 'usuario') === 'usuario' && !u.trainerUid && !selfTrainedOf(u)) { c.waiting++; c.waitingNames.push(u.name || u.email || '—'); } }); } catch { c.failed.push('users'); }
   try { const s = await getDocs(collection(db, 'memberships')); s.forEach(d => { if (d.data().status === 'pendiente') c.memberships++; }); } catch { c.failed.push('memberships'); }
   try { const s = await getDocs(collection(db, 'meal_requests')); s.forEach(d => { if (d.data().status === 'pendiente_administrador') c.meals++; }); } catch { c.failed.push('meal_requests'); }
   ESC_ADMIN_COUNTS = c;
@@ -4580,7 +4581,7 @@ en: {
   'tabs.comms': '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="5.5" width="18" height="13" rx="2"/><path d="M3.5 7l8.5 6 8.5-6"/></svg> Communications',
   'trainers.title': '👨‍🏫 Trainer administration',
   'trainers.hint': 'Everything about trainers in one place: role requests, memberships (levels and quotas), the two-step confirmations that start with a trainer, the trainer approval limit and the public directory.',
-  'trainers.requests': 'Trainer role requests (',
+  'trainers.requests': 'Role requests (',
   'libadm.title': '📚 Exercise library',
   'libadm.hint': 'The library that feeds the plan editor. Everyone reads it; trainers contribute new exercises and the administrator approves them before they appear for everyone. Edits apply to the library itself — plans already saved keep their own copies.',
   'libadm.search': 'Search by name, muscle group or equipment…',
@@ -6639,6 +6640,37 @@ en: {
   'purpose.savedOk': 'Purpose saved ✓',
   'purpose.declareNote': 'We ask this once so RONBO FIT fits how you train. It changes nothing about your account.',
   'purpose.declareTrainerNote': 'Choosing here only records your purpose — your current trainer and assignment do not change.',
+  'rol.title': '🧭 My role in RONBO FIT',
+  'rol.pathTitle': 'How do you train?',
+  'rol.wantTitle': 'Want to help others?',
+  'rol.reqTrainer': 'Request to become a trainer',
+  'rol.reqTrainerSub': 'Train students in the app. The administrator reviews your request.',
+  'rol.reqCoach': 'Request to become a food coach',
+  'rol.reqCoachSub': 'Support students with their meals. The administrator reviews your request.',
+  'rol.send': 'Send my request',
+  'rol.sent': 'Request sent ✓',
+  'rol.inReview': '⏳ Under review',
+  'rol.inReviewCoach': '⏳ Under review — your food-coach box below shows the detail',
+  'rol.withdraw': 'Withdraw request',
+  'rol.withdrawn': 'Request withdrawn',
+  'rol.notApproved': 'Not approved this time',
+  'rol.tryAgain': 'Request again',
+  'rol.ownConfirm': 'If you continue on your own, your relationship with your current trainer ends. You keep your history, your plans and your goals, and you can choose a trainer again whenever you want.',
+  'rol.noCharge': 'NO CHARGE TODAY',
+  'rol.adminRequests': 'Role requests',
+  'rol.pathWithTrainer': 'With a trainer',
+  'rol.pathWaiting': 'Waiting for a trainer',
+  'rol.coachYes': 'You have a food coach',
+  'rol.coachWaiting': 'Food coach: waiting for assignment',
+  'rol.coachNo': 'No food coach',
+  'rol.useLine': 'Your use',
+  'rol.useChange': 'Change my use',
+  'rol.stateApproved': '✓ Approved',
+  'rol.coachSuspended': 'Suspended',
+  'rol.ownBtn': 'Continue on my own',
+  'rol.ownDone': 'You now train on your own ✓',
+  'rol.coachNoWithdraw': 'Once sent, only the administrator can withdraw this request.',
+  'rol.levelPick': 'Choose your membership level',
   'purpose.profileTitle': '🎯 My purpose',
   'purpose.profileUseLabel': 'What I use RONBO FIT for',
   'purpose.trialAdminTitle': '🧪 Trial membership',
@@ -7177,6 +7209,7 @@ en: {
   'pend.role.mealsGo': 'Request meals',
   'pend.role.adminAccounts': '{n} account(s) waiting for approval',
   'pend.role.adminMemberships': '{n} membership request(s) to approve',
+  'pend.role.adminRoleRequests': '{n} role request(s) to review',
   'pend.role.adminMeals': '{n} meal request(s) to confirm',
   'pend.role.adminWaiting': '{n} student(s) waiting for a trainer',
   'pend.role.adminWaitingOne': '{name} is waiting for a trainer',
@@ -9128,7 +9161,7 @@ es: {
   'tabs.comms': '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="5.5" width="18" height="13" rx="2"/><path d="M3.5 7l8.5 6 8.5-6"/></svg> Comunicaciones',
   'trainers.title': '👨‍🏫 Administración de entrenadores',
   'trainers.hint': 'Todo lo de los entrenadores en un solo lugar: solicitudes de rol, membresías (niveles y cupos), las confirmaciones en dos pasos que empiezan con un entrenador, el límite de aprobaciones de entrenadores y el directorio público.',
-  'trainers.requests': 'Solicitudes de rol de entrenador (',
+  'trainers.requests': 'Solicitudes de rol (',
   'libadm.title': '📚 Biblioteca de ejercicios',
   'libadm.hint': 'La biblioteca que alimenta el editor de planes. La leen todos; los entrenadores aportan ejercicios nuevos y el administrador los aprueba antes de que aparezcan para todos. Las ediciones aplican a la biblioteca: los planes ya guardados conservan sus copias.',
   'libadm.search': 'Busca por nombre, grupo muscular o equipo…',
@@ -11188,6 +11221,37 @@ es: {
   'purpose.savedOk': 'Propósito guardado ✓',
   'purpose.declareNote': 'Te lo pedimos una sola vez para que RONBO FIT se ajuste a cómo entrenas. No cambia nada de tu cuenta.',
   'purpose.declareTrainerNote': 'Elegir aquí solo registra tu propósito — tu entrenador y tu asignación actuales no cambian.',
+  'rol.title': '🧭 Mi rol en RONBO FIT',
+  'rol.pathTitle': '¿Cómo entrenas?',
+  'rol.wantTitle': '¿Quieres ayudar a otros?',
+  'rol.reqTrainer': 'Solicitar ser entrenador',
+  'rol.reqTrainerSub': 'Entrena alumnos en la app. El administrador revisa tu solicitud.',
+  'rol.reqCoach': 'Solicitar ser coach de alimentación',
+  'rol.reqCoachSub': 'Acompaña a alumnos con sus comidas. El administrador revisa tu solicitud.',
+  'rol.send': 'Enviar mi solicitud',
+  'rol.sent': 'Solicitud enviada ✓',
+  'rol.inReview': '⏳ En revisión',
+  'rol.inReviewCoach': '⏳ En revisión — tu caja de coach, más abajo, muestra el detalle',
+  'rol.withdraw': 'Retirar solicitud',
+  'rol.withdrawn': 'Solicitud retirada',
+  'rol.notApproved': 'No aprobada esta vez',
+  'rol.tryAgain': 'Volver a solicitar',
+  'rol.ownConfirm': 'Si sigues por tu cuenta, tu relación con tu entrenador actual termina. Conservas tu historial, tus planes y tus metas, y podrás elegir entrenador de nuevo cuando quieras.',
+  'rol.noCharge': 'SIN COBRO HOY',
+  'rol.adminRequests': 'Solicitudes de rol',
+  'rol.pathWithTrainer': 'Con entrenador',
+  'rol.pathWaiting': 'En espera de un entrenador',
+  'rol.coachYes': 'Tienes coach de alimentación',
+  'rol.coachWaiting': 'Coach de alimentación: en espera de asignación',
+  'rol.coachNo': 'Sin coach de alimentación',
+  'rol.useLine': 'Tu uso',
+  'rol.useChange': 'Cambiar mi uso',
+  'rol.stateApproved': '✓ Aprobado',
+  'rol.coachSuspended': 'Suspendido',
+  'rol.ownBtn': 'Seguir por mi cuenta',
+  'rol.ownDone': 'Ya entrenas por tu cuenta ✓',
+  'rol.coachNoWithdraw': 'Una vez enviada, solo el administrador puede retirar esta solicitud.',
+  'rol.levelPick': 'Elige tu nivel de membresía',
   'purpose.profileTitle': '🎯 Mi propósito',
   'purpose.profileUseLabel': 'Para qué uso RONBO FIT',
   'purpose.trialAdminTitle': '🧪 Membresía de prueba',
@@ -11726,6 +11790,7 @@ es: {
   'pend.role.mealsGo': 'Solicitar comidas',
   'pend.role.adminAccounts': '{n} cuenta(s) esperando aprobación',
   'pend.role.adminMemberships': '{n} solicitud(es) de membresía por aprobar',
+  'pend.role.adminRoleRequests': '{n} solicitud(es) de rol por revisar',
   'pend.role.adminMeals': '{n} solicitud(es) de comidas por confirmar',
   'pend.role.adminWaiting': '{n} alumno(s) esperando entrenador',
   'pend.role.adminWaitingOne': '{name} está esperando entrenador',
@@ -13854,33 +13919,112 @@ function purposeMaybeAsk() {
     purposeOpenDeclare();
   } catch {}
 }
-/* «Mi propósito» en el perfil (decisión (d)): quien entrena por
-   su cuenta cambia su uso libremente desde aquí — una escritura
-   de declaración por la rama de perfil inofensivo, sin tocar
-   papeles ni la relación con ningún entrenador. */
+/* «Mi rol en RONBO FIT» (AUTH-373): el bloque del perfil que
+   GENERALIZA la vieja caja «Mi propósito» (que solo vivía para
+   purpose='cuenta' y solo dejaba cambiar el uso). Ahora vive
+   para TODAS las cuentas y pinta la situación actual en grande
+   (discos de facetas, cómo entrena, coach sí/no, uso), deja
+   cambiar el camino ENRUTANDO a las cajas de siempre — la de
+   «Mi entrenador» y la de «Mi coach de alimentación», sin
+   duplicar selectores — y abre las dos puertas que faltaban
+   tras el registro: solicitar ser entrenador y solicitar ser
+   coach de alimentación. La Administración jamás se ofrece.
+   El selector de uso de la vieja caja sigue dentro, plegado,
+   para quien entrena por su cuenta, con su escritura de siempre. */
+let ROL = { kind: null, level: '', formation: '', use: 'both', busy: false };
+function rolPathKind(u) {
+  if (!u) return 'waiting';
+  if (selfTrainedOf(u)) return 'own';
+  if (u.trainerUid || (typeof MY_REL !== 'undefined' && MY_REL && MY_REL.trainerUid)) return 'trainer';
+  return 'waiting';
+}
+function rolTrainerState(u) {
+  if (!u) return 'none';
+  if ((u.role || 'usuario') === 'entrenador') return 'approved';
+  if (u.roleRequest === 'entrenador') return 'review';
+  if (u.roleRequestStatus === 'no_aprobada') return 'rejected';
+  return 'none';
+}
+function rolCoachState() {
+  const pr = (typeof NUTRI !== 'undefined' && NUTRI.myProfile) || null;
+  if (!pr) return 'none';
+  if (pr.status === 'aprobado') return 'approved';
+  if (pr.status === 'rechazado') return 'rejected';
+  if (pr.status === 'suspendido') return 'suspended';
+  return 'review';
+}
+function rolOptCard(attr, val, icon, titleKey, subHtml, selected) {
+  return `<button type="button" class="purpose-opt${selected ? ' sel' : ''}" data-rol-${attr}="${esc(val)}">
+    <span class="purpose-ico">${icon}</span>
+    <span class="purpose-opt-main"><span class="purpose-opt-title">${esc(t(titleKey))}</span>
+    <span class="purpose-opt-sub">${subHtml}</span></span>
+    <span class="purpose-check">✓</span>
+  </button>`;
+}
 function renderPurposeProfileBox() {
   const box = $('purpose-profile-box');
   if (!box) return;
-  if (!UDATA || UDATA.purpose !== 'cuenta') { box.innerHTML = ''; return; }
-  const cur = UDATA.purposeUse || 'both';
+  const u = UDATA; const me = auth.currentUser;
+  if (!me || !u) { box.innerHTML = ''; return; }
+  const kind = rolPathKind(u);
+  const pathLabel = kind === 'own' ? t('myprof.selfTrainer') : kind === 'trainer' ? t('rol.pathWithTrainer') : t('rol.pathWaiting');
+  const nrel = (typeof NUTRI !== 'undefined' && NUTRI.myRel) || null;
+  const hasCoach = !!(nrel && nrel.status === 'activa');
+  const coachLabel = hasCoach ? t('rol.coachYes') : (nrel && nrel.status === 'en_espera' ? t('rol.coachWaiting') : t('rol.coachNo'));
+  const discs = roleDiscKeysOf(u, rolCoachState() === 'approved').map(roleDiscHTML).join('');
+  const useLabel = u.purposeUse === 'meals' ? t('purpose.useMeals') : u.purposeUse === 'training' ? t('purpose.useTraining') : u.purposeUse === 'both' ? t('purpose.useBoth') : '';
+  const ts = rolTrainerState(u);
+  const cs = rolCoachState();
+  const trainerRow = ts === 'approved'
+    ? `<div class="user-row"><div><b>💪 ${esc(t('rol.reqTrainer'))}</b><br><span class="muted">${esc(t('rol.stateApproved'))}</span></div></div>`
+    : ts === 'review'
+    ? `<div class="user-row"><div><b>💪 ${esc(t('rol.reqTrainer'))}</b><br><span class="muted">${esc(t('rol.inReview'))}</span></div><div class="user-actions"><button type="button" class="btn-ghost btn-sm" data-rol-withdraw>${esc(t('rol.withdraw'))}</button></div></div>`
+    : ts === 'rejected'
+    ? `<div class="user-row"><div><b>💪 ${esc(t('rol.reqTrainer'))}</b><br><span class="muted">${esc(t('rol.notApproved'))}</span></div><div class="user-actions"><button type="button" class="btn-primary btn-sm" data-rol-open="trainer">${esc(t('rol.tryAgain'))}</button></div></div>`
+    : `<div class="user-row"><div><b>💪 ${esc(t('rol.reqTrainer'))}</b><br><span class="muted">${esc(t('rol.reqTrainerSub'))}</span></div><div class="user-actions"><button type="button" class="btn-primary btn-sm" data-rol-open="trainer">${esc(t('rol.reqTrainer'))}</button></div></div>`;
+  const coachRow = cs === 'approved'
+    ? `<div class="user-row"><div><b>🩺 ${esc(t('rol.reqCoach'))}</b><br><span class="muted">${esc(t('rol.stateApproved'))}</span></div></div>`
+    : cs === 'review'
+    ? `<div class="user-row"><div><b>🩺 ${esc(t('rol.reqCoach'))}</b><br><span class="muted">${esc(t('rol.inReviewCoach'))}</span></div></div>`
+    : cs === 'rejected'
+    ? `<div class="user-row"><div><b>🩺 ${esc(t('rol.reqCoach'))}</b><br><span class="muted">${esc(t('rol.notApproved'))}</span></div></div>`
+    : cs === 'suspended'
+    ? `<div class="user-row"><div><b>🩺 ${esc(t('rol.reqCoach'))}</b><br><span class="muted">${esc(t('rol.coachSuspended'))}</span></div></div>`
+    : `<div class="user-row"><div><b>🩺 ${esc(t('rol.reqCoach'))}</b><br><span class="muted">${esc(t('rol.reqCoachSub'))}</span></div><div class="user-actions"><button type="button" class="btn-primary btn-sm" data-rol-open="coach">${esc(t('rol.reqCoach'))}</button></div></div>`;
   box.innerHTML = `
   <div class="panel">
-    <h3 class="history-title">${esc(t('purpose.profileTitle'))}</h3>
-    <p class="progress-hint">${esc(t('purpose.own'))} · ${esc(t('purpose.profileUseLabel'))}</p>
+    <h3 class="history-title">${esc(t('rol.title'))} ${discs}</h3>
+    <p class="myprof-row"><span class="myprof-k">${esc(t('rol.pathTitle'))}</span><span class="myprof-v">${esc(pathLabel)}</span></p>
+    <p class="myprof-row"><span class="myprof-k">${esc(t('purpose.withNutri'))}</span><span class="myprof-v">${esc(coachLabel)}</span></p>
+    ${useLabel ? `<p class="myprof-row"><span class="myprof-k">${esc(t('rol.useLine'))}</span><span class="myprof-v">${esc(useLabel)}</span></p>` : ''}
+    <h4 class="eval-cfg-group">${esc(t('rol.pathTitle'))}</h4>
     <div class="purpose-profile-opts">
-      ${purposeOptCard('profuse', '🍽️', 'purpose.useMeals', esc(t('purpose.useMealsSub')), { value: 'meals', selected: cur === 'meals' })}
-      ${purposeOptCard('profuse', '🏋️', 'purpose.useTraining', esc(t('purpose.useTrainingSub')), { value: 'training', selected: cur === 'training' })}
-      ${purposeOptCard('profuse', '⭐', 'purpose.useBoth', esc(t('purpose.useBothSub')), { value: 'both', selected: cur === 'both', chip: 'purpose.useFullChip', chipCls: 'purpose-chip-teal' })}
+      ${rolOptCard('path', 'trainer', '🤝', 'purpose.withTrainer', esc(t('purpose.withTrainerSub')), kind === 'trainer')}
+      ${rolOptCard('path', 'coach', '🥗', 'purpose.withNutri', esc(t('purpose.withNutriSub')), hasCoach)}
+      ${rolOptCard('path', 'own', '🏃', 'purpose.own', esc(t('purpose.ownSub')), kind === 'own')}
     </div>
+    ${u.purpose === 'cuenta' ? `<div class="eval-actions"><button type="button" class="btn-ghost btn-sm" data-rol-usetoggle>${esc(t('rol.useChange'))}</button></div>
+    <div data-rol-usefold style="display:none">
+      <div class="purpose-profile-opts">
+        ${rolOptCard('use', 'meals', '🍽️', 'purpose.useMeals', esc(t('purpose.useMealsSub')), (u.purposeUse || 'both') === 'meals')}
+        ${rolOptCard('use', 'training', '🏋️', 'purpose.useTraining', esc(t('purpose.useTrainingSub')), (u.purposeUse || 'both') === 'training')}
+        ${rolOptCard('use', 'both', '⭐', 'purpose.useBoth', esc(t('purpose.useBothSub')), (u.purposeUse || 'both') === 'both')}
+      </div>
+    </div>` : ''}
+    <h4 class="eval-cfg-group">${esc(t('rol.wantTitle'))}</h4>
+    ${trainerRow}
+    ${coachRow}
   </div>`;
-  box.querySelectorAll('[data-purpose-profuse]').forEach(b => b.onclick = async () => {
-    const v = b.dataset.purposeProfuse;
+  box.querySelectorAll('[data-rol-path]').forEach(b => b.onclick = () => rolPathGo(b.dataset.rolPath));
+  box.querySelectorAll('[data-rol-open]').forEach(b => b.onclick = () => rolSheetOpen(b.dataset.rolOpen));
+  const wd = box.querySelector('[data-rol-withdraw]'); if (wd) wd.onclick = () => rolWithdrawTrainer();
+  const ut = box.querySelector('[data-rol-usetoggle]'); if (ut) ut.onclick = () => { const f = box.querySelector('[data-rol-usefold]'); if (f) f.style.display = f.style.display === 'none' ? '' : 'none'; };
+  box.querySelectorAll('[data-rol-use]').forEach(b => b.onclick = async () => {
+    const v = b.dataset.rolUse;
     if (!v || v === (UDATA.purposeUse || 'both')) return;
-    /* Solo la declaración (purposeUse): los interruptores
-       features son la maquinaria de acceso vigente (las comidas
-       se encienden por la solicitud en dos pasos) y ninguna rama
-       de reglas deja al usuario reescribirlos — cambiar el uso
-       aquí no concede ni retira accesos en silencio. */
+    /* La escritura de la vieja caja, intacta: solo la declaración
+       (purposeUse) por la rama de perfil inofensivo — cambiar el
+       uso no concede ni retira accesos en silencio. */
     try {
       await setDoc(doc(db, 'users', auth.currentUser.uid), { purposeUse: v }, { merge: true });
       UDATA.purposeUse = v;
@@ -13889,6 +14033,239 @@ function renderPurposeProfileBox() {
     } catch { toast(t('err.createFail'), true); }
   });
 }
+/* Las tarjetas «Cómo entrenas» ENRUTAN: «con entrenador» anota la
+   declaración si cambió y lleva a la caja «Mi entrenador» (donde
+   vive el selector de siempre); «con coach» lleva a la caja «Mi
+   coach de alimentación»; «por mi cuenta» abre su hoja de
+   confirmación (la vuelta es un cambio de relación, no un toque
+   ciego). */
+async function rolPathGo(kind) {
+  const u = UDATA; if (!u || !auth.currentUser) return;
+  if (kind === 'coach') { switchTab('coach'); try { $('nutri-my-box').scrollIntoView({ behavior: 'smooth', block: 'start' }); } catch {} return; }
+  if (kind === 'own') { if (rolPathKind(u) !== 'own') rolSheetOpen('own'); return; }
+  if (kind === 'trainer') {
+    if (rolPathKind(u) !== 'trainer' && u.purpose !== 'con_entrenador') {
+      try {
+        const iso = new Date().toISOString();
+        await setDoc(doc(db, 'users', auth.currentUser.uid), { purpose: 'con_entrenador', purposeAt: iso }, { merge: true });
+        u.purpose = 'con_entrenador'; u.purposeAt = iso;
+        if (typeof MY_REL !== 'undefined' && MY_REL && MY_REL.status === 'self') MY_REL = { ...MY_REL, status: 'en_espera', selfTrained: false };
+        renderPurposeProfileBox();
+      } catch { toast(t('err.createFail'), true); return; }
+    }
+    switchTab('trainer'); try { $('my-trainer-box').scrollIntoView({ behavior: 'smooth', block: 'start' }); } catch {}
+  }
+}
+/* ---------- Hojas del bloque (solicitudes y vuelta a su cuenta) ---------- */
+function rolFloatEl() { return $('rol-float'); }
+function rolSheetOpen(kind) {
+  ROL.kind = kind; ROL.level = ''; ROL.busy = false;
+  ROL.use = (UDATA && UDATA.purposeUse) || 'both';
+  if (kind === 'coach') ROL.formation = '';
+  rolSheetRender();
+}
+function rolSheetClose() { const f = rolFloatEl(); if (f) f.style.display = 'none'; try { coverSync(); } catch {} }
+function rolMembCards(levels) {
+  const icons = { basico: '🥉', premium: '🥈', elite: '🥇', prueba: '🧪' };
+  return levels.map(lvl => {
+    const sub = lvl === 'prueba' ? esc(t('purpose.trialDesc', { days: trialDaysOf(), n: membershipQuotaOf('prueba') })) : esc(t('purpose.upTo', { n: membershipQuotaOf(lvl) }));
+    return rolOptCard('memb', lvl, icons[lvl], 'esc.level.' + lvl, sub, ROL.level === lvl);
+  }).join('');
+}
+function rolSheetRender() {
+  const f = rolFloatEl(); if (!f) return;
+  const head = titleKey => `
+  <div class="pend-head">
+    <div><p class="purpose-kicker">${esc(t('rol.title'))}</p>
+    <h3 class="pend-title">${esc(t(titleKey))}</h3></div>
+    <button type="button" class="pend-close" data-rol-x aria-label="✕">✕</button>
+  </div>`;
+  let body = '';
+  if (ROL.kind === 'trainer') {
+    body = `${head('rol.reqTrainer')}
+    <p class="purpose-sub">${esc(t('rol.reqTrainerSub'))}</p>
+    <p class="purpose-sub"><b>${esc(t('rol.levelPick'))}</b> <span class="purpose-chip">${esc(t('rol.noCharge'))}</span></p>
+    <div class="purpose-opts">${rolMembCards(['basico', 'premium', 'elite', 'prueba'])}</div>
+    <div class="purpose-foot"><button type="button" class="btn-primary purpose-cta" data-rol-send ${ROL.level ? '' : 'disabled'}>${esc(t('rol.send'))}</button></div>`;
+  } else if (ROL.kind === 'coach') {
+    body = `${head('rol.reqCoach')}
+    <p class="purpose-sub">${esc(t('rol.reqCoachSub'))}</p>
+    <label>${esc(t('nutri.pro.formation'))}<textarea id="rol-formation" class="nutri-area" rows="3" maxlength="1200" placeholder="${esc(t('purpose.formationPh'))}">${esc(ROL.formation)}</textarea></label>
+    <p class="purpose-sub"><b>${esc(t('rol.levelPick'))}</b> <span class="purpose-chip">${esc(t('rol.noCharge'))}</span></p>
+    <div class="purpose-opts">${rolMembCards(['basico', 'premium', 'elite'])}</div>
+    <p class="progress-hint">${esc(t('rol.coachNoWithdraw'))}</p>
+    <div class="purpose-foot"><button type="button" class="btn-primary purpose-cta" data-rol-send ${ROL.level && ROL.formation.trim() ? '' : 'disabled'}>${esc(t('rol.send'))}</button></div>`;
+  } else if (ROL.kind === 'own') {
+    body = `${head('purpose.own')}
+    <p class="purpose-sub">${esc(t('rol.ownConfirm'))}</p>
+    <p class="purpose-sub"><b>${esc(t('purpose.useTitle'))}</b></p>
+    <div class="purpose-opts">
+      ${rolOptCard('ownuse', 'meals', '🍽️', 'purpose.useMeals', esc(t('purpose.useMealsSub')), ROL.use === 'meals')}
+      ${rolOptCard('ownuse', 'training', '🏋️', 'purpose.useTraining', esc(t('purpose.useTrainingSub')), ROL.use === 'training')}
+      ${rolOptCard('ownuse', 'both', '⭐', 'purpose.useBoth', esc(t('purpose.useBothSub')), ROL.use === 'both')}
+    </div>
+    <div class="purpose-foot"><button type="button" class="btn-ghost purpose-back" data-rol-x>${esc(t('purpose.backBtn'))}</button><button type="button" class="btn-primary purpose-cta" data-rol-send>${esc(t('rol.ownBtn'))}</button></div>`;
+  }
+  f.innerHTML = body;
+  f.style.display = '';
+  try { coverSync(); } catch {}
+  f.querySelectorAll('[data-rol-x]').forEach(b => b.onclick = () => rolSheetClose());
+  f.querySelectorAll('[data-rol-memb]').forEach(b => b.onclick = () => { ROL.level = b.dataset.rolMemb; rolSheetRender(); });
+  f.querySelectorAll('[data-rol-ownuse]').forEach(b => b.onclick = () => { ROL.use = b.dataset.rolOwnuse; rolSheetRender(); });
+  const pf = $('rol-formation'); if (pf) pf.oninput = () => { ROL.formation = pf.value; const s = f.querySelector('[data-rol-send]'); if (s) s.disabled = !(ROL.level && ROL.formation.trim()); };
+  const send = f.querySelector('[data-rol-send]');
+  if (send) send.onclick = () => { if (ROL.kind === 'trainer') rolSendTrainer(); else if (ROL.kind === 'coach') rolSendCoach(); else if (ROL.kind === 'own') rolGoOwn(); };
+}
+/* Solicitud de entrenador TRAS el registro: las mismas formas
+   que escribe el registro — roleRequest + estado sobre el
+   propio documento (delta cerrado de reglas de este paquete) y
+   la membresía: andamiaje 'sin_membresia' si falta (la creación
+   que las reglas admiten) y la petición 'pendiente' con las
+   TRES claves que la rama de actualización admite (status,
+   requestedLevel, requestedAt); sobre el andamiaje recién
+   creado el efecto es idéntico al del registro, y sobre una
+   membresía legada no se toca nivel ni origen. */
+async function rolSendTrainer() {
+  if (ROL.busy || !ROL.level) return;
+  ROL.busy = true;
+  const me = auth.currentUser.uid; const lvl = ROL.level;
+  try {
+    await setDoc(doc(db, 'users', me), { roleRequest: 'entrenador', roleRequestAt: new Date().toISOString(), roleRequestStatus: 'en_revision' }, { merge: true });
+    const mref = doc(db, 'memberships', me);
+    const ms = await getDoc(mref);
+    if (!ms.exists()) await setDoc(mref, { level: null, status: 'sin_membresia', source: 'gratis', requestedLevel: null, requestedAt: null, decidedBy: null, decidedAt: null, startedAt: null, currentPeriodEnd: null, priceSnapshot: null });
+    await setDoc(mref, { status: 'pendiente', requestedLevel: lvl, requestedAt: serverTimestamp() }, { merge: true });
+    await auditLog('role', 'role.trainerRequested', me, 'desde Mi perfil; nivel=' + lvl);
+    if (UDATA) { UDATA.roleRequest = 'entrenador'; UDATA.roleRequestStatus = 'en_revision'; }
+    toast(t('rol.sent'));
+    rolSheetClose();
+    renderPurposeProfileBox();
+  } catch { toast(t('err.createFail'), true); }
+  ROL.busy = false;
+}
+/* Retirada (solo mientras está en revisión): fuera roleRequest,
+   marca 'retirada' y la membresía pendiente se cancela si sigue
+   pendiente y sin nivel (la rama de reglas de este paquete
+   admite esa vuelta a 'sin_membresia'). */
+async function rolWithdrawTrainer() {
+  const me = auth.currentUser.uid;
+  try {
+    await setDoc(doc(db, 'users', me), { roleRequest: null, roleRequestStatus: 'retirada' }, { merge: true });
+    try {
+      const ms = await getDoc(doc(db, 'memberships', me));
+      if (ms.exists() && ms.data().status === 'pendiente' && !ms.data().level)
+        await setDoc(doc(db, 'memberships', me), { status: 'sin_membresia', requestedLevel: null, requestedAt: serverTimestamp() }, { merge: true });
+    } catch {}
+    await auditLog('role', 'role.trainerWithdrawn', me, 'desde Mi perfil');
+    if (UDATA) { UDATA.roleRequest = null; UDATA.roleRequestStatus = 'retirada'; }
+    toast(t('rol.withdrawn'));
+    renderPurposeProfileBox();
+  } catch { toast(t('err.createFail'), true); }
+}
+/* Solicitud de coach de alimentación: CERO delta — las
+   escrituras EXACTAS del modo declaración de la ventana de
+   propósito (perfil pendiente con su formación + membresía
+   solicitada); cae en el módulo de aprobación de siempre. */
+async function rolSendCoach() {
+  if (ROL.busy || !ROL.level) return;
+  const form = (ROL.formation || '').trim().slice(0, 1200);
+  if (!form) return;
+  ROL.busy = true;
+  const me = auth.currentUser.uid; const lvl = ROL.level;
+  try {
+    const ex = await getDoc(doc(db, 'nutritionist_profiles', me));
+    if (ex.exists()) { rolSheetClose(); renderPurposeProfileBox(); ROL.busy = false; return; }
+    await setDoc(doc(db, 'nutritionist_profiles', me), {
+      displayName: (UDATA && UDATA.name) || '', bio: '', specialties: [], languages: [],
+      modalities: ['virtual'], formation: form, status: 'pendiente', activeClients: 0,
+      createdAt: serverTimestamp(), updatedAt: serverTimestamp()
+    });
+    await setDoc(doc(db, 'nutritionist_memberships', me), {
+      level: null, status: 'pendiente', source: 'gratis', requestedLevel: lvl,
+      requestedAt: serverTimestamp(), decidedBy: null, decidedAt: null,
+      startedAt: null, currentPeriodEnd: null, priceSnapshot: null
+    });
+    await auditLog('nutrition', 'nutritionist.applied', me, 'rol=alumno; desde Mi perfil');
+    toast(t('rol.sent'));
+    rolSheetClose();
+    try { await nutriBootRefresh(); } catch {}
+    renderPurposeProfileBox();
+  } catch { toast(t('err.createFail'), true); }
+  ROL.busy = false;
+}
+/* La VUELTA a «por mi cuenta»: función HERMANA de escChangeTrainer
+   (que queda intacta) con su misma forma de lote — relación a
+   espera sin entrenador, espejo en el usuario, contador del
+   entrenador anterior −1 si la cuenta está aprobada y su perfil
+   existe, solicitud de modalidad viva cancelada en el lote,
+   evento en el historial y bitácora — y la declaración de
+   propósito en una SEGUNDA escritura del mismo gesto: las
+   reglas cierran las claves de cada rama (la del movimiento de
+   la relación no admite purpose* y la de perfil no admite el
+   movimiento), así que el gesto son dos escrituras encadenadas,
+   relación primero y propósito enseguida. El estado terminal es
+   el de AUTH-372: purpose 'cuenta' sin trainerUid, que su
+   lectura (selfTrainedOf) presenta como autónomo en todas
+   partes sin tocar ningún documento más. */
+async function rolGoOwn() {
+  if (ROL.busy) return;
+  ROL.busy = true;
+  const me = auth.currentUser.uid;
+  const use = ROL.use || (UDATA && UDATA.purposeUse) || 'both';
+  const oldT = (typeof MY_REL !== 'undefined' && MY_REL && MY_REL.trainerUid) || (UDATA && UDATA.trainerUid) || null;
+  const modality = (typeof MY_REL !== 'undefined' && MY_REL && MY_REL.modality) || (UDATA && UDATA.modality) || 'virtual';
+  const approved = UDATA && UDATA.approved === true;
+  let liveModReq = null;
+  try {
+    const ms = await getDoc(doc(db, 'modality_requests', me));
+    if (ms.exists() && String(ms.data().status || '').startsWith('pendiente_')) liveModReq = ms.data();
+  } catch {}
+  try {
+    const batch = writeBatch(db);
+    if (liveModReq) batch.update(doc(db, 'modality_requests', me), {
+      status: 'cancelada', cancelledBy: me, cancelledAt: serverTimestamp(), cancelReason: 'cambio_entrenador'
+    });
+    batch.set(doc(db, 'trainer_relations', me), {
+      alumnoUid: me, trainerUid: null, modality,
+      status: 'en_espera', startedAt: serverTimestamp(), updatedAt: serverTimestamp()
+    });
+    batch.set(doc(db, 'users', me), {
+      trainerUid: null, assignmentStatus: 'waiting'
+    }, { merge: true });
+    if (approved && oldT) {
+      try {
+        const ps = await getDoc(doc(db, 'trainer_profiles', oldT));
+        if (ps.exists()) batch.set(doc(db, 'trainer_profiles', oldT), { activeStudents: Math.max(0, (Number(ps.data().activeStudents) || 0) - 1), updatedAt: serverTimestamp() }, { merge: true });
+      } catch {}
+    }
+    await batch.commit();
+    const iso = new Date().toISOString();
+    await setDoc(doc(db, 'users', me), { purpose: 'cuenta', purposeAt: iso, purposeUse: use }, { merge: true });
+    if (UDATA) { UDATA.purpose = 'cuenta'; UDATA.purposeAt = iso; UDATA.purposeUse = use; }
+  } catch { toast(t('err.createFail'), true); ROL.busy = false; return; }
+  try {
+    await setDoc(doc(db, 'trainer_relations', me, 'history', 'ev' + Date.now()), {
+      type: oldT ? 'cambio' : 'alta', fromTrainerUid: oldT, toTrainerUid: null,
+      modality, by: me, at: serverTimestamp()
+    });
+  } catch {}
+  await auditLog('relation', 'relation.changed', me, (oldT || '—') + ' → por su cuenta');
+  if (liveModReq) {
+    await auditLog('relation', 'modality.cancelled', me, 'cambio_entrenador');
+    try { MY_MOD_REQ = { ...liveModReq, status: 'cancelada', cancelReason: 'cambio_entrenador' }; } catch {}
+  }
+  MY_REL = { trainerUid: null, modality, status: 'en_espera' };
+  if (UDATA) { UDATA.trainerUid = null; UDATA.assignmentStatus = 'waiting'; }
+  try { myRelSelfNormalize(); } catch {}
+  rolSheetClose();
+  toast(t('rol.ownDone'));
+  renderPurposeProfileBox();
+  try { await renderMyTrainerBox(); } catch {}
+  try { renderProfileView(); } catch {}
+  try { pendRefreshAfterSave(); } catch {}
+  ROL.busy = false;
+}
+
 /* Los controles legados del formulario dejan de verse: la
    ventana de propósito es la única puerta de elección. */
 { const rtEl = $('reg-type'); if (rtEl && rtEl.closest('label')) rtEl.closest('label').style.display = 'none';
@@ -14649,7 +15026,14 @@ async function loadAdmin() {
      en UNA sola superficie, sin duplicar. */
   const pendingAll = users.filter(u => !u.isOwner && u.approved !== true);
   const pending = pendingAll.filter(u => u.roleRequest !== 'entrenador');
-  const pendingTrainer = pendingAll.filter(u => u.roleRequest === 'entrenador');
+  /* AUTH-373: la lista de la vista Entrenadores pasa a ser la de
+     SOLICITUDES DE ROL: todo roleRequest de entrenador vigente,
+     SIN el filtro de approved — desde AUTH-351 las cuentas nacen
+     aprobadas y la derivación anterior (pendingAll) ya no veía
+     las solicitudes hechas tras el registro. Cada solicitud vive
+     en UNA superficie: las de cuentas aún sin aprobar siguen en
+     la ventana flotante de aprobaciones con su fila de siempre. */
+  const pendingTrainer = users.filter(u => !u.isOwner && u.roleRequest === 'entrenador' && (u.role || 'usuario') !== 'entrenador');
   const active = users.filter(u => !u.isOwner && u.approved === true);
   const owners = users.filter(u => u.isOwner);
   const pendRow = u => `
@@ -14664,11 +15048,24 @@ async function loadAdmin() {
         <button class="btn-ghost btn-sm" data-pk-revoke="${u.id}">${t('pk.revoke')}</button>
       </div>
     </div>`;
+  /* AUTH-373: fila de la solicitud de ROL — aprobar usa la
+     maquinaria de siempre (approveTrainerNow, que también aprueba
+     la cuenta si aún no lo está); rechazar aquí rechaza EL ROL
+     (la cuenta no se toca): roleRequest fuera y la marca
+     'no_aprobada' que el bloque del alumno muestra con reintento. */
+  const roleReqRow = u => `
+    <div class="user-row">
+      <div>${u.photoURL ? `<img class="avatar sm" src="${esc(u.photoURL)}" alt="">` : ''}<b>${esc(u.name || '—')}</b> <span class="warn-badge">${t('esc.trainerRequestBadge')}</span><br><span class="muted">${esc(u.email || '')}</span>${emailConfirmMarkHtml(u)}</div>
+      <div class="user-actions">
+        <button class="btn-primary btn-sm" data-approve-trainer="${u.id}">${t('esc.approveTrainer')}</button>
+        <button class="btn-ghost btn-sm" data-role-reject="${u.id}">${t('esc.rejectBtn')}</button>
+      </div>
+    </div>`;
   $('pending-count').textContent = pending.length;
   $('pending-list').innerHTML = pending.length ? pending.map(pendRow).join('') : `<div class="wempty">${t('admin.noPending')}</div>`;
   const trc = $('trainer-req-count'); if (trc) trc.textContent = pendingTrainer.length;
   const trl = $('trainer-requests-list');
-  if (trl) trl.innerHTML = pendingTrainer.length ? pendingTrainer.map(pendRow).join('') : `<div class="wempty">${t('admin.noPending')}</div>`;
+  if (trl) trl.innerHTML = pendingTrainer.length ? pendingTrainer.map(roleReqRow).join('') : `<div class="wempty">${t('admin.noPending')}</div>`;
   /* Punto 10 de la cola (decisión de Ronald, 2026-11-01 18:12 CST):
      la ventana flotante «Pendientes de aprobación» se pinta EN ESTA
      MISMA pasada, con la MISMA fuente (pendingAll — todas las
@@ -14748,6 +15145,19 @@ async function loadAdmin() {
   /* Roles+Escalabilidad: aprobar una SOLICITUD DE ENTRENADOR asigna
      el rol y crea el andamiaje en el mismo gesto (pedido 2). */
   document.querySelectorAll('[data-approve-trainer]').forEach(b => b.onclick = () => approveBtnRun(b, () => approveTrainerNow(b.dataset.approveTrainer)));
+  /* AUTH-373: rechazo de la SOLICITUD DE ROL (no de la cuenta):
+     el administrador escribe por su rama de propietario — fuera
+     roleRequest y marca 'no_aprobada' con su fecha; el alumno lo
+     ve en su bloque «Mi rol» y puede volver a solicitar. */
+  document.querySelectorAll('[data-role-reject]').forEach(b => b.onclick = async () => {
+    const uid = b.dataset.roleReject;
+    try {
+      await setDoc(doc(db, 'users', uid), { roleRequest: null, roleRequestStatus: 'no_aprobada', roleRequestAt: new Date().toISOString() }, { merge: true });
+      await auditLog('role', 'role.trainerRejected', uid, 'desde Solicitudes de rol');
+      toast(t('rol.notApproved'));
+      await loadAdmin();
+    } catch (e) { failToast(e); }
+  });
   /* Comunicación al aprobar a un entrenador (extensión 2026-10-24):
      junto a cada entrenador aprobado con la plantilla INCOMPLETA,
      el administrador despliega el TEXTO del correo recordatorio —
@@ -48697,6 +49107,7 @@ setInterval(() => { try { pendDockTick(); } catch {} }, 60000);
           else if (route === 'students') { switchTab('students'); }
           else if (route === 'admin-pending') { apprFloatOpen(); }
           else if (route === 'admin-membership') { switchTab('trainers'); scroll('membership-admin-box'); }
+          else if (route === 'admin-rolerequests') { switchTab('trainers'); scroll('trainer-requests-list'); }
           else if (route === 'admin-meals') { switchTab('trainers'); scroll('meal-admin-box'); }
           else if (route === 'admin-waiting') { pendGoWaitingTray(); }
         }
@@ -51794,7 +52205,7 @@ document.addEventListener('keydown', e => { if (e.key === 'Escape') shareClose()
  *  - El SW (sw.js) solo cachea la cáscara del mismo origen en modo
  *    RED PRIMERO: Auth/Firestore/Worker jamás pasan por la caché.
  * ================================================================ */
-const PWA_SW_VERSION = '20261110-consentimiento-dock';
+const PWA_SW_VERSION = '20261110-mi-rol';
 /* Sello de versión VISIBLE (2026-11-03): el pie de la tarjeta de
    acceso enseña qué copia corre este teléfono ('v ' + el sello),
    para comprobar de un vistazo si la versión nueva ya llegó.
