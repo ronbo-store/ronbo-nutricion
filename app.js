@@ -5972,6 +5972,7 @@ en: {
   'train.guide.estGoal': '≈ {min} min estimated · your goal is {goal} min',
   'train.guide.elapsed': '{min} min elapsed',
   'train.guide.transRest': 'Rest {sec} s before the next one',
+  'train.guide.restUnitLine': 's — seconds', 'train.guide.restNext': 'before the next one',
   'train.guide.transSkip': 'Skip rest',
   'train.guide.doneBtn': '✓ Done',
   'train.guide.undoneBtn': '✓ Done · tap to unmark',
@@ -10517,6 +10518,7 @@ es: {
   'train.guide.estGoal': '≈ {min} min estimados · tu meta es {goal} min',
   'train.guide.elapsed': '{min} min transcurridos',
   'train.guide.transRest': 'Descansa {sec} s antes del siguiente',
+  'train.guide.restUnitLine': 's — segundos', 'train.guide.restNext': 'antes del siguiente',
   'train.guide.transSkip': 'Saltar descanso',
   'train.guide.doneBtn': '✓ Hecho',
   'train.guide.undoneBtn': '✓ Hecho · toca para desmarcar',
@@ -33686,10 +33688,10 @@ function trainGuidedHTML(plan, day, di) {
     if (G.restFor === focus && doneCount > 0) {
       const prevDone = [...G.order.slice(0, fi)].reverse().find(ei => doneOf(ei));
       const restEx = prevDone != null ? eff[prevDone].ex : ex;
-      restBanner = `<div class="guide-rest"><span>${esc(t('train.guide.transRest', { sec: guideRestSec(restEx) }))}</span><button type="button" class="guide-rest-skip" data-guided-rest-skip="1">${t('train.guide.transSkip')}</button></div>`;
+      restBanner = `<div class="guide-rest"><span class="restbox"><span class="restbox-lab">${t('train.view.rest')}</span><span class="restbox-v">${guideRestSec(restEx)}</span><span class="restbox-u">${t('train.guide.restUnitLine')}</span></span><span class="guide-rest-next">${t('train.guide.restNext')}</span><button type="button" class="guide-rest-skip" data-guided-rest-skip="1">${t('train.guide.transSkip')}</button></div>`;
     }
     focusHTML = `${restBanner}<div class="guide-focus"><span class="guide-tag">${t('train.guide.now')}</span>`
-      + `<div class="guide-times"><span class="guide-time">${esc(t('train.guide.estEx', { min: guideEstMin(ex, chk) }))}</span><span class="guide-time">${esc(t('train.guide.rest', { sec: guideRestSec(ex) }))}</span></div>`
+      + `<div class="guide-times"><span class="guide-time">${esc(t('train.guide.estEx', { min: guideEstMin(ex, chk) }))}</span><span class="guide-time guide-time-rest"><span class="restbox"><span class="restbox-lab">${t('train.view.rest')}</span><span class="restbox-v">${guideRestSec(ex)}</span><span class="restbox-u">${t('train.guide.restUnitLine')}</span></span></span></div>`
       + card
       + `<button type="button" class="guide-done-btn" data-guided-done="${di}:${focus}">${chk && chk.done === true ? t('train.guide.undoneBtn') : t('train.guide.doneBtn')}</button>`
       + (chk && chk.done === true ? '' : `<button type="button" class="guide-skip-btn" data-guided-skip="${di}:${focus}">${t('train.guide.skip')}</button>`)
@@ -34416,11 +34418,25 @@ function ytClosePlayer() {
   const stage = $('yt-float-stage'); if (stage) stage.innerHTML = ''; // el iframe sale del DOM: la reproducción se detiene de verdad
   const fb = $('yt-float-fallback'); if (fb) fb.style.display = 'none';
 }
+/* AUTH-371 · EL DESCANSO, EN LA FICHA Y LAS TARJETAS, NUNCA SIN
+   UNIDAD (corrección de Ronald, 2026-11-10 12:11 CST): la línea
+   de detalle pintaba el texto del plan TAL CUAL («Descanso: 90»)
+   y un número desnudo se confunde con minutos o con repeticiones.
+   Si el texto ya trae su unidad (s/seg/sec/min) se respeta; si es
+   un número o un rango desnudo, la casa lo lee en segundos — la
+   misma lectura de guideRestSec — y se le añade la « s». */
+function restDispOf(ex) {
+  const raw = String((ex && (LANG === 'es' ? (ex.rest || ex.rest_en) : (ex.rest_en || ex.rest))) || '').trim();
+  if (!raw) return '';
+  if (/(min|seg|sec|\bs\b)/i.test(raw)) return raw;
+  if (/^[\d\s.,–-]+$/.test(raw)) return raw + ' s';
+  return raw;
+}
 function trainExInfoHTML(ex) {
   const photo = trainExPhoto(ex), video = trainExVideo(ex);
   const thumb = !photo ? ytThumbOf(video) : '';
   const spec = [ex.sets, ex.reps].filter(Boolean).join(' × ');
-  const rest = LANG === 'es' ? (ex.rest || ex.rest_en || '') : (ex.rest_en || ex.rest || '');
+  const rest = restDispOf(ex);
   const warm = LANG === 'es' ? (ex.warmup || ex.warmup_en || '') : (ex.warmup_en || ex.warmup || '');
   const det = [];
   if (warm) det.push(`${t('train.view.warmup')}: ${warm}`);
@@ -35212,20 +35228,45 @@ function tfKgOf(loadVal) {
 function tfSetHasData(s) {
   return !!s && (String(s.repsDone == null ? '' : s.repsDone) !== '' || String(s.loadVal == null ? '' : s.loadVal) !== '');
 }
+/* AUTH-371 · LA PROPAGACIÓN ES POR CAMPO (corrección de Ronald,
+   2026-11-10 12:11 CST, con su captura de «Aducción en máquina»:
+   la carga en las cuatro series y las reps solo en las dos
+   primeras). La versión de 2026-10-30 juzgaba la serie ENTERA —
+   «con datos» si traía reps O carga — y una serie nacida con la
+   carga ya puesta (el peso dictado la siembra en TODAS a la vez)
+   y las reps vacías ni era «vacía» para recibir la sugerencia ni
+   era fuente limpia: al pasar la Serie 1, su reps vacía PISABA
+   la fuente y las series siguientes se quedaban sin reps para
+   siempre. Ahora cada campo viaja por su carril: la fuente de
+   reps es la serie anterior más cercana con reps PROPIAS y la de
+   carga, la de carga propia; un campo VACÍO se marca AL MOMENTO
+   con la fuente de su campo y queda ahí como valor editable
+   (marcas sugR/sugL; la heredada sug de un borrador restaurado
+   vale por los dos campos y se lee al entrar). Lo tecleado por
+   la persona JAMÁS se pisa: un campo propio alimenta su fuente
+   y no recibe nada. El campo sugerido SIGUE a su fuente cuando
+   esta cambia — la lectura de siempre de «las demás se colocan
+   iguales» — y en cuanto la persona lo toca con la rueda queda
+   suyo y deja de seguirla (tfWheelPick limpia solo la marca del
+   campo tocado). La fila borrada a propósito (clr) ni recibe ni
+   alimenta. SOLO series de trabajo, como siempre: la aproximación
+   no pasa por aquí. */
 function tfSuggestApply() {
   const F = TRAIN_FLOAT;
   if (!F || !F.draft || !Array.isArray(F.draft.sets)) return;
-  let src = null;
+  let srcR = null, srcL = null;
   F.draft.sets.forEach(s => {
     if (!s) return;
-    if (s.sug) {
-      if (src) { s.repsDone = src.repsDone; s.loadVal = src.loadVal; }
-      else { s.repsDone = ''; s.loadVal = ''; s.sug = false; }
-    } else if (tfSetHasData(s)) {
-      src = { repsDone: String(s.repsDone == null ? '' : s.repsDone), loadVal: String(s.loadVal == null ? '' : s.loadVal) };
-    } else if (!s.clr && src) {
-      s.repsDone = src.repsDone; s.loadVal = src.loadVal; s.sug = true;
-    }
+    let sugR = s.sug === true || s.sugR === true;
+    let sugL = s.sug === true || s.sugL === true;
+    if (s.clr) { s.sug = false; s.sugR = false; s.sugL = false; return; }
+    if (sugR) { if (srcR != null) s.repsDone = srcR; else { s.repsDone = ''; sugR = false; } }
+    if (sugL) { if (srcL != null) s.loadVal = srcL; else { s.loadVal = ''; sugL = false; } }
+    if (!sugR && String(s.repsDone == null ? '' : s.repsDone) === '' && srcR != null) { s.repsDone = srcR; sugR = true; }
+    if (!sugL && String(s.loadVal == null ? '' : s.loadVal) === '' && srcL != null) { s.loadVal = srcL; sugL = true; }
+    if (!sugR && String(s.repsDone == null ? '' : s.repsDone) !== '') srcR = String(s.repsDone);
+    if (!sugL && String(s.loadVal == null ? '' : s.loadVal) !== '') srcL = String(s.loadVal);
+    s.sugR = sugR; s.sugL = sugL; s.sug = false;
   });
 }
 function tfSuggestRefresh(body) {
@@ -35405,8 +35446,16 @@ function tfWheelPick(body, kind, wv) {
        resucite. Después, las series vacías que la siguen toman
        los valores de la anterior con datos como sugerencia. */
     const lvS = String(row.loadVal == null ? '' : row.loadVal), rpS = String(row.repsDone == null ? '' : row.repsDone);
-    if (lvS === '' && (rpS === '' || rpS === '0')) { row.repsDone = ''; row.sug = false; row.clr = true; }
-    else { row.sug = false; row.clr = false; }
+    if (lvS === '' && (rpS === '' || rpS === '0')) { row.repsDone = ''; row.sug = false; row.sugR = false; row.sugL = false; row.clr = true; }
+    else {
+      row.clr = false;
+      /* AUTH-371: el campo tocado con la rueda queda PROPIO (deja
+         de seguir a su fuente); el otro conserva su estado — si
+         venía sugerido (la marca heredada sug valía por los dos),
+         pasa a su marca de campo y sigue a la fuente. */
+      if (kind === 'reps') { if (row.sug) row.sugL = true; row.sug = false; row.sugR = false; }
+      else { if (row.sug) row.sugR = true; row.sug = false; row.sugL = false; }
+    }
     /* SERIE AÑADIDA (encargo 2026-10-30): la fila nacida con
        «+ Añadir serie» es PENDIENTE (pend) y no cuenta como
        realizada hasta que él la trabaja: un toque de rueda que
@@ -35998,7 +36047,7 @@ function trainCardRender({ ex, mode, sessionHTML, allLogs }) {
     metaLine = extra ? `<div class="train-float-sub">${esc(extra)}</div>` : '';
   } else {
     const spec = [ex.sets, ex.reps].filter(Boolean).join(' × ');
-    const rest = LANG === 'es' ? (ex.rest || ex.rest_en || '') : (ex.rest_en || ex.rest || '');
+    const rest = restDispOf(ex);
     const warm = LANG === 'es' ? (ex.warmup || ex.warmup_en || '') : (ex.warmup_en || ex.warmup || '');
     const det = [];
     if (warm) det.push(`${t('train.view.warmup')}: ${warm}`);
@@ -51687,7 +51736,7 @@ document.addEventListener('keydown', e => { if (e.key === 'Escape') shareClose()
  *  - El SW (sw.js) solo cachea la cáscara del mismo origen en modo
  *    RED PRIMERO: Auth/Firestore/Worker jamás pasan por la caché.
  * ================================================================ */
-const PWA_SW_VERSION = '20261110-guiado-escaner';
+const PWA_SW_VERSION = '20261110-hoja-series';
 /* Sello de versión VISIBLE (2026-11-03): el pie de la tarjeta de
    acceso enseña qué copia corre este teléfono ('v ' + el sello),
    para comprobar de un vistazo si la versión nueva ya llegó.

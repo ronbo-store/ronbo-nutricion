@@ -5343,3 +5343,25 @@ body.swap-sheet-open .asst-fab { display: none !important; }
    la casa, a todo ancho, con el acento turquesa de la ruta. */
 .guide-door { margin: 10px 0 2px; padding: 15px 12px; font-size: 16px; background: rgba(15,181,163,.16); border-color: #0fb5a3; }
 .swap-scan-btn { display: block; width: 100%; margin-top: 10px; padding: 14px 12px; border: 2px solid #0d9488; border-radius: 14px; background: rgba(13,148,136,.12); color: #0f766e; font-size: 16px; font-weight: 800; cursor: pointer; }
+
+/* ═══ AUTH-371 · EL DESCANSO CON SU UNIDAD + LA HOJA SOBRE EL DOCK ═══
+   (corrección de Ronald, 2026-11-10 12:11 CST). (a) El componente
+   del descanso en el guiado: el valor GRANDE y la unidad DEBAJO del
+   número («s — segundos»), para que 75 o 90 jamás se lean como
+   minutos ni como repeticiones; lo usan el banner de transición y
+   el mosaico de tiempos de la ruta. (b) La holgura inferior de la
+   hoja del ejercicio pasa del contenedor a su CONTENIDO: el
+   relleno inferior de .act-float es del contenedor que desplaza y
+   hay motores (el del iPhone de Ronald) que no lo suman al área
+   desplazable — las filas de cierre (RPE, «✓ Hecho», quitar) se le
+   iban bajo los discos del dock. El relleno del cuerpo sí es
+   contenido: cuenta en todos los motores, y la hoja descansa con
+   sus filas enteras sobre el dock. Solo #train-ex-float cambia. */
+#train-ex-float { padding-bottom: env(safe-area-inset-bottom, 0px); }
+#train-ex-float-body { padding-bottom: calc(120px + env(safe-area-inset-bottom, 0px)); }
+.restbox { display: inline-flex; flex-direction: column; align-items: flex-start; line-height: 1; }
+.restbox-lab { font-size: 11px; font-weight: 700; letter-spacing: .07em; text-transform: uppercase; opacity: .85; }
+.restbox-v { font-size: 32px; font-weight: 800; line-height: 1.08; font-variant-numeric: tabular-nums; }
+.restbox-u { font-size: 12.5px; font-weight: 700; opacity: .92; margin-top: 1px; }
+.guide-rest-next { flex: 1 1 auto; font-size: 14px; font-weight: 600; }
+.guide-time-rest { display: flex; align-items: center; }
