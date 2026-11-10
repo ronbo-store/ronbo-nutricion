@@ -5069,9 +5069,17 @@ en: {
   'nav.keepEditing': 'Keep editing',
   'nav.leaveUnsaved': 'Leave without saving',
   'progress.sub': '· photos every 15 days: front, side and back',
-  'progress.hint': 'Your progress photos (front, side and back). Who can see them: only you, your assigned trainer and the program\'s administrator — they are never public. Take a new evaluation every 15 days, and compare two of your evaluations yourself in the comparator in this same section.',
-  'progress.privLine': 'Only you, your trainer and the administrator can see them · they are never public.',
+  'progress.hint': 'Your progress photos (front, side and back) are optional — wear fitted clothing, never no clothing, so your changes show clearly. You choose whether your trainer can see them, with the switch in this section; whether or not they see your photos, your trainer always receives your numbers (measurements and percentages) to follow your progress. They are never public, and the program\'s administrator can also see them. Take a new evaluation every 15 days, and compare two of your evaluations yourself in the comparator in this same section.',
+  'progress.privLine': 'Only you and the administrator can always see them · your trainer, only if you allow it below · never public.',
   'progress.privMore': 'View explanation',
+  'progress.coletilla': '📸 Optional · wear fitted clothing — never no clothing — so your changes show.',
+  'pshare.title': 'My trainer can see my photos',
+  'pshare.sub': 'Your choice — and it is only about the photos: either way, your trainer always receives your numbers (measurements and percentages) to follow your progress.',
+  'pshare.on': 'Yes — sees my photos',
+  'pshare.off': 'No — only my numbers',
+  'pshare.saved': 'Saved.',
+  'teval.photoPrivate': 'Private photo',
+  'mr.photosPrivateNote': 'These photos are private: their owner has not shared them with you. You see their numbers — measurements and percentages — not their photos.',
   'progress.week': 'This week',
   'progress.thisWeek': ' (this week)',
   'progress.front': 'Front',
@@ -9676,9 +9684,17 @@ es: {
   'nav.keepEditing': 'Seguir editando',
   'nav.leaveUnsaved': 'Salir sin guardar',
   'progress.sub': '· fotos cada 15 días: frente, costado y espalda',
-  'progress.hint': 'Tus fotos de progreso (frente, costado y espalda). Quién puede verlas: solo tú, tu entrenador asignado y el administrador del programa; nunca son públicas. Haz una nueva evaluación cada 15 días, y compara dos de tus evaluaciones tú mismo en el comparador de esta misma sección.',
-  'progress.privLine': 'Solo tú, tu entrenador y el administrador pueden verlas · nunca son públicas.',
+  'progress.hint': 'Tus fotos de progreso (frente, costado y espalda) son opcionales: ponte ropa ajustada, nunca sin ropa, para que los cambios se vean bien. Tú eliges si tu entrenador puede verlas, con el interruptor de esta sección; vea o no tus fotos, tu entrenador recibe siempre tus números (medidas y porcentajes) para seguir tu progreso. Nunca son públicas, y el administrador del programa también puede verlas. Haz una nueva evaluación cada 15 días, y compara dos de tus evaluaciones tú mismo en el comparador de esta misma sección.',
+  'progress.privLine': 'Solo tú y el administrador pueden verlas siempre · tu entrenador, solo si tú lo permites aquí abajo · nunca son públicas.',
   'progress.privMore': 'Ver explicación',
+  'progress.coletilla': '📸 Opcionales · con ropa ajustada — nunca sin ropa — para que tus cambios se vean.',
+  'pshare.title': 'Mi entrenador puede ver mis fotos',
+  'pshare.sub': 'Tú eliges — y es solo sobre las fotos: de todas formas, tu entrenador recibe siempre tus números (medidas y porcentajes) para seguir tu progreso.',
+  'pshare.on': 'Sí — ve mis fotos',
+  'pshare.off': 'No — solo mis números',
+  'pshare.saved': 'Guardado.',
+  'teval.photoPrivate': 'Foto privada',
+  'mr.photosPrivateNote': 'Estas fotos son privadas: su dueño no te las ha compartido. Ves sus números — medidas y porcentajes —, no sus fotos.',
   'progress.week': 'Esta semana',
   'progress.thisWeek': ' (esta semana)',
   'progress.front': 'Frente',
@@ -44569,6 +44585,55 @@ function applyCompAccessUI() {
   if (nb) { nb.style.display = blocked ? '' : 'none'; nb.textContent = t('compacc.pctNote'); }
 }
 
+/* ============ FOTOS DE PROGRESO: LA ELECCIÓN DEL ALUMNO (AUTH-380) ====
+   Orden de Ronald (2026-11-10 13:00 CST): la persona ELIGE si su
+   entrenador puede ver sus fotos de progreso o no; si no lo elige, el
+   entrenador recibe de todas formas el resultado en NÚMEROS (medidas
+   y porcentajes), nunca las imágenes. Casa de datos (patrón
+   compAccess, sin colección nueva): el documento {uid}_photoshare
+   de nutrition_progress, kind 'photoShare': { coachSeesPhotos,
+   history }. SIN documento = NO ve las fotos (el defecto es el más
+   privado). El interruptor vive en la sección de fotos del propio
+   alumno; la historia registra cada cambio con quién y cuándo. Del
+   lado del entrenador la puerta manda en tevalLoad (con el permiso
+   apagado el dataURL ni siquiera se carga) y en el informe
+   (mrOpenTrainer); aplica a quien abre COMO entrenador asignado de
+   ese alumno — también la cuenta propietaria actuando de entrenador
+   suyo — y el administrador abriendo alumnos de otros entrenadores
+   conserva el acceso declarado en la línea de privacidad. */
+let PHOTO_SHARE = { on: false, history: [], exists: false };
+function photoShareRef(uid) { return doc(db, 'nutrition_progress', `${uid}_photoshare`); }
+async function photoShareOf(uid) {
+  try { const s = await getDoc(photoShareRef(uid)); if (s.exists()) return (s.data() || {}).coachSeesPhotos === true; } catch {}
+  return false;
+}
+function applyPhotoShareUI() {
+  const box = $('photoshare-box'); if (!box) return;
+  const on = PHOTO_SHARE.on;
+  box.innerHTML = `<div class="ds-panel${on ? ' is-on' : ' is-off'}">
+    <button type="button" class="ds-row" id="photoshare-toggle" aria-pressed="${on ? 'true' : 'false'}">
+      <span class="ds-row-label">📸 ${esc(t('pshare.title'))}</span>
+      <span class="ds-row-side"><span class="ds-switch" aria-hidden="true"><span class="ds-knob">${on ? '✓' : '✕'}</span></span><span class="ds-state">${esc(t(on ? 'pshare.on' : 'pshare.off'))}</span></span>
+    </button>
+    <p class="progress-hint">${esc(t('pshare.sub'))}</p>
+  </div>`;
+  const b = $('photoshare-toggle'); if (b) b.onclick = () => photoShareToggle();
+}
+async function photoShareToggle() {
+  if (!auth.currentUser) return;
+  const uid = auth.currentUser.uid;
+  const on = !PHOTO_SHARE.on;
+  const entry = { v: on ? 'on' : 'off', by: uid, byName: (UDATA && UDATA.name) || '', at: new Date().toISOString() };
+  const history = [...(PHOTO_SHARE.history || []), entry].slice(-50);
+  try {
+    if (PHOTO_SHARE.exists) await setDoc(photoShareRef(uid), { coachSeesPhotos: on, history, updatedAt: serverTimestamp() }, { merge: true });
+    else await setDoc(photoShareRef(uid), { kind: 'photoShare', uid, ownerUid: uid, coachSeesPhotos: on, history, updatedAt: serverTimestamp() });
+    PHOTO_SHARE = { on, history, exists: true };
+    applyPhotoShareUI();
+    toast(t('pshare.saved'));
+  } catch { toast(t('msg.uploadFail'), true); }
+}
+
 function addDaysISO(iso, days) {
   const d = new Date(iso + 'T12:00:00'); d.setDate(d.getDate() + days);
   return d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0') + '-' + String(d.getDate()).padStart(2, '0');
@@ -45590,6 +45655,7 @@ async function loadProgress() {
   PROG = {};
   EVALS = {}; EVAL_CYCLE = { omitted: [], closedSets: [] }; EVAL_CFG = { requiredMeasures: [], units: 'metric' }; EVAL_CTX_PLANS = null;
   COMP_ACCESS = { mode: 'trainer', history: [], exists: false };
+  PHOTO_SHARE = { on: false, history: [], exists: false };
   try {
     /* Progreso personal: filtrado por el uid autenticado, también para
        el dueño. Sin relación con Storage. */
@@ -45604,11 +45670,13 @@ async function loadProgress() {
       else if (v.kind === 'evalCycle') EVAL_CYCLE = { omitted: Array.isArray(v.omitted) ? v.omitted : [], closedSets: Array.isArray(v.closedSets) ? v.closedSets : [] };
       else if (v.kind === 'evalConfig') EVAL_CFG = { requiredMeasures: Array.isArray(v.requiredMeasures) ? v.requiredMeasures : [], units: v.units === 'imperial' ? 'imperial' : 'metric' };
       else if (v.kind === 'compAccess') COMP_ACCESS = { mode: v.mode === 'client' ? 'client' : 'trainer', history: Array.isArray(v.history) ? v.history : [], exists: true };
+      else if (v.kind === 'photoShare') PHOTO_SHARE = { on: v.coachSeesPhotos === true, history: Array.isArray(v.history) ? v.history : [], exists: true };
     });
   } catch { /* sin acceso o sin docs */ }
   await ensureCompAccess();
   renderProgress();
   applyCompAccessUI();
+  applyPhotoShareUI();
   loadWeekCard();
   PROGRESS_LOADED = true;
   try { mpRenderHome(); } catch {}
@@ -46427,7 +46495,7 @@ function cmpHTML(P, E, W, cfg, cycle, sel, prefix, notesMode) {
     return '';
   };
   const head = d => `<div class="cmp-head"><p class="cmp-date">${esc(dateName(d))}</p>${cmpAnchorHTML(E, d)}${noteHTML(d)}</div>`;
-  const cell = (d, s) => { const r = (P[d] || {})[s]; return r ? `<img class="cmp-img" src="${esc(r.photo)}" alt="${esc(t('progress.' + s))}" data-cmp-zoom="${d}|${s}">` : `<span class="wempty">${esc(t('progress.' + s))}: ${esc(t('progress.noPhoto'))}</span>`; };
+  const cell = (d, s) => { const r = (P[d] || {})[s]; return r && r.photo ? `<img class="cmp-img" src="${esc(r.photo)}" alt="${esc(t('progress.' + s))}" data-cmp-zoom="${d}|${s}">` : r ? `<span class="cmp-private">🔒 ${esc(t('teval.photoPrivate'))}</span>` : `<span class="wempty">${esc(t('progress.' + s))}: ${esc(t('progress.noPhoto'))}</span>`; };
   const slotRows = PROGRESS_SLOTS.map(s => `<div class="cmp-row"><span class="cmp-slot">${esc(t('progress.' + s))}</span><div class="cmp-cells"><div class="cmp-cell">${cell(sel.a, s)}</div><div class="cmp-cell">${cell(sel.b, s)}</div></div></div>`).join('');
   const mRows = EVAL_MEASURES.map(m => {
     const va = cmpValue(E, W, sel.a, m.id), vb = cmpValue(E, W, sel.b, m.id);
@@ -46525,16 +46593,27 @@ async function tevalToggle(uid, weightsData) {
 async function tevalLoad(uid, weightsData) {
   const prog = {}, evals = {};
   let cfg = { requiredMeasures: [], units: 'metric' }, cycle = { omitted: [], closedSets: [] };
+  /* AUTH-380: la elección del alumno sobre sus fotos — si quien
+     abre la ficha es su entrenador asignado y el permiso está apagado
+     (o no existe), las fotos ni siquiera se cargan: queda la presencia
+     (fecha y ángulo, para la completitud) sin el dataURL. Los números
+     (evaluaciones y medidas) se cargan como siempre. */
+  let photosGate = false;
+  try {
+    const us = await getDoc(doc(db, 'users', uid));
+    const tu = us.exists() ? (us.data() || {}).trainerUid : null;
+    if (tu && auth.currentUser && tu === auth.currentUser.uid) photosGate = !(await photoShareOf(uid));
+  } catch {}
   try {
     const snap = await getDocs(query(collection(db, 'nutrition_progress'), where('ownerUid', '==', uid)));
     snap.forEach(d => { const v = d.data(); if (!v) return;
-      if (v.slot && v.photo && v.date) { (prog[v.date] = prog[v.date] || {})[v.slot] = { id: d.id, photo: v.photo }; }
+      if (v.slot && v.photo && v.date) { (prog[v.date] = prog[v.date] || {})[v.slot] = photosGate ? { id: d.id, withheld: true } : { id: d.id, photo: v.photo }; }
       else if (v.kind === 'evaluation' && v.date) evals[v.date] = { measures: v.measures || {}, comp: v.comp || null, completedAt: v.completedAt || null, planContext: v.planContext || null, phaseNote: v.phaseNote || null, phaseNoteAt: v.phaseNoteAt || null };
       else if (v.kind === 'evalCycle') cycle = { omitted: Array.isArray(v.omitted) ? v.omitted : [], closedSets: Array.isArray(v.closedSets) ? v.closedSets : [] };
       else if (v.kind === 'evalConfig') cfg = { requiredMeasures: Array.isArray(v.requiredMeasures) ? v.requiredMeasures : [], units: v.units === 'imperial' ? 'imperial' : 'metric' };
     });
   } catch {}
-  CEV = { uid, prog, evals, cfg, cycle, weights: (weightsData || []).map(w => ({ date: w.date, weight: w.weight })), cmp: { a: null, b: null } };
+  CEV = { uid, prog, evals, cfg, cycle, weights: (weightsData || []).map(w => ({ date: w.date, weight: w.weight })), cmp: { a: null, b: null }, photosPrivate: photosGate };
   renderCmpTrainer();
 }
 /* AUTH-2026-11-02-188 (punto 111 de la cola; correo de Ronald hoy
@@ -52457,7 +52536,7 @@ document.addEventListener('keydown', e => { if (e.key === 'Escape') shareClose()
  *  - El SW (sw.js) solo cachea la cáscara del mismo origen en modo
  *    RED PRIMERO: Auth/Firestore/Worker jamás pasan por la caché.
  * ================================================================ */
-const PWA_SW_VERSION = '20261110-ayuda-nivel-actividad';
+const PWA_SW_VERSION = '20261110-fotos-privacidad';
 /* Sello de versión VISIBLE (2026-11-03): el pie de la tarjeta de
    acceso enseña qué copia corre este teléfono ('v ' + el sello),
    para comprobar de un vistazo si la versión nueva ya llegó.
@@ -60633,7 +60712,8 @@ function mrHTML(m, inp, ctx) {
       ? `<label class="mr-sellab">${esc(t('mr.recDate'))}<select id="mr-sel" class="mr-sel">${m.recs.slice().reverse().map(r => `<option value="${r.date}"${r.date === m.sel ? ' selected' : ''}>${esc(dateName(r.date))}</option>`).join('')}</select></label>`
       : `<p class="mr-hsub">${esc(t('mr.recordOf', { d: dateName(m.sel) }))}</p>`)
     + `</section>`;
-  if (showPhotos) h += mrPhotosHTML(m, inp, ctx);
+  if (showPhotos && !(ctx.trainer && typeof MR !== 'undefined' && MR && MR.photosPrivate)) h += mrPhotosHTML(m, inp, ctx);
+  else if (ctx.mode === 'view' && ctx.trainer && typeof MR !== 'undefined' && MR && MR.photosPrivate) h += `<section class="mr-card"><h3 class="mr-t">${esc(t('mr.photosTitle'))}</h3><p class="mr-note">🔒 ${esc(t('mr.photosPrivateNote'))}</p></section>`;
   h += mrCompHTML(m, inp);
   h += mrBmiHTML(m, inp);
   h += mrEnergyHTML(m, inp);
@@ -60737,6 +60817,7 @@ async function mrOpenTrainer(uid) {
   try { const cs = await getDoc(compAccessRef(uid)); mode = cs.exists() ? (cs.data().mode === 'client' ? 'client' : 'trainer') : 'trainer'; } catch {}
   try { const us = await getDoc(doc(db, 'users', uid)); if (us.exists()) udata = us.data(); } catch {}
   if (!udata || !me || udata.trainerUid !== me || udata.assignmentStatus !== 'assigned' || mode !== 'trainer') { toast(t('mr.errTrainer'), true); return; }
+  const photosPrivate = !(await photoShareOf(uid));
   mpSheetOpen('mp-report');
   body.innerHTML = `<div class="wempty">${esc(t('mr.loading'))}</div>`;
   let asmt = null, bt = null; const weights = [];
@@ -60758,7 +60839,7 @@ async function mrOpenTrainer(uid) {
     markKg: mrMarkOf(udata),
     equation: asmt ? { used: asmt.equationUsed || asmt.equation || '', rmr: num(asmt.rmrKcal) > 0 ? num(asmt.rmrKcal) : null, tdee: num(asmt.tdeeKcal) > 0 ? num(asmt.tdeeKcal) : null } : null,
     bt
-  }, sel: null, a: null, b: null, incl: false, trainerUid: uid };
+  }, sel: null, a: null, b: null, incl: false, trainerUid: uid, photosPrivate };
   mrPaint();
 }
 function mrShareRows(m, inp) {

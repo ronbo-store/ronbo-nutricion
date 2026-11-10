@@ -21,7 +21,7 @@
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-title" content="RONBO FIT">
 <meta name="apple-mobile-web-app-status-bar-style" content="default">
-<link rel="stylesheet" href="styles.css?v=20261110-ayuda-nivel-actividad">
+<link rel="stylesheet" href="styles.css?v=20261110-fotos-privacidad">
 <script defer src="https://cloud.umami.is/script.js" data-website-id="a29706d4-44a2-47cf-900a-5f74d74abfa8"></script>
 <script type="importmap">
 {
@@ -1233,9 +1233,11 @@
       <div id="progress-status" class="progress-status"></div>
     </div>
     <div class="progress-priv" id="progress-priv">
-      <span class="progress-priv-line">🔒 <span data-i18n="progress.privLine">Only you, your trainer and the administrator can see them · they are never public.</span></span>
+      <p class="progress-coletilla" data-i18n="progress.coletilla">📸 Optional · wear fitted clothing — never no clothing — so your changes show.</p>
+      <span class="progress-priv-line">🔒 <span data-i18n="progress.privLine">Only you and the administrator can always see them · your trainer, only if you allow it below · never public.</span></span>
       <button type="button" class="progress-priv-more" id="progress-priv-toggle" aria-expanded="false" aria-controls="progress-priv-full"><span data-i18n="progress.privMore">View explanation</span> <span class="priv-arrow" aria-hidden="true">▾</span></button>
       <p class="progress-hint progress-priv-full" id="progress-priv-full" style="display:none" data-i18n="progress.hint">They're private: only you can see them. Take a new evaluation every 15 days: front, side and back. Whenever you want, ask your assistant to compare two evaluations and tell you what change it notices.</p>
+      <div id="photoshare-box"></div>
     </div>
     <h3 class="history-title" data-i18n="progress.history">Previous evaluations</h3>
     <div id="progress-history" class="progress-history"><div class="wempty" data-i18n="progress.loading">Loading photos…</div></div>
@@ -2274,6 +2276,6 @@
 <div id="toast" class="toast"></div>
 <div id="print-card" aria-hidden="true"></div>
 
-<script type="module" src="app.js?v=20261110-ayuda-nivel-actividad"></script>
+<script type="module" src="app.js?v=20261110-fotos-privacidad"></script>
 </body>
 </html>
