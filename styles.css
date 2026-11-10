@@ -5441,3 +5441,11 @@ body.swap-sheet-open .asst-fab { display: none !important; }
 .mdb-stepper input { width: 92px; text-align: center; }
 .mdb-unit { font-weight: 700; }
 .mdb-badge { display: inline-block; padding: 2px 10px; border-radius: 999px; background: #ccfbf1; color: #0f766e; font-size: 12px; font-weight: 800; vertical-align: middle; }
+
+/* AUTH-2026-11-10-378 · TERMINAR LA SESIÓN, VISIBLE: el botón de
+   terminar de la fila de la sesión va en el rojo de la casa y el
+   confirmar del panel de cierre es un botón rojo de ancho
+   completo (52 px) — terminar se ve, también entrenando. */
+.train-actions-btn.is-finish { background: #b3261e; border-color: #b3261e; color: #fff; }
+.train-day-dressed .train-actions-btn.is-finish { background: #b3261e; border-color: #f3c2c2; color: #fff; }
+.train-finish-btn { display: block; width: 100%; min-height: 52px; padding: 0 18px; border: 1px solid #b3261e; border-radius: 999px; background: #b3261e; color: #fff; font-size: 17px; font-weight: 800; line-height: 1.1; cursor: pointer; font-family: inherit; }

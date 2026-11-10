@@ -5990,7 +5990,7 @@ en: {
   'train.chronoStart': '▶ Start workout',
   'train.chronoStartBtn': '▶ Start',
 
-  'train.strip.doneToday': 'Done today', 'train.strip.skip': 'Skip', 'train.strip.add': '+ Add',
+  'train.strip.doneToday': 'Done today', 'train.strip.skip': 'Skip', 'train.strip.add': '+ Add', 'train.strip.finish': 'Finish', 'train.closeFinish': 'Finish & save',
   'train.strip.cardio': 'Cardio', 'train.strip.core': 'Core', 'train.strip.stretch': 'Stretch',
   'train.chronoRunning': '⏱ Session in progress: {min} min',
   /* META DE TIEMPO POR ENTRENAMIENTO (AUTH-359): solo informativa. */
@@ -10591,7 +10591,7 @@ es: {
   'train.chronoStart': '▶ Iniciar entrenamiento',
   'train.chronoStartBtn': '▶ Iniciar',
 
-  'train.strip.doneToday': 'Hecho hoy', 'train.strip.skip': 'Saltar', 'train.strip.add': '+ Agregar',
+  'train.strip.doneToday': 'Hecho hoy', 'train.strip.skip': 'Saltar', 'train.strip.add': '+ Agregar', 'train.strip.finish': 'Terminar', 'train.closeFinish': 'Terminar y guardar',
   'train.strip.cardio': 'Cardio', 'train.strip.core': 'Core', 'train.strip.stretch': 'Estirar',
   'train.chronoRunning': '⏱ Sesión en curso: {min} min',
   /* META DE TIEMPO POR ENTRENAMIENTO (AUTH-359): solo informativa. */
@@ -34449,7 +34449,8 @@ function trainCloseFormHTML(planId, di) {
     <label class="act-lab">${t('train.warmLabel')}
       <input type="number" data-tclose-warm min="0" max="300" step="1" inputmode="numeric" value="0"></label>
     <p class="act-note">${t('train.noDurNoEstimate')}</p>
-    <div style="margin-top:8px"><button type="button" class="btn-primary btn-sm" data-train-close-confirm="${di}">${t('train.markDone')}</button> <button type="button" class="btn-ghost btn-sm" data-train-close-cancel="${di}">${t('form.cancel')}</button></div>
+    <div style="margin-top:10px"><button type="button" class="train-finish-btn" data-train-close-confirm="${di}">${t('train.closeFinish')}</button></div>
+    <div style="margin-top:6px"><button type="button" class="btn-ghost btn-sm" data-train-close-cancel="${di}">${t('form.cancel')}</button></div>
   </div>`;
 }
 /* Cola de la tarjeta en modo edición: con el panel de cierre
@@ -34479,7 +34480,7 @@ function trainCloseFormHTML(planId, di) {
 function trainEditTailHTML(planId, di) {
   if (TRAIN_CLOSE_DI === di) return trainChronoHTML(planId, di) + trainCloseFormHTML(planId, di);
   return `<div class="train-actions-strip">`
-    + `<button type="button" class="train-actions-btn is-dim" data-train-done="${di}">${t('train.strip.doneToday')}</button>`
+    + `<button type="button" class="train-actions-btn is-finish" data-train-done="${di}">${t('train.strip.finish')}</button>`
     + `<button type="button" class="train-actions-btn" data-train-skip="${di}">${t('train.strip.skip')}</button>`
     + `<button type="button" class="train-actions-btn" data-train-add-open="1">${t('train.strip.add')}</button>`
     + `</div>` + trainChronoHTML(planId, di);
@@ -43647,7 +43648,20 @@ async function actSaveDay(date, mutate) {
       activities: draft.activities, kcalExtraTotal: draft.kcalExtraTotal,
       updatedAt: serverTimestamp() };
     if (!cur) payload.createdAt = serverTimestamp();
-    else if (cur.createdAt) payload.createdAt = cur.createdAt;
+    else if (cur.createdAt && typeof cur.createdAt === 'object') payload.createdAt = cur.createdAt;
+    else {
+      /* AUTH-2026-11-10-378: si el día de actividad nació EN ESTA
+         MISMA sesión de la app, la memoria guarda el marcador de
+         texto 'pending' en lugar de la fecha real — y la regla viva
+         exige que createdAt viaje idéntico al guardado, así que el
+         segundo guardado del día (el volcado de la sesión al
+         cerrar) nacía rechazado y la quema de la sesión no entraba.
+         Se lee la fecha real del documento y manda ella; el
+         marcador jamás sale de la memoria. */
+      let realCreated = null;
+      try { const s0 = await getDoc(doc(db, 'activity_logs', auth.currentUser.uid + '_' + date)); if (s0.exists()) realCreated = s0.data().createdAt || null; } catch {}
+      payload.createdAt = realCreated || serverTimestamp();
+    }
     await setDoc(doc(db, 'activity_logs', auth.currentUser.uid + '_' + date), payload);
     ACT_LOGS = { ...ACT_LOGS, [date]: { ...draft, createdAt: cur ? cur.createdAt : 'pending' } };
     toast(t('act.saved'));
@@ -52403,7 +52417,7 @@ document.addEventListener('keydown', e => { if (e.key === 'Escape') shareClose()
  *  - El SW (sw.js) solo cachea la cáscara del mismo origen en modo
  *    RED PRIMERO: Auth/Firestore/Worker jamás pasan por la caché.
  * ================================================================ */
-const PWA_SW_VERSION = '20261110-metas-datos-base';
+const PWA_SW_VERSION = '20261110-guardado-sesion';
 /* Sello de versión VISIBLE (2026-11-03): el pie de la tarjeta de
    acceso enseña qué copia corre este teléfono ('v ' + el sello),
    para comprobar de un vistazo si la versión nueva ya llegó.
