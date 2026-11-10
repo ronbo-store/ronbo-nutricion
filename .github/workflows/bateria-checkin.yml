@@ -7,6 +7,8 @@
 # publicación de reglas va por la ruta probada (API oficial con
 # token del propietario, desde la carpeta del paquete), nunca
 # desde este workflow.
+# La salida de cada suite se vuelca como anotaciones del job
+# para poder leerla sin descargar registros.
 name: Batería Check-in Semanal (emulador oficial)
 
 on:
@@ -41,26 +43,40 @@ jobs:
       - name: Suite CANDIDATA (el delta se comporta como se diseñó)
         run: |
           cp firestore.rules.candidata firestore.rules
-          firebase emulators:exec --only firestore --project ronbo-nutri-test "ESPERA_NUEVO=true node test-checkin.mjs"
-      - name: Fallos de la CANDIDATA (anotaciones)
+          set +e
+          firebase emulators:exec --only firestore --project ronbo-nutri-test "ESPERA_NUEVO=true node test-checkin.mjs" > suite-cand.log 2>&1
+          echo $? > rc-cand.txt
+          tail -n 5 suite-cand.log
+          true
+      - name: Informe CANDIDATA (anotaciones)
         if: always()
         run: |
           if [ -f fallos.txt ]; then
-            while IFS= read -r linea; do echo "::error title=FALLO-CAND::$linea"; done < fallos.txt
+            while IFS= read -r linea; do echo "::error title=FALLO-CAND::${linea:0:240}"; done < fallos.txt
             rm -f fallos.txt
-          else
-            echo "::notice title=CAND::sin archivo de fallos"
           fi
+          grep -E "SUBTOTAL|Error|error" suite-cand.log | tail -n 25 | while IFS= read -r linea; do echo "::error title=LOGCAND::${linea:0:240}"; done
+          true
       - name: Suite CONTROL (texto vivo f7d47e8b, delta invertido)
+        if: always()
         run: |
           cp firestore.rules.viva firestore.rules
-          firebase emulators:exec --only firestore --project ronbo-nutri-test "ESPERA_NUEVO=false node test-checkin.mjs"
-      - name: Fallos del VIVO (anotaciones)
+          set +e
+          firebase emulators:exec --only firestore --project ronbo-nutri-test "ESPERA_NUEVO=false node test-checkin.mjs" > suite-viva.log 2>&1
+          echo $? > rc-viva.txt
+          tail -n 5 suite-viva.log
+          true
+      - name: Informe VIVO (anotaciones)
         if: always()
         run: |
           if [ -f fallos.txt ]; then
-            while IFS= read -r linea; do echo "::error title=FALLO-VIVO::$linea"; done < fallos.txt
+            while IFS= read -r linea; do echo "::error title=FALLO-VIVO::${linea:0:240}"; done < fallos.txt
             rm -f fallos.txt
-          else
-            echo "::notice title=VIVO::sin archivo de fallos"
           fi
+          grep -E "SUBTOTAL|Error|error" suite-viva.log | tail -n 25 | while IFS= read -r linea; do echo "::error title=LOGVIVO::${linea:0:240}"; done
+          true
+      - name: Veredicto (falla si alguna suite falló)
+        if: always()
+        run: |
+          echo "rc-cand=$(cat rc-cand.txt 2>/dev/null || echo '?') rc-viva=$(cat rc-viva.txt 2>/dev/null || echo '?')"
+          test "$(cat rc-cand.txt)" = "0" && test "$(cat rc-viva.txt)" = "0"
