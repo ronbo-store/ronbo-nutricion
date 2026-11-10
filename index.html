@@ -21,7 +21,7 @@
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-title" content="RONBO FIT">
 <meta name="apple-mobile-web-app-status-bar-style" content="default">
-<link rel="stylesheet" href="styles.css?v=20261110-escaner-codigos">
+<link rel="stylesheet" href="styles.css?v=20261110-recetario">
 <script defer src="https://cloud.umami.is/script.js" data-website-id="a29706d4-44a2-47cf-900a-5f74d74abfa8"></script>
 <script type="importmap">
 {
@@ -947,6 +947,14 @@
         <span class="act-chip-ico scan-chip-ico" aria-hidden="true"><span class="barcode-bars"><i></i><i></i><i></i><i></i><i></i><i></i><i></i></span></span>
         <span class="act-chip-lab" data-i18n="food.scan">Scan barcode</span>
       </button>
+      <!-- RECETARIO CON FILTROS (AUTH-2026-11-10-364, serie HubFit
+           paquete 2): sexta vía de la ventana de Comida, a todo el
+           ancho bajo la del escáner. Su icono es el libro en el
+           círculo de la casa. Abre la hoja hermana #food-recipes. -->
+      <button type="button" class="act-chip scan-wide" id="btn-food-recipes">
+        <span class="act-chip-ico" aria-hidden="true">📖</span>
+        <span class="act-chip-lab" data-i18n="food.recipes">Recipe book</span>
+      </button>
     </div>
     <p class="progress-hint aiusage-line aiusage-meal-line" id="aiusage-meal-float" style="display:none"></p>
     <!-- APARTADO ÚNICO DE COMIDA (AUTH-2026-10-31-115; diseño
@@ -1053,6 +1061,28 @@
       <button type="button" class="btn-main btn-sm" id="btn-scan-go" data-i18n="scan.codeGo">Look up</button>
     </div>
     <div class="ai-actions"><button type="button" class="btn-secondary" id="btn-scan-manual" data-i18n="scan.manualBtn">✋ Log it by hand</button></div>
+  </div>
+  <!-- RECETARIO CON FILTROS (AUTH-2026-11-10-364): hoja hermana de
+       la familia de Comida. El catálogo es la colección recipes
+       (la misma del módulo de alimentación): tarjetas con
+       ingredientes anclados a la tabla USDA de la casa, valores
+       por porción CALCULADOS, filtros por patrón y el filtro duro
+       de alergias por encima de todo — una receta con un alérgeno
+       declarado del alumno no se le ofrece. Desde cada tarjeta,
+       «Registrar esta porción» vuelca los valores al formulario
+       de comida con su procedencia declarada. -->
+  <div class="act-float act-sheet" id="food-recipes" style="display:none" role="dialog" aria-label="Recipe book" data-i18n-aria="recipes.title">
+    <div class="pend-head">
+      <h2 data-i18n="recipes.title">Recipe book</h2>
+      <button type="button" class="pend-close" id="btn-food-recipes-close" aria-label="Close" data-i18n-aria="client.close">✕</button>
+    </div>
+    <p class="photo-hint" data-i18n="recipes.hint">Real recipes whose values are calculated from the house USDA food table — never typed in by hand. The number shown is the real size of the catalog.</p>
+    <input type="search" id="recipes-q" autocomplete="off" data-i18n-ph="recipes.searchPh" placeholder="Search by name or ingredient">
+    <div class="rcp-chips" id="recipes-chips"></div>
+    <p class="progress-hint" id="recipes-note"></p>
+    <div id="recipes-list"></div>
+    <div class="ai-actions"><button type="button" class="btn-secondary" id="btn-recipe-new" style="display:none"></button></div>
+    <div id="recipes-form" style="display:none"></div>
   </div>
   <div class="act-float act-sheet" id="food-help" style="display:none" role="dialog" aria-label="Help" data-i18n-aria="food.help">
     <div class="pend-head">
@@ -1834,6 +1864,7 @@
       <div id="m-ai-banner" class="ai-banner" style="display:none"></div>
       <div id="m-rep-banner" class="ai-banner" style="display:none"></div>
       <div id="m-scan-banner" class="ai-banner" style="display:none"></div>
+      <div id="m-recipe-banner" class="ai-banner" style="display:none"></div>
       <div class="frow">
         <label><span data-i18n="form.date">Date</span> <input type="date" id="m-date" required></label>
         <label><span data-i18n="form.moment">Meal</span>
@@ -2201,6 +2232,6 @@
 <div id="toast" class="toast"></div>
 <div id="print-card" aria-hidden="true"></div>
 
-<script type="module" src="app.js?v=20261110-escaner-codigos"></script>
+<script type="module" src="app.js?v=20261110-recetario"></script>
 </body>
 </html>

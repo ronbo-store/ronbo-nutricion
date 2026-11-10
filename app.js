@@ -584,7 +584,7 @@ function applyFeatureGates() {
   /* Rediseño comida flotante (2026-10-24): si la función de comidas
      o la IA se apagan, las hojas flotantes de comida abiertas se
      cierran — la puerta manda sobre la superficie, como el dock. */
-  if (!featureOn('meals') || aiOff) { for (const id of ['food-float', 'food-text', 'food-help', 'food-ai', 'food-scan']) { const el = document.getElementById(id); if (el) el.style.display = 'none'; } }
+  if (!featureOn('meals') || aiOff) { for (const id of ['food-float', 'food-text', 'food-help', 'food-ai', 'food-scan', 'food-recipes']) { const el = document.getElementById(id); if (el) el.style.display = 'none'; } }
   if (!featureOn('activity')) {
     const dockAct = document.getElementById('btn-toggle-activity'); if (dockAct) dockAct.style.display = 'none';
     const fl = document.getElementById('act-float'); if (fl) fl.style.display = 'none';
@@ -5579,6 +5579,56 @@ en: {
   'scan.manualBtn': '✋ Log it by hand',
   'scan.badCode': 'That code looks incomplete — check the digits.',
   'scan.failed': 'The lookup failed right now. Try again, or log the food by hand.',
+  'food.recipes': 'Recipe book',
+  'recipes.title': 'Recipe book',
+  'recipes.hint': 'Real recipes whose values are calculated from the house USDA food table — never typed in by hand. The number shown is the real size of the catalog.',
+  'recipes.searchPh': 'Search by name or ingredient',
+  'recipes.all': 'All',
+  'recipes.vegano': 'Vegan',
+  'recipes.vegetariano': 'Vegetarian',
+  'recipes.sin_gluten': 'Gluten-free',
+  'recipes.keto': 'Keto',
+  'recipes.proteina': 'High protein',
+  'recipes.count': '{n} recipes',
+  'recipes.countOne': '1 recipe',
+  'recipes.hiddenAllergy': '{n} hidden by your declared allergies — they are never offered to you',
+  'recipes.none': 'No recipes match. Try another filter or a different search.',
+  'recipes.loading': 'Loading recipes…',
+  'recipes.loadErr': 'The recipe book could not be loaded right now. Try again in a moment.',
+  'recipes.ingredients': 'Ingredients (for 1 serving)',
+  'recipes.steps': 'Preparation',
+  'recipes.min': 'min',
+  'recipes.perServing': 'Per serving',
+  'recipes.sugar': 'Sugars',
+  'recipes.fat': 'Fat',
+  'recipes.fiber': 'Fiber',
+  'recipes.fiberPartialShort': 'only part of the ingredients carry the data',
+  'recipes.logBtn': '✓ Log this serving',
+  'recipes.portionOne': 'serving',
+  'recipes.portionMany': 'servings',
+  'recipes.banner': '📖 Recipe: {title} · Its values are calculated from the house USDA table. Review and edit everything before saving.',
+  'recipes.fiberPartialNote': ' Fiber is left empty on purpose: only part of its ingredients carry the data, so it is never written as a total.',
+  'recipes.pending': 'Under review',
+  'recipes.new': '＋ New recipe',
+  'recipes.propose': '＋ Propose a recipe',
+  'recipes.formTitle': 'New recipe — amounts for ONE serving',
+  'recipes.fTitleEs': 'Name (Spanish)',
+  'recipes.fTitleEn': 'Name (English)',
+  'recipes.fPhoto': 'Photo URL (required)',
+  'recipes.fPhotoOpt': 'Photo URL (optional)',
+  'recipes.fTime': 'Minutes to make',
+  'recipes.fGrams': 'Grams',
+  'recipes.addIng': '＋ Add ingredient',
+  'recipes.fStepsEs': 'Steps (Spanish, one per line)',
+  'recipes.fStepsEn': 'Steps (English, one per line)',
+  'recipes.totals': 'Calculated per serving',
+  'recipes.save': 'Save recipe',
+  'recipes.cancel': 'Cancel',
+  'recipes.needTitle': 'Give the recipe a name in both languages.',
+  'recipes.needIngs': 'Add at least one ingredient with its grams.',
+  'recipes.needPhoto': 'A photo URL is required for a new recipe.',
+  'recipes.savedOk': 'Recipe saved to the catalog.',
+  'recipes.proposedOk': 'Proposal sent — it will appear in the catalog when it is approved.',
   'scan.bannerUsda': '📦 Barcode {code} · Source: USDA FoodData Central — official label data. Review the values before saving.',
   'scan.bannerOff': '📦 Barcode {code} · Source: Open Food Facts — a secondary source; its data may be incomplete. Review the values before saving.',
   'food.help': 'Help',
@@ -9882,6 +9932,56 @@ es: {
   'scan.manualBtn': '✋ Registrar a mano',
   'scan.badCode': 'Ese código parece incompleto — revisa los dígitos.',
   'scan.failed': 'La búsqueda falló en este momento. Inténtalo de nuevo o registra la comida a mano.',
+  'food.recipes': 'Recetario',
+  'recipes.title': 'Recetario',
+  'recipes.hint': 'Recetas reales cuyos valores se calculan desde la tabla de alimentos USDA de la casa — nunca escritos a mano. La cifra mostrada es el tamaño real del catálogo.',
+  'recipes.searchPh': 'Busca por nombre o ingrediente',
+  'recipes.all': 'Todas',
+  'recipes.vegano': 'Vegano',
+  'recipes.vegetariano': 'Vegetariano',
+  'recipes.sin_gluten': 'Sin gluten',
+  'recipes.keto': 'Keto',
+  'recipes.proteina': 'Alto en proteína',
+  'recipes.count': '{n} recetas',
+  'recipes.countOne': '1 receta',
+  'recipes.hiddenAllergy': '{n} ocultas por tus alergias declaradas — nunca se te ofrecen',
+  'recipes.none': 'Ninguna receta coincide. Prueba otro filtro u otra búsqueda.',
+  'recipes.loading': 'Cargando recetas…',
+  'recipes.loadErr': 'El recetario no pudo cargar ahora. Inténtalo en un momento.',
+  'recipes.ingredients': 'Ingredientes (para 1 porción)',
+  'recipes.steps': 'Preparación',
+  'recipes.min': 'min',
+  'recipes.perServing': 'Por porción',
+  'recipes.sugar': 'Azúcares',
+  'recipes.fat': 'Grasas',
+  'recipes.fiber': 'Fibra',
+  'recipes.fiberPartialShort': 'solo una parte de los ingredientes trae el dato',
+  'recipes.logBtn': '✓ Registrar esta porción',
+  'recipes.portionOne': 'porción',
+  'recipes.portionMany': 'porciones',
+  'recipes.banner': '📖 Receta: {title} · Sus valores se calculan desde la tabla USDA de la casa. Revisa y edita todo antes de guardar.',
+  'recipes.fiberPartialNote': ' La fibra queda vacía a propósito: solo una parte de sus ingredientes trae el dato, así que nunca se escribe como total.',
+  'recipes.pending': 'En revisión',
+  'recipes.new': '＋ Nueva receta',
+  'recipes.propose': '＋ Proponer una receta',
+  'recipes.formTitle': 'Nueva receta — cantidades para UNA porción',
+  'recipes.fTitleEs': 'Nombre (español)',
+  'recipes.fTitleEn': 'Nombre (inglés)',
+  'recipes.fPhoto': 'URL de la foto (obligatoria)',
+  'recipes.fPhotoOpt': 'URL de la foto (opcional)',
+  'recipes.fTime': 'Minutos de preparación',
+  'recipes.fGrams': 'Gramos',
+  'recipes.addIng': '＋ Añadir ingrediente',
+  'recipes.fStepsEs': 'Pasos (español, uno por línea)',
+  'recipes.fStepsEn': 'Pasos (inglés, uno por línea)',
+  'recipes.totals': 'Calculado por porción',
+  'recipes.save': 'Guardar receta',
+  'recipes.cancel': 'Cancelar',
+  'recipes.needTitle': 'Ponle a la receta un nombre en los dos idiomas.',
+  'recipes.needIngs': 'Añade al menos un ingrediente con sus gramos.',
+  'recipes.needPhoto': 'La URL de la foto es obligatoria para una receta nueva.',
+  'recipes.savedOk': 'Receta guardada en el catálogo.',
+  'recipes.proposedOk': 'Propuesta enviada — aparecerá en el catálogo cuando se apruebe.',
   'scan.bannerUsda': '📦 Código de barras {code} · Fuente: USDA FoodData Central — datos oficiales de la etiqueta. Revisa los valores antes de guardar.',
   'scan.bannerOff': '📦 Código de barras {code} · Fuente: Open Food Facts — fuente secundaria; sus datos pueden estar incompletos. Revisa los valores antes de guardar.',
   'food.help': 'Ayuda',
@@ -26434,7 +26534,7 @@ function foodShowOnly(which) {
      IA es HERMANA de la familia — mismo velo, mismo cierre, misma
      gramática; funnels de entrada en aiStartPhotos/aiStartText/
      aiStartAudio/aiStageShow y en el disco/aviso (aiWaiting). */
-  const map = { float: 'food-float', text: 'food-text', help: 'food-help', voice: 'food-voice', ai: 'food-ai', scan: 'food-scan' };
+  const map = { float: 'food-float', text: 'food-text', help: 'food-help', voice: 'food-voice', ai: 'food-ai', scan: 'food-scan', recipes: 'food-recipes' };
   for (const [k, id] of Object.entries(map)) { const el = $(id); if (el) el.style.display = (k === which) ? '' : 'none'; }
   /* Escáner (AUTH-2026-11-10-363): cualquier salida de su hoja —
      otra hermana, el cierre total, Escape — apaga la cámara. */
@@ -26455,6 +26555,7 @@ function foodOpenHelp() { foodShowOnly('help'); }
 function foodOpenVoice() { foodShowOnly('voice'); }
 function foodOpenAi() { foodShowOnly('ai'); }
 function foodOpenScan() { foodShowOnly('scan'); scanStart(); }
+function foodOpenRecipes() { foodShowOnly('recipes'); recipesPaint(); }
 
 /* Sub-vistas de la ventana de Comida (AUTH-2026-10-31-115,
    apartado único): Resumen (los anillos) y Consumido (el diario),
@@ -26701,6 +26802,446 @@ function scanPrefill(d) {
 { const b = $('btn-scan-go'); if (b) b.onclick = () => { const i = $('scan-code'); scanHandleCode(i ? i.value : ''); }; }
 { const i = $('scan-code'); if (i) i.addEventListener('keydown', e => { if (e.key === 'Enter') { e.preventDefault(); scanHandleCode(i.value); } }); }
 { const b = $('btn-scan-manual'); if (b) b.onclick = () => { scanStop(); foodCloseAll(); mealManualOpen(); backSet('food'); }; }
+/* ===== RECETARIO CON FILTROS (AUTH-2026-11-10-364, serie HubFit
+   paquete 2; orden de Ronald, 2026-11-10: «Ok hagámoslo») =====
+   Catálogo de recetas DENTRO de la ventana de Comida: su chip a
+   todo el ancho (bajo el del escáner) abre la hoja hermana
+   #food-recipes. Cada receta trae sus ingredientes ANCLADOS a la
+   tabla USDA de la casa (los mismos valores por 100 g de las
+   comidas preparadas), cantidades PARA UNA PORCIÓN, los valores
+   por porción CALCULADOS — Σ(per100 × gramos/100), nunca tecleados
+   a mano — y pasos cortos. La cifra del catálogo es la real de la
+   colección, sin prometer miles que no existen.
+   ETIQUETAS con criterio declarado (escrito también en el informe
+   del paquete): vegano / vegetariano / sin gluten / sin lactosa se
+   DERIVAN de los ingredientes al escribir la receta (familias de
+   carne/pescado/huevos/lácteos y unión de alérgenos); «keto» =
+   carbohidratos netos por porción ≤ 10 g, con netos = carb −
+   fibra conocida (la fibra sin dato cuenta como 0: la dirección
+   conservadora); «alto en proteína» = proteína por porción ≥ 20 g.
+   EL FILTRO DURO DE ALERGIAS MANDA (el patrón vigente del Coach y
+   de los menús, pmItemBlocked/mmBlocked, sin inventar otro): una
+   receta con un alérgeno declarado del alumno — su documento
+   nutrition_wishes, el mismo del Coach — NO se le ofrece: se
+   excluye de la lista y la hoja lo dice con su conteo honesto.
+   Desde cada receta, «Registrar» vuelca la porción al formulario
+   de comida (el patrón del escáner, AUTH-363): editable antes de
+   guardar y con su procedencia declarada (source:'recipe' +
+   recipe:{id}), que la edición conserva como la del escáner.
+   FIBRA (doctrina de la Fibra Fase 1): entra solo con su dato —
+   cobertura completa → el valor; parcial y mayor que cero → la
+   tarjeta muestra «≥» y el formulario NO la recibe como total;
+   sin dato → no se muestra. Sin dato nunca es cero.
+   AÑADIR RECETAS por la misma forma: administración publica el
+   catálogo general al momento (rama de reglas del propietario,
+   AUTH-364); el coach de alimentación aprobado guarda las suyas
+   privadas ya publicadas, como en su módulo; cualquier otra
+   cuenta propone al catálogo general y su receta nace «pendiente»
+   — la cola de aprobación de siempre la publica. Los valores se
+   calculan en vivo al escribir, con la misma función pura. */
+let recipeDraft = null; // {id} de la receta que prellenó el formulario — solo memoria; muere con el episodio (aiClearDraft)
+const RECIPES_UI = { list: null, wishes: undefined, pattern: 'all', q: '', servings: {} };
+const RECIPE_PATTERNS = ['all', 'vegano', 'vegetariano', 'sin_gluten', 'keto', 'proteina'];
+const RECIPE_MEAT_FAMS = ['pollo', 'carne', 'cerdo', 'pescado', 'mariscos'];
+const RECIPE_ANIMAL_FAMS = RECIPE_MEAT_FAMS.concat(['huevos', 'lacteos']);
+const RECIPE_ANIMAL_REFS = ['miel', 'mayonesa']; // miel: producto animal · mayonesa: lleva huevo
+const rcpR1 = x => Math.round((Number(x) || 0) * 10) / 10;
+
+/* Valores por porción CALCULADOS desde los ingredientes anclados.
+   Función pura: la usan la tarjeta, los filtros, el registro y el
+   formulario de añadir — una sola fuente para el cálculo. */
+function recipeCompute(ings) {
+  const out = { kcal: 0, prot: 0, carb: 0, sugar: 0, fat: 0, fiberKnown: 0, covS: [0, 0], covF: [0, 0] };
+  for (const g of (ings || [])) {
+    const p = (g && g.per100) || {};
+    const f = (Number(g && g.grams) || 0) / 100;
+    out.kcal += (Number(p.kcal) || 0) * f;
+    out.prot += (Number(p.prot) || 0) * f;
+    out.carb += (Number(p.carb) || 0) * f;
+    out.fat += (Number(p.fat) || 0) * f;
+    out.covS[1]++; if (p.sugar != null) { out.covS[0]++; out.sugar += Number(p.sugar) * f; }
+    out.covF[1]++; if (p.fiber != null) { out.covF[0]++; out.fiberKnown += Number(p.fiber) * f; }
+  }
+  return out;
+}
+/* La vista de valores de una receta: con ingredientes anclados se
+   calcula; sin ellos (recetas viejas del módulo de alimentación)
+   se muestran sus macros guardados y la fibra solo si la trae. */
+function recipeValues(r) {
+  if (r && Array.isArray(r.ings) && r.ings.length) {
+    const c = recipeCompute(r.ings);
+    const fiberFull = c.covF[1] > 0 && c.covF[0] === c.covF[1];
+    return {
+      kcal: Math.round(c.kcal), prot: rcpR1(c.prot), carb: rcpR1(c.carb),
+      azuc: rcpR1(c.sugar), gras: rcpR1(c.fat),
+      fiber: (fiberFull || c.fiberKnown > 0) ? { val: rcpR1(c.fiberKnown), full: fiberFull } : null,
+      fromIngs: true
+    };
+  }
+  const m = (r && r.macrosPerServing) || {};
+  return {
+    kcal: Number(m.kcal) || 0, prot: Number(m.prot) || 0, carb: Number(m.carb) || 0,
+    azuc: Number(m.azuc) || 0, gras: Number(m.gras) || 0,
+    fiber: (r && typeof r.fiber === 'number') ? { val: r.fiber, full: true } : null,
+    fromIngs: false
+  };
+}
+/* Derivación de restricciones desde los ingredientes — EL criterio
+   declarado, compartido por la semilla y por el formulario: sin
+   familias animales → vegano (y vegetariano); sin familias de
+   carne/pescado → vegetariano; sin_gluten / sin_lactosa por la
+   unión de alérgenos de los ingredientes. */
+function recipeDeriveRestrictions(ings) {
+  const fams = new Set(), refs = new Set(), algs = new Set();
+  for (const g of (ings || [])) {
+    if (g.family) fams.add(g.family);
+    if (g.refId) refs.add(g.refId);
+    for (const a of (g.allergens || [])) algs.add(a);
+  }
+  const out = [];
+  const anyOf = (set, arr) => arr.some(x => set.has(x));
+  if (!anyOf(fams, RECIPE_ANIMAL_FAMS) && !anyOf(refs, RECIPE_ANIMAL_REFS)) out.push('vegano', 'vegetariano');
+  else if (!anyOf(fams, RECIPE_MEAT_FAMS)) out.push('vegetariano');
+  if (!algs.has('gluten')) out.push('sin_gluten');
+  if (!algs.has('lactosa')) out.push('sin_lactosa');
+  return out;
+}
+function recipeGoalTags(kcal) {
+  const out = ['mantener'];
+  if (kcal < 450) out.push('bajar');
+  if (kcal >= 600) out.push('ganar');
+  return out;
+}
+/* Etiquetas EFECTIVAS de una receta: las derivadas guardadas
+   (patrones) + las calculadas por porción (keto, proteína). */
+function recipeTags(r) {
+  const s = new Set((r && r.restrictions) || []);
+  const v = recipeValues(r);
+  const net = v.carb - (v.fiber ? v.fiber.val : 0);
+  if (net <= 10) s.add('keto');
+  if (v.prot >= 20) s.add('proteina');
+  return s;
+}
+function recipeSearchText(r) {
+  const parts = [];
+  if (r && r.title) { parts.push(r.title.es || '', r.title.en || ''); }
+  const push = (n, nEn) => { if (n) parts.push(n); if (nEn) parts.push(nEn); };
+  if (r && Array.isArray(r.ings)) for (const g of r.ings) push(g.name, g.nameEn);
+  if (r && r.ingredients) for (const L of ['es', 'en']) for (const it of (r.ingredients[L] || [])) push(it.name, null);
+  return acNorm(parts.join(' '));
+}
+function recipeFilter(list, pattern, q) {
+  const nq = acNorm(q || '');
+  return (list || []).filter(r => {
+    if (pattern && pattern !== 'all' && !recipeTags(r).has(pattern)) return false;
+    if (nq && !recipeSearchText(r).includes(nq)) return false;
+    return true;
+  });
+}
+/* El filtro duro de alergias a nivel receta — espejo de
+   pmItemBlocked/mmBlocked: unión de alérgenos de la receta contra
+   las alergias declaradas, los tokens del texto libre de alergias
+   contra título e ingredientes, y las familias que no le gustan.
+   Devuelve el motivo o null. Sin documento de deseos, nada se
+   excluye — como en el Coach. */
+function recipeBlockedFor(r, wishes) {
+  if (!r || !wishes) return null;
+  const algs = r.allergens || [];
+  for (const a of (wishes.allergies || [])) if (algs.includes(a)) return { type: 'allergen', key: a };
+  if (Array.isArray(r.ings) && wishes.dislikes && wishes.dislikes.length) {
+    for (const g of r.ings) if (g.family && wishes.dislikes.includes(g.family)) return { type: 'dislike', key: g.family };
+  }
+  const toks = mmAllergyTextTokens(wishes);
+  if (toks.length) {
+    const hay = recipeSearchText(r);
+    for (const tk of toks) if (hay.includes(tk)) return { type: 'text', key: tk };
+  }
+  return null;
+}
+/* Los valores que «Registrar» vuelca al formulario para N
+   porciones — puro, para que la batería lo compruebe sin DOM.
+   La fibra viaja SOLO con cobertura completa (si no, '' = el
+   campo queda vacío: un parcial jamás se escribe como total). */
+function recipePortionValues(r, servings) {
+  const v = recipeValues(r);
+  const s = Math.max(1, Math.min(20, Math.round(Number(servings) || 1)));
+  return {
+    servings: s,
+    kcal: Math.round(v.kcal * s), prot: rcpR1(v.prot * s), carb: rcpR1(v.carb * s),
+    sugar: rcpR1(v.azuc * s), fat: rcpR1(v.gras * s),
+    fiber: (v.fiber && v.fiber.full) ? rcpR1(v.fiber.val * s) : '',
+    fiberPartial: !!(v.fiber && !v.fiber.full)
+  };
+}
+function recipeUseDraft(r) {
+  if (!r) return;
+  const serv = RECIPES_UI.servings[r.id] || 1;
+  const v = recipePortionValues(r, serv);
+  const one = recipePortionValues(r, 1);
+  aiClearDraft();
+  if (typeof repeatClear === 'function') repeatClear();
+  const form = $('form-meal'); if (form) form.reset();
+  mealSplit = null;
+  const prev = $('m-photo-preview'); if (prev) { prev.style.display = 'none'; prev.src = ''; }
+  $('m-date').value = ($('dateSel') && $('dateSel').value) || todayISO();
+  $('m-meal').value = aiDefaultMeal();
+  const L = (typeof LANG !== 'undefined' && LANG === 'en') ? 'en' : 'es';
+  const title = (r.title && (r.title[L] || r.title.es || r.title.en)) || '';
+  $('m-food').value = title;
+  $('m-qty').value = v.servings === 1 ? ('1 ' + t('recipes.portionOne')) : (v.servings + ' ' + t('recipes.portionMany'));
+  const setN = (id, val) => { const el = $(id); if (el) el.value = (val == null ? '' : val); };
+  setN('m-kcal', v.kcal); setN('m-prot', v.prot); setN('m-carb', v.carb);
+  setN('m-sugar', v.sugar); setN('m-fat', v.fat);
+  setN('m-fiber', v.fiber);
+  $('m-notes').value = '';
+  mealScaleWire();
+  /* El reescalado de la casa se arma con la porción base (=1): si
+     la persona cambia la cantidad, las métricas se reescalan
+     desde los valores de UNA porción de la receta. */
+  mealScaleArm('1 ' + t('recipes.portionOne'), {
+    kcal: one.kcal, prot: one.prot, carb: one.carb, sugar: one.sugar, fat: one.fat,
+    fiber: (one.fiber === '' ? null : one.fiber)
+  });
+  recipeDraft = { id: r.id };
+  const b = $('m-recipe-banner');
+  if (b) {
+    b.style.display = '';
+    b.textContent = t('recipes.banner', { title }) + (v.fiberPartial ? t('recipes.fiberPartialNote') : '');
+  }
+  MEAL_FORM_MANUAL_NEW = false;
+  foodCloseAll();
+  aiOpenMealModal();
+}
+async function recipesPaint() {
+  const listEl = $('recipes-list'); if (!listEl) return;
+  const nb = $('btn-recipe-new');
+  if (nb) {
+    const pro = (typeof IS_OWNER !== 'undefined' && IS_OWNER === true) ||
+      (typeof NUTRI !== 'undefined' && NUTRI.myProfile && NUTRI.myProfile.status === 'aprobado');
+    nb.style.display = '';
+    nb.textContent = t(pro ? 'recipes.new' : 'recipes.propose');
+  }
+  if (RECIPES_UI.wishes === undefined) {
+    RECIPES_UI.wishes = null;
+    try {
+      const me = auth.currentUser && auth.currentUser.uid;
+      if (me) {
+        const s = await getDoc(doc(db, 'nutrition_wishes', me));
+        RECIPES_UI.wishes = s.exists() ? (s.data() || {}) : null;
+      }
+    } catch {}
+  }
+  if (!RECIPES_UI.list) {
+    listEl.innerHTML = `<p class="progress-hint">${esc(t('recipes.loading'))}</p>`;
+    try {
+      const me = auth.currentUser && auth.currentUser.uid;
+      const snap = await getDocs(collection(db, 'recipes'));
+      const myNutri = (typeof NUTRI !== 'undefined' && NUTRI.myRel && NUTRI.myRel.nutritionistUid) || null;
+      RECIPES_UI.list = snap.docs.map(d => ({ id: d.id, ...d.data() }))
+        .filter(r => r.ownerUid === me || (r.status === 'publicada' && (r.scope === 'general' || (myNutri && r.ownerUid === myNutri))));
+      RECIPES_UI.list.sort((a, b) => String((a.title && a.title.es) || '').localeCompare(String((b.title && b.title.es) || '')));
+    } catch {
+      listEl.innerHTML = `<p class="progress-hint">${esc(t('recipes.loadErr'))}</p>`;
+      return;
+    }
+  }
+  recipesRenderList();
+}
+function recipesRenderList() {
+  const listEl = $('recipes-list'); if (!listEl) return;
+  if (!RECIPES_UI.list) return; // aún cargando: la hoja muestra su aviso
+  const chipsEl = $('recipes-chips');
+  if (chipsEl) {
+    chipsEl.innerHTML = RECIPE_PATTERNS.map(p =>
+      `<button type="button" class="rcp-chip${RECIPES_UI.pattern === p ? ' on' : ''}" data-rcp-pat="${p}">${esc(t(p === 'all' ? 'recipes.all' : 'recipes.' + p))}</button>`).join('');
+    chipsEl.querySelectorAll('[data-rcp-pat]').forEach(b => b.onclick = () => { RECIPES_UI.pattern = b.dataset.rcpPat; recipesRenderList(); });
+  }
+  const all = RECIPES_UI.list || [];
+  const offered = all.filter(r => !recipeBlockedFor(r, RECIPES_UI.wishes));
+  const hiddenN = all.length - offered.length;
+  const shown = recipeFilter(offered, RECIPES_UI.pattern, RECIPES_UI.q);
+  const noteEl = $('recipes-note');
+  if (noteEl) {
+    noteEl.textContent = (shown.length === 1 ? t('recipes.countOne') : t('recipes.count', { n: shown.length })) +
+      (hiddenN > 0 ? ' · ' + t('recipes.hiddenAllergy', { n: hiddenN }) : '');
+  }
+  if (!shown.length) { listEl.innerHTML = `<p class="progress-hint">${esc(t('recipes.none'))}</p>`; return; }
+  const L = (typeof LANG !== 'undefined' && LANG === 'en') ? 'en' : 'es';
+  listEl.innerHTML = shown.map(r => {
+    const v = recipeValues(r);
+    const tags = [...recipeTags(r)].filter(x => RECIPE_PATTERNS.includes(x));
+    const title = (r.title && (r.title[L] || r.title.es || r.title.en)) || '';
+    const ings = Array.isArray(r.ings) ? r.ings : null;
+    const ingHtml = ings
+      ? ings.map(g => `<li>${esc(L === 'en' ? (g.nameEn || g.name || '') : (g.name || ''))} — ${esc(String(g.grams))} g</li>`).join('')
+      : ((((r.ingredients || {})[L]) || []).map(it => `<li>${esc(it.name || '')}${it.qty ? ' — ' + esc(String(it.qty)) + ' ' + esc(it.unit || '') : ''}</li>`).join(''));
+    const steps = ((r.steps || {})[L]) || [];
+    const serv = RECIPES_UI.servings[r.id] || 1;
+    return `<article class="rcp-card">
+      ${r.photoUrl ? `<img class="rcp-photo" src="${esc(r.photoUrl)}" alt="" loading="lazy">` : `<div class="rcp-photo rcp-photo-ph" aria-hidden="true">🍽️</div>`}
+      <h3 class="rcp-title">${esc(title)}${r.status !== 'publicada' ? ` <span class="rcp-pending">${esc(t('recipes.pending'))}</span>` : ''}</h3>
+      <p class="rcp-tags">${tags.map(x => `<span class="rcp-tag">${esc(t('recipes.' + x))}</span>`).join('')}${r.timeMin ? `<span class="rcp-tag">⏱ ${esc(String(r.timeMin))} ${esc(t('recipes.min'))}</span>` : ''}</p>
+      <p class="rcp-vals">${esc(t('recipes.perServing'))}: <b>${esc(String(v.kcal))} kcal</b> · P ${esc(String(v.prot))} g · C ${esc(String(v.carb))} g · ${esc(t('recipes.sugar'))} ${esc(String(v.azuc))} g · ${esc(t('recipes.fat'))} ${esc(String(v.gras))} g${v.fiber ? `<br>${esc(t('recipes.fiber'))}: ${v.fiber.full ? esc(String(v.fiber.val)) + ' g' : '≥ ' + esc(String(v.fiber.val)) + ' g — ' + esc(t('recipes.fiberPartialShort'))}` : ''}</p>
+      <p class="rcp-sec">${esc(t('recipes.ingredients'))}</p>
+      <ul class="rcp-ings">${ingHtml}</ul>
+      ${steps.length ? `<p class="rcp-sec">${esc(t('recipes.steps'))}</p><ol class="rcp-steps">${steps.map(s => `<li>${esc(s)}</li>`).join('')}</ol>` : ''}
+      <div class="rcp-actions">
+        <div class="rcp-stepper" role="group" aria-label="${esc(t('nutri.recipe.servings'))}">
+          <button type="button" class="rcp-step" data-rcp-minus="${esc(r.id)}" aria-label="−">−</button>
+          <span class="rcp-serv">${serv} ${esc(t(serv === 1 ? 'recipes.portionOne' : 'recipes.portionMany'))}</span>
+          <button type="button" class="rcp-step" data-rcp-plus="${esc(r.id)}" aria-label="+">+</button>
+        </div>
+        <button type="button" class="btn-main btn-sm" data-rcp-use="${esc(r.id)}">${esc(t('recipes.logBtn'))}</button>
+      </div>
+    </article>`;
+  }).join('');
+  listEl.querySelectorAll('[data-rcp-use]').forEach(b => b.onclick = () => {
+    const r = (RECIPES_UI.list || []).find(x => x.id === b.dataset.rcpUse);
+    if (r) recipeUseDraft(r);
+  });
+  listEl.querySelectorAll('[data-rcp-minus]').forEach(b => b.onclick = () => {
+    const id = b.dataset.rcpMinus;
+    RECIPES_UI.servings[id] = Math.max(1, (RECIPES_UI.servings[id] || 1) - 1);
+    recipesRenderList();
+  });
+  listEl.querySelectorAll('[data-rcp-plus]').forEach(b => b.onclick = () => {
+    const id = b.dataset.rcpPlus;
+    RECIPES_UI.servings[id] = Math.min(20, (RECIPES_UI.servings[id] || 1) + 1);
+    recipesRenderList();
+  });
+}
+/* — Añadir recetas por la misma forma: la paleta de ingredientes
+   sale de las comidas preparadas (los anclas de la casa); los
+   valores se calculan en vivo con recipeCompute. — */
+let REC_ANCHORS = null;
+let REC_FORM = null; // {ings:[{refId, grams}]}
+async function recipesAnchors() {
+  if (REC_ANCHORS) return REC_ANCHORS;
+  const byKey = new Map();
+  try {
+    const meals = (await pmLoadLib()) || [];
+    for (const m of meals) for (const g of (m.ingredients || [])) {
+      const key = g.refId || g.libKey || g.name;
+      if (!key || !g.per100 || byKey.has(key)) continue;
+      byKey.set(key, { refId: g.refId || null, libKey: g.libKey || null, name: g.name || key, nameEn: g.nameEn || g.name || key, per100: g.per100, family: g.family || null, allergens: g.allergens || [] });
+    }
+  } catch {}
+  REC_ANCHORS = [...byKey.values()].sort((a, b) => String(a.name).localeCompare(String(b.name)));
+  return REC_ANCHORS;
+}
+async function recipesFormShow() {
+  const box = $('recipes-form'); if (!box) return;
+  const anchors = await recipesAnchors();
+  REC_FORM = { ings: [{ refId: anchors.length ? (anchors[0].refId || anchors[0].libKey || anchors[0].name) : '', grams: 100 }] };
+  box.style.display = '';
+  const pro = (typeof IS_OWNER !== 'undefined' && IS_OWNER === true) ||
+    (typeof NUTRI !== 'undefined' && NUTRI.myProfile && NUTRI.myProfile.status === 'aprobado');
+  box.innerHTML = `<div class="rcp-form">
+    <h3>${esc(t('recipes.formTitle'))}</h3>
+    <label>${esc(t('recipes.fTitleEs'))}<input type="text" id="rcp-title-es" maxlength="90"></label>
+    <label>${esc(t('recipes.fTitleEn'))}<input type="text" id="rcp-title-en" maxlength="90"></label>
+    <label>${esc(t(pro ? 'recipes.fPhotoOpt' : 'recipes.fPhoto'))}<input type="url" id="rcp-photo" placeholder="https://…"></label>
+    <label>${esc(t('recipes.fTime'))}<input type="number" id="rcp-time" min="0" max="600" step="1" value="15"></label>
+    <div id="rcp-form-ings"></div>
+    <button type="button" class="btn-secondary btn-sm" id="rcp-add-ing">${esc(t('recipes.addIng'))}</button>
+    <p class="rcp-vals" id="rcp-form-totals"></p>
+    <label>${esc(t('recipes.fStepsEs'))}<textarea id="rcp-steps-es" rows="3"></textarea></label>
+    <label>${esc(t('recipes.fStepsEn'))}<textarea id="rcp-steps-en" rows="3"></textarea></label>
+    <div class="ai-actions">
+      <button type="button" class="btn-main" id="rcp-save">${esc(t('recipes.save'))}</button>
+      <button type="button" class="btn-secondary" id="rcp-cancel">${esc(t('recipes.cancel'))}</button>
+    </div>
+  </div>`;
+  const a0 = $('rcp-add-ing'); if (a0) a0.onclick = () => { REC_FORM.ings.push({ refId: REC_ANCHORS[0] ? (REC_ANCHORS[0].refId || REC_ANCHORS[0].libKey || REC_ANCHORS[0].name) : '', grams: 50 }); recipesFormIngsPaint(); };
+  const s0 = $('rcp-save'); if (s0) s0.onclick = recipesFormSave;
+  const c0 = $('rcp-cancel'); if (c0) c0.onclick = () => { box.style.display = 'none'; box.innerHTML = ''; REC_FORM = null; };
+  recipesFormIngsPaint();
+  box.scrollIntoView({ behavior: 'smooth', block: 'start' });
+}
+function recipesFormIngsPaint() {
+  const wrap = $('rcp-form-ings'); if (!wrap || !REC_FORM) return;
+  const anchors = REC_ANCHORS || [];
+  const L = (typeof LANG !== 'undefined' && LANG === 'en') ? 'en' : 'es';
+  wrap.innerHTML = REC_FORM.ings.map((row, i) => `<div class="rcp-ing-row">
+    <select data-rcp-ing="${i}">${anchors.map(a => {
+      const key = a.refId || a.libKey || a.name;
+      return `<option value="${esc(key)}"${key === row.refId ? ' selected' : ''}>${esc(L === 'en' ? a.nameEn : a.name)}</option>`;
+    }).join('')}</select>
+    <input type="number" data-rcp-grams="${i}" min="1" max="2000" step="1" value="${esc(String(row.grams))}" aria-label="${esc(t('recipes.fGrams'))}">
+    <span class="rcp-g">g</span>
+    <button type="button" class="rcp-ing-x" data-rcp-del="${i}" aria-label="✕">✕</button>
+  </div>`).join('');
+  wrap.querySelectorAll('[data-rcp-ing]').forEach(sel => sel.onchange = () => { REC_FORM.ings[Number(sel.dataset.rcpIng)].refId = sel.value; recipesFormTotals(); });
+  wrap.querySelectorAll('[data-rcp-grams]').forEach(inp => inp.oninput = () => { REC_FORM.ings[Number(inp.dataset.rcpGrams)].grams = Math.max(0, Number(inp.value) || 0); recipesFormTotals(); });
+  wrap.querySelectorAll('[data-rcp-del]').forEach(b => b.onclick = () => { REC_FORM.ings.splice(Number(b.dataset.rcpDel), 1); recipesFormIngsPaint(); });
+  recipesFormTotals();
+}
+function recipesFormIngs() {
+  const anchors = REC_ANCHORS || [];
+  const find = key => anchors.find(a => (a.refId || a.libKey || a.name) === key);
+  return (REC_FORM ? REC_FORM.ings : [])
+    .map(row => { const a = find(row.refId); if (!a) return null; return { ...a, grams: Math.max(0, Number(row.grams) || 0) }; })
+    .filter(g => g && g.grams > 0);
+}
+function recipesFormTotals() {
+  const el = $('rcp-form-totals'); if (!el) return;
+  const ings = recipesFormIngs();
+  const fake = { ings };
+  const v = recipeValues(fake);
+  el.textContent = ings.length
+    ? `${t('recipes.totals')}: ${v.kcal} kcal · P ${v.prot} g · C ${v.carb} g · G ${v.gras} g${v.fiber ? ' · ' + t('recipes.fiber') + ' ' + (v.fiber.full ? '' : '≥ ') + v.fiber.val + ' g' : ''}`
+    : t('recipes.totals') + ': —';
+}
+async function recipesFormSave() {
+  const box = $('recipes-form'); if (!box || !REC_FORM) return;
+  const titleEs = ($('rcp-title-es') || {}).value.trim(), titleEn = ($('rcp-title-en') || {}).value.trim();
+  if (!titleEs || !titleEn) { toast(t('recipes.needTitle'), true); return; }
+  const ings = recipesFormIngs();
+  if (!ings.length) { toast(t('recipes.needIngs'), true); return; }
+  const me = auth.currentUser && auth.currentUser.uid;
+  const isOwner = (typeof IS_OWNER !== 'undefined' && IS_OWNER === true);
+  const isNutri = (typeof NUTRI !== 'undefined' && NUTRI.myProfile && NUTRI.myProfile.status === 'aprobado');
+  const photoUrl = (($('rcp-photo') || {}).value || '').trim();
+  if (!isOwner && !photoUrl) { toast(t('recipes.needPhoto'), true); return; }
+  const stepsSplit = id => ((($(id) || {}).value || '').split('\n').map(s => s.trim()).filter(Boolean));
+  const vals = recipeValues({ ings });
+  const allergens = [...new Set(ings.flatMap(g => g.allergens || []))].sort();
+  const data = {
+    ownerUid: me,
+    scope: isNutri && !isOwner ? 'privada' : 'general',
+    status: (isOwner || isNutri) ? 'publicada' : 'pendiente',
+    title: { es: titleEs, en: titleEn },
+    ings,
+    ingredients: {
+      es: ings.map(g => ({ name: g.name, qty: g.grams, unit: 'g' })),
+      en: ings.map(g => ({ name: g.nameEn || g.name, qty: g.grams, unit: 'g' }))
+    },
+    steps: { es: stepsSplit('rcp-steps-es'), en: stepsSplit('rcp-steps-en') },
+    timeMin: Math.max(0, Math.round(Number((($('rcp-time') || {}).value)) || 0)),
+    servings: 1,
+    macrosPerServing: { kcal: vals.kcal, prot: vals.prot, carb: vals.carb, azuc: vals.azuc, gras: vals.gras },
+    fiber: vals.fiber ? vals.fiber.val : null,
+    cov: (() => { const c = recipeCompute(ings); return { fiber: c.covF, sugar: c.covS }; })(),
+    allergens,
+    restrictions: recipeDeriveRestrictions(ings),
+    goalTags: recipeGoalTags(vals.kcal),
+    createdAt: serverTimestamp(), updatedAt: serverTimestamp()
+  };
+  if (photoUrl) data.photoUrl = photoUrl;
+  const btn = $('rcp-save'); if (btn) btn.disabled = true;
+  try {
+    await addDoc(collection(db, 'recipes'), data);
+    RECIPES_UI.list = null;
+    box.style.display = 'none'; box.innerHTML = ''; REC_FORM = null;
+    toast(t(data.status === 'publicada' ? 'recipes.savedOk' : 'recipes.proposedOk'));
+    recipesPaint();
+  } catch { toast(t('recipes.loadErr'), true); if (btn) btn.disabled = false; }
+}
+{ const b = $('btn-food-recipes'); if (b) b.onclick = () => foodOpenRecipes(); }
+{ const c = $('btn-food-recipes-close'); if (c) c.onclick = () => foodOpenFloat(); }
+{ const n = $('btn-recipe-new'); if (n) n.onclick = () => recipesFormShow(); }
+{ const q = $('recipes-q'); if (q) q.addEventListener('input', () => { RECIPES_UI.q = q.value; recipesRenderList(); }); }
+
 /* Cierre tocando fuera (el label COMIDA del dock se excluye: su
    propio handler ya alterna) y con Escape — espejo de actividad. */
 document.addEventListener('click', e => {
@@ -26711,8 +27252,8 @@ document.addEventListener('click', e => {
      un clic de fuera — sin esta guarda, la hoja se cerraba con el
      mismo toque que arrancaba el análisis (puntos 19–20). */
   if (e.target && e.target.isConnected === false) return;
-  if (!['food-float', 'food-text', 'food-help', 'food-voice', 'food-ai', 'food-scan'].some(foodIsOpen)) return;
-  for (const id of ['food-float', 'food-text', 'food-help', 'food-voice', 'food-ai', 'food-scan']) { const el = $(id); if (el && el.contains(e.target)) return; }
+  if (!['food-float', 'food-text', 'food-help', 'food-voice', 'food-ai', 'food-scan', 'food-recipes'].some(foodIsOpen)) return;
+  for (const id of ['food-float', 'food-text', 'food-help', 'food-voice', 'food-ai', 'food-scan', 'food-recipes']) { const el = $(id); if (el && el.contains(e.target)) return; }
   const l = $('btn-round-food'); if (l && l.contains(e.target)) return;
   /* Superficies cuyos botones ABREN una hoja de Comida (puntos
      19–20): el aviso del borrador (#ai-draft-notice: «Revisarla») y
@@ -27662,6 +28203,11 @@ function aiClearDraft() {
   scanDraft = null;
   const bs2 = $('m-scan-banner');
   if (bs2) { bs2.style.display = 'none'; bs2.textContent = ''; }
+  /* Recetario (AUTH-2026-11-10-364): su episodio muere con el del
+     formulario, como el del escáner y el de IA. */
+  recipeDraft = null;
+  const bs3 = $('m-recipe-banner');
+  if (bs3) { bs3.style.display = 'none'; bs3.textContent = ''; }
 }
 let aiSaving = false; // guardia del guardado directo (se suma a mealSaving, la del formulario)
 /* Guardado DIRECTO desde el resultado (PAQUETE 2, Ronald 2026-10-18):
@@ -45860,6 +46406,13 @@ $('form-meal').addEventListener('submit', async e => {
        episodios nunca conviven (scanPrefill limpia el borrador de
        IA y aiClearDraft limpia el del escáner). */
     if (scanDraft) { data.source = 'barcode'; data.barcode = { code: scanDraft.code, src: scanDraft.src }; }
+    /* Recetario (AUTH-2026-11-10-364): el guardado desde una
+       receta lleva su procedencia — source 'recipe' y el id de la
+       receta — y en todo lo demás es una comida normal: misma
+       forma y mismos totales. Los episodios nunca conviven
+       (recipeUseDraft limpia los demás borradores con
+       aiClearDraft/repeatClear, y aiClearDraft limpia el suyo). */
+    if (recipeDraft) { data.source = 'recipe'; data.recipe = { id: recipeDraft.id }; }
     /* Procedencia de la repetición (corrección 2026-10-19, punto 3b):
        si el guardado viene de «Repetir», la copia lleva su origin
        (kind/fromId/fromDate) — visible en los datos, sin bloque ai ni
@@ -45899,6 +46452,7 @@ $('form-meal').addEventListener('submit', async e => {
       if (rec.source) data.source = rec.source;
       if (rec.origin) data.origin = rec.origin;
       if (rec.barcode) data.barcode = rec.barcode; // AUTH-363: la edición conserva la procedencia del escáner, como la de IA
+      if (rec.recipe) data.recipe = rec.recipe; // AUTH-364: la edición conserva la procedencia de la receta, como la del escáner
       if (rec.ai) data.ai = rec.ai;
       if (rec.byUid) data.byUid = rec.byUid;
       if (rec.byRole) data.byRole = rec.byRole;
@@ -50283,7 +50837,7 @@ document.addEventListener('keydown', e => { if (e.key === 'Escape') shareClose()
  *  - El SW (sw.js) solo cachea la cáscara del mismo origen en modo
  *    RED PRIMERO: Auth/Firestore/Worker jamás pasan por la caché.
  * ================================================================ */
-const PWA_SW_VERSION = '20261110-escaner-codigos';
+const PWA_SW_VERSION = '20261110-recetario';
 /* Sello de versión VISIBLE (2026-11-03): el pie de la tarjeta de
    acceso enseña qué copia corre este teléfono ('v ' + el sello),
    para comprobar de un vistazo si la versión nueva ya llegó.
