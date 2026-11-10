@@ -48470,6 +48470,33 @@ function shareMotivFor(iso) {
    de fecha descendente, saltando los marcados «skipped» y las
    fechas futuras o mal formadas; por ejercicio gana la MAYOR
    carga de sus series y la sesión más reciente con carga manda. */
+/* AUTH-362 — LA TARJETA DEL DÍA LIBRE, CON GRACIA (orden de Ronald
+   2026-11-09 11:52 CST): cuando la tarjeta de hoy no tiene filas
+   PORQUE toca día libre ASIGNADO, en vez del texto vacío sale la
+   mascota descansando (hamaca, «Zzz») y UNA línea breve de descanso
+   de este banco propio. Rotación ESTABLE POR DÍA: índice = días UTC
+   desde la época de la fecha de la tarjeta, módulo el tamaño del
+   banco (6) — el mismo día, siempre el mismo mensaje; dos domingos
+   seguidos caen en mensajes distintos (7 mod 6 = 1). EN primero,
+   como toda superficie de RONBO. La cara vive en el repo de activos
+   de la casa, con nombre nuevo (descansando.webp, 512 px, 37.008 B),
+   como manda el LEEME de avatar-coach-virtual/web. */
+const SHARE_REST_FACE_URL = 'https://ronbo-store.github.io/ronbo-nutri-assets/avatar-coach-virtual/web/descansando.webp';
+const SHARE_REST_MSGS = [
+  { en: 'Rest day: the couch is my gym today. 😴', es: 'Día libre: hoy el sofá es mi gimnasio. 😴' },
+  { en: 'Recharging batteries… see you tomorrow, weights. 🔋', es: 'Cargando baterías… hasta mañana, pesas. 🔋' },
+  { en: 'Today we train the art of doing nothing. 🛋️', es: 'Hoy entrenamos el arte de no hacer nada. 🛋️' },
+  { en: 'Muscles growing in sleep mode. Zzz… 💤', es: 'Músculos creciendo en modo sueño. Zzz… 💤' },
+  { en: 'Official rest day: hammock, snacks, zero reps. 🌴', es: 'Día libre oficial: hamaca, merienda y cero repeticiones. 🌴' },
+  { en: 'Rest is part of the plan — nailing it. 😌', es: 'Descansar es parte del plan: lo cumplo perfecto. 😌' },
+];
+function shareRestMsgFor(iso) {
+  const p = String(iso || '').split('-').map(Number);
+  if (!p[0] || !p[1] || !p[2] || !SHARE_REST_MSGS.length) return '';
+  const days = Math.floor(Date.UTC(p[0], p[1] - 1, p[2]) / 86400000);
+  const e = SHARE_REST_MSGS[((days % SHARE_REST_MSGS.length) + SHARE_REST_MSGS.length) % SHARE_REST_MSGS.length] || {};
+  return LANG === 'es' ? (e.es || '') : (e.en || e.es || '');
+}
 function shareTodayLastLoads(iso) {
   const logs = ((typeof MY_LOGS !== 'undefined' && Array.isArray(MY_LOGS)) ? MY_LOGS : []).slice()
     .sort((a, b) => String((b && b.date) || '').localeCompare(String((a && a.date) || '')));
@@ -48545,6 +48572,27 @@ function shareTodayData() {
       });
     });
   }
+  /* AUTH-362 — DÍA LIBRE ASIGNADO, y solo él: (a) el día mapeado
+     trae freeDay === true (el descanso que el entrenador marcó en
+     el plan), o (b) el motor de metas clasifica la fecha como
+     'descanso' con ancla real (weekday/cfg: el día de semana no
+     tiene sesión en el mapa del plan — el domingo de un plan de
+     lunes a sábado; plancal: fecha en blanco DENTRO de la vigencia
+     del plan) y sin día mapeado. Sin plan (mode 'none'), en
+     rotación, en un día de entreno (mapeado y sin freeDay) o antes
+     de que el plan-calendario empiece NO hay gracia: el vacío
+     conserva su texto honesto. Y si el día libre trae filas (la
+     sesión armada a mano de AUTH-342), mandan las filas. */
+  let restAssigned = false;
+  if (plan && rows.length === 0 && det.dayLevel === 'descanso' && det.mode !== 'none' && det.mode !== 'rotation') {
+    if (di != null) restAssigned = !!(Array.isArray(plan.days) && plan.days[di] && plan.days[di].freeDay === true);
+    else if (det.mode === 'weekday' || det.mode === 'cfg') restAssigned = true;
+    else if (det.mode === 'plancal') {
+      const s = String(plan.startsAt || '').slice(0, 10);
+      const e = plan.endsAt ? String(plan.endsAt).slice(0, 10) : null;
+      restAssigned = (!/^\d{4}-\d{2}-\d{2}$/.test(s) || iso >= s) && (!e || !/^\d{4}-\d{2}-\d{2}$/.test(e) || iso <= e);
+    }
+  }
   let dayTag = '';
   if (di != null && plan && Array.isArray(plan.days) && plan.days[di]) {
     const fc = week5Focus(plan.days[di].label || '', di);
@@ -48570,6 +48618,7 @@ function shareTodayData() {
     iso, rows, dayTag,
     planName: (plan && plan.title) ? String(plan.title) : '',
     box, phrase: shareMotivFor(iso),
+    restDay: restAssigned, restMsg: restAssigned ? shareRestMsgFor(iso) : '',
   };
 }
 /* El bloque del logo de la franja (el mismo activo de la
@@ -48708,6 +48757,21 @@ function shareDrawToday(ctx, W, H, d) {
       if (i < shown.length - 1 || more > 0) sgBox(ctx, M.padX, rTop + rowH - 1, W - 2 * M.padX, 2, 0, '#e3ecef');
     });
     if (more > 0) sgText(ctx, t('share.shortMore', { n: more }), M.padX, rowsTop + shown.length * rowH + rowH / 2, 700, M.spec * sf + 2, ACC);
+  } else if (d.restDay) {
+    /* AUTH-362: la mascota descansando, centrada en el hueco de las
+       filas, y debajo su línea de descanso del día. La foto entra
+       por el cargador de fotos de la tarjeta (sharePhotoDraw, con
+       su repintado al cargar); si no carga, el hueco queda limpio
+       con solo la línea — degradación honesta, nunca un roto. */
+    const midY = (rowsTop + rowsBottom) / 2;
+    const s = square ? 290 : 430;
+    const imgY = midY - s / 2 - (square ? 26 : 36);
+    sharePhotoDraw(ctx, SHARE_REST_FACE_URL, W / 2 - s / 2, imgY, s);
+    if (d.restMsg) {
+      let rp = square ? 29 : 36;
+      while (rp > 16 && shareTextW(ctx, d.restMsg, 700, rp) > W - 2 * M.padX) rp -= 1;
+      sgText(ctx, d.restMsg, W / 2, imgY + s + (square ? 46 : 60), 700, rp, ACC, { align: 'center' });
+    }
   } else {
     sgText(ctx, t('share.todayEmpty'), W / 2, (rowsTop + rowsBottom) / 2, 700, square ? 30 : 36, MUT, { align: 'center' });
   }
@@ -50014,7 +50078,7 @@ document.addEventListener('keydown', e => { if (e.key === 'Escape') shareClose()
  *  - El SW (sw.js) solo cachea la cáscara del mismo origen en modo
  *    RED PRIMERO: Auth/Firestore/Worker jamás pasan por la caché.
  * ================================================================ */
-const PWA_SW_VERSION = '20261109-comidas-acompanado';
+const PWA_SW_VERSION = '20261109-tarjeta-dia-libre';
 /* Sello de versión VISIBLE (2026-11-03): el pie de la tarjeta de
    acceso enseña qué copia corre este teléfono ('v ' + el sello),
    para comprobar de un vistazo si la versión nueva ya llegó.
