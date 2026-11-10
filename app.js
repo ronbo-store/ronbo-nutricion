@@ -6933,6 +6933,7 @@ en: {
   'fa.available': 'Available',
   'fa.unavailable': 'Unavailable · pending verification',
   'fa.birthYear': 'Birth year',
+  'fa.byPick': 'Pick your year',
   'fa.height': 'Height (cm)',
   'fa.weightBasis': 'Using the latest weight: {w} · {date}',
   'fa.noWeight': 'No weight logged yet: there is no basis for the calculation.',
@@ -6944,10 +6945,18 @@ en: {
   'fa.act4': 'Active in daily life (standing or light physical work, frequent walks)',
   'fa.act5': 'Physically demanding job or very active daily life',
   'fa.act6': 'Sustained heavy physical work',
+  'fa.actShort1': 'Almost total rest',
+  'fa.actShort2': 'Sedentary',
+  'fa.actShort3': 'Sedentary, lightly active',
+  'fa.actShort4': 'Active daily life',
+  'fa.actShort5': 'Physically demanding job',
+  'fa.actShort6': 'Heavy physical work',
   'fa.palLabel': 'Activity multiplier (palBasal)',
   'fa.palRules': 'Normal range: 1.40–2.00 · Exception band: 1.20–1.39 (with express confirmation) · Below 1.20: not allowed.',
   'fa.palGuide': '<b>Guidance — what this multiplier covers</b><br>The activity level above suggests an evidence-based default for this field — the FAO/WHO/UNU PAL bands (2004): sedentary or light life 1.40–1.69 · active life 1.70–1.99 · vigorous life 2.00–2.40; near-total rest sits at 1.20. The suggested value appears in the field and you can adjust it: a value you type yourself is never overwritten.<br>The multiplier covers rest, daily life and habitual movement, including the thermic effect of food and unstructured activity. It does NOT include structured exercise.',
   'fa.palAutoNote': 'Auto-suggested from the activity level (FAO/WHO/UNU PAL). You can adjust it.',
+  'fa.palAutoBadge': 'Automatic',
+  'fa.palKeepAuto': 'It fills in by itself from your activity level: do not change it unless you know what you are doing.',
   'fa.palPlaceholder': 'E.g. 1.55',
   'fa.palWarn': '⚠ This value is outside the usual physiological range.',
   'fa.palWarnBody': 'It is in the exception band (1.20–1.39): to save it you must confirm it expressly.',
@@ -7841,6 +7850,9 @@ en: {
   'gm.obj.mantener': 'Maintain',
   'gm.obj.bajar': 'Lose weight',
   'gm.obj.ganar': 'Gain muscle',
+  'gm.objExpl.mantener': 'You eat what you burn: no deficit, no surplus; the math starts from your estimated expenditure.',
+  'gm.objExpl.bajar': 'You eat below what you burn, at the founded pace; your trainer reviews it if you have one.',
+  'gm.objExpl.ganar': 'You eat above what you burn, with high protein, to build muscle.',
   'gm.needData': 'Your goals are calculated from your own data — birth year, height, activity multiplier and your latest weight — plus the goal you choose. Until those data are complete there are no goals: nothing is invented.',
   'gm.prov': 'Calculated {date} from your data: expenditure {tdee} kcal/day ({eq}), latest weight {w} kg ({wdate}), height {h} cm, age {age}, activity multiplier {pal}. Protein factor {pf} g/kg for your goal. Educational reference, not medical advice.',
   'gm.sugarInfo': '🍬 <b>Where your sugar goal comes from:</b> the World Health Organization (WHO) guideline sets free sugars below 5% of total energy as its stricter reference. 5% of your calorie goal ({kcal} kcal) ÷ 4 kcal per gram = <b>{g} g/day</b>. It is a reference limit: the ring counts the sugars reported by each meal analysis.',
@@ -11523,6 +11535,7 @@ es: {
   'fa.available': 'Disponible',
   'fa.unavailable': 'No disponible · pendiente de verificación',
   'fa.birthYear': 'Año de nacimiento',
+  'fa.byPick': 'Elige tu año',
   'fa.height': 'Talla (cm)',
   'fa.weightBasis': 'Con el último peso: {w} · {date}',
   'fa.noWeight': 'Aún no hay peso registrado: no hay base para el cálculo.',
@@ -11534,10 +11547,18 @@ es: {
   'fa.act4': 'Activo en la vida diaria (trabajo de pie o físico ligero, caminatas frecuentes)',
   'fa.act5': 'Trabajo físicamente exigente o vida diaria muy activa',
   'fa.act6': 'Trabajo físico pesado sostenido',
+  'fa.actShort1': 'Reposo casi total',
+  'fa.actShort2': 'Sedentario',
+  'fa.actShort3': 'Sedentario con actividad ligera',
+  'fa.actShort4': 'Activo en la vida diaria',
+  'fa.actShort5': 'Trabajo físicamente exigente',
+  'fa.actShort6': 'Trabajo físico pesado sostenido',
   'fa.palLabel': 'Multiplicador de actividad (palBasal)',
   'fa.palRules': 'Rango normal: 1,40–2,00 · Banda de excepción: 1,20–1,39 (con confirmación expresa) · Menos de 1,20: no admitido.',
   'fa.palGuide': '<b>Guía orientativa — qué cubre este multiplicador</b><br>El nivel de actividad de arriba sugiere un valor por defecto con fundamento para este campo — las bandas PAL de FAO/OMS/UNU (2004): vida sedentaria o ligera 1,40–1,69 · vida activa 1,70–1,99 · vida vigorosa 2,00–2,40; el reposo casi total queda en 1,20. El valor sugerido aparece en el campo y puedes ajustarlo: un valor que escribas tú nunca se sobrescribe.<br>El multiplicador cubre el reposo, la vida diaria y el movimiento habitual, incluido el efecto térmico de los alimentos y la actividad no estructurada. NO incluye el ejercicio estructurado.',
   'fa.palAutoNote': 'Sugerido automáticamente según el nivel de actividad (PAL de FAO/OMS/UNU). Puedes ajustarlo.',
+  'fa.palAutoBadge': 'Automático',
+  'fa.palKeepAuto': 'Se llena solo desde tu nivel de actividad: no lo modifiques a menos que sepas lo que haces.',
   'fa.palPlaceholder': 'Ej.: 1,55',
   'fa.palWarn': '⚠ Este valor está fuera del rango fisiológico habitual.',
   'fa.palWarnBody': 'Está en la banda de excepción (1,20–1,39): para guardarlo necesitas confirmarlo expresamente.',
@@ -12431,6 +12452,9 @@ es: {
   'gm.obj.mantener': 'Mantener',
   'gm.obj.bajar': 'Bajar de peso',
   'gm.obj.ganar': 'Ganar masa muscular',
+  'gm.objExpl.mantener': 'Comes lo que gastas: ni déficit ni superávit; el cálculo parte de tu gasto estimado.',
+  'gm.objExpl.bajar': 'Comes por debajo de tu gasto, con el ritmo fundado; tu entrenador lo revisa si tienes uno.',
+  'gm.objExpl.ganar': 'Comes por encima de tu gasto, con proteína alta, para construir músculo.',
   'gm.needData': 'Tus metas se calculan desde tus propios datos — año de nacimiento, talla, multiplicador de actividad y tu último peso — más el objetivo que elijas. Hasta que esos datos estén completos no hay metas: no se inventa nada.',
   'gm.prov': 'Calculadas el {date} desde tus datos: gasto {tdee} kcal/día ({eq}), último peso {w} kg ({wdate}), talla {h} cm, edad {age}, multiplicador de actividad {pal}. Factor de proteína {pf} g/kg según tu objetivo. Referencia educativa, no consejo médico.',
   'gm.sugarInfo': '🍬 <b>De dónde sale tu meta de azúcares:</b> la guía de la Organización Mundial de la Salud (OMS) fija los azúcares libres por debajo del 5% de la energía total como su referencia más estricta. El 5% de tu meta de calorías ({kcal} kcal) ÷ 4 kcal por gramo = <b>{g} g/día</b>. Es un límite de referencia: el anillo cuenta los azúcares que reporta el análisis de cada comida.',
@@ -20216,18 +20240,26 @@ function renderEnergyPanel() {
     <div class="fa-locknote">🔒 ${t('fa.lockNote')}</div>
   </div>`;
   const athDone = !!d && (d.athleteDeclared === true || (d.athleteDeclared === false && !!d.athleteDeclaredAt));
-  const athOpen = evalFoldOpen('athlete', athDone);
+  /* AUTH-377 (punto 3): el bloque de atleta nace plegado
+     SIEMPRE, también sin responder — su apertura vive solo en
+     el toque en memoria (EVAL_FOLD_TOUCH), como manda la
+     doctrina de pliegues para lo que no toca a la mayoría.
+     AUTH-318 lo dejaba abierto mientras no estuviera
+     respondido y el párrafo largo volvía a formar «un solo
+     formulario» con los datos base (la queja del 2026-11-01).
+     La cabecera dice el estado (declarado ✓ / sin declaración)
+     y el editor se abre al tocarla. El nivel de actividad y el
+     multiplicador NO viven aquí: están en el fundamento
+     (goalsFoundationHTML) y alimentan TODAS las ecuaciones —
+     no se esconden. */
+  const athOpen = EVAL_FOLD_TOUCH['athlete'] === true;
   const athEditor = `<h4 class="fa-athtitle">${t('fa.athleteTitle')}</h4>
     <p class="fa-sextext">${t('fa.athleteBody')}</p>
     ${d
       ? `<label class="fa-opt2"><input type="checkbox" id="fa-athlete" ${d.athleteDeclared === true ? 'checked' : ''}> <span>${t('fa.athleteCheck')}</span></label>
     <div class="fa-btnrow"><button type="button" class="btn-primary btn-sm" id="fa-athlete-save">${t('fa.save')}</button></div>`
       : `<div class="fa-stale-note">${t('fa.athleteNoDoc')}</div>`}`;
-  const athleteBlock = athDone
-    ? `<div class="fa-athlete">${evalFoldHead('athlete', (d.athleteDeclared === true ? '✓ ' : '') + esc(t(d.athleteDeclared === true ? 'fa.foldAthleteYes' : 'fa.foldAthleteNo')), athOpen)}<div id="efold-body-athlete"${athOpen ? '' : ' style="display:none"'}>${athEditor}</div></div>`
-    : `<div class="fa-athlete">
-    ${athEditor}
-  </div>`;
+  const athleteBlock = `<div class="fa-athlete">${evalFoldHead('athlete', athDone ? (d.athleteDeclared === true ? '✓ ' : '') + esc(t(d.athleteDeclared === true ? 'fa.foldAthleteYes' : 'fa.foldAthleteNo')) : esc(t('fa.athleteTitle')), athOpen)}<div id="efold-body-athlete"${athOpen ? '' : ' style="display:none"'}>${athEditor}</div></div>`;
   box.innerHTML = `<div class="fa-privcard">
     ${sexBlock}
     ${athleteBlock}
@@ -22539,9 +22571,17 @@ async function gmFocusSaveDate() {
 function gmFocusSectionHTML() {
   const fx = gmFocusEffective(UDATA);
   const cur = fx.focus;
-  const btns = ['general', 'recomposicion', 'competencia'].map(f => `<button type="button" class="btn-ghost btn-sm" data-gm-focus="${f}"${cur === f ? ' style="border-color:#0d9488;font-weight:700"' : ''}>${esc(t('gfocus.opt.' + f))}</button>`).join(' ');
+  /* AUTH-377 (punto 1 del diagnóstico 2026-11-01): mientras una
+     declaración está EN CURSO, el resaltado y la explicación son
+     de la selección en curso, no de la guardada — antes la tarjeta
+     seguía diciendo «General» en verde y explicando General
+     mientras debajo pedía la fecha de competencia. Tocar el
+     enfoque guardado ya cancelaba el estado en curso
+     (gmFocusTap, intacta); ahora también se VE la selección. */
+  const shown = (GMFOCUS_PENDING && GMFOCUS_PENDING !== cur) ? GMFOCUS_PENDING : cur;
+  const btns = ['general', 'recomposicion', 'competencia'].map(f => `<button type="button" class="btn-ghost btn-sm" data-gm-focus="${f}"${shown === f ? ' style="border-color:#0d9488;font-weight:700"' : ''}>${esc(t('gfocus.opt.' + f))}</button>`).join(' ');
   let h = `<div id="gm-focus"><p class="pend-cfg-h">${esc(t('gfocus.title'))}</p><p class="progress-hint">${esc(t('gfocus.hint'))}</p><div class="eval-actions" style="justify-content:flex-start;gap:8px;flex-wrap:wrap">${btns}</div>`;
-  h += `<p class="progress-hint">${esc(t('gfocus.expl.' + cur))}</p>`;
+  h += `<p class="progress-hint">${esc(t('gfocus.expl.' + shown))}</p>`;
   if (!fx.assigned) h += `<p class="progress-hint">${esc(t('gfocus.compNeedTrainer'))}</p>`;
   if (cur === 'recomposicion') h += `<div class="gfocus-note">${esc(t('gfocus.recompNote'))}</div>`;
   if (GMFOCUS_PENDING === 'recomposicion' && cur !== 'recomposicion') {
@@ -23134,6 +23174,12 @@ function renderGoalsEngine() {
   let html = `<div class="fb3-card" id="gm-card">` + (gmiD ? gmiHeadHTML(gmiD) : fusedNullHeadHTML()) + fusedTodayHTML(gmiD) + fusedObjHTML(gmiD) + gmHeadHTML(!!gmiD);
   if (GM_CARD_OPEN) {
   html += `<p class="progress-hint">${esc(t('gm.objective'))}</p><div class="eval-actions" style="justify-content:flex-start;gap:8px;flex-wrap:wrap">${objBtns}</div>`;
+  /* AUTH-377 (punto 2): una línea bajo el grupo con la explicación
+     del objetivo SELECCIONADO — el patrón que Enfoque ya usa; sin
+     objetivo elegido no se pinta línea. Los textos (gm.objExpl.*)
+     describen el significado; las cifras siguen saliendo del
+     motor fundado. */
+  if (['mantener', 'bajar', 'ganar'].includes(obj)) html += `<p class="progress-hint">${esc(t('gm.objExpl.' + obj))}</p>`;
   html += gmFocusSectionHTML();
   if (!prov) html += `<p class="progress-hint">${esc(t('gm.needData'))}</p>`;
   if (prov) {
@@ -23227,6 +23273,73 @@ async function gmAcceptTerms() {
   try { await setDoc(doc(db, 'users', auth.currentUser.uid), { goalsTerms: data }, { merge: true }); UDATA.goalsTerms = data; toast(t('gm.termsAccepted')); await goalsEngineRun('terms'); }
   catch (e) { failToast(e); }
 }
+/* ═══ AUTH-377 · Piezas heredables «MDB» (paquete «Metas y
+   datos base») ═══ Controles de captura construidos UNA vez para
+   este paquete y para que el futuro asistente de arranque los
+   herede sin reescribir: el selector de año descendente en rango
+   válido (mdbYearOptions), la frase completa del nivel elegido
+   como línea de explicación (mdbActExplText) y el stepper −/+
+   con unidad (mdbStepperHTML / mdbStepperWire). Solo
+   presentación: producen los valores de siempre y los guardan
+   los caminos de siempre. */
+/* Año de nacimiento: opciones descendentes maxY…minY (por
+   defecto, del año actual − 18 a 1900: el rango válido del dato)
+   con la opción vacía de invitación. El valor producido es el
+   año entero de siempre. */
+function mdbYearOptions(selected, maxY, minY) {
+  const max = maxY || (new Date().getFullYear() - 18), min = minY || 1900;
+  let h = `<option value="">${esc(t('fa.byPick'))}</option>`;
+  for (let y = max; y >= min; y--) h += `<option value="${y}"${String(selected || '') === String(y) ? ' selected' : ''}>${y}</option>`;
+  return h;
+}
+/* La frase COMPLETA del nivel elegido (las claves fa.act1..6 de
+   siempre): el desplegable muestra la etiqueta corta
+   (fa.actShort1..6) y esta línea conserva el fundamento entero
+   bajo el selector, sin perder ni una palabra. */
+function mdbActExplText(cat) {
+  const c = parseInt(cat, 10);
+  return (c >= 1 && c <= 6) ? t('fa.act' + c) : t('fa.actNone');
+}
+/* Stepper −/+ alrededor de un input numérico: destino, paso,
+   rango y semilla viajan en atributos de los botones; al tocar,
+   escriben en el input y disparan input/change — los listeners
+   de siempre (puertas, insignias) reaccionan igual que
+   tecleando. Sin valor y sin semilla, el toque no inventa
+   nada; con semilla, el primer toque la siembra y los
+   siguientes ya pisan desde ella. */
+function mdbStepperHTML(inputId, inputHTML, o) {
+  const op = o || {}, st = op.step || 1;
+  const attrs = `data-mdb-min="${op.min}" data-mdb-max="${op.max}" data-mdb-step="${st}"${op.seed != null ? ` data-mdb-seed="${op.seed}"` : ''}`;
+  return `<span class="mdb-stepper"><button type="button" class="mdb-step" data-mdb-for="${inputId}" data-mdb-delta="${-st}" ${attrs} aria-label="−">−</button>${inputHTML}${op.unit ? `<span class="mdb-unit">${esc(op.unit)}</span>` : ''}<button type="button" class="mdb-step" data-mdb-for="${inputId}" data-mdb-delta="${st}" ${attrs} aria-label="+">+</button></span>`;
+}
+function mdbStepperWire(root) {
+  (root || document).querySelectorAll('[data-mdb-for]').forEach(b => {
+    if (b.dataset.wired) return;
+    b.dataset.wired = '1';
+    b.onclick = () => {
+      const inp = $(b.dataset.mdbFor); if (!inp) return;
+      const min = num(b.dataset.mdbMin), max = num(b.dataset.mdbMax), delta = num(b.dataset.mdbDelta);
+      const raw = String(inp.value || '').trim();
+      let v = raw === '' ? NaN : num(raw);
+      if (!isFinite(v)) { if (b.dataset.mdbSeed == null) return; v = num(b.dataset.mdbSeed); }
+      else v = Math.round((v + delta) * 100) / 100;
+      if (isFinite(min)) v = Math.max(min, v);
+      if (isFinite(max)) v = Math.min(max, v);
+      inp.value = String(v);
+      inp.dispatchEvent(new Event('input', { bubbles: true }));
+      inp.dispatchEvent(new Event('change', { bubbles: true }));
+    };
+  });
+}
+/* La insignia «Automático» del multiplicador sigue a la señal
+   que faPalTrack / faPalAutoApply mantienen en el propio campo
+   (dataset.palAutoCat): visible ⇔ el valor del campo ES el
+   automático de su categoría. */
+function gmPalBadgeSync() {
+  const pal = $('gm-pal'), badge = $('gm-pal-badge');
+  if (!pal || !badge) return;
+  badge.style.display = pal.dataset.palAutoCat ? '' : 'none';
+}
 /* ---------- Datos de fundamento editables por el propio alumno (§C) ----------
    Vive en su panel de energía (su vista de evaluación). Mismos
    guardarraíles del formulario del entrenador: 18+, talla 50–250,
@@ -23244,7 +23357,7 @@ function goalsFoundationHTML() {
   let dPalAuto = '';
   if (!dPalVal && dPalDef != null) { dPalVal = String(dPalDef); dPalAuto = String(parseInt(d.activityCategoryId, 10)); }
   else if (dPalVal && dPalDef != null && num(dPalVal) === dPalDef) dPalAuto = String(parseInt(d.activityCategoryId, 10));
-  const actOpts = ['', '1', '2', '3', '4', '5', '6'].map(v => `<option value="${v}"${String(d.activityCategoryId || '') === v ? ' selected' : ''}>${esc(v === '' ? t('fa.actNone') : t('fa.act' + v))}</option>`).join('');
+  const actOpts = ['', '1', '2', '3', '4', '5', '6'].map(v => `<option value="${v}"${String(d.activityCategoryId || '') === v ? ' selected' : ''}>${esc(v === '' ? t('fa.actNone') : t('fa.actShort' + v))}</option>`).join('');
   /* AUTH-318 — pliegue derivado del fundamento + puerta de la
      casilla de excepción. Completo = los cuatro datos guardados
      y válidos (los mismos rangos de faCalcCheck). La casilla de
@@ -23266,11 +23379,13 @@ function goalsFoundationHTML() {
   const fLine = '✓ ' + esc(t('fa.foldFoundation', { by: d.birthYear, h: d.heightCm, act: d.activityCategoryId, pal: String(d.palBasal).replace('.', LANG === 'es' ? ',' : '.') })) + ' — ' + esc(t(fInBand ? 'fa.bandException' : 'fa.bandNormal'));
   const editor = `<h4 class="fa-athtitle">${esc(t('gm.foundation'))}</h4>
     <p class="fa-sextext">${esc(t('gm.foundationHint'))}</p>
-    <label><span>${esc(t('fa.birthYear'))}</span><input type="number" id="gm-by" value="${esc(d.birthYear || '')}" min="1900" max="${new Date().getFullYear() - 18}"></label>
-    <label><span>${esc(t('fa.height'))}</span><input type="number" id="gm-h" value="${esc(d.heightCm || '')}" min="50" max="250"></label>
+    <label><span>${esc(t('fa.birthYear'))}</span><select id="gm-by">${mdbYearOptions(d.birthYear)}</select></label>
+    <label><span>${esc(t('fa.height'))}</span>${mdbStepperHTML('gm-h', `<input type="number" id="gm-h" value="${esc(d.heightCm || '')}" min="50" max="250">`, { min: 50, max: 250, step: 1, seed: 170, unit: 'cm' })}</label>
     <label><span>${esc(t('fa.actLabel'))}</span><select id="gm-act">${actOpts}</select></label>
-    <label><span>${esc(t('fa.palLabel'))}</span><input type="number" id="gm-pal" step="0.01" data-pal-auto-cat="${dPalAuto}" value="${esc(dPalVal)}" placeholder="${esc(t('fa.palPlaceholder'))}"></label>
+    <p class="fa-sextext" id="gm-act-expl">${esc(mdbActExplText(d.activityCategoryId))}</p>
+    <label><span>${esc(t('fa.palLabel'))}</span><input type="number" id="gm-pal" step="0.01" data-pal-auto-cat="${dPalAuto}" value="${esc(dPalVal)}" placeholder="${esc(t('fa.palPlaceholder'))}"> <span id="gm-pal-badge" class="mdb-badge"${dPalAuto ? '' : ' style="display:none"'}>${esc(t('fa.palAutoBadge'))}</span></label>
     <p class="fa-sextext">${esc(t('fa.palAutoNote'))}</p>
+    <p class="fa-sextext"><b>${esc(t('fa.palKeepAuto'))}</b></p>
     <p class="fa-sextext">${esc(t('fa.palRules'))}</p>
     <div id="gm-pal-confirm-wrap"${fInBand ? '' : ' style="display:none"'}><label class="fa-opt2"><input type="checkbox" id="gm-pal-confirm"${fInBand && d.palExceptionConfirmed === true ? ' checked' : ''}> <span>${esc(t('fa.palConfirm'))}</span></label></div>
     <div class="fa-btnrow"><button type="button" class="btn-primary btn-sm" id="gm-foundation-save">${esc(t('gm.saveFoundation'))}</button></div>`;
@@ -23302,6 +23417,16 @@ function goalsFoundationWire() {
   if (pal) { pal.addEventListener('input', gmPalConfirmGate); pal.addEventListener('change', gmPalConfirmGate); }
   if (act) act.addEventListener('change', gmPalConfirmGate);
   gmPalConfirmGate();
+  /* AUTH-377: la explicación del nivel sigue a la selección
+     (frase completa del elegido), la insignia «Automático» del
+     multiplicador sigue a la señal del campo — faPalAutoApply y
+     faPalTrack corren en los listeners registrados ANTES, así
+     que la señal ya está al día cuando esta sincroniza — y los
+     steppers MDB de la talla quedan cableados. */
+  if (act) act.addEventListener('change', () => { const ex = $('gm-act-expl'); if (ex) ex.textContent = mdbActExplText(act.value); gmPalBadgeSync(); });
+  if (pal) { pal.addEventListener('input', gmPalBadgeSync); pal.addEventListener('change', gmPalBadgeSync); }
+  mdbStepperWire($('gm-foundation'));
+  gmPalBadgeSync();
   evalFoldWire('foundation');
 }
 async function gmSaveFoundation() {
@@ -52278,7 +52403,7 @@ document.addEventListener('keydown', e => { if (e.key === 'Escape') shareClose()
  *  - El SW (sw.js) solo cachea la cáscara del mismo origen en modo
  *    RED PRIMERO: Auth/Firestore/Worker jamás pasan por la caché.
  * ================================================================ */
-const PWA_SW_VERSION = '20261110-carga-discos';
+const PWA_SW_VERSION = '20261110-metas-datos-base';
 /* Sello de versión VISIBLE (2026-11-03): el pie de la tarjeta de
    acceso enseña qué copia corre este teléfono ('v ' + el sello),
    para comprobar de un vistazo si la versión nueva ya llegó.
