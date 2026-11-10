@@ -22603,6 +22603,13 @@ async function loadAll() {
   try { renderPendings(); } catch {}
   try { await goalsEngineRun('load'); } catch {}
   await Promise.all([mealHelpP, activityP, unitsP, adminP, clientsP]);
+  /* AUTORREPARACIÓN DE LA LLAMITA (AUTH-2026-11-09-353): con la
+     actividad y las sesiones ya cargadas, se repone el volcado de
+     cualquier sesión cerrada cuya entrada falte en su día — el
+     día con hueco se cura solo al abrir la app, sin que nadie
+     toque los datos por detrás. Un fallo aquí jamás tumba el
+     arranque: el volcado queda pendiente y se reintenta. */
+  try { await actRepairSessionDumps(); } catch {}
   /* Reintento de hitos del arranque (AUTH-2026-11-05-250): con los
      cargadores ya asentados, la sincronía de hitos corre también
      aquí — no espera a que se abra Progreso. No se espera a
@@ -32050,7 +32057,48 @@ function trainEditTailHTML(planId, di) {
    error de escritura), él mismo ya mostró su aviso y el volcado
    no insiste; si el candado nunca se libera tras los intentos,
    el volcado avisa con train.dumpFail: nunca silencio. */
+/* PENDIENTE DEL VOLCADO (AUTH-2026-11-09-353): si el volcado de
+   una sesión cerrada no aterriza — el guardado competidor no suelta
+   el candado tras los intentos de AUTH-292 o la escritura falla —
+   NO se pierde en silencio: queda registrado aquí (fecha → la
+   entrada a volcar, o null si lo pendiente es retirar la de una
+   sesión deshecha/saltada) y un reintentador con temporizador lo
+   vuelve a intentar hasta que aterrice. La idempotencia es la del
+   propio volcado: la mutación filtra TODAS las entradas
+   'entrenamiento_plan' del día y empuja la suya — reintentar jamás
+   duplica. El pendiente vive en memoria de la sesión; al reabrir
+   la app, la AUTORREPARACIÓN (actRepairSessionDumps) reconstruye
+   el mismo volcado desde el registro de la sesión, así que
+   tampoco hace falta persistirlo. */
+let TRAIN_DUMP_PENDING = {};
+let TRAIN_DUMP_KICK = false;
+let TRAIN_DUMP_LASTFAIL = '';
+function trainDumpPendingKick() {
+  if (TRAIN_DUMP_KICK) return;
+  TRAIN_DUMP_KICK = true;
+  setTimeout(async () => {
+    TRAIN_DUMP_KICK = false;
+    try { await trainDumpPendingFlush(); } catch {}
+  }, 2500);
+}
+async function trainDumpPendingFlush() {
+  for (const date of Object.keys(TRAIN_DUMP_PENDING)) {
+    if (!(date in TRAIN_DUMP_PENDING)) continue;
+    const ok = await trainDumpAttempt(date, TRAIN_DUMP_PENDING[date]);
+    if (ok) delete TRAIN_DUMP_PENDING[date];
+  }
+  if (Object.keys(TRAIN_DUMP_PENDING).length) trainDumpPendingKick();
+}
 async function trainDumpSession(date, entry) {
+  const ok = await trainDumpAttempt(date, entry);
+  if (ok) { delete TRAIN_DUMP_PENDING[date]; return true; }
+  if (TRAIN_DUMP_LASTFAIL === 'lock') toast(t('train.dumpFail'), true);
+  TRAIN_DUMP_PENDING[date] = entry ? { ...entry } : null;
+  trainDumpPendingKick();
+  return false;
+}
+async function trainDumpAttempt(date, entry) {
+  TRAIN_DUMP_LASTFAIL = '';
   const has = (((ACT_LOGS[date] || {}).activities) || []).some(a => a.type === 'entrenamiento_plan');
   if (!entry && !has) return true;
   const mutate = dr => {
@@ -32063,8 +32111,65 @@ async function trainDumpSession(date, entry) {
     if (ACT_SAVING) continue;   /* el guardado en vuelo no terminó: otro intento acotado */
     return await actSaveDay(date, mutate);
   }
-  toast(t('train.dumpFail'), true);
+  TRAIN_DUMP_LASTFAIL = 'lock';
   return false;
+}
+
+/* AUTORREPARACIÓN DE LA LLAMITA (AUTH-2026-11-09-353): el hueco
+   del 2026-11-09 — la sesión de Ronald se cerró a las 13:39 con su
+   sessionKcal correcto en training_logs, pero su volcado al
+   documento de actividad nunca quedó escrito y NINGÚN mecanismo
+   lo reponía al reabrir: la llamita pintó 71 (solo la caminadora)
+   en vez de 778 todo el día. Desde este paquete, al abrir la app
+   (loadAll, con la actividad y las sesiones ya cargadas) se
+   revisa cada sesión CERRADA (done o parcial) con estimación:
+   si el documento de actividad de su día NO lleva la entrada
+   'entrenamiento_plan', se repone con trainDumpSession — el
+   MISMO volcado del cierre, con su mismo formato (la entrada que
+   actRecompute completa: tipo, duración efectiva = duración −
+   calentamiento, intensidad y RPE medio de los ejercicios) —.
+   Idempotente por construcción: si la entrada ya existe, el día
+   no se toca (ni una escritura); y el volcado mismo filtra antes
+   de empujar, así que jamás nace una segunda entrada. Si hay
+   varias sesiones cerradas el mismo día, manda la de guardado
+   más reciente (el volcado del cierre es «la última sesión
+   manda»: cada cierre reemplaza la entrada). La racha NO pasa
+   por aquí: lee training_logs directamente y no se toca. */
+async function actRepairSessionDumps() {
+  if (!ACT_LOADED) return 0;
+  const logs = (typeof MY_LOGS_ALL !== 'undefined' && Array.isArray(MY_LOGS_ALL) && MY_LOGS_ALL.length)
+    ? MY_LOGS_ALL
+    : (typeof MY_LOGS !== 'undefined' && Array.isArray(MY_LOGS) ? MY_LOGS : []);
+  if (!logs.length) return 0;
+  const today = todayISO();
+  const byDate = {};
+  logs.forEach(l => {
+    if (!l || !/^\d{4}-\d{2}-\d{2}$/.test(l.date || '') || l.date > today) return;
+    const st = trainLogStatus(l);
+    if (st !== 'done' && st !== 'partial') return;
+    if (typeof l.sessionKcal !== 'number' || !(l.sessionKcal > 0)) return;
+    const ms = (l.updatedAt && typeof l.updatedAt.toMillis === 'function') ? l.updatedAt.toMillis() : 0;
+    const prev = byDate[l.date];
+    if (!prev || ms >= prev.ms) byDate[l.date] = { l, ms };
+  });
+  let repaired = 0;
+  for (const date of Object.keys(byDate).sort()) {
+    const acts = ((ACT_LOGS[date] || {}).activities) || [];
+    if (acts.some(a => a.type === 'entrenamiento_plan')) continue;
+    const l = byDate[date].l;
+    const durMin = (typeof l.durationMin === 'number') ? l.durationMin : null;
+    const warmMin = (typeof l.warmupMin === 'number') ? l.warmupMin : 0;
+    const effMin = durMin == null ? null : Math.max(0, durMin - warmMin);
+    if (effMin == null || effMin <= 0) continue;
+    const inten = ACT_INTENSITIES.includes(l.intensity) ? l.intensity : 'moderada';
+    const rpes = (Array.isArray(l.exercisesDone) ? l.exercisesDone : [])
+      .map(e => (e ? e.rpe : null)).filter(r => r != null);
+    const rpeAvg = rpes.length ? Math.round(rpes.reduce((a, c) => a + c, 0) / rpes.length) : null;
+    const ok = await trainDumpSession(date, { type: 'entrenamiento_plan', typeCustom: '',
+      durationMin: effMin, intensity: inten, rpe: rpeAvg, notes: '' });
+    if (ok) repaired++;
+  }
+  return repaired;
 }
 
 /* --- MÓDULO D (P4-3 Etapa 4, desarrollo): ENTRENAMIENTO
@@ -49531,7 +49636,7 @@ document.addEventListener('keydown', e => { if (e.key === 'Escape') shareClose()
  *  - El SW (sw.js) solo cachea la cáscara del mismo origen en modo
  *    RED PRIMERO: Auth/Firestore/Worker jamás pasan por la caché.
  * ================================================================ */
-const PWA_SW_VERSION = '20261109-entrenamiento-alumno';
+const PWA_SW_VERSION = '20261109-llamita';
 /* Sello de versión VISIBLE (2026-11-03): el pie de la tarjeta de
    acceso enseña qué copia corre este teléfono ('v ' + el sello),
    para comprobar de un vistazo si la versión nueva ya llegó.
