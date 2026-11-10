@@ -26599,6 +26599,29 @@ function aiDraftRestore() {
   aiBadgeSync();
   aiDraftNoticeSync();
 }
+
+/* PUERTA QUE SANA (corrección urgente, reporte de Ronald 2026-11-10
+   13:51 CST: la hoja «Registrar comida» abierta EN BLANCO — cabecera
+   y línea de usos pintadas y el cuerpo vacío, sin error ni salida).
+   Las puertas de la revisión (el disco de Comida, «Revisarla» del
+   aviso del borrador, «Seguir editando») abrían la hoja #food-ai
+   enseñando y ocultando, sin asegurar que el panel tuviera algo
+   pintado — mientras aiWaiting() cuenta TAMBIÉN el borrador
+   persistido en el aparato. Si la restauración del arranque no
+   reconstruyó la revisión en memoria (su puerta la saltó, o el
+   arranque no llegó hasta ella), la hoja abría muda para siempre.
+   Desde ahora, abrir la revisión SANA primero: con preparación viva
+   la pinta; con estado en memoria lo re-pinta; sin estado,
+   reconstruye desde el borrador persistido con la misma
+   restauración del arranque; y si aun así no hay trabajo esperando,
+   la puerta no abre una hoja vacía: lleva a la ventana de registro.
+   Una hoja en blanco y sin aviso no puede volver a pasar. */
+function aiEnsurePanel() {
+  if (aiStage) { aiStageShow(); return; }
+  if (aiState) { aiRender(); return; }
+  aiDraftRestore();
+  if (aiState) aiRender();
+}
 /* AVISO AL ABRIR (D2): tarjeta discreta del patrón de la casa en
    Inicio; solo para un borrador RESTAURADO en esta sesión y aún
    esperando. Tocar «Revisarla» abre Comida con la hoja de la
@@ -27908,7 +27931,15 @@ function foodOpenFloat() { foodShowOnly('float'); }
 function foodOpenText() { foodShowOnly('text'); const ta = $('food-text-desc'); if (ta) { try { ta.focus(); } catch {} } }
 function foodOpenHelp() { foodShowOnly('help'); }
 function foodOpenVoice() { foodShowOnly('voice'); }
-function foodOpenAi() { foodShowOnly('ai'); }
+function foodOpenAi() {
+  /* La puerta que sana (ver aiEnsurePanel): primero se asegura la
+     revisión en el panel; si no hay trabajo esperando, esta puerta
+     no abre la hoja de la revisión vacía — abre la ventana de
+     registro, que es donde la persona quería llegar. */
+  try { aiEnsurePanel(); } catch { try { toast(t('ai.failed'), true); } catch {} }
+  if (!aiStage && !aiState) { foodShowOnly('float'); return; }
+  foodShowOnly('ai');
+}
 function foodOpenScan() { foodShowOnly('scan'); scanStart(); }
 function foodOpenRecipes() { foodShowOnly('recipes'); recipesPaint(); }
 
@@ -30482,7 +30513,7 @@ function navUnsavedClose() { const m = $('nav-unsaved'); if (m) m.style.display 
     navUnsavedClose();
     /* «Seguir editando» vuelve a la revisiÃ³n en su hoja (puntos
        19â20): ya no hay pÃ¡gina a la que desplazarse. */
-    try { dockHome($('food-float')); foodShowOnly('ai'); } catch {}
+    try { dockHome($('food-float')); foodOpenAi(); } catch {}
   }; }
 { const b = $('nav-unsaved-leave'); if (b) b.onclick = () => { const a = NAV_UNSAVED_ACTION; navUnsavedClose(); if (a) a(); }; }
 { const b = $('nav-unsaved-save'); if (b) b.onclick = () => {
@@ -52536,7 +52567,7 @@ document.addEventListener('keydown', e => { if (e.key === 'Escape') shareClose()
  *  - El SW (sw.js) solo cachea la cáscara del mismo origen en modo
  *    RED PRIMERO: Auth/Firestore/Worker jamás pasan por la caché.
  * ================================================================ */
-const PWA_SW_VERSION = '20261110-fotos-privacidad';
+const PWA_SW_VERSION = '20261110-comida-sin-blanco';
 /* Sello de versión VISIBLE (2026-11-03): el pie de la tarjeta de
    acceso enseña qué copia corre este teléfono ('v ' + el sello),
    para comprobar de un vistazo si la versión nueva ya llegó.
