@@ -6036,6 +6036,15 @@ en: {
   'train.warmLabel': 'Warm-up minutes (not counted)',
   'train.noDurNoEstimate': 'No duration: the session is saved as done, without estimating its burn.',
   'train.d.set': 'Set', 'train.d.repsPh': 'reps done', 'train.d.loadPh': 'load', 'train.d.loadPerDb': 'Load per dumbbell',
+  'train.ld.platesTitle': 'Plates per side', 'train.ld.tapAdd': 'Tap a plate to add it — it stacks on the side',
+  'train.ld.oneSide': 'One side', 'train.ld.otherSide': 'The other side', 'train.ld.sideL': 'Left side', 'train.ld.sideR': 'Right side',
+  'train.ld.bothSame': 'Both sides the same', 'train.ld.bothSameSub': 'load one side and the other matches on its own',
+  'train.ld.base': 'Base', 'train.ld.baseSub': 'bar or sled — added once, only if you turn it on',
+  'train.ld.clearSide': 'Clear this side', 'train.ld.perSideSum': 'Per side {n}', 'train.ld.platesSum': 'Plates {n}', 'train.ld.baseSum': 'Base {n}',
+  'train.ld.totalMove': 'TOTAL YOU MOVE', 'train.ld.useLoad': 'Use this load', 'train.ld.typeTotal': 'Type the total instead', 'train.ld.cancel': 'Cancel',
+  'train.ld.pairLine': '{each} {unit} in each hand × 2', 'train.ld.pairTotal': 'Total you move: {total} {unit}', 'train.ld.eachHand': 'in each hand',
+  'train.ld.kindQ': 'How is this exercise loaded?', 'train.ld.kindPlates': 'Plates per side', 'train.ld.kindPair': 'Two dumbbells (a pair)', 'train.ld.kindSingle': 'A single weight',
+  'train.ld.kindSaved': 'Your choice is remembered on this device, for this exercise.', 'train.ld.headTotal': 'total load', 'train.ld.headPlates': 'plates per side',
   'train.d.statusDone': 'Done', 'train.d.statusPartial': 'Partial', 'train.d.statusSkipped': 'Skipped', 'train.d.statusNone': 'Not logged',
   'train.d.skipDay': 'Skip this day',
   'train.d.skipConfirm': 'Mark this day as skipped? It will be recorded as skipped (you can undo it afterwards).',
@@ -10616,6 +10625,15 @@ es: {
   'train.warmLabel': 'Minutos de calentamiento (no cuentan)',
   'train.noDurNoEstimate': 'Sin duración: la sesión se guarda como hecha, sin estimar su quemado.',
   'train.d.set': 'Serie', 'train.d.repsPh': 'reps hechas', 'train.d.loadPh': 'carga', 'train.d.loadPerDb': 'Carga por mancuerna',
+  'train.ld.platesTitle': 'Discos por lado', 'train.ld.tapAdd': 'Toca un disco para añadirlo: se apila en el lado',
+  'train.ld.oneSide': 'Un lado', 'train.ld.otherSide': 'El otro lado', 'train.ld.sideL': 'Lado izquierdo', 'train.ld.sideR': 'Lado derecho',
+  'train.ld.bothSame': 'Ambos lados iguales', 'train.ld.bothSameSub': 'cargas un lado y el otro se iguala solo',
+  'train.ld.base': 'Base', 'train.ld.baseSub': 'barra o trineo: se suma una vez, solo si la enciendes',
+  'train.ld.clearSide': 'Limpiar este lado', 'train.ld.perSideSum': 'Por lado {n}', 'train.ld.platesSum': 'Discos {n}', 'train.ld.baseSum': 'Base {n}',
+  'train.ld.totalMove': 'TOTAL QUE MUEVES', 'train.ld.useLoad': 'Usar esta carga', 'train.ld.typeTotal': 'Teclear el total', 'train.ld.cancel': 'Cancelar',
+  'train.ld.pairLine': '{each} {unit} en cada mano × 2', 'train.ld.pairTotal': 'Total que mueves: {total} {unit}', 'train.ld.eachHand': 'en cada mano',
+  'train.ld.kindQ': '¿Cómo se carga este ejercicio?', 'train.ld.kindPlates': 'Discos por lado', 'train.ld.kindPair': 'Dos mancuernas (pareja)', 'train.ld.kindSingle': 'Un solo peso',
+  'train.ld.kindSaved': 'Tu elección se recuerda en este aparato, para este ejercicio.', 'train.ld.headTotal': 'carga total', 'train.ld.headPlates': 'discos por lado',
   'train.d.statusDone': 'Hecho', 'train.d.statusPartial': 'Parcial', 'train.d.statusSkipped': 'Saltado', 'train.d.statusNone': 'Sin registrar',
   'train.d.skipDay': 'Saltar este día',
   'train.d.skipConfirm': '¿Marcar este día como saltado? Quedará registrado como saltado (podrás deshacerlo después).',
@@ -18311,7 +18329,7 @@ function stuTrainSetsLine(de, pair) {
     const load = s ? trainLastTimeLoadText(s) : '';
     return `${t('train.d.set')} ${si + 1}: ${s && s.repsDone != null && s.repsDone !== '' ? esc(String(s.repsDone)) : '—'}${s && s.repsPlanned ? `/${esc(String(s.repsPlanned))}` : ''} ${t('train.d.repsPh')}${load ? ` · ${esc(load)}` : ''}`;
   });
-  return `<div class="train-set-hist">${t('train.d.setsLabel')}: ${parts.join(' · ')}${pair ? ` · ${esc(t('train.d.loadPerDb'))}` : ''}</div>`;
+  return `<div class="train-set-hist">${t('train.d.setsLabel')}: ${parts.join(' · ')}${pair && !de.sets.some(s => s && s.loadDetail) ? ` · ${esc(t('train.d.loadPerDb'))}` : ''}</div>`;
 }
 function stuTrainLogDetailHTML(log, plans) {
   const plan = (Array.isArray(plans) ? plans : []).find(p => p && p.id === log.planId) || null;
@@ -31773,7 +31791,7 @@ function trainChecksRead(planId) {
              borrador, saneada como número positivo; sin ella los
              descansos de esa semana no se podrían calcular tras
              una recarga a mitad de sesión. */
-          ...(typeof s.markedAt === 'number' && isFinite(s.markedAt) && s.markedAt > 0 ? { markedAt: Math.floor(s.markedAt) } : {}) })) : [] };
+          ...(typeof s.markedAt === 'number' && isFinite(s.markedAt) && s.markedAt > 0 ? { markedAt: Math.floor(s.markedAt) } : {}), ...tfDetailSpread(s) })) : [] };
       /* APROXIMACIÓN (paquete Iniciar ejercicio, 2026-10-30): el
          bloque de aproximación en curso viaja en el MISMO borrador
          local, saneado con la misma disciplina; sin la clave, la
@@ -31782,7 +31800,7 @@ function trainChecksRead(planId) {
         out[k].warmup = { on: c.warmup.on === true,
           sets: Array.isArray(c.warmup.sets) ? c.warmup.sets.filter(s => s && typeof s === 'object').map(s => ({
             repsDone: String(s.repsDone == null ? '' : s.repsDone),
-            loadVal: String(s.loadVal == null ? '' : s.loadVal) })) : [] };
+            loadVal: String(s.loadVal == null ? '' : s.loadVal), ...tfDetailSpread(s) })) : [] };
       }
     });
     return out;
@@ -34925,7 +34943,7 @@ function trainExCardHTML(ex, di, ei) {
      se guarda al cerrar el día es la carga CANÓNICA en kg más el
      original con su unidad. Sin marcar, no hay filas de series. */
   const sets = chk && Array.isArray(chk.sets) ? chk.sets : null;
-  const setsHtml = sets ? `<div class="train-sets-unit"><span class="train-sets-unit-lab">${esc(t('units.mass'))}${trainLoadPair(ex) ? ' · ' + esc(t('train.d.loadPerDb')) : ''}</span>${trainUnitSelHTML()}</div><div class="train-sets">${sets.map((s, si) => `
+  const setsHtml = sets ? `<div class="train-sets-unit"><span class="train-sets-unit-lab">${esc(t('units.mass'))}${esc(loadKindHeadSuffix(ex))}</span>${trainUnitSelHTML()}</div><div class="train-sets">${sets.map((s, si) => `
       <div class="train-set-row${s.pend === true ? ' is-sug' : ''}"><span class="train-set-n">${t('train.d.set')} ${si + 1}${s.repsPlanned ? ` · ${esc(s.repsPlanned)}` : ''}${s.pend === true ? ` <span class="tf-sug-tag">${esc(t('train.sets.suggested'))}</span>` : ''}</span>
         <input type="number" inputmode="decimal" min="0" class="train-set-in" data-train-set-reps="${key}:${si}" placeholder="${t('train.d.repsPh')}" value="${esc(s.repsDone)}" aria-label="${t('train.d.repsPh')}">
         <input type="number" inputmode="decimal" min="0" step="any" class="train-set-in" data-train-set-load="${key}:${si}" placeholder="${t('train.d.loadPh')}" value="${esc(s.loadVal)}" aria-label="${t('train.d.loadPh')}">
@@ -35722,18 +35740,18 @@ function tfSetHasData(s) {
 function tfSuggestApply() {
   const F = TRAIN_FLOAT;
   if (!F || !F.draft || !Array.isArray(F.draft.sets)) return;
-  let srcR = null, srcL = null;
+  let srcR = null, srcL = null, srcD = null;
   F.draft.sets.forEach(s => {
     if (!s) return;
     let sugR = s.sug === true || s.sugR === true;
     let sugL = s.sug === true || s.sugL === true;
     if (s.clr) { s.sug = false; s.sugR = false; s.sugL = false; return; }
     if (sugR) { if (srcR != null) s.repsDone = srcR; else { s.repsDone = ''; sugR = false; } }
-    if (sugL) { if (srcL != null) s.loadVal = srcL; else { s.loadVal = ''; sugL = false; } }
+    if (sugL) { if (srcL != null) { s.loadVal = srcL; if (srcD) s.loadDetail = JSON.parse(JSON.stringify(srcD)); else delete s.loadDetail; } else { s.loadVal = ''; sugL = false; delete s.loadDetail; } }
     if (!sugR && String(s.repsDone == null ? '' : s.repsDone) === '' && srcR != null) { s.repsDone = srcR; sugR = true; }
-    if (!sugL && String(s.loadVal == null ? '' : s.loadVal) === '' && srcL != null) { s.loadVal = srcL; sugL = true; }
+    if (!sugL && String(s.loadVal == null ? '' : s.loadVal) === '' && srcL != null) { s.loadVal = srcL; sugL = true; if (srcD) s.loadDetail = JSON.parse(JSON.stringify(srcD)); else delete s.loadDetail; }
     if (!sugR && String(s.repsDone == null ? '' : s.repsDone) !== '') srcR = String(s.repsDone);
-    if (!sugL && String(s.loadVal == null ? '' : s.loadVal) !== '') srcL = String(s.loadVal);
+    if (!sugL && String(s.loadVal == null ? '' : s.loadVal) !== '') { srcL = String(s.loadVal); srcD = tfDetailSan(s.loadDetail); }
     s.sugR = sugR; s.sugL = sugL; s.sug = false;
   });
 }
@@ -35767,13 +35785,18 @@ function tfChipsHTML(ctx, idx, s) {
   const reps = s && String(s.repsDone == null ? '' : s.repsDone) !== '' ? esc(String(s.repsDone)) : '—';
   const lv = s ? String(s.loadVal == null ? '' : s.loadVal) : '';
   const loadMain = lv === '' ? esc(t('train.start.noLoad')) : esc(lv);
-  const eq = tfEquivText(lv);
+  let eq = tfEquivText(lv);
+  const detP = (ctx === 'set' || ctx === 'warm') && (typeof TRAIN_FLOAT !== 'undefined' && TRAIN_FLOAT && loadKindOf(TRAIN_FLOAT.ex) === 'pair') ? tfDetailSan(s && s.loadDetail) : null;
+  if (detP && detP.kind === 'pair' && lv !== '') { const eh = convLoadDisplay(String(detP.each), detP.unit, UNIT_PREFS.mass) + ' ' + UNIT_PREFS.mass + ' ' + t('train.ld.eachHand'); eq = eq ? eq + ' · ' + eh : eh; }
   /* AUTH-345: la etiqueta de la carga dice QUÉ se está escribiendo:
      la unidad activa (kg o lb, la del selector «Peso») va SIEMPRE
      en la etiqueta — también sin valor — y en los ejercicios con
      dos mancuernas la etiqueta es «Carga por mancuerna» (la que se
      registra es la de UNA; el valor mostrado no se suma). */
-  const loadLab = (typeof TRAIN_FLOAT !== 'undefined' && TRAIN_FLOAT && trainLoadPair(TRAIN_FLOAT.ex)) ? t('train.d.loadPerDb') : t('train.d.loadPh');
+  /* AUTH-2026-11-10-376: la pastilla muestra el TOTAL (el invariante del
+     borrador); en par, la etiqueta vuelve a ser la carga a secas
+     y la línea ≈ añade el peso de cada mano desde el desglose. */
+  const loadLab = t('train.d.loadPh');
   const loadLabU = loadLab + ' (' + UNIT_PREFS.mass + ')';
   return `<button type="button" class="tf-chip" data-tf-chip="${ctx}:${idx}:reps" aria-label="${t('train.d.repsPh')}"><span class="tf-chip-lab">${t('train.d.repsPh')}</span><span class="tf-chip-v">${reps}</span></button>` +
     `<button type="button" class="tf-chip" data-tf-chip="${ctx}:${idx}:load" aria-label="${esc(loadLabU)}"><span class="tf-chip-lab">${esc(loadLabU)}</span><span class="tf-chip-v">${loadMain}${lv !== '' ? ` <span class="tf-chip-u">${esc(UNIT_PREFS.mass)}</span>` : ''}</span>${eq ? `<span class="tf-chip-eq">${esc(eq)}</span>` : ''}</button>`;
@@ -35788,7 +35811,7 @@ function trainFloatSetsHTML(draft) {
      conserva las demás y lo ya escrito. La serie AÑADIDA nace
      PENDIENTE: pastilla «Sugerida» y chips atenuados (is-sug)
      hasta que él la trabaja; la aproximación no cambia. */
-  return `<div class="train-sets-unit"><span class="train-sets-unit-lab">${esc(t('units.mass'))}${(typeof TRAIN_FLOAT !== 'undefined' && TRAIN_FLOAT && trainLoadPair(TRAIN_FLOAT.ex)) ? ' · ' + esc(t('train.d.loadPerDb')) : ''}</span>${trainUnitSelHTML()}</div><div class="train-sets">${sets.map((s, si) => `
+  return `<div class="train-sets-unit"><span class="train-sets-unit-lab">${esc(t('units.mass'))}${(typeof TRAIN_FLOAT !== 'undefined' && TRAIN_FLOAT) ? esc(loadKindHeadSuffix(TRAIN_FLOAT.ex)) : ''}</span>${trainUnitSelHTML()}</div>${tfKindLineHTML()}<div class="train-sets">${sets.map((s, si) => `
     <div class="train-set-row${s.pend === true ? ' is-sug' : ''}"><span class="train-set-n">${t('train.d.set')} ${si + 1}${s.repsPlanned ? ` · ${esc(s.repsPlanned)}` : ''}${s.pend === true ? ` <span class="tf-sug-tag">${esc(t('train.sets.suggested'))}</span>` : ''}</span>
       <span class="tf-chips" data-tf-chips="set:${si}">${tfChipsHTML('set', si, s)}</span>${sets.length > 1 ? `<button type="button" class="tf-set-del" data-tf-set-del="${si}" aria-label="${t('train.sets.remove')}">✕</button>` : ''}</div>`).join('')}</div><div class="tf-sets-actions">${sets.length < 12 ? `<button type="button" class="btn-ghost btn-sm" id="tf-sets-add">${t('train.sets.add')}</button>` : ''}${tfVarBtnHTML()}</div>`;
 }
@@ -35824,7 +35847,7 @@ function trainFloatWheelHTML() {
     <div class="tf-wheel-cols">
       <div class="tf-wheel-col"><div class="tf-wheel-lab">${t('train.d.repsPh')}</div><div class="tf-wheel-list" id="tf-wheel-reps"></div></div>
       <div class="tf-wheel-col"><div class="tf-wheel-lab" id="tf-wheel-load-lab">${t('train.d.loadPh')} (${esc(UNIT_PREFS.mass)})</div><div class="tf-wheel-list" id="tf-wheel-load"></div></div>
-    </div></div></div>`;
+    </div><div class="tf-pair-note" id="tf-wheel-pair" style="display:none"></div></div></div>`;
 }
 function trainFloatSessionHTML(draft) {
   /* QUITAR DE HOY (encargo 2026-10-30): la fila discreta al pie
@@ -35845,9 +35868,14 @@ function trainFloatSessionHTML(draft) {
 }
 function tfWarmSnap(w) {
   const o = (w && typeof w === 'object' && !Array.isArray(w)) ? w : {};
-  return { on: o.on === true, sets: (Array.isArray(o.sets) ? o.sets : []).map(s => ({
-    repsDone: String(s && s.repsDone != null ? s.repsDone : ''),
-    loadVal: String(s && s.loadVal != null ? s.loadVal : '') })) };
+  return { on: o.on === true, sets: (Array.isArray(o.sets) ? o.sets : []).map(s => {
+    const outW = { repsDone: String(s && s.repsDone != null ? s.repsDone : ''), loadVal: String(s && s.loadVal != null ? s.loadVal : '') };
+    /* AUTH-2026-11-10-376: el desglose de la aproximación viaja en el espejo
+       como el de las series de trabajo (saneado). */
+    const detW = tfDetailSan(s && s.loadDetail);
+    if (detW) outW.loadDetail = detW;
+    return outW;
+  }) };
 }
 /* EL ESPEJO CONTINUO: vuelca el borrador en curso a TRAIN_CHECKS
    y al borrador local (misma disciplina «confirmar al acto» de
@@ -35874,7 +35902,10 @@ function tfWheelRow() {
 function tfWireChips(body, scope) {
   (scope || body).querySelectorAll('[data-tf-chip]').forEach(ch => { ch.onclick = () => {
     const p = String(ch.dataset.tfChip).split(':');
-    tfWheelOpen(body, p[0], Number(p[1]));
+    /* AUTH-2026-11-10-376: en una ficha de DISCOS, la pastilla de carga abre
+       la calculadora de discos; la de reps, la rueda de siempre. */
+    if (p[2] === 'load' && (typeof TRAIN_FLOAT !== 'undefined' && TRAIN_FLOAT) && loadKindOf(TRAIN_FLOAT.ex) === 'plates') tfPlatesOpen(body, p[0], Number(p[1]));
+    else tfWheelOpen(body, p[0], Number(p[1]));
   }; });
 }
 function tfChipRefresh(body) {
@@ -35888,7 +35919,7 @@ function tfWheelMarkSel(list, kind) {
   if (!row || !list) return;
   let cur;
   if (kind === 'reps') cur = String(row.repsDone == null ? '' : row.repsDone);
-  else { const sc = TF_LOAD_SCALE || tfLoadScale(); const v = tfScaleValOf(row.loadVal, sc.unit); cur = v == null ? '' : String(v); }
+  else { const v = tfWheelLoadValOf(row); cur = v == null ? '' : String(v); }
   list.querySelectorAll('.tf-wheel-it').forEach(it => it.classList.toggle('sel',
     String(it.dataset.wv) === cur || (kind === 'reps' && cur === '' && it.dataset.wv === '0')));
 }
@@ -35902,7 +35933,29 @@ function tfWheelPick(body, kind, wv) {
   const row = tfWheelRow();
   if (!row) return;
   if (kind === 'reps') row.repsDone = String(wv);
-  else { TF_WHEEL_GUARD = null; const sc = TF_LOAD_SCALE || tfLoadScale(); row.loadVal = wv === '' ? '' : convLoadDisplay(String(wv), sc.unit, UNIT_PREFS.mass); }
+  else {
+    TF_WHEEL_GUARD = null;
+    const sc = TF_LOAD_SCALE || tfLoadScale();
+    /* AUTH-2026-11-10-376 · CARGA CON DISCOS: la rueda escribe el TOTAL. En
+       PAR sigue eligiendo el peso de UNA mancuerna y el total es
+       el doble; en DISCOS teclear aquí guarda el total pelado
+       (desglose «typed», sin lista de discos); el panel de discos
+       entra por TF_PLATES_APPLY con su desglose ya puesto y esta
+       función solo hace su disciplina de siempre (sello,
+       propagación, espejo). En ÚNICA, como siempre y sin
+       desglose. */
+    const lk = (typeof TRAIN_FLOAT !== 'undefined' && TRAIN_FLOAT) ? loadKindOf(TRAIN_FLOAT.ex) : 'single';
+    if (TF_PLATES_APPLY) { row.loadVal = wv === '' ? '' : convLoadDisplay(String(wv), sc.unit, UNIT_PREFS.mass); }
+    else if (lk === 'pair') {
+      if (wv === '') { row.loadVal = ''; delete row.loadDetail; }
+      else { const eachN = parseFloat(wv); row.loadDetail = { kind: 'pair', unit: UNIT_PREFS.mass, each: eachN }; row.loadVal = convLoadDisplay(String(eachN * 2), sc.unit, UNIT_PREFS.mass); }
+    }
+    else if (lk === 'plates') {
+      if (wv === '') { row.loadVal = ''; delete row.loadDetail; }
+      else { row.loadDetail = { kind: 'plates', unit: UNIT_PREFS.mass, perSide: null, mirrored: true, base: { on: false, val: 0 }, typed: true }; row.loadVal = convLoadDisplay(String(wv), sc.unit, UNIT_PREFS.mass); }
+    }
+    else { row.loadVal = wv === '' ? '' : convLoadDisplay(String(wv), sc.unit, UNIT_PREFS.mass); delete row.loadDetail; }
+  }
   trainFloatMirror(false);
   tfChipRefresh(body);
   if (TF_WHEEL && TF_WHEEL.ctx === 'set') {
@@ -35914,7 +35967,7 @@ function tfWheelPick(body, kind, wv) {
        resucite. Después, las series vacías que la siguen toman
        los valores de la anterior con datos como sugerencia. */
     const lvS = String(row.loadVal == null ? '' : row.loadVal), rpS = String(row.repsDone == null ? '' : row.repsDone);
-    if (lvS === '' && (rpS === '' || rpS === '0')) { row.repsDone = ''; row.sug = false; row.sugR = false; row.sugL = false; row.clr = true; }
+    if (lvS === '' && (rpS === '' || rpS === '0')) { row.repsDone = ''; row.sug = false; row.sugR = false; row.sugL = false; row.clr = true; delete row.loadDetail; }
     else {
       row.clr = false;
       /* AUTH-371: el campo tocado con la rueda queda PROPIO (deja
@@ -35945,6 +35998,7 @@ function tfWheelPick(body, kind, wv) {
   }
   tfWheelMarkSel(document.getElementById('tf-wheel-reps'), 'reps');
   tfWheelMarkSel(document.getElementById('tf-wheel-load'), 'load');
+  tfPairNoteUpdate();
 }
 function tfWheelScrollHandler(body, list, kind) {
   let tm = null;
@@ -36000,7 +36054,7 @@ function tfWheelOpen(body, ctx, idx) {
      que el número es POR MANCUERNA — inconfundible mientras se
      teclea en la rueda. */
   const loadLab = panel.querySelector('#tf-wheel-load-lab');
-  if (loadLab) loadLab.textContent = (trainLoadPair(F.ex) ? t('train.d.loadPerDb') : t('train.d.loadPh')) + ' (' + (TF_LOAD_SCALE ? TF_LOAD_SCALE.unit : UNIT_PREFS.mass) + ')';
+  if (loadLab) loadLab.textContent = (loadKindOf(F.ex) === 'pair' ? t('train.d.loadPerDb') : t('train.d.loadPh')) + ' (' + (TF_LOAD_SCALE ? TF_LOAD_SCALE.unit : UNIT_PREFS.mass) + ')';
   const repsList = panel.querySelector('#tf-wheel-reps');
   const loadList = panel.querySelector('#tf-wheel-load');
   if (repsList) {
@@ -36023,10 +36077,11 @@ function tfWheelOpen(body, ctx, idx) {
     loadList.onscroll = tfWheelScrollHandler(body, loadList, 'load');
   }
   panel.style.display = 'block';
+  tfPairNoteUpdate();
   tfWheelMarkSel(repsList, 'reps');
   tfWheelMarkSel(loadList, 'load');
   const rCur = String(row.repsDone == null || row.repsDone === '' ? 0 : row.repsDone);
-  const sv = tfScaleValOf(row.loadVal, TF_LOAD_SCALE.unit);
+  const sv = tfWheelLoadValOf(row);
   let lCur = '';
   if (sv != null) { let best = TF_LOAD_SCALE.steps[0], bd = Infinity; TF_LOAD_SCALE.steps.forEach(st => { const dd = Math.abs(st - sv); if (dd < bd) { bd = dd; best = st; } }); lCur = String(best); }
   /* La guardia se arma SOLO si el valor de la fila no es una
@@ -36098,6 +36153,10 @@ function trainFloatWireSession(body) {
      el mismo objeto que TRAIN_FLOAT.draft. */
   const varOpen = body.querySelector('#tf-var-open');
   if (varOpen) varOpen.onclick = () => tfVarSheetOpen();
+  /* AUTH-2026-11-10-376 · CARGA CON DISCOS: la línea discreta del tipo de
+     carga de ESTA ficha; su corrección se guarda por aparato. */
+  const kindLine = body.querySelector('#tf-kind-line');
+  if (kindLine) kindLine.onclick = () => tfKindOpen();
   body.querySelectorAll('[data-tf-set-del]').forEach(btn => { btn.onclick = () => {
     if (!Array.isArray(d.sets) || d.sets.length <= 1) return;
     d.sets.splice(Number(btn.dataset.tfSetDel), 1);
@@ -37742,7 +37801,7 @@ async function loadMyTraining() {
   box.querySelectorAll('[data-train-set-load]').forEach(inp => inp.oninput = () => {
     const [di, ei, si] = inp.dataset.trainSetLoad.split(':');
     const c = TRAIN_CHECKS[di + ':' + ei];
-    if (c && Array.isArray(c.sets) && c.sets[Number(si)]) { c.sets[Number(si)].loadVal = inp.value; if (c.sets[Number(si)].pend) { delete c.sets[Number(si)].pend; c.sets[Number(si)].sug = false; } trainSetStamp(c.sets[Number(si)]); trainChecksPersist(plan.id); }
+    if (c && Array.isArray(c.sets) && c.sets[Number(si)]) { c.sets[Number(si)].loadVal = inp.value; delete c.sets[Number(si)].loadDetail; if (c.sets[Number(si)].pend) { delete c.sets[Number(si)].pend; c.sets[Number(si)].sug = false; } trainSetStamp(c.sets[Number(si)]); trainChecksPersist(plan.id); }
   });
   box.querySelectorAll('[data-train-done]').forEach(b => b.onclick = () => {
     const di = Number(b.dataset.trainDone);
@@ -37821,6 +37880,13 @@ async function loadMyTraining() {
              exercisesDone (verificado contra el ruleset vivo
              84974ca6). Sin hora, la serie queda como siempre. */
           if (typeof s.markedAt === 'number' && isFinite(s.markedAt) && s.markedAt > 0) out.markedAt = Math.floor(s.markedAt);
+          /* AUTH-2026-11-10-376 · CARGA CON DISCOS: el desglose viaja SOLO
+             si su total coincide con la carga guardada — si el
+             número cambió por otro camino, manda el número y el
+             registro queda como «un solo número». El interior de
+             exercisesDone no lo validan las reglas vivas (misma
+             lectura que markedAt y warmupSets): sin delta. */
+          if (out.loadKg != null) { const detW2 = tfDetailForWrite(s); if (detW2) out.loadDetail = detW2; }
           return out;
         });
       }
@@ -37843,6 +37909,9 @@ async function loadMyTraining() {
             out.loadOriginal = lv;
             out.loadUnitOriginal = UNIT_PREFS.mass;
           }
+          /* AUTH-2026-11-10-376: la aproximación con discos guarda también
+             su desglose, con la misma regla de coincidencia. */
+          if (out.loadKg != null) { const detW3 = tfDetailForWrite(s); if (detW3) out.loadDetail = detW3; }
           return out;
         });
       }
@@ -38018,7 +38087,11 @@ async function loadMyTraining() {
           /* HORA DE MARCA: al deshacer, la serie recupera también
              su hora original — el día vuelve a editable tal como
              quedó al cerrar. */
-          ...(typeof s.markedAt === 'number' && isFinite(s.markedAt) && s.markedAt > 0 ? { markedAt: Math.floor(s.markedAt) } : {})
+          ...(typeof s.markedAt === 'number' && isFinite(s.markedAt) && s.markedAt > 0 ? { markedAt: Math.floor(s.markedAt) } : {}),
+          /* AUTH-2026-11-10-376: el desglose vuelve con la serie (saneado);
+             sin él, la serie restaurada es la de un solo número
+             de siempre. */
+          ...tfDetailSpread(s)
         })) : trainDefaultSets(row.ex);
         TRAIN_CHECKS[diU + ':' + ei] = { rpe: (typeof de.rpe === 'number' && isFinite(de.rpe)) ? de.rpe : null, sets, done: true };
       });
@@ -52205,7 +52278,7 @@ document.addEventListener('keydown', e => { if (e.key === 'Escape') shareClose()
  *  - El SW (sw.js) solo cachea la cáscara del mismo origen en modo
  *    RED PRIMERO: Auth/Firestore/Worker jamás pasan por la caché.
  * ================================================================ */
-const PWA_SW_VERSION = '20261110-mi-rol-tactil';
+const PWA_SW_VERSION = '20261110-carga-discos';
 /* Sello de versión VISIBLE (2026-11-03): el pie de la tarjeta de
    acceso enseña qué copia corre este teléfono ('v ' + el sello),
    para comprobar de un vistazo si la versión nueva ya llegó.
@@ -59624,6 +59697,263 @@ function loadPairFactor(e) {
   return 2;
 }
 function trainLoadPair(ex) { return loadPairFactor(ex) === 2; }
+
+/* ════════════════════════════════════════════════════════════════
+   AUTH-2026-11-10-376 · CARGA CON DISCOS (estrategia A — diseño aprobado por
+   Ronald el 2026-11-10): la casilla de carga de una ficha de
+   DISCOS deja de ser un número pelado — se monta la carga por
+   lado con botones grandes de disco, y lo que se guarda es el
+   TOTAL real del movimiento (loadKg) más su desglose
+   (loadDetail), para reeditar tal cual. Doctrina del paquete:
+   – El borrador (loadVal) es SIEMPRE el total que se mueve.
+   – loadDetail solo se fía si su total calculado coincide con
+     loadVal; si el número se teclea por otro camino (la tarjeta
+     del día), el desglose se descarta: manda el número.
+   – El tipo de cada ficha (discos / par / única) sale de la
+     tabla de fábrica de abajo; la corrección de la persona
+     manda y se guarda POR APARATO (localStorage), como otras
+     preferencias de la casa — sin delta de reglas.
+   – La base (barra/trineo) suma SOLO si la ficha la declara
+     (barra olímpica en los levantamientos clásicos) o la
+     persona la enciende en el panel: nunca en silencio.
+   – El historial viejo NO se reescribe: un registro sin
+     loadDetail se lee como «un solo número», con la lectura
+     AUTH-345 intacta (mpExAgg aplica ×2 solo a esos).
+   ════════════════════════════════════════════════════════════════ */
+const LOAD_PLATES_IDS = { E005: 1, E015: 1, E019: 1, E021: 1, E024: 1, E027: 1, E028: 1, E031: 1, E037: 1, E038: 1, E045: 1, E048: 1, E051: 1, E053: 1, E054: 1, E055: 1, E056: 1, E057: 1, E063: 1, E065: 1, E071: 1, E072: 1, E073: 1, E077: 1, E080: 1, E095: 1, E096: 1, E101: 1, E109: 1, E111: 1, E116: 1, E119: 1, E120: 1, E121: 1, E122: 1, E129: 1, E130: 1 };
+const LOAD_BASE_BAR_IDS = { E005: 1, E019: 1, E021: 1, E024: 1, E028: 1, E031: 1, E048: 1, E055: 1, E056: 1, E057: 1, E065: 1, E072: 1, E073: 1, E077: 1, E095: 1, E096: 1, E101: 1, E116: 1, E119: 1, E120: 1, E121: 1, E129: 1 };
+const LOAD_PLATE_DENOMS = { lb: [45, 35, 25, 10, 5, 2.5], kg: [25, 20, 15, 10, 5, 2.5, 1.25] };
+function loadKindFactory(ex) {
+  if (!ex || !ex.exerciseId) return 'single';
+  if (trainLoadPair(ex)) return 'pair';
+  return LOAD_PLATES_IDS[String(ex.exerciseId)] ? 'plates' : 'single';
+}
+function loadKindKey() { const uid = (typeof auth !== 'undefined' && auth && auth.currentUser) ? auth.currentUser.uid : ''; return 'ronbofit-loadkind-' + uid; }
+function loadKindOverride(exId) {
+  if (!exId) return null;
+  try { const m = JSON.parse(localStorage.getItem(loadKindKey()) || '{}'); const k = m[String(exId)]; return (k === 'plates' || k === 'pair' || k === 'single') ? k : null; } catch (e) { return null; }
+}
+function loadKindSetOverride(ex, kind) {
+  if (!ex || !ex.exerciseId) return;
+  try { const m = JSON.parse(localStorage.getItem(loadKindKey()) || '{}'); if (kind === loadKindFactory(ex)) delete m[String(ex.exerciseId)]; else m[String(ex.exerciseId)] = kind; localStorage.setItem(loadKindKey(), JSON.stringify(m)); } catch (e) { /* sin almacenamiento: la corrección vale solo en pantalla */ }
+}
+function loadKindOf(ex) { return loadKindOverride(ex && ex.exerciseId) || loadKindFactory(ex); }
+function loadKindLabelOf(kind) { return kind === 'plates' ? t('train.ld.kindPlates') : (kind === 'pair' ? t('train.ld.kindPair') : t('train.ld.kindSingle')); }
+function loadKindHeadSuffix(ex) { const k = loadKindOf(ex); return k === 'pair' ? ' · ' + t('train.ld.headTotal') : (k === 'plates' ? ' · ' + t('train.ld.headPlates') : ''); }
+function tfKindLineHTML() {
+  const F = (typeof TRAIN_FLOAT !== 'undefined') ? TRAIN_FLOAT : null;
+  if (!F || !F.ex || !F.ex.exerciseId) return '';
+  return `<button type="button" class="tf-kind-line" id="tf-kind-line">${esc(t('train.ld.kindQ'))} · <b>${esc(loadKindLabelOf(loadKindOf(F.ex)))}</b></button>`;
+}
+function tfKindOpen() {
+  const F = TRAIN_FLOAT;
+  if (!F || !F.ex || !F.ex.exerciseId) return;
+  let pop = document.getElementById('tf-kind');
+  if (!pop) {
+    const tmp = document.createElement('div');
+    tmp.innerHTML = `<div class="tf-wheel" id="tf-kind" style="display:none"><div class="tf-wheel-card">
+      <div class="tf-wheel-head"><span class="tf-wheel-title">${esc(t('train.ld.kindQ'))}</span></div>
+      <div class="tfk-opts">${['plates', 'pair', 'single'].map(k => `<button type="button" class="tfk-opt" data-tfk="${k}">${esc(loadKindLabelOf(k))}</button>`).join('')}</div>
+      <div class="tfk-note">${esc(t('train.ld.kindSaved'))}</div>
+      <button type="button" class="btn-ghost btn-sm" id="tfk-cancel">${esc(t('train.ld.cancel'))}</button>
+    </div></div>`;
+    pop = tmp.firstElementChild;
+    document.body.appendChild(pop);
+    pop.querySelector('#tfk-cancel').onclick = () => { pop.style.display = 'none'; };
+    pop.querySelectorAll('[data-tfk]').forEach(b => { b.onclick = () => {
+      loadKindSetOverride(TRAIN_FLOAT && TRAIN_FLOAT.ex, b.dataset.tfk);
+      pop.style.display = 'none';
+      const bb = $('train-ex-float-body');
+      if (bb) tfSetsRefresh(bb);
+    }; });
+  }
+  pop.querySelectorAll('[data-tfk]').forEach(b => b.classList.toggle('is-on', b.dataset.tfk === loadKindOf(F.ex)));
+  pop.style.display = 'block';
+}
+/* SANEO DEL DESGLOSE: una sola puerta para todo loadDetail que
+   entra al borrador o sale al registro — forma cerrada, números
+   finitos y acotados; lo que no cuadra, no viaja. */
+function tfPlateArrSan(a) {
+  if (!Array.isArray(a) || a.length > 14) return null;
+  const out = [];
+  for (const v of a) { const n = Number(v); if (!isFinite(n) || n <= 0 || n > 500) return null; out.push(n); }
+  return out;
+}
+function tfDetailSan(d) {
+  if (!d || typeof d !== 'object' || Array.isArray(d)) return null;
+  if (d.unit !== 'kg' && d.unit !== 'lb') return null;
+  if (d.kind === 'pair') { const e = Number(d.each); return (isFinite(e) && e > 0 && e <= 500) ? { kind: 'pair', unit: d.unit, each: e } : null; }
+  if (d.kind !== 'plates') return null;
+  const mir = d.mirrored !== false;
+  let per = null;
+  if (d.perSide != null) { per = tfPlateArrSan(d.perSide); if (!per) return null; }
+  let perR;
+  if (!mir && d.perSideR != null) { perR = tfPlateArrSan(d.perSideR); if (!perR) return null; }
+  const bo = (d.base && typeof d.base === 'object') ? d.base : {};
+  const bv = Number(bo.val);
+  const baseOk = isFinite(bv) && bv > 0 && bv <= 500;
+  const out = { kind: 'plates', unit: d.unit, perSide: per, mirrored: mir, base: { on: bo.on === true && baseOk, val: baseOk ? bv : 0 } };
+  if (!mir && perR) out.perSideR = perR;
+  if (d.typed === true && per == null) out.typed = true;
+  return out;
+}
+function tfDetailSpread(s) { const d = tfDetailSan(s && s.loadDetail); return d ? { loadDetail: d } : {}; }
+function tfDetailSideSum(d) { return (d && Array.isArray(d.perSide) ? d.perSide : []).reduce((a, b) => a + b, 0); }
+function tfDetailTotalInUnit(d) {
+  if (!d) return null;
+  if (d.kind === 'pair') return d.each * 2;
+  const a = tfDetailSideSum(d);
+  const b = d.mirrored ? a : (Array.isArray(d.perSideR) ? d.perSideR : []).reduce((x, y) => x + y, 0);
+  return a + b + (d.base && d.base.on ? d.base.val : 0);
+}
+function tfDetailMatchesLoad(d, loadValViewer) {
+  const tot = tfDetailTotalInUnit(d); if (tot == null) return false;
+  const lv = parseFloat(loadValViewer); if (!isFinite(lv)) return false;
+  const totKg = d.unit === 'lb' ? tot * UNIT_LB_KG : tot;
+  const lvKg = UNIT_PREFS.mass === 'lb' ? lv * UNIT_LB_KG : lv;
+  return Math.abs(lvKg - totKg) <= 0.11;
+}
+function tfDetailForWrite(s) { const d = tfDetailSan(s && s.loadDetail); return (d && tfDetailMatchesLoad(d, s.loadVal)) ? d : null; }
+/* El valor que la RUEDA muestra de una fila: en par es el peso
+   de UNA mancuerna (el total guardado es el doble); en discos y
+   única, el total tal cual. */
+function tfWheelLoadValOf(row) {
+  const F = (typeof TRAIN_FLOAT !== 'undefined') ? TRAIN_FLOAT : null;
+  const sc = TF_LOAD_SCALE || tfLoadScale();
+  if (F && row && loadKindOf(F.ex) === 'pair') {
+    const d = tfDetailSan(row.loadDetail);
+    if (d && d.kind === 'pair') { const n = parseFloat(convLoadDisplay(String(d.each), d.unit, sc.unit)); return isFinite(n) ? n : null; }
+    const v = tfScaleValOf(row.loadVal, sc.unit); return v == null ? null : v / 2;
+  }
+  return tfScaleValOf(row ? row.loadVal : '', sc.unit);
+}
+/* La lectura del par DENTRO de la rueda: «25 lb en cada mano × 2
+   — Total que mueves: 50 lb» — se repinta en cada toque. */
+function tfPairNoteUpdate() {
+  const note = document.getElementById('tf-wheel-pair');
+  if (!note) return;
+  const F = (typeof TRAIN_FLOAT !== 'undefined') ? TRAIN_FLOAT : null;
+  const row = F ? tfWheelRow() : null;
+  if (!F || !row || loadKindOf(F.ex) !== 'pair') { note.style.display = 'none'; note.innerHTML = ''; return; }
+  const v = tfWheelLoadValOf(row);
+  if (v == null || v === 0) { note.style.display = 'none'; note.innerHTML = ''; return; }
+  const u = UNIT_PREFS.mass;
+  note.style.display = '';
+  note.innerHTML = `<span class="tf-pair-l1">${esc(t('train.ld.pairLine', { each: v, unit: u }))}</span><span class="tf-pair-l2">${esc(t('train.ld.pairTotal', { total: uRound1(v * 2), unit: u }))}</span>`;
+}
+/* ════════ EL PANEL DE DISCOS (gemelo a nivel de documento de la
+   rueda, creado una sola vez): botones de denominación en la
+   unidad del panel — la del desglose al reeditar; si no, la del
+   visor — pila visible por lado, espejo encendido por defecto,
+   base solo declarada o encendida por la persona, y el TOTAL
+   siempre a la vista antes de guardar. Sin el techo de la rueda:
+   el total se guarda como número libre. ════════ */
+let TF_PLATES = null;
+let TF_PLATES_APPLY = false;
+function tfPlatesRow() {
+  const F = TRAIN_FLOAT;
+  if (!F || !F.draft || !TF_PLATES) return null;
+  return TF_PLATES.ctx === 'warm'
+    ? (F.draft.warmup && Array.isArray(F.draft.warmup.sets) ? F.draft.warmup.sets[TF_PLATES.idx] : null)
+    : (Array.isArray(F.draft.sets) ? F.draft.sets[TF_PLATES.idx] : null);
+}
+function tfPlatesTotals(S) {
+  const a = S.perSide.reduce((x, y) => x + y, 0);
+  const b = S.mirrored ? a : S.perSideR.reduce((x, y) => x + y, 0);
+  const base = S.base.on ? S.base.val : 0;
+  return { perA: a, perB: b, plates: a + b, base, total: a + b + base };
+}
+function tfPlatesHTML() {
+  return `<div class="tf-wheel" id="tf-plates" style="display:none">
+    <div class="tf-wheel-card tfp-card">
+    <div class="tf-wheel-head"><span class="tf-wheel-title" id="tfp-title"></span></div>
+    <div id="tfp-body"></div>
+    <div class="tfp-foot"><button type="button" class="btn-primary tfp-use" id="tfp-use">${t('train.ld.useLoad')}</button><span class="tfp-foot-row"><button type="button" class="btn-ghost btn-sm" id="tfp-type">${t('train.ld.typeTotal')}</button><button type="button" class="btn-ghost btn-sm" id="tfp-cancel">${t('train.ld.cancel')}</button></span></div>
+    </div></div>`;
+}
+function tfPlatesOpen(body, ctx, idx) {
+  const F = TRAIN_FLOAT;
+  if (!F || !F.draft) return;
+  const S = { ctx, idx, body, side: 'L', unit: UNIT_PREFS.mass, perSide: [], perSideR: [], mirrored: true, base: { on: false, val: 0 } };
+  TF_PLATES = S;
+  const prev = tfDetailSan(tfPlatesRow() && tfPlatesRow().loadDetail);
+  if (prev && prev.kind === 'plates' && prev.perSide) {
+    S.unit = prev.unit;
+    S.perSide = prev.perSide.slice();
+    S.perSideR = prev.perSideR ? prev.perSideR.slice() : [];
+    S.mirrored = prev.mirrored !== false;
+    S.base = { on: prev.base.on === true, val: prev.base.val || 0 };
+  } else if (F.ex && LOAD_BASE_BAR_IDS[String(F.ex.exerciseId)]) {
+    S.base = { on: true, val: S.unit === 'lb' ? 45 : 20 };
+  }
+  let panel = document.getElementById('tf-plates');
+  if (!panel) {
+    const tmp = document.createElement('div');
+    tmp.innerHTML = tfPlatesHTML();
+    panel = tmp.firstElementChild;
+    document.body.appendChild(panel);
+    panel.querySelector('#tfp-use').onclick = () => tfPlatesApply();
+    panel.querySelector('#tfp-cancel').onclick = () => tfPlatesClose();
+    panel.querySelector('#tfp-type').onclick = () => { const b = TF_PLATES.body, c = TF_PLATES.ctx, i = TF_PLATES.idx; tfPlatesClose(); tfWheelOpen(b, c, i); };
+  }
+  const title = panel.querySelector('#tfp-title');
+  if (title) title.textContent = (ctx === 'warm' ? `${t('train.start.warmupTitle')} ${idx + 1}` : `${t('train.d.set')} ${idx + 1}`) + ' · ' + t('train.ld.platesTitle') + ' (' + S.unit + ')';
+  panel.style.display = 'block';
+  tfPlatesRender();
+}
+function tfPlatesClose() { const p = document.getElementById('tf-plates'); if (p) p.style.display = 'none'; TF_PLATES = null; }
+function tfPlatesRender() {
+  const S = TF_PLATES; if (!S) return;
+  const host = document.querySelector('#tfp-body'); if (!host) return;
+  const denoms = LOAD_PLATE_DENOMS[S.unit] || LOAD_PLATE_DENOMS.lb;
+  const active = (S.side === 'R' && !S.mirrored) ? S.perSideR : S.perSide;
+  const cnt = v => active.filter(x => x === v).length;
+  const stackHTML = (arr, sideKey, ghost) => arr.length
+    ? arr.map((v, i) => `<button type="button" class="tfp-plate${ghost ? ' is-ghost' : ''}" data-tfp-rm="${sideKey}:${i}"${ghost ? ' disabled' : ''}>${v}</button>`).join('')
+    : `<span class="tfp-empty">${esc(t('train.start.noLoad'))}</span>`;
+  const tt = tfPlatesTotals(S);
+  const otherU = S.unit === 'lb' ? 'kg' : 'lb';
+  const totOther = S.unit === 'lb' ? uRound1(tt.total * UNIT_LB_KG) : uRound1(tt.total / UNIT_LB_KG);
+  host.innerHTML = `
+    <div class="tfp-hint">${esc(t('train.ld.tapAdd'))}</div>
+    <div class="tfp-denoms">${denoms.map(v => `<button type="button" class="tfp-denom" data-tfp-add="${v}">${v}<small>${S.unit}</small>${cnt(v) ? `<span class="tfp-cnt">×${cnt(v)}</span>` : ''}</button>`).join('')}</div>
+    ${S.mirrored ? '' : `<div class="tfp-sides"><button type="button" class="tfp-side${S.side === 'L' ? ' is-on' : ''}" data-tfp-side="L">${esc(t('train.ld.sideL'))}</button><button type="button" class="tfp-side${S.side === 'R' ? ' is-on' : ''}" data-tfp-side="R">${esc(t('train.ld.sideR'))}</button></div>`}
+    <div class="tfp-stack-lab">${esc(S.mirrored ? t('train.ld.oneSide') : (S.side === 'L' ? t('train.ld.sideL') : t('train.ld.sideR')))}</div>
+    <div class="tfp-stack">${stackHTML(active, S.mirrored ? 'L' : S.side, false)}</div>
+    ${S.mirrored ? `<div class="tfp-stack-lab">${esc(t('train.ld.otherSide'))}</div><div class="tfp-stack">${stackHTML(S.perSide, 'R', true)}</div>` : ''}
+    <div class="tfp-row"><span class="tfp-row-lab">${esc(t('train.ld.bothSame'))}<small>${esc(t('train.ld.bothSameSub'))}</small></span><button type="button" class="tf-warm-tog${S.mirrored ? ' is-on' : ''}" id="tfp-mirror" aria-pressed="${S.mirrored}">${S.mirrored ? t('train.start.yes') : t('train.start.no')}</button></div>
+    <div class="tfp-row"><span class="tfp-row-lab">${esc(t('train.ld.base'))}<small>${esc(t('train.ld.baseSub'))}</small></span><span class="tfp-base-ctl"><button type="button" class="tfp-step" data-tfp-base="-1"${S.base.on ? '' : ' disabled'}>−</button><span class="tfp-base-v">${S.base.on ? S.base.val + ' ' + S.unit : '—'}</span><button type="button" class="tfp-step" data-tfp-base="1"${S.base.on ? '' : ' disabled'}>+</button></span><button type="button" class="tf-warm-tog${S.base.on ? ' is-on' : ''}" id="tfp-base-tog" aria-pressed="${S.base.on}">${S.base.on ? t('train.start.yes') : t('train.start.no')}</button></div>
+    <div class="tfp-sums">${esc(t('train.ld.perSideSum', { n: tt.perA + ' ' + S.unit }))} · ${esc(t('train.ld.platesSum', { n: tt.plates + ' ' + S.unit }))}${tt.base ? ' · ' + esc(t('train.ld.baseSum', { n: tt.base + ' ' + S.unit })) : ''}</div>
+    <div class="tfp-total"><span>${esc(t('train.ld.totalMove'))}</span><b>${tt.total} ${S.unit}</b><small>≈ ${totOther} ${otherU}</small></div>
+    <button type="button" class="btn-ghost btn-sm tfp-clear" id="tfp-clear">${esc(t('train.ld.clearSide'))}</button>`;
+  host.querySelectorAll('[data-tfp-add]').forEach(b => { b.onclick = () => { const arr = (S.side === 'R' && !S.mirrored) ? S.perSideR : S.perSide; arr.push(parseFloat(b.dataset.tfpAdd)); tfPlatesRender(); }; });
+  host.querySelectorAll('[data-tfp-rm]').forEach(b => { b.onclick = () => { const pr = String(b.dataset.tfpRm).split(':'); const arr = pr[0] === 'R' ? S.perSideR : S.perSide; arr.splice(Number(pr[1]), 1); tfPlatesRender(); }; });
+  host.querySelectorAll('[data-tfp-side]').forEach(b => { b.onclick = () => { S.side = b.dataset.tfpSide; tfPlatesRender(); }; });
+  const mir = host.querySelector('#tfp-mirror'); if (mir) mir.onclick = () => { S.mirrored = !S.mirrored; if (S.mirrored) S.side = 'L'; tfPlatesRender(); };
+  const bt = host.querySelector('#tfp-base-tog'); if (bt) bt.onclick = () => { S.base.on = !S.base.on; if (S.base.on && !(S.base.val > 0)) S.base.val = S.unit === 'lb' ? 45 : 20; tfPlatesRender(); };
+  host.querySelectorAll('[data-tfp-base]').forEach(b => { b.onclick = () => { S.base.val = Math.max(0, Math.round((S.base.val + Number(b.dataset.tfpBase) * 2.5) * 10) / 10); tfPlatesRender(); }; });
+  const cl = host.querySelector('#tfp-clear'); if (cl) cl.onclick = () => { if (S.side === 'R' && !S.mirrored) S.perSideR = []; else S.perSide = []; tfPlatesRender(); };
+}
+function tfPlatesApply() {
+  const S = TF_PLATES; if (!S) return;
+  const row = tfPlatesRow();
+  const body = S.body;
+  const tt = tfPlatesTotals(S);
+  if (!row) { tfPlatesClose(); return; }
+  if (tt.total > 0) {
+    const det = { kind: 'plates', unit: S.unit, perSide: S.perSide.slice(), mirrored: S.mirrored, base: { on: S.base.on, val: S.base.on ? S.base.val : 0 } };
+    if (!S.mirrored) det.perSideR = S.perSideR.slice();
+    row.loadDetail = det;
+  } else delete row.loadDetail;
+  TF_WHEEL = { ctx: S.ctx, idx: S.idx };
+  if (!TF_LOAD_SCALE) TF_LOAD_SCALE = tfLoadScale();
+  const wv = tt.total > 0 ? convLoadDisplay(String(tt.total), S.unit, TF_LOAD_SCALE.unit) : '';
+  TF_PLATES_APPLY = true;
+  tfPlatesClose();
+  tfWheelPick(body, 'load', wv);
+  TF_PLATES_APPLY = false;
+}
+
 function mpExAgg(e) {
   let sets = 0, reps = 0, vol = 0, max = 0;
   /* AUTH-345: el VOLUMEN suma la carga real total por repetición
@@ -59633,7 +59963,7 @@ function mpExAgg(e) {
   for (const s of (e.sets || [])) {
     if (s.repsDone == null && s.loadKg == null) continue;
     const r = num(s.repsDone), l = num(s.loadKg);
-    sets++; reps += r; vol += r * l * f; if (l > max) max = l;
+    sets++; reps += r; vol += r * l * ((s && s.loadDetail && typeof s.loadDetail === 'object') ? 1 : f); if (l > max) max = l;
   }
   return { sets, reps, vol: Math.round(vol), maxLoad: max, rpe: (e.rpe != null && num(e.rpe) > 0) ? num(e.rpe) : null };
 }
