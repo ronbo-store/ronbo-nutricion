@@ -5810,6 +5810,28 @@ en: {
   /* META DE TIEMPO POR ENTRENAMIENTO (AUTH-359): solo informativa. */
   'train.goalOf': '{done} of {goal} min · {left} min to go',
   'train.goalMet': '{done} of {goal} min · goal met ✓',
+  /* MODO GUIADO DE ENTRENAMIENTO (AUTH-360) */
+  'train.guide.pos': 'Exercise {n} of {m}',
+  'train.guide.now': 'Now up',
+  'train.guide.estEx': 'This exercise ≈ {min} min',
+  'train.guide.rest': 'Rest between sets: {sec} s',
+  'train.guide.doneTitle': 'Done',
+  'train.guide.next': 'Next: {name}',
+  'train.guide.endNext': '🏁 End of today’s route',
+  'train.guide.skip': 'Skip this one',
+  'train.guide.showAll': '☰ See all exercises',
+  'train.guide.start': '▶ Guided mode',
+  'train.guide.complete': 'Route complete 🎉',
+  'train.guide.estTotal': '≈ {min} min in total (estimate)',
+  'train.guide.estGoal': '≈ {min} min estimated · your goal is {goal} min',
+  'train.guide.elapsed': '{min} min elapsed',
+  'train.guide.transRest': 'Rest {sec} s before the next one',
+  'train.guide.transSkip': 'Skip rest',
+  'train.guide.doneBtn': '✓ Done',
+  'train.guide.undoneBtn': '✓ Done · tap to unmark',
+  'train.guide.empty': 'No exercises yet in this session.',
+  'train.guide.metrics': '{sets} sets · {reps} reps · {load} max',
+  'train.guide.metricsRpe': ' · effort {rpe}',
   /* CRONÓMETRO DE SESIÓN FIJO + ENCUESTA (punto 88 de la cola,
      decisiones de Ronald 2026-11-02 11:54/11:57/12:06/12:07 CST):
      la pastilla sobre el dock y la encuesta de una pregunta. */
@@ -10049,6 +10071,28 @@ es: {
   /* META DE TIEMPO POR ENTRENAMIENTO (AUTH-359): solo informativa. */
   'train.goalOf': '{done} de {goal} min · te quedan {left}',
   'train.goalMet': '{done} de {goal} min · meta cumplida ✓',
+  /* MODO GUIADO DE ENTRENAMIENTO (AUTH-360) */
+  'train.guide.pos': 'Ejercicio {n} de {m}',
+  'train.guide.now': 'Ahora toca',
+  'train.guide.estEx': 'Este ejercicio ≈ {min} min',
+  'train.guide.rest': 'Descanso entre series: {sec} s',
+  'train.guide.doneTitle': 'Ya terminados',
+  'train.guide.next': 'Sigue: {name}',
+  'train.guide.endNext': '🏁 Fin de la ruta de hoy',
+  'train.guide.skip': 'Saltar este',
+  'train.guide.showAll': '☰ Ver todos los ejercicios',
+  'train.guide.start': '▶ Modo guiado',
+  'train.guide.complete': 'Ruta completa 🎉',
+  'train.guide.estTotal': '≈ {min} min en total (estimación)',
+  'train.guide.estGoal': '≈ {min} min estimados · tu meta es {goal} min',
+  'train.guide.elapsed': '{min} min transcurridos',
+  'train.guide.transRest': 'Descansa {sec} s antes del siguiente',
+  'train.guide.transSkip': 'Saltar descanso',
+  'train.guide.doneBtn': '✓ Hecho',
+  'train.guide.undoneBtn': '✓ Hecho · toca para desmarcar',
+  'train.guide.empty': 'Todavía no hay ejercicios en esta sesión.',
+  'train.guide.metrics': '{sets} series · {reps} reps · {load} máx',
+  'train.guide.metricsRpe': ' · esfuerzo {rpe}',
   /* CRONÓMETRO DE SESIÓN FIJO + ENCUESTA (punto 88 de la cola,
      decisiones de Ronald 2026-11-02 11:54/11:57/12:06/12:07 CST):
      la pastilla sobre el dock y la encuesta de una pregunta. */
@@ -31968,6 +32012,129 @@ function trainGoalLine(elapsedMin, goalMin) {
   const done = Math.max(0, Math.round(elapsedMin));
   return done >= goal ? t('train.goalMet', { done, goal }) : t('train.goalOf', { done, goal, left: goal - done });
 }
+/* ── AUTH-360 · MODO GUIADO DE ENTRENAMIENTO ─────────────────────
+   OTRA VISTA de la MISMA sesión de hoy: pinta dentro de la misma
+   tarjeta vestida, sobre trainEffectiveList y TRAIN_CHECKS (la
+   fuente única de AUTH-342/344), sin modelo nuevo, sin escrituras
+   nuevas y sin tocar el cierre del día, la racha, el volcado de la
+   llamita ni sessionKcal. La preferencia de modo vive SOLO en el
+   dispositivo (localStorage por usuario, el patrón del cronómetro
+   y de los borradores de sesión): 'ronbofit-train-mode-<uid>' =
+   'guided' | 'list'; sin clave guardada manda 'list' — el
+   comportamiento de hoy, byte a byte.
+   ESTIMACIONES (declaradas): la aritmética de la casa de AUTH-329
+   (Programa Automático): minutos ≈ series × (40 s de trabajo +
+   descanso) / 60. El descanso sale del texto rest/rest_en del
+   ejercicio del plan (rango = su punto medio; 'min' = minutos);
+   sin dato parseable, el defecto de la casa: 75 s (restSecOf de
+   AUTH-329). Series sin dato parseable: las de la marca en curso;
+   si tampoco, 3 (declarado). Todo estimado va con «≈». */
+let TRAIN_GUIDE = { ctx: '', order: [], pin: null, restFor: null, restSkipFor: null, lastDone: null };
+function trainGuidePrefKey() { const uid = auth.currentUser ? auth.currentUser.uid : ''; return 'ronbofit-train-mode-' + uid; }
+function trainGuidePref() { try { return localStorage.getItem(trainGuidePrefKey()) === 'guided' ? 'guided' : 'list'; } catch { return 'list'; } }
+function trainGuidePrefSet(v) { try { localStorage.setItem(trainGuidePrefKey(), v === 'guided' ? 'guided' : 'list'); } catch {} }
+function guideRestSec(ex) {
+  const raw = String((ex && (LANG === 'es' ? (ex.rest || ex.rest_en) : (ex.rest_en || ex.rest))) || '').trim().toLowerCase();
+  if (!raw) return 75;
+  const num = s => parseFloat(String(s).replace(',', '.'));
+  const rg = raw.match(/(\d+(?:[.,]\d+)?)\s*[-–]\s*(\d+(?:[.,]\d+)?)\s*(min|seg|sec|s)?/);
+  if (rg) { const v = (num(rg[1]) + num(rg[2])) / 2; const sec = rg[3] === 'min' ? v * 60 : v; return (isFinite(sec) && sec > 0) ? Math.round(sec) : 75; }
+  const sg = raw.match(/(\d+(?:[.,]\d+)?)\s*(min|seg|sec|s)?/);
+  if (sg) { const v = num(sg[1]); const sec = sg[2] === 'min' ? v * 60 : v; return (isFinite(sec) && sec > 0) ? Math.round(sec) : 75; }
+  return 75;
+}
+function guideSetsCount(ex, chk) {
+  const n = parseInt(ex && ex.sets, 10);
+  if (isFinite(n) && n > 0) return n;
+  if (chk && Array.isArray(chk.sets) && chk.sets.length) return chk.sets.length;
+  return 3;
+}
+function guideEstMin(ex, chk) { return Math.max(1, Math.round(guideSetsCount(ex, chk) * (40 + guideRestSec(ex)) / 60)); }
+function guideDoneMetrics(chk) {
+  if (!chk || !Array.isArray(chk.sets)) return '';
+  let nSets = 0, reps = 0, maxLoad = null;
+  chk.sets.forEach(s => {
+    if (!s || s.pend === true) return;
+    nSets++;
+    const r = Number(s.repsDone);
+    if (s.repsDone !== '' && s.repsDone != null && isFinite(r)) reps += r;
+    const l = parseFloat(s.loadVal);
+    if (s.loadVal !== '' && s.loadVal != null && isFinite(l) && (maxLoad == null || l > maxLoad)) maxLoad = l;
+  });
+  if (!nSets) return '';
+  let out = t('train.guide.metrics', { sets: nSets, reps, load: maxLoad != null ? maxLoad + ' ' + UNIT_PREFS.mass : '—' });
+  if (chk.rpe != null) out += t('train.guide.metricsRpe', { rpe: chk.rpe });
+  return out;
+}
+function trainGuidedHTML(plan, day, di) {
+  const eff = trainEffectiveList(plan, di);
+  const label = day.label || ('Día ' + (di + 1));
+  const M = eff.length;
+  const G = TRAIN_GUIDE;
+  const ctx = plan.id + '|' + todayISO() + '|' + di;
+  const chkOf = ei => TRAIN_CHECKS[di + ':' + ei] || null;
+  const doneOf = ei => { const c = chkOf(ei); return !!(c && c.done === true); };
+  if (G.ctx !== ctx || G.order.length !== M || new Set(G.order).size !== M
+      || G.order.some(x => !Number.isInteger(x) || x < 0 || x >= M)) {
+    G.ctx = ctx; G.order = eff.map((_, ei) => ei); G.pin = null; G.restFor = null; G.restSkipFor = null; G.lastDone = null;
+  }
+  const doneCount = eff.filter((_, ei) => doneOf(ei)).length;
+  /* Descanso de transición: nace cuando el conteo de hechos SUBE y
+     hay siguiente ejercicio en foco; se salta con un toque
+     (data-guided-rest-skip) y no vuelve para ese mismo foco. */
+  let focus = (G.pin != null && G.pin >= 0 && G.pin < M) ? G.pin : G.order.find(ei => !doneOf(ei));
+  if (focus == null) focus = null;
+  if (G.lastDone != null && doneCount > G.lastDone && focus != null && !doneOf(focus) && G.restSkipFor !== focus) G.restFor = focus;
+  if (G.lastDone != null && doneCount < G.lastDone) G.restFor = null;
+  if (G.restFor != null && G.restFor !== focus) G.restFor = null;
+  G.lastDone = doneCount;
+  const chrono = trainChronoRead(plan.id);
+  const elapsed = chrono ? Math.max(0, Math.round((Date.now() - chrono.start) / 60000)) : null;
+  const goal = (typeof trainGoalMin === 'function') ? trainGoalMin() : null;
+  const sumEst = eff.reduce((s, it, ei) => s + guideEstMin(it.ex, chkOf(ei)), 0);
+  const started = doneCount > 0 || eff.some((_, ei) => !!chkOf(ei)) || !!chrono;
+  let metaLine;
+  if (!started) metaLine = goal != null ? t('train.guide.estGoal', { min: sumEst, goal }) : t('train.guide.estTotal', { min: sumEst });
+  else if (elapsed != null && goal != null) metaLine = trainGoalLine(elapsed, goal);
+  else if (elapsed != null) metaLine = t('train.guide.elapsed', { min: elapsed });
+  else metaLine = t('train.guide.estTotal', { min: sumEst });
+  const posText = focus != null ? t('train.guide.pos', { n: G.order.indexOf(focus) + 1, m: M }) : t('train.guide.complete');
+  const doneLines = G.order.filter(ei => doneOf(ei)).map(ei =>
+    `<button type="button" class="guide-done-line" data-guided-reopen="${di}:${ei}"><span class="guide-check">✓</span><span class="guide-done-name">${esc(trainExName(eff[ei].ex))}</span><span class="guide-done-metrics">${esc(guideDoneMetrics(chkOf(ei)))}</span></button>`).join('');
+  let focusHTML = '';
+  if (M === 0) {
+    focusHTML = `<p class="progress-hint">${t('train.guide.empty')}</p>`;
+  } else if (focus == null) {
+    focusHTML = `<div class="guide-complete">${t('train.guide.complete')}</div>`;
+  } else {
+    const ex = eff[focus].ex, chk = chkOf(focus);
+    let card = trainExCompactHTML(ex, di, focus, 'edit', null, null);
+    card = card.replace('<div class="train-ex-card', `<div data-train-row="${di}:${focus}:edit" style="--stripe:#0fb5a3" class="train-ex-card`);
+    const fi = G.order.indexOf(focus);
+    let nextEi = null;
+    for (let k = 1; k <= M; k++) { const cand = G.order[(fi + k) % M]; if (cand !== focus && !doneOf(cand)) { nextEi = cand; break; } }
+    let restBanner = '';
+    if (G.restFor === focus && doneCount > 0) {
+      const prevDone = [...G.order.slice(0, fi)].reverse().find(ei => doneOf(ei));
+      const restEx = prevDone != null ? eff[prevDone].ex : ex;
+      restBanner = `<div class="guide-rest"><span>${esc(t('train.guide.transRest', { sec: guideRestSec(restEx) }))}</span><button type="button" class="guide-rest-skip" data-guided-rest-skip="1">${t('train.guide.transSkip')}</button></div>`;
+    }
+    focusHTML = `${restBanner}<div class="guide-focus"><span class="guide-tag">${t('train.guide.now')}</span>`
+      + `<div class="guide-times"><span class="guide-time">${esc(t('train.guide.estEx', { min: guideEstMin(ex, chk) }))}</span><span class="guide-time">${esc(t('train.guide.rest', { sec: guideRestSec(ex) }))}</span></div>`
+      + card
+      + `<button type="button" class="guide-done-btn" data-guided-done="${di}:${focus}">${chk && chk.done === true ? t('train.guide.undoneBtn') : t('train.guide.doneBtn')}</button>`
+      + (chk && chk.done === true ? '' : `<button type="button" class="guide-skip-btn" data-guided-skip="${di}:${focus}">${t('train.guide.skip')}</button>`)
+      + `<div class="guide-next">${nextEi != null ? esc(t('train.guide.next', { name: trainExName(eff[nextEi].ex) })) : esc(t('train.guide.endNext'))}</div></div>`;
+  }
+  return `<h4>${esc(label)}</h4>`
+    + `<div class="guide-head"><div class="guide-pos">${esc(posText)}</div><div class="guide-bar"><div style="width:${M ? Math.round(100 * doneCount / M) : 0}%"></div></div><div class="guide-meta">${esc(metaLine)}</div></div>`
+    + (doneLines ? `<div class="guide-done-title">${t('train.guide.doneTitle')}</div>${doneLines}` : '')
+    + focusHTML
+    + trainSessionHTML(day)
+    + trainEditTailHTML(plan.id, di)
+    + trainExtrasZoneHTML()
+    + `<button type="button" class="guide-toggle" data-guided-toggle="list">${t('train.guide.showAll')}</button>`;
+}
 function trainChronoHTML(planId, di) {
   const c = trainChronoRead(planId);
   const elapsedMin = c ? Math.max(0, Math.round((Date.now() - c.start) / 60000)) : 0;
@@ -35062,7 +35229,19 @@ async function loadMyTraining() {
      cerrado). Las de historial se visten igual, en solo lectura. */
   const dressedTodayCard = (day, di) => {
     const done = doneToday.has(di);
-    const inner = dayCompactHTML(day, di, done ? 'done' : 'edit', logByDay[di] || null, null);
+    /* AUTH-360 · MODO GUIADO: con la preferencia en 'guided', la
+       tarjeta vestida de HOY sin cerrar pinta la ruta paso a paso
+       (trainGuidedHTML) en vez de la lista compacta — la misma
+       sesión efectiva y las mismas marcas, otra vista. En la
+       lista, la alternancia «▶ Modo guiado» entra en la ruta; sin
+       preferencia guardada manda la lista, como hoy. El día
+       cerrado se pinta como siempre (su historial). */
+    if (!done && sel === today && trainGuidePref() === 'guided')
+      return trainDressedCardHTML(plan, logs, di, sel, trainGuidedHTML(plan, day, di), '');
+    const inner0 = dayCompactHTML(day, di, done ? 'done' : 'edit', logByDay[di] || null, null);
+    const inner = (!done && sel === today)
+      ? inner0 + `<button type="button" class="guide-toggle" data-guided-toggle="guided">${t('train.guide.start')}</button>`
+      : inner0;
     return trainDressedCardHTML(plan, logs, di, sel, dressExRows(inner, di, done ? 'read' : 'edit'), '');
   };
   const dressedHistCard = (day, log) => {
@@ -35394,6 +35573,48 @@ async function loadMyTraining() {
   box.querySelectorAll('[data-train-rpe]').forEach(s => s.onchange = () => {
     const key = s.dataset.trainRpe;
     if (TRAIN_CHECKS[key]) { TRAIN_CHECKS[key].rpe = s.value ? Number(s.value) : null; trainChecksPersist(plan.id); }
+  });
+  /* AUTH-360 · Cableado del modo guiado: la alternancia guarda la
+     preferencia en el dispositivo y repinta; «Hecho» de la ruta es
+     LA MISMA marca separable de AUTH-344 que la casilla de la
+     tarjeta (pone/quita `done` sin tocar los números, alimenta el
+     cronómetro igual y persiste en el acto); «Saltar este» mueve
+     el ejercicio al final del orden EN MEMORIA de la ruta (la
+     sesión, el plan y las marcas no se tocan); tocar una línea de
+     terminado lo fija como foco (se reabre con sus números y su
+     casilla permite desmarcar); el descanso de transición se
+     salta con un toque y no vuelve para ese foco. */
+  box.querySelectorAll('[data-guided-toggle]').forEach(b => b.onclick = () => { trainGuidePrefSet(b.dataset.guidedToggle); loadMyTraining(); });
+  box.querySelectorAll('[data-guided-reopen]').forEach(b => b.onclick = () => {
+    TRAIN_GUIDE.pin = Number(String(b.dataset.guidedReopen).split(':')[1]);
+    loadMyTraining();
+  });
+  box.querySelectorAll('[data-guided-rest-skip]').forEach(b => b.onclick = () => {
+    TRAIN_GUIDE.restSkipFor = TRAIN_GUIDE.restFor; TRAIN_GUIDE.restFor = null;
+    loadMyTraining();
+  });
+  box.querySelectorAll('[data-guided-skip]').forEach(b => b.onclick = () => {
+    const ei = Number(String(b.dataset.guidedSkip).split(':')[1]);
+    const i = TRAIN_GUIDE.order.indexOf(ei);
+    if (i >= 0) { TRAIN_GUIDE.order.splice(i, 1); TRAIN_GUIDE.order.push(ei); }
+    if (TRAIN_GUIDE.pin === ei) TRAIN_GUIDE.pin = null;
+    loadMyTraining();
+  });
+  box.querySelectorAll('[data-guided-done]').forEach(b => b.onclick = () => {
+    const [diS, eiS] = String(b.dataset.guidedDone).split(':');
+    const diG = Number(diS), key = diG + ':' + Number(eiS);
+    const effG = trainEffectiveList(plan, diG);
+    const exG = (effG[Number(eiS)] || {}).ex || {};
+    if (TRAIN_CHECKS[key] && TRAIN_CHECKS[key].done === true) {
+      delete TRAIN_CHECKS[key].done;   /* AUTH-344: desmarcar no borra nada */
+    } else {
+      if (TRAIN_CHECKS[key]) TRAIN_CHECKS[key].done = true;
+      else TRAIN_CHECKS[key] = { rpe: null, sets: trainDefaultSets(exG), done: true };
+      if (TRAIN_GUIDE.pin === Number(eiS)) TRAIN_GUIDE.pin = null;   /* al remarcar el reabierto, la ruta sigue su curso */
+      trainChronoTouch(plan.id, trainDayLabelOf(plan, diG));
+    }
+    trainChecksPersist(plan.id);
+    loadMyTraining();
   });
   /* ORDEN DEL DÍA (2026-11-03): subir/bajar de la fila y arrastre
      desde su asa — las dos vías entran por el mismo motor de la
@@ -49737,7 +49958,7 @@ document.addEventListener('keydown', e => { if (e.key === 'Escape') shareClose()
  *  - El SW (sw.js) solo cachea la cáscara del mismo origen en modo
  *    RED PRIMERO: Auth/Firestore/Worker jamás pasan por la caché.
  * ================================================================ */
-const PWA_SW_VERSION = '20261109-meta-tiempo';
+const PWA_SW_VERSION = '20261109-modo-guiado';
 /* Sello de versión VISIBLE (2026-11-03): el pie de la tarjeta de
    acceso enseña qué copia corre este teléfono ('v ' + el sello),
    para comprobar de un vistazo si la versión nueva ya llegó.

@@ -5036,3 +5036,30 @@ body.swap-sheet-open .asst-fab { display: none !important; }
 .sched-fold-txt { flex: 1; min-width: 0; font-size: 15px; font-weight: 700; color: #14532d; }
 .sched-fold-chev { flex: none; color: #0d9488; font-size: 13px; }
 .sched-inline { margin-top: 10px; }
+
+/* ── AUTH-360 · MODO GUIADO DE ENTRENAMIENTO ─────────────────────
+   La ruta paso a paso dentro de la tarjeta vestida de hoy: cabecera
+   con posición y progreso, líneas finas de terminados con su
+   casilla roja, el ejercicio en foco con sus dos tiempos y los
+   botones grandes de la casa (entrenando, motricidad fina mínima). */
+.guide-toggle { display:block; width:100%; margin-top:12px; padding:12px; border:2px solid rgba(255,255,255,.65); border-radius:14px; background:transparent; color:inherit; font-size:15px; font-weight:800; cursor:pointer; }
+.guide-head { margin:10px 0 4px; }
+.guide-pos { font-size:16px; font-weight:800; }
+.guide-bar { height:12px; background:rgba(255,255,255,.28); border-radius:999px; margin:8px 0 6px; overflow:hidden; }
+.guide-bar > div { height:100%; background:linear-gradient(90deg,#ffb020,#c6e94a); border-radius:999px; }
+.guide-meta { font-size:13px; font-weight:700; opacity:.95; }
+.guide-done-title { margin:12px 2px 6px; font-size:12px; font-weight:800; letter-spacing:.8px; text-transform:uppercase; opacity:.85; }
+.guide-done-line { display:flex; align-items:center; gap:9px; width:100%; text-align:left; background:rgba(255,255,255,.93); color:#123b35; border:none; border-radius:10px; padding:7px 10px; margin-bottom:6px; cursor:pointer; }
+.guide-check { flex:0 0 auto; width:22px; height:22px; border:2.5px solid #d92323; border-radius:6px; color:#d92323; font-weight:900; font-size:15px; line-height:18px; text-align:center; background:#fff; }
+.guide-done-name { font-weight:800; font-size:13px; flex:1 1 auto; min-width:0; }
+.guide-done-metrics { margin-left:auto; text-align:right; font-size:11px; font-weight:600; color:#39524d; }
+.guide-rest { display:flex; align-items:center; justify-content:space-between; gap:10px; background:rgba(0,0,0,.18); border-radius:12px; padding:10px 12px; margin-top:12px; font-weight:700; }
+.guide-rest-skip { background:#ffd23e; color:#4a3600; border:none; border-radius:999px; padding:8px 14px; font-weight:800; cursor:pointer; white-space:nowrap; }
+.guide-focus { margin-top:12px; border:1.5px solid rgba(255,255,255,.38); border-radius:18px; padding:12px; }
+.guide-tag { display:inline-block; background:#ffd23e; color:#4a3600; font-size:11px; font-weight:900; letter-spacing:.6px; border-radius:999px; padding:3px 9px; text-transform:uppercase; }
+.guide-times { display:flex; gap:8px; margin:10px 0; }
+.guide-time { flex:1; background:rgba(0,0,0,.18); border-radius:12px; padding:9px 10px; font-size:15px; font-weight:800; }
+.guide-done-btn { display:block; width:100%; margin-top:12px; background:#22c55e; color:#fff; border:none; border-radius:14px; font-size:18px; font-weight:900; padding:13px; box-shadow:0 4px 0 #15803d; cursor:pointer; }
+.guide-skip-btn { display:block; width:100%; margin-top:8px; background:transparent; color:inherit; border:2px solid rgba(255,255,255,.5); border-radius:14px; font-size:15px; font-weight:800; padding:10px; cursor:pointer; }
+.guide-next { margin-top:10px; text-align:center; font-size:12.5px; font-weight:700; opacity:.9; }
+.guide-complete { margin-top:12px; text-align:center; font-size:18px; font-weight:900; }
