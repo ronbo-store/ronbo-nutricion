@@ -6945,6 +6945,12 @@ en: {
   'fa.act4': 'Active in daily life (standing or light physical work, frequent walks)',
   'fa.act5': 'Physically demanding job or very active daily life',
   'fa.act6': 'Sustained heavy physical work',
+  'acthelp.btn': 'How do I choose?',
+  'acthelp.title': 'How to choose your activity level',
+  'acthelp.rule': '<b>The rule:</b> this level describes your normal day <b>without counting your workouts</b> — the app adds your training on top, each day you log a session.',
+  'acthelp.example': '<b>Office job but you train every day?</b> Choose <b>level 2</b>: sedentary life, desk work, minimal movement. Training daily does not raise this level — your workouts already count separately. If your workday itself keeps you on your feet or walking a lot, take the next one up, level 3.',
+  'acthelp.guide': '<b>Each level, measured by your workday:</b><br><b>1</b> · Almost total rest — the day in bed or seated, moving very little.<br><b>2</b> · Desk work — seated, minimal movement, even if you train daily.<br><b>3</b> · Light daily activity — standing part of the day, short walks.<br><b>4</b> · On your feet — standing or light physical work, frequent walks.<br><b>5</b> · Physical job — physically demanding work or a very active daily life.<br><b>6</b> · Heavy physical work, sustained all day.',
+  'acthelp.warn': '<b>Do not pick a higher level just because you train:</b> you would count that exercise twice, and your daily calories would come out too high.',
   'fa.actShort1': 'Almost total rest',
   'fa.actShort2': 'Sedentary',
   'fa.actShort3': 'Sedentary, lightly active',
@@ -11547,6 +11553,12 @@ es: {
   'fa.act4': 'Activo en la vida diaria (trabajo de pie o físico ligero, caminatas frecuentes)',
   'fa.act5': 'Trabajo físicamente exigente o vida diaria muy activa',
   'fa.act6': 'Trabajo físico pesado sostenido',
+  'acthelp.btn': '¿Cómo elijo?',
+  'acthelp.title': 'Cómo elegir tu nivel de actividad',
+  'acthelp.rule': '<b>La regla:</b> este nivel describe tu día normal <b>sin contar tu entrenamiento</b> — la app suma tu entreno aparte, cada día que registras tu sesión.',
+  'acthelp.example': '<b>¿Trabajas en oficina pero entrenas a diario?</b> Elige el <b>nivel 2</b>: vida sedentaria, trabajo de escritorio, desplazamientos mínimos. Entrenar a diario no sube este nivel — tu entreno ya se cuenta aparte. Si tu jornada en sí te tiene de pie o caminando bastante, sube al siguiente, el nivel 3.',
+  'acthelp.guide': '<b>Cada nivel, medido por tu jornada:</b><br><b>1</b> · Reposo casi total — el día en cama o sentado, moviéndote muy poco.<br><b>2</b> · Trabajo de escritorio — sentado, desplazamientos mínimos, aunque entrenes a diario.<br><b>3</b> · Actividad ligera diaria — de pie parte del día, caminatas cortas.<br><b>4</b> · De pie — trabajo de pie o físico ligero, caminatas frecuentes.<br><b>5</b> · Trabajo físico — trabajo físicamente exigente o vida diaria muy activa.<br><b>6</b> · Trabajo físico pesado y sostenido todo el día.',
+  'acthelp.warn': '<b>No elijas un nivel más alto solo por entrenar:</b> contarías ese ejercicio dos veces y tus calorías diarias saldrían infladas.',
   'fa.actShort1': 'Reposo casi total',
   'fa.actShort2': 'Sedentario',
   'fa.actShort3': 'Sedentario con actividad ligera',
@@ -20566,6 +20578,28 @@ function basePesoHTML() {
   <input type="text" inputmode="decimal" class="base-input" id="base-weight">
   <div class="pend-actions"><button type="button" class="btn-primary" id="base-next">${esc(t('base.continue'))}</button></div>`;
 }
+/* AUTH-2026-11-10-379 · AYUDA «¿CÓMO ELIJO?» DEL NIVEL DE ACTIVIDAD (orden
+   de Ronald, 2026-11-10 12:42 CST): una sola fuente de contenido y de
+   comportamiento para las dos superficies donde el PROPIO alumno
+   responde el nivel — el paso «datos» del flujo base y el editor de
+   fundamento de su panel de energía. El patrón es el de ayuda de la
+   casa (botón con «?» que abre un panel), con la etiqueta visible
+   «¿Cómo elijo?». La ayuda SOLO explica: no preselecciona, no escribe
+   y no toca ningún valor — el panel nace cerrado y abrirlo o cerrarlo
+   no altera el estado de la evaluación. La vara de la explicación es
+   la ya aprobada por Ronald: el nivel describe el día SIN contar el
+   entrenamiento; el entreno lo suma la app aparte, sesión a sesión. */
+function actHelpBtnHTML(idp) {
+  return `<button type="button" class="acthelp-btn" id="${idp}-btn" aria-expanded="false"><span class="acthelp-q" aria-hidden="true">?</span> ${esc(t('acthelp.btn'))}</button>`;
+}
+function actHelpPanelHTML(idp) {
+  return `<div class="acthelp-pop" id="${idp}-pop" style="display:none"><div class="acthelp-t">${esc(t('acthelp.title'))}</div><p>${t('acthelp.rule')}</p><p>${t('acthelp.example')}</p><p>${t('acthelp.guide')}</p><p class="acthelp-warn">${t('acthelp.warn')}</p></div>`;
+}
+function actHelpWire(idp) {
+  const b = $(idp + '-btn'), p = $(idp + '-pop');
+  if (!b || !p) return;
+  b.onclick = () => { const open = p.style.display === 'none'; p.style.display = open ? '' : 'none'; b.setAttribute('aria-expanded', open ? 'true' : 'false'); };
+}
 function baseDatosHTML() {
   const d = (typeof MY_ASMT !== 'undefined' && MY_ASMT && MY_ASMT.doc) || {};
   const palDef = faPalDefaultFor(BASE_FLOW.act);
@@ -20581,6 +20615,8 @@ function baseDatosHTML() {
   <label class="base-flabel">${esc(t('base.byField'))}</label>
   <input type="text" inputmode="numeric" class="base-input" id="base-by" value="${esc(d.birthYear || '')}" placeholder="1996">
   <label class="base-flabel">${esc(t('base.actField'))}</label>
+  <div class="acthelp-bar">${actHelpBtnHTML('base-acthelp')}</div>
+  ${actHelpPanelHTML('base-acthelp')}
   <div class="base-acts">${rows}</div>
   <div class="base-mint" id="base-mint" style="${BASE_FLOW.act ? '' : 'display:none'}">
     <b>${esc(t('base.multTitle', { v: palVal || '—' }))}</b>
@@ -20720,6 +20756,7 @@ function baseFlowRender() {
     const mint = $('base-mint'); if (mint) mint.style.display = '';
     basePalSyncFlow();
   });
+  actHelpWire('base-acthelp');
   const pal = $('base-pal');
   if (pal) pal.addEventListener('input', () => basePalSyncFlow());
   bd.querySelectorAll('[data-base-sex]').forEach(b => b.onclick = () => {
@@ -23382,6 +23419,8 @@ function goalsFoundationHTML() {
     <label><span>${esc(t('fa.birthYear'))}</span><select id="gm-by">${mdbYearOptions(d.birthYear)}</select></label>
     <label><span>${esc(t('fa.height'))}</span>${mdbStepperHTML('gm-h', `<input type="number" id="gm-h" value="${esc(d.heightCm || '')}" min="50" max="250">`, { min: 50, max: 250, step: 1, seed: 170, unit: 'cm' })}</label>
     <label><span>${esc(t('fa.actLabel'))}</span><select id="gm-act">${actOpts}</select></label>
+    <div class="acthelp-bar">${actHelpBtnHTML('gm-acthelp')}</div>
+    ${actHelpPanelHTML('gm-acthelp')}
     <p class="fa-sextext" id="gm-act-expl">${esc(mdbActExplText(d.activityCategoryId))}</p>
     <label><span>${esc(t('fa.palLabel'))}</span><input type="number" id="gm-pal" step="0.01" data-pal-auto-cat="${dPalAuto}" value="${esc(dPalVal)}" placeholder="${esc(t('fa.palPlaceholder'))}"> <span id="gm-pal-badge" class="mdb-badge"${dPalAuto ? '' : ' style="display:none"'}>${esc(t('fa.palAutoBadge'))}</span></label>
     <p class="fa-sextext">${esc(t('fa.palAutoNote'))}</p>
@@ -23403,6 +23442,7 @@ function gmPalConfirmGate() {
 }
 function goalsFoundationWire() {
   const b = $('gm-foundation-save'); if (b) b.onclick = gmSaveFoundation;
+  actHelpWire('gm-acthelp');
   /* AUTH-137: la categoría (re)propone el multiplicador en el
      formulario del propio alumno, con la misma regla de la
      tarjeta del entrenador — lo tecleado a mano no se pisa. */
@@ -52417,7 +52457,7 @@ document.addEventListener('keydown', e => { if (e.key === 'Escape') shareClose()
  *  - El SW (sw.js) solo cachea la cáscara del mismo origen en modo
  *    RED PRIMERO: Auth/Firestore/Worker jamás pasan por la caché.
  * ================================================================ */
-const PWA_SW_VERSION = '20261110-guardado-sesion';
+const PWA_SW_VERSION = '20261110-ayuda-nivel-actividad';
 /* Sello de versión VISIBLE (2026-11-03): el pie de la tarjeta de
    acceso enseña qué copia corre este teléfono ('v ' + el sello),
    para comprobar de un vistazo si la versión nueva ya llegó.
@@ -53436,6 +53476,19 @@ const FAQ_SEED = [
   "a": {
    "en": "The flame only counts **closed** sessions: if the session was never closed, its burn is never added. Go to today's card, mark the exercises you did and close the session with **Done today** — today's burn appears in the flame right away.",
    "es": "La llamita solo cuenta sesiones **cerradas**: si la sesión nunca se cerró, su quemado nunca se suma. Ve a la tarjeta de hoy, marca los ejercicios que hiciste y cierra la sesión con **Hecho hoy** — el quemado de hoy aparece en la llamita al momento."
+  }
+ },
+ {
+  "id": "5.15",
+  "block": 5,
+  "order": 15,
+  "q": {
+   "en": "I work in an office but I train every day. Which activity level do I choose?",
+   "es": "Trabajo en oficina pero entreno todos los días. ¿Qué nivel de actividad elijo?"
+  },
+  "a": {
+   "en": "Choose the level of your **workday**, not of your workouts: if you work seated at a desk with minimal movement, that is **level 2 — “Sedentary life, desk work, minimal movement”** — even if you train daily. The level describes your day **without counting your training**: the app adds your workouts on top, each day you log a session. If you picked a higher level just because you train, you would count that exercise **twice** and your daily calories would come out too high. And if your workday itself has you standing or walking a lot, take the next level up (**level 3**) — the yardstick is always your routine outside the gym. Inside your evaluation, the **“How do I choose?”** button next to the activity level explains each level with this same yardstick.",
+   "es": "Elige el nivel de tu **jornada**, no el de tu entrenamiento: si trabajas sentado en un escritorio, con desplazamientos mínimos, es el **nivel 2 — «Vida sedentaria, trabajo de escritorio, desplazamientos mínimos»** — aunque entrenes a diario. El nivel describe tu día **sin contar tu entrenamiento**: la app suma tu entreno aparte, cada día que registras tu sesión. Si eligieras un nivel más alto solo por entrenar, contarías ese ejercicio **dos veces** y tus calorías diarias saldrían infladas. Y si tu jornada en sí te tiene de pie o caminando bastante, sube al nivel siguiente (**el 3**) — la vara es siempre tu rutina fuera del gimnasio. Dentro de tu evaluación, el botón **«¿Cómo elijo?»** junto al nivel de actividad explica cada nivel con esta misma vara."
   }
  }
 ];

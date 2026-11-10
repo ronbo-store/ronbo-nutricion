@@ -5449,3 +5449,16 @@ body.swap-sheet-open .asst-fab { display: none !important; }
 .train-actions-btn.is-finish { background: #b3261e; border-color: #b3261e; color: #fff; }
 .train-day-dressed .train-actions-btn.is-finish { background: #b3261e; border-color: #f3c2c2; color: #fff; }
 .train-finish-btn { display: block; width: 100%; min-height: 52px; padding: 0 18px; border: 1px solid #b3261e; border-radius: 999px; background: #b3261e; color: #fff; font-size: 17px; font-weight: 800; line-height: 1.1; cursor: pointer; font-family: inherit; }
+
+/* ── AUTH-2026-11-10-379 · Ayuda «¿Cómo elijo?» del nivel de actividad ──
+   Botón pastilla con «?» y panel de explicación: patrón de ayuda de
+   la casa, táctil grande (la app se usa entrenando), sin selectores
+   nativos. El panel nace cerrado y vive en línea, bajo la pregunta. */
+.acthelp-bar { margin: 0 0 8px; }
+.acthelp-btn { display: inline-flex; align-items: center; gap: 7px; min-height: 38px; padding: 6px 13px 6px 7px; border: 1.5px solid #00ACA1; border-radius: 999px; background: #fff; color: #00857c; font-size: 13.5px; font-weight: 700; cursor: pointer; font-family: inherit; }
+.acthelp-q { display: inline-flex; align-items: center; justify-content: center; flex: none; width: 23px; height: 23px; border-radius: 50%; background: #00ACA1; color: #fff; font-weight: 800; font-size: 13px; }
+.acthelp-pop { background: #f0fdfa; border: 1px solid #99e5dd; border-radius: 12px; padding: 12px 14px; font-size: 14px; line-height: 1.5; color: #14312e; margin: 0 0 10px; }
+.acthelp-t { font-weight: 800; font-size: 15px; margin-bottom: 6px; }
+.acthelp-pop p { margin: 0 0 8px; }
+.acthelp-pop p:last-child { margin-bottom: 0; }
+.acthelp-warn { background: #fff7ed; border: 1px dashed #fdba74; border-radius: 10px; padding: 8px 10px; }
