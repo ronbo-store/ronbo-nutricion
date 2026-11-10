@@ -574,6 +574,7 @@ async function loadRolesX() {
   applyFeatureGates();
   renderMyTrainerBox();
   try { chalCardSync(); } catch {}
+  try { chkCardSync(); } catch {}
   try { nutriBoot(); } catch {}
 }
 function applyFeatureGates() {
@@ -4623,6 +4624,54 @@ en: {
   'fwd.emptyWeek': 'No meals logged this week yet — when you log one with a photo, it will show up here.',
   'fwd.dayEmpty': 'No meals logged',
   'fwd.ofGoal': '{p}% of your goal',
+  'chk.title': '📋 Weekly check-in',
+  'chk.back': '← Back',
+  'chk.weekLine': 'Week of {from} to {to}',
+  'chk.cardNone': 'Tell your trainer how your week went — it takes a minute.',
+  'chk.cardSent': 'Sent ✓ — waiting for your trainer to review it.',
+  'chk.cardReviewed': 'Your trainer already reviewed this week’s check-in ✓',
+  'chk.cardBtnNew': 'Do my check-in',
+  'chk.cardBtnEdit': 'View or edit',
+  'chk.cardBtnSee': 'See my check-in',
+  'chk.privacyTrainer': 'Your trainer will see this check-in. It is separate from your health declaration and your privacy choices: nothing else is shared.',
+  'chk.privacyNoTrainer': 'You do not have an assigned trainer yet: this check-in is saved for you, in your own history, and nobody else sees it.',
+  'chk.qFeel': 'How did your week go?',
+  'chk.qEnergy': 'Your energy',
+  'chk.qSleep': 'Your sleep',
+  'chk.qHunger': 'Hunger and cravings',
+  'chk.qTrain': 'Did you follow your training plan?',
+  'chk.qMeals': 'Did you follow your meal plan?',
+  'chk.endFeelLow': 'Very bad',
+  'chk.endFeelHigh': 'Very good',
+  'chk.endEnergyLow': 'Drained',
+  'chk.endEnergyHigh': 'Fully charged',
+  'chk.endSleepLow': 'Very bad',
+  'chk.endSleepHigh': 'Very good',
+  'chk.endHungerLow': 'None',
+  'chk.endHungerHigh': 'A lot',
+  'chk.yes': 'Yes',
+  'chk.part': 'Partly',
+  'chk.no': 'No',
+  'chk.qNote': 'Anything your trainer should know?',
+  'chk.notePh': 'Write it here (optional)',
+  'chk.send': 'Send check-in',
+  'chk.saveChanges': 'Save changes',
+  'chk.needAnswers': 'Answer every question first: the four 1-to-5 scales and the two plan questions.',
+  'chk.sentOk': 'Check-in saved ✓',
+  'chk.errSave': 'It could not be saved. Check your connection and try again.',
+  'chk.errLoad': 'The check-in could not be loaded. Try again in a moment.',
+  'chk.stateWaiting': 'Sent · waiting for review',
+  'chk.stateReviewed': 'Reviewed by your trainer ✓',
+  'chk.reviewedLock': 'Your trainer already reviewed this check-in, so it is closed. Next week you will get a fresh one.',
+  'chk.histTitle': 'My last weeks',
+  'chk.weekOf': 'Week of {from}',
+  'chk.listChip': 'Check-in not reviewed yet',
+  'chk.fichaTitle': '📋 Weekly check-ins',
+  'chk.markReviewed': 'Mark as reviewed',
+  'chk.markedOk': 'Marked as reviewed ✓',
+  'chk.fichaWaiting': 'Not reviewed yet',
+  'chk.fichaReviewed': 'Reviewed ✓',
+  'chk.scaleOf': '{n} of 5',
   'track.delete': 'Delete',
   'track.repeat': 'Repeat',
   'repeat.bannerAi': 'Copy of an AI estimate: adjust the amount and the values are recalculated proportionally. Check them before saving.',
@@ -8980,6 +9029,54 @@ es: {
   'fwd.emptyWeek': 'Aún no hay comidas registradas esta semana — cuando registres una con foto, aparecerá aquí.',
   'fwd.dayEmpty': 'Sin registro',
   'fwd.ofGoal': '{p}% de tu meta',
+  'chk.title': '📋 Check-in de la semana',
+  'chk.back': '← Volver',
+  'chk.weekLine': 'Semana del {from} al {to}',
+  'chk.cardNone': 'Cuéntale a tu entrenador cómo te fue la semana — toma un minuto.',
+  'chk.cardSent': 'Enviado ✓ — falta que tu entrenador lo revise.',
+  'chk.cardReviewed': 'Tu entrenador ya revisó el check-in de esta semana ✓',
+  'chk.cardBtnNew': 'Hacer mi check-in',
+  'chk.cardBtnEdit': 'Ver o editar',
+  'chk.cardBtnSee': 'Ver mi check-in',
+  'chk.privacyTrainer': 'Tu entrenador verá este check-in. Es aparte de tu declaración de salud y de tus decisiones de privacidad: no se comparte nada más.',
+  'chk.privacyNoTrainer': 'Aún no tienes un entrenador asignado: este check-in se guarda para ti, en tu propio historial, y nadie más lo ve.',
+  'chk.qFeel': '¿Cómo te fue esta semana?',
+  'chk.qEnergy': 'Tu energía',
+  'chk.qSleep': 'Tu sueño',
+  'chk.qHunger': 'Hambre y antojos',
+  'chk.qTrain': '¿Seguiste tu plan de entrenamiento?',
+  'chk.qMeals': '¿Seguiste tu plan de comidas?',
+  'chk.endFeelLow': 'Muy mal',
+  'chk.endFeelHigh': 'Muy bien',
+  'chk.endEnergyLow': 'Sin energía',
+  'chk.endEnergyHigh': 'A tope',
+  'chk.endSleepLow': 'Muy mal',
+  'chk.endSleepHigh': 'Muy bien',
+  'chk.endHungerLow': 'Nada',
+  'chk.endHungerHigh': 'Muchísima',
+  'chk.yes': 'Sí',
+  'chk.part': 'En parte',
+  'chk.no': 'No',
+  'chk.qNote': '¿Algo que tu entrenador deba saber?',
+  'chk.notePh': 'Escríbelo aquí (opcional)',
+  'chk.send': 'Enviar check-in',
+  'chk.saveChanges': 'Guardar cambios',
+  'chk.needAnswers': 'Responde todo primero: las cuatro escalas del 1 al 5 y las dos preguntas de planes.',
+  'chk.sentOk': 'Check-in guardado ✓',
+  'chk.errSave': 'No se pudo guardar. Revisa tu conexión e inténtalo de nuevo.',
+  'chk.errLoad': 'No se pudo cargar el check-in. Inténtalo en un momento.',
+  'chk.stateWaiting': 'Enviado · sin revisar',
+  'chk.stateReviewed': 'Revisado por tu entrenador ✓',
+  'chk.reviewedLock': 'Tu entrenador ya revisó este check-in, así que quedó cerrado. La semana que viene tendrás uno nuevo.',
+  'chk.histTitle': 'Mis últimas semanas',
+  'chk.weekOf': 'Semana del {from}',
+  'chk.listChip': 'Check-in sin revisar',
+  'chk.fichaTitle': '📋 Check-ins semanales',
+  'chk.markReviewed': 'Marcar revisado',
+  'chk.markedOk': 'Marcado como revisado ✓',
+  'chk.fichaWaiting': 'Sin revisar',
+  'chk.fichaReviewed': 'Revisado ✓',
+  'chk.scaleOf': '{n} de 5',
   'track.delete': 'Borrar',
   'track.repeat': 'Repetir',
   'repeat.bannerAi': 'Copia de una estimación de IA: ajusta la cantidad y los valores se recalculan en proporción. Revísalos antes de guardar.',
@@ -17357,7 +17454,7 @@ function studentsRowHTML(u) {
      cambia; una entrada fresca a la vista nace con todas las
      fichas cerradas, como pide la restauración. */
   const alerts = (typeof STUDENTS_LAST !== 'undefined' && STUDENTS_LAST && STUDENTS_LAST.alertsByUid && STUDENTS_LAST.alertsByUid[u.id]) || [];
-  return `<button type="button" class="srow" data-stu="${u.id}">${stuAvatarHTML(u, name)}<span class="srow-main"><span class="srow-nameline"><span class="srow-name">${esc(name)}</span>${roleDiscsHTML(u)}${alertChipHTML(alerts)}</span><span class="srow-sub">${studentsSummary(u)}</span><span class="srow-assign">${assignRowLine(u)}</span></span>${studentsBadge(u)}<span class="srow-chev">›</span></button>`;
+  return `<button type="button" class="srow" data-stu="${u.id}">${stuAvatarHTML(u, name)}<span class="srow-main"><span class="srow-nameline"><span class="srow-name">${esc(name)}</span>${roleDiscsHTML(u)}${alertChipHTML(alerts)}${wchkChipHTML(u)}</span><span class="srow-sub">${studentsSummary(u)}</span><span class="srow-assign">${assignRowLine(u)}</span></span>${studentsBadge(u)}<span class="srow-chev">›</span></button>`;
 }
 function studentsGridCellHTML(u) {
   const name = stuName(u);
@@ -17370,7 +17467,7 @@ function studentsGridCellHTML(u) {
   const ring = (err || alerts.length) ? '#dc2626' : n ? '#f59e0b' : '#0d9488';
   return `<button type="button" class="cgrid-cell" data-stu="${u.id}">
     <span class="cgrid-thumb">${u.photoURL ? `<img src="${esc(u.photoURL)}" alt="">` : `<span class="mt-initials" style="background:${stuTint(u.id)};color:#134e4a">${esc(stuInitials(name).toUpperCase() || '·')}</span>`}<span class="cgrid-ring" style="border-color:${ring}"></span></span>
-    <span class="cgrid-nameline"><span class="cgrid-name">${esc(name)}</span>${roleDiscsHTML(u)}${alertChipHTML(alerts)}</span>
+    <span class="cgrid-nameline"><span class="cgrid-name">${esc(name)}</span>${roleDiscsHTML(u)}${alertChipHTML(alerts)}${wchkChipHTML(u)}</span>
     <span class="cgrid-cat" style="color:#6b7280">${studentsSummary(u)}</span>
     <span class="cgrid-assign">${assignRowLine(u)}</span>
   </button>`;
@@ -18346,7 +18443,8 @@ async function loadStudents() {
      caliente): el consumidor real sigue viendo el rechazo en su
      propio await/then. */
   const sharedOk = weightsOk && foodOk && reqOk && treqOk && chalOk;
-  const chkByUid = {}, alertsByUid = {}, pendByUid = {}, pendErrByUid = {};
+  const WCHK_WS = weekDates(todayISO())[0];
+  const chkByUid = {}, alertsByUid = {}, pendByUid = {}, pendErrByUid = {}, wchkByUid = {};
   /* ASIGNACIONES (este paquete): el coach vigente de cada alumno,
      leído en la misma pasada paralela; si la lectura falla, la
      clave queda ausente (desconocido) y la línea de coach no se
@@ -18360,6 +18458,7 @@ async function loadStudents() {
     const stP = getDoc(doc(db, 'nutrition_progress', u.id + '_pendstate'));
     cfgP.catch(() => {}); stP.catch(() => {});
     const pChk = (async () => { try { chkByUid[u.id] = await clientProfileChecklist(u, latestReqByUid[u.id] || null); } catch {} })();
+    const pWchk = (async () => { try { const s = await getDoc(doc(db, 'weekly_checkins', u.id + '_' + WCHK_WS)); wchkByUid[u.id] = s.exists() ? { exists: true, reviewed: !!(s.data() && s.data().reviewedAt) } : { exists: false, reviewed: false }; } catch {} })();
     const pAlerts = trainerAlertsFor(u.id, u, { cfgP, stP }).then(a => { alertsByUid[u.id] = a; }, () => {});
     const pPend = (async () => {
       if (!sharedOk) { pendErrByUid[u.id] = true; return; }
@@ -18394,7 +18493,7 @@ async function loadStudents() {
         pendByUid[u.id] = trainerPendUnion(chkByUid[u.id], prog, bodyItem, u);
       } catch { pendErrByUid[u.id] = true; }
     })();
-    await Promise.all([pChk, pAlerts, pPend, pCoach]);
+    await Promise.all([pChk, pAlerts, pPend, pCoach, pWchk]);
   }));
   const planByUid = {};
   students.forEach(u => { const c = TALERTS_CACHE[u.id]; planByUid[u.id] = !!(c && c.hasPlan); });
@@ -18405,7 +18504,7 @@ async function loadStudents() {
   const stuNamePend = new Set();
   students.forEach(u => { const cv = coachByUid[u.id]; if (cv) stuNamePend.add(cv); });
   await Promise.all([...stuNamePend].map(uid => assignNameSync(uid) ? null : assignResolveName(uid)));
-  STUDENTS_LAST = { clients: students, chkByUid, alertsByUid, planByUid, lastByUid, lastWByUid, pendingFood, pendByUid, pendErrByUid, reqByUid: latestReqByUid, coachByUid };
+  STUDENTS_LAST = { clients: students, chkByUid, alertsByUid, planByUid, lastByUid, lastWByUid, pendingFood, pendByUid, pendErrByUid, reqByUid: latestReqByUid, coachByUid, wchkByUid };
   renderStudentsViewbar();
   renderStudentsBody();
   /* Punto 93 (D2): la tarjeta «Mi atención» del entrenador vive al
@@ -20153,6 +20252,7 @@ async function openClient(uid) {
     <div id="client-training"></div>
     ${fichaPendBlockHTML(uid)}
     <div id="client-treq"></div>
+    <div id="client-chk"></div>
     <div id="ficha-met-box" data-met-uid="${uid}">${fichaMetBlockHTML(uid)}</div>
     <div id="ficha-assign-box">${assignBlockHTML(uid, FICHA_ASSIGN, true)}</div>
     <div id="client-rings"></div>
@@ -20232,6 +20332,7 @@ async function openClient(uid) {
      para el peso). */
   try { adhLoadTrainerCard(uid, udata, data); } catch {}
   try { treqFichaLoad(uid); } catch {}
+  try { chkFichaLoad(uid); } catch {}
   try { chalFichaLoad(uid); } catch {}
   box.querySelectorAll('[data-c-edit]').forEach(b => b.onclick = () => {
     const rec = data.find(w => w.id === b.dataset.cEdit);
@@ -23992,6 +24093,301 @@ function treqFichaScroll() {
     const el = $('client-treq');
     if ((el && el.innerHTML) || tries >= 50) { if (el && el.innerHTML) { try { el.scrollIntoView({ block: 'start' }); } catch {} } clearInterval(iv); }
   }, 120);
+}
+
+
+/* ════════════════════════════════════════════════════════════════
+   CHECK-IN SEMANAL (AUTH-2026-11-10-367 — paquete 4 y cierre de
+   la serie HubFit; orden de Ronald 2026-11-10 02:53 CST «Ok
+   hagámoslo» sobre el cierre (a) del análisis de competencia).
+
+   Una respuesta corta por alumno y semana natural de la casa
+   (weekDates: lunes a domingo), en la colección NUEVA
+   weekly_checkins/{uid}_{lunes}. Cuatro escalas de 1 a 5 (cómo
+   te fue, energía, sueño, hambre/antojos), dos preguntas de
+   planes en su trío (Sí / En parte / No) y una nota libre corta
+   para su entrenador. El peso NO viaja aquí: el registro
+   oficial de peso es el de siempre y este formulario no lo
+   toca. El sueño y la energía DIARIOS de «Mi progreso»
+   (progress_wellness, bajo su consentimiento) son otro
+   instrumento y no se duplican: esto es la percepción SEMANAL
+   que el alumno responde sabiendo que va a su entrenador.
+
+   PRIVACIDAD: la pantalla lo dice antes de enviar — lo ve su
+   entrenador asignado y administración, porque el alumno lo
+   envía a ellos; nada de esto toca la declaración de salud ni
+   los consentimientos (sistemas separados), y ningún
+   automatismo ni la IA lee la nota. Sin entrenador, el
+   check-in se guarda solo para el propio alumno.
+
+   ESTADOS: enviado (sin revisar) → revisado. El alumno edita
+   sus respuestas mientras no esté revisado; la vista solo
+   ofrece el formulario de la semana vigente — las anteriores
+   son historial de solo lectura. El entrenador lo marca
+   revisado con un toque desde la ficha (bloque propio junto a
+   Peticiones) y la lista «Mis alumnos» lleva la señal sobria
+   📋 junto al nombre de quien tiene el de esta semana sin
+   revisar (lectura por id conocido en la pasada de siempre).
+   ════════════════════════════════════════════════════════════════ */
+const CHK = { loaded: false, err: false, cur: null, hist: [], starts: [] };
+const CHK_SCALES = [
+  ['feel', 'chk.qFeel', 'chk.endFeelLow', 'chk.endFeelHigh'],
+  ['energy', 'chk.qEnergy', 'chk.endEnergyLow', 'chk.endEnergyHigh'],
+  ['sleep', 'chk.qSleep', 'chk.endSleepLow', 'chk.endSleepHigh'],
+  ['hunger', 'chk.qHunger', 'chk.endHungerLow', 'chk.endHungerHigh'],
+];
+function chkWeekStarts() {
+  const first = weekDates(todayISO())[0];
+  const out = [first];
+  const d = new Date(first + 'T12:00:00');
+  for (let i = 1; i < 4; i++) {
+    d.setDate(d.getDate() - 7);
+    out.push(d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0') + '-' + String(d.getDate()).padStart(2, '0'));
+  }
+  return out;
+}
+function chkDocId(uid, ws) { return uid + '_' + ws; }
+function chkMyTrainerUid() {
+  return (typeof UDATA !== 'undefined' && UDATA && UDATA.trainerUid) ? UDATA.trainerUid : null;
+}
+async function chkLoad() {
+  CHK.starts = chkWeekStarts();
+  CHK.cur = null; CHK.hist = []; CHK.err = false;
+  if (!auth.currentUser) { CHK.loaded = true; return; }
+  const me = auth.currentUser.uid;
+  const docs = await Promise.all(CHK.starts.map(async ws => {
+    try { const s = await getDoc(doc(db, 'weekly_checkins', chkDocId(me, ws))); return s.exists() ? { id: s.id, ...s.data() } : null; }
+    catch { return null; }
+  }));
+  CHK.cur = docs[0];
+  CHK.hist = docs.slice(1).filter(Boolean);
+  CHK.loaded = true;
+}
+function chkSegHTML(name, val, lowKey, highKey) {
+  return `<div class="chk-seg" data-chkseg="${name}">${[1, 2, 3, 4, 5].map(n => `<button type="button" class="chk-seg-b${val === n ? ' on' : ''}" data-v="${n}" aria-label="${n}">${n}</button>`).join('')}</div><div class="chk-seg-lab"><span>${esc(t(lowKey))}</span><span>${esc(t(highKey))}</span></div>`;
+}
+function chkTriHTML(name, val) {
+  return `<div class="chk-tri" data-chktri="${name}">${['yes', 'part', 'no'].map(v => `<button type="button" class="chk-tri-b${val === v ? ' on' : ''}" data-v="${v}">${esc(t('chk.' + v))}</button>`).join('')}</div>`;
+}
+function chkSegVal(name) {
+  const g = document.querySelector(`[data-chkseg="${name}"]`);
+  const b = g ? g.querySelector('.chk-seg-b.on') : null;
+  return b ? Number(b.dataset.v) : 0;
+}
+function chkTriVal(name) {
+  const g = document.querySelector(`[data-chktri="${name}"]`);
+  const b = g ? g.querySelector('.chk-tri-b.on') : null;
+  return b ? b.dataset.v : '';
+}
+function chkAnswersHTML(d) {
+  const rows = CHK_SCALES.map(([f, qk]) => `<div class="chk-ans-row"><span>${esc(t(qk))}</span><b>${esc(t('chk.scaleOf', { n: d[f] || 0 }))}</b></div>`).join('')
+    + `<div class="chk-ans-row"><span>${esc(t('chk.qTrain'))}</span><b>${esc(t('chk.' + (d.trainPlan || 'no')))}</b></div>`
+    + `<div class="chk-ans-row"><span>${esc(t('chk.qMeals'))}</span><b>${esc(t('chk.' + (d.mealPlan || 'no')))}</b></div>`
+    + (d.note ? `<div class="chk-ans-note">«${esc(d.note)}»</div>` : '');
+  return `<div class="chk-ans">${rows}</div>`;
+}
+function chkStateChip(d) {
+  return d.reviewedAt
+    ? `<span class="chk-chip chk-chip-ok">${esc(t('chk.fichaReviewed'))}</span>`
+    : `<span class="chk-chip chk-chip-wait">${esc(t('chk.fichaWaiting'))}</span>`;
+}
+function chkHistHTML() {
+  if (!CHK.hist.length) return '';
+  return `<h3 class="chk-hist-title">${esc(t('chk.histTitle'))}</h3>` + CHK.hist.map(d => {
+    const days = weekDates(d.weekStart);
+    return `<div class="chk-hist-item"><button type="button" class="chk-fold-head" data-chkfold aria-expanded="false"><span>📋 ${esc(t('chk.weekOf', { from: dateName(days[0]) }))}</span>${chkStateChip(d)}<span class="chk-chev">▾</span></button><div class="chk-fold-body" style="display:none">${chkAnswersHTML(d)}</div></div>`;
+  }).join('');
+}
+function chkFormHTML() {
+  const cur = CHK.cur;
+  const ws = CHK.starts[0];
+  const days = weekDates(ws);
+  const trainerUid = chkMyTrainerUid();
+  let h = `<p class="chk-week">${esc(t('chk.weekLine', { from: dateName(days[0]), to: dateName(days[6]) }))}</p>`;
+  h += `<p class="chk-privacy">${esc(t(trainerUid ? 'chk.privacyTrainer' : 'chk.privacyNoTrainer'))}</p>`;
+  if (cur && cur.reviewedAt) {
+    h += `<p class="chk-state-line">${esc(t('chk.stateReviewed'))}</p>${chkAnswersHTML(cur)}<p class="chk-lock">${esc(t('chk.reviewedLock'))}</p>`;
+  } else {
+    const v = cur || { feel: 0, energy: 0, sleep: 0, hunger: 0, trainPlan: '', mealPlan: '', note: '' };
+    h += CHK_SCALES.map(([f, qk, lk, hk]) => `<div class="chk-q"><label class="chk-q-lab">${esc(t(qk))}</label>${chkSegHTML(f, Number(v[f]) || 0, lk, hk)}</div>`).join('');
+    h += `<div class="chk-q"><label class="chk-q-lab">${esc(t('chk.qTrain'))}</label>${chkTriHTML('trainPlan', v.trainPlan || '')}</div>`;
+    h += `<div class="chk-q"><label class="chk-q-lab">${esc(t('chk.qMeals'))}</label>${chkTriHTML('mealPlan', v.mealPlan || '')}</div>`;
+    h += `<div class="chk-q"><label class="chk-q-lab" for="chk-note">${esc(t('chk.qNote'))}</label><div class="chk-note-wrap"><textarea id="chk-note" rows="3" maxlength="500" placeholder="${esc(t('chk.notePh'))}">${esc(v.note || '')}</textarea><span class="chk-count" id="chk-note-count">${(v.note || '').length} / 500</span></div></div>`;
+    if (cur) h += `<p class="chk-state-line">${esc(t('chk.stateWaiting'))}</p>`;
+    h += `<p class="chk-err" id="chk-err" style="display:none"></p>`;
+    h += `<button type="button" class="btn-primary chk-send" id="chk-send">${esc(t(cur ? 'chk.saveChanges' : 'chk.send'))}</button>`;
+  }
+  h += chkHistHTML();
+  return h;
+}
+function chkWire(root) {
+  const back = $('chk-back');
+  if (back && !back.dataset.wired) { back.dataset.wired = '1'; back.onclick = () => switchTab('track'); }
+  root.querySelectorAll('.chk-seg').forEach(g => g.addEventListener('click', e => {
+    const b = e.target.closest('.chk-seg-b'); if (!b) return;
+    const was = b.classList.contains('on');
+    g.querySelectorAll('.chk-seg-b').forEach(x => x.classList.remove('on'));
+    if (!was) b.classList.add('on');
+  }));
+  root.querySelectorAll('.chk-tri').forEach(g => g.addEventListener('click', e => {
+    const b = e.target.closest('.chk-tri-b'); if (!b) return;
+    g.querySelectorAll('.chk-tri-b').forEach(x => x.classList.remove('on'));
+    b.classList.add('on');
+  }));
+  root.querySelectorAll('[data-chkfold]').forEach(b => b.onclick = () => {
+    const body = b.parentElement ? b.parentElement.querySelector('.chk-fold-body') : null;
+    if (!body) return;
+    const open = body.style.display !== 'none';
+    body.style.display = open ? 'none' : '';
+    b.setAttribute('aria-expanded', String(!open));
+  });
+  const note = $('chk-note'), cnt = $('chk-note-count');
+  if (note && cnt) note.addEventListener('input', () => { cnt.textContent = note.value.length + ' / 500'; });
+  const send = $('chk-send');
+  if (send) send.onclick = () => chkSend(send);
+}
+async function chkSend(btn) {
+  const vals = {
+    feel: chkSegVal('feel'), energy: chkSegVal('energy'),
+    sleep: chkSegVal('sleep'), hunger: chkSegVal('hunger'),
+    trainPlan: chkTriVal('trainPlan'), mealPlan: chkTriVal('mealPlan'),
+  };
+  const errEl = $('chk-err');
+  if (!vals.feel || !vals.energy || !vals.sleep || !vals.hunger || !vals.trainPlan || !vals.mealPlan) {
+    if (errEl) { errEl.textContent = t('chk.needAnswers'); errEl.style.display = ''; }
+    toast(t('chk.needAnswers'), true);
+    return;
+  }
+  if (errEl) errEl.style.display = 'none';
+  const note = ($('chk-note') && $('chk-note').value || '').trim();
+  const me = auth.currentUser.uid;
+  const ws = CHK.starts[0];
+  const trainerUid = chkMyTrainerUid();
+  const prev = btn.textContent;
+  btn.disabled = true; btn.textContent = t('msg.saving');
+  try {
+    if (CHK.cur) {
+      await updateDoc(doc(db, 'weekly_checkins', CHK.cur.id), { ...vals, note, trainerUid, updatedAt: serverTimestamp() });
+      CHK.cur = { ...CHK.cur, ...vals, note, trainerUid };
+    } else {
+      const data = { uid: me, weekStart: ws, trainerUid, ...vals, note, reviewedBy: null, reviewedAt: null, createdAt: serverTimestamp(), updatedAt: serverTimestamp() };
+      await setDoc(doc(db, 'weekly_checkins', chkDocId(me, ws)), data);
+      CHK.cur = { id: chkDocId(me, ws), uid: me, weekStart: ws, trainerUid, ...vals, note, reviewedBy: null, reviewedAt: null };
+    }
+    toast(t('chk.sentOk'));
+    chkPaint();
+    chkCardSyncPaint();
+  } catch {
+    btn.disabled = false; btn.textContent = prev;
+    toast(t('chk.errSave'), true);
+  }
+}
+function chkPaint() {
+  const body = $('chk-body'); if (!body) return;
+  if (!CHK.loaded) { body.innerHTML = `<p class="progress-hint">${esc(t('train.loading'))}</p>`; return; }
+  if (CHK.err) { body.innerHTML = `<p class="chk-err">${esc(t('chk.errLoad'))}</p>`; return; }
+  body.innerHTML = chkFormHTML();
+  chkWire(body);
+}
+async function chkRender() {
+  chkPaint();
+  try { await chkLoad(); } catch { CHK.err = true; CHK.loaded = true; }
+  chkPaint();
+  chkCardSyncPaint();
+}
+/* Tarjeta de Inicio: el estado del check-in de esta semana,
+   repintada desde el ciclo de la casa como la de Retos. */
+function chkCardSyncPaint() {
+  const card = $('chk-card'); if (!card) return;
+  const panel = $('chk-panel');
+  if (!auth.currentUser) { if (panel) panel.style.display = 'none'; return; }
+  if (panel) panel.style.display = '';
+  const cur = CHK.cur;
+  const line = !CHK.loaded ? t('train.loading')
+    : cur && cur.reviewedAt ? t('chk.cardReviewed')
+    : cur ? t('chk.cardSent')
+    : t('chk.cardNone');
+  const btn = cur && cur.reviewedAt ? t('chk.cardBtnSee') : cur ? t('chk.cardBtnEdit') : t('chk.cardBtnNew');
+  card.innerHTML = `<div class="chk-card-row"><span class="muted">${esc(line)}</span><button type="button" class="btn-primary" id="chk-card-btn">${esc(btn)}</button></div>`;
+  const b = $('chk-card-btn'); if (b) b.onclick = () => switchTab('checkin');
+}
+function chkCardSync() {
+  chkCardSyncPaint();
+  if (!auth.currentUser) return;
+  if (!CHK.loaded) { chkLoad().then(() => chkCardSyncPaint()).catch(() => {}); return; }
+  if (Date.now() - (CHK.lastSync || 0) > 30000) {
+    CHK.lastSync = Date.now();
+    chkLoad().then(() => chkCardSyncPaint()).catch(() => {});
+  }
+}
+/* --- La vista del entrenador: bloque en la ficha del alumno --- */
+let CHK_FICHA = { uid: null, items: [] };
+async function chkFichaLoad(uid) {
+  const host = $('client-chk');
+  if (!host || !auth.currentUser) return;
+  const starts = chkWeekStarts();
+  let items = [];
+  try {
+    const docs = await Promise.all(starts.map(async ws => {
+      try { const s = await getDoc(doc(db, 'weekly_checkins', chkDocId(uid, ws))); return s.exists() ? { id: s.id, ...s.data() } : null; }
+      catch { return null; }
+    }));
+    items = docs.filter(Boolean);
+  } catch { host.innerHTML = ''; return; }
+  CHK_FICHA = { uid, items };
+  host.innerHTML = chkFichaHTML(uid, starts[0]);
+  chkFichaWire(host, uid);
+}
+function chkFichaCanMark(uid) {
+  const me = auth.currentUser ? auth.currentUser.uid : '';
+  if (typeof IS_OWNER !== 'undefined' && IS_OWNER) return true;
+  if (typeof ROLE !== 'undefined' && ROLE === 'administrador') return true;
+  return (typeof FICHA_ASSIGN !== 'undefined' && FICHA_ASSIGN && FICHA_ASSIGN.trainerUid === me);
+}
+function chkFichaHTML(uid, curWs) {
+  const items = (CHK_FICHA && CHK_FICHA.uid === uid) ? CHK_FICHA.items : [];
+  if (!items.length) return '';
+  return `<div class="chk-ficha-block"><div class="chk-ficha-head"><b>${esc(t('chk.fichaTitle'))}</b></div>`
+    + items.map(d => {
+      const days = weekDates(d.weekStart);
+      const open = d.weekStart === curWs;
+      const head = `<span>📋 ${esc(t('chk.weekOf', { from: dateName(days[0]) }))}</span>${chkStateChip(d)}`;
+      const inner = chkAnswersHTML(d)
+        + (!d.reviewedAt && chkFichaCanMark(uid) ? `<button type="button" class="btn-primary chk-review-btn" data-chk-review="${esc(d.weekStart)}">${esc(t('chk.markReviewed'))}</button>` : '');
+      return open
+        ? `<div class="chk-hist-item"><div class="chk-fold-head chk-fold-open">${head}</div><div class="chk-fold-body">${inner}</div></div>`
+        : `<div class="chk-hist-item"><button type="button" class="chk-fold-head" data-chkfold aria-expanded="false">${head}<span class="chk-chev">▾</span></button><div class="chk-fold-body" style="display:none">${inner}</div></div>`;
+    }).join('') + '</div>';
+}
+function chkFichaWire(host, uid) {
+  host.querySelectorAll('[data-chkfold]').forEach(b => b.onclick = () => {
+    const body = b.parentElement ? b.parentElement.querySelector('.chk-fold-body') : null;
+    if (!body) return;
+    const open = body.style.display !== 'none';
+    body.style.display = open ? 'none' : '';
+    b.setAttribute('aria-expanded', String(!open));
+  });
+  host.querySelectorAll('[data-chk-review]').forEach(b => b.onclick = () => chkMarkReviewed(uid, b.dataset.chkReview, b));
+}
+async function chkMarkReviewed(uid, ws, btn) {
+  if (btn) btn.disabled = true;
+  try {
+    await updateDoc(doc(db, 'weekly_checkins', chkDocId(uid, ws)), { reviewedBy: auth.currentUser.uid, reviewedAt: serverTimestamp() });
+    toast(t('chk.markedOk'));
+    chkFichaLoad(uid);
+  } catch {
+    if (btn) btn.disabled = false;
+    toast(t('chk.errSave'), true);
+  }
+}
+/* La señal sobria de la lista «Mis alumnos»: 📋 junto al nombre
+   de quien tiene el check-in de ESTA semana sin revisar (la
+   lectura por id vive en la pasada de loadStudents). */
+function wchkChipHTML(u) {
+  const L = (typeof STUDENTS_LAST !== 'undefined') ? STUDENTS_LAST : null;
+  const w = L && L.wchkByUid ? L.wchkByUid[u.id] : null;
+  if (!w || !w.exists || w.reviewed) return '';
+  return `<span class="wchk-chip" title="${esc(t('chk.listChip'))}">📋</span>`;
 }
 
 /* ---------- la hoja de respuesta del entrenador (D2) ---------- */
@@ -41427,6 +41823,7 @@ function switchTab(name) {
      `show`. */
   if (name === 'coach') { try { renderNutriMyBox(); } catch {} }
   if (name === 'challenges') { try { chalRender(); } catch {} }
+  if (name === 'checkin') { try { chkRender(); } catch {} }
   /* «Mi entrenador» (orden de Ronald, chat RONBO.NUTRI 2026-11-04
      07:27 CST): al abrir su pastilla se repintan su caja de
      siempre (renderMyTrainerBox) y el bloque de elección del
@@ -50926,7 +51323,7 @@ document.addEventListener('keydown', e => { if (e.key === 'Escape') shareClose()
  *  - El SW (sw.js) solo cachea la cáscara del mismo origen en modo
  *    RED PRIMERO: Auth/Firestore/Worker jamás pasan por la caché.
  * ================================================================ */
-const PWA_SW_VERSION = '20261110-diario-visual';
+const PWA_SW_VERSION = '20261110-checkin-semanal';
 /* Sello de versión VISIBLE (2026-11-03): el pie de la tarjeta de
    acceso enseña qué copia corre este teléfono ('v ' + el sello),
    para comprobar de un vistazo si la versión nueva ya llegó.

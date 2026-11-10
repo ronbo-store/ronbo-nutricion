@@ -21,7 +21,7 @@
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-title" content="RONBO FIT">
 <meta name="apple-mobile-web-app-status-bar-style" content="default">
-<link rel="stylesheet" href="styles.css?v=20261110-diario-visual">
+<link rel="stylesheet" href="styles.css?v=20261110-checkin-semanal">
 <script defer src="https://cloud.umami.is/script.js" data-website-id="a29706d4-44a2-47cf-900a-5f74d74abfa8"></script>
 <script type="importmap">
 {
@@ -421,6 +421,18 @@
   <div class="panel fwd-panel">
     <h2 data-i18n="fwd.title">📷 Your week in photos</h2>
     <div id="foodWeekDiary"></div>
+  </div>
+
+  <!-- CHECK-IN SEMANAL (AUTH-2026-11-10-367): la tarjeta de
+       Inicio con el estado del check-in de esta semana; la pinta
+       chkCardSyncPaint (app.js) y su botón abre la vista
+       #tab-checkin. La colección es weekly_checkins: una
+       respuesta por alumno y semana, visible para su entrenador
+       porque el alumno la envía — aparte de la declaración de
+       salud y de los consentimientos. -->
+  <div class="panel chk-panel" id="chk-panel">
+    <h2 data-i18n="chk.title">📋 Weekly check-in</h2>
+    <div id="chk-card"></div>
   </div>
 
   </div>
@@ -1513,6 +1525,16 @@
   </div>
   <!-- /tab-challenges -->
 
+  <!-- CHECK-IN SEMANAL (AUTH-2026-11-10-367): pantalla completa
+       del formulario de la semana y el historial propio; su
+       contenido lo pinta chkRender (app.js). -->
+  <div class="tab-pane" id="tab-checkin" style="display:none">
+    <button type="button" class="btn-ghost prog-back" id="chk-back" data-i18n="chk.back">← Back</button>
+    <h2 style="margin:6px 0 10px"><span data-i18n="chk.title">📋 Weekly check-in</span></h2>
+    <div id="chk-body"></div>
+  </div>
+  <!-- /tab-checkin -->
+
   <div class="tab-pane" id="tab-access" style="display:none">
   <div class="admin-section" id="admin-section" style="display:none">
     <h2><span data-i18n="access.title">🔐 Access management</span> <span class="h2-sub" data-i18n="access.sub">· owner only</span></h2>
@@ -2242,6 +2264,6 @@
 <div id="toast" class="toast"></div>
 <div id="print-card" aria-hidden="true"></div>
 
-<script type="module" src="app.js?v=20261110-diario-visual"></script>
+<script type="module" src="app.js?v=20261110-checkin-semanal"></script>
 </body>
 </html>

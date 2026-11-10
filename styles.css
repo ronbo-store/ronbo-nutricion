@@ -5178,3 +5178,45 @@ body.swap-sheet-open .asst-fab { display: none !important; }
 .fwd-none { margin: 14px 0 10px; text-align: center; font-size: 13px; color: #94a3b8; }
 .fwd-day-foot { margin-top: 8px; text-align: center; font-size: 13px; font-weight: 800; color: #0f766e; }
 .fwd-empty { margin: 6px 0 2px; color: #64748b; font-size: 14px; }
+
+/* ═══ CHECK-IN SEMANAL (AUTH-2026-11-10-367) ═══
+   Controles grandes de la casa (la gente responde entrenando):
+   escalas y tríos de botones anchos, tarjeta de Inicio sobria,
+   bloque de ficha con semanas plegadas y la señal 📋 de la
+   lista de alumnos. */
+.chk-card-row{display:flex;align-items:center;gap:12px;justify-content:space-between}
+.chk-card-row .btn-primary{min-height:48px;padding:10px 18px;white-space:nowrap}
+.chk-week{font-weight:600;margin:2px 0 6px}
+.chk-privacy{font-size:13px;opacity:.85;background:var(--panel2,#f3f7f5);border:1px solid var(--line,#c9d6d1);border-radius:10px;padding:10px 12px;margin:0 0 14px}
+.chk-q{margin:0 0 16px}
+.chk-q-lab{display:block;font-weight:600;margin:0 0 8px}
+.chk-seg{display:flex;gap:6px}
+.chk-seg-b{flex:1;min-height:52px;min-width:44px;border:1px solid var(--line,#c9d6d1);border-radius:10px;background:transparent;font-size:17px;cursor:pointer}
+.chk-seg-b.on{background:#2b7a5b;color:#fff;border-color:#2b7a5b}
+.chk-seg-lab{display:flex;justify-content:space-between;font-size:12px;opacity:.7;margin-top:3px}
+.chk-tri{display:flex;gap:6px}
+.chk-tri-b{flex:1;min-height:52px;border:1px solid var(--line,#c9d6d1);border-radius:10px;background:transparent;font-size:16px;cursor:pointer;padding:8px 6px}
+.chk-tri-b.on{background:#2b7a5b;color:#fff;border-color:#2b7a5b}
+.chk-note-wrap{position:relative}
+.chk-note-wrap textarea{width:100%;box-sizing:border-box;border:1px solid var(--line,#c9d6d1);border-radius:10px;padding:10px 12px;font-size:16px;font-family:inherit;resize:vertical}
+.chk-count{position:absolute;right:10px;bottom:8px;font-size:12px;opacity:.6}
+.chk-send{width:100%;min-height:54px;font-size:17px;margin-top:4px}
+.chk-err{color:#b91c1c;font-weight:600}
+.chk-state-line{font-weight:600;margin:10px 0}
+.chk-lock{font-size:13px;opacity:.8}
+.chk-ans{border:1px solid var(--line,#c9d6d1);border-radius:10px;padding:10px 12px}
+.chk-ans-row{display:flex;justify-content:space-between;gap:12px;padding:4px 0}
+.chk-ans-note{font-style:italic;padding:6px 0 2px;opacity:.9}
+.chk-hist-title{margin:22px 0 8px}
+.chk-hist-item{border:1px solid var(--line,#c9d6d1);border-radius:10px;margin:0 0 8px;overflow:hidden}
+.chk-fold-head{display:flex;align-items:center;gap:8px;width:100%;box-sizing:border-box;background:transparent;border:0;padding:12px;font-size:15px;font-weight:600;cursor:pointer;text-align:left}
+.chk-fold-open{cursor:default}
+.chk-fold-body{padding:0 12px 12px}
+.chk-chip{font-size:12px;font-weight:700;border-radius:999px;padding:3px 9px;white-space:nowrap}
+.chk-chip-wait{background:#fef3c7;color:#92400e}
+.chk-chip-ok{background:#d1fae5;color:#065f46}
+.chk-chev{margin-left:auto;opacity:.6}
+.chk-ficha-block{border:1px solid var(--line,#c9d6d1);border-radius:12px;padding:12px;margin:0 0 12px}
+.chk-ficha-head{margin:0 0 10px;font-size:16px}
+.chk-review-btn{width:100%;min-height:48px;margin-top:10px}
+.wchk-chip{font-size:13px;margin-left:6px}
