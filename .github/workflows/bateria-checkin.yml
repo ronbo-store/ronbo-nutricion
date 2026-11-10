@@ -55,7 +55,7 @@ jobs:
             while IFS= read -r linea; do echo "::error title=FALLO-CAND::${linea:0:240}"; done < fallos.txt
             rm -f fallos.txt
           fi
-          grep -E "SUBTOTAL|Error|error" suite-cand.log | tail -n 25 | while IFS= read -r linea; do echo "::error title=LOGCAND::${linea:0:240}"; done
+          tail -n 40 suite-cand.log | sed 's/\x1b\[[0-9;]*m//g' | while IFS= read -r linea; do echo "::error title=LOGCAND::${linea:0:240}"; done
           true
       - name: Suite CONTROL (texto vivo f7d47e8b, delta invertido)
         if: always()
@@ -73,7 +73,7 @@ jobs:
             while IFS= read -r linea; do echo "::error title=FALLO-VIVO::${linea:0:240}"; done < fallos.txt
             rm -f fallos.txt
           fi
-          grep -E "SUBTOTAL|Error|error" suite-viva.log | tail -n 25 | while IFS= read -r linea; do echo "::error title=LOGVIVO::${linea:0:240}"; done
+          tail -n 40 suite-viva.log | sed 's/\x1b\[[0-9;]*m//g' | while IFS= read -r linea; do echo "::error title=LOGVIVO::${linea:0:240}"; done
           true
       - name: Veredicto (falla si alguna suite falló)
         if: always()
