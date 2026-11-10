@@ -7961,6 +7961,13 @@ en: {
   'sched.prefsTitle': 'My details for the schedule',
   'sched.prefsIntro': 'Only you see and change these details. They are used only to suggest times.',
   'sched.pf.workdays': 'My work days',
+  'sched.pf.weekendTitle': 'Weekend work schedule (only if you work on Saturday or Sunday)',
+  'sched.pf.weekendNote': 'Leave this empty to use your normal work schedule on weekend work days too. Fill in only what is different: any field you leave empty uses your normal work schedule.',
+  'sched.pf.wakeWe': 'I wake up (weekend work days)',
+  'sched.pf.sleepWe': 'I go to sleep (weekend work days)',
+  'sched.pf.workFromWe': 'Weekend work starts',
+  'sched.pf.workToWe': 'Weekend work ends',
+  'sched.pf.breaksWe': 'Breaks to eat (weekend work)',
   'sched.pf.wakeWork': 'I wake up (work days)',
   'sched.pf.sleepWork': 'I go to sleep (work days)',
   'sched.pf.wakeFree': 'I wake up (free days)',
@@ -12186,6 +12193,13 @@ es: {
   'sched.prefsTitle': 'Mis datos para los horarios',
   'sched.prefsIntro': 'Solo tú ves y cambias estos datos. Se usan solo para sugerir horarios.',
   'sched.pf.workdays': 'Mis días de trabajo',
+  'sched.pf.weekendTitle': 'Horario de trabajo de fin de semana (solo si trabajas sábado o domingo)',
+  'sched.pf.weekendNote': 'Déjalo vacío para usar tu horario de trabajo normal también en los días de fin de semana que trabajes. Rellena solo lo que sea distinto: cada campo que dejes vacío usa tu horario de trabajo normal.',
+  'sched.pf.wakeWe': 'Me despierto (días de trabajo de fin de semana)',
+  'sched.pf.sleepWe': 'Me duermo (días de trabajo de fin de semana)',
+  'sched.pf.workFromWe': 'Empieza el trabajo de fin de semana',
+  'sched.pf.workToWe': 'Termina el trabajo de fin de semana',
+  'sched.pf.breaksWe': 'Pausas para comer (fin de semana)',
   'sched.pf.wakeWork': 'Me despierto (días de trabajo)',
   'sched.pf.sleepWork': 'Me duermo (días de trabajo)',
   'sched.pf.wakeFree': 'Me despierto (días libres)',
@@ -49676,7 +49690,7 @@ document.addEventListener('keydown', e => { if (e.key === 'Escape') shareClose()
  *  - El SW (sw.js) solo cachea la cáscara del mismo origen en modo
  *    RED PRIMERO: Auth/Firestore/Worker jamás pasan por la caché.
  * ================================================================ */
-const PWA_SW_VERSION = '20261109-ayuno-horario';
+const PWA_SW_VERSION = '20261109-dias-trabajo';
 /* Sello de versión VISIBLE (2026-11-03): el pie de la tarjeta de
    acceso enseña qué copia corre este teléfono ('v ' + el sello),
    para comprobar de un vistazo si la versión nueva ya llegó.
@@ -54698,7 +54712,7 @@ function schedStateRef() { return doc(db, 'nutrition_sched', `${auth.currentUser
 function schedPrefsDefaults() {
   return { v: 1, workdays: [1, 2, 3, 4, 5], tolerance: '', remindersOn: false,
     breaksStrict: false, sleepMarginMin: 45,
-    routine: { work: { wake: '', sleep: '', workFrom: '', workTo: '', breaks: [] }, free: { wake: '', sleep: '' } },
+    routine: { work: { wake: '', sleep: '', workFrom: '', workTo: '', breaks: [] }, free: { wake: '', sleep: '' }, we: { wake: '', sleep: '', workFrom: '', workTo: '', breaks: [] } },
     trainTimes: {}, fasting: null };
 }
 function schedStateDefaults() { return { days: {}, adjust: { preGapDeltaMin: 0, rangeWidenMin: 0 }, dismissed: {} }; }
@@ -54758,6 +54772,48 @@ async function schedFastGateLoad(me) {
     } else return { blocked: false, unknown: true };
     return { blocked: schedFastBlocked(conds), unknown: false };
   } catch { return { blocked: false, unknown: true }; }
+}
+/* ── AUTH-358 · Días de trabajo y fin de semana distinto ─────────
+   PATRÓN DE CADA DÍA (puro, sin DOM ni red): el día dueño es el
+   día en que EMPEZÓ la vigilia (doctrina AUTH-336) y su weekday
+   decide el patrón contra las preferencias del propio usuario:
+   · no marcado en workdays → 'free' (rutina free, sin trabajo);
+   · sábado (6) o domingo (0) marcado Y routine.we con algún campo
+     → 'weekend' (el horario de fin de semana; cada campo vacío de
+     we hereda el de routine.work, campo a campo);
+   · cualquier otro día marcado → 'work' (la rutina de siempre).
+   COMPATIBILIDAD: sin routine.we (o vacío) todo cae a 'work'/'free'
+   como hoy — ausencia del campo = comportamiento actual, sin
+   reescritura de datos. schedRoutineFor es la ÚNICA resolución y
+   la usan el día en curso (schedBuildInput), el span que empezó
+   ayer y la cola tras el corte (schedGather). El motor
+   schedComputeDay NO se toca: recibe la rutina ya resuelta, con
+   la misma forma de siempre, y las cantidades salen idénticas. */
+function schedWeActive(p) {
+  const we = (p && p.routine && p.routine.we) || {};
+  return !!(we.wake || we.sleep || we.workFrom || we.workTo || (we.breaks || []).length);
+}
+function schedDayPattern(weekday, p) {
+  if (!p || !(p.workdays || []).includes(weekday)) return 'free';
+  if ((weekday === 0 || weekday === 6) && schedWeActive(p)) return 'weekend';
+  return 'work';
+}
+function schedRoutineFor(weekday, p) {
+  const pat = schedDayPattern(weekday, p);
+  const rt = (p && p.routine) || {};
+  if (pat === 'free') {
+    const f = rt.free || {};
+    return { pattern: pat, isWorkday: false, wake: f.wake || '', sleep: f.sleep || '', workFrom: '', workTo: '', breaks: [] };
+  }
+  if (pat === 'weekend') {
+    const w = rt.work || {}, e = rt.we || {};
+    const fb = (v, alt) => (v != null && v !== '' ? v : (alt || ''));
+    return { pattern: pat, isWorkday: true, wake: fb(e.wake, w.wake), sleep: fb(e.sleep, w.sleep),
+      workFrom: fb(e.workFrom, w.workFrom), workTo: fb(e.workTo, w.workTo),
+      breaks: (e.breaks && e.breaks.length) ? e.breaks : (w.breaks || []) };
+  }
+  const w = rt.work || {};
+  return { pattern: pat, isWorkday: true, wake: w.wake || '', sleep: w.sleep || '', workFrom: w.workFrom || '', workTo: w.workTo || '', breaks: w.breaks || [] };
 }
 /* Heurística de PRODUCTO (no evidencia científica): umbral
    operativo SOLO para decidir si la comida posterior cita la
@@ -55183,6 +55239,8 @@ async function schedLoadOwn() {
   SCHED_PREFS.routine = Object.assign(schedPrefsDefaults().routine, p.routine || {});
   SCHED_PREFS.routine.work = Object.assign(schedPrefsDefaults().routine.work, (p.routine || {}).work || {});
   SCHED_PREFS.routine.free = Object.assign(schedPrefsDefaults().routine.free, (p.routine || {}).free || {});
+  SCHED_PREFS.routine.we = Object.assign(schedPrefsDefaults().routine.we, (p.routine || {}).we || {});
+  if (!Array.isArray(SCHED_PREFS.routine.we.breaks)) SCHED_PREFS.routine.we.breaks = [];
   if (!Array.isArray(SCHED_PREFS.routine.work.breaks)) SCHED_PREFS.routine.work.breaks = [];
   if (!Array.isArray(SCHED_PREFS.workdays)) SCHED_PREFS.workdays = [1, 2, 3, 4, 5];
   if (!SCHED_PREFS.fasting || !SCHED_PREFS.fasting.from || !SCHED_PREFS.fasting.to) SCHED_PREFS.fasting = null;
@@ -55242,8 +55300,7 @@ async function schedGather() {
   if (SCHED_PREFS) {
     const prevISO = addDaysISO(pendISO, -1);
     const pWd = new Date(prevISO + 'T12:00:00').getDay();
-    const pWork = (SCHED_PREFS.workdays || []).includes(pWd);
-    const pr = pWork ? SCHED_PREFS.routine.work : SCHED_PREFS.routine.free;
+    const pr = schedRoutineFor(pWd, SCHED_PREFS);
     if (pr && pr.wake && pr.sleep) {
       const nw = new Date();
       regISO = schedSpanResolve(nw.getHours() * 60 + nw.getMinutes(), cut,
@@ -55306,8 +55363,7 @@ async function schedGather() {
   const spanSleepClock = (() => {
     if (regISO === pendISO || !SCHED_PREFS) return null;
     const sWd = new Date(regISO + 'T12:00:00').getDay();
-    const sWork = (SCHED_PREFS.workdays || []).includes(sWd);
-    const sr = sWork ? SCHED_PREFS.routine.work : SCHED_PREFS.routine.free;
+    const sr = schedRoutineFor(sWd, SCHED_PREFS);
     return sr && sr.sleep ? pendParseHM(sr.sleep) : null;
   })();
   try {
@@ -55333,8 +55389,9 @@ async function schedGather() {
 }
 function schedBuildInput() {
   const c = SCHED_CTX, p = SCHED_PREFS;
-  const isWorkday = (p.workdays || []).includes(c.weekday);
-  const r = isWorkday ? p.routine.work : p.routine.free;
+  const rr = schedRoutineFor(c.weekday, p);
+  const isWorkday = rr.isWorkday;
+  const r = rr;
   const day = schedDayState(c.regISO);
   const sessions = [];
   if (day.trainOverride && day.trainOverride.time) sessions.push({ time: day.trainOverride.time, durMin: day.trainOverride.durMin || 60 });
@@ -55347,8 +55404,8 @@ function schedBuildInput() {
     isTrainDay: c.isTrainDay, trainLabel: c.trainLabel, meals: c.mealsIn, dayTotals: c.dayTotals,
     routine: { wake: r.wake || (c.cfg.quietTo || ''), sleep: r.sleep || (c.cfg.quietFrom || ''),
       wakeProv: !r.wake && !!c.cfg.quietTo, sleepProv: !r.sleep && !!c.cfg.quietFrom,
-      workFrom: isWorkday ? (p.routine.work.workFrom || '') : '', workTo: isWorkday ? (p.routine.work.workTo || '') : '',
-      breaks: isWorkday ? (p.routine.work.breaks || []) : [] },
+      workFrom: isWorkday ? (r.workFrom || '') : '', workTo: isWorkday ? (r.workTo || '') : '',
+      breaks: isWorkday ? (r.breaks || []) : [] },
     tolerance: p.tolerance || '', sessions, pins: day.pins, eaten: day.eaten, logged: c.logged,
     pendTimes: c.pendTimes, cutoffMin: c.cut,
     breaksStrict: isWorkday && !!p.breaksStrict, sleepMarginMin: p.sleepMarginMin,
@@ -55628,6 +55685,14 @@ function schedCollectDraft() {
     const to = document.querySelectorAll('.sched-pf-break-to')[i];
     if (f.value || (to && to.value)) d.routine.work.breaks.push({ from: f.value, to: to ? to.value : '' });
   });
+  if (!d.routine.we) d.routine.we = { wake: '', sleep: '', workFrom: '', workTo: '', breaks: [] };
+  d.routine.we.wake = g('sched-pf-wake-we'); d.routine.we.sleep = g('sched-pf-sleep-we');
+  d.routine.we.workFrom = g('sched-pf-workfrom-we'); d.routine.we.workTo = g('sched-pf-workto-we');
+  d.routine.we.breaks = [];
+  document.querySelectorAll('.sched-pf-we-break-from').forEach((f, i) => {
+    const to = document.querySelectorAll('.sched-pf-we-break-to')[i];
+    if (f.value || (to && to.value)) d.routine.we.breaks.push({ from: f.value, to: to ? to.value : '' });
+  });
   d.trainTimes = {};
   for (let wd = 0; wd < 7; wd++) {
     const time = g('sched-pf-tt-' + wd), dur = parseInt(g('sched-pf-td-' + wd), 10);
@@ -55655,6 +55720,21 @@ function schedPrefsHTML() {
   h += timeRow('sched-pf-sleep-free', t('sched.pf.sleepFree'), d.routine.free.sleep);
   h += timeRow('sched-pf-work-from', t('sched.pf.workFrom'), d.routine.work.workFrom);
   h += timeRow('sched-pf-work-to', t('sched.pf.workTo'), d.routine.work.workTo);
+  /* AUTH-358 · Horario de fin de semana distinto: solo manda si el
+     usuario marca sábado/domingo como días de trabajo; vacío =
+     su horario normal también en fin de semana (como hasta hoy). */
+  const dwe = d.routine.we || { wake: '', sleep: '', workFrom: '', workTo: '', breaks: [] };
+  h += `<div class="sched-pf-group"><span class="sched-pf-label">${esc(t('sched.pf.weekendTitle'))}</span><p class="progress-hint">${esc(t('sched.pf.weekendNote'))}</p></div>`;
+  h += timeRow('sched-pf-wake-we', t('sched.pf.wakeWe'), dwe.wake);
+  h += timeRow('sched-pf-sleep-we', t('sched.pf.sleepWe'), dwe.sleep);
+  h += timeRow('sched-pf-workfrom-we', t('sched.pf.workFromWe'), dwe.workFrom);
+  h += timeRow('sched-pf-workto-we', t('sched.pf.workToWe'), dwe.workTo);
+  h += `<div class="sched-pf-group"><span class="sched-pf-label">${esc(t('sched.pf.breaksWe'))}</span>`;
+  (dwe.breaks || []).forEach((b, i) => {
+    h += `<div class="sched-pf-break"><input type="time" class="sched-pf-we-break-from" value="${esc(b.from || '')}"><span>–</span><input type="time" class="sched-pf-we-break-to" value="${esc(b.to || '')}"><button type="button" class="btn-ghost sched-btn" data-sched-act="we-brk-del" data-i="${i}">✕</button></div>`;
+  });
+  if ((dwe.breaks || []).length < 3) h += `<button type="button" class="btn-ghost sched-btn" data-sched-act="we-brk-add">${esc(t('sched.pf.breakAdd'))}</button>`;
+  h += '</div>';
   h += `<div class="sched-pf-group"><span class="sched-pf-label">${esc(t('sched.pf.breaks'))}</span>`;
   (d.routine.work.breaks || []).forEach((b, i) => {
     h += `<div class="sched-pf-break"><input type="time" class="sched-pf-break-from" value="${esc(b.from || '')}"><span>–</span><input type="time" class="sched-pf-break-to" value="${esc(b.to || '')}"><button type="button" class="btn-ghost sched-btn" data-sched-act="brk-del" data-i="${i}">✕</button></div>`;
@@ -55862,6 +55942,8 @@ async function schedAct(b) {
   }
   if (act === 'brk-add') { const d = schedCollectDraft(); d.routine.work.breaks.push({ from: '', to: '' }); SCHED_UI.prefsOpen = true; schedPaintSheet(); return; }
   if (act === 'brk-del') { const d = schedCollectDraft(); d.routine.work.breaks.splice(parseInt(b.getAttribute('data-i'), 10), 1); SCHED_UI.prefsOpen = true; schedPaintSheet(); return; }
+  if (act === 'we-brk-add') { const d = schedCollectDraft(); if (!d.routine.we) d.routine.we = { wake: '', sleep: '', workFrom: '', workTo: '', breaks: [] }; if (!Array.isArray(d.routine.we.breaks)) d.routine.we.breaks = []; d.routine.we.breaks.push({ from: '', to: '' }); SCHED_UI.prefsOpen = true; schedPaintSheet(); return; }
+  if (act === 'we-brk-del') { const d = schedCollectDraft(); if (d.routine.we && Array.isArray(d.routine.we.breaks)) d.routine.we.breaks.splice(parseInt(b.getAttribute('data-i'), 10), 1); SCHED_UI.prefsOpen = true; schedPaintSheet(); return; }
   if (act === 'prefs-save') {
     const draft = schedCollectDraft();
     const prev = SCHED_PREFS;
