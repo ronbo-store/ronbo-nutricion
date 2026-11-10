@@ -4268,9 +4268,14 @@ service cloud.firestore {
         || (signedIn() && resource != null && resource.data.uid == request.auth.uid)
         || (signedIn() && resource != null && isAssignedTrainerOf(resource.data.uid))
         || isAdminUser();
+      // En list, la evaluación solo conoce los campos que la
+      // consulta acota (el precedente de activity_log): se lee
+      // con .get() y la puerta se abre cuando la consulta acota
+      // también el uid. La app no lista esta colección — ficha,
+      // tarjeta y lista de alumnos leen por id conocido.
       allow list: if isOwnerUser()
-        || resource.data.uid == request.auth.uid
-        || isAssignedTrainerOf(resource.data.uid)
+        || resource.data.get('uid', '') == request.auth.uid
+        || isAssignedTrainerOf(resource.data.get('uid', ''))
         || isAdminUser();
       allow create: if isApprovedUser()
         && request.resource.data.uid == request.auth.uid
