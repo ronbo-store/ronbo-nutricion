@@ -5807,6 +5807,9 @@ en: {
   'train.strip.doneToday': 'Done today', 'train.strip.skip': 'Skip', 'train.strip.add': '+ Add',
   'train.strip.cardio': 'Cardio', 'train.strip.core': 'Core', 'train.strip.stretch': 'Stretch',
   'train.chronoRunning': '⏱ Session in progress: {min} min',
+  /* META DE TIEMPO POR ENTRENAMIENTO (AUTH-359): solo informativa. */
+  'train.goalOf': '{done} of {goal} min · {left} min to go',
+  'train.goalMet': '{done} of {goal} min · goal met ✓',
   /* CRONÓMETRO DE SESIÓN FIJO + ENCUESTA (punto 88 de la cola,
      decisiones de Ronald 2026-11-02 11:54/11:57/12:06/12:07 CST):
      la pastilla sobre el dock y la encuesta de una pregunta. */
@@ -7985,6 +7988,11 @@ en: {
   'sched.pf.reminders': 'Show suggested reminder times (always outside your rest)',
   'sched.pf.save': 'Save my details',
   'sched.pf.saved': 'Saved ✓',
+  'sched.pf.goalTitle': '⏱ Workout time goal',
+  'sched.pf.goalFree': 'Or type your own (minutes)',
+  'sched.pf.goalClear': 'No goal',
+  'sched.pf.goalNote': 'Your goal for each session, in minutes. While you train, the timer shows how much of your goal you have done. It is only a guide: it never completes your day, never moves your streak and never changes your calories.',
+  'sched.pf.goalSuggested': 'Suggested from the training time in your schedule: {min} min. Nothing is saved until you tap “Save my details”.',
   'sched.remTitle': 'Suggested reminder times',
   'sched.multiNote': 'Your day has two training sessions. Meal times around double sessions need a specific adaptation with your trainer; for now, this is a cautious suggestion around the first and last session.',
   'sched.noMealBefore': 'No meal from your plan falls before your training today. If you want one there, pin it with “Change time”.',
@@ -10038,6 +10046,9 @@ es: {
   'train.strip.doneToday': 'Hecho hoy', 'train.strip.skip': 'Saltar', 'train.strip.add': '+ Agregar',
   'train.strip.cardio': 'Cardio', 'train.strip.core': 'Core', 'train.strip.stretch': 'Estirar',
   'train.chronoRunning': '⏱ Sesión en curso: {min} min',
+  /* META DE TIEMPO POR ENTRENAMIENTO (AUTH-359): solo informativa. */
+  'train.goalOf': '{done} de {goal} min · te quedan {left}',
+  'train.goalMet': '{done} de {goal} min · meta cumplida ✓',
   /* CRONÓMETRO DE SESIÓN FIJO + ENCUESTA (punto 88 de la cola,
      decisiones de Ronald 2026-11-02 11:54/11:57/12:06/12:07 CST):
      la pastilla sobre el dock y la encuesta de una pregunta. */
@@ -12217,6 +12228,11 @@ es: {
   'sched.pf.reminders': 'Mostrar horas de aviso sugeridas (siempre fuera de tu descanso)',
   'sched.pf.save': 'Guardar mis datos',
   'sched.pf.saved': 'Guardado ✓',
+  'sched.pf.goalTitle': '⏱ Meta de tiempo por entrenamiento',
+  'sched.pf.goalFree': 'O escribe la tuya (minutos)',
+  'sched.pf.goalClear': 'Sin meta',
+  'sched.pf.goalNote': 'Tu meta para cada sesión, en minutos. Mientras entrenas, el cronómetro muestra cuánto llevas de tu meta. Solo es una guía: nunca completa tu día, nunca mueve tu racha y nunca cambia tus calorías.',
+  'sched.pf.goalSuggested': 'Sugerido por el tiempo de entrenamiento de tu horario: {min} min. Nada se guarda hasta que toques «Guardar mis datos».',
   'sched.remTitle': 'Horas de aviso sugeridas',
   'sched.multiNote': 'Tu día tiene dos sesiones de entrenamiento. Los horarios de comida alrededor de dos sesiones necesitan una adaptación específica con tu entrenador; por ahora, esto es una sugerencia prudente alrededor de la primera y la última sesión.',
   'sched.noMealBefore': 'Ninguna comida de tu plan cae antes de tu entrenamiento de hoy. Si quieres una ahí, fíjala con «Cambiar horario».',
@@ -31925,10 +31941,40 @@ function trainChronoSuggestion(planId) {
    dos abrían el mismo panel de cierre, uno bajo el otro en la
    misma tarjeta. El cierre del día tiene UNA sola puerta:
    «Hecho hoy». La pareja conserva «▶ Iniciar» y el tiempo. */
+/* ── AUTH-359 · La meta junto al cronómetro ──────────────────────
+   TRAIN_GOAL_MIN: caché en memoria de la meta del PROPIO usuario,
+   leída de su schedprefs por la vía del dueño al abrir
+   Entrenamiento (trainGoalLoad); si «Mi horario diario» ya cargó
+   SCHED_PREFS, manda ese valor. Sin meta: null y la sesión se ve
+   EXACTAMENTE como hoy (ni rastro de la meta). La línea es solo
+   informativa: no entra en el cierre del día, ni en la racha
+   (AUTH-323), ni en sessionKcal/MET. */
+let TRAIN_GOAL_MIN = null;
+async function trainGoalLoad() {
+  try {
+    if (typeof SCHED_PREFS !== 'undefined' && SCHED_PREFS) { TRAIN_GOAL_MIN = schedGoalNorm(SCHED_PREFS.trainGoalMin); return TRAIN_GOAL_MIN; }
+    const snap = await getDoc(schedPrefsRef());
+    TRAIN_GOAL_MIN = snap.exists() ? schedGoalNorm((snap.data() || {}).trainGoalMin) : null;
+  } catch { TRAIN_GOAL_MIN = null; }
+  return TRAIN_GOAL_MIN;
+}
+function trainGoalMin() {
+  if (typeof SCHED_PREFS !== 'undefined' && SCHED_PREFS) return schedGoalNorm(SCHED_PREFS.trainGoalMin);
+  return TRAIN_GOAL_MIN;
+}
+function trainGoalLine(elapsedMin, goalMin) {
+  const goal = schedGoalNorm(goalMin);
+  if (goal == null) return '';
+  const done = Math.max(0, Math.round(elapsedMin));
+  return done >= goal ? t('train.goalMet', { done, goal }) : t('train.goalOf', { done, goal, left: goal - done });
+}
 function trainChronoHTML(planId, di) {
   const c = trainChronoRead(planId);
-  const run = c ? `<span class="train-chrono-run">${t('train.chronoRunning', { min: Math.max(0, Math.round((Date.now() - c.start) / 60000)) })}</span>` : '<span class="train-chrono-run" aria-hidden="true"></span>';
-  return `<div class="train-chrono-pair">${run}<button type="button" class="btn-chrono-start3d" data-train-start="${di}">${t('train.chronoStartBtn')}</button></div>`;
+  const elapsedMin = c ? Math.max(0, Math.round((Date.now() - c.start) / 60000)) : 0;
+  const run = c ? `<span class="train-chrono-run">${t('train.chronoRunning', { min: elapsedMin })}</span>` : '<span class="train-chrono-run" aria-hidden="true"></span>';
+  const goalLine = c ? trainGoalLine(elapsedMin, trainGoalMin()) : '';
+  const goal = goalLine ? `<span class="train-chrono-run train-chrono-goal">${esc(goalLine)}</span>` : '';
+  return `<div class="train-chrono-pair">${run}${goal}<button type="button" class="btn-chrono-start3d" data-train-start="${di}">${t('train.chronoStartBtn')}</button></div>`;
 }
 /* ═══ CRONÓMETRO DE SESIÓN FIJO + ENCUESTA (punto 88 de la cola;
    diseño cerrado de Ronald 2026-11-02: propuesta suya 11:54 CST,
@@ -34871,6 +34917,7 @@ async function loadMyTraining() {
   fdCamRender();
   try { treqBoxSync(); } catch {}
   const uid = auth.currentUser.uid;
+  await trainGoalLoad();   /* AUTH-359: la meta de tiempo del propio usuario (solo lectura de su schedprefs) */
   const plans = await fetchPlans(uid);
   let plan = plans.find(p => p.active === true) || null;
   /* SESIÓN SUELTA SIN PLAN (2026-11-08, decisión D5): sin plan
@@ -49690,7 +49737,7 @@ document.addEventListener('keydown', e => { if (e.key === 'Escape') shareClose()
  *  - El SW (sw.js) solo cachea la cáscara del mismo origen en modo
  *    RED PRIMERO: Auth/Firestore/Worker jamás pasan por la caché.
  * ================================================================ */
-const PWA_SW_VERSION = '20261109-dias-trabajo';
+const PWA_SW_VERSION = '20261109-meta-tiempo';
 /* Sello de versión VISIBLE (2026-11-03): el pie de la tarjeta de
    acceso enseña qué copia corre este teléfono ('v ' + el sello),
    para comprobar de un vistazo si la versión nueva ya llegó.
@@ -54713,7 +54760,35 @@ function schedPrefsDefaults() {
   return { v: 1, workdays: [1, 2, 3, 4, 5], tolerance: '', remindersOn: false,
     breaksStrict: false, sleepMarginMin: 45,
     routine: { work: { wake: '', sleep: '', workFrom: '', workTo: '', breaks: [] }, free: { wake: '', sleep: '' }, we: { wake: '', sleep: '', workFrom: '', workTo: '', breaks: [] } },
-    trainTimes: {}, fasting: null };
+    trainTimes: {}, fasting: null, trainGoalMin: null };
+}
+/* ── AUTH-359 · Meta de tiempo por entrenamiento ─────────────────
+   Campo de primer nivel de schedPrefs: trainGoalMin (entero de
+   minutos 10–300 o null), en el MISMO documento del horario
+   (nutrition_sched del propio dueño, AUTH-336): invisible para
+   entrenador y admin, mismas reglas, sin delta de reglas.
+   Ausencia o null = sin meta = comportamiento EXACTAMENTE actual,
+   sin reescritura de datos (la carga solo normaliza en memoria). */
+function schedGoalNorm(v) {
+  const n = Math.round(Number(v));
+  return (isFinite(n) && n >= 10 && n <= 300) ? n : null;
+}
+/* SUGERENCIA QUE NO ESCRIBE: la duración de la sesión declarada en
+   la ventana de entrenamiento de «Mi horario diario» (trainTimes)
+   para el día de horario en curso; si ese día no declara sesión,
+   la duración más frecuente entre los días declarados (en empate,
+   la del primer día de la semana que la declara); si ningún día
+   declara duración, no se sugiere nada (null). */
+function schedGoalSuggestion(p, weekday) {
+  const tt = (p && p.trainTimes) || {};
+  const dur = wd => { const e = tt[String(wd)] || {}; return schedGoalNorm(e.durMin) || schedGoalNorm(e.dur2Min); };
+  const today = dur(weekday);
+  if (today != null) return today;
+  const counts = {};
+  for (let wd = 0; wd < 7; wd++) { const d = dur(wd); if (d != null) counts[d] = (counts[d] || 0) + 1; }
+  let best = null, bestN = 0;
+  for (let wd = 0; wd < 7; wd++) { const d = dur(wd); if (d != null && counts[d] > bestN) { best = d; bestN = counts[d]; } }
+  return best;
 }
 function schedStateDefaults() { return { days: {}, adjust: { preGapDeltaMin: 0, rangeWidenMin: 0 }, dismissed: {} }; }
 function schedDayStateDefaults() { return { pins: {}, eaten: {}, trainOverride: null, follow: { energy: 0, hunger: 0, digestion: 0, ease: 0 } }; }
@@ -55244,6 +55319,7 @@ async function schedLoadOwn() {
   if (!Array.isArray(SCHED_PREFS.routine.work.breaks)) SCHED_PREFS.routine.work.breaks = [];
   if (!Array.isArray(SCHED_PREFS.workdays)) SCHED_PREFS.workdays = [1, 2, 3, 4, 5];
   if (!SCHED_PREFS.fasting || !SCHED_PREFS.fasting.from || !SCHED_PREFS.fasting.to) SCHED_PREFS.fasting = null;
+  SCHED_PREFS.trainGoalMin = schedGoalNorm(SCHED_PREFS.trainGoalMin);   /* AUTH-359: solo en memoria, sin reescritura */
   SCHED_STATE = Object.assign(schedStateDefaults(), ss.exists() ? ss.data() : {});
   if (!SCHED_STATE.days) SCHED_STATE.days = {};
   if (!SCHED_STATE.adjust) SCHED_STATE.adjust = { preGapDeltaMin: 0, rangeWidenMin: 0 };
@@ -55693,6 +55769,7 @@ function schedCollectDraft() {
     const to = document.querySelectorAll('.sched-pf-we-break-to')[i];
     if (f.value || (to && to.value)) d.routine.we.breaks.push({ from: f.value, to: to ? to.value : '' });
   });
+  { const gv = parseInt(g('sched-pf-goal'), 10); d.trainGoalMin = schedGoalNorm(gv); }   /* AUTH-359: vacío o fuera de 10–300 = sin meta */
   d.trainTimes = {};
   for (let wd = 0; wd < 7; wd++) {
     const time = g('sched-pf-tt-' + wd), dur = parseInt(g('sched-pf-td-' + wd), 10);
@@ -55747,6 +55824,20 @@ function schedPrefsHTML() {
     h += `<div class="sched-pf-train"><span>${esc(wdName(wd))}</span><input type="time" id="sched-pf-tt-${wd}" value="${esc(tt.time || '')}"><input type="number" id="sched-pf-td-${wd}" min="10" max="300" step="5" value="${esc(tt.durMin || 60)}" aria-label="${esc(t('sched.pf.mins'))}"><input type="time" id="sched-pf-tt2-${wd}" value="${esc(tt.time2 || '')}"><input type="number" id="sched-pf-td2-${wd}" min="10" max="300" step="5" value="${esc(tt.dur2Min || 60)}" aria-label="${esc(t('sched.pf.mins'))}"></div>`;
   }
   h += '</div>';
+  /* AUTH-359 · Meta de tiempo por entrenamiento: la pone y la
+     cambia el propio usuario aquí, en «Mis datos» (nada por debajo
+     de la app). Sin meta guardada, el campo nace con la SUGERENCIA
+     derivada de su ventana de entrenamiento declarada — precarga
+     que no escribe NADA: solo se guarda si toca «Guardar mis
+     datos». «Sin meta» (data-sched-goal="0") apaga la sugerencia
+     durante esta sesión de edición (SCHED_UI.goalCleared, solo
+     memoria). */
+  const goalSugg = (d.trainGoalMin == null && !SCHED_UI.goalCleared) ? schedGoalSuggestion(d, (typeof SCHED_CTX !== 'undefined' && SCHED_CTX) ? SCHED_CTX.weekday : undefined) : null;
+  h += `<div class="sched-pf-group"><span class="sched-pf-label">${esc(t('sched.pf.goalTitle'))}</span>`
+    + `<div class="sched-tols">${[45, 60, 75, 90, 120].map(n => `<button type="button" class="sched-tol${(d.trainGoalMin != null ? d.trainGoalMin : goalSugg) === n ? ' on' : ''}" data-sched-goal="${n}">${n} min</button>`).join('')}<button type="button" class="sched-tol${d.trainGoalMin == null && goalSugg == null ? ' on' : ''}" data-sched-goal="0">${esc(t('sched.pf.goalClear'))}</button></div>`
+    + `<label class="sched-pf-row">${esc(t('sched.pf.goalFree'))}<input type="number" id="sched-pf-goal" min="10" max="300" step="5" value="${esc(d.trainGoalMin != null ? d.trainGoalMin : (goalSugg != null ? goalSugg : ''))}"></label>`
+    + (goalSugg != null ? `<p class="progress-hint">${esc(t('sched.pf.goalSuggested', { min: goalSugg }))}</p>` : '')
+    + `<p class="progress-hint">${esc(t('sched.pf.goalNote'))}</p></div>`;
   h += `<div class="sched-pf-group"><span class="sched-pf-label">${esc(t('sched.pf.tolerance'))}</span><div class="sched-tols">${['fast', 'normal', 'slow'].map(k => `<button type="button" class="sched-tol${d.tolerance === k ? ' on' : ''}" data-sched-tol="${k}">${esc(t('sched.tol.' + k))}</button>`).join('')}</div></div>`;
   h += `<label class="sched-pf-check"><input type="checkbox" id="sched-pf-brkstrict"${d.breaksStrict ? ' checked' : ''}> ${esc(t('sched.pf.breaksStrict'))}</label>`;
   h += `<div class="sched-pf-group"><span class="sched-pf-label">${esc(t('sched.pf.sleepMargin'))}</span><div class="sched-tols">${[30, 45, 60].map(n => `<button type="button" class="sched-tol${(d.sleepMarginMin || 45) === n ? ' on' : ''}" data-sched-marg="${n}">${n} min</button>`).join('')}</div></div>`;
@@ -55998,6 +56089,8 @@ document.addEventListener('click', e => {
   if (tol) { const d = schedCollectDraft(); d.tolerance = tol.getAttribute('data-sched-tol'); SCHED_UI.prefsOpen = true; schedPaintSheet(); return; }
   const marg = e.target.closest('[data-sched-marg]');
   if (marg) { const d = schedCollectDraft(); d.sleepMarginMin = parseInt(marg.getAttribute('data-sched-marg'), 10) || 45; SCHED_UI.prefsOpen = true; schedPaintSheet(); return; }
+  const goalChip = e.target.closest('[data-sched-goal]');
+  if (goalChip) { const d = schedCollectDraft(); const n = parseInt(goalChip.getAttribute('data-sched-goal'), 10); d.trainGoalMin = n > 0 ? schedGoalNorm(n) : null; SCHED_UI.goalCleared = !(n > 0); SCHED_UI.prefsOpen = true; schedPaintSheet(); return; }
   const fd = e.target.closest('[data-sched-fast-dur]');
   if (fd) {
     /* Atajo de duración en «Mis datos»: fija el fin = inicio +
