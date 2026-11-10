@@ -8191,6 +8191,103 @@ en: {
   'mp.q.measures': 'Body measurements',
   'mp.q.measuresSub': 'Waist, arms, chest… · weekly or monthly is fine',
   'mp.q.notesSub': 'Anything you want to write down about today',
+  'mr.title': 'My body composition report',
+  'mr.open': '📄 My report',
+  'mr.trainerOpen': '📄 View composition report',
+  'mr.loading': 'Loading your report…',
+  'mr.empty': 'No records yet: your report is born with your first weigh-in.',
+  'mr.errTrainer': 'No access: this student keeps their body composition in their own hands.',
+  'mr.male': 'Male',
+  'mr.female': 'Female',
+  'mr.years': '{n} years',
+  'mr.headHeight': 'the height from your evaluation',
+  'mr.recDate': 'Measurement date',
+  'mr.recordOf': 'Record of {d}',
+  'mr.photosTitle': '📸 Your body — your photos, never a silhouette',
+  'mr.photosNoneYet': 'You have no progress photos yet: your report shows them here as soon as you log them.',
+  'mr.photosGo': 'Add my photos',
+  'mr.cmpPhotos': 'Side by side',
+  'mr.noRec': 'No record',
+  'mr.compTitle': '⚖️ Your composition — {d}',
+  'mr.colMeasure': 'Measure',
+  'mr.colValue': 'Value',
+  'mr.colState': 'Status',
+  'mr.compFoot': 'Body-fat ranges: ACE (American Council on Exercise), by sex. Visceral fat and body water use the bioimpedance method reference.',
+  'mr.f.weight': 'Weight',
+  'mr.f.fat': 'Body fat',
+  'mr.f.fatMass': 'Fat mass',
+  'mr.f.muscle': 'Muscle mass',
+  'mr.f.water': 'Body water',
+  'mr.f.ffm': 'Fat-free mass',
+  'mr.f.visceral': 'Visceral fat',
+  'mr.f.bone': 'Bone mass',
+  'mr.f.protein': 'Protein',
+  'mr.f.subcutaneous': 'Subcutaneous fat',
+  'mr.f.skeletal': 'Skeletal muscle',
+  'mr.f.smi': 'SMI (skeletal muscle index)',
+  'mr.today': 'logged today',
+  'mr.weightNear': 'nearby record',
+  'mr.calc': 'calculated',
+  'mr.stEss': 'Essential',
+  'mr.stAth': 'Athletes',
+  'mr.stFit': 'Fitness',
+  'mr.stAvg': 'Average',
+  'mr.stObese': 'Obese range',
+  'mr.stLow': 'Low',
+  'mr.stStd': 'Standard',
+  'mr.stHigh': 'High',
+  'mr.stHealthy': 'Healthy',
+  'mr.stVeryHigh': 'Very high',
+  'mr.bmiTitle': '📏 Your BMI, with its context',
+  'mr.bmiNoHeight': 'BMI cannot be shown yet: it needs your weight and the height from your evaluation.',
+  'mr.bmiWho': 'WHO: “{band}”',
+  'mr.bandLow': 'low',
+  'mr.bandStd': 'standard',
+  'mr.bandHigh': 'high',
+  'mr.bandObese': 'obese',
+  'mr.bmiNoteMuscle': 'BMI alone misleads: it reads “high” because you carry a lot of muscle mass ({m}). Your body fat is {f}%, {fs}. That is why this report never shows BMI without your fat % beside it.',
+  'mr.bmiNoteFat': 'Your body fat is {f}% ({fs}). BMI does not distinguish muscle from fat, so this report always reads it together with your fat %.',
+  'mr.bmiNoteFatPlain': 'Your body fat is {f}%. BMI does not distinguish muscle from fat, so this report always reads it together with your fat %.',
+  'mr.bmiNoteNoFat': 'BMI does not distinguish muscle from fat. Log your body fat % and this report will read them together.',
+  'mr.energyTitle': '🔥 Your energy',
+  'mr.km': 'Resting energy · Katch-McArdle',
+  'mr.kmFormula': '370 + 21.6 × your fat-free mass ({ffm})',
+  'mr.kmShort': 'Resting energy (Katch-McArdle)',
+  'mr.eqCurrent': 'Your current equation · {name}',
+  'mr.eqShort': 'Resting energy (your equation)',
+  'mr.rmrSub': 'resting energy (RMR)',
+  'mr.tdee': 'Your total expenditure (TDEE)',
+  'mr.goalsLine': 'Your goals today',
+  'mr.sugarMax': 'sugar ≤{n} g',
+  'mr.fiber': 'fiber {n} g',
+  'mr.cmpTitle': '🔀 Comparison',
+  'mr.colAB': 'A → B',
+  'mr.colChange': 'Change',
+  'mr.histTitle': '⚖️ Your weight history',
+  'mr.markLine': 'Your mark recorded in the app: {kg}',
+  'mr.markLeft': '· {kg} to go',
+  'mr.markNone': 'No weight mark recorded.',
+  'mr.objective': 'Your goal: {o}',
+  'mr.obj.bajar': 'lose weight',
+  'mr.obj.ganar': 'gain weight',
+  'mr.obj.mantener': 'maintain your weight',
+  'mr.focus.recomposicion': 'with a recomposition focus',
+  'mr.focus.competencia': 'with a competition focus',
+  'mr.measTitle': '📐 Your measurements ({d})',
+  'mr.whr': 'Waist ÷ hips',
+  'mr.btLine': 'Body type from the estimate with your photo ({d}): {cat} — a rough estimate, not a measurement.',
+  'mr.honestTitle': '🧭 What this report does not invent',
+  'mr.honest1': 'No single score: RONBO does not grade you from 0 to 100. Each indicator is compared with its range, with its source in view.',
+  'mr.honest2': 'Segment and impedance analysis: no record — your scale measures by segments; the app does not store them yet, and they are never estimated.',
+  'mr.honest3': 'Metabolic age: not shown — it is a scale metric without a solid foundation.',
+  'mr.honest4': 'Muscle mass is shown without a range: there is no founded public range for total muscle mass from bioimpedance, so none is invented.',
+  'mr.honest5': 'Your report is yours: your trainer sees it only while body composition is in their hands in your setting. Your health declaration never enters this report.',
+  'mr.inclPhotos': 'Include my photos when sharing',
+  'mr.share': 'Share',
+  'mr.pdf': 'Save PDF',
+  'mr.shareNote': 'The shared version leaves your photos out unless you tick the box.',
+  'mr.shareCardTitle': 'MY BODY COMPOSITION REPORT',
+  'mr.shareFail': 'The report image could not be created.',
   'mp.q.wellSub': 'Sleep, energy, aches…',
   'mp.q.onlyFilled': 'Only fill in what was measured — the rest stays as it was.',
   'mp.q.empty': 'Nothing to save yet: fill in at least one field.',
@@ -12597,6 +12694,103 @@ es: {
   'mp.q.measures': 'Medidas del cuerpo',
   'mp.q.measuresSub': 'Cintura, brazos, pecho… · semanal o mensual está bien',
   'mp.q.notesSub': 'Algo que quieras dejar escrito de hoy',
+  'mr.title': 'Mi reporte de composición',
+  'mr.open': '📄 Mi reporte',
+  'mr.trainerOpen': '📄 Ver reporte de composición',
+  'mr.loading': 'Cargando tu reporte…',
+  'mr.empty': 'Aún no hay registros: tu reporte nace con tu primer pesaje.',
+  'mr.errTrainer': 'Sin acceso: la composición de este alumno está en sus manos.',
+  'mr.male': 'Masculino',
+  'mr.female': 'Femenino',
+  'mr.years': '{n} años',
+  'mr.headHeight': 'la estatura de tu evaluación',
+  'mr.recDate': 'Fecha de la medición',
+  'mr.recordOf': 'Registro del {d}',
+  'mr.photosTitle': '📸 Tu cuerpo — tus fotos, nunca una silueta',
+  'mr.photosNoneYet': 'Aún no tienes fotos de progreso: tu reporte las muestra aquí en cuanto las registres.',
+  'mr.photosGo': 'Registrar mis fotos',
+  'mr.cmpPhotos': 'Lado a lado',
+  'mr.noRec': 'Sin registro',
+  'mr.compTitle': '⚖️ Tu composición — {d}',
+  'mr.colMeasure': 'Medida',
+  'mr.colValue': 'Valor',
+  'mr.colState': 'Estado',
+  'mr.compFoot': 'Rangos de % de grasa: ACE (American Council on Exercise), por sexo. La grasa visceral y el agua usan la referencia del método de bioimpedancia.',
+  'mr.f.weight': 'Peso',
+  'mr.f.fat': 'Grasa corporal',
+  'mr.f.fatMass': 'Masa grasa',
+  'mr.f.muscle': 'Masa muscular',
+  'mr.f.water': 'Agua corporal',
+  'mr.f.ffm': 'Masa libre de grasa',
+  'mr.f.visceral': 'Grasa visceral',
+  'mr.f.bone': 'Masa ósea',
+  'mr.f.protein': 'Proteína',
+  'mr.f.subcutaneous': 'Grasa subcutánea',
+  'mr.f.skeletal': 'Músculo esquelético',
+  'mr.f.smi': 'SMI (índice de músculo esquelético)',
+  'mr.today': 'registrado hoy',
+  'mr.weightNear': 'registro cercano',
+  'mr.calc': 'calculado',
+  'mr.stEss': 'Esencial',
+  'mr.stAth': 'Atletas',
+  'mr.stFit': 'En forma',
+  'mr.stAvg': 'Promedio',
+  'mr.stObese': 'Rango de obesidad',
+  'mr.stLow': 'Baja',
+  'mr.stStd': 'Estándar',
+  'mr.stHigh': 'Alta',
+  'mr.stHealthy': 'Saludable',
+  'mr.stVeryHigh': 'Muy alta',
+  'mr.bmiTitle': '📏 Tu IMC, con su contexto',
+  'mr.bmiNoHeight': 'El IMC aún no se puede mostrar: necesita tu peso y la estatura de tu evaluación.',
+  'mr.bmiWho': 'OMS: «{band}»',
+  'mr.bandLow': 'bajo',
+  'mr.bandStd': 'estándar',
+  'mr.bandHigh': 'alto',
+  'mr.bandObese': 'obesidad',
+  'mr.bmiNoteMuscle': 'El IMC solo engaña: sale «alto» porque tienes mucha masa muscular ({m}). Tu grasa es {f} %, {fs}. Por eso este reporte nunca muestra el IMC sin tu % de grasa al lado.',
+  'mr.bmiNoteFat': 'Tu grasa corporal es {f} % ({fs}). El IMC no distingue músculo de grasa, así que este reporte siempre lo lee junto a tu % de grasa.',
+  'mr.bmiNoteFatPlain': 'Tu grasa corporal es {f} %. El IMC no distingue músculo de grasa, así que este reporte siempre lo lee junto a tu % de grasa.',
+  'mr.bmiNoteNoFat': 'El IMC no distingue músculo de grasa. Registra tu % de grasa corporal y este reporte los leerá juntos.',
+  'mr.energyTitle': '🔥 Tu energía',
+  'mr.km': 'Metabolismo basal · Katch-McArdle',
+  'mr.kmFormula': '370 + 21,6 × tu masa libre de grasa ({ffm})',
+  'mr.kmShort': 'Metabolismo basal (Katch-McArdle)',
+  'mr.eqCurrent': 'Tu ecuación vigente · {name}',
+  'mr.eqShort': 'Metabolismo basal (tu ecuación)',
+  'mr.rmrSub': 'metabolismo en reposo (RMR)',
+  'mr.tdee': 'Tu gasto total (TDEE)',
+  'mr.goalsLine': 'Tus metas de hoy',
+  'mr.sugarMax': 'azúcar ≤{n} g',
+  'mr.fiber': 'fibra {n} g',
+  'mr.cmpTitle': '🔀 Comparación',
+  'mr.colAB': 'A → B',
+  'mr.colChange': 'Cambio',
+  'mr.histTitle': '⚖️ Tu historial de peso',
+  'mr.markLine': 'Tu marca registrada en la app: {kg}',
+  'mr.markLeft': '· te faltan {kg}',
+  'mr.markNone': 'Sin marca de peso registrada.',
+  'mr.objective': 'Tu objetivo: {o}',
+  'mr.obj.bajar': 'bajar de peso',
+  'mr.obj.ganar': 'subir de peso',
+  'mr.obj.mantener': 'mantener tu peso',
+  'mr.focus.recomposicion': 'con enfoque en recomposición',
+  'mr.focus.competencia': 'con enfoque en competencia',
+  'mr.measTitle': '📐 Tus medidas ({d})',
+  'mr.whr': 'Cintura ÷ cadera',
+  'mr.btLine': 'Tipo de cuerpo según la estimación con tu foto ({d}): {cat} — estimación orientativa, no es una medición.',
+  'mr.honestTitle': '🧭 Lo que este reporte no inventa',
+  'mr.honest1': 'Sin puntaje único: RONBO no te califica de 0 a 100. Cada indicador se compara con su rango, con la fuente a la vista.',
+  'mr.honest2': 'Análisis por segmentos e impedancia: sin registro — tu báscula los mide por segmentos; la app aún no los guarda, y no se estiman.',
+  'mr.honest3': 'Edad metabólica: no se muestra — es una métrica de la báscula sin fundamento sólido.',
+  'mr.honest4': 'La masa muscular se muestra sin rango: no hay un rango público con fundamento para la masa muscular total por bioimpedancia, así que no se inventa ninguno.',
+  'mr.honest5': 'Tu reporte es tuyo: tu entrenador solo lo ve mientras la composición corporal esté en sus manos en tu ajuste. Tu declaración de salud nunca entra aquí.',
+  'mr.inclPhotos': 'Incluir mis fotos al compartir',
+  'mr.share': 'Compartir',
+  'mr.pdf': 'Guardar PDF',
+  'mr.shareNote': 'La versión para compartir no lleva tus fotos, salvo que marques la casilla.',
+  'mr.shareCardTitle': 'MI REPORTE DE COMPOSICIÓN',
+  'mr.shareFail': 'No se pudo crear la imagen del reporte.',
   'mp.q.wellSub': 'Sueño, energía, molestias…',
   'mp.q.onlyFilled': 'Solo rellenas las que te midieron — las demás quedan como estaban.',
   'mp.q.empty': 'Aún no hay nada que guardar: completa al menos un campo.',
@@ -45888,9 +46082,10 @@ async function assignAfterSave(uid, kind, from) {
 function renderCmpTrainer() {
   const body = $('client-evals-body'); if (!body || !CEV) return;
   const hasAny = Object.keys(CEV.prog).length || Object.keys(CEV.evals).length;
-  body.innerHTML = hasAny ? tevalAskBlockHTML(CEV.uid, true) + cmpHTML(CEV.prog, CEV.evals, CEV.weights, CEV.cfg, CEV.cycle, CEV.cmp, 'tcmp', 'edit')
+  body.innerHTML = hasAny ? tevalAskBlockHTML(CEV.uid, true) + cmpHTML(CEV.prog, CEV.evals, CEV.weights, CEV.cfg, CEV.cycle, CEV.cmp, 'tcmp', 'edit') + '<div id="mr-trainer-door"></div>'
     : `<div class="wempty">${esc(t('teval.empty'))}</div>` + tevalAskBlockHTML(CEV.uid, false);
   cmpWire(body, CEV.prog, CEV.cmp, 'tcmp', renderCmpTrainer);
+  try { mrTrainerDoorMount(); } catch {}
   body.querySelectorAll('[data-note-save]').forEach(b => b.onclick = () => tevalSaveNote(b.getAttribute('data-note-save')));
   tevalAskWire(body);
 }
@@ -51323,7 +51518,7 @@ document.addEventListener('keydown', e => { if (e.key === 'Escape') shareClose()
  *  - El SW (sw.js) solo cachea la cáscara del mismo origen en modo
  *    RED PRIMERO: Auth/Firestore/Worker jamás pasan por la caché.
  * ================================================================ */
-const PWA_SW_VERSION = '20261110-checkin-semanal';
+const PWA_SW_VERSION = '20261110-reporte-composicion';
 /* Sello de versión VISIBLE (2026-11-03): el pie de la tarjeta de
    acceso enseña qué copia corre este teléfono ('v ' + el sello),
    para comprobar de un vistazo si la versión nueva ya llegó.
@@ -58386,7 +58581,7 @@ function mpSheetClose(id) { const el = $(id); if (el) el.style.display = 'none';
    familias; el candado de scroll (AUTH-285) y el ancla bajo la
    cabecera (AUTH-326) los heredan de COVER_SEL (role="dialog") y
    de la familia .act-float. Ocultar nunca destruye (D3). */
-function mpCloseAll() { mpSheetClose('mp-quick'); mpSheetClose('mp-hist'); }
+function mpCloseAll() { mpSheetClose('mp-quick'); mpSheetClose('mp-hist'); mpSheetClose('mp-report'); }
 document.addEventListener('keydown', e => { if (e.key === 'Escape') mpCloseAll(); });
 
 /* ---------- Registro rápido ---------- */
@@ -58798,7 +58993,7 @@ function mpOpenHist(field) {
 }
 function mpHistBody() {
   const parts = [];
-  parts.push(`<div class="mp-doors"><button type="button" class="btn-primary btn-sm" data-mp-act="weightdoor">${esc(t('mp.h.weightDoor'))}</button><button type="button" class="btn-ghost btn-sm" data-mp-act="photosdoor">${esc(t('mp.h.photosDoor'))}</button></div>`);
+  parts.push(`<div class="mp-doors"><button type="button" class="btn-primary btn-sm" data-mp-act="weightdoor">${esc(t('mp.h.weightDoor'))}</button><button type="button" class="btn-ghost btn-sm" data-mp-act="photosdoor">${esc(t('mp.h.photosDoor'))}</button><button type="button" class="btn-ghost btn-sm" data-mp-act="reportdoor">${esc(t('mr.open'))}</button></div>`);
   if (WEIGHTS.length) parts.push(`<h4 class="mp-sec">${esc(t('mp.h.trend'))} · ${esc(t('mp.lastWeight'))}</h4><div class="mp-chart">${weightChartSVG(WEIGHTS)}</div>`);
   const fats = WEIGHTS.filter(w => num(w.fat) > 0).slice(-5).reverse();
   if (fats.length) parts.push(`<h4 class="mp-sec">${esc(t('form.bodyfat'))}</h4>` + fats.map(w => `<div class="mp-row"><span>${esc(shortDate(w.date))}</span><span>${fmt(w.fat)}%${w.fatMethod ? ' · ' + esc(t('mp.m.' + w.fatMethod)) : ''}</span></div>`).join(''));
@@ -58943,6 +59138,483 @@ function mpNoteForm(logId) {
   });
 }
 
+/* === MI REPORTE DE COMPOSICIÓN (AUTH-2026-11-10-368) ===
+   Diseño aprobado por Ronald el 2026-11-10 («Sí, constrúyelo así»)
+   sobre la maqueta de propuesta-reporte-composicion-2026-11-10.
+   El reporte se lee SOLO de datos que la app ya guarda (nutrition_weight
+   con sus campos de composición, nutrition_progress con medidas y
+   composición de la evaluación, fotos de progreso dentro de los
+   documentos, assessment/current y el motor de metas): ningún campo
+   nuevo, ninguna escritura, ningún delta de reglas — todas las lecturas
+   (propias y del entrenador asignado) ya caben en las reglas vivas.
+   REGLA DE LECTURA: un campo de composición en 0 o ausente se lee
+   «Sin registro», nunca como valor real. La lectura de campos es
+   GENÉRICA (lista de descriptores): si un registro trae además masa
+   ósea, proteína, grasa subcutánea, músculo esquelético o SMI, el
+   reporte los muestra; si no los trae, «Sin registro» — el paquete
+   hermano de ingreso con IA no obliga a reabrir este reporte.
+   Masa grasa y masa libre de grasa se DERIVAN del % (rotuladas
+   «calculado»); el SMI se deriva si hay esquelético y estatura.
+   SIN puntaje 0–100, SIN segmentario, SIN impedancia, SIN edad
+   metabólica, SIN «peso óptimo» de la báscula, SIN siluetas: el cuerpo
+   son las fotos del propio usuario. La estimación de tipo corporal
+   solo aparece si ya existe y con su consentimiento (en la vista del
+   entrenador, además, solo si el alumno la compartió).
+   VISIBILIDAD: el reporte es del alumno. El entrenador solo lo abre
+   desde la ficha si es el entrenador ASIGNADO y la composición está en
+   sus manos (registro compAccess en modo 'trainer', AUTH-093/153);
+   ser administrador no abre el reporte de otro. La declaración de
+   salud jamás entra aquí. */
+let MR = null;        // { input, sel, a, b, incl, trainerUid }
+let MR_MODEL = null;  // último modelo calculado (compartir / PDF)
+const MR_COMP_KEYS = ['fat', 'muscle', 'water', 'visceral', 'bone', 'protein', 'subcutaneous', 'skeletal', 'smi'];
+function mrNum(v) { const n = num(v); return n > 0 ? n : null; }
+function mrCell(cell) {
+  if (cell == null) return null;
+  if (typeof cell === 'object') { const v = mrNum(cell.value); return v == null ? null : { v, unit: cell.unit || '', method: cell.method || '' }; }
+  const v = mrNum(cell); return v == null ? null : { v, unit: '', method: '' };
+}
+function mrKcal(n) { return Math.round(num(n)).toLocaleString(LANG === 'es' ? 'es-MX' : 'en-US'); }
+function mrFmt2(n) { return (Math.round(num(n) * 100) / 100).toLocaleString(LANG === 'es' ? 'es-MX' : 'en-US', { maximumFractionDigits: 2 }); }
+function mrSexText(g) { const s = String(g || '').toLowerCase(); if (/mascul|male|hombre/.test(s)) return 'male'; if (/femen|female|mujer/.test(s)) return 'female'; return null; }
+/* Rangos de % de grasa: ACE (American Council on Exercise) por sexo. */
+function mrFatStatus(v, sex) {
+  if (v == null || !sex) return null;
+  if (sex === 'male') return v <= 5 ? 'mr.stEss' : v <= 13 ? 'mr.stAth' : v <= 17 ? 'mr.stFit' : v <= 24 ? 'mr.stAvg' : 'mr.stObese';
+  return v <= 13 ? 'mr.stEss' : v <= 20 ? 'mr.stAth' : v <= 24 ? 'mr.stFit' : v <= 31 ? 'mr.stAvg' : 'mr.stObese';
+}
+/* Agua corporal: referencia del método de bioimpedancia por sexo. */
+function mrWaterStatus(v, sex) {
+  if (v == null || !sex) return null;
+  const lo = sex === 'male' ? 50 : 45, hi = sex === 'male' ? 65 : 60;
+  return v < lo ? 'mr.stLow' : v <= hi ? 'mr.stStd' : 'mr.stHigh';
+}
+/* Grasa visceral: referencia del método (≤9 saludable · 10–14 alta · ≥15 muy alta). */
+function mrVisceralStatus(v) { if (v == null) return null; return v <= 9 ? 'mr.stHealthy' : v <= 14 ? 'mr.stHigh' : 'mr.stVeryHigh'; }
+function mrStatusTone(key) {
+  if (!key) return 'mut';
+  if (key === 'mr.stAth' || key === 'mr.stFit' || key === 'mr.stHealthy') return 'ok';
+  if (key === 'mr.stEss' || key === 'mr.stAvg') return 'info';
+  if (key === 'mr.stHigh' || key === 'mr.stLow') return 'warn';
+  if (key === 'mr.stVeryHigh' || key === 'mr.stObese') return 'bad';
+  return 'ok'; /* mr.stStd */
+}
+function mrChip(key) { return key ? `<span class="mr-chip ${mrStatusTone(key)}">${esc(t(key))}</span>` : ''; }
+/* Registros unificados por fecha: el pesaje (nutrition_weight) y la
+   composición de la evaluación (nutrition_progress *_eval) se fusionan;
+   la composición de la evaluación manda cuando el pesaje no la trae.
+   Una fecha sin pesaje propio hereda el peso del registro más cercano
+   anterior, marcado como cercano — nunca se inventa un peso. */
+function mrRecords(weights, evals) {
+  const byDate = {};
+  const rec = d => byDate[d] || (byDate[d] = { date: d, weight: null, weightNear: false, weightDate: null, fatMethod: '', hasMeasures: false });
+  const ws = (weights || []).filter(w => w && w.date).slice().sort((a, b) => a.date < b.date ? -1 : a.date > b.date ? 1 : 0);
+  for (const w of ws) {
+    const r = rec(w.date); const wv = mrNum(w.weight); if (wv != null) r.weight = wv;
+    r.fatMethod = w.fatMethod || r.fatMethod || '';
+    for (const k of MR_COMP_KEYS) { const c = mrCell(w[k]); if (c && !r[k]) r[k] = c; }
+  }
+  for (const d of Object.keys(evals || {})) {
+    const e = evals[d]; if (!e) continue; const r = rec(d);
+    const comp = e.comp || {};
+    for (const k of MR_COMP_KEYS) { const c = mrCell(comp[k]); if (c) r[k] = c; }
+    const ms = e.measures || {};
+    if (EVAL_MEASURES.some(x => x.kind === 'l' && num(ms[x.id]) > 0)) r.hasMeasures = true;
+  }
+  const dates = Object.keys(byDate).sort();
+  for (const d of dates) {
+    const r = byDate[d];
+    if (r.weight != null) { r.weightDate = d; continue; }
+    let best = null;
+    for (const w of ws) { if (w.date <= d && mrNum(w.weight) != null) best = w; else if (w.date > d) break; }
+    if (best) { r.weight = mrNum(best.weight); r.weightNear = true; r.weightDate = best.date; }
+  }
+  return dates.map(d => byDate[d]).filter(r => r.weight != null || MR_COMP_KEYS.some(k => r[k]) || r.hasMeasures);
+}
+function mrModel(inp) {
+  const recs = mrRecords(inp.weights, inp.evals);
+  const hasComp = r => !!(r.fat || r.muscle || r.water || r.visceral);
+  const compRecs = recs.filter(hasComp);
+  let sel = inp.sel && recs.some(r => r.date === inp.sel) ? inp.sel : null;
+  if (!sel) sel = compRecs.length ? compRecs[compRecs.length - 1].date : (recs.length ? recs[recs.length - 1].date : null);
+  const rec = recs.find(r => r.date === sel) || null;
+  const heightM = inp.heightCm ? inp.heightCm / 100 : null;
+  let fatMass = null, ffm = null;
+  if (rec && rec.weight != null && rec.fat) { fatMass = rec.weight * rec.fat.v / 100; ffm = rec.weight - fatMass; }
+  let smi = rec && rec.smi ? { v: rec.smi.v, unit: rec.smi.unit || 'kg/m²', method: rec.smi.method || '', derived: false } : null;
+  if (!smi && rec && rec.skeletal && heightM) smi = { v: rec.skeletal.v / (heightM * heightM), unit: 'kg/m²', method: '', derived: true };
+  const bmi = rec && rec.weight != null && heightM ? rec.weight / (heightM * heightM) : null;
+  const bmiBand = bmi == null ? null : bmi < 18.5 ? 'low' : bmi < 25 ? 'std' : bmi < 30 ? 'high' : 'obese';
+  const km = ffm != null ? 370 + 21.6 * ffm : null;
+  let a = inp.a, b = inp.b;
+  if (!compRecs.some(r => r.date === b)) b = compRecs.length ? compRecs[compRecs.length - 1].date : null;
+  if (!compRecs.some(r => r.date === a) || a === b) a = compRecs.length > 1 ? compRecs[compRecs.length - 2].date : null;
+  if (a === b) a = null;
+  const recA = compRecs.find(r => r.date === a) || null, recB = compRecs.find(r => r.date === b) || null;
+  /* La comparación usa valores «al día» (como la maqueta aprobada):
+     si a una fecha le falta un campo, vale el último registro anterior
+     que lo trae, y la fila se marca «registros cercanos». La tabla de
+     la medición elegida NO hace esto: es exacta por fecha. */
+  const asOf = (base, k) => {
+    if (!base) return null;
+    if (k === 'weight') return base.weight != null ? { v: base.weight, near: !!base.weightNear } : null;
+    if (base[k]) return { v: base[k].v, near: false };
+    let best = null;
+    for (const r of recs) { if (r.date < base.date && r[k]) best = r; else if (r.date >= base.date) break; }
+    return best ? { v: best[k].v, near: true } : null;
+  };
+  const cmpRows = [];
+  if (recA && recB) {
+    for (const k of ['fat', 'muscle', 'water', 'visceral', 'weight']) {
+      const va = asOf(recA, k), vb = asOf(recB, k);
+      if (!va && !vb) continue;
+      cmpRows.push({ k, a: va ? va.v : null, b: vb ? vb.v : null, d: (va && vb) ? vb.v - va.v : null, near: !!((va && va.near) || (vb && vb.near)) });
+    }
+  }
+  let meas = null;
+  const edates = Object.keys(inp.evals || {}).filter(d => { const ms = (inp.evals[d] || {}).measures || {}; return EVAL_MEASURES.some(x => x.kind === 'l' && num(ms[x.id]) > 0); }).sort();
+  if (edates.length) {
+    const d = edates[edates.length - 1], ms = inp.evals[d].measures || {};
+    const rows = EVAL_MEASURES.filter(x => x.kind === 'l' && num(ms[x.id]) > 0).map(x => ({ id: x.id, v: num(ms[x.id]) }));
+    const cin = num(ms.cintura) > 0 ? num(ms.cintura) : null, cad = num(ms.caderas) > 0 ? num(ms.caderas) : null;
+    meas = { date: d, rows, whr: cin && cad ? cin / cad : null };
+  }
+  const photoDates = Object.keys(inp.prog || {}).filter(d => PROGRESS_SLOTS.some(s => inp.prog[d] && inp.prog[d][s] && inp.prog[d][s].photo)).sort();
+  const age = inp.birthYear ? new Date().getFullYear() - inp.birthYear : null;
+  return { recs, compRecs, sel, rec, fatMass, ffm, smi, bmi, bmiBand, km, a, b, recA, recB, cmpRows, meas, photoDates, age };
+}
+function mrDeltaTone(k, d, objective) {
+  if (d == null || d === 0) return 'flat';
+  if (k === 'fat' || k === 'visceral') return d < 0 ? 'good' : 'bad';
+  if (k === 'muscle') return d > 0 ? 'good' : 'bad';
+  if (k === 'weight') { if (objective === 'bajar') return d < 0 ? 'good' : 'bad'; if (objective === 'ganar') return d > 0 ? 'good' : 'bad'; }
+  return 'flat';
+}
+function mrDeltaText(k, d) {
+  if (d == null) return '—';
+  if (d === 0) return '= 0';
+  const arrow = d > 0 ? '▲' : '▼';
+  const unit = k === 'weight' || k === 'muscle' ? '' : k === 'fat' || k === 'water' ? ' %' : '';
+  const val = (k === 'weight' || k === 'muscle') ? mpFmtKg(Math.abs(d)) : fmt(Math.abs(d)) + unit;
+  return `${arrow} ${val}`;
+}
+function mrRowHTML(label, valueHTML, chipHTML, sub) {
+  return `<div class="mr-tr"><span class="mr-td mr-tl">${esc(label)}</span><span class="mr-td mr-tv">${valueHTML}${sub ? `<small class="mr-sub">${esc(sub)}</small>` : ''}</span><span class="mr-td mr-tc">${chipHTML || ''}</span></div>`;
+}
+function mrNoRec() { return `<span class="mr-none">${esc(t('mr.noRec'))}</span>`; }
+function mrCellHTML(cell) {
+  if (!cell) return mrNoRec();
+  if (cell.unit === '%') return `${fmt(cell.v)} %`;
+  if (cell.unit === 'kg/m²') return `${mrFmt2(cell.v)} kg/m²`;
+  if (cell.unit && cell.unit !== 'kg') return `${fmt(cell.v)} ${esc(cell.unit)}`;
+  return esc(mpFmtKg(cell.v));
+}
+function mrMethodSub(cell, rec) {
+  const m = (cell && cell.method) || (rec && rec.fatMethod) || '';
+  return ['bio', 'caliper', 'dexa', 'other'].includes(m) ? t('mp.m.' + m) : '';
+}
+function mrPhotosHTML(m, inp, ctx) {
+  const title = `<h3 class="mr-t">${esc(t('mr.photosTitle'))}</h3>`;
+  if (!m.photoDates.length) return `<section class="mr-card">${title}<p class="mr-note">${esc(t('mr.photosNoneYet'))}</p>${ctx.mode === 'view' && !ctx.trainer ? `<button type="button" class="btn-ghost" data-mp-act="photosdoor">${esc(t('mr.photosGo'))}</button>` : ''}</section>`;
+  const set = (inp.prog || {})[m.sel] || {};
+  const cells = PROGRESS_SLOTS.map(s => { const p = set[s] && set[s].photo; return `<figure class="mr-ph">${p ? `<img src="${p}" alt="">` : `<div class="mr-ph-none">${esc(t('mr.noRec'))}</div>`}<figcaption>${esc(s.toUpperCase())}</figcaption></figure>`; }).join('');
+  let cmp = '';
+  if (m.photoDates.length >= 2) {
+    const dA = m.photoDates[m.photoDates.length - 2], dB = m.photoDates[m.photoDates.length - 1];
+    const cap = d => { const r = m.recs.find(x => x.date === d) || m.recs.filter(x => x.date <= d).pop(); return `${esc(shortDate(d))}${r && r.weight != null ? ' · ' + esc(mpFmtKg(r.weight)) : ''}`; };
+    const rows = PROGRESS_SLOTS.filter(s => { const A = (inp.prog[dA] || {})[s], B = (inp.prog[dB] || {})[s]; return A && A.photo && B && B.photo; }).map(s => `<div class="mr-phcmp-row"><figure class="mr-ph"><img src="${inp.prog[dA][s].photo}" alt=""><figcaption>${cap(dA)}</figcaption></figure><figure class="mr-ph"><img src="${inp.prog[dB][s].photo}" alt=""><figcaption>${cap(dB)}</figcaption></figure></div><p class="mr-phslot">${esc(s.toUpperCase())}</p>`).join('');
+    if (rows) cmp = `<h4 class="mr-subt">${esc(t('mr.cmpPhotos'))} · ${esc(shortDate(dA))} → ${esc(shortDate(dB))}</h4>${rows}`;
+  }
+  return `<section class="mr-card">${title}<div class="mr-phrow">${cells}</div>${cmp}</section>`;
+}
+function mrCompHTML(m, inp) {
+  const rec = m.rec, rows = [];
+  rows.push(mrRowHTML(t('mr.f.weight'), rec.weight != null ? esc(mpFmtKg(rec.weight)) : mrNoRec(), rec.date === todayISO() ? `<span class="mr-chip info">${esc(t('mr.today'))}</span>` : '', rec.weightNear ? t('mr.weightNear') : ''));
+  const fatSt = rec.fat ? mrFatStatus(rec.fat.v, inp.sex) : null;
+  rows.push(mrRowHTML(t('mr.f.fat'), rec.fat ? `${fmt(rec.fat.v)} %` : mrNoRec(), mrChip(fatSt), rec.fat ? mrMethodSub(rec.fat, rec) : ''));
+  rows.push(mrRowHTML(t('mr.f.fatMass'), m.fatMass != null ? esc(mpFmtKg(m.fatMass)) : mrNoRec(), '', m.fatMass != null ? t('mr.calc') : ''));
+  rows.push(mrRowHTML(t('mr.f.muscle'), rec.muscle ? esc(mpFmtKg(rec.muscle.v)) : mrNoRec(), '', rec.muscle ? mrMethodSub(rec.muscle, rec) : ''));
+  const watSt = rec.water ? mrWaterStatus(rec.water.v, inp.sex) : null;
+  rows.push(mrRowHTML(t('mr.f.water'), rec.water ? `${fmt(rec.water.v)} %` : mrNoRec(), mrChip(watSt), ''));
+  rows.push(mrRowHTML(t('mr.f.ffm'), m.ffm != null ? esc(mpFmtKg(m.ffm)) : mrNoRec(), '', m.ffm != null ? t('mr.calc') : ''));
+  const visSt = rec.visceral ? mrVisceralStatus(rec.visceral.v) : null;
+  rows.push(mrRowHTML(t('mr.f.visceral'), rec.visceral ? fmt(rec.visceral.v) : mrNoRec(), mrChip(visSt), ''));
+  rows.push(mrRowHTML(t('mr.f.bone'), mrCellHTML(rec.bone), '', rec.bone ? mrMethodSub(rec.bone, null) : ''));
+  rows.push(mrRowHTML(t('mr.f.protein'), mrCellHTML(rec.protein), '', rec.protein ? mrMethodSub(rec.protein, null) : ''));
+  rows.push(mrRowHTML(t('mr.f.subcutaneous'), mrCellHTML(rec.subcutaneous), '', ''));
+  rows.push(mrRowHTML(t('mr.f.skeletal'), mrCellHTML(rec.skeletal), '', rec.skeletal ? mrMethodSub(rec.skeletal, null) : ''));
+  rows.push(mrRowHTML(t('mr.f.smi'), m.smi ? (m.smi.derived ? `${mrFmt2(m.smi.v)} kg/m²` : mrCellHTML(m.smi)) : mrNoRec(), '', m.smi && m.smi.derived ? t('mr.calc') : ''));
+  return `<section class="mr-card"><h3 class="mr-t">${esc(t('mr.compTitle', { d: dateName(m.sel) }))}</h3><div class="mr-table"><div class="mr-tr mr-th"><span class="mr-td">${esc(t('mr.colMeasure'))}</span><span class="mr-td">${esc(t('mr.colValue'))}</span><span class="mr-td">${esc(t('mr.colState'))}</span></div>${rows.join('')}</div><p class="mr-note">${esc(t('mr.compFoot'))}</p></section>`;
+}
+function mrBmiHTML(m, inp) {
+  const title = `<h3 class="mr-t">${esc(t('mr.bmiTitle'))}</h3>`;
+  if (m.bmi == null) return `<section class="mr-card">${title}<p class="mr-note">${esc(t('mr.bmiNoHeight'))}</p></section>`;
+  const rec = m.rec;
+  const bandKey = { low: 'mr.bandLow', std: 'mr.bandStd', high: 'mr.bandHigh', obese: 'mr.bandObese' }[m.bmiBand];
+  const bandTone = { low: 'info', std: 'ok', high: 'warn', obese: 'bad' }[m.bmiBand];
+  const pct = Math.max(2, Math.min(98, (m.bmi - 14) / 26 * 100));
+  const fatSt = rec.fat ? mrFatStatus(rec.fat.v, inp.sex) : null;
+  let note;
+  if ((m.bmiBand === 'high' || m.bmiBand === 'obese') && rec.fat && rec.muscle && fatSt && ['mr.stAth', 'mr.stFit', 'mr.stAvg', 'mr.stEss'].includes(fatSt)) note = t('mr.bmiNoteMuscle', { m: mpFmtKg(rec.muscle.v), f: fmt(rec.fat.v), fs: t(fatSt).toLowerCase() });
+  else if (rec.fat && fatSt) note = t('mr.bmiNoteFat', { f: fmt(rec.fat.v), fs: t(fatSt).toLowerCase() });
+  else if (rec.fat) note = t('mr.bmiNoteFatPlain', { f: fmt(rec.fat.v) });
+  else note = t('mr.bmiNoteNoFat');
+  return `<section class="mr-card">${title}<div class="mr-bmirow"><span class="mr-bignum">${mrFmt2(m.bmi)}</span><span class="mr-chip ${bandTone}">${esc(t('mr.bmiWho', { band: t(bandKey) }))}</span>${rec.fat ? `<span class="mr-bmifat">${esc(t('mr.f.fat'))}: <b>${fmt(rec.fat.v)} %</b>${fatSt ? ` · ${esc(t(fatSt))}` : ''}</span>` : ''}</div><div class="mr-bmibar"><span class="mr-bmidot" style="left:${pct}%"></span></div><p class="mr-note">${esc(note)}</p></section>`;
+}
+function mrEnergyHTML(m, inp) {
+  const rows = [];
+  if (m.km != null) rows.push(mrRowHTML(t('mr.km'), `<b>${mrKcal(m.km)} kcal</b>`, '', t('mr.kmFormula', { ffm: mpFmtKg(m.ffm) })));
+  const eq = inp.equation;
+  if (eq && (eq.rmr || eq.tdee)) {
+    const name = eq.used === 'mifflin-st-jeor' ? 'Mifflin-St Jeor' : eq.used === 'katch-mcardle' ? 'Katch-McArdle' : (eq.used || '');
+    if (eq.rmr) rows.push(mrRowHTML(t('mr.eqCurrent', { name }), `<b>${mrKcal(eq.rmr)} kcal</b>`, '', t('mr.rmrSub')));
+    if (eq.tdee) rows.push(mrRowHTML(t('mr.tdee'), `<b>${mrKcal(eq.tdee)} kcal</b>`, '', ''));
+  }
+  if (!rows.length) return '';
+  const g = inp.goals;
+  const goalsLine = g ? `<p class="mr-goals"><b>${esc(t('mr.goalsLine'))}:</b> ${mrKcal(g.kcal)} kcal · P ${fmt(g.protein)} g · C ${fmt(g.carbs)} g · G ${fmt(g.fat)} g${num(g.sugar) > 0 ? ' · ' + esc(t('mr.sugarMax', { n: fmt(g.sugar) })) : ''}${inp.goalsFib ? ' · ' + esc(t('mr.fiber', { n: fmt(inp.goalsFib) })) : ''}</p>` : '';
+  return `<section class="mr-card"><h3 class="mr-t">${esc(t('mr.energyTitle'))}</h3><div class="mr-table">${rows.join('')}</div>${goalsLine}</section>`;
+}
+function mrCmpHTML(m, inp, ctx) {
+  const opts = s => m.compRecs.slice().reverse().map(r => `<option value="${r.date}"${r.date === s ? ' selected' : ''}>${esc(shortDate(r.date))}</option>`).join('');
+  const head = ctx.mode === 'view'
+    ? `<div class="mr-cmpsel"><select id="mr-a" class="mr-sel">${opts(m.a)}</select><span class="mr-arrow">→</span><select id="mr-b" class="mr-sel">${opts(m.b)}</select></div>`
+    : `<p class="mr-hsub">${esc(shortDate(m.a))} → ${esc(shortDate(m.b))}</p>`;
+  const label = k => k === 'weight' ? t('mr.f.weight') : t('mr.f.' + k);
+  const val = (k, v) => v == null ? '—' : (k === 'weight' || k === 'muscle') ? mpFmtKg(v) : (k === 'fat' || k === 'water') ? fmt(v) + ' %' : fmt(v);
+  const rows = m.cmpRows.map(r => `<div class="mr-tr"><span class="mr-td mr-tl">${esc(label(r.k))}${r.near ? `<small class="mr-sub">${esc(t('mr.weightNear'))}</small>` : ''}</span><span class="mr-td">${esc(val(r.k, r.a))} → ${esc(val(r.k, r.b))}</span><span class="mr-td"><span class="mr-d ${mrDeltaTone(r.k, r.d, inp.objective)}">${esc(mrDeltaText(r.k, r.d))}</span></span></div>`).join('');
+  return `<section class="mr-card"><h3 class="mr-t">${esc(t('mr.cmpTitle'))}</h3>${head}<div class="mr-table"><div class="mr-tr mr-th"><span class="mr-td">${esc(t('mr.colMeasure'))}</span><span class="mr-td">${esc(t('mr.colAB'))}</span><span class="mr-td">${esc(t('mr.colChange'))}</span></div>${rows}</div></section>`;
+}
+function mrObjText(inp) {
+  const o = ['bajar', 'ganar', 'mantener'].includes(inp.objective) ? t('mr.obj.' + inp.objective) : '';
+  const f = ['recomposicion', 'competencia'].includes(inp.focus) ? t('mr.focus.' + inp.focus) : '';
+  return [o, f].filter(Boolean).join(' ');
+}
+function mrHistHTML(m, inp) {
+  const wr = m.recs.filter(r => r.weight != null && !r.weightNear); /* solo pesajes propios: un peso cercano no es un pesaje de ese día */
+  if (!wr.length) return '';
+  const chips = wr.map(r => `<span class="mr-hchip${r.date === m.sel ? ' on' : ''}"><b>${esc(mpFmtKg(r.weight))}</b><small>${esc(shortDate(r.date))}</small></span>`).join('');
+  const last = wr[wr.length - 1];
+  let mark;
+  if (inp.markKg) {
+    let left = '';
+    if (inp.objective === 'bajar' && last.weight > inp.markKg) left = t('mr.markLeft', { kg: mpFmtKg(last.weight - inp.markKg) });
+    else if (inp.objective === 'ganar' && last.weight < inp.markKg) left = t('mr.markLeft', { kg: mpFmtKg(inp.markKg - last.weight) });
+    mark = `<p class="mr-mark">🎯 ${esc(t('mr.markLine', { kg: mpFmtKg(inp.markKg) }))}${left ? ' ' + esc(left) : ''}</p>`;
+  } else mark = `<p class="mr-mark">🎯 ${esc(t('mr.markNone'))}</p>`;
+  const obj = mrObjText(inp);
+  return `<section class="mr-card"><h3 class="mr-t">${esc(t('mr.histTitle'))}</h3><div class="mr-hchips">${chips}</div>${mark}${obj ? `<p class="mr-note">${esc(t('mr.objective', { o: obj }))}</p>` : ''}</section>`;
+}
+function mrMeasHTML(m, inp) {
+  const cells = m.meas.rows.map(r => `<div class="mr-meas"><span>${esc(t('eval.measure.' + r.id))}</span><b>${esc(mpFmtCm(r.v))}</b></div>`).join('');
+  const whr = m.meas.whr != null ? `<div class="mr-meas"><span>${esc(t('mr.whr'))}</span><b>${mrFmt2(m.meas.whr)}</b></div>` : '';
+  const btOk = inp.bt && ['ectomorph', 'mesomorph', 'endomorph'].includes(inp.bt.category);
+  const bt = btOk ? `<p class="mr-note">${esc(t('mr.btLine', { d: inp.bt.date ? shortDate(inp.bt.date) : '—', cat: t('bt.category.' + inp.bt.category) }))}</p>` : '';
+  return `<section class="mr-card"><h3 class="mr-t">${esc(t('mr.measTitle', { d: dateName(m.meas.date) }))}</h3><div class="mr-measgrid">${cells}${whr}</div>${bt}</section>`;
+}
+function mrHTML(m, inp, ctx) {
+  const rec = m.rec; if (!rec) return '';
+  const showPhotos = ctx.mode === 'view' || ctx.incl;
+  const sexLabel = inp.sex === 'male' ? t('mr.male') : inp.sex === 'female' ? t('mr.female') : '';
+  const headSub = [sexLabel, m.age ? t('mr.years', { n: m.age }) : '', inp.heightCm ? mpFmtCm(inp.heightCm) : ''].filter(Boolean).join(' · ');
+  let h = `<section class="mr-card mr-head"><h2 class="mr-name">${esc(inp.name || '')}</h2>`
+    + (headSub ? `<p class="mr-hsub">${esc(headSub)}${inp.heightCm ? ` · ${esc(t('mr.headHeight'))}` : ''}</p>` : '')
+    + (ctx.mode === 'view'
+      ? `<label class="mr-sellab">${esc(t('mr.recDate'))}<select id="mr-sel" class="mr-sel">${m.recs.slice().reverse().map(r => `<option value="${r.date}"${r.date === m.sel ? ' selected' : ''}>${esc(dateName(r.date))}</option>`).join('')}</select></label>`
+      : `<p class="mr-hsub">${esc(t('mr.recordOf', { d: dateName(m.sel) }))}</p>`)
+    + `</section>`;
+  if (showPhotos) h += mrPhotosHTML(m, inp, ctx);
+  h += mrCompHTML(m, inp);
+  h += mrBmiHTML(m, inp);
+  h += mrEnergyHTML(m, inp);
+  if (m.recA && m.recB) h += mrCmpHTML(m, inp, ctx);
+  h += mrHistHTML(m, inp);
+  if (m.meas) h += mrMeasHTML(m, inp);
+  h += `<section class="mr-card"><h3 class="mr-t">${esc(t('mr.honestTitle'))}</h3>${['mr.honest1', 'mr.honest2', 'mr.honest3', 'mr.honest4', 'mr.honest5'].map(k => `<p class="mr-honest">${esc(t(k))}</p>`).join('')}</section>`;
+  if (ctx.mode === 'view') {
+    h += `<section class="mr-card mr-actions">`
+      + (ctx.trainer
+        ? `<button type="button" class="btn-main" id="mr-pdf">${esc(t('mr.pdf'))}</button>`
+        : `<label class="mr-incl"><input type="checkbox" id="mr-incl"${MR && MR.incl ? ' checked' : ''}> <span>${esc(t('mr.inclPhotos'))}</span></label><div class="mr-btnrow"><button type="button" class="btn-main" id="mr-share">${esc(t('mr.share'))}</button><button type="button" class="btn-ghost" id="mr-pdf">${esc(t('mr.pdf'))}</button></div><p class="mr-note">${esc(t('mr.shareNote'))}</p>`)
+      + `</section>`;
+  }
+  return h;
+}
+function mrMarkOf(u) {
+  if (!u) return null;
+  const gf = u.goalFocus || {};
+  const comp = gf.competition || {};
+  const cands = [u.weightGoalKg, u.goalWeightKg, u.targetWeightKg, u.markKg, u.pesoMetaKg, comp.targetKg, comp.weightKg, comp.targetWeightKg];
+  for (const c of cands) { const n = num(c); if (n > 0) return n; }
+  return null;
+}
+function mrInputOwn(bt) {
+  const asmt = (typeof MY_ASMT !== 'undefined' && MY_ASMT && MY_ASMT.doc) ? MY_ASMT.doc : null;
+  const u = (typeof UDATA !== 'undefined' && UDATA) || {};
+  return {
+    name: u.name || '', gender: u.gender || '',
+    sex: (typeof MY_ENERGY !== 'undefined' && MY_ENERGY && (MY_ENERGY.sex === 'male' || MY_ENERGY.sex === 'female')) ? MY_ENERGY.sex : mrSexText(u.gender),
+    birthYear: asmt && parseInt(asmt.birthYear, 10) ? parseInt(asmt.birthYear, 10) : null,
+    heightCm: asmt ? (num(asmt.heightCm) > 0 ? num(asmt.heightCm) : null) : null,
+    weights: (typeof WEIGHTS !== 'undefined' ? WEIGHTS : []), evals: (typeof EVALS !== 'undefined' ? EVALS : {}), prog: (typeof PROG !== 'undefined' ? PROG : {}),
+    goals: (typeof GOALS !== 'undefined' ? GOALS : null), goalsFib: num(u.goalsFib) > 0 ? num(u.goalsFib) : null,
+    objective: u.goalObjective || '', focus: (typeof gmFocusEffective === 'function') ? (gmFocusEffective(u).focus || '') : '',
+    markKg: mrMarkOf(u),
+    equation: asmt ? { used: asmt.equationUsed || asmt.equation || '', rmr: num(asmt.rmrKcal) > 0 ? num(asmt.rmrKcal) : null, tdee: num(asmt.tdeeKcal) > 0 ? num(asmt.tdeeKcal) : null } : null,
+    bt: bt || null
+  };
+}
+function mrPaint() {
+  const body = $('mp-report-body'); if (!body || !MR) return;
+  const m = mrModel({ ...MR.input, sel: MR.sel, a: MR.a, b: MR.b });
+  MR.sel = m.sel; MR.a = m.a; MR.b = m.b; MR_MODEL = m;
+  if (!m.rec) { body.innerHTML = `<div class="wempty">${esc(t('mr.empty'))}</div>`; return; }
+  body.innerHTML = mrHTML(m, MR.input, { mode: 'view', incl: MR.incl, trainer: !!MR.trainerUid });
+  mrWire(body);
+}
+function mrWire(body) {
+  const sel = body.querySelector('#mr-sel'); if (sel) sel.onchange = () => { MR.sel = sel.value; mrPaint(); };
+  const a = body.querySelector('#mr-a'); if (a) a.onchange = () => { MR.a = a.value; mrPaint(); };
+  const b = body.querySelector('#mr-b'); if (b) b.onchange = () => { MR.b = b.value; mrPaint(); };
+  const incl = body.querySelector('#mr-incl'); if (incl) incl.onchange = () => { MR.incl = !!incl.checked; };
+  body.querySelectorAll('.mr-ph img').forEach(im => { im.style.cursor = 'zoom-in'; im.onclick = () => { if (typeof showLightbox === 'function') showLightbox(im.src); }; });
+  const sh = body.querySelector('#mr-share'); if (sh) sh.onclick = () => mrShare();
+  const pdf = body.querySelector('#mr-pdf'); if (pdf) pdf.onclick = () => mrPrint();
+}
+async function mrLatestBt(uid, needShared) {
+  const snap = await getDocs(query(btCol(), where('clientUid', '==', uid)));
+  let best = null, bestTs = -1;
+  snap.forEach(d => { const v = d.data() || {}; if (needShared && v.shared !== true) return; const ts = v.createdAt && v.createdAt.seconds ? v.createdAt.seconds : 0; if (ts >= bestTs) { bestTs = ts; best = v; } });
+  return best && best.category ? { category: best.category, date: best.sourceDate || '' } : null;
+}
+async function mrOpen() {
+  const body = $('mp-report-body'); if (!body) return;
+  mpSheetOpen('mp-report');
+  body.innerHTML = `<div class="wempty">${esc(t('mr.loading'))}</div>`;
+  let bt = null;
+  try {
+    const me = mpMe();
+    const consent = (typeof UDATA !== 'undefined' && UDATA && UDATA.bodyTypeConsent) || {};
+    if (me && consent.status === 'accepted') bt = await mrLatestBt(me, false);
+  } catch {}
+  MR = { input: mrInputOwn(bt), sel: null, a: null, b: null, incl: false, trainerUid: null };
+  mrPaint();
+}
+/* Puerta en la ficha: solo aparece si el espectador es el entrenador
+   ASIGNADO de este alumno y la composición está en sus manos
+   (compAccess en modo 'trainer'). Sin puerta no hay vista: mrOpenTrainer
+   vuelve a comprobar lo mismo antes de pintar (falla cerrada). */
+async function mrTrainerDoorMount() {
+  const host = $('mr-trainer-door'); if (!host || typeof CEV === 'undefined' || !CEV || !CEV.uid) return;
+  const uid = CEV.uid;
+  try {
+    const me = mpMe(); if (!me || me === uid) return;
+    const cs = await getDoc(compAccessRef(uid));
+    const mode = cs.exists() ? (cs.data().mode === 'client' ? 'client' : 'trainer') : 'trainer';
+    if (mode !== 'trainer') return;
+    const us = await getDoc(doc(db, 'users', uid));
+    if (!us.exists()) return;
+    const u = us.data() || {};
+    if (u.trainerUid !== me || u.assignmentStatus !== 'assigned') return;
+    host.innerHTML = `<button type="button" class="btn-ghost" id="mr-trainer-open">${esc(t('mr.trainerOpen'))}</button>`;
+    const b = $('mr-trainer-open'); if (b) b.onclick = () => mrOpenTrainer(uid);
+  } catch {}
+}
+async function mrOpenTrainer(uid) {
+  const body = $('mp-report-body'); if (!body) return;
+  const me = mpMe();
+  let udata = null, mode = null;
+  try { const cs = await getDoc(compAccessRef(uid)); mode = cs.exists() ? (cs.data().mode === 'client' ? 'client' : 'trainer') : 'trainer'; } catch {}
+  try { const us = await getDoc(doc(db, 'users', uid)); if (us.exists()) udata = us.data(); } catch {}
+  if (!udata || !me || udata.trainerUid !== me || udata.assignmentStatus !== 'assigned' || mode !== 'trainer') { toast(t('mr.errTrainer'), true); return; }
+  mpSheetOpen('mp-report');
+  body.innerHTML = `<div class="wempty">${esc(t('mr.loading'))}</div>`;
+  let asmt = null, bt = null; const weights = [];
+  try { const as = await getDoc(doc(db, 'users', uid, 'assessment', 'current')); if (as.exists()) asmt = as.data(); } catch {}
+  try {
+    const ws = await getDocs(query(collection(db, 'nutrition_weight'), where('ownerUid', '==', uid)));
+    ws.forEach(d => { const v = d.data() || {}; if (v.date) weights.push({ date: v.date, weight: num(v.weight), fat: v.fat, muscle: v.muscle, water: v.water, visceral: v.visceral, bone: v.bone, protein: v.protein, subcutaneous: v.subcutaneous, skeletal: v.skeletal, smi: v.smi, fatMethod: v.fatMethod || '' }); });
+  } catch {}
+  try { if ((udata.bodyTypeConsent || {}).status === 'accepted') bt = await mrLatestBt(uid, true); } catch {}
+  const evals = (typeof CEV !== 'undefined' && CEV && CEV.uid === uid) ? CEV.evals : {};
+  const prog = (typeof CEV !== 'undefined' && CEV && CEV.uid === uid) ? CEV.prog : {};
+  MR = { input: {
+    name: udata.name || '', gender: udata.gender || '', sex: mrSexText(udata.gender),
+    birthYear: asmt && parseInt(asmt.birthYear, 10) ? parseInt(asmt.birthYear, 10) : null,
+    heightCm: asmt ? (num(asmt.heightCm) > 0 ? num(asmt.heightCm) : null) : null,
+    weights, evals, prog,
+    goals: udata.goals || null, goalsFib: num(udata.goalsFib) > 0 ? num(udata.goalsFib) : null,
+    objective: udata.goalObjective || '', focus: (typeof gmFocusEffective === 'function') ? (gmFocusEffective(udata).focus || '') : '',
+    markKg: mrMarkOf(udata),
+    equation: asmt ? { used: asmt.equationUsed || asmt.equation || '', rmr: num(asmt.rmrKcal) > 0 ? num(asmt.rmrKcal) : null, tdee: num(asmt.tdeeKcal) > 0 ? num(asmt.tdeeKcal) : null } : null,
+    bt
+  }, sel: null, a: null, b: null, incl: false, trainerUid: uid };
+  mrPaint();
+}
+function mrShareRows(m, inp) {
+  const r = m.rec, rows = [];
+  if (r.weight != null) rows.push([t('mr.f.weight'), mpFmtKg(r.weight)]);
+  if (r.fat) rows.push([t('mr.f.fat'), fmt(r.fat.v) + ' %']);
+  if (m.fatMass != null) rows.push([t('mr.f.fatMass') + ' (' + t('mr.calc') + ')', mpFmtKg(m.fatMass)]);
+  if (r.muscle) rows.push([t('mr.f.muscle'), mpFmtKg(r.muscle.v)]);
+  if (r.water) rows.push([t('mr.f.water'), fmt(r.water.v) + ' %']);
+  if (r.visceral) rows.push([t('mr.f.visceral'), fmt(r.visceral.v)]);
+  if (m.bmi != null) rows.push(['IMC / BMI', mrFmt2(m.bmi) + (r.fat ? ' · ' + fmt(r.fat.v) + ' %' : '')]);
+  if (m.km != null) rows.push([t('mr.kmShort'), mrKcal(m.km) + ' kcal']);
+  else if (inp.equation && inp.equation.rmr) rows.push([t('mr.eqShort'), mrKcal(inp.equation.rmr) + ' kcal']);
+  return rows;
+}
+async function mrShare() {
+  const m = MR_MODEL, inp = MR && MR.input; if (!m || !m.rec || !inp) return;
+  const rows = mrShareRows(m, inp);
+  const W = 1080, pad = 64;
+  const set = (inp.prog || {})[m.sel] || {};
+  const frontPhoto = MR.incl && set.front && set.front.photo ? set.front.photo : null;
+  const rowsTop = frontPhoto ? 920 : 400;
+  const H = rowsTop + rows.length * 76 + 190;
+  const cv = document.createElement('canvas'); cv.width = W; cv.height = H;
+  const x = cv.getContext('2d'); if (!x) return;
+  x.fillStyle = '#ffffff'; x.fillRect(0, 0, W, H);
+  x.fillStyle = '#0b5a4f'; x.fillRect(0, 0, W, 150);
+  x.fillStyle = '#ffffff'; x.font = '800 52px system-ui, sans-serif'; x.textAlign = 'left'; x.fillText('RONBO.FIT', pad, 96);
+  x.font = '600 27px system-ui, sans-serif'; x.textAlign = 'right'; x.fillText(t('mr.shareCardTitle'), W - pad, 96); x.textAlign = 'left';
+  x.fillStyle = '#173f39'; x.font = '700 46px system-ui, sans-serif'; x.fillText(String(inp.name || ''), pad, 252);
+  x.fillStyle = '#5b7a74'; x.font = '400 30px system-ui, sans-serif';
+  x.fillText([dateName(m.sel), inp.heightCm ? mpFmtCm(inp.heightCm) : '', m.age ? t('mr.years', { n: m.age }) : ''].filter(Boolean).join(' · '), pad, 306);
+  if (frontPhoto) {
+    try {
+      const img = await new Promise((res, rej) => { const im = new Image(); im.onload = () => res(im); im.onerror = rej; im.src = frontPhoto; });
+      const dw = 400, dh = 520, dx = (W - dw) / 2, dy = 350;
+      const sc = Math.max(dw / img.width, dh / img.height), sw = dw / sc, sh = dh / sc;
+      x.save(); x.beginPath();
+      if (x.roundRect) x.roundRect(dx, dy, dw, dh, 24); else x.rect(dx, dy, dw, dh);
+      x.clip(); x.drawImage(img, (img.width - sw) / 2, (img.height - sh) / 2, sw, sh, dx, dy, dw, dh); x.restore();
+    } catch {}
+  }
+  let y = rowsTop;
+  for (const [label, value] of rows) {
+    x.fillStyle = '#5b7a74'; x.font = '400 30px system-ui, sans-serif'; x.textAlign = 'left'; x.fillText(label, pad, y);
+    x.fillStyle = '#173f39'; x.font = '700 36px system-ui, sans-serif'; x.textAlign = 'right'; x.fillText(value, W - pad, y);
+    x.strokeStyle = '#dcebe7'; x.beginPath(); x.moveTo(pad, y + 22); x.lineTo(W - pad, y + 22); x.stroke();
+    y += 76;
+  }
+  x.fillStyle = '#5b7a74'; x.font = '400 25px system-ui, sans-serif'; x.textAlign = 'left';
+  x.fillText('ronbo.fit' + (MR.incl ? '' : ' · ' + t('mr.shareNote')), pad, H - 56);
+  cv.toBlob(async blob => {
+    if (!blob) { toast(t('mr.shareFail'), true); return; }
+    const file = new File([blob], 'ronbo-fit-reporte-composicion.png', { type: 'image/png' });
+    if (navigator.canShare && navigator.canShare({ files: [file] })) { try { await navigator.share({ files: [file] }); return; } catch {} }
+    const a = document.createElement('a'); a.href = URL.createObjectURL(blob); a.download = file.name; document.body.appendChild(a); a.click();
+    setTimeout(() => { try { URL.revokeObjectURL(a.href); } catch {} a.remove(); }, 400);
+  }, 'image/png');
+}
+function mrPrint() {
+  const pc = $('print-card'); if (!pc || !MR || !MR_MODEL || !MR_MODEL.rec) return;
+  const m = MR_MODEL, inp = MR.input;
+  pc.innerHTML = `<h2 class="pc-title">${esc(inp.name || '')} — ${esc(t('mr.title'))}</h2><p class="pc-sub">${esc(dateName(m.sel))} · RONBO.FIT</p>` + mrHTML(m, inp, { mode: 'print', incl: MR.incl, trainer: !!MR.trainerUid });
+  window.print();
+}
+/* === FIN MI REPORTE DE COMPOSICIÓN === */
 /* ---------- Vista del entrenador ---------- */
 let MPT = null;
 async function mpTrainerMount(uid) {
@@ -59124,6 +59796,7 @@ document.addEventListener('click', e => {
   const act = b.dataset.mpAct;
   if (act === 'quick') { mpSheetClose('mp-hist'); mpOpenQuick(b.dataset.date || todayISO(), b.dataset.field || ''); }
   else if (act === 'hist') mpOpenHist(b.dataset.field);
+  else if (act === 'reportdoor') { mpSheetClose('mp-hist'); mrOpen(); }
   else if (act === 'close') mpSheetClose(b.dataset.sheet);
   else if (act === 'weightdoor') { mpSheetClose('mp-hist'); openWeightModal(null); }
   else if (act === 'photosdoor') { const g = $('prog-g-fotos'); if (g) { try { g.scrollIntoView({ behavior: 'smooth', block: 'start' }); } catch {} } }

@@ -21,7 +21,7 @@
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-title" content="RONBO FIT">
 <meta name="apple-mobile-web-app-status-bar-style" content="default">
-<link rel="stylesheet" href="styles.css?v=20261110-checkin-semanal">
+<link rel="stylesheet" href="styles.css?v=20261110-reporte-composicion">
 <script defer src="https://cloud.umami.is/script.js" data-website-id="a29706d4-44a2-47cf-900a-5f74d74abfa8"></script>
 <script type="importmap">
 {
@@ -1254,6 +1254,10 @@
     <div id="month-card-box"></div>
   </div>
 </div>
+<div class="act-float act-sheet" id="mp-report" style="display:none" role="dialog" aria-label="Body composition report">
+  <div class="pend-head"><h2>📄 <span data-i18n="mr.title">Mi reporte de composición</span></h2><button type="button" class="pend-close" data-mp-act="close" data-sheet="mp-report" aria-label="Close">✕</button></div>
+  <div id="mp-report-body" class="act-body"></div>
+</div>
 <div class="act-float act-sheet" id="share-float" style="display:none" role="dialog" aria-label="Share your progress" data-i18n-aria="share.title">
     <div class="pend-head">
       <h2 data-i18n="share.title">Share your progress</h2>
@@ -2264,6 +2268,6 @@
 <div id="toast" class="toast"></div>
 <div id="print-card" aria-hidden="true"></div>
 
-<script type="module" src="app.js?v=20261110-checkin-semanal"></script>
+<script type="module" src="app.js?v=20261110-reporte-composicion"></script>
 </body>
 </html>
