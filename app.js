@@ -27035,10 +27035,24 @@ async function recipesPaint() {
     listEl.innerHTML = `<p class="progress-hint">${esc(t('recipes.loading'))}</p>`;
     try {
       const me = auth.currentUser && auth.currentUser.uid;
-      const snap = await getDocs(collection(db, 'recipes'));
+      /* La carga usa SOLO consultas probables ante las reglas
+         (correctivo AUTH-2026-11-10-365: la lista sin acotar de
+         la primera versión era DENEGADA para cualquier cuenta no
+         propietaria — las cláusulas por documento exigen acotar
+         la consulta a lo que la cláusula puede probar, como hace
+         el módulo de alimentación con sus dos consultas):
+         catálogo general publicado + documentos propios (las
+         propuestas 'pendiente' se ven solo en casa) + las
+         privadas publicadas de mi coach de alimentación. */
+      const byId = new Map();
+      const add = snap => snap.forEach(d => { if (!byId.has(d.id)) byId.set(d.id, { id: d.id, ...d.data() }); });
+      add(await getDocs(query(collection(db, 'recipes'), where('scope', '==', 'general'), where('status', '==', 'publicada'))));
+      if (me) add(await getDocs(query(collection(db, 'recipes'), where('ownerUid', '==', me))));
       const myNutri = (typeof NUTRI !== 'undefined' && NUTRI.myRel && NUTRI.myRel.nutritionistUid) || null;
-      RECIPES_UI.list = snap.docs.map(d => ({ id: d.id, ...d.data() }))
-        .filter(r => r.ownerUid === me || (r.status === 'publicada' && (r.scope === 'general' || (myNutri && r.ownerUid === myNutri))));
+      if (myNutri && myNutri !== me) {
+        try { add(await getDocs(query(collection(db, 'recipes'), where('ownerUid', '==', myNutri), where('scope', '==', 'privada'), where('status', '==', 'publicada')))); } catch {}
+      }
+      RECIPES_UI.list = [...byId.values()];
       RECIPES_UI.list.sort((a, b) => String((a.title && a.title.es) || '').localeCompare(String((b.title && b.title.es) || '')));
     } catch {
       listEl.innerHTML = `<p class="progress-hint">${esc(t('recipes.loadErr'))}</p>`;
