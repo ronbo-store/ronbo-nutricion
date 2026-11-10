@@ -5365,3 +5365,25 @@ body.swap-sheet-open .asst-fab { display: none !important; }
 .restbox-u { font-size: 12.5px; font-weight: 700; opacity: .92; margin-top: 1px; }
 .guide-rest-next { flex: 1 1 auto; font-size: 14px; font-weight: 600; }
 .guide-time-rest { display: flex; align-items: center; }
+
+/* AUTH-2026-11-10-373 · La hoja de consentimiento de actividad
+   (#acts-float) es la ÚNICA hoja de la familia .act-float con el
+   pie FIJO fuera del scroll: su variante .acts-sheet anuló el
+   relleno inferior del contenedor (padding: 0) al pasar a columna
+   flexible, y su .acts-foot (flex: none) quedó pegado al borde
+   inferior de la pantalla — exactamente donde flota el dock
+   global (.actions-dock, z-index 47, posterior en el DOM a la
+   hoja con su mismo z-index 47 vía .act-sheet). Medido sobre lo
+   servido con el CSS y el marcado reales (360/430/768): el botón
+   de confirmar quedaba 57–65 px BAJO el borde superior del dock
+   y elementFromPoint en su centro devolvía el propio dock — el
+   usuario no podía confirmar (reporte de Ronald 2026-11-10 con
+   las capturas de Luis Farias: «chocan los iconos con el botón»).
+   EL ARREGLO, el patrón de AUTH-371 llevado al pie: la holgura
+   vive en el propio pie de la hoja — el relleno inferior de la
+   casa, calc(120px + área segura), el mismo de la base .act-float
+   — y la casilla y el botón suben enteros sobre el dock en las
+   tres bandas, con la hoja a pantalla completa intacta (AUTH-338)
+   y el dock sin tocar. La mecánica y los textos del
+   consentimiento (v1-2026-11-03) no cambian: es geometría. */
+.acts-foot { padding-bottom: calc(120px + env(safe-area-inset-bottom, 0px)); }
