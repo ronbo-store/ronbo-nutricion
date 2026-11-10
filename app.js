@@ -5808,6 +5808,7 @@ en: {
   'train.swap.allGroups': 'See the whole library',
   'train.swap.addBtn': 'Add',
   'train.pick.inSession': 'Already in your session',
+  'train.pick.scan': '📷 Scan a machine',
   'train.pick.none': 'No exercises added yet',
   'train.pick.one': '1 added to your session',
   'train.pick.many': '{n} added to your session',
@@ -10352,6 +10353,7 @@ es: {
   'train.swap.allGroups': 'Ver toda la biblioteca',
   'train.swap.addBtn': 'Agregar',
   'train.pick.inSession': 'Ya está en tu sesión',
+  'train.pick.scan': '📷 Escanear una máquina',
   'train.pick.none': 'Sin agregados todavía',
   'train.pick.one': '1 agregado a tu sesión',
   'train.pick.many': '{n} agregados a tu sesión',
@@ -31365,6 +31367,8 @@ function trainChecksPruneStale(planId) {
    Los días pasados solo los ajustan el entrenador, el
    administrador o el usuario autónomo (trainPastEditable). */
 let TRAIN_CUSTOM_OPEN = false;   // el desplegable nace recogido; solo memoria
+let TRAIN_CUSTOM_OPEN_STASH = null;   // AUTH-370: estado del desplegable al entrar al modo guiado; al salir se restaura (null = sin guarda)
+let TRAIN_GUIDE_DOOR = false;   // AUTH-370: la tarjeta interactiva de hoy está en pie → la puerta del guiado se pinta ARRIBA (trainGuideDoorHTML)
 let TRAIN_PICK = null;           // { kind:'swap', idx } | { kind:'add' } — selector de biblioteca abierto dentro del desplegable
 let TRAIN_CUSTOM_ISO = null;     // FECHA VISTA (2026-11-01): fecha que el desplegable está personalizando; si la vista cambia de fecha, el selector abierto se cierra (su índice pertenecía a la lista de otro día)
 /* FECHA VISTA (2026-11-01, decisión de Ronald): la clave admite
@@ -31854,6 +31858,7 @@ function trainCustomRenderSession(plan, di, closed, iso) {
     btn.dataset.wired = '1';
     btn.onclick = () => {
       TRAIN_CUSTOM_OPEN = !TRAIN_CUSTOM_OPEN;
+      TRAIN_CUSTOM_OPEN_STASH = null;   /* AUTH-370: el toque de la persona manda sobre la guarda del guiado */
       const body = $('train-custom-body');
       if (body) body.style.display = TRAIN_CUSTOM_OPEN ? '' : 'none';
       btn.setAttribute('aria-expanded', TRAIN_CUSTOM_OPEN ? 'true' : 'false');
@@ -32497,10 +32502,24 @@ function swapSheetSync(plan, di, iso) {
     </div>` : ''}
     <div class="swap-search-row"><input type="text" id="swap-search" placeholder="${esc(t('train.prop.searchPh'))}" autocomplete="off" value="${esc(SWAP_QUERY)}"></div>
     <div id="swap-presets-slot">${swapPresetRowHTML()}</div>
+    ${TRAIN_PICK.kind === 'add' ? `<button type="button" class="swap-scan-btn" data-swap-scan="1">${t('train.pick.scan')}</button>` : ''}
     </div>
     <div id="swap-results" class="pick-results">${swapSheetResultsHTML(plan, di, iso)}</div>
     ${TRAIN_PICK.kind === 'add' ? `<div class="myb-pick-foot"><span class="myb-pick-count" id="swap-pick-count">${esc(swapPickCountText(plan, iso))}</span><button type="button" class="myb-pick-done" data-swap-close="1">${esc(t('train.n09.mybDone'))}</button></div>` : ''}`;
   sheet.querySelectorAll('[data-swap-close]').forEach(b => b.onclick = () => { TRAIN_PICK = null; SWAP_QUERY = ''; loadMyTraining(); });
+  /* AUTH-370: la puerta del escáner de máquinas DENTRO del
+     selector, en modo «agregar» — corre la identificación de
+     siempre (mphSheetOpen, AUTH-304: la misma puerta de IA y su
+     coste de fondo común, sin lógica duplicada) y su alta cae en
+     la misma sesión por el camino de guardado de siempre. Sin
+     biblioteca legible manda el aviso honesto y el selector se
+     queda abierto. */
+  sheet.querySelectorAll('[data-swap-scan]').forEach(b => b.onclick = () => {
+    if (typeof LIB === 'undefined' || !LIB || !LIB.length) { toast(t('train.lib.unavailable'), true); return; }
+    TRAIN_PICK = null; SWAP_QUERY = ''; SWAP_PRESET_GROUP = null;
+    swapSheetSync(null);
+    mphSheetOpen(plan, di, iso);
+  });
   swapSheetWireResults(plan, di, iso);
   const search = sheet.querySelector('#swap-search');
   if (search) search.oninput = () => {
@@ -33200,6 +33219,14 @@ function mphDraftData(r, photoUrl) {
   return data;
 }
 
+/* AUTH-370 · Candado de duplicados del alta por foto de máquina
+   (espejo del de AUTH-340 en swapSheetApply): el ejercicio de la
+   máquina identificada que YA está en la lista efectiva del día
+   no se agrega dos veces. */
+function mphAlreadyInSession(plan, di, iso, entryId) {
+  if (!plan || !entryId) return false;
+  return trainEffectiveList(plan, di, iso).some(it => it && it.ex && it.ex.exerciseId === entryId);
+}
 function mphPushAdded(D, rec0) {
   const ed = trainEditsRead(D.plan.id, D.iso) || { swaps: {}, added: [] };
   if (!ed.swaps || typeof ed.swaps !== 'object') ed.swaps = {};
@@ -33219,6 +33246,15 @@ async function mphSheetApply() {
   if (r.status === 'ok' && r.entry) {
     /* Camino sin guardado: la foto del análisis nunca se subió —
        vivió solo en memoria dentro de la petición al Worker. */
+    /* AUTH-370: si el ejercicio de la máquina identificada YA está
+       en la sesión de ese día, no se duplica (la regla de la
+       casa): se avisa y se vuelve a la sesión, sin agregar nada. */
+    if (mphAlreadyInSession(D.plan, D.di, D.iso, r.entry.id)) {
+      mphSheetClose();
+      loadMyTraining();
+      toast(t('train.pick.inSession'));
+      return;
+    }
     const v = r.vi != null && Array.isArray(r.entry.variantes) ? r.entry.variantes[r.vi] : null;
     mphPushAdded(D, {
       exerciseId: r.entry.id,
@@ -33530,6 +33566,42 @@ let TRAIN_GUIDE = { ctx: '', order: [], pin: null, restFor: null, restSkipFor: n
 function trainGuidePrefKey() { const uid = auth.currentUser ? auth.currentUser.uid : ''; return 'ronbofit-train-mode-' + uid; }
 function trainGuidePref() { try { return localStorage.getItem(trainGuidePrefKey()) === 'guided' ? 'guided' : 'list'; } catch { return 'list'; } }
 function trainGuidePrefSet(v) { try { localStorage.setItem(trainGuidePrefKey(), v === 'guided' ? 'guided' : 'list'); } catch {} }
+/* AUTH-370 · LA PUERTA DEL MODO GUIADO VIVE ARRIBA: un solo botón,
+   en la parte superior de la vista de Entrenamiento, junto a la
+   cabecera de la sesión de hoy (lo pinta trainTodayHTML cuando la
+   tarjeta interactiva de hoy está en pie — TRAIN_GUIDE_DOOR, que
+   arma dressedTodayCard). Antes había DOS puertas más: una al pie
+   de la lista compacta y otra al pie de la ruta guiada —
+   duplicación de puertas, y la de la lista quedaba enterrada bajo
+   toda la sesión. La etiqueta y el valor siguen a la preferencia
+   con las claves de AUTH-360: en lista, «▶ Modo guiado»; en la
+   ruta, «☰ Ver todos los ejercicios». El cableado es el de
+   siempre ([data-guided-toggle] → trainGuideApplyMode). */
+function trainGuideDoorHTML() {
+  if (!TRAIN_GUIDE_DOOR) return '';
+  return trainGuidePref() === 'guided'
+    ? `<button type="button" class="guide-toggle guide-door" data-guided-toggle="list">${t('train.guide.showAll')}</button>`
+    : `<button type="button" class="guide-toggle guide-door" data-guided-toggle="guided">${t('train.guide.start')}</button>`;
+}
+/* AUTH-370 · ENTRAR AL MODO GUIADO RECOGE «Personaliza tus
+   asignaciones»: la ruta guiada manda y la lista clásica de la
+   sesión no queda desplegada debajo repitiendo la misma sesión.
+   El desplegable se comporta como las demás secciones: recogido
+   mientras el guiado está activo, y su contenido sigue a un toque
+   en su propio botón. El estado previo se GUARDA al entrar y al
+   salir del guiado todo vuelve como estaba; si la persona toca el
+   desplegable durante el guiado, su toque manda y la guarda se
+   olvida (lo limpia el propio manejador del desplegable y el de
+   «+ Agregar»). Sin tocar marcas, registro ni la ruta misma. */
+function trainGuideApplyMode(mode) {
+  if (mode === 'guided') {
+    if (TRAIN_CUSTOM_OPEN_STASH === null) TRAIN_CUSTOM_OPEN_STASH = TRAIN_CUSTOM_OPEN;
+    TRAIN_CUSTOM_OPEN = false;
+  } else {
+    if (TRAIN_CUSTOM_OPEN_STASH !== null) { TRAIN_CUSTOM_OPEN = TRAIN_CUSTOM_OPEN_STASH; TRAIN_CUSTOM_OPEN_STASH = null; }
+  }
+  trainGuidePrefSet(mode);
+}
 function guideRestSec(ex) {
   const raw = String((ex && (LANG === 'es' ? (ex.rest || ex.rest_en) : (ex.rest_en || ex.rest))) || '').trim().toLowerCase();
   if (!raw) return 75;
@@ -33629,8 +33701,7 @@ function trainGuidedHTML(plan, day, di) {
     + focusHTML
     + trainSessionHTML(day)
     + trainEditTailHTML(plan.id, di)
-    + trainExtrasZoneHTML()
-    + `<button type="button" class="guide-toggle" data-guided-toggle="list">${t('train.guide.showAll')}</button>`;
+    + trainExtrasZoneHTML();   /* AUTH-370: la salida del guiado vive solo en la puerta de arriba */
 }
 function trainChronoHTML(planId, di) {
   const c = trainChronoRead(planId);
@@ -36730,16 +36801,16 @@ async function loadMyTraining() {
        tarjeta vestida de HOY sin cerrar pinta la ruta paso a paso
        (trainGuidedHTML) en vez de la lista compacta — la misma
        sesión efectiva y las mismas marcas, otra vista. En la
-       lista, la alternancia «▶ Modo guiado» entra en la ruta; sin
+       lista, la alternancia «▶ Modo guiado» entra en la ruta
+       (AUTH-370: esa alternancia vive ahora SOLO arriba de la
+       vista, junto a la cabecera del día — trainGuideDoorHTML); sin
        preferencia guardada manda la lista, como hoy. El día
        cerrado se pinta como siempre (su historial). */
+    if (!done && sel === today) TRAIN_GUIDE_DOOR = true;   /* AUTH-370: la puerta del guiado se pinta ARRIBA (trainGuideDoorHTML) — una sola, no al pie de la tarjeta */
     if (!done && sel === today && trainGuidePref() === 'guided')
       return trainDressedCardHTML(plan, logs, di, sel, trainGuidedHTML(plan, day, di), '');
     const inner0 = dayCompactHTML(day, di, done ? 'done' : 'edit', logByDay[di] || null, null);
-    const inner = (!done && sel === today)
-      ? inner0 + `<button type="button" class="guide-toggle" data-guided-toggle="guided">${t('train.guide.start')}</button>`
-      : inner0;
-    return trainDressedCardHTML(plan, logs, di, sel, dressExRows(inner, di, done ? 'read' : 'edit'), '');
+    return trainDressedCardHTML(plan, logs, di, sel, dressExRows(inner0, di, done ? 'read' : 'edit'), '');
   };
   const dressedHistCard = (day, log) => {
     const inner = `<h4>${esc(log.dayLabel || day.label || '')}</h4>` + dressExRows(trainDayCompactHistHTML(day, log, log.dayIndex), log.dayIndex, 'read') + trainSessionHTML(day)
@@ -36762,6 +36833,7 @@ async function loadMyTraining() {
     const hint = (plan.days || []).length ? t('train.blank.hintDoor') : t('train.blank.hintDoorNoDays');
     return `<div class="train-blank-door"><h4>${isoDoor === today ? t('train.today.wantTitle') : t('train.today.wantTitleDay')}</h4><div class="train-door-btns">${doorBtns.join('')}</div><p class="progress-hint">${hint}</p></div>`;
   };
+  TRAIN_GUIDE_DOOR = false;   /* AUTH-370: se rearma si la tarjeta de hoy nace interactiva (dressedTodayCard) */
   let selCard = '';
   if (tmap.pairs || isCal) {
     const selDi = effDiForDate(sel);
@@ -36949,6 +37021,7 @@ async function loadMyTraining() {
   repeatRow += '</div>';
   const trainTodayHTML = `<div class="train-today">
     <div class="train-sel-head"><b>${esc(dateName(sel))}</b>${sel === today ? ` <span class="ok-badge">${t('train.today.todayWord')}</span>` : ''}</div>
+    ${trainGuideDoorHTML()}
     ${selCard}</div>`;
   /* ESTA SEMANA · MQ5 + TIRA ÚNICA (AUTH-334): el contexto del
      bloque se fija con la resolución fecha→día de ESTA vista
@@ -37081,7 +37154,7 @@ async function loadMyTraining() {
      terminado lo fija como foco (se reabre con sus números y su
      casilla permite desmarcar); el descanso de transición se
      salta con un toque y no vuelve para ese foco. */
-  box.querySelectorAll('[data-guided-toggle]').forEach(b => b.onclick = () => { trainGuidePrefSet(b.dataset.guidedToggle); loadMyTraining(); });
+  box.querySelectorAll('[data-guided-toggle]').forEach(b => b.onclick = () => { trainGuideApplyMode(b.dataset.guidedToggle); loadMyTraining(); });
   box.querySelectorAll('[data-guided-reopen]').forEach(b => b.onclick = () => {
     TRAIN_GUIDE.pin = Number(String(b.dataset.guidedReopen).split(':')[1]);
     loadMyTraining();
@@ -37496,6 +37569,7 @@ async function loadMyTraining() {
   });
   box.querySelectorAll('[data-train-add-open]').forEach(b => b.onclick = () => {
     TRAIN_CUSTOM_OPEN = true;
+    TRAIN_CUSTOM_OPEN_STASH = null;   /* AUTH-370: abrirlo a propósito manda sobre la guarda del guiado */
     TRAIN_PICK = { kind: 'add' };
     SWAP_PRESET_GROUP = null;
     loadMyTraining();
@@ -51613,7 +51687,7 @@ document.addEventListener('keydown', e => { if (e.key === 'Escape') shareClose()
  *  - El SW (sw.js) solo cachea la cáscara del mismo origen en modo
  *    RED PRIMERO: Auth/Firestore/Worker jamás pasan por la caché.
  * ================================================================ */
-const PWA_SW_VERSION = '20261110-ingreso-ia';
+const PWA_SW_VERSION = '20261110-guiado-escaner';
 /* Sello de versión VISIBLE (2026-11-03): el pie de la tarjeta de
    acceso enseña qué copia corre este teléfono ('v ' + el sello),
    para comprobar de un vistazo si la versión nueva ya llegó.

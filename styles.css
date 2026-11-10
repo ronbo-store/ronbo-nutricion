@@ -5336,3 +5336,10 @@ body.swap-sheet-open .asst-fab { display: none !important; }
   .air-in { width: 82px; font-size: 17px; }
   .air-door-t { font-size: 15.5px; }
 }
+
+/* AUTH-370 · Puerta superior del modo guiado (junto a la cabecera
+   de la sesión de hoy, visible sin bajar) y puerta del escáner de
+   máquinas dentro del selector de ejercicios: botones grandes de
+   la casa, a todo ancho, con el acento turquesa de la ruta. */
+.guide-door { margin: 10px 0 2px; padding: 15px 12px; font-size: 16px; background: rgba(15,181,163,.16); border-color: #0fb5a3; }
+.swap-scan-btn { display: block; width: 100%; margin-top: 10px; padding: 14px 12px; border: 2px solid #0d9488; border-radius: 14px; background: rgba(13,148,136,.12); color: #0f766e; font-size: 16px; font-weight: 800; cursor: pointer; }
