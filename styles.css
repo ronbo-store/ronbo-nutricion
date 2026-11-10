@@ -2630,6 +2630,16 @@ body.nav-lock .sw-fab, body.nav-lock .help-fab, body.nav-lock .share-fab, body.n
    «Mis alumnos» — las tarjetas son las de la ficha (.user-row);
    el bloque solo aporta su respiro dentro de la tarjeta. */
 .stu-plan-block { margin: 10px 0 14px; }
+/* AUTH-352: «El entrenamiento de mi alumno» en el detalle de «Mis alumnos». */
+.stu-train-block { margin: 10px 0 14px; }
+.stu-train-line { margin-bottom: 6px; }
+.stu-train-rec-h { margin-top: 10px; }
+.stu-train-row { display: flex; justify-content: space-between; gap: 8px; width: 100%; min-height: 44px; align-items: center; background: none; border: none; border-bottom: 1px dashed #eef1f3; padding: 6px 0; font: inherit; color: inherit; text-align: left; cursor: pointer; }
+.stu-train-row .sx { color: #666; white-space: nowrap; }
+.stu-train-det { padding: 2px 0 6px; }
+.stu-cumpl { margin: 8px 0; }
+.stu-cumpl-line { padding: 2px 0; }
+.stu-plan-days { margin-top: 6px; }
 .my-plans-block { margin: 12px 0 14px; }
 .my-plans-head { display: flex; align-items: center; justify-content: space-between; gap: 10px; margin-bottom: 8px; }
 .my-plans-head .history-title { margin: 0; }

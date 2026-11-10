@@ -5514,6 +5514,14 @@ en: {
   'students.pend.bodyNoAnalysis': 'No body-type analysis on record yet',
   'students.viewFull': 'View full record',
   'students.planBlock': '🏋️ Their training plan',
+  'students.trainBlock': '🏋️ My student\'s training',
+  'students.trainToday': 'Today',
+  'students.trainTodayFree': 'Today · 🌿 Assigned rest day',
+  'students.trainTodayNone': 'Today · Not logged yet',
+  'students.trainNoDetail': 'No exercise detail was saved for this session.',
+  'students.cumplBlock': '📈 Plan compliance',
+  'students.cumplWeek': 'This week: {done} of {planned}',
+  'students.cumplProgress': 'Plan progress: {done} of {planned} sessions ({pct}%)',
   'students.resolvedTitle': 'Resolved',
   'students.detailClear': 'This student has nothing pending.',
   'students.nonePending': 'No student has anything pending.',
@@ -9710,6 +9718,14 @@ es: {
   'students.pend.bodyNoAnalysis': 'Aún no tiene un análisis de tipo corporal registrado',
   'students.viewFull': 'Ver ficha completa',
   'students.planBlock': '🏋️ Su plan de entrenamiento',
+  'students.trainBlock': '🏋️ El entrenamiento de mi alumno',
+  'students.trainToday': 'Hoy',
+  'students.trainTodayFree': 'Hoy · 🌿 Día libre asignado',
+  'students.trainTodayNone': 'Hoy · Sin registrar todavía',
+  'students.trainNoDetail': 'Esta sesión no guardó detalle de ejercicios.',
+  'students.cumplBlock': '📈 Cumplimiento del plan',
+  'students.cumplWeek': 'Esta semana: {done} de {planned}',
+  'students.cumplProgress': 'Avance del plan: {done} de {planned} sesiones ({pct} %)',
   'students.resolvedTitle': 'Resueltos',
   'students.detailClear': 'Este alumno no tiene nada pendiente.',
   'students.nonePending': 'Ningún alumno tiene pendientes.',
@@ -17099,13 +17115,14 @@ function stuPlanBlockHTML(u) {
   const inner = !loaded
     ? `<div class="wempty">${esc(t('access.loading'))}</div>`
     : `<div style="margin-bottom:10px"><button class="btn-primary btn-sm" data-plan-new="1">${t('train.new')}</button></div>`
-      + (STU_PLANS.plans.length ? planRowsHTML(STU_PLANS.plans) : `<div class="wempty">${t('train.noPlan')}</div>`);
+      + (STU_PLANS.plans.length ? planRowsHTML(STU_PLANS.plans) + stuPlanDaysHTML(STU_PLANS.plans.find(p => p && p.active === true) || null) : `<div class="wempty">${t('train.noPlan')}</div>`);
   return `<div class="stu-plan-block" id="stu-plan-block"><h3 class="history-title">${esc(t('students.planBlock'))}</h3>${inner}</div>`;
 }
 function stuPlansWireCurrent(uid) {
   const blk = document.querySelector('#stu-plan-block');
   if (!blk || STU_PLANS.uid !== uid || !STU_PLANS.plans) return;
   wirePlanActions(blk, uid, STU_PLANS.plans, () => { STU_PLANS.plans = null; loadStudentPlans(uid); });
+  stuPlanDaysWire(blk);
 }
 async function loadStudentPlans(uid) {
   if (STU_PLANS.uid === uid && STU_PLANS.plans) { stuPlansWireCurrent(uid); return; }
@@ -17116,6 +17133,204 @@ async function loadStudentPlans(uid) {
   if (STUDENTS_DETAIL !== uid) return;
   const blk = document.querySelector('#stu-plan-block');
   if (blk) { blk.outerHTML = stuPlanBlockHTML({ id: uid }); stuPlansWireCurrent(uid); }
+}
+/* AUTH-352: «🏋️ El entrenamiento de mi alumno», nacido visible en
+   el detalle de «Mis alumnos», justo tras su plan (AUTH-341) y antes
+   de los pendientes — la respuesta al pedido de Ronald (2026-11-09
+   20:59 CST): no encontraba ninguna pantalla para ver si su alumno
+   entrenó hoy ni cómo le fue. SOLO datos de entrenamiento
+   (training_logs + training_plans, las lecturas de siempre de la
+   ficha: fetchLogs/fetchPlans, que las reglas vivas ya limitan al
+   dueño, al entrenador ASIGNADO y al propietario — sin delta de
+   reglas): nada de la declaración de salud, nada de composición
+   corporal/peso/notas del alumno y nada del bienestar de Mi
+   progreso. HOY con tres estados honestos: sesión registrada (con
+   su detalle pintado aquí mismo), día libre asignado en su plan
+   (careDayFor + freeDay, la resolución de la casa) o sin registrar
+   todavía. El detalle de una sesión reutiliza el emparejamiento
+   del historial (trainHistRowsVisible), el nombre resuelto
+   (trainExName), la carga tal como quedó guardada
+   (trainLastTimeLoadText: loadOriginal/loadUnitOriginal primero,
+   el canónico loadKg después; en pareja, la carga es la de UNA
+   mancuerna — trainLoadPair, AUTH-345) y las marcas del modelo
+   vigente: solo cuenta como Hecho lo que el registro trae marcado
+   Hecho (AUTH-344: al registro solo viaja lo marcado; una entrada
+   con done distinto de true jamás se pinta como hecha). */
+let STU_TRAIN = { uid: null, logs: null, plans: null, loadingFor: null, open: {} };
+function stuTrainSetsLine(de, pair) {
+  if (!de || de.done !== true || !Array.isArray(de.sets) || !de.sets.length) return '';
+  const parts = de.sets.map((s, si) => {
+    const load = s ? trainLastTimeLoadText(s) : '';
+    return `${t('train.d.set')} ${si + 1}: ${s && s.repsDone != null && s.repsDone !== '' ? esc(String(s.repsDone)) : '—'}${s && s.repsPlanned ? `/${esc(String(s.repsPlanned))}` : ''} ${t('train.d.repsPh')}${load ? ` · ${esc(load)}` : ''}`;
+  });
+  return `<div class="train-set-hist">${t('train.d.setsLabel')}: ${parts.join(' · ')}${pair ? ` · ${esc(t('train.d.loadPerDb'))}` : ''}</div>`;
+}
+function stuTrainLogDetailHTML(log, plans) {
+  const plan = (Array.isArray(plans) ? plans : []).find(p => p && p.id === log.planId) || null;
+  const day = plan && Number.isInteger(log.dayIndex) && log.dayIndex >= 0 ? (plan.days || [])[log.dayIndex] : null;
+  let rows;
+  if (day) rows = trainHistRowsVisible(day, log);
+  else rows = (Array.isArray(log.exercisesDone) ? log.exercisesDone : []).filter(e => e).map(e => ({
+    ex: { exerciseId: e.exerciseId || null, name: e.name || '', sets: Array.isArray(e.sets) ? String(e.sets.length) : '', reps: Array.isArray(e.sets) && e.sets[0] ? String(e.sets[0].repsPlanned || '') : '' },
+    de: e, mark: e.added === true ? { type: 'add' } : (e.swappedFrom ? { type: 'swap', from: e.swappedFrom } : null)
+  }));
+  if (!rows.length) return `<div class="wempty">${esc(t('students.trainNoDetail'))}</div>`;
+  return rows.map(({ ex, de, mark }) => {
+    const done = !!(de && de.done === true);
+    const spec = [ex.sets, ex.reps].filter(Boolean).join(' × ');
+    return `<div class="train-ex"><span>${esc(trainExName(ex) || ex.name || '')}${spec ? ` <span class="muted">· ${esc(spec)}</span>` : ''}${mark && mark.type === 'swap' ? ` <span class="muted">⇄ ${esc(t('train.custom.swappedFor', { name: mark.from }))}</span>` : ''}${mark && mark.type === 'add' ? ` <span class="muted">＋ ${esc(t('train.custom.addedMark'))}</span>` : ''}${stuTrainSetsLine(de, trainLoadPair(ex))}</span><span class="sx">${done ? `✓ ${esc(t('train.view.exDone'))}${de.rpe ? ` · ${esc(t('train.view.rpe'))} ${esc(String(de.rpe))}` : ''}` : '—'}</span></div>`;
+  }).join('');
+}
+function stuTrainDurText(log) {
+  return log && typeof log.durationMin === 'number' && isFinite(log.durationMin) && log.durationMin > 0 ? ` · ⏱ ${Math.round(log.durationMin)} min` : '';
+}
+function stuTrainRecentHTML(logs, plans) {
+  const rec = (Array.isArray(logs) ? logs : []).slice(0, 8);
+  if (!rec.length) return `<div class="wempty">${esc(t('train.noLogs'))}</div>`;
+  return rec.map(l => {
+    const open = !!(STU_TRAIN.open && STU_TRAIN.open[l.id]);
+    return `<div class="stu-train-rec"><button type="button" class="stu-train-row" data-stu-log="${esc(l.id)}"><span>${esc(dateName(l.date))} · ${esc(l.dayLabel || '')}</span><span class="sx">${trainStatusBadge(trainLogStatus(l))}${trainLogMetaHTML(l)}${stuTrainDurText(l)}</span></button><div class="stu-train-det" data-stu-log-det="${esc(l.id)}"${open ? '' : ' style="display:none"'}>${open ? stuTrainLogDetailHTML(l, plans) : ''}</div></div>`;
+  }).join('');
+}
+function stuTrainBlockHTML(u) {
+  const loaded = STU_TRAIN.uid === u.id && !!STU_TRAIN.logs;
+  const inner = !loaded
+    ? `<div class="wempty">${esc(t('access.loading'))}</div>`
+    : stuCumplHTML(STU_TRAIN.logs, STU_TRAIN.plans)
+      + stuTrainTodayDetail(STU_TRAIN.logs, STU_TRAIN.plans)
+      + `<h4 class="history-title stu-train-rec-h">${esc(t('train.recent'))}</h4>`
+      + stuTrainRecentHTML(STU_TRAIN.logs, STU_TRAIN.plans);
+  return `<div class="stu-train-block" id="stu-train-block"><h3 class="history-title">${esc(t('students.trainBlock'))}</h3>${inner}</div>`;
+}
+function stuTrainWireCurrent(uid) {
+  const blk = document.querySelector('#stu-train-block');
+  if (!blk || STU_TRAIN.uid !== uid || !STU_TRAIN.logs) return;
+  blk.querySelectorAll('[data-stu-log]').forEach(b => b.onclick = () => {
+    const id = b.dataset.stuLog;
+    const log = (STU_TRAIN.logs || []).find(l => l.id === id); if (!log) return;
+    let det = null;
+    blk.querySelectorAll('[data-stu-log-det]').forEach(d => { if (d.dataset.stuLogDet === id) det = d; });
+    if (!det) return;
+    const open = det.style.display !== 'none';
+    if (open) { det.style.display = 'none'; STU_TRAIN.open[id] = false; return; }
+    if (!det.innerHTML) det.innerHTML = stuTrainLogDetailHTML(log, STU_TRAIN.plans);
+    det.style.display = '';
+    STU_TRAIN.open[id] = true;
+  });
+}
+async function loadStudentTraining(uid) {
+  if (STU_TRAIN.uid === uid && STU_TRAIN.logs) { stuTrainWireCurrent(uid); return; }
+  if (STU_TRAIN.loadingFor === uid) return;
+  STU_TRAIN.loadingFor = uid;
+  const [logs, plans] = await Promise.all([fetchLogs(uid), fetchPlans(uid)]);
+  const open = (STU_TRAIN.uid === uid && STU_TRAIN.open) || {};
+  STU_TRAIN = { uid, logs, plans, loadingFor: null, open };
+  if (STUDENTS_DETAIL !== uid) return;
+  const blk = document.querySelector('#stu-train-block');
+  if (blk) { blk.outerHTML = stuTrainBlockHTML({ id: uid }); stuTrainWireCurrent(uid); }
+}
+/* AUTH-352 (ampliación, orden de Ronald 2026-11-09 22:55 CST):
+   ORDEN UNIFICADO del perfil del alumno lado entrenador en las dos
+   superficies que existen (el detalle de «Mis alumnos» y la ficha
+   completa — la de Administración es ESTA misma ficha, no hay una
+   tercera): 1.º el plan A DETALLE en el sitio, 2.º el cumplimiento
+   del plan, 3.º los pendientes concretos por cargar (su cómputo no
+   cambia, solo su posición) y 4.º el resto. Piezas ÚNICAS: el
+   detalle de días (stuPlanDaysHTML + stuPlanDaysWire) lo pintan el
+   bloque de «Mis alumnos» (AUTH-341) y la ficha
+   (loadClientTraining); el cumplimiento (stuCumplHTML) lo pintan
+   el bloque de entrenamiento de «Mis alumnos» y la ficha.
+   CUMPLIMIENTO: solo entrenamiento y plan, con las mismas fuentes
+   del bloque (fetchLogs/fetchPlans) y la resolución de día de la
+   casa (careDayFor, sin la configuración del alumno: pares de
+   semana y calendario del plan; en rotación el dato no se puede
+   computar y la línea se OMITE en silencio, sin inventar). Las
+   «hechas» cuentan solo en días planificados (el criterio F-16 de
+   la adherencia) y el día libre asignado no cuenta como
+   planificado. El cumplimiento de COMIDAS queda FUERA: no existe
+   una medida de cumplimiento de comidas visible para el entrenador
+   en estas superficies con los permisos vigentes (lo visible es el
+   registro de hoy en los anillos de la ficha y las fotos por
+   revisar, que no son cumplimiento del plan) — declarado en el
+   informe del paquete. */
+function stuPlanDaysHTML(plan) {
+  if (!plan || !Array.isArray(plan.days) || !plan.days.length) return '';
+  return `<div class="stu-plan-days">${plan.days.map((d, di) => {
+    const free = d.freeDay === true;
+    return `<div class="stu-plan-day"><button type="button" class="stu-train-row" data-stu-day="${esc(plan.id)}:${di}"><span>${esc(d.label || t('train.d.dayN', { n: di + 1 }))}</span><span class="sx">${free ? esc(t('train.free.label')) : esc(t('train.exCount', { n: (d.exercises || []).length }))} ›</span></button><div class="stu-train-det" data-stu-day-det="${esc(plan.id)}:${di}" style="display:none">${free ? `<div class="wempty">${esc(t('train.freeDay.assignedNote'))}</div>` : trainExercisesHTML(d)}</div></div>`;
+  }).join('')}</div>`;
+}
+function stuPlanDaysWire(root) {
+  if (!root || typeof root.querySelectorAll !== 'function') return;
+  root.querySelectorAll('[data-stu-day]').forEach(b => {
+    if (b.dataset.wired) return;
+    b.dataset.wired = '1';
+    b.onclick = () => {
+      let det = null;
+      root.querySelectorAll('[data-stu-day-det]').forEach(d => { if (d.dataset.stuDayDet === b.dataset.stuDay) det = d; });
+      if (det) det.style.display = det.style.display === 'none' ? '' : 'none';
+    };
+  });
+}
+function stuTrainTodayState(logs, plans) {
+  const today = todayISO();
+  const todays = (Array.isArray(logs) ? logs : []).filter(l => l && l.date === today);
+  const log = todays.find(l => { const s = trainLogStatus(l); return s === 'done' || s === 'partial'; }) || todays[0] || null;
+  if (log) return { kind: 'trained', log };
+  const plan = (Array.isArray(plans) ? plans : []).find(p => p && p.active === true) || null;
+  if (plan) {
+    const r = careDayFor(plan, null, today);
+    if (r && r.idx != null && ((plan.days || [])[r.idx] || {}).freeDay === true) return { kind: 'free', log: null };
+  }
+  return { kind: 'none', log: null };
+}
+function stuTrainTodayLineHTML(st) {
+  if (st && st.kind === 'trained') { const log = st.log; return `<div class="stu-train-line"><b>${esc(t('students.trainToday'))}</b> · ${esc(log.dayLabel || '')} ${trainStatusBadge(trainLogStatus(log))}${trainLogMetaHTML(log)}${stuTrainDurText(log)}</div>`; }
+  if (st && st.kind === 'free') return `<div class="stu-train-line"><b>${esc(t('students.trainTodayFree'))}</b></div>`;
+  return `<div class="stu-train-line"><b>${esc(t('students.trainTodayNone'))}</b></div>`;
+}
+function stuTrainTodayDetail(logs, plans) {
+  const st = stuTrainTodayState(logs, plans);
+  return st.kind === 'trained' ? stuTrainLogDetailHTML(st.log, plans) : '';
+}
+function stuCumplModel(logs, plans) {
+  const plan = (Array.isArray(plans) ? plans : []).find(p => p && p.active === true) || null;
+  if (!plan || !Array.isArray(plan.days) || !plan.days.length) return null;
+  const today = todayISO();
+  const doneDates = new Set();
+  (Array.isArray(logs) ? logs : []).forEach(l => {
+    if (!l || !l.date) return;
+    const s = trainLogStatus(l);
+    if (s === 'done' || s === 'partial') doneDates.add(l.date);
+  });
+  const scan = (from, to) => {
+    let planned = 0, done = 0;
+    for (let iso = from; iso <= to; iso = addDaysISO(iso, 1)) {
+      const r = careDayFor(plan, null, iso);
+      if (!r || r.mode === 'rotation' || r.idx == null) continue;
+      if (((plan.days || [])[r.idx] || {}).freeDay === true) continue;
+      planned++;
+      if (doneDates.has(iso)) done++;
+    }
+    return { planned, done };
+  };
+  const mon = mondayISO(today);
+  const week = scan(mon, addDaysISO(mon, 6));
+  let progress = null;
+  const start = plan.startsAt ? String(plan.startsAt).slice(0, 10) : '';
+  if (/^\d{4}-\d{2}-\d{2}$/.test(start) && start <= today) {
+    const p = scan(start, today);
+    if (p.planned > 0) progress = { done: p.done, planned: p.planned, pct: Math.round(100 * p.done / p.planned) };
+  }
+  return { week: week.planned > 0 ? week : null, progress };
+}
+function stuCumplHTML(logs, plans) {
+  const m = stuCumplModel(logs, plans);
+  const lines = [];
+  if (m && m.week) lines.push(`<div class="stu-cumpl-line">${esc(t('students.cumplWeek', { done: m.week.done, planned: m.week.planned }))}</div>`);
+  lines.push(stuTrainTodayLineHTML(stuTrainTodayState(logs, plans)));
+  if (m && m.progress) lines.push(`<div class="stu-cumpl-line">${esc(t('students.cumplProgress', { done: m.progress.done, planned: m.progress.planned, pct: m.progress.pct }))}</div>`);
+  return `<div class="stu-cumpl"><h4 class="history-title">${esc(t('students.cumplBlock'))}</h4>${lines.join('')}</div>`;
 }
 function studentsDetailHTML(u) {
   const L = STUDENTS_LAST;
@@ -17132,6 +17347,9 @@ function studentsDetailHTML(u) {
   /* AUTH-341: «🏋️ Su plan de entrenamiento», nacido desplegado,
      inmediatamente tras la cabecera y ANTES de los pendientes. */
   h += stuPlanBlockHTML(u);
+  /* AUTH-352: «🏋️ El entrenamiento de mi alumno», nacido
+     visible tras el plan y antes de los pendientes. */
+  h += stuTrainBlockHTML(u);
   if (err) {
     h += `<div class="stu-err">${esc(t('students.loadError'))}<br><button type="button" class="btn-ghost btn-sm" data-stu-retry="${u.id}" style="margin-top:8px">${esc(t('students.retry'))}</button></div>`;
   } else {
@@ -17210,6 +17428,7 @@ function renderStudentsBody() {
      cablea desde la caché o se pide (la respuesta repinta solo
      el bloque; el resto del detalle no espera). */
   if (du) loadStudentPlans(du.id);
+  if (du) loadStudentTraining(du.id);
 }
 /* Barra de la vista: buscador + conmutador Lista/Rejilla en una
    fila y las tres pastillas debajo (A-A2), con el estado PROPIO
@@ -19625,6 +19844,7 @@ async function openClient(uid) {
     <h3 class="history-title" id="client-weight-block">${t('client.weightLog', { name: esc(uname) })}</h3>
     ${healthAlert}
     ${stageStrip}
+    <div id="client-training"></div>
     ${fichaPendBlockHTML(uid)}
     <div id="client-treq"></div>
     <div id="ficha-met-box" data-met-uid="${uid}">${fichaMetBlockHTML(uid)}</div>
@@ -19651,7 +19871,6 @@ async function openClient(uid) {
     <div id="compacc-box"><div class="wempty">${t('access.loading')}</div></div>
     <div id="client-weekcard"></div>
     <div id="client-milestones"></div>
-    <div id="client-training"></div>
     <div id="client-evals"><div class="eval-actions"><button type="button" class="btn-ghost btn-sm" id="btn-client-evals">${t('teval.open')}</button></div><div id="client-evals-body" style="display:none"></div></div>`;
   fichaMetWire(box);
   fichaAssignWire(box);
@@ -35866,6 +36085,8 @@ async function loadClientTraining(uid) {
     <h3 class="history-title">${t('train.section')}</h3>
     <div style="margin-bottom:10px"><button class="btn-primary btn-sm" data-plan-new="1">${t('train.new')}</button></div>
     ${planRows}
+    ${stuPlanDaysHTML(plans.find(p => p && p.active === true) || null)}
+    ${stuCumplHTML(logs, plans)}
     <div id="client-proposals"></div>
     <h3 class="history-title">${t('train.recent')}</h3>
     ${logRows || `<div class="wempty">${t('train.noLogs')}</div>`}`;
@@ -35874,6 +36095,7 @@ async function loadClientTraining(uid) {
      (wirePlanActions); al terminar una escritura, la ficha se
      repinta como siempre, recargándose a sí misma. */
   wirePlanActions(box, uid, plans, () => loadClientTraining(uid));
+  stuPlanDaysWire(box);
   box.querySelectorAll('[data-log-repeat]').forEach(b => b.onclick = () => { const l = logs.find(x => x.id === b.dataset.logRepeat); if (l) repeatDayFromLogOpen(uid, l, plans); });
   loadClientProposals(uid, plans);
 }
@@ -49309,7 +49531,7 @@ document.addEventListener('keydown', e => { if (e.key === 'Escape') shareClose()
  *  - El SW (sw.js) solo cachea la cáscara del mismo origen en modo
  *    RED PRIMERO: Auth/Firestore/Worker jamás pasan por la caché.
  * ================================================================ */
-const PWA_SW_VERSION = '20261109-cuentas-activas';
+const PWA_SW_VERSION = '20261109-entrenamiento-alumno';
 /* Sello de versión VISIBLE (2026-11-03): el pie de la tarjeta de
    acceso enseña qué copia corre este teléfono ('v ' + el sello),
    para comprobar de un vistazo si la versión nueva ya llegó.
