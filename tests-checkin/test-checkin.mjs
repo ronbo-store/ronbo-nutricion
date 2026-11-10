@@ -18,6 +18,14 @@ import { readFileSync, writeFileSync } from 'node:fs';
 
 const N = process.env.ESPERA_NUEVO !== 'false';
 const fallos = [];
+/* Trampa global: un error fuera de los casos también deja su
+   traza en fallos.txt (legible como anotación del job). */
+for (const ev of ['unhandledRejection', 'uncaughtException']) {
+  process.on(ev, (e) => {
+    try { writeFileSync('fallos.txt', 'ERROR GLOBAL ' + ev + ': ' + String((e && e.stack) || e).slice(0, 1400)); } catch {}
+    process.exit(1);
+  });
+}
 async function caso(nombre, promesa, debePasar) {
   try {
     if (debePasar) await assertSucceeds(promesa);
@@ -42,21 +50,24 @@ const testEnv = await initializeTestEnvironment({
 const DUENO = 'dueno', ALU = 'alumnaS', ENT = 'entrenadorE', OTRA = 'alumnaT', ENT2 = 'entrenadorX', NOAPR = 'noAprobada';
 const WS = '2026-11-09'; // lunes de la semana del fixture
 const F = await import('firebase/firestore');
-const { doc, setDoc, getDoc, updateDoc, deleteDoc, serverTimestamp } = F;
+const { doc, setDoc, getDoc, getDocs, updateDoc, deleteDoc, serverTimestamp, collection, query, where } = F;
 
-function ctx(uid) { return testEnv.withSecurityRulesDisabled(async c => c.firestore()); }
 async function db(uid) {
   return uid ? testEnv.authenticatedContext(uid).firestore() : testEnv.unauthenticatedContext().firestore();
 }
+/* La siembra se hace DENTRO del ámbito sin reglas (como la
+   batería de fibra2): la instancia no sale del callback. */
 async function seed() {
-  const d = await ctx();
-  const U = (id, data) => setDoc(doc(d, 'users', id), data);
-  await U(DUENO, { isOwner: true, approved: true, role: 'administrador', name: 'Dueño' });
-  await U(ENT, { approved: true, role: 'entrenador', name: 'Entrenador' });
-  await U(ENT2, { approved: true, role: 'entrenador', name: 'Otro entrenador' });
-  await U(ALU, { approved: true, role: 'usuario', name: 'Alumna', trainerUid: ENT, assignmentStatus: 'assigned' });
-  await U(OTRA, { approved: true, role: 'usuario', name: 'Otra alumna', trainerUid: ENT2, assignmentStatus: 'assigned' });
-  await U(NOAPR, { approved: false, role: 'usuario', name: 'Sin aprobar', trainerUid: ENT });
+  await testEnv.withSecurityRulesDisabled(async (c) => {
+    const d = c.firestore();
+    const U = (id, data) => setDoc(doc(d, 'users', id), data);
+    await U(DUENO, { isOwner: true, approved: true, role: 'administrador', name: 'Dueño' });
+    await U(ENT, { approved: true, role: 'entrenador', name: 'Entrenador' });
+    await U(ENT2, { approved: true, role: 'entrenador', name: 'Otro entrenador' });
+    await U(ALU, { approved: true, role: 'usuario', name: 'Alumna', trainerUid: ENT, assignmentStatus: 'assigned' });
+    await U(OTRA, { approved: true, role: 'usuario', name: 'Otra alumna', trainerUid: ENT2, assignmentStatus: 'assigned' });
+    await U(NOAPR, { approved: false, role: 'usuario', name: 'Sin aprobar', trainerUid: ENT });
+  });
 }
 function chkDoc(uid, ws, over) {
   return Object.assign({
@@ -103,6 +114,7 @@ await seed();
   await caso('L4 otra alumna NO lee', getDoc(doc(dO, 'weekly_checkins', id(ALU, WS))), false);
   await caso('L5 el propietario lee', getDoc(doc(dD, 'weekly_checkins', id(ALU, WS))), N);
   await caso('L6 anónimo NO lee', getDoc(doc(dAnon, 'weekly_checkins', id(ALU, WS))), false);
+  await caso('L7 su entrenador lista por semana (solo ve legibles)', getDocs(query(collection(dT, 'weekly_checkins'), where('weekStart', '==', WS))), N);
 }
 
 /* ---------- la marca de revisión ---------- */
@@ -121,8 +133,9 @@ await seed();
 /* ---------- sin entrenador: se guarda sin destinatario ---------- */
 {
   await seed();
-  const d = await ctx();
-  await setDoc(doc(d, 'users', 'sola'), { approved: true, role: 'usuario', name: 'Sin entrenador', trainerUid: null, assignmentStatus: 'waiting' });
+  await testEnv.withSecurityRulesDisabled(async (c) => {
+    await setDoc(doc(c.firestore(), 'users', 'sola'), { approved: true, role: 'usuario', name: 'Sin entrenador', trainerUid: null, assignmentStatus: 'waiting' });
+  });
   const dSola = await db('sola');
   await caso('S1 sin entrenador crea con trainerUid null', setDoc(doc(dSola, 'weekly_checkins', id('sola', WS)), chkDoc('sola', WS, { trainerUid: null })), N);
   const dT = await db(ENT);
