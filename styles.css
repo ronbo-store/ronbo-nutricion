@@ -5157,3 +5157,24 @@ body.swap-sheet-open .asst-fab { display: none !important; }
 .rcp-ing-row select { flex: 1 1 auto; min-width: 0; }
 .rcp-ing-row input { width: 92px; }
 .rcp-ing-x { width: 44px; height: 44px; border-radius: 50%; border: 2px solid #b91c1c; background: transparent; color: inherit; font-weight: 800; cursor: pointer; }
+
+/* DIARIO VISUAL DE LA SEMANA (AUTH-2026-11-10-366): cuadrícula de
+   días bajo la gráfica semanal. Controles grandes de la casa: cada
+   comida es un botón entero; la foto manda en su celda y la comida
+   sin foto lleva su marcador sobrio con plato, nombre y hora. */
+.fwd-grid { display: flex; flex-wrap: wrap; gap: 10px; }
+.fwd-day { flex: 1 1 148px; min-width: 0; border: 1px solid #e2e8f0; border-radius: 14px; padding: 8px; background: #f8fafc; }
+.fwd-day-head { display: flex; align-items: baseline; justify-content: space-between; margin-bottom: 8px; }
+.fwd-day-name { font-weight: 800; font-size: 13px; color: #0f766e; text-transform: uppercase; letter-spacing: .04em; }
+.fwd-day-num { font-weight: 800; font-size: 15px; color: #334155; }
+.fwd-cells { display: flex; flex-direction: column; gap: 8px; }
+.fwd-cell { display: block; width: 100%; padding: 0; border: 2px solid #e2e8f0; border-radius: 12px; background: #fff; overflow: hidden; cursor: pointer; text-align: left; font: inherit; }
+.fwd-cell:active { border-color: #0d9488; }
+.fwd-cell img { display: block; width: 100%; aspect-ratio: 4 / 3; object-fit: cover; }
+.fwd-cell-lab { display: block; padding: 5px 8px 7px; font-size: 12px; font-weight: 700; color: #475569; }
+.fwd-cell-ico { display: block; padding: 12px 8px 0; font-size: 26px; text-align: center; }
+.fwd-cell-name { display: block; padding: 2px 8px 0; font-size: 13px; font-weight: 700; color: #1e293b; text-align: center; overflow-wrap: anywhere; }
+.fwd-cell .fwd-cell-name + .fwd-cell-lab { text-align: center; }
+.fwd-none { margin: 14px 0 10px; text-align: center; font-size: 13px; color: #94a3b8; }
+.fwd-day-foot { margin-top: 8px; text-align: center; font-size: 13px; font-weight: 800; color: #0f766e; }
+.fwd-empty { margin: 6px 0 2px; color: #64748b; font-size: 14px; }

@@ -21,7 +21,7 @@
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-title" content="RONBO FIT">
 <meta name="apple-mobile-web-app-status-bar-style" content="default">
-<link rel="stylesheet" href="styles.css?v=20261110-recetario">
+<link rel="stylesheet" href="styles.css?v=20261110-diario-visual">
 <script defer src="https://cloud.umami.is/script.js" data-website-id="a29706d4-44a2-47cf-900a-5f74d74abfa8"></script>
 <script type="importmap">
 {
@@ -411,6 +411,16 @@
   <div class="panel week-panel">
     <h2 data-i18n="track.weekTitle">📈 Weekly goal compliance</h2>
     <div id="weekChart"></div>
+  </div>
+
+  <!-- DIARIO VISUAL DE LA SEMANA (AUTH-2026-11-10-366): la semana
+       de la gráfica de arriba en fotos, día por día — lo pinta
+       renderFoodWeekDiary() en app.js desde los mismos MEALS y
+       totals() de siempre. Vista del propio alumno en su
+       «Mi registro»; no existe copia en la ficha del entrenador. -->
+  <div class="panel fwd-panel">
+    <h2 data-i18n="fwd.title">📷 Your week in photos</h2>
+    <div id="foodWeekDiary"></div>
   </div>
 
   </div>
@@ -2232,6 +2242,6 @@
 <div id="toast" class="toast"></div>
 <div id="print-card" aria-hidden="true"></div>
 
-<script type="module" src="app.js?v=20261110-recetario"></script>
+<script type="module" src="app.js?v=20261110-diario-visual"></script>
 </body>
 </html>

@@ -4619,6 +4619,10 @@ en: {
   'th.fatShort': 'F',
   'th.fiberShort': 'Fib',
   'track.viewPhoto': 'View photo',
+  'fwd.title': '📷 Your week in photos',
+  'fwd.emptyWeek': 'No meals logged this week yet — when you log one with a photo, it will show up here.',
+  'fwd.dayEmpty': 'No meals logged',
+  'fwd.ofGoal': '{p}% of your goal',
   'track.delete': 'Delete',
   'track.repeat': 'Repeat',
   'repeat.bannerAi': 'Copy of an AI estimate: adjust the amount and the values are recalculated proportionally. Check them before saving.',
@@ -8972,6 +8976,10 @@ es: {
   'th.fatShort': 'G',
   'th.fiberShort': 'Fib',
   'track.viewPhoto': 'Ver foto',
+  'fwd.title': '📷 Tu semana en fotos',
+  'fwd.emptyWeek': 'Aún no hay comidas registradas esta semana — cuando registres una con foto, aparecerá aquí.',
+  'fwd.dayEmpty': 'Sin registro',
+  'fwd.ofGoal': '{p}% de tu meta',
   'track.delete': 'Borrar',
   'track.repeat': 'Repetir',
   'repeat.bannerAi': 'Copia de una estimación de IA: ajusta la cantidad y los valores se recalculan en proporción. Revísalos antes de guardar.',
@@ -41621,6 +41629,72 @@ function fiberWeekStats(mealsByDate, mondayIso) {
   }
   return complete ? { avg: Math.round((sum / complete) * 10) / 10, days: complete } : null;
 }
+/* DIARIO VISUAL DE COMIDAS DE LA SEMANA (AUTH-2026-11-10-366;
+   paquete 3 de la serie HubFit — orden de Ronald, 2026-11-10
+   02:53 CST: «Ok hagámoslo», sobre el cierre (a) del análisis de
+   competencia ANALISIS-COMPETENCIA-2026-11-10.md): la semana de la
+   fecha elegida (lunes a domingo por weekDates — la MISMA semana
+   de la gráfica de cumplimiento) pintada como cuadrícula de días
+   en «Mi registro», justo bajo esa gráfica. Cada comida CON foto
+   (photoURL, la que el formulario manual adjunta) muestra su foto;
+   la comida SIN foto se representa con su nombre, su momento y su
+   hora de registro — marcador sobrio, nunca un hueco roto ni una
+   imagen inventada —; el día sin registro se declara «sin
+   registro»: sin dato NO es 0 kcal y jamás se pinta como tal.
+   SOLO PRESENTACIÓN, con la doctrina de la casa:
+   · el total de cada día sale de totals() y el % de goalOf('kcal')
+     — las funciones vivas de la vista del día y de la gráfica —:
+     la cuadrícula no define ni recalcula nada por su cuenta.
+   · dentro del día, las comidas van en orden cronológico de
+     registro (esto es un diario), sin reordenar MEALS.
+   · tocar una comida abre ESA comida en su vista de siempre: la
+     fecha pasa a ser la suya (dateSel + render, el camino de
+     loadAllKeepDate) y la ventana de Comida cae en «Consumido»
+     con su fila en el diario, como tras guardar una comida.
+   · es la vista del PROPIO alumno sobre sus datos: vive en su
+     «Mi registro» y NO se pinta en la ficha del entrenador —
+     ninguna puerta nueva sobre las fotos de comidas de nadie. */
+function foodWeekDiaryModel(date) {
+  const days = weekDates(date);
+  const goal = goalOf('kcal');
+  return days.map(iso => {
+    const list = (MEALS[iso] || []).slice().sort((a, b) => (a.createdAtMs || 0) - (b.createdAtMs || 0));
+    const tot = list.length ? totals(iso) : null;
+    return { iso, meals: list, kcal: tot ? tot.kcal : null,
+      pct: (tot && goal) ? Math.round((tot.kcal / goal) * 100) : null };
+  });
+}
+function foodWeekDiaryHTML(date) {
+  const model = foodWeekDiaryModel(date);
+  const names = DAYNAMES[LANG] || DAYNAMES.en;
+  if (!model.some(d => d.meals.length)) return `<p class="fwd-empty">${t('fwd.emptyWeek')}</p>`;
+  return `<div class="fwd-grid">${model.map((d, i) => {
+    const head = `<div class="fwd-day-head"><span class="fwd-day-name">${names[i]}</span><span class="fwd-day-num">${Number(d.iso.slice(8, 10))}</span></div>`;
+    if (!d.meals.length) return `<div class="fwd-day">${head}<p class="fwd-none">${t('fwd.dayEmpty')}</p></div>`;
+    const cells = d.meals.map(m => {
+      const when = `${esc(mealName(m.meal))}${m.createdAtMs ? ` · ${mealTimeStr(m.createdAtMs)}` : ''}`;
+      const inner = m.photoURL
+        ? `<img src="${esc(m.photoURL)}" alt="${esc(m.food || '')}" loading="lazy"><span class="fwd-cell-lab">${when}</span>`
+        : `<span class="fwd-cell-ico" aria-hidden="true">🍽️</span><span class="fwd-cell-name">${esc(m.food || '')}</span><span class="fwd-cell-lab">${when}</span>`;
+      return `<button type="button" class="fwd-cell${m.photoURL ? ' fwd-photo' : ''}" data-fwd-meal="${d.iso}|${m.id}" aria-label="${esc(m.food || '')}">${inner}</button>`;
+    }).join('');
+    const foot = `<div class="fwd-day-foot">${fmt(d.kcal)} kcal${d.pct != null ? ` · ${t('fwd.ofGoal', { p: d.pct })}` : ''}</div>`;
+    return `<div class="fwd-day">${head}<div class="fwd-cells">${cells}</div>${foot}</div>`;
+  }).join('')}</div>`;
+}
+function renderFoodWeekDiary(date) {
+  const el = $('foodWeekDiary');
+  if (!el) return;
+  el.innerHTML = foodWeekDiaryHTML(date);
+  el.querySelectorAll('[data-fwd-meal]').forEach(b => b.onclick = () => {
+    const iso = String(b.dataset.fwdMeal || '').split('|')[0];
+    if (!/^\d{4}-\d{2}-\d{2}$/.test(iso)) return;
+    const sel = $('dateSel');
+    if (sel && [...sel.options].some(o => o.value === iso)) sel.value = iso;
+    render(iso);
+    try { foodOpenFloat(); foodSetSub('consumido'); } catch {}
+  });
+}
 function ringSVG(m, val, goalOv) {
   const goal = goalOv !== undefined ? goalOv : goalOf(m.key);
   if (goal === null) {
@@ -42615,6 +42689,7 @@ function render(date) {
     else { fl.textContent = '🌾 ' + t('fiber.day', { g: fmt(fs.grams), n: fs.withFiber, m: fs.meals }); fl.style.display = ''; }
   }
   renderWeekChart(date);
+  try { renderFoodWeekDiary(date); } catch {}
   /* ORDEN DESCENDENTE + HORA (Ronald, 2026-10-23): el «Detalle de lo
      consumido» se pinta de la comida registrada MÁS RECIENTE a la más
      antigua, con su hora de registro junto a la etiqueta. Se ordena
@@ -50851,7 +50926,7 @@ document.addEventListener('keydown', e => { if (e.key === 'Escape') shareClose()
  *  - El SW (sw.js) solo cachea la cáscara del mismo origen en modo
  *    RED PRIMERO: Auth/Firestore/Worker jamás pasan por la caché.
  * ================================================================ */
-const PWA_SW_VERSION = '20261110-recetario';
+const PWA_SW_VERSION = '20261110-diario-visual';
 /* Sello de versión VISIBLE (2026-11-03): el pie de la tarjeta de
    acceso enseña qué copia corre este teléfono ('v ' + el sello),
    para comprobar de un vistazo si la versión nueva ya llegó.
