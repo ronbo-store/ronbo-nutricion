@@ -13978,10 +13978,10 @@ function renderPurposeProfileBox() {
   const trainerRow = ts === 'approved'
     ? `<div class="user-row"><div><b>💪 ${esc(t('rol.reqTrainer'))}</b><br><span class="muted">${esc(t('rol.stateApproved'))}</span></div></div>`
     : ts === 'review'
-    ? `<div class="user-row"><div><b>💪 ${esc(t('rol.reqTrainer'))}</b><br><span class="muted">${esc(t('rol.inReview'))}</span></div><div class="user-actions"><button type="button" class="btn-ghost btn-sm" data-rol-withdraw>${esc(t('rol.withdraw'))}</button></div></div>`
+    ? `<div class="user-row"><div><b>💪 ${esc(t('rol.reqTrainer'))}</b><br><span class="muted">${esc(t('rol.inReview'))}</span></div><div class="user-actions"><button type="button" class="btn-ghost purpose-cta" data-rol-withdraw>${esc(t('rol.withdraw'))}</button></div></div>`
     : ts === 'rejected'
-    ? `<div class="user-row"><div><b>💪 ${esc(t('rol.reqTrainer'))}</b><br><span class="muted">${esc(t('rol.notApproved'))}</span></div><div class="user-actions"><button type="button" class="btn-primary btn-sm" data-rol-open="trainer">${esc(t('rol.tryAgain'))}</button></div></div>`
-    : `<div class="user-row"><div><b>💪 ${esc(t('rol.reqTrainer'))}</b><br><span class="muted">${esc(t('rol.reqTrainerSub'))}</span></div><div class="user-actions"><button type="button" class="btn-primary btn-sm" data-rol-open="trainer">${esc(t('rol.reqTrainer'))}</button></div></div>`;
+    ? `<div class="user-row"><div><b>💪 ${esc(t('rol.reqTrainer'))}</b><br><span class="muted">${esc(t('rol.notApproved'))}</span></div><div class="user-actions"><button type="button" class="btn-primary purpose-cta" data-rol-open="trainer">${esc(t('rol.tryAgain'))}</button></div></div>`
+    : `<div class="user-row"><div><b>💪 ${esc(t('rol.reqTrainer'))}</b><br><span class="muted">${esc(t('rol.reqTrainerSub'))}</span></div><div class="user-actions"><button type="button" class="btn-primary purpose-cta" data-rol-open="trainer">${esc(t('rol.reqTrainer'))}</button></div></div>`;
   const coachRow = cs === 'approved'
     ? `<div class="user-row"><div><b>🩺 ${esc(t('rol.reqCoach'))}</b><br><span class="muted">${esc(t('rol.stateApproved'))}</span></div></div>`
     : cs === 'review'
@@ -13990,7 +13990,7 @@ function renderPurposeProfileBox() {
     ? `<div class="user-row"><div><b>🩺 ${esc(t('rol.reqCoach'))}</b><br><span class="muted">${esc(t('rol.notApproved'))}</span></div></div>`
     : cs === 'suspended'
     ? `<div class="user-row"><div><b>🩺 ${esc(t('rol.reqCoach'))}</b><br><span class="muted">${esc(t('rol.coachSuspended'))}</span></div></div>`
-    : `<div class="user-row"><div><b>🩺 ${esc(t('rol.reqCoach'))}</b><br><span class="muted">${esc(t('rol.reqCoachSub'))}</span></div><div class="user-actions"><button type="button" class="btn-primary btn-sm" data-rol-open="coach">${esc(t('rol.reqCoach'))}</button></div></div>`;
+    : `<div class="user-row"><div><b>🩺 ${esc(t('rol.reqCoach'))}</b><br><span class="muted">${esc(t('rol.reqCoachSub'))}</span></div><div class="user-actions"><button type="button" class="btn-primary purpose-cta" data-rol-open="coach">${esc(t('rol.reqCoach'))}</button></div></div>`;
   box.innerHTML = `
   <div class="panel">
     <h3 class="history-title">${esc(t('rol.title'))} ${discs}</h3>
@@ -14003,7 +14003,7 @@ function renderPurposeProfileBox() {
       ${rolOptCard('path', 'coach', '🥗', 'purpose.withNutri', esc(t('purpose.withNutriSub')), hasCoach)}
       ${rolOptCard('path', 'own', '🏃', 'purpose.own', esc(t('purpose.ownSub')), kind === 'own')}
     </div>
-    ${u.purpose === 'cuenta' ? `<div class="eval-actions"><button type="button" class="btn-ghost btn-sm" data-rol-usetoggle>${esc(t('rol.useChange'))}</button></div>
+    ${u.purpose === 'cuenta' ? `<div class="eval-actions"><button type="button" class="btn-ghost purpose-cta" data-rol-usetoggle>${esc(t('rol.useChange'))}</button></div>
     <div data-rol-usefold style="display:none">
       <div class="purpose-profile-opts">
         ${rolOptCard('use', 'meals', '🍽️', 'purpose.useMeals', esc(t('purpose.useMealsSub')), (u.purposeUse || 'both') === 'meals')}
@@ -52205,7 +52205,7 @@ document.addEventListener('keydown', e => { if (e.key === 'Escape') shareClose()
  *  - El SW (sw.js) solo cachea la cáscara del mismo origen en modo
  *    RED PRIMERO: Auth/Firestore/Worker jamás pasan por la caché.
  * ================================================================ */
-const PWA_SW_VERSION = '20261110-mi-rol';
+const PWA_SW_VERSION = '20261110-mi-rol-tactil';
 /* Sello de versión VISIBLE (2026-11-03): el pie de la tarjeta de
    acceso enseña qué copia corre este teléfono ('v ' + el sello),
    para comprobar de un vistazo si la versión nueva ya llegó.
