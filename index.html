@@ -21,7 +21,7 @@
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-title" content="RONBO FIT">
 <meta name="apple-mobile-web-app-status-bar-style" content="default">
-<link rel="stylesheet" href="styles.css?v=20261109-tarjeta-dia-libre">
+<link rel="stylesheet" href="styles.css?v=20261110-escaner-codigos">
 <script defer src="https://cloud.umami.is/script.js" data-website-id="a29706d4-44a2-47cf-900a-5f74d74abfa8"></script>
 <script type="importmap">
 {
@@ -938,6 +938,15 @@
         <span class="act-chip-ico" aria-hidden="true">✋</span>
         <span class="act-chip-lab" data-i18n="food.manual">Manual</span>
       </button>
+      <!-- ESCÁNER DE CÓDIGOS DE BARRAS (AUTH-2026-11-10-363, serie
+           HubFit paquete 1): quinta vía de registro, a todo el ancho
+           bajo las cuatro de siempre. Su icono son las barras del
+           código en el círculo verde de la casa, espejo del de voz.
+           Abre la hoja hermana #food-scan. -->
+      <button type="button" class="act-chip scan-wide" id="btn-food-scan">
+        <span class="act-chip-ico scan-chip-ico" aria-hidden="true"><span class="barcode-bars"><i></i><i></i><i></i><i></i><i></i><i></i><i></i></span></span>
+        <span class="act-chip-lab" data-i18n="food.scan">Scan barcode</span>
+      </button>
     </div>
     <p class="progress-hint aiusage-line aiusage-meal-line" id="aiusage-meal-float" style="display:none"></p>
     <!-- APARTADO ÚNICO DE COMIDA (AUTH-2026-10-31-115; diseño
@@ -1020,6 +1029,30 @@
       <button type="button" class="voice-btn" id="fv-voice-btn" aria-label="Dictate your meal" data-i18n-aria="aiVoice.label"><span class="voice-bars" aria-hidden="true"><i></i><i></i><i></i><i></i><i></i></span></button>
       <p class="voice-status" id="fv-voice-status" data-i18n="aiVoice.tap">Tap to dictate</p>
     </div>
+  </div>
+  <!-- HOJA DEL ESCÁNER (AUTH-2026-11-10-363): hermana de la familia
+       de Comida (foodShowOnly('scan')). La cámara lee el código con
+       BarcodeDetector o, en su defecto, con ZXing vendado en el
+       propio repo (zxing-browser-0.1.5.min.js, carga perezosa: solo
+       se pide cuando esta hoja lo necesita y el navegador no trae
+       detector). Sin cámara o sin permiso, la hoja lo explica y la
+       vía sigue: escribir el código a mano o registrar a mano. El
+       código escrito/buscado viaja al endpoint /barcode del Worker
+       (USDA de marca → Open Food Facts) y el acierto PRELLENA el
+       formulario de la comida; nada se guarda desde aquí. -->
+  <div class="act-float act-sheet" id="food-scan" style="display:none" role="dialog" aria-label="Scan the barcode" data-i18n-aria="scan.title">
+    <div class="pend-head">
+      <h2 data-i18n="scan.title">Scan the barcode</h2>
+      <button type="button" class="pend-close" id="btn-food-scan-close" aria-label="Close" data-i18n-aria="client.close">✕</button>
+    </div>
+    <p class="photo-hint" data-i18n="scan.hint">Point the camera at the barcode on the package. We look the product up (USDA FoodData Central first; Open Food Facts if USDA does not know it) and fill in the meal form with its label values — you review and edit everything before saving.</p>
+    <video id="scan-video" class="scan-video" playsinline muted></video>
+    <p class="voice-status" id="scan-status" data-i18n="scan.point">Point the camera at the barcode…</p>
+    <div class="scan-code-row">
+      <input type="text" id="scan-code" inputmode="numeric" autocomplete="off" data-i18n-ph="scan.codePh" placeholder="Type the code (UPC/EAN)">
+      <button type="button" class="btn-main btn-sm" id="btn-scan-go" data-i18n="scan.codeGo">Look up</button>
+    </div>
+    <div class="ai-actions"><button type="button" class="btn-secondary" id="btn-scan-manual" data-i18n="scan.manualBtn">✋ Log it by hand</button></div>
   </div>
   <div class="act-float act-sheet" id="food-help" style="display:none" role="dialog" aria-label="Help" data-i18n-aria="food.help">
     <div class="pend-head">
@@ -1800,6 +1833,7 @@
     <form id="form-meal">
       <div id="m-ai-banner" class="ai-banner" style="display:none"></div>
       <div id="m-rep-banner" class="ai-banner" style="display:none"></div>
+      <div id="m-scan-banner" class="ai-banner" style="display:none"></div>
       <div class="frow">
         <label><span data-i18n="form.date">Date</span> <input type="date" id="m-date" required></label>
         <label><span data-i18n="form.moment">Meal</span>
@@ -2167,6 +2201,6 @@
 <div id="toast" class="toast"></div>
 <div id="print-card" aria-hidden="true"></div>
 
-<script type="module" src="app.js?v=20261109-tarjeta-dia-libre"></script>
+<script type="module" src="app.js?v=20261110-escaner-codigos"></script>
 </body>
 </html>

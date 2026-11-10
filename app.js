@@ -584,7 +584,7 @@ function applyFeatureGates() {
   /* Rediseño comida flotante (2026-10-24): si la función de comidas
      o la IA se apagan, las hojas flotantes de comida abiertas se
      cierran — la puerta manda sobre la superficie, como el dock. */
-  if (!featureOn('meals') || aiOff) { for (const id of ['food-float', 'food-text', 'food-help', 'food-ai']) { const el = document.getElementById(id); if (el) el.style.display = 'none'; } }
+  if (!featureOn('meals') || aiOff) { for (const id of ['food-float', 'food-text', 'food-help', 'food-ai', 'food-scan']) { const el = document.getElementById(id); if (el) el.style.display = 'none'; } }
   if (!featureOn('activity')) {
     const dockAct = document.getElementById('btn-toggle-activity'); if (dockAct) dockAct.style.display = 'none';
     const fl = document.getElementById('act-float'); if (fl) fl.style.display = 'none';
@@ -5567,6 +5567,20 @@ en: {
   'food.text': 'Text',
   'food.voice': 'Voice',
   'food.manual': 'Manual',
+  'food.scan': 'Scan barcode',
+  'scan.title': 'Scan the barcode',
+  'scan.hint': 'Point the camera at the barcode on the package. We look the product up (USDA FoodData Central first; Open Food Facts if USDA does not know it) and fill in the meal form with its label values — you review and edit everything before saving.',
+  'scan.point': 'Point the camera at the barcode…',
+  'scan.looking': 'Looking up the product…',
+  'scan.notFound': 'We could not find that code. You can log the food by hand.',
+  'scan.noCamera': 'The camera is not available, or permission was not given. You can type the code below or log the food by hand.',
+  'scan.codePh': 'Type the code (UPC/EAN)',
+  'scan.codeGo': 'Look up',
+  'scan.manualBtn': '✋ Log it by hand',
+  'scan.badCode': 'That code looks incomplete — check the digits.',
+  'scan.failed': 'The lookup failed right now. Try again, or log the food by hand.',
+  'scan.bannerUsda': '📦 Barcode {code} · Source: USDA FoodData Central — official label data. Review the values before saving.',
+  'scan.bannerOff': '📦 Barcode {code} · Source: Open Food Facts — a secondary source; its data may be incomplete. Review the values before saving.',
   'food.help': 'Help',
   'food.tabSummary': 'Summary',
   'food.tabLogged': 'Logged',
@@ -9856,6 +9870,20 @@ es: {
   'food.text': 'Texto',
   'food.voice': 'Voz',
   'food.manual': 'Manual',
+  'food.scan': 'Escanear código',
+  'scan.title': 'Escanea el código de barras',
+  'scan.hint': 'Apunta la cámara al código de barras del empaque. Buscamos el producto (primero USDA FoodData Central; si no lo conoce, Open Food Facts) y llenamos el formulario de la comida con los valores de su etiqueta — tú revisas y editas todo antes de guardar.',
+  'scan.point': 'Apunta la cámara al código de barras…',
+  'scan.looking': 'Buscando el producto…',
+  'scan.notFound': 'No encontramos ese código. Puedes registrar la comida a mano.',
+  'scan.noCamera': 'La cámara no está disponible o no se dio el permiso. Puedes escribir el código aquí abajo o registrar la comida a mano.',
+  'scan.codePh': 'Escribe el código (UPC/EAN)',
+  'scan.codeGo': 'Buscar',
+  'scan.manualBtn': '✋ Registrar a mano',
+  'scan.badCode': 'Ese código parece incompleto — revisa los dígitos.',
+  'scan.failed': 'La búsqueda falló en este momento. Inténtalo de nuevo o registra la comida a mano.',
+  'scan.bannerUsda': '📦 Código de barras {code} · Fuente: USDA FoodData Central — datos oficiales de la etiqueta. Revisa los valores antes de guardar.',
+  'scan.bannerOff': '📦 Código de barras {code} · Fuente: Open Food Facts — fuente secundaria; sus datos pueden estar incompletos. Revisa los valores antes de guardar.',
   'food.help': 'Ayuda',
   'food.tabSummary': 'Resumen',
   'food.tabLogged': 'Consumido',
@@ -26406,8 +26434,11 @@ function foodShowOnly(which) {
      IA es HERMANA de la familia — mismo velo, mismo cierre, misma
      gramática; funnels de entrada en aiStartPhotos/aiStartText/
      aiStartAudio/aiStageShow y en el disco/aviso (aiWaiting). */
-  const map = { float: 'food-float', text: 'food-text', help: 'food-help', voice: 'food-voice', ai: 'food-ai' };
+  const map = { float: 'food-float', text: 'food-text', help: 'food-help', voice: 'food-voice', ai: 'food-ai', scan: 'food-scan' };
   for (const [k, id] of Object.entries(map)) { const el = $(id); if (el) el.style.display = (k === which) ? '' : 'none'; }
+  /* Escáner (AUTH-2026-11-10-363): cualquier salida de su hoja —
+     otra hermana, el cierre total, Escape — apaga la cámara. */
+  if (which !== 'scan') { try { scanStop(); } catch {} }
   try { coverSync(); } catch {} // A-N2
   /* F-21: abrir una superficie de análisis de comida pinta «te
      quedan X usos hoy» desde /ai/usage (en silencio si falla). */
@@ -26423,6 +26454,7 @@ function foodOpenText() { foodShowOnly('text'); const ta = $('food-text-desc'); 
 function foodOpenHelp() { foodShowOnly('help'); }
 function foodOpenVoice() { foodShowOnly('voice'); }
 function foodOpenAi() { foodShowOnly('ai'); }
+function foodOpenScan() { foodShowOnly('scan'); scanStart(); }
 
 /* Sub-vistas de la ventana de Comida (AUTH-2026-10-31-115,
    apartado único): Resumen (los anillos) y Consumido (el diario),
@@ -26510,6 +26542,165 @@ if (foodDockLabel) foodDockLabel.addEventListener('click', e => {
     foodCloseAll();
     aiStartText(desc);
   }; }
+
+/* ════════════════════════════════════════════════════════════════════
+   ESCÁNER DE CÓDIGOS DE BARRAS (AUTH-2026-11-10-363; orden de Ronald
+   2026-11-10 02:53 CST — paquete 1 de la serie HubFit): quinta vía de
+   registro de comida, hermana de Foto/Texto/Voz/Manual en la misma
+   ventana. La cámara lee el código con BarcodeDetector donde el
+   navegador lo trae; si no, con ZXing (@zxing/browser 0.1.5, MIT)
+   vendado en el PROPIO repo y cargado solo cuando hace falta —
+   ningún origen externo nuevo. Sin cámara o sin permiso, la hoja
+   lo explica y la vía continúa: el código se puede escribir a mano
+   en la misma hoja, o registrar la comida a mano como siempre.
+   El código viaja al endpoint /barcode del Worker (USDA FoodData
+   Central de marca primero; Open Food Facts después, declarado
+   fuente secundaria en el banner del formulario). El acierto
+   PRELLENA #form-meal como el borrador de IA: la persona revisa,
+   edita la cantidad (el reescalado de la casa actúa sobre el par
+   porción↔valores) y guarda; el guardado escribe source:'barcode'
+   y barcode:{code, src}, y la comida es una comida normal en todo
+   lo demás — misma forma, mismos totales, mismo «día cumplido».
+   Nada se guarda sin pasar por el formulario. ════════════════ */
+let scanDraft = null; // {code, src} del prellenado pendiente de guardar — solo memoria; muere con el episodio (aiClearDraft)
+let scanStream = null, scanDetector = null, scanReader = null, scanLoopOn = false, scanBusy = false, scanZxingPromise = null;
+
+function scanSetStatus(txt) { const s = $('scan-status'); if (s) s.textContent = txt; }
+function scanStop() {
+  scanLoopOn = false;
+  if (scanReader) { try { scanReader.reset(); } catch {} scanReader = null; }
+  if (scanStream) { try { scanStream.getTracks().forEach(tr => tr.stop()); } catch {} scanStream = null; }
+  const v = $('scan-video'); if (v) { try { v.srcObject = null; } catch {} }
+  scanDetector = null;
+}
+function scanNoCamera() { scanStop(); scanSetStatus(t('scan.noCamera')); }
+function scanLoadZxing() {
+  if (window.ZXingBrowser) return Promise.resolve(true);
+  if (!scanZxingPromise) {
+    scanZxingPromise = new Promise(res => {
+      const s = document.createElement('script');
+      s.src = 'zxing-browser-0.1.5.min.js';
+      s.onload = () => res(!!window.ZXingBrowser);
+      s.onerror = () => res(false);
+      document.head.appendChild(s);
+    });
+  }
+  return scanZxingPromise;
+}
+async function scanStart() {
+  scanSetStatus(t('scan.point'));
+  const video = $('scan-video');
+  if (!video) return;
+  if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) { scanNoCamera(); return; }
+  if ('BarcodeDetector' in window) {
+    try { scanStream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: 'environment' }, audio: false }); }
+    catch { scanNoCamera(); return; }
+    video.srcObject = scanStream;
+    try { await video.play(); } catch {}
+    try { scanDetector = new BarcodeDetector({ formats: ['upc_a', 'upc_e', 'ean_13', 'ean_8', 'code_128'] }); }
+    catch { scanDetector = null; }
+    if (scanDetector) { scanLoopOn = true; scanTick(); return; }
+    scanStop();
+  }
+  /* Respaldo ZXing: abre su propia cámara sobre el mismo <video>. */
+  const okLib = await scanLoadZxing();
+  const R = okLib && window.ZXingBrowser && window.ZXingBrowser.BrowserMultiFormatReader;
+  if (!R) { scanNoCamera(); return; }
+  try {
+    scanReader = new R();
+    scanReader.decodeFromVideoDevice(undefined, video, res => { if (res) scanHandleCode(res.getText()); });
+  } catch { scanNoCamera(); }
+}
+async function scanTick() {
+  if (!scanLoopOn) return;
+  const video = $('scan-video');
+  if (video && scanDetector && !scanBusy && video.readyState >= 2) {
+    try { const codes = await scanDetector.detect(video); if (codes && codes.length && codes[0].rawValue) { scanHandleCode(codes[0].rawValue); return; } } catch {}
+  }
+  if (scanLoopOn) setTimeout(scanTick, 250);
+}
+/* SCAN-PURE-BEGIN — función pura: de la respuesta del Worker al par
+   del formulario (texto de cantidad + valores, con nulls intactos).
+   La batería la extrae del propio app.js y la prueba tal cual. */
+function scanPairFor(d) {
+  const v = (d && d.values) || {};
+  const sv = (d && d.serving) || {};
+  let qtyText = '';
+  if (d && d.basis === '100g') qtyText = '100 g';
+  else if (sv.qty != null && sv.unit) qtyText = (Math.round(Number(sv.qty) * 10) / 10) + ' ' + sv.unit;
+  else if (sv.text) qtyText = String(sv.text);
+  const nn = x => (x != null ? x : null);
+  return { qtyText, vals: { kcal: nn(v.kcal), prot: nn(v.prot), carb: nn(v.carb), sugar: nn(v.sugar), fat: nn(v.fat), fiber: nn(v.fiber) } };
+}
+/* SCAN-PURE-END */
+async function scanHandleCode(raw) {
+  if (scanBusy) return;
+  const code = String(raw == null ? '' : raw).replace(/\D/g, '');
+  if (code.length < 8 || code.length > 14) { toast(t('scan.badCode'), true); return; }
+  scanBusy = true;
+  scanStop();
+  scanSetStatus(t('scan.looking'));
+  try {
+    const ep = aiEndpoint();
+    if (!ep || !auth.currentUser) throw new Error('no-endpoint');
+    const idToken = await auth.currentUser.getIdToken();
+    const ctl = new AbortController();
+    const to = setTimeout(() => { try { ctl.abort(); } catch {} }, 30000);
+    let r, d = null;
+    try {
+      r = await fetch(ep + '/barcode', { method: 'POST', headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ idToken, code }), signal: ctl.signal });
+      d = await r.json().catch(() => null);
+    } finally { clearTimeout(to); }
+    if (r.status === 503 && d && d.error === 'door-unavailable') { toast(t('ai.doorUnavailable'), true); return; }
+    if (!r.ok || !d) throw new Error('lookup-http-' + r.status);
+    if (!d.found) {
+      /* Ninguna fuente conoce el código: mensaje claro y el
+         formulario manual abierto, como manda el diseño. */
+      toast(t('scan.notFound'), true);
+      foodCloseAll(); mealManualOpen(); backSet('food');
+      return;
+    }
+    scanPrefill(d);
+  } catch { toast(t('scan.failed'), true); }
+  finally { scanBusy = false; }
+}
+function scanPrefill(d) {
+  const pair = scanPairFor(d);
+  aiClearDraft();
+  repeatClear();
+  const form = $('form-meal'); if (form) form.reset();
+  mealSplit = null;
+  const prev = $('m-photo-preview'); if (prev) { prev.style.display = 'none'; prev.src = ''; }
+  $('m-date').value = ($('dateSel') && $('dateSel').value) || todayISO();
+  $('m-meal').value = aiDefaultMeal();
+  $('m-food').value = d.name || '';
+  $('m-qty').value = pair.qtyText;
+  const setN = (id, val) => { const el = $(id); if (el) el.value = (val == null ? '' : val); };
+  setN('m-kcal', pair.vals.kcal); setN('m-prot', pair.vals.prot); setN('m-carb', pair.vals.carb);
+  setN('m-sugar', pair.vals.sugar); setN('m-fat', pair.vals.fat);
+  /* FIBRA: con dato se prellena; sin dato el campo queda VACÍO —
+     sin dato jamás es cero (doctrina de la Fibra Fase 1). */
+  setN('m-fiber', pair.vals.fiber);
+  $('m-notes').value = '';
+  mealScaleWire();
+  /* El par porción↔valores arma el reescalado de la casa: si la
+     persona cambia la cantidad a otra magnitud, las métricas se
+     reescalan desde la etiqueta; con cantidad por piezas o sin
+     número, el motor no actúa y el formulario avisa como siempre. */
+  mealScaleArm(pair.qtyText, pair.vals);
+  scanDraft = { code: d.code, src: d.source };
+  const b = $('m-scan-banner');
+  if (b) { b.style.display = ''; b.textContent = t(d.source === 'off' ? 'scan.bannerOff' : 'scan.bannerUsda', { code: d.code }); }
+  MEAL_FORM_MANUAL_NEW = false;
+  foodCloseAll();
+  aiOpenMealModal();
+}
+{ const b = $('btn-food-scan'); if (b) b.onclick = () => foodOpenScan(); }
+{ const c = $('btn-food-scan-close'); if (c) c.onclick = () => foodOpenFloat(); }
+{ const b = $('btn-scan-go'); if (b) b.onclick = () => { const i = $('scan-code'); scanHandleCode(i ? i.value : ''); }; }
+{ const i = $('scan-code'); if (i) i.addEventListener('keydown', e => { if (e.key === 'Enter') { e.preventDefault(); scanHandleCode(i.value); } }); }
+{ const b = $('btn-scan-manual'); if (b) b.onclick = () => { scanStop(); foodCloseAll(); mealManualOpen(); backSet('food'); }; }
 /* Cierre tocando fuera (el label COMIDA del dock se excluye: su
    propio handler ya alterna) y con Escape — espejo de actividad. */
 document.addEventListener('click', e => {
@@ -26520,8 +26711,8 @@ document.addEventListener('click', e => {
      un clic de fuera — sin esta guarda, la hoja se cerraba con el
      mismo toque que arrancaba el análisis (puntos 19–20). */
   if (e.target && e.target.isConnected === false) return;
-  if (!['food-float', 'food-text', 'food-help', 'food-voice', 'food-ai'].some(foodIsOpen)) return;
-  for (const id of ['food-float', 'food-text', 'food-help', 'food-voice', 'food-ai']) { const el = $(id); if (el && el.contains(e.target)) return; }
+  if (!['food-float', 'food-text', 'food-help', 'food-voice', 'food-ai', 'food-scan'].some(foodIsOpen)) return;
+  for (const id of ['food-float', 'food-text', 'food-help', 'food-voice', 'food-ai', 'food-scan']) { const el = $(id); if (el && el.contains(e.target)) return; }
   const l = $('btn-round-food'); if (l && l.contains(e.target)) return;
   /* Superficies cuyos botones ABREN una hoja de Comida (puntos
      19–20): el aviso del borrador (#ai-draft-notice: «Revisarla») y
@@ -27465,6 +27656,12 @@ function aiClearDraft() {
   mealPickClear(); // punto 84: el episodio del formulario se reinicia; la elección del catálogo muere con él
   const b = $('m-ai-banner');
   if (b) { b.style.display = 'none'; b.textContent = ''; }
+  /* Escáner (AUTH-2026-11-10-363): su episodio muere con el del
+     formulario, como el de IA — cancelar, guardar o reabrir por
+     otra vía retira la procedencia pendiente y su banner. */
+  scanDraft = null;
+  const bs2 = $('m-scan-banner');
+  if (bs2) { bs2.style.display = 'none'; bs2.textContent = ''; }
 }
 let aiSaving = false; // guardia del guardado directo (se suma a mealSaving, la del formulario)
 /* Guardado DIRECTO desde el resultado (PAQUETE 2, Ronald 2026-10-18):
@@ -45656,6 +45853,13 @@ $('form-meal').addEventListener('submit', async e => {
       } catch (err) { toast(t('err.mealPhotoFail'), true); }
     }
     if (aiDraft) { data.source = aiDraft.src || 'ai'; data.ai = { model: aiDraft.model, rangeKcal: aiDraft.rangeKcal }; }
+    /* Escáner de códigos (AUTH-2026-11-10-363): el guardado desde el
+       prellenado del escáner lleva su procedencia — source 'barcode'
+       y el código con su fuente ('usda'|'off') — y en todo lo demás
+       es una comida normal: misma forma y mismos totales. Los dos
+       episodios nunca conviven (scanPrefill limpia el borrador de
+       IA y aiClearDraft limpia el del escáner). */
+    if (scanDraft) { data.source = 'barcode'; data.barcode = { code: scanDraft.code, src: scanDraft.src }; }
     /* Procedencia de la repetición (corrección 2026-10-19, punto 3b):
        si el guardado viene de «Repetir», la copia lleva su origin
        (kind/fromId/fromDate) — visible en los datos, sin bloque ai ni
@@ -45694,6 +45898,7 @@ $('form-meal').addEventListener('submit', async e => {
       }
       if (rec.source) data.source = rec.source;
       if (rec.origin) data.origin = rec.origin;
+      if (rec.barcode) data.barcode = rec.barcode; // AUTH-363: la edición conserva la procedencia del escáner, como la de IA
       if (rec.ai) data.ai = rec.ai;
       if (rec.byUid) data.byUid = rec.byUid;
       if (rec.byRole) data.byRole = rec.byRole;
@@ -50078,7 +50283,7 @@ document.addEventListener('keydown', e => { if (e.key === 'Escape') shareClose()
  *  - El SW (sw.js) solo cachea la cáscara del mismo origen en modo
  *    RED PRIMERO: Auth/Firestore/Worker jamás pasan por la caché.
  * ================================================================ */
-const PWA_SW_VERSION = '20261109-tarjeta-dia-libre';
+const PWA_SW_VERSION = '20261110-escaner-codigos';
 /* Sello de versión VISIBLE (2026-11-03): el pie de la tarjeta de
    acceso enseña qué copia corre este teléfono ('v ' + el sello),
    para comprobar de un vistazo si la versión nueva ya llegó.
