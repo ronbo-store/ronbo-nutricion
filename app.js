@@ -526,6 +526,29 @@ async function escPoolTrainersFromProfiles(modality) {
   }
   return list;
 }
+/* ALTA AUTÓNOMA (AUTH-2026-11-10-372, reporte de Ronald del
+   2026-11-10 12:26 CST): quien elige «Entreno por mi cuenta» está
+   en un estado FINAL — sin entrenador por su elección —, no en
+   una espera. La elección guardada (purpose 'cuenta' y ningún
+   entrenador) MANDA sobre los campos heredados del alta: el
+   assignmentStatus 'waiting' que las reglas obligan a escribir al
+   nacer sin entrenador (su rama de creación solo admite
+   'assigned'/'waiting') y la modalidad que el selector legado
+   oculto sembraba ('presencial'). Ningún dato se reescribe: la
+   corrección vive en la lectura, como en AUTH-183. */
+function selfTrainedOf(u) {
+  return !!u && u.purpose === 'cuenta' && !u.trainerUid;
+}
+/* La relación local (MY_REL) de un alumno autónomo se lee sin
+   modalidad y fuera de la espera: su relación heredada — o la
+   derivada del espejo — puede traer la modalidad sembrada al nacer
+   y el estado 'en_espera', y ninguna de las dos cosas es verdad
+   para él. Solo lectura: el documento no se toca. */
+function myRelSelfNormalize() {
+  if (MY_REL && typeof UDATA !== 'undefined' && UDATA && selfTrainedOf(UDATA) && !MY_REL.trainerUid) {
+    MY_REL = { ...MY_REL, modality: null, status: 'self', selfTrained: true };
+  }
+}
 async function loadRolesX() {
   try { const s = await getDoc(doc(db, 'app_settings', 'feature_flags')); if (s.exists()) FEATURE_FLAGS = s.data(); } catch {}
   try { const s = await getDoc(doc(db, 'app_settings', 'membership_catalog')); if (s.exists()) MEMBERSHIP_CATALOG = s.data(); } catch {}
@@ -550,6 +573,7 @@ async function loadRolesX() {
        así que ninguna otra superficie cambia. */
     MY_REL = { trainerUid: UDATA.trainerUid || null, modality: UDATA.modality || null, status: UDATA.assignmentStatus === 'assigned' ? 'activa' : 'en_espera', legacy: true };
   }
+  myRelSelfNormalize();
   if (ROLE === 'entrenador' && auth.currentUser) {
     /* Su propio dossier alimenta el pendiente de plantilla
        (pendCompute es síncrono: lee este estado, no la red). */
@@ -738,7 +762,7 @@ async function renderMyTrainerBox() {
      entrenador: miniatura redonda + nombre (cadena segura de
      siempre; jamás el uid ni un correo) + titular del dossier.
      En espera: la misma frase de estado que hoy abre la tarjeta. */
-  const lineHtml = `<button type="button" class="mt-toggle" id="mt-toggle" aria-expanded="${MT_CARD_OPEN ? 'true' : 'false'}">${rel.trainerUid ? `<span class="mt-thumb"><span class="mt-thumb-initials">${esc(tInitials)}</span>${tPhoto ? `<img class="mt-thumb-img" src="${esc(tPhoto)}" alt="">` : ''}</span><span class="mt-toggle-text"><b>${esc(tNameSafe || t('esc.currentTrainer'))}</b>${tNameSafe ? ' ' + roleDiscHTML('trainer') : ''}${tHeadline ? `<span class="mt-toggle-head"> · ${esc(tHeadline)}</span>` : ''}</span>` : `<span class="mt-thumb mt-thumb-wait"><span class="mt-thumb-emoji" aria-hidden="true">🧑‍🏫</span></span><span class="mt-toggle-text"><span class="mt-toggle-wait">${esc(t('esc.noTrainerYet'))}</span></span>`}<span class="mt-chev" aria-hidden="true">▾</span></button>`;
+  const lineHtml = `<button type="button" class="mt-toggle" id="mt-toggle" aria-expanded="${MT_CARD_OPEN ? 'true' : 'false'}">${rel.trainerUid ? `<span class="mt-thumb"><span class="mt-thumb-initials">${esc(tInitials)}</span>${tPhoto ? `<img class="mt-thumb-img" src="${esc(tPhoto)}" alt="">` : ''}</span><span class="mt-toggle-text"><b>${esc(tNameSafe || t('esc.currentTrainer'))}</b>${tNameSafe ? ' ' + roleDiscHTML('trainer') : ''}${tHeadline ? `<span class="mt-toggle-head"> · ${esc(tHeadline)}</span>` : ''}</span>` : `<span class="mt-thumb mt-thumb-wait"><span class="mt-thumb-emoji" aria-hidden="true">🧑‍🏫</span></span><span class="mt-toggle-text"><span class="mt-toggle-wait">${esc(t(rel.selfTrained ? 'esc.selfNoTrainer' : 'esc.noTrainerYet'))}</span></span>`}<span class="mt-chev" aria-hidden="true">▾</span></button>`;
   const bodyHtml = `${rel.trainerUid ? `<div class="mt-head">
       <div class="mt-info">
         <h3 class="history-title">${esc(t('esc.myTrainerTitle'))}</h3>
@@ -753,7 +777,7 @@ async function renderMyTrainerBox() {
       </button>
     </div>`
       : `<h3 class="history-title">${esc(t('esc.myTrainerTitle'))}</h3>
-    <p class="progress-hint">${esc(t('esc.noTrainerYet'))}</p>`}
+    <p class="progress-hint">${esc(t(rel.selfTrained ? 'esc.selfNoTrainer' : 'esc.noTrainerYet'))}</p>`}
     ${rejectedNote}
     ${modHtml}
     <label class="muted">${esc(t('esc.changeTrainer'))}
@@ -1489,7 +1513,10 @@ function rolePendItems() {
       }
     } else if (ROLE === 'usuario') {
       const rel = (typeof MY_REL !== 'undefined' && MY_REL) || null;
-      if (!rel || !rel.trainerUid)
+      /* AUTH-372: quien entrena por su cuenta no está «en espera»
+         de un entrenador: este pendiente no nace para él (su
+         elección ya lo resolvió). */
+      if ((!rel || !rel.trainerUid) && !selfTrainedOf(typeof UDATA !== 'undefined' ? UDATA : null))
         push('alumno|trainer', 'mytrainer', t('pend.role.trainerTitle'), t('pend.role.trainerDetail'), t('pend.role.trainerGo'));
       if (typeof MY_ASMT !== 'undefined' && MY_ASMT && MY_ASMT.state === 'ok' && !faHasResult(MY_ASMT.doc))
         /* AUTH-119 (R2, la vía del alumno): la tarjeta «Completa tu
@@ -1573,7 +1600,10 @@ function roleChecklist(forRole) {
     if (R === 'usuario') {
       const rel = (typeof MY_REL !== 'undefined' && MY_REL) || null;
       const rows = [
-        { label: t('pend.chk.trainer'), done: !!(rel ? rel.trainerUid : (typeof UDATA !== 'undefined' && UDATA && UDATA.trainerUid)) },
+        /* AUTH-372: para el autónomo el paso «entrenador» está
+           resuelto POR SU ELECCIÓN (no le falta un entrenador:
+           eligió no tenerlo); la ruta y el % leen esta misma fila. */
+        { label: t('pend.chk.trainer'), done: !!(rel ? rel.trainerUid : (typeof UDATA !== 'undefined' && UDATA && UDATA.trainerUid)) || selfTrainedOf(typeof UDATA !== 'undefined' ? UDATA : null) },
         { label: t('pend.chk.eval'), done: (typeof MY_ASMT !== 'undefined' && !!MY_ASMT && faHasResult(MY_ASMT.doc)) },
         { label: t('pend.chk.consent'), done: (typeof specIsActive === 'function') && specIsActive(UDATA) },
         { label: t('pend.chk.parq'), done: !!((typeof activeDecl === 'function') && activeDecl()) },
@@ -1789,7 +1819,7 @@ document.addEventListener('click', e => {
 async function escLoadAdminCounts() {
   if (!IS_OWNER) return;
   const c = { accounts: 0, memberships: 0, meals: 0, waiting: 0, waitingNames: [], failed: [] };
-  try { const s = await getDocs(collection(db, 'users')); s.forEach(d => { const u = d.data(); if (u.isOwner) return; if (u.approved !== true) c.accounts++; else if ((u.role || 'usuario') === 'usuario' && !u.trainerUid) { c.waiting++; c.waitingNames.push(u.name || u.email || '—'); } }); } catch { c.failed.push('users'); }
+  try { const s = await getDocs(collection(db, 'users')); s.forEach(d => { const u = d.data(); if (u.isOwner) return; if (u.approved !== true) c.accounts++; else if ((u.role || 'usuario') === 'usuario' && !u.trainerUid && !selfTrainedOf(u)) { c.waiting++; c.waitingNames.push(u.name || u.email || '—'); } }); } catch { c.failed.push('users'); }
   try { const s = await getDocs(collection(db, 'memberships')); s.forEach(d => { if (d.data().status === 'pendiente') c.memberships++; }); } catch { c.failed.push('memberships'); }
   try { const s = await getDocs(collection(db, 'meal_requests')); s.forEach(d => { if (d.data().status === 'pendiente_administrador') c.meals++; }); } catch { c.failed.push('meal_requests'); }
   ESC_ADMIN_COUNTS = c;
@@ -2163,10 +2193,17 @@ async function renderProfileView() {
   const eveEffOn = eveSaved && typeof eveSaved.on === 'boolean' ? eveSaved.on : true;
   if (ROLE === 'usuario') {
     const rel = MY_REL || {};
-    const modality = rel.modality || u.modality || null;
+    /* AUTH-372: para el alumno autónomo la elección manda — sin
+       línea de modalidad (la modalidad solo existe dentro de la
+       relación con un entrenador) y su entrenador se lee como lo
+       que eligió: por su cuenta, no «en espera de asignación».
+       Lectura declarada: la línea de entrenador se CONSERVA con el
+       texto de su elección; la de modalidad se oculta. */
+    const selfT = selfTrainedOf(u);
+    const modality = selfT ? null : (rel.modality || u.modality || null);
     if (modality) rows += `<p class="myprof-row"><span class="myprof-k">${esc(t('esc.modality'))}</span><span class="myprof-v">${esc(escModLabel(modality))}</span></p>`;
     const tUid = rel.trainerUid || u.trainerUid || null;
-    rows += `<p class="myprof-row"><span class="myprof-k">${esc(t('esc.currentTrainer'))}</span><span class="myprof-v" id="myprof-trainer-name">${tUid ? esc(ADMIN_NAME_CACHE[tUid] || '…') : esc(t('myprof.noTrainer'))}</span></p>`;
+    rows += `<p class="myprof-row"><span class="myprof-k">${esc(t('esc.currentTrainer'))}</span><span class="myprof-v" id="myprof-trainer-name">${tUid ? esc(ADMIN_NAME_CACHE[tUid] || '…') : esc(t(selfT ? 'myprof.selfTrainer' : 'myprof.noTrainer'))}</span></p>`;
   }
   box.innerHTML = `
   <div class="panel myprof-card">
@@ -3985,6 +4022,7 @@ en: {
   'myprof.title': '👤 My profile',
   'myprof.changePhoto': 'Change photo',
   'myprof.noTrainer': 'Waiting for assignment',
+  'myprof.selfTrainer': 'On your own — no trainer',
   'myprof.mailLang': 'Email language',
   'myprof.mailLangHint': 'The language of the emails we send you (your welcome and your notices). It starts with your app language; change it here anytime.',
   'msg.mailLangSaved': 'Email language saved.',
@@ -4851,6 +4889,7 @@ en: {
   'esc.poolFull': ' (full)',
   'esc.myTrainerTitle': '🧑‍🏫 My trainer',
   'esc.noTrainerYet': 'You are waiting for a trainer — the administrator is responsible for your account meanwhile.',
+  'esc.selfNoTrainer': 'You train on your own: no trainer, by your choice. If you ever want one, you can pick one right here.',
   'esc.currentTrainer': 'Your trainer',
   'esc.changeTrainer': 'Change trainer',
   'esc.changeBtn': 'Change',
@@ -8534,6 +8573,7 @@ es: {
   'myprof.title': '👤 Mi perfil',
   'myprof.changePhoto': 'Cambiar foto',
   'myprof.noTrainer': 'En espera de asignación',
+  'myprof.selfTrainer': 'Por tu cuenta — sin entrenador',
   'myprof.mailLang': 'Idioma de los correos',
   'myprof.mailLangHint': 'El idioma de los correos que te enviamos (tu bienvenida y tus avisos). Empieza con el idioma de tu app; cámbialo aquí cuando quieras.',
   'msg.mailLangSaved': 'Idioma de correo guardado.',
@@ -9397,6 +9437,7 @@ es: {
   'esc.poolFull': ' (cupo lleno)',
   'esc.myTrainerTitle': '🧑‍🏫 Mi entrenador',
   'esc.noTrainerYet': 'Estás en espera de un entrenador: mientras tanto, tu cuenta es responsabilidad del administrador.',
+  'esc.selfNoTrainer': 'Entrenas por tu cuenta: sin entrenador, por tu elección. Si algún día quieres uno, puedes elegirlo aquí mismo.',
   'esc.currentTrainer': 'Tu entrenador',
   'esc.changeTrainer': 'Cambiar de entrenador',
   'esc.changeBtn': 'Cambiar',
@@ -13870,7 +13911,14 @@ async function regCreateAccount(pd) {
     const accountType = pd.purpose === 'entrenador' ? 'entrenador' : 'alumno';
     const isTrainerReg = accountType === 'entrenador';
     const isNutriReg = pd.purpose === 'nutricionista';
-    const modality = isTrainerReg ? null : (pd.purpose === 'con_entrenador' ? (pd.modality || 'virtual') : (($('reg-modality') && $('reg-modality').value) || 'virtual'));
+    /* AUTH-372: el propósito AUTÓNOMO no recibe modalidad alguna
+       (la modalidad solo existe dentro de la relación con un
+       entrenador): modality queda null y la clave NI SE ESCRIBE
+       en el documento — las reglas la admiten ausente, no nula.
+       Antes, la rama general leía el selector legado oculto
+       (#reg-modality, cuya primera opción es 'presencial') y se
+       la sembraba: el «Presencial» fantasma del reporte. */
+    const modality = isTrainerReg ? null : (pd.purpose === 'con_entrenador' ? (pd.modality || 'virtual') : (pd.purpose === 'cuenta' ? null : (($('reg-modality') && $('reg-modality').value) || 'virtual')));
     const trainerChoice = (!isTrainerReg && pd.purpose === 'con_entrenador' && !pd.suggest) ? (pd.trainerUid || '') : '';
     const purposeData = { purpose: pd.purpose, purposeAt: new Date().toISOString() };
     if (pd.purpose === 'cuenta') purposeData.purposeUse = pd.use;
@@ -13886,7 +13934,7 @@ async function regCreateAccount(pd) {
       role: 'usuario', isOwner: false, approved: true,
       accountType,
       ...(isTrainerReg ? { roleRequest: 'entrenador' } : {}),
-      ...(isTrainerReg ? {} : { modality, features: pd.purpose === 'cuenta' ? purposeFeaturesForUse(pd.use) : { ...ESC_FEATURE_DEFAULTS } }),
+      ...(isTrainerReg ? {} : { ...(modality ? { modality } : {}), features: pd.purpose === 'cuenta' ? purposeFeaturesForUse(pd.use) : { ...ESC_FEATURE_DEFAULTS } }),
       trainerUid: trainerChoice || null,
       assignmentStatus: trainerChoice ? 'assigned' : 'waiting',
       ...purposeData,
@@ -13900,9 +13948,14 @@ async function regCreateAccount(pd) {
     regBatch.set(receiptRef(cred.user.uid + '_1'),
       { uid: cred.user.uid, email, type: 'registered', version: TERMS_VERSION, at: serverTimestamp() });
     await regBatch.commit();
-    if (!isTrainerReg && !isNutriReg) {
+    if (!isTrainerReg && !isNutriReg && pd.purpose !== 'cuenta') {
       /* La relación nace con la cuenta (documento vigente; el cupo
-         se consume al APROBAR la cuenta, no al registrarla). */
+         se consume al APROBAR la cuenta, no al registrarla).
+         AUTH-372: la cuenta AUTÓNOMA no nace con relación alguna —
+         no hay entrenador con quien relacionarla; si un día elige
+         uno, la relación nace entonces por los flujos de siempre
+         (el cambio de entrenador del propio alumno o la asignación
+         del administrador, que ya la crean al asignar). */
       try {
         await setDoc(doc(db, 'trainer_relations', cred.user.uid), {
           alumnoUid: cred.user.uid, trainerUid: trainerChoice || null, modality,
@@ -18822,8 +18875,13 @@ function renderWaitingTray(users) {
      ella, aunque su cuenta conserve assignmentStatus 'waiting'
      (caso vivo: el entrenador Marcos, confirmado en la revisión
      urgente de «Mis alumnos» del 2026-11-02). El dato no se
-     toca: el arreglo vive en este filtro. */
-  const waiting = (users || []).filter(u => !u.isOwner && u.role !== 'entrenador' && u.role !== 'administrador' && u.approved === true && u.assignmentStatus === 'waiting');
+     toca: el arreglo vive en este filtro.
+     AUTH-372: tampoco aparece el alumno AUTÓNOMO (purpose
+     'cuenta' sin entrenador): su 'waiting' es el valor que las
+     reglas obligan a escribir al nacer, no una espera real —
+     la misma doctrina: el dato no se toca y el filtro lee su
+     elección. */
+  const waiting = (users || []).filter(u => !u.isOwner && u.role !== 'entrenador' && u.role !== 'administrador' && u.approved === true && u.assignmentStatus === 'waiting' && !selfTrainedOf(u));
   const trainers = (users || []).filter(u => u.isOwner || u.role === 'entrenador');
   box.style.display = '';
   box.innerHTML = `<h3 class="history-title">${t('roles.waitingTitle')} (${waiting.length})</h3>
@@ -51736,7 +51794,7 @@ document.addEventListener('keydown', e => { if (e.key === 'Escape') shareClose()
  *  - El SW (sw.js) solo cachea la cáscara del mismo origen en modo
  *    RED PRIMERO: Auth/Firestore/Worker jamás pasan por la caché.
  * ================================================================ */
-const PWA_SW_VERSION = '20261110-hoja-series';
+const PWA_SW_VERSION = '20261110-alta-autonoma';
 /* Sello de versión VISIBLE (2026-11-03): el pie de la tarjeta de
    acceso enseña qué copia corre este teléfono ('v ' + el sello),
    para comprobar de un vistazo si la versión nueva ya llegó.
@@ -53303,7 +53361,7 @@ async function renderCoachPaneTrainer() {
   const box = $('coach-pane-trainer'); if (!box) return;
   if (!auth.currentUser || ROLE !== 'usuario' || (typeof MY_REL !== 'undefined' && MY_REL && MY_REL.trainerUid)) { box.innerHTML = ''; return; }
   const pool = await escPoolTrainersFromProfiles((MY_REL && MY_REL.modality) || null);
-  let h = `<div class="panel"><h3 class="history-title">${esc(t('esc.myTrainerTitle'))}</h3><p class="progress-hint">${esc(t('esc.noTrainerYet'))}</p>`;
+  let h = `<div class="panel"><h3 class="history-title">${esc(t('esc.myTrainerTitle'))}</h3><p class="progress-hint">${esc(t((typeof MY_REL !== 'undefined' && MY_REL && MY_REL.selfTrained) ? 'esc.selfNoTrainer' : 'esc.noTrainerYet'))}</p>`;
   if (pool.length) {
     h += `<label class="muted">${esc(t('roles.chooseTrainer'))}<select id="coach-pane-trainer-sel"><option value="">${esc(t('esc.waitOption'))}</option>${pool.map(p => `<option value="${esc(p.uid)}"${p.full ? ' disabled' : ''}>${esc(p.name)}${p.full ? esc(t('esc.poolFull')) : ''}</option>`).join('')}</select></label><div class="eval-actions"><button type="button" class="btn-primary btn-sm" id="btn-coach-pane-trainer">${esc(t('route.chooseTrainer'))}</button></div><div class="dos-pool-links">${pool.map(p => `<button type="button" class="slot-link" data-dossier-open="${esc(p.uid)}">👤 ${esc(p.name)}</button>`).join(' ')}</div>`;
   }
