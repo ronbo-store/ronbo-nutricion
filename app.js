@@ -4352,6 +4352,34 @@ en: {
   'menu.studentOwnLine': 'Your own menu for this week.',
   'menu.changeReason': 'What should change?',
   'menu.fillDay': 'Fill my day',
+  /* TU PLAN DE COMIDAS, ACOMPAÑADO (AUTH-361) */
+  'comp.alert': 'It’s time for your {meal}',
+  'comp.alertSub': "Your plan for today · let's go!",
+  'comp.pos': 'Meal {n} of {m}',
+  'comp.dayLine': 'Your plan today: {done} of {total} kcal',
+  'comp.doneTitle': 'Already sorted',
+  'comp.nowTag': 'Up now · {time}',
+  'comp.focusSpec': 'What your plan says for today:',
+  'comp.totalMeal': 'Total for this meal: {kcal} kcal · protein {prot} g',
+  'comp.targetMeal': ' · your goal for this meal: {kcal} kcal',
+  'comp.q': 'How did this meal go?',
+  'comp.full': '✓ I did it',
+  'comp.half': '◐ Halfway',
+  'comp.none': '✕ I didn’t eat it',
+  'comp.like': '👍 I liked it',
+  'comp.dislike': '👎 I didn’t like it',
+  'comp.stFull': 'you did it',
+  'comp.stHalf': 'halfway',
+  'comp.stNone': 'didn’t eat it',
+  'comp.likedTag': ' · you liked it 👍',
+  'comp.dislikedTag': ' · you didn’t like it 👎',
+  'comp.showAll': '☰ See my whole day',
+  'comp.backFocus': '← Back to my meal in focus',
+  'comp.week': 'Your week: {sum} of {den} meals · adherence {pct}%',
+  'comp.weekNone': 'Your week: no meals counted yet',
+  'comp.next': 'Next up: {meal} · {time}',
+  'comp.allDone': 'All of today’s meals are sorted 🎉',
+  'comp.reopenHint': 'tap to correct',
   'menu.fillConfirm': 'This day already has food. Replace it with an auto-filled day from the prepared-meals library?',
   'menu.filling': 'Filling your day…',
   'menu.filled': 'Day filled from the prepared-meals library. Check it, edit anything and save.',
@@ -8613,6 +8641,34 @@ es: {
   'menu.studentOwnLine': 'Tu menú propio de esta semana.',
   'menu.changeReason': '¿Qué debería cambiar?',
   'menu.fillDay': 'Llenar mi día',
+  /* TU PLAN DE COMIDAS, ACOMPAÑADO (AUTH-361) */
+  'comp.alert': 'Es hora de tu {meal}',
+  'comp.alertSub': 'Tu plan de hoy · ¡a darle!',
+  'comp.pos': 'Comida {n} de {m}',
+  'comp.dayLine': 'Tu plan hoy: {done} de {total} kcal',
+  'comp.doneTitle': 'Ya resueltas',
+  'comp.nowTag': 'Ahora toca · {time}',
+  'comp.focusSpec': 'Lo que tu plan dice para hoy:',
+  'comp.totalMeal': 'Total de esta comida: {kcal} kcal · proteína {prot} g',
+  'comp.targetMeal': ' · tu meta de la comida: {kcal} kcal',
+  'comp.q': '¿Cómo te fue con esta comida?',
+  'comp.full': '✓ Cumplí',
+  'comp.half': '◐ A medias',
+  'comp.none': '✕ No lo comí',
+  'comp.like': '👍 Me gustó',
+  'comp.dislike': '👎 No me gustó',
+  'comp.stFull': 'cumpliste',
+  'comp.stHalf': 'a medias',
+  'comp.stNone': 'no lo comiste',
+  'comp.likedTag': ' · te gustó 👍',
+  'comp.dislikedTag': ' · no te gustó 👎',
+  'comp.showAll': '☰ Ver todo mi día',
+  'comp.backFocus': '← Volver a mi comida en foco',
+  'comp.week': 'Tu semana: {sum} de {den} comidas · adherencia {pct}%',
+  'comp.weekNone': 'Tu semana: todavía no cuenta ninguna comida',
+  'comp.next': 'Sigue: {meal} · {time}',
+  'comp.allDone': 'Todas las comidas de hoy están resueltas 🎉',
+  'comp.reopenHint': 'toca para corregir',
   'menu.fillConfirm': 'Este día ya tiene alimentos. ¿Lo reemplazo con un día llenado automáticamente desde la biblioteca de comidas preparadas?',
   'menu.filling': 'Llenando tu día…',
   'menu.filled': 'Día llenado desde la biblioteca de comidas preparadas. Revísalo, edita lo que quieras y guarda.',
@@ -49958,7 +50014,7 @@ document.addEventListener('keydown', e => { if (e.key === 'Escape') shareClose()
  *  - El SW (sw.js) solo cachea la cáscara del mismo origen en modo
  *    RED PRIMERO: Auth/Firestore/Worker jamás pasan por la caché.
  * ================================================================ */
-const PWA_SW_VERSION = '20261109-modo-guiado';
+const PWA_SW_VERSION = '20261109-comidas-acompanado';
 /* Sello de versión VISIBLE (2026-11-03): el pie de la tarjeta de
    acceso enseña qué copia corre este teléfono ('v ' + el sello),
    para comprobar de un vistazo si la versión nueva ya llegó.
@@ -55011,8 +55067,8 @@ function schedGoalSuggestion(p, weekday) {
   for (let wd = 0; wd < 7; wd++) { const d = dur(wd); if (d != null && counts[d] > bestN) { best = d; bestN = counts[d]; } }
   return best;
 }
-function schedStateDefaults() { return { days: {}, adjust: { preGapDeltaMin: 0, rangeWidenMin: 0 }, dismissed: {} }; }
-function schedDayStateDefaults() { return { pins: {}, eaten: {}, trainOverride: null, follow: { energy: 0, hunger: 0, digestion: 0, ease: 0 } }; }
+function schedStateDefaults() { return { days: {}, adjust: { preGapDeltaMin: 0, rangeWidenMin: 0 }, dismissed: {}, tastes: {} }; }
+function schedDayStateDefaults() { return { pins: {}, eaten: {}, trainOverride: null, follow: { energy: 0, hunger: 0, digestion: 0, ease: 0 }, mealComp: {} }; }
 let SCHED_PREFS = null, SCHED_STATE = null, SCHED_DAY = null, SCHED_INPUT = null;
 /* SCHED_PREFS_SAVED: el documento de preferencias EXISTE en
    Firestore (el usuario ya guardó alguna vez). Sin él, la vista
@@ -55545,6 +55601,7 @@ async function schedLoadOwn() {
   if (!SCHED_STATE.days) SCHED_STATE.days = {};
   if (!SCHED_STATE.adjust) SCHED_STATE.adjust = { preGapDeltaMin: 0, rangeWidenMin: 0 };
   if (!SCHED_STATE.dismissed) SCHED_STATE.dismissed = {};
+  if (!SCHED_STATE.tastes) SCHED_STATE.tastes = {};
 }
 async function schedLoadPendCfg() {
   if (typeof PEND_CFG !== 'undefined' && PEND_CFG && !PEND_CFG.__error && Array.isArray(PEND_CFG.meals)) return PEND_CFG;
@@ -55559,6 +55616,7 @@ function schedDayState(iso) {
   if (!d.pins) d.pins = {};
   if (!d.eaten) d.eaten = {};
   if (!d.follow) d.follow = { energy: 0, hunger: 0, digestion: 0, ease: 0 };
+  if (!d.mealComp) d.mealComp = {};
   return d;
 }
 /* Guardado con error VISIBLE: si la escritura falla, la hoja lo
@@ -55625,7 +55683,7 @@ async function schedGather() {
     mealsIn = (menuDay.meals || []).filter(m => (m.items || []).length).map(m => {
       const mt = mmMealTotals(m);
       return { name: m.name, time: m.time || null, kcal: mt.kcal, prot: mt.prot, carb: mt.carb, fat: mt.fat, source: 'menu',
-        items: (m.items || []).map(it => ({ name: it.name || '', grams: Number(it.grams) || 0 })) };
+        items: (m.items || []).map(it => { const v = mmVals(it); return { name: it.name || '', grams: Number(it.grams) || 0, kcal: v.kcal, prot: v.prot }; }) };
     });
     const dt = mmDayTotals(menuDay);
     dayTotals = { kcal: dt.kcal, prot: dt.prot };
@@ -55713,6 +55771,209 @@ function schedRecompute() { SCHED_INPUT = schedBuildInput(); SCHED_DAY = schedCo
 function schedNowHHMM() { const d = new Date(); return String(d.getHours()).padStart(2, '0') + ':' + String(d.getMinutes()).padStart(2, '0'); }
 
 /* ── Tarjeta-puerta en Comida (junto a la del planificador) ───── */
+/* ═══ AUTH-361 · TU PLAN DE COMIDAS, ACOMPAÑADO ═══════════════
+   CAPA DIARIA sobre el menú semanal (AUTH-296) y el horario
+   (AUTH-336/357/358): dentro de la MISMA hoja del horario, la
+   comida cuya hora llegó y está sin resolver sale EN FOCO con su
+   aviso; las resueltas se pliegan; y la semana se mide con la
+   ponderación de Ronald (AUTH-323): cumplida 1 · a medias 0,5 ·
+   no comida 0.
+   DISPARO DECLARADO (la app NO tiene push y no se finge): el
+   aviso se evalúa AL ABRIR/PINTAR la hoja — si la hora de una
+   comida del menú de hoy (su hora del menú, en el marco del día
+   del horario) ya llegó y esa comida no tiene cumplimiento
+   registrado, esa comida es el foco y lleva el aviso.
+   DATOS NUEVOS (del PROPIO alumno, sin colección nueva): viven
+   en el MISMO documento {uid}_schedstate de nutrition_sched —
+   days[iso].mealComp[meal] = {status:'full'|'half'|'none', at}
+   y tastes{claveDePlato:'like'|'dislike'} en la raíz del estado.
+   nutrition_sched es del dueño (reglas vivas de AUTH-336: get/
+   update solo si docId == uid propio y ownerUid == uid; sin rama
+   de entrenador ni de admin sobre datos ajenos) → las reglas NO
+   cambian y este paquete NO crea ninguna superficie de
+   cumplimiento para el entrenador (fuera por AUTH-153/AUTH-352,
+   sigue fuera). La visibilidad del menú (AUTH-296) no se toca.
+   CONVIVENCIA «Ya comí» (AUTH-336/357, marca de horario) ↔
+   cumplimiento (AUTH-361), REGLA DECLARADA: son dos marcas del
+   mismo documento y se enlazan en UN sentido — marcar «Cumplí»
+   o «A medias» pone también «Ya comí» con la hora actual SI no
+   estaba puesta (nunca pisa una hora ya registrada); marcar
+   «No lo comí» quita «Ya comí» de esa comida; al revés, «Ya
+   comí» por sí solo NO crea cumplimiento (la comida sigue sin
+   resolver y puede salir en foco), y «Desmarcar» (uneaten) quita
+   también el cumplimiento full/half de esa comida, porque su
+   premisa («comí») acaba de retirarse.
+   DENOMINADOR SEMANAL DECLARADO: cuentan las comidas CON PLATOS
+   del menú vigente de la semana (lunes–domingo de regISO) cuyo
+   momento YA PASÓ — días anteriores a hoy: todas; hoy: solo las
+   cuya hora del menú ya llegó (marco del horario) o que ya están
+   resueltas; días futuros: ninguna. Sin menú o sin comidas
+   debidas, no hay cifra (se dice, no se inventa). */
+let COMPANION_UI = { showAll: false, openMeal: null };
+let COMP_NOW_MIN = null; /* solo lo fija la batería; en vivo vale null = reloj real */
+function compDishKey(name) {
+  return String(name || '').trim().toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '').replace(/\s+/g, ' ');
+}
+function compNowFrame() {
+  const cut = (typeof SCHED_CTX !== 'undefined' && SCHED_CTX && SCHED_CTX.cut != null) ? SCHED_CTX.cut : 240;
+  const nowMin = COMP_NOW_MIN != null ? COMP_NOW_MIN : (new Date().getHours() * 60 + new Date().getMinutes());
+  return nowMin < cut ? nowMin + 1440 : nowMin;
+}
+function compMenuMeals() {
+  const ins = (typeof SCHED_CTX !== 'undefined' && SCHED_CTX && SCHED_CTX.mealsIn) || [];
+  const dayMeals = (typeof SCHED_DAY !== 'undefined' && SCHED_DAY && SCHED_DAY.meals) || [];
+  return ins.filter(m => m.source === 'menu').map(m => {
+    const dm = dayMeals.find(x => x.name === m.name) || {};
+    const items = (m.items || []).map(it => ({ name: it.name || '', grams: Number(it.grams) || 0, kcal: Number(it.kcal) || 0, prot: Number(it.prot) || 0 }));
+    return { name: m.name, from: dm.from != null ? dm.from : null, time: m.time || (dm.from != null ? pendFmtHM(dm.from) : ''),
+      target: dm.kcal != null ? dm.kcal : null, items,
+      total: items.reduce((a, it) => a + it.kcal, 0), totalProt: items.reduce((a, it) => a + it.prot, 0) };
+  }).sort((a, b) => (a.from == null ? 99999 : a.from) - (b.from == null ? 99999 : b.from));
+}
+function compStatusOf(iso, mealName) {
+  const st = (typeof SCHED_STATE !== 'undefined' && SCHED_STATE && SCHED_STATE.days && SCHED_STATE.days[iso]) || null;
+  const mc = (st && st.mealComp) || {};
+  return mc[mealName] && mc[mealName].status ? mc[mealName].status : null;
+}
+function compModel() {
+  const iso = (typeof SCHED_CTX !== 'undefined' && SCHED_CTX && SCHED_CTX.regISO) || todayISO();
+  const meals = compMenuMeals().map(m => ({ ...m, status: compStatusOf(iso, m.name) }));
+  const nowF = compNowFrame();
+  let focus = null;
+  for (const m of meals) { if (!m.status && m.from != null && m.from <= nowF) { focus = m; break; } }
+  if (!focus && COMPANION_UI.openMeal) focus = meals.find(m => m.name === COMPANION_UI.openMeal) || null;
+  const next = meals.find(m => !m.status && m !== focus && (m.from == null || m.from > nowF)) || null;
+  return { iso, meals, focus, next, resolved: meals.filter(m => m.status),
+    dayKcal: meals.reduce((a, m) => a + m.total, 0),
+    dayTarget: (typeof SCHED_CTX !== 'undefined' && SCHED_CTX && SCHED_CTX.dayTotals && SCHED_CTX.dayTotals.kcal) || null };
+}
+function compWeekAdherence() {
+  const iso = (typeof SCHED_CTX !== 'undefined' && SCHED_CTX && SCHED_CTX.regISO) || todayISO();
+  const wk = mmMondayOf(iso);
+  const me = (typeof SCHED_CTX !== 'undefined' && SCHED_CTX && SCHED_CTX.me) || (auth.currentUser && auth.currentUser.uid);
+  const menus = (typeof NUTRI !== 'undefined' && NUTRI && NUTRI.myMenus) || [];
+  const { own, coachVig } = planResolveMenu(menus, wk, me);
+  const menu = own || coachVig;
+  if (!menu) return { sum: 0, den: 0 };
+  const cut = (typeof SCHED_CTX !== 'undefined' && SCHED_CTX && SCHED_CTX.cut != null) ? SCHED_CTX.cut : 240;
+  const nowF = compNowFrame();
+  let sum = 0, den = 0;
+  for (let i = 0; i < 7; i++) {
+    const date = planISOAddDays(wk, i);
+    if (date > iso) break;
+    const day = (menu.days || []).find(d => d.date === date);
+    if (!day) continue;
+    for (const meal of (day.meals || [])) {
+      if (!(meal.items || []).length) continue;
+      const st = compStatusOf(date, meal.name);
+      let due = false;
+      if (date < iso) due = true;
+      else if (st) due = true;
+      else if (meal.time) { const f = schedFrameMin(meal.time, cut); due = f != null && f <= nowF; }
+      if (!due) continue;
+      den++;
+      sum += st === 'full' ? 1 : st === 'half' ? 0.5 : 0;
+    }
+  }
+  return { sum, den };
+}
+function compTasteOf(dishName) {
+  const ts = (typeof SCHED_STATE !== 'undefined' && SCHED_STATE && SCHED_STATE.tastes) || {};
+  return ts[compDishKey(dishName)] || null;
+}
+function compMealCardHTML(m, isFocus) {
+  const tastes = (typeof SCHED_STATE !== 'undefined' && SCHED_STATE && SCHED_STATE.tastes) || {};
+  let h = `<div class="comp-focus"><span class="comp-tag">${esc(t('comp.nowTag', { time: m.time || '' }))}</span><h3 class="comp-meal-name">${esc(mealName(m.name))}</h3><p class="comp-spec">${esc(t('comp.focusSpec'))}</p><div class="comp-dishes">`;
+  h += m.items.map(it => {
+    const tv = tastes[compDishKey(it.name)] || null;
+    return `<div class="comp-dish"><span class="comp-dish-nm">${esc(it.name)}</span><span class="comp-dish-kcal">${Math.round(it.kcal)} kcal</span><span class="comp-taste"><button type="button" class="comp-tbtn${tv === 'like' ? ' on' : ''}" data-comp-act="taste" data-meal="${esc(m.name)}" data-dish="${esc(it.name)}" data-v="like">${esc(t('comp.like'))}</button><button type="button" class="comp-tbtn${tv === 'dislike' ? ' on' : ''}" data-comp-act="taste" data-meal="${esc(m.name)}" data-dish="${esc(it.name)}" data-v="dislike">${esc(t('comp.dislike'))}</button></span></div>`;
+  }).join('');
+  h += `<div class="comp-tot">${esc(t('comp.totalMeal', { kcal: Math.round(m.total), prot: acNum(m.totalProt) }))}${m.target != null ? esc(t('comp.targetMeal', { kcal: Math.round(m.target) })) : ''}</div></div>`;
+  h += `<p class="comp-q">${esc(t('comp.q'))}</p><div class="comp-btns"><button type="button" class="comp-btn ok${m.status === 'full' ? ' on' : ''}" data-comp-act="comp" data-meal="${esc(m.name)}" data-v="full">${esc(t('comp.full'))}</button><button type="button" class="comp-btn mid${m.status === 'half' ? ' on' : ''}" data-comp-act="comp" data-meal="${esc(m.name)}" data-v="half">${esc(t('comp.half'))}</button><button type="button" class="comp-btn no${m.status === 'none' ? ' on' : ''}" data-comp-act="comp" data-meal="${esc(m.name)}" data-v="none">${esc(t('comp.none'))}</button></div></div>`;
+  return h;
+}
+function compFoldHTML(m) {
+  const stTxt = m.status === 'full' ? t('comp.stFull') : m.status === 'half' ? t('comp.stHalf') : t('comp.stNone');
+  const liked = m.items.some(it => compTasteOf(it.name) === 'like');
+  const disliked = m.items.some(it => compTasteOf(it.name) === 'dislike');
+  return `<button type="button" class="comp-fold" data-comp-act="open" data-meal="${esc(m.name)}"><span class="mp-q-check" aria-hidden="true">✓</span><span class="comp-fold-nm">${esc(mealName(m.name))}</span><span class="comp-fold-mt"><b>${esc(stTxt)}</b>${liked ? esc(t('comp.likedTag')) : ''}${disliked ? esc(t('comp.dislikedTag')) : ''} · <b>${Math.round(m.total)} kcal</b> · ${esc(t('comp.reopenHint'))}</span></button>`;
+}
+function compHTML() {
+  const mo = compModel();
+  if (!mo.meals.length) return '';
+  let h = '<div class="comp-wrap">';
+  if (mo.focus && !mo.focus.status) h += `<div class="comp-alert">🍗 ${esc(t('comp.alert', { meal: mealName(mo.focus.name).replace(/^./, c => c.toLowerCase()) }))}<small>${esc(t('comp.alertSub'))}</small></div>`;
+  const doneKcal = mo.meals.filter(m => m.status === 'full' || m.status === 'half').reduce((a, m) => a + m.total, 0);
+  h += `<div class="comp-route"><span>${esc(t('comp.pos', { n: mo.resolved.length + (mo.focus ? 1 : 0), m: mo.meals.length }))}</span><span>${esc(t('comp.dayLine', { done: Math.round(doneKcal), total: Math.round(mo.dayTarget || mo.dayKcal) }))}</span></div>`;
+  const wkA = compWeekAdherence();
+  h += wkA.den ? `<p class="comp-week">${esc(t('comp.week', { sum: acNum(wkA.sum), den: wkA.den, pct: Math.round(wkA.sum / wkA.den * 100) }))}</p>`
+    : `<p class="comp-week">${esc(t('comp.weekNone'))}</p>`;
+  if (mo.resolved.length) h += `<div class="comp-done-title">${esc(t('comp.doneTitle'))}</div>` + mo.resolved.filter(m => m !== mo.focus).map(compFoldHTML).join('');
+  if (mo.focus) h += compMealCardHTML(mo.focus, true);
+  else if (!mo.next) h += `<p class="comp-alldone">${esc(t('comp.allDone'))}</p>`;
+  if (!mo.focus && mo.next) h += `<p class="comp-nextline">${esc(t('comp.next', { meal: mealName(mo.next.name), time: mo.next.time || '' }))}</p>`;
+  h += `<button type="button" class="comp-toggle" data-comp-act="toggle">${esc(t('comp.showAll'))}</button></div>`;
+  return h;
+}
+async function compAct(b) {
+  const act = b.getAttribute('data-comp-act');
+  const meal = b.getAttribute('data-meal');
+  if (act === 'toggle') { COMPANION_UI.showAll = !COMPANION_UI.showAll; schedPaintSheet(); return; }
+  if (act === 'open') { COMPANION_UI.openMeal = meal; schedPaintSheet(); return; }
+  const day = schedDayState(SCHED_CTX.regISO);
+  if (!day.mealComp) day.mealComp = {};
+  if (!SCHED_STATE.tastes) SCHED_STATE.tastes = {};
+  const snapshot = JSON.stringify({ mc: day.mealComp, eaten: day.eaten, tastes: SCHED_STATE.tastes });
+  if (act === 'comp') {
+    const v = b.getAttribute('data-v');
+    day.mealComp[meal] = { status: v, at: schedNowHHMM() };
+    /* Convivencia declarada: full/half ponen «Ya comí» si no
+       estaba (sin pisar su hora); none lo quita. */
+    if ((v === 'full' || v === 'half') && !day.eaten[meal]) day.eaten[meal] = { at: schedNowHHMM() };
+    if (v === 'none') delete day.eaten[meal];
+    COMPANION_UI.openMeal = null;
+  } else if (act === 'taste') {
+    const key = compDishKey(b.getAttribute('data-dish'));
+    const v = b.getAttribute('data-v');
+    if (SCHED_STATE.tastes[key] === v) delete SCHED_STATE.tastes[key];
+    else SCHED_STATE.tastes[key] = v;
+  } else return;
+  const okC = await schedPersist(schedSaveState);
+  if (!okC) {
+    try { const s = JSON.parse(snapshot); day.mealComp = s.mc; day.eaten = s.eaten; SCHED_STATE.tastes = s.tastes; } catch {}
+  }
+  if (act === 'comp') schedRecompute();
+  schedPaintSheet();
+}
+document.addEventListener('click', e => {
+  const body = (typeof $ !== 'undefined') ? $('sched-sheet-body') : null;
+  if (!body || !body.contains(e.target)) return;
+  const b = e.target && e.target.closest ? e.target.closest('[data-comp-act]') : null;
+  if (b) compAct(b);
+});
+/* MECANISMO DEL «👎» (punto 6, declarado): penalización de
+   puntuación en el motor de sugerencias — pmPickForSlot suma
+   COMP_DISLIKE_PENALTY al score de cualquier comida preparada
+   que contenga un plato marcado «👎» por SU dueño, así deja de
+   salir PRIMERO sin borrarse ni vetarse: sigue elegible si se
+   busca a mano, si es la única alternativa o si su score aun con
+   penalización gana. El filtro DURO de alergias (pmMealBlocked,
+   AUTH-296) se aplica ANTES en pmCandidates y manda por encima:
+   un plato vetado por alergia ni siquiera es candidato. Los
+   gustos son del dueño (nutrition_sched): la penalización actúa
+   en las generaciones que corren en la sesión del propio alumno
+   («Llenar mi día» propio y las sugerencias del Coach en su
+   dispositivo); nadie más puede leerlos. */
+const COMP_DISLIKE_PENALTY = 3;
+function compTastePenalty(libMeal) {
+  const ts = (typeof SCHED_STATE !== 'undefined' && SCHED_STATE && SCHED_STATE.tastes) || {};
+  const names = [libMeal && libMeal.name, ...(((libMeal && libMeal.items) || []).map(it => it.name))];
+  return names.some(n => n && ts[compDishKey(n)] === 'dislike') ? COMP_DISLIKE_PENALTY : 0;
+}
+function compHTMLBar() {
+  return `<button type="button" class="comp-toggle" data-comp-act="toggle">${esc(t('comp.backFocus'))}</button>`;
+}
+
 function schedCardHTML() {
   const r = SCHED_DAY;
   let line = t('sched.cardLinePlain');
@@ -55830,6 +56091,10 @@ function schedSheetHTML() {
   });
   /* Línea de tiempo: descanso, trabajo, entrenamiento y comidas en
      orden del marco del día (las comidas sin hora van al final). */
+  const compHasMenu = (SCHED_CTX.mealsIn || []).some(m => m.source === 'menu');
+  const compActive = compHasMenu && !COMPANION_UI.showAll;
+  if (compHasMenu && COMPANION_UI.showAll) h += compHTMLBar();
+  if (compActive) h += compHTML();
   const items = [];
   if (r.restBlock) items.push({ f: r.restBlock.from, html: `<div class="sched-block rest">🌙 <b>${esc(t('sched.restBlock'))}</b> · ${pendFmtHM(r.restBlock.from)}–${pendFmtHM(r.restBlock.to)}${r.provisional ? ` <span class="sched-tag prov">${esc(t('sched.provTag'))}</span>` : ''}</div>` });
   if (r.workBlock) {
@@ -55842,10 +56107,10 @@ function schedSheetHTML() {
   if (!r.isTrainDay) items.push({ f: -1, html: `<div class="sched-block rest">🌿 ${esc(r.dayLevel === 'descanso' ? t('sched.freeDay') : t('sched.noTrainDay'))}</div>` });
   r.meals.forEach(m => items.push({ f: m.from != null ? m.from : 99999, html: schedMealHTML(m, r) }));
   items.sort((a, b) => a.f - b.f);
-  h += items.map(i => i.html).join('');
-  h += schedFastZoneHTML();
+  if (!compActive) h += items.map(i => i.html).join('');
+  if (!compActive) h += schedFastZoneHTML();
   /* Cambio de hora de entrenamiento de hoy: vista previa primero. */
-  if (r.isTrainDay) {
+  if (r.isTrainDay && !compActive) {
     if (SCHED_UI.mode === 'train') {
       const ov = day.trainOverride || {};
       h += `<div class="sched-editbox"><b>${esc(t('sched.trainChangeTitle'))}</b><div class="sched-edit"><label>${esc(t('sched.timeLabel'))}<input type="time" id="sched-train-time" value="${esc(SCHED_UI.previewTrain ? SCHED_UI.previewTrain.time : (ov.time || ''))}"></label><label>${esc(t('sched.durLabel'))}<input type="number" id="sched-train-dur" min="10" max="300" step="5" value="${esc(SCHED_UI.previewTrain ? SCHED_UI.previewTrain.durMin : (ov.durMin || 60))}"></label></div>`;
@@ -56191,8 +56456,13 @@ async function schedAct(b) {
        comida NO se da por desmarcada en silencio. */
     const prevEaten = day.eaten[meal];
     delete day.eaten[meal];
+    /* AUTH-361 · convivencia declarada: «Desmarcar» retira
+       también el cumplimiento full/half de esa comida (su
+       premisa acaba de retirarse); el none se conserva. */
+    const prevComp = (day.mealComp || {})[meal];
+    if (prevComp && (prevComp.status === 'full' || prevComp.status === 'half')) delete day.mealComp[meal];
     const okU = await schedPersist(schedSaveState);
-    if (!okU) { if (prevEaten) day.eaten[meal] = prevEaten; schedPaintSheet(); return; }
+    if (!okU) { if (prevEaten) day.eaten[meal] = prevEaten; if (prevComp) { if (!day.mealComp) day.mealComp = {}; day.mealComp[meal] = prevComp; } schedPaintSheet(); return; }
     SCHED_UI.mode = 'view'; schedRecompute(); schedPaintSheet(); return;
   }
   if (act === 'inline-save') {
@@ -56499,7 +56769,7 @@ function pmPickForSlot(lib, slotName, goal, wishes, formWanted, usedIds, target)
   let best = null;
   for (const m of pmCandidates(lib, slotName, goal, wishes, formWanted, usedIds)) {
     const items = pmScaledMeal(m, target);
-    const score = pmScore(items, target);
+    const score = pmScore(items, target) + compTastePenalty(m);
     if (!best || score < best.score) best = { meal: m, items, score };
   }
   return best;
@@ -56518,6 +56788,10 @@ async function pmFillDay(di) {
   toast(t('menu.filling'));
   const lib = await pmLoadLib();
   if (!lib || !lib.length) { toast(t('menu.fillNoLib'), true); return; }
+  /* AUTH-361: los gustos (👎) del PROPIO alumno alimentan la
+     penalización del motor — solo cuando quien llena el día es
+     el dueño del menú (nadie más puede leer su nutrition_sched). */
+  try { if (MENU.studentUid && MENU.me && MENU.studentUid === MENU.me && !SCHED_STATE) await schedLoadOwn(); } catch {}
   const wishes = MENU.wishes || null;
   const goal = wishes && wishes.goal ? wishes.goal : null;
   const formWanted = pmFormWanted(wishes);

@@ -5063,3 +5063,32 @@ body.swap-sheet-open .asst-fab { display: none !important; }
 .guide-skip-btn { display:block; width:100%; margin-top:8px; background:transparent; color:inherit; border:2px solid rgba(255,255,255,.5); border-radius:14px; font-size:15px; font-weight:800; padding:10px; cursor:pointer; }
 .guide-next { margin-top:10px; text-align:center; font-size:12.5px; font-weight:700; opacity:.9; }
 .guide-complete { margin-top:12px; text-align:center; font-size:18px; font-weight:900; }
+
+/* AUTH-361 · Tu plan de comidas, acompañado (.comp-*) */
+.comp-wrap{margin:10px 0}
+.comp-alert{background:linear-gradient(90deg,#ff5f6d,#ff2e7e);border-radius:16px;text-align:center;font-weight:800;font-size:16.5px;padding:10px 8px;line-height:1.25;color:#fff}
+.comp-alert small{display:block;font-size:12.5px;font-weight:700;opacity:.95;margin-top:2px}
+.comp-route{display:flex;justify-content:space-between;gap:10px;background:rgba(0,0,0,.14);border:1px solid rgba(255,255,255,.22);border-radius:14px;padding:9px 12px;font-size:13.5px;font-weight:700;margin-top:10px}
+.comp-week{font-size:13px;font-weight:700;margin:8px 2px}
+.comp-done-title{margin:12px 2px 7px;font-size:12px;font-weight:800;letter-spacing:.8px;opacity:.85;text-transform:uppercase}
+.comp-fold{display:flex;align-items:center;gap:9px;width:100%;text-align:left;background:rgba(255,255,255,.93);color:#123b35;border:0;border-radius:10px;padding:7px 10px;margin-bottom:6px;cursor:pointer}
+.comp-fold-nm{font-weight:800;font-size:13px;flex:1}
+.comp-fold-mt{font-size:11px;font-weight:600;color:#39524d;text-align:right}
+.comp-focus{margin-top:12px;background:rgba(255,255,255,.10);border:1.5px solid rgba(255,255,255,.38);border-radius:18px;padding:14px}
+.comp-tag{display:inline-block;background:#ffd23e;color:#4a3600;font-size:11px;font-weight:900;letter-spacing:.6px;border-radius:999px;padding:3px 9px;text-transform:uppercase}
+.comp-meal-name{font-size:21px;margin:9px 0 3px;font-weight:800}
+.comp-spec{font-size:13.5px;font-weight:600}
+.comp-dishes{margin-top:11px;background:rgba(255,255,255,.94);color:#123b35;border-radius:12px;padding:10px 12px}
+.comp-dish{display:flex;align-items:center;gap:8px;padding:4px 0;font-size:14px;font-weight:700;flex-wrap:wrap}
+.comp-dish-nm{flex:1}
+.comp-dish-kcal{font-weight:800;color:#0b6e5f;font-size:12.5px}
+.comp-tbtn{border:1.5px solid #9db8b2;background:#fff;border-radius:10px;padding:5px 8px;font-size:12.5px;font-weight:800;cursor:pointer}
+.comp-tbtn.on{background:#0b6e5f;color:#fff;border-color:#0b6e5f}
+.comp-tot{border-top:1px dashed #9db8b2;margin-top:6px;padding-top:6px;font-size:12.5px;font-weight:800;color:#39524d}
+.comp-q{margin-top:12px;font-size:13px;font-weight:800;letter-spacing:.4px;text-transform:uppercase}
+.comp-btns{display:flex;gap:7px;margin-top:7px}
+.comp-btn{flex:1;border-radius:12px;padding:11px 2px;font-size:14px;font-weight:900;cursor:pointer;background:rgba(255,255,255,.16);border:1.5px solid rgba(255,255,255,.55);color:inherit}
+.comp-btn.ok{background:#22c55e;box-shadow:0 3px 0 #15803d;color:#fff;border-color:#22c55e}
+.comp-btn.on{outline:3px solid #ffd23e}
+.comp-toggle{display:block;width:100%;margin-top:14px;border:2px solid rgba(255,255,255,.65);border-radius:14px;text-align:center;font-size:15px;font-weight:800;padding:11px;background:transparent;color:inherit;cursor:pointer}
+.comp-alldone,.comp-nextline{font-size:14px;font-weight:700;margin-top:10px}
