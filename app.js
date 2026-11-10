@@ -8288,6 +8288,48 @@ en: {
   'mr.shareNote': 'The shared version leaves your photos out unless you tick the box.',
   'mr.shareCardTitle': 'MY BODY COMPOSITION REPORT',
   'mr.shareFail': 'The report image could not be created.',
+  'air.door': '📷 Add results from a photo',
+  'air.doorSub': 'Your scale report as a photo — the paper, its screen or a screenshot. The AI reads it and you confirm every number.',
+  'air.doorShort': '📷 Report photo',
+  'air.title': 'Add results from a photo',
+  'air.titleFor': 'Add results from a photo · {name}',
+  'air.intro': 'Photograph your body-composition report — the printed sheet, the scale screen or a screenshot of its app. The AI reads the numbers and you confirm them before anything is saved.',
+  'air.privacy': '🔒 Your photo is analyzed and never saved anywhere. Only the numbers you confirm are kept.',
+  'air.camera': '📸 Take a photo',
+  'air.gallery': '🖼️ Choose from gallery',
+  'air.pdfNote': 'Is it a PDF? Open it, take a screenshot of the page and use that photo here.',
+  'air.analyzing': 'Reading your report…',
+  'air.head': 'Found in your report. Fix anything you want and turn off what you do not want to save.',
+  'air.brand': 'Scale / app brand',
+  'air.when': 'Measurement date and time',
+  'air.fromLb': 'This report came in lb — the values are already shown in your unit.',
+  'air.new': 'NEW',
+  'air.notDetected': 'not detected',
+  'air.saveRow': 'SAVE',
+  'air.derivedNote': 'calculated from your weight × % — derived, not saved',
+  'air.prov': 'Kept in your record as: “Read from your report with AI · confirmed by you” · method: bioimpedance.',
+  'air.notSavedNote': 'Metabolic age and the scale score are not saved.',
+  'air.save': '💾 Save results',
+  'air.discard': 'Discard',
+  'air.discardSure': 'Tap again to discard',
+  'air.saved': '✓ Results saved · {date}',
+  'air.unreadable': 'We could not read this report',
+  'air.unreadableSub': 'Nothing was saved and no AI use was charged. Try a closer, sharper photo of the report.',
+  'air.retry': 'Try another photo',
+  'air.manual': 'Type them in the form instead',
+  'air.restored': 'You had results pending to save — here they are.',
+  'air.warnRange': 'Check this number: it is outside the usual range ({min}–{max}).',
+  'air.warnSkelMuscle': 'Check: skeletal muscle cannot be more than total muscle.',
+  'air.warnSubcut': 'Check: subcutaneous fat cannot be more than total body fat.',
+  'air.warnFatWater': 'Check: fat % and water % add up to well over 100.',
+  'air.warnFatMass': 'Check: the fat mass would be more than your whole weight.',
+  'air.warnMuscleWeight': 'Check: muscle mass cannot be more than your weight.',
+  'air.errCap': 'You reached today’s AI limit; it renews tomorrow. Meanwhile you can type the values in the weight form.',
+  'air.errDisabled': 'AI is turned off right now.',
+  'air.errGeneric': 'The photo could not be analyzed. Check your connection and try again.',
+  'air.tooBig': 'That photo is too heavy. Try a screenshot or a simpler photo.',
+  'air.dateNeeded': 'Pick the measurement date.',
+  'air.nothingToSave': 'Turn on at least one value with a number to save.',
   'mp.q.wellSub': 'Sleep, energy, aches…',
   'mp.q.onlyFilled': 'Only fill in what was measured — the rest stays as it was.',
   'mp.q.empty': 'Nothing to save yet: fill in at least one field.',
@@ -12791,6 +12833,48 @@ es: {
   'mr.shareNote': 'La versión para compartir no lleva tus fotos, salvo que marques la casilla.',
   'mr.shareCardTitle': 'MI REPORTE DE COMPOSICIÓN',
   'mr.shareFail': 'No se pudo crear la imagen del reporte.',
+  'air.door': '📷 Ingresar resultados con una foto',
+  'air.doorSub': 'El reporte de tu báscula en una foto — el papel, su pantalla o una captura. La IA lo lee y tú confirmas cada número.',
+  'air.doorShort': '📷 Foto del reporte',
+  'air.title': 'Ingresar resultados con una foto',
+  'air.titleFor': 'Ingresar resultados con una foto · {name}',
+  'air.intro': 'Fotografía el reporte de tu composición corporal — la hoja impresa, la pantalla de la báscula o una captura de su app. La IA lee los números y tú los confirmas antes de que se guarde nada.',
+  'air.privacy': '🔒 Tu foto se analiza y no se guarda en ningún sitio. Solo quedan los números que confirmes.',
+  'air.camera': '📸 Tomar una foto',
+  'air.gallery': '🖼️ Elegir de la galería',
+  'air.pdfNote': '¿Es un PDF? Ábrelo, haz una captura de la página y usa esa foto aquí.',
+  'air.analyzing': 'Leyendo tu reporte…',
+  'air.head': 'Detectados en tu reporte. Corrige lo que quieras y desmarca lo que no quieras guardar.',
+  'air.brand': 'Marca de la báscula o app',
+  'air.when': 'Fecha y hora de la medición',
+  'air.fromLb': 'Este reporte venía en lb — los valores ya se muestran en tu unidad.',
+  'air.new': 'NUEVO',
+  'air.notDetected': 'no detectado',
+  'air.saveRow': 'GUARDAR',
+  'air.derivedNote': 'calculada de tu peso × % — se deriva, no se guarda',
+  'air.prov': 'En tu registro queda: «Leído de tu reporte con IA · confirmado por ti» · método: bioimpedancia.',
+  'air.notSavedNote': 'La edad metabólica y el puntaje de la báscula no se guardan.',
+  'air.save': '💾 Guardar resultados',
+  'air.discard': 'Descartar',
+  'air.discardSure': 'Toca otra vez para descartar',
+  'air.saved': '✓ Resultados guardados · {date}',
+  'air.unreadable': 'No pudimos leer este reporte',
+  'air.unreadableSub': 'No se guardó nada y no se gastó ningún uso de IA. Prueba con una foto más cerca y más nítida del reporte.',
+  'air.retry': 'Probar con otra foto',
+  'air.manual': 'Escribirlos en el formulario',
+  'air.restored': 'Tenías resultados pendientes de guardar — aquí están.',
+  'air.warnRange': 'Revisa este número: está fuera del rango habitual ({min}–{max}).',
+  'air.warnSkelMuscle': 'Revisa: el músculo esquelético no puede ser más que el músculo total.',
+  'air.warnSubcut': 'Revisa: la grasa subcutánea no puede ser más que la grasa corporal total.',
+  'air.warnFatWater': 'Revisa: la grasa % y el agua % suman mucho más de 100.',
+  'air.warnFatMass': 'Revisa: la masa grasa sería más que tu peso entero.',
+  'air.warnMuscleWeight': 'Revisa: la masa muscular no puede ser más que tu peso.',
+  'air.errCap': 'Alcanzaste el límite de IA de hoy; se renueva mañana. Mientras tanto puedes escribir los valores en el formulario de peso.',
+  'air.errDisabled': 'La IA está apagada ahora mismo.',
+  'air.errGeneric': 'La foto no se pudo analizar. Revisa tu conexión y prueba de nuevo.',
+  'air.tooBig': 'Esa foto es muy pesada. Prueba con una captura o una foto más sencilla.',
+  'air.dateNeeded': 'Elige la fecha de la medición.',
+  'air.nothingToSave': 'Enciende al menos un valor con número para guardar.',
   'mp.q.wellSub': 'Sueño, energía, molestias…',
   'mp.q.onlyFilled': 'Solo rellenas las que te midieron — las demás quedan como estaban.',
   'mp.q.empty': 'Aún no hay nada que guardar: completa al menos un campo.',
@@ -20453,6 +20537,7 @@ async function openClient(uid) {
     <div id="client-alerts" data-uid="${uid}"></div>
     ${foodItems.length ? `<h3 class="history-title">${t('client.foodReview', { n: foodItems.length })}</h3>${foodBlock}` : ''}
     <div style="margin-bottom:10px"><button class="btn-primary btn-sm" id="btn-client-add">${t('client.addWeight')}</button>
+    <button class="btn-ghost btn-sm" id="btn-client-air" style="margin-left:8px">${t('air.doorShort')}</button>
     <button class="btn-ghost btn-sm" id="btn-client-close" style="margin-left:8px">${t('client.close')}</button></div>
     ${data.length ? weightChartSVG([...data].reverse()) : `<div class="wempty">${t('client.noWeight')}</div>`}
     ${data.length ? `<div class="table-scroll"><table class="detail whist">
@@ -20514,6 +20599,7 @@ async function openClient(uid) {
   const faAct = $('fa-act');
   if (faAct) faAct.addEventListener('change', faActSync);
   $('btn-client-add').onclick = () => openWeightModal({ uid, docId: null, rec: null });
+  { const bcAir = $('btn-client-air'); if (bcAir) bcAir.onclick = () => airOpen({ uid, name: (udata && udata.name) || '' }); }
   compAccLoadTrainer(uid);
   loadClientRings(uid, udata);
   loadClientAlerts(uid, udata);
@@ -47326,6 +47412,14 @@ $('form-weight').addEventListener('submit', async e => {
      entrenador (del registro que se edita): nunca los pisa a cero. */
   const pctLocked = uid === auth.currentUser.uid && !compClientCanEdit();
   const prevRec = (weightCtx && weightCtx.rec) || {};
+  /* Conservación (AUTH-2026-11-10-369): el reemplazo completo de
+     este formulario NO debe borrar los campos que la hoja de
+     ingreso con IA escribe en el mismo documento (los cinco
+     nuevos y la procedencia): si el registro previo los trae, se
+     arrastran tal cual al final de «data». */
+  let prevFull = (weightCtx && weightCtx.rec) || null;
+  if (!prevFull && Array.isArray(WEIGHTS)) prevFull = WEIGHTS.find(w => w.id === docId) || null;
+  if (!prevFull) { try { const ps = await getDoc(doc(db, 'nutrition_weight', docId)); if (ps.exists()) prevFull = ps.data(); } catch {} }
   /* MÓDULO H: la entrada llega en la unidad del visor y se guarda
      en kg CANÓNICO, con el patrón {valueCanonical, valueOriginal,
      unitOriginal}. Rango canónico H-5: 20–400 kg. */
@@ -47340,6 +47434,7 @@ $('form-weight').addEventListener('submit', async e => {
     fatMethod: pctLocked ? String(prevRec.fatMethod || '') : String((($('w-fatmethod') || {}).value) || ''),
     notes: pctLocked ? String(prevRec.notes || '') : $('w-notes').value.trim(),
     updatedAt: serverTimestamp() };
+  if (prevFull) { for (const kk of ['skeletal', 'bone', 'protein', 'subcutaneous', 'smi', 'source', 'reportSrc', 'reportAt']) { if (prevFull[kk] !== undefined) data[kk] = prevFull[kk]; } }
   if (!date || data.weight <= 0) { toast(t('err.weightMissing'), true); return; }
   /* Aviso HONESTO (corrección «Registrar pesaje», 2026-10-23): si el
      guardado es rechazado (p. ej. las reglas vivas aún no admiten que
@@ -51518,7 +51613,7 @@ document.addEventListener('keydown', e => { if (e.key === 'Escape') shareClose()
  *  - El SW (sw.js) solo cachea la cáscara del mismo origen en modo
  *    RED PRIMERO: Auth/Firestore/Worker jamás pasan por la caché.
  * ================================================================ */
-const PWA_SW_VERSION = '20261110-reporte-composicion';
+const PWA_SW_VERSION = '20261110-ingreso-ia';
 /* Sello de versión VISIBLE (2026-11-03): el pie de la tarjeta de
    acceso enseña qué copia corre este teléfono ('v ' + el sello),
    para comprobar de un vistazo si la versión nueva ya llegó.
@@ -58581,7 +58676,7 @@ function mpSheetClose(id) { const el = $(id); if (el) el.style.display = 'none';
    familias; el candado de scroll (AUTH-285) y el ancla bajo la
    cabecera (AUTH-326) los heredan de COVER_SEL (role="dialog") y
    de la familia .act-float. Ocultar nunca destruye (D3). */
-function mpCloseAll() { mpSheetClose('mp-quick'); mpSheetClose('mp-hist'); mpSheetClose('mp-report'); }
+function mpCloseAll() { mpSheetClose('mp-quick'); mpSheetClose('mp-hist'); mpSheetClose('mp-report'); mpSheetClose('mp-air'); }
 document.addEventListener('keydown', e => { if (e.key === 'Escape') mpCloseAll(); });
 
 /* ---------- Registro rápido ---------- */
@@ -58994,6 +59089,7 @@ function mpOpenHist(field) {
 function mpHistBody() {
   const parts = [];
   parts.push(`<div class="mp-doors"><button type="button" class="btn-primary btn-sm" data-mp-act="weightdoor">${esc(t('mp.h.weightDoor'))}</button><button type="button" class="btn-ghost btn-sm" data-mp-act="photosdoor">${esc(t('mp.h.photosDoor'))}</button><button type="button" class="btn-ghost btn-sm" data-mp-act="reportdoor">${esc(t('mr.open'))}</button></div>`);
+  parts.push(`<button type="button" class="air-door" data-mp-act="airdoor"><span class="air-door-t">${esc(t('air.door'))}</span><span class="air-door-s">${esc(t('air.doorSub'))}</span></button>`);
   if (WEIGHTS.length) parts.push(`<h4 class="mp-sec">${esc(t('mp.h.trend'))} · ${esc(t('mp.lastWeight'))}</h4><div class="mp-chart">${weightChartSVG(WEIGHTS)}</div>`);
   const fats = WEIGHTS.filter(w => num(w.fat) > 0).slice(-5).reverse();
   if (fats.length) parts.push(`<h4 class="mp-sec">${esc(t('form.bodyfat'))}</h4>` + fats.map(w => `<div class="mp-row"><span>${esc(shortDate(w.date))}</span><span>${fmt(w.fat)}%${w.fatMethod ? ' · ' + esc(t('mp.m.' + w.fatMethod)) : ''}</span></div>`).join(''));
@@ -59787,6 +59883,306 @@ function mpTrainerPaintComments() {
   });
 }
 
+
+/* =====================================================================
+   INGRESO DE RESULTADOS CON IA (AUTH-2026-11-10-369): la foto de un
+   reporte de composición (el papel, la pantalla de la báscula o la
+   captura de su app) se lee con la ruta /report de la puerta de IA y
+   la persona CONFIRMA cada número en esta hoja antes de que se
+   guarde nada. La foto vive solo en memoria: jamás se sube ni se
+   guarda (doctrina M8). El guardado FUSIONA en
+   nutrition_weight/{uid}_{fecha de la medición} conservando lo que
+   ya existiera, con la procedencia del diseño (source 'ai-report').
+   El CANDADO AUTH-153 queda intacto: el peso lo guarda siempre la
+   propia persona; la composición sigue el permiso vigente
+   (compClientCanEdit en lo propio; en la ficha, su entrenador).
+   NOMBRES DE ALMACÉN (reconciliación declarada): los cinco campos
+   nuevos se guardan con las claves que «Mi reporte» (AUTH-368) ya
+   lee por sus descriptores — skeletal, bone, protein, subcutaneous
+   y smi — para que sus filas se enciendan sin reabrir el reporte;
+   el SMI se guarda COMO SE LEE del reporte, nunca derivado.
+   ===================================================================== */
+const AIR_FIELDS = [
+  { k: 'weight', tk: 'mr.f.weight', kind: 'mass', comp: false },
+  { k: 'fat', tk: 'mr.f.fat', kind: 'pct', comp: true },
+  { k: 'muscle', tk: 'mr.f.muscle', kind: 'mass', comp: true },
+  { k: 'skeletal', tk: 'mr.f.skeletal', kind: 'mass', comp: true, isNew: true },
+  { k: 'bone', tk: 'mr.f.bone', kind: 'mass', comp: true, isNew: true },
+  { k: 'protein', tk: 'mr.f.protein', kind: 'mass', comp: true, isNew: true },
+  { k: 'water', tk: 'mr.f.water', kind: 'pct', comp: true },
+  { k: 'visceral', tk: 'mr.f.visceral', kind: 'level', comp: true },
+  { k: 'subcutaneous', tk: 'mr.f.subcutaneous', kind: 'pct', comp: true, isNew: true },
+  { k: 'smi', tk: 'mr.f.smi', kind: 'smi', comp: true, isNew: true },
+];
+const AIR_RANGES = { weight: [20, 400], fat: [2, 70], muscle: [10, 120], skeletal: [5, 80], bone: [0.5, 8], protein: [2, 30], water: [20, 85], visceral: [1, 59], subcutaneous: [1, 60], smi: [2, 20] };
+let AIR = null;
+const AIR_DRAFT_KEY = 'ronbo.air.draft.v1';
+
+function airCanComp(uid) {
+  const me = auth.currentUser && auth.currentUser.uid;
+  if (!uid || uid === me) return compClientCanEdit();
+  return true;
+}
+/* Conversión de unidades: el reporte puede venir en lb (su unidad
+   manda al entrar), la pantalla muestra en la unidad de quien mira
+   y el guardado es siempre canónico (kg / % / nivel / kg·m⁻²). El
+   SMI se guarda COMO SE LEE, nunca derivado. */
+function airToCanon(kind, v, fromUnit) { return kind === 'mass' && fromUnit === 'lb' ? v * UNIT_LB_KG : v; }
+function airToDisp(kind, canon) { return kind === 'mass' ? massToDisplay(canon) : canon; }
+function airFromDisp(kind, disp) { return kind === 'mass' ? massToCanonical(disp) : disp; }
+function airFmtNum(v) { return (v == null || !Number.isFinite(v)) ? '' : String(Math.round(v * 100) / 100); }
+/* Avisos de plausibilidad (diseño §4.3): ámbar, ni bloquean ni
+   corrigen. Recibe el mapa CANÓNICO de lo encendido con número y
+   devuelve {campo: [clave, vars]}. */
+function airWarnings(c) {
+  const w = {};
+  for (const f of AIR_FIELDS) {
+    const v = c[f.k]; if (v == null) continue;
+    const r = AIR_RANGES[f.k];
+    if (r && (v < r[0] || v > r[1])) w[f.k] = ['air.warnRange', { min: String(r[0]), max: String(r[1]) }];
+  }
+  if (c.skeletal != null && c.muscle != null && c.skeletal > c.muscle && !w.skeletal) w.skeletal = ['air.warnSkelMuscle', null];
+  if (c.subcutaneous != null && c.fat != null && c.subcutaneous > c.fat && !w.subcutaneous) w.subcutaneous = ['air.warnSubcut', null];
+  if (c.fat != null && c.water != null && c.fat + c.water > 110 && !w.fat) w.fat = ['air.warnFatWater', null];
+  if (c.weight != null && c.fat != null && c.weight * c.fat / 100 > c.weight && !w.fat) w.fat = ['air.warnFatMass', null];
+  if (c.muscle != null && c.weight != null && c.muscle > c.weight && !w.muscle) w.muscle = ['air.warnMuscleWeight', null];
+  return w;
+}
+/* Mapa canónico de lo que la hoja muestra encendido con número. */
+function airCanonNow() {
+  const c = {};
+  if (!AIR) return c;
+  for (const f of AIR_FIELDS) {
+    const row = AIR.vals[f.k]; if (!row || !row.on) continue;
+    const disp = parseFloat(row.v); if (!Number.isFinite(disp)) continue;
+    c[f.k] = airFromDisp(f.kind, disp);
+  }
+  return c;
+}
+/* La carga del guardado (pura; la ejerce la batería). st.vals trae
+   los valores TAL COMO se ven (unidad de quien mira). Devuelve
+   {date, fields} o null si no hay fecha válida o nada que guardar.
+   Sin permiso de composición, los campos de composición NO entran
+   (candado AUTH-153) y tampoco la procedencia ni el método. */
+function airBuildSave(st) {
+  const date = (st.date || '').trim();
+  if (!/^\d{4}-\d{2}-\d{2}$/.test(date)) return null;
+  const vu = st.viewerUnit === 'lb' ? 'lb' : 'kg';
+  const fields = {};
+  let wroteComp = false, wroteWeight = false;
+  for (const f of AIR_FIELDS) {
+    const row = st.vals[f.k];
+    if (!row || !row.on) continue;
+    const disp = parseFloat(row.v);
+    if (!Number.isFinite(disp)) continue;
+    if (f.comp && !st.canComp) continue;
+    const canon = airFromDisp(f.kind, disp);
+    if (f.k === 'weight') {
+      fields.weight = Math.round(canon * 100) / 100;
+      fields.weightOriginal = Math.round(disp * 100) / 100;
+      fields.weightUnitOriginal = vu;
+      wroteWeight = true;
+    } else if (f.kind === 'level') { fields[f.k] = Math.round(canon); wroteComp = true; }
+    else if (f.kind === 'mass') { fields[f.k] = Math.round(canon * 100) / 100; wroteComp = true; }
+    else { fields[f.k] = Math.round(canon * 10) / 10; wroteComp = true; }
+  }
+  if (!wroteWeight && !wroteComp) return null;
+  if (st.canComp) {
+    fields.source = 'ai-report';
+    if ((st.brand || '').trim()) fields.reportSrc = st.brand.trim().slice(0, 40);
+    fields.reportAt = date + 'T' + (((st.time || '').trim()) || '00:00');
+    if (wroteComp) fields.fatMethod = 'bio';
+  }
+  return { date, fields };
+}
+/* Borrador SOLO DE TEXTO en el aparato (los números, nunca la foto):
+   si la hoja se cierra sin guardar, al volver se ofrece seguir. */
+function airDraftRead() { try { const d = JSON.parse(localStorage.getItem(AIR_DRAFT_KEY) || 'null'); return (d && typeof d === 'object') ? d : null; } catch { return null; } }
+function airDraftSync() {
+  if (!AIR || AIR.stage !== 'confirm') return;
+  try { localStorage.setItem(AIR_DRAFT_KEY, JSON.stringify({ uid: AIR.uid, brand: AIR.brand, date: AIR.date, time: AIR.time, unit: AIR.unit, vals: AIR.vals })); } catch {}
+}
+function airDraftClear() { try { localStorage.removeItem(AIR_DRAFT_KEY); } catch {} }
+
+function airOpen(ctx) {
+  const uid = (ctx && ctx.uid) || (auth.currentUser && auth.currentUser.uid);
+  if (!uid) return;
+  AIR = { uid, name: (ctx && ctx.name) || '', stage: 'start', brand: '', date: '', time: '', unit: null, vals: {}, canComp: airCanComp(uid), restored: false, discardArmed: false };
+  const draft = airDraftRead();
+  if (draft && draft.uid === uid && draft.vals) {
+    AIR.stage = 'confirm'; AIR.brand = draft.brand || ''; AIR.date = draft.date || ''; AIR.time = draft.time || '';
+    AIR.unit = draft.unit || null; AIR.vals = draft.vals; AIR.restored = true;
+  }
+  mpSheetOpen('mp-air');
+  airPaint();
+  try { aiUsageRefreshSurfaces(); } catch {}
+}
+function airClose() { mpSheetClose('mp-air'); }
+function airPaint() {
+  const body = $('mp-air-body'); if (!body || !AIR) return;
+  const title = $('mp-air-title');
+  if (title) title.textContent = '📷 ' + (AIR.name ? t('air.titleFor', { name: AIR.name }) : t('air.title'));
+  if (AIR.stage === 'busy') {
+    body.innerHTML = `<div class="air-busy"><div class="air-spin" aria-hidden="true"></div><p class="air-busy-t">${esc(t('air.analyzing'))}</p><p class="muted">${esc(t('air.privacy'))}</p></div>`;
+    return;
+  }
+  if (AIR.stage === 'unreadable') {
+    body.innerHTML = `<div class="air-unread"><div class="air-unread-ic" aria-hidden="true">📷</div><h3>${esc(t('air.unreadable'))}</h3><p class="muted">${esc(t('air.unreadableSub'))}</p><button type="button" class="btn-primary air-big" id="air-retry">${esc(t('air.retry'))}</button><button type="button" class="btn-ghost air-big" id="air-manual">${esc(t('air.manual'))}</button></div>`;
+    const rt = $('air-retry'); if (rt) rt.onclick = () => { AIR.stage = 'start'; airPaint(); };
+    const mn = $('air-manual'); if (mn) mn.onclick = () => {
+      const uid = AIR.uid, me = auth.currentUser && auth.currentUser.uid;
+      airClose();
+      openWeightModal(uid === me ? null : { uid, docId: null, rec: null });
+    };
+    return;
+  }
+  if (AIR.stage === 'confirm') { body.innerHTML = airConfirmHTML(); airWireConfirm(); airLiveSync(); return; }
+  body.innerHTML = `<p class="air-intro">${esc(t('air.intro'))}</p>
+    <p class="air-priv">${esc(t('air.privacy'))}</p>
+    <p class="aiusage-meal-line muted" style="display:none"></p>
+    <button type="button" class="btn-primary air-big" id="air-btn-camera">${esc(t('air.camera'))}</button>
+    <button type="button" class="btn-ghost air-big" id="air-btn-gallery">${esc(t('air.gallery'))}</button>
+    <p class="muted air-pdf">${esc(t('air.pdfNote'))}</p>`;
+  const inp = $('air-file');
+  if (inp) inp.onchange = () => { const f = inp.files && inp.files[0]; if (f) airAnalyze(f); };
+  const cam = $('air-btn-camera'); if (cam) cam.onclick = () => { if (inp) { inp.setAttribute('capture', 'environment'); inp.value = ''; inp.click(); } };
+  const gal = $('air-btn-gallery'); if (gal) gal.onclick = () => { if (inp) { inp.removeAttribute('capture'); inp.value = ''; inp.click(); } };
+}
+function airFillFromResult(d) {
+  const ru = (d && (d.unit === 'kg' || d.unit === 'lb')) ? d.unit : UNIT_PREFS.mass;
+  AIR.unit = ru;
+  AIR.brand = (d && typeof d.brand === 'string') ? d.brand : '';
+  const ma = (d && typeof d.measuredAt === 'string') ? d.measuredAt : '';
+  AIR.date = /^\d{4}-\d{2}-\d{2}/.test(ma) ? ma.slice(0, 10) : todayISO();
+  AIR.time = /T\d{2}:\d{2}/.test(ma) ? ma.slice(11, 16) : '';
+  const map = { weight: 'weight', fat: 'fatPct', muscle: 'muscleKg', skeletal: 'skeletalMuscleKg', bone: 'boneMassKg', protein: 'proteinMassKg', water: 'waterPct', visceral: 'visceral', subcutaneous: 'subcutFatPct', smi: 'smi' };
+  AIR.vals = {};
+  for (const f of AIR_FIELDS) {
+    const raw = d ? d[map[f.k]] : null;
+    const canon = (typeof raw === 'number' && Number.isFinite(raw)) ? airToCanon(f.kind, raw, ru) : null;
+    const disp = canon == null ? null : airToDisp(f.kind, canon);
+    AIR.vals[f.k] = { v: disp == null ? '' : airFmtNum(disp), on: disp != null, det: disp != null };
+  }
+}
+async function airAnalyze(file) {
+  if (!AIR) return;
+  AIR.stage = 'busy'; airPaint();
+  let url = null;
+  try { url = await compressFoodPhoto(file, 1600); } catch {}
+  if (!url || url.length > 3000000) { toast(t('air.tooBig'), true); AIR.stage = 'start'; airPaint(); return; }
+  let data;
+  try { data = await aiCall('/report', { imageDataUrl: url, lang: LANG }); }
+  catch (e) {
+    const m = e && e.message;
+    if (m === 'ai-422') { AIR.stage = 'unreadable'; airPaint(); return; }
+    toast(t(m === 'ai-cap' ? 'air.errCap' : (m === 'ai-disabled' || m === 'ai-off') ? 'air.errDisabled' : 'air.errGeneric'), true);
+    AIR.stage = 'start'; airPaint(); return;
+  }
+  airFillFromResult(data);
+  AIR.stage = 'confirm'; AIR.restored = false;
+  airPaint();
+  airDraftSync();
+  try { aiUsageRefreshSurfaces(); } catch {}
+}
+function airRowHTML(f) {
+  const row = AIR.vals[f.k] || { v: '', on: false, det: false };
+  const unitTxt = f.kind === 'mass' ? UNIT_PREFS.mass : f.kind === 'smi' ? 'kg/m²' : (f.kind === 'pct' ? '%' : '');
+  return `<div class="air-row${row.on ? '' : ' off'}">
+    <div class="air-row-top">
+      <span class="air-rname">${esc(t(f.tk))}${f.isNew ? ` <span class="air-tag">${esc(t('air.new'))}</span>` : ''}${row.det ? '' : ` <span class="air-nodet">${esc(t('air.notDetected'))}</span>`}</span>
+      <span class="air-rctl">
+        <input type="number" inputmode="decimal" step="any" class="air-in" id="air-in-${f.k}" value="${esc(row.v)}" placeholder="—" aria-label="${esc(t(f.tk))}">
+        <span class="air-unit">${esc(unitTxt)}</span>
+        <span class="air-togwrap"><button type="button" class="air-tog${row.on ? ' on' : ''}" data-air-tog="${f.k}" role="switch" aria-checked="${row.on ? 'true' : 'false'}" aria-label="${esc(t('air.saveRow'))} ${esc(t(f.tk))}"><span class="air-knob"></span></button><span class="air-toglab">${esc(t('air.saveRow'))}</span></span>
+      </span>
+    </div>
+    <div class="air-warn" id="air-warn-${f.k}" style="display:none"></div>
+  </div>`;
+}
+function airConfirmHTML() {
+  const rows = AIR_FIELDS.map(airRowHTML).join('');
+  const fromLb = AIR.unit && AIR.unit !== UNIT_PREFS.mass;
+  return `${AIR.restored ? `<p class="air-restored">${esc(t('air.restored'))}</p>` : ''}
+  <p class="air-head">${esc(t('air.head'))}</p>
+  <label class="air-lab" for="air-brand">${esc(t('air.brand'))}</label>
+  <input type="text" id="air-brand" class="air-textin" value="${esc(AIR.brand)}" maxlength="40" placeholder="RENPHO" autocomplete="off">
+  <label class="air-lab">${esc(t('air.when'))}</label>
+  <div class="air-when"><input type="date" id="air-date" value="${esc(AIR.date)}"><input type="time" id="air-time" value="${esc(AIR.time)}"></div>
+  ${fromLb ? `<p class="air-fromlb">${esc(t('air.fromLb'))}</p>` : ''}
+  <div class="air-rows">${rows}</div>
+  <div class="air-derived"><span>${esc(t('mr.f.fatMass'))}<span class="air-calc">${esc(t('air.derivedNote'))}</span></span><b id="air-derived-v">—</b></div>
+  <p class="air-prov">${esc(t('air.prov'))}</p>
+  ${AIR.canComp ? '' : `<p class="air-lock-note">${esc(t('compacc.pctNote'))}</p>`}
+  <p class="muted air-notsaved">${esc(t('air.notSavedNote'))}</p>
+  <button type="button" class="btn-primary air-big" id="air-save">${esc(t('air.save'))}</button>
+  <button type="button" class="btn-ghost air-big" id="air-discard">${esc(t('air.discard'))}</button>
+  <p class="air-priv">${esc(t('air.privacy'))}</p>`;
+}
+function airLiveSync() {
+  if (!AIR || AIR.stage !== 'confirm') return;
+  const c = airCanonNow();
+  const warns = airWarnings(c);
+  for (const f of AIR_FIELDS) {
+    const el = document.getElementById('air-warn-' + f.k); if (!el) continue;
+    const w = warns[f.k];
+    if (w) { el.textContent = '⚠ ' + t(w[0], w[1] || undefined); el.style.display = ''; }
+    else { el.textContent = ''; el.style.display = 'none'; }
+  }
+  const dv = document.getElementById('air-derived-v');
+  if (dv) { const fm = (c.weight != null && c.fat != null) ? c.weight * c.fat / 100 : null; dv.textContent = fm == null ? '—' : fmt(massToDisplay(fm)) + ' ' + UNIT_PREFS.mass; }
+}
+function airWireConfirm() {
+  const body = $('mp-air-body'); if (!body) return;
+  body.querySelectorAll('[data-air-tog]').forEach(b => b.onclick = () => {
+    const row = AIR.vals[b.dataset.airTog]; if (!row) return;
+    row.on = !row.on;
+    b.classList.toggle('on', row.on); b.setAttribute('aria-checked', row.on ? 'true' : 'false');
+    const wrap = b.closest('.air-row'); if (wrap) wrap.classList.toggle('off', !row.on);
+    airLiveSync(); airDraftSync();
+  });
+  body.querySelectorAll('.air-in').forEach(inp => inp.addEventListener('input', () => {
+    const k = inp.id.replace('air-in-', ''); const row = AIR.vals[k]; if (!row) return;
+    row.v = inp.value;
+    if (inp.value.trim() !== '' && !row.on) {
+      row.on = true;
+      const b = body.querySelector(`[data-air-tog="${k}"]`);
+      if (b) { b.classList.add('on'); b.setAttribute('aria-checked', 'true'); }
+      const wrap = inp.closest('.air-row'); if (wrap) wrap.classList.remove('off');
+    }
+    airLiveSync(); airDraftSync();
+  }));
+  const br = $('air-brand'); if (br) br.addEventListener('input', () => { AIR.brand = br.value; airDraftSync(); });
+  const dt = $('air-date'); if (dt) dt.addEventListener('change', () => { AIR.date = dt.value; airDraftSync(); });
+  const tm = $('air-time'); if (tm) tm.addEventListener('change', () => { AIR.time = tm.value; airDraftSync(); });
+  const sv = $('air-save'); if (sv) sv.onclick = airSave;
+  const dc = $('air-discard'); if (dc) dc.onclick = () => {
+    if (!AIR.discardArmed) { AIR.discardArmed = true; dc.textContent = t('air.discardSure'); dc.classList.add('air-armed'); return; }
+    airDraftClear(); AIR = null; airClose();
+  };
+}
+async function airSave() {
+  if (!AIR) return;
+  const built = airBuildSave({ date: AIR.date, time: AIR.time, brand: AIR.brand, viewerUnit: UNIT_PREFS.mass, canComp: AIR.canComp, vals: AIR.vals });
+  if (!built) { toast(t(/^\d{4}-\d{2}-\d{2}$/.test(AIR.date || '') ? 'air.nothingToSave' : 'air.dateNeeded'), true); return; }
+  const uid = AIR.uid;
+  const btn = $('air-save'); if (btn) btn.disabled = true;
+  try {
+    await setDoc(doc(db, 'nutrition_weight', uid + '_' + built.date), { ownerUid: uid, date: built.date, updatedAt: serverTimestamp(), ...built.fields }, { merge: true });
+  } catch (e) {
+    if (btn) btn.disabled = false;
+    if (e && e.code === 'permission-denied' && !AIR.canComp) toast(t('err.weightSaveDenied'), true); else failToast(e);
+    return;
+  }
+  airDraftClear();
+  const wasTrainer = uid !== (auth.currentUser && auth.currentUser.uid);
+  const dstr = dateName(built.date);
+  AIR = null;
+  airClose();
+  toast(t('air.saved', { date: dstr }));
+  if (wasTrainer) { try { openClient(uid); } catch {} }
+  else { try { await loadAll(); } catch {} try { if ($('mp-hist-body')) mpHistBody(); } catch {} }
+}
+
 /* ---------- Delegación global de clics del módulo ---------- */
 document.addEventListener('click', e => {
   const nb = e.target.closest && e.target.closest('[data-mp-note]');
@@ -59797,6 +60193,7 @@ document.addEventListener('click', e => {
   if (act === 'quick') { mpSheetClose('mp-hist'); mpOpenQuick(b.dataset.date || todayISO(), b.dataset.field || ''); }
   else if (act === 'hist') mpOpenHist(b.dataset.field);
   else if (act === 'reportdoor') { mpSheetClose('mp-hist'); mrOpen(); }
+  else if (act === 'airdoor') { mpSheetClose('mp-hist'); airOpen({}); }
   else if (act === 'close') mpSheetClose(b.dataset.sheet);
   else if (act === 'weightdoor') { mpSheetClose('mp-hist'); openWeightModal(null); }
   else if (act === 'photosdoor') { const g = $('prog-g-fotos'); if (g) { try { g.scrollIntoView({ behavior: 'smooth', block: 'start' }); } catch {} } }
