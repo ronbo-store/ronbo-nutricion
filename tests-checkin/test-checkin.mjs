@@ -114,7 +114,7 @@ await seed();
   await caso('L4 otra alumna NO lee', getDoc(doc(dO, 'weekly_checkins', id(ALU, WS))), false);
   await caso('L5 el propietario lee', getDoc(doc(dD, 'weekly_checkins', id(ALU, WS))), N);
   await caso('L6 anónimo NO lee', getDoc(doc(dAnon, 'weekly_checkins', id(ALU, WS))), false);
-  await caso('L7 su entrenador lista acotando uid y semana', getDocs(query(collection(dT, 'weekly_checkins'), where('uid', '==', ALU), where('weekStart', '==', WS))), N);
+  await caso('L7 nadie lista la colección (la app lee por id; list = solo propietario)', getDocs(query(collection(dT, 'weekly_checkins'), where('uid', '==', ALU), where('weekStart', '==', WS))), false);
 }
 
 /* ---------- la marca de revisión ---------- */

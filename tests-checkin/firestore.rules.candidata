@@ -379,43 +379,24 @@ service cloud.firestore {
         && get(/databases/$(database)/documents/users/$(ownerUid)).data.get('trainerUid', '') == request.auth.uid;
     }
 
-    // ---------- Check-in semanal (AUTH-2026-11-10-367) ----------
-    // Colección NUEVA weekly_checkins: una respuesta por alumno y
-    // semana natural de la casa (lunes a domingo); el id del
-    // documento es uid + '_' + weekStart (el lunes, AAAA-MM-DD).
-    // Forma CERRADA: las cuatro escalas 1..5 validadas en reglas,
-    // los dos planes en su trío cerrado, la nota corta y los dos
-    // campos de revisión que solo nacen con la marca del
-    // entrenador. El peso NO viaja aquí: el registro oficial de
-    // peso es nutrition_weight y este documento no lo toca.
-    // Privacidad: lo lee el propio alumno, su entrenador ASIGNADO
-    // (isAssignedTrainerOf, la relación viva) y administración /
-    // propietario — nadie más. Es un sistema aparte de la
-    // declaración de salud y de los consentimientos: compartirlo
-    // es la decisión del alumno al enviarlo, avisada en su
-    // pantalla antes de enviar.
-    function chkKeysOk() {
-      return request.resource.data.keys().hasOnly(['uid', 'weekStart',
-        'trainerUid', 'feel', 'energy', 'sleep', 'hunger',
-        'trainPlan', 'mealPlan', 'note', 'reviewedBy', 'reviewedAt',
-        'createdAt', 'updatedAt']);
-    }
-    function chkScaleOk(v) {
-      return v is int && v >= 1 && v <= 5;
-    }
+    // Check-in semanal (AUTH-2026-11-10-367): forma cerrada de
+    // weekly_checkins — ver el bloque al final del archivo.
     function chkShapeOk(chkId) {
       let d = request.resource.data;
-      return d.uid is string && d.uid.size() > 0 && d.uid.size() <= 40
-        && d.weekStart is string
+      return d.keys().hasOnly(['uid', 'weekStart', 'trainerUid',
+        'feel', 'energy', 'sleep', 'hunger', 'trainPlan',
+        'mealPlan', 'note', 'reviewedBy', 'reviewedAt',
+        'createdAt', 'updatedAt'])
+        && d.uid is string && d.uid.size() > 0 && d.uid.size() <= 40
         && d.weekStart.matches('[0-9]{4}-[0-9]{2}-[0-9]{2}')
         && chkId == d.uid + '_' + d.weekStart
-        && (d.trainerUid == null
-            || (d.trainerUid is string && d.trainerUid.size() <= 40))
-        && chkScaleOk(d.feel) && chkScaleOk(d.energy)
-        && chkScaleOk(d.sleep) && chkScaleOk(d.hunger)
+        && (d.trainerUid == null || d.trainerUid is string)
+        && d.feel in [1, 2, 3, 4, 5] && d.energy in [1, 2, 3, 4, 5]
+        && d.sleep in [1, 2, 3, 4, 5] && d.hunger in [1, 2, 3, 4, 5]
         && d.trainPlan in ['yes', 'part', 'no']
         && d.mealPlan in ['yes', 'part', 'no']
-        && d.note is string && d.note.size() <= 500;
+        && d.note is string && d.note.size() <= 500
+        && d.reviewedBy == null && d.reviewedAt == null;
     }
     // ---------- Retos (AUTH-2026-11-04-235) ----------
     // Módulo «Retos»: dos colecciones NUEVAS (challenges y
@@ -4257,59 +4238,44 @@ service cloud.firestore {
 
 
     // ---------- Check-in semanal (AUTH-2026-11-10-367) ----------
-    // Una respuesta por alumno y semana. El alumno la crea y la
-    // edita SOLO mientras su entrenador no la ha revisado; el
-    // entrenador asignado (o administración) la marca revisada
-    // con un toque y esa marca no se deshace por esta vía. La
-    // semana que se edita la gobierna la app (solo la vigente se
-    // ofrece); las reglas cierran la forma y los papeles.
+    // Una respuesta por alumno y semana (id uid + '_' + lunes).
+    // Lo lee su dueño, su entrenador ASIGNADO (la relación viva)
+    // y administración/propietario; nadie más — es un sistema
+    // aparte de la declaración de salud y los consentimientos, y
+    // el alumno lo envía sabiendo a quién va (aviso en su
+    // pantalla). El peso NO viaja aquí: su registro oficial es
+    // nutrition_weight. Sin entrenador, trainerUid nace null y
+    // el check-in queda sin destinatario. La app jamás borra.
     match /weekly_checkins/{chkId} {
       allow get: if isOwnerUser()
         || (signedIn() && resource != null && resource.data.uid == request.auth.uid)
         || (signedIn() && resource != null && isAssignedTrainerOf(resource.data.uid))
         || isAdminUser();
-      // En list, la evaluación solo conoce los campos que la
-      // consulta acota (el precedente de activity_log): se lee
-      // con .get() y la puerta se abre cuando la consulta acota
-      // también el uid. La app no lista esta colección — ficha,
-      // tarjeta y lista de alumnos leen por id conocido.
-      allow list: if isOwnerUser()
-        || resource.data.get('uid', '') == request.auth.uid
-        || isAssignedTrainerOf(resource.data.get('uid', ''))
-        || isAdminUser();
+      // La app no lista esta colección: ficha, tarjeta y lista
+      // de alumnos leen por id conocido (get).
+      allow list: if isOwnerUser();
       allow create: if isApprovedUser()
         && request.resource.data.uid == request.auth.uid
-        && chkKeysOk() && chkShapeOk(chkId)
-        && request.resource.data.reviewedBy == null
-        && request.resource.data.reviewedAt == null
+        && chkShapeOk(chkId)
         && request.resource.data.createdAt == request.time
         && request.resource.data.updatedAt == request.time;
-      // Edición del propio alumno: solo sus respuestas, solo sin
-      // revisar, sin tocar identidad, semana, nacimiento ni la
-      // revisión (que aquí sigue en null por la primera guarda).
+      // Edición del alumno: solo sus respuestas y solo sin
+      // revisar — identidad, semana, nacimiento y la marca no
+      // están en affectedKeys: no pueden cambiar por esta vía.
       allow update: if signedIn() && resource.data.uid == request.auth.uid
         && resource.data.reviewedAt == null
         && request.resource.data.diff(resource.data).affectedKeys()
              .hasOnly(['feel', 'energy', 'sleep', 'hunger', 'trainPlan',
                        'mealPlan', 'note', 'trainerUid', 'updatedAt'])
-        && request.resource.data.uid == resource.data.uid
-        && request.resource.data.weekStart == resource.data.weekStart
-        && request.resource.data.createdAt == resource.data.createdAt
-        && request.resource.data.reviewedBy == null
-        && request.resource.data.reviewedAt == null
-        && chkKeysOk() && chkShapeOk(chkId)
+        && chkShapeOk(chkId)
         && request.resource.data.updatedAt == request.time;
-      // La marca de revisión: solo el entrenador asignado del
-      // alumno (la relación viva) o administración / propietario;
-      // solo desde «sin revisar»; solo los dos campos de la marca.
+      // La marca de revisión, solo desde «sin revisar».
       allow update: if signedIn() && resource.data.reviewedAt == null
         && (isAssignedTrainerOf(resource.data.uid) || isAdminUser())
         && request.resource.data.diff(resource.data).affectedKeys()
              .hasOnly(['reviewedBy', 'reviewedAt'])
         && request.resource.data.reviewedBy == request.auth.uid
         && request.resource.data.reviewedAt == request.time;
-      // La app jamás borra (el historial se conserva); el borrado
-      // queda solo para la limpieza del propietario.
       allow delete: if isOwnerUser();
     }
 
