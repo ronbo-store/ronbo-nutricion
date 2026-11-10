@@ -21,7 +21,7 @@
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-title" content="RONBO FIT">
 <meta name="apple-mobile-web-app-status-bar-style" content="default">
-<link rel="stylesheet" href="styles.css?v=20261110-comida-sin-blanco">
+<link rel="stylesheet" href="styles.css?v=20261110-asistente-arranque">
 <script defer src="https://cloud.umami.is/script.js" data-website-id="a29706d4-44a2-47cf-900a-5f74d74abfa8"></script>
 <script type="importmap">
 {
@@ -676,6 +676,19 @@
     </div>
     <div id="base-body"></div>
   </div>
+  <!-- ============ ASISTENTE DE ARRANQUE VISUAL (AUTH-2026-11-10-379) ============
+       La puerta amable de la Ruta: sale sola UNA vez al primer
+       ingreso con la cuenta aprobada (puerta en wizMaybeAutoOpen,
+       app.js) y después vive como botón «Modo guiado» en la tarjeta
+       de la Ruta. Cada pantalla guarda por el flujo de siempre. -->
+  <div class="pend-float pend-consult" id="wiz-float" style="display:none" role="dialog">
+    <div class="pend-head">
+      <h2>🧭 <span data-i18n="wiz.title">Quick start</span></h2>
+      <button type="button" class="pend-close" id="wiz-x" aria-label="Close" data-i18n-aria="client.close">✕</button>
+    </div>
+    <div id="wiz-body"></div>
+  </div>
+
 
   <!-- ============ PENDIENTES DE APROBACIÓN → VENTANA FLOTANTE ============
        Punto 10 de la cola (decisión de Ronald, 2026-11-01 18:12 CST):
@@ -2276,6 +2289,6 @@
 <div id="toast" class="toast"></div>
 <div id="print-card" aria-hidden="true"></div>
 
-<script type="module" src="app.js?v=20261110-comida-sin-blanco"></script>
+<script type="module" src="app.js?v=20261110-asistente-arranque"></script>
 </body>
 </html>

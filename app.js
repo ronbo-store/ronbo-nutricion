@@ -1734,6 +1734,7 @@ function pendRouteHTML() {
       <p class="route-gsub">${esc(t('route.vivaSub'))}</p>
       <ul class="route-soft">${soft}</ul>
     </div>
+    <button type="button" class="btn route-wiz-btn" data-wiz-open>🧭 ${esc(t('wiz.openBtn'))}</button>
     <p class="route-foot">${esc(t('route.foot'))}</p>
   </div>`;
 }
@@ -3928,6 +3929,59 @@ const STR = {
 en: {
   'app.title': 'RONBO.FIT · Private',
   'auth.subtitle': 'Eat well. Train strong. Live present.',
+  'wiz.title': 'Quick start',
+  'wiz.openBtn': 'Guided mode',
+  'wiz.stepOf': 'Step {n} of {total}',
+  'wiz.start': 'Start',
+  'wiz.later': 'Not now',
+  'wiz.back': 'Back',
+  'wiz.next': 'Continue',
+  'wiz.welcomeTitle': 'Hi, {name}! I’m your Coach.',
+  'wiz.welcomeBody': 'I’ll ask you {n} quick questions, with pictures, so your base is set up and you can start training. No long forms — about 2 minutes. You can skip anything and finish it later on your Route.',
+  'wiz.welcomeMap': 'Your goal · your body today · how you train · your days and your equipment',
+  'wiz.objTitle': 'What do you want to achieve?',
+  'wiz.focusTitle': 'How do you want to go about it?',
+  'wiz.focusCompNote': 'Competition is declared with your trainer, in phases and with a date — it is not chosen here.',
+  'wiz.actTitle': 'What is your normal day like?',
+  'wiz.actAuto': 'Your calorie multiplier is set automatically from this — you don’t pick it.',
+  'wiz.bodyTitle': 'Your body today',
+  'wiz.bodyYear': 'Year of birth',
+  'wiz.bodyHeight': 'Height (cm)',
+  'wiz.bodyWeight': 'Your weight today',
+  'wiz.bodyNote': 'You can fix any of these later, in your evaluation.',
+  'wiz.privTitle': 'One private fact for your calculation',
+  'wiz.modTitle': 'How do you want to train?',
+  'wiz.modCurrent': 'Your pick at sign-up',
+  'wiz.modNone': 'Your modality is set when you choose your trainer — that is a step on your Route. Nothing to pick here.',
+  'wiz.daysTitle': 'Which days can you train?',
+  'wiz.daysSub': 'Tap every day that usually works for you. Your trainer and the automatic program will use this to build your week.',
+  'wiz.eqTitle': 'What equipment do you have?',
+  'wiz.eqSub': 'Tap everything you can use. If it’s just your body, tap “Bodyweight”.',
+  'wiz.doneTitle': 'You’ve got your base, {name}!',
+  'wiz.doneNote': 'Anything left is waiting for you on your Route — nothing is lost.',
+  'wiz.doneObj': 'Goal: {obj} · focus: {foc}',
+  'wiz.pendObj': 'Your goal is still missing — it’s waiting on your Route.',
+  'wiz.doneCalc': 'Your evaluation: with this, your calorie calculation is born.',
+  'wiz.pendCalc': 'Your calculation still needs: {miss}. It’s on your Route.',
+  'wiz.pendCalcBare': 'Your calculation will be born when your base is complete — it’s on your Route.',
+  'wiz.miss.peso': 'your weight',
+  'wiz.miss.estatura': 'your height',
+  'wiz.miss.anio': 'your year of birth',
+  'wiz.miss.actividad': 'your day-to-day activity',
+  'wiz.miss.privado': 'the private fact',
+  'wiz.miss.objetivo': 'your goal',
+  'wiz.doneMod': 'Training: {mod}',
+  'wiz.pendModReq': 'Modality change to {mod}: requested — your trainer or the admin confirms it.',
+  'wiz.doneDays': 'Training days: {n} a week',
+  'wiz.pendDays': 'Your training days are still missing.',
+  'wiz.doneEq': 'Equipment: {list}',
+  'wiz.pendEq': 'Your equipment is still missing.',
+  'wiz.pendTrainer': 'Choosing your trainer is still pending.',
+  'wiz.pendLegal': 'Your health consent and declaration — the next steps on your Route.',
+  'wiz.goRoute': 'See my Route',
+  'wiz.goPhoto': 'Add my starting photo',
+  'wiz.goTrainer': 'Choose my trainer',
+  'wiz.enter': 'Enter the app',
   'install.title': 'Take RONBO FIT on your phone!',
   'install.sub': 'Install it as an app: you get its icon on your screen and open it in one tap, without the browser.',
   'install.ios': '<b>iPhone:</b> in Safari tap <b>Share</b>, then <b>“Add to Home Screen”</b>.',
@@ -8546,6 +8600,59 @@ en: {
 es: {
   'app.title': 'RONBO.FIT · Privado',
   'auth.subtitle': 'Come bien. Entrena fuerte. Vive el presente.',
+  'wiz.title': 'Arranque rápido',
+  'wiz.openBtn': 'Modo guiado',
+  'wiz.stepOf': 'Paso {n} de {total}',
+  'wiz.start': 'Empezar',
+  'wiz.later': 'Ahora no',
+  'wiz.back': 'Atrás',
+  'wiz.next': 'Seguir',
+  'wiz.welcomeTitle': '¡Hola, {name}! Soy tu Coach.',
+  'wiz.welcomeBody': 'Te hago {n} preguntas rápidas, con fotos, para que tu base quede lista y puedas empezar a entrenar. Sin formularios largos — unos 2 minutos. Puedes saltar lo que quieras y terminarlo luego en tu Ruta.',
+  'wiz.welcomeMap': 'Tu objetivo · tu cuerpo hoy · cómo entrenas · tus días y tu equipo',
+  'wiz.objTitle': '¿Qué quieres lograr?',
+  'wiz.focusTitle': '¿Cómo quieres ir?',
+  'wiz.focusCompNote': 'La competencia se declara con tu entrenador, por fases y con fecha — no se elige aquí.',
+  'wiz.actTitle': '¿Cómo es tu día normal?',
+  'wiz.actAuto': 'Tu multiplicador de calorías sale automático de aquí — no lo eliges tú.',
+  'wiz.bodyTitle': 'Tu cuerpo hoy',
+  'wiz.bodyYear': 'Año de nacimiento',
+  'wiz.bodyHeight': 'Estatura (cm)',
+  'wiz.bodyWeight': 'Tu peso de hoy',
+  'wiz.bodyNote': 'Todo esto lo puedes corregir luego, en tu evaluación.',
+  'wiz.privTitle': 'Un dato privado para tu cálculo',
+  'wiz.modTitle': '¿Cómo quieres entrenar?',
+  'wiz.modCurrent': 'La que elegiste al registrarte',
+  'wiz.modNone': 'Tu modalidad se define cuando eliges a tu entrenador — es un paso de tu Ruta. Aquí no hay nada que elegir.',
+  'wiz.daysTitle': '¿Qué días puedes entrenar?',
+  'wiz.daysSub': 'Toca todos los días que normalmente te sirven. Tu entrenador y el programa automático usarán esto para armar tu semana.',
+  'wiz.eqTitle': '¿Qué equipo tienes?',
+  'wiz.eqSub': 'Marca todo lo que puedas usar. Si es solo tu cuerpo, marca «Peso corporal».',
+  'wiz.doneTitle': '¡Ya tienes base, {name}!',
+  'wiz.doneNote': 'Lo que falte te espera en tu Ruta — nada se pierde.',
+  'wiz.doneObj': 'Objetivo: {obj} · enfoque: {foc}',
+  'wiz.pendObj': 'Tu objetivo todavía falta — te espera en tu Ruta.',
+  'wiz.doneCalc': 'Tu evaluación: con esto nace tu cálculo de calorías.',
+  'wiz.pendCalc': 'A tu cálculo todavía le falta: {miss}. Está en tu Ruta.',
+  'wiz.pendCalcBare': 'Tu cálculo nace cuando tu base esté completa — está en tu Ruta.',
+  'wiz.miss.peso': 'tu peso',
+  'wiz.miss.estatura': 'tu estatura',
+  'wiz.miss.anio': 'tu año de nacimiento',
+  'wiz.miss.actividad': 'tu actividad día a día',
+  'wiz.miss.privado': 'el dato privado',
+  'wiz.miss.objetivo': 'tu objetivo',
+  'wiz.doneMod': 'Entrenamiento: {mod}',
+  'wiz.pendModReq': 'Cambio de modalidad a {mod}: pedido — lo confirma tu entrenador o el administrador.',
+  'wiz.doneDays': 'Días de entreno: {n} por semana',
+  'wiz.pendDays': 'Tus días de entreno todavía faltan.',
+  'wiz.doneEq': 'Equipo: {list}',
+  'wiz.pendEq': 'Tu equipo todavía falta.',
+  'wiz.pendTrainer': 'Elegir a tu entrenador todavía está pendiente.',
+  'wiz.pendLegal': 'Tu consentimiento de salud y tu declaración — los siguientes pasos de tu Ruta.',
+  'wiz.goRoute': 'Ver mi Ruta',
+  'wiz.goPhoto': 'Subir mi foto de partida',
+  'wiz.goTrainer': 'Elegir a mi entrenador',
+  'wiz.enter': 'Entrar a la app',
   'install.title': '¡Lleva RONBO FIT en tu teléfono!',
   'install.sub': 'Instálala como una app: tendrás tu ícono en la pantalla y entrarás de un solo toque, sin abrir el navegador.',
   'install.ios': '<b>iPhone:</b> en Safari toca <b>Compartir</b> y luego <b>«Agregar a pantalla de inicio»</b>.',
@@ -14888,6 +14995,7 @@ onAuthStateChanged(auth, async user => {
   /* AUTH-147: a quien ya estaba registrado y aún no declaró su
      propósito se le pide UNA sola vez al entrar (sin bloquear). */
   try { purposeMaybeAsk(); } catch {}
+  try { wizMaybeAutoOpen(); } catch {}
 });
 
 /* ================= REACCIÓN EN VIVO DE LA SESIÓN (H-C2) =================
@@ -20923,6 +21031,551 @@ async function baseFinish() {
   BASE_FLOW.miss = { piece: 'calc', fields: [] };
   BASE_FLOW.step = 'falta'; baseFlowRender();
 }
+
+
+/* ================================================================
+   ASISTENTE DE ARRANQUE VISUAL (AUTH-2026-11-10-379; diseño en
+   PROPUESTA-ASISTENTE-ARRANQUE-2026-11-10.md; decisiones D1–D4 de
+   Ronald, 2026-11-10). La «puerta amable» de la Ruta (AUTH-143):
+   la Ruta ya ordena los pasos; esto RECIBE al alumno nuevo con
+   preguntas grandes y con fotos, y guarda cada respuesta POR LOS
+   FLUJOS DE SIEMPRE (objetivo como routeBaseCard/baseFlow, enfoque
+   por gmFocusWrite, actividad y cuerpo en assessment/current como
+   gmSaveFoundation, el dato privado en energyPrivate como
+   baseFlowNext, el peso en nutrition_weight, la modalidad por el
+   cauce de siempre — modality_requests — y los DOS DATOS NUEVOS
+   de D2 en el propio documento del usuario: availDays y
+   equipFamilies, en los formatos que el Programa Automático ya
+   consume). Fuera por diseño: consentimiento de salud y PAR-Q (su
+   cauce legal), elección de entrenador (el cierre lleva a «Mi
+   entrenador»), activación de comidas y el multiplicador (nace
+   automático de la actividad, no se pregunta).
+   DISPARO ÚNICO (D1): sale SOLO una vez, al primer ingreso con la
+   cuenta aprobada, si el núcleo (objetivo + resultado del cálculo)
+   está incompleto — las MISMAS fuentes que la Ruta
+   (hasAnyGoal/faHasResult) —; todo se puede saltar, nunca bloquea;
+   después vive como botón «Modo guiado» en la tarjeta de la Ruta.
+   La marca «visto» es local (ronbofit-wiz-seen-v1) y se escribe
+   SOLO cuando el asistente llega a abrirse o se salta/cierra —
+   nunca cuando otra ventana lo tapó: en ese caso vuelve a
+   intentarlo en el siguiente ingreso. */
+const WIZ_SEEN_KEY = 'ronbofit-wiz-seen-v1';
+const WIZ_ASSETS = 'https://ronbo-store.github.io/ronbo-nutri-assets/';
+const WIZ_MOD_PHOTO = { presencial: 'E063.jpg', virtual: 'E087.jpg', hibrida: 'E039.jpg' };
+const WIZ_EQ_PHOTO = { barra: 'E024.jpg', mancuernas: 'E039.jpg', poleas: 'E013.jpg', maquinas: 'E001.jpg', corporal: 'E009.webp', kb: 'E067.png' };
+const WIZ_EQ_FAMS = ['barra', 'mancuernas', 'poleas', 'maquinas', 'corporal', 'kb'];
+const WIZ_DAY_ORDER = [1, 2, 3, 4, 5, 6, 0];
+let WIZ = null;
+
+function wizSeen() { try { return localStorage.getItem(WIZ_SEEN_KEY) === '1'; } catch { return false; } }
+function wizMarkSeen() { try { localStorage.setItem(WIZ_SEEN_KEY, '1'); } catch {} }
+function wizOtherFloatOpen() {
+  return [...document.querySelectorAll('.pend-float')].some(el => el.id !== 'wiz-float' && el.style.display !== 'none');
+}
+/* La puerta de «una sola vez»: cuenta aprobada + rol de alumno +
+   sin marca + núcleo incompleto + ninguna otra ventana abierta. */
+function wizMaybeAutoOpen() {
+  if (!auth.currentUser) return;
+  if (typeof ROLE === 'undefined' || ROLE !== 'usuario') return;
+  if (!UDATA || UDATA.approved !== true) return;
+  if (wizSeen()) return;
+  const a = (typeof MY_ASMT !== 'undefined' && MY_ASMT) || null;
+  if (!a || a.state !== 'ok') return;      // sin lectura fiable no se abre solo
+  if (hasAnyGoal() && faHasResult(a.doc)) return;   // núcleo completo: nunca sale
+  if (wizOtherFloatOpen()) return;         // tapado por otra ventana: se reintenta luego, SIN marcar
+  wizOpen('auto');
+}
+function wizQuestions() {
+  const qs = ['objetivo', 'enfoque', 'actividad', 'cuerpo', 'privado'];
+  if (!selfTrainedOf(UDATA)) qs.push('modalidad');
+  qs.push('dias', 'equipo');
+  return qs;
+}
+function wizQuestionDone(q) {
+  const d = (MY_ASMT && MY_ASMT.doc) || {};
+  if (q === 'objetivo') return ['mantener', 'bajar', 'ganar'].includes(UDATA.goalObjective || '');
+  if (q === 'enfoque') return !!(UDATA.goalFocus && UDATA.goalFocus.focus);
+  if (q === 'actividad') return Number.isInteger(parseInt(d.activityCategoryId, 10)) && parseInt(d.activityCategoryId, 10) >= 1 && parseInt(d.activityCategoryId, 10) <= 6 && num(d.palBasal) >= 1.00 && num(d.palBasal) <= 2.50;
+  if (q === 'cuerpo') { const m = baseMyState().missing; return !m.includes('peso') && !m.includes('estatura') && !m.includes('anio'); }
+  if (q === 'privado') return !!(MY_ENERGY && MY_ENERGY.sex);
+  if (q === 'modalidad') return !!((MY_REL && MY_REL.modality) || UDATA.modality);
+  if (q === 'dias') return Array.isArray(UDATA.availDays);
+  if (q === 'equipo') return Array.isArray(UDATA.equipFamilies);
+  return false;
+}
+function wizOpen(mode) {
+  if (!auth.currentUser) return;
+  const fl = $('wiz-float'); if (!fl) return;
+  const d = (MY_ASMT && MY_ASMT.doc) || {};
+  const qs = wizQuestions();
+  WIZ = {
+    mode: mode || 'manual', busy: false, calcDone: false, modAsked: null,
+    screens: ['bienvenida', ...qs, 'cierre'], idx: 0,
+    selObj: UDATA.goalObjective || '',
+    selFocus: gmFocusOf(UDATA).focus || 'general',
+    strengthOk: false,
+    act: parseInt(d.activityCategoryId, 10) || null,
+    palConfirm: false,
+    selSex: (MY_ENERGY && MY_ENERGY.sex) || null,
+    selMod: ((MY_REL && MY_REL.modality) || UDATA.modality || ''),
+    days: new Set(Array.isArray(UDATA.availDays) ? UDATA.availDays.filter(x => WIZ_DAY_ORDER.includes(x)) : []),
+    eq: new Set(Array.isArray(UDATA.equipFamilies) ? UDATA.equipFamilies.filter(x => WIZ_EQ_FAMS.includes(x)) : []),
+    wTouched: false,
+  };
+  if (WIZ.mode === 'manual') {
+    const first = qs.findIndex(q => !wizQuestionDone(q));
+    WIZ.idx = first >= 0 ? first + 1 : WIZ.screens.length - 1;
+    if (first < 0) WIZ.calcDone = true;
+  } else {
+    wizMarkSeen();   // salió solo: queda marcado en el acto (D1)
+  }
+  fl.style.display = '';
+  const x = $('wiz-x'); if (x) x.onclick = () => wizClose();
+  wizRender();
+}
+function wizClose() {
+  const fl = $('wiz-float'); if (fl) fl.style.display = 'none';
+  if (WIZ && WIZ.mode === 'auto') wizMarkSeen();
+  WIZ = null;
+  try { pendRefreshAfterSave(); } catch {}
+}
+function wizSelPaint(attr, val) {
+  document.querySelectorAll('#wiz-body [data-wiz-' + attr + ']').forEach(b => {
+    const on = b.getAttribute('data-wiz-' + attr) === String(val);
+    b.classList.toggle('sel', on);
+    b.setAttribute('aria-pressed', String(on));
+  });
+}
+function wizRender() {
+  const bd = $('wiz-body'); if (!bd || !WIZ) return;
+  const scr = WIZ.screens[WIZ.idx];
+  const qs = wizQuestions();
+  const qi = qs.indexOf(scr);
+  let prog = '';
+  if (scr === 'bienvenida') prog = `<div class="wiz-bar"><i style="width:0%"></i></div>`;
+  else if (scr === 'cierre') prog = `<div class="wiz-bar"><i style="width:100%"></i></div>`;
+  else prog = `<div class="wiz-bar"><i style="width:${Math.round(((qi + 1) / qs.length) * 100)}%"></i></div><p class="wiz-stepline">${esc(t('wiz.stepOf', { n: qi + 1, total: qs.length }))}</p>`;
+  let body = '';
+  if (scr === 'bienvenida') body = wizWelcomeHTML();
+  else if (scr === 'objetivo') body = wizObjHTML();
+  else if (scr === 'enfoque') body = wizFocusHTML();
+  else if (scr === 'actividad') body = wizActHTML();
+  else if (scr === 'cuerpo') body = wizBodyHTML();
+  else if (scr === 'privado') body = wizPrivHTML();
+  else if (scr === 'modalidad') body = wizModHTML();
+  else if (scr === 'dias') body = wizDaysHTML();
+  else if (scr === 'equipo') body = wizEqHTML();
+  else if (scr === 'cierre') body = wizDoneHTML();
+  let nav = '';
+  if (scr === 'bienvenida') nav = `<div class="wiz-nav"><button type="button" class="btn alt" id="wiz-later">${esc(t('wiz.later'))}</button><button type="button" class="btn" id="wiz-go">${esc(t('wiz.start'))}</button></div>`;
+  else if (scr !== 'cierre') nav = `<div class="wiz-nav"><button type="button" class="btn ghost" id="wiz-back">← ${esc(t('wiz.back'))}</button><button type="button" class="btn alt" id="wiz-later">${esc(t('wiz.later'))}</button><button type="button" class="btn" id="wiz-go">${esc(t('wiz.next'))}</button></div>`;
+  bd.innerHTML = prog + body + nav;
+  const later = $('wiz-later'); if (later) later.onclick = () => { if (scr === 'bienvenida') wizClose(); else wizSkip(); };
+  const go = $('wiz-go'); if (go) go.onclick = () => wizNext();
+  const back = $('wiz-back'); if (back) back.onclick = () => { if (!WIZ.busy && WIZ.idx > 0) { WIZ.idx--; wizRender(); } };
+  wizWireScreen(scr);
+}
+function wizWelcomeHTML() {
+  const name = ((UDATA.name || '').split(' ')[0] || '').trim();
+  const n = wizQuestions().length;
+  return `<div class="wiz-welcome">
+    <div class="wiz-coach" aria-hidden="true">🧑🏾‍🏫</div>
+    <h3 class="wiz-bigtitle">${esc(t('wiz.welcomeTitle', { name: name || '…' }))}</h3>
+    <p class="wiz-body">${esc(t('wiz.welcomeBody', { n }))}</p>
+    <p class="wiz-map">${esc(t('wiz.welcomeMap'))}</p>
+  </div>`;
+}
+function wizObjHTML() {
+  const icons = { bajar: '📉', mantener: '⚖️', ganar: '💪' };
+  const cards = ['bajar', 'mantener', 'ganar'].map(o => `
+    <button type="button" class="wiz-card${WIZ.selObj === o ? ' sel' : ''}" data-wiz-obj="${o}" aria-pressed="${WIZ.selObj === o}">
+      <span class="wiz-ico" aria-hidden="true">${icons[o]}</span>
+      <span class="wiz-card-tx"><b>${esc(t('gm.obj.' + o))}</b></span>
+    </button>`).join('');
+  return `<h3 class="wiz-h">${esc(t('wiz.objTitle'))}</h3><div class="wiz-cards">${cards}</div>
+    <p class="wiz-expl" id="wiz-obj-expl">${WIZ.selObj ? esc(t('gm.objExpl.' + WIZ.selObj)) : ''}</p>`;
+}
+function wizFocusHTML() {
+  const obj = WIZ.selObj || UDATA.goalObjective || '';
+  const recompOk = obj === 'bajar';
+  const card = (f, lockNote) => `
+    <button type="button" class="wiz-card${WIZ.selFocus === f ? ' sel' : ''}${lockNote ? ' dis' : ''}" data-wiz-focus="${f}" aria-pressed="${WIZ.selFocus === f}"${lockNote ? ' aria-disabled="true"' : ''}>
+      <span class="wiz-card-tx"><b>${esc(t('gfocus.opt.' + f))}</b>${lockNote ? `<small class="wiz-lock">${esc(lockNote)}</small>` : ''}</span>
+    </button>`;
+  return `<h3 class="wiz-h">${esc(t('wiz.focusTitle'))}</h3><div class="wiz-cards">
+      ${card('general', '')}
+      ${card('recomposicion', recompOk ? '' : t('gfocus.recompNeedBajar'))}
+      <div class="wiz-card dis" aria-disabled="true"><span class="wiz-card-tx"><b>${esc(t('gfocus.opt.competencia'))}</b><small class="wiz-lock">${esc(t('wiz.focusCompNote'))}</small></span></div>
+    </div>
+    <p class="wiz-expl" id="wiz-focus-expl">${esc(t('gfocus.expl.' + WIZ.selFocus))}</p>
+    <div id="wiz-strength" style="${WIZ.selFocus === 'recomposicion' && recompOk ? '' : 'display:none'}">
+      <label class="fa-opt2 wiz-confirm"><input type="checkbox" id="wiz-strength-cb"${WIZ.strengthOk ? ' checked' : ''}> <span>${esc(t('gfocus.strengthLabel'))}</span></label>
+    </div>`;
+}
+function wizActHTML() {
+  const icons = { 1: '🛌', 2: '🪑', 3: '🚶', 4: '🏃', 5: '🏗️', 6: '🔥' };
+  const cards = [1, 2, 3, 4, 5, 6].map(c => `
+    <button type="button" class="wiz-card${WIZ.act === c ? ' sel' : ''}" data-wiz-act="${c}" aria-pressed="${WIZ.act === c}">
+      <span class="wiz-ico" aria-hidden="true">${icons[c]}</span>
+      <span class="wiz-card-tx"><b>${esc(t('fa.actShort' + c))}</b></span>
+    </button>`).join('');
+  const def1 = faPalDefaultFor(1);
+  return `<h3 class="wiz-h">${esc(t('wiz.actTitle'))}</h3><div class="wiz-cards wiz-cards2">${cards}</div>
+    <p class="wiz-expl" id="wiz-act-expl">${WIZ.act ? esc(mdbActExplText(WIZ.act)) : ''}</p>
+    <p class="wiz-note">${esc(t('wiz.actAuto'))}</p>
+    <div id="wiz-palconfirm" style="${WIZ.act === 1 && def1 != null && def1 < 1.40 ? '' : 'display:none'}">
+      <label class="fa-opt2 wiz-confirm"><input type="checkbox" id="wiz-pal-cb"${WIZ.palConfirm ? ' checked' : ''}> <span>${esc(t('fa.palConfirm'))}</span></label>
+    </div>`;
+}
+function wizBodyHTML() {
+  const d = (MY_ASMT && MY_ASMT.doc) || {};
+  const maxY = new Date().getFullYear() - 18;
+  const last = baseLastWeight();
+  const wVal = last ? String(massToDisplay(last.weight)) : '';
+  const wIn = `<input type="number" id="wiz-w" inputmode="decimal" step="0.5" min="${massToDisplay(20)}" max="${massToDisplay(400)}" value="${esc(wVal)}" placeholder="${esc(t('base.phWeight'))}">`;
+  const hIn = `<input type="number" id="wiz-h" inputmode="numeric" step="1" min="50" max="250" value="${d.heightCm != null ? esc(String(d.heightCm)) : ''}" placeholder="170">`;
+  return `<h3 class="wiz-h">${esc(t('wiz.bodyTitle'))}</h3>
+    <label class="wiz-lab">${esc(t('wiz.bodyYear'))}</label>
+    <select id="wiz-by" class="big-input wiz-select">${mdbYearOptions(d.birthYear || null, maxY, 1900)}</select>
+    <label class="wiz-lab">${esc(t('wiz.bodyHeight'))}</label>
+    ${mdbStepperHTML('wiz-h', hIn, { unit: 'cm', seed: 170 })}
+    <label class="wiz-lab">${esc(t('wiz.bodyWeight'))}</label>
+    ${mdbStepperHTML('wiz-w', wIn, { unit: UNIT_PREFS.mass, seed: massToDisplay(70) })}
+    <p class="wiz-note">${esc(t('wiz.bodyNote'))}</p>`;
+}
+function wizPrivHTML() {
+  const cur = (MY_ENERGY && MY_ENERGY.sex) || null;
+  return `<h3 class="wiz-h">${esc(t('wiz.privTitle'))}</h3>
+    <p class="wiz-body">${esc(t('fa.sexBody'))}</p>
+    ${cur ? `<p class="wiz-note">${esc(t('fa.current', { v: t(cur === 'female' ? 'fa.female' : 'fa.male') }))}</p>` : ''}
+    <div class="wiz-cards wiz-cards2">
+      <button type="button" class="wiz-card${WIZ.selSex === 'female' ? ' sel' : ''}" data-wiz-sex="female" aria-pressed="${WIZ.selSex === 'female'}"><span class="wiz-ico" aria-hidden="true">👩</span><span class="wiz-card-tx"><b>${esc(t('fa.female'))}</b></span></button>
+      <button type="button" class="wiz-card${WIZ.selSex === 'male' ? ' sel' : ''}" data-wiz-sex="male" aria-pressed="${WIZ.selSex === 'male'}"><span class="wiz-ico" aria-hidden="true">👨</span><span class="wiz-card-tx"><b>${esc(t('fa.male'))}</b></span></button>
+    </div>`;
+}
+function wizModHTML() {
+  const cur = (MY_REL && MY_REL.modality) || UDATA.modality || '';
+  if (!cur) return `<h3 class="wiz-h">${esc(t('wiz.modTitle'))}</h3><p class="wiz-body">${esc(t('wiz.modNone'))}</p>`;
+  const cards = ['presencial', 'virtual', 'hibrida'].map(m => `
+    <button type="button" class="wiz-photocard${WIZ.selMod === m ? ' sel' : ''}" data-wiz-mod="${m}" aria-pressed="${WIZ.selMod === m}">
+      <img class="wiz-photo" src="${WIZ_ASSETS}${WIZ_MOD_PHOTO[m]}" alt="" loading="lazy">
+      <span class="wiz-card-tx"><b>${esc(escModLabel(m))}</b>${m === cur ? `<small class="wiz-lock">✓ ${esc(t('wiz.modCurrent'))}</small>` : ''}</span>
+    </button>`).join('');
+  return `<h3 class="wiz-h">${esc(t('wiz.modTitle'))}</h3><div class="wiz-cards">${cards}</div>`;
+}
+function wizDaysHTML() {
+  const names = t('train.auto.wds').split(',');
+  const chips = WIZ_DAY_ORDER.map((wd, i) => `
+    <button type="button" class="wiz-chip${WIZ.days.has(wd) ? ' sel' : ''}" data-wiz-day="${wd}" aria-pressed="${WIZ.days.has(wd)}">${esc(names[i] || '')}</button>`).join('');
+  return `<h3 class="wiz-h">${esc(t('wiz.daysTitle'))}</h3><p class="wiz-body">${esc(t('wiz.daysSub'))}</p><div class="wiz-chips">${chips}</div>`;
+}
+function wizEqHTML() {
+  const cards = WIZ_EQ_FAMS.map(f => `
+    <button type="button" class="wiz-photocard${WIZ.eq.has(f) ? ' sel' : ''}" data-wiz-eq="${f}" aria-pressed="${WIZ.eq.has(f)}">
+      <img class="wiz-photo" src="${WIZ_ASSETS}${WIZ_EQ_PHOTO[f]}" alt="" loading="lazy">
+      <span class="wiz-card-tx"><b>${esc(t('train.auto.eq.' + f))}</b></span>
+    </button>`).join('');
+  return `<h3 class="wiz-h">${esc(t('wiz.eqTitle'))}</h3><p class="wiz-body">${esc(t('wiz.eqSub'))}</p><div class="wiz-cards wiz-cards2">${cards}</div>`;
+}
+function wizDoneHTML() {
+  const name = ((UDATA.name || '').split(' ')[0] || '').trim();
+  const done = [], pend = [];
+  if (UDATA.goalObjective) done.push(t('wiz.doneObj', { obj: t('gm.obj.' + UDATA.goalObjective), foc: t('gfocus.opt.' + gmFocusOf(UDATA).focus) }));
+  else pend.push(t('wiz.pendObj'));
+  if (faHasResult((MY_ASMT && MY_ASMT.doc) || null)) done.push(t('wiz.doneCalc'));
+  else {
+    const miss = baseMyState().missing.filter(m => m !== 'objetivo');
+    if (miss.length) pend.push(t('wiz.pendCalc', { miss: miss.map(m => t('wiz.miss.' + m)).join(', ') }));
+    else pend.push(t('wiz.pendCalcBare'));
+  }
+  if (!selfTrainedOf(UDATA)) {
+    const cur = (MY_REL && MY_REL.modality) || UDATA.modality || '';
+    if (WIZ && WIZ.modAsked) pend.push(t('wiz.pendModReq', { mod: escModLabel(WIZ.modAsked) }));
+    else if (cur) done.push(t('wiz.doneMod', { mod: escModLabel(cur) }));
+    if (!UDATA.trainerUid) pend.push(t('wiz.pendTrainer'));
+  }
+  if (Array.isArray(UDATA.availDays)) done.push(t('wiz.doneDays', { n: UDATA.availDays.length }));
+  else pend.push(t('wiz.pendDays'));
+  if (Array.isArray(UDATA.equipFamilies)) done.push(t('wiz.doneEq', { list: UDATA.equipFamilies.map(f => t('train.auto.eq.' + f)).join(', ') || '—' }));
+  else pend.push(t('wiz.pendEq'));
+  try {
+    const R = pendRouteSteps();
+    const cons = R.find(s => s.key === 'consent'), parq = R.find(s => s.key === 'parq');
+    if ((cons && !cons.done) || (parq && !parq.done)) pend.push(t('wiz.pendLegal'));
+  } catch {}
+  const li = (arr, mark) => arr.map(x => `<li><span aria-hidden="true">${mark}</span> ${esc(x)}</li>`).join('');
+  return `<div class="wiz-done">
+    <h3 class="wiz-bigtitle">${esc(t('wiz.doneTitle', { name: name || '…' }))}</h3>
+    <ul class="wiz-list">${li(done, '✅')}${li(pend, '⏳')}</ul>
+    <p class="wiz-note">${esc(t('wiz.doneNote'))}</p>
+    <div class="wiz-actions">
+      <button type="button" class="btn" id="wiz-go-route">${esc(t('wiz.goRoute'))}</button>
+      ${!UDATA.trainerUid && !selfTrainedOf(UDATA) ? `<button type="button" class="btn alt" id="wiz-go-trainer">${esc(t('wiz.goTrainer'))}</button>` : ''}
+      <button type="button" class="btn alt" id="wiz-go-photo">${esc(t('wiz.goPhoto'))}</button>
+      <button type="button" class="btn ghost" id="wiz-enter">${esc(t('wiz.enter'))}</button>
+    </div>
+  </div>`;
+}
+function wizWireScreen(scr) {
+  const bd = $('wiz-body'); if (!bd) return;
+  if (scr === 'objetivo') {
+    bd.querySelectorAll('[data-wiz-obj]').forEach(b => b.onclick = () => {
+      WIZ.selObj = b.getAttribute('data-wiz-obj');
+      wizSelPaint('obj', WIZ.selObj);
+      const ex = $('wiz-obj-expl'); if (ex) ex.textContent = t('gm.objExpl.' + WIZ.selObj);
+    });
+  }
+  if (scr === 'enfoque') {
+    bd.querySelectorAll('[data-wiz-focus]').forEach(b => b.onclick = () => {
+      if (b.classList.contains('dis')) { toast(t('gfocus.recompNeedBajar'), true); return; }
+      WIZ.selFocus = b.getAttribute('data-wiz-focus');
+      wizSelPaint('focus', WIZ.selFocus);
+      const ex = $('wiz-focus-expl'); if (ex) ex.textContent = t('gfocus.expl.' + WIZ.selFocus);
+      const sw = $('wiz-strength'); if (sw) sw.style.display = WIZ.selFocus === 'recomposicion' ? '' : 'none';
+    });
+    const cb = $('wiz-strength-cb'); if (cb) cb.onchange = () => { WIZ.strengthOk = !!cb.checked; };
+  }
+  if (scr === 'actividad') {
+    bd.querySelectorAll('[data-wiz-act]').forEach(b => b.onclick = () => {
+      WIZ.act = parseInt(b.getAttribute('data-wiz-act'), 10);
+      wizSelPaint('act', WIZ.act);
+      const ex = $('wiz-act-expl'); if (ex) ex.textContent = mdbActExplText(WIZ.act);
+      const def = faPalDefaultFor(WIZ.act);
+      const pc = $('wiz-palconfirm'); if (pc) pc.style.display = (WIZ.act === 1 && def != null && def < 1.40) ? '' : 'none';
+    });
+    const cb = $('wiz-pal-cb'); if (cb) cb.onchange = () => { WIZ.palConfirm = !!cb.checked; };
+  }
+  if (scr === 'cuerpo') {
+    mdbStepperWire(bd);
+    const w = $('wiz-w'); if (w) w.addEventListener('input', () => { WIZ.wTouched = true; });
+  }
+  if (scr === 'privado') {
+    bd.querySelectorAll('[data-wiz-sex]').forEach(b => b.onclick = () => {
+      WIZ.selSex = b.getAttribute('data-wiz-sex');
+      wizSelPaint('sex', WIZ.selSex);
+    });
+  }
+  if (scr === 'modalidad') {
+    bd.querySelectorAll('[data-wiz-mod]').forEach(b => b.onclick = () => {
+      WIZ.selMod = b.getAttribute('data-wiz-mod');
+      wizSelPaint('mod', WIZ.selMod);
+    });
+  }
+  if (scr === 'dias') {
+    bd.querySelectorAll('[data-wiz-day]').forEach(b => b.onclick = () => {
+      const wd = parseInt(b.getAttribute('data-wiz-day'), 10);
+      if (WIZ.days.has(wd)) WIZ.days.delete(wd); else WIZ.days.add(wd);
+      b.classList.toggle('sel', WIZ.days.has(wd));
+      b.setAttribute('aria-pressed', String(WIZ.days.has(wd)));
+    });
+  }
+  if (scr === 'equipo') {
+    bd.querySelectorAll('[data-wiz-eq]').forEach(b => b.onclick = () => {
+      const f = b.getAttribute('data-wiz-eq');
+      if (WIZ.eq.has(f)) WIZ.eq.delete(f); else WIZ.eq.add(f);
+      b.classList.toggle('sel', WIZ.eq.has(f));
+      b.setAttribute('aria-pressed', String(WIZ.eq.has(f)));
+    });
+  }
+  if (scr === 'cierre') {
+    const r = $('wiz-go-route'); if (r) r.onclick = () => { wizClose(); pendSetFloat(true); };
+    const tr = $('wiz-go-trainer'); if (tr) tr.onclick = () => { wizClose(); switchTab('trainer'); const el = document.getElementById('my-trainer-box'); if (el) el.scrollIntoView({ behavior: 'smooth', block: 'start' }); };
+    const ph = $('wiz-go-photo'); if (ph) ph.onclick = () => { wizClose(); navOpenPage('progress'); try { progSetSub('fotos'); } catch {} const el = document.getElementById('eval-root'); if (el) el.scrollIntoView({ behavior: 'smooth', block: 'start' }); };
+    const en = $('wiz-enter'); if (en) en.onclick = () => wizClose();
+  }
+}
+
+/* ── Guardados del asistente: cada pantalla escribe POR EL FLUJO
+   DE SIEMPRE de ese dato (las mismas formas que baseFlow/baseActivate/
+   gmSaveFoundation/modality_requests), para que la Ruta, los
+   pendientes (AUTH-136) y el entrenador vean el avance sin saber
+   que el asistente existe. ── */
+async function wizSaveObj() {
+  const obj = WIZ.selObj;
+  if (!obj || obj === (UDATA.goalObjective || '')) return true;
+  WIZ.busy = true;
+  try {
+    await setDoc(doc(db, 'users', auth.currentUser.uid), { goalObjective: obj }, { merge: true });
+    UDATA.goalObjective = obj;
+  } catch (e) { failToast(e); WIZ.busy = false; return false; }
+  WIZ.busy = false; return true;
+}
+async function wizSaveFocus() {
+  const foc = WIZ.selFocus || 'general';
+  if (foc === gmFocusOf(UDATA).focus) return true;
+  if (foc === 'recomposicion') {
+    if ((WIZ.selObj || UDATA.goalObjective || '') !== 'bajar') { toast(t('gfocus.recompNeedBajar'), true); return false; }
+    if (!WIZ.strengthOk) { toast(t('gfocus.strengthNeed'), true); return false; }
+  }
+  if (foc !== 'general' && foc !== 'recomposicion') return true;   // competencia no se ofrece
+  const prev = UDATA.goalFocus || null;
+  const keep = { decidedBy: prev ? (prev.decidedBy ?? null) : null, decidedAt: prev ? (prev.decidedAt ?? null) : null };
+  const gf = foc === 'general'
+    ? { focus: 'general', status: 'active', declaredAt: serverTimestamp(), strengthConfirmed: null, competition: null, ...keep, updatedAt: serverTimestamp() }
+    : { focus: 'recomposicion', status: 'active', declaredAt: serverTimestamp(), strengthConfirmed: true, competition: null, ...keep, updatedAt: serverTimestamp() };
+  WIZ.busy = true;
+  try {
+    await gmFocusWrite(gf, { kind: 'focus', date: null, foundedValue: prev ? prev.focus : 'general', chosenValue: foc, gate: 'direct' });
+    await goalsEngineRun('focus');
+  } catch (e) { failToast(e); WIZ.busy = false; return false; }
+  WIZ.busy = false; return true;
+}
+async function wizSaveAct() {
+  const act = WIZ.act;
+  if (!act) return true;
+  const d = (MY_ASMT && MY_ASMT.doc) || {};
+  const savedCat = parseInt(d.activityCategoryId, 10) || null;
+  if (act === savedCat) return true;   // sin cambio: el multiplicador guardado (aunque sea manual) no se toca
+  const pal = faPalDefaultFor(act);
+  if (pal != null && pal < 1.40 && !WIZ.palConfirm) { toast(t('fa.errConfirm'), true); return false; }
+  const uid = auth.currentUser.uid;
+  const payload = { activityCategoryId: act, updatedAt: serverTimestamp(), updatedBy: uid };
+  if (pal != null) { payload.palBasal = pal; payload.palExceptionConfirmed = pal < 1.40; }
+  WIZ.busy = true;
+  try {
+    await setDoc(doc(db, 'users', uid, 'assessment', 'current'), payload, { merge: true });
+    MY_ASMT.doc = { ...d, ...payload };
+    await faComputeMine(uid);
+  } catch (e) { failToast(e); WIZ.busy = false; return false; }
+  WIZ.busy = false; return true;
+}
+async function wizSaveBody() {
+  const uid = auth.currentUser.uid;
+  const byEl = $('wiz-by'), hEl = $('wiz-h');
+  const payload = { updatedAt: serverTimestamp(), updatedBy: uid };
+  if (byEl && byEl.value) {
+    const by = parseInt(byEl.value, 10), maxY = new Date().getFullYear() - 18;
+    if (!Number.isInteger(by) || by < 1900 || by > maxY) { toast(t('fa.errBy', { max: maxY }), true); return false; }
+    payload.birthYear = by;
+  }
+  if (hEl && hEl.value.trim() !== '') {
+    const h = num(hEl.value);
+    if (!(h >= 50 && h <= 250)) { toast(t('fa.errH'), true); return false; }
+    payload.heightCm = h;
+  }
+  let wData = null;
+  if (WIZ.wTouched) {
+    const wEl = $('wiz-w');
+    const wDisp = wEl ? num(wEl.value) : 0;
+    const wCanon = massToCanonical(wDisp);
+    if (!(wDisp > 0) || !(wCanon >= 20 && wCanon <= 400)) { toast(t('units.errWeightRange'), true); return false; }
+    const date = todayISO();
+    wData = { ownerUid: uid, date, weight: wCanon, weightOriginal: wDisp, weightUnitOriginal: UNIT_PREFS.mass, fat: 0, muscle: 0, water: 0, visceral: 0, notes: '', updatedAt: serverTimestamp() };
+  }
+  const hasBase = Object.keys(payload).length > 2;
+  if (!hasBase && !wData) return true;
+  WIZ.busy = true;
+  try {
+    if (hasBase) {
+      await setDoc(doc(db, 'users', uid, 'assessment', 'current'), payload, { merge: true });
+      MY_ASMT.doc = { ...((MY_ASMT && MY_ASMT.doc) || {}), ...payload };
+    }
+    if (wData) {
+      await setDoc(doc(db, 'nutrition_weight', uid + '_' + wData.date), wData);
+      const rec = { id: uid + '_' + wData.date, date: wData.date, weight: wData.weight, weightOriginal: wData.weightOriginal, weightUnitOriginal: wData.weightUnitOriginal, fat: 0, muscle: 0, water: 0, visceral: 0, notes: '' };
+      const ex = WEIGHTS.findIndex(w => w.id === rec.id);
+      if (ex >= 0) WEIGHTS[ex] = rec; else WEIGHTS.push(rec);
+      WEIGHTS.sort((a, b) => a.date < b.date ? -1 : 1);
+    }
+    if (hasBase) await faComputeMine(uid);
+  } catch (e) { failToast(e); WIZ.busy = false; return false; }
+  WIZ.busy = false; return true;
+}
+async function wizSavePriv() {
+  const sel = WIZ.selSex;
+  if (!sel) return true;
+  const cur = (MY_ENERGY && MY_ENERGY.sex) || null;
+  if (sel === cur) return true;
+  const uid = auth.currentUser.uid;
+  WIZ.busy = true;
+  try {
+    const data = { sexForCalc: sel, purposeVersion: FA_PURPOSE_VERSION, updatedAt: serverTimestamp() };
+    if (!cur) data.providedAt = serverTimestamp();
+    await setDoc(doc(db, 'users', uid, 'energyPrivate', 'sex'), data, { merge: true });
+    MY_ENERGY = { state: 'ok', sex: sel };
+    await faSyncSignal(uid);
+  } catch (e) { failToast(e); WIZ.busy = false; return false; }
+  WIZ.busy = false; return true;
+}
+async function wizSaveMod() {
+  const cur = (MY_REL && MY_REL.modality) || UDATA.modality || '';
+  const to = WIZ.selMod;
+  if (!to || !cur || to === cur) return true;   // sin modalidad aún no hay nada que pedir: se define con el entrenador
+  const uid = auth.currentUser.uid;
+  const trainerUid = (MY_REL && MY_REL.trainerUid) || UDATA.trainerUid || null;
+  const data = { alumnoUid: uid, trainerUid, fromModality: cur, toModality: to, status: trainerUid ? 'pendiente_entrenador' : 'pendiente_administrador', requestedAt: serverTimestamp(), note: '' };
+  WIZ.busy = true;
+  try {
+    await setDoc(doc(db, 'modality_requests', uid), data);
+    await auditLog('relation', 'modality.requested', uid, cur + ' → ' + to);
+    MY_MOD_REQ = { ...data };
+    WIZ.modAsked = to;
+    toast(t('esc.modRequested'));
+  } catch (e) { failToast(e); WIZ.busy = false; return false; }
+  WIZ.busy = false; return true;
+}
+async function wizSaveDays() {
+  const arr = WIZ_DAY_ORDER.filter(d => WIZ.days.has(d));
+  const cur = Array.isArray(UDATA.availDays) ? UDATA.availDays : null;
+  if (cur && cur.length === arr.length && cur.every((v, i) => v === arr[i])) return true;
+  WIZ.busy = true;
+  try {
+    await setDoc(doc(db, 'users', auth.currentUser.uid), { availDays: arr }, { merge: true });
+    UDATA.availDays = arr;
+  } catch (e) { failToast(e); WIZ.busy = false; return false; }
+  WIZ.busy = false; return true;
+}
+async function wizSaveEq() {
+  const arr = WIZ_EQ_FAMS.filter(f => WIZ.eq.has(f));
+  const cur = Array.isArray(UDATA.equipFamilies) ? UDATA.equipFamilies : null;
+  if (cur && cur.length === arr.length && cur.every((v, i) => v === arr[i])) return true;
+  WIZ.busy = true;
+  try {
+    await setDoc(doc(db, 'users', auth.currentUser.uid), { equipFamilies: arr }, { merge: true });
+    UDATA.equipFamilies = arr;
+  } catch (e) { failToast(e); WIZ.busy = false; return false; }
+  WIZ.busy = false; return true;
+}
+async function wizRecalc() {
+  try { await faComputeMine(auth.currentUser.uid); } catch {}
+  try { await goalsEngineRun('base'); } catch {}
+}
+async function wizEnterDone() {
+  WIZ.busy = true;
+  await wizRecalc();
+  WIZ.calcDone = true;
+  WIZ.busy = false;
+  WIZ.idx++;
+  wizRender();
+}
+async function wizNext() {
+  if (!WIZ || WIZ.busy) return;
+  const scr = WIZ.screens[WIZ.idx];
+  if (scr === 'bienvenida') { WIZ.idx++; wizRender(); return; }
+  const saver = { objetivo: wizSaveObj, enfoque: wizSaveFocus, actividad: wizSaveAct, cuerpo: wizSaveBody, privado: wizSavePriv, modalidad: wizSaveMod, dias: wizSaveDays, equipo: wizSaveEq }[scr];
+  if (saver) { const okSave = await saver(); if (!okSave) return; }
+  if (WIZ.screens[WIZ.idx + 1] === 'cierre' && !WIZ.calcDone) { await wizEnterDone(); return; }
+  WIZ.idx++;
+  wizRender();
+}
+async function wizSkip() {
+  if (!WIZ || WIZ.busy) return;
+  if (WIZ.screens[WIZ.idx + 1] === 'cierre' && !WIZ.calcDone) { await wizEnterDone(); return; }
+  WIZ.idx++;
+  wizRender();
+}
+/* El botón «Modo guiado» de la tarjeta de la Ruta (data-wiz-open):
+   cierra la ventana de Pendientes si estaba abierta y abre el
+   asistente en modo manual (retoma en la primera pregunta que
+   falte; si no falta ninguna, abre en el cierre). */
+document.addEventListener('click', e => {
+  if (!e.target || !e.target.closest) return;
+  const wo = e.target.closest('[data-wiz-open]');
+  if (!wo) return;
+  e.preventDefault();
+  try { pendSetFloat(false); } catch {}
+  wizOpen('manual');
+});
 
 /* ================================================================
    D5 · EL AVISO QUE LEE EL DATO VIVO (punto 106; maqueta 6).
@@ -52567,7 +53220,7 @@ document.addEventListener('keydown', e => { if (e.key === 'Escape') shareClose()
  *  - El SW (sw.js) solo cachea la cáscara del mismo origen en modo
  *    RED PRIMERO: Auth/Firestore/Worker jamás pasan por la caché.
  * ================================================================ */
-const PWA_SW_VERSION = '20261110-comida-sin-blanco';
+const PWA_SW_VERSION = '20261110-asistente-arranque';
 /* Sello de versión VISIBLE (2026-11-03): el pie de la tarjeta de
    acceso enseña qué copia corre este teléfono ('v ' + el sello),
    para comprobar de un vistazo si la versión nueva ya llegó.
