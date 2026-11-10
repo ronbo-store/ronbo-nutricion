@@ -7991,6 +7991,15 @@ en: {
   'mp.q.date': 'Date',
   'mp.q.save': 'Save log',
   'mp.q.saved': '✓ Saved',
+  'mp.q.weightK': 'Your weight',
+  'mp.q.lastHint': 'Your last: {w} {u} · {d} — only type if it changed',
+  'mp.q.savedW': 'Weight saved · {w} {u} · {d}',
+  'mp.q.todayW': 'today',
+  'mp.q.measures': 'Body measurements',
+  'mp.q.measuresSub': 'Waist, arms, chest… · weekly or monthly is fine',
+  'mp.q.notesSub': 'Anything you want to write down about today',
+  'mp.q.wellSub': 'Sleep, energy, aches…',
+  'mp.q.onlyFilled': 'Only fill in what was measured — the rest stays as it was.',
   'mp.q.empty': 'Nothing to save yet: fill in at least one field.',
   'mp.q.errPart': 'Some parts could not be saved: {parts}. Everything else was saved.',
   'mp.q.errAll': 'Nothing could be saved. Check your connection and try again.',
@@ -12196,6 +12205,15 @@ es: {
   'mp.q.date': 'Fecha',
   'mp.q.save': 'Guardar registro',
   'mp.q.saved': '✓ Guardado',
+  'mp.q.weightK': 'Tu peso',
+  'mp.q.lastHint': 'Tu último: {w} {u} · {d} — escribe solo si cambió',
+  'mp.q.savedW': 'Peso guardado · {w} {u} · {d}',
+  'mp.q.todayW': 'hoy',
+  'mp.q.measures': 'Medidas del cuerpo',
+  'mp.q.measuresSub': 'Cintura, brazos, pecho… · semanal o mensual está bien',
+  'mp.q.notesSub': 'Algo que quieras dejar escrito de hoy',
+  'mp.q.wellSub': 'Sueño, energía, molestias…',
+  'mp.q.onlyFilled': 'Solo rellenas las que te midieron — las demás quedan como estaban.',
   'mp.q.empty': 'Aún no hay nada que guardar: completa al menos un campo.',
   'mp.q.errPart': 'Algunas partes no se pudieron guardar: {parts}. Todo lo demás sí se guardó.',
   'mp.q.errAll': 'No se pudo guardar nada. Revisa tu conexión e inténtalo de nuevo.',
@@ -49636,7 +49654,7 @@ document.addEventListener('keydown', e => { if (e.key === 'Escape') shareClose()
  *  - El SW (sw.js) solo cachea la cáscara del mismo origen en modo
  *    RED PRIMERO: Auth/Firestore/Worker jamás pasan por la caché.
  * ================================================================ */
-const PWA_SW_VERSION = '20261109-actividades-flotan';
+const PWA_SW_VERSION = '20261109-registro-rapido';
 /* Sello de versión VISIBLE (2026-11-03): el pie de la tarjeta de
    acceso enseña qué copia corre este teléfono ('v ' + el sello),
    para comprobar de un vistazo si la versión nueva ya llegó.
@@ -56132,7 +56150,7 @@ document.addEventListener('keydown', e => { if (e.key === 'Escape') mpCloseAll()
 function mpSeg(name, val) {
   return `<div class="mp-seg" data-mpseg="${name}">${[1, 2, 3, 4, 5].map(n => `<button type="button" class="mp-seg-b${val === n ? ' on' : ''}" data-v="${n}" aria-label="${esc(t('mp.lvl' + n))}">${n}</button>`).join('')}</div><div class="mp-seg-lab"><span>${esc(t('mp.lvl1'))}</span><span>${esc(t('mp.lvl5'))}</span></div>`;
 }
-function mpSegVal(name) { const b = document.querySelector(`[data-mpseg="${name}"] .mp-seg-b.on`); return b ? Number(b.dataset.v) : 0; }
+function mpSegVal(name) { const g = document.querySelector(`[data-mpseg="${name}"]`); const b = g ? g.querySelector('.mp-seg-b.on, .mp-disc-b.on') : null; return b ? Number(b.dataset.v) : 0; }
 function mpSegWire(root) {
   root.querySelectorAll('.mp-seg').forEach(g => g.addEventListener('click', e => {
     const b = e.target.closest('.mp-seg-b'); if (!b) return;
@@ -56154,12 +56172,98 @@ function mpPainCollect() {
   });
   return out;
 }
+/* AUTH-2026-11-09-356 «REGISTRO RÁPIDO, DE VERDAD RÁPIDO» (maqueta
+   aprobada por Ronald el 2026-11-09 18:28 CST: «Sí, hazlo así de
+   rápido»; su orden textual: «igual intuitivo, fácil, no largo,
+   visible. Pocos clicks»): la hoja abre en UNA pantalla — pastilla
+   de fecha, PESO grande precargado con el último peso registrado,
+   AGUA visible y la pregunta del plan con cinco DISCOS grandes —;
+   Medidas, Bienestar y Notas nacen PLEGADAS en una línea cada una.
+   El <select> nativo del método DESAPARECE: pastillas con las
+   opciones DEL MODELO vigente (bio/caliper/dexa/other, etiquetas
+   mp.m.*); los valores guardados no cambian. El modelo de datos
+   tampoco: mismas escrituras de siempre (nutrition_weight,
+   evaluación de la fecha, progress_daycheck, sueño, progress_
+   wellness, nutrition_water vía waterAddToday).
+   INTERACCIÓN DEL PESO (reconciliación maqueta ↔ AUTH-349/350,
+   declarada en el informe): el peso tiene su propio «Guardar»
+   grande; al guardar BIEN, su bloque se PLIEGA dentro de la hoja
+   a la línea de hecho de la maqueta («✓ Peso guardado · X · hoy»,
+   con la casilla de verificación roja) y Mi Progreso se repinta
+   detrás (mpRenderHome + renderWeight, la doctrina de «guardar
+   se nota»); la hoja NO se cierra en ese paso — quedan agua,
+   discos y pliegues a un toque —. El «Guardar registro» general
+   conserva intacta la doctrina AUTH-350: éxito completo ⇒ la
+   hoja se cierra sobre Mi Progreso repintado; fallo o vacío ⇒
+   la hoja se queda abierta con su error. Tocar un disco del plan
+   guarda la respuesta en el acto (la misma escritura
+   progress_daycheck del guardado general). */
+function mpDiscs(name, val) {
+  return `<div class="mp-discs" data-mpseg="${name}">${[1, 2, 3, 4, 5].map(n => `<span class="mp-disc-col"><button type="button" class="mp-disc-b${val === n ? ' on' : ''}" data-v="${n}" aria-label="${esc(t('mp.lvl' + n))}">${n}</button><span class="mp-disc-lab">${esc(t('mp.lvl' + n))}</span></span>`).join('')}</div>`;
+}
+function mpQFoldWeight(d, wDisp) {
+  const block = $('mp-q-wblock'); if (!block) return;
+  block.innerHTML = `<div class="mp-q-done"><span class="mp-q-check" aria-hidden="true">✓</span><span class="mp-q-done-t">${esc(t('mp.q.savedW', { w: wDisp, u: UNIT_PREFS.mass, d: d === todayISO() ? t('mp.q.todayW') : shortDate(d) }))}</span></div>`;
+}
+async function mpQuickSaveWeight() {
+  const me = mpMe(); if (!me || !MP_QDATE) return;
+  const d = MP_QDATE;
+  const wEl = $('mp-q-weight'); if (!wEl) return;
+  const res = $('mp-q-wresult');
+  const wIn = wEl.value.trim();
+  if (wIn === '' || !(num(wIn) > 0)) { if (res) res.innerHTML = `<p class="mp-err">${esc(t('mp.q.needWeight'))}</p>`; return; }
+  try {
+    const prev = WEIGHTS.find(w => w.date === d) || null;
+    const pctLocked = !compClientCanEdit();
+    const fatEl = $('mp-q-fat'); const methEl = $('mp-q-fatmethod');
+    const fatIn = fatEl ? fatEl.value.trim() : '';
+    const methIn = methEl ? (methEl.dataset.v || '') : '';
+    const wDisp = num(wIn);
+    const wCanon = massToCanonical(wDisp);
+    const fatV = pctLocked ? (prev ? num(prev.fat) : 0) : (fatIn !== '' ? num(fatIn) : 0);
+    const methV = pctLocked ? (prev && prev.fatMethod || '') : methIn;
+    const same = prev && Math.abs(num(prev.weight) - wCanon) < 1e-9 && num(prev.fat) === fatV && (prev.fatMethod || '') === methV;
+    if (!same) {
+      const data = { ownerUid: me, date: d, weight: wCanon, weightOriginal: wDisp, weightUnitOriginal: UNIT_PREFS.mass,
+        fat: fatV, muscle: prev ? num(prev.muscle) : 0, water: prev ? num(prev.water) : 0, visceral: prev ? num(prev.visceral) : 0,
+        notes: prev ? String(prev.notes || '') : '', fatMethod: methV, updatedAt: serverTimestamp() };
+      await setDoc(doc(db, 'nutrition_weight', me + '_' + d), data);
+      const recW = { id: me + '_' + d, ...data, updatedAt: undefined };
+      const ix = WEIGHTS.findIndex(w => w.date === d);
+      if (ix >= 0) WEIGHTS[ix] = { ...WEIGHTS[ix], ...recW }; else { WEIGHTS.push(recW); WEIGHTS.sort(mpByDateAsc); }
+      try { renderWeight(); } catch {}
+    }
+    mpRenderHome();
+    toast(t('mp.q.saved'));
+    mpQFoldWeight(d, String(wDisp));
+  } catch { if (res) res.innerHTML = `<p class="mp-err">${esc(t('mp.q.errAll'))}</p>`; toast(t('mp.q.errAll'), true); }
+}
+async function mpQuickSaveCompliance(n) {
+  const me = mpMe(); if (!me || !MP_QDATE || !MP) return;
+  const d = MP_QDATE;
+  const prevC = MP.checks.find(c => c.date === d) || null;
+  const notesEl = $('mp-q-checknotes');
+  const notes = notesEl ? notesEl.value.trim() : (prevC ? String(prevC.notes || '') : '');
+  if (!(n > 0) && !prevC && notes === '') return;
+  const data = { ownerUid: me, date: d, compliance: n > 0 ? n : null, notes, updatedAt: serverTimestamp() };
+  try {
+    await setDoc(doc(db, 'progress_daycheck', me + '_' + d), data);
+    const ix = MP.checks.findIndex(c => c.date === d);
+    if (ix >= 0) MP.checks[ix] = { ...MP.checks[ix], ...data }; else MP.checks.push({ id: me + '_' + d, ...data });
+    MP.checks.sort(mpByDateDesc);
+    mpRenderHome();
+  } catch {
+    toast(t('mp.q.errAll'), true);
+    document.querySelectorAll('.mp-disc-b').forEach(x => x.classList.toggle('on', prevC && Number(prevC.compliance) === Number(x.dataset.v)));
+  }
+}
 function mpOpenQuick(date, focus) {
   const me = mpMe(); if (!me) return;
   MP_QDATE = date || todayISO();
   const d = MP_QDATE;
   const body = $('mp-quick-body'); if (!body) return;
   const wRec = WEIGHTS.find(w => w.date === d) || null;
+  const lastW = WEIGHTS.length ? WEIGHTS[WEIGHTS.length - 1] : null;
   const meas = (EVALS[d] && EVALS[d].measures) || {};
   const chk = MP ? MP.checks.find(c => c.date === d) : null;
   const well = MP ? MP.well.find(w => w.date === d) : null;
@@ -56169,33 +56273,59 @@ function mpOpenQuick(date, focus) {
   const measInputs = EVAL_MEASURES.filter(m => m.kind === 'l').map(m => `
     <label><span>${esc(t('eval.measure.' + m.id))}</span> <input type="number" step="any" min="0" data-mpm="${m.id}" value="${meas[m.id] != null ? esc(evalToDisplay('l', meas[m.id])) : ''}"></label>`).join('');
   body.innerHTML = `
-    <label class="mp-q-date">${esc(t('mp.q.date'))} <input type="date" id="mp-q-date" value="${d}" max="${todayISO()}"></label>
-    <h4 class="mp-sec">${esc(t('mp.s.body'))}</h4>
-    <div class="frow3">
-      <label><span>${esc(t('units.weightField', { u: UNIT_PREFS.mass }))}</span> <input type="number" id="mp-q-weight" step="any" min="0" value="${wRec ? esc(String(weightDisplayOf(wRec))) : ''}"></label>
-      <label><span>${esc(t('form.bodyfat'))}</span> <input type="number" id="mp-q-fat" step="any" min="0" value="${wRec && num(wRec.fat) > 0 ? esc(String(wRec.fat)) : ''}" ${pctLocked ? 'disabled' : ''}></label>
-      <label><span>${esc(t('mp.f.fatMethod'))}</span> <select id="mp-q-fatmethod" ${pctLocked ? 'disabled' : ''}><option value="">—</option>${['bio', 'caliper', 'dexa', 'other'].map(m => `<option value="${m}"${wRec && wRec.fatMethod === m ? ' selected' : ''}>${esc(t('mp.m.' + m))}</option>`).join('')}</select></label>
+    <div class="mp-q-datepill"><span>${esc(t('mp.q.date'))} ·</span> <input type="date" id="mp-q-date" value="${d}" max="${todayISO()}" aria-label="${esc(t('mp.q.date'))}"></div>
+    <div class="mp-q-block" id="mp-q-wblock">
+      <div class="mp-q-k">⚖️ ${esc(t('mp.q.weightK'))}</div>
+      <div class="mp-q-wrow">
+        <label class="mp-q-wlab"><input type="number" id="mp-q-weight" step="any" min="0" value="${wRec ? esc(String(weightDisplayOf(wRec))) : (lastW ? esc(String(weightDisplayOf(lastW))) : '')}"><span>${esc(UNIT_PREFS.mass)}</span></label>
+        <button type="button" class="btn-primary mp-q-wsave" id="mp-q-wsave">${esc(t('form.save'))}</button>
+      </div>
+      ${lastW ? `<p class="mp-q-hint">${esc(t('mp.q.lastHint', { w: String(weightDisplayOf(lastW)), u: UNIT_PREFS.mass, d: shortDate(lastW.date) }))}</p>` : ''}
+      <div id="mp-q-wresult"></div>
     </div>
-    <div class="frow3">${measInputs}</div>
-    <p class="form-note">${esc(t('mp.whenTouch'))}</p>
-    <h4 class="mp-sec">${esc(t('mp.s.food'))}</h4>
-    ${isToday ? `<div class="mp-water"><span>${esc(t('mp.f.water'))}: <strong id="mp-q-water-ml">${Math.round(num((typeof FUSED_WATER !== 'undefined' && FUSED_WATER.date === d) ? FUSED_WATER.ml : (MP && MP.water[d]) || 0))} ml</strong></span><button type="button" class="btn-ghost btn-sm" id="mp-q-water-add">+250 ml</button></div>` : ''}
-    <label class="mp-lab">${esc(t('mp.f.compliance'))}</label>
-    ${mpSeg('compliance', chk && chk.compliance ? Number(chk.compliance) : 0)}
-    <label class="mp-lab"><span>${esc(t('form.notes'))}</span> <input type="text" id="mp-q-checknotes" value="${chk ? esc(chk.notes || '') : ''}"></label>
-    <h4 class="mp-sec">${esc(t('mp.s.well'))}</h4>
-    <div class="frow">
-      <label><span>${esc(t('mp.f.sleep'))} (${esc(t('mp.f.sleepH'))})</span> <input type="number" id="mp-q-sleeph" min="0" max="24" step="1" value="${sleepMin != null ? Math.floor(sleepMin / 60) : ''}"></label>
-      <label><span>${esc(t('mp.f.sleepM'))}</span> <input type="number" id="mp-q-sleepm" min="0" max="59" step="1" value="${sleepMin != null ? sleepMin % 60 : ''}"></label>
+    ${isToday ? `<div class="mp-q-block">
+      <div class="mp-q-k">💧 ${esc(t('mp.f.water'))}</div>
+      <div class="mp-q-arow"><span class="mp-q-water-v"><strong id="mp-q-water-ml">${Math.round(num((typeof FUSED_WATER !== 'undefined' && FUSED_WATER.date === d) ? FUSED_WATER.ml : (MP && MP.water[d]) || 0))} ml</strong></span><button type="button" class="btn-ghost mp-q-plus" id="mp-q-water-add">+250 ml</button></div>
+    </div>` : ''}
+    <div class="mp-q-block">
+      <div class="mp-q-k">🍽️ ${esc(t('mp.f.compliance'))}</div>
+      ${mpDiscs('compliance', chk && chk.compliance ? Number(chk.compliance) : 0)}
     </div>
-    <label class="mp-lab">${esc(t('mp.f.sleepQuality'))}</label>${mpSeg('sleepQuality', well && well.sleepQuality ? Number(well.sleepQuality) : 0)}
-    <label class="mp-lab">${esc(t('mp.f.energy'))}</label>${mpSeg('energy', well && well.energy ? Number(well.energy) : 0)}
-    <label class="mp-lab">${esc(t('mp.f.fatigue'))}</label>${mpSeg('fatigue', well && well.fatigue ? Number(well.fatigue) : 0)}
-    <label class="mp-lab">${esc(t('mp.f.stress'))}</label>${mpSeg('stress', well && well.stress ? Number(well.stress) : 0)}
-    <label class="mp-lab">${esc(t('mp.f.pain'))}</label>
-    <div id="mp-q-pain">${well && Array.isArray(well.pain) ? well.pain.map(mpPainRow).join('') : ''}</div>
-    <button type="button" class="btn-ghost btn-sm" id="mp-q-pain-add">${esc(t('mp.f.addPain'))}</button>
-    <label class="mp-lab"><span>${esc(t('form.notes'))}</span> <textarea id="mp-q-wellnotes" rows="2">${well ? esc(well.notes || '') : ''}</textarea></label>
+    <div class="mp-q-fold" id="mp-q-fold-meas">
+      <button type="button" class="mp-q-fold-head" data-mpqfold="meas" aria-expanded="false"><span class="mp-q-fold-main"><span class="mp-q-fold-t">📏 ${esc(t('mp.q.measures'))}</span><span class="mp-q-fold-s">${esc(t('mp.q.measuresSub'))}</span></span><span class="mp-q-chev" aria-hidden="true">▾</span></button>
+      <div class="mp-q-fold-body" data-mpqbody="meas" hidden>
+        <div class="mp-q-k2">${esc(t('mp.f.fatMethod'))}</div>
+        <div class="mp-q-pills" id="mp-q-fatmethod" data-v="${wRec && wRec.fatMethod ? esc(wRec.fatMethod) : ''}">${['bio', 'caliper', 'dexa', 'other'].map(m => `<button type="button" class="mp-q-pill${wRec && wRec.fatMethod === m ? ' on' : ''}" data-m="${m}" ${pctLocked ? 'disabled' : ''}>${esc(t('mp.m.' + m))}</button>`).join('')}</div>
+        <div class="mp-q-grid">
+          <label><span>${esc(t('form.bodyfat'))}</span> <input type="number" id="mp-q-fat" step="any" min="0" value="${wRec && num(wRec.fat) > 0 ? esc(String(wRec.fat)) : ''}" ${pctLocked ? 'disabled' : ''}></label>
+          ${measInputs}
+        </div>
+        <p class="mp-q-hint">${esc(t('mp.q.onlyFilled'))}</p>
+      </div>
+    </div>
+    <div class="mp-q-fold" id="mp-q-fold-well">
+      <button type="button" class="mp-q-fold-head" data-mpqfold="well" aria-expanded="false"><span class="mp-q-fold-main"><span class="mp-q-fold-t">😴 ${esc(t('mp.s.well'))}</span><span class="mp-q-fold-s">${esc(t('mp.q.wellSub'))}</span></span><span class="mp-q-chev" aria-hidden="true">▾</span></button>
+      <div class="mp-q-fold-body" data-mpqbody="well" hidden>
+        <div class="frow">
+          <label><span>${esc(t('mp.f.sleep'))} (${esc(t('mp.f.sleepH'))})</span> <input type="number" id="mp-q-sleeph" min="0" max="24" step="1" value="${sleepMin != null ? Math.floor(sleepMin / 60) : ''}"></label>
+          <label><span>${esc(t('mp.f.sleepM'))}</span> <input type="number" id="mp-q-sleepm" min="0" max="59" step="1" value="${sleepMin != null ? sleepMin % 60 : ''}"></label>
+        </div>
+        <label class="mp-lab">${esc(t('mp.f.sleepQuality'))}</label>${mpSeg('sleepQuality', well && well.sleepQuality ? Number(well.sleepQuality) : 0)}
+        <label class="mp-lab">${esc(t('mp.f.energy'))}</label>${mpSeg('energy', well && well.energy ? Number(well.energy) : 0)}
+        <label class="mp-lab">${esc(t('mp.f.fatigue'))}</label>${mpSeg('fatigue', well && well.fatigue ? Number(well.fatigue) : 0)}
+        <label class="mp-lab">${esc(t('mp.f.stress'))}</label>${mpSeg('stress', well && well.stress ? Number(well.stress) : 0)}
+        <label class="mp-lab">${esc(t('mp.f.pain'))}</label>
+        <div id="mp-q-pain">${well && Array.isArray(well.pain) ? well.pain.map(mpPainRow).join('') : ''}</div>
+        <button type="button" class="btn-ghost btn-sm" id="mp-q-pain-add">${esc(t('mp.f.addPain'))}</button>
+      </div>
+    </div>
+    <div class="mp-q-fold" id="mp-q-fold-notes">
+      <button type="button" class="mp-q-fold-head" data-mpqfold="notes" aria-expanded="false"><span class="mp-q-fold-main"><span class="mp-q-fold-t">📝 ${esc(t('form.notes'))}</span><span class="mp-q-fold-s">${esc(t('mp.q.notesSub'))}</span></span><span class="mp-q-chev" aria-hidden="true">▾</span></button>
+      <div class="mp-q-fold-body" data-mpqbody="notes" hidden>
+        <label class="mp-lab"><span>${esc(t('mp.s.food'))} · ${esc(t('form.notes'))}</span> <input type="text" id="mp-q-checknotes" value="${chk ? esc(chk.notes || '') : ''}"></label>
+        <label class="mp-lab"><span>${esc(t('mp.s.well'))} · ${esc(t('form.notes'))}</span> <textarea id="mp-q-wellnotes" rows="2">${well ? esc(well.notes || '') : ''}</textarea></label>
+      </div>
+    </div>
     <div id="mp-q-result"></div>
     <div class="modal-foot"><button type="button" class="btn-primary" id="mp-q-save">${esc(t('mp.q.save'))}</button></div>`;
   mpSegWire(body);
@@ -56205,11 +56335,39 @@ function mpOpenQuick(date, focus) {
     try { await waterAddToday(250); const lab = $('mp-q-water-ml'); if (lab) lab.textContent = Math.round(num(FUSED_WATER.ml)) + ' ml'; if (MP) MP.water[d] = num(FUSED_WATER.ml); }
     catch (e) { toast(t('mp.q.errAll'), true); }
   });
-  $('mp-q-pain-add').addEventListener('click', () => { $('mp-q-pain').insertAdjacentHTML('beforeend', mpPainRow(null)); });
+  const wSave = $('mp-q-wsave');
+  if (wSave) wSave.addEventListener('click', () => mpQuickSaveWeight());
+  body.querySelectorAll('.mp-disc-b').forEach(btn => btn.addEventListener('click', () => {
+    const n = Number(btn.dataset.v);
+    const was = btn.classList.contains('on');
+    body.querySelectorAll('.mp-disc-b').forEach(x => x.classList.remove('on'));
+    if (!was) { btn.classList.add('on'); mpQuickSaveCompliance(n); }
+    else mpQuickSaveCompliance(0);
+  }));
+  body.querySelectorAll('[data-mpqfold]').forEach(h => h.addEventListener('click', () => {
+    const key = h.dataset.mpqfold;
+    const panel = body.querySelector(`[data-mpqbody="${key}"]`); if (!panel) return;
+    const open = panel.hidden;
+    panel.hidden = !open;
+    h.setAttribute('aria-expanded', open ? 'true' : 'false');
+  }));
+  const methBox = $('mp-q-fatmethod');
+  if (methBox) methBox.addEventListener('click', e => {
+    const p = e.target.closest('.mp-q-pill'); if (!p || p.disabled) return;
+    const was = p.classList.contains('on');
+    methBox.querySelectorAll('.mp-q-pill').forEach(x => x.classList.remove('on'));
+    if (!was) p.classList.add('on');
+    methBox.dataset.v = was ? '' : p.dataset.m;
+  });
+  const pAdd = $('mp-q-pain-add');
+  if (pAdd) pAdd.addEventListener('click', () => { $('mp-q-pain').insertAdjacentHTML('beforeend', mpPainRow(null)); });
   body.addEventListener('click', e => { const del = e.target.closest('.mp-pain-del'); if (del) del.closest('.mp-pain-row').remove(); });
   $('mp-q-save').addEventListener('click', () => mpQuickSave());
+  if (focus === 'body') { const h = body.querySelector('[data-mpqfold="meas"]'); if (h) h.click(); }
+  if (focus === 'well') { const h = body.querySelector('[data-mpqfold="well"]'); if (h) h.click(); }
   mpSheetOpen('mp-quick');
 }
+
 async function mpQuickSave() {
   const me = mpMe(); if (!me || !MP_QDATE) return;
   const d = MP_QDATE;
@@ -56220,9 +56378,10 @@ async function mpQuickSave() {
   try {
     const prev = WEIGHTS.find(w => w.date === d) || null;
     const pctLocked = !compClientCanEdit();
-    const wIn = $('mp-q-weight').value.trim();
-    const fatIn = $('mp-q-fat').value.trim();
-    const methIn = $('mp-q-fatmethod').value || '';
+    const wElQ = $('mp-q-weight'); const fatElQ = $('mp-q-fat'); const methElQ = $('mp-q-fatmethod');
+    const wIn = wElQ ? wElQ.value.trim() : '';
+    const fatIn = fatElQ ? fatElQ.value.trim() : '';
+    const methIn = methElQ ? (methElQ.dataset.v || '') : '';
     const wDisp = wIn !== '' ? num(wIn) : (prev ? weightDisplayOf(prev) : 0);
     const wCanon = wIn !== '' ? massToCanonical(num(wIn)) : (prev ? num(prev.weight) : 0);
     const fatV = pctLocked ? (prev ? num(prev.fat) : 0) : (fatIn !== '' ? num(fatIn) : 0);
