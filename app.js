@@ -49309,7 +49309,7 @@ document.addEventListener('keydown', e => { if (e.key === 'Escape') shareClose()
  *  - El SW (sw.js) solo cachea la cáscara del mismo origen en modo
  *    RED PRIMERO: Auth/Firestore/Worker jamás pasan por la caché.
  * ================================================================ */
-const PWA_SW_VERSION = '20261109-leyenda-resumen';
+const PWA_SW_VERSION = '20261109-guardar-se-nota';
 /* Sello de versión VISIBLE (2026-11-03): el pie de la tarjeta de
    acceso enseña qué copia corre este teléfono ('v ' + el sello),
    para comprobar de un vistazo si la versión nueva ya llegó.
@@ -55212,11 +55212,18 @@ async function schedAct(b) {
   if (act === 'edit-cancel') { SCHED_UI.mode = 'view'; schedPaintSheet(); return; }
   if (act === 'edit-save') {
     const v = ($('sched-edit-time') || {}).value || '';
-    if (v) {
-      if (SCHED_UI.mode === 'eatenfix') { day.eaten[meal] = { at: v }; delete day.pins[meal]; }
-      else day.pins[meal] = v;
-      await schedPersist(schedSaveState);
-    }
+    /* AUTH-350 · «GUARDAR SE NOTA»: sin hora no hay guardado y el
+       editor se queda abierto; con hora, el editor SOLO se cierra
+       (vuelve a la vista de la hoja, que se repinta con la hora
+       nueva) si la escritura persistió de verdad. Si falla, el
+       editor sigue abierto con la hora tecleada y el aviso de
+       error de la hoja (sched.saveError, el de siempre): nunca
+       más cerrarse sobre un fallo como si se hubiera guardado. */
+    if (!v) return;
+    if (SCHED_UI.mode === 'eatenfix') { day.eaten[meal] = { at: v }; delete day.pins[meal]; }
+    else day.pins[meal] = v;
+    const okEdit = await schedPersist(schedSaveState);
+    if (!okEdit) { schedPaintSheet(); return; }
     SCHED_UI.mode = 'view'; schedRecompute(); schedPaintSheet(); return;
   }
   if (act === 'eaten') { day.eaten[meal] = { at: schedNowHHMM() }; await schedPersist(schedSaveState); schedRecompute(); schedPaintSheet(); return; }
@@ -55234,7 +55241,15 @@ async function schedAct(b) {
     schedPaintSheet(); return;
   }
   if (act === 'train-confirm') {
-    if (SCHED_UI.previewTrain) { day.trainOverride = SCHED_UI.previewTrain; await schedPersist(schedSaveState); }
+    /* AUTH-350 · «GUARDAR SE NOTA»: como edit-save — el editor de
+       la hora de entrenamiento solo se cierra si la escritura
+       persistió; si falla, sigue abierto con su vista previa y
+       el aviso de error de la hoja. */
+    if (SCHED_UI.previewTrain) {
+      day.trainOverride = SCHED_UI.previewTrain;
+      const okTrain = await schedPersist(schedSaveState);
+      if (!okTrain) { schedPaintSheet(); return; }
+    }
     SCHED_UI.mode = 'view'; SCHED_UI.preview = null; SCHED_UI.previewTrain = null;
     schedRecompute(); schedPaintSheet(); return;
   }
@@ -55271,14 +55286,22 @@ async function schedAct(b) {
          deja de presentarse como precarga sin guardar. */
       SCHED_PREFS_SAVED = true;
       SCHED_DRAFT = null;
-      SCHED_UI.savedFlash = true;
-      setTimeout(() => { SCHED_UI.savedFlash = false; }, 2500);
+      /* AUTH-350 · «GUARDAR SE NOTA» (caso 0): guardado con éxito
+         ⇒ el editor «Mis datos» se CIERRA (el <details> se pliega:
+         prefsOpen = false) y la hoja se repinta con el día
+         recalculado desde los datos nuevos; el aviso acompaña por
+         toast (la clave sched.pf.saved de siempre) en lugar de
+         quedarse como texto del botón dentro del editor abierto.
+         Si el guardado FALLA, el editor se queda abierto con su
+         error (rama else y banner de la hoja), como manda la regla. */
+      SCHED_UI.prefsOpen = false;
+      toast(t('sched.pf.saved'));
     } else {
       /* No se guardó: se restaura lo persistido y el borrador se
          conserva en pantalla para reintentar. */
       SCHED_PREFS = prev;
+      SCHED_UI.prefsOpen = true;
     }
-    SCHED_UI.prefsOpen = true;
     schedRecompute(); schedPaintSheet();
     return;
   }
@@ -55949,6 +55972,14 @@ async function mpQuickSave() {
   if (failed.length) { if (res) res.innerHTML = `<p class="mp-err">${esc(t('mp.q.errPart', { parts: [...new Set(failed)].join(', ') }))}</p>`; return; }
   if (res) res.innerHTML = `<p class="mp-ok">${esc(t('mp.q.saved'))}</p>`;
   toast(t('mp.q.saved'));
+  /* AUTH-350 · «GUARDAR SE NOTA»: éxito completo ⇒ la hoja del
+     Registro rápido se cierra por su vía normal (mpSheetClose) y
+     lo que queda a la vista es Mi Progreso ya repintado con el
+     dato nuevo (mpRenderHome, arriba). Los fallos — total o
+     parcial — y el «nada que guardar» devuelven ANTES de esta
+     línea: la hoja se queda abierta con su error, como manda la
+     regla. */
+  mpSheetClose('mp-quick');
 }
 
 
