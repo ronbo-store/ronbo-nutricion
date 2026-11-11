@@ -7784,6 +7784,7 @@ en: {
   'share.download': 'Download PNG',
   'share.noShare': 'Direct sharing is not available on this device — use Download.',
   'share.privNote': 'Only your progress goes on the card: no weight, no measurements, no photos.',
+  'share.transAlignNote': 'The two photos are aligned to the same size and straightened with AI (2 of your AI uses); if that is not possible, they appear exactly as taken.',
   'share.hello': "Let's go, {name}!",
   'share.ofGoal': 'of my goal',
   'share.kcalOf': 'of',
@@ -8385,6 +8386,9 @@ en: {
   'mrc.errDisabled': 'AI is turned off right now.',
   'mrc.errDoor': 'The AI service is temporarily unavailable. Try again in a little while.',
   'mrc.errGeneric': 'The comparison could not be made. Check your connection and try again.',
+  'pairx.btn': '📐 Align the pair',
+  'pairx.btnSub': 'Same size and straightened with AI (2 uses). The originals are never changed.',
+  'pairx.busy': 'Aligning your photos…',
   'mr.noRec': 'No record',
   'mr.compTitle': '⚖️ Your composition — {d}',
   'mr.colMeasure': 'Measure',
@@ -12468,6 +12472,7 @@ es: {
   'share.download': 'Descargar PNG',
   'share.noShare': 'Este dispositivo no permite compartir directo: usa Descargar.',
   'share.privNote': 'En la tarjeta solo sale tu avance: sin peso, sin medidas, sin fotos.',
+  'share.transAlignNote': 'Las dos fotos se alinean al mismo tamaño y se enderezan con IA (2 usos de tu fondo); si no se puede, salen tal cual fueron tomadas.',
   'share.hello': '¡Vamos, {name}!',
   'share.ofGoal': 'de mi meta',
   'share.kcalOf': 'de',
@@ -13069,6 +13074,9 @@ es: {
   'mrc.errDisabled': 'La IA está apagada ahora mismo.',
   'mrc.errDoor': 'El servicio de IA no está disponible temporalmente. Inténtalo de nuevo en un rato.',
   'mrc.errGeneric': 'La comparación no se pudo hacer. Revisa tu conexión y prueba de nuevo.',
+  'pairx.btn': '📐 Alinear las dos fotos',
+  'pairx.btnSub': 'Al mismo tamaño y derechas con IA (2 usos). Los originales nunca se tocan.',
+  'pairx.busy': 'Alineando tus fotos…',
   'mr.noRec': 'Sin registro',
   'mr.compTitle': '⚖️ Tu composición — {d}',
   'mr.colMeasure': 'Medida',
@@ -47210,7 +47218,12 @@ function cmpHTML(P, E, W, cfg, cycle, sel, prefix, notesMode) {
   };
   const head = d => `<div class="cmp-head"><p class="cmp-date">${esc(dateName(d))}</p>${cmpAnchorHTML(E, d)}${noteHTML(d)}</div>`;
   const cell = (d, s) => { const r = (P[d] || {})[s]; return r && r.photo ? `<img class="cmp-img" src="${esc(r.photo)}" alt="${esc(t('progress.' + s))}" data-cmp-zoom="${d}|${s}">` : r ? `<span class="cmp-private">🔒 ${esc(t('teval.photoPrivate'))}</span>` : `<span class="wempty">${esc(t('progress.' + s))}: ${esc(t('progress.noPhoto'))}</span>`; };
-  const slotRows = PROGRESS_SLOTS.map(s => `<div class="cmp-row"><span class="cmp-slot">${esc(t('progress.' + s))}</span><div class="cmp-cells"><div class="cmp-cell">${cell(sel.a, s)}</div><div class="cmp-cell">${cell(sel.b, s)}</div></div></div>`).join('');
+  const slotRows = PROGRESS_SLOTS.map(s => {
+    const rA = (P[sel.a] || {})[s], rB = (P[sel.b] || {})[s];
+    const both = !!(rA && rA.photo && rB && rB.photo);
+    const cells = `<div class="cmp-cells"${both ? ' data-pairx-pair' : ''}><div class="cmp-cell">${cell(sel.a, s)}</div><div class="cmp-cell">${cell(sel.b, s)}</div></div>`;
+    return `<div class="cmp-row${both ? ' pairx' : ''}"${both ? ` data-pairx-slot="${s}" data-pairx-key="cmp|${prefix}|${sel.a}|${sel.b}|${s}"` : ''}><span class="cmp-slot">${esc(t('progress.' + s))}</span>${cells}${both ? `<div class="pairx-zone">${pairxBtnHTML()}</div>` : ''}</div>`;
+  }).join('');
   const mRows = EVAL_MEASURES.map(m => {
     const va = cmpValue(E, W, sel.a, m.id), vb = cmpValue(E, W, sel.b, m.id);
     return `<tr><td>${esc(t('eval.measure.' + m.id))}</td><td class="num">${va == null ? '—' : esc(cmpMeasureStr(units, m.kind, va))}</td><td class="num">${vb == null ? '—' : esc(cmpMeasureStr(units, m.kind, vb))}</td></tr>`;
@@ -47233,6 +47246,13 @@ function cmpWire(root, P, sel, prefix, rerender) {
     const rec = (P[parts[0]] || {})[parts[1]];
     if (rec) showLightbox(rec.photo);
   }));
+  /* AUTH-384: la puerta de alineación del comparador — el par se
+     lee de la selección VIGENTE (cmpHTML repinta al cambiarla). */
+  pairxWire(root, wrap => {
+    const s = wrap.getAttribute('data-pairx-slot');
+    const rA = (P[sel.a] || {})[s], rB = (P[sel.b] || {})[s];
+    return (rA && rA.photo && rB && rB.photo) ? { srcA: rA.photo, srcB: rB.photo, view: s } : null;
+  });
 }
 /* ---------- El comparador del cliente (sus propias evaluaciones) ---------- */
 let CMP_SEL = { a: null, b: null };
@@ -51418,6 +51438,37 @@ function shareTransData() {
    terminar de cargar con la hoja abierta, la tarjeta se
    re-pinta sola, como con las fotos de ejercicio. */
 const SHARE_TPHOTO = {};
+/* AUTH-384: detecciones del par de la tarjeta «Mi transformación»
+   (la misma ruta /photocmp y el mismo contrato de AUTH-383; la
+   tarjeta se alinea POR DEFECTO porque presume el cambio — sin
+   detección servible no hay deformación: manda el dibujo actual).
+   Caché SOLO en memoria, por par de fechas; nada se guarda. */
+const SHARE_TDET = {};
+function shareTransDetKey(d) { return (d && d.pa && d.pb) ? d.pa + '|' + d.pb : ''; }
+function shareTransDetEnsure(d) {
+  const key = shareTransDetKey(d); if (!key) return;
+  if (SHARE_TDET[key]) return;
+  const recA = (typeof PROG !== 'undefined' && PROG && PROG[d.pa]) ? PROG[d.pa].front : null;
+  const recB = (typeof PROG !== 'undefined' && PROG && PROG[d.pb]) ? PROG[d.pb].front : null;
+  if (!recA || !recA.photo || !recB || !recB.photo) { SHARE_TDET[key] = { state: 'fail' }; return; }
+  const ent = SHARE_TDET[key] = { state: 'loading', detA: null, detB: null };
+  (async () => {
+    try {
+      const a = await mrcShrink(recA.photo), b = await mrcShrink(recB.photo);
+      const out = await aiCall('/photocmp', { a, b, view: 'front', lang: LANG });
+      if (out && out.sameView !== false && mrcDetOk(out.a) && mrcDetOk(out.b)) { ent.state = 'ok'; ent.detA = out.a; ent.detB = out.b; }
+      else ent.state = 'fail';
+    } catch { ent.state = 'fail'; }
+    try { aiUsageRefreshSurfaces(); } catch {}
+    const f = $('share-float');
+    if (f && f.style.display !== 'none' && typeof SHARE !== 'undefined' && SHARE.type === 'trans') { try { shareRender(); } catch {} }
+  })();
+}
+function shareTransDetFor(d, pdate) {
+  const ent = SHARE_TDET[shareTransDetKey(d)];
+  if (!ent || ent.state !== 'ok') return null;
+  return pdate === d.pa ? ent.detA : ent.detB;
+}
 function shareTransPhotoEnsure(date) {
   if (!date || SHARE_TPHOTO[date]) return;
   const rec = (typeof PROG !== 'undefined' && PROG && PROG[date]) ? PROG[date].front : null;
@@ -51446,6 +51497,27 @@ function shareTransPhotoDraw(ctx, date, x, y, w, h, r) {
   ctx.restore();
   return true;
 }
+/* AUTH-384: la foto pintada ALINEADA en su celda — la
+   transformación de AUTH-383 (mrcXformFrame al marco de la celda:
+   ojos al 15 %, segmento ojos→cadera compartido por el par) sobre
+   el fondo claro de la vista alineada. Si la imagen o la
+   detección no están, devuelve false y manda el dibujo de
+   cobertura de siempre: sin detección no hay deformación. */
+function shareTransPhotoDrawAligned(ctx, date, det, x, y, w, h, r, segPx) {
+  const rec = SHARE_TPHOTO[date];
+  if (!rec || rec.state !== 'ok' || !rec.img || !det) { shareTransPhotoEnsure(date); return false; }
+  const im = rec.img, iw = im.naturalWidth || im.width, ih = im.naturalHeight || im.height;
+  if (!iw || !ih) return false;
+  const xf = mrcXformFrame(iw, ih, det, w, h, segPx);
+  if (!xf) return false;
+  ctx.save();
+  ctx.beginPath(); shareRR(ctx, x, y, w, h, r); ctx.clip();
+  ctx.fillStyle = '#e7eeec'; ctx.fillRect(x, y, w, h);
+  ctx.setTransform(xf.a, xf.b, xf.c, xf.d, xf.e + x, xf.f + y);
+  try { ctx.drawImage(im, 0, 0); } catch (e) { ctx.restore(); return false; }
+  ctx.restore();
+  return true;
+}
 function shareDrawTrans(ctx, W, H, d) {
   const cp = H < 1500;
   shareBg(ctx, W, H);
@@ -51457,11 +51529,29 @@ function shareDrawTrans(ctx, W, H, d) {
   const colW = 452, gapX = 32, x0 = (W - colW * 2 - gapX) / 2;
   const photoY = chipBottom + (cp ? 36 : 96);
   const photoH = cp ? 264 : 620;
+  /* AUTH-384: con detecciones del par, el segmento objetivo lo
+     COMPARTEN las dos fotos; en celdas anchas (formato 1:1) se
+     acota para que el cuerpo no se salga por los lados (suelo del
+     18 % de la altura: peor caso, recorte lateral leve alrededor
+     del centro — jamás deformación ni escalas distintas). */
+  let transSegPx = null;
+  {
+    const tEnt = SHARE_TDET[shareTransDetKey(d)];
+    if (tEnt && tEnt.state === 'ok') {
+      const rI = SHARE_TPHOTO[d.pa], rJ = SHARE_TPHOTO[d.pb];
+      if (rI && rI.state === 'ok' && rI.img && rJ && rJ.state === 'ok' && rJ.img) {
+        const segOf = (det, im) => (det.hips - det.eyes) * (im.naturalHeight || im.height);
+        const capOf = (det, im) => 0.96 * colW * segOf(det, im) / Math.max(1, (det.box ? det.box[2] : 0) * (im.naturalWidth || im.width));
+        transSegPx = Math.max(0.18 * photoH, Math.min(0.36 * photoH, capOf(tEnt.detA, rI.img), capOf(tEnt.detB, rJ.img)));
+      }
+    }
+  }
   const cols = [
     { x: x0, date: d.a, pdate: d.pa, lab: t('share.before') },
     { x: x0 + colW + gapX, date: d.b, pdate: d.pb, lab: t('share.after') }];
   for (const c of cols) {
-    if (!shareTransPhotoDraw(ctx, c.pdate, c.x, photoY, colW, photoH, 30)) {
+    const detC = shareTransDetFor(d, c.pdate);
+    if (!((detC && shareTransPhotoDrawAligned(ctx, c.pdate, detC, c.x, photoY, colW, photoH, 30, transSegPx)) || shareTransPhotoDraw(ctx, c.pdate, c.x, photoY, colW, photoH, 30))) {
       ctx.save(); ctx.fillStyle = 'rgba(255,255,255,.14)'; shareRR(ctx, c.x, photoY, colW, photoH, 30); ctx.fill(); ctx.restore();
       sgText(ctx, '📸', c.x + colW / 2, photoY + photoH / 2, 400, 84, '#ffffff', { align: 'center', emoji: true });
     }
@@ -51546,9 +51636,11 @@ function shareTransSync() {
     if (ra) ra.innerHTML = '';
     if (rb) rb.innerHTML = '';
     if (note) { note.style.display = ''; note.textContent = t('share.transNeedEvals'); }
+    const anN = $('share-trans-align'); if (anN) anN.style.display = 'none';
     return;
   }
   if (note) note.style.display = 'none';
+  const anS = $('share-trans-align'); if (anS) anS.style.display = '';
   const d = shareTransData();
   const a = d.a || dates[0], b = d.b || dates[dates.length - 1];
   const mk = (iso, side) => '<button type="button" class="act-chip" data-trans-pick="' + side + ':' + iso + '" aria-pressed="' +
@@ -53083,6 +53175,7 @@ function shareRender() {
   } else if (SHARE.type === 'trans') {
     const d = shareTransData();
     if (d.ok) {
+      shareTransDetEnsure(d);
       shareDrawTrans(ctx, W, H, d);
       SHARE.fileName = 'ronbo-fit-before-after-' + d.a + '-' + d.b + '.png';
       summary = t('share.transLab') + ' · ' + dateName(d.a) + ' → ' + dateName(d.b) + ' · ' + d.result +
@@ -53250,7 +53343,7 @@ document.addEventListener('keydown', e => { if (e.key === 'Escape') shareClose()
  *  - El SW (sw.js) solo cachea la cáscara del mismo origen en modo
  *    RED PRIMERO: Auth/Firestore/Worker jamás pasan por la caché.
  * ================================================================ */
-const PWA_SW_VERSION = '20261110-comparacion-fotos';
+const PWA_SW_VERSION = '20261110-alineacion-pares';
 /* Sello de versión VISIBLE (2026-11-03): el pie de la tarjeta de
    acceso enseña qué copia corre este teléfono ('v ' + el sello),
    para comprobar de un vistazo si la versión nueva ya llegó.
@@ -61328,7 +61421,12 @@ function mrPhotosHTML(m, inp, ctx) {
     const ownCmp = ctx.mode === 'view' && !ctx.trainer;
     const rows = PROGRESS_SLOTS.filter(s => { const A = (inp.prog[dA] || {})[s], B = (inp.prog[dB] || {})[s]; return A && A.photo && B && B.photo; }).map(s => {
       const row = `<div class="mr-phcmp-row"><figure class="mr-ph"><img src="${inp.prog[dA][s].photo}" alt=""><figcaption>${cap(dA)}</figcaption></figure><figure class="mr-ph"><img src="${inp.prog[dB][s].photo}" alt=""><figcaption>${cap(dB)}</figcaption></figure></div><p class="mr-phslot">${esc(s.toUpperCase())}</p>`;
-      return ownCmp ? `<div class="mrc" data-mrc-slot="${s}" data-mrc-da="${dA}" data-mrc-db="${dB}" data-mrc-capa="${esc(cap(dA))}" data-mrc-capb="${esc(cap(dB))}">${row}<div class="mrc-zone">${mrcBtnHTML()}</div></div>` : row;
+      if (ownCmp) return `<div class="mrc" data-mrc-slot="${s}" data-mrc-da="${dA}" data-mrc-db="${dB}" data-mrc-capa="${esc(cap(dA))}" data-mrc-capb="${esc(cap(dB))}">${row}<div class="mrc-zone">${mrcBtnHTML()}</div></div>`;
+      /* AUTH-384: en vista del entrenador (solo alcanzable con las
+         fotos permitidas — mrHTML aparta la tarjeta 🔒 entera si
+         no) el par lleva la puerta de alineación sin notas. */
+      if (ctx.trainer) return `<div class="pairx" data-pairx-slot="${s}" data-pairx-da="${dA}" data-pairx-db="${dB}" data-pairx-key="mr|${dA}|${dB}|${s}">${row.replace('<div class="mr-phcmp-row">', '<div class="mr-phcmp-row" data-pairx-pair>')}<div class="pairx-zone">${pairxBtnHTML()}</div></div>`;
+      return row;
     }).join('');
     if (rows) cmp = `<h4 class="mr-subt">${esc(t('mr.cmpPhotos'))} · ${esc(shortDate(dA))} → ${esc(shortDate(dB))}</h4>${rows}`;
   }
@@ -61415,7 +61513,7 @@ function mrcDetOk(det) {
    MRC_SEG del alto del marco tras girar (su proyección vertical es
    seg·cos φ, con la x de la cadera ≈ cx: la línea de ojos es
    exacta y la de cintura es la guía que el aviso declara). */
-function mrcXform(w, h, det) {
+function mrcXformFrame(w, h, det, fw, fh, segPx) {
   if (!mrcDetOk(det)) return null;
   const eyesY = det.eyes * h, hipsY = det.hips * h;
   const cx = (det.cx != null ? det.cx : det.box[0] + det.box[2] / 2) * w;
@@ -61425,12 +61523,17 @@ function mrcXform(w, h, det) {
   const straight = roll != null && Math.abs(roll) <= MRC_ROLL_MAX;
   const phi = straight ? -roll * Math.PI / 180 : 0;
   const cs = Math.cos(phi), sn = Math.sin(phi);
-  const s = (MRC_SEG * MRC_FH) / (seg * cs);
+  const s = ((typeof segPx === 'number' && segPx > 0) ? segPx : MRC_SEG * fh) / (seg * cs);
   const a = s * cs, b = s * sn, c = -s * sn, d = s * cs;
-  const e = MRC_FW / 2 - (a * cx + c * eyesY);
-  const f = MRC_EYE * MRC_FH - (b * cx + d * eyesY);
+  const e = fw / 2 - (a * cx + c * eyesY);
+  const f = MRC_EYE * fh - (b * cx + d * eyesY);
   return { a, b, c, d, e, f, straight };
 }
+/* AUTH-384: la transformación de AUTH-383 generalizada a cualquier
+   marco (mrcXformFrame, con segmento objetivo opcional compartido
+   por el par); mrcXform sigue siendo el marco cerrado 432×576 de
+   la comparación con notas — misma aritmética, salidas idénticas. */
+function mrcXform(w, h, det) { return mrcXformFrame(w, h, det, MRC_FW, MRC_FH); }
 function mrcProject(xf, x, y) {
   return [xf.a * x + xf.c * y + xf.e, xf.b * x + xf.d * y + xf.f];
 }
@@ -61508,6 +61611,88 @@ async function mrcRun(wrap) {
     zone.querySelectorAll('[data-mrc-tog]').forEach(x => x.classList.toggle('on', x === btn));
     const view = zone.querySelector('.mrc-view'); if (view) view.style.display = al ? '' : 'none';
     if (row) row.style.display = al ? 'none' : '';
+  });
+}
+/* ═══ ALINEACIÓN DE PARES FUERA DE LA PUERTA DE NOTAS (AUTH-384) ═══
+   Extensión aprobada por Ronald (2026-11-10 18:20 CST): «Aquí
+   también modifica los cambios pedidos para el análisis de las
+   fotos». La MISMA alineación de AUTH-383 (mismo tamaño por el
+   segmento ojos→cadera y enderezado solo con roll confiable ≤15°)
+   llega a los comparadores que pintaban el par tal cual: el del
+   alumno en Progreso y el del entrenador en su ficha (cmpHTML) y
+   las filas del informe en vista del entrenador (mrPhotosHTML).
+   La puerta es un botón por par: la detección sale de la misma
+   ruta /photocmp (2 usos del fondo común, solo en 2xx; las notas
+   del contrato se descartan — aquí no hay notas) y la
+   transformación es mrcXform, sin otra matemática. Nada se
+   guarda: el estado vive en el DOM y muere al repintar. En el
+   comparador del entrenador la puerta solo existe si las DOS
+   celdas son fotos reales: con el permiso de AUTH-380 apagado,
+   tevalLoad ni siquiera trae el dataURL y la celda sigue
+   «🔒 Foto privada». La vista propia del informe conserva
+   intacta su puerta de AUTH-383 (con notas). */
+const PAIRX = {};
+function pairxBtnHTML() {
+  return `<button type="button" class="pairx-btn"><span class="mrc-btn-t">${esc(t('pairx.btn'))}</span><span class="mrc-btn-s">${esc(t('pairx.btnSub'))}</span></button>`;
+}
+function pairxStageHTML(noStraight) {
+  return `<div class="pairx-view"><div class="mrc-tog"><button type="button" class="mrc-togb on" data-pairx-tog="al">${esc(t('mrc.aligned'))}</button><button type="button" class="mrc-togb" data-pairx-tog="raw">${esc(t('mrc.raw'))}</button></div>`
+    + `<div class="mrc-stage"><canvas class="mrc-cv" width="${MRC_FW}" height="${MRC_FH}"></canvas><canvas class="mrc-cv" width="${MRC_FW}" height="${MRC_FH}"></canvas><span class="mrc-gl mrc-gl-eyes"></span><span class="mrc-gl mrc-gl-hips"></span></div>`
+    + (noStraight ? `<p class="mrc-honest">${esc(t('mrc.noStraight'))}</p>` : '')
+    + `<p class="mrc-disc">${esc(t('mrc.disc'))}</p></div>`;
+}
+async function pairxFetch(srcA, srcB, view) {
+  const a = await mrcShrink(srcA), b = await mrcShrink(srcB);
+  return aiCall('/photocmp', { a, b, view, lang: LANG });
+}
+function pairxWire(root, resolve) {
+  if (!root) return;
+  root.querySelectorAll('.pairx').forEach(wrap => {
+    if (wrap.dataset.pairxWired) return; wrap.dataset.pairxWired = '1';
+    const btn = wrap.querySelector('.pairx-btn');
+    if (!btn) return;
+    btn.onclick = () => pairxRun(wrap, resolve);
+  });
+}
+async function pairxRun(wrap, resolve) {
+  const zone = wrap.querySelector('.pairx-zone'); if (!zone) return;
+  const key = wrap.getAttribute('data-pairx-key') || '';
+  if (PAIRX[key] === 'busy') return;
+  const r = resolve ? resolve(wrap) : null;
+  if (!r || !r.srcA || !r.srcB) return;
+  PAIRX[key] = 'busy';
+  zone.innerHTML = `<p class="mrc-busy">${esc(t('pairx.busy'))}</p>`;
+  let out = null;
+  try { out = await pairxFetch(r.srcA, r.srcB, r.view); } catch (e) {
+    const m = e && e.message;
+    toast(t(m === 'ai-cap' ? 'mrc.errCap' : (m === 'ai-disabled' || m === 'ai-off') ? 'mrc.errDisabled' : m === 'ai-door-unavailable' ? 'mrc.errDoor' : 'mrc.errGeneric'), true);
+    PAIRX[key] = 'idle';
+    zone.innerHTML = pairxBtnHTML();
+    const b2 = zone.querySelector('.pairx-btn'); if (b2) b2.onclick = () => pairxRun(wrap, resolve);
+    return;
+  }
+  try { aiUsageRefreshSurfaces(); } catch {}
+  const fail = (msgKey) => {
+    PAIRX[key] = 'idle';
+    zone.innerHTML = pairxBtnHTML() + `<p class="mrc-honest">${esc(t(msgKey))}</p>`;
+    const b2 = zone.querySelector('.pairx-btn'); if (b2) b2.onclick = () => pairxRun(wrap, resolve);
+  };
+  if (!out || out.sameView === false) { fail(out ? 'mrc.diffView' : 'mrc.cantAlign'); return; }
+  const imgA = await mrcLoadImg(r.srcA), imgB = await mrcLoadImg(r.srcB);
+  const xfA = imgA ? mrcXform(imgA.naturalWidth, imgA.naturalHeight, out.a) : null;
+  const xfB = imgB ? mrcXform(imgB.naturalWidth, imgB.naturalHeight, out.b) : null;
+  if (!xfA || !xfB) { fail('mrc.cantAlign'); return; }
+  PAIRX[key] = 'done';
+  zone.innerHTML = pairxStageHTML(!xfA.straight || !xfB.straight);
+  const cvs = zone.querySelectorAll('.mrc-cv');
+  if (cvs[0]) { mrcDrawInto(cvs[0], imgA, xfA); cvs[0].onclick = () => { if (typeof showLightbox === 'function') showLightbox(r.srcA); }; }
+  if (cvs[1]) { mrcDrawInto(cvs[1], imgB, xfB); cvs[1].onclick = () => { if (typeof showLightbox === 'function') showLightbox(r.srcB); }; }
+  const pair = wrap.querySelector('[data-pairx-pair]'); if (pair) pair.style.display = 'none';
+  zone.querySelectorAll('[data-pairx-tog]').forEach(b => b.onclick = () => {
+    const al = b.getAttribute('data-pairx-tog') === 'al';
+    zone.querySelectorAll('[data-pairx-tog]').forEach(x => x.classList.toggle('on', x === b));
+    const view = zone.querySelector('.pairx-view'); if (view) view.style.display = al ? '' : 'none';
+    if (pair) pair.style.display = al ? 'none' : '';
   });
 }
 function mrCompHTML(m, inp) {
@@ -61664,6 +61849,15 @@ function mrWire(body) {
   body.querySelectorAll('.mr-ph img').forEach(im => { im.style.cursor = 'zoom-in'; im.onclick = () => { if (typeof showLightbox === 'function') showLightbox(im.src); }; });
   const sh = body.querySelector('#mr-share'); if (sh) sh.onclick = () => mrShare();
   const pdf = body.querySelector('#mr-pdf'); if (pdf) pdf.onclick = () => mrPrint();
+  /* AUTH-384: puertas pairx del informe en vista del entrenador
+     (en la vista propia no hay envolturas .pairx: manda AUTH-383). */
+  pairxWire(body, wrap => {
+    const s = wrap.getAttribute('data-pairx-slot');
+    const dA = wrap.getAttribute('data-pairx-da'), dB = wrap.getAttribute('data-pairx-db');
+    const prog = (typeof MR !== 'undefined' && MR && MR.input && MR.input.prog) || {};
+    const rA = (prog[dA] || {})[s], rB = (prog[dB] || {})[s];
+    return (rA && rA.photo && rB && rB.photo) ? { srcA: rA.photo, srcB: rB.photo, view: s } : null;
+  });
   mrcWire(body);
 }
 async function mrLatestBt(uid, needShared) {
