@@ -21,7 +21,7 @@
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-title" content="RONBO FIT">
 <meta name="apple-mobile-web-app-status-bar-style" content="default">
-<link rel="stylesheet" href="styles.css?v=20261110-cifra-unica">
+<link rel="stylesheet" href="styles.css?v=20261110-composicion-plegada">
 <script defer src="https://cloud.umami.is/script.js" data-website-id="a29706d4-44a2-47cf-900a-5f74d74abfa8"></script>
 <script type="importmap">
 {
@@ -1195,7 +1195,8 @@
        byte lo mismo; mpOpenHist muestra el contenedor de
        su campo tras el historial propio del módulo. -->
   <div id="mp-x-body" style="display:none">
-    <div id="prog-g-medidas">
+    <button type="button" class="mpg-head" id="mpg-head-medidas" data-mpg="medidas" aria-expanded="false" aria-controls="prog-g-medidas"><span class="mpg-txt" id="mpg-txt-medidas"></span><span class="mpg-chev" aria-hidden="true">▾</span></button>
+    <div id="prog-g-medidas" hidden>
     <div class="block-head">
       <h3 class="block-title"><span data-i18n="weight.title">⚖️ Weight progress</span> <span class="h2-sub" data-i18n="weight.sub">· weekly weigh-in</span></h3>
       <button id="btn-add-weight" class="btn-ghost btn-sm" data-i18n="weight.add">＋ Log weigh-in</button>
@@ -1203,7 +1204,8 @@
     <div id="compacc-notice" class="compacc-notice" style="display:none"></div>
     <div id="weightBody"><div class="wempty" data-i18n="weight.loading">Loading weigh-ins…</div></div>
     </div>
-    <div id="prog-g-fotos">
+    <button type="button" class="mpg-head" id="mpg-head-fotos" data-mpg="fotos" aria-expanded="false" aria-controls="prog-g-fotos"><span class="mpg-txt" id="mpg-txt-fotos"></span><span class="mpg-chev" aria-hidden="true">▾</span></button>
+    <div id="prog-g-fotos" hidden>
     <div class="progress-current">
       <div class="progress-week" id="progress-week-label">This week</div>
       <div class="progress-next" id="progress-next"></div>
@@ -2290,6 +2292,6 @@
 <div id="toast" class="toast"></div>
 <div id="print-card" aria-hidden="true"></div>
 
-<script type="module" src="app.js?v=20261110-cifra-unica"></script>
+<script type="module" src="app.js?v=20261110-composicion-plegada"></script>
 </body>
 </html>

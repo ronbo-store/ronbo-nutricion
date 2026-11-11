@@ -5635,3 +5635,12 @@ body.swap-sheet-open .asst-fab { display: none !important; }
   .mg-acts { flex-direction: row; }
 }
 
+/* AUTH-2026-11-389 (H-04): líneas-cabeza de los grupos plegados
+   de la hoja de Composición. Superficie gemela de la tarjeta del
+   grupo (#prog-g-*: fondo blanco, radio 12, sombra suave) y gesto
+   del patrón route-fold (flex, ≥48 px, chev de la casa). La regla
+   [hidden] blinda el plegado frente a cualquier display heredado. */
+#mp-x-body > .mpg-head { display: flex; align-items: center; gap: 10px; width: 100%; min-height: 52px; padding: 10px 16px; margin-top: 14px; background: #fff; border: 0; border-radius: 12px; box-shadow: 0 1px 3px rgba(0, 0, 0, .08); cursor: pointer; text-align: left; font: inherit; font-size: 15px; font-weight: 700; color: #1F2A44; }
+#mp-x-body > .mpg-head .mpg-txt { flex: 1; }
+#mp-x-body > .mpg-head .mpg-chev { color: #0F766E; font-size: 14px; }
+#mp-x-body > [hidden] { display: none !important; }

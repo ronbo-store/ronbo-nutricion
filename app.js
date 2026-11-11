@@ -8355,6 +8355,11 @@ en: {
   'mp.lastSession': 'Last session',
   'mp.edit': 'Edit',
   'mp.none': 'No record yet',
+  'mpg.measures': 'Measures',
+  'mpg.photos': 'Photos',
+  'mpg.last': 'last: {d}',
+  'mpg.lastEval': 'last evaluation: {d}',
+  'mpg.noneYet': 'no records yet',
   'mp.loading': 'Loading…',
   'mp.errLoad': 'Your progress could not be loaded. Check your connection and reopen this page.',
   'mp.whenTouch': 'Log it when it fits — weekly or monthly is fine.',
@@ -13056,6 +13061,11 @@ es: {
   'mp.lastSession': 'Última sesión',
   'mp.edit': 'Editar',
   'mp.none': 'Sin registro',
+  'mpg.measures': 'Medidas',
+  'mpg.photos': 'Fotos',
+  'mpg.last': 'última: {d}',
+  'mpg.lastEval': 'última evaluación: {d}',
+  'mpg.noneYet': 'sin registros aún',
   'mp.loading': 'Cargando…',
   'mp.errLoad': 'No se pudo cargar tu progreso. Revisa tu conexión y vuelve a abrir esta página.',
   'mp.whenTouch': 'Regístralo cuando te venga bien: semanal o mensual está bien.',
@@ -31182,6 +31192,7 @@ function navDockLeave(action) {
 function progSetSub(name) {
   PROG_SUB = name;
   mpOpenHist('body');
+  mpgSet(name === 'medidas' ? 'medidas' : 'fotos', true);
   const g = $(name === 'medidas' ? 'prog-g-medidas' : 'prog-g-fotos');
   if (g) { try { g.scrollIntoView({ behavior: 'smooth', block: 'start' }); } catch {} }
 }
@@ -53636,7 +53647,7 @@ document.addEventListener('keydown', e => { if (e.key === 'Escape') shareClose()
  *  - El SW (sw.js) solo cachea la cáscara del mismo origen en modo
  *    RED PRIMERO: Auth/Firestore/Worker jamás pasan por la caché.
  * ================================================================ */
-const PWA_SW_VERSION = '20261110-cifra-unica';
+const PWA_SW_VERSION = '20261110-composicion-plegada';
 /* Sello de versión VISIBLE (2026-11-03): el pie de la tarjeta de
    acceso enseña qué copia corre este teléfono ('v ' + el sello),
    para comprobar de un vistazo si la versión nueva ya llegó.
@@ -61363,6 +61374,53 @@ function mpLineSVG(points) {
 }
 
 /* ---------- Historiales ---------- */
+/* ---------- H-04 · Grupos Medidas y Fotos nacen plegados ----------
+   Auditoría de espacio 2026-11-09 §H-04 (aprobado por Ronald
+   2026-11-10): la hoja de Composición abría con TODO desplegado
+   (≈2.535 px) cuando las puertas rápidas ya dan el acceso directo.
+   Los grupos #prog-g-medidas y #prog-g-fotos nacen plegados tras
+   una línea-cabeza («⚖️ Medidas · última: 2 nov ›» / «📸 Fotos ·
+   última evaluación: 2 nov ›») y se despliegan de un toque con su
+   contenido byte a byte intacto (los pintores buscan por id y no
+   cambian). Las fechas salen de los datos ya cargados; sin
+   registros la línea lo dice («sin registros aún»), nunca inventa.
+   El estado vive en memoria y cada apertura de la hoja vuelve a
+   nacer plegada (mpOpenHist lo reinicia). */
+let MPG_OPEN = { medidas: false, fotos: false };
+function mpgLastMeasureDate() {
+  let last = null;
+  for (const w of (WEIGHTS || [])) { if (w && w.date && (!last || w.date > last)) last = w.date; }
+  for (const d of Object.keys(EVALS || {})) {
+    const m = (EVALS[d] && EVALS[d].measures) || {};
+    if (Object.keys(m).some(k => k !== 'peso' && m[k] != null && num(m[k]) > 0) && (!last || d > last)) last = d;
+  }
+  return last;
+}
+function mpgLastPhotoDate() {
+  const ds = progressDates();
+  return ds.length ? ds[ds.length - 1] : null;
+}
+function mpgHeadText(which) {
+  if (which === 'medidas') {
+    const d = mpgLastMeasureDate();
+    return '⚖️ ' + t('mpg.measures') + ' · ' + (d ? t('mpg.last', { d: histShortDate(d) }) : t('mpg.noneYet'));
+  }
+  const d = mpgLastPhotoDate();
+  return '📸 ' + t('mpg.photos') + ' · ' + (d ? t('mpg.lastEval', { d: histShortDate(d) }) : t('mpg.noneYet'));
+}
+function mpgPaint() {
+  for (const which of ['medidas', 'fotos']) {
+    const g = $('prog-g-' + which), h = $('mpg-head-' + which), tx = $('mpg-txt-' + which);
+    if (!g || !h) continue;
+    g.hidden = !MPG_OPEN[which];
+    h.setAttribute('aria-expanded', MPG_OPEN[which] ? 'true' : 'false');
+    if (tx) tx.textContent = mpgHeadText(which);
+    const cv = h.querySelector('.mpg-chev'); if (cv) cv.textContent = MPG_OPEN[which] ? '▴' : '▾';
+  }
+}
+function mpgSet(which, open) { MPG_OPEN[which] = !!open; mpgPaint(); }
+function mpgToggle(which) { mpgSet(which, !MPG_OPEN[which]); }
+
 function mpOpenHist(field) {
   const title = $('mp-hist-title'); const body = $('mp-hist-body'); if (!body) return;
   const names = { body: 'mp.c1', train: 'mp.c2', food: 'mp.c3', well: 'mp.c4' };
@@ -61374,7 +61432,7 @@ function mpOpenHist(field) {
   const xb = $('mp-x-body'), xt = $('mp-x-train');
   if (xb) xb.style.display = field === 'body' ? '' : 'none';
   if (xt) xt.style.display = field === 'train' ? '' : 'none';
-  if (field === 'body') body.innerHTML = mpHistBody();
+  if (field === 'body') { body.innerHTML = mpHistBody(); MPG_OPEN = { medidas: false, fotos: false }; mpgPaint(); }
   else if (field === 'food') body.innerHTML = mpHistFood();
   else if (field === 'well') body.innerHTML = mpHistWell();
   else if (field === 'train') { body.innerHTML = `<div class="wempty">${esc(t('mp.loading'))}</div>`; mpPaintTrainHist(); }
@@ -62773,8 +62831,13 @@ document.addEventListener('click', e => {
   else if (act === 'airdoor') { mpSheetClose('mp-hist'); airOpen({}); }
   else if (act === 'close') mpSheetClose(b.dataset.sheet);
   else if (act === 'weightdoor') { mpSheetClose('mp-hist'); openWeightModal(null); }
-  else if (act === 'photosdoor') { const g = $('prog-g-fotos'); if (g) { try { g.scrollIntoView({ behavior: 'smooth', block: 'start' }); } catch {} } }
+  else if (act === 'photosdoor') { mpgSet('fotos', true); const g = $('prog-g-fotos'); if (g) { try { g.scrollIntoView({ behavior: 'smooth', block: 'start' }); } catch {} } }
   else if (act === 'share-on') mpShareSet(true);
   else if (act === 'share-off') mpShareSet(false);
+});
+document.addEventListener('click', e => {
+  const b = e.target && e.target.closest ? e.target.closest('[data-mpg]') : null;
+  if (!b) return;
+  mpgToggle(b.dataset.mpg);
 });
 /* === FIN MI PROGRESO === */
