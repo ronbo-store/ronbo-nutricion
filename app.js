@@ -8356,6 +8356,81 @@ en: {
   'sched.orientOnly': 'General guidance for now',
   'mp.title': 'My progress',
   'mp.quickBtn': '＋ Quick log',
+  'fit.title': 'My fitness tests',
+  'fit.cardNone': 'Do your first tests today',
+  'fit.cardLast': 'Last tests: {date}',
+  'fit.nextDue': 'Repeat on {date}',
+  'fit.dueNow': 'Time to repeat them ✓',
+  'fit.intro': 'Four short tests, always done the same way, compared with yourself — not with other people. Every 4 weeks, at your own pace.',
+  'fit.warnCare': 'Careful: we could not read a current health declaration from you, so the app cannot adapt these tests to you. You can still do them: do only what your body tolerates and stop at any warning sign. Better: complete your declaration so the tests fit you.',
+  'fit.goDecl': 'Complete my declaration',
+  'fit.blockedAll': 'Right now it is better not to do these tests: your current health declaration asks for a pause (a recent surgery or a pregnancy). When your situation changes, update your declaration and the battery opens again.',
+  'fit.errLoad': 'We could not load your tests. Check your connection and try again.',
+  'fit.baseline': 'Your starting point',
+  'fit.history': 'Your tests',
+  'fit.start': 'Do my tests',
+  'fit.doOne': 'Start',
+  'fit.again': 'Repeat',
+  'fit.neverYet': 'Not done yet — this will be your starting point.',
+  'fit.cardioOff': 'The cardio test is paused for you right now. Your trainer can see your other results.',
+  'fit.t.sts1min': 'Sit to stand — 1 minute',
+  'fit.t.sts1min.what': 'Stand up from a chair and sit back down as many times as you can in 1 minute, without using your hands if you can.',
+  'fit.t.sts1min.gear': 'A firm chair against a wall and your phone as the timer.',
+  'fit.t.sts1min.src': 'Foundation: Strassmann et al. 2013 (6,926 people); Bohannon & Crouch 2019.',
+  'fit.t.pushup': 'Push-ups to technical failure',
+  'fit.t.pushup.what': 'Do push-ups with good form until you cannot keep the form — that count is your result.',
+  'fit.t.pushup.gear': 'Just the floor (and a mat if you like).',
+  'fit.t.pushup.src': 'Foundation: ACSM Guidelines for Exercise Testing and Prescription, 11th ed. (2022).',
+  'fit.t.plank': 'Forearm plank to failure',
+  'fit.t.plank.what': 'Hold a forearm plank with a straight body until you cannot keep the position. The app times it for you.',
+  'fit.t.plank.gear': 'A mat or a towel for your forearms.',
+  'fit.t.plank.src': 'Foundation: Strand et al. 2014. Compared only with yourself — no tables against other people.',
+  'fit.t.stepYmca': 'Step test — 3 minutes',
+  'fit.t.stepYmca.what': 'Step up and down on a step for 3 minutes at a steady rhythm, then sit and count your pulse for 1 minute.',
+  'fit.t.stepYmca.gear': 'A firm step about 30 cm (12 in) high. The metronome (96 beats/min) is optional.',
+  'fit.t.stepYmca.src': 'Foundation: YMCA 3-minute step test (Golding, ed.); recovery heart rate and fitness: Cole et al. 1999 (NEJM).',
+  'fit.t.step2min': 'March in place — 2 minutes',
+  'fit.t.step2min.what': 'March in place for 2 minutes, raising each knee to a comfortable height; count your total steps.',
+  'fit.t.step2min.gear': 'Just a small clear space and your phone as the timer.',
+  'fit.t.step2min.src': 'Foundation: Rikli & Jones, Senior Fitness Test — the official low-impact substitute.',
+  'fit.var.std': 'Standard',
+  'fit.var.arms': 'With chair arms',
+  'fit.var.knees': 'On knees',
+  'fit.var.wall': 'Against a wall',
+  'fit.var.kneesPlank': 'Plank on knees',
+  'fit.variant': 'Version',
+  'fit.stopRules': 'Stop at once if you feel chest pain or pressure, dizziness, nausea, unusual shortness of breath, or sharp pain. There is no prize for pushing through.',
+  'fit.startBtn': 'Start',
+  'fit.pauseBtn': 'Pause',
+  'fit.resumeBtn': 'Resume',
+  'fit.stopBtn': 'Done',
+  'fit.resetBtn': 'Restart',
+  'fit.skip': 'Skip this one',
+  'fit.back': 'My tests',
+  'fit.pulsePhase': 'Count your pulse — 1 minute',
+  'fit.metro': 'Metronome 96',
+  'fit.value.reps': 'How many did you do?',
+  'fit.value.sec': 'Seconds held',
+  'fit.value.bpm': 'Beats counted in 1 minute',
+  'fit.value.steps': 'Total steps',
+  'fit.unit.reps': 'reps',
+  'fit.unit.sec': 's',
+  'fit.unit.bpm': 'bpm',
+  'fit.unit.steps': 'steps',
+  'fit.save': 'Save result',
+  'fit.markIncomplete': 'Save as incomplete',
+  'fit.saved': 'Test saved ✓',
+  'fit.saveErr': 'We could not save it. Check your connection and try again.',
+  'fit.errValue': 'Enter a valid number for your result.',
+  'fit.incomplete': 'incomplete',
+  'fit.vsPrev': 'vs last',
+  'fit.vsStart': 'vs start',
+  'fit.count': 'results',
+  'fit.trainerNote': 'Results and version only',
+  'fit.note.talkTrainer': 'Go gently and talk with your trainer before pushing hard.',
+  'fit.note.breath': 'Keep breathing steadily — never hold your breath during effort.',
+  'fit.note.inhaler': 'Keep your inhaler close by during the tests.',
+  'fit.note.sugar': 'Keep something sweet close by, just in case.',
   'mp.quick': 'Quick log',
   'mp.c1': 'Body composition',
   'mp.c2': 'Training & performance',
@@ -13075,6 +13150,81 @@ es: {
   'sched.orientOnly': 'Orientación general por ahora',
   'mp.title': 'Mi progreso',
   'mp.quickBtn': '＋ Registro rápido',
+  'fit.title': 'Mis pruebas físicas',
+  'fit.cardNone': 'Haz hoy tus primeras pruebas',
+  'fit.cardLast': 'Últimas pruebas: {date}',
+  'fit.nextDue': 'Repetir el {date}',
+  'fit.dueNow': 'Ya toca repetirlas ✓',
+  'fit.intro': 'Cuatro pruebas cortas, siempre hechas igual, comparadas contigo mismo — no con otras personas. Cada 4 semanas, a tu ritmo.',
+  'fit.warnCare': 'Con cuidado: no pudimos leer una declaración de salud vigente tuya, así que la app no puede adaptar estas pruebas a ti. Igual puedes hacerlas: haz solo lo que tu cuerpo tolera y detente ante cualquier señal de alarma. Mejor: completa tu declaración para que las pruebas se ajusten a ti.',
+  'fit.goDecl': 'Completar mi declaración',
+  'fit.blockedAll': 'Ahora mismo es mejor no hacer estas pruebas: tu declaración de salud vigente pide una pausa (una cirugía reciente o un embarazo). Cuando tu situación cambie, actualiza tu declaración y la batería se abre de nuevo.',
+  'fit.errLoad': 'No pudimos cargar tus pruebas. Revisa tu conexión e inténtalo de nuevo.',
+  'fit.baseline': 'Tu punto de partida',
+  'fit.history': 'Tus pruebas',
+  'fit.start': 'Hacer mis pruebas',
+  'fit.doOne': 'Empezar',
+  'fit.again': 'Repetir',
+  'fit.neverYet': 'Todavía no la has hecho — esta será tu punto de partida.',
+  'fit.cardioOff': 'La prueba de cardio está en pausa para ti ahora. Tu entrenador puede ver tus otros resultados.',
+  'fit.t.sts1min': 'Sentarse y levantarse — 1 minuto',
+  'fit.t.sts1min.what': 'Levántate de una silla y vuelve a sentarte todas las veces que puedas en 1 minuto, sin usar las manos si puedes.',
+  'fit.t.sts1min.gear': 'Una silla firme contra la pared y tu teléfono como temporizador.',
+  'fit.t.sts1min.src': 'Fundamento: Strassmann et al. 2013 (6.926 personas); Bohannon & Crouch 2019.',
+  'fit.t.pushup': 'Flexiones al fallo técnico',
+  'fit.t.pushup.what': 'Haz flexiones con buena forma hasta que ya no puedas mantenerla — ese conteo es tu resultado.',
+  'fit.t.pushup.gear': 'Solo el suelo (y una colchoneta si quieres).',
+  'fit.t.pushup.src': 'Fundamento: ACSM, Guidelines for Exercise Testing and Prescription, 11.ª ed. (2022).',
+  'fit.t.plank': 'Plancha de antebrazos al fallo',
+  'fit.t.plank.what': 'Mantén la plancha de antebrazos con el cuerpo recto hasta que ya no puedas sostener la posición. La app mide el tiempo por ti.',
+  'fit.t.plank.gear': 'Una colchoneta o una toalla para los antebrazos.',
+  'fit.t.plank.src': 'Fundamento: Strand et al. 2014. Comparación solo contigo mismo — sin tablas contra otras personas.',
+  'fit.t.stepYmca': 'Step test — 3 minutos',
+  'fit.t.stepYmca.what': 'Sube y baja de un escalón durante 3 minutos a ritmo constante; luego siéntate y cuenta tu pulso durante 1 minuto.',
+  'fit.t.stepYmca.gear': 'Un escalón firme de unos 30 cm de alto. El metrónomo (96 pulsos/min) es opcional.',
+  'fit.t.stepYmca.src': 'Fundamento: step test YMCA de 3 minutos (Golding, ed.); pulso de recuperación y condición física: Cole et al. 1999 (NEJM).',
+  'fit.t.step2min': 'Marcha en el sitio — 2 minutos',
+  'fit.t.step2min.what': 'Marcha en el sitio durante 2 minutos, subiendo cada rodilla a una altura cómoda; cuenta tus pasos totales.',
+  'fit.t.step2min.gear': 'Solo un espacio pequeño libre y tu teléfono como temporizador.',
+  'fit.t.step2min.src': 'Fundamento: Rikli & Jones, Senior Fitness Test — la sustituta oficial de bajo impacto.',
+  'fit.var.std': 'Estándar',
+  'fit.var.arms': 'Con brazos de la silla',
+  'fit.var.knees': 'De rodillas',
+  'fit.var.wall': 'Contra la pared',
+  'fit.var.kneesPlank': 'Plancha de rodillas',
+  'fit.variant': 'Versión',
+  'fit.stopRules': 'Detente de inmediato si sientes dolor u opresión en el pecho, mareo, náuseas, falta de aire fuera de lo normal o dolor agudo. No hay premio por aguantar.',
+  'fit.startBtn': 'Empezar',
+  'fit.pauseBtn': 'Pausar',
+  'fit.resumeBtn': 'Seguir',
+  'fit.stopBtn': 'Terminé',
+  'fit.resetBtn': 'Reiniciar',
+  'fit.skip': 'Saltar esta',
+  'fit.back': 'Mis pruebas',
+  'fit.pulsePhase': 'Cuenta tu pulso — 1 minuto',
+  'fit.metro': 'Metrónomo 96',
+  'fit.value.reps': '¿Cuántas hiciste?',
+  'fit.value.sec': 'Segundos aguantados',
+  'fit.value.bpm': 'Latidos contados en 1 minuto',
+  'fit.value.steps': 'Pasos totales',
+  'fit.unit.reps': 'reps',
+  'fit.unit.sec': 's',
+  'fit.unit.bpm': 'ppm',
+  'fit.unit.steps': 'pasos',
+  'fit.save': 'Guardar resultado',
+  'fit.markIncomplete': 'Guardar como incompleta',
+  'fit.saved': 'Prueba guardada ✓',
+  'fit.saveErr': 'No pudimos guardarla. Revisa tu conexión e inténtalo de nuevo.',
+  'fit.errValue': 'Escribe un número válido para tu resultado.',
+  'fit.incomplete': 'incompleta',
+  'fit.vsPrev': 'vs anterior',
+  'fit.vsStart': 'vs inicio',
+  'fit.count': 'resultados',
+  'fit.trainerNote': 'Solo resultados y versión',
+  'fit.note.talkTrainer': 'Ve con calma y habla con tu entrenador antes de exigirte fuerte.',
+  'fit.note.breath': 'Respira continuo — nunca aguantes la respiración durante el esfuerzo.',
+  'fit.note.inhaler': 'Ten tu inhalador cerca durante las pruebas.',
+  'fit.note.sugar': 'Ten algo dulce cerca, por si acaso.',
   'mp.quick': 'Registro rápido',
   'mp.c1': 'Composición corporal',
   'mp.c2': 'Entrenamiento y rendimiento',
@@ -54063,7 +54213,7 @@ document.addEventListener('keydown', e => { if (e.key === 'Escape') shareClose()
  *  - El SW (sw.js) solo cachea la cáscara del mismo origen en modo
  *    RED PRIMERO: Auth/Firestore/Worker jamás pasan por la caché.
  * ================================================================ */
-const PWA_SW_VERSION = '20261110-gestiona-alcanzable';
+const PWA_SW_VERSION = '20261110-pruebas-fisicas';
 /* Sello de versión VISIBLE (2026-11-03): el pie de la tarjeta de
    acceso enseña qué copia corre este teléfono ('v ' + el sello),
    para comprobar de un vistazo si la versión nueva ya llegó.
@@ -61120,10 +61270,11 @@ function mpRenderHome() {
     { f: 'body', icon: '🧍', title: t('mp.c1'), lines: mpCardBodyData().slice(0, 2) },
     { f: 'train', icon: '🏋️', title: t('mp.c2'), lines: mpCardTrainData().slice(0, 2) },
     { f: 'food', icon: '🥗', title: t('mp.c3'), lines: mpCardFoodData().slice(0, 2) },
-    { f: 'well', icon: '🌙', title: t('mp.c4'), lines: mpCardWellData().slice(0, 2) }
+    { f: 'well', icon: '🌙', title: t('mp.c4'), lines: mpCardWellData().slice(0, 2) },
+    { f: 'tests', act: 'tests', icon: '🧪', title: t('fit.title'), lines: mpCardFitData().slice(0, 2) }
   ];
   host.innerHTML = cards.map(c => `
-    <button type="button" class="mp-tile" data-mp-act="hist" data-field="${c.f}" aria-label="${esc(c.title)} — ${esc(t('mp.history'))}">
+    <button type="button" class="mp-tile" data-mp-act="${c.act || 'hist'}" data-field="${c.f}" aria-label="${esc(c.title)} — ${esc(t('mp.history'))}">
       <span class="mp-tile-icon" aria-hidden="true">${c.icon}</span>
       <span class="mp-tile-name">${esc(c.title)}</span>
       <span class="mp-tile-data">${c.lines.length ? c.lines.join('') : `<span class="mp-line mp-none">${esc(t('mp.none'))}</span>`}</span>
@@ -61147,7 +61298,7 @@ function mpSheetClose(id) { const el = $(id); if (el) el.style.display = 'none';
    familias; el candado de scroll (AUTH-285) y el ancla bajo la
    cabecera (AUTH-326) los heredan de COVER_SEL (role="dialog") y
    de la familia .act-float. Ocultar nunca destruye (D3). */
-function mpCloseAll() { mpSheetClose('mp-quick'); mpSheetClose('mp-hist'); mpSheetClose('mp-report'); mpSheetClose('mp-air'); }
+function mpCloseAll() { mpSheetClose('mp-quick'); mpSheetClose('mp-hist'); mpSheetClose('mp-report'); mpSheetClose('mp-air'); mpSheetClose('mp-tests'); try { fitRunStop(); } catch {} }
 document.addEventListener('keydown', e => { if (e.key === 'Escape') mpCloseAll(); });
 
 /* ---------- Registro rápido ---------- */
@@ -62824,14 +62975,14 @@ async function mpTrainerMount(uid) {
 }
 async function mpTrainerLoad() {
   const uid = MPT.uid;
-  const D = { weights: [], evals: {}, photos: 0, lastPhoto: null, logs: [], meals: {}, water: {}, sleep: null, well: null, checks: [], comments: [] };
+  const D = { weights: [], evals: {}, photos: 0, lastPhoto: null, logs: [], meals: {}, water: {}, sleep: null, well: null, checks: [], comments: [], fits: [] };
   const ud = await getDoc(doc(db, 'users', uid));
   const udata = ud.exists() ? ud.data() : {};
   const ws = await getDocs(query(collection(db, 'nutrition_weight'), where('ownerUid', '==', uid)));
   ws.forEach(d => D.weights.push({ id: d.id, ...d.data() }));
   D.weights.sort(mpByDateAsc);
   const ps = await getDocs(query(collection(db, 'nutrition_progress'), where('ownerUid', '==', uid)));
-  ps.forEach(d => { const v = d.data(); if (v.kind === 'evaluation' && v.date) D.evals[v.date] = v; if (v.slot && v.photo) { D.photos++; if (!D.lastPhoto || v.date > D.lastPhoto) D.lastPhoto = v.date; } });
+  ps.forEach(d => { const v = d.data(); if (v.kind === 'evaluation' && v.date) D.evals[v.date] = v; if (v.kind === 'fitTest') D.fits.push({ id: d.id, ...v }); if (v.slot && v.photo) { D.photos++; if (!D.lastPhoto || v.date > D.lastPhoto) D.lastPhoto = v.date; } });
   D.logs = await fetchLogs(uid);
   const ms = await getDocs(query(collection(db, 'nutrition_meals'), where('ownerUid', '==', uid), where('date', '>=', histCutoffISO())));
   ms.forEach(d => { const v = d.data(); if (!v.date) return; const tt = D.meals[v.date] = D.meals[v.date] || { kcal: 0, prot: 0, n: 0 }; tt.kcal += num(v.kcal); tt.prot += num(v.prot); tt.n++; });
@@ -62939,6 +63090,7 @@ function mpTrainerPaint() {
     parts.push(mpRow(t('mp.f.stress'), A.stressAvg, P.stressAvg, v => f1(v) + '/5'));
     parts.push(mpRow(t('mp.t.painReports'), A.painCount || null, P.painCount || null, f0));
   }
+  try { const fh = fitTrainerSectionHTML(D.fits); if (fh) parts.push(fh); } catch {}
   box.innerHTML = parts.join('');
   mpTrainerPaintComments();
 }
@@ -63274,6 +63426,7 @@ document.addEventListener('click', e => {
   const act = b.dataset.mpAct;
   if (act === 'quick') { mpSheetClose('mp-hist'); mpOpenQuick(b.dataset.date || todayISO(), b.dataset.field || ''); }
   else if (act === 'hist') mpOpenHist(b.dataset.field);
+  else if (act === 'tests') { mpSheetClose('mp-hist'); mpFitOpen(); }
   else if (act === 'foodprev') { mpFoodWeeks = 2; const hb = $('mp-hist-body'); if (hb) hb.innerHTML = mpHistFood(); }
   else if (act === 'reportdoor') { mpSheetClose('mp-hist'); mrOpen(); }
   else if (act === 'airdoor') { mpSheetClose('mp-hist'); airOpen({}); }
@@ -63288,4 +63441,369 @@ document.addEventListener('click', e => {
   if (!b) return;
   mpgToggle(b.dataset.mpg);
 });
+/* === MIS PRUEBAS FÍSICAS (AUTH-2026-11-10-399) =====================
+   Batería corta y repetible (los dos puntos (a) de ShredFast,
+   propuesta PROPUESTA-PRUEBAS-Y-RACHA-2026-11-10, decisiones de
+   Ronald 2026-11-10 22:47–22:50 CST): 4 pruebas SIEMPRE IGUALES
+   cada 4 semanas, comparadas contra uno mismo — sentarse y
+   levantarse en 1 min (Strassmann 2013; Bohannon & Crouch 2019),
+   flexiones al fallo técnico (ACSM GETP 11.ª ed.), plancha de
+   antebrazos al fallo con tope (Strand 2014 — muestra joven: SIN
+   percentiles, solo comparación propia) y step test YMCA de 3 min
+   (Golding ed.; Cole 1999) con su sustituta oficial, la marcha en
+   el sitio de 2 minutos (Rikli & Jones). El AMRAP de burpees queda
+   FUERA por decisión del diseño.
+   CASA DE DATOS (decisión 2): nutrition_progress, kind 'fitTest' —
+   la regla viva admite la creación del alumno aprobado con
+   ownerUid == su uid sin cerrar la forma, y la lectura del
+   entrenador asignado: coste de reglas CERO.
+   FRENOS (decisión 5 y §1.3 de la propuesta): manda la declaración
+   vigente leída con el MISMO criterio que schedFastGateLoad. Con
+   declaración legible, sus frenos adaptan o bloquean (variantes y
+   topes; cirugía reciente o embarazo bloquean la batería entera).
+   SIN declaración legible la batería SE PERMITE (decisión expresa
+   de Ronald contra la recomendación del diseño) tras la pantalla
+   de aviso de cuidado: reglas universales de parada y atajo a la
+   declaración; sin variantes automáticas — la persona elige la
+   estándar o las suaves bajo el aviso. El MOTIVO de una variante
+   jamás sale de la declaración: el entrenador ve resultados y
+   variante (decisión 3), nunca la causa. La variante usada se
+   guarda en el resultado y la serie solo compara la MISMA
+   variante; un resultado interrumpido se guarda «incompleta» y
+   NO entra en la serie. */
+const FIT_TEST_ORDER = ['sts1min', 'pushup', 'plank', 'stepYmca', 'step2min'];
+const FIT_DUR = { sts1min: 60, stepYmca: 180, step2min: 120 };
+const FIT_UNIT = { sts1min: 'reps', pushup: 'reps', plank: 'sec', stepYmca: 'bpm', step2min: 'steps' };
+let FIT = null;        // { list: [], err: bool } — resultados kind 'fitTest' del propio alumno
+let FIT_GATE = null;   // { state:'decl'|'nodecl', conds: [] } | { state:'error' }
+let FIT_RUN = null;    // corredor: { test, variant, phase, acc, t0, running, timer, seq: [] }
+let FIT_SEQ = [];      // cola de la batería completa en curso
+const FIT_CARDIAC = ['Problemas del corazón', 'Dolor de pecho al ejercitarse', 'Mareos o desmayos'];
+const FIT_SUGAR = ['Diabetes', 'Uso de insulina o medicación que baja el azúcar', 'Hipoglucemia'];
+
+function fitEffects(conds) {
+  const c = Array.isArray(conds) ? conds : [];
+  const has = x => c.includes(x);
+  const cardiac = FIT_CARDIAC.some(has);
+  const lesions = has('Lesiones articulares o musculares');
+  const post = has('Posparto');
+  const softAll = cardiac || post;
+  const notes = [];
+  if (cardiac) notes.push('fit.note.talkTrainer');
+  if (has('Hipertensión')) notes.push('fit.note.breath');
+  if (has('Asma / problemas respiratorios') && !cardiac) notes.push('fit.note.inhaler');
+  if (FIT_SUGAR.some(has)) notes.push('fit.note.sugar');
+  return {
+    blockedAll: has('Cirugía reciente') || has('Embarazo'),
+    noCardio: cardiac,
+    softAll, lesions,
+    plankCap: post ? 60 : (has('Hipertensión') ? 90 : 240),
+    cardio: cardiac ? 'none' : ((lesions || post) ? 'walk' : 'step'),
+    notes
+  };
+}
+function fitVariantChoices(test, fx, hasDecl) {
+  /* Devuelve { list: [...], fixed: 'x'|null }: con freno, la
+     variante de acceso es LA variante (queda registrada); sin
+     declaración, la persona elige bajo el aviso. */
+  if (test === 'sts1min') return (fx.softAll || fx.lesions) ? { list: ['arms'], fixed: 'arms' } : { list: ['std'], fixed: 'std' };
+  if (test === 'pushup') {
+    if (fx.softAll || fx.lesions) return { list: ['knees', 'wall'], fixed: null };
+    return { list: ['std', 'knees', 'wall'], fixed: null };
+  }
+  if (test === 'plank') {
+    if (fx.softAll || fx.lesions) return { list: ['kneesPlank'], fixed: 'kneesPlank' };
+    return { list: ['std', 'kneesPlank'], fixed: null };
+  }
+  return { list: ['std'], fixed: 'std' };
+}
+async function mpFitLoad() {
+  const me = mpMe(); if (!me) { FIT = { list: [], err: false }; return FIT; }
+  try {
+    const snap = await getDocs(query(collection(db, 'nutrition_progress'), where('ownerUid', '==', me), where('kind', '==', 'fitTest')));
+    const list = [];
+    snap.forEach(d => list.push({ id: d.id, ...d.data() }));
+    list.sort((a, b) => (String(a.date) < String(b.date) ? -1 : String(a.date) > String(b.date) ? 1 : (mpTs(a) - mpTs(b))));
+    FIT = { list, err: false };
+  } catch { FIT = { list: [], err: true }; }
+  return FIT;
+}
+async function fitGateLoad() {
+  const me = mpMe();
+  try {
+    if (typeof declLoadState !== 'undefined' && declLoadState === 'ok' && typeof activeDecl === 'function') {
+      const ad = activeDecl();
+      FIT_GATE = ad ? { state: 'decl', conds: ad.conditions || [] } : { state: 'nodecl', conds: [] };
+    } else if (typeof fetchDeclarations === 'function' && me) {
+      const ds = await fetchDeclarations(me);
+      const ad = (ds || []).find(d => d.state === 'active');
+      FIT_GATE = ad ? { state: 'decl', conds: ad.conditions || [] } : { state: 'nodecl', conds: [] };
+    } else FIT_GATE = { state: 'error', conds: [] };
+  } catch { FIT_GATE = { state: 'error', conds: [] }; }
+  return FIT_GATE;
+}
+function fitSeries(test, variant) {
+  if (!FIT) return [];
+  return FIT.list.filter(r => r.test === test && r.complete !== false && (!variant || (r.variant || 'std') === variant));
+}
+function fitLastBatteryDate() {
+  if (!FIT || !FIT.list.length) return null;
+  const ds = FIT.list.filter(r => r.complete !== false).map(r => r.date).filter(Boolean).sort();
+  return ds.length ? ds[ds.length - 1] : null;
+}
+function mpCardFitData() {
+  if (!FIT) { mpFitLoad().then(() => { try { mpRenderHome(); } catch {} }).catch(() => {}); return []; }
+  if (FIT.err || !FIT.list.length) return [`<span class="mp-line">${esc(t('fit.cardNone'))}</span>`];
+  const last = fitLastBatteryDate();
+  if (!last) return [`<span class="mp-line">${esc(t('fit.cardNone'))}</span>`];
+  const due = addDaysISO(last, 28);
+  const lines = [`<span class="mp-line">${esc(t('fit.cardLast', { date: shortDate(last) }))}</span>`];
+  lines.push(`<span class="mp-line">${esc(todayISO() >= due ? t('fit.dueNow') : t('fit.nextDue', { date: shortDate(due) }))}</span>`);
+  return lines;
+}
+function fitValTxt(r) {
+  if (r.test === 'plank') { const s = Math.round(num(r.value)); return Math.floor(s / 60) + ':' + String(s % 60).padStart(2, '0') + ' min'; }
+  return String(Math.round(num(r.value))) + ' ' + t('fit.unit.' + (r.unit || FIT_UNIT[r.test] || 'reps'));
+}
+function fitDeltaTxt(cur, ref, test) {
+  if (ref == null) return '';
+  let d = num(cur) - num(ref);
+  if (test === 'stepYmca') d = -d; /* en el pulso de recuperación, menos es mejor */
+  if (!d) return '±0';
+  return (d > 0 ? '+' : '−') + (test === 'plank' ? Math.abs(Math.round(d)) + ' s' : String(Math.abs(Math.round(d))));
+}
+function fitGoDecl() {
+  mpSheetClose('mp-tests');
+  try { switchTab('admin'); } catch {}
+  setTimeout(() => { const h = $('health-section'); if (h) { try { h.scrollIntoView({ behavior: 'smooth', block: 'start' }); } catch {} } }, 350);
+}
+function mpFitOpen() {
+  mpSheetOpen('mp-tests');
+  mpFitPaint();
+}
+async function mpFitPaint() {
+  const body = $('mp-tests-body'); if (!body) return;
+  body.innerHTML = `<div class="wempty">${esc(t('mp.loading'))}</div>`;
+  if (!FIT) await mpFitLoad();
+  if (!FIT_GATE) await fitGateLoad();
+  if (FIT && FIT.err) { body.innerHTML = `<p class="mp-err">${esc(t('fit.errLoad'))}</p>`; return; }
+  const gate = FIT_GATE || { state: 'error', conds: [] };
+  const fx = fitEffects(gate.state === 'decl' ? gate.conds : []);
+  const parts = [];
+  parts.push(`<p class="progress-hint">${esc(t('fit.intro'))}</p>`);
+  if (gate.state !== 'decl') parts.push(`<div class="fit-notice"><p>${esc(t('fit.warnCare'))}</p><button type="button" class="btn-ghost btn-sm" data-fit-act="godecl">${esc(t('fit.goDecl'))}</button></div>`);
+  if (gate.state === 'decl' && fx.blockedAll) {
+    parts.push(`<div class="fit-notice"><p>${esc(t('fit.blockedAll'))}</p><button type="button" class="btn-ghost btn-sm" data-fit-act="godecl">${esc(t('fit.goDecl'))}</button></div>`);
+    body.innerHTML = parts.join('');
+    return;
+  }
+  fx.notes.forEach(k => parts.push(`<p class="progress-hint">⚠️ ${esc(t(k))}</p>`));
+  const last = fitLastBatteryDate();
+  if (!FIT.list.length) parts.push(`<h4 class="mp-sec">${esc(t('fit.baseline'))}</h4>`);
+  else if (last) parts.push(`<p class="progress-hint">${esc(t('fit.cardLast', { date: shortDate(last) }))} · ${esc(todayISO() >= addDaysISO(last, 28) ? t('fit.dueNow') : t('fit.nextDue', { date: shortDate(addDaysISO(last, 28)) }))}</p>`);
+  const seq = fitAvailableSeq(fx);
+  if (seq.length) parts.push(`<div class="eval-actions"><button type="button" class="btn-primary" data-fit-act="startall">${esc(t('fit.start'))}</button></div>`);
+  parts.push(`<h4 class="mp-sec">${esc(t('fit.history'))}</h4>`);
+  for (const test of FIT_TEST_ORDER) {
+    if (test === 'stepYmca' && fx.cardio === 'none') { parts.push(fitTestCardHTML(test, fx, true)); continue; }
+    if (test === 'step2min' && fx.cardio === 'none') continue;
+    parts.push(fitTestCardHTML(test, fx, false));
+  }
+  body.innerHTML = parts.join('');
+}
+function fitAvailableSeq(fx) {
+  const seq = ['sts1min', 'pushup', 'plank'];
+  if (fx.cardio === 'step') seq.push('stepYmca');
+  else if (fx.cardio === 'walk') seq.push('step2min');
+  return seq;
+}
+function fitTestCardHTML(test, fx, cardioOff) {
+  const all = FIT ? FIT.list.filter(r => r.test === test) : [];
+  const done = all.filter(r => r.complete !== false);
+  const lastR = done.length ? done[done.length - 1] : null;
+  let head = `<div class="fit-card"><div class="fit-card-head"><span class="fit-card-name">${esc(t('fit.t.' + test))}</span>`;
+  if (cardioOff) return head + `</div><p class="progress-hint">${esc(t('fit.cardioOff'))}</p></div>`;
+  head += `<button type="button" class="btn-primary btn-sm" data-fit-act="run" data-test="${test}">${esc(lastR ? t('fit.again') : t('fit.doOne'))}</button></div>`;
+  if (!all.length) return head + `<p class="progress-hint">${esc(t('fit.neverYet'))}</p></div>`;
+  const rows = all.slice().reverse().slice(0, 6).map(r => {
+    const sameVar = fitSeries(test, r.variant || 'std');
+    const ix = sameVar.findIndex(x => x.id === r.id);
+    let delta = '';
+    if (r.complete !== false && ix > 0) delta = ` · ${esc(t('fit.vsPrev'))} ${esc(fitDeltaTxt(r.value, sameVar[ix - 1].value, test))}`;
+    if (r.complete !== false && ix > 0 && sameVar.length > 1) delta += ` · ${esc(t('fit.vsStart'))} ${esc(fitDeltaTxt(r.value, sameVar[0].value, test))}`;
+    return `<div class="fit-hrow"><span>${esc(shortDate(r.date))} · ${esc(t('fit.var.' + (r.variant || 'std')))}</span><span class="fit-hval">${esc(fitValTxt(r))}${r.complete === false ? ' · ' + esc(t('fit.incomplete')) : ''}${delta}</span></div>`;
+  }).join('');
+  return head + rows + '</div>';
+}
+/* ---------- Corredor de una prueba ---------- */
+function fitRunStop() {
+  if (FIT_RUN && FIT_RUN.timer) { clearInterval(FIT_RUN.timer); FIT_RUN.timer = 0; }
+  fitMetroOff();
+}
+let FIT_AUDIO = null;
+function fitMetroOff() { if (FIT_RUN && FIT_RUN.metroInt) { clearInterval(FIT_RUN.metroInt); FIT_RUN.metroInt = 0; } if (FIT_RUN) FIT_RUN.metroOn = false; }
+function fitMetroToggle() {
+  if (!FIT_RUN) return;
+  if (FIT_RUN.metroOn) { fitMetroOff(); fitRunPaint(); return; }
+  try {
+    FIT_AUDIO = FIT_AUDIO || new (window.AudioContext || window.webkitAudioContext)();
+    if (FIT_AUDIO.state === 'suspended') FIT_AUDIO.resume();
+    const beat = () => { try { const o = FIT_AUDIO.createOscillator(), g = FIT_AUDIO.createGain(); o.frequency.value = 880; g.gain.value = 0.12; o.connect(g); g.connect(FIT_AUDIO.destination); const t0 = FIT_AUDIO.currentTime; o.start(t0); g.gain.exponentialRampToValueAtTime(0.001, t0 + 0.06); o.stop(t0 + 0.07); } catch {} };
+    beat();
+    FIT_RUN.metroInt = setInterval(beat, 625); /* 96 ppm */
+    FIT_RUN.metroOn = true;
+  } catch {}
+  fitRunPaint();
+}
+function fitElapsed() {
+  if (!FIT_RUN) return 0;
+  return FIT_RUN.acc + (FIT_RUN.running ? (Date.now() - FIT_RUN.t0) / 1000 : 0);
+}
+function fitRunStart(test, seq) {
+  const gate = FIT_GATE || { state: 'error', conds: [] };
+  const fx = fitEffects(gate.state === 'decl' ? gate.conds : []);
+  const ch = fitVariantChoices(test, fx, gate.state === 'decl');
+  fitRunStop();
+  FIT_RUN = { test, variant: ch.fixed || ch.list[0], choices: ch, fx, phase: 'prep', acc: 0, t0: 0, running: false, timer: 0, metroOn: false, metroInt: 0, seq: Array.isArray(seq) ? seq : null };
+  fitRunPaint();
+}
+function fitRunPaint() {
+  const body = $('mp-tests-body'); if (!body || !FIT_RUN) return;
+  const R = FIT_RUN, test = R.test, fx = R.fx;
+  const back = `<div class="eval-actions"><button type="button" class="btn-ghost btn-sm" data-fit-act="home">‹ ${esc(t('fit.back'))}</button></div>`;
+  if (R.phase === 'prep') {
+    const chips = R.choices.list.length > 1 ? `<span class="mp-lab">${esc(t('fit.variant'))}</span><div class="mp-seg">${R.choices.list.map(v => `<button type="button" class="mp-seg-b${R.variant === v ? ' on' : ''}" data-fit-act="variant" data-v="${v}">${esc(t('fit.var.' + v))}</button>`).join('')}</div>` : (R.choices.fixed ? `<p class="progress-hint">${esc(t('fit.variant'))}: ${esc(t('fit.var.' + R.choices.fixed))}</p>` : '');
+    body.innerHTML = back + `<h4 class="mp-sec">${esc(t('fit.t.' + test))}</h4>
+      <p>${esc(t('fit.t.' + test + '.what'))}</p>
+      <p class="progress-hint">🎒 ${esc(t('fit.t.' + test + '.gear'))}</p>
+      ${chips}
+      <p class="fit-stop">🛑 ${esc(t('fit.stopRules'))}</p>
+      ${fx.notes.map(k => `<p class="progress-hint">⚠️ ${esc(t(k))}</p>`).join('')}
+      <p class="progress-hint">${esc(t('fit.t.' + test + '.src'))}</p>
+      <div class="eval-actions"><button type="button" class="btn-primary" data-fit-act="begin">${esc(t('fit.startBtn'))}</button>${R.seq ? `<button type="button" class="btn-ghost" data-fit-act="skip">${esc(t('fit.skip'))}</button>` : ''}</div>`;
+    return;
+  }
+  if (R.phase === 'run' || R.phase === 'pulse') {
+    body.innerHTML = back + `<h4 class="mp-sec">${esc(R.phase === 'pulse' ? t('fit.pulsePhase') : t('fit.t.' + test))}</h4>
+      <div class="fit-timer" id="fit-timer">--:--</div>
+      ${test === 'stepYmca' && R.phase === 'run' ? `<div class="eval-actions"><button type="button" class="btn-ghost btn-sm" data-fit-act="metro">${esc(t('fit.metro'))}${R.metroOn ? ' ✓' : ''}</button></div>` : ''}
+      <p class="fit-stop">🛑 ${esc(t('fit.stopRules'))}</p>
+      <div class="eval-actions">
+        ${R.running ? `<button type="button" class="btn-ghost" data-fit-act="pause">${esc(t('fit.pauseBtn'))}</button>` : `<button type="button" class="btn-primary" data-fit-act="resume">${esc(R.acc > 0 ? t('fit.resumeBtn') : t('fit.startBtn'))}</button>`}
+        <button type="button" class="btn-primary" data-fit-act="finish">${esc(t('fit.stopBtn'))}</button>
+        <button type="button" class="btn-ghost" data-fit-act="reset">${esc(t('fit.resetBtn'))}</button>
+      </div>`;
+    fitTimerTick();
+    return;
+  }
+  if (R.phase === 'input') {
+    const preset = test === 'plank' ? String(Math.floor(R.acc)) : '';
+    const unitKey = 'fit.unit.' + (FIT_UNIT[test] || 'reps');
+    body.innerHTML = back + `<h4 class="mp-sec">${esc(t('fit.t.' + test))}</h4>
+      <p class="progress-hint">${esc(t('fit.var.' + R.variant))}${test === 'plank' ? ' · ' + esc(fitValTxt({ test, value: Math.floor(R.acc) })) : ''}</p>
+      <label class="mp-lab" for="fit-value">${esc(t('fit.value.' + (FIT_UNIT[test] || 'reps')))} (${esc(t(unitKey))})</label>
+      <input type="number" id="fit-value" class="fit-value" inputmode="numeric" min="0" step="1" value="${preset}">
+      <div class="eval-actions"><button type="button" class="btn-primary" data-fit-act="save" data-complete="1">${esc(t('fit.save'))}</button>
+      <button type="button" class="btn-ghost" data-fit-act="save" data-complete="0">${esc(t('fit.markIncomplete'))}</button></div>
+      <p class="mp-err" id="fit-save-err" style="display:none"></p>`;
+    const inp = $('fit-value'); if (inp) { try { inp.focus(); } catch {} }
+  }
+}
+function fitTimerTick() {
+  const el = $('fit-timer'); if (!el || !FIT_RUN) return;
+  const test = FIT_RUN.test;
+  let shown;
+  if (FIT_RUN.phase === 'pulse') shown = Math.max(0, 60 - fitElapsed());
+  else if (FIT_DUR[test]) shown = Math.max(0, FIT_DUR[test] - fitElapsed());
+  else shown = fitElapsed();
+  const s = Math.ceil(shown);
+  el.textContent = Math.floor(s / 60) + ':' + String(s % 60).padStart(2, '0');
+  if (FIT_RUN.running) {
+    if (FIT_RUN.phase === 'pulse' && fitElapsed() >= 60) { fitRunToInput(); return; }
+    if (FIT_RUN.phase === 'run' && FIT_DUR[test] && fitElapsed() >= FIT_DUR[test]) {
+      if (test === 'stepYmca') { FIT_RUN.phase = 'pulse'; FIT_RUN.acc = 0; FIT_RUN.t0 = Date.now(); fitRunPaint(); return; }
+      fitRunToInput(); return;
+    }
+    if (FIT_RUN.phase === 'run' && test === 'plank' && fitElapsed() >= FIT_RUN.fx.plankCap) { FIT_RUN.acc = FIT_RUN.fx.plankCap; fitRunToInput(); return; }
+  }
+}
+function fitRunBegin() {
+  if (!FIT_RUN) return;
+  FIT_RUN.phase = FIT_RUN.test === 'stepYmca' ? 'run' : 'run';
+  FIT_RUN.acc = 0; FIT_RUN.running = true; FIT_RUN.t0 = Date.now();
+  fitRunStopTimerOnly();
+  FIT_RUN.timer = setInterval(fitTimerTick, 200);
+  fitRunPaint();
+}
+function fitRunStopTimerOnly() { if (FIT_RUN && FIT_RUN.timer) { clearInterval(FIT_RUN.timer); FIT_RUN.timer = 0; } }
+function fitRunToInput() {
+  if (!FIT_RUN) return;
+  if (FIT_RUN.running) { FIT_RUN.acc = fitElapsed(); FIT_RUN.running = false; }
+  fitRunStopTimerOnly(); fitMetroOff();
+  FIT_RUN.phase = 'input';
+  fitRunPaint();
+}
+async function fitRunSave(complete) {
+  const me = mpMe(); if (!me || !FIT_RUN) return;
+  const inp = $('fit-value');
+  const v = inp ? num(inp.value) : 0;
+  const err = $('fit-save-err');
+  const maxV = FIT_RUN.test === 'stepYmca' ? 260 : (FIT_RUN.test === 'plank' ? 300 : 2000);
+  if (!(v > 0) || v > maxV) { if (err) { err.textContent = t('fit.errValue'); err.style.display = ''; } return; }
+  const data = { ownerUid: me, kind: 'fitTest', test: FIT_RUN.test, variant: FIT_RUN.variant, value: v,
+    unit: FIT_UNIT[FIT_RUN.test], date: todayISO(), complete: !!complete, source: 'self', createdAt: serverTimestamp() };
+  try {
+    const id = me + '_fit_' + Date.now();
+    await setDoc(doc(db, 'nutrition_progress', id), data);
+    if (!FIT) FIT = { list: [], err: false };
+    FIT.list.push({ id, ...data, createdAt: undefined });
+    FIT.list.sort((a, b) => (String(a.date) < String(b.date) ? -1 : String(a.date) > String(b.date) ? 1 : (mpTs(a) - mpTs(b))));
+    toast(t('fit.saved'));
+    const seq = FIT_RUN.seq;
+    const doneTest = FIT_RUN.test;
+    FIT_RUN = null;
+    try { mpRenderHome(); } catch {}
+    if (seq && seq.length) { const nxt = seq[0]; if (nxt !== doneTest) fitRunStart(nxt, seq.slice(1)); else fitRunStart(seq[0], seq.slice(1)); }
+    else mpFitPaint();
+  } catch { if (err) { err.textContent = t('fit.saveErr'); err.style.display = ''; } toast(t('fit.saveErr'), true); }
+}
+function fitNextInSeq() {
+  if (!FIT_RUN) return;
+  const seq = FIT_RUN.seq || [];
+  FIT_RUN = null;
+  if (seq.length) fitRunStart(seq[0], seq.slice(1));
+  else mpFitPaint();
+}
+document.addEventListener('click', e => {
+  const b = e.target.closest && e.target.closest('[data-fit-act]');
+  if (!b) return;
+  const act = b.dataset.fitAct;
+  if (act === 'godecl') fitGoDecl();
+  else if (act === 'startall') { const fx = fitEffects(FIT_GATE && FIT_GATE.state === 'decl' ? FIT_GATE.conds : []); const seq = fitAvailableSeq(fx); if (seq.length) fitRunStart(seq[0], seq.slice(1)); }
+  else if (act === 'run') fitRunStart(b.dataset.test, null);
+  else if (act === 'home') { fitRunStop(); FIT_RUN = null; mpFitPaint(); }
+  else if (act === 'variant') { if (FIT_RUN) { FIT_RUN.variant = b.dataset.v; fitRunPaint(); } }
+  else if (act === 'begin') fitRunBegin();
+  else if (act === 'pause') { if (FIT_RUN && FIT_RUN.running) { FIT_RUN.acc = fitElapsed(); FIT_RUN.running = false; fitRunPaint(); } }
+  else if (act === 'resume') { if (FIT_RUN) { FIT_RUN.running = true; FIT_RUN.t0 = Date.now(); if (!FIT_RUN.timer) FIT_RUN.timer = setInterval(fitTimerTick, 200); fitRunPaint(); } }
+  else if (act === 'reset') { if (FIT_RUN) { FIT_RUN.acc = 0; FIT_RUN.running = false; fitRunStopTimerOnly(); fitRunPaint(); } }
+  else if (act === 'finish') fitRunToInput();
+  else if (act === 'skip') fitNextInSeq();
+  else if (act === 'metro') fitMetroToggle();
+  else if (act === 'save') fitRunSave(b.dataset.complete === '1');
+});
+/* La serie del entrenador (decisión 3): mpTrainerLoad recoge los
+   documentos kind 'fitTest' del alumno en D.fits y mpTrainerPaint
+   pinta el último resultado de cada prueba+variante — resultados
+   y variante, jamás motivos. El pintor vive aquí; el empalme en
+   mpTrainerPaint solo lo invoca. */
+function fitTrainerSectionHTML(fits) {
+  if (!Array.isArray(fits) || !fits.length) return '';
+  const sorted = fits.slice().sort((a, b) => (String(a.date) < String(b.date) ? -1 : String(a.date) > String(b.date) ? 1 : 0));
+  const latest = {};
+  for (const r of sorted) if (r.complete !== false) latest[r.test + '|' + (r.variant || 'std')] = r;
+  const rows = Object.values(latest).map(r => `<div class="mp-trow"><span class="mp-tlab">${esc(t('fit.t.' + (FIT_TEST_ORDER.includes(r.test) ? r.test : 'sts1min')))} · ${esc(t('fit.var.' + (r.variant || 'std')))}</span><span class="mp-tval">${esc(fitValTxt(r))}</span><span class="mp-tsub">${esc(shortDate(r.date))}</span></div>`).join('');
+  return `<h4 class="mp-sec">🧪 ${esc(t('fit.title'))}</h4>${rows}<p class="progress-hint">${esc(t('fit.trainerNote'))} · ${fits.length} ${esc(t('fit.count'))}</p>`;
+}
+
 /* === FIN MI PROGRESO === */
