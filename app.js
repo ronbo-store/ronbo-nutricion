@@ -8356,6 +8356,15 @@ en: {
   'sched.orientOnly': 'General guidance for now',
   'mp.title': 'My progress',
   'mp.quickBtn': '＋ Quick log',
+  'streak.chip0': 'You can start it today',
+  'const.title': '🗓️ Your month of constancy',
+  'const.sum': 'Month total: {n}',
+  'const.fullDays': '{n} full days',
+  'const.legend': 'Full day = you did what was due (trained and logged meals — or logged meals on a rest day) · Half day = only one of the two · Empty day = neither',
+  'const.noData': 'No data',
+  'const.trainerTitle': 'Constancy',
+  'const.trainerNote': 'This is the streak count of the student — full day 1, half day ½, empty day 0. It is different from "Adherence · activity" above, which measures the activity data the student shares.',
+  'const.err': 'We could not load the constancy calendar.',
   'fit.title': 'My fitness tests',
   'fit.cardNone': 'Do your first tests today',
   'fit.cardLast': 'Last tests: {date}',
@@ -13150,6 +13159,15 @@ es: {
   'sched.orientOnly': 'Orientación general por ahora',
   'mp.title': 'Mi progreso',
   'mp.quickBtn': '＋ Registro rápido',
+  'streak.chip0': 'Hoy puedes empezarla',
+  'const.title': '🗓️ Tu mes de constancia',
+  'const.sum': 'Total del mes: {n}',
+  'const.fullDays': '{n} días completos',
+  'const.legend': 'Día completo = hiciste lo que tocaba (entrenar y registrar comidas — o registrar comidas en día de descanso) · Día a medias = solo una de las dos · Día vacío = ninguna',
+  'const.noData': 'Sin datos',
+  'const.trainerTitle': 'Constancia',
+  'const.trainerNote': 'Este es el conteo de racha del propio alumno — día completo 1, a medias ½, vacío 0. Es distinto de «Adherencia · actividad» de arriba, que mide los datos de actividad que el alumno comparte.',
+  'const.err': 'No pudimos cargar el calendario de constancia.',
   'fit.title': 'Mis pruebas físicas',
   'fit.cardNone': 'Haz hoy tus primeras pruebas',
   'fit.cardLast': 'Últimas pruebas: {date}',
@@ -22073,6 +22091,7 @@ async function openClient(uid) {
     ${faCardHTML(uid, asmtDoc, data, udata ? udata.paceSuggestion || null : null)}
     <div id="bt-card"></div>
     <div id="adh-card"></div>
+    <div id="const-card"></div>
     <div id="chal-ficha-card"></div>
     ${fb2CardHTML(asmtDoc, data)}
     <div id="pace-card"></div>
@@ -22137,6 +22156,7 @@ async function openClient(uid) {
      lista de pesos que esta ficha ya cargó (cero lecturas nuevas
      para el peso). */
   try { adhLoadTrainerCard(uid, udata, data); } catch {}
+  try { constLoadTrainerCard(uid, udata); } catch {}
   try { treqFichaLoad(uid); } catch {}
   try { chkFichaLoad(uid); } catch {}
   try { chalFichaLoad(uid); } catch {}
@@ -22358,6 +22378,54 @@ async function adhLoadTrainerCard(uid, udata, weights) {
     + (rotation ? `<p class="progress-hint">${esc(t('adh.rotationNote'))}</p>` : '')
     + `<p class="progress-hint">${esc(t('adh.note'))}</p></div>`;
   adhCardWire(box);
+}
+
+/* ---------- El espejo del entrenador (ficha del alumno) ---------- */
+let CONST_T_YM = null, CONST_T_UID = null;
+const CONST_T_CACHE = {};
+const CONST_T_PLANS = {};
+async function constLoadTrainerCard(uid, udata) {
+  const box = $('const-card'); if (!box) return;
+  if (CONST_T_UID !== uid) { CONST_T_UID = uid; CONST_T_YM = null; }
+  const today = todayISO();
+  if (!CONST_T_YM) CONST_T_YM = today.slice(0, 7);
+  const ym = CONST_T_YM;
+  const { first, last } = constMonthRange(ym);
+  const toIso = last < today ? last : today;
+  const head = `<div class="compacc-box"><h3 class="history-title">🗓️ ${esc(t('const.trainerTitle'))}</h3>
+    <div class="const-head"><button type="button" class="btn-ghost btn-sm" data-const-tnav="-1" aria-label="‹">‹</button><span class="const-month">${esc(constMonthName(ym))}</span><button type="button" class="btn-ghost btn-sm" data-const-tnav="1" aria-label="›" ${ym >= today.slice(0, 7) ? 'disabled' : ''}>›</button></div>`;
+  const foot = `<p class="progress-hint">${esc(t('const.legend'))}</p><p class="progress-hint">${esc(t('const.trainerNote'))}</p></div>`;
+  const paint = ctx => {
+    const valueOf = iso => {
+      const c2 = { ...ctx, plan: constPickPlan(ctx.plans, iso, ctx.activePlan) };
+      return constDayValueTwin(iso, c2);
+    };
+    const { grid, sum, full } = constGridHTML(ym, valueOf, { clickable: false });
+    box.innerHTML = head + grid + `<p class="const-sum">${esc(t('const.sum', { n: streakFmt(sum) }))} · ${esc(t('const.fullDays', { n: full }))}</p>` + foot;
+    constWireTrainerNav(box, uid, udata);
+  };
+  const key = uid + '|' + ym;
+  if (CONST_T_CACHE[key]) { paint(CONST_T_CACHE[key]); return; }
+  box.innerHTML = head + `<div class="wempty">${esc(t('mp.loading'))}</div>` + foot;
+  constWireTrainerNav(box, uid, udata);
+  try {
+    const plansCache = (CONST_T_PLANS[uid] = CONST_T_PLANS[uid] || {});
+    const ctx = await constFetchCtx(uid, first, toIso, plansCache);
+    CONST_T_CACHE[key] = ctx;
+    if (CONST_T_UID === uid && CONST_T_YM === ym && $('const-card')) paint(ctx);
+  } catch { if ($('const-card') === box) { box.innerHTML = head + `<div class="wempty">${esc(t('const.err'))}</div>` + foot; constWireTrainerNav(box, uid, udata); } }
+}
+function constWireTrainerNav(box, uid, udata) {
+  box.querySelectorAll('[data-const-tnav]').forEach(b => {
+    b.onclick = () => {
+      if (b.disabled) return;
+      const d = Number(b.dataset.constTnav) || 0;
+      const [y, m] = (CONST_T_YM || todayISO().slice(0, 7)).split('-').map(Number);
+      const dt = new Date(y, m - 1 + d, 1);
+      CONST_T_YM = dt.getFullYear() + '-' + String(dt.getMonth() + 1).padStart(2, '0');
+      constLoadTrainerCard(uid, udata);
+    };
+  });
 }
 
 /* ============ INTERRUPTOR DE COMPOSICIÓN (vista del entrenador) ============
@@ -23904,7 +23972,11 @@ function fusedStreakToday() {
   try { return streakWeighted(); } catch { return 0; }
 }
 function fusedStreakChip(streak) {
-  if (!(streak > 0)) return '';
+  /* AUTH-2026-11-10-400 (decisión 6): la racha es un elemento FIJO
+     de la cabecera de Inicio — también con la racha en 0, cuando
+     invita a empezarla hoy. La llamita (el gasto del día) es otra
+     cosa y no se toca. */
+  if (!(streak > 0)) return `<span class="dg-streak dg-streak-zero">${esc(t('streak.chip0'))}</span>`;
   return `<span class="dg-streak">${esc(streak === 1 ? t('glance.streak1') : t('glance.streak', { n: streakFmt(streak) }))}</span>`;
 }
 /* Los datos de las secciones de HOY, calculados UNA vez: el
@@ -45763,6 +45835,7 @@ function render(date) {
   }
   renderWeekChart(date);
   try { renderFoodWeekDiary(date); } catch {}
+  try { renderConstCal(); } catch {}
   /* ORDEN DESCENDENTE + HORA (Ronald, 2026-10-23): el «Detalle de lo
      consumido» se pinta de la comida registrada MÁS RECIENTE a la más
      antigua, con su hora de registro junto a la etiqueta. Se ordena
@@ -51233,6 +51306,209 @@ function streakFmt(v) {
    el día vale algo (> 0) en la ÚNICA definición ponderada. */
 function shareIsActiveDay(iso) { return streakDayValue(iso) > 0; }
 function shareStreak() { return streakWeighted(); }
+
+/* === RACHA FIJA + CALENDARIO DE CONSTANCIA (AUTH-2026-11-10-400) ==
+   Paquete B de PROPUESTA-PRUEBAS-Y-RACHA-2026-11-10 (decisiones
+   6, 7 y 8 de Ronald, 2026-11-10 22:47–22:50 CST).
+   (6) LA RACHA, FIJA EN INICIO: fusedStreakChip deja de
+   desaparecer con la racha en 0 — el chip vive en las dos
+   cabeceras de Inicio siempre, y en 0 dice «Hoy puedes
+   empezarla». La llamita 🔥 (el gasto de hoy) es OTRA COSA y no
+   se toca.
+   (7) EL CALENDARIO DEL ALUMNO: «Tu mes de constancia» en Mi
+   registro, bajo el diario visual, con navegación por meses.
+   Cada día se pinta con LA MISMA definición de siempre
+   (streakDayValue: completo 1 · a medias 0,5 · vacío 0) — cero
+   cálculo nuevo: dentro de la ventana cargada de la casa
+   (histCutoffISO, un año) manda la función canónica; para meses
+   anteriores se compone la GEMELO con las piezas puras de la
+   casa (trainWeekdayPairs, planCalApplies, planCalDayIndex,
+   wkIsClosed, wkSessionMinutes, trainLogStatus, STREAK_WEIGHTS)
+   sobre datos traídos por rango — la batería del paquete prueba
+   la equivalencia gemela ≡ canónica sobre datos sintéticos.
+   (8) EL ESPEJO DEL ENTRENADOR: la misma malla en la ficha del
+   alumno, rotulada «Constancia» y DIFERENCIADA de «Adherencia ·
+   actividad» (que mide los datos de actividad compartidos; esto
+   es el conteo de racha del propio alumno). Sin navegación a
+   días: en la ficha es lectura.
+   CERO reglas nuevas: todo son lecturas que la casa ya hace. */
+function constPlanDueTwin(iso, plan) {
+  try {
+    if (!plan || plan.isSnapshot === true || !Array.isArray(plan.days) || !plan.days.length) return null;
+    const start = String(plan._wkCreated || plan.startsAt || '').slice(0, 10);
+    if (/^\d{4}-\d{2}-\d{2}$/.test(start) && iso < start) return null;
+    const end = plan.endsAt ? String(plan.endsAt).slice(0, 10) : '';
+    if (/^\d{4}-\d{2}-\d{2}$/.test(end) && iso > end) return null;
+    const pairs = trainWeekdayPairs(plan.days);
+    if (pairs) {
+      const di = pairs[new Date(iso + 'T12:00:00').getDay()];
+      if (di == null) return 'rest';
+      return ((plan.days[di] || {}).freeDay === true) ? 'rest' : 'train';
+    }
+    if (planCalApplies(plan)) {
+      const cdi = planCalDayIndex(plan, iso);
+      if (cdi == null) return 'rest';
+      return ((plan.days[cdi] || {}).freeDay === true) ? 'rest' : 'train';
+    }
+    return null;
+  } catch { return null; }
+}
+function constActMinutesTwin(iso, ctx) {
+  let total = 0;
+  const d = ctx.act[iso];
+  if (d && Array.isArray(d.activities))
+    total += d.activities.reduce((s, a) => s + ((a && a.type === 'entrenamiento_plan') ? 0 : Math.max(0, Math.floor(num(a && a.durationMin)))), 0);
+  for (const l of ctx.logs) {
+    if (!l || l.date !== iso || !wkIsClosed(l)) continue;
+    const m = wkSessionMinutes(l);
+    if (m != null) total += m;
+  }
+  return total;
+}
+function constTrainedTwin(iso, ctx) {
+  if (ctx.logs.some(l => l && l.date === iso && trainLogStatus(l) === 'done')) return true;
+  if (ctx.logs.some(l => l && l.date === iso && trainLogStatus(l) === 'partial')) return true;
+  if (constActMinutesTwin(iso, ctx) > 0) return true;
+  const a = ctx.act[iso]; if (a && num(a.steps) > 0) return true;
+  return false;
+}
+function constDayValueTwin(iso, ctx) {
+  const trained = constTrainedTwin(iso, ctx);
+  const fed = ctx.meals.has(iso);
+  if (trained && fed) return STREAK_WEIGHTS.full;
+  if (!trained && !fed) return STREAK_WEIGHTS.empty;
+  if (fed && constPlanDueTwin(iso, ctx.plan) === 'rest') return STREAK_WEIGHTS.full;
+  return STREAK_WEIGHTS.half;
+}
+function constPickPlan(plans, iso, activePlan) {
+  const covering = (plans || []).filter(p => {
+    if (!p || p.isSnapshot === true || !Array.isArray(p.days) || !p.days.length) return false;
+    const s = String(p._wkCreated || p.startsAt || '').slice(0, 10);
+    if (!/^\d{4}-\d{2}-\d{2}$/.test(s) || iso < s) return false;
+    const e = p.endsAt ? String(p.endsAt).slice(0, 10) : '';
+    return !(/^\d{4}-\d{2}-\d{2}$/.test(e) && iso > e);
+  });
+  if (covering.length) {
+    covering.sort((a, b) => String(b._wkCreated || b.startsAt || '').localeCompare(String(a._wkCreated || a.startsAt || '')));
+    return covering[0];
+  }
+  return activePlan || null;
+}
+async function constFetchCtx(uid, fromIso, toIso, plansCache) {
+  const ctx = { meals: new Set(), logs: [], act: {}, plans: [], plan: null };
+  const [ms, ls, as] = await Promise.all([
+    getDocs(query(collection(db, 'nutrition_meals'), where('ownerUid', '==', uid))),
+    getDocs(query(collection(db, 'training_logs'), where('clientUid', '==', uid), where('date', '>=', fromIso))),
+    getDocs(query(collection(db, 'activity_logs'), where('ownerUid', '==', uid), where('date', '>=', fromIso)))
+  ]);
+  ms.forEach(d => { const v = d.data(); if (v && v.date >= fromIso && v.date <= toIso) ctx.meals.add(v.date); });
+  ls.forEach(d => { const v = d.data(); if (v && v.date <= toIso) ctx.logs.push(v); });
+  as.forEach(d => { const v = d.data(); if (v && v.date <= toIso) ctx.act[v.date] = v; });
+  if (plansCache.list) ctx.plans = plansCache.list;
+  else {
+    const ps = await getDocs(query(collection(db, 'training_plans'), where('clientUid', '==', uid)));
+    const all = [];
+    ps.forEach(d => all.push({ id: d.id, ...d.data() }));
+    plansCache.list = all;
+    ctx.plans = all;
+  }
+  const actives = ctx.plans.filter(p => p && p.active === true && p.isSnapshot !== true);
+  actives.sort((a, b) => String(b.createdAt || '').localeCompare(String(a.createdAt || '')));
+  ctx.activePlan = actives[0] || null;
+  return ctx;
+}
+function constMonthRange(ym) {
+  const [y, m] = ym.split('-').map(Number);
+  const last = new Date(y, m, 0).getDate();
+  return { y, m, first: ym + '-01', last: ym + '-' + String(last).padStart(2, '0'), days: last };
+}
+function constMonthName(ym) {
+  const [y, m] = ym.split('-').map(Number);
+  try { return new Date(y, m - 1, 1).toLocaleDateString(LANG === 'es' ? 'es' : 'en', { month: 'long', year: 'numeric' }); }
+  catch { return ym; }
+}
+function constGridHTML(ym, valueOf, opts) {
+  const { y, m, days } = constMonthRange(ym);
+  const today = todayISO();
+  const firstDow = (new Date(y, m - 1, 1).getDay() + 6) % 7; /* semana desde el lunes */
+  const dows = LANG === 'es' ? ['L', 'M', 'X', 'J', 'V', 'S', 'D'] : ['M', 'T', 'W', 'T', 'F', 'S', 'S'];
+  let cells = dows.map(d => `<span class="const-dow">${d}</span>`).join('');
+  for (let i = 0; i < firstDow; i++) cells += '<span class="const-day const-blank"></span>';
+  let sum = 0, full = 0;
+  for (let d = 1; d <= days; d++) {
+    const iso = ym + '-' + String(d).padStart(2, '0');
+    if (iso > today) { cells += `<span class="const-day const-future">${d}</span>`; continue; }
+    const v = valueOf(iso);
+    if (v == null) { cells += `<span class="const-day const-nodata" title="${esc(t('const.noData'))}">${d}</span>`; continue; }
+    sum += v; if (v >= 1) full++;
+    const cls = v >= 1 ? 'const-full' : (v > 0 ? 'const-half' : 'const-zero');
+    const click = opts && opts.clickable ? ` data-const-day="${iso}" role="button" tabindex="0"` : '';
+    cells += `<span class="const-day ${cls}${iso === today ? ' const-today' : ''}"${click}>${d}</span>`;
+  }
+  return { grid: `<div class="const-grid">${cells}</div>`, sum, full };
+}
+/* ---------- El calendario del alumno (Mi registro) ---------- */
+let CONST_YM = null;
+const CONST_CACHE = {};       // ym -> ctx (solo meses con días fuera de la ventana)
+const CONST_PLANS_OWN = {};
+function renderConstCal() {
+  const box = $('constCal'); if (!box) return;
+  const today = todayISO();
+  if (!CONST_YM) CONST_YM = today.slice(0, 7);
+  const ym = CONST_YM;
+  const { first, last } = constMonthRange(ym);
+  const cutoff = histCutoffISO();
+  const needsTwin = first < cutoff;
+  const head = `<div class="const-head"><button type="button" class="btn-ghost btn-sm" data-const-nav="-1" aria-label="‹">‹</button><span class="const-month">${esc(constMonthName(ym))}</span><button type="button" class="btn-ghost btn-sm" data-const-nav="1" aria-label="›" ${ym >= today.slice(0, 7) ? 'disabled' : ''}>›</button></div>`;
+  const created = (() => { try { const c = UDATA && UDATA.createdAt; const s = typeof c === 'string' ? c.slice(0, 10) : (c && c.seconds ? new Date(c.seconds * 1000).toISOString().slice(0, 10) : ''); return /^\d{4}-\d{2}-\d{2}$/.test(s) ? s : ''; } catch { return ''; } })();
+  const paint = ctx => {
+    const valueOf = iso => {
+      if (created && iso < created) return null;
+      if (iso >= cutoff) { try { return streakDayValue(iso); } catch { return 0; } }
+      if (!ctx) return 0;
+      const c2 = { ...ctx, plan: constPickPlan(ctx.plans, iso, ctx.activePlan) };
+      return constDayValueTwin(iso, c2);
+    };
+    const { grid, sum, full } = constGridHTML(ym, valueOf, { clickable: true });
+    box.innerHTML = head + grid
+      + `<p class="const-sum">${esc(t('const.sum', { n: streakFmt(sum) }))} · ${esc(t('const.fullDays', { n: full }))}</p>`
+      + `<p class="progress-hint">${esc(t('const.legend'))}</p>`;
+  };
+  if (!needsTwin || CONST_CACHE[ym]) { paint(CONST_CACHE[ym] || null); return; }
+  box.innerHTML = head + `<div class="wempty">${esc(t('mp.loading'))}</div>`;
+  const me = (auth.currentUser && auth.currentUser.uid) || (UDATA && UDATA.id) || '';
+  if (!me) { paint(null); return; }
+  /* La gemela solo cubre los días del mes ANTERIORES a la ventana
+     cargada: [primero del mes, día anterior al corte]. */
+  const twinTo = addDaysISO(cutoff, -1);
+  if (twinTo < first) { paint(null); return; }
+  const guard = ym;
+  (async () => {
+    try {
+      const ctx = await constFetchCtx(me, first, twinTo, CONST_PLANS_OWN);
+      CONST_CACHE[guard] = ctx;
+      if (CONST_YM === guard && $('constCal')) paint(ctx);
+    } catch { if (CONST_YM === guard && $('constCal')) paint(null); }
+  })();
+}
+document.addEventListener('click', e => {
+  const nav = e.target.closest && e.target.closest('[data-const-nav]');
+  if (nav && !nav.disabled) {
+    const d = Number(nav.dataset.constNav) || 0;
+    const [y, m] = (CONST_YM || todayISO().slice(0, 7)).split('-').map(Number);
+    const dt = new Date(y, m - 1 + d, 1);
+    CONST_YM = dt.getFullYear() + '-' + String(dt.getMonth() + 1).padStart(2, '0');
+    renderConstCal();
+    return;
+  }
+  const day = e.target.closest && e.target.closest('[data-const-day]');
+  if (day) {
+    const iso = day.dataset.constDay;
+    const ds = $('dateSel');
+    if (ds && iso) { ds.value = iso; try { render(iso); } catch {} }
+  }
+});
+
 function shareDayData() {
   const iso = todayISO();
   const tot = totals(iso);
@@ -54213,7 +54489,7 @@ document.addEventListener('keydown', e => { if (e.key === 'Escape') shareClose()
  *  - El SW (sw.js) solo cachea la cáscara del mismo origen en modo
  *    RED PRIMERO: Auth/Firestore/Worker jamás pasan por la caché.
  * ================================================================ */
-const PWA_SW_VERSION = '20261110-pruebas-fisicas';
+const PWA_SW_VERSION = '20261110-racha-calendario';
 /* Sello de versión VISIBLE (2026-11-03): el pie de la tarjeta de
    acceso enseña qué copia corre este teléfono ('v ' + el sello),
    para comprobar de un vistazo si la versión nueva ya llegó.

@@ -21,7 +21,7 @@
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-title" content="RONBO FIT">
 <meta name="apple-mobile-web-app-status-bar-style" content="default">
-<link rel="stylesheet" href="styles.css?v=20261110-pruebas-fisicas">
+<link rel="stylesheet" href="styles.css?v=20261110-racha-calendario">
 <script defer src="https://cloud.umami.is/script.js" data-website-id="a29706d4-44a2-47cf-900a-5f74d74abfa8"></script>
 <script type="importmap">
 {
@@ -424,6 +424,16 @@
     <div id="foodWeekDiary"></div>
   </div>
 
+  <!-- CALENDARIO DE CONSTANCIA (AUTH-2026-11-10-400): el mes del
+       alumno pintado con la definición única de la racha
+       (streakDayValue: completo 1 · a medias 0,5 · vacío 0), con
+       navegación por meses; lo pinta renderConstCal() en app.js
+       desde el mismo render() que llama a renderFoodWeekDiary.
+       Tocar un día salta a ese día en el registro. -->
+  <div class="panel const-panel">
+    <h2 data-i18n="const.title">🗓️ Your month of constancy</h2>
+    <div id="constCal"></div>
+  </div>
   <!-- CHECK-IN SEMANAL (AUTH-2026-11-10-367): la tarjeta de
        Inicio con el estado del check-in de esta semana; la pinta
        chkCardSyncPaint (app.js) y su botón abre la vista
@@ -2300,6 +2310,6 @@ cuando no hay declaración legible (decisión 5). -->
 <div id="toast" class="toast"></div>
 <div id="print-card" aria-hidden="true"></div>
 
-<script type="module" src="app.js?v=20261110-pruebas-fisicas"></script>
+<script type="module" src="app.js?v=20261110-racha-calendario"></script>
 </body>
 </html>

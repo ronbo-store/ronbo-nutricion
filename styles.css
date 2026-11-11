@@ -5698,3 +5698,19 @@ body.swap-sheet-open .asst-fab { display: none !important; }
 .fit-timer { font-size: 4.2rem; font-weight: 800; text-align: center; letter-spacing: .04em; margin: 18px 0 6px; font-variant-numeric: tabular-nums; }
 .fit-stop { background: #fdecec; border: 1px solid #f2b8b8; border-radius: 12px; padding: 10px 12px; margin: 12px 0; font-size: .95rem; }
 .fit-value { width: 100%; font-size: 1.6rem; padding: 12px; border-radius: 12px; border: 1px solid var(--border, #ccc); text-align: center; margin: 6px 0 12px; }
+
+/* === RACHA FIJA + CALENDARIO DE CONSTANCIA (AUTH-2026-11-10-400) === */
+.dg-streak-zero { opacity: .75; font-weight: 600; }
+.const-head { display: flex; align-items: center; justify-content: space-between; gap: 10px; margin: 8px 0 10px; }
+.const-month { font-weight: 700; text-transform: capitalize; }
+.const-grid { display: grid; grid-template-columns: repeat(7, 1fr); gap: 5px; }
+.const-dow { text-align: center; font-size: .78rem; font-weight: 700; opacity: .65; padding: 2px 0; }
+.const-day { text-align: center; padding: 8px 0; border-radius: 9px; font-size: .92rem; font-variant-numeric: tabular-nums; background: #f1f1f1; color: #555; }
+.const-day.const-full { background: #2e9e5b; color: #fff; font-weight: 700; }
+.const-day.const-half { background: linear-gradient(90deg, #2e9e5b 50%, #dcefe2 50%); color: #14532d; font-weight: 700; }
+.const-day.const-zero { background: #f1f1f1; color: #999; }
+.const-day.const-nodata { background: transparent; color: #bbb; }
+.const-day.const-future { background: transparent; color: #ccc; }
+.const-day.const-today { outline: 2px solid #14532d; outline-offset: -2px; }
+.const-day[data-const-day] { cursor: pointer; }
+.const-sum { font-weight: 700; margin: 10px 0 2px; }
