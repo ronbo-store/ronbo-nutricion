@@ -5891,6 +5891,19 @@ en: {
   'train.today.nextTomorrow': 'Tomorrow: {label}', 'train.today.nextOn': 'On {date}: {label}',
   'train.today.scheduled': 'Scheduled', 'train.today.loggedOther': 'That day you logged: {label}',
   'train.custom.title': 'Customize today\'s assignments',
+  'manage.title': 'Manage your session',
+  'manage.openSub': '{n} exercises · change, remove, add and reorder',
+  'manage.openSubOne': '1 exercise · change, remove, add and reorder',
+  'manage.dirty': 'You have unsaved changes',
+  'manage.clean': 'All saved',
+  'manage.fromPlan': 'from the plan',
+  'manage.addedTag': 'ADDED BY YOU',
+  'manage.add': '＋ Add exercise',
+  'manage.cancel': 'Cancel',
+  'manage.save': '💾 Save changes',
+  'manage.savedDay': '{day} session updated',
+  'manage.count': '{n} exercises',
+  'manage.countOne': '1 exercise',
   'train.custom.titleDate': 'Customize the assignments for {date}',
   'train.custom.sessionTitle': 'Today\'s session',
   'train.custom.move': 'Move', 'train.custom.moveUp': 'Move up', 'train.custom.moveDown': 'Move down',
@@ -10578,6 +10591,19 @@ es: {
   'train.today.nextTomorrow': 'Mañana: {label}', 'train.today.nextOn': 'El {date}: {label}',
   'train.today.scheduled': 'Programada', 'train.today.loggedOther': 'Ese día registraste: {label}',
   'train.custom.title': 'Personaliza tus asignaciones de hoy',
+  'manage.title': 'Gestiona tu sesión',
+  'manage.openSub': '{n} ejercicios · cambiar, quitar, añadir y ordenar',
+  'manage.openSubOne': '1 ejercicio · cambiar, quitar, añadir y ordenar',
+  'manage.dirty': 'Tienes cambios sin guardar',
+  'manage.clean': 'Todo guardado',
+  'manage.fromPlan': 'del plan',
+  'manage.addedTag': 'AÑADIDO POR TI',
+  'manage.add': '＋ Añadir ejercicio',
+  'manage.cancel': 'Cancelar',
+  'manage.save': '💾 Guardar cambios',
+  'manage.savedDay': 'Sesión del {day} actualizada',
+  'manage.count': '{n} ejercicios',
+  'manage.countOne': '1 ejercicio',
   'train.custom.titleDate': 'Personaliza tus asignaciones del {date}',
   'train.custom.sessionTitle': 'Sesión de hoy',
   'train.custom.move': 'Mover', 'train.custom.moveUp': 'Subir', 'train.custom.moveDown': 'Bajar',
@@ -32762,6 +32788,9 @@ let TRAIN_CUSTOM_OPEN_STASH = null;   // AUTH-370: estado del desplegable al ent
 let TRAIN_GUIDE_DOOR = false;   // AUTH-370: la tarjeta interactiva de hoy está en pie → la puerta del guiado se pinta ARRIBA (trainGuideDoorHTML)
 let TRAIN_PICK = null;           // { kind:'swap', idx } | { kind:'add' } — selector de biblioteca abierto dentro del desplegable
 let TRAIN_CUSTOM_ISO = null;     // FECHA VISTA (2026-11-01): fecha que el desplegable está personalizando; si la vista cambia de fecha, el selector abierto se cierra (su índice pertenecía a la lista de otro día)
+let TRAIN_MANAGE = null;         // GESTIONA TU SESIÓN (AUTH-2026-11-10-387): la hoja abierta { plan, di, iso, snapEdits, snapChecksRaw, snapChecks } o null
+let TRAIN_MANAGE_FLASH = null;   // GESTIONA TU SESIÓN: { iso, day } — la confirmación visible tras Guardar; la retira la próxima escritura de ediciones fuera de la hoja
+let TRAIN_MANAGE_DRAG = null;    // GESTIONA TU SESIÓN: arrastre en curso de una fila de la hoja (solo memoria)
 /* FECHA VISTA (2026-11-01, decisión de Ronald): la clave admite
    la fecha de la sesión editada; SIN el parámetro devuelve la de
    hoy, byte a byte como siempre — todos los flujos del día en
@@ -32800,6 +32829,10 @@ function trainEditsRead(planId, iso) {
   } catch { return null; }
 }
 function trainEditsWrite(planId, ed, iso) {
+  /* GESTIONA TU SESIÓN: cualquier escritura de ediciones FUERA de
+     la hoja retira su confirmación de guardado (dentro de la hoja
+     la confirmación aún no existe: nace al Guardar). */
+  if (!TRAIN_MANAGE) TRAIN_MANAGE_FLASH = null;
   try {
     if (ed && ((ed.swaps && Object.keys(ed.swaps).length) || (ed.added && ed.added.length) || (ed.removed && ed.removed.length) || (ed.order && ed.order.length)))
       localStorage.setItem(trainEditsKey(planId, iso), JSON.stringify(ed));
@@ -33285,6 +33318,28 @@ function trainCustomRenderSession(plan, di, closed, iso) {
      solo lo ajustan su entrenador, el administrador o el usuario
      autónomo; el alumno CON entrenador lo ve en solo lectura. */
   const readOnly = !isTodayView && viewIso < todayISO() && !trainPastEditable();
+  /* GESTIONA TU SESIÓN (AUTH-2026-11-10-387): con la sesión editable,
+     las herramientas inline de siempre SALEN y en su lugar vive LA
+     PUERTA de la hoja nueva — un solo camino para componer la
+     sesión (sin duplicar puertas). El render de solo lectura de
+     abajo queda intacto y sigue sirviendo a los días pasados del
+     alumno con entrenador; sus ramas editables quedan como red de
+     seguridad sin uso. El dictado y la foto conservan sus botones
+     y su escritura de siempre, bajo la puerta. */
+  if (!readOnly) {
+    let innerM = `<h4 class="tcu-title">${titleTxt}</h4>`;
+    if (TRAIN_MANAGE_FLASH && TRAIN_MANAGE_FLASH.iso === viewIso)
+      innerM += `<div class="mg-saved">✓ ${esc(t('manage.savedDay', { day: TRAIN_MANAGE_FLASH.day }))}</div>`;
+    innerM += `<button type="button" class="mg-door" data-mg-open="1"><span class="mg-door-t">${esc(t('manage.title'))}</span><span class="mg-door-s">${esc(t(eff.length === 1 ? 'manage.openSubOne' : 'manage.openSub', { n: eff.length }))}</span></button>`;
+    innerM += `<div style="margin-top:8px"><button type="button" class="btn-primary dict-open-btn" data-tcu-dict="1">${t('dict.open')}</button></div><div style="margin-top:8px"><button type="button" class="btn-secondary photo-open-btn" data-tcu-photo="1">${t('mph.open')}</button></div>`;
+    tools.innerHTML = innerM;
+    const doorM = tools.querySelector('[data-mg-open]');
+    if (doorM) doorM.onclick = () => trainManageOpen(plan, di, viewIso);
+    trainCustomWire(plan, di, viewIso);
+    swapSheetSync(plan, di, viewIso);
+    trainManageSync();
+    return;
+  }
   /* ORDEN DEL DÍA: subir/bajar vive en las mismas filas que cambiar/quitar, solo para quien puede reordenar su día y nunca en solo lectura. */
   const canMove = !readOnly && trainReorderAllowed();
   const removeTxt = isTodayView ? t('train.custom.removeToday') : t('train.custom.removeDay');
@@ -33328,6 +33383,205 @@ function trainCustomRenderSession(plan, di, closed, iso) {
   trainCustomWire(plan, di, viewIso);
   swapSheetSync(plan, di, viewIso);
 }
+/* ═══ GESTIONA TU SESIÓN (AUTH-2026-11-10-387) ═══
+   Diseño aprobado por Ronald (2026-11-09, maqueta; «Sí,
+   constrúyela» 2026-11-10 18:22 CST): la composición de la sesión
+   de la fecha vista vive en UNA hoja a pantalla completa — filas
+   con agarradera ⠿ para reordenar ARRASTRANDO en un solo gesto
+   (también al primer puesto; sin flechitas de a un paso), Cambiar
+   y Quitar uniformes en cada fila, la marca «AÑADIDO POR TI» en
+   lo armado a mano, «＋ Añadir ejercicio» con el selector de
+   siempre y pie FIJO con Cancelar y «💾 Guardar cambios» de 52 px.
+   LA HOJA TRABAJA SOBRE UNA FOTO DEL ESTADO: al abrir guarda la
+   foto exacta de las ediciones de la fecha (su clave local) y de
+   las marcas de hoy; todas las operaciones de dentro corren por
+   los caminos de siempre (trainSessionReorder / RemoveAt /
+   RestoreSlot / el selector / el escáner de máquinas), que
+   escriben en la capa de edición de sesión de siempre — el plan
+   jamás se toca y Firestore no se escribe desde aquí. GUARDAR
+   conserva lo hecho, cierra y deja visible la confirmación
+   «✓ Sesión del <día> actualizada» (patrón AUTH-349); CANCELAR —
+   la única otra salida — restaura la foto byte a byte: ediciones
+   y marcas vuelven a como estaban al abrir. La píldora de la
+   cabecera compara en vivo contra la foto: «Tienes cambios sin
+   guardar» o «Todo guardado».
+   La agarradera solo se ofrece a quien puede reordenar su día
+   (trainReorderAllowed, la regla de 2026-11-03: el alumno con
+   entrenador entrena en el orden que su entrenador organizó); sin
+   permiso, la fila conserva su sitio y el resto de controles.
+   El registro EN VIVO de la sesión (la tarjeta del día y su
+   flotante, AUTH-344) no se toca: esta hoja compone, no registra. */
+function trainManageSnapshot(plan, iso) {
+  let edits = null, checksRaw = null, checks = null;
+  try { edits = localStorage.getItem(trainEditsKey(plan.id, iso)); } catch {}
+  if (iso === todayISO()) {
+    try { checksRaw = localStorage.getItem(trainChecksKey(plan.id)); } catch {}
+    checks = JSON.parse(JSON.stringify(TRAIN_CHECKS || {}));
+  }
+  return { edits, checksRaw, checks };
+}
+function trainManageRestore(M) {
+  try {
+    const k = trainEditsKey(M.plan.id, M.iso);
+    if (M.snapEdits == null) localStorage.removeItem(k); else localStorage.setItem(k, M.snapEdits);
+  } catch {}
+  if (M.iso === todayISO()) {
+    TRAIN_CHECKS = M.snapChecks ? JSON.parse(JSON.stringify(M.snapChecks)) : {};
+    try {
+      const ck = trainChecksKey(M.plan.id);
+      if (M.snapChecksRaw == null) localStorage.removeItem(ck); else localStorage.setItem(ck, M.snapChecksRaw);
+    } catch {}
+  }
+}
+function trainManageDirty(M) {
+  if (!M) return false;
+  try { if (localStorage.getItem(trainEditsKey(M.plan.id, M.iso)) !== M.snapEdits) return true; } catch {}
+  if (M.iso === todayISO()) {
+    try { if (localStorage.getItem(trainChecksKey(M.plan.id)) !== M.snapChecksRaw) return true; } catch {}
+  }
+  return false;
+}
+function trainManageOpen(plan, di, iso) {
+  if (!plan || di == null) return;
+  const viewIso = iso || todayISO();
+  const snap = trainManageSnapshot(plan, viewIso);
+  TRAIN_MANAGE = { plan, di, iso: viewIso, snapEdits: snap.edits, snapChecksRaw: snap.checksRaw, snapChecks: snap.checks };
+  TRAIN_PICK = null;
+  trainManageSync();
+}
+function trainManageClose(save) {
+  const M = TRAIN_MANAGE;
+  if (!M) return;
+  const wasDirty = trainManageDirty(M);
+  if (!save) trainManageRestore(M);
+  TRAIN_MANAGE = null;
+  TRAIN_PICK = null;
+  SWAP_QUERY = '';
+  const sheet = document.getElementById('manage-sheet');
+  if (sheet) sheet.remove();
+  document.body.classList.remove('swap-sheet-open');
+  if (save && wasDirty) TRAIN_MANAGE_FLASH = { iso: M.iso, day: weekdayName(M.iso) };
+  loadMyTraining();
+}
+function trainManageCountText(n) {
+  return n === 1 ? t('manage.countOne') : t('manage.count', { n });
+}
+function trainManageSync() {
+  const M = TRAIN_MANAGE;
+  let sheet = document.getElementById('manage-sheet');
+  if (!M) {
+    if (sheet) sheet.remove();
+    document.body.classList.remove('swap-sheet-open');
+    return;
+  }
+  if (!sheet) {
+    sheet = document.createElement('div');
+    sheet.id = 'manage-sheet';
+    sheet.className = 'swap-sheet mg-sheet';
+    document.body.appendChild(sheet);
+  }
+  document.body.classList.add('swap-sheet-open');
+  const plan = M.plan, di = M.di, viewIso = M.iso;
+  const eff = trainEffectiveList(plan, di, viewIso);
+  const canMove = trainReorderAllowed();
+  const dirty = trainManageDirty(M);
+  const day = (plan.days || [])[di] || {};
+  const subParts = [weekdayName(viewIso) + ' ' + dateName(viewIso)];
+  if (day.label) subParts.push(String(day.label));
+  subParts.push(trainManageCountText(eff.length));
+  const rows = eff.map((it, idx) => {
+    const spec = [it.ex.sets, it.ex.reps].filter(Boolean).join(' × ');
+    const name = trainExName(it.ex) || it.ex.name || '';
+    let origin = '';
+    if (it.kind === 'add') origin = ` <span class="mg-tag">${esc(t('manage.addedTag'))}</span>`;
+    else if (it.kind === 'swap') origin = `<span class="train-mark">⇄ ${esc(t('train.custom.swappedFor', { name: trainExName(it.from) || (it.from && it.from.name) || '' }))}</span>`;
+    const sub = it.kind === 'plan' ? [spec, t('manage.fromPlan')].filter(Boolean).join(' · ') : spec;
+    return `<div class="mg-row" data-mg-row="${idx}">
+      ${canMove ? `<button type="button" class="mg-grip" data-mg-grip="${idx}" aria-label="${esc(t('train.custom.move'))}">⠿</button>` : '<span class="mg-grip mg-grip-off" aria-hidden="true"></span>'}
+      <span class="mg-num">${idx + 1}</span>
+      <span class="mg-mid"><span class="mg-name">${esc(name)}${it.kind === 'add' ? origin : ''}</span>${sub ? `<span class="mg-sub">${esc(sub)}</span>` : ''}${it.kind === 'swap' ? origin : ''}</span>
+      <span class="mg-acts"><button type="button" class="mg-act" data-mg-swap="${idx}">${esc(t('train.custom.swap'))}</button><button type="button" class="mg-act mg-quit" data-mg-remove="${idx}">${esc(t('train.custom.removeAdded'))}</button></span>
+    </div>`;
+  }).join('');
+  const edNow = trainEditsRead(plan.id, viewIso);
+  const remSlots = edNow && Array.isArray(edNow.removed) ? edNow.removed : [];
+  let removed = '';
+  if (remSlots.length) {
+    const dayExs = Array.isArray(day.exercises) ? day.exercises : [];
+    removed = remSlots.map(slot => {
+      const sw = edNow.swaps ? edNow.swaps[String(slot)] : null;
+      const shown = sw ? (trainExName({ exerciseId: sw.exerciseId || null, name: sw.name || '', variantIndex: sw.variantIndex }) || sw.name || '') : (trainExName(dayExs[slot]) || (dayExs[slot] && dayExs[slot].name) || '');
+      return `<div class="mg-row is-removed"><span class="mg-mid"><span class="mg-name">${esc(shown)}</span><span class="train-mark">${esc(t(viewIso === todayISO() ? 'train.custom.removedTag' : 'train.custom.removedTagDate'))}</span></span><span class="mg-acts"><button type="button" class="mg-act" data-mg-restore="${slot}">${esc(t('train.custom.restore'))}</button></span></div>`;
+    }).join('');
+  }
+  sheet.innerHTML = `
+    <div class="mg-head">
+      <div class="mg-title">${esc(t('manage.title'))}</div>
+      <div class="mg-subtitle">${esc(subParts.join(' · '))}</div>
+      <span class="${dirty ? 'mg-pill mg-pill-warn' : 'mg-pill mg-pill-ok'}">${dirty ? '● ' + esc(t('manage.dirty')) : '✓ ' + esc(t('manage.clean'))}</span>
+    </div>
+    <div class="mg-list">${rows}${removed}<button type="button" class="mg-add" data-mg-add="1">${esc(t('manage.add'))}</button></div>
+    <div class="mg-foot"><button type="button" class="mg-cancel" data-mg-cancel="1">${esc(t('manage.cancel'))}</button><button type="button" class="mg-save" data-mg-save="1">${esc(t('manage.save'))}</button></div>`;
+  sheet.querySelector('[data-mg-cancel]').onclick = () => trainManageClose(false);
+  sheet.querySelector('[data-mg-save]').onclick = () => trainManageClose(true);
+  sheet.querySelector('[data-mg-add]').onclick = () => { TRAIN_PICK = { kind: 'add' }; SWAP_QUERY = ''; SWAP_PRESET_GROUP = null; loadMyTraining(); };
+  sheet.querySelectorAll('[data-mg-swap]').forEach(b => b.onclick = () => {
+    const idx = Number(b.dataset.mgSwap);
+    const it = trainEffectiveList(plan, di, viewIso)[idx];
+    if (!it) return;
+    TRAIN_PICK = { kind: it.kind === 'add' ? 'replace-add' : 'swap', idx };
+    SWAP_QUERY = '';
+    loadMyTraining();
+  });
+  sheet.querySelectorAll('[data-mg-remove]').forEach(b => b.onclick = () => trainSessionRemoveAt(plan, di, Number(b.dataset.mgRemove), viewIso));
+  sheet.querySelectorAll('[data-mg-restore]').forEach(b => b.onclick = () => trainSessionRestoreSlot(plan, di, Number(b.dataset.mgRestore), viewIso));
+  sheet.querySelectorAll('[data-mg-grip]').forEach(g => {
+    g.addEventListener('pointerdown', e => {
+      const row = g.closest('.mg-row');
+      if (!row) return;
+      TRAIN_MANAGE_DRAG = { row, from: Number(g.dataset.mgGrip), plan, di, iso: viewIso };
+      row.classList.add('mg-dragging');
+      e.preventDefault();
+    });
+  });
+}
+/* El arrastre de una fila de la hoja sigue el algoritmo de la casa
+   (el del editor de planes y el de la tarjeta viva): la fila se
+   mueve EN VIVO entre sus hermanas y al soltar el orden entra por
+   el mismo motor de siempre (trainSessionReorder), que remapea
+   las marcas de hoy con la misma permutación. Solo cuentan las
+   filas de la lista efectiva (data-mg-row): las quitadas, al pie,
+   no son puesto de orden. */
+document.addEventListener('pointermove', e => {
+  const d = TRAIN_MANAGE_DRAG; if (!d) return;
+  const list = d.row.parentElement; if (!list) return;
+  const y = e.clientY;
+  const rows = [...list.querySelectorAll(':scope > .mg-row[data-mg-row]')].filter(r => r !== d.row);
+  for (const r of rows) {
+    const rc = r.getBoundingClientRect();
+    if (y < rc.top + rc.height / 2) { if (r.previousElementSibling !== d.row) list.insertBefore(d.row, r); return; }
+  }
+  const last = rows[rows.length - 1];
+  if (last && y > last.getBoundingClientRect().bottom) {
+    const nx = last.nextElementSibling;
+    if (nx && nx !== d.row) list.insertBefore(d.row, nx);
+    else if (!nx && list.lastElementChild !== d.row) list.appendChild(d.row);
+  }
+});
+document.addEventListener('pointerup', () => {
+  const d = TRAIN_MANAGE_DRAG; if (!d) return;
+  TRAIN_MANAGE_DRAG = null;
+  d.row.classList.remove('mg-dragging');
+  const list = d.row.parentElement;
+  const rows = list ? [...list.querySelectorAll(':scope > .mg-row[data-mg-row]')] : [];
+  const to = rows.indexOf(d.row);
+  if (to >= 0 && to !== d.from && trainSessionReorder(d.plan, d.di, d.from, to, d.iso)) { loadMyTraining(); return; }
+  trainManageSync();
+});
+document.addEventListener('pointercancel', () => {
+  if (TRAIN_MANAGE_DRAG) { TRAIN_MANAGE_DRAG.row.classList.remove('mg-dragging'); TRAIN_MANAGE_DRAG = null; }
+});
+
 function trainCustomWire(plan, di, iso) {
   const viewIso = iso || todayISO();
   const isTodayView = viewIso === todayISO();
@@ -33633,7 +33887,7 @@ function swapCardHTML(ex, opts) {
      día) nace marcada «✓ Añadido» con su etiqueta y DESACTIVADA —
      el espejo del editor de rutinas (AUTH-325): sin duplicados
      posibles desde la propia tarjeta. En «cambiar» nada cambia. */
-  const inSession = !!(TRAIN_PICK && TRAIN_PICK.kind === 'add' && SWAP_EFF_IDS && SWAP_EFF_IDS.has(ex.id));
+  const inSession = !!(TRAIN_PICK && (TRAIN_PICK.kind === 'add' || (TRAIN_MANAGE && TRAIN_PICK.kind === 'swap')) && SWAP_EFF_IDS && SWAP_EFF_IDS.has(ex.id));
   const btn = inSession ? t('train.n09.mybAddedBtn') : (TRAIN_PICK && TRAIN_PICK.kind === 'add' ? t('train.swap.addBtn') : t('train.custom.swap'));
   const th = !ex.foto_url ? ytThumbOf(ex.video_youtube_url) : '';
   return `<button type="button" class="swap-card${inSession ? ' is-added' : ''}" data-swap-pick="${esc(ex.id)}"${inSession ? ' disabled aria-disabled="true"' : ''}>
@@ -33656,9 +33910,9 @@ function swapVariantCardHTML(entry, v, vi) {
 function swapSheetResultsHTML(plan, di, iso) {
   if (!LIB.length) return `<p class="progress-hint">${esc(t('train.lib.unavailable'))}</p>`;
   const eff = trainEffectiveList(plan, di, iso);
-  SWAP_EFF_IDS = TRAIN_PICK && TRAIN_PICK.kind === 'add'
-    ? new Set(eff.map(it => it && it.ex && it.ex.exerciseId).filter(Boolean)) : null;
-  const target = TRAIN_PICK && TRAIN_PICK.kind === 'swap' ? eff[TRAIN_PICK.idx] : null;
+  SWAP_EFF_IDS = TRAIN_PICK && (TRAIN_PICK.kind === 'add' || (TRAIN_MANAGE && TRAIN_PICK.kind === 'swap'))
+    ? new Set(eff.map((it, xi) => (TRAIN_MANAGE && TRAIN_PICK.kind === 'swap' && xi === TRAIN_PICK.idx) ? null : (it && it.ex && it.ex.exerciseId)).filter(Boolean)) : null;
+  const target = TRAIN_PICK && (TRAIN_PICK.kind === 'swap' || TRAIN_PICK.kind === 'replace-add') ? eff[TRAIN_PICK.idx] : null;
   const tEntry = target && target.ex && target.ex.exerciseId ? (LIB_BY_ID[target.ex.exerciseId] || null) : null;
   const q = SWAP_QUERY.trim();
   if (q.length >= 2) {
@@ -33722,7 +33976,43 @@ function swapSheetApply(plan, di, entry, iso) {
      otra fecha (iso la pasa la cadena del desplegable; sin iso,
      la de hoy, como siempre). */
   const ed = trainEditsRead(plan.id, iso) || { swaps: {}, added: [] };
+  if (TRAIN_PICK.kind === 'replace-add') {
+    /* GESTIONA TU SESIÓN (AUTH-2026-11-10-387): «Cambiar» sobre un
+       ejercicio AÑADIDO sustituye la entrada EN SU PUESTO (no hay
+       slot del plan que cambiar): conserva series/reps y la carga
+       del dictado de la entrada anterior, y el candado de
+       duplicados mira la lista efectiva sin contarse a sí misma.
+       Si el elegido ya está en la sesión, el selector se queda
+       abierto con el aviso de siempre — nada se escribe. */
+    const effR = trainEffectiveList(plan, di, iso);
+    const itR = effR[TRAIN_PICK.idx];
+    if (!itR || itR.kind !== 'add') { TRAIN_PICK = null; SWAP_QUERY = ''; loadMyTraining(); return; }
+    const dupR = effR.some((x, xi) => xi !== TRAIN_PICK.idx && x && x.ex && x.ex.exerciseId && x.ex.exerciseId === entry.id);
+    if (dupR) { toast(t('train.pick.inSession')); return; }
+    const addPos = effR.slice(0, TRAIN_PICK.idx).filter(x => x.kind === 'add').length;
+    const old = (Array.isArray(ed.added) ? ed.added : [])[addPos];
+    if (!old) { TRAIN_PICK = null; SWAP_QUERY = ''; loadMyTraining(); return; }
+    const rec = { exerciseId: entry.id, name: libNameOf(entry), sets: old.sets || '', reps: old.reps || '' };
+    if (typeof old.load === 'number' && old.load > 0) { rec.load = old.load; rec.loadUnit = old.loadUnit === 'lb' ? 'lb' : 'kg'; }
+    ed.added[addPos] = rec;
+    trainEditsWrite(plan.id, ed, iso);
+    TRAIN_PICK = null;
+    SWAP_QUERY = '';
+    loadMyTraining();
+    return;
+  }
   if (TRAIN_PICK.kind === 'swap') {
+    /* GESTIONA TU SESIÓN: dentro de la hoja, el candado de
+       duplicados de AUTH-340 también mira al Cambiar — el elegido
+       no puede ser un ejercicio que ya esté en la lista efectiva
+       (contándose fuera el propio ejercicio del puesto). Si lo es,
+       el selector se queda abierto con el aviso y nada se escribe.
+       Fuera de la hoja, el Cambiar de siempre no cambia. */
+    if (TRAIN_MANAGE) {
+      const effS = trainEffectiveList(plan, di, iso);
+      const dupS = effS.some((x, xi) => xi !== TRAIN_PICK.idx && x && x.ex && x.ex.exerciseId && x.ex.exerciseId === entry.id);
+      if (dupS) { toast(t('train.pick.inSession')); return; }
+    }
     SWAP_PRESET_GROUP = null;
     const it2 = trainEffectiveList(plan, di, iso)[TRAIN_PICK.idx];
     if (it2 && it2.slot >= 0) ed.swaps[String(it2.slot)] = { exerciseId: entry.id, name: libNameOf(entry) };
@@ -33855,7 +34145,7 @@ function swapSheetSync(plan, di, iso) {
     return;
   }
   const eff = trainEffectiveList(plan, di, iso);
-  const target = TRAIN_PICK.kind === 'swap' ? eff[TRAIN_PICK.idx] : null;
+  const target = (TRAIN_PICK.kind === 'swap' || TRAIN_PICK.kind === 'replace-add') ? eff[TRAIN_PICK.idx] : null;
   const tEntry = target && target.ex && target.ex.exerciseId ? (LIB_BY_ID[target.ex.exerciseId] || null) : null;
   const stdForm = tEntry ? (tEntry.variantes || []).find(v => v && v.es_estandar) : null;
   /* Si ya hay una variante elegida, trainExName la trae compuesta en
@@ -33863,7 +34153,7 @@ function swapSheetSync(plan, di, iso) {
   const dropForm = (target && target.ex && trainVariantOf(target.ex)) ? null : stdForm;
   const shownName = target ? (trainExName(target.ex) || target.ex.name || '') : '';
   const headSpec = target && target.ex ? [target.ex.sets ? target.ex.sets + ' × ' + (target.ex.reps || '') : '', libField(tEntry, 'equipo')].filter(Boolean).join(' · ') : '';
-  const title = TRAIN_PICK.kind === 'swap' ? t('train.custom.pickSwap', { name: shownName }) : t('train.custom.pickAdd');
+  const title = (TRAIN_PICK.kind === 'swap' || TRAIN_PICK.kind === 'replace-add') ? t('train.custom.pickSwap', { name: shownName }) : t('train.custom.pickAdd');
   let sheet = old;
   if (!sheet) {
     sheet = document.createElement('div');
@@ -33885,7 +34175,7 @@ function swapSheetSync(plan, di, iso) {
       <span class="swap-sheet-title">${esc(title)}</span>
       <button type="button" class="swap-sheet-x" data-swap-close="1" aria-label="✕">✕</button>
     </div>
-    ${TRAIN_PICK.kind === 'swap' && target ? `<div class="swap-drop">
+    ${(TRAIN_PICK.kind === 'swap' || TRAIN_PICK.kind === 'replace-add') && target ? `<div class="swap-drop">
       ${tEntry && tEntry.foto_url ? `<img class="swap-drop-img" src="${esc(tEntry.foto_url)}" alt="">` : '<span class="swap-drop-img swap-card-noimg" aria-hidden="true"></span>'}
       <span class="swap-drop-main"><span class="swap-drop-lab">${esc(t('train.swap.dropTitle'))}</span>
       <span class="swap-drop-name">${esc(shownName)}${dropForm ? ` <span class="swap-drop-form">(${esc(libField(dropForm, 'nombre'))})</span>` : ''}</span>
@@ -53343,7 +53633,7 @@ document.addEventListener('keydown', e => { if (e.key === 'Escape') shareClose()
  *  - El SW (sw.js) solo cachea la cáscara del mismo origen en modo
  *    RED PRIMERO: Auth/Firestore/Worker jamás pasan por la caché.
  * ================================================================ */
-const PWA_SW_VERSION = '20261110-coach-dock';
+const PWA_SW_VERSION = '20261110-gestiona-sesion';
 /* Sello de versión VISIBLE (2026-11-03): el pie de la tarjeta de
    acceso enseña qué copia corre este teléfono ('v ' + el sello),
    para comprobar de un vistazo si la versión nueva ya llegó.
