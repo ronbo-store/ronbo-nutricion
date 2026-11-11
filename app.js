@@ -8591,6 +8591,7 @@ en: {
   'mp.h.saveNote': 'Save note',
   'mp.h.noteSaved': '✓ Note saved',
   'mp.h.mealsN': '{n} meals logged',
+  'mp.h.prevWeek': 'See the previous week',
   'mp.h.waterDay': 'Water',
   'mp.h.noData': 'No records in this period yet.',
   'mp.h.insufficient': 'Not enough data to compare yet.',
@@ -13299,6 +13300,7 @@ es: {
   'mp.h.saveNote': 'Guardar nota',
   'mp.h.noteSaved': '✓ Nota guardada',
   'mp.h.mealsN': '{n} comidas registradas',
+  'mp.h.prevWeek': 'Ver la semana anterior',
   'mp.h.waterDay': 'Agua',
   'mp.h.noData': 'Aún no hay registros en este periodo.',
   'mp.h.insufficient': 'Aún no hay datos suficientes para comparar.',
@@ -53676,7 +53678,7 @@ document.addEventListener('keydown', e => { if (e.key === 'Escape') shareClose()
  *  - El SW (sw.js) solo cachea la cáscara del mismo origen en modo
  *    RED PRIMERO: Auth/Firestore/Worker jamás pasan por la caché.
  * ================================================================ */
-const PWA_SW_VERSION = '20261110-hitos-plegados';
+const PWA_SW_VERSION = '20261110-h06-semana';
 /* Sello de versión VISIBLE (2026-11-03): el pie de la tarjeta de
    acceso enseña qué copia corre este teléfono ('v ' + el sello),
    para comprobar de un vistazo si la versión nueva ya llegó.
@@ -61462,7 +61464,7 @@ function mpOpenHist(field) {
   if (xb) xb.style.display = field === 'body' ? '' : 'none';
   if (xt) xt.style.display = field === 'train' ? '' : 'none';
   if (field === 'body') { body.innerHTML = mpHistBody(); MPG_OPEN = { medidas: false, fotos: false }; mpgPaint(); }
-  else if (field === 'food') body.innerHTML = mpHistFood();
+  else if (field === 'food') { mpFoodWeeks = 1; body.innerHTML = mpHistFood(); }
   else if (field === 'well') body.innerHTML = mpHistWell();
   else if (field === 'train') { body.innerHTML = `<div class="wempty">${esc(t('mp.loading'))}</div>`; mpPaintTrainHist(); }
 }
@@ -61485,20 +61487,43 @@ function mpHistBody() {
   if (!WEIGHTS.length && !withMeas.length) parts.push(`<div class="wempty">${esc(t('mp.none'))}</div>`);
   return parts.join('');
 }
+/* H-06 (auditoría de espacio 2026-11-09, aprobado por Ronald
+   2026-11-10): el historial de alimentación se pinta POR SEMANAS —
+   7 días al abrir y la línea «Ver la semana anterior» trae los 7
+   anteriores. Alcance de datos SIN CAMBIO: esta superficie pinta
+   como máximo los 14 días de siempre (offsets 0–13); no hay una
+   tercera semana que traer. La línea solo aparece si algún día de
+   la semana anterior trae registro (comidas, check-in o agua: las
+   mismas tres señales de la fila); con menos de una semana de
+   historial, no aparece. La fila de cada día sale del mismo
+   constructor de siempre, byte a byte. */
+let mpFoodWeeks = 1;
+function mpFoodDayHas(d, today) {
+  const entries = (MEALS && MEALS[d]) || [];
+  const chk = MP ? MP.checks.find(c => c.date === d) : null;
+  const wat = d === today && typeof FUSED_WATER !== 'undefined' && FUSED_WATER.date === d ? num(FUSED_WATER.ml) : (MP && MP.water[d] != null ? MP.water[d] : null);
+  return !!(entries.length || chk || wat != null);
+}
+function mpFoodRow(d, today) {
+  const entries = (MEALS && MEALS[d]) || [];
+  const chk = MP ? MP.checks.find(c => c.date === d) : null;
+  const wat = d === today && typeof FUSED_WATER !== 'undefined' && FUSED_WATER.date === d ? num(FUSED_WATER.ml) : (MP && MP.water[d] != null ? MP.water[d] : null);
+  if (!entries.length && !chk && wat == null) return `<div class="mp-row"><span>${esc(dateName(d))}</span><span class="mp-none">${esc(t('mp.none'))}</span></div>`;
+  const bits = [];
+  if (entries.length) { const tt = totals(d); bits.push(esc(t('mp.h.mealsN', { n: entries.length }))); bits.push(Math.round(num(tt.kcal)) + ' kcal'); bits.push(Math.round(num(tt.prot)) + ' g'); }
+  if (wat != null) bits.push(esc(t('mp.h.waterDay')) + ' ' + Math.round(wat) + ' ml');
+  if (chk && chk.compliance) bits.push(esc(t('mp.lvl' + chk.compliance)));
+  return `<div class="mp-row"><span>${esc(dateName(d))}</span><span>${bits.join(' · ')}</span></div>`;
+}
 function mpHistFood() {
   const today = todayISO();
   const rows = [];
-  for (let i = 0; i < 14; i++) {
-    const d = addDaysISO(today, -i);
-    const entries = (MEALS && MEALS[d]) || [];
-    const chk = MP ? MP.checks.find(c => c.date === d) : null;
-    const wat = d === today && typeof FUSED_WATER !== 'undefined' && FUSED_WATER.date === d ? num(FUSED_WATER.ml) : (MP && MP.water[d] != null ? MP.water[d] : null);
-    if (!entries.length && !chk && wat == null) { rows.push(`<div class="mp-row"><span>${esc(dateName(d))}</span><span class="mp-none">${esc(t('mp.none'))}</span></div>`); continue; }
-    const bits = [];
-    if (entries.length) { const tt = totals(d); bits.push(esc(t('mp.h.mealsN', { n: entries.length }))); bits.push(Math.round(num(tt.kcal)) + ' kcal'); bits.push(Math.round(num(tt.prot)) + ' g'); }
-    if (wat != null) bits.push(esc(t('mp.h.waterDay')) + ' ' + Math.round(wat) + ' ml');
-    if (chk && chk.compliance) bits.push(esc(t('mp.lvl' + chk.compliance)));
-    rows.push(`<div class="mp-row"><span>${esc(dateName(d))}</span><span>${bits.join(' · ')}</span></div>`);
+  const days = mpFoodWeeks * 7;
+  for (let i = 0; i < days; i++) rows.push(mpFoodRow(addDaysISO(today, -i), today));
+  if (mpFoodWeeks === 1) {
+    let hasPrev = false;
+    for (let i = 7; i < 14 && !hasPrev; i++) hasPrev = mpFoodDayHas(addDaysISO(today, -i), today);
+    if (hasPrev) rows.push(`<button type="button" class="mp-more" data-mp-act="foodprev">${esc(t('mp.h.prevWeek'))} ›</button>`);
   }
   return rows.join('');
 }
@@ -62856,6 +62881,7 @@ document.addEventListener('click', e => {
   const act = b.dataset.mpAct;
   if (act === 'quick') { mpSheetClose('mp-hist'); mpOpenQuick(b.dataset.date || todayISO(), b.dataset.field || ''); }
   else if (act === 'hist') mpOpenHist(b.dataset.field);
+  else if (act === 'foodprev') { mpFoodWeeks = 2; const hb = $('mp-hist-body'); if (hb) hb.innerHTML = mpHistFood(); }
   else if (act === 'reportdoor') { mpSheetClose('mp-hist'); mrOpen(); }
   else if (act === 'airdoor') { mpSheetClose('mp-hist'); airOpen({}); }
   else if (act === 'close') mpSheetClose(b.dataset.sheet);

@@ -4838,6 +4838,7 @@ body.swap-sheet-open .asst-fab { display: none !important; }
 .mp-row>span:first-child{flex:0 0 34%;font-weight:600}
 .mp-row>span:nth-child(2){flex:1}
 .mp-row button{min-height:44px}
+.mp-more{display:block;width:100%;min-height:48px;margin:2px 0 0;padding:10px 0;background:none;border:none;border-bottom:1px solid var(--line,#e3eae7);font:inherit;font-weight:600;color:#2b7a5b;cursor:pointer}
 .mp-chart{margin:8px 0}
 .mp-chart svg,.mp-svg{width:100%;height:auto}
 .mp-doors{display:flex;gap:8px;margin:6px 0 4px}
