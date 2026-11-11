@@ -4820,7 +4820,10 @@ body.swap-sheet-open .asst-fab { display: none !important; }
 .mp-head .block-title{margin:0 0 8px}
 .mp-quick-btn{width:100%;min-height:52px;font-size:15px}
 .mp-cards{display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:10px}
-.mp-tile{width:100%;aspect-ratio:1/1;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;border:1px solid var(--line,#d8e2de);border-radius:16px;padding:12px;background:#fff;color:inherit;font:inherit;cursor:pointer;box-shadow:0 1px 3px rgba(15,23,42,.05)}
+/* H-13: la baldosa ya no es cuadrada (fuera aspect-ratio:1/1):
+   su altura la manda el contenido (icono + nombre + máx. 2
+   líneas de datos) y la rejilla baja de ≈366 a ≈250 px. */
+.mp-tile{width:100%;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;border:1px solid var(--line,#d8e2de);border-radius:16px;padding:12px;background:#fff;color:inherit;font:inherit;cursor:pointer;box-shadow:0 1px 3px rgba(15,23,42,.05)}
 .mp-tile:hover{border-color:#0d9488}
 .mp-tile:active{transform:scale(.99)}
 .mp-tile:focus-visible{outline:3px solid rgba(13,148,136,.45);outline-offset:2px}

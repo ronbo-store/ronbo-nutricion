@@ -53871,7 +53871,7 @@ document.addEventListener('keydown', e => { if (e.key === 'Escape') shareClose()
  *  - El SW (sw.js) solo cachea la cáscara del mismo origen en modo
  *    RED PRIMERO: Auth/Firestore/Worker jamás pasan por la caché.
  * ================================================================ */
-const PWA_SW_VERSION = '20261110-h11-diario-compacto';
+const PWA_SW_VERSION = '20261110-baldosas-h13';
 /* Sello de versión VISIBLE (2026-11-03): el pie de la tarjeta de
    acceso enseña qué copia corre este teléfono ('v ' + el sello),
    para comprobar de un vistazo si la versión nueva ya llegó.
@@ -60916,11 +60916,19 @@ function mpRenderHome() {
     mpLoadOwn().then(() => mpRenderHome()).catch(() => { const h = $('mp-cards'); if (h) h.innerHTML = `<div class="wempty">${esc(t('mp.errLoad'))}</div>`; });
     return;
   }
+  /* H-13 (auditoría de espacio §H-13, aprobado por Ronald
+     2026-11-10): cada baldosa pinta como máximo 2 líneas de
+     datos — las dos de dato clave que su pintor ya emite
+     primero —. La tercera línea de cada pintor (medidas en
+     Composición, cumplimiento del check-in en Alimentación,
+     dolor en Bienestar) vive solo dentro de su hoja, donde
+     está completa. Los pintores no cambian: el corte vive
+     solo aquí, a la puerta de la rejilla. */
   const cards = [
-    { f: 'body', icon: '🧍', title: t('mp.c1'), lines: mpCardBodyData() },
-    { f: 'train', icon: '🏋️', title: t('mp.c2'), lines: mpCardTrainData() },
-    { f: 'food', icon: '🥗', title: t('mp.c3'), lines: mpCardFoodData() },
-    { f: 'well', icon: '🌙', title: t('mp.c4'), lines: mpCardWellData() }
+    { f: 'body', icon: '🧍', title: t('mp.c1'), lines: mpCardBodyData().slice(0, 2) },
+    { f: 'train', icon: '🏋️', title: t('mp.c2'), lines: mpCardTrainData().slice(0, 2) },
+    { f: 'food', icon: '🥗', title: t('mp.c3'), lines: mpCardFoodData().slice(0, 2) },
+    { f: 'well', icon: '🌙', title: t('mp.c4'), lines: mpCardWellData().slice(0, 2) }
   ];
   host.innerHTML = cards.map(c => `
     <button type="button" class="mp-tile" data-mp-act="hist" data-field="${c.f}" aria-label="${esc(c.title)} — ${esc(t('mp.history'))}">
