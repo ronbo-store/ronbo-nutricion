@@ -21,7 +21,7 @@
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-title" content="RONBO FIT">
 <meta name="apple-mobile-web-app-status-bar-style" content="default">
-<link rel="stylesheet" href="styles.css?v=20261111-pildora-gruesa">
+<link rel="stylesheet" href="styles.css?v=20261111-cronometro-avisos">
 <script defer src="https://cloud.umami.is/script.js" data-website-id="a29706d4-44a2-47cf-900a-5f74d74abfa8"></script>
 <script type="importmap">
 {
@@ -2296,6 +2296,16 @@ cuando no hay declaración legible (decisión 5). -->
       <button type="button" class="sw-cbtn main green" id="sw-btn-main"></button>
       <button type="button" class="sw-cbtn side" id="sw-btn-right"></button>
     </div>
+    <div class="sw-alert" id="sw-alert">
+      <span class="sw-alert-lab" data-i18n="sw.alertEvery">Alert every</span>
+      <div class="sw-alert-opts" role="group" data-i18n-aria="sw.alertEvery" aria-label="Alert every">
+        <button type="button" class="sw-alert-btn on" data-sw-alert="0" aria-pressed="true">Never</button>
+        <button type="button" class="sw-alert-btn" data-sw-alert="1" aria-pressed="false">1 min</button>
+        <button type="button" class="sw-alert-btn" data-sw-alert="2" aria-pressed="false">2 min</button>
+        <button type="button" class="sw-alert-btn" data-sw-alert="3" aria-pressed="false">3 min</button>
+        <button type="button" class="sw-alert-btn" data-sw-alert="5" aria-pressed="false">5 min</button>
+      </div>
+    </div>
     <div class="sw-foot" data-i18n="sw.foot">FREE TOOL · NOTHING IS SAVED</div>
   </div>
 </div>
@@ -2325,6 +2335,6 @@ cuando no hay declaración legible (decisión 5). -->
 <div id="toast" class="toast"></div>
 <div id="print-card" aria-hidden="true"></div>
 
-<script type="module" src="app.js?v=20261111-pildora-gruesa"></script>
+<script type="module" src="app.js?v=20261111-cronometro-avisos"></script>
 </body>
 </html>

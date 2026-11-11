@@ -4027,6 +4027,7 @@ en: {
   'sw.lap': 'Lap', 'sw.reset': 'Reset', 'sw.lapN': 'LAP {n}', 'sw.split': 'split',
   'sw.currentLap': 'Current lap', 'sw.totalLaps': 'Total · {n} laps', 'sw.totalLaps1': 'Total · 1 lap',
   'sw.foot': 'FREE TOOL · NOTHING IS SAVED',
+  'sw.alertEvery': 'Alert every', 'sw.alertNever': 'Never', 'sw.alertMin': '{n} min',
   'health.specHelp': 'In plain words: you allow your trainer to see the health answers you write in this declaration, only so he can adapt your program and take care of you. Nobody else can see them, and you can withdraw this whenever you want.',
   'health.panelTitle': '🏥 My health declaration',
   'health.specText': 'I give my SPECIFIC consent for ronbo.nutri to process my health declaration so my trainer can adapt my program and take precautions. Only my trainer and I can see it. I can withdraw this consent at any time: withdrawal blocks my trainer\'s access to my answers, but does not delete them.',
@@ -8858,6 +8859,7 @@ es: {
   'sw.lap': 'Vuelta', 'sw.reset': 'Reiniciar', 'sw.lapN': 'VUELTA {n}', 'sw.split': 'parcial',
   'sw.currentLap': 'Vuelta actual', 'sw.totalLaps': 'Total · {n} vueltas', 'sw.totalLaps1': 'Total · 1 vuelta',
   'sw.foot': 'HERRAMIENTA LIBRE · NO SE GUARDA',
+  'sw.alertEvery': 'Avisar cada', 'sw.alertNever': 'Nunca', 'sw.alertMin': '{n} min',
   'health.specHelp': 'En palabras simples: permites que tu entrenador vea las respuestas de salud que escribas en esta declaración, solo para que adapte tu programa y te cuide. Nadie más puede verlas, y puedes retirar este permiso cuando quieras.',
   'health.panelTitle': '🏥 Mi declaración de salud',
   'health.specText': 'Doy mi consentimiento ESPECÍFICO para que ronbo.nutri trate mi declaración de salud, para que mi entrenador adapte mi programa y tome precauciones. Solo mi entrenador y yo podemos verla. Puedo retirar este consentimiento cuando quiera: la retirada bloquea el acceso de mi entrenador a mis respuestas, pero no las elimina.',
@@ -55054,7 +55056,7 @@ document.addEventListener('keydown', e => { if (e.key === 'Escape') shareClose()
  *  - El SW (sw.js) solo cachea la cáscara del mismo origen en modo
  *    RED PRIMERO: Auth/Firestore/Worker jamás pasan por la caché.
  * ================================================================ */
-const PWA_SW_VERSION = '20261111-pildora-gruesa';
+const PWA_SW_VERSION = '20261111-cronometro-avisos';
 /* Sello de versión VISIBLE (2026-11-03): el pie de la tarjeta de
    acceso enseña qué copia corre este teléfono ('v ' + el sello),
    para comprobar de un vistazo si la versión nueva ya llegó.
@@ -56252,8 +56254,14 @@ async function faqEdAdd() {
    por ticks. Un sello de un día anterior se descarta al
    restaurar: el cronómetro de ayer no resucita hoy. Al ponerlo
    a cero, el sello se borra.
+   AVISOS POR INTERVALO (2026-11-11, diseño aprobado por Ronald
+   tal cual): la fila «Avisar cada» — Nunca · 1 · 2 · 3 · 5 min —
+   con pitido doble de Web Audio y pulso del círculo al cruzar
+   cada múltiplo del tiempo total; la elección vive en su propia
+   clave de localStorage y el detalle de los bordes, junto a
+   swAlertCheck.
    ============================================================ */
-const STOPW = { open: false, running: false, startAt: 0, acc: 0, laps: [], raf: 0 };
+const STOPW = { open: false, running: false, startAt: 0, acc: 0, laps: [], raf: 0, alertMin: 0, alertK: 0 };
 const SW_LS_KEY = 'ronbofit-stopwatch-v1';
 function swSave() {
   try {
@@ -56275,6 +56283,99 @@ function swRestore() {
     else { STOPW.running = false; STOPW.startAt = 0; }
   } catch {}
 }
+/* AVISOS SONOROS POR INTERVALO (2026-11-11, diseño aprobado por
+   Ronald tal cual: «quiero que suene cada un minuto, cada dos
+   minutos, según mi selección»): la fila «Avisar cada» con las
+   opciones Nunca · 1 · 2 · 3 · 5 min. La elección es una
+   PREFERENCIA del dispositivo con su propia clave de
+   localStorage — no es el estado del cronómetro de AUTH-234 — y
+   nace en «Nunca»: sin activarla, el comportamiento es el de
+   siempre. El aviso se calcula en el camino de pintado (swPaint
+   y el latido de 250 ms del botón flotante) desde swElapsed() —
+   el mismo tiempo que enseña la pantalla, que ya descuenta las
+   pausas — comparando el múltiplo vigente con el último avisado
+   (alertK): en pausa no suena nada ni se «recupera» al seguir;
+   un salto por segundo plano produce COMO MÁXIMO un aviso (el
+   del múltiplo más reciente, jamás una ráfaga); cambiar de
+   intervalo a mitad de marcha reprograma desde el múltiplo
+   siguiente, sin pitido retroactivo; al reiniciar, el conteo de
+   múltiplos vuelve a cero. El pitido es doble, lo genera Web
+   Audio (sin archivos) y el círculo hace un pulso visual a la
+   vez. El contexto de audio se crea/reanuda SOLO dentro de
+   gestos del usuario (Iniciar, Seguir, elegir intervalo) por la
+   política de sonido de iOS; si al llegar un múltiplo el
+   contexto sigue suspendido (app en segundo plano o teléfono
+   bloqueado, donde iOS pausa lo web), el sonido espera al
+   próximo gesto y el pulso visual sí se produce. */
+const SW_ALERT_KEY = 'ronbofit-stopwatch-alert-v1';
+const SW_ALERT_OPTS = [0, 1, 2, 3, 5];
+let SW_ACTX = null;
+function swAlertLoad() {
+  try {
+    const v = parseInt(localStorage.getItem(SW_ALERT_KEY) || '0', 10);
+    STOPW.alertMin = SW_ALERT_OPTS.includes(v) ? v : 0;
+  } catch { STOPW.alertMin = 0; }
+}
+function swAlertSave() {
+  try { localStorage.setItem(SW_ALERT_KEY, String(STOPW.alertMin)); } catch {}
+}
+function swAlertBase() {
+  STOPW.alertK = STOPW.alertMin ? Math.floor(swElapsed() / (STOPW.alertMin * 60000)) : 0;
+}
+function swAlertAudio() {
+  try {
+    const AC = window.AudioContext || window.webkitAudioContext;
+    if (!AC) return null;
+    if (!SW_ACTX) SW_ACTX = new AC();
+    if (SW_ACTX.state === 'suspended') SW_ACTX.resume();
+    return SW_ACTX;
+  } catch { return null; }
+}
+function swAlertBeep() {
+  const ctx = swAlertAudio();
+  if (!ctx || ctx.state !== 'running') return;
+  try {
+    const t0 = ctx.currentTime + 0.02;
+    for (const dt of [0, 0.19]) {
+      const o = ctx.createOscillator(), g = ctx.createGain();
+      o.type = 'sine'; o.frequency.value = 988;
+      g.gain.setValueAtTime(0.0001, t0 + dt);
+      g.gain.exponentialRampToValueAtTime(0.22, t0 + dt + 0.02);
+      g.gain.exponentialRampToValueAtTime(0.0001, t0 + dt + 0.15);
+      o.connect(g); g.connect(ctx.destination);
+      o.start(t0 + dt); o.stop(t0 + dt + 0.17);
+    }
+  } catch {}
+}
+function swAlertPulse() {
+  const ring = $('sw-ring'); if (!ring) return;
+  ring.classList.remove('pulse');
+  void ring.offsetWidth;
+  ring.classList.add('pulse');
+  setTimeout(() => ring.classList.remove('pulse'), 750);
+}
+function swAlertCheck() {
+  if (!STOPW.running || !STOPW.alertMin) return;
+  const k = Math.floor(swElapsed() / (STOPW.alertMin * 60000));
+  if (k > STOPW.alertK) { STOPW.alertK = k; swAlertBeep(); swAlertPulse(); }
+}
+function swAlertSet(min) {
+  if (!SW_ALERT_OPTS.includes(min)) return;
+  STOPW.alertMin = min;
+  swAlertSave();
+  swAlertBase();
+  swAlertAudio();
+  swAlertPaint();
+}
+function swAlertPaint() {
+  const box = $('sw-alert'); if (!box) return;
+  box.querySelectorAll('[data-sw-alert]').forEach(b => {
+    const v = Number(b.dataset.swAlert);
+    b.textContent = v === 0 ? t('sw.alertNever') : t('sw.alertMin', { n: v });
+    b.classList.toggle('on', v === STOPW.alertMin);
+    b.setAttribute('aria-pressed', v === STOPW.alertMin ? 'true' : 'false');
+  });
+}
 function swElapsed() { return STOPW.acc + (STOPW.running ? Date.now() - STOPW.startAt : 0); }
 function swPad2(n) { return String(n).padStart(2, '0'); }
 function swFmtParts(ms) {
@@ -56291,6 +56392,7 @@ function swSetBtn(el, label, cls, disabled) {
 function swPaint() {
   const ov = $('sw-overlay'); if (!ov) return;
   const el = swElapsed(), f = swFmtParts(el);
+  swAlertCheck();
   const main = $('sw-time-main'), csEl = $('sw-time-cs');
   if (main) main.textContent = f.main;
   if (csEl) csEl.textContent = f.cs;
@@ -56329,6 +56431,7 @@ function swPaint() {
     swSetBtn(M, t('sw.start'), 'main green', false);
     swSetBtn(R, t('sw.lap'), 'side', true);
   }
+  swAlertPaint();
 }
 function swTick() {
   if (!STOPW.open) { STOPW.raf = 0; return; }
@@ -56338,7 +56441,7 @@ function swTick() {
 function swKick() { if (STOPW.open && STOPW.running && !STOPW.raf) STOPW.raf = requestAnimationFrame(swTick); }
 function swMainAction() {
   if (STOPW.running) { STOPW.acc += Date.now() - STOPW.startAt; STOPW.running = false; }
-  else { STOPW.startAt = Date.now(); STOPW.running = true; swKick(); }
+  else { STOPW.startAt = Date.now(); STOPW.running = true; swAlertBase(); swAlertAudio(); swKick(); }
   swSave();
   swPaint();
 }
@@ -56350,7 +56453,7 @@ function swLapAction() {
   swPaint();
 }
 function swResetAction() {
-  STOPW.running = false; STOPW.acc = 0; STOPW.startAt = 0; STOPW.laps = [];
+  STOPW.running = false; STOPW.acc = 0; STOPW.startAt = 0; STOPW.laps = []; STOPW.alertK = 0;
   swSave();
   swPaint();
 }
@@ -56388,9 +56491,11 @@ function swFabPaint() {
 }
 (function swInit() {
   swRestore();
+  swAlertLoad();
   const fab = $('btn-stopwatch'); if (fab) fab.addEventListener('click', swOpenTool);
+  document.querySelectorAll('[data-sw-alert]').forEach(b => b.addEventListener('click', () => swAlertSet(Number(b.dataset.swAlert))));
   swFabPaint();
-  setInterval(() => { if (!STOPW.open) swFabPaint(); }, 250);
+  setInterval(() => { if (!STOPW.open) swFabPaint(); swAlertCheck(); }, 250);
   const x = $('sw-close'); if (x) x.addEventListener('click', swCloseTool);
   const M = $('sw-btn-main'); if (M) M.addEventListener('click', swMainAction);
   const L = $('sw-btn-left'); if (L) L.addEventListener('click', () => swSideAction('left'));
