@@ -5645,6 +5645,7 @@ en: {
   'assign.sheetTitle': 'Assignments · {name}',
   'assign.lineTrainer': 'Trainer: {name}',
   'assign.lineCoach': 'Food coach: {name}',
+  'assign.foldCoach': 'Coach: {name}',
   'assign.noneTrainer': 'No trainer',
   'assign.noneCoach': 'No coach',
   'assign.manage': 'Manage trainer and coach',
@@ -5699,6 +5700,8 @@ en: {
   'students.pend.bodyNoAnalysis': 'No body-type analysis on record yet',
   'students.viewFull': 'View full record',
   'students.planBlock': '🏋️ Their training plan',
+  'students.plansInactiveOne': '+ 1 inactive plan',
+  'students.plansInactiveMany': '+ {n} inactive plans',
   'students.trainBlock': '🏋️ My student\'s training',
   'students.trainToday': 'Today',
   'students.trainTodayFree': 'Today · 🌿 Assigned rest day',
@@ -10353,6 +10356,7 @@ es: {
   'assign.sheetTitle': 'Asignaciones · {name}',
   'assign.lineTrainer': 'Entrenador: {name}',
   'assign.lineCoach': 'Coach de alimentación: {name}',
+  'assign.foldCoach': 'Coach: {name}',
   'assign.noneTrainer': 'Sin entrenador',
   'assign.noneCoach': 'Sin coach',
   'assign.manage': 'Gestionar entrenador y coach',
@@ -10407,6 +10411,8 @@ es: {
   'students.pend.bodyNoAnalysis': 'Aún no tiene un análisis de tipo corporal registrado',
   'students.viewFull': 'Ver ficha completa',
   'students.planBlock': '🏋️ Su plan de entrenamiento',
+  'students.plansInactiveOne': '+ 1 plan inactivo',
+  'students.plansInactiveMany': '+ {n} planes inactivos',
   'students.trainBlock': '🏋️ El entrenamiento de mi alumno',
   'students.trainToday': 'Hoy',
   'students.trainTodayFree': 'Hoy · 🌿 Día libre asignado',
@@ -18521,14 +18527,53 @@ function stuPlanBlockHTML(u) {
   const inner = !loaded
     ? `<div class="wempty">${esc(t('access.loading'))}</div>`
     : `<div style="margin-bottom:10px"><button class="btn-primary btn-sm" data-plan-new="1">${t('train.new')}</button></div>`
-      + (STU_PLANS.plans.length ? planRowsHTML(STU_PLANS.plans) + stuPlanDaysHTML(STU_PLANS.plans.find(p => p && p.active === true) || null) : `<div class="wempty">${t('train.noPlan')}</div>`);
+      + stuPlanRowsHTML(STU_PLANS.plans);
   return `<div class="stu-plan-block" id="stu-plan-block"><h3 class="history-title">${esc(t('students.planBlock'))}</h3>${inner}</div>`;
+}
+/* H-07 (AUTH-2026-11-10-392; auditoría de espacio 2026-11-09 §H-07 (a),
+   aprobado por Ronald 2026-11-10): las filas del bloque de planes
+   del detalle rápido — el plan ACTIVO abre el bloque desplegado
+   como siempre (su fila de planRowsHTML y, tras ella, el detalle
+   de días de stuPlanDaysHTML) y los planes INACTIVOS nacen tras
+   la línea plegable de stuPlansInactiveFoldHTML, que los despliega
+   con SUS MISMAS filas. planRowsHTML NO se toca: sigue siendo la
+   pieza única de la ficha, de este detalle y de «Mis planes».
+   Sin planes, el vacío honesto de siempre; sin inactivos, la
+   línea no se pinta. */
+function stuPlanRowsHTML(plans) {
+  if (!plans.length) return `<div class="wempty">${t('train.noPlan')}</div>`;
+  const act = plans.filter(p => p && p.active === true);
+  const ina = plans.filter(p => !(p && p.active === true));
+  return (act.length ? planRowsHTML(act) : '')
+    + stuPlanDaysHTML(act.length ? act[0] : null)
+    + (ina.length ? stuPlansInactiveFoldHTML(ina) : '');
+}
+function stuPlansInactiveFoldHTML(ina) {
+  const label = ina.length === 1 ? t('students.plansInactiveOne') : t('students.plansInactiveMany', { n: ina.length });
+  return `<button type="button" class="stu-train-row" data-stu-plans-fold="1"><span>${esc(label)}</span><span class="sx">›</span></button><div data-stu-plans-fold-det style="display:none">${planRowsHTML(ina)}</div>`;
 }
 function stuPlansWireCurrent(uid) {
   const blk = document.querySelector('#stu-plan-block');
   if (!blk || STU_PLANS.uid !== uid || !STU_PLANS.plans) return;
   wirePlanActions(blk, uid, STU_PLANS.plans, () => { STU_PLANS.plans = null; loadStudentPlans(uid); });
   stuPlanDaysWire(blk);
+  stuPlansFoldWire(blk);
+}
+/* H-07 (AUTH-2026-11-10-392): el toque de la línea «+ N plan(es) inactivo(s)»
+   despliega/pliega las filas inactivas (el mismo patrón con guarda
+   de stuPlanDaysWire). Las acciones de esas filas (su «⋮» y su
+   hoja) las cablea wirePlanActions sobre el bloque entero, que
+   también alcanza lo que nace oculto. */
+function stuPlansFoldWire(blk) {
+  if (!blk || typeof blk.querySelectorAll !== 'function') return;
+  blk.querySelectorAll('[data-stu-plans-fold]').forEach(b => {
+    if (b.dataset.wired) return;
+    b.dataset.wired = '1';
+    b.onclick = () => {
+      const det = blk.querySelector('[data-stu-plans-fold-det]');
+      if (det) det.style.display = det.style.display === 'none' ? '' : 'none';
+    };
+  });
 }
 async function loadStudentPlans(uid) {
   if (STU_PLANS.uid === uid && STU_PLANS.plans) { stuPlansWireCurrent(uid); return; }
@@ -18767,7 +18812,7 @@ function studentsDetailHTML(u) {
     h += studentsEqRowHTML(u.id, (L.chkByUid || {})[u.id]);
     /* ASIGNACIONES (este paquete): quién es su entrenador y su
        coach, con la gestión completa para el administrador. */
-    h += assignBlockHTML(u.id, { trainerUid: u.trainerUid || null, coachUid: (L.coachByUid || {})[u.id] || null, coachKnown: !!(L.coachByUid && (u.id in L.coachByUid)) });
+    h += stuAssignFoldHTML(u, { trainerUid: u.trainerUid || null, coachUid: (L.coachByUid || {})[u.id] || null, coachKnown: !!(L.coachByUid && (u.id in L.coachByUid)) });
     if (!pend.items.length && !pend.traces.length) h += `<p class="pend-none">${esc(t('students.detailClear'))}</p>`;
     if (pend.traces.length) h += `<div class="stu-traces-h">${esc(t('students.resolvedTitle'))}</div>` + pend.traces.map(it => studentsPendItemHTML(u.id, it, true)).join('');
   }
@@ -18828,6 +18873,15 @@ function renderStudentsBody() {
   /* ASIGNACIONES (este paquete): el botón de gestión del detalle
      abre la hoja de asignaciones (solo se pinta al administrador). */
   el.querySelectorAll('[data-assign-open]').forEach(b => b.onclick = () => assignOpen(b.dataset.assignOpen, 'students'));
+  /* H-07 (AUTH-2026-11-10-392): el toque de la línea plegable de asignaciones
+     del detalle rápido despliega/pliega el bloque íntegro (su
+     botón de gestión ya quedó cableado por la pasada
+     [data-assign-open] de arriba, que también alcanza lo que nace
+     oculto). */
+  el.querySelectorAll('[data-stu-assign-fold]').forEach(b => b.onclick = () => {
+    const det = el.querySelector('[data-stu-assign-fold-det]');
+    if (det) det.style.display = det.style.display === 'none' ? '' : 'none';
+  });
   el.querySelectorAll('[data-stu-admin-meals]').forEach(b => b.onclick = () => stuGoAdminMeals());
   el.querySelectorAll('[data-stu-retry]').forEach(b => b.onclick = () => { STUDENTS_RESTORE = true; loadStudents(); });
   /* AUTH-341: con un detalle abierto, el bloque de su plan se
@@ -47896,6 +47950,25 @@ function assignBlockHTML(uid, st, ficha) {
   </div>`;
   return h;
 }
+/* H-07 (AUTH-2026-11-10-392; auditoría de espacio 2026-11-09 §H-07 (b),
+   aprobado por Ronald 2026-11-10): en el DETALLE RÁPIDO de «Mis
+   alumnos» el bloque de asignaciones nace PLEGADO en una línea —
+   «🤝 Entrenador: <nombre> · Coach: <nombre> ›» — y se despliega
+   con su contenido íntegro: el MISMO assignBlockHTML de siempre,
+   sin tocar (la ficha, ficha=true, sigue naciendo desplegada).
+   Los nombres de la línea salen de las mismas fuentes síncronas
+   del bloque (assignNameSync, con «Sin entrenador» / «Sin coach» /
+   «—» en la misma precedencia) y el tramo del coach solo se pinta
+   cuando su estado consta, como en assignRowLine: la línea nunca
+   inventa un nombre ni un rol. */
+function stuAssignFoldLine(st) {
+  let line = esc(t('assign.lineTrainer', { name: st.trainerUid ? (assignNameSync(st.trainerUid) || '—') : t('assign.noneTrainer') }));
+  if (st.coachKnown) line += ` · ${esc(t('assign.foldCoach', { name: st.coachUid ? (assignNameSync(st.coachUid) || '—') : t('assign.noneCoach') }))}`;
+  return `🤝 ${line}`;
+}
+function stuAssignFoldHTML(u, st) {
+  return `<button type="button" class="stu-train-row stu-assign-fold-row" data-stu-assign-fold="1"><span>${stuAssignFoldLine(st)}</span><span class="sx">›</span></button><div data-stu-assign-fold-det style="display:none">${assignBlockHTML(u.id, st)}</div>`;
+}
 function fichaAssignWire(scope) {
   const root = scope || document;
   const b = root.querySelector ? root.querySelector('[data-assign-open]') : null;
@@ -53678,7 +53751,7 @@ document.addEventListener('keydown', e => { if (e.key === 'Escape') shareClose()
  *  - El SW (sw.js) solo cachea la cáscara del mismo origen en modo
  *    RED PRIMERO: Auth/Firestore/Worker jamás pasan por la caché.
  * ================================================================ */
-const PWA_SW_VERSION = '20261110-h06-semana';
+const PWA_SW_VERSION = '20261110-h07-detalle';
 /* Sello de versión VISIBLE (2026-11-03): el pie de la tarjeta de
    acceso enseña qué copia corre este teléfono ('v ' + el sello),
    para comprobar de un vistazo si la versión nueva ya llegó.

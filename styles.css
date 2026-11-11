@@ -5648,3 +5648,11 @@ body.swap-sheet-open .asst-fab { display: none !important; }
 #mp-x-body > .mpg-head .mpg-txt { flex: 1; }
 #mp-x-body > .mpg-head .mpg-chev { color: #0F766E; font-size: 14px; }
 #mp-x-body > [hidden] { display: none !important; }
+
+/* H-07 (AUTH-2026-11-10-392; auditoría de espacio 2026-11-09 §H-07): la línea
+   plegable de asignaciones del detalle rápido ocupa el sitio del
+   bloque que pliega y conserva su aire superior (el .assign-box
+   lleva margin-top: 10px). Las dos líneas del paquete reutilizan
+   .stu-train-row — la fila-puerta de la casa, toque ≥44 px — sin
+   más reglas. */
+.stu-assign-fold-row { margin-top: 10px; }
