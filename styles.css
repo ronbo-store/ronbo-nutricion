@@ -5481,6 +5481,17 @@ body.swap-sheet-open .asst-fab { display: none !important; }
    completo (52 px) — terminar se ve, también entrenando. */
 .train-actions-btn.is-finish { background: #b3261e; border-color: #b3261e; color: #fff; }
 .train-day-dressed .train-actions-btn.is-finish { background: #b3261e; border-color: #f3c2c2; color: #fff; }
+/* AUTH-402: «▶ Iniciar» como cuarto botón de la fila — el verde del
+   antiguo .btn-chrono-start3d en la pastilla proporcional de la fila. */
+.train-actions-btn.is-start { background: linear-gradient(180deg, #22c55e, #16a34a); border-color: #15803d; color: #fff; }
+.train-day-dressed .train-actions-btn.is-start { background: linear-gradient(180deg, #22c55e, #16a34a); border-color: #bbf7d0; color: #fff; }
+/* AUTH-402: la pareja del cronómetro reducida a línea de reloj bajo
+   la fila (solo nace con el cronómetro en curso). */
+.train-chrono-pair.is-clockline { justify-content: center; margin-top: 8px; }
+/* AUTH-402: en la banda estrecha, la fila de cuatro pide una letra
+   algo menor para que «+ Agregar» no se trunque (medido: −4/−7 px a
+   360 con 15 px). El área de toque NO cambia: 48 px de alto. */
+@media (max-width: 480px) { .train-actions-btn { font-size: 13.5px; padding: 0 5px; } }
 .train-finish-btn { display: block; width: 100%; min-height: 52px; padding: 0 18px; border: 1px solid #b3261e; border-radius: 999px; background: #b3261e; color: #fff; font-size: 17px; font-weight: 800; line-height: 1.1; cursor: pointer; font-family: inherit; }
 
 /* ── AUTH-2026-11-10-379 · Ayuda «¿Cómo elijo?» del nivel de actividad ──

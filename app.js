@@ -35895,12 +35895,19 @@ function trainGuidedHTML(plan, day, di) {
     + trainEditTailHTML(plan.id, di)
     + trainExtrasZoneHTML();   /* AUTH-370: la salida del guiado vive solo en la puerta de arriba */
 }
-function trainChronoHTML(planId, di) {
+function trainChronoHTML(planId, di, inStrip) {
   const c = trainChronoRead(planId);
   const elapsedMin = c ? Math.max(0, Math.round((Date.now() - c.start) / 60000)) : 0;
   const run = c ? `<span class="train-chrono-run">${t('train.chronoRunning', { min: elapsedMin })}</span>` : '<span class="train-chrono-run" aria-hidden="true"></span>';
   const goalLine = c ? trainGoalLine(elapsedMin, trainGoalMin()) : '';
   const goal = goalLine ? `<span class="train-chrono-run train-chrono-goal">${esc(goalLine)}</span>` : '';
+  /* AUTH-402 (orden de Ronald 2026-11-11): en la cola en reposo,
+     «Iniciar» vive EN la fila de acciones como cuarto botón
+     proporcional y de la pareja queda SOLO la línea del reloj, que
+     nace únicamente si hay cronómetro en curso (sin reloj no hay
+     segunda línea vacía). El panel de cierre sigue llamando sin el
+     tercer argumento: su pareja queda byte a byte la de siempre. */
+  if (inStrip) return c ? `<div class="train-chrono-pair is-clockline">${run}${goal}</div>` : '';
   return `<div class="train-chrono-pair">${run}${goal}<button type="button" class="btn-chrono-start3d" data-train-start="${di}">${t('train.chronoStartBtn')}</button></div>`;
 }
 /* ═══ CRONÓMETRO DE SESIÓN FIJO + ENCUESTA (punto 88 de la cola;
@@ -36058,11 +36065,17 @@ function trainCloseFormHTML(planId, di) {
    SWAP_PRESET_GROUP de siempre). */
 function trainEditTailHTML(planId, di) {
   if (TRAIN_CLOSE_DI === di) return trainChronoHTML(planId, di) + trainCloseFormHTML(planId, di);
+  /* AUTH-402: la fila en reposo lleva LOS CUATRO botones en una sola
+     línea, cada uno flex:1 (reparto proporcional del ancho): los tres
+     de siempre en su orden + «▶ Iniciar» como cuarto (.is-start, con
+     su data-train-start y su cableado intactos). La pareja del
+     cronómetro aporta solo su línea de reloj cuando corre. */
   return `<div class="train-actions-strip">`
     + `<button type="button" class="train-actions-btn is-finish" data-train-done="${di}">${t('train.strip.finish')}</button>`
     + `<button type="button" class="train-actions-btn" data-train-skip="${di}">${t('train.strip.skip')}</button>`
     + `<button type="button" class="train-actions-btn" data-train-add-open="1">${t('train.strip.add')}</button>`
-    + `</div>` + trainChronoHTML(planId, di);
+    + `<button type="button" class="train-actions-btn is-start" data-train-start="${di}">${t('train.chronoStartBtn')}</button>`
+    + `</div>` + trainChronoHTML(planId, di, true);
 }
 /* El volcado de la sesión en el día de actividad: UNA sola entrada
    'entrenamiento_plan', reemplazada al re-cerrar y retirada al
@@ -54489,7 +54502,7 @@ document.addEventListener('keydown', e => { if (e.key === 'Escape') shareClose()
  *  - El SW (sw.js) solo cachea la cáscara del mismo origen en modo
  *    RED PRIMERO: Auth/Firestore/Worker jamás pasan por la caché.
  * ================================================================ */
-const PWA_SW_VERSION = '20261111-pruebas-oculta';
+const PWA_SW_VERSION = '20261111-cuatro-botones';
 /* Sello de versión VISIBLE (2026-11-03): el pie de la tarjeta de
    acceso enseña qué copia corre este teléfono ('v ' + el sello),
    para comprobar de un vistazo si la versión nueva ya llegó.
