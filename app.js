@@ -5909,6 +5909,8 @@ en: {
   'manage.savedDay': '{day} session updated',
   'manage.count': '{n} exercises',
   'manage.countOne': '1 exercise',
+  'manage.reopenNote': 'Your session is saved halfway. Opening brings it back in progress — every set, weight and mark you recorded stays exactly where it belongs.',
+  'manage.swapLogged': 'You already recorded sets for “{name}” — swapping it here would mix that record into the new exercise. Remove it instead (you will be asked first) and add the new one.',
   'train.custom.titleDate': 'Customize the assignments for {date}',
   'train.custom.sessionTitle': 'Today\'s session',
   'train.custom.move': 'Move', 'train.custom.moveUp': 'Move up', 'train.custom.moveDown': 'Move down',
@@ -10625,6 +10627,8 @@ es: {
   'manage.savedDay': 'Sesión del {day} actualizada',
   'manage.count': '{n} ejercicios',
   'manage.countOne': '1 ejercicio',
+  'manage.reopenNote': 'Tu sesión está guardada a medias. Al abrirla vuelve a quedar en curso: cada serie, peso y marca que registraste queda exactamente donde va.',
+  'manage.swapLogged': 'Ya registraste series de «{name}»: cambiarlo aquí mezclaría ese registro con el ejercicio nuevo. Quítalo — se te pide confirmación — y añade el nuevo.',
   'train.custom.titleDate': 'Personaliza tus asignaciones del {date}',
   'train.custom.sessionTitle': 'Sesión de hoy',
   'train.custom.move': 'Mover', 'train.custom.moveUp': 'Subir', 'train.custom.moveDown': 'Bajar',
@@ -32908,6 +32912,7 @@ let TRAIN_CUSTOM_ISO = null;     // FECHA VISTA (2026-11-01): fecha que el despl
 let TRAIN_MANAGE = null;         // GESTIONA TU SESIÓN (AUTH-2026-11-10-387): la hoja abierta { plan, di, iso, snapEdits, snapChecksRaw, snapChecks } o null
 let TRAIN_MANAGE_FLASH = null;   // GESTIONA TU SESIÓN: { iso, day } — la confirmación visible tras Guardar; la retira la próxima escritura de ediciones fuera de la hoja
 let TRAIN_MANAGE_DRAG = null;    // GESTIONA TU SESIÓN: arrastre en curso de una fila de la hoja (solo memoria)
+let TRAIN_MANAGE_DOOR = null;    // AUTH-398: la puerta de la hoja SOBRE la tarjeta de hoy { plan, di, log } — log null = sesión sin cerrar; log = el registro parcial que tocar la puerta reabre; null = sin puerta
 /* FECHA VISTA (2026-11-01, decisión de Ronald): la clave admite
    la fecha de la sesión editada; SIN el parámetro devuelve la de
    hoy, byte a byte como siempre — todos los flujos del día en
@@ -33426,6 +33431,21 @@ function trainCustomRenderSession(plan, di, closed, iso) {
     return;
   }
   if (closed) {
+    /* AUTH-398 · GUARDADA A MEDIAS SÍ ENTRA: si el registro de
+       la fecha vista es PARCIAL, la puerta de la hoja vive también
+       aquí — tocarla REABRE el día (trainManageReopen) y la sesión
+       sigue en curso. El día cerrado del todo ('done') y el saltado
+       ('skipped') quedan como siempre: solo el aviso, y se deshacen
+       desde la tarjeta. */
+    const logP = isTodayView ? (MY_LOGS || []).find(l => l.date === viewIso && l.dayIndex === di) : null;
+    if (logP && trainLogStatus(logP) === 'partial') {
+      const nP = trainHistRowsVisible((plan.days || [])[di] || {}, logP).length;
+      tools.innerHTML = `<h4 class="tcu-title">${titleTxt}</h4><button type="button" class="mg-door" data-mg-reopen="1"><span class="mg-door-t">${esc(t('manage.title'))}</span><span class="mg-door-s">${esc(t(nP === 1 ? 'manage.openSubOne' : 'manage.openSub', { n: nP }))}</span></button><p class="progress-hint">${t('manage.reopenNote')}</p>`;
+      const doorP = tools.querySelector('[data-mg-reopen]');
+      if (doorP) doorP.onclick = () => trainManageReopen(plan, di, logP);
+      swapSheetSync(null);
+      return;
+    }
     tools.innerHTML = `<h4 class="tcu-title">${titleTxt}</h4><p class="progress-hint">${t('train.custom.closedNote')}</p>`;
     swapSheetSync(null);
     return;
@@ -33580,6 +33600,146 @@ function trainManageClose(save) {
   if (save && wasDirty) TRAIN_MANAGE_FLASH = { iso: M.iso, day: weekdayName(M.iso) };
   loadMyTraining();
 }
+/* ── AUTH-398 · LA HOJA, ALCANZABLE CON LA SESIÓN EMPEZADA ──
+   Aprobado por Ronald (2026-11-10 20:45 CST) tras su prueba en vivo:
+   la puerta de AUTH-387 solo vivía dentro del desplegable de
+   Personaliza y solo con la sesión sin registrar — entrenando y
+   registrando sobre la marcha, su sesión queda guardada a medias
+   ('partial') y la puerta desaparecía justo cuando hacía falta.
+   Dos piezas, UNA sola hoja y un solo camino:
+   1) LA PUERTA SOBRE LA TARJETA (trainManageDoorHTML): se pinta
+      arriba de la lista de la sesión de hoy, junto a la puerta del
+      guiado de AUTH-370, cuando dressedTodayCard arma
+      TRAIN_MANAGE_DOOR — sesión sin cerrar: abre la hoja como
+      siempre; sesión guardada a medias: la puerta REABRE el día
+      (trainManageReopen). La puerta de Personaliza se queda.
+   2) LA REAPERTURA (trainManageReopen): devuelve el día parcial a
+      EN CURSO reconstruyendo TODO desde el registro (su nota va
+      con la función).
+   Estados del día de hoy y su puerta:
+   · sin empezar / en curso sin guardar → puerta (las dos sedes);
+   · guardada a medias ('partial') → puerta (las dos sedes; abrir
+     reabre);
+   · cerrada con «Terminar» ('done') → SIN puerta, como hoy: se
+     deshace desde la tarjeta;
+   · saltada ('skipped') → sin puerta (nada que gestionar);
+   · otros días → sin cambios (Personaliza por fecha vista). */
+/* ¿Este ejercicio de HOY ya tiene registro? (serie con dato, marca
+   de hecho, RPE o aproximación con dato). Lo usa la guarda del
+   «Cambiar» dentro de la hoja: un cambio NO mueve las marcas, así
+   que cambiar un ejercicio con registro lo mezclaría. */
+function trainManageHasRecord(di, idx) {
+  const c = TRAIN_CHECKS[di + ':' + idx];
+  if (!c) return false;
+  if (c.done === true || c.rpe != null) return true;
+  if (Array.isArray(c.sets) && c.sets.some(s => trainSetHasData(s))) return true;
+  if (c.warmup && c.warmup.on === true && Array.isArray(c.warmup.sets) && c.warmup.sets.some(s => trainSetHasData(s))) return true;
+  return false;
+}
+function trainManageDoorHTML() {
+  const D = TRAIN_MANAGE_DOOR;
+  if (!D) return '';
+  const n = D.log ? trainHistRowsVisible((D.plan.days || [])[D.di] || {}, D.log).length
+    : trainEffectiveList(D.plan, D.di).length;
+  const flash = (TRAIN_MANAGE_FLASH && TRAIN_MANAGE_FLASH.iso === todayISO())
+    ? `<div class="mg-saved">✓ ${esc(t('manage.savedDay', { day: TRAIN_MANAGE_FLASH.day }))}</div>` : '';
+  return `${flash}<button type="button" class="mg-door" data-mg-door="1"><span class="mg-door-t">${esc(t('manage.title'))}</span><span class="mg-door-s">${esc(t(n === 1 ? 'manage.openSubOne' : 'manage.openSub', { n }))}</span></button>${D.log ? `<p class="progress-hint">${t('manage.reopenNote')}</p>` : ''}`;
+}
+/* REABRIR UNA SESIÓN GUARDADA A MEDIAS (AUTH-398): tocar la
+   puerta con el día en 'partial' devuelve la sesión a EN CURSO sin
+   perder ni mezclar nada de lo registrado. Es la vuelta del
+   Deshacer de la tarjeta, pero COMPLETA: el Deshacer no reconstruye
+   la edición (sus cambios y agregados no vuelven como edición — su
+   limitación declarada de siempre) y aquí SÍ hace falta, porque la
+   hoja compone sobre la lista EFECTIVA: sin la edición, un
+   ejercicio agregado quedaría fuera de la lista y su marca,
+   huérfana en su índice, caería sobre el siguiente ejercicio que se
+   añadiera (mezcla). La reconstrucción lee el registro con el
+   emparejador de siempre (trainHistRows): sus filas del plan
+   conservan el orden de slots y sus filas sobrantes son los
+   agregados, en el mismo orden en que la lista efectiva los
+   reconstruye — los índices casan. Lo que el registro NO guarda y
+   por tanto NO vuelve (declarado): el ORDEN propio aplicado antes
+   de guardar (las posiciones de lo no hecho no viajaron al
+   registro) y el peso tecleado de un agregado por dictado
+   (dictLoad) — las cargas REALES registradas viven en las marcas
+   reconstruidas, que sí vuelven serie a serie. La aproximación
+   (warmupSets) SÍ vuelve a su marca: mejora sobre el Deshacer, que
+   la pierde. El registro parcial se retira al abrir (el mismo gesto
+   que el Deshacer, sin confirmación nueva); Cancelar dentro de la
+   hoja restaura el BORRADOR reconstruido y nunca reescribe el
+   registro — la hoja no escribe training_logs (invariante de
+   AUTH-387 intacto): lo registrado vive en el borrador y se vuelve
+   a guardar al cerrar la sesión. */
+async function trainManageReopen(plan, di, log) {
+  if (!plan || di == null || !log) return;
+  const uid = auth.currentUser ? auth.currentUser.uid : '';
+  const today = todayISO();
+  try {
+    await deleteDoc(doc(db, 'training_logs', `${uid}_${plan.id}_${today}_${di}`));
+  } catch (e) { failToast(e); return; }
+  /* El volcado de la sesión parcial sale del día de actividad: al
+     volver a cerrar se recrea con la sesión completa (el puente de
+     AUTH-353, el mismo del Deshacer). */
+  if (log.sessionKcal != null) await trainDumpSession(today, null);
+  const day = (plan.days || [])[di] || {};
+  const rows = trainHistRows(day, log);
+  const nSlots = Array.isArray(day.exercises) ? day.exercises.length : 0;
+  /* LA EDICIÓN VUELVE ENTERA: quitados desde el propio registro,
+     cambios a su slot, agregados en su orden. */
+  const ed = { swaps: {}, added: [], removed: [] };
+  (Array.isArray(log.exercisesRemoved) ? log.exercisesRemoved : []).forEach(r => {
+    if (r && Number.isInteger(r.slot) && r.slot >= 0 && !ed.removed.includes(r.slot)) ed.removed.push(r.slot);
+  });
+  rows.forEach((row, ri) => {
+    const de = row.de;
+    if (ri < nSlots) {
+      if (de && row.mark && row.mark.type === 'swap')
+        ed.swaps[String(ri)] = { exerciseId: de.exerciseId || null, name: de.name || '', ...(Number.isInteger(de.variantIndex) ? { variantIndex: de.variantIndex } : {}) };
+      return;
+    }
+    if (!de) return;
+    /* Fila sobrante: lo agregado vuelve como agregado; un cambio
+       cuyo original no emparejó vuelve TAMBIÉN como agregado — lo
+       realizado no se pierde ni se atribuye a otro slot. */
+    const addE = { exerciseId: de.exerciseId || null, name: de.name || '', sets: row.ex.sets || '', reps: row.ex.reps || '' };
+    if (Number.isInteger(de.variantIndex)) addE.variantIndex = de.variantIndex;
+    ed.added.push(addE);
+  });
+  trainEditsWrite(plan.id, ed, today);
+  /* LAS MARCAS VUELVEN SERIE A SERIE, con el contador de índices
+     efectivos del Deshacer (las filas quitadas no cuentan): cada
+     ejercicio recupera SUS series, pesos, horas y desgloses. */
+  Object.keys(TRAIN_CHECKS).forEach(k => { if (k.split(':')[0] === String(di)) delete TRAIN_CHECKS[k]; });
+  let effIdx = 0;
+  rows.forEach(row => {
+    if (row.mark && row.mark.type === 'removed') return;
+    const ei = effIdx++;
+    const de = row.de;
+    if (!de) return;
+    const sets = (Array.isArray(de.sets) && de.sets.length) ? de.sets.map(s => ({
+      repsPlanned: String(s.repsPlanned == null ? '' : s.repsPlanned),
+      repsDone: s.repsDone == null ? '' : String(s.repsDone),
+      loadVal: s.loadOriginal != null ? convLoadDisplay(String(s.loadOriginal), s.loadUnitOriginal || UNIT_PREFS.mass, UNIT_PREFS.mass)
+        : (typeof s.loadKg === 'number' ? String(uRound1(massToDisplay(s.loadKg))) : ''),
+      ...(typeof s.markedAt === 'number' && isFinite(s.markedAt) && s.markedAt > 0 ? { markedAt: Math.floor(s.markedAt) } : {}),
+      ...tfDetailSpread(s)
+    })) : trainDefaultSets(row.ex);
+    const chk = { rpe: (typeof de.rpe === 'number' && isFinite(de.rpe)) ? de.rpe : null, sets, done: true };
+    if (Array.isArray(de.warmupSets) && de.warmupSets.length) {
+      chk.warmup = { on: true, sets: de.warmupSets.map(s => ({
+        repsDone: s.repsDone == null ? '' : String(s.repsDone),
+        loadVal: s.loadOriginal != null ? convLoadDisplay(String(s.loadOriginal), s.loadUnitOriginal || UNIT_PREFS.mass, UNIT_PREFS.mass)
+          : (typeof s.loadKg === 'number' ? String(uRound1(massToDisplay(s.loadKg))) : ''),
+        ...tfDetailSpread(s)
+      })) };
+    }
+    TRAIN_CHECKS[di + ':' + ei] = chk;
+  });
+  trainChecksPersist(plan.id);
+  trainManageOpen(plan, di, today);
+  loadMyTraining();
+}
 function trainManageCountText(n) {
   return n === 1 ? t('manage.countOne') : t('manage.count', { n });
 }
@@ -33646,6 +33806,13 @@ function trainManageSync() {
     const idx = Number(b.dataset.mgSwap);
     const it = trainEffectiveList(plan, di, viewIso)[idx];
     if (!it) return;
+    /* AUTH-398 · CAMBIAR CON REGISTRO NO ENTRA: un cambio no
+       mueve las marcas (swapSheetApply no toca TRAIN_CHECKS) — con
+       series, pesos o marcas ya registrados, el registro quedaría
+       atribuido al ejercicio nuevo: la mezcla que Ronald prohibió.
+       La hoja lo bloquea y dice la vía segura (Quitar, con su
+       aviso, y Añadir). Sin registro, el cambio es el de siempre. */
+    if (viewIso === todayISO() && trainManageHasRecord(di, idx)) { toast(t('manage.swapLogged', { name: trainExName(it.ex) || it.ex.name || '' }), true); return; }
     TRAIN_PICK = { kind: it.kind === 'add' ? 'replace-add' : 'swap', idx };
     SWAP_QUERY = '';
     loadMyTraining();
@@ -33808,6 +33975,11 @@ function trainSessionRemoveAt(plan, di, effIdx, iso) {
   if (!it) return;
   const name = trainExName(it.ex) || it.ex.name || '';
   if (it.kind === 'add') {
+    /* AUTH-398: el agregado con marcas de hoy pide la MISMA
+       confirmación que el ejercicio del plan (la rama de abajo):
+       antes se quitaba en silencio y su registro de hoy se perdía
+       en el remapeo, sin aviso. Sin marcas, se quita como siempre. */
+    if (isTodayView && TRAIN_CHECKS[di + ':' + effIdx] && !confirm(t('train.remove.confirm', { name }))) return;
     /* La ruta de siempre para agregados: splice de `added` +
        remapeo de marcas (la misma mecánica que data-tcu-unadd).
        El remapeo de marcas SOLO corre para hoy: las marcas son
@@ -38698,6 +38870,14 @@ async function loadMyTraining() {
        preferencia guardada manda la lista, como hoy. El día
        cerrado se pinta como siempre (su historial). */
     if (!done && sel === today) TRAIN_GUIDE_DOOR = true;   /* AUTH-370: la puerta del guiado se pinta ARRIBA (trainGuideDoorHTML) — una sola, no al pie de la tarjeta */
+    /* AUTH-398: la puerta de «Gestiona tu sesión» se arma con la
+       misma tarjeta — sin cerrar: abre la hoja; guardada a medias
+       (parcial): la puerta REABRE el día. Cerrada del todo o
+       saltada: sin puerta (se deshace desde la tarjeta, como hoy). */
+    if (sel === today) {
+      if (!done) TRAIN_MANAGE_DOOR = { plan, di, log: null };
+      else { const lgD = logByDay[di]; if (lgD && trainLogStatus(lgD) === 'partial') TRAIN_MANAGE_DOOR = { plan, di, log: lgD }; }
+    }
     if (!done && sel === today && trainGuidePref() === 'guided')
       return trainDressedCardHTML(plan, logs, di, sel, trainGuidedHTML(plan, day, di), '');
     const inner0 = dayCompactHTML(day, di, done ? 'done' : 'edit', logByDay[di] || null, null);
@@ -38725,6 +38905,7 @@ async function loadMyTraining() {
     return `<div class="train-blank-door"><h4>${isoDoor === today ? t('train.today.wantTitle') : t('train.today.wantTitleDay')}</h4><div class="train-door-btns">${doorBtns.join('')}</div><p class="progress-hint">${hint}</p></div>`;
   };
   TRAIN_GUIDE_DOOR = false;   /* AUTH-370: se rearma si la tarjeta de hoy nace interactiva (dressedTodayCard) */
+  TRAIN_MANAGE_DOOR = null;   /* AUTH-398: se rearma en dressedTodayCard si la tarjeta de hoy lleva la sesión (sin cerrar o guardada a medias) */
   let selCard = '';
   if (tmap.pairs || isCal) {
     const selDi = effDiForDate(sel);
@@ -38913,6 +39094,7 @@ async function loadMyTraining() {
   const trainTodayHTML = `<div class="train-today">
     <div class="train-sel-head"><b>${esc(dateName(sel))}</b>${sel === today ? ` <span class="ok-badge">${t('train.today.todayWord')}</span>` : ''}</div>
     ${trainGuideDoorHTML()}
+    ${trainManageDoorHTML()}
     ${selCard}</div>`;
   /* ESTA SEMANA · MQ5 + TIRA ÚNICA (AUTH-334): el contexto del
      bloque se fija con la resolución fecha→día de ESTA vista
@@ -39412,6 +39594,16 @@ async function loadMyTraining() {
       trainChecksPersist(plan.id);
     }
     loadMyTraining();
+  });
+  /* AUTH-398 · LA PUERTA SOBRE LA TARJETA: la misma hoja de
+     AUTH-387 abierta desde la vista de la sesión, sin desplegable;
+     con la sesión guardada a medias, tocarla REABRE el día primero
+     (trainManageReopen) y la hoja abre sobre el borrador devuelto. */
+  box.querySelectorAll('[data-mg-door]').forEach(b => b.onclick = () => {
+    const D = TRAIN_MANAGE_DOOR;
+    if (!D) return;
+    if (D.log) trainManageReopen(D.plan, D.di, D.log);
+    else trainManageOpen(D.plan, D.di, today);
   });
   /* PERSONALIZA (2026-10-27): las herramientas de la sesión de
      hoy dentro del desplegable — el día de hoy se resuelve con la
@@ -53871,7 +54063,7 @@ document.addEventListener('keydown', e => { if (e.key === 'Escape') shareClose()
  *  - El SW (sw.js) solo cachea la cáscara del mismo origen en modo
  *    RED PRIMERO: Auth/Firestore/Worker jamás pasan por la caché.
  * ================================================================ */
-const PWA_SW_VERSION = '20261110-ancho-completo';
+const PWA_SW_VERSION = '20261110-gestiona-alcanzable';
 /* Sello de versión VISIBLE (2026-11-03): el pie de la tarjeta de
    acceso enseña qué copia corre este teléfono ('v ' + el sello),
    para comprobar de un vistazo si la versión nueva ya llegó.
