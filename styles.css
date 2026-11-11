@@ -2812,8 +2812,19 @@ body.nav-lock .sw-fab, body.nav-lock .help-fab, body.nav-lock .share-fab, body.n
 #food-float .meal-row-when { font-weight: 700; font-size: 15px; color: #111827; }
 #food-float .meal-row-kcal { font-weight: 800; font-size: 15px; color: #0d9488; white-space: nowrap; }
 #food-float .meal-row-food { margin-top: 2px; font-size: 14.5px; color: #1f2937; overflow-wrap: anywhere; }
-#food-float .meal-row-meta { margin-top: 3px; display: flex; flex-wrap: wrap; gap: 4px 12px; font-size: 13px; color: #6b7280; }
-#food-float .meal-row-macros { font-variant-numeric: tabular-nums; }
+/* H-11 (AUTH-2026-11-10-395; auditoría de espacio 2026-11-09, forma reducida):
+   la línea .meal-row-meta se retiró — los macros viven en la línea
+   superior junto a las kcal (.meal-row-side) y la cantidad acompaña
+   al alimento. Cada unidad de macro va en su .meal-row-mac sin
+   partir: a 360 px la línea solo puede partir ENTRE unidades,
+   nunca dentro de un número. Las acciones NO se tocaron: visibles
+   y directas en su fila, como mandó Ronald. */
+#food-float .meal-row-side { display: flex; align-items: baseline; flex-wrap: wrap; justify-content: flex-end; gap: 2px 8px; min-width: 0; }
+#food-float .meal-row-top .meal-row-when { flex: 0 0 auto; }
+#food-float .meal-row-top .meal-row-kcal { flex: 0 0 auto; }
+#food-float .meal-row-macros { font-variant-numeric: tabular-nums; font-size: 11.5px; font-weight: 600; color: #6b7280; min-width: 0; }
+#food-float .meal-row-mac { white-space: nowrap; }
+#food-float .meal-row-qty { font-size: 13px; color: #6b7280; }
 #food-float .meal-row .meal-actions { margin-top: 8px; display: flex; gap: 8px; }
 #food-float .meal-row .rep-btn, #food-float .meal-row .del-btn { min-height: 44px; padding: 8px 16px; font-size: 13.5px; }
 /* Círculos de comidas (AUTH-2026-11-06-291): marca breve de las

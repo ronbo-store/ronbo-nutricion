@@ -45437,10 +45437,21 @@ function render(date) {
      data-* (el cableado de Repetir/Borrar de abajo no cambia). La fila
      de total conserva TODOS los totales: kcal en grande y los macros
      con los colores de siempre en una segunda línea. */
+  /* H-11 (AUTH-2026-11-10-395; auditoría de espacio 2026-11-09, forma
+     REDUCIDA aprobada por Ronald 2026-11-10): la fila compacta —
+     los macros suben a la línea superior junto a las kcal (cada
+     unidad en su .meal-row-mac, para que a 360 px la línea solo
+     pueda partir ENTRE unidades, nunca dentro de un número) y la
+     cantidad acompaña al alimento en su línea; la línea
+     .meal-row-meta se retira (≈ −18 px por comida). La parte (2)
+     de la auditoría quedó RECHAZADA por Ronald: las acciones se
+     quedan visibles y directas en su fila, sin toque largo ni
+     «⋯». Ningún dato cambia: mismos textos, mismas claves
+     th.*Short, mismos data-* y el mismo cableado; la fila de
+     total NO se toca. */
   let html = rows.map(m =>
-    `<div class="meal-row" data-meal-moment="${esc(m.meal)}"><div class="meal-row-top"><span class="meal-row-when">${esc(mealName(m.meal))}${m.createdAtMs ? ` <span class="meal-time">${mealTimeStr(m.createdAtMs)}</span>` : ''}</span><span class="meal-row-kcal">${fmt(m.kcal)} kcal</span></div>` +
-    `<div class="meal-row-food">${esc(m.food)}${m.photoURL ? ` <a href="${esc(m.photoURL)}" target="_blank" rel="noopener" title="${t('track.viewPhoto')}">📷</a>` : ''}${m.byRole === 'nutricionista' ? ` <span class="nutri-byline">🥗 ${esc(t('nutri.byNutri'))}</span>` : ''}</div>` +
-    `<div class="meal-row-meta"><span class="meal-row-qty">${esc(m.qty)}</span><span class="meal-row-macros">${t('th.protShort')} ${fmt(m.prot)} g · ${t('th.carbShort')} ${fmt(m.carb)} g · ${t('th.sugarShort')} ${fmt(m.sugar)} g · ${t('th.fatShort')} ${fmt(m.fat)} g${fiberOf(m) != null ? ' · ' + t('th.fiberShort') + ' ' + fmt(fiberOf(m)) + ' g' : ''}</span></div>` +
+    `<div class="meal-row" data-meal-moment="${esc(m.meal)}"><div class="meal-row-top"><span class="meal-row-when">${esc(mealName(m.meal))}${m.createdAtMs ? ` <span class="meal-time">${mealTimeStr(m.createdAtMs)}</span>` : ''}</span><span class="meal-row-side"><span class="meal-row-kcal">${fmt(m.kcal)} kcal</span><span class="meal-row-macros"><span class="meal-row-mac">${t('th.protShort')} ${fmt(m.prot)} g</span> · <span class="meal-row-mac">${t('th.carbShort')} ${fmt(m.carb)} g</span> · <span class="meal-row-mac">${t('th.sugarShort')} ${fmt(m.sugar)} g</span> · <span class="meal-row-mac">${t('th.fatShort')} ${fmt(m.fat)} g</span>${fiberOf(m) != null ? ' · <span class="meal-row-mac">' + t('th.fiberShort') + ' ' + fmt(fiberOf(m)) + ' g</span>' : ''}</span></span></div>` +
+    `<div class="meal-row-food">${esc(m.food)}${m.qty ? ` <span class="meal-row-qty">· ${esc(m.qty)}</span>` : ''}${m.photoURL ? ` <a href="${esc(m.photoURL)}" target="_blank" rel="noopener" title="${t('track.viewPhoto')}">📷</a>` : ''}${m.byRole === 'nutricionista' ? ` <span class="nutri-byline">🥗 ${esc(t('nutri.byNutri'))}</span>` : ''}</div>` +
     `<div class="meal-actions"><button class="rep-btn" data-edit-meal="${m.id}" title="${t('client.edit')}">✎ ${t('client.edit')}</button><button class="rep-btn" data-repeat-meal="${m.id}" title="${t('track.repeat')}">↻ ${t('track.repeat')}</button><button class="del-btn" data-del-meal="${m.id}" title="${t('track.delete')}">×</button></div></div>`
   ).join('');
   if (rows.length) html += `<div class="meal-row meal-row-total"><div class="meal-row-top"><span class="meal-row-when">${t('track.totalDay')}</span><span class="meal-row-kcal">${fmt(tot.kcal)} kcal</span></div><div class="meal-row-total-macros"><span style="color:#2563EB">${t('th.protShort')} ${fmt(tot.prot)} g</span> · <span style="color:#D97706">${t('th.carbShort')} ${fmt(tot.carb)} g</span> · <span style="color:#9333EA">${t('th.sugarShort')} ${fmt(tot.azuc)} g</span> · <span style="color:#DC2626">${t('th.fatShort')} ${fmt(tot.gras)} g</span></div></div>`;
@@ -53860,7 +53871,7 @@ document.addEventListener('keydown', e => { if (e.key === 'Escape') shareClose()
  *  - El SW (sw.js) solo cachea la cáscara del mismo origen en modo
  *    RED PRIMERO: Auth/Firestore/Worker jamás pasan por la caché.
  * ================================================================ */
-const PWA_SW_VERSION = '20261110-editor-dias';
+const PWA_SW_VERSION = '20261110-h11-diario-compacto';
 /* Sello de versión VISIBLE (2026-11-03): el pie de la tarjeta de
    acceso enseña qué copia corre este teléfono ('v ' + el sello),
    para comprobar de un vistazo si la versión nueva ya llegó.
