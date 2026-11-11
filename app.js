@@ -35838,7 +35838,6 @@ function renderWeek5Block() {
   const monFmt = d => { try { return new Intl.DateTimeFormat(LANG === 'es' ? 'es' : 'en', { month: 'short' }).format(d).replace(/\.$/, ''); } catch { return ''; } };
   const range = `${monD.getDate()} ${monFmt(monD)} – ${sunD.getDate()} ${monFmt(sunD)}`;
   const sel = [WEEK5_SEL, ctx.sel, ctx.today].find(x => x && x >= w.mon && x <= w.sun) || w.mon;
-  const tag = st => `<span class="wk5-tag st-${st}">${WEEK5_ICON[st]} ${w.counts[st]} ${esc(t('train.d.cnt' + st[0].toUpperCase() + st.slice(1)))}</span>`;
   const cells = w.days.map(m => {
     const dt = new Date(m.iso + 'T12:00:00');
     let wd = ''; try { wd = new Intl.DateTimeFormat(LANG === 'es' ? 'es' : 'en', { weekday: 'short' }).format(dt).replace(/\.$/, ''); } catch {}
@@ -35848,12 +35847,17 @@ function renderWeek5Block() {
   }).join('');
   const selM = w.days.find(m => m.iso === sel) || w.days.find(m => m.isToday) || w.days[0];
   /* La cabecera gana la navegación de la tira retirada (‹ › de
-     semana y el regreso rápido a hoy) y la fila de etiquetas, el
-     resumen de la semana vista que la tira retirada mostraba
-     (sesiones hechas de la semana entre los días del plan):
-     ningún dato de la vista se pierde (AUTH-334). */
-  return `<div class="wk5"><div class="wk5-head"><span class="wk5-titlebox"><span class="wk5-title">${esc(t('train.d.weekTitle'))}</span><span class="wk5-range">${esc(range)}</span></span><span class="wk5-navbox"><button type="button" class="train-nav" data-wk5-week="-1" aria-label="‹">‹</button><button type="button" class="btn-ghost btn-sm" data-wk5-today="1">${esc(t('train.today.btnToday'))}</button><button type="button" class="train-nav" data-wk5-week="1" aria-label="›">›</button></span></div>`
-    + `<div class="wk5-tags">${tag('done')}${tag('partial')}${tag('skipped')}${ctx.sumHide ? '' : `<span class="train-week-sum">${esc(t('train.today.weekSummary', { x: ctx.sumX || 0, y: ctx.sumY || 0 }))}</span>`}</div>`
+     semana y el regreso rápido a hoy) y, desde AUTH-334, el resumen
+     de la semana vista (sesiones hechas entre los días del plan).
+     H-02 (AUTH-2026-11-10-388; auditoría de espacio 2026-11-09, aprobado por
+     Ronald 2026-11-10): la cifra de la semana se pinta UNA SOLA
+     VEZ en toda la vista — esta línea-resumen dentro de la
+     cabecera —. La fila de etiquetas con conteos (.wk5-tags) se
+     retiró: el estado de cada día vive en el glifo de su celda
+     (.wk5-i) y los conteos del modelo se siguen calculando igual;
+     el párrafo «Sesiones completadas esta semana: {n}» que iba
+     bajo la tarjeta del día también se retiró. */
+  return `<div class="wk5"><div class="wk5-head"><span class="wk5-titlebox"><span class="wk5-title">${esc(t('train.d.weekTitle'))}</span><span class="wk5-range">${esc(range)}</span></span><span class="wk5-navbox"><button type="button" class="train-nav" data-wk5-week="-1" aria-label="‹">‹</button><button type="button" class="btn-ghost btn-sm" data-wk5-today="1">${esc(t('train.today.btnToday'))}</button><button type="button" class="train-nav" data-wk5-week="1" aria-label="›">›</button></span>${ctx.sumHide ? '' : `<span class="train-week-sum">${esc(t('train.today.weekSummary', { x: ctx.sumX || 0, y: ctx.sumY || 0 }))}</span>`}</div>`
     + `<div class="wk5-row">${cells}</div>`
     + `<button type="button" class="wk5-detail" data-wk5-go="${selM.iso}"><span class="wk5-detail-t">${esc(week5DetailText(selM))}</span><span class="wk5-chev" aria-hidden="true">›</span></button></div>`;
 }
@@ -38821,7 +38825,6 @@ async function loadMyTraining() {
     ${myPlansHTML}
     ${weekHtml}
     ${trainTodayHTML}
-    <p class="progress-hint">${t('train.weekDone', { n: weekCount })}</p>
     ${isLoose ? '' : `<div style="margin:6px 0"><button class="btn-ghost btn-sm" id="btn-print-card">${t('train.print.btn')}</button></div>`}
     <div id="train-align-slot"></div>
     <!-- TARJETA COMPACTA (Ronald, 2026-10-26 07:25 CDT): bajo la
@@ -53633,7 +53636,7 @@ document.addEventListener('keydown', e => { if (e.key === 'Escape') shareClose()
  *  - El SW (sw.js) solo cachea la cáscara del mismo origen en modo
  *    RED PRIMERO: Auth/Firestore/Worker jamás pasan por la caché.
  * ================================================================ */
-const PWA_SW_VERSION = '20261110-gestiona-sesion';
+const PWA_SW_VERSION = '20261110-cifra-unica';
 /* Sello de versión VISIBLE (2026-11-03): el pie de la tarjeta de
    acceso enseña qué copia corre este teléfono ('v ' + el sello),
    para comprobar de un vistazo si la versión nueva ya llegó.
