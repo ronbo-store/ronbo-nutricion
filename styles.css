@@ -2662,6 +2662,53 @@ body.nav-lock .sw-fab, body.nav-lock .help-fab, body.nav-lock .share-fab, body.n
    «Mis alumnos» — las tarjetas son las de la ficha (.user-row);
    el bloque solo aporta su respiro dentro de la tarjeta. */
 .stu-plan-block { margin: 10px 0 14px; }
+/* AUTH-412 — el bloque del plan en el detalle del alumno: la
+   fila de puertas, la tarjeta didáctica del plan activo (fechas
+   rotuladas + línea fina de progreso por tiempo), la pista de
+   despliegue, el botón «Revisar propuestas» con su contador, y
+   las piezas de las hojas «Progreso en este plan» y «Revisar
+   propuestas». Valores de las maquetas aprobadas. */
+.plan-block-btnrow { display: flex; gap: 8px; margin-bottom: 10px; }
+.plan-block-btnrow .btn-primary, .plan-block-btnrow .btn-ghost { flex: 1; min-height: 48px; font-size: 15px; border-radius: 12px; display: flex; align-items: center; justify-content: center; gap: 6px; }
+.plan-card { align-items: flex-start; cursor: pointer; }
+.plan-card .plan-row-c-main { padding-top: 1px; }
+.plan-card.open { border-color: #0d9488; box-shadow: 0 0 0 1px #0d9488; background: #f2fbf9; }
+.plan-card-dates { margin-top: 9px; display: grid; gap: 4px; font-size: 13.5px; color: #1f2a44; }
+.plan-card-dates b { color: #0f766e; font-weight: 800; margin-right: 5px; }
+.plan-card-prog { margin-top: 11px; }
+.plan-card-prog-top { display: flex; justify-content: space-between; align-items: baseline; font-size: 12px; margin-bottom: 5px; }
+.plan-card-prog-top b { color: #173f38; font-weight: 800; }
+.plan-card-prog-top span { color: #0f766e; font-weight: 800; }
+.plan-card-bar { height: 6px; border-radius: 999px; background: #e2ebe8; overflow: hidden; }
+.plan-card-bar i { display: block; height: 100%; border-radius: 999px; background: #0d9488; }
+.plan-card-hint { text-align: center; font-size: 13px; font-weight: 700; color: #0f766e; margin: 4px 0 10px; }
+.plan-review-btn { width: 100%; min-height: 52px; margin-top: 10px; border: 2px solid #0d9488; background: #fff; color: #0f766e; font-weight: 800; font-size: 15.5px; border-radius: 12px; display: flex; align-items: center; justify-content: center; gap: 9px; cursor: pointer; font-family: inherit; }
+.plan-review-count { background: #b3261e; color: #fff; font-size: 12.5px; font-weight: 800; border-radius: 999px; padding: 2px 9px; }
+.stu-prog-sub { font-size: 13px; color: #5b6b66; margin: 0 0 4px; }
+.stu-prog-block { background: #fff; border: 1px solid #dde7e3; border-radius: 14px; padding: 12px 13px; margin-top: 12px; }
+.stu-prog-block-t { font-size: 15.5px; font-weight: 800; color: #173f38; margin-bottom: 7px; }
+.stu-prog-block p { margin: 4px 0; font-size: 13.5px; color: #334155; line-height: 1.45; }
+.stu-prog-note { font-size: 12.5px; color: #64748b; line-height: 1.45; }
+.stu-prog-empty { background: #f7faf9; border: 1.5px dashed #c4d6d1; border-radius: 14px; padding: 12px 13px; font-size: 13.5px; color: #5b6b66; line-height: 1.5; }
+.stu-prog-days { display: flex; gap: 6px; margin: 8px 0 4px; }
+.stu-prog-day { flex: 1; text-align: center; border-radius: 10px; padding: 7px 2px; font-size: 12px; font-weight: 700; background: #eef4f2; color: #5b6b66; }
+.stu-prog-day b { display: block; font-size: 14px; }
+.stu-prog-day.done { background: #0d9488; color: #fff; }
+.stu-prog-day.today { background: #fff7e6; color: #92600a; border: 1.5px dashed #d9a441; }
+.stu-prog-sess { display: flex; justify-content: space-between; align-items: baseline; font-size: 12px; margin-top: 8px; }
+.stu-prog-sess b { color: #173f38; font-weight: 800; }
+.stu-prog-sess span { color: #0f766e; font-weight: 800; }
+.stu-prog-mark { display: flex; justify-content: space-between; align-items: baseline; gap: 10px; padding: 7px 0; border-bottom: 1px dashed #e2ebe8; }
+.stu-prog-mark:last-child { border-bottom: none; }
+.stu-prog-mark-name { font-size: 14px; font-weight: 700; color: #1f2a44; }
+.stu-prog-mark-sub { font-size: 12.5px; color: #64748b; }
+.stu-prog-mark-kg { font-size: 16px; font-weight: 800; color: #0f766e; white-space: nowrap; }
+.stu-prog-feel { display: flex; align-items: center; gap: 10px; padding: 6px 0; border-bottom: 1px dashed #e2ebe8; font-size: 14px; color: #1f2a44; }
+.stu-prog-feel:last-of-type { border-bottom: none; }
+.stu-prog-face { font-size: 26px; }
+.stu-prog-feel-word { color: #0f766e; font-weight: 800; margin-left: auto; white-space: nowrap; flex: none; }
+.stu-tray-group-t { display: flex; align-items: baseline; gap: 8px; font-size: 15.5px; font-weight: 800; color: #173f38; margin: 16px 0 8px; }
+.stu-tray-count { background: #0d9488; color: #fff; font-size: 12.5px; font-weight: 800; border-radius: 999px; padding: 2px 9px; }
 /* AUTH-352: «El entrenamiento de mi alumno» en el detalle de «Mis alumnos». */
 .stu-train-block { margin: 10px 0 14px; }
 .stu-train-line { margin-bottom: 6px; }

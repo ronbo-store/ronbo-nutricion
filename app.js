@@ -5701,6 +5701,44 @@ en: {
   'students.pend.bodyNoAnalysis': 'No body-type analysis on record yet',
   'students.viewFull': 'View full record',
   'students.planBlock': '🏋️ Their training plan',
+  'students.assignPlan': 'Assign plan',
+  'students.progressBtn': 'Progress',
+  'students.reviewBtn': 'Review proposals',
+  'students.reviewCount': '{n} to review',
+  'students.planEndLabel': 'End date',
+  'students.planProgressLine': 'Plan progress',
+  'students.planDayOf': 'Day {x} of {n}',
+  'students.planTapDays': 'Tap the plan to see its days ›',
+  'students.planTapHide': 'Tap the plan to fold its days ▴',
+  'students.progTitle': '📈 Progress in this plan',
+  'students.progWindow': '{from} to {to} · today is day {x} of {n}',
+  'students.progNoWindow': 'This plan has no start and end dates set, so its progress cannot be cut to a date window.',
+  'students.progDaysTitle': '📅 Days worked in this plan',
+  'students.progSessions': 'Sessions in this plan',
+  'students.progSessionsOf': '{done} of {total}',
+  'students.progDayDone': '✓ Done',
+  'students.progDayToday': 'Today',
+  'students.progDayDue': 'Due',
+  'students.progDaysNote': 'Only the days this plan asks for, inside its dates — the same count as their consistency.',
+  'students.progMarksTitle': '💪 Their marks in this plan',
+  'students.progMarkBest': 'Best weight · {when}',
+  'students.progMarkReps': 'their best set by reps: {reps} with {load}',
+  'students.progMarkRepsNoLoad': 'their best set by reps: {reps}',
+  'students.progMarksNote': 'Their best weight and their highest reps per exercise, from what they logged in this plan’s sessions. Beating an earlier mark is already saved as a “personal record” milestone.',
+  'students.progMarksEmpty': 'They have not logged any sets in this plan yet.',
+  'students.progFeelTitle': '😄 How they have felt in this plan',
+  'students.progFeelAvg': 'Average: {avg} of 5 across {n} sessions with an answer.',
+  'students.progFeelNote': 'It is the closing survey of each session (the face they pick at the end). Only sessions run with the timer where they answered count; if they skip it one day, that day paints nothing.',
+  'students.progFeelEmpty': 'They have not answered the closing survey in any session of this plan yet.',
+  'students.progMsTitle': '🎯 Goals achieved',
+  'students.progMsEmpty': 'No milestones inside this plan yet: the first one arrives when they close their first full week.',
+  'students.progMsNote': 'Milestones are kept forever in their record — the ones from earlier plans still show there.',
+  'students.trayTitle': '🗳️ Review proposals',
+  'students.traySubZero': 'nothing waiting',
+  'students.trayPlanGroup': 'Plan proposals',
+  'students.trayReqGroup': 'Requests to their trainer',
+  'students.trayGoalsGroup': 'Goals and pace',
+  'students.trayReqEmpty': 'No requests waiting.',
   'students.plansInactiveOne': '+ 1 inactive plan',
   'students.plansInactiveMany': '+ {n} inactive plans',
   'students.trainBlock': '🏋️ My student\'s training',
@@ -10519,6 +10557,44 @@ es: {
   'students.pend.bodyNoAnalysis': 'Aún no tiene un análisis de tipo corporal registrado',
   'students.viewFull': 'Ver ficha completa',
   'students.planBlock': '🏋️ Su plan de entrenamiento',
+  'students.assignPlan': 'Asignar plan',
+  'students.progressBtn': 'Progreso',
+  'students.reviewBtn': 'Revisar propuestas',
+  'students.reviewCount': '{n} por revisar',
+  'students.planEndLabel': 'Fecha de final',
+  'students.planProgressLine': 'Progreso del plan',
+  'students.planDayOf': 'Día {x} de {n}',
+  'students.planTapDays': 'Toca el plan para ver sus días ›',
+  'students.planTapHide': 'Toca el plan para recoger sus días ▴',
+  'students.progTitle': '📈 Progreso en este plan',
+  'students.progWindow': 'Del {from} al {to} · hoy es el día {x} de {n}',
+  'students.progNoWindow': 'Este plan no tiene fijadas la fecha de inicio y la de final, así que su progreso no se puede recortar a una ventana de fechas.',
+  'students.progDaysTitle': '📅 Días trabajados en este plan',
+  'students.progSessions': 'Sesiones del plan',
+  'students.progSessionsOf': '{done} de {total}',
+  'students.progDayDone': '✓ Hecho',
+  'students.progDayToday': 'Hoy',
+  'students.progDayDue': 'Toca',
+  'students.progDaysNote': 'Cuenta solo los días que este plan pide, dentro de sus fechas — la misma cuenta de su constancia.',
+  'students.progMarksTitle': '💪 Sus marcas en este plan',
+  'students.progMarkBest': 'Peso mayor · {when}',
+  'students.progMarkReps': 'su serie con más reps: {reps} con {load}',
+  'students.progMarkRepsNoLoad': 'su serie con más reps: {reps}',
+  'students.progMarksNote': 'Su mejor peso y sus mayores repeticiones por ejercicio, de lo que registró en las sesiones de este plan. Superar una marca de antes ya se guarda como hito «marca personal».',
+  'students.progMarksEmpty': 'Aún no ha registrado series en este plan.',
+  'students.progFeelTitle': '😄 Cómo se ha sentido en este plan',
+  'students.progFeelAvg': 'Promedio: {avg} de 5 en {n} sesiones con respuesta.',
+  'students.progFeelNote': 'Es la encuesta de cierre de cada sesión (la carita que elige al terminar). Solo cuenta las sesiones con cronómetro en las que respondió; si un día la salta, ese día no pinta nada.',
+  'students.progFeelEmpty': 'Aún no ha respondido la encuesta de cierre en ninguna sesión de este plan.',
+  'students.progMsTitle': '🎯 Metas logradas',
+  'students.progMsEmpty': 'Aún no hay hitos dentro de este plan: el primero llega al cerrar su primera semana completa.',
+  'students.progMsNote': 'Los hitos quedan guardados para siempre en su ficha — los de sus planes anteriores se siguen viendo ahí.',
+  'students.trayTitle': '🗳️ Revisar propuestas',
+  'students.traySubZero': 'nada esperando',
+  'students.trayPlanGroup': 'Propuestas de su plan',
+  'students.trayReqGroup': 'Solicitudes a su entrenador',
+  'students.trayGoalsGroup': 'Metas y ritmo',
+  'students.trayReqEmpty': 'Sin solicitudes esperando.',
   'students.plansInactiveOne': '+ 1 plan inactivo',
   'students.plansInactiveMany': '+ {n} planes inactivos',
   'students.trainBlock': '🏋️ El entrenamiento de mi alumno',
@@ -18738,10 +18814,19 @@ function studentsListSectionHTML() {
 let STU_PLANS = { uid: null, plans: null, loadingFor: null };
 function stuPlanBlockHTML(u) {
   const loaded = STU_PLANS.uid === u.id && !!STU_PLANS.plans;
+  /* AUTH-412: el bloque nace RECOGIDO — la fila de puertas
+     [Asignar plan] [📈 Progreso] (Progreso solo con plan activo; la
+     etiqueta «Asignar plan» es de ESTA superficie: la clave
+     compartida train.new no se renombra) y, bajo las filas, el
+     botón «Revisar propuestas» a todo el ancho con su contador de
+     pendientes (la pastilla nace oculta y la rellena
+     stuTrayPaintCount). */
+  const act = loaded ? (STU_PLANS.plans.find(p => p && p.active === true) || null) : null;
   const inner = !loaded
     ? `<div class="wempty">${esc(t('access.loading'))}</div>`
-    : `<div style="margin-bottom:10px"><button class="btn-primary btn-sm" data-plan-new="1">${t('train.new')}</button></div>`
-      + stuPlanRowsHTML(STU_PLANS.plans);
+    : `<div class="plan-block-btnrow"><button type="button" class="btn-primary" data-plan-new="1">${esc(t('students.assignPlan'))}</button>${act ? `<button type="button" class="btn-ghost" data-plan-progress="${esc(u.id)}">📈 ${esc(t('students.progressBtn'))}</button>` : ''}</div>`
+      + stuPlanRowsHTML(STU_PLANS.plans)
+      + `<button type="button" class="plan-review-btn" data-plan-review="${esc(u.id)}">🗳️ ${esc(t('students.reviewBtn'))}<span class="plan-review-count" data-plan-review-count style="display:none"></span></button>`;
   return `<div class="stu-plan-block" id="stu-plan-block"><h3 class="history-title">${esc(t('students.planBlock'))}</h3>${inner}</div>`;
 }
 /* H-07 (AUTH-2026-11-10-392; auditoría de espacio 2026-11-09 §H-07 (a),
@@ -18754,12 +18839,21 @@ function stuPlanBlockHTML(u) {
    pieza única de la ficha, de este detalle y de «Mis planes».
    Sin planes, el vacío honesto de siempre; sin inactivos, la
    línea no se pinta. */
+/* AUTH-412: el plan activo ya no se pinta con la fila
+   compacta compartida ni con sus días desplegados: nace como la
+   TARJETA didáctica de stuPlanCardHTML, con la pista de despliegue
+   y la lista de días (stuPlanDaysHTML, byte a byte) dentro de un
+   anfitrión oculto que solo la tarjeta despliega. El plegado de
+   inactivos de H-07 queda como está; un segundo plan «activo»
+   (anomalía de datos) se pinta con la fila compacta de siempre. */
 function stuPlanRowsHTML(plans) {
   if (!plans.length) return `<div class="wempty">${t('train.noPlan')}</div>`;
   const act = plans.filter(p => p && p.active === true);
   const ina = plans.filter(p => !(p && p.active === true));
-  return (act.length ? planRowsHTML(act) : '')
-    + stuPlanDaysHTML(act.length ? act[0] : null)
+  return (act.length ? stuPlanCardHTML(act[0])
+      + `<div class="plan-card-hint" data-plan-hint>${esc(t('students.planTapDays'))}</div>`
+      + `<div data-stu-days-host style="display:none">${stuPlanDaysHTML(act[0])}</div>` : '')
+    + (act.length > 1 ? planRowsHTML(act.slice(1)) : '')
     + (ina.length ? stuPlansInactiveFoldHTML(ina) : '');
 }
 function stuPlansInactiveFoldHTML(ina) {
@@ -18772,6 +18866,21 @@ function stuPlansWireCurrent(uid) {
   wirePlanActions(blk, uid, STU_PLANS.plans, () => { STU_PLANS.plans = null; loadStudentPlans(uid); });
   stuPlanDaysWire(blk);
   stuPlansFoldWire(blk);
+  /* AUTH-412: la tarjeta del plan activo despliega y recoge
+     sus días (el toque en su «⋮» abre la hoja de acciones y NO
+     alterna — la guarda viaja con el manejador), y las puertas
+     «Progreso» y «Revisar propuestas» con el contador. */
+  const card = blk.querySelector('[data-plan-card]');
+  if (card && !card.dataset.wired) {
+    card.dataset.wired = '1';
+    card.onclick = e => { if (e.target.closest('[data-plan-menu]')) return; stuPlanCardToggle(blk); };
+    card.onkeydown = e => { if ((e.key === 'Enter' || e.key === ' ') && e.target === card) { e.preventDefault(); stuPlanCardToggle(blk); } };
+  }
+  const pb = blk.querySelector('[data-plan-progress]');
+  if (pb) pb.onclick = () => stuPlanProgressOpen(uid);
+  const rb = blk.querySelector('[data-plan-review]');
+  if (rb) rb.onclick = () => stuTrayOpen(uid);
+  stuTrayPaintCount(uid);
 }
 /* H-07 (AUTH-2026-11-10-392): el toque de la línea «+ N plan(es) inactivo(s)»
    despliega/pliega las filas inactivas (el mismo patrón con guarda
@@ -18788,6 +18897,296 @@ function stuPlansFoldWire(blk) {
       if (det) det.style.display = det.style.display === 'none' ? '' : 'none';
     };
   });
+}
+/* ════════════════════════════════════════════════════════════════
+   AUTH-412 — LA TARJETA DEL PLAN, «PROGRESO EN ESTE PLAN» Y
+   LA BANDEJA «REVISAR PROPUESTAS» del detalle de «Mis alumnos»
+   (órdenes de Ronald 2026-11-11 10:35 y 10:51 CST; veredicto «Se
+   construye así» de las 11:04 sobre las maquetas aprobadas).
+   Todo lo de aquí lee SOLO datos que las reglas vivas ya dejan
+   leer al entrenador en la ficha y en este detalle — sin reglas
+   nuevas y sin escrituras nuevas: abrir las hojas no escribe
+   nada (salvo la marca «vista» que la propia bandeja de
+   propuestas ya hace al abrirse, su comportamiento de siempre).
+   ════════════════════════════════════════════════════════════════ */
+/* El avance del plan POR TIEMPO: la ventana [inicio..final] es
+   inclusiva en los dos extremos (del 9 al 22 de noviembre hay 14
+   días y el 11 es el día 3). Sin fechas válidas devuelve null y
+   la tarjeta simplemente no pinta la línea. */
+function stuPlanTimeProgress(p) {
+  const s = p && p.startsAt ? String(p.startsAt).slice(0, 10) : '';
+  const e = p && p.endsAt ? String(p.endsAt).slice(0, 10) : '';
+  if (!/^\d{4}-\d{2}-\d{2}$/.test(s) || !/^\d{4}-\d{2}-\d{2}$/.test(e) || e < s) return null;
+  const n = Math.round((new Date(e + 'T12:00:00') - new Date(s + 'T12:00:00')) / 86400000) + 1;
+  const raw = Math.round((new Date(todayISO() + 'T12:00:00') - new Date(s + 'T12:00:00')) / 86400000) + 1;
+  const x = Math.max(0, Math.min(n, raw));
+  return { x, n, pct: Math.round(100 * x / n) };
+}
+/* LA TARJETA DIDÁCTICA del plan activo: crece de .plan-row-c como
+   la fila compacta, pero su cuerpo se lee entero de un vistazo —
+   nombre, insignia, conteos, las dos fechas ROTULADAS y la línea
+   fina de progreso por tiempo. Emite su <div class="plan-history">
+   hermano EXACTAMENTE como planRowsHTML: la hoja de acciones
+   (wirePlanActionButtons) escribe el historial de versiones ahí
+   dentro, buscando por id dentro del bloque. */
+function stuPlanCardHTML(p) {
+  const tp = stuPlanTimeProgress(p);
+  const nd = (p.days || []).length;
+  const ne = (p.days || []).reduce((n, d) => n + ((d && d.exercises) || []).length, 0);
+  const dates = [];
+  if (p.startsAt) dates.push(`<div><b>${esc(t('train.dates.start'))}:</b> ${esc(dateName(String(p.startsAt).slice(0, 10)))}</div>`);
+  if (p.endsAt) dates.push(`<div><b>${esc(t('students.planEndLabel'))}:</b> ${esc(dateName(String(p.endsAt).slice(0, 10)))}</div>`);
+  return `<div class="plan-row-c plan-card" data-plan-card="${esc(p.id)}" role="button" tabindex="0" aria-expanded="false"><div class="plan-row-c-main"><b>${esc(p.title || '')}</b> <span class="ok-badge">${t('train.activeBadge')}</span>${planIsExpired(p) ? ` <span class="exp-badge">${t('train.dates.expired')}</span>` : ''}<br><span class="muted">${t('train.daysCount', { n: nd })} · ${t('train.exCount', { n: ne })}</span>${dates.length ? `<div class="plan-card-dates">${dates.join('')}</div>` : `<div class="plan-card-dates"><div>${esc(t('train.dates.none'))}</div></div>`}${tp ? `<div class="plan-card-prog"><div class="plan-card-prog-top"><b>${esc(t('students.planProgressLine'))}</b><span>${esc(t('students.planDayOf', { x: tp.x, n: tp.n }))}</span></div><div class="plan-card-bar"><i style="width:${tp.pct}%"></i></div></div>` : ''}</div><button type="button" class="plan-dots" data-plan-menu="${p.id}" aria-label="${esc(t('train.planMenu'))}">⋮</button></div><div class="plan-history" id="ph-${p.id}" style="display:none"></div>`;
+}
+/* Tocar la tarjeta despliega/recoge el anfitrión de sus días y
+   cambia la pista; el cableado guarda el toque del «⋮». */
+function stuPlanCardToggle(blk) {
+  const card = blk.querySelector('[data-plan-card]');
+  const host = blk.querySelector('[data-stu-days-host]');
+  if (!card || !host) return;
+  const open = host.style.display !== 'none';
+  host.style.display = open ? 'none' : '';
+  card.classList.toggle('open', !open);
+  card.setAttribute('aria-expanded', open ? 'false' : 'true');
+  const hint = blk.querySelector('[data-plan-hint]');
+  if (hint) hint.textContent = t(open ? 'students.planTapDays' : 'students.planTapHide');
+}
+function stuShortDay(iso) { return `${weekdayName(iso)} ${Number(String(iso).slice(8, 10))}`; }
+/* EL MODELO de «Progreso en este plan» — función pura sobre el
+   plan y sus registros: la ventana es [inicio..final]; las
+   sesiones cuentan con la MISMA regla de stuCumplModel (día que
+   el plan pide según careDayFor, sin días libres, con registro
+   cerrado ese día — F-16); las marcas se destilan de las series
+   registradas en la ventana por ejercicio (identidad wkGroupKey):
+   su peso mayor (canónico, kg) y su serie con más repeticiones
+   (desempate por la carga mayor), con la carga tal como la
+   escribió (trainLastTimeLoadText); y la sensación es la encuesta
+   de cierre de la sesión (log.satisfaction), con su promedio. */
+function stuPlanProgressModel(plan, logs) {
+  const s = String(plan.startsAt || '').slice(0, 10);
+  const e = String(plan.endsAt || '').slice(0, 10);
+  const closed = (Array.isArray(logs) ? logs : []).filter(wkIsClosed);
+  const inWin = closed.filter(l => l && l.date >= s && l.date <= e);
+  const doneDates = new Set(inWin.map(l => l.date));
+  let planned = 0, done = 0;
+  for (let iso = s; iso <= e; iso = addDaysISO(iso, 1)) {
+    const r = careDayFor(plan, null, iso);
+    if (!r || r.mode === 'rotation' || r.idx == null) continue;
+    if (((plan.days || [])[r.idx] || {}).freeDay === true) continue;
+    planned++;
+    if (doneDates.has(iso)) done++;
+  }
+  const today = todayISO();
+  const mon = mondayISO(today);
+  const strip = [];
+  for (let i = 0; i < 7; i++) {
+    const iso = addDaysISO(mon, i);
+    const r = careDayFor(plan, null, iso);
+    const isPlanDay = !!(r && r.mode !== 'rotation' && r.idx != null);
+    const free = isPlanDay && (((plan.days || [])[r.idx] || {}).freeDay === true);
+    strip.push({ iso, wd: i, planDay: isPlanDay && !free, free, done: doneDates.has(iso), today: iso === today });
+  }
+  const groups = new Map();
+  inWin.slice().sort((a, b) => (a.date < b.date ? -1 : a.date > b.date ? 1 : 0)).forEach(l => (l.exercisesDone || []).forEach(en => {
+    if (!en || !Array.isArray(en.sets)) return;
+    const key = wkGroupKey(en);
+    if (!groups.has(key)) groups.set(key, { name: trainExName(en) || en.name || '', bestLoad: null, bestReps: null });
+    const g = groups.get(key);
+    en.sets.forEach(st => {
+      if (!st) return;
+      const lk = (typeof st.loadKg === 'number' && isFinite(st.loadKg)) ? st.loadKg : null;
+      const rd = (typeof st.repsDone === 'number' && isFinite(st.repsDone)) ? st.repsDone : null;
+      if (lk != null && lk > 0 && (!g.bestLoad || lk > g.bestLoad.kg)) g.bestLoad = { kg: lk, text: trainLastTimeLoadText(st), date: l.date };
+      if (rd != null && rd > 0 && (!g.bestReps || rd > g.bestReps.reps || (rd === g.bestReps.reps && lk != null && g.bestReps.kg != null && lk > g.bestReps.kg))) g.bestReps = { reps: rd, kg: lk, text: trainLastTimeLoadText(st), date: l.date };
+    });
+  }));
+  const marks = [...groups.values()].filter(g => g.bestLoad || g.bestReps)
+    .sort((a, b) => ((b.bestLoad ? b.bestLoad.kg : -1) - (a.bestLoad ? a.bestLoad.kg : -1)) || (a.name < b.name ? -1 : 1));
+  const feels = inWin.filter(l => typeof l.satisfaction === 'number' && isFinite(l.satisfaction) && l.satisfaction >= 1 && l.satisfaction <= 5)
+    .map(l => ({ date: l.date, label: l.dayLabel || '', sat: Math.round(l.satisfaction) }));
+  const feelAvg = feels.length ? feels.reduce((a, f) => a + f.sat, 0) / feels.length : null;
+  return { from: s, to: e, planned, done, strip, marks, feels, feelAvg };
+}
+/* «📈 Progreso en este plan» — la hoja hermana #stu-prog-float.
+   Los datos vienen de las cachés del propio detalle cuando están
+   (STU_PLANS / STU_TRAIN) o de las lecturas de siempre
+   (fetchPlans / fetchLogs / recoFetchStored). Estados vacíos
+   honestos en cada bloque; plan sin fechas → una sola nota. */
+async function stuPlanProgressOpen(uid) {
+  const fl = $('stu-prog-float'); if (!fl) return;
+  const plans = (STU_PLANS.uid === uid && STU_PLANS.plans) ? STU_PLANS.plans : await fetchPlans(uid);
+  const plan = (plans || []).find(p => p && p.active === true) || null;
+  const ttl = $('stu-prog-title'); if (ttl) ttl.textContent = t('students.progTitle');
+  const x = $('btn-stu-prog-close'); if (x) x.onclick = () => { fl.style.display = 'none'; };
+  const body = $('stu-prog-body'); if (!body) return;
+  if (!plan) { body.innerHTML = `<div class="stu-prog-empty">${esc(t('train.noPlan'))}</div>`; fl.style.display = ''; return; }
+  const head = `<p class="stu-prog-sub"><b>${esc(stuTrayStudentName(uid))}</b> · ${esc(plan.title || '')}</p>`;
+  const s = String(plan.startsAt || '').slice(0, 10), e = String(plan.endsAt || '').slice(0, 10);
+  const okWin = /^\d{4}-\d{2}-\d{2}$/.test(s) && /^\d{4}-\d{2}-\d{2}$/.test(e) && e >= s;
+  if (!okWin) { body.innerHTML = head + `<div class="stu-prog-empty">${esc(t('students.progNoWindow'))}</div>`; fl.style.display = ''; return; }
+  const logs = (STU_TRAIN.uid === uid && STU_TRAIN.logs) ? STU_TRAIN.logs : await fetchLogs(uid);
+  const m = stuPlanProgressModel(plan, logs);
+  const tp = stuPlanTimeProgress(plan);
+  const pct = m.planned ? Math.round(100 * m.done / m.planned) : 0;
+  const stripH = m.strip.map(c => {
+    const st = c.done ? t('students.progDayDone') : c.today ? t('students.progDayToday') : c.free ? t('train.free.label') : c.planDay ? t('students.progDayDue') : '—';
+    return `<div class="stu-prog-day${c.done ? ' done' : ''}${c.today && !c.done ? ' today' : ''}"><b>${esc((DAYNAMES[LANG] || DAYNAMES.en)[c.wd])} ${Number(c.iso.slice(8, 10))}</b>${esc(st)}</div>`;
+  }).join('');
+  const marksH = m.marks.length ? m.marks.map(g => {
+    const subs = [];
+    if (g.bestLoad) subs.push(esc(t('students.progMarkBest', { when: stuShortDay(g.bestLoad.date) })));
+    if (g.bestReps) subs.push(g.bestReps.text
+      ? esc(t('students.progMarkReps', { reps: g.bestReps.reps, load: g.bestReps.text }))
+      : esc(t('students.progMarkRepsNoLoad', { reps: g.bestReps.reps })));
+    const big = g.bestLoad ? esc(g.bestLoad.text || fmtMass(g.bestLoad.kg)) : `${g.bestReps.reps} ${esc(t('train.lastTime.reps'))}`;
+    return `<div class="stu-prog-mark"><div><div class="stu-prog-mark-name">${esc(g.name)}</div><div class="stu-prog-mark-sub">${subs.join(' · ')}</div></div><div class="stu-prog-mark-kg">${big}</div></div>`;
+  }).join('') : `<div class="stu-prog-empty">${esc(t('students.progMarksEmpty'))}</div>`;
+  const feelsH = m.feels.length ? m.feels.map(f => `<div class="stu-prog-feel"><span class="stu-prog-face" aria-hidden="true">${SESS_FACES[f.sat - 1]}</span><span><b>${esc(stuShortDay(f.date))}</b>${f.label ? ` — ${esc(f.label)}` : ''}</span><span class="stu-prog-feel-word">${esc(t('sess.face.' + f.sat))} · ${f.sat}</span></div>`).join('')
+    + `<p><b>${esc(t('students.progFeelAvg', { avg: fmt(m.feelAvg), n: m.feels.length }))}</b></p><p class="stu-prog-note">${esc(t('students.progFeelNote'))}</p>`
+    : `<div class="stu-prog-empty">${esc(t('students.progFeelEmpty'))}</div>`;
+  let msH = '';
+  try {
+    const stored = await recoFetchStored(uid);
+    const ms = (stored || []).filter(it => it && it.at >= s && it.at <= e);
+    msH = ms.length ? ms.map(it => `<div class="ms-row"><span class="ms-medal" aria-hidden="true">${it.k === 'streak4' ? '🏆' : '🏅'}</span><div class="ms-tx"><div class="ms-name">${esc(recoMsTitle(it))}</div><div class="ms-det">${recoMsDetail(it)}</div><div class="ms-date">${esc(recoDateFull(it.at))}</div></div></div>`).join('')
+      : `<div class="stu-prog-empty">${esc(t('students.progMsEmpty'))}</div>`;
+  } catch { msH = `<div class="stu-prog-empty">${esc(t('students.progMsEmpty'))}</div>`; }
+  body.innerHTML = head
+    + `<p class="stu-prog-sub">${esc(t('students.progWindow', { from: dateName(s), to: dateName(e), x: tp ? tp.x : 0, n: tp ? tp.n : 0 }))}</p>`
+    + `<div class="stu-prog-block"><div class="stu-prog-block-t">${esc(t('students.progDaysTitle'))}</div><div class="stu-prog-days">${stripH}</div><div class="stu-prog-sess"><b>${esc(t('students.progSessions'))}</b><span>${esc(t('students.progSessionsOf', { done: m.done, total: m.planned }))}</span></div><div class="plan-card-bar"><i style="width:${pct}%"></i></div><p class="stu-prog-note">${esc(t('students.progDaysNote'))}</p></div>`
+    + `<div class="stu-prog-block"><div class="stu-prog-block-t">${esc(t('students.progMarksTitle'))}</div>${marksH}<p class="stu-prog-note">${esc(t('students.progMarksNote'))}</p></div>`
+    + `<div class="stu-prog-block"><div class="stu-prog-block-t">${esc(t('students.progFeelTitle'))}</div>${feelsH}</div>`
+    + `<div class="stu-prog-block"><div class="stu-prog-block-t">${esc(t('students.progMsTitle'))}</div>${msH}<p class="stu-prog-note">${esc(t('students.progMsNote'))}</p></div>`;
+  fl.style.display = '';
+}
+/* LA BANDEJA «Revisar propuestas» — junta las tres familias que
+   el entrenador decide, cada una con SU pintor y SU resolvedor de
+   siempre. El contador del botón del bloque cuenta pendientes de
+   las tres (cada lectura va protegida: un fallo aporta 0 y el
+   botón sigue abriendo la bandeja). */
+let STU_TRAY = { uid: null };
+function stuTrayStudentName(uid) {
+  const list = (typeof STUDENTS_LAST !== 'undefined' && STUDENTS_LAST && Array.isArray(STUDENTS_LAST.clients)) ? STUDENTS_LAST.clients : [];
+  const u = list.find(x => x && x.id === uid);
+  return u ? stuName(u) : '';
+}
+async function stuTrayCounts(uid) {
+  const out = { plan: 0, treq: 0, goals: 0, total: 0 };
+  try {
+    const snap = await getDocs(query(collection(db, 'nutrition_progress'), where('ownerUid', '==', uid)));
+    snap.forEach(d => { const v = d.data(); if (v && v.kind === 'planProposal' && v.status === 'pending') out.plan++; });
+  } catch {}
+  try {
+    const snap = await getDocs(query(collection(db, 'trainer_requests'), where('studentUid', '==', uid)));
+    snap.forEach(d => { const v = d.data(); if (v && v.status === 'sent') out.treq++; });
+  } catch {}
+  try {
+    const sdoc = await getDoc(doc(db, 'users', uid));
+    if (sdoc.exists() && sdoc.data().goalsProposal && sdoc.data().goalsProposal.status === 'pending') out.goals = 1;
+  } catch {}
+  out.total = out.plan + out.treq + out.goals;
+  return out;
+}
+function stuTrayPaintCount(uid) {
+  const blk = document.querySelector('#stu-plan-block');
+  const pill = blk ? blk.querySelector('[data-plan-review-count]') : null;
+  if (!pill) return;
+  stuTrayCounts(uid).then(c => {
+    if (!document.body.contains(pill)) return;
+    pill.style.display = c.total ? '' : 'none';
+    pill.textContent = c.total ? t('students.reviewCount', { n: c.total }) : '';
+  }).catch(() => {});
+}
+/* Gancho de loadClientProposals: tras (re)pintar la bandeja —
+   viva en la ficha o en esta hoja — el contador del grupo y el
+   del botón del bloque quedan al día. */
+function stuTraySync(uid, list) {
+  if (!STU_TRAY || STU_TRAY.uid !== uid) return;
+  const fl = $('stu-tray-float');
+  if (fl && fl.style.display !== 'none') {
+    const pend = (list || []).filter(p => p && p.status === 'pending').length;
+    const pill = fl.querySelector('[data-stu-tray-plan-count]');
+    if (pill) pill.textContent = String(pend);
+  }
+  stuTrayPaintCount(uid);
+}
+/* La lectura de solicitudes ESPEJO de treqFichaLoad (sus dos
+   ramas) pero sin pintar la ficha: deja TREQ_FICHA listo porque
+   el resolvedor treqReplyOpen lo lee. Si la ficha ya cargó a este
+   alumno, se reutiliza su lista. */
+async function stuTrayTreqLoad(uid) {
+  if (TREQ_FICHA && TREQ_FICHA.uid === uid && Array.isArray(TREQ_FICHA.list)) return;
+  if (!auth.currentUser) return;
+  const me = auth.currentUser.uid;
+  let list = [];
+  try {
+    let snap;
+    if (typeof FICHA_ASSIGN !== 'undefined' && FICHA_ASSIGN && FICHA_ASSIGN.trainerUid === me) {
+      snap = await getDocs(query(collection(db, 'trainer_requests'), where('trainerUid', '==', me)));
+    } else {
+      snap = await getDocs(query(collection(db, 'trainer_requests'), where('studentUid', '==', uid)));
+    }
+    snap.forEach(d => { const v = d.data(); if (v && v.studentUid === uid) list.push({ id: d.id, ...v }); });
+  } catch { return; }
+  list.sort((a, b) => treqMs(b.createdAt) - treqMs(a.createdAt));
+  TREQ_FICHA = { uid, list };
+}
+/* El grupo de solicitudes pinta SOLO las pendientes, con la
+   misma tarjeta de la ficha (treq-ficha-item) y el mismo cableado
+   (treqFichaWire → treqReplyOpen, el resolvedor vivo). */
+function stuTrayPaintReqs(uid) {
+  const host = $('stu-tray-reqs'); if (!host) return Promise.resolve();
+  return stuTrayTreqLoad(uid).then(() => {
+    if (!STU_TRAY || STU_TRAY.uid !== uid) return;
+    const me = auth.currentUser ? auth.currentUser.uid : '';
+    const list = (TREQ_FICHA && TREQ_FICHA.uid === uid ? TREQ_FICHA.list : []).filter(r => r.status === 'sent');
+    if (!list.length) { host.innerHTML = `<div class="stu-prog-empty">${esc(t('students.trayReqEmpty'))}</div>`; return; }
+    host.innerHTML = list.map(r => `<div class="treq-ficha-item"><div class="treq-card-t">${esc(treqWhat(r))}</div>
+      ${r.message ? `<div class="treq-card-msg">«${esc(r.message)}»</div>` : ''}
+      <div class="treq-card-date">${esc(t('treq.sentStatus', { date: treqDateText(r) }))}</div>
+      ${r.trainerUid === me ? `<button type="button" class="btn-primary treq-respond" data-treq-respond="${esc(r.id)}">${esc(t('treq.respondBtn'))}</button>` : ''}
+      </div>`).join('');
+    treqFichaWire(host, uid);
+  });
+}
+/* El grupo de metas pinta la propuesta pendiente con la MISMA
+   línea resumen que compone la ficha (gm.proposalItem) y decide
+   con el MISMO resolvedor goalsTrainerDecideProposal. La
+   sugerencia de ritmo (paceSuggestion) queda fuera, como en el
+   inventario: se decide en su propia tarjeta de la ficha. */
+async function stuTrayPaintGoals(uid) {
+  const host = $('stu-tray-goals'); if (!host) return;
+  let prop = null;
+  try { const sdoc = await getDoc(doc(db, 'users', uid)); if (sdoc.exists()) prop = sdoc.data().goalsProposal || null; } catch {}
+  if (!STU_TRAY || STU_TRAY.uid !== uid) return;
+  if (!prop || prop.status !== 'pending') { host.innerHTML = `<div class="stu-prog-empty">${esc(t('gm.proposalNone'))}</div>`; return; }
+  const pName = prop.kind === 'daytype' ? t('gm.param.dayType') : t('gm.param.' + prop.param);
+  const fVal = prop.kind === 'daytype' ? t('gm.day.' + prop.foundedValue) : prop.foundedValue;
+  const cVal = prop.kind === 'daytype' ? t('gm.day.' + prop.chosenValue) : prop.chosenValue;
+  host.innerHTML = `<div class="stu-prog-block" style="margin-top:0"><p>${esc(t('gm.proposalItem', { param: pName, founded: fVal, chosen: cVal, date: prop.date ? ' · ' + prop.date : '', status: t('gm.status.' + (prop.status || 'pending')) }))}</p>
+    <div class="eval-actions" style="justify-content:flex-start;gap:8px"><button type="button" class="btn-primary btn-sm" data-stu-goal-approve="1">${esc(t('gm.proposalApprove'))}</button><button type="button" class="btn-ghost btn-sm" data-stu-goal-reject="1">${esc(t('gm.proposalReject'))}</button></div></div>`;
+  const ap = host.querySelector('[data-stu-goal-approve]'); if (ap) ap.onclick = () => goalsTrainerDecideProposal(uid, true);
+  const rj = host.querySelector('[data-stu-goal-reject]'); if (rj) rj.onclick = () => goalsTrainerDecideProposal(uid, false);
+}
+async function stuTrayOpen(uid) {
+  const fl = $('stu-tray-float'); if (!fl) return;
+  STU_TRAY = { uid };
+  const ttl = $('stu-tray-title'); if (ttl) ttl.textContent = t('students.trayTitle');
+  const x = $('btn-stu-tray-close'); if (x) x.onclick = () => { fl.style.display = 'none'; stuTrayPaintCount(uid); };
+  const body = $('stu-tray-body'); if (!body) return;
+  const plans = (STU_PLANS.uid === uid && STU_PLANS.plans) ? STU_PLANS.plans : await fetchPlans(uid);
+  const counts = await stuTrayCounts(uid);
+  body.innerHTML = `<p class="stu-prog-sub"><b>${esc(stuTrayStudentName(uid))}</b> · ${esc(counts.total ? t('students.reviewCount', { n: counts.total }) : t('students.traySubZero'))}</p>
+    <div class="stu-tray-group-t">🗳️ ${esc(t('students.trayPlanGroup'))} <span class="stu-tray-count" data-stu-tray-plan-count>${counts.plan}</span></div>
+    <div id="stu-tray-plans" data-no-title="1"></div>
+    <div class="stu-tray-group-t">✉️ ${esc(t('students.trayReqGroup'))} <span class="stu-tray-count">${counts.treq}</span></div>
+    <div id="stu-tray-reqs"></div>
+    <div class="stu-tray-group-t">🎯 ${esc(t('students.trayGoalsGroup'))} <span class="stu-tray-count">${counts.goals}</span></div>
+    <div id="stu-tray-goals"></div>`;
+  fl.style.display = '';
+  loadClientProposals(uid, plans, $('stu-tray-plans'));
+  stuTrayPaintReqs(uid);
+  stuTrayPaintGoals(uid);
 }
 async function loadStudentPlans(uid) {
   if (STU_PLANS.uid === uid && STU_PLANS.plans) { stuPlansWireCurrent(uid); return; }
@@ -40531,9 +40930,9 @@ async function renderMyProposals() {
 }
 
 /* --- Bandeja del entrenador (dentro de la ficha del cliente) --- */
-async function loadClientProposals(uid, plans) {
-  const box = $('client-proposals'); if (!box) return;
-  PROP_TRAY = { uid, plans: plans || [] };
+async function loadClientProposals(uid, plans, host) {
+  const box = host || $('client-proposals'); if (!box) return;
+  PROP_TRAY = { uid, plans: plans || [], host: box };
   const list = [];
   try {
     const snap = await getDocs(query(collection(db, 'nutrition_progress'), where('ownerUid', '==', uid)));
@@ -40555,12 +40954,12 @@ async function loadClientProposals(uid, plans) {
       setDoc(doc(db, 'nutrition_progress', p.id), { seenAt: serverTimestamp(), seenBy: auth.currentUser.uid }, { merge: true }).catch(() => {});
     } catch {}
   });
-  box.innerHTML = `<h3 class="history-title">${t('train.prop.trayTitle')}</h3>
+  box.innerHTML = `${box.dataset.noTitle ? '' : `<h3 class="history-title">${t('train.prop.trayTitle')}</h3>`}
     ${list.length ? list.map(p => propTrayCardHTML(p)).join('') : `<div class="wempty">${t('train.prop.trayEmpty')}</div>`}`;
   box.querySelectorAll('[data-prop-decide]').forEach(b => b.onclick = async () => {
     const parts = b.dataset.propDecide.split('|');
     await setDoc(doc(db, 'nutrition_progress', parts[0]), { status: parts[1], decidedAt: serverTimestamp(), decidedBy: auth.currentUser.uid }, { merge: true });
-    loadClientProposals(PROP_TRAY.uid, PROP_TRAY.plans);
+    loadClientProposals(PROP_TRAY.uid, PROP_TRAY.plans, PROP_TRAY.host);
   });
   box.querySelectorAll('[data-prop-open]').forEach(b => b.onclick = () => {
     const p = list.find(x => x.id === b.dataset.propOpen); if (!p) return;
@@ -40591,6 +40990,12 @@ async function loadClientProposals(uid, plans) {
     if (plan && (plan.days || [])[p.dayIndex]) repeatDayAppendOpen(PROP_TRAY.uid, plan, (plan.days || [])[p.dayIndex], {});
     else toast(t('train.repeat.noSource'), true);
   });
+  /* AUTH-412: si esta bandeja vive dentro de «Revisar
+     propuestas» del detalle (el host trae data-no-title), el
+     gancho sincroniza el contador de su grupo y el del botón del
+     bloque tras cada decisión. En la ficha no hay bandeja del
+     detalle abierta y el gancho no hace nada. */
+  if (typeof stuTraySync === 'function') { try { stuTraySync(uid, list); } catch {} }
 }
 function propTrayCardHTML(p) {
   const plan = PROP_TRAY.plans.find(x => x.id === p.planId);
@@ -54870,7 +55275,7 @@ document.addEventListener('keydown', e => { if (e.key === 'Escape') shareClose()
  *  - El SW (sw.js) solo cachea la cáscara del mismo origen en modo
  *    RED PRIMERO: Auth/Firestore/Worker jamás pasan por la caché.
  * ================================================================ */
-const PWA_SW_VERSION = '20261111-plan-en-personaliza';
+const PWA_SW_VERSION = '20261111-bloque-plan-entrenador';
 /* Sello de versión VISIBLE (2026-11-03): el pie de la tarjeta de
    acceso enseña qué copia corre este teléfono ('v ' + el sello),
    para comprobar de un vistazo si la versión nueva ya llegó.

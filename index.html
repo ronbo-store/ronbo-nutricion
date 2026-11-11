@@ -21,7 +21,7 @@
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-title" content="RONBO FIT">
 <meta name="apple-mobile-web-app-status-bar-style" content="default">
-<link rel="stylesheet" href="styles.css?v=20261111-plan-en-personaliza">
+<link rel="stylesheet" href="styles.css?v=20261111-bloque-plan-entrenador">
 <script defer src="https://cloud.umami.is/script.js" data-website-id="a29706d4-44a2-47cf-900a-5f74d74abfa8"></script>
 <script type="importmap">
 {
@@ -1195,6 +1195,20 @@
     <div id="plan-sheet-body"></div>
   </div>
 
+  <!-- «Progreso en este plan» y «Revisar propuestas» del detalle
+       de «Mis alumnos» (AUTH-412): hojas hermanas de
+       #plan-float en la familia .act-float/.act-sheet. Sus cuerpos
+       los pinta app.js (stuPlanProgressOpen / stuTrayOpen) SOLO
+       con datos del alumno; abrirlas no escribe nada. -->
+  <div class="act-float act-sheet" id="stu-prog-float" style="display:none" role="dialog" aria-label="Progress in this plan">
+    <div class="act-sheet-head"><h2 class="act-sheet-title" id="stu-prog-title"></h2><button type="button" class="act-sheet-x" id="btn-stu-prog-close" aria-label="Close">✕</button></div>
+    <div id="stu-prog-body"></div>
+  </div>
+  <div class="act-float act-sheet" id="stu-tray-float" style="display:none" role="dialog" aria-label="Review proposals">
+    <div class="act-sheet-head"><h2 class="act-sheet-title" id="stu-tray-title"></h2><button type="button" class="act-sheet-x" id="btn-stu-tray-close" aria-label="Close">✕</button></div>
+    <div id="stu-tray-body"></div>
+  </div>
+
   <!-- «Mi horario diario» — Horarios de alimentación sugeridos
        (especificación de Ronald, 2026-11-09; SOLO desarrollo):
        hoja hermana de #plan-float en la familia .act-float; reúne
@@ -2342,6 +2356,6 @@ cuando no hay declaración legible (decisión 5). -->
 <div id="toast" class="toast"></div>
 <div id="print-card" aria-hidden="true"></div>
 
-<script type="module" src="app.js?v=20261111-plan-en-personaliza"></script>
+<script type="module" src="app.js?v=20261111-bloque-plan-entrenador"></script>
 </body>
 </html>
