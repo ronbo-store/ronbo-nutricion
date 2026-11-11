@@ -6082,6 +6082,9 @@ en: {
   'train.guide.pos': 'Exercise {n} of {m}',
   'train.guide.now': 'Now up',
   'train.guide.estEx': 'This exercise ≈ {min} min',
+  'train.guide.minW': '{n} minutes', 'train.guide.minW1': '1 minute',
+  'train.guide.secW': '{n} seconds', 'train.guide.secW1': '1 second',
+  'train.guide.timesNote': '{mins} on this exercise · {secs} of rest',
   'train.guide.rest': 'Rest between sets: {sec} s',
   'train.guide.doneTitle': 'Done',
   'train.guide.next': 'Next: {name}',
@@ -6101,6 +6104,28 @@ en: {
   'train.guide.empty': 'No exercises yet in this session.',
   'train.guide.metrics': '{sets} sets · {reps} reps · {load} max',
   'train.guide.metricsRpe': ' · effort {rpe}',
+  /* AUTH-406 · EL FLUJO DE LA TARJETA Y EL DÍA GUIADO: los
+     textos del flujo (Iniciar/Finalizar/mascotas/puerta honesta),
+     del recorrido de nacimiento y de la línea de quitados. */
+  'train.flow.start': '▶ Start',
+  'train.flow.resume': '▶ Keep going',
+  'train.flow.finish': 'Finish',
+  'train.flow.inCourse': '● In progress',
+  'train.flow.howWas': 'How was it?',
+  'train.flow.metaRpe': 'Goal: RPE {rpe}',
+  'train.flow.markDone': '✓ Mark done',
+  'train.flow.markPlan': '✓ Mark done as planned',
+  'train.flow.logOne': 'Log a set',
+  'train.flow.noSets': 'No sets logged. If you did the exercise as planned, it can count as done with the plan’s sets ({spec}) — no reps or weight are invented.',
+  'train.flow.asPlan': 'done as planned: {spec}',
+  'train.flow.asPlanShort': 'as planned',
+  'train.flow.removeToday': 'Remove from today',
+  'train.flow.removedToday': 'Removed today: {name}',
+  'train.flow.beginDay': '▶ Start the workout',
+  'train.flow.beginNote': 'Tap it: the timer starts and the focus lands on stop 1. There is no mode to turn on — the day is born this way.',
+  'train.flow.nowFirst': 'UP NOW · FIRST',
+  'train.flow.band.1': '1-2', 'train.flow.band.2': '3-4', 'train.flow.band.3': '5-6', 'train.flow.band.4': '7-8', 'train.flow.band.5': '9-10',
+  'train.flow.face.1': 'Minimum', 'train.flow.face.2': 'A bit more', 'train.flow.face.3': 'Effort', 'train.flow.face.4': 'Tough', 'train.flow.face.5': 'Very tough',
   /* CRONÓMETRO DE SESIÓN FIJO + ENCUESTA (punto 88 de la cola,
      decisiones de Ronald 2026-11-02 11:54/11:57/12:06/12:07 CST):
      la pastilla sobre el dock y la encuesta de una pregunta. */
@@ -10884,6 +10909,9 @@ es: {
   'train.guide.pos': 'Ejercicio {n} de {m}',
   'train.guide.now': 'Ahora toca',
   'train.guide.estEx': 'Este ejercicio ≈ {min} min',
+  'train.guide.minW': '{n} minutos', 'train.guide.minW1': '1 minuto',
+  'train.guide.secW': '{n} segundos', 'train.guide.secW1': '1 segundo',
+  'train.guide.timesNote': '{mins} en este ejercicio · {secs} de descanso',
   'train.guide.rest': 'Descanso entre series: {sec} s',
   'train.guide.doneTitle': 'Ya terminados',
   'train.guide.next': 'Sigue: {name}',
@@ -10903,6 +10931,28 @@ es: {
   'train.guide.empty': 'Todavía no hay ejercicios en esta sesión.',
   'train.guide.metrics': '{sets} series · {reps} reps · {load} máx',
   'train.guide.metricsRpe': ' · esfuerzo {rpe}',
+  /* AUTH-406 · EL FLUJO DE LA TARJETA Y EL DÍA GUIADO: los
+     textos del flujo (Iniciar/Finalizar/mascotas/puerta honesta),
+     del recorrido de nacimiento y de la línea de quitados. */
+  'train.flow.start': '▶ Iniciar',
+  'train.flow.resume': '▶ Seguir',
+  'train.flow.finish': 'Finalizar',
+  'train.flow.inCourse': '● En curso',
+  'train.flow.howWas': '¿Qué tal fue?',
+  'train.flow.metaRpe': 'Meta: RPE {rpe}',
+  'train.flow.markDone': '✓ Marcar hecho',
+  'train.flow.markPlan': '✓ Marcar hecho según el plan',
+  'train.flow.logOne': 'Registrar una serie',
+  'train.flow.noSets': 'Sin series registradas. Si hiciste el ejercicio como estaba planeado, puede contar como hecho con las series del plan ({spec}), sin inventar reps ni peso.',
+  'train.flow.asPlan': 'hecho según el plan: {spec}',
+  'train.flow.asPlanShort': 'según el plan',
+  'train.flow.removeToday': 'Quitar de hoy',
+  'train.flow.removedToday': 'Quitado hoy: {name}',
+  'train.flow.beginDay': '▶ Comenzar el entrenamiento',
+  'train.flow.beginNote': 'Al tocarlo arranca el cronómetro y el foco cae en la parada 1. No hay ningún modo que encender: el día nace así.',
+  'train.flow.nowFirst': 'AHORA TOCA · EL PRIMERO',
+  'train.flow.band.1': '1-2', 'train.flow.band.2': '3-4', 'train.flow.band.3': '5-6', 'train.flow.band.4': '7-8', 'train.flow.band.5': '9-10',
+  'train.flow.face.1': 'Mínimo', 'train.flow.face.2': 'Un poco más', 'train.flow.face.3': 'Esfuerzo', 'train.flow.face.4': 'Cuesta', 'train.flow.face.5': 'Cuesta mucho',
   /* CRONÓMETRO DE SESIÓN FIJO + ENCUESTA (punto 88 de la cola,
      decisiones de Ronald 2026-11-02 11:54/11:57/12:06/12:07 CST):
      la pastilla sobre el dock y la encuesta de una pregunta. */
@@ -33047,6 +33097,11 @@ function trainChecksRead(planId) {
            curso». Un borrador anterior a este paquete no la trae:
            la entrada se lee en curso, nunca hecha por inercia. */
         ...(c.done === true ? { done: true } : {}),
+        /* AUTH-406: la cara del flujo (satisfacción + banda
+           de esfuerzo por ejercicio) sobrevive a la restauración
+           del borrador como la marca: solo viaja un entero 1..5
+           saneado; sin ella, la entrada se lee como siempre. */
+        ...(Number.isInteger(c.face) && c.face >= 1 && c.face <= 5 ? { face: c.face } : {}),
         sets: Array.isArray(c.sets) ? c.sets.filter(s => s && typeof s === 'object').map(s => ({
           repsPlanned: String(s.repsPlanned == null ? '' : s.repsPlanned),
           repsDone: String(s.repsDone == null ? '' : s.repsDone),
@@ -35824,7 +35879,11 @@ function trainGoalLine(elapsedMin, goalMin) {
    si tampoco, 3 (declarado). Todo estimado va con «≈». */
 let TRAIN_GUIDE = { ctx: '', order: [], pin: null, restFor: null, restSkipFor: null, lastDone: null };
 function trainGuidePrefKey() { const uid = auth.currentUser ? auth.currentUser.uid : ''; return 'ronbofit-train-mode-' + uid; }
-function trainGuidePref() { try { return localStorage.getItem(trainGuidePrefKey()) === 'guided' ? 'guided' : 'list'; } catch { return 'list'; } }
+/* AUTH-406 · EL DÍA NACE GUIADO (reforma de Ronald,
+   2026-11-11 11:32–11:50): sin elección expresa guardada, la
+   preferencia nace en 'guided'; solo un 'list' expreso (la puerta
+   «☰ Ver todos los ejercicios») la aparta, y se respeta. */
+function trainGuidePref() { try { return localStorage.getItem(trainGuidePrefKey()) === 'list' ? 'list' : 'guided'; } catch { return 'guided'; } }
 function trainGuidePrefSet(v) { try { localStorage.setItem(trainGuidePrefKey(), v === 'guided' ? 'guided' : 'list'); } catch {} }
 /* AUTH-370 · LA PUERTA DEL MODO GUIADO VIVE ARRIBA: un solo botón,
    en la parte superior de la vista de Entrenamiento, junto a la
@@ -35895,6 +35954,21 @@ function guideDoneMetrics(chk) {
   if (chk.rpe != null) out += t('train.guide.metricsRpe', { rpe: chk.rpe });
   return out;
 }
+/* AUTH-406 · LA CABECERA COMPACTA DEL FOCO (maquetas V1/V2):
+   una fila de 48 px — «≈ 5 minutos» y «60 segundos», sin ninguna
+   palabra de rótulo dentro de los cuadros —, la coletilla que lo
+   explica debajo y, si la ficha tiene video, el botón rojo de
+   YouTube a la derecha (su cableado vive en la vista, junto al
+   del flujo: abre ytOpenPlayer, la ventana de siempre). */
+function guideTimesHTML(ex, chk, di, focusIdx) {
+  const min = guideEstMin(ex, chk), sec = guideRestSec(ex);
+  const minW = min === 1 ? t('train.guide.minW1') : t('train.guide.minW', { n: min });
+  const secW = sec === 1 ? t('train.guide.secW1') : t('train.guide.secW', { n: sec });
+  const vid = trainExVideo(ex);
+  return `<div class="guide-times"><span class="guide-tchip">≈ ${esc(minW)}</span><span class="guide-tchip">${esc(secW)}</span>`
+    + (vid ? `<button type="button" class="guide-yt-btn" data-guide-yt="${di}:${focusIdx}" aria-label="${esc(t('train.lib.video'))}"><svg viewBox="0 0 68 48" aria-hidden="true"><rect x="2" y="6" width="64" height="36" rx="9" fill="#FF0000"/><path d="M27 17.5v13l11-6.5z" fill="#fff"/></svg></button>` : '')
+    + `</div><div class="guide-times-note">${esc(t('train.guide.timesNote', { mins: minW, secs: secW }))}</div>`;
+}
 function trainGuidedHTML(plan, day, di) {
   const eff = trainEffectiveList(plan, di);
   const label = day.label || ('Día ' + (di + 1));
@@ -35928,8 +36002,33 @@ function trainGuidedHTML(plan, day, di) {
   else if (elapsed != null) metaLine = t('train.guide.elapsed', { min: elapsed });
   else metaLine = t('train.guide.estTotal', { min: sumEst });
   const posText = focus != null ? t('train.guide.pos', { n: G.order.indexOf(focus) + 1, m: M }) : t('train.guide.complete');
+  /* AUTH-406 · EL RECORRIDO AL NACER (maqueta G1 aprobada):
+     el día sin empezar — sin cronómetro, sin marcas y sin hechos —
+     se presenta como su ruta: las paradas en orden con la FOTO
+     real de cada ejercicio, la primera marcada como la que toca,
+     y UNA sola puerta grande para comenzar (el arranque de
+     siempre, data-train-start). La cola de acciones NO se pinta
+     en este estado: sería una segunda puerta de Iniciar en la
+     misma superficie. Comenzado el día, manda el foco de siempre. */
+  if (!started && M > 0) {
+    const stops = eff.map((it, ei2) => {
+      const photo = trainExPhoto(it.ex);
+      const thumb = !photo ? ytThumbOf(trainExVideo(it.ex)) : '';
+      const spec = [it.ex.sets, it.ex.reps].filter(Boolean).join(' × ');
+      const isNow = ei2 === focus;
+      return `<div class="guide-stop${isNow ? ' is-now' : ''}"><span class="guide-stop-n">${ei2 + 1}</span>${photo ? `<img class="guide-stop-photo" src="${esc(photo)}" alt="" loading="lazy">` : (thumb ? `<img class="guide-stop-photo" src="${esc(thumb)}" alt="" loading="lazy">` : '')}<span class="guide-stop-mid"><span class="guide-stop-name">${esc(trainExName(it.ex))}</span>${spec ? `<span class="guide-stop-spec">${esc(spec)}</span>` : ''}${isNow ? `<span class="guide-stop-tag">${t('train.flow.nowFirst')}</span>` : ''}</span></div>`;
+    }).join('');
+    return `<h4>${esc(label)}</h4>`
+      + `<div class="guide-head"><div class="guide-pos">${esc(posText)}</div><div class="guide-bar"><div style="width:${M ? Math.round(100 * doneCount / M) : 0}%"></div></div><div class="guide-meta">${esc(metaLine)}</div></div>`
+      + `<div class="guide-route">${stops}</div>`
+      + `<button type="button" class="guide-start-btn" data-train-start="${di}">${t('train.flow.beginDay')}</button>`
+      + `<p class="guide-route-note">${t('train.flow.beginNote')}</p>`
+      + trainSessionHTML(day)
+      + trainRemovedLineHTML(plan, di)
+      + trainExtrasZoneHTML();
+  }
   const doneLines = G.order.filter(ei => doneOf(ei)).map(ei =>
-    `<button type="button" class="guide-done-line" data-guided-reopen="${di}:${ei}"><span class="guide-check">✓</span><span class="guide-done-name">${esc(trainExName(eff[ei].ex))}</span><span class="guide-done-metrics">${esc(guideDoneMetrics(chkOf(ei)))}</span></button>`).join('');
+    `<button type="button" class="guide-done-line" data-guided-reopen="${di}:${ei}"><span class="guide-check">✓</span><span class="guide-done-name">${esc(trainExName(eff[ei].ex))}</span><span class="guide-done-metrics">${esc(guideDoneMetrics(chkOf(ei))) || (flowHasData(chkOf(ei)) ? '' : t('train.flow.asPlanShort'))}</span></button>`).join('');
   let focusHTML = '';
   if (M === 0) {
     focusHTML = `<p class="progress-hint">${t('train.guide.empty')}</p>`;
@@ -35937,6 +36036,13 @@ function trainGuidedHTML(plan, day, di) {
     focusHTML = `<div class="guide-complete">${t('train.guide.complete')}</div>`;
   } else {
     const ex = eff[focus].ex, chk = chkOf(focus);
+    /* AUTH-406: el foco EN CURSO se pinta desplegado (sus
+       series dentro, sin salir del foco, maqueta G2). El estado
+       nace solo si el ejercicio YA trae su entrada en curso — la
+       creó «Iniciar» de la persona sobre ese ejercicio —; el
+       avance del foco no crea ni marca nada por sí solo. */
+    if (chk && chk.done !== true && !TRAIN_FLOW[di + ':' + focus])
+      TRAIN_FLOW[di + ':' + focus] = { st: 'open', face: Number.isInteger(chk.face) ? chk.face : null };
     let card = trainExCompactHTML(ex, di, focus, 'edit', null, null);
     card = card.replace('<div class="train-ex-card', `<div data-train-row="${di}:${focus}:edit" style="--stripe:#0fb5a3" class="train-ex-card`);
     const fi = G.order.indexOf(focus);
@@ -35949,9 +36055,8 @@ function trainGuidedHTML(plan, day, di) {
       restBanner = `<div class="guide-rest"><span class="restbox"><span class="restbox-lab">${t('train.view.rest')}</span><span class="restbox-v">${guideRestSec(restEx)}</span><span class="restbox-u">${t('train.guide.restUnitLine')}</span></span><span class="guide-rest-next">${t('train.guide.restNext')}</span><button type="button" class="guide-rest-skip" data-guided-rest-skip="1">${t('train.guide.transSkip')}</button></div>`;
     }
     focusHTML = `${restBanner}<div class="guide-focus"><span class="guide-tag">${t('train.guide.now')}</span>`
-      + `<div class="guide-times"><span class="guide-time">${esc(t('train.guide.estEx', { min: guideEstMin(ex, chk) }))}</span><span class="guide-time guide-time-rest"><span class="restbox"><span class="restbox-lab">${t('train.view.rest')}</span><span class="restbox-v">${guideRestSec(ex)}</span><span class="restbox-u">${t('train.guide.restUnitLine')}</span></span></span></div>`
+      + guideTimesHTML(ex, chk, di, focus)
       + card
-      + `<button type="button" class="guide-done-btn" data-guided-done="${di}:${focus}">${chk && chk.done === true ? t('train.guide.undoneBtn') : t('train.guide.doneBtn')}</button>`
       + (chk && chk.done === true ? '' : `<button type="button" class="guide-skip-btn" data-guided-skip="${di}:${focus}">${t('train.guide.skip')}</button>`)
       + `<div class="guide-next">${nextEi != null ? esc(t('train.guide.next', { name: trainExName(eff[nextEi].ex) })) : esc(t('train.guide.endNext'))}</div></div>`;
   }
@@ -35959,6 +36064,7 @@ function trainGuidedHTML(plan, day, di) {
     + `<div class="guide-head"><div class="guide-pos">${esc(posText)}</div><div class="guide-bar"><div style="width:${M ? Math.round(100 * doneCount / M) : 0}%"></div></div><div class="guide-meta">${esc(metaLine)}</div></div>`
     + (doneLines ? `<div class="guide-done-title">${t('train.guide.doneTitle')}</div>${doneLines}` : '')
     + focusHTML
+    + trainRemovedLineHTML(plan, di)
     + trainSessionHTML(day)
     + trainEditTailHTML(plan.id, di)
     + trainExtrasZoneHTML();   /* AUTH-370: la salida del guiado vive solo en la puerta de arriba */
@@ -36034,6 +36140,7 @@ function trainLogMetaHTML(log) {
 let SESS_PILL_TIMER = null;
 function sessPillTick() {
   const pill = $('sess-pill'); if (!pill) return;
+  try { trainBarSync(); } catch {}
   const run = sessRunning();
   if (!run) { pill.style.display = 'none'; document.body.classList.remove('sess-on'); return; }
   pill.style.display = '';
@@ -36058,6 +36165,103 @@ function sessPillInit() {
   if (SESS_PILL_TIMER) clearInterval(SESS_PILL_TIMER);
   SESS_PILL_TIMER = setInterval(sessPillTick, 1000);
   sessPillTick();
+}
+/* ═══ AUTH-406 · LA BARRA FINA DEL ENTRENO (B1): con la
+   sesión corriendo, bajo el título de Entrenamiento — punto
+   verde, el cronómetro en chico (sin horas: minutos totales),
+   el ejercicio de AHORA con su «Finalizar» y, tras el separador,
+   el SIGUIENTE con su «Iniciar»; los nombres se cortan con «…»
+   (CSS). Sin ejercicio en curso, el de ahora trae su «Iniciar»
+   y el siguiente no se pinta; en su cierre (eligiendo cara), la
+   barra muestra la pregunta en vez del botón. ═══ */
+let TRAIN_BAR_SIG = '';
+function trainBarClock(ms) {
+  const s = Math.max(0, Math.floor(ms / 1000));
+  return Math.floor(s / 60) + ':' + String(s % 60).padStart(2, '0');
+}
+function trainBarState() {
+  const run = sessRunning();
+  const plan = (typeof MY_PLAN !== 'undefined') ? MY_PLAN : null;
+  if (!run || !plan || !run.planId || run.planId !== plan.id) return null;
+  let di = -1;
+  (plan.days || []).forEach((d, i) => { if (di < 0 && trainDayLabelOf(plan, i) === run.label) di = i; });
+  if (di < 0) return null;
+  const checks = trainChecksRead(plan.id);
+  const eff = trainEffectiveList(plan, di);
+  const pend = [];
+  eff.forEach((it, ei) => { const c = checks[di + ':' + ei]; if (!c || c.done !== true) pend.push(ei); });
+  if (!pend.length) return null;
+  /* El «de ahora»: en el guiado manda el foco fijado (la barra de
+     la B1 vive sobre esa vista); si no, el primer pendiente con
+     entrada en curso; si ninguno, el primer pendiente. El
+     «siguiente»: el primer pendiente POSTERIOR aún sin empezar
+     (si ya empezó, no se le ofrece «Iniciar» otra vez). */
+  let cur = null;
+  try {
+    if (trainGuidePref() === 'guided' && Number.isInteger(TRAIN_GUIDE.pin) && pend.includes(TRAIN_GUIDE.pin)) cur = TRAIN_GUIDE.pin;
+  } catch {}
+  if (cur == null) { for (const ei of pend) { if (checks[di + ':' + ei]) { cur = ei; break; } } }
+  if (cur == null) cur = pend[0];
+  const nxt = pend.find(ei => ei > cur && !checks[di + ':' + ei]);
+  return { run, plan, di, checks, eff, cur, nxt: (nxt === undefined ? null : nxt) };
+}
+function trainBarSync() {
+  const bar = $('train-bar'); if (!bar) return;
+  const st = trainBarState();
+  if (!st) { if (bar.innerHTML) bar.innerHTML = ''; TRAIN_BAR_SIG = ''; return; }
+  const ck = st.di + ':' + st.cur;
+  const curChk = st.checks[ck] || null;
+  let flowSt = '';
+  try { if (TRAIN_CHECKS_CTX === st.plan.id + '|' + todayISO() && TRAIN_FLOW[ck]) flowSt = TRAIN_FLOW[ck].st || ''; } catch {}
+  const doneN = Object.keys(st.checks).filter(k => st.checks[k] && st.checks[k].done === true).length;
+  const sig = [st.di, st.cur, st.nxt, curChk ? 1 : 0, flowSt, doneN, st.eff.length].join('|');
+  if (sig !== TRAIN_BAR_SIG) {
+    TRAIN_BAR_SIG = sig;
+    const curName = trainExName(st.eff[st.cur].ex) || st.eff[st.cur].ex.name || '';
+    let html = `<div class="tbar"><span class="tbar-dot" aria-hidden="true"></span><span class="tbar-time" id="train-bar-time">0:00</span>`
+      + `<span class="tbar-name">${esc(curName)}</span>`;
+    if (!curChk) {
+      html += `<button type="button" class="tbar-btn ini" data-bar-start="${ck}">${esc(t('train.flow.start'))}</button>`;
+    } else if (flowSt === 'closing') {
+      html += `<span class="tbar-how">${esc(t('train.flow.howWas'))}</span>`;
+    } else {
+      html += `<button type="button" class="tbar-btn fin" data-bar-finish="${ck}">${esc(t('train.flow.finish'))}</button>`;
+    }
+    if (curChk && st.nxt != null) {
+      const nxtName = trainExName(st.eff[st.nxt].ex) || st.eff[st.nxt].ex.name || '';
+      html += `<span class="tbar-sep"></span><span class="tbar-name next">${esc(nxtName)}</span>`
+        + `<button type="button" class="tbar-btn ini" data-bar-start="${st.di}:${st.nxt}">${esc(t('train.flow.start'))}</button>`;
+    }
+    bar.innerHTML = html + '</div>';
+    trainBarWire(bar);
+  }
+  const tEl = $('train-bar-time');
+  if (tEl) tEl.textContent = trainBarClock(Date.now() - st.run.start);
+}
+function trainBarWire(bar) {
+  if (!bar || bar.dataset.barWired) return;
+  bar.dataset.barWired = '1';
+  bar.addEventListener('click', ev => {
+    const b = ev.target.closest('[data-bar-finish],[data-bar-start]');
+    if (!b) return;
+    const plan = (typeof MY_PLAN !== 'undefined') ? MY_PLAN : null;
+    if (!plan || TRAIN_CHECKS_CTX !== plan.id + '|' + todayISO()) return;
+    if (b.dataset.barFinish) {
+      const key = b.dataset.barFinish;
+      const chk = TRAIN_CHECKS[key];
+      if (!chk || chk.done === true) return;
+      TRAIN_FLOW[key] = { st: 'closing', face: (typeof chk.face === 'number') ? chk.face : null };
+    } else if (b.dataset.barStart) {
+      const key = b.dataset.barStart;
+      const [diB, eiB] = key.split(':').map(Number);
+      const it = trainEffectiveList(plan, diB)[eiB];
+      if (!it || (TRAIN_CHECKS[key] && TRAIN_CHECKS[key].done === true)) return;
+      if (!TRAIN_CHECKS[key]) { TRAIN_CHECKS[key] = { rpe: null, sets: trainDefaultSets(it.ex) }; trainChecksPersist(plan.id); }
+      TRAIN_FLOW[key] = { st: 'open', face: null };
+      if (trainGuidePref() === 'guided') TRAIN_GUIDE.pin = eiB;
+    } else return;
+    loadMyTraining();
+  });
 }
 let SESS_SURVEY = null;
 function sessSurveyOpen(elapsedSec, done) {
@@ -36134,15 +36338,18 @@ function trainCloseFormHTML(planId, di) {
 function trainEditTailHTML(planId, di) {
   if (TRAIN_CLOSE_DI === di) return trainChronoHTML(planId, di) + trainCloseFormHTML(planId, di);
   /* AUTH-402: la fila en reposo lleva LOS CUATRO botones en una sola
-     línea, cada uno flex:1 (reparto proporcional del ancho): los tres
-     de siempre en su orden + «▶ Iniciar» como cuarto (.is-start, con
-     su data-train-start y su cableado intactos). La pareja del
-     cronómetro aporta solo su línea de reloj cuando corre. */
+     línea, cada uno flex:1 (reparto proporcional del ancho), con su
+     data-* y su cableado intactos. La pareja del cronómetro aporta
+     solo su línea de reloj cuando corre.
+     AUTH-406: EL ORDEN DECIDIDO por Ronald (2026-11-11
+     11:36 CST) — Iniciar primero (a la izquierda, .is-start) y
+     Terminar al final (a la derecha, .is-finish, con su rojo). La
+     pieza es una sola y la comparten la lista y la ruta guiada. */
   return `<div class="train-actions-strip">`
-    + `<button type="button" class="train-actions-btn is-finish" data-train-done="${di}">${t('train.strip.finish')}</button>`
+    + `<button type="button" class="train-actions-btn is-start" data-train-start="${di}">${t('train.chronoStartBtn')}</button>`
     + `<button type="button" class="train-actions-btn" data-train-skip="${di}">${t('train.strip.skip')}</button>`
     + `<button type="button" class="train-actions-btn" data-train-add-open="1">${t('train.strip.add')}</button>`
-    + `<button type="button" class="train-actions-btn is-start" data-train-start="${di}">${t('train.chronoStartBtn')}</button>`
+    + `<button type="button" class="train-actions-btn is-finish" data-train-done="${di}">${t('train.strip.finish')}</button>`
     + `</div>` + trainChronoHTML(planId, di, true);
 }
 /* El volcado de la sesión en el día de actividad: UNA sola entrada
@@ -36766,6 +36973,189 @@ function trainDayHistHTML(day, log) {
   </div>`, mark);
   }).join('');
 }
+/* ═══ AUTH-406 · EL FLUJO DE LA TARJETA (paso 2 de la
+   secuencia aprobada el 2026-11-11; veredicto del flujo 10:17 +
+   la reforma «el día nace guiado» 11:32–11:50): la tarjeta del
+   ejercicio se maneja SIN salir de la lista ni del foco guiado —
+   Iniciar despliega las series dentro, Finalizar recoge con la
+   tira de mascotas «¿Qué tal fue?» (una cara por ejercicio: guarda
+   satisfacción y banda de esfuerzo en un toque; el RPE que viaja
+   es el extremo alto del par, FLOW_FACE_RPE) y «✓ Marcar hecho»
+   es la ÚNICA puerta que pone la marca `done`: nace solo de esa
+   acción expresa sobre ESE ejercicio (su clave «di:ei») — nunca
+   de un toque suelto ni del avance del foco, que no crea ni marca
+   nada por sí solo (diagnóstico «hechos sin marcar» del
+   2026-11-11: marcar sin exigir series creaba hechos desde la
+   plantilla al caer el foco sobre el siguiente). Cerrar SIN ni
+   una serie con dato pasa por la puerta honesta del punto 6: el
+   aviso «según el plan» con su confirmación expresa
+   (data-flow-mark-plan) — el mismo hecho honesto de AUTH-344,
+   con las cifras en «—» y su rótulo en la tarjeta y en la línea
+   de terminados. El estado del flujo es SOLO de pantalla
+   (memoria): las marcas TRAIN_CHECKS y su borrador local siguen
+   mandando en los datos, y el flujo muere con el contexto del
+   día, como ellas. Las imágenes de las caras viven en el repo de
+   activos, como las demás de la mascota (URL nueva por expresión;
+   si una no carga, se retira sola y la banda sigue escrita). ═══ */
+let TRAIN_FLOW = {};        // "di:ei" -> { st: 'open'|'closing', face: 1..5|null } — solo pantalla
+const FLOW_FACE_RPE = [2, 4, 6, 8, 10];
+const FLOW_FACE_URLS = [1, 2, 3, 4, 5].map(n => 'https://ronbo-store.github.io/ronbo-nutri-assets/avatar-coach-virtual/web/mascota-rpe-' + n + '.webp');
+function flowHasData(chk) {
+  return !!(chk && Array.isArray(chk.sets) && chk.sets.some(s => s && s.pend !== true && trainSetHasData(s)));
+}
+/* Las series dentro de la tarjeta desplegada: los MISMOS campos
+   (data-train-set-reps / data-train-set-load, con su unidad) que
+   pinta la tarjeta expandida de siempre — el cableado de la vista
+   los recoge sin saber de qué pintor salieron. */
+function trainFlowSetsHTML(ex, key, chk) {
+  const sets = chk && Array.isArray(chk.sets) ? chk.sets : [];
+  return `<div class="train-sets-unit"><span class="train-sets-unit-lab">${esc(t('units.mass'))}${esc(loadKindHeadSuffix(ex))}</span>${trainUnitSelHTML()}</div><div class="train-sets">${sets.map((s, si) => `
+      <div class="train-set-row${s.pend === true ? ' is-sug' : ''}"><span class="train-set-n">${t('train.d.set')} ${si + 1}${s.repsPlanned ? ` · ${esc(s.repsPlanned)}` : ''}${s.pend === true ? ` <span class="tf-sug-tag">${esc(t('train.sets.suggested'))}</span>` : ''}</span>
+        <input type="number" inputmode="decimal" min="0" class="train-set-in" data-train-set-reps="${key}:${si}" placeholder="${t('train.d.repsPh')}" value="${esc(s.repsDone)}" aria-label="${t('train.d.repsPh')}">
+        <input type="number" inputmode="decimal" min="0" step="any" class="train-set-in" data-train-set-load="${key}:${si}" placeholder="${t('train.d.loadPh')}" value="${esc(s.loadVal)}" aria-label="${t('train.d.loadPh')}">
+        <span class="train-set-unit">${esc(UNIT_PREFS.mass)}</span></div>`).join('')}
+    </div>`;
+}
+function trainFlowFacesHTML(key, selFace) {
+  return `<div class="flow-faces">${[1, 2, 3, 4, 5].map(n => `<button type="button" class="flow-face${selFace === n ? ' sel' : ''}" data-flow-face="${key}:${n}" aria-pressed="${selFace === n ? 'true' : 'false'}"><img src="${FLOW_FACE_URLS[n - 1]}" alt="" loading="lazy" onerror="this.remove()"><b>${t('train.flow.band.' + n)}</b><span>${t('train.flow.face.' + n)}</span></button>`).join('')}</div>`;
+}
+/* La zona del flujo dentro de la tarjeta (solo modo edit): su
+   estado sale de las marcas (hecho / en curso) y del estado de
+   pantalla (reposo / desplegada / cerrando). */
+function trainFlowHTML(ex, di, ei) {
+  const key = di + ':' + ei;
+  const chk = TRAIN_CHECKS[key] || null;
+  const fs = TRAIN_FLOW[key] || null;
+  const spec = [ex.sets, ex.reps].filter(Boolean).join(' × ');
+  if (chk && chk.done === true) {
+    /* Hecha: la línea del flujo solo añade lo que las cifras no
+       dicen — el rótulo honesto del hecho sin series (punto 6) y
+       la pastilla de la cara elegida; una hecha con datos y sin
+       cara no pinta nada aquí (su estado ya lo dice la tarjeta). */
+    const hasFace = Number.isInteger(chk.face) && chk.face >= 1 && chk.face <= 5;
+    if (flowHasData(chk) && !hasFace) return '';
+    return `<div class="flow-done-line">${!flowHasData(chk) && spec ? `<span>${esc(t('train.flow.asPlan', { spec }))}</span>` : ''}${hasFace ? `<span class="flow-done-pill"><img src="${FLOW_FACE_URLS[chk.face - 1]}" alt="" onerror="this.remove()">${t('train.flow.band.' + chk.face)} · ${t('train.flow.face.' + chk.face)}</span>` : ''}</div>`;
+  }
+  if (fs && fs.st === 'closing') {
+    if (!flowHasData(chk)) {
+      /* LA PUERTA HONESTA (punto 6 + diagnóstico): sin ni una
+         serie con dato, el hecho solo nace de esta confirmación
+         expresa — nunca de un toque suelto. */
+      return `<div class="flow-close"><p class="flow-nodata">${esc(t('train.flow.noSets', { spec }))}</p><div class="flow-row"><button type="button" class="flow-btn" data-flow-back="${key}">${t('train.flow.logOne')}</button><button type="button" class="flow-btn is-done" data-flow-mark-plan="${key}">${t('train.flow.markPlan')}</button></div></div>`;
+    }
+    const noteTxt = String((ex && (ex.note || '')) || '');
+    const rpeM = noteTxt.match(/RPE\s*\d+\s*[-–]\s*\d+/i);
+    const meta = rpeM ? `<div class="flow-meta">${esc(t('train.flow.metaRpe', { rpe: rpeM[0].replace(/^RPE\s*/i, '') }))}</div>` : '';
+    return `<div class="flow-close"><div class="flow-close-q">${t('train.flow.howWas')}</div>${trainFlowFacesHTML(key, fs.face)}${meta}<button type="button" class="flow-btn is-done flow-mark" data-flow-mark="${key}">${t('train.flow.markDone')}</button></div>`;
+  }
+  if (fs && fs.st === 'open' && chk) {
+    return `${trainFlowSetsHTML(ex, key, chk)}<div class="flow-row"><span class="flow-incourse">${t('train.flow.inCourse')}</span><button type="button" class="flow-btn is-finish" data-flow-finish="${key}">${t('train.flow.finish')}</button></div><div class="flow-foot"><button type="button" class="flow-mini" data-flow-swap="${key}">🔀 ${t('train.custom.swap')}</button><button type="button" class="flow-mini is-quit" data-flow-remove="${key}">${t('train.flow.removeToday')}</button></div>`;
+  }
+  return `<div class="flow-row"><button type="button" class="flow-btn is-start" data-flow-start="${key}">▶ ${chk ? t('train.flow.resume') : t('train.flow.start')}</button><button type="button" class="flow-btn is-finish" disabled>${t('train.flow.finish')}</button></div>`;
+}
+/* LA LÍNEA DE QUITADOS (punto 5 = A, 2026-11-11): al final de la
+   lista del día y de la ruta, una línea recogida por ejercicio
+   quitado hoy — nombre honesto (si el slot traía un cambio, lo
+   quitado es el ejercicio del cambio, como en Gestiona y en el
+   registro) y su vuelta a un toque por el motor de siempre
+   (trainSessionRestoreSlot). Sin quitados, no pinta nada. */
+function trainRemovedLineHTML(plan, di, iso) {
+  if (!plan) return '';
+  const viewIso = iso || todayISO();
+  const ed = trainEditsRead(plan.id, viewIso);
+  const remSlots = ed && Array.isArray(ed.removed) ? ed.removed : [];
+  if (!remSlots.length) return '';
+  const dayExs = ((plan.days || [])[di] || {}).exercises || [];
+  return remSlots.map(slot => {
+    const sw = ed.swaps ? ed.swaps[String(slot)] : null;
+    const shown = sw ? (trainExName({ exerciseId: sw.exerciseId || null, name: sw.name || '', variantIndex: sw.variantIndex }) || sw.name || '') : (trainExName(dayExs[slot]) || (dayExs[slot] && dayExs[slot].name) || '');
+    return `<div class="flow-removed-line"><span class="flow-removed-name">🗑 ${esc(t('train.flow.removedToday', { name: shown }))}</span><button type="button" class="flow-restore-btn" data-flow-restore="${di}:${slot}">↩ ${t('train.custom.restore')}</button></div>`;
+  }).join('');
+}
+/* El cableado del flujo: lo llama la vista de Entrenamiento tras
+   pintar (la lista y el foco guiado comparten tarjeta y caja).
+   Cada gesto guarda al acto por los motores de siempre y repinta
+   por loadMyTraining, como todo lo demás de esta vista. */
+function trainFlowWire(box, plan) {
+  if (!box || !plan) return;
+  box.querySelectorAll('[data-flow-start]').forEach(b => b.onclick = () => {
+    const key = b.dataset.flowStart;
+    const [diF, eiF] = key.split(':').map(Number);
+    const itF = trainEffectiveList(plan, diF)[eiF];
+    if (!itF) return;
+    /* INICIAR: crea la entrada EN CURSO de ESE ejercicio (sin
+       marca de hecho) y despliega sus series — es además quien
+       despierta el cronómetro, como la marca de siempre. */
+    if (!TRAIN_CHECKS[key]) TRAIN_CHECKS[key] = { rpe: null, sets: trainDefaultSets(itF.ex) };
+    trainChronoTouch(plan.id, trainDayLabelOf(plan, diF));
+    trainChecksPersist(plan.id);
+    TRAIN_FLOW[key] = { st: 'open', face: Number.isInteger(TRAIN_CHECKS[key].face) ? TRAIN_CHECKS[key].face : null };
+    loadMyTraining();
+  });
+  box.querySelectorAll('[data-flow-finish]').forEach(b => b.onclick = () => {
+    const key = b.dataset.flowFinish;
+    const cur = TRAIN_FLOW[key] || { st: 'open', face: null };
+    const chkF = TRAIN_CHECKS[key] || null;
+    TRAIN_FLOW[key] = { st: 'closing', face: cur.face != null ? cur.face : (chkF && Number.isInteger(chkF.face) ? chkF.face : null) };
+    loadMyTraining();
+  });
+  box.querySelectorAll('[data-flow-face]').forEach(b => b.onclick = () => {
+    const parts = String(b.dataset.flowFace).split(':');
+    const key = parts[0] + ':' + parts[1];
+    if (TRAIN_FLOW[key]) TRAIN_FLOW[key].face = Number(parts[2]);
+    loadMyTraining();
+  });
+  const flowMarkDone = (key, asPlan) => {
+    const [diF, eiF] = key.split(':').map(Number);
+    const itF = trainEffectiveList(plan, diF)[eiF];
+    if (!itF) return;
+    const fs = TRAIN_FLOW[key] || null;
+    if (!TRAIN_CHECKS[key]) TRAIN_CHECKS[key] = { rpe: null, sets: trainDefaultSets(itF.ex) };
+    const chkF = TRAIN_CHECKS[key];
+    /* «✓ Marcar hecho» — la ÚNICA puerta de la marca: escribe en
+       la entrada de ESE ejercicio su hecho, su cara (si la eligió)
+       y el RPE de la banda, y sella la hora de las series con
+       datos como hacía el Guardar de la hoja. Por la puerta
+       honesta (asPlan) no se inventa cara ni número alguno. */
+    if (!asPlan && fs && Number.isInteger(fs.face)) { chkF.face = fs.face; chkF.rpe = FLOW_FACE_RPE[fs.face - 1]; }
+    if (Array.isArray(chkF.sets)) { const nowH = Date.now(); chkF.sets.forEach(s => { if (trainSetHasData(s) && !(typeof s.markedAt === 'number' && s.markedAt > 0)) s.markedAt = nowH; }); }
+    chkF.done = true;
+    trainChronoTouch(plan.id, trainDayLabelOf(plan, diF));
+    trainChecksPersist(plan.id);
+    delete TRAIN_FLOW[key];
+    loadMyTraining();
+  };
+  box.querySelectorAll('[data-flow-mark]').forEach(b => b.onclick = () => flowMarkDone(b.dataset.flowMark, false));
+  box.querySelectorAll('[data-flow-mark-plan]').forEach(b => b.onclick = () => flowMarkDone(b.dataset.flowMarkPlan, true));
+  box.querySelectorAll('[data-flow-back]').forEach(b => b.onclick = () => {
+    const key = b.dataset.flowBack;
+    TRAIN_FLOW[key] = { st: 'open', face: (TRAIN_FLOW[key] || {}).face || null };
+    loadMyTraining();
+  });
+  box.querySelectorAll('[data-flow-remove]').forEach(b => b.onclick = () => {
+    const [diF, eiF] = String(b.dataset.flowRemove).split(':').map(Number);
+    delete TRAIN_FLOW[diF + ':' + eiF];
+    trainSessionRemoveAt(plan, diF, eiF);   /* su confirmación AUTH-398 vive dentro */
+  });
+  box.querySelectorAll('[data-flow-swap]').forEach(b => b.onclick = () => {
+    const [diF, eiF] = String(b.dataset.flowSwap).split(':').map(Number);
+    const itF = trainEffectiveList(plan, diF)[eiF];
+    if (!itF) return;
+    /* CAMBIAR: la guarda AUTH-398 de Gestiona, literal — con
+       registro de hoy no entra (un cambio no mueve las marcas) y
+       se avisa con su mismo texto; sin registro, el selector de
+       siempre por la misma puerta (TRAIN_PICK). */
+    if (trainManageHasRecord(diF, eiF)) { toast(t('manage.swapLogged', { name: trainExName(itF.ex) || itF.ex.name || '' }), true); return; }
+    TRAIN_PICK = { kind: itF.kind === 'add' ? 'replace-add' : 'swap', idx: eiF };
+    SWAP_QUERY = '';
+    loadMyTraining();
+  });
+  box.querySelectorAll('[data-flow-restore]').forEach(b => b.onclick = () => {
+    const [diF, slotF] = String(b.dataset.flowRestore).split(':').map(Number);
+    trainSessionRestoreSlot(plan, diF, slotF, (typeof TRAIN_VIEW !== 'undefined' && TRAIN_VIEW) ? TRAIN_VIEW.sel : undefined);
+  });
+}
+
 /* TARJETA COMPACTA (corrección de la reprueba de Ronald, chat
    2026-10-26 07:25 CDT): la fila del ejercicio en la tarjeta del
    día lleva SOLO los datos principales — franja de color (la pone
@@ -36798,7 +37188,7 @@ function trainExCompactHTML(ex, di, ei, mode, de, mv) {
   const figs = mode === 'ficha' ? '' : `<div class="train-ex-figs">
     ${trainHistBlockHTML(mode === 'edit' ? trainSessionSummaryLive(chk) : (de ? trainSessionSummaryFromSets(de.sets) : null))}
     <div class="train-ex-side">${mode === 'edit'
-      ? `<label class="train-ex-check"><input type="checkbox" data-train-check="${key}" ${chk && chk.done === true ? 'checked' : ''}> <span>${t('train.view.exDone')}</span></label><span class="train-ex-state ${chk ? (chk.done === true ? 'st-done' : 'st-progress') : 'st-todo'}">${chk ? (chk.done === true ? '✓ ' + t('train.view.exDone') : '◐ ' + t('train.view.exInProgress')) : '○ ' + t('train.view.exToDo')}</span>`
+      ? `<span class="train-ex-state ${chk ? (chk.done === true ? 'st-done' : 'st-progress') : 'st-todo'}">${chk ? (chk.done === true ? '✓ ' + t('train.view.exDone') : '◐ ' + t('train.view.exInProgress')) : '○ ' + t('train.view.exToDo')}</span>`
       : mode === 'read'
         ? (de ? `<span class="ok-badge">✓ ${t('train.view.exDone')}${de.rpe ? ` · ${t('train.view.rpe')} ${esc(String(de.rpe))}` : ''}</span>` : '<span class="muted">—</span>')
         : ''}</div>
@@ -36811,7 +37201,8 @@ function trainExCompactHTML(ex, di, ei, mode, de, mv) {
   </div>
     ${figs}
     ${trainLastTimeCardHTML(ex, mode)}
-    ${mode === 'edit' && mv ? `<div class="train-ex-move"><button type="button" class="train-ex-grip" data-train-grip="${ei}" aria-label="${esc(t('train.custom.move'))}">⠿</button><button type="button" class="btn-ghost train-ex-move-btn" data-train-move-up="${ei}" ${mv.first ? 'disabled' : ''}>▲ ${esc(t('train.custom.moveUp'))}</button><button type="button" class="btn-ghost train-ex-move-btn" data-train-move-down="${ei}" ${mv.last ? 'disabled' : ''}>▼ ${esc(t('train.custom.moveDown'))}</button></div>` : ''}
+    ${mode === 'edit' ? trainFlowHTML(ex, di, ei) : ''}
+    ${mode === 'edit' && mv ? `<div class="train-ex-move"><button type="button" class="train-ex-grip" data-train-grip="${ei}" aria-label="${esc(t('train.custom.move'))}">⠿</button></div>` : ''}
   </div>`;
 }
 function trainDayCompactHistHTML(day, log, di) {
@@ -37640,13 +38031,14 @@ function trainFloatWheelHTML() {
     </div><div class="tf-pair-note" id="tf-wheel-pair" style="display:none"></div></div></div>`;
 }
 function trainFloatSessionHTML(draft) {
-  /* QUITAR DE HOY (encargo 2026-10-30): la fila discreta al pie
-     del bloque de sesión, en AMBOS estados (antes de iniciar y en
-     curso) — sale solo de la sesión de hoy (mecánica en
-     trainSessionRemoveAt). */
-  const removeRow = `<div class="tf-remove-row"><button type="button" class="btn-ghost btn-sm tf-remove-btn" id="tf-remove-today">${esc(t('train.remove.today'))}</button></div>`;
-  if (!draft || !draft.started)
-    return `<div class="tf-start-box"><button type="button" class="btn-primary tf-start-btn" id="tf-start">${t('train.start.btn')}</button></div>${removeRow}`;
+  /* AUTH-406 · LA HOJA QUEDA DE CONSULTA (orden de Ronald,
+     2026-11-11 11:32, maqueta G4): «Iniciar ejercicio» y «Quitar
+     de la sesión de hoy» SALEN de la hoja — viven en el foco
+     guiado y en la tarjeta (el flujo). Sin empezar, el bloque de
+     sesión queda vacío; en curso, la hoja conserva como detalle
+     secundario sus ruedas de series, su RPE exacto y su «✓ Hecho»
+     (el espejo continuo sigue volcando al acto, cara incluida). */
+  if (!draft || !draft.started) return '';
   return `<div class="tf-warm" id="tf-warm">${trainFloatWarmHTML(draft)}</div>
     <div id="tf-sets">${trainFloatSetsHTML(draft)}</div>
     <div><label class="prop-lab" for="tf-rpe">${t('train.view.rpe')}</label>
@@ -37654,7 +38046,7 @@ function trainFloatSessionHTML(draft) {
       <option value="">${t('train.view.rpeNone')}</option>
       ${[1, 2, 3, 4, 5, 6, 7, 8, 9, 10].map(n => `<option value="${n}" ${draft.rpe === n ? 'selected' : ''}>${t('train.view.rpe')} ${n}</option>`).join('')}
     </select></div>
-    <div class="train-float-actions"><button type="button" class="btn-primary${draft.done ? ' is-marked' : ''}" id="tf-save" aria-pressed="${draft.done ? 'true' : 'false'}">${draft.done ? esc(t('train.view.exDoneMarked')) : '✓ ' + t('train.view.exDone')}</button></div>${removeRow}`;
+    <div class="train-float-actions"><button type="button" class="btn-primary${draft.done ? ' is-marked' : ''}" id="tf-save" aria-pressed="${draft.done ? 'true' : 'false'}">${draft.done ? esc(t('train.view.exDoneMarked')) : '✓ ' + t('train.view.exDone')}</button></div>`;
 }
 function tfWarmSnap(w) {
   const o = (w && typeof w === 'object' && !Array.isArray(w)) ? w : {};
@@ -37677,7 +38069,8 @@ function trainFloatMirror(chrono) {
   if (!F || F.mode !== 'edit' || !F.draft) return;
   const key = F.di + ':' + F.ei, d = F.draft;
   if (d.started) {
-    TRAIN_CHECKS[key] = { rpe: d.rpe, sets: (Array.isArray(d.sets) ? d.sets : []).map(s => ({ ...s })), warmup: tfWarmSnap(d.warmup), ...(d.done === true ? { done: true } : {}) };
+    const prevChk = TRAIN_CHECKS[key];
+    TRAIN_CHECKS[key] = { rpe: d.rpe, sets: (Array.isArray(d.sets) ? d.sets : []).map(s => ({ ...s })), warmup: tfWarmSnap(d.warmup), ...(d.done === true ? { done: true } : {}), ...(prevChk && Number.isInteger(prevChk.face) && prevChk.face >= 1 && prevChk.face <= 5 ? { face: prevChk.face } : {}) };
     if (chrono) trainChronoTouch(F.planId, (typeof MY_PLAN !== 'undefined' && MY_PLAN && MY_PLAN.id === F.planId) ? trainDayLabelOf(MY_PLAN, F.di) : undefined);
   } else delete TRAIN_CHECKS[key];
   trainChecksPersist(F.planId);
@@ -37884,19 +38277,8 @@ function trainFloatWireSession(body) {
   const F = TRAIN_FLOAT;
   if (!F || F.mode !== 'edit' || !F.draft) return;
   const d = F.draft;
-  const startBtn = body.querySelector('#tf-start');
-  if (startBtn) startBtn.onclick = () => {
-    /* INICIAR: la ficha pasa a modo en curso ALLÍ MISMO — el área
-       de trabajo sustituye al botón sin salir de la hoja, y el
-       estado se espeja al acto (espejo continuo). */
-    d.started = true;
-    if (!Array.isArray(d.sets) || !d.sets.length) d.sets = trainDefaultSets(F.ex);
-    const host = body.querySelector('#tf-session');
-    if (host) host.innerHTML = trainFloatSessionHTML(d);
-    trainFloatMirror(true);
-    trainFloatWireSession(body);
-    trainWireUnitSels(body);
-  };
+  /* AUTH-406: el cableado de «Iniciar ejercicio» de la hoja
+     sale con su botón — iniciar vive en el flujo de la tarjeta. */
   tfWireChips(body);
   const rpeSel = body.querySelector('#tf-rpe');
   if (rpeSel) rpeSel.onchange = () => { d.rpe = rpeSel.value ? Number(rpeSel.value) : null; trainFloatMirror(false); };
@@ -37954,13 +38336,8 @@ function trainFloatWireSession(body) {
     trainFloatMirror(false);
     tfSetsRefresh(body);
   }; });
-  /* QUITAR EL EJERCICIO DE LA SESIÓN DE HOY desde la ficha
-     (encargo 2026-10-30): la acción vive en trainSessionRemoveAt
-     (confirmación con explicación si ya hay series de hoy). */
-  const rmToday = body.querySelector('#tf-remove-today');
-  if (rmToday) rmToday.onclick = () => {
-    if (MY_PLAN && MY_PLAN.id === F.planId) trainSessionRemoveAt(MY_PLAN, F.di, F.ei);
-  };
+  /* AUTH-406: el cableado de «Quitar de la sesión de hoy» de
+     la hoja sale con su botón — quitar vive en el flujo. */
   const wDone = document.getElementById('tf-wheel-done');
   if (wDone) wDone.onclick = () => { const p = document.getElementById('tf-wheel'); if (p) p.style.display = 'none'; };
   const saveBtn = body.querySelector('#tf-save');
@@ -39060,6 +39437,7 @@ async function loadMyTraining() {
     TRAIN_CHECKS = trainChecksRead(plan.id);
     TRAIN_CHECKS_CTX = ctx;
     trainChecksPruneStale(plan.id);
+    TRAIN_FLOW = {};   /* AUTH-406: el estado del flujo muere con el contexto, como las marcas */
   }
   const logByDay = {};
   logs.filter(l => l.date === today).forEach(l => { logByDay[l.dayIndex] = l; });
@@ -39102,7 +39480,7 @@ async function loadMyTraining() {
       else if (mode === 'done') { const status = trainLogStatus(log); tail = `<div style="margin-top:8px">${trainStatusBadge(status)}${status === 'skipped' ? ` <span class="muted">${t('train.d.skippedNote')}</span>` : ''} <button class="btn-ghost btn-sm" data-train-undo="${di}">${t('train.undo')}</button>${trainLogMetaHTML(log)}</div>`; }
       else tail = '';
     }
-    return `<h4>${esc(label)}</h4>${exHtml}${trainSessionHTML(day)}${tail}${trainExtrasZoneHTML()}`;
+    return `<h4>${esc(label)}</h4>${exHtml}${mode === 'edit' ? trainRemovedLineHTML(plan, di, (typeof TRAIN_VIEW !== 'undefined' && TRAIN_VIEW) ? TRAIN_VIEW.sel : undefined) : ''}${trainSessionHTML(day)}${tail}${trainExtrasZoneHTML()}`;
   };
   /* ENTRENAMIENTO-HOY: tira semanal + tarjeta del día (por defecto
      HOY). La configuración de pendientes es la ancla «cfg»: si
@@ -39170,7 +39548,7 @@ async function loadMyTraining() {
        lista, la alternancia «▶ Modo guiado» entra en la ruta
        (AUTH-370: esa alternancia vive ahora SOLO arriba de la
        vista, junto a la cabecera del día — trainGuideDoorHTML); sin
-       preferencia guardada manda la lista, como hoy. El día
+       preferencia guardada el día NACE GUIADO (AUTH-406). El día
        cerrado se pinta como siempre (su historial). */
     if (!done && sel === today) TRAIN_GUIDE_DOOR = true;   /* AUTH-370: la puerta del guiado se pinta ARRIBA (trainGuideDoorHTML) — una sola, no al pie de la tarjeta */
     /* AUTH-398: la puerta de «Gestiona tu sesión» se arma con la
@@ -39526,36 +39904,29 @@ async function loadMyTraining() {
     if (TRAIN_GUIDE.pin === ei) TRAIN_GUIDE.pin = null;
     loadMyTraining();
   });
-  box.querySelectorAll('[data-guided-done]').forEach(b => b.onclick = () => {
-    const [diS, eiS] = String(b.dataset.guidedDone).split(':');
-    const diG = Number(diS), key = diG + ':' + Number(eiS);
-    const effG = trainEffectiveList(plan, diG);
-    const exG = (effG[Number(eiS)] || {}).ex || {};
-    if (TRAIN_CHECKS[key] && TRAIN_CHECKS[key].done === true) {
-      delete TRAIN_CHECKS[key].done;   /* AUTH-344: desmarcar no borra nada */
-    } else {
-      if (TRAIN_CHECKS[key]) TRAIN_CHECKS[key].done = true;
-      else TRAIN_CHECKS[key] = { rpe: null, sets: trainDefaultSets(exG), done: true };
-      if (TRAIN_GUIDE.pin === Number(eiS)) TRAIN_GUIDE.pin = null;   /* al remarcar el reabierto, la ruta sigue su curso */
-      trainChronoTouch(plan.id, trainDayLabelOf(plan, diG));
-    }
-    trainChecksPersist(plan.id);
-    loadMyTraining();
+  /* AUTH-406: el «✓ Hecho» de la ruta SALE con su cableado —
+     era la segunda puerta de la marca de AUTH-344 y, con el avance
+     automático del foco, sus toques extra creaban hechos desde la
+     plantilla (diagnóstico «hechos sin marcar», 2026-11-11). La
+     marca nace ahora SOLO de «✓ Marcar hecho» del flujo de la
+     tarjeta, cuyo cableado vive en trainFlowWire: */
+  trainFlowWire(box, plan);
+  /* AUTH-406 · El botón de YouTube de la cabecera compacta
+     del foco: abre el video del ejercicio en la ventana flotante
+     de siempre (ytOpenPlayer), el mismo destino del «▶ Video»
+     de la ficha. Sin video en la ficha, el botón ni se pinta. */
+  box.querySelectorAll('[data-guide-yt]').forEach(b => b.onclick = () => {
+    const [diY, eiY] = String(b.dataset.guideYt).split(':').map(Number);
+    const itY = trainEffectiveList(plan, diY)[eiY];
+    const urlY = itY ? trainExVideo(itY.ex) : '';
+    if (urlY) ytOpenPlayer(urlY, trainExName(itY.ex) || '');
   });
-  /* ORDEN DEL DÍA (2026-11-03): subir/bajar de la fila y arrastre
-     desde su asa — las dos vías entran por el mismo motor de la
-     sesión (trainSessionReorder) y repintan por loadMyTraining,
-     como todo lo demás de esta tarjeta. */
-  box.querySelectorAll('[data-train-move-up]').forEach(b => b.onclick = () => {
-    const row = b.closest('[data-train-row]'); const diM = row ? Number(String(row.dataset.trainRow).split(':')[0]) : NaN;
-    const eiM = Number(b.dataset.trainMoveUp);
-    if (Number.isInteger(diM) && trainSessionReorder(plan, diM, eiM, eiM - 1)) loadMyTraining();
-  });
-  box.querySelectorAll('[data-train-move-down]').forEach(b => b.onclick = () => {
-    const row = b.closest('[data-train-row]'); const diM = row ? Number(String(row.dataset.trainRow).split(':')[0]) : NaN;
-    const eiM = Number(b.dataset.trainMoveDown);
-    if (Number.isInteger(diM) && trainSessionReorder(plan, diM, eiM, eiM + 1)) loadMyTraining();
-  });
+  /* ORDEN DEL DÍA (2026-11-03): el arrastre desde el asa entra por
+     el motor de la sesión (trainSessionReorder) y repinta por
+     loadMyTraining, como todo lo demás de esta tarjeta.
+     AUTH-406: los botones ▲▼ SALEN con su cableado (decisión
+     de Ronald del 2026-11-11: si se arrastra con el dedo, las
+     flechas sobran); el asa y el motor quedan byte a byte. */
   box.querySelectorAll('[data-train-grip]').forEach(g => g.addEventListener('pointerdown', e => {
     if (TRAIN_ROW_DRAG) return;
     if (e.pointerType === 'mouse' && e.button !== 0) return;
@@ -39637,6 +40008,10 @@ async function loadMyTraining() {
          Las reglas vivas no validan el interior de exercisesDone. */
       if (Number.isInteger(ex.variantIndex)) e.variantIndex = ex.variantIndex;
       if (c.rpe) e.rpe = c.rpe;
+      /* AUTH-406: la cara por ejercicio viaja al registro
+         con el resto de la entrada (el interior de exercisesDone
+         no lo validan las reglas vivas, como markedAt). */
+      if (Number.isInteger(c.face) && c.face >= 1 && c.face <= 5) e.face = c.face;
       /* SERIES AÑADIDAS PENDIENTES (encargo 2026-10-30): una serie
          nacida con «+ Añadir serie» que él nunca trabajó sigue
          `pend` al cerrar — se EXCLUYE del registro: jamás cuenta
@@ -54578,7 +54953,7 @@ document.addEventListener('keydown', e => { if (e.key === 'Escape') shareClose()
  *  - El SW (sw.js) solo cachea la cáscara del mismo origen en modo
  *    RED PRIMERO: Auth/Firestore/Worker jamás pasan por la caché.
  * ================================================================ */
-const PWA_SW_VERSION = '20261111-gesto-arrastre';
+const PWA_SW_VERSION = '20261111-dia-guiado';
 /* Sello de versión VISIBLE (2026-11-03): el pie de la tarjeta de
    acceso enseña qué copia corre este teléfono ('v ' + el sello),
    para comprobar de un vistazo si la versión nueva ya llegó.

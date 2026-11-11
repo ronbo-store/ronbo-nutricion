@@ -3327,13 +3327,12 @@ body.prog-page #progress-content.nav-page-on { padding-right: 88px; }
    inferior de las superficies de documento (el pie, AUTH-151) y
    de las páginas que surgen suma esos mismos 76 px: la pastilla
    nunca tapa el último contenido ni los discos. ═══ */
-#sess-pill { position: fixed; left: 50%; transform: translateX(-50%); bottom: calc(env(safe-area-inset-bottom, 0px) + 88px); z-index: 44; width: min(430px, calc(100vw - 24px)); box-sizing: border-box; background: #1b2a4a; border: none; border-radius: 999px; color: #fff; font-family: inherit; text-align: left; padding: 10px 18px 9px; cursor: pointer; box-shadow: 0 10px 26px rgba(15, 23, 42, .30); }
+#sess-pill { position: fixed; left: 50%; transform: translateX(-50%); bottom: calc(env(safe-area-inset-bottom, 0px) + 88px); z-index: 44; width: min(430px, calc(100vw - 24px)); box-sizing: border-box; background: #1b2a4a; border: none; border-radius: 999px; color: #fff; font-family: inherit; text-align: left; padding: 0 16px; height: 36px; display: flex; align-items: center; cursor: pointer; box-shadow: 0 10px 26px rgba(15, 23, 42, .30); }
 .sess-pill-row { display: flex; align-items: center; gap: 8px; }
 .sess-pill-dot { width: 11px; height: 11px; border-radius: 50%; background: #22c55e; flex: none; animation: sess-pulse 1.6s ease-in-out infinite; }
 @keyframes sess-pulse { 0%, 100% { box-shadow: 0 0 0 3px rgba(34, 197, 94, .30); } 50% { box-shadow: 0 0 0 6px rgba(34, 197, 94, .10); } }
-.sess-pill-time { font-size: 19px; font-weight: 800; font-variant-numeric: tabular-nums; letter-spacing: .01em; white-space: nowrap; }
-.sess-pill-label { font-size: 15.5px; font-weight: 600; color: rgba(255, 255, 255, .85); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-.sess-pill-sub { display: block; margin-top: 1px; font-size: 12.5px; color: rgba(255, 255, 255, .55); }
+.sess-pill-time { font-size: 15px; font-weight: 800; font-variant-numeric: tabular-nums; letter-spacing: .01em; white-space: nowrap; }
+.sess-pill-label { font-size: 13px; font-weight: 600; color: rgba(255, 255, 255, .85); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 body.sess-on .foot { padding-bottom: 208px; }
 body.sess-on #train-content.nav-page-on, body.sess-on #progress-content.nav-page-on { padding-bottom: 204px; }
 body.sess-on .act-flame { bottom: calc(env(safe-area-inset-bottom, 0px) + 122px + 76px); }
@@ -5101,10 +5100,76 @@ body.swap-sheet-open .asst-fab { display: none !important; }
 .guide-rest-skip { background:#ffd23e; color:#4a3600; border:none; border-radius:999px; padding:8px 14px; font-weight:800; cursor:pointer; white-space:nowrap; }
 .guide-focus { margin-top:12px; border:1.5px solid rgba(255,255,255,.38); border-radius:18px; padding:12px; }
 .guide-tag { display:inline-block; background:#ffd23e; color:#4a3600; font-size:11px; font-weight:900; letter-spacing:.6px; border-radius:999px; padding:3px 9px; text-transform:uppercase; }
-.guide-times { display:flex; gap:8px; margin:10px 0; }
-.guide-time { flex:1; background:rgba(0,0,0,.18); border-radius:12px; padding:9px 10px; font-size:15px; font-weight:800; }
+.guide-times { display:flex; gap:8px; margin:10px 0 0; align-items:stretch; }
 .guide-done-btn { display:block; width:100%; margin-top:12px; background:#22c55e; color:#fff; border:none; border-radius:14px; font-size:18px; font-weight:900; padding:13px; box-shadow:0 4px 0 #15803d; cursor:pointer; }
 .guide-skip-btn { display:block; width:100%; margin-top:8px; background:transparent; color:inherit; border:2px solid rgba(255,255,255,.5); border-radius:14px; font-size:15px; font-weight:800; padding:10px; cursor:pointer; }
+/* AUTH-406 · EL RECORRIDO AL NACER (maqueta G1): las paradas
+   del día sin empezar, con su foto; y la puerta única de comenzar. */
+.guide-route { margin-top:12px; }
+.guide-stop { display:flex; align-items:center; gap:11px; padding:7px 2px; }
+.guide-stop-n { flex:0 0 auto; width:34px; height:34px; border-radius:50%; border:2px solid rgba(255,255,255,.55); color:#fff; font-weight:800; font-size:15px; display:flex; align-items:center; justify-content:center; }
+.guide-stop.is-now .guide-stop-n { background:#facc15; border-color:#facc15; color:#713f12; }
+.guide-stop-photo { flex:0 0 auto; width:48px; height:48px; border-radius:10px; object-fit:cover; }
+.guide-stop.is-now .guide-stop-photo { width:64px; height:64px; }
+.guide-stop-mid { display:flex; flex-direction:column; gap:1px; min-width:0; }
+.guide-stop-name { font-weight:800; font-size:16.5px; color:#fff; }
+.guide-stop-spec { font-size:13px; color:rgba(255,255,255,.85); }
+.guide-stop-tag { align-self:flex-start; margin-top:3px; background:#facc15; color:#713f12; font-size:11px; font-weight:900; letter-spacing:.4px; border-radius:999px; padding:2.5px 9px; }
+.guide-start-btn { display:block; width:100%; margin-top:14px; min-height:56px; background:linear-gradient(180deg,#22c55e,#16a34a); color:#fff; border:none; border-radius:16px; font-size:18.5px; font-weight:900; padding:14px; box-shadow:0 4px 0 #15803d; cursor:pointer; }
+.guide-route-note { margin:9px 2px 0; font-size:13px; line-height:1.45; color:rgba(255,255,255,.88); text-align:center; }
+/* AUTH-406 · EL FLUJO DE LA TARJETA: la fila de acción, el
+   cierre con las mascotas, la puerta honesta, el hecho y los
+   quitados. Tacto de la casa: botones ≥48 px, caras ≥44 px. */
+.flow-row { display:flex; align-items:center; gap:6px; margin-top:8px; }
+.flow-btn { flex:1; min-height:48px; border-radius:12px; border:2px solid rgba(255,255,255,.5); background:transparent; color:inherit; font-size:15px; font-weight:800; padding:8px 6px; cursor:pointer; }
+.flow-btn.is-start { background:linear-gradient(180deg,#22c55e,#16a34a); border-color:#15803d; color:#fff; }
+.flow-btn.is-finish { background:#b3261e; border-color:#b3261e; color:#fff; }
+.flow-btn.is-finish[disabled] { background:transparent; border-color:rgba(255,255,255,.35); color:inherit; opacity:.45; cursor:default; }
+.flow-btn.is-done { background:#22c55e; border-color:#15803d; color:#fff; }
+.flow-incourse { flex:1; font-size:14.5px; font-weight:800; color:#fbbf24; }
+.flow-foot { display:flex; gap:8px; margin-top:8px; }
+.flow-mini { flex:1; min-height:44px; border-radius:10px; border:1.5px solid rgba(255,255,255,.45); background:transparent; color:inherit; font-size:14px; font-weight:700; padding:7px 6px; cursor:pointer; }
+.flow-mini.is-quit { color:#fca5a5; border-color:rgba(252,165,165,.55); }
+.flow-close { margin-top:10px; border-top:1.5px dashed rgba(255,255,255,.35); padding-top:10px; }
+.flow-close-q { font-size:16px; font-weight:900; margin-bottom:8px; }
+.flow-faces { display:flex; gap:6px; }
+.flow-face { flex:1; display:flex; flex-direction:column; align-items:center; gap:1px; min-height:86px; padding:7px 2px 6px; border-radius:12px; border:2px solid rgba(255,255,255,.35); background:rgba(255,255,255,.10); color:#fff; cursor:pointer; }
+.flow-face img { width:44px; height:44px; border-radius:50%; object-fit:cover; }
+.flow-face b { font-size:13.5px; font-weight:900; }
+.flow-face span { font-size:11px; font-weight:700; line-height:1.15; text-align:center; }
+.flow-face.sel { border-color:#22c55e; background:rgba(34,197,94,.22); }
+.flow-meta { margin-top:8px; font-size:13px; font-weight:700; color:rgba(255,255,255,.9); }
+.flow-mark { width:100%; margin-top:10px; }
+.flow-nodata { margin:0 0 4px; background:#fff7e6; color:#92600a; border:1.5px dashed #d9a441; border-radius:10px; padding:9px 11px; font-size:13.5px; line-height:1.45; }
+.flow-done-line { display:flex; align-items:center; gap:9px; flex-wrap:wrap; margin-top:8px; font-size:13.5px; font-weight:700; color:#bbf7d0; }
+.flow-done-pill { display:inline-flex; align-items:center; gap:6px; background:rgba(255,255,255,.14); border-radius:999px; padding:2.5px 10px 2.5px 3px; font-weight:800; }
+.flow-done-pill img { width:26px; height:26px; border-radius:50%; object-fit:cover; }
+.flow-removed-line { display:flex; align-items:center; gap:10px; min-height:64px; margin-top:10px; border:1.5px dashed rgba(255,255,255,.5); border-radius:12px; padding:9px 12px; }
+.flow-removed-name { flex:1; font-size:14px; font-weight:700; }
+.flow-restore-btn { flex:0 0 auto; min-height:44px; border-radius:10px; border:none; background:#facc15; color:#713f12; font-size:14px; font-weight:900; padding:8px 14px; cursor:pointer; }
+/* AUTH-406 · LA BARRA FINA DEL ENTRENO (B1): 40 px, oscura
+   como la píldora, nombres cortados con «…»; sus botones miden
+   27 px (atajo fino aprobado por Ronald al aprobar la B1 — las
+   acciones grandes viven en el foco y en la tarjeta). */
+#train-bar { margin:0 0 10px; }
+#train-bar:empty { margin:0; }
+.tbar { display:flex; align-items:center; gap:5px; height:40px; box-sizing:border-box; background:#1b2a4a; border-radius:999px; color:#fff; padding:0 5px 0 10px; box-shadow:0 4px 12px rgba(15,23,42,.22); }
+.tbar-dot { flex:none; width:9px; height:9px; border-radius:50%; background:#22c55e; box-shadow:0 0 0 3px rgba(34,197,94,.25); }
+.tbar-time { flex:none; font-size:12.5px; font-weight:800; font-variant-numeric:tabular-nums; letter-spacing:.01em; }
+.tbar-name { flex:1.35 1 0; min-width:0; font-size:12px; font-weight:700; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+.tbar-name.next { flex:1 1 0; font-weight:600; color:rgba(255,255,255,.88); }
+.tbar-sep { flex:none; width:1px; height:20px; background:rgba(255,255,255,.25); }
+.tbar-btn { flex:none; height:27px; border:none; border-radius:999px; padding:0 9px; font-size:11.5px; font-weight:800; color:#fff; cursor:pointer; font-family:inherit; }
+.tbar-btn.fin { background:linear-gradient(180deg,#ef4444,#dc2626); }
+.tbar-btn.ini { background:linear-gradient(180deg,#22c55e,#16a34a); }
+.tbar-how { flex:none; font-size:11.5px; font-weight:700; color:rgba(255,255,255,.75); }
+/* AUTH-406 · LA CABECERA COMPACTA DEL FOCO (V1): los
+   cuadros a 48 px con solo la cifra y su unidad, la coletilla
+   pequeña y el botón de YouTube de 64 × 48 (tacto de la casa). */
+.guide-tchip { flex:1; min-height:48px; background:rgba(0,0,0,.18); border-radius:12px; display:flex; align-items:center; justify-content:center; text-align:center; padding:6px 8px; font-size:16px; font-weight:800; color:#fff; white-space:nowrap; box-sizing:border-box; }
+.guide-yt-btn { flex:none; width:64px; min-height:48px; border:none; background:transparent; padding:0; cursor:pointer; display:flex; align-items:center; justify-content:center; }
+.guide-yt-btn svg { width:56px; height:auto; display:block; filter:drop-shadow(0 2px 5px rgba(0,0,0,.35)); }
+.guide-times-note { margin-top:6px; font-size:11.5px; font-weight:600; color:rgba(255,255,255,.85); line-height:1.35; }
 .guide-next { margin-top:10px; text-align:center; font-size:12.5px; font-weight:700; opacity:.9; }
 .guide-complete { margin-top:12px; text-align:center; font-size:18px; font-weight:900; }
 
