@@ -4182,6 +4182,8 @@ en: {
   'reco.msNextRestart': 'Complete a full week to start your streak toward 4 in a row.',
   'reco.msFoot': 'Milestones are never lost or downgraded: what is earned, stays earned. Your trainer sees them in your file too.',
   'reco.msFootFicha': 'Milestones are never lost or downgraded: what is earned, stays earned.',
+  'reco.msSeeAll': 'See all ({n})',
+  'reco.msSeeLess': 'See less',
   'reco.moTitle': 'Your month',
   'reco.moSub': 'Your monthly recognition — once a month',
   'reco.moPending': 'When **{month}** closes, you will see your month here: your **weeks completed**, the **marks you improved** and your **biggest advance**. Compared with no one: only against **your own previous month**.',
@@ -8887,6 +8889,8 @@ es: {
   'reco.msNextRestart': 'Completa una semana entera para empezar tu racha hacia las 4 seguidas.',
   'reco.msFoot': 'Los hitos no se pierden ni bajan: lo ganado, ganado queda. Tu entrenador también los ve en tu ficha.',
   'reco.msFootFicha': 'Los hitos no se pierden ni bajan: lo ganado, ganado queda.',
+  'reco.msSeeAll': 'Ver todos ({n})',
+  'reco.msSeeLess': 'Ver menos',
   'reco.moTitle': 'Tu mes',
   'reco.moSub': 'Tu reconocimiento del mes — una vez al mes',
   'reco.moPending': 'Al cerrar **{month}** verás aquí el resumen de tu mes: tus **semanas cumplidas**, las **marcas que mejoraron** y tu **mayor avance**. Sin compararte con nadie: solo contra **tu propio mes anterior**.',
@@ -46513,8 +46517,8 @@ function milestonesCardHTML(items, opts) {
   const next = (opts && opts.next) || null;
   const list = Array.isArray(items) ? items : [];
   if (!list.length && !next) return '';
-  const rows = list.slice().reverse().slice(0, 8).map(it => `
-      <div class="ms-row">
+  const rowHTML = (it, extraCls) => `
+      <div class="ms-row${extraCls}">
         <span class="ms-medal" aria-hidden="true">${it.k === 'streak4' ? '🏆' : '🏅'}</span>
         <div class="ms-tx">
           <div class="ms-name">${esc(recoMsTitle(it))}</div>
@@ -46523,7 +46527,23 @@ function milestonesCardHTML(items, opts) {
           ${mine && RECO_PENDING.has(it.slug) ? `<div class="ms-pend">${esc(t('reco.msPending'))}</div>` : ''}
         </div>
         ${mine ? `<button type="button" class="ms-share" data-ms-share="${esc(it.slug)}">${esc(t('reco.msShare'))} ›</button>` : ''}
-      </div>`).join('');
+      </div>`;
+  /* H-05 (auditoría de espacio 2026-11-09, AUTH-2026-11-10-390): en la vista
+     PROPIA (mine) con más de 3 hitos, la tarjeta nace plegada:
+     solo los 3 más recientes — `list` llega ordenado por su
+     fecha real (`at` ascendente: milestonesCompute, recoSyncOwn
+     y recoFetchStored ordenan así) — y el resto tras la línea
+     «Ver todos (N)», que al desplegar muestra el historial
+     COMPLETO, sin el tope de 8. Sin plegado — la ficha del
+     entrenador (mine false) o ≤3 hitos — la pintura queda byte
+     a byte como siempre, con su tope histórico de 8. */
+  const ordered = list.slice().reverse();
+  const folded = mine && ordered.length > 3;
+  const rows = folded
+    ? ordered.slice(0, 3).map(it => rowHTML(it, '')).join('') +
+      ordered.slice(3).map(it => rowHTML(it, ' ms-extra')).join('') +
+      `<button type="button" class="ms-more" data-ms-more aria-expanded="false">${esc(t('reco.msSeeAll', { n: list.length }))} ›</button>`
+    : ordered.slice(0, 8).map(it => rowHTML(it, '')).join('');
   let prox = '';
   if (mine && next) {
     if (next.kind === 'first') prox = `<p class="ms-prox-tx">${wkB(t('reco.msNextFirst'))}</p>`;
@@ -46533,7 +46553,7 @@ function milestonesCardHTML(items, opts) {
     else if (next.kind === 'restart') prox = `<p class="ms-prox-tx">${wkB(t('reco.msNextStreak'))}</p><p class="ms-prox-cap">${esc(t('reco.msNextRestart'))}</p>`;
     if (prox) prox = `<div class="ms-prox">${prox}</div>`;
   }
-  return `<div class="rcard">
+  return `<div class="rcard${folded ? ' ms-fold' : ''}">
     <div class="rcard-head"><div class="rcard-ico" aria-hidden="true">🏅</div><div><div class="rcard-t1">${esc(t('reco.msTitle'))}</div><div class="rcard-t2">${esc(t('reco.msSub'))}</div></div></div>
     <div class="rcard-body">${rows}${prox}</div>
     <div class="rcard-foot">${esc(t(mine ? 'reco.msFoot' : 'reco.msFootFicha'))}</div>
@@ -46641,6 +46661,15 @@ async function loadRecoCards(uid, logs, plans) {
         b.onclick = () => {
           const it = items.find(x => x.slug === b.dataset.msShare);
           if (it) shareOpenLogro(it);
+        };
+      });
+      msBox.querySelectorAll('[data-ms-more]').forEach(b => {
+        b.onclick = () => {
+          const card = b.closest('.ms-fold');
+          if (!card) return;
+          const open = card.classList.toggle('ms-open');
+          b.setAttribute('aria-expanded', open ? 'true' : 'false');
+          b.textContent = open ? t('reco.msSeeLess') + ' ›' : t('reco.msSeeAll', { n: items.length }) + ' ›';
         };
       });
     }
@@ -53647,7 +53676,7 @@ document.addEventListener('keydown', e => { if (e.key === 'Escape') shareClose()
  *  - El SW (sw.js) solo cachea la cáscara del mismo origen en modo
  *    RED PRIMERO: Auth/Firestore/Worker jamás pasan por la caché.
  * ================================================================ */
-const PWA_SW_VERSION = '20261110-composicion-plegada';
+const PWA_SW_VERSION = '20261110-hitos-plegados';
 /* Sello de versión VISIBLE (2026-11-03): el pie de la tarjeta de
    acceso enseña qué copia corre este teléfono ('v ' + el sello),
    para comprobar de un vistazo si la versión nueva ya llegó.

@@ -4171,6 +4171,9 @@ button.wkex-row:active { background: #eef7f5; }
 .ms-bar { height: 9px; background: #dcebe8; border-radius: 99px; overflow: hidden; margin-top: 10px; }
 .ms-bar-fill { height: 100%; background: linear-gradient(90deg, #0d9488, #2dd4bf); border-radius: 99px; }
 .ms-prox-cap { margin: 7px 0 0; font-size: 13px; color: #46615a; }
+.ms-fold:not(.ms-open) .ms-extra { display: none; }
+.ms-more { display: flex; align-items: center; justify-content: center; width: 100%; min-height: 48px; margin-top: 2px; padding: 10px 14px; background: none; border: 0; border-top: 1px solid #eef3f6; color: #0b7a6e; font: inherit; font-size: 14px; font-weight: 700; cursor: pointer; -webkit-tap-highlight-color: transparent; }
+.ms-more:active { background: #f4faf8; }
 .mo-tx { margin: 4px 0 0; font-size: 15.5px; line-height: 1.55; color: #22384a; }
 .mo-tx b { color: #0b7a6e; }
 #client-milestones .rcard { margin-top: 14px; }
