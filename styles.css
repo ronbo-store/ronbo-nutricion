@@ -3934,7 +3934,7 @@ body.sess-on #pend-back-chip { bottom: calc(env(safe-area-inset-bottom, 0px) + 1
    que la franja ocupe su propia línea sin tocar la línea de datos. */
 .train-day-dressed .train-ex-compact { flex-wrap: wrap; }
 .train-ex-move { flex-basis: 100%; display: flex; align-items: center; gap: 8px; margin-top: 8px; }
-.train-ex-grip { flex: 0 0 auto; width: 46px; height: 46px; padding: 0; border: 1px solid rgba(125, 211, 252, .45); border-radius: 10px; background: rgba(2, 6, 23, .35); color: #e0f2fe; font-size: 19px; line-height: 1; cursor: grab; touch-action: none; }
+.train-ex-grip { flex: 0 0 auto; width: 72px; height: 46px; padding: 0; border: 1px solid rgba(125, 211, 252, .45); border-radius: 10px; background: rgba(2, 6, 23, .35); color: #e0f2fe; font-size: 19px; line-height: 1; cursor: grab; touch-action: none; }
 .train-ex-move-btn { flex: 1 1 0; min-height: 46px; font-size: 14px; font-weight: 800; }
 .train-ex-move-btn:disabled { opacity: .35; }
 .train-ex-dragging { opacity: .55; }
@@ -5746,3 +5746,10 @@ body.swap-sheet-open .asst-fab { display: none !important; }
 .const-day.const-today { outline: 2px solid #14532d; outline-offset: -2px; }
 .const-day[data-const-day] { cursor: pointer; }
 .const-sum { font-weight: 700; margin: 10px 0 2px; }
+
+/* == GESTO DE ARRASTRE DE LA LISTA (AUTH-405): mientras el dedo
+   arrastra una fila de la sesión, el documento no se desplaza ni
+   rebota; el contenedor que desplaza la lista queda además con
+   overflow:hidden en línea (lo pone y lo retira el gesto, app.js) y
+   todo se restaura al soltar o al cancelarse el gesto. == */
+body.train-drag-lock { overflow: hidden; overscroll-behavior: none; }

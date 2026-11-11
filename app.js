@@ -33463,6 +33463,43 @@ function trainSessionReorder(plan, di, from, to, iso) {
   return true;
 }
 let TRAIN_ROW_DRAG = null;   // arrastre de una fila del día en curso (solo memoria)
+/* GESTO DEL ARRASTRE (AUTH-405): la lógica de orden y guardado
+   NO se toca (trainSessionReorder, byte a byte); lo que aquí se
+   robustece es la CAPA DEL GESTO, que era la que fallaba (informe
+   de impacto del 2026-11-11): sin captura del puntero, el navegador
+   podía quedarse el gesto como scroll y el pointercancel mataba el
+   arrastre en silencio. Al nacer el arrastre: (a) el asa toma la
+   captura de SU puntero — los pointermove/up/cancel llegan al asa y
+   de ahí, burbujeando, a los oyentes de documento de siempre —; y
+   (b) candado de scroll mientras dura el gesto: la clase
+   body.train-drag-lock (el documento no se desplaza ni rebota) y
+   overflow:hidden en línea sobre el ancestro que de verdad
+   desplaza la lista (la página fija de la app), con su valor previo
+   guardado para restaurarlo al final. trainRowDragEnd limpia TODO
+   en las dos salidas del gesto (pointerup y pointercancel). */
+function trainRowDragArm(d, g, e) {
+  if (e && e.pointerId != null) {
+    d.pid = e.pointerId;
+    try { g.setPointerCapture(e.pointerId); } catch (_) {}
+  }
+  let el = d.row;
+  while (el && el !== document.body) {
+    const oy = getComputedStyle(el).overflowY;
+    if ((oy === 'auto' || oy === 'scroll') && el.scrollHeight > el.clientHeight + 1) { d.lockEl = el; break; }
+    el = el.parentElement;
+  }
+  if (!d.lockEl) d.lockEl = document.scrollingElement || null;
+  if (d.lockEl) { d.lockPrev = d.lockEl.style.overflow || ''; d.lockEl.style.overflow = 'hidden'; }
+  document.body.classList.add('train-drag-lock');
+}
+function trainRowDragEnd(d) {
+  document.body.classList.remove('train-drag-lock');
+  if (!d) return;
+  if (d.lockEl) { try { d.lockEl.style.overflow = d.lockPrev || ''; } catch (_) {} d.lockEl = null; }
+  if (d.grip && d.pid != null) {
+    try { if (d.grip.hasPointerCapture(d.pid)) d.grip.releasePointerCapture(d.pid); } catch (_) {}
+  }
+}
 /* El arrastre de la fila vestida sigue el mismo algoritmo del
    editor de planes (la fila se mueve EN VIVO entre sus hermanas);
    al soltar, el orden nuevo entra por el mismo motor que los
@@ -33485,13 +33522,14 @@ document.addEventListener('pointermove', e => {
 document.addEventListener('pointerup', () => {
   const d = TRAIN_ROW_DRAG; if (!d) return;
   TRAIN_ROW_DRAG = null;
+  trainRowDragEnd(d);
   d.row.classList.remove('train-ex-dragging');
   const cards = [...d.box.querySelectorAll(':scope > .train-ex-card')];
   const to = cards.indexOf(d.row);
   if (to >= 0 && to !== d.from && trainSessionReorder(d.plan, d.di, d.from, to)) loadMyTraining();
 });
 document.addEventListener('pointercancel', () => {
-  if (TRAIN_ROW_DRAG) { TRAIN_ROW_DRAG.row.classList.remove('train-ex-dragging'); TRAIN_ROW_DRAG = null; }
+  if (TRAIN_ROW_DRAG) { const d = TRAIN_ROW_DRAG; TRAIN_ROW_DRAG = null; trainRowDragEnd(d); d.row.classList.remove('train-ex-dragging'); }
 });
 /* Filas del HISTORIAL de un día cerrado: empareja el registro con
    los ejercicios del plan conservando la semántica de siempre
@@ -39530,7 +39568,8 @@ async function loadMyTraining() {
     const diM = Number(String(row.dataset.trainRow || '').split(':')[0]);
     if (!Number.isInteger(diM)) return;
     e.preventDefault();
-    TRAIN_ROW_DRAG = { row, box: cont, from, plan, di: diM };
+    TRAIN_ROW_DRAG = { row, box: cont, from, plan, di: diM, grip: g, pid: null, lockEl: null, lockPrev: '' };
+    trainRowDragArm(TRAIN_ROW_DRAG, g, e);
     row.classList.add('train-ex-dragging');
   }));
   box.querySelectorAll('[data-train-set-reps]').forEach(inp => inp.oninput = () => {
@@ -54539,7 +54578,7 @@ document.addEventListener('keydown', e => { if (e.key === 'Escape') shareClose()
  *  - El SW (sw.js) solo cachea la cáscara del mismo origen en modo
  *    RED PRIMERO: Auth/Firestore/Worker jamás pasan por la caché.
  * ================================================================ */
-const PWA_SW_VERSION = '20261111-repetir-en-menu';
+const PWA_SW_VERSION = '20261111-gesto-arrastre';
 /* Sello de versión VISIBLE (2026-11-03): el pie de la tarjeta de
    acceso enseña qué copia corre este teléfono ('v ' + el sello),
    para comprobar de un vistazo si la versión nueva ya llegó.
