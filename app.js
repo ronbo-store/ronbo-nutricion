@@ -33646,13 +33646,27 @@ function trainCustomRenderSession(plan, di, closed, iso) {
   if (btn) { const tSpan = btn.querySelector('[data-i18n="train.custom.title"]'); if (tSpan) tSpan.textContent = isTodayView ? t('train.custom.title') : t('train.custom.titleDate', { date: dateName(viewIso) }); }
   const tools = $('train-custom-tools');
   if (!tools) return;
-  if (!plan) { tools.innerHTML = ''; swapSheetSync(null); return; }
+  /* AÑADIR ARRIBA (AUTH-2026-11-11-403, orden de Ronald
+     2026-11-11 09:24 CST con destino confirmado a las 09:29):
+     los botones «🎙 Añadir dictando» y «📷 Por foto» SALEN de
+     este desplegable y viven en #train-add-row, en la parte
+     superior de la vista de Entrenamiento. Se pintan SOLO en
+     la rama editable de abajo — la misma guarda exacta que
+     tenían aquí dentro — y con su cableado de siempre; en
+     cualquier otra rama (sin plan, sin sesión, cerrado, solo
+     lectura) la fila queda vacía, como quedaba el desplegable
+     sin ellos. */
+  const addRow = $('train-add-row');
+  const addRowClear = () => { if (addRow) addRow.innerHTML = ''; };
+  if (!plan) { tools.innerHTML = ''; addRowClear(); swapSheetSync(null); return; }
   if (di == null) {
     tools.innerHTML = `<h4 class="tcu-title">${titleTxt}</h4><p class="progress-hint">${t(isTodayView ? 'train.custom.restNote' : 'train.custom.noSessionDate')}</p>`;
+    addRowClear();
     swapSheetSync(null);
     return;
   }
   if (closed) {
+    addRowClear();
     /* AUTH-398 · GUARDADA A MEDIAS SÍ ENTRA: si el registro de
        la fecha vista es PARCIAL, la puerta de la hoja vive también
        aquí — tocarla REABRE el día (trainManageReopen) y la sesión
@@ -33683,22 +33697,35 @@ function trainCustomRenderSession(plan, di, closed, iso) {
      sesión (sin duplicar puertas). El render de solo lectura de
      abajo queda intacto y sigue sirviendo a los días pasados del
      alumno con entrenador; sus ramas editables quedan como red de
-     seguridad sin uso. El dictado y la foto conservan sus botones
-     y su escritura de siempre, bajo la puerta. */
+     seguridad sin uso. El dictado y la foto YA NO viven bajo la
+     puerta (AUTH-2026-11-11-403): sus botones se pintan arriba,
+     en #train-add-row, solo en esta rama editable y con su
+     cableado de siempre. */
   if (!readOnly) {
     let innerM = `<h4 class="tcu-title">${titleTxt}</h4>`;
     if (TRAIN_MANAGE_FLASH && TRAIN_MANAGE_FLASH.iso === viewIso)
       innerM += `<div class="mg-saved">✓ ${esc(t('manage.savedDay', { day: TRAIN_MANAGE_FLASH.day }))}</div>`;
     innerM += `<button type="button" class="mg-door" data-mg-open="1"><span class="mg-door-t">${esc(t('manage.title'))}</span><span class="mg-door-s">${esc(t(eff.length === 1 ? 'manage.openSubOne' : 'manage.openSub', { n: eff.length }))}</span></button>`;
-    innerM += `<div style="margin-top:8px"><button type="button" class="btn-primary dict-open-btn" data-tcu-dict="1">${t('dict.open')}</button></div><div style="margin-top:8px"><button type="button" class="btn-secondary photo-open-btn" data-tcu-photo="1">${t('mph.open')}</button></div>`;
     tools.innerHTML = innerM;
     const doorM = tools.querySelector('[data-mg-open]');
     if (doorM) doorM.onclick = () => trainManageOpen(plan, di, viewIso);
+    /* AUTH-403: la fila de arriba se pinta y se cablea aquí, con
+       los mismos manejadores que trainCustomWire da a estos dos
+       botones (dictSheetOpen / mphSheetOpen con el plan y la
+       fecha vista) — las hojas que abren quedan intactas. */
+    if (addRow) {
+      addRow.innerHTML = `<button type="button" class="btn-primary dict-open-btn" data-tcu-dict="1">${t('dict.open')}</button><button type="button" class="btn-secondary photo-open-btn" data-tcu-photo="1">${t('mph.open')}</button>`;
+      const bDict = addRow.querySelector('[data-tcu-dict]');
+      if (bDict) bDict.onclick = () => dictSheetOpen(plan, di, viewIso);
+      const bPhoto = addRow.querySelector('[data-tcu-photo]');
+      if (bPhoto) bPhoto.onclick = () => mphSheetOpen(plan, di, viewIso);
+    }
     trainCustomWire(plan, di, viewIso);
     swapSheetSync(plan, di, viewIso);
     trainManageSync();
     return;
   }
+  addRowClear();   /* AUTH-403: en solo lectura la fila de arriba tampoco vive (como los botones, que aquí nunca se pintaban) */
   /* ORDEN DEL DÍA: subir/bajar vive en las mismas filas que cambiar/quitar, solo para quien puede reordenar su día y nunca en solo lectura. */
   const canMove = !readOnly && trainReorderAllowed();
   const removeTxt = isTodayView ? t('train.custom.removeToday') : t('train.custom.removeDay');
@@ -33734,8 +33761,11 @@ function trainCustomRenderSession(plan, di, closed, iso) {
        «+ Agregar» de la fila de la tarjeta (los dos fijaban
        TRAIN_PICK = add y abrían el mismo selector). La fila es la
        puerta dueña: su handler fija el selector directamente.
-       Aquí quedan Cambiar/Quitar por ejercicio y el dictado. */
-    else inner += `<div style="margin-top:8px"><button type="button" class="btn-primary dict-open-btn" data-tcu-dict="1">${t('dict.open')}</button></div><div style="margin-top:8px"><button type="button" class="btn-secondary photo-open-btn" data-tcu-photo="1">${t('mph.open')}</button></div>`;
+       Aquí quedan Cambiar/Quitar por ejercicio. (La pintura del
+       dictado y la foto que colgaba de esta rama era inalcanzable
+       — esta rama solo corre en solo lectura — y se retiró con
+       AUTH-2026-11-11-403: los dos botones viven arriba, en
+       #train-add-row, pintados desde la rama editable.) */
   }
   tools.innerHTML = inner;
   if (readOnly) { swapSheetSync(null); return; }
@@ -54502,7 +54532,7 @@ document.addEventListener('keydown', e => { if (e.key === 'Escape') shareClose()
  *  - El SW (sw.js) solo cachea la cáscara del mismo origen en modo
  *    RED PRIMERO: Auth/Firestore/Worker jamás pasan por la caché.
  * ================================================================ */
-const PWA_SW_VERSION = '20261111-cuatro-botones';
+const PWA_SW_VERSION = '20261111-botones-arriba';
 /* Sello de versión VISIBLE (2026-11-03): el pie de la tarjeta de
    acceso enseña qué copia corre este teléfono ('v ' + el sello),
    para comprobar de un vistazo si la versión nueva ya llegó.

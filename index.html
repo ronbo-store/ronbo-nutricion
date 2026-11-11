@@ -21,7 +21,7 @@
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-title" content="RONBO FIT">
 <meta name="apple-mobile-web-app-status-bar-style" content="default">
-<link rel="stylesheet" href="styles.css?v=20261111-cuatro-botones">
+<link rel="stylesheet" href="styles.css?v=20261111-botones-arriba">
 <script defer src="https://cloud.umami.is/script.js" data-website-id="a29706d4-44a2-47cf-900a-5f74d74abfa8"></script>
 <script type="importmap">
 {
@@ -499,6 +499,17 @@
       <h2 class="nav-page-title" data-i18n="train.title">🏋️ My training plan</h2>
       <button type="button" class="pend-close nav-page-x" id="btn-train-x" aria-label="Close" data-i18n-aria="client.close">✕</button>
       </div>
+      <!-- AÑADIR EJERCICIOS ARRIBA (AUTH-2026-11-11-403, orden de
+           Ronald 2026-11-11 09:24 CST, destino confirmado por él a
+           las 09:29): los botones «🎙 Añadir dictando» y «📷 Por
+           foto» SALEN del desplegable «Personaliza» y viven AQUÍ,
+           en una fila de dos en la parte superior de la vista —
+           visibles al abrirla, sin desplegar nada. Los pinta
+           trainCustomRenderSession (app.js) con LAS MISMAS guardas
+           y el mismo cableado de siempre: solo con el día editable;
+           sin plan, sin sesión, cerrado o en solo lectura el
+           contenedor queda vacío. -->
+      <div id="train-add-row"></div>
       <!-- PUERTA FALSA «Camera Coach» (AUTH-2026-10-28-071;
            ANUNCIO DE INGRESOS 2026-11-08, orden de Ronald): la
            tarjeta ya NO vive fija aquí arriba. Este hueco es SOLO
@@ -2310,6 +2321,6 @@ cuando no hay declaración legible (decisión 5). -->
 <div id="toast" class="toast"></div>
 <div id="print-card" aria-hidden="true"></div>
 
-<script type="module" src="app.js?v=20261111-cuatro-botones"></script>
+<script type="module" src="app.js?v=20261111-botones-arriba"></script>
 </body>
 </html>

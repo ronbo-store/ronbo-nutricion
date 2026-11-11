@@ -2350,6 +2350,17 @@ div.swap-card { cursor: default; }
    usa entrenando (regla de la casa 2026-11-02). */
 .dict-open-btn { width: 100%; min-height: 48px; font-size: 15px; }
 .photo-open-btn { width: 100%; min-height: 48px; font-size: 15px; }
+/* AÑADIR ARRIBA (AUTH-2026-11-11-403): la fila de los dos botones
+   en la parte superior de Entrenamiento — proporcionales en una
+   línea, mitad y mitad (48 px de toque); vacío, el contenedor no
+   ocupa nada. El reparto va por calc(50% − 4px) con el hueco de
+   8: con flex 1 1 0 el navegador daba 163/165 por el borde de
+   1 px del botón secundario (medido en la batería). Fuera de
+   esta fila los botones conservan su ancho completo de siempre. */
+#train-add-row { display: flex; gap: 8px; margin-bottom: 10px; }
+#train-add-row:empty { display: none; }
+#train-add-row .dict-open-btn, #train-add-row .photo-open-btn { flex: none; width: calc(50% - 4px); min-width: 0; box-sizing: border-box; }
+@media (max-width: 480px) { #train-add-row .dict-open-btn, #train-add-row .photo-open-btn { font-size: 13.5px; padding-left: 5px; padding-right: 5px; } }
 /* FOTO DE MÁQUINA (AUTH-2026-11-08-304): el estado «mirando la
    foto» de la hoja y las dos cajas de nombre del borrador nuevo,
    con los controles de la casa (≥48 px, borde y radio de las
