@@ -5889,7 +5889,7 @@ en: {
   'ui.photoAlt': 'Enlarged photo',
   'msg.photoDeleted': 'Photo deleted.',
   'msg.foodSent': 'Photo sent. Let me know in the chat so I can analyze it.',
-  'train.title': '🏋️ My training plan', 'train.myPlans': '📋 My plans', 'train.noActivePlan': 'no active plan', 'train.planMenu': 'Plan actions', 'train.loading': 'Loading your plan…',
+  'train.title': '🏋️ My training plan', 'train.myPlans': '📋 My plans', 'train.planLabel': 'Plan', 'train.myPlansSub': 'here you open and change your plan', 'train.noActivePlan': 'no active plan', 'train.planMenu': 'Plan actions', 'train.loading': 'Loading your plan…',
   'train.none': 'Your trainer has not assigned you a plan yet.',
   'train.noneNamed': 'Your trainer {name} hasn\'t assigned you a plan yet.',
   'train.today.btnToday': 'Today', 'train.today.todayWord': 'Today',
@@ -10707,7 +10707,7 @@ es: {
   'ui.photoAlt': 'Foto ampliada',
   'msg.photoDeleted': 'Foto eliminada.',
   'msg.foodSent': 'Foto enviada. Avísame por el chat para analizarla.',
-  'train.title': '🏋️ Mi plan de entrenamiento', 'train.myPlans': '📋 Mis planes', 'train.noActivePlan': 'sin plan activo', 'train.planMenu': 'Acciones del plan', 'train.loading': 'Cargando tu plan…',
+  'train.title': '🏋️ Mi plan de entrenamiento', 'train.myPlans': '📋 Mis planes', 'train.planLabel': 'Plan', 'train.myPlansSub': 'aquí despliegas y cambias tu plan', 'train.noActivePlan': 'sin plan activo', 'train.planMenu': 'Acciones del plan', 'train.loading': 'Cargando tu plan…',
   'train.none': 'Tu entrenador aún no te ha asignado un plan.',
   'train.noneNamed': 'Tu entrenador {name} aún no te ha asignado un plan.',
   'train.today.btnToday': 'Hoy', 'train.today.todayWord': 'Hoy',
@@ -39648,18 +39648,27 @@ async function loadMyTraining() {
      entrenador (crear/editar/activar) y, con el delta de este
      paquete, también borrar sus propios planes. */
   const canSelfManage = !myTrainerUid || myTrainerUid === uid;
-  /* AUTH-346 — el bloque NACE PLEGADO en una sola línea: «📋 Mis
-     planes · N · Activo: {título del activo}»; sin plan activo la
-     línea lo dice con honestidad («sin plan activo»). Tocar la
-     línea despliega el cuerpo (las filas compactas de
-     planRowsHTML y el botón «Plan nuevo») y lo repliega. */
+  /* AUTH-346 — el bloque nació plegado en una sola línea que se
+     desplegaba en el sitio. AUTH-411 lo sustituye (abajo). */
   const mpActive = plans.find(p => p.active === true) || null;
+  /* AUTH-411 — LA LÍNEA SOLO INFORMA Y EL BLOQUE SE MUDA A
+     PERSONALIZA (orden de Ronald 2026-11-11 10:36 CST, maquetas
+     M1/M2): en el flujo de la vista queda la línea informativa —
+     «📋 Plan: {título del activo}» con la pastilla verde sólida
+     «● Activo»; fuera el conteo «· N ·» y fuera la flecha, y ya no
+     es un botón: tocarla no despliega nada. Sin plan activo lo
+     dice con honestidad («sin plan activo», sin pastilla). El
+     bloque completo — las filas compactas de planRowsHTML, su
+     hoja ⋮ y «Plan nuevo», con el mismo wirePlanActions de
+     siempre — se pinta DESPLEGADO dentro de «Personaliza tus
+     asignaciones de hoy» (contenedor #train-custom-plans, tras
+     las herramientas de la sesión), bajo su subtítulo: desplegar
+     y cambiar el plan vive ahora ahí. */
+  const myPlanLineHTML = canSelfManage ? `<div class="my-plans-line"><span aria-hidden="true">📋</span><span class="my-plans-line-tx"><b>${t('train.planLabel')}:</b> ${mpActive ? esc(mpActive.title || '') : t('train.noActivePlan')}</span>${mpActive ? `<span class="my-plans-pill">● ${t('train.activeBadge')}</span>` : ''}</div>` : '';
   const myPlansHTML = canSelfManage ? `<div class="my-plans-block" id="my-plans-box">
-    <button type="button" class="my-plans-line" id="my-plans-toggle" aria-expanded="false"><span class="my-plans-line-tx">${t('train.myPlans')} · ${plans.length} · ${mpActive ? `${t('train.activeBadge')}: ${esc(mpActive.title || '')}` : t('train.noActivePlan')}</span><span class="chev" aria-hidden="true">▾</span></button>
-    <div class="my-plans-body" id="my-plans-body" style="display:none">
+    <div class="my-plans-sub"><b>${t('train.myPlans')}</b><small>${t('train.myPlansSub')}</small></div>
     ${planRowsHTML(plans)}
     <div class="my-plans-new"><button type="button" class="btn-primary btn-sm" data-plan-new="1">${t('train.new')}</button></div>
-    </div>
   </div>` : '';
   const trainTodayHTML = `<div class="train-today">
     <div class="train-sel-head"><b>${esc(dateName(sel))}</b>${sel === today ? ` <span class="ok-badge">${t('train.today.todayWord')}</span>` : ''}</div>
@@ -39691,7 +39700,7 @@ async function loadMyTraining() {
     ${planPeriodText(plan) ? `<p class="progress-hint">${t('train.dates.clientLine', { period: esc(planPeriodText(plan)) })}</p>` : ''}
     <p class="progress-hint">${t('train.planFreq', { n: (plan.days || []).length })}</p>
     `}
-    ${myPlansHTML}
+    ${myPlanLineHTML}
     ${weekHtml}
     ${trainTodayHTML}
     ${isLoose ? '' : `<div style="margin:6px 0"><button class="btn-ghost btn-sm" id="btn-print-card">${t('train.print.btn')}</button></div>`}
@@ -39703,16 +39712,17 @@ async function loadMyTraining() {
          alargaba la página y era además la superficie donde las
          filas de series aplastaban la columna del nombre. -->`;
   if (isLoose) trainNoneNamedRender(box);
-  const mpBox = $('my-plans-box');
-  if (mpBox) wirePlanActions(mpBox, uid, plans, () => loadMyTraining());
-  const mpTgl = $('my-plans-toggle');
-  if (mpTgl) mpTgl.onclick = () => {
-    const mpBody = $('my-plans-body'); if (!mpBody) return;
-    const open = mpBody.style.display !== 'none';
-    mpBody.style.display = open ? 'none' : '';
-    mpTgl.setAttribute('aria-expanded', open ? 'false' : 'true');
-    const chv = mpTgl.querySelector('.chev'); if (chv) chv.textContent = open ? '▾' : '▴';
-  };
+  /* AUTH-411: el bloque «Mis planes» se pinta y se cablea en
+     su nueva casa, #train-custom-plans (index.html, dentro de
+     «Personaliza tus asignaciones de hoy»); la línea del flujo ya
+     no lleva despliegue ni cableado. Sin autogestión el
+     contenedor queda vacío, como el bloque de antes. */
+  const mpHost = $('train-custom-plans');
+  if (mpHost) {
+    mpHost.innerHTML = myPlansHTML;
+    const mpBox = $('my-plans-box');
+    if (mpBox) wirePlanActions(mpBox, uid, plans, () => loadMyTraining());
+  }
   const pcBtn = $('btn-print-card');
   if (pcBtn) pcBtn.onclick = () => printCardRender(plan);
   week5Wire(box);
@@ -54860,7 +54870,7 @@ document.addEventListener('keydown', e => { if (e.key === 'Escape') shareClose()
  *  - El SW (sw.js) solo cachea la cáscara del mismo origen en modo
  *    RED PRIMERO: Auth/Firestore/Worker jamás pasan por la caché.
  * ================================================================ */
-const PWA_SW_VERSION = '20261111-retiro-gestiona';
+const PWA_SW_VERSION = '20261111-plan-en-personaliza';
 /* Sello de versión VISIBLE (2026-11-03): el pie de la tarjeta de
    acceso enseña qué copia corre este teléfono ('v ' + el sello),
    para comprobar de un vistazo si la versión nueva ya llegó.

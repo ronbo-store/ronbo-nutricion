@@ -2675,12 +2675,25 @@ body.nav-lock .sw-fab, body.nav-lock .help-fab, body.nav-lock .share-fab, body.n
 .my-plans-block { margin: 12px 0 14px; }
 .my-plans-head { display: flex; align-items: center; justify-content: space-between; gap: 10px; margin-bottom: 8px; }
 .my-plans-head .history-title { margin: 0; }
-/* AUTH-346 — «Mis planes, compacto»: la línea plegada, las filas
-   finas de plan (pieza única planRowsHTML) y la hoja de acciones. */
-.my-plans-line { display: flex; align-items: center; gap: 8px; width: 100%; box-sizing: border-box; text-align: left; background: #fff; border: 1px solid #e5e7eb; border-radius: 14px; padding: 12px 13px; font-family: inherit; font-size: 15px; font-weight: 700; color: #0b2e28; cursor: pointer; min-height: 44px; }
+/* AUTH-346 — «Mis planes, compacto»: las filas finas de plan
+   (pieza única planRowsHTML) y la hoja de acciones.
+   AUTH-411 — la LÍNEA ya no es un botón ni se despliega: es
+   solo informativa («Plan:» + título del activo + la pastilla
+   verde «● Activo»), sin conteo y sin flecha, con el margen que
+   antes le daba su bloque; el bloque vive en Personaliza. */
+.my-plans-line { display: flex; align-items: center; gap: 8px; width: 100%; box-sizing: border-box; text-align: left; background: #fff; border: 1px solid #e5e7eb; border-radius: 14px; padding: 12px 13px; font-family: inherit; font-size: 15px; font-weight: 700; color: #0b2e28; min-height: 44px; margin: 12px 0 14px; }
 .my-plans-line-tx { flex: 1 1 auto; min-width: 0; overflow-wrap: anywhere; }
-.my-plans-line .chev { margin-left: auto; flex: none; color: #0d9488; font-weight: 900; }
-.my-plans-body { margin-top: 8px; }
+/* AUTH-411 — la pastilla verde sólida de la línea («● Activo»)
+   y el subtítulo del bloque dentro de Personaliza. */
+.my-plans-pill { flex: none; display: inline-flex; align-items: center; gap: 5px; background: #16a34a; color: #fff; font-size: 12px; font-weight: 800; border-radius: 999px; padding: 5px 11px; letter-spacing: .02em; }
+.my-plans-sub { display: flex; align-items: baseline; gap: 8px; margin: 0 0 8px; border-top: 1px solid rgba(100,116,139,.18); padding-top: 14px; }
+.my-plans-sub b { font-size: 15px; color: #173f38; }
+.my-plans-sub small { font-size: 12px; color: #6b7280; font-weight: 600; }
+/* AUTH-411 — como en la maqueta M2, dentro de Personaliza la
+   opción que CAMBIA el plan (Activar/Desactivar) va resaltada en
+   verde. La regla va ceñida a #train-custom-plans: la hoja de la
+   ficha y la del detalle (la misma pieza compartida) no se tiñen. */
+#train-custom-plans .plan-sheet-opt[data-plan-toggle] { background: #dcfce7; border-radius: 10px; padding-left: 8px; padding-right: 8px; color: #065f46; }
 .my-plans-new { margin-top: 2px; }
 .plan-row-c { display: flex; align-items: center; gap: 9px; border: 1px solid #e5e7eb; background: #fff; border-radius: 13px; padding: 10px 12px; margin-bottom: 6px; }
 .plan-row-c-main { flex: 1 1 auto; min-width: 0; overflow-wrap: anywhere; }
