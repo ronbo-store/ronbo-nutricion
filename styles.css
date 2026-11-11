@@ -2975,15 +2975,16 @@ body.nav-lock.prog-page #act-flame { visibility: visible; }
    Entrenamiento, el padding de siempre (12 px) manda intacto;
    Inicio no cambia. */
 body.prog-page #progress-content.nav-page-on { padding-right: 88px; }
-/* LA MASCOTA EN TODAS PARTES (orden de Ronald, 2026-11-09): con la
-   página de Entrenamiento abierta, SOLO el disco de la mascota
-   flota en la banda derecha de la pila (el resto sigue escondido);
-   el contenido de la página gana el mismo resguardo de 88 px que
-   Progreso para que ninguna tarjeta ni botón pase por debajo del
-   disco a ningún scroll. El anuncio de «Entrena con cámara»
-   (#fdcam-float, z 47) sigue mandando mientras está abierto; al
-   cerrarse, la mascota queda en su rincón sobre la página. */
-body.train-page #train-content.nav-page-on { padding-right: 88px; }
+/* ANCHO COMPLETO EN ENTRENAMIENTO (AUTH-2026-11-10-397; decisión de
+   Ronald, 2026-11-10): el resguardo derecho de 88 px que esta página
+   ganó el 2026-11-09 («LA MASCOTA EN TODAS PARTES», para que ninguna
+   tarjeta pasara bajo el disco de la mascota) queda RETIRADO — la
+   columna vuelve al padding base de la hoja (12 px) y ocupa todo el
+   ancho; al desplazar, el contenido puede pasar bajo el disco
+   flotante, como ya pasa en Inicio: el intercambio fue declarado y
+   aceptado por Ronald. El resguardo gemelo de Progreso (la regla de
+   arriba, AUTH-2026-11-01-131) sigue vigente e intacto: es otra
+   página y necesitaría su propia decisión. */
 /* ============ TARJETA «TU PESO» EN INICIO (PESO-VISIBLE, AUTH-2026-11-01-134) ============
    Tarjeta permanente bajo «Metas de hoy», la misma tarjeta
    blanca de la casa (.goals-card). Su botón es el primario teal
