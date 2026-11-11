@@ -39313,14 +39313,16 @@ async function loadMyTraining() {
   const mon = mondayISO(sel);
   const wkLogs = logs.filter(l => l.date >= mon && l.date <= addDaysISO(mon, 6));
   const wkDone = wkLogs.filter(l => { const s = trainLogStatus(l); return s === 'done' || s === 'partial'; }).length;
-  /* REPETIR (2026-10-29): fila de acciones sobre el propio plan.
-     SIN entrenador → repetir directo (abre el editor sobre su plan;
-     la escritura la conceden las reglas: hoy el entrenador/propie-
-     tario y, para el alumno sin entrenador, el delta candidato del
-     paquete). CON entrenador → las mismas acciones como PROPUESTA
-     planProposal (Q5): nada se aplica hasta que él decida. El día
-     ofrecido es el de la fecha vista (resuelto por el mapa) o, si
-     esa fecha tiene registro, el día ejecutado de ese registro. */
+  /* REPETIR: hasta AUTH-402 esta vista pintaba su propia fila de
+     acciones bajo la cabecera del plan («Repetir semana» /
+     «Repetir día», con su variante de propuesta planProposal para
+     quien tiene entrenador). La fila se retiró: las dos funciones
+     viven en la hoja de acciones (⋮) de cada plan — Repetir semana,
+     la de siempre (repeatWeekOpen sobre ese plan), y Repetir día
+     con su selector de día (planRepeatDaySheet →
+     repeatDayAppendOpen) — por los mismos caminos y guardas. Aquí
+     solo se resuelve si el usuario tiene entrenador, para el
+     bloque «Mis planes». */
   const myTrainerUid = (typeof MY_REL !== 'undefined' && MY_REL && MY_REL.status === 'activa' && MY_REL.trainerUid)
     ? MY_REL.trainerUid
     : ((typeof UDATA !== 'undefined' && UDATA && UDATA.assignmentStatus === 'assigned' && UDATA.trainerUid) ? UDATA.trainerUid : '');
@@ -39350,12 +39352,6 @@ async function loadMyTraining() {
     <div class="my-plans-new"><button type="button" class="btn-primary btn-sm" data-plan-new="1">${t('train.new')}</button></div>
     </div>
   </div>` : '';
-  const selDiRow = diForDate(sel);
-  const logSelRow = logs.find(l => l.date === sel) || null;
-  let repeatRow = `<div style="margin:10px 0"><button type="button" class="btn-ghost btn-sm" data-my-repeat="week">${myTrainerUid ? t('train.repeat.reqWeekBtn') : t('train.repeat.weekBtn')}</button>`;
-  if (logSelRow) repeatRow += ` <button type="button" class="btn-ghost btn-sm" data-my-repeat="day" data-mode="log" data-log-id="${esc(logSelRow.id)}">${myTrainerUid ? t('train.repeat.reqDayBtn') : t('train.repeat.fromHistory')}</button>`;
-  else if (selDiRow != null) repeatRow += ` <button type="button" class="btn-ghost btn-sm" data-my-repeat="day" data-mode="plan" data-di="${selDiRow}">${myTrainerUid ? t('train.repeat.reqDayBtn') : t('train.repeat.dayBtn')}</button>`;
-  repeatRow += '</div>';
   const trainTodayHTML = `<div class="train-today">
     <div class="train-sel-head"><b>${esc(dateName(sel))}</b>${sel === today ? ` <span class="ok-badge">${t('train.today.todayWord')}</span>` : ''}</div>
     ${trainGuideDoorHTML()}
@@ -39385,7 +39381,7 @@ async function loadMyTraining() {
     
     ${planPeriodText(plan) ? `<p class="progress-hint">${t('train.dates.clientLine', { period: esc(planPeriodText(plan)) })}</p>` : ''}
     <p class="progress-hint">${t('train.planFreq', { n: (plan.days || []).length })}</p>
-    ${repeatRow}`}
+    `}
     ${myPlansHTML}
     ${weekHtml}
     ${trainTodayHTML}
@@ -39410,21 +39406,6 @@ async function loadMyTraining() {
   };
   const pcBtn = $('btn-print-card');
   if (pcBtn) pcBtn.onclick = () => printCardRender(plan);
-  box.querySelectorAll('[data-my-repeat]').forEach(b => b.onclick = async () => {
-    if (b.dataset.myRepeat === 'week') {
-      if (myTrainerUid) { await repeatProposalSend('repeatWeek', {}); return; }
-      repeatWeekOpen(uid, plan, plans); return;
-    }
-    if (b.dataset.mode === 'log') {
-      const l = logs.find(x => x.id === b.dataset.logId); if (!l) return;
-      if (myTrainerUid) { await repeatProposalSend('repeatDay', { dayIndex: l.dayIndex, dayLabel: l.dayLabel || '', sourceLogId: l.id, sourceLogDate: l.date }); return; }
-      repeatDayFromLogOpen(uid, l, plans); return;
-    }
-    const di = Number(b.dataset.di);
-    if (!(plan.days || [])[di]) return;
-    if (myTrainerUid) { await repeatProposalSend('repeatDay', { dayIndex: di, dayLabel: (plan.days[di].label || '') }); return; }
-    repeatDayAppendOpen(uid, plan, (plan.days || [])[di], {});
-  });
   week5Wire(box);
   box.querySelectorAll('[data-train-share]').forEach(b => b.onclick = () => {
     const [diS, iso] = b.dataset.trainShare.split('|');
@@ -40313,6 +40294,30 @@ function planRowsHTML(plans) {
     <div class="plan-row-c"><div class="plan-row-c-main"><b>${esc(p.title || '')}</b>${p.active === true ? ` <span class="ok-badge">${t('train.activeBadge')}</span>` : ''}${p.active === true && planIsExpired(p) ? ` <span class="exp-badge">${t('train.dates.expired')}</span>` : ''}<br><span class="muted">${t('train.daysCount', { n: (p.days || []).length })} · ${t('train.exCount', { n: (p.days || []).reduce((n, d) => n + (d.exercises || []).length, 0) })}${planPeriodText(p) ? ' · ' + esc(planPeriodText(p)) : ''}</span></div>
     <button type="button" class="plan-dots" data-plan-menu="${p.id}" aria-label="${esc(t('train.planMenu'))}">⋮</button></div><div class="plan-history" id="ph-${p.id}" style="display:none"></div>`).join('') : `<div class="wempty">${t('train.noPlan')}</div>`;
 }
+/* REPETIR DÍA desde la hoja de acciones (⋮) de un plan: la hoja del
+   menú no tiene fecha vista, así que la opción abre ESTA hoja hermana
+   con los días de ESE plan; elegir uno llama al MISMO camino del
+   botón suelto retirado (repeatDayAppendOpen sobre ese plan y ese
+   día, con sus guardas: día sin ejercicios → aviso; guarda de modo;
+   la copia nace en el editor y nada se guarda hasta guardar ahí).
+   Sin días no hay nada que repetir: el mismo aviso de siempre. */
+function planRepeatDaySheet(box, uid, p) {
+  const days = (p && p.days) || [];
+  if (!days.length) { toast(t('train.repeat.noSource'), true); return; }
+  const old = box.querySelector('.plan-sheet'); if (old) old.remove();
+  const sh = document.createElement('div');
+  sh.className = 'plan-sheet'; sh.setAttribute('role', 'dialog'); sh.setAttribute('aria-label', p.title || '');
+  sh.innerHTML = `<div class="plan-sheet-t"><b>${esc(p.title || '')}</b><button type="button" class="plan-sheet-x" data-plan-sheet-close="1" aria-label="✕">✕</button></div>`
+    + `<div class="muted" style="margin-bottom:4px">${t('train.repeat.dayBtn')}</div>`
+    + days.map((d, di) => `<button type="button" class="plan-sheet-opt" data-plan-repeat-day-pick="${di}">${esc(trainDayLabelOf(p, di) || '—')} · ${t('train.exCount', { n: (d.exercises || []).length })}</button>`).join('');
+  box.appendChild(sh);
+  sh.querySelector('[data-plan-sheet-close]').onclick = () => sh.remove();
+  sh.querySelectorAll('[data-plan-repeat-day-pick]').forEach(b => b.onclick = () => {
+    const day = days[Number(b.dataset.planRepeatDayPick)]; if (!day) return;
+    sh.remove();
+    repeatDayAppendOpen(uid, p, day, {});
+  });
+}
 /* AUTH-341: el cableado de los botones de plan de la ficha,
    extraído de loadClientTraining y compartido con el bloque del
    detalle de «Mis alumnos»: MISMOS manejadores — Editar abre el
@@ -40340,6 +40345,7 @@ function wirePlanActions(box, uid, plans, reload) {
       + `<button type="button" class="plan-sheet-opt" data-plan-edit="${p.id}">✏️ ${t('client.edit')}</button>`
       + `<button type="button" class="plan-sheet-opt" data-plan-toggle="${p.id}">${p.active === true ? '⏸ ' + t('train.deactivate') : '▶ ' + t('train.activate')}</button>`
       + `<button type="button" class="plan-sheet-opt" data-plan-repeat-week="${p.id}">${t('train.repeat.weekBtn')}</button>`
+      + `<button type="button" class="plan-sheet-opt" data-plan-repeat-day="${p.id}">${t('train.repeat.dayBtn')}</button>`
       + `<button type="button" class="plan-sheet-opt" data-plan-history="${p.id}">🕘 ${t('train.snap.btn')}</button>`
       + `<button type="button" class="plan-sheet-opt del" data-plan-del="${p.id}">🗑 ${t('train.delete')}</button>`;
     box.appendChild(sh);
@@ -40355,6 +40361,7 @@ function wirePlanActionButtons(box, root, uid, plans, reload) {
      registro del historial (la copia nace en el editor; aquí no se
      escribe nada). */
   root.querySelectorAll('[data-plan-repeat-week]').forEach(b => b.onclick = () => { const p = plans.find(x => x.id === b.dataset.planRepeatWeek); if (p) repeatWeekOpen(uid, p, plans); });
+  root.querySelectorAll('[data-plan-repeat-day]').forEach(b => b.onclick = () => { const p = plans.find(x => x.id === b.dataset.planRepeatDay); if (p) planRepeatDaySheet(box, uid, p); });
   root.querySelectorAll('[data-plan-toggle]').forEach(b => b.onclick = async () => {
     const p = plans.find(x => x.id === b.dataset.planToggle); if (!p) return;
     if (p.active === true) {
@@ -54532,7 +54539,7 @@ document.addEventListener('keydown', e => { if (e.key === 'Escape') shareClose()
  *  - El SW (sw.js) solo cachea la cáscara del mismo origen en modo
  *    RED PRIMERO: Auth/Firestore/Worker jamás pasan por la caché.
  * ================================================================ */
-const PWA_SW_VERSION = '20261111-botones-arriba';
+const PWA_SW_VERSION = '20261111-repetir-en-menu';
 /* Sello de versión VISIBLE (2026-11-03): el pie de la tarjeta de
    acceso enseña qué copia corre este teléfono ('v ' + el sello),
    para comprobar de un vistazo si la versión nueva ya llegó.
