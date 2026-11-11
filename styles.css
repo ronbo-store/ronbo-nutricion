@@ -5554,3 +5554,42 @@ body.swap-sheet-open .asst-fab { display: none !important; }
 .pairx-zone { margin-top: 10px; }
 .pairx-btn { display: block; width: 100%; text-align: left; background: #0c5747; color: #fff; border: 0; border-radius: 14px; padding: 11px 14px; cursor: pointer; min-height: 48px; }
 .pairx-view .mrc-stage { margin-top: 2px; }
+
+/* AUTH-2026-11-10-386 · La hoja del Coach Virtual (#asst-float) es la otra
+   hoja de la familia .act-float con filas fijas fuera del scroll
+   (residuo declarado por AUTH-2026-11-10-373): su variante
+   .asst-sheet anuló con padding: 0 el relleno inferior que la
+   base .act-float lleva en el contenedor — la holgura de la casa,
+   calc(120px + área segura) — y su zona de composición (el botón
+   grande de voz, la fila de texto con el campo y el botón de
+   enviar, y las dos líneas de pie .asst-foot) quedó pegada al
+   borde inferior de la pantalla, exactamente donde flota el dock
+   global (.actions-dock, z-index 47). Medido sobre lo servido con
+   el CSS y el marcado reales (360/430/600/768): el botón de
+   enviar y el campo quedaban 25–45 px BAJO el borde superior del
+   dock; elementFromPoint en el centro del campo devolvía el
+   propio dock en las cuatro bandas, y en el del botón de enviar
+   también salvo a 430 — donde el dock, más angosto que la hoja,
+   le tapaba el tercio izquierdo y el borde inferior —: escribir
+   y enviar tocando era imposible (el botón grande de voz sí se
+   alcanzaba, +58/+78 px, y NO se degrada: solo sube);
+   la coletilla quedaba 59–67 px bajo el dock y, con la línea de
+   usos visible (#asst-usage, la pinta aiUsageCoachPaint), era
+   esa línea la que quedaba 59–67 px tapada y el enviar seguía
+   bajo el dock en 430/600/768. EL ARREGLO, el patrón de
+   AUTH-371/373 con la colocación que esta hoja exige: la holgura
+   vive dentro de la PROPIA hoja, en su contenedor — se le
+   devuelve el relleno inferior de la familia — porque la hoja
+   apila DOS líneas .asst-foot y el relleno puesto en la clase se
+   duplicaría al mostrarse la línea de usos, abriendo un hueco
+   de ~108 px entre las dos líneas; en el contenedor, la pila
+   entera (voz, fila de texto y ambos pies) sube el mismo tanto
+   en todos los estados — en reposo, con la línea de usos y
+   grabando (la fila de grabación vive dentro de .asst-talk y la
+   columna flexible la absorbe: la fila de texto no se mueve).
+   La hoja sigue a pantalla completa (AUTH-338), el dock no se
+   toca y ninguna otra hoja cambia (el selector es solo de esta).
+   La mecánica del Coach no cambia: sigue siendo de solo lectura,
+   con su envío por texto y por voz y su tope intactos. Es
+   geometría. (Orden de Ronald, 2026-11-10 18:22 CST.) */
+.act-float.asst-sheet { padding-bottom: calc(120px + env(safe-area-inset-bottom, 0px)); }
