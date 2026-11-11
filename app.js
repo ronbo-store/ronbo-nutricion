@@ -6115,6 +6115,7 @@ en: {
   'train.flow.howWas': 'How was it?',
   'train.flow.metaRpe': 'Goal: RPE {rpe}',
   'train.flow.markDone': '✓ Mark done',
+  'train.flow.backToCourse': 'Back to in progress',
   'train.flow.markPlan': '✓ Mark done as planned',
   'train.flow.logOne': 'Log a set',
   'train.flow.noSets': 'No sets logged. If you did the exercise as planned, it can count as done with the plan’s sets ({spec}) — no reps or weight are invented.',
@@ -10944,6 +10945,7 @@ es: {
   'train.flow.howWas': '¿Qué tal fue?',
   'train.flow.metaRpe': 'Meta: RPE {rpe}',
   'train.flow.markDone': '✓ Marcar hecho',
+  'train.flow.backToCourse': 'Volver a en curso',
   'train.flow.markPlan': '✓ Marcar hecho según el plan',
   'train.flow.logOne': 'Registrar una serie',
   'train.flow.noSets': 'Sin series registradas. Si hiciste el ejercicio como estaba planeado, puede contar como hecho con las series del plan ({spec}), sin inventar reps ni peso.',
@@ -34015,11 +34017,12 @@ function trainManageDoorHTML() {
    reconstruidas, que sí vuelven serie a serie. La aproximación
    (warmupSets) SÍ vuelve a su marca: mejora sobre el Deshacer, que
    la pierde. El registro parcial se retira al abrir (el mismo gesto
-   que el Deshacer, sin confirmación nueva); Cancelar dentro de la
-   hoja restaura el BORRADOR reconstruido y nunca reescribe el
-   registro — la hoja no escribe training_logs (invariante de
-   AUTH-387 intacto): lo registrado vive en el borrador y se vuelve
-   a guardar al cerrar la sesión. */
+   que el Deshacer, sin confirmación nueva) y la reapertura es
+   definitiva: lo registrado vive en el borrador reconstruido y
+   se vuelve a guardar al cerrar la sesión. Desde AUTH-409
+   (paso 3) el día vuelve a en curso SOBRE SU SUPERFICIE — la
+   lista o el foco guiado — sin pasar por la hoja de Gestiona,
+   que sigue existiendo para componer la sesión sin cerrar. */
 async function trainManageReopen(plan, di, log) {
   if (!plan || di == null || !log) return;
   const uid = auth.currentUser ? auth.currentUser.uid : '';
@@ -34086,7 +34089,17 @@ async function trainManageReopen(plan, di, log) {
     TRAIN_CHECKS[di + ':' + ei] = chk;
   });
   trainChecksPersist(plan.id);
-  trainManageOpen(plan, di, today);
+  /* AUTH-409 · LA REAPERTURA TERMINA EN EL DÍA (paso 3 de
+     la secuencia del retiro): la hoja de Gestiona ya no es el
+     final de esta función — el día queda EN CURSO sobre su
+     propia superficie (la lista o el foco guiado, según la
+     vista) y el foco se fija en el primer ejercicio que falta,
+     para seguir donde iba. La reapertura es definitiva, como
+     el Deshacer de la tarjeta: el registro parcial ya salió y
+     lo reconstruido vive en el borrador. */
+  const effR = trainEffectiveList(plan, di);
+  TRAIN_GUIDE.pin = null;
+  for (let iR = 0; iR < effR.length; iR++) { const cR = TRAIN_CHECKS[di + ':' + iR]; if (!cR || cR.done !== true) { TRAIN_GUIDE.pin = iR; break; } }
   loadMyTraining();
 }
 function trainManageCountText(n) {
@@ -37120,6 +37133,12 @@ function trainFlowFacesHTML(key, selFace) {
 /* La zona del flujo dentro de la tarjeta (solo modo edit): su
    estado sale de las marcas (hecho / en curso) y del estado de
    pantalla (reposo / desplegada / cerrando). */
+/* ═══ AUTH-409 · PASO 3 — REABRIR SIN HOJA + PUNTO 7 = B:
+   la reapertura de la sesión parcial termina en el día (su
+   función, abajo en la zona de Gestiona) y la tarjeta del hecho
+   se despliega en su sitio para deshacerlo (la zona 'reopen'
+   del pintor del flujo y su cableado). La hoja de Gestiona
+   sigue existiendo en este paso; su retiro es el paso 4. ═══ */
 function trainFlowHTML(ex, di, ei) {
   const key = di + ':' + ei;
   const chk = TRAIN_CHECKS[key] || null;
@@ -37131,6 +37150,18 @@ function trainFlowHTML(ex, di, ei) {
        la pastilla de la cara elegida; una hecha con datos y sin
        cara no pinta nada aquí (su estado ya lo dice la tarjeta). */
     const hasFace = Number.isInteger(chk.face) && chk.face >= 1 && chk.face <= 5;
+    if (fs && fs.st === 'reopen') {
+      /* PUNTO 7 = B (AUTH-409): la tarjeta del hecho,
+         DESPLEGADA en su sitio por su propio toque — sus series
+         intactas (los campos de siempre, editables), la línea
+         de su hecho con la cara conservada si la eligió, y al
+         pie la vuelta a en curso. El desmarque vive en el
+         cableado (data-flow-unmark), con la semántica de
+         AUTH-344: solo sale el `done`, nada se borra. */
+      const pillR = hasFace ? `<span class="flow-done-pill"><img src="${FLOW_FACE_URLS[chk.face - 1]}" alt="" onerror="this.remove()">${t('train.flow.band.' + chk.face)} · ${t('train.flow.face.' + chk.face)}</span>` : '';
+      const asPlanR = !flowHasData(chk) && spec ? ` · ${esc(t('train.flow.asPlan', { spec }))}` : '';
+      return `<div class="flow-reopen">${trainFlowSetsHTML(ex, key, chk)}<div class="flow-done-line"><span>✓ ${esc(t('train.view.exDone'))}${asPlanR}${hasFace ? ` · ${esc(t('train.flow.howWas'))} →` : ''}</span>${pillR}</div><div class="flow-row"><button type="button" class="flow-btn" data-flow-unmark="${key}">↩ ${t('train.flow.backToCourse')}</button></div></div>`;
+    }
     if (flowHasData(chk) && !hasFace) return '';
     return `<div class="flow-done-line">${!flowHasData(chk) && spec ? `<span>${esc(t('train.flow.asPlan', { spec }))}</span>` : ''}${hasFace ? `<span class="flow-done-pill"><img src="${FLOW_FACE_URLS[chk.face - 1]}" alt="" onerror="this.remove()">${t('train.flow.band.' + chk.face)} · ${t('train.flow.face.' + chk.face)}</span>` : ''}</div>`;
   }
@@ -37228,6 +37259,19 @@ function trainFlowWire(box, plan) {
   box.querySelectorAll('[data-flow-back]').forEach(b => b.onclick = () => {
     const key = b.dataset.flowBack;
     TRAIN_FLOW[key] = { st: 'open', face: (TRAIN_FLOW[key] || {}).face || null };
+    loadMyTraining();
+  });
+  box.querySelectorAll('[data-flow-unmark]').forEach(b => b.onclick = () => {
+    /* «↩ Volver a en curso» (punto 7 = B, AUTH-409): el
+       deshacer del hecho desde su propia tarjeta desplegada.
+       Semántica de AUTH-344 intacta: desmarcar solo quita el
+       `done` — series, pesos, RPE, aproximación y la cara
+       elegida quedan donde estaban — y la tarjeta se queda
+       desplegada EN CURSO, lista para seguir o re-finalizar. */
+    const key = b.dataset.flowUnmark;
+    const chkU = TRAIN_CHECKS[key];
+    if (chkU) { delete chkU.done; trainChecksPersist(plan.id); }
+    TRAIN_FLOW[key] = { st: 'open', face: chkU && Number.isInteger(chkU.face) ? chkU.face : null };
     loadMyTraining();
   });
   box.querySelectorAll('[data-flow-remove]').forEach(b => b.onclick = () => {
@@ -39947,6 +39991,21 @@ async function loadMyTraining() {
   box.querySelectorAll('[data-train-row]').forEach(r => r.addEventListener('click', e => {
     if (e.target.closest('input, select, button, a, label, textarea')) return;
     const [diS, eiS, mode] = String(r.dataset.trainRow || '').split(':');
+    if (mode === 'edit') {
+      /* PUNTO 7 = B (AUTH-409): la tarjeta del HECHO no
+         abre la hoja — su toque la DESPLIEGA en su sitio (la
+         zona 'reopen' del flujo, con sus series y su «↩ Volver
+         a en curso»); tocarla de nuevo la recoge. Las demás
+         tarjetas conservan su toque de siempre. */
+      const keyR = diS + ':' + eiS;
+      const chkR = TRAIN_CHECKS[keyR];
+      if (chkR && chkR.done === true) {
+        if (TRAIN_FLOW[keyR] && TRAIN_FLOW[keyR].st === 'reopen') delete TRAIN_FLOW[keyR];
+        else TRAIN_FLOW[keyR] = { st: 'reopen', face: Number.isInteger(chkR.face) ? chkR.face : null };
+        loadMyTraining();
+        return;
+      }
+    }
     if (mode) trainFloatOpen(plan, logs, Number(diS), Number(eiS), mode, sel);
   }));
   box.querySelectorAll('[data-train-check]').forEach(c => c.onchange = () => {
@@ -40361,7 +40420,9 @@ async function loadMyTraining() {
   /* AUTH-398 · LA PUERTA SOBRE LA TARJETA: la misma hoja de
      AUTH-387 abierta desde la vista de la sesión, sin desplegable;
      con la sesión guardada a medias, tocarla REABRE el día primero
-     (trainManageReopen) y la hoja abre sobre el borrador devuelto. */
+     (trainManageReopen) y el día vuelve a en curso sobre su
+     superficie (AUTH-409, paso 3: la reapertura ya no abre
+     la hoja). */
   box.querySelectorAll('[data-mg-door]').forEach(b => b.onclick = () => {
     const D = TRAIN_MANAGE_DOOR;
     if (!D) return;
@@ -55056,7 +55117,7 @@ document.addEventListener('keydown', e => { if (e.key === 'Escape') shareClose()
  *  - El SW (sw.js) solo cachea la cáscara del mismo origen en modo
  *    RED PRIMERO: Auth/Firestore/Worker jamás pasan por la caché.
  * ================================================================ */
-const PWA_SW_VERSION = '20261111-cronometro-avisos';
+const PWA_SW_VERSION = '20261111-reabrir-sin-hoja';
 /* Sello de versión VISIBLE (2026-11-03): el pie de la tarjeta de
    acceso enseña qué copia corre este teléfono ('v ' + el sello),
    para comprobar de un vistazo si la versión nueva ya llegó.
