@@ -7944,6 +7944,7 @@ en: {
   'gm.prov': 'Calculated {date} from your data: expenditure {tdee} kcal/day ({eq}), latest weight {w} kg ({wdate}), height {h} cm, age {age}, activity multiplier {pal}. Protein factor {pf} g/kg for your goal. Educational reference, not medical advice.',
   'gm.sugarInfo': '🍬 <b>Where your sugar goal comes from:</b> the World Health Organization (WHO) guideline sets free sugars below 5% of total energy as its stricter reference. 5% of your calorie goal ({kcal} kcal) ÷ 4 kcal per gram = <b>{g} g/day</b>. It is a reference limit: the ring counts the sugars reported by each meal analysis.',
   'gm.eduNote': 'These goals are an educational reference calculated from your data. They are not medical advice.',
+  'gm.howCalc': 'How it was calculated',
   'gmi.title': 'Today’s goals',
   'gmi.titleDate': 'Goals for {date}',
   'gmi.ofDay': 'of the day',
@@ -7965,6 +7966,10 @@ en: {
   'gmi.objShort.mantener': 'maintain',
   'gmi.objShort.bajar': 'lose',
   'gmi.objShort.ganar': 'gain',
+  'gmi.objLineLabel': 'Your goal',
+  'gmi.objLine.mantener': 'keep your weight',
+  'gmi.objLine.bajar': 'lose fat',
+  'gmi.objLine.ganar': 'build muscle',
   'gmi.focusChip': 'Focus: {focus}',
   'gmi.objBlockTitle': 'YOUR GOAL FOR YOUR BODY',
   'gmi.objTitle.mantener.general': 'Stay at your weight, strong and steady',
@@ -12656,6 +12661,7 @@ es: {
   'gm.prov': 'Calculadas el {date} desde tus datos: gasto {tdee} kcal/día ({eq}), último peso {w} kg ({wdate}), talla {h} cm, edad {age}, multiplicador de actividad {pal}. Factor de proteína {pf} g/kg según tu objetivo. Referencia educativa, no consejo médico.',
   'gm.sugarInfo': '🍬 <b>De dónde sale tu meta de azúcares:</b> la guía de la Organización Mundial de la Salud (OMS) fija los azúcares libres por debajo del 5% de la energía total como su referencia más estricta. El 5% de tu meta de calorías ({kcal} kcal) ÷ 4 kcal por gramo = <b>{g} g/día</b>. Es un límite de referencia: el anillo cuenta los azúcares que reporta el análisis de cada comida.',
   'gm.eduNote': 'Estas metas son una referencia educativa calculada desde tus datos. No son consejo médico.',
+  'gm.howCalc': 'Cómo se calculó',
   'gmi.title': 'Metas de hoy',
   'gmi.titleDate': 'Metas del {date}',
   'gmi.ofDay': 'del día',
@@ -12677,6 +12683,10 @@ es: {
   'gmi.objShort.mantener': 'mantener',
   'gmi.objShort.bajar': 'bajar',
   'gmi.objShort.ganar': 'ganar',
+  'gmi.objLineLabel': 'Tu objetivo',
+  'gmi.objLine.mantener': 'mantener tu peso',
+  'gmi.objLine.bajar': 'perder grasa',
+  'gmi.objLine.ganar': 'ganar músculo',
   'gmi.focusChip': 'Enfoque: {focus}',
   'gmi.objBlockTitle': 'TU OBJETIVO CON TU CUERPO',
   'gmi.objTitle.mantener.general': 'Mantenerte en tu peso, fuerte y estable',
@@ -19749,7 +19759,7 @@ async function renderApprovalsTray(myUsers) {
    activity · referencias educativas (B) → refs · ritmo del
    objetivo → pace. Las ayudas «?» de cada tarjeta quedan FUERA
    del cuerpo plegado, operativas como siempre. */
-const FICHA_FOLD_OPEN = { protein: false, base: false, activity: false, refs: false, pace: false };
+const FICHA_FOLD_OPEN = { protein: false, base: false, activity: false, refs: false, pace: false, calc: false };
 function fichaFoldHead(id, titleKey, extra = '') {
   const open = FICHA_FOLD_OPEN[id] === true;
   return `<div class="fb3-head ffold-head"><button type="button" class="ffold-toggle" id="ffold-btn-${id}" aria-expanded="${open ? 'true' : 'false'}"><span class="history-title ffold-title">${esc(t(titleKey))}</span><span class="gm-chev" id="ffold-chev-${id}" aria-hidden="true">${open ? '▴' : '▾'}</span></button>${extra}</div>`;
@@ -23833,6 +23843,29 @@ function fusedTodayHTML(gmiD) {
     </div></div>`;
   return h;
 }
+/* AUTH-2026-11-10-393 (auditoría de espacio, H-08): tras la primera semana
+   de la cuenta, la caja del objetivo de la portada se pliega a UNA
+   línea («🎯 Tu objetivo: perder grasa ›»); la caja completa sigue
+   viviendo, byte a byte, en la ventana del día (gmiWindowHTML),
+   que es lo que la línea abre. La primera semana se cuenta desde
+   el registro de la cuenta (users.createdAt, el mismo dato que
+   dosMs ya consume en este archivo): 7 días exactos (168 h) con
+   la caja desplegada; desde ahí, plegada. Sin createdAt legible
+   no se puede probar que la cuenta sea nueva: se pliega (la caja
+   queda a un toque, en la ventana). Cambiar de objetivo NO
+   reinicia la semana: el ancla es la cuenta, no la meta — la
+   procedencia solo guarda computedAt, que se refresca en cada
+   corrida del motor y no sirve de ancla. */
+function gmiFirstWeek() {
+  try {
+    const start = (typeof UDATA !== 'undefined' && UDATA) ? dosMs(UDATA.createdAt) : null;
+    if (start == null) return false;
+    return (Date.now() - start) < 7 * 24 * 3600 * 1000;
+  } catch { return false; }
+}
+function gmiObjLineHTML(c) {
+  return `<button type="button" class="gmi-objline" id="gmi-objline" aria-haspopup="dialog" aria-label="${esc(t('gmi.open'))}">🎯 ${esc(t('gmi.objLineLabel'))}: ${esc(t('gmi.objLine.' + c.obj))} ›</button>`;
+}
 /* El bloque del objetivo, tras el divisor (paso 8 de la maqueta):
    la misma pieza de siempre (gmiObjBoxHTML en su variante de
    bloque), fuera ya del botón de la cabecera. */
@@ -23840,7 +23873,7 @@ function fusedObjHTML(gmiD) {
   if (!gmiD) return '';
   const c = gmiCombo();
   if (!c) return '';
-  return `<div class="fused-sep" aria-hidden="true"></div>` + gmiObjBoxHTML(c, 'div');
+  return `<div class="fused-sep" aria-hidden="true"></div>` + (gmiFirstWeek() ? gmiObjBoxHTML(c, 'div') : gmiObjLineHTML(c));
 }
 /* Sin metas fundadas (gmiDayData a null) la tarjeta no lleva el
    botón del detalle: lleva la cabecera con el anillo honesto del
@@ -24022,12 +24055,21 @@ function renderGoalsEngine() {
   if (['mantener', 'bajar', 'ganar'].includes(obj)) html += `<p class="progress-hint">${esc(t('gm.objExpl.' + obj))}</p>`;
   html += gmFocusSectionHTML();
   if (!prov) html += `<p class="progress-hint">${esc(t('gm.needData'))}</p>`;
+  /* AUTH-2026-11-10-393 (H-08): TODA la prosa de procedencia del motor —
+     procedencia ×2, azúcar, frenos, día, alertas y la nota
+     educativa — se acumula en calcProse y se pinta dentro de UNA
+     línea plegable «Cómo se calculó ›» (el pliegue de la casa,
+     fichaFold*), nacida plegada. El fundamento NO se borra:
+     queda íntegro a un toque, y el editor de metas deja de estar
+     enterrado tras la prosa. Cada bloque conserva su orden, sus
+     ids y su HTML exactos; solo cambia el sumidero. */
+  let calcProse = '';
   if (prov) {
-    html += `<p class="progress-hint" id="gm-prov">${esc(t('gm.prov', { date: String(prov.computedAt || '').slice(0, 10), tdee: fmt(prov.tdeeKcal), eq: esc(prov.equationUsed || ''), w: prov.weightKg, wdate: esc(prov.weightDate || ''), h: prov.heightCm, age: prov.age, pal: prov.palBasal, pf: prov.proteinFactor }))}</p>`;
-    if (prov.fatPct != null) html += `<p class="progress-hint" id="gm-prov2">${esc(t('gm.prov2', { fat: Math.round(prov.fatPct * 100), level: t('gm.day.' + (prov.dayLevel || 'base')) }))}</p>`;
+    calcProse += `<p class="progress-hint" id="gm-prov">${esc(t('gm.prov', { date: String(prov.computedAt || '').slice(0, 10), tdee: fmt(prov.tdeeKcal), eq: esc(prov.equationUsed || ''), w: prov.weightKg, wdate: esc(prov.weightDate || ''), h: prov.heightCm, age: prov.age, pal: prov.palBasal, pf: prov.proteinFactor }))}</p>`;
+    if (prov.fatPct != null) calcProse += `<p class="progress-hint" id="gm-prov2">${esc(t('gm.prov2', { fat: Math.round(prov.fatPct * 100), level: t('gm.day.' + (prov.dayLevel || 'base')) }))}</p>`;
     const az = goalOf('azuc');
-    if (az != null && goalOf('kcal') != null) html += `<p class="progress-hint" id="gm-sugar">${t('gm.sugarInfo', { kcal: fmt(goalOf('kcal')), g: az })}</p>`;
-    if (Array.isArray(prov.guardHeld) && prov.guardHeld.includes('carb')) html += `<p class="progress-hint" id="gm-guard">⚠ ${esc(t('gm.guardCarb'))}</p>`;
+    if (az != null && goalOf('kcal') != null) calcProse += `<p class="progress-hint" id="gm-sugar">${t('gm.sugarInfo', { kcal: fmt(goalOf('kcal')), g: az })}</p>`;
+    if (Array.isArray(prov.guardHeld) && prov.guardHeld.includes('carb')) calcProse += `<p class="progress-hint" id="gm-guard">⚠ ${esc(t('gm.guardCarb'))}</p>`;
     /* Línea del día VISUALIZADO (§K): la variación aplicada a esa
        fecha, o el aviso de que §E la deja en base. */
     try {
@@ -24036,25 +24078,28 @@ function renderGoalsEngine() {
         const carbHeld = Array.isArray(prov.heldParams) && prov.heldParams.includes('carb');
         if (carbHeld) {
           const detH = goalsDayLevelForDate(viewIso, (typeof MY_PLAN !== 'undefined' ? MY_PLAN : null), (typeof PEND_CFG !== 'undefined' && PEND_CFG && !PEND_CFG.__error) ? PEND_CFG : null, (typeof LIB_BY_ID !== 'undefined' ? LIB_BY_ID : {}));
-          if (detH.dayLevel !== 'base') html += `<p class="progress-hint" id="gm-day">⚠ ${esc(t('gm.dayHeld'))}</p>`;
+          if (detH.dayLevel !== 'base') calcProse += `<p class="progress-hint" id="gm-day">⚠ ${esc(t('gm.dayHeld'))}</p>`;
         } else {
           const vr = (GM_VIEW.date === viewIso && GM_VIEW.goals) ? GM_VIEW : goalsDayGoalsFor(viewIso);
-          if (vr.dayLevel === 'exigente' || vr.dayLevel === 'descanso') html += `<p class="progress-hint" id="gm-day">${esc(t('gm.dayInfo', { date: viewIso, level: t('gm.day.' + vr.dayLevel), carb: fmt(vr.goals.carb), gras: fmt(vr.goals.gras) }))}</p>`;
+          if (vr.dayLevel === 'exigente' || vr.dayLevel === 'descanso') calcProse += `<p class="progress-hint" id="gm-day">${esc(t('gm.dayInfo', { date: viewIso, level: t('gm.day.' + vr.dayLevel), carb: fmt(vr.goals.carb), gras: fmt(vr.goals.gras) }))}</p>`;
         }
       }
     } catch {}
     if (Array.isArray(prov.heldParams) && prov.heldParams.length) {
       const det = {}; (prov.heldDetails || []).forEach(d => { det[d.param] = d.cond; });
-      html += `<div class="health-alert" id="gm-held"><b>${esc(t('gm.heldTitle'))}</b><br>` + prov.heldParams.map(p => esc(t('gm.heldItem', { param: t('gm.param.' + p), cond: condName(det[p] || '') }))).join('<br>') + `<br>${esc(t(gmHasTrainer() ? 'gm.heldTrainer' : 'gm.heldNoTrainer'))}</div>`;
+      calcProse += `<div class="health-alert" id="gm-held"><b>${esc(t('gm.heldTitle'))}</b><br>` + prov.heldParams.map(p => esc(t('gm.heldItem', { param: t('gm.param.' + p), cond: condName(det[p] || '') }))).join('<br>') + `<br>${esc(t(gmHasTrainer() ? 'gm.heldTrainer' : 'gm.heldNoTrainer'))}</div>`;
     }
-    if (Array.isArray(prov.infoAlerts) && prov.infoAlerts.length) html += `<p class="progress-hint">${esc(t('gm.infoTrainer'))}</p>`;
+    if (Array.isArray(prov.infoAlerts) && prov.infoAlerts.length) calcProse += `<p class="progress-hint">${esc(t('gm.infoTrainer'))}</p>`;
     /* Frente 1 (N-1, 2026-10-30): la lactancia ya NO retiene — sus
        metas calculan normal — y el rango fundado del IOM se muestra
        como RECOMENDACIÓN VISIBLE en esta misma tarjeta, leyendo la
        misma declaración vigente que alimenta al motor. */
     try { const adL = (typeof activeDecl === 'function' && typeof declLoadState !== 'undefined' && declLoadState === 'ok') ? activeDecl() : null;
-      if (adL && (adL.conditions || []).includes('Lactancia')) html += `<p class="progress-hint" id="gm-lact">${esc(t('stage.lactGoalLine'))}</p>`; } catch {}
+      if (adL && (adL.conditions || []).includes('Lactancia')) calcProse += `<p class="progress-hint" id="gm-lact">${esc(t('stage.lactGoalLine'))}</p>`; } catch {}
   }
+  /* La nota educativa (gm.eduNote) cierra la prosa DENTRO del
+     pliegue: ya no se pinta tras el editor. */
+  if (prov) html += fichaFoldHead('calc', 'gm.howCalc') + `<div id="ffold-body-calc"${fichaFoldBodyAttr('calc')}>` + calcProse + `<p class="progress-hint">${esc(t('gm.eduNote'))}</p></div>`;
   if (fx.source === 'competition-phase') {
     /* En competencia el ritmo no se sugiere ni se auto-acepta: lo
        decide el entrenador (definición) y la semana final no
@@ -24079,12 +24124,12 @@ function renderGoalsEngine() {
     html += `</div>`;
   }
   html += gmEditSectionHTML(prov);
-  html += `<p class="progress-hint">${esc(t('gm.eduNote'))}</p>`;
   }
   html += `</div>`;
   box.innerHTML = html;
   const tg = $('gm-toggle'); if (tg) tg.onclick = () => { GM_CARD_OPEN = !GM_CARD_OPEN; renderGoalsEngine(); };
   const go = $('gmi-open'); if (go) go.onclick = () => openGmiDetail();
+  const ol = $('gmi-objline'); if (ol) ol.onclick = () => openGmiDetail();
   try { fusedWire(box); } catch {}
   if (GM_CARD_OPEN) {
     box.querySelectorAll('[data-gm-obj]').forEach(b => b.onclick = () => gmSetObjective(b.dataset.gmObj));
@@ -24092,6 +24137,7 @@ function renderGoalsEngine() {
     const send = $('gm-pace-send'); if (send) send.onclick = gmSuggestPace;
     const acc = $('gm-terms-accept'); if (acc) acc.onclick = gmAcceptTerms;
     try { gmWireEditor(); } catch {}
+    try { fichaFoldWire('calc'); } catch {}
   }
 }
 async function gmSetObjective(o) {
@@ -53751,7 +53797,7 @@ document.addEventListener('keydown', e => { if (e.key === 'Escape') shareClose()
  *  - El SW (sw.js) solo cachea la cáscara del mismo origen en modo
  *    RED PRIMERO: Auth/Firestore/Worker jamás pasan por la caché.
  * ================================================================ */
-const PWA_SW_VERSION = '20261110-h07-detalle';
+const PWA_SW_VERSION = '20261110-objetivo-plegado';
 /* Sello de versión VISIBLE (2026-11-03): el pie de la tarjeta de
    acceso enseña qué copia corre este teléfono ('v ' + el sello),
    para comprobar de un vistazo si la versión nueva ya llegó.

@@ -98,6 +98,9 @@ body { font-family: -apple-system, "Segoe UI", Roboto, Helvetica, Arial, sans-se
 .gmi-objbox-k { color: #0d9488; font-size: 11.5px; font-weight: 800; letter-spacing: .6px; }
 .gmi-objbox-t { font-size: 19px; font-weight: 800; color: #1f2a44; margin: 3px 0; }
 .gmi-objbox-s { color: #374151; font-size: 13.5px; margin: 2px 0 0; }
+/* AUTH-2026-11-10-393 (H-08): la caja del objetivo plegada a una línea — la
+   misma piel de la caja (fondo/borde/radio) en un solo renglón. */
+.gmi-objline { display: block; width: 100%; box-sizing: border-box; text-align: left; background: #f2f7f6; border: 1px solid #e0ebe9; border-radius: 14px; padding: 10px 14px; margin-bottom: 12px; font: inherit; font-size: 15px; font-weight: 700; color: #1f2a44; cursor: pointer; }
 .gmi-sumbox { background: #1f2a44; border-radius: 14px; padding: 12px 14px; margin-bottom: 14px; }
 .gmi-sumbox-k { color: #7dd3c8; font-size: 11.5px; font-weight: 800; letter-spacing: .6px; }
 .gmi-sumbox-t { color: #fff; font-size: 14.5px; margin: 4px 0 0; line-height: 1.45; }
