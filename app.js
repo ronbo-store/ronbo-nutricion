@@ -42673,6 +42673,9 @@ function vizAddToDay(exId) {
   const idx = Number(($('pl-viz-day') || {}).value || 0);
   const dayEl = document.querySelectorAll('#pl-days .pl-day')[idx];
   if (!dayEl) return;
+  /* H-09: el día destino se abre — si estaba plegado, la fila
+     recién añadida quedaría invisible tras el aviso. */
+  planDayOpenOnly(dayEl);
   /* AUTH-348: el mismo ejercicio no entra dos veces en el día
      destino — se avisa y no se crea ninguna fila. */
   if (planDayRowDup(dayEl, planExKeySet({ exerciseId: ex.id, name: libNameOf(ex) }), null)) { toast(t('train.nodup.blocked'), true); return; }
@@ -42841,11 +42844,64 @@ function renderDayBlocks(wrap) {
     renderDayBlocks(wrap);
   });
 }
+/* H-09 · DÍAS DEL EDITOR PLEGADOS EN UNA LÍNEA (auditoría de
+   espacio 2026-11-09, §H-09; aprobado por Ronald 2026-11-10):
+   cada día nace plegado en su línea-resumen «<etiqueta> · N
+   ejercicios ›» (día libre: «<etiqueta> · Día libre ›»; sin
+   etiqueta, «Día N» — la misma clave del constructor visual) y
+   al tocarla se abre ESE día y se pliega el anterior (acordeón
+   de un solo día abierto; tocar el día abierto lo pliega).
+   MECANISMO DECLARADO: el estado del editor vive en el DOM de
+   cada día (los inputs, _extra/_dayExtra pegados a las filas,
+   _sessionBlocks y _freeDay en el elemento) y TANTO el guardado
+   como planSignature() y el candado de duplicados (AUTH-348) lo
+   recogen recorriendo ese DOM. Por eso el plegado es SOLO
+   visual — la clase is-folded oculta .pl-day-body con
+   display:none — y NADA se desmonta: un cambio sin guardar en
+   un día plegado se sigue leyendo, firmando y guardando igual.
+   La línea-resumen es un espejo de solo lectura de la etiqueta
+   (la fuente sigue siendo el input .pl-day-label): se refresca
+   al teclear la etiqueta, al añadir/quitar ejercicios, al
+   cambiar el tipo del día y antes de cualquier toque en una
+   línea (planDaySumSyncAll), por si otra vía (la alineación de
+   días de la plantilla) escribió la etiqueta sin evento. */
+function planDaySumText(wrap) {
+  const inp = wrap.querySelector('.pl-day-label');
+  const name = (inp && inp.value.trim()) || t('train.viz.dayN', { n: planDayIndex(wrap) + 1 });
+  if (wrap._freeDay === true) return name + ' · ' + t('train.f.dayFree');
+  return name + ' · ' + t('train.exCount', { n: wrap.querySelectorAll('.pl-ex-row').length });
+}
+function planDayIndex(wrap) {
+  const i = [...document.querySelectorAll('#pl-days .pl-day')].indexOf(wrap);
+  return i >= 0 ? i : document.querySelectorAll('#pl-days .pl-day').length;
+}
+function planDaySumSync(wrap) {
+  if (!wrap) return;
+  const tx = wrap.querySelector('.pl-day-sum-t');
+  if (tx) tx.textContent = planDaySumText(wrap);
+  const b = wrap.querySelector('.pl-day-sum');
+  if (b) b.setAttribute('aria-expanded', wrap.classList.contains('is-folded') ? 'false' : 'true');
+}
+function planDaySumSyncAll() { document.querySelectorAll('#pl-days .pl-day').forEach(d => planDaySumSync(d)); }
+function planDaySetFold(wrap, folded) {
+  if (!wrap) return;
+  wrap.classList.toggle('is-folded', !!folded);
+  planDaySumSync(wrap);
+}
+function planDayOpenOnly(wrap) {
+  document.querySelectorAll('#pl-days .pl-day').forEach(d => planDaySetFold(d, d !== wrap));
+}
+function planDayToggle(wrap) {
+  if (wrap.classList.contains('is-folded')) planDayOpenOnly(wrap);
+  else planDaySetFold(wrap, true);
+}
 function planDayRow(day) {
   day = day || { label: '', exercises: [{}] };
   const wrap = document.createElement('div');
-  wrap.className = 'pl-day';
+  wrap.className = 'pl-day is-folded';
   wrap.innerHTML = `
+    <button type="button" class="pl-day-sum" aria-expanded="false"><span class="pl-day-sum-t"></span><span class="pl-day-sum-c" aria-hidden="true">›</span></button>
+    <div class="pl-day-body">
     <div class="frow"><label style="flex:1"><input type="text" class="pl-day-label" placeholder="${t('train.f.dayPh')}" value="${esc(day.label || '')}"></label>
     <button type="button" class="btn-ghost btn-sm pl-day-repeat" title="${t('train.repeat.dayBtn')}">🔁</button>
     <button type="button" class="btn-ghost btn-sm pl-day-del">${t('train.f.remove')}</button></div>
@@ -42853,7 +42909,8 @@ function planDayRow(day) {
     <p class="progress-hint pl-day-free-note" style="display:none">${t('train.f.dayFreeNote')}</p>
     <div class="pl-day-blocks"></div>
     <div class="pl-exs">${(day.exercises && day.exercises.length ? day.exercises : [{}]).map(planExRow).join('')}</div>
-    <button type="button" class="btn-ghost btn-sm pl-ex-add">${t('train.f.addEx')}</button>`;
+    <button type="button" class="btn-ghost btn-sm pl-ex-add">${t('train.f.addEx')}</button>
+    </div>`;
   wrap._sessionBlocks = Array.isArray(day.sessionBlocks) ? day.sessionBlocks.map(b => ({ ...b })) : [];
   /* DÍA LIBRE ASIGNABLE (2026-11-08, D3): el tipo del día vive en
      la fila (wrap._freeDay) como el resto del estado del editor;
@@ -42870,6 +42927,7 @@ function planDayRow(day) {
     });
     const note = wrap.querySelector('.pl-day-free-note');
     if (note) note.style.display = wrap._freeDay ? '' : 'none';
+    planDaySumSync(wrap);
   };
   wrap.querySelectorAll('[data-pl-type]').forEach(b => b.onclick = () => { wrap._freeDay = b.dataset.plType === 'free'; plTypeSync(); planTouched = true; });
   plTypeSync();
@@ -42890,6 +42948,11 @@ function planDayRow(day) {
     wrap.querySelector('.pl-exs').appendChild(d.firstElementChild); wirePlanExRows(wrap);
   };
   wirePlanExRows(wrap);
+  planDaySumSync(wrap);
+  wrap.querySelector('.pl-day-sum').onclick = () => { planDaySumSyncAll(); planDayToggle(wrap); };
+  wrap.querySelector('.pl-day-label').addEventListener('input', () => planDaySumSync(wrap));
+  wrap.querySelector('.pl-ex-add').addEventListener('click', () => planDaySumSync(wrap));
+  wrap.addEventListener('click', e => { if (e.target.closest('.pl-ex-del')) planDaySumSync(wrap); });
   return wrap;
 }
 /* ================= EDITOR DEL PLAN: FECHAS Y PLAN ACTIVO =================
@@ -43064,7 +43127,7 @@ function planRequestClose() {
   if (planBaseline !== null && planSignature() !== planBaseline && !confirm(t('train.discardChanges'))) return;
   planCloseEditor();
 }
-$('pl-add-day').onclick = () => { $('pl-days').appendChild(planDayRow(null)); vizRefreshDays(document.querySelectorAll('#pl-days .pl-day').length - 1); };
+$('pl-add-day').onclick = () => { const nd = planDayRow(null); $('pl-days').appendChild(nd); planDayOpenOnly(nd); vizRefreshDays(document.querySelectorAll('#pl-days .pl-day').length - 1); };
 $('plan-cancel').onclick = () => planRequestClose();
 /* La nota de «guardado» se apaga en cuanto el entrenador vuelve a
    tocar el formulario: ya no describe el estado actual. */
@@ -43996,7 +44059,7 @@ async function repeatDayInEditor(wrap) {
     const draftDays = [...(base.days || []), newDay];
     if (!repeatModeGuardOk(base, draftDays, cfg)) { toast(t('train.repeat.modeGuard'), true); return; }
   }
-  $('pl-days').appendChild(planDayRow(newDay));
+  const rd = planDayRow(newDay); $('pl-days').appendChild(rd); planDayOpenOnly(rd);
   try { vizRefreshDays(document.querySelectorAll('#pl-days .pl-day').length - 1); } catch {}
   planTouched = true;
   let note = t('train.repeat.dayNote');
@@ -53797,7 +53860,7 @@ document.addEventListener('keydown', e => { if (e.key === 'Escape') shareClose()
  *  - El SW (sw.js) solo cachea la cáscara del mismo origen en modo
  *    RED PRIMERO: Auth/Firestore/Worker jamás pasan por la caché.
  * ================================================================ */
-const PWA_SW_VERSION = '20261110-objetivo-plegado';
+const PWA_SW_VERSION = '20261110-editor-dias';
 /* Sello de versión VISIBLE (2026-11-03): el pie de la tarjeta de
    acceso enseña qué copia corre este teléfono ('v ' + el sello),
    para comprobar de un vistazo si la versión nueva ya llegó.

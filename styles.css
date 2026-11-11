@@ -5659,3 +5659,15 @@ body.swap-sheet-open .asst-fab { display: none !important; }
    .stu-train-row — la fila-puerta de la casa, toque ≥44 px — sin
    más reglas. */
 .stu-assign-fold-row { margin-top: 10px; }
+
+/* H-09 (auditoría de espacio 2026-11-09, §H-09): días del editor
+   de planes plegados en una línea-resumen. El plegado es solo
+   visual: .pl-day-body se oculta con display:none y nada se
+   desmonta del DOM — el guardado, la firma de cambios sin
+   guardar y el candado de duplicados leen el día plegado igual
+   que el abierto. La línea mide ≥44 px de alto táctil (regla de
+   la casa) y su chevrones rota cuando el día está abierto. */
+.pl-day-sum { display: flex; align-items: center; justify-content: space-between; gap: 8px; width: 100%; min-height: 44px; padding: 6px 2px; background: none; border: none; border-radius: 8px; font: inherit; font-weight: 700; color: #1f2a44; text-align: left; cursor: pointer; }
+.pl-day-sum-c { flex: none; color: #0d9488; font-weight: 700; transition: transform .15s ease; }
+.pl-day:not(.is-folded) .pl-day-sum-c { transform: rotate(90deg); }
+.pl-day.is-folded .pl-day-body { display: none; }
