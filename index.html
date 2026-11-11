@@ -21,7 +21,7 @@
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-title" content="RONBO FIT">
 <meta name="apple-mobile-web-app-status-bar-style" content="default">
-<link rel="stylesheet" href="styles.css?v=20261111-dia-guiado">
+<link rel="stylesheet" href="styles.css?v=20261111-pildora-gruesa">
 <script defer src="https://cloud.umami.is/script.js" data-website-id="a29706d4-44a2-47cf-900a-5f74d74abfa8"></script>
 <script type="importmap">
 {
@@ -759,12 +759,16 @@
        mientras la sesión viva — punto verde pulsante, tiempo
        HH:MM:SS y el foco del día; tocarla lleva a Entrenamiento.
        Nace oculta: la enciende y la apaga sessPillTick (app.js)
-       desde el sello local del cronómetro. Y la ENCUESTA breve al
+       desde el sello local del cronómetro. AUTH-407
+       (2026-11-11): la pastilla es ahora la PÍLDORA GRUESA — el
+       panel de la sesión con su «Finalizar», su columna de lo
+       que sigue y la franja de avance como borde de abajo —;
+       el elemento pasa a ser un div (lleva botones dentro) y
+       su contenido lo pinta sessPillSync (app.js). Y la
+       ENCUESTA breve al
        finalizar: una pregunta, cinco caritas, saltable siempre —
        su respuesta viaja en el training_logs del propio cierre. -->
-  <button type="button" id="sess-pill" style="display:none">
-    <span class="sess-pill-row"><span class="sess-pill-dot" aria-hidden="true"></span><span class="sess-pill-time" id="sess-pill-time">00:00:00</span><span class="sess-pill-label" id="sess-pill-label"></span></span>
-  </button>
+  <div id="sess-pill" style="display:none" role="region"></div>
   <div id="sess-survey" style="display:none" role="dialog" aria-modal="true">
     <div class="sess-survey-veil" data-sess-skip="1"></div>
     <div class="sess-survey-card">
@@ -2321,6 +2325,6 @@ cuando no hay declaración legible (decisión 5). -->
 <div id="toast" class="toast"></div>
 <div id="print-card" aria-hidden="true"></div>
 
-<script type="module" src="app.js?v=20261111-dia-guiado"></script>
+<script type="module" src="app.js?v=20261111-pildora-gruesa"></script>
 </body>
 </html>

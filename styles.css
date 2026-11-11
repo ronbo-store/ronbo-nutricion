@@ -3327,19 +3327,49 @@ body.prog-page #progress-content.nav-page-on { padding-right: 88px; }
    inferior de las superficies de documento (el pie, AUTH-151) y
    de las páginas que surgen suma esos mismos 76 px: la pastilla
    nunca tapa el último contenido ni los discos. ═══ */
-#sess-pill { position: fixed; left: 50%; transform: translateX(-50%); bottom: calc(env(safe-area-inset-bottom, 0px) + 88px); z-index: 44; width: min(430px, calc(100vw - 24px)); box-sizing: border-box; background: #1b2a4a; border: none; border-radius: 999px; color: #fff; font-family: inherit; text-align: left; padding: 0 16px; height: 36px; display: flex; align-items: center; cursor: pointer; box-shadow: 0 10px 26px rgba(15, 23, 42, .30); }
-.sess-pill-row { display: flex; align-items: center; gap: 8px; }
+/* AUTH-407 · LA PÍLDORA GRUESA: el panel de la sesión —
+   radio de 28 px (su borde de abajo ES la franja de avance,
+   con la llamita en la punta del relleno), el contenido en dos
+   columnas (la izquierda manda: minutos, ENTRENANDO con el
+   día, el ejercicio de ahora y su botón; la derecha anuncia
+   lo que sigue) y las filas fijas con el nombre en una línea,
+   como la barra fina. Degradada (is-deg): solo minutos y
+   estado, sin franja. */
+#sess-pill { position: fixed; left: 50%; transform: translateX(-50%); bottom: calc(env(safe-area-inset-bottom, 0px) + 88px); z-index: 44; width: min(430px, calc(100vw - 24px)); box-sizing: border-box; background: #1b2a4a; border: none; border-radius: 28px; color: #fff; font-family: inherit; text-align: left; padding: 0; overflow: hidden; box-shadow: 0 10px 26px rgba(15, 23, 42, .30); }
 .sess-pill-dot { width: 11px; height: 11px; border-radius: 50%; background: #22c55e; flex: none; animation: sess-pulse 1.6s ease-in-out infinite; }
 @keyframes sess-pulse { 0%, 100% { box-shadow: 0 0 0 3px rgba(34, 197, 94, .30); } 50% { box-shadow: 0 0 0 6px rgba(34, 197, 94, .10); } }
-.sess-pill-time { font-size: 15px; font-weight: 800; font-variant-numeric: tabular-nums; letter-spacing: .01em; white-space: nowrap; }
-.sess-pill-label { font-size: 13px; font-weight: 600; color: rgba(255, 255, 255, .85); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-body.sess-on .foot { padding-bottom: 208px; }
-body.sess-on #train-content.nav-page-on, body.sess-on #progress-content.nav-page-on { padding-bottom: 204px; }
-body.sess-on .act-flame { bottom: calc(env(safe-area-inset-bottom, 0px) + 122px + 76px); }
-body.sess-on .sw-fab { bottom: calc(env(safe-area-inset-bottom, 0px) + 122px + 72px + 76px); }
-body.sess-on .help-fab { bottom: calc(env(safe-area-inset-bottom, 0px) + 122px + 72px + 72px + 76px); }
-body.sess-on .share-fab { bottom: calc(env(safe-area-inset-bottom, 0px) + 122px + 72px + 72px + 72px + 76px); }
-body.sess-on #pend-back-chip { bottom: calc(env(safe-area-inset-bottom, 0px) + 128px + 76px); }
+.sess-pill-time { font-size: 20px; font-weight: 800; font-variant-numeric: tabular-nums; letter-spacing: .01em; white-space: nowrap; line-height: 1.15; }
+.sp-main { display: flex; align-items: stretch; gap: 12px; padding: 16px 16px 14px; cursor: pointer; }
+.sp-main.is-deg { padding-bottom: 16px; }
+.sp-left { flex: 1 1 auto; min-width: 0; display: flex; flex-direction: column; gap: 9px; }
+.sp-top { display: flex; align-items: center; gap: 8px; }
+.sp-state { display: flex; align-items: baseline; gap: 8px; min-width: 0; }
+.sp-training { font-size: 12.5px; font-weight: 800; letter-spacing: .13em; text-transform: uppercase; white-space: nowrap; }
+.sp-day { font-size: 12.5px; font-weight: 600; color: rgba(255, 255, 255, .55); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.sp-cur { font-size: 18px; font-weight: 700; line-height: 1.2; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.sp-btnrow { display: flex; }
+.sp-btn { flex: 1; height: 42px; border: none; border-radius: 12px; font-size: 15px; font-weight: 800; color: #fff; cursor: pointer; font-family: inherit; }
+.sp-btn.fin { background: #b3261e; }
+.sp-btn.ini { background: linear-gradient(180deg, #22c55e, #16a34a); }
+.sp-how { font-size: 14.5px; font-weight: 700; color: rgba(255, 255, 255, .8); align-self: center; }
+.sp-sep { width: 1px; background: rgba(255, 255, 255, .18); flex: none; }
+.sp-next { flex: 0 0 31%; min-width: 0; display: flex; flex-direction: column; justify-content: center; gap: 4px; }
+.sp-next-lab { font-size: 11px; font-weight: 800; letter-spacing: .15em; color: #C6FF4A; }
+.sp-next-name { font-size: 15.5px; font-weight: 700; line-height: 1.2; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.sp-next-pos { font-size: 12px; font-weight: 600; color: rgba(255, 255, 255, .6); white-space: nowrap; }
+.sp-franja { position: relative; height: 28px; background: rgba(255, 255, 255, .13); }
+.sp-franja i { position: absolute; left: 0; top: 0; bottom: 0; display: block; background: linear-gradient(90deg, #FFB300, #C6FF4A); }
+.sp-flame { position: absolute; top: 50%; transform: translate(-50%, -50%); font-size: 19px; line-height: 1; filter: drop-shadow(0 0 6px rgba(255, 150, 0, .85)); pointer-events: none; }
+/* AUTH-407: los resguardos crecen en 150 px — el alto
+   medido de la píldora gruesa menos los 36 de la fina — para
+   que su borde superior conserve el mismo aire que hoy. */
+body.sess-on .foot { padding-bottom: 358px; }
+body.sess-on #train-content.nav-page-on, body.sess-on #progress-content.nav-page-on { padding-bottom: 354px; }
+body.sess-on .act-flame { bottom: calc(env(safe-area-inset-bottom, 0px) + 272px + 76px); }
+body.sess-on .sw-fab { bottom: calc(env(safe-area-inset-bottom, 0px) + 272px + 72px + 76px); }
+body.sess-on .help-fab { bottom: calc(env(safe-area-inset-bottom, 0px) + 272px + 72px + 72px + 76px); }
+body.sess-on .share-fab { bottom: calc(env(safe-area-inset-bottom, 0px) + 272px + 72px + 72px + 72px + 76px); }
+body.sess-on #pend-back-chip { bottom: calc(env(safe-area-inset-bottom, 0px) + 278px + 76px); }
 /* LA ENCUESTA: tarjeta flotante de la casa sobre velo, al pie —
    una pregunta, cinco caritas grandes en círculo (la elegida con
    anillo verde y su palabra en verde), Enviar a todo lo ancho

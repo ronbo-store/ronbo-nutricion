@@ -6130,6 +6130,7 @@ en: {
      decisiones de Ronald 2026-11-02 11:54/11:57/12:06/12:07 CST):
      la pastilla sobre el dock y la encuesta de una pregunta. */
   'sess.pillLabel': 'Training · {label}', 'sess.pillPlain': 'Training',
+  'sess.pillNext': 'NEXT',
   'sess.pillSub': 'It only stops when you finish, in Training',
   'sess.kicker': 'QUICK SURVEY', 'sess.title': 'Workout finished!',
   'sess.dur': 'Duration: {d}', 'sess.durMin': '{m} min', 'sess.durHM': '{h} h {m} min',
@@ -10957,6 +10958,7 @@ es: {
      decisiones de Ronald 2026-11-02 11:54/11:57/12:06/12:07 CST):
      la pastilla sobre el dock y la encuesta de una pregunta. */
   'sess.pillLabel': 'Entrenando · {label}', 'sess.pillPlain': 'Entrenando',
+  'sess.pillNext': 'SIGUE',
   'sess.pillSub': 'Solo se detiene al finalizar, en Entrenamiento',
   'sess.kicker': 'ENCUESTA RÁPIDA', 'sess.title': '¡Entrenamiento finalizado!',
   'sess.dur': 'Duración: {d}', 'sess.durMin': '{m} min', 'sess.durHM': '{h} h {m} min',
@@ -36142,26 +36144,120 @@ function sessPillTick() {
   const pill = $('sess-pill'); if (!pill) return;
   try { trainBarSync(); } catch {}
   const run = sessRunning();
-  if (!run) { pill.style.display = 'none'; document.body.classList.remove('sess-on'); return; }
+  if (!run) { pill.style.display = 'none'; document.body.classList.remove('sess-on'); SESS_PILL_SIG = ''; return; }
   pill.style.display = '';
   document.body.classList.add('sess-on');
-  const timeEl = $('sess-pill-time');
-  if (timeEl) timeEl.textContent = sessFmtClock(Date.now() - run.start);
-  const labEl = $('sess-pill-label');
-  if (labEl) {
-    const txt = run.label ? t('sess.pillLabel', { label: run.label }) : t('sess.pillPlain');
-    if (labEl.textContent !== txt) labEl.textContent = txt;
-  }
+  try { sessPillSync(run); } catch {}
 }
-function sessPillInit() {
+/* ═══ AUTH-407 · LA PÍLDORA GRUESA (dictada por Ronald el
+   2026-11-11 12:50 CST, franja corregida a las 12:56 y veredicto
+   «Perfecto» a las 13:01; maquetas PG1/PG2 y la franja-borde):
+   el panel de la sesión que flota sobre el dock en cualquier
+   pantalla mientras se entrena. Su anatomía, en el orden
+   dictado: minutos arriba; «ENTRENANDO» debajo de los minutos,
+   con el día al lado atenuado; en el medio, el ejercicio de
+   AHORA y debajo su botón; a la derecha, tras la raya, lo que
+   SIGUE con su «Ejercicio N de M»; y la franja de avance del
+   día como el borde de abajo, de ancho a ancho, con la llamita
+   en la punta del relleno. El estado sale de trainBarState() —
+   la misma fuente de la barra fina de AUTH-406, que no se
+   toca — y el avance es el de trainShareModel (solo marcas de
+   hecho sobre la lista efectiva). Sin ese estado, la píldora
+   se degrada con honestidad a minutos + «ENTRENANDO · día»,
+   sin botón, sin columna y sin franja: nunca inventa un
+   ejercicio ni un avance. El repintado va por firma de estado;
+   el reloj se actualiza en cada tick, como siempre. ═══ */
+let SESS_PILL_SIG = '';
+function sessPillSync(run) {
   const pill = $('sess-pill'); if (!pill) return;
-  pill.onclick = () => {
+  let st = null;
+  try { st = trainBarState(); } catch {}
+  let sig, html;
+  if (!st) {
+    sig = 'deg|' + (run.label || '');
+    html = `<div class="sp-main is-deg"><div class="sp-left"><div class="sp-top"><span class="sess-pill-dot" aria-hidden="true"></span><span class="sess-pill-time" id="sess-pill-time">00:00:00</span></div><div class="sp-state"><span class="sp-training">${esc(t('sess.pillPlain'))}</span>${run.label ? `<span class="sp-day">${esc(run.label)}</span>` : ''}</div></div></div>`;
+  } else {
+    const ck = st.di + ':' + st.cur;
+    const curChk = st.checks[ck] || null;
+    let flowSt = '';
+    try { if (TRAIN_CHECKS_CTX === st.plan.id + '|' + todayISO() && TRAIN_FLOW[ck]) flowSt = TRAIN_FLOW[ck].st || ''; } catch {}
+    const total = st.eff.length;
+    const doneN = st.eff.filter((_, ei) => { const c = st.checks[st.di + ':' + ei]; return !!(c && c.done === true); }).length;
+    const pct = total ? Math.round(100 * doneN / total) : 0;
+    sig = ['full', st.di, st.cur, st.nxt, curChk ? 1 : 0, flowSt, doneN, total, run.label || ''].join('|');
+    const curName = trainExName(st.eff[st.cur].ex) || st.eff[st.cur].ex.name || '';
+    let btn;
+    if (!curChk) btn = `<button type="button" class="sp-btn ini" data-pill-start="${ck}">${esc(t('train.flow.start'))}</button>`;
+    else if (flowSt === 'closing') btn = `<span class="sp-how">${esc(t('train.flow.howWas'))}</span>`;
+    else btn = `<button type="button" class="sp-btn fin" data-pill-finish="${ck}">${esc(t('train.flow.finish'))}</button>`;
+    const flameLeft = pct <= 8 ? '13px' : (pct >= 92 ? 'calc(100% - 13px)' : pct + '%');
+    html = `<div class="sp-main"><div class="sp-left"><div class="sp-top"><span class="sess-pill-dot" aria-hidden="true"></span><span class="sess-pill-time" id="sess-pill-time">00:00:00</span></div>`
+      + `<div class="sp-state"><span class="sp-training">${esc(t('sess.pillPlain'))}</span>${run.label ? `<span class="sp-day">${esc(run.label)}</span>` : ''}</div>`
+      + `<div class="sp-cur">${esc(curName)}</div><div class="sp-btnrow">${btn}</div></div>`
+      + (st.nxt != null ? `<div class="sp-sep" aria-hidden="true"></div><div class="sp-next"><span class="sp-next-lab">${esc(t('sess.pillNext'))}</span><span class="sp-next-name">${esc(trainExName(st.eff[st.nxt].ex) || st.eff[st.nxt].ex.name || '')}</span><span class="sp-next-pos">${esc(t('train.guide.pos', { n: st.nxt + 1, m: total }))}</span></div>` : '')
+      + `</div><div class="sp-franja" aria-hidden="true"><i style="width:${pct}%"></i><span class="sp-flame" style="left:${flameLeft}">🔥</span></div>`;
+  }
+  if (sig !== SESS_PILL_SIG) {
+    SESS_PILL_SIG = sig;
+    pill.innerHTML = html;
+    pill.classList.toggle('is-deg', sig.startsWith('deg|'));
+    pill.setAttribute('aria-label', run.label ? t('sess.pillLabel', { label: run.label }) : t('sess.pillPlain'));
+  }
+  const tEl = $('sess-pill-time');
+  if (tEl) tEl.textContent = sessFmtClock(Date.now() - run.start);
+}
+/* El cableado de la píldora gruesa: UN oyente delegado (el
+   patrón de trainBarWire). «Finalizar» e «Iniciar» mutan el
+   flujo EXACTAMENTE como los de la barra fina — la misma
+   guarda de contexto, la misma creación de la entrada en
+   curso, la misma cara guardada, el mismo pin del guiado — y
+   todo toque, botón o cuerpo, termina en la navegación de
+   siempre de la píldora: Entrenamiento, a la sesión que corre.
+   El «Finalizar» NO marca: pone el ejercicio en su cierre del
+   foco (la banda de caras o, sin series con datos, la puerta
+   honesta del punto 6 de AUTH-406) y la marca nace solo de
+   «✓ Marcar hecho» en la tarjeta; tras ella, el foco del
+   guiado aterriza solo en el siguiente (el destino PG2). Sin
+   el contexto de marcas cargado, el toque degrada a solo
+   navegar, sin tocar estado. */
+function sessPillWire(pill) {
+  if (!pill || pill.dataset.pillWired) return;
+  pill.dataset.pillWired = '1';
+  pill.addEventListener('click', ev => {
     const run = sessRunning(); if (!run) return;
+    const fin = ev.target.closest('[data-pill-finish]');
+    const ini = ev.target.closest('[data-pill-start]');
+    if (fin || ini) {
+      const plan = (typeof MY_PLAN !== 'undefined') ? MY_PLAN : null;
+      if (plan && TRAIN_CHECKS_CTX === plan.id + '|' + todayISO()) {
+        if (fin) {
+          const key = fin.dataset.pillFinish;
+          const chk = TRAIN_CHECKS[key];
+          if (chk && chk.done !== true) {
+            TRAIN_FLOW[key] = { st: 'closing', face: (typeof chk.face === 'number') ? chk.face : null };
+            if (trainGuidePref() === 'guided') TRAIN_GUIDE.pin = Number(key.split(':')[1]);
+          }
+        } else {
+          const key = ini.dataset.pillStart;
+          const [diB, eiB] = key.split(':').map(Number);
+          const it = trainEffectiveList(plan, diB)[eiB];
+          if (it && !(TRAIN_CHECKS[key] && TRAIN_CHECKS[key].done === true)) {
+            if (!TRAIN_CHECKS[key]) { TRAIN_CHECKS[key] = { rpe: null, sets: trainDefaultSets(it.ex) }; trainChecksPersist(plan.id); }
+            TRAIN_FLOW[key] = { st: 'open', face: null };
+            if (trainGuidePref() === 'guided') TRAIN_GUIDE.pin = eiB;
+          }
+        }
+      }
+    }
     try { TRAIN_VIEW = { planId: run.planId, sel: todayISO() }; } catch {}
     navOpenPage('train');
     try { loadMyTraining(); } catch {}
     sessPillTick();
-  };
+  });
+}
+function sessPillInit() {
+  const pill = $('sess-pill'); if (!pill) return;
+  sessPillWire(pill);
   if (SESS_PILL_TIMER) clearInterval(SESS_PILL_TIMER);
   SESS_PILL_TIMER = setInterval(sessPillTick, 1000);
   sessPillTick();
@@ -37725,11 +37821,16 @@ function trainDressedHeadHTML(plan, logs, di, iso) {
   else hook = esc(t('shareW.tag')) + ' 🔥 ' + esc(t('shareW.progress', { x: m.doneCount, y: m.total }));
   const C = 2 * Math.PI * 24;
   const msg = shareMsgRevealedFor(iso);
+  /* AUTH-407 · LA FRANJA CAMBIA DE CASA: la barra de
+     avance (.train-dressed-bar) ya no se pinta en esta cabecera
+     — vive como el borde de abajo de la píldora gruesa
+     (sessPillSync), con la llamita en la punta del relleno.
+     Una sola franja en la app; la pastilla «¡A darle!»
+     conserva su texto y el anillo conserva su pct. */
   return `<div class="train-dressed-head">
     <div class="train-dressed-top"><span class="train-dressed-kicker">${esc(iso === todayISO() ? t('shareW.kickerToday') : t('shareW.kicker'))}</span>
     <span class="train-dressed-ring"><svg width="56" height="56" viewBox="0 0 56 56" aria-hidden="true"><circle cx="28" cy="28" r="24" fill="none" stroke="rgba(255,255,255,.25)" stroke-width="5"/><circle cx="28" cy="28" r="24" fill="none" stroke="#C6FF4A" stroke-width="5" stroke-linecap="round" stroke-dasharray="${C.toFixed(1)}" stroke-dashoffset="${(C * (1 - pct / 100)).toFixed(1)}" transform="rotate(-90 28 28)"/></svg><span class="train-dressed-pct">${pct}%</span></span></div>
     <span class="train-dressed-tag">${doneFace}${hook}</span>
-    <div class="train-dressed-bar"><i style="width:${pct}%"></i></div>
     ${msg ? `<div class="train-dressed-msg">${esc(msg.icon)} ${esc(msg.text)}</div>` : ''}
   </div>`;
 }
@@ -54953,7 +55054,7 @@ document.addEventListener('keydown', e => { if (e.key === 'Escape') shareClose()
  *  - El SW (sw.js) solo cachea la cáscara del mismo origen en modo
  *    RED PRIMERO: Auth/Firestore/Worker jamás pasan por la caché.
  * ================================================================ */
-const PWA_SW_VERSION = '20261111-dia-guiado';
+const PWA_SW_VERSION = '20261111-pildora-gruesa';
 /* Sello de versión VISIBLE (2026-11-03): el pie de la tarjeta de
    acceso enseña qué copia corre este teléfono ('v ' + el sello),
    para comprobar de un vistazo si la versión nueva ya llegó.
