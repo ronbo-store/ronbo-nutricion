@@ -5752,45 +5752,12 @@ body.swap-sheet-open .asst-fab { display: none !important; }
    geometría. (Orden de Ronald, 2026-11-10 18:22 CST.) */
 .act-float.asst-sheet { padding-bottom: calc(120px + env(safe-area-inset-bottom, 0px)); }
 
-/* ═══ GESTIONA TU SESIÓN (AUTH-387) ═══
-   La hoja de composición de la sesión: pantalla completa (la
-   .swap-sheet de la casa, z 80 sobre el dock), cabeza fija, lista
-   con scroll propio y pie FIJO dentro de la hoja — Guardar no
-   puede quedar bajo el dock ni tapar la última fila, porque la
-   lista termina encima del pie. Controles grandes, de la casa:
-   la agarradera mide 44 × 52 y «💾 Guardar cambios» 52 de alto. */
+/* ═══ LA PUERTA DE REAPERTURA (AUTH-398, reconvertida en AUTH-410):
+   las reglas de la hoja «Gestiona tu sesión» salieron con ella;
+   quedan las de su puerta, que las puertas reconvertidas usan. ═══ */
 .mg-door { display: flex; flex-direction: column; align-items: flex-start; gap: 2px; width: 100%; box-sizing: border-box; margin-top: 8px; padding: 13px 14px; border: 1.5px solid #0a9b8a; border-radius: 14px; background: #e8f6f3; color: #0b2e28; font: inherit; text-align: left; cursor: pointer; }
 .mg-door-t { font-size: 16px; font-weight: 900; color: #0a7a6c; }
 .mg-door-s { font-size: 12.5px; font-weight: 700; color: #39524d; }
-.mg-saved { display: inline-block; margin-top: 8px; background: #eefaf0; border: 1.5px solid #bfe6cf; color: #146c43; border-radius: 999px; padding: 5px 12px; font-size: 12.5px; font-weight: 800; }
-.mg-sheet { display: flex; flex-direction: column; overflow: hidden; padding: 0; }
-.mg-head { flex: none; padding: 15px 15px 10px; border-bottom: 1.5px solid #e3ecea; background: #fff; }
-.mg-title { font-size: 19px; font-weight: 900; color: #0b2e28; }
-.mg-subtitle { font-size: 13px; font-weight: 700; color: #5a6d68; margin-top: 3px; }
-.mg-pill { display: inline-block; margin-top: 8px; border-radius: 999px; padding: 4px 11px; font-size: 12px; font-weight: 800; }
-.mg-pill-warn { background: #fdf3e0; border: 1.5px solid #f0d9a8; color: #8a6a1d; }
-.mg-pill-ok { background: #eefaf0; border: 1.5px solid #bfe6cf; color: #146c43; }
-.mg-list { flex: 1 1 auto; min-height: 0; overflow-y: auto; overscroll-behavior: contain; padding: 4px 13px 14px; }
-.mg-row { display: flex; align-items: center; gap: 10px; padding: 10px 0; border-bottom: 1.5px solid #eef3f2; background: #fff; }
-.mg-row.is-removed .mg-name { text-decoration: line-through; opacity: .6; }
-.mg-grip { flex: none; width: 44px; height: 52px; border: 1.5px solid #cfe0dc; border-radius: 10px; background: #f6faf9; color: #0a7a6c; font-size: 17px; font-weight: 900; cursor: grab; touch-action: none; }
-.mg-grip-off { border-color: transparent; background: transparent; cursor: default; }
-.mg-num { flex: none; width: 24px; height: 24px; border-radius: 50%; background: #0a9b8a; color: #fff; font-size: 13px; font-weight: 900; text-align: center; line-height: 24px; }
-.mg-mid { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 2px; }
-.mg-name { font-size: 15.5px; font-weight: 800; color: #0b2e28; }
-.mg-sub { font-size: 12.5px; font-weight: 700; color: #5a6d68; }
-.mg-tag { display: inline-block; background: #e8f6f3; color: #0a7a6c; border-radius: 6px; padding: 1px 6px; font-size: 10.5px; font-weight: 900; vertical-align: 2px; }
-.mg-acts { flex: none; display: flex; flex-direction: column; gap: 6px; }
-.mg-act { border: 1.5px solid #cfe0dc; border-radius: 9px; background: #fff; padding: 6px 10px; min-height: 44px; font: inherit; font-size: 12.5px; font-weight: 800; color: #173f38; cursor: pointer; }
-.mg-quit { color: #a33; border-color: #eccaca; }
-.mg-add { display: block; width: 100%; box-sizing: border-box; margin: 12px 0 2px; border: 2px dashed #0a9b8a; border-radius: 14px; background: #fff; padding: 12px; font: inherit; font-size: 15px; font-weight: 900; color: #0a7a6c; cursor: pointer; }
-.mg-foot { flex: none; display: flex; gap: 9px; padding: 12px 13px calc(12px + env(safe-area-inset-bottom, 0px)); background: #f6faf9; border-top: 1.5px solid #e3ecea; }
-.mg-cancel { border: 1.5px solid #cfe0dc; border-radius: 13px; background: #fff; padding: 0 16px; height: 52px; font: inherit; font-size: 14.5px; font-weight: 800; color: #39524d; cursor: pointer; }
-.mg-save { flex: 1; height: 52px; border: none; border-radius: 13px; background: #0a9b8a; color: #fff; font: inherit; font-size: 16px; font-weight: 900; cursor: pointer; }
-.mg-dragging { opacity: .55; box-shadow: 0 10px 24px rgba(10, 60, 52, .18); }
-@media (min-width: 721px) {
-  .mg-acts { flex-direction: row; }
-}
 
 /* AUTH-2026-11-389 (H-04): líneas-cabeza de los grupos plegados
    de la hoja de Composición. Superficie gemela de la tarjeta del
