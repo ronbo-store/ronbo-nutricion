@@ -5621,6 +5621,8 @@ en: {
   'nudge.ctxStudent': 'Student',
   'nudge.ctxPending': 'About',
   'nudge.previewNote': 'This is the exact email the student will receive, in their language:',
+  'nudge.previewLoading': 'Loading the real preview…',
+  'nudge.previewError': 'The real preview could not be loaded — the email has not been sent. Check your connection and reopen the sheet.',
   'nudge.send': 'Send nudge',
   'nudge.sending': 'Sending…',
   'nudge.sentOk': 'Done — the email provider accepted the email. It should arrive within a few minutes.',
@@ -10521,6 +10523,8 @@ es: {
   'nudge.ctxStudent': 'Alumno',
   'nudge.ctxPending': 'Sobre',
   'nudge.previewNote': 'Este es el correo exacto que recibirá el alumno, en su idioma:',
+  'nudge.previewLoading': 'Cargando la vista previa real…',
+  'nudge.previewError': 'No se pudo cargar la vista previa real — el correo no se ha enviado. Revisa la conexión y vuelve a abrir la hoja.',
   'nudge.send': 'Enviar aviso',
   'nudge.sending': 'Enviando…',
   'nudge.sentOk': 'Listo — el proveedor de correo aceptó el correo. Debe llegar en unos minutos.',
@@ -17846,107 +17850,15 @@ function nudgeViewerCan(uid) {
   const me = (typeof auth !== 'undefined' && auth.currentUser) ? auth.currentUser.uid : null;
   return !!(u && me && u.trainerUid === me);
 }
-/* Vista previa EXACTA del correo: los mismos textos del banco que
-   envía el Worker (extraídos del diseño aprobado), en el idioma
-   del alumno (su cadena mailLang → lang, la misma del Worker) y
-   con las mismas sustituciones {name} y {trainer}. El nombre del
-   entrenador se resuelve igual que en la casa: si quien mira ES
-   el entrenador asignado, su displayName de dossier o su nombre
-   de cuenta; el correo real lo resuelve el Worker contra los
-   documentos (perfil del entrenador → su users), así que el
-   enviado siempre lleva el nombre verdadero. */
-const NUDGE_PREVIEW = {
-  "eval": {
-    "en": {
-      "subject": "RONBO FIT — One step left: your starting information",
-      "body": "Hi {name},\n\nYour trainer {trainer} is ready to prepare your plan, and one thing is still missing: your starting information — weight, height, birth year, activity level and biological sex. It takes about a minute, and it is the base your daily energy and food targets are calculated from.\n\nIn the app: open \"Pendientes\" (Pending) and tap the starting-evaluation pending — it takes you straight to the form.\n\n[ Open RONBO FIT ] → https://fit.ronbo.store\n\nThank you,\nRONBO FIT"
-    },
-    "es": {
-      "subject": "RONBO FIT — Te falta un paso: tu información inicial",
-      "body": "Hola {name}:\n\nTu entrenador {trainer} ya está listo para preparar tu plan y solo falta una cosa: tu información inicial — peso, talla, año de nacimiento, nivel de actividad y sexo biológico. Toma un minuto, y es la base desde la que se calculan tu energía y tus metas de comidas de cada día.\n\nEn la app: abre «Pendientes» y toca el pendiente de la evaluación inicial — te lleva directo al formulario.\n\n[ Abre RONBO FIT ] → https://fit.ronbo.store\n\nGracias,\nRONBO FIT"
-    }
-  },
-  "cns": {
-    "en": {
-      "subject": "RONBO FIT — Your health consent is your decision",
-      "body": "Hi {name},\n\nYour trainer {trainer} can look after you better if they can see your health declaration — and that only happens if you allow it. The decision is entirely yours: you can give your consent, change it or withdraw it at any time, and nobody can do it for you.\n\nIn the app: open \"Mi perfil\" (My profile) → \"Permisos y privacidad\" (Permissions & privacy) and review the health consent there.\n\n[ Open RONBO FIT ] → https://fit.ronbo.store\n\nThank you,\nRONBO FIT"
-    },
-    "es": {
-      "subject": "RONBO FIT — Tu consentimiento de salud lo decides tú",
-      "body": "Hola {name}:\n\nTu entrenador {trainer} puede cuidarte mejor si puede ver tu declaración de salud — y eso solo pasa si tú lo permites. La decisión es solo tuya: puedes dar tu consentimiento, cambiarlo o retirarlo cuando quieras, y nadie puede hacerlo por ti.\n\nEn la app: abre «Mi perfil» → «Permisos y privacidad» y revisa allí el consentimiento de salud.\n\n[ Abre RONBO FIT ] → https://fit.ronbo.store\n\nGracias,\nRONBO FIT"
-    }
-  },
-  "parq": {
-    "en": {
-      "subject": "RONBO FIT — Finish your health declaration",
-      "body": "Hi {name},\n\nYou already gave your consent — thank you. Your health declaration is still unfinished, and completing it helps your trainer {trainer} adapt your training and your meals to you, safely.\n\nIn the app: open \"Mi perfil\" (My profile) → your health declaration, and answer the questions that are left.\n\n[ Open RONBO FIT ] → https://fit.ronbo.store\n\nThank you,\nRONBO FIT"
-    },
-    "es": {
-      "subject": "RONBO FIT — Completa tu declaración de salud",
-      "body": "Hola {name}:\n\nYa diste tu consentimiento — gracias. Tu declaración de salud aún no está completa, y terminarla ayuda a tu entrenador {trainer} a adaptar tu entrenamiento y tus comidas a ti, con seguridad.\n\nEn la app: abre «Mi perfil» → tu declaración de salud, y responde las preguntas que faltan.\n\n[ Abre RONBO FIT ] → https://fit.ronbo.store\n\nGracias,\nRONBO FIT"
-    }
-  },
-  "goal": {
-    "en": {
-      "subject": "RONBO FIT — Set your goals to unlock your daily targets",
-      "body": "Hi {name},\n\nYour goals are not set yet in RONBO FIT. Once you choose your objective (maintain, gain or lose) and your focus, the app can calculate your daily energy and food targets — and your trainer {trainer} can guide you with real numbers.\n\nIn the app: open \"Pendientes\" (Pending) and tap the goals pending — it opens your goals editor.\n\n[ Open RONBO FIT ] → https://fit.ronbo.store\n\nThank you,\nRONBO FIT"
-    },
-    "es": {
-      "subject": "RONBO FIT — Define tus metas y activa tus objetivos diarios",
-      "body": "Hola {name}:\n\nTus metas aún no están definidas en RONBO FIT. Cuando elijas tu objetivo (mantener, ganar o bajar) y tu enfoque, la app podrá calcular tu energía y tus metas de comidas de cada día — y tu entrenador {trainer} podrá guiarte con números reales.\n\nEn la app: abre «Pendientes» y toca el pendiente de metas — se abre tu editor de metas.\n\n[ Abre RONBO FIT ] → https://fit.ronbo.store\n\nGracias,\nRONBO FIT"
-    }
-  },
-  "meal": {
-    "en": {
-      "subject": "RONBO FIT — Start logging your meals",
-      "body": "Hi {name},\n\nYou are not logging your meals in RONBO FIT yet. Send your request and, once your trainer {trainer} approves it and it is confirmed, your food section opens and your trainer can follow your meals day by day.\n\nIn the app: open \"Pendientes\" (Pending) and tap the meals pending to send your request — it takes one tap.\n\n[ Open RONBO FIT ] → https://fit.ronbo.store\n\nThank you,\nRONBO FIT"
-    },
-    "es": {
-      "subject": "RONBO FIT — Empieza a registrar tus comidas",
-      "body": "Hola {name}:\n\nAún no registras tus comidas en RONBO FIT. Envía tu solicitud y, cuando tu entrenador {trainer} la apruebe y se confirme, se abrirá tu apartado de comida y tu entrenador podrá acompañar tus comidas día a día.\n\nEn la app: abre «Pendientes» y toca el pendiente de comidas para enviar tu solicitud — es un solo toque.\n\n[ Abre RONBO FIT ] → https://fit.ronbo.store\n\nGracias,\nRONBO FIT"
-    }
-  },
-  "pes": {
-    "en": {
-      "subject": "RONBO FIT — Your weekly weigh-in is due",
-      "body": "Hi {name},\n\nYour weigh-in for this week is due. Weigh yourself — ideally in the morning, before breakfast — and log the number in the app: that is how your trainer {trainer} follows your real trend, beyond the day-to-day ups and downs.\n\nIn the app: open \"Pendientes\" (Pending) and tap the weigh-in pending — the weight form opens with today's date ready.\n\n[ Open RONBO FIT ] → https://fit.ronbo.store\n\nThank you,\nRONBO FIT"
-    },
-    "es": {
-      "subject": "RONBO FIT — Toca tu pesaje de esta semana",
-      "body": "Hola {name}:\n\nToca tu pesaje de esta semana. Pésate — idealmente en la mañana, antes de desayunar — y registra el número en la app: así tu entrenador {trainer} sigue tu tendencia real, más allá de las subidas y bajadas de cada día.\n\nEn la app: abre «Pendientes» y toca el pendiente de pesaje — se abre el formulario de peso con la fecha de hoy lista.\n\n[ Abre RONBO FIT ] → https://fit.ronbo.store\n\nGracias,\nRONBO FIT"
-    }
-  },
-  "per": {
-    "en": {
-      "subject": "RONBO FIT — Your progress evaluation is due",
-      "body": "Hi {name},\n\nYour periodic evaluation is due: your progress photos (front, side and back) and your measurements. They show changes the scale cannot see, and they help your trainer {trainer} adjust your plan with evidence.\n\nIn the app: open \"Progreso\" (Progress) → \"Fotos\" (Photos) to upload your photos, and \"Medidas\" (Measures) for your measurements.\n\n[ Open RONBO FIT ] → https://fit.ronbo.store/?fotos=1\n\nThank you,\nRONBO FIT"
-    },
-    "es": {
-      "subject": "RONBO FIT — Toca tu evaluación de progreso",
-      "body": "Hola {name}:\n\nToca tu evaluación periódica: tus fotos de progreso (frente, lado y espalda) y tus medidas. Muestran cambios que la báscula no ve, y ayudan a tu entrenador {trainer} a ajustar tu plan con evidencia.\n\nEn la app: abre «Progreso» → «Fotos» para subir tus fotos, y «Medidas» para tus medidas.\n\n[ Abre RONBO FIT ] → https://fit.ronbo.store/?fotos=1\n\nGracias,\nRONBO FIT"
-    }
-  },
-  "bod": {
-    "en": {
-      "subject": "RONBO FIT — Your body-type analysis needs your OK",
-      "body": "Hi {name},\n\nYour trainer {trainer} would like to run your body-type analysis from your progress photos. It only happens with your specific consent: the decision is yours alone, and you can withdraw it whenever you want.\n\nIn the app: open \"Mi perfil\" (My profile) → \"Permisos y privacidad\" (Permissions & privacy) and review the body-type analysis consent there.\n\n[ Open RONBO FIT ] → https://fit.ronbo.store\n\nThank you,\nRONBO FIT"
-    },
-    "es": {
-      "subject": "RONBO FIT — Tu análisis de tipo corporal necesita tu aprobación",
-      "body": "Hola {name}:\n\nTu entrenador {trainer} quiere hacer tu análisis de tipo corporal a partir de tus fotos de progreso. Solo se hace con tu consentimiento específico: la decisión es solo tuya, y puedes retirarlo cuando quieras.\n\nEn la app: abre «Mi perfil» → «Permisos y privacidad» y revisa allí el consentimiento del análisis de tipo corporal.\n\n[ Abre RONBO FIT ] → https://fit.ronbo.store\n\nGracias,\nRONBO FIT"
-    }
-  },
-  "met": {
-    "en": {
-      "subject": "RONBO FIT — Your targets, explained: how each number is made up",
-      "body": "Hi {name},\n\nYour trainer {trainer} is sending you this reminder: your targets are ready in RONBO FIT, and here is how each number is made up — so you know where every figure comes from:\n\n{metrics}\n\nOne thing that really helps: log your meals in the app each day. With that record, your trainer can follow your progress properly and adjust what needs adjusting.\n\nIn the app: open \"Comida\" (Meals) and add what you eat — it takes less than a minute.\n\n[ Open RONBO FIT ] → https://fit.ronbo.store\n\nThank you,\nRONBO FIT"
-    },
-    "es": {
-      "subject": "RONBO FIT — Tus métricas, explicadas: así se compone cada número",
-      "body": "Hola {name}:\n\nTu entrenador {trainer} te envía este recordatorio: tus métricas ya están listas en RONBO FIT, y así se compone cada número — para que sepas de dónde sale cada cifra:\n\n{metrics}\n\nUna cosa que ayuda muchísimo: carga tus alimentos en la app cada día. Con ese registro, tu entrenador puede hacerte seguimiento de verdad y ajustar lo que haga falta.\n\nEn la app: abre «Comida» y registra lo que comas — toma menos de un minuto.\n\n[ Abre RONBO FIT ] → https://fit.ronbo.store\n\nGracias,\nRONBO FIT"
-    }
-  }
-};
+/* La vista previa del correo es la REAL y la compone el
+   Worker (AUTH-436): la hoja pide la composición al
+   mismo embudo del envío (/mail/send con preview, tras las
+   mismas puertas) y pinta las partes que saldrían — asunto,
+   HTML con su botón y su pie — sin enviar nada. El banco
+   espejo NUDGE_PREVIEW se retiró: la plantilla vive en UN
+   SOLO SITIO (el Worker) y la vista previa ya no puede
+   divergir del correo que llega al buzón (el resto declarado
+   de AUTH-423, cerrado aquí). */
 function nudgeMailLangOf(u) {
   if (u && (u.mailLang === 'en' || u.mailLang === 'es')) return u.mailLang;
   if (u && (u.lang === 'en' || u.lang === 'es')) return u.lang;
@@ -18004,45 +17916,71 @@ function nudgeOpen(uid, sub, titleText) {
   nudgeBasePrime();
 }
 /* La vista previa se repinta al cambiar la plantilla elegida:
-   siempre los textos del banco, en el idioma del ALUMNO y con
-   sus variables sustituidas — el correo exacto que saldría. */
+   es el correo REAL, compuesto por el Worker con la misma
+   composición del envío (AUTH-436) — la hoja le pide las
+   partes SIN enviar nada (preview) y pinta el asunto y la
+   parte HTML tal como llegarían al buzón, con su botón y su
+   pie; si el correo saliera solo en texto, pinta su texto.
+   Si el Worker no puede componer (sin conexión), la hoja lo
+   dice: nunca pinta un texto de reserva como si fuera el
+   correo. */
 function nudgeRenderPreview() {
   const ctx = NUDGE_CTX; if (!ctx) return;
   const box = $('nudge-preview-box'); if (!box) return;
   const u = nudgeStudentDoc(ctx.uid) || { id: ctx.uid };
   const lang = nudgeMailLangOf(u);
-  const nm = u.name || (u.email ? String(u.email).split('@')[0] : '');
-  const tr = nudgeTrainerNameFor(u);
-  /* D5 (punto 106): con el estado vivo de la base ya leído, la
-     vista previa de evaluación/metas ES el correo compuesto con
-     los datos de hoy (baseMailCompose — el mismo texto que el
-     Worker enviará con el payload). Sin estado (aún leyendo o
-     lectura imposible), la del banco fijo de siempre. */
-  if ((ctx.sub === 'eval' || ctx.sub === 'goal') && ctx.baseState) {
-    if (!ctx.baseState.missing.length) {
-      box.innerHTML = `<p class="nudge-body">${esc(t('nudge.baseComplete'))}</p>`;
-      const sb = $('nudge-send'); if (sb) sb.style.display = 'none';
+  const sb = $('nudge-send');
+  /* D5 (punto 106): con la base ya completa no hay correo que
+     enseñar ni que enviar — el estado honesto de siempre. Con
+     la base aún sin leer, se espera a su lectura: el correo de
+     la base se compone de los datos de hoy del alumno. */
+  if (ctx.sub === 'eval' || ctx.sub === 'goal') {
+    if (ctx.baseState === undefined) {
+      box.innerHTML = `<p class="nudge-body">${esc(t('nudge.previewLoading'))}</p>`;
+      nudgeBasePrime();
       return;
     }
-    const c = baseMailCompose(ctx.sub, ctx.baseState, lang, nm, tr);
-    box.innerHTML = `<p class="nudge-subj">${esc(c.subject)}</p><p class="nudge-body">${esc(c.body)}</p>`;
-    return;
+    if (ctx.baseState && !ctx.baseState.missing.length) {
+      box.innerHTML = `<p class="nudge-body">${esc(t('nudge.baseComplete'))}</p>`;
+      if (sb) sb.style.display = 'none';
+      return;
+    }
   }
-  const P = (NUDGE_PREVIEW[ctx.sub] || {})[lang] || (NUDGE_PREVIEW[ctx.sub] || {}).en;
-  if (!P) { box.innerHTML = ''; return; }
-  const subject = P.subject.split('{name}').join(nm).split('{trainer}').join(tr);
-  let bodyTxt = P.body.split('{name}').join(nm).split('{trainer}').join(tr);
-  /* «met» (punto 130): la marca {metrics} se sustituye por el
-     bloque compuesto desde los datos guardados del alumno
-     (metComposeBlockFor — el mismo texto que el Worker compondrá
-     al enviar). Si en esta superficie no se puede componer, la
-     línea honesta de reserva en el idioma de la vista previa. */
-  if (ctx.sub === 'met') {
-    const blk = metComposeBlockFor(ctx.uid, lang);
-    bodyTxt = bodyTxt.split('{metrics}').join(blk || ((STR[lang] || STR.en)['nudge.metPreviewAuto'] || ''));
-  }
-  box.innerHTML = `<p class="nudge-subj">${esc(subject)}</p><p class="nudge-body">${esc(bodyTxt)}</p>`;
+  const seq = (ctx.previewSeq = (ctx.previewSeq || 0) + 1);
+  const sub = ctx.sub, tpl = ctx.tpl;
+  box.innerHTML = `<p class="nudge-body">${esc(t('nudge.previewLoading'))}</p>`;
+  const extra = { preview: true };
+  if ((sub === 'eval' || sub === 'goal') && ctx.baseState) extra.base = baseMailPayload(ctx.baseState);
+  mailSend(ctx.uid, tpl, lang, extra).then(res => {
+    if (!NUDGE_CTX || NUDGE_CTX !== ctx || ctx.sub !== sub || ctx.previewSeq !== seq) return;
+    const bx = $('nudge-preview-box'); if (!bx) return;
+    if (res && res.ok && res.preview) {
+      let h = `<p class="nudge-subj">${esc(res.subject || '')}</p>`;
+      if (res.html) h += `<div class="nudge-mail-html">${res.html}</div>`;
+      else h += `<p class="nudge-body">${esc(res.text || '')}</p>`;
+      bx.innerHTML = h;
+      return;
+    }
+    /* Los estados honestos del envío, en la vista previa igual
+       que al enviar: la base ya completa (422) y las métricas
+       que aún no existen (422) cierran la hoja sin botón. */
+    if (res && res.error === 'base-complete') {
+      bx.innerHTML = `<p class="nudge-body">${esc(t('nudge.baseComplete'))}</p>`;
+      const b2 = $('nudge-send'); if (b2) b2.style.display = 'none';
+      return;
+    }
+    if (res && res.error === 'metrics-missing') {
+      bx.innerHTML = `<p class="nudge-body">${esc(t('nudge.metMissing'))}</p>`;
+      const b2 = $('nudge-send'); if (b2) b2.style.display = 'none';
+      return;
+    }
+    bx.innerHTML = `<p class="nudge-body">${esc(t('nudge.previewError'))}</p>`;
+  }).catch(() => {
+    if (!NUDGE_CTX || NUDGE_CTX !== ctx || ctx.previewSeq !== seq) return;
+    const bx = $('nudge-preview-box'); if (bx) bx.innerHTML = `<p class="nudge-body">${esc(t('nudge.previewError'))}</p>`;
+  });
 }
+
 /* D5: al abrir la hoja (o al cambiar a la plantilla de evaluación
    o de metas) se lee el estado vivo de la base de ESE alumno; al
    llegar, la vista previa se repinta con el correo real de hoy. */
@@ -18055,106 +17993,23 @@ function nudgeBasePrime() {
     if (!NUDGE_CTX || NUDGE_CTX.uid !== uid) return;
     NUDGE_CTX.baseState = st;
     nudgeRenderPreview();
-  }).catch(() => {});
+  }).catch(() => {
+    /* Sin lectura posible, la vista previa se pide sin el
+       payload vivo — el Worker compone el banco fijo, el mismo
+       recurso del envío — y la hoja no se queda en «cargando»:
+       nunca se inventa un estado (AUTH-436). */
+    if (!NUDGE_CTX || NUDGE_CTX.uid !== uid) return;
+    if (NUDGE_CTX.baseState === undefined) NUDGE_CTX.baseState = null;
+    nudgeRenderPreview();
+  });
 }
-/* ── «Recordarle sus métricas» (punto 130 de la cola): el bloque
-   {metrics} de la plantilla fija nudgemet. La app lo compone para
-   la vista previa EXACTA de la hoja y el Worker lo recompone al
-   enviar desde los documentos guardados del alumno (el patrón de
-   {planSummary} de AUTH-171 y del payload base de AUTH-190): las
-   cifras son las metas fundadas vigentes (users.goals) y cada
-   explicación sale de la foto de entradas que el motor guardó con
-   el resultado (users.goalsProvenance) y del origen de la ecuación
-   (assessment/current). Lo que no consta, se omite: jamás se
-   inventa una cifra ni una causa. Los fragmentos viven en las
-   claves met.mail.* de STR y el Worker guarda su espejo exacto
-   (MET_MAIL_FRAG): cualquier cambio de texto va en los dos. */
-const MET_EQ_NAMES = { 'mifflin-st-jeor': 'Mifflin-St Jeor', 'ten-haaf': 'Ten Haaf' };
-function metNum(v) { const n = Number(v); return (v === null || v === undefined || v === '' || !isFinite(n)) ? null : n; }
-function metFmtInt(v, lang) {
-  const n = Math.round(Number(v));
-  const s = String(Math.abs(n)).replace(/\B(?=(\d{3})+(?!\d))/g, lang === 'es' ? '.' : ',');
-  return (n < 0 ? '-' : '') + s;
-}
-function metFmtDec(v, lang) {
-  const s = String(Math.round(Number(v) * 100) / 100);
-  return lang === 'es' ? s.replace('.', ',') : s;
-}
-function metJoinList(parts, andWord) {
-  if (parts.length <= 1) return parts.join('');
-  return parts.slice(0, -1).join(', ') + ' ' + andWord + ' ' + parts[parts.length - 1];
-}
-/* doc = datos de users/{uid}; asmt = { equation, equationOrigin,
-   equationChosenBy, inputsSnapshot } (o null). Devuelve '' cuando
-   no hay métricas fundadas vigentes. */
-function metComposeBlock(doc, asmt, lang) {
-  const L = lang === 'es' ? 'es' : 'en';
-  const T = (k, v) => { let s = (STR[L][k] || STR.en[k] || k); if (v) for (const key of Object.keys(v)) s = s.split('{' + key + '}').join(String(v[key])); return s; };
-  const g = (doc && doc.goals) || {};
-  const p = (doc && doc.goalsProvenance) || null;
-  const kcal = metNum(g.kcal), tdee = p ? metNum(p.tdeeKcal) : null;
-  if (!(kcal > 0) || !p || !(tdee > 0)) return '';
-  const lines = [T('met.mail.head'), T('met.mail.energy', { v: metFmtInt(kcal, L) })];
-  const parts = [];
-  if (metNum(g.prot) !== null) parts.push(T('met.mail.prot') + ': ' + metFmtInt(g.prot, L) + ' g');
-  if (metNum(g.carb) !== null) parts.push(T('met.mail.carb') + ': ' + metFmtInt(g.carb, L) + ' g');
-  if (metNum(g.azuc) !== null) parts.push(T('met.mail.azuc', { v: metFmtInt(g.azuc, L) }));
-  if (metNum(g.gras) !== null) parts.push(T('met.mail.gras') + ': ' + metFmtInt(g.gras, L) + ' g');
-  if (parts.length) lines.push(parts.join(' · '));
-  lines.push('', T('met.mail.howHead'));
-  const bullets = [];
-  const eqId = p.equationUsed || (asmt && asmt.equation) || '';
-  const eqName = MET_EQ_NAMES[eqId] || '';
-  const origin = asmt && asmt.equationOrigin === 'auto' ? 'auto'
-    : (asmt && (asmt.equationChosenBy || asmt.equationOrigin === 'trainer')) ? 'trainer' : '';
-  const snap = (asmt && asmt.inputsSnapshot) || {};
-  const w = metNum(p.weightKg) !== null ? metNum(p.weightKg) : metNum(snap.weightKg);
-  const pal = metNum(p.palBasal) !== null ? metNum(p.palBasal) : metNum(snap.palBasal);
-  let s = T('met.mail.tdeeA', { tdee: metFmtInt(tdee, L) });
-  const clauses = [];
-  if (eqName) clauses.push(T('met.mail.tdeeEq', { eq: eqName }) + (origin === 'trainer' ? ' (' + T('met.mail.originTrainer') + ')' : origin === 'auto' ? ' (' + T('met.mail.originAuto') + ')' : ''));
-  if (w !== null) clauses.push(T('met.mail.withWeight', { w: metFmtDec(w, L) }));
-  if (pal !== null) clauses.push(T('met.mail.withPal', { pal: metFmtDec(pal, L) }));
-  if (clauses.length) s += ' ' + metJoinList(clauses, T('met.mail.and')) + '.';
-  bullets.push(s);
-  const obj = p.objective || (doc && (doc.goalObjective || doc.goalObjective)) || '';
-  const pace = metNum(p.paceKcal);
-  const paceOn = (p.paceState === 'approved' || p.paceState === 'self-accepted') && pace !== null && pace > 0;
-  if (obj === 'bajar' && paceOn) bullets.push(T('met.mail.pace', { pace: metFmtInt(pace, L), kcal: metFmtInt(kcal, L), who: p.paceState === 'approved' ? T('met.mail.paceTrainer') : T('met.mail.paceSelf') }));
-  else if (obj === 'bajar') bullets.push(T('met.mail.pacePending'));
-  else if (obj === 'mantener') bullets.push(T('met.mail.maintain', { kcal: metFmtInt(kcal, L) }));
-  else if (obj === 'ganar') bullets.push(T('met.mail.gain', { kcal: metFmtInt(kcal, L) }));
-  const pf = metNum(p.proteinFactor);
-  const objKey = { bajar: 'met.mail.objBajar', mantener: 'met.mail.objMantener', ganar: 'met.mail.objGanar' }[obj];
-  if (pf !== null && w !== null && metNum(g.prot) !== null && objKey) bullets.push(T('met.mail.protein', { f: metFmtDec(pf, L), w: metFmtDec(w, L), prot: metFmtInt(g.prot, L), obj: T(objKey) }));
-  const fp = metNum(p.fatPct);
-  if (fp !== null && metNum(g.gras) !== null) bullets.push(T('met.mail.fat', { pct: Math.round(fp * 100), gras: metFmtInt(g.gras, L) }));
-  if (metNum(g.carb) !== null) bullets.push(T('met.mail.carbs', { carb: metFmtInt(g.carb, L) }));
-  if (metNum(g.azuc) !== null) bullets.push(T('met.mail.sugars', { azuc: metFmtInt(g.azuc, L) }));
-  bullets.push(T('met.mail.dayVar'));
-  for (const b of bullets) lines.push('• ' + b);
-  return lines.join('\n');
-}
-/* El { equation, equationOrigin, equationChosenBy } del alumno:
-   la ficha abierta guarda la evaluación entera (FA_CARD); fuera de
-   ella, el checklist de la pasada (chk.base) trae ecuación y
-   origen. Sin ninguna de las dos vías, el origen se omite. */
-function metAsmtLikeFor(uid) {
-  if (typeof FA_CARD !== 'undefined' && FA_CARD && FA_CARD.uid === uid && FA_CARD.asmt) {
-    const a = FA_CARD.asmt;
-    return { equation: a.equation || '', equationOrigin: a.equationOrigin || null, equationChosenBy: a.equationChosenBy || null, inputsSnapshot: a.inputsSnapshot || null };
-  }
-  const chk = (typeof fichaTpendOf === 'function' ? (fichaTpendOf(uid) || {}).chk : null)
-    || ((typeof STUDENTS_LAST !== 'undefined' && STUDENTS_LAST && STUDENTS_LAST.chkByUid) ? STUDENTS_LAST.chkByUid[uid] : null);
-  const b = (chk && chk.base) || null;
-  if (!b) return null;
-  return { equation: b.eq || '', equationOrigin: b.eqOrigin || null, equationChosenBy: b.eqChosen ? 'trainer' : null, inputsSnapshot: null };
-}
-function metComposeBlockFor(uid, lang) {
-  const doc = nudgeStudentDoc(uid);
-  if (!doc) return '';
-  return metComposeBlock(doc, metAsmtLikeFor(uid), lang);
-}
+
+/* El compositor de métricas de la app (punto 130) se retiró
+   (AUTH-436): su único consumidor era la vista previa de
+   la hoja de avisos, que ahora pinta el correo compuesto por
+   el Worker. El bloque {metrics} lo compone el Worker desde
+   los documentos guardados del alumno (metricsSummaryText),
+   en la vista previa igual que en el envío — una sola fuente. */
 /* La re-verificación del envío de «met»: métricas fundadas
    vigentes LEÍDAS del servidor en ese instante (metas + foto del
    motor + resultado de energía vivo). true/false/null (null = no
@@ -22471,39 +22326,13 @@ function baseMailBtnFor(first) {
     : first === 'objetivo' ? ['base.mail.btnObjetivo', 'objetivo']
     : ['base.mail.btnDatos', 'datos'];
 }
-/* Compone {subject, body} con los fragmentos fijos (claves
-   base.mail.* del idioma DEL ALUMNO). Espejo exacto del Worker. */
-function baseMailCompose(sub, st, lang, name, trainer) {
-  const tt = (k, params) => { let d = (STR[lang] || {})[k]; if (d === undefined) d = (STR.en || {})[k]; if (d === undefined) d = k; if (params) for (const x in params) d = d.split('{' + x + '}').join(params[x]); return d; };
-  /* El correo viaja en unidades CANÓNICAS (kg y cm del payload):
-     el Worker no conoce las preferencias de unidad de nadie y la
-     vista previa debe ser carácter a carácter lo que él envía. */
-  const kgTxt = v => (Math.round(v * 10) / 10) + ' kg';
-  const missing = BASE_MAIL_ORDER.filter(x => (st.missing || []).includes(x));
-  const first = missing[0];
-  const lines = [tt('base.mail.hello', { name })];
-  if (missing.length === 1) {
-    lines.push(tt('base.mail.oneHead', { piece: tt('base.mail.pieceName.' + first) }));
-    if (first === 'privado') lines.push(tt('base.mail.privLine'));
-  } else {
-    lines.push(tt('base.mail.multiHead'));
-    for (const m of missing) lines.push('· ' + tt('base.mail.pieceName.' + m));
-    if (missing.includes('privado')) lines.push(tt('base.mail.privLine'));
-  }
-  const doneItems = [];
-  const dd = st.done || {};
-  if (dd.peso) doneItems.push(dd.peso.today ? tt('base.mail.donePesoToday', { w: kgTxt(dd.peso.kg) }) : tt('base.mail.donePesoDate', { w: kgTxt(dd.peso.kg), d: dateName(dd.peso.date) }));
-  if (dd.estatura && dd.anio) doneItems.push(tt('base.mail.doneHeightBy'));
-  else { if (dd.estatura) doneItems.push(tt('base.mail.doneHeight', { h: dd.estatura + ' cm' })); if (dd.anio) doneItems.push(tt('base.mail.doneBy', { y: dd.anio })); }
-  if (dd.actividad) doneItems.push(tt('base.mail.doneAct'));
-  if (dd.privado) doneItems.push(tt('base.mail.donePriv'));
-  if (dd.objetivo) { const on = tt('gm.obj.' + dd.objetivo); doneItems.push(tt('base.mail.doneObj', { o: on.charAt(0).toLowerCase() + on.slice(1) })); }
-  if (doneItems.length) { lines.push(tt('base.mail.doneHead')); for (const i of doneItems) lines.push('✓ ' + i); }
-  const [btnKey, step] = baseMailBtnFor(first);
-  lines.push('[ ' + tt(btnKey) + ' ] → https://fit.ronbo.store/?base=' + step);
-  lines.push(tt('base.mail.sign'));
-  return { subject: tt(sub === 'goal' ? 'base.mail.subjGoal' : 'base.mail.subjEval'), body: lines.join('\n\n') };
-}
+/* El compositor de la base de la app (D5) se retiró
+   (AUTH-436): su único consumidor era la vista previa de
+   la hoja de avisos. El correo de la base lo compone el Worker
+   desde el payload vivo (baseComposeMail), en la vista previa
+   igual que en el envío; el payload lo sigue armando
+   baseMailPayload y el orden de piezas, baseMailBtnFor. */
+
 
 async function openClient(uid) {
   const box = $('client-detail');
@@ -26147,6 +25976,9 @@ async function mailSend(uid, template, langOverride, extra) {
        de evaluación/metas y el Worker lo revalida entero antes de
        componer — cualquier otro envío va byte a byte como siempre. */
     const payload = { idToken, uid, template, lang: (langOverride === 'en' || langOverride === 'es') ? langOverride : LANG };
+    /* AUTH-436: extra.preview pide al Worker la composición
+       real SIN enviar (la vista previa de la hoja de avisos). */
+    if (extra && extra.preview === true) payload.preview = true;
     if (extra && extra.base) payload.base = extra.base;
     /* MENSAJE DE PENDIENTES (este paquete): extra.pends es la
        lista CERRADA de tipos de pendiente (solo claves del
@@ -26170,7 +26002,7 @@ async function mailSend(uid, template, langOverride, extra) {
       signal: ctl.signal
     });
     let j = null; try { j = await r.json(); } catch {}
-    return { ok: r.ok && !!(j && j.ok), status: r.status, error: (j && j.error) || '', to: (j && j.to) || '', planId: (j && j.planId) || '' };
+    return { ok: r.ok && !!(j && j.ok), status: r.status, error: (j && j.error) || '', to: (j && j.to) || '', planId: (j && j.planId) || '', preview: !!(j && j.preview), subject: (j && j.subject) || '', text: (j && j.text) || '', html: (j && j.html) || null };
   } catch { return { ok: false, status: 0, error: 'network' }; }
   finally { clearTimeout(timer); }
 }
@@ -57004,7 +56836,7 @@ document.addEventListener('keydown', e => { if (e.key === 'Escape') shareClose()
  *  - El SW (sw.js) solo cachea la cáscara del mismo origen en modo
  *    RED PRIMERO: Auth/Firestore/Worker jamás pasan por la caché.
  * ================================================================ */
-const PWA_SW_VERSION = '20261112-aprox-compartir';
+const PWA_SW_VERSION = '20261112-correo-consentimiento';
 /* Sello de versión VISIBLE (2026-11-03): el pie de la tarjeta de
    acceso enseña qué copia corre este teléfono ('v ' + el sello),
    para comprobar de un vistazo si la versión nueva ya llegó.
