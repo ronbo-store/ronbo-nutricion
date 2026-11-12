@@ -6030,3 +6030,24 @@ body.train-drag-lock { overflow: hidden; overscroll-behavior: none; }
 .cardio-save { margin-top: 12px; width: 100%; min-height: 48px; background: #fff; color: #0a5c50; border: 0; font: inherit; font-weight: 800; font-size: 15px; padding: 13px 0; border-radius: 12px; cursor: pointer; }
 .cardio-sum { display: flex; align-items: center; gap: 9px; margin-top: 11px; font-size: 14.5px; font-weight: 700; color: #fff; }
 .cardio-edit { margin-left: auto; flex: none; min-height: 44px; background: transparent; border: 1.5px solid rgba(255,255,255,.55); color: #fff; font: inherit; font-size: 13px; font-weight: 700; padding: 8px 13px; border-radius: 99px; cursor: pointer; }
+
+/* ═══ AUTH-434 · LA PAUSA DEL EJERCICIO (decisión de
+   Ronald, 2026-11-12, sobre su maqueta aprobada): el botón
+   ámbar de Detener en la píldora y en la tarjeta, la
+   etiqueta EN PAUSA junto al contador de la píldora y el
+   punto de estado según el momento — gris sin empezar,
+   ámbar en pausa, el verde palpitante de siempre
+   corriendo. La fila de botones de la píldora gana su
+   hueco de 8 px para cuando Seguir y Finalizar conviven
+   (con un solo botón no cambia nada). Los botones de la
+   píldora comparten la altura de la casa de la píldora
+   (42 px, AUTH-407) en los tres estados, para que la
+   pastilla no cambie de tamaño al cambiar de estado; los
+   de la tarjeta son los de 48 px de siempre (.flow-btn). ═══ */
+.sp-btnrow { gap: 8px; }
+.sp-btn.stop { background: linear-gradient(180deg, #f59e0b, #d97706); }
+.sp-pause-tag { background: #f59e0b; color: #1b2a4a; font-size: 10.5px; font-weight: 800; letter-spacing: .07em; padding: 2px 7px; border-radius: 6px; flex: none; }
+.sess-pill-dot.is-todo { background: #94a3b8; animation: none; box-shadow: none; }
+.sess-pill-dot.is-paused { background: #f59e0b; animation: none; box-shadow: 0 0 0 4px rgba(245, 158, 11, .18); }
+.flow-btn.is-pause { background: linear-gradient(180deg, #f59e0b, #d97706); border-color: #b45309; color: #fff; }
+.flow-incourse.is-paused { color: #fcd34d; }

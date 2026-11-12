@@ -6175,6 +6175,9 @@ en: {
   'train.flow.finish': 'Finish',
   'train.flow.inCourse': '● In progress',
   'train.flow.howWas': 'How was it?',
+  'train.flow.pause': '⏸ Pause',
+  'train.flow.paused': '⏸ Paused',
+  'train.flow.pausedTag': 'PAUSED',
   'train.flow.metaRpe': 'Goal: RPE {rpe}',
   'train.flow.markDone': '✓ Mark done',
   'train.flow.backToCourse': 'Back to in progress',
@@ -11070,6 +11073,9 @@ es: {
   'train.flow.finish': 'Finalizar',
   'train.flow.inCourse': '● En curso',
   'train.flow.howWas': '¿Qué tal fue?',
+  'train.flow.pause': '⏸ Detener',
+  'train.flow.paused': '⏸ En pausa',
+  'train.flow.pausedTag': 'EN PAUSA',
   'train.flow.metaRpe': 'Meta: RPE {rpe}',
   'train.flow.markDone': '✓ Marcar hecho',
   'train.flow.backToCourse': 'Volver a en curso',
@@ -33643,6 +33649,14 @@ function trainChecksRead(planId) {
            del borrador como la marca: solo viaja un entero 1..5
            saneado; sin ella, la entrada se lee como siempre. */
         ...(Number.isInteger(c.face) && c.face >= 1 && c.face <= 5 ? { face: c.face } : {}),
+        /* AUTH-434 · EL TIEMPO ACTIVO DEL EJERCICIO
+           (activeSec, lo sellado al pausar y al finalizar)
+           sobrevive a la restauración del borrador,
+           saneado como la cara: sin él, una recarga a
+           mitad de ejercicio perdería el tiempo ya
+           bancado. Un borrador anterior no lo trae y la
+           entrada se lee como siempre. */
+        ...(typeof c.activeSec === 'number' && isFinite(c.activeSec) && c.activeSec > 0 ? { activeSec: Math.floor(c.activeSec) } : {}),
         sets: Array.isArray(c.sets) ? c.sets.filter(s => s && typeof s === 'object').map(s => ({
           repsPlanned: String(s.repsPlanned == null ? '' : s.repsPlanned),
           repsDone: String(s.repsDone == null ? '' : s.repsDone),
@@ -36837,12 +36851,22 @@ function sessPillSync(run) {
     const tipPh = (typeof UDATA !== 'undefined' && UDATA && UDATA.photoURL) || '';
     sig = ['full', st.di, st.cur, st.nxt, curChk ? 1 : 0, flowSt, doneN, total, run.label || '', tipPh ? 'p' + tipPh.length : 'i:' + (((typeof UDATA !== 'undefined' && UDATA && UDATA.name) || ''))].join('|');
     const curName = trainExName(st.eff[st.cur].ex) || st.eff[st.cur].ex.name || '';
+    /* AUTH-434 · LA MÁQUINA DE TRES ESTADOS EN LA
+       PÍLDORA — la misma de la tarjeta, leída del mismo
+       estado: sin empezar, solo «▶ Iniciar»; corriendo,
+       solo «⏸ Detener»; en pausa, «▶ Seguir» y
+       «Finalizar». Con entrada y sin estado de flujo (la
+       app se reabrió a mitad de ejercicio), la píldora
+       ofrece «Seguir»: el ejercicio sigue en curso, con
+       su tiempo bancado esperando en la marca. */
     let btn;
     if (!curChk) btn = `<button type="button" class="sp-btn ini" data-pill-start="${ck}">${esc(t('train.flow.start'))}</button>`;
     else if (flowSt === 'closing') btn = `<span class="sp-how">${esc(t('train.flow.howWas'))}</span>`;
-    else btn = `<button type="button" class="sp-btn fin" data-pill-finish="${ck}">${esc(t('train.flow.finish'))}</button>`;
+    else if (flowSt === 'paused') btn = `<button type="button" class="sp-btn ini" data-pill-resume="${ck}">${esc(t('train.flow.resume'))}</button><button type="button" class="sp-btn fin" data-pill-finish="${ck}">${esc(t('train.flow.finish'))}</button>`;
+    else if (flowSt === 'open') btn = `<button type="button" class="sp-btn stop" data-pill-pause="${ck}">${esc(t('train.flow.pause'))}</button>`;
+    else btn = `<button type="button" class="sp-btn ini" data-pill-resume="${ck}">${esc(t('train.flow.resume'))}</button>`;
     const flameLeft = pct <= 8 ? '13px' : (pct >= 92 ? 'calc(100% - 13px)' : pct + '%');
-    html = `<div class="sp-main"><div class="sp-left"><div class="sp-top"><span class="sess-pill-dot" aria-hidden="true"></span><span class="sess-pill-time" id="sess-pill-time">00:00:00</span></div>`
+    html = `<div class="sp-main"><div class="sp-left"><div class="sp-top"><span class="sess-pill-dot${flowSt === 'paused' ? ' is-paused' : (curChk ? '' : ' is-todo')}" aria-hidden="true"></span><span class="sess-pill-time" id="sess-pill-time">00:00:00</span>${flowSt === 'paused' ? `<span class="sp-pause-tag">${esc(t('train.flow.pausedTag'))}</span>` : ''}</div>`
       + `<div class="sp-state"><span class="sp-training">${esc(t('sess.pillPlain'))}</span>${run.label ? `<span class="sp-day">${esc(run.label)}</span>` : ''}</div>`
       + `<div class="sp-cur">${esc(curName)}</div><div class="sp-btnrow">${btn}</div></div>`
       + (st.nxt != null ? `<div class="sp-sep" aria-hidden="true"></div><div class="sp-next"><span class="sp-next-lab">${esc(t('sess.pillNext'))}</span><span class="sp-next-name">${esc(trainExName(st.eff[st.nxt].ex) || st.eff[st.nxt].ex.name || '')}</span><span class="sp-next-pos">${esc(t('train.guide.pos', { n: st.nxt + 1, m: total }))}</span></div>` : '')
@@ -36855,7 +36879,15 @@ function sessPillSync(run) {
     pill.setAttribute('aria-label', run.label ? t('sess.pillLabel', { label: run.label }) : t('sess.pillPlain'));
   }
   const tEl = $('sess-pill-time');
-  if (tEl) tEl.textContent = sessFmtClock(Date.now() - run.start);
+  /* AUTH-434 · EL CONTADOR DE LA PÍLDORA ES EL
+     DEL EJERCICIO DE AHORA: su tiempo activo, que se
+     congela en pausa — no el del día. El cronómetro
+     del día no se toca: su registro sigue corriendo
+     por su propio camino y su elapsedSec del cierre
+     se mide como siempre. Sin estado de ejercicio
+     (la píldora degradada), el contador sigue siendo
+     el del día, como hasta hoy. */
+  if (tEl) tEl.textContent = sessFmtClock(st ? flowClockMs(st.di + ':' + st.cur) : Date.now() - run.start);
 }
 /* El cableado de la píldora gruesa: UN oyente delegado (el
    patrón delegado de la casa). «Finalizar» e «Iniciar» mutan el
@@ -36878,24 +36910,56 @@ function sessPillWire(pill) {
     const run = sessRunning(); if (!run) return;
     const fin = ev.target.closest('[data-pill-finish]');
     const ini = ev.target.closest('[data-pill-start]');
-    if (fin || ini) {
+    const pau = ev.target.closest('[data-pill-pause]');
+    const res = ev.target.closest('[data-pill-resume]');
+    if (fin || ini || pau || res) {
       const plan = (typeof MY_PLAN !== 'undefined') ? MY_PLAN : null;
       if (plan && TRAIN_CHECKS_CTX === plan.id + '|' + todayISO()) {
         if (fin) {
           const key = fin.dataset.pillFinish;
           const chk = TRAIN_CHECKS[key];
           if (chk && chk.done !== true) {
+            /* AUTH-434 · FINALIZAR SELLA EL TIEMPO
+               ACTIVO en la marca antes de entrar al
+               cierre de siempre, como en la tarjeta. */
+            flowClockBank(key);
+            trainChecksPersist(plan.id);
             TRAIN_FLOW[key] = { st: 'closing', face: (typeof chk.face === 'number') ? chk.face : null };
             if (trainGuidePref() === 'guided') TRAIN_GUIDE.pin = Number(key.split(':')[1]);
           }
-        } else {
+        } else if (ini) {
           const key = ini.dataset.pillStart;
           const [diB, eiB] = key.split(':').map(Number);
           const it = trainEffectiveList(plan, diB)[eiB];
           if (it && !(TRAIN_CHECKS[key] && TRAIN_CHECKS[key].done === true)) {
             if (!TRAIN_CHECKS[key]) { TRAIN_CHECKS[key] = { rpe: null, sets: trainDefaultSets(it.ex) }; trainChecksPersist(plan.id); }
-            TRAIN_FLOW[key] = { st: 'open', face: null };
+            TRAIN_FLOW[key] = { st: 'open', face: null, acc: (TRAIN_CHECKS[key] && typeof TRAIN_CHECKS[key].activeSec === 'number' && TRAIN_CHECKS[key].activeSec > 0) ? TRAIN_CHECKS[key].activeSec * 1000 : 0, since: Date.now() };
             if (trainGuidePref() === 'guided') TRAIN_GUIDE.pin = eiB;
+          }
+        } else if (pau) {
+          /* AUTH-434 · DETENER DE LA PÍLDORA: banca el
+             tramo vivo en la marca y congela el reloj —
+             el mismo gesto que el Detener de la tarjeta,
+             sobre el mismo estado. */
+          const key = pau.dataset.pillPause;
+          const chk = TRAIN_CHECKS[key];
+          if (chk && chk.done !== true && TRAIN_FLOW[key] && TRAIN_FLOW[key].st === 'open') {
+            flowClockBank(key);
+            TRAIN_FLOW[key].st = 'paused';
+            trainChecksPersist(plan.id);
+          }
+        } else if (res) {
+          /* AUTH-434 · SEGUIR DE LA PÍLDORA: desde la
+             pausa, abre un tramo nuevo sobre lo bancado;
+             sin estado de flujo (la app se reabrió a mitad
+             de ejercicio), lo recrea en curso con el
+             tiempo que la marca ya trae bancado. */
+          const key = res.dataset.pillResume;
+          const chk = TRAIN_CHECKS[key];
+          if (chk && chk.done !== true) {
+            if (TRAIN_FLOW[key] && TRAIN_FLOW[key].st === 'paused') { TRAIN_FLOW[key].st = 'open'; TRAIN_FLOW[key].since = Date.now(); }
+            else if (!TRAIN_FLOW[key]) TRAIN_FLOW[key] = { st: 'open', face: Number.isInteger(chk.face) ? chk.face : null, acc: (typeof chk.activeSec === 'number' && chk.activeSec > 0) ? chk.activeSec * 1000 : 0, since: Date.now() };
+            if (trainGuidePref() === 'guided') TRAIN_GUIDE.pin = Number(key.split(':')[1]);
           }
         }
       }
@@ -36957,6 +37021,50 @@ function trainBarState() {
   return { run, plan, di, checks, eff, cur, nxt: (nxt === undefined ? null : nxt) };
 }
 
+
+/* ═══ AUTH-434 · EL RELOJ DEL EJERCICIO Y SU PAUSA
+   (decisión de Ronald, 2026-11-12: la máquina de tres
+   estados de su maqueta «el botón según el momento», la
+   misma en la píldora y en la tarjeta). Hasta este
+   paquete el ejercicio en curso NO tenía reloj propio:
+   el único contador era el cronómetro del DÍA, y ese no
+   se toca — ni su registro local, ni su fila «Iniciar»,
+   ni el elapsedSec del cierre, que sigue su curso. El
+   reloj del ejercicio vive en su estado de flujo:
+   TRAIN_FLOW[key].acc son los milisegundos ya bancados y
+   .since el arranque del tramo vivo (null si no corre).
+   Pausar banca el tramo y congela la cuenta; Seguir abre
+   un tramo nuevo desde lo bancado; Finalizar banca el
+   total y lo sella en la marca como activeSec — el
+   tiempo ACTIVO del ejercicio, sin los tramos en pausa:
+   ese es su tiempo registrado. Como todo TRAIN_FLOW, la
+   pausa es estado de pantalla y no sobrevive al cierre
+   de la app: si se cierra con la pausa abierta (o a
+   mitad de un tramo), al volver el ejercicio sigue en
+   curso con lo bancado en su marca y el tramo cerrado
+   no cuenta nada. Un estado 'open' nacido sin reloj (la
+   restauración de la sesión parcial, el «Volver» del
+   cierre, el desmarque) se ancla en su primer pintado o
+   en la primera lectura de la píldora: empieza a contar
+   desde ahí, nunca hacia atrás. ═══ */
+function flowClockMs(key) {
+  const fs = TRAIN_FLOW[key] || null;
+  const chk = TRAIN_CHECKS[key] || null;
+  const seed = chk && typeof chk.activeSec === 'number' && chk.activeSec > 0 ? Math.floor(chk.activeSec) * 1000 : 0;
+  if (!fs) return seed;
+  if (typeof fs.acc !== 'number') fs.acc = seed;
+  if (fs.st === 'open' && typeof fs.since !== 'number') fs.since = Date.now();
+  return fs.acc + (typeof fs.since === 'number' ? Math.max(0, Date.now() - fs.since) : 0);
+}
+function flowClockBank(key) {
+  const fs = TRAIN_FLOW[key] || null;
+  if (!fs) return;
+  const ms = flowClockMs(key);
+  fs.acc = ms;
+  fs.since = null;
+  const chk = TRAIN_CHECKS[key] || null;
+  if (chk && ms >= 1000) chk.activeSec = Math.floor(ms / 1000);
+}
 let SESS_SURVEY = null;
 function sessSurveyOpen(elapsedSec, done) {
   const ov = $('sess-survey');
@@ -38057,6 +38165,15 @@ function trainFlowHTML(ex, di, ei) {
   const key = di + ':' + ei;
   const chk = TRAIN_CHECKS[key] || null;
   const fs = TRAIN_FLOW[key] || null;
+  /* AUTH-434 · EL RELOJ DEL EJERCICIO SE ANCLA
+     AL PINTAR: un estado 'open' nacido sin reloj (la
+     restauración de la sesión parcial, el nacimiento
+     del foco guiado, el «Volver» del cierre o el
+     desmarque lo crean sin él) empieza a contar en
+     su primer pintado, desde lo bancado en su marca
+     — el tramo anterior a este pintado no cuenta,
+     como manda la pausa. */
+  if (fs && fs.st === 'open' && typeof fs.since !== 'number') { fs.acc = (chk && typeof chk.activeSec === 'number' && chk.activeSec > 0) ? Math.floor(chk.activeSec) * 1000 : (typeof fs.acc === 'number' ? fs.acc : 0); fs.since = Date.now(); }
   const spec = [ex.sets, ex.reps].filter(Boolean).join(' × ');
   if (chk && chk.done === true) {
     /* Hecha: la línea del flujo solo añade lo que las cifras no
@@ -38091,10 +38208,24 @@ function trainFlowHTML(ex, di, ei) {
     const meta = rpeM ? `<div class="flow-meta">${esc(t('train.flow.metaRpe', { rpe: rpeM[0].replace(/^RPE\s*/i, '') }))}</div>` : '';
     return `<div class="flow-close"><div class="flow-close-q">${t('train.flow.howWas')}</div>${trainFlowFacesHTML(key, fs.face)}${meta}<button type="button" class="flow-btn is-done flow-mark" data-flow-mark="${key}">${t('train.flow.markDone')}</button></div>`;
   }
-  if (fs && fs.st === 'open' && chk) {
-    return `${trainFlowWarmCardHTML(ex, key, chk)}${trainFlowSetsHTML(ex, key, chk)}<div class="flow-row"><span class="flow-incourse">${t('train.flow.inCourse')}</span><button type="button" class="flow-btn is-finish" data-flow-finish="${key}">${t('train.flow.finish')}</button></div><div class="flow-foot"><button type="button" class="flow-mini" data-flow-swap="${key}">🔀 ${t('train.custom.swap')}</button><button type="button" class="flow-mini is-quit" data-flow-remove="${key}">${t('train.flow.removeToday')}</button></div>`;
+  /* AUTH-434 · EN PAUSA (la maqueta aprobada): el
+     reloj está congelado — su tiempo bancado vive en
+     la marca como activeSec — y la fila ofrece las
+     dos salidas: «▶ Seguir» retoma el ejercicio
+     donde iba y «Finalizar» entra al cierre de
+     siempre. Las series y la aproximación quedan a
+     la vista y editables, como en curso. */
+  if (fs && fs.st === 'paused' && chk) {
+    return `${trainFlowWarmCardHTML(ex, key, chk)}${trainFlowSetsHTML(ex, key, chk)}<div class="flow-row"><span class="flow-incourse is-paused">${t('train.flow.paused')}</span><button type="button" class="flow-btn is-start" data-flow-resume="${key}">${t('train.flow.resume')}</button><button type="button" class="flow-btn is-finish" data-flow-finish="${key}">${t('train.flow.finish')}</button></div><div class="flow-foot"><button type="button" class="flow-mini" data-flow-swap="${key}">🔀 ${t('train.custom.swap')}</button><button type="button" class="flow-mini is-quit" data-flow-remove="${key}">${t('train.flow.removeToday')}</button></div>`;
   }
-  return `<div class="flow-row"><button type="button" class="flow-btn is-start" data-flow-start="${key}">▶ ${chk ? t('train.flow.resume') : t('train.flow.start')}</button><button type="button" class="flow-btn is-finish" disabled>${t('train.flow.finish')}</button></div>`;
+  if (fs && fs.st === 'open' && chk) {
+    return `${trainFlowWarmCardHTML(ex, key, chk)}${trainFlowSetsHTML(ex, key, chk)}<div class="flow-row"><span class="flow-incourse">${t('train.flow.inCourse')}</span><button type="button" class="flow-btn is-pause" data-flow-pause="${key}">${t('train.flow.pause')}</button></div><div class="flow-foot"><button type="button" class="flow-mini" data-flow-swap="${key}">🔀 ${t('train.custom.swap')}</button><button type="button" class="flow-mini is-quit" data-flow-remove="${key}">${t('train.flow.removeToday')}</button></div>`;
+  }
+  /* AUTH-434 · SIN EMPEZAR, SOLO «INICIAR» (la
+     maqueta aprobada): el «Finalizar» atenuado que
+     acompañaba al Iniciar sale de esta fila —
+     finalizar se alcanza ahora desde la pausa. */
+  return `<div class="flow-row"><button type="button" class="flow-btn is-start" data-flow-start="${key}">▶ ${chk ? t('train.flow.resume') : t('train.flow.start')}</button></div>`;
 }
 /* LA LÍNEA DE QUITADOS (punto 5 = A, 2026-11-11): al final de la
    lista del día y de la ruta, una línea recogida por ejercicio
@@ -38171,14 +38302,42 @@ function trainFlowWire(box, plan) {
     if (!TRAIN_CHECKS[key]) TRAIN_CHECKS[key] = { rpe: null, sets: trainDefaultSets(itF.ex) };
     trainChronoTouch(plan.id, trainDayLabelOf(plan, diF));
     trainChecksPersist(plan.id);
-    TRAIN_FLOW[key] = { st: 'open', face: Number.isInteger(TRAIN_CHECKS[key].face) ? TRAIN_CHECKS[key].face : null };
+    TRAIN_FLOW[key] = { st: 'open', face: Number.isInteger(TRAIN_CHECKS[key].face) ? TRAIN_CHECKS[key].face : null, acc: (typeof TRAIN_CHECKS[key].activeSec === 'number' && TRAIN_CHECKS[key].activeSec > 0) ? TRAIN_CHECKS[key].activeSec * 1000 : 0, since: Date.now() };
     loadMyTraining();
   });
   box.querySelectorAll('[data-flow-finish]').forEach(b => b.onclick = () => {
     const key = b.dataset.flowFinish;
+    /* AUTH-434 · FINALIZAR SELLA EL TIEMPO ACTIVO:
+       el tramo vivo se banca y el total queda en la
+       marca (activeSec) antes de entrar al cierre de
+       siempre — el camino de cierre y la marca no se
+       tocan: el sellado vive en este gesto. */
+    flowClockBank(key);
+    if (TRAIN_CHECKS[key] && typeof TRAIN_CHECKS[key].activeSec === 'number') trainChecksPersist(plan.id);
     const cur = TRAIN_FLOW[key] || { st: 'open', face: null };
     const chkF = TRAIN_CHECKS[key] || null;
     TRAIN_FLOW[key] = { st: 'closing', face: cur.face != null ? cur.face : (chkF && Number.isInteger(chkF.face) ? chkF.face : null) };
+    loadMyTraining();
+  });
+  /* AUTH-434 · DETENER Y SEGUIR DE LA TARJETA — la
+     misma máquina que la píldora, sobre el mismo estado:
+     Detener banca el tramo vivo en la marca y congela el
+     reloj; Seguir abre un tramo nuevo desde lo bancado. */
+  box.querySelectorAll('[data-flow-pause]').forEach(b => b.onclick = () => {
+    const key = b.dataset.flowPause;
+    const fsP = TRAIN_FLOW[key];
+    if (!fsP || fsP.st !== 'open') return;
+    flowClockBank(key);
+    fsP.st = 'paused';
+    trainChecksPersist(plan.id);
+    loadMyTraining();
+  });
+  box.querySelectorAll('[data-flow-resume]').forEach(b => b.onclick = () => {
+    const key = b.dataset.flowResume;
+    const fsR = TRAIN_FLOW[key];
+    if (!fsR || fsR.st !== 'paused') return;
+    fsR.st = 'open';
+    fsR.since = Date.now();
     loadMyTraining();
   });
   box.querySelectorAll('[data-flow-face]').forEach(b => b.onclick = () => {
@@ -41633,6 +41792,16 @@ async function loadMyTraining() {
          con el resto de la entrada (el interior de exercisesDone
          no lo validan las reglas vivas, como markedAt). */
       if (Number.isInteger(c.face) && c.face >= 1 && c.face <= 5) e.face = c.face;
+      /* AUTH-434 · EL TIEMPO ACTIVO DEL EJERCICIO
+         viaja al registro con el resto de la entrada:
+         activeSec son los segundos trabajados, sin los
+         tramos en pausa — lo selló el reloj del ejercicio
+         al pausar y al finalizar. El interior de
+         exercisesDone no lo validan las reglas vivas (la
+         misma lectura que la cara y markedAt): sin delta
+         de reglas. Sin tiempo sellado, la entrada queda
+         byte a byte la de siempre. */
+      if (typeof c.activeSec === 'number' && isFinite(c.activeSec) && c.activeSec > 0) e.activeSec = Math.floor(c.activeSec);
       /* SERIES AÑADIDAS PENDIENTES (encargo 2026-10-30): una serie
          nacida con «+ Añadir serie» que él nunca trabajó sigue
          `pend` al cerrar — se EXCLUYE del registro: jamás cuenta
@@ -56738,7 +56907,7 @@ document.addEventListener('keydown', e => { if (e.key === 'Escape') shareClose()
  *  - El SW (sw.js) solo cachea la cáscara del mismo origen en modo
  *    RED PRIMERO: Auth/Firestore/Worker jamás pasan por la caché.
  * ================================================================ */
-const PWA_SW_VERSION = '20261112-foco-se-libera';
+const PWA_SW_VERSION = '20261112-pausa-pildora';
 /* Sello de versión VISIBLE (2026-11-03): el pie de la tarjeta de
    acceso enseña qué copia corre este teléfono ('v ' + el sello),
    para comprobar de un vistazo si la versión nueva ya llegó.
