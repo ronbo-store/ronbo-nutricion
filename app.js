@@ -6259,6 +6259,7 @@ en: {
   'train.noLogs': 'No sessions logged yet.',
   'train.burnSession': 'Session ≈ {n} kcal',
   'train.burnExtras': 'Extras ≈ {n} kcal',
+  'train.burnWarmup': 'Warm-up ≈ {n} kcal',
   'train.daysCount': '{n} days', 'train.exCount': '{n} exercises',
   'train.gate.checking': 'Checking this client’s health declaration status…',
   'train.gate.ok': '🏥 Health declaration: this client has a valid declaration on file.',
@@ -7817,6 +7818,7 @@ en: {
   'act.burnedTotal': 'Estimated burn',
   'act.burnedTrainLine': 'Workout session: {min} min · {int} · ≈ {kcal} kcal',
   'act.burnedActsLine': 'Other extra activities: ≈ {kcal} kcal',
+  'act.burnedCardioLine': 'Cardio warm-up (machine reading): ≈ {kcal} kcal',
   'act.burnedEstNote': 'The session burn is an estimate (Compendium of Physical Activities MET values): it guides you, it is not a measurement — your real burn varies with rest between sets and the muscles involved.',
   'act.burnedOverlapNote': 'ℹ️ If the activity level behind your usual expenditure already counted your gym days, part of this burn may also be reflected there. This figure is information about your process; it is not added to any goal.',
   'act.dayTotalRef': 'Estimated total for the day (reference)',
@@ -11161,6 +11163,7 @@ es: {
   'train.noLogs': 'Aún no hay sesiones registradas.',
   'train.burnSession': 'Sesión ≈ {n} kcal',
   'train.burnExtras': 'Extras ≈ {n} kcal',
+  'train.burnWarmup': 'Calentamiento ≈ {n} kcal',
   'train.daysCount': '{n} días', 'train.exCount': '{n} ejercicios',
   'train.gate.checking': 'Comprobando el estado de la declaración de salud de este cliente…',
   'train.gate.ok': '🏥 Declaración de salud: este cliente tiene una declaración vigente registrada.',
@@ -12720,6 +12723,7 @@ es: {
   'act.burnedTotal': 'Quemado estimado',
   'act.burnedTrainLine': 'Sesión de entrenamiento: {min} min · {int} · ≈ {kcal} kcal',
   'act.burnedActsLine': 'Otras actividades extra: ≈ {kcal} kcal',
+  'act.burnedCardioLine': 'Calentamiento cardiovascular (lectura de la máquina): ≈ {kcal} kcal',
   'act.burnedEstNote': 'El quemado de la sesión es una estimación (valores MET del Compendio de Actividades Físicas): te guía, no es una medición — tu quemado real varía con los descansos entre series y los músculos involucrados.',
   'act.burnedOverlapNote': 'ℹ️ Si el nivel de actividad detrás de tu gasto habitual ya contaba tus días de gimnasio, parte de este quemado puede estar reflejada también allí. Esta cifra es información sobre tu proceso; no se suma a ninguna meta.',
   'act.dayTotalRef': 'Total estimado del día (referencia)',
@@ -38741,18 +38745,26 @@ function trainShareModel(plan, logs, di, iso) {
        plan o foto_url de la biblioteca por exerciseId). */
     return { name: trainExName(ex), detail: ex.note ? (spec ? spec + ' · ' + ex.note : ex.note) : spec, done: doneSet.has(ei), photo: trainExPhoto(ex) || '', aprox: aproxList[ei] || null };
   });
-  /* LLAMITA EN LA TARJETA (2026-10-27, pedido de Ronald): el quemado
-     del día sale de LA MISMA fuente que la llamita de la app —
-     actDayView(iso).extras, el kcalExtraTotal guardado del día
-     (sesión cerrada estimada + actividades manuales sumables) — sin
-     un segundo cálculo y con su mismo redondeo. Solo hay cifra si
-     existe de verdad: módulo sin cargar, día sin registro o total 0
-     (p. ej. sesión cerrada sin duración y sin actividades) → null y
-     la tarjeta NO pinta la línea: nada de ceros inventados. */
+  /* LLAMITA EN LA TARJETA (2026-10-27, pedido de Ronald; fuente
+     renovada por AUTH-437): el quemado del día sale de LA
+     MISMA fuente que la llamita de la app — actDayView(iso).burned
+     (los extras guardados del día MÁS las kcal de máquina del
+     calentamiento, si las hubo) — sin un segundo cálculo y con su
+     mismo redondeo. La tarjeta NO cambia en nada más: su fila del
+     calentamiento (AUTH-426) viaja en su campo propio, sin sumar
+     al total de ejercicios, y el «X de Y» y el % cuentan solo
+     ejercicios, como siempre; lo único que sigue a la fuente es
+     esta línea 🔥, que por su contrato de siempre ES la cifra de
+     la llamita — congelarla en los extras viejos habría dejado
+     dos llamas distintas para el mismo día. Solo hay cifra si
+     existe de verdad: módulo sin cargar, día sin registro o total
+     0 (p. ej. sesión cerrada sin duración, sin actividades y sin
+     kcal de máquina en el calentamiento) → null y la tarjeta NO
+     pinta la línea: nada de ceros inventados. */
   let burnedKcal = null;
   if (ACT_LOADED) {
     const bv = actDayView(iso);
-    if (bv && bv.extras > 0) burnedKcal = Math.round(bv.extras);
+    if (bv && bv.burned > 0) burnedKcal = Math.round(bv.burned);
   }
   /* AUTH-426 · LA TARJETA DE COMPARTIR HONESTA (regla de
      Ronald, 2026-11-12): a la tarjeta solo suben los ejercicios
@@ -38803,8 +38815,12 @@ function trainShareRowHTML(di, iso) {
    warmup de aproximación a propósito: dos conceptos que no se
    mezclan). «No» = ausencia de dato. Sin reglas nuevas (la
    regla viva de training_logs no cierra las claves del
-   documento) y SIN sumar a la llamita: esa pregunta quedó
-   abierta y sin decidir — este paquete no la toca. ═══ */
+   documento). Al nacer (AUTH-426) este bloque NO sumaba a la
+   llamita: esa pregunta quedó abierta entonces; la decidió
+   Ronald el 2026-11-12 14:25 CST («Sí — suma a la llamita,
+   solo con las kcal de la máquina») y desde AUTH-437 las
+   kcal de máquina de este bloque SÍ suman a la llamita, por la
+   fuente única de actDayView. ═══ */
 const TRAIN_CARDIO_MODES = [
   { id: 'bike', icon: '🚴', dist: 'km', kcal: true },
   { id: 'walk', icon: '🚶', dist: 'km', kcal: true },
@@ -42567,17 +42583,32 @@ async function loadClientTraining(uid) {
      no se pinta nada (nada de ceros inventados); el desglose
      sesión/extras solo se pinta cuando el sessionKcal del registro
      permite derivarlo sin mentir (si falta, o el total vigente ya
-     quedó por debajo de la sesión, se pinta solo el total). */
+     quedó por debajo de la sesión, se pinta solo el total).
+     AUTH-437: el total suma ADEMÁS las kcal que la máquina
+     marcó en el calentamiento de ESE registro (su bloque
+     «cardioWarmup», leído por la vista normalizada de la casa,
+     trainCardioFromLog) — la misma fuente que la llamita del
+     alumno desde este paquete — y el desglose las nombra en su
+     propio segmento (train.burnWarmup), fuera de los extras de
+     actividad, para que sesión + extras + calentamiento sumen
+     el total sin mezclar conceptos. */
   const logBurn = l => {
     const d = actByDate[l.date];
-    const total = d ? Math.round(num(d.kcalExtraTotal)) : 0;
+    /* AUTH-437: las kcal de máquina del calentamiento de
+       ESTE registro suman al total, como en la llamita del
+       alumno (la fuente única es por día; la ficha pinta por
+       registro y el bloque viaja en el propio registro). */
+    const cwLog = trainCardioFromLog(l.cardioWarmup);
+    const cwKcal = cwLog && cwLog.kcal ? Math.round(cwLog.kcal) : 0;
+    const total = (d ? Math.round(num(d.kcalExtraTotal)) : 0) + cwKcal;
     if (!(total > 0)) return '';
     const ses = (typeof l.sessionKcal === 'number' && isFinite(l.sessionKcal)) ? Math.round(l.sessionKcal) : null;
     let parts = '';
     if (ses !== null && ses > 0 && total >= ses) {
       const seg = [t('train.burnSession', { n: fmt(ses) })];
-      const ext = total - ses;
+      const ext = total - ses - cwKcal;
       if (ext > 0) seg.push(t('train.burnExtras', { n: fmt(ext) }));
+      if (cwKcal > 0) seg.push(t('train.burnWarmup', { n: fmt(cwKcal) }));
       parts = ` <span class="muted">${seg.join(' · ')}</span>`;
     }
     return `<br><span class="act-flame-ico" aria-hidden="true">🔥</span> <span class="act-flame-num">${fmt(total)} ${t('act.kcalUnit')}</span>${parts}`;
@@ -47534,11 +47565,40 @@ function actBaseInfo() {
 function actDayView(date) {
   const d = ACT_LOGS[date] || null;
   const acts = d ? d.activities : [];
+  const extras = d ? num(d.kcalExtraTotal) : 0;
+  /* AUTH-437 · EL CALENTAMIENTO SUMA A LA LLAMITA
+     (decisión de Ronald, 2026-11-12 14:25 CST: «Sí — suma a la
+     llamita, solo con las kcal de la máquina»): LA cifra del
+     quemado del día — la de la llamita, con una sola fuente y
+     un solo cálculo — es «burned»: los extras guardados de
+     actividad (extras, el kcalExtraTotal de siempre) MÁS las
+     calorías que la máquina marcó en el calentamiento
+     cardiovascular de las sesiones cerradas de ese día
+     (cardioKcal), leídas del bloque «cardioWarmup» de
+     training_logs por la vista normalizada de la casa
+     (trainCardioFromLog: solo la modalidad que admite kcal y
+     solo si la máquina las marcó). La app NUNCA estima esas
+     calorías: sin lectura de máquina no hay campo y no suma
+     nada — sin kcal de máquina, cardioKcal es 0 y burned es
+     extras, el cálculo de siempre, byte a byte. La cifra se
+     DERIVA del registro en cada lectura (no se escribe en
+     ningún documento): editar el calentamiento de un día
+     cerrado re-deriva la llamita sola. La racha no pasa por
+     aquí: lee sus booleanos de training_logs y activity_logs,
+     no esta cifra (STREAK_WEIGHTS intactos). */
+  let cardioKcal = 0;
+  for (const l of shareLogsAll()) {
+    if (!l || l.date !== date) continue;
+    const cv = trainCardioFromLog(l.cardioWarmup);
+    if (cv && cv.kcal) cardioKcal += cv.kcal;
+  }
   return { doc: d,
     steps: d ? num(d.steps) : 0,
     stepKcal: d ? num(d.stepKcal) : 0,
     stepKm: d ? num(d.stepKm) : 0,
-    extras: d ? num(d.kcalExtraTotal) : 0,
+    extras,
+    cardioKcal,
+    burned: actRound1(extras + cardioKcal),
     movTotal: actRound1((d ? num(d.stepKcal) : 0)
       + acts.reduce((s, a) => s + num(a.kcalEstimated), 0)),
     planDone: Array.isArray(MY_LOGS) && MY_LOGS.some(l => l.date === date && l.done === true),
@@ -47655,9 +47715,12 @@ function renderActFlame(date) {
   const f = $('act-flame'); if (!f) return;
   if (!ACT_LOADED) { f.style.display = 'none'; return; }
   const v = actDayView(date);
+  /* AUTH-437: la llamita pinta v.burned — la fuente única
+     de actDayView (extras de actividad + las kcal de máquina
+     del calentamiento, si las hubo). */
   f.style.display = '';
   const num = $('act-flame-num');
-  if (num) num.textContent = fmt(Math.round(v.extras));
+  if (num) num.textContent = fmt(Math.round(v.burned));
   const lab = $('act-flame-lab');
   if (lab) lab.textContent = t('act.flameBurned');
   /* ARMONÍA DE FLOTANTES (2026-10-29): dentro del disco el rótulo
@@ -47665,7 +47728,7 @@ function renderActFlame(date) {
      y título del botón, compuesto con las claves de siempre y
      refrescado en este mismo pintado (también al cambiar de
      idioma, que llega aquí vía refreshDynamic → renderActivity). */
-  const full = fmt(Math.round(v.extras)) + ' ' + t('act.kcalUnit') + ' ' + t('act.flameBurned');
+  const full = fmt(Math.round(v.burned)) + ' ' + t('act.kcalUnit') + ' ' + t('act.flameBurned');
   f.setAttribute('aria-label', full); f.title = full;
 }
 
@@ -47873,11 +47936,12 @@ function renderActDay(date) {
   const otherKcal = actRound1(v.extras - sessKcal);
   const burnedSec = `<div class="act-sec">
       <h4 class="act-sec-title">${t('act.burnedTitle')}</h4>
-      <div class="act-line act-total"><span>${t('act.burnedTotal')}</span><b id="act-burned-total">≈ ${fmt(Math.round(v.extras))} ${t('act.kcalUnit')}</b></div>
+      <div class="act-line act-total"><span>${t('act.burnedTotal')}</span><b id="act-burned-total">≈ ${fmt(Math.round(v.burned))} ${t('act.kcalUnit')}</b></div>
       ${sessEntry ? `<div class="act-line"><span>${t('act.burnedTrainLine', { min: Math.floor(num(sessEntry.durationMin)), int: t('act.int.' + sessEntry.intensity), kcal: fmt(sessKcal) })}</span></div>
       <p class="act-note">${t('act.burnedEstNote')}</p>
       <p class="act-note">${t('act.burnedOverlapNote')}</p>` : ''}
       ${otherKcal > 0 ? `<div class="act-line"><span>${t('act.burnedActsLine', { kcal: fmt(otherKcal) })}</span></div>` : ''}
+      ${v.cardioKcal > 0 ? `<div class="act-line"><span>${t('act.burnedCardioLine', { kcal: fmt(v.cardioKcal) })}</span></div>` : ''}
     </div>`;
   const secsHtml = [burnedSec, daySec, habSec, stepsSec, sleepSec, listSec, sumsSec].join('\n    ');
   box.innerHTML = `
@@ -55950,17 +56014,19 @@ function shareShortData() {
     });
   }
   /* LA LLAMITA: la cifra que la propia llamita muestra —
-     actDayView(iso).extras, el kcalExtraTotal GUARDADO del día (la
-     estimación de la sesión al cerrar + las actividades con su
-     kcalEstimated, calculadas al guardar por el modelo de la casa).
-     Es la misma fuente de la tarjeta «Mi entrenamiento»
+     actDayView(iso).burned, la fuente única del quemado del día
+     (el kcalExtraTotal GUARDADO — la estimación de la sesión al
+     cerrar + las actividades con su kcalEstimated, calculadas al
+     guardar por el modelo de la casa — MÁS las kcal que la
+     máquina marcó en el calentamiento, AUTH-437). Es la
+     misma fuente de la tarjeta «Mi entrenamiento»
      (trainShareModel). Si ese total es 0 pero hay minutos o pasos
      registrados, la tarjeta los dice SIN inventar calorías; si no
      hay nada, lo dice en simple. */
   let flame = { kind: 'none', kcal: 0, mins: 0, steps: 0 };
   if (typeof ACT_LOADED !== 'undefined' && ACT_LOADED && typeof actDayView === 'function') {
     const v = actDayView(iso);
-    if (v && v.extras > 0) flame = { kind: 'kcal', kcal: Math.round(v.extras), mins: 0, steps: 0 };
+    if (v && v.burned > 0) flame = { kind: 'kcal', kcal: Math.round(v.burned), mins: 0, steps: 0 };
     else {
       const mins = shareActMinutes(iso);
       const steps = v ? v.steps : 0;
@@ -55992,7 +56058,7 @@ function shareShortData() {
    11-03: «La B»): la foto del alumno a toda pantalla, franja de
    marca arriba y panel oscuro de datos abajo. Los DATOS son los de
    AUTH-204 (shareShortData) sin un solo cálculo nuevo: ejercicios
-   en el orden entrenado, la llamita del kcalExtraTotal guardado y
+   en el orden entrenado, la llamita de la fuente única de actDayView y
    la ruedita de shareGoalsData; los textos honestos de bloque vacío
    son los mismos de AUTH-204 bajo la piel nueva. Las filas pintan
    el peso en la unidad del alumno y en grande (fmtMass), como la
@@ -56836,7 +56902,7 @@ document.addEventListener('keydown', e => { if (e.key === 'Escape') shareClose()
  *  - El SW (sw.js) solo cachea la cáscara del mismo origen en modo
  *    RED PRIMERO: Auth/Firestore/Worker jamás pasan por la caché.
  * ================================================================ */
-const PWA_SW_VERSION = '20261112-correo-consentimiento';
+const PWA_SW_VERSION = '20261112-calentamiento-llamita';
 /* Sello de versión VISIBLE (2026-11-03): el pie de la tarjeta de
    acceso enseña qué copia corre este teléfono ('v ' + el sello),
    para comprobar de un vistazo si la versión nueva ya llegó.
