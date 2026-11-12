@@ -38929,6 +38929,34 @@ function tfWheelSettleRow(row, kind) {
 function tfWheelPick(body, kind, wv) {
   const row = tfWheelRow();
   if (!row) return;
+  /* AUTH-422 · LA RUEDA NO MARCA AL MIRAR (hallazgo de la
+     preparación de la Entrada P2, 2026-11-11; en la lista de
+     Ronald y ordenado con su «Hazlo todo» del 2026-11-12): al
+     abrirse, la ventana se centra sobre los valores actuales y
+     su asentamiento por scroll (140 ms, de AUTH-376) volvía a
+     escoger ESE MISMO valor por esta función — y escogerlo
+     aplicaba la disciplina entera de AUTH-371: el campo quedaba
+     PROPIO (su marca de sugerido, limpiada), la fila sellaba su
+     hora y la cadena de sugeridas se rompía en silencio con
+     solo abrir la rueda «para mirar». Desde aquí, escoger el
+     valor que la fila YA tiene — leído en términos de la rueda,
+     con la lectura de tfWheelMarkSel: reps vacío se lee «0» y
+     la carga se lee por tfWheelLoadValOf (sin valor, «») — no
+     hace NADA: ni escribe, ni marca, ni sella, ni propaga, ni
+     espeja. Girar a OTRO valor sigue por este mismo camino de
+     siempre, byte a byte. La aplicación del panel de discos
+     (TF_PLATES_APPLY) queda FUERA de la guardia: su toque es
+     deliberado aunque el total coincida, porque lo que trae
+     es el desglose, no el número. */
+  if (!TF_PLATES_APPLY) {
+    if (kind === 'reps') {
+      const curR = String(row.repsDone == null ? '' : row.repsDone);
+      if (String(wv) === (curR === '' ? '0' : curR)) return;
+    } else {
+      const curL = tfWheelLoadValOf(row);
+      if (String(wv) === (curL == null ? '' : String(curL))) return;
+    }
+  }
   if (kind === 'reps') row.repsDone = String(wv);
   else {
     TF_WHEEL_GUARD = null;
@@ -55965,7 +55993,7 @@ document.addEventListener('keydown', e => { if (e.key === 'Escape') shareClose()
  *  - El SW (sw.js) solo cachea la cáscara del mismo origen en modo
  *    RED PRIMERO: Auth/Firestore/Worker jamás pasan por la caché.
  * ================================================================ */
-const PWA_SW_VERSION = '20261112-guardar-a-metricas';
+const PWA_SW_VERSION = '20261112-rueda-no-marca';
 /* Sello de versión VISIBLE (2026-11-03): el pie de la tarjeta de
    acceso enseña qué copia corre este teléfono ('v ' + el sello),
    para comprobar de un vistazo si la versión nueva ya llegó.
