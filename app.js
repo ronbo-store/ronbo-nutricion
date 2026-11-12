@@ -7857,6 +7857,8 @@ en: {
   'share.format11': 'Post 1:1',
   'share.send': 'Share',
   'share.download': 'Download PNG',
+  'share.dlTitle': 'Your image is ready',
+  'share.dlHint': 'Press and hold the image, then tap “Save to Photos”. Or tap Share and save it from there.',
   'share.noShare': 'Direct sharing is not available on this device — use Download.',
   'share.privNote': 'Only your progress goes on the card: no weight, no measurements, no photos.',
   'share.transAlignNote': 'The two photos are aligned to the same size and straightened with AI (2 of your AI uses); if that is not possible, they appear exactly as taken.',
@@ -12715,6 +12717,8 @@ es: {
   'share.format11': 'Publicación 1:1',
   'share.send': 'Compartir',
   'share.download': 'Descargar PNG',
+  'share.dlTitle': 'Tu imagen está lista',
+  'share.dlHint': 'Mantén pulsada la imagen y toca «Guardar en Fotos». O toca Compartir y guárdala desde ahí.',
   'share.noShare': 'Este dispositivo no permite compartir directo: usa Descargar.',
   'share.privNote': 'En la tarjeta solo sale tu avance: sin peso, sin medidas, sin fotos.',
   'share.transAlignNote': 'Las dos fotos se alinean al mismo tamaño y se enderezan con IA (2 usos de tu fondo); si no se puede, salen tal cual fueron tomadas.',
@@ -55245,11 +55249,42 @@ async function shareSend() {
 }
 function shareDownload() {
   if (!SHARE.blob) return;
+  /* En iOS la entrega por clic de <a download> con URL blob: no
+     llega como imagen: el visor del navegador la abre como un
+     documento vacío (informe del correctivo de la descarga,
+     2026-11-11). Ahí la imagen se abre en un visor dentro de la
+     propia app, viva mientras el visor está abierto, y se guarda
+     en Fotos con la pulsación larga o con Compartir. */
+  if (shareDlOnIOS()) { shareImgViewOpen(); return; }
   const url = URL.createObjectURL(SHARE.blob);
   const a = document.createElement('a');
   a.href = url; a.download = SHARE.fileName;
   document.body.appendChild(a); a.click(); a.remove();
   setTimeout(() => { try { URL.revokeObjectURL(url); } catch (e) {} }, 4000);
+}
+/* Visor de la imagen lista (solo iOS): su URL blob: vive lo que
+   dure el visor abierto — sin temporizador — y se revoca al
+   cerrar o al abrir otra imagen. 414 */
+const SHARE_DLVIEW = { url: null };
+function shareDlOnIOS() { return typeof pwaIsIOSDevice === 'function' && pwaIsIOSDevice(); }
+function shareImgViewForget() {
+  if (SHARE_DLVIEW.url) { try { URL.revokeObjectURL(SHARE_DLVIEW.url); } catch (e) {} SHARE_DLVIEW.url = null; }
+}
+function shareImgViewOpen() {
+  if (!SHARE.blob) return;
+  const f = $('share-imgview'); if (!f) return;
+  shareImgViewForget();
+  SHARE_DLVIEW.url = URL.createObjectURL(SHARE.blob);
+  const im = $('share-imgview-img');
+  if (im) { im.src = SHARE_DLVIEW.url; im.alt = SHARE.fileName || 'ronbo-fit.png'; }
+  const sh = $('btn-shareimg-send'); if (sh) sh.style.display = shareCanShare() ? '' : 'none';
+  dockHome(f);
+  f.style.display = '';
+}
+function shareImgViewClose() {
+  const f = $('share-imgview'); if (f) f.style.display = 'none';
+  const im = $('share-imgview-img'); if (im) im.removeAttribute('src');
+  shareImgViewForget();
 }
 function shareSyncTypeUI() {
   const f = $('share-float'); if (!f) return;
@@ -55326,6 +55361,8 @@ document.addEventListener('keydown', e => { if (e.key === 'Escape') { const f = 
 { const b = $('btn-share-f11'); if (b) b.addEventListener('click', () => shareSetFormat('11')); }
 { const b = $('btn-share-send'); if (b) b.addEventListener('click', shareSend); }
 { const b = $('btn-share-download'); if (b) b.addEventListener('click', shareDownload); }
+{ const b = $('btn-shareimg-close'); if (b) b.addEventListener('click', shareImgViewClose); }
+{ const b = $('btn-shareimg-send'); if (b) b.addEventListener('click', shareSend); }
 { const b = $('btn-share-dayphoto'); if (b) b.addEventListener('click', () => { const i = $('share-dayphoto-file'); if (i) i.click(); }); }
 { const b = $('btn-share-dayphoto-remove'); if (b) b.addEventListener('click', () => { shareDayPhotoRemove(); shareDayPhotoSync(); shareRender(); }); }
 { const i = $('share-dayphoto-file'); if (i) i.addEventListener('change', async e => {
@@ -55358,7 +55395,7 @@ document.addEventListener('keydown', e => { if (e.key === 'Escape') shareClose()
  *  - El SW (sw.js) solo cachea la cáscara del mismo origen en modo
  *    RED PRIMERO: Auth/Firestore/Worker jamás pasan por la caché.
  * ================================================================ */
-const PWA_SW_VERSION = '20261112-arrastrar-recorrido';
+const PWA_SW_VERSION = '20261112-png-resumen-ios';
 /* Sello de versión VISIBLE (2026-11-03): el pie de la tarjeta de
    acceso enseña qué copia corre este teléfono ('v ' + el sello),
    para comprobar de un vistazo si la versión nueva ya llegó.

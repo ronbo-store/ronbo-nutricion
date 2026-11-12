@@ -21,7 +21,7 @@
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-title" content="RONBO FIT">
 <meta name="apple-mobile-web-app-status-bar-style" content="default">
-<link rel="stylesheet" href="styles.css?v=20261112-arrastrar-recorrido">
+<link rel="stylesheet" href="styles.css?v=20261112-png-resumen-ios">
 <script defer src="https://cloud.umami.is/script.js" data-website-id="a29706d4-44a2-47cf-900a-5f74d74abfa8"></script>
 <script type="importmap">
 {
@@ -1423,6 +1423,22 @@ cuando no hay declaración legible (decisión 5). -->
       <button type="button" class="btn-secondary btn-sm" id="btn-share-download" data-i18n="share.download">Download PNG</button>
     </div>
   </div>
+  <!-- VISOR DE LA IMAGEN LISTA (414): en iOS el botón
+       «descargar en PNG» abre la imagen aquí dentro, viva mientras
+       el visor está abierto; se guarda en Fotos con la pulsación
+       larga sobre la imagen o con el botón Compartir de esta hoja.
+       Fuera de iOS la descarga sigue siendo la de siempre. -->
+  <div class="act-float act-sheet" id="share-imgview" style="display:none" role="dialog" aria-label="Your image is ready" data-i18n-aria="share.dlTitle">
+    <div class="pend-head">
+      <h2 data-i18n="share.dlTitle">Your image is ready</h2>
+      <button type="button" class="pend-close" id="btn-shareimg-close" aria-label="Close" data-i18n-aria="client.close">✕</button>
+    </div>
+    <div class="share-imgview-stage"><img id="share-imgview-img" alt="ronbo-fit.png"></div>
+    <p class="progress-hint" data-i18n="share.dlHint">Press and hold the image, then tap “Save to Photos”. Or tap Share and save it from there.</p>
+    <div class="ai-actions">
+      <button type="button" class="btn-main btn-sm" id="btn-shareimg-send" data-i18n="share.send">Share</button>
+    </div>
+  </div>
   <!-- PUERTA FALSA «Camera Coach» (AUTH-2026-10-28-071): hoja de la
        tarjeta #fdcam-box. Dice la verdad: la función aún no está
        disponible; confirmar escribe SOLO {fdCamAt} en el propio
@@ -2356,6 +2372,6 @@ cuando no hay declaración legible (decisión 5). -->
 <div id="toast" class="toast"></div>
 <div id="print-card" aria-hidden="true"></div>
 
-<script type="module" src="app.js?v=20261112-arrastrar-recorrido"></script>
+<script type="module" src="app.js?v=20261112-png-resumen-ios"></script>
 </body>
 </html>

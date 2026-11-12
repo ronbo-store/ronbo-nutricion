@@ -1389,6 +1389,11 @@ div > .btn-ghost:only-child, div > .btn-main:only-child {
 .share-fmt .btn-ghost[aria-pressed="true"] { background: #0d9488; border-color: #0d9488; color: #fff; }
 .share-preview { margin: 10px auto 6px; max-width: 300px; }
 .share-preview canvas { display: block; width: 100%; height: auto; border-radius: 14px; box-shadow: 0 14px 34px rgba(15, 23, 42, .28); background: #00ACA1; }
+/* Visor de la imagen lista (414): la imagen entera a la
+   vista, contenida por alto en las tarjetas verticales y por
+   ancho en las cuadradas, con el mismo marco de la vista previa. */
+.share-imgview-stage { display: flex; justify-content: center; margin: 10px auto 6px; }
+.share-imgview-stage img { display: block; max-width: 100%; max-height: 58dvh; width: auto; height: auto; border-radius: 14px; box-shadow: 0 14px 34px rgba(15, 23, 42, .28); background: #00ACA1; }
 /* ✕ compartida en TODAS las hojas superpuestas (2026-10-24, orden de
    Ronald): la misma .pend-close de las hojas flotantes, fijada en la
    esquina superior derecha de la cabecera — en los modales (cuyo
