@@ -37811,10 +37811,26 @@ function trainFlowSetsHTML(ex, key, chk) {
   const crit0 = sets.length ? trainTimedOf(ex, sets[0]) : null;
   const head = (!crit0 || trainTimedHasLoad(ex))
     ? `<div class="train-sets-unit"><span class="train-sets-unit-lab">${esc(t('units.mass'))}${esc(loadKindHeadSuffix(ex))}</span>${trainUnitSelHTML()}</div>` : '';
+  /* AUTH-427 · «+ AÑADIR SERIE» TAMBIÉN EN LA TARJETA:
+     la fila de acciones de la hoja (.tf-sets-actions) con su
+     botón gemelo, bajo las series de trabajo — la tarjeta
+     heredó las pastillas (AUTH-416) y el botoncito del
+     cronómetro (AUTH-417), pero nunca esta puerta, y el
+     trabajo vive en la tarjeta desde AUTH-406: era el mismo
+     escondite que sufrió la aproximación. La misma condición
+     de la hoja (la marca viva y menos de 12 series) y el
+     mismo texto (train.sets.add); el ✕ de quitar serie NO
+     viaja con este paquete — queda como decisión aparte.
+     El cableado vive en trainFlowWire (data-flow-set-add) y
+     cumple el mismo contrato que la hoja por su espejo:
+     push de la serie pendiente, la sugerencia por campos y
+     el guardado al acto. */
+  const addRowF = (chk && Array.isArray(chk.sets) && sets.length < 12)
+    ? `<div class="tf-sets-actions"><button type="button" class="btn-ghost btn-sm" data-flow-set-add="${key}">${t('train.sets.add')}</button></div>` : '';
   return `${head}<div class="train-sets">${sets.map((s, si) => `
       <div class="train-set-row${s.pend === true ? ' is-sug' : ''}"><span class="train-set-n">${t('train.d.set')} ${si + 1}${s.repsPlanned ? ` · ${esc(s.repsPlanned)}` : ''}${s.pend === true ? ` <span class="tf-sug-tag">${esc(t('train.sets.suggested'))}</span>` : ''}</span>
         <span class="tf-chips" data-tf-chips="card:${key}:${si}">${tfChipsHTML('card:' + key, si, s, ex)}</span></div>`).join('')}
-    </div>`;
+    </div>${addRowF}`;
 }
 function trainFlowFacesHTML(key, selFace) {
   return `<div class="flow-faces">${[1, 2, 3, 4, 5].map(n => `<button type="button" class="flow-face${selFace === n ? ' sel' : ''}" data-flow-face="${key}:${n}" aria-pressed="${selFace === n ? 'true' : 'false'}"><img src="${FLOW_FACE_URLS[n - 1]}" alt="" loading="lazy" onerror="this.remove()"><b>${t('train.flow.band.' + n)}</b><span>${t('train.flow.face.' + n)}</span></button>`).join('')}</div>`;
@@ -38023,6 +38039,24 @@ function trainFlowWire(box, plan) {
   box.querySelectorAll('[data-flow-restore]').forEach(b => b.onclick = () => {
     const [diF, slotF] = String(b.dataset.flowRestore).split(':').map(Number);
     trainSessionRestoreSlot(plan, diF, slotF, (typeof TRAIN_VIEW !== 'undefined' && TRAIN_VIEW) ? TRAIN_VIEW.sel : undefined);
+  });
+  box.querySelectorAll('[data-flow-set-add]').forEach(b => b.onclick = () => {
+    /* AUTH-427 · «+ AÑADIR SERIE» EN LA TARJETA: el
+       mismo contrato que la hoja cumple por su espejo — push
+       de la serie PENDIENTE (nace «Sugerida») sobre la marca
+       viva, la sugerencia por campos de AUTH-371 sobre la
+       lista de la tarjeta (tfSuggestApplySets, la disciplina
+       única desde AUTH-416) y el guardado al acto con
+       trainChecksPersist; el repintado es el del flujo,
+       loadMyTraining. El tope es el de la hoja: 12 series
+       vivas, se venga de donde se venga. */
+    const chkA = TRAIN_CHECKS[b.dataset.flowSetAdd];
+    if (!chkA || !Array.isArray(chkA.sets)) return;
+    if (chkA.sets.length >= 12) return;
+    chkA.sets.push({ repsPlanned: '', repsDone: '', loadVal: '', pend: true });
+    tfSuggestApplySets(chkA.sets);
+    trainChecksPersist(plan.id);
+    loadMyTraining();
   });
   /* AUTH-416 · LA ENTRADA DE APROXIMACIÓN EN TODAS LAS
      SERIES: las pastillas de cada serie de la tarjeta/foco se
@@ -56430,7 +56464,7 @@ document.addEventListener('keydown', e => { if (e.key === 'Escape') shareClose()
  *  - El SW (sw.js) solo cachea la cáscara del mismo origen en modo
  *    RED PRIMERO: Auth/Firestore/Worker jamás pasan por la caché.
  * ================================================================ */
-const PWA_SW_VERSION = '20261112-calentamiento-cardio';
+const PWA_SW_VERSION = '20261112-anadir-serie-foco';
 /* Sello de versión VISIBLE (2026-11-03): el pie de la tarjeta de
    acceso enseña qué copia corre este teléfono ('v ' + el sello),
    para comprobar de un vistazo si la versión nueva ya llegó.
