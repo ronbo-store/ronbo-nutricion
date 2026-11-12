@@ -5939,3 +5939,36 @@ body.swap-sheet-open .asst-fab { display: none !important; }
    overflow:hidden en línea (lo pone y lo retira el gesto, app.js) y
    todo se restaura al soltar o al cancelarse el gesto. == */
 body.train-drag-lock { overflow: hidden; overscroll-behavior: none; }
+
+/* ════════════════════════════════════════════════════════════════
+   HOJAS MÁS ANCHAS EN PANTALLAS ANCHAS (AUTH-420; DECISIÓN E)
+   Decisión de Ronald, 2026-11-11 22:52 CST: «Levantar el tope a
+   640 en pantallas anchas», sobre la maqueta medida de la
+   decisión E (maqueta-ancho-hojas-2026-11-11/).
+   La familia de hojas flotantes de la casa nació con el tope
+   width: min(430px, calc(100vw - 24px)) en CINCO reglas gemelas
+   (.act-float, .pend-float, .ring-detail, .tf-wheel-card y
+   .sess-survey-card): en el plegable DESPLEGADO de Ronald y en
+   tabletas cada hoja quedaba como una columna de teléfono de
+   430 px flotando en el centro (43,0 % a 1000 px; 35,8 % a
+   1200 px). En bandas anchas (≥720 px) el tope sube a 640 px
+   para las cinco: a 1000 la hoja pasa a 640 px (64,0 %) y su
+   contenido útil de 396 a 606 px — la foto del ejercicio crece
+   de 248 a 379 px de alto y los textos dan menos vueltas de
+   línea —, quedando 180 px de velo por lado: sigue leyéndose
+   como una hoja sobre la app, no como una página. Por debajo
+   de 720 px esta regla no existe y NADA cambia: a esos anchos
+   manda 100vw − 24 y las geometrías estrechas ya verificadas
+   quedan byte a byte como hoy.
+   Alcance cerrado: SOLO estas cinco clases y SOLO el ancho. La
+   píldora de la sesión (#sess-pill), que lleva la misma fórmula
+   de 430 por su cuenta, NO es una hoja y no se toca; tampoco
+   las excepciones con ancho propio (.modal, .yt-card,
+   .install-card, .ex-media-card, .faq-panel, .signup-card) ni
+   el visor de fotos y el cronómetro de pantalla completa. La
+   hoja de pasatiempos (#act-float) hereda su ancho en bandas
+   anchas de la regla base .act-float y también se ensancha,
+   como declaró la maqueta aprobada. ════ */
+@media (min-width: 720px) {
+  .act-float, .pend-float, .ring-detail, .tf-wheel-card, .sess-survey-card { width: min(640px, calc(100vw - 24px)); }
+}

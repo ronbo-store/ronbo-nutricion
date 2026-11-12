@@ -55,15 +55,15 @@
  * app.js). La caché de imágenes NO se borra entre versiones: guarda
  * contenido ya visto, con su tope.
  */
-const SW_VERSION = '20261112-ancho-progreso';
+const SW_VERSION = '20261112-hojas-anchas';
 const CACHE_NAME = 'ronbofit-shell-' + SW_VERSION;
 const IMG_CACHE_NAME = 'ronbofit-img-v1';
 const IMG_CACHE_MAX = 300;
 const SHELL_URLS = [
   './',
   './index.html',
-  './styles.css?v=20261112-ancho-progreso',
-  './app.js?v=20261112-ancho-progreso',
+  './styles.css?v=20261112-hojas-anchas',
+  './app.js?v=20261112-hojas-anchas',
   './manifest.json',
   './icons/icon-192.png',
   './icons/icon-512.png',
