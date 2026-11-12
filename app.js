@@ -34764,7 +34764,24 @@ function trainSessionRestoreSlot(plan, di, slot, iso) {
    reglas vivas (9cbf987a) no validan el interior de las entradas de
    exercisesDone (en training_logs solo miran campos de la raíz y,
    para el cierre parcial, que exercisesDone sea lista no vacía), así
-   que el campo no requiere delta de reglas. === */
+   que el campo no requiere delta de reglas.
+   VARIANTES AL AGREGAR (AUTH-2026-11-12-424; reporte de Ronald
+   2026-11-12: «no puedo elegir ejercicios variantes de mi
+   biblioteca para agregar a mi ejercicio»): la elegibilidad
+   quedaba SOLO en «cambiar» — en «agregar» las secciones pintaban
+   únicamente tarjetas base y el buscador, aunque encontraba la
+   variante por su nombre, la pintaba como tarjeta base rotulada
+   y el variantIndex se perdía al tocarla. Ahora: (1) en
+   «agregar», tocar la tarjeta de una ficha CON variantes elegibles
+   abre la vista de formas (SWAP_ADD_FORMS_ID): forma base +
+   variantes, y la elección se guarda con swapSheetApplyVariantPick;
+   (2) los aciertos de variante del buscador son tarjetas de
+   variante de verdad en los tres modos (agregar, cambiar y
+   cambiar-sobre-un-añadido), con la MISMA escritura gemela y los
+   candados de duplicados de cada modo (por exerciseId: la variante
+   distinta de la misma ficha cuenta como el mismo ejercicio,
+   AUTH-340). Sin variantes elegibles, cada camino queda byte a
+   byte como estaba. === */
 const SWAP_VARIANT_PICK = true;
 let SWAP_QUERY = '';
 /* Grupo preseleccionado del selector al abrirlo desde un chip de la
@@ -34782,6 +34799,25 @@ let SWAP_PRESET_GROUP = null;
    swapCardHTML para nacer marcando «✓ Añadido» las tarjetas ya
    presentes. null fuera de ese modo: en «cambiar» no marca. */
 let SWAP_EFF_IDS = null;
+/* AUTH-2026-11-12-424: vista de FORMAS dentro del selector en modo
+   «agregar» — el id de la ficha cuyas formas (base + variantes) se
+   están eligiendo, o null en la lista normal. Tocar la tarjeta de
+   un ejercicio CON variantes no lo agrega a ciegas: abre esta
+   vista y la elección (base o variante) es la que se guarda, con
+   variantIndex cuando es variante (decisión de Ronald 2026-10-30:
+   «que las variantes se puedan elegir y guardar»; el selector de
+   «agregar» era el camino que faltaba — su reporte del 2026-11-12:
+   «no puedo elegir ejercicios variantes de mi biblioteca para
+   agregar a mi ejercicio»). Vive solo con la hoja abierta: se
+   limpia al cerrar, al buscar, al fijar un atajo y tras agregar. */
+let SWAP_ADD_FORMS_ID = null;
+/* Variantes ELEGIBLES de una ficha: las no estándar con nombre
+   resoluble — el mismo criterio con el que trainVariantOf pinta
+   (una variante sin nombre no se puede mostrar ni guardar). */
+function swapPickableVariants(ex) {
+  return (Array.isArray(ex && ex.variantes) ? ex.variantes : [])
+    .map((v, vi) => ({ v, vi })).filter(x => x.v && !x.v.es_estandar && libField(x.v, 'nombre'));
+}
 const SWAP_GROUP_SYNONYMS = {
   'Pecho': ['pecho', 'pectoral', 'pectorales', 'chest', 'pecs'],
   'Espalda': ['espalda', 'back', 'dorsales', 'lats'],
@@ -34858,7 +34894,10 @@ function swapCardHTML(ex, opts) {
      el espejo del editor de rutinas (AUTH-325): sin duplicados
      posibles desde la propia tarjeta. En «cambiar» nada cambia. */
   const inSession = !!(TRAIN_PICK && TRAIN_PICK.kind === 'add' && SWAP_EFF_IDS && SWAP_EFF_IDS.has(ex.id));
-  const btn = inSession ? t('train.n09.mybAddedBtn') : (TRAIN_PICK && TRAIN_PICK.kind === 'add' ? t('train.swap.addBtn') : t('train.custom.swap'));
+  /* AUTH-424: en «agregar», la tarjeta de un ejercicio CON variantes
+     dice «Elegir» y no «Agregar»: tocarla abre la vista de formas
+     (base o variante) antes de confirmar el agregado. */
+  const btn = inSession ? t('train.n09.mybAddedBtn') : (TRAIN_PICK && TRAIN_PICK.kind === 'add' ? (swapPickableVariants(ex).length ? t('dict.choose') : t('train.swap.addBtn')) : t('train.custom.swap'));
   const th = !ex.foto_url ? ytThumbOf(ex.video_youtube_url) : '';
   return `<button type="button" class="swap-card${inSession ? ' is-added' : ''}" data-swap-pick="${esc(ex.id)}"${inSession ? ' disabled aria-disabled="true"' : ''}>
     ${ex.foto_url ? `<img class="swap-card-img" src="${esc(ex.foto_url)}" alt="" loading="lazy">` : (th ? `<img class="swap-card-img" src="${esc(th)}" alt="" loading="lazy" data-yt-fb="swap" onerror="ytThumbErr(this)">` : '<span class="swap-card-img swap-card-noimg" aria-hidden="true"></span>')}
@@ -34877,6 +34916,37 @@ function swapVariantCardHTML(entry, v, vi) {
     return `<button type="button" class="swap-card swap-card-variant" data-swap-variant="${vi}">${inner}<span class="swap-card-btn">${esc(t('train.custom.swap'))}</span></button>`;
   return `<div class="swap-card swap-card-variant">${inner}</div>`;
 }
+/* AUTH-424: tarjeta de una FORMA concreta (base o variante) que SÍ
+   se puede elegir al agregar/cambiar desde cualquier lista de la
+   hoja — lleva la ficha y el índice en data-swap-variant-pick /
+   data-swap-variant-vi (vi = -1 es la forma base: se guarda sin
+   variantIndex, como siempre). Mismo patrón visual que dictCardHTML:
+   nombre «Ficha — Variante», foto de la variante con respaldo a la
+   base y etiqueta de variante; la base se rotula «Forma estándar».
+   En modo «agregar», si la ficha ya está en la sesión la tarjeta
+   nace desactivada «✓ Añadido», como las demás (AUTH-340). */
+function swapVariantPickCardHTML(entry, v, vi) {
+  const name = v ? libNameOf(entry) + ' — ' + libField(v, 'nombre') : libNameOf(entry);
+  const sub = v ? [libField(v, 'cambio'), libField(v, 'enfasis')].filter(Boolean).join(' · ')
+    : [libField(entry, 'equipo'), libField(entry, 'nivel')].filter(Boolean).join(' · ');
+  const photo = (v && v.foto_url) || entry.foto_url || '';
+  const th = !photo ? ytThumbOf((v && v.video_youtube_url) || entry.video_youtube_url) : '';
+  const inSession = !!(TRAIN_PICK && TRAIN_PICK.kind === 'add' && SWAP_EFF_IDS && SWAP_EFF_IDS.has(entry.id));
+  const btn = inSession ? t('train.n09.mybAddedBtn') : (TRAIN_PICK && TRAIN_PICK.kind === 'add' ? t('train.swap.addBtn') : t('train.custom.swap'));
+  const tag = v ? `<span class="swap-card-tag">${esc(t('train.swap.variantTag'))}</span>` : `<span class="swap-card-tag">${esc(t('plan.variantStd'))}</span>`;
+  return `<button type="button" class="swap-card swap-card-variant${inSession ? ' is-added' : ''}" data-swap-variant-pick="${esc(entry.id)}" data-swap-variant-vi="${vi}"${inSession ? ' disabled aria-disabled="true"' : ''}>
+    ${photo ? `<img class="swap-card-img" src="${esc(photo)}" alt="" loading="lazy">` : (th ? `<img class="swap-card-img" src="${esc(th)}" alt="" loading="lazy" data-yt-fb="swap" onerror="ytThumbErr(this)">` : '<span class="swap-card-img swap-card-noimg" aria-hidden="true"></span>')}
+    <span class="swap-card-main"><span class="swap-card-name">${esc(name)}</span>${sub ? `<span class="swap-card-sub">${esc(sub)}</span>` : ''}${tag}${inSession ? `<span class="swap-card-tag">${esc(t('train.pick.inSession'))}</span>` : ''}</span><span class="swap-card-btn">${esc(btn)}</span></button>`;
+}
+/* AUTH-424: la VISTA DE FORMAS en modo «agregar» — la forma base y
+   cada variante elegible de la ficha, con vuelta a la biblioteca.
+   Elegir aquí es confirmar el agregado con esa forma. */
+function swapAddFormsHTML(entry) {
+  return `<div class="swap-presets-all"><button type="button" class="swap-preset-all" data-swap-variants-back="1">← ${esc(t('train.swap.allGroups'))}</button></div>` +
+    `<div class="swap-sec-title">${esc(libNameOf(entry))}</div>` +
+    swapVariantPickCardHTML(entry, null, -1) +
+    swapPickableVariants(entry).map(x => swapVariantPickCardHTML(entry, x.v, x.vi)).join('');
+}
 function swapSheetResultsHTML(plan, di, iso) {
   if (!LIB.length) return `<p class="progress-hint">${esc(t('train.lib.unavailable'))}</p>`;
   const eff = trainEffectiveList(plan, di, iso);
@@ -34884,6 +34954,14 @@ function swapSheetResultsHTML(plan, di, iso) {
     ? new Set(eff.map(it => (it && it.ex && it.ex.exerciseId)).filter(Boolean)) : null;
   const target = TRAIN_PICK && (TRAIN_PICK.kind === 'swap' || TRAIN_PICK.kind === 'replace-add') ? eff[TRAIN_PICK.idx] : null;
   const tEntry = target && target.ex && target.ex.exerciseId ? (LIB_BY_ID[target.ex.exerciseId] || null) : null;
+  /* AUTH-424: con la vista de formas abierta (modo «agregar»), los
+     resultados SON las formas de esa ficha — la búsqueda la cierra
+     (su oninput limpia el estado antes de repintar). */
+  if (TRAIN_PICK && TRAIN_PICK.kind === 'add' && SWAP_ADD_FORMS_ID) {
+    const fEntry = LIB_BY_ID[SWAP_ADD_FORMS_ID];
+    if (fEntry) return swapAddFormsHTML(fEntry);
+    SWAP_ADD_FORMS_ID = null;
+  }
   const q = SWAP_QUERY.trim();
   if (q.length >= 2) {
     const g = swapGroupOfQuery(q);
@@ -34897,16 +34975,18 @@ function swapSheetResultsHTML(plan, di, iso) {
     const hits = swapNameSearchDetailed(q);
     const cards = [];
     for (const hit of hits) {
-      if (tEntry && hit.ex.id === tEntry.id) {
-        /* La variante DEL PROPIO ejercicio buscada por su nombre: se
-           presenta como tarjeta de variante y se elige como tal
-           (AUTH-099). La ficha misma sigue excluida, como siempre. */
-        if (hit.vi != null && TRAIN_PICK && TRAIN_PICK.kind === 'swap') cards.push(swapVariantCardHTML(tEntry, (tEntry.variantes || [])[hit.vi], hit.vi));
+      if (hit.vi != null) {
+        /* AUTH-424: un acierto DE VARIANTE es una tarjeta de variante
+           DE VERDAD en los tres modos — antes se pintaba como tarjeta
+           base rotulada «variante» y al tocarla se guardaba la forma
+           base: el vi se perdía en silencio. La del PROPIO ejercicio
+           en modo «cambiar» conserva su tarjeta de siempre (AUTH-099). */
+        if (tEntry && hit.ex.id === tEntry.id && TRAIN_PICK && TRAIN_PICK.kind === 'swap') { cards.push(swapVariantCardHTML(tEntry, (tEntry.variantes || [])[hit.vi], hit.vi)); continue; }
+        cards.push(swapVariantPickCardHTML(hit.ex, (hit.ex.variantes || [])[hit.vi], hit.vi));
         continue;
       }
-      cards.push(hit.vi != null
-        ? swapCardHTML(hit.ex, { nameOverride: libNameOf(hit.ex) + ' — ' + libField((hit.ex.variantes || [])[hit.vi], 'nombre'), tagKey: 'train.swap.variantTag' })
-        : swapCardHTML(hit.ex));
+      if (tEntry && hit.ex.id === tEntry.id) continue;
+      cards.push(swapCardHTML(hit.ex));
     }
     return `<div class="swap-sec-title">${esc(t('train.swap.resultsTitle'))}</div>` +
       (cards.length ? cards.join('') : `<p class="progress-hint">${esc(t('train.swap.noResults'))}</p>`);
@@ -34941,6 +35021,7 @@ function swapSheetResultsHTML(plan, di, iso) {
   }).join('');
 }
 function swapSheetApply(plan, di, entry, iso) {
+  SWAP_ADD_FORMS_ID = null;
   /* La MISMA escritura del selector anterior: edición de sesión
      — de la FECHA VISTA si el selector viene del desplegable con
      otra fecha (iso la pasa la cadena del desplegable; sin iso,
@@ -35020,6 +35101,70 @@ function swapSheetApplyVariant(plan, di, entry, vi, iso) {
   SWAP_QUERY = '';
   loadMyTraining();
 }
+/* AUTH-424: elegir una FORMA concreta (base o variante de CUALQUIER
+   ficha, no solo la del ejercicio del slot) — la escritura gemela
+   de swapSheetApply/swapSheetApplyVariant para las tarjetas
+   data-swap-variant-pick: en «agregar» empuja la entrada CON
+   variantIndex y la hoja se queda abierta (con el candado de
+   duplicados de AUTH-340 por exerciseId: la misma ficha con otra
+   variante cuenta como el mismo ejercicio y no entra dos veces);
+   en «cambiar» escribe swaps[slot] con variantIndex; en
+   «cambiar sobre un añadido» sustituye en su puesto conservando
+   series/reps/peso y con su candado de duplicados. vi = -1, un
+   índice que no resuelve o la forma estándar escriben SIN
+   variantIndex — la forma de siempre nunca deja basura (AUTH-099). */
+function swapSheetApplyVariantPick(plan, di, entry, vi, iso) {
+  if (!entry || !TRAIN_PICK) return;
+  const v = Number.isInteger(vi) && Array.isArray(entry.variantes) ? entry.variantes[vi] : null;
+  const withVar = !!(v && !v.es_estandar && libField(v, 'nombre'));
+  if (TRAIN_PICK.kind === 'add') {
+    const ed = trainEditsRead(plan.id, iso) || { swaps: {}, added: [] };
+    const effIds = new Set(trainEffectiveList(plan, di, iso).map(it => it && it.ex && it.ex.exerciseId).filter(Boolean));
+    if (!effIds.has(entry.id)) {
+      const rec = { exerciseId: entry.id, name: libNameOf(entry), sets: '', reps: '' };
+      if (withVar) rec.variantIndex = vi;
+      ed.added.push(rec);
+    }
+    trainEditsWrite(plan.id, ed, iso);
+    SWAP_ADD_FORMS_ID = null;
+    swapSheetRepaintResults(plan, di, iso);
+    return;
+  }
+  if (TRAIN_PICK.kind === 'swap') {
+    SWAP_PRESET_GROUP = null;
+    const ed = trainEditsRead(plan.id, iso) || { swaps: {}, added: [] };
+    const it2 = trainEffectiveList(plan, di, iso)[TRAIN_PICK.idx];
+    if (!it2 || it2.slot < 0) return;
+    const rec = { exerciseId: entry.id, name: libNameOf(entry) };
+    if (withVar) rec.variantIndex = vi;
+    ed.swaps[String(it2.slot)] = rec;
+    trainEditsWrite(plan.id, ed, iso);
+    TRAIN_PICK = null;
+    SWAP_QUERY = '';
+    loadMyTraining();
+    return;
+  }
+  if (TRAIN_PICK.kind === 'replace-add') {
+    const effR = trainEffectiveList(plan, di, iso);
+    const itR = effR[TRAIN_PICK.idx];
+    if (!itR || itR.kind !== 'add') { TRAIN_PICK = null; SWAP_QUERY = ''; loadMyTraining(); return; }
+    const dupR = effR.some((x, xi) => xi !== TRAIN_PICK.idx && x && x.ex && x.ex.exerciseId && x.ex.exerciseId === entry.id);
+    if (dupR) { toast(t('train.pick.inSession')); return; }
+    const ed = trainEditsRead(plan.id, iso) || { swaps: {}, added: [] };
+    const addPos = effR.slice(0, TRAIN_PICK.idx).filter(x => x.kind === 'add').length;
+    const old = (Array.isArray(ed.added) ? ed.added : [])[addPos];
+    if (!old) { TRAIN_PICK = null; SWAP_QUERY = ''; loadMyTraining(); return; }
+    const rec = { exerciseId: entry.id, name: libNameOf(entry), sets: old.sets || '', reps: old.reps || '' };
+    if (typeof old.load === 'number' && old.load > 0) { rec.load = old.load; rec.loadUnit = old.loadUnit === 'lb' ? 'lb' : 'kg'; }
+    if (withVar) rec.variantIndex = vi;
+    ed.added[addPos] = rec;
+    trainEditsWrite(plan.id, ed, iso);
+    TRAIN_PICK = null;
+    SWAP_QUERY = '';
+    loadMyTraining();
+    return;
+  }
+}
 /* ATAJOS DEL SELECTOR (decisión de Ronald, chat RONBO.NUTRI
    2026-11-06 12:16 CST): los chips Cardio · Core · Estirar salen
    de la fila de acciones de la sesión y viven AQUÍ, dentro del
@@ -35065,7 +35210,16 @@ function swapSheetWireResults(plan, di, iso) {
   if (!sheet) return;
   sheet.querySelectorAll('[data-swap-pick]').forEach(pb => pb.onclick = () => {
     const entry = LIB_BY_ID[pb.dataset.swapPick];
-    if (entry && TRAIN_PICK) swapSheetApply(plan, di, entry, iso);
+    if (!entry || !TRAIN_PICK) return;
+    /* AUTH-424: en «agregar», la tarjeta de un ejercicio CON
+       variantes abre la vista de formas en vez de agregar la base
+       a ciegas; sin variantes, el toque agrega como siempre. */
+    if (TRAIN_PICK.kind === 'add' && !SWAP_ADD_FORMS_ID && swapPickableVariants(entry).length) {
+      SWAP_ADD_FORMS_ID = entry.id;
+      swapSheetRepaintResults(plan, di, iso);
+      return;
+    }
+    swapSheetApply(plan, di, entry, iso);
   });
   sheet.querySelectorAll('[data-swap-variant]').forEach(vb => vb.onclick = () => {
     const eff = trainEffectiveList(plan, di, iso);
@@ -35073,14 +35227,26 @@ function swapSheetWireResults(plan, di, iso) {
     const tEntry = target && target.ex && target.ex.exerciseId ? (LIB_BY_ID[target.ex.exerciseId] || null) : null;
     if (tEntry && TRAIN_PICK) swapSheetApplyVariant(plan, di, tEntry, Number(vb.dataset.swapVariant), iso);
   });
+  /* AUTH-424: formas concretas (vista de formas y aciertos de
+     variante del buscador) y la vuelta desde la vista de formas. */
+  sheet.querySelectorAll('[data-swap-variant-pick]').forEach(vb => vb.onclick = () => {
+    const entry = LIB_BY_ID[vb.dataset.swapVariantPick];
+    if (entry && TRAIN_PICK) swapSheetApplyVariantPick(plan, di, entry, Number(vb.dataset.swapVariantVi), iso);
+  });
+  sheet.querySelectorAll('[data-swap-variants-back]').forEach(b => b.onclick = () => {
+    SWAP_ADD_FORMS_ID = null;
+    swapSheetRepaintResults(plan, di, iso);
+  });
   sheet.querySelectorAll('[data-swap-preset]').forEach(b => b.onclick = () => {
     SWAP_PRESET_GROUP = b.dataset.swapPreset || null;
+    SWAP_ADD_FORMS_ID = null;
     SWAP_QUERY = '';
     const sI = sheet.querySelector('#swap-search'); if (sI) sI.value = '';
     swapSheetRepaintResults(plan, di, iso);
   });
   sheet.querySelectorAll('[data-swap-preset-clear]').forEach(b => b.onclick = () => {
     SWAP_PRESET_GROUP = null;
+    SWAP_ADD_FORMS_ID = null;
     swapSheetRepaintResults(plan, di, iso);
   });
 }
@@ -35099,6 +35265,7 @@ function swapSheetSync(plan, di, iso) {
   const old = document.getElementById('swap-sheet');
   if (!plan || !TRAIN_PICK) {
     SWAP_PRESET_GROUP = null;
+    SWAP_ADD_FORMS_ID = null;
     if (old) old.remove();
     document.body.classList.remove('swap-sheet-open');
     return;
@@ -35164,6 +35331,7 @@ function swapSheetSync(plan, di, iso) {
   const search = sheet.querySelector('#swap-search');
   if (search) search.oninput = () => {
     SWAP_QUERY = search.value;
+    SWAP_ADD_FORMS_ID = null;
     const box = sheet.querySelector('#swap-results');
     if (box) { box.innerHTML = swapSheetResultsHTML(plan, di, iso); swapSheetWireResults(plan, di, iso); }
   };
@@ -55993,7 +56161,7 @@ document.addEventListener('keydown', e => { if (e.key === 'Escape') shareClose()
  *  - El SW (sw.js) solo cachea la cáscara del mismo origen en modo
  *    RED PRIMERO: Auth/Firestore/Worker jamás pasan por la caché.
  * ================================================================ */
-const PWA_SW_VERSION = '20261112-rueda-no-marca';
+const PWA_SW_VERSION = '20261112-variantes-al-agregar';
 /* Sello de versión VISIBLE (2026-11-03): el pie de la tarjeta de
    acceso enseña qué copia corre este teléfono ('v ' + el sello),
    para comprobar de un vistazo si la versión nueva ya llegó.
