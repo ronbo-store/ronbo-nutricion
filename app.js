@@ -5300,7 +5300,10 @@ en: {
   'aiDraft.fromDate': 'Analyzed on {date}.',
   'ai.introTitle': 'Analyze a meal from a photo',
   'ai.introTake': '📷 Take or choose the photo',
-  'ai.photoNotSaved': '📷 Before you take the photo: food photos are NOT saved. A photo is used only for this analysis, in this moment — the app keeps the meal record (the foods and their values), never the picture. If you want to keep the photo, keep it in your phone\'s gallery as well.',
+  /* AUTH-418: la clave conserva su nombre histórico; su texto
+     dice desde ahora la verdad nueva (la miniatura 480 SÍ se guarda
+     con la comida al guardarla). */
+  'ai.photoNotSaved': '📷 Before you take the photo: the photo is used for this analysis. If you save the meal, the app keeps a smaller copy of the photo with the meal, so it shows in your week diary. Only you can see it there, and it is deleted when you delete the meal. The full photo is not kept.',
   'ai.limitNote': 'Daily analysis limit: photo, text and voice analyses share a daily counter, and a complete analysis costs 2 uses in all three ways (identify + calculate). If your account has a daily limit set and you reach it, analysis pauses until the counter resets the next day — you can still log every meal by hand. If no limit is set for your account, a default of 10 uses per day applies — enough for five complete analyses (2 uses each).',
   'aiusage.leftToday': 'You have {n} AI uses left today',
   'aiusage.leftUnlimited': 'Your AI uses today are unlimited',
@@ -5327,7 +5330,7 @@ en: {
   'ai.banner': 'Draft from your photo: check and edit the values before saving.',
   'ai.draftError': 'Something went wrong while preparing the draft. Nothing was saved — please try again.',
   'ai.savedInfo': 'Meal saved: {kcal} kcal · Day total: {total} kcal',
-  'ai.savedPhotoNote': 'Your photo wasn\'t kept — only the meal record was.',
+  'ai.savedPhotoNote': 'A smaller copy of your photo was saved with the meal, for your week diary.',
   'ai.retry': 'Retry',
   'ai.continueManual': 'Continue manually',
   'ai.mealPrompt': 'Which meal is this?',
@@ -6482,7 +6485,7 @@ en: {
   'pk.revoked': 'Access keys revoked: {n}.',
   'pk.revokedNone': 'That user had no access keys.',
   'pk.revokeFailed': 'The access keys couldn\'t be revoked. Try again.',
-  'perm.photoNote': 'The food photo you send for analysis is not stored.',
+  'perm.photoNote': 'When you save a meal that was analyzed from a photo, a smaller copy of the photo is saved with the meal. Only you can see it, in your week diary, and it is deleted when you delete the meal.',
   'priv.sectionTitle': 'Privacy & data',
   'priv.statusAccepted': 'Consent accepted · version {v} · {date}',
   'priv.statusNone': 'No consent record found for this account.',
@@ -10168,7 +10171,10 @@ es: {
   'aiDraft.fromDate': 'Analizada el {date}.',
   'ai.introTitle': 'Analizar una comida desde una foto',
   'ai.introTake': '📷 Tomar o elegir la foto',
-  'ai.photoNotSaved': '📷 Antes de tomar la foto: las fotos de comida NO se guardan. Una foto se usa solo para este análisis, en este momento: la app conserva el registro de la comida (los alimentos y sus valores), nunca la imagen. Si quieres conservar la foto, guárdala también en la galería de tu teléfono.',
+  /* AUTH-418: la clave conserva su nombre histórico; su texto
+     dice desde ahora la verdad nueva (la miniatura 480 SÍ se guarda
+     con la comida al guardarla). */
+  'ai.photoNotSaved': '📷 Antes de tomar la foto: la foto se usa para este análisis. Si guardas la comida, la app guarda una copia más pequeña de la foto junto con la comida, para que se vea en tu diario de la semana. Solo tú la ves ahí, y se borra cuando borras la comida. La foto completa no se guarda.',
   'ai.limitNote': 'Límite diario de análisis: los análisis por foto, por texto y por voz comparten un contador diario, y un análisis completo cuesta 2 usos en las tres vías (identificar + calcular). Si tu cuenta tiene un límite diario fijado y lo alcanzas, el análisis se pausa hasta que el contador se reinicia al día siguiente; puedes seguir registrando cada comida a mano. Si tu cuenta no tiene límite fijado, aplica el límite por defecto de 10 usos al día: los cinco análisis completos (2 usos cada uno).',
   'aiusage.leftToday': 'Te quedan {n} usos de IA hoy',
   'aiusage.leftUnlimited': 'Tus usos de IA de hoy son ilimitados',
@@ -10195,7 +10201,7 @@ es: {
   'ai.banner': 'Borrador de tu foto: revisa y edita los valores antes de guardar.',
   'ai.draftError': 'Algo salió mal al preparar el borrador. No se guardó nada: inténtalo de nuevo.',
   'ai.savedInfo': 'Comida guardada: {kcal} kcal · Total del día: {total} kcal',
-  'ai.savedPhotoNote': 'Tu foto no se guardó: solo quedó el registro de la comida.',
+  'ai.savedPhotoNote': 'Se guardó una copia pequeña de tu foto junto con la comida, para tu diario de la semana.',
   'ai.retry': 'Reintentar',
   'ai.continueManual': 'Continuar manualmente',
   'ai.mealPrompt': '¿A qué comida pertenece?',
@@ -11351,7 +11357,7 @@ es: {
   'pk.revoked': 'Claves de acceso revocadas: {n}.',
   'pk.revokedNone': 'Ese usuario no tenía claves de acceso.',
   'pk.revokeFailed': 'No se pudieron revocar las claves de acceso. Inténtalo de nuevo.',
-  'perm.photoNote': 'La foto de la comida que envías para el análisis no se almacena.',
+  'perm.photoNote': 'Cuando guardas una comida analizada desde una foto, se guarda una copia más pequeña de la foto junto con la comida. Solo tú la ves, en tu diario de la semana, y se borra cuando borras la comida.',
   'priv.sectionTitle': 'Privacidad y datos',
   'priv.statusAccepted': 'Consentimiento aceptado · versión {v} · {date}',
   'priv.statusNone': 'No se encontró registro de consentimiento para esta cuenta.',
@@ -25724,6 +25730,37 @@ async function compressFoodPhoto(file, maxDim = 640) {
   canvas.getContext('2d').drawImage(bmp, 0, 0, canvas.width, canvas.height);
   return canvas.toDataURL('image/jpeg', 0.82);
 }
+/* AUTH-418 · LA MINIATURA 480 DE LA FOTO DEL ANÁLISIS
+   (decisiones de Ronald, 2026-11-11 20:44–20:45 CST: «Sí —
+   guarden la foto ligera y ajusten el texto de privacidad» y
+   «La nítida — 480»): de la PRIMERA foto del análisis — la que
+   aiState conserva como dataUrl; las demás del conjunto siguen
+   viviendo solo en memoria — se trabaja una copia reducida:
+   lado mayor 480 px, WebP calidad 0.75 (el banco del estudio
+   midió ≈24 KB de archivo, ≈32 KB dentro del documento); si el
+   navegador no sabe WebP — su lienzo devuelve otro formato al
+   pedirlo —, se cae a JPEG calidad 0.80, declarado. La miniatura
+   viaja como data URL dentro del documento de la comida, en
+   photoURL — el campo que el diario de la semana ya pinta —:
+   sin Storage, sin reglas nuevas y sin Worker. Si la miniatura
+   no puede hacerse, devuelve '' y la comida se guarda como
+   siempre, sin foto: guardar la comida nunca depende de ella. */
+async function aiPhotoThumb480(dataUrl) {
+  if (!dataUrl || typeof dataUrl !== 'string' || dataUrl.indexOf('data:image/') !== 0) return '';
+  const img = new Image();
+  await new Promise((res, rej) => { img.onload = res; img.onerror = rej; img.src = dataUrl; });
+  const w0 = img.naturalWidth || img.width, h0 = img.naturalHeight || img.height;
+  if (!w0 || !h0) return '';
+  const scale = Math.min(1, 480 / Math.max(w0, h0));
+  const canvas = document.createElement('canvas');
+  canvas.width = Math.max(1, Math.round(w0 * scale));
+  canvas.height = Math.max(1, Math.round(h0 * scale));
+  const ctx = canvas.getContext('2d');
+  if (!ctx) return '';
+  ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
+  const webp = canvas.toDataURL('image/webp', 0.75);
+  return (typeof webp === 'string' && webp.indexOf('data:image/webp') === 0) ? webp : canvas.toDataURL('image/jpeg', 0.8);
+}
 /* Retirada del bloque «Ayuda con comidas» de la vista de comida
    (Ronald, 2026-10-22): el encabezado y #mealhelp-content salieron
    del DOM, así que la lista #mealhelp-list ya no tiene casa y esta
@@ -25731,9 +25768,10 @@ async function compressFoodPhoto(file, maxDim = 640) {
    y se conserva por si la ruta manual volviera en otro paquete. La
    colección meal_help está retirada (la app no escribe en ella
    desde 2026-10-17); la revisión del entrenador pinta SU propia
-   lista dentro de la ficha del cliente (openClient), intacta. El
-   aviso «la foto no se almacena» vive ahora como nota en «Permisos
-   y privacidad» (perm.photoNote). */
+   lista dentro de la ficha del cliente (openClient), intacta. La
+   nota sobre la foto del análisis vive en «Permisos y
+   privacidad» (perm.photoNote; desde AUTH-418 dice la verdad
+   nueva: la miniatura 480 sí se guarda con la comida). */
 async function loadMealHelp() {
   const box = $('mealhelp-list');
   if (!box || !auth.currentUser) return;
@@ -28803,7 +28841,7 @@ function aiNewSaveId() {
   return 'meal_' + Date.now().toString(36) + '_' + aiSaveSeq.toString(36) + '_' + Math.random().toString(36).slice(2, 8);
 }
 function aiFreshState(mode) {
-  return { mode, dataUrl: null, photos: null, descText: '', audioDataUrl: null, step: 'loading', r1: null, answers: {}, other: {}, foods: null, r2: null, errStage: 'identify', meal: aiDefaultMeal(), metrics: null, metricsEdited: false, name: null, nameEdited: false, cap: false, capLimit: null, disabled: false, doorDown: false, btWindow: false, btRenews: null, saveError: false, saveId: aiNewSaveId(), split: null };
+  return { mode, dataUrl: null, photos: null, thumbP: null, descText: '', audioDataUrl: null, step: 'loading', r1: null, answers: {}, other: {}, foods: null, r2: null, errStage: 'identify', meal: aiDefaultMeal(), metrics: null, metricsEdited: false, name: null, nameEdited: false, cap: false, capLimit: null, disabled: false, doorDown: false, btWindow: false, btRenews: null, saveError: false, saveId: aiNewSaveId(), split: null };
 }
 /* Registra en el estado el tipo de corte que devolvió aiCall: tope
    diario (con el límite aplicable si el Worker lo dijo), interruptor
@@ -28834,6 +28872,11 @@ function aiStartPhotos(urls) {
   aiState = aiFreshState('photo');
   aiState.photos = urls.slice();
   aiState.dataUrl = urls[0] || null;
+  /* AUTH-418: la miniatura 480 de la primera foto se trabaja
+     en segundo plano desde este momento y el guardado la espera
+     (aiState.thumbP); si falla, queda '' y la comida se guarda
+     sin foto, como siempre. */
+  aiState.thumbP = aiState.dataUrl ? aiPhotoThumb480(aiState.dataUrl).catch(() => '') : null;
   /* Todo el flujo de la IA ocurre en su hoja (puntos 19–20): al
      arrancar cualquier vía, la hoja es la superficie. */
   try { foodShowOnly('ai'); } catch {}
@@ -28968,8 +29011,9 @@ async function aiCalculate() {
    resultado —la identificación volvió sin alimentos («notfound») o la
    llamada falló (red, tiempo agotado, HTTP, respuesta no
    interpretable)—, la tarjeta ofrece REINTENTAR con la MISMA entrada
-   de la sesión: la foto sigue SOLO en memoria (postura M8 intacta:
-   las fotos de comida no se persisten) o el texto del borrador. Y
+   de la sesión: la foto sigue SOLO en memoria durante el análisis
+   (lo que se guarda al guardar la comida es solo su miniatura 480:
+   AUTH-418) o el texto del borrador. Y
    ofrece además la salida por texto DENTRO de la propia tarjeta
    (aiFailExtrasHTML): la línea que sugiere una foto más clara o
    describir la comida, con su caja accionable — no un letrero.
@@ -31086,7 +31130,7 @@ function aiUseDraft(r1, r2) {
     /* La identidad de guardado de la revisión viaja al borrador: el
        envío del formulario escribirá el MISMO documento que el
        guardado directo de esta revisión (ver aiNewSaveId). */
-    aiDraft = { model: (r2 && r2.model) || 'gemini', rangeKcal: Array.isArray(tot.range_kcal) ? tot.range_kcal : null, items: aiItemsCandidate(), src: fromText ? 'ai-text' : fromAudio ? 'ai-audio' : 'ai', saveId: (typeof aiState !== 'undefined' && aiState && aiState.saveId) || null };
+    aiDraft = { model: (r2 && r2.model) || 'gemini', rangeKcal: Array.isArray(tot.range_kcal) ? tot.range_kcal : null, items: aiItemsCandidate(), src: fromText ? 'ai-text' : fromAudio ? 'ai-audio' : 'ai', saveId: (typeof aiState !== 'undefined' && aiState && aiState.saveId) || null, thumbP: (typeof aiState !== 'undefined' && aiState && aiState.mode === 'photo' && aiState.thumbP) ? aiState.thumbP : null };
     /* El reparto elegido en la revisión viaja al formulario: el
        plato sigue llegando COMPLETO a los campos y el bloque nace
        encendido con la misma segunda comida; al guardar, el submit
@@ -31176,6 +31220,21 @@ async function aiSaveDirect() {
      guardan (regla de honestidad de aiItemsCandidate/itemsIfSquare). */
   const aiIts = itemsIfSquare(aiItemsCandidate(), data);
   if (aiIts) data.items = aiIts;
+  /* AUTH-418 · LA FOTO LIGERA EN EL GUARDADO DIRECTO: solo
+     si la revisión vino de una FOTO (mode 'photo', source 'ai'),
+     el registro guarda la miniatura 480 de la primera foto en
+     photoURL — el campo que el diario de la semana ya pinta —.
+     Texto ('ai-text'), voz ('ai-audio') y los borradores
+     restaurados sin foto (thumbP nulo: la foto nunca se persistió
+     en el dispositivo) quedan exactamente como siempre: sin
+     foto. Con reparto, la miniatura entra en el registro
+     completo y las dos mitades la heredan por la copia de
+     mkHalf: es un texto dentro de cada documento, no un objeto
+     compartido — borrar una mitad no deja sin foto a la otra. */
+  if (aiState.mode === 'photo' && aiState.thumbP) {
+    const thumb = await aiState.thumbP;
+    if (thumb) data.photoURL = thumb;
+  }
   /* REPARTO EN DOS COMIDAS: con el reparto activo, el registro
      completo de arriba NO se escribe — se escriben DOS registros
      normales e independientes, uno por momento, cada uno con la
@@ -51101,6 +51160,16 @@ $('form-meal').addEventListener('submit', async e => {
       } catch (err) { toast(t('err.mealPhotoFail'), true); }
     }
     if (aiDraft) { data.source = aiDraft.src || 'ai'; data.ai = { model: aiDraft.model, rangeKcal: aiDraft.rangeKcal }; }
+    /* AUTH-418 · LA FOTO LIGERA, TAMBIÉN POR LA VÍA DEL
+       BORRADOR: si la revisión vino de una foto (aiDraft.src
+       'ai') y el formulario no trae foto manual propia — esa
+       manda: es la ruta de Storage de siempre —, el registro
+       guarda la miniatura 480 de la primera foto en photoURL.
+       Si la miniatura no pudo hacerse, el registro nace sin
+       foto, como siempre. */
+    if (aiDraft && aiDraft.src === 'ai' && aiDraft.thumbP && !data.photoURL) {
+      try { const thumb = await aiDraft.thumbP; if (thumb) data.photoURL = thumb; } catch {}
+    }
     /* Escáner de códigos (AUTH-2026-11-10-363): el guardado desde el
        prellenado del escáner lleva su procedencia — source 'barcode'
        y el código con su fuente ('usda'|'off') — y en todo lo demás
@@ -51190,11 +51259,14 @@ $('form-meal').addEventListener('submit', async e => {
       };
       dataA = mkHalf(data.meal, hv[0], itH[0], qh.qa);
       dataB = mkHalf(splitSecond, hv[1], itH[1], qh.qb);
-      /* La foto queda SOLO en la primera mitad: hay un único objeto
-         en Storage y el borrado de un registro elimina el objeto de
-         su photoPath — compartirlo dejaría a la otra mitad sin foto
-         el día que se borre esta. */
-      delete dataB.photoURL; delete dataB.photoPath;
+      /* La foto de STORAGE queda SOLO en la primera mitad: hay un
+         único objeto en Storage y el borrado de un registro elimina
+         el objeto de su photoPath — compartirlo dejaría a la otra
+         mitad sin foto el día que se borre esta. La miniatura del
+         análisis (AUTH-418) no es un objeto compartido: es un
+         texto dentro de CADA documento, así que sin photoPath las
+         dos mitades conservan la suya y borrar una no toca la otra. */
+      if (data.photoPath) { delete dataB.photoURL; delete dataB.photoPath; }
     }
     /* Identidad de guardado del borrador de IA (corrección del
        duplicado, 2026-10-23): si el formulario viene de una revisión
@@ -55858,7 +55930,7 @@ document.addEventListener('keydown', e => { if (e.key === 'Escape') shareClose()
  *  - El SW (sw.js) solo cachea la cáscara del mismo origen en modo
  *    RED PRIMERO: Auth/Firestore/Worker jamás pasan por la caché.
  * ================================================================ */
-const PWA_SW_VERSION = '20261112-cronometro-tiempo';
+const PWA_SW_VERSION = '20261112-foto-comida-480';
 /* Sello de versión VISIBLE (2026-11-03): el pie de la tarjeta de
    acceso enseña qué copia corre este teléfono ('v ' + el sello),
    para comprobar de un vistazo si la versión nueva ya llegó.

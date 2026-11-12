@@ -21,7 +21,7 @@
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-title" content="RONBO FIT">
 <meta name="apple-mobile-web-app-status-bar-style" content="default">
-<link rel="stylesheet" href="styles.css?v=20261112-cronometro-tiempo">
+<link rel="stylesheet" href="styles.css?v=20261112-foto-comida-480">
 <script defer src="https://cloud.umami.is/script.js" data-website-id="a29706d4-44a2-47cf-900a-5f74d74abfa8"></script>
 <script type="importmap">
 {
@@ -1158,7 +1158,7 @@
       <button type="button" class="pend-close" id="btn-food-help-close" aria-label="Close" data-i18n-aria="client.close">✕</button>
     </div>
     <h3 data-i18n="ai.introTitle">Analyze a meal from a photo</h3>
-    <p class="progress-hint" data-i18n="ai.photoNotSaved">📷 Before you take the photo: food photos are NOT saved. A photo is used only for this analysis, in this moment — the app keeps the meal record (the foods and their values), never the picture. If you want to keep the photo, keep it in your phone's gallery as well.</p>
+    <p class="progress-hint" data-i18n="ai.photoNotSaved">📷 Before you take the photo: the photo is used for this analysis. If you save the meal, the app keeps a smaller copy of the photo with the meal, so it shows in your week diary. Only you can see it there, and it is deleted when you delete the meal. The full photo is not kept.</p>
     <p class="progress-hint" data-i18n="ai.limitNote">Daily analysis limit: photo, text and voice analyses share a daily counter, and a complete analysis costs 2 uses in all three ways (identify + calculate). If your account has a daily limit set and you reach it, analysis pauses until the counter resets the next day — you can still log every meal by hand. If no limit is set for your account, a default of 10 uses per day applies — enough for five complete analyses (2 uses each).</p>
   </div>
   <!-- Hoja de la revisión del análisis con IA (puntos 19–20 de la
@@ -1863,7 +1863,7 @@ cuando no hay declaración legible (decisión 5). -->
                  se almacena» del retirado bloque «Ayuda con comidas» vive
                  aquí, en su contexto de privacidad. Dentro de este panel
                  no existía ninguna mención equivalente: no se duplica. -->
-            <p class="progress-hint" data-i18n="perm.photoNote">The food photo you send for analysis is not stored.</p>
+            <p class="progress-hint" data-i18n="perm.photoNote">When you save a meal that was analyzed from a photo, a smaller copy of the photo is saved with the meal. Only you can see it, in your week diary, and it is deleted when you delete the meal.</p>
             <div class="manage-list" id="privacy-manage-list" style="display:none">
               <div id="privacy-status" class="manage-info"></div>
               <button type="button" class="manage-item" id="btn-view-notice"><span class="menu-num"></span><span class="manage-label" data-i18n="priv.viewNotice">View the privacy notice</span><span class="manage-go">›</span></button>
@@ -2372,6 +2372,6 @@ cuando no hay declaración legible (decisión 5). -->
 <div id="toast" class="toast"></div>
 <div id="print-card" aria-hidden="true"></div>
 
-<script type="module" src="app.js?v=20261112-cronometro-tiempo"></script>
+<script type="module" src="app.js?v=20261112-foto-comida-480"></script>
 </body>
 </html>
