@@ -6080,6 +6080,29 @@ en: {
   'train.start.warmupRemove': 'Remove warm-up set',
   'train.start.noLoad': 'No load', 'train.start.wheelDone': 'Done',
   'train.start.yes': 'Yes', 'train.start.no': 'No',
+  /* AUTH-426 · CALENTAMIENTO CARDIOVASCULAR (Raise de
+     RAMP; estudio-calentamiento-cardio-2026-11-12): el bloque
+     de primero en la rutina, su lista cerrada de 7 y la fila
+     de la tarjeta de compartir. Sin prometer prevención de
+     lesiones: lo que la ciencia sostiene es rendir mejor y
+     empezar preparado. */
+  'train.cardio.title': 'Cardio warm-up',
+  'train.cardio.hintNo': 'Starts on “No”. If you skip the warm-up today, it stays off your share card.',
+  'train.cardio.dose': 'Recommended: 5–10 easy minutes — you should be able to speak in full sentences.',
+  'train.cardio.doseStairs': 'On the stair climber, 3–5 minutes are enough.',
+  'train.cardio.doseRope': 'With the rope, 2–3 minutes are enough.',
+  'train.cardio.warnLong': 'A long or hard warm-up can tire the muscle and lower your performance in the workout.',
+  'train.cardio.save': 'Save warm-up', 'train.cardio.edit': 'Edit',
+  'train.cardio.minutes': 'MINUTES', 'train.cardio.distKm': 'DISTANCE · KM', 'train.cardio.distM': 'DISTANCE · M',
+  'train.cardio.floors': 'FLOORS',
+  'train.cardio.kcal': 'CALORIES · OPTIONAL', 'train.cardio.kcalSub': 'only if the machine shows them',
+  'train.cardio.needMode': 'Choose which warm-up you did.', 'train.cardio.needMin': 'Enter how many minutes you warmed up.',
+  'train.cardio.minText': '{min} min', 'train.cardio.floorsText': '{n} floors',
+  'train.cardio.mode.bike': 'Stationary bike', 'train.cardio.mode.walk': 'Incline treadmill walking',
+  'train.cardio.mode.row': 'Rowing machine', 'train.cardio.mode.elliptical': 'Elliptical trainer',
+  'train.cardio.mode.stairs': 'Stair climber', 'train.cardio.mode.jog': 'Light jog (treadmill)',
+  'train.cardio.mode.rope': 'Jump rope',
+  'shareW.warmupTag': 'WARM-UP',
   'train.sets.add': '+ Add set', 'train.sets.remove': 'Remove set',
   'train.sets.suggested': 'Suggested',
   'train.custom.removeToday': 'Remove from today', 'train.custom.removedTag': 'Removed today',
@@ -10951,6 +10974,29 @@ es: {
   'train.start.warmupRemove': 'Quitar serie de aproximación',
   'train.start.noLoad': 'Sin carga', 'train.start.wheelDone': 'Listo',
   'train.start.yes': 'Sí', 'train.start.no': 'No',
+  /* AUTH-426 · CALENTAMIENTO CARDIOVASCULAR (Raise de
+     RAMP; estudio-calentamiento-cardio-2026-11-12): el bloque
+     de primero en la rutina, su lista cerrada de 7 y la fila
+     de la tarjeta de compartir. Sin prometer prevención de
+     lesiones: lo que la ciencia sostiene es rendir mejor y
+     empezar preparado. */
+  'train.cardio.title': 'Calentamiento cardiovascular',
+  'train.cardio.hintNo': 'Nace en «No». Si hoy no calientas, no aparece en tu tarjeta de compartir.',
+  'train.cardio.dose': 'Lo recomendado: 5–10 minutos suave, que puedas hablar en frases completas.',
+  'train.cardio.doseStairs': 'En la escaladora, 3–5 minutos bastan.',
+  'train.cardio.doseRope': 'Con la cuerda, 2–3 minutos bastan.',
+  'train.cardio.warnLong': 'Un calentamiento largo o fuerte puede cansar el músculo y bajar tu rendimiento en la rutina.',
+  'train.cardio.save': 'Guardar calentamiento', 'train.cardio.edit': 'Editar',
+  'train.cardio.minutes': 'MINUTOS', 'train.cardio.distKm': 'DISTANCIA · KM', 'train.cardio.distM': 'DISTANCIA · M',
+  'train.cardio.floors': 'PISOS',
+  'train.cardio.kcal': 'CALORÍAS · OPCIONAL', 'train.cardio.kcalSub': 'solo si la máquina las marca',
+  'train.cardio.needMode': 'Elige qué calentamiento hiciste.', 'train.cardio.needMin': 'Escribe los minutos que calentaste.',
+  'train.cardio.minText': '{min} min', 'train.cardio.floorsText': '{n} pisos',
+  'train.cardio.mode.bike': 'Bicicleta estática', 'train.cardio.mode.walk': 'Caminar con inclinación (caminadora)',
+  'train.cardio.mode.row': 'Remo', 'train.cardio.mode.elliptical': 'Elíptica',
+  'train.cardio.mode.stairs': 'Escaladora', 'train.cardio.mode.jog': 'Trote suave (caminadora)',
+  'train.cardio.mode.rope': 'Saltar la cuerda',
+  'shareW.warmupTag': 'CALENTAMIENTO',
   'train.sets.add': '+ Añadir serie', 'train.sets.remove': 'Quitar serie',
   'train.sets.suggested': 'Sugerida',
   'train.custom.removeToday': 'Quitar de hoy', 'train.custom.removedTag': 'Quitado hoy',
@@ -36536,6 +36582,7 @@ function trainGuidedHTML(plan, day, di) {
       return `<div class="guide-stop${isNow ? ' is-now' : ''}"><span class="guide-stop-n">${ei2 + 1}</span>${photo ? `<img class="guide-stop-photo" src="${esc(photo)}" alt="" loading="lazy">` : (thumb ? `<img class="guide-stop-photo" src="${esc(thumb)}" alt="" loading="lazy">` : '')}<span class="guide-stop-mid"><span class="guide-stop-name">${esc(trainExName(it.ex))}</span>${spec ? `<span class="guide-stop-spec">${esc(spec)}</span>` : ''}${isNow ? `<span class="guide-stop-tag">${t('train.flow.nowFirst')}</span>` : ''}</span>${canDrag ? `<button type="button" class="guide-stop-grip" data-guide-grip="${di}:${ei2}" aria-label="${esc(t('train.custom.move'))}">⠿</button>` : ''}</div>`;
     }).join('');
     return `<h4>${esc(label)}</h4>`
+      + trainCardioWarmHTML(plan, di)
       + `<div class="guide-head"><div class="guide-pos">${esc(posText)}</div><div class="guide-bar"><div style="width:${M ? Math.round(100 * doneCount / M) : 0}%"></div></div><div class="guide-meta">${esc(metaLine)}</div></div>`
       + (canDrag ? `<div class="guide-drag-hint">${t('train.flow.dragHint')}</div>` : '')
       + `<div class="guide-route">${stops}</div>`
@@ -36579,6 +36626,7 @@ function trainGuidedHTML(plan, day, di) {
       + `<div class="guide-next">${nextEi != null ? esc(t('train.guide.next', { name: trainExName(eff[nextEi].ex) })) : esc(t('train.guide.endNext'))}</div></div>`;
   }
   return `<h4>${esc(label)}</h4>`
+    + trainCardioWarmHTML(plan, di)
     + `<div class="guide-head"><div class="guide-pos">${esc(posText)}</div><div class="guide-bar"><div style="width:${M ? Math.round(100 * doneCount / M) : 0}%"></div></div><div class="guide-meta">${esc(metaLine)}</div></div>`
     + (doneLines ? `<div class="guide-done-title">${t('train.guide.doneTitle')}</div>${doneLines}` : '')
     + focusHTML
@@ -38411,9 +38459,25 @@ function trainShareModel(plan, logs, di, iso) {
     const bv = actDayView(iso);
     if (bv && bv.extras > 0) burnedKcal = Math.round(bv.extras);
   }
-  return { label: di === -1 ? t('train.trained.label') : (day.label || ('Día ' + (di + 1))), dateISO: iso, exercises,
+  /* AUTH-426 · LA TARJETA DE COMPARTIR HONESTA (regla de
+     Ronald, 2026-11-12): a la tarjeta solo suben los ejercicios
+     ejecutados al 100 % — done en el lenguaje de la casa — y
+     fuera quedan los no ejecutados, los parciales sin marcar,
+     los saltados y los quitados hoy (que en la lista del
+     alumno ya se ocultan desde el 2026-11-02). La cabecera NO
+     cambia: doneCount y total se siguen calculando sobre la
+     lista completa, para que el «X de Y» y el % digan la
+     verdad del día entero. El calentamiento viaja aparte, en
+     su campo propio: del registro cerrado si lo hay; si no, del
+     borrador local de hoy — y solo si quedó hecho (modalidad y
+     minutos), nunca a medias. */
+  const doneExercises = exercises.filter(e => e.done);
+  let warmupShare = null;
+  if (log) warmupShare = trainCardioFromLog(log.cardioWarmup);
+  else if (iso === today) warmupShare = trainCardioViewOf(trainCardioRead(plan.id, iso));
+  return { label: di === -1 ? t('train.trained.label') : (day.label || ('Día ' + (di + 1))), dateISO: iso, exercises: doneExercises,
     doneCount: exercises.filter(e => e.done).length, total: exercises.length,
-    burnedKcal,
+    burnedKcal, warmup: warmupShare,
     /* COMPLETADO HONESTO (aprobado por Ronald, chat 2026-10-27
        14:03 CDT): el estado CERRADO del día sale de su registro
        real — 'done' solo si training_logs lo dice. Las marcas en
@@ -38424,6 +38488,191 @@ function trainShareModel(plan, logs, di, iso) {
 }
 function trainShareRowHTML(di, iso) {
   return `<div class="train-share-row"><button type="button" class="btn-ghost btn-sm" data-train-share="${di}|${iso}">📣 ${t('shareW.btn')}</button></div>`;
+}
+/* ═══ AUTH-426 · CALENTAMIENTO CARDIOVASCULAR DE LA RUTINA
+   (pedido de Ronald, 2026-11-12 10:53 CST; aprobado tal como se
+   le presentó, 11:02 CST, con la investigación y las maquetas
+   de estudio-calentamiento-cardio-2026-11-12): en cada rutina
+   diaria, DE PRIMERO en la tarjeta del día, un bloque propio —
+   distinto de Actividades y distinto de las series de
+   aproximación — con su Sí/No que NACE EN NO. En Sí: una de las
+   7 modalidades cerradas del estudio (la fase «Raise» del
+   protocolo RAMP de Jeffreys: 5–10 min suaves, RPE 3–4, poder
+   hablar en frases completas) y sus métricas — minutos
+   siempre; distancia donde la máquina la da (km; en remo, m);
+   pisos en la escaladora; calorías SOLO si la máquina las
+   marca (la app no estima nada en este bloque). El dato vive
+   con la sesión: en curso, en su propio borrador local gemelo
+   de los de ediciones y marcas; al cerrar el día, como bloque
+   propio «cardioWarmup» de training_logs (nombre distinto del
+   warmup de aproximación a propósito: dos conceptos que no se
+   mezclan). «No» = ausencia de dato. Sin reglas nuevas (la
+   regla viva de training_logs no cierra las claves del
+   documento) y SIN sumar a la llamita: esa pregunta quedó
+   abierta y sin decidir — este paquete no la toca. ═══ */
+const TRAIN_CARDIO_MODES = [
+  { id: 'bike', icon: '🚴', dist: 'km', kcal: true },
+  { id: 'walk', icon: '🚶', dist: 'km', kcal: true },
+  { id: 'row', icon: '🚣', dist: 'm', kcal: true },
+  { id: 'elliptical', icon: '', dist: 'km', kcal: true },
+  { id: 'stairs', icon: '', dist: '', floors: true, kcal: true },
+  { id: 'jog', icon: '', dist: 'km', kcal: true },
+  { id: 'rope', icon: '', dist: '', kcal: false }
+];
+function trainCardioMeta(id) { return TRAIN_CARDIO_MODES.find(m => m.id === id) || null; }
+function trainCardioKey(planId, iso) {
+  const uid = auth.currentUser ? auth.currentUser.uid : '';
+  return 'ronbofit-session-cardio-' + uid + '|' + planId + '|' + (iso || todayISO());
+}
+function trainCardioSan(v) {
+  if (!v || typeof v !== 'object' || Array.isArray(v) || v.on !== true) return null;
+  const posN = x => { const n = Number(x); return (isFinite(n) && n > 0) ? n : null; };
+  const posI = x => { const n = posN(x); return n == null ? null : Math.floor(n); };
+  return { on: true, mode: trainCardioMeta(v.mode) ? v.mode : null,
+    minutes: posN(v.minutes), dist: posN(v.dist), floors: posI(v.floors), kcal: posI(v.kcal),
+    folded: v.folded === true };
+}
+function trainCardioRead(planId, iso) {
+  try { return trainCardioSan(JSON.parse(localStorage.getItem(trainCardioKey(planId, iso)) || 'null')); }
+  catch { return null; }
+}
+function trainCardioWrite(planId, v, iso) {
+  try {
+    const s = trainCardioSan(v);
+    if (s) localStorage.setItem(trainCardioKey(planId, iso), JSON.stringify(s));
+    else localStorage.removeItem(trainCardioKey(planId, iso));
+  } catch {}
+}
+/* La vista normalizada del calentamiento — la misma para el
+   borrador de hoy, el registro cerrado y la tarjeta de
+   compartir: modalidad, minutos y solo las métricas que esa
+   modalidad admite. Sin modalidad o sin minutos no hay
+   calentamiento que contar. */
+function trainCardioViewOf(d) {
+  if (!d) return null;
+  const meta = trainCardioMeta(d.mode);
+  if (!meta || !(Number(d.minutes) > 0)) return null;
+  const out = { mode: d.mode, minutes: Number(d.minutes) };
+  if (meta.dist && d.dist != null) { out.dist = Number(d.dist); out.distUnit = meta.dist; }
+  if (meta.floors && d.floors != null) out.floors = Math.floor(Number(d.floors));
+  if (meta.kcal && d.kcal != null) out.kcal = Math.floor(Number(d.kcal));
+  return out;
+}
+function trainCardioFromLog(w) {
+  if (!w || typeof w !== 'object' || Array.isArray(w)) return null;
+  return trainCardioViewOf({ mode: w.mode, minutes: w.minutes,
+    dist: w.distanceKm != null ? w.distanceKm : (w.distanceM != null ? w.distanceM : null),
+    floors: w.floors, kcal: w.kcalMachine });
+}
+function trainCardioBlockOf(v) {
+  const out = { mode: v.mode, minutes: v.minutes };
+  if (v.distUnit === 'km' && v.dist != null) out.distanceKm = v.dist;
+  if (v.distUnit === 'm' && v.dist != null) out.distanceM = v.dist;
+  if (v.floors != null) out.floors = v.floors;
+  if (v.kcal != null) out.kcalMachine = v.kcal;
+  return out;
+}
+function trainCardioForClose(planId) {
+  const v = trainCardioViewOf(trainCardioRead(planId));
+  return v ? trainCardioBlockOf(v) : null;
+}
+function trainCardioDetail(v) {
+  const parts = [t('train.cardio.mode.' + v.mode), t('train.cardio.minText', { min: v.minutes })];
+  if (v.dist != null) parts.push(fmt(v.dist) + ' ' + v.distUnit);
+  if (v.floors != null) parts.push(t('train.cardio.floorsText', { n: v.floors }));
+  if (v.kcal != null) parts.push(fmt(v.kcal) + ' kcal');
+  return parts.join(' · ');
+}
+/* EL PINTOR DEL BLOQUE. Con log (día cerrado o tarjeta
+   histórica) enseña lo registrado, sin controles, y solo si lo
+   hubo. Sin log pinta el control de la sesión de esa fecha:
+   nacido en No; en Sí, el editor (modalidades y métricas) o el
+   resumen plegado tras «Guardar calentamiento». */
+function trainCardioWarmHTML(plan, di, iso, log) {
+  if (log) {
+    const v = trainCardioFromLog(log.cardioWarmup);
+    if (!v) return '';
+    const metaR = trainCardioMeta(v.mode);
+    return `<div class="cardio-warm is-read"><div class="cardio-warm-head"><span class="cardio-warm-title">🔥 ${esc(t('train.cardio.title'))}</span></div>`
+      + `<div class="cardio-sum">${metaR && metaR.icon ? `<span aria-hidden="true">${metaR.icon}</span>` : ''}<span>${esc(trainCardioDetail(v))}</span></div></div>`;
+  }
+  if (!plan || !plan.id || di == null || di < -1) return '';
+  const d = trainCardioRead(plan.id, iso);
+  const head = `<div class="cardio-warm-head"><span class="cardio-warm-title">🔥 ${esc(t('train.cardio.title'))}</span></div>`;
+  const seg = `<div class="cardio-seg" role="group"><button type="button" data-cardio-tog="0" aria-pressed="${d ? 'false' : 'true'}" class="${d ? '' : 'is-on'}">${esc(t('train.start.no'))}</button><button type="button" data-cardio-tog="1" aria-pressed="${d ? 'true' : 'false'}" class="${d ? 'is-on' : ''}">${esc(t('train.start.yes'))}</button></div>`;
+  const wrap = inner => `<div class="cardio-warm is-edit" data-cardio-plan="${esc(plan.id)}" data-cardio-iso="${esc(iso || todayISO())}">${head}${seg}${inner}</div>`;
+  if (!d) return wrap(`<div class="cardio-hint">${esc(t('train.cardio.hintNo'))}</div>`);
+  if (d.folded) {
+    const v = trainCardioViewOf(d);
+    if (v) {
+      const metaF = trainCardioMeta(v.mode);
+      return wrap(`<div class="cardio-sum">${metaF && metaF.icon ? `<span aria-hidden="true">${metaF.icon}</span>` : ''}<span>${esc(trainCardioDetail(v))}</span><button type="button" class="cardio-edit" data-cardio-edit="1">${esc(t('train.cardio.edit'))}</button></div>`);
+    }
+  }
+  const meta = trainCardioMeta(d.mode);
+  const pills = TRAIN_CARDIO_MODES.map(m => `<button type="button" data-cardio-mode="${m.id}" aria-pressed="${d.mode === m.id ? 'true' : 'false'}" class="${d.mode === m.id ? 'is-sel' : ''}">${m.icon ? m.icon + ' ' : ''}${esc(t('train.cardio.mode.' + m.id))}</button>`).join('');
+  let fields = `<div class="cardio-fld"><label>${esc(t('train.cardio.minutes'))}</label><input type="number" inputmode="decimal" min="0" step="any" data-cardio-f="minutes" value="${d.minutes != null ? d.minutes : ''}"></div>`;
+  if (meta && meta.dist) fields += `<div class="cardio-fld"><label>${esc(t(meta.dist === 'm' ? 'train.cardio.distM' : 'train.cardio.distKm'))}</label><input type="number" inputmode="decimal" min="0" step="any" data-cardio-f="dist" value="${d.dist != null ? d.dist : ''}"></div>`;
+  if (meta && meta.floors) fields += `<div class="cardio-fld"><label>${esc(t('train.cardio.floors'))}</label><input type="number" inputmode="numeric" min="0" step="1" data-cardio-f="floors" value="${d.floors != null ? d.floors : ''}"></div>`;
+  if (meta && meta.kcal) fields += `<div class="cardio-fld"><label>${esc(t('train.cardio.kcal'))}</label><input type="number" inputmode="numeric" min="0" step="1" data-cardio-f="kcal" value="${d.kcal != null ? d.kcal : ''}"><small>${esc(t('train.cardio.kcalSub'))}</small></div>`;
+  const dose = d.mode === 'stairs' ? t('train.cardio.doseStairs') : (d.mode === 'rope' ? t('train.cardio.doseRope') : t('train.cardio.dose'));
+  const warn = `<div class="cardio-warn" data-cardio-warn${(d.minutes != null && d.minutes > 10) ? '' : ' hidden'}>${esc(t('train.cardio.warnLong'))}</div>`;
+  return wrap(`<div class="cardio-pills">${pills}</div><div class="cardio-fields">${fields}</div>`
+    + `<div class="cardio-hint">${esc(dose)}</div>${warn}`
+    + `<button type="button" class="cardio-save" data-cardio-save="1">${esc(t('train.cardio.save'))}</button>`);
+}
+/* Cableado del bloque (lo llama loadMyTraining tras pintar,
+   junto al de la zona de extras): cada gesto guarda al acto en
+   el borrador local — la disciplina de la casa, sin un
+   «Cancelar» global — y repinta; los campos numéricos guardan
+   al cambiar, sin repintar (para no perder el foco). */
+function trainCardioWire(box) {
+  if (!box) return;
+  const root = box.querySelector('.cardio-warm.is-edit');
+  if (!root) return;
+  const planId = root.dataset.cardioPlan, iso = root.dataset.cardioIso || undefined;
+  const read = () => trainCardioRead(planId, iso);
+  root.querySelectorAll('[data-cardio-tog]').forEach(b => b.onclick = () => {
+    if (b.dataset.cardioTog === '1') {
+      /* Al decir Sí nace el borrador con la dosis por defecto
+         del estudio: 5 minutos, sin modalidad aún. */
+      if (!read()) trainCardioWrite(planId, { on: true, mode: null, minutes: 5, dist: null, floors: null, kcal: null, folded: false }, iso);
+    } else trainCardioWrite(planId, null, iso);   /* No = ausencia de dato: el borrador se retira */
+    loadMyTraining();
+  });
+  root.querySelectorAll('[data-cardio-mode]').forEach(b => b.onclick = () => {
+    const d = read(); if (!d) return;
+    /* Cambiar de modalidad limpia las lecturas de la máquina
+       anterior (distancia, pisos y calorías eran de ESA
+       máquina); los minutos se conservan. */
+    trainCardioWrite(planId, { ...d, mode: b.dataset.cardioMode, dist: null, floors: null, kcal: null, folded: false }, iso);
+    loadMyTraining();
+  });
+  root.querySelectorAll('[data-cardio-f]').forEach(inp => inp.onchange = () => {
+    const d = read(); if (!d) return;
+    const f = inp.dataset.cardioF;
+    const raw = String(inp.value || '').trim().replace(',', '.');
+    const n = raw === '' ? null : Number(raw);
+    const val = (n != null && isFinite(n) && n > 0) ? n : null;
+    const nd = { ...d, [f]: (f === 'floors' || f === 'kcal') && val != null ? Math.floor(val) : val };
+    trainCardioWrite(planId, nd, iso);
+    const w = root.querySelector('[data-cardio-warn]');
+    if (w) w.hidden = !(nd.minutes != null && nd.minutes > 10);
+  });
+  const sv = root.querySelector('[data-cardio-save]');
+  if (sv) sv.onclick = () => {
+    const d = read(); if (!d) return;
+    if (!d.mode) { toast(t('train.cardio.needMode'), true); return; }
+    if (!(d.minutes > 0)) { toast(t('train.cardio.needMin'), true); return; }
+    trainCardioWrite(planId, { ...d, folded: true }, iso);
+    loadMyTraining();
+  };
+  const ed = root.querySelector('[data-cardio-edit]');
+  if (ed) ed.onclick = () => {
+    const d = read(); if (!d) return;
+    trainCardioWrite(planId, { ...d, folded: false }, iso);
+    loadMyTraining();
+  };
 }
 /* EXTRAS OPCIONALES DE HOY (2026-10-27, pedido de Ronald: «Quiero
    que sea más accesible, que también esté en el marcador de los
@@ -40501,7 +40750,12 @@ async function loadMyTraining() {
         exHtml = `<button type="button" class="train-done-fold" data-train-done-fold="${di}" aria-expanded="${openFold ? 'true' : 'false'}"><span class="train-df-flame" aria-hidden="true">🔥</span><span class="train-df-txt">${segsFold.join(' · ')}</span><span class="train-df-chev" aria-hidden="true">›</span></button><div class="train-done-rows" data-train-done-rows="${di}"${openFold ? '' : ' hidden'}>${exHtml}</div>`;
       }
     }
-    return `<h4>${esc(label)}</h4>${exHtml}${mode === 'edit' ? trainRemovedLineHTML(plan, di, (typeof TRAIN_VIEW !== 'undefined' && TRAIN_VIEW) ? TRAIN_VIEW.sel : undefined) : ''}${trainSessionHTML(day)}${tail}${trainExtrasZoneHTML()}`;
+    /* AUTH-426: el calentamiento abre también la tarjeta
+       vestida — editable en edición (su sesión de esa fecha) y
+       de solo lectura, desde el registro, en día cerrado; en
+       la ficha del entrenador (mode 'ficha') no nace. */
+    const cardioHtml = (mode === 'edit' || mode === 'done') ? trainCardioWarmHTML(plan, di, (typeof TRAIN_VIEW !== 'undefined' && TRAIN_VIEW) ? TRAIN_VIEW.sel : undefined, mode === 'done' ? log : null) : '';
+    return `<h4>${esc(label)}</h4>${cardioHtml}${exHtml}${mode === 'edit' ? trainRemovedLineHTML(plan, di, (typeof TRAIN_VIEW !== 'undefined' && TRAIN_VIEW) ? TRAIN_VIEW.sel : undefined) : ''}${trainSessionHTML(day)}${tail}${trainExtrasZoneHTML()}`;
   };
   /* ENTRENAMIENTO-HOY: tira semanal + tarjeta del día (por defecto
      HOY). La configuración de pendientes es la ancla «cfg»: si
@@ -40587,7 +40841,7 @@ async function loadMyTraining() {
     return trainDressedCardHTML(plan, logs, di, sel, dressExRows(inner0, di, done ? 'read' : 'edit'), '');
   };
   const dressedHistCard = (day, log) => {
-    const inner = `<h4>${esc(log.dayLabel || day.label || '')}</h4>` + dressExRows(trainDayCompactHistHTML(day, log, log.dayIndex), log.dayIndex, 'read') + trainSessionHTML(day)
+    const inner = `<h4>${esc(log.dayLabel || day.label || '')}</h4>` + trainCardioWarmHTML(plan, log.dayIndex, log.date, log) + dressExRows(trainDayCompactHistHTML(day, log, log.dayIndex), log.dayIndex, 'read') + trainSessionHTML(day)
       + `<div style="margin-top:8px">${trainStatusBadge(trainLogStatus(log))}${trainLogMetaHTML(log)}</div>`;
     return trainDressedCardHTML(plan, logs, log.dayIndex, sel, inner, 'is-readonly');
   };
@@ -41018,6 +41272,7 @@ async function loadMyTraining() {
   });
   trainWireUnitSels(box);
   trainExtrasWire(box);
+  trainCardioWire(box);   /* AUTH-426: el cableado del calentamiento, junto al de la zona de extras */
   box.querySelectorAll('[data-train-set-load]').forEach(inp => inp.oninput = () => {
     const [di, ei, si] = inp.dataset.trainSetLoad.split(':');
     const c = TRAIN_CHECKS[di + ':' + ei];
@@ -41210,6 +41465,16 @@ async function loadMyTraining() {
       weightKgUsed: sessionKcal == null ? null : w.weight,
       metUsed: sessionKcal == null ? null : ACT_MET.entrenamiento_plan[inten] };
     if (removedEntries.length) data.exercisesRemoved = removedEntries;
+    /* AUTH-426 · EL CALENTAMIENTO VIAJA AL REGISTRO: si
+       la sesión tuvo calentamiento cardiovascular hecho
+       (modalidad y minutos en su borrador local), el cierre lo
+       guarda como bloque propio «cardioWarmup» del registro —
+       junto a exercisesDone, sin mezclarse con él y sin contar
+       como ejercicio. Sin calentamiento, la carga queda byte a
+       byte la de siempre. Las reglas vivas no cierran la lista
+       de claves de training_logs: sin delta de reglas. */
+    const cardioClose = trainCardioForClose(plan.id);
+    if (cardioClose) data.cardioWarmup = cardioClose;
     /* CRONÓMETRO DE SESIÓN + ENCUESTA (punto 88 de la cola): si el
        reloj de esta sesión corre, el confirmar lo DETIENE aquí —
        la duración real se mide en este instante — y la encuesta
@@ -41236,6 +41501,7 @@ async function loadMyTraining() {
       trainChronoWrite(plan.id, null);
       TRAIN_CLOSE_DI = null;
       trainEditsClear(plan.id);   /* PERSONALIZA: los cambios de hoy ya viven en el registro; el borrador local se retira */
+      trainCardioWrite(plan.id, null);   /* AUTH-426: el borrador del calentamiento se retira con el día, como las ediciones */
       Object.keys(TRAIN_CHECKS).forEach(k => { if (k.split(':')[0] === String(di)) delete TRAIN_CHECKS[k]; });
       trainChecksPersist(plan.id);   /* MARCAS QUE SOBREVIVEN: cerrado el día, el borrador de marcas se retira con él */
       sessPillTick();
@@ -41280,6 +41546,14 @@ async function loadMyTraining() {
        (solo si ese registro lo tenía: nada que retirar si el
        cierre fue sin estimación). */
     if (prevUndo && prevUndo.sessionKcal != null) await trainDumpSession(today, null);
+    /* AUTH-426: el calentamiento del registro retirado
+       vuelve a su borrador local, plegado como resumen — el día
+       regresa a editable tal como quedó al cerrar, como con
+       las marcas y los quitados. */
+    if (prevUndo && prevUndo.cardioWarmup) {
+      const cwU = trainCardioFromLog(prevUndo.cardioWarmup);
+      if (cwU) trainCardioWrite(plan.id, { on: true, mode: cwU.mode, minutes: cwU.minutes, dist: cwU.dist != null ? cwU.dist : null, floors: cwU.floors != null ? cwU.floors : null, kcal: cwU.kcal != null ? cwU.kcal : null, folded: true });
+    }
     /* MARCAS QUE SOBREVIVEN: deshacer el cierre devuelve el día
        a editable CON sus marcas — se reconstruyen desde el
        detalle del registro retirado (las filas del historial
@@ -55649,11 +55923,60 @@ function shareDrawWorkout(ctx, W, H, d) {
   const dividerY = H - (cp ? 118 : 168);
   const rowsLimit = dividerY - (cp ? 20 : 26);
   const gap = cp ? 10 : 14;
-  const n = Math.max(1, d.total);
+  /* AUTH-426: la densidad se calcula sobre las filas que
+     se PINTAN — los ejecutados al 100 % que trae el modelo más
+     la fila del calentamiento cuando lo hubo —; si se contara
+     d.total (el día completo), un día parcial dejaría las
+     filas enanas. El % y el «X de Y» de arriba siguen con
+     d.total y d.doneCount, el día completo. */
+  const n = Math.max(1, d.exercises.length + (d.warmup ? 1 : 0));
   const panelH = Math.min(cp ? 120 : 168, Math.floor((rowsLimit - rowsTop - (n - 1) * gap) / n));
   const single = panelH < 64;
+  /* AUTH-426 · EL CALENTAMIENTO, DE PRIMERO en la
+     tarjeta (solo cuando se hizo): su fila de cristal con el
+     icono de la modalidad en un círculo de contorno lima, su
+     detalle (modalidad · minutos · distancia/pisos/kcal de la
+     máquina) y la pastilla «CALENTAMIENTO» sin relleno — no es
+     un ejercicio del plan: no lleva ✓ ni pastilla «HECHO» y no
+     cuenta en el total. Las filas de ejercicios se desplazan
+     una posición (rowOff) sin tocar su geometría. */
+  const rowOff = d.warmup ? 1 : 0;
+  if (d.warmup) {
+    const topW = rowsTop, cyW = topW + panelH / 2;
+    shareGlassPanel(ctx, MX, topW, W - MX * 2, panelH, cp ? 18 : 22);
+    ctx.save();
+    ctx.fillStyle = '#C6FF4A';
+    shareRR(ctx, MX + 16, topW + 18, 9, Math.max(10, panelH - 36), 4.5); ctx.fill();
+    ctx.restore();
+    const RW = single ? Math.min(24, panelH * 0.32) : Math.min(30, Math.max(19, panelH * 0.20));
+    const ccxW = MX + 82;
+    ctx.save();
+    ctx.strokeStyle = '#C6FF4A'; ctx.lineWidth = 3.5;
+    ctx.beginPath(); ctx.arc(ccxW, cyW, RW, 0, Math.PI * 2); ctx.stroke();
+    ctx.restore();
+    const metaW = trainCardioMeta(d.warmup.mode);
+    shareTxt(ctx, (metaW && metaW.icon) || '🔥', ccxW, cyW + RW * 0.36, shareCtxFont(400, Math.round(RW * 1.05), true), '#ffffff', { shadow: false });
+    const nameXW = MX + 132;
+    const namePxW = Math.round(Math.min(42, Math.max(24, panelH * 0.26)));
+    const fitPxW = shareFitPx(ctx, t('train.cardio.title'), 800, namePxW, W - nameXW - MX - (single ? 16 : 196));
+    if (single) {
+      shareTxt(ctx, t('train.cardio.title'), nameXW, cyW + fitPxW * 0.36, shareCtxFont(800, fitPxW), '#ffffff', { align: 'left', shadowBlur: 8 });
+    } else {
+      shareTxt(ctx, t('train.cardio.title'), nameXW, cyW - 6, shareCtxFont(800, fitPxW), '#ffffff', { align: 'left', shadowBlur: 8 });
+      const detPxW = Math.round(Math.min(29, Math.max(19, panelH * 0.185)));
+      shareTxt(ctx, trainCardioDetail(d.warmup), nameXW, cyW + Math.round(panelH * 0.24) + 8, shareCtxFont(500, detPxW), 'rgba(255,255,255,.85)', { align: 'left' });
+      const wlab = t('shareW.warmupTag');
+      ctx.font = shareCtxFont(800, 22);
+      const pwW = ctx.measureText(wlab).width + 36, phW = 40;
+      ctx.save();
+      ctx.strokeStyle = '#C6FF4A'; ctx.lineWidth = 2.5;
+      shareRR(ctx, W - MX - 16 - pwW, cyW - phW / 2, pwW, phW, phW / 2); ctx.stroke();
+      ctx.restore();
+      shareTxt(ctx, wlab, W - MX - 16 - pwW / 2, cyW + 8, shareCtxFont(800, 22), '#C6FF4A', { shadow: false, ls: 1 });
+    }
+  }
   d.exercises.forEach((ex, i) => {
-    const top = rowsTop + i * (panelH + gap), cy = top + panelH / 2;
+    const top = rowsTop + (i + rowOff) * (panelH + gap), cy = top + panelH / 2;
     shareGlassPanel(ctx, MX, top, W - MX * 2, panelH, cp ? 18 : 22);
     ctx.save();
     ctx.fillStyle = SHARE_W_PALETTE[i % SHARE_W_PALETTE.length];
@@ -56107,7 +56430,7 @@ document.addEventListener('keydown', e => { if (e.key === 'Escape') shareClose()
  *  - El SW (sw.js) solo cachea la cáscara del mismo origen en modo
  *    RED PRIMERO: Auth/Firestore/Worker jamás pasan por la caché.
  * ================================================================ */
-const PWA_SW_VERSION = '20261112-sin-barra-arriba';
+const PWA_SW_VERSION = '20261112-calentamiento-cardio';
 /* Sello de versión VISIBLE (2026-11-03): el pie de la tarjeta de
    acceso enseña qué copia corre este teléfono ('v ' + el sello),
    para comprobar de un vistazo si la versión nueva ya llegó.

@@ -5963,3 +5963,27 @@ body.train-drag-lock { overflow: hidden; overscroll-behavior: none; }
 @media (min-width: 720px) {
   .act-float, .pend-float, .ring-detail, .tf-wheel-card, .sess-survey-card { width: min(640px, calc(100vw - 24px)); }
 }
+/* ═══ AUTH-426 · CALENTAMIENTO CARDIOVASCULAR: el bloque
+   de primero en la tarjeta del día, sobre su degradado teal —
+   cristal translúcido como el resto de la tarjeta vestida,
+   controles grandes estilo casa (la app se usa entrenando:
+   toques de 44 px o más) y campos con la cifra en grande. ═══ */
+.cardio-warm { background: rgba(255,255,255,.13); border: 1.5px solid rgba(255,255,255,.35); border-radius: 16px; padding: 13px; margin: 10px 0 12px; }
+.cardio-warm-head { display: flex; align-items: center; gap: 7px; }
+.cardio-warm-title { font-size: 16.5px; font-weight: 800; color: #fff; }
+.cardio-seg { display: flex; gap: 8px; margin-top: 11px; }
+.cardio-seg button { flex: 1; min-height: 48px; padding: 12px 0; border-radius: 12px; font: inherit; font-size: 16px; font-weight: 800; border: 2px solid rgba(255,255,255,.55); background: transparent; color: #fff; cursor: pointer; }
+.cardio-seg button.is-on { background: #fff; color: #0a5c50; border-color: #fff; }
+.cardio-hint { font-size: 12.5px; color: rgba(255,255,255,.85); margin-top: 9px; }
+.cardio-pills { display: flex; flex-wrap: wrap; gap: 7px; margin-top: 11px; }
+.cardio-pills button { font: inherit; font-size: 13px; font-weight: 700; min-height: 44px; padding: 9px 12px; border-radius: 99px; border: 1.5px solid rgba(255,255,255,.55); background: transparent; color: #fff; cursor: pointer; }
+.cardio-pills button.is-sel { background: #C6FF4A; color: #0b3b36; border-color: #C6FF4A; }
+.cardio-fields { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 12px; }
+.cardio-fld { flex: 1 1 100px; background: rgba(255,255,255,.12); border: 1.5px solid rgba(255,255,255,.3); border-radius: 12px; padding: 8px 10px; }
+.cardio-fld label { display: block; font-size: 10.5px; letter-spacing: 1px; color: #bfe8df; font-weight: 700; }
+.cardio-fld input { width: 100%; background: transparent; border: 0; outline: 0; font: inherit; font-size: 19px; font-weight: 800; color: #fff; padding: 2px 0 0; }
+.cardio-fld small { display: block; font-size: 11px; color: rgba(255,255,255,.75); }
+.cardio-warn { margin-top: 10px; font-size: 12.5px; font-weight: 700; color: #ffd9a8; }
+.cardio-save { margin-top: 12px; width: 100%; min-height: 48px; background: #fff; color: #0a5c50; border: 0; font: inherit; font-weight: 800; font-size: 15px; padding: 13px 0; border-radius: 12px; cursor: pointer; }
+.cardio-sum { display: flex; align-items: center; gap: 9px; margin-top: 11px; font-size: 14.5px; font-weight: 700; color: #fff; }
+.cardio-edit { margin-left: auto; flex: none; min-height: 44px; background: transparent; border: 1.5px solid rgba(255,255,255,.55); color: #fff; font: inherit; font-size: 13px; font-weight: 700; padding: 8px 13px; border-radius: 99px; cursor: pointer; }
