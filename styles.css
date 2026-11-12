@@ -2407,6 +2407,17 @@ div.swap-card { cursor: default; }
    con los controles de la casa (≥48 px, borde y radio de las
    cajas del dictado). */
 .mph-busy { font-size: 16px; text-align: center; padding: 22px 4px; }
+/* AUTH-432 · LA PRENSA ANIMADA EN LA ESPERA DE LA FOTO
+   (decisión de Ronald, 2026-11-12: el candidato A de la
+   maqueta aprobada): el símbolo va centrado sobre «Mirando tu
+   foto...», a 208×208 — el tamaño de la maqueta — con el aire
+   de arriba de la maqueta (104 px) y el texto con su relleno
+   de siempre (22 px ≈ los 20 de la maqueta). La caja es
+   decorativa (aria-hidden en el HTML): el texto sigue
+   diciendo la espera. En anchos menores que el símbolo manda
+   el 62vw: la imagen encoge y nunca desborda la hoja. */
+.mph-busy-sym { display: flex; justify-content: center; margin-top: 104px; }
+.mph-busy-sym img { display: block; width: min(208px, 62vw); height: auto; aspect-ratio: 1 / 1; }
 .mph-names { display: grid; gap: 10px; margin: 10px 0; }
 .mph-names label { display: grid; gap: 4px; font-size: 13px; font-weight: 600; }
 .mph-names input { font: inherit; font-size: 16px; padding: 9px 10px; border: 1.5px solid #cbd5e1; border-radius: 10px; width: 100%; box-sizing: border-box; min-height: 48px; background: #fff; }

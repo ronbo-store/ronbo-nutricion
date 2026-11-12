@@ -35797,6 +35797,16 @@ function dictSheetApply() {
    · LA HOJA espeja la del dictado (AUTH-279): clases swap-sheet /
      dict-sheet, bloqueo de scroll con swap-sheet-open, tarjetas
      swap-card y números dict-nums. */
+/* ═══ AUTH-432 · LA ESPERA DE LA FOTO DE MÁQUINA: LA
+   PRENSA ANIMADA (decisión de Ronald, 2026-11-12 11:41 CST:
+   entre los dos candidatos de la propuesta
+   maqueta-espera-maquina-2026-11-12/, eligió el A — la prensa
+   de piernas empujando en bucle). El símbolo vive FUERA de la
+   app, en el repo de assets de la casa (ronbo-nutri-assets,
+   commit 8a74933), servido por GitHub Pages y referenciado
+   por constante, como las caras del Coach: WebP animado
+   480×480, 32 fotogramas en bucle, 127 KB. ═══ */
+const MPH_WAIT_PRESS_URL = 'https://ronbo-store.github.io/ronbo-nutri-assets/espera-maquina/web/prensa-animada.webp';
 let TRAIN_PHOTO = null;
 
 function mphCatalog() {
@@ -35972,7 +35982,14 @@ function mphSheetSync() {
   document.body.classList.add('swap-sheet-open');
   let body = '';
   if (D.step === 'busy') {
+    /* AUTH-432: la espera de IDENTIFICAR («Mirando tu
+       foto...») pinta la prensa animada sobre el texto, con la
+       composición de la maqueta aprobada. La otra espera de
+       esta misma rama — la de GUARDAR la ficha («Guardando la
+       ficha...», D.busy) — queda en texto como hoy: la
+       maqueta aprobada cubre solo la de identificar. */
     body = `<p class="progress-hint">${esc(t('mph.hint'))}</p>
+      ${D.busy ? '' : `<div class="mph-busy-sym" aria-hidden="true"><img src="${MPH_WAIT_PRESS_URL}" alt=""></div>`}
       <p class="mph-busy">${D.busy ? esc(t('mph.uploading')) : esc(t('mph.analyzing'))}</p>`;
   } else if (D.step === 'error') {
     const key = D.err === 'ai-cap' ? 'mph.errCap' : (D.err === 'ai-disabled' || D.err === 'ai-off') ? 'mph.errDisabled' : D.err === 'ai-door-unavailable' ? 'mph.errDoor' : 'mph.errGeneric';
@@ -56698,7 +56715,7 @@ document.addEventListener('keydown', e => { if (e.key === 'Escape') shareClose()
  *  - El SW (sw.js) solo cachea la cáscara del mismo origen en modo
  *    RED PRIMERO: Auth/Firestore/Worker jamás pasan por la caché.
  * ================================================================ */
-const PWA_SW_VERSION = '20261112-botones-bajo-el-plan';
+const PWA_SW_VERSION = '20261112-prensa-espera';
 /* Sello de versión VISIBLE (2026-11-03): el pie de la tarjeta de
    acceso enseña qué copia corre este teléfono ('v ' + el sello),
    para comprobar de un vistazo si la versión nueva ya llegó.
