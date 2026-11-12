@@ -36769,6 +36769,28 @@ function sessPillTick() {
    sin botón, sin columna y sin franja: nunca inventa un
    ejercicio ni un avance. El repintado va por firma de estado;
    el reloj se actualiza en cada tick, como siempre. ═══ */
+/* ═══ AUTH-429 · LA PUNTA DE LA FRANJA: LA FOTO DEL
+   USUARIO (decisión de Ronald, 2026-11-12: variante B de su
+   maqueta «la foto en la franja de la píldora», con la franja
+   más fina). La punta del relleno ya no la marca la llamita
+   sola: la marca la foto de perfil del usuario (UDATA.photoURL,
+   la de cada quien), en el círculo de 20 px de la maqueta —
+   anillo blanco, object-position alto — con UNA sola llama
+   pequeña asomando abajo a la derecha; nunca un anillo
+   alrededor (su «eso parece un sol» descartó esa forma). Sin
+   foto, el disco de la casa con su inicial: el mismo recurso
+   de setAvatar (disco #0d9488, la primera inicial en blanco),
+   con la misma llamita. La posición es la de siempre — los
+   topes de flameLeft no se tocan — y la franja adelgaza en
+   el CSS de este mismo AUTH (de 28 a 20 px de banda, con la
+   línea de avance de 8 px centrada). ═══ */
+function sessPillTipHTML(left) {
+  const ph = (typeof UDATA !== 'undefined' && UDATA && UDATA.photoURL) || '';
+  const inner = ph
+    ? `<img src="${esc(ph)}" alt="">`
+    : `<span class="sp-ini">${esc((((typeof UDATA !== 'undefined' && UDATA && UDATA.name) || '').trim().charAt(0) || '•').toUpperCase())}</span>`;
+  return `<span class="sp-tip" style="left:${left}">${inner}<span class="sp-tip-flame" aria-hidden="true">🔥</span></span>`;
+}
 let SESS_PILL_SIG = '';
 function sessPillSync(run) {
   const pill = $('sess-pill'); if (!pill) return;
@@ -36786,7 +36808,8 @@ function sessPillSync(run) {
     const total = st.eff.length;
     const doneN = st.eff.filter((_, ei) => { const c = st.checks[st.di + ':' + ei]; return !!(c && c.done === true); }).length;
     const pct = total ? Math.round(100 * doneN / total) : 0;
-    sig = ['full', st.di, st.cur, st.nxt, curChk ? 1 : 0, flowSt, doneN, total, run.label || ''].join('|');
+    const tipPh = (typeof UDATA !== 'undefined' && UDATA && UDATA.photoURL) || '';
+    sig = ['full', st.di, st.cur, st.nxt, curChk ? 1 : 0, flowSt, doneN, total, run.label || '', tipPh ? 'p' + tipPh.length : 'i:' + (((typeof UDATA !== 'undefined' && UDATA && UDATA.name) || ''))].join('|');
     const curName = trainExName(st.eff[st.cur].ex) || st.eff[st.cur].ex.name || '';
     let btn;
     if (!curChk) btn = `<button type="button" class="sp-btn ini" data-pill-start="${ck}">${esc(t('train.flow.start'))}</button>`;
@@ -36797,7 +36820,7 @@ function sessPillSync(run) {
       + `<div class="sp-state"><span class="sp-training">${esc(t('sess.pillPlain'))}</span>${run.label ? `<span class="sp-day">${esc(run.label)}</span>` : ''}</div>`
       + `<div class="sp-cur">${esc(curName)}</div><div class="sp-btnrow">${btn}</div></div>`
       + (st.nxt != null ? `<div class="sp-sep" aria-hidden="true"></div><div class="sp-next"><span class="sp-next-lab">${esc(t('sess.pillNext'))}</span><span class="sp-next-name">${esc(trainExName(st.eff[st.nxt].ex) || st.eff[st.nxt].ex.name || '')}</span><span class="sp-next-pos">${esc(t('train.guide.pos', { n: st.nxt + 1, m: total }))}</span></div>` : '')
-      + `</div><div class="sp-franja" aria-hidden="true"><i style="width:${pct}%"></i><span class="sp-flame" style="left:${flameLeft}">🔥</span></div>`;
+      + `</div><div class="sp-franja" aria-hidden="true"><i style="width:${pct}%"></i>${sessPillTipHTML(flameLeft)}</div>`;
   }
   if (sig !== SESS_PILL_SIG) {
     SESS_PILL_SIG = sig;
@@ -56644,7 +56667,7 @@ document.addEventListener('keydown', e => { if (e.key === 'Escape') shareClose()
  *  - El SW (sw.js) solo cachea la cáscara del mismo origen en modo
  *    RED PRIMERO: Auth/Firestore/Worker jamás pasan por la caché.
  * ================================================================ */
-const PWA_SW_VERSION = '20261112-aproximacion-tarjeta';
+const PWA_SW_VERSION = '20261112-foto-franja';
 /* Sello de versión VISIBLE (2026-11-03): el pie de la tarjeta de
    acceso enseña qué copia corre este teléfono ('v ' + el sello),
    para comprobar de un vistazo si la versión nueva ya llegó.

@@ -3450,9 +3450,26 @@ body.nav-lock.prog-page #act-flame { visibility: visible; }
 .sp-next-lab { font-size: 11px; font-weight: 800; letter-spacing: .15em; color: #C6FF4A; }
 .sp-next-name { font-size: 15.5px; font-weight: 700; line-height: 1.2; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 .sp-next-pos { font-size: 12px; font-weight: 600; color: rgba(255, 255, 255, .6); white-space: nowrap; }
-.sp-franja { position: relative; height: 28px; background: rgba(255, 255, 255, .13); }
-.sp-franja i { position: absolute; left: 0; top: 0; bottom: 0; display: block; background: linear-gradient(90deg, #FFB300, #C6FF4A); }
-.sp-flame { position: absolute; top: 50%; transform: translate(-50%, -50%); font-size: 19px; line-height: 1; filter: drop-shadow(0 0 6px rgba(255, 150, 0, .85)); pointer-events: none; }
+/* AUTH-429 · LA FRANJA, MÁS FINA (decisión de Ronald,
+   2026-11-12: su foto en la punta, variante B, «pero menos
+   grueso de la línea de avance»): la banda baja de 28 a 20 px
+   y la línea de avance — pista y relleno — pasa a ser UNA
+   línea de 8 px centrada en la banda (la pista es el fondo
+   de la propia franja, recortado a la línea por el degradado
+   con tamaño). La perilla (.sp-tip, la foto de 20 px)
+   cabalga centrada sobre la línea: sobresale 6 px por encima
+   y por debajo DE LA LÍNEA, ensartada, y queda contenida en
+   la banda — su borde inferior a ras del borde inferior de
+   la píldora, sin recorte. La píldora pierde exactamente
+   los 8 px de la banda. Los resguardos de body.sess-on NO
+   se tocan a propósito: la pila flotante conserva su sitio
+   y gana esos 8 px de aire sobre la píldora. */
+.sp-franja { position: relative; height: 20px; background: linear-gradient(rgba(255, 255, 255, .13), rgba(255, 255, 255, .13)) center / 100% 8px no-repeat; }
+.sp-franja i { position: absolute; left: 0; top: 50%; transform: translateY(-50%); height: 8px; display: block; background: linear-gradient(90deg, #FFB300, #C6FF4A); border-radius: 0 999px 999px 0; }
+.sp-tip { position: absolute; top: 50%; transform: translate(-50%, -50%); width: 20px; height: 20px; pointer-events: none; }
+.sp-tip img { width: 20px; height: 20px; box-sizing: border-box; display: block; border-radius: 50%; object-fit: cover; object-position: 50% 30%; border: 1.5px solid rgba(255, 255, 255, .92); box-shadow: 0 1px 4px rgba(0, 0, 0, .45); background: #0d9488; }
+.sp-tip .sp-ini { display: flex; align-items: center; justify-content: center; width: 20px; height: 20px; box-sizing: border-box; border-radius: 50%; background: #0d9488; border: 1.5px solid rgba(255, 255, 255, .92); box-shadow: 0 1px 4px rgba(0, 0, 0, .45); color: #fff; font-size: 11px; font-weight: 800; line-height: 1; }
+.sp-tip-flame { position: absolute; right: -3px; bottom: 0; font-size: 12px; line-height: 1; filter: drop-shadow(0 0 3px rgba(255, 150, 0, .9)); }
 /* AUTH-407: los resguardos crecen en 150 px — el alto
    medido de la píldora gruesa menos los 36 de la fina — para
    que su borde superior conserve el mismo aire que hoy. */
