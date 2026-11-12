@@ -6228,7 +6228,7 @@ en: {
   'train.d.restWord': 'Rest', 'train.d.notYet': 'Not logged yet',
   'train.d.setsLabel': 'Sets', 'train.d.skippedNote': 'You marked this day as skipped.',
   'train.view.rest': 'Rest', 'train.view.warmup': 'Warm-up', 'train.view.session': 'Session',
-  'train.view.rpe': 'RPE', 'train.view.rpeNone': 'No RPE', 'train.view.exDone': 'Done', 'train.view.exInProgress': 'In progress', 'train.view.exToDo': 'Not started', 'train.view.exDoneMarked': '✓ Done · tap to unmark',
+  'train.view.rpe': 'RPE', 'train.view.rpeNone': 'No RPE', 'train.view.exDone': 'Done', 'train.view.exInProgress': 'In progress', 'train.view.exToDo': 'Not started', 'train.view.exDoneMarked': '✓ Done · tap to unmark', 'train.view.save': 'Save',
   'train.view.alignBody': 'Your routine: {plan}. Your training reminders: {cfg}. Align your reminders with your plan?',
   'train.view.sessionsWeek': '{n} sessions a week', 'train.view.noDays': 'no days set',
   'train.view.alignYes': 'Align with my plan', 'train.view.alignOpen': 'Review settings',
@@ -11123,7 +11123,7 @@ es: {
   'train.d.restWord': 'Descanso', 'train.d.notYet': 'Aún sin registrar',
   'train.d.setsLabel': 'Series', 'train.d.skippedNote': 'Marcaste este día como saltado.',
   'train.view.rest': 'Descanso', 'train.view.warmup': 'Aproximación', 'train.view.session': 'Sesión',
-  'train.view.rpe': 'RPE', 'train.view.rpeNone': 'Sin RPE', 'train.view.exDone': 'Hecho', 'train.view.exInProgress': 'En curso', 'train.view.exToDo': 'Sin empezar', 'train.view.exDoneMarked': '✓ Hecho · toca para desmarcar',
+  'train.view.rpe': 'RPE', 'train.view.rpeNone': 'Sin RPE', 'train.view.exDone': 'Hecho', 'train.view.exInProgress': 'En curso', 'train.view.exToDo': 'Sin empezar', 'train.view.exDoneMarked': '✓ Hecho · toca para desmarcar', 'train.view.save': 'Guardar',
   'train.view.alignBody': 'Tu rutina: {plan}. Tus avisos de entrenamiento: {cfg}. ¿Alineas tus avisos con tu plan?',
   'train.view.sessionsWeek': '{n} sesiones por semana', 'train.view.noDays': 'ningún día configurado',
   'train.view.alignYes': 'Alinear con mi plan', 'train.view.alignOpen': 'Revisar ajustes',
@@ -39378,8 +39378,14 @@ function trainFloatSessionHTML(draft) {
      de la sesión de hoy» SALEN de la hoja — viven en el foco
      guiado y en la tarjeta (el flujo). Sin empezar, el bloque de
      sesión queda vacío; en curso, la hoja conserva como detalle
-     secundario sus ruedas de series, su RPE exacto y su «✓ Hecho»
-     (el espejo continuo sigue volcando al acto, cara incluida). */
+     secundario sus ruedas de series y su RPE exacto, y al pie su
+     botón de cierre. AUTH-430: ese botón era el «✓ Hecho»
+     de AUTH-344 (la marca de completado puesta o quitada desde
+     la hoja) y pasa a ser «Guardar» — guardar los cambios y
+     recoger la hoja, sin marcar: lo de finalizado vive fuera,
+     en el «Finalizar» de la tarjeta, como decidió Ronald el
+     2026-11-12. El espejo continuo sigue volcando al acto,
+     cara incluida. */
   if (!draft || !draft.started) return '';
   /* AUTH-428: el bloque de aproximación SALE de la
      hoja — su única puerta viva es la tarjeta/foco
@@ -39391,7 +39397,7 @@ function trainFloatSessionHTML(draft) {
       <option value="">${t('train.view.rpeNone')}</option>
       ${[1, 2, 3, 4, 5, 6, 7, 8, 9, 10].map(n => `<option value="${n}" ${draft.rpe === n ? 'selected' : ''}>${t('train.view.rpe')} ${n}</option>`).join('')}
     </select></div>
-    <div class="train-float-actions"><button type="button" class="btn-primary${draft.done ? ' is-marked' : ''}" id="tf-save" aria-pressed="${draft.done ? 'true' : 'false'}">${draft.done ? esc(t('train.view.exDoneMarked')) : '✓ ' + t('train.view.exDone')}</button></div>`;
+    <div class="train-float-actions"><button type="button" class="btn-primary" id="tf-save">${t('train.view.save')}</button></div>`;
 }
 function tfWarmSnap(w) {
   const o = (w && typeof w === 'object' && !Array.isArray(w)) ? w : {};
@@ -39788,25 +39794,29 @@ function trainFloatWireSession(body) {
   if (wDone) wDone.onclick = () => { const p = document.getElementById('tf-wheel'); if (p) p.style.display = 'none'; };
   const saveBtn = body.querySelector('#tf-save');
   if (saveBtn) saveBtn.onclick = () => {
-    /* AUTH-344 — «✓ Hecho» es SOLO la marca de completado y es
-       REVERSIBLE: los datos de trabajo ya viven guardados por el
-       espejo continuo desde el primer cambio, así que este botón
-       no guarda nada: pone o quita la marca. Al marcar, las
-       series con datos y sin hora la reciben AHORA (su fin
-       declarado), incluidas las precargadas como sugerencia que
-       él deja tal cual. Al desmarcar, el ejercicio vuelve a «en
-       curso» con sus números intactos. La flotante no escribe
-       nada en Firestore (eso sigue siendo solo el cierre del
-       día). La hoja se recoge y la tarjeta se re-pinta con el
-       estado nuevo al instante. */
-    if (!d.done) {
-      if (Array.isArray(d.sets)) { const nowH = Date.now(); d.sets.forEach(s => { if (trainSetHasData(s) && !(typeof s.markedAt === 'number' && s.markedAt > 0)) s.markedAt = nowH; }); }
-      d.done = true;
-      trainFloatMirror(true);
-    } else {
-      d.done = false;
-      trainFloatMirror(false);
-    }
+    /* AUTH-430 · «GUARDAR» EN LA HOJA (decisión de Ronald,
+       2026-11-12 ~11:29 CST): el botón al pie de la hoja ya NO
+       es la marca de completado. Desde AUTH-344 los datos de
+       trabajo viven guardados por el espejo continuo desde el
+       primer gesto — cada pastilla, la rueda, el RPE, la
+       aproximación y cada serie añadida o quitada se vuelcan
+       al acto, y la serie editada recibe su sello de hora en
+       el gesto (trainSetStamp) —, así que Guardar no tiene
+       ningún volcado pendiente: reafirma el espejo con el
+       borrador tal como está (sin tocar `done`: si el
+       ejercicio estaba hecho, sigue hecho; si estaba en
+       curso, sigue en curso), recoge la hoja y re-pinta la
+       tarjeta con el estado guardado. Marcar y desmarcar
+       viven fuera, como él pidió: el «Finalizar» del flujo
+       (flowMarkDone, la puerta de la marca desde AUTH-406,
+       que sella las series con datos igual que aquí se
+       sellaban), la puerta honesta «hecho según el plan» del
+       cierre sin series y el «↩ Volver a en curso». Antes
+       este botón ponía o quitaba la marca — Ronald añadió
+       una serie, lo tocó esperando guardar y el ejercicio
+       se completó: la palabra mentía, y es la palabra lo
+       que se corrige. */
+    trainFloatMirror(false);
     trainFloatClose();
     loadMyTraining();
   };
@@ -56667,7 +56677,7 @@ document.addEventListener('keydown', e => { if (e.key === 'Escape') shareClose()
  *  - El SW (sw.js) solo cachea la cáscara del mismo origen en modo
  *    RED PRIMERO: Auth/Firestore/Worker jamás pasan por la caché.
  * ================================================================ */
-const PWA_SW_VERSION = '20261112-foto-franja';
+const PWA_SW_VERSION = '20261112-guardar-en-la-hoja';
 /* Sello de versión VISIBLE (2026-11-03): el pie de la tarjeta de
    acceso enseña qué copia corre este teléfono ('v ' + el sello),
    para comprobar de un vistazo si la versión nueva ya llegó.
