@@ -6104,6 +6104,8 @@ en: {
   'train.cardio.mode.stairs': 'Stair climber', 'train.cardio.mode.jog': 'Light jog (treadmill)',
   'train.cardio.mode.rope': 'Jump rope',
   'shareW.warmupTag': 'WARM-UP',
+  'shareW.aproxTag': 'WARM-UP SETS', 'shareW.aproxSets': '{n} warm-up sets', 'shareW.aproxSet1': '1 warm-up set',
+  'shareW.aproxNote': 'not counted in the total',
   'train.sets.add': '+ Add set', 'train.sets.remove': 'Remove set',
   'train.sets.suggested': 'Suggested',
   'train.custom.removeToday': 'Remove from today', 'train.custom.removedTag': 'Removed today',
@@ -11002,6 +11004,8 @@ es: {
   'train.cardio.mode.stairs': 'Escaladora', 'train.cardio.mode.jog': 'Trote suave (caminadora)',
   'train.cardio.mode.rope': 'Saltar la cuerda',
   'shareW.warmupTag': 'CALENTAMIENTO',
+  'shareW.aproxTag': 'APROXIMACIÓN', 'shareW.aproxSets': '{n} series de acercamiento', 'shareW.aproxSet1': '1 serie de acercamiento',
+  'shareW.aproxNote': 'no cuentan en el total',
   'train.sets.add': '+ Añadir serie', 'train.sets.remove': 'Quitar serie',
   'train.sets.suggested': 'Sugerida',
   'train.custom.removeToday': 'Quitar de hoy', 'train.custom.removedTag': 'Quitado hoy',
@@ -38826,6 +38830,40 @@ async function trainNoneNamedRender(box) {
     if (nm && el) el.textContent = t('train.noneNamed', { name: nm });
   } catch {}
 }
+/* AUTH-435 · LA APROXIMACIÓN EN EL MODELO DE LA
+   TARJETA (decisión de Ronald, 2026-11-12: la Variante B de
+   la maqueta maqueta-aproximacion-compartir-2026-11-12):
+   las series de aproximación REGISTRADAS de una fila — las
+   del registro cerrado (warmupSets, ya filtradas al
+   escribir) o las de la marca en curso (el bloque warmup
+   encendido y con series con dato, trainSetHasData, la
+   noción de la casa) — para que el lienzo pinte bajo ese
+   ejercicio su línea aparte. La aproximación NO suma al
+   detalle del ejercicio ni entra en doneCount/total ni en
+   el %: viaja en su campo propio (aprox), como el
+   calentamiento de AUTH-426 en el suyo. Si la aproximación
+   fue de OTRO ejercicio (la identidad de AUTH-428), la
+   línea lo nombra: el nombre se resuelve como en su bloque
+   de la tarjeta de foco, trainExName sobre
+   { exerciseId, name }. Sin aproximación registrada, null
+   y la tarjeta es la de siempre. */
+function trainShareAproxOf(de, chk, ex) {
+  let n = 0, wId = '', wName = '';
+  if (de && Array.isArray(de.warmupSets) && de.warmupSets.length) {
+    n = de.warmupSets.length;
+    wId = typeof de.warmupExerciseId === 'string' ? de.warmupExerciseId : '';
+    wName = typeof de.warmupName === 'string' ? de.warmupName : '';
+  } else if (chk && chk.warmup && chk.warmup.on === true && Array.isArray(chk.warmup.sets)) {
+    n = chk.warmup.sets.filter(s => trainSetHasData(s)).length;
+    if (n) {
+      wId = typeof chk.warmup.exerciseId === 'string' ? chk.warmup.exerciseId : '';
+      wName = typeof chk.warmup.name === 'string' ? chk.warmup.name : '';
+    }
+  }
+  if (!n) return null;
+  const name = (wId && ex && wId !== ex.exerciseId) ? (trainExName({ exerciseId: wId, name: wName }) || wName) : '';
+  return { n, name };
+}
 /* ENMIENDA 2 (Ronald, chat 2026-10-26 02:11 CDT) — tarjeta de
    entrenamiento exportable: el modelo del checklist es EXACTAMENTE
    el estado que muestra la vista: hoy, los checks en curso
@@ -38844,16 +38882,22 @@ function trainShareModel(plan, logs, di, iso) {
      historial con sus marcas (lo realizado ocupa el lugar de su
      original y los agregados cuentan). Sin cambios ni marcas, el
      modelo es el de siempre, ejercicio a ejercicio del plan. */
-  let rowExs, doneSet = new Set();
+  let rowExs, doneSet = new Set(), aproxList = [];
   if (log) {
     const rows = trainHistRows(day, log);
     rowExs = rows.map(r => r.ex);
     rows.forEach((r, ei) => { if (r.de) doneSet.add(ei); });
+    /* AUTH-435: la aproximación de cada fila,
+       desde su entrada del registro. */
+    aproxList = rows.map(r => trainShareAproxOf(r.de, null, r.ex));
   } else if (iso === today) {
     rowExs = trainEffectiveList(plan, di).map(it => it.ex);
     /* AUTH-344: el avance cuenta SOLO ejercicios marcados Hecho;
        una entrada en curso (con números guardados) no cuenta. */
     rowExs.forEach((ex, ei) => { const c = TRAIN_CHECKS[di + ':' + ei]; if (c && c.done === true) doneSet.add(ei); });
+    /* AUTH-435: y su aproximación, desde la
+       marca en curso de cada ejercicio. */
+    aproxList = rowExs.map((ex, ei) => trainShareAproxOf(null, TRAIN_CHECKS[di + ':' + ei], ex));
   } else {
     rowExs = (day.exercises || []).slice();
   }
@@ -38863,7 +38907,7 @@ function trainShareModel(plan, logs, di, iso) {
        que se vea la foto del ejercicio a la izquierda»): el modelo
        lleva la MISMA foto que resuelve la flotante (photoUrl del
        plan o foto_url de la biblioteca por exerciseId). */
-    return { name: trainExName(ex), detail: ex.note ? (spec ? spec + ' · ' + ex.note : ex.note) : spec, done: doneSet.has(ei), photo: trainExPhoto(ex) || '' };
+    return { name: trainExName(ex), detail: ex.note ? (spec ? spec + ' · ' + ex.note : ex.note) : spec, done: doneSet.has(ei), photo: trainExPhoto(ex) || '', aprox: aproxList[ei] || null };
   });
   /* LLAMITA EN LA TARJETA (2026-10-27, pedido de Ronald): el quemado
      del día sale de LA MISMA fuente que la llamita de la app —
@@ -56407,7 +56451,17 @@ function shareDrawWorkout(ctx, W, H, d) {
      filas enanas. El % y el «X de Y» de arriba siguen con
      d.total y d.doneCount, el día completo. */
   const n = Math.max(1, d.exercises.length + (d.warmup ? 1 : 0));
-  const panelH = Math.min(cp ? 120 : 168, Math.floor((rowsLimit - rowsTop - (n - 1) * gap) / n));
+  /* AUTH-435 · LAS LÍNEAS DE APROXIMACIÓN ocupan su
+     hueco fijo bajo su ejercicio (aproxH + gap por línea)
+     y la densidad lo descuenta ANTES de repartir: las
+     filas de cristal conservan su regla (la última nunca
+     toca la divisoria) y el encabezado no se entera — sus
+     cifras salen de d.doneCount y d.total, que la
+     aproximación no toca. Sin líneas (aproxN 0), el
+     cálculo es el de AUTH-426, número a número. */
+  const aproxN = d.exercises.reduce((s, e) => s + (e.aprox ? 1 : 0), 0);
+  const aproxH = cp ? 46 : 64;
+  const panelH = Math.min(cp ? 120 : 168, Math.floor((rowsLimit - rowsTop - aproxN * (aproxH + gap) - (n - 1) * gap) / n));
   const single = panelH < 64;
   /* AUTH-426 · EL CALENTAMIENTO, DE PRIMERO en la
      tarjeta (solo cuando se hizo): su fila de cristal con el
@@ -56452,8 +56506,13 @@ function shareDrawWorkout(ctx, W, H, d) {
       shareTxt(ctx, wlab, W - MX - 16 - pwW / 2, cyW + 8, shareCtxFont(800, 22), '#C6FF4A', { shadow: false, ls: 1 });
     }
   }
+  /* AUTH-435 · EL CURSOR DE FILAS: cada ejercicio baja
+     lo suyo más lo que ocupan las líneas de aproximación
+     de los anteriores; sin líneas, el cursor reproduce la
+     fórmula de siempre, posición a posición. */
+  let rowY = rowsTop + rowOff * (panelH + gap);
   d.exercises.forEach((ex, i) => {
-    const top = rowsTop + (i + rowOff) * (panelH + gap), cy = top + panelH / 2;
+    const top = rowY, cy = top + panelH / 2;
     shareGlassPanel(ctx, MX, top, W - MX * 2, panelH, cp ? 18 : 22);
     ctx.save();
     ctx.fillStyle = SHARE_W_PALETTE[i % SHARE_W_PALETTE.length];
@@ -56508,6 +56567,44 @@ function shareDrawWorkout(ctx, W, H, d) {
       shareRR(ctx, W - MX - 16 - pw, cy - ph / 2, pw, ph, ph / 2); ctx.fill();
       ctx.restore();
       shareTxt(ctx, t('shareW.hecho'), W - MX - 16 - pw / 2, cy + 8, shareCtxFont(800, 22), '#ffffff', { shadow: false, ls: 1 });
+    }
+    rowY = top + panelH + gap;
+    /* AUTH-435 · LA LÍNEA DE APROXIMACIÓN bajo su
+       ejercicio (la Variante B aprobada): una línea fina y
+       aparte, en el tono de su bloque en la tarjeta de foco
+       (.tf-warm: borde teal punteado sobre menta) traducido
+       al mundo de la tarjeta — la pastilla «APROXIMACIÓN»,
+       las series de acercamiento (nombrando el ejercicio
+       cuando la aproximación fue de otro, AUTH-428) y la
+       nota de que no cuentan en el total, a la derecha. Sin
+       ✓ y sin «HECHO»: no es una fila de trabajo y ninguna
+       cifra de la tarjeta la suma. */
+    if (ex.aprox) {
+      const aTop = top + panelH + gap, aCy = aTop + aproxH / 2;
+      ctx.save();
+      ctx.fillStyle = 'rgba(204,251,241,.16)';
+      shareRR(ctx, MX, aTop, W - MX * 2, aproxH, cp ? 14 : 18); ctx.fill();
+      ctx.strokeStyle = '#5EEAD4'; ctx.lineWidth = 1.5; ctx.setLineDash([7, 5]);
+      shareRR(ctx, MX, aTop, W - MX * 2, aproxH, cp ? 14 : 18); ctx.stroke();
+      ctx.restore();
+      const aLab = t('shareW.aproxTag'), aPillPx = cp ? 16 : 20;
+      ctx.font = shareCtxFont(800, aPillPx);
+      const aPillW = ctx.measureText(aLab).width + (cp ? 24 : 30) + Math.max(0, aLab.length - 1);
+      const aPillH = cp ? 27 : 34, aPillX = MX + 16;
+      ctx.save();
+      ctx.strokeStyle = '#2DD4BF'; ctx.lineWidth = 2;
+      shareRR(ctx, aPillX, aCy - aPillH / 2, aPillW, aPillH, aPillH / 2); ctx.stroke();
+      ctx.restore();
+      shareTxt(ctx, aLab, aPillX + aPillW / 2, aCy + aPillPx * 0.36, shareCtxFont(800, aPillPx), '#5EEAD4', { shadow: false, ls: 1 });
+      const aNote = t('shareW.aproxNote'), aNotePx = cp ? 18 : 23;
+      ctx.font = shareCtxFont(500, aNotePx);
+      const aNoteW = ctx.measureText(aNote).width;
+      const aTxt = (ex.aprox.name ? ex.aprox.name + ' · ' : '') + t(ex.aprox.n === 1 ? 'shareW.aproxSet1' : 'shareW.aproxSets', { n: ex.aprox.n });
+      const aTxtX = aPillX + aPillW + 16;
+      const aFit = shareFitPx(ctx, aTxt, 500, cp ? 21 : 27, W - MX - 20 - aNoteW - 14 - aTxtX);
+      shareTxt(ctx, aTxt, aTxtX, aCy + aFit * 0.36, shareCtxFont(500, aFit), 'rgba(255,255,255,.95)', { align: 'left', shadow: false });
+      shareTxt(ctx, aNote, W - MX - 20, aCy + aNotePx * 0.36, shareCtxFont(500, aNotePx), 'rgba(204,251,241,.78)', { align: 'right', shadow: false });
+      rowY = aTop + aproxH + gap;
     }
   });
   /* pie: divisoria + marca (hashtag en dorado) */
@@ -56907,7 +57004,7 @@ document.addEventListener('keydown', e => { if (e.key === 'Escape') shareClose()
  *  - El SW (sw.js) solo cachea la cáscara del mismo origen en modo
  *    RED PRIMERO: Auth/Firestore/Worker jamás pasan por la caché.
  * ================================================================ */
-const PWA_SW_VERSION = '20261112-pausa-pildora';
+const PWA_SW_VERSION = '20261112-aprox-compartir';
 /* Sello de versión VISIBLE (2026-11-03): el pie de la tarjeta de
    acceso enseña qué copia corre este teléfono ('v ' + el sello),
    para comprobar de un vistazo si la versión nueva ya llegó.
