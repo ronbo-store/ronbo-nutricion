@@ -3071,27 +3071,24 @@ body.nav-lock.prog-page .help-fab,
 body.nav-lock.prog-page .sw-fab,
 body.nav-lock.prog-page #act-flame { visibility: visible; }
 
-/* ============ RESGUARDO DERECHO DE PROGRESO BAJO LA PILA (AUTH-2026-11-01-131) ============
-   Corrección del defecto de la reprueba de Ronald (2026-11-01
-   13:56 CST, captura de su iPhone; su orden «Corrígelo», 14:14
-   CST): con Progreso abierto, la pila de 4 discos (AUTH-129:
-   fixed, right:14, 58 px de ancho) quedaba ENCIMA del contenido
-   de la página — el disco de compartir se montaba sobre la
-   esquina superior derecha de la tarjeta de la foto «Espalda» y
-   el de la llamita tapaba parte de su texto «Eliminar» — porque
-   la página (#progress-content.nav-page-on, fixed con padding
-   derecho de 12 px) deja llegar las tarjetas hasta el borde
-   derecho, justo donde vive la pila.
-   Los discos NO se mueven ni cambian: el contenido de Progreso
-   gana un resguardo derecho de 88 px (la banda de la pila:
-   14 + 58 = 72, más 16 de respiro) SOLO mientras la página está
-   abierta (body.prog-page, la marca de navRender), así ninguna
-   tarjeta, foto ni texto accionable («Reemplazar», «Eliminar»,
-   historial, comparador, subvista de Medidas) pasa por debajo
-   de la pila a ningún scroll. Sin la página abierta, o con
-   Entrenamiento, el padding de siempre (12 px) manda intacto;
-   Inicio no cambia. */
-body.prog-page #progress-content.nav-page-on { padding-right: 88px; }
+/* ============ ANCHO COMPLETO EN PROGRESO (AUTH-419; DECISIÓN D) ============
+   Decisión de Ronald, 2026-11-11 20:46 CST: «Quitar la guarda —
+   ancho completo como Entrenamiento». El resguardo derecho de
+   88 px que esta página ganó en AUTH-2026-11-01-131 queda
+   RETIRADO: aquella corrección nació de su reprueba del
+   2026-11-01 (la pila flotante se montaba sobre tarjetas y
+   texto de Progreso), pero la maqueta medida de la decisión D
+   mostró el intercambio completo y Ronald lo aceptó. Sin la
+   regla específica vuelve a mandar el padding base de la hoja
+   fija (12 px) y la columna ocupa todo el ancho: gana la
+   franja de 76 px (a 383 px, la columna útil pasa de 283 a
+   359 px y la baldosa de 138 a 176 px; a 1000 px, de 900 a
+   976 px y la baldosa de 293 a 319 px; sin columnas nuevas).
+   El coste aceptado: al desplazar, el contenido puede pasar
+   bajo la pila flotante; en la maqueta a 383 px la mascota se
+   monta sobre la esquina de la baldosa de Bienestar y el
+   disco de compartir tapa parte de su texto. Los discos no se
+   mueven ni cambian, y ninguna otra superficie se toca. */
 /* ANCHO COMPLETO EN ENTRENAMIENTO (AUTH-2026-11-10-397; decisión de
    Ronald, 2026-11-10): el resguardo derecho de 88 px que esta página
    ganó el 2026-11-09 («LA MASCOTA EN TODAS PARTES», para que ninguna
@@ -3099,9 +3096,9 @@ body.prog-page #progress-content.nav-page-on { padding-right: 88px; }
    columna vuelve al padding base de la hoja (12 px) y ocupa todo el
    ancho; al desplazar, el contenido puede pasar bajo el disco
    flotante, como ya pasa en Inicio: el intercambio fue declarado y
-   aceptado por Ronald. El resguardo gemelo de Progreso (la regla de
-   arriba, AUTH-2026-11-01-131) sigue vigente e intacto: es otra
-   página y necesitaría su propia decisión. */
+   aceptado por Ronald. La decisión gemela de Progreso llegó
+   después (AUTH-419, 2026-11-11): su resguardo se retira en
+   el bloque inmediatamente anterior, con su coste aceptado. */
 /* ============ TARJETA «TU PESO» EN INICIO (PESO-VISIBLE, AUTH-2026-11-01-134) ============
    Tarjeta permanente bajo «Metas de hoy», la misma tarjeta
    blanca de la casa (.goals-card). Su botón es el primario teal
