@@ -5301,22 +5301,13 @@ body.swap-sheet-open .asst-fab { display: none !important; }
    tamaño manda el de la fila de pastillas) y el flex de la
    tarjeta no aplica. */
 .tf-chip.train-timer-chip { flex:none; }
-/* AUTH-406 · LA BARRA FINA DEL ENTRENO (B1): 40 px, oscura
-   como la píldora, nombres cortados con «…»; sus botones miden
-   27 px (atajo fino aprobado por Ronald al aprobar la B1 — las
-   acciones grandes viven en el foco y en la tarjeta). */
-#train-bar { margin:0 0 10px; }
-#train-bar:empty { margin:0; }
-.tbar { display:flex; align-items:center; gap:5px; height:40px; box-sizing:border-box; background:#1b2a4a; border-radius:999px; color:#fff; padding:0 5px 0 10px; box-shadow:0 4px 12px rgba(15,23,42,.22); }
-.tbar-dot { flex:none; width:9px; height:9px; border-radius:50%; background:#22c55e; box-shadow:0 0 0 3px rgba(34,197,94,.25); }
-.tbar-time { flex:none; font-size:12.5px; font-weight:800; font-variant-numeric:tabular-nums; letter-spacing:.01em; }
-.tbar-name { flex:1.35 1 0; min-width:0; font-size:12px; font-weight:700; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
-.tbar-name.next { flex:1 1 0; font-weight:600; color:rgba(255,255,255,.88); }
-.tbar-sep { flex:none; width:1px; height:20px; background:rgba(255,255,255,.25); }
-.tbar-btn { flex:none; height:27px; border:none; border-radius:999px; padding:0 9px; font-size:11.5px; font-weight:800; color:#fff; cursor:pointer; font-family:inherit; }
-.tbar-btn.fin { background:linear-gradient(180deg,#ef4444,#dc2626); }
-.tbar-btn.ini { background:linear-gradient(180deg,#22c55e,#16a34a); }
-.tbar-how { flex:none; font-size:11.5px; font-weight:700; color:rgba(255,255,255,.75); }
+/* AUTH-425 · LA BARRA FINA DEL ENTRENO (B1 de AUTH-406),
+   RETIRADA por orden de Ronald (2026-11-12): duplicaba a la
+   píldora gruesa de AUTH-407 en la misma superficie. Sus reglas
+   (#train-bar y la familia .tbar) salen con ella; ninguna otra
+   regla dependía de su altura: vivía en el flujo de la vista,
+   sin sticky ni compensaciones (las de body.sess-on son de la
+   píldora y no se tocan). */
 /* AUTH-406 · LA CABECERA COMPACTA DEL FOCO (V1): los
    cuadros a 48 px con solo la cifra y su unidad, la coletilla
    pequeña y el botón de YouTube de 64 × 48 (tacto de la casa). */

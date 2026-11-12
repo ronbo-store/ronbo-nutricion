@@ -36658,7 +36658,6 @@ function trainLogMetaHTML(log) {
 let SESS_PILL_TIMER = null;
 function sessPillTick() {
   const pill = $('sess-pill'); if (!pill) return;
-  try { trainBarSync(); } catch {}
   const run = sessRunning();
   if (!run) { pill.style.display = 'none'; document.body.classList.remove('sess-on'); SESS_PILL_SIG = ''; return; }
   pill.style.display = '';
@@ -36723,8 +36722,8 @@ function sessPillSync(run) {
   if (tEl) tEl.textContent = sessFmtClock(Date.now() - run.start);
 }
 /* El cableado de la píldora gruesa: UN oyente delegado (el
-   patrón de trainBarWire). «Finalizar» e «Iniciar» mutan el
-   flujo EXACTAMENTE como los de la barra fina — la misma
+   patrón delegado de la casa). «Finalizar» e «Iniciar» mutan el
+   flujo EXACTAMENTE como lo hacían los de la barra fina — la misma
    guarda de contexto, la misma creación de la entrada en
    curso, la misma cara guardada, el mismo pin del guiado — y
    todo toque, botón o cuerpo, termina en la navegación de
@@ -36778,19 +36777,23 @@ function sessPillInit() {
   SESS_PILL_TIMER = setInterval(sessPillTick, 1000);
   sessPillTick();
 }
-/* ═══ AUTH-406 · LA BARRA FINA DEL ENTRENO (B1): con la
-   sesión corriendo, bajo el título de Entrenamiento — punto
-   verde, el cronómetro en chico (sin horas: minutos totales),
-   el ejercicio de AHORA con su «Finalizar» y, tras el separador,
-   el SIGUIENTE con su «Iniciar»; los nombres se cortan con «…»
-   (CSS). Sin ejercicio en curso, el de ahora trae su «Iniciar»
-   y el siguiente no se pinta; en su cierre (eligiendo cara), la
-   barra muestra la pregunta en vez del botón. ═══ */
-let TRAIN_BAR_SIG = '';
-function trainBarClock(ms) {
-  const s = Math.max(0, Math.floor(ms / 1000));
-  return Math.floor(s / 60) + ':' + String(s % 60).padStart(2, '0');
-}
+/* ═══ AUTH-425 · LA BARRA FINA DEL ENTRENO, RETIRADA
+   (orden de Ronald, 2026-11-12 11:00 CST: «Quita la barra de
+   arriba, ya la tenemos bien hecha abajo»): la barra fina de
+   AUTH-406 (B1) repetía sobre la vista de Entrenamiento lo que
+   la píldora gruesa de AUTH-407 ya muestra y hace en cualquier
+   pantalla — el reloj, el ejercicio de ahora con su Iniciar/
+   Finalizar y el siguiente —: la misma información y las mismas
+   acciones dos veces en la misma superficie, contra su regla
+   de crecimiento. Fuera su pintado (trainBarSync), su cableado
+   (trainBarWire), su reloj en chico (trainBarClock), su firma
+   y su hueco en la vista. trainBarState QUEDA, intacto: es la
+   fuente de estado de la píldora. Lo único que la barra hacía
+   y la píldora no — ofrecer «Iniciar» del ejercicio SIGUIENTE
+   con el actual aún en curso — queda declarado en el informe
+   del paquete: al finalizar el actual y marcarlo, el foco
+   guiado aterriza solo en el siguiente y su tarjeta trae su
+   propio «Iniciar». ═══ */
 function trainBarState() {
   const run = sessRunning();
   const plan = (typeof MY_PLAN !== 'undefined') ? MY_PLAN : null;
@@ -36817,64 +36820,7 @@ function trainBarState() {
   const nxt = pend.find(ei => ei > cur && !checks[di + ':' + ei]);
   return { run, plan, di, checks, eff, cur, nxt: (nxt === undefined ? null : nxt) };
 }
-function trainBarSync() {
-  const bar = $('train-bar'); if (!bar) return;
-  const st = trainBarState();
-  if (!st) { if (bar.innerHTML) bar.innerHTML = ''; TRAIN_BAR_SIG = ''; return; }
-  const ck = st.di + ':' + st.cur;
-  const curChk = st.checks[ck] || null;
-  let flowSt = '';
-  try { if (TRAIN_CHECKS_CTX === st.plan.id + '|' + todayISO() && TRAIN_FLOW[ck]) flowSt = TRAIN_FLOW[ck].st || ''; } catch {}
-  const doneN = Object.keys(st.checks).filter(k => st.checks[k] && st.checks[k].done === true).length;
-  const sig = [st.di, st.cur, st.nxt, curChk ? 1 : 0, flowSt, doneN, st.eff.length].join('|');
-  if (sig !== TRAIN_BAR_SIG) {
-    TRAIN_BAR_SIG = sig;
-    const curName = trainExName(st.eff[st.cur].ex) || st.eff[st.cur].ex.name || '';
-    let html = `<div class="tbar"><span class="tbar-dot" aria-hidden="true"></span><span class="tbar-time" id="train-bar-time">0:00</span>`
-      + `<span class="tbar-name">${esc(curName)}</span>`;
-    if (!curChk) {
-      html += `<button type="button" class="tbar-btn ini" data-bar-start="${ck}">${esc(t('train.flow.start'))}</button>`;
-    } else if (flowSt === 'closing') {
-      html += `<span class="tbar-how">${esc(t('train.flow.howWas'))}</span>`;
-    } else {
-      html += `<button type="button" class="tbar-btn fin" data-bar-finish="${ck}">${esc(t('train.flow.finish'))}</button>`;
-    }
-    if (curChk && st.nxt != null) {
-      const nxtName = trainExName(st.eff[st.nxt].ex) || st.eff[st.nxt].ex.name || '';
-      html += `<span class="tbar-sep"></span><span class="tbar-name next">${esc(nxtName)}</span>`
-        + `<button type="button" class="tbar-btn ini" data-bar-start="${st.di}:${st.nxt}">${esc(t('train.flow.start'))}</button>`;
-    }
-    bar.innerHTML = html + '</div>';
-    trainBarWire(bar);
-  }
-  const tEl = $('train-bar-time');
-  if (tEl) tEl.textContent = trainBarClock(Date.now() - st.run.start);
-}
-function trainBarWire(bar) {
-  if (!bar || bar.dataset.barWired) return;
-  bar.dataset.barWired = '1';
-  bar.addEventListener('click', ev => {
-    const b = ev.target.closest('[data-bar-finish],[data-bar-start]');
-    if (!b) return;
-    const plan = (typeof MY_PLAN !== 'undefined') ? MY_PLAN : null;
-    if (!plan || TRAIN_CHECKS_CTX !== plan.id + '|' + todayISO()) return;
-    if (b.dataset.barFinish) {
-      const key = b.dataset.barFinish;
-      const chk = TRAIN_CHECKS[key];
-      if (!chk || chk.done === true) return;
-      TRAIN_FLOW[key] = { st: 'closing', face: (typeof chk.face === 'number') ? chk.face : null };
-    } else if (b.dataset.barStart) {
-      const key = b.dataset.barStart;
-      const [diB, eiB] = key.split(':').map(Number);
-      const it = trainEffectiveList(plan, diB)[eiB];
-      if (!it || (TRAIN_CHECKS[key] && TRAIN_CHECKS[key].done === true)) return;
-      if (!TRAIN_CHECKS[key]) { TRAIN_CHECKS[key] = { rpe: null, sets: trainDefaultSets(it.ex) }; trainChecksPersist(plan.id); }
-      TRAIN_FLOW[key] = { st: 'open', face: null };
-      if (trainGuidePref() === 'guided') TRAIN_GUIDE.pin = eiB;
-    } else return;
-    loadMyTraining();
-  });
-}
+
 let SESS_SURVEY = null;
 function sessSurveyOpen(elapsedSec, done) {
   const ov = $('sess-survey');
@@ -56161,7 +56107,7 @@ document.addEventListener('keydown', e => { if (e.key === 'Escape') shareClose()
  *  - El SW (sw.js) solo cachea la cáscara del mismo origen en modo
  *    RED PRIMERO: Auth/Firestore/Worker jamás pasan por la caché.
  * ================================================================ */
-const PWA_SW_VERSION = '20261112-variantes-al-agregar';
+const PWA_SW_VERSION = '20261112-sin-barra-arriba';
 /* Sello de versión VISIBLE (2026-11-03): el pie de la tarjeta de
    acceso enseña qué copia corre este teléfono ('v ' + el sello),
    para comprobar de un vistazo si la versión nueva ya llegó.
