@@ -38205,6 +38205,20 @@ function trainFlowWire(box, plan) {
     trainChronoTouch(plan.id, trainDayLabelOf(plan, diF));
     trainChecksPersist(plan.id);
     delete TRAIN_FLOW[key];
+    /* AUTH-433 · EL FOCO SE LIBERA AL MARCAR: si el
+       ejercicio recién marcado era el fijado del guiado, el
+       pin se suelta en este mismo gesto y el repintado que
+       sigue aterriza en el primer no hecho — el aterrizaje
+       que AUTH-425 ya promete al retirar la barra. Sin esta
+       liberación ninguna puerta de marcar tocaba el pin, y
+       el foco se quedaba clavado en un hecho: la tarjeta
+       enseñaba un ejercicio ya marcado y sus botones
+       parecían muertos para quien entrena (el atasco de
+       Ronald del 2026-11-12; diagnóstico «iniciar no
+       inicia»). La fijación deliberada de un terminado
+       (tocar su línea en la ruta, AUTH-360/409) NO pasa por
+       marcar y queda intacta. */
+    if (TRAIN_GUIDE.pin === eiF) TRAIN_GUIDE.pin = null;
     loadMyTraining();
   };
   box.querySelectorAll('[data-flow-mark]').forEach(b => b.onclick = () => flowMarkDone(b.dataset.flowMark, false));
@@ -41441,6 +41455,15 @@ async function loadMyTraining() {
       else TRAIN_CHECKS[key] = { rpe: sel && sel.value ? Number(sel.value) : null, sets: trainDefaultSets(ex), done: true };
       trainChronoTouch(plan.id, trainDayLabelOf(plan, Number(diS)));   /* PUENTE: la marca alimenta el cronómetro (y lo arranca si no se pulsó INICIAR) */
       trainChecksPersist(plan.id);   /* MARCAS QUE SOBREVIVEN */
+      /* AUTH-433 · LA MISMA LIBERACIÓN QUE EN EL
+         FLUJO: una marca es una marca venga de donde venga
+         — si el ejercicio que la casilla acaba de marcar
+         era el fijado del guiado, el pin se suelta y el
+         foco aterriza en el primer no hecho al repintar.
+         La rama de desmarcar NO lo toca: el ejercicio
+         vuelve a estar pendiente y un pin que lo apunte
+         vuelve a ser válido. */
+      if (TRAIN_GUIDE.pin === Number(eiS)) TRAIN_GUIDE.pin = null;
       loadMyTraining();
     } else {
       /* AUTH-344: desmarcar es reversible y NO borra nada — la
@@ -56715,7 +56738,7 @@ document.addEventListener('keydown', e => { if (e.key === 'Escape') shareClose()
  *  - El SW (sw.js) solo cachea la cáscara del mismo origen en modo
  *    RED PRIMERO: Auth/Firestore/Worker jamás pasan por la caché.
  * ================================================================ */
-const PWA_SW_VERSION = '20261112-prensa-espera';
+const PWA_SW_VERSION = '20261112-foco-se-libera';
 /* Sello de versión VISIBLE (2026-11-03): el pie de la tarjeta de
    acceso enseña qué copia corre este teléfono ('v ' + el sello),
    para comprobar de un vistazo si la versión nueva ya llegó.
