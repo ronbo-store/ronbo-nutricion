@@ -37328,17 +37328,22 @@ const FLOW_FACE_URLS = [1, 2, 3, 4, 5].map(n => 'https://ronbo-store.github.io/r
 function flowHasData(chk) {
   return !!(chk && Array.isArray(chk.sets) && chk.sets.some(s => s && s.pend !== true && trainSetHasData(s)));
 }
-/* Las series dentro de la tarjeta desplegada: los MISMOS campos
-   (data-train-set-reps / data-train-set-load, con su unidad) que
-   pinta la tarjeta expandida de siempre — el cableado de la vista
-   los recoge sin saber de qué pintor salieron. */
+/* AUTH-416 · LA ENTRADA DE APROXIMACIÓN EN TODAS LAS
+   SERIES (decisión de Ronald, 2026-11-11 13:04 CST; maqueta
+   P2): las series dentro de la tarjeta desplegada — la misma
+   en la lista y en el foco guiado — se cargan con las
+   PASTILLAS de la hoja (tfChipsHTML con la clave «card:…»):
+   la de Reps abre la ventana de ruedas y la de Carga abre la
+   calculadora de discos en las fichas de discos y la rueda en
+   las demás, haya mancuernas o no las haya. Sin teclado: los
+   campos tecleados (data-train-set-reps / data-train-set-load)
+   salen de este pintor; la tarjeta expandida histórica que los
+   compartía ya no se pinta en la vista (su pintor queda). */
 function trainFlowSetsHTML(ex, key, chk) {
   const sets = chk && Array.isArray(chk.sets) ? chk.sets : [];
   return `<div class="train-sets-unit"><span class="train-sets-unit-lab">${esc(t('units.mass'))}${esc(loadKindHeadSuffix(ex))}</span>${trainUnitSelHTML()}</div><div class="train-sets">${sets.map((s, si) => `
       <div class="train-set-row${s.pend === true ? ' is-sug' : ''}"><span class="train-set-n">${t('train.d.set')} ${si + 1}${s.repsPlanned ? ` · ${esc(s.repsPlanned)}` : ''}${s.pend === true ? ` <span class="tf-sug-tag">${esc(t('train.sets.suggested'))}</span>` : ''}</span>
-        <input type="number" inputmode="decimal" min="0" class="train-set-in" data-train-set-reps="${key}:${si}" placeholder="${t('train.d.repsPh')}" value="${esc(s.repsDone)}" aria-label="${t('train.d.repsPh')}">
-        <input type="number" inputmode="decimal" min="0" step="any" class="train-set-in" data-train-set-load="${key}:${si}" placeholder="${t('train.d.loadPh')}" value="${esc(s.loadVal)}" aria-label="${t('train.d.loadPh')}">
-        <span class="train-set-unit">${esc(UNIT_PREFS.mass)}</span></div>`).join('')}
+        <span class="tf-chips" data-tf-chips="card:${key}:${si}">${tfChipsHTML('card:' + key, si, s, ex)}</span></div>`).join('')}
     </div>`;
 }
 function trainFlowFacesHTML(key, selFace) {
@@ -37419,6 +37424,40 @@ function trainRemovedLineHTML(plan, di, iso) {
    pintar (la lista y el foco guiado comparten tarjeta y caja).
    Cada gesto guarda al acto por los motores de siempre y repinta
    por loadMyTraining, como todo lo demás de esta vista. */
+/* AUTH-416 · LAS PASTILLAS DE LA TARJETA/FOCO: su
+   cableado y su refresco. El cableado lo invoca
+   trainFlowWire tras pintar (la lista y el foco comparten
+   caja) y abre la MISMA entrada de la hoja: Reps → la rueda;
+   Carga → la calculadora de discos si la ficha es de discos
+   y la rueda si no lo es. El refresco repinta en su sitio
+   las pastillas de ese ejercicio tras un toque de rueda (la
+   tocada y las que la propagación haya colocado) y las
+   recablea. */
+let TF_FLOW_WIRE = null;   /* { box, plan } del último cableado de pastillas de la tarjeta */
+function trainFlowChipsWire(box, plan) {
+  if (!box || !plan) return;
+  TF_FLOW_WIRE = { box, plan };
+  box.querySelectorAll('[data-tf-chip^="card:"]').forEach(ch => { ch.onclick = () => {
+    const p = String(ch.dataset.tfChip).split(':');
+    const diC = Number(p[1]), eiC = Number(p[2]), siC = Number(p[3]);
+    const itC = trainEffectiveList(plan, diC)[eiC];
+    if (!itC) return;
+    const keyC = diC + ':' + eiC;
+    if (p[4] === 'load' && loadKindOf(itC.ex) === 'plates') tfPlatesCardOpen(box, keyC, siC, plan.id, itC.ex);
+    else tfWheelCardOpen(box, keyC, siC, itC.ex, plan.id);
+  }; });
+}
+function trainFlowChipsRefresh(body) {
+  if (!TF_WHEEL || TF_WHEEL.src !== 'card' || !body) return;
+  const key = TF_WHEEL.key, ex = TF_WHEEL.ex;
+  const chk = (typeof TRAIN_CHECKS !== 'undefined' && TRAIN_CHECKS) ? TRAIN_CHECKS[key] : null;
+  if (!chk || !Array.isArray(chk.sets)) return;
+  chk.sets.forEach((s, si) => {
+    const host = body.querySelector(`[data-tf-chips="card:${key}:${si}"]`);
+    if (host && s) host.innerHTML = tfChipsHTML('card:' + key, si, s, ex);
+  });
+  if (TF_FLOW_WIRE && TF_FLOW_WIRE.box === body) trainFlowChipsWire(body, TF_FLOW_WIRE.plan);
+}
 function trainFlowWire(box, plan) {
   if (!box || !plan) return;
   box.querySelectorAll('[data-flow-start]').forEach(b => b.onclick = () => {
@@ -37510,6 +37549,10 @@ function trainFlowWire(box, plan) {
     const [diF, slotF] = String(b.dataset.flowRestore).split(':').map(Number);
     trainSessionRestoreSlot(plan, diF, slotF, (typeof TRAIN_VIEW !== 'undefined' && TRAIN_VIEW) ? TRAIN_VIEW.sel : undefined);
   });
+  /* AUTH-416 · LA ENTRADA DE APROXIMACIÓN EN TODAS LAS
+     SERIES: las pastillas de cada serie de la tarjeta/foco se
+     cablean con el resto del flujo. */
+  trainFlowChipsWire(box, plan);
 }
 
 /* TARJETA COMPACTA (corrección de la reprueba de Ronald, chat
@@ -38192,7 +38235,7 @@ function trainWireUnitSels(scope) {
    ================================================================ */
 const TF_LOAD_STEPS = [];
 for (let _tfv = 0; _tfv <= 200.001; _tfv += 2.5) TF_LOAD_STEPS.push(Math.round(_tfv * 10) / 10);
-let TF_WHEEL = null;   /* { ctx:'set'|'warm', idx } — fila a la que apunta el panel de ruedas */
+let TF_WHEEL = null;   /* { src:'float', ctx:'set'|'warm', idx } o { src:'card', key, idx, ex, planId } — fila a la que apunta el panel de ruedas */
 /* RUEDA DE CARGA SEGÚN LA UNIDAD DEL VISOR (corrección rueda de
    carga en lb, 2026-10-30 — reporte en vivo de Ronald 12:23 CDT
    y su decisión «Ambos» de las 12:31 CDT): la escala de la rueda
@@ -38288,8 +38331,16 @@ function tfSetHasData(s) {
 function tfSuggestApply() {
   const F = TRAIN_FLOAT;
   if (!F || !F.draft || !Array.isArray(F.draft.sets)) return;
+  tfSuggestApplySets(F.draft.sets);
+}
+/* AUTH-416: el algoritmo por campo de AUTH-371 sobre
+   cualquier lista de series — la hoja lo corre sobre su
+   borrador y la tarjeta/foco sobre las series de su marca;
+   la disciplina es una sola. */
+function tfSuggestApplySets(sets) {
+  if (!Array.isArray(sets)) return;
   let srcR = null, srcL = null, srcD = null;
-  F.draft.sets.forEach(s => {
+  sets.forEach(s => {
     if (!s) return;
     let sugR = s.sug === true || s.sugR === true;
     let sugL = s.sug === true || s.sugL === true;
@@ -38329,12 +38380,18 @@ function tfEquivText(loadVal) {
   if (kg == null) return '';
   return UNIT_PREFS.mass === 'kg' ? '≈ ' + Math.round(kg / UNIT_LB_KG) + ' lb' : '≈ ' + uRound1(kg) + ' kg';
 }
-function tfChipsHTML(ctx, idx, s) {
+function tfChipsHTML(ctx, idx, s, exOv) {
   const reps = s && String(s.repsDone == null ? '' : s.repsDone) !== '' ? esc(String(s.repsDone)) : '—';
   const lv = s ? String(s.loadVal == null ? '' : s.loadVal) : '';
   const loadMain = lv === '' ? esc(t('train.start.noLoad')) : esc(lv);
   let eq = tfEquivText(lv);
-  const detP = (ctx === 'set' || ctx === 'warm') && (typeof TRAIN_FLOAT !== 'undefined' && TRAIN_FLOAT && loadKindOf(TRAIN_FLOAT.ex) === 'pair') ? tfDetailSan(s && s.loadDetail) : null;
+  /* AUTH-416: en la tarjeta el ejercicio llega por
+     parámetro (el borrador de la hoja puede no existir o ser
+     de otro ejercicio) y la línea «por mano» en par se lee de
+     él; en la hoja, sin parámetro, el camino es el de
+     siempre. */
+  const exC = exOv || (typeof TRAIN_FLOAT !== 'undefined' && TRAIN_FLOAT ? TRAIN_FLOAT.ex : null);
+  const detP = ((ctx === 'set' || ctx === 'warm') || !!exOv) && exC && loadKindOf(exC) === 'pair' ? tfDetailSan(s && s.loadDetail) : null;
   if (detP && detP.kind === 'pair' && lv !== '') { const eh = convLoadDisplay(String(detP.each), detP.unit, UNIT_PREFS.mass) + ' ' + UNIT_PREFS.mass + ' ' + t('train.ld.eachHand'); eq = eq ? eq + ' · ' + eh : eh; }
   /* AUTH-345: la etiqueta de la carga dice QUÉ se está escribiendo:
      la unidad activa (kg o lb, la del selector «Peso») va SIEMPRE
@@ -38443,11 +38500,26 @@ function trainFloatMirror(chrono) {
   trainChecksPersist(F.planId);
 }
 function tfWheelRow() {
+  /* AUTH-416: la fila sale de la fuente de la rueda — la
+     hoja (su borrador TRAIN_FLOAT) o la tarjeta/foco (la
+     marca TRAIN_CHECKS de su clave). */
+  if (TF_WHEEL && TF_WHEEL.src === 'card') {
+    const c = (typeof TRAIN_CHECKS !== 'undefined' && TRAIN_CHECKS) ? TRAIN_CHECKS[TF_WHEEL.key] : null;
+    return (c && Array.isArray(c.sets)) ? (c.sets[TF_WHEEL.idx] || null) : null;
+  }
   const F = TRAIN_FLOAT;
   if (!F || !F.draft || !TF_WHEEL) return null;
   return TF_WHEEL.ctx === 'warm'
     ? (F.draft.warmup && Array.isArray(F.draft.warmup.sets) ? F.draft.warmup.sets[TF_WHEEL.idx] : null)
     : (Array.isArray(F.draft.sets) ? F.draft.sets[TF_WHEEL.idx] : null);
+}
+/* El ejercicio al que sirve la rueda abierta: en la tarjeta
+   viaja en su estado; en la hoja es el del borrador vivo. El
+   modo de carga (par, discos o única) se lee siempre de
+   aquí. */
+function tfWheelEx() {
+  if (TF_WHEEL && TF_WHEEL.src === 'card') return TF_WHEEL.ex || null;
+  return (typeof TRAIN_FLOAT !== 'undefined' && TRAIN_FLOAT) ? TRAIN_FLOAT.ex : null;
 }
 function tfWireChips(body, scope) {
   (scope || body).querySelectorAll('[data-tf-chip]').forEach(ch => { ch.onclick = () => {
@@ -38479,6 +38551,40 @@ function tfWheelCenter(list, wv) {
   if (!it) return;
   list.scrollTop = Math.max(0, it.offsetTop - (list.clientHeight - it.clientHeight) / 2);
 }
+/* AUTH-416 · EL ASENTADO DE LA FILA TRAS UN TOQUE DE
+   RUEDA: la disciplina de la precarga sugerida y de AUTH-371,
+   UNA para la hoja y para la tarjeta — se extrae tal cual del
+   camino de la hoja y las dos fuentes la comparten. */
+function tfWheelSettleRow(row, kind) {
+  /* PRECARGA SUGERIDA (2026-10-30 12:42 CDT): la fila tocada
+     queda como dato real de su autor — salvo que la dejaron
+     vacía del todo (reps 0 y «Sin carga»), que es BORRARLA:
+     el 0 se normaliza a vacío verdadero y la fila queda
+     marcada como borrada para que la sugerencia no la
+     resucite. Después, las series vacías que la siguen toman
+     los valores de la anterior con datos como sugerencia. */
+  const lvS = String(row.loadVal == null ? '' : row.loadVal), rpS = String(row.repsDone == null ? '' : row.repsDone);
+  if (lvS === '' && (rpS === '' || rpS === '0')) { row.repsDone = ''; row.sug = false; row.sugR = false; row.sugL = false; row.clr = true; delete row.loadDetail; }
+  else {
+    row.clr = false;
+    /* AUTH-371: el campo tocado con la rueda queda PROPIO (deja
+       de seguir a su fuente); el otro conserva su estado — si
+       venía sugerido (la marca heredada sug valía por los dos),
+       pasa a su marca de campo y sigue a la fuente. */
+    if (kind === 'reps') { if (row.sug) row.sugL = true; row.sug = false; row.sugR = false; }
+    else { if (row.sug) row.sugR = true; row.sug = false; row.sugL = false; }
+  }
+  /* SERIE AÑADIDA (encargo 2026-10-30): la fila nacida con
+     «+ Añadir serie» es PENDIENTE (pend) y no cuenta como
+     realizada hasta que él la trabaja: un toque de rueda que
+     deja un valor la adopta como suya (pend fuera); vaciarla
+     del todo la devuelve a pendiente vacía — la marca pend
+     manda sobre clr para que el cierre nunca la cuente. */
+  if (row.pend === true) {
+    if (lvS === '' && (rpS === '' || rpS === '0')) { row.clr = false; }
+    else row.pend = false;
+  }
+}
 function tfWheelPick(body, kind, wv) {
   const row = tfWheelRow();
   if (!row) return;
@@ -38494,7 +38600,7 @@ function tfWheelPick(body, kind, wv) {
        función solo hace su disciplina de siempre (sello,
        propagación, espejo). En ÚNICA, como siempre y sin
        desglose. */
-    const lk = (typeof TRAIN_FLOAT !== 'undefined' && TRAIN_FLOAT) ? loadKindOf(TRAIN_FLOAT.ex) : 'single';
+    const lk = tfWheelEx() ? loadKindOf(tfWheelEx()) : 'single';
     if (TF_PLATES_APPLY) { row.loadVal = wv === '' ? '' : convLoadDisplay(String(wv), sc.unit, UNIT_PREFS.mass); }
     else if (lk === 'pair') {
       if (wv === '') { row.loadVal = ''; delete row.loadDetail; }
@@ -38506,45 +38612,37 @@ function tfWheelPick(body, kind, wv) {
     }
     else { row.loadVal = wv === '' ? '' : convLoadDisplay(String(wv), sc.unit, UNIT_PREFS.mass); delete row.loadDetail; }
   }
-  trainFloatMirror(false);
-  tfChipRefresh(body);
-  if (TF_WHEEL && TF_WHEEL.ctx === 'set') {
-    /* PRECARGA SUGERIDA (2026-10-30 12:42 CDT): la fila tocada
-       queda como dato real de su autor — salvo que la dejaron
-       vacía del todo (reps 0 y «Sin carga»), que es BORRARLA:
-       el 0 se normaliza a vacío verdadero y la fila queda
-       marcada como borrada para que la sugerencia no la
-       resucite. Después, las series vacías que la siguen toman
-       los valores de la anterior con datos como sugerencia. */
-    const lvS = String(row.loadVal == null ? '' : row.loadVal), rpS = String(row.repsDone == null ? '' : row.repsDone);
-    if (lvS === '' && (rpS === '' || rpS === '0')) { row.repsDone = ''; row.sug = false; row.sugR = false; row.sugL = false; row.clr = true; delete row.loadDetail; }
-    else {
-      row.clr = false;
-      /* AUTH-371: el campo tocado con la rueda queda PROPIO (deja
-         de seguir a su fuente); el otro conserva su estado — si
-         venía sugerido (la marca heredada sug valía por los dos),
-         pasa a su marca de campo y sigue a la fuente. */
-      if (kind === 'reps') { if (row.sug) row.sugL = true; row.sug = false; row.sugR = false; }
-      else { if (row.sug) row.sugR = true; row.sug = false; row.sugL = false; }
-    }
-    /* SERIE AÑADIDA (encargo 2026-10-30): la fila nacida con
-       «+ Añadir serie» es PENDIENTE (pend) y no cuenta como
-       realizada hasta que él la trabaja: un toque de rueda que
-       deja un valor la adopta como suya (pend fuera); vaciarla
-       del todo la devuelve a pendiente vacía — la marca pend
-       manda sobre clr para que el cierre nunca la cuente. */
-    if (row.pend === true) {
-      if (lvS === '' && (rpS === '' || rpS === '0')) { row.clr = false; }
-      else row.pend = false;
-    }
+  if (TF_WHEEL && TF_WHEEL.src === 'card') {
+    /* AUTH-416 · LA TARJETA/FOCO: la fila ES la marca (no
+       hay borrador ni espejo): el mismo asentado de la hoja,
+       el sello de hora, la propagación por campo sobre las
+       series de la marca, el guardado del borrador y el
+       repintado de las pastillas de ese ejercicio en su
+       sitio. */
+    tfWheelSettleRow(row, kind);
     /* HORA DE MARCA: el toque que deja datos en la fila sella su
        hora (la primera vez); vaciarla del todo la retira. Las
        filas que la sugerencia rellena a continuación NO se
        sellan: su hora nacerá si él las adopta o al dar «Hecho». */
     trainSetStamp(row);
-    tfSuggestApply();
+    const chkW = (typeof TRAIN_CHECKS !== 'undefined' && TRAIN_CHECKS) ? TRAIN_CHECKS[TF_WHEEL.key] : null;
+    if (chkW && Array.isArray(chkW.sets)) tfSuggestApplySets(chkW.sets);
+    trainChecksPersist(TF_WHEEL.planId);
+    trainFlowChipsRefresh(body);
+  } else {
     trainFloatMirror(false);
-    tfSuggestRefresh(body);
+    tfChipRefresh(body);
+    if (TF_WHEEL && TF_WHEEL.ctx === 'set') {
+      tfWheelSettleRow(row, kind);
+      /* HORA DE MARCA: el toque que deja datos en la fila sella su
+         hora (la primera vez); vaciarla del todo la retira. Las
+         filas que la sugerencia rellena a continuación NO se
+         sellan: su hora nacerá si él las adopta o al dar «Hecho». */
+      trainSetStamp(row);
+      tfSuggestApply();
+      trainFloatMirror(false);
+      tfSuggestRefresh(body);
+    }
   }
   tfWheelMarkSel(document.getElementById('tf-wheel-reps'), 'reps');
   tfWheelMarkSel(document.getElementById('tf-wheel-load'), 'load');
@@ -38569,7 +38667,25 @@ function tfWheelScrollHandler(body, list, kind) {
 function tfWheelOpen(body, ctx, idx) {
   const F = TRAIN_FLOAT;
   if (!F || !F.draft) return;
-  TF_WHEEL = { ctx, idx };
+  TF_WHEEL = { src: 'float', ctx, idx };
+  tfWheelShow(body);
+}
+/* AUTH-416 · LA RUEDA DESDE LA TARJETA/FOCO (la maqueta
+   P2 aprobada): el MISMO panel único a nivel de documento con
+   la fuente en la marca de esa clave; el ejercicio viaja en
+   el estado — la rueda lo necesita para el modo de carga
+   (par, discos o única) sin tocar el borrador de la hoja. */
+function tfWheelCardOpen(body, key, idx, ex, planId) {
+  const c = (typeof TRAIN_CHECKS !== 'undefined' && TRAIN_CHECKS) ? TRAIN_CHECKS[key] : null;
+  if (!c || !Array.isArray(c.sets) || !c.sets[idx]) return;
+  TF_WHEEL = { src: 'card', ctx: 'set', key, idx, ex: ex || null, planId };
+  tfWheelShow(body);
+}
+/* El mostrado del panel, compartido por las dos fuentes: la
+   ventana flotante única, sus dos columnas, su centrado y la
+   guardia anti-sobrescritura, como los dejó la apertura de la
+   hoja. */
+function tfWheelShow(body) {
   TF_LOAD_SCALE = tfLoadScale();
   TF_WHEEL_GUARD = null;
   const row = tfWheelRow();
@@ -38598,13 +38714,13 @@ function tfWheelOpen(body, ctx, idx) {
     if (dn0) dn0.onclick = () => { panel.style.display = 'none'; };
   }
   const title = panel.querySelector('#tf-wheel-title');
-  if (title) title.textContent = ctx === 'warm' ? `${t('train.start.warmupTitle')} ${idx + 1}` : `${t('train.d.set')} ${idx + 1}`;
+  if (title) title.textContent = TF_WHEEL.ctx === 'warm' ? `${t('train.start.warmupTitle')} ${TF_WHEEL.idx + 1}` : `${t('train.d.set')} ${TF_WHEEL.idx + 1}`;
   /* AUTH-345: la cabecera de la columna de carga dice la unidad
      de la escala activa (la del selector «Peso») y, en pareja,
      que el número es POR MANCUERNA — inconfundible mientras se
      teclea en la rueda. */
   const loadLab = panel.querySelector('#tf-wheel-load-lab');
-  if (loadLab) loadLab.textContent = (loadKindOf(F.ex) === 'pair' ? t('train.d.loadPerDb') : t('train.d.loadPh')) + ' (' + (TF_LOAD_SCALE ? TF_LOAD_SCALE.unit : UNIT_PREFS.mass) + ')';
+  if (loadLab) loadLab.textContent = (loadKindOf(tfWheelEx()) === 'pair' ? t('train.d.loadPerDb') : t('train.d.loadPh')) + ' (' + (TF_LOAD_SCALE ? TF_LOAD_SCALE.unit : UNIT_PREFS.mass) + ')';
   const repsList = panel.querySelector('#tf-wheel-reps');
   const loadList = panel.querySelector('#tf-wheel-load');
   if (repsList) {
@@ -55443,7 +55559,7 @@ document.addEventListener('keydown', e => { if (e.key === 'Escape') shareClose()
  *  - El SW (sw.js) solo cachea la cáscara del mismo origen en modo
  *    RED PRIMERO: Auth/Firestore/Worker jamás pasan por la caché.
  * ================================================================ */
-const PWA_SW_VERSION = '20261112-dia-completado-plegado';
+const PWA_SW_VERSION = '20261112-entrada-aproximacion';
 /* Sello de versión VISIBLE (2026-11-03): el pie de la tarjeta de
    acceso enseña qué copia corre este teléfono ('v ' + el sello),
    para comprobar de un vistazo si la versión nueva ya llegó.
@@ -63108,9 +63224,9 @@ function tfDetailForWrite(s) { const d = tfDetailSan(s && s.loadDetail); return 
    de UNA mancuerna (el total guardado es el doble); en discos y
    única, el total tal cual. */
 function tfWheelLoadValOf(row) {
-  const F = (typeof TRAIN_FLOAT !== 'undefined') ? TRAIN_FLOAT : null;
+  const exW = tfWheelEx();
   const sc = TF_LOAD_SCALE || tfLoadScale();
-  if (F && row && loadKindOf(F.ex) === 'pair') {
+  if (exW && row && loadKindOf(exW) === 'pair') {
     const d = tfDetailSan(row.loadDetail);
     if (d && d.kind === 'pair') { const n = parseFloat(convLoadDisplay(String(d.each), d.unit, sc.unit)); return isFinite(n) ? n : null; }
     const v = tfScaleValOf(row.loadVal, sc.unit); return v == null ? null : v / 2;
@@ -63122,9 +63238,9 @@ function tfWheelLoadValOf(row) {
 function tfPairNoteUpdate() {
   const note = document.getElementById('tf-wheel-pair');
   if (!note) return;
-  const F = (typeof TRAIN_FLOAT !== 'undefined') ? TRAIN_FLOAT : null;
-  const row = F ? tfWheelRow() : null;
-  if (!F || !row || loadKindOf(F.ex) !== 'pair') { note.style.display = 'none'; note.innerHTML = ''; return; }
+  const exW = tfWheelEx();
+  const row = TF_WHEEL ? tfWheelRow() : null;
+  if (!exW || !row || loadKindOf(exW) !== 'pair') { note.style.display = 'none'; note.innerHTML = ''; return; }
   const v = tfWheelLoadValOf(row);
   if (v == null || v === 0) { note.style.display = 'none'; note.innerHTML = ''; return; }
   const u = UNIT_PREFS.mass;
@@ -63141,6 +63257,15 @@ function tfPairNoteUpdate() {
 let TF_PLATES = null;
 let TF_PLATES_APPLY = false;
 function tfPlatesRow() {
+  /* AUTH-416: el panel tiene dos fuentes — la hoja de
+     registro (su borrador TRAIN_FLOAT, el camino de AUTH-376)
+     y la tarjeta/foco (la marca TRAIN_CHECKS de esa clave).
+     Maquinaria heredada del candidato plegado de discos
+     (372a0bb); lo que cambia es su puerta: la pastilla. */
+  if (TF_PLATES && TF_PLATES.src === 'card') {
+    const c = (typeof TRAIN_CHECKS !== 'undefined' && TRAIN_CHECKS) ? TRAIN_CHECKS[TF_PLATES.key] : null;
+    return (c && Array.isArray(c.sets)) ? (c.sets[TF_PLATES.idx] || null) : null;
+  }
   const F = TRAIN_FLOAT;
   if (!F || !F.draft || !TF_PLATES) return null;
   return TF_PLATES.ctx === 'warm'
@@ -63164,7 +63289,7 @@ function tfPlatesHTML() {
 function tfPlatesOpen(body, ctx, idx) {
   const F = TRAIN_FLOAT;
   if (!F || !F.draft) return;
-  const S = { ctx, idx, body, side: 'L', unit: UNIT_PREFS.mass, perSide: [], perSideR: [], mirrored: true, base: { on: false, val: 0 } };
+  const S = { src: 'float', ctx, idx, body, side: 'L', unit: UNIT_PREFS.mass, perSide: [], perSideR: [], mirrored: true, base: { on: false, val: 0 } };
   TF_PLATES = S;
   const prev = tfDetailSan(tfPlatesRow() && tfPlatesRow().loadDetail);
   if (prev && prev.kind === 'plates' && prev.perSide) {
@@ -63184,10 +63309,52 @@ function tfPlatesOpen(body, ctx, idx) {
     document.body.appendChild(panel);
     panel.querySelector('#tfp-use').onclick = () => tfPlatesApply();
     panel.querySelector('#tfp-cancel').onclick = () => tfPlatesClose();
-    panel.querySelector('#tfp-type').onclick = () => { const b = TF_PLATES.body, c = TF_PLATES.ctx, i = TF_PLATES.idx; tfPlatesClose(); tfWheelOpen(b, c, i); };
+    panel.querySelector('#tfp-type').onclick = () => { const S = TF_PLATES; if (!S) return; if (S.src === 'card') { const b = S.body, k = S.key, i = S.idx, e = S.ex, p = S.planId; tfPlatesClose(); tfWheelCardOpen(b, k, i, e, p); } else { const b = S.body, c = S.ctx, i = S.idx; tfPlatesClose(); tfWheelOpen(b, c, i); } };
   }
   const title = panel.querySelector('#tfp-title');
   if (title) title.textContent = (ctx === 'warm' ? `${t('train.start.warmupTitle')} ${idx + 1}` : `${t('train.d.set')} ${idx + 1}`) + ' · ' + t('train.ld.platesTitle') + ' (' + S.unit + ')';
+  panel.style.display = 'block';
+  tfPlatesRender();
+}
+/* AUTH-416 · EL PANEL DE DISCOS DESDE LA TARJETA/FOCO:
+   el mismo panel de AUTH-376 con la fuente en la marca de la
+   tarjeta (TRAIN_CHECKS), abierto desde la pastilla de Carga
+   de una ficha de discos — la puerta que el candidato plegado
+   de discos (372a0bb) ponía en un botón dedicado y que la P2
+   funde en la pastilla. La siembra del desglose previo y de
+   la base de fábrica declarada replica la de la hoja. El
+   botón «Teclear el total» conserva su salto: aquí salta a
+   la rueda DE LA TARJETA, la otra puerta de la misma
+   entrada (en aquel candidato se ocultaba porque la tarjeta
+   no tenía rueda; ya la tiene). */
+function tfPlatesCardOpen(body, key, si, planId, ex) {
+  const c = (typeof TRAIN_CHECKS !== 'undefined' && TRAIN_CHECKS) ? TRAIN_CHECKS[key] : null;
+  const row = (c && Array.isArray(c.sets)) ? c.sets[si] : null;
+  if (!row) return;
+  const S = { src: 'card', ctx: 'set', idx: si, key, planId, ex: ex || null, body, side: 'L', unit: UNIT_PREFS.mass, perSide: [], perSideR: [], mirrored: true, base: { on: false, val: 0 } };
+  TF_PLATES = S;
+  const prev = tfDetailSan(row.loadDetail);
+  if (prev && prev.kind === 'plates' && prev.perSide) {
+    S.unit = prev.unit;
+    S.perSide = prev.perSide.slice();
+    S.perSideR = prev.perSideR ? prev.perSideR.slice() : [];
+    S.mirrored = prev.mirrored !== false;
+    S.base = { on: prev.base.on === true, val: prev.base.val || 0 };
+  } else if (ex && LOAD_BASE_BAR_IDS[String(ex.exerciseId)]) {
+    S.base = { on: true, val: S.unit === 'lb' ? 45 : 20 };
+  }
+  let panel = document.getElementById('tf-plates');
+  if (!panel) {
+    const tmp = document.createElement('div');
+    tmp.innerHTML = tfPlatesHTML();
+    panel = tmp.firstElementChild;
+    document.body.appendChild(panel);
+    panel.querySelector('#tfp-use').onclick = () => tfPlatesApply();
+    panel.querySelector('#tfp-cancel').onclick = () => tfPlatesClose();
+    panel.querySelector('#tfp-type').onclick = () => { const S2 = TF_PLATES; if (!S2) return; if (S2.src === 'card') { const b = S2.body, k = S2.key, i = S2.idx, e = S2.ex, p = S2.planId; tfPlatesClose(); tfWheelCardOpen(b, k, i, e, p); } else { const b = S2.body, c = S2.ctx, i = S2.idx; tfPlatesClose(); tfWheelOpen(b, c, i); } };
+  }
+  const tEl = panel.querySelector('#tfp-title');
+  if (tEl) tEl.textContent = `${t('train.d.set')} ${si + 1}` + ' · ' + t('train.ld.platesTitle') + ' (' + S.unit + ')';
   panel.style.display = 'block';
   tfPlatesRender();
 }
@@ -63226,6 +63393,32 @@ function tfPlatesRender() {
 }
 function tfPlatesApply() {
   const S = TF_PLATES; if (!S) return;
+  /* AUTH-416: con la fuente en la tarjeta, la escritura
+     pasa por la rueda de la tarjeta — el mismo asentado que
+     en la hoja: el desglose queda puesto sobre la fila y el
+     pick escribe el total con la disciplina de la rueda
+     (sello, propagación por campo y guardado del borrador).
+     Sustituye a la escritura directa del candidato plegado
+     de discos, que existía porque la tarjeta no tenía rueda. */
+  if (S.src === 'card') {
+    const rowC = tfPlatesRow();
+    const bodyC = S.body;
+    const ttC = tfPlatesTotals(S);
+    if (!rowC) { tfPlatesClose(); return; }
+    if (ttC.total > 0) {
+      const detC = { kind: 'plates', unit: S.unit, perSide: S.perSide.slice(), mirrored: S.mirrored, base: { on: S.base.on, val: S.base.on ? S.base.val : 0 } };
+      if (!S.mirrored) detC.perSideR = S.perSideR.slice();
+      rowC.loadDetail = detC;
+    } else delete rowC.loadDetail;
+    TF_WHEEL = { src: 'card', ctx: 'set', key: S.key, idx: S.idx, ex: S.ex || null, planId: S.planId };
+    if (!TF_LOAD_SCALE) TF_LOAD_SCALE = tfLoadScale();
+    const wvC = ttC.total > 0 ? convLoadDisplay(String(ttC.total), S.unit, TF_LOAD_SCALE.unit) : '';
+    TF_PLATES_APPLY = true;
+    tfPlatesClose();
+    tfWheelPick(bodyC, 'load', wvC);
+    TF_PLATES_APPLY = false;
+    return;
+  }
   const row = tfPlatesRow();
   const body = S.body;
   const tt = tfPlatesTotals(S);
@@ -63235,7 +63428,7 @@ function tfPlatesApply() {
     if (!S.mirrored) det.perSideR = S.perSideR.slice();
     row.loadDetail = det;
   } else delete row.loadDetail;
-  TF_WHEEL = { ctx: S.ctx, idx: S.idx };
+  TF_WHEEL = { src: 'float', ctx: S.ctx, idx: S.idx };
   if (!TF_LOAD_SCALE) TF_LOAD_SCALE = tfLoadScale();
   const wv = tt.total > 0 ? convLoadDisplay(String(tt.total), S.unit, TF_LOAD_SCALE.unit) : '';
   TF_PLATES_APPLY = true;

@@ -1719,6 +1719,16 @@ div > .btn-ghost:only-child, div > .btn-main:only-child {
 .train-set-n { font-size: 12px; color: #6b7280; flex: 0 1 auto; min-width: 0; }
 .train-set-in { flex: 1 1 0; min-width: 0; width: auto; padding: 5px 7px; border: 1px solid #d1d5db; border-radius: 8px; font-size: 13px; }
 .train-set-unit { font-size: 12px; color: #6b7280; flex: none; }
+/* AUTH-416 · LAS PASTILLAS EN LA FILA DE SERIE DE LA
+   TARJETA/FOCO: las mismas de la hoja (.tf-chip y su tacto);
+   dentro de la tarjeta el hueco cede, las pastillas se
+   reparten el ancho que queda tras el rótulo y el mínimo de
+   la hoja (86 px) no se hereda — la fila no se sale en
+   ninguna banda. Ámbito cerrado a la tarjeta: la hoja y su
+   fila quedan como están. */
+.train-ex-card .tf-chips { flex: 1 1 auto; min-width: 0; }
+.train-ex-card .tf-chip { flex: 1 1 0; min-width: 0; }
+.train-ex-card .tf-chip-v, .train-ex-card .tf-chip-lab { max-width: 100%; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 /* UNIDAD DE CARGA (2026-10-26): cabecera del bloque de series con el
    selector kg/lb en el punto de registro (flotante y tarjeta del
    día). En la tarjeta vestida (fondo teal) la etiqueta se aclara. */
