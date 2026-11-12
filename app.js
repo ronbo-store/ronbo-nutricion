@@ -6152,6 +6152,7 @@ en: {
   'train.flow.beginDay': '▶ Start the workout',
   'train.flow.beginNote': 'Tap it: the timer starts and the focus lands on stop 1. There is no mode to turn on — the day is born this way.',
   'train.flow.nowFirst': 'UP NOW · FIRST',
+  'train.flow.dragHint': 'Drag by the ⠿ dots to change the order.',
   'train.flow.band.1': '1-2', 'train.flow.band.2': '3-4', 'train.flow.band.3': '5-6', 'train.flow.band.4': '7-8', 'train.flow.band.5': '9-10',
   'train.flow.face.1': 'Minimum', 'train.flow.face.2': 'A bit more', 'train.flow.face.3': 'Effort', 'train.flow.face.4': 'Tough', 'train.flow.face.5': 'Very tough',
   /* CRONÓMETRO DE SESIÓN FIJO + ENCUESTA (punto 88 de la cola,
@@ -11008,6 +11009,7 @@ es: {
   'train.flow.beginDay': '▶ Comenzar el entrenamiento',
   'train.flow.beginNote': 'Al tocarlo arranca el cronómetro y el foco cae en la parada 1. No hay ningún modo que encender: el día nace así.',
   'train.flow.nowFirst': 'AHORA TOCA · EL PRIMERO',
+  'train.flow.dragHint': 'Arrastra por los puntos ⠿ para cambiar el orden.',
   'train.flow.band.1': '1-2', 'train.flow.band.2': '3-4', 'train.flow.band.3': '5-6', 'train.flow.band.4': '7-8', 'train.flow.band.5': '9-10',
   'train.flow.face.1': 'Mínimo', 'train.flow.face.2': 'Un poco más', 'train.flow.face.3': 'Esfuerzo', 'train.flow.face.4': 'Cuesta', 'train.flow.face.5': 'Cuesta mucho',
   /* CRONÓMETRO DE SESIÓN FIJO + ENCUESTA (punto 88 de la cola,
@@ -33960,6 +33962,48 @@ document.addEventListener('pointerup', () => {
 document.addEventListener('pointercancel', () => {
   if (TRAIN_ROW_DRAG) { const d = TRAIN_ROW_DRAG; TRAIN_ROW_DRAG = null; trainRowDragEnd(d); d.row.classList.remove('train-ex-dragging'); }
 });
+/* ══ ARRASTRAR EN EL RECORRIDO (AUTH-413): el gesto de las
+   paradas del día AL NACER, hermano del de la lista (AUTH-405)
+   y con sus mismas lecciones: al armar, captura del puntero en
+   el asa y candado de scroll reutilizando trainRowDragArm /
+   trainRowDragEnd TAL CUAL (son genéricos — solo usan la fila,
+   el asa y el puntero — y su texto no se toca); la parada se
+   mueve EN VIVO entre sus hermanas de .guide-route y se levanta
+   con sombra suave SOLO mientras se arrastra
+   (.guide-stop-dragging); si el gesto se cancela
+   (pointercancel) NO se guarda nada; al soltar, el orden entra
+   por el motor de siempre, trainSessionReorder, y se repinta
+   con loadMyTraining. Estado propio (TRAIN_STOP_DRAG): las
+   paradas no son tarjetas .train-ex-card y la maquinaria de la
+   lista queda byte a byte. ══ */
+let TRAIN_STOP_DRAG = null;   // arrastre de una parada del recorrido (solo memoria)
+document.addEventListener('pointermove', e => {
+  const d = TRAIN_STOP_DRAG; if (!d) return;
+  const y = e.clientY;
+  const stops = [...d.box.querySelectorAll(':scope > .guide-stop')].filter(s => s !== d.row);
+  for (const s of stops) {
+    const rc = s.getBoundingClientRect();
+    if (y < rc.top + rc.height / 2) { if (s.previousElementSibling !== d.row) d.box.insertBefore(d.row, s); return; }
+  }
+  const last = stops[stops.length - 1];
+  if (last && y > last.getBoundingClientRect().bottom) {
+    const nx = last.nextElementSibling;
+    if (nx && nx !== d.row) d.box.insertBefore(d.row, nx);
+    else if (!nx && d.box.lastElementChild !== d.row) d.box.appendChild(d.row);
+  }
+});
+document.addEventListener('pointerup', () => {
+  const d = TRAIN_STOP_DRAG; if (!d) return;
+  TRAIN_STOP_DRAG = null;
+  trainRowDragEnd(d);
+  d.row.classList.remove('guide-stop-dragging');
+  const stops = [...d.box.querySelectorAll(':scope > .guide-stop')];
+  const to = stops.indexOf(d.row);
+  if (to >= 0 && to !== d.from && trainSessionReorder(d.plan, d.di, d.from, to)) loadMyTraining();
+});
+document.addEventListener('pointercancel', () => {
+  if (TRAIN_STOP_DRAG) { const d = TRAIN_STOP_DRAG; TRAIN_STOP_DRAG = null; trainRowDragEnd(d); d.row.classList.remove('guide-stop-dragging'); }
+});
 /* Filas del HISTORIAL de un día cerrado: empareja el registro con
    los ejercicios del plan conservando la semántica de siempre
    (por exerciseId; por nombre solo si la entrada no trae id) y,
@@ -36172,15 +36216,33 @@ function trainGuidedHTML(plan, day, di) {
      en este estado: sería una segunda puerta de Iniciar en la
      misma superficie. Comenzado el día, manda el foco de siempre. */
   if (!started && M > 0) {
+    /* AUTH-413 · ARRASTRAR EN EL RECORRIDO (decisión de
+       Ronald del 2026-11-12: «quiero arrastrarlos con el dedo»;
+       maqueta v3 aprobada: «Sí — así, discreto»): quien puede
+       reordenar su día (trainReorderAllowed — el alumno con
+       entrenador asignado ve el orden de su entrenador SIN
+       control, decisión suya del 2026-11-03) y tiene más de una
+       parada ve en cada una el asa ⠿ DISCRETA de la maqueta —
+       glyph pequeño en blanco semitransparente, sin fondo ni
+       borde, al borde derecho; su zona de agarre es grande
+       (56 × 48 px) aunque se vea pequeña, porque la app se usa
+       entrenando — y la línea de ayuda atenuada bajo la
+       cabecera. Sin permiso o con una sola parada, las paradas
+       se pintan como siempre. El gesto vive junto al de la
+       lista (TRAIN_STOP_DRAG) y al soltar entra por el MISMO
+       motor, trainSessionReorder: persistencia y remapeo de
+       marcas idénticos a los del arrastre de la lista. */
+    const canDrag = trainReorderAllowed() && M > 1;
     const stops = eff.map((it, ei2) => {
       const photo = trainExPhoto(it.ex);
       const thumb = !photo ? ytThumbOf(trainExVideo(it.ex)) : '';
       const spec = [it.ex.sets, it.ex.reps].filter(Boolean).join(' × ');
       const isNow = ei2 === focus;
-      return `<div class="guide-stop${isNow ? ' is-now' : ''}"><span class="guide-stop-n">${ei2 + 1}</span>${photo ? `<img class="guide-stop-photo" src="${esc(photo)}" alt="" loading="lazy">` : (thumb ? `<img class="guide-stop-photo" src="${esc(thumb)}" alt="" loading="lazy">` : '')}<span class="guide-stop-mid"><span class="guide-stop-name">${esc(trainExName(it.ex))}</span>${spec ? `<span class="guide-stop-spec">${esc(spec)}</span>` : ''}${isNow ? `<span class="guide-stop-tag">${t('train.flow.nowFirst')}</span>` : ''}</span></div>`;
+      return `<div class="guide-stop${isNow ? ' is-now' : ''}"><span class="guide-stop-n">${ei2 + 1}</span>${photo ? `<img class="guide-stop-photo" src="${esc(photo)}" alt="" loading="lazy">` : (thumb ? `<img class="guide-stop-photo" src="${esc(thumb)}" alt="" loading="lazy">` : '')}<span class="guide-stop-mid"><span class="guide-stop-name">${esc(trainExName(it.ex))}</span>${spec ? `<span class="guide-stop-spec">${esc(spec)}</span>` : ''}${isNow ? `<span class="guide-stop-tag">${t('train.flow.nowFirst')}</span>` : ''}</span>${canDrag ? `<button type="button" class="guide-stop-grip" data-guide-grip="${di}:${ei2}" aria-label="${esc(t('train.custom.move'))}">⠿</button>` : ''}</div>`;
     }).join('');
     return `<h4>${esc(label)}</h4>`
       + `<div class="guide-head"><div class="guide-pos">${esc(posText)}</div><div class="guide-bar"><div style="width:${M ? Math.round(100 * doneCount / M) : 0}%"></div></div><div class="guide-meta">${esc(metaLine)}</div></div>`
+      + (canDrag ? `<div class="guide-drag-hint">${t('train.flow.dragHint')}</div>` : '')
       + `<div class="guide-route">${stops}</div>`
       + `<button type="button" class="guide-start-btn" data-train-start="${di}">${t('train.flow.beginDay')}</button>`
       + `<p class="guide-route-note">${t('train.flow.beginNote')}</p>`
@@ -40259,6 +40321,27 @@ async function loadMyTraining() {
     TRAIN_ROW_DRAG = { row, box: cont, from, plan, di: diM, grip: g, pid: null, lockEl: null, lockPrev: '' };
     trainRowDragArm(TRAIN_ROW_DRAG, g, e);
     row.classList.add('train-ex-dragging');
+  }));
+  /* AUTH-413 · El asa discreta de las paradas del recorrido
+     al nacer: el gesto se arma sobre el asa con las mismas
+     guardas del de la lista (un solo arrastre a la vez entre
+     las dos superficies; botón principal del ratón) y los
+     oyentes de documento de TRAIN_STOP_DRAG hacen el resto. */
+  box.querySelectorAll('[data-guide-grip]').forEach(g => g.addEventListener('pointerdown', e => {
+    if (TRAIN_ROW_DRAG || TRAIN_STOP_DRAG) return;
+    if (e.pointerType === 'mouse' && e.button !== 0) return;
+    const row = g.closest('.guide-stop');
+    const cont = row ? row.closest('.guide-route') : null;
+    if (!row || !cont) return;
+    const stops = [...cont.querySelectorAll(':scope > .guide-stop')];
+    const from = stops.indexOf(row);
+    if (from < 0) return;
+    const diG = Number(String(g.dataset.guideGrip || '').split(':')[0]);
+    if (!Number.isInteger(diG)) return;
+    e.preventDefault();
+    TRAIN_STOP_DRAG = { row, box: cont, from, plan, di: diG, grip: g, pid: null, lockEl: null, lockPrev: '' };
+    trainRowDragArm(TRAIN_STOP_DRAG, g, e);
+    row.classList.add('guide-stop-dragging');
   }));
   box.querySelectorAll('[data-train-set-reps]').forEach(inp => inp.oninput = () => {
     const [di, ei, si] = inp.dataset.trainSetReps.split(':');
@@ -55275,7 +55358,7 @@ document.addEventListener('keydown', e => { if (e.key === 'Escape') shareClose()
  *  - El SW (sw.js) solo cachea la cáscara del mismo origen en modo
  *    RED PRIMERO: Auth/Firestore/Worker jamás pasan por la caché.
  * ================================================================ */
-const PWA_SW_VERSION = '20261111-bloque-plan-entrenador';
+const PWA_SW_VERSION = '20261112-arrastrar-recorrido';
 /* Sello de versión VISIBLE (2026-11-03): el pie de la tarjeta de
    acceso enseña qué copia corre este teléfono ('v ' + el sello),
    para comprobar de un vistazo si la versión nueva ya llegó.

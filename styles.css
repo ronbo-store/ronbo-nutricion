@@ -5213,6 +5213,17 @@ body.swap-sheet-open .asst-fab { display: none !important; }
 .guide-stop-name { font-weight:800; font-size:16.5px; color:#fff; }
 .guide-stop-spec { font-size:13px; color:rgba(255,255,255,.85); }
 .guide-stop-tag { align-self:flex-start; margin-top:3px; background:#facc15; color:#713f12; font-size:11px; font-weight:900; letter-spacing:.4px; border-radius:999px; padding:2.5px 9px; }
+/* AUTH-413 · EL ASA DISCRETA DEL RECORRIDO (maqueta v3,
+   aprobada por Ronald el 2026-11-12: «Sí — así, discreto»): el
+   glyph ⠿ de ~20 px en blanco semitransparente, sin fondo ni
+   borde, al borde derecho de la parada; la ZONA DE AGARRE es la
+   que manda — 56 × 48 px — porque la app se usa entrenando y la
+   motricidad fina es complicada. La línea de ayuda va pequeña y
+   atenuada bajo la cabecera. Al arrastrar, la parada se levanta
+   con sombra suave SOLO durante el gesto. */
+.guide-drag-hint { margin-top:6px; font-size:12.5px; color:rgba(255,255,255,.55); }
+.guide-stop-grip { flex:0 0 auto; margin-left:auto; width:56px; height:48px; padding:0 2px 0 0; border:none; background:none; color:rgba(255,255,255,.55); font-size:20px; line-height:1; cursor:grab; touch-action:none; display:flex; align-items:center; justify-content:flex-end; }
+.guide-stop-dragging { position:relative; z-index:5; background:rgba(255,255,255,.10); border-radius:12px; box-shadow:0 10px 24px rgba(2,6,23,.35); }
 .guide-start-btn { display:block; width:100%; margin-top:14px; min-height:56px; background:linear-gradient(180deg,#22c55e,#16a34a); color:#fff; border:none; border-radius:16px; font-size:18.5px; font-weight:900; padding:14px; box-shadow:0 4px 0 #15803d; cursor:pointer; }
 .guide-route-note { margin:9px 2px 0; font-size:13px; line-height:1.45; color:rgba(255,255,255,.88); text-align:center; }
 /* AUTH-406 · EL FLUJO DE LA TARJETA: la fila de acción, el
