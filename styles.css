@@ -1943,6 +1943,19 @@ body { padding: max(16px, env(safe-area-inset-top)) max(16px, env(safe-area-inse
 .train-day-dressed h4 { color: #fff; font-size: 17px; margin-top: 12px; }
 .train-day-dressed .train-ex-card { background: rgba(255,255,255,.10); border: 1px solid rgba(255,255,255,.28); border-left: 5px solid var(--stripe, #38BDF8); border-radius: 12px; padding: 9px 10px; margin: 7px 0; flex-wrap: wrap; cursor: pointer; }
 .train-day-dressed .train-ex-card.is-done { background: rgba(34,197,94,.20); }
+/* AUTH-415 · LA LÍNEA RESUMEN DEL DÍA COMPLETADO: una
+   sola línea nacida plegada, con la llamita y el dato clave
+   del día (avance · tiempo · kcal de la llamita). Lleva el
+   tinte verde de las filas hechas de la tarjeta vestida — es
+   el día entero recogido en su propia fila —. Tacto 58 px,
+   sobre el mínimo de 44 de la casa. */
+.train-done-fold { display: flex; align-items: center; gap: 10px; width: 100%; min-height: 58px; margin-top: 10px; padding: 10px 12px; border-radius: 12px; background: rgba(34, 197, 94, .20); border: 1px solid rgba(255, 255, 255, .28); color: #fff; font: inherit; text-align: left; cursor: pointer; box-sizing: border-box; }
+.train-done-fold .train-df-flame { font-size: 23px; line-height: 1; flex: none; filter: drop-shadow(0 2px 6px rgba(255, 150, 0, .5)); }
+.train-done-fold .train-df-txt { flex: 1; min-width: 0; font-size: 14.5px; line-height: 1.35; color: rgba(255, 255, 255, .92); }
+.train-done-fold .train-df-txt b { color: #fff; font-weight: 800; }
+.train-done-fold .train-df-chev { font-size: 25px; font-weight: 700; line-height: 1; color: rgba(255, 255, 255, .85); flex: none; transition: transform .15s ease; }
+.train-done-fold[aria-expanded="true"] .train-df-chev { transform: rotate(90deg); }
+.train-done-rows[hidden] { display: none; }
 .train-day-dressed .train-ex-name { color: #fff; }
 .train-day-dressed .train-ex-name .muted, .train-day-dressed .muted { color: rgba(255,255,255,.72); }
 .train-day-dressed .train-ex-spec { color: #eafffb; }

@@ -6023,6 +6023,8 @@ en: {
   'shareW.kicker': 'MY WORKOUT', 'shareW.kickerToday': 'MY WORKOUT TODAY',
   'shareW.progress': '{x} of {y} exercises', 'shareW.tag': 'Let\'s go!',
   'shareW.done': 'Workout completed!', 'shareW.lab': 'Workout', 'shareW.hecho': 'DONE',
+  /* AUTH-415 · LA LÍNEA RECOGIDA DEL DÍA COMPLETADO. */
+  'train.doneFold.kcal': '{k} kcal burned',
   'train.weekDone': 'Sessions completed this week: {n}',
   'train.repeat.weekBtn': '🔁 Repeat week',
   'train.repeat.dayBtn': '🔁 Repeat day',
@@ -10882,6 +10884,8 @@ es: {
   'shareW.kicker': 'MI ENTRENAMIENTO', 'shareW.kickerToday': 'MI ENTRENAMIENTO DE HOY',
   'shareW.progress': '{x} de {y} ejercicios', 'shareW.tag': '¡A darle!',
   'shareW.done': '¡Entrenamiento completado!', 'shareW.lab': 'Entrenamiento', 'shareW.hecho': 'HECHO',
+  /* AUTH-415 · LA LÍNEA RECOGIDA DEL DÍA COMPLETADO. */
+  'train.doneFold.kcal': '{k} kcal quemadas',
   'train.weekDone': 'Sesiones completadas esta semana: {n}',
   'train.repeat.weekBtn': '🔁 Repetir semana',
   'train.repeat.dayBtn': '🔁 Repetir día',
@@ -37969,6 +37973,12 @@ function trainShareRowHTML(di, iso) {
    pendientes dependen SOLO de los ejercicios del plan, como hoy.
    El plan no se escribe; no hay segundo cálculo de quemado. */
 let TRAIN_EXTRAS_PICK = false;   // «otro del catálogo» desplegado (solo memoria)
+/* AUTH-415 · EL DÍA COMPLETADO SE PLIEGA: los días
+   cerrados en «done» que Ronald dejó DESPLEGADOS al revisar
+   sus filas (solo memoria de la sesión; la tarjeta nace
+   plegada y este mapa solo conserva su gesto entre
+   repintados de la vista). */
+let TRAIN_DONE_OPEN = {};
 function trainExtrasZoneHTML() {
   const today = todayISO();
   const rows = [];
@@ -39837,6 +39847,30 @@ async function loadMyTraining() {
       else if (mode === 'done') { const status = trainLogStatus(log); tail = `<div style="margin-top:8px">${trainStatusBadge(status)}${status === 'skipped' ? ` <span class="muted">${t('train.d.skippedNote')}</span>` : ''} <button class="btn-ghost btn-sm" data-train-undo="${di}">${t('train.undo')}</button>${trainLogMetaHTML(log)}</div>`; }
       else tail = '';
     }
+    /* AUTH-415 · EL DÍA COMPLETADO SE PLIEGA (veredicto de
+       Ronald, 2026-11-11 14:44 CST): con el día cerrado en
+       «done» SOLO se pliegan las filas de ejercicios — nacen
+       recogidas bajo su línea resumen con la llamita: el avance
+       real del modelo de la tarjeta (trainShareModel, la misma
+       fuente de la cabecera), el tiempo del registro cerrado
+       (sessDurText, el de la meta «⏱» de la cola) y el quemado
+       de la llamita (el burnedKcal del modelo). Sin inventar
+       ceros: sin tiempo registrado no hay segmento de tiempo, y
+       sin quemado no hay segmento de kcal (la doctrina del
+       propio modelo). La insignia de estado con su «Deshacer»,
+       la meta y la zona de extras quedan FUERA del pliegue,
+       visibles, como hoy. Parcial, saltado o en edición: la
+       tarjeta se pinta exactamente como siempre. */
+    if (mode === 'done' && log && trainLogStatus(log) === 'done') {
+      const mFold = trainShareModel(plan, logs, di, sel);
+      if (mFold.total > 0) {
+        const openFold = !!TRAIN_DONE_OPEN[sel + ':' + di];
+        const segsFold = [`<b>${esc(t('shareW.progress', { x: mFold.doneCount, y: mFold.total }))}</b>`];
+        if (typeof log.elapsedSec === 'number' && isFinite(log.elapsedSec)) segsFold.push(esc(sessDurText(log.elapsedSec)));
+        if (mFold.burnedKcal != null) segsFold.push(`<b>${esc(t('train.doneFold.kcal', { k: fmt(mFold.burnedKcal) }))}</b>`);
+        exHtml = `<button type="button" class="train-done-fold" data-train-done-fold="${di}" aria-expanded="${openFold ? 'true' : 'false'}"><span class="train-df-flame" aria-hidden="true">🔥</span><span class="train-df-txt">${segsFold.join(' · ')}</span><span class="train-df-chev" aria-hidden="true">›</span></button><div class="train-done-rows" data-train-done-rows="${di}"${openFold ? '' : ' hidden'}>${exHtml}</div>`;
+      }
+    }
     return `<h4>${esc(label)}</h4>${exHtml}${mode === 'edit' ? trainRemovedLineHTML(plan, di, (typeof TRAIN_VIEW !== 'undefined' && TRAIN_VIEW) ? TRAIN_VIEW.sel : undefined) : ''}${trainSessionHTML(day)}${tail}${trainExtrasZoneHTML()}`;
   };
   /* ENTRENAMIENTO-HOY: tira semanal + tarjeta del día (por defecto
@@ -40658,6 +40692,20 @@ async function loadMyTraining() {
       trainChecksPersist(plan.id);
     }
     loadMyTraining();
+  });
+  /* AUTH-415 · EL PLIEGUE DEL DÍA COMPLETADO: tocar la
+     línea resumen despliega las filas (para revisar o deshacer
+     desde ellas) y la vuelve a recoger; el gesto se recuerda en
+     TRAIN_DONE_OPEN para que un repintado de la vista no lo
+     pierda. No escribe datos: muestra u oculta lo ya pintado. */
+  box.querySelectorAll('[data-train-done-fold]').forEach(b => b.onclick = () => {
+    const card = b.closest('.train-day');
+    const rows = card ? card.querySelector('[data-train-done-rows]') : null;
+    if (!rows) return;
+    const open = rows.hidden;
+    rows.hidden = !open;
+    b.setAttribute('aria-expanded', open ? 'true' : 'false');
+    TRAIN_DONE_OPEN[sel + ':' + b.dataset.trainDoneFold] = open;
   });
   /* AUTH-410 · LA PUERTA DE REAPERTURA SOBRE LA LISTA: se
      pinta solo con la sesión guardada a medias y tocarla reabre
@@ -55395,7 +55443,7 @@ document.addEventListener('keydown', e => { if (e.key === 'Escape') shareClose()
  *  - El SW (sw.js) solo cachea la cáscara del mismo origen en modo
  *    RED PRIMERO: Auth/Firestore/Worker jamás pasan por la caché.
  * ================================================================ */
-const PWA_SW_VERSION = '20261112-png-resumen-ios';
+const PWA_SW_VERSION = '20261112-dia-completado-plegado';
 /* Sello de versión VISIBLE (2026-11-03): el pie de la tarjeta de
    acceso enseña qué copia corre este teléfono ('v ' + el sello),
    para comprobar de un vistazo si la versión nueva ya llegó.
