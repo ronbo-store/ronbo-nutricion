@@ -6114,6 +6114,13 @@ en: {
   'train.guide.minW': '{n} minutes', 'train.guide.minW1': '1 minute',
   'train.guide.secW': '{n} seconds', 'train.guide.secW1': '1 second',
   'train.guide.timesNote': '{mins} on this exercise · {secs} of rest',
+  /* AUTH-417 · EL CRONÓMETRO DE LAS SERIES POR TIEMPO. */
+  'train.timer.name': 'Stopwatch',
+  'train.timer.start': 'Start the stopwatch',
+  'train.timer.stop': 'Stop and record the time',
+  'train.timer.goal': 'goal {t}',
+  'train.timer.metrics': '{sets} sets · {secs} total time',
+  'train.timer.today': 'Time today',
   'train.guide.rest': 'Rest between sets: {sec} s',
   'train.guide.doneTitle': 'Done',
   'train.guide.next': 'Next: {name}',
@@ -10975,6 +10982,13 @@ es: {
   'train.guide.minW': '{n} minutos', 'train.guide.minW1': '1 minuto',
   'train.guide.secW': '{n} segundos', 'train.guide.secW1': '1 segundo',
   'train.guide.timesNote': '{mins} en este ejercicio · {secs} de descanso',
+  /* AUTH-417 · EL CRONÓMETRO DE LAS SERIES POR TIEMPO. */
+  'train.timer.name': 'Cronómetro',
+  'train.timer.start': 'Iniciar el cronómetro',
+  'train.timer.stop': 'Parar y registrar el tiempo',
+  'train.timer.goal': 'meta {t}',
+  'train.timer.metrics': '{sets} series · {secs} en total',
+  'train.timer.today': 'Tiempo hoy',
   'train.guide.rest': 'Descanso entre series: {sec} s',
   'train.guide.doneTitle': 'Ya terminados',
   'train.guide.next': 'Sigue: {name}',
@@ -19235,6 +19249,9 @@ function stuTrainSetsLine(de, pair) {
   if (!de || de.done !== true || !Array.isArray(de.sets) || !de.sets.length) return '';
   const parts = de.sets.map((s, si) => {
     const load = s ? trainLastTimeLoadText(s) : '';
+    /* AUTH-417: la serie por tiempo enseña su tiempo hecho,
+       no un «— reps». */
+    if (trainSetHistVal(s) != null) return `${t('train.d.set')} ${si + 1}: ${esc(trainSetHistVal(s))}${load ? ` · ${esc(load)}` : ''}`;
     return `${t('train.d.set')} ${si + 1}: ${s && s.repsDone != null && s.repsDone !== '' ? esc(String(s.repsDone)) : '—'}${s && s.repsPlanned ? `/${esc(String(s.repsPlanned))}` : ''} ${t('train.d.repsPh')}${load ? ` · ${esc(load)}` : ''}`;
   });
   return `<div class="train-set-hist">${t('train.d.setsLabel')}: ${parts.join(' · ')}${pair && !de.sets.some(s => s && s.loadDetail) ? ` · ${esc(t('train.d.loadPerDb'))}` : ''}</div>`;
@@ -33464,8 +33481,12 @@ function trainChecksKey(planId) {
    ejercicio con «✓ Hecho» (que sella las que aún no la tienen,
    como su fin declarado). */
 function trainSetHasData(s) {
+  /* AUTH-417: el tiempo hecho de una serie por tiempo
+     (secDone) ES su dato — cuenta como serie trabajada para la
+     puerta honesta, el sello de hora y el cierre, como las reps. */
   return !!s && (String(s.repsDone == null ? '' : s.repsDone) !== ''
-    || String(s.loadVal == null ? '' : s.loadVal) !== '');
+    || String(s.loadVal == null ? '' : s.loadVal) !== ''
+    || (typeof s.secDone === 'number' && isFinite(s.secDone) && s.secDone > 0));
 }
 function trainSetStamp(s) {
   if (!s) return;
@@ -33509,7 +33530,14 @@ function trainChecksRead(planId) {
              borrador, saneada como número positivo; sin ella los
              descansos de esa semana no se podrían calcular tras
              una recarga a mitad de sesión. */
-          ...(typeof s.markedAt === 'number' && isFinite(s.markedAt) && s.markedAt > 0 ? { markedAt: Math.floor(s.markedAt) } : {}), ...tfDetailSpread(s) })) : [] };
+          ...(typeof s.markedAt === 'number' && isFinite(s.markedAt) && s.markedAt > 0 ? { markedAt: Math.floor(s.markedAt) } : {}),
+          /* AUTH-417 · EL TIEMPO DE LA SERIE sobrevive a la
+             restauración del borrador, saneado como la hora de
+             marca: secDone (el valor registrado) y secT0 (el
+             arranque de un cronómetro en curso — sin él, una
+             recarga a mitad de plancha perdería la cuenta). */
+          ...(typeof s.secDone === 'number' && isFinite(s.secDone) && s.secDone > 0 ? { secDone: Math.floor(s.secDone) } : {}),
+          ...(typeof s.secT0 === 'number' && isFinite(s.secT0) && s.secT0 > 0 ? { secT0: Math.floor(s.secT0) } : {}), ...tfDetailSpread(s) })) : [] };
       /* APROXIMACIÓN (paquete Iniciar ejercicio, 2026-10-30): el
          bloque de aproximación en curso viaja en el MISMO borrador
          local, saneado con la misma disciplina; sin la clave, la
@@ -34407,6 +34435,9 @@ async function trainManageReopen(plan, di, log) {
       loadVal: s.loadOriginal != null ? convLoadDisplay(String(s.loadOriginal), s.loadUnitOriginal || UNIT_PREFS.mass, UNIT_PREFS.mass)
         : (typeof s.loadKg === 'number' ? String(uRound1(massToDisplay(s.loadKg))) : ''),
       ...(typeof s.markedAt === 'number' && isFinite(s.markedAt) && s.markedAt > 0 ? { markedAt: Math.floor(s.markedAt) } : {}),
+      /* AUTH-417: los segundos de una serie por tiempo
+         vuelven al borrador al reabrir su día, como su hora. */
+      ...(typeof s.secDone === 'number' && isFinite(s.secDone) && s.secDone > 0 ? { secDone: Math.floor(s.secDone) } : {}),
       ...tfDetailSpread(s)
     })) : trainDefaultSets(row.ex);
     const chk = { rpe: (typeof de.rpe === 'number' && isFinite(de.rpe)) ? de.rpe : null, sets, done: true };
@@ -36153,7 +36184,7 @@ function guideSetsCount(ex, chk) {
 function guideEstMin(ex, chk) { return Math.max(1, Math.round(guideSetsCount(ex, chk) * (40 + guideRestSec(ex)) / 60)); }
 function guideDoneMetrics(chk) {
   if (!chk || !Array.isArray(chk.sets)) return '';
-  let nSets = 0, reps = 0, maxLoad = null;
+  let nSets = 0, reps = 0, maxLoad = null, secs = 0;
   chk.sets.forEach(s => {
     if (!s || s.pend === true) return;
     nSets++;
@@ -36161,9 +36192,16 @@ function guideDoneMetrics(chk) {
     if (s.repsDone !== '' && s.repsDone != null && isFinite(r)) reps += r;
     const l = parseFloat(s.loadVal);
     if (s.loadVal !== '' && s.loadVal != null && isFinite(l) && (maxLoad == null || l > maxLoad)) maxLoad = l;
+    /* AUTH-417: los segundos de las series por tiempo. */
+    if (typeof s.secDone === 'number' && isFinite(s.secDone) && s.secDone > 0) secs += Math.floor(s.secDone);
   });
   if (!nSets) return '';
-  let out = t('train.guide.metrics', { sets: nSets, reps, load: maxLoad != null ? maxLoad + ' ' + UNIT_PREFS.mass : '—' });
+  /* AUTH-417: un ejercicio por tiempo no suma reps (su
+     línea diría «0 reps»): dice sus segundos, y su carga si la
+     lleva. Con reps de verdad, la línea de siempre. */
+  let out = (secs > 0 && reps === 0)
+    ? t('train.timer.metrics', { sets: nSets, secs: trainTimerFmt(secs) }) + (maxLoad != null ? ' · ' + maxLoad + ' ' + UNIT_PREFS.mass : '')
+    : t('train.guide.metrics', { sets: nSets, reps, load: maxLoad != null ? maxLoad + ' ' + UNIT_PREFS.mass : '—' });
   if (chk.rpe != null) out += t('train.guide.metricsRpe', { rpe: chk.rpe });
   return out;
 }
@@ -37265,11 +37303,18 @@ function trainExCardHTML(ex, di, ei) {
      se guarda al cerrar el día es la carga CANÓNICA en kg más el
      original con su unidad. Sin marcar, no hay filas de series. */
   const sets = chk && Array.isArray(chk.sets) ? chk.sets : null;
-  const setsHtml = sets ? `<div class="train-sets-unit"><span class="train-sets-unit-lab">${esc(t('units.mass'))}${esc(loadKindHeadSuffix(ex))}</span>${trainUnitSelHTML()}</div><div class="train-sets">${sets.map((s, si) => `
+  /* AUTH-417: la tarjeta del día pinta las series por
+     tiempo como el flujo (botoncito en vez de reps; carga solo
+     si el ejercicio la lleva; sin cabecera de unidad si ninguna
+     fila enseña carga). */
+  const crit0C = sets && sets.length ? trainTimedOf(ex, sets[0]) : null;
+  const setsHtml = sets ? `${(!crit0C || trainTimedHasLoad(ex)) ? `<div class="train-sets-unit"><span class="train-sets-unit-lab">${esc(t('units.mass'))}${esc(loadKindHeadSuffix(ex))}</span>${trainUnitSelHTML()}</div>` : ''}<div class="train-sets">${sets.map((s, si) => {
+      const crit = trainTimedOf(ex, s);
+      return `
       <div class="train-set-row${s.pend === true ? ' is-sug' : ''}"><span class="train-set-n">${t('train.d.set')} ${si + 1}${s.repsPlanned ? ` · ${esc(s.repsPlanned)}` : ''}${s.pend === true ? ` <span class="tf-sug-tag">${esc(t('train.sets.suggested'))}</span>` : ''}</span>
-        <input type="number" inputmode="decimal" min="0" class="train-set-in" data-train-set-reps="${key}:${si}" placeholder="${t('train.d.repsPh')}" value="${esc(s.repsDone)}" aria-label="${t('train.d.repsPh')}">
-        <input type="number" inputmode="decimal" min="0" step="any" class="train-set-in" data-train-set-load="${key}:${si}" placeholder="${t('train.d.loadPh')}" value="${esc(s.loadVal)}" aria-label="${t('train.d.loadPh')}">
-        <span class="train-set-unit">${esc(UNIT_PREFS.mass)}</span></div>`).join('')}
+        ${crit ? trainTimerChipHTML(ex, s, key, si, false) : `<input type="number" inputmode="decimal" min="0" class="train-set-in" data-train-set-reps="${key}:${si}" placeholder="${t('train.d.repsPh')}" value="${esc(s.repsDone)}" aria-label="${t('train.d.repsPh')}">`}
+        ${!crit || trainTimedHasLoad(ex) ? `<input type="number" inputmode="decimal" min="0" step="any" class="train-set-in" data-train-set-load="${key}:${si}" placeholder="${t('train.d.loadPh')}" value="${esc(s.loadVal)}" aria-label="${t('train.d.loadPh')}">
+        <span class="train-set-unit">${esc(UNIT_PREFS.mass)}</span>` : ''}</div>`; }).join('')}
     </div>` : '';
   return `<div class="train-ex-card${chk ? (chk.done === true ? ' is-done' : ' is-progress') : ''}">${trainExInfoHTML(ex)}
     <div class="train-ex-side">
@@ -37289,7 +37334,9 @@ function trainDayHistHTML(day, log) {
        tal cual se guardó; la carga se muestra en la unidad del
        visor desde el canónico kg (módulo H). v1 no trae series. */
     const setsLine = de && Array.isArray(de.sets) && de.sets.length
-      ? `<div class="train-set-hist">${t('train.d.setsLabel')}: ${de.sets.map((s, si) => `${t('train.d.set')} ${si + 1}: ${s.repsDone != null && s.repsDone !== '' ? esc(String(s.repsDone)) : '—'}${s.repsPlanned ? `/${esc(String(s.repsPlanned))}` : ''} ${t('train.d.repsPh')}${typeof s.loadKg === 'number' ? ` · ${esc(fmtMass(s.loadKg))}` : ''}`).join(' · ')}</div>` : '';
+      ? `<div class="train-set-hist">${t('train.d.setsLabel')}: ${de.sets.map((s, si) => trainSetHistVal(s) != null
+        ? `${t('train.d.set')} ${si + 1}: ${esc(trainSetHistVal(s))}${typeof s.loadKg === 'number' ? ` · ${esc(fmtMass(s.loadKg))}` : ''}`
+        : `${t('train.d.set')} ${si + 1}: ${s.repsDone != null && s.repsDone !== '' ? esc(String(s.repsDone)) : '—'}${s.repsPlanned ? `/${esc(String(s.repsPlanned))}` : ''} ${t('train.d.repsPh')}${typeof s.loadKg === 'number' ? ` · ${esc(fmtMass(s.loadKg))}` : ''}`).join(' · ')}</div>` : '';
     return trainRowWithMark(`<div class="train-ex-card is-hist">${trainExInfoHTML(ex)}
     <div class="train-ex-side">${de
       ? `<span class="ok-badge">✓ ${t('train.view.exDone')}${de.rpe ? ` · ${t('train.view.rpe')} ${esc(String(de.rpe))}` : ''}</span>`
@@ -37339,9 +37386,189 @@ function flowHasData(chk) {
    campos tecleados (data-train-set-reps / data-train-set-load)
    salen de este pintor; la tarjeta expandida histórica que los
    compartía ya no se pinta en la vista (su pintor queda). */
+/* ═══ AUTH-417 · EL CRONÓMETRO DE LAS SERIES POR TIEMPO
+   (órdenes de Ronald, 2026-11-11 13:05 y 13:06 CST — ver la
+   cabecera del empalme y el INFORME): la detección se decide AL
+   PINTAR cada serie, desde su prescripción en el plan del día
+   (trainSetCriterion); el botoncito vive en la fila de la serie
+   (la tarjeta, el foco y la hoja pintan la misma pieza); su
+   estado es DATO de la serie — secT0 mientras corre, secDone al
+   parar — así que sobrevive a los repintados de la vista, al
+   espejo de la hoja y a una recarga, sin memoria de pantalla que
+   se pierda. El tick (250 ms, el ritmo del botón flotante de
+   STOPW) solo reescribe el número en su sitio y la clase del
+   flasheo: jamás repinta la vista ni escribe datos. ═══ */
+function trainSetCriterion(ex, s) {
+  /* LA PRESCRIPCIÓN DE ESTA SERIE, en orden: (1) su propio texto
+     planeado (repsPlanned, que nace del plan al crear las
+     series); (2) el criterio estructurado del ejercicio, si la
+     entrada lo trae (repsKind/repsMin/repsMax de la vía de
+     asignar desde la Biblioteca); (3) el texto reps del
+     ejercicio. Los planes vivos de hoy guardan SOLO el texto
+     («30-45 seg», sin campos estructurados — leído en vivo), así
+     que la vía que manda es la del parser de la casa. Una serie
+     añadida a mano (repsPlanned vacío) cae a la (3): hereda el
+     criterio de su ejercicio. */
+  const fromSet = repsParseCriterion(s && s.repsPlanned);
+  if (fromSet) return fromSet;
+  if (ex && ex.repsKind === 'time') {
+    const mn = Number(ex.repsMin), mx = Number(ex.repsMax);
+    if (isFinite(mn) && mn >= 1 && isFinite(mx) && mx >= mn)
+      return { min: mn, max: mx, kind: 'time', note: ex.repsNote || '', str: '' };
+  }
+  return repsParseCriterion(ex && ex.reps);
+}
+function trainTimedOf(ex, s) {
+  const p = trainSetCriterion(ex, s);
+  return p && p.kind === 'time' ? p : null;
+}
+/* ¿EL EJERCICIO LLEVA CARGA QUE ANOTAR? La familia corporal de
+   la casa (la expresión del Programa Automático sobre el equipo
+   de la ficha) extendida con la máquina de remo de cardio — la
+   única ficha «de máquina» sin carga registrable, según la
+   AUDITORÍA-TIEMPO de este paquete. Sin ficha (ejercicio a mano
+   sin exerciseId, o biblioteca aún sin cargar) no se esconde la
+   carga: no se esconde lo que no se puede probar. Las
+   divergencias conocidas de esta regla (E046/E047/E108/E123,
+   ninguna por tiempo) están declaradas en la auditoría. */
+const TRAIN_TIME_NOLOAD_RE = /barra de dominadas|barras paralelas|pull-up bar|pull up bar|parallel bars|peso corporal|bodyweight|colchoneta|\bmat\b|pared|wall|companero|compañero|partner|banco romano|roman chair|silla romana|captain|máquina de remo \(cardio\)|rowing machine/i;
+function trainTimedHasLoad(ex) {
+  const entry = ex && ex.exerciseId ? LIB_BY_ID[ex.exerciseId] : null;
+  if (!entry) return true;
+  return !TRAIN_TIME_NOLOAD_RE.test(libField(entry, 'equipo'));
+}
+function trainTimerFmt(sec) {
+  const s = Math.max(0, Math.floor(Number(sec) || 0));
+  return Math.floor(s / 60) + ':' + String(s % 60).padStart(2, '0');
+}
+function trainTimerElapsedOf(s, now) {
+  if (!s) return 0;
+  if (typeof s.secT0 === 'number' && s.secT0 > 0)
+    return Math.max(0, Math.floor(((now || Date.now()) - s.secT0) / 1000));
+  return (typeof s.secDone === 'number' && isFinite(s.secDone) && s.secDone > 0) ? Math.floor(s.secDone) : 0;
+}
+/* EL BOTONCITO: una sola pieza para la tarjeta/foco (tf=false) y
+   para la hoja (tf=true, con las clases de sus pastillas). En
+   reposo enseña 0:00 y la meta; corriendo, su número corre en su
+   misma posición; al alcanzar la meta se viste de .is-flash (el
+   flasheo rojo del CSS, en su mismo sitio, sin moverse ni abrir
+   nada) y sigue así mientras corre por encima; parado con valor,
+   enseña el tiempo hecho con su ✓. */
+function trainTimerChipHTML(ex, s, key, si, tf) {
+  const crit = trainTimedOf(ex, s);
+  if (!crit) return '';
+  const target = crit.max;
+  const running = !!(s && typeof s.secT0 === 'number' && s.secT0 > 0);
+  const done = !!(s && typeof s.secDone === 'number' && s.secDone > 0);
+  const flash = running && trainTimerElapsedOf(s) >= target;
+  const cls = 'train-timer-chip' + (running ? ' is-running' : '') + (flash ? ' is-flash' : '') + (done ? ' is-done' : '');
+  const aria = esc(t(running ? 'train.timer.stop' : 'train.timer.start'));
+  const live = '<span data-timer-live="' + key + ':' + si + '">' + trainTimerFmt(trainTimerElapsedOf(s)) + '</span>';
+  const goal = esc(t('train.timer.goal', { t: trainTimerFmt(target) }));
+  if (tf) return '<button type="button" class="tf-chip ' + cls + '" data-timer-toggle="' + key + ':' + si + '" data-timer-target="' + target + '" aria-label="' + aria + '"><span class="tf-chip-lab">' + esc(t('train.timer.name')) + '</span><span class="tf-chip-v">' + live + '</span><span class="tf-chip-eq">' + goal + '</span></button>';
+  return '<button type="button" class="' + cls + '" data-timer-toggle="' + key + ':' + si + '" data-timer-target="' + target + '" aria-label="' + aria + '"><span class="tt-ico" aria-hidden="true">' + (done ? '✓' : '⏱') + '</span><span class="tt-main">' + live + '</span><span class="tt-goal">' + goal + '</span></button>';
+}
+/* La serie viva de un (día, ejercicio, serie): si la hoja está
+   abierta sobre ESE ejercicio, manda su borrador; si no, las
+   marcas del día. Las dos copias son la misma serie (la siembra
+   y el espejo copian la serie entera), y secT0 viaja en ambas. */
+function trainTimerSlot(di, ei, si) {
+  const F = (typeof TRAIN_FLOAT !== 'undefined') ? TRAIN_FLOAT : null;
+  if (F && F.mode === 'edit' && F.draft && F.di === di && F.ei === ei)
+    return { s: (Array.isArray(F.draft.sets) ? F.draft.sets : [])[si] || null, f: true };
+  const c = TRAIN_CHECKS[di + ':' + ei];
+  return { s: (c && Array.isArray(c.sets) ? c.sets : [])[si] || null, f: false };
+}
+function trainTimerToggle(di, ei, si) {
+  const slot = trainTimerSlot(di, ei, si);
+  const s = slot.s;
+  if (!s) return;
+  if (typeof s.secT0 === 'number' && s.secT0 > 0) {
+    /* PARAR: el segundo entero cumplido — el que se veía — queda
+       registrado como el valor de la serie. Parar en 0 (toque
+       doble inmediato) no registra nada. */
+    const el = trainTimerElapsedOf(s);
+    delete s.secT0;
+    if (el > 0) {
+      s.secDone = el;
+      if (s.pend) { delete s.pend; s.sug = false; }
+      trainSetStamp(s);
+    } else delete s.secDone;
+  } else {
+    /* ARRANCAR (o reiniciar una ya registrada): la cuenta nace
+       de la serie misma; el valor anterior se sustituye al
+       parar de nuevo. */
+    delete s.secDone;
+    s.secT0 = Date.now();
+  }
+  if (slot.f) {
+    trainFloatMirror(true);
+    const bb = $('train-ex-float-body');
+    if (bb) tfSetsRefresh(bb);
+  } else {
+    const pid = (typeof MY_PLAN !== 'undefined' && MY_PLAN && MY_PLAN.id)
+      || String(TRAIN_CHECKS_CTX || '').split('|')[0] || null;
+    if (pid) trainChecksPersist(pid);
+    loadMyTraining();
+  }
+  trainTimerArm();
+}
+let TRAIN_TIMER_IV = 0;
+function trainTimerArm() {
+  if (TRAIN_TIMER_IV) return;
+  TRAIN_TIMER_IV = setInterval(trainTimerTick, 250);
+}
+/* EL TICK: solo números y clases, en su sitio. Una serie que ya
+   no corre no se toca (su pintor la reescribirá al repintar). */
+function trainTimerTick() {
+  document.querySelectorAll('[data-timer-live]').forEach(el => {
+    const parts = String(el.dataset.timerLive).split(':');
+    if (parts.length !== 3) return;
+    const slot = trainTimerSlot(Number(parts[0]), Number(parts[1]), Number(parts[2]));
+    const s = slot.s;
+    if (!s || !(typeof s.secT0 === 'number' && s.secT0 > 0)) return;
+    el.textContent = trainTimerFmt(trainTimerElapsedOf(s));
+    const chip = el.closest('[data-timer-toggle]');
+    if (chip) {
+      const target = Number(chip.dataset.timerTarget) || 0;
+      chip.classList.toggle('is-flash', target > 0 && trainTimerElapsedOf(s) >= target);
+      chip.classList.add('is-running');
+    }
+  });
+}
+function trainTimerWire(root) {
+  if (!root || !root.querySelectorAll) return;
+  const btns = root.querySelectorAll('[data-timer-toggle]');
+  if (!btns.length) return;
+  btns.forEach(b => b.onclick = () => {
+    const p = String(b.dataset.timerToggle).split(':').map(Number);
+    if (p.length === 3) trainTimerToggle(p[0], p[1], p[2]);
+  });
+  trainTimerArm();
+}
+/* EL VALOR DE UNA SERIE PARA LAS LÍNEAS DE HISTORIAL: si la
+   serie fue por tiempo, su tiempo hecho (m:ss); si no, null y
+   manda el camino de reps de siempre. */
+function trainSetHistVal(s) {
+  return (s && typeof s.secDone === 'number' && isFinite(s.secDone) && s.secDone > 0)
+    ? trainTimerFmt(s.secDone) : null;
+}
+
 function trainFlowSetsHTML(ex, key, chk) {
   const sets = chk && Array.isArray(chk.sets) ? chk.sets : [];
-  return `<div class="train-sets-unit"><span class="train-sets-unit-lab">${esc(t('units.mass'))}${esc(loadKindHeadSuffix(ex))}</span>${trainUnitSelHTML()}</div><div class="train-sets">${sets.map((s, si) => `
+  /* AUTH-417 · LA FILA POR TIEMPO EN LA TARJETA Y EL FOCO
+     (re-derivada sobre AUTH-416, que movió la fila a las
+     pastillas): las pastillas de cada serie las compone
+     tfChipsHTML, que en la serie por tiempo sustituye la de
+     reps por el botoncito de cronómetro y conserva la pastilla
+     de carga de P2 solo si el ejercicio la lleva; lo que aquí
+     cambia es la CABECERA — la de unidad de masa, con su
+     selector «Peso» (el ruido de la captura de Ronald), solo
+     se pinta si alguna fila enseña carga. */
+  const crit0 = sets.length ? trainTimedOf(ex, sets[0]) : null;
+  const head = (!crit0 || trainTimedHasLoad(ex))
+    ? `<div class="train-sets-unit"><span class="train-sets-unit-lab">${esc(t('units.mass'))}${esc(loadKindHeadSuffix(ex))}</span>${trainUnitSelHTML()}</div>` : '';
+  return `${head}<div class="train-sets">${sets.map((s, si) => `
       <div class="train-set-row${s.pend === true ? ' is-sug' : ''}"><span class="train-set-n">${t('train.d.set')} ${si + 1}${s.repsPlanned ? ` · ${esc(s.repsPlanned)}` : ''}${s.pend === true ? ` <span class="tf-sug-tag">${esc(t('train.sets.suggested'))}</span>` : ''}</span>
         <span class="tf-chips" data-tf-chips="card:${key}:${si}">${tfChipsHTML('card:' + key, si, s, ex)}</span></div>`).join('')}
     </div>`;
@@ -37457,6 +37684,11 @@ function trainFlowChipsRefresh(body) {
     if (host && s) host.innerHTML = tfChipsHTML('card:' + key, si, s, ex);
   });
   if (TF_FLOW_WIRE && TF_FLOW_WIRE.box === body) trainFlowChipsWire(body, TF_FLOW_WIRE.plan);
+  /* AUTH-417: el refresco repinta las pastillas de la
+     tarjeta (la rueda de carga de una serie por tiempo pasa
+     por aquí): los botoncitos de cronómetro se recablean con
+     ellas, o quedarían mudos hasta el siguiente repintado. */
+  trainTimerWire(body);
 }
 function trainFlowWire(box, plan) {
   if (!box || !plan) return;
@@ -37553,6 +37785,10 @@ function trainFlowWire(box, plan) {
      SERIES: las pastillas de cada serie de la tarjeta/foco se
      cablean con el resto del flujo. */
   trainFlowChipsWire(box, plan);
+  /* AUTH-417: los botoncitos de cronómetro de las series
+     por tiempo pintadas en esta vista (foco y lista comparten
+     tarjeta y caja). */
+  trainTimerWire(box);
 }
 
 /* TARJETA COMPACTA (corrección de la reprueba de Ronald, chat
@@ -38403,8 +38639,26 @@ function tfChipsHTML(ctx, idx, s, exOv) {
      y la línea ≈ añade el peso de cada mano desde el desglose. */
   const loadLab = t('train.d.loadPh');
   const loadLabU = loadLab + ' (' + UNIT_PREFS.mass + ')';
-  return `<button type="button" class="tf-chip" data-tf-chip="${ctx}:${idx}:reps" aria-label="${t('train.d.repsPh')}"><span class="tf-chip-lab">${t('train.d.repsPh')}</span><span class="tf-chip-v">${reps}</span></button>` +
-    `<button type="button" class="tf-chip" data-tf-chip="${ctx}:${idx}:load" aria-label="${esc(loadLabU)}"><span class="tf-chip-lab">${esc(loadLabU)}</span><span class="tf-chip-v">${loadMain}${lv !== '' ? ` <span class="tf-chip-u">${esc(UNIT_PREFS.mass)}</span>` : ''}</span>${eq ? `<span class="tf-chip-eq">${esc(eq)}</span>` : ''}</button>`;
+  const repsChip = `<button type="button" class="tf-chip" data-tf-chip="${ctx}:${idx}:reps" aria-label="${t('train.d.repsPh')}"><span class="tf-chip-lab">${t('train.d.repsPh')}</span><span class="tf-chip-v">${reps}</span></button>`;
+  const loadChip = `<button type="button" class="tf-chip" data-tf-chip="${ctx}:${idx}:load" aria-label="${esc(loadLabU)}"><span class="tf-chip-lab">${esc(loadLabU)}</span><span class="tf-chip-v">${loadMain}${lv !== '' ? ` <span class="tf-chip-u">${esc(UNIT_PREFS.mass)}</span>` : ''}</span>${eq ? `<span class="tf-chip-eq">${esc(eq)}</span>` : ''}</button>`;
+  /* AUTH-417 · LA SERIE POR TIEMPO: su pastilla de reps la
+     sustituye el botoncito de cronómetro (la misma pieza, con
+     las clases de pastilla) y la de carga — la de P2, sin
+     duplicar — solo vive si el ejercicio la lleva. Vale para
+     las dos superficies que componen pastillas: la HOJA
+     (ctx 'set', el ejercicio de TRAIN_FLOAT) y, desde AUTH-416,
+     la TARJETA/FOCO (ctx 'card:…', el ejercicio que el pintor
+     del flujo pasa por parámetro, exC) — así todo repintado de
+     pastillas conserva el botoncito. La aproximación
+     (ctx 'warm') no cambia: su criterio no viene del plan. */
+  const exT = ctx === 'set'
+    ? ((typeof TRAIN_FLOAT !== 'undefined' && TRAIN_FLOAT) ? TRAIN_FLOAT.ex : null)
+    : (typeof ctx === 'string' && ctx.indexOf('card:') === 0 ? exC : null);
+  if (exT && trainTimedOf(exT, s)) {
+    const keyT = ctx === 'set' ? (TRAIN_FLOAT.di + ':' + TRAIN_FLOAT.ei) : ctx.slice(5);
+    return trainTimerChipHTML(exT, s, keyT, idx, true) + (trainTimedHasLoad(exT) ? loadChip : '');
+  }
+  return repsChip + loadChip;
 }
 function trainFloatSetsHTML(draft) {
   if (!draft || !draft.started) return '';
@@ -38416,7 +38670,13 @@ function trainFloatSetsHTML(draft) {
      conserva las demás y lo ya escrito. La serie AÑADIDA nace
      PENDIENTE: pastilla «Sugerida» y chips atenuados (is-sug)
      hasta que él la trabaja; la aproximación no cambia. */
-  return `<div class="train-sets-unit"><span class="train-sets-unit-lab">${esc(t('units.mass'))}${(typeof TRAIN_FLOAT !== 'undefined' && TRAIN_FLOAT) ? esc(loadKindHeadSuffix(TRAIN_FLOAT.ex)) : ''}</span>${trainUnitSelHTML()}</div>${tfKindLineHTML()}<div class="train-sets">${sets.map((s, si) => `
+  /* AUTH-417: con prescripción por tiempo y sin carga que
+     anotar, la cabecera de unidad y la línea de tipo de carga
+     sobran en la hoja, como en la tarjeta. */
+  const crit0F = sets.length ? trainTimedOf((typeof TRAIN_FLOAT !== 'undefined' && TRAIN_FLOAT) ? TRAIN_FLOAT.ex : null, sets[0]) : null;
+  const headF = (!crit0F || trainTimedHasLoad((typeof TRAIN_FLOAT !== 'undefined' && TRAIN_FLOAT) ? TRAIN_FLOAT.ex : null))
+    ? `<div class="train-sets-unit"><span class="train-sets-unit-lab">${esc(t('units.mass'))}${(typeof TRAIN_FLOAT !== 'undefined' && TRAIN_FLOAT) ? esc(loadKindHeadSuffix(TRAIN_FLOAT.ex)) : ''}</span>${trainUnitSelHTML()}</div>${tfKindLineHTML()}` : '';
+  return `${headF}<div class="train-sets">${sets.map((s, si) => `
     <div class="train-set-row${s.pend === true ? ' is-sug' : ''}"><span class="train-set-n">${t('train.d.set')} ${si + 1}${s.repsPlanned ? ` · ${esc(s.repsPlanned)}` : ''}${s.pend === true ? ` <span class="tf-sug-tag">${esc(t('train.sets.suggested'))}</span>` : ''}</span>
       <span class="tf-chips" data-tf-chips="set:${si}">${tfChipsHTML('set', si, s)}</span>${sets.length > 1 ? `<button type="button" class="tf-set-del" data-tf-set-del="${si}" aria-label="${t('train.sets.remove')}">✕</button>` : ''}</div>`).join('')}</div><div class="tf-sets-actions">${sets.length < 12 ? `<button type="button" class="btn-ghost btn-sm" id="tf-sets-add">${t('train.sets.add')}</button>` : ''}${tfVarBtnHTML()}</div>`;
 }
@@ -38763,6 +39023,10 @@ function trainFloatWireSession(body) {
   /* AUTH-406: el cableado de «Iniciar ejercicio» de la hoja
      sale con su botón — iniciar vive en el flujo de la tarjeta. */
   tfWireChips(body);
+  /* AUTH-417: los botoncitos de cronómetro de la hoja
+     (trainFloatWireSession se llama tras cada repintado de las
+     series, así que el cableado se renueva con ellas). */
+  trainTimerWire(body);
   const rpeSel = body.querySelector('#tf-rpe');
   if (rpeSel) rpeSel.onchange = () => { d.rpe = rpeSel.value ? Number(rpeSel.value) : null; trainFloatMirror(false); };
   const tfWarmRefresh = () => {
@@ -38915,15 +39179,19 @@ function histShortDate(iso) {
    habla del historial. */
 function trainSessionSummaryFromSets(sets) {
   if (!Array.isArray(sets) || !sets.length) return null;
-  let maxReps = null, maxLoad = null;
+  let maxReps = null, maxLoad = null, maxSec = null;
   for (const s of sets) {
     if (!s) continue;
     const r = (s.repsDone != null && s.repsDone !== '') ? Number(s.repsDone) : NaN;
     if (isFinite(r) && (maxReps == null || r > maxReps)) maxReps = r;
     const l = typeof s.loadKg === 'number' ? s.loadKg : NaN;
     if (isFinite(l) && l > 0 && (maxLoad == null || l > maxLoad)) maxLoad = l;
+    /* AUTH-417: el mayor tiempo hecho de las series por
+       tiempo, para la columna de cifras de la tarjeta. */
+    const sc = typeof s.secDone === 'number' ? s.secDone : NaN;
+    if (isFinite(sc) && sc > 0 && (maxSec == null || sc > maxSec)) maxSec = sc;
   }
-  return { nSets: sets.length, maxReps, maxLoad };
+  return { nSets: sets.length, maxReps, maxLoad, maxSec };
 }
 function trainSessionSummaryLive(chk) {
   if (!chk || !Array.isArray(chk.sets)) return null;
@@ -38935,6 +39203,8 @@ function trainSessionSummaryLive(chk) {
     if (s.repsDone !== '' && s.repsDone != null && !isNaN(rd)) out.repsDone = rd;
     const lv = parseFloat(s.loadVal);
     if (s.loadVal !== '' && s.loadVal != null && isFinite(lv) && lv >= 0) out.loadKg = massToCanonical(lv);
+    /* AUTH-417: los segundos viajan al resumen en vivo. */
+    if (typeof s.secDone === 'number' && isFinite(s.secDone) && s.secDone > 0) out.secDone = Math.floor(s.secDone);
     canon.push(out);
   });
   return trainSessionSummaryFromSets(canon);
@@ -38957,9 +39227,15 @@ function trainSessionSummaryLive(chk) {
    de sesión de siempre. */
 function trainHistBlockHTML(sum) {
   const dash = '—';
+  /* AUTH-417: sin reps y con tiempo hecho, la columna del
+     medio dice «Tiempo hoy» con el mayor tiempo de las series —
+     las tres columnas y su sitio no cambian. */
+  const mid = (sum && sum.maxReps == null && sum.maxSec != null)
+    ? `<div class="train-ex-hist-col"><span class="train-ex-hist-lab">${t('train.timer.today')}</span><span class="train-ex-hist-val">${trainTimerFmt(sum.maxSec)}</span></div>`
+    : `<div class="train-ex-hist-col"><span class="train-ex-hist-lab">${t('train.histRec.repsToday')}</span><span class="train-ex-hist-val">${sum && sum.maxReps != null ? sum.maxReps : dash}</span></div>`;
   return `<div class="train-ex-hist"><div class="train-ex-hist-cols">`
     + `<div class="train-ex-hist-col"><span class="train-ex-hist-lab">${t('train.histRec.setsToday')}</span><span class="train-ex-hist-val">${sum && sum.nSets != null ? sum.nSets : dash}</span></div>`
-    + `<div class="train-ex-hist-col"><span class="train-ex-hist-lab">${t('train.histRec.repsToday')}</span><span class="train-ex-hist-val">${sum && sum.maxReps != null ? sum.maxReps : dash}</span></div>`
+    + mid
     + `<div class="train-ex-hist-col"><span class="train-ex-hist-lab">${t('train.histRec.loadToday')}</span><span class="train-ex-hist-val">${sum && sum.maxLoad != null ? `${fmtMass(sum.maxLoad)} <span class="train-ex-hist-eq">${esc(massEqText(sum.maxLoad))}</span>` : dash}</span></div>`
     + `</div></div>`;
 }
@@ -39002,7 +39278,10 @@ function trainHistLoadsRows(ex, allLogs) {
       }
       const sets = Array.isArray(e.sets) ? e.sets : null;
       if (!sets) { out.push({ date: log.date, legacy: true }); continue; }
-      const withData = sets.filter(s => s && (typeof s.loadKg === 'number' || (s.repsDone != null && s.repsDone !== '')));
+      /* AUTH-417: una serie por tiempo con su tiempo hecho
+         ES una serie con dato (sin esto, la sesión de la plancha
+         sería invisible como «vez pasada»). */
+      const withData = sets.filter(s => s && (typeof s.loadKg === 'number' || (s.repsDone != null && s.repsDone !== '') || (typeof s.secDone === 'number' && s.secDone > 0)));
       if (!withData.length) continue;
       /* TOTALES DE LA SESIÓN (2026-11-09, tarjeta del día): la suma
          de repeticiones de las series con dato — la fila de la ficha
@@ -39010,17 +39289,21 @@ function trainHistLoadsRows(ex, allLogs) {
          fila para la referencia compacta de la tarjeta. */
       let totalReps = null;
       withData.forEach(s => { const rv = Number(s.repsDone); if (s.repsDone != null && s.repsDone !== '' && isFinite(rv)) totalReps = (totalReps == null ? 0 : totalReps) + rv; });
+      /* AUTH-417: el total de segundos de la sesión, para
+         la línea compacta de la vez pasada. */
+      let totalSec = null;
+      withData.forEach(s => { if (typeof s.secDone === 'number' && isFinite(s.secDone) && s.secDone > 0) totalSec = (totalSec == null ? 0 : totalSec) + Math.floor(s.secDone); });
       const loadsKg = [];
       sets.forEach(s => { if (s && typeof s.loadKg === 'number' && s.loadKg > 0 && !loadsKg.includes(s.loadKg)) loadsKg.push(s.loadKg); });
       const reps = [];
       sets.forEach(s => { if (s && s.repsDone != null && s.repsDone !== '') reps.push(String(s.repsDone)); });
-      out.push({ date: log.date, legacy: false, n: withData.length, loadsKg, repsStr: reps.join('/'), totalReps });
+      out.push({ date: log.date, legacy: false, n: withData.length, loadsKg, repsStr: reps.join('/'), totalReps, totalSec });
     }
   }
   return out.map(r => r.legacy
     ? { dateShort: histShortDate(r.date), legacy: true }
     : { dateShort: histShortDate(r.date), legacy: false, n: r.n, repsStr: r.repsStr,
-        totalReps: r.totalReps, maxKg: r.loadsKg.length ? Math.max(...r.loadsKg) : null,
+        totalReps: r.totalReps, totalSec: r.totalSec, maxKg: r.loadsKg.length ? Math.max(...r.loadsKg) : null,
         loadsStr: r.loadsKg.length ? r.loadsKg.map(fmtMassVal).join(' / ') + ' ' + UNIT_PREFS.mass : '',
         maxStr: r.loadsKg.length ? fmtMassDual(Math.max(...r.loadsKg)) : '' });
 }
@@ -39063,6 +39346,9 @@ function trainLastTimeCardHTML(ex, mode) {
   if (!r) return `<div class="train-ex-last">${head} · ${esc(rows[0].dateShort)}: ${t('train.lastTime.legacy')}</div>`;
   const segs = [`${r.n} ${t('train.histRec.sets').toLowerCase()}`];
   if (r.totalReps != null) segs.push(`${r.totalReps} reps`);
+  /* AUTH-417: sin reps, la vez pasada de un ejercicio por
+     tiempo dice su tiempo total, no un silencio. */
+  else if (r.totalSec != null) segs.push(trainTimerFmt(r.totalSec));
   if (r.maxKg != null) segs.push(`${fmtMass(r.maxKg)} ${t('train.lastTime.max')}`);
   return `<div class="train-ex-last">${head} · ${esc(r.dateShort)}: ${esc(segs.join(' · '))}</div>`;
 }
@@ -39116,7 +39402,10 @@ function trainLastTimeSession(ex, allLogs, excludeIso) {
          dar con una anterior CON series (misma regla de
          variantes); solo si no hay ninguna vale el respaldo. */
       if (!sets) { if (!legacyFallback) legacyFallback = { legacy: true, date: log.date }; continue; }
-      const withData = sets.filter(s => s && (typeof s.loadKg === 'number' || (s.repsDone != null && s.repsDone !== '')));
+      /* AUTH-417: una serie por tiempo con su tiempo hecho
+         ES una serie con dato (sin esto, la sesión de la plancha
+         sería invisible como «vez pasada»). */
+      const withData = sets.filter(s => s && (typeof s.loadKg === 'number' || (s.repsDone != null && s.repsDone !== '') || (typeof s.secDone === 'number' && s.secDone > 0)));
       if (!withData.length) continue;
       return { legacy: false, date: log.date, sets: withData };
     }
@@ -39147,7 +39436,9 @@ function trainLastTimeHTML(ex, allLogs, excludeIso) {
   if (!ses || ses.legacy) return '';
   const lines = ses.sets.map((s, i) => {
     const parts = [`${t('train.lastTime.set')} ${i + 1}`];
-    if (s.repsDone != null && s.repsDone !== '') parts.push(`${esc(String(s.repsDone))} ${t('train.lastTime.reps')}`);
+    /* AUTH-417: la serie por tiempo enseña su tiempo hecho. */
+    if (trainSetHistVal(s) != null) parts.push(esc(trainSetHistVal(s)));
+    else if (s.repsDone != null && s.repsDone !== '') parts.push(`${esc(String(s.repsDone))} ${t('train.lastTime.reps')}`);
     const lt = trainLastTimeLoadText(s);
     if (lt) parts.push(esc(lt));
     return `<div class="excard-last-line">${parts.join(' · ')}</div>`;
@@ -40590,6 +40881,14 @@ async function loadMyTraining() {
              exercisesDone (verificado contra el ruleset vivo
              84974ca6). Sin hora, la serie queda como siempre. */
           if (typeof s.markedAt === 'number' && isFinite(s.markedAt) && s.markedAt > 0) out.markedAt = Math.floor(s.markedAt);
+          /* AUTH-417 · EL TIEMPO HECHO de la serie por tiempo
+             viaja al registro como su valor (secDone, el segundo
+             entero que se vio en el botoncito). Un cronómetro en
+             curso nunca parado (secT0 sin secDone) no registra
+             tiempo alguno. El interior de exercisesDone no lo
+             validan las reglas vivas (la misma lectura que
+             markedAt): sin delta de reglas. */
+          if (typeof s.secDone === 'number' && isFinite(s.secDone) && s.secDone > 0) out.secDone = Math.floor(s.secDone);
           /* AUTH-2026-11-10-376 · CARGA CON DISCOS: el desglose viaja SOLO
              si su total coincide con la carga guardada — si el
              número cambió por otro camino, manda el número y el
@@ -55559,7 +55858,7 @@ document.addEventListener('keydown', e => { if (e.key === 'Escape') shareClose()
  *  - El SW (sw.js) solo cachea la cáscara del mismo origen en modo
  *    RED PRIMERO: Auth/Firestore/Worker jamás pasan por la caché.
  * ================================================================ */
-const PWA_SW_VERSION = '20261112-entrada-aproximacion';
+const PWA_SW_VERSION = '20261112-cronometro-tiempo';
 /* Sello de versión VISIBLE (2026-11-03): el pie de la tarjeta de
    acceso enseña qué copia corre este teléfono ('v ' + el sello),
    para comprobar de un vistazo si la versión nueva ya llegó.

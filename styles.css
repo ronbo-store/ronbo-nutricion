@@ -5284,6 +5284,26 @@ body.swap-sheet-open .asst-fab { display: none !important; }
 .flow-removed-line { display:flex; align-items:center; gap:10px; min-height:64px; margin-top:10px; border:1.5px dashed rgba(255,255,255,.5); border-radius:12px; padding:9px 12px; }
 .flow-removed-name { flex:1; font-size:14px; font-weight:700; }
 .flow-restore-btn { flex:0 0 auto; min-height:44px; border-radius:10px; border:none; background:#facc15; color:#713f12; font-size:14px; font-weight:900; padding:8px 14px; cursor:pointer; }
+/* AUTH-417 · EL BOTONCITO DE CRONÓMETRO DE LA SERIE POR
+   TIEMPO: ocupa el sitio del campo de reps (flex como los
+   campos, tacto de 44 px); corriendo se viste de verde de la
+   casa; al llegar a la meta FLASHEA EN ROJO en su misma
+   posición — la animación solo cambia su fondo y su borde, sin
+   moverlo ni cambiar su tamaño — hasta que se para. En la
+   tarjeta vestida (oscura) su reposo se pinta claro, como los
+   campos; los estados mandan sobre ese fondo. */
+.train-timer-chip { flex:1 1 0; min-width:0; min-height:44px; display:inline-flex; align-items:center; justify-content:center; gap:7px; border-radius:8px; border:1.5px solid #0d9488; background:#f0fdfa; color:#134e4a; font:inherit; font-weight:800; cursor:pointer; padding:5px 7px; }
+.train-day-dressed .train-timer-chip { background:#fff; }
+.train-timer-chip .tt-main { font-size:15px; font-variant-numeric:tabular-nums; }
+.train-timer-chip .tt-goal { font-size:11px; font-weight:700; opacity:.75; }
+.train-timer-chip.is-running { background:#0d9488; border-color:#0d9488; color:#fff; }
+.train-timer-chip.is-done { border-color:#16a34a; background:#f0fdf4; color:#14532d; }
+@keyframes trainTimerFlash { 0%, 100% { background:#b3261e; border-color:#b3261e; color:#fff; } 50% { background:#fff1f0; border-color:#b3261e; color:#b3261e; } }
+.train-timer-chip.is-flash { animation:trainTimerFlash .8s ease-in-out infinite; }
+/* En la hoja el botoncito lleva las clases de pastilla (su
+   tamaño manda el de la fila de pastillas) y el flex de la
+   tarjeta no aplica. */
+.tf-chip.train-timer-chip { flex:none; }
 /* AUTH-406 · LA BARRA FINA DEL ENTRENO (B1): 40 px, oscura
    como la píldora, nombres cortados con «…»; sus botones miden
    27 px (atajo fino aprobado por Ronald al aprobar la B1 — las
