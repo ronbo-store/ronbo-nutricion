@@ -6077,6 +6077,7 @@ en: {
      series de aproximación de la ficha en curso. */
   'train.start.btn': 'Start exercise',
   'train.start.warmupTitle': 'Warm-up sets', 'train.start.warmupAdd': '+ Add warm-up set',
+  'train.warm.change': 'Change exercise', 'train.warm.backMain': 'Back to the main exercise', 'train.warm.pickTitle': 'Choose the warm-up exercise', 'train.warm.pickBtn': 'Choose',
   'train.start.warmupRemove': 'Remove warm-up set',
   'train.start.noLoad': 'No load', 'train.start.wheelDone': 'Done',
   'train.start.yes': 'Yes', 'train.start.no': 'No',
@@ -10971,6 +10972,7 @@ es: {
      series de aproximación de la ficha en curso. */
   'train.start.btn': 'Iniciar ejercicio',
   'train.start.warmupTitle': 'Series de aproximación', 'train.start.warmupAdd': '+ Añadir serie de aproximación',
+  'train.warm.change': 'Cambiar ejercicio', 'train.warm.backMain': 'Volver al ejercicio principal', 'train.warm.pickTitle': 'Elige el ejercicio de aproximación', 'train.warm.pickBtn': 'Elegir',
   'train.start.warmupRemove': 'Quitar serie de aproximación',
   'train.start.noLoad': 'Sin carga', 'train.start.wheelDone': 'Listo',
   'train.start.yes': 'Sí', 'train.start.no': 'No',
@@ -33673,7 +33675,14 @@ function trainChecksRead(planId) {
         out[k].warmup = { on: c.warmup.on === true,
           sets: Array.isArray(c.warmup.sets) ? c.warmup.sets.filter(s => s && typeof s === 'object').map(s => ({
             repsDone: String(s.repsDone == null ? '' : s.repsDone),
-            loadVal: String(s.loadVal == null ? '' : s.loadVal), ...tfDetailSpread(s) })) : [] };
+            loadVal: String(s.loadVal == null ? '' : s.loadVal), ...tfDetailSpread(s) })) : [],
+          /* AUTH-428 · LA IDENTIDAD DE LA APROXIMACIÓN:
+             el ejercicio elegido en la Biblioteca viaja con el
+             bloque, saneado como texto; sin él, la aproximación
+             es la del propio ejercicio — lo guardado antes de
+             este paquete se lee igual que siempre. */
+          ...(typeof c.warmup.exerciseId === 'string' && c.warmup.exerciseId ? { exerciseId: c.warmup.exerciseId } : {}),
+          ...(typeof c.warmup.name === 'string' && c.warmup.name ? { name: c.warmup.name } : {}) };
       }
     });
     return out;
@@ -34574,7 +34583,11 @@ async function trainManageReopen(plan, di, log) {
         loadVal: s.loadOriginal != null ? convLoadDisplay(String(s.loadOriginal), s.loadUnitOriginal || UNIT_PREFS.mass, UNIT_PREFS.mass)
           : (typeof s.loadKg === 'number' ? String(uRound1(massToDisplay(s.loadKg))) : ''),
         ...tfDetailSpread(s)
-      })) };
+      })),
+        /* AUTH-428: la identidad elegida vuelve con la
+           aproximación (sin ella, es la del propio ejercicio,
+           como en todo lo guardado antes de este paquete). */
+        ...(typeof de.warmupExerciseId === 'string' && de.warmupExerciseId ? { exerciseId: de.warmupExerciseId, name: typeof de.warmupName === 'string' ? de.warmupName : '' } : {}) };
     }
     TRAIN_CHECKS[di + ':' + ei] = chk;
   });
@@ -34978,7 +34991,7 @@ function swapVariantPickCardHTML(entry, v, vi) {
   const photo = (v && v.foto_url) || entry.foto_url || '';
   const th = !photo ? ytThumbOf((v && v.video_youtube_url) || entry.video_youtube_url) : '';
   const inSession = !!(TRAIN_PICK && TRAIN_PICK.kind === 'add' && SWAP_EFF_IDS && SWAP_EFF_IDS.has(entry.id));
-  const btn = inSession ? t('train.n09.mybAddedBtn') : (TRAIN_PICK && TRAIN_PICK.kind === 'add' ? t('train.swap.addBtn') : t('train.custom.swap'));
+  const btn = inSession ? t('train.n09.mybAddedBtn') : (TRAIN_PICK && TRAIN_PICK.kind === 'warm' ? t('train.warm.pickBtn') : (TRAIN_PICK && TRAIN_PICK.kind === 'add' ? t('train.swap.addBtn') : t('train.custom.swap')));
   const tag = v ? `<span class="swap-card-tag">${esc(t('train.swap.variantTag'))}</span>` : `<span class="swap-card-tag">${esc(t('plan.variantStd'))}</span>`;
   return `<button type="button" class="swap-card swap-card-variant${inSession ? ' is-added' : ''}" data-swap-variant-pick="${esc(entry.id)}" data-swap-variant-vi="${vi}"${inSession ? ' disabled aria-disabled="true"' : ''}>
     ${photo ? `<img class="swap-card-img" src="${esc(photo)}" alt="" loading="lazy">` : (th ? `<img class="swap-card-img" src="${esc(th)}" alt="" loading="lazy" data-yt-fb="swap" onerror="ytThumbErr(this)">` : '<span class="swap-card-img swap-card-noimg" aria-hidden="true"></span>')}
@@ -35072,6 +35085,32 @@ function swapSheetApply(plan, di, entry, iso) {
      — de la FECHA VISTA si el selector viene del desplegable con
      otra fecha (iso la pasa la cadena del desplegable; sin iso,
      la de hoy, como siempre). */
+  /* AUTH-428 · EL SELECTOR TAMBIÉN ELIGE LA
+     APROXIMACIÓN: con TRAIN_PICK de tipo 'warm' no hay edición
+     de sesión que escribir — el elegido pasa a ser el ejercicio
+     de la aproximación de esa tarjeta: su identidad queda en la
+     marca (warmup.exerciseId/name) y el borrador se guarda al
+     acto, como todo gesto del flujo. Sin marca o sin bloque no
+     hay nada que ligar (la puerta solo se pinta con la marca
+     viva) y el selector se cierra igual.
+     COMPUESTA CON AUTH-424 al re-derivar sobre AUTH-427: su
+     reseteo SWAP_ADD_FORMS_ID = null queda intacto a la cabeza
+     de la función (corre también para 'warm', donde ese estado
+     siempre es nulo) y su rama 'replace-add' sigue tras la
+     lectura de ediciones, sin tocar — esta rama devuelve antes
+     de esa lectura solo cuando el selector es de aproximación. */
+  if (TRAIN_PICK && TRAIN_PICK.kind === 'warm') {
+    const chkW2 = TRAIN_CHECKS[di + ':' + TRAIN_PICK.idx];
+    if (chkW2 && chkW2.warmup && typeof chkW2.warmup === 'object' && !Array.isArray(chkW2.warmup)) {
+      chkW2.warmup.exerciseId = entry.id;
+      chkW2.warmup.name = libNameOf(entry);
+      trainChecksPersist(plan.id);
+    }
+    TRAIN_PICK = null;
+    SWAP_QUERY = '';
+    loadMyTraining();
+    return;
+  }
   const ed = trainEditsRead(plan.id, iso) || { swaps: {}, added: [] };
   if (TRAIN_PICK.kind === 'replace-add') {
     /* «Cambiar» sobre un
@@ -35325,7 +35364,7 @@ function swapSheetSync(plan, di, iso) {
   const dropForm = (target && target.ex && trainVariantOf(target.ex)) ? null : stdForm;
   const shownName = target ? (trainExName(target.ex) || target.ex.name || '') : '';
   const headSpec = target && target.ex ? [target.ex.sets ? target.ex.sets + ' × ' + (target.ex.reps || '') : '', libField(tEntry, 'equipo')].filter(Boolean).join(' · ') : '';
-  const title = (TRAIN_PICK.kind === 'swap' || TRAIN_PICK.kind === 'replace-add') ? t('train.custom.pickSwap', { name: shownName }) : t('train.custom.pickAdd');
+  const title = TRAIN_PICK.kind === 'warm' ? t('train.warm.pickTitle') : ((TRAIN_PICK.kind === 'swap' || TRAIN_PICK.kind === 'replace-add') ? t('train.custom.pickSwap', { name: shownName }) : t('train.custom.pickAdd'));
   let sheet = old;
   if (!sheet) {
     sheet = document.createElement('div');
@@ -37797,6 +37836,127 @@ function trainSetHistVal(s) {
     ? trainTimerFmt(s.secDone) : null;
 }
 
+/* ═══ AUTH-428 · LA APROXIMACIÓN VIVE EN LA TARJETA
+   (decisión de Ronald, 2026-11-12 11:04 CST: «Las dos: nace
+   con el mismo y se puede cambiar por uno de la Biblioteca»):
+   la puerta Sí/No del bloque se muda de la hoja de consulta —
+   donde quedó escondida desde que el día nace guiado
+   (AUTH-406) — a la tarjeta/foco del ejercicio, arriba de las
+   series de trabajo, nacida en NO como siempre. Al encenderla
+   nace asumida con el MISMO ejercicio (las filas A1, A2… de
+   siempre, con sus pastillas y su rueda); la puerta «Cambiar
+   ejercicio» abre el selector de la Biblioteca de la casa
+   (TRAIN_PICK de tipo 'warm') y el elegido queda ligado al
+   bloque con su identidad (nombre y foto visibles), con
+   vuelta al ejercicio principal. El dato es el de siempre
+   (warmup dentro de la marca, warmupSets al cerrar el día)
+   extendido con la identidad saneada; lo guardado sin
+   identidad se lee como el propio ejercicio. Las series de
+   aproximación nunca cuentan como trabajo ni como máxima:
+   la doctrina no se mueve. ═══ */
+/* El ejercicio de la aproximación: el elegido en la
+   Biblioteca (su identidad vive en el bloque) o el principal. */
+function tfWarmExOf(ex, w) {
+  if (w && typeof w.exerciseId === 'string' && w.exerciseId) return { exerciseId: w.exerciseId, name: w.name || '' };
+  return ex || null;
+}
+/* EL BLOQUE EN LA TARJETA/FOCO: la misma familia visual de
+   la hoja (.tf-warm), con sus filas de pastillas en contexto
+   propio ('cardw:') — la rueda y los discos de la tarjeta
+   sirven también a estas filas, leídas desde el ejercicio de
+   la aproximación (su modo de carga manda, no el del
+   principal). */
+function trainFlowWarmCardHTML(ex, key, chk) {
+  const w = (chk && chk.warmup && typeof chk.warmup === 'object' && !Array.isArray(chk.warmup)) ? chk.warmup : { on: false, sets: [] };
+  const head = `<div class="tf-warm-head"><span class="tf-warm-title">${t('train.start.warmupTitle')}</span><button type="button" class="tf-warm-tog${w.on ? ' is-on' : ''}" data-flow-warm-tog="${key}" aria-pressed="${w.on ? 'true' : 'false'}">${w.on ? t('train.start.yes') : t('train.start.no')}</button></div>`;
+  if (!w.on) return `<div class="tf-warm flow-warm">${head}</div>`;
+  const wEx = tfWarmExOf(ex, w);
+  const photo = wEx ? trainExPhoto(wEx) : '';
+  const diff = !!(w.exerciseId && ex && w.exerciseId !== ex.exerciseId);
+  const idLine = `<div class="flow-warm-id">${photo ? `<img class="flow-warm-photo" src="${esc(photo)}" alt="" loading="lazy">` : ''}<span class="flow-warm-name">${esc(wEx ? (trainExName(wEx) || wEx.name || '') : '')}</span><span class="flow-warm-btns"><button type="button" class="btn-ghost btn-sm" data-flow-warm-change="${key}">${t('train.warm.change')}</button>${diff ? `<button type="button" class="btn-ghost btn-sm" data-flow-warm-back="${key}">${t('train.warm.backMain')}</button>` : ''}</span></div>`;
+  const rows = `<div class="tf-warm-rows">${(Array.isArray(w.sets) ? w.sets : []).map((s, wi) => `
+    <div class="train-set-row"><span class="train-set-n">A${wi + 1}</span>
+      <span class="tf-chips" data-tf-chips="cardw:${key}:${wi}">${tfChipsHTML('cardw:' + key, wi, s, wEx)}</span>
+      <button type="button" class="tf-warm-del" data-flow-warm-del="${key}:${wi}" aria-label="${t('train.start.warmupRemove')}">✕</button></div>`).join('')}</div>
+    <button type="button" class="btn-ghost btn-sm" data-flow-warm-add="${key}">${t('train.start.warmupAdd')}</button>`;
+  return `<div class="tf-warm flow-warm">${head}${idLine}${rows}</div>`;
+}
+/* EL REFRESCO DE LAS PASTILLAS DE APROXIMACIÓN tras un toque
+   de rueda (el gemelo de trainFlowChipsRefresh para el
+   contexto 'cardw:'): repinta las filas de ese ejercicio en
+   su sitio y las recablea si la caja es la del flujo. */
+function trainFlowWarmRefresh(body) {
+  if (!TF_WHEEL || TF_WHEEL.src !== 'card' || TF_WHEEL.ctx !== 'warm' || !body) return;
+  const key = TF_WHEEL.key, ex = TF_WHEEL.ex;
+  const chk = (typeof TRAIN_CHECKS !== 'undefined' && TRAIN_CHECKS) ? TRAIN_CHECKS[key] : null;
+  if (!chk || !chk.warmup || !Array.isArray(chk.warmup.sets)) return;
+  chk.warmup.sets.forEach((s, wi) => {
+    const host = body.querySelector(`[data-tf-chips="cardw:${key}:${wi}"]`);
+    if (host && s) host.innerHTML = tfChipsHTML('cardw:' + key, wi, s, ex);
+  });
+  if (TF_WARM_WIRE && TF_WARM_WIRE.box === body) trainFlowWarmWire(body, TF_WARM_WIRE.plan);
+}
+/* EL CABLEADO DEL BLOQUE EN LA TARJETA: cada gesto guarda al
+   acto en la marca y repinta por loadMyTraining, la
+   disciplina del flujo. Encender siembra la primera fila
+   vacía, como hacía la hoja; «Cambiar ejercicio» abre el
+   selector de siempre (su aplicación vive en swapSheetApply);
+   volver al principal retira la identidad y nada más. Las
+   pastillas de las filas abren la rueda — o los discos si el
+   ejercicio de la aproximación carga con discos — en
+   contexto 'warm'. */
+let TF_WARM_WIRE = null;   /* { box, plan } del último cableado del bloque */
+function trainFlowWarmWire(box, plan) {
+  if (!box || !plan) return;
+  TF_WARM_WIRE = { box, plan };
+  const warmOf = key => {
+    const c = TRAIN_CHECKS[key];
+    if (!c) return null;
+    if (!c.warmup || typeof c.warmup !== 'object' || Array.isArray(c.warmup)) c.warmup = { on: false, sets: [] };
+    if (!Array.isArray(c.warmup.sets)) c.warmup.sets = [];
+    return c.warmup;
+  };
+  box.querySelectorAll('[data-flow-warm-tog]').forEach(b => { b.onclick = () => {
+    const w = warmOf(b.dataset.flowWarmTog); if (!w) return;
+    w.on = !w.on;
+    if (w.on && !w.sets.length) w.sets.push({ repsDone: '', loadVal: '' });
+    trainChecksPersist(plan.id); loadMyTraining();
+  }; });
+  box.querySelectorAll('[data-flow-warm-add]').forEach(b => { b.onclick = () => {
+    const w = warmOf(b.dataset.flowWarmAdd); if (!w) return;
+    w.sets.push({ repsDone: '', loadVal: '' });
+    trainChecksPersist(plan.id); loadMyTraining();
+  }; });
+  box.querySelectorAll('[data-flow-warm-del]').forEach(b => { b.onclick = () => {
+    const p = String(b.dataset.flowWarmDel).split(':');
+    const w = warmOf(p[0] + ':' + p[1]); if (!w) return;
+    w.sets.splice(Number(p[2]), 1);
+    trainChecksPersist(plan.id); loadMyTraining();
+  }; });
+  box.querySelectorAll('[data-flow-warm-change]').forEach(b => { b.onclick = () => {
+    TRAIN_PICK = { kind: 'warm', idx: Number(String(b.dataset.flowWarmChange).split(':')[1]) };
+    SWAP_QUERY = '';
+    loadMyTraining();
+  }; });
+  box.querySelectorAll('[data-flow-warm-back]').forEach(b => { b.onclick = () => {
+    const w = warmOf(b.dataset.flowWarmBack); if (!w) return;
+    delete w.exerciseId; delete w.name;
+    trainChecksPersist(plan.id); loadMyTraining();
+  }; });
+  box.querySelectorAll('[data-tf-chip^="cardw:"]').forEach(ch => { ch.onclick = () => {
+    const p = String(ch.dataset.tfChip).split(':');
+    const diC = Number(p[1]), eiC = Number(p[2]), wiC = Number(p[3]);
+    const itC = trainEffectiveList(plan, diC)[eiC];
+    if (!itC) return;
+    const keyC = diC + ':' + eiC;
+    const chkC = TRAIN_CHECKS[keyC];
+    if (!chkC || !chkC.warmup) return;
+    const wEx = tfWarmExOf(itC.ex, chkC.warmup);
+    if (!wEx) return;
+    if (p[4] === 'load' && loadKindOf(wEx) === 'plates') tfPlatesCardOpen(box, keyC, wiC, plan.id, wEx, 'warm');
+    else tfWheelCardOpen(box, keyC, wiC, wEx, plan.id, 'warm');
+  }; });
+}
 function trainFlowSetsHTML(ex, key, chk) {
   const sets = chk && Array.isArray(chk.sets) ? chk.sets : [];
   /* AUTH-417 · LA FILA POR TIEMPO EN LA TARJETA Y EL FOCO
@@ -37865,7 +38025,7 @@ function trainFlowHTML(ex, di, ei) {
          AUTH-344: solo sale el `done`, nada se borra. */
       const pillR = hasFace ? `<span class="flow-done-pill"><img src="${FLOW_FACE_URLS[chk.face - 1]}" alt="" onerror="this.remove()">${t('train.flow.band.' + chk.face)} · ${t('train.flow.face.' + chk.face)}</span>` : '';
       const asPlanR = !flowHasData(chk) && spec ? ` · ${esc(t('train.flow.asPlan', { spec }))}` : '';
-      return `<div class="flow-reopen">${trainFlowSetsHTML(ex, key, chk)}<div class="flow-done-line"><span>✓ ${esc(t('train.view.exDone'))}${asPlanR}${hasFace ? ` · ${esc(t('train.flow.howWas'))} →` : ''}</span>${pillR}</div><div class="flow-row"><button type="button" class="flow-btn" data-flow-unmark="${key}">↩ ${t('train.flow.backToCourse')}</button></div></div>`;
+      return `<div class="flow-reopen">${trainFlowWarmCardHTML(ex, key, chk)}${trainFlowSetsHTML(ex, key, chk)}<div class="flow-done-line"><span>✓ ${esc(t('train.view.exDone'))}${asPlanR}${hasFace ? ` · ${esc(t('train.flow.howWas'))} →` : ''}</span>${pillR}</div><div class="flow-row"><button type="button" class="flow-btn" data-flow-unmark="${key}">↩ ${t('train.flow.backToCourse')}</button></div></div>`;
     }
     if (flowHasData(chk) && !hasFace) return '';
     return `<div class="flow-done-line">${!flowHasData(chk) && spec ? `<span>${esc(t('train.flow.asPlan', { spec }))}</span>` : ''}${hasFace ? `<span class="flow-done-pill"><img src="${FLOW_FACE_URLS[chk.face - 1]}" alt="" onerror="this.remove()">${t('train.flow.band.' + chk.face)} · ${t('train.flow.face.' + chk.face)}</span>` : ''}</div>`;
@@ -37883,7 +38043,7 @@ function trainFlowHTML(ex, di, ei) {
     return `<div class="flow-close"><div class="flow-close-q">${t('train.flow.howWas')}</div>${trainFlowFacesHTML(key, fs.face)}${meta}<button type="button" class="flow-btn is-done flow-mark" data-flow-mark="${key}">${t('train.flow.markDone')}</button></div>`;
   }
   if (fs && fs.st === 'open' && chk) {
-    return `${trainFlowSetsHTML(ex, key, chk)}<div class="flow-row"><span class="flow-incourse">${t('train.flow.inCourse')}</span><button type="button" class="flow-btn is-finish" data-flow-finish="${key}">${t('train.flow.finish')}</button></div><div class="flow-foot"><button type="button" class="flow-mini" data-flow-swap="${key}">🔀 ${t('train.custom.swap')}</button><button type="button" class="flow-mini is-quit" data-flow-remove="${key}">${t('train.flow.removeToday')}</button></div>`;
+    return `${trainFlowWarmCardHTML(ex, key, chk)}${trainFlowSetsHTML(ex, key, chk)}<div class="flow-row"><span class="flow-incourse">${t('train.flow.inCourse')}</span><button type="button" class="flow-btn is-finish" data-flow-finish="${key}">${t('train.flow.finish')}</button></div><div class="flow-foot"><button type="button" class="flow-mini" data-flow-swap="${key}">🔀 ${t('train.custom.swap')}</button><button type="button" class="flow-mini is-quit" data-flow-remove="${key}">${t('train.flow.removeToday')}</button></div>`;
   }
   return `<div class="flow-row"><button type="button" class="flow-btn is-start" data-flow-start="${key}">▶ ${chk ? t('train.flow.resume') : t('train.flow.start')}</button><button type="button" class="flow-btn is-finish" disabled>${t('train.flow.finish')}</button></div>`;
 }
@@ -38066,6 +38226,9 @@ function trainFlowWire(box, plan) {
      por tiempo pintadas en esta vista (foco y lista comparten
      tarjeta y caja). */
   trainTimerWire(box);
+  /* AUTH-428: el bloque de aproximación de la tarjeta
+     se cablea con el resto del flujo. */
+  trainFlowWarmWire(box, plan);
 }
 
 /* TARJETA COMPACTA (corrección de la reprueba de Ronald, chat
@@ -38908,10 +39071,8 @@ async function trainSetMassUnit(newUnit) {
   if (TRAIN_FLOAT && TRAIN_FLOAT.mode === 'edit') {
     const b = $('train-ex-float-body');
     const boxS = b ? b.querySelector('#tf-sets') : null;
-    const boxW = b ? b.querySelector('#tf-warm') : null;
-    if (boxW) boxW.innerHTML = trainFloatWarmHTML(TRAIN_FLOAT.draft);
     if (boxS) boxS.innerHTML = trainFloatSetsHTML(TRAIN_FLOAT.draft);
-    if (boxS || boxW) { trainFloatWireSession(b); trainWireUnitSels(b); }
+    if (boxS) { trainFloatWireSession(b); trainWireUnitSels(b); }
   }
 }
 function trainWireUnitSels(scope) {
@@ -39173,16 +39334,12 @@ function tfVarBtnHTML() {
   if (!LIB_BY_ID[F.ex.exerciseId]) return '';
   return `<button type="button" class="btn-ghost btn-sm" id="tf-var-open">${t('train.variant.changeBtn')}</button>`;
 }
-function trainFloatWarmHTML(draft) {
-  const w = (draft && draft.warmup && typeof draft.warmup === 'object') ? draft.warmup : { on: false, sets: [] };
-  const rows = w.on ? `<div class="tf-warm-rows">${(Array.isArray(w.sets) ? w.sets : []).map((s, wi) => `
-    <div class="train-set-row"><span class="train-set-n">A${wi + 1}</span>
-      <span class="tf-chips" data-tf-chips="warm:${wi}">${tfChipsHTML('warm', wi, s)}</span>
-      <button type="button" class="tf-warm-del" data-tf-warm-del="${wi}" aria-label="${t('train.start.warmupRemove')}">✕</button></div>`).join('')}</div>
-    <button type="button" class="btn-ghost btn-sm" id="tf-warm-add">${t('train.start.warmupAdd')}</button>` : '';
-  return `<div class="tf-warm-head"><span class="tf-warm-title">${t('train.start.warmupTitle')}</span>
-    <button type="button" class="tf-warm-tog${w.on ? ' is-on' : ''}" id="tf-warm-on" aria-pressed="${w.on ? 'true' : 'false'}">${w.on ? t('train.start.yes') : t('train.start.no')}</button></div>${rows}`;
-}
+/* AUTH-428 · trainFloatWarmHTML, RETIRADA: el bloque
+   de aproximación ya no se pinta en la hoja de consulta — su
+   única puerta viva es la tarjeta/foco del ejercicio
+   (trainFlowWarmCardHTML), sobre la misma marca de siempre.
+   El dato (warmup dentro de la marca, warmupSets al cerrar)
+   y su saneamiento (tfWarmSnap) no cambian. */
 function trainFloatWheelHTML() {
   return `<div class="tf-wheel" id="tf-wheel" style="display:none">
     <div class="tf-wheel-card">
@@ -39201,8 +39358,11 @@ function trainFloatSessionHTML(draft) {
      secundario sus ruedas de series, su RPE exacto y su «✓ Hecho»
      (el espejo continuo sigue volcando al acto, cara incluida). */
   if (!draft || !draft.started) return '';
-  return `<div class="tf-warm" id="tf-warm">${trainFloatWarmHTML(draft)}</div>
-    <div id="tf-sets">${trainFloatSetsHTML(draft)}</div>
+  /* AUTH-428: el bloque de aproximación SALE de la
+     hoja — su única puerta viva es la tarjeta/foco
+     (trainFlowWarmCardHTML) sobre la misma marca; la hoja
+     queda de consulta con las series, el RPE y el «Hecho». */
+  return `<div id="tf-sets">${trainFloatSetsHTML(draft)}</div>
     <div><label class="prop-lab" for="tf-rpe">${t('train.view.rpe')}</label>
     <select class="train-ex-rpe" id="tf-rpe">
       <option value="">${t('train.view.rpeNone')}</option>
@@ -39219,7 +39379,11 @@ function tfWarmSnap(w) {
     const detW = tfDetailSan(s && s.loadDetail);
     if (detW) outW.loadDetail = detW;
     return outW;
-  }) };
+  }),
+    /* AUTH-428: la identidad elegida viaja en el
+       espejo como viaja en la marca (saneada como texto). */
+    ...(typeof o.exerciseId === 'string' && o.exerciseId ? { exerciseId: o.exerciseId } : {}),
+    ...(typeof o.name === 'string' && o.name ? { name: o.name } : {}) };
 }
 /* EL ESPEJO CONTINUO: vuelca el borrador en curso a TRAIN_CHECKS
    y al borrador local (misma disciplina «confirmar al acto» de
@@ -39243,6 +39407,10 @@ function tfWheelRow() {
      marca TRAIN_CHECKS de su clave). */
   if (TF_WHEEL && TF_WHEEL.src === 'card') {
     const c = (typeof TRAIN_CHECKS !== 'undefined' && TRAIN_CHECKS) ? TRAIN_CHECKS[TF_WHEEL.key] : null;
+    /* AUTH-428: en la tarjeta la rueda también sirve
+       a las filas de aproximación (ctx 'warm'): su fila vive
+       en el bloque de la marca, no en sus series de trabajo. */
+    if (TF_WHEEL.ctx === 'warm') return (c && c.warmup && Array.isArray(c.warmup.sets)) ? (c.warmup.sets[TF_WHEEL.idx] || null) : null;
     return (c && Array.isArray(c.sets)) ? (c.sets[TF_WHEEL.idx] || null) : null;
   }
   const F = TRAIN_FLOAT;
@@ -39379,22 +39547,34 @@ function tfWheelPick(body, kind, wv) {
     else { row.loadVal = wv === '' ? '' : convLoadDisplay(String(wv), sc.unit, UNIT_PREFS.mass); delete row.loadDetail; }
   }
   if (TF_WHEEL && TF_WHEEL.src === 'card') {
-    /* AUTH-416 · LA TARJETA/FOCO: la fila ES la marca (no
-       hay borrador ni espejo): el mismo asentado de la hoja,
-       el sello de hora, la propagación por campo sobre las
-       series de la marca, el guardado del borrador y el
-       repintado de las pastillas de ese ejercicio en su
-       sitio. */
-    tfWheelSettleRow(row, kind);
-    /* HORA DE MARCA: el toque que deja datos en la fila sella su
-       hora (la primera vez); vaciarla del todo la retira. Las
-       filas que la sugerencia rellena a continuación NO se
-       sellan: su hora nacerá si él las adopta o al dar «Hecho». */
-    trainSetStamp(row);
-    const chkW = (typeof TRAIN_CHECKS !== 'undefined' && TRAIN_CHECKS) ? TRAIN_CHECKS[TF_WHEEL.key] : null;
-    if (chkW && Array.isArray(chkW.sets)) tfSuggestApplySets(chkW.sets);
-    trainChecksPersist(TF_WHEEL.planId);
-    trainFlowChipsRefresh(body);
+    /* AUTH-428 · LA APROXIMACIÓN DESDE LA TARJETA:
+       como en la hoja, su fila no pasa por el asentado de
+       sugeridas (la aproximación jamás se pre-rellena ni sirve
+       de fuente), no sella hora y no propaga a otras series:
+       el toque escribe su valor sobre la fila (ya hecho arriba
+       por tfWheelPick), el borrador se guarda y sus pastillas
+       se repintan en su sitio. */
+    if (TF_WHEEL.ctx === 'warm') {
+      trainChecksPersist(TF_WHEEL.planId);
+      trainFlowWarmRefresh(body);
+    } else {
+      /* AUTH-416 · LA TARJETA/FOCO: la fila ES la marca (no
+         hay borrador ni espejo): el mismo asentado de la hoja,
+         el sello de hora, la propagación por campo sobre las
+         series de la marca, el guardado del borrador y el
+         repintado de las pastillas de ese ejercicio en su
+         sitio. */
+      tfWheelSettleRow(row, kind);
+      /* HORA DE MARCA: el toque que deja datos en la fila sella su
+         hora (la primera vez); vaciarla del todo la retira. Las
+         filas que la sugerencia rellena a continuación NO se
+         sellan: su hora nacerá si él las adopta o al dar «Hecho». */
+      trainSetStamp(row);
+      const chkW = (typeof TRAIN_CHECKS !== 'undefined' && TRAIN_CHECKS) ? TRAIN_CHECKS[TF_WHEEL.key] : null;
+      if (chkW && Array.isArray(chkW.sets)) tfSuggestApplySets(chkW.sets);
+      trainChecksPersist(TF_WHEEL.planId);
+      trainFlowChipsRefresh(body);
+    }
   } else {
     trainFloatMirror(false);
     tfChipRefresh(body);
@@ -39441,10 +39621,16 @@ function tfWheelOpen(body, ctx, idx) {
    la fuente en la marca de esa clave; el ejercicio viaja en
    el estado — la rueda lo necesita para el modo de carga
    (par, discos o única) sin tocar el borrador de la hoja. */
-function tfWheelCardOpen(body, key, idx, ex, planId) {
+function tfWheelCardOpen(body, key, idx, ex, planId, ctxW) {
   const c = (typeof TRAIN_CHECKS !== 'undefined' && TRAIN_CHECKS) ? TRAIN_CHECKS[key] : null;
-  if (!c || !Array.isArray(c.sets) || !c.sets[idx]) return;
-  TF_WHEEL = { src: 'card', ctx: 'set', key, idx, ex: ex || null, planId };
+  /* AUTH-428: la misma apertura sirve a la
+     aproximación de la tarjeta (ctxW 'warm'): la fila vive en
+     el bloque de la marca. Sin ctxW, el camino de siempre. */
+  const rowW = ctxW === 'warm'
+    ? (c && c.warmup && Array.isArray(c.warmup.sets) ? c.warmup.sets[idx] : null)
+    : (c && Array.isArray(c.sets) ? c.sets[idx] : null);
+  if (!rowW) return;
+  TF_WHEEL = { src: 'card', ctx: ctxW === 'warm' ? 'warm' : 'set', key, idx, ex: ex || null, planId };
   tfWheelShow(body);
 }
 /* El mostrado del panel, compartido por las dos fuentes: la
@@ -39535,27 +39721,11 @@ function trainFloatWireSession(body) {
   trainTimerWire(body);
   const rpeSel = body.querySelector('#tf-rpe');
   if (rpeSel) rpeSel.onchange = () => { d.rpe = rpeSel.value ? Number(rpeSel.value) : null; trainFloatMirror(false); };
-  const tfWarmRefresh = () => {
-    const host = body.querySelector('#tf-warm');
-    if (host) host.innerHTML = trainFloatWarmHTML(d);
-    trainFloatMirror(false);
-    trainFloatWireSession(body);
-    trainWireUnitSels(body);
-  };
-  const wTog = body.querySelector('#tf-warm-on');
-  if (wTog) wTog.onclick = () => {
-    d.warmup = tfWarmSnap(d.warmup);
-    d.warmup.on = !d.warmup.on;
-    if (d.warmup.on && !d.warmup.sets.length) d.warmup.sets.push({ repsDone: '', loadVal: '' });
-    tfWarmRefresh();
-  };
-  const wAdd = body.querySelector('#tf-warm-add');
-  if (wAdd) wAdd.onclick = () => { d.warmup = tfWarmSnap(d.warmup); d.warmup.sets.push({ repsDone: '', loadVal: '' }); tfWarmRefresh(); };
-  body.querySelectorAll('[data-tf-warm-del]').forEach(btn => { btn.onclick = () => {
-    d.warmup = tfWarmSnap(d.warmup);
-    d.warmup.sets.splice(Number(btn.dataset.tfWarmDel), 1);
-    tfWarmRefresh();
-  }; });
+  /* AUTH-428: el cableado de aproximación de la
+     hoja sale con su bloque — la puerta vive en la tarjeta
+     (trainFlowWarmWire). El espejo (trainFloatMirror) sigue
+     volcando el bloque de la marca cuando la hoja edita las
+     series, con su identidad incluida (tfWarmSnap). */
   /* AÑADIR / QUITAR SERIE DE TRABAJO (encargo 2026-10-30): la
      añadida nace PENDIENTE (pend) con la precarga sugerida de
      AUTH-097 como valores de referencia — distinguible y nunca
@@ -41435,6 +41605,16 @@ async function loadMyTraining() {
           if (out.loadKg != null) { const detW3 = tfDetailForWrite(s); if (detW3) out.loadDetail = detW3; }
           return out;
         });
+        /* AUTH-428: la identidad de la aproximación
+           viaja junto a warmupSets cuando se eligió otro
+           ejercicio en la Biblioteca; sin elección no se
+           escribe nada nuevo y la entrada queda como la de
+           siempre (al reabrir, la ausencia se lee como el
+           propio ejercicio). */
+        if (typeof c.warmup.exerciseId === 'string' && c.warmup.exerciseId) {
+          e.warmupExerciseId = c.warmup.exerciseId;
+          if (typeof c.warmup.name === 'string' && c.warmup.name) e.warmupName = c.warmup.name;
+        }
       }
       doneList.push(e);
     });
@@ -56464,7 +56644,7 @@ document.addEventListener('keydown', e => { if (e.key === 'Escape') shareClose()
  *  - El SW (sw.js) solo cachea la cáscara del mismo origen en modo
  *    RED PRIMERO: Auth/Firestore/Worker jamás pasan por la caché.
  * ================================================================ */
-const PWA_SW_VERSION = '20261112-anadir-serie-foco';
+const PWA_SW_VERSION = '20261112-aproximacion-tarjeta';
 /* Sello de versión VISIBLE (2026-11-03): el pie de la tarjeta de
    acceso enseña qué copia corre este teléfono ('v ' + el sello),
    para comprobar de un vistazo si la versión nueva ya llegó.
@@ -64169,6 +64349,9 @@ function tfPlatesRow() {
      (372a0bb); lo que cambia es su puerta: la pastilla. */
   if (TF_PLATES && TF_PLATES.src === 'card') {
     const c = (typeof TRAIN_CHECKS !== 'undefined' && TRAIN_CHECKS) ? TRAIN_CHECKS[TF_PLATES.key] : null;
+    /* AUTH-428: el panel también lee las filas de
+       aproximación de la tarjeta (ctx 'warm'). */
+    if (TF_PLATES.ctx === 'warm') return (c && c.warmup && Array.isArray(c.warmup.sets)) ? (c.warmup.sets[TF_PLATES.idx] || null) : null;
     return (c && Array.isArray(c.sets)) ? (c.sets[TF_PLATES.idx] || null) : null;
   }
   const F = TRAIN_FLOAT;
@@ -64214,7 +64397,7 @@ function tfPlatesOpen(body, ctx, idx) {
     document.body.appendChild(panel);
     panel.querySelector('#tfp-use').onclick = () => tfPlatesApply();
     panel.querySelector('#tfp-cancel').onclick = () => tfPlatesClose();
-    panel.querySelector('#tfp-type').onclick = () => { const S = TF_PLATES; if (!S) return; if (S.src === 'card') { const b = S.body, k = S.key, i = S.idx, e = S.ex, p = S.planId; tfPlatesClose(); tfWheelCardOpen(b, k, i, e, p); } else { const b = S.body, c = S.ctx, i = S.idx; tfPlatesClose(); tfWheelOpen(b, c, i); } };
+    panel.querySelector('#tfp-type').onclick = () => { const S = TF_PLATES; if (!S) return; if (S.src === 'card') { const b = S.body, k = S.key, i = S.idx, e = S.ex, p = S.planId; tfPlatesClose(); tfWheelCardOpen(b, k, i, e, p, S.ctx); } else { const b = S.body, c = S.ctx, i = S.idx; tfPlatesClose(); tfWheelOpen(b, c, i); } };
   }
   const title = panel.querySelector('#tfp-title');
   if (title) title.textContent = (ctx === 'warm' ? `${t('train.start.warmupTitle')} ${idx + 1}` : `${t('train.d.set')} ${idx + 1}`) + ' · ' + t('train.ld.platesTitle') + ' (' + S.unit + ')';
@@ -64232,11 +64415,16 @@ function tfPlatesOpen(body, ctx, idx) {
    la rueda DE LA TARJETA, la otra puerta de la misma
    entrada (en aquel candidato se ocultaba porque la tarjeta
    no tenía rueda; ya la tiene). */
-function tfPlatesCardOpen(body, key, si, planId, ex) {
+function tfPlatesCardOpen(body, key, si, planId, ex, ctxW) {
   const c = (typeof TRAIN_CHECKS !== 'undefined' && TRAIN_CHECKS) ? TRAIN_CHECKS[key] : null;
-  const row = (c && Array.isArray(c.sets)) ? c.sets[si] : null;
+  /* AUTH-428: el panel también sirve a la
+     aproximación de la tarjeta (ctxW 'warm'): su fila vive en
+     el bloque de la marca, no en sus series de trabajo. */
+  const row = ctxW === 'warm'
+    ? (c && c.warmup && Array.isArray(c.warmup.sets) ? c.warmup.sets[si] : null)
+    : (c && Array.isArray(c.sets) ? c.sets[si] : null);
   if (!row) return;
-  const S = { src: 'card', ctx: 'set', idx: si, key, planId, ex: ex || null, body, side: 'L', unit: UNIT_PREFS.mass, perSide: [], perSideR: [], mirrored: true, base: { on: false, val: 0 } };
+  const S = { src: 'card', ctx: ctxW === 'warm' ? 'warm' : 'set', idx: si, key, planId, ex: ex || null, body, side: 'L', unit: UNIT_PREFS.mass, perSide: [], perSideR: [], mirrored: true, base: { on: false, val: 0 } };
   TF_PLATES = S;
   const prev = tfDetailSan(row.loadDetail);
   if (prev && prev.kind === 'plates' && prev.perSide) {
@@ -64256,10 +64444,10 @@ function tfPlatesCardOpen(body, key, si, planId, ex) {
     document.body.appendChild(panel);
     panel.querySelector('#tfp-use').onclick = () => tfPlatesApply();
     panel.querySelector('#tfp-cancel').onclick = () => tfPlatesClose();
-    panel.querySelector('#tfp-type').onclick = () => { const S2 = TF_PLATES; if (!S2) return; if (S2.src === 'card') { const b = S2.body, k = S2.key, i = S2.idx, e = S2.ex, p = S2.planId; tfPlatesClose(); tfWheelCardOpen(b, k, i, e, p); } else { const b = S2.body, c = S2.ctx, i = S2.idx; tfPlatesClose(); tfWheelOpen(b, c, i); } };
+    panel.querySelector('#tfp-type').onclick = () => { const S2 = TF_PLATES; if (!S2) return; if (S2.src === 'card') { const b = S2.body, k = S2.key, i = S2.idx, e = S2.ex, p = S2.planId; tfPlatesClose(); tfWheelCardOpen(b, k, i, e, p, S2.ctx); } else { const b = S2.body, c = S2.ctx, i = S2.idx; tfPlatesClose(); tfWheelOpen(b, c, i); } };
   }
   const tEl = panel.querySelector('#tfp-title');
-  if (tEl) tEl.textContent = `${t('train.d.set')} ${si + 1}` + ' · ' + t('train.ld.platesTitle') + ' (' + S.unit + ')';
+  if (tEl) tEl.textContent = (S.ctx === 'warm' ? `${t('train.start.warmupTitle')} ${si + 1}` : `${t('train.d.set')} ${si + 1}`) + ' · ' + t('train.ld.platesTitle') + ' (' + S.unit + ')';
   panel.style.display = 'block';
   tfPlatesRender();
 }
@@ -64315,7 +64503,7 @@ function tfPlatesApply() {
       if (!S.mirrored) detC.perSideR = S.perSideR.slice();
       rowC.loadDetail = detC;
     } else delete rowC.loadDetail;
-    TF_WHEEL = { src: 'card', ctx: 'set', key: S.key, idx: S.idx, ex: S.ex || null, planId: S.planId };
+    TF_WHEEL = { src: 'card', ctx: S.ctx, key: S.key, idx: S.idx, ex: S.ex || null, planId: S.planId };
     if (!TF_LOAD_SCALE) TF_LOAD_SCALE = tfLoadScale();
     const wvC = ttC.total > 0 ? convLoadDisplay(String(ttC.total), S.unit, TF_LOAD_SCALE.unit) : '';
     TF_PLATES_APPLY = true;

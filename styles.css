@@ -5963,6 +5963,16 @@ body.train-drag-lock { overflow: hidden; overscroll-behavior: none; }
 @media (min-width: 720px) {
   .act-float, .pend-float, .ring-detail, .tf-wheel-card, .sess-survey-card { width: min(640px, calc(100vw - 24px)); }
 }
+
+/* ═══ AUTH-428 · LA APROXIMACIÓN EN LA TARJETA: la línea
+   de identidad del bloque (foto y nombre del ejercicio de la
+   aproximación, con sus puertas a la derecha) dentro de la
+   tarjeta/foco. Todo lo demás del bloque reusa la familia
+   .tf-warm de siempre. ═══ */
+.flow-warm-id { display: flex; align-items: center; gap: 8px; margin-top: 8px; }
+.flow-warm-photo { flex: none; width: 34px; height: 34px; border-radius: 9px; object-fit: cover; background: #ccfbf1; }
+.flow-warm-name { font-size: 13.5px; font-weight: 700; color: #065f46; min-width: 0; }
+.flow-warm-btns { margin-left: auto; flex: none; display: flex; gap: 6px; flex-wrap: wrap; justify-content: flex-end; }
 /* ═══ AUTH-426 · CALENTAMIENTO CARDIOVASCULAR: el bloque
    de primero en la tarjeta del día, sobre su degradado teal —
    cristal translúcido como el resto de la tarjeta vestida,
