@@ -29525,6 +29525,26 @@ function foodSetSub(name) {
 { const br = $('food-tab-resumen'); if (br) br.onclick = () => foodSetSub('resumen'); }
 { const bc = $('food-tab-consumido'); if (bc) bc.onclick = () => foodSetSub('consumido'); }
 
+/* ══ AL GUARDAR LA COMIDA, A LAS MÉTRICAS DEL DÍA (AUTH-421;
+   instrucción de Ronald, 2026-11-11 22:56 CST, con su captura de
+   la hoja «Registrar comida»): «cuando termine de guardar la
+   comida, se fuese de una vez a mostrar las métricas del
+   resultado hasta el momento de las comidas cargadas — donde se
+   ven las proteínas, las grasas… Que le lleve a esa pantalla».
+   LA pantalla es «Resumen» (#food-view-resumen): los cinco
+   mini-anillos de render() en #rings — kcal, proteína, carbos,
+   azúcar y grasas, cada uno «consumo/meta» — más la línea de
+   fibra del día: el acumulado del día FRENTE A LAS METAS. La
+   otra sub-vista, «Consumido», es el diario (la lista de lo
+   comido con su fila de total en gramos, sin metas) y queda
+   como estaba para la navegación; como DESTINO de guardado la
+   sustituye este ayudante, que es el único sitio donde vive el
+   destino: cambiarlo sería una palabra aquí. Los dos embudos de
+   guardado (aiSaveDirect y el envío de #form-meal) aterrizan
+   por él; la fecha que se ve es la guardada, porque ambos
+   embudos recargan con loadAllKeepDate(data.date). ══ */
+function foodLandOnMetrics() { try { foodOpenFloat(); foodSetSub('resumen'); } catch {} }
+
 /* El botón redondo «Comida» del dock es un <label> que envuelve el
    input de archivo: sin interceptar, tocarlo abriría la
    cámara/galería al instante, sin pasar por la hoja de los tres
@@ -31281,10 +31301,12 @@ async function aiSaveDirect() {
     else await addDoc(collection(db, 'nutrition_meals'), data);
     aiDiscard();
     await loadAllKeepDate(data.date);
-    /* X4 (puntos 19–20): guardada la comida, la ventana de Comida
-       cae en «Consumido» con la comida ya en el diario — la persona
-       ve su registro hecho, no una hoja vacía. */
-    try { foodOpenFloat(); foodSetSub('consumido'); } catch {}
+    /* X4 (puntos 19–20) era el destino hasta AUTH-421:
+       guardada la comida, la ventana de Comida cae en las
+       MÉTRICAS del día («Resumen»: los anillos frente a las
+       metas, ya con esta comida sumada) — instrucción de Ronald
+       del 2026-11-11 22:56 CST; ver foodLandOnMetrics. */
+    foodLandOnMetrics();
     /* Candidato automático a la antesala (corrección de P1): en
        segundo plano y en silencio; jamás bloquea este guardado. */
     try { foodlibAutoCandidate(data); } catch {}
@@ -51319,9 +51341,10 @@ $('form-meal').addEventListener('submit', async e => {
        nueva, la foto anterior del registro se retira de Storage. */
     if (editReplacedPhoto) { try { await deleteObject(sRef(storage, editReplacedPhoto)); } catch {} }
     /* Punto 84: si este guardado es el de una elección del
-       catálogo, su aterrizaje es el de la revisión de IA (caer en
-       Consumido), no la vuelta al origen. Se lee ANTES de que los
-       resets de abajo limpien la elección. */
+       catálogo, su aterrizaje es el de la revisión de IA, no la
+       vuelta al origen. Se lee ANTES de que los resets de abajo
+       limpien la elección. (Desde AUTH-421 ese aterrizaje
+       compartido es el de las métricas del día: foodLandOnMetrics.) */
     const wasPick = !!MEAL_PICK;
     aiClearDraft();
     repeatClear();
@@ -51336,8 +51359,20 @@ $('form-meal').addEventListener('submit', async e => {
       /* Diferido como la vuelta de backReturn: reabrir la ventana
          dentro del mismo gesto dejaría el clic a merced de los
          vigilantes de clic fuera de la familia Comida. */
-      setTimeout(() => { try { foodOpenFloat(); foodSetSub('consumido'); } catch {} }, 0);
-    } else backReturn(true);
+      setTimeout(() => { foodLandOnMetrics(); }, 0);
+    } else {
+      /* AUTH-421 «Al guardar la comida, a las métricas del
+         día»: TODA vía del formulario aterriza igual que la
+         revisión de IA — la ventana de Comida en «Resumen» de la
+         fecha guardada (la recarga de abajo pinta sus anillos) —,
+         también desde Pendientes y sin origen: la vuelta al
+         origen (backReturn) deja de gobernar el guardado de
+         comidas, y el origen se desarma como en la rama del
+         catálogo. backReturn NO se toca: el formulario de peso
+         conserva su vuelta de siempre. */
+      backClear();
+      setTimeout(() => { foodLandOnMetrics(); }, 0);
+    }
     e.target.reset();
     $('m-photo-preview').style.display = 'none'; $('m-photo-preview').src = '';
     await loadAllKeepDate(data.date);
@@ -55930,7 +55965,7 @@ document.addEventListener('keydown', e => { if (e.key === 'Escape') shareClose()
  *  - El SW (sw.js) solo cachea la cáscara del mismo origen en modo
  *    RED PRIMERO: Auth/Firestore/Worker jamás pasan por la caché.
  * ================================================================ */
-const PWA_SW_VERSION = '20261112-hojas-anchas';
+const PWA_SW_VERSION = '20261112-guardar-a-metricas';
 /* Sello de versión VISIBLE (2026-11-03): el pie de la tarjeta de
    acceso enseña qué copia corre este teléfono ('v ' + el sello),
    para comprobar de un vistazo si la versión nueva ya llegó.
