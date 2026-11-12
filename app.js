@@ -34329,16 +34329,20 @@ function trainCustomRenderSession(plan, di, closed, iso) {
   if (btn) { const tSpan = btn.querySelector('[data-i18n="train.custom.title"]'); if (tSpan) tSpan.textContent = isTodayView ? t('train.custom.title') : t('train.custom.titleDate', { date: dateName(viewIso) }); }
   const tools = $('train-custom-tools');
   if (!tools) return;
-  /* AÑADIR ARRIBA (AUTH-2026-11-11-403, orden de Ronald
-     2026-11-11 09:24 CST con destino confirmado a las 09:29):
-     los botones «🎙 Añadir dictando» y «📷 Por foto» SALEN de
-     este desplegable y viven en #train-add-row, en la parte
-     superior de la vista de Entrenamiento. Se pintan SOLO en
+  /* AÑADIR BAJO EL PLAN (AUTH-2026-11-11-403 los sacó de
+     este desplegable a la fila #train-add-row; AUTH-431,
+     orden de Ronald 2026-11-12 11:37 CST — «Estos iconos
+     debería estar debajo del plan» —, muda el CONTENEDOR:
+     ya no vive fijo en index.html sobre el plan; lo pinta la
+     plantilla de loadMyTraining dentro de #my-training, bajo
+     el bloque del plan y sobre la semana): los botones
+     «🎙 Añadir dictando» y «📷 Por foto» se pintan SOLO en
      la rama editable de abajo — la misma guarda exacta que
      tenían aquí dentro — y con su cableado de siempre; en
      cualquier otra rama (sin plan, sin sesión, cerrado, solo
      lectura) la fila queda vacía, como quedaba el desplegable
-     sin ellos. */
+     sin ellos. Esta función busca el contenedor por id: su
+     sitio en el DOM no le importa. */
   const addRow = $('train-add-row');
   const addRowClear = () => { if (addRow) addRow.innerHTML = ''; };
   if (!plan) { tools.innerHTML = ''; addRowClear(); swapSheetSync(null); return; }
@@ -34377,16 +34381,19 @@ function trainCustomRenderSession(plan, di, closed, iso) {
   /* AUTH-410 · PERSONALIZA SIN LA PUERTA DE GESTIONA: la
      hoja se retiró en este paquete — componer la sesión vive en
      la lista y en el foco guiado (arrastre, tarjeta y flujo).
-     Esta rama editable conserva el título y la fila de arriba
-     (dictado y foto, AUTH-2026-11-11-403) con su cableado de
-     siempre; el render de solo lectura de abajo queda intacto
-     para los días pasados del alumno con entrenador. */
+     Esta rama editable conserva el título y la fila de
+     añadir (dictado y foto, AUTH-2026-11-11-403; su
+     contenedor vive bajo el bloque del plan desde
+     AUTH-431) con su cableado de siempre; el render de
+     solo lectura de abajo queda intacto para los días pasados
+     del alumno con entrenador. */
   if (!readOnly) {
     tools.innerHTML = `<h4 class="tcu-title">${titleTxt}</h4>`;
-    /* AUTH-403: la fila de arriba se pinta y se cablea aquí, con
-       los mismos manejadores que trainCustomWire da a estos dos
-       botones (dictSheetOpen / mphSheetOpen con el plan y la
-       fecha vista) — las hojas que abren quedan intactas. */
+    /* AUTH-403 (el contenedor, bajo el bloque del plan desde
+       AUTH-431): la fila se pinta y se cablea aquí, con
+       los mismos manejadores que trainCustomWire da a estos
+       dos botones (dictSheetOpen / mphSheetOpen con el plan y
+       la fecha vista) — las hojas que abren quedan intactas. */
     if (addRow) {
       addRow.innerHTML = `<button type="button" class="btn-primary dict-open-btn" data-tcu-dict="1">${t('dict.open')}</button><button type="button" class="btn-secondary photo-open-btn" data-tcu-photo="1">${t('mph.open')}</button>`;
       const bDict = addRow.querySelector('[data-tcu-dict]');
@@ -34398,7 +34405,7 @@ function trainCustomRenderSession(plan, di, closed, iso) {
     swapSheetSync(plan, di, viewIso);
     return;
   }
-  addRowClear();   /* AUTH-403: en solo lectura la fila de arriba tampoco vive (como los botones, que aquí nunca se pintaban) */
+  addRowClear();   /* AUTH-403: en solo lectura la fila tampoco vive (como los botones, que aquí nunca se pintaban) */
   /* ORDEN DEL DÍA: subir/bajar vive en las mismas filas que cambiar/quitar, solo para quien puede reordenar su día y nunca en solo lectura. */
   const canMove = !readOnly && trainReorderAllowed();
   const removeTxt = isTodayView ? t('train.custom.removeToday') : t('train.custom.removeDay');
@@ -34437,8 +34444,10 @@ function trainCustomRenderSession(plan, di, closed, iso) {
        Aquí quedan Cambiar/Quitar por ejercicio. (La pintura del
        dictado y la foto que colgaba de esta rama era inalcanzable
        — esta rama solo corre en solo lectura — y se retiró con
-       AUTH-2026-11-11-403: los dos botones viven arriba, en
-       #train-add-row, pintados desde la rama editable.) */
+       AUTH-2026-11-11-403: los dos botones viven en
+       #train-add-row (sobre el plan hasta AUTH-431, que
+       mudó el contenedor bajo el bloque del plan), pintados
+       desde la rama editable.) */
   }
   tools.innerHTML = inner;
   if (readOnly) { swapSheetSync(null); return; }
@@ -41321,6 +41330,18 @@ async function loadMyTraining() {
     <p class="progress-hint">${t('train.planFreq', { n: (plan.days || []).length })}</p>
     `}
     ${myPlanLineHTML}
+    <!-- AUTH-431 · LA FILA DE AÑADIR, BAJO EL PLAN (orden
+         de Ronald 2026-11-12 11:37 CST: «Estos iconos debería
+         estar debajo del plan»): el contenedor #train-add-row
+         vive AQUÍ — bajo el bloque del plan (su cabecera y su
+         línea «📋 Plan: …») y sobre la semana —; hasta este
+         paquete vivía fijo en index.html, sobre el plan
+         (AUTH-2026-11-11-403). Lo pinta y lo vacía
+         trainCustomRenderSession (app.js), por id y con las
+         guardas de siempre: solo con el día editable; sin
+         plan, sin sesión, cerrado o en solo lectura queda
+         vacío y no ocupa nada (#train-add-row:empty). -->
+    <div id="train-add-row"></div>
     ${weekHtml}
     ${trainTodayHTML}
     ${isLoose ? '' : `<div style="margin:6px 0"><button class="btn-ghost btn-sm" id="btn-print-card">${t('train.print.btn')}</button></div>`}
@@ -56677,7 +56698,7 @@ document.addEventListener('keydown', e => { if (e.key === 'Escape') shareClose()
  *  - El SW (sw.js) solo cachea la cáscara del mismo origen en modo
  *    RED PRIMERO: Auth/Firestore/Worker jamás pasan por la caché.
  * ================================================================ */
-const PWA_SW_VERSION = '20261112-guardar-en-la-hoja';
+const PWA_SW_VERSION = '20261112-botones-bajo-el-plan';
 /* Sello de versión VISIBLE (2026-11-03): el pie de la tarjeta de
    acceso enseña qué copia corre este teléfono ('v ' + el sello),
    para comprobar de un vistazo si la versión nueva ya llegó.
