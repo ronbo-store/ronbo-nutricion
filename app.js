@@ -6233,7 +6233,7 @@ en: {
      del recorrido de nacimiento y de la línea de quitados. */
   'train.flow.start': '▶ Start',
   'train.flow.resume': '▶ Keep going',
-  'train.flow.finish': 'Finish',
+  'train.flow.finish': 'Finish exercise',
   'train.flow.inCourse': '● In progress',
   'train.flow.howWas': 'How was it?',
   'train.flow.pause': '⏸ Pause',
@@ -11255,7 +11255,7 @@ es: {
      del recorrido de nacimiento y de la línea de quitados. */
   'train.flow.start': '▶ Iniciar',
   'train.flow.resume': '▶ Seguir',
-  'train.flow.finish': 'Finalizar',
+  'train.flow.finish': 'Finalizar ejercicio',
   'train.flow.inCourse': '● En curso',
   'train.flow.howWas': '¿Qué tal fue?',
   'train.flow.pause': '⏸ Detener',
@@ -38075,7 +38075,11 @@ function sessPillSync(run) {
        PÍLDORA — la misma de la tarjeta, leída del mismo
        estado: sin empezar, solo «▶ Iniciar»; corriendo,
        solo «⏸ Detener»; en pausa, «▶ Seguir» y
-       «Finalizar». Con entrada y sin estado de flujo (la
+       «Finalizar». AUTH-449: corriendo lleva ADEMÁS
+       «Finalizar ejercicio» (data-pill-finish, el mismo
+       gesto de la tarjeta) — la primera vía también aquí,
+       sin que «Detener» deje de ser solo la pausa. Con
+       entrada y sin estado de flujo (la
        app se reabrió a mitad de ejercicio), la píldora
        ofrece «Seguir»: el ejercicio sigue en curso, con
        su tiempo bancado esperando en la marca. */
@@ -38083,7 +38087,7 @@ function sessPillSync(run) {
     if (!curChk) btn = `<button type="button" class="sp-btn ini" data-pill-start="${ck}">${esc(t('train.flow.start'))}</button>`;
     else if (flowSt === 'closing') btn = `<span class="sp-how">${esc(t('train.flow.howWas'))}</span>`;
     else if (flowSt === 'paused') btn = `<button type="button" class="sp-btn ini" data-pill-resume="${ck}">${esc(t('train.flow.resume'))}</button><button type="button" class="sp-btn fin" data-pill-finish="${ck}">${esc(t('train.flow.finish'))}</button>`;
-    else if (flowSt === 'open') btn = `<button type="button" class="sp-btn stop" data-pill-pause="${ck}">${esc(t('train.flow.pause'))}</button>`;
+    else if (flowSt === 'open') btn = `<button type="button" class="sp-btn stop" data-pill-pause="${ck}">${esc(t('train.flow.pause'))}</button><button type="button" class="sp-btn fin" data-pill-finish="${ck}">${esc(t('train.flow.finish'))}</button>`;
     else btn = `<button type="button" class="sp-btn ini" data-pill-resume="${ck}">${esc(t('train.flow.resume'))}</button>`;
     const flameLeft = pct <= 8 ? '13px' : (pct >= 92 ? 'calc(100% - 13px)' : pct + '%');
     html = `<div class="sp-main"><div class="sp-left"><div class="sp-top"><span class="sess-pill-dot${flowSt === 'paused' ? ' is-paused' : (curChk ? '' : ' is-todo')}" aria-hidden="true"></span><span class="sess-pill-time" id="sess-pill-time">00:00:00</span>${flowSt === 'paused' ? `<span class="sp-pause-tag">${esc(t('train.flow.pausedTag'))}</span>` : ''}</div>`
@@ -38157,8 +38161,12 @@ function sessPillWire(pill) {
           const it = trainEffectiveList(plan, diB)[eiB];
           if (it && !(TRAIN_CHECKS[key] && TRAIN_CHECKS[key].done === true)) {
             if (!TRAIN_CHECKS[key]) { TRAIN_CHECKS[key] = { rpe: null, sets: trainDefaultSets(it.ex) }; trainChecksPersist(plan.id); }
+            /* AUTH-449: el «Iniciar» de la píldora reconcilia
+               como el de la tarjeta (finaliza el otro en curso
+               y fija el foco — su pin de siempre vive ahora en
+               flowStartReconcile). */
+            flowStartReconcile(plan, key);
             TRAIN_FLOW[key] = { st: 'open', face: null, acc: (TRAIN_CHECKS[key] && typeof TRAIN_CHECKS[key].activeSec === 'number' && TRAIN_CHECKS[key].activeSec > 0) ? TRAIN_CHECKS[key].activeSec * 1000 : 0, since: Date.now() };
-            if (trainGuidePref() === 'guided') TRAIN_GUIDE.pin = eiB;
           }
         } else if (pau) {
           /* AUTH-434 · DETENER DE LA PÍLDORA: banca el
@@ -38181,9 +38189,12 @@ function sessPillWire(pill) {
           const key = res.dataset.pillResume;
           const chk = TRAIN_CHECKS[key];
           if (chk && chk.done !== true) {
+            /* AUTH-449: el «Seguir» de la píldora reconcilia
+               como el de la tarjeta (flowStartReconcile fija
+               también el foco, como su pin de siempre). */
+            flowStartReconcile(plan, key);
             if (TRAIN_FLOW[key] && TRAIN_FLOW[key].st === 'paused') { TRAIN_FLOW[key].st = 'open'; TRAIN_FLOW[key].since = Date.now(); }
             else if (!TRAIN_FLOW[key]) TRAIN_FLOW[key] = { st: 'open', face: Number.isInteger(chk.face) ? chk.face : null, acc: (typeof chk.activeSec === 'number' && chk.activeSec > 0) ? chk.activeSec * 1000 : 0, since: Date.now() };
-            if (trainGuidePref() === 'guided') TRAIN_GUIDE.pin = Number(key.split(':')[1]);
           }
         }
       }
@@ -38231,17 +38242,29 @@ function trainBarState() {
   eff.forEach((it, ei) => { const c = checks[di + ':' + ei]; if (!c || c.done !== true) pend.push(ei); });
   if (!pend.length) return null;
   /* El «de ahora»: en el guiado manda el foco fijado (la barra de
-     la B1 vive sobre esa vista); si no, el primer pendiente con
-     entrada en curso; si ninguno, el primer pendiente. El
-     «siguiente»: el primer pendiente POSTERIOR aún sin empezar
-     (si ya empezó, no se le ofrece «Iniciar» otra vez). */
+     la B1 vive sobre esa vista); si no, AUTH-449: manda el estado
+     de flujo — el ejercicio con el reloj corriendo ('open') es el
+     de ahora y, si ninguno corre, el que está en pausa; solo si
+     ningún pendiente trae estado de flujo se cae a la lectura de
+     siempre (el primer pendiente con entrada; si ninguno, el
+     primer pendiente). El «siguiente»: el primer pendiente
+     POSTERIOR al de ahora, haya empezado o no — la columna
+     «SIGUE» solo nombra (su botón vive en la zona principal,
+     sobre el de ahora): un ejercicio empezado y en pausa que
+     quedó detrás del de ahora ES lo que sigue, y la píldora no
+     puede saltárselo en silencio contando su posición como si
+     ya hubiera pasado (la contradicción de la captura del
+     2026-11-13: actual = el ejercicio 1 reiniciado y «Ejercicio
+     3 de 4» como siguiente, con el 2 en curso invisible). */
   let cur = null;
   try {
     if (trainGuidePref() === 'guided' && Number.isInteger(TRAIN_GUIDE.pin) && pend.includes(TRAIN_GUIDE.pin)) cur = TRAIN_GUIDE.pin;
   } catch {}
+  if (cur == null) { for (const ei of pend) { const fsB = TRAIN_FLOW[di + ':' + ei]; if (fsB && fsB.st === 'open') { cur = ei; break; } } }
+  if (cur == null) { for (const ei of pend) { const fsB = TRAIN_FLOW[di + ':' + ei]; if (fsB && fsB.st === 'paused') { cur = ei; break; } } }
   if (cur == null) { for (const ei of pend) { if (checks[di + ':' + ei]) { cur = ei; break; } } }
   if (cur == null) cur = pend[0];
-  const nxt = pend.find(ei => ei > cur && !checks[di + ':' + ei]);
+  const nxt = pend.find(ei => ei > cur);
   return { run, plan, di, checks, eff, cur, nxt: (nxt === undefined ? null : nxt) };
 }
 
@@ -39448,7 +39471,13 @@ function trainFlowHTML(ex, di, ei) {
     return `${trainFlowWarmCardHTML(ex, key, chk)}${trainFlowSetsHTML(ex, key, chk)}<div class="flow-row"><span class="flow-incourse is-paused">${t('train.flow.paused')}</span><button type="button" class="flow-btn is-start" data-flow-resume="${key}">${t('train.flow.resume')}</button><button type="button" class="flow-btn is-finish" data-flow-finish="${key}">${t('train.flow.finish')}</button></div><div class="flow-foot"><button type="button" class="flow-mini" data-flow-swap="${key}">🔀 ${t('train.custom.swap')}</button><button type="button" class="flow-mini is-quit" data-flow-remove="${key}">${t('train.flow.removeToday')}</button></div>`;
   }
   if (fs && fs.st === 'open' && chk) {
-    return `${trainFlowWarmCardHTML(ex, key, chk)}${trainFlowSetsHTML(ex, key, chk)}<div class="flow-row"><span class="flow-incourse">${t('train.flow.inCourse')}</span><button type="button" class="flow-btn is-pause" data-flow-pause="${key}">${t('train.flow.pause')}</button></div><div class="flow-foot"><button type="button" class="flow-mini" data-flow-swap="${key}">🔀 ${t('train.custom.swap')}</button><button type="button" class="flow-mini is-quit" data-flow-remove="${key}">${t('train.flow.removeToday')}</button></div>`;
+    /* AUTH-449 · LA PRIMERA VÍA, VISIBLE EN CURSO: la fila del
+       ejercicio que corre trae su «Finalizar ejercicio» junto a
+       «Detener» — el mismo data-flow-finish de la pausa, con su
+       misma etiqueta — porque finalizar no puede exigir pasar
+       primero por la pausa: «Detener» pausa y «Finalizar
+       ejercicio» termina, y cada acción tiene su botón. */
+    return `${trainFlowWarmCardHTML(ex, key, chk)}${trainFlowSetsHTML(ex, key, chk)}<div class="flow-row"><span class="flow-incourse">${t('train.flow.inCourse')}</span><button type="button" class="flow-btn is-pause" data-flow-pause="${key}">${t('train.flow.pause')}</button><button type="button" class="flow-btn is-finish" data-flow-finish="${key}">${t('train.flow.finish')}</button></div><div class="flow-foot"><button type="button" class="flow-mini" data-flow-swap="${key}">🔀 ${t('train.custom.swap')}</button><button type="button" class="flow-mini is-quit" data-flow-remove="${key}">${t('train.flow.removeToday')}</button></div>`;
   }
   /* AUTH-434 · SIN EMPEZAR, SOLO «INICIAR» (la
      maqueta aprobada): el «Finalizar» atenuado que
@@ -39479,6 +39508,71 @@ function trainRemovedLineHTML(plan, di, iso) {
     const shown = sw ? (trainExName({ exerciseId: sw.exerciseId || null, name: sw.name || '', variantIndex: sw.variantIndex }) || sw.name || '') : (trainExName(dayExs[slot]) || (dayExs[slot] && dayExs[slot].name) || '');
     return `<div class="flow-removed-line"><span class="flow-removed-name">🗑 ${esc(t('train.flow.removedToday', { name: shown }))}</span><button type="button" class="flow-restore-btn" data-flow-restore="${di}:${slot}">↩ ${t('train.custom.restore')}</button></div>`;
   }).join('');
+}
+/* ═══ AUTH-449 · UN SOLO EJERCICIO EN CURSO; INICIAR FINALIZA
+   EL ACTUAL (decisión de Ronald, 2026-11-13 11:41 CST, dictada
+   desde el chat RONBO.STORE entrenando en vivo, con la segunda
+   captura: dos ejercicios «En curso» a la vez en su lista y la
+   píldora en el primero con «SIGUE · Ejercicio 3 de 4»).
+   Su especificación, en sus términos:
+   (1) UN solo ejercicio en curso a la vez: darle «Iniciar» al
+   ejercicio siguiente FINALIZA automáticamente el actual —
+   es la segunda vía del mismo finalizar.
+   (2) La primera vía es un botón VISIBLE ahí mismo, en el
+   ejercicio actual, que dice «Finalizar ejercicio» — nace en
+   este paquete en la tarjeta (lista y foco) y en la píldora,
+   junto a «Detener»: hasta hoy finalizar solo se alcanzaba
+   desde la pausa.
+   (3) «Detener» es la PAUSA (AUTH-434) y «Finalizar» es
+   terminar el ejercicio: acciones distintas que no comparten
+   etiqueta ni botón — la clave train.flow.finish pasa a
+   decir «Finalizar ejercicio» en sus dos pintados de siempre
+   (la fila en pausa de la tarjeta y la píldora).
+   (4) NADA de paralelismo silencioso: dos ejercicios a la vez
+   (superseries) serían una propuesta aparte, escrita y con
+   maqueta — no entran aquí ni como resto.
+   Es el flujo de la barra fina retirada en AUTH-425
+   («Finalizar» en el actual, «Iniciar» en el siguiente) que
+   vuelve a las dos superficies que quedaron, fusionado en el
+   gesto: iniciar el siguiente ES finalizar el actual.
+   LA RECONCILIACIÓN, en el gesto mismo: todo «Iniciar» y todo
+   «Seguir» del día (la tarjeta en la lista y en el foco, y la
+   píldora) — y las vueltas a en curso de AUTH-409 — pasan
+   primero por aquí: cualquier OTRO ejercicio del mismo día
+   con el reloj corriendo se FINALIZA con el cuerpo exacto
+   del botón (data-flow-finish): su tramo se banca en su marca
+   como activeSec y su estado entra en su cierre ('closing'),
+   con la cara que trajera elegida — ni un segundo ni una
+   serie se pierden, y su hecho sigue naciendo de «✓ Marcar
+   hecho» en su banda de cierre, como manda AUTH-406 (la
+   bifurcación de si finalizar debería además contar el
+   ejercicio como hecho sin pasar por la banda queda
+   documentada en el informe del paquete como decisión
+   pendiente de Ronald; este candidato NO la toma). El foco
+   del guiado se fija en el ejercicio que arranca, como ya
+   hacía el «Iniciar» de la píldora en el guiado; el pin se
+   fija sin mirar la vista en curso — si el contexto del
+   guiado es otro día, su propio pintado lo descarta al no
+   cuadrar, y si es este día, foco y píldora cuentan lo mismo
+   aunque el gesto nazca en la lista. Un ejercicio ya en su
+   cierre o en pausa NO se toca: la pausa es la decisión
+   expresa de «Detener» y su cierre sigue siendo suyo. ═══ */
+function flowStartReconcile(plan, key) {
+  const diR = Number(String(key).split(':')[0]);
+  const eiR = Number(String(key).split(':')[1]);
+  let sealed = false;
+  Object.keys(TRAIN_FLOW).forEach(k => {
+    if (k === key) return;
+    const fs = TRAIN_FLOW[k];
+    if (fs && fs.st === 'open' && Number(String(k).split(':')[0]) === diR) {
+      flowClockBank(k);
+      TRAIN_FLOW[k] = { st: 'closing', face: fs.face != null ? fs.face : (TRAIN_CHECKS[k] && typeof TRAIN_CHECKS[k].face === 'number' ? TRAIN_CHECKS[k].face : null) };
+      sealed = true;
+    }
+  });
+  if (sealed && plan) trainChecksPersist(plan.id);
+  if (Number.isInteger(eiR)) TRAIN_GUIDE.pin = eiR;
+  return sealed;
 }
 /* El cableado del flujo: lo llama la vista de Entrenamiento tras
    pintar (la lista y el foco guiado comparten tarjeta y caja).
@@ -39540,6 +39634,12 @@ function trainFlowWire(box, plan) {
        marca de hecho) y despliega sus series — es además quien
        despierta el cronómetro, como la marca de siempre. */
     if (!TRAIN_CHECKS[key]) TRAIN_CHECKS[key] = { rpe: null, sets: trainDefaultSets(itF.ex) };
+    /* AUTH-449: arrancar ESTE ejercicio FINALIZA el que
+       estuviera en curso (la reconciliación de
+       flowStartReconcile: el mismo finalizar del botón) y fija
+       el foco en él — iniciar uno que no es el actual ya no
+       deja dos en curso ni dos «actuales» según la vista. */
+    flowStartReconcile(plan, key);
     trainChronoTouch(plan.id, trainDayLabelOf(plan, diF));
     trainChecksPersist(plan.id);
     TRAIN_FLOW[key] = { st: 'open', face: Number.isInteger(TRAIN_CHECKS[key].face) ? TRAIN_CHECKS[key].face : null, acc: (typeof TRAIN_CHECKS[key].activeSec === 'number' && TRAIN_CHECKS[key].activeSec > 0) ? TRAIN_CHECKS[key].activeSec * 1000 : 0, since: Date.now() };
@@ -39576,6 +39676,10 @@ function trainFlowWire(box, plan) {
     const key = b.dataset.flowResume;
     const fsR = TRAIN_FLOW[key];
     if (!fsR || fsR.st !== 'paused') return;
+    /* AUTH-449: seguir también es arrancar — el que estuviera
+       en curso se finaliza y el foco viene a este, como al
+       iniciar. */
+    flowStartReconcile(plan, key);
     fsR.st = 'open';
     fsR.since = Date.now();
     loadMyTraining();
@@ -39624,6 +39728,9 @@ function trainFlowWire(box, plan) {
   box.querySelectorAll('[data-flow-mark-plan]').forEach(b => b.onclick = () => flowMarkDone(b.dataset.flowMarkPlan, true));
   box.querySelectorAll('[data-flow-back]').forEach(b => b.onclick = () => {
     const key = b.dataset.flowBack;
+    /* AUTH-449: volver del cierre también pone a este de
+       actual — el que estuviera en curso se finaliza antes. */
+    flowStartReconcile(plan, key);
     TRAIN_FLOW[key] = { st: 'open', face: (TRAIN_FLOW[key] || {}).face || null };
     loadMyTraining();
   });
@@ -39637,6 +39744,9 @@ function trainFlowWire(box, plan) {
     const key = b.dataset.flowUnmark;
     const chkU = TRAIN_CHECKS[key];
     if (chkU) { delete chkU.done; trainChecksPersist(plan.id); }
+    /* AUTH-449: desmarcar vuelve a poner a este de actual —
+       el que estuviera en curso se finaliza antes. */
+    flowStartReconcile(plan, key);
     TRAIN_FLOW[key] = { st: 'open', face: chkU && Number.isInteger(chkU.face) ? chkU.face : null };
     loadMyTraining();
   });
