@@ -6112,4 +6112,18 @@ body.train-drag-lock { overflow: hidden; overscroll-behavior: none; }
 .restr-back-btn { flex: none; min-height: 54px; padding: 10px 18px; border-radius: 14px; font-size: 15px; }
 .restr-apply-btn { flex: 1; min-height: 54px; font-size: 16.5px; border-radius: 14px; }
 .restr-apply-btn:disabled { opacity: .45; }
+/* ═══ LA MASCOTA REESTRUCTURA (AUTH-442): el anfitrión de las
+   fases de AUTH-440 dentro de la conversación del Coach y las
+   acciones del camino sin encaje. Las fases reusadas conservan
+   sus estilos .restr-* de siempre; aquí solo nace el contenedor
+   y lo nuevo de la conversación. */
+.asst-restr-host { background: #f4fbfa; border: 1.5px solid #bfe3de; border-radius: 16px; padding: 12px; margin: 6px 0 10px; }
+.asst-restr-host .swap-sheet-head { margin-bottom: 6px; }
+.asst-restr-miccost { margin-top: 10px; }
+.asst-restr-close { min-height: 48px; margin-top: 10px; }
+.asst-restr-actions { display: flex; flex-direction: column; gap: 8px; margin: 4px 0 10px; }
+.asst-restr-act { min-height: 52px; border-radius: 14px; border: 1.5px solid #0d9488; background: #fff; color: #0b7c72; font-size: 15.5px; font-weight: bold; cursor: pointer; padding: 10px 14px; }
+.asst-restr-act.ai { background: #0d9488; color: #fff; }
+.asst-restr-act:active { filter: brightness(.96); }
+
 

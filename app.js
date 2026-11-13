@@ -5439,6 +5439,26 @@ en: {
   'asst.chip2': "What's on today?",
   'asst.chip3': "How's my week going?",
   'asst.dictDoor': '🎙 Do you want to add something to your workout?',
+  'asst.restrDoor': '🔀 Do you want to rebuild your day?',
+  'asst.restrAsk': 'Of course! Which muscles do you want to train today? Tap them right here — or tell me out loud.',
+  'asst.restrUnderstood': 'Got it: {groups}. I worked that out right here on your phone — 0 AI uses. Here is your day:',
+  'asst.restrUnderstoodAi': 'The AI read it as: {groups}. That reading used 1 AI use. Here is your day:',
+  'asst.restrSay': 'Got it: {groups}. Building your day.',
+  'asst.restrNoFit': 'I couldn\'t work that one out on your phone — {why} I can have the AI read it (1 AI use), or you tap the muscles yourself.',
+  'asst.restrWhyUmbrella': '"{word}" covers several muscles and I won\'t guess which ones.',
+  'asst.restrWhyNone': 'I didn\'t hear any muscle in it.',
+  'asst.restrWhyNeg': 'it asks to leave a muscle out, and rebuilding only builds — it never takes away.',
+  'asst.restrAiBtn': 'Read it with AI · 1 use',
+  'asst.restrTouchBtn': 'I\'ll tap the muscles',
+  'asst.restrAiNone': 'The AI couldn\'t pick the muscles out of that one either — and there is no second charge. Tap them here:',
+  'asst.restrMicCost': 'Dictating with the big microphone while we build your day uses 1 AI use to turn your voice into text — and it never uses up your coach questions. Dictating with the keyboard is free.',
+  'asst.restrMicEmpty': 'I didn\'t hear anything in that recording, so nothing went anywhere.',
+  'asst.restrNoPlan': 'You don\'t have a training plan yet, so there is no day to rebuild.',
+  'asst.restrDayClosed': 'Today\'s session has already started (or is closed), and a day under way is never rebuilt. A future day can be, before you start it.',
+  'asst.restrFreeDay': 'Today is your free day — there is no session to rebuild. Enjoy it!',
+  'asst.restrTrainer': 'Rebuilding your day is your trainer\'s job, from your file — from here I can only chat. Ask them and they will rebuild it for you.',
+  'asst.restrCap': 'Today\'s AI uses are used up, so the AI can\'t read that phrase right now. Tapping the muscles is still free:',
+  'asst.restrFail': 'That reading failed just now — a failed call is never charged. You can tap the muscles instead:',
   'asst.dictNoPlan': "You don't have a training plan yet — your trainer prepares it in Training.",
   'asst.dictClosed': "Today's session is already closed, so nothing more can be added to it.",
   'asst.talk': 'Talk',
@@ -10405,6 +10425,26 @@ es: {
   'asst.chip2': '¿Qué toca hoy?',
   'asst.chip3': '¿Cómo va mi semana?',
   'asst.dictDoor': '🎙 ¿Quieres añadir algo a tu entrenamiento?',
+  'asst.restrDoor': '🔀 ¿Quieres reestructurar tu día?',
+  'asst.restrAsk': '¡Claro! ¿Qué músculos quieres trabajar hoy? Tócalos aquí mismo, o dímelos en voz alta.',
+  'asst.restrUnderstood': 'Entendido: {groups}. Lo resolví aquí mismo, en tu teléfono: 0 usos de IA. Aquí va tu día:',
+  'asst.restrUnderstoodAi': 'La IA lo leyó así: {groups}. Esa lectura usó 1 uso de IA. Aquí va tu día:',
+  'asst.restrSay': 'Entendido: {groups}. Te armo el día.',
+  'asst.restrNoFit': 'Esa no la pude resolver en tu teléfono: {why} Puedo pedirle a la IA que la lea (1 uso de IA), o tocas los músculos tú.',
+  'asst.restrWhyUmbrella': '«{word}» abarca varios músculos y no voy a adivinar cuáles.',
+  'asst.restrWhyNone': 'no escuché ningún músculo en la frase.',
+  'asst.restrWhyNeg': 'pide dejar un músculo fuera, y reestructurar solo arma: nunca quita.',
+  'asst.restrAiBtn': 'Leerla con IA · 1 uso',
+  'asst.restrTouchBtn': 'Toco los músculos yo',
+  'asst.restrAiNone': 'La IA tampoco sacó los músculos de esa frase, y no hay segundo cargo. Tócalos aquí:',
+  'asst.restrMicCost': 'Dictar con el micrófono grande mientras armamos tu día usa 1 uso de IA para pasar tu voz a texto, y nunca gasta tus preguntas del coach. El dictado del teclado es gratis.',
+  'asst.restrMicEmpty': 'No escuché nada en esa grabación, así que no salió nada a ningún sitio.',
+  'asst.restrNoPlan': 'Aún no tienes un plan de entrenamiento: no hay día que reestructurar.',
+  'asst.restrDayClosed': 'La sesión de hoy ya empezó (o está cerrada), y un día en marcha nunca se reestructura. Uno futuro sí, antes de empezarlo.',
+  'asst.restrFreeDay': 'Hoy es tu día libre: no hay sesión que reestructurar. ¡A disfrutarlo!',
+  'asst.restrTrainer': 'Reestructurar tu día lo hace tu entrenador, desde tu ficha; desde aquí solo converso. Pídeselo y te lo rearma.',
+  'asst.restrCap': 'Los usos de IA de hoy ya se acabaron: la IA no puede leer esa frase ahora. Tocar los músculos sigue siendo gratis:',
+  'asst.restrFail': 'Esa lectura falló ahora mismo; una llamada fallida nunca se cobra. Puedes tocar los músculos:',
   'asst.dictNoPlan': 'Aún no tienes un plan de entrenamiento: tu entrenador lo prepara en Entrenamiento.',
   'asst.dictClosed': 'La sesión de hoy ya está cerrada: no se le puede añadir nada más.',
   'asst.talk': 'Hablar',
@@ -30662,9 +30702,13 @@ function asstOpen() {
   try { if ('speechSynthesis' in window) window.speechSynthesis.getVoices(); } catch {}
   asstUnlockSpeech();
   try { asstSpeakPaint(ASST.speaking); } catch {}
+  try { asstRestrChipSync(); } catch {}
 }
 function asstClose() {
   const sh = $('asst-float'); if (sh) sh.style.display = 'none';
+  /* AUTH-442: cerrar la hoja descarta el flujo de reestructurar
+     de la conversación, si lo había (el motor es uno solo). */
+  if (typeof RESTR !== 'undefined' && RESTR && RESTR.host === 'chat') { RESTR = null; try { restrSheetSync(); } catch {} }
   if (ASST_REC.rec) asstRecFinish(false);
   asstStopSpeak();
 }
@@ -30942,6 +30986,13 @@ async function asstTalkTap() {
     rd.onload = () => {
       const dataUrl = String(rd.result || '');
       if (!dataUrl.startsWith('data:')) { asstRecPaint('idle'); toast(t('aiVoice.unsupported'), true); return; }
+      /* AUTH-442 (D2): con el flujo de reestructurar abierto en
+         la conversación (fase de elegir), el micrófono grande
+         sirve a esa puerta: su audio va a /transcribe (1 uso) y
+         la transcripción entra en el resolvedor local — nunca a
+         /assistant ni a la puerta de preguntas del Coach. Sin
+         ese flujo, pregunta normal de siempre. */
+      if (asstRestrMicRoute(dataUrl)) return;
       asstSend({ audioDataUrl: dataUrl });
     };
     rd.onerror = () => { asstRecPaint('idle'); toast(t('aiVoice.unsupported'), true); };
@@ -31005,6 +31056,11 @@ function asstSendText() {
   if (!text || ASST.busy) return;
   asstUnlockSpeech();
   inp.value = '';
+  /* D6 (AUTH-442): el resolvedor local corre sobre TODO lo que
+     sale de la caja (escrito o dictado por el teclado) ANTES de
+     /assistant: intención clara de reestructurar → la puerta de
+     la mascota; sin intención, la pregunta sigue intacta. */
+  if (asstRestrHandleText(text)) return;
   asstSend({ text });
 }
 { const b = $('btn-asst-fab'); if (b) b.onclick = () => asstOpen(); }
@@ -31021,6 +31077,11 @@ document.querySelectorAll('[data-asst-chip]').forEach(ch => { ch.onclick = () =>
    atributo y su propio cableado, fuera del camino de asstSend —
    tocarla jamás gasta un turno de IA (Paquete 2, 2026-11-06). */
 document.querySelectorAll('[data-asst-dict]').forEach(b => { b.onclick = () => { asstDictDoorOpen(); }; });
+/* La puerta a reestructurar tiene la misma forma que la del
+   dictado: su propio atributo y su propio cableado, fuera del
+   camino de asstSend — tocarla jamás gasta un turno de IA
+   (AUTH-442, decisiones de Ronald del 2026-11-13). */
+document.querySelectorAll('[data-asst-restr]').forEach(b => { b.onclick = () => { if (!ASST.busy) asstRestrDoorTap(); }; });
 
 /* Apertura del modal de comida con enfoque visible en el formulario. */
 function aiOpenMealModal() {
@@ -34252,6 +34313,14 @@ function restrNextDateFor(plan, di) {
 /* ---------- Las hojas (patrón .swap-sheet de la casa) ------ */
 let RESTR = null;   // { surface:'own'|'stu', uid, plan, di, iso, ctx, chosen:[], built, scope, pains, painKnown }
 function restrSheetSync() {
+  /* ANFITRIÓN (AUTH-442): con host 'chat' las fases viven dentro
+     de la conversación del Coach (restrChatSync, en el módulo de
+     la mascota); con la hoja de siempre, este cuerpo no cambia.
+     Al cerrar o al pintar en hoja se retira cualquier anfitrión
+     de conversación que hubiera quedado. */
+  const SHost = RESTR;
+  if (SHost && SHost.host === 'chat') { restrChatSync(); return; }
+  { const hh = document.getElementById('asst-restr-host'); if (hh) hh.remove(); }
   let sheet = document.getElementById('restr-sheet');
   const S = RESTR;
   if (!S) {
@@ -34386,9 +34455,15 @@ function restrPreviewWire(sheet, S) {
       S.built.rows[i].loadKg = isFinite(v) && v > 0 ? Math.round(v * 100) / 100 : null;
     });
     apply.disabled = true;
+    const wasChat = S.host === 'chat';
     try {
       if (S.surface === 'stu') await restrApplyStu(S);
       else await restrApplyOwn(S);
+      /* AUTH-442: aplicado desde la conversación, la mascota lo
+         confirma también en una burbuja (el toast es el mismo). */
+      if (wasChat) {
+        try { asstBubble('bot', S.surface === 'stu' ? t('restr.stuAppliedPlan') : S.scope === 'plan' ? t('restr.appliedPlan') : t('restr.appliedDay', { date: dateName(S.iso) })); } catch {}
+      }
     } catch (e) {
       apply.disabled = false;
       toast(t('restr.error'), true);
@@ -34468,7 +34543,7 @@ async function restrApplyStu(S) {
    gemela sobre los documentos de su alumno — y solo se usa para
    EXCLUIR y contar, jamás para mostrar la zona. */
 async function restrOpen(opts) {
-  RESTR = { surface: opts.surface, uid: opts.uid, plan: opts.plan, di: opts.di, iso: opts.iso || null, ctx: null, chosen: [], built: null, scope: 'day', pains: [], painKnown: false, histIdx: null, phase: 'loading', ch: null };
+  RESTR = { surface: opts.surface, uid: opts.uid, plan: opts.plan, di: opts.di, iso: opts.iso || null, ctx: null, chosen: [], built: null, scope: 'day', pains: [], painKnown: false, histIdx: null, phase: 'loading', host: opts.host === 'chat' ? 'chat' : 'sheet', ch: null };
   restrSheetSync();
   await libEnsure().catch(() => {});
   if (!RESTR) return;
@@ -34524,6 +34599,331 @@ function restrWireGlobal() {
   });
 }
 restrWireGlobal();
+
+/* ════════════════════════════════════════════════════════════
+   LA MASCOTA REESTRUCTURA (AUTH-442) — la puerta conversada del
+   Coach Virtual al motor de AUTH-440, con las SEIS decisiones de
+   Ronald (chat RONBO.NUTRI, 2026-11-13 00:27–00:40 CST):
+
+   (D1) Si la frase NO encaja limpio en el resolvedor local, se
+   gasta 1 uso del fondo común en interpretarla con IA — la ruta
+   nueva POST /restr-interpret del Worker, último recurso — y
+   solo con el toque de la persona en su botón (la mascota nunca
+   gasta por sí misma, como nunca aplica por sí misma: el coste
+   va escrito en el botón). Si la IA resuelve → confirmación y
+   vista previa; si tampoco resuelve → las pastillas, sin
+   segundo gasto. El cargo vive en el Worker y solo corre si la
+   llamada responde (doctrina F-05/AUTH-303).
+   (D2) El micrófono grande SÍ sirve a esta puerta, pagando su
+   uso: con el flujo abierto en la conversación, su audio va a
+   /transcribe (1 uso, el coste que la casa ya declara en
+   dict.micCost) y la transcripción entra en el resolvedor.
+   El dictado del teclado sigue siendo la vía gratuita.
+   (D3) La acción NO consume preguntas del Coach: ni la puerta
+   de 3/día ni el historial de preguntas se tocan en ningún
+   camino de esta puerta; los únicos cargos posibles son D2 y
+   D1, cada uno declarado en la interfaz antes o al momento.
+   (D4) Pastillas y vista previa viven DENTRO de la conversación
+   (#asst-restr-host en #asst-log) con los pintores y cableados
+   de AUTH-440 reusados tal cual — el motor es UNO solo y la
+   hoja de la tarjeta queda intacta (RESTR.host decide el
+   anfitrión; restrSheetSync despacha).
+   (D5) La mascota LEE EN VOZ ALTA su confirmación de lo
+   entendido, con la voz del teléfono (asstSpeak; coste 0).
+   Solo la confirmación, no la vista previa entera.
+   (D6) El resolvedor corre sobre TODO texto que sale de la
+   caja del Coach (escrito o dictado por el teclado; y la
+   transcripción del micrófono grande según D2), ANTES de
+   /assistant. Guardas anti-falsos-positivos: la frase con ? o
+   ¿ es una pregunta y nunca se intercepta; la intención negada
+   («no quiero entrenar…») tampoco; y el encaje limpio exige
+   intención + ≥1 grupo + ninguna palabra paraguas + ninguna
+   negación sobre un grupo. Una frase dudosa NO secuestra una
+   pregunta legítima: sin intención clara, el texto sigue su
+   camino normal, intacto.
+
+   Doctrina nombrada: EXCEPCIÓN CERRADA a la solo lectura del
+   Coach Virtual (diseño del ayudante §8.1) — segunda puerta
+   de acción con la forma de la primera (la del dictado,
+   2026-11-06). La mascota no escribe nada por sí misma: ni al
+   tocar la puerta, ni al entender una frase, ni al armar la
+   vista previa. La única escritura de todo el camino es la
+   de AUTH-440, con el toque de «Aplicar» de la persona y su
+   pregunta de alcance. Mandan intactas restructureAllowed()
+   y la compuerta del día (solo hoy sin empezar), y la
+   superficie del entrenador NO entra por el Coach: su
+   contexto es siempre el de la propia persona. */
+/* ---------- El resolvedor local (puro, sin red) ---------- */
+const ASST_RESTR_WORDS = {
+  pecho: 'Pecho', pectoral: 'Pecho', pectorales: 'Pecho', chest: 'Pecho', pecs: 'Pecho',
+  espalda: 'Espalda', dorsal: 'Espalda', dorsales: 'Espalda', back: 'Espalda', lats: 'Espalda',
+  hombro: 'Hombros', hombros: 'Hombros', deltoide: 'Hombros', deltoides: 'Hombros', shoulder: 'Hombros', shoulders: 'Hombros', delts: 'Hombros',
+  triceps: 'Tríceps', biceps: 'Bíceps',
+  cuadriceps: 'Cuádriceps', cuadricep: 'Cuádriceps', quadriceps: 'Cuádriceps', quads: 'Cuádriceps', quad: 'Cuádriceps', muslo: 'Cuádriceps', muslos: 'Cuádriceps', thigh: 'Cuádriceps', thighs: 'Cuádriceps',
+  isquiotibiales: 'Isquiotibiales', isquiotibial: 'Isquiotibiales', isquios: 'Isquiotibiales', isquio: 'Isquiotibiales', femoral: 'Isquiotibiales', femorales: 'Isquiotibiales', hamstring: 'Isquiotibiales', hamstrings: 'Isquiotibiales', posterior: 'Isquiotibiales', posteriores: 'Isquiotibiales',
+  gluteos: 'Glúteos', gluteo: 'Glúteos', pompas: 'Glúteos', pompis: 'Glúteos', nalgas: 'Glúteos', nalga: 'Glúteos', glutes: 'Glúteos', glute: 'Glúteos', butt: 'Glúteos',
+  pantorrillas: 'Pantorrillas', pantorrilla: 'Pantorrillas', gemelos: 'Pantorrillas', gemelo: 'Pantorrillas', calves: 'Pantorrillas', calf: 'Pantorrillas', soleo: 'Pantorrillas',
+  core: 'Core', abdomen: 'Core', abdominal: 'Core', abdominales: 'Core', abs: 'Core'
+};
+const ASST_RESTR_PHRASES = [['cuerpo completo', 'Cuerpo completo'], ['full body', 'Cuerpo completo'], ['todo el cuerpo', 'Cuerpo completo']];
+const ASST_RESTR_UMBRELLA = { pierna: 1, piernas: 1, leg: 1, legs: 1, brazo: 1, brazos: 1, arm: 1, arms: 1 };
+const ASST_RESTR_UMBRELLA_PHRASES = ['tren inferior', 'tren superior', 'lower body', 'upper body', 'parte inferior', 'parte superior'];
+const ASST_RESTR_NEG = { sin: 1, no: 1, evita: 1, evitar: 1, quita: 1, quitar: 1, fuera: 1, menos: 1, without: 1, skip: 1, avoid: 1, not: 1, never: 1 };
+/* Intenciones FUERTES: la orden de reestructurar se nombra o el
+   deseo de entrenar es expreso. Intenciones DÉBILES («hoy
+   quiero», «quiero hacer»): solo cuentan si la frase trae un
+   grupo, una palabra paraguas o una palabra de entrenamiento —
+   «hoy quiero descansar» no es una orden de reestructurar. */
+const ASST_RESTR_INTENT_STRONG = [/\breestructura/, /\brestructure/, /\brearma/, /\brebuild\b/, /\barma mi dia\b/, /\barmame el dia\b/, /\barma el dia\b/, /\bbuild my day\b/, /\bcambia mi dia\b/, /\bcambiar mi dia\b/, /\bcambia mi entrenamiento\b/, /\bchange my day\b/, /\bchange my workout\b/, /\bquiero entrenar\b/, /\bvamos a entrenar\b/, /\btoca entrenar\b/, /\bentrenar hoy\b/, /\bi want to train\b/, /\bwant to train\b/];
+const ASST_RESTR_INTENT_WEAK = [/\bhoy quiero\b/, /\bquiero hacer\b/, /\bquiero trabajar\b/, /\bquiero darle\b/, /\bquiero\b/, /\bi want to work\b/, /\bwant to work out\b/];
+function asstRestrNorm(s) {
+  return String(s == null ? '' : s).toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '').replace(/['\u2019]/g, ' ');
+}
+function asstRestrResolve(text, inDoor) {
+  const raw = String(text == null ? '' : text);
+  const out = { intent: false, groups: [], umbrella: '', negated: false, clean: false };
+  /* Guarda D6: una pregunta es una pregunta — nunca se intercepta. */
+  if (/[?¿]/.test(raw)) return out;
+  const norm = asstRestrNorm(raw);
+  /* Guarda D6: la intención negada tampoco se intercepta. */
+  if (/\bno quiero\b/.test(norm) || /\bno voy a\b/.test(norm) || /\bdon t want\b/.test(norm) || /\bnot going to\b/.test(norm)) return out;
+  const toks = [];
+  { const re = /[a-z0-9]+/g; let m; while ((m = re.exec(norm))) toks.push({ w: m[0], at: m.index, i: toks.length }); }
+  const found = [];
+  for (const tk of toks) { const g = ASST_RESTR_WORDS[tk.w]; if (g) found.push({ g, at: tk.at }); }
+  for (const [ph, g] of ASST_RESTR_PHRASES) { const i = norm.indexOf(ph); if (i >= 0) found.push({ g, at: i }); }
+  found.sort((a, b) => a.at - b.at);
+  for (const f of found) if (!out.groups.includes(f.g)) out.groups.push(f.g);
+  for (const tk of toks) if (ASST_RESTR_UMBRELLA[tk.w]) { out.umbrella = tk.w; break; }
+  if (!out.umbrella) for (const ph of ASST_RESTR_UMBRELLA_PHRASES) if (norm.includes(ph)) { out.umbrella = ph; break; }
+  /* Negación sobre un grupo: una palabra de negación en los dos
+     tokens anteriores a un grupo, o un «no» pegado detrás. Las
+     frases («cuerpo completo») no pasan por esta red: esquina
+     declarada del diccionario. */
+  for (const tk of toks) {
+    if (!ASST_RESTR_WORDS[tk.w]) continue;
+    for (let k = 1; k <= 2; k++) { const p = toks[tk.i - k]; if (p && ASST_RESTR_NEG[p.w]) { out.negated = true; break; } }
+    const nx = toks[tk.i + 1];
+    if (nx && nx.w === 'no') out.negated = true;
+    if (out.negated) break;
+  }
+  const strong = ASST_RESTR_INTENT_STRONG.some(rx => rx.test(norm));
+  const weak = ASST_RESTR_INTENT_WEAK.some(rx => rx.test(norm))
+    || (/\bdia de\b/.test(norm) && out.groups.length > 0);
+  const weakOk = out.groups.length > 0 || !!out.umbrella
+    || /\b(entrenar|train|training)\b/.test(norm);
+  out.intent = strong || (weak && weakOk);
+  /* Dentro de la puerta (la respuesta dictada al «¿qué músculos?»)
+     la intención la pone el contexto: nombrar los músculos basta. */
+  if (inDoor && out.groups.length) out.intent = true;
+  out.clean = !!(out.intent && out.groups.length && !out.umbrella && !out.negated);
+  return out;
+}
+/* ---------- El día de hoy, resuelto como en la puerta del dictado ---------- */
+function asstRestrReasonKey(reason) {
+  return reason === 'trainer' ? 'asst.restrTrainer'
+    : (reason === 'freeday' || reason === 'noday') ? 'asst.restrFreeDay'
+    : (reason === 'closed' || reason === 'gate') ? 'asst.restrDayClosed'
+    : 'asst.restrNoPlan';
+}
+async function asstRestrToday() {
+  try { if (typeof ASST_DATA !== 'undefined' && ASST_DATA && ASST_DATA.loading) await ASST_DATA.loading; } catch {}
+  const { plan, logs } = asstPlanLogs();
+  if (!plan || !Array.isArray(plan.days) || !plan.days.length) return { plan: null, di: null, reason: 'noplan' };
+  const today = todayISO();
+  const cfg = (typeof PEND_CFG !== 'undefined' && PEND_CFG && !PEND_CFG.__error) ? PEND_CFG : null;
+  const tmap = trainDayMap(plan, cfg);
+  let mapped = null;
+  if (tmap.pairs) { const v = tmap.pairs[new Date(today + 'T12:00:00').getDay()]; mapped = (v == null ? null : v); }
+  else if (tmap.mode === 'plancal') mapped = planCalDayIndex(plan, today);
+  else if (tmap.mode === 'rotation') {
+    try { const det = goalsDayLevelForDate(today, plan, cfg, (typeof LIB_BY_ID !== 'undefined' ? LIB_BY_ID : {})); if (det && Number.isInteger(det.dayIndex)) mapped = det.dayIndex; } catch {}
+  }
+  const di = trainTodayDiEffective(plan, mapped);
+  if (di == null || di < 0) return { plan, di: null, reason: 'noday' };
+  if (!restructureAllowed()) return { plan, di, reason: 'trainer' };
+  if (((plan.days || [])[di] || {}).freeDay === true) return { plan, di, reason: 'freeday' };
+  /* El cierre se comprueba TAMBIÉN con los registros del Coach
+     (espejo del chequeo de asstDictDoorOpen): restructureDayGate
+     lee MY_LOGS_ALL, que en esta hoja puede no estar cargada. */
+  const closed = (logs || []).some(l => l && l.date === today && l.dayIndex === di && wkIsClosed(l));
+  if (closed) return { plan, di, reason: 'closed' };
+  if (!restructureDayGate(plan, di, today, closed)) return { plan, di, reason: 'gate' };
+  return { plan, di, reason: 'ok' };
+}
+/* ---------- El anfitrión de la conversación (D4) ---------- */
+function restrChatSync() {
+  const S = RESTR;
+  let host = document.getElementById('asst-restr-host');
+  if (!S) { if (host) host.remove(); return; }
+  const log = $('asst-log');
+  if (!log) return;
+  if (!host) {
+    host = document.createElement('div');
+    host.id = 'asst-restr-host';
+    host.className = 'asst-restr-host';
+    log.appendChild(host);
+  }
+  log.appendChild(host);
+  if (S.phase === 'loading') {
+    host.innerHTML = `<p class="progress-hint">${esc(t('restr.loading'))}</p>`;
+  } else if (S.phase === 'blocked') {
+    host.innerHTML = `<div class="pl-auto-block">${esc(t('restr.healthBlocked'))}${S.ch ? `<br><span class="progress-hint">${esc(clientHealthCauseText(S.ch))}</span>` : ''}</div><button type="button" class="btn-ghost asst-restr-close" data-restr-close="1" aria-label="✕">✕</button>`;
+  } else if (S.phase === 'pick') {
+    host.innerHTML = restrPickHTML(S) + `<p class="dict-mic-cost asst-restr-miccost">${esc(t('asst.restrMicCost'))}</p>`;
+    restrPickWire(host, S);
+  } else if (S.phase === 'preview') {
+    host.innerHTML = restrPreviewHTML(S);
+    restrPreviewWire(host, S);
+  }
+  const cx = host.querySelector('[data-restr-close]');
+  if (cx) cx.onclick = () => { RESTR = null; restrSheetSync(); };
+  const body = $('asst-body'); if (body) body.scrollTop = body.scrollHeight;
+}
+/* Abre el flujo dentro de la conversación; con grupos
+   preseleccionados (encaje limpio o lectura de la IA) corre el
+   mismo armado que el botón «Armar mi día» de restrPickWire. */
+async function asstRestrOpenChat(presetGroups, res) {
+  const r = res || await asstRestrToday();
+  if (r.reason !== 'ok') { asstBubble('bot', t(asstRestrReasonKey(r.reason)), true); return false; }
+  const uid = (typeof auth !== 'undefined' && auth && auth.currentUser) ? auth.currentUser.uid : '';
+  await restrOpen({ surface: 'own', uid, plan: r.plan, di: r.di, iso: todayISO(), host: 'chat' });
+  if (Array.isArray(presetGroups) && presetGroups.length && RESTR && RESTR.host === 'chat' && RESTR.phase === 'pick') {
+    const present = restrGroupsOfLib();
+    const chosen = presetGroups.filter(g => present.includes(g));
+    if (chosen.length) {
+      RESTR.chosen = chosen;
+      const hp = autoHealthPlan(RESTR.ctx.conditions || []);
+      RESTR.built = restrBuildDay({ chosen: chosen.slice(), level: RESTR.ctx.levelInf ? RESTR.ctx.levelInf.level : null, hp, pains: RESTR.pains, painKnown: RESTR.painKnown, hist: RESTR.histIdx, objective: RESTR.ctx.eff ? RESTR.ctx.eff.objective : '', lib: LIB });
+      RESTR.scope = 'day';
+      RESTR.phase = 'preview';
+      restrSheetSync();
+    }
+  }
+  return true;
+}
+/* ---------- La puerta por chip ---------- */
+async function asstRestrChipSync() {
+  const chip = document.querySelector('[data-asst-restr]');
+  if (!chip) return;
+  chip.style.display = 'none';
+  const r = await asstRestrToday();
+  if (r.reason === 'ok') chip.style.display = '';
+}
+async function asstRestrDoorTap() {
+  asstUnlockSpeech();
+  const r = await asstRestrToday();
+  if (r.reason !== 'ok') { asstBubble('bot', t(asstRestrReasonKey(r.reason)), true); return; }
+  asstBubble('bot', t('asst.restrAsk'));
+  asstRestrOpenChat(null, r);
+}
+/* ---------- La frase: encaje, sin encaje, interpretación ---------- */
+const ASST_RESTR_PENDING = { text: '', res: null };
+function asstRestrGroupsLabel(groups) { return groups.map(g => restrGroupLbl(g)).join(' · '); }
+function asstRestrConfirmPaint(groups, viaAi) {
+  const lbl = asstRestrGroupsLabel(groups);
+  asstBubble('bot', t(viaAi ? 'asst.restrUnderstoodAi' : 'asst.restrUnderstood', { groups: lbl }));
+  /* D5: la confirmación se LEE con la voz del teléfono (coste 0). */
+  try { asstSpeak(t('asst.restrSay', { groups: lbl })); } catch {}
+}
+function asstRestrPhraseRun(text, res, inDoor) {
+  const r = asstRestrResolve(text, inDoor);
+  if (r.clean) { asstRestrConfirmPaint(r.groups, false); asstRestrOpenChat(r.groups, res); return; }
+  const why = r.umbrella ? t('asst.restrWhyUmbrella', { word: r.umbrella })
+    : r.negated ? t('asst.restrWhyNeg') : t('asst.restrWhyNone');
+  ASST_RESTR_PENDING.text = text;
+  ASST_RESTR_PENDING.res = res;
+  asstBubble('bot', t('asst.restrNoFit', { why }));
+  asstRestrActionsPaint();
+}
+function asstRestrActionsPaint() {
+  const log = $('asst-log'); if (!log) return;
+  const old = document.getElementById('asst-restr-actions'); if (old) old.remove();
+  const row = document.createElement('div');
+  row.className = 'asst-restr-actions';
+  row.id = 'asst-restr-actions';
+  row.innerHTML = `<button type="button" class="asst-restr-act ai" data-asst-restr-ai="1">${esc(t('asst.restrAiBtn'))}</button><button type="button" class="asst-restr-act" data-asst-restr-touch="1">${esc(t('asst.restrTouchBtn'))}</button>`;
+  log.appendChild(row);
+  const body = $('asst-body'); if (body) body.scrollTop = body.scrollHeight;
+  const ai = row.querySelector('[data-asst-restr-ai]');
+  if (ai) ai.onclick = () => { row.remove(); asstRestrInterpret(ASST_RESTR_PENDING.text); };
+  const tc = row.querySelector('[data-asst-restr-touch]');
+  if (tc) tc.onclick = () => { row.remove(); asstRestrOpenChat(null, ASST_RESTR_PENDING.res); };
+}
+/* D1: la interpretación con IA — 1 uso, solo con el toque en su
+   botón, y el cargo lo hace el Worker solo si la llamada
+   responde. Si la IA tampoco resuelve: las pastillas, sin
+   segundo gasto. Si la llamada falla: el aviso honesto de la
+   casa (una llamada fallida no se cobra). */
+function asstRestrInterpret(text) {
+  const res = ASST_RESTR_PENDING.res;
+  if (!text) { asstRestrOpenChat(null, res); return; }
+  if (!aiEndpoint()) { asstBubble('bot', t('asst.restrFail'), true); asstRestrOpenChat(null, res); return; }
+  asstThinkingPaint(true);
+  (async () => {
+    try {
+      const out = await aiCall('/restr-interpret', { text, lang: LANG });
+      asstThinkingPaint(false);
+      const present = restrGroupsOfLib();
+      const groups = (Array.isArray(out.groups) ? out.groups : []).filter(g => present.includes(g));
+      if (groups.length) { asstRestrConfirmPaint(groups, true); asstRestrOpenChat(groups, res); }
+      else { asstBubble('bot', t('asst.restrAiNone')); asstRestrOpenChat(null, res); }
+    } catch (e) {
+      asstThinkingPaint(false);
+      const m = e && e.message;
+      if (m === 'ai-cap') { asstBubble('bot', t('asst.restrCap'), true); asstRestrOpenChat(null, res); }
+      else if (m === 'ai-disabled') asstBubble('bot', t('ai.disabledByAdmin'), true);
+      else if (m === 'ai-door-unavailable') asstBubble('bot', t('ai.doorUnavailable'), true);
+      else { asstBubble('bot', t('asst.restrFail'), true); asstRestrOpenChat(null, res); }
+    }
+  })();
+}
+/* D6: la intercepción de la caja. Devuelve true si la frase era
+   una orden clara de reestructurar (la puerta la atiende); sin
+   intención, false y la pregunta sigue intacta a /assistant. */
+function asstRestrHandleText(text) {
+  if (!asstRestrResolve(text).intent) return false;
+  asstBubble('me', text);
+  (async () => {
+    const res = await asstRestrToday();
+    if (res.reason !== 'ok') { asstBubble('bot', t(asstRestrReasonKey(res.reason)), true); return; }
+    asstRestrPhraseRun(text, res);
+  })();
+  return true;
+}
+/* D2: el micrófono grande al servicio de la puerta. Lo llama
+   asstTalkTap con el audio grabado: si el flujo de la
+   conversación está abierto, el audio va a /transcribe (1 uso)
+   y la transcripción entra en el mismo camino que el texto;
+   si no, devuelve false y el audio sigue a /assistant como
+   siempre. La transcripción vacía no gasta puerta ni arma
+   nada: aviso honesto. */
+function asstRestrMicRoute(dataUrl) {
+  if (!RESTR || RESTR.host !== 'chat' || RESTR.phase !== 'pick') return false;
+  ASST.busy = true;
+  asstRecPaint('busy');
+  (async () => {
+    try {
+      const out = await aiCall('/transcribe', { audioDataUrl: dataUrl, lang: LANG });
+      const txt = typeof out.transcript === 'string' ? out.transcript.trim() : '';
+      if (!txt) { asstBubble('bot', t('asst.restrMicEmpty'), true); return; }
+      asstBubble('me', txt);
+      const res = await asstRestrToday();
+      if (res.reason !== 'ok') { asstBubble('bot', t(asstRestrReasonKey(res.reason)), true); return; }
+      asstRestrPhraseRun(txt, res, true);
+    } catch (e) {
+      const m = e && e.message;
+      if (m === 'ai-cap') asstBubble('bot', t('asst.errCap'), true);
+      else if (m === 'ai-disabled') asstBubble('bot', t('ai.disabledByAdmin'), true);
+      else if (m === 'ai-door-unavailable') asstBubble('bot', t('ai.doorUnavailable'), true);
+      else asstBubble('bot', t('asst.errGeneric'), true, ASST_FACE_ERROR);
+    } finally {
+      ASST.busy = false;
+      asstRecPaint('idle');
+    }
+  })();
+  return true;
+}
 
 /* Lista EFECTIVA de un día: el plan con los cambios (el elegido
    ocupa el lugar del original heredando sus series × reps) y los
@@ -57636,7 +58036,7 @@ document.addEventListener('keydown', e => { if (e.key === 'Escape') shareClose()
  *  - El SW (sw.js) solo cachea la cáscara del mismo origen en modo
  *    RED PRIMERO: Auth/Firestore/Worker jamás pasan por la caché.
  * ================================================================ */
-const PWA_SW_VERSION = '20261113-tiempo-en-linea';
+const PWA_SW_VERSION = '20261113-mascota-reestructura';
 /* Sello de versión VISIBLE (2026-11-03): el pie de la tarjeta de
    acceso enseña qué copia corre este teléfono ('v ' + el sello),
    para comprobar de un vistazo si la versión nueva ya llegó.
