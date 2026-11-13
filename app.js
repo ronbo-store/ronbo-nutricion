@@ -37221,7 +37221,7 @@ function trainGuidedHTML(plan, day, di) {
     }).join('');
     return `<h4>${esc(label)}</h4>`
       + trainCardioWarmHTML(plan, di)
-      + `<div class="guide-head"><div class="guide-pos">${esc(posText)}</div><div class="guide-bar"><div style="width:${M ? Math.round(100 * doneCount / M) : 0}%"></div></div><div class="guide-meta">${esc(metaLine)}</div></div>`
+      + `<div class="guide-head"><div class="guide-pos">${esc(posText)}<span class="guide-meta"> · ${esc(metaLine)}</span></div><div class="guide-bar"><div style="width:${M ? Math.round(100 * doneCount / M) : 0}%"></div></div></div>`
       + (canDrag ? `<div class="guide-drag-hint">${t('train.flow.dragHint')}</div>` : '')
       + `<div class="guide-route">${stops}</div>`
       + `<button type="button" class="guide-start-btn" data-train-start="${di}">${t('train.flow.beginDay')}</button>`
@@ -37265,7 +37265,7 @@ function trainGuidedHTML(plan, day, di) {
   }
   return `<h4>${esc(label)}</h4>`
     + trainCardioWarmHTML(plan, di)
-    + `<div class="guide-head"><div class="guide-pos">${esc(posText)}</div><div class="guide-bar"><div style="width:${M ? Math.round(100 * doneCount / M) : 0}%"></div></div><div class="guide-meta">${esc(metaLine)}</div></div>`
+    + `<div class="guide-head"><div class="guide-pos">${esc(posText)}<span class="guide-meta"> · ${esc(metaLine)}</span></div><div class="guide-bar"><div style="width:${M ? Math.round(100 * doneCount / M) : 0}%"></div></div></div>`
     + (doneLines ? `<div class="guide-done-title">${t('train.guide.doneTitle')}</div>${doneLines}` : '')
     + focusHTML
     + trainRemovedLineHTML(plan, di)
@@ -57636,7 +57636,7 @@ document.addEventListener('keydown', e => { if (e.key === 'Escape') shareClose()
  *  - El SW (sw.js) solo cachea la cáscara del mismo origen en modo
  *    RED PRIMERO: Auth/Firestore/Worker jamás pasan por la caché.
  * ================================================================ */
-const PWA_SW_VERSION = '20261112-reestructura-dia';
+const PWA_SW_VERSION = '20261113-tiempo-en-linea';
 /* Sello de versión VISIBLE (2026-11-03): el pie de la tarjeta de
    acceso enseña qué copia corre este teléfono ('v ' + el sello),
    para comprobar de un vistazo si la versión nueva ya llegó.
