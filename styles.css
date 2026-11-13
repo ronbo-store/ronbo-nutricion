@@ -6052,3 +6052,26 @@ body.train-drag-lock { overflow: hidden; overscroll-behavior: none; }
 .sess-pill-dot.is-paused { background: #f59e0b; animation: none; box-shadow: 0 0 0 4px rgba(245, 158, 11, .18); }
 .flow-btn.is-pause { background: linear-gradient(180deg, #f59e0b, #d97706); border-color: #b45309; color: #fff; }
 .flow-incourse.is-paused { color: #fcd34d; }
+/* AUTH-439 · EL AVISO DE DOLOR: la alerta ámbar (nunca roja) en
+   la hoja y en la baldosa de Bienestar, la pregunta diaria con
+   sus botones grandes, la marquita roja de atención en la fila
+   del ejercicio y la precaución completa en su hoja. */
+.mp-pain-alert { background: #fff8e1; border: 1.5px solid #f0b429; border-radius: 14px; padding: 12px 14px; margin: 10px 0; }
+.mp-pain-alert-k { font-weight: 800; color: #8a5a00; letter-spacing: .04em; font-size: 13px; text-transform: uppercase; }
+.mp-pain-alert-row { margin-top: 8px; }
+.mp-pain-alert-t { font-weight: 700; color: #5f4300; font-size: 16px; }
+.mp-pain-bar { display: inline-flex; gap: 2px; margin-top: 5px; }
+.mp-pain-bar i { width: 16px; height: 6px; border-radius: 3px; background: #eadfc2; }
+.mp-pain-bar i.on { background: #f0b429; }
+.mp-pain-alert-w { color: #8a5a00; font-size: 12.5px; margin-top: 3px; }
+.mp-pain-pro { color: #8a5a00; font-weight: 700; font-size: 13.5px; margin-top: 6px; }
+.mp-pain-care { color: #5f4300; font-size: 13.5px; margin: 10px 0 0; }
+.mp-pain-tile { color: #8a5a00; font-weight: 700; }
+.mp-pain-ask { background: #fff8e1; border: 1.5px solid #f0b429; border-radius: 14px; padding: 12px 14px; margin: 10px 0; }
+.mp-pain-ask-q { font-weight: 700; color: #5f4300; font-size: 15.5px; }
+.mp-pain-ask-row { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 10px; }
+.mp-pain-ask-row .btn-primary, .mp-pain-ask-row .btn-ghost { min-height: 44px; }
+.train-pain-line { display: flex; align-items: center; gap: 7px; margin-top: 5px; font-size: 13px; color: #7a1f1a; }
+.train-pain-mark { background: #b3261e; color: #fff; font-size: 10.5px; font-weight: 800; letter-spacing: .06em; padding: 2px 7px; border-radius: 6px; flex: none; }
+.excard-pain { background: #fff8e1; border: 1.5px solid #f0b429; border-radius: 14px; padding: 12px 14px; margin: 10px 0; color: #5f4300; }
+.excard-pain-row { font-weight: 700; font-size: 15px; }

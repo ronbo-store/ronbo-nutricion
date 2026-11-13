@@ -8826,6 +8826,21 @@ en: {
   'mp.t.commentSaved': '✓ Comment saved',
   'mp.t.field.general': 'General',
   'mp.painLine': '{zone} · {n}/10',
+  'mp.pain.alertK': '⚠ Pain alert',
+  'mp.pain.care': 'Take care with this area today: warm up gently, ease off the load if it bothers you, and stop if the pain sharpens.',
+  'mp.pain.pro': 'This pain is strong, or it has grown since your last report. Consider checking in with a health professional.',
+  'mp.pain.when0': 'Reported today',
+  'mp.pain.when1': 'Reported yesterday',
+  'mp.pain.whenN': 'Reported {d} days ago',
+  'mp.pain.askQ': 'How is your {zone} pain doing today?',
+  'mp.pain.gone': 'It is gone',
+  'mp.pain.same': 'Still there',
+  'mp.pain.worse': 'It got worse',
+  'mp.pain.goneOk': 'Good news — pain marked as gone.',
+  'mp.pain.sameOk': 'Noted — the pain alert stays on.',
+  'mp.pain.worseHint': 'Raise the level to how it feels now and save.',
+  'train.pain.mark': '⚠ CAUTION',
+  'train.pain.line': 'You reported {zone} pain ({n}/10). Train with care.',
   'mp.sleepLine': '{h} h {m} min',
   'mp.ofGoal': 'of {goal}',
   'mp.perDay': '/day',
@@ -13729,6 +13744,21 @@ es: {
   'mp.t.commentSaved': '✓ Comentario guardado',
   'mp.t.field.general': 'General',
   'mp.painLine': '{zone} · {n}/10',
+  'mp.pain.alertK': '⚠ Alerta de dolor',
+  'mp.pain.care': 'Cuida esta zona hoy: calienta suave, baja la carga si molesta y detente si el dolor se agudiza.',
+  'mp.pain.pro': 'Este dolor es fuerte, o creció desde tu último reporte. Considera consultarlo con un profesional de salud.',
+  'mp.pain.when0': 'Registrado hoy',
+  'mp.pain.when1': 'Registrado ayer',
+  'mp.pain.whenN': 'Registrado hace {d} días',
+  'mp.pain.askQ': '¿Cómo sigue tu dolor de {zone} hoy?',
+  'mp.pain.gone': 'Ya pasó',
+  'mp.pain.same': 'Sigue igual',
+  'mp.pain.worse': 'Empeoró',
+  'mp.pain.goneOk': 'Buena noticia: dolor marcado como pasado.',
+  'mp.pain.sameOk': 'Anotado: el aviso de dolor sigue activo.',
+  'mp.pain.worseHint': 'Sube el nivel a como lo sientes ahora y guarda.',
+  'train.pain.mark': '⚠ ATENCIÓN',
+  'train.pain.line': 'Registraste dolor de {zone} ({n}/10). Entrena con cuidado.',
   'mp.sleepLine': '{h} h {m} min',
   'mp.ofGoal': 'de {goal}',
   'mp.perDay': '/día',
@@ -38329,6 +38359,7 @@ function trainExCompactHTML(ex, di, ei, mode, de, mv) {
     <div class="train-ex-info">
       <div class="train-ex-name">${esc(trainExName(ex))}</div>
       ${spec || ex.note ? `<div class="train-ex-spec">${esc(spec)}${ex.note ? `${spec ? ' · ' : ''}${esc(ex.note)}` : ''}</div>` : ''}
+      ${mode === 'edit' ? trainPainMarkHTML(ex) : ''}
     </div>
   </div>
     ${figs}
@@ -40323,6 +40354,7 @@ function trainCardRender({ ex, mode, sessionHTML, allLogs }) {
       : `${group ? `<div class="excard-sec">${t('train.card.mainMuscle')}</div><div class="excard-chips"><span class="excard-chip excard-chip-main">${esc(group)}</span></div>` : ''}${secList.length ? `<div class="excard-sec">${t('train.card.secondaryMuscles')}</div><div class="excard-chips">${secList.map(s => `<span class="excard-chip excard-chip-sec">${esc(s)}</span>`).join('')}</div>` : ''}`;
   body.innerHTML = `${media}
     <div class="excard-head">${group ? `<div class="excard-chips"><span class="excard-chip excard-chip-main">${esc(group)}</span></div>` : ''}${metaLine}</div>
+    ${trainPainCautionHTML(ex)}
     ${mode === 'edit' ? trainLastTimeHTML(ex, allLogs, (typeof TRAIN_FLOAT !== 'undefined' && TRAIN_FLOAT) ? TRAIN_FLOAT.iso : null) : ''}
     ${sessionHTML || ''}
     <div class="excard-tabs" role="tablist">
@@ -40952,6 +40984,7 @@ async function loadMyTraining() {
   fdCamRender();
   try { treqBoxSync(); } catch {}
   const uid = auth.currentUser.uid;
+  await painLoadMine();   /* AUTH-439: los dolores propios, para las marquitas del día */
   await trainGoalLoad();   /* AUTH-359: la meta de tiempo del propio usuario (solo lectura de su schedprefs) */
   const plans = await fetchPlans(uid);
   let plan = plans.find(p => p.active === true) || null;
@@ -56904,7 +56937,7 @@ document.addEventListener('keydown', e => { if (e.key === 'Escape') shareClose()
  *  - El SW (sw.js) solo cachea la cáscara del mismo origen en modo
  *    RED PRIMERO: Auth/Firestore/Worker jamás pasan por la caché.
  * ================================================================ */
-const PWA_SW_VERSION = '20261112-hobbies-entrenamiento';
+const PWA_SW_VERSION = '20261112-aviso-dolor';
 /* Sello de versión VISIBLE (2026-11-03): el pie de la tarjeta de
    acceso enseña qué copia corre este teléfono ('v ' + el sello),
    para comprobar de un vistazo si la versión nueva ya llegó.
@@ -63979,6 +64012,7 @@ async function mpLoadOwn() {
   st.well.sort(mpByDateDesc); st.checks.sort(mpByDateDesc); st.notes.sort(mpByDateDesc);
   st.comments.sort((a, b) => mpTs(b) - mpTs(a));
   MP = st;
+  PAIN_WELL = st.well;
   return st;
 }
 function mpShareActive() { return !!(MP && MP.share && MP.share.wellness && MP.share.wellness.status === 'accepted'); }
@@ -64060,11 +64094,12 @@ function mpRenderHome() {
      dolor en Bienestar) vive solo dentro de su hoja, donde
      está completa. Los pintores no cambian: el corte vive
      solo aquí, a la puerta de la rejilla. */
+  const wellPainLine = mpPainTileLine(mpActivePains());
   const cards = [
     { f: 'body', icon: '🧍', title: t('mp.c1'), lines: mpCardBodyData().slice(0, 2) },
     { f: 'train', icon: '🏋️', title: t('mp.c2'), lines: mpCardTrainData().slice(0, 2) },
     { f: 'food', icon: '🥗', title: t('mp.c3'), lines: mpCardFoodData().slice(0, 2) },
-    { f: 'well', icon: '🌙', title: t('mp.c4'), lines: mpCardWellData().slice(0, 2) },
+    { f: 'well', icon: '🌙', title: t('mp.c4'), lines: [...mpCardWellData().slice(0, 2), ...(wellPainLine ? [wellPainLine] : [])] },
     { f: 'tests', act: 'tests', icon: '🧪', title: t('fit.title'), lines: mpCardFitData().slice(0, 2) }
   ];
   host.innerHTML = cards.map(c => `
@@ -64120,6 +64155,202 @@ function mpPainCollect() {
     if (z && i >= 1 && i <= 10) out.push({ zone: z, intensity: i });
   });
   return out;
+}
+/* ═══ AUTH-2026-11-12-439 · EL AVISO DE DOLOR (la propuesta de
+   Ronald en la llamada de hoy 16:15 CST, con sus seis respuestas
+   de las 20:43): el registro de dolor de Bienestar
+   (progress_wellness, el de siempre) gana el concepto que no
+   tenía — DOLOR ACTIVO — y con él sus avisos:
+   · (1) VIDA: un dolor avisa el día de su registro y los
+     PAIN_ALERT_DAYS = 3 días siguientes; si el registro más
+     reciente ya no lo trae, el aviso se apaga al momento, y al
+     cuarto día sin un reporte nuevo muere solo.
+   · (5) La alerta ÁMBAR — nunca roja — vive en la hoja de
+     Bienestar Y como UNA línea en su baldosa de Mi progreso
+     (la línea de DATO sigue dentro de la hoja: lo que nace en
+     la baldosa es la alerta, como manda la regla de
+     crecimiento; la decisión 5 de hoy revisa en este punto la
+     cuenta de H-13/AUTH-396).
+   · La pregunta diaria «¿ya pasó o sigue?» vive en la hoja y
+     en el Registro rápido: «Ya pasó» escribe hoy SIN ese
+     dolor (el aviso se apaga), «Sigue igual» lo renueva en el
+     registro de hoy (la ventana vuelve a correr) y «Empeoró»
+     abre el Registro rápido en Bienestar con los dolores
+     precargados para ajustar el nivel — el número lo pone la
+     persona, nunca la app.
+   · (6) Con nivel fuerte (8 a 10) o si el nivel subió frente
+     al registro anterior de esa zona, la alerta añade una
+     línea suave que sugiere consultar a un profesional de
+     salud. Sin diagnósticos y sin promesas: prevención.
+   La derivación es UNA (mpActivePains) y lee el registro tal
+   cual está guardado: no migra, no siembra y no reinterpreta
+   las notas de otros módulos (painReport, painNotes). ═══ */
+const PAIN_ALERT_DAYS = 3;
+let PAIN_WELL = null;        /* espejo de los registros propios, para Entrenamiento */
+let MP_PAIN_PREFILL = null;  /* dolores precargados al abrir el Registro rápido desde «Empeoró» */
+function mpPainDaysBetween(a, b) {
+  const pa = String(a || '').split('-').map(Number), pb = String(b || '').split('-').map(Number);
+  if (pa.length !== 3 || pb.length !== 3 || !pa[0] || !pb[0]) return 999;
+  return Math.round((Date.UTC(pb[0], pb[1] - 1, pb[2]) - Date.UTC(pa[0], pa[1] - 1, pa[2])) / 86400000);
+}
+function mpPainWellDocs() {
+  if (MP && Array.isArray(MP.well)) return MP.well;
+  return Array.isArray(PAIN_WELL) ? PAIN_WELL : [];
+}
+function mpActivePains() {
+  const docs = mpPainWellDocs().slice().sort(mpByDateDesc);
+  if (!docs.length) return [];
+  const latest = docs[0];
+  if (!latest || !Array.isArray(latest.pain) || !latest.pain.length) return [];
+  const today = todayISO();
+  const age = mpPainDaysBetween(latest.date, today);
+  if (age < 0 || age > PAIN_ALERT_DAYS) return [];
+  return latest.pain.filter(p => p && p.zone && Math.round(num(p.intensity)) >= 1).map(p => {
+    const inten = Math.round(num(p.intensity));
+    let prev = null;
+    for (const w of docs) {
+      if (w.date < latest.date && Array.isArray(w.pain)) {
+        const q = w.pain.find(x => x && x.zone === p.zone);
+        if (q) { prev = q; break; }
+      }
+    }
+    return { zone: p.zone, intensity: inten, date: latest.date, age,
+      strong: inten >= 8,
+      worsened: !!(prev && inten > Math.round(num(prev.intensity))),
+      answeredToday: latest.date === today };
+  });
+}
+async function painLoadMine() {
+  if (MP && Array.isArray(MP.well)) { PAIN_WELL = MP.well; return; }
+  if (PAIN_WELL) return;
+  const me = mpMe(); if (!me) return;
+  try {
+    const snap = await getDocs(query(collection(db, 'progress_wellness'), where('ownerUid', '==', me)));
+    const out = [];
+    snap.forEach(d => out.push({ id: d.id, ...d.data() }));
+    out.sort(mpByDateDesc);
+    PAIN_WELL = out;
+  } catch { if (!PAIN_WELL) PAIN_WELL = []; }
+}
+function mpPainZoneLbl(zone) {
+  const s = t('mp.z.' + (zone || 'other'));
+  return LANG === 'es' && s ? s.charAt(0).toLowerCase() + s.slice(1) : s;
+}
+function mpPainBarHTML(n) {
+  return `<span class="mp-pain-bar" aria-hidden="true">${[1, 2, 3, 4, 5, 6, 7, 8, 9, 10].map(i => `<i class="${i <= n ? 'on' : ''}"></i>`).join('')}</span>`;
+}
+function mpPainWhen(p) {
+  if (!p || p.age <= 0) return t('mp.pain.when0');
+  if (p.age === 1) return t('mp.pain.when1');
+  return t('mp.pain.whenN', { d: p.age });
+}
+function mpPainAlertHTML(pains) {
+  if (!pains || !pains.length) return '';
+  const rows = pains.map(p => `<div class="mp-pain-alert-row"><div class="mp-pain-alert-t">⚠ ${esc(t('mp.f.pain'))}: ${esc(t('mp.z.' + p.zone))} · ${p.intensity}/10</div>${mpPainBarHTML(p.intensity)}<div class="mp-pain-alert-w">${esc(mpPainWhen(p))}</div>${(p.strong || p.worsened) ? `<div class="mp-pain-pro">${esc(t('mp.pain.pro'))}</div>` : ''}</div>`).join('');
+  return `<div class="mp-pain-alert"><div class="mp-pain-alert-k">${esc(t('mp.pain.alertK'))}</div>${rows}<p class="mp-pain-care">${esc(t('mp.pain.care'))}</p></div>`;
+}
+function mpPainTileLine(pains) {
+  if (!pains || !pains.length) return '';
+  const txt = pains.map(p => `${t('mp.z.' + p.zone)} ${p.intensity}/10`).join(' · ');
+  return `<span class="mp-line mp-pain-tile">⚠ ${esc(t('mp.f.pain'))}: ${esc(txt)}</span>`;
+}
+function mpPainBit(p) {
+  return `⚠ ${esc(t('mp.f.pain'))}: ${esc(t('mp.z.' + (p.zone || 'other')))} · ${Math.round(num(p.intensity))}/10`;
+}
+function mpPainAskHTML(pains) {
+  const pend = (pains || []).filter(p => !p.answeredToday);
+  if (!pend.length) return '';
+  return pend.map(p => `<div class="mp-pain-ask"><div class="mp-pain-ask-q">${esc(t('mp.pain.askQ', { zone: mpPainZoneLbl(p.zone) }))}</div><div class="mp-pain-ask-row"><button type="button" class="btn-primary" data-mp-act="pain-ans" data-zone="${esc(p.zone)}" data-ans="gone">${esc(t('mp.pain.gone'))}</button><button type="button" class="btn-ghost" data-mp-act="pain-ans" data-zone="${esc(p.zone)}" data-ans="same">${esc(t('mp.pain.same'))}</button><button type="button" class="btn-ghost" data-mp-act="pain-ans" data-zone="${esc(p.zone)}" data-ans="worse">${esc(t('mp.pain.worse'))}</button></div></div>`).join('');
+}
+function mpPainRowsFor(d, well) {
+  if (well && Array.isArray(well.pain) && well.pain.length) return well.pain;
+  if (d === todayISO() && MP_PAIN_PREFILL) { const p = MP_PAIN_PREFILL; MP_PAIN_PREFILL = null; return p; }
+  return [];
+}
+async function mpPainAnswer(zone, ans) {
+  const me = mpMe(); if (!me) return;
+  const pains = mpActivePains();
+  const cur = pains.find(p => p.zone === zone);
+  if (!cur) return;
+  if (ans === 'worse') {
+    MP_PAIN_PREFILL = pains.map(p => ({ zone: p.zone, intensity: p.intensity }));
+    mpSheetClose('mp-hist');
+    mpOpenQuick(todayISO(), 'well');
+    toast(t('mp.pain.worseHint'));
+    return;
+  }
+  const today = todayISO();
+  const docs = mpPainWellDocs();
+  const existing = docs.find(w => w.date === today) || null;
+  const list = [];
+  for (const p of pains) {
+    if (p.zone === zone) { if (ans === 'same') list.push({ zone, intensity: cur.intensity }); }
+    else list.push({ zone: p.zone, intensity: p.intensity });
+  }
+  const data = { ownerUid: me, date: today,
+    sleepQuality: existing && existing.sleepQuality != null ? existing.sleepQuality : null,
+    energy: existing && existing.energy != null ? existing.energy : null,
+    fatigue: existing && existing.fatigue != null ? existing.fatigue : null,
+    stress: existing && existing.stress != null ? existing.stress : null,
+    pain: list, notes: existing && existing.notes ? existing.notes : '', updatedAt: serverTimestamp() };
+  try {
+    await setDoc(doc(db, 'progress_wellness', me + '_' + today), data);
+  } catch { toast(t('mp.q.errAll'), true); return; }
+  const ix = docs.findIndex(w => w.date === today);
+  if (ix >= 0) docs[ix] = { ...docs[ix], ...data }; else docs.push({ id: me + '_' + today, ...data });
+  docs.sort(mpByDateDesc);
+  if (MP && Array.isArray(MP.well)) PAIN_WELL = MP.well;
+  mpRenderHome();
+  const histEl = $('mp-hist'), hb = $('mp-hist-body');
+  if (histEl && hb && histEl.style.display !== 'none') hb.innerHTML = mpHistWell();
+  toast(t(ans === 'gone' ? 'mp.pain.goneOk' : 'mp.pain.sameOk'));
+}
+/* ── El puente zona → ejercicio (decisión 3: TODOS los músculos
+   relacionados — el principal Y los secundarios). La zona caza
+   por su grupo canónico (la tabla de sinónimos de la casa) o por
+   sus palabras en el texto normalizado del grupo y de los
+   secundarios: así el cuello caza «trapecio» y la muñeca
+   «antebrazo», que viven en los secundarios. «Otra» no caza
+   nada: no significa nada derivable. ── */
+const PAIN_ZONE_GROUPS = { shoulder: ['Hombros'], back: ['Espalda'], lowerback: ['Espalda'], hip: ['Glúteos'], knee: ['Cuádriceps', 'Isquiotibiales'], ankle: ['Pantorrillas'], elbow: ['Bíceps', 'Tríceps'], neck: [], wrist: [], other: [] };
+const PAIN_ZONE_TOKENS = {
+  shoulder: ['hombro', 'hombros', 'shoulder', 'shoulders', 'deltoides', 'deltoids', 'delts'],
+  back: ['espalda', 'back', 'dorsal', 'dorsales', 'lats'],
+  lowerback: ['espalda', 'back', 'dorsal', 'dorsales', 'lats', 'lumbar', 'lower back'],
+  hip: ['cadera', 'hip', 'gluteo', 'gluteos', 'glute', 'glutes'],
+  knee: ['rodilla', 'knee', 'cuadriceps', 'quadriceps', 'quads', 'isquiotibiales', 'femorales', 'hamstrings'],
+  ankle: ['tobillo', 'ankle', 'pantorrilla', 'pantorrillas', 'gemelos', 'calves', 'calf'],
+  elbow: ['codo', 'elbow', 'biceps', 'bicep', 'triceps', 'tricep'],
+  neck: ['cuello', 'neck', 'trapecio', 'trapecios', 'trapezius'],
+  wrist: ['muneca', 'wrist', 'antebrazo', 'antebrazos', 'forearm', 'forearms'],
+  other: []
+};
+function painZoneMatchesEntry(zone, entry) {
+  if (!entry || zone === 'other') return false;
+  const groups = PAIN_ZONE_GROUPS[zone] || [];
+  const canon = swapGroupOfQuery(libField(entry, 'grupo_muscular') || '');
+  if (canon && groups.includes(canon)) return true;
+  const toks = PAIN_ZONE_TOKENS[zone] || [];
+  if (!toks.length) return false;
+  const hay = libNorm([libField(entry, 'grupo_muscular'), libField(entry, 'musculos_secundarios')].join(' '));
+  return toks.some(tk => new RegExp('\\b' + tk.replace(/ /g, '\\s') + '\\b').test(hay));
+}
+function trainPainForEx(ex) {
+  if (!ex || ex.exerciseId == null) return [];
+  const entry = (typeof LIB_BY_ID !== 'undefined' && LIB_BY_ID) ? LIB_BY_ID[ex.exerciseId] : null;
+  if (!entry) return [];
+  return mpActivePains().filter(p => painZoneMatchesEntry(p.zone, entry));
+}
+function trainPainMarkHTML(ex) {
+  const hits = trainPainForEx(ex);
+  if (!hits.length) return '';
+  return hits.map(p => `<div class="train-pain-line"><span class="train-pain-mark">${esc(t('train.pain.mark'))}</span><span>${esc(t('train.pain.line', { zone: mpPainZoneLbl(p.zone), n: p.intensity }))}</span></div>`).join('');
+}
+function trainPainCautionHTML(ex) {
+  const hits = trainPainForEx(ex);
+  if (!hits.length) return '';
+  const rows = hits.map(p => `<div class="excard-pain-row">⚠ ${esc(t('mp.f.pain'))}: ${esc(t('mp.z.' + p.zone))} · ${p.intensity}/10</div>${(p.strong || p.worsened) ? `<div class="mp-pain-pro">${esc(t('mp.pain.pro'))}</div>` : ''}`).join('');
+  return `<div class="excard-pain">${rows}<p class="mp-pain-care">${esc(t('mp.pain.care'))}</p></div>`;
 }
 /* AUTH-2026-11-09-356 «REGISTRO RÁPIDO, DE VERDAD RÁPIDO» (maqueta
    aprobada por Ronald el 2026-11-09 18:28 CST: «Sí, hazlo así de
@@ -64252,6 +64483,7 @@ function mpOpenQuick(date, focus) {
         <p class="mp-q-hint">${esc(t('mp.q.onlyFilled'))}</p>
       </div>
     </div>
+    ${d === todayISO() ? mpPainAskHTML(mpActivePains()) : ''}
     <div class="mp-q-fold" id="mp-q-fold-well">
       <button type="button" class="mp-q-fold-head" data-mpqfold="well" aria-expanded="false"><span class="mp-q-fold-main"><span class="mp-q-fold-t">😴 ${esc(t('mp.s.well'))}</span><span class="mp-q-fold-s">${esc(t('mp.q.wellSub'))}</span></span><span class="mp-q-chev" aria-hidden="true">▾</span></button>
       <div class="mp-q-fold-body" data-mpqbody="well" hidden>
@@ -64264,7 +64496,7 @@ function mpOpenQuick(date, focus) {
         <label class="mp-lab">${esc(t('mp.f.fatigue'))}</label>${mpSeg('fatigue', well && well.fatigue ? Number(well.fatigue) : 0)}
         <label class="mp-lab">${esc(t('mp.f.stress'))}</label>${mpSeg('stress', well && well.stress ? Number(well.stress) : 0)}
         <label class="mp-lab">${esc(t('mp.f.pain'))}</label>
-        <div id="mp-q-pain">${well && Array.isArray(well.pain) ? well.pain.map(mpPainRow).join('') : ''}</div>
+        <div id="mp-q-pain">${mpPainRowsFor(d, well).map(mpPainRow).join('')}</div>
         <button type="button" class="btn-ghost btn-sm" id="mp-q-pain-add">${esc(t('mp.f.addPain'))}</button>
       </div>
     </div>
@@ -64398,6 +64630,7 @@ async function mpQuickSave() {
       const ix = MP.well.findIndex(w => w.date === d);
       if (ix >= 0) MP.well[ix] = { ...MP.well[ix], ...data }; else MP.well.push({ id: me + '_' + d, ...data });
       MP.well.sort(mpByDateDesc);
+      PAIN_WELL = MP.well;
       savedAny = true;
     }
   } catch { failed.push(t('mp.s.well')); }
@@ -64954,6 +65187,8 @@ function mpHistWell() {
   const parts = [];
   const on = mpShareActive();
   parts.push(`<div class="mp-share"><h4 class="mp-sec">${esc(t('mp.share.title'))}</h4><p class="form-note">${esc(t('mp.share.text'))}</p><div class="mp-share-row"><span>${esc(on ? t('mp.share.on') : t('mp.share.off'))}</span>${on ? `<button type="button" class="btn-ghost btn-sm" data-mp-act="share-off">${esc(t('mp.share.stop'))}</button>` : `<button type="button" class="btn-primary btn-sm" data-mp-act="share-on">${esc(t('mp.share.grant'))}</button>`}</div></div>`);
+  const painsNow = mpActivePains();
+  if (painsNow.length) { parts.push(mpPainAlertHTML(painsNow)); parts.push(mpPainAskHTML(painsNow)); }
   const sleepPts = Object.keys(ACT_SLEEP || {}).filter(d => ACT_SLEEP[d] != null).sort().map(d => ({ d, v: Math.round(num(ACT_SLEEP[d]) / 6) / 10 }));
   if (sleepPts.length >= 2) parts.push(`<h4 class="mp-sec">${esc(t('mp.h.trend'))} · ${esc(t('mp.f.sleep'))} (h)</h4><div class="mp-chart">${mpLineSVG(sleepPts)}</div>`);
   const energyPts = (MP ? MP.well : []).filter(w => w.energy).slice().sort(mpByDateAsc).map(w => ({ d: w.date, v: num(w.energy) }));
@@ -64969,7 +65204,7 @@ function mpHistWell() {
       if (w.energy) bits.push(esc(t('mp.f.energy')) + ' ' + w.energy + '/5');
       if (w.fatigue) bits.push(esc(t('mp.f.fatigue')) + ' ' + w.fatigue + '/5');
       if (w.stress) bits.push(esc(t('mp.f.stress')) + ' ' + w.stress + '/5');
-      if (Array.isArray(w.pain)) bits.push(...w.pain.map(p => esc(t('mp.painLine', { zone: t('mp.z.' + (p.zone || 'other')), n: p.intensity }))));
+      if (Array.isArray(w.pain)) bits.push(...w.pain.map(p => mpPainBit(p)));
       if (w.notes) bits.push(esc(w.notes));
     }
     return `<div class="mp-row"><span>${esc(shortDate(d))}</span><span>${bits.join(' · ') || esc(t('mp.none'))}</span><button type="button" class="btn-ghost btn-sm" data-mp-act="quick" data-date="${d}">${esc(t('mp.edit'))}</button></div>`;
@@ -66314,6 +66549,7 @@ document.addEventListener('click', e => {
   else if (act === 'photosdoor') { mpgSet('fotos', true); const g = $('prog-g-fotos'); if (g) { try { g.scrollIntoView({ behavior: 'smooth', block: 'start' }); } catch {} } }
   else if (act === 'share-on') mpShareSet(true);
   else if (act === 'share-off') mpShareSet(false);
+  else if (act === 'pain-ans') mpPainAnswer(b.dataset.zone, b.dataset.ans);
 });
 document.addEventListener('click', e => {
   const b = e.target && e.target.closest ? e.target.closest('[data-mpg]') : null;
