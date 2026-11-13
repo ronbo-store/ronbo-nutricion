@@ -6210,6 +6210,8 @@ en: {
   'train.guide.rest': 'Rest between sets: {sec} s',
   'train.guide.doneTitle': 'Done',
   'train.guide.next': 'Next: {name}',
+  'train.guide.nextTitle': 'Coming up',
+  'train.guide.nextSub': 'Change or remove an exercise from today without leaving the guided route.',
   'train.guide.endNext': '🏁 End of today’s route',
   'train.guide.skip': 'Skip this one',
   'train.guide.showAll': '☰ See all exercises',
@@ -11230,6 +11232,8 @@ es: {
   'train.guide.rest': 'Descanso entre series: {sec} s',
   'train.guide.doneTitle': 'Ya terminados',
   'train.guide.next': 'Sigue: {name}',
+  'train.guide.nextTitle': 'Los que siguen',
+  'train.guide.nextSub': 'Cambia o quita un ejercicio de hoy sin salir del recorrido guiado.',
   'train.guide.endNext': '🏁 Fin de la ruta de hoy',
   'train.guide.skip': 'Saltar este',
   'train.guide.showAll': '☰ Ver todos los ejercicios',
@@ -37695,6 +37699,7 @@ function trainGuidedHTML(plan, day, di) {
       + (canDrag ? `<div class="guide-drag-hint">${t('train.flow.dragHint')}</div>` : '')
       + `<div class="guide-route">${stops}</div>`
       + `<button type="button" class="guide-start-btn" data-train-start="${di}">${t('train.flow.beginDay')}</button>`
+      + trainGuidePreTailHTML(di)
       + `<p class="guide-route-note">${t('train.flow.beginNote')}</p>`
       + trainSessionHTML(day)
       + trainRemovedLineHTML(plan, di)
@@ -37731,7 +37736,9 @@ function trainGuidedHTML(plan, day, di) {
       + guideTimesHTML(ex, chk, di, focus)
       + card
       + (chk && chk.done === true ? '' : `<button type="button" class="guide-skip-btn" data-guided-skip="${di}:${focus}">${t('train.guide.skip')}</button>`)
-      + `<div class="guide-next">${nextEi != null ? esc(t('train.guide.next', { name: trainExName(eff[nextEi].ex) })) : esc(t('train.guide.endNext'))}</div></div>`;
+      + (nextEi != null
+        ? `<button type="button" class="guide-next guide-next-btn" data-guide-next-open="${di}">${esc(t('train.guide.next', { name: trainExName(eff[nextEi].ex) }))} <span class="guide-next-chev" aria-hidden="true">›</span></button></div>`
+        : `<div class="guide-next">${esc(t('train.guide.endNext'))}</div></div>`);
   }
   return `<h4>${esc(label)}</h4>`
     + trainCardioWarmHTML(plan, di)
@@ -37743,6 +37750,189 @@ function trainGuidedHTML(plan, day, di) {
     + trainEditTailHTML(plan.id, di)
     + trainExtrasZoneHTML();   /* AUTH-370: la salida del guiado vive solo en la puerta de arriba */
 }
+/* ═══ AUTH-446 · ACCIONES DEL DÍA TAMBIÉN EN EL MODO GUIADO
+   (pedido de Ronald, 2026-11-13 10:01 CST: «quiero que la
+   posibilidad de agregar, saltar, etcétera, sobre todo de
+   agregar ejercicio, también exista en el otro modo»; diseño
+   cerrado con sus TRES decisiones del mismo día, 10:14–10:33
+   CST, sobre la maqueta aprobada):
+   D1 · el guiado SIN EMPEZAR gana bajo el botón grande la
+   cola reducida del día — solo «Saltar» y «+ Agregar» — con
+   los data-* y el cableado de siempre (trainGuidePreTailHTML,
+   junto a trainGuidedHTML).
+   D2 · NO: «Cambiar» y «Quitar de hoy» del ejercicio en foco
+   NO se adelantan — siguen naciendo solo con el ejercicio en
+   curso o en pausa, como hasta hoy (este paquete no toca el
+   pie del flujo sin empezar).
+   D3 · SÍ: ya entrenando, la línea «Sigue: …» del foco se
+   vuelve PUERTA y abre la hoja de los que siguen
+   (#gnext-float, familia .act-float/.act-sheet con su velo,
+   espejo de #libf-float de AUTH-443): cada ejercicio que
+   falta — ni hecho ni en foco, en el orden de la ruta — con
+   sus dos acciones, «🔀 Cambiar» (EL manejador del flujo,
+   data-flow-swap, con su guarda AUTH-398) y «Quitar de hoy»
+   (el motor de siempre, trainSessionRemoveAt, envuelto por
+   la preservación del guiado de guideNextRemove).
+   La píldora y su anexo (AUTH-444) no se tocan; el foco se
+   libera al marcar como siempre (AUTH-433); la pausa de
+   AUTH-434 no se toca. ═══ */
+/* D1 · LA COLA REDUCIDA DEL GUIADO SIN EMPEZAR: la misma
+   pieza de la cola del día (train-actions-strip /
+   train-actions-btn, AUTH-402/406) con solo dos botones.
+   Sin «Iniciar» — ya es el botón grande de comenzar, y dos
+   puertas a lo mismo en la misma superficie no — y sin
+   «Terminar» — sin marcas ni cronómetro no hay nada que
+   cerrar. El cableado es el de loadMyTraining, el mismo que
+   ya cablea estos data-* en la lista y en el guiado en
+   curso. Coste declarado: 56 px (la franja de 48 + su
+   margen de 8), solo en el estado sin empezar. */
+function trainGuidePreTailHTML(di) {
+  return `<div class="train-actions-strip">`
+    + `<button type="button" class="train-actions-btn" data-train-skip="${di}">${t('train.strip.skip')}</button>`
+    + `<button type="button" class="train-actions-btn" data-train-add-open="1">${t('train.strip.add')}</button>`
+    + `</div>`;
+}
+/* D3 · LA HOJA DE LOS QUE SIGUEN. El estado es solo el plan
+   y el día de la superficie que la abrió; abrirla no escribe
+   nada y sus filas se calculan al abrir (la lista efectiva y
+   el orden de la ruta de ese instante). */
+let GNEXT = null; // { plan, di }
+/* Los ejercicios que siguen: ni hechos ni en foco, en el
+   orden de la ruta (TRAIN_GUIDE.order). El foco se calcula
+   como lo calcula trainGuidedHTML (pin válido o el primer
+   no hecho de la ruta); si el estado del guiado no cuadra
+   con el día (ctx u orden inválidos), se cae al orden
+   natural del día, igual que hará el próximo pintado. */
+function guideNextList(plan, di) {
+  const eff = trainEffectiveList(plan, di);
+  const doneOf = ei => { const c = TRAIN_CHECKS[di + ':' + ei]; return !!(c && c.done === true); };
+  const G = TRAIN_GUIDE;
+  const ctx = plan.id + '|' + todayISO() + '|' + di;
+  let order = eff.map((_, ei) => ei), pin = null;
+  if (G.ctx === ctx && G.order.length === eff.length && new Set(G.order).size === eff.length
+      && G.order.every(x => Number.isInteger(x) && x >= 0 && x < eff.length)) { order = G.order; pin = G.pin; }
+  const focus = (pin != null && pin >= 0 && pin < eff.length) ? pin : order.find(ei => !doneOf(ei));
+  if (focus == null) return [];
+  return order.filter(ei => ei !== focus && !doneOf(ei)).map(ei => ({ ei, it: eff[ei] }));
+}
+function guideNextPaint() {
+  const S = GNEXT; if (!S) return;
+  const title = $('gnext-title'); if (title) title.textContent = t('train.guide.nextTitle');
+  const sub = $('gnext-sub'); if (sub) sub.textContent = t('train.guide.nextSub');
+  const body = $('gnext-body'); if (!body) return;
+  body.innerHTML = guideNextList(S.plan, S.di).map(({ ei, it }) => {
+    const ex = it.ex;
+    const photo = trainExPhoto(ex);
+    const thumb = !photo ? ytThumbOf(trainExVideo(ex)) : '';
+    const spec = [ex.sets, ex.reps].filter(Boolean).join(' × ');
+    const key = S.di + ':' + ei;
+    const fs = TRAIN_FLOW[key];
+    const chip = fs && fs.st === 'paused' ? `<span class="gnext-chip is-paused">⏸ ${t('train.flow.paused')}</span>`
+      : (fs && fs.st === 'open' ? `<span class="gnext-chip">${t('train.flow.inCourse')}</span>` : '');
+    return `<div class="gnext-row">${photo ? `<img class="gnext-photo" src="${esc(photo)}" alt="" loading="lazy">` : (thumb ? `<img class="gnext-photo" src="${esc(thumb)}" alt="" loading="lazy">` : '<span class="gnext-photo"></span>')}<span class="gnext-mid"><span class="gnext-name">${esc(trainExName(ex))}</span>${spec ? `<span class="gnext-spec">${esc(spec)}</span>` : ''}${chip}</span><span class="gnext-acts"><button type="button" class="gnext-btn" data-flow-swap="${key}">🔀 ${t('train.custom.swap')}</button><button type="button" class="gnext-btn is-quit" data-gnext-remove="${key}">${t('train.flow.removeToday')}</button></span></div>`;
+  }).join('');
+  /* El «Cambiar» de cada fila lo cablea trainFlowWire: es
+     EL manejador del flujo, con su guarda AUTH-398 (con
+     registro de hoy no entra y avisa) y su misma puerta
+     (TRAIN_PICK). El «Quitar» lleva el atributo propio
+     porque su manejador añade la preservación del guiado. */
+  trainFlowWire(body, S.plan);
+  body.querySelectorAll('[data-gnext-remove]').forEach(b => b.onclick = () => guideNextRemove(b.dataset.gnextRemove));
+}
+/* QUITAR DESDE LA HOJA SIN MOVER EL FOCO (la condición del
+   paquete): trainSessionRemoveAt remapea las MARCAS, pero
+   el orden de la ruta, el pin y el estado del flujo viven
+   por índice efectivo y el motor no los toca — sin esta
+   envoltura, quitar un ejercicio anterior al foco dejaría
+   el foco apuntando a otro ejercicio y la pausa de
+   AUTH-434 colgada de la clave vieja. La envoltura remapea
+   ANTES (orden sin el quitado e índices corridos, pin y
+   descansos siguiendo a SU ejercicio, flujo corrido con la
+   misma regla que las marcas) y, si la confirmación de
+   AUTH-398 cancela — el motor no cambia nada —, restaura la
+   foto tal cual. El cronómetro del día no se toca: vive por
+   plan, no por índice. Si el estado del guiado no cuadra
+   con el día (no es el guiado vivo), no hay nada que
+   preservar y manda el motor solo. */
+function guideNextRemove(key) {
+  const S = GNEXT; if (!S) return;
+  const [di, ei] = String(key).split(':').map(Number);
+  const plan = S.plan;
+  if (!plan || di !== S.di) return;
+  const before = trainEffectiveList(plan, di).length;
+  const G = TRAIN_GUIDE;
+  const gLive = G.ctx === (plan.id + '|' + todayISO() + '|' + di) && G.order.length === before;
+  const gBak = { order: [...G.order], pin: G.pin, restFor: G.restFor, restSkipFor: G.restSkipFor, lastDone: G.lastDone };
+  const flowBak = {};
+  Object.keys(TRAIN_FLOW).forEach(k => { flowBak[k] = TRAIN_FLOW[k]; });
+  const remapN = n => (n == null || n === ei) ? null : (n > ei ? n - 1 : n);
+  if (gLive) {
+    G.order = G.order.filter(x => x !== ei).map(x => x > ei ? x - 1 : x);
+    G.pin = remapN(G.pin);
+    G.restFor = remapN(G.restFor);
+    G.restSkipFor = remapN(G.restSkipFor);
+  }
+  const pre = di + ':';
+  const shifted = {};
+  Object.keys(TRAIN_FLOW).forEach(k => {
+    if (!k.startsWith(pre)) { shifted[k] = TRAIN_FLOW[k]; return; }
+    const n = Number(k.slice(pre.length));
+    if (n < ei) shifted[k] = TRAIN_FLOW[k];
+    else if (n > ei) shifted[pre + (n - 1)] = TRAIN_FLOW[k];
+    /* n === ei: su estado de flujo se descarta, como su marca */
+  });
+  Object.keys(TRAIN_FLOW).forEach(k => { delete TRAIN_FLOW[k]; });
+  Object.assign(TRAIN_FLOW, shifted);
+  trainSessionRemoveAt(plan, di, ei);   /* su confirmación AUTH-398 y el remapeo de marcas viven dentro */
+  if (trainEffectiveList(plan, di).length === before) {
+    /* Cancelado en la confirmación: el motor no quitó nada
+       y la foto del guiado y del flujo vuelve tal cual. */
+    G.order = gBak.order; G.pin = gBak.pin; G.restFor = gBak.restFor; G.restSkipFor = gBak.restSkipFor; G.lastDone = gBak.lastDone;
+    Object.keys(TRAIN_FLOW).forEach(k => { delete TRAIN_FLOW[k]; });
+    Object.assign(TRAIN_FLOW, flowBak);
+  }
+}
+function guideNextOpen(plan, di) {
+  GNEXT = { plan, di };
+  guideNextPaint();
+  const bd = $('gnext-backdrop'), f = $('gnext-float');
+  if (bd) bd.style.display = '';
+  if (f) f.style.display = '';
+  try { coverSync(); } catch {}
+}
+function guideNextClose() {
+  const bd = $('gnext-backdrop'), f = $('gnext-float');
+  if (bd) bd.style.display = 'none';
+  if (f) f.style.display = 'none';
+  GNEXT = null;
+  try { coverSync(); } catch {}
+}
+/* La puerta «Sigue: …» vive en la tarjeta en foco, dentro de
+   la misma caja que cablea loadMyTraining: su cableado se
+   suma al de siempre, junto a trainFlowWire. */
+function guideNextWire(box, plan) {
+  if (!box || !plan) return;
+  box.querySelectorAll('[data-guide-next-open]').forEach(b => b.onclick = () => guideNextOpen(plan, Number(b.dataset.guideNextOpen)));
+}
+(function gnextWireSheet() {
+  const c = $('gnext-close'); if (c) c.onclick = guideNextClose;
+  const bd = $('gnext-backdrop'); if (bd) bd.onclick = guideNextClose;
+  const f = $('gnext-float');
+  if (f) f.addEventListener('click', e => {
+    const b = (e.target && e.target.closest) ? e.target.closest('[data-flow-swap],[data-gnext-remove]') : null;
+    if (!b) return;
+    /* Con la guarda AUTH-398 el «Cambiar» avisa y no abre
+       selector (TRAIN_PICK queda vacío): la hoja se queda
+       abierta para que pueda elegir otro. */
+    if (b.hasAttribute('data-flow-swap') && !TRAIN_PICK) return;
+    guideNextClose();
+  });
+  document.addEventListener('keydown', e => {
+    if (e.key !== 'Escape') return;
+    const fl = $('gnext-float');
+    if (fl && fl.style.display !== 'none') guideNextClose();
+  });
+})();
 function trainChronoHTML(planId, di, inStrip) {
   const c = trainChronoRead(planId);
   const elapsedMin = c ? Math.max(0, Math.round((Date.now() - c.start) / 60000)) : 0;
@@ -43261,6 +43451,7 @@ async function loadMyTraining() {
      marca nace ahora SOLO de «✓ Marcar hecho» del flujo de la
      tarjeta, cuyo cableado vive en trainFlowWire: */
   trainFlowWire(box, plan);
+  guideNextWire(box, plan);
   /* AUTH-406 · El botón de YouTube de la cabecera compacta
      del foco: abre el video del ejercicio en la ventana flotante
      de siempre (ytOpenPlayer), el mismo destino del «▶ Video»
@@ -58814,7 +59005,7 @@ document.addEventListener('keydown', e => { if (e.key === 'Escape') shareClose()
  *  - El SW (sw.js) solo cachea la cáscara del mismo origen en modo
  *    RED PRIMERO: Auth/Firestore/Worker jamás pasan por la caché.
  * ================================================================ */
-const PWA_SW_VERSION = '20261113-campo-agarre';
+const PWA_SW_VERSION = '20261113-acciones-guiado';
 /* Sello de versión VISIBLE (2026-11-03): el pie de la tarjeta de
    acceso enseña qué copia corre este teléfono ('v ' + el sello),
    para comprobar de un vistazo si la versión nueva ya llegó.

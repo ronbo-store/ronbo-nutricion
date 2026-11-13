@@ -21,7 +21,7 @@
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-title" content="RONBO FIT">
 <meta name="apple-mobile-web-app-status-bar-style" content="default">
-<link rel="stylesheet" href="styles.css?v=20261113-campo-agarre">
+<link rel="stylesheet" href="styles.css?v=20261113-acciones-guiado">
 <script defer src="https://cloud.umami.is/script.js" data-website-id="a29706d4-44a2-47cf-900a-5f74d74abfa8"></script>
 <script type="importmap">
 {
@@ -1238,6 +1238,20 @@
     <p class="libf-sheet-sub" id="libf-sub"></p>
     <div id="libf-body"></div>
   </div>
+  <!-- «Los que siguen» del modo guiado (AUTH-446, decisión
+       D3 de Ronald, 2026-11-13): la hoja con los ejercicios
+       que faltan del día en curso y sus dos acciones
+       (Cambiar · Quitar de hoy), hermana de #libf-float en
+       la familia .act-float/.act-sheet, con su velo propio
+       (#gnext-backdrop) y la disciplina de tapas de la casa.
+       Su cuerpo lo pinta guideNextPaint (app.js) desde la
+       lista efectiva del día; abrirla no escribe nada. -->
+  <div id="gnext-backdrop" style="display:none"></div>
+  <div class="act-float act-sheet" id="gnext-float" style="display:none" role="dialog" aria-modal="true" aria-label="Coming up">
+    <div class="act-sheet-head"><h2 class="act-sheet-title" id="gnext-title"></h2><button type="button" class="act-sheet-x" id="gnext-close" aria-label="Close" data-i18n-aria="client.close">✕</button></div>
+    <p class="gnext-sheet-sub" id="gnext-sub"></p>
+    <div id="gnext-body"></div>
+  </div>
   <!-- «Comparte tus logros» (Ronald, 2026-10-25): hoja flotante con
        las DOS tarjetas (meta del día / logros de la semana). La imagen
        se genera en el propio teléfono con Canvas desde los datos ya
@@ -2386,6 +2400,6 @@ cuando no hay declaración legible (decisión 5). -->
 <div id="toast" class="toast"></div>
 <div id="print-card" aria-hidden="true"></div>
 
-<script type="module" src="app.js?v=20261113-campo-agarre"></script>
+<script type="module" src="app.js?v=20261113-acciones-guiado"></script>
 </body>
 </html>

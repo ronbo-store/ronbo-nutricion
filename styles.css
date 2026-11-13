@@ -6230,3 +6230,24 @@ body.sess-on.move-listen #pend-back-chip { bottom: calc(env(safe-area-inset-bott
    contextos de edición y gestión, nunca en la ficha pública. */
 .grip-pend { display: inline-block; padding: 2px 9px; border-radius: 999px; font-size: 11px; font-weight: 700; background: #fef3c7; color: #92400e; vertical-align: middle; }
 .grip-pend-line { margin: 6px 0 0; font-size: 12.5px; }
+
+/* ═══ AUTH-446 · ACCIONES DEL DÍA EN EL GUIADO: la línea
+   «Sigue:» de la tarjeta en foco se vuelve puerta táctil
+   (≥44 px, decisión D3) y su hoja #gnext-float reutiliza la
+   familia .act-float/.act-sheet con velo propio, espejo de
+   #libf-float (AUTH-443). La cola reducida de D1 no necesita
+   CSS: hereda .train-actions-strip/.train-actions-btn. ═══ */
+#gnext-backdrop { position: fixed; inset: 0; background: rgba(15, 23, 42, .45); z-index: 46; }
+.guide-next-btn { display: block; width: 100%; min-height: 44px; box-sizing: border-box; background: transparent; border: 0; color: inherit; font: inherit; font-size: 12.5px; font-weight: 700; text-align: center; opacity: .9; cursor: pointer; padding: 6px 4px; }
+.guide-next-chev { font-size: 16px; font-weight: 800; }
+.gnext-sheet-sub { font-size: 13px; color: #64748b; margin: 0 0 14px; }
+.gnext-row { display: flex; align-items: center; gap: 10px; padding: 10px 0; border-bottom: 1px solid #e2e8f0; }
+.gnext-photo { width: 44px; height: 44px; flex: none; border-radius: 10px; object-fit: cover; background: #e6f4f1; }
+.gnext-mid { flex: 1; min-width: 0; }
+.gnext-name { display: block; font-size: 15px; font-weight: 700; color: #1f2937; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.gnext-spec { display: block; font-size: 12.5px; color: #64748b; margin-top: 1px; }
+.gnext-chip { display: inline-block; margin-top: 3px; font-size: 11.5px; font-weight: 700; color: #0d9488; background: #e6f4f1; border-radius: 999px; padding: 1px 8px; }
+.gnext-chip.is-paused { color: #92400e; background: #fef3c7; }
+.gnext-acts { display: flex; flex: none; gap: 6px; }
+.gnext-btn { min-height: 44px; padding: 0 12px; border: 1.5px solid #cbd5e1; border-radius: 12px; background: #fff; color: #134e4a; font: inherit; font-size: 13.5px; font-weight: 700; cursor: pointer; white-space: nowrap; }
+.gnext-btn.is-quit { color: #b3261e; border-color: #f0c6c2; }
