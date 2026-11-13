@@ -8844,6 +8844,55 @@ en: {
   'mp.sleepLine': '{h} h {m} min',
   'mp.ofGoal': 'of {goal}',
   'mp.perDay': '/day',
+  'restr.btn': 'Rebuild this day automatically',
+  'restr.stuBtn': 'Rebuild this day automatically',
+  'restr.title': 'Rebuild this day',
+  'restr.pickTitle': 'Pick the muscles you want to train',
+  'restr.pickSub': 'I build the day with your history, your goals and your health brakes. No AI: fixed rules.',
+  'restr.build': 'Build my day',
+  'restr.painHeadsUp': 'You have an active pain alert: {zone} · {n}/10. Whatever touches it stays out of the automatic build.',
+  'restr.stuPainHeadsUp': 'Your student has an active pain alert. Whatever touches it stays out of the automatic build.',
+  'restr.previewTitle': 'Your new day — check it before applying',
+  'restr.sets': '{n} sets',
+  'restr.lastFirst': 'First time',
+  'restr.lastLine': 'Last time · {date}: {n} sets · {reps} reps · {load} max',
+  'restr.lastLineNoLoad': 'Last time · {date}: {n} sets · {reps} reps',
+  'restr.loadSug': 'Suggested load',
+  'restr.loadUp': 'You topped the range last time — one step up.',
+  'restr.loadRepeat': 'Same as last time.',
+  'restr.loadRepeatHard': 'Last time took all you had — repeat the load.',
+  'restr.why.anchor': 'Main lift for {group}.',
+  'restr.why.rotation': 'Last time for this muscle you did {name} ({date}) — today it rotates.',
+  'restr.why.days': 'You have not done this in {d} days.',
+  'restr.why.again': 'You did it on {date} — it keeps its turn.',
+  'restr.why.first': 'New for you: it fits your level and your equipment.',
+  'restr.painOut': 'I left out {n} exercises because of your {zone} pain. You can still add one by hand with + Add.',
+  'restr.painOutMulti': 'I left out {n} exercises because of your active pain alerts. You can still add one by hand with + Add.',
+  'restr.stuPainOut': 'I left out {n} exercises because of an active pain alert of your student. They can still be added by hand.',
+  'restr.painUnknown': 'I could not read the pain alerts, so nothing was left out for pain.',
+  'restr.levelUp': 'For {group} only {lvl} exercises fit — I stepped one level up.',
+  'restr.eqRelaxed': 'For {group} I opened the equipment filter: nothing matched the gear from your history.',
+  'restr.noLevel': 'No closed sessions yet: I did not filter by level.',
+  'restr.noObjective': 'No goal set yet: I used neutral rep ranges.',
+  'restr.shortGroup': '{group}: only {n} exercises fit.',
+  'restr.noneGroup': '{group}: nothing fit today.',
+  'restr.scopeQ': 'Where do I apply it?',
+  'restr.scopeDay': 'Just this day — {date}',
+  'restr.scopePlan': 'My plan too — this day stays like this',
+  'restr.scopePlanNote': 'Plans do not store loads: the suggested loads apply to {date}; the plan keeps the exercises, sets and reps.',
+  'restr.stuPlanOnly': 'From your side this applies to their plan: a single-date edit lives on your student\'s phone.',
+  'restr.apply': 'Apply',
+  'restr.back': 'Back',
+  'restr.appliedDay': '✓ Day rebuilt for {date}',
+  'restr.appliedPlan': '✓ Day rebuilt and saved to the plan',
+  'restr.stuAppliedPlan': '✓ Day rebuilt in your student\'s plan',
+  'restr.healthBlocked': 'I cannot build the day without reading the health declaration.',
+  'restr.libUnavailable': 'The exercise library is not available right now.',
+  'restr.loading': 'Reading your history and your goals…',
+  'restr.loadingStu': 'Reading your student\'s history and goals…',
+  'restr.needGroup': 'Pick at least one muscle.',
+  'restr.empty': 'Nothing fit with those muscles today. Try other muscles.',
+  'restr.error': 'Something failed — nothing was applied.',
 },
 es: {
   'app.title': 'RONBO.FIT · Privado',
@@ -13762,6 +13811,55 @@ es: {
   'mp.sleepLine': '{h} h {m} min',
   'mp.ofGoal': 'de {goal}',
   'mp.perDay': '/día',
+  'restr.btn': 'Reestructura este día automáticamente',
+  'restr.stuBtn': 'Reestructura este día automáticamente',
+  'restr.title': 'Reestructura este día',
+  'restr.pickTitle': 'Selecciona los músculos que quieres trabajar',
+  'restr.pickSub': 'Armo el día con tu historial, tus metas y tus frenos de salud. Sin IA: reglas fijas.',
+  'restr.build': 'Armar mi día',
+  'restr.painHeadsUp': 'Tienes un aviso de dolor activo: {zone} · {n}/10. Lo que lo toque queda fuera del armado automático.',
+  'restr.stuPainHeadsUp': 'Tu alumno tiene un aviso de dolor activo. Lo que lo toque queda fuera del armado automático.',
+  'restr.previewTitle': 'Tu día nuevo — revísalo antes de aplicar',
+  'restr.sets': '{n} series',
+  'restr.lastFirst': 'Primera vez',
+  'restr.lastLine': 'Última vez · {date}: {n} series · {reps} reps · {load} máx',
+  'restr.lastLineNoLoad': 'Última vez · {date}: {n} series · {reps} reps',
+  'restr.loadSug': 'Carga sugerida',
+  'restr.loadUp': 'La última vez llegaste al techo de la banda: un paso más.',
+  'restr.loadRepeat': 'La misma de la última vez.',
+  'restr.loadRepeatHard': 'La última vez te costó todo: repite la carga.',
+  'restr.why.anchor': 'El principal de {group}.',
+  'restr.why.rotation': 'La última vez de este músculo hiciste {name} ({date}): hoy rota.',
+  'restr.why.days': 'Llevas {d} días sin hacerlo.',
+  'restr.why.again': 'Lo hiciste el {date}: conserva su turno.',
+  'restr.why.first': 'Nuevo para ti: encaja con tu nivel y tu equipo.',
+  'restr.painOut': 'Dejé fuera {n} ejercicios por tu dolor de {zone}. Con + Agregar puedes añadir uno a mano.',
+  'restr.painOutMulti': 'Dejé fuera {n} ejercicios por tus avisos de dolor activos. Con + Agregar puedes añadir uno a mano.',
+  'restr.stuPainOut': 'Dejé fuera {n} ejercicios por un aviso de dolor activo de tu alumno. A mano se pueden añadir igual.',
+  'restr.painUnknown': 'No pude leer los avisos de dolor, así que no dejé nada fuera por dolor.',
+  'restr.levelUp': 'De {group} solo encajaban ejercicios de nivel {lvl}: subí un escalón.',
+  'restr.eqRelaxed': 'De {group} abrí el filtro de equipo: nada coincidía con el equipo de tu historial.',
+  'restr.noLevel': 'Aún no hay sesiones cerradas: no filtré por nivel.',
+  'restr.noObjective': 'Aún no hay objetivo definido: usé bandas de repeticiones neutras.',
+  'restr.shortGroup': '{group}: solo encajaron {n} ejercicios.',
+  'restr.noneGroup': '{group}: hoy no encajó ninguno.',
+  'restr.scopeQ': '¿Dónde lo aplico?',
+  'restr.scopeDay': 'Solo este día — {date}',
+  'restr.scopePlan': 'También mi plan — este día queda así',
+  'restr.scopePlanNote': 'Los planes no guardan cargas: las cargas sugeridas se aplican a {date}; el plan conserva ejercicios, series y repeticiones.',
+  'restr.stuPlanOnly': 'Desde tu lado se aplica a su plan: la edición de una sola fecha vive en el teléfono de tu alumno.',
+  'restr.apply': 'Aplicar',
+  'restr.back': 'Atrás',
+  'restr.appliedDay': '✓ Día reestructurado para el {date}',
+  'restr.appliedPlan': '✓ Día reestructurado y guardado en el plan',
+  'restr.stuAppliedPlan': '✓ Día reestructurado en el plan de tu alumno',
+  'restr.healthBlocked': 'No puedo armar el día sin leer la declaración de salud.',
+  'restr.libUnavailable': 'La biblioteca de ejercicios no está disponible ahora.',
+  'restr.loading': 'Leyendo tu historial y tus metas…',
+  'restr.loadingStu': 'Leyendo el historial y las metas de tu alumno…',
+  'restr.needGroup': 'Elige al menos un músculo.',
+  'restr.empty': 'Con esos músculos hoy no encajó nada. Prueba con otros.',
+  'restr.error': 'Algo falló: no se aplicó nada.',
 }
 };
 let LANG = 'en';
@@ -19296,7 +19394,7 @@ function stuPlanDaysHTML(plan) {
   if (!plan || !Array.isArray(plan.days) || !plan.days.length) return '';
   return `<div class="stu-plan-days">${plan.days.map((d, di) => {
     const free = d.freeDay === true;
-    return `<div class="stu-plan-day"><button type="button" class="stu-train-row" data-stu-day="${esc(plan.id)}:${di}"><span>${esc(d.label || t('train.d.dayN', { n: di + 1 }))}</span><span class="sx">${free ? esc(t('train.free.label')) : esc(t('train.exCount', { n: (d.exercises || []).length }))} ›</span></button><div class="stu-train-det" data-stu-day-det="${esc(plan.id)}:${di}" style="display:none">${free ? `<div class="wempty">${esc(t('train.freeDay.assignedNote'))}</div>` : trainExercisesHTML(d)}</div></div>`;
+    return `<div class="stu-plan-day"><button type="button" class="stu-train-row" data-stu-day="${esc(plan.id)}:${di}"><span>${esc(d.label || t('train.d.dayN', { n: di + 1 }))}</span><span class="sx">${free ? esc(t('train.free.label')) : esc(t('train.exCount', { n: (d.exercises || []).length }))} ›</span></button><div class="stu-train-det" data-stu-day-det="${esc(plan.id)}:${di}" style="display:none">${free ? `<div class="wempty">${esc(t('train.freeDay.assignedNote'))}</div>` : trainExercisesHTML(d) + (plan.active === true ? restructureStuDoorHTML(plan, di) : '')}</div></div>`;
   }).join('')}</div>`;
 }
 function stuPlanDaysWire(root) {
@@ -33655,7 +33753,14 @@ function trainEditsRead(planId, iso) {
        el día se pinta byte a byte como siempre. */
     const order = Array.isArray(v.order) ? v.order.filter(x => typeof x === 'string' && /^[sa]\d+$/.test(x)) : [];
     if (!Object.keys(swaps).length && !added.length && !removed.length && !order.length) return null;
-    return { swaps, added, removed, ...(order.length ? { order } : {}) };
+    /* REESTRUCTURA (AUTH-440): la marca de nacimiento de una
+       edición materializada por «Reestructura este día
+       automáticamente» — viaja con la edición y su único efecto
+       es que la línea de quitados no la pinte como retiros
+       sueltos (trainRemovedLineHTML). Sin la clave, la edición
+       se lee byte a byte como siempre. */
+    const restructuredAt = typeof v.restructuredAt === 'string' && v.restructuredAt ? v.restructuredAt : null;
+    return { swaps, added, removed, ...(order.length ? { order } : {}), ...(restructuredAt ? { restructuredAt } : {}) };
   } catch { return null; }
 }
 function trainEditsWrite(planId, ed, iso) {
@@ -33831,6 +33936,595 @@ function trainBringSync() {
     loadMyTraining();
   });
 }
+/* REESTRUCTURA ESTE DÍA AUTOMÁTICAMENTE (AUTH-440 — pedido de
+   Ronald, 2026-11-12 22:54 CST; propuesta aprobada con sus seis
+   decisiones de esa noche): un botón en la CABEZA de la tarjeta
+   del día (bajo su nombre, antes de la primera fila) que arma un
+   día nuevo de 4–5 ejercicios con REGLAS fijas — cero IA, cero
+   tokens, cero llamadas nuevas para calcular: la señal es el
+   historial por ejercicio, las metas y los frenos que la app ya
+   lee. Solo quien entrena AUTÓNOMO ve el botón en su tarjeta
+   (la misma puerta de trainReorderAllowed); quien tiene
+   entrenador no lo ve — su entrenador lo corre por él desde el
+   bloque del plan de su ficha.
+   Decisiones: (1) el alcance lo PREGUNTA la vista previa al
+   aplicar — «solo este día» escribe la edición de esa fecha
+   (materializada: agregados con su carga + la plantilla de ese
+   día retirada en bloque, con la marca restructuredAt) y
+   «también tu plan» escribe además ese día de la plantilla con
+   la disciplina de siempre (re-lectura fresca + instantánea
+   §6.4, el camino de asignar desde Biblioteca); desde la ficha,
+   la edición de una fecha vive en el teléfono del alumno, así
+   que el entrenador aplica sobre el plan de su alumno y la
+   vista previa lo dice en una línea. (2) SIN «Deshacer». (3) la
+   carga sugerida sale del historial (doble progresión sobria) y
+   es VISIBLE y EDITABLE en la vista previa. (4) con dolor
+   activo, lo que cruza la zona queda EXCLUIDO del armado y la
+   vista previa lo dice (al entrenador, solo el conteo — la
+   doctrina de AUTH-439: jamás la zona ni el nivel). (5) 1
+   músculo → 4 ejercicios; 2 o más → 5. (6) el botón solo vive
+   en días SIN EMPEZAR. Series: 4 en todos, por su orden. */
+function restructureAllowed() {
+  if (typeof ROLE !== 'undefined' && (ROLE === 'entrenador' || ROLE === 'administrador')) return true;
+  const relUid = (typeof MY_REL !== 'undefined' && MY_REL && MY_REL.status === 'activa' && MY_REL.trainerUid) ? MY_REL.trainerUid
+    : ((typeof UDATA !== 'undefined' && UDATA && UDATA.assignmentStatus === 'assigned' && UDATA.trainerUid) ? UDATA.trainerUid : '');
+  return !relUid;
+}
+/* La puerta del día concreto: existe, no es día libre, la fecha
+   no pasó y — si es hoy — el día no ha empezado (sin cronómetro,
+   sin marcas y sin registro cerrado de ese día). `closedKnown`
+   lo aporta la tarjeta compacta, que ya lo sabe. */
+function restructureDayGate(plan, di, iso, closedKnown) {
+  if (!plan || !Number.isInteger(di) || di < 0 || !iso) return false;
+  const day = (plan.days || [])[di];
+  if (!day || day.freeDay === true || !Array.isArray(day.exercises)) return false;
+  if (!restructureAllowed()) return false;
+  const today = todayISO();
+  if (iso < today) return false;
+  if (iso === today) {
+    if (closedKnown) return false;
+    if (trainChronoRead(plan.id)) return false;
+    if (typeof TRAIN_CHECKS !== 'undefined' && TRAIN_CHECKS) {
+      for (const k in TRAIN_CHECKS) if (k.startsWith(di + ':') && TRAIN_CHECKS[k]) return false;
+    }
+    if (Array.isArray(MY_LOGS_ALL) && MY_LOGS_ALL.some(l => l && l.date === iso && l.dayIndex === di && (trainLogStatus(l) === 'done' || trainLogStatus(l) === 'partial'))) return false;
+  }
+  return true;
+}
+/* Inserta el botón tras el nombre del día (el primer </h4>) en
+   la tarjeta ya compuesta; si la puerta no abre, la tarjeta sale
+   byte a byte como siempre. */
+function restructureInject(inner, plan, di, iso, closedKnown) {
+  if (typeof inner !== 'string' || !inner) return inner;
+  if (!restructureDayGate(plan, di, iso, closedKnown)) return inner;
+  const btn = `<button type="button" class="restr-btn" data-restructure-btn="1" data-restr-di="${di}" data-restr-iso="${esc(iso)}">✦ ${esc(t('restr.btn'))}</button>`;
+  const i = inner.indexOf('</h4>');
+  if (i < 0) return btn + inner;
+  return inner.slice(0, i + 5) + btn + inner.slice(i + 5);
+}
+/* La puerta del entrenador en el detalle de un día del plan
+   activo de su alumno (stuPlanDaysHTML la pinta; el clic lo
+   atiende el escuchador delegado de este módulo). */
+function restructureStuDoorHTML(plan, di) {
+  return `<button type="button" class="restr-btn restr-btn-stu" data-restructure-stu="1" data-restr-plan="${esc(plan.id)}" data-restr-di="${di}">✦ ${esc(t('restr.stuBtn'))}</button>`;
+}
+/* ---------- El historial, en un índice solo ----------
+   Una pasada sobre los registros cerrados (hechos o parciales,
+   la lectura de trainLogStatus) con la identidad del REALIZADO
+   de trainHistLoadsRows: por ejercicio, su última vez (fecha,
+   cara de esfuerzo, carga máxima, suma de reps, series con
+   dato) y cuántas veces; por grupo, la fecha de su última
+   sesión (la referencia de la rotación). */
+function restrHistIndex(logs) {
+  const byId = {}, groupLast = {};
+  const closed = (Array.isArray(logs) ? logs : []).filter(l => { if (!l || !l.date) return false; const s = trainLogStatus(l); return s === 'done' || s === 'partial'; })
+    .slice().sort((a, b) => a.date < b.date ? 1 : a.date > b.date ? -1 : 0);
+  for (const log of closed) {
+    for (const e of (Array.isArray(log.exercisesDone) ? log.exercisesDone : [])) {
+      if (!e || e.done === false || e.exerciseId == null) continue;
+      const id = String(e.exerciseId);
+      const entry = (typeof LIB_BY_ID !== 'undefined' && LIB_BY_ID) ? LIB_BY_ID[id] : null;
+      if (!entry) continue;
+      const grp = entry.grupo_muscular_es || '';
+      if (grp && !(grp in groupLast)) groupLast[grp] = log.date;
+      const sets = Array.isArray(e.sets) ? e.sets : null;
+      const withData = sets ? sets.filter(s => s && (typeof s.loadKg === 'number' || (s.repsDone != null && s.repsDone !== '') || (typeof s.secDone === 'number' && s.secDone > 0))) : [];
+      if (!byId[id]) {
+        let maxKg = null, totalReps = null;
+        withData.forEach(s => {
+          if (typeof s.loadKg === 'number' && s.loadKg > 0) maxKg = maxKg == null ? s.loadKg : Math.max(maxKg, s.loadKg);
+          const rv = Number(s.repsDone);
+          if (s.repsDone != null && s.repsDone !== '' && isFinite(rv)) totalReps = (totalReps == null ? 0 : totalReps) + rv;
+        });
+        byId[id] = { lastDate: log.date, face: Number.isInteger(e.face) ? e.face : null, maxKg, totalReps, nSets: withData.length, hasDetail: !!(sets && withData.length), times: 0 };
+      }
+      byId[id].times += 1;
+    }
+  }
+  return { byId, groupLast };
+}
+function restrDaysSince(iso, today) {
+  const a = new Date(String(iso || '') + 'T12:00:00'), b = new Date(String(today || '') + 'T12:00:00');
+  if (isNaN(a) || isNaN(b)) return null;
+  return Math.round((b - a) / 86400000);
+}
+/* Derivación gemela de mpActivePains sobre documentos dados
+   (lado entrenador: los de SU alumno; la batería exige que
+   coincida campo a campo con la derivación propia sobre los
+   mismos documentos). Misma semántica exacta: manda el
+   documento más reciente (si no trae dolor, no hay aviso),
+   ventana de PAIN_ALERT_DAYS días, intensidad redondeada ≥ 1,
+   «empeoró» contra el registro anterior de la misma zona. */
+function restrActivePainsFrom(docs) {
+  const list = (Array.isArray(docs) ? docs : []).filter(d => d && /^\d{4}-\d{2}-\d{2}$/.test(String(d.date || '')))
+    .slice().sort((a, b) => String(a.date) < String(b.date) ? 1 : String(a.date) > String(b.date) ? -1 : 0);
+  if (!list.length) return [];
+  const latest = list[0];
+  if (!latest || !Array.isArray(latest.pain) || !latest.pain.length) return [];
+  const today = todayISO();
+  const age = restrDaysSince(latest.date, today);
+  if (age == null || age < 0 || age > PAIN_ALERT_DAYS) return [];
+  return latest.pain.filter(p => p && p.zone && Math.round(Number(p.intensity) || 0) >= 1).map(p => {
+    const inten = Math.round(Number(p.intensity) || 0);
+    let prev = null;
+    for (const w of list) {
+      if (w.date < latest.date && Array.isArray(w.pain)) {
+        const q = w.pain.find(x => x && x.zone === p.zone);
+        if (q) { prev = q; break; }
+      }
+    }
+    return { zone: p.zone, intensity: inten, date: latest.date, age,
+      strong: inten >= 8,
+      worsened: !!(prev && inten > Math.round(Number(prev.intensity) || 0)),
+      answeredToday: latest.date === today };
+  });
+}
+/* Doble progresión sobria (ACSM 2009, regla 2×2; Helms): si la
+   última vez llegó al techo de la banda con esfuerzo ≤ «Cuesta»
+   (cara 4), un paso más (+2,5 kg); si el esfuerzo fue máximo
+   (cara 5) o no llegó al techo, la misma carga. Sin historial
+   con cargas, ninguna carga inventada. */
+function restrSuggestLoad(hist, band) {
+  if (!hist || hist.maxKg == null) return null;
+  const reachedTop = hist.totalReps != null && hist.nSets > 0 && hist.totalReps >= hist.nSets * band.max;
+  if (reachedTop && (hist.face == null || hist.face <= 4)) return { kg: Math.round((hist.maxKg + 2.5) * 100) / 100, why: 'up' };
+  return { kg: hist.maxKg, why: hist.face === 5 ? 'repeatHard' : 'repeat' };
+}
+/* EL MOTOR (función pura de sus insumos: mismos insumos ⇒
+   mismo día). inp: { chosen (grupos en el orden tocado), level
+   (inferido o null), hp (autoHealthPlan), pains (avisos
+   activos), painKnown (bool), hist (restrHistIndex), objective,
+   lib }. Filtros duros en orden: salud → dolor → nivel (con la
+   válvula de lo ya realizado y el escalón declarado) → equipo
+   (las familias del historial; relajado por músculo si vacía).
+   Puntuación: compuesto primero en su rol · rotación contra la
+   última sesión del músculo · días sin hacerlo · historial con
+   cargas · desempate por orden de ficha. Composición: un ancla
+   compuesta por músculo en orden tocado y relleno alternando;
+   total por la decisión 5. */
+const RESTR_GROUP_ORDER = ['Pecho', 'Espalda', 'Hombros', 'Tríceps', 'Bíceps', 'Cuádriceps', 'Isquiotibiales', 'Glúteos', 'Pantorrillas', 'Core', 'Cuerpo completo'];
+function restrBandFor(entry, grp) {
+  if (!autoIsIsolation(entry)) return { min: 8, max: 12, iso: false };
+  if (grp === 'Core' || grp === 'Pantorrillas') return { min: 12, max: 20, iso: true };
+  return { min: 10, max: 15, iso: true };
+}
+function restrBuildDay(inp) {
+  const lib = (inp.lib || []).filter(e => e && e.id && e.grupo_muscular_es);
+  const chosen = (inp.chosen || []).filter(g => lib.some(e => e.grupo_muscular_es === g));
+  const target = chosen.length <= 1 ? 4 : 5;
+  const today = todayISO();
+  const hist = inp.hist || { byId: {}, groupLast: {} };
+  const doneIds = new Set(Object.keys(hist.byId));
+  const eqFams = new Set();
+  doneIds.forEach(id => { const e = lib.find(x => x.id === id); if (e) autoEqFamilies(e).forEach(f => eqFams.add(f)); });
+  const decl = { levelUp: [], eqRelaxed: [], short: [], painOut: 0, painZones: [] };
+  const pools = {};
+  chosen.forEach(g => {
+    let pool = lib.filter(e => e.grupo_muscular_es === g);
+    pool = pool.filter(e => !autoHealthExcludes(e, inp.hp));
+    if (inp.painKnown && (inp.pains || []).length) {
+      const kept = [];
+      pool.forEach(e => {
+        const hit = (inp.pains || []).find(p => painZoneMatchesEntry(p.zone, e));
+        if (hit) { decl.painOut++; if (!decl.painZones.includes(hit.zone)) decl.painZones.push(hit.zone); }
+        else kept.push(e);
+      });
+      pool = kept;
+    }
+    if (inp.level) {
+      const rank = AUTO_LEVEL_RANK[inp.level];
+      const byLevel = pool.filter(e => { const lv = autoLevelOf(e); return lv == null || AUTO_LEVEL_RANK[lv] <= rank || doneIds.has(e.id); });
+      if (byLevel.length) pool = byLevel;
+      else {
+        const up = inp.level === 'principiante' ? 'intermedio' : inp.level === 'intermedio' ? 'avanzado' : null;
+        const stepped = up ? pool.filter(e => { const lv = autoLevelOf(e); return lv == null || AUTO_LEVEL_RANK[lv] <= AUTO_LEVEL_RANK[up] || doneIds.has(e.id); }) : [];
+        if (stepped.length) { pool = stepped; decl.levelUp.push({ group: g, lvl: up }); }
+        else pool = byLevel;
+      }
+    }
+    if (eqFams.size) {
+      const byEq = pool.filter(e => { const f = autoEqFamilies(e); return !f.length || f.some(x => eqFams.has(x)); });
+      if (byEq.length) pool = byEq; else if (pool.length) decl.eqRelaxed.push(g);
+    }
+    const scored = pool.map(e => {
+      const h = hist.byId[e.id] || null;
+      const iso = autoIsIsolation(e);
+      let score = iso ? 0 : 40;
+      if (h) {
+        score += 10;
+        if (h.maxKg != null) score += 10;
+        const ds = restrDaysSince(h.lastDate, today);
+        if (ds != null) score += Math.min(20, ds);
+        if (hist.groupLast[g] && h.lastDate === hist.groupLast[g]) score -= 30;
+      } else score += 5;
+      return { entry: e, score, iso, hist: h };
+    }).sort((a, b) => b.score - a.score || (a.entry.id < b.entry.id ? -1 : 1));
+    pools[g] = scored;
+  });
+  const used = new Set();
+  const rows = [];
+  const whyFor = (cand, g, isAnchor) => {
+    if (isAnchor) return { k: 'restr.why.anchor', vars: { group: LANG === 'en' ? (AUTO_GROUP_EN[g] || g) : g } };
+    const h = cand.hist;
+    if (!h) return { k: 'restr.why.first', vars: {} };
+    const lastD = hist.groupLast[g];
+    if (lastD && h.lastDate !== lastD) {
+      const other = Object.keys(hist.byId).map(id => ({ id, d: hist.byId[id].lastDate })).filter(x => x.d === lastD && x.id !== cand.entry.id)
+        .map(x => lib.find(e => e.id === x.id)).find(e => e && e.grupo_muscular_es === g);
+      if (other) return { k: 'restr.why.rotation', vars: { name: libNameOf(other), date: histShortDate(lastD) } };
+    }
+    const ds = restrDaysSince(h.lastDate, today);
+    if (ds != null && ds >= 7) return { k: 'restr.why.days', vars: { d: ds } };
+    return { k: 'restr.why.again', vars: { date: histShortDate(h.lastDate) } };
+  };
+  chosen.forEach(g => {
+    const cand = (pools[g] || []).find(c => !used.has(c.entry.id) && !c.iso) || (pools[g] || []).find(c => !used.has(c.entry.id));
+    if (cand) { used.add(cand.entry.id); rows.push({ cand, group: g, why: whyFor(cand, g, true) }); }
+  });
+  let guard = 0;
+  while (rows.length < target && guard++ < 40) {
+    let progressed = false;
+    for (const g of chosen) {
+      if (rows.length >= target) break;
+      const cand = (pools[g] || []).find(c => !used.has(c.entry.id));
+      if (cand) { used.add(cand.entry.id); rows.push({ cand, group: g, why: whyFor(cand, g, false) }); progressed = true; }
+    }
+    if (!progressed) break;
+  }
+  const share = Math.ceil(target / Math.max(1, chosen.length));
+  chosen.forEach(g => {
+    const n = rows.filter(r => r.group === g).length;
+    if (n === 0) decl.short.push({ group: g, n: 0 });
+    else if (rows.length < target && n < share) decl.short.push({ group: g, n });
+  });
+  const out = rows.map(r => {
+    const e = r.cand.entry;
+    const band = restrBandFor(e, r.group);
+    const sug = restrSuggestLoad(r.cand.hist, band);
+    return {
+      entry: e, group: r.group, iso: band.iso, sets: 4,
+      reps: band.min + '-' + band.max, repsMin: band.min, repsMax: band.max,
+      rest: band.iso ? '60-90 s' : (inp.hp && inp.hp.valsalva ? '3 min' : '2-3 min'),
+      loadKg: sug ? sug.kg : null, loadWhy: sug ? sug.why : null,
+      hist: r.cand.hist, why: r.why,
+    };
+  });
+  return { rows: out, decl, target };
+}
+/* ---------- El contexto de una persona (la lectura de
+   siempre: usuario, planes, registros, declaración) ---------- */
+async function restrLoadCtx(uid, surface) {
+  const [udata, plans, logs] = await Promise.all([
+    getDoc(doc(db, 'users', uid)).then(s => s.exists() ? s.data() : null).catch(() => null),
+    fetchPlans(uid).catch(() => []),
+    fetchLogs(uid).catch(() => []),
+  ]);
+  if (!udata) return { ok: false, why: 'error' };
+  let conditions = null;
+  if (surface === 'stu') {
+    const ch = await fetchClientHealth(uid, udata).catch(() => ({ available: false, decl: null, cause: 'error' }));
+    if (!ch.available) return { ok: false, why: 'health', ch };
+    conditions = (ch.decl && ch.decl.conditions) || [];
+  } else {
+    try {
+      const snap = await getDocs(query(declCol(uid), where('state', '==', 'active')));
+      let decl = null;
+      snap.forEach(d => { decl = { id: d.id, ...d.data() }; });
+      conditions = (decl && decl.conditions) || [];
+    } catch { return { ok: false, why: 'health', ch: { available: false, decl: null, cause: 'error' } }; }
+  }
+  const eff = gmFocusEffective(udata);
+  return { ok: true, uid, udata, plans: plans || [], logs: logs || [], conditions, eff, levelInf: autoInferLevel(logs || []) };
+}
+/* La próxima fecha de un día del plan (la misma resolución del
+   calendario de la ficha, careDayFor): desde hoy, hasta +21
+   días; en rotación no hay fecha y devuelve null. */
+function restrNextDateFor(plan, di) {
+  if (!plan) return null;
+  const today = todayISO();
+  for (let i = 0; i <= 21; i++) {
+    const iso = addDaysISO(today, i);
+    const r = careDayFor(plan, null, iso);
+    if (r && r.mode !== 'rotation' && r.idx === di) return iso;
+  }
+  return null;
+}
+/* ---------- Las hojas (patrón .swap-sheet de la casa) ------ */
+let RESTR = null;   // { surface:'own'|'stu', uid, plan, di, iso, ctx, chosen:[], built, scope, pains, painKnown }
+function restrSheetSync() {
+  let sheet = document.getElementById('restr-sheet');
+  const S = RESTR;
+  if (!S) {
+    if (sheet) sheet.remove();
+    document.body.classList.remove('swap-sheet-open');
+    return;
+  }
+  if (!sheet) {
+    sheet = document.createElement('div');
+    sheet.id = 'restr-sheet';
+    sheet.className = 'swap-sheet restr-sheet';
+    document.body.appendChild(sheet);
+  }
+  document.body.classList.add('swap-sheet-open');
+  if (S.phase === 'loading') {
+    sheet.innerHTML = `<div class="swap-sheet-head"><span class="swap-sheet-title">${esc(t('restr.title'))}</span><button type="button" class="swap-sheet-x" data-restr-close="1" aria-label="✕">✕</button></div><p class="progress-hint">${esc(t(S.surface === 'stu' ? 'restr.loadingStu' : 'restr.loading'))}</p>`;
+  } else if (S.phase === 'blocked') {
+    sheet.innerHTML = `<div class="swap-sheet-head"><span class="swap-sheet-title">${esc(t('restr.title'))}</span><button type="button" class="swap-sheet-x" data-restr-close="1" aria-label="✕">✕</button></div><div class="pl-auto-block">${esc(t('restr.healthBlocked'))}${S.ch ? `<br><span class="progress-hint">${esc(clientHealthCauseText(S.ch))}</span>` : ''}</div>`;
+  } else if (S.phase === 'pick') {
+    sheet.innerHTML = restrPickHTML(S);
+    restrPickWire(sheet, S);
+  } else if (S.phase === 'preview') {
+    sheet.innerHTML = restrPreviewHTML(S);
+    restrPreviewWire(sheet, S);
+  }
+  const cx = sheet.querySelector('[data-restr-close]');
+  if (cx) cx.onclick = () => { RESTR = null; restrSheetSync(); };
+}
+function restrGroupsOfLib() {
+  const present = [...new Set((LIB || []).map(e => e && e.grupo_muscular_es).filter(Boolean))];
+  return present.sort((a, b) => {
+    const ia = RESTR_GROUP_ORDER.indexOf(a), ib = RESTR_GROUP_ORDER.indexOf(b);
+    if (ia >= 0 && ib >= 0) return ia - ib;
+    if (ia >= 0) return -1;
+    if (ib >= 0) return 1;
+    return a < b ? -1 : 1;
+  });
+}
+function restrGroupLbl(g) { return LANG === 'en' ? (AUTO_GROUP_EN[g] || g) : g; }
+function restrPickHTML(S) {
+  const groups = restrGroupsOfLib();
+  const pills = groups.map(g => {
+    const n = (LIB || []).filter(e => e.grupo_muscular_es === g).length;
+    return `<button type="button" class="restr-pill${S.chosen.includes(g) ? ' is-on' : ''}" data-restr-group="${esc(g)}"><span>${esc(restrGroupLbl(g))}</span><span class="restr-pill-n">${n}</span></button>`;
+  }).join('');
+  let painLine = '';
+  if (S.painKnown && (S.pains || []).length) {
+    painLine = S.surface === 'stu'
+      ? `<div class="restr-pain-note">⚠ ${esc(t('restr.stuPainHeadsUp'))}</div>`
+      : (S.pains || []).map(p => `<div class="restr-pain-note">⚠ ${esc(t('restr.painHeadsUp', { zone: mpPainZoneLbl(p.zone), n: p.intensity }))}</div>`).join('');
+  }
+  return `<div class="swap-sheet-head"><span class="swap-sheet-title">${esc(t('restr.pickTitle'))}</span><button type="button" class="swap-sheet-x" data-restr-close="1" aria-label="✕">✕</button></div>
+  <p class="progress-hint">${esc(t('restr.pickSub'))}</p>${painLine}
+  <div class="restr-pills">${pills}</div>
+  <button type="button" class="btn-primary restr-build-btn" data-restr-build="1" ${S.chosen.length ? '' : 'disabled'}>${esc(t('restr.build'))}</button>`;
+}
+function restrPickWire(sheet, S) {
+  sheet.querySelectorAll('[data-restr-group]').forEach(b => b.onclick = () => {
+    const g = b.dataset.restrGroup;
+    const i = S.chosen.indexOf(g);
+    if (i >= 0) S.chosen.splice(i, 1); else S.chosen.push(g);
+    restrSheetSync();
+  });
+  const build = sheet.querySelector('[data-restr-build]');
+  if (build) build.onclick = () => {
+    if (!S.chosen.length) { toast(t('restr.needGroup'), true); return; }
+    const hp = autoHealthPlan(S.ctx.conditions || []);
+    S.built = restrBuildDay({ chosen: S.chosen.slice(), level: S.ctx.levelInf ? S.ctx.levelInf.level : null, hp, pains: S.pains, painKnown: S.painKnown, hist: S.histIdx, objective: S.ctx.eff ? S.ctx.eff.objective : '', lib: LIB });
+    S.scope = S.surface === 'stu' ? 'plan' : 'day';
+    S.phase = 'preview';
+    restrSheetSync();
+  };
+}
+function restrLastLineHTML(row) {
+  const h = row.hist;
+  if (!h || !h.hasDetail) return `<div class="restr-last">${esc(t('restr.lastFirst'))}</div>`;
+  const vars = { date: histShortDate(h.lastDate), n: h.nSets, reps: h.totalReps != null ? h.totalReps : '—' };
+  if (h.maxKg != null) return `<div class="restr-last">${esc(t('restr.lastLine', { ...vars, load: fmtMass(h.maxKg) }))}</div>`;
+  return `<div class="restr-last">${esc(t('restr.lastLineNoLoad', vars))}</div>`;
+}
+function restrPreviewHTML(S) {
+  const B = S.built;
+  const d = B.decl;
+  const notes = [];
+  if (!S.ctx.levelInf) notes.push(`<div class="restr-note">${esc(t('restr.noLevel'))}</div>`);
+  if (!S.ctx.eff || !S.ctx.eff.objective) notes.push(`<div class="restr-note">${esc(t('restr.noObjective'))}</div>`);
+  d.levelUp.forEach(x => notes.push(`<div class="restr-note">${esc(t('restr.levelUp', { group: restrGroupLbl(x.group), lvl: t('train.auto.lvl.' + x.lvl) }))}</div>`));
+  d.eqRelaxed.forEach(g => notes.push(`<div class="restr-note">${esc(t('restr.eqRelaxed', { group: restrGroupLbl(g) }))}</div>`));
+  if (S.painKnown && d.painOut > 0) {
+    if (S.surface === 'stu') notes.push(`<div class="restr-note restr-note-pain">⚠ ${esc(t('restr.stuPainOut', { n: d.painOut }))}</div>`);
+    else if (d.painZones.length === 1) notes.push(`<div class="restr-note restr-note-pain">⚠ ${esc(t('restr.painOut', { n: d.painOut, zone: mpPainZoneLbl(d.painZones[0]) }))}</div>`);
+    else notes.push(`<div class="restr-note restr-note-pain">⚠ ${esc(t('restr.painOutMulti', { n: d.painOut }))}</div>`);
+  }
+  if (!S.painKnown && S.surface === 'own') notes.push(`<div class="restr-note">⚠ ${esc(t('restr.painUnknown'))}</div>`);
+  d.short.forEach(x => notes.push(`<div class="restr-note">${esc(t(x.n === 0 ? 'restr.noneGroup' : 'restr.shortGroup', { group: restrGroupLbl(x.group), n: x.n }))}</div>`));
+  const rows = B.rows.map((r, i) => {
+    const photo = r.entry.foto_url ? `<img class="restr-row-img" src="${esc(r.entry.foto_url)}" alt="" loading="lazy" onerror="this.remove()">` : `<span class="restr-row-img restr-row-img-none">🏋️</span>`;
+    const loadWhy = r.loadWhy ? `<div class="restr-load-why">${esc(t(r.loadWhy === 'up' ? 'restr.loadUp' : r.loadWhy === 'repeatHard' ? 'restr.loadRepeatHard' : 'restr.loadRepeat'))}</div>` : '';
+    return `<div class="restr-row">${photo}<div class="restr-row-main">
+      <div class="restr-row-name">${esc(libNameOf(r.entry))}</div>
+      <div class="restr-row-spec">${esc(t('restr.sets', { n: r.sets }))} · ${esc(r.reps)} reps</div>
+      ${restrLastLineHTML(r)}
+      <div class="restr-why">${esc(t(r.why.k, r.why.vars))}</div>
+      <label class="restr-load-lab"><span>${esc(t('restr.loadSug'))} (kg)</span><input type="text" inputmode="decimal" class="restr-load-in" data-restr-load="${i}" value="${r.loadKg != null ? String(r.loadKg) : ''}" placeholder="—"></label>${loadWhy}
+    </div></div>`;
+  }).join('');
+  let scope = '';
+  if (S.surface === 'stu') {
+    scope = `<div class="restr-scope"><div class="restr-scope-q">${esc(t('restr.stuPlanOnly'))}</div></div>`;
+  } else {
+    const dateLbl = dateName(S.iso);
+    scope = `<div class="restr-scope"><div class="restr-scope-q">${esc(t('restr.scopeQ'))}</div>
+      <button type="button" class="restr-scope-btn${S.scope === 'day' ? ' is-on' : ''}" data-restr-scope="day">${esc(t('restr.scopeDay', { date: dateLbl }))}</button>
+      <button type="button" class="restr-scope-btn${S.scope === 'plan' ? ' is-on' : ''}" data-restr-scope="plan">${esc(t('restr.scopePlan'))}</button>
+      ${S.scope === 'plan' ? `<div class="restr-note">${esc(t('restr.scopePlanNote', { date: dateLbl }))}</div>` : ''}</div>`;
+  }
+  const empty = !B.rows.length ? `<div class="pl-auto-block">${esc(t('restr.empty'))}</div>` : '';
+  return `<div class="swap-sheet-head"><span class="swap-sheet-title">${esc(t('restr.previewTitle'))}</span><button type="button" class="swap-sheet-x" data-restr-close="1" aria-label="✕">✕</button></div>
+  ${notes.join('')}${empty}<div class="restr-rows">${rows}</div>${scope}
+  <div class="restr-foot"><button type="button" class="btn-ghost restr-back-btn" data-restr-back="1">${esc(t('restr.back'))}</button>
+  <button type="button" class="btn-primary restr-apply-btn" data-restr-apply="1" ${B.rows.length ? '' : 'disabled'}>${esc(t('restr.apply'))}</button></div>`;
+}
+function restrPreviewWire(sheet, S) {
+  sheet.querySelectorAll('[data-restr-scope]').forEach(b => b.onclick = () => { S.scope = b.dataset.restrScope; restrSheetSync(); });
+  const back = sheet.querySelector('[data-restr-back]');
+  if (back) back.onclick = () => { S.phase = 'pick'; restrSheetSync(); };
+  const apply = sheet.querySelector('[data-restr-apply]');
+  if (apply) apply.onclick = async () => {
+    sheet.querySelectorAll('[data-restr-load]').forEach(inp => {
+      const i = Number(inp.dataset.restrLoad);
+      const v = parseFloat(String(inp.value || '').replace(',', '.'));
+      S.built.rows[i].loadKg = isFinite(v) && v > 0 ? Math.round(v * 100) / 100 : null;
+    });
+    apply.disabled = true;
+    try {
+      if (S.surface === 'stu') await restrApplyStu(S);
+      else await restrApplyOwn(S);
+    } catch (e) {
+      apply.disabled = false;
+      toast(t('restr.error'), true);
+    }
+  };
+}
+/* La edición materializada de una fecha: los ejercicios nuevos
+   como agregados (con su carga) y TODA la plantilla de ese día
+   retirada en bloque, con la marca de nacimiento. La lista
+   efectiva resultante es el día reestructurado, por la
+   maquinaria de siempre. removedSlots = los huecos de la
+   plantilla que la fecha verá al pintar (al aplicar también al
+   plan, los de la plantilla NUEVA: tantos como filas nuevas). */
+function restrEditionFor(rows, removedSlots) {
+  return {
+    swaps: {},
+    added: rows.map(r => {
+      const rec = { exerciseId: r.entry.id, name: libNameOf(r.entry), sets: String(r.sets), reps: r.reps };
+      if (r.loadKg != null && r.loadKg > 0) { rec.load = r.loadKg; rec.loadUnit = 'kg'; }
+      return rec;
+    }),
+    removed: removedSlots,
+    restructuredAt: new Date().toISOString(),
+  };
+}
+function restrPlanRows(rows) {
+  return rows.map(r => ({ name: libNameOf(r.entry), sets: String(r.sets), reps: r.reps, note: '', exerciseId: r.entry.id, photoUrl: r.entry.foto_url || '', videoUrl: r.entry.video_youtube_url || '', rest: r.rest, rest_en: r.rest, repsMin: r.repsMin, repsMax: r.repsMax, repsKind: 'reps' }));
+}
+/* Escribe ese día de la plantilla con la disciplina de la casa
+   (la de asignar desde Biblioteca): re-lectura fresca,
+   instantánea §6.4 de la versión anterior y escritura fusionada
+   de los días. Devuelve los días nuevos escritos. */
+async function restrWritePlanDay(planId, di, rows) {
+  const ref = doc(db, 'training_plans', planId);
+  const snap = await getDoc(ref);
+  if (!snap.exists()) throw new Error('plan-not-found');
+  const prev = snap.data();
+  const days = JSON.parse(JSON.stringify(prev.days || []));
+  if (!days[di] || !Array.isArray(days[di].exercises)) throw new Error('day-not-found');
+  days[di].exercises = restrPlanRows(rows);
+  await addDoc(collection(db, 'training_plans'), { ...prev, isSnapshot: true, sourcePlanId: planId, snapshotAt: serverTimestamp(), active: false });
+  await setDoc(ref, { days, updatedAt: serverTimestamp() }, { merge: true });
+  return days;
+}
+async function restrApplyOwn(S) {
+  const plan = S.plan, rows = S.built.rows;
+  if (S.scope === 'plan') {
+    const days = await restrWritePlanDay(plan.id, S.di, rows);
+    plan.days = days;
+    trainEditsWrite(plan.id, restrEditionFor(rows, rows.map((_, i) => i)), S.iso);
+    RESTR = null; restrSheetSync();
+    toast(t('restr.appliedPlan'));
+    loadMyTraining();
+    return;
+  }
+  const dayExs = ((plan.days || [])[S.di] || {}).exercises || [];
+  trainEditsWrite(plan.id, restrEditionFor(rows, dayExs.map((_, i) => i)), S.iso);
+  RESTR = null; restrSheetSync();
+  toast(t('restr.appliedDay', { date: dateName(S.iso) }));
+  loadMyTraining();
+}
+async function restrApplyStu(S) {
+  const plan = S.plan, rows = S.built.rows;
+  const days = await restrWritePlanDay(plan.id, S.di, rows);
+  plan.days = days;
+  RESTR = null; restrSheetSync();
+  toast(t('restr.stuAppliedPlan'));
+  STU_PLANS = { uid: S.uid, plans: null, loadingFor: null };
+  if (typeof STU_TRAIN !== 'undefined' && STU_TRAIN && STU_TRAIN.uid === S.uid) STU_TRAIN.plans = null;
+  loadStudentPlans(S.uid);
+  if (typeof loadStudentTraining === 'function') loadStudentTraining(S.uid);
+}
+/* Abre el flujo: carga el contexto de la persona (la suya o la
+   de su alumno), sus avisos de dolor y su historial, y pinta el
+   selector. Del lado propio, el dolor sale de la derivación de
+   siempre (mpActivePains); del lado del entrenador, de la
+   gemela sobre los documentos de su alumno — y solo se usa para
+   EXCLUIR y contar, jamás para mostrar la zona. */
+async function restrOpen(opts) {
+  RESTR = { surface: opts.surface, uid: opts.uid, plan: opts.plan, di: opts.di, iso: opts.iso || null, ctx: null, chosen: [], built: null, scope: 'day', pains: [], painKnown: false, histIdx: null, phase: 'loading', ch: null };
+  restrSheetSync();
+  await libEnsure().catch(() => {});
+  if (!RESTR) return;
+  if (typeof LIB_STATE !== 'undefined' && LIB_STATE !== 'ok') { RESTR = null; restrSheetSync(); toast(t('restr.libUnavailable'), true); return; }
+  const ctx = await restrLoadCtx(opts.uid, opts.surface);
+  if (!RESTR) return;
+  if (!ctx.ok) {
+    if (ctx.why === 'health') { RESTR.phase = 'blocked'; RESTR.ch = ctx.ch || null; restrSheetSync(); return; }
+    RESTR = null; restrSheetSync(); toast(t('restr.error'), true); return;
+  }
+  RESTR.ctx = ctx;
+  RESTR.histIdx = restrHistIndex(ctx.logs);
+  if (opts.surface === 'stu') {
+    try {
+      const snap = await getDocs(query(collection(db, 'progress_wellness'), where('ownerUid', '==', opts.uid)));
+      const docs = [];
+      snap.forEach(d => docs.push(d.data()));
+      RESTR.pains = restrActivePainsFrom(docs);
+      RESTR.painKnown = true;
+    } catch { RESTR.pains = []; RESTR.painKnown = false; }
+  } else {
+    try { RESTR.pains = mpActivePains() || []; RESTR.painKnown = true; }
+    catch { RESTR.pains = []; RESTR.painKnown = false; }
+  }
+  if (!RESTR) return;
+  RESTR.phase = 'pick';
+  restrSheetSync();
+}
+/* El escuchador delegado del módulo (precedente
+   wirePlanVariantGlobal): las tarjetas se repintan seguido y la
+   ficha también — un solo escuchador atiende los dos botones. */
+let RESTR_WIRED = false;
+function restrWireGlobal() {
+  if (RESTR_WIRED) return;
+  RESTR_WIRED = true;
+  document.addEventListener('click', e => {
+    const own = e.target && e.target.closest ? e.target.closest('[data-restructure-btn]') : null;
+    if (own) {
+      const plan = (typeof MY_PLAN !== 'undefined') ? MY_PLAN : null;
+      if (!plan) return;
+      restrOpen({ surface: 'own', uid: auth.currentUser ? auth.currentUser.uid : '', plan, di: Number(own.dataset.restrDi), iso: own.dataset.restrIso || todayISO() });
+      return;
+    }
+    const stu = e.target && e.target.closest ? e.target.closest('[data-restructure-stu]') : null;
+    if (stu) {
+      const uid = (typeof STU_PLANS !== 'undefined' && STU_PLANS && STU_PLANS.uid) || (typeof STU_TRAIN !== 'undefined' && STU_TRAIN && STU_TRAIN.uid) || '';
+      const plans = (typeof STU_PLANS !== 'undefined' && STU_PLANS && Array.isArray(STU_PLANS.plans)) ? STU_PLANS.plans : [];
+      const plan = plans.find(p => p && p.id === stu.dataset.restrPlan) || null;
+      if (!uid || !plan) return;
+      const iso = restrNextDateFor(plan, Number(stu.dataset.restrDi));
+      restrOpen({ surface: 'stu', uid, plan, di: Number(stu.dataset.restrDi), iso });
+    }
+  });
+}
+restrWireGlobal();
+
 /* Lista EFECTIVA de un día: el plan con los cambios (el elegido
    ocupa el lugar del original heredando sus series × reps) y los
    agregados al final. Cada item: { ex, kind:'plan'|'swap'|'add',
@@ -38104,6 +38798,11 @@ function trainRemovedLineHTML(plan, di, iso) {
   const ed = trainEditsRead(plan.id, viewIso);
   const remSlots = ed && Array.isArray(ed.removed) ? ed.removed : [];
   if (!remSlots.length) return '';
+  /* REESTRUCTURA (AUTH-440): si la edición de esta fecha nació
+     de una reestructuración automática, sus «quitados» son la
+     plantilla entera sustituida en bloque — no retiros sueltos
+     con su «Restaurar» (la decisión de Ronald fue SIN deshacer). */
+  if (ed && ed.restructuredAt) return '';
   const dayExs = ((plan.days || [])[di] || {}).exercises || [];
   return remSlots.map(slot => {
     const sw = ed.swaps ? ed.swaps[String(slot)] : null;
@@ -41180,9 +41879,9 @@ async function loadMyTraining() {
       const lgD = logByDay[di]; if (lgD && trainLogStatus(lgD) === 'partial') TRAIN_MANAGE_DOOR = { plan, di, log: lgD };
     }
     if (!done && sel === today && trainGuidePref() === 'guided')
-      return trainDressedCardHTML(plan, logs, di, sel, trainGuidedHTML(plan, day, di), '');
+      return trainDressedCardHTML(plan, logs, di, sel, restructureInject(trainGuidedHTML(plan, day, di), plan, di, sel, false), '');
     const inner0 = dayCompactHTML(day, di, done ? 'done' : 'edit', logByDay[di] || null, null);
-    return trainDressedCardHTML(plan, logs, di, sel, dressExRows(inner0, di, done ? 'read' : 'edit'), '');
+    return trainDressedCardHTML(plan, logs, di, sel, restructureInject(dressExRows(inner0, di, done ? 'read' : 'edit'), plan, di, sel, done), '');
   };
   const dressedHistCard = (day, log) => {
     const inner = `<h4>${esc(log.dayLabel || day.label || '')}</h4>` + trainCardioWarmHTML(plan, log.dayIndex, log.date, log) + dressExRows(trainDayCompactHistHTML(day, log, log.dayIndex), log.dayIndex, 'read') + trainSessionHTML(day)
@@ -41236,7 +41935,7 @@ async function loadMyTraining() {
         const innerP = `<h4>${esc(dayLabelOf(selDi))}</h4>` + dressExRows(trainDayCompactHistHTML(day, logSD, selDi), selDi, 'read') + trainSessionHTML(day) + `<div style="margin-top:8px">${stLine}${logSD ? trainLogMetaHTML(logSD) : ''}</div>`;
         selCard = trainDressedCardHTML(plan, logs, selDi, sel, innerP, 'is-readonly') + trainShareRowHTML(selDi, sel);
       } else {
-        const innerF = `<h4>${esc(dayLabelOf(selDi))}</h4>` + dressExRows((day.exercises || []).map((ex, ei) => trainExCompactHTML(ex, selDi, ei, 'ficha', null)).join(''), selDi, 'ficha') + trainSessionHTML(day) + `<div style="margin-top:8px"><span class="train-status st-skipped">● ${t('train.today.scheduled')}</span></div>`;
+        const innerF = restructureInject(`<h4>${esc(dayLabelOf(selDi))}</h4>` + dressExRows((day.exercises || []).map((ex, ei) => trainExCompactHTML(ex, selDi, ei, 'ficha', null)).join(''), selDi, 'ficha') + trainSessionHTML(day) + `<div style="margin-top:8px"><span class="train-status st-skipped">● ${t('train.today.scheduled')}</span></div>`, plan, selDi, sel, false);
         selCard = trainDressedCardHTML(plan, logs, selDi, sel, innerF, 'is-readonly') + trainShareRowHTML(selDi, sel);
       }
     } else {
@@ -56937,7 +57636,7 @@ document.addEventListener('keydown', e => { if (e.key === 'Escape') shareClose()
  *  - El SW (sw.js) solo cachea la cáscara del mismo origen en modo
  *    RED PRIMERO: Auth/Firestore/Worker jamás pasan por la caché.
  * ================================================================ */
-const PWA_SW_VERSION = '20261112-aviso-dolor';
+const PWA_SW_VERSION = '20261112-reestructura-dia';
 /* Sello de versión VISIBLE (2026-11-03): el pie de la tarjeta de
    acceso enseña qué copia corre este teléfono ('v ' + el sello),
    para comprobar de un vistazo si la versión nueva ya llegó.
