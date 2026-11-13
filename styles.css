@@ -6142,4 +6142,78 @@ body.train-drag-lock { overflow: hidden; overscroll-behavior: none; }
 .asst-restr-act.ai { background: #0d9488; color: #fff; }
 .asst-restr-act:active { filter: brightness(.96); }
 
+/* ═══ «MIENTRAS TE MUEVES» — el anexo de la píldora y la puerta
+   del bloque (decisiones RD1–RD9 de Ronald, 2026-11-13). El anexo
+   vive ENTRE la zona principal y la franja: la línea plegada suma
+   44 px a la píldora (177,59 → ≈222) y por eso TODO el juego de
+   resguardos sess-on sube +44 desde aquí; con el anexo abierto,
+   body.sess-on.move-open lo sube a +257 sobre la base, y
+   escuchando body.sess-on.move-listen lo deja en +130 (la zona
+   principal comprimida de RD9): las reglas de escucha van
+   DESPUÉS de las de abierto para mandar con la misma
+   especificidad. ═══ */
+.sp-move { border-top: 1px solid rgba(255, 255, 255, .14); }
+.sp-move-line { display: flex; align-items: center; gap: 8px; width: 100%; min-height: 44px; padding: 6px 16px; background: none; border: none; color: #fff; font: inherit; font-size: 14.5px; font-weight: 800; cursor: pointer; text-align: left; }
+.sp-move-t { flex: 1 1 auto; }
+.sp-move-van { font-size: 12.5px; font-weight: 700; color: rgba(255, 255, 255, .72); white-space: nowrap; }
+.sp-move-chev { font-size: 20px; line-height: 1; color: rgba(255, 255, 255, .75); }
+.sp-move-open { padding: 6px 16px 8px; }
+.mv-head { display: flex; align-items: center; justify-content: space-between; gap: 8px; min-height: 44px; }
+.mv-title { font-size: 12px; font-weight: 900; letter-spacing: .12em; text-transform: uppercase; color: rgba(255, 255, 255, .85); }
+.mv-x { flex: 0 0 auto; width: 44px; height: 44px; border-radius: 50%; border: 1.5px solid rgba(255, 255, 255, .4); background: rgba(255, 255, 255, .08); color: #fff; font-size: 15px; font-weight: 900; cursor: pointer; }
+.mv-bar { height: 6px; border-radius: 99px; background: rgba(255, 255, 255, .16); overflow: hidden; margin: 2px 0 4px; }
+.mv-bar i { display: block; height: 100%; border-radius: 99px; background: linear-gradient(90deg, #f59e0b, #84cc16); }
+.mv-van { font-size: 12.5px; font-weight: 700; color: rgba(255, 255, 255, .72); margin-bottom: 4px; }
+.mv-fam { font-size: 11px; font-weight: 900; letter-spacing: .14em; color: #a3e635; margin-bottom: 3px; }
+.mv-text { font-size: 18px; line-height: 1.3; font-weight: 600; color: #fff; overflow-wrap: break-word; }
+.mv-src { font-size: 12.5px; font-style: italic; color: rgba(255, 255, 255, .65); margin-top: 5px; }
+.mv-dots { display: inline-flex; gap: 5px; align-items: center; margin-right: 2px; }
+.mv-dot { width: 7px; height: 7px; border-radius: 50%; background: rgba(255, 255, 255, .28); }
+.mv-dot.on { background: #a3e635; }
+.mv-actions { display: flex; align-items: center; gap: 8px; margin-top: 8px; }
+.mv-btn { flex: 1 1 0; min-height: 48px; border-radius: 12px; border: 1.5px solid rgba(255, 255, 255, .35); background: rgba(255, 255, 255, .1); color: #fff; font: inherit; font-size: 15px; font-weight: 800; cursor: pointer; padding: 8px 10px; }
+.mv-btn-listen { background: #0d9488; border-color: #0d9488; }
+.mv-btn-listen.on { background: #b3261e; border-color: #b3261e; }
+.mv-note { font-size: 11.5px; line-height: 1.3; color: rgba(255, 255, 255, .62); margin-top: 6px; }
+/* RD9: escuchando, la zona principal se comprime a lo mínimo */
+#sess-pill.is-move-min .sp-main { padding: 10px 16px 8px; }
+#sess-pill.is-move-min .sp-cur, #sess-pill.is-move-min .sp-btnrow, #sess-pill.is-move-min .sp-sep, #sess-pill.is-move-min .sp-next, #sess-pill.is-move-min .sp-day { display: none; }
+#sess-pill.is-move-min .mv-note { display: none; }
+#sess-pill.is-move-min .mv-btn { min-height: 52px; }
+/* La puerta del bloque (sobre la tarjeta teal del día) */
+.move-block-zone { margin-top: 10px; }
+body.sess-on .move-block-zone { display: none; }
+.move-door-line { display: flex; align-items: center; gap: 8px; width: 100%; min-height: 48px; padding: 8px 14px; background: rgba(255, 255, 255, .14); border: 1.5px solid rgba(255, 255, 255, .4); border-radius: 12px; color: #fff; font: inherit; font-size: 15px; font-weight: 800; cursor: pointer; text-align: left; }
+.mv-door-sub { font-size: 12.5px; font-weight: 700; color: rgba(255, 255, 255, .8); white-space: nowrap; }
+.move-panel { background: rgba(255, 255, 255, .1); border: 1.5px solid rgba(255, 255, 255, .25); border-radius: 14px; padding: 6px 14px 10px; color: #fff; }
+.move-panel .mv-text { font-size: 21px; }
+/* El editor del banco reusa las clases faq-ed-*; solo la casilla
+   de pendiente es propia */
+.move-ed-pend { display: inline-flex; align-items: center; gap: 6px; font-size: 13px; font-weight: 700; }
+.move-ed-pend input { width: 20px; height: 20px; }
+/* Resguardos sess-on con la línea del anexo siempre presente (+44) */
+body.sess-on .foot { padding-bottom: 402px; }
+body.sess-on #train-content.nav-page-on, body.sess-on #progress-content.nav-page-on { padding-bottom: 398px; }
+body.sess-on .act-flame { bottom: calc(env(safe-area-inset-bottom, 0px) + 272px + 76px + 44px); }
+body.sess-on .sw-fab { bottom: calc(env(safe-area-inset-bottom, 0px) + 272px + 72px + 76px + 44px); }
+body.sess-on .help-fab { bottom: calc(env(safe-area-inset-bottom, 0px) + 272px + 72px + 72px + 76px + 44px); }
+body.sess-on .share-fab { bottom: calc(env(safe-area-inset-bottom, 0px) + 272px + 72px + 72px + 72px + 76px + 44px); }
+body.sess-on #pend-back-chip { bottom: calc(env(safe-area-inset-bottom, 0px) + 278px + 76px + 44px); }
+/* Resguardos con el anexo ABIERTO en la píldora (+257) */
+body.sess-on.move-open .foot { padding-bottom: 615px; }
+body.sess-on.move-open #train-content.nav-page-on, body.sess-on.move-open #progress-content.nav-page-on { padding-bottom: 611px; }
+body.sess-on.move-open .act-flame { bottom: calc(env(safe-area-inset-bottom, 0px) + 272px + 76px + 257px); }
+body.sess-on.move-open .sw-fab { bottom: calc(env(safe-area-inset-bottom, 0px) + 272px + 72px + 76px + 257px); }
+body.sess-on.move-open .help-fab { bottom: calc(env(safe-area-inset-bottom, 0px) + 272px + 72px + 72px + 76px + 257px); }
+body.sess-on.move-open .share-fab { bottom: calc(env(safe-area-inset-bottom, 0px) + 272px + 72px + 72px + 72px + 76px + 257px); }
+body.sess-on.move-open #pend-back-chip { bottom: calc(env(safe-area-inset-bottom, 0px) + 278px + 76px + 257px); }
+/* Resguardos ESCUCHANDO (+130; la principal va comprimida) — después de move-open */
+body.sess-on.move-listen .foot { padding-bottom: 488px; }
+body.sess-on.move-listen #train-content.nav-page-on, body.sess-on.move-listen #progress-content.nav-page-on { padding-bottom: 484px; }
+body.sess-on.move-listen .act-flame { bottom: calc(env(safe-area-inset-bottom, 0px) + 272px + 76px + 130px); }
+body.sess-on.move-listen .sw-fab { bottom: calc(env(safe-area-inset-bottom, 0px) + 272px + 72px + 76px + 130px); }
+body.sess-on.move-listen .help-fab { bottom: calc(env(safe-area-inset-bottom, 0px) + 272px + 72px + 72px + 76px + 130px); }
+body.sess-on.move-listen .share-fab { bottom: calc(env(safe-area-inset-bottom, 0px) + 272px + 72px + 72px + 72px + 76px + 130px); }
+body.sess-on.move-listen #pend-back-chip { bottom: calc(env(safe-area-inset-bottom, 0px) + 278px + 76px + 130px); }
+
 

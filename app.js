@@ -553,6 +553,7 @@ async function loadRolesX() {
   try { const s = await getDoc(doc(db, 'app_settings', 'feature_flags')); if (s.exists()) FEATURE_FLAGS = s.data(); } catch {}
   try { const s = await getDoc(doc(db, 'app_settings', 'membership_catalog')); if (s.exists()) MEMBERSHIP_CATALOG = s.data(); } catch {}
   try { await faqLoad(); } catch {}
+  try { await moveLoad(); } catch {}
   if (ROLE === 'usuario' && auth.currentUser) {
     try { const s = await getDoc(doc(db, 'trainer_relations', auth.currentUser.uid)); MY_REL = s.exists() ? { id: s.id, ...s.data() } : null; } catch { MY_REL = null; }
     if (!MY_REL && UDATA) {
@@ -2537,6 +2538,7 @@ const ADMIN_SECTIONS = [
   { id: 'imglim', sub: 'system', titleKey: 'imglim.title', mount: admSecMountImgLim, refresh: admSecRefreshImgLim },
   { id: 'care', sub: 'system', titleKey: 'care.title', mount: admSecMountCare, refresh: admSecRefreshCare },
   { id: 'faqed', sub: 'system', titleKey: 'faq.edTitle', mount: admSecMountFaqEd, refresh: renderFaqEditorBox },
+  { id: 'moveed', sub: 'system', titleKey: 'move.edTitle', mount: admSecMountMoveEd, refresh: renderMoveEditorBox },
 ];
 const ADM_SEC_OPEN = {};     // id → abierta (solo presentación)
 const ADM_SEC_MOUNTED = {};  // id → contenido ya montado
@@ -6125,6 +6127,33 @@ en: {
   'train.cardio.mode.row': 'Rowing machine', 'train.cardio.mode.elliptical': 'Elliptical trainer',
   'train.cardio.mode.stairs': 'Stair climber', 'train.cardio.mode.jog': 'Light jog (treadmill)',
   'train.cardio.mode.rope': 'Jump rope',
+  'move.title': 'While you move',
+  'move.doorSub': 'Read or listen',
+  'move.vanMin': '{n} of {m} min',
+  'move.listen': 'Listen',
+  'move.stopListen': 'Stop listening',
+  'move.next': 'Next',
+  'move.close': 'Close',
+  'move.famMotiv': 'MOTIVATION',
+  'move.famCap': '8 CLAVES CAPSULE',
+  'move.famTip': 'FOUNDED TIP',
+  'move.famNext': 'COMING UP',
+  'move.farewell': "That's your warm-up window — time to lift strong. 💪",
+  'move.wakeNote': "If the screen turns off or you switch apps, the voice may stop — that's a limit of web apps.",
+  'move.empty': 'The bank is empty for now.',
+  'move.edTitle': 'Bank · While you move',
+  'move.edHint': 'The cards that rotate in the “While you move” panel: motivation, “8 claves” capsules and founded tips. A card marked as pending never rotates. Saving writes the live bank — no deployment needed.',
+  'move.edFam': 'Family',
+  'move.edOrder': 'Order',
+  'move.edTextEn': 'Text (English)',
+  'move.edTextEs': 'Text (Spanish)',
+  'move.edSrc': 'Source (tips)',
+  'move.edPending': 'Pending (does not rotate)',
+  'move.edAdd': 'Add card',
+  'move.edDelete': 'Delete',
+  'move.famNameMotiv': 'Motivation',
+  'move.famNameCap': '8 claves capsule',
+  'move.famNameTip': 'Founded tip',
   'shareW.warmupTag': 'WARM-UP',
   'shareW.aproxTag': 'WARM-UP SETS', 'shareW.aproxSets': '{n} warm-up sets', 'shareW.aproxSet1': '1 warm-up set',
   'shareW.aproxNote': 'not counted in the total',
@@ -11112,6 +11141,33 @@ es: {
   'train.cardio.mode.row': 'Remo', 'train.cardio.mode.elliptical': 'Elíptica',
   'train.cardio.mode.stairs': 'Escaladora', 'train.cardio.mode.jog': 'Trote suave (caminadora)',
   'train.cardio.mode.rope': 'Saltar la cuerda',
+  'move.title': 'Mientras te mueves',
+  'move.doorSub': 'Lee o escucha',
+  'move.vanMin': 'van {n} de {m} min',
+  'move.listen': 'Escuchar',
+  'move.stopListen': 'Dejar de escuchar',
+  'move.next': 'Siguiente',
+  'move.close': 'Cerrar',
+  'move.famMotiv': 'MOTIVACIÓN',
+  'move.famCap': 'CÁPSULA DE 8 CLAVES',
+  'move.famTip': 'CONSEJO CON FUNDAMENTO',
+  'move.famNext': 'LO QUE SIGUE',
+  'move.farewell': 'Esa fue tu ventana de calentamiento: a levantar fuerte. 💪',
+  'move.wakeNote': 'Si la pantalla se apaga o cambias de app, la voz puede detenerse: es un límite de las apps web.',
+  'move.empty': 'El banco está vacío por ahora.',
+  'move.edTitle': 'Banco · Mientras te mueves',
+  'move.edHint': 'Las tarjetas que rotan en el panel «Mientras te mueves»: motivación, cápsulas de «8 claves» y consejos con fundamento. Marcada como pendiente, una tarjeta nunca rota. Guardar escribe el banco vivo, sin despliegues.',
+  'move.edFam': 'Familia',
+  'move.edOrder': 'Orden',
+  'move.edTextEn': 'Texto (inglés)',
+  'move.edTextEs': 'Texto (español)',
+  'move.edSrc': 'Fuente (consejos)',
+  'move.edPending': 'Pendiente (no rota)',
+  'move.edAdd': 'Añadir tarjeta',
+  'move.edDelete': 'Borrar',
+  'move.famNameMotiv': 'Motivación',
+  'move.famNameCap': 'Cápsula de 8 claves',
+  'move.famNameTip': 'Consejo con fundamento',
   'shareW.warmupTag': 'CALENTAMIENTO',
   'shareW.aproxTag': 'APROXIMACIÓN', 'shareW.aproxSets': '{n} series de acercamiento', 'shareW.aproxSet1': '1 serie de acercamiento',
   'shareW.aproxNote': 'no cuentan en el total',
@@ -37747,10 +37803,11 @@ let SESS_PILL_TIMER = null;
 function sessPillTick() {
   const pill = $('sess-pill'); if (!pill) return;
   const run = sessRunning();
-  if (!run) { pill.style.display = 'none'; document.body.classList.remove('sess-on'); SESS_PILL_SIG = ''; return; }
+  if (!run) { pill.style.display = 'none'; document.body.classList.remove('sess-on'); try { moveTick(null); } catch {} SESS_PILL_SIG = ''; return; }
   pill.style.display = '';
   document.body.classList.add('sess-on');
   try { sessPillSync(run); } catch {}
+  try { moveTick(run); } catch {}
 }
 /* ═══ AUTH-407 · LA PÍLDORA GRUESA (dictada por Ronald el
    2026-11-11 12:50 CST, franja corregida a las 12:56 y veredicto
@@ -37799,8 +37856,8 @@ function sessPillSync(run) {
   try { st = trainBarState(); } catch {}
   let sig, html;
   if (!st) {
-    sig = 'deg|' + (run.label || '');
-    html = `<div class="sp-main is-deg"><div class="sp-left"><div class="sp-top"><span class="sess-pill-dot" aria-hidden="true"></span><span class="sess-pill-time" id="sess-pill-time">00:00:00</span></div><div class="sp-state"><span class="sp-training">${esc(t('sess.pillPlain'))}</span>${run.label ? `<span class="sp-day">${esc(run.label)}</span>` : ''}</div></div></div>`;
+    sig = 'deg|' + (run.label || '') + '|' + movePillSig(run);
+    html = `<div class="sp-main is-deg"><div class="sp-left"><div class="sp-top"><span class="sess-pill-dot" aria-hidden="true"></span><span class="sess-pill-time" id="sess-pill-time">00:00:00</span></div><div class="sp-state"><span class="sp-training">${esc(t('sess.pillPlain'))}</span>${run.label ? `<span class="sp-day">${esc(run.label)}</span>` : ''}</div></div></div>` + moveAnnexHTML();
   } else {
     const ck = st.di + ':' + st.cur;
     const curChk = st.checks[ck] || null;
@@ -37810,7 +37867,7 @@ function sessPillSync(run) {
     const doneN = st.eff.filter((_, ei) => { const c = st.checks[st.di + ':' + ei]; return !!(c && c.done === true); }).length;
     const pct = total ? Math.round(100 * doneN / total) : 0;
     const tipPh = (typeof UDATA !== 'undefined' && UDATA && UDATA.photoURL) || '';
-    sig = ['full', st.di, st.cur, st.nxt, curChk ? 1 : 0, flowSt, doneN, total, run.label || '', tipPh ? 'p' + tipPh.length : 'i:' + (((typeof UDATA !== 'undefined' && UDATA && UDATA.name) || ''))].join('|');
+    sig = ['full', st.di, st.cur, st.nxt, curChk ? 1 : 0, flowSt, doneN, total, run.label || '', tipPh ? 'p' + tipPh.length : 'i:' + (((typeof UDATA !== 'undefined' && UDATA && UDATA.name) || ''))].join('|') + '|' + movePillSig(run);
     const curName = trainExName(st.eff[st.cur].ex) || st.eff[st.cur].ex.name || '';
     /* AUTH-434 · LA MÁQUINA DE TRES ESTADOS EN LA
        PÍLDORA — la misma de la tarjeta, leída del mismo
@@ -37831,12 +37888,13 @@ function sessPillSync(run) {
       + `<div class="sp-state"><span class="sp-training">${esc(t('sess.pillPlain'))}</span>${run.label ? `<span class="sp-day">${esc(run.label)}</span>` : ''}</div>`
       + `<div class="sp-cur">${esc(curName)}</div><div class="sp-btnrow">${btn}</div></div>`
       + (st.nxt != null ? `<div class="sp-sep" aria-hidden="true"></div><div class="sp-next"><span class="sp-next-lab">${esc(t('sess.pillNext'))}</span><span class="sp-next-name">${esc(trainExName(st.eff[st.nxt].ex) || st.eff[st.nxt].ex.name || '')}</span><span class="sp-next-pos">${esc(t('train.guide.pos', { n: st.nxt + 1, m: total }))}</span></div>` : '')
-      + `</div><div class="sp-franja" aria-hidden="true"><i style="width:${pct}%"></i>${sessPillTipHTML(flameLeft)}</div>`;
+      + `</div>` + moveAnnexHTML() + `<div class="sp-franja" aria-hidden="true"><i style="width:${pct}%"></i>${sessPillTipHTML(flameLeft)}</div>`;
   }
   if (sig !== SESS_PILL_SIG) {
     SESS_PILL_SIG = sig;
     pill.innerHTML = html;
     pill.classList.toggle('is-deg', sig.startsWith('deg|'));
+    pill.classList.toggle('is-move-min', !!(MOVE.open && MOVE.listening));
     pill.setAttribute('aria-label', run.label ? t('sess.pillLabel', { label: run.label }) : t('sess.pillPlain'));
   }
   const tEl = $('sess-pill-time');
@@ -37849,6 +37907,7 @@ function sessPillSync(run) {
      (la píldora degradada), el contador sigue siendo
      el del día, como hasta hoy. */
   if (tEl) tEl.textContent = sessFmtClock(st ? flowClockMs(st.di + ':' + st.cur) : Date.now() - run.start);
+  try { moveFoldWatch(st); } catch {}
 }
 /* El cableado de la píldora gruesa: UN oyente delegado (el
    patrón delegado de la casa). «Finalizar» e «Iniciar» mutan el
@@ -37869,6 +37928,8 @@ function sessPillWire(pill) {
   pill.dataset.pillWired = '1';
   pill.addEventListener('click', ev => {
     const run = sessRunning(); if (!run) return;
+    const mvActEl = (ev.target && ev.target.closest) ? ev.target.closest('[data-move-act]') : null;
+    if (mvActEl) { ev.stopPropagation(); try { moveAct(mvActEl.dataset.moveAct, mvActEl); } catch {} return; }
     const fin = ev.target.closest('[data-pill-finish]');
     const ini = ev.target.closest('[data-pill-start]');
     const pau = ev.target.closest('[data-pill-pause]');
@@ -39923,6 +39984,511 @@ function trainShareModel(plan, logs, di, iso) {
 function trainShareRowHTML(di, iso) {
   return `<div class="train-share-row"><button type="button" class="btn-ghost btn-sm" data-train-share="${di}|${iso}">📣 ${t('shareW.btn')}</button></div>`;
 }
+/* ════════════════════════════════════════════════════════════
+   «MIENTRAS TE MUEVES» — EL ACOMPAÑAMIENTO DE LA SESIÓN
+   (idea de Ronald, 2026-11-13 01:13 CST; decisiones RD1–RD9
+   de las 01:44–01:52 CST). Quien entrena en un solo sitio
+   (la caminadora del calentamiento, una máquina fija) puede
+   leer o escuchar tarjetas cortas que rotan: motivación,
+   cápsulas de «8 claves» y consejos con fundamento y su
+   fuente impresa, las tres familias MEZCLADAS en una sola
+   rotación de ~50 segundos por tarjeta (RD4 y RD5).
+
+   UN solo panel con DOS PUERTAS, una visible cada vez (RD2):
+   la del bloque del calentamiento, antes de comenzar la
+   sesión, y el ANEXO de la píldora con la sesión corriendo —
+   entre su zona principal y su franja, sin mover ni un botón
+   de la píldora —. Un solo estado compartido: si venía
+   escuchando desde el bloque y la sesión comienza, el anexo
+   nace abierto en la misma tarjeta y la voz NO se corta.
+
+   La línea del anexo se abre SIEMPRE que se toca, en
+   cualquier momento de la sesión (RD1): la ventana del
+   calentamiento ya no cierra ninguna puerta; queda solo
+   como dato de contexto («van N de M min») y, si el panel
+   está abierto cuando la ventana se cumple, como DESPEDIDA
+   — tras ella el panel se pliega solo a los ~6 segundos —.
+   Al cambiar de ejercicio con el panel abierto, el panel se
+   pliega solo y la voz se detiene (RD3): las señales son el
+   avance del foco o de las marcas, el «Iniciar» del
+   siguiente y la entrada en el cierre; PAUSAR no pliega.
+   La tarjeta «Lo que sigue» vive SOLO en la puerta del
+   bloque (RD8): en la píldora, su columna SIGUE ya lo
+   anuncia. Escuchando, la zona principal de la píldora se
+   comprime a lo mínimo — punto, reloj y ENTRENANDO — (RD9).
+
+   El banco vive como el de Preguntas: semilla en código y
+   documento vivo editable por el dueño sin despliegues
+   (app_settings/mientras-te-mueves), con su editor gemelo
+   en Administración (RD6). Las cápsulas de «8 claves» nacen
+   como MARCADORES pendientes de la aprobación de Ronald,
+   uno a uno: el manuscrito es INTOCABLE — ni copiar, ni
+   recortar, ni subir — y ningún texto se presenta como suyo
+   sin su visto bueno (RD7). Los textos de motivación son
+   suyos: la semilla también nace en marcadores honestos.
+   Los consejos SÍ nacen activos: son las líneas ya fundadas
+   del propio bloque de calentamiento, con su fuente. Una
+   tarjeta marcada «pendiente» NUNCA rota.
+
+   Coste CERO en todo: sin IA por uso; la voz es la del
+   teléfono (asstSpeak). El panel no escribe ningún dato de
+   entrenamiento: ni llaves locales nuevas ni documentos; la
+   única escritura del paquete es el guardado del banco en
+   su editor, y es del dueño. Con la pantalla apagada o en
+   otra app, una app web no puede garantizar que la voz
+   siga: se pide Wake Lock con el panel abierto y la interfaz
+   lo dice en una línea (move.wakeNote). ═══ */
+const MOVE_FAMS = ['motiv', 'cap', 'tip'];
+const MOVE_SEED = [
+  { id: 'tip-dosis', fam: 'tip', order: 1, pendiente: false, src: 'Fradkin et al. 2010 · Bishop 2003 · ACSM',
+    text: { en: "Warm up 5–15 min at a pace that lets you talk but not sing — enough to warm the body up for the strength work coming.",
+            es: 'Calienta de 5 a 15 min a un ritmo que te deje hablar, pero no cantar: basta para preparar el cuerpo para la fuerza que viene.' } },
+  { id: 'tip-hablar', fam: 'tip', order: 2, pendiente: false, src: 'Persinger et al. 2004',
+    text: { en: "If you can sing, pick up the pace a little; if you can't get a word out, ease off. Your breathing is your speedometer.",
+            es: 'Si puedes cantar, aprieta un poco el paso; si no puedes decir ni una palabra, afloja. Tu respiración es tu velocímetro.' } },
+  { id: 'tip-escaleras', fam: 'tip', order: 3, pendiente: false, src: 'ACSM',
+    text: { en: 'A stair warm-up runs hotter: 5–8 min of gentle climbing raises your temperature as much as a longer flat warm-up.',
+            es: 'La escaladora calienta más rápido: de 5 a 8 min suaves suben tu temperatura tanto como un calentamiento plano más largo.' } },
+  { id: 'tip-cuerda', fam: 'tip', order: 4, pendiente: false, src: 'ACSM',
+    text: { en: 'Rope jumping is intense: 1–3 min at a light rhythm is enough — the rest of the warm-up can stay gentle.',
+            es: 'Saltar la cuerda es intenso: de 1 a 3 min a ritmo suave bastan; el resto del calentamiento puede ser tranquilo.' } },
+  { id: 'tip-aviso', fam: 'tip', order: 5, pendiente: false, src: 'ACSM',
+    text: { en: "Past 30 continuous minutes, rest and hydrate before continuing — long low-intensity sessions also count toward your day.",
+            es: 'Más de 30 minutos seguidos: descansa e hidrátate antes de seguir; las sesiones largas de baja intensidad también cuentan en tu día.' } },
+  { id: 'cap-1', fam: 'cap', order: 1, pendiente: true, src: '',
+    text: { en: 'Capsule 1 of «8 claves» — text pending: Jett drafts it and Ronald approves it, one by one.',
+            es: 'Cápsula 1 de «8 claves» — texto pendiente: lo redacta Jett y lo aprueba Ronald, uno a uno.' } },
+  { id: 'cap-2', fam: 'cap', order: 2, pendiente: true, src: '',
+    text: { en: 'Capsule 2 of «8 claves» — text pending: Jett drafts it and Ronald approves it, one by one.',
+            es: 'Cápsula 2 de «8 claves» — texto pendiente: lo redacta Jett y lo aprueba Ronald, uno a uno.' } },
+  { id: 'cap-3', fam: 'cap', order: 3, pendiente: true, src: '',
+    text: { en: 'Capsule 3 of «8 claves» — text pending: Jett drafts it and Ronald approves it, one by one.',
+            es: 'Cápsula 3 de «8 claves» — texto pendiente: lo redacta Jett y lo aprueba Ronald, uno a uno.' } },
+  { id: 'cap-4', fam: 'cap', order: 4, pendiente: true, src: '',
+    text: { en: 'Capsule 4 of «8 claves» — text pending: Jett drafts it and Ronald approves it, one by one.',
+            es: 'Cápsula 4 de «8 claves» — texto pendiente: lo redacta Jett y lo aprueba Ronald, uno a uno.' } },
+  { id: 'cap-5', fam: 'cap', order: 5, pendiente: true, src: '',
+    text: { en: 'Capsule 5 of «8 claves» — text pending: Jett drafts it and Ronald approves it, one by one.',
+            es: 'Cápsula 5 de «8 claves» — texto pendiente: lo redacta Jett y lo aprueba Ronald, uno a uno.' } },
+  { id: 'cap-6', fam: 'cap', order: 6, pendiente: true, src: '',
+    text: { en: 'Capsule 6 of «8 claves» — text pending: Jett drafts it and Ronald approves it, one by one.',
+            es: 'Cápsula 6 de «8 claves» — texto pendiente: lo redacta Jett y lo aprueba Ronald, uno a uno.' } },
+  { id: 'cap-7', fam: 'cap', order: 7, pendiente: true, src: '',
+    text: { en: 'Capsule 7 of «8 claves» — text pending: Jett drafts it and Ronald approves it, one by one.',
+            es: 'Cápsula 7 de «8 claves» — texto pendiente: lo redacta Jett y lo aprueba Ronald, uno a uno.' } },
+  { id: 'cap-8', fam: 'cap', order: 8, pendiente: true, src: '',
+    text: { en: 'Capsule 8 of «8 claves» — text pending: Jett drafts it and Ronald approves it, one by one.',
+            es: 'Cápsula 8 de «8 claves» — texto pendiente: lo redacta Jett y lo aprueba Ronald, uno a uno.' } },
+  { id: 'motiv-1', fam: 'motiv', order: 1, pendiente: true, src: '',
+    text: { en: "Motivation text 1 — Ronald's own text, still to be written.",
+            es: 'Texto de motivación 1 — texto propio de Ronald, aún por escribir.' } },
+  { id: 'motiv-2', fam: 'motiv', order: 2, pendiente: true, src: '',
+    text: { en: "Motivation text 2 — Ronald's own text, still to be written.",
+            es: 'Texto de motivación 2 — texto propio de Ronald, aún por escribir.' } },
+  { id: 'motiv-3', fam: 'motiv', order: 3, pendiente: true, src: '',
+    text: { en: "Motivation text 3 — Ronald's own text, still to be written.",
+            es: 'Texto de motivación 3 — texto propio de Ronald, aún por escribir.' } },
+  { id: 'motiv-4', fam: 'motiv', order: 4, pendiente: true, src: '',
+    text: { en: "Motivation text 4 — Ronald's own text, still to be written.",
+            es: 'Texto de motivación 4 — texto propio de Ronald, aún por escribir.' } },
+  { id: 'motiv-5', fam: 'motiv', order: 5, pendiente: true, src: '',
+    text: { en: "Motivation text 5 — Ronald's own text, still to be written.",
+            es: 'Texto de motivación 5 — texto propio de Ronald, aún por escribir.' } },
+  { id: 'motiv-6', fam: 'motiv', order: 6, pendiente: true, src: '',
+    text: { en: "Motivation text 6 — Ronald's own text, still to be written.",
+            es: 'Texto de motivación 6 — texto propio de Ronald, aún por escribir.' } },
+];
+let MOVE_ENTRIES = null;
+const MOVE = { open: false, house: null, idx: 0, listening: false,
+  openedAt: 0, cardAt: 0, farewell: false, farewellAt: 0,
+  winArmed: false, base: null, rot: [], ver: 0, ctx: null };
+let MOVE_WAKE = null;
+
+function moveSanEntries(list) {
+  if (!Array.isArray(list)) return [];
+  const out = [];
+  for (const e of list) {
+    if (!e || typeof e !== 'object') continue;
+    const fam = MOVE_FAMS.includes(e.fam) ? e.fam : '';
+    const tx = (e.text && typeof e.text === 'object') ? e.text : {};
+    const en = typeof tx.en === 'string' ? tx.en.trim() : '';
+    const es = typeof tx.es === 'string' ? tx.es.trim() : '';
+    if (!fam || (!en && !es)) continue;
+    out.push({ id: String(e.id || ('c' + out.length)), fam,
+      order: Number.isFinite(Number(e.order)) ? Number(e.order) : 99,
+      text: { en, es }, src: typeof e.src === 'string' ? e.src.trim() : '',
+      pendiente: e.pendiente === true });
+  }
+  out.sort((a, b) => (a.order - b.order) || String(a.id).localeCompare(String(b.id)));
+  return out;
+}
+function moveEntries() {
+  return (Array.isArray(MOVE_ENTRIES) && MOVE_ENTRIES.length) ? MOVE_ENTRIES : MOVE_SEED;
+}
+async function moveLoad() {
+  try {
+    const snap = await getDoc(doc(db, 'app_settings', 'mientras-te-mueves'));
+    if (snap && snap.exists()) {
+      const list = moveSanEntries((snap.data() || {}).entries);
+      if (list.length) { MOVE_ENTRIES = list; return; }
+    }
+  } catch {}
+  MOVE_ENTRIES = null;
+}
+function moveActive() {
+  return moveSanEntries(moveEntries()).filter(e => !e.pendiente);
+}
+function moveNextNames() {
+  try {
+    const plan = (typeof MY_PLAN !== 'undefined') ? MY_PLAN : null;
+    if (!plan) return [];
+    const today = todayISO();
+    const tmap = trainDayMap(plan);
+    let mapped = null;
+    if (tmap && tmap.pairs) { const v = tmap.pairs[new Date(today + 'T12:00:00').getDay()]; mapped = (v == null ? null : v); }
+    else if (tmap && tmap.mode === 'plancal') mapped = planCalDayIndex(plan, today);
+    const di = trainTodayDiEffective(plan, mapped);
+    if (!Number.isInteger(di) || di < 0) return [];
+    return trainEffectiveList(plan, di).slice(0, 4).map(it => trainExName(it.ex)).filter(Boolean);
+  } catch { return []; }
+}
+function moveRotation(house) {
+  const act = moveActive();
+  const byFam = MOVE_FAMS.map(f => act.filter(e => e.fam === f));
+  const cards = [];
+  for (let i = 0; ; i++) {
+    let any = false;
+    for (const list of byFam) { if (list[i]) { cards.push({ kind: 'bank', e: list[i] }); any = true; } }
+    if (!any) break;
+  }
+  if (house === 'block') {
+    const names = moveNextNames();
+    if (names.length) cards.splice(Math.min(3, cards.length), 0, { kind: 'next', names });
+  }
+  return cards;
+}
+function moveCardOf() {
+  if (!MOVE.rot.length) return null;
+  return MOVE.rot[Math.min(MOVE.idx, MOVE.rot.length - 1)];
+}
+function moveCardText(card) {
+  if (!card) return '';
+  if (card.kind === 'next') return card.names.join(' · ');
+  const tx = card.e.text || {};
+  return tx[LANG] || tx.en || tx.es || '';
+}
+function moveWarmCtx() {
+  const run = sessRunning();
+  if (run) {
+    let v = null;
+    try { v = trainCardioViewOf(trainCardioRead(run.planId)); } catch {}
+    return { warm: v, startMs: typeof run.start === 'number' ? run.start : 0 };
+  }
+  if (MOVE.ctx && MOVE.ctx.planId) {
+    let v = null;
+    try { v = trainCardioViewOf(trainCardioRead(MOVE.ctx.planId, MOVE.ctx.iso)); } catch {}
+    return { warm: v, startMs: MOVE.openedAt || 0 };
+  }
+  return { warm: null, startMs: 0 };
+}
+function moveElapsedMin(ctx) {
+  if (!ctx || !ctx.startMs) return 0;
+  return Math.max(0, Math.floor((Date.now() - ctx.startMs) / 60000));
+}
+function movePillSig(run) {
+  const ctx = moveWarmCtx();
+  const card = moveCardOf();
+  return ['mv', MOVE.open ? 1 : 0, MOVE.listening ? 1 : 0, MOVE.farewell ? 1 : 0,
+    MOVE.house || '-', card ? (card.kind === 'next' ? 'next' : card.e.id) : '-',
+    ctx.warm ? moveElapsedMin(ctx) : -1, MOVE.ver, LANG].join('|');
+}
+function moveCardHTML(card) {
+  if (!card) return `<div class="mv-text">${esc(t('move.empty'))}</div>`;
+  const famKey = card.kind === 'next' ? 'move.famNext'
+    : { motiv: 'move.famMotiv', cap: 'move.famCap', tip: 'move.famTip' }[card.e.fam];
+  return `<div class="mv-fam">${esc(t(famKey))}</div>`
+    + `<div class="mv-text">${esc(moveCardText(card))}</div>`
+    + ((card.kind === 'bank' && card.e.src) ? `<div class="mv-src">${esc(card.e.src)}</div>` : '');
+}
+function moveZoneHTML() {
+  const ctx = moveWarmCtx();
+  const warm = ctx.warm;
+  const elapsed = warm ? moveElapsedMin(ctx) : 0;
+  let inner = `<div class="mv-head"><span class="mv-title">📖 ${esc(t('move.title'))}</span>`
+    + `<button type="button" class="mv-x" data-move-act="close" aria-label="${esc(t('move.close'))}">✕</button></div>`;
+  if (MOVE.farewell) {
+    inner += `<div class="mv-card"><div class="mv-fam">💪</div><div class="mv-text">${esc(t('move.farewell'))}</div></div>`;
+    if (warm) inner += `<div class="mv-bar"><i style="width:100%"></i></div>`;
+    return inner;
+  }
+  if (warm) {
+    const pct = Math.min(100, Math.round(elapsed / Math.max(1, warm.minutes) * 100));
+    inner += `<div class="mv-bar"><i style="width:${pct}%"></i></div>`
+      + `<div class="mv-van">${esc(t('move.vanMin', { n: Math.min(elapsed, warm.minutes), m: warm.minutes }))}</div>`;
+  }
+  inner += `<div class="mv-card">${moveCardHTML(moveCardOf())}</div>`;
+  const dots = MOVE.rot.length > 1
+    ? `<span class="mv-dots">${MOVE.rot.map((c, i) => `<span class="mv-dot${i === MOVE.idx ? ' on' : ''}"></span>`).join('')}</span>` : '';
+  inner += `<div class="mv-actions">${dots}`
+    + (MOVE.listening
+      ? `<button type="button" class="mv-btn mv-btn-listen on" data-move-act="stoplisten">🔇 ${esc(t('move.stopListen'))}</button>`
+      : `<button type="button" class="mv-btn mv-btn-listen" data-move-act="listen">🔊 ${esc(t('move.listen'))}</button>`)
+    + `<button type="button" class="mv-btn" data-move-act="next">${esc(t('move.next'))} ›</button></div>`;
+  inner += `<div class="mv-note">${esc(t('move.wakeNote'))}</div>`;
+  return inner;
+}
+function moveAnnexHTML() {
+  if (!MOVE.open) {
+    const ctx = moveWarmCtx();
+    const van = ctx.warm
+      ? `<span class="sp-move-van">${esc(t('move.vanMin', { n: Math.min(moveElapsedMin(ctx), ctx.warm.minutes), m: ctx.warm.minutes }))}</span>`
+      : '';
+    return `<div class="sp-move"><button type="button" class="sp-move-line" data-move-act="open">`
+      + `<span class="sp-move-t">📖 ${esc(t('move.title'))}</span>${van}`
+      + `<span class="sp-move-chev" aria-hidden="true">›</span></button></div>`;
+  }
+  return `<div class="sp-move sp-move-open">${moveZoneHTML()}</div>`;
+}
+function moveBlockZoneHTML(plan, iso, v) {
+  try {
+    if (!plan || !v) return '';
+    const isoEff = iso || todayISO();
+    if (isoEff !== todayISO()) return '';
+    if (MOVE.open && MOVE.house === 'block') {
+      return `<div class="move-block-zone" id="move-block-zone"><div class="move-panel">${moveZoneHTML()}</div></div>`;
+    }
+    return `<div class="move-block-zone" id="move-block-zone">`
+      + `<button type="button" class="move-door-line" data-move-act="open" data-move-plan="${esc(plan.id)}" data-move-iso="${esc(isoEff)}">`
+      + `<span class="sp-move-t">📖 ${esc(t('move.title'))}</span>`
+      + `<span class="mv-door-sub">${esc(t('move.doorSub'))}</span>`
+      + `<span class="sp-move-chev" aria-hidden="true">›</span></button></div>`;
+  } catch { return ''; }
+}
+function moveBlockPaint() {
+  const z = $('move-block-zone'); if (!z || !MOVE.ctx) return;
+  let v = null;
+  try { v = trainCardioViewOf(trainCardioRead(MOVE.ctx.planId, MOVE.ctx.iso)); } catch {}
+  const html = moveBlockZoneHTML({ id: MOVE.ctx.planId }, MOVE.ctx.iso, v);
+  if (html) z.outerHTML = html;
+}
+function moveBodySync() {
+  const onPill = !!(MOVE.open && (MOVE.house === 'pill' || sessRunning()));
+  document.body.classList.toggle('move-open', onPill);
+  document.body.classList.toggle('move-listen', !!(onPill && MOVE.listening));
+}
+function moveRepaint(run) {
+  try { if (run) sessPillSync(run); } catch {}
+  if (MOVE.house === 'block') { try { moveBlockPaint(); } catch {} }
+  try { moveBodySync(); } catch {}
+}
+async function moveWake(on) {
+  try {
+    if (on) {
+      if ('wakeLock' in navigator && !MOVE_WAKE) {
+        MOVE_WAKE = await navigator.wakeLock.request('screen');
+        if (MOVE_WAKE && MOVE_WAKE.addEventListener) MOVE_WAKE.addEventListener('release', () => { MOVE_WAKE = null; });
+      }
+    } else if (MOVE_WAKE) {
+      const w = MOVE_WAKE; MOVE_WAKE = null;
+      await w.release();
+    }
+  } catch {}
+}
+function moveWatchState() {
+  try {
+    const st = trainBarState(); if (!st) return null;
+    let flow = '';
+    const ck = st.di + ':' + st.cur;
+    try { if (TRAIN_CHECKS_CTX === st.plan.id + '|' + todayISO() && TRAIN_FLOW[ck]) flow = TRAIN_FLOW[ck].st || ''; } catch {}
+    let done = 0;
+    st.eff.forEach((it, ei) => { const c = st.checks[st.di + ':' + ei]; if (c && c.done === true) done++; });
+    return { di: st.di, cur: st.cur, done, flow };
+  } catch { return null; }
+}
+function moveOpen(house, planId, iso) {
+  MOVE.open = true;
+  MOVE.house = house || (sessRunning() ? 'pill' : 'block');
+  if (planId) MOVE.ctx = { planId, iso: iso || todayISO() };
+  MOVE.idx = 0; MOVE.cardAt = Date.now(); MOVE.openedAt = Date.now();
+  MOVE.farewell = false; MOVE.farewellAt = 0;
+  MOVE.rot = moveRotation(MOVE.house);
+  MOVE.base = moveWatchState();
+  const ctx = moveWarmCtx();
+  MOVE.winArmed = !!(ctx.warm && ctx.startMs && (Date.now() - ctx.startMs) / 60000 < ctx.warm.minutes);
+  moveWake(true);
+  moveRepaint(sessRunning());
+}
+function moveFold() {
+  if (!MOVE.open) return;
+  MOVE.open = false; MOVE.farewell = false; MOVE.winArmed = false;
+  if (MOVE.listening) { MOVE.listening = false; try { asstStopSpeak(); } catch {} }
+  moveWake(false);
+  moveRepaint(sessRunning());
+}
+function moveCloseAll() {
+  MOVE.house = null; MOVE.base = null;
+  moveFold();
+  try { moveBodySync(); } catch {}
+}
+function moveSpeakCard() {
+  const txt = moveCardText(moveCardOf());
+  if (!txt) return;
+  try { asstSpeak(txt); } catch {}
+}
+function moveAdvance() {
+  if (!MOVE.rot.length) return;
+  MOVE.idx = (MOVE.idx + 1) % MOVE.rot.length;
+  MOVE.cardAt = Date.now();
+  if (MOVE.listening) moveSpeakCard();
+  moveRepaint(sessRunning());
+}
+function moveAct(act, el) {
+  const ds = (el && el.dataset) || {};
+  if (act === 'open') {
+    moveOpen(ds.movePlan ? 'block' : (sessRunning() ? 'pill' : (MOVE.house || 'block')),
+      ds.movePlan || null, ds.moveIso || null);
+  }
+  else if (act === 'close') moveFold();
+  else if (act === 'next') { if (!MOVE.farewell) moveAdvance(); }
+  else if (act === 'listen') { MOVE.listening = true; moveSpeakCard(); moveRepaint(sessRunning()); }
+  else if (act === 'stoplisten') { MOVE.listening = false; try { asstStopSpeak(); } catch {} moveRepaint(sessRunning()); }
+}
+function moveFoldWatch() {
+  if (!MOVE.open || MOVE.house !== 'pill') return;
+  const cur = moveWatchState(); if (!cur) return;
+  if (!MOVE.base) { MOVE.base = cur; return; }
+  const b = MOVE.base;
+  const startSig = (cur.flow === 'open' || cur.flow === 'closing') && b.flow === '';
+  const closeSig = cur.flow === 'closing' && b.flow !== 'closing';
+  if (cur.di !== b.di || cur.cur !== b.cur || cur.done !== b.done || startSig || closeSig) { moveFold(); return; }
+  MOVE.base = cur;
+}
+function moveTick(run) {
+  if (MOVE.open && run && MOVE.house === 'block') {
+    MOVE.house = 'pill';
+    MOVE.rot = moveRotation('pill');
+    if (MOVE.idx >= MOVE.rot.length) MOVE.idx = 0;
+    MOVE.base = moveWatchState();
+    const c2 = moveWarmCtx();
+    MOVE.winArmed = !!(c2.warm && c2.startMs && (Date.now() - c2.startMs) / 60000 < c2.warm.minutes);
+    moveRepaint(run);
+  }
+  if (MOVE.open && !run && MOVE.house === 'pill') { moveCloseAll(); return; }
+  if (!MOVE.open) { try { moveBodySync(); } catch {} return; }
+  const now = Date.now();
+  const ctx = moveWarmCtx();
+  if (ctx.warm && ctx.startMs && MOVE.winArmed) {
+    const elapsed = (now - ctx.startMs) / 60000;
+    if (!MOVE.farewell && elapsed >= ctx.warm.minutes) {
+      MOVE.farewell = true; MOVE.farewellAt = now;
+      if (MOVE.listening) { try { asstSpeak(t('move.farewell')); } catch {} }
+      moveRepaint(run);
+      return;
+    }
+    if (MOVE.farewell && now - MOVE.farewellAt >= 6000) { moveFold(); return; }
+  }
+  if (!MOVE.farewell && MOVE.rot.length > 1 && now - MOVE.cardAt >= 50000) { moveAdvance(); return; }
+  if (MOVE.house === 'block') { try { moveBlockPaint(); } catch {} }
+  try { moveBodySync(); } catch {}
+}
+document.addEventListener('click', ev => {
+  const b = (ev.target && ev.target.closest) ? ev.target.closest('[data-move-act]') : null;
+  if (!b) return;
+  if (b.closest('#sess-pill')) return;
+  try { moveAct(b.dataset.moveAct, b); } catch {}
+});
+document.addEventListener('visibilitychange', () => {
+  if (document.visibilityState === 'visible' && MOVE.open) moveWake(true);
+});
+
+/* ── El editor del banco (Administración; gemelo del de FAQ) ── */
+let MOVE_ED = null;
+function admSecMountMoveEd(body) {
+  body.innerHTML = `<p class="progress-hint">${esc(t('move.edHint'))}</p><div id="move-editor-box"></div>`;
+  renderMoveEditorBox();
+}
+async function renderMoveEditorBox() {
+  const box = $('move-editor-box'); if (!box) return;
+  if (!(IS_OWNER && ROLE === 'administrador')) { box.innerHTML = ''; return; }
+  if (!MOVE_ENTRIES) { try { await moveLoad(); } catch {} }
+  MOVE_ED = moveEntries().map(e => ({ id: e.id, fam: e.fam, order: e.order,
+    text: { en: (e.text && e.text.en) || '', es: (e.text && e.text.es) || '' },
+    src: e.src || '', pendiente: e.pendiente === true }));
+  paintMoveEditor();
+}
+function moveEdFamOptions(sel) {
+  const keys = { motiv: 'move.famNameMotiv', cap: 'move.famNameCap', tip: 'move.famNameTip' };
+  return MOVE_FAMS.map(f => `<option value="${f}"${f === sel ? ' selected' : ''}>${esc(t(keys[f]))}</option>`).join('');
+}
+function paintMoveEditor() {
+  const box = $('move-editor-box'); if (!box || !MOVE_ED) return;
+  const rows = MOVE_ED.map((e, i) => `<div class="faq-ed-row">
+    <div class="faq-ed-top"><span class="faq-ed-id">${esc(e.id)}</span>
+      <label class="faq-ed-lab">${esc(t('move.edFam'))} <select class="faq-ed-in" data-mv="fam">${moveEdFamOptions(e.fam)}</select></label>
+      <label class="faq-ed-lab">${esc(t('move.edOrder'))} <input class="faq-ed-in" data-mv="order" type="number" value="${e.order}"></label>
+      <label class="move-ed-pend"><input type="checkbox" data-mv="pendiente"${e.pendiente ? ' checked' : ''}> ${esc(t('move.edPending'))}</label>
+      <span class="faq-ed-btns"><button type="button" class="btn-primary btn-sm" data-mved-save="${i}">${esc(t('common.save'))}</button><button type="button" class="btn-ghost btn-sm" data-mved-del="${i}">${esc(t('move.edDelete'))}</button></span></div>
+    <label class="faq-ed-lab">${esc(t('move.edTextEn'))}<textarea class="faq-ed-in dos-mail-text" data-mv="en" rows="3">${esc(e.text.en)}</textarea></label>
+    <label class="faq-ed-lab">${esc(t('move.edTextEs'))}<textarea class="faq-ed-in dos-mail-text" data-mv="es" rows="3">${esc(e.text.es)}</textarea></label>
+    <label class="faq-ed-lab">${esc(t('move.edSrc'))}<input class="faq-ed-in" data-mv="src" type="text" value="${esc(e.src)}"></label>
+  </div>`).join('');
+  box.innerHTML = rows + `<div class="faq-ed-row">
+    <div class="faq-ed-top"><span class="faq-ed-id">＋</span>
+      <label class="faq-ed-lab">${esc(t('move.edFam'))} <select class="faq-ed-in" id="mv-new-fam">${moveEdFamOptions('motiv')}</select></label>
+      <span class="faq-ed-btns"><button type="button" class="btn-primary btn-sm" id="mv-new-add">${esc(t('move.edAdd'))}</button></span></div>
+    <label class="faq-ed-lab">${esc(t('move.edTextEn'))}<textarea class="faq-ed-in dos-mail-text" id="mv-new-en" rows="3"></textarea></label>
+    <label class="faq-ed-lab">${esc(t('move.edTextEs'))}<textarea class="faq-ed-in dos-mail-text" id="mv-new-es" rows="3"></textarea></label>
+    <label class="faq-ed-lab">${esc(t('move.edSrc'))}<input class="faq-ed-in" id="mv-new-src" type="text"></label>
+  </div>`;
+  box.querySelectorAll('[data-mved-save]').forEach(b => b.onclick = () => moveEdSave(Number(b.dataset.mvedSave)));
+  box.querySelectorAll('[data-mved-del]').forEach(b => b.onclick = () => moveEdDelete(Number(b.dataset.mvedDel)));
+  const add = $('mv-new-add'); if (add) add.onclick = () => moveEdAdd();
+}
+function moveEdCollect(i) {
+  const box = $('move-editor-box'); if (!box || !MOVE_ED) return null;
+  const row = box.querySelectorAll('.faq-ed-row')[i]; if (!row) return null;
+  const g = sel => row.querySelector(`[data-mv="${sel}"]`);
+  const e = MOVE_ED[i];
+  e.fam = g('fam').value;
+  e.order = Number(g('order').value) || 99;
+  e.text.en = g('en').value.trim();
+  e.text.es = g('es').value.trim();
+  e.src = g('src').value.trim();
+  e.pendiente = !!g('pendiente').checked;
+  return e;
+}
+async function moveEdPersist() {
+  if (!MOVE_ED) return;
+  const entries = moveSanEntries(MOVE_ED);
+  await setDoc(doc(db, 'app_settings', 'mientras-te-mueves'),
+    { entries, updatedAt: serverTimestamp(), updatedBy: auth.currentUser ? auth.currentUser.uid : '' });
+  MOVE_ENTRIES = entries; MOVE.ver++;
+  MOVE_ED = entries.map(e => ({ id: e.id, fam: e.fam, order: e.order, text: { en: e.text.en, es: e.text.es }, src: e.src, pendiente: e.pendiente }));
+  toast(t('common.saved'));
+}
+async function moveEdSave(i) {
+  try { moveEdCollect(i); await moveEdPersist(); paintMoveEditor(); } catch { toast(t('common.error')); }
+}
+async function moveEdDelete(i) {
+  try {
+    if (!confirm(t('move.edDelete') + '?')) return;
+    MOVE_ED.splice(i, 1);
+    await moveEdPersist();
+    paintMoveEditor();
+  } catch { toast(t('common.error')); }
+}
+async function moveEdAdd() {
+  try {
+    const en = $('mv-new-en').value.trim(), es = $('mv-new-es').value.trim();
+    if (!en && !es) { toast(t('common.error')); return; }
+    MOVE_ED.push({ id: 'c' + Date.now().toString(36), fam: $('mv-new-fam').value, order: 99,
+      text: { en, es }, src: $('mv-new-src').value.trim(), pendiente: false });
+    await moveEdPersist();
+    paintMoveEditor();
+  } catch { toast(t('common.error')); }
+}
+/* ═══ FIN «MIENTRAS TE MUEVES» ═══ */
+
 /* ═══ AUTH-426 · CALENTAMIENTO CARDIOVASCULAR DE LA RUTINA
    (pedido de Ronald, 2026-11-12 10:53 CST; aprobado tal como se
    le presentó, 11:02 CST, con la investigación y las maquetas
@@ -40044,7 +40610,7 @@ function trainCardioWarmHTML(plan, di, iso, log) {
     const v = trainCardioViewOf(d);
     if (v) {
       const metaF = trainCardioMeta(v.mode);
-      return wrap(`<div class="cardio-sum">${metaF && metaF.icon ? `<span aria-hidden="true">${metaF.icon}</span>` : ''}<span>${esc(trainCardioDetail(v))}</span><button type="button" class="cardio-edit" data-cardio-edit="1">${esc(t('train.cardio.edit'))}</button></div>`);
+      return wrap(`<div class="cardio-sum">${metaF && metaF.icon ? `<span aria-hidden="true">${metaF.icon}</span>` : ''}<span>${esc(trainCardioDetail(v))}</span><button type="button" class="cardio-edit" data-cardio-edit="1">${esc(t('train.cardio.edit'))}</button></div>` + moveBlockZoneHTML(plan, iso, v));
     }
   }
   const meta = trainCardioMeta(d.mode);
@@ -58148,7 +58714,7 @@ document.addEventListener('keydown', e => { if (e.key === 'Escape') shareClose()
  *  - El SW (sw.js) solo cachea la cáscara del mismo origen en modo
  *    RED PRIMERO: Auth/Firestore/Worker jamás pasan por la caché.
  * ================================================================ */
-const PWA_SW_VERSION = '20261113-filtros-biblioteca';
+const PWA_SW_VERSION = '20261113-mientras-te-mueves';
 /* Sello de versión VISIBLE (2026-11-03): el pie de la tarjeta de
    acceso enseña qué copia corre este teléfono ('v ' + el sello),
    para comprobar de un vistazo si la versión nueva ya llegó.
