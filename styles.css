@@ -6216,4 +6216,17 @@ body.sess-on.move-listen .help-fab { bottom: calc(env(safe-area-inset-bottom, 0p
 body.sess-on.move-listen .share-fab { bottom: calc(env(safe-area-inset-bottom, 0px) + 272px + 72px + 72px + 72px + 76px + 130px); }
 body.sess-on.move-listen #pend-back-chip { bottom: calc(env(safe-area-inset-bottom, 0px) + 278px + 76px + 130px); }
 
-
+/* ═══ CAMPO «AGARRE» (AUTH-2026-11-13-445) ═══
+   La línea de la ficha y de la sesión: pastilla del tipo +
+   recomendación. Y las pastillas del editor: controles de la
+   casa, grandes (≥44 px), nunca un selector nativo pequeño. */
+.grip-line { display: flex; flex-wrap: wrap; align-items: center; gap: 6px 10px; margin: 8px 0 2px; }
+.grip-pill { display: inline-flex; align-items: center; padding: 4px 12px; border-radius: 999px; font-size: 12.5px; font-weight: 700; background: #0d9488; color: #fff; }
+.grip-rec { font-size: 13.5px; }
+.grip-pills { display: flex; flex-wrap: wrap; gap: 8px; }
+.grip-pill-btn { min-height: 44px; padding: 8px 16px; border-radius: 999px; border: 1.5px solid #cbd5e1; background: #fff; font: inherit; font-size: 14.5px; font-weight: 700; color: #1f2937; cursor: pointer; }
+.grip-pill-btn.sel { background: #0d9488; border-color: #0d9488; color: #fff; }
+/* La marca «Agarre pendiente» (enmienda 2026-11-13): SOLO en
+   contextos de edición y gestión, nunca en la ficha pública. */
+.grip-pend { display: inline-block; padding: 2px 9px; border-radius: 999px; font-size: 11px; font-weight: 700; background: #fef3c7; color: #92400e; vertical-align: middle; }
+.grip-pend-line { margin: 6px 0 0; font-size: 12.5px; }

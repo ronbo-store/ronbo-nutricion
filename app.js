@@ -6043,6 +6043,12 @@ en: {
   'libv.errName': 'A variant has no name: give it a name in Spanish or English, or remove it.',
   'libv.errStd': 'Mark exactly one variant as the standard form.',
   'libv.lockedNote': 'Saved variants cannot be removed or reordered (they protect the recorded history). You can edit their texts and media, and add new variants at the end.',
+  'libg.title': 'Grip',
+  'libg.prono': 'Pronated', 'libg.supino': 'Supinated', 'libg.neutro': 'Neutral',
+  'libg.mixto': 'Mixed', 'libg.falso': 'Thumbless', 'libg.gancho': 'Hook', 'libg.no_aplica': 'N-A',
+  'libg.recEs': 'How to grip it (Spanish)', 'libg.recEn': 'How to grip it (English)',
+  'libg.pending': 'Grip pending',
+  'libg.pendingHint': 'No type chosen: it still saves, marked as pending, and the sweep completes it.',
   'train.tabVariants': 'Variants', 'train.variantLabel': 'Variant', 'plan.variantStd': 'Standard form',
   'train.today.weekSummary': 'This week: {x} of {y} sessions completed',
   'train.today.rotationNote': 'This plan follows a day order, not fixed weekdays — so no session is pinned to this date. The next sessions in the plan\'s order are:',
@@ -11057,6 +11063,12 @@ es: {
   'libv.errName': 'Una variante no tiene nombre: ponle un nombre en español o en inglés, o quítala.',
   'libv.errStd': 'Marca exactamente una variante como forma estándar.',
   'libv.lockedNote': 'Las variantes ya guardadas no se pueden quitar ni reordenar (protegen el historial registrado). Sí puedes editar sus textos y medios, y añadir variantes nuevas al final.',
+  'libg.title': 'Agarre',
+  'libg.prono': 'Prono', 'libg.supino': 'Supino', 'libg.neutro': 'Neutro',
+  'libg.mixto': 'Mixto', 'libg.falso': 'Falso', 'libg.gancho': 'Gancho', 'libg.no_aplica': 'No aplica',
+  'libg.recEs': 'Cómo se agarra (español)', 'libg.recEn': 'Cómo se agarra (inglés)',
+  'libg.pending': 'Agarre pendiente',
+  'libg.pendingHint': 'Sin tipo elegido: se guarda igual, marcado como pendiente, y el barrido lo completa.',
   'train.tabVariants': 'Variantes', 'train.variantLabel': 'Variante', 'plan.variantStd': 'Forma estándar',
   'train.today.weekSummary': 'Esta semana: {x} de {y} sesiones completadas',
   'train.today.rotationNote': 'Este plan sigue un orden de días, no días de semana fijos — por eso no hay una sesión fijada a esta fecha. Las próximas sesiones en el orden del plan son:',
@@ -41958,6 +41970,7 @@ function trainVarListHTML(entry, list) {
     const open = TF_VAR_OPEN === vi;
     const detail = open ? `<div class="excard-var-detail">
       ${photo ? `<img class="excard-img" src="${esc(photo)}" alt="">` : (vThumb ? `<img class="excard-img" src="${esc(vThumb)}" alt="" data-yt-fb="gone" onerror="ytThumbErr(this)">` : '')}
+      ${gripLineHTML(entry, v, false)}
       ${libField(v, 'cambio') ? excardStepsHTML(libField(v, 'cambio')) : ''}
       ${libField(v, 'nota') ? `<p class="excard-text muted">${esc(libField(v, 'nota'))}</p>` : ''}
       ${v.video_youtube_url ? `<button type="button" class="btn-ghost btn-sm" data-tf-var-video="${esc(v.video_youtube_url)}">▶ ${esc(t('train.lib.video'))}</button>` : ''}
@@ -42005,6 +42018,9 @@ function trainCardRender({ ex, mode, sessionHTML, allLogs }) {
   }
   TF_VAR_OPEN = null;
   const vChosen = trainVariantOf(ex);
+  /* CAMPO «AGARRE»: en la ficha (modo 'card') manda la base; en la
+     sesión manda la forma activa (la variante elegida si la hay). */
+  const gripHTML = gripLineHTML(entry, mode === 'card' ? null : vChosen, mode !== 'card');
   const vBlock = vChosen ? `<div class="excard-sec">${esc(t('train.variantLabel'))}: ${esc(libField(vChosen, 'nombre'))}</div>${libField(vChosen, 'cambio') ? excardStepsHTML(libField(vChosen, 'cambio')) : ''}${libField(vChosen, 'nota') ? `<p class="excard-text">${esc(libField(vChosen, 'nota'))}</p>` : ''}` : '';
   const how = entry ? libField(entry, 'como_se_hace') : '';
   const avoid = entry ? libField(entry, 'errores_a_evitar') : '';
@@ -42022,6 +42038,7 @@ function trainCardRender({ ex, mode, sessionHTML, allLogs }) {
   body.innerHTML = `${media}
     <div class="excard-head">${group ? `<div class="excard-chips"><span class="excard-chip excard-chip-main">${esc(group)}</span></div>` : ''}${metaLine}</div>
     ${trainPainCautionHTML(ex)}
+    ${gripHTML}
     ${mode === 'edit' ? trainLastTimeHTML(ex, allLogs, (typeof TRAIN_FLOAT !== 'undefined' && TRAIN_FLOAT) ? TRAIN_FLOAT.iso : null) : ''}
     ${sessionHTML || ''}
     <div class="excard-tabs" role="tablist">
@@ -44632,6 +44649,59 @@ function libRenderNotice() {
 }
 const libNorm = s => String(s == null ? '' : s).toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '');
 function libField(ex, base) { return ex ? (ex[base + '_' + LANG] || ex[base + '_es'] || ex[base + '_en'] || '') : ''; }
+
+/* ═══════════ CAMPO «AGARRE» (decisiones de Ronald, 2026-11-13) ═══
+   Forma B: el TIPO va en pastilla, de una lista cerrada, y la
+   RECOMENDACIÓN («cómo se agarra»: ancho, pulgar, muñeca) en su
+   propio renglón. Campos: agarre_tipo (código de la lista) +
+   agarre_es / agarre_en en la ficha, y los mismos tres DENTRO de
+   cada variante (cada variante lleva su propio agarre; su
+   recomendación es opcional y, si falta, se muestra la de la
+   base). Las fichas vivas aún no traen estos campos: sin tipo NO
+   se pinta nada — jamás un tipo heredado o inventado, porque una
+   variante puede ser justamente el agarre contrario de su base
+   (el jalón inverso es supino sobre una base prona). */
+const GRIP_TYPES = ['prono', 'supino', 'neutro', 'mixto', 'falso', 'gancho', 'no_aplica'];
+function gripTypeOf(o) { const g = o && o.agarre_tipo; return GRIP_TYPES.indexOf(g) >= 0 ? g : ''; }
+/* Línea del agarre de la forma activa: v = la variante elegida o
+   null (la base). sess = vista de sesión: con tipo «no_aplica» no
+   se pinta nada; en la ficha, la pastilla «No aplica» SÍ se pinta
+   (es el dato explícito de la ficha). La recomendación solo se
+   pinta si existe y el tipo no es «no_aplica». */
+function gripLineHTML(entry, v, sess) {
+  if (!entry) return '';
+  const src = v || entry;
+  const tipo = gripTypeOf(src);
+  if (!tipo) return '';
+  if (sess && tipo === 'no_aplica') return '';
+  let rec = tipo === 'no_aplica' ? '' : libField(src, 'agarre');
+  if (v && !rec && tipo !== 'no_aplica') rec = libField(entry, 'agarre');
+  return `<div class="grip-line"><span class="grip-pill">${esc(t('libg.title'))}: ${esc(t('libg.' + tipo))}</span>${rec ? `<span class="grip-rec">${esc(rec)}</span>` : ''}</div>`;
+}
+/* Pastillas del editor (controles de la casa, ≥44 px): un botón
+   por tipo de la lista cerrada, el elegido con la clase sel. */
+function gripPillsHTML(sel, attr) {
+  return GRIP_TYPES.map(g => `<button type="button" class="grip-pill-btn${sel === g ? ' sel' : ''}" ${attr}="${g}">${esc(t('libg.' + g))}</button>`).join('');
+}
+function libGripBaseHTML(ex) {
+  return `<div class="eval-field"><label>${esc(t('libg.title'))}</label>
+    <div class="grip-pills" id="la-grip-pills">${gripPillsHTML(gripTypeOf(ex), 'data-grip-base')}</div>
+    <p class="grip-pend-line" id="la-grip-pend"${gripTypeOf(ex) ? ' style="display:none"' : ''}><span class="grip-pend">${esc(t('libg.pending'))}</span> <span class="muted">${esc(t('libg.pendingHint'))}</span></p></div>
+    <div class="eval-field"><label for="la-agarre_es">${esc(t('libg.recEs'))}</label><input type="text" id="la-agarre_es" value="${esc(ex.agarre_es || '')}"></div>
+    <div class="eval-field"><label for="la-agarre_en">${esc(t('libg.recEn'))}</label><input type="text" id="la-agarre_en" value="${esc(ex.agarre_en || '')}"></div>`;
+}
+/* Marca «Agarre pendiente» de los contextos de EDICIÓN y GESTIÓN
+   (enmienda de Ronald, 2026-11-13 10:11 CST): la ficha está
+   pendiente si la base no tiene tipo o si alguna variante no
+   tiene el suyo. Vive SOLO donde se edita o se aprueba (lista de
+   administración, bandeja de aportes, «Mis aportes» y el propio
+   editor): en la ficha pública y en la sesión un pendiente no
+   pinta nada — es la degradación honesta de siempre. */
+function gripPendMarkHTML(ex) {
+  if (!ex) return '';
+  const pend = !gripTypeOf(ex) || (Array.isArray(ex.variantes) && ex.variantes.some(v => v && !gripTypeOf(v)));
+  return pend ? ` <span class="grip-pend">${esc(t('libg.pending'))}</span>` : '';
+}
 function libNameOf(ex) { return libField(ex, 'nombre') || (ex ? ex.id : ''); }
 
 /* ============ BUSCADOR: SINÓNIMOS EN/ES Y VARIANTES (2026-11-01) ====
@@ -45003,6 +45073,12 @@ let LIB_EDIT = null; // { id: string|null, ctx: 'admin'|'mine' } | null
    V-2: esas no se borran ni se reordenan; 0 al crear). */
 let LIB_EDIT_VARS = [];
 let LIB_EDIT_VARS_LOCKED = 0;
+/* CAMPO «AGARRE» (2026-11-13): tipo de agarre elegido en el editor
+   para la BASE de la ficha (las variantes guardan el suyo en su
+   propia fila). '' = aún sin elegir: la ficha se guarda como
+   PENDIENTE (enmienda de Ronald, 2026-11-13 10:11 CST: el tipo
+   se presenta siempre y se pide, pero NO bloquea el guardado). */
+let LIB_EDIT_GRIP = '';
 const LIBADM_F = { group: '', cat: '', level: '' }; // facetas de la vista (paquete de categorías): grupo (chip) + categoría + nivel
 /* PUERTA DE COMPOSICIÓN (despliegue reprueba, 2026-10-24): las reglas
    VIVAS (ruleset 3c3790d8) dicen de exercise_library «allow write:
@@ -45073,7 +45149,7 @@ function libRenderTray() {
   box.innerHTML = `<h3 class="history-title">${esc(t('libcom.trayTitle', { n: rows.length }))}</h3>` + rows.map(ex => `
     <div class="user-row lib-ex-row">
       ${libCardMediaHTML(ex)}
-      <div class="lib-card-main"><div><b>${esc(libNameOf(ex))}</b><br><span class="muted">${esc(libField(ex, 'grupo_muscular'))}${(ex.equipo_es || ex.equipo_en) ? ' · ' + esc(libField(ex, 'equipo')) : ''}</span>${libByLineHTML(ex)}</div>
+      <div class="lib-card-main"><div><b>${esc(libNameOf(ex))}</b>${gripPendMarkHTML(ex)}<br><span class="muted">${esc(libField(ex, 'grupo_muscular'))}${(ex.equipo_es || ex.equipo_en) ? ' · ' + esc(libField(ex, 'equipo')) : ''}</span>${libByLineHTML(ex)}</div>
       <div class="user-actions"><button type="button" class="btn-primary btn-sm" data-lib-approve="${esc(ex.id)}">${esc(t('libcom.approve'))}</button><button type="button" class="btn-ghost btn-sm" data-lib-reject="${esc(ex.id)}">${esc(t('libcom.reject'))}</button></div></div>
     </div>`).join('');
   box.querySelectorAll('[data-lib-approve]').forEach(b => b.onclick = () => libDecide(b.dataset.libApprove, true));
@@ -45110,7 +45186,7 @@ function libRenderMine() {
     return `
     <div class="user-row lib-ex-row">
       ${libCardMediaHTML(ex)}
-      <div class="lib-card-main"><div><b>${esc(libNameOf(ex))}</b>${libStateBadge(ex)}<br><span class="muted">${esc(libField(ex, 'grupo_muscular'))}${(ex.equipo_es || ex.equipo_en) ? ' · ' + esc(libField(ex, 'equipo')) : ''}</span>${libByLineHTML(ex)}${note}</div>
+      <div class="lib-card-main"><div><b>${esc(libNameOf(ex))}</b>${libStateBadge(ex)}${gripPendMarkHTML(ex)}<br><span class="muted">${esc(libField(ex, 'grupo_muscular'))}${(ex.equipo_es || ex.equipo_en) ? ' · ' + esc(libField(ex, 'equipo')) : ''}</span>${libByLineHTML(ex)}${note}</div>
       ${(editable && LIBADM_WRITE_ENABLED) || ex.estado === 'aprobado' ? `<div class="user-actions">${ex.estado === 'aprobado' ? `<button type="button" class="btn-ghost btn-sm" data-lib-assign="${esc(ex.id)}">${esc(t('lib.assign.btn'))}</button>` : ''}${editable && LIBADM_WRITE_ENABLED ? `<button type="button" class="btn-ghost btn-sm" data-lib-mine-edit="${esc(ex.id)}">${esc(t('libadm.edit'))}</button><button type="button" class="btn-ghost btn-sm" data-lib-mine-del="${esc(ex.id)}">${esc(t('libcom.del'))}</button>` : ''}</div>` : ''}</div>
     </div>`;
   }).join('') : `<div class="wempty">${esc(t('libcom.mineEmpty'))}</div>`);
@@ -45150,7 +45226,7 @@ function libAdminRowHTML(ex) {
   return `
     <div class="user-row lib-ex-row lib-card-row" data-lib-card="${esc(ex.id)}">
       ${libCardMediaHTML(ex)}
-      <div class="lib-card-main"><div><b>${esc(libNameOf(ex))}</b> <span class="muted">${esc(ex.id)}</span><br><span class="muted">${esc(libField(ex, 'grupo_muscular'))}${(ex.equipo_es || ex.equipo_en) ? ' · ' + esc(libField(ex, 'equipo')) : ''}</span>${libByLineHTML(ex)}</div>
+      <div class="lib-card-main"><div><b>${esc(libNameOf(ex))}</b>${gripPendMarkHTML(ex)} <span class="muted">${esc(ex.id)}</span><br><span class="muted">${esc(libField(ex, 'grupo_muscular'))}${(ex.equipo_es || ex.equipo_en) ? ' · ' + esc(libField(ex, 'equipo')) : ''}</span>${libByLineHTML(ex)}</div>
       <div class="user-actions"><button type="button" class="btn-ghost btn-sm" data-lib-assign="${esc(ex.id)}">${esc(t('lib.assign.btn'))}</button>${ROLE === 'administrador' && LIBADM_WRITE_ENABLED ? `<button type="button" class="btn-ghost btn-sm" data-lib-edit="${esc(ex.id)}">${esc(t('libadm.edit'))}</button>` : ''}</div></div>
     </div>`;
 }
@@ -45606,12 +45682,14 @@ function libOpenEditor(id, ctx) {
   const ex = id ? (LIB_BY_ID[id] || {}) : {};
   LIB_EDIT_VARS = id && Array.isArray(ex.variantes) ? JSON.parse(JSON.stringify(ex.variantes)) : [];
   LIB_EDIT_VARS_LOCKED = id ? LIB_EDIT_VARS.length : 0;
+  LIB_EDIT_GRIP = gripTypeOf(ex);
   const F = ([key, label, kind]) => kind === 'ta'
     ? `<div class="eval-field"><label for="la-${key}">${esc(t(label))}</label><textarea id="la-${key}" rows="3">${esc(ex[key] || '')}</textarea></div>`
     : `<div class="eval-field"><label for="la-${key}">${esc(t(label))}</label><input type="text" id="la-${key}" value="${esc(ex[key] || '')}"></div>`;
   ed.innerHTML = `<div class="eval-block"><p class="eval-ficha-title">${id ? esc(id) + ' · ' + esc(libNameOf(ex)) : esc(t(ctx === 'admin' ? 'libadm.new' : 'libcom.createBtn'))}</p>
     <div class="eval-form">
     ${LIB_FIELDS.map(F).join('')}
+    ${libGripBaseHTML(ex)}
     </div>
     <div id="la-vars">${libVarsSectionHTML()}</div>
     <div class="eval-actions"><button type="button" class="btn-primary btn-sm" id="la-save">${esc(t('libadm.save'))}</button>
@@ -45619,7 +45697,8 @@ function libOpenEditor(id, ctx) {
   ed.style.display = '';
   try { ed.scrollIntoView({ behavior: 'smooth', block: 'start' }); } catch {}
   libVarsWire();
-  $('la-cancel').onclick = () => { LIB_EDIT = null; LIB_EDIT_VARS = []; LIB_EDIT_VARS_LOCKED = 0; ed.style.display = 'none'; ed.innerHTML = ''; };
+  ed.querySelectorAll('[data-grip-base]').forEach(b => b.onclick = () => { LIB_EDIT_GRIP = b.dataset.gripBase; ed.querySelectorAll('[data-grip-base]').forEach(x => x.classList.toggle('sel', x === b)); const gp = $('la-grip-pend'); if (gp) gp.style.display = 'none'; });
+  $('la-cancel').onclick = () => { LIB_EDIT = null; LIB_EDIT_VARS = []; LIB_EDIT_VARS_LOCKED = 0; LIB_EDIT_GRIP = ''; ed.style.display = 'none'; ed.innerHTML = ''; };
   $('la-save').onclick = libSaveEditor;
 }
 /* FUNCIÓN DE VARIANTES (2026-10-30): la sección «Variantes» del
@@ -45639,6 +45718,9 @@ function libVarRowHTML(v, i) {
     <div class="frow"><b>${esc(libField(v, 'nombre') || ('#' + (i + 1)))}</b><span style="flex:1"></span>${ctrls}</div>
     ${fld('nombre_es', 'libv.nameEs', v.nombre_es)}${fld('nombre_en', 'libv.nameEn', v.nombre_en)}
     <div class="eval-field"><label><input type="radio" name="la-v-std" data-lv="std"${v.es_estandar ? ' checked' : ''}> ${esc(t('libv.standard'))}</label></div>
+    <div class="eval-field"><label>${esc(t('libg.title'))}</label><div class="grip-pills">${gripPillsHTML(gripTypeOf(v), 'data-lv-grip')}</div>
+    <p class="grip-pend-line" data-lv-grip-pend${gripTypeOf(v) ? ' style="display:none"' : ''}><span class="grip-pend">${esc(t('libg.pending'))}</span></p></div>
+    ${fld('agarre_es', 'libg.recEs', v.agarre_es)}${fld('agarre_en', 'libg.recEn', v.agarre_en)}
     ${fld('cambio_es', 'libv.changeEs', v.cambio_es, 1)}${fld('cambio_en', 'libv.changeEn', v.cambio_en, 1)}
     ${fld('enfasis_es', 'libv.emphEs', v.enfasis_es)}${fld('enfasis_en', 'libv.emphEn', v.enfasis_en)}
     ${fld('nota_es', 'libv.noteEs', v.nota_es, 1)}${fld('nota_en', 'libv.noteEn', v.nota_en, 1)}
@@ -45658,11 +45740,14 @@ function libVarsHarvest() {
   const out = [];
   list.querySelectorAll('[data-lv-row]').forEach(row => {
     const g = k => { const el = row.querySelector(`[data-lv="${k}"]`); return el ? String(el.value || '').trim() : ''; };
+    const gb = row.querySelector('[data-lv-grip].sel');
     const v = {
       nombre_es: g('nombre_es'), nombre_en: g('nombre_en'),
       cambio_es: g('cambio_es'), cambio_en: g('cambio_en'),
       enfasis_es: g('enfasis_es'), enfasis_en: g('enfasis_en'),
       nota_es: g('nota_es'), nota_en: g('nota_en'),
+      agarre_tipo: gb ? gb.dataset.lvGrip : '',
+      agarre_es: g('agarre_es'), agarre_en: g('agarre_en'),
       es_estandar: !!(row.querySelector('[data-lv="std"]') || {}).checked,
     };
     const fu = g('foto_url'); if (fu) v.foto_url = fu;
@@ -45681,10 +45766,11 @@ function libVarsWire() {
   const add = $('la-v-add');
   if (add) add.onclick = () => {
     libVarsHarvest();
-    LIB_EDIT_VARS.push({ nombre_es: '', nombre_en: '', cambio_es: '', cambio_en: '', enfasis_es: '', enfasis_en: '', nota_es: '', nota_en: '', es_estandar: LIB_EDIT_VARS.length === 0 });
+    LIB_EDIT_VARS.push({ nombre_es: '', nombre_en: '', cambio_es: '', cambio_en: '', enfasis_es: '', enfasis_en: '', nota_es: '', nota_en: '', agarre_tipo: '', agarre_es: '', agarre_en: '', es_estandar: LIB_EDIT_VARS.length === 0 });
     libVarsRerender();
   };
   const list = $('la-vars-list'); if (!list) return;
+  list.querySelectorAll('[data-lv-grip]').forEach(b => b.onclick = () => { const row = b.closest('[data-lv-row]'); if (row) { row.querySelectorAll('[data-lv-grip]').forEach(x => x.classList.toggle('sel', x === b)); const pn = row.querySelector('[data-lv-grip-pend]'); if (pn) pn.style.display = 'none'; } });
   list.querySelectorAll('[data-lv-del]').forEach(b => b.onclick = () => {
     const i = Number(b.dataset.lvDel);
     if (i < LIB_EDIT_VARS_LOCKED) return; // V-2: las guardadas no se borran
@@ -45723,7 +45809,21 @@ async function libSaveEditor() {
   for (const v of varsSave) { if (!v.nombre_es && !v.nombre_en) { toast(t('libv.errName')); return; } }
   if (varsSave.length && varsSave.filter(v => v.es_estandar).length !== 1) { toast(t('libv.errStd')); return; }
   data.variantes = varsSave;
-  const closeEditor = () => { LIB_EDIT = null; LIB_EDIT_VARS = []; LIB_EDIT_VARS_LOCKED = 0; const ed = $('lib-admin-editor'); if (ed) { ed.style.display = 'none'; ed.innerHTML = ''; } };
+  /* CAMPO «AGARRE» (2026-11-13, con la ENMIENDA de Ronald de las
+     10:11 CST): el tipo se presenta siempre y se pide, pero NO es
+     un bloqueo duro de guardado — su advertencia: hacerlo
+     obligatorio al crear «limita la creación de ejercicios
+     nuevos». Sin tipo elegido, la ficha se guarda con
+     agarre_tipo '' = PENDIENTE (la marca «Agarre pendiente» se
+     ve en edición y gestión; en la ficha pública y en la sesión
+     no se pinta nada; el barrido permanente lo completa).
+     «No aplica» sigue siendo una elección explícita y válida,
+     distinta de pendiente. La recomendación viaja en el mismo
+     objeto de siempre, sin escrituras adicionales. */
+  data.agarre_tipo = GRIP_TYPES.indexOf(LIB_EDIT_GRIP) >= 0 ? LIB_EDIT_GRIP : '';
+  data.agarre_es = (($('la-agarre_es') || {}).value || '').trim();
+  data.agarre_en = (($('la-agarre_en') || {}).value || '').trim();
+  const closeEditor = () => { LIB_EDIT = null; LIB_EDIT_VARS = []; LIB_EDIT_VARS_LOCKED = 0; LIB_EDIT_GRIP = ''; const ed = $('lib-admin-editor'); if (ed) { ed.style.display = 'none'; ed.innerHTML = ''; } };
   try {
     if (ctx === 'admin' && !id) {
       /* Alta del administrador: siguiente E### libre sobre TODO lo
@@ -58714,7 +58814,7 @@ document.addEventListener('keydown', e => { if (e.key === 'Escape') shareClose()
  *  - El SW (sw.js) solo cachea la cáscara del mismo origen en modo
  *    RED PRIMERO: Auth/Firestore/Worker jamás pasan por la caché.
  * ================================================================ */
-const PWA_SW_VERSION = '20261113-mientras-te-mueves';
+const PWA_SW_VERSION = '20261113-campo-agarre';
 /* Sello de versión VISIBLE (2026-11-03): el pie de la tarjeta de
    acceso enseña qué copia corre este teléfono ('v ' + el sello),
    para comprobar de un vistazo si la versión nueva ya llegó.
