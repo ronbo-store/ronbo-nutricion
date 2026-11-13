@@ -4663,6 +4663,7 @@ en: {
   'libcat.allCategories': 'All categories',
   'libcat.allLevels': 'All levels',
   'libcat.noGroup': 'No muscle group',
+  'libf.pickHint': 'Tap an option: it applies and the sheet closes.',
   'libcom.subAdmin': '· administrator',
   'libcom.subTrainer': '· community',
   'libcom.hintTrainer': 'The shared library everyone trains with. Browse it here; your own exercises live under “My contributions” — the administrator reviews each one before it appears for everyone.',
@@ -9649,6 +9650,7 @@ es: {
   'libcat.allCategories': 'Todas las categorías',
   'libcat.allLevels': 'Todos los niveles',
   'libcat.noGroup': 'Sin grupo muscular',
+  'libf.pickHint': 'Toca una opción: se aplica y la hoja se cierra.',
   'libcom.subAdmin': '· administrador',
   'libcom.subTrainer': '· comunidad',
   'libcom.hintTrainer': 'La biblioteca compartida con la que entrena todo el mundo. Consúltala aquí; tus propios ejercicios viven en «Mis aportes» — el administrador revisa cada uno antes de que aparezca para todos.',
@@ -44262,10 +44264,114 @@ function libFacetOptions(base, order) {
   return [...seen.entries()].map(([key, label]) => ({ key, label }))
     .sort((a, b) => (libOrderRank(a.key, order) - libOrderRank(b.key, order)) || a.label.localeCompare(b.label));
 }
-function libFillFacet(sel, base, order, allLabel, current) {
-  if (!sel) return;
-  sel.innerHTML = `<option value="">${esc(allLabel)}</option>` + libFacetOptions(base, order).map(o => `<option value="${esc(o.key)}"${o.key === current ? ' selected' : ''}>${esc(o.label)}</option>`).join('');
-  sel.value = current || '';
+/* FILTROS CON CONTROLES DE LA CASA (paquete «Filtros de la
+   Biblioteca», 2026-11-13; orden de Ronald con su captura del
+   plegable abierto: «estos botones de ingresar datos no
+   coinciden con nuestra estética»): los selectores nativos de
+   Categoría y Nivel — en el catálogo y en el constructor
+   visual — se retiran. En su sitio, UN componente: un
+   botón-pastilla de 56 px por faceta que abre la hoja de
+   opciones de la casa (#libf-float, familia .act-float sobre
+   su velo propio #libf-backdrop, espejo del par de AUTH-412).
+   El estado NO cambia: mandan LIBADM_F y VIZ_F, y las opciones
+   salen de libFacetOptions — la misma fuente que rellenaba los
+   selectores — con su conteo vivo calculado sobre el contexto
+   vigente ignorando la propia faceta (la doctrina de conteo de
+   los chips de grupo: cada fila dice cuántos ejercicios verías
+   al tocarla). Tocar una fila aplica y cierra; el velo, la ✕ y
+   Escape cierran sin cambiar nada. */
+function libFacetCounts(rows, base) {
+  const m = new Map();
+  for (const ex of rows) { const k = libFacetKey(ex, base); if (k) m.set(k, (m.get(k) || 0) + 1); }
+  return m;
+}
+function libFacetCounted(ctxRows, base, order) {
+  const counts = libFacetCounts(ctxRows, base);
+  return { total: ctxRows.length, options: libFacetOptions(base, order).map(o => ({ key: o.key, label: o.label, n: counts.get(o.key) || 0 })) };
+}
+let LIBF = null; // { title, allLabel, total, options, current, onPick }
+function libFacetSheetPaint() {
+  const S = LIBF; if (!S) return;
+  const title = $('libf-title'); if (title) title.textContent = S.title;
+  const sub = $('libf-sub'); if (sub) sub.textContent = t('libf.pickHint');
+  const body = $('libf-body'); if (!body) return;
+  const row = (key, label, n, sel) => `<button type="button" class="libf-opt${sel ? ' sel' : ''}" data-libf-key="${esc(key)}"><span>${esc(label)}</span><span class="libf-opt-n">${n}</span><span class="libf-opt-check">${sel ? '✓' : ''}</span></button>`;
+  body.innerHTML = row('', S.allLabel, S.total, !S.current) + S.options.map(o => row(o.key, o.label, o.n, o.key === S.current)).join('');
+  body.querySelectorAll('[data-libf-key]').forEach(b => b.onclick = () => {
+    const k = b.dataset.libfKey;
+    const pick = S.onPick;
+    libFacetSheetClose();
+    if (pick) pick(k);
+  });
+}
+function libFacetSheetOpen(cfg) {
+  LIBF = cfg;
+  libFacetSheetPaint();
+  const bd = $('libf-backdrop'), f = $('libf-float');
+  if (bd) bd.style.display = '';
+  if (f) f.style.display = '';
+  try { coverSync(); } catch {}
+}
+function libFacetSheetClose() {
+  const bd = $('libf-backdrop'), f = $('libf-float');
+  if (bd) bd.style.display = 'none';
+  if (f) f.style.display = 'none';
+  LIBF = null;
+  try { coverSync(); } catch {}
+}
+(function libfWireSheet() {
+  const c = $('libf-close'); if (c) c.onclick = libFacetSheetClose;
+  const bd = $('libf-backdrop'); if (bd) bd.onclick = libFacetSheetClose;
+  document.addEventListener('keydown', e => {
+    if (e.key !== 'Escape') return;
+    const f = $('libf-float');
+    if (f && f.style.display !== 'none') libFacetSheetClose();
+  });
+})();
+/* La cara del botón-pastilla: la etiqueta en pequeño, el valor
+   elegido en grande y el «›» a la derecha; con un filtro activo
+   el botón se tiñe (.on) para que SE NOTE que hay filtro. */
+function libFacetBtnFace(btn, labelKey, valueLabel, on) {
+  if (!btn) return;
+  btn.innerHTML = `<span class="libf-btn-txt"><span class="libf-lab">${esc(t(labelKey))}</span><span class="libf-val">${esc(valueLabel)}</span></span><span class="libf-chev">›</span>`;
+  btn.classList.toggle('on', !!on);
+}
+function libFacetBtnWire(btn, openFn) {
+  if (btn && !btn.dataset.wired) { btn.dataset.wired = '1'; btn.onclick = openFn; }
+}
+function libFacetValueLabel(base, order, allLabel, current) {
+  if (!current) return allLabel;
+  const o = libFacetOptions(base, order).find(x => x.key === current);
+  return o ? o.label : allLabel;
+}
+/* Las dos puertas de la hoja: el contexto de conteo es el de
+   cada superficie sin la propia faceta (libAdminFaceted /
+   vizFiltered con ignore), como contaban los chips. */
+function libAdminFacetOpen(facet) {
+  const isCat = facet === 'cat';
+  const base = isCat ? 'categoria' : 'nivel';
+  const order = isCat ? LIB_CAT_ORDER : LIB_LEVEL_ORDER;
+  const c = libFacetCounted(libAdminFaceted(facet), base, order);
+  libFacetSheetOpen({
+    title: t(isCat ? 'libcat.category' : 'libcat.level'),
+    allLabel: t(isCat ? 'libcat.allCategories' : 'libcat.allLevels'),
+    total: c.total, options: c.options,
+    current: isCat ? LIBADM_F.cat : LIBADM_F.level,
+    onPick: key => { if (isCat) LIBADM_F.cat = key; else LIBADM_F.level = key; libAdminRenderList(); }
+  });
+}
+function vizFacetOpen(facet) {
+  const isCat = facet === 'cat';
+  const base = isCat ? 'categoria' : 'nivel';
+  const order = isCat ? LIB_CAT_ORDER : LIB_LEVEL_ORDER;
+  const c = libFacetCounted(vizFiltered(facet), base, order);
+  libFacetSheetOpen({
+    title: t(isCat ? 'libcat.category' : 'libcat.level'),
+    allLabel: t(isCat ? 'libcat.allCategories' : 'libcat.allLevels'),
+    total: c.total, options: c.options,
+    current: isCat ? VIZ_F.cat : VIZ_F.level,
+    onPick: key => { if (isCat) VIZ_F.cat = key; else VIZ_F.level = key; vizRenderChips(); vizRenderFacets(); vizRenderGrid(); }
+  });
 }
 function libSearch(q) { return libSearchDetailed(q).map(h => h.ex); }
 function libLinksHTML(ex) {
@@ -44366,10 +44472,6 @@ async function renderLibrary() {
   }
   const q = $('lib-admin-q');
   if (q && !q.dataset.wired) { q.dataset.wired = '1'; q.addEventListener('input', () => libAdminRenderList()); }
-  const cs = $('lib-admin-cat');
-  if (cs && !cs.dataset.wired) { cs.dataset.wired = '1'; cs.addEventListener('change', () => { LIBADM_F.cat = cs.value; libAdminRenderList(); }); }
-  const ls = $('lib-admin-level');
-  if (ls && !ls.dataset.wired) { ls.dataset.wired = '1'; ls.addEventListener('change', () => { LIBADM_F.level = ls.value; libAdminRenderList(); }); }
   await libEnsure();
   libRenderTray();
   libAdminRenderList();
@@ -44486,6 +44588,16 @@ function libAdminRowHTML(ex) {
       <div class="user-actions"><button type="button" class="btn-ghost btn-sm" data-lib-assign="${esc(ex.id)}">${esc(t('lib.assign.btn'))}</button>${ROLE === 'administrador' && LIBADM_WRITE_ENABLED ? `<button type="button" class="btn-ghost btn-sm" data-lib-edit="${esc(ex.id)}">${esc(t('libadm.edit'))}</button>` : ''}</div></div>
     </div>`;
 }
+/* Las caras de los dos botones del catálogo: se repintan con
+   cada pintado de la lista — el mismo latido con el que antes
+   se rellenaban los selectores — y su toque abre la hoja. */
+function libAdminFacetBtns() {
+  const catBtn = $('lib-admin-cat-btn'), lvlBtn = $('lib-admin-level-btn');
+  libFacetBtnWire(catBtn, () => libAdminFacetOpen('cat'));
+  libFacetBtnWire(lvlBtn, () => libAdminFacetOpen('level'));
+  libFacetBtnFace(catBtn, 'libcat.category', libFacetValueLabel('categoria', LIB_CAT_ORDER, t('libcat.allCategories'), LIBADM_F.cat), !!LIBADM_F.cat);
+  libFacetBtnFace(lvlBtn, 'libcat.level', libFacetValueLabel('nivel', LIB_LEVEL_ORDER, t('libcat.allLevels'), LIBADM_F.level), !!LIBADM_F.level);
+}
 function libAdminRenderList() {
   const box = $('lib-admin-list'); if (!box) return;
   const cnt = $('lib-admin-count');
@@ -44496,8 +44608,7 @@ function libAdminRenderList() {
     chipsBox.innerHTML = libChipsHTML(libGroupCounts(ctx), ctx.length, LIBADM_F.group);
     libWireChips(chipsBox, k => { LIBADM_F.group = k; libAdminRenderList(); });
   }
-  libFillFacet($('lib-admin-cat'), 'categoria', LIB_CAT_ORDER, t('libcat.allCategories'), LIBADM_F.cat);
-  libFillFacet($('lib-admin-level'), 'nivel', LIB_LEVEL_ORDER, t('libcat.allLevels'), LIBADM_F.level);
+  libAdminFacetBtns();
   const rows = libAdminFaceted();
   if (cnt) cnt.textContent = t('libadm.count', { n: rows.length });
   const gateNote = LIBADM_WRITE_ENABLED ? '' : `<div class="wempty">${esc(t('libadm.readonlyNote'))}</div>`;
@@ -46363,8 +46474,11 @@ function vizRenderChips() {
   libWireChips(box, k => { VIZ_F.group = k; vizRenderChips(); vizRenderGrid(); });
 }
 function vizRenderFacets() {
-  libFillFacet($('pl-viz-cat'), 'categoria', LIB_CAT_ORDER, t('libcat.allCategories'), VIZ_F.cat);
-  libFillFacet($('pl-viz-level'), 'nivel', LIB_LEVEL_ORDER, t('libcat.allLevels'), VIZ_F.level);
+  const catBtn = $('pl-viz-cat-btn'), lvlBtn = $('pl-viz-level-btn');
+  libFacetBtnWire(catBtn, () => vizFacetOpen('cat'));
+  libFacetBtnWire(lvlBtn, () => vizFacetOpen('level'));
+  libFacetBtnFace(catBtn, 'libcat.category', libFacetValueLabel('categoria', LIB_CAT_ORDER, t('libcat.allCategories'), VIZ_F.cat), !!VIZ_F.cat);
+  libFacetBtnFace(lvlBtn, 'libcat.level', libFacetValueLabel('nivel', LIB_LEVEL_ORDER, t('libcat.allLevels'), VIZ_F.level), !!VIZ_F.level);
 }
 function vizCardHTML(ex) {
   /* AUTH-348: la tarjeta de un ejercicio YA presente en el día
@@ -46452,8 +46566,6 @@ if ($('pl-viz-toggle')) $('pl-viz-toggle').onclick = () => {
 };
 if ($('pl-viz-q')) $('pl-viz-q').addEventListener('input', () => { vizRenderChips(); vizRenderGrid(); });
 if ($('pl-viz-day')) $('pl-viz-day').addEventListener('change', () => vizRenderGrid());
-if ($('pl-viz-cat')) $('pl-viz-cat').addEventListener('change', e => { VIZ_F.cat = e.target.value; vizRenderChips(); vizRenderGrid(); });
-if ($('pl-viz-level')) $('pl-viz-level').addEventListener('change', e => { VIZ_F.level = e.target.value; vizRenderChips(); vizRenderGrid(); });
 if ($('pl-days')) $('pl-days').addEventListener('click', e => {
   const d = e.target.closest('.pl-day');
   if (!d) return;
@@ -58036,7 +58148,7 @@ document.addEventListener('keydown', e => { if (e.key === 'Escape') shareClose()
  *  - El SW (sw.js) solo cachea la cáscara del mismo origen en modo
  *    RED PRIMERO: Auth/Firestore/Worker jamás pasan por la caché.
  * ================================================================ */
-const PWA_SW_VERSION = '20261113-mascota-reestructura';
+const PWA_SW_VERSION = '20261113-filtros-biblioteca';
 /* Sello de versión VISIBLE (2026-11-03): el pie de la tarjeta de
    acceso enseña qué copia corre este teléfono ('v ' + el sello),
    para comprobar de un vistazo si la versión nueva ya llegó.

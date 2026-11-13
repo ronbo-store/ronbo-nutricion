@@ -21,7 +21,7 @@
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-title" content="RONBO FIT">
 <meta name="apple-mobile-web-app-status-bar-style" content="default">
-<link rel="stylesheet" href="styles.css?v=20261113-mascota-reestructura">
+<link rel="stylesheet" href="styles.css?v=20261113-filtros-biblioteca">
 <script defer src="https://cloud.umami.is/script.js" data-website-id="a29706d4-44a2-47cf-900a-5f74d74abfa8"></script>
 <script type="importmap">
 {
@@ -1222,6 +1222,22 @@
     </div>
     <div id="sched-sheet-body"></div>
   </div>
+  <!-- Filtros de la Biblioteca con controles de la casa
+       (2026-11-13): la hoja de opciones de Categoría y Nivel —
+       UN componente para el catálogo y para el constructor
+       visual —, hermana de #plan-float en la familia
+       .act-float/.act-sheet, con su velo propio
+       (#libf-backdrop) y la disciplina de tapas de la casa
+       (role="dialog": velo atenuado, fondo inerte y scroll del
+       fondo bloqueado, automáticos). Su cuerpo lo pinta
+       libFacetSheetPaint (app.js) SOLO desde las fichas
+       cargadas; abrirla no escribe nada. -->
+  <div id="libf-backdrop" style="display:none"></div>
+  <div class="act-float act-sheet" id="libf-float" style="display:none" role="dialog" aria-modal="true" aria-label="Library filter">
+    <div class="act-sheet-head"><h2 class="act-sheet-title" id="libf-title"></h2><button type="button" class="act-sheet-x" id="libf-close" aria-label="Close" data-i18n-aria="client.close">✕</button></div>
+    <p class="libf-sheet-sub" id="libf-sub"></p>
+    <div id="libf-body"></div>
+  </div>
   <!-- «Comparte tus logros» (Ronald, 2026-10-25): hoja flotante con
        las DOS tarjetas (meta del día / logros de la semana). La imagen
        se genera en el propio teléfono con Canvas desde los datos ya
@@ -1721,13 +1737,13 @@ cuando no hay declaración legible (decisión 5). -->
     <p class="progress-hint" id="lib-hint" data-i18n="libadm.hint">The library that feeds the plan editor. Everyone reads it; trainers contribute new exercises and the administrator approves them before they appear for everyone. Edits apply to the library itself — plans already saved keep their own copies.</p>
     <div id="lib-pending-box" style="display:none"></div>
     <div class="eval-actions" style="justify-content:flex-start;gap:8px;flex-wrap:wrap">
-      <input type="search" id="lib-admin-q" data-i18n-ph="libadm.search" placeholder="Search by name, muscle group or equipment…" style="flex:1 1 200px">
+      <label class="search-box"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="11" cy="11" r="7"/><path d="M21 21l-4.3-4.3"/></svg><input type="search" id="lib-admin-q" data-i18n-ph="libadm.search" placeholder="Search by name, muscle group or equipment…" autocomplete="off"></label>
       <button type="button" class="btn-primary btn-sm" id="lib-admin-new" data-i18n="libadm.new">＋ New exercise</button>
     </div>
     <div id="lib-admin-chips" class="libcat-chips"></div>
     <div class="libcat-filters">
-      <label class="libcat-flabel"><span data-i18n="libcat.category">Category</span> <select id="lib-admin-cat"></select></label>
-      <label class="libcat-flabel"><span data-i18n="libcat.level">Level</span> <select id="lib-admin-level"></select></label>
+      <button type="button" class="libf-btn" id="lib-admin-cat-btn" aria-haspopup="dialog"></button>
+      <button type="button" class="libf-btn" id="lib-admin-level-btn" aria-haspopup="dialog"></button>
     </div>
     <p class="progress-hint" id="lib-admin-count"></p>
     <div id="lib-admin-list"><div class="wempty" data-i18n="access.loading">Loading…</div></div>
@@ -2215,8 +2231,8 @@ cuando no hay declaración legible (decisión 5). -->
           <div id="pl-viz-note" class="pl-lib-note"></div>
           <div class="pl-viz-controls">
             <input type="text" id="pl-viz-q" data-i18n-ph="train.viz.searchPh" placeholder="Search by name, muscle, equipment…" autocomplete="off">
-            <label class="libcat-flabel"><span data-i18n="libcat.category">Category</span> <select id="pl-viz-cat"></select></label>
-            <label class="libcat-flabel"><span data-i18n="libcat.level">Level</span> <select id="pl-viz-level"></select></label>
+            <button type="button" class="libf-btn" id="pl-viz-cat-btn" aria-haspopup="dialog"></button>
+            <button type="button" class="libf-btn" id="pl-viz-level-btn" aria-haspopup="dialog"></button>
             <label class="pl-viz-daylabel"><span data-i18n="train.viz.dayLabel">Add to day</span> <select id="pl-viz-day"></select></label>
           </div>
           <div id="pl-viz-chips" class="libcat-chips"></div>
@@ -2370,6 +2386,6 @@ cuando no hay declaración legible (decisión 5). -->
 <div id="toast" class="toast"></div>
 <div id="print-card" aria-hidden="true"></div>
 
-<script type="module" src="app.js?v=20261113-mascota-reestructura"></script>
+<script type="module" src="app.js?v=20261113-filtros-biblioteca"></script>
 </body>
 </html>
