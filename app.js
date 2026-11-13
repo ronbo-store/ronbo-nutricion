@@ -6278,7 +6278,7 @@ en: {
   'train.ld.bothSame': 'Both sides the same', 'train.ld.bothSameSub': 'load one side and the other matches on its own',
   'train.ld.base': 'Base', 'train.ld.baseSub': 'bar or sled — added once, only if you turn it on',
   'train.ld.clearSide': 'Clear this side', 'train.ld.perSideSum': 'Per side {n}', 'train.ld.platesSum': 'Plates {n}', 'train.ld.baseSum': 'Base {n}',
-  'train.ld.totalMove': 'TOTAL YOU MOVE', 'train.ld.useLoad': 'Use this load', 'train.ld.typeTotal': 'Type the total instead', 'train.ld.cancel': 'Cancel',
+  'train.ld.totalMove': 'TOTAL YOU MOVE', 'train.ld.useLoad': 'Use this load', 'train.ld.typeTotal': 'Type the total instead', 'train.ld.usePlates': 'Plates per side', 'train.ld.cancel': 'Cancel',
   'train.ld.pairLine': '{each} {unit} in each hand × 2', 'train.ld.pairTotal': 'Total you move: {total} {unit}', 'train.ld.eachHand': 'in each hand',
   'train.ld.kindQ': 'How is this exercise loaded?', 'train.ld.kindPlates': 'Plates per side', 'train.ld.kindPair': 'Two dumbbells (a pair)', 'train.ld.kindSingle': 'A single weight',
   'train.ld.kindSaved': 'Your choice is remembered on this device, for this exercise.', 'train.ld.headTotal': 'total load', 'train.ld.headPlates': 'plates per side',
@@ -11300,7 +11300,7 @@ es: {
   'train.ld.bothSame': 'Ambos lados iguales', 'train.ld.bothSameSub': 'cargas un lado y el otro se iguala solo',
   'train.ld.base': 'Base', 'train.ld.baseSub': 'barra o trineo: se suma una vez, solo si la enciendes',
   'train.ld.clearSide': 'Limpiar este lado', 'train.ld.perSideSum': 'Por lado {n}', 'train.ld.platesSum': 'Discos {n}', 'train.ld.baseSum': 'Base {n}',
-  'train.ld.totalMove': 'TOTAL QUE MUEVES', 'train.ld.useLoad': 'Usar esta carga', 'train.ld.typeTotal': 'Teclear el total', 'train.ld.cancel': 'Cancelar',
+  'train.ld.totalMove': 'TOTAL QUE MUEVES', 'train.ld.useLoad': 'Usar esta carga', 'train.ld.typeTotal': 'Teclear el total', 'train.ld.usePlates': 'Discos por lado', 'train.ld.cancel': 'Cancelar',
   'train.ld.pairLine': '{each} {unit} en cada mano × 2', 'train.ld.pairTotal': 'Total que mueves: {total} {unit}', 'train.ld.eachHand': 'en cada mano',
   'train.ld.kindQ': '¿Cómo se carga este ejercicio?', 'train.ld.kindPlates': 'Discos por lado', 'train.ld.kindPair': 'Dos mancuernas (pareja)', 'train.ld.kindSingle': 'Un solo peso',
   'train.ld.kindSaved': 'Tu elección se recuerda en este aparato, para este ejercicio.', 'train.ld.headTotal': 'carga total', 'train.ld.headPlates': 'discos por lado',
@@ -39334,7 +39334,12 @@ function trainFlowWarmWire(box, plan) {
     if (!chkC || !chkC.warmup) return;
     const wEx = tfWarmExOf(itC.ex, chkC.warmup);
     if (!wEx) return;
-    if (p[4] === 'load' && loadKindOf(wEx) === 'plates') tfPlatesCardOpen(box, keyC, wiC, plan.id, wEx, 'warm');
+    /* AUTH-448: en la aproximación manda la misma regla — la
+       calculadora, si la ficha es de discos o la fila ya trae
+       su desglose compuesto. */
+    const rowPW = (chkC.warmup && Array.isArray(chkC.warmup.sets)) ? chkC.warmup.sets[wiC] : null;
+    const detPW = tfDetailSan(rowPW && rowPW.loadDetail);
+    if (p[4] === 'load' && (loadKindOf(wEx) === 'plates' || (detPW && detPW.kind === 'plates' && Array.isArray(detPW.perSide)))) tfPlatesCardOpen(box, keyC, wiC, plan.id, wEx, 'warm');
     else tfWheelCardOpen(box, keyC, wiC, wEx, plan.id, 'warm');
   }; });
 }
@@ -39498,7 +39503,13 @@ function trainFlowChipsWire(box, plan) {
     const itC = trainEffectiveList(plan, diC)[eiC];
     if (!itC) return;
     const keyC = diC + ':' + eiC;
-    if (p[4] === 'load' && loadKindOf(itC.ex) === 'plates') tfPlatesCardOpen(box, keyC, siC, plan.id, itC.ex);
+    /* AUTH-448: la calculadora manda también si la fila YA
+       trae un desglose de discos compuesto, aunque la fábrica
+       no clasifique la ficha de discos: reeditar abre la
+       calculadora con sus lados tal cual, no la rueda. */
+    const rowP = (typeof TRAIN_CHECKS !== 'undefined' && TRAIN_CHECKS && TRAIN_CHECKS[keyC] && Array.isArray(TRAIN_CHECKS[keyC].sets)) ? TRAIN_CHECKS[keyC].sets[siC] : null;
+    const detP = tfDetailSan(rowP && rowP.loadDetail);
+    if (p[4] === 'load' && (loadKindOf(itC.ex) === 'plates' || (detP && detP.kind === 'plates' && Array.isArray(detP.perSide)))) tfPlatesCardOpen(box, keyC, siC, plan.id, itC.ex);
     else tfWheelCardOpen(box, keyC, siC, itC.ex, plan.id);
   }; });
 }
@@ -41344,7 +41355,7 @@ function trainFloatWheelHTML() {
     <div class="tf-wheel-cols">
       <div class="tf-wheel-col"><div class="tf-wheel-lab">${t('train.d.repsPh')}</div><div class="tf-wheel-list" id="tf-wheel-reps"></div></div>
       <div class="tf-wheel-col"><div class="tf-wheel-lab" id="tf-wheel-load-lab">${t('train.d.loadPh')} (${esc(UNIT_PREFS.mass)})</div><div class="tf-wheel-list" id="tf-wheel-load"></div></div>
-    </div><div class="tf-pair-note" id="tf-wheel-pair" style="display:none"></div></div></div>`;
+    </div><div class="tf-pair-note" id="tf-wheel-pair" style="display:none"></div><button type="button" class="btn-ghost tf-wheel-plates" id="tf-wheel-plates" style="display:none">${t('train.ld.usePlates')}</button></div></div>`;
 }
 function trainFloatSessionHTML(draft) {
   /* AUTH-406 · LA HOJA QUEDA DE CONSULTA (orden de Ronald,
@@ -41435,7 +41446,17 @@ function tfWireChips(body, scope) {
     const p = String(ch.dataset.tfChip).split(':');
     /* AUTH-2026-11-10-376: en una ficha de DISCOS, la pastilla de carga abre
        la calculadora de discos; la de reps, la rueda de siempre. */
-    if (p[2] === 'load' && (typeof TRAIN_FLOAT !== 'undefined' && TRAIN_FLOAT) && loadKindOf(TRAIN_FLOAT.ex) === 'plates') tfPlatesOpen(body, p[0], Number(p[1]));
+    /* AUTH-448: también en la hoja — si la fila ya trae un
+       desglose de discos compuesto, su pastilla de carga abre
+       la calculadora aunque la fábrica no clasifique la ficha
+       de discos. */
+    const rowPF = (typeof TRAIN_FLOAT !== 'undefined' && TRAIN_FLOAT && TRAIN_FLOAT.draft)
+      ? (p[0] === 'warm'
+        ? (TRAIN_FLOAT.draft.warmup && Array.isArray(TRAIN_FLOAT.draft.warmup.sets) ? TRAIN_FLOAT.draft.warmup.sets[Number(p[1])] : null)
+        : (Array.isArray(TRAIN_FLOAT.draft.sets) ? TRAIN_FLOAT.draft.sets[Number(p[1])] : null))
+      : null;
+    const detPF = tfDetailSan(rowPF && rowPF.loadDetail);
+    if (p[2] === 'load' && (typeof TRAIN_FLOAT !== 'undefined' && TRAIN_FLOAT) && (loadKindOf(TRAIN_FLOAT.ex) === 'plates' || (detPF && detPF.kind === 'plates' && Array.isArray(detPF.perSide)))) tfPlatesOpen(body, p[0], Number(p[1]));
     else tfWheelOpen(body, p[0], Number(p[1]));
   }; });
 }
@@ -41641,6 +41662,7 @@ function tfWheelCardOpen(body, key, idx, ex, planId, ctxW) {
    guardia anti-sobrescritura, como los dejó la apertura de la
    hoja. */
 function tfWheelShow(body) {
+  if (TF_WHEEL) TF_WHEEL.body = body;
   TF_LOAD_SCALE = tfLoadScale();
   TF_WHEEL_GUARD = null;
   const row = tfWheelRow();
@@ -41667,6 +41689,21 @@ function tfWheelShow(body) {
     document.body.appendChild(panel);
     const dn0 = panel.querySelector('#tf-wheel-done');
     if (dn0) dn0.onclick = () => { panel.style.display = 'none'; };
+    const pb0 = panel.querySelector('#tf-wheel-plates');
+    if (pb0) pb0.onclick = () => {
+      /* AUTH-448 · DE LA RUEDA A LA CALCULADORA: el salto gemelo
+         del «Teclear el total» del panel. La rueda es la puerta
+         que SÍ tienen las fichas que la fábrica no clasificó de
+         discos (el press de pecho en máquina, E001) y desde ella
+         la calculadora queda a un toque, sin imponerse: el
+         número directo sigue mandando para quien no la abre.
+         Salta a la misma fila, con la misma fuente y el mismo
+         contexto (trabajo o aproximación) de la rueda abierta. */
+      const W = TF_WHEEL; if (!W) return;
+      panel.style.display = 'none';
+      if (W.src === 'card') tfPlatesCardOpen(W.body || document.body, W.key, W.idx, W.planId, W.ex, W.ctx);
+      else tfPlatesOpen(W.body || document.body, W.ctx, W.idx);
+    };
   }
   const title = panel.querySelector('#tf-wheel-title');
   if (title) title.textContent = TF_WHEEL.ctx === 'warm' ? `${t('train.start.warmupTitle')} ${TF_WHEEL.idx + 1}` : `${t('train.d.set')} ${TF_WHEEL.idx + 1}`;
@@ -41698,6 +41735,12 @@ function tfWheelShow(body) {
     loadList.onscroll = tfWheelScrollHandler(body, loadList, 'load');
   }
   panel.style.display = 'block';
+  /* AUTH-448: el salto a la calculadora se ofrece en toda ficha
+     que no sea de par — en par la rueda ya elige el peso de UNA
+     mancuerna y el total es el doble; los discos no son su
+     puerta. */
+  const pbS = panel.querySelector('#tf-wheel-plates');
+  if (pbS) pbS.style.display = loadKindOf(tfWheelEx()) !== 'pair' ? '' : 'none';
   tfPairNoteUpdate();
   tfWheelMarkSel(repsList, 'reps');
   tfWheelMarkSel(loadList, 'load');
@@ -59005,7 +59048,7 @@ document.addEventListener('keydown', e => { if (e.key === 'Escape') shareClose()
  *  - El SW (sw.js) solo cachea la cáscara del mismo origen en modo
  *    RED PRIMERO: Auth/Firestore/Worker jamás pasan por la caché.
  * ================================================================ */
-const PWA_SW_VERSION = '20261113-acciones-guiado';
+const PWA_SW_VERSION = '20261113-discos-por-lado';
 /* Sello de versión VISIBLE (2026-11-03): el pie de la tarjeta de
    acceso enseña qué copia corre este teléfono ('v ' + el sello),
    para comprobar de un vistazo si la versión nueva ya llegó.

@@ -5697,6 +5697,8 @@ body.swap-sheet-open .asst-fab { display: none !important; }
 .tf-pair-note { margin-top: 10px; padding: 10px 12px; border: 1.5px solid #0d9488; border-radius: 12px; background: #f0fdfa; text-align: center; }
 .tf-pair-note .tf-pair-l1 { display: block; font-size: 16px; font-weight: 800; color: #134e4a; }
 .tf-pair-note .tf-pair-l2 { display: block; font-size: 13.5px; font-weight: 700; color: #0f766e; margin-top: 2px; }
+/* AUTH-448: el salto de la rueda a la calculadora de discos. */
+.tf-wheel-plates { width: 100%; min-height: 44px; margin-top: 10px; font-weight: 800; }
 .tf-kind-line { display: block; margin: 2px 0 6px; padding: 6px 2px; border: none; background: none; font: inherit; font-size: 12.5px; color: #5b6b7a; cursor: pointer; text-align: left; }
 .tf-kind-line b { color: #0f766e; }
 .tfp-hint { font-size: 12.5px; color: #5b6b7a; margin-bottom: 8px; }
