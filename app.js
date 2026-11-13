@@ -31940,7 +31940,7 @@ function coverFocusHome(cover) { // ¿el foco actual ya es válido bajo esta tap
   if (!a || a === document.body || !a.isConnected) return false;
   if (cover.contains(a)) return true;
   if (coverIsSoft(cover) && a.closest && a.closest('.actions-dock')) return true;
-  if ((cover.id === 'progress-content' || cover.id === 'train-content') && COVER_ALIVE.has(a)) return true; // AUTH-129 (+ la mascota viva sobre Entrenamiento, 2026-11-09): el foco en un disco vivo también es «casa»
+  if ((cover.id === 'progress-content' || cover.id === 'train-content') && (COVER_ALIVE.has(a) || (a.closest && a.closest('#sess-pill')))) return true; // AUTH-129 (+ la mascota viva sobre Entrenamiento, 2026-11-09): el foco en un disco vivo también es «casa»; AUTH-450: y el foco en un botón de la píldora viva
   return false;
 }
 function coverEnsureFocus(cover) {
@@ -31974,6 +31974,18 @@ function coverApply(cover) { // (re)aplica los inert para la tapa dada
      todas partes —; el resto de la pila queda inerte bajo esa
      página, como hasta hoy. */
   if (cover.id === 'train-content') { const el = document.getElementById('btn-asst-fab'); if (el) COVER_ALIVE.add(el); }
+  /* AUTH-450 · LA PÍLDORA DE LA SESIÓN VIVE SOBRE LAS PÁGINAS DE LA
+     SESIÓN (mismo criterio con que el dock sigue vivo bajo página o
+     lámina y los discos bajo Progreso, AUTH-129): #sess-pill es la
+     superficie de control de la sesión en curso y sus botones operan
+     sobre la sesión que esas dos páginas muestran. Hasta hoy el
+     paseo de tapas la inertaba como fondo cualquiera y sus botones
+     — también el «Finalizar ejercicio» de AUTH-449 — se pintaban
+     vivos, con el reloj corriendo, pero no respondían a ningún
+     toque sobre Entrenamiento ni sobre Progreso. Bajo láminas y
+     modales la píldora sigue inerte, como todo el fondo: la tapa
+     manda. */
+  if (cover.id === 'progress-content' || cover.id === 'train-content') { const pill = document.getElementById('sess-pill'); if (pill) COVER_ALIVE.add(pill); }
   /* PANTALLA COMPLETA (2026-11-09): la columna flotante va con el
      fondo — con una tapa abierta solo quedan a la vista los discos
      que este gestor mantiene vivos sobre esa tapa (COVER_ALIVE:
