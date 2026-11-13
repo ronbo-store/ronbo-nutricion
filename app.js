@@ -611,7 +611,6 @@ function applyFeatureGates() {
      cierran — la puerta manda sobre la superficie, como el dock. */
   if (!featureOn('meals') || aiOff) { for (const id of ['food-float', 'food-text', 'food-help', 'food-ai', 'food-scan', 'food-recipes']) { const el = document.getElementById(id); if (el) el.style.display = 'none'; } }
   if (!featureOn('activity')) {
-    const dockAct = document.getElementById('btn-toggle-activity'); if (dockAct) dockAct.style.display = 'none';
     const fl = document.getElementById('act-float'); if (fl) fl.style.display = 'none';
     const flame = document.getElementById('act-flame'); if (flame) flame.style.display = 'none';
   }
@@ -7809,9 +7808,7 @@ en: {
   'act.type.sauna': 'Sauna',
   'act.type.entrenamiento_plan': 'Workout session (plan)',
   /* EXTRAS DEL MARCADOR (2026-10-27): la zona de extras de la tarjeta de hoy. */
-  'train.extras.title': "Today's optional extras",
-  'train.extras.hint': 'They add to your burned today — they do not count toward the session.',
-  'train.extras.more': '+ More from the catalog…',
+  'train.hobbies.todayCount': '{n} logged today',
   /* PUENTE ENTRENAMIENTO→LLAMITA (2026-10-27): el quemado del día. */
   'act.flameBurned': 'burned today',
   'act.burnedTitle': 'Your burn today',
@@ -7826,7 +7823,7 @@ en: {
   /* Rediseño flotante (2026-10-24): hobbies, configuración y llamita. */
   'act.hobbiesTitle': 'My hobbies',
   'act.configTitle': 'Set up my hobbies',
-  'act.configHint': 'Choose the activities you do most — they show up as quick buttons when you tap Activity in the dock. They are saved to your account.',
+  'act.configHint': 'Choose the activities you do most — they show up as quick buttons in this sheet, and their names appear on the «My hobbies» line of your training card. They are saved to your account.',
   'act.favSave': 'Save hobbies',
   'act.favSaved': 'Hobbies saved ✓',
   'act.favLocalNote': 'They could not be saved to your account yet — for now they apply on this device only.',
@@ -12714,9 +12711,7 @@ es: {
   'act.type.sauna': 'Sauna',
   'act.type.entrenamiento_plan': 'Sesión de entrenamiento (plan)',
   /* EXTRAS DEL MARCADOR (2026-10-27): la zona de extras de la tarjeta de hoy. */
-  'train.extras.title': 'Extras opcionales de hoy',
-  'train.extras.hint': 'Suman a tu quemado de hoy — no cuentan para la sesión.',
-  'train.extras.more': '+ Otro del catálogo…',
+  'train.hobbies.todayCount': '{n} registradas hoy',
   /* PUENTE ENTRENAMIENTO→LLAMITA (2026-10-27): el quemado del día. */
   'act.flameBurned': 'quemado hoy',
   'act.burnedTitle': 'Tu quemado de hoy',
@@ -12731,7 +12726,7 @@ es: {
   /* Rediseño flotante (2026-10-24): hobbies, configuración y llamita. */
   'act.hobbiesTitle': 'Mis hobbies',
   'act.configTitle': 'Configurar mis hobbies',
-  'act.configHint': 'Elige las actividades que más haces — aparecerán como botones rápidos al tocar Actividad en el dock. Se guardan en tu cuenta.',
+  'act.configHint': 'Elige las actividades que más haces — aparecen como botones rápidos en esta hoja y sus nombres se ven en la línea «Mis hobbies» de tu tarjeta de entrenamiento. Se guardan en tu cuenta.',
   'act.favSave': 'Guardar hobbies',
   'act.favSaved': 'Hobbies guardados ✓',
   'act.favLocalNote': 'Aún no se pudieron guardar en tu cuenta — por ahora se aplican solo en este dispositivo.',
@@ -38985,28 +38980,25 @@ function trainCardioWire(box) {
     loadMyTraining();
   };
 }
-/* EXTRAS OPCIONALES DE HOY (2026-10-27, pedido de Ronald: «Quiero
-   que sea más accesible, que también esté en el marcador de los
-   ejercicios diarios como opcional»): la caminadora del inicio y
-   la sauna del final se registran DESDE la tarjeta de la sesión
-   de hoy, sin irse a la pestaña de Actividad. Zona discreta al pie
-   de la tarjeta: accesos rápidos [Caminadora] [Sauna] [+ Otro del
-   catálogo…]; cada toque abre LA MISMA hoja de ingreso de
-   actividades (actOpenCardExtra: fecha fijada a hoy, 15 min
-   sugeridos) y el guardado es el de siempre (actSaveDay →
-   activity_logs del día → la llamita por el actRecompute de
-   siempre). Los extras pintados son las actividades manuales del
-   día — todas menos la sesión del plan, que es la propia tarjeta —
-   con su nombre, minutos y kcal estimado, y se quitan desde aquí
-   con el mismo guardado (splice + actSaveDay, el patrón de borrado
-   de la hoja de la llamita). Sin extras, la zona se ofrece discreta
-   y la tarjeta se ve como hoy.
-   OPCIONALES DE VERDAD: la zona NO toca TRAIN_CHECKS ni el modelo
-   de la cabecera vestida (trainShareModel): el «X de Y», el %,
-   «¡Entrenamiento completado!», el estado de cierre, la A4 y los
-   pendientes dependen SOLO de los ejercicios del plan, como hoy.
-   El plan no se escribe; no hay segundo cálculo de quemado. */
-let TRAIN_EXTRAS_PICK = false;   // «otro del catálogo» desplegado (solo memoria)
+/* MIS HOBBIES EN LA TARJETA (AUTH-438; orden de Ronald
+   del 2026-11-12 18:29 CST y sus decisiones D1–D4 de esa
+   noche): la zona «Extras opcionales de hoy» que vivía al pie
+   de la tarjeta desde el 2026-10-27 (título + [Caminadora]
+   [Sauna] [+ Otro del catálogo…] siempre desplegados + la
+   mini-lista de lo registrado hoy con su borrado) SE RETIRA y
+   en su lugar exacto nace la puerta de «Mis hobbies»: UNA
+   línea plegada (D1) que abre la misma hoja flotante de
+   hobbies de siempre, en contexto de tarjeta (fecha de la
+   tarjeta, vuelta a la tarjeta). La mini-lista con borrado
+   vive ahora SOLO en el desglose de la llamita, que no se
+   toca (D3); la línea enseña su conteo («· N registradas
+   hoy»). Caminadora y Sauna pierden su botón suelto: quedan
+   en el catálogo de la hoja, sin cambio de favoritos (D4).
+   Hobbies y extras ya eran EL MISMO mecanismo de datos
+   (activity_logs, actSaveDay): no hay migración ni modelo
+   nuevo. La zona sigue sin tocar TRAIN_CHECKS ni el modelo
+   de la tarjeta de compartir: el «X de Y» y el % dependen
+   solo de los ejercicios del plan, como siempre. */
 /* AUTH-415 · EL DÍA COMPLETADO SE PLIEGA: los días
    cerrados en «done» que Ronald dejó DESPLEGADOS al revisar
    sus filas (solo memoria de la sesión; la tarjeta nace
@@ -39014,51 +39006,42 @@ let TRAIN_EXTRAS_PICK = false;   // «otro del catálogo» desplegado (solo memo
    repintados de la vista). */
 let TRAIN_DONE_OPEN = {};
 function trainExtrasZoneHTML() {
-  const today = todayISO();
-  const rows = [];
+  /* AUTH-438 · LA LÍNEA DE HOBBIES (D1/D3): UNA línea
+     plegada al pie de la tarjeta — icono, «Mis hobbies», los
+     favoritos VIVOS del usuario (actFavs, la misma fuente de
+     la hoja) y, si el día ya tiene actividades registradas,
+     su conteo («· N registradas hoy»: las del documento de
+     hoy sin la sesión del plan, el mismo filtro de las filas
+     retiradas). Al tocarla se abre la hoja de hobbies en
+     contexto de tarjeta (trainExtrasWire → actOpenCardFloat).
+     Sin actividades registradas no hay segmento de conteo:
+     nada de ceros inventados. El contenedor conserva la clase
+     train-extras: el refresco en el sitio de renderActivity
+     lo encuentra igual que siempre. */
+  const names = actFavs().map(tp => esc(t('act.type.' + tp))).join(' · ');
+  let nToday = 0;
   if (ACT_LOADED) {
-    const acts = (ACT_LOGS[today] || {}).activities || [];
-    acts.forEach((a, i) => {
-      if (!a || a.type === 'entrenamiento_plan') return;
-      const name = a.type === 'otro' && a.typeCustom ? a.typeCustom : t('act.type.' + a.type);
-      rows.push(`<div class="train-extra-row"><span class="train-extra-name">${ACT_ICONS[a.type] || '➕'} ${esc(name)}</span><span class="train-extra-meta">${Math.floor(num(a.durationMin))} ${t('act.min')} · ${a.kcalEstimated == null ? '—' : '≈ ' + fmt(a.kcalEstimated) + ' ' + t('act.kcalUnit')}${actIsSummable(a.type) ? '' : ` <span class="act-tag">${t('act.notAddedTag')}</span>`}</span><button type="button" class="btn-ghost btn-sm" data-train-extra-del="${i}">${t('act.del')}</button></div>`);
-    });
+    const acts = (ACT_LOGS[todayISO()] || {}).activities || [];
+    nToday = acts.filter(a => a && a.type !== 'entrenamiento_plan').length;
   }
-  const pickTypes = ACT_TYPES.filter(tp => tp !== 'caminadora' && tp !== 'sauna');
+  const parts = [esc(t('act.hobbiesTitle'))];
+  if (names) parts.push(names);
+  if (nToday > 0) parts.push(esc(t('train.hobbies.todayCount', { n: nToday })));
   return `<div class="train-extras">
-    <div class="train-extras-title">🧩 ${t('train.extras.title')}</div>
-    ${rows.join('')}
-    <div class="train-extras-btns">
-      <button type="button" class="btn-ghost btn-sm" data-train-extra="caminadora">${ACT_ICONS.caminadora} ${t('act.type.caminadora')}</button>
-      <button type="button" class="btn-ghost btn-sm" data-train-extra="sauna">${ACT_ICONS.sauna} ${t('act.type.sauna')}</button>
-      <button type="button" class="btn-ghost btn-sm" data-train-extra-more aria-expanded="${TRAIN_EXTRAS_PICK ? 'true' : 'false'}">${t('train.extras.more')}</button>
-    </div>
-    <div class="train-extras-pick" style="display:${TRAIN_EXTRAS_PICK ? '' : 'none'}">${pickTypes.map(tp => `<button type="button" class="btn-ghost btn-sm" data-train-extra="${tp}">${ACT_ICONS[tp] || '➕'} ${esc(t('act.type.' + tp))}</button>`).join('')}</div>
-    <p class="train-extras-hint">${t('train.extras.hint')}</p>
+    <button type="button" class="train-hobbies-line" data-train-hobbies aria-expanded="false"><span class="train-hobbies-ico" aria-hidden="true">🏃</span><span class="train-hobbies-txt">${parts.join(' · ')}</span><span class="train-hobbies-chev" aria-hidden="true">›</span></button>
   </div>`;
 }
-/* Cableado de la zona: los accesos abren la hoja de ingreso con la
-   fecha fijada a hoy (con stopPropagation: el clic NO debe llegar
-   al cierre por toque fuera de las superficies de actividad, que
-   cerraría la hoja recién abierta), el despliegue del resto del
-   catálogo y quitar un extra (el mismo guardado de siempre). Lo
-   usan loadMyTraining (al pintar la tarjeta) y el refresco en el
-   sitio de renderActivity (al cambiar el día desde Actividad). */
+/* Cableado de la línea (AUTH-438): abre la hoja de
+   hobbies en contexto de tarjeta (actOpenCardFloat), con
+   stopPropagation — el clic NO debe llegar al cierre por
+   toque fuera de las superficies de actividad, que cerraría
+   la hoja recién abierta. Lo usan loadMyTraining (al pintar
+   la tarjeta) y el refresco en el sitio de renderActivity
+   (la línea se re-pinta con el conteo del día al cambiar el
+   registro desde cualquier puerta). */
 function trainExtrasWire(box) {
   if (!box) return;
-  box.querySelectorAll('[data-train-extra]').forEach(b => b.onclick = e => { e.stopPropagation(); actOpenCardExtra(b.dataset.trainExtra); });
-  box.querySelectorAll('[data-train-extra-more]').forEach(b => b.onclick = () => {
-    TRAIN_EXTRAS_PICK = !TRAIN_EXTRAS_PICK;
-    const p = box.querySelector('.train-extras-pick');
-    if (p) p.style.display = TRAIN_EXTRAS_PICK ? '' : 'none';
-    b.setAttribute('aria-expanded', TRAIN_EXTRAS_PICK ? 'true' : 'false');
-  });
-  box.querySelectorAll('[data-train-extra-del]').forEach(b => b.onclick = async () => {
-    const i = parseInt(b.dataset.trainExtraDel, 10);
-    b.disabled = true;
-    await actSaveDay(todayISO(), dr => { dr.activities.splice(i, 1); });
-    loadMyTraining();
-  });
+  box.querySelectorAll('[data-train-hobbies]').forEach(b => b.onclick = e => { e.stopPropagation(); actOpenCardFloat(); });
 }
 function trainShareOpen(model) {
   SHARE.type = 'workout'; SHARE.workout = model;
@@ -47675,15 +47658,14 @@ const actIsOpen = id => { const el = $(id); return !!el && el.style.display !== 
 function actShowOnly(which) {
   const map = { float: 'act-float', entry: 'act-entry', config: 'act-config', day: 'act-day' };
   for (const [k, id] of Object.entries(map)) { const el = $(id); if (el) el.style.display = (k === which) ? '' : 'none'; }
-  const b = $('btn-toggle-activity');
-  if (b) {
-    const open = which === 'float' || which === 'entry' || which === 'config';
-    b.setAttribute('aria-expanded', open ? 'true' : 'false');
-    const ch = $('chev-activity'); if (ch) ch.textContent = open ? '▴' : '▾';
-  }
+  /* AUTH-438: el estado abierto lo anuncia ahora la línea
+     de la tarjeta que abre la hoja (el botón del dock se retiró). */
+  const openAct = which === 'float' || which === 'entry' || which === 'config';
+  document.querySelectorAll('[data-train-hobbies]').forEach(b =>
+    b.setAttribute('aria-expanded', openAct ? 'true' : 'false'));
   try { coverSync(); } catch {} // A-N2
 }
-function actCloseAll() { actShowOnly(null); }
+function actCloseAll() { ACT_FLOAT_CARD = false; ACT_FLOAT_DATE = null; actShowOnly(null); }
 function actOpenFloat() { renderActHobbies(); actShowOnly('float'); }
 function actOpenDay() { renderActDay(actSelDate()); actShowOnly('day'); }
 /* EXTRAS DEL MARCADOR (2026-10-27): la hoja de ingreso puede nacer
@@ -47697,6 +47679,25 @@ let ACT_ENTRY_DATE = null;
 let ACT_ENTRY_CARD = false;
 function actOpenEntry(type) { if (!ACT_MET[type]) return; ACT_ENTRY_DATE = null; ACT_ENTRY_CARD = false; renderActEntry(type); actShowOnly('entry'); }
 function actOpenCardExtra(type) { if (!ACT_MET[type]) return; ACT_ENTRY_DATE = todayISO(); ACT_ENTRY_CARD = true; renderActEntry(type); actShowOnly('entry'); }
+/* AUTH-438 · LA HOJA DESDE LA TARJETA (D1): la línea
+   «Mis hobbies» de la tarjeta del día abre ESTA MISMA hoja,
+   pero en contexto de tarjeta: los chips entran por la puerta
+   de la tarjeta (actOpenCardExtra: fecha fijada a la de la
+   tarjeta — la de hoy, que es la fecha de la línea —, 15 min
+   sugeridos y al guardar vuelta a la tarjeta), no por la
+   puerta de la fecha seleccionada. El contexto vive lo que
+   vive la sesión de superficies abiertas: actCloseAll lo
+   retira; los regresos internos (configuración, ingreso) lo
+   conservan porque vuelven por actOpenFloat. Sin el contexto
+   los chips conservan la entrada de siempre. */
+let ACT_FLOAT_CARD = false;
+let ACT_FLOAT_DATE = null;
+function actOpenCardFloat() {
+  ACT_FLOAT_CARD = true;
+  ACT_FLOAT_DATE = todayISO();
+  renderActHobbies();
+  actShowOnly('float');
+}
 function actOpenConfig() { renderActConfig(); actShowOnly('config'); }
 
 /* LLAMITA: el TOTAL DIARIO (base + extras que sí suman).
@@ -47744,7 +47745,7 @@ function renderActHobbies() {
       </button>`).join('')}</div>`
     : `<p class="act-note">${t('act.noFavs')}</p>`;
   body.querySelectorAll('[data-act-hobby]').forEach(b =>
-    b.onclick = () => actOpenEntry(b.dataset.actHobby));
+    b.onclick = () => { if (ACT_FLOAT_CARD) actOpenCardExtra(b.dataset.actHobby); else actOpenEntry(b.dataset.actHobby); });
 }
 
 /* Hoja flotante de INGRESO de un hobby: el formulario de siempre
@@ -48011,8 +48012,9 @@ function renderActivity(date) {
 }
 
 /* ---------- cableado del dock, la llamita y los cierres ---------- */
-{ const b = $('btn-toggle-activity');
-  if (b) b.onclick = () => { navDockLeave(() => { dockHome($('act-float')); if (actIsOpen('act-float')) actCloseAll(); else actOpenFloat(); }); }; }
+/* AUTH-438: el botón ACTIVIDAD del dock se retiró (D2) —
+   su único trabajo era abrir la hoja de hobbies, que ahora
+   nace de la línea de la tarjeta (actOpenCardFloat). */
 { const f = $('act-flame');
   if (f) f.onclick = () => { if (actIsOpen('act-day')) actCloseAll(); else actOpenDay(); }; }
 { const c = $('btn-act-close'); if (c) c.onclick = () => actCloseAll(); }
@@ -48020,12 +48022,12 @@ function renderActivity(date) {
 { const c = $('btn-act-entry-close'); if (c) c.onclick = () => { if (ACT_ENTRY_CARD) { ACT_ENTRY_CARD = false; ACT_ENTRY_DATE = null; actCloseAll(); } else actOpenFloat(); }; }
 { const c = $('btn-act-config-close'); if (c) c.onclick = () => actOpenFloat(); }
 { const c = $('btn-act-day-close'); if (c) c.onclick = () => actCloseAll(); }
-/* Cierre tocando fuera (el botón ACTIVIDAD del dock y la llamita
-   se excluyen: sus propios onclick ya alternan). */
+/* Cierre tocando fuera (la llamita se excluye: su propio
+   onclick ya alterna; la línea de la tarjeta detiene su clic
+   con stopPropagation y queda dentro de #my-training). */
 document.addEventListener('click', e => {
   if (!['act-float', 'act-entry', 'act-config', 'act-day'].some(actIsOpen)) return;
   for (const id of ['act-float', 'act-entry', 'act-config', 'act-day']) { const el = $(id); if (el && el.contains(e.target)) return; }
-  const b = $('btn-toggle-activity'); if (b && b.contains(e.target)) return;
   const f = $('act-flame'); if (f && f.contains(e.target)) return;
   actCloseAll();
 });
@@ -56902,7 +56904,7 @@ document.addEventListener('keydown', e => { if (e.key === 'Escape') shareClose()
  *  - El SW (sw.js) solo cachea la cáscara del mismo origen en modo
  *    RED PRIMERO: Auth/Firestore/Worker jamás pasan por la caché.
  * ================================================================ */
-const PWA_SW_VERSION = '20261112-calentamiento-llamita';
+const PWA_SW_VERSION = '20261112-hobbies-entrenamiento';
 /* Sello de versión VISIBLE (2026-11-03): el pie de la tarjeta de
    acceso enseña qué copia corre este teléfono ('v ' + el sello),
    para comprobar de un vistazo si la versión nueva ya llegó.
