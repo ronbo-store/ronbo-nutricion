@@ -6306,6 +6306,7 @@ en: {
   'train.guide.nextSub': 'Change or remove an exercise from today without leaving the guided route.',
   'train.guide.endNext': '🏁 End of today’s route',
   'train.guide.skip': 'Skip this one',
+  'train.guide.skippedNow': '↷ Skipped for now',
   'train.guide.showAll': '☰ See all exercises',
   'train.guide.start': '▶ Guided mode',
   'train.guide.complete': 'Route complete 🎉',
@@ -11421,6 +11422,7 @@ es: {
   'train.guide.nextSub': 'Cambia o quita un ejercicio de hoy sin salir del recorrido guiado.',
   'train.guide.endNext': '🏁 Fin de la ruta de hoy',
   'train.guide.skip': 'Saltar este',
+  'train.guide.skippedNow': '↷ Saltado por ahora',
   'train.guide.showAll': '☰ Ver todos los ejercicios',
   'train.guide.start': '▶ Modo guiado',
   'train.guide.complete': 'Ruta completa 🎉',
@@ -35572,7 +35574,21 @@ document.addEventListener('pointerup', () => {
   d.row.classList.remove('train-ex-dragging');
   const cards = [...d.box.querySelectorAll(':scope > .train-ex-card')];
   const to = cards.indexOf(d.row);
-  if (to >= 0 && to !== d.from && trainSessionReorder(d.plan, d.di, d.from, to)) loadMyTraining();
+  if (to < 0 || to === d.from) return;
+  /* AUTH-462 (D-B): con la ruta de la sesión viva, la lista se
+     pinta en el orden de la ruta y el asa opera sobre ESE orden
+     de trabajo: la posición soltada mueve el ejercicio dentro
+     de TRAIN_GUIDE.order y se repinta — la edición del día y
+     las marcas no se tocan (las marcas van por índice efectivo
+     y el índice no cambia). Sin ruta viva manda el motor de
+     siempre, byte a byte. */
+  if (guideRouteLive(d.plan, d.di)) {
+    const mv = TRAIN_GUIDE.order.splice(d.from, 1)[0];
+    TRAIN_GUIDE.order.splice(to, 0, mv);
+    loadMyTraining();
+    return;
+  }
+  if (trainSessionReorder(d.plan, d.di, d.from, to)) loadMyTraining();
 });
 document.addEventListener('pointercancel', () => {
   if (TRAIN_ROW_DRAG) { const d = TRAIN_ROW_DRAG; TRAIN_ROW_DRAG = null; trainRowDragEnd(d); d.row.classList.remove('train-ex-dragging'); }
@@ -37924,7 +37940,65 @@ function trainGoalLine(elapsedMin, goalMin) {
    sin dato parseable, el defecto de la casa: 75 s (restSecOf de
    AUTH-329). Series sin dato parseable: las de la marca en curso;
    si tampoco, 3 (declarado). Todo estimado va con «≈». */
-let TRAIN_GUIDE = { ctx: '', order: [], pin: null, restFor: null, restSkipFor: null, lastDone: null };
+let TRAIN_GUIDE = { ctx: '', order: [], pin: null, restFor: null, restSkipFor: null, lastDone: null, skipped: [] };
+/* ═══ AUTH-462 · EL SALTADO SE VE (decisiones de Ronald del
+   2026-11-14: D-A la pastilla «↷ Saltado por ahora» en la lista
+   y en el foco · D-B la lista de la sesión refleja el orden de
+   la ruta · D-C la pastilla también en «Los que siguen»).
+   El salto de AUTH-360 ya movía el ejercicio al final de
+   TRAIN_GUIDE.order, pero no escribía marca alguna y ninguna
+   superficie fuera del guiado lo enseñaba: el saltado se
+   pintaba «Sin empezar» en su sitio original (la captura de
+   Ronald del 2026-11-13). Este paquete lleva el conjunto DE
+   SESIÓN de los saltados — índices efectivos, como las marcas
+   y el flujo — dentro del propio estado de la ruta: nace y
+   muere con ella (la rama de reconstrucción de trainGuidedHTML
+   lo reinicia con el resto), no se persiste nada y el plan y
+   la edición del día no se reescriben por saltar ni por
+   pintar. La entrada se limpia cuando el ejercicio gana una
+   marca — se inicia o se marca — por las puertas centrales
+   (flowStartReconcile y flowSealDone, y la casilla de
+   AUTH-344): deja de estar «saltado» en cuanto se retoma. ═══ */
+function guideRouteCtx(plan, di) { return plan.id + '|' + todayISO() + '|' + di; }
+/* ¿La ruta de la sesión está viva para ESTE plan+hoy+di? La
+   misma validación que guideNextList: contexto exacto y el
+   orden una permutación válida de la lista efectiva de este
+   instante (tras quitar o agregar un ejercicio, la longitud
+   deja de cuadrar y la ruta se da por muerta hasta que
+   trainGuidedHTML la reconstruya en orden natural). */
+function guideRouteLive(plan, di) {
+  if (!plan) return false;
+  const G = TRAIN_GUIDE;
+  if (G.ctx !== guideRouteCtx(plan, di)) return false;
+  const M = trainEffectiveList(plan, di).length;
+  return G.order.length === M && new Set(G.order).size === M
+    && G.order.every(x => Number.isInteger(x) && x >= 0 && x < M);
+}
+/* El orden de pintado de la LISTA de la sesión (D-B): el de la
+   ruta mientras vive; null = el natural de la lista efectiva. */
+function guideListOrder(plan, di) { return guideRouteLive(plan, di) ? TRAIN_GUIDE.order.slice() : null; }
+/* ¿Este ejercicio está en el conjunto de saltados de la ruta
+   viva de ese plan+hoy+di? Con puerta de contexto: un conjunto
+   de otra ruta (otro día, otro plan) jamás pinta aquí. */
+function guideSkipHas(planId, di, ei) {
+  const G = TRAIN_GUIDE;
+  if (!planId || G.ctx !== planId + '|' + todayISO() + '|' + di) return false;
+  return Array.isArray(G.skipped) && G.skipped.includes(ei);
+}
+function guideSkipAdd(ei) {
+  const G = TRAIN_GUIDE;
+  if (!Array.isArray(G.skipped)) G.skipped = [];
+  if (!G.skipped.includes(ei)) G.skipped.push(ei);
+}
+/* La limpieza al ganar una marca, con la misma puerta de
+   contexto: solo actúa si la ruta viva es la de ese
+   plan+hoy+di (el índice solo significa algo dentro de ella). */
+function guideSkipClear(plan, di, ei) {
+  if (!plan || TRAIN_GUIDE.ctx !== guideRouteCtx(plan, di)) return;
+  if (!Array.isArray(TRAIN_GUIDE.skipped)) return;
+  const i = TRAIN_GUIDE.skipped.indexOf(ei);
+  if (i >= 0) TRAIN_GUIDE.skipped.splice(i, 1);
+}
 function trainGuidePrefKey() { const uid = auth.currentUser ? auth.currentUser.uid : ''; return 'ronbofit-train-mode-' + uid; }
 /* AUTH-406 · EL DÍA NACE GUIADO (reforma de Ronald,
    2026-11-11 11:32–11:50): sin elección expresa guardada, la
@@ -38033,7 +38107,7 @@ function trainGuidedHTML(plan, day, di) {
   const doneOf = ei => { const c = chkOf(ei); return !!(c && c.done === true); };
   if (G.ctx !== ctx || G.order.length !== M || new Set(G.order).size !== M
       || G.order.some(x => !Number.isInteger(x) || x < 0 || x >= M)) {
-    G.ctx = ctx; G.order = eff.map((_, ei) => ei); G.pin = null; G.restFor = null; G.restSkipFor = null; G.lastDone = null;
+    G.ctx = ctx; G.order = eff.map((_, ei) => ei); G.pin = null; G.restFor = null; G.restSkipFor = null; G.lastDone = null; G.skipped = [];   /* AUTH-462: el conjunto de saltados nace y muere con la ruta */
   }
   const doneCount = eff.filter((_, ei) => doneOf(ei)).length;
   /* Descanso de transición: nace cuando el conteo de hechos SUBE y
@@ -38225,7 +38299,8 @@ function guideNextPaint() {
     const fs = TRAIN_FLOW[key];
     const chip = fs && fs.st === 'paused' ? `<span class="gnext-chip is-paused">⏸ ${t('train.flow.paused')}</span>`
       : (fs && fs.st === 'open' ? `<span class="gnext-chip">${t('train.flow.inCourse')}</span>` : '');
-    return `<div class="gnext-row">${photo ? `<img class="gnext-photo" src="${esc(photo)}" alt="" loading="lazy">` : (thumb ? `<img class="gnext-photo" src="${esc(thumb)}" alt="" loading="lazy">` : '<span class="gnext-photo"></span>')}<span class="gnext-mid"><span class="gnext-name">${esc(trainExName(ex))}</span>${spec ? `<span class="gnext-spec">${esc(spec)}</span>` : ''}${chip}</span><span class="gnext-acts"><button type="button" class="gnext-btn" data-flow-swap="${key}">🔀 ${t('train.custom.swap')}</button><button type="button" class="gnext-btn is-quit" data-gnext-remove="${key}">${t('train.flow.removeToday')}</button></span></div>`;
+    const skipChip = guideSkipHas(S.plan.id, S.di, ei) ? `<span class="gnext-chip is-skipped">${t('train.guide.skippedNow')}</span>` : '';   /* AUTH-462 (D-C): la misma pastilla en la hoja */
+    return `<div class="gnext-row">${photo ? `<img class="gnext-photo" src="${esc(photo)}" alt="" loading="lazy">` : (thumb ? `<img class="gnext-photo" src="${esc(thumb)}" alt="" loading="lazy">` : '<span class="gnext-photo"></span>')}<span class="gnext-mid"><span class="gnext-name">${esc(trainExName(ex))}</span>${spec ? `<span class="gnext-spec">${esc(spec)}</span>` : ''}${chip}${skipChip}</span><span class="gnext-acts"><button type="button" class="gnext-btn" data-flow-swap="${key}">🔀 ${t('train.custom.swap')}</button><button type="button" class="gnext-btn is-quit" data-gnext-remove="${key}">${t('train.flow.removeToday')}</button></span></div>`;
   }).join('');
   /* El «Cambiar» de cada fila lo cablea trainFlowWire: es
      EL manejador del flujo, con su guarda AUTH-398 (con
@@ -38258,7 +38333,7 @@ function guideNextRemove(key) {
   const before = trainEffectiveList(plan, di).length;
   const G = TRAIN_GUIDE;
   const gLive = G.ctx === (plan.id + '|' + todayISO() + '|' + di) && G.order.length === before;
-  const gBak = { order: [...G.order], pin: G.pin, restFor: G.restFor, restSkipFor: G.restSkipFor, lastDone: G.lastDone };
+  const gBak = { order: [...G.order], pin: G.pin, restFor: G.restFor, restSkipFor: G.restSkipFor, lastDone: G.lastDone, skipped: [...(G.skipped || [])] };   /* AUTH-462: la foto incluye el conjunto de saltados */
   const flowBak = {};
   Object.keys(TRAIN_FLOW).forEach(k => { flowBak[k] = TRAIN_FLOW[k]; });
   const remapN = n => (n == null || n === ei) ? null : (n > ei ? n - 1 : n);
@@ -38267,6 +38342,7 @@ function guideNextRemove(key) {
     G.pin = remapN(G.pin);
     G.restFor = remapN(G.restFor);
     G.restSkipFor = remapN(G.restSkipFor);
+    G.skipped = (G.skipped || []).filter(x => x !== ei).map(x => x > ei ? x - 1 : x);   /* AUTH-462: el conjunto se remapea con la misma regla que el orden y las marcas */
   }
   const pre = di + ':';
   const shifted = {};
@@ -38283,7 +38359,7 @@ function guideNextRemove(key) {
   if (trainEffectiveList(plan, di).length === before) {
     /* Cancelado en la confirmación: el motor no quitó nada
        y la foto del guiado y del flujo vuelve tal cual. */
-    G.order = gBak.order; G.pin = gBak.pin; G.restFor = gBak.restFor; G.restSkipFor = gBak.restSkipFor; G.lastDone = gBak.lastDone;
+    G.order = gBak.order; G.pin = gBak.pin; G.restFor = gBak.restFor; G.restSkipFor = gBak.restSkipFor; G.lastDone = gBak.lastDone; G.skipped = gBak.skipped;   /* AUTH-462: la restauración incluye el conjunto */
     Object.keys(TRAIN_FLOW).forEach(k => { delete TRAIN_FLOW[k]; });
     Object.assign(TRAIN_FLOW, flowBak);
   }
@@ -40187,6 +40263,7 @@ function flowSealDone(plan, key, withFace) {
   if (chk.done === true) { if (plan) trainChecksPersist(plan.id); return false; }
   if (Array.isArray(chk.sets)) { const nowH = Date.now(); chk.sets.forEach(s => { if (trainSetHasData(s) && !(typeof s.markedAt === 'number' && s.markedAt > 0)) s.markedAt = nowH; }); }
   chk.done = true;
+  guideSkipClear(plan, Number(String(key).split(':')[0]), Number(String(key).split(':')[1]));   /* AUTH-462: el hecho sellado también saca al ejercicio del conjunto de saltados */
   if (plan) {
     trainChronoTouch(plan.id, trainDayLabelOf(plan, Number(String(key).split(':')[0])));
     trainChecksPersist(plan.id);
@@ -40241,6 +40318,7 @@ function flowStartReconcile(plan, key) {
   });
   if (sealed && plan) trainChecksPersist(plan.id);
   if (Number.isInteger(eiR)) TRAIN_GUIDE.pin = eiR;
+  guideSkipClear(plan, diR, eiR);   /* AUTH-462: iniciar o reanudar un saltado lo retoma — su pastilla se quita en este mismo gesto */
   return sealed;
 }
 /* El cableado del flujo: lo llama la vista de Entrenamiento tras
@@ -40514,7 +40592,7 @@ function trainExCompactHTML(ex, di, ei, mode, de, mv) {
   const figs = mode === 'ficha' ? '' : `<div class="train-ex-figs">
     ${trainHistBlockHTML(mode === 'edit' ? trainSessionSummaryLive(chk) : (de ? trainSessionSummaryFromSets(de.sets) : null))}
     <div class="train-ex-side">${mode === 'edit'
-      ? `<span class="train-ex-state ${chk ? (chk.done === true ? 'st-done' : 'st-progress') : 'st-todo'}">${chk ? (chk.done === true ? '✓ ' + t('train.view.exDone') : '◐ ' + t('train.view.exInProgress')) : '○ ' + t('train.view.exToDo')}</span>`
+      ? `<span class="train-ex-state ${chk ? (chk.done === true ? 'st-done' : 'st-progress') : 'st-todo'}">${chk ? (chk.done === true ? '✓ ' + t('train.view.exDone') : '◐ ' + t('train.view.exInProgress')) : '○ ' + t('train.view.exToDo')}</span>` + ((chk && chk.done === true) ? '' : (guideSkipHas((typeof MY_PLAN !== 'undefined' && MY_PLAN) ? MY_PLAN.id : '', di, ei) ? `<span class="train-ex-skipped">${t('train.guide.skippedNow')}</span>` : ''))
       : mode === 'read'
         ? (de ? `<span class="ok-badge">✓ ${t('train.view.exDone')}${de.rpe ? ` · ${t('train.view.rpe')} ${esc(String(de.rpe))}` : ''}</span>` : '<span class="muted">—</span>')
         : ''}</div>
@@ -44328,7 +44406,23 @@ async function loadMyTraining() {
   const dayCompactHTML = (day, di, mode, log, tailHTML) => {
     const label = day.label || ('Día ' + (di + 1));
     let exHtml;
-    if (mode === 'edit') { const effL = trainEffectiveList(plan, di); const canMv = trainReorderAllowed(); exHtml = effL.map((it, ei) => trainExCompactHTML(it.ex, di, ei, 'edit', null, canMv && effL.length > 1 ? { first: ei === 0, last: ei === effL.length - 1 } : null)).join(''); }
+    if (mode === 'edit') { const effL = trainEffectiveList(plan, di); const canMv = trainReorderAllowed();
+      /* AUTH-462 (D-B): con la ruta de la sesión viva, la lista
+         se pinta en EL ORDEN DE LA RUTA — el saltado se ve al
+         final, en el orden en que de verdad se va a hacer. Cada
+         fila conserva su índice efectivo en todos sus data-* y
+         su data-train-row se PRE-SELLA con él (el patrón de la
+         tarjeta en foco de AUTH-360): dressExRows numera sobre
+         lo pintado y el toque de la fila abre la flotante por
+         ese índice — sin el pre-sello, tocar la última fila
+         abriría el ejercicio de la posición y no el saltado. La
+         --stripe se sella por índice efectivo: el color sigue
+         al ejercicio, no a la posición. Ni el plan ni la
+         edición del día se escriben por pintar. */
+      const ordL = guideListOrder(plan, di);
+      if (ordL) exHtml = ordL.map((ei, pos) => trainExCompactHTML(effL[ei].ex, di, ei, 'edit', null, canMv && effL.length > 1 ? { first: pos === 0, last: pos === effL.length - 1 } : null)
+        .replace('<div class="train-ex-card', `<div data-train-row="${di}:${ei}:edit" style="--stripe:${SHARE_W_PALETTE[ei % SHARE_W_PALETTE.length]}" class="train-ex-card`)).join('');
+      else exHtml = effL.map((it, ei) => trainExCompactHTML(it.ex, di, ei, 'edit', null, canMv && effL.length > 1 ? { first: ei === 0, last: ei === effL.length - 1 } : null)).join(''); }
     else if (mode === 'ficha') exHtml = (day.exercises || []).map((ex, ei) => trainExCompactHTML(ex, di, ei, 'ficha', null)).join('');
     else exHtml = trainDayCompactHistHTML(day, log, di);
     let tail = tailHTML;
@@ -44787,6 +44881,7 @@ async function loadMyTraining() {
          TRAIN_CHECKS, así que re-pintar no pierde nada). */
       if (TRAIN_CHECKS[key]) TRAIN_CHECKS[key].done = true;
       else TRAIN_CHECKS[key] = { rpe: sel && sel.value ? Number(sel.value) : null, sets: trainDefaultSets(ex), done: true };
+      guideSkipClear(plan, Number(diS), Number(eiS));   /* AUTH-462: la casilla también es una marca — el saltado marcado deja de estar saltado */
       trainChronoTouch(plan.id, trainDayLabelOf(plan, Number(diS)));   /* PUENTE: la marca alimenta el cronómetro (y lo arranca si no se pulsó INICIAR) */
       trainChecksPersist(plan.id);   /* MARCAS QUE SOBREVIVEN */
       /* AUTH-433 · LA MISMA LIBERACIÓN QUE EN EL
@@ -44835,6 +44930,7 @@ async function loadMyTraining() {
     const i = TRAIN_GUIDE.order.indexOf(ei);
     if (i >= 0) { TRAIN_GUIDE.order.splice(i, 1); TRAIN_GUIDE.order.push(ei); }
     if (TRAIN_GUIDE.pin === ei) TRAIN_GUIDE.pin = null;
+    guideSkipAdd(ei);   /* AUTH-462: el salto entra en el conjunto de sesión que lo hace visible (D-A/D-B/D-C) */
     loadMyTraining();
   });
   /* AUTH-406: el «✓ Hecho» de la ruta SALE con su cableado —
