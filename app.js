@@ -6260,6 +6260,7 @@ en: {
      la pastilla sobre el dock y la encuesta de una pregunta. */
   'sess.pillLabel': 'Training · {label}', 'sess.pillPlain': 'Training',
   'sess.pillNext': 'NEXT',
+  'sess.totalTag': 'SESSION TOTAL', 'sess.totalTagShort': 'TOTAL', 'sess.exPaused': 'paused',
   'sess.pillSub': 'It only stops when you finish, in Training',
   'sess.kicker': 'QUICK SURVEY', 'sess.title': 'Workout finished!',
   'sess.dur': 'Duration: {d}', 'sess.durMin': '{m} min', 'sess.durHM': '{h} h {m} min',
@@ -11282,6 +11283,7 @@ es: {
      la pastilla sobre el dock y la encuesta de una pregunta. */
   'sess.pillLabel': 'Entrenando · {label}', 'sess.pillPlain': 'Entrenando',
   'sess.pillNext': 'SIGUE',
+  'sess.totalTag': 'TOTAL DE LA SESIÓN', 'sess.totalTagShort': 'TOTAL', 'sess.exPaused': 'en pausa',
   'sess.pillSub': 'Solo se detiene al finalizar, en Entrenamiento',
   'sess.kicker': 'ENCUESTA RÁPIDA', 'sess.title': '¡Entrenamiento finalizado!',
   'sess.dur': 'Duración: {d}', 'sess.durMin': '{m} min', 'sess.durHM': '{h} h {m} min',
@@ -38156,6 +38158,24 @@ function sessFmtClock(ms) {
   const s = Math.max(0, Math.floor(ms / 1000)), p2 = n => String(n).padStart(2, '0');
   return p2(Math.floor(s / 3600)) + ':' + p2(Math.floor((s % 3600) / 60)) + ':' + p2(s % 60);
 }
+/* AUTH-456 · EL DISTINTIVO DEL TOTAL Y EL RELOJ CORTO
+   DEL EJERCICIO (la reorganización del reloj de la
+   píldora, decidida por Ronald el 2026-11-13): la
+   pastilla que nombra al reloj grande — el total de la
+   sesión, con su nombre entero y su forma corta para la
+   banda chica y para la pausa — y el formato corto del
+   tiempo del ejercicio de la variante B («5:12»; desde
+   la hora, «1:05:12», para no mentir en ejercicios
+   largos). */
+function sessTotalTagHTML() {
+  return `<span class="sp-total-tag"><span class="tag-full">${esc(t('sess.totalTag'))}</span><span class="tag-short">${esc(t('sess.totalTagShort'))}</span></span>`;
+}
+function sessFmtExClock(ms) {
+  const s = Math.max(0, Math.floor(ms / 1000)), p2 = n => String(n).padStart(2, '0');
+  return s >= 3600
+    ? Math.floor(s / 3600) + ':' + p2(Math.floor((s % 3600) / 60)) + ':' + p2(s % 60)
+    : Math.floor(s / 60) + ':' + p2(s % 60);
+}
 function sessDurText(sec) {
   const m = Math.round(Math.max(0, sec) / 60);
   if (m < 60) return t('sess.durMin', { m: Math.max(1, m) });
@@ -38238,14 +38258,17 @@ function sessPillSync(run) {
   let st = null;
   try { st = trainBarState(); } catch {}
   let sig, html;
+  let pillPaused = false;
+  let pillChip = false;
   if (!st) {
     sig = 'deg|' + (run.label || '') + '|' + movePillSig(run);
-    html = `<div class="sp-main is-deg"><div class="sp-left"><div class="sp-top"><span class="sess-pill-dot" aria-hidden="true"></span><span class="sess-pill-time" id="sess-pill-time">00:00:00</span></div><div class="sp-state"><span class="sp-training">${esc(t('sess.pillPlain'))}</span>${run.label ? `<span class="sp-day">${esc(run.label)}</span>` : ''}</div></div></div>` + moveAnnexHTML();
+    html = `<div class="sp-main is-deg"><div class="sp-left"><div class="sp-top"><span class="sess-pill-dot" aria-hidden="true"></span><span class="sess-pill-time" id="sess-pill-time">00:00:00</span>${sessTotalTagHTML()}</div><div class="sp-state"><span class="sp-training">${esc(t('sess.pillPlain'))}</span>${run.label ? `<span class="sp-day">${esc(run.label)}</span>` : ''}</div></div></div>` + moveAnnexHTML();
   } else {
     const ck = st.di + ':' + st.cur;
     const curChk = st.checks[ck] || null;
     let flowSt = '';
     try { if (TRAIN_CHECKS_CTX === st.plan.id + '|' + todayISO() && TRAIN_FLOW[ck]) flowSt = TRAIN_FLOW[ck].st || ''; } catch {}
+    pillPaused = flowSt === 'paused';
     const total = st.eff.length;
     const doneN = st.eff.filter((_, ei) => { const c = st.checks[st.di + ':' + ei]; return !!(c && c.done === true); }).length;
     const pct = total ? Math.round(100 * doneN / total) : 0;
@@ -38270,10 +38293,32 @@ function sessPillSync(run) {
     else if (flowSt === 'paused') btn = `<button type="button" class="sp-btn ini" data-pill-resume="${ck}">${esc(t('train.flow.resume'))}</button><button type="button" class="sp-btn fin" data-pill-finish="${ck}">${esc(t('train.flow.finish'))}</button>`;
     else if (flowSt === 'open') btn = `<button type="button" class="sp-btn stop" data-pill-pause="${ck}">${esc(t('train.flow.pause'))}</button><button type="button" class="sp-btn fin" data-pill-finish="${ck}">${esc(t('train.flow.finish'))}</button>`;
     else btn = `<button type="button" class="sp-btn ini" data-pill-resume="${ck}">${esc(t('train.flow.resume'))}</button>`;
+    /* AUTH-456 · LA PASTILLA DEL EJERCICIO (variante B
+       de Ronald): junto a los botones de la fila, el
+       tiempo del ejercicio de ahora en corto. Nace solo
+       con el ejercicio en curso (con su marca y fuera de
+       su cierre): antes de empezar no hay tiempo que
+       enseñar — sería un 0:00 fijo — y la cara de cierre
+       «¿Qué tal fue?» queda intacta, sin pastilla, como
+       se decidió no tocarla. En pausa y en banda chica,
+       su cola «· en pausa» sustituye a la etiqueta de
+       arriba (el CSS de este mismo paquete). La pieza
+       nace DOS veces con el mismo valor — la pastilla de
+       la fila y una línea discreta bajo el nombre — y el
+       CSS enseña una u otra: en la banda chica (≤400 px)
+       la fila no puede con los dos botones de 42 px y la
+       pastilla a la vez (medido: la fila desborda), así
+       que ahí manda la línea, con el aire de la variante
+       A pagándola para no crecer ni un píxel; es el
+       cuidado equivalente del patrón A-pausa aprobado. */
+    const chipOn = !!(curChk && flowSt !== 'closing');
+    const chip = chipOn ? `<span class="sp-btnchip"><span class="sess-pill-exclock">⏱ 0:00</span><span class="sp-exc-pause"> · ${esc(t('sess.exPaused'))}</span></span>` : '';
+    const chipLine = chipOn ? `<div class="sp-excline"><span class="sess-pill-exclock">⏱ 0:00</span><span class="sp-exc-pause"> · ${esc(t('sess.exPaused'))}</span></div>` : '';
+    pillChip = chipOn;
     const flameLeft = pct <= 8 ? '13px' : (pct >= 92 ? 'calc(100% - 13px)' : pct + '%');
-    html = `<div class="sp-main"><div class="sp-left"><div class="sp-top"><span class="sess-pill-dot${flowSt === 'paused' ? ' is-paused' : (curChk ? '' : ' is-todo')}" aria-hidden="true"></span><span class="sess-pill-time" id="sess-pill-time">00:00:00</span>${flowSt === 'paused' ? `<span class="sp-pause-tag">${esc(t('train.flow.pausedTag'))}</span>` : ''}</div>`
+    html = `<div class="sp-main"><div class="sp-left"><div class="sp-top"><span class="sess-pill-dot${flowSt === 'paused' ? ' is-paused' : (curChk ? '' : ' is-todo')}" aria-hidden="true"></span><span class="sess-pill-time" id="sess-pill-time">00:00:00</span>${sessTotalTagHTML()}${flowSt === 'paused' ? `<span class="sp-pause-tag">${esc(t('train.flow.pausedTag'))}</span>` : ''}</div>`
       + `<div class="sp-state"><span class="sp-training">${esc(t('sess.pillPlain'))}</span>${run.label ? `<span class="sp-day">${esc(run.label)}</span>` : ''}</div>`
-      + `<div class="sp-cur">${esc(curName)}</div><div class="sp-btnrow">${btn}</div></div>`
+      + `<div class="sp-cur">${esc(curName)}</div>${chipLine}<div class="sp-btnrow">${btn}${chip}</div></div>`
       + (st.nxt != null ? `<div class="sp-sep" aria-hidden="true"></div><div class="sp-next"><span class="sp-next-lab">${esc(t('sess.pillNext'))}</span><span class="sp-next-name">${esc(trainExName(st.eff[st.nxt].ex) || st.eff[st.nxt].ex.name || '')}</span><span class="sp-next-pos">${esc(t('train.guide.pos', { n: st.nxt + 1, m: total }))}</span></div>` : '')
       + `</div>` + moveAnnexHTML() + `<div class="sp-franja" aria-hidden="true"><i style="width:${pct}%"></i>${sessPillTipHTML(flameLeft)}</div>`;
   }
@@ -38281,6 +38326,8 @@ function sessPillSync(run) {
     SESS_PILL_SIG = sig;
     pill.innerHTML = html;
     pill.classList.toggle('is-deg', sig.startsWith('deg|'));
+    pill.classList.toggle('is-paused', pillPaused);
+    pill.classList.toggle('has-exc', pillChip);
     pill.classList.toggle('is-move-min', !!(MOVE.open && MOVE.listening));
     pill.setAttribute('aria-label', run.label ? t('sess.pillLabel', { label: run.label }) : t('sess.pillPlain'));
   }
@@ -38292,8 +38339,26 @@ function sessPillSync(run) {
      por su propio camino y su elapsedSec del cierre
      se mide como siempre. Sin estado de ejercicio
      (la píldora degradada), el contador sigue siendo
-     el del día, como hasta hoy. */
-  if (tEl) tEl.textContent = sessFmtClock(st ? flowClockMs(st.di + ':' + st.cur) : Date.now() - run.start);
+     el del día, como hasta hoy.
+     AUTH-456 · LA REORGANIZACIÓN (decisión de Ronald,
+     2026-11-13, variante B): el reloj GRANDE es desde
+     este paquete el TOTAL DE LA SESIÓN en las dos caras
+     de la píldora — sale del mismo sello local del
+     cronómetro (run.start: la fuente de la fila «Sesión
+     en curso» de la tarjeta y del elapsedSec del cierre;
+     una sola fuente, sin duplicar) — y el tiempo del
+     ejercicio vive en su pastilla de la fila de botones,
+     actualizada en este mismo tick con flowClockMs, la
+     lectura de siempre: el bancado, la pausa y la foto
+     del flujo de AUTH-434/449/451 no cambian. En la cara
+     de cierre no hay pastilla y su tiempo no se lee
+     aquí: ya está bancado. */
+  if (tEl) tEl.textContent = sessFmtClock(Date.now() - run.start);
+  const cEls = pill.querySelectorAll('.sess-pill-exclock');
+  if (st && cEls.length) {
+    const exTxt = '⏱ ' + sessFmtExClock(flowClockMs(st.di + ':' + st.cur));
+    cEls.forEach(el => { el.textContent = exTxt; });
+  }
   try { moveFoldWatch(st); } catch {}
 }
 /* El cableado de la píldora gruesa: UN oyente delegado (el

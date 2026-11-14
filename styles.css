@@ -6085,6 +6085,53 @@ body.train-drag-lock { overflow: hidden; overscroll-behavior: none; }
 .sp-btnrow { gap: 8px; }
 .sp-btn.stop { background: linear-gradient(180deg, #f59e0b, #d97706); }
 .sp-pause-tag { background: #f59e0b; color: #1b2a4a; font-size: 10.5px; font-weight: 800; letter-spacing: .07em; padding: 2px 7px; border-radius: 6px; flex: none; }
+/* AUTH-456 · EL DISTINTIVO DEL TOTAL Y LA PASTILLA DEL
+   EJERCICIO (la reorganización del reloj, variante B):
+   la pastilla que nombra al reloj grande vive en su
+   misma fila y no añade alto; su forma corta («TOTAL»)
+   manda en la banda chica (≤400 px) y en pausa a todo
+   ancho, para que «EN PAUSA» quepa arriba. La pastilla
+   del ejercicio comparte la fila de botones de 42 px
+   sin crecerla: es una pieza de lectura (flex none) y
+   los botones conservan su altura de toque de la
+   píldora (42 px, la excepción registrada de Ronald);
+   el de finalizar envuelve su texto en dos líneas
+   dentro de sus 42 px, como ya estaba declarado. En
+   pausa y en banda chica, la etiqueta «EN PAUSA» de
+   arriba se apaga y su palabra baja a la pastilla del
+   ejercicio: «⏱ 5:12 · en pausa» — la pausa es del
+   ejercicio, no de la sesión, y el total sigue corriendo
+   mientras el ejercicio descansa. */
+.sp-total-tag { background: rgba(255, 255, 255, .14); color: rgba(255, 255, 255, .92); font-size: 10px; font-weight: 800; letter-spacing: .09em; padding: 3px 8px; border-radius: 999px; flex: none; white-space: nowrap; }
+.sp-total-tag .tag-short { display: none; }
+#sess-pill.is-paused .sp-total-tag .tag-full { display: none; }
+#sess-pill.is-paused .sp-total-tag .tag-short { display: inline; }
+.sp-btnchip { display: flex; align-items: center; gap: 5px; height: 42px; padding: 0 11px; border-radius: 12px; background: rgba(255, 255, 255, .12); color: rgba(255, 255, 255, .88); font-size: 13.5px; font-weight: 700; font-variant-numeric: tabular-nums; white-space: nowrap; flex: none; }
+.sp-exc-pause { display: none; }
+/* La línea del ejercicio bajo su nombre: nace apagada
+   y solo manda en la banda chica, donde la fila de
+   botones no puede con los dos botones y la pastilla
+   a la vez. Al escuchar («Mientras te mueves»), se
+   pliega con el resto de la zona principal. */
+.sp-excline { display: none; font-size: 12.5px; font-weight: 600; color: rgba(255, 255, 255, .68); font-variant-numeric: tabular-nums; white-space: nowrap; line-height: 1.28; }
+#sess-pill.is-move-min .sp-excline { display: none; }
+@media (max-width: 400px) {
+  .sp-total-tag .tag-full { display: none; }
+  .sp-total-tag .tag-short { display: inline; }
+  #sess-pill.is-paused .sp-pause-tag { display: none; }
+  #sess-pill.is-paused .sp-exc-pause { display: inline; }
+  /* En la banda chica la pastilla sale de la fila y el
+     tiempo del ejercicio vive en su línea, como en el
+     patrón A-pausa: la línea (16 px) se paga del aire
+     de la zona principal (relleno 16/14 → 12/10 y los
+     huecos de la columna de 9 a 4,75), para que la
+     píldora no crezca ni un píxel — la compensación
+     solo existe cuando la línea existe (has-exc). */
+  .sp-btnchip { display: none; }
+  #sess-pill.has-exc .sp-excline { display: block; }
+  #sess-pill.has-exc .sp-main { padding: 12px 16px 10px; }
+  #sess-pill.has-exc .sp-left { gap: 4.75px; }
+}
 .sess-pill-dot.is-todo { background: #94a3b8; animation: none; box-shadow: none; }
 .sess-pill-dot.is-paused { background: #f59e0b; animation: none; box-shadow: 0 0 0 4px rgba(245, 158, 11, .18); }
 .flow-btn.is-pause { background: linear-gradient(180deg, #f59e0b, #d97706); border-color: #b45309; color: #fff; }
