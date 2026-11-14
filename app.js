@@ -60599,7 +60599,7 @@ async function faqEdAdd() {
    clave de localStorage y el detalle de los bordes, junto a
    swAlertCheck.
    ============================================================ */
-const STOPW = { open: false, running: false, startAt: 0, acc: 0, laps: [], raf: 0, alertMin: 0, alertK: 0 };
+const STOPW = { open: false, running: false, startAt: 0, acc: 0, laps: [], raf: 0, alertMin: 0, alertK: 0, alertPend: 0 };
 const SW_LS_KEY = 'ronbofit-stopwatch-v1';
 function swSave() {
   try {
@@ -60644,7 +60644,11 @@ function swRestore() {
    política de sonido de iOS; si al llegar un múltiplo el
    contexto sigue suspendido (app en segundo plano o teléfono
    bloqueado, donde iOS pausa lo web), el sonido espera al
-   próximo gesto y el pulso visual sí se produce. */
+   próximo gesto y el pulso visual sí se produce.
+   (Corrección 2026-11-13: esa espera quedó implementada de
+   verdad — alertPend + swAlertPrime — porque el código original
+   consumía el múltiplo en silencio y ningún gesto posterior lo
+   entregaba; abrir la herramienta también ceba el audio.) */
 const SW_ALERT_KEY = 'ronbofit-stopwatch-alert-v1';
 const SW_ALERT_OPTS = [0, 1, 2, 3, 5];
 let SW_ACTX = null;
@@ -60665,13 +60669,16 @@ function swAlertAudio() {
     const AC = window.AudioContext || window.webkitAudioContext;
     if (!AC) return null;
     if (!SW_ACTX) SW_ACTX = new AC();
-    if (SW_ACTX.state === 'suspended') SW_ACTX.resume();
+    if (SW_ACTX.state !== 'running') SW_ACTX.resume();
     return SW_ACTX;
   } catch { return null; }
 }
+/* Devuelve true SOLO si el pitido doble quedó efectivamente
+   programado (contexto sonando y osciladores arrancados): quien
+   llama decide qué hacer con un aviso que no pudo sonar. */
 function swAlertBeep() {
   const ctx = swAlertAudio();
-  if (!ctx || ctx.state !== 'running') return;
+  if (!ctx || ctx.state !== 'running') return false;
   try {
     const t0 = ctx.currentTime + 0.02;
     for (const dt of [0, 0.19]) {
@@ -60683,7 +60690,24 @@ function swAlertBeep() {
       o.connect(g); g.connect(ctx.destination);
       o.start(t0 + dt); o.stop(t0 + dt + 0.17);
     }
-  } catch {}
+    return true;
+  } catch { return false; }
+}
+/* EL SONIDO ESPERA AL PRÓXIMO GESTO (corrección 2026-11-13,
+   reporte en vivo de Ronald: «puse cinco, no da ninguna
+   alertar»): el diseño de AUTH-408 ya lo decía — si al cruzar un
+   múltiplo el contexto sigue sin sonar, el sonido espera al
+   próximo gesto — pero el código consumía el múltiplo en
+   silencio y la espera nunca ocurría. El gesto ceba el audio y,
+   si hay un aviso pendiente (alertPend, solo el múltiplo más
+   reciente, jamás una ráfaga), lo entrega una sola vez. Se llama
+   desde los gestos de la herramienta: abrirla, Iniciar, Seguir,
+   Pausar y elegir intervalo. */
+function swAlertPrime() {
+  const ctx = swAlertAudio();
+  if (ctx && ctx.state === 'running' && STOPW.alertPend) {
+    if (swAlertBeep()) STOPW.alertPend = 0;
+  }
 }
 function swAlertPulse() {
   const ring = $('sw-ring'); if (!ring) return;
@@ -60695,14 +60719,23 @@ function swAlertPulse() {
 function swAlertCheck() {
   if (!STOPW.running || !STOPW.alertMin) return;
   const k = Math.floor(swElapsed() / (STOPW.alertMin * 60000));
-  if (k > STOPW.alertK) { STOPW.alertK = k; swAlertBeep(); swAlertPulse(); }
+  if (k > STOPW.alertK) {
+    STOPW.alertK = k;
+    /* El pulso visual siempre se produce en el cruce. Si el
+       pitido no pudo sonar (contexto aún bloqueado), el múltiplo
+       NO se da por avisado: queda pendiente para el próximo
+       gesto (swAlertPrime), solo el más reciente. */
+    if (!swAlertBeep()) STOPW.alertPend = k;
+    swAlertPulse();
+  }
 }
 function swAlertSet(min) {
   if (!SW_ALERT_OPTS.includes(min)) return;
   STOPW.alertMin = min;
   swAlertSave();
   swAlertBase();
-  swAlertAudio();
+  STOPW.alertPend = 0;
+  swAlertPrime();
   swAlertPaint();
 }
 function swAlertPaint() {
@@ -60778,8 +60811,8 @@ function swTick() {
 }
 function swKick() { if (STOPW.open && STOPW.running && !STOPW.raf) STOPW.raf = requestAnimationFrame(swTick); }
 function swMainAction() {
-  if (STOPW.running) { STOPW.acc += Date.now() - STOPW.startAt; STOPW.running = false; }
-  else { STOPW.startAt = Date.now(); STOPW.running = true; swAlertBase(); swAlertAudio(); swKick(); }
+  if (STOPW.running) { STOPW.acc += Date.now() - STOPW.startAt; STOPW.running = false; swAlertPrime(); }
+  else { STOPW.startAt = Date.now(); STOPW.running = true; swAlertBase(); swAlertPrime(); swKick(); }
   swSave();
   swPaint();
 }
@@ -60791,7 +60824,7 @@ function swLapAction() {
   swPaint();
 }
 function swResetAction() {
-  STOPW.running = false; STOPW.acc = 0; STOPW.startAt = 0; STOPW.laps = []; STOPW.alertK = 0;
+  STOPW.running = false; STOPW.acc = 0; STOPW.startAt = 0; STOPW.laps = []; STOPW.alertK = 0; STOPW.alertPend = 0;
   swSave();
   swPaint();
 }
@@ -60803,6 +60836,7 @@ function swOpenTool() {
   const ov = $('sw-overlay'); if (!ov) return;
   STOPW.open = true;
   ov.style.display = 'block';
+  swAlertPrime();
   swPaint(); swKick();
 }
 function swCloseTool() {
