@@ -6368,3 +6368,61 @@ body.sess-on.move-listen #pend-back-chip { bottom: calc(env(safe-area-inset-bott
 .gnext-acts { display: flex; flex: none; gap: 6px; }
 .gnext-btn { min-height: 44px; padding: 0 12px; border: 1.5px solid #cbd5e1; border-radius: 12px; background: #fff; color: #134e4a; font: inherit; font-size: 13.5px; font-weight: 700; cursor: pointer; white-space: nowrap; }
 .gnext-btn.is-quit { color: #b3261e; border-color: #f0c6c2; }
+
+/* ═══ AUTH-460 · GESTOR DE CONTENIDO (Administración): la vista
+   recogida del banco «Mientras te mueves» y su hoja de crear /
+   editar. Portado de las maquetas aprobadas por Ronald el
+   2026-11-14 (propuesta-gestor-contenido-2026-11-14). Ningún
+   control baja de 44 px; la acción principal mide 52 px. ═══ */
+.gc-sum { display: flex; flex-wrap: wrap; gap: 4px 14px; font-size: 13.5px; color: #374151; margin: 2px 0 12px; }
+.gc-sum b { color: #1f2a44; }
+.gc-new { display: flex; align-items: center; justify-content: center; gap: 8px; width: 100%; min-height: 52px; background: #0d9488; color: #fff; border: 0; border-radius: 12px; font-size: 16px; font-weight: 700; font-family: inherit; margin: 0 0 14px; cursor: pointer; }
+.gc-lab { font-size: 12px; font-weight: 700; color: #3f5a56; letter-spacing: .04em; margin: 10px 0 6px; }
+.gc-seg { display: flex; gap: 8px; }
+.gc-seg button { flex: 1; min-height: 48px; border-radius: 12px; border: 1px solid #cbd5d1; background: #fff; font-size: 14.5px; font-weight: 600; color: #374151; font-family: inherit; padding: 6px 4px; cursor: pointer; }
+.gc-seg button.on { background: #0d9488; border-color: #0d9488; color: #fff; }
+.gc-chips { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 10px; }
+.gc-chip { min-height: 44px; border-radius: 999px; border: 1px solid #cbd5d1; background: #fff; font-size: 13.5px; font-weight: 600; color: #374151; font-family: inherit; padding: 6px 14px; display: inline-flex; align-items: center; cursor: pointer; }
+.gc-chip.on { background: #ccfbf1; border-color: #5eead4; color: #0f766e; }
+.gc-group { margin-top: 12px; }
+.gc-ghead { display: flex; align-items: center; gap: 9px; width: 100%; min-height: 52px; background: #f6faf9; border: 1px solid #e3efed; border-radius: 12px; padding: 8px 12px; font-family: inherit; text-align: left; cursor: pointer; }
+.gc-ghead .gi { font-size: 18px; flex: none; }
+.gc-ghead .gn { font-size: 15px; font-weight: 700; color: #14201f; flex: 1; min-width: 0; }
+.gc-ghead .gc2 { font-size: 12.5px; color: #6b7280; font-weight: 600; white-space: nowrap; }
+.gc-ghead .chev { color: #0d9488; font-weight: 800; flex: none; }
+.gc-row { display: flex; align-items: center; gap: 10px; width: 100%; min-height: 57px; background: #fff; border: 0; border-bottom: 1px solid #eef2f1; padding: 7px 4px; font-family: inherit; text-align: left; cursor: pointer; }
+.gc-dot { width: 10px; height: 10px; border-radius: 99px; flex: none; }
+.gc-dot.cap { background: #7c3aed; }
+.gc-dot.motiv { background: #ea580c; }
+.gc-dot.tip { background: #0d9488; }
+.gc-main { flex: 1; min-width: 0; }
+.gc-title { display: block; font-size: 15px; font-weight: 600; color: #1f2a44; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.gc-cap2 { display: block; font-size: 12px; color: #6b7280; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; margin-top: 1px; }
+.gc-state { font-size: .75rem; border-radius: 999px; padding: 3px 9px; background: #f3f4f6; color: #374151; font-weight: 600; white-space: nowrap; flex: none; }
+.gc-state-ok { background: #dcfce7; color: #166534; }
+.gc-state-pend { background: #fef9c3; color: #854d0e; }
+.gc-row .chev { color: #0d9488; font-weight: 800; flex: none; }
+/* ── La hoja (crear / editar) dentro de #gestor-float ── */
+.gest-head { display: flex; align-items: center; gap: 12px; padding: 2px 0 4px; }
+.gest-x { width: 48px; height: 48px; border-radius: 50%; border: 2px solid rgba(13, 148, 136, .55); background: #fff; font-size: 20px; color: #0b2239; font-weight: 700; flex: none; font-family: inherit; cursor: pointer; }
+.gest-head h2 { font-size: 18px; color: #1f2a44; margin: 0; }
+.gest-head p { margin: 2px 0 0; font-size: 12.5px; color: #6b7280; }
+.gest-lab { display: block; font-size: 12px; font-weight: 700; color: #3f5a56; letter-spacing: .04em; margin: 14px 0 5px; }
+.gest-in { display: block; width: 100%; box-sizing: border-box; border: 1px solid #e7e1d3; border-radius: 12px; padding: 11px 12px; font: 14px/1.45 inherit; background: #fff; color: #263238; margin-top: 5px; }
+textarea.gest-in { resize: none; }
+.gest-pills { display: flex; gap: 8px; }
+.gest-pills button { flex: 1; min-height: 52px; border-radius: 12px; border: 1px solid #cbd5d1; background: #fff; font-size: 14px; font-weight: 600; color: #374151; font-family: inherit; padding: 6px 4px; line-height: 1.2; cursor: pointer; }
+.gest-pills button.on { background: #0d9488; border-color: #0d9488; color: #fff; }
+.gest-pills button.on-pend { background: #fff7ed; border-color: #d97706; color: #7c4a03; }
+.gest-topics { display: flex; flex-wrap: wrap; gap: 8px; }
+.gest-topics button { min-height: 44px; border-radius: 999px; border: 1px solid #cbd5d1; background: #fff; font-size: 13.5px; font-weight: 600; color: #374151; font-family: inherit; padding: 6px 13px; cursor: pointer; }
+.gest-topics button.on { background: #ccfbf1; border-color: #5eead4; color: #0f766e; }
+.gest-topics button.add { border-style: dashed; color: #0f766e; }
+.gest-srcs { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 8px; }
+.gest-srcs button { min-height: 44px; border-radius: 999px; border: 1px solid #e3efed; background: #f6faf9; font-size: 13px; font-weight: 600; color: #3f5a56; font-family: inherit; padding: 6px 12px; cursor: pointer; }
+.gest-step { display: flex; align-items: center; gap: 12px; }
+.gest-step button { width: 48px; height: 48px; border-radius: 50%; border: 1px solid #cbd5d1; background: #fff; font-size: 20px; font-weight: 700; color: #0f766e; flex: none; font-family: inherit; cursor: pointer; }
+.gest-step .val { flex: 1; text-align: center; font-size: 15px; font-weight: 700; color: #1f2a44; }
+.gest-save { display: block; width: 100%; min-height: 52px; background: #0d9488; color: #fff; border: 0; border-radius: 12px; font-size: 16px; font-weight: 700; font-family: inherit; margin-top: 20px; cursor: pointer; }
+.gest-del { display: block; width: 100%; min-height: 48px; background: #fff; color: #b3261e; border: 1px solid #f0c6c2; border-radius: 12px; font-size: 15px; font-weight: 700; font-family: inherit; margin-top: 10px; cursor: pointer; }
+.gest-note { font-size: 12.5px; color: #6b7280; line-height: 1.45; margin: 10px 0 0; }

@@ -2538,7 +2538,7 @@ const ADMIN_SECTIONS = [
   { id: 'imglim', sub: 'system', titleKey: 'imglim.title', mount: admSecMountImgLim, refresh: admSecRefreshImgLim },
   { id: 'care', sub: 'system', titleKey: 'care.title', mount: admSecMountCare, refresh: admSecRefreshCare },
   { id: 'faqed', sub: 'system', titleKey: 'faq.edTitle', mount: admSecMountFaqEd, refresh: renderFaqEditorBox },
-  { id: 'moveed', sub: 'system', titleKey: 'move.edTitle', mount: admSecMountMoveEd, refresh: renderMoveEditorBox },
+  { id: 'gestor', sub: 'system', titleKey: 'move.gestTitle', mount: admSecMountGestor, refresh: renderGestorBox },
 ];
 const ADM_SEC_OPEN = {};     // id → abierta (solo presentación)
 const ADM_SEC_MOUNTED = {};  // id → contenido ya montado
@@ -6161,6 +6161,56 @@ en: {
   'move.famNameMotiv': 'Motivation',
   'move.famNameCap': '8 claves capsule',
   'move.famNameTip': 'Founded tip',
+  'move.gestTitle': 'Content manager · While you move',
+  'move.gestHint': 'The cards that rotate while your students move. Everything you save here applies instantly, with no deployments — just like today.',
+  'move.gestCards': 'cards',
+  'move.gestRotW': 'rotating',
+  'move.gestPendW': 'pending',
+  'move.gestSocW': 'Social',
+  'move.gestSocPubW': 'posted',
+  'move.gestNew': '＋ Register new content',
+  'move.gestOrgBy': 'ORGANIZE BY',
+  'move.gestByFam': 'Family',
+  'move.gestByTopic': 'Topic',
+  'move.gestBySrc': 'Source',
+  'move.gestAll': 'All',
+  'move.gestStateRot': 'Rotating',
+  'move.gestStatePend': 'Pending',
+  'move.gestStatePendOne': 'Pending',
+  'move.gestGrpRot': '{n} · rotating',
+  'move.gestGrpAllPend': '{n} · all pending',
+  'move.gestGrpMix': '{n} · {r} rotating · {p} pending',
+  'move.gestTopicLine': 'Topic: {x}',
+  'move.gestNoTopic': 'No topic',
+  'move.gestNoSrc': 'No source',
+  'move.gestSocNone': 'Not posted',
+  'move.gestSocReady': 'Ready to post',
+  'move.gestSocPub': 'Posted {d}',
+  'move.gestEmpty': 'Nothing here with this filter.',
+  'move.gestSheetNew': 'Register new content',
+  'move.gestSheetEdit': 'Edit content',
+  'move.gestTitleEn': 'Title (English)',
+  'move.gestTitleEs': 'Title (Spanish)',
+  'move.gestTopic': 'Topic',
+  'move.gestTopicNew': '＋ New topic…',
+  'move.gestTopicPrompt': 'Name of the new topic:',
+  'move.gestSrcPh': 'Where does this content come from?',
+  'move.gestSrcBook': '«8 claves para vivir en el presente»',
+  'move.gestSrcOwn': "Ronald's own text",
+  'move.gestState': 'State — does it rotate or stay pending?',
+  'move.gestStatePendBtn': '⏸ Pending · does not rotate',
+  'move.gestStateRotBtn': '▶ Rotating',
+  'move.gestOrderInFam': 'Order in its family',
+  'move.gestOrdOf': '{n} of {m}',
+  'move.gestOrdNew': 'At the end · would be #{n} of {m}',
+  'move.gestSocial': 'Social media (record only — posts nothing)',
+  'move.gestSocBtnNone': '📣 Not posted',
+  'move.gestSocBtnReady': 'Ready to post',
+  'move.gestSocBtnPub': 'Posted',
+  'move.gestSave': 'Save to the bank',
+  'move.gestNeedText': 'Write the text in at least one language.',
+  'move.gestNoteNew': 'On saving it lands in the bank instantly, with no deployments — just like today. As it is born pending, it does not rotate until you activate it from its sheet.',
+  'move.gestNoteEdit': 'On saving, the change applies instantly, with no deployments — just like today.',
   'shareW.warmupTag': 'WARM-UP',
   'shareW.aproxTag': 'WARM-UP SETS', 'shareW.aproxSets': '{n} warm-up sets', 'shareW.aproxSet1': '1 warm-up set',
   'shareW.aproxNote': 'not counted in the total',
@@ -11185,6 +11235,56 @@ es: {
   'move.famNameMotiv': 'Motivación',
   'move.famNameCap': 'Cápsula de 8 claves',
   'move.famNameTip': 'Consejo con fundamento',
+  'move.gestTitle': 'Gestor de contenido · Mientras te mueves',
+  'move.gestHint': 'Las tarjetas que rotan mientras tus alumnos se mueven. Todo lo que guardes aquí se aplica al instante, sin despliegues — igual que hoy.',
+  'move.gestCards': 'tarjetas',
+  'move.gestRotW': 'rotando',
+  'move.gestPendW': 'pendientes',
+  'move.gestSocW': 'Redes',
+  'move.gestSocPubW': 'publicadas',
+  'move.gestNew': '＋ Registrar nuevo contenido',
+  'move.gestOrgBy': 'ORGANIZAR POR',
+  'move.gestByFam': 'Familia',
+  'move.gestByTopic': 'Tópico',
+  'move.gestBySrc': 'Origen',
+  'move.gestAll': 'Todas',
+  'move.gestStateRot': 'Rotando',
+  'move.gestStatePend': 'Pendientes',
+  'move.gestStatePendOne': 'Pendiente',
+  'move.gestGrpRot': '{n} · rotando',
+  'move.gestGrpAllPend': '{n} · todas pendientes',
+  'move.gestGrpMix': '{n} · {r} rotando · {p} pendientes',
+  'move.gestTopicLine': 'Tópico: {x}',
+  'move.gestNoTopic': 'Sin tópico',
+  'move.gestNoSrc': 'Sin fuente',
+  'move.gestSocNone': 'Sin publicar',
+  'move.gestSocReady': 'Lista para post',
+  'move.gestSocPub': 'Publicada {d}',
+  'move.gestEmpty': 'Nada por aquí con este filtro.',
+  'move.gestSheetNew': 'Registrar nuevo contenido',
+  'move.gestSheetEdit': 'Editar contenido',
+  'move.gestTitleEn': 'Título (inglés)',
+  'move.gestTitleEs': 'Título (español)',
+  'move.gestTopic': 'Tópico',
+  'move.gestTopicNew': '＋ Nuevo tópico…',
+  'move.gestTopicPrompt': 'Nombre del tópico nuevo:',
+  'move.gestSrcPh': '¿De dónde sale este contenido?',
+  'move.gestSrcBook': '«8 claves para vivir en el presente»',
+  'move.gestSrcOwn': 'Texto propio de Ronald',
+  'move.gestState': 'Estado — ¿rota o queda pendiente?',
+  'move.gestStatePendBtn': '⏸ Pendiente · no rota',
+  'move.gestStateRotBtn': '▶ Rotando',
+  'move.gestOrderInFam': 'Orden en su familia',
+  'move.gestOrdOf': 'La {n} de {m}',
+  'move.gestOrdNew': 'Al final · sería la {n} de {m}',
+  'move.gestSocial': 'Redes sociales (solo registro, no publica nada)',
+  'move.gestSocBtnNone': '📣 Sin publicar',
+  'move.gestSocBtnReady': 'Lista para post',
+  'move.gestSocBtnPub': 'Publicada',
+  'move.gestSave': 'Guardar en el banco',
+  'move.gestNeedText': 'Escribe el texto en al menos un idioma.',
+  'move.gestNoteNew': 'Al guardar queda en el banco al instante, sin despliegues — igual que hoy. Como nace pendiente, no rota hasta que la actives desde su hoja.',
+  'move.gestNoteEdit': 'Al guardar, el cambio se aplica al instante, sin despliegues — igual que hoy.',
   'shareW.warmupTag': 'CALENTAMIENTO',
   'shareW.aproxTag': 'APROXIMACIÓN', 'shareW.aproxSets': '{n} series de acercamiento', 'shareW.aproxSet1': '1 serie de acercamiento',
   'shareW.aproxNote': 'no cuentan en el total',
@@ -40924,6 +41024,62 @@ const MOVE = { open: false, house: null, idx: 0, listening: false,
   winArmed: false, base: null, rot: [], ver: 0, ctx: null };
 let MOVE_WAKE = null;
 
+/* ── AUTH-460 · LOS TRES CAMPOS DEL GESTOR Y SU DERIVACIÓN
+   AL LEER (decisiones D4–D6 de Ronald, 2026-11-14): título
+   propio, tópico y señal de redes son campos OPCIONALES de
+   cada tarjeta. Las 19 tarjetas vivas no los traen: sus
+   valores se DERIVAN al leer con esta tabla (por id) y solo
+   se MATERIALIZAN cuando el banco se guarda a través del
+   propio Gestor — ninguna escritura por detrás de la app.
+   Las cápsulas cargan su título pegado al texto («Key N ·
+   Breathe — …» / «Clave N · Respiremos — …»): el cuerpo
+   limpio sale de retirar ese prefijo SOLO cuando el segmento
+   tras «·» coincide exactamente con el título de ese idioma.
+   La señal de redes deriva a «sin-publicar» para toda
+   tarjeta sin el campo: es su estado verdadero. ── */
+const MOVE_TOPICS = ['Respiración', 'Meditación', 'Presencia', 'Cuerpo', 'Gratitud',
+  'Escucha', 'Soltar', 'Aceptación', 'Calentamiento', 'Hidratación'];
+const MOVE_DERIVE = {
+  'cap-1': { title: { en: 'Breathe', es: 'Respiremos' }, topic: 'Respiración' },
+  'cap-2': { title: { en: "Let's Meditate", es: 'Meditemos' }, topic: 'Meditación' },
+  'cap-3': { title: { en: 'Come Back to Your Body', es: 'Vuelve a tu cuerpo' }, topic: 'Cuerpo' },
+  'cap-4': { title: { en: 'Let Go', es: 'Suelta' }, topic: 'Soltar' },
+  'cap-5': { title: { en: 'Give Thanks', es: 'Agradece' }, topic: 'Gratitud' },
+  'cap-6': { title: { en: 'Listen', es: 'Escucha' }, topic: 'Escucha' },
+  'cap-7': { title: { en: 'Accept', es: 'Acepta' }, topic: 'Aceptación' },
+  'cap-8': { title: { en: 'Live Today', es: 'Vive hoy' }, topic: 'Presencia' },
+  'tip-dosis': { topic: 'Calentamiento' }, 'tip-hablar': { topic: 'Calentamiento' },
+  'tip-escaleras': { topic: 'Calentamiento' }, 'tip-cuerda': { topic: 'Calentamiento' },
+  'tip-aviso': { topic: 'Calentamiento' },
+};
+const MOVE_SOC_STATES = ['sin-publicar', 'lista', 'publicada'];
+function moveTitleOf(e) {
+  const st = (e && e.title && typeof e.title === 'object') ? e.title : {};
+  const der = (e && MOVE_DERIVE[e.id]) || null;
+  const dt = (der && der.title) || {};
+  return { en: (typeof st.en === 'string' && st.en) || dt.en || '',
+           es: (typeof st.es === 'string' && st.es) || dt.es || '' };
+}
+function moveTopicOf(e) {
+  if (e && typeof e.topic === 'string' && e.topic) return e.topic;
+  const der = (e && MOVE_DERIVE[e.id]) || null;
+  return (der && der.topic) || '';
+}
+function moveSocialOf(e) {
+  const s = (e && e.social && typeof e.social === 'object') ? e.social : null;
+  if (s && MOVE_SOC_STATES.includes(s.state)) return { state: s.state, at: typeof s.at === 'string' ? s.at : '' };
+  return { state: 'sin-publicar', at: '' };
+}
+function moveBodyOf(e) {
+  const title = moveTitleOf(e);
+  const out = { en: (e && e.text && e.text.en) || '', es: (e && e.text && e.text.es) || '' };
+  for (const lg of ['en', 'es']) {
+    if (!title[lg] || !out[lg]) continue;
+    const m = /^(?:Key|Clave) \d+ · (.+?) — ([\s\S]*)$/.exec(out[lg]);
+    if (m && m[1].trim() === title[lg]) out[lg] = m[2];
+  }
+  return out;
+}
 function moveSanEntries(list) {
   if (!Array.isArray(list)) return [];
   const out = [];
@@ -40934,10 +41090,26 @@ function moveSanEntries(list) {
     const en = typeof tx.en === 'string' ? tx.en.trim() : '';
     const es = typeof tx.es === 'string' ? tx.es.trim() : '';
     if (!fam || (!en && !es)) continue;
-    out.push({ id: String(e.id || ('c' + out.length)), fam,
+    const ent = { id: String(e.id || ('c' + out.length)), fam,
       order: Number.isFinite(Number(e.order)) ? Number(e.order) : 99,
       text: { en, es }, src: typeof e.src === 'string' ? e.src.trim() : '',
-      pendiente: e.pendiente === true });
+      pendiente: e.pendiente === true };
+    /* AUTH-460: el saneador CONSERVA los tres campos del
+       Gestor (título propio, tópico y señal de redes) — un
+       campo que no conoce se borraría en silencio al primer
+       guardado. Título y tópico se emiten solo con contenido;
+       la señal siempre (su ausencia vale «sin-publicar» y la
+       fecha solo vive con «publicada»). */
+    const tt = (e.title && typeof e.title === 'object') ? e.title : {};
+    const ten = typeof tt.en === 'string' ? tt.en.trim() : '';
+    const tes = typeof tt.es === 'string' ? tt.es.trim() : '';
+    if (ten || tes) ent.title = { en: ten, es: tes };
+    const topic = typeof e.topic === 'string' ? e.topic.trim() : '';
+    if (topic) ent.topic = topic;
+    const soc = (e.social && typeof e.social === 'object') ? e.social : {};
+    const sState = MOVE_SOC_STATES.includes(soc.state) ? soc.state : 'sin-publicar';
+    ent.social = { state: sState, at: (sState === 'publicada' && typeof soc.at === 'string') ? soc.at : '' };
+    out.push(ent);
   }
   out.sort((a, b) => (a.order - b.order) || String(a.id).localeCompare(String(b.id)));
   return out;
@@ -40994,8 +41166,14 @@ function moveCardOf() {
 function moveCardText(card) {
   if (!card) return '';
   if (card.kind === 'next') return card.names.join(' · ');
-  const tx = card.e.text || {};
-  return tx[LANG] || tx.en || tx.es || '';
+  /* AUTH-460 (D4): la tarjeta se compone de su título — campo
+     propio o derivado — y su cuerpo limpio; sin título, el
+     cuerpo solo, como siempre. */
+  const title = moveTitleOf(card.e);
+  const body = moveBodyOf(card.e);
+  const tt = title[LANG] || title.en || title.es || '';
+  const tx = body[LANG] || body.en || body.es || '';
+  return tt ? (tx ? tt + ' — ' + tx : tt) : tx;
 }
 function moveWarmCtx() {
   const run = sessRunning();
@@ -41221,92 +41399,287 @@ document.addEventListener('visibilitychange', () => {
   if (document.visibilityState === 'visible' && MOVE.open) moveWake(true);
 });
 
-/* ── El editor del banco (Administración; gemelo del de FAQ) ── */
-let MOVE_ED = null;
-function admSecMountMoveEd(body) {
-  body.innerHTML = `<p class="progress-hint">${esc(t('move.edHint'))}</p><div id="move-editor-box"></div>`;
-  renderMoveEditorBox();
+/* ── El Gestor de contenido (Administración; AUTH-460, decisiones
+   D1–D7 de Ronald del 2026-11-14): SECCIÓN NUEVA APARTE que
+   sustituye al editor interno de AUTH-444 — su asiento y su
+   interior se retiran; queda UNA sola puerta de trabajo sobre
+   el banco, sobre el MISMO documento y el mismo setDoc único.
+   La vista nace recogida: resumen en una línea, la acción
+   «Registrar nuevo» arriba, organizar por Familia / Tópico /
+   Origen, pastillas de estado y cada grupo y cada tarjeta en
+   UNA línea (regla de crecimiento). Crear y editar comparten
+   la hoja #gestor-float (pantalla completa); la tarjeta nueva
+   nace PENDIENTE; el estado va con dos botones grandes y el
+   orden con stepper − / ＋. El modelo nace derivado
+   (gestModel): guardar materializa título/tópico/social de
+   todo el banco en ese mismo setDoc. ── */
+let GEST = null;      // { entries, groupBy, filter, open }
+let GEST_ED = null;   // borrador de la hoja (crear / editar)
+function admSecMountGestor(body) {
+  body.innerHTML = `<p class="progress-hint">${esc(t('move.gestHint'))}</p><div id="gestor-box"></div>`;
+  renderGestorBox();
 }
-async function renderMoveEditorBox() {
-  const box = $('move-editor-box'); if (!box) return;
+async function renderGestorBox() {
+  const box = $('gestor-box'); if (!box) return;
   if (!(IS_OWNER && ROLE === 'administrador')) { box.innerHTML = ''; return; }
   if (!MOVE_ENTRIES) { try { await moveLoad(); } catch {} }
-  MOVE_ED = moveEntries().map(e => ({ id: e.id, fam: e.fam, order: e.order,
-    text: { en: (e.text && e.text.en) || '', es: (e.text && e.text.es) || '' },
-    src: e.src || '', pendiente: e.pendiente === true }));
-  paintMoveEditor();
+  if (!GEST) GEST = { entries: [], groupBy: 'fam', filter: 'all', open: { 'fam:cap': true } };
+  GEST.entries = gestModel();
+  paintGestor();
 }
-function moveEdFamOptions(sel) {
-  const keys = { motiv: 'move.famNameMotiv', cap: 'move.famNameCap', tip: 'move.famNameTip' };
-  return MOVE_FAMS.map(f => `<option value="${f}"${f === sel ? ' selected' : ''}>${esc(t(keys[f]))}</option>`).join('');
+function gestModel() {
+  return moveSanEntries(moveEntries()).map(e => ({
+    id: e.id, fam: e.fam, order: e.order, text: moveBodyOf(e),
+    title: moveTitleOf(e), src: e.src || '', topic: moveTopicOf(e),
+    pendiente: e.pendiente === true, social: moveSocialOf(e) }));
 }
-function paintMoveEditor() {
-  const box = $('move-editor-box'); if (!box || !MOVE_ED) return;
-  const rows = MOVE_ED.map((e, i) => `<div class="faq-ed-row">
-    <div class="faq-ed-top"><span class="faq-ed-id">${esc(e.id)}</span>
-      <label class="faq-ed-lab">${esc(t('move.edFam'))} <select class="faq-ed-in" data-mv="fam">${moveEdFamOptions(e.fam)}</select></label>
-      <label class="faq-ed-lab">${esc(t('move.edOrder'))} <input class="faq-ed-in" data-mv="order" type="number" value="${e.order}"></label>
-      <label class="move-ed-pend"><input type="checkbox" data-mv="pendiente"${e.pendiente ? ' checked' : ''}> ${esc(t('move.edPending'))}</label>
-      <span class="faq-ed-btns"><button type="button" class="btn-primary btn-sm" data-mved-save="${i}">${esc(t('common.save'))}</button><button type="button" class="btn-ghost btn-sm" data-mved-del="${i}">${esc(t('move.edDelete'))}</button></span></div>
-    <label class="faq-ed-lab">${esc(t('move.edTextEn'))}<textarea class="faq-ed-in dos-mail-text" data-mv="en" rows="3">${esc(e.text.en)}</textarea></label>
-    <label class="faq-ed-lab">${esc(t('move.edTextEs'))}<textarea class="faq-ed-in dos-mail-text" data-mv="es" rows="3">${esc(e.text.es)}</textarea></label>
-    <label class="faq-ed-lab">${esc(t('move.edSrc'))}<input class="faq-ed-in" data-mv="src" type="text" value="${esc(e.src)}"></label>
-  </div>`).join('');
-  box.innerHTML = rows + `<div class="faq-ed-row">
-    <div class="faq-ed-top"><span class="faq-ed-id">＋</span>
-      <label class="faq-ed-lab">${esc(t('move.edFam'))} <select class="faq-ed-in" id="mv-new-fam">${moveEdFamOptions('motiv')}</select></label>
-      <span class="faq-ed-btns"><button type="button" class="btn-primary btn-sm" id="mv-new-add">${esc(t('move.edAdd'))}</button></span></div>
-    <label class="faq-ed-lab">${esc(t('move.edTextEn'))}<textarea class="faq-ed-in dos-mail-text" id="mv-new-en" rows="3"></textarea></label>
-    <label class="faq-ed-lab">${esc(t('move.edTextEs'))}<textarea class="faq-ed-in dos-mail-text" id="mv-new-es" rows="3"></textarea></label>
-    <label class="faq-ed-lab">${esc(t('move.edSrc'))}<input class="faq-ed-in" id="mv-new-src" type="text"></label>
-  </div>`;
-  box.querySelectorAll('[data-mved-save]').forEach(b => b.onclick = () => moveEdSave(Number(b.dataset.mvedSave)));
-  box.querySelectorAll('[data-mved-del]').forEach(b => b.onclick = () => moveEdDelete(Number(b.dataset.mvedDel)));
-  const add = $('mv-new-add'); if (add) add.onclick = () => moveEdAdd();
-}
-function moveEdCollect(i) {
-  const box = $('move-editor-box'); if (!box || !MOVE_ED) return null;
-  const row = box.querySelectorAll('.faq-ed-row')[i]; if (!row) return null;
-  const g = sel => row.querySelector(`[data-mv="${sel}"]`);
-  const e = MOVE_ED[i];
-  e.fam = g('fam').value;
-  e.order = Number(g('order').value) || 99;
-  e.text.en = g('en').value.trim();
-  e.text.es = g('es').value.trim();
-  e.src = g('src').value.trim();
-  e.pendiente = !!g('pendiente').checked;
-  return e;
-}
-async function moveEdPersist() {
-  if (!MOVE_ED) return;
-  const entries = moveSanEntries(MOVE_ED);
+async function gestPersist() {
+  if (!GEST) return;
+  const entries = moveSanEntries(GEST.entries.map(e => ({
+    id: e.id, fam: e.fam, order: e.order,
+    text: { en: e.text.en, es: e.text.es }, title: { en: e.title.en, es: e.title.es },
+    topic: e.topic, src: e.src, pendiente: e.pendiente,
+    social: { state: e.social.state, at: e.social.at } })));
   await setDoc(doc(db, 'app_settings', 'mientras-te-mueves'),
     { entries, updatedAt: serverTimestamp(), updatedBy: auth.currentUser ? auth.currentUser.uid : '' });
   MOVE_ENTRIES = entries; MOVE.ver++;
-  MOVE_ED = entries.map(e => ({ id: e.id, fam: e.fam, order: e.order, text: { en: e.text.en, es: e.text.es }, src: e.src, pendiente: e.pendiente }));
+  GEST.entries = gestModel();
   toast(t('common.saved'));
 }
-async function moveEdSave(i) {
-  try { moveEdCollect(i); await moveEdPersist(); paintMoveEditor(); } catch { toast(t('common.error')); }
+function gestVisible() {
+  if (!GEST) return [];
+  return GEST.entries.filter(e => GEST.filter === 'all' || (GEST.filter === 'rot' ? !e.pendiente : e.pendiente));
 }
-async function moveEdDelete(i) {
+function gestGroups() {
+  const vis = gestVisible();
+  const groups = [];
+  const push = (key, label, icon, list) => { if (list.length) groups.push({ key, label, icon, list }); };
+  if (GEST.groupBy === 'fam') {
+    const icons = { motiv: '🔥', cap: '🌿', tip: '🎓' };
+    const names = { motiv: 'move.famNameMotiv', cap: 'move.famNameCap', tip: 'move.famNameTip' };
+    for (const f of MOVE_FAMS) push('fam:' + f, t(names[f]), icons[f], vis.filter(e => e.fam === f));
+  } else if (GEST.groupBy === 'topic') {
+    const seen = [];
+    for (const e of vis) { const k = e.topic || ''; if (!seen.includes(k)) seen.push(k); }
+    seen.sort((a, b) => ((a === '') - (b === ''))
+      || ((MOVE_TOPICS.indexOf(a) < 0 ? 99 : MOVE_TOPICS.indexOf(a)) - (MOVE_TOPICS.indexOf(b) < 0 ? 99 : MOVE_TOPICS.indexOf(b)))
+      || a.localeCompare(b));
+    for (const k of seen) push('topic:' + k, k || t('move.gestNoTopic'), '🏷️', vis.filter(e => (e.topic || '') === k));
+  } else {
+    const seen = [];
+    for (const e of vis) { const k = e.src || ''; if (!seen.includes(k)) seen.push(k); }
+    seen.sort((a, b) => ((a === '') - (b === '')) || a.localeCompare(b));
+    for (const k of seen) push('src:' + k, k || t('move.gestNoSrc'), '📚', vis.filter(e => (e.src || '') === k));
+  }
+  return groups;
+}
+function gestGroupSub(list) {
+  const n = list.length, r = list.filter(e => !e.pendiente).length, p = n - r;
+  if (p === 0) return t('move.gestGrpRot', { n });
+  if (r === 0) return t('move.gestGrpAllPend', { n });
+  return t('move.gestGrpMix', { n, r, p });
+}
+function gestSocLabel(e) {
+  const s = moveSocialOf(e);
+  if (s.state === 'lista') return '📣 ' + t('move.gestSocReady');
+  if (s.state === 'publicada') return '📣 ' + t('move.gestSocPub', { d: s.at ? gestShortDate(s.at) : '' });
+  return '📣 ' + t('move.gestSocNone');
+}
+function gestShortDate(iso) {
+  const m = /^(\d{4})-(\d{2})-(\d{2})/.exec(String(iso || ''));
+  if (!m) return String(iso || '');
+  const months = LANG === 'es' ? MESES_ES : MESES_EN;
+  return Number(m[3]) + ' ' + months[Number(m[2]) - 1].slice(0, 3);
+}
+function gestRowTitle(e) {
+  const tt = e.title[LANG] || e.title.en || e.title.es || '';
+  if (tt) return tt;
+  const tx = e.text[LANG] || e.text.en || e.text.es || '';
+  return tx.length > 52 ? tx.slice(0, 52).trimEnd() + '…' : tx;
+}
+function paintGestor() {
+  const box = $('gestor-box'); if (!box || !GEST) return;
+  const all = GEST.entries;
+  const nRot = all.filter(e => !e.pendiente).length;
+  const nPub = all.filter(e => e.social.state === 'publicada').length;
+  const seg = (g, label) => `<button type="button" class="${GEST.groupBy === g ? 'on' : ''}" data-gest-group="${g}">${esc(label)}</button>`;
+  const chip = (f, label, n) => `<button type="button" class="gc-chip${GEST.filter === f ? ' on' : ''}" data-gest-filter="${f}">${esc(label)} · ${n}</button>`;
+  const gHtml = gestGroups().map(g => {
+    const open = !!GEST.open[g.key];
+    const rows = open ? g.list.map(e => {
+      const sub = [e.topic ? esc(t('move.gestTopicLine', { x: e.topic })) : '', esc(gestSocLabel(e))].filter(Boolean).join(' · ');
+      return `<button type="button" class="gc-row" data-gest-open="${esc(e.id)}"><span class="gc-dot ${esc(e.fam)}"></span>`
+        + `<span class="gc-main"><span class="gc-title">${esc(gestRowTitle(e))}</span>`
+        + `<span class="gc-cap2">${sub}</span></span>`
+        + `<span class="gc-state ${e.pendiente ? 'gc-state-pend' : 'gc-state-ok'}">${esc(t(e.pendiente ? 'move.gestStatePendOne' : 'move.gestStateRot'))}</span>`
+        + `<span class="chev">›</span></button>`;
+    }).join('') : '';
+    return `<div class="gc-group"><button type="button" class="gc-ghead" data-gest-ghead="${esc(g.key)}"><span class="gi">${g.icon}</span><span class="gn">${esc(g.label)}</span><span class="gc2">${esc(gestGroupSub(g.list))}</span><span class="chev">${open ? '⌄' : '›'}</span></button>${rows}</div>`;
+  }).join('');
+  box.innerHTML = `<div class="gc-sum"><span><b>${all.length}</b> ${esc(t('move.gestCards'))}</span>`
+    + `<span><b>${nRot}</b> ${esc(t('move.gestRotW'))}</span><span><b>${all.length - nRot}</b> ${esc(t('move.gestPendW'))}</span>`
+    + `<span>📣 ${esc(t('move.gestSocW'))}: <b>${nPub}</b> ${esc(t('move.gestSocPubW'))}</span></div>`
+    + `<button type="button" class="gc-new" id="gest-new">${esc(t('move.gestNew'))}</button>`
+    + `<div class="gc-lab">${esc(t('move.gestOrgBy'))}</div>`
+    + `<div class="gc-seg">${seg('fam', t('move.gestByFam'))}${seg('topic', t('move.gestByTopic'))}${seg('src', t('move.gestBySrc'))}</div>`
+    + `<div class="gc-chips">${chip('all', t('move.gestAll'), all.length)}${chip('rot', t('move.gestStateRot'), nRot)}${chip('pend', t('move.gestStatePend'), all.length - nRot)}</div>`
+    + (gHtml || `<p class="progress-hint">${esc(t('move.gestEmpty'))}</p>`);
+  const nb = $('gest-new'); if (nb) nb.onclick = () => gestOpenSheet(null);
+  box.querySelectorAll('[data-gest-group]').forEach(b => b.onclick = () => { GEST.groupBy = b.dataset.gestGroup; paintGestor(); });
+  box.querySelectorAll('[data-gest-filter]').forEach(b => b.onclick = () => { GEST.filter = b.dataset.gestFilter; paintGestor(); });
+  box.querySelectorAll('[data-gest-ghead]').forEach(b => b.onclick = () => { const k = b.dataset.gestGhead; GEST.open[k] = !GEST.open[k]; paintGestor(); });
+  box.querySelectorAll('[data-gest-open]').forEach(b => b.onclick = () => gestOpenSheet(b.dataset.gestOpen));
+}
+function gestFamList(fam) {
+  return GEST.entries.filter(e => e.fam === fam)
+    .sort((a, b) => (a.order - b.order) || String(a.id).localeCompare(String(b.id)));
+}
+function gestOpenSheet(id) {
+  if (!GEST) return;
+  const e = id ? GEST.entries.find(x => x.id === id) : null;
+  if (id && !e) return;
+  const fam = e ? e.fam : 'motiv';
+  GEST_ED = e
+    ? { id: e.id, fam, title: { ...e.title }, text: { ...e.text }, src: e.src, topic: e.topic,
+        pendiente: e.pendiente, social: { ...e.social }, pos: gestFamList(fam).findIndex(x => x.id === e.id) + 1 }
+    : { id: null, fam, title: { en: '', es: '' }, text: { en: '', es: '' }, src: '', topic: '',
+        pendiente: true, social: { state: 'sin-publicar', at: '' }, pos: gestFamList(fam).length + 1 };
+  gestSheetPaint();
+  const f = $('gestor-float'); if (f) f.style.display = 'block';
+  try { coverSync(); } catch {}
+}
+function gestCloseSheet() {
+  const f = $('gestor-float'); if (f) f.style.display = 'none';
+  GEST_ED = null;
+  try { coverSync(); } catch {}
+}
+function gestSheetCollect() {
+  const d = GEST_ED; if (!d) return;
+  const g = id => { const el = $(id); return el ? el.value.trim() : ''; };
+  d.title.en = g('gest-title-en'); d.title.es = g('gest-title-es');
+  d.text.en = g('gest-text-en'); d.text.es = g('gest-text-es');
+  d.src = g('gest-src');
+}
+function gestTopicsAvail() {
+  const out = MOVE_TOPICS.slice();
+  for (const e of GEST.entries) if (e.topic && !out.includes(e.topic)) out.push(e.topic);
+  if (GEST_ED && GEST_ED.topic && !out.includes(GEST_ED.topic)) out.push(GEST_ED.topic);
+  return out;
+}
+function gestSheetPaint() {
+  const body = $('gestor-sheet-body'); if (!body || !GEST_ED) return;
+  const d = GEST_ED;
+  const famNames = { motiv: 'move.famNameMotiv', cap: 'move.famNameCap', tip: 'move.famNameTip' };
+  const famBtn = f => `<button type="button" class="${d.fam === f ? 'on' : ''}" data-gest-ed-fam="${f}">${esc(t(famNames[f]))}</button>`;
+  const topics = gestTopicsAvail().map(x => `<button type="button" class="${d.topic === x ? 'on' : ''}" data-gest-ed-topic="${esc(x)}">${esc(x)}</button>`).join('')
+    + `<button type="button" class="add" data-gest-ed-topic-new>${esc(t('move.gestTopicNew'))}</button>`;
+  const srcs = [...new Set([t('move.gestSrcBook'), t('move.gestSrcOwn')].concat(GEST.entries.map(e => e.src).filter(Boolean)))].slice(0, 6)
+    .map(x => `<button type="button" data-gest-ed-src="${esc(x)}">${esc(x)}</button>`).join('');
+  const inFam = d.id ? gestFamList(d.fam).some(x => x.id === d.id) : false;
+  const famMax = gestFamList(d.fam).length + (inFam ? 0 : 1);
+  const ordLabel = d.id ? t('move.gestOrdOf', { n: d.pos, m: famMax }) : t('move.gestOrdNew', { n: d.pos, m: famMax });
+  const socBtn = (s, label) => `<button type="button" class="${d.social.state === s ? 'on' : ''}" data-gest-ed-soc="${s}">${esc(label)}</button>`;
+  body.innerHTML = `<div class="gest-head"><button type="button" class="gest-x" data-gest-ed-x aria-label="${esc(t('move.close'))}">✕</button>`
+    + `<div><h2>${esc(t(d.id ? 'move.gestSheetEdit' : 'move.gestSheetNew'))}</h2><p>${esc(t('move.edTitle'))}</p></div></div>`
+    + `<span class="gest-lab">${esc(t('move.edFam'))}</span><div class="gest-pills">${famBtn('motiv')}${famBtn('cap')}${famBtn('tip')}</div>`
+    + `<label class="gest-lab">${esc(t('move.gestTitleEn'))}<input class="gest-in" id="gest-title-en" type="text" value="${esc(d.title.en)}"></label>`
+    + `<label class="gest-lab">${esc(t('move.gestTitleEs'))}<input class="gest-in" id="gest-title-es" type="text" value="${esc(d.title.es)}"></label>`
+    + `<label class="gest-lab">${esc(t('move.edTextEn'))}<textarea class="gest-in" id="gest-text-en" rows="3">${esc(d.text.en)}</textarea></label>`
+    + `<label class="gest-lab">${esc(t('move.edTextEs'))}<textarea class="gest-in" id="gest-text-es" rows="3">${esc(d.text.es)}</textarea></label>`
+    + `<span class="gest-lab">${esc(t('move.gestTopic'))}</span><div class="gest-topics">${topics}</div>`
+    + `<label class="gest-lab">${esc(t('move.edSrc'))}<input class="gest-in" id="gest-src" type="text" placeholder="${esc(t('move.gestSrcPh'))}" value="${esc(d.src)}"></label>`
+    + `<div class="gest-srcs">${srcs}</div>`
+    + `<span class="gest-lab">${esc(t('move.gestState'))}</span><div class="gest-pills">`
+    + `<button type="button" class="${d.pendiente ? 'on-pend' : ''}" data-gest-ed-pend="1">${esc(t('move.gestStatePendBtn'))}</button>`
+    + `<button type="button" class="${d.pendiente ? '' : 'on'}" data-gest-ed-pend="0">${esc(t('move.gestStateRotBtn'))}</button></div>`
+    + `<span class="gest-lab">${esc(t('move.gestOrderInFam'))}</span><div class="gest-step">`
+    + `<button type="button" data-gest-ed-step="-1" aria-label="−">−</button><span class="val">${esc(ordLabel)}</span><button type="button" data-gest-ed-step="1" aria-label="＋">＋</button></div>`
+    + `<span class="gest-lab">${esc(t('move.gestSocial'))}</span><div class="gc-seg">${socBtn('sin-publicar', t('move.gestSocBtnNone'))}${socBtn('lista', t('move.gestSocBtnReady'))}${socBtn('publicada', t('move.gestSocBtnPub'))}</div>`
+    + `<button type="button" class="gest-save" data-gest-ed-save>${esc(t('move.gestSave'))}</button>`
+    + (d.id ? `<button type="button" class="gest-del" data-gest-ed-del>${esc(t('move.edDelete'))}</button>` : '')
+    + `<p class="gest-note">${esc(t(d.id ? 'move.gestNoteEdit' : 'move.gestNoteNew'))}</p>`;
+  body.querySelector('[data-gest-ed-x]').onclick = () => gestCloseSheet();
+  body.querySelectorAll('[data-gest-ed-fam]').forEach(b => b.onclick = () => {
+    gestSheetCollect();
+    const nf = b.dataset.gestEdFam;
+    if (nf !== d.fam) { d.fam = nf; d.pos = gestFamList(nf).length + 1; gestSheetPaint(); }
+  });
+  body.querySelectorAll('[data-gest-ed-topic]').forEach(b => b.onclick = () => {
+    gestSheetCollect();
+    d.topic = (d.topic === b.dataset.gestEdTopic) ? '' : b.dataset.gestEdTopic;
+    gestSheetPaint();
+  });
+  const nt = body.querySelector('[data-gest-ed-topic-new]');
+  if (nt) nt.onclick = () => {
+    gestSheetCollect();
+    const name = (prompt(t('move.gestTopicPrompt')) || '').trim();
+    if (name) { d.topic = name; gestSheetPaint(); }
+  };
+  body.querySelectorAll('[data-gest-ed-src]').forEach(b => b.onclick = () => {
+    const inp = $('gest-src'); if (inp) inp.value = b.dataset.gestEdSrc;
+  });
+  body.querySelectorAll('[data-gest-ed-pend]').forEach(b => b.onclick = () => {
+    gestSheetCollect();
+    d.pendiente = b.dataset.gestEdPend === '1';
+    gestSheetPaint();
+  });
+  body.querySelectorAll('[data-gest-ed-step]').forEach(b => b.onclick = () => {
+    gestSheetCollect();
+    const inF = d.id ? gestFamList(d.fam).some(x => x.id === d.id) : false;
+    const max = gestFamList(d.fam).length + (inF ? 0 : 1);
+    d.pos = Math.max(1, Math.min(max, d.pos + Number(b.dataset.gestEdStep)));
+    gestSheetPaint();
+  });
+  body.querySelectorAll('[data-gest-ed-soc]').forEach(b => b.onclick = () => {
+    gestSheetCollect();
+    const s = b.dataset.gestEdSoc;
+    d.social = { state: s, at: s === 'publicada' ? ((d.social.state === 'publicada' && d.social.at) || todayISO()) : '' };
+    gestSheetPaint();
+  });
+  body.querySelector('[data-gest-ed-save]').onclick = () => gestSheetSave();
+  const del = body.querySelector('[data-gest-ed-del]');
+  if (del) del.onclick = () => gestSheetDelete();
+}
+async function gestSheetSave() {
+  const d = GEST_ED; if (!d) return;
+  gestSheetCollect();
+  if (!d.text.en && !d.text.es) { toast(t('move.gestNeedText')); return; }
+  try {
+    const prev = d.id ? GEST.entries.find(x => x.id === d.id) : null;
+    const oldFam = prev ? prev.fam : null;
+    let card = prev;
+    if (card) {
+      card.fam = d.fam; card.title = { ...d.title }; card.text = { ...d.text };
+      card.src = d.src; card.topic = d.topic; card.pendiente = d.pendiente;
+      card.social = { ...d.social };
+    } else {
+      card = { id: 'c' + Date.now().toString(36), fam: d.fam, order: 99,
+        title: { ...d.title }, text: { ...d.text }, src: d.src, topic: d.topic,
+        pendiente: d.pendiente, social: { ...d.social } };
+      GEST.entries.push(card);
+    }
+    for (const f of [...new Set([oldFam, d.fam].filter(Boolean))]) {
+      if (f !== d.fam) { gestFamList(f).forEach((e, i) => { e.order = i + 1; }); continue; }
+      const seq = gestFamList(f).filter(e => e.id !== card.id);
+      seq.splice(Math.max(0, Math.min(d.pos - 1, seq.length)), 0, card);
+      seq.forEach((e, i) => { e.order = i + 1; });
+    }
+    await gestPersist();
+    gestCloseSheet();
+    paintGestor();
+  } catch { toast(t('common.error')); }
+}
+async function gestSheetDelete() {
+  const d = GEST_ED; if (!d || !d.id) return;
   try {
     if (!confirm(t('move.edDelete') + '?')) return;
-    MOVE_ED.splice(i, 1);
-    await moveEdPersist();
-    paintMoveEditor();
+    GEST.entries = GEST.entries.filter(e => e.id !== d.id);
+    await gestPersist();
+    gestCloseSheet();
+    paintGestor();
   } catch { toast(t('common.error')); }
 }
-async function moveEdAdd() {
-  try {
-    const en = $('mv-new-en').value.trim(), es = $('mv-new-es').value.trim();
-    if (!en && !es) { toast(t('common.error')); return; }
-    MOVE_ED.push({ id: 'c' + Date.now().toString(36), fam: $('mv-new-fam').value, order: 99,
-      text: { en, es }, src: $('mv-new-src').value.trim(), pendiente: false });
-    await moveEdPersist();
-    paintMoveEditor();
-  } catch { toast(t('common.error')); }
-}
+
 /* ═══ FIN «MIENTRAS TE MUEVES» ═══ */
 
 /* ═══ AUTH-426 · CALENTAMIENTO CARDIOVASCULAR DE LA RUTINA
