@@ -38380,10 +38380,35 @@ function sessPillWire(pill) {
         }
       }
     }
-    try { TRAIN_VIEW = { planId: run.planId, sel: todayISO() }; } catch {}
-    navOpenPage('train');
-    try { loadMyTraining(); } catch {}
-    sessPillTick();
+    /* AUTH-454 · EL TOQUE MUERE EN LA PÍLDORA (reporte de
+       Ronald, 2026-11-13 12:28 CST: al presionar la zona
+       grande del ejercicio actual, «afecta atrás como si se
+       fuese transparente. No es así.»). La caja de la píldora
+       ya atrapaba cada toque — ninguna zona deja pasar el
+       dedo a la página (mapa en el informe del paquete) —;
+       el hueco era de comportamiento: TODO toque, botón o
+       cuerpo, terminaba en navegar y repintar la vista de
+       detrás, sin que la píldora mostrara efecto alguno, y
+       en el cierre la única pieza de la fila era la pregunta
+       sin respuesta. Desde este paquete la cola de navegar
+       y repintar es SOLO de los gestos vivos (los botones):
+       es el espejo de su propia acción, el repintado que
+       muestra su efecto en la tarjeta. El toque en una zona
+       vacía — el reloj, el nombre, la raya, la columna de
+       lo que sigue, la franja, la pregunta del cierre —
+       muere en la píldora: no navega, no repinta, no toca
+       nada de detrás. Con ello se retira la puerta del
+       punto 88 («tocar la píldora lleva a Entrenamiento»)
+       para el cuerpo: el dock conserva su botón de
+       Entrenamiento de siempre, a un toque, justo debajo.
+       La rama del anexo de AUTH-444 devuelve antes y no
+       pasa por aquí: queda intacta. */
+    if (fin || ini || pau || res) {
+      try { TRAIN_VIEW = { planId: run.planId, sel: todayISO() }; } catch {}
+      navOpenPage('train');
+      try { loadMyTraining(); } catch {}
+      sessPillTick();
+    }
   });
 }
 function sessPillInit() {

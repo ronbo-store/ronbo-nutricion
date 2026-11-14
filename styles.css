@@ -3466,6 +3466,11 @@ body.nav-lock.prog-page #act-flame { visibility: visible; }
 @keyframes sess-pulse { 0%, 100% { box-shadow: 0 0 0 3px rgba(34, 197, 94, .30); } 50% { box-shadow: 0 0 0 6px rgba(34, 197, 94, .10); } }
 .sess-pill-time { font-size: 20px; font-weight: 800; font-variant-numeric: tabular-nums; letter-spacing: .01em; white-space: nowrap; line-height: 1.15; }
 .sp-main { display: flex; align-items: stretch; gap: 12px; padding: 16px 16px 14px; cursor: pointer; }
+/* AUTH-454 · LA PRESIÓN SE VE EN LA PÍLDORA: la zona grande
+   responde al dedo con su tinte — el toque aterriza aquí,
+   no detrás. Sin geometría nueva: la regla solo pinta
+   mientras el dedo está encima. */
+.sp-main:active { background: rgba(255, 255, 255, .07); }
 .sp-main.is-deg { padding-bottom: 16px; }
 .sp-left { flex: 1 1 auto; min-width: 0; display: flex; flex-direction: column; gap: 9px; }
 .sp-top { display: flex; align-items: center; gap: 8px; }
