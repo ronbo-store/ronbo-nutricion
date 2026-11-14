@@ -6161,6 +6161,8 @@ en: {
   'move.famNameMotiv': 'Motivation',
   'move.famNameCap': '8 claves capsule',
   'move.famNameTip': 'Founded tip',
+  'move.famNameClave': 'Reflective key',
+  'move.famClave': 'REFLECTIVE KEY',
   'move.gestTitle': 'Content manager · While you move',
   'move.gestHint': 'The cards that rotate while your students move. Everything you save here applies instantly, with no deployments — just like today.',
   'move.gestCards': 'cards',
@@ -6211,6 +6213,45 @@ en: {
   'move.gestNeedText': 'Write the text in at least one language.',
   'move.gestNoteNew': 'On saving it lands in the bank instantly, with no deployments — just like today. As it is born pending, it does not rotate until you activate it from its sheet.',
   'move.gestNoteEdit': 'On saving, the change applies instantly, with no deployments — just like today.',
+  'move.gestAiBtn': '✨ Extract keys with AI',
+  'move.gestAiTitle': 'Extract keys with AI',
+  'move.gestAiFromQ': 'WHERE DOES THE MATERIAL COME FROM?',
+  'move.gestAiKindLink': '🔗 Link',
+  'move.gestAiKindText': '📝 Text',
+  'move.gestAiKindPhoto': '📷 Photo',
+  'move.gestAiUrlPh': 'Paste the link here',
+  'move.gestAiTextPh': 'Write or paste the material here',
+  'move.gestAiTrunc': 'Long material: only the first part (about 8,000 characters) will be read.',
+  'move.gestAiPhotoBtn': 'Choose or take a photo',
+  'move.gestAiPhotoChange': 'Change photo',
+  'move.gestAiNote': 'The AI proposes the keys in your tone, in English and Spanish. Nothing is saved yet: you review them one by one. The material — and the photo, if you upload one — is not stored anywhere: only the keys you save enter the bank, each with its source written on it.',
+  'move.gestAiGo': '✨ Extract keys · 1 use of AI',
+  'move.gestAiBusy': 'Extracting…',
+  'move.gestAiRepo': 'You already have {n} keys saved from this source:',
+  'move.gestAiRepoNote': 'Shown so you do not spend twice on the same material. You can still extract more below.',
+  'move.gestAiResT': 'Proposed keys · {n}',
+  'move.gestAiResSub': 'Review, edit and choose',
+  'move.gestAiSrcLine': 'Source of these keys: {x} — it will be written on every key you save.',
+  'move.gestAiInclude': '✓ Include',
+  'move.gestAiExclude': 'Do not include',
+  'move.gestAiEdit': 'Edit',
+  'move.gestAiEditT': 'Edit proposed key',
+  'move.gestAiEditNote': 'You are editing the proposed key: on saving, it returns to the extraction list — it enters the bank when you save the keys. Its family, its pending state and its “Ready to post” mark are already set.',
+  'move.gestAiNoTopic': 'Topic: no topic',
+  'move.gestAiTopicIs': 'Topic: {x}',
+  'move.gestAiTopicNew': 'New topic: {x} · it joins your list when you save the key',
+  'move.gestAiMore': '✨ Extract more keys from this material · 1 use',
+  'move.gestAiSaveN': 'Save {n} keys to the bank',
+  'move.gestAiBornNote': 'They are born pending: they do not rotate until you activate them in the Manager, and they are born marked “Ready to post”. Their source is already written and travels with them — in the panel and in the post.',
+  'move.gestAiErrLink': 'That link could not be read — no use was charged. Paste the text or upload a photo of the content instead.',
+  'move.gestAiErrNoKeys': 'No usable keys came out of this material — no use was charged.',
+  'move.gestAiErrNoMore': 'No more keys came out of this material — no use was charged.',
+  'move.gestAiErrCap': 'Your daily AI limit was reached — nothing was charged for this try.',
+  'move.gestAiErrDisabled': 'AI is turned off right now — nothing was charged.',
+  'move.gestAiErrGeneric': 'The extraction could not be completed. Nothing was saved.',
+  'move.gestAiNeedLink': 'Paste a valid link first (http/https).',
+  'move.gestAiNeedText': 'Write or paste the material first.',
+  'move.gestAiNeedPhoto': 'Choose a photo first.',
   'shareW.warmupTag': 'WARM-UP',
   'shareW.aproxTag': 'WARM-UP SETS', 'shareW.aproxSets': '{n} warm-up sets', 'shareW.aproxSet1': '1 warm-up set',
   'shareW.aproxNote': 'not counted in the total',
@@ -11235,6 +11276,8 @@ es: {
   'move.famNameMotiv': 'Motivación',
   'move.famNameCap': 'Cápsula de 8 claves',
   'move.famNameTip': 'Consejo con fundamento',
+  'move.famNameClave': 'Clave reflexiva',
+  'move.famClave': 'CLAVE REFLEXIVA',
   'move.gestTitle': 'Gestor de contenido · Mientras te mueves',
   'move.gestHint': 'Las tarjetas que rotan mientras tus alumnos se mueven. Todo lo que guardes aquí se aplica al instante, sin despliegues — igual que hoy.',
   'move.gestCards': 'tarjetas',
@@ -11285,6 +11328,45 @@ es: {
   'move.gestNeedText': 'Escribe el texto en al menos un idioma.',
   'move.gestNoteNew': 'Al guardar queda en el banco al instante, sin despliegues — igual que hoy. Como nace pendiente, no rota hasta que la actives desde su hoja.',
   'move.gestNoteEdit': 'Al guardar, el cambio se aplica al instante, sin despliegues — igual que hoy.',
+  'move.gestAiBtn': '✨ Extraer claves con IA',
+  'move.gestAiTitle': 'Extraer claves con IA',
+  'move.gestAiFromQ': '¿DE DÓNDE SALE EL MATERIAL?',
+  'move.gestAiKindLink': '🔗 Enlace',
+  'move.gestAiKindText': '📝 Texto',
+  'move.gestAiKindPhoto': '📷 Foto',
+  'move.gestAiUrlPh': 'Pega aquí el enlace',
+  'move.gestAiTextPh': 'Escribe o pega aquí el material',
+  'move.gestAiTrunc': 'Material largo: se leerá solo la primera parte (unos 8.000 caracteres).',
+  'move.gestAiPhotoBtn': 'Elegir o tomar una foto',
+  'move.gestAiPhotoChange': 'Cambiar foto',
+  'move.gestAiNote': 'La IA propone las claves en tu tono, en inglés y español. Nada se guarda todavía: las revisas una por una. El material — y la foto, si la subes — no se guarda en ningún sitio: solo entran al banco las claves que tú guardes, y cada una lleva su fuente escrita.',
+  'move.gestAiGo': '✨ Extraer claves · 1 uso de IA',
+  'move.gestAiBusy': 'Extrayendo…',
+  'move.gestAiRepo': 'Ya tienes {n} claves guardadas de esta fuente:',
+  'move.gestAiRepoNote': 'Se muestran para que no gastes dos veces en el mismo material. Abajo puedes extraer más igualmente.',
+  'move.gestAiResT': 'Claves propuestas · {n}',
+  'move.gestAiResSub': 'Revisa, edita y elige',
+  'move.gestAiSrcLine': 'Fuente de estas claves: {x} — quedará escrita en cada clave que guardes.',
+  'move.gestAiInclude': '✓ Incluir',
+  'move.gestAiExclude': 'No incluir',
+  'move.gestAiEdit': 'Editar',
+  'move.gestAiEditT': 'Editar la clave propuesta',
+  'move.gestAiEditNote': 'Estás editando la clave propuesta: al guardar, vuelve a la lista de la extracción — entra al banco cuando guardes las claves. Su familia, su estado pendiente y su señal de «Lista para post» ya están puestos.',
+  'move.gestAiNoTopic': 'Tópico: sin tópico',
+  'move.gestAiTopicIs': 'Tópico: {x}',
+  'move.gestAiTopicNew': 'Tópico nuevo: {x} · entra en tu lista al guardar la clave',
+  'move.gestAiMore': '✨ Extraer más claves de este material · 1 uso',
+  'move.gestAiSaveN': 'Guardar {n} claves en el banco',
+  'move.gestAiBornNote': 'Nacen pendientes: no rotan hasta que las actives en el Gestor, y nacen marcadas «Lista para post». Su fuente ya va escrita y las acompaña siempre — en el panel y en el post.',
+  'move.gestAiErrLink': 'Ese enlace no se pudo leer — no se gastó ningún uso. Pega el texto o sube una foto del contenido.',
+  'move.gestAiErrNoKeys': 'De este material no salió ninguna clave utilizable — no se gastó ningún uso.',
+  'move.gestAiErrNoMore': 'De este material no salieron más claves — no se gastó ningún uso.',
+  'move.gestAiErrCap': 'Alcanzaste tu tope diario de IA — este intento no gastó nada.',
+  'move.gestAiErrDisabled': 'La IA está apagada ahora mismo — no se gastó nada.',
+  'move.gestAiErrGeneric': 'La extracción no se pudo completar. No se guardó nada.',
+  'move.gestAiNeedLink': 'Pega primero un enlace válido (http/https).',
+  'move.gestAiNeedText': 'Escribe o pega primero el material.',
+  'move.gestAiNeedPhoto': 'Elige primero una foto.',
   'shareW.warmupTag': 'CALENTAMIENTO',
   'shareW.aproxTag': 'APROXIMACIÓN', 'shareW.aproxSets': '{n} series de acercamiento', 'shareW.aproxSet1': '1 serie de acercamiento',
   'shareW.aproxNote': 'no cuentan en el total',
@@ -40958,7 +41040,10 @@ function trainShareRowHTML(di, iso) {
    otra app, una app web no puede garantizar que la voz
    siga: se pide Wake Lock con el panel abierto y la interfaz
    lo dice en una línea (move.wakeNote). ═══ */
-const MOVE_FAMS = ['motiv', 'cap', 'tip'];
+/* AUTH-461: la cuarta familia, «clave» (Clave reflexiva),
+   entra en la lista cerrada: el saneador la conserva y la
+   rotación la entrelaza como una hebra más. */
+const MOVE_FAMS = ['motiv', 'cap', 'tip', 'clave'];
 const MOVE_SEED = [
   { id: 'tip-dosis', fam: 'tip', order: 1, pendiente: false, src: 'Fradkin et al. 2010 · Bishop 2003 · ACSM',
     text: { en: "Warm up 5–15 min at a pace that lets you talk but not sing — enough to warm the body up for the strength work coming.",
@@ -41203,7 +41288,7 @@ function movePillSig(run) {
 function moveCardHTML(card) {
   if (!card) return `<div class="mv-text">${esc(t('move.empty'))}</div>`;
   const famKey = card.kind === 'next' ? 'move.famNext'
-    : { motiv: 'move.famMotiv', cap: 'move.famCap', tip: 'move.famTip' }[card.e.fam];
+    : { motiv: 'move.famMotiv', cap: 'move.famCap', tip: 'move.famTip', clave: 'move.famClave' }[card.e.fam];
   return `<div class="mv-fam">${esc(t(famKey))}</div>`
     + `<div class="mv-text">${esc(moveCardText(card))}</div>`
     + ((card.kind === 'bank' && card.e.src) ? `<div class="mv-src">${esc(card.e.src)}</div>` : '');
@@ -41455,8 +41540,8 @@ function gestGroups() {
   const groups = [];
   const push = (key, label, icon, list) => { if (list.length) groups.push({ key, label, icon, list }); };
   if (GEST.groupBy === 'fam') {
-    const icons = { motiv: '🔥', cap: '🌿', tip: '🎓' };
-    const names = { motiv: 'move.famNameMotiv', cap: 'move.famNameCap', tip: 'move.famNameTip' };
+    const icons = { motiv: '🔥', cap: '🌿', tip: '🎓', clave: '✨' };
+    const names = { motiv: 'move.famNameMotiv', cap: 'move.famNameCap', tip: 'move.famNameTip', clave: 'move.famNameClave' };
     for (const f of MOVE_FAMS) push('fam:' + f, t(names[f]), icons[f], vis.filter(e => e.fam === f));
   } else if (GEST.groupBy === 'topic') {
     const seen = [];
@@ -41520,11 +41605,13 @@ function paintGestor() {
     + `<span><b>${nRot}</b> ${esc(t('move.gestRotW'))}</span><span><b>${all.length - nRot}</b> ${esc(t('move.gestPendW'))}</span>`
     + `<span>📣 ${esc(t('move.gestSocW'))}: <b>${nPub}</b> ${esc(t('move.gestSocPubW'))}</span></div>`
     + `<button type="button" class="gc-new" id="gest-new">${esc(t('move.gestNew'))}</button>`
+    + `<button type="button" class="gc-new gc-ai" id="gest-ai-open">${esc(t('move.gestAiBtn'))}</button>`
     + `<div class="gc-lab">${esc(t('move.gestOrgBy'))}</div>`
     + `<div class="gc-seg">${seg('fam', t('move.gestByFam'))}${seg('topic', t('move.gestByTopic'))}${seg('src', t('move.gestBySrc'))}</div>`
     + `<div class="gc-chips">${chip('all', t('move.gestAll'), all.length)}${chip('rot', t('move.gestStateRot'), nRot)}${chip('pend', t('move.gestStatePend'), all.length - nRot)}</div>`
     + (gHtml || `<p class="progress-hint">${esc(t('move.gestEmpty'))}</p>`);
   const nb = $('gest-new'); if (nb) nb.onclick = () => gestOpenSheet(null);
+  const ab = $('gest-ai-open'); if (ab) ab.onclick = () => gestAiOpen();
   box.querySelectorAll('[data-gest-group]').forEach(b => b.onclick = () => { GEST.groupBy = b.dataset.gestGroup; paintGestor(); });
   box.querySelectorAll('[data-gest-filter]').forEach(b => b.onclick = () => { GEST.filter = b.dataset.gestFilter; paintGestor(); });
   box.querySelectorAll('[data-gest-ghead]').forEach(b => b.onclick = () => { const k = b.dataset.gestGhead; GEST.open[k] = !GEST.open[k]; paintGestor(); });
@@ -41569,8 +41656,8 @@ function gestTopicsAvail() {
 function gestSheetPaint() {
   const body = $('gestor-sheet-body'); if (!body || !GEST_ED) return;
   const d = GEST_ED;
-  const famNames = { motiv: 'move.famNameMotiv', cap: 'move.famNameCap', tip: 'move.famNameTip' };
-  const famBtn = f => `<button type="button" class="${d.fam === f ? 'on' : ''}" data-gest-ed-fam="${f}">${esc(t(famNames[f]))}</button>`;
+  const famNames = { motiv: 'move.famNameMotiv', cap: 'move.famNameCap', tip: 'move.famNameTip', clave: 'move.famNameClave' };
+  const famBtn = f => `<button type="button" class="${d.fam === f ? 'on' : ''}"${(d.fromAi != null && f !== 'clave') ? ' disabled' : ''} data-gest-ed-fam="${f}">${esc(t(famNames[f]))}</button>`;
   const topics = gestTopicsAvail().map(x => `<button type="button" class="${d.topic === x ? 'on' : ''}" data-gest-ed-topic="${esc(x)}">${esc(x)}</button>`).join('')
     + `<button type="button" class="add" data-gest-ed-topic-new>${esc(t('move.gestTopicNew'))}</button>`;
   const srcs = [...new Set([t('move.gestSrcBook'), t('move.gestSrcOwn')].concat(GEST.entries.map(e => e.src).filter(Boolean)))].slice(0, 6)
@@ -41580,8 +41667,8 @@ function gestSheetPaint() {
   const ordLabel = d.id ? t('move.gestOrdOf', { n: d.pos, m: famMax }) : t('move.gestOrdNew', { n: d.pos, m: famMax });
   const socBtn = (s, label) => `<button type="button" class="${d.social.state === s ? 'on' : ''}" data-gest-ed-soc="${s}">${esc(label)}</button>`;
   body.innerHTML = `<div class="gest-head"><button type="button" class="gest-x" data-gest-ed-x aria-label="${esc(t('move.close'))}">✕</button>`
-    + `<div><h2>${esc(t(d.id ? 'move.gestSheetEdit' : 'move.gestSheetNew'))}</h2><p>${esc(t('move.edTitle'))}</p></div></div>`
-    + `<span class="gest-lab">${esc(t('move.edFam'))}</span><div class="gest-pills">${famBtn('motiv')}${famBtn('cap')}${famBtn('tip')}</div>`
+    + `<div><h2>${esc(t(d.fromAi != null ? 'move.gestAiEditT' : (d.id ? 'move.gestSheetEdit' : 'move.gestSheetNew')))}</h2><p>${esc(t('move.edTitle'))}</p></div></div>`
+    + `<span class="gest-lab">${esc(t('move.edFam'))}</span><div class="gest-pills">${famBtn('motiv')}${famBtn('cap')}${famBtn('tip')}${famBtn('clave')}</div>`
     + `<label class="gest-lab">${esc(t('move.gestTitleEn'))}<input class="gest-in" id="gest-title-en" type="text" value="${esc(d.title.en)}"></label>`
     + `<label class="gest-lab">${esc(t('move.gestTitleEs'))}<input class="gest-in" id="gest-title-es" type="text" value="${esc(d.title.es)}"></label>`
     + `<label class="gest-lab">${esc(t('move.edTextEn'))}<textarea class="gest-in" id="gest-text-en" rows="3">${esc(d.text.en)}</textarea></label>`
@@ -41589,15 +41676,15 @@ function gestSheetPaint() {
     + `<span class="gest-lab">${esc(t('move.gestTopic'))}</span><div class="gest-topics">${topics}</div>`
     + `<label class="gest-lab">${esc(t('move.edSrc'))}<input class="gest-in" id="gest-src" type="text" placeholder="${esc(t('move.gestSrcPh'))}" value="${esc(d.src)}"></label>`
     + `<div class="gest-srcs">${srcs}</div>`
-    + `<span class="gest-lab">${esc(t('move.gestState'))}</span><div class="gest-pills">`
+    + (d.fromAi == null ? `<span class="gest-lab">${esc(t('move.gestState'))}</span><div class="gest-pills">`
     + `<button type="button" class="${d.pendiente ? 'on-pend' : ''}" data-gest-ed-pend="1">${esc(t('move.gestStatePendBtn'))}</button>`
     + `<button type="button" class="${d.pendiente ? '' : 'on'}" data-gest-ed-pend="0">${esc(t('move.gestStateRotBtn'))}</button></div>`
     + `<span class="gest-lab">${esc(t('move.gestOrderInFam'))}</span><div class="gest-step">`
     + `<button type="button" data-gest-ed-step="-1" aria-label="−">−</button><span class="val">${esc(ordLabel)}</span><button type="button" data-gest-ed-step="1" aria-label="＋">＋</button></div>`
-    + `<span class="gest-lab">${esc(t('move.gestSocial'))}</span><div class="gc-seg">${socBtn('sin-publicar', t('move.gestSocBtnNone'))}${socBtn('lista', t('move.gestSocBtnReady'))}${socBtn('publicada', t('move.gestSocBtnPub'))}</div>`
+    + `<span class="gest-lab">${esc(t('move.gestSocial'))}</span><div class="gc-seg">${socBtn('sin-publicar', t('move.gestSocBtnNone'))}${socBtn('lista', t('move.gestSocBtnReady'))}${socBtn('publicada', t('move.gestSocBtnPub'))}</div>` : '')
     + `<button type="button" class="gest-save" data-gest-ed-save>${esc(t('move.gestSave'))}</button>`
     + (d.id ? `<button type="button" class="gest-del" data-gest-ed-del>${esc(t('move.edDelete'))}</button>` : '')
-    + `<p class="gest-note">${esc(t(d.id ? 'move.gestNoteEdit' : 'move.gestNoteNew'))}</p>`;
+    + `<p class="gest-note">${esc(t(d.fromAi != null ? 'move.gestAiEditNote' : (d.id ? 'move.gestNoteEdit' : 'move.gestNoteNew')))}</p>`;
   body.querySelector('[data-gest-ed-x]').onclick = () => gestCloseSheet();
   body.querySelectorAll('[data-gest-ed-fam]').forEach(b => b.onclick = () => {
     gestSheetCollect();
@@ -41644,6 +41731,26 @@ async function gestSheetSave() {
   const d = GEST_ED; if (!d) return;
   gestSheetCollect();
   if (!d.text.en && !d.text.es) { toast(t('move.gestNeedText')); return; }
+  /* AUTH-461: si el borrador es una clave propuesta por la
+     extracción (fromAi), «Guardar» NO escribe en el banco:
+     devuelve los campos editados a la lista de la extracción
+     y la hoja del Gestor se cierra sobre la de extracción.
+     La clave entra al banco solo con el «Guardar N claves»
+     de la hoja de extracción (pendiente, familia «clave» y
+     señal «lista» ya puestas por construcción). */
+  if (d.fromAi != null) {
+    const k = (GX && GX.keys) ? GX.keys[d.fromAi] : null;
+    if (k) {
+      k.title = { ...d.title }; k.text = { ...d.text };
+      k.src = d.src; k.topic = d.topic;
+      const known = new Set(MOVE_TOPICS);
+      for (const e of GEST.entries) if (e.topic) known.add(e.topic);
+      k.isNewTopic = !!d.topic && !known.has(d.topic);
+    }
+    gestCloseSheet();
+    gestAiPaint();
+    return;
+  }
   try {
     const prev = d.id ? GEST.entries.find(x => x.id === d.id) : null;
     const oldFam = prev ? prev.fam : null;
@@ -41678,6 +41785,260 @@ async function gestSheetDelete() {
     gestCloseSheet();
     paintGestor();
   } catch { toast(t('common.error')); }
+}
+
+/* ── AUTH-461 · EXTRAER CLAVES CON IA (decisiones D1–D5 + R1
+   de Ronald, 2026-11-14 13:22–14:50 CST): dentro del Gestor,
+   el botón «✨ Extraer claves con IA» abre su hoja propia
+   (#gestor-ai-float) con tres entradas — enlace, texto o
+   foto — y la ruta POST /extract-keys del Worker propone
+   hasta 5 claves por ronda (D1), en el tono de Ronald y en
+   los dos idiomas; si el material es rico, «Extraer más»
+   pide otra ronda de claves DISTINTAS (D1-bis: la hoja manda
+   las ya mostradas y el prompt ordena no repetir), 1 uso más
+   por ronda, cobrado solo si sale ≥1 clave utilizable (D4).
+   Nada entra al banco sin su revisión: las claves elegidas
+   se guardan por el setDoc único del Gestor (gestPersist),
+   nacen PENDIENTES, en la familia nueva «clave» — Clave
+   reflexiva (D2) — y con la señal de redes en «lista» desde
+   el nacimiento (D5, sin interruptor). La FUENTE se compone
+   aquí, por construcción, según la entrada (la tabla del
+   estudio): ninguna clave extraída puede guardarse sin src.
+   El material bruto y la foto NO se guardan en ningún sitio
+   (doctrina M8): la foto viaja en memoria, aligerada con
+   compressFoodPhoto(file, 1600), como el ingreso de
+   reportes. R1 — EL REPOSITORIO QUE APRENDE: el tópico lo
+   propone la IA desde la lista vigente o como tópico NUEVO;
+   el nuevo se registra SOLO cuando Ronald guarda la clave
+   que lo trae — la lista de tópicos del Gestor se deriva de
+   las tarjetas guardadas (gestTopicsAvail), así que basta
+   con que la clave entre al banco; si la descarta, su
+   tópico no se registra. Y si el enlace pegado ya tiene
+   claves guardadas (su src compuesto coincide con la fuente
+   corta del enlace), la hoja lo dice ANTES de gastar y las
+   muestra, con la opción de extraer más igualmente. ── */
+let GX = null;   // estado de la hoja de extracción
+const GX_TEXT_MAX = 8000;
+function gestAiShortOf(raw) {
+  try {
+    const u = new URL(String(raw || '').trim());
+    if (u.protocol !== 'http:' && u.protocol !== 'https:') return '';
+    return u.hostname.replace(/^www\./, '') + u.pathname.replace(/\/+$/, '');
+  } catch { return ''; }
+}
+function gestAiRepoHits(short) {
+  if (!short || !GEST) return [];
+  return GEST.entries.filter(e => e.src && (e.src === short || e.src.endsWith(' · ' + short)));
+}
+function gestAiDateStr() {
+  const iso = todayISO();
+  const m = /^(\d{4})-(\d{2})-(\d{2})/.exec(iso);
+  if (!m) return iso;
+  return Number(m[3]) + ' ' + MESES_ES[Number(m[2]) - 1].slice(0, 3) + ' ' + m[1];
+}
+function gestAiComposeSrc() {
+  if (!GX) return '';
+  if (GX.kind === 'link') {
+    const s = GX.source || {};
+    const head = s.author ? s.author : (s.title ? '«' + s.title + '»' : '');
+    const short = s.host || gestAiShortOf(GX.url);
+    return head ? (short ? head + ' · ' + short : head) : (short || '');
+  }
+  /* Texto y foto: la fuente fija del estudio, en español en
+     los dos idiomas de la interfaz — como la fuente del
+     libro, que también vive en español en el banco. */
+  return (GX.kind === 'photo' ? 'Foto cargada por el dueño · ' : 'Texto cargado por el dueño · ') + gestAiDateStr();
+}
+function gestAiOpen() {
+  if (!GEST) return;
+  GX = { kind: 'link', url: '', text: '', photoUrl: '', busy: false,
+    keys: null, shown: [], source: null, src: '', truncated: false, err: '' };
+  gestAiPaint();
+  const f = $('gestor-ai-float'); if (f) f.style.display = 'block';
+  try { coverSync(); } catch {}
+}
+function gestAiClose() {
+  const f = $('gestor-ai-float'); if (f) f.style.display = 'none';
+  GX = null;
+  try { coverSync(); } catch {}
+}
+function gestAiCollect() {
+  if (!GX) return;
+  const u = $('gx-url'); if (u) GX.url = u.value;
+  const x = $('gx-text'); if (x) GX.text = x.value;
+}
+function gestAiRepoHTML() {
+  if (!GX || GX.kind !== 'link') return '';
+  const hits = gestAiRepoHits(gestAiShortOf(GX.url));
+  if (!hits.length) return '';
+  return `<div class="gx-repo"><div class="gx-repo-t">${esc(t('move.gestAiRepo', { n: hits.length }))}</div>`
+    + hits.map(e => `<div class="gx-repo-row">${esc(gestRowTitle(e))}</div>`).join('')
+    + `<div class="gx-repo-note">${esc(t('move.gestAiRepoNote'))}</div></div>`;
+}
+function gestAiPaint() {
+  const body = $('gestor-ai-body'); if (!body || !GX) return;
+  if (GX.keys) { gestAiPaintResult(body); return; }
+  const kindBtn = (k, key) => `<button type="button" class="${GX.kind === k ? 'on' : ''}" data-gx-kind="${k}">${esc(t(key))}</button>`;
+  let mid = '';
+  if (GX.kind === 'link') {
+    mid = `<label class="gest-lab">${esc(t('move.gestAiKindLink'))}<input class="gest-in" id="gx-url" type="url" inputmode="url" placeholder="${esc(t('move.gestAiUrlPh'))}" value="${esc(GX.url)}"></label>`
+      + `<div id="gx-repo">${gestAiRepoHTML()}</div>`;
+  } else if (GX.kind === 'text') {
+    mid = `<label class="gest-lab">${esc(t('move.gestAiKindText'))}<textarea class="gest-in" id="gx-text" rows="7" placeholder="${esc(t('move.gestAiTextPh'))}">${esc(GX.text)}</textarea></label>`
+      + `<p class="gx-warn" id="gx-trunc">${GX.text.length > GX_TEXT_MAX ? esc(t('move.gestAiTrunc')) : ''}</p>`;
+  } else {
+    mid = `<span class="gest-lab">${esc(t('move.gestAiKindPhoto'))}</span>`
+      + (GX.photoUrl
+        ? `<img class="gx-photo" src="${GX.photoUrl}" alt=""><button type="button" class="gx-change" data-gx-photo-btn>${esc(t('move.gestAiPhotoChange'))}</button>`
+        : `<button type="button" class="gx-change" data-gx-photo-btn>${esc(t('move.gestAiPhotoBtn'))}</button>`)
+      + `<input type="file" id="gx-file" accept="image/*" style="display:none">`;
+  }
+  body.innerHTML = `<div class="gest-head"><button type="button" class="gest-x" data-gx-x aria-label="${esc(t('move.close'))}">✕</button>`
+    + `<div><h2>${esc(t('move.gestAiTitle'))}</h2><p>${esc(t('move.edTitle'))}</p></div></div>`
+    + `<span class="gest-lab">${esc(t('move.gestAiFromQ'))}</span>`
+    + `<div class="gest-pills">${kindBtn('link', 'move.gestAiKindLink')}${kindBtn('text', 'move.gestAiKindText')}${kindBtn('photo', 'move.gestAiKindPhoto')}</div>`
+    + mid
+    + `<p class="gest-note">${esc(t('move.gestAiNote'))}</p>`
+    + (GX.err ? `<p class="gx-err">${esc(GX.err)}</p>` : '')
+    + `<button type="button" class="gest-save" data-gx-go ${GX.busy ? 'disabled' : ''}>${esc(t(GX.busy ? 'move.gestAiBusy' : 'move.gestAiGo'))}</button>`;
+  body.querySelector('[data-gx-x]').onclick = () => gestAiClose();
+  body.querySelectorAll('[data-gx-kind]').forEach(b => b.onclick = () => { gestAiCollect(); GX.kind = b.dataset.gxKind; GX.err = ''; gestAiPaint(); });
+  const urlIn = $('gx-url');
+  if (urlIn) urlIn.oninput = () => { GX.url = urlIn.value; const r = $('gx-repo'); if (r) r.innerHTML = gestAiRepoHTML(); };
+  const txIn = $('gx-text');
+  if (txIn) txIn.oninput = () => { GX.text = txIn.value; const w = $('gx-trunc'); if (w) w.textContent = GX.text.length > GX_TEXT_MAX ? t('move.gestAiTrunc') : ''; };
+  const pb = body.querySelector('[data-gx-photo-btn]');
+  if (pb) pb.onclick = () => { const fi = $('gx-file'); if (fi) fi.click(); };
+  const fi = $('gx-file');
+  if (fi) fi.onchange = async () => {
+    const file = fi.files && fi.files[0]; if (!file) return;
+    let url = null;
+    try { url = await compressFoodPhoto(file, 1600); } catch {}
+    if (!url || url.length > 3000000) { toast(t('air.tooBig'), true); return; }
+    GX.photoUrl = url; GX.err = ''; gestAiPaint();
+  };
+  body.querySelector('[data-gx-go]').onclick = () => gestAiRun(false);
+}
+function gestAiPaintResult(body) {
+  const keys = GX.keys || [];
+  const nIn = keys.filter(k => k.include).length;
+  const card = (k, i) => {
+    const tt = k.title[LANG] || k.title.en || k.title.es || '';
+    const to = (LANG === 'en' ? k.title.es : k.title.en) || '';
+    const tx = k.text[LANG] || k.text.en || k.text.es || '';
+    const txo = (LANG === 'en' ? k.text.es : k.text.en) || '';
+    const topic = k.topic
+      ? (k.isNewTopic ? t('move.gestAiTopicNew', { x: k.topic }) : t('move.gestAiTopicIs', { x: k.topic }))
+      : t('move.gestAiNoTopic');
+    return `<div class="gx-card${k.include ? '' : ' off'}">`
+      + `<div class="gx-card-top"><div class="gx-card-tt">${esc(tt)}</div>`
+      + `<button type="button" class="gx-inc${k.include ? ' on' : ''}" data-gx-inc="${i}">${esc(t(k.include ? 'move.gestAiInclude' : 'move.gestAiExclude'))}</button></div>`
+      + (to ? `<div class="gx-card-tto">${esc(to)}</div>` : '')
+      + `<div class="gx-card-tx">${esc(tx)}</div>`
+      + (txo ? `<div class="gx-card-txo">${esc(txo)}</div>` : '')
+      + `<div class="gx-card-bot"><span class="gx-topic">${esc(topic)}</span>`
+      + `<button type="button" class="gx-edit" data-gx-edit="${i}">${esc(t('move.gestAiEdit'))}</button></div></div>`;
+  };
+  body.innerHTML = `<div class="gest-head"><button type="button" class="gest-x" data-gx-x aria-label="${esc(t('move.close'))}">✕</button>`
+    + `<div><h2>${esc(t('move.gestAiResT', { n: keys.length }))}</h2><p>${esc(t('move.gestAiResSub'))}</p></div></div>`
+    + `<div class="gx-src">📚 ${esc(t('move.gestAiSrcLine', { x: GX.src }))}</div>`
+    + (GX.truncated ? `<p class="gx-warn">${esc(t('move.gestAiTrunc'))}</p>` : '')
+    + keys.map(card).join('')
+    + (GX.err ? `<p class="gx-err">${esc(GX.err)}</p>` : '')
+    + `<button type="button" class="gx-more" data-gx-more ${GX.busy ? 'disabled' : ''}>${esc(t(GX.busy ? 'move.gestAiBusy' : 'move.gestAiMore'))}</button>`
+    + `<button type="button" class="gest-save" data-gx-save ${nIn ? '' : 'disabled'}>${esc(t('move.gestAiSaveN', { n: nIn }))}</button>`
+    + `<p class="gest-note">${esc(t('move.gestAiBornNote'))}</p>`;
+  body.querySelector('[data-gx-x]').onclick = () => gestAiClose();
+  body.querySelectorAll('[data-gx-inc]').forEach(b => b.onclick = () => { const k = GX.keys[Number(b.dataset.gxInc)]; if (k) { k.include = !k.include; gestAiPaint(); } });
+  body.querySelectorAll('[data-gx-edit]').forEach(b => b.onclick = () => gestAiEdit(Number(b.dataset.gxEdit)));
+  body.querySelector('[data-gx-more]').onclick = () => gestAiRun(true);
+  body.querySelector('[data-gx-save]').onclick = () => gestAiSave();
+}
+async function gestAiRun(more) {
+  if (!GX || GX.busy) return;
+  gestAiCollect();
+  GX.err = '';
+  const body = { kind: GX.kind, lang: LANG, maxKeys: 5,
+    topics: gestTopicsAvail(), exclude: GX.shown.slice() };
+  if (GX.kind === 'link') {
+    if (!gestAiShortOf(GX.url)) { toast(t('move.gestAiNeedLink'), true); return; }
+    body.url = GX.url.trim();
+  } else if (GX.kind === 'text') {
+    if (!GX.text.trim()) { toast(t('move.gestAiNeedText'), true); return; }
+    body.text = GX.text;
+  } else {
+    if (!GX.photoUrl) { toast(t('move.gestAiNeedPhoto'), true); return; }
+    body.imageDataUrl = GX.photoUrl;
+  }
+  GX.busy = true; gestAiPaint();
+  let r;
+  try { r = await aiCall('/extract-keys', body); }
+  catch (e) {
+    GX.busy = false;
+    const m = e && e.message;
+    if (m === 'ai-422') GX.err = more ? t('move.gestAiErrNoMore')
+      : (GX.kind === 'link' ? t('move.gestAiErrLink') : t('move.gestAiErrNoKeys'));
+    else if (m === 'ai-cap') GX.err = t('move.gestAiErrCap');
+    else if (m === 'ai-disabled' || m === 'ai-off') GX.err = t('move.gestAiErrDisabled');
+    else GX.err = t('move.gestAiErrGeneric');
+    gestAiPaint();
+    return;
+  }
+  GX.busy = false;
+  if (!more) {
+    GX.source = (r && r.source) || {};
+    GX.src = gestAiComposeSrc();
+    GX.keys = [];
+    GX.shown = [];
+  }
+  const fresh = (r && Array.isArray(r.keys)) ? r.keys : [];
+  for (const k of fresh) {
+    const nk = { include: true,
+      title: { en: (k.title && k.title.en) || '', es: (k.title && k.title.es) || '' },
+      text: { en: (k.text && k.text.en) || '', es: (k.text && k.text.es) || '' },
+      topic: k.topic || '', isNewTopic: !!k.isNewTopic, src: GX.src };
+    GX.keys.push(nk);
+    GX.shown.push(nk.title.en, nk.title.es, nk.text.en, nk.text.es);
+  }
+  GX.shown = GX.shown.filter(x => typeof x === 'string' && x);
+  if (r && r.truncated) GX.truncated = true;
+  gestAiPaint();
+  try { aiUsageRefreshSurfaces(); } catch {}
+}
+function gestAiEdit(i) {
+  const k = GX && GX.keys ? GX.keys[i] : null;
+  if (!k || !GEST) return;
+  gestOpenSheet(null);
+  if (!GEST_ED) return;
+  GEST_ED.fam = 'clave';
+  GEST_ED.title = { ...k.title };
+  GEST_ED.text = { ...k.text };
+  GEST_ED.src = k.src;
+  GEST_ED.topic = k.topic;
+  GEST_ED.pendiente = true;
+  GEST_ED.social = { state: 'lista', at: '' };
+  GEST_ED.pos = gestFamList('clave').length + 1;
+  GEST_ED.fromAi = i;
+  gestSheetPaint();
+  const f = $('gestor-float'); if (f) f.style.display = 'block';
+  try { coverSync(); } catch {}
+}
+async function gestAiSave() {
+  if (!GX || !GEST || !GX.keys) return;
+  const chosen = GX.keys.filter(k => k.include);
+  if (!chosen.length) return;
+  if (chosen.some(k => !k.src)) { toast(t('common.error'), true); return; }
+  try {
+    for (const k of chosen) {
+      GEST.entries.push({ id: 'c' + Date.now().toString(36) + Math.floor(Math.random() * 1296).toString(36),
+        fam: 'clave', order: 99, title: { ...k.title }, text: { ...k.text },
+        src: k.src, topic: k.topic, pendiente: true, social: { state: 'lista', at: '' } });
+    }
+    gestFamList('clave').forEach((e, i) => { e.order = i + 1; });
+    await gestPersist();
+    gestAiClose();
+    paintGestor();
+  } catch { toast(t('common.error'), true); }
 }
 
 /* ═══ FIN «MIENTRAS TE MUEVES» ═══ */

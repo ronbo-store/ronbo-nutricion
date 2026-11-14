@@ -6377,6 +6377,33 @@ body.sess-on.move-listen #pend-back-chip { bottom: calc(env(safe-area-inset-bott
 .gc-sum { display: flex; flex-wrap: wrap; gap: 4px 14px; font-size: 13.5px; color: #374151; margin: 2px 0 12px; }
 .gc-sum b { color: #1f2a44; }
 .gc-new { display: flex; align-items: center; justify-content: center; gap: 8px; width: 100%; min-height: 52px; background: #0d9488; color: #fff; border: 0; border-radius: 12px; font-size: 16px; font-weight: 700; font-family: inherit; margin: 0 0 14px; cursor: pointer; }
+/* ── AUTH-461 · EXTRAER CLAVES CON IA: el botón gemelo del
+   Gestor (blanco con borde turquesa, 52 px) y su hoja propia
+   (#gestor-ai-float). Ningún control baja de 44 px. ── */
+.gc-ai { background: #fff; color: #0f766e; border: 1.5px solid #0d9488; }
+.gest-save[disabled], .gx-more[disabled] { opacity: .5; }
+.gx-repo { border: 1px solid #99f6e4; background: #f0fdfa; border-radius: 12px; padding: 10px 12px; margin-top: 10px; }
+.gx-repo-t { font-size: 13.5px; font-weight: 700; color: #0f766e; }
+.gx-repo-row { font-size: 13.5px; color: #1f2a44; padding-top: 3px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.gx-repo-note { font-size: 12.5px; color: #64748b; margin-top: 4px; line-height: 1.4; }
+.gx-warn { font-size: 12.5px; color: #92400e; margin: 8px 0 0; line-height: 1.4; }
+.gx-err { font-size: 13.5px; color: #b3261e; margin: 12px 0 0; line-height: 1.45; }
+.gx-photo { display: block; width: 100%; max-height: 260px; object-fit: contain; border-radius: 12px; background: #f6faf9; margin-top: 5px; }
+.gx-change { display: flex; align-items: center; justify-content: center; width: 100%; min-height: 52px; background: #fff; color: #0f766e; border: 1.5px solid #0d9488; border-radius: 12px; font-size: 15px; font-weight: 700; font-family: inherit; margin-top: 8px; cursor: pointer; }
+.gx-src { border: 1px solid #99f6e4; background: #f0fdfa; border-radius: 12px; padding: 10px 12px; font-size: 13.5px; color: #134e4a; line-height: 1.45; margin-bottom: 12px; }
+.gx-card { border: 1px solid #e3efed; border-radius: 14px; padding: 12px; margin-bottom: 12px; background: #fff; }
+.gx-card.off { opacity: .55; }
+.gx-card-top { display: flex; align-items: flex-start; gap: 10px; }
+.gx-card-tt { flex: 1; min-width: 0; font-size: 16px; font-weight: 700; color: #1f2a44; line-height: 1.3; }
+.gx-inc { flex: none; min-height: 44px; border-radius: 999px; border: 1px solid #cbd5d1; background: #fff; color: #374151; font-size: 13.5px; font-weight: 700; font-family: inherit; padding: 6px 14px; cursor: pointer; }
+.gx-inc.on { background: #0d9488; border-color: #0d9488; color: #fff; }
+.gx-card-tto { font-size: 13px; color: #64748b; margin-top: 1px; }
+.gx-card-tx { font-size: 14.5px; color: #263238; line-height: 1.5; margin-top: 8px; }
+.gx-card-txo { font-size: 13.5px; color: #64748b; line-height: 1.5; margin-top: 5px; }
+.gx-card-bot { display: flex; align-items: center; gap: 10px; margin-top: 10px; }
+.gx-topic { flex: 1; min-width: 0; font-size: 12.5px; font-weight: 700; color: #0f766e; background: #e6f4f1; border-radius: 999px; padding: 4px 10px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.gx-edit { flex: none; min-height: 44px; border-radius: 12px; border: 1.5px solid #cbd5d1; background: #fff; color: #134e4a; font-size: 13.5px; font-weight: 700; font-family: inherit; padding: 6px 16px; cursor: pointer; }
+.gx-more { display: flex; align-items: center; justify-content: center; width: 100%; min-height: 52px; background: #fff; color: #0f766e; border: 1.5px solid #0d9488; border-radius: 12px; font-size: 15px; font-weight: 700; font-family: inherit; margin-top: 4px; cursor: pointer; }
 .gc-lab { font-size: 12px; font-weight: 700; color: #3f5a56; letter-spacing: .04em; margin: 10px 0 6px; }
 .gc-seg { display: flex; gap: 8px; }
 .gc-seg button { flex: 1; min-height: 48px; border-radius: 12px; border: 1px solid #cbd5d1; background: #fff; font-size: 14.5px; font-weight: 600; color: #374151; font-family: inherit; padding: 6px 4px; cursor: pointer; }
@@ -6395,6 +6422,7 @@ body.sess-on.move-listen #pend-back-chip { bottom: calc(env(safe-area-inset-bott
 .gc-dot.cap { background: #7c3aed; }
 .gc-dot.motiv { background: #ea580c; }
 .gc-dot.tip { background: #0d9488; }
+.gc-dot.clave { background: #0e7490; }
 .gc-main { flex: 1; min-width: 0; }
 .gc-title { display: block; font-size: 15px; font-weight: 600; color: #1f2a44; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 .gc-cap2 { display: block; font-size: 12px; color: #6b7280; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; margin-top: 1px; }
