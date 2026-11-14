@@ -414,15 +414,15 @@
     <div id="weekChart"></div>
   </div>
 
-  <!-- DIARIO VISUAL DE LA SEMANA (AUTH-2026-11-10-366): la semana
-       de la gráfica de arriba en fotos, día por día — lo pinta
-       renderFoodWeekDiary() en app.js desde los mismos MEALS y
-       totals() de siempre. Vista del propio alumno en su
-       «Mi registro»; no existe copia en la ficha del entrenador. -->
-  <div class="panel fwd-panel">
-    <h2 data-i18n="fwd.title">📷 Your week in photos</h2>
-    <div id="foodWeekDiary"></div>
-  </div>
+  <!-- DIARIO VISUAL DE LA SEMANA (AUTH-2026-11-10-366): el panel
+       «📷 Tu semana en fotos» que vivía aquí, desplegado bajo la
+       gráfica semanal, SE MUDÓ a la ventana de Comida (#food-float)
+       con AUTH-452 (orden de Ronald del 2026-11-13 18:24 CST:
+       «Esto lo quiero en el botón de comida, sácalo de allí»),
+       donde nace plegado en una línea al pie de la sub-vista
+       Resumen. Aquí no queda copia ni hueco: la gráfica semanal
+       y el calendario de constancia quedan vecinos directos,
+       como antes de AUTH-366. -->
 
   <!-- CALENDARIO DE CONSTANCIA (AUTH-2026-11-10-400): el mes del
        alumno pintado con la definición única de la racha
@@ -1064,6 +1064,23 @@
       <div class="water-card" id="water-card" style="display:none">
         <div class="water-head"><span class="water-t">💧 <span data-i18n="nutri.water">Water today</span></span><span class="water-v" id="nutri-water-ml">0 ml</span></div>
         <div class="nutri-water-row"><input type="number" id="nutri-water-in" min="1" max="5000" step="50" placeholder="250" aria-label="Add water (ml)" data-i18n-aria="nutri.waterAdd"><button type="button" class="btn-ghost" id="nutri-water-add">＋ <span data-i18n="nutri.water">Water today</span></button></div>
+      </div>
+      <!-- DIARIO VISUAL DE LA SEMANA (AUTH-2026-11-10-366) MUDADO
+           AQUÍ con AUTH-452 (orden de Ronald del 2026-11-13
+           18:24 CST: «Esto lo quiero en el botón de comida,
+           sácalo de allí»): salió de «Mi registro» (Inicio),
+           donde vivía desplegado bajo la gráfica semanal, y
+           pasa a esta ventana, al pie de la sub-vista Resumen.
+           Por la REGLA DE CRECIMIENTO (2026-11-10) nace PLEGADO
+           en una línea — en Comida la acción principal es
+           registrar comida — y al tocarla se abre EL MISMO
+           panel de siempre: #foodWeekDiary lo sigue pintando
+           renderFoodWeekDiary() desde el mismo render(), sin
+           cambios de contenido ni de datos. El estado del
+           pliegue vive solo en memoria (FWD_OPEN, app.js). -->
+      <div class="fwd-block">
+        <button type="button" class="fwd-fold-head" id="fwd-fold-btn" aria-expanded="false" aria-controls="foodWeekDiary"><span class="fwd-fold-txt" data-i18n="fwd.title">📷 Your week in photos</span><span class="fwd-fold-chev" aria-hidden="true">▾</span></button>
+        <div id="foodWeekDiary" style="display:none"></div>
       </div>
     </div>
     <div id="food-view-consumido" style="display:none">

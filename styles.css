@@ -5482,6 +5482,20 @@ body.swap-sheet-open .asst-fab { display: none !important; }
 .fwd-none { margin: 14px 0 10px; text-align: center; font-size: 13px; color: #94a3b8; }
 .fwd-day-foot { margin-top: 8px; text-align: center; font-size: 13px; font-weight: 800; color: #0f766e; }
 .fwd-empty { margin: 6px 0 2px; color: #64748b; font-size: 14px; }
+/* La línea plegada del diario en Comida (AUTH-452): el bloque
+   vive al pie de la sub-vista Resumen de la ventana de Comida,
+   separado por una línea fina; su cabecera es UNA línea táctil
+   de la casa (52 px) con el título de siempre y el chevrón que
+   gira al abrir (patrón .mp-q-fold-head). La cuadrícula de
+   arriba no cambia. Coste declarado: ≈71 px al final de la
+   sub-vista, sin empujar nada — es su último elemento. */
+.fwd-block { margin-top: 14px; border-top: 1px solid #e2e8f0; padding-top: 4px; }
+.fwd-fold-head { display: flex; align-items: center; gap: 9px; width: 100%; min-height: 52px; box-sizing: border-box; background: none; border: 0; padding: 10px 2px; cursor: pointer; text-align: left; color: inherit; font: inherit; }
+.fwd-fold-head:active { opacity: .6; }
+.fwd-fold-txt { flex: 1; min-width: 0; font-size: 15px; font-weight: 800; color: #1f2a44; }
+.fwd-fold-chev { flex: none; font-size: 14px; color: #0f766e; transition: transform .15s ease; }
+.fwd-fold-head[aria-expanded="true"] .fwd-fold-chev { transform: rotate(180deg); }
+.fwd-block #foodWeekDiary { padding-bottom: 4px; }
 
 /* ═══ CHECK-IN SEMANAL (AUTH-2026-11-10-367) ═══
    Controles grandes de la casa (la gente responde entrenando):

@@ -29655,6 +29655,10 @@ function foodSetSub(name) {
 }
 { const br = $('food-tab-resumen'); if (br) br.onclick = () => foodSetSub('resumen'); }
 { const bc = $('food-tab-consumido'); if (bc) bc.onclick = () => foodSetSub('consumido'); }
+/* La línea plegada del diario visual en Comida (AUTH-452): su
+   cabecera despliega y pliega el panel en el sitio; el estado
+   vive en FWD_OPEN junto a su pintor (renderFoodWeekDiary). */
+{ const bf = $('fwd-fold-btn'); if (bf) bf.onclick = () => fwdSetOpen(!FWD_OPEN); }
 
 /* ══ AL GUARDAR LA COMIDA, A LAS MÉTRICAS DEL DÍA (AUTH-421;
    instrucción de Ronald, 2026-11-11 22:56 CST, con su captura de
@@ -49433,6 +49437,27 @@ function foodWeekDiaryHTML(date) {
     const foot = `<div class="fwd-day-foot">${fmt(d.kcal)} kcal${d.pct != null ? ` · ${t('fwd.ofGoal', { p: d.pct })}` : ''}</div>`;
     return `<div class="fwd-day">${head}<div class="fwd-cells">${cells}</div>${foot}</div>`;
   }).join('')}</div>`;
+}
+/* LA MUDANZA A COMIDA (AUTH-452; orden de Ronald del 2026-11-13
+   18:24 CST, con su captura: «Esto lo quiero en el botón de
+   comida, sácalo de allí»): el panel sale de «Mi registro»
+   (Inicio), donde vivía desplegado bajo la gráfica semanal, y
+   pasa a la ventana de Comida (#food-float), al pie de la
+   sub-vista Resumen, PLEGADO en una línea (regla de crecimiento
+   permanente, 2026-11-10: en Comida la acción principal es
+   registrar comida). El pliegue es SOLO presentación: el
+   contenedor #foodWeekDiary es el de siempre, este pintor no
+   cambia, el modelo y el HTML del panel tampoco; el estado del
+   pliegue vive solo en memoria de la sesión (FWD_OPEN) y cada
+   arranque nace plegado, como los demás pliegues de la casa.
+   Tocar una comida sigue llevando a ESA comida en «Consumido»,
+   como siempre (la ventana ya está abierta: foodOpenFloat es
+   un re-show sin efecto y foodSetSub cambia la sub-vista). */
+let FWD_OPEN = false;
+function fwdSetOpen(open) {
+  FWD_OPEN = !!open;
+  const d = $('foodWeekDiary'); if (d) d.style.display = FWD_OPEN ? '' : 'none';
+  const b = $('fwd-fold-btn'); if (b) b.setAttribute('aria-expanded', FWD_OPEN ? 'true' : 'false');
 }
 function renderFoodWeekDiary(date) {
   const el = $('foodWeekDiary');
