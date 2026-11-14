@@ -38268,6 +38268,7 @@ function sessPillSync(run) {
   let sig, html;
   let pillPaused = false;
   let pillChip = false;
+  let pillFaces = false;
   if (!st) {
     sig = 'deg|' + (run.label || '') + '|' + movePillSig(run);
     html = `<div class="sp-main is-deg"><div class="sp-left"><div class="sp-top"><span class="sess-pill-dot" aria-hidden="true"></span><span class="sess-pill-time" id="sess-pill-time">00:00:00</span>${sessTotalTagHTML()}</div><div class="sp-state"><span class="sp-training">${esc(t('sess.pillPlain'))}</span>${run.label ? `<span class="sp-day">${esc(run.label)}</span>` : ''}</div></div></div>` + moveAnnexHTML();
@@ -38297,7 +38298,7 @@ function sessPillSync(run) {
        su tiempo bancado esperando en la marca. */
     let btn;
     if (!curChk) btn = `<button type="button" class="sp-btn ini" data-pill-start="${ck}">${esc(t('train.flow.start'))}</button>`;
-    else if (flowSt === 'closing') btn = `<span class="sp-how">${esc(t('train.flow.howWas'))}</span>`;
+    else if (flowSt === 'closing') btn = `<span class="sp-how">${esc(t('train.flow.howWas'))}</span>` + (flowHasData(curChk) ? `<span class="sp-faces">${[1, 2, 3, 4, 5].map(n => `<button type="button" class="sp-face" data-pill-face="${ck}:${n}" aria-label="${esc(t('train.flow.band.' + n))} · ${esc(t('train.flow.face.' + n))}"><img src="${FLOW_FACE_URLS[n - 1]}" alt="" loading="lazy" onerror="this.remove()"></button>`).join('')}</span>` : '');
     else if (flowSt === 'paused') btn = `<button type="button" class="sp-btn ini" data-pill-resume="${ck}">${esc(t('train.flow.resume'))}</button><button type="button" class="sp-btn fin" data-pill-finish="${ck}">${esc(t('train.flow.finish'))}</button>`;
     else if (flowSt === 'open') btn = `<button type="button" class="sp-btn stop" data-pill-pause="${ck}">${esc(t('train.flow.pause'))}</button><button type="button" class="sp-btn fin" data-pill-finish="${ck}">${esc(t('train.flow.finish'))}</button>`;
     else btn = `<button type="button" class="sp-btn ini" data-pill-resume="${ck}">${esc(t('train.flow.resume'))}</button>`;
@@ -38323,6 +38324,7 @@ function sessPillSync(run) {
     const chip = chipOn ? `<span class="sp-btnchip"><span class="sess-pill-exclock">⏱ 0:00</span><span class="sp-exc-pause"> · ${esc(t('sess.exPaused'))}</span></span>` : '';
     const chipLine = chipOn ? `<div class="sp-excline"><span class="sess-pill-exclock">⏱ 0:00</span><span class="sp-exc-pause"> · ${esc(t('sess.exPaused'))}</span></div>` : '';
     pillChip = chipOn;
+    pillFaces = flowSt === 'closing' && flowHasData(curChk);
     const flameLeft = pct <= 8 ? '13px' : (pct >= 92 ? 'calc(100% - 13px)' : pct + '%');
     html = `<div class="sp-main"><div class="sp-left"><div class="sp-top"><span class="sess-pill-dot${flowSt === 'paused' ? ' is-paused' : (curChk ? '' : ' is-todo')}" aria-hidden="true"></span><span class="sess-pill-time" id="sess-pill-time">00:00:00</span>${sessTotalTagHTML()}${flowSt === 'paused' ? `<span class="sp-pause-tag">${esc(t('train.flow.pausedTag'))}</span>` : ''}</div>`
       + `<div class="sp-state"><span class="sp-training">${esc(t('sess.pillPlain'))}</span>${run.label ? `<span class="sp-day">${esc(run.label)}</span>` : ''}</div>`
@@ -38336,6 +38338,7 @@ function sessPillSync(run) {
     pill.classList.toggle('is-deg', sig.startsWith('deg|'));
     pill.classList.toggle('is-paused', pillPaused);
     pill.classList.toggle('has-exc', pillChip);
+    pill.classList.toggle('has-faces', pillFaces);
     pill.classList.toggle('is-move-min', !!(MOVE.open && MOVE.listening));
     pill.setAttribute('aria-label', run.label ? t('sess.pillLabel', { label: run.label }) : t('sess.pillPlain'));
   }
@@ -38382,7 +38385,14 @@ function sessPillSync(run) {
    «✓ Marcar hecho» en la tarjeta; tras ella, el foco del
    guiado aterriza solo en el siguiente (el destino PG2). Sin
    el contexto de marcas cargado, el toque degrada a solo
-   navegar, sin tocar estado. */
+   navegar, sin tocar estado.
+   ENMIENDA AUTH-458 (decisiones de Ronald, 2026-11-14 12:12 y
+   12:13 CST): lo anterior quedó REVERTIDO por su palabra — el
+   «Finalizar» SÍ marca en el acto (flowSealDone, abajo) y la
+   pregunta pasa a ser voluntaria; y la píldora misma contesta:
+   su fila de cierre lleva las cinco caras a 42 px y un toque
+   escribe la sensación y resuelve el cierre (flowResolveClosing),
+   sin navegar — su efecto se ve en la propia píldora. */
 function sessPillWire(pill) {
   if (!pill || pill.dataset.pillWired) return;
   pill.dataset.pillWired = '1';
@@ -38390,6 +38400,24 @@ function sessPillWire(pill) {
     const run = sessRunning(); if (!run) return;
     const mvActEl = (ev.target && ev.target.closest) ? ev.target.closest('[data-move-act]') : null;
     if (mvActEl) { ev.stopPropagation(); try { moveAct(mvActEl.dataset.moveAct, mvActEl); } catch {} return; }
+    const fac = (ev.target && ev.target.closest) ? ev.target.closest('[data-pill-face]') : null;
+    if (fac) {
+      /* AUTH-458 · LA CARA TOCADA EN LA PÍLDORA CONTESTA
+         (B2): un toque escribe la sensación sobre la marca
+         — y sella el hecho si el cierre era de antes de
+         este paquete — y resuelve el cierre, sin navegar:
+         su efecto se ve en la propia píldora, que pasa a
+         lo que sigue al repintar. Sin el contexto de marcas
+         cargado, el toque no toca estado, como los demás
+         gestos de esta píldora. */
+      const planF = (typeof MY_PLAN !== 'undefined') ? MY_PLAN : null;
+      if (planF && TRAIN_CHECKS_CTX === planF.id + '|' + todayISO()) {
+        const partsF = String(fac.dataset.pillFace).split(':');
+        flowResolveClosing(planF, partsF[0] + ':' + partsF[1], Number(partsF[2]));
+      }
+      try { sessPillTick(); } catch {}
+      return;
+    }
     const fin = ev.target.closest('[data-pill-finish]');
     const ini = ev.target.closest('[data-pill-start]');
     const pau = ev.target.closest('[data-pill-pause]');
@@ -38406,8 +38434,15 @@ function sessPillWire(pill) {
                cierre de siempre, como en la tarjeta. */
             flowClockBank(key);
             trainChecksPersist(plan.id);
-            TRAIN_FLOW[key] = { st: 'closing', face: (typeof chk.face === 'number') ? chk.face : null };
-            if (trainGuidePref() === 'guided') TRAIN_GUIDE.pin = Number(key.split(':')[1]);
+            /* AUTH-458 · FINALIZAR YA MARCA TAMBIÉN
+               AQUÍ: el hecho se sella en el gesto y nace
+               el cierre si hay pregunta que hacer; el
+               foco se fija en él solo si su cierre vive
+               (sin pregunta, flowEnterClosing ya soltó
+               el pin: el foco aterriza en lo que sigue). */
+            flowSealDone(plan, key);
+            flowEnterClosing(plan, key);
+            if (trainGuidePref() === 'guided' && TRAIN_FLOW[key] && TRAIN_FLOW[key].st === 'closing') TRAIN_GUIDE.pin = Number(key.split(':')[1]);
           }
         } else if (ini) {
           const key = ini.dataset.pillStart;
@@ -38519,7 +38554,17 @@ function trainBarState() {
   const eff = trainEffectiveList(plan, di);
   const pend = [];
   eff.forEach((it, ei) => { const c = checks[di + ':' + ei]; if (!c || c.done !== true) pend.push(ei); });
-  if (!pend.length) return null;
+  /* AUTH-458 · EL CIERRE YA HECHO SIGUE SIENDO «EL DE
+     AHORA» PARA LA PÍLDORA: un ejercicio hecho al finalizar
+     cuya pregunta sigue viva (su cierre, con datos) no sale
+     de la foto — es donde la píldora enseña sus caras para
+     contestar (la B2). No cuenta como pendiente (su hecho
+     ya suma en las cifras de la propia píldora), pero
+     mientras su cierre viva, la píldora lo puede tener de
+     actual. */
+  const closingDone = [];
+  eff.forEach((it, ei) => { const c = checks[di + ':' + ei]; const f = TRAIN_FLOW[di + ':' + ei]; if (c && c.done === true && f && f.st === 'closing' && flowHasData(c)) closingDone.push(ei); });
+  if (!pend.length && !closingDone.length) return null;
   /* El «de ahora»: en el guiado manda el foco fijado (la barra de
      la B1 vive sobre esa vista); si no, AUTH-449: manda el estado
      de flujo — el ejercicio con el reloj corriendo ('open') es el
@@ -38537,10 +38582,15 @@ function trainBarState() {
      3 de 4» como siguiente, con el 2 en curso invisible). */
   let cur = null;
   try {
-    if (trainGuidePref() === 'guided' && Number.isInteger(TRAIN_GUIDE.pin) && pend.includes(TRAIN_GUIDE.pin)) cur = TRAIN_GUIDE.pin;
+    if (trainGuidePref() === 'guided' && Number.isInteger(TRAIN_GUIDE.pin) && (pend.includes(TRAIN_GUIDE.pin) || closingDone.includes(TRAIN_GUIDE.pin))) cur = TRAIN_GUIDE.pin;
   } catch {}
   if (cur == null) { for (const ei of pend) { const fsB = TRAIN_FLOW[di + ':' + ei]; if (fsB && fsB.st === 'open') { cur = ei; break; } } }
   if (cur == null) { for (const ei of pend) { const fsB = TRAIN_FLOW[di + ':' + ei]; if (fsB && fsB.st === 'paused') { cur = ei; break; } } }
+  /* AUTH-458: tras la pausa manda el cierre ya hecho con la
+     pregunta viva — es estado de flujo, y el estado de flujo
+     manda sobre la lectura por marcas de siempre, como ya
+     manda esta cascada desde AUTH-449. */
+  if (cur == null) { for (const ei of closingDone) { cur = ei; break; } }
   if (cur == null) { for (const ei of pend) { if (checks[di + ':' + ei]) { cur = ei; break; } } }
   if (cur == null) cur = pend[0];
   const nxt = pend.find(ei => ei > cur);
@@ -39680,6 +39730,18 @@ function trainFlowSetsHTML(ex, key, chk) {
         <span class="tf-chips" data-tf-chips="card:${key}:${si}">${tfChipsHTML('card:' + key, si, s, ex)}</span></div>`).join('')}
     </div>${addRowF}`;
 }
+/* AUTH-458 · LA BANDA DE CIERRE, UNA SOLA PIEZA: la pinta
+   el cierre de siempre (el ejercicio aún sin hecho) y el
+   cierre sobre el hecho (AUTH-458: hecho al finalizar, la
+   pregunta viva encima) — el mismo HTML, el mismo cableado
+   (data-flow-face selecciona; data-flow-mark resuelve por
+   flowMarkDone). */
+function flowCloseBandHTML(ex, key, fs) {
+  const noteTxt = String((ex && (ex.note || '')) || '');
+  const rpeM = noteTxt.match(/RPE\s*\d+\s*[-–]\s*\d+/i);
+  const meta = rpeM ? `<div class="flow-meta">${esc(t('train.flow.metaRpe', { rpe: rpeM[0].replace(/^RPE\s*/i, '') }))}</div>` : '';
+  return `<div class="flow-close"><div class="flow-close-q">${t('train.flow.howWas')}</div>${trainFlowFacesHTML(key, fs.face)}${meta}<button type="button" class="flow-btn is-done flow-mark" data-flow-mark="${key}">${t('train.flow.markDone')}</button></div>`;
+}
 function trainFlowFacesHTML(key, selFace) {
   return `<div class="flow-faces">${[1, 2, 3, 4, 5].map(n => `<button type="button" class="flow-face${selFace === n ? ' sel' : ''}" data-flow-face="${key}:${n}" aria-pressed="${selFace === n ? 'true' : 'false'}"><img src="${FLOW_FACE_URLS[n - 1]}" alt="" loading="lazy" onerror="this.remove()"><b>${t('train.flow.band.' + n)}</b><span>${t('train.flow.face.' + n)}</span></button>`).join('')}</div>`;
 }
@@ -39707,6 +39769,14 @@ function trainFlowHTML(ex, di, ei) {
   if (fs && fs.st === 'open' && typeof fs.since !== 'number') { fs.acc = (chk && typeof chk.activeSec === 'number' && chk.activeSec > 0) ? Math.floor(chk.activeSec) * 1000 : (typeof fs.acc === 'number' ? fs.acc : 0); fs.since = Date.now(); }
   const spec = [ex.sets, ex.reps].filter(Boolean).join(' × ');
   if (chk && chk.done === true) {
+    /* AUTH-458 · LA BANDA DE CIERRE SOBRE EL HECHO: si el
+       ejercicio quedó en su cierre al finalizar (su pregunta
+       sigue viva), la banda se pinta TAMBIÉN sobre el hecho:
+       la pregunta y sus caras, con el botón de siempre, que
+       ahora resuelve el cierre (el hecho ya nació al
+       finalizar). Sin datos no hay banda — el hecho «según
+       el plan» se pinta en su línea, como siempre. */
+    if (fs && fs.st === 'closing' && flowHasData(chk)) return flowCloseBandHTML(ex, key, fs);
     /* Hecha: la línea del flujo solo añade lo que las cifras no
        dicen — el rótulo honesto del hecho sin series (punto 6) y
        la pastilla de la cara elegida; una hecha con datos y sin
@@ -39734,10 +39804,7 @@ function trainFlowHTML(ex, di, ei) {
          expresa — nunca de un toque suelto. */
       return `<div class="flow-close"><p class="flow-nodata">${esc(t('train.flow.noSets', { spec }))}</p><div class="flow-row"><button type="button" class="flow-btn" data-flow-back="${key}">${t('train.flow.logOne')}</button><button type="button" class="flow-btn is-done" data-flow-mark-plan="${key}">${t('train.flow.markPlan')}</button></div></div>`;
     }
-    const noteTxt = String((ex && (ex.note || '')) || '');
-    const rpeM = noteTxt.match(/RPE\s*\d+\s*[-–]\s*\d+/i);
-    const meta = rpeM ? `<div class="flow-meta">${esc(t('train.flow.metaRpe', { rpe: rpeM[0].replace(/^RPE\s*/i, '') }))}</div>` : '';
-    return `<div class="flow-close"><div class="flow-close-q">${t('train.flow.howWas')}</div>${trainFlowFacesHTML(key, fs.face)}${meta}<button type="button" class="flow-btn is-done flow-mark" data-flow-mark="${key}">${t('train.flow.markDone')}</button></div>`;
+    return flowCloseBandHTML(ex, key, fs);
   }
   /* AUTH-434 · EN PAUSA (la maqueta aprobada): el
      reloj está congelado — su tiempo bancado vive en
@@ -39836,6 +39903,106 @@ function trainRemovedLineHTML(plan, di, iso) {
    aunque el gesto nazca en la lista. Un ejercicio ya en su
    cierre o en pausa NO se toca: la pausa es la decisión
    expresa de «Detener» y su cierre sigue siendo suyo. ═══ */
+/* ═══ AUTH-458 · LA PÍLDORA TAMBIÉN CONTESTA + FINALIZAR YA
+   MARCA HECHO (decisiones expresas de Ronald, 2026-11-14:
+   la B2 a las 12:12 CST — las cinco caras de la mascota a
+   42 px en la fila de cierre de la píldora, un toque
+   contesta — y el punto 3 a las 12:13 CST — «Finalizar
+   ejercicio» marca el ejercicio como hecho en el acto).
+   Este paquete REVIERTE la bifurcación §7 de AUTH-449 por
+   su palabra: el hecho nace ahora en Finalizar, por todas
+   sus puertas, y el «¿Qué tal fue?» pasa a ser un registro
+   VOLUNTARIO de la sensación: contestarlo la guarda (en la
+   píldora y en la tarjeta, sobre la misma marca y con el
+   mismo destino de siempre); no contestarlo y seguir NO
+   pierde el hecho ni inventa sensación alguna.
+   EL SELLO, UNA SOLA FUENTE (flowSealDone): la escritura
+   que «✓ Marcar hecho» hacía desde AUTH-406 — la cara
+   elegida en pantalla y su RPE de banda si la hay, la hora
+   de las series con datos, el `done`, el toque del
+   cronómetro del día y el guardado — vive ahora en una
+   función que comparten el botón de siempre, los dos
+   «Finalizar» (tarjeta y píldora) y la finalización por
+   reconciliación de AUTH-449. Con withFace en falso (la
+   puerta honesta «según el plan») la cara de pantalla no
+   se escribe, como mandaba esa puerta.
+   LA ENTRADA AL CIERRE (flowEnterClosing): tras el sello,
+   el cierre solo nace si hay pregunta que hacer — el
+   ejercicio lleva al menos una serie con datos, la misma
+   condición con que la banda de AUTH-406 enseña sus caras.
+   Sin datos NO hay cierre: el hecho queda «según el plan»
+   con su rótulo honesto de siempre, la cara/RPE quedan sin
+   elegir (la consecuencia escrita en el §7 de AUTH-449 y
+   aceptada con su decisión) y el pin del guiado se suelta
+   en el acto — la migración de AUTH-433: el foco se libera
+   cuando el cierre se RESUELVE, y un cierre que nunca nace
+   se resuelve al nacer. Con pregunta, el pin se queda: la
+   banda y las caras de la píldora quedan delante, y el pin
+   se suelta al contestar o al resolver.
+   LA RESOLUCIÓN (flowResolveClosing): contestar en la
+   píldora (un toque) o el botón de la banda escriben la
+   sensación sobre la marca y cierran el cierre: la entrada
+   de flujo sale y el pin, si era suyo, se suelta (AUTH-433
+   migrado). Si el cierre era de antes de este paquete (el
+   ejercicio aún sin hecho), contestar en la píldora sella
+   también el hecho con esa cara — lo que «✓ Marcar hecho»
+   con la cara elegida hacía —: la píldora no tiene botón
+   de marcar y su toque ES la respuesta. Arrancar otro
+   ejercicio resuelve en silencio los cierres ya hechos de
+   los demás (en la reconciliación): el hecho queda, la
+   sensación queda sin registrar, jamás un cero inventado.
+   LA PREGUNTA NO SOBREVIVE A LA RECARGA: la foto del flujo
+   de AUTH-451 ya trata la entrada de cierre sobre un hecho
+   como peso muerto al rehidratar (solo el espejo 'reopen'
+   vive sobre un hecho) — sin tocar esa saneación, un
+   cierre sin contestar muere con la página y el hecho
+   queda, intacto, en las marcas. ═══ */
+function flowSealDone(plan, key, withFace) {
+  const chk = TRAIN_CHECKS[key] || null;
+  if (!chk) return false;
+  const fs = TRAIN_FLOW[key] || null;
+  /* La sensación elegida se escribe AUNQUE el hecho ya
+     hubiera nacido al finalizar: contestar en la tarjeta
+     tras finalizar es el caso común nuevo y su «✓ Marcar
+     hecho» es la resolución del cierre — si el sello
+     devolviera «ya hecho» sin escribir la cara, la
+     sensación se perdería en silencio (lo cazó la batería
+     de preparación, escenario S3). La marca en sí, ya
+     nacida, no se reescribe. */
+  if (withFace !== false && fs && Number.isInteger(fs.face)) { chk.face = fs.face; chk.rpe = FLOW_FACE_RPE[fs.face - 1]; }
+  if (chk.done === true) { if (plan) trainChecksPersist(plan.id); return false; }
+  if (Array.isArray(chk.sets)) { const nowH = Date.now(); chk.sets.forEach(s => { if (trainSetHasData(s) && !(typeof s.markedAt === 'number' && s.markedAt > 0)) s.markedAt = nowH; }); }
+  chk.done = true;
+  if (plan) {
+    trainChronoTouch(plan.id, trainDayLabelOf(plan, Number(String(key).split(':')[0])));
+    trainChecksPersist(plan.id);
+  }
+  return true;
+}
+function flowEnterClosing(plan, key) {
+  const chk = TRAIN_CHECKS[key] || null;
+  if (chk && flowHasData(chk)) {
+    const fs = TRAIN_FLOW[key] || null;
+    TRAIN_FLOW[key] = { st: 'closing', face: (fs && Number.isInteger(fs.face)) ? fs.face : (Number.isInteger(chk.face) ? chk.face : null) };
+    return true;
+  }
+  delete TRAIN_FLOW[key];
+  const eiE = Number(String(key).split(':')[1]);
+  if (typeof TRAIN_GUIDE !== 'undefined' && TRAIN_GUIDE && TRAIN_GUIDE.pin === eiE) TRAIN_GUIDE.pin = null;
+  return false;
+}
+function flowResolveClosing(plan, key, faceN) {
+  const chk = TRAIN_CHECKS[key] || null;
+  if (!chk) return;
+  const fs = TRAIN_FLOW[key] || null;
+  const okFace = Number.isInteger(faceN) && faceN >= 1 && faceN <= 5;
+  if (okFace && fs) fs.face = faceN;
+  if (chk.done !== true) flowSealDone(plan, key);
+  else if (okFace) { chk.face = faceN; chk.rpe = FLOW_FACE_RPE[faceN - 1]; if (plan) trainChecksPersist(plan.id); }
+  delete TRAIN_FLOW[key];
+  const eiR = Number(String(key).split(':')[1]);
+  if (typeof TRAIN_GUIDE !== 'undefined' && TRAIN_GUIDE && TRAIN_GUIDE.pin === eiR) TRAIN_GUIDE.pin = null;
+}
 function flowStartReconcile(plan, key) {
   const diR = Number(String(key).split(':')[0]);
   const eiR = Number(String(key).split(':')[1]);
@@ -39845,8 +40012,17 @@ function flowStartReconcile(plan, key) {
     const fs = TRAIN_FLOW[k];
     if (fs && fs.st === 'open' && Number(String(k).split(':')[0]) === diR) {
       flowClockBank(k);
-      TRAIN_FLOW[k] = { st: 'closing', face: fs.face != null ? fs.face : (TRAIN_CHECKS[k] && typeof TRAIN_CHECKS[k].face === 'number' ? TRAIN_CHECKS[k].face : null) };
+      /* AUTH-458: finalizar por esta vía también sella el
+         hecho en el acto y entra a su cierre como el botón
+         — la misma pareja de motores, sin segunda versión. */
+      flowSealDone(plan, k);
+      flowEnterClosing(plan, k);
       sealed = true;
+    } else if (fs && fs.st === 'closing' && Number(String(k).split(':')[0]) === diR && TRAIN_CHECKS[k] && TRAIN_CHECKS[k].done === true) {
+      /* AUTH-458: el cierre ya hecho de OTRO ejercicio se
+         resuelve en silencio al arrancar este — su hecho
+         queda intacto y su sensación queda sin registrar. */
+      delete TRAIN_FLOW[k];
     }
   });
   if (sealed && plan) trainChecksPersist(plan.id);
@@ -39933,9 +40109,12 @@ function trainFlowWire(box, plan) {
        tocan: el sellado vive en este gesto. */
     flowClockBank(key);
     if (TRAIN_CHECKS[key] && typeof TRAIN_CHECKS[key].activeSec === 'number') trainChecksPersist(plan.id);
-    const cur = TRAIN_FLOW[key] || { st: 'open', face: null };
-    const chkF = TRAIN_CHECKS[key] || null;
-    TRAIN_FLOW[key] = { st: 'closing', face: cur.face != null ? cur.face : (chkF && Number.isInteger(chkF.face) ? chkF.face : null) };
+    /* AUTH-458 · FINALIZAR YA MARCA: el hecho se sella en
+       este mismo gesto (flowSealDone, el núcleo de la marca
+       de siempre) y después nace el cierre si hay pregunta
+       que hacer (flowEnterClosing). */
+    flowSealDone(plan, key);
+    flowEnterClosing(plan, key);
     loadMyTraining();
   });
   /* AUTH-434 · DETENER Y SEGUIR DE LA TARJETA — la
@@ -39981,11 +40160,18 @@ function trainFlowWire(box, plan) {
        y el RPE de la banda, y sella la hora de las series con
        datos como hacía el Guardar de la hoja. Por la puerta
        honesta (asPlan) no se inventa cara ni número alguno. */
-    if (!asPlan && fs && Number.isInteger(fs.face)) { chkF.face = fs.face; chkF.rpe = FLOW_FACE_RPE[fs.face - 1]; }
-    if (Array.isArray(chkF.sets)) { const nowH = Date.now(); chkF.sets.forEach(s => { if (trainSetHasData(s) && !(typeof s.markedAt === 'number' && s.markedAt > 0)) s.markedAt = nowH; }); }
-    chkF.done = true;
-    trainChronoTouch(plan.id, trainDayLabelOf(plan, diF));
-    trainChecksPersist(plan.id);
+    /* AUTH-458 (ENMIENDA — decisiones de Ronald del
+       2026-11-14): lo de «ÚNICA puerta» quedó revertido por
+       su palabra: el hecho nace ahora al FINALIZAR, por
+       todas sus puertas. La escritura de la marca vive en
+       flowSealDone — una sola fuente, la misma que sella
+       al finalizar —; por la puerta honesta (asPlan) se
+       sella sin la cara de pantalla, como mandaba esa
+       puerta. Si el hecho ya había nacido al finalizar,
+       este botón es la resolución del cierre: el sello no
+       reescribe nada y la salida del flujo y la liberación
+       del foco de abajo hacen su trabajo de siempre. */
+    flowSealDone(plan, key, !asPlan);
     delete TRAIN_FLOW[key];
     /* AUTH-433 · EL FOCO SE LIBERA AL MARCAR: si el
        ejercicio recién marcado era el fijado del guiado, el

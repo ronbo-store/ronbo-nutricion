@@ -3517,6 +3517,21 @@ body.nav-lock.prog-page #act-flame { visibility: visible; }
 .sp-btn.fin { background: #b3261e; }
 .sp-btn.ini { background: linear-gradient(180deg, #22c55e, #16a34a); }
 .sp-how { font-size: 14.5px; font-weight: 700; color: rgba(255, 255, 255, .8); align-self: center; }
+/* AUTH-458 · LAS CARAS DE LA PÍLDORA (B2): las cinco caras
+   de la mascota a 42 px en la fila del cierre — la excepción
+   de tamaño de la píldora, como sus botones —; la fila
+   envuelve cuando no cabe (la pregunta queda en su línea y
+   las caras bajan a la suya: la cara de cierre es la acción
+   de su estado y crece solo ahí, medido en la batería). Y el
+   grupo de caras envuelve TAMBIÉN por dentro (3+2 a 360/383):
+   sin eso, la quinta cara quedaba bajo la columna del
+   siguiente ejercicio y el dedo caía en ella sin obrar —
+   lo cazó la batería de preparación por la vía del dedo
+   (S10), no con .click(). */
+.sp-faces { display: flex; flex-wrap: wrap; gap: 6px; align-items: center; flex: 0 1 auto; min-width: 0; max-width: 100%; }
+.sp-face { width: 42px; height: 42px; flex: none; padding: 0; border-radius: 50%; border: 2px solid rgba(255, 255, 255, .35); background: rgba(255, 255, 255, .10); cursor: pointer; font-family: inherit; }
+.sp-face img { width: 100%; height: 100%; display: block; border-radius: 50%; object-fit: cover; }
+#sess-pill.has-faces .sp-btnrow { flex-wrap: wrap; }
 .sp-sep { width: 1px; background: rgba(255, 255, 255, .18); flex: none; }
 .sp-next { flex: 0 0 31%; min-width: 0; display: flex; flex-direction: column; justify-content: center; gap: 4px; }
 .sp-next-lab { font-size: 11px; font-weight: 800; letter-spacing: .15em; color: #C6FF4A; }
