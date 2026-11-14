@@ -4029,6 +4029,7 @@ en: {
   'sw.currentLap': 'Current lap', 'sw.totalLaps': 'Total · {n} laps', 'sw.totalLaps1': 'Total · 1 lap',
   'sw.foot': 'FREE TOOL · NOTHING IS SAVED',
   'sw.alertEvery': 'Alert every', 'sw.alertNever': 'Never', 'sw.alertMin': '{n} min',
+  'sw.closeLab': 'CLOSE', 'sw.minLab': 'MINIMIZE', 'sw.minimize': 'Minimize stopwatch', 'sw.miniOpen': 'Stopwatch running: reopen',
   'health.specHelp': 'In plain words: you allow your trainer to see the health answers you write in this declaration, only so he can adapt your program and take care of you. Nobody else can see them, and you can withdraw this whenever you want.',
   'health.panelTitle': '🏥 My health declaration',
   'health.specText': 'I give my SPECIFIC consent for ronbo.nutri to process my health declaration so my trainer can adapt my program and take precautions. Only my trainer and I can see it. I can withdraw this consent at any time: withdrawal blocks my trainer\'s access to my answers, but does not delete them.',
@@ -9055,6 +9056,7 @@ es: {
   'sw.currentLap': 'Vuelta actual', 'sw.totalLaps': 'Total · {n} vueltas', 'sw.totalLaps1': 'Total · 1 vuelta',
   'sw.foot': 'HERRAMIENTA LIBRE · NO SE GUARDA',
   'sw.alertEvery': 'Avisar cada', 'sw.alertNever': 'Nunca', 'sw.alertMin': '{n} min',
+  'sw.closeLab': 'CERRAR', 'sw.minLab': 'MINIMIZAR', 'sw.minimize': 'Minimizar el cronómetro', 'sw.miniOpen': 'Cronómetro en marcha: reabrir',
   'health.specHelp': 'En palabras simples: permites que tu entrenador vea las respuestas de salud que escribas en esta declaración, solo para que adapte tu programa y te cuide. Nadie más puede verlas, y puedes retirar este permiso cuando quieras.',
   'health.panelTitle': '🏥 Mi declaración de salud',
   'health.specText': 'Doy mi consentimiento ESPECÍFICO para que ronbo.nutri trate mi declaración de salud, para que mi entrenador adapte mi programa y tome precauciones. Solo mi entrenador y yo podemos verla. Puedo retirar este consentimiento cuando quiera: la retirada bloquea el acceso de mi entrenador a mis respuestas, pero no las elimina.',
@@ -31946,7 +31948,7 @@ function coverFocusHome(cover) { // ¿el foco actual ya es válido bajo esta tap
   if (!a || a === document.body || !a.isConnected) return false;
   if (cover.contains(a)) return true;
   if (coverIsSoft(cover) && a.closest && a.closest('.actions-dock')) return true;
-  if ((cover.id === 'progress-content' || cover.id === 'train-content') && (COVER_ALIVE.has(a) || (a.closest && a.closest('#sess-pill')))) return true; // AUTH-129 (+ la mascota viva sobre Entrenamiento, 2026-11-09): el foco en un disco vivo también es «casa»; AUTH-450: y el foco en un botón de la píldora viva
+  if ((cover.id === 'progress-content' || cover.id === 'train-content') && (COVER_ALIVE.has(a) || (a.closest && (a.closest('#sess-pill') || a.closest('#sw-mini'))))) return true; // AUTH-129 (+ la mascota viva sobre Entrenamiento, 2026-11-09): el foco en un disco vivo también es «casa»; AUTH-450: y el foco en un botón de la píldora viva
   return false;
 }
 function coverEnsureFocus(cover) {
@@ -31966,7 +31968,7 @@ function coverApply(cover) { // (re)aplica los inert para la tapa dada
   coverClearInerts();
   COVER_NOW = cover;
   COVER_ALIVE = new Set();
-  if (!cover) { for (const id of ['btn-share-fab', 'btn-help', 'btn-stopwatch', 'act-flame', 'btn-asst-fab']) { const el = document.getElementById(id); if (el) el.classList.remove('fab-bg'); } return; }
+  if (!cover) { for (const id of ['btn-share-fab', 'btn-help', 'btn-stopwatch', 'act-flame', 'btn-asst-fab', 'sw-mini']) { const el = document.getElementById(id); if (el) el.classList.remove('fab-bg'); } return; }
   /* AUTH-2026-11-01-129: bajo la página de Progreso — y solo bajo
      ella — la pila de 4 discos flotantes de Inicio también sigue
      viva, con el mismo criterio con que el dock sigue vivo bajo
@@ -31992,13 +31994,19 @@ function coverApply(cover) { // (re)aplica los inert para la tapa dada
      modales la píldora sigue inerte, como todo el fondo: la tapa
      manda. */
   if (cover.id === 'progress-content' || cover.id === 'train-content') { const pill = document.getElementById('sess-pill'); if (pill) COVER_ALIVE.add(pill); }
+  /* AUTH-457 · LA PIEZA DEL CRONÓMETRO MINIMIZADO SIGUE LA SUERTE
+     DE LA PÍLDORA: vive sobre las dos páginas de la sesión (es
+     donde se estaciona cuando la píldora vive) y bajo Progreso
+     acompaña a los discos; bajo láminas y modales se retira con
+     el fondo (fab-bg), como el resto de la columna flotante. */
+  if (cover.id === 'progress-content' || cover.id === 'train-content') { const mini = document.getElementById('sw-mini'); if (mini) COVER_ALIVE.add(mini); }
   /* PANTALLA COMPLETA (2026-11-09): la columna flotante va con el
      fondo — con una tapa abierta solo quedan a la vista los discos
      que este gestor mantiene vivos sobre esa tapa (COVER_ALIVE:
      actúan sobre la propia hoja); los demás se retiran con el
      fondo (clase fab-bg) en vez de quedar flotando muertos sobre
      la cubierta. */
-  for (const id of ['btn-share-fab', 'btn-help', 'btn-stopwatch', 'act-flame', 'btn-asst-fab']) { const el = document.getElementById(id); if (el) el.classList.toggle('fab-bg', !COVER_ALIVE.has(el)); }
+  for (const id of ['btn-share-fab', 'btn-help', 'btn-stopwatch', 'act-flame', 'btn-asst-fab', 'sw-mini']) { const el = document.getElementById(id); if (el) el.classList.toggle('fab-bg', !COVER_ALIVE.has(el)); }
   const dock = document.querySelector('.actions-dock');
   coverWalk(document.body, cover, coverIsSoft(cover) ? dock : null);
 }
@@ -60713,7 +60721,18 @@ function swRestore() {
    (Corrección 2026-11-13: esa espera quedó implementada de
    verdad — alertPend + swAlertPrime — porque el código original
    consumía el múltiplo en silencio y ningún gesto posterior lo
-   entregaba; abrir la herramienta también ceba el audio.) */
+   entregaba; abrir la herramienta también ceba el audio.)
+   MINIMIZAR DE VERDAD (AUTH-457, decisiones de Ronald del
+   2026-11-13 23:00–23:01 CST): la pantalla gana el botón gemelo
+   «⌄ MINIMIZAR» junto a la ✕, que queda rotulada «CERRAR» y
+   pasa a significar TERMINAR (detiene y pone a cero, como
+   Pausar + Reiniciar, con su sellado). Minimizar esconde la
+   pantalla sin detener nada y el cronómetro se queda visible
+   en TODAS las vistas en la pieza flotante #sw-mini (punto de
+   estado, tiempo, la campana del aviso elegido y su botón de
+   pausa de 44 px); tocar la pieza fuera del botón reabre la
+   pantalla con todo intacto. El disco de Inicio cede mientras
+   la pieza vive: son el mismo reflejo, nunca dos. */
 const SW_ALERT_KEY = 'ronbofit-stopwatch-alert-v1';
 const SW_ALERT_OPTS = [0, 1, 2, 3, 5];
 let SW_ACTX = null;
@@ -60903,12 +60922,106 @@ function swOpenTool() {
   ov.style.display = 'block';
   swAlertPrime();
   swPaint(); swKick();
+  swMiniPaint(); // AUTH-457: con la pantalla abierta, la pieza se retira
 }
-function swCloseTool() {
+function swHideTool() {
   const ov = $('sw-overlay'); if (!ov) return;
   STOPW.open = false;
   if (STOPW.raf) { cancelAnimationFrame(STOPW.raf); STOPW.raf = 0; }
   ov.style.display = 'none';
+}
+/* MINIMIZAR (AUTH-457): esconder la pantalla SIN detener nada —
+   lo que la ✕ hacía hasta AUTH-456. El cronómetro sigue
+   corriendo debajo y la pieza #sw-mini lo enseña en todas las
+   vistas; el estado sellado en el dispositivo no se toca. */
+function swMinimizeTool() {
+  swHideTool();
+  swFabPaint(); swMiniPaint();
+}
+/* CERRAR = TERMINAR (AUTH-457, decisión de Ronald del
+   2026-11-13): la ✕ detiene el cronómetro y lo pone a cero —
+   el equivalente a Pausar + Reiniciar, con su sellado: al
+   quedar a cero, swSave retira el sello del dispositivo, como
+   al Reiniciar. La elección de «Avisar cada» es una preferencia
+   del dispositivo con su propia clave y NO se toca. */
+function swTerminateTool() {
+  STOPW.running = false; STOPW.acc = 0; STOPW.startAt = 0; STOPW.laps = []; STOPW.alertK = 0; STOPW.alertPend = 0;
+  swSave();
+  swHideTool();
+  swPaint();
+  swFabPaint(); swMiniPaint();
+}
+/* ── LA PIEZA MINIMIZADA (AUTH-457) ──
+   El reflejo del cronómetro en TODAS las vistas cuando la
+   pantalla está escondida y hay algo que enseñar (corriendo o
+   con tiempo en pausa). Muestra: el punto de estado (verde que
+   late corriendo · ámbar en pausa), el icono, el tiempo a
+   20 px, la CAMPANA con el aviso elegido («🔔 5 min» — solo si
+   hay aviso: con «Sin aviso» la campana no vive y la pieza no
+   crece) y su botón redondo de 44 px de pausa/seguir. Tocar la
+   pieza fuera del botón reabre la pantalla grande con todo
+   intacto (swOpenTool: el estado nunca vivió en la pantalla).
+   La pieza NO lleva el control «Avisar cada»: elegir el
+   intervalo sigue siendo cosa de la pantalla grande; la
+   campana solo REFLEJA la elección (STOPW.alertMin, la misma
+   que pinta swAlertPaint — la maquinaria de avisos de AUTH-455
+   no se toca). */
+let SW_MINI_LAST = '', SW_MINI_BELL = '';
+function swMiniAlive() { return !STOPW.open && (STOPW.running || swElapsed() > 0); }
+function swMiniPaint() {
+  const mini = $('sw-mini'); if (!mini) return;
+  if (!swMiniAlive()) { if (mini.style.display !== 'none') mini.style.display = 'none'; return; }
+  if (mini.style.display === 'none') mini.style.display = '';
+  mini.classList.toggle('paused', !STOPW.running);
+  const txt = swFmtParts(swElapsed()).main;
+  const tm = $('sw-mini-time');
+  if (tm && SW_MINI_LAST !== txt) { tm.textContent = txt; SW_MINI_LAST = txt; }
+  const bell = $('sw-mini-bell');
+  if (bell) {
+    const bt = STOPW.alertMin ? '🔔 ' + t('sw.alertMin', { n: STOPW.alertMin }) : '';
+    if (SW_MINI_BELL !== bt) { SW_MINI_BELL = bt; bell.textContent = bt; bell.style.display = bt ? '' : 'none'; }
+  }
+  const pz = $('sw-mini-pause');
+  if (pz) {
+    const g = STOPW.running ? '❚❚' : '▶';
+    if (pz.textContent !== g) pz.textContent = g;
+    pz.setAttribute('aria-label', t(STOPW.running ? 'sw.pause' : 'sw.resume'));
+  }
+  swMiniPark(mini);
+}
+/* EL ESTACIONAMIENTO, MEDIDO EN VIVO: sin píldora de sesión,
+   la pieza hereda el hueco del disco (el bottom 194 del CSS,
+   con su área segura). Con la píldora viva, se estaciona 14 px
+   sobre SU borde superior — medido del rect real, así que la
+   sigue en todos sus estados (plegada, anexo abierto,
+   escuchando) — y si ese sitio lo ocupa un disco vivo de la
+   misma columna (la mascota, la llamita…), sube al siguiente
+   hueco libre con el mismo aire de 14 px: el apilado de la
+   casa, medido en vez de supuesto. Sin píldora, se retira el
+   bottom en línea y manda el CSS. */
+function swMiniPark(mini) {
+  const pill = $('sess-pill');
+  const pv = pill && document.body.classList.contains('sess-on') && pill.getClientRects().length
+    && getComputedStyle(pill).display !== 'none' && getComputedStyle(pill).visibility !== 'hidden';
+  if (!pv) { if (mini.style.bottom) mini.style.bottom = ''; return; }
+  const H = window.innerHeight;
+  let d = H - pill.getBoundingClientRect().top + 14;
+  mini.style.bottom = d + 'px';
+  for (let pass = 0; pass < 4; pass++) {
+    const r = mini.getBoundingClientRect();
+    let raised = false;
+    for (const id of ['act-flame', 'btn-asst-fab', 'btn-help', 'btn-share-fab']) {
+      const s = document.getElementById(id);
+      if (!s) continue;
+      const cs = getComputedStyle(s);
+      if (cs.display === 'none' || cs.visibility === 'hidden' || !s.getClientRects().length) continue;
+      const sr = s.getBoundingClientRect();
+      if (r.left < sr.right && r.right > sr.left && r.top < sr.bottom && r.bottom > sr.top) {
+        d = H - sr.top + 14; mini.style.bottom = d + 'px'; raised = true; break;
+      }
+    }
+    if (!raised) break;
+  }
 }
 function swRelang() { if (STOPW.open) swPaint(); }
 /* Botón redondo flotante (sustituye a la pastilla): refleja el estado
@@ -60925,15 +61038,23 @@ function swFabPaint() {
   if (fab.className !== cls) fab.className = cls;
   const lab = $('sw-fab-time');
   if (lab && SW_FAB_LAST !== txt) { lab.textContent = txt; SW_FAB_LAST = txt; }
+  /* AUTH-457: mientras la pieza minimizada vive, el disco cede
+     (el mismo reflejo del cronómetro, nunca dos en pantalla).
+     La marca se pone AL FINAL: el className de arriba se
+     reescribe entero en cada pintado y la borraría. */
+  fab.classList.toggle('sw-fab-yield', swMiniAlive());
 }
 (function swInit() {
   swRestore();
   swAlertLoad();
   const fab = $('btn-stopwatch'); if (fab) fab.addEventListener('click', swOpenTool);
   document.querySelectorAll('[data-sw-alert]').forEach(b => b.addEventListener('click', () => swAlertSet(Number(b.dataset.swAlert))));
-  swFabPaint();
-  setInterval(() => { if (!STOPW.open) swFabPaint(); swAlertCheck(); }, 250);
-  const x = $('sw-close'); if (x) x.addEventListener('click', swCloseTool);
+  swFabPaint(); swMiniPaint();
+  setInterval(() => { if (!STOPW.open) { swFabPaint(); swMiniPaint(); } swAlertCheck(); }, 250);
+  const x = $('sw-close'); if (x) x.addEventListener('click', swTerminateTool);
+  const mn = $('sw-min'); if (mn) mn.addEventListener('click', swMinimizeTool);
+  const mm = $('sw-mini-main'); if (mm) mm.addEventListener('click', swOpenTool);
+  const mp = $('sw-mini-pause'); if (mp) mp.addEventListener('click', () => { swMainAction(); swFabPaint(); swMiniPaint(); });
   const M = $('sw-btn-main'); if (M) M.addEventListener('click', swMainAction);
   const L = $('sw-btn-left'); if (L) L.addEventListener('click', () => swSideAction('left'));
   const R = $('sw-btn-right'); if (R) R.addEventListener('click', () => swSideAction('right'));

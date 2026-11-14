@@ -2244,6 +2244,33 @@ body { padding: max(16px, env(safe-area-inset-top)) max(16px, env(safe-area-inse
 .sw-fab.live, .sw-fab.paused { z-index: 45; }
 @keyframes sw-fab-pulse { 0% { box-shadow: 0 8px 22px rgba(15,23,42,.20), 0 0 0 0 rgba(13,148,136,.45); } 70% { box-shadow: 0 8px 22px rgba(15,23,42,.20), 0 0 0 12px rgba(13,148,136,0); } 100% { box-shadow: 0 8px 22px rgba(15,23,42,.20), 0 0 0 0 rgba(13,148,136,0); } }
 @media (prefers-reduced-motion: reduce) { .sw-fab.live { animation: none; } }
+/* ═══ LA PIEZA MINIMIZADA DEL CRONÓMETRO (AUTH-457) ═══
+   Mini-pastilla de la familia de los discos flotantes: nace en
+   el hueco del disco (bottom 194, el del propio cronómetro) y,
+   con la píldora de sesión viva, app.js la estaciona midiendo
+   (swMiniPark pone el bottom en línea: 14 px sobre la píldora
+   o sobre el disco vivo que ocupe el sitio). 56 px de alto;
+   crece de ancho solo cuando la campana vive (≈24 px). */
+.sw-mini { position: fixed; right: 14px; bottom: calc(env(safe-area-inset-bottom, 0px) + 194px); z-index: 45; height: 56px; display: flex; align-items: center; gap: 8px; padding: 0 6px 0 0; background: rgba(255,255,255,.97); border: 1.5px solid #0d9488; border-radius: 999px; box-shadow: 0 8px 22px rgba(15,23,42,.22); font-family: inherit; }
+.sw-mini-main { display: flex; align-items: center; gap: 8px; padding: 0 0 0 13px; margin: 0; background: none; border: none; font: inherit; color: inherit; cursor: pointer; height: 100%; }
+.sw-mini-dot { width: 10px; height: 10px; border-radius: 50%; background: #22c55e; flex: none; box-shadow: 0 0 0 3px rgba(34,197,94,.30); animation: sw-mini-pulse 1.6s ease-in-out infinite; }
+@keyframes sw-mini-pulse { 0%, 100% { box-shadow: 0 0 0 3px rgba(34,197,94,.30); } 50% { box-shadow: 0 0 0 5px rgba(34,197,94,.14); } }
+.sw-mini.paused { border-color: rgba(217,119,6,.75); }
+.sw-mini.paused .sw-mini-dot { background: #f59e0b; box-shadow: 0 0 0 3px rgba(245,158,11,.25); animation: none; }
+.sw-mini-ico { width: 21px; height: 21px; color: #0f766e; flex: none; }
+.sw-mini-time { font-size: 20px; font-weight: 800; color: #0b2239; font-variant-numeric: tabular-nums; letter-spacing: .01em; white-space: nowrap; }
+.sw-mini-bell { font-size: 13px; font-weight: 800; color: #0f766e; white-space: nowrap; font-variant-numeric: tabular-nums; }
+.sw-mini-pause { width: 44px; height: 44px; border-radius: 50%; border: none; background: linear-gradient(145deg,#f59e0b,#d97706); color: #fff; font-size: 15px; font-weight: 900; display: flex; align-items: center; justify-content: center; flex: none; box-shadow: 0 4px 10px rgba(217,119,6,.35); font-family: inherit; cursor: pointer; padding: 0; }
+.sw-mini.paused .sw-mini-pause { background: linear-gradient(145deg,#14b8a6,#0d9488); box-shadow: 0 4px 10px rgba(13,148,136,.35); }
+.sw-mini:active { filter: brightness(.97); }
+@media (prefers-reduced-motion: reduce) { .sw-mini-dot { animation: none; } }
+/* El disco de Inicio cede mientras la pieza vive (AUTH-457). */
+.sw-fab-yield { visibility: hidden !important; }
+/* La pieza bajo el candado de navegación: el espejo de la
+   mascota — viva sobre Entrenamiento y Progreso, retirada con
+   el fondo en cualquier otro estado de candado. */
+body.nav-lock .sw-mini { visibility: hidden; opacity: 0; pointer-events: none; }
+body.nav-lock.prog-page .sw-mini, body.nav-lock.train-page .sw-mini { visibility: visible; opacity: 1; pointer-events: auto; }
 /* ===== AYUDA / FAQ (paquete 2026-10-28) =====
    El «?» se apila ENCIMA del cronómetro (.sw-fab, bottom 122+72)
    con el mismo paso de la pila: 58px de botón + 14px de aire = +72.
@@ -2280,8 +2307,15 @@ body { padding: max(16px, env(safe-area-inset-top)) max(16px, env(safe-area-inse
 #sw-overlay { position: fixed; inset: 0; z-index: 1400; background: #ffffff; overflow: hidden; }
 #sw-overlay .auth-wallpaper { z-index: 0; }
 .swfull { position: relative; z-index: 1; height: 100dvh; display: flex; flex-direction: column; padding: calc(20px + env(safe-area-inset-top, 0px)) calc(22px + env(safe-area-inset-right, 0px)) calc(30px + env(safe-area-inset-bottom, 0px)) calc(22px + env(safe-area-inset-left, 0px)); box-sizing: border-box; }
-.sw-top { display: flex; align-items: center; justify-content: space-between; }
+.sw-top { display: flex; align-items: flex-start; justify-content: space-between; }
 .sw-close { width: 48px; height: 48px; border-radius: 50%; border: 2px solid rgba(13,148,136,.55); background: rgba(255,255,255,.97); box-shadow: 0 6px 18px rgba(15,23,42,.22); display: flex; align-items: center; justify-content: center; font-size: 21px; color: #0b2239; font-weight: 700; cursor: pointer; font-family: inherit; flex: none; }
+/* AUTH-457: los dos gestos de la franja, rotulados — el gemelo
+   de minimizar junto a la ✕ de cerrar, cada uno con su
+   micro-rótulo de 9,5 px debajo (la maqueta aprobada). */
+.sw-btns-top { display: flex; gap: 12px; }
+.sw-topbtn { display: flex; flex-direction: column; align-items: center; gap: 4px; }
+.sw-topbtn small { font-size: 9.5px; letter-spacing: 2.2px; font-weight: 800; color: #64748b; }
+.sw-close.min { font-size: 26px; line-height: 1; padding-bottom: 5px; }
 .sw-brand { font-size: 21px; font-weight: 900; letter-spacing: 2.5px; color: #0f766e; text-align: right; }
 .sw-brand small { display: block; text-align: right; font-size: 9.5px; letter-spacing: 3.5px; color: #94a3b8; font-weight: 700; margin-top: 1px; }
 .sw-status { margin-top: 30px; text-align: center; font-size: 13px; font-weight: 800; letter-spacing: 4px; min-height: 17px; }
@@ -2347,7 +2381,7 @@ body { padding: max(16px, env(safe-area-inset-top)) max(16px, env(safe-area-inse
    flotantes (compartir, ayuda ❓ y la pastilla del cronómetro) para
    que nada tape la lista — el fallo de la captura de Ronald. === */
 .swap-sheet { position: fixed; left: 0; right: 0; bottom: 0; top: 0; z-index: 80; background: #fff; overflow-y: auto; overscroll-behavior: contain; padding: 12px 14px calc(120px + env(safe-area-inset-bottom, 0px)); box-sizing: border-box; }
-body.swap-sheet-open .share-fab, body.swap-sheet-open .help-fab, body.swap-sheet-open .sw-fab { display: none !important; }
+body.swap-sheet-open .share-fab, body.swap-sheet-open .help-fab, body.swap-sheet-open .sw-fab, body.swap-sheet-open .sw-mini { display: none !important; }
 /* Contención del gesto (2026-11-06): al llegar al final de una
    ventana, su scroll NO se transfiere a la página de detrás.
    .swap-sheet y las páginas del dock ya lo traían; esta regla lo
@@ -5091,7 +5125,7 @@ body.swap-sheet-open .asst-fab { display: none !important; }
    Entrenamiento). A los demás, coverApply les pone la clase fab-bg
    y se retiran con el fondo, en vez de quedar flotando muertos
    sobre la cubierta. Sin tapa, la clase desaparece y todos vuelven. */
-#btn-asst-fab.fab-bg, #btn-share-fab.fab-bg, #btn-help.fab-bg, #btn-stopwatch.fab-bg, #act-flame.fab-bg { visibility: hidden; }
+#btn-asst-fab.fab-bg, #btn-share-fab.fab-bg, #btn-help.fab-bg, #btn-stopwatch.fab-bg, #act-flame.fab-bg, #sw-mini.fab-bg { visibility: hidden; }
 
 /* AUTH-2026-11-09-339 («Progreso en cuatro cuadros»): los bloques
    reubicados dentro de la hoja #mp-hist respiran bajo el historial
