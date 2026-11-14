@@ -34390,6 +34390,11 @@ function restrSuggestLoad(hist, band) {
    compuesta por músculo en orden tocado y relleno alternando;
    total por la decisión 5. */
 const RESTR_GROUP_ORDER = ['Pecho', 'Espalda', 'Hombros', 'Tríceps', 'Bíceps', 'Cuádriceps', 'Isquiotibiales', 'Glúteos', 'Pantorrillas', 'Core', 'Cuerpo completo'];
+/* AUTH-453 · el rango de tamaño de músculo de la regla de orden
+   aprobada por Ronald (2026-11-13): dentro del mismo tipo de
+   ejercicio, el músculo más grande va primero. Un grupo que
+   no esté en la tabla cae al final de su tipo (rango 99). */
+const RESTR_SIZE_RANK = { 'Cuerpo completo': 0, 'Espalda': 1, 'Cuádriceps': 2, 'Pecho': 3, 'Glúteos': 4, 'Isquiotibiales': 5, 'Hombros': 6, 'Pantorrillas': 7, 'Tríceps': 8, 'Bíceps': 9, 'Core': 10 };
 function restrBandFor(entry, grp) {
   if (!autoIsIsolation(entry)) return { min: 8, max: 12, iso: false };
   if (grp === 'Core' || grp === 'Pantorrillas') return { min: 12, max: 20, iso: true };
@@ -34496,7 +34501,22 @@ function restrBuildDay(inp) {
       hist: r.cand.hist, why: r.why,
     };
   });
-  return { rows: out, decl, target };
+  /* AUTH-453 · LA REGLA DE ORDEN (aprobada por Ronald el
+     2026-11-13, con la investigación y la maqueta): la
+     elección de arriba no cambia — al final, las filas ya
+     elegidas se ordenan: (1) compuesto antes que
+     aislamiento, con la clasificación `iso` que el motor
+     ya calcula; (2) dentro del mismo tipo, el músculo más
+     grande primero (RESTR_SIZE_RANK); (3) desempate
+     estable por el orden en que el motor eligió, para que
+     el ancla de cada grupo mande dentro de su clave.
+     Fundamento: ACSM 2009 (PMID 19204579) y Nunes et al.
+     2021 (DOI 10.1080/17461391.2020.1733672). */
+  const ordered = out.map((r, i) => ({ r, i })).sort((a, b) =>
+    (a.r.iso ? 1 : 0) - (b.r.iso ? 1 : 0) ||
+    (RESTR_SIZE_RANK[a.r.group] != null ? RESTR_SIZE_RANK[a.r.group] : 99) - (RESTR_SIZE_RANK[b.r.group] != null ? RESTR_SIZE_RANK[b.r.group] : 99) ||
+    a.i - b.i).map(x => x.r);
+  return { rows: ordered, decl, target };
 }
 /* ---------- El contexto de una persona (la lectura de
    siempre: usuario, planes, registros, declaración) ---------- */
