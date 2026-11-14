@@ -55,15 +55,15 @@
  * app.js). La caché de imágenes NO se borra entre versiones: guarda
  * contenido ya visto, con su tope.
  */
-const SW_VERSION = '20261113-aviso-cronometro';
+const SW_VERSION = '20261113-reloj-total';
 const CACHE_NAME = 'ronbofit-shell-' + SW_VERSION;
 const IMG_CACHE_NAME = 'ronbofit-img-v1';
 const IMG_CACHE_MAX = 300;
 const SHELL_URLS = [
   './',
   './index.html',
-  './styles.css?v=20261113-aviso-cronometro',
-  './app.js?v=20261113-aviso-cronometro',
+  './styles.css?v=20261113-reloj-total',
+  './app.js?v=20261113-reloj-total',
   './manifest.json',
   './icons/icon-192.png',
   './icons/icon-512.png',
