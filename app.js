@@ -33857,11 +33857,16 @@ function trainChecksPersist(planId) {
    mientras un reloj corre y al pasar la app a segundo
    plano, y se REHIDRATA en el mismo bloque en que el
    contexto restaura las marcas. LECTURA CONSERVADORA del
-   tramo muerto, declarada: el reloj cuenta hasta el último
-   latido guardado; el tiempo con la app cerrada NO se
-   inventa — al rehidratar, el tramo vivo renace anclado en
-   ese instante, como la pausa de AUTH-434 trata a sus
-   tramos cerrados. Lo que viaja al servidor no cambia
+   tramo muerto, declarada entonces: el reloj contaba hasta
+   el último latido guardado y el tiempo con la app cerrada
+   NO se contaba — al rehidratar, el tramo vivo renacía
+   anclado en ese instante. ESA LECTURA QUEDÓ REVERTIDA por
+   AUTH-459 (decisión de Ronald, 2026-11-14, punto 4 de su
+   lista, opción B): el tramo que corría renace desde SU
+   marca real y el rato con la app cerrada SÍ cuenta, por
+   reloj de pared, como en el cronómetro libre; la pausa
+   sigue fuera de esa cuenta — renace congelada en lo suyo
+   (AUTH-434 intacto). Lo que viaja al servidor no cambia
    (AUTH-344): este borrador es solo local, como el de las
    marcas, y muere con él al cerrar el día. ═══ */
 function trainFlowKey(planId) {
@@ -33914,6 +33919,29 @@ function trainFlowPersist() {
 function trainFlowDrop(planId) {
   try { if (planId) localStorage.removeItem(trainFlowKey(planId)); } catch {}
 }
+/* AUTH-459 · EL ANCLA AL REHIDRATAR (punto 4 = B, decisión
+   de Ronald del 2026-11-14): la foto de AUTH-451 ya guarda
+   la pareja honesta — acc contado HASTA el instante since —
+   así que un tramo que corría renace desde esa marca real
+   y su reloj sigue por reloj de pared, incluyendo el rato
+   con la app cerrada: la misma doctrina del cronómetro
+   libre, que revive su startAt tal cual (swRestore) y mide
+   acc + (ahora − startAt) en swElapsed. Dos topes de
+   saneamiento, sin inventar tiempo: una marca EN EL FUTURO
+   (el reloj del teléfono se movió hacia atrás) se baja a
+   ahora — nunca se cuenta desde el futuro ni el reloj se
+   queda clavado esperándolo —; y el tramo revivido se topa
+   en 12 h: el borrador vive y muere dentro del día (su
+   clave lleva la fecha de hoy) y ningún ejercicio corre
+   medio día con la app cerrada, de modo que un tramo mayor
+   es un reloj desajustado, no un entrenamiento. La pausa
+   NO pasa por aquí: renace sin ancla, congelada en su acc. */
+const FLOW_REVIVE_MAX_MS = 12 * 60 * 60 * 1000;
+function flowReviveAnchor(since) {
+  const now = Date.now();
+  if (since > now) return now;
+  return Math.max(since, now - FLOW_REVIVE_MAX_MS);
+}
 function trainFlowRead(planId) {
   try {
     const v = JSON.parse(localStorage.getItem(trainFlowKey(planId)) || 'null');
@@ -33938,13 +33966,17 @@ function trainFlowRead(planId) {
            pierde) y lo que la foto contó hasta su latido. */
         const seed = typeof chk.activeSec === 'number' && chk.activeSec > 0 ? Math.floor(chk.activeSec) * 1000 : 0;
         out.acc = Math.max(seed, (typeof e.acc === 'number' && isFinite(e.acc) && e.acc > 0) ? Math.floor(e.acc) : 0);
-        /* Si corría, renace corriendo DESDE AHORA: el tramo
-           con la app muerta no se cuenta (la lectura
-           conservadora de la cabecera). Si la foto no trae
-           ancla (un 'open' nacido sin reloj), queda sin
-           ella: los pintores lo anclan en su primer pintado,
-           como manda AUTH-434. */
-        out.since = (e.st === 'open' && typeof e.since === 'number' && isFinite(e.since) && e.since > 0) ? Date.now() : null;
+        /* Si corría, renace corriendo DESDE SU MARCA: la
+           pareja (acc, since) de la foto dice «hasta este
+           instante llegó contado», y flowReviveAnchor la
+           devuelve saneada — el rato con la app cerrada
+           cuenta (AUTH-459, que revierte la lectura
+           conservadora con la que AUTH-451 nació). Si la
+           foto no trae ancla (un 'open' nacido sin reloj),
+           queda sin ella: los pintores lo anclan en su
+           primer pintado, como manda AUTH-434. La pausa
+           renace con since null: congelada en su acc. */
+        out.since = (e.st === 'open' && typeof e.since === 'number' && isFinite(e.since) && e.since > 0) ? flowReviveAnchor(e.since) : null;
       }
       flow[k] = out;
     });
