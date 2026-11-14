@@ -33817,9 +33817,145 @@ function trainChecksPersist(planId) {
     if (!planId) return;
     if (TRAIN_CHECKS && Object.keys(TRAIN_CHECKS).length)
       localStorage.setItem(trainChecksKey(planId), JSON.stringify(TRAIN_CHECKS));
-    else localStorage.removeItem(trainChecksKey(planId));
+    else { localStorage.removeItem(trainChecksKey(planId)); trainFlowDrop(planId); }   /* AUTH-451: si el borrador de marcas muere (día cerrado o vacío), el del flujo muere con él */
   } catch {}
 }
+/* ═══ AUTH-451 · EL ESTADO DEL FLUJO TAMBIÉN ES BORRADOR
+   (reporte de Ronald, 2026-11-13 11:59 CST, entrenando en
+   vivo: «Esto se volvió a poner en cero» — el reloj de su
+   ejercicio en curso amaneció en 00:00:00 con «▶ Seguir»
+   después de que la app se recargara sola a mitad de sesión
+   al adoptar la versión recién publicada). Hasta este
+   paquete, TRAIN_FLOW vivía SOLO en la memoria de la página
+   (AUTH-406: «el estado del flujo muere con el contexto») y
+   toda muerte de la página — la recarga única y protegida
+   del service worker al llegar una versión nueva, el cierre
+   de la app, el descarte de la vista por el sistema — lo
+   borraba entero: sobrevivían las marcas con su tiempo
+   BANCADO (activeSec, AUTH-434) y el cronómetro del día,
+   pero el tramo vivo sin bancar y el estado (en curso, en
+   pausa, en cierre) se perdían, y la píldora renacía
+   ofreciendo «Seguir» con el contador clavado en lo bancado
+   — cero si el ejercicio nunca se había pausado. Ahora el
+   flujo se guarda COMO PARTE DEL BORRADOR del día (su
+   propio registro, con las mismas coordenadas del de las
+   marcas: usuario|plan|fecha) en cada gesto, con un latido
+   mientras un reloj corre y al pasar la app a segundo
+   plano, y se REHIDRATA en el mismo bloque en que el
+   contexto restaura las marcas. LECTURA CONSERVADORA del
+   tramo muerto, declarada: el reloj cuenta hasta el último
+   latido guardado; el tiempo con la app cerrada NO se
+   inventa — al rehidratar, el tramo vivo renace anclado en
+   ese instante, como la pausa de AUTH-434 trata a sus
+   tramos cerrados. Lo que viaja al servidor no cambia
+   (AUTH-344): este borrador es solo local, como el de las
+   marcas, y muere con él al cerrar el día. ═══ */
+function trainFlowKey(planId) {
+  const uid = auth.currentUser ? auth.currentUser.uid : '';
+  return 'ronbofit-session-flow-' + uid + '|' + planId + '|' + todayISO();
+}
+/* La foto del flujo en un instante: por ejercicio, su
+   estado y — si su reloj corre — su tiempo contado HASTA
+   ESTE INSTANTE (el tramo vivo se pliega en acc y el ancla
+   guardada es este instante: la foto dice «hasta aquí
+   llegó», sin tocar la entrada viva). La cara viaja como
+   vive: es parte del estado (su banda de cierre la pinta).
+   El pin del guiado viaja en la misma foto: también era
+   solo memoria, y también moría con la página. */
+function trainFlowSnap() {
+  const flow = {};
+  Object.keys(TRAIN_FLOW || {}).forEach(k => {
+    if (!/^\d+:\d+$/.test(k)) return;
+    const fs = TRAIN_FLOW[k]; if (!fs || typeof fs !== 'object') return;
+    if (!['open', 'paused', 'closing', 'reopen'].includes(fs.st)) return;
+    const e = { st: fs.st, face: (typeof fs.face === 'number') ? fs.face : null };
+    if (fs.st === 'open' || fs.st === 'paused') {
+      const now = Date.now();
+      const chk = TRAIN_CHECKS[k] || null;
+      const seed = chk && typeof chk.activeSec === 'number' && chk.activeSec > 0 ? Math.floor(chk.activeSec) * 1000 : 0;
+      let acc = typeof fs.acc === 'number' && isFinite(fs.acc) ? fs.acc : seed;
+      e.since = null;
+      if (fs.st === 'open' && typeof fs.since === 'number' && isFinite(fs.since) && fs.since > 0) {
+        acc += Math.max(0, now - fs.since);
+        e.since = now;
+      }
+      e.acc = Math.max(0, Math.floor(acc));
+    }
+    flow[k] = e;
+  });
+  return { pin: (typeof TRAIN_GUIDE !== 'undefined' && TRAIN_GUIDE && Number.isInteger(TRAIN_GUIDE.pin)) ? TRAIN_GUIDE.pin : null, flow };
+}
+let TRAIN_FLOW_SNAP_AT = 0;
+function trainFlowPersist() {
+  try {
+    const planId = String(TRAIN_CHECKS_CTX || '').split('|')[0];
+    if (!planId) return;
+    const snap = trainFlowSnap();
+    TRAIN_FLOW_SNAP_AT = Date.now();
+    if (!snap.flow || !Object.keys(snap.flow).length) { localStorage.removeItem(trainFlowKey(planId)); return; }
+    snap.at = TRAIN_FLOW_SNAP_AT;
+    localStorage.setItem(trainFlowKey(planId), JSON.stringify(snap));
+  } catch {}
+}
+function trainFlowDrop(planId) {
+  try { if (planId) localStorage.removeItem(trainFlowKey(planId)); } catch {}
+}
+function trainFlowRead(planId) {
+  try {
+    const v = JSON.parse(localStorage.getItem(trainFlowKey(planId)) || 'null');
+    if (!v || typeof v !== 'object' || !v.flow || typeof v.flow !== 'object') return null;
+    const flow = {};
+    Object.keys(v.flow).forEach(k => {
+      if (!/^\d+:\d+$/.test(k)) return;
+      const e = v.flow[k];
+      if (!e || typeof e !== 'object' || !['open', 'paused', 'closing', 'reopen'].includes(e.st)) return;
+      const chk = TRAIN_CHECKS[k] || null;
+      /* La foto solo revive sobre marcas vivas: sin marca —
+         o con el ejercicio ya hecho, salvo el espejo
+         'reopen', que solo vive sobre un hecho — la entrada
+         es peso muerto de un día que ya no está en curso y
+         no resucita. */
+      if (e.st === 'reopen') { if (!chk || chk.done !== true) return; }
+      else if (!chk || chk.done === true) return;
+      const out = { st: e.st, face: Number.isInteger(e.face) && e.face >= 1 && e.face <= 5 ? e.face : null };
+      if (e.st === 'open' || e.st === 'paused') {
+        /* El tiempo revive como el MAYOR de los dos pisos
+           honestos: lo bancado en la marca (que nunca se
+           pierde) y lo que la foto contó hasta su latido. */
+        const seed = typeof chk.activeSec === 'number' && chk.activeSec > 0 ? Math.floor(chk.activeSec) * 1000 : 0;
+        out.acc = Math.max(seed, (typeof e.acc === 'number' && isFinite(e.acc) && e.acc > 0) ? Math.floor(e.acc) : 0);
+        /* Si corría, renace corriendo DESDE AHORA: el tramo
+           con la app muerta no se cuenta (la lectura
+           conservadora de la cabecera). Si la foto no trae
+           ancla (un 'open' nacido sin reloj), queda sin
+           ella: los pintores lo anclan en su primer pintado,
+           como manda AUTH-434. */
+        out.since = (e.st === 'open' && typeof e.since === 'number' && isFinite(e.since) && e.since > 0) ? Date.now() : null;
+      }
+      flow[k] = out;
+    });
+    return { pin: Number.isInteger(v.pin) ? v.pin : null, flow };
+  } catch { return null; }
+}
+/* La rehidratación corre UNA sola vez por contexto, en el
+   mismo bloque que restaura las marcas y vacía el flujo:
+   el flujo renace como estaba — en curso contando desde lo
+   guardado, en pausa congelado en lo suyo, en cierre con su
+   cara — y el pin vuelve a su ejercicio, como lo dejan los
+   gestos al arrancar. */
+function trainFlowRehydrate(planId) {
+  const snap = trainFlowRead(planId);
+  if (!snap) return;
+  Object.keys(snap.flow).forEach(k => { TRAIN_FLOW[k] = snap.flow[k]; });
+  if (snap.pin != null && typeof TRAIN_GUIDE !== 'undefined' && TRAIN_GUIDE) TRAIN_GUIDE.pin = snap.pin;
+}
+/* Los dos momentos de máximo riesgo de muerte de la
+   página dejan la foto guardada antes de irse: pasar a
+   segundo plano (el sistema puede descartar la vista
+   mientras la persona está en otra app) y la salida. */
+document.addEventListener('visibilitychange', () => { try { if (document.visibilityState === 'hidden') trainFlowPersist(); } catch {} });
+window.addEventListener('pagehide', () => { try { trainFlowPersist(); } catch {} });
+
 function trainChecksPruneStale(planId) {
   try {
     const uid = auth.currentUser ? auth.currentUser.uid : '';
@@ -38022,6 +38158,15 @@ function sessPillTick() {
   document.body.classList.add('sess-on');
   try { sessPillSync(run); } catch {}
   try { moveTick(run); } catch {}
+  /* AUTH-451 · EL LATIDO DE LA FOTO DEL FLUJO: mientras un
+     reloj corre, la foto se refresca cada pocos segundos —
+     este tick ya corre cada segundo junto a la píldora —
+     para que una muerte de la página pierda, como mucho,
+     ese respiro de tramo, y nunca el tramo entero. */
+  try {
+    if (Object.keys(TRAIN_FLOW).some(k => TRAIN_FLOW[k] && TRAIN_FLOW[k].st === 'open' && typeof TRAIN_FLOW[k].since === 'number')
+      && Date.now() - TRAIN_FLOW_SNAP_AT >= 5000) trainFlowPersist();
+  } catch {}
 }
 /* ═══ AUTH-407 · LA PÍLDORA GRUESA (dictada por Ronald el
    2026-11-11 12:50 CST, franja corregida a las 12:56 y veredicto
@@ -43020,6 +43165,14 @@ async function fdBizJoin() {
 async function loadMyTraining() {
   const box = $('my-training');
   if (!box || !auth.currentUser) return;
+  /* AUTH-451 · LA FOTO DEL FLUJO SE GUARDA AL REPINTAR: todo
+     gesto del flujo — la tarjeta y la píldora — termina en
+     esta carga, así que su primera línea deja guardado el
+     estado tal como el gesto lo dejó, con el contexto AÚN
+     VIEJO en la memoria, que es el dueño de ese flujo. En
+     la primera carga tras una recarga no hay contexto
+     todavía y la foto no se toca: es la que va a renacer. */
+  trainFlowPersist();
   fdCamRender();
   try { treqBoxSync(); } catch {}
   const uid = auth.currentUser.uid;
@@ -43067,6 +43220,7 @@ async function loadMyTraining() {
     TRAIN_CHECKS_CTX = ctx;
     trainChecksPruneStale(plan.id);
     TRAIN_FLOW = {};   /* AUTH-406: el estado del flujo muere con el contexto, como las marcas */
+    trainFlowRehydrate(plan.id);   /* AUTH-451: …y renace de su propio borrador, como las marcas */
   }
   const logByDay = {};
   logs.filter(l => l.date === today).forEach(l => { logByDay[l.dayIndex] = l; });
