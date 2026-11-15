@@ -16074,6 +16074,11 @@ onAuthStateChanged(auth, async user => {
      su pendiente (permisos, consentimientos, su entrenador o el
      formulario de peso), una sola vez. */
   try { irLinkApply(); } catch {}
+  /* PIEZA 3 · LAS ENTREGAS: el enlace ?menu= de los correos de
+     entrega abre el planificador en lo entregado (el menú de
+     hoy, la semana del paquete o su lista), una sola vez. Sin
+     enlace, esta costura no hace nada. */
+  try { menuLinkApply(); } catch {}
   /* ALERTA DE LA VÍSPERA: con la sesión ya cargada (plan y metas en
      memoria tras loadAll), la evaluación de la ventana de mañana
      exigente corre UNA vez, sin lecturas nuevas. */
@@ -28173,6 +28178,17 @@ function captureSignupLinks() {
        Cualquier otro valor se ignora y no se captura nada. */
     const ir = q.get('ir');
     if (ir && ['perms', 'perms-spec', 'perms-bt', 'mytrainer', 'weight'].includes(ir)) { try { sessionStorage.setItem('rf-link-ir', ir); } catch {} captured = true; }
+    /* PIEZA 3 · LAS ENTREGAS: el enlace de los correos de entrega
+       (?menu=hoy|semana|lista, con ?sem=AAAA-MM-DD opcional — el
+       lunes de la semana entregada) se captura con el MISMO
+       patrón: solo el conjunto cerrado de destinos; sobrevive al
+       inicio de sesión en sessionStorage y la sesión lo consume
+       UNA vez tras loadAll (menuLinkApply), abriendo el
+       planificador en lo entregado. La semana se valida como
+       lunes real al consumirla; cualquier otro valor se ignora
+       y no se captura nada. */
+    const menu = q.get('menu');
+    if (menu && ['hoy', 'semana', 'lista'].includes(menu)) { try { sessionStorage.setItem('rf-link-menu', JSON.stringify({ kind: menu, sem: q.get('sem') || '' })); } catch {} captured = true; }
     if (captured) { try { history.replaceState(null, '', location.pathname); } catch {} }
   } catch {}
 }
@@ -41588,6 +41604,35 @@ function irLinkTake() {
     sessionStorage.removeItem('rf-link-ir');
     return ['perms', 'perms-spec', 'perms-bt', 'mytrainer', 'weight'].includes(raw) ? raw : null;
   } catch { return null; }
+}
+/* PIEZA 3 · LAS ENTREGAS: la intención del enlace ?menu= vive
+   en PLAN_LINK hasta que la hoja del planificador abre. Si la
+   persona aún no respondió la pregunta de cocina, planOpenSheet
+   la desvía a esa hoja y la intención se honra al terminar de
+   responder (planCookSave abre la hoja del planificador). La
+   intención se consume UNA vez, dentro de planSheetOpenNow. */
+let PLAN_LINK = null;
+function menuLinkTake() {
+  try {
+    const raw = sessionStorage.getItem('rf-link-menu');
+    if (!raw) return null;
+    sessionStorage.removeItem('rf-link-menu');
+    const o = JSON.parse(raw);
+    if (!o || !['hoy', 'semana', 'lista'].includes(o.kind)) return null;
+    let sem = '';
+    if (typeof o.sem === 'string' && /^\d{4}-\d{2}-\d{2}$/.test(o.sem)) {
+      const d = new Date(o.sem + 'T12:00:00Z');
+      if (!isNaN(d) && d.getUTCDay() === 1) sem = o.sem;
+    }
+    return { kind: o.kind, sem };
+  } catch { return null; }
+}
+function menuLinkApply() {
+  const lk = menuLinkTake();
+  if (!lk) return false;
+  PLAN_LINK = lk;
+  planOpenSheet();
+  return true;
 }
 function irLinkApply() {
   const route = irLinkTake();
@@ -61367,7 +61412,7 @@ document.addEventListener('keydown', e => { if (e.key === 'Escape') shareClose()
  *  - El SW (sw.js) solo cachea la cáscara del mismo origen en modo
  *    RED PRIMERO: Auth/Firestore/Worker jamás pasan por la caché.
  * ================================================================ */
-const PWA_SW_VERSION = '20261115-planificador-semanal';
+const PWA_SW_VERSION = '20261115-entregas';
 /* Sello de versión VISIBLE (2026-11-03): el pie de la tarjeta de
    acceso enseña qué copia corre este teléfono ('v ' + el sello),
    para comprobar de un vistazo si la versión nueva ya llegó.
@@ -66658,6 +66703,27 @@ function planSheetOpenNow() {
   PLANWK.view = 'hoy';
   PLANWK.listOpen = false;
   PLANWK.openDay = todayISO();
+  /* PIEZA 3 · LAS ENTREGAS: si la apertura viene de un correo de
+     entrega (?menu=), la hoja nace en lo entregado — la semana
+     del paquete en vista Semana, con la lista abierta si el
+     correo era el del paquete — en vez del nacimiento por
+     defecto. La intención se consume aquí, una sola vez; una
+     semana fuera de la ventana razonable (el lunes actual −7
+     días … +14 días) se ignora y manda el defecto. El refresco
+     en segundo plano no toca la semana ni la vista, así que lo
+     entregado se queda donde la persona lo está mirando. */
+  if (PLAN_LINK) {
+    const lk = PLAN_LINK; PLAN_LINK = null;
+    if (lk.kind === 'semana' || lk.kind === 'lista') {
+      PLANWK.view = 'semana';
+      if (lk.sem && lk.sem >= planISOAddDays(PLANWK.weekStart, -7) && lk.sem <= planISOAddDays(PLANWK.weekStart, 14)) {
+        PLANWK.weekStart = lk.sem;
+        const t0 = todayISO();
+        PLANWK.openDay = (t0 >= lk.sem && t0 <= planISOAddDays(lk.sem, 6)) ? t0 : lk.sem;
+      }
+      if (lk.kind === 'lista') PLANWK.listOpen = true;
+    }
+  }
   bd.style.display = ''; f.style.display = '';
   try { coverSync(); } catch {}
   /* AUTH-471 + REFRESCO: la hoja pinta AL INSTANTE desde la
