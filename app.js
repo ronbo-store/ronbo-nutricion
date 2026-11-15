@@ -47239,19 +47239,19 @@ function libNameOf(ex) { return libField(ex, 'nombre') || (ex ? ex.id : ''); }
       propia (E129–E139) se siguen encontrando como siempre.
    Sin datos nuevos: todo se deriva de campos que la ficha ya trae. */
 const LIB_SYNONYMS = [
-  { es: ['extension en polea', 'extension de triceps en polea', 'extension con polea', 'empuje en polea'], en: ['pushdown', 'push down', 'cable pushdown', 'tricep pushdown', 'triceps pushdown'] },
+  { es: ['extension en polea', 'extension de triceps en polea', 'extension con polea', 'empuje en polea'], en: ['pushdown', 'pushdowns', 'push down', 'cable pushdown', 'tricep pushdown', 'triceps pushdown'] },
   { es: ['remo'], en: ['row', 'rows', 'rowing'] },
   { es: ['sentadilla', 'sentadillas'], en: ['squat', 'squats'] },
   { es: ['peso muerto'], en: ['deadlift', 'dead lift', 'deadlifts'] },
   { es: ['fondos', 'fondo'], en: ['dips', 'dip'] },
   { es: ['dominadas', 'dominada'], en: ['pull-up', 'pull up', 'pull-ups', 'pullup', 'pullups', 'chin-up', 'chin up', 'chin-ups', 'chinup', 'chinups'] },
   { es: ['jalon al pecho', 'jalon en polea alta', 'jalon en polea', 'jalon'], en: ['lat pulldown', 'lat pulldowns', 'pulldown', 'pulldowns'] },
-  { es: ['zancadas', 'zancada', 'desplantes', 'desplante'], en: ['lunges', 'lunge'] },
+  { es: ['zancadas', 'zancada', 'desplantes', 'desplante', 'estocadas', 'estocada'], en: ['lunges', 'lunge'] },
   { es: ['empuje de cadera', 'empuje de caderas'], en: ['hip thrust', 'hip thrusts'] },
   { es: ['curl de biceps', 'flexion de biceps', 'curl'], en: ['curl', 'curls', 'bicep curl', 'biceps curl'] },
   { es: ['press de banca', 'press en banca'], en: ['bench press'] },
   { es: ['press militar', 'press de hombros'], en: ['overhead press', 'military press', 'shoulder press'] },
-  { es: ['elevacion lateral', 'elevaciones laterales'], en: ['lateral raise', 'lateral raises', 'side raise', 'side raises'] },
+  { es: ['elevacion lateral', 'elevaciones laterales', 'vuelos laterales', 'vuelo lateral'], en: ['lateral raise', 'lateral raises', 'side raise', 'side raises'] },
   { es: ['aperturas', 'cruce en polea'], en: ['fly', 'flyes', 'flies', 'cable fly', 'dumbbell fly', 'chest fly', 'cable crossover', 'crossover'] },
   /* NOMBRES CORTOS DE RONALD (2026-11-06, decisión D2 del dictado de
      ejercicios sin IA): cómo dice ÉL los ejercicios al dictar, en
@@ -47263,10 +47263,38 @@ const LIB_SYNONYMS = [
   { es: ['femoral', 'femorales'], en: ['leg curl', 'leg curls'] },
   { es: ['prensa'], en: ['leg press'] },
   { es: ['gemelos', 'gemelo'], en: ['calf raise', 'calf raises'] },
-  { es: ['sentadilla bulgara'], en: ['bulgarian split squat'] },
+  { es: ['sentadilla bulgara', 'zancada bulgara', 'zancadas bulgaras'], en: ['bulgarian split squat', 'bulgarian lunge', 'bulgarian lunges'] },
   { es: ['peso muerto rumano'], en: ['romanian deadlift', 'rdl'] },
   { es: ['curl martillo'], en: ['hammer curl'] },
-  { es: ['press frances'], en: ['skull crusher', 'skull crushers'] }
+  { es: ['press frances', 'rompecraneos'], en: ['skull crusher', 'skull crushers'] },
+  /* MÁS SINÓNIMOS (2026-11-15, recomendación 3 de la auditoría
+     semanal — AUTH-478): términos que la gente realmente usa y que
+     hoy no devolvían nada (medido: 37 consultas vacías sobre el
+     catálogo vivo). Los grupos se AÑADEN al final, como manda la
+     doctrina de esta tabla: los índices de los grupos anteriores
+     no se mueven. Los grupos de MÚSCULO se anclan en el propio
+     campo grupo_muscular_* de cada ficha y reproducen la
+     semántica del selector de AUTH-099: la consulta que nombra un
+     músculo trae las fichas de su grupo. */
+  { es: ['lagartijas', 'lagartija', 'pechadas', 'flexiones'], en: ['push-ups', 'push-up', 'pushups', 'pushup', 'push ups', 'push up'] },
+  { es: ['pecho', 'pectoral', 'pectorales'], en: ['chest', 'pecs'] },
+  { es: ['espalda', 'dorsales', 'dorsal'], en: ['lats', 'lat'] },
+  { es: ['hombros', 'hombro', 'deltoides', 'deltoide'], en: ['shoulders', 'shoulder', 'delts', 'deltoids'] },
+  { es: ['biceps'], en: ['biceps', 'bicep'] },
+  { es: ['triceps'], en: ['triceps', 'tricep'] },
+  { es: ['cuadriceps', 'cuadricep'], en: ['quadriceps', 'quads', 'quad'] },
+  { es: ['gluteos', 'gluteo', 'nalgas'], en: ['glutes', 'glute'] },
+  { es: ['abdomen', 'abdominales'], en: ['core', 'abs'] },
+  { es: ['encogimientos de trapecio'], en: ['shrugs', 'shrug'] },
+  { es: ['trapecio'], en: ['traps', 'trap'] },
+  { es: ['pesa rusa', 'pesas rusas'], en: ['kettlebell', 'kettlebells'] },
+  { es: ['face pull'], en: ['face pull', 'facepull', 'face pulls'] },
+  { es: ['giros rusos', 'giro ruso'], en: ['russian twist', 'russian twists'] },
+  { es: ['remo en t'], en: ['t-bar row', 't bar row', 'tbar row'] },
+  { es: ['aductores', 'aduccion'], en: ['adductors', 'adduction', 'hip adduction'] },
+  { es: ['abductores', 'abduccion'], en: ['abductors', 'abduction', 'hip abduction'] },
+  { es: ['subida al cajon', 'subidas al cajon'], en: ['step-up', 'step up', 'step-ups', 'step ups'] },
+  { es: ['paseo del granjero', 'caminata del granjero', 'granjero'], en: ["farmer's walk", 'farmers walk', 'farmer walk'] }
 ];
 const LIB_SYN_TOKEN = i => '\u0001' + i + '\u0001';
 const LIB_SYN_PHRASES = (() => {
@@ -61412,7 +61440,7 @@ document.addEventListener('keydown', e => { if (e.key === 'Escape') shareClose()
  *  - El SW (sw.js) solo cachea la cáscara del mismo origen en modo
  *    RED PRIMERO: Auth/Firestore/Worker jamás pasan por la caché.
  * ================================================================ */
-const PWA_SW_VERSION = '20261115-entregas';
+const PWA_SW_VERSION = '20261115-sinonimos';
 /* Sello de versión VISIBLE (2026-11-03): el pie de la tarjeta de
    acceso enseña qué copia corre este teléfono ('v ' + el sello),
    para comprobar de un vistazo si la versión nueva ya llegó.
