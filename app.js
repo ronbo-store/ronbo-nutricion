@@ -61218,7 +61218,7 @@ document.addEventListener('keydown', e => { if (e.key === 'Escape') shareClose()
  *  - El SW (sw.js) solo cachea la cáscara del mismo origen en modo
  *    RED PRIMERO: Auth/Firestore/Worker jamás pasan por la caché.
  * ================================================================ */
-const PWA_SW_VERSION = '20261115-catalogo-grande';
+const PWA_SW_VERSION = '20261115-planificador-queda';
 /* Sello de versión VISIBLE (2026-11-03): el pie de la tarjeta de
    acceso enseña qué copia corre este teléfono ('v ' + el sello),
    para comprobar de un vistazo si la versión nueva ya llegó.
@@ -64171,7 +64171,7 @@ async function nutriAdminPaint(body) {
   document.addEventListener('click', e => {
     const f = $('nutri-float'); if (!f || f.style.display === 'none') return;
     if (f.contains(e.target)) return;
-    if (e.target.closest && e.target.closest('#nutri-my-box, #nutri-pro-box')) return;
+    if (e.target.closest && e.target.closest('#nutri-my-box, #nutri-pro-box, #plan-float')) return;
     nutriCloseFloat();
   });
   document.addEventListener('keydown', e => { if (e.key === 'Escape') { const f = $('nutri-float'); if (f && f.style.display !== 'none') nutriCloseFloat(); } });
