@@ -6353,6 +6353,124 @@ body.sess-on .sw-fab { bottom: calc(env(safe-area-inset-bottom, 0px) + 272px + 7
 body.sess-on .help-fab { bottom: calc(env(safe-area-inset-bottom, 0px) + 272px + 72px + 72px + 76px + 44px); }
 body.sess-on .share-fab { bottom: calc(env(safe-area-inset-bottom, 0px) + 272px + 72px + 72px + 72px + 76px + 44px); }
 body.sess-on #pend-back-chip { bottom: calc(env(safe-area-inset-bottom, 0px) + 278px + 76px + 44px); }
+
+/* ═══ AUTH-464 · EL PANEL AZUL EN TRES ESTADOS: los resguardos
+   de la sesión se ajustan al estado visible. Con la píldora (ya
+   sin el anexo de AUTH-444) vuelven los valores de la era
+   AUTH-456: la píldora mide lo mismo y el aire del anexo (+44)
+   desaparece. Con la barra (116 px en dos filas)
+   todo baja lo que su altura libera. Con la completa abierta no
+   hace falta resguardo: es una tapa de pantalla entera y la
+   pila de botones se retira con el fondo. ═══ */
+body.sess-on.sess-view-pill .foot { padding-bottom: 358px; }
+body.sess-on.sess-view-pill #train-content.nav-page-on, body.sess-on.sess-view-pill #progress-content.nav-page-on { padding-bottom: 354px; }
+body.sess-on.sess-view-pill .act-flame { bottom: calc(env(safe-area-inset-bottom, 0px) + 272px + 76px); }
+body.sess-on.sess-view-pill .sw-fab { bottom: calc(env(safe-area-inset-bottom, 0px) + 272px + 72px + 76px); }
+body.sess-on.sess-view-pill .help-fab { bottom: calc(env(safe-area-inset-bottom, 0px) + 272px + 72px + 72px + 76px); }
+body.sess-on.sess-view-pill .share-fab { bottom: calc(env(safe-area-inset-bottom, 0px) + 272px + 72px + 72px + 72px + 76px); }
+body.sess-on.sess-view-pill #pend-back-chip { bottom: calc(env(safe-area-inset-bottom, 0px) + 278px + 76px); }
+body.sess-on.sess-view-bar .foot { padding-bottom: 296px; }
+body.sess-on.sess-view-bar #train-content.nav-page-on, body.sess-on.sess-view-bar #progress-content.nav-page-on { padding-bottom: 292px; }
+body.sess-on.sess-view-bar .act-flame { bottom: calc(env(safe-area-inset-bottom, 0px) + 210px + 76px); }
+body.sess-on.sess-view-bar .sw-fab { bottom: calc(env(safe-area-inset-bottom, 0px) + 210px + 72px + 76px); }
+body.sess-on.sess-view-bar .help-fab { bottom: calc(env(safe-area-inset-bottom, 0px) + 210px + 72px + 72px + 76px); }
+body.sess-on.sess-view-bar .share-fab { bottom: calc(env(safe-area-inset-bottom, 0px) + 210px + 72px + 72px + 72px + 76px); }
+body.sess-on.sess-view-bar #pend-back-chip { bottom: calc(env(safe-area-inset-bottom, 0px) + 216px + 76px); }
+
+/* AUTH-464 · LAS PUERTAS DE LA PÍLDORA: 44 px en la esquina
+   superior absoluta — la píldora no crece ni un píxel. */
+.sp-doors { position: absolute; top: 8px; right: 12px; display: flex; gap: 6px; z-index: 3; }
+.sp-door { width: 44px; height: 44px; padding: 0; overflow: hidden; border-radius: 12px; border: 1px solid rgba(255,255,255,.30); background: rgba(255,255,255,.10); color: #fff; display: flex; flex-direction: column; align-items: center; justify-content: center; font-family: inherit; cursor: pointer; }
+.sp-door:active { background: rgba(255,255,255,.22); }
+.sp-door-g { font-size: 15px; line-height: 1.05; }
+.sp-door small { font-size: 8px; font-weight: 800; letter-spacing: .02em; color: rgba(255,255,255,.82); line-height: 1.1; white-space: nowrap; }
+
+/* AUTH-464 · LA BARRA MINIMIZADA: la misma casa que la píldora
+   (fija, sobre el dock, su mismo ancho) con solo el tiempo del
+   ejercicio, su nombre y Detener/Finalizar. Vive en DOS filas
+   en todas las bandas (116 px): la etiqueta real «Finalizar
+   ejercicio» de AUTH-449 no cabe en una fila con el nombre sin
+   achicar palabras ni toques — la maqueta B la dibujó con la
+   etiqueta corta; aquí manda la palabra completa. */
+#sess-bar { position: fixed; left: 50%; transform: translateX(-50%); bottom: calc(env(safe-area-inset-bottom, 0px) + 88px); z-index: 44; width: min(430px, calc(100vw - 24px)); box-sizing: border-box; background: #1b2a4a; border-radius: 20px; color: #fff; font-family: inherit; padding: 8px 10px; display: flex; flex-wrap: wrap; align-items: center; gap: 8px; row-gap: 4px; box-shadow: 0 10px 26px rgba(15,23,42,.30); }
+.sb-main { display: flex; align-items: center; gap: 9px; flex: 0 0 100%; min-width: 0; min-height: 48px; padding: 0 4px; background: none; border: none; color: #fff; font: inherit; text-align: left; cursor: pointer; border-radius: 12px; }
+.sb-main:active { background: rgba(255,255,255,.08); }
+.sb-up { display: flex; flex-direction: column; align-items: center; flex: none; line-height: 1.05; }
+.sb-chev { font-size: 17px; color: #C6FF4A; }
+.sb-expand { font-size: 9.5px; font-weight: 800; letter-spacing: .07em; color: rgba(255,255,255,.78); }
+.sb-clock { font-size: 17px; font-weight: 800; font-variant-numeric: tabular-nums; white-space: nowrap; flex: none; }
+.sb-paused { font-size: 12.5px; font-weight: 700; color: #fbbf24; }
+.sb-name { flex: 1 1 auto; min-width: 0; font-size: 15.5px; font-weight: 700; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.sb-btns { display: flex; gap: 8px; flex: 0 0 100%; }
+.sb-btn { height: 48px; padding: 0 15px; border: none; border-radius: 12px; font-size: 15px; font-weight: 800; color: #fff; cursor: pointer; font-family: inherit; white-space: nowrap; }
+.sb-btn.ini { background: linear-gradient(180deg, #22c55e, #16a34a); }
+.sb-btn.stop { background: linear-gradient(180deg, #f59e0b, #d97706); }
+.sb-btn.fin { background: #b3261e; }
+.sb-btn.how { background: rgba(255,255,255,.16); }
+/* AUTH-464 · LA PANTALLA COMPLETA DEL PANEL: tapa de pantalla
+   entera (doctrina AUTH-338) con la columna topada a 640 px
+   centrada en bandas anchas (precedente AUTH-420). */
+#sess-full { position: fixed; inset: 0; z-index: 48; background: #1b2a4a; color: #fff; overflow-y: auto; overscroll-behavior: contain; font-family: inherit; }
+.sf-col { max-width: 430px; margin: 0 auto; min-height: 100%; box-sizing: border-box; display: flex; flex-direction: column; gap: 14px; padding: calc(env(safe-area-inset-top, 0px) + 18px) 18px calc(env(safe-area-inset-bottom, 0px) + 20px); }
+@media (min-width: 720px) { .sf-col { max-width: 640px; } }
+.sf-head { display: flex; align-items: center; gap: 8px; }
+.sf-training { font-size: 12px; font-weight: 800; letter-spacing: .14em; color: #C6FF4A; }
+.sf-day { font-size: 13.5px; color: rgba(255,255,255,.72); font-weight: 600; }
+.sf-clockrow { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
+.sf-clock { font-size: 52px; font-weight: 800; letter-spacing: .01em; line-height: 1; font-variant-numeric: tabular-nums; }
+.sf-franja { position: relative; height: 8px; border-radius: 99px; background: rgba(255,255,255,.18); }
+.sf-franja > i { position: absolute; left: 0; top: 0; bottom: 0; border-radius: 99px; background: linear-gradient(90deg, #22c55e, #84cc16); }
+.sf-prog { font-size: 13.5px; color: rgba(255,255,255,.78); font-weight: 600; margin-top: -8px; }
+.sf-card { background: rgba(255,255,255,.07); border: 1px solid rgba(255,255,255,.14); border-radius: 16px; padding: 14px 16px; }
+.sf-card-lab { font-size: 11.5px; font-weight: 800; letter-spacing: .14em; color: #C6FF4A; margin-bottom: 8px; }
+.sf-msg { display: flex; gap: 10px; align-items: flex-start; }
+.sf-msg-ic { font-size: 24px; line-height: 1.25; }
+.sf-msg-text { font-size: 24px; font-style: italic; font-weight: 600; line-height: 1.3; }
+.sf-refl-fam { font-size: 11.5px; font-weight: 800; letter-spacing: .1em; text-transform: uppercase; color: #0d9488; margin-bottom: 6px; }
+.sf-card .sf-refl-fam { color: #5eead4; }
+.sf-refl-text { font-size: 17px; line-height: 1.45; }
+.sf-refl-title { font-size: 21px; font-weight: 700; line-height: 1.3; }
+.sf-refl-src { margin-top: 8px; font-size: 12.5px; color: rgba(255,255,255,.62); }
+#sess-article-float .sf-refl-src { color: #64748b; }
+.sf-refl-line { display: block; width: 100%; min-height: 44px; margin-top: 6px; padding: 10px 0 2px; background: none; border: none; color: #5eead4; font: inherit; font-size: 15.5px; font-weight: 700; text-align: left; cursor: pointer; }
+.sf-now-lab { font-size: 11.5px; font-weight: 800; letter-spacing: .14em; color: #C6FF4A; }
+.sf-name { font-size: 27px; font-weight: 800; line-height: 1.2; margin-top: 4px; }
+.sf-exrow { display: flex; align-items: center; gap: 10px; margin-top: 8px; }
+.sf-exrow .sess-full-exclock { display: inline-block; background: rgba(255,255,255,.14); border-radius: 99px; padding: 4px 12px; font-size: 16px; font-weight: 800; font-variant-numeric: tabular-nums; }
+.sf-paused { font-size: 13px; font-weight: 800; color: #fbbf24; letter-spacing: .06em; }
+.sf-running { font-size: 13px; font-weight: 700; color: rgba(255,255,255,.72); }
+.sf-how { display: flex; align-items: center; gap: 12px; width: 100%; min-height: 58px; margin-top: 12px; padding: 9px 14px; box-sizing: border-box; border-radius: 14px; border: 1.5px solid rgba(255,255,255,.35); background: rgba(255,255,255,.08); color: #fff; font: inherit; text-align: left; cursor: pointer; }
+.sf-how:active { background: rgba(255,255,255,.16); }
+.sf-how-play { width: 40px; height: 40px; flex: none; border-radius: 50%; background: #0d9488; display: flex; align-items: center; justify-content: center; font-size: 16px; }
+.sf-how-tx b { display: block; font-size: 16.5px; }
+.sf-how-tx small { display: block; font-size: 12.5px; font-weight: 600; color: rgba(255,255,255,.65); margin-top: 1px; }
+.sf-btnrow { display: flex; gap: 10px; margin-top: 12px; }
+.sf-btn { flex: 1 1 0; height: 56px; border: none; border-radius: 14px; font-size: 16.5px; font-weight: 800; color: #fff; cursor: pointer; font-family: inherit; }
+.sf-btn.ini { background: linear-gradient(180deg, #22c55e, #16a34a); }
+.sf-btn.stop { background: linear-gradient(180deg, #f59e0b, #d97706); }
+.sf-btn.fin { background: #b3261e; }
+.sf-howwas { margin-top: 12px; font-size: 17px; font-weight: 800; }
+.sf-faces { display: flex; gap: 8px; margin-top: 10px; }
+.sf-face { width: 56px; height: 56px; padding: 4px; border-radius: 14px; border: 1.5px solid rgba(255,255,255,.35); background: rgba(255,255,255,.10); cursor: pointer; }
+.sf-face img { width: 100%; height: 100%; object-fit: contain; display: block; }
+.sf-next { display: flex; align-items: baseline; gap: 8px; flex-wrap: wrap; }
+.sf-next-lab { font-size: 11px; font-weight: 800; letter-spacing: .12em; color: rgba(255,255,255,.6); }
+.sf-next-name { font-size: 16.5px; font-weight: 700; }
+.sf-next-pos { font-size: 13px; color: rgba(255,255,255,.65); font-weight: 600; }
+.sf-min { width: 100%; height: 68px; margin-top: auto; border: none; border-radius: 16px; background: #fff; color: #1b2a4a; font-size: 19px; font-weight: 800; letter-spacing: .12em; cursor: pointer; font-family: inherit; }
+.sf-min:active { background: #e2e8f0; }
+
+/* AUTH-464 · LA HOJA DEL ARTÍCULO y la ficha pintan sobre el
+   panel completo (z-48) cuando salen de él: z-49 solo en
+   esta ruta. */
+#sess-article-float { z-index: 49; }
+#train-ex-float.tf-over { z-index: 49; }
+.sf-art-head { display: flex; align-items: center; justify-content: space-between; gap: 10px; margin-bottom: 10px; }
+.sf-art-lab { font-size: 12px; font-weight: 800; letter-spacing: .12em; color: #0d9488; }
+.sf-art-x { width: 44px; height: 44px; flex: none; border-radius: 12px; border: 1px solid rgba(15,23,42,.16); background: #fff; font-size: 16px; cursor: pointer; }
+.sf-art-title { font-size: 22px; font-weight: 800; line-height: 1.3; margin: 4px 0 10px; }
+.sf-art-text { font-size: 17px; line-height: 1.55; white-space: pre-line; }
+.sf-art-listen { width: 100%; min-height: 52px; margin-top: 16px; border: none; border-radius: 14px; background: #0d9488; color: #fff; font-size: 16px; font-weight: 800; cursor: pointer; font-family: inherit; }
 /* Resguardos con el anexo ABIERTO en la píldora (+257) */
 body.sess-on.move-open .foot { padding-bottom: 615px; }
 body.sess-on.move-open #train-content.nav-page-on, body.sess-on.move-open #progress-content.nav-page-on { padding-bottom: 611px; }

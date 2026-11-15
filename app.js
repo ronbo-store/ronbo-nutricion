@@ -6353,6 +6353,14 @@ en: {
      la pastilla sobre el dock y la encuesta de una pregunta. */
   'sess.pillLabel': 'Training · {label}', 'sess.pillPlain': 'Training',
   'sess.pillNext': 'NEXT',
+  'sess.viewBar': 'Bar', 'sess.viewFull': 'Full',
+  'sess.barExpand': 'EXPAND', 'sess.minimize': 'MINIMIZE',
+  'sess.dayMsg': 'MESSAGE OF THE DAY', 'sess.reflToday': "TODAY'S REFLECTION",
+  'sess.articleLine': 'Article · read it or listen to it',
+  'sess.seeHow': 'See how it’s done', 'sess.seeHowSub': 'Video · muscles · grip',
+  'sess.nowLab': 'NOW', 'sess.exRunning': 'in progress',
+  'sess.ofDay': '{p}% of the day',
+  'sess.barLabel': 'Session bar', 'sess.fullLabel': 'Session panel',
   'sess.totalTag': 'SESSION TOTAL', 'sess.totalTagShort': 'TOTAL', 'sess.exPaused': 'paused',
   'sess.pillSub': 'It only stops when you finish, in Training',
   'sess.kicker': 'QUICK SURVEY', 'sess.title': 'Workout finished!',
@@ -11469,6 +11477,14 @@ es: {
      la pastilla sobre el dock y la encuesta de una pregunta. */
   'sess.pillLabel': 'Entrenando · {label}', 'sess.pillPlain': 'Entrenando',
   'sess.pillNext': 'SIGUE',
+  'sess.viewBar': 'Barra', 'sess.viewFull': 'Completa',
+  'sess.barExpand': 'AMPLIAR', 'sess.minimize': 'MINIMIZAR',
+  'sess.dayMsg': 'MENSAJE DEL DÍA', 'sess.reflToday': 'REFLEXIÓN DE HOY',
+  'sess.articleLine': 'Artículo · leerlo o escucharlo',
+  'sess.seeHow': 'Ver cómo se hace', 'sess.seeHowSub': 'Video · músculos · agarre',
+  'sess.nowLab': 'AHORA', 'sess.exRunning': 'en curso',
+  'sess.ofDay': '{p}% del día',
+  'sess.barLabel': 'Barra de la sesión', 'sess.fullLabel': 'Panel de la sesión',
   'sess.totalTag': 'TOTAL DE LA SESIÓN', 'sess.totalTagShort': 'TOTAL', 'sess.exPaused': 'en pausa',
   'sess.pillSub': 'Solo se detiene al finalizar, en Entrenamiento',
   'sess.kicker': 'ENCUESTA RÁPIDA', 'sess.title': '¡Entrenamiento finalizado!',
@@ -32132,7 +32148,7 @@ function coverFocusHome(cover) { // ¿el foco actual ya es válido bajo esta tap
   if (!a || a === document.body || !a.isConnected) return false;
   if (cover.contains(a)) return true;
   if (coverIsSoft(cover) && a.closest && a.closest('.actions-dock')) return true;
-  if ((cover.id === 'progress-content' || cover.id === 'train-content') && (COVER_ALIVE.has(a) || (a.closest && (a.closest('#sess-pill') || a.closest('#sw-mini'))))) return true; // AUTH-129 (+ la mascota viva sobre Entrenamiento, 2026-11-09): el foco en un disco vivo también es «casa»; AUTH-450: y el foco en un botón de la píldora viva
+  if ((cover.id === 'progress-content' || cover.id === 'train-content') && (COVER_ALIVE.has(a) || (a.closest && (a.closest('#sess-pill') || a.closest('#sess-bar') || a.closest('#sw-mini'))))) return true; // AUTH-129 (+ la mascota viva sobre Entrenamiento, 2026-11-09): el foco en un disco vivo también es «casa»; AUTH-450: y el foco en un botón de la píldora viva
   return false;
 }
 function coverEnsureFocus(cover) {
@@ -32177,7 +32193,7 @@ function coverApply(cover) { // (re)aplica los inert para la tapa dada
      toque sobre Entrenamiento ni sobre Progreso. Bajo láminas y
      modales la píldora sigue inerte, como todo el fondo: la tapa
      manda. */
-  if (cover.id === 'progress-content' || cover.id === 'train-content') { const pill = document.getElementById('sess-pill'); if (pill) COVER_ALIVE.add(pill); }
+  if (cover.id === 'progress-content' || cover.id === 'train-content') { const pill = document.getElementById('sess-pill'); if (pill) COVER_ALIVE.add(pill); const bar = document.getElementById('sess-bar'); if (bar) COVER_ALIVE.add(bar); /* AUTH-464: la barra sigue la misma doctrina que la píldora */ }
   /* AUTH-457 · LA PIEZA DEL CRONÓMETRO MINIMIZADO SIGUE LA SUERTE
      DE LA PÍLDORA: vive sobre las dos páginas de la sesión (es
      donde se estaciona cuando la píldora vive) y bajo Progreso
@@ -38492,13 +38508,40 @@ function trainLogMetaHTML(log) {
   return ` <span class="muted train-log-meta">${parts.join(' · ')}</span>`;
 }
 let SESS_PILL_TIMER = null;
+/* ═══ AUTH-464 · EL PANEL AZUL EN TRES ESTADOS: el estado
+   visible de la sesión ('pill' | 'bar' | 'full') vive SOLO
+   en memoria, como los demás estados de pantalla de la
+   casa: la sesión nace en la píldora y al terminar la
+   sesión el estado vuelve a ella. ═══ */
+let SESS_VIEW = 'pill';
+let SESS_BAR_SIG = '';
+let SESS_FULL_SIG = '';
+function sessViewSet(v) {
+  if (v !== 'bar' && v !== 'full') v = 'pill';
+  SESS_VIEW = v;
+  try { sessPillTick(); } catch {}
+  try { coverSync(); } catch {}
+}
 function sessPillTick() {
   const pill = $('sess-pill'); if (!pill) return;
   const run = sessRunning();
-  if (!run) { pill.style.display = 'none'; document.body.classList.remove('sess-on'); try { moveTick(null); } catch {} SESS_PILL_SIG = ''; return; }
-  pill.style.display = '';
+  if (!run) { pill.style.display = 'none'; const b0 = $('sess-bar'); if (b0) b0.style.display = 'none'; const f0 = $('sess-full'); if (f0) f0.style.display = 'none'; document.body.classList.remove('sess-on', 'sess-view-pill', 'sess-view-bar', 'sess-view-full'); SESS_VIEW = 'pill'; SESS_BAR_SIG = ''; SESS_FULL_SIG = ''; try { moveTick(null); } catch {} SESS_PILL_SIG = ''; return; }
   document.body.classList.add('sess-on');
-  try { sessPillSync(run); } catch {}
+  document.body.classList.toggle('sess-view-pill', SESS_VIEW === 'pill');
+  document.body.classList.toggle('sess-view-bar', SESS_VIEW === 'bar');
+  document.body.classList.toggle('sess-view-full', SESS_VIEW === 'full');
+  const barEl = $('sess-bar'), fullEl = $('sess-full');
+  if (SESS_VIEW === 'bar') {
+    pill.style.display = 'none'; if (fullEl) fullEl.style.display = 'none';
+    if (barEl) { barEl.style.display = ''; try { sessBarSync(run); } catch {} }
+  } else if (SESS_VIEW === 'full') {
+    pill.style.display = 'none'; if (barEl) barEl.style.display = 'none';
+    if (fullEl) { fullEl.style.display = ''; try { sessFullSync(run); } catch {} }
+  } else {
+    if (barEl) barEl.style.display = 'none'; if (fullEl) fullEl.style.display = 'none';
+    pill.style.display = '';
+    try { sessPillSync(run); } catch {}
+  }
   try { moveTick(run); } catch {}
   /* AUTH-451 · EL LATIDO DE LA FOTO DEL FLUJO: mientras un
      reloj corre, la foto se refresca cada pocos segundos —
@@ -38560,8 +38603,8 @@ function sessPillSync(run) {
   let pillChip = false;
   let pillFaces = false;
   if (!st) {
-    sig = 'deg|' + (run.label || '') + '|' + movePillSig(run);
-    html = `<div class="sp-main is-deg"><div class="sp-left"><div class="sp-top"><span class="sess-pill-dot" aria-hidden="true"></span><span class="sess-pill-time" id="sess-pill-time">00:00:00</span>${sessTotalTagHTML()}</div><div class="sp-state"><span class="sp-training">${esc(t('sess.pillPlain'))}</span>${run.label ? `<span class="sp-day">${esc(run.label)}</span>` : ''}</div></div></div>` + moveAnnexHTML();
+    sig = 'deg|' + (run.label || '');
+    html = `<div class="sp-main is-deg"><div class="sp-left"><div class="sp-top"><span class="sess-pill-dot" aria-hidden="true"></span><span class="sess-pill-time" id="sess-pill-time">00:00:00</span>${sessTotalTagHTML()}</div><div class="sp-state"><span class="sp-training">${esc(t('sess.pillPlain'))}</span>${run.label ? `<span class="sp-day">${esc(run.label)}</span>` : ''}</div></div></div>` + sessDoorsHTML();
   } else {
     const ck = st.di + ':' + st.cur;
     const curChk = st.checks[ck] || null;
@@ -38572,7 +38615,7 @@ function sessPillSync(run) {
     const doneN = st.eff.filter((_, ei) => { const c = st.checks[st.di + ':' + ei]; return !!(c && c.done === true); }).length;
     const pct = total ? Math.round(100 * doneN / total) : 0;
     const tipPh = (typeof UDATA !== 'undefined' && UDATA && UDATA.photoURL) || '';
-    sig = ['full', st.di, st.cur, st.nxt, curChk ? 1 : 0, flowSt, doneN, total, run.label || '', tipPh ? 'p' + tipPh.length : 'i:' + (((typeof UDATA !== 'undefined' && UDATA && UDATA.name) || ''))].join('|') + '|' + movePillSig(run);
+    sig = ['full', st.di, st.cur, st.nxt, curChk ? 1 : 0, flowSt, doneN, total, run.label || '', tipPh ? 'p' + tipPh.length : 'i:' + (((typeof UDATA !== 'undefined' && UDATA && UDATA.name) || ''))].join('|');
     const curName = trainExName(st.eff[st.cur].ex) || st.eff[st.cur].ex.name || '';
     /* AUTH-434 · LA MÁQUINA DE TRES ESTADOS EN LA
        PÍLDORA — la misma de la tarjeta, leída del mismo
@@ -38620,7 +38663,7 @@ function sessPillSync(run) {
       + `<div class="sp-state"><span class="sp-training">${esc(t('sess.pillPlain'))}</span>${run.label ? `<span class="sp-day">${esc(run.label)}</span>` : ''}</div>`
       + `<div class="sp-cur">${esc(curName)}</div>${chipLine}<div class="sp-btnrow">${btn}${chip}</div></div>`
       + (st.nxt != null ? `<div class="sp-sep" aria-hidden="true"></div><div class="sp-next"><span class="sp-next-lab">${esc(t('sess.pillNext'))}</span><span class="sp-next-name">${esc(trainExName(st.eff[st.nxt].ex) || st.eff[st.nxt].ex.name || '')}</span><span class="sp-next-pos">${esc(t('train.guide.pos', { n: st.nxt + 1, m: total }))}</span></div>` : '')
-      + `</div>` + moveAnnexHTML() + `<div class="sp-franja" aria-hidden="true"><i style="width:${pct}%"></i>${sessPillTipHTML(flameLeft)}</div>`;
+      + `</div>` + sessDoorsHTML() + `<div class="sp-franja" aria-hidden="true"><i style="width:${pct}%"></i>${sessPillTipHTML(flameLeft)}</div>`;
   }
   if (sig !== SESS_PILL_SIG) {
     SESS_PILL_SIG = sig;
@@ -38629,7 +38672,7 @@ function sessPillSync(run) {
     pill.classList.toggle('is-paused', pillPaused);
     pill.classList.toggle('has-exc', pillChip);
     pill.classList.toggle('has-faces', pillFaces);
-    pill.classList.toggle('is-move-min', !!(MOVE.open && MOVE.listening));
+    /* AUTH-464: sin anexo ya no hay clase de escucha en la píldora. */
     pill.setAttribute('aria-label', run.label ? t('sess.pillLabel', { label: run.label }) : t('sess.pillPlain'));
   }
   const tEl = $('sess-pill-time');
@@ -38660,7 +38703,7 @@ function sessPillSync(run) {
     const exTxt = '⏱ ' + sessFmtExClock(flowClockMs(st.di + ':' + st.cur));
     cEls.forEach(el => { el.textContent = exTxt; });
   }
-  try { moveFoldWatch(st); } catch {}
+  /* AUTH-464: moveFoldWatch vigilaba el anexo de la píldora; sin anexo, nada que vigilar aquí. */
 }
 /* El cableado de la píldora gruesa: UN oyente delegado (el
    patrón delegado de la casa). «Finalizar» e «Iniciar» mutan el
@@ -38812,10 +38855,361 @@ function sessPillWire(pill) {
 function sessPillInit() {
   const pill = $('sess-pill'); if (!pill) return;
   sessPillWire(pill);
+  try { sessPanelWire($('sess-bar'), 'bar'); } catch {}
+  try { sessPanelWire($('sess-full'), 'full'); } catch {}
   if (SESS_PILL_TIMER) clearInterval(SESS_PILL_TIMER);
   SESS_PILL_TIMER = setInterval(sessPillTick, 1000);
   sessPillTick();
 }
+/* ═══════════════════════════════════════════════════════════
+   AUTH-464 · EL PANEL AZUL EN TRES ESTADOS
+   La píldora gana dos puertas y pierde el anexo de
+   «Mientras te mueves» (D3); nace la BARRA minimizada y la
+   PANTALLA COMPLETA con el mensaje del día en grande y la
+   reflexión de hoy. Las tres superficies comparten la
+   máquina de estados de siempre (trainBarState + TRAIN_FLOW)
+   y los mismos gestos data-pill-*: nada se duplica en
+   significado, solo se pinta en tres tamaños.
+   ═══════════════════════════════════════════════════════════ */
+/* Las dos puertas de la píldora: botones explícitos de
+   44 px en la esquina superior (bajar a la barra · subir a
+   la completa), SIN resucitar la navegación por toque en
+   el cuerpo que AUTH-454 retiró. Coste de altura: 0 px. */
+function sessDoorsHTML() {
+  return `<div class="sp-doors"><button type="button" class="sp-door" data-sess-view="full" aria-label="${esc(t('sess.viewFull'))}"><span class="sp-door-g" aria-hidden="true">⤢</span><small>${esc(t('sess.viewFull'))}</small></button><button type="button" class="sp-door" data-sess-view="bar" aria-label="${esc(t('sess.viewBar'))}"><span class="sp-door-g" aria-hidden="true">⌄</span><small>${esc(t('sess.viewBar'))}</small></button></div>`;
+}
+/* ── LA BARRA: solo el tiempo del ejercicio activo, su
+   nombre y Detener/Finalizar según la misma máquina de
+   estados. Su zona Ampliar (un solo botón con el tiempo y
+   el nombre, precedente AUTH-457) vuelve a la PÍLDORA
+   (D2-bis). En cierre con pregunta, la barra enseña la
+   puerta a la píldora, donde viven las caras (S3). ── */
+function sessBarSync(run) {
+  const bar = $('sess-bar'); if (!bar) return;
+  let st = null; try { st = trainBarState(); } catch {}
+  let sig, html;
+  if (!st) {
+    /* Sin estado del día: la barra honesta — solo la puerta
+       para ampliar, con el día; ningún reloj inventado. */
+    sig = 'deg|' + (run.label || '');
+    html = `<button type="button" class="sb-main" data-sess-view="pill"><span class="sb-up"><span class="sb-chev" aria-hidden="true">⌃</span><span class="sb-expand">${esc(t('sess.barExpand'))}</span></span><span class="sb-name">${esc(run.label || t('sess.pillPlain'))}</span></button>`;
+  } else {
+    const ck = st.di + ':' + st.cur;
+    const curChk = st.checks[ck] || null;
+    let flowSt = '';
+    try { if (TRAIN_CHECKS_CTX === st.plan.id + '|' + todayISO() && TRAIN_FLOW[ck]) flowSt = TRAIN_FLOW[ck].st || ''; } catch {}
+    const curName = trainExName(st.eff[st.cur].ex) || st.eff[st.cur].ex.name || '';
+    sig = ['bar', st.di, st.cur, curChk ? 1 : 0, flowSt, run.label || ''].join('|');
+    let btns;
+    if (!curChk) btns = `<button type="button" class="sb-btn ini" data-pill-start="${ck}">${esc(t('train.flow.start'))}</button>`;
+    else if (flowSt === 'closing') btns = flowHasData(curChk) ? `<button type="button" class="sb-btn how" data-sess-view="pill">${esc(t('train.flow.howWas'))} ›</button>` : '';
+    else if (flowSt === 'paused') btns = `<button type="button" class="sb-btn ini" data-pill-resume="${ck}">${esc(t('train.flow.resume'))}</button><button type="button" class="sb-btn fin" data-pill-finish="${ck}">${esc(t('train.flow.finish'))}</button>`;
+    else if (flowSt === 'open') btns = `<button type="button" class="sb-btn stop" data-pill-pause="${ck}">${esc(t('train.flow.pause'))}</button><button type="button" class="sb-btn fin" data-pill-finish="${ck}">${esc(t('train.flow.finish'))}</button>`;
+    else btns = `<button type="button" class="sb-btn ini" data-pill-resume="${ck}">${esc(t('train.flow.resume'))}</button>`;
+    const clock = curChk && flowSt !== 'closing'
+      ? `<span class="sb-clock"><span class="sess-bar-exclock">⏱ 0:00</span>${flowSt === 'paused' ? `<span class="sb-paused"> · ${esc(t('sess.exPaused'))}</span>` : ''}</span>` : '';
+    html = `<button type="button" class="sb-main" data-sess-view="pill"><span class="sb-up"><span class="sb-chev" aria-hidden="true">⌃</span><span class="sb-expand">${esc(t('sess.barExpand'))}</span></span>${clock}<span class="sb-name">${esc(curName)}</span></button>`
+      + `<div class="sb-btns">${btns}</div>`;
+  }
+  if (sig !== SESS_BAR_SIG) {
+    SESS_BAR_SIG = sig;
+    bar.innerHTML = html;
+    bar.setAttribute('aria-label', t('sess.barLabel'));
+  }
+  if (st) {
+    const cEls = bar.querySelectorAll('.sess-bar-exclock');
+    if (cEls.length) {
+      const exTxt = '⏱ ' + sessFmtExClock(flowClockMs(st.di + ':' + st.cur));
+      cEls.forEach(el => { el.textContent = exTxt; });
+    }
+  }
+}
+/* ── LA REFLEXIÓN DE HOY (R1 de Ronald: UNA sola por día,
+   fija en el día, sin «Siguiente» nunca): se elige del
+   banco ACTIVO de «Mientras te mueves» — el saneado de
+   siempre (moveActive: ordenado por (order, id), sin
+   pendientes) — por una regla de fecha DETERMINISTA y sin
+   IA: índice = días desde 1970-01-01 (UTC) de la fecha
+   local de hoy, módulo nº de tarjetas activas; la misma
+   aritmética de shareMsgForDate. Mismo banco y mismo día
+   ⇒ la misma reflexión en cualquier aparato. Nada se
+   guarda: se deriva al pintar. Si el propietario edita el
+   banco a mitad de día, la elección puede cambiar con él.
+   Sin tarjetas activas: el vacío honesto de siempre. ── */
+const SESS_REFL_LONG = 240;
+function sessReflOfDay() {
+  let act = [];
+  try { act = moveActive(); } catch {}
+  if (!act.length) return null;
+  const parts = todayISO().split('-').map(Number);
+  if (parts.length !== 3 || !parts[0]) return null;
+  const days = Math.floor(Date.UTC(parts[0], parts[1] - 1, parts[2]) / 86400000);
+  const e = act[((days % act.length) + act.length) % act.length];
+  const body = moveBodyOf(e);
+  const title = moveTitleOf(e);
+  const text = body[LANG] || body.en || body.es || '';
+  const tt = title[LANG] || title.en || title.es || '';
+  return { e, title: tt, text, long: text.length > SESS_REFL_LONG };
+}
+/* El titular de un artículo sin título propio: sus primeras
+   palabras (recorte de exhibición de su propio arranque,
+   nunca un texto nuevo). */
+function sessReflHeadline(r) {
+  if (r.title) return r.title;
+  const flat = String(r.text || '').replace(/\s+/g, ' ').trim();
+  if (flat.length <= 64) return flat;
+  const cut = flat.slice(0, 64);
+  const sp = cut.lastIndexOf(' ');
+  return (sp > 24 ? cut.slice(0, sp) : cut) + '…';
+}
+function sessReflHTML() {
+  const r = sessReflOfDay();
+  const lab = `<div class="sf-card-lab">📖 ${esc(t('sess.reflToday'))}</div>`;
+  if (!r) return `<div class="sf-card">${lab}<div class="sf-refl-text">${esc(t('move.empty'))}</div></div>`;
+  const famKey = { motiv: 'move.famMotiv', cap: 'move.famCap', tip: 'move.famTip', clave: 'move.famClave' }[r.e.fam] || '';
+  const fam = famKey ? `<div class="sf-refl-fam">${esc(t(famKey))}</div>` : '';
+  if (r.long) {
+    /* R4: artículo — solo el título y la línea que abre su
+       hoja; el cuerpo NO viaja en el panel. */
+    return `<div class="sf-card">${lab}${fam}<div class="sf-refl-title">${esc(sessReflHeadline(r))}</div><button type="button" class="sf-refl-line" data-sess-art="open">${esc(t('sess.articleLine'))} ›</button></div>`;
+  }
+  /* R3: frase corta — entera, con su fuente, y SIN botón de
+     escuchar: esa voz no es cercana ni reflexiva (palabra
+     de Ronald, 2026-11-14). La escucha vive solo dentro de
+     la hoja del artículo. */
+  const full = moveCardText({ kind: 'bank', e: r.e });
+  return `<div class="sf-card">${lab}${fam}<div class="sf-refl-text">${esc(full)}</div>${r.e.src ? `<div class="sf-refl-src">${esc(r.e.src)}</div>` : ''}</div>`;
+}
+/* ── LA HOJA DEL ARTÍCULO: el texto completo de la
+   reflexión larga y, SOLO aquí dentro, su escucha
+   (asstSpeak, la voz de siempre de las tarjetas). ── */
+let SESS_ART = null;
+function sessArticleOpen() {
+  const r = sessReflOfDay(); if (!r) return;
+  SESS_ART = { id: r.e.id, listening: false };
+  sessArticlePaint();
+  const fl = $('sess-article-float'); if (fl) fl.style.display = 'block';
+  try { coverSync(); } catch {}
+}
+function sessArticlePaint() {
+  const fl = $('sess-article-float'); if (!fl || !SESS_ART) return;
+  let e = null;
+  try { e = moveActive().find(x => x.id === SESS_ART.id) || null; } catch {}
+  if (!e) { sessArticleClose(); return; }
+  const title = moveTitleOf(e), body = moveBodyOf(e);
+  const tt = title[LANG] || title.en || title.es || '';
+  const tx = body[LANG] || body.en || body.es || '';
+  const famKey = { motiv: 'move.famMotiv', cap: 'move.famCap', tip: 'move.famTip', clave: 'move.famClave' }[e.fam] || '';
+  fl.innerHTML = `<div class="sf-art-head"><span class="sf-art-lab">📖 ${esc(t('sess.reflToday'))}</span><button type="button" class="sf-art-x" data-sess-art="close" aria-label="${esc(t('move.close'))}">✕</button></div>`
+    + (famKey ? `<div class="sf-refl-fam">${esc(t(famKey))}</div>` : '')
+    + (tt ? `<div class="sf-art-title">${esc(tt)}</div>` : '')
+    + `<div class="sf-art-text">${esc(tx)}</div>`
+    + (e.src ? `<div class="sf-refl-src">${esc(e.src)}</div>` : '')
+    + `<button type="button" class="sf-art-listen" data-sess-art="listen">${SESS_ART.listening ? '🔇 ' + esc(t('move.stopListen')) : '🔊 ' + esc(t('move.listen'))}</button>`;
+}
+function sessArticleClose() {
+  if (SESS_ART && SESS_ART.listening) { try { asstStopSpeak(); } catch {} }
+  SESS_ART = null;
+  const fl = $('sess-article-float'); if (fl) { fl.style.display = 'none'; fl.innerHTML = ''; }
+  try { coverSync(); } catch {}
+}
+/* ── LA PANTALLA COMPLETA: el reloj total en grande, la
+   franja con la foto del usuario, el MENSAJE DEL DÍA (la
+   misma frase de la cabecera del día, leída con su misma
+   función), la REFLEXIÓN DE HOY, el ejercicio actual con
+   botones grandes y la puerta a su ficha, el SIGUE y el
+   MINIMIZAR grande que baja DIRECTO a la barra (D2). Sin
+   ✕: minimizar es su única salida. No se abre sola. ── */
+function sessFullSync(run) {
+  const full = $('sess-full'); if (!full) return;
+  let st = null; try { st = trainBarState(); } catch {}
+  const msg = shareMsgRevealedFor(todayISO());
+  const refl = sessReflOfDay();
+  const head = `<div class="sf-head"><span class="sess-pill-dot" aria-hidden="true"></span><span class="sf-training">${esc(t('sess.pillPlain'))}</span>${run.label ? `<span class="sf-day">${esc(run.label)}</span>` : ''}</div>`;
+  const clockBlk = `<div class="sf-clockrow"><span class="sf-clock" id="sess-full-time">00:00:00</span>${sessTotalTagHTML()}</div>`;
+  const msgBlk = msg ? `<div class="sf-card"><div class="sf-card-lab">${esc(t('sess.dayMsg'))}</div><div class="sf-msg"><span class="sf-msg-ic" aria-hidden="true">${esc(msg.icon || '🌟')}</span><span class="sf-msg-text">${esc(msg.text)}</span></div></div>` : '';
+  const minBtn = `<button type="button" class="sf-min" data-sess-view="bar">⌄ ${esc(t('sess.minimize'))}</button>`;
+  let sig, html;
+  if (!st) {
+    /* Sin estado del día: reloj, día, mensaje y reflexión —
+       ningún ejercicio inventado. */
+    sig = ['fdeg', run.label || '', msg ? msg.text : '', refl ? refl.e.id : '', LANG, todayISO()].join('|');
+    html = `<div class="sf-col">${head}${clockBlk}${msgBlk}${sessReflHTML()}${minBtn}</div>`;
+  } else {
+    const ck = st.di + ':' + st.cur;
+    const curChk = st.checks[ck] || null;
+    let flowSt = '';
+    try { if (TRAIN_CHECKS_CTX === st.plan.id + '|' + todayISO() && TRAIN_FLOW[ck]) flowSt = TRAIN_FLOW[ck].st || ''; } catch {}
+    const total = st.eff.length;
+    const doneN = st.eff.reduce((a, _x, i2) => a + ((st.checks[st.di + ':' + i2] || {}).done === true ? 1 : 0), 0);
+    const pct = total ? Math.round(doneN * 100 / total) : 0;
+    const flameLeft = pct <= 8 ? '13px' : (pct >= 92 ? 'calc(100% - 13px)' : pct + '%');
+    const curName = trainExName(st.eff[st.cur].ex) || st.eff[st.cur].ex.name || '';
+    const pos = t('train.guide.pos', { n: st.cur + 1, m: total });
+    let acts;
+    if (!curChk) acts = `<div class="sf-btnrow"><button type="button" class="sf-btn ini" data-pill-start="${ck}">${esc(t('train.flow.start'))}</button></div>`;
+    else if (flowSt === 'closing') acts = flowHasData(curChk)
+      ? `<div class="sf-howwas">${esc(t('train.flow.howWas'))}</div><div class="sf-faces">${[1, 2, 3, 4, 5].map(n => `<button type="button" class="sf-face" data-pill-face="${ck}:${n}" aria-label="${esc(t('train.flow.band.' + n))} · ${esc(t('train.flow.face.' + n))}"><img src="${FLOW_FACE_URLS[n - 1]}" alt="" loading="lazy" onerror="this.remove()"></button>`).join('')}</div>`
+      : `<div class="sf-howwas">${esc(t('train.flow.doneMsg'))}</div>`;
+    else if (flowSt === 'paused') acts = `<div class="sf-btnrow"><button type="button" class="sf-btn ini" data-pill-resume="${ck}">${esc(t('train.flow.resume'))}</button><button type="button" class="sf-btn fin" data-pill-finish="${ck}">${esc(t('train.flow.finish'))}</button></div>`;
+    else if (flowSt === 'open') acts = `<div class="sf-btnrow"><button type="button" class="sf-btn stop" data-pill-pause="${ck}">${esc(t('train.flow.pause'))}</button><button type="button" class="sf-btn fin" data-pill-finish="${ck}">${esc(t('train.flow.finish'))}</button></div>`;
+    else acts = `<div class="sf-btnrow"><button type="button" class="sf-btn ini" data-pill-resume="${ck}">${esc(t('train.flow.resume'))}</button></div>`;
+    const exState = flowSt === 'paused'
+      ? `<span class="sess-full-exclock">⏱ 0:00</span><span class="sf-paused">${esc(t('sess.exPaused'))}</span>`
+      : (curChk && flowSt !== 'closing' ? `<span class="sess-full-exclock">⏱ 0:00</span><span class="sf-running">${esc(t('sess.exRunning'))}</span>` : '');
+    const nowBlk = `<div class="sf-now"><div class="sf-now-lab">${esc(t('sess.nowLab'))} · ${esc(pos)}</div><div class="sf-name">${esc(curName)}</div>`
+      + (exState ? `<div class="sf-exrow">${exState}</div>` : '')
+      + `<button type="button" class="sf-how" data-sess-ficha="1"><span class="sf-how-play" aria-hidden="true">▶</span><span class="sf-how-tx"><b>${esc(t('sess.seeHow'))}</b><small>${esc(t('sess.seeHowSub'))}</small></span></button>`
+      + acts + `</div>`;
+    const nxtBlk = (st.nxt != null && st.nxt !== st.cur)
+      ? `<div class="sf-next"><span class="sf-next-lab">${esc(t('sess.pillNext'))}</span><span class="sf-next-name">${esc(trainExName(st.eff[st.nxt].ex) || st.eff[st.nxt].ex.name || '')}</span><span class="sf-next-pos">${esc(t('train.guide.pos', { n: st.nxt + 1, m: total }))}</span></div>` : '';
+    const franja = `<div class="sf-franja" aria-hidden="true"><i style="width:${pct}%"></i>${sessPillTipHTML(flameLeft)}</div><div class="sf-prog">${esc(pos)} · ${esc(t('sess.ofDay', { p: pct }))}</div>`;
+    sig = ['full', st.di, st.cur, st.nxt, curChk ? 1 : 0, flowSt, doneN, total, run.label || '', msg ? msg.text : '', refl ? refl.e.id : '', LANG, todayISO()].join('|');
+    html = `<div class="sf-col">${head}${clockBlk}${franja}${msgBlk}${sessReflHTML()}${nowBlk}${nxtBlk}${minBtn}</div>`;
+  }
+  if (sig !== SESS_FULL_SIG) {
+    SESS_FULL_SIG = sig;
+    full.innerHTML = html;
+    full.setAttribute('aria-label', t('sess.fullLabel'));
+  }
+  const tEl = $('sess-full-time');
+  if (tEl) tEl.textContent = sessFmtClock(Date.now() - run.start);
+  if (st) {
+    const cEls = full.querySelectorAll('.sess-full-exclock');
+    if (cEls.length) {
+      const exTxt = '⏱ ' + sessFmtExClock(flowClockMs(st.di + ':' + st.cur));
+      cEls.forEach(el => { el.textContent = exTxt; });
+    }
+  }
+}
+/* ── LA PUERTA «VER CÓMO SE HACE» (R2): abre la ficha
+   EXISTENTE del ejercicio como hoja sobre el panel, sin
+   salir de la sesión — por la Biblioteca si el ejercicio
+   está vinculado (su ficha en solo lectura), o por la
+   ficha de la sesión si no lo está. La clase tf-over la
+   pinta sobre el panel SOLO en esta ruta; trainFloatClose
+   la retira siempre al cerrar. ── */
+function sessFullFichaOpen() {
+  let st = null; try { st = trainBarState(); } catch {}
+  if (!st) return;
+  const fl = $('train-ex-float'); if (!fl) return;
+  fl.classList.add('tf-over');
+  const exNow = (st.eff[st.cur] && st.eff[st.cur].ex) || {};
+  if (exNow.exerciseId) { try { libCardOpen(exNow.exerciseId); } catch {} return; }
+  let logs = [];
+  try { logs = (typeof MY_LOGS_ALL !== 'undefined' && Array.isArray(MY_LOGS_ALL)) ? MY_LOGS_ALL : []; } catch {}
+  try { trainFloatOpen(st.plan, logs, st.di, st.cur, 'edit', todayISO()); } catch {}
+}
+/* ── EL CABLEADO DE LA BARRA Y DE LA COMPLETA: los MISMOS
+   gestos de la píldora (data-pill-*), con los mismos
+   primitivos y la misma guarda de contexto, pero actuando
+   EN EL SITIO — sin la cola de navegación de la píldora
+   (AUTH-454): estas dos superficies existen para controlar
+   la sesión sin ir a ninguna parte. ── */
+function sessPanelWire(el, surface) {
+  if (!el || el.dataset.panelWired) return;
+  el.dataset.panelWired = '1';
+  el.addEventListener('click', ev => {
+    const run = sessRunning(); if (!run) return;
+    const fd = ev.target.closest ? ev.target.closest('[data-sess-ficha]') : null;
+    if (fd) { ev.stopPropagation(); try { sessFullFichaOpen(); } catch {} return; }
+    const fac = ev.target.closest ? ev.target.closest('[data-pill-face]') : null;
+    if (fac) {
+      const planF = (typeof MY_PLAN !== 'undefined') ? MY_PLAN : null;
+      if (planF && TRAIN_CHECKS_CTX === planF.id + '|' + todayISO()) {
+        const partsF = String(fac.dataset.pillFace).split(':');
+        flowResolveClosing(planF, partsF[0] + ':' + partsF[1], Number(partsF[2]));
+      }
+      try { sessPillTick(); } catch {}
+      return;
+    }
+    const fin = ev.target.closest ? ev.target.closest('[data-pill-finish]') : null;
+    const ini = !fin && ev.target.closest ? ev.target.closest('[data-pill-start]') : null;
+    const pau = !fin && !ini && ev.target.closest ? ev.target.closest('[data-pill-pause]') : null;
+    const res = !fin && !ini && !pau && ev.target.closest ? ev.target.closest('[data-pill-resume]') : null;
+    if (!(fin || ini || pau || res)) return;
+    const plan = (typeof MY_PLAN !== 'undefined') ? MY_PLAN : null;
+    if (plan && TRAIN_CHECKS_CTX === plan.id + '|' + todayISO()) {
+      if (fin) {
+        const key = fin.dataset.pillFinish;
+        const chk = TRAIN_CHECKS[key];
+        if (chk && chk.done !== true) {
+          flowClockBank(key);
+          trainChecksPersist(plan.id);
+          flowSealDone(plan, key);
+          flowEnterClosing(plan, key);
+          if (trainGuidePref() === 'guided' && TRAIN_FLOW[key] && TRAIN_FLOW[key].st === 'closing') TRAIN_GUIDE.pin = Number(key.split(':')[1]);
+        }
+      } else if (ini) {
+        const key = ini.dataset.pillStart;
+        const [diB, eiB] = key.split(':').map(Number);
+        const it = trainEffectiveList(plan, diB)[eiB];
+        if (it && !(TRAIN_CHECKS[key] && TRAIN_CHECKS[key].done === true)) {
+          if (!TRAIN_CHECKS[key]) { TRAIN_CHECKS[key] = { rpe: null, sets: trainDefaultSets(it.ex) }; trainChecksPersist(plan.id); }
+          flowStartReconcile(plan, key);
+          TRAIN_FLOW[key] = { st: 'open', face: null, acc: (TRAIN_CHECKS[key] && typeof TRAIN_CHECKS[key].activeSec === 'number' && TRAIN_CHECKS[key].activeSec > 0) ? TRAIN_CHECKS[key].activeSec * 1000 : 0, since: Date.now() };
+        }
+      } else if (pau) {
+        const key = pau.dataset.pillPause;
+        const chk = TRAIN_CHECKS[key];
+        if (chk && chk.done !== true && TRAIN_FLOW[key] && TRAIN_FLOW[key].st === 'open') {
+          flowClockBank(key);
+          TRAIN_FLOW[key].st = 'paused';
+          trainChecksPersist(plan.id);
+        }
+      } else if (res) {
+        const key = res.dataset.pillResume;
+        const chk = TRAIN_CHECKS[key];
+        if (chk && chk.done !== true) {
+          flowStartReconcile(plan, key);
+          if (TRAIN_FLOW[key] && TRAIN_FLOW[key].st === 'paused') { TRAIN_FLOW[key].st = 'open'; TRAIN_FLOW[key].since = Date.now(); }
+          else if (!TRAIN_FLOW[key]) TRAIN_FLOW[key] = { st: 'open', face: Number.isInteger(chk.face) ? chk.face : null, acc: (typeof chk.activeSec === 'number' && chk.activeSec > 0) ? chk.activeSec * 1000 : 0, since: Date.now() };
+        }
+      }
+      /* S3: finalizar DESDE LA BARRA con la pregunta viva
+         sube a la píldora, donde viven las caras. */
+      if (surface === 'bar' && fin) {
+        const key2 = fin.dataset.pillFinish;
+        if (TRAIN_FLOW[key2] && TRAIN_FLOW[key2].st === 'closing' && TRAIN_CHECKS[key2] && flowHasData(TRAIN_CHECKS[key2])) {
+          sessViewSet('pill');
+          return;
+        }
+      }
+    }
+    try { sessPillTick(); } catch {}
+  });
+}
+/* Las puertas de estado (data-sess-view) viven en las tres
+   superficies: un solo oyente de documento las atiende,
+   como el de data-move-act. Cambiar de estado no navega:
+   solo cambia qué superficie del panel se ve. */
+document.addEventListener('click', ev => {
+  const b = (ev.target && ev.target.closest) ? ev.target.closest('[data-sess-view]') : null;
+  if (!b) return;
+  sessViewSet(b.dataset.sessView);
+});
+/* La hoja del artículo: abrir (desde la línea de la
+   completa), cerrar y escuchar viven en un solo oyente. */
+document.addEventListener('click', ev => {
+  const b = (ev.target && ev.target.closest) ? ev.target.closest('[data-sess-art]') : null;
+  if (!b) return;
+  const act = b.dataset.sessArt;
+  if (act === 'open') { try { sessArticleOpen(); } catch {} }
+  else if (act === 'close') { try { sessArticleClose(); } catch {} }
+  else if (act === 'listen' && SESS_ART) {
+    let e = null;
+    try { e = moveActive().find(x => x.id === SESS_ART.id) || null; } catch {}
+    if (!e) return;
+    if (SESS_ART.listening) { SESS_ART.listening = false; try { asstStopSpeak(); } catch {} }
+    else {
+      const body = moveBodyOf(e);
+      const tx = body[LANG] || body.en || body.es || '';
+      SESS_ART.listening = true;
+      try { asstSpeak(tx); } catch {}
+    }
+    try { sessArticlePaint(); } catch {}
+  }
+});
 /* ═══ AUTH-425 · LA BARRA FINA DEL ENTRENO, RETIRADA
    (orden de Ronald, 2026-11-12 11:00 CST: «Quita la barra de
    arriba, ya la tenemos bien hecha abajo»): la barra fina de
@@ -41506,8 +41900,13 @@ function moveAdvance() {
 function moveAct(act, el) {
   const ds = (el && el.dataset) || {};
   if (act === 'open') {
-    moveOpen(ds.movePlan ? 'block' : (sessRunning() ? 'pill' : (MOVE.house || 'block')),
-      ds.movePlan || null, ds.moveIso || null);
+    /* AUTH-464 (D3): con la sesión corriendo el panel ya no
+       se abre en ninguna parte: la píldora perdió su anexo y
+       la reflexión de la sesión vive en la pantalla completa
+       del panel azul. Antes de la sesión, la casa es el
+       bloque de la tarjeta del día, como siempre. */
+    if (sessRunning()) return;
+    moveOpen('block', ds.movePlan || null, ds.moveIso || null);
   }
   else if (act === 'close') moveFold();
   else if (act === 'next') { if (!MOVE.farewell) moveAdvance(); }
@@ -41526,13 +41925,13 @@ function moveFoldWatch() {
 }
 function moveTick(run) {
   if (MOVE.open && run && MOVE.house === 'block') {
-    MOVE.house = 'pill';
-    MOVE.rot = moveRotation('pill');
-    if (MOVE.idx >= MOVE.rot.length) MOVE.idx = 0;
-    MOVE.base = moveWatchState();
-    const c2 = moveWarmCtx();
-    MOVE.winArmed = !!(c2.warm && c2.startMs && (Date.now() - c2.startMs) / 60000 < c2.warm.minutes);
-    moveRepaint(run);
+    /* AUTH-464 (D3): al arrancar la sesión el panel se
+       RECOGE en vez de migrar a la píldora — su anexo se
+       retiró y, durante la sesión, la zona del bloque queda
+       oculta por CSS: un panel invisible que siguiera
+       escuchando sería una trampa. La reflexión de la
+       sesión vive en la pantalla completa del panel azul. */
+    moveCloseAll();
   }
   if (MOVE.open && !run && MOVE.house === 'pill') { moveCloseAll(); return; }
   if (!MOVE.open) { try { moveBodySync(); } catch {} return; }
@@ -43816,6 +44215,7 @@ async function libCardOpen(id) {
 function trainFloatClose() {
   const fl = $('train-ex-float');
   if (!fl) return;
+  fl.classList.remove('tf-over'); /* AUTH-464: si la ficha venía sobre el panel completo, vuelve a su z de siempre. */
   /* La ventana de ruedas vive FUERA de la hoja (a nivel de
      documento): si la ficha se cierra con ella abierta, la
      ventana se recoge también. */
@@ -62085,11 +62485,19 @@ function swMiniPaint() {
    bottom en línea y manda el CSS. */
 function swMiniPark(mini) {
   const pill = $('sess-pill');
-  const pv = pill && document.body.classList.contains('sess-on') && pill.getClientRects().length
-    && getComputedStyle(pill).display !== 'none' && getComputedStyle(pill).visibility !== 'hidden';
+  /* AUTH-464: la superficie medida es la VISIBLE del panel
+     de la sesión — la barra si se ve; si no, la píldora. La
+     completa es una tapa: con ella abierta no hay superficie
+     viva y la pieza se retira con el fondo, como manda la
+     doctrina de cubiertas. */
+  const barEl = $('sess-bar');
+  const swVis = el => !!(el && document.body.classList.contains('sess-on') && el.getClientRects().length
+    && getComputedStyle(el).display !== 'none' && getComputedStyle(el).visibility !== 'hidden');
+  const surf = swVis(barEl) ? barEl : (swVis(pill) ? pill : null);
+  const pv = !!surf;
   if (!pv) { if (mini.style.bottom) mini.style.bottom = ''; return; }
   const H = window.innerHeight;
-  let d = H - pill.getBoundingClientRect().top + 14;
+  let d = H - surf.getBoundingClientRect().top + 14;
   mini.style.bottom = d + 'px';
   for (let pass = 0; pass < 4; pass++) {
     const r = mini.getBoundingClientRect();
